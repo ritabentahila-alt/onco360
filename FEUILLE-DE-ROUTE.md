@@ -76,15 +76,18 @@ Proposition, à valider avec Dr Bentahila :
       du stockage.
 
 **1B – Consultations (journal médical)** (fait, testé et mis en ligne le 07/10)
-- [x] « Nouvelle consultation » : titre à remplir (titres proposés), date du jour (modifiable), note ; nom de la personne
-      qui l'a créée. Créée **à la main** par le médecin ou la secrétaire : marquer un rendez-vous « Venu » ne crée rien.
+- [x] « Nouvelle consultation » : **menu déroulant** (Consultation de suivi, d'annonce, de chimiothérapie…) **et titre à
+      remplir** (ex. « J1C1 FOLFOX »), date du jour (modifiable), note ; nom de la personne qui l'a créée. Affiché :
+      « Consultation de chimiothérapie · J1C1 FOLFOX » (retouche du 07/10). Créée **à la main** par le médecin ou la secrétaire : marquer un rendez-vous « Venu » ne crée rien.
 - [x] À l'intérieur : ligne **Note** (texte libre, à la place de « Motif Cs »), avec le nom de son auteur à droite.
 - [ ] Chaque prescription faite ajoute une ligne : « Médic. — Amlodipine 5 mg », « Analyses — NFS Urée Créatinine »,
       « Examens compl. — … », « Ordo type — … », « Courrier — … ». Clic sur la ligne = revoir le document.
       → l'affichage des lignes est prêt (champ `lignes`) ; elles seront ajoutées par les ordonnances (1C à 1E).
 - [x] Consultations **pliables** (date + titre + auteur), la plus récente ouverte ; un clic plie / déplie.
-- [x] Sous la consultation ouverte, barre de 5 boutons : **Médic. ▾ · Examens compl. ▾ · Ordo. type ▾ · Analyses ▾ ·
-      Courriers ▾** (pictogrammes). Pour l'instant un message « bientôt disponible » (construits en 1C à 1E).
+- [x] Barre de 5 boutons **indépendante des consultations, en bas de l'onglet** (retouche du 07/10) : **Médic. ▾ ·
+      Examens compl. ▾ · Ordo. type ▾ · Analyses ▾ · Courriers ▾** (pictogrammes). Une ordonnance faite depuis cette barre
+      s'ajoutera **en ligne dans la consultation du jour** (« Médic. — … »). Pour l'instant « bientôt disponible »
+      (construits en 1C à 1E).
 - [x] **Modifier** (titre, date, note) : médecin et secrétaire ; **Supprimer** : médecin seulement (avec confirmation).
 - [x] Données : collection `consultations` (une fiche par consultation, avec le patient et son établissement ; pas une
       sous-collection, pour que la copie Drive la sauvegarde aussi). Règles de sécurité : **lecture par tous les membres**
@@ -103,6 +106,9 @@ Proposition, à valider avec Dr Bentahila :
       Onco360 en premier** (mise à niveau des droits de l'équipe) avant que la secrétaire écrive une consultation.
 
 **1C – Médicaments et ordonnance** (le moteur commun)
+- [ ] **À décider au début de 1C** : s'il n'y a pas encore de consultation à la date du jour quand on valide une
+      ordonnance, proposition : Onco360 en crée une automatiquement (« Consultation de suivi », sans titre), où la ligne
+      « Médic. — … » s'ajoute.
 - [ ] Liste de tous les médicaments du cabinet : **Recherche** ; colonnes Médicament, Posologie ; **+** ajouter,
       **✎** modifier, **✕** supprimer.
 - [ ] « + » : Nom du médicament (ex. ABIRATERONE 250 mg) + Posologie (ex. 4 comprimés par jour le matin pendant 1 mois)
@@ -278,3 +284,4 @@ Décisions déjà prises :
 | 07/10/2026 | 1A – Onglets | Infirmière : Consultation (lecture), Chimiothérapie ouverte en premier, Radiothérapie (lecture). Testé (3 rôles, bilan 352 317 DH). Mis en ligne. |
 | 07/10/2026 | 1B – Consultations | Journal des consultations (créer, plier, modifier, supprimer), barre des 5 prescriptions (à venir), nouveau droit d'écriture, secrétaire : chimio en lecture. Testé (3 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |
 | 07/10/2026 | 1B – Consultations | Mis en ligne (site + règles de sécurité). |
+| 07/10/2026 | 1B – Consultations | Retouches : menu déroulant + titre libre (ex. J1C1 FOLFOX) ; barre des prescriptions indépendante, en bas de l'onglet. Testé (ordinateur, 390 px). Pas encore en ligne. |
