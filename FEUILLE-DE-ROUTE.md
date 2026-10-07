@@ -210,7 +210,7 @@ de leur radiothérapie :
 - [ ] **Règle (07/10) : tout ce qui est fait pour Médic. vaut pour Ordo. type et Analyses** (et les autres familles) :
       liste avec recherche + / ✎ / ✕, double-clic, ordonnance A5/A4 modifiable, consultation du jour, antécédents
       (Imprimer · Supprimer · Modifier = liste rouverte à la date de prescription · Renouveler · Fermer).
-- [x] **Examens compl.** (fait et testé le 08/10, en attente de la relecture de Dr Bentahila avant mise en ligne) : fichier
+- [x] **Examens compl.** (fait et testé le 07/10, en attente de la relecture de Dr Bentahila avant mise en ligne) : fichier
       `Examens_Complementaires_Oncologie.xlsx` (42 examens) rangé → **55 examens, 7 bilans d'imagerie**
       (`public/js/donnees/examens.js` ; relecture : `listes/Examens_Onco360.xlsx`, nouveautés en vert). Mammographie corrigée,
       nasofibroscopie / panendoscopie séparées, précautions des endoscopies (« à jeun 6 heures »…) ; ajouts à valider :
@@ -456,4 +456,4 @@ Décisions déjà prises :
 | 07/10/2026 | 2 – Retouches | Boutons Afficher / Modifier ; résumé du patient enregistré automatiquement, page non quittable avant enregistrement ; mis en ligne. |
 | 07/10/2026 | 1E – Analyses | Analyses : 34 bilans (7 généraux) et 94 analyses (fichier du Dr rangé), clic = lignes dans l'ordonnance, ordonnance « Prière de faire pratiquer », création / modification / favoris. Testé (390 px, bilan 352 317 DH). Pas encore en ligne. |
 | 07/10/2026 | 1E – Analyses | Version corrigée par Dr Bentahila reprise ; mis en ligne. |
-| 08/10/2026 | 1E – Examens compl. | Examens compl. : 55 examens et 7 bilans d'imagerie (fichier du Dr rangé, ajouts à valider), même fenêtre que les analyses. Testé (390 px, bilan 352 317 DH). En attente de relecture, pas encore en ligne. |
+| 07/10/2026 | 1E – Examens compl. | Examens compl. : 55 examens et 7 bilans d'imagerie (fichier du Dr rangé, ajouts à valider), même fenêtre que les analyses. Testé (390 px, bilan 352 317 DH). En attente de relecture, pas encore en ligne. |
