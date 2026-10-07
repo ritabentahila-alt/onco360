@@ -30,7 +30,7 @@ Après déploiement : recharger sans cache (Cmd + Maj + R). Les `.js` sont servi
 | `js/app/fiche.js` | fiche chimio A4 paysage (logo de l'établissement) |
 | `js/app/documents.js` | documents RT dans une fenêtre (07/10/2026, plus de Word ni d'Excel) : pli confidentiel (3 pages), CR de fin, rendez-vous ; feuille A4 modifiable, imprimée, enregistrée dans `documentsRT` ; mise en page reprise des modèles Word (`modeles/`, référence) |
 | `js/app/consultations.js` | onglet Consultation du dossier : journal des consultations, barre des prescriptions |
-| `js/app/ordonnances.js` | boutons Médic., Ordo. type, Analyses et Examens compl. : bibliothèques du cabinet (médicaments, ordonnances types ; recherche, + / ✎ / ✕), ordonnance en préparation (✎ / ↑ ↓ / ✕, ajout, ligne libre), ordonnance A5/A4 modifiable, impression, antécédents ; listes de départ : `js/donnees/medicaments.js`, `js/donnees/ordostypes.js`, `js/donnees/analyses.js`, `js/donnees/examens.js` |
+| `js/app/ordonnances.js` | boutons Médic., Ordo. type, Analyses, Examens compl. et Courriers (modèles remplis pour le patient, fiches PDF `documents/`) : bibliothèques du cabinet (médicaments, ordonnances types ; recherche, + / ✎ / ✕), ordonnance en préparation (✎ / ↑ ↓ / ✕, ajout, ligne libre), ordonnance A5/A4 modifiable, impression, antécédents ; listes de départ : `js/donnees/medicaments.js`, `js/donnees/ordostypes.js`, `js/donnees/analyses.js`, `js/donnees/examens.js` |
 | `js/app/agenda.js` | agenda Liste/Jour/Semaine/Mois, filtre par établissement |
 | `js/app/configuration.js` | horaires (par établissement), absences, fériés, messages WhatsApp |
 | `js/app/profil.js` | profil, photo, lieux d'exercice (logos), accès et droits de l'équipe |
@@ -58,7 +58,8 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
   `bibliotheques/ordostypes` : `data` = JSON [{ id, nom, items: [{ nom, poso }] }] (absent = `donnees/ordostypes.js`) ;
   `bibliotheques/analyses` [{ id, nom, cat, fav }] et `bibliotheques/bilans` [{ id, nom, items: [noms d'analyses ou de bilans], fav }]
   (absents = `donnees/analyses.js`) ; `bibliotheques/examens` [{ id, nom, cat, note }]
-  (absent = `donnees/examens.js` ; pas de bilans d'imagerie) ; `fav` = favori ⭐ (en tête de liste) sur toutes ces listes ;
+  (absent = `donnees/examens.js` ; pas de bilans d'imagerie) ; `bibliotheques/courriers` [{ id, nom, html, fav }] (absent = `donnees/courriers.js` :
+  modèles avec champs {patient} {age} {date}… et zones `<mark class="or-ac">` à compléter) ; `fav` = favori ⭐ (en tête de liste) sur toutes ces listes ;
   lu par les membres, écrit avec `ecrireConsultations`
 - `documentsRT/{patient}_{rt}_{pli|cr|rdv}` : `html` du document enregistré (une version par radiothérapie et par type),
   `patientId`, `etablissementId`, `rtId`, `type`, `majLe`, `majPar(Nom)` ; droit `documents` (médecin, secrétaire)

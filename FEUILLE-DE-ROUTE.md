@@ -248,9 +248,22 @@ de leur radiothérapie :
   - [x] **Favoris ⭐** (07/10) sur les médicaments et les ordonnances types : en tête de liste, pour tout le cabinet ;
         l'étoile est gardée quand on modifie. À reprendre pour Analyses et Examens compl. (1E).
   - [x] Mise en ligne le 07/10.
-- [ ] **Courriers** : Dr Bentahila crée elle-même ses modèles (Nouveau / Modifier / Supprimer). Champs remplis
-      automatiquement : **nom, âge, diagnostic, date, « à Casablanca »** (pas le correspondant). Premiers modèles à
-      rédiger **ensemble** : **demande d'ALD**, **courrier**, **certificat** ; d'autres ensuite.
+- [x] **Courriers** (fait, testé et mis en ligne le 07/10) : modèles du fichier de Dr Bentahila `COURRIERS.docx`
+      (ajoutés directement, sans relecture commune, à sa demande) : **Demande d'ALD, Certificat d'arrêt de travail,
+      Certificat médical, Courrier médical, Pli confidentiel, Compte rendu médical** (`public/js/donnees/courriers.js` ;
+      liste du cabinet `bibliotheques/courriers` [{ id, nom, html, fav }]).
+  - Bouton **Courriers** : liste des modèles (recherche, ⭐, ✎, ✕, « Nouveau modèle ») ; clic = feuille A4 modifiable
+    remplie pour le patient : {patient} (Mme NOM Prénom), {age}, {naissance}, {diagnostic}, {mutuelle}, {etablissement}
+    (« l'Hôpital… », « du Centre… »), {lieu}, {ville} (Casablanca), {date}, {medecin} ; « (e) » accordé avec le sexe ;
+    zones jaunes « À compléter » (un clic les sélectionne ; surlignage non imprimé ; avertissement s'il en reste) ;
+    champ vide du dossier → zone à compléter. Valider / Valider + Imprimer → ligne « Courriers — Demande d'ALD » dans la
+    consultation du jour ; antécédents (Imprimer, Supprimer, Modifier, Renouveler = date et médecin du jour).
+  - Éditeur de modèle : nom, feuille modifiable, G / S / alignements, boutons « Insérer » pour chaque champ et pour une
+    zone à compléter.
+  - **Fiches patient en PDF** (pas de données du patient, prêtes à imprimer) : régime pendant une radiothérapie pelvienne,
+    **français** et **darija** (écrit de droite à gauche), `public/documents/` ; source : `listes/regimes_pdf.py`.
+    Darija mis au pluriel de politesse (le texte s'adressait à une femme, or les patients de RT prostatique sont des
+    hommes) ; petites corrections (« فcase », « L'عدس »…).
 - [x] **Analyses** (fait, testé et mis en ligne le 07/10) : fichier de Dr Bentahila
       (`Prescriptions_Biologiques_Oncologie.xlsx` : 40 bilans, 66 analyses) rangé → **34 bilans dont 7 bilans généraux,
       94 analyses** (`public/js/donnees/analyses.js` ; relecture : `listes/Analyses_Onco360.xlsx`, colonne « Ce que j'ai
@@ -457,3 +470,4 @@ Décisions déjà prises :
 | 07/10/2026 | 1E – Analyses | Version corrigée par Dr Bentahila reprise ; mis en ligne. |
 | 07/10/2026 | 1E – Examens compl. | Examens compl. : 55 examens et 7 bilans d'imagerie (fichier du Dr rangé, ajouts à valider), même fenêtre que les analyses. Testé (390 px, bilan 352 317 DH). En attente de relecture, pas encore en ligne. |
 | 07/10/2026 | 1E – Examens compl. (mise en ligne) | Relecture du Dr : examens validés, pas de bilans d'imagerie ; ordonnances d'analyses et d'examens « Prière de bien vouloir faire », sans renseignements cliniques ni titre de bilan ; éléments de bilans coupés dans les parenthèses recollés. Testé (390 px, bilan 352 317 DH), en ligne. |
+| 07/10/2026 | 1E – Courriers | 6 modèles de courriers du Dr (ALD, arrêt de travail, certificat, courrier, pli confidentiel, compte rendu) remplis pour le patient, zones à compléter, éditeur de modèles ; régimes de RT pelvienne en PDF (français, darija de droite à gauche). Testé (3 rôles, 390 px, bilan 352 317 DH), en ligne. |

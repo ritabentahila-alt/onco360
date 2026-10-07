@@ -136,6 +136,7 @@ window.csPrescrire = (pid, t) => {
   if (t === "ordo") { window.ordTypes(pid); return; }
   if (t === "analyse") { window.ordAnalyses(pid); return; }
   if (t === "exam") { window.ordExamens(pid); return; }
+  if (t === "courrier") { window.ordCourriers(pid); return; }
   const f = FAMILLES.find((z) => z.t === t); A.toast((f ? f.titre : "Prescriptions") + " : bientôt disponible (en cours de construction).");
 };
 // Consultations du patient lues (pour les antécédents des prescriptions)

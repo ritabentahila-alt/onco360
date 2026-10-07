@@ -15,6 +15,8 @@ import { MEDICAMENTS0 } from "../donnees/medicaments.js";
 import { ORDOS_TYPES0 } from "../donnees/ordostypes.js";
 import { ANALYSES0, BILANS0 } from "../donnees/analyses.js";
 import { EXAMENS0 } from "../donnees/examens.js";
+import { COURRIERS0, CHAMPS_COURRIER, FICHES_PATIENT } from "../donnees/courriers.js";
+import { age } from "../moteur/outils.js";
 import { enregistrerPrescription, trouverLigne, assurerConsultations, prescriptionsDe, supprimerPrescription, FAMILLES } from "./consultations.js";
 
 let A = null;
@@ -36,6 +38,7 @@ const DEPART = {
   analyses: () => ANALYSES0.map(([nom, cat], i) => ({ id: "a" + (i + 1), nom, cat })),
   bilans: () => BILANS0.map((b, i) => ({ id: "b" + (i + 1), nom: b.nom, items: b.items.slice() })),
   examens: () => EXAMENS0.map(([nom, cat, note], i) => ({ id: "e" + (i + 1), nom, cat, note: note || "" })),
+  courriers: () => COURRIERS0.map((c, i) => ({ id: "c" + (i + 1), nom: c.nom, html: c.html })),
 };
 const refListe = (n) => doc(db, "espaces", A.ESPACE, "bibliotheques", n);
 const CACHE = {};
@@ -363,6 +366,112 @@ window.mdSupprimer = async (id) => {
   catch (e) { A.toast(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de modifier la liste des médicaments." : "Suppression impossible."); }
 };
 
+// ───── Fenêtre « Courriers » (07/10/2026) : modèles du cabinet (bibliotheques/courriers = [{ id, nom, html, fav }], départ :
+// donnees/courriers.js), remplis pour le patient (nom, âge, diagnostic, date, ville…) puis ouverts sur la feuille A4
+// modifiable comme une ordonnance (ligne « Courriers » de la consultation du jour, antécédents) ; fiches PDF pour le patient.
+let CR = null, CQ = null, CRF = null; // modèles ; { pid, q } ; modèle en cours de création / modification { id }
+const ZONE = '<mark class="or-ac">À compléter</mark>';
+window.ordCourriers = async (pid) => {
+  const x = trouver(pid); if (!x || !peutEcrire()) return;
+  S = null; T = null; CQ = { pid, q: "" };
+  A.fenetre('<p class="sous">Chargement des courriers…</p>', "large");
+  CR = await lireListe("courriers"); vueCourriers();
+};
+function vueCourriers() {
+  const x = trouver(CQ.pid);
+  A.fenetre("<h3>Courriers — " + A.esc(x.r.nm) + "</h3>" +
+    '<div class="md-barre"><div class="recherche">' + A.ic("loupe") + '<input id="crQ" type="search" autocomplete="off" placeholder="Rechercher un modèle de courrier…" value="' + A.esc(CQ.q) + '"></div>' +
+    '<button class="bt clair petit" onclick="crFiche()">' + A.ic("plus") + "Nouveau modèle</button></div>" +
+    '<div class="md-liste" id="crListe"></div><p class="mesures" style="margin:6px 0 0">Cliquez sur un modèle : il s\'ouvre rempli pour le patient (nom, âge, diagnostic, date…) ; complétez les zones surlignées en jaune.</p>' +
+    '<h4 class="soustitre">Fiches à remettre au patient</h4><div class="cr-fiches">' + FICHES_PATIENT.map((f) => '<a class="bt clair petit" href="' + A.esc(f.fichier) + '" target="_blank" rel="noopener">' + A.ic("document") + A.esc(f.nom) + "</a>").join("") + "</div>" +
+    '<p class="mesures" style="margin:6px 0 0">PDF prêts à imprimer : ils s\'ouvrent dans un nouvel onglet.</p>' +
+    '<div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Fermer</button></div>', "large");
+  $("crQ").oninput = () => { CQ.q = $("crQ").value; listeCourriers(); };
+  listeCourriers();
+}
+const texteModele = (html) => { const d = document.createElement("div"); d.innerHTML = html; d.querySelectorAll(".or-ti").forEach((p) => p.remove()); d.querySelectorAll("p, br").forEach((p) => p.after(" ")); return d.textContent.replace(/\s+/g, " ").trim(); };
+function listeCourriers() {
+  const mots = sansAcc(CQ.q).split(/\s+/).filter(Boolean);
+  const L = CR.filter((m) => { const t = sansAcc(m.nom + " " + texteModele(m.html)); return mots.every((w) => t.indexOf(w) >= 0); });
+  $("crListe").innerHTML = L.length ? '<table class="md-t"><tr><th>Modèle</th><th>Début du texte</th><th></th></tr>' + L.map((m) => {
+    const q = "'" + m.id + "'", t = texteModele(m.html);
+    return '<tr class="m" onclick="crUtiliser(' + q + ')"><td><b>' + A.esc(m.nom) + "</b></td><td>" + A.esc(t.length > 110 ? t.slice(0, 110) + "…" : t) + '</td><td class="act" onclick="event.stopPropagation()">' + etoile(m, "crFavori") +
+      '<button class="ico" title="Modifier le modèle" aria-label="Modifier ' + A.esc(m.nom) + '" onclick="crFiche(' + q + ')">' + ico("crayon") + "</button>" +
+      '<button class="ico rouge" title="Supprimer le modèle" aria-label="Supprimer ' + A.esc(m.nom) + '" onclick="crSupprimer(' + q + ')">' + ico("croix") + "</button></td></tr>";
+  }).join("") + "</table>" : '<p class="sous" style="padding:12px">Aucun modèle ne correspond. « Nouveau modèle » pour en créer un.</p>';
+}
+// Modèle rempli pour le patient : champs {…} remplacés, « (e) » accordé ; un champ inconnu du dossier reste à compléter
+function remplirCourrier(html, x) {
+  const P = x.P || {}, e = A.esc, et = (D().etabsTous || D().etabs || []).find((z) => z.code === x.doc.etablissementId) || {};
+  const a = age(P.ddn, D().t), nomEt = et.nom || x.doc.etablissementId || "";
+  const art = /^[aeiouyhéèêâîôûàAEIOUYHÉÈÊÂÎÔÛÀ]/.test(nomEt) ? "l'" : /^(centre|cabinet|service|pôle|institut)\b/i.test(nomEt) ? "le " : /^(clinique|polyclinique|fondation|maison)\b/i.test(nomEt) ? "la " : "";
+  const nom = P.nomF ? String(P.nomF).toUpperCase() + (P.prenom ? " " + String(P.prenom).toLowerCase().replace(/(^|[\s-])\S/g, (c) => c.toUpperCase()) : "") : x.r.nm;
+  const V = { patient: civilite(x) + nom, age: a != null ? a + " ans" : "", naissance: P.ddn ? dateFr(P.ddn) : "", diagnostic: x.r.diag || "", mutuelle: P.mut || "",
+    etablissement: nomEt ? art + nomEt : "", lieu: nomEt, ville: et.ville || "Casablanca", date: dateFr(D().t), medecin: medecin() };
+  let h = P.sexe === "F" ? html.replace(/\(e\)/g, "e") : P.sexe === "H" ? html.replace(/\(e\)/g, "") : html;
+  h = h.replace(/\{([a-z]+)\}/g, (m, k) => {
+    if (!(k in V)) return m;
+    if (k === "date") return '<span class="or-jour">' + e(V.date) + "</span>";
+    if (k === "medecin") return '<span class="or-med">' + e(V.medecin) + "</span>";
+    const c = CHAMPS_COURRIER.find((z) => z[0] === k);
+    return V[k] ? e(V[k]) : '<mark class="or-ac">À compléter : ' + e(c ? c[1].toLowerCase() : k) + "</mark>";
+  });
+  return h.replace(/\bde le /g, "du ").replace(/\bà le /g, "au ");
+}
+window.crUtiliser = (id) => {
+  const m = CR.find((z) => z.id === id), x = CQ && trouver(CQ.pid); if (!m || !x) return;
+  ouvrirOrdonnance({ pid: CQ.pid, t: "courrier", types: [m.nom], html: remplirCourrier(m.html, x), format: "A4", taille: 0 });
+};
+// Nouveau modèle / modifier : nom + feuille modifiable, avec les champs remplis automatiquement et les zones à compléter
+window.crFiche = (id) => {
+  const m = id ? CR.find((z) => z.id === id) : null; CRF = { id: m ? m.id : null };
+  const html = m ? m.html : '<p class="or-ti">TITRE DU COURRIER</p><p>Je soussignée, {medecin}, certifie que {patient} ' + ZONE + '</p><p class="or-sig">Fait à {ville}, le {date}<br><br><b>{medecin}</b></p>';
+  const b = (t, lib, fn) => '<button class="ico" title="' + t + '" aria-label="' + t + '" onmousedown="event.preventDefault()" onclick="' + fn + '">' + lib + "</button>";
+  A.fenetre("<h3>" + (m ? "Modifier le modèle de courrier" : "Nouveau modèle de courrier") + "</h3>" +
+    '<div class="form"><div class="large"><label for="crNom">Nom du modèle</label><input id="crNom" value="' + A.esc(m ? m.nom : "") + '" placeholder="Ex. Certificat de non contre-indication"></div></div>' +
+    '<div class="or-outils">' + b("Gras", "<b>G</b>", "orStyle('bold')") + b("Souligné", "<u>S</u>", "orStyle('underline')") + b("Centrer", "≡", "orStyle('justifyCenter')") + b("Aligner à gauche", "⇤", "orStyle('justifyLeft')") + b("Aligner à droite", "⇥", "orStyle('justifyRight')") + "</div>" +
+    '<div class="cr-champs"><span class="mesures">Insérer :</span>' + CHAMPS_COURRIER.map(([k, lib]) => '<button class="mini" onmousedown="event.preventDefault()" onclick="crChamp(\'' + k + '\')" title="Remplacé à chaque courrier par : ' + A.esc(lib.toLowerCase()) + '">' + A.esc(lib) + "</button>").join("") +
+    '<button class="mini cr-z" onmousedown="event.preventDefault()" onclick="crZone()" title="Zone surlignée, à compléter à chaque courrier">Zone à compléter</button></div>' +
+    '<p class="mesures" style="margin:0 0 8px">Les champs entre accolades ({patient}, {date}…) sont remplis pour chaque patient ; « (e) » s\'accorde (suivi(e) → suivie pour une patiente). Les zones jaunes sont à compléter à chaque courrier.</p>' +
+    '<div class="or-zone"><div id="crPage" class="or-feuille a4" contenteditable="true" spellcheck="true" style="font-size:15px"></div></div>' +
+    '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="crRetour()">Annuler</button><button class="bt plein" id="crOk" onclick="crValider()">Valider</button></div>', "large");
+  $("crPage").innerHTML = html;
+};
+// Insertion à l'endroit du curseur (à la fin de la feuille si le curseur n'y est pas)
+function dansPage() {
+  const p = $("crPage"), s = window.getSelection(); if (!p) return false;
+  if (!s.rangeCount || !p.contains(s.getRangeAt(0).commonAncestorContainer)) { p.focus(); const r = document.createRange(); r.selectNodeContents(p.lastElementChild || p); r.collapse(false); s.removeAllRanges(); s.addRange(r); }
+  return true;
+}
+// (jamais à l'intérieur d'une zone à compléter : après elle)
+function inserer(n) {
+  if (!dansPage()) return; const s = window.getSelection(), r = s.getRangeAt(0); r.deleteContents();
+  const c = r.startContainer, m = (c.nodeType === 1 ? c : c.parentElement).closest("mark.or-ac"); if (m) { r.setStartAfter(m); r.collapse(true); }
+  const sp = document.createTextNode(" "); r.insertNode(sp); r.insertNode(n); r.setStartAfter(sp); r.collapse(true); s.removeAllRanges(); s.addRange(r);
+}
+window.crChamp = (k) => inserer(document.createTextNode("{" + k + "}"));
+window.crZone = () => { const t = document.createElement("template"); t.innerHTML = ZONE; inserer(t.content.firstChild); };
+window.crRetour = () => { CRF = null; if (CQ) vueCourriers(); else A.fermerFenetre(); };
+window.crValider = async () => {
+  if (!CRF) return; const nom = A.val("crNom"), html = nettoyer($("crPage").innerHTML);
+  if (!nom) { A.erreur("Donnez un nom au modèle."); return; }
+  if (!texteModele(html)) { A.erreur("Le modèle est vide."); return; }
+  if (CR.some((z) => z.id !== CRF.id && sansAcc(z.nom) === sansAcc(nom))) { A.erreur("Un modèle porte déjà ce nom."); return; }
+  const o = { id: CRF.id || "c" + Date.now().toString(36), nom, html }, modif = !!CRF.id;
+  A.occupe($("crOk"), true);
+  try { CR = await modifierListe("courriers", (L) => { const i = L.findIndex((z) => z.id === o.id); if (i >= 0) L[i] = Object.assign({}, L[i], o); else L.push(o); }); A.toast(modif ? "Modèle modifié." : "Modèle créé."); crRetour(); }
+  catch (e) { A.occupe($("crOk"), false); A.erreur(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de modifier les modèles de courriers." : "Enregistrement impossible : " + ((e && e.message) || e)); }
+};
+window.crSupprimer = async (id) => {
+  const m = CR.find((z) => z.id === id); if (!m || !confirm("Supprimer le modèle « " + m.nom + " » ?\n\nLes courriers déjà faits ne changent pas.")) return;
+  try { CR = await modifierListe("courriers", (L) => { const i = L.findIndex((z) => z.id === id); if (i >= 0) L.splice(i, 1); }); A.toast("Modèle supprimé."); listeCourriers(); }
+  catch (e) { A.toast(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de modifier les modèles de courriers." : "Suppression impossible."); }
+};
+window.crFavori = async (id) => {
+  try { CR = await modifierListe("courriers", (L) => { const z = L.find((y) => y.id === id); if (z) z.fav = !z.fav; }); listeCourriers(); }
+  catch (e) { A.toast(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de modifier les modèles de courriers." : "Modification impossible."); }
+};
+
 // ───── L'ordonnance : feuille A5 / A4 modifiable, Valider / Valider + Imprimer / Fermer ─────
 const fmtStock = () => { try { return localStorage.getItem("onco360.formatOrdo") === "A4" ? "A4" : "A5"; } catch (e) { return "A5"; } };
 const dateFr = (d) => d.slice(8, 10) + "/" + d.slice(5, 7) + "/" + d.slice(0, 4);
@@ -408,7 +517,7 @@ function libelle(html) {
   const d = document.createElement("div"); d.innerHTML = html;
   const noms = [...d.querySelectorAll(".or-m, .or-a")].map((p) => p.textContent.replace(/^\s*\d+\s*\/\s*/, "").replace(/^\s*•\s*/, "").trim()).filter(Boolean);
   if (noms.length) return noms.join(" ; ");
-  [".or-date", ".or-pat", ".or-sig", ".or-t", ".or-rc"].forEach((s) => d.querySelectorAll(s).forEach((p) => p.remove()));
+  [".or-date", ".or-pat", ".or-sig", ".or-t", ".or-rc", ".or-ti"].forEach((s) => d.querySelectorAll(s).forEach((p) => p.remove()));
   const t = d.textContent.replace(/\s+/g, " ").trim();
   return t ? (t.length > 140 ? t.slice(0, 140) + "…" : t) : "Ordonnance vierge";
 }
@@ -444,9 +553,11 @@ const peutSupprimer = () => peutEcrire(); // médecin et secrétaire (07/10/2026
 // Date de l'ordonnance remplacée par celle du jour ; signature remplacée par le médecin du jour (renouvellement)
 function auJour(html, signer) {
   const d = document.createElement("div"); d.innerHTML = html;
-  let p = d.querySelector(".or-date"); if (!p) { p = document.createElement("p"); p.className = "or-date"; d.prepend(p); }
-  p.textContent = "Le " + dateFr(D().t);
-  if (signer) { const g = d.querySelector(".or-sig"); if (g) g.innerHTML = "Cachet et signature du médecin :<br><b>" + A.esc(medecin()) + "</b>"; }
+  const jours = d.querySelectorAll(".or-jour"), meds = d.querySelectorAll(".or-med"); // courriers : date et médecin dans le texte
+  if (jours.length) jours.forEach((s) => { s.textContent = dateFr(D().t); });
+  else { let p = d.querySelector(".or-date"); if (!p) { p = document.createElement("p"); p.className = "or-date"; d.prepend(p); } p.textContent = "Le " + dateFr(D().t); }
+  if (signer && meds.length) meds.forEach((s) => { s.textContent = medecin(); });
+  else if (signer) { const g = d.querySelector(".or-sig"); if (g) g.innerHTML = "Cachet et signature du médecin :<br><b>" + A.esc(medecin()) + "</b>"; }
   return d.innerHTML;
 }
 let H = null; // { pid, t, sel }
@@ -493,19 +604,21 @@ window.anModifier = async () => {
 window.anRenouveler = () => { const l = choisie(); if (!l || !peutEcrire()) return; const pid = H.pid; H = null; ouvrirOrdonnance({ pid, t: l.t, renouv: l, types: l.types, html: auJour(l.html, true), format: l.format || "A5", taille: l.taille || 0 }); };
 function ouvrirOrdonnance(o) {
   O = o; const x = trouver(o.pid), l = o.ligne;
-  A.fenetre("<h3>Ordonnance — " + A.esc(x.r.nm) + (l ? ' <span class="mesures">(du ' + A.dfrA(l.d) + ", modification)</span>" : o.renouv ? ' <span class="mesures">(renouvellement de celle du ' + A.dfrA(o.renouv.d) + ")</span>" : "") + "</h3>" +
+  A.fenetre("<h3>" + (o.t === "courrier" ? "Courrier" : "Ordonnance") + " — " + A.esc(x.r.nm) + (l ? ' <span class="mesures">(du ' + A.dfrA(l.d) + ", modification)</span>" : o.renouv ? ' <span class="mesures">(renouvellement de celle du ' + A.dfrA(o.renouv.d) + ")</span>" : "") + "</h3>" +
     '<div class="or-outils"><div class="ag-vues" role="radiogroup" aria-label="Format">' + ["A5", "A4"].map((f) => '<button role="radio" aria-checked="' + (o.format === f) + '" class="' + (o.format === f ? "on" : "") + '" onclick="orFormat(\'' + f + '\')">Édition ' + f + "</button>").join("") + "</div>" +
     (o.lecture ? "" : '<span class="sep"></span><button class="ico" title="Gras" aria-label="Gras" onmousedown="event.preventDefault()" onclick="orStyle(\'bold\')"><b>G</b></button><button class="ico" title="Souligné" aria-label="Souligné" onmousedown="event.preventDefault()" onclick="orStyle(\'underline\')"><u>S</u></button>' +
       '<button class="ico" title="Texte plus petit" aria-label="Texte plus petit" onclick="orTaille(-1)">A−</button><button class="ico" title="Texte plus grand" aria-label="Texte plus grand" onclick="orTaille(1)">A+</button>') + "</div>" +
-    (o.lecture ? "" : '<p class="mesures" style="margin:0 0 8px">L\'ordonnance reste modifiable : cliquez dans la feuille pour corriger le texte. Le haut de la feuille est laissé libre pour l\'en-tête du papier.</p>') +
+    (o.lecture ? "" : '<p class="mesures" style="margin:0 0 8px">' + (o.t === "courrier" ? "Le courrier reste modifiable : cliquez dans la feuille pour écrire ; complétez les zones surlignées en jaune (le surlignage ne s'imprime pas)." : "L'ordonnance reste modifiable : cliquez dans la feuille pour corriger le texte.") + " Le haut de la feuille est laissé libre pour l'en-tête du papier.</p>") +
     '<div class="or-zone"><div id="orPage" class="or-feuille" ' + (o.lecture ? "" : 'contenteditable="true" spellcheck="true"') + "></div></div>" +
     '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="orFermer()">Fermer</button>' +
     (o.lecture ? "" : '<button class="bt clair" id="orOk" onclick="orValider(false)">Valider</button><button class="bt plein" id="orImp" onclick="orValider(true)">' + A.ic("imprimer") + "Valider + Imprimer</button>") + "</div>", "large");
   $("orPage").innerHTML = o.html; miseEnPage();
+  // un clic dans une zone « À compléter » la sélectionne : ce qu'on tape la remplace
+  $("orPage").onclick = (ev) => { const m = ev.target.closest && ev.target.closest("mark.or-ac"); if (!m || !/^À compléter/.test(m.textContent)) return; const r = document.createRange(), s = window.getSelection(); r.selectNodeContents(m); s.removeAllRanges(); s.addRange(r); };
 }
 function miseEnPage() { const p = $("orPage"); if (!p) return; p.className = "or-feuille " + O.format.toLowerCase(); p.style.fontSize = (O.format === "A4" ? 15 : 14) + O.taille + "px"; }
 window.orFormat = (f) => {
-  if (!O) return; O.format = f; try { localStorage.setItem("onco360.formatOrdo", f); } catch (e) {}
+  if (!O) return; O.format = f; if (O.t !== "courrier") try { localStorage.setItem("onco360.formatOrdo", f); } catch (e) {}
   document.querySelectorAll(".or-outils [role=radio]").forEach((b) => { const on = b.textContent.indexOf(f) >= 0; b.classList.toggle("on", on); b.setAttribute("aria-checked", on); });
   miseEnPage();
 };
@@ -520,21 +633,24 @@ function imprimer(w, html, format, taille) {
   // Dr Bentahila aura mesuré ses en-têtes)
   const css = "@page{size:" + (a4 ? "A4" : "A5") + " portrait;margin:" + (a4 ? "60mm 35mm 22mm" : "45mm 28mm 18mm") + "}html,body{margin:0}body{font-family:Arial,Helvetica,sans-serif;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact}" +
     ".pg{font-size:" + pt + "pt;line-height:1.45}.or-date{text-align:right;margin:0 0 6mm}.or-pat{margin:0 0 7mm}.or-m{margin:4mm 0 1mm}.or-p{margin:0 0 0 6mm}.or-sig{margin-top:10mm;text-align:right}p{margin:0 0 1.5mm}" +
-    ".or-t{margin:0 0 3mm}p.or-a{margin:0 0 1.5mm 4mm}.or-rc{margin-top:6mm}";
+    ".or-t{margin:0 0 3mm}p.or-a{margin:0 0 1.5mm 4mm}.or-rc{margin-top:6mm}mark.or-ac{background:none;color:inherit}" +
+    (html.indexOf("or-ti") >= 0 ? "p{margin:0 0 4mm;text-align:justify}.or-ti{text-align:center;font-weight:bold;font-size:1.1em;margin:0 0 9mm}.or-sig{text-align:right}.or-date{text-align:right}" : ""); // courriers
   w.document.open(); w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>&#8203;</title><style>' + css + '</style></head><body><div class="pg">' + html + "</div></body></html>"); w.document.close();
   setTimeout(() => { try { w.focus(); w.print(); } catch (e) {} }, 400);
 }
 window.orValider = async (imp) => {
   if (!O || O.lecture) return; const x = trouver(O.pid); if (!x) return;
   const html = nettoyer($("orPage").innerHTML);
+  if (O.t === "courrier" && [...$("orPage").querySelectorAll("mark.or-ac")].some((m) => /^À compléter/.test(m.textContent)) && !confirm("Il reste des zones « À compléter » (surlignées en jaune).\n\nEnregistrer quand même ?")) return;
   // La fenêtre d'impression s'ouvre tout de suite (sinon le navigateur la bloque après l'enregistrement)
   let w = null; if (imp) { try { w = window.open("", "_blank"); } catch (e) { w = null; } }
   ["orOk", "orImp"].forEach((i) => A.occupe($(i), true));
   try {
     const l = O.ligne;
-    await enregistrerPrescription(x, Object.assign(l ? { id: l.id, d: l.d, dm: D().t, med: l.med, par: l.par } : { t: O.t, d: D().t, med: medecin(), par: document.getElementById("nomMenu").textContent }, { t: O.t, lib: ((O.types || []).length ? O.types.join(" + ") + " : " : "") + libelle(html), types: O.types || [], html, format: O.format, taille: O.taille }));
+    await enregistrerPrescription(x, Object.assign(l ? { id: l.id, d: l.d, dm: D().t, med: l.med, par: l.par } : { t: O.t, d: D().t, med: medecin(), par: document.getElementById("nomMenu").textContent }, { t: O.t, lib: O.t === "courrier" ? (O.types || []).join(" + ") || libelle(html) : ((O.types || []).length ? O.types.join(" + ") + " : " : "") + libelle(html), types: O.types || [], html, format: O.format, taille: O.taille }));
     if (imp) { if (w) imprimer(w, html, O.format, O.taille); else A.toast("Impression bloquée par le navigateur : autorisez les fenêtres pour Onco360, puis réimprimez depuis la consultation."); }
-    const pid = O.pid, renouv = !!O.renouv; O = null; S = null; A.fermerFenetre(); A.toast(l ? "Ordonnance modifiée (et dans sa consultation)." : renouv ? "Ordonnance renouvelée dans la consultation du jour." : "Ordonnance enregistrée dans la consultation du jour."); A.pageDossier(pid);
+    const pid = O.pid, renouv = !!O.renouv, cr = O.t === "courrier"; O = null; S = null; CQ = null; A.fermerFenetre();
+    A.toast(cr ? (l ? "Courrier modifié (et dans sa consultation)." : renouv ? "Courrier refait à la date du jour, dans la consultation du jour." : "Courrier enregistré dans la consultation du jour.") : l ? "Ordonnance modifiée (et dans sa consultation)." : renouv ? "Ordonnance renouvelée dans la consultation du jour." : "Ordonnance enregistrée dans la consultation du jour."); A.pageDossier(pid);
   } catch (e) {
     if (w) try { w.close(); } catch (er) {}
     ["orOk", "orImp"].forEach((i) => A.occupe($(i), false));
