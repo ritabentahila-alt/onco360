@@ -1,3 +1,9 @@
+> **Depuis le 07/10/2026 (étape 1A bis), Onco360 ne produit plus de fichier Word.** Le pli confidentiel et le compte rendu
+> de fin s'ouvrent dans une fenêtre d'Onco360 (feuille A4 modifiable, imprimée sur papier à en-tête, enregistrée avec la
+> radiothérapie). Leur mise en page est celle de ces deux modèles, recopiée dans `public/js/app/documents.js`
+> (`htmlPli`, `htmlCr`). Pour changer un texte fixe ou l'ordre des rubriques : modifier le modèle ici, puis demander à
+> Claude de reporter la modification dans `documents.js`. Les fichiers de `public/modeles/` ne sont plus utilisés.
+
 # Modèles Word d'Onco360
 
 Modifiez librement la mise en page : polices, couleurs, marges, textes fixes, ordre des rubriques, tableaux, pied de page…

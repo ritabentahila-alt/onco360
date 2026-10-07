@@ -121,22 +121,23 @@ function contenu(x, items, d, med) {
     (items.length ? items.map((it, i) => '<p class="or-m"><b><u>' + (i + 1) + "/ " + e(it.nom) + "</u></b></p>" + '<p class="or-p">' + e(it.poso).replace(/\n/g, "<br>") + "</p>").join("") : "<p><br></p>".repeat(8)) +
     '<p class="or-sig">Cachet et signature du médecin :<br><b>' + e(med) + "</b></p>";
 }
-// Le texte modifié est nettoyé avant d'être gardé : seulement du texte, gras, souligné, italique, retours à la ligne
-const BALISES = { B: 1, STRONG: 1, U: 1, I: 1, EM: 1, BR: 1, P: 1, DIV: 1, SPAN: 1, UL: 1, OL: 1, LI: 1 };
+// Le texte modifié est nettoyé avant d'être gardé : seulement du texte, gras, souligné, italique, retours à la ligne, tableaux
+// (documents de radiothérapie) ; classes de mise en page or-… (ordonnance) et dc-… (documents) uniquement
+const BALISES = { B: 1, STRONG: 1, U: 1, I: 1, EM: 1, BR: 1, P: 1, DIV: 1, SPAN: 1, UL: 1, OL: 1, LI: 1, MARK: 1, TABLE: 1, THEAD: 1, TBODY: 1, TR: 1, TD: 1, TH: 1 };
 function propre(n) {
   const f = document.createDocumentFragment();
   n.childNodes.forEach((c) => {
     if (c.nodeType === 3) { f.appendChild(document.createTextNode(c.textContent)); return; }
     if (c.nodeType !== 1 || /^(SCRIPT|STYLE|IFRAME|OBJECT|EMBED|SVG|TEMPLATE)$/i.test(c.tagName)) return;
     if (!BALISES[c.tagName]) { f.appendChild(propre(c)); return; }
-    const e = document.createElement(c.tagName), cl = c.getAttribute("class");
-    if (cl && /^or-[a-z]+$/.test(cl)) e.className = cl;
+    const e = document.createElement(c.tagName), cl = String(c.getAttribute("class") || "").split(/\s+/).filter((k) => /^(or|dc)-[a-z]+$/.test(k));
+    if (cl.length) e.className = cl.join(" ");
     const ta = c.style && c.style.textAlign; if (/^(left|right|center|justify)$/.test(ta || "")) e.style.textAlign = ta;
     e.appendChild(propre(c)); f.appendChild(e);
   });
   return f;
 }
-const nettoyer = (html) => { const t = document.createElement("template"); t.innerHTML = html; const d = document.createElement("div"); d.appendChild(propre(t.content)); return d.innerHTML; };
+export const nettoyer = (html) => { const t = document.createElement("template"); t.innerHTML = html; const d = document.createElement("div"); d.appendChild(propre(t.content)); return d.innerHTML; };
 // Libellé de la ligne « Médic. » de la consultation : les médicaments de l'ordonnance (ou le début du texte)
 function libelle(html) {
   const d = document.createElement("div"); d.innerHTML = html;

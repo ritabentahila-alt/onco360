@@ -28,7 +28,7 @@ Après déploiement : recharger sans cache (Cmd + Maj + R). Les `.js` sont servi
 | `js/app/v2.js` | chargement, tableau de bord, patients, dossier, identité, RDV (prix « Venu »), radiothérapie (dosimétrie, documents), WhatsApp, routage, droits |
 | `js/app/chimio.js` | lignes de chimio, cures en fenêtre (J1/J8/J15), doses, molécules, report, nouvelle ligne (menus en cascade), création patient |
 | `js/app/fiche.js` | fiche chimio A4 paysage (logo de l'établissement) |
-| `js/app/documents.js` | Word/Excel générés dans le navigateur (JSZip) : CR de fin RT et pli confidentiel **remplis à partir des modèles Word du Dr** (`public/modeles/*.docx`, étiquettes `{{…}}`, voir `modeles/LISEZMOI.md`), RDV RT (Excel) |
+| `js/app/documents.js` | documents RT dans une fenêtre (07/10/2026, plus de Word ni d'Excel) : pli confidentiel (3 pages), CR de fin, rendez-vous ; feuille A4 modifiable, imprimée, enregistrée dans `documentsRT` ; mise en page reprise des modèles Word (`modeles/`, référence) |
 | `js/app/consultations.js` | onglet Consultation du dossier : journal des consultations, barre des prescriptions |
 | `js/app/ordonnances.js` | bouton Médic. : bibliothèque des médicaments (recherche, + / ✎ / ✕), ordonnance A5/A4 modifiable, impression ; liste de départ : `js/donnees/medicaments.js` |
 | `js/app/agenda.js` | agenda Liste/Jour/Semaine/Mois, filtre par établissement |
@@ -56,6 +56,8 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
   taille }, ajoutée à la consultation du jour (créée « Ordonnance » si besoin) par `enregistrerPrescription`
 - `bibliotheques/medicaments` : `data` = JSON [{ id, nom, poso, classe }] (absent = liste de départ `donnees/medicaments.js`) ;
   lu par les membres, écrit avec `ecrireConsultations`
+- `documentsRT/{patient}_{rt}_{pli|cr|rdv}` : `html` du document enregistré (une version par radiothérapie et par type),
+  `patientId`, `etablissementId`, `rtId`, `type`, `majLe`, `majPar(Nom)` ; droit `documents` (médecin, secrétaire)
 - `utilisateurs/{uid}` : profil (nom, INPE, signature, photo)
 Ancienne application : collections racine `patients`, `protocoles`, `finances`, `parametres` (lecture seule).
 

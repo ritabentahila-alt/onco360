@@ -12,7 +12,7 @@ import { typeRdv, libRdv, joursH, T_RTC } from "../moteur/rdv.js";
 import { tarif as tarifAu } from "../moteur/tarifs.js";
 import { genererConsultRT } from "../moteur/rt.js";
 import { idsParDefaut } from "../donnees/migration.js";
-import { excelRdvRT, wordCrFinRT, wordPliRT, datesSeancesRT } from "./documents.js";
+import { installer as installerDocuments, docsDe, boutonDoc, oublierDocs, suivreEtablissementDocs, supprimerDocs } from "./documents.js";
 import { installer as installerChimio, htmlChimio, nouveauPatient as creerPatient, champDiag, activerDiag, listeMut, listeCor, enrichirListes, majMontants, encaissementsDe, construireEncaissements, ecrireEncaissements } from "./chimio.js";
 import { installer as installerAgenda, pageAgenda } from "./agenda.js";
 import { installer as installerConfig, pageConfiguration, horaires, WA0, remplir } from "./configuration.js";
@@ -99,7 +99,7 @@ async function migrations() {
   try {
     const e = await getDoc(doc(db, "espaces", ESPACE)); if (!e.exists() || e.data().titulaire !== D.u.uid) return;
     // Nom et INPE du médecin titulaire, pour les fiches chimio imprimées par l'équipe
-    const mt = Object.assign(medecinFiche(), { signature: signatureWA() }); if (!D.medTitulaire || D.medTitulaire.nom !== mt.nom || D.medTitulaire.inpe !== mt.inpe || D.medTitulaire.signature !== mt.signature) await setDoc(doc(db, "espaces", ESPACE, "parametres", "medecinTitulaire"), mt).then(() => { D.medTitulaire = mt; }).catch(() => {});
+    const mt = Object.assign(medecinFiche(), { signature: signatureWA() }); if (!D.medTitulaire || D.medTitulaire.nom !== mt.nom || D.medTitulaire.inpe !== mt.inpe || D.medTitulaire.signature !== mt.signature || (D.medTitulaire.specialite || "") !== mt.specialite) await setDoc(doc(db, "espaces", ESPACE, "parametres", "medecinTitulaire"), mt).then(() => { D.medTitulaire = mt; }).catch(() => {});
     const sm = await getDocs(collection(db, "espaces", ESPACE, "membres"));
     for (const d of sm.docs) {
       const m = d.data(), dr = m.droits || {}, def = DROITS_ROLE[m.role] || {}, ajout = {};
@@ -150,7 +150,7 @@ const traitModRT = () => !!(D.membre.droits && D.membre.droits.radiotherapie ===
 // « Dr NOM Prénom » (fiche chimio, modèles Word) à partir d'un profil
 const nomDrNP = (p, nomMembre) => [p.titre || "Dr", String(p.nom || nomMembre || "").replace(/^(Dr|Pr)\.?\s*/i, "").toUpperCase(), p.prenom].filter(Boolean).join(" ");
 // Médecin de la fiche chimio : la personne connectée si elle est médecin, sinon le médecin titulaire (parametres/medecinTitulaire)
-const medecinFiche = () => D.membre.role === "medecin" ? { nom: nomDrNP(D.profil, D.membre.nom), inpe: D.profil.inpe || "" } : { nom: (D.medTitulaire && D.medTitulaire.nom) || D.nomTitulaire || "", inpe: (D.medTitulaire && D.medTitulaire.inpe) || "" };
+const medecinFiche = () => D.membre.role === "medecin" ? { nom: nomDrNP(D.profil, D.membre.nom), inpe: D.profil.inpe || "", specialite: D.profil.specialite || "" } : { nom: (D.medTitulaire && D.medTitulaire.nom) || D.nomTitulaire || "", inpe: (D.medTitulaire && D.medTitulaire.inpe) || "", specialite: (D.medTitulaire && D.medTitulaire.specialite) || "" };
 // Signature des messages WhatsApp : « Dr NOM » du médecin connecté, sinon du médecin titulaire
 const signatureWA = () => { if (D.membre.role === "medecin") return (D.profil.titre || "Dr") + " " + String(D.profil.nom || D.membre.nom || "").replace(/^(Dr|Pr)\.?\s*/i, "").toUpperCase(); const t = D.medTitulaire || {}; return t.signature || String(t.nom || D.nomTitulaire || "").split(/\s+/).slice(0, 2).join(" "); };
 const nomMedecin = () => ["Dr", D.profil.prenom, (D.profil.nom || D.membre.nom || "").replace(/^Dr\.?\s*/i, "").toUpperCase()].filter(Boolean).join(" ");
@@ -192,7 +192,7 @@ document.addEventListener("input", (ev) => { if (ev.target && ev.target.classLis
 const ferieLe = (d) => (D.ctx.feries || []).map((f) => (typeof f === "string" ? { d: f, nom: "Jour férié" } : f)).find((f) => f.d === d);
 const API = { D: () => D, ESPACE, $, esc, ic, dfr, dfrA, cap, jourLong, val, occupe, erreur, toast, fenetre, fermerFenetre: () => window.fermerFenetre(), peut, traitMod, enregistrer, pageDossier: (id) => pageDossier(id), recalculer, journal };
 API.medecinFiche = () => medecinFiche(); API.entete = () => entete(); API.voitRdv = () => voitRdv(); API.voitRT = (x) => voitRT(x); API.champsMed = (C, off) => champsMed(C, off); API.CHAMPS_MED = () => CHAMPS_MED; API.fmtMil = (n) => fmtMil(n); API.ferieLe = (d) => ferieLe(d);
-installerChimio(API); installerAgenda(API); installerConfig(API); installerProfil(API); installerProtocoles(API); installerParametres(API); installerBilan(API); installerConsultations(API); installerOrdonnances(API);
+installerChimio(API); installerAgenda(API); installerConfig(API); installerProfil(API); installerProtocoles(API); installerParametres(API); installerBilan(API); installerConsultations(API); installerOrdonnances(API); installerDocuments(API);
 
 function entete() {
   const p = D.profil, mb = D.membre, nom = (p.nom || mb.nom || "").replace(/^Dr\.?\s*/i, "");
@@ -317,7 +317,7 @@ function route() {
   if (!$("fenetre").classList.contains("cache")) window.fermerFenetre();
   D.page = nom + (arg ? "/" + encodeURIComponent(arg) : ""); $("titrePage").textContent = PAGES[nom][0]; $("page").classList.toggle("large", nom === "agenda");
   document.querySelectorAll("nav a").forEach((a) => a.classList.toggle("actif", a.dataset.p === (nom === "dossier" ? "patients" : nom)));
-  if (nom === "dossier" && arg) { delete ONGLET[arg]; oublierConsultations(arg); } // dossier ouvert : onglet Consultation, consultations relues
+  if (nom === "dossier" && arg) { delete ONGLET[arg]; oublierConsultations(arg); oublierDocs(arg); } // dossier ouvert : onglet Consultation, consultations relues
   PAGES[nom][1](arg); window.scrollTo(0, 0);
 }
 window.addEventListener("hashchange", () => D && route());
@@ -452,6 +452,7 @@ function pageDossier(id) {
   // Radiothérapie
   // (l'infirmière, radiothérapie « patients sous chimio » ailleurs, voit l'onglet en lecture pour tous ses patients : 07/10/2026)
   const okRT = traitModRT();
+  if (peut("documents")) docsDe(x, () => { if (D.page === "dossier/" + encodeURIComponent(x.id)) pageDossier(x.id); }); // documents RT enregistrés (boutons cochés)
   if (voitRTdossier(x) || D.membre.droits.radiotherapie === "chimio") {
     const JS = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"], TECH = { stereo: "Stéréotaxie", vmat: "VMAT", imrt: "IMRT", "3d": "3D" };
     let hr = okRT ? '<div class="entete"><button class="bt clair petit" onclick="ouvrirRT(\'' + x.id + '\')">' + ic("plus") + "Prescription</button></div>" : "";
@@ -472,14 +473,14 @@ function pageDossier(id) {
         (c ? '<div style="margin-top:10px"><b>Séances réalisées : ' + c.faites + " / " + c.nb + "</b> (" + c.pct + ' %)<div class="barre"><i style="width:' + c.pct + '%"></i></div></div>' : "") +
         (v.note ? '<p class="sous" style="margin:8px 0 0">' + esc(v.note) + "</p>" : "") +
         '<div class="actr" style="justify-content:flex-start;margin-top:12px">' + (okRT ? '<button class="mini" onclick="ouvrirRT(' + q + ')">Modifier</button>' + (v.deb ? (v.fin ? '<button class="mini" onclick="terminerRT(' + q + ',1)">Rouvrir</button>' : '<button class="mini v" onclick="terminerRT(' + q + ')">Terminé</button>') : "") : "") +
-        (v.acte && peut("documents") ? '<button class="mini" onclick="docRT(' + q + ',\'pli\')">Pli confidentiel (Word)</button>' : "") +
-        (v.deb && nb && peut("documents") ? '<button class="mini" onclick="docRT(' + q + ',\'cr\')">Compte rendu de fin (Word)</button><button class="mini" onclick="docRT(' + q + ',\'xl\')">Rendez-vous (Excel)</button>' : "") + "</div></div>";
+        (v.acte && peut("documents") ? boutonDoc(x, v, "pli", "Pli confidentiel") : "") +
+        (v.deb && nb && peut("documents") ? boutonDoc(x, v, "cr", "Compte rendu de fin") + boutonDoc(x, v, "rdv", "Rendez-vous") : "") + "</div></div>";
     });
     ong.push({ k: "rt", ic: "radiation", lib: "Radiothérapie", n: (P.rts || []).length, h: hr });
   }
 
   // Documents (droit « documents ») : les documents générés (pli, compte rendu, rendez-vous, ordonnances…) y seront enregistrés
-  if (peut("documents")) ong.push({ k: "doc", ic: "document", lib: "Documents", n: 0, h: '<p class="sous" style="margin:2px 0 0">Aucun document enregistré pour ce patient. Les documents générés (pli confidentiel, compte rendu de fin, rendez-vous) seront gardés ici. Les ordonnances restent dans l\'onglet Consultation.</p>' });
+  if (peut("documents")) ong.push({ k: "doc", ic: "document", lib: "Documents", n: 0, h: '<p class="sous" style="margin:2px 0 0">Aucun document enregistré pour ce patient. Ici, vous pourrez bientôt déposer des fichiers venus d\'ailleurs (PDF, photos : anapath, imagerie, bilans). Le pli confidentiel, le compte rendu de fin et les rendez-vous restent dans la carte de leur radiothérapie ; les ordonnances et courriers, dans l\'onglet Consultation.</p>' });
 
   // Le dossier s'ouvre sur Consultation (sur Chimiothérapie pour l'infirmière) ; l'onglet choisi reste affiché quand le
   // dossier se réaffiche après un enregistrement
@@ -538,7 +539,7 @@ window.modifierIdentite = (id) => {
     if (!confirm("Supprimer définitivement le dossier de " + x.r.nm + " ?\n\nToutes ses lignes de traitement et ses cures seront effacées.")) return;
     if (!confirm("Confirmer la suppression de " + x.r.nm + " ? Cette action est irréversible.")) return;
     try {
-      await supprimerConsultations(x);
+      await supprimerConsultations(x); await supprimerDocs(x);
       await deleteDoc(doc(db, "espaces", ESPACE, "patients", x.id));
       if (peut("finances")) { await deleteDoc(doc(db, "espaces", ESPACE, "patientsFinances", x.id)).catch(() => {}); await deleteDoc(doc(db, "espaces", ESPACE, "encaissements", x.id)).catch(() => {}); }
       journal(x, "Patient supprimé"); D.patients.splice(D.patients.indexOf(x), 1); fermerFenetre(); toast("Dossier supprimé."); location.hash = "patients";
@@ -560,7 +561,7 @@ window.modifierIdentite = (id) => {
     if (okE && val("fEtab") && val("fEtab") !== x.doc.etablissementId) changes.etablissementId = val("fEtab");
     if (!Object.keys(changes).length) { fermerFenetre(); return; }
     occupe($("fOk"), true);
-    try { await enregistrer(x, changes, "Identité modifiée"); if (changes.etablissementId) await suivreEtablissement(x, changes.etablissementId); if (okI) await enrichirListes(val("fCor"), val("fMut")); fermerFenetre(); toast("Dossier enregistré."); pageDossier(x.id); }
+    try { await enregistrer(x, changes, "Identité modifiée"); if (changes.etablissementId) { await suivreEtablissement(x, changes.etablissementId); await suivreEtablissementDocs(x, changes.etablissementId); } if (okI) await enrichirListes(val("fCor"), val("fMut")); fermerFenetre(); toast("Dossier enregistré."); pageDossier(x.id); }
     catch (e) { occupe($("fOk"), false); erreur(e.message); }
   };
 };
@@ -795,20 +796,6 @@ window.terminerRT = (id, rid, rouvrir) => {
     catch (e) { occupe($("fOk"), false); erreur(e.message); }
   };
 };
-// Documents de radiothérapie : logo de l'établissement de la prescription (sinon celui du patient) en haut à gauche
-window.docRT = async (id, rid, quoi) => {
-  if (!peut("documents")) { toast("Vous n'avez pas le droit de télécharger les documents."); return; }
-  const x = D.patients.find((p) => p.id === id), r = x && (x.P.rts || []).find((v) => v.id === rid); if (!r) return;
-  const et = (D.etabsTous || D.etabs).find((e) => e.code === (r.hop || x.doc.etablissementId)) || {}, o = { logo: "", signature: "", medecin: nomMedecin(), etabNom: et.nom || "", // ni logo ni signature : impression sur papier à en-tête (06/10/2026)
-    // Modèles Word : « Dr NOM Prénom » et la spécialité du Profil
-    medecinModele: nomDrNP(D.profil, D.membre.nom), specialite: D.profil.specialite || "" };
-  try {
-    if (quoi === "pli") { await wordPliRT(x.P, r, D.ctx, o); toast("Pli confidentiel créé : les mentions « À REMPLIR » (surlignées en jaune) sont à compléter dans Word."); journal(x, "Pli confidentiel de radiothérapie généré"); }
-    else if (quoi === "cr") { await wordCrFinRT(x.P, r, D.ctx, nomMedecin(), o); toast("Compte rendu créé : ouvrez-le dans Word pour compléter les rubriques en gris."); }
-    else { const { ajuste, manquantes } = datesSeancesRT(r, D.ctx); const n = await excelRdvRT(x.P, r, D.ctx, nomMedecin(), o); toast(n + " séances exportées" + (ajuste ? " (dates ajustées au nombre de fractions)" : "") + (manquantes ? " – attention : " + manquantes + " séance(s) manquent avant la fin réelle" : "") + "."); }
-  } catch (e) { toast(e.message); }
-};
-
 // ───── Menu, cloche ─────
 const fermerMenu = () => { document.body.classList.remove("menu-ouvert"); $("voile").classList.add("cache"); };
 $("burger").onclick = () => { document.body.classList.add("menu-ouvert"); $("voile").classList.remove("cache"); };

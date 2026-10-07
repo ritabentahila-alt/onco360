@@ -62,14 +62,14 @@ Disposition décidée par Dr Bentahila le 07/10, de haut en bas :
 Test : Playwright n'est pas installé sur ce Mac ; testé dans le navigateur intégré avec le faux Firebase, sur une copie
 du site dans un dossier temporaire (macOS empêche le serveur de test de lire le Bureau).
 
-**1A bis – Documents de radiothérapie dans une fenêtre** (décision de Dr Bentahila le 07/10, remplace l'ancienne idée de
+**1A bis – Documents de radiothérapie dans une fenêtre** (fait et testé le 07/10, pas encore en ligne ; décision du 07/10, remplace l'ancienne idée de
 « copies dans l'onglet Documents », abandonnée)
 Décision : **rien ne va dans un onglet Documents**. Les ordonnances et courriers restent derrière leur petite flèche
 (antécédents, 1D / 1E). Le pli confidentiel, le compte rendu de fin et les rendez-vous de radiothérapie restent dans la carte
 de leur radiothérapie :
-- [ ] Clic sur « Pli confidentiel » (ou « Compte rendu de fin », « Rendez-vous ») → une **fenêtre s'ouvre avec le document**
+- [x] Clic sur « Pli confidentiel » (ou « Compte rendu de fin », « Rendez-vous ») → une **fenêtre s'ouvre avec le document**
       rempli depuis le dossier ; le médecin le **modifie**, peut l'**imprimer**, et l'**enregistre**.
-- [ ] Le document enregistré **reste attaché à sa radiothérapie** : un nouveau clic sur le même bouton rouvre **la version
+- [x] Le document enregistré **reste attaché à sa radiothérapie** : un nouveau clic sur le même bouton rouvre **la version
       modifiée et enregistrée** (pas un nouveau document).
 - [ ] Même fonctionnement pour les courriers (1E).
 - [x] Réponses de Dr Bentahila (07/10) :
@@ -80,8 +80,24 @@ de leur radiothérapie :
   - **Médecin et secrétaire** peuvent modifier et enregistrer ces documents.
   - **L'onglet Documents est gardé** pour y **déposer des fichiers venus d'ailleurs** (PDF, photos : anapath, imagerie,
     bilans) → étape à part (Firebase Storage, taille limitée, suppression par le médecin, sauvegarde des fichiers à prévoir).
-- [ ] Données : une fiche par document (patient, radiothérapie, type pli / cr / rdv, contenu, auteur, date), règles :
-      lecture par le périmètre et le droit « documents », écriture avec le droit « documents » (médecin, secrétaire).
+- [x] Données : `documentsRT/{patient}_{radiothérapie}_{pli|cr|rdv}` (une version par radiothérapie et par type : html,
+      date, auteur) ; règle : droit « documents » (médecin, secrétaire) dans le périmètre. Patient supprimé ou changé
+      d'hôpital : ses documents suivent.
+- [x] Fenêtre : feuille A4 (zone « En-tête du papier » en haut, comme l'ordonnance), texte modifiable (gras, souligné),
+      **Fermer · Enregistrer · Enregistrer + Imprimer** ; « Repartir du dossier » sur une version enregistrée (document neuf
+      avec les informations actuelles). Bouton coché en vert dans la carte quand le document est enregistré (date et auteur
+      au survol).
+- [x] **Pli confidentiel** : les 3 pages du modèle (lettre, compte rendu médical, ordonnance médicale), « À REMPLIR »
+      surligné si une information manque, saut de page à l'impression. **Compte rendu de fin** : les 6 rubriques et le
+      tableau du modèle, « à compléter par le médecin » en gris. **Rendez-vous** : dates de début et de fin, patient,
+      médecin, tableau des séances (date, durée, activité, ressource, état), cases modifiables.
+- [x] Signature : « Dr NOM Prénom » + spécialité du médecin (celui de la secrétaire si c'est elle : la spécialité du
+      titulaire est enregistrée dans `parametres/medecinTitulaire` à sa prochaine ouverture d'Onco360).
+- [x] Code Word / Excel retiré (`documents.js` réécrit) ; les modèles Word restent dans `modeles/` comme référence.
+- [x] Tests : pli (modifié, enregistré, imprimé, rouvert avec la modification), compte rendu, rendez-vous (case modifiée
+      et enregistrée), secrétaire (signature de son médecin), infirmière (aucun bouton), téléphone 390 px, bilan 352 317 DH.
+- [ ] Mise en ligne (site + règle `documentsRT`), avec l'accord de Dr Bentahila ; puis essai d'impression sur le vrai
+      papier à en-tête (marge du haut : 34 mm).
 
 **1B – Consultations (journal médical)** (fait, testé et mis en ligne le 07/10)
 - [x] Menu des consultations : **RCP** ajouté le 07/10.
@@ -352,3 +368,4 @@ Décisions déjà prises :
 | 07/10/2026 | 1D – Antécédents | Fenêtre des antécédents (Imprimer, Supprimer, Modifier à la date du jour, Renouveler, Fermer), ouverte aussi par la ligne « Médic. ». Testé (3 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |
 | 07/10/2026 | 1D – Antécédents | Retouches : Modifier garde la date de prescription, la secrétaire peut supprimer. Testé, mis en ligne (site + règles). |
 | 07/10/2026 | 1D – Antécédents | Modifier rouvre la liste des médicaments avec ceux de l'ordonnance (même date). « RCP » ajouté au menu des consultations. Règle : même système pour Ordo. type et Analyses. Testé (bilan 352 317 DH). Mis en ligne. |
+| 07/10/2026 | 1A bis – Documents | Pli, CR de fin et rendez-vous RT dans une fenêtre (A4 modifiable, Enregistrer / + Imprimer, version rouverte), plus de Word ni d'Excel. Testé (3 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |

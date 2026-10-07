@@ -106,6 +106,14 @@ service cloud.firestore {
       // Bibliothèques des prescriptions (médicaments, puis examens, ordonnances types, analyses, courriers) : lues par les
       // membres, modifiées par ceux qui écrivent les consultations et ordonnances (médecin, secrétaire)
       match /bibliotheques/{b} { allow read: if estMembre(); allow write: if droit('ecrireConsultations'); }
+      // Documents de radiothérapie (pli confidentiel, compte rendu de fin, rendez-vous) enregistrés depuis leur fenêtre :
+      // lus, modifiés et supprimés avec le droit « documents » (médecin, secrétaire), dans le périmètre du membre
+      match /documentsRT/{d} {
+        allow read, delete: if droit('documents') && dansPerimetre(resource.data.etablissementId);
+        allow create: if droit('documents') && dansPerimetre(request.resource.data.etablissementId) && request.resource.data.majPar == request.auth.uid;
+        allow update: if droit('documents') && dansPerimetre(resource.data.etablissementId) && dansPerimetre(request.resource.data.etablissementId)
+          && request.resource.data.majPar == request.auth.uid;
+      }
       // Montants des dossiers, tarifs, paiements, versements : uniquement avec le droit « finances »
       match /patientsFinances/{p} { allow read, write: if droit('finances'); }
       // Prix à encaisser (consultations validées, consultation de chimio) : extrait des montants, lisible avec le droit « encaissements »
