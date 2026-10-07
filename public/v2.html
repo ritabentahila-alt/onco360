@@ -323,7 +323,7 @@ details summary{cursor:pointer;color:var(--prim);font-weight:bold;font-size:13.5
 /* Tâches (T1, 07/10/2026) */
 .tache{display:flex;align-items:center;gap:12px;padding:11px 8px;border-bottom:1px solid var(--trait);cursor:pointer;border-left:4px solid transparent}
 .tache:last-child{border-bottom:0}.tache:hover{background:#FAFBFE}
-.tache.urgent,.tache.retard{border-left-color:var(--rouge)}.tache.st-encours{border-left-color:var(--bleu)}
+.tache.st-encours{border-left-color:var(--bleu)}.tache.urgent,.tache.retard{border-left-color:var(--rouge)}
 .tache.st-fait .ti b{color:var(--doux);text-decoration:line-through}
 .tache .tx{flex:1;min-width:0}.tache .ti{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .tache .de{color:var(--doux);font-size:13.5px;margin-top:2px}.tache .de .rouge{color:var(--rouge);font-weight:bold}
@@ -334,6 +334,10 @@ details summary{cursor:pointer;color:var(--prim);font-weight:bold;font-size:13.5
 .ta-desc{white-space:pre-wrap}
 .ta-fil{max-height:220px;overflow:auto;font-size:13.5px}.ta-fil div{padding:6px 0;border-bottom:1px solid var(--trait)}.ta-fil .dt{color:var(--doux);margin-right:8px;white-space:nowrap}
 .taches-finies{margin-top:6px}
+.ta-filtres{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.ta-filtres .recherche{grid-column:1/-1;min-width:0}
+.ta-filtres select{width:100%;min-width:0;padding:11px 10px;border:1px solid #CCD3E0;border-radius:var(--r-m);background:#fff;font-size:15px}
+.ta-entete{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+@media (max-width:640px){.ta-filtres{grid-template-columns:1fr 1fr}.ta-filtres select{font-size:14px;padding:10px 8px}}
 @media (max-width:640px){.tache{flex-wrap:wrap;gap:8px}.tache select.st{width:100%}}
 
 /* Agenda */
@@ -539,6 +543,6 @@ function onco360Deconnecter() {
 }
 </script>
 
-<script type="module" src="./js/app/v2.js?v=20261008e"></script>
+<script type="module" src="./js/app/v2.js?v=20261008f"></script>
 </body>
 </html>

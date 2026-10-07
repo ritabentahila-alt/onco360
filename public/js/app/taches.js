@@ -66,29 +66,79 @@ function ligne(t) {
     '<select class="st" aria-label="Statut de la tâche" onclick="event.stopPropagation()" onchange="taStatut(' + q + ',this.value)">' + STATUTS.map(([k, l]) => '<option value="' + k + '"' + (t.statut === k ? " selected" : "") + ">" + l + "</option>").join("") + "</select></div>";
 }
 
+// ───── Filtres (T2, 08/10/2026) : recherche, responsable (onglet Toutes les tâches), statut, échéance, type ─────
+const F0 = { q: "", qui: "", st: "ouv", ech: "", type: "" };
+let F = Object.assign({}, F0);
+const finSemaine = () => { const d = new Date(D().t + "T12:00:00"); d.setDate(d.getDate() + ((7 - d.getDay()) % 7)); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
+function filtrer(l) {
+  const mots = A.sansAcc(F.q).split(/\s+/).filter(Boolean), t0 = D().t, fs = finSemaine(), role = (uid) => ((MB || []).find((m) => m.uid === uid) || {}).role;
+  return l.filter((t) => {
+    if (mots.length) { const hay = A.sansAcc([t.titre, t.desc, t.type, t.patientNom, t.deNom, t.pourNom].join(" ")); if (!mots.every((w) => hay.indexOf(w) >= 0)) return false; }
+    if (F.qui && VUE === "toutes") {
+      const [k, v] = [F.qui.slice(0, 2), F.qui.slice(2)];
+      if (k === "r:" && role(t.pour) !== v) return false; if (k === "u:" && t.pour !== v) return false; if (k === "d:" && t.de !== v) return false;
+    }
+    if (F.st === "ouv" ? false : F.st !== "tous" && t.statut !== F.st) return false;
+    if (F.ech === "retard" && !retard(t)) return false;
+    if (F.ech === "auj" && !(t.statut !== "fait" && t.ech === t0)) return false;
+    if (F.ech === "sem" && !(t.statut !== "fait" && t.ech && t.ech <= fs)) return false; // en retard compris : à traiter cette semaine
+    if (F.ech === "sans" && t.ech) return false;
+    if (F.type && t.type !== F.type) return false;
+    return true;
+  });
+}
+const filtresActifs = () => Object.keys(F0).some((k) => F[k] !== F0[k] && !(k === "qui" && VUE !== "toutes"));
+
 export async function pageTaches() {
-  const esc = A.esc, moi = D().u.uid;
   $("page").innerHTML = '<p class="sous">Chargement des tâches…</p>';
   try { await Promise.all([charger(), membres()]); }
   catch (e) { console.warn("tâches", e); $("page").innerHTML = '<div class="carte"><h3>Tâches</h3><p class="sous" style="color:var(--rouge)">Les tâches n\'ont pas pu être lues. Rechargez la page.</p></div>'; return; }
   if (!location.hash.startsWith("#taches")) return; // page quittée pendant la lecture
-  const mes = T.filter((t) => t.pour === moi), l = VUE === "mes" ? mes : T;
-  const ouvertes = l.filter((t) => t.statut !== "fait").sort(ordre), finies = l.filter((t) => t.statut === "fait").sort((a, b) => String(b.faitLe || "").localeCompare(String(a.faitLe || "")));
+  dessiner();
+}
+const base = () => (VUE === "mes" ? T.filter((t) => t.pour === D().u.uid) : T);
+function dessiner() {
+  const esc = A.esc, moi = D().u.uid, mes = T.filter((t) => t.pour === moi);
   const onglet = (k, ico, lib, n) => '<button class="' + (VUE === k ? "on" : "") + '" onclick="taVue(\'' + k + '\')">' + A.ic(ico) + lib + ' <span class="nb">' + n + "</span></button>";
   const nbOuv = (x) => x.filter((t) => t.statut !== "fait").length;
+  const sel = (id, lib, v, opts) => '<select id="' + id + '" aria-label="' + lib + '">' + opts.map(([k, l]) => (k === "—" ? '<optgroup label="' + esc(l) + '">' : k === "/—" ? "</optgroup>" : '<option value="' + esc(k) + '"' + (k === v ? " selected" : "") + ">" + esc(l) + "</option>")).join("") + "</select>";
+  // Responsable : rôles et membres (médecin), « Demandées par moi » (tous) ; seulement dans « Toutes les tâches »
+  const optsQui = [["", "Toute l'équipe"]].concat(estMedecin() ? [["r:medecin", "Pour les médecins"], ["r:assistante", "Pour les secrétaires"], ["r:infirmiere", "Pour les infirmières"], ["—", "Pour…"]].concat((MB || []).filter((m) => T.some((t) => t.pour === m.uid) || m.actif !== false).map((m) => ["u:" + m.uid, m.uid === moi ? "Moi" : nomMembre(m)])).concat([["/—", ""]]) : [["u:" + moi, "Pour moi"]]).concat([["d:" + moi, "Demandées par moi"]]);
+  const types = TYPES.concat(T.map((t) => t.type).filter((x) => x && TYPES.indexOf(x) < 0)).filter((x, i, a) => a.indexOf(x) === i);
   let h = '<section class="accueil"><div><h2>Tâches</h2><p>Rappels, demandes et suivis de l\'équipe.</p></div><div class="actions"><button class="bt plein" onclick="taNouvelle()">' + A.ic("plus") + "Nouvelle tâche</button></div></section>" +
-    '<div class="ag-vues" style="align-self:flex-start">' + onglet("mes", "profil", "Mes tâches", nbOuv(mes)) + onglet("toutes", "taches", "Toutes les tâches", nbOuv(T)) + "</div>";
-  h += '<section class="carte"><p class="sous" style="margin-top:0">' + (VUE === "mes" ? "Les tâches dont vous êtes responsable." : estMedecin() ? "Toutes les tâches de l'équipe." : "Vos tâches et celles que vous avez demandées à l'équipe.") + "</p>" +
-    (ouvertes.length ? ouvertes.map(ligne).join("") : '<p class="sous">Aucune tâche à faire.' + (VUE === "mes" ? " « Nouvelle tâche » pour en créer une." : "") + "</p>");
-  if (finies.length) {
-    h += '<button class="lien" style="margin-top:12px" onclick="taTerminees()">' + (TERM ? "▾ Masquer" : "▸ Afficher") + " les tâches terminées (" + finies.length + ")</button>";
-    if (TERM) h += '<div class="taches-finies">' + finies.map(ligne).join("") + "</div>";
-  }
-  $("page").innerHTML = h + "</section>";
+    '<div class="ag-vues" style="align-self:flex-start">' + onglet("mes", "profil", "Mes tâches", nbOuv(mes)) + onglet("toutes", "taches", "Toutes les tâches", nbOuv(T)) + "</div>" +
+    '<div class="ta-filtres"><div class="recherche">' + A.ic("loupe") + '<input id="taQ" type="search" placeholder="Rechercher : titre, patient, personne…" autocomplete="off" value="' + esc(F.q) + '"></div>' +
+    (VUE === "toutes" ? sel("taFqui", "Responsable", F.qui, optsQui) : "") +
+    sel("taFst", "Statut", F.st, [["ouv", "À faire et en cours"], ["afaire", "À faire"], ["encours", "En cours"], ["fait", "Terminées"], ["tous", "Tous les statuts"]]) +
+    sel("taFech", "Échéance", F.ech, [["", "Toutes les échéances"], ["retard", "En retard"], ["auj", "Aujourd'hui"], ["sem", "Cette semaine"], ["sans", "Sans échéance"]]) +
+    sel("taFtype", "Type", F.type, [["", "Tous les types"]].concat(types.map((x) => [x, x]))) + "</div>" +
+    '<section class="carte"><div class="ta-entete"><span class="sous" id="taNb"></span><button class="lien' + (filtresActifs() ? "" : " cache") + '" id="taFx" onclick="taEffacer()">Effacer les filtres</button></div><div id="taL"></div></section>';
+  $("page").innerHTML = h;
+  $("taQ").oninput = () => { F.q = $("taQ").value; liste(); };
+  [["taFqui", "qui"], ["taFst", "st"], ["taFech", "ech"], ["taFtype", "type"]].forEach(([i, k]) => { if ($(i)) $(i).onchange = () => { F[k] = $(i).value; liste(); }; });
+  liste();
 }
-const raf = () => { if (location.hash.startsWith("#taches")) pageTaches(); };
-window.taVue = (k) => { VUE = k; pageTaches(); };
-window.taTerminees = () => { TERM = !TERM; pageTaches(); };
+// Liste seule (la recherche garde le curseur) : ouvertes, puis terminées (repliées quand le statut est « À faire et en cours »)
+function liste() {
+  const l = filtrer(base()), ouvertes = l.filter((t) => t.statut !== "fait").sort(ordre), finies = l.filter((t) => t.statut === "fait").sort((a, b) => String(b.faitLe || "").localeCompare(String(a.faitLe || "")));
+  const actifs = filtresActifs(), n = F.st === "ouv" ? ouvertes.length : l.length;
+  $("taNb").textContent = (VUE === "mes" ? "Les tâches dont vous êtes responsable" : estMedecin() ? "Toutes les tâches de l'équipe" : "Vos tâches et celles que vous avez demandées") + " · " + n + " tâche" + (n > 1 ? "s" : "") + (F.st === "ouv" ? " à faire" : "") + (actifs ? " (filtrées)" : "");
+  $("taFx").classList.toggle("cache", !actifs);
+  let h = ouvertes.map(ligne).join("");
+  if (F.st === "ouv") {
+    if (!ouvertes.length) h += '<p class="sous">' + (actifs ? "Aucune tâche ne correspond aux filtres." : "Aucune tâche à faire." + (VUE === "mes" ? " « Nouvelle tâche » pour en créer une." : "")) + "</p>";
+    if (finies.length) h += '<button class="lien" style="margin-top:12px" onclick="taTerminees()">' + (TERM ? "▾ Masquer" : "▸ Afficher") + " les tâches terminées (" + finies.length + ")</button>" + (TERM ? '<div class="taches-finies">' + finies.map(ligne).join("") + "</div>" : "");
+  } else {
+    h += finies.map(ligne).join("");
+    if (!l.length) h += '<p class="sous">Aucune tâche ne correspond aux filtres.</p>';
+  }
+  $("taL").innerHTML = h;
+}
+// Après une modification : page redessinée (nombres des onglets), filtres gardés
+const raf = () => { if (location.hash.startsWith("#taches") && T && $("taL")) dessiner(); };
+window.taVue = (k) => { VUE = k; if (T && $("taL")) dessiner(); else pageTaches(); };
+window.taTerminees = () => { TERM = !TERM; liste(); };
+window.taEffacer = () => { F = Object.assign({}, F0); if (T && $("taL")) dessiner(); };
 window.taPatient = (id) => {
   const t = trouver(id); if (!t) return;
   if (!D().patients.some((p) => p.id === t.patientId)) { A.toast("Ce dossier n'existe plus ou n'est pas dans vos établissements."); return; }

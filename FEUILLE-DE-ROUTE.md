@@ -19,6 +19,9 @@ ligne au journal (en bas).
       côtés 28 mm ; ordonnance A4 haut 60 mm / côtés 35 mm ; documents A4 (pli, compte rendu, rendez-vous) haut 45 mm /
       côtés 35 mm ; bas 18 à 22 mm.
 
+- [ ] **Installer Java 21** (le Java installé le 08/10 est la version 8, trop ancienne pour l'émulateur Firebase) : permettra
+      de tester les règles de sécurité sur un faux serveur avant chaque mise en ligne. Voir la commande donnée le 08/10.
+
 ## Déjà fait (jusqu'au 06/10/2026)
 - [x] Onco360 complet (phases A à D) et bascule : Onco360 est l'application de référence, l'ancienne est en lecture seule.
 - [x] Sauvegardes :
@@ -435,13 +438,22 @@ Découpé en **sous-étapes, une fenêtre chacune** : T1 à T5 (T6 facultatif).
       = son dossier.
 - [x] Bouton « + Tâche » dans le dossier.
 - [x] Règles de sécurité `taches` (lecture, création, modification, suppression comme décidé ; historique qui ne fait que
-      grandir). Vérifiées par Firebase (compilation), pas d'émulateur sur ce Mac (pas de Java).
+      grandir). Vérifiées par Firebase (compilation), pas d'émulateur sur ce Mac (Java 8 installé le 08/10, l'émulateur demande Java 21).
 - [x] Tests (faux Firebase, 3 comptes : médecin, secrétaire, infirmière) : création, réattribution, statuts, suppression,
       droits de chacun, téléphone 390 px, bilan 2026 inchangé (352 317 DH), aucune erreur dans la console.
 - [x] Mise en ligne (site + règles) par Dr Bentahila le 08/10.
 
-**T2 – Filtres** : médecin : par personne (médecin, secrétaire, infirmière), patient, statut, échéance (en retard /
-aujourd'hui / cette semaine), type, recherche.
+**T2 – Filtres** (fait et testé le 08/10, pas encore en ligne)
+- [x] Barre de filtres au-dessus de la liste (les deux onglets) : **recherche** (titre, description, patient, personnes,
+      type), **statut** (À faire et en cours · À faire · En cours · Terminées · Tous), **échéance** (En retard · Aujourd'hui ·
+      Cette semaine, retards compris, jusqu'au dimanche · Sans échéance), **type**.
+- [x] Onglet « Toutes les tâches » : **responsable** ; médecin : Toute l'équipe, Pour les médecins / secrétaires /
+      infirmières, pour chaque membre, Demandées par moi ; secrétaire et infirmière : Pour moi, Demandées par moi.
+- [x] Nombre de tâches affichées, « (filtrées) », bouton « Effacer les filtres » ; filtres gardés après un changement de
+      statut ou une modification ; trait rouge des urgentes gardé quand elles sont « En cours ».
+- [x] Tests (médecin, secrétaire, 390 px, bilan 352 317 DH, aucune erreur).
+- [ ] Mise en ligne (site seulement : `firebase deploy --only hosting`).
+
 **T3 – Commentaires et réattribution** : commentaires dans le fil de la tâche ; réattribuer depuis la fiche (le responsable
 aussi) ; chaque action datée, avec son auteur.
 **T4 – Temps réel et notifications** : listes mises à jour sans recharger ; message à l'écran (« Nouvelle tâche de… »,
@@ -706,3 +718,5 @@ Onco360_Package_Cession/
 | 08/10/2026 | 5 – T1 Tâches | Page Tâches (Mes tâches / Toutes les tâches), création, modification, réattribution, statuts, historique, suppression, « + Tâche » dans le dossier, règles `taches`. Testé (3 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |
 | 08/10/2026 | Plan | Demandes du 08/10 rangées : étapes 6 (salle d'attente), 7 (RCP), 8 (numéro de dossier, recherche), 9 (audit, rôles, mode démo), 10 (hors-ligne), 11 (tablette infirmière, pharmacie, alertes), 12 (téléconsultation), 13 (cession, tutoriels, démo, juridique), 14 (HL7/FHIR, DICOM) ; licences et quotas ajoutés à l'étape 4 ; ordre proposé. |
 | 08/10/2026 | Plan | Retirés : téléconsultation, écran TV et QR code de la salle d'attente, « Prévenir d'un retard ». « Marquer administrée » repris (étape 11). Vente : abonnements **et** cession. Auteur du code : Dr Rita Bentahila. Étapes renumérotées (6 à 13). |
+| 08/10/2026 | 5 – T1 Tâches | Mis en ligne (site + règles) par Dr Bentahila. |
+| 08/10/2026 | 5 – T2 Tâches | Filtres : recherche, responsable (médecins / secrétaires / infirmières / membre / demandées par moi), statut, échéance (retard, aujourd'hui, semaine, sans), type ; effacer les filtres. Testé (médecin, secrétaire, 390 px, bilan 352 317 DH). Pas encore en ligne. |
