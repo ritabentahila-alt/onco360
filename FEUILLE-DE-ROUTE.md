@@ -113,9 +113,16 @@ Proposition, à valider avec Dr Bentahila :
       posologies vraiment différentes, elles sont gardées comme variantes), posologies rédigées en clair (« 1 comprimé
       matin et soir (soit 2 comprimés par jour) »), **colonne « Classe thérapeutique »** (vérifiée sur les sites marocains
       medicament.ma / annuaire-gratuit.ma / med.ma pour les noms incertains), colonne « Remarque » (ce qui a changé).
-- [ ] **Dr Bentahila relit les 21 lignes en jaune** (à vérifier : durées à compléter, médicaments introuvables APAZIDE,
-      DUOXOL, NOCAND, SYSMETIX, TEGUMA 250 mg comprimé/crème, CEDOL 400/20 = même médicament, DECAPEPTYL voie IM, etc.),
-      corrige le fichier si besoin et le renvoie ; c'est cette version qui sera importée.
+- [x] Lignes en jaune relues et corrigées par Dr Bentahila le 07/10 (quelques lignes supprimées) ; colonne « Remarque »
+      retirée.
+- [x] **30 médicaments d'oncologie ajoutés** (en vert dans le fichier) : chimiothérapies orales (capécitabine, témozolomide
+      adjuvant, vinorelbine orale, cyclophosphamide métronomique), hormonothérapies (anastrozole, exémestane, fulvestrant,
+      goséréline 3,6, triptoréline 3 mg, cyprotérone), thérapies ciblées (palbociclib, ribociclib, abémaciclib, olaparib,
+      imatinib, osimertinib), soins de support (pegfilgrastim, dénosumab 120 / 60, acide zolédronique, énoxaparine,
+      dexaméthasone, olanzapine, lévétiracétam, lévothyroxine, anétholtrithione, Biafine, fentanyl patch).
+      Présence au Maroc vérifiée pour NEULASTIM, XGEVA, PROLIA, NAVELBINE orale, FASLODEX, ARIMIDEX, ANDROCUR, LEVOTHYROX.
+      → **162 médicaments**. Les posologies dépendant de la surface corporelle gardent des « … » à remplir sur l'ordonnance.
+- [ ] **Dr Bentahila valide le fichier** (lignes vertes surtout) ; c'est cette version qui sera importée.
 - [ ] Liste de tous les médicaments du cabinet : **Recherche** ; colonnes Médicament, Posologie ; **+** ajouter,
       **✎** modifier, **✕** supprimer.
 - [ ] « + » : Nom du médicament (ex. ABIRATERONE 250 mg) + Posologie (ex. 4 comprimés par jour le matin pendant 1 mois)
@@ -294,3 +301,4 @@ Décisions déjà prises :
 | 07/10/2026 | 1B – Consultations | Mis en ligne (site + règles de sécurité). |
 | 07/10/2026 | 1B – Consultations | Retouches : menu déroulant + titre libre (ex. J1C1 FOLFOX) ; barre des prescriptions indépendante, en bas de l'onglet. Testé (ordinateur, 390 px). Mis en ligne. |
 | 07/10/2026 | 1C – Médicaments | Liste des médicaments nettoyée (225 → 147 lignes, posologies en clair, classe thérapeutique, 21 lignes à vérifier en jaune). Décidé : ordonnance sans consultation du jour → consultation créée automatiquement. |
+| 07/10/2026 | 1C – Médicaments | Corrections de Dr Bentahila reprises, remarques retirées, 30 médicaments d'oncologie ajoutés (en vert) : 162 médicaments, à valider. |
