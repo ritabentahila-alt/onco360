@@ -283,6 +283,9 @@ Ce que Dr Bentahila remarque en utilisant Onco360 au quotidien.
       🗑, ⭐, 🏥, ➕ ➖. Mis en ligne.
 - [x] 💾 Enregistrer (disquette) et 🖨️ Fiche chimio (imprimante) remplacés le 07/10, mis en ligne.
 - [ ] Encore en suspens : 💉 ☢️ 🩺 👋.
+- [x] Dossier : boutons **« Afficher »** (toute la fiche en lecture) et **« Modifier »** (ex-« Modifier l'identité »). Résumé du
+      patient **enregistré tout seul** (1 s après la frappe, en quittant la case) ; on ne quitte pas la page tant qu'il n'est pas
+      enregistré (sinon on reste sur le dossier avec un message), et le navigateur prévient à la fermeture. Mis en ligne le 07/10.
 - [x] Dossier : allergies, antécédents médicaux et familiaux, mode de vie ne s'affichent plus (seulement dans Modifier
       l'identité). Nouveau champ **« Traitement en cours »** sous Mode de vie (création et modification ; `clinique.traitCours`).
       Mis en ligne le 07/10.
@@ -421,3 +424,4 @@ Décisions déjà prises :
 | 07/10/2026 | 2 – Retouches | Antécédents / mode de vie / allergies masqués dans le dossier ; champ « Traitement en cours » ajouté ; mis en ligne. |
 | 07/10/2026 | 1B – Consultations | Consultations toutes fermées à l'ouverture du dossier ; liste dans une zone qui défile (environ 10 consultations visibles, position gardée en pliant / dépliant). Testé avec 30 consultations (ordinateur, 390 px, bilan 352 317 DH), mis en ligne. |
 | 07/10/2026 | Retouches | Rendez-vous à venir : liste qui défile (5 visibles). Ordonnances types : version Excel du Dr installée. Favoris ⭐ (médicaments, ordonnances types). Testé (390 px, bilan 352 317 DH), mis en ligne. |
+| 07/10/2026 | 2 – Retouches | Boutons Afficher / Modifier ; résumé du patient enregistré automatiquement, page non quittable avant enregistrement ; mis en ligne. |

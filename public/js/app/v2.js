@@ -325,7 +325,17 @@ function route() {
   if (nom === "dossier" && arg) { delete ONGLET[arg]; oublierConsultations(arg); oublierDocs(arg); } // dossier ouvert : onglet Consultation, consultations relues
   PAGES[nom][1](arg); window.scrollTo(0, 0);
 }
-window.addEventListener("hashchange", () => D && route());
+// Changer de page : le résumé en cours d'écriture est d'abord enregistré ; s'il ne peut pas l'être, on reste sur le dossier
+window.addEventListener("hashchange", async () => {
+  if (!D) return;
+  if (NOTES.txt != null || NOTES.encours) {
+    await sauverNotesMaintenant();
+    if (NOTES.txt != null) { const ici = "#dossier/" + encodeURIComponent(NOTES.pid); if (location.hash !== ici) { history.replaceState(null, "", ici); toast("Le résumé n'a pas pu être enregistré : vérifiez la connexion, puis réessayez."); } return; }
+  }
+  route();
+});
+// Fermer l'onglet ou recharger avec un résumé non enregistré : le navigateur demande confirmation
+window.addEventListener("beforeunload", (e) => { if (NOTES.txt != null || NOTES.encours) { sauverNotesMaintenant(); e.preventDefault(); e.returnValue = ""; } });
 
 function pageAccueil() {
   const pj = programmeDuJour(), ag = agenda7(), ab = absences(), tot = pj.rt.length + pj.co.length + pj.ch.length;
@@ -422,10 +432,10 @@ function pageDossier(id) {
   h += '<section class="carte"><div class="ident">' + (peut("identite") ? '<button class="bulle-photo" onclick="photoPatient(\'' + x.id + '\')" title="' + (P.photo ? "Changer ou retirer la photo" : "Ajouter une photo du patient") + '" aria-label="Photo du patient">' + bulle(x) + "</button>" : bulle(x)) + '<div style="flex:1;min-width:200px"><h2>' + esc(r.nm) + "</h2><p>" +
     esc([P.ddn ? "Né(e) le " + dfrA(P.ddn) + (a != null ? " (" + a + " ans)" : "") : "", P.sexe === "F" ? "Femme" : P.sexe === "H" ? "Homme" : "", P.taille ? P.taille + " cm" : "", P.poids ? P.poids + " kg" : ""].filter(Boolean).join(" · ")) + "</p>" +
     '<div class="bd">' + (P.hop ? '<span class="badge b-gr">' + esc(P.hop) + "</span>" : "") + (r.t && r.t.st === "cours" ? '<span class="badge b-co">Chimiothérapie en cours</span>' : "") + ((r.rtS || []).some((s) => s.st === "cours") ? '<span class="badge b-rt">RT en cours</span>' : "") + "</div></div>" +
-    (peut("identite") || peut("fichePatient") || traitMod() ? '<button class="bt clair" onclick="modifierIdentite(\'' + x.id + '\')">Modifier l\'identité</button>' : "") + "</div>" +
+    '<div class="actr" style="align-self:flex-start"><button class="bt gris" onclick="afficherPatient(\'' + x.id + '\')">Afficher</button>' + (peut("identite") || peut("fichePatient") || traitMod() ? '<button class="bt clair" onclick="modifierIdentite(\'' + x.id + '\')">Modifier</button>' : "") + "</div></div>" +
     '<div class="champs">' + champ("Diagnostic", r.diag) + (P.tel ? '<div><label>Téléphone</label><b><a href="tel:' + esc(P.tel) + '">' + esc(P.tel) + "</a></b></div>" : "") + champ("Hôpital", P.hop) + champ("ALD", P.ald) + champ("Correspondant", P.cor) + champ("Mutuelle", P.mut) + "</div>" +
-    '<div class="resume"><div class="entete"><label for="nTxt" style="flex:1">Résumé du patient</label>' + (okN ? '<button class="bt clair petit cache" id="nSauv" onclick="sauverNotes(\'' + x.id + '\')">Enregistrer</button>' : "") + "</div>" +
-    (okN ? '<textarea id="nTxt" class="notes" placeholder="Quelques phrases de résumé : histoire, antécédents, points d\'attention…" oninput="document.getElementById(\'nSauv\').classList.remove(\'cache\')">' + esc(P.notes || "") + "</textarea>"
+    '<div class="resume"><div class="entete"><label for="nTxt" style="flex:1">Résumé du patient</label>' + (okN ? '<span class="mesures" id="nEtat">' + (NOTES.pid === x.id && NOTES.txt != null ? "Modifications en cours…" : "") + "</span>" : "") + "</div>" +
+    (okN ? '<textarea id="nTxt" class="notes" placeholder="Quelques phrases de résumé : histoire, antécédents, points d\'attention…" oninput="notesSaisie(\'' + x.id + '\',this)" onblur="sauverNotesMaintenant()">' + esc(NOTES.pid === x.id && NOTES.txt != null ? NOTES.txt : P.notes || "") + "</textarea>"
       : (P.notes ? '<div class="notes lecture">' + esc(P.notes) + "</div>" : '<p class="sous">Aucun résumé.</p>')) + "</div></section>";
 
   // Rendez-vous à venir : chimio, radiothérapie et rendez-vous prévus à partir d'aujourd'hui (actions directement ici)
@@ -614,12 +624,36 @@ window.photoPatient = (id) => {
   $("phSup").onclick = async () => { const I = Object.assign({}, x.doc.identite || {}); delete I.photo; try { await enregistrer(x, { identite: I }, "Photo du patient retirée"); fermerFenetre(); toast("Photo retirée."); pageDossier(x.id); } catch (e) { toast(e.message); } };
 };
 
-window.sauverNotes = async (id) => {
+// ───── Résumé du patient : enregistré tout seul (1 s après la dernière frappe, et en quittant la case) ─────
+const NOTES = { pid: null, txt: null, minuterie: null, encours: null };
+const etatNotes = (t) => { const e = $("nEtat"); if (e) e.textContent = t; };
+window.notesSaisie = (id, el) => { NOTES.pid = id; NOTES.txt = el.value; etatNotes("Modifications en cours…"); clearTimeout(NOTES.minuterie); NOTES.minuterie = setTimeout(sauverNotesMaintenant, 1000); };
+async function sauverNotesMaintenant() {
+  clearTimeout(NOTES.minuterie);
+  if (NOTES.encours) await NOTES.encours; // un enregistrement à la fois
+  if (NOTES.txt == null) return;
+  const x = D.patients.find((p) => p.id === NOTES.pid), v = NOTES.txt.trim(); NOTES.txt = null; if (!x) return;
+  const C = Object.assign({}, x.doc.clinique || {});
+  if ((C.notes || "") === v) { etatNotes("Enregistré"); return; }
+  C.notes = v; etatNotes("Enregistrement…");
+  NOTES.encours = enregistrer(x, { clinique: C }, "Résumé du patient modifié")
+    .then(() => { if (NOTES.txt == null) etatNotes("Enregistré"); })
+    .catch((e) => { if (NOTES.txt == null) NOTES.txt = v; etatNotes("Non enregistré"); toast("Résumé non enregistré : " + e.message); });
+  await NOTES.encours; NOTES.encours = null;
+}
+window.sauverNotesMaintenant = sauverNotesMaintenant;
+
+// ───── Afficher : toute la fiche du patient, en lecture seule ─────
+window.afficherPatient = (id) => {
   const x = D.patients.find((p) => p.id === id); if (!x) return;
-  const C = Object.assign({}, x.doc.clinique || {}), v = $("nTxt").value.trim(); if ((C.notes || "") === v) return;
-  C.notes = v; occupe($("nSauv"), true);
-  try { await enregistrer(x, { clinique: C }, "Résumé du patient modifié"); toast("Résumé enregistré."); pageDossier(x.id); }
-  catch (e) { occupe($("nSauv"), false); toast(e.message); }
+  const P = x.P, a = age(P.ddn, D.t), et = (D.etabsTous || D.etabs).find((e) => e.code === x.doc.etablissementId) || {};
+  const l = (lib, v) => '<div class="' + (String(v || "").length > 60 || /\n/.test(v || "") ? "large" : "") + '"><label>' + lib + "</label><div>" + (v ? "<b>" + esc(v) + "</b>" : '<span class="mesures">—</span>') + "</div></div>";
+  fenetre("<h3>" + esc(x.r.nm) + '</h3><div class="form fiche-lecture">' +
+    l("Nom", P.nomF) + l("Prénom", P.prenom) + l("Date de naissance", P.ddn ? dfrA(P.ddn) + (a != null ? " (" + a + " ans)" : "") : "") + l("Sexe", P.sexe === "F" ? "Femme" : P.sexe === "H" ? "Homme" : "") +
+    l("Taille", P.taille ? P.taille + " cm" : "") + l("Poids", P.poids ? P.poids + " kg" : "") + l("Diagnostic", [P.diag, P.diagP].filter(Boolean).join(" – ")) + l("Téléphone", P.tel) +
+    l("Hôpital", et.nom ? et.code + " – " + et.nom : x.doc.etablissementId) + l("ALD", P.ald) + l("Correspondant", P.cor) + l("Mutuelle", P.mut) +
+    CHAMPS_MED.map(([k, lib]) => l(lib, P[k])).join("") + "</div>" +
+    '<div class="boutons">' + (peut("identite") || peut("fichePatient") || traitMod() ? '<button class="bt clair" onclick="fermerFenetre();modifierIdentite(\'' + x.id + '\')">Modifier</button>' : "") + '<button class="bt plein" onclick="fermerFenetre()">Fermer</button></div>');
 };
 
 // ───── Rendez-vous : ajouter, modifier, venu / non venu, supprimer ─────
