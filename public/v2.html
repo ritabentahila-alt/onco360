@@ -320,6 +320,22 @@ details summary{cursor:pointer;color:var(--prim);font-weight:bold;font-size:13.5
 .sug div{padding:8px 10px;cursor:pointer;border-bottom:1px solid #F0F1F5}.sug div:hover{background:#EEF0F8}
 .liste-choix{max-height:320px;overflow:auto;margin-top:8px}
 
+/* Tâches (T1, 07/10/2026) */
+.tache{display:flex;align-items:center;gap:12px;padding:11px 8px;border-bottom:1px solid var(--trait);cursor:pointer;border-left:4px solid transparent}
+.tache:last-child{border-bottom:0}.tache:hover{background:#FAFBFE}
+.tache.urgent,.tache.retard{border-left-color:var(--rouge)}.tache.st-encours{border-left-color:var(--bleu)}
+.tache.st-fait .ti b{color:var(--doux);text-decoration:line-through}
+.tache .tx{flex:1;min-width:0}.tache .ti{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.tache .de{color:var(--doux);font-size:13.5px;margin-top:2px}.tache .de .rouge{color:var(--rouge);font-weight:bold}
+.tache select.st{flex:none;padding:7px 8px;border:1px solid #CCD3E0;border-radius:8px;background:#fff;font-size:14px;font-weight:bold;color:var(--encre)}
+.tache.st-encours select.st{color:var(--bleu);border-color:var(--bleu)}.tache.st-fait select.st{color:var(--vert);border-color:#BFE3CC}
+.lien-p{background:none;border:0;padding:0;color:var(--prim);font-weight:bold;font-size:inherit;text-decoration:underline;cursor:pointer}
+.ag-vues .nb{background:rgba(0,0,0,.08);border-radius:10px;padding:0 7px;font-size:12px}.ag-vues button.on .nb{background:rgba(255,255,255,.25)}
+.ta-desc{white-space:pre-wrap}
+.ta-fil{max-height:220px;overflow:auto;font-size:13.5px}.ta-fil div{padding:6px 0;border-bottom:1px solid var(--trait)}.ta-fil .dt{color:var(--doux);margin-right:8px;white-space:nowrap}
+.taches-finies{margin-top:6px}
+@media (max-width:640px){.tache{flex-wrap:wrap;gap:8px}.tache select.st{width:100%}}
+
 /* Agenda */
 #page.large{max-width:1240px}
 .ag-barre{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
@@ -474,6 +490,7 @@ details summary{cursor:pointer;color:var(--prim);font-weight:bold;font-size:13.5
   <symbol id="i-courrier" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></symbol>
   <symbol id="i-crayon" viewBox="0 0 24 24"><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/><path d="m14.5 5.5 3 3"/></symbol>
   <symbol id="i-croix" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+  <symbol id="i-taches" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="3"/><path d="m7.3 9 1.6 1.6 2.8-2.8M14 9.4h3M7.3 15.4l1.6 1.6 2.8-2.8M14 15.8h3"/></symbol>
   <symbol id="i-document" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7ZM14 2v4a2 2 0 0 0 2 2h4M10 9H8M16 13H8M16 17H8"/></symbol>
 </svg>
 <aside id="menu" aria-label="Menu principal">
@@ -482,6 +499,7 @@ details summary{cursor:pointer;color:var(--prim);font-weight:bold;font-size:13.5
     <a href="#accueil" data-p="accueil"><svg class="i"><use href="#i-accueil"/></svg>Tableau de bord</a>
     <a href="#agenda" data-p="agenda"><svg class="i"><use href="#i-agenda"/></svg>Agenda / Rendez-vous</a>
     <a href="#patients" data-p="patients"><svg class="i"><use href="#i-patients"/></svg>Patients</a>
+    <a href="#taches" data-p="taches"><svg class="i"><use href="#i-taches"/></svg>Tâches</a>
     <a href="#protocoles" data-p="protocoles"><svg class="i"><use href="#i-protocoles"/></svg>Protocoles</a>
     <a href="#configuration" data-p="configuration"><svg class="i"><use href="#i-configuration"/></svg>Configuration</a>
     <a href="#parametres" data-p="parametres" data-droit="parametres"><svg class="i"><use href="#i-parametres"/></svg>Paramètres</a>
@@ -521,6 +539,6 @@ function onco360Deconnecter() {
 }
 </script>
 
-<script type="module" src="./js/app/v2.js?v=20261008d"></script>
+<script type="module" src="./js/app/v2.js?v=20261008e"></script>
 </body>
 </html>

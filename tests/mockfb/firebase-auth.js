@@ -1,4 +1,4 @@
-const U = { uid: "UIDRITA", email: "ritabentahila@gmail.com" };
+const U = window.__uid ? { uid: window.__uid, email: window.__uid.toLowerCase() + "@test.ma" } : { uid: "UIDRITA", email: "ritabentahila@gmail.com" }; // window.__uid : autre membre (tests)
 export function getAuth() { return { currentUser: U }; }
 export function onAuthStateChanged(a, f) { setTimeout(() => f(U), 0); return () => {}; }
 export async function signOut() {}

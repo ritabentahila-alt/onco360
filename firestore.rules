@@ -115,6 +115,25 @@ service cloud.firestore {
         allow update: if droit('documents') && dansPerimetre(resource.data.etablissementId) && dansPerimetre(request.resource.data.etablissementId)
           && request.resource.data.majPar == request.auth.uid;
       }
+      // Tâches de l'équipe (07/10/2026) : les médecins les voient toutes ; les autres celles qu'ils ont créées ou dont ils sont
+      // responsables (qui = [auteur, responsable]). Modification et réattribution : l'auteur, le responsable, les médecins ;
+      // l'auteur ne change jamais ; chaque modification ajoute une entrée à l'historique (fil), qui ne rétrécit jamais.
+      // Suppression : l'auteur ou un médecin, jamais une tâche terminée.
+      match /taches/{t} {
+        function estMedecin() { return estMembre() && m().role == 'medecin'; }
+        function concerne() { return estMedecin() || (estMembre() && request.auth.uid in resource.data.qui); }
+        function valide(d) {
+          return d.titre is string && d.titre.size() > 0 && d.statut in ['afaire', 'encours', 'fait'] && d.majPar == request.auth.uid
+            && d.qui is list && d.qui.hasAll([d.de, d.pour]) && d.qui.hasOnly([d.de, d.pour])
+            && exists(/databases/$(database)/documents/espaces/$(e)/membres/$(d.pour));
+        }
+        allow read: if concerne();
+        allow create: if estMembre() && request.resource.data.de == request.auth.uid && valide(request.resource.data)
+          && request.resource.data.statut == 'afaire' && request.resource.data.fil.size() == 1;
+        allow update: if concerne() && valide(request.resource.data) && request.resource.data.de == resource.data.de
+          && request.resource.data.fil.size() == resource.data.fil.size() + 1;
+        allow delete: if (estMedecin() || (estMembre() && resource.data.de == request.auth.uid)) && resource.data.statut != 'fait';
+      }
       // Montants des dossiers, tarifs, paiements, versements : uniquement avec le droit « finances »
       match /patientsFinances/{p} { allow read, write: if droit('finances'); }
       // Prix à encaisser (consultations validées, consultation de chimio) : extrait des montants, lisible avec le droit « encaissements »

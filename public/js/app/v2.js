@@ -23,6 +23,7 @@ import { installer as installerParametres, pageParametres } from "./parametres.j
 import { installer as installerBilan, pagePageBilan } from "./bilan.js";
 import { installer as installerOrdonnances, remplacerOrdosTypes } from "./ordonnances.js";
 import { installer as installerConsultations, htmlConsultations, nbConsultations, oublierConsultations, suivreEtablissement, supprimerConsultations } from "./consultations.js";
+import { installer as installerTaches, pageTaches } from "./taches.js";
 import { ACTES_RT } from "../donnees/listes.js";
 import { deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -196,8 +197,8 @@ function fmtSaisie(el) {
 document.addEventListener("input", (ev) => { if (ev.target && ev.target.classList && ev.target.classList.contains("mt")) fmtSaisie(ev.target); });
 const ferieLe = (d) => (D.ctx.feries || []).map((f) => (typeof f === "string" ? { d: f, nom: "Jour férié" } : f)).find((f) => f.d === d);
 const API = { D: () => D, ESPACE, $, esc, ic, dfr, dfrA, cap, jourLong, val, occupe, erreur, toast, fenetre, fermerFenetre: () => window.fermerFenetre(), peut, traitMod, enregistrer, pageDossier: (id) => pageDossier(id), recalculer, journal };
-API.medecinFiche = () => medecinFiche(); API.entete = () => entete(); API.voitRdv = () => voitRdv(); API.voitRT = (x) => voitRT(x); API.champsMed = (C, off) => champsMed(C, off); API.CHAMPS_MED = () => CHAMPS_MED; API.fmtMil = (n) => fmtMil(n); API.ferieLe = (d) => ferieLe(d);
-installerChimio(API); installerAgenda(API); installerConfig(API); installerProfil(API); installerProtocoles(API); installerParametres(API); installerBilan(API); installerConsultations(API); installerOrdonnances(API); installerDocuments(API);
+API.sansAcc = sansAcc; API.medecinFiche = () => medecinFiche(); API.entete = () => entete(); API.voitRdv = () => voitRdv(); API.voitRT = (x) => voitRT(x); API.champsMed = (C, off) => champsMed(C, off); API.CHAMPS_MED = () => CHAMPS_MED; API.fmtMil = (n) => fmtMil(n); API.ferieLe = (d) => ferieLe(d);
+installerChimio(API); installerAgenda(API); installerConfig(API); installerProfil(API); installerProtocoles(API); installerParametres(API); installerBilan(API); installerConsultations(API); installerOrdonnances(API); installerDocuments(API); installerTaches(API);
 
 function entete() {
   const p = D.profil, mb = D.membre, nom = (p.nom || mb.nom || "").replace(/^Dr\.?\s*/i, "");
@@ -316,7 +317,7 @@ const FILTRES = {
 };
 
 // ───── Pages ─────
-const PAGES = { accueil: ["Tableau de bord", pageAccueil], agenda: ["Agenda / Rendez-vous", () => pageAgenda()], configuration: ["Configuration", () => pageConfiguration()], profil: ["Profil", () => pageProfil()], protocoles: ["Protocoles", () => pageProtocoles()], parametres: ["Paramètres", () => pageParametres()], bilan: ["Bilan", () => pagePageBilan()], patients: ["Patients", pagePatients], dossier: ["Dossier patient", pageDossier] };
+const PAGES = { accueil: ["Tableau de bord", pageAccueil], agenda: ["Agenda / Rendez-vous", () => pageAgenda()], configuration: ["Configuration", () => pageConfiguration()], profil: ["Profil", () => pageProfil()], protocoles: ["Protocoles", () => pageProtocoles()], parametres: ["Paramètres", () => pageParametres()], bilan: ["Bilan", () => pagePageBilan()], patients: ["Patients", pagePatients], taches: ["Tâches", () => pageTaches()], dossier: ["Dossier patient", pageDossier] };
 function route() {
   const h = location.hash.replace("#", ""), i = h.indexOf("/"), p = i < 0 ? h : h.slice(0, i), arg = i < 0 ? null : decodeURIComponent(h.slice(i + 1)), nom = PAGES[p] ? p : "accueil";
   if (!$("fenetre").classList.contains("cache")) window.fermerFenetre();
@@ -432,7 +433,7 @@ function pageDossier(id) {
   h += '<section class="carte"><div class="ident">' + (peut("identite") ? '<button class="bulle-photo" onclick="photoPatient(\'' + x.id + '\')" title="' + (P.photo ? "Changer ou retirer la photo" : "Ajouter une photo du patient") + '" aria-label="Photo du patient">' + bulle(x) + "</button>" : bulle(x)) + '<div style="flex:1;min-width:200px"><h2>' + esc(r.nm) + "</h2><p>" +
     esc([P.ddn ? "Né(e) le " + dfrA(P.ddn) + (a != null ? " (" + a + " ans)" : "") : "", P.sexe === "F" ? "Femme" : P.sexe === "H" ? "Homme" : "", P.taille ? P.taille + " cm" : "", P.poids ? P.poids + " kg" : ""].filter(Boolean).join(" · ")) + "</p>" +
     '<div class="bd">' + (P.hop ? '<span class="badge b-gr">' + esc(P.hop) + "</span>" : "") + (r.t && r.t.st === "cours" ? '<span class="badge b-co">Chimiothérapie en cours</span>' : "") + ((r.rtS || []).some((s) => s.st === "cours") ? '<span class="badge b-rt">RT en cours</span>' : "") + "</div></div>" +
-    '<div class="actr" style="align-self:flex-start"><button class="bt gris" onclick="afficherPatient(\'' + x.id + '\')">Afficher</button>' + (peut("identite") || peut("fichePatient") || traitMod() ? '<button class="bt clair" onclick="modifierIdentite(\'' + x.id + '\')">Modifier</button>' : "") + "</div></div>" +
+    '<div class="actr" style="align-self:flex-start"><button class="bt gris" onclick="afficherPatient(\'' + x.id + '\')">Afficher</button>' + (peut("identite") || peut("fichePatient") || traitMod() ? '<button class="bt clair" onclick="modifierIdentite(\'' + x.id + '\')">Modifier</button>' : "") + '<button class="bt clair" onclick="taNouvelle(\'' + x.id + '\')" title="Nouvelle tâche pour ce patient">' + ic("plus") + "Tâche</button></div></div>" +
     '<div class="champs">' + champ("Diagnostic", r.diag) + (P.tel ? '<div><label>Téléphone</label><b><a href="tel:' + esc(P.tel) + '">' + esc(P.tel) + "</a></b></div>" : "") + champ("Hôpital", P.hop) + champ("ALD", P.ald) + champ("Correspondant", P.cor) + champ("Mutuelle", P.mut) + "</div>" +
     '<div class="resume"><div class="entete"><label for="nTxt" style="flex:1">Résumé du patient</label>' + (okN ? '<span class="mesures" id="nEtat">' + (NOTES.pid === x.id && NOTES.txt != null ? "Modifications en cours…" : "") + "</span>" : "") + "</div>" +
     (okN ? '<textarea id="nTxt" class="notes" placeholder="Quelques phrases de résumé : histoire, antécédents, points d\'attention…" oninput="notesSaisie(\'' + x.id + '\',this)" onblur="sauverNotesMaintenant()">' + esc(NOTES.pid === x.id && NOTES.txt != null ? NOTES.txt : P.notes || "") + "</textarea>"

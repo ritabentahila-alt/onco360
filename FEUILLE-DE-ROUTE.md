@@ -400,6 +400,52 @@ Décisions déjà prises :
 
 ---
 
+## Étape 5 – Tâches de l'équipe (demandé le 07/10/2026)
+But : rappels, demandes et suivis entre le médecin, la secrétaire et l'infirmière (relancer un laboratoire, certificat
+demandé, rendez-vous déplacé, question d'un patient…), chacun avec un responsable et un historique.
+Découpé en **sous-étapes, une fenêtre chacune** : T1 à T5 (T6 facultatif).
+
+**Décisions de Dr Bentahila (07/10)**
+- Page **« Tâches »** dans le menu, entre Patients et Protocoles. Bouton **« + Tâche »** dans le dossier, à côté de
+  Afficher / Modifier (patient déjà choisi). **Les tâches d'un patient ne s'affichent pas dans son dossier.**
+- Une tâche : titre (obligatoire), description, échéance (date, heure facultative), Urgent, patient (facultatif),
+  **pour qui (obligatoire)**, de la part de (le compte connecté), statut À faire / En cours / Terminée.
+- Types rapides : **Rappel perso, Examens à voir, Courriers à faire, Rendez-vous ajouté/déplacé, Question patient, Question,
+  Autre** (un clic préremplit le titre).
+- Qui voit quoi : **tous les médecins voient toutes les tâches** ; la secrétaire et l'infirmière voient celles **pour elles**
+  et celles **qu'elles ont créées** (pour savoir quand elles sont terminées).
+- Modifier, réattribuer : la personne qui l'a créée, la personne responsable, le médecin. Supprimer : la personne qui l'a
+  créée et le médecin ; **une tâche terminée n'est jamais supprimée** (elle reste dans l'historique).
+- Historique de chaque tâche (créée, réattribuée, statut, terminée par qui et quand), jamais effacé.
+- « Filtrer par agenda » = **par échéance** (en retard, aujourd'hui, cette semaine).
+- Bloc « Mes tâches » du tableau de bord : **dans la partie « 7 prochains jours » et « Conflits »** (T4).
+
+**T1 – Les bases** (fait et testé le 07/10, pas encore en ligne)
+- [x] « Tâches » dans le menu (pictogramme liste cochée) ; onglets **Mes tâches** / **Toutes les tâches** (avec leur nombre).
+- [x] Fenêtre « Nouvelle tâche » / « Modifier » : types rapides, titre, description, pour qui, échéance + heure, Urgent,
+      patient (recherche par nom, ✕ pour le retirer).
+- [x] Liste : urgentes et en retard en tête (trait rouge), « Aujourd'hui » en orange, puis par échéance ; statut changé
+      directement dans la liste ; tâches terminées rangées à part (« Afficher les tâches terminées », barrées, « Terminée
+      par X le … à … »).
+- [x] Fiche d'une tâche (clic) : détails, statut, **historique**, Modifier, Supprimer (selon les droits). Clic sur le patient
+      = son dossier.
+- [x] Bouton « + Tâche » dans le dossier.
+- [x] Règles de sécurité `taches` (lecture, création, modification, suppression comme décidé ; historique qui ne fait que
+      grandir). Vérifiées par Firebase (compilation), pas d'émulateur sur ce Mac (pas de Java).
+- [x] Tests (faux Firebase, 3 comptes : médecin, secrétaire, infirmière) : création, réattribution, statuts, suppression,
+      droits de chacun, téléphone 390 px, bilan 2026 inchangé (352 317 DH), aucune erreur dans la console.
+- [ ] Mise en ligne (site + règles), avec l'accord de Dr Bentahila.
+
+**T2 – Filtres** : médecin : par personne (médecin, secrétaire, infirmière), patient, statut, échéance (en retard /
+aujourd'hui / cette semaine), type, recherche.
+**T3 – Commentaires et réattribution** : commentaires dans le fil de la tâche ; réattribuer depuis la fiche (le responsable
+aussi) ; chaque action datée, avec son auteur.
+**T4 – Temps réel et notifications** : listes mises à jour sans recharger ; message à l'écran (« Nouvelle tâche de… »,
+« Votre tâche a été commentée ») ; pastille du menu (non lues, en retard) ; bloc « Mes tâches » du tableau de bord (dans
+la partie 7 jours / conflits).
+**T5 – Finition** : lien tâche → dossier vérifié pour les membres limités à un établissement ; CLAUDE.md ; guide.
+**T6 – Facultatif** : échéance dans le Google Agenda du responsable ; notifications sur le téléphone même Onco360 fermé.
+
 ## Idées en attente (à placer dans une étape)
 - Outil de restauration d'une sauvegarde.
 
@@ -472,3 +518,5 @@ Décisions déjà prises :
 | 07/10/2026 | 1E – Examens compl. (mise en ligne) | Relecture du Dr : examens validés, pas de bilans d'imagerie ; ordonnances d'analyses et d'examens « Prière de bien vouloir faire », sans renseignements cliniques ni titre de bilan ; éléments de bilans coupés dans les parenthèses recollés. Testé (390 px, bilan 352 317 DH), en ligne. |
 | 07/10/2026 | 1E – Courriers | 6 modèles de courriers du Dr (ALD, arrêt de travail, certificat, courrier, pli confidentiel, compte rendu) remplis pour le patient, zones à compléter, éditeur de modèles ; régimes de RT pelvienne en PDF (français, darija de droite à gauche). Testé (3 rôles, 390 px, bilan 352 317 DH), en ligne. |
 | 07/10/2026 | Droits de la secrétaire | Supprime les consultations qu'elle a créées (le médecin : toutes) ; n'annule pas un statut « Venu / Non venu » posé par le médecin (statut noté avec son auteur `sp`, anciens statuts = médecin) ; Créneaux & horaires limités à son centre (membre limité à certains établissements) ; ne crée, ne modifie, ne supprime ni ne met en favori aucun élément des listes (Médic., Examens compl., Ordo. type, Analyses, Courriers), elle s'en sert pour prescrire. Règles : `bibliotheques` écrites par le médecin, consultations supprimées par le médecin ou leur auteur. Testé (2 rôles, 390 px, bilan 352 317 DH), en ligne. |
+| 07/10/2026 | 5 – Tâches (plan) | Plan du module Tâches (T1 à T6) proposé et décidé : qui voit, modifie, supprime ; types rapides ; « + Tâche » dans le dossier ; tâches absentes du dossier. |
+| 08/10/2026 | 5 – T1 Tâches | Page Tâches (Mes tâches / Toutes les tâches), création, modification, réattribution, statuts, historique, suppression, « + Tâche » dans le dossier, règles `taches`. Testé (3 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |
