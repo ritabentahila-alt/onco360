@@ -210,20 +210,19 @@ de leur radiothérapie :
 - [ ] **Règle (07/10) : tout ce qui est fait pour Médic. vaut pour Ordo. type et Analyses** (et les autres familles) :
       liste avec recherche + / ✎ / ✕, double-clic, ordonnance A5/A4 modifiable, consultation du jour, antécédents
       (Imprimer · Supprimer · Modifier = liste rouverte à la date de prescription · Renouveler · Fermer).
-- [x] **Examens compl.** (fait et testé le 07/10, en attente de la relecture de Dr Bentahila avant mise en ligne) : fichier
-      `Examens_Complementaires_Oncologie.xlsx` (42 examens) rangé → **55 examens, 7 bilans d'imagerie**
-      (`public/js/donnees/examens.js` ; relecture : `listes/Examens_Onco360.xlsx`, nouveautés en vert). Mammographie corrigée,
-      nasofibroscopie / panendoscopie séparées, précautions des endoscopies (« à jeun 6 heures »…) ; ajouts à valider :
-      TDM thoracique / abdomino-pelvienne, uro-TDM, IRM prostatique / rectale / ORL, radio thoracique / osseuse, panoramique
-      dentaire, ostéodensitométrie, rectosigmoïdoscopie, audiogramme, cytoponction, ponction pleurale, bilans d'extension
-      (sein, prostate, poumon, ORL, rectum, col utérin) et bilan avant chimiothérapie cardiotoxique.
-  - Même fenêtre que les Analyses (code commun, `FAMS` dans ordonnances.js) : bilan d'imagerie = une ligne par examen,
-    précautions entre parenthèses, « Nouvel examen » (nom, catégorie, précautions), « Nouveau bilan d'imagerie », ✎ ✕ ⭐,
-    ordonnance « Prière de faire pratiquer » + renseignements cliniques, antécédents ; listes `bibliotheques/examens` et
-    `bibliotheques/bilansExamens`.
-  - Tests : bilan d'extension, précautions, ordonnance, consultation, nouvel examen, antécédents, analyses inchangées,
-    390 px, bilan 352 317 DH.
-  - [ ] Relecture de Dr Bentahila, puis mise en ligne.
+- [x] **Examens compl.** (fait, relu par Dr Bentahila et mis en ligne le 07/10) : fichier
+      `Examens_Complementaires_Oncologie.xlsx` (42 examens) rangé → **55 examens** (`public/js/donnees/examens.js` ;
+      relecture : `listes/Examens_Onco360.xlsx`). Mammographie corrigée, nasofibroscopie / panendoscopie séparées,
+      précautions des endoscopies (« à jeun 6 heures »…), ajouts validés (TDM thoracique / abdomino-pelvienne, uro-TDM,
+      IRM prostatique / rectale / ORL, radiographies, panoramique dentaire, ostéodensitométrie, rectosigmoïdoscopie,
+      audiogramme, cytoponction, ponction pleurale). **Pas de bilans d'imagerie** (décision du Dr).
+  - Même fenêtre que les Analyses (code commun, `FAMS` dans ordonnances.js, `lb: null` pour les examens) : une ligne par
+    examen, précautions entre parenthèses, « Nouvel examen » (nom, catégorie, précautions), ✎ ✕ ⭐, antécédents ;
+    liste `bibliotheques/examens`.
+  - Ordonnance d'analyses et d'examens (décision du 07/10) : titre « Prière de bien vouloir faire : », **sans
+    renseignements cliniques** ; un bilan s'imprime **sans son titre** (« ASAT, ALAT, GGT… »).
+  - Corrigé au passage : dans la liste des analyses en ligne, des éléments de bilans étaient coupés à la virgule dans une
+    parenthèse (« DFG (clairance de la créatinine » / « CKD-EPI) ») : recollés dans analyses.js et à la lecture des listes.
 - [x] **Ordonnances types** (fait, testé et mis en ligne le 07/10) : fichier de Dr Bentahila
       (`Ordonnances_Par_Type_Complete.xlsx`, 15 types) repris, harmonisé avec la liste des médicaments, corrigé et complété
       → **26 ordonnances types, 94 lignes** (`public/js/donnees/ordostypes.js`, relecture : `listes/Ordonnances_types_Onco360.xlsx`,
@@ -457,3 +456,4 @@ Décisions déjà prises :
 | 07/10/2026 | 1E – Analyses | Analyses : 34 bilans (7 généraux) et 94 analyses (fichier du Dr rangé), clic = lignes dans l'ordonnance, ordonnance « Prière de faire pratiquer », création / modification / favoris. Testé (390 px, bilan 352 317 DH). Pas encore en ligne. |
 | 07/10/2026 | 1E – Analyses | Version corrigée par Dr Bentahila reprise ; mis en ligne. |
 | 07/10/2026 | 1E – Examens compl. | Examens compl. : 55 examens et 7 bilans d'imagerie (fichier du Dr rangé, ajouts à valider), même fenêtre que les analyses. Testé (390 px, bilan 352 317 DH). En attente de relecture, pas encore en ligne. |
+| 07/10/2026 | 1E – Examens compl. (mise en ligne) | Relecture du Dr : examens validés, pas de bilans d'imagerie ; ordonnances d'analyses et d'examens « Prière de bien vouloir faire », sans renseignements cliniques ni titre de bilan ; éléments de bilans coupés dans les parenthèses recollés. Testé (390 px, bilan 352 317 DH), en ligne. |

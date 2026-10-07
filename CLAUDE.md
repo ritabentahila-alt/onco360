@@ -57,8 +57,8 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
 - `bibliotheques/medicaments` : `data` = JSON [{ id, nom, poso, classe }] (absent = liste de départ `donnees/medicaments.js`) ;
   `bibliotheques/ordostypes` : `data` = JSON [{ id, nom, items: [{ nom, poso }] }] (absent = `donnees/ordostypes.js`) ;
   `bibliotheques/analyses` [{ id, nom, cat, fav }] et `bibliotheques/bilans` [{ id, nom, items: [noms d'analyses ou de bilans], fav }]
-  (absents = `donnees/analyses.js`) ; `bibliotheques/examens` [{ id, nom, cat, note }] et `bibliotheques/bilansExamens`
-  (absents = `donnees/examens.js`) ; `fav` = favori ⭐ (en tête de liste) sur toutes ces listes ;
+  (absents = `donnees/analyses.js`) ; `bibliotheques/examens` [{ id, nom, cat, note }]
+  (absent = `donnees/examens.js` ; pas de bilans d'imagerie) ; `fav` = favori ⭐ (en tête de liste) sur toutes ces listes ;
   lu par les membres, écrit avec `ecrireConsultations`
 - `documentsRT/{patient}_{rt}_{pli|cr|rdv}` : `html` du document enregistré (une version par radiothérapie et par type),
   `patientId`, `etablissementId`, `rtId`, `type`, `majLe`, `majPar(Nom)` ; droit `documents` (médecin, secrétaire)

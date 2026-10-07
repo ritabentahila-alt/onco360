@@ -1,8 +1,7 @@
 // Onco360 – examens complémentaires de départ (fichier de Dr Bentahila « Examens_Complementaires_Oncologie.xlsx », 07/10/2026),
-// rangés et complétés. Utilisés tant que le cabinet n'a pas modifié ses listes (bibliotheques/examens et
-// bibliotheques/bilansExamens) ; ensuite ce sont les listes du cabinet.
-// EXAMENS0 : [nom, catégorie, précautions (ajoutées entre parenthèses sur l'ordonnance, facultatif)] ;
-// BILANS_EXAMENS0 : bilans d'imagerie { nom, items: [examens…] } — un clic ajoute tous leurs examens (une ligne chacun).
+// rangés, complétés et relus par le Dr (07/10/2026, sans bilans d'imagerie). Utilisés tant que le cabinet n'a pas modifié
+// sa liste (bibliotheques/examens) ; ensuite c'est la liste du cabinet.
+// EXAMENS0 : [nom, catégorie, précautions (ajoutées entre parenthèses sur l'ordonnance, facultatif)].
 export const EXAMENS0 = [
   ["TDM thoraco-abdomino-pelvienne (TAP) injectée", "Scanner (TDM)", ""],
   ["TDM thoracique injectée", "Scanner (TDM)", ""],
@@ -59,14 +58,4 @@ export const EXAMENS0 = [
   ["Ponction pleurale", "Biopsies et ponctions", ""],
   ["Myélogramme (ponction de moelle)", "Biopsies et ponctions", ""],
   ["Biopsie ostéo-médullaire (BOM)", "Biopsies et ponctions", ""],
-];
-
-export const BILANS_EXAMENS0 = [
-  { nom: "Bilan d'extension – sein", items: ["TDM thoraco-abdomino-pelvienne (TAP) injectée", "Scintigraphie osseuse"] },
-  { nom: "Bilan d'extension – prostate", items: ["IRM prostatique multiparamétrique", "Scintigraphie osseuse", "TDM thoraco-abdomino-pelvienne (TAP) injectée"] },
-  { nom: "Bilan d'extension – poumon", items: ["TDM thoraco-abdomino-pelvienne (TAP) injectée", "IRM cérébrale (T1, T2, FLAIR, diffusion, T1 gadolinium)", "TEP-TDM au 18F-FDG"] },
-  { nom: "Bilan d'extension – ORL", items: ["IRM cervico-faciale (ORL)", "TDM thoracique injectée", "Panendoscopie des VADS sous anesthésie générale", "Panoramique dentaire"] },
-  { nom: "Bilan d'extension – rectum", items: ["IRM rectale (bilan d'extension local)", "TDM thoraco-abdomino-pelvienne (TAP) injectée", "Coloscopie totale avec iléoscopie"] },
-  { nom: "Bilan d'extension – col utérin", items: ["IRM pelvienne", "TEP-TDM au 18F-FDG"] },
-  { nom: "Bilan avant chimiothérapie cardiotoxique", items: ["Échocardiographie transthoracique (ETT) avec mesure de la FEVG", "ECG 12 dérivations (avec mesure du QTc)"] },
 ];

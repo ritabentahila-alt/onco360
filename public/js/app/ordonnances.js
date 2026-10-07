@@ -14,7 +14,7 @@ import { db } from "../config.js";
 import { MEDICAMENTS0 } from "../donnees/medicaments.js";
 import { ORDOS_TYPES0 } from "../donnees/ordostypes.js";
 import { ANALYSES0, BILANS0 } from "../donnees/analyses.js";
-import { EXAMENS0, BILANS_EXAMENS0 } from "../donnees/examens.js";
+import { EXAMENS0 } from "../donnees/examens.js";
 import { enregistrerPrescription, trouverLigne, assurerConsultations, prescriptionsDe, supprimerPrescription, FAMILLES } from "./consultations.js";
 
 let A = null;
@@ -36,19 +36,24 @@ const DEPART = {
   analyses: () => ANALYSES0.map(([nom, cat], i) => ({ id: "a" + (i + 1), nom, cat })),
   bilans: () => BILANS0.map((b, i) => ({ id: "b" + (i + 1), nom: b.nom, items: b.items.slice() })),
   examens: () => EXAMENS0.map(([nom, cat, note], i) => ({ id: "e" + (i + 1), nom, cat, note: note || "" })),
-  bilansExamens: () => BILANS_EXAMENS0.map((b, i) => ({ id: "x" + (i + 1), nom: b.nom, items: b.items.slice() })),
 };
 const refListe = (n) => doc(db, "espaces", A.ESPACE, "bibliotheques", n);
 const CACHE = {};
 async function lireListe(n) {
   if (CACHE[n]) return CACHE[n];
   const s = await getDoc(refListe(n)).catch(() => null);
-  return (CACHE[n] = s && s.exists() ? JSON.parse(s.data().data || "[]") : DEPART[n]().sort(alpha));
+  const L = s && s.exists() ? JSON.parse(s.data().data || "[]") : DEPART[n]().sort(alpha);
+  return (CACHE[n] = reparer(L));
+}
+const reparer = (L) => { L.forEach((o) => { if (Array.isArray(o.items) && o.items.every((i) => typeof i === "string")) o.items = recoller(o.items); }); return L; };
+// Éléments d'un bilan coupés à la virgule dans une parenthèse (« DFG (clairance de la créatinine », « CKD-EPI) ») : recollés
+function recoller(items) {
+  const R = []; items.forEach((i) => { const p = R[R.length - 1]; if (p != null && (p.match(/\(/g) || []).length > (p.match(/\)/g) || []).length) R[R.length - 1] = p + ", " + i; else R.push(i); }); return R;
 }
 // Modification : relue juste avant (un autre poste a pu modifier la liste), puis enregistrée en entier
 async function modifierListe(n, fn) {
   const s = await getDoc(refListe(n)).catch(() => null), L = s && s.exists() ? JSON.parse(s.data().data || "[]") : DEPART[n]();
-  fn(L); L.sort(alpha);
+  reparer(L); fn(L); L.sort(alpha);
   await setDoc(refListe(n), { data: JSON.stringify(L), maj: serverTimestamp(), majPar: D().u.uid });
   return (CACHE[n] = L);
 }
@@ -227,29 +232,29 @@ window.mdFiche = (id) => {
   };
 };
 // ───── Fenêtres « Analyses » et « Examens compl. » (07/10/2026) : bilans et analyses / bilans d'imagerie et examens ─────
-// Analyses : clic sur une analyse = une ligne (« NFS – plaquettes ») ; sur un bilan = une ligne « Bilan hépatique complet :
-// ASAT, … » ; sur un bilan général (qui contient d'autres bilans) = une ligne par bilan. Examens : un bilan d'imagerie ajoute
-// une ligne par examen, avec ses précautions entre parenthèses (« à jeun 6 heures »).
+// Analyses : clic sur une analyse = une ligne (« NFS – plaquettes ») ; sur un bilan = une ligne avec son contenu, sans le
+// titre du bilan (« ASAT, ALAT, … », 07/10/2026) ; sur un bilan général (qui contient d'autres bilans) = une ligne par bilan.
+// Examens : une ligne par examen, précautions entre parenthèses (« à jeun 6 heures ») ; pas de bilans d'imagerie (lb: null).
 const FAMS = {
   analyse: { t: "analyse", la: "analyses", lb: "bilans", titre: "Analyses", eclater: false, unA: "analyse", uneA: "une analyse", nouvA: "Nouvelle analyse", libB: "bilan", nouvB: "Nouveau bilan",
     phA: "Ex. NFS – plaquettes", phB: "Ex. Bilan chimiothérapie – intercure", cherche: "Rechercher un bilan ou une analyse…", ajout: "Ajouter une analyse ou un bilan…",
     aide: "Cliquez sur un bilan ou une analyse pour l'ajouter. Un bilan général ajoute tous ses bilans d'un coup (une ligne chacun).", colA: "Analyse", colB: "Bilan" },
-  exam: { t: "exam", la: "examens", lb: "bilansExamens", titre: "Examens complémentaires", eclater: true, unA: "examen", uneA: "un examen", nouvA: "Nouvel examen", libB: "bilan d'imagerie", nouvB: "Nouveau bilan d'imagerie",
-    phA: "Ex. TDM thoraco-abdomino-pelvienne (TAP) injectée", phB: "Ex. Bilan d'extension – sein", cherche: "Rechercher un examen ou un bilan d'imagerie…", ajout: "Ajouter un examen ou un bilan d'imagerie…",
-    aide: "Cliquez sur un examen pour l'ajouter. Un bilan d'imagerie ajoute tous ses examens d'un coup (une ligne chacun).", colA: "Examen", colB: "Bilan d'imagerie" },
+  exam: { t: "exam", la: "examens", lb: null, titre: "Examens complémentaires", eclater: true, unA: "examen", uneA: "un examen", nouvA: "Nouvel examen",
+    phA: "Ex. TDM thoraco-abdomino-pelvienne (TAP) injectée", cherche: "Rechercher un examen…", ajout: "Ajouter un examen…",
+    aide: "Cliquez sur un examen pour l'ajouter.", colA: "Examen" },
 };
 let FAM = FAMS.analyse;
 const estAnaT = (t) => t === "analyse" || t === "exam";
 const bilanNomme = (n) => BIL.find((b) => sansAcc(b.nom) === sansAcc(n));
 const examNomme = (n) => ANA.find((a) => sansAcc(a.nom) === sansAcc(n));
 const general = (b) => b.items.some((n) => bilanNomme(n));
-const ligneBilan = (b) => b.nom + " : " + b.items.map((n) => (bilanNomme(n) ? bilanNomme(n).nom : n)).join(", ");
+const ligneBilan = (b, p = 0) => b.items.map((n) => (bilanNomme(n) && p < 5 ? ligneBilan(bilanNomme(n), p + 1) : n)).join(", ");
 // Lignes ajoutées à l'ordonnance pour un bilan : { nom, poso (précautions) }
 function lignesDe(b) {
   if (FAM.eclater) return b.items.map((n) => (bilanNomme(n) ? lignesDe(bilanNomme(n)) : [{ nom: n, poso: (examNomme(n) && examNomme(n).note) || "" }])).flat();
   return (general(b) ? b.items.map((n) => (bilanNomme(n) ? ligneBilan(bilanNomme(n)) : n)) : [ligneBilan(b)]).map((nom) => ({ nom, poso: "" }));
 }
-async function chargerAnalyses(f) { FAM = FAMS[f || "analyse"]; [ANA, BIL] = await Promise.all([lireListe(FAM.la), lireListe(FAM.lb)]); }
+async function chargerAnalyses(f) { FAM = FAMS[f || "analyse"]; [ANA, BIL] = await Promise.all([lireListe(FAM.la), FAM.lb ? lireListe(FAM.lb) : []]); }
 window.ordAnalyses = async (pid, f) => {
   const x = trouver(pid); if (!x || !peutEcrire()) return;
   S = { pid, t: f || "analyse", q: "", items: [], types: [] }; T = null;
@@ -261,7 +266,7 @@ function vueAnalyses() {
   const x = trouver(S.pid); T = null;
   A.fenetre("<h3>" + (S.modif ? "Modifier l'ordonnance du " + A.dfrA(S.modif.d) : FAM.titre) + " — " + A.esc(x.r.nm) + "</h3>" +
     '<div class="md-barre"><div class="recherche">' + A.ic("loupe") + '<input id="anQ" type="search" autocomplete="off" placeholder="' + FAM.cherche + '" value="' + A.esc(S.q) + '"></div>' +
-    '<button class="bt clair petit" onclick="bilFiche()">' + A.ic("plus") + FAM.nouvB + '</button><button class="bt clair petit" onclick="anaFiche()">' + A.ic("plus") + FAM.nouvA + "</button></div>" +
+    (FAM.lb ? '<button class="bt clair petit" onclick="bilFiche()">' + A.ic("plus") + FAM.nouvB + "</button>" : "") + '<button class="bt clair petit" onclick="anaFiche()">' + A.ic("plus") + FAM.nouvA + "</button></div>" +
     '<div class="md-liste" id="anListe"></div><p class="mesures" style="margin:6px 0 0">' + A.esc(FAM.aide) + "</p>" +
     '<h4 class="soustitre">Ordonnance</h4><div id="mdOrdo" class="md-ordo"></div>' + champAjout() +
     '<div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt plein" onclick="mdAfficher()">Afficher l\'ordonnance</button></div>', "large");
@@ -278,14 +283,14 @@ function listeAnalyses() {
   $("anListe").innerHTML = B.length || L.length ? '<table class="md-t">' +
     (B.length ? "<tr><th>" + FAM.colB + "</th><th>Contenu</th><th></th></tr>" + B.map((b) => '<tr class="m" onclick="anaAjouter(\'b:' + b.id + '\')"><td><b>' + A.esc(b.nom) + "</b>" + (general(b) && !FAM.eclater ? '<div class="cl">Bilan général</div>' : "") + "</td><td>" + A.esc(b.items.join(", ")) + "</td>" + act(b, "bilFavori", "bilFiche", "bilSupprimer") + "</tr>").join("") : "") +
     (L.length ? "<tr><th>" + FAM.colA + "</th><th>Catégorie</th><th></th></tr>" + L.map((a) => '<tr class="m" onclick="anaAjouter(\'a:' + a.id + '\')"><td><b>' + A.esc(a.nom) + "</b>" + (a.note ? '<div class="cl">' + A.esc(a.note) + "</div>" : "") + "</td><td>" + A.esc(a.cat || "") + "</td>" + act(a, "anaFavori", "anaFiche", "anaSupprimer") + "</tr>").join("") : "") + "</table>"
-    : '<p class="sous" style="padding:12px">Rien ne correspond. « ' + FAM.nouvB + " » ou « " + FAM.nouvA + " » pour l'ajouter.</p>";
+    : '<p class="sous" style="padding:12px">Rien ne correspond. ' + (FAM.lb ? "« " + FAM.nouvB + " » ou " : "") + "« " + FAM.nouvA + " » pour l'ajouter.</p>";
 }
 // Ajout : dans l'ordonnance du patient (lignes développées) ou dans la fiche d'un bilan (le nom de l'analyse ou du bilan)
 window.anaAjouter = (k) => {
   const h = CUR(); if (!h) return; const id = k.slice(2), o = k[0] === "b" ? BIL.find((z) => z.id === id) : ANA.find((z) => z.id === id); if (!o) return;
   const lignes = T ? [{ nom: o.nom, poso: "" }] : k[0] === "a" ? [{ nom: o.nom, poso: o.note || "" }] : lignesDe(o); let n = 0;
   lignes.forEach((l) => { if (!h.items.some((i) => sansAcc(i.nom) === sansAcc(l.nom))) { h.items.push(l); n++; } });
-  h.ed = null; ordo(); A.toast(n ? (n > 1 ? n + " lignes ajoutées." : "« " + lignes[0].nom.split(" : ")[0] + " » ajouté.") : "Déjà dans la liste.");
+  h.ed = null; ordo(); A.toast(n ? (n > 1 ? n + " lignes ajoutées." : "« " + (k[0] === "b" ? o.nom : lignes[0].nom) + " » ajouté.") : "Déjà dans la liste.");
   if (!T && k[0] === "b" && S.types.indexOf(o.nom) < 0) S.types.push(o.nom);
 };
 // Nouvelle analyse (ou nouvel examen) / modifier : nom, catégorie, précautions (facultatif)
@@ -363,13 +368,13 @@ const fmtStock = () => { try { return localStorage.getItem("onco360.formatOrdo")
 const dateFr = (d) => d.slice(8, 10) + "/" + d.slice(5, 7) + "/" + d.slice(0, 4);
 const civilite = (x) => (x.P.sexe === "F" ? "Mme " : x.P.sexe === "H" ? "M. " : "");
 const medecin = () => { const n = (A.medecinFiche() || {}).nom || ""; return n || "Dr "; };
-// Ordonnance d'analyses : « Prière de faire pratiquer : », une ligne par analyse ou bilan, renseignements cliniques (diagnostic)
+// Ordonnance d'analyses ou d'examens : « Prière de bien vouloir faire : », une ligne par analyse, bilan ou examen (07/10/2026 :
+// sans renseignements cliniques)
 function contenuAnalyses(x, items, d, med) {
   const e = A.esc;
   return '<p class="or-date">Le ' + dateFr(d) + "</p>" + '<p class="or-pat"><b>' + e(civilite(x) + x.r.nm) + "</b></p>" +
-    '<p class="or-t"><b><u>Prière de faire pratiquer :</u></b></p>' +
+    '<p class="or-t"><b><u>Prière de bien vouloir faire :</u></b></p>' +
     (items.length ? items.map((it) => '<p class="or-a">• ' + e(it.nom) + (it.poso ? " (" + e(it.poso) + ")" : "") + "</p>").join("") : "<p><br></p>".repeat(6)) +
-    '<p class="or-rc"><b>Renseignements cliniques :</b> ' + e(x.r.diag || "") + "</p>" +
     '<p class="or-sig">Cachet et signature du médecin :<br><b>' + e(med) + "</b></p>";
 }
 // Contenu de départ : date à droite, patient, médicaments numérotés (nom souligné, posologie dessous), signature
@@ -401,7 +406,7 @@ export const nettoyer = (html) => { const t = document.createElement("template")
 // Libellé de la ligne « Médic. » de la consultation : les médicaments de l'ordonnance (ou le début du texte)
 function libelle(html) {
   const d = document.createElement("div"); d.innerHTML = html;
-  const noms = [...d.querySelectorAll(".or-m, .or-a")].map((p) => p.textContent.replace(/^\s*\d+\s*\/\s*/, "").replace(/^\s*•\s*/, "").split(" : ")[0].trim()).filter(Boolean);
+  const noms = [...d.querySelectorAll(".or-m, .or-a")].map((p) => p.textContent.replace(/^\s*\d+\s*\/\s*/, "").replace(/^\s*•\s*/, "").trim()).filter(Boolean);
   if (noms.length) return noms.join(" ; ");
   [".or-date", ".or-pat", ".or-sig", ".or-t", ".or-rc"].forEach((s) => d.querySelectorAll(s).forEach((p) => p.remove()));
   const t = d.textContent.replace(/\s+/g, " ").trim();
