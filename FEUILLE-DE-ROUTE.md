@@ -240,7 +240,7 @@ de leur radiothérapie :
 - [ ] **Courriers** : Dr Bentahila crée elle-même ses modèles (Nouveau / Modifier / Supprimer). Champs remplis
       automatiquement : **nom, âge, diagnostic, date, « à Casablanca »** (pas le correspondant). Premiers modèles à
       rédiger **ensemble** : **demande d'ALD**, **courrier**, **certificat** ; d'autres ensuite.
-- [x] **Analyses** (fait et testé le 07/10, pas encore en ligne) : fichier de Dr Bentahila
+- [x] **Analyses** (fait, testé et mis en ligne le 07/10) : fichier de Dr Bentahila
       (`Prescriptions_Biologiques_Oncologie.xlsx` : 40 bilans, 66 analyses) rangé → **34 bilans dont 7 bilans généraux,
       94 analyses** (`public/js/donnees/analyses.js` ; relecture : `listes/Analyses_Onco360.xlsx`, colonne « Ce que j'ai
       changé », nouveautés en vert). Doublons retirés (IHC, NGS, HRD, PD-L1, biopsie liquide), tests de génétique et de
@@ -256,7 +256,9 @@ de leur radiothérapie :
     catégorie), ✎, ✕, **favoris ⭐** ; listes du cabinet `bibliotheques/analyses` et `bibliotheques/bilans`.
   - Tests : bilan général, doublon, ajout, retrait, impression, consultation, création d'un bilan, favori, nouvelle
     analyse, antécédents, 390 px, bilan 352 317 DH.
-  - [ ] Dr Bentahila relit `listes/Analyses_Onco360.xlsx` (ou corrige directement dans Onco360).
+  - [x] Relu et corrigé par Dr Bentahila (07/10) : bilans chimio / immuno / abiratérone / curiethérapie / PAC écrits avec
+        leurs analyses (au lieu des bilans inclus), immunothérapie intercure = NFS seule, « IHC » → « Immunohistochimie » ;
+        sa version est la liste de départ (aucune liste du cabinet n'existait encore).
 - [ ] Antécédents (petite flèche) pour chacune, comme en 1D.
 
 **1F – Finition**
@@ -441,3 +443,4 @@ Décisions déjà prises :
 | 07/10/2026 | Retouches | Rendez-vous à venir : liste qui défile (5 visibles). Ordonnances types : version Excel du Dr installée. Favoris ⭐ (médicaments, ordonnances types). Testé (390 px, bilan 352 317 DH), mis en ligne. |
 | 07/10/2026 | 2 – Retouches | Boutons Afficher / Modifier ; résumé du patient enregistré automatiquement, page non quittable avant enregistrement ; mis en ligne. |
 | 07/10/2026 | 1E – Analyses | Analyses : 34 bilans (7 généraux) et 94 analyses (fichier du Dr rangé), clic = lignes dans l'ordonnance, ordonnance « Prière de faire pratiquer », création / modification / favoris. Testé (390 px, bilan 352 317 DH). Pas encore en ligne. |
+| 07/10/2026 | 1E – Analyses | Version corrigée par Dr Bentahila reprise ; mis en ligne. |
