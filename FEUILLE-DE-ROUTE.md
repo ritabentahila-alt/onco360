@@ -67,7 +67,7 @@ Proposition, à valider avec Dr Bentahila :
 - [ ] **Stockage des fichiers** dans Firebase Storage (`espaces/{e}/patients/{p}/documents/…`), avec une fiche Firestore par
       document (type, nom, date, auteur, établissement). Règles de sécurité = périmètre + droit « documents » ; l'infirmière
       ne voit que les fiches chimio.
-- [ ] **Copie automatique** à chaque génération : pli, compte rendu de fin, rendez-vous Excel, ordonnances, et fiche chimio
+- [ ] **Copie automatique** à chaque génération : pli, compte rendu de fin, rendez-vous Excel, et fiche chimio
       (instantané exact de la fiche imprimée, réimprimable à l'identique).
 - [ ] **« Ajouter la version complétée »** : le .docx retouché dans Word, gardé à côté de l'original.
 - [ ] **Ajout libre** : PDF ou photo prise au téléphone (anapath, imagerie, bilans…), taille limitée.
@@ -144,7 +144,10 @@ Proposition, à valider avec Dr Bentahila :
 - [x] Tests : médecin (liste, recherche par classe, double-clic, ordre, A4, Valider + Imprimer, 2e ordonnance le même jour,
       réouverture et modification, ajout / modification / doublon / suppression d'un médicament), secrétaire (signature
       « Dr BENTAHILA Rita »), infirmière (lecture seule, sans barre), téléphone 390 px, bilan 352 317 DH, règles compilées.
-- [ ] Mise en ligne (site + règles de sécurité), avec l'accord de Dr Bentahila.
+- [x] Mise en ligne le 07/10 (site + règle `bibliotheques`).
+- [x] **Décidé le 07/10** : les ordonnances **ne vont pas dans l'onglet Documents** et ne génèrent aucun fichier (pas de
+      Word / PDF gardé) : elles sont seulement enregistrées dans la consultation, et on les retrouve par l'historique des
+      prescriptions (1D : voir, réimprimer, renouveler), pour ne pas surcharger. (Courriers : même question, à voir en 1E.)
 - [ ] Plus tard (si plusieurs médecins dans un cabinet) : choisir le médecin signataire dans la fenêtre de l'ordonnance.
 
 **1D – Antécédents des prescriptions** (petite flèche)
@@ -313,3 +316,4 @@ Décisions déjà prises :
 | 07/10/2026 | 1C – Médicaments | Liste des médicaments nettoyée (225 → 147 lignes, posologies en clair, classe thérapeutique, 21 lignes à vérifier en jaune). Décidé : ordonnance sans consultation du jour → consultation créée automatiquement. |
 | 07/10/2026 | 1C – Médicaments | Corrections de Dr Bentahila reprises, remarques retirées, 30 médicaments d'oncologie ajoutés (en vert) : 162 médicaments, à valider. |
 | 07/10/2026 | 1C – Médicaments et ordonnance | Liste des médicaments (165, recherche, + / ✎ / ✕, double-clic), ordonnance A5/A4 modifiable, Valider / Valider + Imprimer, ligne « Médic. » dans la consultation du jour (créée si besoin). Testé (3 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |
+| 07/10/2026 | 1C – Médicaments et ordonnance | Mis en ligne. Décidé : les ordonnances ne vont pas dans Documents (enregistrées dans la consultation seulement, historique en 1D). |

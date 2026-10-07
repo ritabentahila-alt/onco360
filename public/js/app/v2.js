@@ -479,7 +479,7 @@ function pageDossier(id) {
   }
 
   // Documents (droit « documents ») : les documents générés (pli, compte rendu, rendez-vous, ordonnances…) y seront enregistrés
-  if (peut("documents")) ong.push({ k: "doc", ic: "document", lib: "Documents", n: 0, h: '<p class="sous" style="margin:2px 0 0">Aucun document enregistré pour ce patient. Les documents générés (pli confidentiel, compte rendu de fin, rendez-vous, ordonnances, courriers) seront gardés ici.</p>' });
+  if (peut("documents")) ong.push({ k: "doc", ic: "document", lib: "Documents", n: 0, h: '<p class="sous" style="margin:2px 0 0">Aucun document enregistré pour ce patient. Les documents générés (pli confidentiel, compte rendu de fin, rendez-vous) seront gardés ici. Les ordonnances restent dans l\'onglet Consultation.</p>' });
 
   // Le dossier s'ouvre sur Consultation (sur Chimiothérapie pour l'infirmière) ; l'onglet choisi reste affiché quand le
   // dossier se réaffiche après un enregistrement
