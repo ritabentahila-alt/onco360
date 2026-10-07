@@ -230,8 +230,12 @@ de leur radiothérapie :
   - ✎ sur chaque médicament ajouté aussi dans la fenêtre Médic.
   - Tests : utilisation, modification, retrait, recherche, ligne libre, impression, consultation, création / modification /
     doublon / suppression d'un type, antécédents, secrétaire (signature), 390 px, bilan 352 317 DH.
-  - [ ] Dr Bentahila relit les ordonnances types (fichier `listes/Ordonnances_types_Onco360.xlsx` ou directement dans
-        Onco360) ; à vérifier : SYSMETIX, crème à l'urée, NAUSELIUM (absent de la liste des médicaments), VITAMINE B12.
+  - [x] Relu et corrigé par Dr Bentahila dans `listes/Ordonnances_types_Onco360.xlsx` (07/10) : sa version (26 types,
+        90 lignes) est la liste de départ et a remplacé une fois la liste du cabinet (migration `ordostypesExcel1`, à la
+        1re ouverture d'Onco360 par la titulaire). Modifier l'Excel ne met PAS Onco360 à jour : corriger dans Onco360
+        (✎ / ✕ / Nouvelle ordonnance type), ou envoyer l'Excel à Claude pour une nouvelle reprise.
+  - [x] **Favoris ⭐** (07/10) sur les médicaments et les ordonnances types : en tête de liste, pour tout le cabinet ;
+        l'étoile est gardée quand on modifie. À reprendre pour Analyses et Examens compl. (1E).
   - [x] Mise en ligne le 07/10.
 - [ ] **Courriers** : Dr Bentahila crée elle-même ses modèles (Nouveau / Modifier / Supprimer). Champs remplis
       automatiquement : **nom, âge, diagnostic, date, « à Casablanca »** (pas le correspondant). Premiers modèles à
@@ -416,3 +420,4 @@ Décisions déjà prises :
 | 07/10/2026 | 2 – Retouches | Rendez-vous à venir : toutes les séances de chimio de toutes les cures prévues ; mis en ligne. |
 | 07/10/2026 | 2 – Retouches | Antécédents / mode de vie / allergies masqués dans le dossier ; champ « Traitement en cours » ajouté ; mis en ligne. |
 | 07/10/2026 | 1B – Consultations | Consultations toutes fermées à l'ouverture du dossier ; liste dans une zone qui défile (environ 10 consultations visibles, position gardée en pliant / dépliant). Testé avec 30 consultations (ordinateur, 390 px, bilan 352 317 DH), mis en ligne. |
+| 07/10/2026 | Retouches | Rendez-vous à venir : liste qui défile (5 visibles). Ordonnances types : version Excel du Dr installée. Favoris ⭐ (médicaments, ordonnances types). Testé (390 px, bilan 352 317 DH), mis en ligne. |

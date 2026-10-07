@@ -22,7 +22,9 @@ const $ = (i) => document.getElementById(i);
 const trouver = (pid) => D().patients.find((p) => p.id === pid);
 const peutEcrire = () => A.peut("ecrireConsultations");
 const sansAcc = (s) => String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
-const alpha = (a, b) => sansAcc(a.nom).localeCompare(sansAcc(b.nom));
+// Ordre des listes : favoris ⭐ d'abord (07/10/2026), puis alphabétique
+const alpha = (a, b) => (b.fav ? 1 : 0) - (a.fav ? 1 : 0) || sansAcc(a.nom).localeCompare(sansAcc(b.nom));
+const etoile = (o, fn) => '<button class="ico etoile' + (o.fav ? " on" : "") + '" aria-pressed="' + !!o.fav + '" title="' + (o.fav ? "Retirer des favoris" : "Mettre en favori (en tête de liste)") + '" aria-label="Favori : ' + A.esc(o.nom) + '" onclick="' + fn + "('" + o.id + "')\">" + ico("etoile") + "</button>";
 const ico = (n) => '<svg class="pi"><use href="#i-' + n + '"/></svg>';
 
 // ───── Listes du cabinet : médicaments, ordonnances types (liste de départ tant que le cabinet ne l'a pas modifiée) ─────
@@ -43,6 +45,12 @@ async function modifierListe(n, fn) {
   fn(L); L.sort(alpha);
   await setDoc(refListe(n), { data: JSON.stringify(L), maj: serverTimestamp(), majPar: D().u.uid });
   return (CACHE[n] = L);
+}
+// Liste du cabinet remplacée par la liste de départ (version Excel corrigée par le médecin) : mise à niveau ponctuelle
+export async function remplacerOrdosTypes() {
+  const L = DEPART.ordostypes().sort(alpha);
+  await setDoc(refListe("ordostypes"), { data: JSON.stringify(L), maj: serverTimestamp(), majPar: D().u.uid });
+  CACHE.ordostypes = TYPES = L;
 }
 let BIB = null, TYPES = null;
 async function chargerBib() { return (BIB = await lireListe("medicaments")); }
@@ -77,7 +85,7 @@ function liste() {
   const L = BIB.filter((m) => { const t = sansAcc(m.nom + " " + m.poso + " " + m.classe); return mots.every((w) => t.indexOf(w) >= 0); });
   $("mdListe").innerHTML = L.length ? '<table class="md-t"><tr><th>Médicament</th><th>Posologie</th><th></th></tr>' + L.map((m) => {
     const q = "'" + m.id + "'";
-    return '<tr class="m" ondblclick="mdAjouter(' + q + ')"><td><b>' + A.esc(m.nom) + "</b>" + (m.classe ? '<div class="cl">' + A.esc(m.classe) + "</div>" : "") + "</td><td>" + A.esc(m.poso) + '</td><td class="act">' +
+    return '<tr class="m" ondblclick="mdAjouter(' + q + ')"><td><b>' + A.esc(m.nom) + "</b>" + (m.classe ? '<div class="cl">' + A.esc(m.classe) + "</div>" : "") + "</td><td>" + A.esc(m.poso) + '</td><td class="act">' + etoile(m, "mdFavori") +
       '<button class="ico vert" title="Ajouter à l\'ordonnance" aria-label="Ajouter ' + A.esc(m.nom) + ' à l\'ordonnance" onclick="mdAjouter(' + q + ')">' + ico("plus") + "</button>" +
       '<button class="ico" title="Modifier" aria-label="Modifier ' + A.esc(m.nom) + '" onclick="mdFiche(' + q + ')">' + ico("crayon") + "</button>" +
       '<button class="ico rouge" title="Supprimer de la liste" aria-label="Supprimer ' + A.esc(m.nom) + '" onclick="mdSupprimer(' + q + ')">' + ico("croix") + "</button></td></tr>";
@@ -144,7 +152,7 @@ function listeTypes() {
   const L = TYPES.filter((o) => { const t = sansAcc(o.nom + " " + o.items.map((i) => i.nom).join(" ")); return mots.every((w) => t.indexOf(w) >= 0); });
   $("otListe").innerHTML = L.length ? '<table class="md-t"><tr><th>Ordonnance type</th><th>Médicaments</th><th></th></tr>' + L.map((o) => {
     const q = "'" + o.id + "'";
-    return '<tr class="m" onclick="otAjouter(' + q + ')"><td><b>' + A.esc(o.nom) + '</b><div class="cl">' + o.items.length + " médicament" + (o.items.length > 1 ? "s" : "") + "</div></td><td>" + A.esc(o.items.map((i) => i.nom).join(" ; ")) + '</td><td class="act" onclick="event.stopPropagation()">' +
+    return '<tr class="m" onclick="otAjouter(' + q + ')"><td><b>' + A.esc(o.nom) + '</b><div class="cl">' + o.items.length + " médicament" + (o.items.length > 1 ? "s" : "") + "</div></td><td>" + A.esc(o.items.map((i) => i.nom).join(" ; ")) + '</td><td class="act" onclick="event.stopPropagation()">' + etoile(o, "otFavori") +
       '<button class="ico vert" title="Mettre ses médicaments dans l\'ordonnance" aria-label="Utiliser ' + A.esc(o.nom) + '" onclick="otAjouter(' + q + ')">' + ico("plus") + "</button>" +
       '<button class="ico" title="Modifier l\'ordonnance type" aria-label="Modifier ' + A.esc(o.nom) + '" onclick="otFiche(' + q + ')">' + ico("crayon") + "</button>" +
       '<button class="ico rouge" title="Supprimer l\'ordonnance type" aria-label="Supprimer ' + A.esc(o.nom) + '" onclick="otSupprimer(' + q + ')">' + ico("croix") + "</button></td></tr>";
@@ -174,7 +182,7 @@ window.otValider = async () => {
   if (TYPES.some((z) => z.id !== T.id && sansAcc(z.nom) === sansAcc(nom))) { A.erreur("Une ordonnance type porte déjà ce nom."); return; }
   const o = { id: T.id || "t" + Date.now().toString(36), nom, items: T.items.filter((i) => i.nom) }, modif = !!T.id;
   A.occupe($("otOk"), true);
-  try { await modifierTypes((L) => { const i = L.findIndex((z) => z.id === o.id); if (i >= 0) L[i] = o; else L.push(o); }); A.toast(modif ? "Ordonnance type modifiée." : "Ordonnance type créée."); otRetour(); }
+  try { await modifierTypes((L) => { const i = L.findIndex((z) => z.id === o.id); if (i >= 0) L[i] = Object.assign({}, L[i], o); /* l'étoile (favori) est gardée */ else L.push(o); }); A.toast(modif ? "Ordonnance type modifiée." : "Ordonnance type créée."); otRetour(); }
   catch (e) { A.occupe($("otOk"), false); A.erreur(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de modifier les ordonnances types." : "Enregistrement impossible : " + ((e && e.message) || e)); }
 };
 window.otSupprimer = async (id) => {
@@ -203,6 +211,15 @@ window.mdFiche = (id) => {
       A.toast(m ? "Médicament modifié." : "Médicament ajouté à la liste."); mdRetour();
     } catch (e) { A.occupe($("mdOk"), false); A.erreur(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de modifier la liste des médicaments." : "Enregistrement impossible : " + ((e && e.message) || e)); }
   };
+};
+// Favori ⭐ : en tête de liste, pour tout le cabinet
+window.mdFavori = async (id) => {
+  try { await modifierBib((L) => { const z = L.find((y) => y.id === id); if (z) z.fav = !z.fav; }); liste(); }
+  catch (e) { A.toast(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de modifier la liste des médicaments." : "Modification impossible."); }
+};
+window.otFavori = async (id) => {
+  try { await modifierTypes((L) => { const z = L.find((y) => y.id === id); if (z) z.fav = !z.fav; }); listeTypes(); }
+  catch (e) { A.toast(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de modifier les ordonnances types." : "Modification impossible."); }
 };
 window.mdRetour = () => { if (S) (S.t === "ordo" ? vueTypes : vueListe)(); else A.fermerFenetre(); };
 window.mdSupprimer = async (id) => {
