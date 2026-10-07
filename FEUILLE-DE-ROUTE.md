@@ -381,6 +381,10 @@ Décisions déjà prises :
   - [ ] Inscription avec code, et création automatique du cabinet.
   - [ ] Onco360 ouvre le cabinet de la personne connectée (aujourd'hui, « cabinet-bentahila » est écrit dans le code).
   - [ ] Page « Administration » réservée à l'éditrice : codes, cabinets, abonnements, sans aucune donnée médicale.
+  - [ ] **Gestion des licences (« Super Admin », demandé le 08/10)** : activer / désactiver l'accès d'un cabinet ou d'une
+        clinique en un clic, clé de licence, date d'échéance de l'abonnement (accès bloqué ou en lecture seule après).
+  - [ ] **Quotas selon la formule** (08/10) : ex. **Standard** = 1 établissement, 500 patients au maximum ; **Premium** =
+        établissements et patients illimités. Limites imposées aussi par les règles du serveur. Formules et prix à décider.
   - [ ] Retirer ce qui est propre à Dr Bentahila :
     - son INPE et son nom par défaut sur la fiche chimio ;
     - HGC et HCK comme établissements et tarifs par défaut.
@@ -396,7 +400,7 @@ Décisions déjà prises :
   - [ ] **Point juridique, à voir avec un juriste avant le premier client** : données de santé, loi 09-08 / CNDP,
         hébergement des données en Belgique.
 - **F3 – Le guide complet**
-  - [ ] Un guide PDF illustré, et une aide dans l'application.
+  - [ ] Un guide PDF illustré, et une aide dans l'application. → détaillé à l'étape 13 (C2, C3 : guides par rôle).
 
 ---
 
@@ -445,6 +449,206 @@ aussi) ; chaque action datée, avec son auteur.
 la partie 7 jours / conflits).
 **T5 – Finition** : lien tâche → dossier vérifié pour les membres limités à un établissement ; CLAUDE.md ; guide.
 **T6 – Facultatif** : échéance dans le Google Agenda du responsable ; notifications sur le téléphone même Onco360 fermé.
+
+---
+
+# Demandes du 08/10/2026 (étapes 6 à 14)
+Liste complète donnée par Dr Bentahila le 08/10, à faire **au fur et à mesure, une sous-étape par fenêtre**. Chaque étape
+commence par ses questions « À décider » (Claude les pose avant d'écrire le code).
+
+## Ordre proposé (à valider par Dr Bentahila ; elle peut le changer à tout moment)
+1. Terminer l'en cours : mise en ligne de T1 (Tâches), puis T2 à T5.
+2. **Étape 6 – Salle d'attente** (usage quotidien, le plus utile tout de suite).
+3. **Étape 7 – RCP**.
+4. **Étape 8 – Numéro de dossier et recherche des patients**.
+5. **Étape 9 – Sécurité et conformité** (journal d'audit, rôles, mode démo) : indispensable avant de vendre.
+6. **Étape 10 – Mode hors-ligne**.
+7. **Étape 11 – Soins infirmiers, pharmacie, alertes**.
+8. **Étape 4 – Plusieurs cabinets** (complétée ci-dessus : licences, quotas).
+9. **Étape 13 – Dossier de cession, démo et guides**.
+10. **Étape 12 – Téléconsultation** et **Étape 14 – Interopérabilité** (les plus lourdes, en dernier).
+
+**À décider avant l'étape 4 et l'étape 13 : vendre comment ?** Deux voies, compatibles :
+(a) **abonnements** (phase F : chaque cabinet paie, code d'activation) ; (b) **cession** du logiciel à un éditeur ou une
+ESN (prix visé 120 000 à 180 000 DH). La voie (a) rend la (b) plus chère (clients payants = preuve de valeur).
+
+## Étape 6 – Salle d'attente (cabinet / clinique)
+But : suivre en temps réel le passage des patients le jour J, de l'arrivée à la fin de la consultation.
+Nouvelle page **« Salle d'attente »** dans le menu, **entre Agenda et Patients**.
+
+**À décider au début de l'étape**
+- Lien avec les statuts actuels des rendez-vous (Prévu, Venu, Non venu, Reporté) : proposition = on ajoute deux statuts
+  intermédiaires **En salle d'attente** et **En consultation** ; **Terminé = « Venu »** (même fenêtre de prix, bilan
+  inchangé) ; **Absent = « Non venu »**.
+- Qui fait quoi : la secrétaire « Met en salle » ; le médecin « Démarre la consultation » ; qui passe à « Terminé » ?
+- Patients sans rendez-vous (urgence, passage) : les ajouter directement en salle d'attente ?
+- Séances de chimio et de radiothérapie : dans la salle d'attente aussi, ou seulement les consultations ?
+- « Prévenir d'un retard » : les rappels WhatsApp **automatiques** ont été annulés le 06/10 ; proposition = bouton qui
+  ouvre WhatsApp avec le message prêt (« Le Dr a environ 15 min de retard »), envoyé à la main, comme aujourd'hui.
+
+**SA1 – Page et statuts**
+- [ ] Page « Salle d'attente », **filtre par établissement** (la secrétaire ne voit que son centre), date du jour.
+- [ ] **3 onglets** (avec leur nombre) : **À venir** (rendez-vous du jour pas encore arrivés) · **En salle d'attente**
+      (la secrétaire a cliqué « Mettre en salle ») · **Vus** (le médecin a ouvert le dossier et validé : « Venu » / Terminé).
+- [ ] Statuts : ⚪ Prévu → 🔵 En salle d'attente → 🟢 En consultation → Terminé (ou 🔴 Absent / Non honoré) — en pastilles
+      de couleur au trait, pas d'émoticônes.
+- [ ] **Poinçonnage** : l'heure exacte d'arrivée est notée au clic « Mettre en salle » (« Arrivé à 14 h 22 »), avec qui l'a fait.
+- [ ] Colonnes : **heure du RDV**, **nom et prénom**, **motif** avec **badges de couleur** (nouveau patient, urgence, type
+      de consultation, chimio / RT), **heure d'arrivée**, **temps d'attente** (compteur « En attente depuis 12 min »,
+      orange puis rouge au-delà d'un seuil à choisir).
+- [ ] Actions rapides : **Mettre en salle**, **Démarrer la consultation** (statut « En consultation » + ouvre le dossier),
+      **Terminer** (= Venu, fenêtre de prix), **Absent**, **Annuler** (retour au statut précédent).
+- [ ] Mise à jour **en temps réel** (sans recharger) sur tous les écrans du cabinet.
+- [ ] Données : statut, heure d'arrivée, heure de début / fin et auteur gardés dans le rendez-vous (`rdvsJson`) ;
+      règles de sécurité inchangées si possible. Statistiques plus tard (temps d'attente moyen).
+- [ ] Tests : 3 rôles, 2 établissements, 390 px, bilan 352 317 DH.
+
+**SA2 – Dans l'agenda et le tableau de bord**
+- [ ] Le temps d'attente et le statut s'affichent aussi dans l'**Agenda** (vue Jour / Liste) et dans « Aujourd'hui » du
+      tableau de bord, pour que le médecin voie d'un coup d'œil qui attend depuis combien de temps.
+- [ ] Bouton **« Prévenir d'un retard »** (5 / 10 / 15 min) pour les patients qui attendent ou vont arriver (voir « À décider »).
+- [ ] **Consignes d'arrivée** (« Veuillez patienter dans votre véhicule… ») : message WhatsApp prêt, modèles dans
+      Configuration › Messages.
+
+**SA3 – Plus tard (grandes structures)**
+- [ ] **Écran TV de la salle d'attente** : page plein écran, **initiales seulement** (secret médical), alerte visuelle et
+      sonore « Patient A.M. est appelé en Bureau 3 avec le Dr X » (bouton « Appeler » dans la salle d'attente).
+- [ ] **Borne / QR code d'arrivée** : le patient scanne le QR code reçu avec son rendez-vous (WhatsApp) ou affiché à
+      l'accueil → statut « En salle d'attente » tout seul. (Pas de carte Vitale au Maroc : QR code seulement.)
+      Demande une page publique sans compte : à sécuriser (code à usage unique, aucune donnée médicale affichée).
+
+## Étape 7 – RCP (réunion de concertation pluridisciplinaire)
+**À décider** : une RCP par établissement ou une seule pour le cabinet ? Jour fixe (ex. chaque mardi) ou dates saisies
+une par une ? Après le jour J : le dossier sort de la liste tout seul, ou reste « décision à saisir » tant que la décision
+n'est pas écrite ? Que noter à l'inscription (question posée, documents à présenter) ?
+- [ ] **Configuration › Dates de RCP** : jour de la semaine et heure (récurrence) et/ou dates une par une, par
+      établissement ; dates annulées (fériés, absences).
+- [ ] Dossier patient : bouton **« Inscrire en RCP »** → inscrit automatiquement à la **prochaine date de RCP** (date
+      modifiable), avec la question posée ; visible dans le dossier **jusqu'au jour J** ; « Désinscrire ».
+- [ ] **Liste des dossiers inscrits** : onglet **RCP** dans la page Salle d'attente (ou page à part, à décider), groupés par
+      date de RCP, avec la question posée ; clic = dossier.
+- [ ] Après la RCP : « Saisir la décision » → consultation de type **RCP** (déjà dans le menu des consultations) avec la
+      décision ; le dossier sort de la liste.
+- [ ] Fiche RCP imprimable (liste des dossiers du jour, pour la réunion) — à confirmer.
+- [ ] Tests, 390 px, bilan 352 317 DH.
+
+## Étape 8 – Numéro de dossier et recherche des patients
+**À décider** : format exact. Proposition « **AAAAMM + numéro** » : 202610**001** = 1er patient créé en octobre 2026.
+Le numéro repart-il à 001 chaque mois ? Un numéro par hôpital (préfixe HGC-, HCK-…) ou un seul compteur pour le cabinet ?
+Les patients déjà enregistrés reçoivent un numéro selon leur date de création ?
+- [ ] Numéro de dossier attribué automatiquement à la création (sans doublon, même si deux personnes créent un patient en
+      même temps), jamais changé ; affiché en haut du dossier, dans la liste, sur la fiche chimio et les documents.
+- [ ] Numéros donnés une fois aux patients existants.
+- [ ] **Recherche** des patients par **nom, prénom, date de naissance, numéro de dossier** (dans la page Patients et la
+      recherche rapide) ; filtre **par hôpital / établissement**.
+- [ ] Tests, 390 px, bilan 352 317 DH.
+
+## Étape 9 – Sécurité et conformité (obligatoire pour vendre)
+**S1 – Journal d'audit (traçabilité)**
+- [ ] Journal **infalsifiable** : qui a **consulté, modifié ou supprimé** quelle donnée, et quand. Les écritures sont notées
+      par le serveur (fonctions Firebase déclenchées à chaque écriture : impossible à contourner) ; les **ouvertures de
+      dossier** sont notées par l'application. Règles : on peut **ajouter** une ligne, jamais la modifier ni l'effacer.
+- [ ] Page « Journal d'audit » (médecin titulaire seulement) : filtres par personne, patient, date, action ; export.
+- [ ] Durée de conservation à décider (avec le juriste). Volume et coût à surveiller (une ligne par ouverture de dossier).
+**S2 – Rôles et droits affinés**
+- [ ] Nouveau rôle **Comptable** : volet financier seulement (bilan, encaissements, tarifs), aucune donnée médicale.
+- [ ] Infirmière : constantes et administrations (voir étape 11) ; médecin : accès complet. Vérifier que chaque droit de la
+      grille est aussi imposé par les **règles du serveur** (pas seulement masqué à l'écran).
+- [ ] Rôle **Pharmacien** si l'étape 11 (PUI) est faite.
+**S3 – Mode démo (anonymisation)**
+- [ ] Bouton **« Mode démo »** (médecin) : noms, prénoms, téléphones, dates de naissance, photos **remplacés à l'écran**
+      par des faux (« Patient Test 12 ») ; rien n'est modifié dans la base ; bandeau « MODE DÉMO » ; impressions bloquées
+      ou anonymisées.
+- [ ] Mieux encore pour les démonstrations : un **cabinet de démonstration** séparé rempli de faux patients (étape 13).
+
+## Étape 10 – Mode hors-ligne (application installable)
+- [ ] Onco360 **installable** sur ordinateur, tablette et téléphone (icône, plein écran).
+- [ ] En cas de coupure de réseau : **consultation des fiches patients déjà ouvertes et du planning du jour** ; les
+      modifications faites hors ligne sont envoyées au retour du réseau (ou interdites hors ligne : à décider).
+- [ ] Bandeau « Hors ligne » visible ; données gardées sur l'appareil effacées à la déconnexion (appareils partagés).
+- [ ] Tests : couper le réseau, recharger, relire un dossier et l'agenda ; bilan 352 317 DH.
+
+## Étape 11 – Soins infirmiers, pharmacie, alertes
+⚠️ Le 06/10, « Marquer administrée » (vue infirmière) et la commande pharmacie J−1 avaient été **annulés** ; Dr Bentahila
+les **redemande le 08/10** sous une forme plus complète → à confirmer au début de l'étape.
+**I1 – Mode tablette pour les salles de soins**
+- [ ] Écran épuré pour tablette (iPad / Android), pour l'infirmière au chevet du patient en cours de chimiothérapie :
+      patients du jour, cure et molécules à administrer.
+- [ ] Valider la **pose de chaque poche** (heure, par qui), la **voie d'abord** (chambre implantable / PAC, voie
+      périphérique, PICC line…), les constantes, et saisir en temps réel la **tolérance et les effets indésirables**.
+- [ ] Ce qui est saisi apparaît dans le dossier (onglet Chimiothérapie, cure concernée).
+**I2 – Circuit de la pharmacie (PUI)**
+- [ ] Validation de la prescription par le **pharmacien** → **préparation** (poche) → **libération** → **administration**
+      par l'infirmière ; chaque étape datée avec son auteur ; statut visible par le médecin.
+- [ ] À décider : utile seulement pour les cliniques avec pharmacie ; option activable par cabinet.
+**I3 – Alertes urgentes sur le téléphone (notifications)**
+- [ ] Alerte instantanée sur le téléphone de l'oncologue, même Onco360 fermé : effet indésirable grave saisi par
+      l'infirmière, neutropénie fébrile signalée, **bilan biologique anormal avant cure** (seuils à définir : PNN, plaquettes,
+      créatinine…).
+- [ ] Même système que T6 (Tâches) : à construire une seule fois.
+
+## Étape 12 – Téléconsultation (salle d'attente virtuelle)
+**À décider** : service vidéo à utiliser (gratuit / payant, hébergement des données), **cadre légal de la télémédecine
+au Maroc** (à vérifier avec le juriste), paiement de la téléconsultation.
+- [ ] Rendez-vous de type « Téléconsultation » → le patient reçoit un **lien** (WhatsApp) ; pas de compte à créer.
+- [ ] Côté patient : écran épuré et rassurant ; **test caméra / micro** ; « Vous êtes connecté dans la salle d'attente
+      de votre médecin » ; consignes de confidentialité (endroit calme et isolé) ; connexion possible 10 min avant.
+- [ ] Côté médecin : alerte en bas de l'écran « M. X est en salle d'attente », statut « En attente » ; bouton
+      **« Rejoindre la consultation vidéo »** ; **« Prévenir d'un retard »** (5 / 10 / 15 min) → bandeau sur l'écran du
+      patient (« Le Dr X a un peu de retard… »).
+- [ ] Apparaît dans la Salle d'attente (étape 6) comme les autres patients.
+
+## Étape 13 – Dossier de cession, démonstration et guides
+But : un acheteur (éditeur, ESN, clinique) reprend Onco360 **sans avoir besoin d'appeler Dr Bentahila**.
+**C1 – Vérification complète du dossier de l'application**
+- [ ] Relecture de tout le projet : fichiers inutiles ou anciens, aucune clé secrète ni donnée patient dans le code,
+      cohérence des règles de sécurité, liste de ce qui reste propre à Dr Bentahila. Rapport écrit.
+**C2 – Tutoriel d'installation sur un nouveau compte Firebase** (nouveau médecin ou acheteur)
+- [ ] Pas à pas, **en moins de 30 minutes** : créer le projet Firebase, activer l'authentification, Firestore, l'offre
+      Blaze, les sauvegardes ; copier la configuration ; déployer site, règles et fonctions ; Google Agenda (client OAuth,
+      secret) ; créer le premier compte médecin ; vérifications. Testé pour de vrai sur un projet Firebase vierge.
+**C3 – Tutoriel complet des fonctionnalités** = guides par rôle (remplace F3) :
+- [ ] **Guide Médecin**, **Guide Infirmière**, **Guide Secrétariat** (PDF illustrés de captures d'écran faites sur le
+      cabinet de démonstration) + aide dans l'application.
+**C4 – Documentation technique**
+- [ ] **Architecture technique** (site, Firebase, fonctions serveur, Google Agenda, sauvegardes).
+- [ ] **Schéma de la base de données** (collections, champs, liens) en image + description.
+- [ ] **Règles de sécurité** commentées (qui lit / écrit quoi).
+- [ ] **Fonctions serveur et scripts** (Apps Script de sauvegarde, construire.mjs, tests) expliqués.
+- [ ] **Cahier de recette** : liste de toutes les fonctionnalités avec le scénario de test et le résultat attendu.
+**C5 – Jeu de démonstration**
+- [ ] 5 à 10 **faux patients** (Patient Test 1, 2…) avec historique de cures, radiothérapies, consultations,
+      ordonnances, bilans, agenda rempli, salle d'attente, tâches ; **chargé en un clic** dans un cabinet de démonstration.
+- [ ] **Scénario de démo de 15 min** (connexion médecin → dossier → protocole → validation infirmière → agenda → bilan).
+- [ ] **Plaquette commerciale** de 2 à 3 pages (positionnement, fonctionnalités clés, valeur pour une clinique).
+**C6 – Dossier juridique** (modèles rédigés par Claude, **à faire relire par un juriste** avant usage)
+- [ ] Note de conformité **CNDP / loi 09-08** (mesures intégrées : droits d'accès, traçabilité, chiffrement, sauvegardes ;
+      options d'hébergement : Firebase Belgique, cloud marocain, serveur local).
+- [ ] **Accord de confidentialité (NDA)** à signer avant d'envoyer le code ou de donner l'accès.
+- [ ] **Contrat de cession** : clause de **non-réplication** (pas de logiciel concurrent avec le même code), **assistance
+      après cession** de 30 à 60 jours (2 à 4 h par semaine).
+- [ ] À vérifier avec le juriste : **à qui appartiennent les droits sur le code** (développé par Hamza Benzekri, puis
+      avec Claude) — indispensable avant toute cession.
+**C7 – Paquet de cession** : dossier `Onco360_Package_Cession/` sur le Mac, puis `.zip` remis à la signature :
+```
+Onco360_Package_Cession/
+├── 01_Code_Source/            (public/, functions/, firestore.rules, firebase.json, apps-script/, tests/ sans données,
+│                                .env.example sans vraies clés, README.md technique ; sans node_modules ni sauvegardes)
+├── 02_Documentation_Technique/ Architecture_Technique.pdf, Schema_Base_de_Donnees.pdf, Regles_Securite_Firebase.txt,
+│                                Procedures_Deploiement.md, Cahier_de_Recette.pdf
+├── 03_Dossier_Commercial_et_Demo/ Plaquette_Commerciale_Onco360.pdf, Scenario_Demo_15min.pdf, Dataset_Demo.json
+├── 04_Guides_Utilisateurs/    Manuel_Medecin.pdf, Manuel_Infirmier.pdf, Manuel_Secretaire.pdf
+└── 05_Legal_et_Conformite/    Checklist_Conformite_CNDP.pdf, Modele_NDA.pdf, Modele_Contrat_Cession.pdf
+```
+- [ ] Adapté à Onco360 : pas de `npm run dev` ni de `.next/` (site sans compilation) ; le README explique Firebase et le
+      serveur de test local. Historique git fourni ou non : à décider.
+
+## Étape 14 – Interopérabilité (connexion aux autres logiciels)
+- [ ] **HL7 / FHIR** (normes d'échange de données de santé) : export des comptes rendus et du résumé patient vers le
+      dossier informatisé d'une clinique ; import des résultats d'un laboratoire. À faire avec un premier client réel
+      (chaque laboratoire / clinique a son propre système).
+- [ ] **Imagerie (DICOM)** : au minimum, **liens** vers les clichés (scanner, IRM) ou la console de radiothérapie dans le
+      dossier ; plus tard, visionneuse intégrée.
 
 ## Idées en attente (à placer dans une étape)
 - Outil de restauration d'une sauvegarde.
@@ -520,3 +724,4 @@ la partie 7 jours / conflits).
 | 07/10/2026 | Droits de la secrétaire | Supprime les consultations qu'elle a créées (le médecin : toutes) ; n'annule pas un statut « Venu / Non venu » posé par le médecin (statut noté avec son auteur `sp`, anciens statuts = médecin) ; Créneaux & horaires limités à son centre (membre limité à certains établissements) ; ne crée, ne modifie, ne supprime ni ne met en favori aucun élément des listes (Médic., Examens compl., Ordo. type, Analyses, Courriers), elle s'en sert pour prescrire. Règles : `bibliotheques` écrites par le médecin, consultations supprimées par le médecin ou leur auteur. Testé (2 rôles, 390 px, bilan 352 317 DH), en ligne. |
 | 07/10/2026 | 5 – Tâches (plan) | Plan du module Tâches (T1 à T6) proposé et décidé : qui voit, modifie, supprime ; types rapides ; « + Tâche » dans le dossier ; tâches absentes du dossier. |
 | 08/10/2026 | 5 – T1 Tâches | Page Tâches (Mes tâches / Toutes les tâches), création, modification, réattribution, statuts, historique, suppression, « + Tâche » dans le dossier, règles `taches`. Testé (3 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |
+| 08/10/2026 | Plan | Demandes du 08/10 rangées : étapes 6 (salle d'attente), 7 (RCP), 8 (numéro de dossier, recherche), 9 (audit, rôles, mode démo), 10 (hors-ligne), 11 (tablette infirmière, pharmacie, alertes), 12 (téléconsultation), 13 (cession, tutoriels, démo, juridique), 14 (HL7/FHIR, DICOM) ; licences et quotas ajoutés à l'étape 4 ; ordre proposé. |

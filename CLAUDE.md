@@ -144,3 +144,6 @@ Aucune donnée patient n'est dans le code ; le jeu de test se construit depuis u
 ## À faire
 Voir `FEUILLE-DE-ROUTE.md`. Annulés le 06/10/2026 : assistant IA, rappels WhatsApp automatiques, vue infirmière « Marquer administrée »,
 commande pharmacie J−1, relevé mensuel.
+Redemandés le 08/10/2026 sous une forme plus complète (étape 11, à confirmer) : tablette infirmière (pose des poches,
+tolérance), circuit de la pharmacie. Demandes du 08/10 = étapes 6 à 14 de la feuille de route (salle d'attente, RCP,
+numéro de dossier, audit / mode démo, hors-ligne, téléconsultation, dossier de cession, HL7/FHIR).
