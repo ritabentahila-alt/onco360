@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Chimio HGC – Historique</title>
+<link rel="apple-touch-icon" href="logo.png">
+<style>
+:root{--n:#2B2D5C}*{box-sizing:border-box}
+body{font-family:Arial,Helvetica,sans-serif;margin:0;background:#f4f5f9;color:#262838;font-size:14px}
+header{background:var(--n);color:#fff;display:flex;align-items:center;gap:10px;padding:10px 14px;padding-top:max(10px,env(safe-area-inset-top))}
+header img{height:34px;background:#fff;border-radius:6px;padding:2px 6px}header b{font-size:18px;flex:1}header a{color:#cfd2ee;font-size:13px}
+main{max-width:900px;margin:16px auto;padding:0 10px}
+.card{background:#fff;border-radius:12px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+input{font-size:15px;padding:9px;border:1px solid #c9cbd8;border-radius:8px;width:100%;margin-bottom:10px}
+.l{border-bottom:1px solid #e3e4ec;padding:8px 2px}.d{color:#666;font-size:12px}.a{font-weight:bold;color:var(--n)}
+.t{display:inline-block;background:#eef0f8;border-radius:10px;padding:1px 8px;font-size:12px;margin:2px 3px 0 0}
+.st{color:#666;font-size:13px}
+</style></head>
+<body>
+<header><img src="logo.png" alt="HGC"><b>Historique des modifications</b><a href="app.html">← Retour à l’application</a></header>
+<main><div class="card">
+<input id="q" placeholder="Filtrer : nom du patient, compte, type…">
+<div id="liste" class="st">Chargement…</div>
+<div class="st" style="margin-top:10px">Les 300 dernières modifications. Ces lignes ne peuvent être ni modifiées ni effacées.</div>
+</div></main>
+<script type="module">
+import { auth, db, PROPRIETAIRE } from "./js/config.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { collection, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+const $ = (i) => document.getElementById(i);
+const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+let L = [];
+function dessiner() {
+  const q = $("q").value.trim().toLowerCase();
+  const l = L.filter((x) => !q || (x.nom + " " + x.qui + " " + x.action + " " + x.cible + " " + (x.detail || []).join(" ")).toLowerCase().includes(q));
+  $("liste").innerHTML = l.length ? l.map((x) => '<div class="l"><div class="d">' + esc(x.date) + " · " + esc(x.qui) + '</div><div><span class="a">' + esc(x.action) + "</span> – " + esc(x.nom || x.cible) + "</div>" + ((x.detail || []).length ? "<div>" + x.detail.map((d) => '<span class="t">' + esc(d) + "</span>").join("") + "</div>" : "") + "</div>").join("") : "Aucune modification.";
+}
+$("q").oninput = dessiner;
+onAuthStateChanged(auth, async (u) => {
+  if (!u) { location.replace("index.html"); return; }
+  if (u.email !== PROPRIETAIRE) { $("liste").textContent = "Page réservée à l’administrateur."; return; }
+  try {
+    const s = await getDocs(query(collection(db, "historique"), orderBy("quand", "desc"), limit(300)));
+    L = s.docs.map((d) => { const x = d.data(); const t = x.quand && x.quand.toDate ? x.quand.toDate() : null; return Object.assign({}, x, { date: t ? t.toLocaleString("fr-FR") : "" }); });
+    dessiner();
+  } catch (e) { $("liste").textContent = "Erreur : " + e.message; }
+});
+</script>
+</body></html>

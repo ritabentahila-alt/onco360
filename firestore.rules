@@ -1,0 +1,118 @@
+rules_version = '2';
+// Chimio HGC – règles de sécurité
+//  • Partie 1 : application actuelle (v1) – INCHANGÉE.
+//  • Partie 2 : plateforme v2 multi-utilisateurs (espaces/…) – droits par membre, choisis par le médecin.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function connecte() { return request.auth != null; }
+    function proprietaire() { return connecte() && request.auth.token.email == 'ritabentahila@gmail.com'; }
+
+    // ───────────── PARTIE 1 : ancienne application (v1) – LECTURE SEULE depuis la bascule du 06/10/2026 ─────────────
+    // Les données sont consultables (ancienne-app.html, conversion) mais plus rien ne s'y écrit : Onco360 est la référence.
+    function cheminRole() { return /databases/$(database)/documents/roles/$(request.auth.uid); }
+    function role() { return exists(cheminRole()) ? get(cheminRole()).data.role : ''; }
+    function estAdminV1() { return proprietaire() || (connecte() && role() == 'admin'); }
+    function estEquipe() { return estAdminV1() || (connecte() && role() in ['medecin', 'secretaire']); }
+    match /patients/{id} { allow read: if estEquipe(); allow write: if false; }
+    match /protocoles/{id} { allow read: if estEquipe(); allow write: if false; }
+    match /parametres/{id} { allow read: if estEquipe(); allow write: if false; }
+    match /finances/{document=**} { allow read: if estAdminV1(); allow write: if false; }
+    match /roles/{uid} { allow read: if connecte() && (request.auth.uid == uid || estAdminV1()); allow write: if estAdminV1(); }
+    match /historique/{id} { allow read: if estAdminV1(); allow create, update, delete: if false; }
+
+    // ───────────── PARTIE 2 : v2 ─────────────
+    // Administrateurs de la plateforme
+    function estAdmin() { return proprietaire() || (connecte() && exists(/databases/$(database)/documents/administrateurs/$(request.auth.uid))); }
+    match /administrateurs/{uid} { allow read: if connecte() && (request.auth.uid == uid || estAdmin()); allow write: if estAdmin(); }
+
+    // Profil personnel : chacun lit et modifie le sien (aucun droit n'y est stocké)
+    match /utilisateurs/{uid} {
+      allow read: if connecte() && (request.auth.uid == uid || estAdmin());
+      allow create, update: if connecte() && (request.auth.uid == uid || estAdmin());
+      allow delete: if estAdmin();
+    }
+
+    match /espaces/{e} {
+      function cheminMembre() { return /databases/$(database)/documents/espaces/$(e)/membres/$(request.auth.uid); }
+      function m() { return get(cheminMembre()).data; }
+      function estMembre() { return connecte() && exists(cheminMembre()) && m().actif == true; }
+      function estTitulaire() { return connecte() && get(/databases/$(database)/documents/espaces/$(e)).data.titulaire == request.auth.uid; }
+      function droit(k) { return estMembre() && m().droits[k] == true; }
+      function traitementsModif() { return estMembre() && m().droits.traitements == 'modifier'; }
+      function rtModif() { return estMembre() && m().droits.radiotherapie == 'modifier'; }
+      function tousEtab() { return estMembre() && m().tousEtablissements == true; }
+      function dansPerimetre(etab) { return estMembre() && (m().tousEtablissements == true || etab in m().etablissements); }
+      // Champs d'un dossier patient que ce membre a le droit de modifier
+      function champsAutorises() {
+        return ['resume', 'version', 'maj', 'majPar']
+          .concat(droit('identite') ? ['identite'] : [])
+          .concat(droit('fichePatient') ? ['clinique'] : [])
+          .concat(droit('rendezvous') ? ['rdvsJson'] : [])
+          .concat(droit('planningChimio') || traitementsModif() ? ['planningJson'] : [])
+          .concat(traitementsModif() ? ['lignesJson', 'clinique'] : [])
+          .concat(rtModif() ? ['rtsJson'] : [])
+          .concat(tousEtab() ? ['etablissementId'] : []);
+      }
+      // Fiche du patient (droit « fichePatient », secrétaire) : poids, taille, allergies… mais pas le résumé médical (clinique.notes)
+      function notesInchangees() {
+        return traitementsModif() || request.resource.data.get('clinique', {}).get('notes', '') == resource.data.get('clinique', {}).get('notes', '');
+      }
+      function notesVides() { return traitementsModif() || request.resource.data.get('clinique', {}).get('notes', '') == ''; }
+      // Toute écriture d'un dossier : version suivante, auteur et heure fixés par le serveur
+      function versionSuivante() {
+        return request.resource.data.version == resource.data.version + 1
+          && request.resource.data.majPar == request.auth.uid
+          && request.resource.data.maj == request.time;
+      }
+
+      allow read: if estMembre() || estAdmin();
+      allow write: if estAdmin();
+
+      // Membres et leurs droits : gérés par le médecin titulaire (ou l'administrateur). Un membre ne modifie jamais ses propres droits.
+      match /membres/{uid} {
+        allow read: if estMembre() || estAdmin();
+        allow write: if estAdmin() || (estTitulaire() && uid != request.auth.uid);
+      }
+      // Établissements (nom, adresse, logo) : visibles par les membres, modifiables avec le droit « paramètres »
+      match /etablissements/{x} {
+        allow read: if estMembre() || estAdmin();
+        allow write: if droit('parametres') || estAdmin();
+      }
+      // Dossiers patients (sans aucun montant)
+      match /patients/{p} {
+        allow read: if dansPerimetre(resource.data.etablissementId);
+        allow create: if droit('creerPatient') && dansPerimetre(request.resource.data.etablissementId)
+          && request.resource.data.version == 1 && request.resource.data.majPar == request.auth.uid && request.resource.data.maj == request.time
+          && request.resource.data.keys().hasOnly(champsAutorises().concat(['etablissementId'])) && notesVides();
+        allow update: if dansPerimetre(resource.data.etablissementId) && versionSuivante()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(champsAutorises()) && notesInchangees();
+        allow delete: if droit('supprimerPatient') && dansPerimetre(resource.data.etablissementId);
+      }
+      // Montants des dossiers, tarifs, paiements, versements : uniquement avec le droit « finances »
+      match /patientsFinances/{p} { allow read, write: if droit('finances'); }
+      // Prix à encaisser (consultations validées, consultation de chimio) : extrait des montants, lisible avec le droit « encaissements »
+      match /encaissements/{p} {
+        allow read: if (droit('finances') || droit('encaissements')) && (resource == null || dansPerimetre(resource.data.etablissementId));
+        allow write: if droit('finances');
+      }
+      match /finances/{d} { allow read, write: if droit('finances'); }
+      // Bibliothèque et paramètres : lecture par les membres, modification avec le droit « paramètres »
+      match /protocoles/{d} { allow read: if estMembre(); allow write: if droit('parametres'); }
+      match /parametres/{d} { allow read: if estMembre(); allow write: if droit('parametres'); }
+      // « Administrée par… le… à… » : ajout seulement, jamais modifié ni effacé
+      match /administrations/{a} {
+        allow read: if dansPerimetre(resource.data.etablissementId);
+        allow create: if droit('administrer') && dansPerimetre(request.resource.data.etablissementId)
+          && request.resource.data.parUid == request.auth.uid && request.resource.data.le == request.time;
+        allow update, delete: if false;
+      }
+      // Historique : ajout seulement ; lecture complète avec le droit « finances » (médecin), sinon ses propres actions
+      match /historique/{h} {
+        allow read: if droit('finances') || (estMembre() && resource.data.parUid == request.auth.uid);
+        allow create: if estMembre() && request.resource.data.parUid == request.auth.uid;
+        allow update, delete: if false;
+      }
+    }
+  }
+}

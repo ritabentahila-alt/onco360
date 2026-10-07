@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Onco360 – Conversion finale</title>
+<style>
+body{font-family:Arial,Helvetica,sans-serif;margin:0;background:#f4f5f9;color:#262838;font-size:14px}
+header{background:#2B2D5C;color:#fff;padding:12px 16px;font-size:18px;font-weight:bold}
+main{max-width:860px;margin:16px auto;padding:0 12px}
+.card{background:#fff;border-radius:12px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-bottom:12px}
+button{background:#2B2D5C;color:#fff;border:0;border-radius:8px;padding:11px 16px;font-size:15px;cursor:pointer;margin-top:10px}
+button:disabled{opacity:.5}
+table{width:100%;border-collapse:collapse;font-size:14px}td,th{border-bottom:1px solid #e3e4ec;padding:6px;text-align:left}th{background:#eef0f8}
+td.n{text-align:right;font-weight:bold}.ok{color:#1f6e3d;font-weight:bold}.ko{color:#a3243b;font-weight:bold}.st{color:#666;font-size:12px}
+h2{font-size:16px;color:#2B2D5C;margin:0 0 8px}
+h3{font-size:14px;margin:14px 0 6px;color:#2B2D5C}ul{margin:4px 0;padding-left:20px}li{margin:3px 0}
+.av{background:#FFF4E5;border-left:4px solid #E07A2F;padding:8px 10px;border-radius:6px;margin:8px 0}
+button.sec{background:#fff;color:#2B2D5C;border:1px solid #2B2D5C}button.rouge{background:#A3243B}
+.verrou{background:#E6F4EA;border-left:4px solid #1f6e3d;padding:10px;border-radius:6px}
+</style></head>
+<body>
+<header>Onco360 – Conversion finale (phase D)</header>
+<main>
+<div class="card">
+  <h2>Copier les données de l'application actuelle vers Onco360</h2>
+  <div class="st">L'application actuelle n'est jamais modifiée. Dans Onco360, les <b>dossiers patients, montants, paiements et versements</b> sont remplacés par ceux de l'application actuelle.
+  Tout ce que vous avez réglé dans Onco360 est <b>conservé</b> : horaires, établissements et logos, accès de l'équipe, profil, bibliothèque de protocoles, tarifs et activités, messages WhatsApp.
+  Les absences, jours fériés, correspondants, mutuelles et nouveaux protocoles de l'application actuelle sont <b>ajoutés</b>.</div>
+  <div id="qui" class="st" style="margin-top:8px"></div>
+  <button id="ana" disabled>1. Analyser (ne modifie rien)</button>
+  <button id="go" disabled>2. Lancer la conversion</button>
+</div>
+<div class="card" id="res" style="display:none"></div>
+</main>
+<script type="module">
+import { auth, db, PROPRIETAIRE } from "./js/config.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { doc, getDoc, getDocs, setDoc, deleteDoc, collection, writeBatch, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { fusionner } from "./js/donnees/conversion.js";
+import { planifier } from "./js/donnees/bascule.js";
+import { evtsFin } from "./js/moteur/finances.js";
+import { calculerBilan, dh } from "./js/moteur/bilan.js";
+import { auj } from "./js/moteur/outils.js";
+
+const E = "cabinet-bentahila";
+const $ = (i) => document.getElementById(i);
+const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const canon = (o) => Array.isArray(o) ? o.map(canon) : o && typeof o === "object" ? Object.keys(o).sort().reduce((r, k) => (o[k] != null && (r[k] = canon(o[k])), r), {}) : o;
+const eq = (a, b) => JSON.stringify(canon(a)) === JSON.stringify(canon(b));
+const J = (s, def) => (s && s.exists() && s.data().data != null ? JSON.parse(s.data().data) : def);
+const chemin = (c) => c.replace(/^espaces\/E/, "espaces/" + E);
+const ref = (c) => doc(db, ...chemin(c).split("/"));
+const vers = (d) => JSON.parse(JSON.stringify(d), (k, v) => (v === "__ts" ? serverTimestamp() : v));
+let log = [], PLAN = null, V2 = null;
+const etape = (t) => { log.push(t); $("res").style.display = ""; $("res").innerHTML = "<h2>Progression</h2><div class='st'>" + log.join("<br>") + "</div>"; };
+
+onAuthStateChanged(auth, async (u) => {
+  if (!u) { location.replace("index.html"); return; }
+  $("qui").textContent = "Compte : " + u.email;
+  if (u.email !== PROPRIETAIRE) { $("qui").textContent += " – réservé au compte propriétaire."; return; }
+  const e = await getDoc(doc(db, "espaces", E)).catch(() => null);
+  if (e && e.exists() && e.data().bascule) { verrouille(e.data().bascule); return; }
+  $("ana").disabled = false;
+});
+function verrouille(d) {
+  $("ana").disabled = $("go").disabled = true;
+  $("res").style.display = ""; $("res").innerHTML = "<div class='verrou'>🔒 La bascule a été faite le " + esc(String(d).slice(0, 10).split("-").reverse().join("/")) + " : Onco360 est l'application de référence et la conversion est verrouillée (elle effacerait les dossiers saisis depuis dans Onco360).</div>";
+}
+
+// Lecture des deux applications
+async function lire() {
+  const uid = auth.currentUser.uid, docs = async (...p) => (await getDocs(collection(db, ...p))).docs;
+  const v1 = { patients: {}, protocoles: {} };
+  (await docs("patients")).forEach((d) => { v1.patients[d.id] = JSON.parse(d.data().data); });
+  (await docs("protocoles")).forEach((d) => { v1.protocoles[d.id] = JSON.parse(d.data().data); });
+  const g = (c, i) => getDoc(doc(db, c, i)).catch(() => null);
+  v1.tarifs = J(await g("finances", "tarifs"), null); v1.paiements = J(await g("finances", "paiements"), {}); v1.versements = J(await g("finances", "versements"), []);
+  v1.calendrier = J(await g("parametres", "calendrier"), null); v1.listes = J(await g("parametres", "listes"), { cor: [], mut: [] });
+  const ge = (...p) => getDoc(doc(db, "espaces", E, ...p)).catch(() => null), es = await getDoc(doc(db, "espaces", E)).catch(() => null), ut = await getDoc(doc(db, "utilisateurs", uid)).catch(() => null);
+  const v2 = { espace: es && es.exists() ? es.data() : null, utilisateur: ut && ut.exists() ? ut.data() : null, membres: {}, etablissements: {}, protocoles: {}, parametres: {}, brut: {} };
+  for (const c of ["membres", "etablissements"]) (await docs("espaces", E, c).catch(() => [])).forEach((d) => { v2[c][d.id] = d.data(); });
+  (await docs("espaces", E, "protocoles").catch(() => [])).forEach((d) => { v2.protocoles[d.id] = JSON.parse(d.data().data || "[]"); });
+  for (const k of ["calendrier", "listes", "activites", "whatsapp", "protocolesSupprimes"]) { const s = await ge("parametres", k); v2.parametres[k] = J(s, null); }
+  v2.tarifs = J(await ge("finances", "tarifs"), null); v2.paiements = J(await ge("finances", "paiements"), null); v2.versements = J(await ge("finances", "versements"), null);
+  const pts = await docs("espaces", E, "patients").catch(() => []), pf = await docs("espaces", E, "patientsFinances").catch(() => []);
+  v2.patients = pts.map((d) => d.id); v2.patientsFinances = pf.map((d) => d.id);
+  v2.brut = { patients: Object.fromEntries(pts.map((d) => [d.id, d.data()])), patientsFinances: Object.fromEntries(pf.map((d) => [d.id, d.data()])) };
+  return { v1, v2 };
+}
+function bilan(P, table, bib, feries) {
+  const ctx = { aujourdhui: auj(), bib, feries, table };
+  const res = P.patients.map((x) => { const F = fusionner(x.id, x.patient, null); return { id: x.id, nm: F.nom, cor: F.cor || "", fin: evtsFin(F, x.montants, ctx) }; });
+  return calculerBilan(res, PLAN.v1.versements || [], PLAN.v1.paiements || {}, { per: "annee" }, ctx.aujourdhui).tot;
+}
+const liste = (t, l) => (l.length ? "<h3>" + t + "</h3><ul>" + l.map((x) => "<li>" + esc(x) + "</li>").join("") + "</ul>" : "");
+
+$("ana").onclick = async () => {
+  $("ana").disabled = true; log = []; etape("Lecture des deux applications…");
+  try {
+    const { v1, v2 } = await lire(); V2 = v2;
+    PLAN = planifier(v1, v2, { uid: auth.currentUser.uid, email: auth.currentUser.email, aujourdhui: auj() }); PLAN.v1 = v1;
+    const R = PLAN.rapport, a = bilan(PLAN, PLAN.tableV1, PLAN.bib, PLAN.cal.feries || []), b = bilan(PLAN, PLAN.table, PLAN.bib, PLAN.cal.feries || []);
+    $("res").innerHTML = "<h2>Analyse – rien n'a encore été modifié</h2>" + liste("✅ Conservé dans Onco360", R.garde) + liste("➕ Ajouté depuis l'application actuelle", R.ajoute) + liste("🔄 Remplacé par l'application actuelle", R.remplace) +
+      R.avert.map((x) => "<div class='av'>⚠️ " + esc(x) + "</div>").join("") +
+      "<h3>Bilan de l'année après conversion</h3><table><tr><td>Avec les tarifs de l'application actuelle</td><td class='n'>" + dh(a.caNet) + "</td></tr><tr><td>Avec les tarifs d'Onco360 (conservés)</td><td class='n'>" + dh(b.caNet) + "</td></tr></table>" +
+      (Math.round(a.caNet) === Math.round(b.caNet) ? "<div class='ok' style='margin-top:6px'>✅ Identiques au dirham près.</div>" : "<div class='av'>⚠️ Différence de " + dh(b.caNet - a.caNet) + " : un tarif a été modifié dans Onco360 (Paramètres) avec une date d'effet passée. Vérifiez-le avant de lancer la conversion.</div>") +
+      "<p class='st'>À comparer avec BILAN › Année civile › Tous les établissements dans l'application actuelle. Au lancement, une sauvegarde complète d'Onco360 est d'abord téléchargée sur cet appareil.</p>";
+    $("go").disabled = false;
+  } catch (e) { etape("<span class='ko'>❌ Arrêt : " + esc((e.code || "") + " " + e.message) + "</span>"); }
+  $("ana").disabled = false;
+};
+
+$("go").onclick = async () => {
+  if (!PLAN) return;
+  if (!confirm("Lancer la conversion ?\n\nLes dossiers, montants, paiements et versements d'Onco360 seront remplacés par ceux de l'application actuelle. Vos réglages Onco360 sont conservés.")) return;
+  $("go").disabled = $("ana").disabled = true; log = [];
+  try {
+    // 0. Sauvegarde d'Onco360 avant toute écriture
+    const sauv = { date: new Date().toISOString(), espace: E, avant: V2 };
+    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify(sauv)], { type: "application/json" })); a.download = "Onco360_sauvegarde_avant_conversion_" + auj() + ".json"; document.body.appendChild(a); a.click(); a.remove();
+    etape("✓ Sauvegarde d'Onco360 téléchargée (Onco360_sauvegarde_avant_conversion_" + auj() + ".json)");
+    // 1. Réglages, protocoles, paiements, versements
+    const uid = auth.currentUser.uid;
+    await setDoc(doc(db, "administrateurs", uid), { email: auth.currentUser.email, depuis: serverTimestamp() }, { merge: true });
+    for (const w of PLAN.ecritures) await setDoc(ref(w.c), vers(w.d));
+    etape("✓ " + PLAN.ecritures.length + " éléments écrits (paiements, versements, compléments) – réglages Onco360 conservés");
+    // 2. Dossiers : effacement des dossiers d'Onco360 puis copie
+    for (let i = 0; i < PLAN.effacer.length; i += 200) { const bt = writeBatch(db); PLAN.effacer.slice(i, i + 200).forEach((id) => { bt.delete(doc(db, "espaces", E, "patients", id)); bt.delete(doc(db, "espaces", E, "patientsFinances", id)); }); await bt.commit(); }
+    etape("✓ " + PLAN.effacer.length + " dossiers d'Onco360 retirés");
+    for (let i = 0; i < PLAN.patients.length; i += 20) {
+      const bt = writeBatch(db);
+      PLAN.patients.slice(i, i + 20).forEach((x) => { bt.set(doc(db, "espaces", E, "patients", x.id), vers(x.patient)); bt.set(doc(db, "espaces", E, "patientsFinances", x.id), x.finances); });
+      await bt.commit(); etape("… " + Math.min(i + 20, PLAN.patients.length) + " / " + PLAN.patients.length + " dossiers copiés");
+    }
+    // 3. Vérification : relecture complète et comparaison
+    etape("Vérification…");
+    const { v2: apres } = await lire(), ids = Object.keys(PLAN.v1n); let ident = 0, sansMontant = 0; const diff = [];
+    ids.forEach((id) => {
+      const x = apres.brut.patients[id], f = apres.brut.patientsFinances[id]; if (!x) { diff.push(id); return; }
+      const r0 = JSON.parse(JSON.stringify(PLAN.v1n[id])); delete r0.dossier; delete r0._rtcCh; ["lignes", "rdvs", "rts"].forEach((k) => { r0[k] = r0[k] || []; });
+      if (eq(fusionner(id, x, f ? JSON.parse(f.montantsJson || "{}") : null), r0)) ident++; else diff.push(r0.nom || id);
+      if (!/"prix"|"hon"|"netFixe"|"vmatPrix"|"cons"|"tj"/.test(JSON.stringify(x))) sansMontant++;
+    });
+    const garde = [["Accès de l'équipe", eq(apres.membres, V2.membres) || !Object.keys(V2.membres).length], ["Établissements et logos", Object.keys(V2.etablissements).every((c) => eq(apres.etablissements[c], V2.etablissements[c]))],
+      ["Profil du médecin", !V2.utilisateur || eq(apres.utilisateur, V2.utilisateur)], ["Horaires", !V2.parametres.calendrier || (eq(apres.parametres.calendrier.horaires, V2.parametres.calendrier.horaires) && eq(apres.parametres.calendrier.horairesEtab, V2.parametres.calendrier.horairesEtab))],
+      ["Tarifs et activités", !V2.tarifs || (eq(apres.tarifs, V2.tarifs) && eq(apres.parametres.activites, V2.parametres.activites))], ["Messages WhatsApp", eq(apres.parametres.whatsapp, V2.parametres.whatsapp)],
+      ["Protocoles d'Onco360", Object.keys(V2.protocoles).every((d) => (V2.protocoles[d] || []).every((p) => (apres.protocoles[d] || []).some((q) => eq(q, p))))]];
+    const B = bilan(PLAN, PLAN.table, PLAN.bib, PLAN.cal.feries || []);
+    const ok = ident === ids.length && sansMontant === ids.length && apres.patients.length === ids.length && garde.every((g) => g[1]);
+    $("res").innerHTML = "<h2>Résultat</h2>" + (ok ? "<div class='ok'>✅ Conversion complète et vérifiée</div>" : "<div class='ko'>❌ Écarts" + (diff.length ? " : " + esc(diff.join(", ")) : "") + "</div>") +
+      "<table><tr><td>Dossiers copiés et relus identiques</td><td class='n'>" + ident + " / " + ids.length + "</td></tr><tr><td>Dossiers médicaux sans aucun montant</td><td class='n'>" + sansMontant + " / " + ids.length + "</td></tr>" +
+      garde.map((g) => "<tr><td>" + g[0] + " conservé(s)</td><td class='n'>" + (g[1] ? "✅" : "❌") + "</td></tr>").join("") +
+      "<tr><td>Bilan de l'année (CA NET)</td><td class='n'>" + dh(B.caNet) + "</td></tr><tr><td>✅ Payé / ⏳ À recevoir</td><td class='n'>" + dh(B.paye) + " / " + dh(B.aRecevoir) + "</td></tr></table>" +
+      "<p class='st'>Contrôlez le bilan dans l'application actuelle (BILAN › Année civile › Tous) : les chiffres doivent être identiques. Ensuite, et seulement quand vous basculez définitivement, verrouillez la conversion :</p>" +
+      "<button class='rouge' id='lock'>🔒 Bascule terminée : verrouiller la conversion</button>";
+    $("lock").onclick = async () => {
+      if (!confirm("Confirmer la bascule ?\n\nOnco360 devient l'application de référence. Cette page ne pourra plus recopier les données de l'application actuelle.")) return;
+      await setDoc(doc(db, "espaces", E), { bascule: new Date().toISOString(), basculePar: auth.currentUser.email }, { merge: true }); verrouille(new Date().toISOString());
+    };
+  } catch (e) { etape("<span class='ko'>❌ Arrêt : " + esc((e.code || "") + " " + e.message) + "</span><br>La sauvegarde téléchargée permet de tout restaurer : envoyez-la-moi."); }
+  $("ana").disabled = false;
+};
+</script>
+</body></html>

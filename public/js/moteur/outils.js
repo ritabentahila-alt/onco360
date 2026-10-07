@@ -1,0 +1,10 @@
+// Chimio HGC v2 – outils de base (nombres, dates). Aucune dépendance au navigateur : testable seul.
+export function num(v) { v = String(v == null ? "" : v).replace(/[\s\u202f\u00a0]/g, "").replace(",", "."); return v === "" || isNaN(+v) ? null : +v; }
+export function arr(x, dec) { const m = Math.pow(10, dec || 0); return Math.round(x * m) / m; }
+export function addJ(iso, n) { if (!iso) return null; const d = new Date(iso + "T12:00:00Z"); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); }
+export function ecart(a, b) { return Math.round((new Date(a + "T12:00:00Z") - new Date(b + "T12:00:00Z")) / 864e5); }
+export function auj(date) { const d = date || new Date(); return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2); }
+// Âge (années révolues) à la date ref (AAAA-MM-JJ)
+export function age(ddn, ref) { if (!ddn || !ref) return null; let a = +ref.slice(0, 4) - +ddn.slice(0, 4); if (ref.slice(5) < ddn.slice(5)) a--; return a; }
+// Jour ouvré : lundi–vendredi hors jours fériés (liste [{d:'AAAA-MM-JJ'}])
+export function ouvre(d, feries) { const w = new Date(d + "T12:00:00").getDay(); return w !== 0 && w !== 6 && !(feries || []).some((f) => f.d === d); }

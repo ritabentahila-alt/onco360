@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Onco360">
+<meta name="theme-color" content="#3563B0">
+<link rel="apple-touch-icon" href="onco360-icone.png">
+<link rel="icon" type="image/png" href="onco360-icone.png">
+<title>Onco360 – Connexion</title>
+<style>
+:root{--n:#3563B0}*{box-sizing:border-box}
+body{font-family:Arial,Helvetica,sans-serif;margin:0;background:#F5F7FB;color:#262838;font-size:15px}
+header{background:#fff;border-bottom:1px solid #E3E7F0;display:flex;align-items:center;justify-content:center;gap:10px;padding:14px;padding-top:max(14px,env(safe-area-inset-top))}
+header img{height:44px}header b{font-size:26px;color:#1D3F94;letter-spacing:-.5px}header b span{color:#1B9AAA}
+main{max-width:420px;margin:28px auto;padding:0 12px}
+.card{background:#fff;border-radius:16px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+h2{font-size:18px;margin:0 0 12px;color:var(--n)}
+label{font-size:13px;color:#555;display:block;margin:10px 0 4px}
+input{font-size:16px;padding:10px;border:1px solid #c9cbd8;border-radius:8px;width:100%}
+button{background:var(--n);color:#fff;border:0;border-radius:8px;padding:12px 16px;font-size:16px;cursor:pointer;margin-top:16px;width:100%}
+button:disabled{opacity:.6}
+.err{color:#a3243b;font-size:14px;margin-top:10px;min-height:18px}.st{font-size:13px;color:#666}a{color:var(--n)}
+</style></head>
+<body>
+<header><img src="onco360-icone.png" alt=""><b>Onco<span>360</span></b></header>
+<main>
+  <div class="card" id="vueConnexion" style="display:none">
+    <h2>Connexion</h2>
+    <label for="email">Adresse e-mail</label>
+    <input id="email" type="email" autocomplete="username" inputmode="email">
+    <label for="mdp">Mot de passe</label>
+    <input id="mdp" type="password" autocomplete="current-password">
+    <button id="btnConnexion">Se connecter</button>
+    <div class="err" id="erreur"></div>
+    <div class="st" style="margin-top:6px"><a href="#" id="lienOubli">Mot de passe oublié ?</a></div>
+  </div>
+  <div class="card" id="vueChargement"><div class="st">Chargement…</div></div>
+</main>
+<script type="module">
+import { auth } from "./js/config.js";
+import { onAuthStateChanged, signInWithEmailAndPassword, sendPasswordResetEmail, setPersistence, browserLocalPersistence, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+const $ = (id) => document.getElementById(id);
+const MESSAGES = {
+  "auth/invalid-credential": "E-mail ou mot de passe incorrect.",
+  "auth/invalid-email": "Adresse e-mail invalide.",
+  "auth/user-disabled": "Ce compte est désactivé.",
+  "auth/too-many-requests": "Trop d’essais. Réessayez dans quelques minutes.",
+  "auth/network-request-failed": "Pas de connexion Internet."
+};
+const message = (e) => MESSAGES[e && e.code] || ("Erreur : " + ((e && e.message) || e));
+await setPersistence(auth, browserLocalPersistence);
+$("btnConnexion").onclick = async () => {
+  $("erreur").textContent = "";
+  const email = $("email").value.trim(), mdp = $("mdp").value;
+  if (!email || !mdp) { $("erreur").textContent = "Saisissez l’e-mail et le mot de passe."; return; }
+  $("btnConnexion").disabled = true;
+  try { await signInWithEmailAndPassword(auth, email, mdp); }
+  catch (e) { $("erreur").textContent = message(e); $("btnConnexion").disabled = false; }
+};
+$("mdp").addEventListener("keydown", (e) => { if (e.key === "Enter") $("btnConnexion").click(); });
+$("lienOubli").onclick = async (ev) => {
+  ev.preventDefault();
+  const email = $("email").value.trim();
+  if (!email) { $("erreur").textContent = "Saisissez d’abord votre adresse e-mail."; return; }
+  try { await sendPasswordResetEmail(auth, email); $("erreur").textContent = "Un e-mail de réinitialisation vient d’être envoyé (vérifiez aussi les indésirables)."; }
+  catch (e) { $("erreur").textContent = message(e); }
+};
+// Déjà connecté (ou connexion réussie) : on entre directement dans l'application
+// index.html?sortie=1 (page de secours d'Onco360) : on termine la déconnexion au lieu de renvoyer vers Onco360
+let sortie = new URLSearchParams(location.search).has("sortie");
+if (sortie) history.replaceState(null, "", "index.html");
+onAuthStateChanged(auth, async (u) => {
+  const aSortir = sortie; sortie = false; // seulement au premier passage : une connexion ensuite entre normalement
+  if (u && aSortir) { await signOut(auth).catch(() => {}); return; } // relance onAuthStateChanged sans utilisateur
+  if (u) { location.replace("v2.html"); return; } // Onco360 (l'ancienne application reste consultable : ancienne-app.html)
+  $("vueChargement").style.display = "none"; $("vueConnexion").style.display = "";
+});
+</script>
+</body></html>

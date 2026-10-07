@@ -1,0 +1,45 @@
+// Chimio HGC v2 – événements Google Agenda d'un dossier (règle D3). Les clés « k » sont identiques à la v1 (pas de doublon à la bascule).
+import { etatLigne, protocoleDe, protocoleCure, seancesDe, seancesCure } from "./doses.js";
+import { typeRdv, libRdv } from "./rdv.js";
+import { finRT, dosimetrie } from "./rt.js";
+export function evtsAgenda(P, ctx) {
+  const t = ctx.aujourdhui, out = [], nm = P.nom || (P.nomF || "").toUpperCase() + " " + (P.prenom || ""), pid = P.id, hop = P.hop ? " (" + P.hop + ")" : "";
+  (P.rdvs || []).forEach((r) => {
+    if ((r.st || "prevu") !== "prevu" || !r.d) return; const hs = typeRdv(r.type) === "hospit"; if ((hs && r.f ? r.f : r.d) < t) return;
+    out.push({ k: pid + "|r|" + (r.id || r.d), t: (hs ? "" : "🩺 ") + nm + " – " + (hs ? "Hospitalisation" : libRdv(r)) + hop, x: [P.diag, P.tel ? "Tél. " + P.tel : "", r.n].filter(Boolean).join("\n"), d: r.d, h: hs ? "" : r.h || "", f: hs ? r.f || "" : "" });
+  });
+  (P.lignes || []).forEach((L, i) => {
+    if (L.arret) return; const p = protocoleDe(L, ctx.bib);
+    etatLigne(L, P, ctx).forEach((e) => {
+      const multi = seancesDe(protocoleCure(L, e.n - 1, ctx.bib)).length > 1;
+      if (e.st === "prevue" && e.date && e.date >= t) out.push({ k: pid + "|c|" + i + "|" + e.n, t: "💉 " + nm + " – C" + e.n + "/" + L.cures.length + (multi ? " J1" : "") + " · " + p.nom + hop, x: P.diag || "", d: e.date });
+      if (e.st !== "annulee" && e.date) seancesCure(L, e, ctx.bib).forEach((s) => { if (s.st === "prevue" && s.prevue && s.prevue >= t) out.push({ k: pid + "|s|" + i + "|" + e.n + "|" + s.j, t: "💉 " + nm + " – C" + e.n + " J" + s.j + " · " + p.nom + hop, x: P.diag || "", d: s.prevue }); });
+    });
+  });
+  (P.rts || []).forEach((r, j) => {
+    if (r.fin) return; const f = finRT(r, ctx.feries), id = r.id || j, a = r.acte || "Radiothérapie", hr = r.hop ? " (" + r.hop + ")" : hop;
+    [[r.scan, "scan", "Scanner de centrage"], [r.deb, "deb", "1re séance de radiothérapie"], [f, "fin", "Fin de radiothérapie prévue"]].forEach((z) => { if (z[0] && z[0] >= t) out.push({ k: pid + "|rt|" + id + "|" + z[1], t: "☢️ " + nm + " – " + z[2] + " · " + a + hr, x: P.diag || "", d: z[0] }); });
+    // Dosimétrie à valider : du scanner à la 1re séance (journées entières), jusqu'à la validation par le médecin
+    const dz = dosimetrie(r, t); if (dz) out.push({ k: pid + "|rt|" + id + "|dosi", t: "☢️ " + nm + " – Dosimétrie à valider · " + a + hr, x: P.diag || "", d: dz.du, f: dz.au > dz.du ? dz.au : "" });
+  });
+  return out;
+}
+
+// D2 – rendez-vous de chimiothérapie à venir dans le dossier : la prochaine cure avec toutes ses séances
+// (ou les séances restantes de la cure en cours) ; une cure prévue dans le passé est signalée « en retard ».
+export function chimioAVenir(P, ctx) {
+  const t = ctx.aujourdhui; let out = [];
+  (P.lignes || []).forEach((L) => {
+    if (L.arret) return; const p = protocoleDe(L, ctx.bib), E = etatLigne(L, P, ctx);
+    for (let i = 0; i < E.length; i++) {
+      const e = E[i]; if (e.st === "annulee" || !e.date) continue;
+      const sea = seancesCure(L, e, ctx.bib).filter((s) => s.st === "prevue" && s.prevue && s.prevue >= t), multi = seancesDe(protocoleCure(L, e.n - 1, ctx.bib)).length > 1;
+      const lst = [];
+      if (e.st === "prevue" && e.date >= t) lst.push({ d: e.date, lib: "Chimio · " + p.nom + " · C" + e.n + (multi ? " J1" : "") });
+      sea.forEach((s) => { lst.push({ d: s.prevue, lib: "Chimio · " + p.nom + " · C" + e.n + " J" + s.j }); });
+      if (e.st === "prevue" && e.date < t) lst.unshift({ d: e.date, lib: "Chimio · " + p.nom + " · C" + e.n + (multi ? " J1" : "") + " (en retard)" });
+      if (lst.length) { out = out.concat(lst); break; }
+    }
+  });
+  return out;
+}

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chimio HGC v2 – Test des droits</title>
+<style>
+body{font-family:Arial,Helvetica,sans-serif;margin:0;background:#f4f5f9;color:#262838;font-size:14px}
+header{background:#2B2D5C;color:#fff;padding:12px 16px;font-size:18px;font-weight:bold}
+main{max-width:900px;margin:16px auto;padding:0 12px}
+.card{background:#fff;border-radius:12px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-bottom:12px}
+label{font-size:12px;color:#555;display:block;margin:8px 0 3px}
+input{font-size:15px;padding:8px;border:1px solid #c9cbd8;border-radius:8px;width:100%;box-sizing:border-box}
+.g{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+button{background:#2B2D5C;color:#fff;border:0;border-radius:8px;padding:11px 16px;font-size:15px;cursor:pointer;margin-top:12px}
+button:disabled{opacity:.5}
+table{width:100%;border-collapse:collapse;font-size:13px}td,th{border-bottom:1px solid #e3e4ec;padding:5px;text-align:left}th{background:#eef0f8}
+.ok{color:#1f6e3d;font-weight:bold}.ko{color:#a3243b;font-weight:bold}.st{color:#666;font-size:12px}
+h2{font-size:16px;color:#2B2D5C;margin:14px 0 6px}
+</style></head>
+<body>
+<header>Chimio HGC v2 – Test des droits (espace de test, aucune donnée réelle)</header>
+<main>
+<div class="card">
+  <div class="st">Cette page crée un espace de test « test-b1 » avec 2 patients fictifs (un à HGC, un à CIOC), puis vérifie auprès du serveur ce que chaque compte peut faire… et surtout ce qui lui est refusé. Les mots de passe ne sont pas enregistrés. Votre connexion à l'application n'est pas modifiée.</div>
+  <div class="g">
+    <div><label>Administrateur (votre compte)</label><input id="e0" value="ritabentahila@gmail.com"><input id="p0" type="password" placeholder="mot de passe" style="margin-top:4px"></div>
+    <div><label>Médecin de test</label><input id="e1" value="ritabentahila+medecintest@gmail.com"><input id="p1" type="password" placeholder="mot de passe" style="margin-top:4px"></div>
+    <div><label>Infirmière de test (HGC)</label><input id="e2" value="ritabentahila+infirmiere@gmail.com"><input id="p2" type="password" placeholder="mot de passe" style="margin-top:4px"></div>
+    <div><label>Assistante de test (CIOC)</label><input id="e3" value="ritabentahila+secretaire@gmail.com"><input id="p3" type="password" placeholder="mot de passe" style="margin-top:4px"></div>
+  </div>
+  <button id="go">▶︎ Lancer les tests</button>
+</div>
+<div class="card" id="res" style="display:none"></div>
+</main>
+<script type="module">
+import { firebaseConfig } from "./js/config.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { initializeAuth, inMemoryPersistence, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+// Instance séparée, en mémoire : la session de l'application n'est pas touchée
+const app = initializeApp(firebaseConfig, "tests-droits");
+const auth = initializeAuth(app, { persistence: inMemoryPersistence });
+const db = getFirestore(app);
+const $ = (i) => document.getElementById(i);
+const E = "test-b1", P = (x) => doc(db, "espaces", E, "patients", x);
+const DROITS_MEDECIN = { identite: true, rendezvous: true, planningChimio: true, traitements: "modifier", radiotherapie: "modifier", administrer: true, creerPatient: true, supprimerPatient: true, finances: true, parametres: true };
+const DROITS_INFIRMIERE = { identite: true, rendezvous: true, planningChimio: true, traitements: "voir", radiotherapie: "voir", administrer: true, creerPatient: false, supprimerPatient: false, finances: false, parametres: false };
+const DROITS_ASSISTANTE = { identite: true, rendezvous: true, planningChimio: true, traitements: "voir", radiotherapie: "voir", administrer: false, creerPatient: true, supprimerPatient: false, finances: false, parametres: false };
+let lignes = [], nbOk = 0, nbKo = 0, U = {};
+
+async function connexion(i) { await signOut(auth).catch(() => {}); const c = await signInWithEmailAndPassword(auth, $("e" + i).value.trim(), $("p" + i).value); return c.user.uid; }
+async function essai(qui, libelle, attendu, f) {
+  let obtenu;
+  try { await f(); obtenu = "autorisé"; } catch (e) { obtenu = e.code === "permission-denied" ? "refusé" : "erreur : " + (e.code || e.message); }
+  const bon = obtenu === attendu; bon ? nbOk++ : nbKo++;
+  lignes.push("<tr><td>" + qui + "</td><td>" + libelle + "</td><td>" + attendu + "</td><td>" + obtenu + "</td><td class='" + (bon ? "ok'>✅" : "ko'>❌") + "</td></tr>");
+  afficher();
+}
+function afficher() { $("res").style.display = ""; $("res").innerHTML = "<h2>Résultats : " + nbOk + " conformes" + (nbKo ? ", <span class='ko'>" + nbKo + " NON conformes</span>" : "") + "</h2><table><tr><th>Compte</th><th>Action</th><th>Attendu</th><th>Obtenu</th><th></th></tr>" + lignes.join("") + "</table>"; }
+// Modification d'un dossier : relit la version, écrit la suivante (ou une version périmée pour le test d'écrasement)
+async function modif(id, champs, perimee) {
+  const s = await getDoc(P(id)); const v = s.data().version;
+  await updateDoc(P(id), Object.assign({}, champs, { version: perimee ? v : v + 1, maj: serverTimestamp(), majPar: auth.currentUser.uid }));
+}
+const nouveau = (etab, extra) => Object.assign({ etablissementId: etab, identite: { nom: "TEST", prenom: "Fictif" }, rdvsJson: "[]", resume: "{}", version: 1, maj: serverTimestamp(), majPar: auth.currentUser.uid }, extra || {});
+const admin = (etab, id) => addDoc(collection(db, "espaces", E, "administrations"), { etablissementId: etab, patientId: id, ligne: "L1", cure: 1, jour: 1, parUid: auth.currentUser.uid, parNom: "test", le: serverTimestamp() });
+
+$("go").onclick = async () => {
+  $("go").disabled = true; lignes = []; nbOk = nbKo = 0;
+  try {
+    // 1. Chaque compte de test crée son profil
+    for (const [i, k] of [[1, "medecin"], [2, "infirmiere"], [3, "assistante"]]) { U[k] = await connexion(i); await setDoc(doc(db, "utilisateurs", U[k]), { email: $("e" + i).value.trim(), nom: "TEST", prenom: k, test: true }, { merge: true }); }
+    // 2. L'administrateur crée l'espace de test et ses membres
+    await connexion(0);
+    await setDoc(doc(db, "espaces", E), { nom: "Espace de test (droits)", titulaire: U.medecin, test: true });
+    await setDoc(doc(db, "espaces", E, "membres", U.medecin), { role: "medecin", nom: "Médecin test", actif: true, tousEtablissements: true, etablissements: [], droits: DROITS_MEDECIN });
+    await setDoc(doc(db, "espaces", E, "membres", U.infirmiere), { role: "infirmiere", nom: "Infirmière test", actif: true, tousEtablissements: false, etablissements: ["HGC"], droits: DROITS_INFIRMIERE });
+    await setDoc(doc(db, "espaces", E, "membres", U.assistante), { role: "assistante", nom: "Assistante test", actif: true, tousEtablissements: false, etablissements: ["CIOC"], droits: DROITS_ASSISTANTE });
+    // 3. Le médecin de test prépare les données fictives
+    await connexion(1);
+    await setDoc(doc(db, "espaces", E, "etablissements", "HGC"), { code: "HGC", nom: "Hôpital Général de Casablanca", actif: true });
+    await setDoc(doc(db, "espaces", E, "etablissements", "CIOC"), { code: "CIOC", nom: "Centre International d'Oncologie de Casablanca", actif: true });
+    for (const [id, etab] of [["p-hgc", "HGC"], ["p-cioc", "CIOC"]]) {
+      const s = await getDoc(P(id)).catch(() => null);
+      if (!s || !s.exists()) await setDoc(P(id), nouveau(etab, { clinique: { diag: "Test" }, lignesJson: "[]", planningJson: "{}", rtsJson: "[]" }));
+      await setDoc(doc(db, "espaces", E, "patientsFinances", id), { montantsJson: "{}" });
+    }
+    await setDoc(doc(db, "espaces", E, "finances", "tarifs"), { data: "{}" });
+
+    // 4. Médecin
+    const MD = "Médecin";
+    await essai(MD, "Lire un patient HGC", "autorisé", () => getDoc(P("p-hgc")));
+    await essai(MD, "Lire un patient CIOC", "autorisé", () => getDoc(P("p-cioc")));
+    await essai(MD, "Lire les tarifs", "autorisé", () => getDoc(doc(db, "espaces", E, "finances", "tarifs")));
+    await essai(MD, "Modifier les doses (lignes de chimio)", "autorisé", () => modif("p-hgc", { lignesJson: "[1]" }));
+    await essai(MD, "Enregistrer une version périmée (écrasement)", "refusé", () => modif("p-hgc", { lignesJson: "[2]" }, true));
+    await essai(MD, "Modifier ses propres droits", "refusé", () => updateDoc(doc(db, "espaces", E, "membres", U.medecin), { droits: DROITS_MEDECIN }));
+
+    // 5. Infirmière (HGC)
+    await connexion(2); const IN = "Infirmière (HGC)";
+    await essai(IN, "Lire un patient de son hôpital (HGC)", "autorisé", () => getDoc(P("p-hgc")));
+    await essai(IN, "Lire un patient d'un autre hôpital (CIOC)", "refusé", () => getDoc(P("p-cioc")));
+    await essai(IN, "Lire les montants d'un dossier", "refusé", () => getDoc(doc(db, "espaces", E, "patientsFinances", "p-hgc")));
+    await essai(IN, "Lire les tarifs", "refusé", () => getDoc(doc(db, "espaces", E, "finances", "tarifs")));
+    await essai(IN, "Corriger l'identité", "autorisé", () => modif("p-hgc", { identite: { nom: "TEST", prenom: "Corrigé" } }));
+    await essai(IN, "Modifier les rendez-vous", "autorisé", () => modif("p-hgc", { rdvsJson: "[{\"d\":\"2026-11-01\"}]" }));
+    await essai(IN, "Déplacer une date de chimio (planning HDJ)", "autorisé", () => modif("p-hgc", { planningJson: "{\"L1\":{\"2\":\"2026-11-05\"}}" }));
+    await essai(IN, "Modifier les doses", "refusé", () => modif("p-hgc", { lignesJson: "[3]" }));
+    await essai(IN, "Modifier la radiothérapie", "refusé", () => modif("p-hgc", { rtsJson: "[1]" }));
+    await essai(IN, "Enregistrer une version périmée (écrasement)", "refusé", () => modif("p-hgc", { rdvsJson: "[]" }, true));
+    await essai(IN, "« Administrée » à HGC", "autorisé", () => admin("HGC", "p-hgc"));
+    await essai(IN, "« Administrée » à CIOC (autre hôpital)", "refusé", () => admin("CIOC", "p-cioc"));
+    await essai(IN, "Créer un patient", "refusé", () => setDoc(P("p-inf-" + Date.now()), nouveau("HGC")));
+    await essai(IN, "Modifier ses propres droits", "refusé", () => updateDoc(doc(db, "espaces", E, "membres", U.infirmiere), { droits: DROITS_MEDECIN }));
+
+    // 6. Assistante (CIOC), droits par défaut
+    await connexion(3); const AS = "Assistante (CIOC)";
+    await essai(AS, "Lire un patient de son hôpital (CIOC)", "autorisé", () => getDoc(P("p-cioc")));
+    await essai(AS, "Lire un patient d'un autre hôpital (HGC)", "refusé", () => getDoc(P("p-hgc")));
+    await essai(AS, "Lire les montants d'un dossier", "refusé", () => getDoc(doc(db, "espaces", E, "patientsFinances", "p-cioc")));
+    await essai(AS, "Corriger l'identité", "autorisé", () => modif("p-cioc", { identite: { nom: "TEST", prenom: "Corrigé" } }));
+    await essai(AS, "Modifier les rendez-vous", "autorisé", () => modif("p-cioc", { rdvsJson: "[{\"d\":\"2026-11-02\"}]" }));
+    await essai(AS, "Modifier les doses (non autorisé par défaut)", "refusé", () => modif("p-cioc", { lignesJson: "[4]" }));
+    await essai(AS, "« Administrée » (non autorisé par défaut)", "refusé", () => admin("CIOC", "p-cioc"));
+    await essai(AS, "Créer un patient à CIOC", "autorisé", () => setDoc(P("p-as-" + Date.now()), nouveau("CIOC")));
+    await essai(AS, "Créer un patient à HGC (autre hôpital)", "refusé", () => setDoc(P("p-as2-" + Date.now()), nouveau("HGC")));
+    await essai(AS, "Créer un patient avec des doses", "refusé", () => setDoc(P("p-as3-" + Date.now()), nouveau("CIOC", { lignesJson: "[9]" })));
+
+    // 7. Le médecin ouvre à l'assistante les doses et l'administration
+    await connexion(1);
+    await updateDoc(doc(db, "espaces", E, "membres", U.assistante), { "droits.traitements": "modifier", "droits.administrer": true });
+    await connexion(3); const AS2 = "Assistante (droits ouverts par le médecin)";
+    await essai(AS2, "Modifier les doses", "autorisé", () => modif("p-cioc", { lignesJson: "[5]" }));
+    await essai(AS2, "« Administrée » à CIOC", "autorisé", () => admin("CIOC", "p-cioc"));
+    await essai(AS2, "Lire les montants (toujours fermé)", "refusé", () => getDoc(doc(db, "espaces", E, "patientsFinances", "p-cioc")));
+    // On remet les droits par défaut
+    await connexion(1);
+    await updateDoc(doc(db, "espaces", E, "membres", U.assistante), { droits: DROITS_ASSISTANTE });
+    await signOut(auth);
+    lignes.push("<tr><td colspan='5' class='st'>Terminé. Envoyez une capture de ce tableau à Claude.</td></tr>"); afficher();
+  } catch (e) {
+    lignes.push("<tr><td colspan='5' class='ko'>Arrêt : " + (e.code || "") + " " + e.message + "</td></tr>"); afficher();
+  }
+  $("go").disabled = false;
+};
+</script>
+</body></html>

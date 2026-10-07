@@ -1,0 +1,294 @@
+// Onco360 – Profil (étape C7) : mes informations, mes lieux d'exercice, accès et droits de l'équipe (médecin titulaire).
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, sendPasswordResetEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { doc, getDoc, getDocs, setDoc, deleteDoc, collection, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { db, auth, app, firebaseConfig, GOOGLE_CLIENT_ID } from "../config.js";
+
+let A = null;
+export function installer(api) { A = api; }
+const D = () => A.D();
+let ONG = "infos", MEMBRES = null, ESPACE_DOC = null, Q = "";
+const ROLES = { medecin: "Médecin", infirmiere: "Infirmière", assistante: "Assistante / secrétaire" };
+// Droits proposés par défaut selon le rôle (grille validée en phase B1, complétée le 06/10/2026), modifiables membre par membre.
+// radiotherapie : "aucun" | "voir" | "modifier" | "chimio" (= voir, seulement les patients sous chimio en même temps)
+export const DROITS_ROLE = {
+  medecin: { identite: true, fichePatient: true, rendezvous: true, consultations: true, planningChimio: true, traitements: "modifier", radiotherapie: "modifier", documents: true, administrer: true, encaissements: true, creerPatient: true, supprimerPatient: true, finances: true, parametres: true },
+  infirmiere: { identite: false, fichePatient: false, rendezvous: false, consultations: false, planningChimio: false, traitements: "voir", radiotherapie: "chimio", documents: false, administrer: true, encaissements: false, creerPatient: false, supprimerPatient: false, finances: false, parametres: false },
+  assistante: { identite: true, fichePatient: true, rendezvous: true, consultations: true, planningChimio: false, traitements: "aucun", radiotherapie: "aucun", documents: true, administrer: false, encaissements: true, creerPatient: true, supprimerPatient: false, finances: false, parametres: false },
+};
+// Droits d'un membre : ceux de sa grille, complétés par les valeurs par défaut de son rôle pour les droits ajoutés depuis
+export const droitsEffectifs = (m) => Object.assign({}, DROITS_ROLE[(m && m.role)] || {}, (m && m.droits) || {});
+const LIB_DROITS = [
+  ["identite", "Identité des patients (modifier)"], ["fichePatient", "Fiche du patient : poids, taille, diagnostic, allergies, antécédents (modifier)"],
+  ["rendezvous", "Rendez-vous (créer, modifier, venu / non venu)"], ["consultations", "Voir les consultations et hospitalisations"],
+  ["traitements", "Chimiothérapie : lignes, cures et doses", "niv"], ["radiotherapie", "Radiothérapie : prescriptions et rendez-vous", "niv"],
+  ["documents", "Documents : pli confidentiel, compte rendu, rendez-vous Excel (voir, télécharger)"],
+  ["planningChimio", "Planning de l'hôpital de jour (déplacer les cures)"],
+  ["encaissements", "Prix à encaisser : consultations validées par le médecin, consultation de chimio"],
+  ["creerPatient", "Créer un patient"], ["supprimerPatient", "Supprimer un patient"], ["finances", "Montants, tarifs, bilan"], ["parametres", "Paramètres, bibliothèque, configuration, établissements"],
+];
+const NIVEAUX = [["aucun", "Non visible"], ["voir", "Voir"], ["modifier", "Modifier"]];
+const NIVEAUX_RT = [["aucun", "Non visible"], ["chimio", "Voir : patients sous chimio"], ["voir", "Voir : tous"], ["modifier", "Modifier"]];
+const estTitulaire = () => (ESPACE_DOC && ESPACE_DOC.titulaire === D().u.uid) || (D().u.email || "").toLowerCase() === "ritabentahila@gmail.com";
+
+// Image (signature, logo) réduite et enregistrée directement dans le document
+export function lireImage(input, max, jpeg) {
+  return new Promise((ok, ko) => {
+    const f = input.files && input.files[0]; if (!f) { ok(null); return; }
+    if (!/^image\//.test(f.type)) { ko(new Error("Choisissez une image (PNG ou JPEG).")); return; }
+    const r = new FileReader(); r.onerror = () => ko(new Error("Lecture de l'image impossible."));
+    r.onload = () => { const img = new Image(); img.onerror = () => ko(new Error("Image illisible.")); img.onload = () => {
+      const k = Math.min(1, max / Math.max(img.width, img.height)), c = document.createElement("canvas"); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height); let u = jpeg ? c.toDataURL("image/jpeg", 0.86) : c.toDataURL("image/png"); if (u.length > 280000) u = c.toDataURL("image/jpeg", 0.85); ok(u); }; img.src = r.result; };
+    r.readAsDataURL(f);
+  });
+}
+
+export async function pageProfil() {
+  if (!ESPACE_DOC) { const s = await getDoc(doc(db, "espaces", A.ESPACE)).catch(() => null); ESPACE_DOC = s && s.exists() ? s.data() : {}; }
+  const esc = A.esc, onglet = (k, ico, t) => '<button class="' + (ONG === k ? "on" : "") + '" onclick="pfOnglet(\'' + k + '\')">' + A.ic(ico) + t + "</button>";
+  let h = '<section class="accueil"><div><h2>Profil</h2><p>Vos informations, vos lieux d\'exercice' + (estTitulaire() ? " et les accès de votre équipe" : "") + ".</p></div></section>" +
+    '<div class="ag-vues" style="align-self:flex-start">' + onglet("infos", "profil", "Informations") + onglet("lieux", "accueil", "Lieux d'exercice") + onglet("gagenda", "agenda", "Google Agenda") + (estTitulaire() ? onglet("acces", "patients", "Accès") : "") + "</div>";
+  if (ONG === "infos") h += vueInfos(); else if (ONG === "lieux") h += vueLieux(); else if (ONG === "gagenda") h += await vueAgendaG(); else h += await vueAcces();
+  A.$("page").innerHTML = h;
+  if (ONG === "lieux") { const q = A.$("pfQ"); if (q) { q.oninput = () => { Q = q.value; A.$("pfL").innerHTML = listeLieux(); }; if (Q) { q.focus(); q.setSelectionRange(Q.length, Q.length); } } }
+}
+window.pfOnglet = (o) => { ONG = o; pageProfil(); };
+
+// ───── Informations ─────
+function vueInfos() {
+  const p = D().profil || {}, mb = D().membre, esc = A.esc, proprio = (D().u.email || "").toLowerCase() === "ritabentahila@gmail.com";
+  const inpe = p.inpe || (proprio ? "061371266" : "");
+  const ch = (id, lib, v, o) => '<div class="' + (o && o.large ? "large" : "") + '"><label for="' + id + '">' + lib + '</label><input id="' + id + '" value="' + esc(v || "") + '"' + (o && o.type ? ' type="' + o.type + '"' : "") + (o && o.off ? " disabled" : "") + (o && o.ph ? ' placeholder="' + o.ph + '"' : "") + (o && o.ac ? ' autocomplete="' + o.ac + '"' : "") + "></div>";
+  return '<section class="carte"><h3><span class="ic">' + A.ic("profil") + '</span>Mes informations</h3><p class="sous">Le nom, l\'INPE et la signature apparaissent sur la fiche de chimiothérapie et les comptes rendus.</p>' +
+    '<div class="photo-pf"><div class="av grand">' + (p.photo ? '<img src="' + p.photo + '" alt="Photo">' : esc(((p.prenom || "")[0] || "") + ((String(p.nom || "").replace(/^Dr\.?\s*/i, ""))[0] || "")).toUpperCase() || "?") + '</div><div><label for="pfPhoto">Photo (facultatif)</label><input id="pfPhoto" type="file" accept="image/*"><div class="mesures">Elle remplace vos initiales dans la bulle du profil.</div>' + (p.photo ? '<label style="font-weight:normal;margin-top:6px"><input id="pfPhotoSup" type="checkbox" style="width:auto;margin-right:6px">Retirer la photo</label>' : "") + "</div></div><div class=\"form\">" +
+    '<div><label for="pfTitre">Titre</label><select id="pfTitre">' + ["", "Dr", "Pr", "M.", "Mme"].map((t) => "<option" + ((p.titre || "") === t ? " selected" : "") + ">" + t + "</option>").join("") + "</select></div>" +
+    ch("pfSpe", "Spécialité", p.specialite, { ph: "Oncologue-radiothérapeute, oncologue médical…" }) + ch("pfPre", "Prénom", p.prenom) + ch("pfNom", "Nom", p.nom) +
+    ch("pfMail", "E-mail (identifiant de connexion)", D().u.email, { off: true }) + ch("pfTel", "Téléphone", p.telephone, { type: "tel", ph: "06…" }) +
+    ch("pfRole", "Rôle dans l'espace", ROLES[mb.role] || mb.role, { off: true }) + ch("pfInpe", "INPE", inpe, { ph: "N° INPE" }) +
+    '<div class="large"><label>Signature (image scannée, facultatif)</label><div class="sig">' + (p.signature ? '<img src="' + p.signature + '" alt="Signature">' : '<span class="mesures">Aucune signature enregistrée.</span>') + '<input id="pfSig" type="file" accept="image/*">' + (p.signature ? '<label style="font-weight:normal"><input id="pfSigSup" type="checkbox" style="width:auto;margin-right:6px">Retirer la signature</label>' : "") + "</div></div>" +
+    '</div><h4 class="soustitre">Mot de passe</h4><p class="mesures">Laissez vide pour ne pas le changer.</p><div class="form">' + ch("pfMdpA", "Mot de passe actuel", "", { type: "password", ac: "current-password" }) + ch("pfMdp", "Nouveau mot de passe (8 caractères minimum)", "", { type: "password", ac: "new-password" }) + ch("pfMdp2", "Confirmer le nouveau mot de passe", "", { type: "password", ac: "new-password" }) + "</div>" +
+    '<div class="err" id="fErr"></div><div class="boutons"><button class="bt plein" id="pfOk" onclick="pfEnregistrer()"><svg class="pi"><use href="#i-enregistrer"/></svg>Enregistrer</button></div></section>';
+}
+window.pfEnregistrer = async () => {
+  const b = A.$("pfOk"), err = (t) => { A.$("fErr").textContent = t; }, v = A.val, p = D().profil || {};
+  const n1 = A.$("pfMdp").value, n2 = A.$("pfMdp2").value, old = A.$("pfMdpA").value;
+  if (n1 || n2) { if (n1.length < 8) { err("Le nouveau mot de passe doit faire au moins 8 caractères."); return; } if (n1 !== n2) { err("Les deux mots de passe ne sont pas identiques."); return; } if (!old) { err("Indiquez votre mot de passe actuel pour le changer."); return; } }
+  A.occupe(b, true); err("");
+  try {
+    const maj = { email: D().u.email, titre: v("pfTitre"), specialite: v("pfSpe"), prenom: v("pfPre"), nom: v("pfNom").toUpperCase(), telephone: v("pfTel"), inpe: v("pfInpe") };
+    const sig = await lireImage(A.$("pfSig"), 500); if (sig) maj.signature = sig; else if (A.$("pfSigSup") && A.$("pfSigSup").checked) maj.signature = "";
+    const ph = await lireImage(A.$("pfPhoto"), 256, true); if (ph) maj.photo = ph; else if (A.$("pfPhotoSup") && A.$("pfPhotoSup").checked) maj.photo = "";
+    await setDoc(doc(db, "utilisateurs", D().u.uid), maj, { merge: true });
+    if (n1) {
+      try { await reauthenticateWithCredential(auth.currentUser, EmailAuthProvider.credential(D().u.email, old)); }
+      catch (e) { throw new Error("Mot de passe actuel incorrect : le mot de passe n'a pas été changé (le reste est enregistré)."); }
+      await updatePassword(auth.currentUser, n1);
+    }
+    D().profil = Object.assign({}, p, maj); A.entete(); A.toast(n1 ? "Profil et mot de passe enregistrés." : "Profil enregistré."); pageProfil();
+  } catch (e) { A.occupe(b, false); err(e.message || String(e)); }
+};
+
+// ───── Lieux d'exercice ─────
+function vueLieux() {
+  const ok = A.peut("parametres");
+  return '<section class="carte"><div class="entete"><h3><span class="ic">' + A.ic("accueil") + '</span>Mes lieux d\'exercice</h3>' + (ok ? '<button class="bt clair petit" onclick="pfLieu()">' + A.ic("plus") + "Ajouter un hôpital</button>" : "") + "</div>" +
+    '<p class="sous">Chaque patient est rattaché à un établissement : il détermine les tarifs appliqués et les membres de l\'équipe qui voient le dossier.</p>' +
+    '<div class="recherche" style="max-width:460px">' + A.ic("loupe") + '<input id="pfQ" type="search" placeholder="Rechercher un établissement…" value="' + A.esc(Q) + '"></div><div id="pfL" style="margin-top:10px">' + listeLieux() + "</div></section>";
+}
+function listeLieux() {
+  const esc = A.esc, sa = (s) => String(s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""), m = sa(Q).split(/\s+/).filter(Boolean);
+  const l = (D().etabsTous || D().etabs).filter((e) => m.every((w) => sa(e.code + " " + e.nom + " " + (e.adresse || "")).indexOf(w) >= 0));
+  if (!l.length) return '<p class="sous">Aucun établissement.</p>';
+  return l.map((e) => '<div class="lieu' + (e.actif === false ? " off" : "") + '">' + (e.logo ? '<img src="' + e.logo + '" alt="">' : '<span class="av">' + esc(e.code) + "</span>") +
+    '<div class="tx"><b>' + esc(e.nom) + ' <span class="badge b-gr">' + esc(e.code) + "</span>" + (e.actif === false ? ' <span class="badge b-al">Désactivé</span>' : "") + "</b><span>" + esc([e.adresse, e.tel].filter(Boolean).join(" · ") || "Adresse et téléphone à compléter") + "</span></div>" +
+    (A.peut("parametres") ? '<button class="mini" onclick="pfLieu(\'' + esc(e.code) + "')\">Modifier</button>" : "") + "</div>").join("");
+}
+window.pfLieu = (code) => {
+  const e = code ? (D().etabsTous || D().etabs).find((z) => z.code === code) : { actif: true }, esc = A.esc;
+  A.fenetre("<h3>" + (code ? "Modifier l'établissement" : "Ajouter un hôpital") + '</h3><div class="form">' +
+    '<div><label for="lCode">Code court</label><input id="lCode" value="' + esc(e.code || "") + '" placeholder="ex. HGC"' + (code ? " disabled" : "") + '></div><div><label for="lTel">Téléphone</label><input id="lTel" type="tel" value="' + esc(e.tel || "") + '"></div>' +
+    '<div class="large"><label for="lNom">Nom complet</label><input id="lNom" value="' + esc(e.nom || "") + '"></div><div class="large"><label for="lAdr">Adresse</label><input id="lAdr" value="' + esc(e.adresse || "") + '"></div>' +
+    '<div class="large"><label>Logo (facultatif)</label><div class="sig">' + (e.logo ? '<img src="' + e.logo + '" alt="Logo">' : "") + '<input id="lLogo" type="file" accept="image/*"></div></div>' +
+    (code ? '<div class="large"><label style="font-weight:normal"><input id="lActif" type="checkbox" style="width:auto;margin-right:6px"' + (e.actif !== false ? " checked" : "") + ">Établissement actif (proposé pour les nouveaux dossiers)</label></div>" : "") +
+    '</div><p class="mesures">Le code ne peut plus être changé ensuite : il est enregistré dans les dossiers des patients.</p><div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button>' + (code ? '<button class="bt gris" id="lSup" style="color:var(--rouge)"><svg class="pi"><use href="#i-corbeille"/></svg>Supprimer</button>' : "") + '<button class="bt plein" id="fOk">Enregistrer</button></div>');
+  if (A.$("lSup")) A.$("lSup").onclick = async () => {
+    const n = D().patients.filter((x) => x.doc.etablissementId === code).length;
+    if (n) { A.erreur(n + " dossier" + (n > 1 ? "s sont rattachés" : " est rattaché") + " à " + code + " : changez d'abord leur établissement, ou décochez « Établissement actif » pour ne plus le proposer."); return; }
+    if (!confirm("Supprimer définitivement l'établissement " + code + " – " + (e.nom || "") + " ?")) return;
+    A.occupe(A.$("lSup"), true);
+    try {
+      await deleteDoc(doc(db, "espaces", A.ESPACE, "etablissements", code));
+      const T = D().tarifs;
+      if (T && T.etablissements && T.etablissements[code] && A.peut("finances")) {
+        delete T.etablissements[code]; await setDoc(doc(db, "espaces", A.ESPACE, "finances", "tarifs"), { data: JSON.stringify(T) }, { merge: true }).catch(() => {});
+        if (D().activites) { delete D().activites[code]; await setDoc(doc(db, "espaces", A.ESPACE, "parametres", "activites"), { data: JSON.stringify(D().activites) }).catch(() => {}); }
+      }
+      D().etabsTous = (D().etabsTous || D().etabs).filter((z) => z.code !== code); D().etabs = D().etabsTous.filter((z) => z.actif !== false);
+      A.journal({ id: "", r: { nm: "" } }, "Établissement supprimé : " + code); A.fermerFenetre(); A.toast("Établissement supprimé."); pageProfil();
+    } catch (er) { A.occupe(A.$("lSup"), false); A.erreur(er && er.code === "permission-denied" ? "Vous n'avez pas le droit de supprimer les établissements." : (er.message || String(er))); }
+  };
+  A.$("fOk").onclick = async () => {
+    const c = (code || A.val("lCode")).toUpperCase().replace(/[^A-Z0-9_-]/g, ""), nom = A.val("lNom");
+    if (!c || !nom) { A.erreur("Le code et le nom complet sont obligatoires."); return; }
+    if (!code && (D().etabsTous || D().etabs).some((z) => z.code === c)) { A.erreur("Ce code existe déjà."); return; }
+    A.occupe(A.$("fOk"), true);
+    try {
+      const n = Object.assign({}, e, { code: c, nom, adresse: A.val("lAdr"), tel: A.val("lTel"), actif: A.$("lActif") ? A.$("lActif").checked : true });
+      const logo = await lireImage(A.$("lLogo"), 400); if (logo) n.logo = logo;
+      await setDoc(doc(db, "espaces", A.ESPACE, "etablissements", c), n);
+      const tous = (D().etabsTous || D().etabs).filter((z) => z.code !== c).concat([n]).sort((a, z) => a.code.localeCompare(z.code));
+      D().etabsTous = tous; D().etabs = tous.filter((z) => z.actif !== false);
+      A.journal({ id: "", r: { nm: "" } }, (code ? "Établissement modifié : " : "Établissement ajouté : ") + c);
+      A.fermerFenetre(); A.toast("Établissement enregistré."); pageProfil();
+    } catch (er) { A.occupe(A.$("fOk"), false); A.erreur(er && er.code === "permission-denied" ? "Vous n'avez pas le droit de modifier les établissements." : (er.message || String(er))); }
+  };
+};
+
+// ───── Google Agenda : chaque membre relie SON compte Google ; un agenda « Onco360 » y est créé et tenu à jour
+// (sens unique) par les fonctions serveur (functions/index.js) avec les patients qu'il a le droit de voir.
+// État : utilisateurs/{uid}.agendaGoogle. Ancienne synchronisation par le script Google du titulaire : parametres/agendaGoogle.
+const URL_GAGENDA = "https://calendar.google.com/calendar/r";
+const SCOPES_GAGENDA = "openid email https://www.googleapis.com/auth/calendar.app.created";
+let GIS = null; // bibliothèque Google (fenêtre de connexion), chargée à l'ouverture de l'onglet
+const chargerGIS = () => GIS || (GIS = new Promise((ok, ko) => { if (window.google && google.accounts && google.accounts.oauth2) { ok(); return; } const s = document.createElement("script"); s.src = "https://accounts.google.com/gsi/client"; s.async = true; s.onload = () => ok(); s.onerror = () => { GIS = null; ko(new Error("Google injoignable")); }; document.head.appendChild(s); }));
+async function appelServeur(nom, donnees) {
+  const { getFunctions, httpsCallable } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js");
+  try { return (await httpsCallable(getFunctions(app, "europe-west1"), nom, { timeout: 300000 })(donnees || {})).data; }
+  catch (e) { throw new Error(String((e && e.message) || e).replace(/^(FirebaseError: )?/, "")); }
+}
+const ilYa = (iso) => { const min = Math.round((Date.now() - new Date(iso).getTime()) / 60000); return min < 1 ? "à l'instant" : min < 60 ? "il y a " + min + " min" : min < 1440 ? "il y a " + Math.round(min / 60) + " h" : "le " + A.dfrA(iso.slice(0, 10)); };
+async function vueAgendaG() {
+  const [su, sa] = await Promise.all([getDoc(doc(db, "utilisateurs", D().u.uid)).catch(() => null), getDoc(doc(db, "espaces", A.ESPACE, "parametres", "agendaGoogle")).catch(() => null)]);
+  const G = su && su.exists() ? su.data().agendaGoogle || null : null; D().profil.agendaGoogle = G;
+  const V = sa && sa.exists() ? JSON.parse(sa.data().data || "{}") : null; D().agendaG = V;
+  if (GOOGLE_CLIENT_ID) chargerGIS().catch(() => {});
+  const esc = A.esc, tit = estTitulaire(), relie = !!(G && G.email);
+  let h = '<section class="carte"><h3><span class="ic">' + A.ic("agenda") + "</span>Mon Google Agenda</h3>";
+  if (!relie) h += '<div class="per" style="color:var(--orange);background:var(--orange-c)">Pas encore relié</div><p class="sous">Reliez votre compte Google : un agenda « Onco360 » y sera créé et tenu à jour automatiquement, avec les patients que vous suivez dans Onco360.</p>';
+  else if (G.erreur) h += '<div class="per"><svg class="pi"><use href="#i-alerte"/></svg>Relié à ' + esc(G.email) + " – la dernière mise à jour a échoué (" + esc(ilYa(G.le)) + ')</div><p class="sous">' + esc(G.erreur) + "</p>";
+  else h += '<div class="per" style="color:var(--vert);background:var(--vert-c)"><svg class="pi"><use href="#i-check"/></svg>Relié à ' + esc(G.email) + " · mis à jour " + esc(ilYa(G.le)) + '</div><p class="sous">Agenda « Onco360 » dans ce compte Google' + (G.nb != null ? " : " + G.nb + " événement" + (G.nb > 1 ? "s" : "") + " à venir" : "") + ".</p>";
+  h += '<div class="actr" style="justify-content:flex-start;margin:4px 0 14px">' +
+    (relie ? '<a class="bt plein" href="' + URL_GAGENDA + '" target="_blank" rel="noopener" style="text-decoration:none">' + A.ic("agenda") + 'Ouvrir Google Agenda</a><button class="bt clair" id="gaMaj" onclick="pfMajAgenda()">Mettre à jour maintenant</button><button class="bt gris" onclick="pfDelierAgenda()">Délier</button>'
+      : '<button class="bt plein" id="gaLier" onclick="pfLierAgenda()">' + A.ic("agenda") + "Lier mon Google Agenda</button>") + "</div>" +
+    '<p class="mesures"><b>Ce qui apparaît :</b> consultations, hospitalisations' + (["voir", "modifier"].indexOf((D().membre.droits || {}).traitements) >= 0 ? ", cures J1/J8…" : "") + (["voir", "modifier"].indexOf((D().membre.droits || {}).radiotherapie) >= 0 ? ", scanner, dosimétrie, début et fin de radiothérapie" : "") + (tit ? ", absences du cabinet" : "") +
+    ", pour les patients " + (D().membre.tousEtablissements ? "de tous les établissements" : "de vos établissements (" + esc((D().membre.etablissements || []).join(", ")) + ")") + ". Mise à jour à chaque enregistrement dans Onco360 (en général en moins d'une minute).</p>" +
+    '<p class="mesures"><b>Sens unique :</b> ce qui est ajouté ou modifié dans Google Agenda ne revient pas dans Onco360. Créez et déplacez toujours les rendez-vous dans Onco360. Onco360 n\'a accès qu\'à l\'agenda « Onco360 » qu\'il a créé : vos autres agendas Google ne sont ni lus ni modifiés. L\'agenda apparaît aussi sur votre téléphone (application Google Agenda, ou Calendrier de l\'iPhone relié à ce compte Google).</p></section>';
+  // Titulaire : ancienne synchronisation (script Google, agenda « Chimio HGC » renommé) encore active
+  if (tit && V && !V.arrete && V.le) h += '<section class="carte"><h3><span class="ic">' + A.ic("horloge") + "</span>Ancienne synchronisation (script Google)</h3>" +
+    '<p class="sous">L\'agenda « ' + esc(V.calendrier || "Chimio HGC") + " » est encore rempli par votre script Google (dernière mise à jour " + esc(ilYa(V.le)) + ")." +
+    (relie ? " Votre nouvel agenda « Onco360 » le remplace : dans le script Google, lancez <b>arreterAgendaAppsScript</b>, puis supprimez l'ancien agenda dans Google Agenda si vous n'en voulez plus (ses rendez-vous passés y restent sinon)." : " Il continue de fonctionner jusqu'à ce que vous reliez votre Google Agenda ci-dessus.") + "</p></section>";
+  return h;
+}
+window.pfLierAgenda = () => {
+  if (!GOOGLE_CLIENT_ID) { A.toast("La liaison Google n'est pas encore configurée sur le serveur (identifiant Google à ajouter)."); return; }
+  if (!(window.google && google.accounts && google.accounts.oauth2)) { A.toast("Connexion à Google en cours… réessayez dans un instant."); chargerGIS().catch(() => A.toast("Google est injoignable. Vérifiez la connexion Internet.")); return; }
+  const b = A.$("gaLier");
+  google.accounts.oauth2.initCodeClient({
+    client_id: GOOGLE_CLIENT_ID, scope: SCOPES_GAGENDA, ux_mode: "popup", select_account: true, login_hint: D().u.email,
+    callback: async (r) => {
+      if (!r || r.error || !r.code) { A.toast("Liaison annulée."); return; }
+      A.occupe(b, true); A.toast("Liaison en cours : création de l'agenda « Onco360 » et ajout des rendez-vous…");
+      try { const o = await appelServeur("agendaLier", { code: r.code, espace: A.ESPACE }); A.journal({ id: "", r: { nm: "" } }, "Google Agenda relié (" + o.email + ")"); A.toast("Google Agenda relié : " + o.nb + " événement(s) ajouté(s) dans « Onco360 »."); }
+      catch (e) { A.toast(e.message); }
+      pageProfil();
+    },
+    error_callback: (e) => A.toast(e && e.type === "popup_closed" ? "Fenêtre Google fermée : liaison annulée." : e && e.type === "popup_failed_to_open" ? "Autorisez les fenêtres (pop-up) pour chimio-hgc.web.app, puis recommencez." : "Liaison impossible."),
+  }).requestCode();
+};
+window.pfMajAgenda = async () => {
+  const b = A.$("gaMaj"); A.occupe(b, true);
+  try { const o = await appelServeur("agendaMaj"); A.toast("Google Agenda à jour : " + o.nb + " événement(s)."); } catch (e) { A.toast(e.message); }
+  pageProfil();
+};
+window.pfDelierAgenda = async () => {
+  if (!confirm("Délier votre Google Agenda ? Onco360 ne le mettra plus à jour.")) return;
+  const sup = confirm("Supprimer aussi l'agenda « Onco360 » de votre compte Google ?\n\nOK = le supprimer · Annuler = le garder (il ne sera plus mis à jour)");
+  try { await appelServeur("agendaDelier", { supprimer: sup }); A.journal({ id: "", r: { nm: "" } }, "Google Agenda délié"); A.toast("Google Agenda délié."); } catch (e) { A.toast(e.message); }
+  pageProfil();
+};
+
+// ───── Accès de l'équipe (médecin titulaire) ─────
+async function vueAcces() {
+  if (!MEMBRES) { const s = await getDocs(collection(db, "espaces", A.ESPACE, "membres")); MEMBRES = s.docs.map((d) => Object.assign({ uid: d.id }, d.data())).sort((a, b) => String(a.nom).localeCompare(String(b.nom))); }
+  const esc = A.esc, moi = D().u.uid;
+  return '<section class="carte"><div class="entete"><h3><span class="ic">' + A.ic("patients") + '</span>Gestion des accès</h3><button class="bt plein petit" onclick="pfMembre()">' + A.ic("plus") + "Ajouter un accès</button></div>" +
+    '<p class="sous">Chaque membre a sa propre grille de droits, pré-remplie selon son rôle et modifiable. Le serveur la fait respecter : un membre ne peut ni voir ni modifier ce que sa grille ne permet pas.</p>' +
+    MEMBRES.map((m) => '<div class="lieu' + (m.actif === false ? " off" : "") + '"><span class="av">' + esc(String(m.nom || m.email || "?").replace(/^Dr\.?\s*/i, "").split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase()) + "</span>" +
+      '<div class="tx"><b>' + esc(m.nom || m.email) + ' <span class="badge b-co">' + esc(ROLES[m.role] || m.role) + "</span>" + (m.actif === false ? ' <span class="badge b-al">Désactivé</span>' : "") + (m.uid === moi ? ' <span class="badge b-gr">Vous</span>' : "") + "</b><span>" + esc([m.email, m.telephone, m.tousEtablissements ? "Tous les établissements" : (m.etablissements || []).join(", ")].filter(Boolean).join(" · ")) + "</span></div>" +
+      (m.uid === moi ? "" : '<button class="mini" onclick="pfMembre(\'' + m.uid + "')\">Droits</button>") + "</div>").join("") + "</section>";
+}
+function grille(dr, role) {
+  const esc = A.esc;
+  return '<div class="tableau"><table class="tcures droits"><tr><th>Droit</th><th style="width:230px">Accès</th></tr>' + LIB_DROITS.map(([k, lib, niv]) => {
+    const v = dr[k];
+    return "<tr><td>" + esc(lib) + "</td><td>" + (niv ? '<select data-d="' + k + '">' + (k === "radiotherapie" ? NIVEAUX_RT : NIVEAUX).map((o) => '<option value="' + o[0] + '"' + ((v || "aucun") === o[0] ? " selected" : "") + ">" + o[1] + "</option>").join("") + "</select>" : '<label style="font-weight:normal"><input type="checkbox" data-d="' + k + '" style="width:auto"' + (v ? " checked" : "") + "> Oui</label>") + "</td></tr>";
+  }).join("") + "</table></div>";
+}
+window.pfMembre = (uid) => {
+  const m0 = uid ? MEMBRES.find((z) => z.uid === uid) : null, esc = A.esc, etabs = D().etabsTous || D().etabs;
+  const m = m0 ? JSON.parse(JSON.stringify(m0)) : { role: "infirmiere", actif: true, tousEtablissements: false, etablissements: [], droits: Object.assign({}, DROITS_ROLE.infirmiere) };
+  m.droits = droitsEffectifs(m); // droits ajoutés depuis la création du membre : valeur par défaut de son rôle
+  const dessiner = () => {
+    A.fenetre("<h3>" + (m0 ? "Droits de " + esc(m.nom || m.email) : "Ajouter un accès") + '</h3><div class="form">' +
+      (m0 ? '<div class="large mesures">' + esc(m.email || "") + "</div>" : '<div><label for="mPre">Prénom</label><input id="mPre"></div><div><label for="mNom">Nom</label><input id="mNom"></div><div><label for="mMail">E-mail (identifiant de connexion)</label><input id="mMail" type="email" autocomplete="off"></div><div><label for="mTel">Téléphone</label><input id="mTel" type="tel"></div>') +
+      '<div><label for="mRole">Rôle</label><select id="mRole">' + Object.entries(ROLES).map(([k, l]) => '<option value="' + k + '"' + (m.role === k ? " selected" : "") + ">" + l + "</option>").join("") + "</select></div>" +
+      '<div class="large"><label>Établissements visibles</label><div class="plages"><label style="font-weight:normal"><input id="mTous" type="checkbox" style="width:auto;margin-right:6px"' + (m.tousEtablissements ? " checked" : "") + ">Tous les établissements</label>" +
+      etabs.map((e) => '<label style="font-weight:normal"><input type="checkbox" data-e="' + esc(e.code) + '" style="width:auto;margin-right:6px"' + ((m.etablissements || []).indexOf(e.code) >= 0 ? " checked" : "") + (m.tousEtablissements ? " disabled" : "") + ">" + esc(e.code) + "</label>").join("") + "</div></div></div>" +
+      '<h4 class="soustitre">Droits</h4>' + grille(m.droits || {}, m.role) +
+      (m0 ? '<div style="margin-top:12px"><label style="font-weight:normal"><input id="mActif" type="checkbox" style="width:auto;margin-right:6px"' + (m.actif !== false ? " checked" : "") + ">Accès actif (décocher pour bloquer la connexion ; l'historique reste conservé)</label></div>" : '<p class="mesures" style="margin-top:10px">Le compte est créé immédiatement. La personne reçoit un e-mail pour choisir son mot de passe, puis se connecte sur chimio-hgc.web.app.</p>') +
+      '<div class="err" id="fErr"></div><div class="boutons">' + (m0 ? '<button class="bt gris" id="mSup" style="margin-right:auto;color:var(--rouge)"><svg class="pi"><use href="#i-corbeille"/></svg>Supprimer l\'accès</button>' : "") + '<button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt plein" id="fOk">' + (m0 ? "Enregistrer" : "Créer l'accès") + "</button></div>", "large");
+    if (A.$("mSup")) A.$("mSup").onclick = async () => {
+      if (!confirm("Supprimer l'accès de " + (m.nom || m.email) + " ?\n\nLa personne ne pourra plus se connecter à Onco360. L'historique de ses actions est conservé.")) return;
+      A.occupe(A.$("mSup"), true);
+      try { await deleteDoc(doc(db, "espaces", A.ESPACE, "membres", uid)); A.journal({ id: "", r: { nm: "" } }, "Accès supprimé : " + (m.nom || m.email)); MEMBRES = null; A.fermerFenetre(); A.toast("Accès supprimé."); pageProfil(); }
+      catch (e) { A.occupe(A.$("mSup"), false); A.erreur(e && e.code === "permission-denied" ? "Seul le médecin titulaire peut supprimer un accès." : (e.message || String(e))); }
+    };
+    const lire = () => { m.tousEtablissements = A.$("mTous").checked; m.etablissements = [...document.querySelectorAll("[data-e]")].filter((c) => c.checked).map((c) => c.dataset.e); document.querySelectorAll("[data-d]").forEach((c) => { m.droits[c.dataset.d] = c.tagName === "SELECT" ? c.value : c.checked; }); if (A.$("mActif")) m.actif = A.$("mActif").checked; ["mPre", "mNom", "mMail", "mTel"].forEach((i) => { if (A.$(i)) m["_" + i] = A.val(i); }); };
+    A.$("mRole").onchange = () => { lire(); const r = A.val("mRole"); if (confirm("Appliquer les droits par défaut du rôle « " + ROLES[r] + " » ?")) m.droits = Object.assign({}, DROITS_ROLE[r]); m.role = r; if (r === "medecin") m.tousEtablissements = true; dessiner(); ["mPre", "mNom", "mMail", "mTel"].forEach((i) => { if (A.$(i)) A.$(i).value = m["_" + i] || ""; }); };
+    A.$("mTous").onchange = () => document.querySelectorAll("[data-e]").forEach((c) => { c.disabled = A.$("mTous").checked; });
+    A.$("fOk").onclick = async () => {
+      lire(); m.role = A.val("mRole");
+      if (!m.tousEtablissements && !m.etablissements.length) { A.erreur("Choisissez au moins un établissement."); return; }
+      A.occupe(A.$("fOk"), true);
+      try {
+        if (m0) {
+          const { uid: u, ...data } = m; Object.keys(data).filter((k) => k[0] === "_").forEach((k) => delete data[k]);
+          await setDoc(doc(db, "espaces", A.ESPACE, "membres", uid), data);
+          A.journal({ id: "", r: { nm: "" } }, "Droits modifiés : " + (m.nom || m.email) + (m.actif === false ? " (accès désactivé)" : ""));
+        } else {
+          const email = String(m._mMail || "").trim().toLowerCase(), nom = [m._mPre, String(m._mNom || "").toUpperCase()].filter(Boolean).join(" ");
+          if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) throw new Error("Indiquez une adresse e-mail valide.");
+          if (!m._mNom) throw new Error("Indiquez le nom.");
+          const nouvel = await creerCompte(email);
+          const data = { role: m.role, nom: (m.role === "medecin" ? "Dr " : "") + nom, email, telephone: m._mTel || "", actif: true, tousEtablissements: m.tousEtablissements, etablissements: m.etablissements, droits: m.droits, cree: D().t, creePar: D().u.uid };
+          await setDoc(doc(db, "espaces", A.ESPACE, "membres", nouvel.uid), data);
+          await setDoc(doc(db, "utilisateurs", nouvel.uid), { email, prenom: m._mPre || "", nom: String(m._mNom || "").toUpperCase(), telephone: m._mTel || "", titre: m.role === "medecin" ? "Dr" : "", profession: m.role }, { merge: true }).catch(() => {});
+          A.journal({ id: "", r: { nm: "" } }, "Accès créé : " + nom + " (" + ROLES[m.role] + ")");
+          A.toast(nouvel.existant ? "Accès ajouté : ce compte existait déjà, la personne garde son mot de passe." : "Accès créé : un e-mail a été envoyé à " + email + " pour choisir le mot de passe.");
+        }
+        MEMBRES = null; A.fermerFenetre(); if (m0) A.toast("Droits enregistrés."); pageProfil();
+      } catch (e) { A.occupe(A.$("fOk"), false); A.erreur(e && e.code === "permission-denied" ? "Seul le médecin titulaire peut gérer les accès." : (e.message || String(e))); }
+    };
+  };
+  dessiner();
+};
+// Création du compte sans déconnecter le médecin : instance Firebase secondaire, mot de passe temporaire, e-mail de choix du mot de passe
+let AUTH2 = null;
+async function creerCompte(email) {
+  if (!AUTH2) AUTH2 = getAuth(initializeApp(firebaseConfig, "creation-comptes"));
+  const tmp = Array.from(crypto.getRandomValues(new Uint8Array(18))).map((x) => x.toString(36)).join("").slice(0, 24) + "A9!";
+  try {
+    const c = await createUserWithEmailAndPassword(AUTH2, email, tmp); const uid = c.user.uid; await signOut(AUTH2).catch(() => {});
+    await sendPasswordResetEmail(auth, email);
+    return { uid, existant: false };
+  } catch (e) {
+    if (e && e.code === "auth/email-already-in-use") {
+      const s = await getDocs(query(collection(db, "utilisateurs"), where("email", "==", email))).catch(() => null);
+      if (s && s.docs.length) return { uid: s.docs[0].id, existant: true };
+      throw new Error("Cette adresse a déjà un compte, mais son profil est introuvable. Demandez à la personne de se connecter une fois sur chimio-hgc.web.app, puis recommencez.");
+    }
+    if (e && e.code === "auth/invalid-email") throw new Error("Adresse e-mail invalide.");
+    throw new Error("Création du compte impossible : " + ((e && e.message) || e));
+  }
+}

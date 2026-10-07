@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Chimio HGC – Transfert des données</title>
+<link rel="apple-touch-icon" href="logo.png">
+<style>
+:root{--n:#2B2D5C}
+*{box-sizing:border-box}
+body{font-family:Arial,Helvetica,sans-serif;margin:0;background:#f4f5f9;color:#262838;font-size:15px}
+header{background:var(--n);color:#fff;display:flex;align-items:center;gap:10px;padding:10px 14px;padding-top:max(10px,env(safe-area-inset-top))}
+header img{height:34px;background:#fff;border-radius:6px;padding:2px 6px}
+header b{font-size:18px;flex:1}
+header a{color:#cfd2ee;font-size:13px}
+main{max-width:760px;margin:20px auto;padding:0 12px}
+.card{background:#fff;border-radius:12px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-bottom:12px}
+h2{font-size:18px;margin:0 0 10px;color:var(--n)}
+ol{padding-left:20px;margin:6px 0}li{margin:4px 0}
+button{background:var(--n);color:#fff;border:0;border-radius:8px;padding:11px 16px;font-size:15px;cursor:pointer;margin-top:12px}
+button:disabled{opacity:.5}
+button.v{background:#1f8a4c}
+input[type=file]{font-size:15px;margin-top:8px}
+table{width:100%;border-collapse:collapse;margin-top:8px;font-size:14px}
+th,td{border-bottom:1px solid #e3e4ec;padding:6px;text-align:left}th{background:#eef0f8}
+td.n{text-align:right;font-weight:bold}
+.st{font-size:13px;color:#666}
+.ok{background:#e6f4ea;color:#1f6e3d;border-radius:8px;padding:10px;margin:8px 0}
+.ko{background:#f6dde1;color:#8a1c2b;border-radius:8px;padding:10px;margin:8px 0}
+.av{background:#fff7d6;color:#7a5a00;border-radius:8px;padding:10px;margin:8px 0}
+</style></head>
+<body>
+<header><img src="logo.png" alt="HGC"><b>Transfert des données</b><a href="app.html">← Retour à l’application</a></header>
+<main>
+<div class="card" id="refus" style="display:none"><div class="ko">⛔ Page réservée au compte administrateur. <a href="index.html">Se connecter</a></div></div>
+<div id="page" style="display:none">
+  <div class="card">
+    <h2>1. Exporter la base actuelle</h2>
+    <ol>
+      <li>Dans Google Drive, ouvrez le tableur <b>ChimioHGC_patients</b> (dossier de l’application).</li>
+      <li>Menu <b>Fichier › Télécharger › Valeurs séparées par des virgules (.csv)</b>.</li>
+      <li>Revenez ici et choisissez ce fichier ci-dessous.</li>
+    </ol>
+    <div class="st">L’ancienne application n’est pas modifiée : on copie ses données. Vous pourrez refaire ce transfert autant de fois que nécessaire, chaque transfert remplace le précédent.</div>
+    <input type="file" id="fichier" accept=".csv,text/csv">
+  </div>
+  <div class="card" id="analyse" style="display:none"></div>
+  <div class="card" id="resultat" style="display:none"></div>
+</div>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script type="module">
+import { auth, db, PROPRIETAIRE } from "./js/config.js";
+import { lireExport, chiffres, hsh } from "./js/import-core.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { doc, writeBatch, collection, getDocs, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const LIB = { patients: "Dossiers patients", lignes: "Lignes de chimiothérapie", curesRecues: "Cures reçues (J1 validés)", seancesRecues: "Séances J8/J15… reçues", rdv: "Rendez-vous", rdvFaits: "Rendez-vous validés (venu / réalisé)", rt: "Prescriptions de radiothérapie", rtTerminees: "Radiothérapies terminées" };
+let EXP = null, NOMFICHIER = "";
+
+onAuthStateChanged(auth, (u) => {
+  const ok = u && u.email === PROPRIETAIRE;
+  $("refus").style.display = ok ? "none" : ""; $("page").style.display = ok ? "" : "none";
+});
+
+$("fichier").onchange = (ev) => {
+  const f = ev.target.files[0]; if (!f) return; NOMFICHIER = f.name;
+  $("resultat").style.display = "none";
+  Papa.parse(f, { skipEmptyLines: true, complete: (res) => { EXP = lireExport(res.data); afficherAnalyse(); }, error: (e) => { $("analyse").style.display = ""; $("analyse").innerHTML = '<div class="ko">Lecture impossible : ' + esc(e.message) + "</div>"; } });
+};
+
+function tableChiffres(c, c2) {
+  return "<table><tr><th>Élément</th><th style='text-align:right'>Ancienne base</th>" + (c2 ? "<th style='text-align:right'>Firebase</th><th></th>" : "") + "</tr>" +
+    Object.keys(LIB).map((k) => "<tr><td>" + LIB[k] + "</td><td class='n'>" + c[k] + "</td>" + (c2 ? "<td class='n'>" + c2[k] + "</td><td>" + (c[k] === c2[k] ? "✅" : "❌") + "</td>" : "") + "</tr>").join("") + "</table>";
+}
+
+function afficherAnalyse() {
+  const e = EXP, a = $("analyse"); a.style.display = "";
+  if (e.erreurs.length && !e.patients.length) { a.innerHTML = '<div class="ko">' + e.erreurs.map(esc).join("<br>") + "</div>"; return; }
+  const nbProt = e.protocoles.reduce((s, p) => s + p.list.length, 0), nbPay = Object.keys(e.paiements || {}).length;
+  const totKL = (e.versements || []).reduce((s, v) => s + (+v.m || 0), 0);
+  a.innerHTML = "<h2>2. Contenu du fichier</h2>" +
+    tableChiffres(chiffres(e.patients)) +
+    "<table><tr><td>Protocoles (bibliothèque)</td><td class='n'>" + nbProt + "</td></tr>" +
+    "<tr><td>Tarifs et paramètres</td><td class='n'>" + (e.tarifs ? "✅" : "❌ absent") + "</td></tr>" +
+    "<tr><td>Actes marqués « Payé »</td><td class='n'>" + nbPay + "</td></tr>" +
+    "<tr><td>Autres versements</td><td class='n'>" + (e.versements || []).length + " (" + totKL.toLocaleString("fr-FR") + " DH)</td></tr>" +
+    "<tr><td>Correspondants enregistrés</td><td class='n'>" + (e.listes ? e.listes.cor.length : 0) + "</td></tr></table>" +
+    (e.erreurs.length ? '<div class="ko">⚠️ ' + e.erreurs.map(esc).join("<br>") + "</div>" : "") +
+    '<div class="st" style="margin-top:6px">Lignes techniques ignorées : ' + esc(e.ignores.join(", ")) + "</div>" +
+    '<button class="v" id="go">📤 Transférer vers Firebase</button>';
+  $("go").onclick = transferer;
+}
+
+async function transferer() {
+  const e = EXP, r = $("resultat"); $("go").disabled = true; r.style.display = "";
+  const etape = (t) => { r.innerHTML = "<h2>3. Transfert</h2><div class='st'>" + t + "</div>"; };
+  try {
+    etape("Écriture des dossiers patients…");
+    const attendu = {};
+    const ops = [];
+    for (const p of e.patients) { const s = JSON.stringify(p.obj); attendu[p.id] = hsh(s); ops.push([doc(db, "patients", p.id), { nom: p.nom, data: s, maj: serverTimestamp(), source: "import" }]); }
+    for (const p of e.protocoles) ops.push([doc(db, "protocoles", p.id), { v: p.v, n: p.list.length, data: JSON.stringify(p.list) }]);
+    if (e.tarifs) {
+      ops.push([doc(db, "finances", "tarifs"), { data: JSON.stringify(e.tarifs) }]);
+      ops.push([doc(db, "parametres", "calendrier"), { data: JSON.stringify({ feries: e.tarifs.feries || [], abs: e.tarifs.abs || [] }) }]);
+    }
+    ops.push([doc(db, "finances", "paiements"), { data: JSON.stringify(e.paiements || {}) }]);
+    ops.push([doc(db, "finances", "versements"), { data: JSON.stringify(e.versements || []) }]);
+    if (e.listes) ops.push([doc(db, "parametres", "listes"), { data: JSON.stringify(e.listes) }]);
+    ops.push([doc(db, "parametres", "migrations"), { data: JSON.stringify(e.migrations) }]);
+    ops.push([doc(db, "parametres", "import"), { date: serverTimestamp(), fichier: NOMFICHIER, chiffres: chiffres(e.patients) }]);
+    for (let i = 0; i < ops.length; i += 20) {
+      const b = writeBatch(db); ops.slice(i, i + 20).forEach(([ref, v]) => b.set(ref, v)); await b.commit();
+      etape("Écriture… " + Math.min(i + 20, ops.length) + " / " + ops.length);
+    }
+    // Dossiers présents dans Firebase mais plus dans l'ancienne base (supprimés depuis) : retirés
+    etape("Vérification…");
+    let snap = await getDocs(collection(db, "patients")), retires = 0;
+    for (const d of snap.docs) if (!attendu[d.id]) { await deleteDoc(d.ref); retires++; }
+    if (retires) snap = await getDocs(collection(db, "patients"));
+    // Relecture complète et comparaison
+    let identiques = 0, differents = [], relus = [];
+    snap.forEach((d) => { const s = d.data().data || ""; relus.push(JSON.parse(s)); if (attendu[d.id] === hsh(s)) identiques++; else differents.push(d.id); });
+    const manquants = Object.keys(attendu).filter((id) => !snap.docs.some((d) => d.id === id));
+    const sp = await getDocs(collection(db, "protocoles")); let nbProt = 0; sp.forEach((d) => { nbProt += JSON.parse(d.data().data).length; });
+    const c1 = chiffres(e.patients), c2 = chiffres(relus), protAtt = e.protocoles.reduce((s, p) => s + p.list.length, 0);
+    const toutBon = identiques === e.patients.length && !manquants.length && !differents.length && nbProt === protAtt && Object.keys(c1).every((k) => c1[k] === c2[k]);
+    r.innerHTML = "<h2>3. Résultat</h2>" +
+      (toutBon ? '<div class="ok">✅ Transfert complet et vérifié : ' + identiques + " dossiers identiques octet par octet, " + nbProt + " protocoles.</div>"
+               : '<div class="ko">❌ Écarts détectés : ' + differents.length + " dossier(s) différent(s), " + manquants.length + " manquant(s), protocoles " + nbProt + "/" + protAtt + ". Envoyez une capture à Claude.</div>") +
+      tableChiffres(c1, c2) +
+      (retires ? '<div class="av">' + retires + " dossier(s) qui n’existent plus dans l’ancienne base ont été retirés de Firebase.</div>" : "") +
+      '<div class="st" style="margin-top:8px">Transfert du ' + new Date().toLocaleString("fr-FR") + " depuis « " + esc(NOMFICHIER) + " ».</div>";
+  } catch (err) {
+    r.innerHTML = '<h2>3. Transfert</h2><div class="ko">❌ Erreur : ' + esc(err.code === "permission-denied" ? "accès refusé (êtes-vous connectée avec le compte de Dr Bentahila ?)" : err.message) + "</div>";
+    $("go").disabled = false;
+  }
+}
+</script>
+</body></html>

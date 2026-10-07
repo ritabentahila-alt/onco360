@@ -1,0 +1,12 @@
+# Fichiers du système et des outils
+.DS_Store
+node_modules/
+.firebase/
+*.log
+
+# Données réelles : jamais dans l'historique
+tests/seed.json
+tests/bilan_ref.txt
+*sauvegarde*.json
+ChimioHGC_*.json
+Onco360_*.json

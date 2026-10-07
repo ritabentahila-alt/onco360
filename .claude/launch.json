@@ -1,0 +1,14 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "onco360-test",
+      "runtimeExecutable": "/bin/sh",
+      "runtimeArgs": [
+        "-c",
+        "cd /private/tmp/claude-501/-Users-ghitabentahila-Desktop-ONCO360-Chimio-HGC-Firebase/5e1f88ca-04d8-447d-b527-c4735b9f823d/scratchpad && exec python3 serveur.py /private/tmp/claude-501/-Users-ghitabentahila-Desktop-ONCO360-Chimio-HGC-Firebase/5e1f88ca-04d8-447d-b527-c4735b9f823d/scratchpad/site"
+      ],
+      "port": 8768
+    }
+  ]
+}
