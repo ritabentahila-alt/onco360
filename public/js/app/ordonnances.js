@@ -4,10 +4,12 @@
 // Ordonnance : médicaments choisis par double-clic, affichée sur une feuille A5 ou A4 modifiable (papier à en-tête : le haut
 // de la feuille reste vide), signée au nom du médecin (celui de la secrétaire si c'est elle qui la fait), enregistrée en
 // ligne « Médic. » dans la consultation du jour (consultations.js).
+// Antécédents (petite flèche, étape 1D) : dates à gauche, ordonnance au centre ; Imprimer · Supprimer · Modifier (à la date du
+// jour, la ligne de sa consultation suit) · Renouveler (nouvelle ordonnance du jour) · Fermer.
 import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { db } from "../config.js";
 import { MEDICAMENTS0 } from "../donnees/medicaments.js";
-import { enregistrerPrescription, trouverLigne } from "./consultations.js";
+import { enregistrerPrescription, trouverLigne, assurerConsultations, prescriptionsDe, supprimerPrescription, FAMILLES } from "./consultations.js";
 
 let A = null;
 export function installer(api) { A = api; }
@@ -147,14 +149,56 @@ function libelle(html) {
 
 let O = null; // ordonnance ouverte : { pid, t, ligne (si déjà enregistrée), format, taille, lecture }
 window.mdAfficher = () => { if (!S) return; const x = trouver(S.pid); ouvrirOrdonnance({ pid: S.pid, t: "medic", html: contenu(x, S.items, D().t, medecin()), format: fmtStock(), taille: 0 }); };
-// Une ordonnance déjà enregistrée (clic sur sa ligne dans la consultation)
-window.ordVoir = (pid, cid, lid) => {
-  const l = trouverLigne(pid, cid, lid); if (!l) return;
-  S = null; ouvrirOrdonnance({ pid, t: l.t, ligne: l, html: l.html, format: l.format || "A5", taille: l.taille || 0, lecture: !peutEcrire() });
+// Une ordonnance déjà enregistrée (clic sur sa ligne dans la consultation) : ses antécédents, elle sélectionnée
+window.ordVoir = (pid, cid, lid) => { const l = trouverLigne(pid, cid, lid); if (l) window.ordAntecedents(pid, l.t, lid); };
+
+// ───── Antécédents des prescriptions d'une famille ─────
+const peutSupprimer = () => peutEcrire() && D().membre.role === "medecin";
+// Date de l'ordonnance remplacée par celle du jour ; signature remplacée par le médecin du jour (renouvellement)
+function auJour(html, signer) {
+  const d = document.createElement("div"); d.innerHTML = html;
+  let p = d.querySelector(".or-date"); if (!p) { p = document.createElement("p"); p.className = "or-date"; d.prepend(p); }
+  p.textContent = "Le " + dateFr(D().t);
+  if (signer) { const g = d.querySelector(".or-sig"); if (g) g.innerHTML = "Cachet et signature du médecin :<br><b>" + A.esc(medecin()) + "</b>"; }
+  return d.innerHTML;
+}
+let H = null; // { pid, t, sel }
+window.ordAntecedents = async (pid, t, sel) => {
+  const x = trouver(pid); if (!x) return;
+  H = { pid, t, sel: sel || null }; S = null;
+  A.fenetre('<p class="sous">Chargement des antécédents…</p>', "large");
+  await assurerConsultations(x); vueAntecedents();
 };
+function vueAntecedents() {
+  const x = trouver(H.pid), f = FAMILLES.find((z) => z.t === H.t) || { titre: "Prescriptions" }, L = prescriptionsDe(H.pid, H.t);
+  if (!L.some((o) => o.l.id === H.sel)) H.sel = L[0] ? L[0].l.id : null;
+  const o = L.find((z) => z.l.id === H.sel), ok = peutEcrire();
+  const bt = (lib, fn, cls, icone) => '<button class="bt ' + (cls || "gris") + '" onclick="' + fn + '"' + (o ? "" : " disabled") + ">" + (icone ? A.ic(icone) : "") + lib + "</button>";
+  A.fenetre("<h3>Antécédents — " + A.esc(f.titre) + " — " + A.esc(x.r.nm) + "</h3>" +
+    (L.length ? '<div class="an"><div class="an-l" role="listbox" aria-label="Ordonnances">' + L.map(({ l }) => '<button role="option" aria-selected="' + (l.id === H.sel) + '" class="' + (l.id === H.sel ? "on" : "") + '" onclick="anChoisir(\'' + l.id + '\')"><b>' + A.dfrA(l.d) + "</b>" + (l.dm && l.dm !== l.d ? '<span class="mesures">modifiée le ' + A.dfrA(l.dm) + "</span>" : "") + "<span>" + A.esc(l.lib || "") + "</span></button>").join("") + "</div>" +
+      '<div class="an-d"><div class="or-zone"><div class="or-feuille ' + String((o && o.l.format) || "A5").toLowerCase() + '" style="font-size:' + (((o && o.l.format) === "A4" ? 15 : 14) + ((o && o.l.taille) || 0)) + 'px">' + (o ? o.l.html : "") + "</div></div>" +
+      (o ? '<p class="mesures" style="margin:6px 0 0">Édition ' + A.esc(o.l.format || "A5") + " · faite par " + A.esc(o.l.par || "") + (o.l.med ? " · signée " + A.esc(o.l.med) : "") + "</p>" : "") + "</div>" +
+      '<div class="an-b">' + (ok ? bt("Imprimer", "anImprimer()", "clair", "imprimer") + (peutSupprimer() ? bt("Supprimer", "anSupprimer()", "gris rouge-t") : "") + bt("Modifier", "anModifier()", "gris") + bt("Renouveler", "anRenouveler()", "plein") : "") +
+      '<button class="bt gris" onclick="anFermer()">Fermer</button></div></div>'
+      : '<p class="sous">Aucune ordonnance (' + A.esc(f.titre.toLowerCase()) + ') pour ce patient.</p><div class="boutons"><button class="bt gris" onclick="anFermer()">Fermer</button></div>'), "large");
+}
+const choisie = () => { const o = H && prescriptionsDe(H.pid, H.t).find((z) => z.l.id === H.sel); return o && o.l; };
+window.anChoisir = (id) => { H.sel = id; vueAntecedents(); };
+window.anFermer = () => { const pid = H && H.pid; H = null; A.fermerFenetre(); if (pid) A.pageDossier(pid); };
+window.anImprimer = () => { const l = choisie(); if (!l) return; let w = null; try { w = window.open("", "_blank"); } catch (e) { w = null; } if (w) imprimer(w, l.html, l.format || "A5", l.taille || 0); else A.toast("Impression bloquée par le navigateur : autorisez les fenêtres pour Onco360."); };
+window.anSupprimer = async () => {
+  const l = choisie(), x = H && trouver(H.pid); if (!l || !x || !peutSupprimer()) return;
+  if (!confirm("Supprimer l'ordonnance du " + A.dfrA(l.d) + " ?\n\n« " + (l.lib || "") + " »\n\nElle disparaît aussi de sa consultation.")) return;
+  try { await supprimerPrescription(x, l.id); A.toast("Ordonnance supprimée."); H.sel = null; vueAntecedents(); }
+  catch (e) { A.toast(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de supprimer cette ordonnance." : "Suppression impossible."); }
+};
+// Modifier : la même ordonnance, remise à la date du jour ; enregistrée, elle change aussi dans sa consultation
+window.anModifier = () => { const l = choisie(); if (!l || !peutEcrire()) return; const pid = H.pid; H = null; ouvrirOrdonnance({ pid, t: l.t, ligne: l, modif: true, html: auJour(l.html), format: l.format || "A5", taille: l.taille || 0 }); };
+// Renouveler : une nouvelle ordonnance du jour, même contenu, signée par le médecin du jour
+window.anRenouveler = () => { const l = choisie(); if (!l || !peutEcrire()) return; const pid = H.pid; H = null; ouvrirOrdonnance({ pid, t: l.t, renouv: l, html: auJour(l.html, true), format: l.format || "A5", taille: l.taille || 0 }); };
 function ouvrirOrdonnance(o) {
   O = o; const x = trouver(o.pid), l = o.ligne;
-  A.fenetre("<h3>Ordonnance — " + A.esc(x.r.nm) + (l ? ' <span class="mesures">(du ' + A.dfrA(l.d) + ")</span>" : "") + "</h3>" +
+  A.fenetre("<h3>Ordonnance — " + A.esc(x.r.nm) + (l ? ' <span class="mesures">(du ' + A.dfrA(l.d) + ", modifiée à la date du jour)</span>" : o.renouv ? ' <span class="mesures">(renouvellement de celle du ' + A.dfrA(o.renouv.d) + ")</span>" : "") + "</h3>" +
     '<div class="or-outils"><div class="ag-vues" role="radiogroup" aria-label="Format">' + ["A5", "A4"].map((f) => '<button role="radio" aria-checked="' + (o.format === f) + '" class="' + (o.format === f ? "on" : "") + '" onclick="orFormat(\'' + f + '\')">Édition ' + f + "</button>").join("") + "</div>" +
     (o.lecture ? "" : '<span class="sep"></span><button class="ico" title="Gras" aria-label="Gras" onmousedown="event.preventDefault()" onclick="orStyle(\'bold\')"><b>G</b></button><button class="ico" title="Souligné" aria-label="Souligné" onmousedown="event.preventDefault()" onclick="orStyle(\'underline\')"><u>S</u></button>' +
       '<button class="ico" title="Texte plus petit" aria-label="Texte plus petit" onclick="orTaille(-1)">A−</button><button class="ico" title="Texte plus grand" aria-label="Texte plus grand" onclick="orTaille(1)">A+</button>') + "</div>" +
@@ -190,9 +234,9 @@ window.orValider = async (imp) => {
   ["orOk", "orImp"].forEach((i) => A.occupe($(i), true));
   try {
     const l = O.ligne;
-    await enregistrerPrescription(x, Object.assign(l ? { id: l.id, d: l.d, med: l.med, par: l.par } : { t: O.t, d: D().t, med: medecin(), par: document.getElementById("nomMenu").textContent }, { t: O.t, lib: libelle(html), html, format: O.format, taille: O.taille }));
+    await enregistrerPrescription(x, Object.assign(l ? { id: l.id, d: l.d, dm: D().t, med: l.med, par: l.par } : { t: O.t, d: D().t, med: medecin(), par: document.getElementById("nomMenu").textContent }, { t: O.t, lib: libelle(html), html, format: O.format, taille: O.taille }));
     if (imp) { if (w) imprimer(w, html, O.format, O.taille); else A.toast("Impression bloquée par le navigateur : autorisez les fenêtres pour Onco360, puis réimprimez depuis la consultation."); }
-    const pid = O.pid; O = null; S = null; A.fermerFenetre(); A.toast(l ? "Ordonnance modifiée." : "Ordonnance enregistrée dans la consultation du jour."); A.pageDossier(pid);
+    const pid = O.pid, renouv = !!O.renouv; O = null; S = null; A.fermerFenetre(); A.toast(l ? "Ordonnance modifiée (et dans sa consultation)." : renouv ? "Ordonnance renouvelée dans la consultation du jour." : "Ordonnance enregistrée dans la consultation du jour."); A.pageDossier(pid);
   } catch (e) {
     if (w) try { w.close(); } catch (er) {}
     ["orOk", "orImp"].forEach((i) => A.occupe($(i), false));

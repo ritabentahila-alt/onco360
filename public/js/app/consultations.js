@@ -128,6 +128,23 @@ window.csPrescrire = (pid, t) => {
   if (t === "medic") { window.ordMedicaments(pid); return; }
   const f = FAMILLES.find((z) => z.t === t); A.toast((f ? f.titre : "Prescriptions") + " : bientôt disponible (en cours de construction).");
 };
+// Consultations du patient lues (pour les antécédents des prescriptions)
+export async function assurerConsultations(x) { if (CS[x.id] === undefined) await charger(x); return CS[x.id]; }
+// Antécédents d'une famille (médicaments, examens…) : toutes les ordonnances du patient, la plus récente d'abord
+export function prescriptionsDe(pid, t) {
+  const r = [];
+  (CS[pid] || []).forEach((c) => (c.lignes || []).forEach((l) => { if (l.t === t && l.html) r.push({ cid: c.id, l }); }));
+  return r.sort((a, b) => (b.l.dm || b.l.d || "").localeCompare(a.l.dm || a.l.d || "") || String(b.l.id).localeCompare(String(a.l.id)));
+}
+// Ordonnance supprimée : retirée de sa consultation ; la consultation créée automatiquement pour elle seule disparaît aussi
+export async function supprimerPrescription(x, lid) {
+  const c = (CS[x.id] || []).find((z) => (z.lignes || []).some((l) => l.id === lid)); if (!c) return;
+  const ref = doc(db, "espaces", A.ESPACE, "consultations", c.id), s = await getDoc(ref);
+  const avant = (s.exists() && s.data().lignes) || c.lignes || [], l = avant.find((z) => z.id === lid), lignes = avant.filter((z) => z.id !== lid);
+  if (!lignes.length && c.titre === "Ordonnance" && !c.type && !c.note) { await deleteDoc(ref); CS[x.id] = CS[x.id].filter((z) => z.id !== c.id); }
+  else { const maj = { lignes, majPar: D().u.uid, majParNom: nomConnecte(), maj: serverTimestamp() }; await updateDoc(ref, maj); Object.assign(c, maj); }
+  A.journal(x, "Ordonnance supprimée (" + libLigne((l || {}).t) + ") : " + ((l || {}).lib || ""));
+}
 // Une ordonnance (ligne) retrouvée par sa consultation
 export function trouverLigne(pid, cid, lid) { const c = (CS[pid] || []).find((z) => z.id === cid); return c && (c.lignes || []).find((l) => l.id === lid); }
 // Ordonnance validée : nouvelle → ligne ajoutée à la consultation du jour (créée si elle n'existe pas, avec seulement
@@ -155,7 +172,7 @@ export async function enregistrerPrescription(x, ligne) {
   Object.assign(c, s.exists() ? s.data() : {}, { lignes }, maj); OUV[x.id] = c.id;
   A.journal(x, (i >= 0 ? "Ordonnance modifiée (" : "Ordonnance (") + libLigne(ligne.t) + ") : " + ligne.lib);
 }
-window.csAntecedents = (pid, t) => { const f = FAMILLES.find((z) => z.t === t); A.toast((f ? f.titre : "Prescriptions") + " : les antécédents des prescriptions seront bientôt disponibles."); };
+window.csAntecedents = (pid, t) => window.ordAntecedents(pid, t);
 
 // ───── Suivi du dossier ─────
 // Hôpital du patient changé : ses consultations suivent (pour les membres limités à certains établissements)

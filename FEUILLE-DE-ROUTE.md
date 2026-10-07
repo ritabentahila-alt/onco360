@@ -158,9 +158,23 @@ de leur radiothérapie :
       prescriptions (1D : voir, réimprimer, renouveler), pour ne pas surcharger. Courriers : pareil (confirmé le 07/10).
 - [ ] Plus tard (si plusieurs médecins dans un cabinet) : choisir le médecin signataire dans la fenêtre de l'ordonnance.
 
-**1D – Antécédents des prescriptions** (petite flèche)
-- [ ] Fenêtre : dates à gauche, ordonnance à droite ; à droite **Imprimer · Supprimer · Renouveler · Fermer**.
-- [ ] Renouveler = la même ordonnance à la date du jour, avec les mêmes options (A5/A4, Valider, Valider + Imprimer, Fermer).
+**1D – Antécédents des prescriptions** (petite flèche) (fait et testé le 07/10, pas encore en ligne)
+- [x] Fenêtre « Antécédents — Médicaments — patient » : dates à gauche (la plus récente en haut, « modifiée le … » si
+      besoin), ordonnance au centre (telle qu'enregistrée, A5 ou A4), à droite **Imprimer · Supprimer · Modifier ·
+      Renouveler · Fermer** (« Modifier » ajouté le 07/10 à la demande de Dr Bentahila).
+- [x] **Modifier** = la même ordonnance remise **à la date du jour** ; une fois enregistrée, elle **change aussi dans sa
+      consultation** (elle y reste, avec la date de modification).
+- [x] **Renouveler** = nouvelle ordonnance du jour, même contenu, signée par le médecin du jour, mêmes options (A5/A4,
+      Valider, Valider + Imprimer, Fermer) ; enregistrée dans la consultation du jour (créée si besoin).
+- [x] **Supprimer** (médecin seulement, avec confirmation) : l'ordonnance disparaît aussi de sa consultation ; une
+      consultation « Ordonnance » créée automatiquement et devenue vide est supprimée.
+- [x] Un clic sur la ligne « Médic. » d'une consultation ouvre cette fenêtre, sur cette ordonnance.
+- [x] Droits : secrétaire = Imprimer, Modifier, Renouveler (pas Supprimer) ; infirmière = lecture seule (Fermer).
+- [x] Fenêtre prévue pour toutes les familles (examens, ordonnances types, analyses, courriers : 1E).
+- [x] Tests : modifier (date du jour, consultation d'origine mise à jour), renouveler (nouvelle consultation du jour,
+      signature), supprimer (consultation vide retirée), impression A4, clic depuis la consultation, 3 rôles, 390 px,
+      bilan 352 317 DH.
+- [ ] Mise en ligne, avec l'accord de Dr Bentahila.
 
 **1E – Les quatre autres familles (même système, modèles créés par Dr Bentahila)**
 - [ ] **Examens compl.** : liste de modèles (Nouveau +, Modifier ✎, Supprimer ✕), recherche, double-clic → petit cadre où
@@ -327,3 +341,4 @@ Décisions déjà prises :
 | 07/10/2026 | 1C – Médicaments et ordonnance | Mis en ligne. Décidé : les ordonnances ne vont pas dans Documents (enregistrées dans la consultation seulement, historique en 1D). |
 | 07/10/2026 | 1A bis – Documents | Décidé : rien dans l'onglet Documents ; ordonnances et courriers derrière leur petite flèche ; pli, CR de fin et rendez-vous RT ouverts dans une fenêtre, modifiés, imprimés, enregistrés et rouverts depuis la carte radiothérapie. Questions posées. |
 | 07/10/2026 | 1A bis – Documents | Réponses : fenêtre seulement (plus de Word ni d'Excel), médecin et secrétaire modifient, onglet Documents gardé pour déposer des fichiers (étape à part). |
+| 07/10/2026 | 1D – Antécédents | Fenêtre des antécédents (Imprimer, Supprimer, Modifier à la date du jour, Renouveler, Fermer), ouverte aussi par la ligne « Médic. ». Testé (3 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |
