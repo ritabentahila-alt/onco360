@@ -13,6 +13,12 @@ ligne au journal (en bas).
 
 ---
 
+## Questions et rappels pour Dr Bentahila (Claude les rappelle en début de session)
+- [ ] **Mesurer la hauteur des en-têtes du papier** (ordonnance A5, ordonnance A4, papier A4 des documents) et la largeur
+      des marges souhaitées, pour régler exactement les marges d'impression. Réglage provisoire du 07/10 : A5 haut 45 mm /
+      côtés 28 mm ; ordonnance A4 haut 60 mm / côtés 35 mm ; documents A4 (pli, compte rendu, rendez-vous) haut 45 mm /
+      côtés 35 mm ; bas 18 à 22 mm.
+
 ## Déjà fait (jusqu'au 06/10/2026)
 - [x] Onco360 complet (phases A à D) et bascule : Onco360 est l'application de référence, l'ancienne est en lecture seule.
 - [x] Sauvegardes :
@@ -97,6 +103,7 @@ de leur radiothérapie :
 - [x] Tests : pli (modifié, enregistré, imprimé, rouvert avec la modification), compte rendu, rendez-vous (case modifiée
       et enregistrée), secrétaire (signature de son médecin), infirmière (aucun bouton), téléphone 390 px, bilan 352 317 DH.
 - [x] Mise en ligne le 07/10 (site + règle `documentsRT`).
+- [x] Marges encore resserrées et haut agrandi le 07/10 (voir « Questions et rappels » en haut : mesurer les en-têtes).
 - [x] **Marges d'impression élargies (07/10, le texte collait aux côtés)**, sur chaque page : ordonnances A5 36 mm (haut) /
       22 mm (côtés) / 18 mm (bas), ordonnances A4 48 / 28 / 22 mm, documents RT A4 34 / 28 / 22 mm ; aperçu à l'écran
       ajusté. Vérifié en PDF (Chrome). La fiche chimio (A4 paysage) garde ses marges.
@@ -372,3 +379,4 @@ Décisions déjà prises :
 | 07/10/2026 | 1D – Antécédents | Modifier rouvre la liste des médicaments avec ceux de l'ordonnance (même date). « RCP » ajouté au menu des consultations. Règle : même système pour Ordo. type et Analyses. Testé (bilan 352 317 DH). Mis en ligne. |
 | 07/10/2026 | 1A bis – Documents | Pli, CR de fin et rendez-vous RT dans une fenêtre (A4 modifiable, Enregistrer / + Imprimer, version rouverte), plus de Word ni d'Excel. Testé (3 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |
 | 07/10/2026 | 1A bis – Documents | Mis en ligne (site + règle documentsRT). Marges d'impression élargies sur les côtés pour toutes les ordonnances (A5, A4) et les documents A4. |
+| 07/10/2026 | Impression | Côtés encore resserrés et place de l'en-tête agrandie (A5 45/28 mm, A4 60/35 mm, documents 45/35 mm), mis en ligne. Rappel ajouté : mesurer les en-têtes du papier. |
