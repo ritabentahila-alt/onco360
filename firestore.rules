@@ -98,7 +98,10 @@ service cloud.firestore {
         allow update: if droit('ecrireConsultations') && dansPerimetre(resource.data.etablissementId)
           && dansPerimetre(request.resource.data.etablissementId) && request.resource.data.majPar == request.auth.uid
           && request.resource.data.creePar == resource.data.creePar && request.resource.data.patientId == resource.data.patientId;
-        allow delete: if droit('ecrireConsultations') && m().role == 'medecin' && dansPerimetre(resource.data.etablissementId);
+        // suppression : le médecin ; la secrétaire seulement une consultation « Ordonnance » créée automatiquement et vidée
+        allow delete: if droit('ecrireConsultations') && dansPerimetre(resource.data.etablissementId)
+          && (m().role == 'medecin' || (resource.data.titre == 'Ordonnance' && resource.data.get('type', '') == ''
+              && resource.data.get('note', '') == '' && resource.data.get('lignes', []).size() == 0));
       }
       // Bibliothèques des prescriptions (médicaments, puis examens, ordonnances types, analyses, courriers) : lues par les
       // membres, modifiées par ceux qui écrivent les consultations et ordonnances (médecin, secrétaire)

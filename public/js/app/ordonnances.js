@@ -4,8 +4,8 @@
 // Ordonnance : médicaments choisis par double-clic, affichée sur une feuille A5 ou A4 modifiable (papier à en-tête : le haut
 // de la feuille reste vide), signée au nom du médecin (celui de la secrétaire si c'est elle qui la fait), enregistrée en
 // ligne « Médic. » dans la consultation du jour (consultations.js).
-// Antécédents (petite flèche, étape 1D) : dates à gauche, ordonnance au centre ; Imprimer · Supprimer · Modifier (à la date du
-// jour, la ligne de sa consultation suit) · Renouveler (nouvelle ordonnance du jour) · Fermer.
+// Antécédents (petite flèche, étape 1D) : dates à gauche, ordonnance au centre ; Imprimer · Supprimer · Modifier (même date,
+// la ligne de sa consultation suit) · Renouveler (nouvelle ordonnance à la date du jour) · Fermer.
 import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { db } from "../config.js";
 import { MEDICAMENTS0 } from "../donnees/medicaments.js";
@@ -153,7 +153,7 @@ window.mdAfficher = () => { if (!S) return; const x = trouver(S.pid); ouvrirOrdo
 window.ordVoir = (pid, cid, lid) => { const l = trouverLigne(pid, cid, lid); if (l) window.ordAntecedents(pid, l.t, lid); };
 
 // ───── Antécédents des prescriptions d'une famille ─────
-const peutSupprimer = () => peutEcrire() && D().membre.role === "medecin";
+const peutSupprimer = () => peutEcrire(); // médecin et secrétaire (07/10/2026)
 // Date de l'ordonnance remplacée par celle du jour ; signature remplacée par le médecin du jour (renouvellement)
 function auJour(html, signer) {
   const d = document.createElement("div"); d.innerHTML = html;
@@ -192,13 +192,13 @@ window.anSupprimer = async () => {
   try { await supprimerPrescription(x, l.id); A.toast("Ordonnance supprimée."); H.sel = null; vueAntecedents(); }
   catch (e) { A.toast(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de supprimer cette ordonnance." : "Suppression impossible."); }
 };
-// Modifier : la même ordonnance, remise à la date du jour ; enregistrée, elle change aussi dans sa consultation
-window.anModifier = () => { const l = choisie(); if (!l || !peutEcrire()) return; const pid = H.pid; H = null; ouvrirOrdonnance({ pid, t: l.t, ligne: l, modif: true, html: auJour(l.html), format: l.format || "A5", taille: l.taille || 0 }); };
+// Modifier : la même ordonnance, à sa date de prescription ; enregistrée, elle change aussi dans sa consultation
+window.anModifier = () => { const l = choisie(); if (!l || !peutEcrire()) return; const pid = H.pid; H = null; ouvrirOrdonnance({ pid, t: l.t, ligne: l, html: l.html, format: l.format || "A5", taille: l.taille || 0 }); };
 // Renouveler : une nouvelle ordonnance du jour, même contenu, signée par le médecin du jour
 window.anRenouveler = () => { const l = choisie(); if (!l || !peutEcrire()) return; const pid = H.pid; H = null; ouvrirOrdonnance({ pid, t: l.t, renouv: l, html: auJour(l.html, true), format: l.format || "A5", taille: l.taille || 0 }); };
 function ouvrirOrdonnance(o) {
   O = o; const x = trouver(o.pid), l = o.ligne;
-  A.fenetre("<h3>Ordonnance — " + A.esc(x.r.nm) + (l ? ' <span class="mesures">(du ' + A.dfrA(l.d) + ", modifiée à la date du jour)</span>" : o.renouv ? ' <span class="mesures">(renouvellement de celle du ' + A.dfrA(o.renouv.d) + ")</span>" : "") + "</h3>" +
+  A.fenetre("<h3>Ordonnance — " + A.esc(x.r.nm) + (l ? ' <span class="mesures">(du ' + A.dfrA(l.d) + ", modification)</span>" : o.renouv ? ' <span class="mesures">(renouvellement de celle du ' + A.dfrA(o.renouv.d) + ")</span>" : "") + "</h3>" +
     '<div class="or-outils"><div class="ag-vues" role="radiogroup" aria-label="Format">' + ["A5", "A4"].map((f) => '<button role="radio" aria-checked="' + (o.format === f) + '" class="' + (o.format === f ? "on" : "") + '" onclick="orFormat(\'' + f + '\')">Édition ' + f + "</button>").join("") + "</div>" +
     (o.lecture ? "" : '<span class="sep"></span><button class="ico" title="Gras" aria-label="Gras" onmousedown="event.preventDefault()" onclick="orStyle(\'bold\')"><b>G</b></button><button class="ico" title="Souligné" aria-label="Souligné" onmousedown="event.preventDefault()" onclick="orStyle(\'underline\')"><u>S</u></button>' +
       '<button class="ico" title="Texte plus petit" aria-label="Texte plus petit" onclick="orTaille(-1)">A−</button><button class="ico" title="Texte plus grand" aria-label="Texte plus grand" onclick="orTaille(1)">A+</button>') + "</div>" +

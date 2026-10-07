@@ -134,14 +134,18 @@ export async function assurerConsultations(x) { if (CS[x.id] === undefined) awai
 export function prescriptionsDe(pid, t) {
   const r = [];
   (CS[pid] || []).forEach((c) => (c.lignes || []).forEach((l) => { if (l.t === t && l.html) r.push({ cid: c.id, l }); }));
-  return r.sort((a, b) => (b.l.dm || b.l.d || "").localeCompare(a.l.dm || a.l.d || "") || String(b.l.id).localeCompare(String(a.l.id)));
+  return r.sort((a, b) => (b.l.d || "").localeCompare(a.l.d || "") || String(b.l.id).localeCompare(String(a.l.id)));
 }
 // Ordonnance supprimée : retirée de sa consultation ; la consultation créée automatiquement pour elle seule disparaît aussi
 export async function supprimerPrescription(x, lid) {
   const c = (CS[x.id] || []).find((z) => (z.lignes || []).some((l) => l.id === lid)); if (!c) return;
   const ref = doc(db, "espaces", A.ESPACE, "consultations", c.id), s = await getDoc(ref);
   const avant = (s.exists() && s.data().lignes) || c.lignes || [], l = avant.find((z) => z.id === lid), lignes = avant.filter((z) => z.id !== lid);
-  if (!lignes.length && c.titre === "Ordonnance" && !c.type && !c.note) { await deleteDoc(ref); CS[x.id] = CS[x.id].filter((z) => z.id !== c.id); }
+  if (!lignes.length && c.titre === "Ordonnance" && !c.type && !c.note) {
+    // vidée d'abord : la secrétaire peut supprimer une consultation « Ordonnance » vide (règles), le médecin toute consultation
+    await updateDoc(ref, { lignes: [], majPar: D().u.uid, majParNom: nomConnecte(), maj: serverTimestamp() });
+    await deleteDoc(ref); CS[x.id] = CS[x.id].filter((z) => z.id !== c.id);
+  }
   else { const maj = { lignes, majPar: D().u.uid, majParNom: nomConnecte(), maj: serverTimestamp() }; await updateDoc(ref, maj); Object.assign(c, maj); }
   A.journal(x, "Ordonnance supprimée (" + libLigne((l || {}).t) + ") : " + ((l || {}).lib || ""));
 }
