@@ -165,7 +165,7 @@ window.dcRepartir = () => {
 };
 // Impression A4, sur papier à en-tête : marges de la page (haut laissé libre), saut de page entre les parties du pli
 function imprimer(w, html) {
-  const css = "@page{size:A4 portrait;margin:34mm 20mm 20mm}html,body{margin:0}body{font-family:Arial,Helvetica,sans-serif;font-size:11pt;line-height:1.4;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact}" + CSS_DOC;
+  const css = "@page{size:A4 portrait;margin:34mm 28mm 22mm}html,body{margin:0}body{font-family:Arial,Helvetica,sans-serif;font-size:11pt;line-height:1.4;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact}" + CSS_DOC;
   w.document.open(); w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>&#8203;</title><style>' + css + '</style></head><body><div class="dc">' + html + "</div></body></html>"); w.document.close();
   setTimeout(() => { try { w.focus(); w.print(); } catch (e) {} }, 400);
 }

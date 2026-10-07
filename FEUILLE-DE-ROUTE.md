@@ -62,7 +62,7 @@ Disposition décidée par Dr Bentahila le 07/10, de haut en bas :
 Test : Playwright n'est pas installé sur ce Mac ; testé dans le navigateur intégré avec le faux Firebase, sur une copie
 du site dans un dossier temporaire (macOS empêche le serveur de test de lire le Bureau).
 
-**1A bis – Documents de radiothérapie dans une fenêtre** (fait et testé le 07/10, pas encore en ligne ; décision du 07/10, remplace l'ancienne idée de
+**1A bis – Documents de radiothérapie dans une fenêtre** (fait, testé et mis en ligne le 07/10 ; décision du 07/10, remplace l'ancienne idée de
 « copies dans l'onglet Documents », abandonnée)
 Décision : **rien ne va dans un onglet Documents**. Les ordonnances et courriers restent derrière leur petite flèche
 (antécédents, 1D / 1E). Le pli confidentiel, le compte rendu de fin et les rendez-vous de radiothérapie restent dans la carte
@@ -96,8 +96,10 @@ de leur radiothérapie :
 - [x] Code Word / Excel retiré (`documents.js` réécrit) ; les modèles Word restent dans `modeles/` comme référence.
 - [x] Tests : pli (modifié, enregistré, imprimé, rouvert avec la modification), compte rendu, rendez-vous (case modifiée
       et enregistrée), secrétaire (signature de son médecin), infirmière (aucun bouton), téléphone 390 px, bilan 352 317 DH.
-- [ ] Mise en ligne (site + règle `documentsRT`), avec l'accord de Dr Bentahila ; puis essai d'impression sur le vrai
-      papier à en-tête (marge du haut : 34 mm).
+- [x] Mise en ligne le 07/10 (site + règle `documentsRT`).
+- [x] **Marges d'impression élargies (07/10, le texte collait aux côtés)**, sur chaque page : ordonnances A5 36 mm (haut) /
+      22 mm (côtés) / 18 mm (bas), ordonnances A4 48 / 28 / 22 mm, documents RT A4 34 / 28 / 22 mm ; aperçu à l'écran
+      ajusté. Vérifié en PDF (Chrome). La fiche chimio (A4 paysage) garde ses marges.
 
 **1B – Consultations (journal médical)** (fait, testé et mis en ligne le 07/10)
 - [x] Menu des consultations : **RCP** ajouté le 07/10.
@@ -369,3 +371,4 @@ Décisions déjà prises :
 | 07/10/2026 | 1D – Antécédents | Retouches : Modifier garde la date de prescription, la secrétaire peut supprimer. Testé, mis en ligne (site + règles). |
 | 07/10/2026 | 1D – Antécédents | Modifier rouvre la liste des médicaments avec ceux de l'ordonnance (même date). « RCP » ajouté au menu des consultations. Règle : même système pour Ordo. type et Analyses. Testé (bilan 352 317 DH). Mis en ligne. |
 | 07/10/2026 | 1A bis – Documents | Pli, CR de fin et rendez-vous RT dans une fenêtre (A4 modifiable, Enregistrer / + Imprimer, version rouverte), plus de Word ni d'Excel. Testé (3 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |
+| 07/10/2026 | 1A bis – Documents | Mis en ligne (site + règle documentsRT). Marges d'impression élargies sur les côtés pour toutes les ordonnances (A5, A4) et les documents A4. |

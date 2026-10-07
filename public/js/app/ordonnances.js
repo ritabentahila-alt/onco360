@@ -245,8 +245,9 @@ window.orFermer = () => { O = null; A.fermerFenetre(); };
 // Impression : feuille seule, sans en-tête (papier à en-tête), au format choisi
 function imprimer(w, html, format, taille) {
   const a4 = format === "A4", pt = (a4 ? 12 : 11) + taille * 0.75;
-  const css = "@page{size:" + (a4 ? "A4" : "A5") + " portrait;margin:0}html,body{margin:0}body{font-family:Arial,Helvetica,sans-serif;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact}" +
-    ".pg{padding:" + (a4 ? "48mm 20mm 18mm" : "36mm 13mm 12mm") + ";font-size:" + pt + "pt;line-height:1.45}.or-date{text-align:right;margin:0 0 6mm}.or-pat{margin:0 0 7mm}.or-m{margin:4mm 0 1mm}.or-p{margin:0 0 0 6mm}.or-sig{margin-top:10mm;text-align:right}p{margin:0 0 1.5mm}";
+  // Marges sur chaque page (07/10/2026 : côtés élargis, le texte ne colle plus aux bords) ; haut laissé libre pour l'en-tête
+  const css = "@page{size:" + (a4 ? "A4" : "A5") + " portrait;margin:" + (a4 ? "48mm 28mm 22mm" : "36mm 22mm 18mm") + "}html,body{margin:0}body{font-family:Arial,Helvetica,sans-serif;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact}" +
+    ".pg{font-size:" + pt + "pt;line-height:1.45}.or-date{text-align:right;margin:0 0 6mm}.or-pat{margin:0 0 7mm}.or-m{margin:4mm 0 1mm}.or-p{margin:0 0 0 6mm}.or-sig{margin-top:10mm;text-align:right}p{margin:0 0 1.5mm}";
   w.document.open(); w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>&#8203;</title><style>' + css + '</style></head><body><div class="pg">' + html + "</div></body></html>"); w.document.close();
   setTimeout(() => { try { w.focus(); w.print(); } catch (e) {} }, 400);
 }
