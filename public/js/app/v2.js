@@ -436,14 +436,16 @@ function pageDossier(id) {
 
   // Un seul cadre à onglets (07/10/2026) : Consultation · Chimiothérapie · Radiothérapie · Documents, selon les droits
   const ong = [];
-  if (voitRdv()) ong.push({ k: "co", ic: "stetho", lib: "Consultation", n: 0, h: '<p class="sous" style="margin:2px 0 0">Le journal des consultations (notes, ordonnances, examens, analyses, courriers) sera ici.</p>' });
+  // Consultation : tout le monde (l'infirmière en lecture seule, décision du 07/10/2026)
+  ong.push({ k: "co", ic: "stetho", lib: "Consultation", n: 0, h: '<p class="sous" style="margin:2px 0 0">Le journal des consultations (notes, ordonnances, examens, analyses, courriers) sera ici.</p>' });
 
   // Chimiothérapie
-  if (voit("traitements")) { const hc = htmlChimio(x); if (hc) ong.push({ k: "ch", ic: "seringue", lib: "Chimiothérapie", n: (P.lignes || []).length, h: hc }); }
+  if (voit("traitements")) ong.push({ k: "ch", ic: "seringue", lib: "Chimiothérapie", n: (P.lignes || []).length, h: htmlChimio(x) || '<p class="sous" style="margin:2px 0 0">Aucune ligne de chimiothérapie.</p>' });
 
   // Radiothérapie
+  // (l'infirmière, radiothérapie « patients sous chimio » ailleurs, voit l'onglet en lecture pour tous ses patients : 07/10/2026)
   const okRT = traitModRT();
-  if (voitRTdossier(x) && ((P.rts || []).length || okRT)) {
+  if (voitRTdossier(x) || D.membre.droits.radiotherapie === "chimio") {
     const JS = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"], TECH = { stereo: "Stéréotaxie", vmat: "VMAT", imrt: "IMRT", "3d": "3D" };
     let hr = okRT ? '<div class="entete"><button class="bt clair petit" onclick="ouvrirRT(\'' + x.id + '\')">' + ic("plus") + "Prescription</button></div>" : "";
     if (!(P.rts || []).length) hr += '<p class="sous" style="margin:2px 0 0">Aucune prescription de radiothérapie.</p>';
@@ -472,9 +474,10 @@ function pageDossier(id) {
   // Documents (droit « documents ») : les documents générés (pli, compte rendu, rendez-vous, ordonnances…) y seront enregistrés
   if (peut("documents")) ong.push({ k: "doc", ic: "document", lib: "Documents", n: 0, h: '<p class="sous" style="margin:2px 0 0">Aucun document enregistré pour ce patient. Les documents générés (pli confidentiel, compte rendu de fin, rendez-vous, ordonnances, courriers) seront gardés ici.</p>' });
 
-  // Le dossier s'ouvre sur Consultation ; l'onglet choisi reste affiché quand le dossier se réaffiche après un enregistrement
+  // Le dossier s'ouvre sur Consultation (sur Chimiothérapie pour l'infirmière) ; l'onglet choisi reste affiché quand le
+  // dossier se réaffiche après un enregistrement
   if (ong.length) {
-    const act = [ONGLET[x.id], "co"].find((k) => ong.some((o) => o.k === k)) || ong[0].k;
+    const act = [ONGLET[x.id], D.membre.role === "infirmiere" ? "ch" : "co"].find((k) => ong.some((o) => o.k === k)) || ong[0].k;
     h += '<section class="carte onglets"><div class="o-barre" role="tablist" aria-label="Dossier">' + ong.map((o) => '<button role="tab" id="og-' + o.k + '" aria-controls="op-' + o.k + '" aria-selected="' + (o.k === act) + '"' + (o.k === act ? ' class="on"' : "") + ' onclick="ongletDossier(\'' + x.id + "','" + o.k + '\')"><svg class="pi" aria-hidden="true"><use href="#i-' + o.ic + '"/></svg>' + o.lib + (o.n ? '<span class="n">' + o.n + "</span>" : "") + "</button>").join("") + "</div>" +
       ong.map((o) => '<div class="o-pan' + (o.k === act ? "" : " cache") + '" id="op-' + o.k + '" role="tabpanel" aria-labelledby="og-' + o.k + '">' + o.h + "</div>").join("") + "</section>";
   }

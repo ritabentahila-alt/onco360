@@ -38,7 +38,7 @@ d'ordonnance est construit en 1C, puis réutilisé tel quel en 1E pour les quatr
       a été supprimé par Dr Bentahila le 07/10.
 - [x] Réponses de Dr Bentahila aux questions ci-dessous (toutes réglées le 07/10).
 
-**1A – Onglets du dossier** (fait et testé le 07/10, pas encore en ligne)
+**1A – Onglets du dossier** (fait, testé et mis en ligne le 07/10)
 Disposition décidée par Dr Bentahila le 07/10, de haut en bas :
 - [x] En haut, inchangés : identité + résumé du patient, rendez-vous à venir.
 - [x] En dessous, **un seul cadre** avec 4 onglets : **Consultation · Chimiothérapie · Radiothérapie · Documents** (avec
@@ -51,11 +51,13 @@ Disposition décidée par Dr Bentahila le 07/10, de haut en bas :
 - [x] Le dossier **s'ouvre toujours sur Consultation** ; un clic sur un onglet affiche sa carte ; l'onglet reste affiché
       après un enregistrement, et on revient sur Consultation en rouvrant le dossier. Sans l'onglet Consultation
       (infirmière), le premier onglet permis s'ouvre.
-- [x] Onglets montrés selon les droits (testé : médecin 4 onglets ; secrétaire Consultation, Radiothérapie, Documents ;
-      infirmière Chimiothérapie seule).
+- [x] Onglets montrés selon les droits (testé) : médecin 4 onglets ; secrétaire Consultation, Radiothérapie, Documents ;
+      **infirmière (décision du 07/10) : Consultation en lecture, Chimiothérapie ouverte en premier, Radiothérapie en
+      lecture pour tous ses patients** (tableau de bord et agenda inchangés : radiothérapie des patients sous chimio).
+      Les onglets Consultation et Chimiothérapie sont toujours présents (message « aucune… » s'ils sont vides).
 - [x] Téléphone 390 px : les 4 onglets tiennent sur la largeur (pictogramme au-dessus du nom), rien ne déborde.
 - [x] Bilan 2026 inchangé : 352 317 DH. Aucune erreur dans la console.
-- [ ] Mise en ligne (avec l'accord de Dr Bentahila).
+- [x] Mise en ligne (accord de Dr Bentahila le 07/10).
 
 Test : Playwright n'est pas installé sur ce Mac ; testé dans le navigateur intégré avec le faux Firebase, sur une copie
 du site dans un dossier temporaire (macOS empêche le serveur de test de lire le Bureau).
@@ -83,7 +85,7 @@ Proposition, à valider avec Dr Bentahila :
 - [ ] Sous la consultation, barre de 5 boutons : **Médic. ▾ · Examens compl. ▾ · Ordo type ▾ · Analyses ▾ · Courriers ▾**
       (le bouton = nouvelle prescription ; la petite flèche = antécédents).
 - [ ] Données : une fiche par consultation (nouvelle collection). Règles de sécurité : lire = droit « Voir les
-      consultations » ; écrire = médecin **et secrétaire** (décision du 07/10 : la secrétaire voit, écrit, imprime et
+      consultations » **et l'infirmière** (lecture seule, décision du 07/10) ; écrire = médecin **et secrétaire** (décision du 07/10 : la secrétaire voit, écrit, imprime et
       renouvelle les ordonnances). Nouveau droit « Écrire les consultations et ordonnances » dans la grille (oui par défaut
       pour médecin et secrétaire, non pour l'infirmière).
 
@@ -260,3 +262,4 @@ Décisions déjà prises :
 | 07/10/2026 | 1.0 – Préparation | Historique des versions (git) créé dans le dossier du projet, première version enregistrée (sans données patient). |
 | 07/10/2026 | 1A – Onglets | Code écrit (un cadre à 4 onglets, documents RT déplacés dans « Documents », consultations et hospitalisations à part). **Pas testé, pas en ligne** : Terminal bloqué par la sécurité de l'application. |
 | 07/10/2026 | 1A – Onglets | Retouches demandées : pictogrammes au lieu des émoticônes, boutons pli / CR / rendez-vous remis dans la carte radiothérapie, ouverture sur Consultation, onglets tenant sur un téléphone. Testé (3 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |
+| 07/10/2026 | 1A – Onglets | Infirmière : Consultation (lecture), Chimiothérapie ouverte en premier, Radiothérapie (lecture). Testé (3 rôles, bilan 352 317 DH). Mis en ligne. |
