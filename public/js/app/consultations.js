@@ -56,6 +56,8 @@ export function htmlConsultations(x) {
   if (L === null) return h + '<p class="sous" style="margin:2px 0 0;color:var(--rouge)">Les consultations n\'ont pas pu être lues. Rechargez la page.</p>';
   if (!L.length) return h + '<p class="sous" style="margin:2px 0 0">Aucune consultation.' + (peutEcrire() ? " « Nouvelle consultation » pour en ajouter une." : "") + "</p>" + barre(x);
   const ouv = ouverte(x.id);
+  // Liste dans une zone qui défile (environ 10 consultations fermées visibles), la plus récente en haut
+  h += (L.length > 10 ? '<p class="mesures" style="margin:6px 0 0">' + L.length + " consultations : faites défiler la liste pour voir les plus anciennes.</p>" : "") + '<div class="cs-liste" id="csListe">';
   L.forEach((c) => {
     const on = c.id === ouv, qc = q + ",'" + c.id + "'";
     h += '<div class="cs' + (on ? " on" : "") + '"><button class="cs-t" aria-expanded="' + on + '" onclick="csTog(' + qc + ')"><span class="fl">' + (on ? "▾" : "▸") + '</span><span class="dt">' + A.dfrA(c.d) + '</span><span class="ti">' + esc(nomCs(c)) + '</span><span class="au">' + esc(c.creeParNom || "") + "</span></button>";
@@ -69,7 +71,7 @@ export function htmlConsultations(x) {
     }
     h += "</div>";
   });
-  return h + barre(x);
+  return h + "</div>" + barre(x);
 }
 // Barre des prescriptions, en bas de l'onglet, indépendante des consultations : une ordonnance faite ici s'ajoute en ligne
 // dans la consultation du jour
@@ -78,12 +80,17 @@ function barre(x) {
   const q = "'" + x.id + "'";
   return '<div class="presc-bas"><div class="lbl">Prescriptions</div><div class="presc">' + FAMILLES.map((f) => '<div class="pr"><button onclick="csPrescrire(' + q + ",'" + f.t + '\')" title="' + f.titre + ' : nouvelle prescription"><svg class="pi"><use href="#i-' + f.ic + '"/></svg>' + f.lib + '</button><button class="fl" onclick="csAntecedents(' + q + ",'" + f.t + '\')" title="' + f.titre + ' : antécédents des prescriptions" aria-label="' + f.titre + ' : antécédents des prescriptions">▾</button></div>').join("") + "</div></div>";
 }
-// Consultation dépliée : celle choisie, aucune si on l'a repliée (« — »), sinon la plus récente
+// Consultation dépliée : celle qu'on vient d'ouvrir, d'ajouter ou de compléter ; à l'ouverture du dossier, toutes sont fermées
 function ouverte(pid) {
-  const L = CS[pid] || []; if (OUV[pid] === "—") return null;
-  return L.some((c) => c.id === OUV[pid]) ? OUV[pid] : L[0] && L[0].id;
+  const L = CS[pid] || [];
+  return L.some((c) => c.id === OUV[pid]) ? OUV[pid] : null;
 }
-window.csTog = (pid, cid) => { OUV[pid] = ouverte(pid) === cid ? "—" : cid; A.pageDossier(pid); };
+// Plier / déplier : la zone qui défile garde sa position
+window.csTog = (pid, cid) => {
+  const z = document.getElementById("csListe"), pos = z ? z.scrollTop : 0;
+  OUV[pid] = ouverte(pid) === cid ? "—" : cid; A.pageDossier(pid);
+  const z2 = document.getElementById("csListe"); if (z2) z2.scrollTop = pos;
+};
 
 // ───── Nouvelle consultation / modifier : titre, date (du jour par défaut), note ─────
 function formulaire(x, c) {
