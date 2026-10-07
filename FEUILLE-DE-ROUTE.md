@@ -75,7 +75,7 @@ Proposition, à valider avec Dr Bentahila :
 - [ ] **Sauvegarde** : la sauvegarde Firebase du soir ne copie pas les fichiers. Activer la suppression douce et les versions
       du stockage.
 
-**1B – Consultations (journal médical)** (fait et testé le 07/10, **pas encore en ligne**)
+**1B – Consultations (journal médical)** (fait, testé et mis en ligne le 07/10)
 - [x] « Nouvelle consultation » : titre à remplir (titres proposés), date du jour (modifiable), note ; nom de la personne
       qui l'a créée. Créée **à la main** par le médecin ou la secrétaire : marquer un rendez-vous « Venu » ne crée rien.
 - [x] À l'intérieur : ligne **Note** (texte libre, à la place de « Motif Cs »), avec le nom de son auteur à droite.
@@ -99,7 +99,7 @@ Proposition, à valider avec Dr Bentahila :
 - [x] Tests : médecin (créer, plier, modifier, supprimer, relecture à la réouverture), secrétaire (créer, modifier, pas
       supprimer, chimio en lecture), infirmière (lecture seule), téléphone 390 px, bilan 352 317 DH, règles de sécurité
       compilées, aucune erreur.
-- [ ] Mise en ligne : site **et règles de sécurité** (avec l'accord de Dr Bentahila). Ensuite, **Dr Bentahila ouvre
+- [x] Mise en ligne le 07/10 : site **et règles de sécurité** (accord de Dr Bentahila). Ensuite, **Dr Bentahila ouvre
       Onco360 en premier** (mise à niveau des droits de l'équipe) avant que la secrétaire écrive une consultation.
 
 **1C – Médicaments et ordonnance** (le moteur commun)
@@ -277,3 +277,4 @@ Décisions déjà prises :
 | 07/10/2026 | 1A – Onglets | Retouches demandées : pictogrammes au lieu des émoticônes, boutons pli / CR / rendez-vous remis dans la carte radiothérapie, ouverture sur Consultation, onglets tenant sur un téléphone. Testé (3 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |
 | 07/10/2026 | 1A – Onglets | Infirmière : Consultation (lecture), Chimiothérapie ouverte en premier, Radiothérapie (lecture). Testé (3 rôles, bilan 352 317 DH). Mis en ligne. |
 | 07/10/2026 | 1B – Consultations | Journal des consultations (créer, plier, modifier, supprimer), barre des 5 prescriptions (à venir), nouveau droit d'écriture, secrétaire : chimio en lecture. Testé (3 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |
+| 07/10/2026 | 1B – Consultations | Mis en ligne (site + règles de sécurité). |
