@@ -279,6 +279,8 @@ Ce que Dr Bentahila remarque en utilisant Onco360 au quotidien.
       🗑, ⭐, 🏥, ➕ ➖. Mis en ligne.
 - [x] 💾 Enregistrer (disquette) et 🖨️ Fiche chimio (imprimante) remplacés le 07/10, mis en ligne.
 - [ ] Encore en suspens : 💉 ☢️ 🩺 👋.
+- [x] Rendez-vous à venir : **toutes** les séances de chimio prévues (J1, J8, J15…) de toutes les cures jusqu'à la dernière
+      (avant : seulement la cure en cours) ; les dates suivent le protocole. Mis en ligne le 07/10.
 - [x] Rendez-vous de chimio validés comme les autres (07/10) : bouton **« Venu »** (droit finances) dans Rendez-vous à venir
       et dans Consultations et hospitalisations (jours de chimio reçus depuis le 07/10 : « À valider ») → fenêtre de prix,
       **J1 = tarif consultation chimio (250 DH), J8 / J15… = 0**, modifiable ; « Annuler le statut ». La date ne se change que
@@ -408,3 +410,4 @@ Décisions déjà prises :
 | 07/10/2026 | 1E – Ordonnances types | Ordo. type : 26 ordonnances types (fichier du Dr corrigé et complété), clic = médicaments dans l'ordonnance, ✎ / ✕ / ajout, création / modification / suppression des types. Testé (bilan 352 317 DH). Pas encore en ligne. |
 | 07/10/2026 | 1E – Ordonnances types | Mis en ligne. |
 | 07/10/2026 | 2 – Retouches | Rendez-vous de chimio : « Venu » + fenêtre de prix (J1 250 DH, J8/J15 0), case « Consultation encaissée » retirée ; mis en ligne. |
+| 07/10/2026 | 2 – Retouches | Rendez-vous à venir : toutes les séances de chimio de toutes les cures prévues ; mis en ligne. |

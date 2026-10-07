@@ -25,21 +25,19 @@ export function evtsAgenda(P, ctx) {
   return out;
 }
 
-// D2 – rendez-vous de chimiothérapie à venir dans le dossier : la prochaine cure avec toutes ses séances
-// (ou les séances restantes de la cure en cours) ; une cure prévue dans le passé est signalée « en retard ».
+// D2 – rendez-vous de chimiothérapie à venir dans le dossier : TOUTES les séances prévues (J1, J8, J15…) de toutes les cures,
+// de la prochaine jusqu'à la dernière (07/10/2026 ; avant : seulement la cure en cours). Les dates suivent le protocole
+// (reports, dates modifiées). Une cure prévue dans le passé et non validée est signalée « en retard ».
 export function chimioAVenir(P, ctx) {
-  const t = ctx.aujourdhui; let out = [];
+  const t = ctx.aujourdhui, out = [];
   (P.lignes || []).forEach((L) => {
     if (L.arret) return; const p = protocoleDe(L, ctx.bib), E = etatLigne(L, P, ctx);
-    for (let i = 0; i < E.length; i++) {
-      const e = E[i]; if (e.st === "annulee" || !e.date) continue;
-      const sea = seancesCure(L, e, ctx.bib).filter((s) => s.st === "prevue" && s.prevue && s.prevue >= t), multi = seancesDe(protocoleCure(L, e.n - 1, ctx.bib)).length > 1;
-      const lst = [];
-      if (e.st === "prevue" && e.date >= t) lst.push({ d: e.date, lib: "Chimio · " + p.nom + " · C" + e.n + (multi ? " J1" : ""), lid: L.id, n: e.n, j: 1 });
-      sea.forEach((s) => { lst.push({ d: s.prevue, lib: "Chimio · " + p.nom + " · C" + e.n + " J" + s.j, lid: L.id, n: e.n, j: s.j }); });
-      if (e.st === "prevue" && e.date < t) lst.unshift({ d: e.date, lib: "Chimio · " + p.nom + " · C" + e.n + (multi ? " J1" : "") + " (en retard)", lid: L.id, n: e.n, j: 1 });
-      if (lst.length) { out = out.concat(lst); break; }
-    }
+    E.forEach((e) => {
+      if (e.st === "annulee" || !e.date) return;
+      const multi = seancesDe(protocoleCure(L, e.n - 1, ctx.bib)).length > 1, lib = "Chimio · " + p.nom + " · C" + e.n;
+      if (e.st === "prevue") out.push({ d: e.date, lib: lib + (multi ? " J1" : "") + (e.date < t ? " (en retard)" : ""), lid: L.id, n: e.n, j: 1 });
+      seancesCure(L, e, ctx.bib).forEach((s) => { if (s.st === "prevue" && s.prevue && s.prevue >= t) out.push({ d: s.prevue, lib: lib + " J" + s.j, lid: L.id, n: e.n, j: s.j }); });
+    });
   });
   return out;
 }
