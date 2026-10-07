@@ -19,8 +19,7 @@ ligne au journal (en bas).
       côtés 28 mm ; ordonnance A4 haut 60 mm / côtés 35 mm ; documents A4 (pli, compte rendu, rendez-vous) haut 45 mm /
       côtés 35 mm ; bas 18 à 22 mm.
 
-- [ ] **Installer Java 21** (le Java installé le 08/10 est la version 8, trop ancienne pour l'émulateur Firebase) : permettra
-      de tester les règles de sécurité sur un faux serveur avant chaque mise en ligne. Voir la commande donnée le 08/10.
+- [x] Java 21 installé le 08/10 : les règles de sécurité se testent sur l'émulateur (`tests/regles`).
 
 ## Déjà fait (jusqu'au 06/10/2026)
 - [x] Onco360 complet (phases A à D) et bascule : Onco360 est l'application de référence, l'ancienne est en lecture seule.
@@ -438,12 +437,12 @@ Découpé en **sous-étapes, une fenêtre chacune** : T1 à T5 (T6 facultatif).
       = son dossier.
 - [x] Bouton « + Tâche » dans le dossier.
 - [x] Règles de sécurité `taches` (lecture, création, modification, suppression comme décidé ; historique qui ne fait que
-      grandir). Vérifiées par Firebase (compilation), pas d'émulateur sur ce Mac (Java 8 installé le 08/10, l'émulateur demande Java 21).
+      grandir). Vérifiées par Firebase (compilation), puis sur l'émulateur en T3 (40 cas).
 - [x] Tests (faux Firebase, 3 comptes : médecin, secrétaire, infirmière) : création, réattribution, statuts, suppression,
       droits de chacun, téléphone 390 px, bilan 2026 inchangé (352 317 DH), aucune erreur dans la console.
 - [x] Mise en ligne (site + règles) par Dr Bentahila le 08/10.
 
-**T2 – Filtres** (fait et testé le 08/10, pas encore en ligne)
+**T2 – Filtres** (fait, testé et mis en ligne le 08/10)
 - [x] Barre de filtres au-dessus de la liste (les deux onglets) : **recherche** (titre, description, patient, personnes,
       type), **statut** (À faire et en cours · À faire · En cours · Terminées · Tous), **échéance** (En retard · Aujourd'hui ·
       Cette semaine, retards compris, jusqu'au dimanche · Sans échéance), **type**.
@@ -452,10 +451,22 @@ Découpé en **sous-étapes, une fenêtre chacune** : T1 à T5 (T6 facultatif).
 - [x] Nombre de tâches affichées, « (filtrées) », bouton « Effacer les filtres » ; filtres gardés après un changement de
       statut ou une modification ; trait rouge des urgentes gardé quand elles sont « En cours ».
 - [x] Tests (médecin, secrétaire, 390 px, bilan 352 317 DH, aucune erreur).
-- [ ] Mise en ligne (site seulement : `firebase deploy --only hosting`).
+- [x] Mise en ligne par Dr Bentahila le 08/10.
 
-**T3 – Commentaires et réattribution** : commentaires dans le fil de la tâche ; réattribuer depuis la fiche (le responsable
-aussi) ; chaque action datée, avec son auteur.
+**T3 – Commentaires et réattribution** (fait et testé le 08/10, pas encore en ligne)
+- [x] Fiche d'une tâche : **« Fil de la tâche »** dans l'ordre (le plus récent en bas) : événements en petit (créée, statut,
+      réattribuée, modifiée), **commentaires en bulles** (nom, date et heure ; les siens à droite, en bleu clair).
+- [x] Case « Écrire un commentaire » + **Envoyer** (ou Cmd + Entrée) : tous ceux qui voient la tâche peuvent commenter,
+      même terminée.
+- [x] **Réattribuer depuis la fiche** (menu « Pour » + bouton Réattribuer) : l'auteur, le responsable, le médecin. Si la
+      personne ne verra plus la tâche (ni auteur ni médecin), elle est prévenue et la tâche quitte sa liste.
+- [x] Liste : nombre de commentaires (pictogramme bulle). Fiche relue à l'ouverture (commentaires des collègues).
+- [x] Règles : chaque entrée du fil est **signée par la personne connectée** (impossible d'écrire au nom d'un collègue).
+- [x] **Tests des règles sur l'émulateur Firebase** (Java 21 installé le 08/10) : `cd tests/regles && npm test`,
+      40 cas (lecture, création, statut, commentaires, réattribution, suppression, usurpations) : 40 réussis.
+- [x] Tests dans le navigateur (médecin, secrétaire, infirmière, 390 px, bilan 352 317 DH, aucune erreur).
+- [ ] Mise en ligne : règles **puis** site.
+
 **T4 – Temps réel et notifications** : listes mises à jour sans recharger ; message à l'écran (« Nouvelle tâche de… »,
 « Votre tâche a été commentée ») ; pastille du menu (non lues, en retard) ; bloc « Mes tâches » du tableau de bord (dans
 la partie 7 jours / conflits).
@@ -720,3 +731,5 @@ Onco360_Package_Cession/
 | 08/10/2026 | Plan | Retirés : téléconsultation, écran TV et QR code de la salle d'attente, « Prévenir d'un retard ». « Marquer administrée » repris (étape 11). Vente : abonnements **et** cession. Auteur du code : Dr Rita Bentahila. Étapes renumérotées (6 à 13). |
 | 08/10/2026 | 5 – T1 Tâches | Mis en ligne (site + règles) par Dr Bentahila. |
 | 08/10/2026 | 5 – T2 Tâches | Filtres : recherche, responsable (médecins / secrétaires / infirmières / membre / demandées par moi), statut, échéance (retard, aujourd'hui, semaine, sans), type ; effacer les filtres. Testé (médecin, secrétaire, 390 px, bilan 352 317 DH). Pas encore en ligne. |
+| 08/10/2026 | 5 – T2 Tâches | Mis en ligne par Dr Bentahila. |
+| 08/10/2026 | 5 – T3 Tâches | Fil de la tâche (événements + commentaires en bulles), commenter, réattribuer depuis la fiche, nombre de commentaires dans la liste ; règles : fil signé par la personne connectée. Tests des règles sur l'émulateur (`tests/regles`, 40/40). Testé (3 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |

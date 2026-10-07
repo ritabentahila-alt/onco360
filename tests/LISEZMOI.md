@@ -18,3 +18,12 @@ python tests/test_seances.py      # report de J8, molécules ajoutées / retiré
 python tests/test_protocoles.py   # menus en cascade, fenêtre « Venu »
 ```
 Un petit serveur local (port 8767) sert `public/`. Les dates sont figées au 06/10/2026 dans `base.py` (`ouvrir(..., t=...)`).
+
+## Règles de sécurité (émulateur Firestore)
+`tests/regles/` : tests des règles (`firestore.rules`) sur l'émulateur Firebase, sans toucher à la vraie base.
+Java 21 nécessaire (Temurin, installé le 08/10/2026).
+```
+cd tests/regles && npm install      # une fois
+npm test                            # lance l'émulateur, les cas de test, puis l'arrête
+```
+`test-taches.mjs` : tâches (lecture, création, statut, commentaires, réattribution, suppression, usurpations).

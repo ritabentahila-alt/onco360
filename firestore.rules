@@ -117,7 +117,8 @@ service cloud.firestore {
       }
       // Tâches de l'équipe (07/10/2026) : les médecins les voient toutes ; les autres celles qu'ils ont créées ou dont ils sont
       // responsables (qui = [auteur, responsable]). Modification et réattribution : l'auteur, le responsable, les médecins ;
-      // l'auteur ne change jamais ; chaque modification ajoute une entrée à l'historique (fil), qui ne rétrécit jamais.
+      // l'auteur ne change jamais ; chaque modification ou commentaire ajoute une entrée au fil (historique), qui ne rétrécit
+      // jamais, signée par la personne connectée (08/10/2026).
       // Suppression : l'auteur ou un médecin, jamais une tâche terminée.
       match /taches/{t} {
         function estMedecin() { return estMembre() && m().role == 'medecin'; }
@@ -129,9 +130,10 @@ service cloud.firestore {
         }
         allow read: if concerne();
         allow create: if estMembre() && request.resource.data.de == request.auth.uid && valide(request.resource.data)
-          && request.resource.data.statut == 'afaire' && request.resource.data.fil.size() == 1;
+          && request.resource.data.statut == 'afaire' && request.resource.data.fil.size() == 1 && request.resource.data.fil[0].par == request.auth.uid;
         allow update: if concerne() && valide(request.resource.data) && request.resource.data.de == resource.data.de
-          && request.resource.data.fil.size() == resource.data.fil.size() + 1;
+          && request.resource.data.fil.size() == resource.data.fil.size() + 1
+          && request.resource.data.fil[request.resource.data.fil.size() - 1].par == request.auth.uid;
         allow delete: if (estMedecin() || (estMembre() && resource.data.de == request.auth.uid)) && resource.data.statut != 'fait';
       }
       // Montants des dossiers, tarifs, paiements, versements : uniquement avec le droit « finances »

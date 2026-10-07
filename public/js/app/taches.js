@@ -1,12 +1,12 @@
 // Onco360 – Tâches (étape T1, 07/10/2026) : page « Tâches » du menu (entre Patients et Protocoles), bouton « + Tâche » du dossier.
 // espaces/{e}/taches/{id} = { titre, desc, type, urgent, ech (AAAA-MM-JJ ou ""), h (HH:MM ou ""), patientId, patientNom,
 // etablissementId, pour (uid du responsable), pourNom, de (uid de l'auteur), deNom, qui: [auteur, responsable] (requêtes et
-// règles), statut: "afaire" | "encours" | "fait", faitPar, faitParNom, faitLe, fil: [{ le (ISO), par, parNom, txt }]
-// (historique : une entrée ajoutée à chaque modification, jamais retirée), o (ordre de création), cree, maj, majPar }.
+// règles), statut: "afaire" | "encours" | "fait", faitPar, faitParNom, faitLe, fil: [{ le (ISO), par, parNom, txt, c }]
+// (historique et commentaires (c: true, T3) : une entrée ajoutée à chaque modification, jamais retirée), o (ordre de création), cree, maj, majPar }.
 // Lecture : les médecins toutes ; les autres celles qu'ils ont créées ou dont ils sont responsables.
 // Modification et réattribution : l'auteur, le responsable, les médecins. Suppression : l'auteur ou un médecin, jamais une
 // tâche terminée. Les tâches d'un patient ne s'affichent pas dans son dossier (décision du 07/10/2026).
-import { collection, doc, getDocs, addDoc, updateDoc, deleteDoc, query, where, serverTimestamp, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, where, serverTimestamp, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { db } from "../config.js";
 
 let A = null;
@@ -54,6 +54,7 @@ function badges(t) {
   else if (t.statut !== "fait" && t.ech === D().t) h += '<span class="badge b-or">Aujourd\'hui</span>';
   return h;
 }
+const nbCom = (t) => (t.fil || []).filter((f) => f.c).length;
 function ligne(t) {
   const esc = A.esc, q = "'" + t.id + "'", moi = D().u.uid;
   const qui = t.de === t.pour ? "Pour soi-même (" + (t.de === moi ? "moi" : t.deNom) + ")" : "De " + (t.de === moi ? "moi" : t.deNom || "?") + " → pour " + (t.pour === moi ? "moi" : t.pourNom || "?");
@@ -62,7 +63,7 @@ function ligne(t) {
   return '<div class="tache st-' + t.statut + (retard(t) ? " retard" : "") + (t.urgent && t.statut !== "fait" ? " urgent" : "") + '" onclick="taOuvrir(' + q + ')">' +
     '<div class="tx"><div class="ti"><b>' + esc(t.titre) + "</b>" + badges(t) + "</div>" +
     '<div class="de">' + [t.type && t.titre.indexOf(t.type) !== 0 ? esc(t.type) : "", pat, t.ech ? '<span class="' + (retard(t) ? "rouge" : "") + '">' + esc(echeance(t)) + "</span>" : ""].filter(Boolean).join(" · ") + "</div>" +
-    '<div class="de">' + esc(qui) + (fin ? " · " + fin : "") + "</div></div>" +
+    '<div class="de">' + esc(qui) + (fin ? " · " + fin : "") + (nbCom(t) ? ' · <span class="ta-com" title="Commentaires">' + A.ic("bulle") + nbCom(t) + "</span>" : "") + "</div></div>" +
     '<select class="st" aria-label="Statut de la tâche" onclick="event.stopPropagation()" onchange="taStatut(' + q + ',this.value)">' + STATUTS.map(([k, l]) => '<option value="' + k + '"' + (t.statut === k ? " selected" : "") + ">" + l + "</option>").join("") + "</select></div>";
 }
 
@@ -146,9 +147,9 @@ window.taPatient = (id) => {
 };
 
 // ───── Écriture : une entrée d'historique à chaque modification ─────
-const entree = (txt) => ({ le: new Date().toISOString(), par: D().u.uid, parNom: nomConnecte(), txt });
-async function ecrire(t, champs, txt) {
-  const e = entree(txt), maj = Object.assign({}, champs, { fil: arrayUnion(e), maj: serverTimestamp(), majPar: D().u.uid });
+const entree = (txt, c) => Object.assign({ le: new Date().toISOString(), par: D().u.uid, parNom: nomConnecte(), txt }, c ? { c: true } : {});
+async function ecrire(t, champs, txt, c) {
+  const e = entree(txt, c), maj = Object.assign({}, champs, { fil: arrayUnion(e), maj: serverTimestamp(), majPar: D().u.uid });
   await updateDoc(doc(db, "espaces", A.ESPACE, "taches", t.id), maj);
   Object.assign(t, champs, { fil: (t.fil || []).concat([e]), majPar: D().u.uid });
 }
@@ -161,25 +162,61 @@ window.taStatut = async (id, s) => {
   else if (avant === "fait") Object.assign(champs, { faitPar: null, faitParNom: null, faitLe: null });
   try { await ecrire(t, champs, s === "fait" ? "Terminée" : avant === "fait" ? "Rouverte : " + libStatut(s) : "Statut : " + libStatut(s)); A.toast(s === "fait" ? "Tâche terminée." : "Statut : " + libStatut(s) + "."); }
   catch (e) { A.toast(messageErreur(e)); }
-  if ($("fenetre") && !$("fenetre").classList.contains("cache") && $("taFiche") && $("taFiche").dataset.id === id) taFiche(t);
+  if (ficheOuverte(id)) taFiche(t);
   raf();
 };
 
-// ───── Fiche d'une tâche : détails, historique, Modifier / Supprimer ─────
+// ───── Fiche d'une tâche : détails, statut, réattribution, fil (historique + commentaires), Modifier / Supprimer ─────
+const ficheOuverte = (id) => $("fenetre") && !$("fenetre").classList.contains("cache") && $("taFiche") && $("taFiche").dataset.id === id;
 function taFiche(t) {
-  const esc = A.esc, q = "'" + t.id + "'";
+  const esc = A.esc, q = "'" + t.id + "'", moi = D().u.uid;
   const champ = (lib, v) => v ? '<div class="large"><label>' + lib + "</label><div>" + v + "</div></div>" : "";
+  // Responsable : changé ici par l'auteur, le responsable ou un médecin (tâche non terminée)
+  const reattr = peutModifier(t) && t.statut !== "fait" && MB;
+  const pour = reattr ? '<select id="taRe" aria-label="Pour">' + MB.filter((m) => m.actif !== false || m.uid === t.pour).map((m) => '<option value="' + esc(m.uid) + '"' + (m.uid === t.pour ? " selected" : "") + ">" + esc(m.uid === moi ? "Moi-même (" + nomMembre(m) + ")" : nomMembre(m)) + "</option>").join("") + '</select><button class="bt plein petit cache" id="taReOk" onclick="taReattribuer(' + q + ')">Réattribuer</button>' : esc(t.pourNom || "?");
+  // Fil : dans l'ordre, les événements en petit, les commentaires en bulles
+  const fil = (t.fil || []).map((f) => f.c
+    ? '<div class="ta-c' + (f.par === moi ? " moi" : "") + '"><div class="qui"><b>' + esc(f.parNom || "") + "</b>" + esc(quand(f.le)) + '</div><div class="txt">' + esc(f.txt || "") + "</div></div>"
+    : '<div class="ta-ev"><span class="dt">' + esc(quand(f.le).replace(" à ", " ")) + "</span><b>" + esc(f.parNom || "") + "</b> " + esc(f.txt || "") + "</div>").join("");
   A.fenetre('<div id="taFiche" data-id="' + esc(t.id) + '"><h3>' + esc(t.titre) + "</h3>" + '<div class="ti" style="margin:-6px 0 12px">' + badges(t) + "</div>" +
-    '<div class="form">' + champ("Type", esc(t.type)) + champ("Description", '<div class="ta-desc">' + esc(t.desc) + "</div>") +
+    '<div class="form">' + champ("Type", esc(t.type)) + champ("Description", t.desc ? '<div class="ta-desc">' + esc(t.desc) + "</div>" : "") +
     champ("Patient", t.patientId ? '<button class="lien-p" onclick="taPatient(' + q + ')">' + esc(t.patientNom || "Patient") + "</button>" : "") +
     champ("Échéance", t.ech ? esc(A.dfrA(t.ech) + (t.h ? " à " + t.h : "")) : "") +
-    '<div><label>De la part de</label><div>' + esc(t.deNom || "?") + "</div></div><div><label>Pour</label><div>" + esc(t.pourNom || "?") + "</div></div>" +
+    '<div><label>De la part de</label><div>' + esc(t.deNom || "?") + '</div></div><div><label' + (reattr ? ' for="taRe"' : "") + '>Pour</label><div class="ta-re">' + pour + "</div></div>" +
     '<div class="large"><label for="taSt">Statut</label><select id="taSt" onchange="taStatut(' + q + ',this.value)">' + STATUTS.map(([k, l]) => '<option value="' + k + '"' + (t.statut === k ? " selected" : "") + ">" + l + "</option>").join("") + "</select></div></div>" +
-    '<h4 class="soustitre">Historique</h4><div class="ta-fil">' + (t.fil || []).slice().reverse().map((f) => '<div><span class="dt">' + esc(quand(f.le).replace(" à ", " ")) + "</span><b>" + esc(f.parNom || "") + "</b> " + esc(f.txt || "") + "</div>").join("") + "</div>" +
+    '<h4 class="soustitre">Fil de la tâche</h4><div class="ta-fil" id="taFil">' + fil + "</div>" +
+    '<div class="ta-ecrire"><textarea id="taCom" rows="2" placeholder="Écrire un commentaire (consigne, précision…)"></textarea><button class="bt plein" id="taComOk" onclick="taCommenter(' + q + ')">Envoyer</button></div>' +
     '<div class="err" id="fErr"></div><div class="boutons">' + (peutSupprimer(t) ? '<button class="bt gris" style="margin-right:auto;color:var(--rouge)" onclick="taSupprimer(' + q + ')">' + A.ic("corbeille") + "Supprimer</button>" : "") +
     (peutModifier(t) ? '<button class="bt clair" onclick="taModifier(' + q + ')">Modifier</button>' : "") + '<button class="bt plein" onclick="fermerFenetre()">Fermer</button></div></div>');
+  const z = $("taFil"); z.scrollTop = z.scrollHeight; // le plus récent en bas, visible
+  if ($("taRe")) $("taRe").onchange = () => $("taReOk").classList.toggle("cache", $("taRe").value === t.pour);
+  $("taCom").onkeydown = (ev) => { if (ev.key === "Enter" && (ev.metaKey || ev.ctrlKey)) { ev.preventDefault(); window.taCommenter(t.id); } };
 }
-window.taOuvrir = (id) => { const t = trouver(id); if (t) taFiche(t); };
+// Ouverture : affichée tout de suite, puis relue (un collègue a pu commenter ou la modifier depuis)
+window.taOuvrir = async (id) => {
+  const t = trouver(id); if (!t) return; taFiche(t);
+  const s = await getDoc(doc(db, "espaces", A.ESPACE, "taches", id)).catch(() => null);
+  if (!s || !s.exists() || (s.data().fil || []).length === (t.fil || []).length && s.data().statut === t.statut) return;
+  Object.keys(t).forEach((k) => { if (k !== "id") delete t[k]; }); Object.assign(t, s.data());
+  if (ficheOuverte(id) && !A.val("taCom")) taFiche(t); raf();
+};
+window.taCommenter = async (id) => {
+  const t = trouver(id), txt = String(($("taCom") || {}).value || "").trim(); if (!t || !txt) { if ($("taCom")) $("taCom").focus(); return; }
+  A.occupe($("taComOk"), true);
+  try { await ecrire(t, {}, txt, true); if (ficheOuverte(id)) { taFiche(t); setTimeout(() => $("taCom") && $("taCom").focus(), 80); } raf(); }
+  catch (e) { A.occupe($("taComOk"), false); A.erreur(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de commenter cette tâche." : "Envoi impossible : " + ((e && e.message) || e)); }
+};
+window.taReattribuer = async (id) => {
+  const t = trouver(id), uid = A.val("taRe"), moi = D().u.uid; if (!t || !uid || uid === t.pour || !peutModifier(t)) return;
+  const m = (MB || []).find((z) => z.uid === uid), nom = nomMembre(m), perdue = !estMedecin() && t.de !== moi && uid !== moi;
+  if (perdue && !confirm("Réattribuer la tâche à " + nom + " ?\n\nVous ne la verrez plus dans votre liste (seuls son auteur, la personne responsable et le médecin la voient).")) return;
+  A.occupe($("taReOk"), true);
+  try {
+    await ecrire(t, { pour: uid, pourNom: nom, qui: [...new Set([t.de, uid])] }, "Réattribuée à " + nom);
+    if (perdue) { T = T.filter((z) => z.id !== id); A.fermerFenetre(); } else if (ficheOuverte(id)) taFiche(t);
+    A.toast("Tâche réattribuée à " + nom + "."); raf();
+  } catch (e) { A.occupe($("taReOk"), false); A.erreur(messageErreur(e)); }
+};
 window.taModifier = (id) => { const t = trouver(id); if (t && peutModifier(t)) formulaire(t, null); };
 window.taSupprimer = async (id) => {
   const t = trouver(id); if (!t || !peutSupprimer(t)) return;
