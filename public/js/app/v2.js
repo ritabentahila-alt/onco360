@@ -442,7 +442,7 @@ function pageDossier(id) {
   const okR = peut("rendezvous"), b = (lib, fn, cls) => '<button class="mini ' + (cls || "") + '" onclick="' + fn + '">' + lib + "</button>";
   const actionsRdv = (v, wa) => {
     if (!okR) return wa ? '<div class="actr">' + wa + "</div>" : ""; const q = "'" + x.id + "','" + v.id + "'";
-    if ((v.st || "prevu") !== "prevu") return '<div class="actr">' + b("Annuler le statut", "statutRdv(" + q + ",'prevu')") + "</div>";
+    if ((v.st || "prevu") !== "prevu") return annulable(v) ? '<div class="actr">' + b("Annuler le statut", "statutRdv(" + q + ",'prevu')") + "</div>" : "";
     return '<div class="actr">' + (wa || "") + (v.d <= D.t ? b("Venu", "statutRdv(" + q + ",'fait')", "v") + b("Non venu", "statutRdv(" + q + ",'absent')", "r") : "") + b("Modifier", "ouvrirRdv(" + q + ")") + b("Supprimer", "statutRdv(" + q + ",'supprimer')") + "</div>";
   };
   const aVenir = (v) => (v.st || "prevu") === "prevu" && (v.f || v.d) >= t;
@@ -718,17 +718,21 @@ function horsHoraires(etab, d, h) {
   if (h && !pl.some((p) => h >= p[0] && h < p[1])) return "À " + h + ", c'est en dehors des horaires de " + qui + " le " + j + " (" + pl.map((p) => p[0] + "–" + p[1]).join(", ") + ").";
   return "";
 }
+// Statut (venu / non venu) : noté avec son auteur (sp) ; seul le médecin annule un statut qu'il n'a pas posé lui-même
+// (07/10/2026 : la secrétaire n'annule pas une consultation validée par le médecin ; anciens statuts sans auteur = médecin)
+const annulable = (r) => D.membre.role === "medecin" || (!!r.sp && r.sp === D.u.uid);
 window.statutRdv = async (id, rid, st) => {
   const x = D.patients.find((p) => p.id === id); if (!x) return;
   const l = lireRdvs(x), r = l.find((v) => v.id === rid); if (!r) return;
+  if (st === "prevu" && !annulable(r)) { toast("Statut posé par le médecin : lui seul peut l'annuler."); return; }
   if (st === "supprimer") { if (!confirm("Supprimer ce rendez-vous ?")) return; l.splice(l.indexOf(r), 1); }
   else if (st === "fait") {
     // Droit « finances » : on valide le prix de la consultation (réduction possible) avant de la passer en « venu »
     if (peut("finances") && D.tarifs && r.type !== T_RTC) { prixVenu(x, l, r); return; }
-    r.st = "fait"; r.dv = r.d;
+    r.st = "fait"; r.dv = r.d; r.sp = D.u.uid;
   }
-  else if (st === "absent") { r.st = "absent"; delete r.dv; }
-  else { r.st = "prevu"; delete r.dv; }
+  else if (st === "absent") { r.st = "absent"; delete r.dv; r.sp = D.u.uid; }
+  else { r.st = "prevu"; delete r.dv; delete r.sp; }
   try { await enregistrer(x, { rdvsJson: JSON.stringify(l) }, { fait: "Rendez-vous : venu", absent: "Rendez-vous : non venu", prevu: "Rendez-vous remis à prévu", supprimer: "Rendez-vous supprimé" }[st]); toast("Enregistré."); pageDossier(x.id); }
   catch (e) { toast(e.message); pageDossier(x.id); }
 };
@@ -749,7 +753,7 @@ async function prixVenu(x, l, r) {
     if (isNaN(m) || m < 0) { erreur("Indiquez le montant (0 si gratuit)."); return; }
     occupe($("fOk"), true);
     try {
-      r.st = "fait"; r.dv = r.d;
+      r.st = "fait"; r.dv = r.d; r.sp = D.u.uid;
       await enregistrer(x, { rdvsJson: JSON.stringify(l) }, "Rendez-vous : venu (" + fmt(m) + " DH" + (hs && !o0.v1 ? "/jour" : "") + ")");
       await majMontants(x, (M) => { M.rdv = M.rdv || {}; const o = M.rdv[r.id] = M.rdv[r.id] || {}; if (o.v1) o.prix = m; else if (hs) { o.tj = m; delete o.brut; } else o.brut = m; });
       fermerFenetre(); toast("Enregistré."); pageDossier(x.id);

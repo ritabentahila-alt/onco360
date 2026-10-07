@@ -3,7 +3,8 @@
 // titre (libre, ex. « J1C1 FOLFOX »), note,
 // lignes: [{ id, t: "medic"|"exam"|"ordo"|"analyse"|"courrier", d, lib, par, med, html, format, taille }] (une ligne = une
 // ordonnance : html = la feuille, med = médecin signataire), o (ordre de création), creePar, creeParNom, cree,
-// majPar, maj }. Lecture : tous les membres (périmètre) ; écriture : droit « ecrireConsultations » ; suppression : médecin.
+// majPar, maj }. Lecture : tous les membres (périmètre) ; écriture : droit « ecrireConsultations » ; suppression : médecin (toutes), secrétaire
+// (celles qu'elle a créées).
 // Les prescriptions (barre en bas de l'onglet, indépendante des consultations) s'ajoutent en ligne dans la consultation du
 // jour : étapes 1C à 1E. Ici : créer, modifier, supprimer, plier / déplier.
 import { collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -18,7 +19,8 @@ const col = () => collection(db, "espaces", A.ESPACE, "consultations");
 const tri = (a, b) => (b.d || "").localeCompare(a.d || "") || (b.o || 0) - (a.o || 0);
 const trouver = (pid) => D().patients.find((p) => p.id === pid);
 const peutEcrire = () => A.peut("ecrireConsultations");
-const peutSupprimer = () => peutEcrire() && D().membre.role === "medecin";
+// Suppression d'une consultation : le médecin toutes, les autres (secrétaire) seulement celles qu'ils ont créées (07/10/2026)
+const peutSupprimer = (c) => peutEcrire() && (D().membre.role === "medecin" || (!!c && c.creePar === D().u.uid));
 const nomConnecte = () => document.getElementById("nomMenu").textContent;
 
 // Les 5 familles de prescriptions (barre en bas de l'onglet), libellé de leur ligne dans la consultation
@@ -65,7 +67,7 @@ export function htmlConsultations(x) {
       h += '<div class="cs-c"><table class="cs-l"><tr><th>Note</th><td>' + (c.note ? esc(c.note) : '<span class="mesures">—</span>') + '</td><td class="au">' + esc(c.creeParNom || "") + "</td></tr>" +
         (c.lignes || []).map((l) => "<tr><th>" + esc(libLigne(l.t)) + "</th><td>" + (l.html ? '<button class="lien-l" title="Voir, modifier ou réimprimer l\'ordonnance" onclick="ordVoir(' + qc + ",'" + l.id + '\')">' + esc(l.lib || "Ordonnance") + "</button>" : esc(l.lib || "")) + '</td><td class="au">' + esc(l.par || "") + "</td></tr>").join("") + "</table>";
       if (peutEcrire()) {
-        h += '<div class="actr" style="justify-content:flex-start;margin-top:10px"><button class="mini" onclick="csModifier(' + qc + ')">Modifier</button>' + (peutSupprimer() ? '<button class="mini r" onclick="csSupprimer(' + qc + ')">Supprimer</button>' : "") + "</div>";
+        h += '<div class="actr" style="justify-content:flex-start;margin-top:10px"><button class="mini" onclick="csModifier(' + qc + ')">Modifier</button>' + (peutSupprimer(c) ? '<button class="mini r" onclick="csSupprimer(' + qc + ')">Supprimer</button>' : "") + "</div>";
       }
       h += "</div>";
     }
@@ -124,7 +126,7 @@ function formulaire(x, c) {
 window.csNouvelle = (pid) => { const x = trouver(pid); if (x && peutEcrire()) formulaire(x, null); };
 window.csModifier = (pid, cid) => { const x = trouver(pid), c = (CS[pid] || []).find((z) => z.id === cid); if (x && c && peutEcrire()) formulaire(x, c); };
 window.csSupprimer = async (pid, cid) => {
-  const x = trouver(pid), c = (CS[pid] || []).find((z) => z.id === cid); if (!x || !c || !peutSupprimer()) return;
+  const x = trouver(pid), c = (CS[pid] || []).find((z) => z.id === cid); if (!x || !c || !peutSupprimer(c)) return;
   if (!confirm("Supprimer la consultation du " + A.dfrA(c.d) + " (« " + nomCs(c) + " ») ?\n\nSa note et ses prescriptions seront effacées.")) return;
   try { await deleteDoc(doc(db, "espaces", A.ESPACE, "consultations", cid)); CS[pid] = CS[pid].filter((z) => z.id !== cid); A.journal(x, "Consultation supprimée : " + nomCs(c) + " du " + A.dfrA(c.d)); A.toast("Consultation supprimée."); A.pageDossier(pid); }
   catch (e) { A.toast(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de supprimer cette consultation." : "Suppression impossible."); }

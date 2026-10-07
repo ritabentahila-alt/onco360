@@ -28,7 +28,11 @@ const peutEcrire = () => A.peut("ecrireConsultations");
 const sansAcc = (s) => String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 // Ordre des listes : favoris ⭐ d'abord (07/10/2026), puis alphabétique
 const alpha = (a, b) => (b.fav ? 1 : 0) - (a.fav ? 1 : 0) || sansAcc(a.nom).localeCompare(sansAcc(b.nom));
-const etoile = (o, fn) => '<button class="ico etoile' + (o.fav ? " on" : "") + '" aria-pressed="' + !!o.fav + '" title="' + (o.fav ? "Retirer des favoris" : "Mettre en favori (en tête de liste)") + '" aria-label="Favori : ' + A.esc(o.nom) + '" onclick="' + fn + "('" + o.id + "')\">" + ico("etoile") + "</button>";
+// Listes du cabinet (médicaments, ordonnances types, analyses, examens, modèles de courriers) : créées, modifiées, supprimées
+// et mises en favori par le médecin seulement (07/10/2026) ; la secrétaire s'en sert pour prescrire
+const gereListes = () => peutEcrire() && D().membre.role === "medecin";
+const gerer = (h) => (gereListes() ? h : "");
+const etoile = (o, fn) => !gereListes() ? (o.fav ? '<span class="ico etoile on" title="Favori" aria-label="Favori">' + ico("etoile") + "</span>" : "") : '<button class="ico etoile' + (o.fav ? " on" : "") + '" aria-pressed="' + !!o.fav + '" title="' + (o.fav ? "Retirer des favoris" : "Mettre en favori (en tête de liste)") + '" aria-label="Favori : ' + A.esc(o.nom) + '" onclick="' + fn + "('" + o.id + "')\">" + ico("etoile") + "</button>";
 const ico = (n) => '<svg class="pi"><use href="#i-' + n + '"/></svg>';
 
 // ───── Listes du cabinet : médicaments, ordonnances types (liste de départ tant que le cabinet ne l'a pas modifiée) ─────
@@ -87,7 +91,7 @@ function vueListe() {
   const x = trouver(S.pid);
   A.fenetre("<h3>" + (S.modif ? "Modifier l'ordonnance du " + A.dfrA(S.modif.d) : "Médicaments") + " — " + A.esc(x.r.nm) + "</h3>" +
     '<div class="md-barre"><div class="recherche">' + A.ic("loupe") + '<input id="mdQ" type="search" autocomplete="off" placeholder="Rechercher un médicament, une posologie, une classe…" value="' + A.esc(S.q) + '"></div>' +
-    '<button class="bt clair petit" onclick="mdFiche()">' + A.ic("plus") + "Nouveau médicament</button></div>" +
+    gerer('<button class="bt clair petit" onclick="mdFiche()">' + A.ic("plus") + "Nouveau médicament</button>") + "</div>" +
     '<div class="md-liste" id="mdListe"></div><p class="mesures" style="margin:6px 0 0">Double-cliquez sur un médicament (ou touchez ' + ico("plus") + ") pour l'ajouter à l'ordonnance.</p>" +
     '<h4 class="soustitre">Ordonnance</h4><div id="mdOrdo" class="md-ordo"></div>' +
     '<div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt plein" onclick="mdAfficher()">Afficher l\'ordonnance</button></div>', "large");
@@ -102,9 +106,9 @@ function liste() {
     const q = "'" + m.id + "'";
     return '<tr class="m" ondblclick="mdAjouter(' + q + ')"><td><b>' + A.esc(m.nom) + "</b>" + (m.classe ? '<div class="cl">' + A.esc(m.classe) + "</div>" : "") + "</td><td>" + A.esc(m.poso) + '</td><td class="act">' + etoile(m, "mdFavori") +
       '<button class="ico vert" title="Ajouter à l\'ordonnance" aria-label="Ajouter ' + A.esc(m.nom) + ' à l\'ordonnance" onclick="mdAjouter(' + q + ')">' + ico("plus") + "</button>" +
-      '<button class="ico" title="Modifier" aria-label="Modifier ' + A.esc(m.nom) + '" onclick="mdFiche(' + q + ')">' + ico("crayon") + "</button>" +
-      '<button class="ico rouge" title="Supprimer de la liste" aria-label="Supprimer ' + A.esc(m.nom) + '" onclick="mdSupprimer(' + q + ')">' + ico("croix") + "</button></td></tr>";
-  }).join("") + "</table>" : '<p class="sous" style="padding:12px">Aucun médicament ne correspond. « Nouveau médicament » pour l\'ajouter à la liste.</p>';
+      gerer('<button class="ico" title="Modifier" aria-label="Modifier ' + A.esc(m.nom) + '" onclick="mdFiche(' + q + ')">' + ico("crayon") + "</button>" +
+      '<button class="ico rouge" title="Supprimer de la liste" aria-label="Supprimer ' + A.esc(m.nom) + '" onclick="mdSupprimer(' + q + ')">' + ico("croix") + "</button>") + "</td></tr>";
+  }).join("") + "</table>" : '<p class="sous" style="padding:12px">Aucun médicament ne correspond.' + gerer(" « Nouveau médicament » pour l'ajouter à la liste.") + "</p>";
 }
 // Médicaments de l'ordonnance en préparation : modifier ✎ (nom, posologie), monter, descendre, retirer
 function ordo() {
@@ -162,7 +166,7 @@ function vueTypes() {
   const x = trouver(S.pid); T = null;
   A.fenetre("<h3>" + (S.modif ? "Modifier l'ordonnance du " + A.dfrA(S.modif.d) : "Ordonnances types") + " — " + A.esc(x.r.nm) + "</h3>" +
     '<div class="md-barre"><div class="recherche">' + A.ic("loupe") + '<input id="otQ" type="search" autocomplete="off" placeholder="Rechercher une ordonnance type ou un médicament…" value="' + A.esc(S.q) + '"></div>' +
-    '<button class="bt clair petit" onclick="otFiche()">' + A.ic("plus") + "Nouvelle ordonnance type</button></div>" +
+    gerer('<button class="bt clair petit" onclick="otFiche()">' + A.ic("plus") + "Nouvelle ordonnance type</button>") + "</div>" +
     '<div class="md-liste" id="otListe"></div><p class="mesures" style="margin:6px 0 0">Cliquez sur une ordonnance type (ou touchez ' + ico("plus") + ") : tous ses médicaments passent dans l'ordonnance ci-dessous.</p>" +
     '<h4 class="soustitre">Ordonnance</h4><div id="mdOrdo" class="md-ordo"></div>' + champAjout() +
     '<div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt plein" onclick="mdAfficher()">Afficher l\'ordonnance</button></div>', "large");
@@ -176,9 +180,9 @@ function listeTypes() {
     const q = "'" + o.id + "'";
     return '<tr class="m" onclick="otAjouter(' + q + ')"><td><b>' + A.esc(o.nom) + '</b><div class="cl">' + o.items.length + " médicament" + (o.items.length > 1 ? "s" : "") + "</div></td><td>" + A.esc(o.items.map((i) => i.nom).join(" ; ")) + '</td><td class="act" onclick="event.stopPropagation()">' + etoile(o, "otFavori") +
       '<button class="ico vert" title="Mettre ses médicaments dans l\'ordonnance" aria-label="Utiliser ' + A.esc(o.nom) + '" onclick="otAjouter(' + q + ')">' + ico("plus") + "</button>" +
-      '<button class="ico" title="Modifier l\'ordonnance type" aria-label="Modifier ' + A.esc(o.nom) + '" onclick="otFiche(' + q + ')">' + ico("crayon") + "</button>" +
-      '<button class="ico rouge" title="Supprimer l\'ordonnance type" aria-label="Supprimer ' + A.esc(o.nom) + '" onclick="otSupprimer(' + q + ')">' + ico("croix") + "</button></td></tr>";
-  }).join("") + "</table>" : '<p class="sous" style="padding:12px">Aucune ordonnance type ne correspond. « Nouvelle ordonnance type » pour en créer une.</p>';
+      gerer('<button class="ico" title="Modifier l\'ordonnance type" aria-label="Modifier ' + A.esc(o.nom) + '" onclick="otFiche(' + q + ')">' + ico("crayon") + "</button>" +
+      '<button class="ico rouge" title="Supprimer l\'ordonnance type" aria-label="Supprimer ' + A.esc(o.nom) + '" onclick="otSupprimer(' + q + ')">' + ico("croix") + "</button>") + "</td></tr>";
+  }).join("") + "</table>" : '<p class="sous" style="padding:12px">Aucune ordonnance type ne correspond.' + gerer(" « Nouvelle ordonnance type » pour en créer une.") + "</p>";
 }
 window.otAjouter = (id) => {
   const o = TYPES.find((z) => z.id === id); if (!o || !S) return;
@@ -187,6 +191,7 @@ window.otAjouter = (id) => {
 };
 // Nouvelle ordonnance type / modifier : nom + médicaments (recherche dans la liste, ligne libre, ✎, ↑ ↓, ✕)
 window.otFiche = (id) => {
+  if (!gereListes()) return;
   const o = id ? TYPES.find((z) => z.id === id) : null;
   T = { id: o ? o.id : null, nom: o ? o.nom : "", items: o ? o.items.map((i) => ({ nom: i.nom, poso: i.poso })) : [], ed: null };
   A.fenetre("<h3>" + (o ? "Modifier l'ordonnance type" : "Nouvelle ordonnance type") + "</h3>" +
@@ -208,6 +213,7 @@ window.otValider = async () => {
   catch (e) { A.occupe($("otOk"), false); A.erreur(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de modifier les ordonnances types." : "Enregistrement impossible : " + ((e && e.message) || e)); }
 };
 window.otSupprimer = async (id) => {
+  if (!gereListes()) return;
   const o = TYPES.find((z) => z.id === id); if (!o || !confirm("Supprimer l'ordonnance type « " + o.nom + " » ?\n\nLes ordonnances déjà faites ne changent pas.")) return;
   try { await modifierTypes((L) => { const i = L.findIndex((z) => z.id === id); if (i >= 0) L.splice(i, 1); }); A.toast("Ordonnance type supprimée."); listeTypes(); }
   catch (e) { A.toast(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de modifier les ordonnances types." : "Suppression impossible."); }
@@ -215,6 +221,7 @@ window.otSupprimer = async (id) => {
 
 // Nouveau médicament / modifier : nom, posologie, classe thérapeutique
 window.mdFiche = (id) => {
+  if (!gereListes()) return;
   T = null;
   const m = id ? BIB.find((z) => z.id === id) : null, classes = [...new Set(BIB.map((z) => z.classe).filter(Boolean))].sort();
   A.fenetre("<h3>" + (m ? "Modifier le médicament" : "Nouveau médicament") + "</h3>" +
@@ -269,7 +276,7 @@ function vueAnalyses() {
   const x = trouver(S.pid); T = null;
   A.fenetre("<h3>" + (S.modif ? "Modifier l'ordonnance du " + A.dfrA(S.modif.d) : FAM.titre) + " — " + A.esc(x.r.nm) + "</h3>" +
     '<div class="md-barre"><div class="recherche">' + A.ic("loupe") + '<input id="anQ" type="search" autocomplete="off" placeholder="' + FAM.cherche + '" value="' + A.esc(S.q) + '"></div>' +
-    (FAM.lb ? '<button class="bt clair petit" onclick="bilFiche()">' + A.ic("plus") + FAM.nouvB + "</button>" : "") + '<button class="bt clair petit" onclick="anaFiche()">' + A.ic("plus") + FAM.nouvA + "</button></div>" +
+    gerer((FAM.lb ? '<button class="bt clair petit" onclick="bilFiche()">' + A.ic("plus") + FAM.nouvB + "</button>" : "") + '<button class="bt clair petit" onclick="anaFiche()">' + A.ic("plus") + FAM.nouvA + "</button>") + "</div>" +
     '<div class="md-liste" id="anListe"></div><p class="mesures" style="margin:6px 0 0">' + A.esc(FAM.aide) + "</p>" +
     '<h4 class="soustitre">Ordonnance</h4><div id="mdOrdo" class="md-ordo"></div>' + champAjout() +
     '<div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt plein" onclick="mdAfficher()">Afficher l\'ordonnance</button></div>', "large");
@@ -280,13 +287,13 @@ function listeAnalyses() {
   const mots = sansAcc(S.q).split(/\s+/).filter(Boolean), ok = (t) => mots.every((w) => sansAcc(t).indexOf(w) >= 0);
   const parNom = (o) => (mots.length && !ok(o.nom) ? 1 : 0); // nom qui correspond d'abord, puis contenu
   const B = BIL.filter((b) => ok(b.nom + " " + b.items.join(" "))).sort((a, b) => parNom(a) - parNom(b)), L = ANA.filter((a) => ok(a.nom + " " + (a.cat || "") + " " + (a.note || ""))).sort((a, b) => parNom(a) - parNom(b));
-  const act = (o, fav, fiche, sup) => '<td class="act" onclick="event.stopPropagation()">' + etoile(o, fav) +
+  const act = (o, fav, fiche, sup) => '<td class="act" onclick="event.stopPropagation()">' + etoile(o, fav) + gerer(
     '<button class="ico" title="Modifier" aria-label="Modifier ' + A.esc(o.nom) + '" onclick="' + fiche + "('" + o.id + "')\">" + ico("crayon") + "</button>" +
-    '<button class="ico rouge" title="Supprimer de la liste" aria-label="Supprimer ' + A.esc(o.nom) + '" onclick="' + sup + "('" + o.id + "')\">" + ico("croix") + "</button></td>";
+    '<button class="ico rouge" title="Supprimer de la liste" aria-label="Supprimer ' + A.esc(o.nom) + '" onclick="' + sup + "('" + o.id + "')\">" + ico("croix") + "</button>") + "</td>";
   $("anListe").innerHTML = B.length || L.length ? '<table class="md-t">' +
     (B.length ? "<tr><th>" + FAM.colB + "</th><th>Contenu</th><th></th></tr>" + B.map((b) => '<tr class="m" onclick="anaAjouter(\'b:' + b.id + '\')"><td><b>' + A.esc(b.nom) + "</b>" + (general(b) && !FAM.eclater ? '<div class="cl">Bilan général</div>' : "") + "</td><td>" + A.esc(b.items.join(", ")) + "</td>" + act(b, "bilFavori", "bilFiche", "bilSupprimer") + "</tr>").join("") : "") +
     (L.length ? "<tr><th>" + FAM.colA + "</th><th>Catégorie</th><th></th></tr>" + L.map((a) => '<tr class="m" onclick="anaAjouter(\'a:' + a.id + '\')"><td><b>' + A.esc(a.nom) + "</b>" + (a.note ? '<div class="cl">' + A.esc(a.note) + "</div>" : "") + "</td><td>" + A.esc(a.cat || "") + "</td>" + act(a, "anaFavori", "anaFiche", "anaSupprimer") + "</tr>").join("") : "") + "</table>"
-    : '<p class="sous" style="padding:12px">Rien ne correspond. ' + (FAM.lb ? "« " + FAM.nouvB + " » ou " : "") + "« " + FAM.nouvA + " » pour l'ajouter.</p>";
+    : '<p class="sous" style="padding:12px">Rien ne correspond.' + gerer(" " + (FAM.lb ? "« " + FAM.nouvB + " » ou " : "") + "« " + FAM.nouvA + " » pour l'ajouter.") + "</p>";
 }
 // Ajout : dans l'ordonnance du patient (lignes développées) ou dans la fiche d'un bilan (le nom de l'analyse ou du bilan)
 window.anaAjouter = (k) => {
@@ -298,6 +305,7 @@ window.anaAjouter = (k) => {
 };
 // Nouvelle analyse (ou nouvel examen) / modifier : nom, catégorie, précautions (facultatif)
 window.anaFiche = (id) => {
+  if (!gereListes()) return;
   const a = id ? ANA.find((z) => z.id === id) : null, cats = [...new Set(ANA.map((z) => z.cat).filter(Boolean))].sort(); T = null;
   A.fenetre("<h3>" + (a ? "Modifier " + (FAM.t === "exam" ? "l'examen" : "l'analyse") : FAM.nouvA) + "</h3>" +
     '<div class="form"><div class="large"><label for="anNom">' + FAM.colA + '</label><input id="anNom" value="' + A.esc(a ? a.nom : "") + '" placeholder="' + A.esc(FAM.phA) + '"></div>' +
@@ -316,6 +324,7 @@ window.anaFiche = (id) => {
 window.anaRetour = () => { T = null; if (S) vueAnalyses(); else A.fermerFenetre(); };
 // Nouveau bilan / modifier : nom + ce qu'il contient (analyses ou examens, et bilans entiers)
 window.bilFiche = (id) => {
+  if (!gereListes()) return;
   const b = id ? BIL.find((z) => z.id === id) : null;
   T = { kind: "bilan", id: b ? b.id : null, nom: b ? b.nom : "", items: b ? b.items.map((n) => ({ nom: n, poso: "" })) : [], ed: null };
   A.fenetre("<h3>" + (b ? "Modifier le " + FAM.libB : FAM.nouvB) + "</h3>" +
@@ -361,6 +370,7 @@ window.otFavori = async (id) => {
 };
 window.mdRetour = () => { if (S) (S.t === "ordo" ? vueTypes : vueListe)(); else A.fermerFenetre(); };
 window.mdSupprimer = async (id) => {
+  if (!gereListes()) return;
   const m = BIB.find((z) => z.id === id); if (!m || !confirm("Retirer « " + m.nom + " » de la liste des médicaments ?\n\nLes ordonnances déjà faites ne changent pas.")) return;
   try { await modifierBib((L) => { const i = L.findIndex((y) => y.id === id); if (i >= 0) L.splice(i, 1); }); A.toast("Médicament retiré de la liste."); liste(); }
   catch (e) { A.toast(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de modifier la liste des médicaments." : "Suppression impossible."); }
@@ -381,7 +391,7 @@ function vueCourriers() {
   const x = trouver(CQ.pid);
   A.fenetre("<h3>Courriers — " + A.esc(x.r.nm) + "</h3>" +
     '<div class="md-barre"><div class="recherche">' + A.ic("loupe") + '<input id="crQ" type="search" autocomplete="off" placeholder="Rechercher un modèle de courrier…" value="' + A.esc(CQ.q) + '"></div>' +
-    '<button class="bt clair petit" onclick="crFiche()">' + A.ic("plus") + "Nouveau modèle</button></div>" +
+    gerer('<button class="bt clair petit" onclick="crFiche()">' + A.ic("plus") + "Nouveau modèle</button>") + "</div>" +
     '<div class="md-liste" id="crListe"></div><p class="mesures" style="margin:6px 0 0">Cliquez sur un modèle : il s\'ouvre rempli pour le patient (nom, âge, diagnostic, date…) ; complétez les zones surlignées en jaune.</p>' +
     '<h4 class="soustitre">Fiches à remettre au patient</h4><div class="cr-fiches">' + FICHES_PATIENT.map((f) => '<a class="bt clair petit" href="' + A.esc(f.fichier) + '" target="_blank" rel="noopener">' + A.ic("document") + A.esc(f.nom) + "</a>").join("") + "</div>" +
     '<p class="mesures" style="margin:6px 0 0">PDF prêts à imprimer : ils s\'ouvrent dans un nouvel onglet.</p>' +
@@ -396,9 +406,9 @@ function listeCourriers() {
   $("crListe").innerHTML = L.length ? '<table class="md-t"><tr><th>Modèle</th><th>Début du texte</th><th></th></tr>' + L.map((m) => {
     const q = "'" + m.id + "'", t = texteModele(m.html);
     return '<tr class="m" onclick="crUtiliser(' + q + ')"><td><b>' + A.esc(m.nom) + "</b></td><td>" + A.esc(t.length > 110 ? t.slice(0, 110) + "…" : t) + '</td><td class="act" onclick="event.stopPropagation()">' + etoile(m, "crFavori") +
-      '<button class="ico" title="Modifier le modèle" aria-label="Modifier ' + A.esc(m.nom) + '" onclick="crFiche(' + q + ')">' + ico("crayon") + "</button>" +
-      '<button class="ico rouge" title="Supprimer le modèle" aria-label="Supprimer ' + A.esc(m.nom) + '" onclick="crSupprimer(' + q + ')">' + ico("croix") + "</button></td></tr>";
-  }).join("") + "</table>" : '<p class="sous" style="padding:12px">Aucun modèle ne correspond. « Nouveau modèle » pour en créer un.</p>';
+      gerer('<button class="ico" title="Modifier le modèle" aria-label="Modifier ' + A.esc(m.nom) + '" onclick="crFiche(' + q + ')">' + ico("crayon") + "</button>" +
+      '<button class="ico rouge" title="Supprimer le modèle" aria-label="Supprimer ' + A.esc(m.nom) + '" onclick="crSupprimer(' + q + ')">' + ico("croix") + "</button>") + "</td></tr>";
+  }).join("") + "</table>" : '<p class="sous" style="padding:12px">Aucun modèle ne correspond.' + gerer(" « Nouveau modèle » pour en créer un.") + "</p>";
 }
 // Modèle rempli pour le patient : champs {…} remplacés, « (e) » accordé ; un champ inconnu du dossier reste à compléter
 function remplirCourrier(html, x) {
@@ -424,6 +434,7 @@ window.crUtiliser = (id) => {
 };
 // Nouveau modèle / modifier : nom + feuille modifiable, avec les champs remplis automatiquement et les zones à compléter
 window.crFiche = (id) => {
+  if (!gereListes()) return;
   const m = id ? CR.find((z) => z.id === id) : null; CRF = { id: m ? m.id : null };
   const html = m ? m.html : '<p class="or-ti">TITRE DU COURRIER</p><p>Je soussignée, {medecin}, certifie que {patient} ' + ZONE + '</p><p class="or-sig">Fait à {ville}, le {date}<br><br><b>{medecin}</b></p>';
   const b = (t, lib, fn) => '<button class="ico" title="' + t + '" aria-label="' + t + '" onmousedown="event.preventDefault()" onclick="' + fn + '">' + lib + "</button>";

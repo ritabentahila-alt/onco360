@@ -51,7 +51,7 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
 - `protocoles/lib_0…lib_10, lib_perso` (`data` = tableau JSON), `etablissements/{code}`, `membres/{uid}` (rôle, droits), `historique`
 - `consultations/{id}` : journal du dossier (onglet Consultation, `js/app/consultations.js`) = `patientId`, `etablissementId`,
   `d`, `titre`, `note`, `lignes` [{t, lib, par}], `o`, `creePar(Nom)`, `majPar(Nom)` ; lu par tous les membres, écrit avec
-  le droit `ecrireConsultations`, supprimé par un médecin
+  le droit `ecrireConsultations`, supprimé par le médecin (toutes) ou par son auteur (secrétaire)
   ; une ligne = une ordonnance { id, t: medic|exam|ordo|analyse|courrier, d, lib, par, med (signataire), html, format A5|A4,
   taille }, ajoutée à la consultation du jour (créée « Ordonnance » si besoin) par `enregistrerPrescription`
 - `bibliotheques/medicaments` : `data` = JSON [{ id, nom, poso, classe }] (absent = liste de départ `donnees/medicaments.js`) ;
@@ -60,7 +60,7 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
   (absents = `donnees/analyses.js`) ; `bibliotheques/examens` [{ id, nom, cat, note }]
   (absent = `donnees/examens.js` ; pas de bilans d'imagerie) ; `bibliotheques/courriers` [{ id, nom, html, fav }] (absent = `donnees/courriers.js` :
   modèles avec champs {patient} {age} {date}… et zones `<mark class="or-ac">` à compléter) ; `fav` = favori ⭐ (en tête de liste) sur toutes ces listes ;
-  lu par les membres, écrit avec `ecrireConsultations`
+  lu par les membres, écrit par le **médecin** seulement (07/10/2026 : la secrétaire s'en sert sans les modifier)
 - `documentsRT/{patient}_{rt}_{pli|cr|rdv}` : `html` du document enregistré (une version par radiothérapie et par type),
   `patientId`, `etablissementId`, `rtId`, `type`, `majLe`, `majPar(Nom)` ; droit `documents` (médecin, secrétaire)
 - `utilisateurs/{uid}` : profil (nom, INPE, signature, photo)
@@ -82,7 +82,8 @@ Ancienne application : collections racine `patients`, `protocoles`, `finances`, 
   (collection `encaissements/{patient}` = prix des consultations validées + consultation de chimio cochée, écrite par
   `majMontants` / `ecrireEncaissements` dans chimio.js, sans honoraires ni RT), `radiotherapie: "chimio"` (voir la RT
   seulement des patients sous chimio en même temps). Secrétaire : fiche, documents, encaissements. Infirmière : pas de
-  consultations, RT « chimio », pas de documents. Le filtrage des rendez-vous est fait à l'écran et dans Google Agenda
+  consultations, RT « chimio », pas de documents. Secrétaire : n'annule pas un statut de rendez-vous posé par le médecin
+  (`sp` = auteur du statut), ne voit que les horaires de son centre (Configuration). Le filtrage des rendez-vous est fait à l'écran et dans Google Agenda
   (`functions/logique.js` `permis`), pas par les règles (le dossier patient reste lisible en entier par le serveur).
 
 ## Sauvegardes
