@@ -6,9 +6,13 @@
 // ligne « Médic. » dans la consultation du jour (consultations.js).
 // Antécédents (petite flèche, étape 1D) : dates à gauche, ordonnance au centre ; Imprimer · Supprimer · Modifier (même date,
 // la ligne de sa consultation suit) · Renouveler (nouvelle ordonnance à la date du jour) · Fermer.
+// Ordonnances types (bouton « Ordo. type », 07/10/2026) : espaces/{e}/bibliotheques/ordostypes = { data: JSON [{ id, nom,
+// items: [{ nom, poso }] }] } (départ : donnees/ordostypes.js) ; un clic sur une ordonnance type met tous ses médicaments
+// dans l'ordonnance en préparation (modifiables ✎, à retirer ✕), puis « Afficher l'ordonnance » comme pour Médic.
 import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { db } from "../config.js";
 import { MEDICAMENTS0 } from "../donnees/medicaments.js";
+import { ORDOS_TYPES0 } from "../donnees/ordostypes.js";
 import { enregistrerPrescription, trouverLigne, assurerConsultations, prescriptionsDe, supprimerPrescription, FAMILLES } from "./consultations.js";
 
 let A = null;
@@ -21,29 +25,38 @@ const sansAcc = (s) => String(s || "").toLowerCase().normalize("NFD").replace(/[
 const alpha = (a, b) => sansAcc(a.nom).localeCompare(sansAcc(b.nom));
 const ico = (n) => '<svg class="pi"><use href="#i-' + n + '"/></svg>';
 
-// ───── Bibliothèque des médicaments du cabinet ─────
-const refBib = () => doc(db, "espaces", A.ESPACE, "bibliotheques", "medicaments");
-const depart = () => MEDICAMENTS0.map((m, i) => ({ id: "m" + (i + 1), nom: m[0], poso: m[1], classe: m[2] || "" }));
-let BIB = null;
-async function chargerBib() {
-  if (BIB) return BIB;
-  const s = await getDoc(refBib()).catch(() => null);
-  BIB = s && s.exists() ? JSON.parse(s.data().data || "[]") : depart();
-  return BIB;
+// ───── Listes du cabinet : médicaments, ordonnances types (liste de départ tant que le cabinet ne l'a pas modifiée) ─────
+const DEPART = {
+  medicaments: () => MEDICAMENTS0.map((m, i) => ({ id: "m" + (i + 1), nom: m[0], poso: m[1], classe: m[2] || "" })),
+  ordostypes: () => ORDOS_TYPES0.map((o, i) => ({ id: "t" + (i + 1), nom: o.nom, items: o.items.map(([nom, poso]) => ({ nom, poso })) })),
+};
+const refListe = (n) => doc(db, "espaces", A.ESPACE, "bibliotheques", n);
+const CACHE = {};
+async function lireListe(n) {
+  if (CACHE[n]) return CACHE[n];
+  const s = await getDoc(refListe(n)).catch(() => null);
+  return (CACHE[n] = s && s.exists() ? JSON.parse(s.data().data || "[]") : DEPART[n]().sort(alpha));
 }
 // Modification : relue juste avant (un autre poste a pu modifier la liste), puis enregistrée en entier
-async function modifierBib(fn) {
-  const s = await getDoc(refBib()).catch(() => null), L = s && s.exists() ? JSON.parse(s.data().data || "[]") : depart();
+async function modifierListe(n, fn) {
+  const s = await getDoc(refListe(n)).catch(() => null), L = s && s.exists() ? JSON.parse(s.data().data || "[]") : DEPART[n]();
   fn(L); L.sort(alpha);
-  await setDoc(refBib(), { data: JSON.stringify(L), maj: serverTimestamp(), majPar: D().u.uid });
-  BIB = L;
+  await setDoc(refListe(n), { data: JSON.stringify(L), maj: serverTimestamp(), majPar: D().u.uid });
+  return (CACHE[n] = L);
 }
+let BIB = null, TYPES = null;
+async function chargerBib() { return (BIB = await lireListe("medicaments")); }
+async function modifierBib(fn) { BIB = await modifierListe("medicaments", fn); }
+async function chargerTypes() { return (TYPES = await lireListe("ordostypes")); }
+async function modifierTypes(fn) { TYPES = await modifierListe("ordostypes", fn); }
 
 // ───── Fenêtre « Médicaments » : recherche, liste, ordonnance en préparation ─────
-let S = null; // { pid, q, items: [{ nom, poso }], modif (ordonnance enregistrée qu'on modifie) }
+let S = null; // { pid, t (medic | ordo), q, items: [{ nom, poso }], ed (n° du médicament en cours de modification), types, modif }
+let T = null; // ordonnance type en cours de création / modification : { id, nom, items, ed }
+const CUR = () => (T || S); // ordonnance en préparation affichée (celle de la fiche d'une ordonnance type, sinon celle du patient)
 window.ordMedicaments = async (pid) => {
   const x = trouver(pid); if (!x || !peutEcrire()) return;
-  S = { pid, q: "", items: [] };
+  S = { pid, t: "medic", q: "", items: [], types: [] }; T = null;
   A.fenetre('<p class="sous">Chargement des médicaments…</p>', "large");
   await chargerBib(); vueListe();
 };
@@ -70,19 +83,109 @@ function liste() {
       '<button class="ico rouge" title="Supprimer de la liste" aria-label="Supprimer ' + A.esc(m.nom) + '" onclick="mdSupprimer(' + q + ')">' + ico("croix") + "</button></td></tr>";
   }).join("") + "</table>" : '<p class="sous" style="padding:12px">Aucun médicament ne correspond. « Nouveau médicament » pour l\'ajouter à la liste.</p>';
 }
+// Médicaments de l'ordonnance en préparation : modifier ✎ (nom, posologie), monter, descendre, retirer
 function ordo() {
-  $("mdOrdo").innerHTML = S.items.length ? S.items.map((it, i) => '<div class="it"><b class="n">' + (i + 1) + '/</b><div class="tx"><b>' + A.esc(it.nom) + '</b><div class="mesures">' + A.esc(it.poso) + "</div></div>" +
+  const h = CUR(), L = h.items;
+  $("mdOrdo").innerHTML = L.length ? L.map((it, i) => i === h.ed
+    ? '<div class="it ed"><b class="n">' + (i + 1) + '/</b><div class="tx"><input id="edNom" value="' + A.esc(it.nom) + '" placeholder="Médicament" aria-label="Médicament"><textarea id="edPoso" rows="2" placeholder="Posologie" aria-label="Posologie">' + A.esc(it.poso) + "</textarea></div>" +
+      '<div class="actr"><button class="bt plein petit" onclick="mdEditOk(' + i + ')">OK</button><button class="bt gris petit" onclick="mdEditAnnuler(' + i + ')">Annuler</button></div></div>'
+    : '<div class="it"><b class="n">' + (i + 1) + '/</b><div class="tx"><b>' + A.esc(it.nom) + '</b><div class="mesures">' + A.esc(it.poso) + "</div></div>" +
     '<div class="actr"><button class="ico" title="Monter" aria-label="Monter" onclick="mdBouger(' + i + ',-1)"' + (i ? "" : " disabled") + ">↑</button>" +
-    '<button class="ico" title="Descendre" aria-label="Descendre" onclick="mdBouger(' + i + ',1)"' + (i < S.items.length - 1 ? "" : " disabled") + ">↓</button>" +
-    '<button class="ico rouge" title="Retirer de l\'ordonnance" aria-label="Retirer" onclick="mdRetirer(' + i + ')">' + ico("croix") + "</button></div></div>").join("")
-    : '<p class="sous" style="margin:0">Aucun médicament choisi : « Afficher l\'ordonnance » donnera une ordonnance vierge, à remplir à la main.</p>';
+    '<button class="ico" title="Descendre" aria-label="Descendre" onclick="mdBouger(' + i + ',1)"' + (i < L.length - 1 ? "" : " disabled") + ">↓</button>" +
+    '<button class="ico" title="Modifier le nom ou la posologie" aria-label="Modifier" onclick="mdEdit(' + i + ')">' + ico("crayon") + "</button>" +
+    '<button class="ico rouge" title="Retirer" aria-label="Retirer" onclick="mdRetirer(' + i + ')">' + ico("croix") + "</button></div></div>").join("")
+    : '<p class="sous" style="margin:0">' + (T ? "Aucun médicament : ajoutez-en avec la recherche ci-dessous." : "Aucun médicament choisi : « Afficher l'ordonnance » donnera une ordonnance vierge, à remplir à la main.") + "</p>";
+  if (h.ed != null) setTimeout(() => { const e = $("edNom"); if (e && !e.value) e.focus(); else if ($("edPoso")) $("edPoso").focus(); }, 30);
 }
-window.mdAjouter = (id) => { const m = BIB.find((z) => z.id === id); if (!m || !S) return; S.items.push({ nom: m.nom, poso: m.poso }); ordo(); A.toast(m.nom + " ajouté à l'ordonnance."); };
-window.mdRetirer = (i) => { S.items.splice(i, 1); ordo(); };
-window.mdBouger = (i, s) => { const j = i + s; if (j < 0 || j >= S.items.length) return; const t = S.items[i]; S.items[i] = S.items[j]; S.items[j] = t; ordo(); };
+window.mdAjouter = (id) => { const m = BIB.find((z) => z.id === id), h = CUR(); if (!m || !h) return; h.items.push({ nom: m.nom, poso: m.poso }); ordo(); A.toast(m.nom + " ajouté."); };
+window.mdRetirer = (i) => { const h = CUR(); h.items.splice(i, 1); h.ed = null; ordo(); };
+window.mdBouger = (i, s) => { const L = CUR().items, j = i + s; if (j < 0 || j >= L.length) return; const t = L[i]; L[i] = L[j]; L[j] = t; CUR().ed = null; ordo(); };
+window.mdEdit = (i) => { CUR().ed = i; ordo(); };
+window.mdEditOk = (i) => {
+  const h = CUR(), nom = A.val("edNom"), poso = String($("edPoso").value || "").trim();
+  if (!nom) { A.toast("Indiquez le nom du médicament (ou retirez la ligne)."); return; }
+  h.items[i] = { nom, poso }; h.ed = null; ordo();
+};
+window.mdEditAnnuler = (i) => { const h = CUR(); if (!h.items[i].nom && !h.items[i].poso) h.items.splice(i, 1); h.ed = null; ordo(); };
+// Ajouter un médicament de la liste (recherche) ou une ligne libre, sous l'ordonnance en préparation
+const champAjout = () => '<div class="md-ajout"><div class="recherche">' + A.ic("loupe") + '<input id="mdAjQ" type="search" autocomplete="off" placeholder="Ajouter un médicament de la liste…" aria-label="Ajouter un médicament de la liste"><div id="mdAjS" class="sug cache"></div></div>' +
+  '<button class="bt gris petit" onclick="mdLigneLibre()">' + A.ic("plus") + "Ligne libre</button></div>";
+function brancherAjout() {
+  const q = $("mdAjQ"); if (!q) return;
+  q.oninput = () => {
+    const mots = sansAcc(q.value).split(/\s+/).filter(Boolean), L = mots.length ? BIB.filter((m) => { const t = sansAcc(m.nom + " " + m.poso + " " + m.classe); return mots.every((w) => t.indexOf(w) >= 0); }).slice(0, 8) : [];
+    $("mdAjS").innerHTML = L.map((m) => '<div onclick="mdAjouter(\'' + m.id + '\');mdAjFin()"><b>' + A.esc(m.nom) + '</b><br><span class="mesures">' + A.esc(m.poso) + "</span></div>").join("") || (mots.length ? '<div class="mesures">Aucun médicament ne correspond : utilisez « Ligne libre ».</div>' : "");
+    $("mdAjS").classList.toggle("cache", !mots.length);
+  };
+}
+window.mdAjFin = () => { const q = $("mdAjQ"); if (q) { q.value = ""; q.focus(); } $("mdAjS").classList.add("cache"); };
+window.mdLigneLibre = () => { const h = CUR(); h.items.push({ nom: "", poso: "" }); h.ed = h.items.length - 1; ordo(); };
+
+// ───── Fenêtre « Ordonnances types » : liste des ordonnances types, ordonnance en préparation ─────
+window.ordTypes = async (pid) => {
+  const x = trouver(pid); if (!x || !peutEcrire()) return;
+  S = { pid, t: "ordo", q: "", items: [], types: [] }; T = null;
+  A.fenetre('<p class="sous">Chargement des ordonnances types…</p>', "large");
+  await Promise.all([chargerBib(), chargerTypes()]); vueTypes();
+};
+function vueTypes() {
+  const x = trouver(S.pid); T = null;
+  A.fenetre("<h3>" + (S.modif ? "Modifier l'ordonnance du " + A.dfrA(S.modif.d) : "Ordonnances types") + " — " + A.esc(x.r.nm) + "</h3>" +
+    '<div class="md-barre"><div class="recherche">' + A.ic("loupe") + '<input id="otQ" type="search" autocomplete="off" placeholder="Rechercher une ordonnance type ou un médicament…" value="' + A.esc(S.q) + '"></div>' +
+    '<button class="bt clair petit" onclick="otFiche()">' + A.ic("plus") + "Nouvelle ordonnance type</button></div>" +
+    '<div class="md-liste" id="otListe"></div><p class="mesures" style="margin:6px 0 0">Cliquez sur une ordonnance type (ou touchez ' + ico("plus") + ") : tous ses médicaments passent dans l'ordonnance ci-dessous.</p>" +
+    '<h4 class="soustitre">Ordonnance</h4><div id="mdOrdo" class="md-ordo"></div>' + champAjout() +
+    '<div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt plein" onclick="mdAfficher()">Afficher l\'ordonnance</button></div>', "large");
+  $("otQ").oninput = () => { S.q = $("otQ").value; listeTypes(); };
+  listeTypes(); ordo(); brancherAjout();
+}
+function listeTypes() {
+  const mots = sansAcc(S.q).split(/\s+/).filter(Boolean);
+  const L = TYPES.filter((o) => { const t = sansAcc(o.nom + " " + o.items.map((i) => i.nom).join(" ")); return mots.every((w) => t.indexOf(w) >= 0); });
+  $("otListe").innerHTML = L.length ? '<table class="md-t"><tr><th>Ordonnance type</th><th>Médicaments</th><th></th></tr>' + L.map((o) => {
+    const q = "'" + o.id + "'";
+    return '<tr class="m" onclick="otAjouter(' + q + ')"><td><b>' + A.esc(o.nom) + '</b><div class="cl">' + o.items.length + " médicament" + (o.items.length > 1 ? "s" : "") + "</div></td><td>" + A.esc(o.items.map((i) => i.nom).join(" ; ")) + '</td><td class="act" onclick="event.stopPropagation()">' +
+      '<button class="ico vert" title="Mettre ses médicaments dans l\'ordonnance" aria-label="Utiliser ' + A.esc(o.nom) + '" onclick="otAjouter(' + q + ')">' + ico("plus") + "</button>" +
+      '<button class="ico" title="Modifier l\'ordonnance type" aria-label="Modifier ' + A.esc(o.nom) + '" onclick="otFiche(' + q + ')">' + ico("crayon") + "</button>" +
+      '<button class="ico rouge" title="Supprimer l\'ordonnance type" aria-label="Supprimer ' + A.esc(o.nom) + '" onclick="otSupprimer(' + q + ')">' + ico("croix") + "</button></td></tr>";
+  }).join("") + "</table>" : '<p class="sous" style="padding:12px">Aucune ordonnance type ne correspond. « Nouvelle ordonnance type » pour en créer une.</p>';
+}
+window.otAjouter = (id) => {
+  const o = TYPES.find((z) => z.id === id); if (!o || !S) return;
+  o.items.forEach((i) => S.items.push({ nom: i.nom, poso: i.poso })); if (S.types.indexOf(o.nom) < 0) S.types.push(o.nom);
+  S.ed = null; ordo(); A.toast("« " + o.nom + " » : " + o.items.length + " médicament" + (o.items.length > 1 ? "s ajoutés." : " ajouté."));
+};
+// Nouvelle ordonnance type / modifier : nom + médicaments (recherche dans la liste, ligne libre, ✎, ↑ ↓, ✕)
+window.otFiche = (id) => {
+  const o = id ? TYPES.find((z) => z.id === id) : null;
+  T = { id: o ? o.id : null, nom: o ? o.nom : "", items: o ? o.items.map((i) => ({ nom: i.nom, poso: i.poso })) : [], ed: null };
+  A.fenetre("<h3>" + (o ? "Modifier l'ordonnance type" : "Nouvelle ordonnance type") + "</h3>" +
+    '<div class="form"><div class="large"><label for="otNom">Nom de l\'ordonnance type</label><input id="otNom" value="' + A.esc(T.nom) + '" placeholder="Ex. Diarrhée, Soins de bouche…"></div></div>' +
+    '<h4 class="soustitre">Médicaments</h4><div id="mdOrdo" class="md-ordo"></div>' + champAjout() +
+    '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="otRetour()">Annuler</button><button class="bt plein" id="otOk" onclick="otValider()">Valider</button></div>', "large");
+  ordo(); brancherAjout();
+};
+window.otRetour = () => { T = null; if (S) vueTypes(); else A.fermerFenetre(); };
+window.otValider = async () => {
+  if (!T) return; const nom = A.val("otNom");
+  if (!nom) { A.erreur("Donnez un nom à l'ordonnance type."); return; }
+  if (T.ed != null) { A.erreur("Terminez la modification en cours (OK ou Annuler)."); return; }
+  if (!T.items.some((i) => i.nom)) { A.erreur("Ajoutez au moins un médicament."); return; }
+  if (TYPES.some((z) => z.id !== T.id && sansAcc(z.nom) === sansAcc(nom))) { A.erreur("Une ordonnance type porte déjà ce nom."); return; }
+  const o = { id: T.id || "t" + Date.now().toString(36), nom, items: T.items.filter((i) => i.nom) }, modif = !!T.id;
+  A.occupe($("otOk"), true);
+  try { await modifierTypes((L) => { const i = L.findIndex((z) => z.id === o.id); if (i >= 0) L[i] = o; else L.push(o); }); A.toast(modif ? "Ordonnance type modifiée." : "Ordonnance type créée."); otRetour(); }
+  catch (e) { A.occupe($("otOk"), false); A.erreur(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de modifier les ordonnances types." : "Enregistrement impossible : " + ((e && e.message) || e)); }
+};
+window.otSupprimer = async (id) => {
+  const o = TYPES.find((z) => z.id === id); if (!o || !confirm("Supprimer l'ordonnance type « " + o.nom + " » ?\n\nLes ordonnances déjà faites ne changent pas.")) return;
+  try { await modifierTypes((L) => { const i = L.findIndex((z) => z.id === id); if (i >= 0) L.splice(i, 1); }); A.toast("Ordonnance type supprimée."); listeTypes(); }
+  catch (e) { A.toast(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de modifier les ordonnances types." : "Suppression impossible."); }
+};
 
 // Nouveau médicament / modifier : nom, posologie, classe thérapeutique
 window.mdFiche = (id) => {
+  T = null;
   const m = id ? BIB.find((z) => z.id === id) : null, classes = [...new Set(BIB.map((z) => z.classe).filter(Boolean))].sort();
   A.fenetre("<h3>" + (m ? "Modifier le médicament" : "Nouveau médicament") + "</h3>" +
     '<div class="form"><div class="large"><label for="mdNom">Nom du médicament</label><input id="mdNom" value="' + A.esc(m ? m.nom : "") + '" placeholder="Ex. ABIRATÉRONE 250 mg"></div>' +
@@ -101,7 +204,7 @@ window.mdFiche = (id) => {
     } catch (e) { A.occupe($("mdOk"), false); A.erreur(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de modifier la liste des médicaments." : "Enregistrement impossible : " + ((e && e.message) || e)); }
   };
 };
-window.mdRetour = () => { if (S) vueListe(); else A.fermerFenetre(); };
+window.mdRetour = () => { if (S) (S.t === "ordo" ? vueTypes : vueListe)(); else A.fermerFenetre(); };
 window.mdSupprimer = async (id) => {
   const m = BIB.find((z) => z.id === id); if (!m || !confirm("Retirer « " + m.nom + " » de la liste des médicaments ?\n\nLes ordonnances déjà faites ne changent pas.")) return;
   try { await modifierBib((L) => { const i = L.findIndex((y) => y.id === id); if (i >= 0) L.splice(i, 1); }); A.toast("Médicament retiré de la liste."); liste(); }
@@ -151,9 +254,11 @@ function libelle(html) {
 let O = null; // ordonnance ouverte : { pid, t, ligne (si déjà enregistrée), format, taille, lecture }
 window.mdAfficher = () => {
   if (!S) return; const x = trouver(S.pid), l = S.modif;
+  if (S.ed != null) { A.toast("Terminez la modification en cours (OK ou Annuler)."); return; }
+  const items = S.items.filter((i) => i.nom);
   // Modification : même date de prescription, même signataire, même format ; la ligne de sa consultation sera mise à jour
-  if (l) ouvrirOrdonnance({ pid: S.pid, t: l.t, ligne: l, html: contenu(x, S.items, l.d, l.med || medecin()), format: l.format || "A5", taille: l.taille || 0 });
-  else ouvrirOrdonnance({ pid: S.pid, t: "medic", html: contenu(x, S.items, D().t, medecin()), format: fmtStock(), taille: 0 });
+  if (l) ouvrirOrdonnance({ pid: S.pid, t: l.t, ligne: l, types: S.types, html: contenu(x, items, l.d, l.med || medecin()), format: l.format || "A5", taille: l.taille || 0 });
+  else ouvrirOrdonnance({ pid: S.pid, t: S.t || "medic", types: S.types, html: contenu(x, items, D().t, medecin()), format: fmtStock(), taille: 0 });
 };
 // Médicaments d'une ordonnance enregistrée, relus sur la feuille (avec les corrections faites à la main) : nom + posologie
 function medicamentsDe(html) {
@@ -214,12 +319,12 @@ window.anSupprimer = async () => {
 window.anModifier = async () => {
   const l = choisie(); if (!l || !peutEcrire()) return; const pid = H.pid; H = null;
   // ordonnance écrite à la main (sans médicament de la liste) : elle s'ouvre telle quelle, pour ne rien perdre
-  if (l.t !== "medic" || !medicamentsDe(l.html).length) { ouvrirOrdonnance({ pid, t: l.t, ligne: l, html: l.html, format: l.format || "A5", taille: l.taille || 0 }); return; }
-  S = { pid, q: "", items: medicamentsDe(l.html), modif: l };
-  A.fenetre('<p class="sous">Chargement des médicaments…</p>', "large"); await chargerBib(); vueListe();
+  if (["medic", "ordo"].indexOf(l.t) < 0 || !medicamentsDe(l.html).length) { ouvrirOrdonnance({ pid, t: l.t, ligne: l, types: l.types, html: l.html, format: l.format || "A5", taille: l.taille || 0 }); return; }
+  S = { pid, t: l.t, q: "", items: medicamentsDe(l.html), modif: l, types: (l.types || []).slice() }; T = null;
+  A.fenetre('<p class="sous">Chargement…</p>', "large"); await Promise.all([chargerBib(), l.t === "ordo" ? chargerTypes() : null]); (l.t === "ordo" ? vueTypes : vueListe)();
 };
 // Renouveler : une nouvelle ordonnance du jour, même contenu, signée par le médecin du jour
-window.anRenouveler = () => { const l = choisie(); if (!l || !peutEcrire()) return; const pid = H.pid; H = null; ouvrirOrdonnance({ pid, t: l.t, renouv: l, html: auJour(l.html, true), format: l.format || "A5", taille: l.taille || 0 }); };
+window.anRenouveler = () => { const l = choisie(); if (!l || !peutEcrire()) return; const pid = H.pid; H = null; ouvrirOrdonnance({ pid, t: l.t, renouv: l, types: l.types, html: auJour(l.html, true), format: l.format || "A5", taille: l.taille || 0 }); };
 function ouvrirOrdonnance(o) {
   O = o; const x = trouver(o.pid), l = o.ligne;
   A.fenetre("<h3>Ordonnance — " + A.esc(x.r.nm) + (l ? ' <span class="mesures">(du ' + A.dfrA(l.d) + ", modification)</span>" : o.renouv ? ' <span class="mesures">(renouvellement de celle du ' + A.dfrA(o.renouv.d) + ")</span>" : "") + "</h3>" +
@@ -260,7 +365,7 @@ window.orValider = async (imp) => {
   ["orOk", "orImp"].forEach((i) => A.occupe($(i), true));
   try {
     const l = O.ligne;
-    await enregistrerPrescription(x, Object.assign(l ? { id: l.id, d: l.d, dm: D().t, med: l.med, par: l.par } : { t: O.t, d: D().t, med: medecin(), par: document.getElementById("nomMenu").textContent }, { t: O.t, lib: libelle(html), html, format: O.format, taille: O.taille }));
+    await enregistrerPrescription(x, Object.assign(l ? { id: l.id, d: l.d, dm: D().t, med: l.med, par: l.par } : { t: O.t, d: D().t, med: medecin(), par: document.getElementById("nomMenu").textContent }, { t: O.t, lib: ((O.types || []).length ? O.types.join(" + ") + " : " : "") + libelle(html), types: O.types || [], html, format: O.format, taille: O.taille }));
     if (imp) { if (w) imprimer(w, html, O.format, O.taille); else A.toast("Impression bloquée par le navigateur : autorisez les fenêtres pour Onco360, puis réimprimez depuis la consultation."); }
     const pid = O.pid, renouv = !!O.renouv; O = null; S = null; A.fermerFenetre(); A.toast(l ? "Ordonnance modifiée (et dans sa consultation)." : renouv ? "Ordonnance renouvelée dans la consultation du jour." : "Ordonnance enregistrée dans la consultation du jour."); A.pageDossier(pid);
   } catch (e) {

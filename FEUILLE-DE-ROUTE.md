@@ -212,7 +212,27 @@ de leur radiothérapie :
       (Imprimer · Supprimer · Modifier = liste rouverte à la date de prescription · Renouveler · Fermer).
 - [ ] **Examens compl.** : liste de modèles (Nouveau +, Modifier ✎, Supprimer ✕), recherche, double-clic → petit cadre où
       se compose l'ordonnance → Afficher l'ordonnance / Fermer → ordonnance modifiable, A5/A4, Valider / Valider + Imprimer / Fermer.
-- [ ] **Ordonnances types**.
+- [x] **Ordonnances types** (fait et testé le 07/10, pas encore en ligne) : fichier de Dr Bentahila
+      (`Ordonnances_Par_Type_Complete.xlsx`, 15 types) repris, harmonisé avec la liste des médicaments, corrigé et complété
+      → **26 ordonnances types, 94 lignes** (`public/js/donnees/ordostypes.js`, relecture : `listes/Ordonnances_types_Onco360.xlsx`,
+      colonne « Ce que j'ai changé », nouveaux types en vert). Corrections : TEGUMA retiré du syndrome pieds-mains
+      (antifongique), MOTILIUM / NAUSELIUM (même molécule), FEMARA et TAMOXIFÈNE séparés, « Douleurs & Neuropathies »
+      séparé en 4 (paliers 1-2, tramadol LP, morphine + FORLAX, neuropathiques), un seul alpha-bloquant (UROREC 8 mg),
+      VESICA → VECA, lignes « A / B » séparées. Ajouts : constipation, chimiothérapie très émétisante, éruption acnéiforme
+      anti-EGFR, prémédication pémétrexed, mycose génitale, soins gynécologiques (RT pelvienne), antibiothérapie orale.
+  - Bouton **Ordo. type** : liste des ordonnances types (recherche par nom ou médicament) ; **un clic** sur une ordonnance
+    type met tous ses médicaments dans l'ordonnance en bas ; chaque médicament : **✎ modifier** (nom, posologie), ↑ ↓,
+    **✕ retirer** ; « Ajouter un médicament de la liste » (recherche) et « Ligne libre » ; puis **Afficher l'ordonnance**
+    (A5/A4, Valider, Valider + Imprimer). Ligne « Ordo. type — Diarrhée : … » dans la consultation du jour.
+  - **Nouvelle ordonnance type / ✎ modifier / ✕ supprimer** (nom + médicaments) ; liste du cabinet dans
+    `bibliotheques/ordostypes` (règle existante : droit d'écrire les consultations).
+  - Antécédents (petite flèche) : Modifier rouvre la fenêtre des ordonnances types avec les médicaments de l'ordonnance.
+  - ✎ sur chaque médicament ajouté aussi dans la fenêtre Médic.
+  - Tests : utilisation, modification, retrait, recherche, ligne libre, impression, consultation, création / modification /
+    doublon / suppression d'un type, antécédents, secrétaire (signature), 390 px, bilan 352 317 DH.
+  - [ ] Dr Bentahila relit les ordonnances types (fichier `listes/Ordonnances_types_Onco360.xlsx` ou directement dans
+        Onco360) ; à vérifier : SYSMETIX, crème à l'urée, NAUSELIUM (absent de la liste des médicaments), VITAMINE B12.
+  - [ ] Mise en ligne, avec l'accord de Dr Bentahila.
 - [ ] **Courriers** : Dr Bentahila crée elle-même ses modèles (Nouveau / Modifier / Supprimer). Champs remplis
       automatiquement : **nom, âge, diagnostic, date, « à Casablanca »** (pas le correspondant). Premiers modèles à
       rédiger **ensemble** : **demande d'ALD**, **courrier**, **certificat** ; d'autres ensuite.
@@ -380,3 +400,4 @@ Décisions déjà prises :
 | 07/10/2026 | 1A bis – Documents | Pli, CR de fin et rendez-vous RT dans une fenêtre (A4 modifiable, Enregistrer / + Imprimer, version rouverte), plus de Word ni d'Excel. Testé (3 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |
 | 07/10/2026 | 1A bis – Documents | Mis en ligne (site + règle documentsRT). Marges d'impression élargies sur les côtés pour toutes les ordonnances (A5, A4) et les documents A4. |
 | 07/10/2026 | Impression | Côtés encore resserrés et place de l'en-tête agrandie (A5 45/28 mm, A4 60/35 mm, documents 45/35 mm), mis en ligne. Rappel ajouté : mesurer les en-têtes du papier. |
+| 07/10/2026 | 1E – Ordonnances types | Ordo. type : 26 ordonnances types (fichier du Dr corrigé et complété), clic = médicaments dans l'ordonnance, ✎ / ✕ / ajout, création / modification / suppression des types. Testé (bilan 352 317 DH). Pas encore en ligne. |

@@ -126,6 +126,7 @@ window.csSupprimer = async (pid, cid) => {
 // ───── Barre des prescriptions : construite aux étapes 1C (médicaments), 1D (antécédents), 1E (autres familles) ─────
 window.csPrescrire = (pid, t) => {
   if (t === "medic") { window.ordMedicaments(pid); return; }
+  if (t === "ordo") { window.ordTypes(pid); return; }
   const f = FAMILLES.find((z) => z.t === t); A.toast((f ? f.titre : "Prescriptions") + " : bientôt disponible (en cours de construction).");
 };
 // Consultations du patient lues (pour les antécédents des prescriptions)
