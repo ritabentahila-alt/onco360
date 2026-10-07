@@ -30,7 +30,7 @@ Après déploiement : recharger sans cache (Cmd + Maj + R). Les `.js` sont servi
 | `js/app/fiche.js` | fiche chimio A4 paysage (logo de l'établissement) |
 | `js/app/documents.js` | documents RT dans une fenêtre (07/10/2026, plus de Word ni d'Excel) : pli confidentiel (3 pages), CR de fin, rendez-vous ; feuille A4 modifiable, imprimée, enregistrée dans `documentsRT` ; mise en page reprise des modèles Word (`modeles/`, référence) |
 | `js/app/consultations.js` | onglet Consultation du dossier : journal des consultations, barre des prescriptions |
-| `js/app/ordonnances.js` | boutons Médic. et Ordo. type : bibliothèques du cabinet (médicaments, ordonnances types ; recherche, + / ✎ / ✕), ordonnance en préparation (✎ / ↑ ↓ / ✕, ajout, ligne libre), ordonnance A5/A4 modifiable, impression, antécédents ; listes de départ : `js/donnees/medicaments.js`, `js/donnees/ordostypes.js` |
+| `js/app/ordonnances.js` | boutons Médic., Ordo. type et Analyses : bibliothèques du cabinet (médicaments, ordonnances types ; recherche, + / ✎ / ✕), ordonnance en préparation (✎ / ↑ ↓ / ✕, ajout, ligne libre), ordonnance A5/A4 modifiable, impression, antécédents ; listes de départ : `js/donnees/medicaments.js`, `js/donnees/ordostypes.js`, `js/donnees/analyses.js` |
 | `js/app/agenda.js` | agenda Liste/Jour/Semaine/Mois, filtre par établissement |
 | `js/app/configuration.js` | horaires (par établissement), absences, fériés, messages WhatsApp |
 | `js/app/profil.js` | profil, photo, lieux d'exercice (logos), accès et droits de l'équipe |
@@ -56,6 +56,8 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
   taille }, ajoutée à la consultation du jour (créée « Ordonnance » si besoin) par `enregistrerPrescription`
 - `bibliotheques/medicaments` : `data` = JSON [{ id, nom, poso, classe }] (absent = liste de départ `donnees/medicaments.js`) ;
   `bibliotheques/ordostypes` : `data` = JSON [{ id, nom, items: [{ nom, poso }] }] (absent = `donnees/ordostypes.js`) ;
+  `bibliotheques/analyses` [{ id, nom, cat, fav }] et `bibliotheques/bilans` [{ id, nom, items: [noms d'analyses ou de bilans], fav }]
+  (absents = `donnees/analyses.js`) ; `fav` = favori ⭐ (en tête de liste) sur toutes ces listes ;
   lu par les membres, écrit avec `ecrireConsultations`
 - `documentsRT/{patient}_{rt}_{pli|cr|rdv}` : `html` du document enregistré (une version par radiothérapie et par type),
   `patientId`, `etablissementId`, `rtId`, `type`, `majLe`, `majPar(Nom)` ; droit `documents` (médecin, secrétaire)

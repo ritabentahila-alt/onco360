@@ -13,6 +13,7 @@ import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/fi
 import { db } from "../config.js";
 import { MEDICAMENTS0 } from "../donnees/medicaments.js";
 import { ORDOS_TYPES0 } from "../donnees/ordostypes.js";
+import { ANALYSES0, BILANS0 } from "../donnees/analyses.js";
 import { enregistrerPrescription, trouverLigne, assurerConsultations, prescriptionsDe, supprimerPrescription, FAMILLES } from "./consultations.js";
 
 let A = null;
@@ -31,6 +32,8 @@ const ico = (n) => '<svg class="pi"><use href="#i-' + n + '"/></svg>';
 const DEPART = {
   medicaments: () => MEDICAMENTS0.map((m, i) => ({ id: "m" + (i + 1), nom: m[0], poso: m[1], classe: m[2] || "" })),
   ordostypes: () => ORDOS_TYPES0.map((o, i) => ({ id: "t" + (i + 1), nom: o.nom, items: o.items.map(([nom, poso]) => ({ nom, poso })) })),
+  analyses: () => ANALYSES0.map(([nom, cat], i) => ({ id: "a" + (i + 1), nom, cat })),
+  bilans: () => BILANS0.map((b, i) => ({ id: "b" + (i + 1), nom: b.nom, items: b.items.slice() })),
 };
 const refListe = (n) => doc(db, "espaces", A.ESPACE, "bibliotheques", n);
 const CACHE = {};
@@ -57,6 +60,8 @@ async function chargerBib() { return (BIB = await lireListe("medicaments")); }
 async function modifierBib(fn) { BIB = await modifierListe("medicaments", fn); }
 async function chargerTypes() { return (TYPES = await lireListe("ordostypes")); }
 async function modifierTypes(fn) { TYPES = await modifierListe("ordostypes", fn); }
+let ANA = null, BIL = null; // analyses [{ id, nom, cat, fav }] et bilans [{ id, nom, items: [noms], fav }] du cabinet
+async function chargerAnalyses() { [ANA, BIL] = await Promise.all([lireListe("analyses"), lireListe("bilans")]); }
 
 // ───── Fenêtre « Médicaments » : recherche, liste, ordonnance en préparation ─────
 let S = null; // { pid, t (medic | ordo), q, items: [{ nom, poso }], ed (n° du médicament en cours de modification), types, modif }
@@ -116,13 +121,20 @@ window.mdEditOk = (i) => {
 };
 window.mdEditAnnuler = (i) => { const h = CUR(); if (!h.items[i].nom && !h.items[i].poso) h.items.splice(i, 1); h.ed = null; ordo(); };
 // Ajouter un médicament de la liste (recherche) ou une ligne libre, sous l'ordonnance en préparation
-const champAjout = () => '<div class="md-ajout"><div class="recherche">' + A.ic("loupe") + '<input id="mdAjQ" type="search" autocomplete="off" placeholder="Ajouter un médicament de la liste…" aria-label="Ajouter un médicament de la liste"><div id="mdAjS" class="sug cache"></div></div>' +
+// (analyses : la recherche porte sur les analyses et les bilans)
+const modeAna = () => (T ? T.kind === "bilan" : !!(S && S.t === "analyse"));
+const champAjout = () => '<div class="md-ajout"><div class="recherche">' + A.ic("loupe") + '<input id="mdAjQ" type="search" autocomplete="off" placeholder="' + (modeAna() ? "Ajouter une analyse ou un bilan…" : "Ajouter un médicament de la liste…") + '" aria-label="Ajouter depuis la liste"><div id="mdAjS" class="sug cache"></div></div>' +
   '<button class="bt gris petit" onclick="mdLigneLibre()">' + A.ic("plus") + "Ligne libre</button></div>";
 function brancherAjout() {
   const q = $("mdAjQ"); if (!q) return;
   q.oninput = () => {
-    const mots = sansAcc(q.value).split(/\s+/).filter(Boolean), L = mots.length ? BIB.filter((m) => { const t = sansAcc(m.nom + " " + m.poso + " " + m.classe); return mots.every((w) => t.indexOf(w) >= 0); }).slice(0, 8) : [];
-    $("mdAjS").innerHTML = L.map((m) => '<div onclick="mdAjouter(\'' + m.id + '\');mdAjFin()"><b>' + A.esc(m.nom) + '</b><br><span class="mesures">' + A.esc(m.poso) + "</span></div>").join("") || (mots.length ? '<div class="mesures">Aucun médicament ne correspond : utilisez « Ligne libre ».</div>' : "");
+    const mots = sansAcc(q.value).split(/\s+/).filter(Boolean), ana = modeAna();
+    const src = ana ? BIL.map((b) => ({ k: "b:" + b.id, nom: b.nom, sous: b.items.join(", ") })).concat(ANA.map((a) => ({ k: "a:" + a.id, nom: a.nom, sous: a.cat || "" })))
+      : BIB.map((m) => ({ k: m.id, nom: m.nom, sous: m.poso, cherche: m.classe }));
+    // ceux dont le nom correspond d'abord (« bilan rénal » avant les bilans qui le contiennent)
+    const parNom = (m) => (mots.every((w) => sansAcc(m.nom).indexOf(w) >= 0) ? 0 : 1);
+    const L = mots.length ? src.filter((m) => { const t = sansAcc(m.nom + " " + m.sous + " " + (m.cherche || "")); return mots.every((w) => t.indexOf(w) >= 0); }).sort((a, b) => parNom(a) - parNom(b)).slice(0, 8) : [];
+    $("mdAjS").innerHTML = L.map((m) => '<div onclick="' + (ana ? "anaAjouter" : "mdAjouter") + "('" + m.k + '\');mdAjFin()"><b>' + A.esc(m.nom) + '</b><br><span class="mesures">' + A.esc(m.sous) + "</span></div>").join("") || (mots.length ? '<div class="mesures">Rien ne correspond : utilisez « Ligne libre ».</div>' : "");
     $("mdAjS").classList.toggle("cache", !mots.length);
   };
 }
@@ -212,6 +224,103 @@ window.mdFiche = (id) => {
     } catch (e) { A.occupe($("mdOk"), false); A.erreur(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de modifier la liste des médicaments." : "Enregistrement impossible : " + ((e && e.message) || e)); }
   };
 };
+// ───── Fenêtre « Analyses » (07/10/2026) : bilans (dont les bilans généraux, qui regroupent plusieurs bilans) et analyses ─────
+// Clic sur une analyse : une ligne (ex. « NFS – plaquettes ») ; sur un bilan : une ligne « Bilan hépatique complet : ASAT, … » ;
+// sur un bilan général : une ligne par bilan qu'il contient (chacune peut ensuite être retirée).
+const bilanNomme = (n) => BIL.find((b) => sansAcc(b.nom) === sansAcc(n));
+const general = (b) => b.items.some((n) => bilanNomme(n));
+const ligneBilan = (b) => b.nom + " : " + b.items.map((n) => (bilanNomme(n) ? bilanNomme(n).nom : n)).join(", ");
+const lignesDe = (b) => (general(b) ? b.items.map((n) => (bilanNomme(n) ? ligneBilan(bilanNomme(n)) : n)) : [ligneBilan(b)]);
+window.ordAnalyses = async (pid) => {
+  const x = trouver(pid); if (!x || !peutEcrire()) return;
+  S = { pid, t: "analyse", q: "", items: [], types: [] }; T = null;
+  A.fenetre('<p class="sous">Chargement des analyses…</p>', "large");
+  await chargerAnalyses(); vueAnalyses();
+};
+function vueAnalyses() {
+  const x = trouver(S.pid); T = null;
+  A.fenetre("<h3>" + (S.modif ? "Modifier l'ordonnance du " + A.dfrA(S.modif.d) : "Analyses") + " — " + A.esc(x.r.nm) + "</h3>" +
+    '<div class="md-barre"><div class="recherche">' + A.ic("loupe") + '<input id="anQ" type="search" autocomplete="off" placeholder="Rechercher un bilan ou une analyse…" value="' + A.esc(S.q) + '"></div>' +
+    '<button class="bt clair petit" onclick="bilFiche()">' + A.ic("plus") + 'Nouveau bilan</button><button class="bt clair petit" onclick="anaFiche()">' + A.ic("plus") + "Nouvelle analyse</button></div>" +
+    '<div class="md-liste" id="anListe"></div><p class="mesures" style="margin:6px 0 0">Cliquez sur un bilan ou une analyse pour l\'ajouter. Un bilan général ajoute tous ses bilans d\'un coup (une ligne chacun).</p>' +
+    '<h4 class="soustitre">Ordonnance</h4><div id="mdOrdo" class="md-ordo"></div>' + champAjout() +
+    '<div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt plein" onclick="mdAfficher()">Afficher l\'ordonnance</button></div>', "large");
+  $("anQ").oninput = () => { S.q = $("anQ").value; listeAnalyses(); };
+  listeAnalyses(); ordo(); brancherAjout();
+}
+function listeAnalyses() {
+  const mots = sansAcc(S.q).split(/\s+/).filter(Boolean), ok = (t) => mots.every((w) => sansAcc(t).indexOf(w) >= 0);
+  const parNom = (o) => (mots.length && !ok(o.nom) ? 1 : 0); // nom qui correspond d'abord, puis contenu
+  const B = BIL.filter((b) => ok(b.nom + " " + b.items.join(" "))).sort((a, b) => parNom(a) - parNom(b)), L = ANA.filter((a) => ok(a.nom + " " + (a.cat || ""))).sort((a, b) => parNom(a) - parNom(b));
+  const act = (o, fav, fiche, sup) => '<td class="act" onclick="event.stopPropagation()">' + etoile(o, fav) +
+    '<button class="ico" title="Modifier" aria-label="Modifier ' + A.esc(o.nom) + '" onclick="' + fiche + "('" + o.id + "')\">" + ico("crayon") + "</button>" +
+    '<button class="ico rouge" title="Supprimer de la liste" aria-label="Supprimer ' + A.esc(o.nom) + '" onclick="' + sup + "('" + o.id + "')\">" + ico("croix") + "</button></td>";
+  $("anListe").innerHTML = B.length || L.length ? '<table class="md-t">' +
+    (B.length ? '<tr><th>Bilan</th><th>Contenu</th><th></th></tr>' + B.map((b) => '<tr class="m" onclick="anaAjouter(\'b:' + b.id + '\')"><td><b>' + A.esc(b.nom) + "</b>" + (general(b) ? '<div class="cl">Bilan général</div>' : "") + "</td><td>" + A.esc(b.items.join(", ")) + "</td>" + act(b, "bilFavori", "bilFiche", "bilSupprimer") + "</tr>").join("") : "") +
+    (L.length ? '<tr><th>Analyse</th><th>Catégorie</th><th></th></tr>' + L.map((a) => '<tr class="m" onclick="anaAjouter(\'a:' + a.id + '\')"><td><b>' + A.esc(a.nom) + "</b></td><td>" + A.esc(a.cat || "") + "</td>" + act(a, "anaFavori", "anaFiche", "anaSupprimer") + "</tr>").join("") : "") + "</table>"
+    : '<p class="sous" style="padding:12px">Rien ne correspond. « Nouveau bilan » ou « Nouvelle analyse » pour l\'ajouter.</p>';
+}
+// Ajout : dans l'ordonnance du patient (lignes développées) ou dans la fiche d'un bilan (le nom de l'analyse ou du bilan)
+window.anaAjouter = (k) => {
+  const h = CUR(); if (!h) return; const id = k.slice(2), o = k[0] === "b" ? BIL.find((z) => z.id === id) : ANA.find((z) => z.id === id); if (!o) return;
+  const lignes = T || k[0] === "a" ? [o.nom] : lignesDe(o); let n = 0;
+  lignes.forEach((l) => { if (!h.items.some((i) => sansAcc(i.nom) === sansAcc(l))) { h.items.push({ nom: l, poso: "" }); n++; } });
+  h.ed = null; ordo(); A.toast(n ? (n > 1 ? n + " lignes ajoutées." : "« " + lignes[0].split(" : ")[0] + " » ajouté.") : "Déjà dans la liste.");
+  if (!T && k[0] === "b" && S.types.indexOf(o.nom) < 0) S.types.push(o.nom);
+};
+// Nouvelle analyse / modifier : nom + catégorie
+window.anaFiche = (id) => {
+  const a = id ? ANA.find((z) => z.id === id) : null, cats = [...new Set(ANA.map((z) => z.cat).filter(Boolean))].sort(); T = null;
+  A.fenetre("<h3>" + (a ? "Modifier l'analyse" : "Nouvelle analyse") + "</h3>" +
+    '<div class="form"><div class="large"><label for="anNom">Analyse</label><input id="anNom" value="' + A.esc(a ? a.nom : "") + '" placeholder="Ex. NFS – plaquettes"></div>' +
+    '<div class="large"><label for="anCat">Catégorie <span class="mesures">(facultatif)</span></label><input id="anCat" list="lAnCat" value="' + A.esc(a ? a.cat || "" : "") + '"></div></div>' +
+    '<datalist id="lAnCat">' + cats.map((c) => '<option value="' + A.esc(c) + '">').join("") + "</datalist>" +
+    '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="anaRetour()">Annuler</button><button class="bt plein" id="anOk">Valider</button></div>');
+  $("anOk").onclick = async () => {
+    const nom = A.val("anNom"), cat = A.val("anCat"); if (!nom) { A.erreur("Indiquez le nom de l'analyse."); return; }
+    if (ANA.some((z) => z.id !== (a && a.id) && sansAcc(z.nom) === sansAcc(nom))) { A.erreur("Cette analyse est déjà dans la liste."); return; }
+    A.occupe($("anOk"), true);
+    try { ANA = await modifierListe("analyses", (L) => { const z = a && L.find((y) => y.id === a.id); if (z) Object.assign(z, { nom, cat }); else L.push({ id: "a" + Date.now().toString(36), nom, cat }); }); A.toast(a ? "Analyse modifiée." : "Analyse ajoutée."); anaRetour(); }
+    catch (e) { A.occupe($("anOk"), false); A.erreur(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de modifier la liste des analyses." : "Enregistrement impossible : " + ((e && e.message) || e)); }
+  };
+};
+window.anaRetour = () => { T = null; if (S) vueAnalyses(); else A.fermerFenetre(); };
+// Nouveau bilan / modifier : nom + analyses ou bilans qu'il contient (un bilan qui contient des bilans devient « général »)
+window.bilFiche = (id) => {
+  const b = id ? BIL.find((z) => z.id === id) : null;
+  T = { kind: "bilan", id: b ? b.id : null, nom: b ? b.nom : "", items: b ? b.items.map((n) => ({ nom: n, poso: "" })) : [], ed: null };
+  A.fenetre("<h3>" + (b ? "Modifier le bilan" : "Nouveau bilan") + "</h3>" +
+    '<div class="form"><div class="large"><label for="biNom">Nom du bilan</label><input id="biNom" value="' + A.esc(T.nom) + '" placeholder="Ex. Bilan chimiothérapie – intercure"></div></div>' +
+    '<h4 class="soustitre">Analyses et bilans du bilan</h4><div id="mdOrdo" class="md-ordo"></div>' + champAjout() +
+    '<p class="mesures" style="margin:6px 0 0">Ajoutez des analyses, ou des bilans entiers : le bilan devient alors un bilan général.</p>' +
+    '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="anaRetour()">Annuler</button><button class="bt plein" id="biOk" onclick="bilValider()">Valider</button></div>', "large");
+  ordo(); brancherAjout();
+};
+window.bilValider = async () => {
+  if (!T) return; const nom = A.val("biNom");
+  if (!nom) { A.erreur("Donnez un nom au bilan."); return; }
+  if (T.ed != null) { A.erreur("Terminez la modification en cours (OK ou Annuler)."); return; }
+  const items = T.items.map((i) => i.nom).filter(Boolean); if (!items.length) { A.erreur("Ajoutez au moins une analyse."); return; }
+  if (BIL.some((z) => z.id !== T.id && sansAcc(z.nom) === sansAcc(nom))) { A.erreur("Un bilan porte déjà ce nom."); return; }
+  if (items.some((n) => sansAcc(n) === sansAcc(nom))) { A.erreur("Un bilan ne peut pas se contenir lui-même."); return; }
+  const o = { id: T.id || "b" + Date.now().toString(36), nom, items }, modif = !!T.id;
+  A.occupe($("biOk"), true);
+  try { BIL = await modifierListe("bilans", (L) => { const i = L.findIndex((z) => z.id === o.id); if (i >= 0) L[i] = Object.assign({}, L[i], o); else L.push(o); }); A.toast(modif ? "Bilan modifié." : "Bilan créé."); anaRetour(); }
+  catch (e) { A.occupe($("biOk"), false); A.erreur(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de modifier les bilans." : "Enregistrement impossible : " + ((e && e.message) || e)); }
+};
+async function retirerDe(n, id, lib) {
+  try { const L = await modifierListe(n, (X) => { const i = X.findIndex((z) => z.id === id); if (i >= 0) X.splice(i, 1); }); if (n === "analyses") ANA = L; else BIL = L; A.toast(lib + " supprimé de la liste."); listeAnalyses(); }
+  catch (e) { A.toast(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de modifier cette liste." : "Suppression impossible."); }
+}
+window.anaSupprimer = (id) => { const a = ANA.find((z) => z.id === id); if (a && confirm("Supprimer l'analyse « " + a.nom + " » de la liste ?")) retirerDe("analyses", id, "Analyse"); };
+window.bilSupprimer = (id) => { const b = BIL.find((z) => z.id === id); if (b && confirm("Supprimer le bilan « " + b.nom + " » ?\n\nLes ordonnances déjà faites ne changent pas.")) retirerDe("bilans", id, "Bilan"); };
+async function basculerFavori(n, id) {
+  try { const L = await modifierListe(n, (X) => { const z = X.find((y) => y.id === id); if (z) z.fav = !z.fav; }); if (n === "analyses") ANA = L; else BIL = L; listeAnalyses(); }
+  catch (e) { A.toast(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de modifier cette liste." : "Modification impossible."); }
+}
+window.anaFavori = (id) => basculerFavori("analyses", id);
+window.bilFavori = (id) => basculerFavori("bilans", id);
+
 // Favori ⭐ : en tête de liste, pour tout le cabinet
 window.mdFavori = async (id) => {
   try { await modifierBib((L) => { const z = L.find((y) => y.id === id); if (z) z.fav = !z.fav; }); liste(); }
@@ -233,8 +342,18 @@ const fmtStock = () => { try { return localStorage.getItem("onco360.formatOrdo")
 const dateFr = (d) => d.slice(8, 10) + "/" + d.slice(5, 7) + "/" + d.slice(0, 4);
 const civilite = (x) => (x.P.sexe === "F" ? "Mme " : x.P.sexe === "H" ? "M. " : "");
 const medecin = () => { const n = (A.medecinFiche() || {}).nom || ""; return n || "Dr "; };
+// Ordonnance d'analyses : « Prière de faire pratiquer : », une ligne par analyse ou bilan, renseignements cliniques (diagnostic)
+function contenuAnalyses(x, items, d, med) {
+  const e = A.esc;
+  return '<p class="or-date">Le ' + dateFr(d) + "</p>" + '<p class="or-pat"><b>' + e(civilite(x) + x.r.nm) + "</b></p>" +
+    '<p class="or-t"><b><u>Prière de faire pratiquer :</u></b></p>' +
+    (items.length ? items.map((it) => '<p class="or-a">• ' + e(it.nom) + (it.poso ? " (" + e(it.poso) + ")" : "") + "</p>").join("") : "<p><br></p>".repeat(6)) +
+    '<p class="or-rc"><b>Renseignements cliniques :</b> ' + e(x.r.diag || "") + "</p>" +
+    '<p class="or-sig">Cachet et signature du médecin :<br><b>' + e(med) + "</b></p>";
+}
 // Contenu de départ : date à droite, patient, médicaments numérotés (nom souligné, posologie dessous), signature
 function contenu(x, items, d, med) {
+  if ((S && S.t === "analyse") || (O && O.t === "analyse")) return contenuAnalyses(x, items, d, med);
   const e = A.esc;
   return '<p class="or-date">Le ' + dateFr(d) + "</p>" +
     '<p class="or-pat"><b>' + e(civilite(x) + x.r.nm) + "</b></p>" +
@@ -261,9 +380,9 @@ export const nettoyer = (html) => { const t = document.createElement("template")
 // Libellé de la ligne « Médic. » de la consultation : les médicaments de l'ordonnance (ou le début du texte)
 function libelle(html) {
   const d = document.createElement("div"); d.innerHTML = html;
-  const noms = [...d.querySelectorAll(".or-m")].map((p) => p.textContent.replace(/^\s*\d+\s*\/\s*/, "").trim()).filter(Boolean);
+  const noms = [...d.querySelectorAll(".or-m, .or-a")].map((p) => p.textContent.replace(/^\s*\d+\s*\/\s*/, "").replace(/^\s*•\s*/, "").split(" : ")[0].trim()).filter(Boolean);
   if (noms.length) return noms.join(" ; ");
-  [".or-date", ".or-pat", ".or-sig"].forEach((s) => d.querySelectorAll(s).forEach((p) => p.remove()));
+  [".or-date", ".or-pat", ".or-sig", ".or-t", ".or-rc"].forEach((s) => d.querySelectorAll(s).forEach((p) => p.remove()));
   const t = d.textContent.replace(/\s+/g, " ").trim();
   return t ? (t.length > 140 ? t.slice(0, 140) + "…" : t) : "Ordonnance vierge";
 }
@@ -282,10 +401,13 @@ function medicamentsDe(html) {
   const d = document.createElement("div"); d.innerHTML = html; const L = [];
   d.querySelectorAll("br").forEach((b) => b.replaceWith("\n"));
   [...d.children].forEach((p) => {
+    if (p.classList.contains("or-a")) { L.push({ nom: p.textContent.replace(/^\s*•\s*/, "").trim(), poso: "", fin: true }); return; } // analyses : une ligne chacune
+    if (p.classList.contains("or-t") || p.classList.contains("or-rc")) return;
     if (p.classList.contains("or-m")) L.push({ nom: p.textContent.replace(/^\s*\d+\s*\/\s*/, "").trim(), poso: "" });
+    else if (L.length && L[L.length - 1].fin) return;
     else if (L.length && !p.classList.contains("or-sig") && !p.classList.contains("or-date") && !p.classList.contains("or-pat")) { const t = p.textContent; const z = L[L.length - 1]; z.poso = (z.poso ? z.poso + "\n" : "") + String(t).trim(); }
   });
-  L.forEach((z) => { z.poso = z.poso.replace(/\n{2,}/g, "\n").trim(); });
+  L.forEach((z) => { z.poso = z.poso.replace(/\n{2,}/g, "\n").trim(); delete z.fin; });
   return L.filter((z) => z.nom);
 }
 // Une ordonnance déjà enregistrée (clic sur sa ligne dans la consultation) : ses antécédents, elle sélectionnée
@@ -336,9 +458,10 @@ window.anSupprimer = async () => {
 window.anModifier = async () => {
   const l = choisie(); if (!l || !peutEcrire()) return; const pid = H.pid; H = null;
   // ordonnance écrite à la main (sans médicament de la liste) : elle s'ouvre telle quelle, pour ne rien perdre
-  if (["medic", "ordo"].indexOf(l.t) < 0 || !medicamentsDe(l.html).length) { ouvrirOrdonnance({ pid, t: l.t, ligne: l, types: l.types, html: l.html, format: l.format || "A5", taille: l.taille || 0 }); return; }
+  if (["medic", "ordo", "analyse"].indexOf(l.t) < 0 || !medicamentsDe(l.html).length) { ouvrirOrdonnance({ pid, t: l.t, ligne: l, types: l.types, html: l.html, format: l.format || "A5", taille: l.taille || 0 }); return; }
   S = { pid, t: l.t, q: "", items: medicamentsDe(l.html), modif: l, types: (l.types || []).slice() }; T = null;
-  A.fenetre('<p class="sous">Chargement…</p>', "large"); await Promise.all([chargerBib(), l.t === "ordo" ? chargerTypes() : null]); (l.t === "ordo" ? vueTypes : vueListe)();
+  A.fenetre('<p class="sous">Chargement…</p>', "large"); await Promise.all([chargerBib(), l.t === "ordo" ? chargerTypes() : null, l.t === "analyse" ? chargerAnalyses() : null]);
+  (l.t === "ordo" ? vueTypes : l.t === "analyse" ? vueAnalyses : vueListe)();
 };
 // Renouveler : une nouvelle ordonnance du jour, même contenu, signée par le médecin du jour
 window.anRenouveler = () => { const l = choisie(); if (!l || !peutEcrire()) return; const pid = H.pid; H = null; ouvrirOrdonnance({ pid, t: l.t, renouv: l, types: l.types, html: auJour(l.html, true), format: l.format || "A5", taille: l.taille || 0 }); };
@@ -370,7 +493,8 @@ function imprimer(w, html, format, taille) {
   // Marges sur chaque page (07/10/2026 : côtés élargis deux fois, haut agrandi pour l'en-tête du papier, à régler quand
   // Dr Bentahila aura mesuré ses en-têtes)
   const css = "@page{size:" + (a4 ? "A4" : "A5") + " portrait;margin:" + (a4 ? "60mm 35mm 22mm" : "45mm 28mm 18mm") + "}html,body{margin:0}body{font-family:Arial,Helvetica,sans-serif;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact}" +
-    ".pg{font-size:" + pt + "pt;line-height:1.45}.or-date{text-align:right;margin:0 0 6mm}.or-pat{margin:0 0 7mm}.or-m{margin:4mm 0 1mm}.or-p{margin:0 0 0 6mm}.or-sig{margin-top:10mm;text-align:right}p{margin:0 0 1.5mm}";
+    ".pg{font-size:" + pt + "pt;line-height:1.45}.or-date{text-align:right;margin:0 0 6mm}.or-pat{margin:0 0 7mm}.or-m{margin:4mm 0 1mm}.or-p{margin:0 0 0 6mm}.or-sig{margin-top:10mm;text-align:right}p{margin:0 0 1.5mm}" +
+    ".or-t{margin:0 0 3mm}p.or-a{margin:0 0 1.5mm 4mm}.or-rc{margin-top:6mm}";
   w.document.open(); w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>&#8203;</title><style>' + css + '</style></head><body><div class="pg">' + html + "</div></body></html>"); w.document.close();
   setTimeout(() => { try { w.focus(); w.print(); } catch (e) {} }, 400);
 }

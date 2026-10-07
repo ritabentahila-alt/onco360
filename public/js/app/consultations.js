@@ -134,6 +134,7 @@ window.csSupprimer = async (pid, cid) => {
 window.csPrescrire = (pid, t) => {
   if (t === "medic") { window.ordMedicaments(pid); return; }
   if (t === "ordo") { window.ordTypes(pid); return; }
+  if (t === "analyse") { window.ordAnalyses(pid); return; }
   const f = FAMILLES.find((z) => z.t === t); A.toast((f ? f.titre : "Prescriptions") + " : bientôt disponible (en cours de construction).");
 };
 // Consultations du patient lues (pour les antécédents des prescriptions)

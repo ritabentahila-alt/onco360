@@ -240,8 +240,23 @@ de leur radiothérapie :
 - [ ] **Courriers** : Dr Bentahila crée elle-même ses modèles (Nouveau / Modifier / Supprimer). Champs remplis
       automatiquement : **nom, âge, diagnostic, date, « à Casablanca »** (pas le correspondant). Premiers modèles à
       rédiger **ensemble** : **demande d'ALD**, **courrier**, **certificat** ; d'autres ensuite.
-- [ ] **Analyses** : analyses simples (ex. NFS) et **bilans types** qui en regroupent plusieurs (ex. Bilan chimio = NFS,
-      Urée, Créatinine). **Import de la liste des analyses et bilans en Excel**, fournie par Dr Bentahila.
+- [x] **Analyses** (fait et testé le 07/10, pas encore en ligne) : fichier de Dr Bentahila
+      (`Prescriptions_Biologiques_Oncologie.xlsx` : 40 bilans, 66 analyses) rangé → **34 bilans dont 7 bilans généraux,
+      94 analyses** (`public/js/donnees/analyses.js` ; relecture : `listes/Analyses_Onco360.xlsx`, colonne « Ce que j'ai
+      changé », nouveautés en vert). Doublons retirés (IHC, NGS, HRD, PD-L1, biopsie liquide), tests de génétique et de
+      biologie moléculaire passés en analyses, bilan de coagulation créé, marqueurs tumoraux par organe et « avant
+      5-FU / capécitabine » ajoutés, bilan immunothérapie intercure complété (à valider).
+  - Bouton **Analyses** : liste des bilans (« Bilan général » indiqué) puis des analyses, recherche (nom d'abord, puis
+    contenu) ; clic sur une analyse = 1 ligne ; sur un bilan = 1 ligne « Bilan … : analyses » ; sur un **bilan général** =
+    une ligne par bilan qu'il contient ; pas de doublon. ✎ / ↑ ↓ / ✕, « Ajouter une analyse ou un bilan », ligne libre.
+  - Ordonnance : « Prière de faire pratiquer : », lignes « • … », « Renseignements cliniques : » (diagnostic du dossier),
+    signature ; A5/A4 ; ligne « Analyses — Bilan … : NFS ; … » dans la consultation du jour ; antécédents (Modifier rouvre
+    la fenêtre des analyses).
+  - **Nouveau bilan** (analyses et/ou bilans : avec des bilans, il devient général), **Nouvelle analyse** (nom,
+    catégorie), ✎, ✕, **favoris ⭐** ; listes du cabinet `bibliotheques/analyses` et `bibliotheques/bilans`.
+  - Tests : bilan général, doublon, ajout, retrait, impression, consultation, création d'un bilan, favori, nouvelle
+    analyse, antécédents, 390 px, bilan 352 317 DH.
+  - [ ] Dr Bentahila relit `listes/Analyses_Onco360.xlsx` (ou corrige directement dans Onco360).
 - [ ] Antécédents (petite flèche) pour chacune, comme en 1D.
 
 **1F – Finition**
@@ -425,3 +440,4 @@ Décisions déjà prises :
 | 07/10/2026 | 1B – Consultations | Consultations toutes fermées à l'ouverture du dossier ; liste dans une zone qui défile (environ 10 consultations visibles, position gardée en pliant / dépliant). Testé avec 30 consultations (ordinateur, 390 px, bilan 352 317 DH), mis en ligne. |
 | 07/10/2026 | Retouches | Rendez-vous à venir : liste qui défile (5 visibles). Ordonnances types : version Excel du Dr installée. Favoris ⭐ (médicaments, ordonnances types). Testé (390 px, bilan 352 317 DH), mis en ligne. |
 | 07/10/2026 | 2 – Retouches | Boutons Afficher / Modifier ; résumé du patient enregistré automatiquement, page non quittable avant enregistrement ; mis en ligne. |
+| 07/10/2026 | 1E – Analyses | Analyses : 34 bilans (7 généraux) et 94 analyses (fichier du Dr rangé), clic = lignes dans l'ordonnance, ordonnance « Prière de faire pratiquer », création / modification / favoris. Testé (390 px, bilan 352 317 DH). Pas encore en ligne. |
