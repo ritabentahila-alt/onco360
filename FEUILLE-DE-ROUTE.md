@@ -47,7 +47,7 @@ Disposition décidée par Dr Bentahila le 07/10, de haut en bas :
       prix à encaisser), gardé tel qu'aujourd'hui, en dehors des onglets.
 - [x] Chimiothérapie = carte chimio actuelle ; Radiothérapie = carte RT actuelle, **avec ses boutons pli confidentiel,
       compte rendu de fin et rendez-vous Excel** (c'est de là qu'on les génère, décision du 07/10).
-- [x] Documents : pour l'instant un message ; les documents générés s'y **enregistreront** (étape 1A bis).
+- [x] Documents : pour l'instant un message. **Décision du 07/10 : rien n'ira dans cet onglet** (voir 1A bis).
 - [x] Le dossier **s'ouvre toujours sur Consultation** ; un clic sur un onglet affiche sa carte ; l'onglet reste affiché
       après un enregistrement, et on revient sur Consultation en rouvrant le dossier. Sans l'onglet Consultation
       (infirmière), le premier onglet permis s'ouvre.
@@ -62,18 +62,18 @@ Disposition décidée par Dr Bentahila le 07/10, de haut en bas :
 Test : Playwright n'est pas installé sur ce Mac ; testé dans le navigateur intégré avec le faux Firebase, sur une copie
 du site dans un dossier temporaire (macOS empêche le serveur de test de lire le Bureau).
 
-**1A bis – Copies des documents dans l'onglet Documents** (demandé le 06/10 : « le logiciel garde des copies »)
-Proposition, à valider avec Dr Bentahila :
-- [ ] **Stockage des fichiers** dans Firebase Storage (`espaces/{e}/patients/{p}/documents/…`), avec une fiche Firestore par
-      document (type, nom, date, auteur, établissement). Règles de sécurité = périmètre + droit « documents » ; l'infirmière
-      ne voit que les fiches chimio.
-- [ ] **Copie automatique** à chaque génération : pli, compte rendu de fin, rendez-vous Excel, et fiche chimio
-      (instantané exact de la fiche imprimée, réimprimable à l'identique).
-- [ ] **« Ajouter la version complétée »** : le .docx retouché dans Word, gardé à côté de l'original.
-- [ ] **Ajout libre** : PDF ou photo prise au téléphone (anapath, imagerie, bilans…), taille limitée.
-- [ ] **Suppression** réservée au médecin, avec une corbeille.
-- [ ] **Sauvegarde** : la sauvegarde Firebase du soir ne copie pas les fichiers. Activer la suppression douce et les versions
-      du stockage.
+**1A bis – Documents de radiothérapie dans une fenêtre** (décision de Dr Bentahila le 07/10, remplace l'ancienne idée de
+« copies dans l'onglet Documents », abandonnée)
+Décision : **rien ne va dans un onglet Documents**. Les ordonnances et courriers restent derrière leur petite flèche
+(antécédents, 1D / 1E). Le pli confidentiel, le compte rendu de fin et les rendez-vous de radiothérapie restent dans la carte
+de leur radiothérapie :
+- [ ] Clic sur « Pli confidentiel » (ou « Compte rendu de fin », « Rendez-vous ») → une **fenêtre s'ouvre avec le document**
+      rempli depuis le dossier ; le médecin le **modifie**, peut l'**imprimer**, et l'**enregistre**.
+- [ ] Le document enregistré **reste attaché à sa radiothérapie** : un nouveau clic sur le même bouton rouvre **la version
+      modifiée et enregistrée** (pas un nouveau document).
+- [ ] Même fonctionnement pour les courriers (1E).
+- [ ] Questions posées le 07/10 (réponses à noter ici) : onglet Documents retiré ? fenêtre à la place du Word et de l'Excel ?
+      qui modifie (médecin seul, secrétaire en lecture / impression) ?
 
 **1B – Consultations (journal médical)** (fait, testé et mis en ligne le 07/10)
 - [x] « Nouvelle consultation » : **menu déroulant** (Consultation de suivi, d'annonce, de chimiothérapie…) **et titre à
@@ -147,7 +147,7 @@ Proposition, à valider avec Dr Bentahila :
 - [x] Mise en ligne le 07/10 (site + règle `bibliotheques`).
 - [x] **Décidé le 07/10** : les ordonnances **ne vont pas dans l'onglet Documents** et ne génèrent aucun fichier (pas de
       Word / PDF gardé) : elles sont seulement enregistrées dans la consultation, et on les retrouve par l'historique des
-      prescriptions (1D : voir, réimprimer, renouveler), pour ne pas surcharger. (Courriers : même question, à voir en 1E.)
+      prescriptions (1D : voir, réimprimer, renouveler), pour ne pas surcharger. Courriers : pareil (confirmé le 07/10).
 - [ ] Plus tard (si plusieurs médecins dans un cabinet) : choisir le médecin signataire dans la fenêtre de l'ordonnance.
 
 **1D – Antécédents des prescriptions** (petite flèche)
@@ -317,3 +317,4 @@ Décisions déjà prises :
 | 07/10/2026 | 1C – Médicaments | Corrections de Dr Bentahila reprises, remarques retirées, 30 médicaments d'oncologie ajoutés (en vert) : 162 médicaments, à valider. |
 | 07/10/2026 | 1C – Médicaments et ordonnance | Liste des médicaments (165, recherche, + / ✎ / ✕, double-clic), ordonnance A5/A4 modifiable, Valider / Valider + Imprimer, ligne « Médic. » dans la consultation du jour (créée si besoin). Testé (3 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |
 | 07/10/2026 | 1C – Médicaments et ordonnance | Mis en ligne. Décidé : les ordonnances ne vont pas dans Documents (enregistrées dans la consultation seulement, historique en 1D). |
+| 07/10/2026 | 1A bis – Documents | Décidé : rien dans l'onglet Documents ; ordonnances et courriers derrière leur petite flèche ; pli, CR de fin et rendez-vous RT ouverts dans une fenêtre, modifiés, imprimés, enregistrés et rouverts depuis la carte radiothérapie. Questions posées. |
