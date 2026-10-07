@@ -72,8 +72,16 @@ de leur radiothérapie :
 - [ ] Le document enregistré **reste attaché à sa radiothérapie** : un nouveau clic sur le même bouton rouvre **la version
       modifiée et enregistrée** (pas un nouveau document).
 - [ ] Même fonctionnement pour les courriers (1E).
-- [ ] Questions posées le 07/10 (réponses à noter ici) : onglet Documents retiré ? fenêtre à la place du Word et de l'Excel ?
-      qui modifie (médecin seul, secrétaire en lecture / impression) ?
+- [x] Réponses de Dr Bentahila (07/10) :
+  - **Pli confidentiel et compte rendu de fin : fenêtre seulement**, plus de fichier Word. La mise en page de ses modèles
+    Word (`modeles/`) est recréée dans Onco360 (texte modifiable, impression A4, papier à en-tête).
+  - **Rendez-vous de radiothérapie : tableau des séances dans la fenêtre** (modifiable, imprimable, enregistré), plus
+    d'Excel.
+  - **Médecin et secrétaire** peuvent modifier et enregistrer ces documents.
+  - **L'onglet Documents est gardé** pour y **déposer des fichiers venus d'ailleurs** (PDF, photos : anapath, imagerie,
+    bilans) → étape à part (Firebase Storage, taille limitée, suppression par le médecin, sauvegarde des fichiers à prévoir).
+- [ ] Données : une fiche par document (patient, radiothérapie, type pli / cr / rdv, contenu, auteur, date), règles :
+      lecture par le périmètre et le droit « documents », écriture avec le droit « documents » (médecin, secrétaire).
 
 **1B – Consultations (journal médical)** (fait, testé et mis en ligne le 07/10)
 - [x] « Nouvelle consultation » : **menu déroulant** (Consultation de suivi, d'annonce, de chimiothérapie…) **et titre à
@@ -318,3 +326,4 @@ Décisions déjà prises :
 | 07/10/2026 | 1C – Médicaments et ordonnance | Liste des médicaments (165, recherche, + / ✎ / ✕, double-clic), ordonnance A5/A4 modifiable, Valider / Valider + Imprimer, ligne « Médic. » dans la consultation du jour (créée si besoin). Testé (3 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |
 | 07/10/2026 | 1C – Médicaments et ordonnance | Mis en ligne. Décidé : les ordonnances ne vont pas dans Documents (enregistrées dans la consultation seulement, historique en 1D). |
 | 07/10/2026 | 1A bis – Documents | Décidé : rien dans l'onglet Documents ; ordonnances et courriers derrière leur petite flèche ; pli, CR de fin et rendez-vous RT ouverts dans une fenêtre, modifiés, imprimés, enregistrés et rouverts depuis la carte radiothérapie. Questions posées. |
+| 07/10/2026 | 1A bis – Documents | Réponses : fenêtre seulement (plus de Word ni d'Excel), médecin et secrétaire modifient, onglet Documents gardé pour déposer des fichiers (étape à part). |
