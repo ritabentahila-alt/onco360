@@ -106,9 +106,16 @@ Proposition, à valider avec Dr Bentahila :
       Onco360 en premier** (mise à niveau des droits de l'équipe) avant que la secrétaire écrive une consultation.
 
 **1C – Médicaments et ordonnance** (le moteur commun)
-- [ ] **À décider au début de 1C** : s'il n'y a pas encore de consultation à la date du jour quand on valide une
-      ordonnance, proposition : Onco360 en crée une automatiquement (« Consultation de suivi », sans titre), où la ligne
-      « Médic. — … » s'ajoute.
+- [x] **Décidé le 07/10** : si l'on fait une ordonnance sans consultation à la date du jour, Onco360 crée automatiquement
+      une consultation du jour qui ne contient que l'ordonnance (ligne « Médic. — … »).
+- [x] Liste des médicaments reçue le 07/10 (`Ordonnances_Chimio.xlsx`, 225 lignes) → nettoyée dans
+      `listes/Medicaments_Onco360.xlsx` : **147 lignes** (doublons fusionnés ; quand un même médicament avait des
+      posologies vraiment différentes, elles sont gardées comme variantes), posologies rédigées en clair (« 1 comprimé
+      matin et soir (soit 2 comprimés par jour) »), **colonne « Classe thérapeutique »** (vérifiée sur les sites marocains
+      medicament.ma / annuaire-gratuit.ma / med.ma pour les noms incertains), colonne « Remarque » (ce qui a changé).
+- [ ] **Dr Bentahila relit les 21 lignes en jaune** (à vérifier : durées à compléter, médicaments introuvables APAZIDE,
+      DUOXOL, NOCAND, SYSMETIX, TEGUMA 250 mg comprimé/crème, CEDOL 400/20 = même médicament, DECAPEPTYL voie IM, etc.),
+      corrige le fichier si besoin et le renvoie ; c'est cette version qui sera importée.
 - [ ] Liste de tous les médicaments du cabinet : **Recherche** ; colonnes Médicament, Posologie ; **+** ajouter,
       **✎** modifier, **✕** supprimer.
 - [ ] « + » : Nom du médicament (ex. ABIRATERONE 250 mg) + Posologie (ex. 4 comprimés par jour le matin pendant 1 mois)
@@ -120,7 +127,8 @@ Proposition, à valider avec Dr Bentahila :
 - [ ] Choix **A5 / A4** ; **Valider** (enregistre) · **Valider + Imprimer** · **Fermer**. Tout à la date du jour, signé
       au nom du médecin connecté, ou de **son médecin** si c'est la secrétaire qui la fait (question 6), enregistré dans
       la consultation du jour.
-- [ ] **Import de la liste de médicaments en Excel**, fournie par Dr Bentahila (export GestiCab).
+- [ ] **Import de la liste de médicaments** (version relue de `listes/Medicaments_Onco360.xlsx`), avec la classe
+      thérapeutique (affichée dans la liste, pour chercher aussi par classe).
 
 **1D – Antécédents des prescriptions** (petite flèche)
 - [ ] Fenêtre : dates à gauche, ordonnance à droite ; à droite **Imprimer · Supprimer · Renouveler · Fermer**.
@@ -285,3 +293,4 @@ Décisions déjà prises :
 | 07/10/2026 | 1B – Consultations | Journal des consultations (créer, plier, modifier, supprimer), barre des 5 prescriptions (à venir), nouveau droit d'écriture, secrétaire : chimio en lecture. Testé (3 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |
 | 07/10/2026 | 1B – Consultations | Mis en ligne (site + règles de sécurité). |
 | 07/10/2026 | 1B – Consultations | Retouches : menu déroulant + titre libre (ex. J1C1 FOLFOX) ; barre des prescriptions indépendante, en bas de l'onglet. Testé (ordinateur, 390 px). Mis en ligne. |
+| 07/10/2026 | 1C – Médicaments | Liste des médicaments nettoyée (225 → 147 lignes, posologies en clair, classe thérapeutique, 21 lignes à vérifier en jaune). Décidé : ordonnance sans consultation du jour → consultation créée automatiquement. |
