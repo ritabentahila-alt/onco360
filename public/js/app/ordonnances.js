@@ -40,7 +40,7 @@ async function modifierBib(fn) {
 }
 
 // ───── Fenêtre « Médicaments » : recherche, liste, ordonnance en préparation ─────
-let S = null; // { pid, q, items: [{ nom, poso }] }
+let S = null; // { pid, q, items: [{ nom, poso }], modif (ordonnance enregistrée qu'on modifie) }
 window.ordMedicaments = async (pid) => {
   const x = trouver(pid); if (!x || !peutEcrire()) return;
   S = { pid, q: "", items: [] };
@@ -49,7 +49,7 @@ window.ordMedicaments = async (pid) => {
 };
 function vueListe() {
   const x = trouver(S.pid);
-  A.fenetre("<h3>Médicaments — " + A.esc(x.r.nm) + "</h3>" +
+  A.fenetre("<h3>" + (S.modif ? "Modifier l'ordonnance du " + A.dfrA(S.modif.d) : "Médicaments") + " — " + A.esc(x.r.nm) + "</h3>" +
     '<div class="md-barre"><div class="recherche">' + A.ic("loupe") + '<input id="mdQ" type="search" autocomplete="off" placeholder="Rechercher un médicament, une posologie, une classe…" value="' + A.esc(S.q) + '"></div>' +
     '<button class="bt clair petit" onclick="mdFiche()">' + A.ic("plus") + "Nouveau médicament</button></div>" +
     '<div class="md-liste" id="mdListe"></div><p class="mesures" style="margin:6px 0 0">Double-cliquez sur un médicament (ou touchez ' + ico("plus") + ") pour l'ajouter à l'ordonnance.</p>" +
@@ -148,7 +148,23 @@ function libelle(html) {
 }
 
 let O = null; // ordonnance ouverte : { pid, t, ligne (si déjà enregistrée), format, taille, lecture }
-window.mdAfficher = () => { if (!S) return; const x = trouver(S.pid); ouvrirOrdonnance({ pid: S.pid, t: "medic", html: contenu(x, S.items, D().t, medecin()), format: fmtStock(), taille: 0 }); };
+window.mdAfficher = () => {
+  if (!S) return; const x = trouver(S.pid), l = S.modif;
+  // Modification : même date de prescription, même signataire, même format ; la ligne de sa consultation sera mise à jour
+  if (l) ouvrirOrdonnance({ pid: S.pid, t: l.t, ligne: l, html: contenu(x, S.items, l.d, l.med || medecin()), format: l.format || "A5", taille: l.taille || 0 });
+  else ouvrirOrdonnance({ pid: S.pid, t: "medic", html: contenu(x, S.items, D().t, medecin()), format: fmtStock(), taille: 0 });
+};
+// Médicaments d'une ordonnance enregistrée, relus sur la feuille (avec les corrections faites à la main) : nom + posologie
+function medicamentsDe(html) {
+  const d = document.createElement("div"); d.innerHTML = html; const L = [];
+  d.querySelectorAll("br").forEach((b) => b.replaceWith("\n"));
+  [...d.children].forEach((p) => {
+    if (p.classList.contains("or-m")) L.push({ nom: p.textContent.replace(/^\s*\d+\s*\/\s*/, "").trim(), poso: "" });
+    else if (L.length && !p.classList.contains("or-sig") && !p.classList.contains("or-date") && !p.classList.contains("or-pat")) { const t = p.textContent; const z = L[L.length - 1]; z.poso = (z.poso ? z.poso + "\n" : "") + String(t).trim(); }
+  });
+  L.forEach((z) => { z.poso = z.poso.replace(/\n{2,}/g, "\n").trim(); });
+  return L.filter((z) => z.nom);
+}
 // Une ordonnance déjà enregistrée (clic sur sa ligne dans la consultation) : ses antécédents, elle sélectionnée
 window.ordVoir = (pid, cid, lid) => { const l = trouverLigne(pid, cid, lid); if (l) window.ordAntecedents(pid, l.t, lid); };
 
@@ -193,7 +209,14 @@ window.anSupprimer = async () => {
   catch (e) { A.toast(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de supprimer cette ordonnance." : "Suppression impossible."); }
 };
 // Modifier : la même ordonnance, à sa date de prescription ; enregistrée, elle change aussi dans sa consultation
-window.anModifier = () => { const l = choisie(); if (!l || !peutEcrire()) return; const pid = H.pid; H = null; ouvrirOrdonnance({ pid, t: l.t, ligne: l, html: l.html, format: l.format || "A5", taille: l.taille || 0 }); };
+// (rouvre la liste des médicaments avec ceux de l'ordonnance : ajouter, retirer, réordonner, puis « Afficher l'ordonnance »)
+window.anModifier = async () => {
+  const l = choisie(); if (!l || !peutEcrire()) return; const pid = H.pid; H = null;
+  // ordonnance écrite à la main (sans médicament de la liste) : elle s'ouvre telle quelle, pour ne rien perdre
+  if (l.t !== "medic" || !medicamentsDe(l.html).length) { ouvrirOrdonnance({ pid, t: l.t, ligne: l, html: l.html, format: l.format || "A5", taille: l.taille || 0 }); return; }
+  S = { pid, q: "", items: medicamentsDe(l.html), modif: l };
+  A.fenetre('<p class="sous">Chargement des médicaments…</p>', "large"); await chargerBib(); vueListe();
+};
 // Renouveler : une nouvelle ordonnance du jour, même contenu, signée par le médecin du jour
 window.anRenouveler = () => { const l = choisie(); if (!l || !peutEcrire()) return; const pid = H.pid; H = null; ouvrirOrdonnance({ pid, t: l.t, renouv: l, html: auJour(l.html, true), format: l.format || "A5", taille: l.taille || 0 }); };
 function ouvrirOrdonnance(o) {

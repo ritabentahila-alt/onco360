@@ -32,7 +32,7 @@ export const FAMILLES = [
 // Nom affiché : type (menu) · titre (libre) ; les premières consultations n'avaient qu'un titre
 const nomCs = (c) => [c.type, c.titre].filter(Boolean).join(" · ") || "Consultation";
 const libLigne = (t) => (FAMILLES.find((f) => f.t === t) || { lib: t }).lib;
-const TYPES = ["Consultation de suivi", "Consultation d'annonce", "Consultation de contrôle", "Consultation de chimiothérapie", "Consultation en cours de radiothérapie", "Consultation de fin de traitement"];
+const TYPES = ["Consultation de suivi", "Consultation d'annonce", "RCP", "Consultation de contrôle", "Consultation de chimiothérapie", "Consultation en cours de radiothérapie", "Consultation de fin de traitement"];
 
 // Lecture des consultations d'un patient (filtre d'établissement pour un membre limité à certains établissements)
 function charger(x) {

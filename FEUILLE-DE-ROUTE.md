@@ -84,6 +84,7 @@ de leur radiothérapie :
       lecture par le périmètre et le droit « documents », écriture avec le droit « documents » (médecin, secrétaire).
 
 **1B – Consultations (journal médical)** (fait, testé et mis en ligne le 07/10)
+- [x] Menu des consultations : **RCP** ajouté le 07/10.
 - [x] « Nouvelle consultation » : **menu déroulant** (Consultation de suivi, d'annonce, de chimiothérapie…) **et titre à
       remplir** (ex. « J1C1 FOLFOX »), date du jour (modifiable), note ; nom de la personne qui l'a créée. Affiché :
       « Consultation de chimiothérapie · J1C1 FOLFOX » (retouche du 07/10). Créée **à la main** par le médecin ou la secrétaire : marquer un rendez-vous « Venu » ne crée rien.
@@ -164,6 +165,9 @@ de leur radiothérapie :
       Renouveler · Fermer** (« Modifier » ajouté le 07/10 à la demande de Dr Bentahila).
 - [x] **Modifier** = la même ordonnance **à sa date de prescription** (corrigé le 07/10 : la date du jour, c'est
       « Renouveler ») ; une fois enregistrée, elle **change aussi dans sa consultation** (liste : « modifiée le … »).
+- [x] **Modifier rouvre la liste des médicaments** (retouche du 07/10) avec ceux déjà sur l'ordonnance (posologies relues sur
+      la feuille, corrections à la main comprises) : ajouter, retirer, réordonner, puis « Afficher l'ordonnance » (même date,
+      même signataire, même format). Une ordonnance écrite à la main (sans médicament de la liste) s'ouvre telle quelle.
 - [x] **Renouveler** = nouvelle ordonnance du jour, même contenu, signée par le médecin du jour, mêmes options (A5/A4,
       Valider, Valider + Imprimer, Fermer) ; enregistrée dans la consultation du jour (créée si besoin).
 - [x] **Supprimer** (médecin et secrétaire, avec confirmation ; décision du 07/10) : l'ordonnance disparaît aussi de sa consultation ; une
@@ -178,6 +182,9 @@ de leur radiothérapie :
 - [x] Mise en ligne le 07/10 (site + règles de sécurité).
 
 **1E – Les quatre autres familles (même système, modèles créés par Dr Bentahila)**
+- [ ] **Règle (07/10) : tout ce qui est fait pour Médic. vaut pour Ordo. type et Analyses** (et les autres familles) :
+      liste avec recherche + / ✎ / ✕, double-clic, ordonnance A5/A4 modifiable, consultation du jour, antécédents
+      (Imprimer · Supprimer · Modifier = liste rouverte à la date de prescription · Renouveler · Fermer).
 - [ ] **Examens compl.** : liste de modèles (Nouveau +, Modifier ✎, Supprimer ✕), recherche, double-clic → petit cadre où
       se compose l'ordonnance → Afficher l'ordonnance / Fermer → ordonnance modifiable, A5/A4, Valider / Valider + Imprimer / Fermer.
 - [ ] **Ordonnances types**.
@@ -344,3 +351,4 @@ Décisions déjà prises :
 | 07/10/2026 | 1A bis – Documents | Réponses : fenêtre seulement (plus de Word ni d'Excel), médecin et secrétaire modifient, onglet Documents gardé pour déposer des fichiers (étape à part). |
 | 07/10/2026 | 1D – Antécédents | Fenêtre des antécédents (Imprimer, Supprimer, Modifier à la date du jour, Renouveler, Fermer), ouverte aussi par la ligne « Médic. ». Testé (3 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |
 | 07/10/2026 | 1D – Antécédents | Retouches : Modifier garde la date de prescription, la secrétaire peut supprimer. Testé, mis en ligne (site + règles). |
+| 07/10/2026 | 1D – Antécédents | Modifier rouvre la liste des médicaments avec ceux de l'ordonnance (même date). « RCP » ajouté au menu des consultations. Règle : même système pour Ordo. type et Analyses. Testé (bilan 352 317 DH). |
