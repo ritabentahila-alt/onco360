@@ -199,6 +199,30 @@ details summary{cursor:pointer;color:var(--prim);font-weight:bold;font-size:13.5
 .pr button{border:0;background:none;padding:8px 10px;font-weight:bold;font-size:13px;color:var(--titre);display:inline-flex;align-items:center;gap:6px}
 .pr button:hover{background:var(--prim-c)}.pr .fl{border-left:1px solid var(--trait);padding:8px 8px;color:var(--doux)}.pr .pi{width:17px;height:17px;margin:0;color:var(--prim)}
 .cs-note{font-size:15px;line-height:1.5}
+.lien-l{border:0;background:none;padding:0;text-align:left;font:inherit;color:var(--prim);text-decoration:underline;text-underline-offset:2px;cursor:pointer}
+/* Médicaments et ordonnance */
+.md-barre{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:8px}.md-barre .recherche{flex:1;min-width:200px}.md-barre .recherche input{padding:10px 12px 10px 40px;font-size:15px}
+.md-liste{max-height:42vh;overflow:auto;border:1px solid var(--trait);border-radius:var(--r-m)}
+.md-t{width:100%;border-collapse:collapse;font-size:14px}
+.md-t th{position:sticky;top:0;z-index:1;background:#F2F4F8;text-align:left;font-size:12.5px;color:var(--doux);padding:7px 10px}
+.md-t td{padding:7px 10px;border-top:1px solid #EEF1F6;vertical-align:top}.md-t td:first-child{width:38%}
+.md-t tr.m{cursor:pointer;user-select:none}.md-t tr.m:hover td{background:#F4F7FD}.md-t td.act{white-space:nowrap;text-align:right;width:118px}.md-t .cl{color:var(--doux);font-size:12px;margin-top:2px}
+.ico{border:1px solid var(--trait);background:#fff;border-radius:8px;min-width:32px;height:32px;padding:0 6px;display:inline-grid;place-items:center;color:var(--titre);font-weight:bold;font-size:13px;margin-left:4px}
+.ico .pi{margin:0;width:16px;height:16px}.ico:hover{background:var(--prim-c)}.ico:disabled{opacity:.35;cursor:default}.ico.vert{color:var(--vert);border-color:#BFE3CC}.ico.rouge{color:var(--rouge);border-color:#EDC3CB}
+.md-ordo{border:1px solid var(--trait);border-radius:var(--r-m);padding:4px 12px;max-height:26vh;overflow:auto}
+.md-ordo .it{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid #EEF1F6}.md-ordo .it:last-child{border-bottom:0}.md-ordo .n{color:var(--titre);min-width:24px}.md-ordo .tx{flex:1;min-width:0}
+.or-outils{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px}.or-outils .sep{width:1px;height:24px;background:var(--trait);margin:0 4px}.or-outils .ag-vues button{padding:7px 12px}
+.or-zone{background:#E6EAF1;border-radius:var(--r-m);padding:16px;overflow:auto;max-height:60vh}
+.or-feuille{position:relative;background:#fff;margin:0 auto;box-shadow:0 2px 12px rgba(30,42,68,.15);font-family:Arial,Helvetica,sans-serif;color:#111;line-height:1.45;outline:none}
+.or-feuille.a5{width:min(100%,520px);min-height:736px;padding:126px 46px 40px}.or-feuille.a4{width:min(100%,720px);min-height:1018px;padding:170px 72px 60px}
+.or-feuille::before{content:"En-tête du papier";position:absolute;top:0;left:0;right:0;height:96px;border-bottom:1px dashed #C9D2E2;color:#A6AEBE;font-size:11px;display:flex;align-items:center;justify-content:center;pointer-events:none}.or-feuille.a4::before{height:136px}
+.or-feuille:focus{box-shadow:0 0 0 3px #9DB6E8,0 2px 12px rgba(30,42,68,.15)}
+.or-feuille p{margin:0 0 6px}.or-feuille .or-date{text-align:right;margin-bottom:20px}.or-feuille .or-pat{margin-bottom:22px}.or-feuille .or-m{margin:14px 0 3px}.or-feuille .or-p{margin:0 0 0 22px}.or-feuille .or-sig{margin-top:34px;text-align:right}
+@media (max-width:640px){
+  .md-liste{max-height:38vh}.md-t,.md-t tbody,.md-t tr,.md-t td{display:block;width:auto!important}.md-t tr:first-child{display:none}
+  .md-t tr{border-top:1px solid #EEF1F6;padding:6px 2px}.md-t td{border:0;padding:2px 8px}.md-t td.act{text-align:left;padding-top:4px}.md-t td.act .ico:first-child{margin-left:0}
+  .or-zone{padding:8px}.or-feuille.a5,.or-feuille.a4{padding:84px 18px 24px;min-height:0}.or-feuille::before,.or-feuille.a4::before{height:64px}
+}
 @media (max-width:640px){
   .cs-t{flex-wrap:wrap;gap:4px 8px}.cs-t .ti{flex-basis:calc(100% - 22px);order:3;margin-left:20px}.cs-t .au{margin-left:auto}
   .cs-l,.cs-l tbody,.cs-l tr,.cs-l th,.cs-l td{display:block;width:auto}.cs-l tr{border-bottom:1px solid #EEF1F6;padding:6px 0}
@@ -429,6 +453,8 @@ details summary{cursor:pointer;color:var(--prim);font-weight:bold;font-size:13.5
   <symbol id="i-presse" viewBox="0 0 24 24"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2M12 11h4M12 16h4M8 11h.01M8 16h.01"/></symbol>
   <symbol id="i-tube" viewBox="0 0 24 24"><path d="M14.5 2v17.5a2.5 2.5 0 0 1-5 0V2M8.5 2h7M14.5 16h-5"/></symbol>
   <symbol id="i-courrier" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></symbol>
+  <symbol id="i-crayon" viewBox="0 0 24 24"><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/><path d="m14.5 5.5 3 3"/></symbol>
+  <symbol id="i-croix" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
   <symbol id="i-document" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7ZM14 2v4a2 2 0 0 0 2 2h4M10 9H8M16 13H8M16 17H8"/></symbol>
 </svg>
 <aside id="menu" aria-label="Menu principal">
@@ -476,6 +502,6 @@ function onco360Deconnecter() {
 }
 </script>
 
-<script type="module" src="./js/app/v2.js?v=20261007c"></script>
+<script type="module" src="./js/app/v2.js?v=20261007d"></script>
 </body>
 </html>

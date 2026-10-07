@@ -30,6 +30,7 @@ Après déploiement : recharger sans cache (Cmd + Maj + R). Les `.js` sont servi
 | `js/app/fiche.js` | fiche chimio A4 paysage (logo de l'établissement) |
 | `js/app/documents.js` | Word/Excel générés dans le navigateur (JSZip) : CR de fin RT et pli confidentiel **remplis à partir des modèles Word du Dr** (`public/modeles/*.docx`, étiquettes `{{…}}`, voir `modeles/LISEZMOI.md`), RDV RT (Excel) |
 | `js/app/consultations.js` | onglet Consultation du dossier : journal des consultations, barre des prescriptions |
+| `js/app/ordonnances.js` | bouton Médic. : bibliothèque des médicaments (recherche, + / ✎ / ✕), ordonnance A5/A4 modifiable, impression ; liste de départ : `js/donnees/medicaments.js` |
 | `js/app/agenda.js` | agenda Liste/Jour/Semaine/Mois, filtre par établissement |
 | `js/app/configuration.js` | horaires (par établissement), absences, fériés, messages WhatsApp |
 | `js/app/profil.js` | profil, photo, lieux d'exercice (logos), accès et droits de l'équipe |
@@ -51,6 +52,10 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
 - `consultations/{id}` : journal du dossier (onglet Consultation, `js/app/consultations.js`) = `patientId`, `etablissementId`,
   `d`, `titre`, `note`, `lignes` [{t, lib, par}], `o`, `creePar(Nom)`, `majPar(Nom)` ; lu par tous les membres, écrit avec
   le droit `ecrireConsultations`, supprimé par un médecin
+  ; une ligne = une ordonnance { id, t: medic|exam|ordo|analyse|courrier, d, lib, par, med (signataire), html, format A5|A4,
+  taille }, ajoutée à la consultation du jour (créée « Ordonnance » si besoin) par `enregistrerPrescription`
+- `bibliotheques/medicaments` : `data` = JSON [{ id, nom, poso, classe }] (absent = liste de départ `donnees/medicaments.js`) ;
+  lu par les membres, écrit avec `ecrireConsultations`
 - `utilisateurs/{uid}` : profil (nom, INPE, signature, photo)
 Ancienne application : collections racine `patients`, `protocoles`, `finances`, `parametres` (lecture seule).
 

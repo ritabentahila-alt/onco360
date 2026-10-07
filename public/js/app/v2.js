@@ -20,6 +20,7 @@ import { installer as installerProfil, pageProfil, DROITS_ROLE, droitsEffectifs,
 import { installer as installerProtocoles, pageProtocoles } from "./protocoles.js";
 import { installer as installerParametres, pageParametres } from "./parametres.js";
 import { installer as installerBilan, pagePageBilan } from "./bilan.js";
+import { installer as installerOrdonnances } from "./ordonnances.js";
 import { installer as installerConsultations, htmlConsultations, nbConsultations, oublierConsultations, suivreEtablissement, supprimerConsultations } from "./consultations.js";
 import { ACTES_RT } from "../donnees/listes.js";
 import { deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -191,7 +192,7 @@ document.addEventListener("input", (ev) => { if (ev.target && ev.target.classLis
 const ferieLe = (d) => (D.ctx.feries || []).map((f) => (typeof f === "string" ? { d: f, nom: "Jour férié" } : f)).find((f) => f.d === d);
 const API = { D: () => D, ESPACE, $, esc, ic, dfr, dfrA, cap, jourLong, val, occupe, erreur, toast, fenetre, fermerFenetre: () => window.fermerFenetre(), peut, traitMod, enregistrer, pageDossier: (id) => pageDossier(id), recalculer, journal };
 API.medecinFiche = () => medecinFiche(); API.entete = () => entete(); API.voitRdv = () => voitRdv(); API.voitRT = (x) => voitRT(x); API.champsMed = (C, off) => champsMed(C, off); API.CHAMPS_MED = () => CHAMPS_MED; API.fmtMil = (n) => fmtMil(n); API.ferieLe = (d) => ferieLe(d);
-installerChimio(API); installerAgenda(API); installerConfig(API); installerProfil(API); installerProtocoles(API); installerParametres(API); installerBilan(API); installerConsultations(API);
+installerChimio(API); installerAgenda(API); installerConfig(API); installerProfil(API); installerProtocoles(API); installerParametres(API); installerBilan(API); installerConsultations(API); installerOrdonnances(API);
 
 function entete() {
   const p = D.profil, mb = D.membre, nom = (p.nom || mb.nom || "").replace(/^Dr\.?\s*/i, "");

@@ -105,7 +105,7 @@ Proposition, à valider avec Dr Bentahila :
 - [x] Mise en ligne le 07/10 : site **et règles de sécurité** (accord de Dr Bentahila). Ensuite, **Dr Bentahila ouvre
       Onco360 en premier** (mise à niveau des droits de l'équipe) avant que la secrétaire écrive une consultation.
 
-**1C – Médicaments et ordonnance** (le moteur commun)
+**1C – Médicaments et ordonnance** (le moteur commun) (fait et testé le 07/10, pas encore en ligne)
 - [x] **Décidé le 07/10** : si l'on fait une ordonnance sans consultation à la date du jour, Onco360 crée automatiquement
       une consultation du jour qui ne contient que l'ordonnance (ligne « Médic. — … »).
 - [x] Liste des médicaments reçue le 07/10 (`Ordonnances_Chimio.xlsx`, 225 lignes) → nettoyée dans
@@ -122,20 +122,30 @@ Proposition, à valider avec Dr Bentahila :
       dexaméthasone, olanzapine, lévétiracétam, lévothyroxine, anétholtrithione, Biafine, fentanyl patch).
       Présence au Maroc vérifiée pour NEULASTIM, XGEVA, PROLIA, NAVELBINE orale, FASLODEX, ARIMIDEX, ANDROCUR, LEVOTHYROX.
       → **162 médicaments**. Les posologies dépendant de la surface corporelle gardent des « … » à remplir sur l'ordonnance.
-- [ ] **Dr Bentahila valide le fichier** (lignes vertes surtout) ; c'est cette version qui sera importée.
-- [ ] Liste de tous les médicaments du cabinet : **Recherche** ; colonnes Médicament, Posologie ; **+** ajouter,
-      **✎** modifier, **✕** supprimer.
-- [ ] « + » : Nom du médicament (ex. ABIRATERONE 250 mg) + Posologie (ex. 4 comprimés par jour le matin pendant 1 mois)
-      → Valider / Annuler.
-- [ ] **Double-clic** sur un médicament → il passe dans l'ordonnance en préparation (retirer, monter, descendre).
-- [ ] Boutons **Afficher l'ordonnance** / **Annuler** ; ordonnance vierge à remplir à la main si aucun médicament choisi.
-- [ ] Fenêtre de l'ordonnance : date du jour à droite ; Civilité Nom Prénom ; médicaments **numérotés** (1/ nom souligné,
-      posologie dessous) ; « Cachet et signature du médecin : Dr Nom Prénom » ; texte **encore modifiable**.
-- [ ] Choix **A5 / A4** ; **Valider** (enregistre) · **Valider + Imprimer** · **Fermer**. Tout à la date du jour, signé
-      au nom du médecin connecté, ou de **son médecin** si c'est la secrétaire qui la fait (question 6), enregistré dans
-      la consultation du jour.
-- [ ] **Import de la liste de médicaments** (version relue de `listes/Medicaments_Onco360.xlsx`), avec la classe
-      thérapeutique (affichée dans la liste, pour chercher aussi par classe).
+- [x] Fichier validé par Dr Bentahila le 07/10 (+ KEYTRUDA et PEMORIAL (pembrolizumab) ajoutés par elle, + IMFINZI
+      (durvalumab) ajouté par Claude, DECAPEPTYL en intramusculaire, TEGUMA 1 comprimé le matin 7 jours) : **165 médicaments**.
+- [x] Liste de tous les médicaments du cabinet (bouton **Médic.**) : **Recherche** (nom, posologie ou classe, sans accents) ;
+      colonnes Médicament (+ classe), Posologie ; **+** ajouter à l'ordonnance, **✎** modifier, **✕** supprimer ;
+      « Nouveau médicament ».
+- [x] Nouveau / modifier : Nom + Posologie + Classe (facultatif) → Valider / Annuler ; doublon (même nom et posologie) refusé.
+- [x] **Double-clic** (ou bouton +) → le médicament passe dans l'ordonnance en préparation (retirer ✕, monter ↑, descendre ↓).
+- [x] **Afficher l'ordonnance** / **Annuler** ; ordonnance vierge (lignes vides) si aucun médicament choisi.
+- [x] Feuille de l'ordonnance : date du jour à droite ; « Mme / M. NOM Prénom » ; médicaments **numérotés** (1/ nom souligné
+      en gras, posologie dessous) ; « Cachet et signature du médecin : Dr NOM Prénom » ; **toute la feuille reste
+      modifiable** (gras, souligné, taille du texte A− / A+). Le haut est laissé libre (papier à en-tête), zone « En-tête du
+      papier » visible à l'écran seulement.
+- [x] **Édition A5 / A4** (le dernier choix est retenu sur l'ordinateur) ; **Valider** · **Valider + Imprimer** ·
+      **Fermer**. Signée au nom du médecin connecté, ou de **son médecin** (titulaire) si c'est la secrétaire.
+- [x] Enregistrée en ligne **« Médic. — … »** (noms des médicaments) dans la consultation du jour ; s'il n'y en a pas,
+      consultation « Ordonnance » créée automatiquement. Clic sur la ligne = revoir, modifier ou réimprimer l'ordonnance
+      (lecture seule pour l'infirmière). Le texte enregistré est nettoyé (pas de code).
+- [x] Liste de départ = `public/js/donnees/medicaments.js` (165) ; la 1re modification l'enregistre dans
+      `bibliotheques/medicaments` (règle : lue par les membres, modifiée avec le droit d'écrire les consultations).
+- [x] Tests : médecin (liste, recherche par classe, double-clic, ordre, A4, Valider + Imprimer, 2e ordonnance le même jour,
+      réouverture et modification, ajout / modification / doublon / suppression d'un médicament), secrétaire (signature
+      « Dr BENTAHILA Rita »), infirmière (lecture seule, sans barre), téléphone 390 px, bilan 352 317 DH, règles compilées.
+- [ ] Mise en ligne (site + règles de sécurité), avec l'accord de Dr Bentahila.
+- [ ] Plus tard (si plusieurs médecins dans un cabinet) : choisir le médecin signataire dans la fenêtre de l'ordonnance.
 
 **1D – Antécédents des prescriptions** (petite flèche)
 - [ ] Fenêtre : dates à gauche, ordonnance à droite ; à droite **Imprimer · Supprimer · Renouveler · Fermer**.
@@ -302,3 +312,4 @@ Décisions déjà prises :
 | 07/10/2026 | 1B – Consultations | Retouches : menu déroulant + titre libre (ex. J1C1 FOLFOX) ; barre des prescriptions indépendante, en bas de l'onglet. Testé (ordinateur, 390 px). Mis en ligne. |
 | 07/10/2026 | 1C – Médicaments | Liste des médicaments nettoyée (225 → 147 lignes, posologies en clair, classe thérapeutique, 21 lignes à vérifier en jaune). Décidé : ordonnance sans consultation du jour → consultation créée automatiquement. |
 | 07/10/2026 | 1C – Médicaments | Corrections de Dr Bentahila reprises, remarques retirées, 30 médicaments d'oncologie ajoutés (en vert) : 162 médicaments, à valider. |
+| 07/10/2026 | 1C – Médicaments et ordonnance | Liste des médicaments (165, recherche, + / ✎ / ✕, double-clic), ordonnance A5/A4 modifiable, Valider / Valider + Imprimer, ligne « Médic. » dans la consultation du jour (créée si besoin). Testé (3 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |

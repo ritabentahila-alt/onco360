@@ -1,11 +1,12 @@
 // Onco360 – journal des consultations du dossier (étape 1B, 07/10/2026), onglet « Consultation ».
 // Une fiche par consultation : espaces/{e}/consultations/{c} = { patientId, etablissementId, d (AAAA-MM-JJ), type (menu),
 // titre (libre, ex. « J1C1 FOLFOX »), note,
-// lignes: [{ t: "medic"|"exam"|"ordo"|"analyse"|"courrier", lib, par }], o (ordre de création), creePar, creeParNom, cree,
+// lignes: [{ id, t: "medic"|"exam"|"ordo"|"analyse"|"courrier", d, lib, par, med, html, format, taille }] (une ligne = une
+// ordonnance : html = la feuille, med = médecin signataire), o (ordre de création), creePar, creeParNom, cree,
 // majPar, maj }. Lecture : tous les membres (périmètre) ; écriture : droit « ecrireConsultations » ; suppression : médecin.
 // Les prescriptions (barre en bas de l'onglet, indépendante des consultations) s'ajoutent en ligne dans la consultation du
 // jour : étapes 1C à 1E. Ici : créer, modifier, supprimer, plier / déplier.
-import { collection, doc, getDocs, addDoc, updateDoc, deleteDoc, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { db } from "../config.js";
 
 let A = null;
@@ -34,13 +35,12 @@ const libLigne = (t) => (FAMILLES.find((f) => f.t === t) || { lib: t }).lib;
 const TYPES = ["Consultation de suivi", "Consultation d'annonce", "Consultation de contrôle", "Consultation de chimiothérapie", "Consultation en cours de radiothérapie", "Consultation de fin de traitement"];
 
 // Lecture des consultations d'un patient (filtre d'établissement pour un membre limité à certains établissements)
-function charger(x, apres) {
+function charger(x) {
   const f = [where("patientId", "==", x.id)];
   if (!D().membre.tousEtablissements) f.push(where("etablissementId", "==", x.doc.etablissementId || ""));
-  getDocs(query(col(), ...f))
+  return getDocs(query(col(), ...f))
     .then((s) => { CS[x.id] = s.docs.map((d) => Object.assign({ id: d.id }, d.data())).sort(tri); })
-    .catch((e) => { console.warn("consultations", e); CS[x.id] = null; })
-    .then(apres);
+    .catch((e) => { console.warn("consultations", e); CS[x.id] = null; });
 }
 // À l'ouverture du dossier : relire (une consultation a pu être ajoutée depuis un autre poste)
 export function oublierConsultations(pid) { delete CS[pid]; delete OUV[pid]; }
@@ -49,7 +49,7 @@ export const nbConsultations = (x) => (CS[x.id] || []).length;
 // ───── Onglet « Consultation » ─────
 export function htmlConsultations(x) {
   const esc = A.esc, q = "'" + x.id + "'";
-  if (!(x.id in CS)) { CS[x.id] = undefined; charger(x, () => { if (D().page === "dossier/" + encodeURIComponent(x.id)) A.pageDossier(x.id); }); }
+  if (!(x.id in CS)) { CS[x.id] = undefined; charger(x).then(() => { if (D().page === "dossier/" + encodeURIComponent(x.id)) A.pageDossier(x.id); }); }
   const L = CS[x.id];
   let h = peutEcrire() ? '<div class="entete"><button class="bt clair petit" onclick="csNouvelle(' + q + ')">' + A.ic("plus") + "Nouvelle consultation</button></div>" : "";
   if (L === undefined) return h + '<p class="sous" style="margin:2px 0 0">Chargement des consultations…</p>';
@@ -61,7 +61,7 @@ export function htmlConsultations(x) {
     h += '<div class="cs' + (on ? " on" : "") + '"><button class="cs-t" aria-expanded="' + on + '" onclick="csTog(' + qc + ')"><span class="fl">' + (on ? "▾" : "▸") + '</span><span class="dt">' + A.dfrA(c.d) + '</span><span class="ti">' + esc(nomCs(c)) + '</span><span class="au">' + esc(c.creeParNom || "") + "</span></button>";
     if (on) {
       h += '<div class="cs-c"><table class="cs-l"><tr><th>Note</th><td>' + (c.note ? esc(c.note) : '<span class="mesures">—</span>') + '</td><td class="au">' + esc(c.creeParNom || "") + "</td></tr>" +
-        (c.lignes || []).map((l) => "<tr><th>" + esc(libLigne(l.t)) + "</th><td>" + esc(l.lib || "") + '</td><td class="au">' + esc(l.par || "") + "</td></tr>").join("") + "</table>";
+        (c.lignes || []).map((l) => "<tr><th>" + esc(libLigne(l.t)) + "</th><td>" + (l.html ? '<button class="lien-l" title="Voir, modifier ou réimprimer l\'ordonnance" onclick="ordVoir(' + qc + ",'" + l.id + '\')">' + esc(l.lib || "Ordonnance") + "</button>" : esc(l.lib || "")) + '</td><td class="au">' + esc(l.par || "") + "</td></tr>").join("") + "</table>";
       if (peutEcrire()) {
         h += '<div class="actr" style="justify-content:flex-start;margin-top:10px"><button class="mini" onclick="csModifier(' + qc + ')">Modifier</button>' + (peutSupprimer() ? '<button class="mini r" onclick="csSupprimer(' + qc + ')">Supprimer</button>' : "") + "</div>";
       }
@@ -124,7 +124,37 @@ window.csSupprimer = async (pid, cid) => {
 };
 
 // ───── Barre des prescriptions : construite aux étapes 1C (médicaments), 1D (antécédents), 1E (autres familles) ─────
-window.csPrescrire = (pid, t) => { const f = FAMILLES.find((z) => z.t === t); A.toast((f ? f.titre : "Prescriptions") + " : bientôt disponible (ordonnances en cours de construction)."); };
+window.csPrescrire = (pid, t) => {
+  if (t === "medic") { window.ordMedicaments(pid); return; }
+  const f = FAMILLES.find((z) => z.t === t); A.toast((f ? f.titre : "Prescriptions") + " : bientôt disponible (en cours de construction).");
+};
+// Une ordonnance (ligne) retrouvée par sa consultation
+export function trouverLigne(pid, cid, lid) { const c = (CS[pid] || []).find((z) => z.id === cid); return c && (c.lignes || []).find((l) => l.id === lid); }
+// Ordonnance validée : nouvelle → ligne ajoutée à la consultation du jour (créée si elle n'existe pas, avec seulement
+// l'ordonnance) ; déjà enregistrée (même id) → ligne mise à jour là où elle est. La consultation est relue juste avant
+// (un autre poste a pu y ajouter une ligne).
+export async function enregistrerPrescription(x, ligne) {
+  if (CS[x.id] === undefined || !(x.id in CS)) await charger(x);
+  if (CS[x.id] === null) throw new Error("les consultations n'ont pas pu être lues");
+  const maj = { majPar: D().u.uid, majParNom: nomConnecte(), maj: serverTimestamp() };
+  let c = ligne.id ? CS[x.id].find((z) => (z.lignes || []).some((l) => l.id === ligne.id)) : null;
+  if (!c) {
+    ligne = Object.assign({ id: "l" + Date.now().toString(36) }, ligne);
+    c = CS[x.id].filter((z) => z.d === D().t).sort((a, b) => (b.o || 0) - (a.o || 0))[0];
+    if (!c) {
+      const n = Object.assign({ patientId: x.id, etablissementId: x.doc.etablissementId || "", type: "", titre: "Ordonnance", d: D().t, note: "", lignes: [ligne], o: Date.now(), creePar: D().u.uid, creeParNom: nomConnecte(), cree: serverTimestamp() }, maj);
+      const r = await addDoc(col(), n);
+      CS[x.id] = CS[x.id].concat([Object.assign({ id: r.id }, n)]).sort(tri); OUV[x.id] = r.id;
+      A.journal(x, "Ordonnance (" + libLigne(ligne.t) + ") : " + ligne.lib); return;
+    }
+  }
+  const ref = doc(db, "espaces", A.ESPACE, "consultations", c.id), s = await getDoc(ref);
+  const lignes = ((s.exists() && s.data().lignes) || c.lignes || []).slice(), i = lignes.findIndex((l) => l.id === ligne.id);
+  if (i >= 0) lignes[i] = Object.assign({}, lignes[i], ligne); else lignes.push(ligne);
+  await updateDoc(ref, Object.assign({ lignes }, maj));
+  Object.assign(c, s.exists() ? s.data() : {}, { lignes }, maj); OUV[x.id] = c.id;
+  A.journal(x, (i >= 0 ? "Ordonnance modifiée (" : "Ordonnance (") + libLigne(ligne.t) + ") : " + ligne.lib);
+}
 window.csAntecedents = (pid, t) => { const f = FAMILLES.find((z) => z.t === t); A.toast((f ? f.titre : "Prescriptions") + " : les antécédents des prescriptions seront bientôt disponibles."); };
 
 // ───── Suivi du dossier ─────

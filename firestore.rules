@@ -100,6 +100,9 @@ service cloud.firestore {
           && request.resource.data.creePar == resource.data.creePar && request.resource.data.patientId == resource.data.patientId;
         allow delete: if droit('ecrireConsultations') && m().role == 'medecin' && dansPerimetre(resource.data.etablissementId);
       }
+      // Bibliothèques des prescriptions (médicaments, puis examens, ordonnances types, analyses, courriers) : lues par les
+      // membres, modifiées par ceux qui écrivent les consultations et ordonnances (médecin, secrétaire)
+      match /bibliotheques/{b} { allow read: if estMembre(); allow write: if droit('ecrireConsultations'); }
       // Montants des dossiers, tarifs, paiements, versements : uniquement avec le droit « finances »
       match /patientsFinances/{p} { allow read, write: if droit('finances'); }
       // Prix à encaisser (consultations validées, consultation de chimio) : extrait des montants, lisible avec le droit « encaissements »
