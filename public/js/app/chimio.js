@@ -50,6 +50,19 @@ export async function majMontants(x, fn) {
 }
 // ───── Prix à encaisser (droit « encaissements », secrétaire) : extrait des montants, sans les honoraires ni la radiothérapie ─────
 // encaissements/{patient} = { etablissementId, data: { rdv: { idRdv: { m } | { tj } }, cons: { "ligne|n": { m, d, lib, n } } } }
+// Consultation des jours de chimio validés « Venu » (fenêtre de prix des rendez-vous de chimio, 07/10/2026) : { "1": 250, "8": 0 }.
+// Ancien fonctionnement (case « Consultation encaissée », cons.enc) = une validation au jour cons.jour (J1 par défaut).
+export function consJours(c) {
+  if (!c) return {};
+  if (c.consJ) return c.consJ;
+  if (c.cons && c.cons.enc) { const j = c.cons.jour && c.cons.jour !== "autre" ? String(c.cons.jour) : "1"; return { [j]: c.cons.m == null ? null : num(c.cons.m) }; }
+  return {};
+}
+// Total pour le bilan (inchangé : une « consultation chimio » par cure, comptée si payée)
+function majCons(cc) {
+  const v = Object.entries(cc.consJ || {}), tot = v.reduce((s2, [, m]) => s2 + (num(m) || 0), 0), j0 = (v.find(([, m]) => (num(m) || 0) > 0) || v[0] || ["1"])[0];
+  cc.cons = tot > 0 ? { enc: true, m: tot, jour: j0 } : { enc: false, m: 0 };
+}
 export function construireEncaissements(x, M) {
   const E = { rdv: {}, cons: {} };
   Object.entries((M && M.rdv) || {}).forEach(([rid, o]) => {
@@ -58,14 +71,15 @@ export function construireEncaissements(x, M) {
   });
   const lignes = (x.P && x.P.lignes) || [];
   Object.entries((M && M.cures) || {}).forEach(([lid, cs]) => Object.entries(cs || {}).forEach(([n, c]) => {
-    if (!c || !c.cons || !c.cons.enc) return;
+    const J = consJours(c); if (!Object.keys(J).length) return;
     const L = lignes.find((z) => z.id === lid), cu = L && L.cures[n - 1];
-    let lib = "", d = cu && cu.reelle; const jr = c.cons.jour || "1";
-    try {
-      lib = L ? protocoleDe(L, D().ctx.bib).nom : ""; const e = L ? etatLigne(L, x.P, D().ctx)[n - 1] : null; if (!d && e) d = e.date;
-      if (jr === "autre") d = c.cons.date || d; else if (+jr > 1 && e) { const sz = seancesCure(L, e, D().ctx.bib).find((z) => z.j === +jr); if (sz) d = sz.d || sz.prevue || d; }
-    } catch (er) {}
-    E.cons[lid + "|" + n] = { m: c.cons.m == null ? null : num(c.cons.m), d: d || "", lib, n: +n, j: jr === "autre" ? "" : "J" + jr };
+    let lib = "", e = null, sea = [];
+    try { lib = L ? protocoleDe(L, D().ctx.bib).nom : ""; e = L ? etatLigne(L, x.P, D().ctx)[n - 1] : null; sea = e ? seancesCure(L, e, D().ctx.bib) : []; } catch (er) {}
+    Object.entries(J).forEach(([j, m]) => {
+      let d = +j === 1 ? (cu && cu.reelle) || (e && e.date) : ((sea.find((z) => z.j === +j) || {}).d || (sea.find((z) => z.j === +j) || {}).prevue);
+      if (c.cons && c.cons.jour === "autre" && !c.consJ) d = c.cons.date || d;
+      E.cons[lid + "|" + n + "|" + j] = { m: m == null ? null : num(m), d: d || "", lib, n: +n, j: "J" + j };
+    });
   }));
   return E;
 }
@@ -76,7 +90,7 @@ export async function ecrireEncaissements(x, M) {
 const EC = {}; // prix à encaisser chargés par patient : objet, ou null si absent / refusé
 export function encaissementsDe(x, quandCharge) {
   if (x.id in EC) return EC[x.id];
-  getDoc(doc(db, "espaces", A.ESPACE, "encaissements", x.id)).then((s) => { EC[x.id] = s.exists() ? JSON.parse(s.data().data || "{}") : null; }).catch(() => { EC[x.id] = null; }).then(() => quandCharge && quandCharge());
+  getDoc(doc(db, "espaces", A.ESPACE, "encaissements", x.id)).then((s) => { const E = s.exists() ? JSON.parse(s.data().data || "{}") : null; if (E && E.cons) Object.keys(E.cons).forEach((k) => { if (k.split("|").length === 2) { const c = E.cons[k]; delete E.cons[k]; E.cons[k + "|" + String(c.j || "J1").replace("J", "")] = c; } }); EC[x.id] = E; }).catch(() => { EC[x.id] = null; }).then(() => quandCharge && quandCharge());
   return undefined;
 }
 const tarifDe = (x, cle, date) => { const T = D().tarifs; if (!T) return null; const t = tarif(T, x.doc.etablissementId, cle, date); return t ? t.brut : null; };
@@ -185,17 +199,6 @@ function vueCure(x, i, k) {
   });
   h += "</table></div>";
   h += '<p class="mesures" style="margin:8px 0 0">« Ouvrir » ou « Valider » affiche le protocole du jour : poids, taille, créatinine, clairance, surface corporelle, doses, molécules à ajouter ou retirer, et la validation.</p>';
-  if (A.peut("finances")) {
-    const M = MC[x.id];
-    if (!M) h += '<div class="bloc mesures">Chargement des montants…</div>';
-    else {
-      const m = ((M.cures[L.id] || {})[e.n]) || {}, cons = m.cons || { enc: false, m: tarifDe(x, "cchimio", e.date) }, jr = cons.jour || "1";
-      h += '<div class="bloc cons"><label class="chk"><input type="checkbox"' + (cons.enc ? " checked" : "") + ' onchange="chCons(' + qc + ',\'enc\',this.checked)"> Consultation encaissée</label>' +
-        '<span class="cons-ch">Montant <input class="petitc mt" inputmode="decimal" value="' + esc(cons.m == null ? "" : String(cons.m).replace(/\B(?=(\d{3})+(?!\d))/g, " ")) + '" onchange="chCons(' + qc + ',\'m\',this.value)"> DH</span>' +
-        (cons.enc ? '<span class="cons-ch">Encaissée à <select onchange="chCons(' + qc + ',\'jour\',this.value)">' + g.map((z) => '<option value="' + z.j + '"' + (String(jr) === String(z.j) ? " selected" : "") + ">J" + z.j + "</option>").join("") + '<option value="autre"' + (jr === "autre" ? " selected" : "") + ">Autre date</option></select>" +
-          (jr === "autre" ? ' <input type="date" value="' + esc(cons.date || "") + '" onchange="chCons(' + qc + ',\'date\',this.value)">' : "") + "</span>" : "") + "</div>";
-    }
-  }
   h += '<div class="boutons"><button class="bt plein" onclick="chFermerCure()">Fermer</button></div>';
   return h;
 }
@@ -387,8 +390,36 @@ window.chAnnulerSeance = (id, i, k, j) => {
   direct(x, async () => { const lignes = lignesDe(x), z = lignes[i].cures[k].sea[j]; z.st = "prevue"; delete z.d; delete z.valLe; await sauverLignes(x, lignes, "Validation de la séance J" + j + " de la C" + (k + 1) + " annulée"); });
 };
 
+// ───── Rendez-vous de chimio : « Venu » avec la fenêtre de prix, comme les autres rendez-vous (07/10/2026) ─────
+window.chVenuChimio = async (pid, lid, n, j) => {
+  const x = trouver(pid); if (!x || !A.peut("finances")) return;
+  const i = x.P.lignes.findIndex((z) => z.id === lid); if (i < 0) return;
+  const L = x.P.lignes[i], { q, e } = etatCure(L, n - 1, x.P), sz = j > 1 ? seancesCure(L, e, D().ctx.bib).find((z) => z.j === j) : null;
+  const date = j === 1 ? (e.st === "recue" ? e.c.reelle : e.date) : sz ? sz.d || sz.prevue : e.date;
+  const M = await chargerMontants(x), J = consJours((M.cures[lid] || {})[n]), tC = tarifDe(x, "cchimio", date);
+  const def = J[j] != null ? J[j] : j === 1 ? tC || 0 : 0, fmt = (v) => A.fmtMil(v);
+  A.fenetre("<h3>" + A.esc(x.r.nm) + " – Chimiothérapie C" + n + " J" + j + '</h3><p class="sous">' + A.esc(q.nom) + (date ? " · " + A.cap(A.jourLong(date)) : "") + "</p>" +
+    '<div class="form"><div><label for="pvM">Montant de la consultation (DH)</label><input id="pvM" class="mt" inputmode="decimal" value="' + A.esc(fmt(def)) + '"></div></div>' +
+    '<p class="mesures">J1 : tarif de la consultation de chimiothérapie' + (tC != null ? " (" + fmt(tC) + " DH)" : "") + ". J8, J15… : 0 par défaut. Modifiez le montant en cas de réduction, de gratuité (0) ou de consultation facturée.</p>" +
+    '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt vert" id="fOk">' + A.ic("check") + "Valider : venu</button></div>");
+  document.getElementById("fOk").onclick = async () => {
+    const m = parseFloat(A.val("pvM").replace(/[\s\u202f\u00a0]/g, "").replace(",", "."));
+    if (isNaN(m) || m < 0) { A.erreur("Indiquez le montant (0 si rien à payer)."); return; }
+    A.occupe(document.getElementById("fOk"), true);
+    try {
+      await majMontants(x, (M2) => { const a = M2.cures[lid] = M2.cures[lid] || {}, cc = a[n] = a[n] || {}; cc.consJ = Object.assign({}, consJours(cc), { [j]: m }); majCons(cc); });
+      A.journal(x, "Chimiothérapie C" + n + " J" + j + " : venu (" + fmt(m) + " DH)"); A.fermerFenetre(); A.toast("Enregistré."); A.pageDossier(x.id);
+    } catch (er) { A.occupe(document.getElementById("fOk"), false); A.erreur(er.message || String(er)); }
+  };
+};
+window.chAnnulerVenuChimio = (pid, lid, n, j) => {
+  const x = trouver(pid); if (!x || !A.peut("finances")) return;
+  if (!confirm("Annuler « Venu » pour la chimiothérapie C" + n + " J" + j + " ?")) return;
+  majMontants(x, (M2) => { const a = M2.cures[lid] = M2.cures[lid] || {}, cc = a[n] = a[n] || {}; const J = Object.assign({}, consJours(cc)); delete J[j]; cc.consJ = J; majCons(cc); })
+    .then(() => { A.journal(x, "Chimiothérapie C" + n + " J" + j + " : statut annulé"); A.toast("Statut annulé."); A.pageDossier(x.id); }).catch((er) => A.toast(er.message || String(er)));
+};
+
 // ───── Montants (consultation de chimio, honoraires) ─────
-window.chCons = (id, i, k, f, v) => { const x = trouver(id), L = x.P.lignes[i]; direct(x, () => majMontants(x, (M) => { const a = M.cures[L.id] = M.cures[L.id] || {}, c = a[k + 1] = a[k + 1] || {}; c.cons = c.cons || { enc: false, m: tarifDe(x, "cchimio", D().t) }; if (f === "enc") c.cons.enc = !!v; else if (f === "jour") { c.cons.jour = v; if (v !== "autre") delete c.cons.date; } else if (f === "date") c.cons.date = v; else c.cons.m = num(v); })); };
 window.chHon = (id, i, k, j, v) => { const x = trouver(id), L = x.P.lignes[i]; direct(x, () => majMontants(x, (M) => { const a = M.cures[L.id] = M.cures[L.id] || {}, c = a[k + 1] = a[k + 1] || {}; c.hon = c.hon || {}; c.hon[j] = { m: num(v) }; })); };
 
 // ───── Doses (poids, créatinine, % global, % et dose par molécule et par jour) ─────

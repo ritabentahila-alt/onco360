@@ -6,6 +6,7 @@ import { doc, getDoc, getDocs, setDoc, collection, query, where, updateDoc, addD
 import { fusionner } from "../donnees/conversion.js";
 import { resume } from "../moteur/resume.js";
 import { chimioAVenir } from "../moteur/agenda.js";
+import { etatLigne, protocoleDe, seancesCure } from "../moteur/doses.js";
 import { finRT, statutRT, nbA, compteurRT, dosimetrie } from "../moteur/rt.js";
 import { auj, addJ, ecart, ouvre, age } from "../moteur/outils.js";
 import { typeRdv, libRdv, joursH, T_RTC } from "../moteur/rdv.js";
@@ -124,10 +125,10 @@ async function migrations() {
       for (const d of sm.docs) { const m = d.data(); if (m.role === "assistante" && (m.droits || {}).traitements === "aucun") await updateDoc(d.ref, { "droits.traitements": "voir" }).catch((er) => console.warn("droits", d.id, er)); }
       await setDoc(doc(db, "espaces", ESPACE, "parametres", "migrations"), { secretaireChimio: D.t }, { merge: true }).catch(() => {});
     }
-    if (!peut("finances") || fait.encaissements) return;
+    if (!peut("finances") || fait.encaissementsJours) return;
     const sf = await getDocs(collection(db, "espaces", ESPACE, "patientsFinances"));
     for (const d of sf.docs) { const x = D.patients.find((p) => p.id === d.id); if (!x) continue; let M = {}; try { M = JSON.parse(d.data().montantsJson || "{}"); } catch (er) {} await ecrireEncaissements(x, M); }
-    await setDoc(doc(db, "espaces", ESPACE, "parametres", "migrations"), { encaissements: D.t }, { merge: true });
+    await setDoc(doc(db, "espaces", ESPACE, "parametres", "migrations"), { encaissements: D.t, encaissementsJours: D.t }, { merge: true });
   } catch (er) { console.warn("migrations", er); }
 }
 // Recalcule un dossier à partir de son document (dossier médical seul, sans montants)
@@ -433,7 +434,16 @@ function pageDossier(id) {
   };
   const aVenir = (v) => (v.st || "prevu") === "prevu" && (v.f || v.d) >= t;
   const av = [];
-  chimioAVenir(JSON.parse(JSON.stringify(P)), ctx).forEach((c) => { const ret = /en retard/.test(c.lib); av.push({ d: c.d, h: "", em: "💉", t: c.lib.replace(/^Chimio · /, ""), retard: ret, act: ret ? "" : '<div class="actr">' + btnWA(x, "chimio", c.d, "") + "</div>" }); });
+  // Prix à encaisser (consultations validées, chimio comprise) : droit « encaissements »
+  const EN = peut("encaissements") ? encaissementsDe(x, () => { if (D.page === "dossier/" + encodeURIComponent(x.id)) pageDossier(x.id); }) : null;
+  // Rendez-vous de chimio : « Venu » + fenêtre de prix (J1 : consultation de chimio ; J8, J15… : 0), comme les autres rendez-vous ;
+  // leur date ne se change pas ici (protocole de la ligne)
+  const venuChimio = (c, d) => {
+    const v = EN && EN.cons && EN.cons[c.lid + "|" + c.n + "|" + c.j], qv = "'" + x.id + "','" + c.lid + "'," + c.n + "," + c.j;
+    if (v) return '<span class="badge b-ch">Venu</span><span class="badge b-ch" title="Prix validé par le médecin">' + (v.m != null ? fmtMil(v.m) + " DH" : "—") + "</span>" + (peut("finances") ? b("Annuler le statut", "chAnnulerVenuChimio(" + qv + ")") : "");
+    return peut("finances") && d <= D.t ? b("Venu", "chVenuChimio(" + qv + ")", "v") : "";
+  };
+  chimioAVenir(JSON.parse(JSON.stringify(P)), ctx).forEach((c) => { const ret = /en retard/.test(c.lib); av.push({ d: c.d, h: "", em: "💉", t: c.lib.replace(/^Chimio · /, ""), retard: ret, act: '<div class="actr">' + (ret ? "" : btnWA(x, "chimio", c.d, "")) + (c.lid ? venuChimio(c, c.d) : "") + "</div>" }); });
   if (voitRdv()) (P.rdvs || []).forEach((v) => { if (aVenir(v)) av.push({ d: v.d, h: v.h || "", em: typeRdv(v.type) === "hospit" ? '<svg class="pi"><use href="#i-hopital"/></svg>' : "🩺", t: libRdv(v) + (v.n ? " – " + v.n : ""), act: actionsRdv(v, btnWA(x, catRdv(v), v.d, v.h || "")), rep: v.rep }); });
   const qx = "'" + x.id + "'";
   if (voitRTdossier(x)) (r.rt || []).forEach((v) => av.push({ d: v.d, f: v.f, h: "", em: "☢️", t: v.lib.replace(/^RT · /, ""), dosi: !!v.dosi, act: v.dosi ? (peutDosi() ? '<div class="actr"><button class="mini vert" onclick="dosiRT(\'' + x.id + "','" + v.dosi + '\')"><svg class="pi"><use href="#i-check"/></svg>Valider la dosimétrie</button></div>' : "") : /Fin de radioth/.test(v.lib) ? "" : '<div class="actr">' + btnWA(x, "rt", v.d, "") + "</div>" }));
@@ -492,7 +502,6 @@ function pageDossier(id) {
 
   // Consultations et hospitalisations : passées ou déjà validées (venu / non venu), avec le prix à encaisser (droit « encaissements »)
   if (voitRdv()) {
-    const EN = peut("encaissements") ? encaissementsDe(x, () => { if (D.page === "dossier/" + encodeURIComponent(x.id)) pageDossier(x.id); }) : null;
     const prix = (v) => {
       if (!EN || v.st !== "fait") return "";
       const o = (EN.rdv || {})[v.id], hs = typeRdv(v.type) === "hospit";
@@ -501,11 +510,20 @@ function pageDossier(id) {
       return '<span class="badge b-ch" title="Prix validé par le médecin">' + fmtMil(m) + " DH" + (o.tj != null && nj > 1 ? " (" + nj + " j × " + fmtMil(o.tj) + ")" : "") + "</span>";
     };
     const lignes = (P.rdvs || []).filter((v) => !aVenir(v)).map((v) => ({ d: v.d, h: v.h || "", v }));
-    if (EN) Object.values(EN.cons || {}).forEach((c) => lignes.push({ d: c.d || "", h: "", c }));
+    // Jours de chimio reçus (J1, J8…) depuis le 07/10/2026, et tous ceux validés « Venu » (avec leur prix)
+    const vus = {};
+    (P.lignes || []).forEach((L) => { let pn = ""; try { pn = protocoleDe(L, D.ctx.bib).nom; } catch (er) { return; }
+      etatLigne(L, P, D.ctx).forEach((e) => { if (e.st !== "recue") return;
+        [{ j: 1, d: e.c.reelle }].concat(seancesCure(L, e, D.ctx.bib).filter((z) => z.st === "recue").map((z) => ({ j: z.j, d: z.d }))).forEach((z) => {
+          const k = L.id + "|" + e.n + "|" + z.j, val = EN && EN.cons && EN.cons[k]; vus[k] = 1;
+          if (val || z.d >= "2026-10-07") lignes.push({ d: z.d || "", h: "", c: { lid: L.id, n: e.n, j: z.j, lib: pn, v: val } }); }); }); });
+    if (EN) Object.entries(EN.cons || {}).forEach(([k, val]) => { if (vus[k]) return; const p3 = k.split("|"); lignes.push({ d: val.d || "", h: "", c: { lid: p3[0], n: +p3[1], j: +p3[2], lib: val.lib, v: val } }); });
     lignes.sort((p, q) => (q.d + q.h).localeCompare(p.d + p.h));
     h += '<section class="carte"><h3><span class="ic">' + ic("agenda") + '</span>Consultations et hospitalisations</h3>' + (EN === undefined ? '<p class="mesures">Chargement des prix…</p>' : "") +
-      (lignes.length ? lignes.map(({ v, c }) => {
-        if (c) return '<div class="rdv"><span class="badge b-gr">' + (c.d ? dfrA(c.d) : "—") + '</span><div class="tx"><b>Consultation de chimiothérapie</b><div class="mesures">' + esc((c.lib || "") + (c.n ? " · C" + c.n : "") + (c.j ? " · encaissée à " + c.j : "")) + '</div></div><span class="badge b-ch" title="Consultation encaissée cochée par le médecin">' + (c.m != null ? fmtMil(c.m) + " DH" : "montant non précisé") + "</span></div>";
+      (lignes.length ? lignes.map(({ v, c, d }) => {
+        if (c) return '<div class="rdv"><span class="badge b-gr">' + (d ? dfrA(d) : "—") + '</span><div class="tx"><b>Chimiothérapie</b><div class="mesures">' + esc((c.lib || "") + " · C" + c.n + " J" + c.j) + "</div></div>" +
+          (c.v ? '<span class="badge b-ch">Venu</span><span class="badge b-ch" title="Prix validé par le médecin">' + (c.v.m != null ? fmtMil(c.v.m) + " DH" : "—") + "</span>" + (peut("finances") ? '<div class="actr">' + b("Annuler le statut", "chAnnulerVenuChimio('" + x.id + "','" + c.lid + "'," + c.n + "," + c.j + ")") + "</div>" : "")
+            : '<span class="badge b-or">À valider</span>' + (peut("finances") ? '<div class="actr">' + b("Venu", "chVenuChimio('" + x.id + "','" + c.lid + "'," + c.n + "," + c.j + ")", "v") + "</div>" : "")) + "</div>";
         const s = (v.st || "prevu") === "prevu" ? ["À valider", "b-or"] : ST_RDV[v.st] || [v.st, "b-gr"];
         return '<div class="rdv"><span class="badge b-gr">' + dfrA(v.d) + (v.h ? " " + v.h : "") + '</span><div class="tx"><b>' + esc(libRdv(v)) + "</b>" + (v.n ? '<div class="mesures">' + esc(v.n) + "</div>" : "") + (v.rep && v.rep.length ? '<div class="mesures">Reporté (initialement le ' + dfrA(v.rep[0].d) + ")</div>" : "") + '</div><span class="badge ' + s[1] + '">' + s[0] + "</span>" + prix(v) + actionsRdv(v) + "</div>";
       }).join("") : '<p class="sous">Aucune consultation passée.</p>') + "</section>";

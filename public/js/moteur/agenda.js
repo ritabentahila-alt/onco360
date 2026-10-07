@@ -35,9 +35,9 @@ export function chimioAVenir(P, ctx) {
       const e = E[i]; if (e.st === "annulee" || !e.date) continue;
       const sea = seancesCure(L, e, ctx.bib).filter((s) => s.st === "prevue" && s.prevue && s.prevue >= t), multi = seancesDe(protocoleCure(L, e.n - 1, ctx.bib)).length > 1;
       const lst = [];
-      if (e.st === "prevue" && e.date >= t) lst.push({ d: e.date, lib: "Chimio · " + p.nom + " · C" + e.n + (multi ? " J1" : "") });
-      sea.forEach((s) => { lst.push({ d: s.prevue, lib: "Chimio · " + p.nom + " · C" + e.n + " J" + s.j }); });
-      if (e.st === "prevue" && e.date < t) lst.unshift({ d: e.date, lib: "Chimio · " + p.nom + " · C" + e.n + (multi ? " J1" : "") + " (en retard)" });
+      if (e.st === "prevue" && e.date >= t) lst.push({ d: e.date, lib: "Chimio · " + p.nom + " · C" + e.n + (multi ? " J1" : ""), lid: L.id, n: e.n, j: 1 });
+      sea.forEach((s) => { lst.push({ d: s.prevue, lib: "Chimio · " + p.nom + " · C" + e.n + " J" + s.j, lid: L.id, n: e.n, j: s.j }); });
+      if (e.st === "prevue" && e.date < t) lst.unshift({ d: e.date, lib: "Chimio · " + p.nom + " · C" + e.n + (multi ? " J1" : "") + " (en retard)", lid: L.id, n: e.n, j: 1 });
       if (lst.length) { out = out.concat(lst); break; }
     }
   });

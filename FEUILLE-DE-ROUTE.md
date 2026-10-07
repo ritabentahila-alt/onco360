@@ -279,6 +279,11 @@ Ce que Dr Bentahila remarque en utilisant Onco360 au quotidien.
       🗑, ⭐, 🏥, ➕ ➖. Mis en ligne.
 - [x] 💾 Enregistrer (disquette) et 🖨️ Fiche chimio (imprimante) remplacés le 07/10, mis en ligne.
 - [ ] Encore en suspens : 💉 ☢️ 🩺 👋.
+- [x] Rendez-vous de chimio validés comme les autres (07/10) : bouton **« Venu »** (droit finances) dans Rendez-vous à venir
+      et dans Consultations et hospitalisations (jours de chimio reçus depuis le 07/10 : « À valider ») → fenêtre de prix,
+      **J1 = tarif consultation chimio (250 DH), J8 / J15… = 0**, modifiable ; « Annuler le statut ». La date ne se change que
+      dans le protocole. Case « Consultation encaissée » retirée de la fenêtre de cure. Données : `consJ` { jour: montant } par
+      cure dans les montants ; `cons` (bilan) = total payé, bilan inchangé (352 317 DH). Mis en ligne le 07/10.
 - [x] Fenêtre d'une cure : tableau des séances (J1, J8, J15…) au lieu des tuiles, avec Ouvrir / Valider / Reporter / Annuler
       (ou Annuler la validation / Rétablir) ; date prévue modifiable dans le tableau ; cartes sur téléphone. Nouveau : **annuler une
       séance J8/J15** (motif), retirée de l'agenda, du tableau de bord et de Google Agenda, non facturée. Consultation encaissée : case
@@ -402,3 +407,4 @@ Décisions déjà prises :
 | 07/10/2026 | Impression | Côtés encore resserrés et place de l'en-tête agrandie (A5 45/28 mm, A4 60/35 mm, documents 45/35 mm), mis en ligne. Rappel ajouté : mesurer les en-têtes du papier. |
 | 07/10/2026 | 1E – Ordonnances types | Ordo. type : 26 ordonnances types (fichier du Dr corrigé et complété), clic = médicaments dans l'ordonnance, ✎ / ✕ / ajout, création / modification / suppression des types. Testé (bilan 352 317 DH). Pas encore en ligne. |
 | 07/10/2026 | 1E – Ordonnances types | Mis en ligne. |
+| 07/10/2026 | 2 – Retouches | Rendez-vous de chimio : « Venu » + fenêtre de prix (J1 250 DH, J8/J15 0), case « Consultation encaissée » retirée ; mis en ligne. |
