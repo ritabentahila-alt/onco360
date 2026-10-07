@@ -420,7 +420,6 @@ function pageDossier(id) {
     '<div class="bd">' + (P.hop ? '<span class="badge b-gr">' + esc(P.hop) + "</span>" : "") + (r.t && r.t.st === "cours" ? '<span class="badge b-co">Chimiothérapie en cours</span>' : "") + ((r.rtS || []).some((s) => s.st === "cours") ? '<span class="badge b-rt">RT en cours</span>' : "") + "</div></div>" +
     (peut("identite") || peut("fichePatient") || traitMod() ? '<button class="bt clair" onclick="modifierIdentite(\'' + x.id + '\')">Modifier l\'identité</button>' : "") + "</div>" +
     '<div class="champs">' + champ("Diagnostic", r.diag) + (P.tel ? '<div><label>Téléphone</label><b><a href="tel:' + esc(P.tel) + '">' + esc(P.tel) + "</a></b></div>" : "") + champ("Hôpital", P.hop) + champ("ALD", P.ald) + champ("Correspondant", P.cor) + champ("Mutuelle", P.mut) + "</div>" +
-    (P.atcdMed || P.atcdFam || P.modeVie ? '<div class="champs medic">' + champ("Antécédents médicaux", P.atcdMed) + champ("Antécédents familiaux", P.atcdFam) + champ("Mode de vie", P.modeVie) + "</div>" : "") +
     '<div class="resume"><div class="entete"><label for="nTxt" style="flex:1">Résumé du patient</label>' + (okN ? '<button class="bt clair petit cache" id="nSauv" onclick="sauverNotes(\'' + x.id + '\')">Enregistrer</button>' : "") + "</div>" +
     (okN ? '<textarea id="nTxt" class="notes" placeholder="Quelques phrases de résumé : histoire, antécédents, points d\'attention…" oninput="document.getElementById(\'nSauv\').classList.remove(\'cache\')">' + esc(P.notes || "") + "</textarea>"
       : (P.notes ? '<div class="notes lecture">' + esc(P.notes) + "</div>" : '<p class="sous">Aucun résumé.</p>')) + "</div></section>";
@@ -533,7 +532,7 @@ function pageDossier(id) {
 
 // ───── Modifier l'identité ─────
 // Champs médicaux facultatifs (fiche clinique) : aussi dans « Nouveau patient »
-const CHAMPS_MED = [["allergies", "Allergies", "Aucune connue, ou ex. pénicilline, iode…"], ["atcdMed", "Antécédents médicaux", "Diabète, HTA, cardiopathie…"], ["atcdFam", "Antécédents familiaux", "Cancer du sein chez la mère…"], ["modeVie", "Mode de vie", "Tabac, alcool, activité, situation familiale…"]];
+const CHAMPS_MED = [["allergies", "Allergies", "Aucune connue, ou ex. pénicilline, iode…"], ["atcdMed", "Antécédents médicaux", "Diabète, HTA, cardiopathie…"], ["atcdFam", "Antécédents familiaux", "Cancer du sein chez la mère…"], ["modeVie", "Mode de vie", "Tabac, alcool, activité, situation familiale…"], ["traitCours", "Traitement en cours", "Médicaments pris actuellement (nom, dose)…"]];
 const champsMed = (C, off) => CHAMPS_MED.map(([k, lib, ph]) => '<div class="large"><label for="f_' + k + '">' + lib + ' <span class="mesures">(facultatif)</span></label><textarea id="f_' + k + '" rows="2" class="champ-t" placeholder="' + ph + '"' + (off ? " disabled" : "") + ">" + esc((C && C[k]) || "") + "</textarea></div>").join("");
 window.modifierIdentite = (id) => {
   const x = D.patients.find((p) => p.id === id); if (!x) return;
