@@ -365,7 +365,7 @@ Ce que Dr Bentahila remarque en utilisant Onco360 au quotidien.
     - ne télécharge pas les documents.
   - Nouvelles lignes dans Profil › Accès › Droits : Fiche du patient, Voir les consultations, Documents, Prix à encaisser,
     Radiothérapie « Voir : patients sous chimio ». La pastille « modifié » de la grille a été retirée.
-- [x] Abandonnés le 06/10 (décision de Dr Bentahila) : « Marquer administrée », commande pharmacie J−1, relevé mensuel.
+- [x] Abandonnés le 06/10 (décision de Dr Bentahila) : « Marquer administrée » (**repris le 08/10**, étape 11), commande pharmacie J−1, relevé mensuel.
   La ligne « Marquer « Administrée » » a été retirée de la grille des droits (la règle `administrations` reste, inutilisée).
 
 ## Étape 4 – Plusieurs cabinets (phase F) : vendre Onco360
@@ -400,7 +400,7 @@ Décisions déjà prises :
   - [ ] **Point juridique, à voir avec un juriste avant le premier client** : données de santé, loi 09-08 / CNDP,
         hébergement des données en Belgique.
 - **F3 – Le guide complet**
-  - [ ] Un guide PDF illustré, et une aide dans l'application. → détaillé à l'étape 13 (C2, C3 : guides par rôle).
+  - [ ] Un guide PDF illustré, et une aide dans l'application. → détaillé à l'étape 12 (C2, C3 : guides par rôle).
 
 ---
 
@@ -424,7 +424,7 @@ Découpé en **sous-étapes, une fenêtre chacune** : T1 à T5 (T6 facultatif).
 - « Filtrer par agenda » = **par échéance** (en retard, aujourd'hui, cette semaine).
 - Bloc « Mes tâches » du tableau de bord : **dans la partie « 7 prochains jours » et « Conflits »** (T4).
 
-**T1 – Les bases** (fait et testé le 07/10, pas encore en ligne)
+**T1 – Les bases** (fait, testé et mis en ligne le 08/10)
 - [x] « Tâches » dans le menu (pictogramme liste cochée) ; onglets **Mes tâches** / **Toutes les tâches** (avec leur nombre).
 - [x] Fenêtre « Nouvelle tâche » / « Modifier » : types rapides, titre, description, pour qui, échéance + heure, Urgent,
       patient (recherche par nom, ✕ pour le retirer).
@@ -438,7 +438,7 @@ Découpé en **sous-étapes, une fenêtre chacune** : T1 à T5 (T6 facultatif).
       grandir). Vérifiées par Firebase (compilation), pas d'émulateur sur ce Mac (pas de Java).
 - [x] Tests (faux Firebase, 3 comptes : médecin, secrétaire, infirmière) : création, réattribution, statuts, suppression,
       droits de chacun, téléphone 390 px, bilan 2026 inchangé (352 317 DH), aucune erreur dans la console.
-- [ ] Mise en ligne (site + règles), avec l'accord de Dr Bentahila.
+- [x] Mise en ligne (site + règles) par Dr Bentahila le 08/10.
 
 **T2 – Filtres** : médecin : par personne (médecin, secrétaire, infirmière), patient, statut, échéance (en retard /
 aujourd'hui / cette semaine), type, recherche.
@@ -452,12 +452,12 @@ la partie 7 jours / conflits).
 
 ---
 
-# Demandes du 08/10/2026 (étapes 6 à 14)
+# Demandes du 08/10/2026 (étapes 6 à 13)
 Liste complète donnée par Dr Bentahila le 08/10, à faire **au fur et à mesure, une sous-étape par fenêtre**. Chaque étape
 commence par ses questions « À décider » (Claude les pose avant d'écrire le code).
 
 ## Ordre proposé (à valider par Dr Bentahila ; elle peut le changer à tout moment)
-1. Terminer l'en cours : mise en ligne de T1 (Tâches), puis T2 à T5.
+1. Terminer l'en cours : T1 (Tâches) en ligne le 08/10 ; puis T2 à T5.
 2. **Étape 6 – Salle d'attente** (usage quotidien, le plus utile tout de suite).
 3. **Étape 7 – RCP**.
 4. **Étape 8 – Numéro de dossier et recherche des patients**.
@@ -465,12 +465,12 @@ commence par ses questions « À décider » (Claude les pose avant d'écrire le
 6. **Étape 10 – Mode hors-ligne**.
 7. **Étape 11 – Soins infirmiers, pharmacie, alertes**.
 8. **Étape 4 – Plusieurs cabinets** (complétée ci-dessus : licences, quotas).
-9. **Étape 13 – Dossier de cession, démo et guides**.
-10. **Étape 12 – Téléconsultation** et **Étape 14 – Interopérabilité** (les plus lourdes, en dernier).
+9. **Étape 12 – Dossier de cession, démo et guides**.
+10. **Étape 13 – Interopérabilité** (la plus lourde, en dernier).
 
-**À décider avant l'étape 4 et l'étape 13 : vendre comment ?** Deux voies, compatibles :
-(a) **abonnements** (phase F : chaque cabinet paie, code d'activation) ; (b) **cession** du logiciel à un éditeur ou une
-ESN (prix visé 120 000 à 180 000 DH). La voie (a) rend la (b) plus chère (clients payants = preuve de valeur).
+**Décidé le 08/10 : vendre des deux façons.** (a) **abonnements** (phase F, étape 4 : chaque cabinet paie, code
+d'activation) ; (b) **cession** du logiciel à un éditeur ou une ESN (prix visé 120 000 à 180 000 DH, étape 12). Les
+clients abonnés augmentent la valeur de la cession.
 
 ## Étape 6 – Salle d'attente (cabinet / clinique)
 But : suivre en temps réel le passage des patients le jour J, de l'arrivée à la fin de la consultation.
@@ -483,8 +483,6 @@ Nouvelle page **« Salle d'attente »** dans le menu, **entre Agenda et Patients
 - Qui fait quoi : la secrétaire « Met en salle » ; le médecin « Démarre la consultation » ; qui passe à « Terminé » ?
 - Patients sans rendez-vous (urgence, passage) : les ajouter directement en salle d'attente ?
 - Séances de chimio et de radiothérapie : dans la salle d'attente aussi, ou seulement les consultations ?
-- « Prévenir d'un retard » : les rappels WhatsApp **automatiques** ont été annulés le 06/10 ; proposition = bouton qui
-  ouvre WhatsApp avec le message prêt (« Le Dr a environ 15 min de retard »), envoyé à la main, comme aujourd'hui.
 
 **SA1 – Page et statuts**
 - [ ] Page « Salle d'attente », **filtre par établissement** (la secrétaire ne voit que son centre), date du jour.
@@ -506,16 +504,8 @@ Nouvelle page **« Salle d'attente »** dans le menu, **entre Agenda et Patients
 **SA2 – Dans l'agenda et le tableau de bord**
 - [ ] Le temps d'attente et le statut s'affichent aussi dans l'**Agenda** (vue Jour / Liste) et dans « Aujourd'hui » du
       tableau de bord, pour que le médecin voie d'un coup d'œil qui attend depuis combien de temps.
-- [ ] Bouton **« Prévenir d'un retard »** (5 / 10 / 15 min) pour les patients qui attendent ou vont arriver (voir « À décider »).
 - [ ] **Consignes d'arrivée** (« Veuillez patienter dans votre véhicule… ») : message WhatsApp prêt, modèles dans
       Configuration › Messages.
-
-**SA3 – Plus tard (grandes structures)**
-- [ ] **Écran TV de la salle d'attente** : page plein écran, **initiales seulement** (secret médical), alerte visuelle et
-      sonore « Patient A.M. est appelé en Bureau 3 avec le Dr X » (bouton « Appeler » dans la salle d'attente).
-- [ ] **Borne / QR code d'arrivée** : le patient scanne le QR code reçu avec son rendez-vous (WhatsApp) ou affiché à
-      l'accueil → statut « En salle d'attente » tout seul. (Pas de carte Vitale au Maroc : QR code seulement.)
-      Demande une page publique sans compte : à sécuriser (code à usage unique, aucune donnée médicale affichée).
 
 ## Étape 7 – RCP (réunion de concertation pluridisciplinaire)
 **À décider** : une RCP par établissement ou une seule pour le cabinet ? Jour fixe (ex. chaque mardi) ou dates saisies
@@ -559,7 +549,7 @@ Les patients déjà enregistrés reçoivent un numéro selon leur date de créat
 - [ ] Bouton **« Mode démo »** (médecin) : noms, prénoms, téléphones, dates de naissance, photos **remplacés à l'écran**
       par des faux (« Patient Test 12 ») ; rien n'est modifié dans la base ; bandeau « MODE DÉMO » ; impressions bloquées
       ou anonymisées.
-- [ ] Mieux encore pour les démonstrations : un **cabinet de démonstration** séparé rempli de faux patients (étape 13).
+- [ ] Mieux encore pour les démonstrations : un **cabinet de démonstration** séparé rempli de faux patients (étape 12).
 
 ## Étape 10 – Mode hors-ligne (application installable)
 - [ ] Onco360 **installable** sur ordinateur, tablette et téléphone (icône, plein écran).
@@ -569,8 +559,9 @@ Les patients déjà enregistrés reçoivent un numéro selon leur date de créat
 - [ ] Tests : couper le réseau, recharger, relire un dossier et l'agenda ; bilan 352 317 DH.
 
 ## Étape 11 – Soins infirmiers, pharmacie, alertes
-⚠️ Le 06/10, « Marquer administrée » (vue infirmière) et la commande pharmacie J−1 avaient été **annulés** ; Dr Bentahila
-les **redemande le 08/10** sous une forme plus complète → à confirmer au début de l'étape.
+**« Marquer administrée » est repris (décision du 08/10)**, après son abandon du 06/10 : c'est la validation de la
+pose des poches ci-dessous (I1). La règle `administrations` existe encore (inutilisée) ; la ligne du droit est à remettre
+dans Profil › Accès › Droits.
 **I1 – Mode tablette pour les salles de soins**
 - [ ] Écran épuré pour tablette (iPad / Android), pour l'infirmière au chevet du patient en cours de chimiothérapie :
       patients du jour, cure et molécules à administrer.
@@ -587,18 +578,7 @@ les **redemande le 08/10** sous une forme plus complète → à confirmer au dé
       créatinine…).
 - [ ] Même système que T6 (Tâches) : à construire une seule fois.
 
-## Étape 12 – Téléconsultation (salle d'attente virtuelle)
-**À décider** : service vidéo à utiliser (gratuit / payant, hébergement des données), **cadre légal de la télémédecine
-au Maroc** (à vérifier avec le juriste), paiement de la téléconsultation.
-- [ ] Rendez-vous de type « Téléconsultation » → le patient reçoit un **lien** (WhatsApp) ; pas de compte à créer.
-- [ ] Côté patient : écran épuré et rassurant ; **test caméra / micro** ; « Vous êtes connecté dans la salle d'attente
-      de votre médecin » ; consignes de confidentialité (endroit calme et isolé) ; connexion possible 10 min avant.
-- [ ] Côté médecin : alerte en bas de l'écran « M. X est en salle d'attente », statut « En attente » ; bouton
-      **« Rejoindre la consultation vidéo »** ; **« Prévenir d'un retard »** (5 / 10 / 15 min) → bandeau sur l'écran du
-      patient (« Le Dr X a un peu de retard… »).
-- [ ] Apparaît dans la Salle d'attente (étape 6) comme les autres patients.
-
-## Étape 13 – Dossier de cession, démonstration et guides
+## Étape 12 – Dossier de cession, démonstration et guides
 But : un acheteur (éditeur, ESN, clinique) reprend Onco360 **sans avoir besoin d'appeler Dr Bentahila**.
 **C1 – Vérification complète du dossier de l'application**
 - [ ] Relecture de tout le projet : fichiers inutiles ou anciens, aucune clé secrète ni donnée patient dans le code,
@@ -627,8 +607,8 @@ But : un acheteur (éditeur, ESN, clinique) reprend Onco360 **sans avoir besoin 
 - [ ] **Accord de confidentialité (NDA)** à signer avant d'envoyer le code ou de donner l'accès.
 - [ ] **Contrat de cession** : clause de **non-réplication** (pas de logiciel concurrent avec le même code), **assistance
       après cession** de 30 à 60 jours (2 à 4 h par semaine).
-- [ ] À vérifier avec le juriste : **à qui appartiennent les droits sur le code** (développé par Hamza Benzekri, puis
-      avec Claude) — indispensable avant toute cession.
+- [ ] **Auteur du code : Dr Rita Bentahila** (développé avec Claude, d'abord depuis le compte de Hamza Benzekri, puis
+      repris par elle sur son compte) : à écrire dans le contrat de cession.
 **C7 – Paquet de cession** : dossier `Onco360_Package_Cession/` sur le Mac, puis `.zip` remis à la signature :
 ```
 Onco360_Package_Cession/
@@ -643,7 +623,7 @@ Onco360_Package_Cession/
 - [ ] Adapté à Onco360 : pas de `npm run dev` ni de `.next/` (site sans compilation) ; le README explique Firebase et le
       serveur de test local. Historique git fourni ou non : à décider.
 
-## Étape 14 – Interopérabilité (connexion aux autres logiciels)
+## Étape 13 – Interopérabilité (connexion aux autres logiciels)
 - [ ] **HL7 / FHIR** (normes d'échange de données de santé) : export des comptes rendus et du résumé patient vers le
       dossier informatisé d'une clinique ; import des résultats d'un laboratoire. À faire avec un premier client réel
       (chaque laboratoire / clinique a son propre système).
@@ -725,3 +705,4 @@ Onco360_Package_Cession/
 | 07/10/2026 | 5 – Tâches (plan) | Plan du module Tâches (T1 à T6) proposé et décidé : qui voit, modifie, supprime ; types rapides ; « + Tâche » dans le dossier ; tâches absentes du dossier. |
 | 08/10/2026 | 5 – T1 Tâches | Page Tâches (Mes tâches / Toutes les tâches), création, modification, réattribution, statuts, historique, suppression, « + Tâche » dans le dossier, règles `taches`. Testé (3 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |
 | 08/10/2026 | Plan | Demandes du 08/10 rangées : étapes 6 (salle d'attente), 7 (RCP), 8 (numéro de dossier, recherche), 9 (audit, rôles, mode démo), 10 (hors-ligne), 11 (tablette infirmière, pharmacie, alertes), 12 (téléconsultation), 13 (cession, tutoriels, démo, juridique), 14 (HL7/FHIR, DICOM) ; licences et quotas ajoutés à l'étape 4 ; ordre proposé. |
+| 08/10/2026 | Plan | Retirés : téléconsultation, écran TV et QR code de la salle d'attente, « Prévenir d'un retard ». « Marquer administrée » repris (étape 11). Vente : abonnements **et** cession. Auteur du code : Dr Rita Bentahila. Étapes renumérotées (6 à 13). |

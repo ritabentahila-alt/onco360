@@ -4,7 +4,7 @@
 à la fin (cocher, décisions, une ligne au journal). Une étape = une session.
 
 Application web de suivi oncologique (chimiothérapie, radiothérapie, rendez-vous, honoraires) du **Dr Rita Bentahila**,
-oncologue-radiothérapeute à Casablanca. Développée par Hamza Benzekri. Interface et code **en français**.
+oncologue-radiothérapeute à Casablanca. Code écrit par Dr Rita Bentahila avec Claude (d'abord depuis le compte de Hamza Benzekri, puis depuis le sien). Interface et code **en français**.
 
 - En ligne : https://chimio-hgc.web.app (Firebase Hosting, projet `chimio-hgc`)
 - Bascule faite le **06/10/2026** : Onco360 (`public/v2.html`) est l'application de référence.
@@ -142,8 +142,7 @@ Aucune donnée patient n'est dans le code ; le jeu de test se construit depuis u
 - Design : Arial, fond #F5F7FB, couleur principale #3563B0, cartes blanches arrondies, page 1240 px.
 
 ## À faire
-Voir `FEUILLE-DE-ROUTE.md`. Annulés le 06/10/2026 : assistant IA, rappels WhatsApp automatiques, vue infirmière « Marquer administrée »,
-commande pharmacie J−1, relevé mensuel.
-Redemandés le 08/10/2026 sous une forme plus complète (étape 11, à confirmer) : tablette infirmière (pose des poches,
-tolérance), circuit de la pharmacie. Demandes du 08/10 = étapes 6 à 14 de la feuille de route (salle d'attente, RCP,
-numéro de dossier, audit / mode démo, hors-ligne, téléconsultation, dossier de cession, HL7/FHIR).
+Voir `FEUILLE-DE-ROUTE.md`. Annulés le 06/10/2026 : assistant IA, rappels WhatsApp automatiques, commande pharmacie J−1,
+relevé mensuel. « Marquer administrée » (vue infirmière) : repris le 08/10 (étape 11). Demandes du 08/10 = étapes 6 à 13
+de la feuille de route (salle d'attente, RCP, numéro de dossier, audit / mode démo, hors-ligne, soins infirmiers et
+pharmacie, dossier de cession, HL7/FHIR). Pas de téléconsultation. Vente : abonnements et cession.
