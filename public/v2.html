@@ -183,6 +183,27 @@ details summary{cursor:pointer;color:var(--prim);font-weight:bold;font-size:13.5
 /* La chimiothérapie garde sa présentation, sans carte dans la carte ; son titre est celui de l'onglet */
 .o-pan>.carte{box-shadow:none;border:0;border-radius:0;padding:0}.o-pan>.carte>.entete>h3{display:none}.o-pan .entete{justify-content:flex-end}
 .o-pan>.rt:first-child,.o-pan>.entete+.rt{margin-top:4px}
+/* Journal des consultations : consultations pliables (date + titre), lignes Note / Médic. / Analyses…, barre des prescriptions */
+.cs{border:1px solid var(--trait);border-radius:var(--r-m);margin-top:10px;overflow:hidden}.cs.on{border-color:var(--prim-cc)}
+.cs-t{display:flex;align-items:center;gap:10px;width:100%;border:0;background:#F7F9FD;padding:10px 12px;text-align:left;font-size:14.5px;color:var(--encre)}
+.cs-t:hover{background:#EEF3FB}.cs.on .cs-t{background:var(--prim-c)}
+.cs-t .fl{color:var(--doux);width:12px;flex:none}.cs-t .dt{font-weight:bold;color:var(--titre);white-space:nowrap}.cs-t .ti{flex:1;min-width:0;font-weight:bold}.cs-t .au{color:var(--doux);font-size:12.5px;white-space:nowrap}
+.cs-c{padding:6px 12px 12px}
+.cs-l{width:100%;border-collapse:collapse;font-size:14.5px}
+.cs-l th{width:120px;text-align:left;vertical-align:top;color:var(--doux);font-size:12.5px;padding:9px 10px 9px 0;border-bottom:1px solid #EEF1F6}
+.cs-l td{padding:8px 0;vertical-align:top;border-bottom:1px solid #EEF1F6;white-space:pre-wrap}
+.cs-l td.au{width:180px;color:var(--doux);font-size:12.5px;white-space:normal;padding-left:10px;text-align:right}
+.presc{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.pr{display:inline-flex;border:1px solid var(--trait);border-radius:10px;overflow:hidden;background:#fff}
+.pr button{border:0;background:none;padding:8px 10px;font-weight:bold;font-size:13px;color:var(--titre);display:inline-flex;align-items:center;gap:6px}
+.pr button:hover{background:var(--prim-c)}.pr .fl{border-left:1px solid var(--trait);padding:8px 8px;color:var(--doux)}.pr .pi{width:17px;height:17px;margin:0;color:var(--prim)}
+.cs-note{font-size:15px;line-height:1.5}
+@media (max-width:640px){
+  .cs-t{flex-wrap:wrap;gap:4px 8px}.cs-t .ti{flex-basis:calc(100% - 22px);order:3;margin-left:20px}.cs-t .au{margin-left:auto}
+  .cs-l,.cs-l tbody,.cs-l tr,.cs-l th,.cs-l td{display:block;width:auto}.cs-l tr{border-bottom:1px solid #EEF1F6;padding:6px 0}
+  .cs-l th,.cs-l td{border:0;padding:2px 0}.cs-l td.au{text-align:left;padding-left:0}
+  .presc{gap:6px}.pr button{padding:7px 8px;font-size:12.5px}
+}
 
 /* Fenêtres et formulaires */
 #fenetre{position:fixed;inset:0;background:rgba(30,42,68,.4);z-index:70;display:flex;align-items:center;justify-content:center;padding:14px}
@@ -403,6 +424,10 @@ details summary{cursor:pointer;color:var(--prim);font-weight:bold;font-size:13.5
   <symbol id="i-stetho" viewBox="0 0 24 24"><path d="M11 2v2M5 2v2M5 3H4a2 2 0 0 0-2 2v4a6 6 0 0 0 12 0V5a2 2 0 0 0-2-2h-1M8 15a6 6 0 0 0 12 0v-3"/><circle cx="20" cy="10" r="2"/></symbol>
   <symbol id="i-seringue" viewBox="0 0 24 24"><path d="m18 2 4 4M17 7l3-3M19 9 8.7 19.3c-1 1-2.5 1-3.4 0l-.6-.6c-1-1-1-2.5 0-3.4L15 5M9 11l4 4M5 19l-3 3M14 4l6 6"/></symbol>
   <symbol id="i-radiation" viewBox="0 0 24 24"><path d="M12 12h.01M7.5 4.2c-.3-.5-.9-.7-1.3-.4C3.9 5.5 2.3 8.1 2 11c-.1.5.4 1 1 1h5c0-1.5.8-2.8 2-3.4-1.1-1.9-2-3.5-2.5-4.4ZM21 12c.6 0 1-.4 1-1-.3-2.9-1.8-5.5-4.1-7.1-.4-.3-1.1-.2-1.3.3-.6.9-1.5 2.5-2.6 4.3 1.2.7 2 2 2 3.5h5ZM7.5 19.8c-.3.5-.1 1.1.4 1.3 2.6 1.2 5.6 1.2 8.2 0 .5-.2.7-.8.4-1.3-.5-.9-1.4-2.5-2.5-4.3-1.2.7-2.8.7-4 0-1.1 1.8-2 3.4-2.5 4.3Z"/></symbol>
+  <symbol id="i-pilule" viewBox="0 0 24 24"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7ZM8.5 8.5l7 7"/></symbol>
+  <symbol id="i-presse" viewBox="0 0 24 24"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2M12 11h4M12 16h4M8 11h.01M8 16h.01"/></symbol>
+  <symbol id="i-tube" viewBox="0 0 24 24"><path d="M14.5 2v17.5a2.5 2.5 0 0 1-5 0V2M8.5 2h7M14.5 16h-5"/></symbol>
+  <symbol id="i-courrier" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></symbol>
   <symbol id="i-document" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7ZM14 2v4a2 2 0 0 0 2 2h4M10 9H8M16 13H8M16 17H8"/></symbol>
 </svg>
 <aside id="menu" aria-label="Menu principal">

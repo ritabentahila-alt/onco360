@@ -75,19 +75,32 @@ Proposition, à valider avec Dr Bentahila :
 - [ ] **Sauvegarde** : la sauvegarde Firebase du soir ne copie pas les fichiers. Activer la suppression douce et les versions
       du stockage.
 
-**1B – Consultations (journal médical)**
-- [ ] « Nouvelle consultation » : titre à remplir, date du jour, nom de la personne qui l'a créée. Créée **à la main** par le
-      médecin ou la secrétaire : marquer un rendez-vous « Venu » ne crée rien (décision du 07/10).
-- [ ] À l'intérieur : ligne **Note** (texte libre, à la place de « Motif Cs »).
+**1B – Consultations (journal médical)** (fait et testé le 07/10, **pas encore en ligne**)
+- [x] « Nouvelle consultation » : titre à remplir (titres proposés), date du jour (modifiable), note ; nom de la personne
+      qui l'a créée. Créée **à la main** par le médecin ou la secrétaire : marquer un rendez-vous « Venu » ne crée rien.
+- [x] À l'intérieur : ligne **Note** (texte libre, à la place de « Motif Cs »), avec le nom de son auteur à droite.
 - [ ] Chaque prescription faite ajoute une ligne : « Médic. — Amlodipine 5 mg », « Analyses — NFS Urée Créatinine »,
       « Examens compl. — … », « Ordo type — … », « Courrier — … ». Clic sur la ligne = revoir le document.
-- [ ] Consultations **pliables** (date + titre), la plus récente ouverte.
-- [ ] Sous la consultation, barre de 5 boutons : **Médic. ▾ · Examens compl. ▾ · Ordo type ▾ · Analyses ▾ · Courriers ▾**
-      (le bouton = nouvelle prescription ; la petite flèche = antécédents).
-- [ ] Données : une fiche par consultation (nouvelle collection). Règles de sécurité : lire = droit « Voir les
-      consultations » **et l'infirmière** (lecture seule, décision du 07/10) ; écrire = médecin **et secrétaire** (décision du 07/10 : la secrétaire voit, écrit, imprime et
-      renouvelle les ordonnances). Nouveau droit « Écrire les consultations et ordonnances » dans la grille (oui par défaut
-      pour médecin et secrétaire, non pour l'infirmière).
+      → l'affichage des lignes est prêt (champ `lignes`) ; elles seront ajoutées par les ordonnances (1C à 1E).
+- [x] Consultations **pliables** (date + titre + auteur), la plus récente ouverte ; un clic plie / déplie.
+- [x] Sous la consultation ouverte, barre de 5 boutons : **Médic. ▾ · Examens compl. ▾ · Ordo. type ▾ · Analyses ▾ ·
+      Courriers ▾** (pictogrammes). Pour l'instant un message « bientôt disponible » (construits en 1C à 1E).
+- [x] **Modifier** (titre, date, note) : médecin et secrétaire ; **Supprimer** : médecin seulement (avec confirmation).
+- [x] Données : collection `consultations` (une fiche par consultation, avec le patient et son établissement ; pas une
+      sous-collection, pour que la copie Drive la sauvegarde aussi). Règles de sécurité : **lecture par tous les membres**
+      (dans leur périmètre ; l'infirmière lit), écriture avec le nouveau droit **« Journal des consultations et
+      ordonnances : créer, modifier »** (oui par défaut médecin et secrétaire, non infirmière), suppression par un médecin.
+      Patient supprimé → ses consultations aussi ; hôpital du patient changé → ses consultations suivent.
+- [x] **Secrétaire : onglet Chimiothérapie en lecture** (décision du 07/10) : droit « Chimiothérapie » passé de « Non
+      visible » à « Voir » par défaut, et pour les secrétaires existantes (mise à niveau faite une fois, à l'ouverture
+      d'Onco360 par Dr Bentahila). Son Google Agenda recevra aussi les cures (comme l'agenda d'Onco360).
+- [x] Infirmière (confirmé le 07/10) : rendez-vous de radiothérapie seulement des patients sous radio-chimiothérapie
+      concomitante ; dans le dossier, toutes les prescriptions de chimio et de radiothérapie en lecture.
+- [x] Tests : médecin (créer, plier, modifier, supprimer, relecture à la réouverture), secrétaire (créer, modifier, pas
+      supprimer, chimio en lecture), infirmière (lecture seule), téléphone 390 px, bilan 352 317 DH, règles de sécurité
+      compilées, aucune erreur.
+- [ ] Mise en ligne : site **et règles de sécurité** (avec l'accord de Dr Bentahila). Ensuite, **Dr Bentahila ouvre
+      Onco360 en premier** (mise à niveau des droits de l'équipe) avant que la secrétaire écrive une consultation.
 
 **1C – Médicaments et ordonnance** (le moteur commun)
 - [ ] Liste de tous les médicaments du cabinet : **Recherche** ; colonnes Médicament, Posologie ; **+** ajouter,
@@ -263,3 +276,4 @@ Décisions déjà prises :
 | 07/10/2026 | 1A – Onglets | Code écrit (un cadre à 4 onglets, documents RT déplacés dans « Documents », consultations et hospitalisations à part). **Pas testé, pas en ligne** : Terminal bloqué par la sécurité de l'application. |
 | 07/10/2026 | 1A – Onglets | Retouches demandées : pictogrammes au lieu des émoticônes, boutons pli / CR / rendez-vous remis dans la carte radiothérapie, ouverture sur Consultation, onglets tenant sur un téléphone. Testé (3 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |
 | 07/10/2026 | 1A – Onglets | Infirmière : Consultation (lecture), Chimiothérapie ouverte en premier, Radiothérapie (lecture). Testé (3 rôles, bilan 352 317 DH). Mis en ligne. |
+| 07/10/2026 | 1B – Consultations | Journal des consultations (créer, plier, modifier, supprimer), barre des 5 prescriptions (à venir), nouveau droit d'écriture, secrétaire : chimio en lecture. Testé (3 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |

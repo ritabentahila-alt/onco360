@@ -29,6 +29,7 @@ Après déploiement : recharger sans cache (Cmd + Maj + R). Les `.js` sont servi
 | `js/app/chimio.js` | lignes de chimio, cures en fenêtre (J1/J8/J15), doses, molécules, report, nouvelle ligne (menus en cascade), création patient |
 | `js/app/fiche.js` | fiche chimio A4 paysage (logo de l'établissement) |
 | `js/app/documents.js` | Word/Excel générés dans le navigateur (JSZip) : CR de fin RT et pli confidentiel **remplis à partir des modèles Word du Dr** (`public/modeles/*.docx`, étiquettes `{{…}}`, voir `modeles/LISEZMOI.md`), RDV RT (Excel) |
+| `js/app/consultations.js` | onglet Consultation du dossier : journal des consultations, barre des prescriptions |
 | `js/app/agenda.js` | agenda Liste/Jour/Semaine/Mois, filtre par établissement |
 | `js/app/configuration.js` | horaires (par établissement), absences, fériés, messages WhatsApp |
 | `js/app/profil.js` | profil, photo, lieux d'exercice (logos), accès et droits de l'équipe |
@@ -47,6 +48,9 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
 - `patientsFinances/{id}` : `montantsJson` (rdv, cures, rt) – droit « finances » uniquement
 - `finances/tarifs|paiements|versements`, `parametres/calendrier|listes|activites|whatsapp|protocolesSupprimes`
 - `protocoles/lib_0…lib_10, lib_perso` (`data` = tableau JSON), `etablissements/{code}`, `membres/{uid}` (rôle, droits), `historique`
+- `consultations/{id}` : journal du dossier (onglet Consultation, `js/app/consultations.js`) = `patientId`, `etablissementId`,
+  `d`, `titre`, `note`, `lignes` [{t, lib, par}], `o`, `creePar(Nom)`, `majPar(Nom)` ; lu par tous les membres, écrit avec
+  le droit `ecrireConsultations`, supprimé par un médecin
 - `utilisateurs/{uid}` : profil (nom, INPE, signature, photo)
 Ancienne application : collections racine `patients`, `protocoles`, `finances`, `parametres` (lecture seule).
 
