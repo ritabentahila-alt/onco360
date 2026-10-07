@@ -310,6 +310,7 @@ function route() {
   if (!$("fenetre").classList.contains("cache")) window.fermerFenetre();
   D.page = nom + (arg ? "/" + encodeURIComponent(arg) : ""); $("titrePage").textContent = PAGES[nom][0]; $("page").classList.toggle("large", nom === "agenda");
   document.querySelectorAll("nav a").forEach((a) => a.classList.toggle("actif", a.dataset.p === (nom === "dossier" ? "patients" : nom)));
+  if (nom === "dossier" && arg) delete ONGLET[arg]; // dossier ouvert : onglet Consultation
   PAGES[nom][1](arg); window.scrollTo(0, 0);
 }
 window.addEventListener("hashchange", () => D && route());
@@ -389,6 +390,13 @@ function listePatients() {
 
 // ───── Dossier patient (lecture) ─────
 const ST_RDV = { prevu: ["Prévu", "b-co"], fait: ["Venu", "b-ch"], absent: ["Non venu", "b-al"], reporte: ["Reporté", "b-or"] };
+// Onglet choisi par patient : gardé quand le dossier se réaffiche après un enregistrement, oublié quand on rouvre le dossier (route)
+const ONGLET = {};
+window.ongletDossier = (pid, k) => {
+  ONGLET[pid] = k;
+  document.querySelectorAll(".o-barre [role=tab]").forEach((b) => { const on = b.id === "og-" + k; b.classList.toggle("on", on); b.setAttribute("aria-selected", on); });
+  document.querySelectorAll(".o-pan").forEach((p) => p.classList.toggle("cache", p.id !== "op-" + k));
+};
 function pageDossier(id) {
   const x = D.patients.find((p) => p.id === id);
   if (!x) { $("page").innerHTML = '<a class="retour" href="#patients">' + ic("retour") + "Patients</a><div class=\"carte\"><h3>Dossier introuvable</h3><p class=\"sous\">Ce patient n'existe pas ou n'est pas dans vos établissements.</p></div>"; return; }
@@ -426,22 +434,26 @@ function pageDossier(id) {
   h += '<section class="carte"><div class="entete"><h3><span class="ic">' + ic("agenda") + "</span>Rendez-vous à venir</h3>" + (okR ? '<button class="bt clair petit" onclick="ouvrirRdv(' + qx + ')">' + ic("plus") + "Ajouter un rendez-vous</button>" : "") + "</div>" +
     (av.length ? av.map((v) => '<div class="rdv">' + (absenceLe(v.d) ? '<span class="badge b-al"><svg class="pi"><use href="#i-stop"/></svg>Absente</span>' : ferieLe(v.d) ? '<span class="badge b-al">Férié</span>' : "") + '<span class="badge ' + (v.retard ? "b-al" : "b-co") + '">' + dfr(v.d) + (v.f && v.f !== v.d ? " → " + dfr(v.f) : "") + (v.h ? " " + v.h : "") + "</span><span>" + v.em + '</span><div class="tx">' + esc(v.t) + (v.rep && v.rep.length ? '<div class="mesures">Reporté (initialement le ' + dfrA(v.rep[0].d) + ")</div>" : "") + "</div>" + (v.act || "") + "</div>").join("") : '<p class="sous">Aucun rendez-vous à venir.</p>') + '<p class="mesures" style="margin:8px 0 0">Prochaine étape de chimiothérapie et de radiothérapie (automatique) et consultations programmées. Les consultations passées sont listées en bas de la page.</p></section>';
 
+  // Un seul cadre à onglets (07/10/2026) : Consultation · Chimiothérapie · Radiothérapie · Documents, selon les droits
+  const ong = [];
+  if (voitRdv()) ong.push({ k: "co", ic: "stetho", lib: "Consultation", n: 0, h: '<p class="sous" style="margin:2px 0 0">Le journal des consultations (notes, ordonnances, examens, analyses, courriers) sera ici.</p>' });
+
   // Chimiothérapie
-  if (voit("traitements")) h += htmlChimio(x);
+  if (voit("traitements")) { const hc = htmlChimio(x); if (hc) ong.push({ k: "ch", ic: "seringue", lib: "Chimiothérapie", n: (P.lignes || []).length, h: hc }); }
 
   // Radiothérapie
   const okRT = traitModRT();
   if (voitRTdossier(x) && ((P.rts || []).length || okRT)) {
     const JS = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"], TECH = { stereo: "Stéréotaxie", vmat: "VMAT", imrt: "IMRT", "3d": "3D" };
-    h += '<section class="carte"><div class="entete"><h3><span class="ic">☢️</span>Radiothérapie</h3>' + (okRT ? '<button class="bt clair petit" onclick="ouvrirRT(\'' + x.id + '\')">' + ic("plus") + "Prescription</button>" : "") + "</div>";
-    if (!(P.rts || []).length) h += '<p class="sous">Aucune prescription de radiothérapie.</p>';
+    let hr = okRT ? '<div class="entete"><button class="bt clair petit" onclick="ouvrirRT(\'' + x.id + '\')">' + ic("plus") + "Prescription</button></div>" : "";
+    if (!(P.rts || []).length) hr += '<p class="sous" style="margin:2px 0 0">Aucune prescription de radiothérapie.</p>';
     (P.rts || []).slice().reverse().forEach((v) => {
       const s = statutRT(v, ctx), f = finRT(v, ctx.feries), c = compteurRT(v, ctx), cls = s.c === "fin" ? "b-ch" : s.c === "cours" ? "b-rt" : s.c === "dep" ? "b-or" : "b-co";
       const nb = parseInt(v.nb, 10), dose = parseFloat(String(v.dose || "").replace(",", ".")), dpf = dose && nb ? Math.round((dose / nb) * 100) / 100 : null, q = "'" + x.id + "','" + v.id + "'";
       const etape = (lib, d, fait, plus) => '<div class="etape' + (fait ? " fait" : "") + '"><span class="ck">' + (fait ? ic("check") : "") + "</span>" + lib + (d ? " — " + dfrA(d) : "") + (plus || "") + "</div>";
       const finFaite = !!v.fin || (f && f < t);
       const dz = dosimetrie(v, t); // période « Dosimétrie à valider » : du scanner à la 1re séance
-      h += '<div class="rt"><div class="tl" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><b style="font-size:16px;color:var(--titre)">' + esc(v.acte || "Radiothérapie") + (nbA(v) > 1 ? " × " + nbA(v) : "") + '</b><span class="badge ' + cls + '">' + ({ fin: '<svg class="pi"><use href="#i-check"/></svg>', cours: '<i class="dot v"></i>', dep: '<i class="dot o"></i>', prev: '<svg class="pi"><use href="#i-horloge"/></svg>' }[s.c] || "") + esc(s.lib) + "</span>" + (v.hop ? '<span class="badge b-gr">' + esc(v.hop) + "</span>" : "") + (v.intent ? '<span class="badge b-gr">' + (v.intent === "curative" ? "Curative" : "Palliative") + "</span>" : "") + "</div>" +
+      hr += '<div class="rt"><div class="tl" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><b style="font-size:16px;color:var(--titre)">' + esc(v.acte || "Radiothérapie") + (nbA(v) > 1 ? " × " + nbA(v) : "") + '</b><span class="badge ' + cls + '">' + ({ fin: '<svg class="pi"><use href="#i-check"/></svg>', cours: '<i class="dot v"></i>', dep: '<i class="dot o"></i>', prev: '<svg class="pi"><use href="#i-horloge"/></svg>' }[s.c] || "") + esc(s.lib) + "</span>" + (v.hop ? '<span class="badge b-gr">' + esc(v.hop) + "</span>" : "") + (v.intent ? '<span class="badge b-gr">' + (v.intent === "curative" ? "Curative" : "Palliative") + "</span>" : "") + "</div>" +
         '<p class="st" style="color:var(--doux);font-size:13.5px;margin:6px 0 0">' + esc([dose ? String(dose).replace(".", ",") + " Gy" : "", nb ? nb + " fractions" : "", dpf ? String(dpf).replace(".", ",") + " Gy/fraction" : "", TECH[v.tech] || (v.vmat ? "VMAT" : ""), v.ryt === "2" ? "1 jour sur 2" : "quotidien"].filter(Boolean).join(" · ")) + "</p>" +
         '<div class="etapes">' + (v.scan ? etape("Scanner de centrage", v.scan, v.scan <= t) : "") +
         (v.dosi ? etape("Dosimétrie validée", v.dosi, true, okRT && peutDosi() && !v.fin ? ' <a href="#" class="lienr" onclick="dosiRT(' + q + ',1);return false">annuler</a>' : "") : (dz ? etape("Dosimétrie à valider", "", false, (dz.au !== dz.du ? " — du " + dfrA(dz.du) + " au " + dfrA(dz.au) : "") + (v.scan <= t && peutDosi() ? ' <button class="mini vert" style="margin-left:8px" onclick="dosiRT(' + q + ')"><svg class="pi"><use href="#i-check"/></svg>Valider la dosimétrie</button>' : v.scan > t ? ' <span class="mesures">(à partir du scanner)</span>' : "")) : "")) +
@@ -454,7 +466,17 @@ function pageDossier(id) {
         (v.acte && peut("documents") ? '<button class="mini" onclick="docRT(' + q + ',\'pli\')">Pli confidentiel (Word)</button>' : "") +
         (v.deb && nb && peut("documents") ? '<button class="mini" onclick="docRT(' + q + ',\'cr\')">Compte rendu de fin (Word)</button><button class="mini" onclick="docRT(' + q + ',\'xl\')">Rendez-vous (Excel)</button>' : "") + "</div></div>";
     });
-    h += "</section>";
+    ong.push({ k: "rt", ic: "radiation", lib: "Radiothérapie", n: (P.rts || []).length, h: hr });
+  }
+
+  // Documents (droit « documents ») : les documents générés (pli, compte rendu, rendez-vous, ordonnances…) y seront enregistrés
+  if (peut("documents")) ong.push({ k: "doc", ic: "document", lib: "Documents", n: 0, h: '<p class="sous" style="margin:2px 0 0">Aucun document enregistré pour ce patient. Les documents générés (pli confidentiel, compte rendu de fin, rendez-vous, ordonnances, courriers) seront gardés ici.</p>' });
+
+  // Le dossier s'ouvre sur Consultation ; l'onglet choisi reste affiché quand le dossier se réaffiche après un enregistrement
+  if (ong.length) {
+    const act = [ONGLET[x.id], "co"].find((k) => ong.some((o) => o.k === k)) || ong[0].k;
+    h += '<section class="carte onglets"><div class="o-barre" role="tablist" aria-label="Dossier">' + ong.map((o) => '<button role="tab" id="og-' + o.k + '" aria-controls="op-' + o.k + '" aria-selected="' + (o.k === act) + '"' + (o.k === act ? ' class="on"' : "") + ' onclick="ongletDossier(\'' + x.id + "','" + o.k + '\')"><svg class="pi" aria-hidden="true"><use href="#i-' + o.ic + '"/></svg>' + o.lib + (o.n ? '<span class="n">' + o.n + "</span>" : "") + "</button>").join("") + "</div>" +
+      ong.map((o) => '<div class="o-pan' + (o.k === act ? "" : " cache") + '" id="op-' + o.k + '" role="tabpanel" aria-labelledby="og-' + o.k + '">' + o.h + "</div>").join("") + "</section>";
   }
 
   // Consultations et hospitalisations : passées ou déjà validées (venu / non venu), avec le prix à encaisser (droit « encaissements »)

@@ -34,21 +34,31 @@ d'ordonnance est construit en 1C, puis réutilisé tel quel en 1E pour les quatr
 **1.0 – Préparation**
 - [x] Historique des versions (git) **dans le dossier du projet** (fait le 07/10) : première version enregistrée = point de
       retour avant le remodelage. Exclus de l'historique : données de test des patients (`tests/seed.json`), sauvegardes
-      JSON, `node_modules`, journaux. Reste à décider : le dossier git vide et inutile ouvert par erreur sur tout le
-      dossier personnel (`~/.git`, juin 2026, aucune version) peut être supprimé.
+      JSON, `node_modules`, journaux. Le dossier git vide ouvert par erreur sur tout le dossier personnel (`~/.git`)
+      a été supprimé par Dr Bentahila le 07/10.
 - [x] Réponses de Dr Bentahila aux questions ci-dessous (toutes réglées le 07/10).
 
-**1A – Onglets du dossier**
+**1A – Onglets du dossier** (fait et testé le 07/10, pas encore en ligne)
 Disposition décidée par Dr Bentahila le 07/10, de haut en bas :
-- [ ] En haut, inchangés : identité + résumé du patient, rendez-vous à venir.
-- [ ] En dessous, **un seul cadre** avec 4 onglets : **Consultation · Chimiothérapie · Radiothérapie · Documents** (avec
-      leur nombre).
-- [ ] Tout en bas, **dans un autre cadre** : « Consultations et hospitalisations » (rendez-vous passés, venu / non venu,
+- [x] En haut, inchangés : identité + résumé du patient, rendez-vous à venir.
+- [x] En dessous, **un seul cadre** avec 4 onglets : **Consultation · Chimiothérapie · Radiothérapie · Documents** (avec
+      leur nombre), **pictogrammes au trait** (pas d'émoticônes).
+- [x] Tout en bas, **dans un autre cadre** : « Consultations et hospitalisations » (rendez-vous passés, venu / non venu,
       prix à encaisser), gardé tel qu'aujourd'hui, en dehors des onglets.
-- [ ] Chimiothérapie = carte chimio actuelle ; Radiothérapie = carte RT actuelle ; Documents = pli confidentiel, compte rendu
-      de fin, rendez-vous Excel (déplacés ici), puis toutes les ordonnances et courriers (après 1C).
-- [ ] Onglets montrés selon les droits (infirmière : pas de Consultation ni de Documents, etc.). Onglet ouvert retenu.
-- [ ] Téléphone 390 px : onglets qui défilent, rien ne déborde.
+- [x] Chimiothérapie = carte chimio actuelle ; Radiothérapie = carte RT actuelle, **avec ses boutons pli confidentiel,
+      compte rendu de fin et rendez-vous Excel** (c'est de là qu'on les génère, décision du 07/10).
+- [x] Documents : pour l'instant un message ; les documents générés s'y **enregistreront** (étape 1A bis).
+- [x] Le dossier **s'ouvre toujours sur Consultation** ; un clic sur un onglet affiche sa carte ; l'onglet reste affiché
+      après un enregistrement, et on revient sur Consultation en rouvrant le dossier. Sans l'onglet Consultation
+      (infirmière), le premier onglet permis s'ouvre.
+- [x] Onglets montrés selon les droits (testé : médecin 4 onglets ; secrétaire Consultation, Radiothérapie, Documents ;
+      infirmière Chimiothérapie seule).
+- [x] Téléphone 390 px : les 4 onglets tiennent sur la largeur (pictogramme au-dessus du nom), rien ne déborde.
+- [x] Bilan 2026 inchangé : 352 317 DH. Aucune erreur dans la console.
+- [ ] Mise en ligne (avec l'accord de Dr Bentahila).
+
+Test : Playwright n'est pas installé sur ce Mac ; testé dans le navigateur intégré avec le faux Firebase, sur une copie
+du site dans un dossier temporaire (macOS empêche le serveur de test de lire le Bureau).
 
 **1A bis – Copies des documents dans l'onglet Documents** (demandé le 06/10 : « le logiciel garde des copies »)
 Proposition, à valider avec Dr Bentahila :
@@ -248,3 +258,5 @@ Décisions déjà prises :
 | 07/10/2026 | 1 – Plan | Réponses : « Venu » ne crée pas de consultation ; secrétaire voit et écrit consultations et ordonnances ; courriers avec nom, âge, diagnostic, date, « à Casablanca » (modèles ALD, courrier, certificat à faire ensemble) ; Excel des médicaments et des analyses/bilans à venir. Reste la question 6 (nom sur l'ordonnance faite par la secrétaire). |
 | 07/10/2026 | 1 – Plan | Question 6 tranchée : une ordonnance faite par la secrétaire porte le nom de son médecin. Toutes les questions de l'étape 1 sont réglées. |
 | 07/10/2026 | 1.0 – Préparation | Historique des versions (git) créé dans le dossier du projet, première version enregistrée (sans données patient). |
+| 07/10/2026 | 1A – Onglets | Code écrit (un cadre à 4 onglets, documents RT déplacés dans « Documents », consultations et hospitalisations à part). **Pas testé, pas en ligne** : Terminal bloqué par la sécurité de l'application. |
+| 07/10/2026 | 1A – Onglets | Retouches demandées : pictogrammes au lieu des émoticônes, boutons pli / CR / rendez-vous remis dans la carte radiothérapie, ouverture sur Consultation, onglets tenant sur un téléphone. Testé (3 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |
