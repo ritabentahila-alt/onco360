@@ -467,7 +467,7 @@ Découpé en **sous-étapes, une fenêtre chacune** : T1 à T5 (T6 facultatif).
 - [x] Tests dans le navigateur (médecin, secrétaire, infirmière, 390 px, bilan 352 317 DH, aucune erreur).
 - [x] Mise en ligne : avec T4 (règles puis site).
 
-**T4 – Temps réel et notifications** (fait et testé le 08/10, pas encore en ligne)
+**T4 – Temps réel et notifications** (fait, testé et mis en ligne le 08/10)
 - [x] **Écoute en direct** ouverte dès l'ouverture d'Onco360 : listes, nombres des onglets et fiche ouverte se mettent à jour
       sans recharger (la fiche n'est pas redessinée pendant qu'on écrit un commentaire).
 - [x] **Messages à l'écran** (en haut à droite ; en bas sur téléphone ; 12 s ; clic = ouvre la tâche) quand un collègue
@@ -483,10 +483,10 @@ Découpé en **sous-étapes, une fenêtre chacune** : T1 à T5 (T6 facultatif).
 - [x] Tests : règles sur l'émulateur 44/44 ; navigateur avec deux onglets en même temps (médecin + secrétaire) : messages,
       fiche mise à jour en direct, nouvelle tâche, pastilles, lu / non lu ; téléphone 390 px ; bilan 352 317 DH ; aucune
       erreur.
-- [ ] Mise en ligne : règles **puis** site. À la première ouverture, les tâches déjà créées par un collègue apparaissent
+- [x] Mise en ligne le 08/10. À la première ouverture, les tâches déjà créées par un collègue apparaissent
       « Nouveau » (jamais ouvertes) : un clic suffit.
 
-**T5 – Finition** (fait et testé le 08/10, pas encore en ligne)
+**T5 – Finition** (fait, testé et mis en ligne le 08/10)
 - [x] **Nom du patient à jour** : la tâche affiche le nom actuel du dossier (s'il a été corrigé depuis), dans la liste, la
       fiche, le tableau de bord et la recherche.
 - [x] **Membre limité à un établissement** : patient hors de son périmètre (ou dossier supprimé) = nom sans lien, et dans
@@ -497,7 +497,7 @@ Découpé en **sous-étapes, une fenêtre chacune** : T1 à T5 (T6 facultatif).
 - [x] **Guide d'utilisation** : `guide/taches.md` (créer, retrouver, suivre, être prévenu, qui peut faire quoi, cas
       particuliers), base du guide complet (F3).
 - [x] Tests : médecin, secrétaire limitée à l'HGC, responsable désactivée / retirée, bilan 352 317 DH, aucune erreur.
-- [ ] Mise en ligne (site seulement : les règles n'ont pas changé depuis T4).
+- [x] Mise en ligne le 08/10 (règles, fonctions, site, par Claude avec l'accord de Dr Bentahila).
 
 **T6 – Échéances dans Google Agenda** (décidé, fait et testé le 08/10, pas encore en ligne ; les notifications sur le
 téléphone quand Onco360 est fermé restent pour plus tard)
