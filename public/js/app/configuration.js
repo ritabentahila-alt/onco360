@@ -6,6 +6,7 @@ import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/
 import { db } from "../config.js";
 import { FERIES0 } from "../donnees/listes.js";
 import { typesDocuments, enregistrerTypes, TYPES_DOCUMENTS0 } from "./fichiers.js";
+import { typesTaches, enregistrerTypesTaches, TYPES_TACHES0, TYPE_RT } from "./taches.js";
 
 let A = null;
 export function installer(api) { A = api; }
@@ -41,15 +42,17 @@ const CAT_COUL = [["annonce", "Consultation d'annonce"], ["suivi", "Consultation
   ["chimio", "Chimiothérapie (cures J1, J8, J15…)"], ["rt", "Radiothérapie (scanner, 1re séance, fin)"], ["dosi", "Dosimétrie à valider"], ["abs", "Absences et congés"], ["tache", "Tâches"], ["tacheUrg", "Tâches urgentes ou en retard"]];
 let COUL = null; // couleurs du cabinet lues (null = à lire)
 let TDOC = null; // types de documents du dossier (onglet Documents, 08/10/2026 ; null = à lire)
+let TTA = null; // types de tâches (onglet Tâches, 08/10/2026 ; null = à lire ; sans « Radiothérapie », fixe)
 let ED = null, ONG = "horaires", MOD = false, HET = ""; // HET : établissement dont on règle les horaires ("" = par défaut)
 
 export function pageConfiguration() {
   if (COUL === null) { COUL = {}; getDoc(doc(db, "espaces", A.ESPACE, "parametres", "couleursAgenda")).then((s) => { COUL = s.exists() ? JSON.parse(s.data().data || "{}") : {}; if (!MOD && location.hash.startsWith("#configuration")) { ED = null; pageConfiguration(); } }).catch(() => {}); }
+  if (TTA === null) { TTA = []; typesTaches().then((L) => { TTA = L.filter((t) => t !== TYPE_RT); if (!MOD && location.hash.startsWith("#configuration")) { ED = null; pageConfiguration(); } }).catch(() => {}); }
   if (TDOC === null) { TDOC = []; typesDocuments().then((L) => { TDOC = L.slice(); if (!MOD && location.hash.startsWith("#configuration")) { ED = null; pageConfiguration(); } }).catch(() => {}); }
-  if (!ED || !MOD) ED = { horaires: copie(horaires()), horairesEtab: copie(D().cal.horairesEtab || {}), abs: copie(D().cal.abs || []), feries: copie(D().cal.feries || []), wa: Object.assign({}, D().wa || {}), coul: Object.assign({}, COULEURS0, COUL), tdoc: TDOC.slice() };
+  if (!ED || !MOD) ED = { horaires: copie(horaires()), horairesEtab: copie(D().cal.horairesEtab || {}), abs: copie(D().cal.abs || []), feries: copie(D().cal.feries || []), wa: Object.assign({}, D().wa || {}), coul: Object.assign({}, COULEURS0, COUL), tdoc: TDOC.slice(), ttache: TTA.slice() };
   const ok = A.peut("parametres"), esc = A.esc, dis = ok ? "" : " disabled";
-  let h = '<section class="accueil"><div><h2>Configuration</h2><p>Horaires de consultation par établissement, absences, jours fériés, messages WhatsApp, couleurs Google Agenda et types de documents.</p></div></section>' +
-    '<div class="ag-vues" style="align-self:flex-start"><button class="' + (ONG === "horaires" ? "on" : "") + '" onclick="cfOnglet(\'horaires\')">' + A.ic("horloge") + 'Créneaux & horaires</button><button class="' + (ONG === "fermetures" ? "on" : "") + '" onclick="cfOnglet(\'fermetures\')">' + A.ic("avion") + "Fermetures, congés & jours fériés</button><button class=\"" + (ONG === "whatsapp" ? "on" : "") + "\" onclick=\"cfOnglet('whatsapp')\">" + A.ic("whatsapp") + "WhatsApp</button><button class=\"" + (ONG === "couleurs" ? "on" : "") + "\" onclick=\"cfOnglet('couleurs')\">" + A.ic("agenda") + "Google Agenda</button><button class=\"" + (ONG === "documents" ? "on" : "") + "\" onclick=\"cfOnglet('documents')\">" + A.ic("document") + "Documents</button></div>";
+  let h = '<section class="accueil"><div><h2>Configuration</h2><p>Horaires de consultation par établissement, absences, jours fériés, messages WhatsApp, couleurs Google Agenda, types de documents et types de tâches.</p></div></section>' +
+    '<div class="ag-vues" style="align-self:flex-start"><button class="' + (ONG === "horaires" ? "on" : "") + '" onclick="cfOnglet(\'horaires\')">' + A.ic("horloge") + 'Créneaux & horaires</button><button class="' + (ONG === "fermetures" ? "on" : "") + '" onclick="cfOnglet(\'fermetures\')">' + A.ic("avion") + "Fermetures, congés & jours fériés</button><button class=\"" + (ONG === "whatsapp" ? "on" : "") + "\" onclick=\"cfOnglet('whatsapp')\">" + A.ic("whatsapp") + "WhatsApp</button><button class=\"" + (ONG === "couleurs" ? "on" : "") + "\" onclick=\"cfOnglet('couleurs')\">" + A.ic("agenda") + "Google Agenda</button><button class=\"" + (ONG === "documents" ? "on" : "") + "\" onclick=\"cfOnglet('documents')\">" + A.ic("document") + "Documents</button><button class=\"" + (ONG === "taches" ? "on" : "") + "\" onclick=\"cfOnglet('taches')\">" + A.ic("taches") + "Tâches</button></div>";
   if (!ok) h += '<p class="mesures">Lecture seule : la modification demande le droit « paramètres ».</p>';
   if (ONG === "horaires") {
     // membre limité à certains établissements (secrétaire d'un centre) : seulement leurs horaires (07/10/2026)
@@ -69,6 +72,14 @@ export function pageConfiguration() {
         return '<tr><td><label style="display:flex;gap:8px;align-items:center;font-weight:bold"><input type="checkbox" style="width:auto"' + (ouvert ? " checked" : "") + disH + ' onchange="cfJour(' + j + ',this.checked)">' + nom + "</label></td><td>" +
           (ouvert ? '<div class="plages">' + pl.map((p, k) => '<span class="plage"><input type="time" step="900" value="' + p[0] + '"' + disH + ' onchange="cfPlage(' + j + "," + k + ',0,this.value)"> – <input type="time" step="900" value="' + p[1] + '"' + disH + ' onchange="cfPlage(' + j + "," + k + ',1,this.value)">' + (okH ? '<button class="mini rouge" onclick="cfSupPlage(' + j + "," + k + ')">✕</button>' : "") + "</span>").join("") + (okH ? '<button class="mini" onclick="cfAjPlage(' + j + ')">+ Ajouter une plage</button>' : "") + "</div>" : '<span class="mesures">Fermé</span>') + "</td></tr>";
       }).join("") + "</table></div></section>";
+  } else if (ONG === "taches") {
+    // Types de tâches (P1, 08/10/2026) : boutons de « Nouvelle tâche » et filtre « Type » ; « Radiothérapie » fixe, à la fin
+    const L = ED.ttache;
+    h += '<section class="carte"><h3><span class="ic">' + A.ic("taches") + '</span>Types de tâches</h3><p class="sous">Boutons « type » de la fenêtre Nouvelle tâche (un clic remplit le début du titre) et filtre « Type » de la page Tâches. Renommer ou retirer un type ne change pas les tâches déjà créées (elles gardent leur type).</p>' +
+      '<div class="cf-td">' + L.map((t, i) => '<div class="it"><b class="n">' + (i + 1) + '</b><input value="' + esc(t) + '"' + dis + ' aria-label="Type de tâche ' + (i + 1) + '" onchange="cfTt(' + i + ',this.value)">' +
+        (ok ? '<button class="ico" title="Monter" aria-label="Monter" onclick="cfTtBouger(' + i + ',-1)"' + (i ? "" : " disabled") + '>↑</button><button class="ico" title="Descendre" aria-label="Descendre" onclick="cfTtBouger(' + i + ',1)"' + (i < L.length - 1 ? "" : " disabled") + '>↓</button><button class="mini rouge" title="Retirer ce type" aria-label="Retirer ' + esc(t) + '" onclick="cfTtSup(' + i + ')">✕</button>' : "") + "</div>").join("") +
+        '<div class="it"><b class="n">' + (L.length + 1) + '</b><input value="' + esc(TYPE_RT) + '" disabled aria-label="Type fixe ' + esc(TYPE_RT) + '"><span class="mesures">fixe : tâches automatiques (dosimétrie, fin de radiothérapie)</span></div></div>' +
+      (ok ? '<button class="bt clair petit" style="margin-top:10px" onclick="cfTtAj()">' + A.ic("plus") + "Ajouter un type</button>" : "") + "</section>";
   } else if (ONG === "documents") {
     // Types de documents du dossier patient (onglet Documents) : liste du cabinet, dans l'ordre du menu
     const L = ED.tdoc;
@@ -123,6 +134,10 @@ window.cfCoul = (k, c) => { ED.coul[k] = c; modif(true); };
 window.cfTd = (i, v) => { ED.tdoc[i] = String(v || "").trim(); modif(); };
 window.cfTdBouger = (i, s) => { const L = ED.tdoc, j = i + s; if (j < 0 || j >= L.length) return; const t = L[i]; L[i] = L[j]; L[j] = t; modif(true); };
 window.cfTdSup = (i) => { ED.tdoc.splice(i, 1); modif(true); };
+window.cfTt = (i, v) => { ED.ttache[i] = String(v || "").trim(); modif(); };
+window.cfTtBouger = (i, s) => { const L = ED.ttache, j = i + s; if (j < 0 || j >= L.length) return; const t = L[i]; L[i] = L[j]; L[j] = t; modif(true); };
+window.cfTtSup = (i) => { ED.ttache.splice(i, 1); modif(true); };
+window.cfTtAj = () => { ED.ttache.push(""); modif(true); setTimeout(() => { const l = document.querySelectorAll(".cf-td input:not([disabled])"); if (l.length) l[l.length - 1].focus(); }, 30); };
 window.cfTdAj = () => { ED.tdoc.push(""); modif(true); setTimeout(() => { const l = document.querySelectorAll(".cf-td input"); if (l.length) l[l.length - 1].focus(); }, 30); };
 window.cfAbs = (i, f, v) => { if (v) ED.abs[i][f] = v; else delete ED.abs[i][f]; modif(f === "du"); };
 window.cfAjAbs = () => { const t = D().t; ED.abs.push({ du: t, au: t, m: "" }); modif(true); };
@@ -133,6 +148,7 @@ window.cfSupFer = (i) => { ED.feries.splice(i, 1); modif(true); };
 window.cfDefaut = () => {
   if (ONG === "whatsapp") { if (!confirm("Rétablir tous les messages WhatsApp par défaut ?")) return; ED.wa = {}; modif(true); return; }
   if (ONG === "couleurs") { if (!confirm("Rétablir les couleurs Google Agenda par défaut ?")) return; ED.coul = Object.assign({}, COULEURS0); modif(true); return; }
+  if (ONG === "taches") { if (!confirm("Rétablir la liste des types de tâches de base ?")) return; ED.ttache = TYPES_TACHES0.slice(); modif(true); return; }
   if (ONG === "documents") { if (!confirm("Rétablir la liste des types de documents de départ ?")) return; ED.tdoc = TYPES_DOCUMENTS0.slice(); modif(true); return; }
   if (!confirm("Rétablir les horaires (8 h 30 – 18 h, du lundi au vendredi, pour tous les établissements) et la liste des jours fériés par défaut ?\nLes absences ne sont pas modifiées.")) return;
   ED.horaires = HORAIRES0(); ED.horairesEtab = {}; ED.feries = copie(FERIES0); modif(true);
@@ -152,6 +168,8 @@ window.cfEnregistrer = async () => {
   const tdoc = ED.tdoc.map((t) => String(t || "").trim()).filter(Boolean);
   if (tdoc.some((t, i) => tdoc.findIndex((u) => u.toLowerCase() === t.toLowerCase()) !== i)) { A.toast("Deux types de documents portent le même nom."); return; }
   if (TDOC && TDOC.length && !tdoc.length) { A.toast("Gardez au moins un type de document."); return; }
+  const ttache = ED.ttache.map((t) => String(t || "").trim()).filter(Boolean);
+  if (ttache.concat([TYPE_RT]).some((t, i, a) => a.findIndex((u) => u.toLowerCase() === t.toLowerCase()) !== i)) { A.toast("Deux types de tâches portent le même nom (« " + TYPE_RT + " » est déjà le type fixe)."); return; }
   const cal = Object.assign({}, D().cal, { horaires: ED.horaires, horairesEtab: ED.horairesEtab, abs: ED.abs, feries: ED.feries.slice().sort((a, b) => a.d.localeCompare(b.d)) });
   const b = A.$("cfOk"); A.occupe(b, true);
   try {
@@ -161,9 +179,10 @@ window.cfEnregistrer = async () => {
     const coul = {}; Object.keys(COULEURS0).forEach((k) => { if (ED.coul[k] != null && ED.coul[k] !== COULEURS0[k]) coul[k] = ED.coul[k]; });
     if (JSON.stringify(coul) !== JSON.stringify(COUL || {})) { await setDoc(doc(db, "espaces", A.ESPACE, "parametres", "couleursAgenda"), { data: JSON.stringify(coul) }); COUL = coul; }
     if (tdoc.length && JSON.stringify(tdoc) !== JSON.stringify(TDOC || [])) { await enregistrerTypes(tdoc); TDOC = tdoc.slice(); }
+    if (JSON.stringify(ttache) !== JSON.stringify(TTA || [])) { await enregistrerTypesTaches(ttache.length ? ttache : TYPES_TACHES0.slice()); TTA = ttache.length ? ttache : TYPES_TACHES0.slice(); }
     D().cal = cal; D().ctx.feries = cal.feries;
     D().patients.forEach((x) => A.recalculer(x, x.doc)); // les dates de radiothérapie dépendent des jours fériés
-    A.journal({ id: "", r: { nm: "" } }, "Configuration modifiée (horaires, absences, jours fériés, messages WhatsApp, couleurs Google Agenda, types de documents)");
+    A.journal({ id: "", r: { nm: "" } }, "Configuration modifiée (horaires, absences, jours fériés, messages WhatsApp, couleurs Google Agenda, types de documents, types de tâches)");
     MOD = false; A.toast("Configuration enregistrée."); A.entete(); pageConfiguration();
   } catch (e) { A.occupe(b, false); A.toast(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de modifier la configuration." : "Enregistrement impossible : " + ((e && e.message) || e)); }
 };

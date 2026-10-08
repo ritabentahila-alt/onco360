@@ -544,6 +544,40 @@ fait, testé et mis en ligne le 08/10)
 
 ---
 
+**Suite des tâches et page « Paramètres »** (demandé le 08/10 ; sous-étapes P1 à P4, une fenêtre chacune)
+Décisions de Dr Bentahila (08/10) :
+- Types de tâches **modifiables par le médecin** (liste de base = celle de T1) ; type fixe **« Radiothérapie »** pour les
+  tâches automatiques, non supprimable.
+- **Configuration et Paramètres fusionnés** en une seule page « Paramètres », avec l'onglet « Activités et
+  rémunérations » dedans. Lieux d'exercice et accès de l'équipe **restent dans le Profil**.
+- Réglages ajoutés à Paramètres : **mise en page d'impression** (en-têtes et marges A5 / A4 / documents), **listes**
+  (diagnostics, mutuelles, correspondants), **délais des alertes**, **bibliothèques des prescriptions**, **délai du bouton
+  WhatsApp vert**, **tâches automatiques** (activer / désactiver chacune, responsable). Pas encore tranché : types de
+  consultation et types d'absence modifiables.
+- Google Agenda : **chacun choisit pour son agenda** ce qui y apparaît (cases à cocher par type de rendez-vous et par type
+  de tâche), au-dessus des couleurs.
+- Tâches automatiques **pour le médecin titulaire**, type « Radiothérapie » : **dosimétrie à valider** (créée le jour du
+  scanner, échéance = 1re séance si renseignée) ; **fin de radiothérapie à valider** (créée le lendemain de la fin prévue,
+  échéance ce jour-là) ; terminées toutes seules quand c'est validé dans le dossier.
+- **Les tâches d'un patient s'affichent dans « Rendez-vous à venir » de son dossier** (même liste ; titre à renommer, par
+  exemple « Rendez-vous et tâches à venir » ; bouton « + Tâche » à côté de « Ajouter un rendez-vous ») : remplace la
+  décision du 07/10 (« tâches absentes du dossier »). La dosimétrie n'est pas retirée de partout (à préciser en P4).
+
+**P1 – Description visible et types de tâches modifiables** (fait et testé le 08/10, pas encore en ligne)
+- [x] Liste des tâches : la **description** s'affiche directement (2 lignes au plus) sous le type, le patient et l'échéance ;
+      1 ligne dans la carte « Mes tâches » du tableau de bord.
+- [x] Configuration › **Tâches** : types renommés, ajoutés (+ Ajouter un type), retirés, réordonnés (↑ ↓), « Rétablir les
+      valeurs par défaut » ; « Radiothérapie » affiché fixe, à la fin ; doublons refusés. Lecture seule sans le droit
+      « paramètres ». Données : `parametres/typesTaches` = { data: JSON [noms] }. Une tâche garde son type si on le renomme.
+- [x] Tests : médecin (renommer, ajouter, retirer, doublon refusé, boutons de la fenêtre Nouvelle tâche), secrétaire (lecture
+      seule), 390 px, bilan 352 317 DH, aucune erreur.
+- [ ] Mise en ligne (site).
+**P2 – Page « Paramètres » unique** (Configuration + Paramètres, nouveaux réglages ci-dessus).
+**P3 – Google Agenda : ce que chacun y voit** (cases à cocher par personne).
+**P4 – Tâches automatiques de radiothérapie** et tâches du patient dans « Rendez-vous à venir ».
+
+---
+
 # Demandes du 08/10/2026 (étapes 6 à 13)
 Liste complète donnée par Dr Bentahila le 08/10, à faire **au fur et à mesure, une sous-étape par fenêtre**. Chaque étape
 commence par ses questions « À décider » (Claude les pose avant d'écrire le code).
@@ -882,3 +916,4 @@ Onco360_Package_Cession/
 | 08/10/2026 | 6 – SA1 ter Salle d'attente | Séance de chimio manquée : report depuis la salle d'attente (médecin et secrétaire, planning seul pour elle), onglets sur toute la largeur, bandeau des titres. Navigateur (secrétaire, médecin, 390 px, bilan de référence inchangé). Pas encore en ligne. |
 | 08/10/2026 | 6 – SA1 quater Salle d'attente | Repris de GestiCab : Matinée / Après-midi / Journée, n° d'ordre de passage, temps de présence, lignes colorées, « Dossier ouvert par », tri et recherche, impression de la liste. Règles 73/73, navigateur (390 px, bilan de référence inchangé). |
 | 08/10/2026 | 6 – SA1 ter et quater Salle d'attente | Mis en ligne (règles salle + presence, fonction prixConsultation, site v2.js?v=20261008s). Les changements non enregistrés d'une autre session (bouton « + Rendez-vous », rendez-vous à venir déplacés dans le dossier) sont partis avec. |
+| 08/10/2026 | 5 – P1 Tâches | Plan P1 à P4 décidé (types de tâches modifiables, Paramètres unique, Google Agenda par personne, tâches automatiques de radiothérapie, tâches dans « Rendez-vous à venir »). P1 fait : description visible dans la liste, Configuration › Tâches (types modifiables, « Radiothérapie » fixe). Testé (2 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |

@@ -21,7 +21,22 @@ const nomConnecte = () => $("nomMenu").textContent;
 const estMedecin = () => D().membre.role === "medecin";
 let T = null, MB = null, VUE = "mes", TERM = false; // tâches lues (null = à lire), membres, onglet, terminées affichées
 
-export const TYPES = ["Rappel perso", "Examens à voir", "Courriers à faire", "Rendez-vous ajouté/déplacé", "Question patient", "Question", "Autre"];
+// Types de tâches (P1, 08/10/2026) : liste du cabinet parametres/typesTaches = { data: JSON [noms] } (Configuration › Tâches,
+// droit « paramètres »), sinon la liste de base ; « Radiothérapie » (tâches automatiques) est toujours là, à la fin, fixe.
+export const TYPES_TACHES0 = ["Rappel perso", "Examens à voir", "Courriers à faire", "Rendez-vous ajouté/déplacé", "Question patient", "Question", "Autre"];
+export const TYPE_RT = "Radiothérapie";
+let TY = null;
+export async function typesTaches() {
+  if (TY) return TY;
+  const s = await getDoc(doc(db, "espaces", A.ESPACE, "parametres", "typesTaches")).catch(() => null);
+  let L = null; try { L = s && s.exists() ? JSON.parse(s.data().data || "[]") : null; } catch (e) { L = null; }
+  return (TY = L && L.length ? L : TYPES_TACHES0.slice());
+}
+export async function enregistrerTypesTaches(L) {
+  await setDoc(doc(db, "espaces", A.ESPACE, "parametres", "typesTaches"), { data: JSON.stringify(L), maj: serverTimestamp(), majPar: D().u.uid });
+  TY = L.slice();
+}
+const TYPES = () => (TY || TYPES_TACHES0).filter((x) => x !== TYPE_RT).concat([TYPE_RT]);
 const STATUTS = [["afaire", "À faire"], ["encours", "En cours"], ["fait", "Terminée"]];
 const libStatut = (s) => (STATUTS.find((z) => z[0] === s) || STATUTS[0])[1];
 const ROLES = { medecin: "Médecin", infirmiere: "Infirmière", assistante: "Secrétaire" };
@@ -114,7 +129,7 @@ function contenuAccueil() {
   const demandes = T.filter((t) => t.pour !== moi && nonLue(t)); // mes demandes : commentées, terminées…
   if (!mes.length && !demandes.length) return "";
   const li = (t) => '<div class="ta-mini' + (nonLue(t) ? " nonlue" : "") + '" onclick="taVoir(\'' + t.id + '\')"><div class="tx"><b>' + esc(t.titre) + "</b>" + (nonLue(t) ? '<span class="badge b-co">Nouveau</span>' : "") + badges(t) +
-    '<div class="de">' + esc([t.patientId ? nomPat(t) : "", t.ech ? echeance(t) : "", t.pour === moi ? (t.de === moi ? "" : "de " + t.deNom) : "pour " + t.pourNom + (t.statut === "fait" ? " · terminée" : "")].filter(Boolean).join(" · ")) + "</div></div></div>";
+    (t.desc ? '<div class="de ta-dsc u">' + esc(t.desc) + "</div>" : "") + '<div class="de">' + esc([t.patientId ? nomPat(t) : "", t.ech ? echeance(t) : "", t.pour === moi ? (t.de === moi ? "" : "de " + t.deNom) : "pour " + t.pourNom + (t.statut === "fait" ? " · terminée" : "")].filter(Boolean).join(" · ")) + "</div></div></div>";
   let h = '<h3><span class="ic">' + A.ic("taches") + '</span>Mes tâches</h3><p class="sous">En retard, urgentes, nouvelles ou à faire dans les 7 jours.</p>';
   h += imp.length ? imp.slice(0, 6).map(li).join("") : '<p class="sous">Rien d\'urgent : ' + mes.length + " tâche" + (mes.length > 1 ? "s" : "") + " à faire plus tard.</p>";
   if (demandes.length) h += '<h4 class="soustitre">Du nouveau sur vos demandes</h4>' + demandes.slice(0, 4).map(li).join("");
@@ -158,6 +173,7 @@ function ligne(t) {
   return '<div class="tache st-' + t.statut + (retard(t) ? " retard" : "") + (t.urgent && t.statut !== "fait" ? " urgent" : "") + (nonLue(t) ? " nonlue" : "") + '" onclick="taOuvrir(' + q + ')">' +
     '<div class="tx"><div class="ti"><b>' + esc(t.titre) + "</b>" + (nonLue(t) ? '<span class="badge b-co">Nouveau</span>' : "") + badges(t) + "</div>" +
     '<div class="de">' + [t.type && t.titre.indexOf(t.type) !== 0 ? esc(t.type) : "", pat, t.ech ? '<span class="' + (retard(t) ? "rouge" : "") + '">' + esc(echeance(t)) + "</span>" : ""].filter(Boolean).join(" · ") + "</div>" +
+    (t.desc ? '<div class="de ta-dsc">' + esc(t.desc) + "</div>" : "") +
     '<div class="de">' + esc(qui) + (fin ? " · " + fin : "") + (nbCom(t) ? ' · <span class="ta-com" title="Commentaires">' + A.ic("bulle") + nbCom(t) + "</span>" : "") + "</div></div>" +
     '<select class="st" aria-label="Statut de la tâche" onclick="event.stopPropagation()" onchange="taStatut(' + q + ',this.value)">' + STATUTS.map(([k, l]) => '<option value="' + k + '"' + (t.statut === k ? " selected" : "") + ">" + l + "</option>").join("") + "</select></div>";
 }
@@ -187,7 +203,7 @@ const filtresActifs = () => Object.keys(F0).some((k) => F[k] !== F0[k] && !(k ==
 
 export async function pageTaches() {
   $("page").innerHTML = '<p class="sous">Chargement des tâches…</p>';
-  try { await Promise.all([charger(), membres()]); }
+  try { await Promise.all([charger(), membres(), typesTaches()]); }
   catch (e) { console.warn("tâches", e); $("page").innerHTML = '<div class="carte"><h3>Tâches</h3><p class="sous" style="color:var(--rouge)">Les tâches n\'ont pas pu être lues. Rechargez la page.</p></div>'; return; }
   if (!location.hash.startsWith("#taches")) return; // page quittée pendant la lecture
   dessiner();
@@ -199,7 +215,7 @@ function dessiner() {
   const sel = (id, lib, v, opts) => '<select id="' + id + '" aria-label="' + lib + '">' + opts.map(([k, l]) => (k === "—" ? '<optgroup label="' + esc(l) + '">' : k === "/—" ? "</optgroup>" : '<option value="' + esc(k) + '"' + (k === v ? " selected" : "") + ">" + esc(l) + "</option>")).join("") + "</select>";
   // Responsable : rôles et membres (médecin), « Demandées par moi » (tous) ; seulement dans « Toutes les tâches »
   const optsQui = [["", "Toute l'équipe"]].concat(estMedecin() ? [["r:medecin", "Pour les médecins"], ["r:assistante", "Pour les secrétaires"], ["r:infirmiere", "Pour les infirmières"], ["—", "Pour…"]].concat((MB || []).filter((m) => T.some((t) => t.pour === m.uid) || m.actif !== false).map((m) => ["u:" + m.uid, m.uid === moi ? "Moi" : nomMembre(m)])).concat([["/—", ""]]) : [["u:" + moi, "Pour moi"]]).concat([["d:" + moi, "Demandées par moi"]]);
-  const types = TYPES.concat(T.map((t) => t.type).filter((x) => x && TYPES.indexOf(x) < 0)).filter((x, i, a) => a.indexOf(x) === i);
+  const types = TYPES().concat(T.map((t) => t.type).filter((x) => x && TYPES().indexOf(x) < 0)).filter((x, i, a) => a.indexOf(x) === i);
   let h = '<section class="accueil"><div><h2>Tâches</h2><p>Rappels, demandes et suivis de l\'équipe.</p></div><div class="actions"><button class="bt plein" onclick="taNouvelle()">' + A.ic("plus") + "Nouvelle tâche</button></div></section>" +
     '<div class="ag-vues" style="align-self:flex-start">' + onglet("mes", "profil", "Mes tâches", nbOuv(mes)) + onglet("toutes", "taches", "Toutes les tâches", nbOuv(T)) + "</div>" +
     '<div class="ta-filtres"><div class="recherche">' + A.ic("loupe") + '<input id="taQ" type="search" placeholder="Rechercher : titre, patient, personne…" autocomplete="off" value="' + esc(F.q) + '"></div>' +
@@ -335,13 +351,13 @@ window.taSupprimer = async (id) => {
 // ───── Nouvelle tâche / modifier : type, titre, description, pour qui, échéance, urgent, patient ─────
 async function formulaire(t, pid) {
   const esc = A.esc, moi = D().u.uid;
-  let mb; try { mb = (await membres()).filter((m) => m.actif !== false || (t && m.uid === t.pour)); } catch (e) { A.toast("La liste de l'équipe n'a pas pu être lue."); return; }
+  let mb; try { mb = (await membres()).filter((m) => m.actif !== false || (t && m.uid === t.pour)); await typesTaches(); } catch (e) { A.toast("La liste de l'équipe n'a pas pu être lue."); return; }
   const P = { id: t ? t.patientId || "" : pid || "", nom: t && t.patientId ? nomPat(t) : "" };
   if (P.id && !P.nom) { const x = D().patients.find((z) => z.id === P.id); P.nom = x ? x.r.nm : ""; }
   let type = t ? t.type || "" : "";
   const optsPour = '<option value="">— Choisir —</option>' + mb.map((m) => '<option value="' + esc(m.uid) + '"' + (t && t.pour === m.uid ? " selected" : "") + ">" + esc(m.uid === moi ? "Moi-même (" + nomMembre(m) + ")" : nomMembre(m) + " – " + (ROLES[m.role] || m.role || "")) + "</option>").join("");
   A.fenetre("<h3>" + (t ? "Modifier la tâche" : "Nouvelle tâche") + "</h3>" +
-    '<div class="puces" id="taTypes" role="radiogroup" aria-label="Type de tâche">' + TYPES.map((x) => '<button type="button" class="puce' + (x === type ? " on" : "") + '" role="radio" aria-checked="' + (x === type) + '" data-t="' + esc(x) + '">' + esc(x) + "</button>").join("") + "</div>" +
+    '<div class="puces" id="taTypes" role="radiogroup" aria-label="Type de tâche">' + TYPES().concat(type && TYPES().indexOf(type) < 0 ? [type] : []).map((x) => '<button type="button" class="puce' + (x === type ? " on" : "") + '" role="radio" aria-checked="' + (x === type) + '" data-t="' + esc(x) + '">' + esc(x) + "</button>").join("") + "</div>" +
     '<div class="form"><div class="large"><label for="taTitre">Titre</label><input id="taTitre" value="' + esc(t ? t.titre : "") + '" placeholder="Ex. Relancer le laboratoire"></div>' +
     '<div class="large"><label for="taDesc">Description <span class="mesures">(facultatif)</span></label><textarea id="taDesc" rows="3">' + esc(t ? t.desc || "" : "") + "</textarea></div>" +
     '<div class="large"><label for="taPour">Pour qui</label><select id="taPour">' + optsPour + "</select></div>" +
