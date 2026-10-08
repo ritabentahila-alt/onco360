@@ -31,7 +31,7 @@ Après déploiement : recharger sans cache (Cmd + Maj + R). Les `.js` sont servi
 | `js/app/documents.js` | documents RT dans une fenêtre (07/10/2026, plus de Word ni d'Excel) : pli confidentiel (3 pages), CR de fin, rendez-vous ; feuille A4 modifiable, imprimée, enregistrée dans `documentsRT` ; mise en page reprise des modèles Word (`modeles/`, référence) |
 | `js/app/consultations.js` | onglet Consultation du dossier : journal des consultations, barre des prescriptions |
 | `js/app/ordonnances.js` | boutons Médic., Ordo. type, Analyses, Examens compl. et Courriers (modèles remplis pour le patient, fiches PDF `documents/`) : bibliothèques du cabinet (médicaments, ordonnances types ; recherche, + / ✎ / ✕), ordonnance en préparation (✎ / ↑ ↓ / ✕, ajout, ligne libre), ordonnance A5/A4 modifiable, impression, antécédents ; listes de départ : `js/donnees/medicaments.js`, `js/donnees/ordostypes.js`, `js/donnees/analyses.js`, `js/donnees/examens.js` |
-| `js/app/taches.js` | page Tâches (menu, entre Patients et Protocoles) : Mes tâches / Toutes les tâches, filtres (recherche, responsable, statut, échéance, type), nouvelle tâche (aussi « + Tâche » du dossier), statuts, fiche avec fil (historique + commentaires), réattribuer, modifier / supprimer |
+| `js/app/taches.js` | page Tâches (menu, entre Patients et Protocoles) : Mes tâches / Toutes les tâches, filtres (recherche, responsable, statut, échéance, type), nouvelle tâche (aussi « + Tâche » du dossier), statuts, fiche avec fil (historique + commentaires), réattribuer, modifier / supprimer ; temps réel (`demarrerTaches`, écoute `onSnapshot` lancée au démarrage), messages à l'écran, non lues, pastilles `nbTaches` / `nbTachesB`, carte « Mes tâches » du tableau de bord (`blocAccueil`) |
 | `js/app/agenda.js` | agenda Liste/Jour/Semaine/Mois, filtre par établissement |
 | `js/app/configuration.js` | horaires (par établissement), absences, fériés, messages WhatsApp |
 | `js/app/profil.js` | profil, photo, lieux d'exercice (logos), accès et droits de l'équipe |
@@ -68,8 +68,8 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
   `pourNom` (responsable), `de` / `deNom` (auteur), `qui` = [auteur, responsable], `statut` afaire|encours|fait, `faitPar(Nom)`,
   `faitLe`, `fil` [{ le, par, parNom, txt, c }] (historique et commentaires `c: true` ; une entrée par modification, ajoutée
   par `arrayUnion`, signée par la personne connectée : règle) ; lues par
-  tous les médecins, sinon par l'auteur et le responsable ; modifiées par eux ; supprimées par l'auteur ou un médecin,
-  jamais terminées. Pas affichées dans le dossier patient.
+  tous les médecins, sinon par l'auteur et le responsable ; modifiées par eux ; supprimées par l'auteur (toujours) ou par
+  un médecin (non terminées). Pas affichées dans le dossier patient. Lues : `utilisateurs/{uid}.tachesVu` { idTâche: longueur du fil }.
 - `utilisateurs/{uid}` : profil (nom, INPE, signature, photo)
 Ancienne application : collections racine `patients`, `protocoles`, `finances`, `parametres` (lecture seule).
 

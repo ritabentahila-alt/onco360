@@ -119,7 +119,7 @@ service cloud.firestore {
       // responsables (qui = [auteur, responsable]). Modification et réattribution : l'auteur, le responsable, les médecins ;
       // l'auteur ne change jamais ; chaque modification ou commentaire ajoute une entrée au fil (historique), qui ne rétrécit
       // jamais, signée par la personne connectée (08/10/2026).
-      // Suppression : l'auteur ou un médecin, jamais une tâche terminée.
+      // Suppression : l'auteur, toujours (même terminée, 08/10/2026) ; un médecin, une tâche non terminée d'un autre.
       match /taches/{t} {
         function estMedecin() { return estMembre() && m().role == 'medecin'; }
         function concerne() { return estMedecin() || (estMembre() && request.auth.uid in resource.data.qui); }
@@ -134,7 +134,7 @@ service cloud.firestore {
         allow update: if concerne() && valide(request.resource.data) && request.resource.data.de == resource.data.de
           && request.resource.data.fil.size() == resource.data.fil.size() + 1
           && request.resource.data.fil[request.resource.data.fil.size() - 1].par == request.auth.uid;
-        allow delete: if (estMedecin() || (estMembre() && resource.data.de == request.auth.uid)) && resource.data.statut != 'fait';
+        allow delete: if (estMembre() && resource.data.de == request.auth.uid) || (estMedecin() && resource.data.statut != 'fait');
       }
       // Montants des dossiers, tarifs, paiements, versements : uniquement avec le droit « finances »
       match /patientsFinances/{p} { allow read, write: if droit('finances'); }

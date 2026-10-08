@@ -339,6 +339,17 @@ details summary{cursor:pointer;color:var(--prim);font-weight:bold;font-size:13.5
 .ta-c .qui{font-size:12px;color:var(--doux);display:flex;gap:8px;flex-wrap:wrap}.ta-c .qui b{color:var(--encre)}.ta-c .txt{white-space:pre-wrap;margin-top:2px;color:var(--encre)}
 .ta-ecrire{display:flex;gap:8px;align-items:flex-end;margin-top:10px}.ta-ecrire textarea{flex:1;min-width:0;padding:10px 12px;border:1px solid #CCD3E0;border-radius:var(--r-s);font:inherit;font-size:16px;resize:vertical}
 .ta-re{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.ta-re select{flex:1;min-width:150px}
+/* Tâches en direct (T4) : nouveautés, pastilles, messages, tableau de bord */
+.tache.nonlue{background:#F4F8FF}.tache.nonlue .ti b{color:var(--prim)}
+nav a .nb-menu{margin-left:auto;min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:#E07A2F;color:#fff;font-size:11.5px;display:grid;place-items:center}
+nav a.actif .nb-menu{background:#fff;color:var(--prim)}
+#notifs{position:fixed;top:72px;right:16px;z-index:90;display:flex;flex-direction:column;gap:8px;width:min(380px,calc(100vw - 32px))}
+.notif{display:flex;align-items:flex-start;background:#fff;border:1px solid var(--trait);border-left:4px solid var(--prim);border-radius:var(--r-m);box-shadow:0 10px 30px rgba(0,0,0,.16)}
+.notif .tx{flex:1;display:flex;gap:10px;align-items:flex-start;text-align:left;background:none;border:0;padding:12px 4px 12px 12px;font-size:14px;color:var(--encre);cursor:pointer}
+.notif .tx .i{flex:none;color:var(--prim);width:18px;height:18px;margin-top:1px}.notif .x{background:none;border:0;color:var(--doux);padding:10px 12px;font-size:14px}
+@media (max-width:640px){#notifs{top:auto;bottom:calc(76px + env(safe-area-inset-bottom));right:16px;left:16px;width:auto}}
+.ta-mini{display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid var(--trait);cursor:pointer}.ta-mini:hover{background:#FAFBFE}
+.ta-mini .tx{flex:1;min-width:0}.ta-mini .tx b{margin-right:6px}.ta-mini .badge{margin-right:4px}.ta-mini .de{color:var(--doux);font-size:13.5px;margin-top:2px}.ta-mini.nonlue b{color:var(--prim)}
 .ta-com{display:inline-flex;align-items:center;gap:3px;color:var(--prim);font-weight:bold}.ta-com .i{width:14px;height:14px}
 .taches-finies{margin-top:6px}
 .ta-filtres{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.ta-filtres .recherche{grid-column:1/-1;min-width:0}
@@ -511,7 +522,7 @@ details summary{cursor:pointer;color:var(--prim);font-weight:bold;font-size:13.5
     <a href="#accueil" data-p="accueil"><svg class="i"><use href="#i-accueil"/></svg>Tableau de bord</a>
     <a href="#agenda" data-p="agenda"><svg class="i"><use href="#i-agenda"/></svg>Agenda / Rendez-vous</a>
     <a href="#patients" data-p="patients"><svg class="i"><use href="#i-patients"/></svg>Patients</a>
-    <a href="#taches" data-p="taches"><svg class="i"><use href="#i-taches"/></svg>Tâches</a>
+    <a href="#taches" data-p="taches"><svg class="i"><use href="#i-taches"/></svg>Tâches<span class="nb-menu cache" id="nbTaches"></span></a>
     <a href="#protocoles" data-p="protocoles"><svg class="i"><use href="#i-protocoles"/></svg>Protocoles</a>
     <a href="#configuration" data-p="configuration"><svg class="i"><use href="#i-configuration"/></svg>Configuration</a>
     <a href="#parametres" data-p="parametres" data-droit="parametres"><svg class="i"><use href="#i-parametres"/></svg>Paramètres</a>
@@ -527,7 +538,7 @@ details summary{cursor:pointer;color:var(--prim);font-weight:bold;font-size:13.5
 
 <div id="zone">
   <header id="tete">
-    <button class="rond" id="burger" aria-label="Ouvrir le menu"><svg class="i"><use href="#i-menu"/></svg></button>
+    <button class="rond" id="burger" aria-label="Ouvrir le menu"><svg class="i"><use href="#i-menu"/></svg><span class="pastille cache" id="nbTachesB"></span></button>
     <h1 id="titrePage">Tableau de bord</h1>
     <button class="rond" id="cloche" aria-label="Alertes"><svg class="i"><use href="#i-cloche"/></svg><span class="pastille cache" id="nbAl"></span></button>
     <div class="av" id="avTete">··</div>
@@ -551,6 +562,6 @@ function onco360Deconnecter() {
 }
 </script>
 
-<script type="module" src="./js/app/v2.js?v=20261008g"></script>
+<script type="module" src="./js/app/v2.js?v=20261008h"></script>
 </body>
 </html>

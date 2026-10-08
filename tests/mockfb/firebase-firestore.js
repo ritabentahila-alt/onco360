@@ -24,3 +24,19 @@ export async function getDocs(c) {
   return { docs, size: docs.length, empty: !docs.length, forEach: (f) => docs.forEach(f) };
 }
 export function writeBatch() { const ops = []; return { set: (r, v) => ops.push(() => setDoc(r, v)), delete: (r) => ops.push(() => deleteDoc(r)), commit: async () => { for (const o of ops) await o(); } }; }
+// Écoute en direct simulée : relit la requête toutes les 0,5 s et signale les documents ajoutés, modifiés ou retirés
+export function onSnapshot(q, next, err) {
+  let avant = null, fini = false;
+  const tour = async () => {
+    if (fini) return;
+    try {
+      const s = await getDocs(q), m = new Map(s.docs.map((d) => [d.id, JSON.stringify(d.data())])), ch = [];
+      s.docs.forEach((d) => { if (!avant || !avant.has(d.id)) ch.push({ type: "added", doc: d }); else if (avant.get(d.id) !== m.get(d.id)) ch.push({ type: "modified", doc: d }); });
+      if (avant) avant.forEach((v, id) => { if (!m.has(id)) ch.push({ type: "removed", doc: { id, data: () => JSON.parse(v) } }); });
+      if (!avant || ch.length) { avant = m; next(Object.assign(s, { docChanges: () => ch })); }
+    } catch (e) { if (err) err(e); }
+    setTimeout(tour, 500);
+  };
+  setTimeout(tour, 0);
+  return () => { fini = true; };
+}

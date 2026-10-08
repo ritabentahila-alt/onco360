@@ -420,8 +420,8 @@ Découpé en **sous-étapes, une fenêtre chacune** : T1 à T5 (T6 facultatif).
   Autre** (un clic préremplit le titre).
 - Qui voit quoi : **tous les médecins voient toutes les tâches** ; la secrétaire et l'infirmière voient celles **pour elles**
   et celles **qu'elles ont créées** (pour savoir quand elles sont terminées).
-- Modifier, réattribuer : la personne qui l'a créée, la personne responsable, le médecin. Supprimer : la personne qui l'a
-  créée et le médecin ; **une tâche terminée n'est jamais supprimée** (elle reste dans l'historique).
+- Modifier, réattribuer : la personne qui l'a créée, la personne responsable, le médecin. Supprimer : **la personne qui l'a
+  créée, toujours, même terminée (changé le 08/10)** ; le médecin, la tâche d'un autre si elle n'est pas terminée.
 - Historique de chaque tâche (créée, réattribuée, statut, terminée par qui et quand), jamais effacé.
 - « Filtrer par agenda » = **par échéance** (en retard, aujourd'hui, cette semaine).
 - Bloc « Mes tâches » du tableau de bord : **dans la partie « 7 prochains jours » et « Conflits »** (T4).
@@ -465,11 +465,27 @@ Découpé en **sous-étapes, une fenêtre chacune** : T1 à T5 (T6 facultatif).
 - [x] **Tests des règles sur l'émulateur Firebase** (Java 21 installé le 08/10) : `cd tests/regles && npm test`,
       40 cas (lecture, création, statut, commentaires, réattribution, suppression, usurpations) : 40 réussis.
 - [x] Tests dans le navigateur (médecin, secrétaire, infirmière, 390 px, bilan 352 317 DH, aucune erreur).
-- [ ] Mise en ligne : règles **puis** site.
+- [x] Mise en ligne : avec T4 (règles puis site).
 
-**T4 – Temps réel et notifications** : listes mises à jour sans recharger ; message à l'écran (« Nouvelle tâche de… »,
-« Votre tâche a été commentée ») ; pastille du menu (non lues, en retard) ; bloc « Mes tâches » du tableau de bord (dans
-la partie 7 jours / conflits).
+**T4 – Temps réel et notifications** (fait et testé le 08/10, pas encore en ligne)
+- [x] **Écoute en direct** ouverte dès l'ouverture d'Onco360 : listes, nombres des onglets et fiche ouverte se mettent à jour
+      sans recharger (la fiche n'est pas redessinée pendant qu'on écrit un commentaire).
+- [x] **Messages à l'écran** (en haut à droite ; en bas sur téléphone ; 12 s ; clic = ouvre la tâche) quand un collègue
+      agit sur une tâche dont on est l'auteur ou le responsable : « Nouvelle tâche de… », « … vous a confié… », « … a
+      commenté… », « … a terminé… », autres modifications. Rien pour ses propres actions, rien si la fiche est déjà ouverte.
+- [x] **Non lues** : badge « Nouveau » (liste, tableau de bord), lues à l'ouverture de la fiche ; gardées dans le profil
+      (`utilisateurs/{uid}.tachesVu`), donc les mêmes sur tous les appareils.
+- [x] **Pastille** orange à côté de « Tâches » dans le menu (et sur le bouton du menu au téléphone) = non lues + mes tâches en
+      retard ; titre de l'onglet du navigateur « (2) Onco360 » = non lues.
+- [x] **Tableau de bord** : carte « Mes tâches » entre « Les 7 prochains jours » et « Conflits » : mes tâches en retard,
+      urgentes, nouvelles ou à faire dans les 7 jours (6 au plus) + « Du nouveau sur vos demandes » + « Voir mes tâches ».
+- [x] **Suppression par l'auteur même terminée** (demande du 08/10), avec avertissement ; règles et tests mis à jour.
+- [x] Tests : règles sur l'émulateur 44/44 ; navigateur avec deux onglets en même temps (médecin + secrétaire) : messages,
+      fiche mise à jour en direct, nouvelle tâche, pastilles, lu / non lu ; téléphone 390 px ; bilan 352 317 DH ; aucune
+      erreur.
+- [ ] Mise en ligne : règles **puis** site. À la première ouverture, les tâches déjà créées par un collègue apparaissent
+      « Nouveau » (jamais ouvertes) : un clic suffit.
+
 **T5 – Finition** : lien tâche → dossier vérifié pour les membres limités à un établissement ; CLAUDE.md ; guide.
 **T6 – Facultatif** : échéance dans le Google Agenda du responsable ; notifications sur le téléphone même Onco360 fermé.
 
@@ -733,3 +749,4 @@ Onco360_Package_Cession/
 | 08/10/2026 | 5 – T2 Tâches | Filtres : recherche, responsable (médecins / secrétaires / infirmières / membre / demandées par moi), statut, échéance (retard, aujourd'hui, semaine, sans), type ; effacer les filtres. Testé (médecin, secrétaire, 390 px, bilan 352 317 DH). Pas encore en ligne. |
 | 08/10/2026 | 5 – T2 Tâches | Mis en ligne par Dr Bentahila. |
 | 08/10/2026 | 5 – T3 Tâches | Fil de la tâche (événements + commentaires en bulles), commenter, réattribuer depuis la fiche, nombre de commentaires dans la liste ; règles : fil signé par la personne connectée. Tests des règles sur l'émulateur (`tests/regles`, 40/40). Testé (3 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |
+| 08/10/2026 | 5 – T4 Tâches | Temps réel (écoute en direct), messages à l'écran, non lues (profil), pastilles menu + titre de l'onglet, carte « Mes tâches » du tableau de bord ; l'auteur peut supprimer sa tâche même terminée. Règles 44/44 sur l'émulateur. Testé (2 onglets médecin + secrétaire, 390 px, bilan 352 317 DH). Pas encore en ligne. |

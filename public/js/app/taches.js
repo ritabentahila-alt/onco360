@@ -4,9 +4,12 @@
 // règles), statut: "afaire" | "encours" | "fait", faitPar, faitParNom, faitLe, fil: [{ le (ISO), par, parNom, txt, c }]
 // (historique et commentaires (c: true, T3) : une entrée ajoutée à chaque modification, jamais retirée), o (ordre de création), cree, maj, majPar }.
 // Lecture : les médecins toutes ; les autres celles qu'ils ont créées ou dont ils sont responsables.
-// Modification et réattribution : l'auteur, le responsable, les médecins. Suppression : l'auteur ou un médecin, jamais une
-// tâche terminée. Les tâches d'un patient ne s'affichent pas dans son dossier (décision du 07/10/2026).
-import { collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, where, serverTimestamp, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+// Modification et réattribution : l'auteur, le responsable, les médecins. Suppression : l'auteur (toujours, même terminée,
+// 08/10/2026) ; un médecin, une tâche non terminée. Les tâches d'un patient ne s'affichent pas dans son dossier (07/10/2026).
+// Temps réel (T4) : écoute ouverte au démarrage d'Onco360 ; message à l'écran quand une tâche qui me concerne (auteur ou
+// responsable) reçoit une entrée d'un collègue ; non lues = fil plus long que la dernière lecture, gardée dans
+// utilisateurs/{uid}.tachesVu { idTâche: longueur du fil lue } ; pastille du menu, titre de l'onglet, bloc du tableau de bord.
+import { collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, query, where, serverTimestamp, arrayUnion, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { db } from "../config.js";
 
 let A = null;
@@ -30,16 +33,98 @@ async function membres() {
 }
 const nomMembre = (m) => m ? String(m.nom || m.email || "").trim() : "";
 // Le médecin lit toutes les tâches ; les autres celles où ils sont auteur ou responsable (même filtre que les règles)
+const requete = () => (estMedecin() ? col() : query(col(), where("qui", "array-contains", D().u.uid)));
 async function charger() {
-  const s = estMedecin() ? await getDocs(col()) : await getDocs(query(col(), where("qui", "array-contains", D().u.uid)));
-  T = s.docs.map((d) => Object.assign({ id: d.id }, d.data()));
+  await demarrerTaches(); if (ECOUTE) return;
+  const s = await getDocs(requete()); T = s.docs.map((d) => Object.assign({ id: d.id }, d.data())); // repli : écoute coupée
 }
 const trouver = (id) => (T || []).find((t) => t.id === id);
 
+// ───── Temps réel (T4, 08/10/2026) ─────
+let ECOUTE = null, PRET = null, VU = {};
+export function demarrerTaches() {
+  if (ECOUTE && PRET) return PRET;
+  VU = Object.assign({}, (D().profil && D().profil.tachesVu) || {});
+  let premier = true;
+  PRET = new Promise((ok) => {
+    ECOUTE = onSnapshot(requete(), (s) => {
+      const avant = T ? new Map(T.map((t) => [t.id, t])) : null;
+      T = s.docs.map((d) => Object.assign({ id: d.id }, d.data()));
+      if (!premier) s.docChanges().forEach((c) => { if (c.type !== "removed") prevenir(c.doc.id, avant); });
+      premier = false; ok(); apresChangement();
+    }, (e) => { console.warn("tâches (écoute)", e); ECOUTE = null; ok(); });
+  });
+  return PRET;
+}
+// Non lue : la tâche me concerne et un collègue y a écrit depuis ma dernière lecture
+const concerneMoi = (t) => t.pour === D().u.uid || t.de === D().u.uid;
+const derniere = (t) => (t.fil || [])[(t.fil || []).length - 1];
+const nonLue = (t) => { const f = derniere(t); return concerneMoi(t) && !!f && f.par !== D().u.uid && (VU[t.id] || 0) < (t.fil || []).length; };
+function marquerVue(t) {
+  const n = (t.fil || []).length; if (!nonLue(t)) return; // mes propres écritures : rien à enregistrer
+  VU[t.id] = n; setDoc(doc(db, "utilisateurs", D().u.uid), { tachesVu: { [t.id]: n } }, { merge: true }).catch((e) => console.warn("tâches lues", e));
+  apresChangement();
+}
+// Message à l'écran pour une nouveauté d'un collègue (pas pour mes propres écritures)
+function prevenir(id, avant) {
+  const t = trouver(id), moi = D().u.uid, f = t && derniere(t); if (!t || !f || f.par === moi || !concerneMoi(t)) return;
+  const a = avant && avant.get(id); if (a && (a.fil || []).length >= (t.fil || []).length) return;
+  if (ficheOuverte(id)) return; // déjà sous les yeux : la fiche se met à jour
+  const qui = f.parNom || "Un collègue", ti = "« " + t.titre + " »";
+  let m;
+  if (!a) m = t.pour === moi ? ((t.fil || []).length === 1 ? "Nouvelle tâche de " + qui + " : " + ti : qui + " vous a confié " + ti) : qui + " : " + ti;
+  else if (f.c) m = qui + " a commenté " + ti + " : " + (f.txt.length > 90 ? f.txt.slice(0, 88) + "…" : f.txt);
+  else if (/^Réattribuée/.test(f.txt) && t.pour === moi) m = qui + " vous a confié " + ti;
+  else if (f.txt === "Terminée") m = qui + " a terminé " + ti;
+  else m = qui + " – " + ti + " : " + f.txt;
+  notifier(m, id);
+}
+function notifier(m, id) {
+  let z = $("notifs"); if (!z) { z = document.createElement("div"); z.id = "notifs"; z.setAttribute("role", "status"); z.setAttribute("aria-live", "polite"); document.body.appendChild(z); }
+  const n = document.createElement("div"); n.className = "notif";
+  n.innerHTML = '<button class="tx">' + A.ic("taches") + "<span>" + A.esc(m) + '</span></button><button class="x" aria-label="Fermer">✕</button>';
+  n.querySelector(".tx").onclick = () => { n.remove(); window.taVoir(id); };
+  n.querySelector(".x").onclick = () => n.remove();
+  z.appendChild(n); while (z.children.length > 4) z.firstChild.remove();
+  setTimeout(() => n.remove(), 12000);
+}
+// Ouvrir une tâche depuis n'importe quelle page (message, tableau de bord)
+let A_OUVRIR = null;
+window.taVoir = (id) => { if (location.hash.startsWith("#taches") && $("taL")) window.taOuvrir(id); else { A_OUVRIR = id; location.hash = "taches"; } };
+// Après chaque changement : pastille, titre de l'onglet, page Tâches, fiche ouverte, tableau de bord
+function apresChangement() {
+  if (!T) return; const moi = D().u.uid;
+  const n = T.filter((t) => nonLue(t) || (t.pour === moi && retard(t))).length, nl = T.filter(nonLue).length;
+  ["nbTaches", "nbTachesB"].forEach((i) => { const e = $(i); if (e) { e.textContent = n; e.classList.toggle("cache", !n); e.title = nl + " non lue(s), " + (n - nl) + " en retard"; } });
+  document.title = (nl ? "(" + nl + ") " : "") + "Onco360";
+  if (location.hash.startsWith("#taches") && $("taL")) { majOnglets(); liste(); }
+  const fi = $("taFiche"), t = fi && ficheOuverte(fi.dataset.id) && trouver(fi.dataset.id);
+  if (t && String((t.fil || []).length) !== fi.dataset.n && !A.val("taCom") && (!$("taRe") || $("taRe").value === t.pour)) taFiche(t);
+  if ($("blocTaches")) { const h = contenuAccueil(); $("blocTaches").innerHTML = h; $("blocTaches").classList.toggle("cache", !h); }
+}
+
+// ───── Tableau de bord : « Mes tâches » (avec les 7 prochains jours et les conflits) ─────
+export const blocAccueil = () => { const h = contenuAccueil(); return '<section class="carte' + (h ? "" : " cache") + '" id="blocTaches">' + h + "</section>"; };
+function contenuAccueil() {
+  if (!T) return "";
+  const esc = A.esc, moi = D().u.uid, d7 = new Date(D().t + "T12:00:00"); d7.setDate(d7.getDate() + 7);
+  const fin = d7.getFullYear() + "-" + String(d7.getMonth() + 1).padStart(2, "0") + "-" + String(d7.getDate()).padStart(2, "0");
+  const mes = T.filter((t) => t.pour === moi && t.statut !== "fait");
+  const imp = mes.filter((t) => retard(t) || t.urgent || nonLue(t) || (t.ech && t.ech <= fin)).sort(ordre);
+  const demandes = T.filter((t) => t.pour !== moi && nonLue(t)); // mes demandes : commentées, terminées…
+  if (!mes.length && !demandes.length) return "";
+  const li = (t) => '<div class="ta-mini' + (nonLue(t) ? " nonlue" : "") + '" onclick="taVoir(\'' + t.id + '\')"><div class="tx"><b>' + esc(t.titre) + "</b>" + (nonLue(t) ? '<span class="badge b-co">Nouveau</span>' : "") + badges(t) +
+    '<div class="de">' + esc([t.patientNom, t.ech ? echeance(t) : "", t.pour === moi ? (t.de === moi ? "" : "de " + t.deNom) : "pour " + t.pourNom + (t.statut === "fait" ? " · terminée" : "")].filter(Boolean).join(" · ")) + "</div></div></div>";
+  let h = '<h3><span class="ic">' + A.ic("taches") + '</span>Mes tâches</h3><p class="sous">En retard, urgentes, nouvelles ou à faire dans les 7 jours.</p>';
+  h += imp.length ? imp.slice(0, 6).map(li).join("") : '<p class="sous">Rien d\'urgent : ' + mes.length + " tâche" + (mes.length > 1 ? "s" : "") + " à faire plus tard.</p>";
+  if (demandes.length) h += '<h4 class="soustitre">Du nouveau sur vos demandes</h4>' + demandes.slice(0, 4).map(li).join("");
+  return h + '<button class="lien" style="margin-top:10px" onclick="location.hash=\'taches\'">Voir mes tâches (' + mes.length + ") →</button>";
+}
+
 // ───── Droits (les règles du serveur disent la même chose) ─────
-// Modifier, réattribuer : l'auteur, le responsable, les médecins ; supprimer : l'auteur ou un médecin, jamais une tâche terminée
+// Modifier, réattribuer : l'auteur, le responsable, les médecins ; supprimer : l'auteur (toujours), un médecin (non terminée)
 const peutModifier = (t) => estMedecin() || t.de === D().u.uid || t.pour === D().u.uid;
-const peutSupprimer = (t) => (estMedecin() || t.de === D().u.uid) && t.statut !== "fait";
+const peutSupprimer = (t) => t.de === D().u.uid || (estMedecin() && t.statut !== "fait");
 
 // ───── Affichage ─────
 const retard = (t) => t.statut !== "fait" && !!t.ech && t.ech < D().t;
@@ -60,8 +145,8 @@ function ligne(t) {
   const qui = t.de === t.pour ? "Pour soi-même (" + (t.de === moi ? "moi" : t.deNom) + ")" : "De " + (t.de === moi ? "moi" : t.deNom || "?") + " → pour " + (t.pour === moi ? "moi" : t.pourNom || "?");
   const pat = t.patientId ? '<button class="lien-p" onclick="event.stopPropagation();taPatient(' + q + ')">' + esc(t.patientNom || "Patient") + "</button>" : "";
   const fin = t.statut === "fait" ? "Terminée par " + esc(t.faitParNom || "?") + (t.faitLe ? " le " + quand(t.faitLe) : "") : "";
-  return '<div class="tache st-' + t.statut + (retard(t) ? " retard" : "") + (t.urgent && t.statut !== "fait" ? " urgent" : "") + '" onclick="taOuvrir(' + q + ')">' +
-    '<div class="tx"><div class="ti"><b>' + esc(t.titre) + "</b>" + badges(t) + "</div>" +
+  return '<div class="tache st-' + t.statut + (retard(t) ? " retard" : "") + (t.urgent && t.statut !== "fait" ? " urgent" : "") + (nonLue(t) ? " nonlue" : "") + '" onclick="taOuvrir(' + q + ')">' +
+    '<div class="tx"><div class="ti"><b>' + esc(t.titre) + "</b>" + (nonLue(t) ? '<span class="badge b-co">Nouveau</span>' : "") + badges(t) + "</div>" +
     '<div class="de">' + [t.type && t.titre.indexOf(t.type) !== 0 ? esc(t.type) : "", pat, t.ech ? '<span class="' + (retard(t) ? "rouge" : "") + '">' + esc(echeance(t)) + "</span>" : ""].filter(Boolean).join(" · ") + "</div>" +
     '<div class="de">' + esc(qui) + (fin ? " · " + fin : "") + (nbCom(t) ? ' · <span class="ta-com" title="Commentaires">' + A.ic("bulle") + nbCom(t) + "</span>" : "") + "</div></div>" +
     '<select class="st" aria-label="Statut de la tâche" onclick="event.stopPropagation()" onchange="taStatut(' + q + ',this.value)">' + STATUTS.map(([k, l]) => '<option value="' + k + '"' + (t.statut === k ? " selected" : "") + ">" + l + "</option>").join("") + "</select></div>";
@@ -100,8 +185,7 @@ export async function pageTaches() {
 const base = () => (VUE === "mes" ? T.filter((t) => t.pour === D().u.uid) : T);
 function dessiner() {
   const esc = A.esc, moi = D().u.uid, mes = T.filter((t) => t.pour === moi);
-  const onglet = (k, ico, lib, n) => '<button class="' + (VUE === k ? "on" : "") + '" onclick="taVue(\'' + k + '\')">' + A.ic(ico) + lib + ' <span class="nb">' + n + "</span></button>";
-  const nbOuv = (x) => x.filter((t) => t.statut !== "fait").length;
+  const onglet = (k, ico, lib, n) => '<button class="' + (VUE === k ? "on" : "") + '" onclick="taVue(\'' + k + '\')">' + A.ic(ico) + lib + ' <span class="nb" id="taNb-' + k + '">' + n + "</span></button>";
   const sel = (id, lib, v, opts) => '<select id="' + id + '" aria-label="' + lib + '">' + opts.map(([k, l]) => (k === "—" ? '<optgroup label="' + esc(l) + '">' : k === "/—" ? "</optgroup>" : '<option value="' + esc(k) + '"' + (k === v ? " selected" : "") + ">" + esc(l) + "</option>")).join("") + "</select>";
   // Responsable : rôles et membres (médecin), « Demandées par moi » (tous) ; seulement dans « Toutes les tâches »
   const optsQui = [["", "Toute l'équipe"]].concat(estMedecin() ? [["r:medecin", "Pour les médecins"], ["r:assistante", "Pour les secrétaires"], ["r:infirmiere", "Pour les infirmières"], ["—", "Pour…"]].concat((MB || []).filter((m) => T.some((t) => t.pour === m.uid) || m.actif !== false).map((m) => ["u:" + m.uid, m.uid === moi ? "Moi" : nomMembre(m)])).concat([["/—", ""]]) : [["u:" + moi, "Pour moi"]]).concat([["d:" + moi, "Demandées par moi"]]);
@@ -118,7 +202,10 @@ function dessiner() {
   $("taQ").oninput = () => { F.q = $("taQ").value; liste(); };
   [["taFqui", "qui"], ["taFst", "st"], ["taFech", "ech"], ["taFtype", "type"]].forEach(([i, k]) => { if ($(i)) $(i).onchange = () => { F[k] = $(i).value; liste(); }; });
   liste();
+  if (A_OUVRIR) { const id = A_OUVRIR; A_OUVRIR = null; window.taOuvrir(id); }
 }
+const nbOuv = (x) => x.filter((t) => t.statut !== "fait").length;
+function majOnglets() { const a = $("taNb-mes"), b = $("taNb-toutes"); if (a) a.textContent = nbOuv(T.filter((t) => t.pour === D().u.uid)); if (b) b.textContent = nbOuv(T); }
 // Liste seule (la recherche garde le curseur) : ouvertes, puis terminées (repliées quand le statut est « À faire et en cours »)
 function liste() {
   const l = filtrer(base()), ouvertes = l.filter((t) => t.statut !== "fait").sort(ordre), finies = l.filter((t) => t.statut === "fait").sort((a, b) => String(b.faitLe || "").localeCompare(String(a.faitLe || "")));
@@ -178,7 +265,7 @@ function taFiche(t) {
   const fil = (t.fil || []).map((f) => f.c
     ? '<div class="ta-c' + (f.par === moi ? " moi" : "") + '"><div class="qui"><b>' + esc(f.parNom || "") + "</b>" + esc(quand(f.le)) + '</div><div class="txt">' + esc(f.txt || "") + "</div></div>"
     : '<div class="ta-ev"><span class="dt">' + esc(quand(f.le).replace(" à ", " ")) + "</span><b>" + esc(f.parNom || "") + "</b> " + esc(f.txt || "") + "</div>").join("");
-  A.fenetre('<div id="taFiche" data-id="' + esc(t.id) + '"><h3>' + esc(t.titre) + "</h3>" + '<div class="ti" style="margin:-6px 0 12px">' + badges(t) + "</div>" +
+  A.fenetre('<div id="taFiche" data-id="' + esc(t.id) + '" data-n="' + (t.fil || []).length + '"><h3>' + esc(t.titre) + "</h3>" + '<div class="ti" style="margin:-6px 0 12px">' + badges(t) + "</div>" +
     '<div class="form">' + champ("Type", esc(t.type)) + champ("Description", t.desc ? '<div class="ta-desc">' + esc(t.desc) + "</div>" : "") +
     champ("Patient", t.patientId ? '<button class="lien-p" onclick="taPatient(' + q + ')">' + esc(t.patientNom || "Patient") + "</button>" : "") +
     champ("Échéance", t.ech ? esc(A.dfrA(t.ech) + (t.h ? " à " + t.h : "")) : "") +
@@ -189,12 +276,14 @@ function taFiche(t) {
     '<div class="err" id="fErr"></div><div class="boutons">' + (peutSupprimer(t) ? '<button class="bt gris" style="margin-right:auto;color:var(--rouge)" onclick="taSupprimer(' + q + ')">' + A.ic("corbeille") + "Supprimer</button>" : "") +
     (peutModifier(t) ? '<button class="bt clair" onclick="taModifier(' + q + ')">Modifier</button>' : "") + '<button class="bt plein" onclick="fermerFenetre()">Fermer</button></div></div>');
   const z = $("taFil"); z.scrollTop = z.scrollHeight; // le plus récent en bas, visible
+  marquerVue(t);
   if ($("taRe")) $("taRe").onchange = () => $("taReOk").classList.toggle("cache", $("taRe").value === t.pour);
   $("taCom").onkeydown = (ev) => { if (ev.key === "Enter" && (ev.metaKey || ev.ctrlKey)) { ev.preventDefault(); window.taCommenter(t.id); } };
 }
-// Ouverture : affichée tout de suite, puis relue (un collègue a pu commenter ou la modifier depuis)
+// Ouverture : affichée tout de suite, puis relue si l'écoute en direct est coupée (un collègue a pu commenter depuis)
 window.taOuvrir = async (id) => {
-  const t = trouver(id); if (!t) return; taFiche(t);
+  const t = trouver(id); if (!t) { A.toast("Cette tâche n'existe plus ou ne vous est plus visible."); return; } taFiche(t);
+  if (ECOUTE) return;
   const s = await getDoc(doc(db, "espaces", A.ESPACE, "taches", id)).catch(() => null);
   if (!s || !s.exists() || (s.data().fil || []).length === (t.fil || []).length && s.data().statut === t.statut) return;
   Object.keys(t).forEach((k) => { if (k !== "id") delete t[k]; }); Object.assign(t, s.data());
@@ -220,7 +309,7 @@ window.taReattribuer = async (id) => {
 window.taModifier = (id) => { const t = trouver(id); if (t && peutModifier(t)) formulaire(t, null); };
 window.taSupprimer = async (id) => {
   const t = trouver(id); if (!t || !peutSupprimer(t)) return;
-  if (!confirm("Supprimer la tâche « " + t.titre + " » ?")) return;
+  if (!confirm("Supprimer la tâche « " + t.titre + " » ?" + (t.statut === "fait" ? "\n\nElle est terminée : elle disparaîtra aussi de l'historique des tâches." : ""))) return;
   try { await deleteDoc(doc(db, "espaces", A.ESPACE, "taches", id)); T = T.filter((z) => z.id !== id); A.fermerFenetre(); A.toast("Tâche supprimée."); raf(); }
   catch (e) { A.toast(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de supprimer cette tâche." : "Suppression impossible."); }
 };

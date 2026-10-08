@@ -23,7 +23,7 @@ import { installer as installerParametres, pageParametres } from "./parametres.j
 import { installer as installerBilan, pagePageBilan } from "./bilan.js";
 import { installer as installerOrdonnances, remplacerOrdosTypes } from "./ordonnances.js";
 import { installer as installerConsultations, htmlConsultations, nbConsultations, oublierConsultations, suivreEtablissement, supprimerConsultations } from "./consultations.js";
-import { installer as installerTaches, pageTaches } from "./taches.js";
+import { installer as installerTaches, pageTaches, demarrerTaches, blocAccueil as blocTaches } from "./taches.js";
 import { ACTES_RT } from "../donnees/listes.js";
 import { deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -48,7 +48,7 @@ window.nouveauPatient = () => creerPatient();
 // ───── Chargement ─────
 onAuthStateChanged(auth, async (u) => {
   if (!u) { location.replace("index.html"); return; }
-  try { D = await charger(u); entete(); route(); nomTitulaire().then(migrations); }
+  try { D = await charger(u); entete(); route(); demarrerTaches(); nomTitulaire().then(migrations); }
   catch (e) { $("page").innerHTML = '<div class="carte"><h3>Impossible d\'ouvrir Onco360</h3><p class="sous">' + esc(e && e.code === "permission-denied" ? "Accès refusé : votre accès a peut-être été désactivé. Contactez le médecin titulaire." : e.message) + '</p><button class="bt clair" onclick="document.getElementById(\'btSortie\').click()">Se déconnecter</button></div>'; }
 });
 async function charger(u) {
@@ -361,6 +361,7 @@ function pageAccueil() {
   });
   if (jc) h += "</div>";
   h += "</section>";
+  h += blocTaches(); // Mes tâches (étape T4), avec les 7 prochains jours et les conflits
 
   if (ab.length) {
     h += '<section class="carte abs"><h3><span class="ic">' + ic("avion") + '</span>Conflits : rendez-vous à décaler</h3><p class="sous">Tout ce qui tombe pendant une absence ou un jour férié doit être déplacé.</p>';

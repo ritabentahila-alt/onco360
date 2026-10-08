@@ -25,6 +25,7 @@ async function preparer() {
     await setDoc(doc(db, P + "/taches/t3"), tache("SEC", "MED"));
     await setDoc(doc(db, P + "/taches/tf"), tache("MED", "SEC", { statut: "fait" }));
     await setDoc(doc(db, P + "/taches/toff"), tache("OFF", "OFF"));
+    await setDoc(doc(db, P + "/taches/tfs"), tache("SEC", "INF", { statut: "fait" }));
   });
 }
 const db = (u) => env.authenticatedContext(u).firestore();
@@ -62,6 +63,10 @@ await cas("refusé : créée déjà terminée", () => assertFails(setDoc(T("SEC"
 await cas("refusé : sans titre", () => assertFails(setDoc(T("SEC", "n1"), tache("SEC", "INF", { titre: "" }))));
 await cas("refusé : accès désactivé", () => assertFails(setDoc(T("OFF", "n1"), tache("OFF", "OFF"))));
 
+console.log("Tâches lues (utilisateurs/{uid}.tachesVu)");
+await cas("chacun enregistre ses tâches lues dans son profil", () => assertSucceeds(setDoc(doc(db("INF"), "utilisateurs/INF"), { tachesVu: { t1: 2 } }, { merge: true })));
+await cas("refusé : écrire dans le profil d'un autre", () => assertFails(setDoc(doc(db("INF"), "utilisateurs/SEC"), { tachesVu: { t1: 2 } }, { merge: true })));
+
 console.log("Statut, commentaires, réattribution");
 await cas("le responsable change le statut", () => assertSucceeds(updateDoc(T("INF", "t1"), maj("INF", { statut: "encours" }))));
 await cas("le responsable termine la tâche", () => assertSucceeds(updateDoc(T("INF", "t1"), maj("INF", { statut: "fait", faitPar: "INF", faitParNom: "INF", faitLe: new Date().toISOString() }))));
@@ -86,8 +91,10 @@ console.log("Suppression");
 await cas("l'auteur supprime sa tâche non terminée", () => assertSucceeds(deleteDoc(T("SEC", "t1"))));
 await cas("un médecin supprime la tâche d'un autre (non terminée)", () => assertSucceeds(deleteDoc(T("MED2", "t1"))));
 await cas("refusé : le responsable qui n'en est pas l'auteur supprime", () => assertFails(deleteDoc(T("INF", "t1"))));
-await cas("refusé : supprimer une tâche terminée (médecin)", () => assertFails(deleteDoc(T("MED", "tf"))));
-await cas("refusé : supprimer une tâche terminée (responsable)", () => assertFails(deleteDoc(T("SEC", "tf"))));
+await cas("l'auteur supprime sa tâche terminée (08/10)", () => assertSucceeds(deleteDoc(T("MED", "tf"))));
+await cas("refusé : un médecin supprime la tâche terminée d'un autre", () => assertFails(deleteDoc(T("MED", "tfs"))));
+await cas("refusé : le responsable supprime une tâche terminée qu'il n'a pas créée", () => assertFails(deleteDoc(T("SEC", "tf"))));
+await cas("refusé : un accès désactivé supprime sa propre tâche", () => assertFails(deleteDoc(T("OFF", "toff"))));
 
 await env.cleanup();
 console.log("\n" + ok + " réussi(s), " + ko + " échoué(s)");
