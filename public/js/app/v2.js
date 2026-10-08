@@ -1,6 +1,6 @@
 // Onco360 (ex-Chimio HGC v2) – application : tableau de bord, patients, dossier. Chargée par v2.html.
 window.__v2pret = true;
-import { auth, db } from "../config.js";
+import { app, auth, db } from "../config.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { doc, getDoc, getDocs, setDoc, collection, query, where, updateDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { fusionner } from "../donnees/conversion.js";
@@ -14,7 +14,7 @@ import { tarif as tarifAu } from "../moteur/tarifs.js";
 import { genererConsultRT } from "../moteur/rt.js";
 import { idsParDefaut } from "../donnees/migration.js";
 import { installer as installerDocuments, docsDe, boutonDoc, oublierDocs, suivreEtablissementDocs, supprimerDocs } from "./documents.js";
-import { installer as installerChimio, htmlChimio, nouveauPatient as creerPatient, champDiag, activerDiag, listeMut, listeCor, enrichirListes, majMontants, encaissementsDe, construireEncaissements, ecrireEncaissements } from "./chimio.js";
+import { installer as installerChimio, htmlChimio, nouveauPatient as creerPatient, champDiag, activerDiag, listeMut, listeCor, enrichirListes, majMontants, encaissementsDe, construireEncaissements, ecrireEncaissements, prixParServeur, oublierEncaissements } from "./chimio.js";
 import { installer as installerAgenda, pageAgenda } from "./agenda.js";
 import { installer as installerConfig, pageConfiguration, horaires, WA0, remplir } from "./configuration.js";
 import { installer as installerProfil, pageProfil, DROITS_ROLE, droitsEffectifs, lireImage } from "./profil.js";
@@ -25,6 +25,7 @@ import { installer as installerOrdonnances, remplacerOrdosTypes } from "./ordonn
 import { installer as installerFichiers, htmlFichiers, nbFichiers, oublierFichiers, suivreEtablissementFichiers, supprimerFichiers } from "./fichiers.js";
 import { installer as installerConsultations, htmlConsultations, nbConsultations, oublierConsultations, suivreEtablissement, supprimerConsultations } from "./consultations.js";
 import { installer as installerTaches, pageTaches, demarrerTaches, blocAccueil as blocTaches } from "./taches.js";
+import { installer as installerSalle, pageSalle, demarrerSalle, apresStatutRdv, apresVenuChimio, apresPrix, bullesDossier } from "./salle.js";
 import { ACTES_RT } from "../donnees/listes.js";
 import { deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -49,7 +50,7 @@ window.nouveauPatient = () => creerPatient();
 // ───── Chargement ─────
 onAuthStateChanged(auth, async (u) => {
   if (!u) { location.replace("index.html"); return; }
-  try { D = await charger(u); entete(); route(); demarrerTaches(); nomTitulaire().then(migrations); }
+  try { D = await charger(u); entete(); route(); demarrerTaches(); demarrerSalle(); publierTarifsC(); nomTitulaire().then(migrations); }
   catch (e) { $("page").innerHTML = '<div class="carte"><h3>Impossible d\'ouvrir Onco360</h3><p class="sous">' + esc(e && e.code === "permission-denied" ? "Accès refusé : votre accès a peut-être été désactivé. Contactez le médecin titulaire." : e.message) + '</p><button class="bt clair" onclick="document.getElementById(\'btSortie\').click()">Se déconnecter</button></div>'; }
 });
 async function charger(u) {
@@ -58,7 +59,7 @@ async function charger(u) {
   if (m.data().actif === false) throw new Error("Votre accès à Onco360 a été désactivé. Contactez le médecin titulaire.");
   // Toutes les lectures partent en même temps (au lieu de l'une après l'autre) : ouverture nettement plus rapide
   const membre = m.data(); membre.droitsStockes = membre.droits || {}; membre.droits = droitsEffectifs(membre); const col = collection(db, "espaces", ESPACE, "patients"), E = (c, i) => doc(db, "espaces", ESPACE, c, i);
-  const [pr, sp, sc, qs, sl, sE, sT, sA, sW, sG, sMT] = await Promise.all([
+  const [pr, sp, sc, qs, sl, sE, sT, sA, sW, sG, sMT, sTC] = await Promise.all([
     getDoc(doc(db, "utilisateurs", u.uid)).catch(() => null),
     getDocs(collection(db, "espaces", ESPACE, "protocoles")),
     getDoc(E("parametres", "calendrier")),
@@ -70,6 +71,7 @@ async function charger(u) {
     getDoc(E("parametres", "whatsapp")).catch(() => null),
     getDoc(E("parametres", "agendaGoogle")).catch(() => null),
     getDoc(E("parametres", "medecinTitulaire")).catch(() => null),
+    getDoc(E("parametres", "tarifsConsultations")).catch(() => null),
   ]);
   const profil = pr && pr.exists() ? pr.data() : {}, bib = {};
   const bibDoc = {}, bibOrdre = {};
@@ -84,7 +86,8 @@ async function charger(u) {
   const wa = sW && sW.exists() ? JSON.parse(sW.data().data || "{}") : {};
   const agendaG = sG && sG.exists() ? JSON.parse(sG.data().data || "{}") : null;
   const medTitulaire = sMT && sMT.exists() ? sMT.data() : null;
-  return { u, membre, profil, cal, ctx, t, patients, listes, etabs, etabsTous, tarifs, bibDoc, bibOrdre, activites, wa, agendaG, medTitulaire };
+  const tarifsC = sTC && sTC.exists() ? JSON.parse(sTC.data().data || "null") : null;
+  return { u, membre, profil, cal, ctx, t, patients, listes, etabs, etabsTous, tarifs, bibDoc, bibOrdre, activites, wa, agendaG, medTitulaire, tarifsC };
 }
 // Nom du médecin titulaire (signature des messages WhatsApp envoyés par la secrétaire ou l'infirmière)
 async function nomTitulaire() {
@@ -127,15 +130,42 @@ async function migrations() {
       for (const d of sm.docs) { const m = d.data(); if (m.role === "assistante" && (m.droits || {}).traitements === "aucun") await updateDoc(d.ref, { "droits.traitements": "voir" }).catch((er) => console.warn("droits", d.id, er)); }
       await setDoc(doc(db, "espaces", ESPACE, "parametres", "migrations"), { secretaireChimio: D.t }, { merge: true }).catch(() => {});
     }
+    // Planning de l'hôpital de jour pour la secrétaire (08/10/2026 : elle reporte une séance de chimio manquée, selon les consignes
+    // du médecin) : « Non » → « Oui » pour les secrétaires existantes, une fois
+    if (!fait.secretairePlanning) {
+      for (const d of sm.docs) { const m = d.data(); if (m.role === "assistante" && (m.droits || {}).planningChimio !== true) await updateDoc(d.ref, { "droits.planningChimio": true }).catch((er) => console.warn("droits", d.id, er)); }
+      await setDoc(doc(db, "espaces", ESPACE, "parametres", "migrations"), { secretairePlanning: D.t }, { merge: true }).catch(() => {});
+    }
     // Ordonnances types : la version Excel corrigée par le médecin (07/10/2026) remplace une fois la liste du cabinet
     if (!fait.ordostypesExcel1) {
       await remplacerOrdosTypes().then(() => setDoc(doc(db, "espaces", ESPACE, "parametres", "migrations"), { ordostypesExcel1: D.t }, { merge: true })).catch((er) => console.warn("ordonnances types", er));
     }
-    if (!peut("finances") || fait.encaissementsJours) return;
+    if (!peut("finances") || (fait.encaissementsJours && fait.encaissementsBrutV1)) return;
     const sf = await getDocs(collection(db, "espaces", ESPACE, "patientsFinances"));
     for (const d of sf.docs) { const x = D.patients.find((p) => p.id === d.id); if (!x) continue; let M = {}; try { M = JSON.parse(d.data().montantsJson || "{}"); } catch (er) {} await ecrireEncaissements(x, M); }
-    await setDoc(doc(db, "espaces", ESPACE, "parametres", "migrations"), { encaissements: D.t, encaissementsJours: D.t }, { merge: true });
+    await setDoc(doc(db, "espaces", ESPACE, "parametres", "migrations"), { encaissements: D.t, encaissementsJours: D.t, encaissementsBrutV1: D.t }, { merge: true });
   } catch (er) { console.warn("migrations", er); }
+}
+// Tarifs des consultations lisibles par toute l'équipe (la secrétaire fait payer les patients) : le prix brut de chaque activité
+// de chaque établissement, avec ses dates d'effet, sans rétrocession, impôt, séance de chimio ni radiothérapie (08/10/2026).
+// Publiés par le médecin (droits « finances » et « paramètres ») à l'ouverture et après l'enregistrement des Paramètres.
+function tarifsPublics(T) {
+  if (!T || !T.etablissements) return null;
+  const out = { repli: T.repli || "HGC", etablissements: {} };
+  Object.entries(T.etablissements).forEach(([code, e]) => { out.etablissements[code] = { activites: (e.activites || []).filter((a) => ["seance", "rt"].indexOf(a.type) < 0).map((a) => ({ type: a.type, libelle: a.libelle, historique: (a.historique || []).map((h) => ({ depuis: h.depuis, brut: h.brut })) })) }; });
+  return out;
+}
+async function publierTarifsC() {
+  if (!peut("finances") || !peut("parametres") || !D.tarifs) return;
+  const t = tarifsPublics(D.tarifs); if (JSON.stringify(t) === JSON.stringify(D.tarifsC)) return;
+  await setDoc(doc(db, "espaces", ESPACE, "parametres", "tarifsConsultations"), { data: JSON.stringify(t) }).then(() => { D.tarifsC = t; }).catch((e) => console.warn("tarifs des consultations", e));
+}
+const tarifsVus = () => D.tarifs || D.tarifsC;
+// Fonctions serveur (prix fixé par la secrétaire : prixConsultation)
+async function appelServeur(nom, donnees) {
+  const { getFunctions, httpsCallable } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js");
+  try { return (await httpsCallable(getFunctions(app, "europe-west1"), nom, { timeout: 60000 })(donnees || {})).data; }
+  catch (e) { throw new Error(String((e && e.message) || e).replace(/^(FirebaseError: )?/, "")); }
 }
 // Recalcule un dossier à partir de son document (dossier médical seul, sans montants)
 function recalculer(x, docData, ctx) {
@@ -197,9 +227,9 @@ function fmtSaisie(el) {
 }
 document.addEventListener("input", (ev) => { if (ev.target && ev.target.classList && ev.target.classList.contains("mt")) fmtSaisie(ev.target); });
 const ferieLe = (d) => (D.ctx.feries || []).map((f) => (typeof f === "string" ? { d: f, nom: "Jour férié" } : f)).find((f) => f.d === d);
-const API = { D: () => D, ESPACE, $, esc, ic, dfr, dfrA, cap, jourLong, val, occupe, erreur, toast, fenetre, fermerFenetre: () => window.fermerFenetre(), peut, traitMod, enregistrer, pageDossier: (id) => pageDossier(id), recalculer, journal };
-API.sansAcc = sansAcc; API.medecinFiche = () => medecinFiche(); API.entete = () => entete(); API.voitRdv = () => voitRdv(); API.voitRT = (x) => voitRT(x); API.champsMed = (C, off) => champsMed(C, off); API.CHAMPS_MED = () => CHAMPS_MED; API.fmtMil = (n) => fmtMil(n); API.ferieLe = (d) => ferieLe(d);
-installerChimio(API); installerAgenda(API); installerConfig(API); installerProfil(API); installerProtocoles(API); installerParametres(API); installerBilan(API); installerConsultations(API); installerOrdonnances(API); installerDocuments(API); installerFichiers(API); installerTaches(API);
+const API = { D: () => D, ESPACE, $, esc, ic, dfr, dfrA, cap, jourLong, val, occupe, erreur, toast, fenetre, fermerFenetre: () => window.fermerFenetre(), peut, voit, traitMod, enregistrer, pageDossier: (id) => reafficher(id), recalculer, journal };
+API.sansAcc = sansAcc; API.medecinFiche = () => medecinFiche(); API.entete = () => entete(); API.voitRdv = () => voitRdv(); API.voitRT = (x) => voitRT(x); API.champsMed = (C, off) => champsMed(C, off); API.CHAMPS_MED = () => CHAMPS_MED; API.fmtMil = (n) => fmtMil(n); API.ferieLe = (d) => ferieLe(d); API.salleVenuChimio = (x, lid, n, j, oui) => apresVenuChimio(x, lid, n, j, oui); API.serveur = appelServeur; API.tarifsVus = () => tarifsVus(); API.publierTarifsC = () => publierTarifsC(); API.encaissementsDe = (x, f) => encaissementsDe(x, f); API.peutPrix = () => peut("finances") || prixParServeur();
+installerChimio(API); installerAgenda(API); installerConfig(API); installerProfil(API); installerProtocoles(API); installerParametres(API); installerBilan(API); installerConsultations(API); installerOrdonnances(API); installerDocuments(API); installerFichiers(API); installerTaches(API); installerSalle(API);
 
 function entete() {
   const p = D.profil, mb = D.membre, nom = (p.nom || mb.nom || "").replace(/^Dr\.?\s*/i, "");
@@ -318,7 +348,7 @@ const FILTRES = {
 };
 
 // ───── Pages ─────
-const PAGES = { accueil: ["Tableau de bord", pageAccueil], agenda: ["Agenda / Rendez-vous", () => pageAgenda()], configuration: ["Configuration", () => pageConfiguration()], profil: ["Profil", () => pageProfil()], protocoles: ["Protocoles", () => pageProtocoles()], parametres: ["Paramètres", () => pageParametres()], bilan: ["Bilan", () => pagePageBilan()], patients: ["Patients", pagePatients], taches: ["Tâches", () => pageTaches()], dossier: ["Dossier patient", pageDossier] };
+const PAGES = { accueil: ["Tableau de bord", pageAccueil], agenda: ["Agenda / Rendez-vous", () => pageAgenda()], configuration: ["Configuration", () => pageConfiguration()], profil: ["Profil", () => pageProfil()], protocoles: ["Protocoles", () => pageProtocoles()], parametres: ["Paramètres", () => pageParametres()], bilan: ["Bilan", () => pagePageBilan()], salle: ["Salle d'attente", () => pageSalle()], patients: ["Patients", pagePatients], taches: ["Tâches", () => pageTaches()], dossier: ["Dossier patient", pageDossier] };
 function route() {
   const h = location.hash.replace("#", ""), i = h.indexOf("/"), p = i < 0 ? h : h.slice(0, i), arg = i < 0 ? null : decodeURIComponent(h.slice(i + 1)), nom = PAGES[p] ? p : "accueil";
   if (!$("fenetre").classList.contains("cache")) window.fermerFenetre();
@@ -456,11 +486,11 @@ function pageDossier(id) {
   // leur date ne se change pas ici (protocole de la ligne)
   const venuChimio = (c, d) => {
     const v = EN && EN.cons && EN.cons[c.lid + "|" + c.n + "|" + c.j], qv = "'" + x.id + "','" + c.lid + "'," + c.n + "," + c.j;
-    if (v) return '<span class="badge b-ch">Venu</span><span class="badge b-ch" title="Prix validé par le médecin">' + (v.m != null ? fmtMil(v.m) + " DH" : "—") + "</span>" + (peut("finances") ? b("Annuler le statut", "chAnnulerVenuChimio(" + qv + ")") : "");
-    return peut("finances") && d <= D.t ? b("Venu", "chVenuChimio(" + qv + ")", "v") : "";
+    if (v) return '<span class="badge b-ch">Venu</span><span class="badge b-ch" title="Prix validé">' + (v.m != null ? fmtMil(v.m) + " DH" : "—") + "</span>" + (peut("finances") ? b("Annuler le statut", "chAnnulerVenuChimio(" + qv + ")") : prixParServeur() ? b("Modifier le prix", "chVenuChimio(" + qv + ")") : "");
+    return (peut("finances") || prixParServeur()) && d <= D.t ? b("Venu", "chVenuChimio(" + qv + ")", "v") : "";
   };
   chimioAVenir(JSON.parse(JSON.stringify(P)), ctx).forEach((c) => { const ret = /en retard/.test(c.lib); av.push({ d: c.d, h: "", em: "💉", t: c.lib.replace(/^Chimio · /, ""), retard: ret, act: '<div class="actr">' + (ret ? "" : btnWA(x, "chimio", c.d, "")) + (c.lid ? venuChimio(c, c.d) : "") + "</div>" }); });
-  if (voitRdv()) (P.rdvs || []).forEach((v) => { if (aVenir(v)) av.push({ d: v.d, h: v.h || "", em: typeRdv(v.type) === "hospit" ? '<svg class="pi"><use href="#i-hopital"/></svg>' : "🩺", t: libRdv(v) + (v.n ? " – " + v.n : ""), act: actionsRdv(v, btnWA(x, catRdv(v), v.d, v.h || "")), rep: v.rep }); });
+  if (voitRdv()) (P.rdvs || []).forEach((v) => { if (aVenir(v)) av.push({ d: v.d, h: v.h || "", em: typeRdv(v.type) === "hospit" ? '<svg class="pi"><use href="#i-hopital"/></svg>' : "🩺", t: libRdv(v) + (v.mo ? " – " + v.mo : "") + (v.n ? " – " + v.n : ""), act: actionsRdv(v, btnWA(x, catRdv(v), v.d, v.h || "")), rep: v.rep }); });
   const qx = "'" + x.id + "'";
   if (voitRTdossier(x)) (r.rt || []).forEach((v) => av.push({ d: v.d, f: v.f, h: "", em: "☢️", t: v.lib.replace(/^RT · /, ""), dosi: !!v.dosi, act: v.dosi ? (peutDosi() ? '<div class="actr"><button class="mini vert" onclick="dosiRT(\'' + x.id + "','" + v.dosi + '\')"><svg class="pi"><use href="#i-check"/></svg>Valider la dosimétrie</button></div>' : "") : /Fin de radioth/.test(v.lib) ? "" : '<div class="actr">' + btnWA(x, "rt", v.d, "") + "</div>" }));
   av.sort((p, q) => (p.d + (p.h || "00")).localeCompare(q.d + (q.h || "00")));
@@ -521,11 +551,13 @@ function pageDossier(id) {
   // Consultations et hospitalisations : passées ou déjà validées (venu / non venu), avec le prix à encaisser (droit « encaissements »)
   if (voitRdv()) {
     const prix = (v) => {
+      if (EN && v.st === "absent") return '<span class="badge b-gr" title="Non venu : rien à encaisser">0 DH</span>';
       if (!EN || v.st !== "fait") return "";
+      if (v.type === T_RTC) return '<span class="badge b-gr" title="Consultation en cours de radiothérapie : comprise dans l\'acte">0 DH</span>';
       const o = (EN.rdv || {})[v.id], hs = typeRdv(v.type) === "hospit";
-      if (!o) return '<span class="badge b-gr" title="Le prix est fixé par le médecin quand il valide « Venu »">Prix non validé</span>';
-      const nj = hs ? joursH(v) : 0, m = o.tj != null ? o.tj * (nj || 1) : o.m;
-      return '<span class="badge b-ch" title="Prix validé par le médecin">' + fmtMil(m) + " DH" + (o.tj != null && nj > 1 ? " (" + nj + " j × " + fmtMil(o.tj) + ")" : "") + "</span>";
+      if (!o) return '<span class="badge b-gr" title="Le prix est fixé quand on valide « Venu »">Prix non validé</span>' + ((peut("finances") || prixParServeur()) && tarifsVus() && v.type !== T_RTC ? b("Fixer le prix", "prixRdv('" + x.id + "','" + v.id + "')") : "");
+      const nj = hs ? joursH(v) : 0, m = o.tj != null ? o.tj * (nj || 1) : o.b != null ? o.b : o.m; // b : brut d'un prix repris de l'ancienne application
+      return '<span class="badge b-ch" title="Prix validé">' + fmtMil(m) + " DH" + (o.tj != null && nj > 1 ? " (" + nj + " j × " + fmtMil(o.tj) + ")" : "") + "</span>" + ((peut("finances") || (prixParServeur() && !o.v1)) && tarifsVus() && v.type !== T_RTC ? b("Modifier le prix", "prixRdv('" + x.id + "','" + v.id + "')") : "");
     };
     const lignes = (P.rdvs || []).filter((v) => !aVenir(v)).map((v) => ({ d: v.d, h: v.h || "", v }));
     // Jours de chimio reçus (J1, J8…) depuis le 07/10/2026, et tous ceux validés « Venu » (avec leur prix)
@@ -540,16 +572,19 @@ function pageDossier(id) {
     h += '<section class="carte"><h3><span class="ic">' + ic("agenda") + '</span>Consultations et hospitalisations</h3>' + (EN === undefined ? '<p class="mesures">Chargement des prix…</p>' : "") +
       (lignes.length ? lignes.map(({ v, c, d }) => {
         if (c) return '<div class="rdv"><span class="badge b-gr">' + (d ? dfrA(d) : "—") + '</span><div class="tx"><b>Chimiothérapie</b><div class="mesures">' + esc((c.lib || "") + " · C" + c.n + " J" + c.j) + "</div></div>" +
-          (c.v ? '<span class="badge b-ch">Venu</span><span class="badge b-ch" title="Prix validé par le médecin">' + (c.v.m != null ? fmtMil(c.v.m) + " DH" : "—") + "</span>" + (peut("finances") ? '<div class="actr">' + b("Annuler le statut", "chAnnulerVenuChimio('" + x.id + "','" + c.lid + "'," + c.n + "," + c.j + ")") + "</div>" : "")
-            : '<span class="badge b-or">À valider</span>' + (peut("finances") ? '<div class="actr">' + b("Venu", "chVenuChimio('" + x.id + "','" + c.lid + "'," + c.n + "," + c.j + ")", "v") + "</div>" : "")) + "</div>";
+          (c.v ? '<span class="badge b-ch">Venu</span><span class="badge b-ch" title="Prix validé">' + (c.v.m != null ? fmtMil(c.v.m) + " DH" : "—") + "</span>" + (peut("finances") ? '<div class="actr">' + b("Annuler le statut", "chAnnulerVenuChimio('" + x.id + "','" + c.lid + "'," + c.n + "," + c.j + ")") + "</div>" : prixParServeur() ? '<div class="actr">' + b("Modifier le prix", "chVenuChimio('" + x.id + "','" + c.lid + "'," + c.n + "," + c.j + ")") + "</div>" : "")
+            : '<span class="badge b-or">À valider</span>' + (peut("finances") || prixParServeur() ? '<div class="actr">' + b("Venu", "chVenuChimio('" + x.id + "','" + c.lid + "'," + c.n + "," + c.j + ")", "v") + "</div>" : "")) + "</div>";
         const s = (v.st || "prevu") === "prevu" ? ["À valider", "b-or"] : ST_RDV[v.st] || [v.st, "b-gr"];
-        return '<div class="rdv"><span class="badge b-gr">' + dfrA(v.d) + (v.h ? " " + v.h : "") + '</span><div class="tx"><b>' + esc(libRdv(v)) + "</b>" + (v.n ? '<div class="mesures">' + esc(v.n) + "</div>" : "") + (v.rep && v.rep.length ? '<div class="mesures">Reporté (initialement le ' + dfrA(v.rep[0].d) + ")</div>" : "") + '</div><span class="badge ' + s[1] + '">' + s[0] + "</span>" + prix(v) + actionsRdv(v) + "</div>";
+        return '<div class="rdv"><span class="badge b-gr">' + dfrA(v.d) + (v.h ? " " + v.h : "") + '</span><div class="tx"><b>' + esc(libRdv(v)) + "</b>" + (v.mo ? '<div class="mesures">Motif : ' + esc(v.mo) + "</div>" : "") + (v.n ? '<div class="mesures">' + esc(v.n) + "</div>" : "") + (v.rep && v.rep.length ? '<div class="mesures">Reporté (initialement le ' + dfrA(v.rep[0].d) + ")</div>" : "") + '</div><span class="badge ' + s[1] + '">' + s[0] + "</span>" + prix(v) + actionsRdv(v) + "</div>";
       }).join("") : '<p class="sous">Aucune consultation passée.</p>') + "</section>";
   }
+  h += bullesDossier(x); // patient en consultation (salle d'attente) : bulles Valider / Retour en salle
   const pos = $("rdvListe") ? $("rdvListe").scrollTop : 0;
   $("page").innerHTML = h;
   limiterHauteur("rdvListe", 5); if ($("rdvListe")) $("rdvListe").scrollTop = pos;
 }
+// Après un enregistrement : la page en cours est réaffichée (salle d'attente ou dossier)
+function reafficher(id) { if (String(D.page || "").indexOf("salle") === 0) pageSalle(); else pageDossier(id); }
 // Zone qui défile : hauteur exacte des n premières lignes (elles n'ont pas toutes la même hauteur, surtout sur téléphone)
 function limiterHauteur(id, n) {
   const z = $(id); if (!z) return; const L = z.children;
@@ -675,7 +710,7 @@ function typesRdv(etab) {
 const lireRdvs = (x) => JSON.parse(x.doc.rdvsJson || "[]");
 // Actes de radiothérapie : catalogue des tarifs (droit « finances »), sinon liste de référence ; l'acte déjà saisi est toujours proposé
 const listeActes = (cur) => { const l = (D.tarifs && D.tarifs.actesRT && D.tarifs.actesRT.length ? D.tarifs.actesRT.map((a) => a.nom) : ACTES_RT.slice()); if (cur && l.indexOf(cur) < 0) l.push(cur); return l; };
-const apresRdv = (x) => { if (location.hash.indexOf("#agenda") === 0) pageAgenda(); else pageDossier(x.id); };
+const apresRdv = (x) => { if (location.hash.indexOf("#agenda") === 0) pageAgenda(); else reafficher(x.id); };
 window.ouvrirRdv = (id, rid, pre) => {
   const x = D.patients.find((p) => p.id === id); if (!x) return;
   if (!peut("rendezvous")) { toast("Vous n'avez pas le droit de gérer les rendez-vous."); return; }
@@ -684,6 +719,7 @@ window.ouvrirRdv = (id, rid, pre) => {
   if (!types.some((o) => o.v === cle)) types.push({ v: cle, lib: libRdv(R), act: R.act || null, type: R.type });
   fenetre("<h3>" + (r0 ? "Modifier le rendez-vous" : "Nouveau rendez-vous") + " – " + esc(x.r.nm) + '</h3><div class="form">' +
     '<div class="large"><label for="fType">Type</label><select id="fType">' + types.map((o) => '<option value="' + esc(o.v) + '"' + (o.v === cle ? " selected" : "") + ">" + esc(o.lib) + "</option>").join("") + "</select></div>" +
+    '<div class="large"><label for="fMo">Motif de consultation</label><input id="fMo" value="' + esc(R.mo || "") + '" placeholder="Ex. nouveau patient, résultats du scanner, douleur…"></div>' +
     '<div><label for="fD">Date</label><input id="fD" type="date" value="' + esc(R.d || "") + '"></div>' +
     '<div id="zH"><label for="fH">Heure</label><input id="fH" type="time" step="900" value="' + esc(R.h || "") + '"></div>' +
     '<div id="zF" class="cache"><label for="fF">Date de sortie</label><input id="fF" type="date" value="' + esc(R.f || "") + '"></div>' +
@@ -704,9 +740,9 @@ window.ouvrirRdv = (id, rid, pre) => {
     if (r0) {
       const r = l.find((v) => v.id === rid);
       if ((r.st || "prevu") === "prevu" && (r.d !== d || (r.h || "") !== h)) r.rep = (r.rep || []).concat([{ d: r.d, h: r.h || "", le: D.t }]);
-      Object.assign(r, { type, d, h, n: val("fN") }); if (hs) r.f = f; else delete r.f; if (act) r.act = act; else delete r.act;
+      Object.assign(r, { type, d, h, n: val("fN") }); if (hs) r.f = f; else delete r.f; if (act) r.act = act; else delete r.act; if (val("fMo")) r.mo = val("fMo"); else delete r.mo;
     } else {
-      const r = { id: "r" + Date.now().toString(36), type, d, h, n: val("fN"), st: "prevu" }; if (hs) r.f = f; if (act) r.act = act; l.push(r);
+      const r = { id: "r" + Date.now().toString(36), type, d, h, n: val("fN"), st: "prevu" }; if (hs) r.f = f; if (act) r.act = act; if (val("fMo")) r.mo = val("fMo"); l.push(r);
     }
     occupe($("fOk"), true);
     try { await enregistrer(x, { rdvsJson: JSON.stringify(l) }, r0 ? "Rendez-vous modifié" : "Rendez-vous ajouté"); fermerFenetre(); toast("Rendez-vous enregistré."); apresRdv(x); }
@@ -726,41 +762,83 @@ function horsHoraires(etab, d, h) {
 const annulable = (r) => D.membre.role === "medecin" || (!!r.sp && r.sp === D.u.uid);
 window.statutRdv = async (id, rid, st) => {
   const x = D.patients.find((p) => p.id === id); if (!x) return;
-  const l = lireRdvs(x), r = l.find((v) => v.id === rid); if (!r) return;
+  const l = lireRdvs(x), r = l.find((v) => v.id === rid); if (!r) return; const ancien = r.st || "prevu";
   if (st === "prevu" && !annulable(r)) { toast("Statut posé par le médecin : lui seul peut l'annuler."); return; }
   if (st === "supprimer") { if (!confirm("Supprimer ce rendez-vous ?")) return; l.splice(l.indexOf(r), 1); }
+  else if (st === "absent" && ancien === "prevu") { absentRdv(x, l, r); return; }
   else if (st === "fait") {
-    // Droit « finances » : on valide le prix de la consultation (réduction possible) avant de la passer en « venu »
-    if (peut("finances") && D.tarifs && r.type !== T_RTC) { prixVenu(x, l, r); return; }
+    // Médecin (« finances ») et secrétaire (« encaissements ») : prix de la consultation (réduction, gratuité) avant « venu »
+    if ((peut("finances") || prixParServeur()) && tarifsVus() && r.type !== T_RTC) { prixVenu(x, l, r); return; }
     r.st = "fait"; r.dv = r.d; r.sp = D.u.uid;
   }
   else if (st === "absent") { r.st = "absent"; delete r.dv; r.sp = D.u.uid; }
   else { r.st = "prevu"; delete r.dv; delete r.sp; }
-  try { await enregistrer(x, { rdvsJson: JSON.stringify(l) }, { fait: "Rendez-vous : venu", absent: "Rendez-vous : non venu", prevu: "Rendez-vous remis à prévu", supprimer: "Rendez-vous supprimé" }[st]); toast("Enregistré."); pageDossier(x.id); }
-  catch (e) { toast(e.message); pageDossier(x.id); }
+  try { await enregistrer(x, { rdvsJson: JSON.stringify(l) }, { fait: "Rendez-vous : venu", absent: "Rendez-vous : non venu", prevu: "Rendez-vous remis à prévu", supprimer: "Rendez-vous supprimé" }[st]); toast("Enregistré."); apresStatutRdv(x, r, st, ancien); reafficher(x.id); }
+  catch (e) { toast(e.message); reafficher(x.id); }
 };
 
-// Fenêtre « Venu » : prix pré-rempli au tarif de l'établissement, modifiable ; enregistré dans les montants du dossier
+// Fenêtre « Venu » : prix pré-rempli au tarif de l'établissement, modifiable ; enregistré dans les montants du dossier.
+// Médecin : directement ; secrétaire : par le serveur (prixConsultation). Rendez-vous déjà « Venu » : seul le prix change.
 async function prixVenu(x, l, r) {
-  const t = r.act || typeRdv(r.type), hs = t === "hospit", etab = x.P.hop || x.doc.etablissementId || "", v = tarifAu(D.tarifs, etab, t, r.d) || { brut: 0, retro: 0, impot: 0 };
-  let M0 = {}; try { const s = await getDoc(doc(db, "espaces", ESPACE, "patientsFinances", x.id)); M0 = s.exists() ? JSON.parse(s.data().montantsJson || "{}") : {}; } catch (e) {}
+  const t = r.act || typeRdv(r.type), hs = t === "hospit", etab = x.P.hop || x.doc.etablissementId || "", v = tarifAu(tarifsVus(), etab, t, r.d) || { brut: 0, retro: 0, impot: 0 };
+  const sec = !peut("finances"), deja = r.st === "fait";
+  let M0 = {};
+  if (sec) { try { const s = await getDoc(doc(db, "espaces", ESPACE, "encaissements", x.id)); const E = s.exists() ? JSON.parse(s.data().data || "{}") : {}, o = (E.rdv || {})[r.id]; if (o) M0 = { rdv: { [r.id]: o.tj != null ? { tj: o.tj } : { brut: o.m } } }; } catch (e) {} }
+  else { try { const s = await getDoc(doc(db, "espaces", ESPACE, "patientsFinances", x.id)); M0 = s.exists() ? JSON.parse(s.data().montantsJson || "{}") : {}; } catch (e) {} }
   const o0 = (M0.rdv || {})[r.id] || {}, nj = hs ? joursH(r) : 1;
   const def = o0.v1 ? o0.prix : hs ? (o0.tj != null ? o0.tj : v.brut) : o0.brut != null ? o0.brut : v.brut;
   const fmt = (n) => (n == null || n === "" || isNaN(n) ? "" : Number(n).toLocaleString("fr-FR", { maximumFractionDigits: 2 }).replace(/[\u202f\u00a0]/g, " "));
   fenetre("<h3>" + esc(x.r.nm) + " – " + esc(libRdv(r)) + '</h3><p class="sous">' + cap(jourLong(r.d)) + (r.h ? " à " + r.h : "") + (hs && nj ? " · " + nj + " jour" + (nj > 1 ? "s" : "") + " d'hospitalisation" : "") + "</p>" +
     '<div class="form"><div><label for="pvM">' + (hs && !o0.v1 ? "Tarif journalier (DH)" : "Montant de la consultation (DH)") + '</label><input id="pvM" class="mt" inputmode="decimal" value="' + esc(fmt(def)) + '"></div></div>' +
     '<p class="mesures">Tarif ' + esc(etab || "de l'établissement") + " : " + fmt(v.brut) + " DH" + (hs ? " par jour" : "") + ". Modifiez le montant en cas de réduction ou de gratuité (0).</p>" +
-    '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt vert" id="fOk"><svg class="pi"><use href="#i-check"/></svg>Valider : venu</button></div>');
+    '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt vert" id="fOk"><svg class="pi"><use href="#i-check"/></svg>' + (deja ? "Enregistrer le prix" : "Valider : venu") + "</button></div>");
   $("fOk").onclick = async () => {
     const m = parseFloat(val("pvM").replace(/[\s\u202f\u00a0]/g, "").replace(",", "."));
     if (isNaN(m) || m < 0) { erreur("Indiquez le montant (0 si gratuit)."); return; }
     occupe($("fOk"), true);
     try {
-      r.st = "fait"; r.dv = r.d; r.sp = D.u.uid;
-      await enregistrer(x, { rdvsJson: JSON.stringify(l) }, "Rendez-vous : venu (" + fmt(m) + " DH" + (hs && !o0.v1 ? "/jour" : "") + ")");
-      await majMontants(x, (M) => { M.rdv = M.rdv || {}; const o = M.rdv[r.id] = M.rdv[r.id] || {}; if (o.v1) o.prix = m; else if (hs) { o.tj = m; delete o.brut; } else o.brut = m; });
-      fermerFenetre(); toast("Enregistré."); pageDossier(x.id);
+      const lib = fmt(m) + " DH" + (hs && !o0.v1 ? "/jour" : "");
+      if (!deja) { r.st = "fait"; r.dv = r.d; r.sp = D.u.uid; await enregistrer(x, { rdvsJson: JSON.stringify(l) }, "Rendez-vous : venu (" + lib + ")"); }
+      if (sec) {
+        try { await appelServeur("prixConsultation", { espace: ESPACE, patientId: x.id, rdvId: r.id, montant: m }); }
+        catch (e) { if (!deja) { fermerFenetre(); toast("Rendez-vous validé, mais le prix n'a pas pu être enregistré : " + e.message); apresStatutRdv(x, r, "fait", "prevu"); reafficher(x.id); return; } throw e; }
+        oublierEncaissements(x.id);
+      } else await majMontants(x, (M) => { M.rdv = M.rdv || {}; const o = M.rdv[r.id] = M.rdv[r.id] || {}; if (o.v1) o.prix = m; else if (hs) { o.tj = m; delete o.brut; } else o.brut = m; });
+      if (deja) journal(x, "Prix de la consultation du " + dfrA(r.d) + " : " + lib);
+      fermerFenetre(); toast("Enregistré."); if (deja) apresPrix(x, "r-" + r.id, r.d); else apresStatutRdv(x, r, "fait", "prevu"); reafficher(x.id);
     } catch (e) { occupe($("fOk"), false); erreur(e.message || String(e)); }
+  };
+}
+window.prixRdv = (id, rid) => {
+  const x = D.patients.find((p) => p.id === id); if (!x || !(peut("finances") || prixParServeur()) || !tarifsVus()) return;
+  const l = lireRdvs(x), r = l.find((v) => v.id === rid); if (r && r.st === "fait") prixVenu(x, l, r);
+};
+// « Non venu » : fenêtre Absent, avec ou sans report du rendez-vous (08/10/2026). Le rendez-vous manqué reste « Non venu »
+// (trace de l'absence) ; le report crée un nouveau rendez-vous (même type, motif, note) marqué « Reporté (initialement le …) ».
+function prochainJour(etab, d) { let z = d; for (let g = 0; g < 60; g++) { z = addJ(z, 1); if (ouvre(z, D.ctx.feries) && !absenceLe(z) && (horaires(etab).jours[new Date(z + "T12:00:00").getDay()] || []).length) return z; } return addJ(d, 1); }
+function absentRdv(x, l, r) {
+  const etab = x.doc.etablissementId, d0 = prochainJour(etab, r.d > D.t ? r.d : D.t);
+  fenetre("<h3>Absent – " + esc(x.r.nm) + '</h3><p class="sous">' + esc(libRdv(r)) + " · " + cap(jourLong(r.d)) + (r.h ? " à " + r.h : "") + "</p>" +
+    '<div class="form"><div class="large"><label style="font-weight:normal"><input type="radio" name="abR" value="oui" checked style="width:auto;margin-right:6px">Reporter le rendez-vous</label>' +
+    '<label style="font-weight:normal"><input type="radio" name="abR" value="non" style="width:auto;margin-right:6px">Ne pas reporter</label></div>' +
+    '<div id="abZ" class="large form" style="padding:0"><div><label for="abD">Nouvelle date</label><input id="abD" type="date" value="' + d0 + '"></div><div><label for="abH">Heure</label><input id="abH" type="time" step="900" value="' + esc(r.h || "") + '"></div><p class="large mesures" id="abHor" style="margin:0"></p></div></div>' +
+    '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt rouge" id="fOk">Marquer absent</button></div>');
+  const maj = () => { const ok = (document.querySelector('input[name="abR"]:checked') || {}).value === "oui"; $("abZ").classList.toggle("cache", !ok); $("fOk").textContent = ok ? "Absent et reporter" : "Marquer absent"; const d = val("abD"); const pl = d ? horaires(etab).jours[new Date(d + "T12:00:00").getDay()] || [] : []; $("abHor").textContent = d ? "Horaires " + (etab || "du cabinet") + " le " + JNOM[new Date(d + "T12:00:00").getDay()] + " : " + (pl.length ? pl.map((p) => p[0] + "–" + p[1]).join(", ") : "fermé") + "." : ""; };
+  document.querySelectorAll('input[name="abR"]').forEach((e) => { e.onchange = maj; }); $("abD").onchange = maj; maj();
+  $("fOk").onclick = async () => {
+    const rep = (document.querySelector('input[name="abR"]:checked') || {}).value === "oui", d = val("abD"), h = val("abH");
+    if (rep) {
+      if (!d) { erreur("Indiquez la nouvelle date."); return; }
+      const ab = absenceLe(d), fe = !ab && ferieLe(d), hz = horsHoraires(etab, d, h);
+      if (!ab && !fe && hz && !confirm(hz + "\n\nReporter quand même ?")) return;
+      if (fe && !confirm("Le " + dfrA(d) + " est un jour férié (" + (fe.nom || "") + "). Reporter quand même ?")) return;
+      if (ab && !confirm("Absence prévue ce jour-là (" + (ab.m || "absence") + "). Reporter quand même ?")) return;
+    }
+    r.st = "absent"; delete r.dv; r.sp = D.u.uid;
+    if (rep) { const n = { id: "r" + Date.now().toString(36), type: r.type, d, h, n: r.n || "", st: "prevu", rep: [{ d: r.d, h: r.h || "", le: D.t, abs: true }] }; if (r.act) n.act = r.act; if (r.mo) n.mo = r.mo; l.push(n); }
+    occupe($("fOk"), true);
+    try { await enregistrer(x, { rdvsJson: JSON.stringify(l) }, "Rendez-vous : non venu" + (rep ? " (reporté au " + dfrA(d) + (h ? " à " + h : "") + ")" : "")); fermerFenetre(); toast(rep ? "Absent ; rendez-vous reporté au " + dfrA(d) + (h ? " à " + h : "") + "." : "Enregistré."); apresStatutRdv(x, r, "absent", "prevu"); reafficher(x.id); }
+    catch (e) { occupe($("fOk"), false); erreur(e.message); }
   };
 }
 // Nouveau rendez-vous depuis le tableau de bord ou l'agenda : choisir d'abord le patient

@@ -158,6 +158,32 @@ exports.agendaTache = onDocumentWritten(Object.assign({ document: "espaces/{e}/t
 exports.agendaCouleurs = onDocumentWritten(Object.assign({ document: "espaces/{e}/parametres/couleursAgenda" }, OPTS), async (ev) => {
   for (const d of await liesA(ev.params.e)) { try { await syncComplet(d.id, d.data()); } catch (e) { await echec(d.id, e); } }
 });
+// ───── Prix d'une consultation fixé par la secrétaire (salle d'attente, 08/10/2026) ─────
+// La secrétaire n'a pas le droit « finances » : ce prix (rendez-vous « Venu » ou consultation d'un jour de chimio) est écrit
+// pour elle, et lui seul, dans les montants et les prix à encaisser (logique : L.appliquerPrix, tests : test-logique.js).
+exports.prixConsultation = onCall({ timeoutSeconds: 30, memory: "256MiB" }, async (req) => {
+  if (!req.auth) throw new HttpsError("unauthenticated", "Connectez-vous à Onco360.");
+  const { espace, patientId } = req.data || {};
+  if (!espace || !patientId) throw new HttpsError("invalid-argument", "Demande incomplète.");
+  const m = await membre(espace, req.auth.uid);
+  if (!L.peutPrix(m)) throw new HttpsError("permission-denied", "Vous n'avez pas le droit de fixer le prix des consultations.");
+  const refP = db.doc("espaces/" + espace + "/patients/" + patientId), refM = db.doc("espaces/" + espace + "/patientsFinances/" + patientId), refE = db.doc("espaces/" + espace + "/encaissements/" + patientId);
+  try {
+    const quoi = await db.runTransaction(async (t) => {
+      const [p, f, e] = await Promise.all([t.get(refP), t.get(refM), t.get(refE)]);
+      if (!p.exists) throw new Error("Dossier introuvable.");
+      const etab = p.data().etablissementId || "";
+      if (!L.voitPatient(m, etab)) throw new Error("Ce patient n'est pas dans vos établissements.");
+      const M = f.exists && f.data().montantsJson ? JSON.parse(f.data().montantsJson) : { rdv: {}, rt: {}, cures: {} }, E = e.exists && e.data().data ? JSON.parse(e.data().data) : { rdv: {}, cons: {} };
+      const q = L.appliquerPrix(p.data(), M, E, req.data);
+      t.set(refM, { etablissementId: etab, montantsJson: JSON.stringify(M) }, { merge: true });
+      t.set(refE, { etablissementId: etab, data: JSON.stringify(E) });
+      return q;
+    });
+    return { ok: true, quoi };
+  } catch (e) { throw new HttpsError("failed-precondition", e.message); }
+});
+
 exports.agendaNuit = onSchedule(Object.assign({ schedule: "30 3 * * *", timeZone: L.TZ }, OPTS), async () => {
   const l = (await db.collection("agendaJetons").get()).docs.filter((d) => !d.data().revoque);
   for (const d of l) { try { await syncComplet(d.id, d.data()); } catch (e) { await echec(d.id, e); } }

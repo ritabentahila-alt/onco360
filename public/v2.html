@@ -375,6 +375,52 @@ nav a.actif .nb-menu{background:#fff;color:var(--prim)}
 .ta-entete{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:4px}
 @media (max-width:640px){.ta-filtres{grid-template-columns:1fr 1fr}.ta-filtres select{font-size:14px;padding:10px 8px}}
 @media (max-width:640px){.tache{flex-wrap:wrap;gap:8px}.tache select.st{width:100%}}
+/* Salle d'attente (SA1, 08/10/2026) : lignes du jour, pastilles de statut au trait, bulles du dossier en consultation */
+.sa-etab select{padding:11px 12px;border:1px solid #CCD3E0;border-radius:var(--r-m);background:#fff;font-size:15px;max-width:100%}
+.sa-l{display:grid;grid-template-columns:var(--cols,46px minmax(0,1.2fr) minmax(0,.9fr) minmax(0,1fr) 48px minmax(0,1.15fr) 76px 272px);gap:8px;align-items:center;padding:10px 4px;border-bottom:1px solid var(--trait);font-size:14px}.sa-l>*{min-width:0}.sa-l .badge{font-size:11.5px;padding:3px 8px}.sa-l.ent span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sa-defile{overflow-x:auto}
+.sa-l.ent{font-size:12px;color:var(--doux);font-weight:bold;padding:4px 4px 8px}
+.sa-l .h{font-weight:bold;color:var(--titre)}.sa-l .ar{font-weight:bold;color:var(--titre)}
+.sa-l .nm{min-width:0}.lien-nm{border:0;background:none;padding:0;font:inherit;font-weight:bold;font-size:14.5px;color:var(--prim);text-align:left;cursor:pointer}.lien-nm:hover{text-decoration:underline}
+.sa-l .mo{min-width:0;overflow-wrap:anywhere}.crayon{border:0;background:none;padding:2px 4px;color:var(--doux);cursor:pointer;vertical-align:middle}.crayon .pi{margin:0}.crayon:hover{color:var(--prim)}
+.sa-l .actr{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.sa-l .badge{white-space:normal}.sa-l .st{white-space:normal}
+.sa-o .sm{display:none}.sa-o button{flex:1 1 0;justify-content:center;min-width:0}
+.sa-l.ent{background:var(--prim-c);color:var(--titre);border-radius:var(--r-s);border-bottom:0;padding:9px 4px;margin-bottom:2px;font-size:12px;letter-spacing:.2px}
+.sa-l.consult{background:#F3FAF6}.sa-l.vu .h,.sa-l.absent .h{color:var(--doux)}
+.st{display:inline-flex;align-items:center;gap:6px;border:1.5px solid currentColor;border-radius:20px;padding:2px 10px;font-size:12.5px;font-weight:bold;white-space:nowrap;background:#fff}
+.st i{width:8px;height:8px;border-radius:50%;background:currentColor;flex:none}
+.st.prevu{color:#7A8499}.st.salle{color:var(--bleu)}.st.consult{color:var(--vert)}.st.vu{color:#2E7D5B}.st.absent,.st.rouge{color:var(--rouge)}.st.orange{color:var(--orange)}
+.mini.bleu{color:var(--bleu);border-color:#BFD0EC}
+.sa-l .px{white-space:nowrap}.sa-l .civ{color:var(--doux);font-weight:bold}.sa-l .cor,.sa-l .mut,.sa-l .com{min-width:0;overflow-wrap:break-word;font-size:13.5px}.sa-l .com{white-space:pre-wrap}.sa-etab{display:flex;gap:8px;flex-wrap:wrap}
+.pa-auto{display:inline-flex;align-items:center;gap:6px;cursor:pointer}.pa-auto input{width:18px;height:18px}.px-ok{font-weight:bold;color:var(--vert)}.px-prev{color:var(--doux)}
+.sa-tot{display:flex;gap:10px 24px;flex-wrap:wrap;align-items:center;justify-content:flex-end;padding:12px 4px 2px;font-size:14.5px;color:var(--titre)}.sa-tot b{font-size:16px}
+.sa-jours{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.sa-fl{width:40px;height:52px;border:1px solid var(--trait);background:#fff;border-radius:var(--r-m);font-size:24px;line-height:1;color:var(--titre);flex:none}
+.sa-sem{display:flex;gap:6px;flex:1;min-width:0}
+.sa-j{flex:1 1 0;min-width:0;border:1px solid var(--trait);background:#fff;border-radius:var(--r-m);padding:6px 2px;display:flex;flex-direction:column;align-items:center;gap:1px;color:var(--encre);position:relative}
+.sa-j span{font-size:12px;color:var(--doux)}.sa-j b{font-size:17px;color:var(--titre)}.sa-j i{font-style:normal;font-size:11px;font-weight:bold;color:var(--prim);min-height:13px}
+.sa-j.auj{border-color:var(--prim-cc)}.sa-j.auj b{color:var(--prim)}
+.sa-j.on{background:var(--prim);border-color:var(--prim)}.sa-j.on span,.sa-j.on b,.sa-j.on i{color:#fff}
+.sa-cal{position:relative;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--trait);background:#fff;border-radius:var(--r-m);padding:0 12px;height:52px;font-weight:bold;font-size:14px;color:var(--titre);cursor:pointer;overflow:hidden}
+.sa-cal input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.sa-jours #saAuj{height:52px}
+.sa-bulles{position:fixed;left:calc(var(--menu) + 24px);bottom:calc(22px + env(safe-area-inset-bottom));z-index:60;display:flex;flex-direction:column;gap:10px}
+.sa-b{display:flex;flex-direction:column;align-items:flex-start;gap:8px}
+.sa-b .lbl{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1.5px solid var(--vert);color:var(--vert);border-radius:20px;padding:4px 12px;font-size:12.5px;font-weight:bold;box-shadow:0 6px 18px rgba(30,42,68,.14)}
+.sa-b .lbl i{width:8px;height:8px;border-radius:50%;background:currentColor}
+.sa-b .bt{border-radius:28px;padding:12px 20px;box-shadow:0 10px 26px rgba(30,42,68,.28)}
+.sa-espace{height:150px}
+@media (max-width:1023px){.sa-bulles{left:12px}}
+@media (max-width:900px){
+  .sa-l.ent{display:none}
+  .sa-l{grid-template-columns:48px minmax(0,1fr);gap:5px 10px}
+  .sa-l>*:not(:first-child){grid-column:2}
+  .sa-l .actr{justify-content:flex-start}
+  .sa-l .mo:empty,.sa-l .ar:empty,.sa-l .px:empty,.sa-l .civ:empty,.sa-l .cor:empty,.sa-l .mut:empty{display:none}
+  .sa-l [data-l]:not(:empty)::before{content:attr(data-l) " : ";color:var(--doux);font-weight:normal}
+}
+@media (max-width:640px){.sa-fl{width:32px;height:48px;font-size:20px}.sa-sem{gap:3px;flex:1 1 calc(100% - 96px)}.sa-j{padding:5px 0}.sa-j b{font-size:15px}.sa-j span{font-size:11px}.sa-cal,.sa-jours #saAuj{flex:1 1 40%;justify-content:center;height:42px}.sa-tot{justify-content:flex-start}}
+@media (max-width:640px){.sa-o button{flex-direction:row;gap:5px;font-size:13px}.sa-o .n{position:static;padding:0 6px}.sa-o .lg{display:none}.sa-o .sm{display:inline}}
+@media (max-width:640px){.sa-b{flex-direction:row;flex-wrap:wrap;align-items:center}.sa-b .lbl{width:100%;justify-content:center}.sa-b .bt{padding:11px 16px}.sa-etab{width:100%}.sa-etab select{width:100%}}
 
 /* Agenda */
 #page.large{max-width:1240px}
@@ -531,6 +577,7 @@ nav a.actif .nb-menu{background:#fff;color:var(--prim)}
   <symbol id="i-crayon" viewBox="0 0 24 24"><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/><path d="m14.5 5.5 3 3"/></symbol>
   <symbol id="i-croix" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
   <symbol id="i-taches" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="3"/><path d="m7.3 9 1.6 1.6 2.8-2.8M14 9.4h3M7.3 15.4l1.6 1.6 2.8-2.8M14 15.8h3"/></symbol>
+  <symbol id="i-salle" viewBox="0 0 24 24"><path d="M6 3.5v9.5h11M6 13v7.5M17 13v7.5M6 17h11M17 8.5h-7.5a1.5 1.5 0 0 0-1.5 1.5v3"/><circle cx="15" cy="4.8" r="1.8"/></symbol>
   <symbol id="i-bulle" viewBox="0 0 24 24"><path d="M5 4h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-8l-5 4v-4H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"/></symbol>
   <symbol id="i-document" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7ZM14 2v4a2 2 0 0 0 2 2h4M10 9H8M16 13H8M16 17H8"/></symbol>
 </svg>
@@ -539,6 +586,7 @@ nav a.actif .nb-menu{background:#fff;color:var(--prim)}
   <nav>
     <a href="#accueil" data-p="accueil"><svg class="i"><use href="#i-accueil"/></svg>Tableau de bord</a>
     <a href="#agenda" data-p="agenda"><svg class="i"><use href="#i-agenda"/></svg>Agenda / Rendez-vous</a>
+    <a href="#salle" data-p="salle"><svg class="i"><use href="#i-salle"/></svg>Salle d'attente<span class="nb-menu cache" id="nbSalle"></span></a>
     <a href="#patients" data-p="patients"><svg class="i"><use href="#i-patients"/></svg>Patients</a>
     <a href="#taches" data-p="taches"><svg class="i"><use href="#i-taches"/></svg>Tâches<span class="nb-menu cache" id="nbTaches"></span></a>
     <a href="#protocoles" data-p="protocoles"><svg class="i"><use href="#i-protocoles"/></svg>Protocoles</a>

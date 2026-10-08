@@ -38,6 +38,10 @@ export function fusionner(id, doc, montants) {
     (L.cures || []).forEach((c, i) => {
       const n = i + 1, pl = (planning[L.id] || {})[n];
       if (pl) { if (pl.fixe != null) c.fixe = pl.fixe; if (pl.sea) Object.keys(pl.sea).forEach((j) => { c.sea = c.sea || {}; c.sea[j] = c.sea[j] || { st: "prevue" }; c.sea[j].fixe = pl.sea[j]; }); }
+      // Reports enregistrés avec le seul droit « planning » (secrétaire, 08/10/2026) : historique gardé dans le planning (rep, srep),
+      // ajouté après celui du dossier ; repris dans le dossier au prochain enregistrement du médecin (separer ne les garde pas ici)
+      if (pl && pl.rep) c.rep = (c.rep || []).concat(pl.rep);
+      if (pl && pl.srep) Object.keys(pl.srep).forEach((j) => { c.sea = c.sea || {}; c.sea[j] = c.sea[j] || { st: "prevue" }; c.sea[j].rep = (c.sea[j].rep || []).concat(pl.srep[j]); });
       const m = M && M.cures && M.cures[L.id] && M.cures[L.id][n]; if (m) { if (m.hon != null) c.hon = m.hon; if (m.cons != null) c.cons = m.cons; }
     });
     return L;

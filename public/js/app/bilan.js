@@ -6,6 +6,7 @@ import { db } from "../config.js";
 import { evtsFin } from "../moteur/finances.js";
 import { calculerBilan, dh, clePaye, estPaye } from "../moteur/bilan.js";
 import { num } from "../moteur/outils.js";
+import { activite } from "../moteur/tarifs.js";
 
 let A = null;
 export function installer(api) { A = api; }
@@ -17,7 +18,16 @@ const typesActes = () => { const l = TYPES0.slice(), T = D().tarifs || {}; Objec
 const PER = [["semaine", "Semaine en cours"], ["mois", "Mois en cours"], ["moisprec", "Mois dernier"], ["annee", "Année civile"], ["perso", "Période personnalisée"]];
 const impot = () => { const T = D().tarifs || {}; const h = T.etablissements && Object.values(T.etablissements)[0]; const a = h && h.activites.find((x) => x.type === "seance"); const v = a && a.historique && a.historique[a.historique.length - 1]; return v && v.impot != null ? v.impot : 10; };
 const tauxTxt = (o) => (o.t === "rt" ? (o.taux == null ? "ancien calcul" : o.taux + " % − " + impot() + " %") : o.t === "seance" || o.t === "hospit" ? "− " + impot() + " %" : "100 %");
-const payeTxt = (o) => (o.t === "kl" ? "Reçu" : estPaye(o, B.paiements) ? "Payé le " + A.dfrA(B.paiements[clePaye(o)]) : "À recevoir");
+// Paiements : ceux cochés dans le bilan, plus les actes « payés automatiquement » (Paramètres, case « Payé auto. » de l'activité
+// de l'établissement, actes à partir de la date où elle a été cochée : 08/10/2026)
+let PE = {};
+const autoPaye = (o) => { const T = D().tarifs; if (!T || !o.t || o.t === "kl" || o.t === "rtprev" || !o.d) return false; const a = activite(T, o.hop, o.t); return !!(a && a.payeAuto && o.d >= a.payeAuto); };
+function paiementsEffectifs(R) {
+  const p = Object.assign({}, B.paiements);
+  R.forEach((x) => (x.fin || []).forEach((e) => { const o = { id: x.id, t: e[1], d: e[0], lib: e[3], hop: e[2] || "" }, k = clePaye(o); if (!p[k] && autoPaye(o)) p[k] = o.d; }));
+  return p;
+}
+const payeTxt = (o) => (o.t === "kl" ? "Reçu" : estPaye(o, PE) ? (B.paiements[clePaye(o)] ? "Payé le " + A.dfrA(PE[clePaye(o)]) : "Payé (automatique)") : "À recevoir");
 
 // Chargement : montants de tous les dossiers, paiements, versements (une fois par session ; « Actualiser » recharge)
 async function charger() {
@@ -45,7 +55,7 @@ export async function pagePageBilan() {
   dessiner();
 }
 function dessiner() {
-  const esc = A.esc, R = resumes(), b = calculerBilan(R, B.versements, B.paiements, F.per === "perso" ? Object.assign({}, F, { per: "" }) : F, D().t), T = b.tot, all = b.all;
+  const esc = A.esc, R = resumes(), b = (PE = paiementsEffectifs(R), calculerBilan(R, B.versements, PE, F.per === "perso" ? Object.assign({}, F, { per: "" }) : F, D().t)), T = b.tot, all = b.all;
   DATA = b;
   const sel = (id, v, opts, f) => '<select id="' + id + '" onchange="biF(\'' + f + '\',this.value)">' + opts.map((o) => '<option value="' + esc(o[0]) + '"' + (o[0] === v ? " selected" : "") + ">" + esc(o[1]) + "</option>").join("") + "</select>";
   const refs = [...new Set(R.map((x) => x.cor || ""))].sort((a, z) => a.localeCompare(z, "fr"));
@@ -70,7 +80,7 @@ function dessiner() {
     (all.length ? all.map((o, i) => {
       const cor = o.id ? (R.find((x) => x.id === o.id) || {}).cor : "";
       return "<tr" + (o.id ? ' class="cl" onclick="ouvrirDossier(\'' + o.id + "')\"" : "") + "><td>" + A.dfrA(o.d) + "</td><td>" + esc(o.nm) + (cor ? '<div class="mesures">' + esc(cor) + "</div>" : "") + "</td><td>" + esc(o.hop || "—") + "</td><td>" + esc(o.lib) + "</td><td>" + esc(o.st) + '</td><td class="n">' + dh(o.brut) + '</td><td class="n">' + tauxTxt(o) + '</td><td class="n"><b>' + dh(o.net) + "</b></td>" +
-        '<td onclick="event.stopPropagation()">' + (o.t === "kl" ? '<span class="badge b-ch">Reçu</span>' : '<button class="mini ' + (estPaye(o, B.paiements) ? "vert" : "") + '" title="' + (estPaye(o, B.paiements) ? "Payé le " + A.dfrA(B.paiements[clePaye(o)]) + " – cliquer pour annuler" : "Cliquer quand la clinique a payé") + '" onclick="biPaye(' + i + ')">' + (estPaye(o, B.paiements) ? "✓ Payé" : "Payé") + "</button>") + "</td></tr>";
+        '<td onclick="event.stopPropagation()">' + (o.t === "kl" ? '<span class="badge b-ch">Reçu</span>' : '<button class="mini ' + (estPaye(o, PE) ? "vert" : "") + '" title="' + (estPaye(o, PE) ? (B.paiements[clePaye(o)] ? "Payé le " + A.dfrA(PE[clePaye(o)]) + " – cliquer pour annuler" : "Payé automatiquement à la validation (Paramètres)") : "Cliquer quand la clinique a payé") + '" onclick="biPaye(' + i + ')">' + (estPaye(o, PE) ? (B.paiements[clePaye(o)] ? "✓ Payé" : "✓ Payé (auto.)") : "Payé") + "</button>") + "</td></tr>";
     }).join("") + '<tr class="tot"><td colspan="7" class="n"><b>Total</b></td><td class="n"><b>' + dh(T.caNet) + "</b></td><td></td></tr>" : '<tr><td colspan="9" class="mesures">Aucun acte sur la période.</td></tr>') + "</table></div></section>";
   // Référents
   if (F.cor !== "tous") {
@@ -96,6 +106,7 @@ window.biF = (f, v) => { F[f] = v; dessiner(); };
 window.biActualiser = async () => { B = null; await pagePageBilan(); A.toast("Bilan actualisé."); };
 window.biPaye = async (i) => {
   const o = DATA.all[i]; if (!o || o.t === "kl") return; const k = clePaye(o), avant = B.paiements[k];
+  if (!avant && PE[k]) { A.toast("Payé automatiquement à la validation : décochez « Payé auto. » dans les Paramètres pour gérer ce paiement à la main."); return; }
   if (avant) { if (!confirm("Remettre « " + o.lib + " » en attente de paiement ?")) return; delete B.paiements[k]; } else B.paiements[k] = D().t;
   try { await setDoc(doc(db, "espaces", A.ESPACE, "finances", "paiements"), { data: JSON.stringify(B.paiements) }); dessiner(); }
   catch (e) { if (avant) B.paiements[k] = avant; else delete B.paiements[k]; A.toast("Enregistrement impossible : " + e.message); }

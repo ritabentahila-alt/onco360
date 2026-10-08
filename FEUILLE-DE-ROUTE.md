@@ -568,32 +568,102 @@ clients abonnés augmentent la valeur de la cession.
 But : suivre en temps réel le passage des patients le jour J, de l'arrivée à la fin de la consultation.
 Nouvelle page **« Salle d'attente »** dans le menu, **entre Agenda et Patients**.
 
-**À décider au début de l'étape**
-- Lien avec les statuts actuels des rendez-vous (Prévu, Venu, Non venu, Reporté) : proposition = on ajoute deux statuts
-  intermédiaires **En salle d'attente** et **En consultation** ; **Terminé = « Venu »** (même fenêtre de prix, bilan
-  inchangé) ; **Absent = « Non venu »**.
-- Qui fait quoi : la secrétaire « Met en salle » ; le médecin « Démarre la consultation » ; qui passe à « Terminé » ?
-- Patients sans rendez-vous (urgence, passage) : les ajouter directement en salle d'attente ?
-- Séances de chimio et de radiothérapie : dans la salle d'attente aussi, ou seulement les consultations ?
+**Décisions de Dr Bentahila (08/10)**
+- Statuts : Prévu → **En salle d'attente** → **En consultation** → **Vu** (= « Venu », fenêtre de prix, bilan inchangé) ;
+  **Absent** = « Non venu ». « En salle » et « En consultation » sont notés à côté du statut (le statut reste « Prévu »
+  jusqu'à « Vu » : bilan, agenda et Google Agenda inchangés).
+- **Mettre en salle** : médecin, secrétaire, infirmière. **Démarrer la consultation** : médecin et secrétaire (pas
+  l'infirmière). **Terminer / Valider** : médecin et secrétaire, **la fenêtre de prix s'ouvre pour les deux**. La secrétaire
+  n'annule pas un statut posé par le médecin (règle actuelle).
+- **Tous les types de consultation** sont dans la salle d'attente (annonce, suivi, contrôle, en cours de radiothérapie,
+  séance de chimiothérapie, activités des Paramètres) : le médecin voit le patient en consultation pour valider sa séance.
+- Colonnes : heure du RDV, nom et prénom, **type**, **motif de consultation** (texte), heure d'arrivée, temps d'attente
+  (orange à **20 min**, rouge à **45 min**, modifiables dans Configuration), **prix** (prix validé quand le patient est vu,
+  sinon prix de base prévu) avec **total en bas**. Pas de badge « nouveau patient » (il se lit dans le motif).
+- Ordre de « En salle d'attente » **au choix dans Configuration** : par heure de rendez-vous (urgences en tête, sans
+  rendez-vous à leur heure d'arrivée) ou par ordre d'arrivée.
+- **Clic sur le nom** = ouvre le dossier **sans changer le statut** (médecin et secrétaire).
+- Patient **en consultation** : dans son dossier, **deux bulles flottantes en bas à gauche** (suivent la page) :
+  **Valider** (→ Vu, fenêtre de prix) et **Retour en salle** (revient en salle d'attente sans valider).
+- **« + Arrivée sans rendez-vous »** : choisir un patient connu + motif, ou créer un nouveau patient (fenêtre du dossier)
+  + motif ; crée un rendez-vous du jour à l'heure actuelle, déjà « En salle d'attente » (case Urgence).
+- **Prix** : la secrétaire voit le **prix de base** de chaque consultation (brut, sans rétrocession ni impôt) et les
+  **prix validés** (c'est elle qui fait payer le patient) ; elle **ne voit aucun acte de radiothérapie ni honoraire**
+  (la consultation « en cours de radiothérapie » est à 0 DH : l'acte RT est payé à part ; les honoraires de séance de
+  chimiothérapie sont validés avec la cure, pas avec le rendez-vous, et ne lui sont pas montrés). L'infirmière n'a pas la colonne
+  prix. La secrétaire enregistre le prix par une **fonction serveur** limitée aux consultations du jour de son centre
+  (elle n'a toujours pas le droit « finances »).
+- **Total en bas** (journée, établissement choisi) : « Encaissé (vus) : X DH » et « Prévu (restant) : Y DH », sans les absents.
+- **Séance de chimiothérapie** : « Valider » valide **seulement la consultation** (prix de la consultation de chimio, J1
+  seulement, J8… = 0). La **cure** est validée par le médecin dans le dossier, avant de valider la consultation. La
+  secrétaire peut « Valider la consultation de séance de chimiothérapie », jamais la cure.
+- Paramètres : les deux lignes existent déjà (« Séance de chimiothérapie », « Consultation de chimiothérapie ») ; valeurs
+  voulues : séance **500 DH brut, rétrocession 0 %, impôt 10 %** ; consultation de chimio **250 DH brut, 0 %, 0 %, J1
+  seulement**. À vérifier dans Paramètres (Dr Bentahila) ; si un chiffre change, mettre la date d'effet du jour pour ne pas
+  modifier le bilan passé.
+- **Absent** : médecin et secrétaire (pas l'infirmière).
 
-**SA1 – Page et statuts**
-- [ ] Page « Salle d'attente », **filtre par établissement** (la secrétaire ne voit que son centre), date du jour.
-- [ ] **3 onglets** (avec leur nombre) : **À venir** (rendez-vous du jour pas encore arrivés) · **En salle d'attente**
-      (la secrétaire a cliqué « Mettre en salle ») · **Vus** (le médecin a ouvert le dossier et validé : « Venu » / Terminé).
-- [ ] Statuts : ⚪ Prévu → 🔵 En salle d'attente → 🟢 En consultation → Terminé (ou 🔴 Absent / Non honoré) — en pastilles
-      de couleur au trait, pas d'émoticônes.
-- [ ] **Poinçonnage** : l'heure exacte d'arrivée est notée au clic « Mettre en salle » (« Arrivé à 14 h 22 »), avec qui l'a fait.
-- [ ] Colonnes : **heure du RDV**, **nom et prénom**, **motif** avec **badges de couleur** (nouveau patient, urgence, type
-      de consultation, chimio / RT), **heure d'arrivée**, **temps d'attente** (compteur « En attente depuis 12 min »,
-      orange puis rouge au-delà d'un seuil à choisir).
-- [ ] Actions rapides : **Mettre en salle**, **Démarrer la consultation** (statut « En consultation » + ouvre le dossier),
-      **Terminer** (= Venu, fenêtre de prix), **Absent**, **Annuler** (retour au statut précédent).
-- [ ] Mise à jour **en temps réel** (sans recharger) sur tous les écrans du cabinet.
-- [ ] Données : statut, heure d'arrivée, heure de début / fin et auteur gardés dans le rendez-vous (`rdvsJson`) ;
-      règles de sécurité inchangées si possible. Statistiques plus tard (temps d'attente moyen).
-- [ ] Tests : 3 rôles, 2 établissements, 390 px, bilan 352 317 DH.
+**Décisions de Dr Bentahila (08/10, après SA1)**
+- **Bandeau des jours** en haut : la semaine sur une ligne, flèches jour précédent / suivant, calendrier, « Aujourd'hui ».
+- **Absent** ouvre une fenêtre : **reporter** le rendez-vous (nouvelle date et heure) ou **ne pas reporter**.
+- **Secrétaire : fenêtre de prix comme le médecin** (prix prédéfini, 0 si le patient ne paie pas) ; elle peut **changer un prix
+  déjà validé par le médecin**.
+- Séance de chimio manquée : **proposition de Claude à valider** (voir SA1 bis).
 
-**SA2 – Dans l'agenda et le tableau de bord**
+**SA1 – Page, statuts, temps réel, bulles du dossier**
+- [x] Page « Salle d'attente » (menu, entre Agenda et Patients), **filtre par établissement** (la secrétaire ne voit que
+      son centre), date du jour ; **4 onglets** avec leur nombre : À venir · En salle d'attente · Vus · Absents.
+- [x] Pastilles de couleur au trait : Prévu, En retard, En salle (orange 20 min, rouge 45 min), En consultation, Vu, Absent.
+- [x] **Poinçonnage** : heure d'arrivée et auteur (« Arrivé à 14 h 22 »), heure de début et de fin de consultation.
+- [x] Colonnes (sauf prix, en SA2) ; motif saisi dans la fenêtre du rendez-vous et modifiable depuis la salle d'attente.
+- [x] Actions : Mettre en salle, Démarrer la consultation (ouvre le dossier), Valider, Absent, Annuler ; clic sur le nom.
+      Consultation de chimio validée par le médecin seulement (droit « finances ») jusqu'à la fonction serveur de SA2.
+- [x] Bulles flottantes Valider / Retour en salle dans le dossier (Valider ramène à la salle d'attente).
+- [x] Séances de chimio du jour (cures J1, J8…) dans la liste.
+- [x] Mise à jour **en temps réel** sur tous les écrans du cabinet (collection `salle`, nouvelles règles : 22 tests).
+- [x] Tests : 3 rôles, 2 établissements, 390 px, bilan 352 317 DH. Guide `guide/salle-attente.md`.
+
+**SA1 bis – Jours, absences, prix (08/10)**
+- [x] Bandeau de la semaine (nombre de patients par jour), flèches, calendrier, « Aujourd'hui ». Jours passés : onglet
+      « À valider », validation et absence seulement ; jours à venir : consultation et motif seulement.
+- [x] Absent (salle d'attente et « Non venu » du dossier) : fenêtre « Reporter le rendez-vous » (prochain jour ouvert proposé,
+      horaires de l'établissement, jours fériés et absences vérifiés) ou « Ne pas reporter ». Le rendez-vous manqué reste
+      « Non venu » ; le report est un nouveau rendez-vous « Reporté (initialement le …) ».
+- [x] Colonne **prix** (prévu au tarif / validé) et **total** (« Encaissé (vus) », « Prévu (restant) », sans les absents) ;
+      crayon pour changer le prix d'une consultation vue.
+- [x] Secrétaire : fenêtre de prix (consultations et consultation de chimio), « Modifier le prix » dans le dossier, par la
+      fonction serveur **prixConsultation** (elle n'a toujours pas le droit « finances ») ; tarifs des consultations lisibles
+      par l'équipe (`parametres/tarifsConsultations`, sans rétrocession, impôt, séance ni radiothérapie, publiés par le médecin).
+      Le médecin relit les montants avant chaque écriture (un prix changé par la secrétaire n'est pas écrasé).
+- [x] **Séance de chimio manquée** (décision du 08/10 : la secrétaire peut aussi, selon les consignes du médecin) : « Absent »
+      ouvre la fenêtre « Reporter » du dossier (raison « Patient absent », « cette date seulement » ou « recalculer toute la
+      suite ») ou « Absent, sans reporter ». La date change dans le protocole (salle d'attente, agenda, Google Agenda suivent) ;
+      la séance reste dans « Absents » du jour avec « Reportée au … ». Secrétaire : droit « planning » (activé une fois par
+      la migration `secretairePlanning`) ; elle n'écrit que `planningJson`, l'historique du report y est gardé (`rep`, `srep`).
+
+**SA1 ter – Colonnes, commentaire, prix bruts, payé automatique (demandes du 08/10 après la mise en ligne)**
+- [x] À venir : les séances de chimio en tête (même sans heure) ; plus de statut « En retard » (heure du rendez-vous et
+      d'arrivée seulement).
+- [x] Colonnes **Civilité** (M. / Mme), **Correspondant**, **Mutuelle** (nom court, complet au survol), **Commentaire** du jour
+      (médecin, secrétaire, infirmière ; règle : commentaire seul permis à tout membre du périmètre, 3 tests) ; bouton
+      **Colonnes** : chacun choisit ses colonnes (`utilisateurs/{uid}.salleCachees`, gardé sur tous ses appareils).
+- [x] Prix affichés en **brut** : les prix repris de l'ancienne application (ex. HCK 225 DH net) s'affichent 250 DH
+      (`encaissements` : `b`, reconstruits une fois par la migration `encaissementsBrutV1`) ; bilan inchangé. La secrétaire ne
+      modifie pas ces anciens prix (serveur).
+- [x] « Non venu » sans report : sort des rendez-vous à venir, apparaît dans « Consultations et hospitalisations » en
+      « Non venu · 0 DH » ; consultation en cours de RT validée : « Venu · 0 DH ».
+- [x] Paramètres : case **« Payé auto. »** par activité et par établissement (entre Net et En vigueur depuis, décochée par
+      défaut) : cochée, les actes validés à partir de ce jour comptent « Payé (auto.) » dans le bilan ; décochée, le médecin
+      coche « Payé » lui-même. Les actes plus anciens ne changent pas.
+
+- [x] Onglets sur toute la largeur (ordinateur et téléphone, largeurs égales) ; titres des colonnes dans un bandeau.
+
+**SA2 – Sans rendez-vous, prix et total, Configuration**
+- [ ] « + Arrivée sans rendez-vous » (patient connu ou nouveau patient, motif, urgence).
+- [x] Colonne **prix** et **total** ; fenêtre de prix pour la secrétaire : faits en SA1 bis.
+- [ ] Configuration : seuils d'attente, ordre de la liste.
+
+**SA3 – Dans l'agenda et le tableau de bord**
 - [ ] Le temps d'attente et le statut s'affichent aussi dans l'**Agenda** (vue Jour / Liste) et dans « Aujourd'hui » du
       tableau de bord, pour que le médecin voie d'un coup d'œil qui attend depuis combien de temps.
 - [ ] **Consignes d'arrivée** (« Veuillez patienter dans votre véhicule… ») : message WhatsApp prêt, modèles dans
@@ -806,6 +876,13 @@ Onco360_Package_Cession/
 | 08/10/2026 | 5 – T5 Tâches | Finition : nom du patient à jour, patient hors périmètre sans lien, responsable sans accès « À réattribuer » (statut / commentaire bloqués s'il est retiré), guide `guide/taches.md`. Testé (médecin, secrétaire HGC, bilan 352 317 DH). Pas encore en ligne. |
 | 08/10/2026 | 5 – T6 Tâches | Échéances dans le Google Agenda du responsable (journée entière ou 15 min, sans rappel, « EN RETARD » reportée chaque jour, retirée une fois terminée, suit les réattributions) : fonction `agendaTache` + remise à plat. Tests logique 32/32. Pas encore en ligne. |
 | 08/10/2026 | Google Agenda – couleurs | Couleurs par type d'événement modifiables (Configuration › Google Agenda), par défaut : annonce Flamant, suivi Paon, RT en cours Lavande, hospitalisation Myrtille, chimio Basilic, RT Raisin, dosimétrie Mandarine, absences Banane, tâches Graphite / Tomate. Fonction `agendaCouleurs`. Tests 40/40. Mis en ligne (règles, fonctions, site). |
+| 08/10/2026 | 6 – Salle d'attente | Décisions prises (statuts, qui fait quoi, tous les types de consultation, motif, prix et total, bulles Valider / Retour dans le dossier, arrivée sans rendez-vous, ordre au choix) ; étape découpée en SA1, SA2, SA3. |
+| 08/10/2026 | 6 – Salle d'attente | Décisions sur les prix (secrétaire : consultations seulement, fonction serveur), total encaissé / prévu, séance de chimio = consultation seulement (cure validée dans le dossier), Absent : médecin et secrétaire. Prêt pour SA1. |
+| 08/10/2026 | 6 – SA1 Salle d'attente | Page Salle d'attente (rendez-vous de consultation et séances de chimio du jour, 4 onglets, Mettre en salle / Démarrer / Valider / Absent / Annuler / Retour, motif, retard et temps d'attente), temps réel (collection `salle`), bulles Valider / Retour dans le dossier, motif dans la fenêtre du rendez-vous. Règles 66/66 sur l'émulateur. Testé (médecin, secrétaire HGC, infirmière HGC, chimio J15, 390 px, bilan 352 317 DH). Pas encore en ligne. |
+| 08/10/2026 | 6 – SA1 bis Salle d'attente | Bandeau de la semaine (flèches, calendrier), jours passés / à venir ; Absent → fenêtre de report du rendez-vous ; colonne prix et total ; secrétaire : fenêtre de prix et modification d'un prix validé (fonction serveur prixConsultation, tarifs des consultations publiés). Tests logique 52/52, règles 66/66, navigateur (médecin, secrétaire, chimio, 390 px, bilan 352 317 DH). Report d'une séance de chimio manquée : proposition à valider. Pas encore en ligne. |
 | 08/10/2026 | Documents du dossier | Onglet Documents : dépôt de fichiers (PDF, Word, photos…) avec titre, date et type, liste récente d'abord, recherche et filtre par type, ouvrir / télécharger / modifier / supprimer ; types de documents dans Configuration › Documents ; Cloud Storage activé (Europe) et règles publiées. Testé (médecin, secrétaire, infirmière, 390 px, bilan 352 317 DH). Pas encore en ligne (avec la salle d'attente, après accord). |
 | 08/10/2026 | Doc. et ligne libre | Bouton « Doc. » (documentation PDF du cabinet à remettre aux patients, régimes déplacés de Courriers, recherche, catégories, tri, remis noté dans la consultation, médecin seul gère) ; ligne libre avec suggestions de la liste. Testé (médecin, secrétaire, 390 px, bilan 352 317 DH). Pas encore en ligne. |
 | 08/10/2026 | Mise en ligne commune | Documents du dossier, bouton Doc., ligne libre avec suggestions et Salle d'attente mis en ligne (règles Firestore et stockage, fonction prixConsultation, site v2.js?v=20261008m), sur l'accord de Dr Bentahila. |
+| 08/10/2026 | 6 – SA1 et SA1 bis Salle d'attente | Mis en ligne (règles, fonction prixConsultation, site v2.js?v=20261008m), avec l'onglet Documents de l'autre session. À faire par Dr Bentahila : ouvrir Onco360 une fois avec son compte (publie les tarifs des consultations pour la secrétaire). |
+| 08/10/2026 | 6 – SA1 ter Salle d'attente | Chimio en tête d'À venir, plus de « En retard », colonnes civilité / correspondant / mutuelle / commentaire et choix des colonnes, prix bruts (anciens prix HCK), Non venu à 0 DH dans le dossier, case « Payé auto. » des Paramètres (bilan). Règles 69/69, logique 52/52, navigateur (médecin, infirmière, 390 px, bilan 352 317 DH). Pas encore en ligne. |
+| 08/10/2026 | 6 – SA1 ter Salle d'attente | Séance de chimio manquée : report depuis la salle d'attente (médecin et secrétaire, planning seul pour elle), onglets sur toute la largeur, bandeau des titres. Navigateur (secrétaire, médecin, 390 px, bilan de référence inchangé). Pas encore en ligne. |

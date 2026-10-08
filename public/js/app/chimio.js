@@ -8,13 +8,14 @@ import { statutLigne, ligneCourante } from "../moteur/resume.js";
 import { etatLigne, protocoleDe, protocoleCure, seancesCure, seancesDe, dedupIds, joursDe, clairance, jourVersSeance } from "../moteur/doses.js";
 import { addJ, ecart, num, age } from "../moteur/outils.js";
 import { tarif } from "../moteur/tarifs.js";
+import { typeRdv, T_RTC } from "../moteur/rdv.js";
 import { DIAG, MUT0, COR0, DICT } from "../donnees/listes.js";
 import { poso, doseTxt, ficheHTML, imprimerFiche } from "./fiche.js";
 
 let A = null; // outils fournis par l'application (v2.js)
 export function installer(api) { A = api; const f0 = window.fermerFenetre; window.fermerFenetre = () => { CM = null; f0(); }; }
 
-const RAISONS = ["Neutropénie", "Thrombopénie", "Infection", "Toxicité", "Décision médicale", "Autre"];
+const RAISONS = ["Patient absent", "Neutropénie", "Thrombopénie", "Infection", "Toxicité", "Décision médicale", "Autre"];
 const D = () => A.D();
 const trouver = (id) => D().patients.find((p) => p.id === id);
 const lignesDe = (x) => JSON.parse(JSON.stringify(fusionner(x.id, x.doc, null).lignes || []));
@@ -27,6 +28,17 @@ const MC = {}; // montants chargés par patient (droit « finances » uniquement
 async function sauverLignes(x, lignes, quoi, extra) {
   const P = fusionner(x.id, x.doc, null); P.lignes = lignes; if (extra) Object.assign(P, extra);
   const { patient } = separer(P), changes = {};
+  // Droit « planning » seul (secrétaire : déplacer, reporter) : seules les dates (planningJson) sont écrites ; les nouveaux
+  // historiques de report y sont gardés aussi (rep, srep), le dossier médical (lignesJson) ne change pas
+  if (!A.traitMod()) {
+    const pl = JSON.parse(patient.planningJson), orig = JSON.parse(x.doc.lignesJson || "[]");
+    lignes.forEach((L) => { const L0 = orig.find((z) => z.id === L.id) || { cures: [] };
+      (L.cures || []).forEach((c, i) => { const c0 = L0.cures[i] || {}, n = i + 1, o = () => ((pl[L.id] = pl[L.id] || {})[n] = pl[L.id][n] || {});
+        const r = (c.rep || []).slice((c0.rep || []).length); if (r.length) o().rep = r;
+        Object.keys(c.sea || {}).forEach((j) => { const r2 = ((c.sea[j] || {}).rep || []).slice((((c0.sea || {})[j] || {}).rep || []).length); if (r2.length) { const z = o(); (z.srep = z.srep || {})[j] = r2; } }); }); });
+    const pj = JSON.stringify(pl); if (pj === (x.doc.planningJson || "{}")) return;
+    await A.enregistrer(x, { planningJson: pj }, quoi); return;
+  }
   if (patient.lignesJson !== x.doc.lignesJson) changes.lignesJson = patient.lignesJson;
   if (patient.planningJson !== x.doc.planningJson) changes.planningJson = patient.planningJson;
   if (extra && JSON.stringify(patient.clinique) !== JSON.stringify(x.doc.clinique || {})) changes.clinique = patient.clinique;
@@ -44,6 +56,7 @@ async function chargerMontants(x) {
 }
 export async function majMontants(x, fn) {
   if (!A.peut("finances")) return;
+  delete MC[x.id]; // relus juste avant d'écrire : un prix changé entre-temps par la secrétaire (prixConsultation) n'est pas écrasé
   const M = await chargerMontants(x); fn(M);
   await setDoc(doc(db, "espaces", A.ESPACE, "patientsFinances", x.id), { etablissementId: x.doc.etablissementId || "", montantsJson: JSON.stringify(M) }, { merge: true });
   await ecrireEncaissements(x, M).catch((e) => console.warn("encaissements", e));
@@ -63,11 +76,20 @@ function majCons(cc) {
   const v = Object.entries(cc.consJ || {}), tot = v.reduce((s2, [, m]) => s2 + (num(m) || 0), 0), j0 = (v.find(([, m]) => (num(m) || 0) > 0) || v[0] || ["1"])[0];
   cc.cons = tot > 0 ? { enc: true, m: tot, jour: j0 } : { enc: false, m: 0 };
 }
+// Prix repris de l'ancienne application (v1) : montant reçu, net d'impôt (ex. HCK 225 DH pour 250 DH brut). À l'écran, on
+// affiche le brut (b) quand le montant est exactement le net du tarif de ce jour-là (08/10/2026) ; le bilan ne change pas.
+function brutV1(x, rid, m) {
+  const r = ((x.P && x.P.rdvs) || []).find((v) => v.id === rid), T = D().tarifs; if (!r || !T || m == null) return {};
+  const t = r.act || typeRdv(r.type); if (t === "hospit" || r.type === T_RTC) return {};
+  const v = tarif(T, x.doc.etablissementId, t, r.dv || r.d); if (!v || v.brut == null) return {};
+  const n = v.brut * (1 - (v.retro || 0) / 100) * (1 - (v.impot || 0) / 100);
+  return Math.abs(n - m) < 0.51 && v.brut !== m ? { b: v.brut } : {};
+}
 export function construireEncaissements(x, M) {
   const E = { rdv: {}, cons: {} };
   Object.entries((M && M.rdv) || {}).forEach(([rid, o]) => {
     if (!o) return;
-    if (o.v1 && o.prix != null) E.rdv[rid] = { m: num(o.prix) }; else if (o.tj != null) E.rdv[rid] = { tj: num(o.tj) }; else if (o.brut != null) E.rdv[rid] = { m: num(o.brut) };
+    if (o.v1 && o.prix != null) E.rdv[rid] = Object.assign({ m: num(o.prix), v1: true }, brutV1(x, rid, num(o.prix))); else if (o.tj != null) E.rdv[rid] = { tj: num(o.tj) }; else if (o.brut != null) E.rdv[rid] = { m: num(o.brut) };
   });
   const lignes = (x.P && x.P.lignes) || [];
   Object.entries((M && M.cures) || {}).forEach(([lid, cs]) => Object.entries(cs || {}).forEach(([n, c]) => {
@@ -88,12 +110,13 @@ export async function ecrireEncaissements(x, M) {
   await setDoc(doc(db, "espaces", A.ESPACE, "encaissements", x.id), { etablissementId: x.doc.etablissementId || "", data: JSON.stringify(E) });
 }
 const EC = {}; // prix à encaisser chargés par patient : objet, ou null si absent / refusé
+export const oublierEncaissements = (id) => { delete EC[id]; };
 export function encaissementsDe(x, quandCharge) {
   if (x.id in EC) return EC[x.id];
   getDoc(doc(db, "espaces", A.ESPACE, "encaissements", x.id)).then((s) => { const E = s.exists() ? JSON.parse(s.data().data || "{}") : null; if (E && E.cons) Object.keys(E.cons).forEach((k) => { if (k.split("|").length === 2) { const c = E.cons[k]; delete E.cons[k]; E.cons[k + "|" + String(c.j || "J1").replace("J", "")] = c; } }); EC[x.id] = E; }).catch(() => { EC[x.id] = null; }).then(() => quandCharge && quandCharge());
   return undefined;
 }
-const tarifDe = (x, cle, date) => { const T = D().tarifs; if (!T) return null; const t = tarif(T, x.doc.etablissementId, cle, date); return t ? t.brut : null; };
+const tarifDe = (x, cle, date) => { const T = D().tarifs || D().tarifsC; if (!T) return null; const t = tarif(T, x.doc.etablissementId, cle, date); return t ? t.brut : null; };
 // ───── Petits outils d'affichage ─────
 const b = (lib, fn, cls) => '<button class="mini ' + (cls || "") + '" onclick="' + fn + '">' + lib + "</button>";
 // Statut d'une cure : « J1 et J8 reçues · J15 à valider », puis « C2 terminée » quand toutes les séances sont reçues
@@ -146,7 +169,7 @@ function vueLigne(x, i) {
       (e.c.rep && e.c.rep.length ? '<div class="mesures">' + e.c.rep.map((r) => "reportée du " + A.dfrA(r.de) + " (" + esc(r.raison) + ")").join("<br>") + "</div>" : "") + "</td>" +
       "<td>" + (e.st === "recue" ? A.dfrA(e.c.reelle) : "—") + "</td><td>" + badgeCure(e) + (e.st === "annulee" && e.c.ann ? '<div class="mesures">' + esc(e.c.ann.raison || "") + (e.c.ann.com ? " – " + esc(e.c.ann.com) : "") + "</div>" : "") + "</td>" +
       "<td>" + (e.poids || "") + "</td>" + (auc ? '<td class="calc">' + (e.cl ? e.cl + " ml/min" : "") + "</td>" : "") + '<td class="calc">' + (e.sc ? fr2(e.sc) : "") + "</td>" +
-      '<td class="act"><div class="btns">' + b("Ouvrir", "chOuvrir(" + qc + ")", "fonce") + (okT ? (pend ? b('<svg class="pi"><use href="#i-check"/></svg>Valider', "chValider(" + qc + ")", "vert") + b("Reporter", "chReporter(" + qc + ")", "orange") + b("Annuler", "chAnnuler(" + qc + ")", "rouge") : b("Rétablir", "chRetablir(" + qc + ")")) : "") + "</div></td></tr>";
+      '<td class="act"><div class="btns">' + b("Ouvrir", "chOuvrir(" + qc + ")", "fonce") + (okT ? (pend ? b('<svg class="pi"><use href="#i-check"/></svg>Valider', "chValider(" + qc + ")", "vert") + b("Reporter", "chReporter(" + qc + ")", "orange") + b("Annuler", "chAnnuler(" + qc + ")", "rouge") : b("Rétablir", "chRetablir(" + qc + ")")) : pend && okPl && !L.arret ? b("Reporter", "chReporter(" + qc + ")", "orange") : "") + "</div></td></tr>";
   });
   h += '</table></div><p class="mesures" style="margin-top:6px">« Ouvrir » affiche la cure dans une fenêtre (J1, J8…, fiche chimio, doses). Une date prévue se modifie directement : il vous est alors demandé si les cures suivantes doivent suivre.</p>';
   return h + "</div>";
@@ -186,7 +209,7 @@ function vueCure(x, i, k) {
   h += "<tr>" + td("Jour", "<b>" + etiquette(g[0]) + "</b>") +
     td("Date prévue", (pend && okPl ? '<input type="date" value="' + esc(e.date || "") + '" onchange="chDate(' + qc + ',this.value)">' : A.dfrA(e.date) || "—") + reps(c.rep)) +
     td("Réalisée le", e.st === "recue" ? "<b>" + A.dfrA(c.reelle) + "</b>" : "—") + td("Statut", statut(e.st, c.rep && c.rep.length, e.st === "annulee" ? Object.assign({ raison: (c.ann && c.ann.raison) || "" }, c.ann) : null)) +
-    td("", '<div class="btns">' + b("Ouvrir", "chJour(1)", "fonce") + (okT ? (pend ? b('<svg class="pi"><use href="#i-check"/></svg>Valider', "chJour(1)", "vert") + b("↪ Reporter", "chReporter(" + qc + ")", "orange") + b("✖ Annuler", "chAnnuler(" + qc + ")", "rouge") : e.st === "recue" ? b("Annuler la validation", "chRetablir(" + qc + ")") : b("Rétablir", "chRetablir(" + qc + ")")) : "") + "</div>", "act") + "</tr>";
+    td("", '<div class="btns">' + b("Ouvrir", "chJour(1)", "fonce") + (okT ? (pend ? b('<svg class="pi"><use href="#i-check"/></svg>Valider', "chJour(1)", "vert") + b("↪ Reporter", "chReporter(" + qc + ")", "orange") + b("✖ Annuler", "chAnnuler(" + qc + ")", "rouge") : e.st === "recue" ? b("Annuler la validation", "chRetablir(" + qc + ")") : b("Rétablir", "chRetablir(" + qc + ")")) : pend && okPl ? b("↪ Reporter", "chReporter(" + qc + ")", "orange") : "") + "</div>", "act") + "</tr>";
   // J8, J15… : séances de la même cure
   if (multi) seancesCure(L, e, D().ctx.bib).forEach((sz) => {
     const lab = etiquette(g.find((z) => z.j === sz.j) || { days: [sz.j] }), qj = qc + "," + sz.j, z = (c.sea || {})[sz.j] || {};
@@ -195,7 +218,7 @@ function vueCure(x, i, k) {
     h += "<tr>" + td("Jour", "<b>" + lab + "</b>") +
       td("Date prévue", (p2 && okPl ? '<input type="date" value="' + esc(sz.prevue || "") + '" onchange="chDateSeance(' + qj + ',this.value)">' : A.dfrA(sz.prevue) || "—") + reps(z.rep)) +
       td("Réalisée le", sz.st === "recue" ? "<b>" + A.dfrA(sz.d) + "</b>" : "—") + td("Statut", statut(sz.st, z.rep && z.rep.length, sz.ann)) +
-      td("", '<div class="btns">' + b("Ouvrir", "chJour(" + sz.j + ")", "fonce") + (okT ? (p2 ? b('<svg class="pi"><use href="#i-check"/></svg>Valider', "chJour(" + sz.j + ")", "vert") + b("↪ Reporter", "chReporterJ(" + qj + ")", "orange") + b("✖ Annuler", "chAnnulerJ(" + qj + ")", "rouge") : sz.st === "recue" ? b("Annuler la validation", "chAnnulerSeance(" + qj + ")") : b("Rétablir", "chRetablirJ(" + qj + ")")) : "") + "</div>", "act") + "</tr>";
+      td("", '<div class="btns">' + b("Ouvrir", "chJour(" + sz.j + ")", "fonce") + (okT ? (p2 ? b('<svg class="pi"><use href="#i-check"/></svg>Valider', "chJour(" + sz.j + ")", "vert") + b("↪ Reporter", "chReporterJ(" + qj + ")", "orange") + b("✖ Annuler", "chAnnulerJ(" + qj + ")", "rouge") : sz.st === "recue" ? b("Annuler la validation", "chAnnulerSeance(" + qj + ")") : b("Rétablir", "chRetablirJ(" + qj + ")")) : p2 && okPl ? b("↪ Reporter", "chReporterJ(" + qj + ")", "orange") : "") + "</div>", "act") + "</tr>";
   });
   h += "</table></div>";
   h += '<p class="mesures" style="margin:8px 0 0">« Ouvrir » ou « Valider » affiche le protocole du jour : poids, taille, créatinine, clairance, surface corporelle, doses, molécules à ajouter ou retirer, et la validation.</p>';
@@ -311,17 +334,23 @@ window.chRetablir = (id, i, k) => {
   const x = trouver(id); if (!confirm("Remettre la cure C" + (k + 1) + " en « prévue » ?")) return;
   direct(x, async () => { const lignes = lignesDe(x), c = lignes[i].cures[k]; c.st = "prevue"; delete c.reelle; delete c.valLe; delete c.ann; await sauverLignes(x, lignes, "C" + (k + 1) + " rétablie (prévue)"); });
 };
-window.chReporter = (id, i, k) => {
+// Séance de chimio manquée (salle d'attente, 08/10/2026) : la fenêtre de report s'ouvre avec « Patient absent » ; « Absent sans
+// reporter » ne touche pas au protocole. salle = fonction appelée après (nouvelle date ou null).
+const optSalle = (salle) => salle ? '<div class="boutons" style="margin-top:0;justify-content:flex-start"><button class="bt gris" id="rSans">Absent, sans reporter</button></div>' : "";
+const lierSalle = (salle) => { if (!salle) return; const r = document.getElementById("rR"); if (r) r.value = "Patient absent"; document.getElementById("rSans").onclick = () => { A.fermerFenetre(); salle(null); }; };
+window.chReporter = (id, i, k, salle) => {
   const x = trouver(id), e = etatLigne(x.P.lignes[i], x.P, D().ctx)[k], d0 = e && e.date ? e.date : D().t;
   A.fenetre("<h3>Reporter la cure C" + (k + 1) + " – " + A.esc(x.r.nm) + '</h3><p class="sous">Prévue le ' + A.dfrA(d0) + '</p><div class="form"><div><label for="rD">Nouvelle date</label>' + dateInput("rD", addJ(d0, 7)) + "</div>" +
     '<div><label for="rR">Raison</label><select id="rR">' + RAISONS.map((r) => "<option>" + r + "</option>").join("") + "</select></div>" +
-    '<div class="large"><label for="rC">Commentaire</label><input id="rC"></div>' + choixSuite("rS", "Cures suivantes", "suite") + "</div>" + boutons("Reporter", "orange"));
+    '<div class="large"><label for="rC">Commentaire</label><input id="rC"></div>' + choixSuite("rS", "Cures suivantes", "suite") + "</div>" + optSalle(salle) + boutons("Reporter", "orange"));
+  lierSalle(salle);
   document.getElementById("fOk").onclick = () => executer(x, async () => {
     const nd = A.val("rD"); if (!nd) throw new Error("Indiquez la nouvelle date.");
     const lignes = lignesDe(x), L = lignes[i], E = etatLigne(L, x.P, D().ctx), c = L.cures[k];
     if (choix("rS") === "seule") figerSuivantes(L, k, E); else libererSuivantes(L, k);
     c.rep = c.rep || []; c.rep.push({ de: E[k].date || d0, a: nd, raison: A.val("rR"), com: A.val("rC"), le: D().t }); c.fixe = nd;
     await sauverLignes(x, lignes, "C" + (k + 1) + " reportée au " + A.dfrA(nd) + " (" + A.val("rR") + ")");
+    if (salle) salle(nd);
   });
 };
 window.chAnnuler = (id, i, k) => {
@@ -348,14 +377,16 @@ window.chDateSeance = (id, i, k, j, v) => {
   document.getElementById("fOk").onclick = () => executer(x, () => majSeance(x, i, k, j, v, false));
 };
 // Report d'une séance (J8, J15…) avec motif : la date et l'historique sont gardés dans la séance
-window.chReporterJ = (id, i, k, j) => {
+window.chReporterJ = (id, i, k, j, salle) => {
   const x = trouver(id), L = x.P.lignes[i], e = etatLigne(L, x.P, D().ctx)[k], s0 = seancesCure(L, e, D().ctx.bib).find((z) => z.j === j), d0 = (s0 && s0.prevue) || D().t;
   A.fenetre("<h3>Reporter J" + j + " – cure C" + (k + 1) + " – " + A.esc(x.r.nm) + '</h3><p class="sous">Prévue le ' + A.dfrA(d0) + '</p><div class="form"><div><label for="rD">Nouvelle date</label>' + dateInput("rD", addJ(d0, 7)) + "</div>" +
     '<div><label for="rR">Raison</label><select id="rR">' + RAISONS.map((r) => "<option>" + r + "</option>").join("") + "</select></div>" +
-    '<div class="large"><label for="rC">Commentaire</label><input id="rC"></div>' + choixSuite("sS", "Séances et cures suivantes", "suite") + "</div>" + boutons("Reporter", "orange"));
+    '<div class="large"><label for="rC">Commentaire</label><input id="rC"></div>' + choixSuite("sS", "Séances et cures suivantes", "suite") + "</div>" + optSalle(salle) + boutons("Reporter", "orange"));
+  lierSalle(salle);
   document.getElementById("fOk").onclick = () => executer(x, async () => {
     const nd = A.val("rD"); if (!nd) throw new Error("Indiquez la nouvelle date.");
     await majSeance(x, i, k, j, nd, false, { de: d0, a: nd, raison: A.val("rR"), com: A.val("rC"), le: D().t });
+    if (salle) salle(nd);
     if (CM) CM.j = null;
   });
 };
@@ -391,12 +422,21 @@ window.chAnnulerSeance = (id, i, k, j) => {
 };
 
 // ───── Rendez-vous de chimio : « Venu » avec la fenêtre de prix, comme les autres rendez-vous (07/10/2026) ─────
+// Secrétaire (droits « encaissements » et « rendezvous », sans « finances ») : le prix est écrit par le serveur (prixConsultation)
+export const prixParServeur = () => !A.peut("finances") && A.peut("encaissements") && A.peut("rendezvous");
+async function prixChimioServeur(x, lid, n, j, m, date, lib) {
+  await A.serveur("prixConsultation", { espace: A.ESPACE, patientId: x.id, lid, n, j, montant: m, d: date || "", lib: lib || "" });
+  delete EC[x.id];
+}
 window.chVenuChimio = async (pid, lid, n, j) => {
-  const x = trouver(pid); if (!x || !A.peut("finances")) return;
+  const x = trouver(pid), sec = prixParServeur(); if (!x || !(A.peut("finances") || sec)) return;
   const i = x.P.lignes.findIndex((z) => z.id === lid); if (i < 0) return;
   const L = x.P.lignes[i], { q, e } = etatCure(L, n - 1, x.P), sz = j > 1 ? seancesCure(L, e, D().ctx.bib).find((z) => z.j === j) : null;
   const date = j === 1 ? (e.st === "recue" ? e.c.reelle : e.date) : sz ? sz.d || sz.prevue : e.date;
-  const M = await chargerMontants(x), J = consJours((M.cures[lid] || {})[n]), tC = tarifDe(x, "cchimio", date);
+  let J = {};
+  if (sec) { const E = EC[x.id] || (await getDoc(doc(db, "espaces", A.ESPACE, "encaissements", x.id)).then((s) => (s.exists() ? JSON.parse(s.data().data || "{}") : null)).catch(() => null)); const v = E && E.cons && E.cons[lid + "|" + n + "|" + j]; if (v) J[j] = v.m; }
+  else { const M = await chargerMontants(x); J = consJours((M.cures[lid] || {})[n]); }
+  const tC = tarifDe(x, "cchimio", date);
   const def = J[j] != null ? J[j] : j === 1 ? tC || 0 : 0, fmt = (v) => A.fmtMil(v);
   A.fenetre("<h3>" + A.esc(x.r.nm) + " – Chimiothérapie C" + n + " J" + j + '</h3><p class="sous">' + A.esc(q.nom) + (date ? " · " + A.cap(A.jourLong(date)) : "") + "</p>" +
     '<div class="form"><div><label for="pvM">Montant de la consultation (DH)</label><input id="pvM" class="mt" inputmode="decimal" value="' + A.esc(fmt(def)) + '"></div></div>' +
@@ -407,16 +447,18 @@ window.chVenuChimio = async (pid, lid, n, j) => {
     if (isNaN(m) || m < 0) { A.erreur("Indiquez le montant (0 si rien à payer)."); return; }
     A.occupe(document.getElementById("fOk"), true);
     try {
-      await majMontants(x, (M2) => { const a = M2.cures[lid] = M2.cures[lid] || {}, cc = a[n] = a[n] || {}; cc.consJ = Object.assign({}, consJours(cc), { [j]: m }); majCons(cc); });
-      A.journal(x, "Chimiothérapie C" + n + " J" + j + " : venu (" + fmt(m) + " DH)"); A.fermerFenetre(); A.toast("Enregistré."); A.pageDossier(x.id);
+      if (sec) await prixChimioServeur(x, lid, n, j, m, date, q.nom);
+      else await majMontants(x, (M2) => { const a = M2.cures[lid] = M2.cures[lid] || {}, cc = a[n] = a[n] || {}; cc.consJ = Object.assign({}, consJours(cc), { [j]: m }); majCons(cc); });
+      A.journal(x, "Chimiothérapie C" + n + " J" + j + " : venu (" + fmt(m) + " DH)"); A.fermerFenetre(); A.toast("Enregistré."); A.salleVenuChimio(x, lid, n, j, true); A.pageDossier(x.id);
     } catch (er) { A.occupe(document.getElementById("fOk"), false); A.erreur(er.message || String(er)); }
   };
 };
 window.chAnnulerVenuChimio = (pid, lid, n, j) => {
-  const x = trouver(pid); if (!x || !A.peut("finances")) return;
+  const x = trouver(pid), sec = prixParServeur(); if (!x || !(A.peut("finances") || sec)) return;
   if (!confirm("Annuler « Venu » pour la chimiothérapie C" + n + " J" + j + " ?")) return;
-  majMontants(x, (M2) => { const a = M2.cures[lid] = M2.cures[lid] || {}, cc = a[n] = a[n] || {}; const J = Object.assign({}, consJours(cc)); delete J[j]; cc.consJ = J; majCons(cc); })
-    .then(() => { A.journal(x, "Chimiothérapie C" + n + " J" + j + " : statut annulé"); A.toast("Statut annulé."); A.pageDossier(x.id); }).catch((er) => A.toast(er.message || String(er)));
+  (sec ? prixChimioServeur(x, lid, n, j, null)
+    : majMontants(x, (M2) => { const a = M2.cures[lid] = M2.cures[lid] || {}, cc = a[n] = a[n] || {}; const J = Object.assign({}, consJours(cc)); delete J[j]; cc.consJ = J; majCons(cc); }))
+    .then(() => { A.journal(x, "Chimiothérapie C" + n + " J" + j + " : statut annulé"); A.toast("Statut annulé."); A.salleVenuChimio(x, lid, n, j, false); A.pageDossier(x.id); }).catch((er) => A.toast(er.message || String(er)));
 };
 
 // ───── Montants (consultation de chimio, honoraires) ─────

@@ -148,6 +148,25 @@ service cloud.firestore {
           && request.resource.data.fil[request.resource.data.fil.size() - 1].par == request.auth.uid;
         allow delete: if (estMembre() && resource.data.de == request.auth.uid) || (estMedecin() && resource.data.statut != 'fait');
       }
+      // Salle d'attente (08/10/2026) : un document par patient, ligne du jour (rendez-vous ou séance de chimio) et jour, lu et
+      // écrit dans le périmètre du membre. Tout membre « Met en salle » (état "" ou salle, infirmière comprise) ; démarrer la
+      // consultation, valider, absent, retour en salle : droit « rendezvous » (médecin, secrétaire). Patient et jour ne changent pas.
+      match /salle/{s} {
+        function etapeLibre(d) { return d.etat in ['', 'salle'] || droit('rendezvous'); }
+        function valideSalle(d) {
+          return d.patientId is string && d.jour is string && d.cle is string && d.etat in ['', 'salle', 'consult', 'vu', 'absent']
+            && d.majPar == request.auth.uid && s == d.jour + '_' + d.patientId + '_' + d.cle;
+        }
+        allow read: if dansPerimetre(resource.data.etablissementId);
+        allow create: if dansPerimetre(request.resource.data.etablissementId) && valideSalle(request.resource.data) && etapeLibre(request.resource.data);
+        // commentaire du jour (com) : tout membre du périmètre, quelle que soit l'étape (infirmière comprise, 08/10/2026)
+        function commentaireSeul() { return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['com', 'comPar', 'comNom', 'maj', 'majPar']); }
+        allow update: if dansPerimetre(resource.data.etablissementId) && dansPerimetre(request.resource.data.etablissementId)
+          && valideSalle(request.resource.data) && request.resource.data.patientId == resource.data.patientId
+          && request.resource.data.jour == resource.data.jour
+          && ((etapeLibre(resource.data) && etapeLibre(request.resource.data)) || commentaireSeul());
+        allow delete: if dansPerimetre(resource.data.etablissementId) && etapeLibre(resource.data);
+      }
       // Montants des dossiers, tarifs, paiements, versements : uniquement avec le droit « finances »
       match /patientsFinances/{p} { allow read, write: if droit('finances'); }
       // Prix à encaisser (consultations validées, consultation de chimio) : extrait des montants, lisible avec le droit « encaissements »

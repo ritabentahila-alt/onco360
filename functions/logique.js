@@ -147,4 +147,47 @@ function creerApi(jeton, fetchFn) {
 // Début de la fenêtre pour lister l'agenda (minuit UTC du jour : les jours passés ne sont jamais touchés)
 const timeMin = (auj) => auj + "T00:00:00Z";
 
-module.exports = { TZ, jourCasa, addJ, voitPatient, permis, evtsPatient, evtsAbsences, evtsTaches, COULEURS0, categorie, colorer, idEv, corps, appliquer, creerApi, timeMin, groupe };
+// ───── Prix d'une consultation fixé par la secrétaire (salle d'attente, 08/10/2026) : fonction prixConsultation ─────
+// La secrétaire (droits « encaissements » et « rendezvous ») n'a pas le droit « finances » : elle ne lit ni n'écrit les montants.
+// Le serveur écrit pour elle UN prix : celui d'une consultation validée (rendez-vous « Venu ») ou de la consultation d'un jour de
+// chimio, dans les montants (patientsFinances, bilan) et dans les prix à encaisser (encaissements), comme le fait le médecin
+// (chimio.js majMontants / construireEncaissements). Rien d'autre n'est touché (honoraires, radiothérapie).
+const DROITS0 = { medecin: { encaissements: true, rendezvous: true }, assistante: { encaissements: true, rendezvous: true }, infirmiere: {} };
+const droitM = (m, k) => { const d = (m && m.droits) || {}; return k in d ? d[k] === true : !!(DROITS0[m && m.role] || {})[k]; };
+const peutPrix = (m) => !!m && m.actif !== false && droitM(m, "encaissements") && droitM(m, "rendezvous");
+const num = (v) => { if (v == null || v === "") return null; const n = parseFloat(String(v).replace(",", ".")); return isNaN(n) ? null : n; };
+function consJours(c) {
+  if (!c) return {};
+  if (c.consJ) return c.consJ;
+  if (c.cons && c.cons.enc) { const j = c.cons.jour && c.cons.jour !== "autre" ? String(c.cons.jour) : "1"; return { [j]: c.cons.m == null ? null : num(c.cons.m) }; }
+  return {};
+}
+function majCons(cc) {
+  const v = Object.entries(cc.consJ || {}), tot = v.reduce((s2, [, m]) => s2 + (num(m) || 0), 0), j0 = (v.find(([, m]) => (num(m) || 0) > 0) || v[0] || ["1"])[0];
+  cc.cons = tot > 0 ? { enc: true, m: tot, jour: j0 } : { enc: false, m: 0 };
+}
+// dossier = document patient ; M = montants (objet) ; E = prix à encaisser (objet) ; q = { rdvId } ou { lid, n, j, d, lib }, montant
+// (null pour une consultation de chimio : retirer la validation). Modifie M et E ; renvoie un libellé pour l'historique.
+function appliquerPrix(dossier, M, E, q) {
+  const m = q.montant == null ? null : num(q.montant);
+  if (q.montant != null && (m == null || m < 0 || m > 1000000)) throw new Error("Montant invalide.");
+  M.rdv = M.rdv || {}; M.cures = M.cures || {}; M.rt = M.rt || {}; E.rdv = E.rdv || {}; E.cons = E.cons || {};
+  if (q.rdvId) {
+    const r = JSON.parse(dossier.rdvsJson || "[]").find((v) => v.id === q.rdvId);
+    if (!r) throw new Error("Rendez-vous introuvable.");
+    if (r.st !== "fait") throw new Error("Le rendez-vous n'est pas validé « Venu ».");
+    if (m == null) throw new Error("Montant invalide.");
+    const o = M.rdv[r.id] = M.rdv[r.id] || {}, hs = !r.act && r.type === "Hospitalisation";
+    if (o.v1) throw new Error("Prix repris de l'ancienne application : seul le médecin peut le modifier.");
+    if (hs) { o.tj = m; delete o.brut; E.rdv[r.id] = { tj: m }; } else { o.brut = m; E.rdv[r.id] = { m }; }
+    return "Prix de la consultation du " + r.d + " : " + m + " DH";
+  }
+  const n = parseInt(q.n, 10), j = parseInt(q.j, 10), L = JSON.parse(dossier.lignesJson || "[]").find((z) => z.id === q.lid);
+  if (!L || !(n >= 1) || !(j >= 1) || !L.cures || !L.cures[n - 1]) throw new Error("Cure introuvable.");
+  const a = M.cures[q.lid] = M.cures[q.lid] || {}, cc = a[n] = a[n] || {}, J = Object.assign({}, consJours(cc)), k = q.lid + "|" + n + "|" + j;
+  if (m == null) { delete J[j]; delete E.cons[k]; } else { J[j] = m; E.cons[k] = { m, d: String(q.d || "").slice(0, 10), lib: String(q.lib || "").slice(0, 120), n, j: "J" + j }; }
+  cc.consJ = J; majCons(cc);
+  return "Chimiothérapie C" + n + " J" + j + (m == null ? " : statut annulé" : " : venu (" + m + " DH)");
+}
+
+module.exports = { TZ, jourCasa, addJ, voitPatient, permis, evtsPatient, evtsAbsences, evtsTaches, COULEURS0, categorie, colorer, idEv, corps, appliquer, creerApi, timeMin, groupe, peutPrix, appliquerPrix };

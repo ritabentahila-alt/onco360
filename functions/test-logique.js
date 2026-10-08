@@ -145,3 +145,32 @@ const infirmiere = { actif: true, etablissements: ["HGC", "CIOC"], droits: { tra
   x = await L.appliquer(api, cal, L.colorer(ev1(), { annonce: "" }), await api.lister(cal, "g=P", L.timeMin("2026-10-08")), "2026-10-08");
   ok(x.modifies === 1 && CAL[cal][id].colorId === null, "« couleur de l'agenda » : couleur retirée");
 })();
+
+// ───── Prix fixé par la secrétaire (salle d'attente, 08/10/2026) ─────
+(() => {
+  ok(L.peutPrix({ role: "assistante", actif: true, droits: {} }) && L.peutPrix({ role: "medecin", actif: true }), "secrétaire et médecin : droit de fixer un prix (droits par défaut du rôle)");
+  ok(!L.peutPrix({ role: "infirmiere", actif: true, droits: {} }) && !L.peutPrix({ role: "assistante", actif: false }) && !L.peutPrix({ role: "assistante", actif: true, droits: { encaissements: false } }), "refusé : infirmière, accès désactivé, droit « encaissements » retiré");
+  const dos = { rdvsJson: JSON.stringify([{ id: "r1", type: "Suivi", d: "2026-10-08", st: "fait" }, { id: "r2", type: "Hospitalisation", d: "2026-10-08", st: "fait" }, { id: "r3", type: "Suivi", d: "2026-10-08", st: "prevu" }, { id: "r4", type: "Suivi", d: "2026-01-02", st: "fait" }]),
+    lignesJson: JSON.stringify([{ id: "L1", cures: [{}, {}] }]) };
+  const M = { rdv: { r4: { v1: true, prix: 300 } }, cures: { L1: { 1: { hon: { 1: { m: 500 } } } } }, rt: { x: { m: 1 } } }, E = { rdv: {}, cons: {} };
+  L.appliquerPrix(dos, M, E, { rdvId: "r1", montant: "250" });
+  ok(M.rdv.r1.brut === 250 && E.rdv.r1.m === 250, "consultation : brut et prix à encaisser");
+  L.appliquerPrix(dos, M, E, { rdvId: "r1", montant: 0 });
+  ok(M.rdv.r1.brut === 0 && E.rdv.r1.m === 0, "gratuité (0) : prix modifié même déjà validé");
+  L.appliquerPrix(dos, M, E, { rdvId: "r2", montant: 400 });
+  ok(M.rdv.r2.tj === 400 && E.rdv.r2.tj === 400, "hospitalisation : tarif journalier");
+  let er = ""; try { L.appliquerPrix(dos, M, E, { rdvId: "r4", montant: 200 }); } catch (e) { er = e.message; }
+  ok(/ancienne application/.test(er) && M.rdv.r4.prix === 300, "refusé : prix repris de l'ancienne application (médecin seulement, bilan inchangé)");
+  er = ""; try { L.appliquerPrix(dos, M, E, { rdvId: "r3", montant: 100 }); } catch (e) { er = e.message; }
+  ok(/pas validé/.test(er) && !M.rdv.r3, "refusé : rendez-vous non validé « Venu »");
+  er = ""; try { L.appliquerPrix(dos, M, E, { rdvId: "r1", montant: -5 }); } catch (e) { er = e.message; }
+  ok(/invalide/.test(er) && M.rdv.r1.brut === 0, "refusé : montant négatif");
+  L.appliquerPrix(dos, M, E, { lid: "L1", n: 1, j: 1, montant: 250, d: "2026-10-08", lib: "FOLFOX" });
+  ok(M.cures.L1[1].consJ[1] === 250 && M.cures.L1[1].cons.enc === true && M.cures.L1[1].hon[1].m === 500 && E.cons["L1|1|1"].m === 250, "consultation de chimio J1 : 250 DH, honoraires de séance intacts");
+  L.appliquerPrix(dos, M, E, { lid: "L1", n: 1, j: 1, montant: null });
+  ok(!(1 in M.cures.L1[1].consJ) && M.cures.L1[1].cons.enc === false && !E.cons["L1|1|1"], "consultation de chimio annulée");
+  er = ""; try { L.appliquerPrix(dos, M, E, { lid: "L9", n: 1, j: 1, montant: 0 }); } catch (e) { er = e.message; }
+  ok(/introuvable/.test(er), "refusé : cure inconnue");
+  ok(JSON.stringify(M.rt) === '{"x":{"m":1}}', "radiothérapie jamais touchée");
+})();
+

@@ -7,7 +7,7 @@ def serveur():
     try: urllib.request.urlopen(f'http://localhost:{PORT}/v2.html',timeout=1); return
     except Exception: pass
     subprocess.Popen(['python3','-m','http.server',str(PORT)],cwd=ROOT,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,start_new_session=True); time.sleep(1.2)
-M={n:open(ICI/'mockfb'/n).read() for n in ['firebase-app.js','firebase-auth.js','firebase-firestore.js','firebase-storage.js']}
+M={n:open(ICI/'mockfb'/n).read() for n in ['firebase-app.js','firebase-auth.js','firebase-firestore.js','firebase-functions.js','firebase-storage.js']}
 JSZ=open(ICI/'mockfb'/'jszip.min.js').read()
 S=json.load(open(ICI/'seed.json')); E='espaces/cabinet-bentahila/'
 async def ouvrir(b, seed=None, w=1440, h=900, t="2026-10-06T10:00:00"):
