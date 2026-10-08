@@ -82,9 +82,9 @@ export function badgeSalle(pid, cle) { return '<span class="sa-badge" data-sa="'
 function contenuBadge(L, pid, cle) {
   const l = L.find((z) => z.pid === pid && (cle === "chimio" ? !!z.chimio : z.cle === cle)); if (!l) return "";
   const d = l.doc;
-  if (l.etat === "salle") { const m = minutes(d.arr || Date.now()); return '<span class="st ' + (m >= seuils()[1] ? "rouge" : m >= seuils()[0] ? "orange" : "salle") + '"><i></i>En salle · ' + duree(m) + "</span>"; }
-  if (l.etat === "consult") return '<span class="st consult"><i></i>En consultation · ' + duree(minutes(d.deb || Date.now())) + "</span>";
-  if (l.etat === "vu" && cle === "chimio") return '<span class="st vu"><i></i>Vu' + (d.fin ? " " + hm(d.fin) : "") + "</span>";
+  if (l.etat === "salle") { const m = minutes(d.arr || Date.now()); return '<span class="pst ' + (m >= seuils()[1] ? "rouge" : m >= seuils()[0] ? "orange" : "salle") + '"><i></i>En salle · ' + duree(m) + "</span>"; }
+  if (l.etat === "consult") return '<span class="pst consult"><i></i>En consultation · ' + duree(minutes(d.deb || Date.now())) + "</span>";
+  if (l.etat === "vu" && cle === "chimio") return '<span class="pst vu"><i></i>Vu' + (d.fin ? " " + hm(d.fin) : "") + "</span>";
   return "";
 }
 function majBadges() {
@@ -405,12 +405,12 @@ function dessiner() {
 // Pastille de statut (au trait) avec le temps écoulé
 function statut(l) {
   const d = l.doc, now = Date.now(), auj = l.jour === D().t;
-  if (l.etat === "salle") { if (!auj) return '<span class="st salle"><i></i>Arrivé' + (d.arr ? " à " + hm(d.arr) : "") + "</span>"; const m = minutes(d.arr || now), c = m >= seuils()[1] ? "rouge" : m >= seuils()[0] ? "orange" : "salle"; return '<span class="st ' + c + '" title="En attente depuis ' + duree(m) + '"><i></i>Attente ' + duree(m) + "</span>"; }
-  if (l.etat === "consult") return '<span class="st consult"><i></i>' + (auj ? "Consultation " + duree(minutes(d.deb || now)) : "En consultation") + "</span>";
-  if (l.etat === "vu") return '<span class="st vu"><i></i>Vu' + (d.fin ? " à " + hm(d.fin) : "") + "</span>" + (d.arr && d.deb ? '<div class="mesures">Attente ' + duree(Math.max(0, Math.round((d.deb - d.arr) / 60000))) + (d.fin ? " · consultation " + duree(Math.max(0, Math.round((d.fin - d.deb) / 60000))) + " · présence " + duree(Math.max(0, Math.round((d.fin - d.arr) / 60000))) : "") + "</div>" : "");
-  if (l.etat === "absent") return '<span class="st absent"><i></i>Absent</span>' + (d.rep ? '<div class="mesures">Reportée au ' + A.dfrA(d.rep) + "</div>" : "");
-  if (l.jour < D().t) return '<span class="st orange"><i></i>Non validé</span>';
-  return '<span class="st prevu"><i></i>Prévu</span>';
+  if (l.etat === "salle") { if (!auj) return '<span class="pst salle"><i></i>Arrivé' + (d.arr ? " à " + hm(d.arr) : "") + "</span>"; const m = minutes(d.arr || now), c = m >= seuils()[1] ? "rouge" : m >= seuils()[0] ? "orange" : "salle"; return '<span class="pst ' + c + '" title="En attente depuis ' + duree(m) + '"><i></i>Attente ' + duree(m) + "</span>"; }
+  if (l.etat === "consult") return '<span class="pst consult"><i></i>' + (auj ? "Consultation " + duree(minutes(d.deb || now)) : "En consultation") + "</span>";
+  if (l.etat === "vu") return '<span class="pst vu"><i></i>Vu' + (d.fin ? " à " + hm(d.fin) : "") + "</span>" + (d.arr && d.deb ? '<div class="mesures">Attente ' + duree(Math.max(0, Math.round((d.deb - d.arr) / 60000))) + (d.fin ? " · consultation " + duree(Math.max(0, Math.round((d.fin - d.deb) / 60000))) + " · présence " + duree(Math.max(0, Math.round((d.fin - d.arr) / 60000))) : "") + "</div>" : "");
+  if (l.etat === "absent") return '<span class="pst absent"><i></i>Absent</span>' + (d.rep ? '<div class="mesures">Reportée au ' + A.dfrA(d.rep) + "</div>" : "");
+  if (l.jour < D().t) return '<span class="pst orange"><i></i>Non validé</span>';
+  return '<span class="pst prevu"><i></i>Prévu</span>';
 }
 // « CNOPS — Caisse nationale… » → « CNOPS » (nom complet au survol)
 const court = (s) => String(s || "").split(/\s+[—–]\s+/)[0];
