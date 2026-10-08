@@ -320,6 +320,12 @@ details summary{cursor:pointer;color:var(--prim);font-weight:bold;font-size:13.5
 .sug div{padding:8px 10px;cursor:pointer;border-bottom:1px solid #F0F1F5}.sug div:hover{background:#EEF0F8}
 .liste-choix{max-height:320px;overflow:auto;margin-top:8px}
 
+/* Configuration › Google Agenda : nuancier des 11 couleurs Google */
+.cf-coul{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--trait)}.cf-coul:last-child{border-bottom:0}
+.cf-coul .lib{flex:1;min-width:220px}.cf-coul .lib b{display:block;font-size:14.5px}.nuancier{display:flex;flex-wrap:wrap;gap:6px}
+.pastc{width:26px;height:26px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px #CCD3E0;padding:0;cursor:pointer}
+.pastc.vide{background:repeating-linear-gradient(45deg,#fff 0 4px,#E3E7EF 4px 8px)!important}
+.pastc.on{box-shadow:0 0 0 3px var(--titre)}.pastc:disabled{cursor:default;opacity:.85}
 /* Tâches (T1, 07/10/2026) */
 .tache{display:flex;align-items:center;gap:12px;padding:11px 8px;border-bottom:1px solid var(--trait);cursor:pointer;border-left:4px solid transparent}
 .tache:last-child{border-bottom:0}.tache:hover{background:#FAFBFE}
@@ -562,6 +568,6 @@ function onco360Deconnecter() {
 }
 </script>
 
-<script type="module" src="./js/app/v2.js?v=20261008i"></script>
+<script type="module" src="./js/app/v2.js?v=20261008j"></script>
 </body>
 </html>

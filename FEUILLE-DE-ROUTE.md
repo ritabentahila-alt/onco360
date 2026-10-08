@@ -512,8 +512,19 @@ reportée chaque jour sur aujourd'hui** avec « EN RETARD ».
 - [x] Serveur : `agendaTache` (nouvelle fonction, à chaque écriture d'une tâche) ; tâches ajoutées à la remise à plat
       (liaison, « Mettre à jour », nuit) ; nom actuel du patient lu dans son dossier. Profil › Google Agenda : texte complété.
 - [x] Tests de la logique sur un faux Google Agenda : `node functions/test-logique.js` (32/32, dont 15 pour les tâches).
-- [ ] Mise en ligne : **fonctions** (`firebase deploy --only functions`) puis site. Vérifier ensuite dans le Google Agenda
-      d'un responsable relié (créer une tâche avec échéance, la terminer).
+- [x] Mise en ligne des fonctions par Dr Bentahila le 08/10 (`agendaTache` créée).
+- [ ] Vérifier dans le Google Agenda d'un responsable relié (créer une tâche avec échéance, la terminer).
+
+**Couleurs dans Google Agenda** (demandé et décidé le 08/10 : couleurs **modifiables**, par défaut comme le tableau ;
+fait, testé et mis en ligne le 08/10)
+- [x] Configuration › **Google Agenda** : nuancier des 11 couleurs Google (+ « couleur de l'agenda ») pour : consultation
+      d'annonce (Flamant), suivi / contrôle (Paon), en cours de radiothérapie (Lavande), hospitalisation (Myrtille), autres
+      consultations (Paon), chimiothérapie (Basilic), radiothérapie (Raisin), dosimétrie à valider (Mandarine), absences et
+      congés (Banane), tâches (Graphite), tâches urgentes ou en retard (Tomate). Droit « paramètres ».
+- [x] Enregistré dans `parametres/couleursAgenda` (seulement ce qui diffère) ; nouvelle fonction `agendaCouleurs` : tous les
+      agendas reliés sont repeints ; couleur appliquée aussi à chaque mise à jour et chaque nuit.
+- [x] Tests logique 40/40 (catégorie de chaque événement, couleurs par défaut et du cabinet, repeint, retour à la couleur de
+      l'agenda) ; navigateur (390 px, bilan 352 317 DH, aucune erreur).
 
 ---
 
@@ -778,3 +789,4 @@ Onco360_Package_Cession/
 | 08/10/2026 | 5 – T4 Tâches | Temps réel (écoute en direct), messages à l'écran, non lues (profil), pastilles menu + titre de l'onglet, carte « Mes tâches » du tableau de bord ; l'auteur peut supprimer sa tâche même terminée. Règles 44/44 sur l'émulateur. Testé (2 onglets médecin + secrétaire, 390 px, bilan 352 317 DH). Pas encore en ligne. |
 | 08/10/2026 | 5 – T5 Tâches | Finition : nom du patient à jour, patient hors périmètre sans lien, responsable sans accès « À réattribuer » (statut / commentaire bloqués s'il est retiré), guide `guide/taches.md`. Testé (médecin, secrétaire HGC, bilan 352 317 DH). Pas encore en ligne. |
 | 08/10/2026 | 5 – T6 Tâches | Échéances dans le Google Agenda du responsable (journée entière ou 15 min, sans rappel, « EN RETARD » reportée chaque jour, retirée une fois terminée, suit les réattributions) : fonction `agendaTache` + remise à plat. Tests logique 32/32. Pas encore en ligne. |
+| 08/10/2026 | Google Agenda – couleurs | Couleurs par type d'événement modifiables (Configuration › Google Agenda), par défaut : annonce Flamant, suivi Paon, RT en cours Lavande, hospitalisation Myrtille, chimio Basilic, RT Raisin, dosimétrie Mandarine, absences Banane, tâches Graphite / Tomate. Fonction `agendaCouleurs`. Tests 40/40. Mis en ligne (règles, fonctions, site). |

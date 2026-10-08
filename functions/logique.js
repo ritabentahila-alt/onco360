@@ -2,7 +2,10 @@
 // Les événements viennent de resume.ag de chaque dossier (préparés par public/js/moteur/agenda.js) :
 // { k: "PID|r|…" | "PID|c|…" | "PID|s|…" | "PID|rt|…", t: titre, x: description, d: "AAAA-MM-JJ", h: "HH:MM", f: fin (journées) }
 // Tâches (T6, 08/10/2026) : k = "tache-ID|t", groupe « tache-ID » (une tâche = un groupe), seulement dans l'agenda du
-// responsable ; options en plus : tache (vrai), dur (minutes), coul (couleur Google), sans rappel, n'occupe pas le créneau.
+// responsable ; options en plus : tache (vrai), urg (urgente ou en retard), dur (minutes), sans rappel, n'occupe pas le créneau.
+// Couleurs (08/10/2026) : chaque événement a une catégorie (consultation d'annonce, chimio, absence, tâche…) ; sa couleur
+// Google (1 à 11, "" = couleur de l'agenda) vient de espaces/{e}/parametres/couleursAgenda (Configuration › Google Agenda),
+// sinon de COULEURS0. Mêmes valeurs par défaut dans public/js/app/configuration.js.
 const crypto = require("crypto");
 
 const TZ = "Africa/Casablanca";
@@ -43,11 +46,30 @@ function evtsAbsences(cal, auj) {
 
 const groupe = (k) => String(k).split("|")[0]; // identifiant du patient, ou « abs »
 const idEv = (k) => crypto.createHash("sha1").update("onco360|" + k).digest("hex"); // 40 caractères 0-9 a-f : identifiant Google valide
-// (couleur et durée des tâches comprises ; inchangée pour les autres événements, déjà dans les agendas)
-const signature = (e) => crypto.createHash("sha1").update(JSON.stringify([e.t, e.x || "", e.d, e.h || "", e.f || ""].concat(e.tache ? [e.coul, e.dur] : []))).digest("hex").slice(0, 16);
+// (couleur et durée des tâches comprises ; sans couleur, la même qu'avant le 08/10/2026)
+const signature = (e) => crypto.createHash("sha1").update(JSON.stringify([e.t, e.x || "", e.d, e.h || "", e.f || ""].concat(e.tache ? [e.coul, e.dur] : e.coul ? [e.coul] : []))).digest("hex").slice(0, 16);
 function finHeure(d, h, dur) {
   const p = String(h).split(":"), m = +p[0] * 60 + (+p[1] || 0) + (dur || DUREE), j = Math.floor(m / 1440), r = m % 1440;
   return addJ(d, j) + "T" + String(Math.floor(r / 60)).padStart(2, "0") + ":" + String(r % 60).padStart(2, "0") + ":00";
+}
+const COULEURS0 = { annonce: "4", suivi: "7", rtc: "1", hospit: "9", autre: "7", chimio: "10", rt: "3", dosi: "6", abs: "5", tache: "8", tacheUrg: "11" };
+function categorie(e) {
+  if (e.tache) return e.urg ? "tacheUrg" : "tache";
+  const p = String(e.k || "").split("|"), t = String(e.t || "");
+  if (p[0] === "abs") return "abs";
+  if (p[1] === "c" || p[1] === "s") return "chimio";
+  if (p[1] === "rt") return p[p.length - 1] === "dosi" ? "dosi" : "rt";
+  if (p[1] !== "r") return "";
+  if (/ – Hospitalisation/.test(t)) return "hospit";
+  if (/Consultation en cours de radioth/i.test(t)) return "rtc";
+  if (/Consultation (d'|de )?annonce/i.test(t)) return "annonce";
+  if (/Consultation (de )?(suivi|contrôle)/i.test(t)) return "suivi";
+  return "autre"; // activités ajoutées dans les Paramètres (2nd avis…)
+}
+// Couleur de chaque événement selon sa catégorie (réglages du cabinet, sinon par défaut)
+function colorer(evts, reglages) {
+  (evts || []).forEach((e) => { const c = categorie(e), r = reglages || {}; e.coul = c ? String(c in r ? r[c] : COULEURS0[c] || "") : ""; });
+  return evts;
 }
 // Tâches du responsable : échéance fixée, non terminées. Sans heure : journée entière ; avec heure : 15 min ; en retard :
 // reportée chaque nuit sur aujourd'hui (journée entière, « EN RETARD ») ; aucun rappel Google (décisions du 08/10/2026)
@@ -56,7 +78,7 @@ function evtsTaches(taches, uid, auj, noms) {
   return (taches || []).filter((t) => t && t.pour === uid && t.statut !== "fait" && /^\d{4}-\d{2}-\d{2}$/.test(t.ech || "")).map((t) => {
     const enRetard = t.ech < auj, pat = t.patientId ? (noms && noms[t.patientId]) || t.patientNom || "" : "";
     return {
-      k: "tache-" + t.id + "|t", tache: true, d: enRetard ? auj : t.ech, h: enRetard ? "" : t.h || "", dur: 15, coul: enRetard || t.urgent ? "11" : "8",
+      k: "tache-" + t.id + "|t", tache: true, d: enRetard ? auj : t.ech, h: enRetard ? "" : t.h || "", dur: 15, urg: !!(enRetard || t.urgent),
       t: [enRetard ? "EN RETARD" : "", t.urgent ? "URGENT" : "", "Tâche"].filter(Boolean).join(" – ") + " – " + t.titre + (pat ? " (" + pat + ")" : ""),
       x: [t.desc || "", "Demandée par " + (t.de === uid ? "vous-même" : t.deNom || "?") + (enRetard ? " · échéance du " + t.ech.split("-").reverse().join("/") : ""), "Ouvrir les tâches : " + LIEN_TACHES].filter(Boolean).join("\n"),
     };
@@ -70,7 +92,8 @@ function corps(e) {
   };
   if (e.h) { b.start = { dateTime: e.d + "T" + e.h + ":00", timeZone: TZ }; b.end = { dateTime: finHeure(e.d, e.h, e.dur), timeZone: TZ }; }
   else { b.start = { date: e.d }; b.end = { date: addJ(e.f && e.f > e.d ? e.f : e.d, 1) }; }
-  if (e.tache) Object.assign(b, { colorId: e.coul, transparency: "transparent", reminders: { useDefault: false, overrides: [] } });
+  if ("coul" in e) b.colorId = e.coul || null; // null : retour à la couleur de l'agenda
+  if (e.tache) Object.assign(b, { transparency: "transparent", reminders: { useDefault: false, overrides: [] } });
   return b;
 }
 // Met l'agenda en accord avec la liste voulue : crée, modifie, supprime (seulement les événements Onco360 listés)
@@ -113,7 +136,7 @@ function creerApi(jeton, fetchFn) {
       return out;
     },
     // Un identifiant déjà utilisé (événement supprimé puis revenu) : on le remet en place
-    async creer(calId, b) { try { return await req("POST", c(calId) + "/events", b); } catch (e) { if (e.statut === 409) return req("PATCH", c(calId) + "/events/" + b.id, b); throw e; } },
+    async creer(calId, b) { const n = Object.assign({}, b); if (n.colorId == null) delete n.colorId; try { return await req("POST", c(calId) + "/events", n); } catch (e) { if (e.statut === 409) return req("PATCH", c(calId) + "/events/" + b.id, b); throw e; } },
     modifier: (calId, id, b) => req("PATCH", c(calId) + "/events/" + id, b),
     async supprimer(calId, id) { try { await req("DELETE", c(calId) + "/events/" + id); } catch (e) { if (e.statut !== 404 && e.statut !== 410) throw e; } },
     async agendaExiste(calId) { try { await req("GET", c(calId)); return true; } catch (e) { if (e.statut === 404 || e.statut === 403) return false; throw e; } },
@@ -124,4 +147,4 @@ function creerApi(jeton, fetchFn) {
 // Début de la fenêtre pour lister l'agenda (minuit UTC du jour : les jours passés ne sont jamais touchés)
 const timeMin = (auj) => auj + "T00:00:00Z";
 
-module.exports = { TZ, jourCasa, addJ, voitPatient, permis, evtsPatient, evtsAbsences, evtsTaches, idEv, corps, appliquer, creerApi, timeMin, groupe };
+module.exports = { TZ, jourCasa, addJ, voitPatient, permis, evtsPatient, evtsAbsences, evtsTaches, COULEURS0, categorie, colorer, idEv, corps, appliquer, creerApi, timeMin, groupe };

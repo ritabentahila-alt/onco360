@@ -91,7 +91,7 @@ const infirmiere = { actif: true, etablissements: ["HGC", "CIOC"], droits: { tra
   const T1 = Object.assign({}, base, { id: "t1", ech: "2026-10-10" });
   const T2 = Object.assign({}, base, { id: "t2", ech: "2026-10-09", h: "14:30", urgent: true, patientId: "P1", patientNom: "ANCIEN NOM" });
   const T3 = Object.assign({}, base, { id: "t3", ech: "" }), T4 = Object.assign({}, base, { id: "t4", ech: "2026-10-10", statut: "fait" }), T5 = Object.assign({}, base, { id: "t5", ech: "2026-10-10", pour: "INF" });
-  const ev = L.evtsTaches([T1, T2, T3, T4, T5], "SEC", J0, { P1: "PATIENT TEST" });
+  const ev = L.colorer(L.evtsTaches([T1, T2, T3, T4, T5], "SEC", J0, { P1: "PATIENT TEST" }), {});
   ok(ev.length === 2, "tâches du responsable avec échéance, non terminées (sans échéance, terminée, autre responsable : exclues)");
   const b1 = L.corps(ev.find((e) => e.k === "tache-t1|t")), b2 = L.corps(ev.find((e) => e.k === "tache-t2|t"));
   ok(b1.start.date === "2026-10-10" && b1.end.date === "2026-10-11" && b1.summary === "Tâche – Relancer le labo", "sans heure : journée entière, titre « Tâche – … »");
@@ -107,7 +107,7 @@ const infirmiere = { actif: true, etablissements: ["HGC", "CIOC"], droits: { tra
   r = await L.appliquer(api, cal, L.evtsTaches([T1], "SEC", J0), await api.lister(cal, "g=" + g, L.timeMin(J0)), J0);
   ok(r.crees === 0 && r.modifies === 0, "rien de changé : aucune écriture dans Google");
   const J3 = "2026-10-12", evR = L.evtsTaches([T1], "SEC", J3);
-  ok(evR.length === 1 && evR[0].d === J3 && /^EN RETARD – Tâche/.test(evR[0].t) && evR[0].coul === "11" && /échéance du 10\/10\/2026/.test(evR[0].x), "en retard : reportée sur aujourd'hui, « EN RETARD », rouge, échéance d'origine rappelée");
+  ok(evR.length === 1 && evR[0].d === J3 && /^EN RETARD – Tâche/.test(evR[0].t) && L.colorer(evR, {})[0].coul === "11" && /échéance du 10\/10\/2026/.test(evR[0].x), "en retard : reportée sur aujourd'hui, « EN RETARD », rouge, échéance d'origine rappelée");
   r = await L.appliquer(api, cal, evR, await api.lister(cal, "g=" + g, L.timeMin(J3)), J3);
   const e1 = CAL[cal][L.idEv("tache-t1|t")];
   ok(e1.start.date === J3 && Object.values(CAL[cal]).filter((e) => e.status !== "cancelled").length === 1, "nuit suivante : déplacée sur le jour même, sans doublon");
@@ -118,4 +118,30 @@ const infirmiere = { actif: true, etablissements: ["HGC", "CIOC"], droits: { tra
   r = await L.appliquer(api, cal3, L.evtsTaches([Object.assign({}, T2, { pour: "INF" })], "SEC", J0), await api.lister(cal3, "g=tache-t2", L.timeMin(J0)), J0);
   ok(r.supprimes === 1, "réattribuée à l'infirmière : retirée de l'agenda de la secrétaire");
   ok(L.groupe("tache-t2|t") === "tache-t2", "une tâche = un groupe (mise à jour d'une seule tâche)");
+})();
+
+// ───── Couleurs par type (08/10/2026) ─────
+(async () => {
+  await new Promise((ok) => setTimeout(ok, 120));
+  const E = (k, t) => ({ k, t, d: "2026-10-20" });
+  const cas = [[E("P|r|1", "🩺 ALAMI – Consultation annonce (HGC)"), "annonce"], [E("P|r|2", "🩺 ALAMI – Consultation suivi"), "suivi"], [E("P|r|3", "🩺 ALAMI – Consultation de contrôle"), "suivi"],
+    [E("P|r|4", "🩺 ALAMI – Consultation en cours de radiothérapie"), "rtc"], [E("P|r|5", "ALAMI – Hospitalisation du 20/10/2026 au 22/10/2026 (3 j ouvrés)"), "hospit"], [E("P|r|6", "🩺 ALAMI – 2nd avis"), "autre"],
+    [E("P|c|0|2", "💉 ALAMI – C2/6 · FOLFOX"), "chimio"], [E("P|s|0|2|8", "💉 ALAMI – C2 J8 · FOLFOX"), "chimio"], [E("P|rt|r1|scan", "☢️ ALAMI – Scanner de centrage"), "rt"], [E("P|rt|r1|dosi", "☢️ ALAMI – Dosimétrie à valider"), "dosi"],
+    [E("abs|2026-10-20|2026-10-22", "Absence : Congrès"), "abs"], [Object.assign(E("tache-x|t", "Tâche – x"), { tache: true }), "tache"], [Object.assign(E("tache-y|t", "URGENT – Tâche – y"), { tache: true, urg: true }), "tacheUrg"]];
+  ok(cas.every(([e, c]) => L.categorie(e) === c), "catégorie de chaque événement (annonce, suivi, contrôle, en cours de RT, hospitalisation, autre, chimio, RT, dosimétrie, absence, tâches)");
+  const d = L.colorer(cas.map(([e]) => Object.assign({}, e)), {});
+  ok(d.map((e) => e.coul).join(",") === "4,7,7,1,9,7,10,10,3,6,5,8,11", "couleurs par défaut (tableau du 08/10/2026)");
+  const r = L.colorer(cas.map(([e]) => Object.assign({}, e)), { annonce: "11", abs: "" });
+  ok(r[0].coul === "11" && r[10].coul === "" && r[1].coul === "7", "couleurs du cabinet : annonce en rouge, absences couleur de l'agenda, le reste par défaut");
+  ok(L.corps(r[0]).colorId === "11" && L.corps(r[10]).colorId === null && !("colorId" in L.corps(E("P|r|9", "x"))), "corps : colorId réglé, null pour la couleur de l'agenda");
+  // Couleur changée : l'événement est repeint ; inchangée : rien n'est réécrit ; couleur retirée : rendue à l'agenda
+  const cal = (await api.creerAgenda()).id, ev1 = () => [Object.assign({}, cas[0][0])];
+  let x = await L.appliquer(api, cal, L.colorer(ev1(), {}), [], "2026-10-08");
+  const id = L.idEv("P|r|1"); ok(x.crees === 1 && CAL[cal][id].colorId === "4", "créé avec sa couleur (annonce : Flamant)");
+  x = await L.appliquer(api, cal, L.colorer(ev1(), {}), await api.lister(cal, "g=P", L.timeMin("2026-10-08")), "2026-10-08");
+  ok(x.modifies === 0, "même couleur : aucune écriture");
+  x = await L.appliquer(api, cal, L.colorer(ev1(), { annonce: "11" }), await api.lister(cal, "g=P", L.timeMin("2026-10-08")), "2026-10-08");
+  ok(x.modifies === 1 && CAL[cal][id].colorId === "11", "couleur changée dans la Configuration : événement repeint");
+  x = await L.appliquer(api, cal, L.colorer(ev1(), { annonce: "" }), await api.lister(cal, "g=P", L.timeMin("2026-10-08")), "2026-10-08");
+  ok(x.modifies === 1 && CAL[cal][id].colorId === null, "« couleur de l'agenda » : couleur retirée");
 })();

@@ -33,7 +33,7 @@ Après déploiement : recharger sans cache (Cmd + Maj + R). Les `.js` sont servi
 | `js/app/ordonnances.js` | boutons Médic., Ordo. type, Analyses, Examens compl. et Courriers (modèles remplis pour le patient, fiches PDF `documents/`) : bibliothèques du cabinet (médicaments, ordonnances types ; recherche, + / ✎ / ✕), ordonnance en préparation (✎ / ↑ ↓ / ✕, ajout, ligne libre), ordonnance A5/A4 modifiable, impression, antécédents ; listes de départ : `js/donnees/medicaments.js`, `js/donnees/ordostypes.js`, `js/donnees/analyses.js`, `js/donnees/examens.js` |
 | `js/app/taches.js` | page Tâches (menu, entre Patients et Protocoles) : Mes tâches / Toutes les tâches, filtres (recherche, responsable, statut, échéance, type), nouvelle tâche (aussi « + Tâche » du dossier), statuts, fiche avec fil (historique + commentaires), réattribuer, modifier / supprimer ; temps réel (`demarrerTaches`, écoute `onSnapshot` lancée au démarrage), messages à l'écran, non lues, pastilles `nbTaches` / `nbTachesB`, carte « Mes tâches » du tableau de bord (`blocAccueil`) |
 | `js/app/agenda.js` | agenda Liste/Jour/Semaine/Mois, filtre par établissement |
-| `js/app/configuration.js` | horaires (par établissement), absences, fériés, messages WhatsApp |
+| `js/app/configuration.js` | horaires (par établissement), absences, fériés, messages WhatsApp, couleurs Google Agenda (`parametres/couleursAgenda`) |
 | `js/app/profil.js` | profil, photo, lieux d'exercice (logos), accès et droits de l'équipe |
 | `js/app/protocoles.js` | bibliothèque de 316+ protocoles |
 | `js/app/parametres.js` | tarifs par établissement (dates d'effet), activités, actes RT, VMAT |
@@ -115,7 +115,9 @@ Ancienne application : collections racine `patients`, `protocoles`, `finances`, 
   `resume.ag` filtrés par périmètre (établissements) et droits (chimio / RT) du membre ; identifiant Google = sha1 de la clé
   `k` ; le passé n'est jamais effacé. Tâches (08/10/2026) : `agendaTache` (écriture d'une tâche) et remise à plat ajoutent
   l'échéance des tâches non terminées dans l'agenda du **responsable** seulement (`evtsTaches` : groupe `tache-ID`, journée
-  entière ou 15 min, aucun rappel, couleur 8 / 11, « EN RETARD » reportée chaque nuit sur le jour même, retirée une fois terminée). Jetons : `agendaJetons/{uid}` (aucune règle = invisible du navigateur) ; état :
+  entière ou 15 min, aucun rappel, couleur 8 / 11, « EN RETARD » reportée chaque nuit sur le jour même, retirée une fois terminée).
+  Couleurs (08/10/2026) : `categorie` / `colorer` (logique.js) donnent à chaque événement la couleur de sa catégorie
+  (`parametres/couleursAgenda`, sinon `COULEURS0`, mêmes valeurs dans configuration.js) ; `agendaCouleurs` repeint tout. Jetons : `agendaJetons/{uid}` (aucune règle = invisible du navigateur) ; état :
   `utilisateurs/{uid}.agendaGoogle`. Logique pure : `functions/logique.js`, tests : `node functions/test-logique.js`.
   Prérequis : API Google Calendar activée, écran de consentement « Onco360 » publié, client OAuth Web (ID dans
   `public/js/config.js` GOOGLE_CLIENT_ID et `functions/.env` ; secret : `firebase functions:secrets:set GOOGLE_CLIENT_SECRET`).

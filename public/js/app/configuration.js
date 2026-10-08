@@ -1,6 +1,8 @@
 // Onco360 – Configuration (étape C4) : créneaux et horaires, absences (fermetures, congés, congrès), jours fériés.
 // Tout est enregistré dans parametres/calendrier (même document que l'application actuelle : feries, abs) + horaires.
-import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+// Couleurs Google Agenda (08/10/2026) : parametres/couleursAgenda { data: JSON { catégorie: "1"…"11" | "" } } (seulement ce
+// qui diffère des couleurs par défaut, les mêmes que COULEURS0 dans functions/logique.js) ; repeint par agendaCouleurs.
+import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { db } from "../config.js";
 import { FERIES0 } from "../donnees/listes.js";
 
@@ -31,13 +33,20 @@ export const CAT_WA = () => {
   l.push(["autre", "Autre rendez-vous (message par défaut)"]); return l;
 };
 const copie = (o) => JSON.parse(JSON.stringify(o));
+// Couleurs Google Agenda : les 11 couleurs d'événement de Google (noms et teintes de Google Agenda), "" = couleur de l'agenda
+const COUL_G = [["", "Couleur de l'agenda", "#FFFFFF"], ["11", "Tomate", "#D50000"], ["4", "Flamant", "#E67C73"], ["6", "Mandarine", "#F4511E"], ["5", "Banane", "#F6BF26"], ["2", "Sauge", "#33B679"], ["10", "Basilic", "#0B8043"], ["7", "Paon", "#039BE5"], ["9", "Myrtille", "#3F51B5"], ["1", "Lavande", "#7986CB"], ["3", "Raisin", "#8E24AA"], ["8", "Graphite", "#616161"]];
+export const COULEURS0 = { annonce: "4", suivi: "7", rtc: "1", hospit: "9", autre: "7", chimio: "10", rt: "3", dosi: "6", abs: "5", tache: "8", tacheUrg: "11" };
+const CAT_COUL = [["annonce", "Consultation d'annonce"], ["suivi", "Consultation de suivi / contrôle"], ["rtc", "Consultation en cours de radiothérapie"], ["hospit", "Hospitalisation"], ["autre", "Autres consultations (activités des Paramètres : 2nd avis…)"],
+  ["chimio", "Chimiothérapie (cures J1, J8, J15…)"], ["rt", "Radiothérapie (scanner, 1re séance, fin)"], ["dosi", "Dosimétrie à valider"], ["abs", "Absences et congés"], ["tache", "Tâches"], ["tacheUrg", "Tâches urgentes ou en retard"]];
+let COUL = null; // couleurs du cabinet lues (null = à lire)
 let ED = null, ONG = "horaires", MOD = false, HET = ""; // HET : établissement dont on règle les horaires ("" = par défaut)
 
 export function pageConfiguration() {
-  if (!ED || !MOD) ED = { horaires: copie(horaires()), horairesEtab: copie(D().cal.horairesEtab || {}), abs: copie(D().cal.abs || []), feries: copie(D().cal.feries || []), wa: Object.assign({}, D().wa || {}) };
+  if (COUL === null) { COUL = {}; getDoc(doc(db, "espaces", A.ESPACE, "parametres", "couleursAgenda")).then((s) => { COUL = s.exists() ? JSON.parse(s.data().data || "{}") : {}; if (!MOD && location.hash.startsWith("#configuration")) { ED = null; pageConfiguration(); } }).catch(() => {}); }
+  if (!ED || !MOD) ED = { horaires: copie(horaires()), horairesEtab: copie(D().cal.horairesEtab || {}), abs: copie(D().cal.abs || []), feries: copie(D().cal.feries || []), wa: Object.assign({}, D().wa || {}), coul: Object.assign({}, COULEURS0, COUL) };
   const ok = A.peut("parametres"), esc = A.esc, dis = ok ? "" : " disabled";
-  let h = '<section class="accueil"><div><h2>Configuration</h2><p>Horaires de consultation par établissement, absences, jours fériés et messages WhatsApp.</p></div></section>' +
-    '<div class="ag-vues" style="align-self:flex-start"><button class="' + (ONG === "horaires" ? "on" : "") + '" onclick="cfOnglet(\'horaires\')">' + A.ic("horloge") + 'Créneaux & horaires</button><button class="' + (ONG === "fermetures" ? "on" : "") + '" onclick="cfOnglet(\'fermetures\')">' + A.ic("avion") + "Fermetures, congés & jours fériés</button><button class=\"" + (ONG === "whatsapp" ? "on" : "") + "\" onclick=\"cfOnglet('whatsapp')\">" + A.ic("whatsapp") + "WhatsApp</button></div>";
+  let h = '<section class="accueil"><div><h2>Configuration</h2><p>Horaires de consultation par établissement, absences, jours fériés, messages WhatsApp et couleurs Google Agenda.</p></div></section>' +
+    '<div class="ag-vues" style="align-self:flex-start"><button class="' + (ONG === "horaires" ? "on" : "") + '" onclick="cfOnglet(\'horaires\')">' + A.ic("horloge") + 'Créneaux & horaires</button><button class="' + (ONG === "fermetures" ? "on" : "") + '" onclick="cfOnglet(\'fermetures\')">' + A.ic("avion") + "Fermetures, congés & jours fériés</button><button class=\"" + (ONG === "whatsapp" ? "on" : "") + "\" onclick=\"cfOnglet('whatsapp')\">" + A.ic("whatsapp") + "WhatsApp</button><button class=\"" + (ONG === "couleurs" ? "on" : "") + "\" onclick=\"cfOnglet('couleurs')\">" + A.ic("agenda") + "Google Agenda</button></div>";
   if (!ok) h += '<p class="mesures">Lecture seule : la modification demande le droit « paramètres ».</p>';
   if (ONG === "horaires") {
     // membre limité à certains établissements (secrétaire d'un centre) : seulement leurs horaires (07/10/2026)
@@ -57,6 +66,13 @@ export function pageConfiguration() {
         return '<tr><td><label style="display:flex;gap:8px;align-items:center;font-weight:bold"><input type="checkbox" style="width:auto"' + (ouvert ? " checked" : "") + disH + ' onchange="cfJour(' + j + ',this.checked)">' + nom + "</label></td><td>" +
           (ouvert ? '<div class="plages">' + pl.map((p, k) => '<span class="plage"><input type="time" step="900" value="' + p[0] + '"' + disH + ' onchange="cfPlage(' + j + "," + k + ',0,this.value)"> – <input type="time" step="900" value="' + p[1] + '"' + disH + ' onchange="cfPlage(' + j + "," + k + ',1,this.value)">' + (okH ? '<button class="mini rouge" onclick="cfSupPlage(' + j + "," + k + ')">✕</button>' : "") + "</span>").join("") + (okH ? '<button class="mini" onclick="cfAjPlage(' + j + ')">+ Ajouter une plage</button>' : "") + "</div>" : '<span class="mesures">Fermé</span>') + "</td></tr>";
       }).join("") + "</table></div></section>";
+  } else if (ONG === "couleurs") {
+    h += '<section class="carte"><h3><span class="ic">' + A.ic("agenda") + '</span>Couleurs dans Google Agenda</h3><p class="sous">Couleur de chaque type d\'événement dans l\'agenda « Onco360 » de chaque membre qui a relié son Google Agenda (Profil › Google Agenda). Après l\'enregistrement, les agendas sont repeints en quelques minutes.</p>' +
+      CAT_COUL.map(([k, lib]) => {
+        const v = ED.coul[k] != null ? ED.coul[k] : "", nom = (COUL_G.find((c) => c[0] === v) || COUL_G[0])[1];
+        return '<div class="cf-coul"><div class="lib"><b>' + esc(lib) + '</b><span class="mesures">' + esc(nom) + (v !== COULEURS0[k] ? " · modifiée" : "") + '</span></div><div class="nuancier" role="radiogroup" aria-label="' + esc(lib) + '">' +
+          COUL_G.map(([c, n, hex]) => '<button type="button" role="radio" aria-checked="' + (c === v) + '" title="' + esc(n) + '" aria-label="' + esc(n) + '" class="pastc' + (c === v ? " on" : "") + (c ? "" : " vide") + '" style="background:' + hex + '"' + dis + ' onclick="cfCoul(\'' + k + "','" + c + "')\"></button>").join("") + "</div></div>";
+      }).join("") + "</section>";
   } else if (ONG === "whatsapp") {
     const ex = { prenom: "Fatima", nom: "ALAOUI Fatima", jour: "mardi 14 octobre", heure: "à 10h00", lieu: "Hôpital Cheikh Khalifa", adresse: "", medecin: "Dr BENTAHILA" };
     h += '<section class="carte"><h3><span class="ic">' + A.ic("whatsapp") + '</span>Rappels WhatsApp</h3><p class="sous">Un bouton WhatsApp apparaît à côté de chaque rendez-vous (tableau de bord, 7 prochains jours, et dossier patient). Il ouvre WhatsApp avec le message ci-dessous déjà rempli : il ne reste qu\'à appuyer sur Envoyer. Le bouton est vert quand le rendez-vous est dans 24 à 48 h.</p>' +
@@ -93,6 +109,7 @@ window.cfAjPlage = (j) => { const l = HC().jours[j], der = l[l.length - 1]; l.pu
 window.cfSupPlage = (j, k) => { HC().jours[j].splice(k, 1); modif(true); };
 window.cfWa = (k, v) => { ED.wa[k] = v; const e = A.$("waEx_" + k); if (e) e.textContent = remplir(v, { prenom: "Fatima", nom: "ALAOUI Fatima", jour: "mardi 14 octobre", heure: "à 10h00", lieu: "Hôpital Cheikh Khalifa", adresse: "", medecin: "Dr BENTAHILA" }); modif(); };
 window.cfWaDef = (k) => { delete ED.wa[k]; modif(true); };
+window.cfCoul = (k, c) => { ED.coul[k] = c; modif(true); };
 window.cfAbs = (i, f, v) => { if (v) ED.abs[i][f] = v; else delete ED.abs[i][f]; modif(f === "du"); };
 window.cfAjAbs = () => { const t = D().t; ED.abs.push({ du: t, au: t, m: "" }); modif(true); };
 window.cfSupAbs = (i) => { ED.abs.splice(i, 1); modif(true); };
@@ -101,6 +118,7 @@ window.cfAjFer = () => { ED.feries.push({ d: D().t, nom: "Jour férié" }); modi
 window.cfSupFer = (i) => { ED.feries.splice(i, 1); modif(true); };
 window.cfDefaut = () => {
   if (ONG === "whatsapp") { if (!confirm("Rétablir tous les messages WhatsApp par défaut ?")) return; ED.wa = {}; modif(true); return; }
+  if (ONG === "couleurs") { if (!confirm("Rétablir les couleurs Google Agenda par défaut ?")) return; ED.coul = Object.assign({}, COULEURS0); modif(true); return; }
   if (!confirm("Rétablir les horaires (8 h 30 – 18 h, du lundi au vendredi, pour tous les établissements) et la liste des jours fériés par défaut ?\nLes absences ne sont pas modifiées.")) return;
   ED.horaires = HORAIRES0(); ED.horairesEtab = {}; ED.feries = copie(FERIES0); modif(true);
 };
@@ -122,9 +140,11 @@ window.cfEnregistrer = async () => {
     await setDoc(doc(db, "espaces", A.ESPACE, "parametres", "calendrier"), { data: JSON.stringify(cal) }, { merge: true });
     const wa = {}; Object.entries(ED.wa).forEach(([k, v]) => { if (v !== (WA0[k] || WA0.autre)) wa[k] = v; });
     if (JSON.stringify(wa) !== JSON.stringify(D().wa || {})) { await setDoc(doc(db, "espaces", A.ESPACE, "parametres", "whatsapp"), { data: JSON.stringify(wa) }); D().wa = wa; }
+    const coul = {}; Object.keys(COULEURS0).forEach((k) => { if (ED.coul[k] != null && ED.coul[k] !== COULEURS0[k]) coul[k] = ED.coul[k]; });
+    if (JSON.stringify(coul) !== JSON.stringify(COUL || {})) { await setDoc(doc(db, "espaces", A.ESPACE, "parametres", "couleursAgenda"), { data: JSON.stringify(coul) }); COUL = coul; }
     D().cal = cal; D().ctx.feries = cal.feries;
     D().patients.forEach((x) => A.recalculer(x, x.doc)); // les dates de radiothérapie dépendent des jours fériés
-    A.journal({ id: "", r: { nm: "" } }, "Configuration modifiée (horaires, absences, jours fériés, messages WhatsApp)");
+    A.journal({ id: "", r: { nm: "" } }, "Configuration modifiée (horaires, absences, jours fériés, messages WhatsApp, couleurs Google Agenda)");
     MOD = false; A.toast("Configuration enregistrée."); A.entete(); pageConfiguration();
   } catch (e) { A.occupe(b, false); A.toast(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de modifier la configuration." : "Enregistrement impossible : " + ((e && e.message) || e)); }
 };

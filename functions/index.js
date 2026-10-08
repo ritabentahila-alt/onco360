@@ -4,7 +4,8 @@
 //   • agendaLier / agendaMaj / agendaDelier : appelées depuis Onco360 (personne connectée) ;
 //   • agendaPatient : à chaque enregistrement d'un dossier ; agendaAbsences : absences du cabinet (titulaire) ;
 //   • agendaMembre : droits ou établissements d'un membre modifiés ; agendaNuit : remise à plat chaque nuit ;
-//   • agendaTache : une tâche écrite (échéance dans l'agenda de son responsable, T6 du 08/10/2026).
+//   • agendaTache : une tâche écrite (échéance dans l'agenda de son responsable, T6 du 08/10/2026) ;
+//   • agendaCouleurs : couleurs par type changées (Configuration › Google Agenda) : tous les agendas du cabinet repeints.
 // Jetons Google : collection agendaJetons/{uid}, inaccessible depuis le navigateur (aucune règle ne l'ouvre).
 // État visible par la personne : utilisateurs/{uid}.agendaGoogle = { email, calendrier, le, nb, erreur }.
 const { setGlobalOptions } = require("firebase-functions/v2");
@@ -44,6 +45,8 @@ async function echec(uid, e) {
 const membre = async (e, uid) => { const s = await db.doc("espaces/" + e + "/membres/" + uid).get(); return s.exists ? s.data() : null; };
 const titulaire = async (e) => { const s = await db.doc("espaces/" + e).get(); return s.exists ? s.data().titulaire : null; };
 
+// Couleurs choisies par le cabinet (absent : couleurs par défaut)
+async function couleurs(e) { try { const s = await db.doc("espaces/" + e + "/parametres/couleursAgenda").get(); return s.exists ? JSON.parse(s.data().data || "{}") : {}; } catch (er) { return {}; } }
 // ───── Remise à plat complète de l'agenda d'une personne ─────
 async function syncComplet(uid, J) {
   const m = await membre(J.espace, uid);
@@ -60,6 +63,7 @@ async function syncComplet(uid, J) {
     const c = await db.doc("espaces/" + J.espace + "/parametres/calendrier").get();
     try { voulus = voulus.concat(L.evtsAbsences(c.exists ? JSON.parse(c.data().data || "{}") : {}, auj)); } catch (e) { /* calendrier illisible */ }
   }
+  L.colorer(voulus, await couleurs(J.espace));
   const existants = await api.lister(J.calendrier, "onco360=1", L.timeMin(auj));
   const r = await L.appliquer(api, J.calendrier, voulus, existants, auj);
   await etat(uid, { email: J.email || "", calendrier: "Onco360", le: new Date().toISOString(), nb: voulus.length, erreur: "" });
@@ -69,7 +73,7 @@ async function syncComplet(uid, J) {
 async function syncGroupe(uid, J, g, voulus) {
   const api = await apiPour(J), auj = L.jourCasa();
   const existants = await api.lister(J.calendrier, "g=" + g, L.timeMin(auj));
-  await L.appliquer(api, J.calendrier, voulus.filter((e) => L.groupe(e.k) === g), existants, auj);
+  await L.appliquer(api, J.calendrier, L.colorer(voulus.filter((e) => L.groupe(e.k) === g), await couleurs(J.espace)), existants, auj);
   await etat(uid, { le: new Date().toISOString(), erreur: "" });
 }
 const liesA = async (e) => (await db.collection("agendaJetons").where("espace", "==", e).get()).docs.filter((d) => !d.data().revoque);
@@ -150,6 +154,9 @@ exports.agendaTache = onDocumentWritten(Object.assign({ document: "espaces/{e}/t
     const m = await membre(e, uid); if (!m || m.actif === false) continue;
     try { await syncGroupe(uid, s.data(), "tache-" + ev.params.t, L.evtsTaches(t ? [t] : [], uid, L.jourCasa(), noms)); } catch (er) { await echec(uid, er); }
   }
+});
+exports.agendaCouleurs = onDocumentWritten(Object.assign({ document: "espaces/{e}/parametres/couleursAgenda" }, OPTS), async (ev) => {
+  for (const d of await liesA(ev.params.e)) { try { await syncComplet(d.id, d.data()); } catch (e) { await echec(d.id, e); } }
 });
 exports.agendaNuit = onSchedule(Object.assign({ schedule: "30 3 * * *", timeZone: L.TZ }, OPTS), async () => {
   const l = (await db.collection("agendaJetons").get()).docs.filter((d) => !d.data().revoque);
