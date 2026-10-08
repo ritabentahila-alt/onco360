@@ -4,6 +4,7 @@
 //   impression : marges en mm [haut (place de l'en-tête du papier), côtés, bas] des ordonnances A5, A4 et des documents A4
 //   whatsapp   : bouton WhatsApp vert de « de » à « a » jours avant le rendez-vous (1 à 2 = 24 à 48 h)
 //   alertes    : cure annoncée « dans N jours » (cure), traitement terminé affiché pendant N jours (finTrait)
+//   salle      : salle d'attente, attente en orange à partir de N minutes (orange), en rouge à partir de N minutes (rouge)
 import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { db } from "../config.js";
 
@@ -15,6 +16,7 @@ export const REGLAGES0 = {
   impression: { a5: [45, 28, 18], a4: [60, 35, 22], doc: [45, 35, 22] },
   whatsapp: { de: 1, a: 2 },
   alertes: { cure: 3, finTrait: 30 },
+  salle: { orange: 20, rouge: 45 }, // salle d'attente : minutes d'attente avant l'orange, puis le rouge (08/10/2026)
 };
 const copie = (o) => JSON.parse(JSON.stringify(o));
 // Réglages en vigueur : ceux du cabinet, complétés par les valeurs par défaut

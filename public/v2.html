@@ -405,7 +405,7 @@ nav a.actif .nb-menu{background:#fff;color:var(--prim)}
 .sa-per{display:inline-flex;border:1px solid var(--trait);border-radius:var(--r-m);overflow:hidden;background:#fff}.sa-per button{border:0;background:none;padding:11px 14px;font-weight:bold;font-size:14px;color:var(--doux)}.sa-per button+button{border-left:1px solid var(--trait)}.sa-per button.on{background:var(--prim);color:#fff}
 .sa-pres{font-size:11.5px;color:#B86E00;font-weight:bold;margin-top:2px}.sa-pres .pi{width:12px;height:12px}
 .pres-dossier{background:#FFF4E3;border:1px solid #F0C990;color:#8A5300;border-radius:var(--r-m);padding:9px 14px;font-size:14px}
-.sa-l .px{white-space:nowrap}.sa-l .c-type,.sa-l .c-st{text-align:center;justify-self:center}.sa-l.ent .c-type,.sa-l.ent .c-st{justify-self:stretch}.sa-l .c-type .badge{display:inline-block;max-width:100%}.sa-l .mo{overflow-wrap:anywhere}.px-conv{font-weight:bold;color:var(--bleu)}.sa-badge:empty{display:none}.sa-badge .st{font-size:11.5px;padding:1px 8px}.li .sa-badge,.ev .sa-badge{margin-right:6px}.sa-l .civ{color:var(--doux);font-weight:bold}.sa-l .cor,.sa-l .mut,.sa-l .com{min-width:0;overflow-wrap:break-word;font-size:13.5px}.sa-l .com{white-space:pre-wrap}.sa-etab{display:flex;gap:8px;flex-wrap:wrap}
+.sa-l .px{white-space:nowrap}.sa-l .c-type,.sa-l .c-st{text-align:center;justify-self:center}.sa-l .com,.sa-l.ent .c-com{text-align:center}.sa-l.ent .c-type,.sa-l.ent .c-st{justify-self:stretch}.sa-l .c-type .badge{display:inline-block;max-width:100%}.sa-l .mo{overflow-wrap:anywhere}.px-conv{font-weight:bold;color:var(--bleu)}.sa-badge:empty{display:none}.sa-badge .st{font-size:11.5px;padding:1px 8px}.li .sa-badge,.ev .sa-badge{margin-right:6px}.sa-l .civ{color:var(--doux);font-weight:bold}.sa-l .cor,.sa-l .mut,.sa-l .com{min-width:0;overflow-wrap:break-word;font-size:13.5px}.sa-l .com{white-space:pre-wrap}.sa-etab{display:flex;gap:8px;flex-wrap:wrap}
 .pa-auto{display:inline-flex;align-items:center;gap:6px;cursor:pointer}.pa-auto input{width:18px;height:18px}.px-ok{font-weight:bold;color:var(--vert)}.px-prev{color:var(--doux)}
 .sa-tot{display:flex;gap:10px 24px;flex-wrap:wrap;align-items:center;justify-content:flex-end;padding:12px 4px 2px;font-size:14.5px;color:var(--titre)}.sa-tot b{font-size:16px}
 .sa-jours{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
@@ -428,7 +428,7 @@ nav a.actif .nb-menu{background:#fff;color:var(--prim)}
 @media (max-width:900px){
   .sa-l.ent{display:none}
   .sa-l{grid-template-columns:48px minmax(0,1fr);gap:5px 10px}
-  .sa-l .c-type,.sa-l .c-st{text-align:left;justify-self:start}.sa-l{grid-auto-flow:row dense}.sa-l>*{grid-column:2}.sa-l .h{grid-column:1;grid-row:1}.sa-l .ord{grid-column:1;grid-row:2;font-size:12px}
+  .sa-l .c-type,.sa-l .c-st{text-align:left;justify-self:start}.sa-l .com{text-align:left}.sa-l{grid-auto-flow:row dense}.sa-l>*{grid-column:2}.sa-l .h{grid-column:1;grid-row:1}.sa-l .ord{grid-column:1;grid-row:2;font-size:12px}
   .sa-l .actr{justify-content:flex-start}
   .sa-l .mo:empty,.sa-l .ar:empty,.sa-l .px:empty,.sa-l .civ:empty,.sa-l .cor:empty,.sa-l .mut:empty{display:none}
   .sa-l [data-l]:not(:empty)::before{content:attr(data-l) " : ";color:var(--doux);font-weight:normal}
@@ -642,6 +642,6 @@ function onco360Deconnecter() {
 }
 </script>
 
-<script type="module" src="./js/app/v2.js?v=20261008t"></script>
+<script type="module" src="./js/app/v2.js?v=20261008u"></script>
 </body>
 </html>

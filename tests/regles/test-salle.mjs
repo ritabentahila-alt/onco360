@@ -64,6 +64,9 @@ await cas("l'infirmière commente une ligne en consultation", () => assertSuccee
 await cas("refusé : l'infirmière commente ET change l'étape d'une ligne en consultation", () => assertFails(setDoc(S("INF", id("p1", "r-c")), ligne("INF", { cle: "r-c", etat: "salle", com: "x" }))));
 await cas("refusé : la secrétaire HGC commente une ligne HCK", () => assertFails(setDoc(S("SEC", id("p2", "r-b")), ligne("SECK", { patientId: "p2", etablissementId: "HCK", cle: "r-b", com: "x", majPar: "SEC" }))));
 
+await cas("la secrétaire commente une consultation vue d'un jour passé (ligne sans document, étape vide)", () => assertSucceeds(setDoc(S("SEC", "2026-10-01_p1_r-v"), ligne("SEC", { jour: "2026-10-01", cle: "r-v", etat: "", com: "Payé en espèces", comPar: "SEC" }))));
+await cas("refusé : document sans étape", () => assertFails(setDoc(S("SEC", "2026-10-01_p1_r-w"), (({ etat, ...r }) => r)(ligne("SEC", { jour: "2026-10-01", cle: "r-w", com: "x" })))));
+
 console.log("Prix payé d'avance");
 await cas("la secrétaire note un prix payé d'avance", () => assertSucceeds(setDoc(S("SEC", id("p1", "r-a")), ligne("SEC", { prix: 200, prixPar: "SEC" }))));
 await cas("refusé : l'infirmière note un prix", () => assertFails(setDoc(S("INF", id("p1", "r-a")), ligne("INF", { prix: 0, prixPar: "INF" }))));

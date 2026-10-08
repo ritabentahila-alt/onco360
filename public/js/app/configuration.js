@@ -154,6 +154,10 @@ export function pageConfiguration(arg) {
     h += '<section class="carte"><h3><span class="ic">' + A.ic("alerte") + '</span>Alertes (cloche)</h3><p class="sous">Délais des alertes de la cloche, en haut de l\'écran.</p><div class="form" style="grid-template-columns:repeat(2,minmax(0,280px))">' +
       sel("cure", [1, 2, 3, 4, 5, 7, 10, 14], "Cure prévue : prévenir", "jour(s) avant") + sel("finTrait", [7, 15, 30, 45, 60, 90], "Traitement terminé : signaler pendant", "jours") + "</div>" +
       '<p class="mesures">Toujours signalés : cure prévue et non validée (date dépassée), dernière cure d\'un protocole, fin de radiothérapie dépassée, dosimétrie à valider.</p></section>';
+    const RS = ED.reg.salle, selS = (k, l, lib) => '<div><label for="cfS' + k + '">' + lib + '</label><select id="cfS' + k + '"' + dis + ' onchange="cfReg(\'salle\',\'' + k + "',this.value)\">" + l.map((n) => '<option value="' + n + '"' + (RS[k] === n ? " selected" : "") + ">" + n + " min</option>").join("") + "</select></div>";
+    h += '<section class="carte"><h3><span class="ic">' + A.ic("horloge") + '</span>Salle d\'attente : temps d\'attente</h3><p class="sous">Le compteur « Attente 12 min » d\'un patient en salle passe à l\'orange, puis au rouge (salle d\'attente, agenda, tableau de bord).</p><div class="form" style="grid-template-columns:repeat(2,minmax(0,280px))">' +
+      selS("orange", [5, 10, 15, 20, 25, 30, 40, 45, 60], "Orange à partir de") + selS("rouge", [15, 20, 30, 40, 45, 60, 75, 90, 120], "Rouge à partir de") + "</div>" +
+      (RS.rouge <= RS.orange ? '<p class="err">Le rouge doit venir après l\'orange.</p>' : "") + "</section>";
   } else if (ONG === "whatsapp") {
     const ex = { prenom: "Fatima", nom: "ALAOUI Fatima", jour: "mardi 14 octobre", heure: "à 10h00", lieu: "Hôpital Cheikh Khalifa", adresse: "", medecin: "Dr BENTAHILA" };
     h += '<section class="carte"><h3><span class="ic">' + A.ic("whatsapp") + '</span>Rappels WhatsApp</h3><p class="sous">Un bouton WhatsApp apparaît à côté de chaque rendez-vous (tableau de bord, 7 prochains jours, et dossier patient). Il ouvre WhatsApp avec le message ci-dessous déjà rempli : il ne reste qu\'à appuyer sur Envoyer. Le bouton est vert quand le rendez-vous est dans ' + (ED.reg.whatsapp.de * 24) + " à " + (ED.reg.whatsapp.a * 24) + ' h (réglable ci-dessous).</p>' +
@@ -266,7 +270,7 @@ window.cfL = (i, v) => { ED.listes[LS][i] = String(v || "").trim(); modif(); };
 window.cfLSup = (i) => { ED.listes[LS].splice(i, 1); ED.listesOrig[LS].splice(i, 1); modif(); listeL(); };
 window.cfLAj = () => { LQ = ""; ED.listes[LS].push(""); ED.listesOrig[LS].push(""); modif(true); setTimeout(() => { const l = document.querySelectorAll("#cfLl input"); if (l.length) { l[l.length - 1].scrollIntoView({ block: "center" }); l[l.length - 1].focus(); } }, 30); };
 window.cfBib = (n) => gererListe(n);
-window.cfReg = (g, k, v) => { ED.reg[g][k] = parseInt(v, 10) || 0; modif(); };
+window.cfReg = (g, k, v) => { ED.reg[g][k] = parseInt(v, 10) || 0; modif(g === "salle"); };
 window.cfImp = (q, n, v) => { const x = parseInt(v, 10); ED.reg.impression[q][n] = isNaN(x) ? REGLAGES0.impression[q][n] : Math.max(0, Math.min(150, x)); modif(); };
 window.cfCoul = (k, c) => { ED.coul[k] = c; modif(true); };
 window.cfTd = (i, v) => { ED.tdoc[i] = String(v || "").trim(); modif(); };
@@ -287,7 +291,7 @@ window.cfDefaut = () => {
   if (ONG === "whatsapp") { if (!confirm("Rétablir tous les messages WhatsApp et le délai du bouton vert par défaut ?")) return; ED.wa = {}; ED.reg.whatsapp = copie(REGLAGES0.whatsapp); modif(true); return; }
   if (ONG === "listes") { if (!confirm("Rétablir les listes de départ (diagnostics, mutuelles, correspondants) ?\nLes ajouts et corrections du cabinet seront perdus.")) return; ED.listes = { diag: LISTES0.diag.slice(), mut: LISTES0.mut.slice().sort((a, z) => a.localeCompare(z, "fr")), cor: LISTES0.cor.slice().sort((a, z) => a.localeCompare(z, "fr")) }; ED.listesOrig = JSON.parse(JSON.stringify(ED.listes)); modif(true); return; }
   if (ONG === "impression") { if (!confirm("Rétablir les marges d'impression par défaut ?")) return; ED.reg.impression = copie(REGLAGES0.impression); modif(true); return; }
-  if (ONG === "alertes") { if (!confirm("Rétablir les délais des alertes par défaut ?")) return; ED.reg.alertes = copie(REGLAGES0.alertes); modif(true); return; }
+  if (ONG === "alertes") { if (!confirm("Rétablir les délais des alertes et de la salle d'attente par défaut ?")) return; ED.reg.alertes = copie(REGLAGES0.alertes); ED.reg.salle = copie(REGLAGES0.salle); modif(true); return; }
   if (ONG === "couleurs") { if (!confirm("Rétablir les couleurs Google Agenda par défaut ?")) return; ED.coul = Object.assign({}, COULEURS0); modif(true); return; }
   if (ONG === "taches") { if (!confirm("Rétablir la liste des types de tâches de base ?")) return; ED.ttache = TYPES_TACHES0.slice(); modif(true); return; }
   if (ONG === "documents") { if (!confirm("Rétablir la liste des types de documents de départ ?")) return; ED.tdoc = TYPES_DOCUMENTS0.slice(); modif(true); return; }

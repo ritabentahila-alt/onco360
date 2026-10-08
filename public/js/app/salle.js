@@ -21,13 +21,15 @@ import { etatLigne, protocoleDe, seancesCure } from "../moteur/doses.js";
 import { addJ } from "../moteur/outils.js";
 import { tarif } from "../moteur/tarifs.js";
 import { oublierEncaissements } from "./chimio.js";
+import { reglages } from "./reglages.js";
 
 let A = null;
 export function installer(api) { A = api; }
 const D = () => A.D();
 const $ = (i) => document.getElementById(i);
 const col = () => collection(db, "espaces", A.ESPACE, "salle");
-const SEUIL_O = 20, SEUIL_R = 45; // minutes d'attente : orange, puis rouge (réglables dans Configuration en SA2)
+// Minutes d'attente : orange, puis rouge (Paramètres › Alertes, parametres/reglages.salle ; par défaut 20 et 45)
+const seuils = () => { const s = (reglages().salle) || {}; return [s.orange || 20, s.rouge || 45]; };
 const SA = new Map(); // documents lus (id → données) : le jour même (écoute) et le jour affiché
 let ECOUTE = null, VUE = "salle", ETAB = "", RETOUR = null, MINUT = null, JOUR = null, LU = {}, PER = "jour", RECH = "";
 const MIDI = "13:00"; // Matinée : rendez-vous (ou arrivée) avant 13 h ; Après-midi : à partir de 13 h ; sans heure : dans les deux
@@ -80,7 +82,7 @@ export function badgeSalle(pid, cle) { return '<span class="sa-badge" data-sa="'
 function contenuBadge(L, pid, cle) {
   const l = L.find((z) => z.pid === pid && (cle === "chimio" ? !!z.chimio : z.cle === cle)); if (!l) return "";
   const d = l.doc;
-  if (l.etat === "salle") { const m = minutes(d.arr || Date.now()); return '<span class="st ' + (m >= SEUIL_R ? "rouge" : m >= SEUIL_O ? "orange" : "salle") + '"><i></i>En salle · ' + duree(m) + "</span>"; }
+  if (l.etat === "salle") { const m = minutes(d.arr || Date.now()); return '<span class="st ' + (m >= seuils()[1] ? "rouge" : m >= seuils()[0] ? "orange" : "salle") + '"><i></i>En salle · ' + duree(m) + "</span>"; }
   if (l.etat === "consult") return '<span class="st consult"><i></i>En consultation · ' + duree(minutes(d.deb || Date.now())) + "</span>";
   if (l.etat === "vu" && cle === "chimio") return '<span class="st vu"><i></i>Vu' + (d.fin ? " " + hm(d.fin) : "") + "</span>";
   return "";
@@ -190,7 +192,8 @@ function prixAvance(l) {
 
 // ───── Écriture d'un document (jour, patient, ligne) ─────
 async function ecrire(l, maj) {
-  const id = idDoc(l.jour, l.pid, l.cle), d = Object.assign({}, SA.get(id) || {}, maj, { jour: l.jour, patientId: l.pid, etablissementId: l.x.doc.etablissementId || "", cle: l.cle, majPar: D().u.uid, maj: serverTimestamp() });
+  const id = idDoc(l.jour, l.pid, l.cle), d = Object.assign({ etat: "" }, SA.get(id) || {}, maj, { jour: l.jour, patientId: l.pid, etablissementId: l.x.doc.etablissementId || "", cle: l.cle, majPar: D().u.uid, maj: serverTimestamp() });
+  if (d.etat == null) d.etat = ""; // ligne sans document (vue avant la salle d'attente…) : étape vide, le rendez-vous reste la référence
   Object.keys(d).forEach((k) => { if (d[k] === undefined || d[k] === null) delete d[k]; });
   const avant = SA.get(id); SA.set(id, d); apresChangement();
   try { await setDoc(doc(col(), id), d); }
@@ -402,7 +405,7 @@ function dessiner() {
 // Pastille de statut (au trait) avec le temps écoulé
 function statut(l) {
   const d = l.doc, now = Date.now(), auj = l.jour === D().t;
-  if (l.etat === "salle") { if (!auj) return '<span class="st salle"><i></i>Arrivé' + (d.arr ? " à " + hm(d.arr) : "") + "</span>"; const m = minutes(d.arr || now), c = m >= SEUIL_R ? "rouge" : m >= SEUIL_O ? "orange" : "salle"; return '<span class="st ' + c + '" title="En attente depuis ' + duree(m) + '"><i></i>Attente ' + duree(m) + "</span>"; }
+  if (l.etat === "salle") { if (!auj) return '<span class="st salle"><i></i>Arrivé' + (d.arr ? " à " + hm(d.arr) : "") + "</span>"; const m = minutes(d.arr || now), c = m >= seuils()[1] ? "rouge" : m >= seuils()[0] ? "orange" : "salle"; return '<span class="st ' + c + '" title="En attente depuis ' + duree(m) + '"><i></i>Attente ' + duree(m) + "</span>"; }
   if (l.etat === "consult") return '<span class="st consult"><i></i>' + (auj ? "Consultation " + duree(minutes(d.deb || now)) : "En consultation") + "</span>";
   if (l.etat === "vu") return '<span class="st vu"><i></i>Vu' + (d.fin ? " à " + hm(d.fin) : "") + "</span>" + (d.arr && d.deb ? '<div class="mesures">Attente ' + duree(Math.max(0, Math.round((d.deb - d.arr) / 60000))) + (d.fin ? " · consultation " + duree(Math.max(0, Math.round((d.fin - d.deb) / 60000))) + " · présence " + duree(Math.max(0, Math.round((d.fin - d.arr) / 60000))) : "") + "</div>" : "");
   if (l.etat === "absent") return '<span class="st absent"><i></i>Absent</span>' + (d.rep ? '<div class="mesures">Reportée au ' + A.dfrA(d.rep) + "</div>" : "");

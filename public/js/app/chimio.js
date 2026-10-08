@@ -81,9 +81,14 @@ function majCons(cc) {
 function brutV1(x, rid, m) {
   const r = ((x.P && x.P.rdvs) || []).find((v) => v.id === rid), T = D().tarifs; if (!r || !T || m == null) return {};
   const t = r.act || typeRdv(r.type); if (t === "hospit" || r.type === T_RTC) return {};
-  const v = tarif(T, x.doc.etablissementId, t, r.dv || r.d); if (!v || v.brut == null) return {};
-  const n = v.brut * (1 - (v.retro || 0) / 100) * (1 - (v.impot || 0) / 100);
-  return Math.abs(n - m) < 0.51 && v.brut !== m ? { b: v.brut } : {};
+  // établissement du patient d'abord, puis les autres (consultation faite ailleurs, patient rattaché depuis à un autre hôpital)
+  const etabs = [x.doc.etablissementId].concat(Object.keys(T.etablissements || {}).filter((c) => c !== x.doc.etablissementId));
+  for (const e of etabs) {
+    const v = tarif(T, e, t, r.dv || r.d); if (!v || v.brut == null) continue;
+    const n = v.brut * (1 - (v.retro || 0) / 100) * (1 - (v.impot || 0) / 100);
+    if (Math.abs(n - m) < 0.51 && v.brut !== m) return { b: v.brut };
+  }
+  return {};
 }
 export function construireEncaissements(x, M) {
   const E = { rdv: {}, cons: {} };

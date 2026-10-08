@@ -21,7 +21,8 @@ La pastille du menu indique le nombre de patients qui attendent.
 
 ## Les quatre onglets
 - **À venir** : patients attendus, pas encore arrivés (séances de chimio en tête).
-- **En salle d'attente** : patients arrivés (« Attente 12 min », orange à 20 min, rouge à 45 min) et, en haut,
+- **En salle d'attente** : patients arrivés (« Attente 12 min », orange à 20 min, rouge à 45 min : réglables dans
+  Paramètres › Alertes) et, en haut,
   ceux qui sont **en consultation**.
 - **Vus** : consultations validées, avec l'heure, l'attente, la durée de la consultation et le temps de présence. Les séances
   de chimio validées dans le dossier avant la salle d'attente y apparaissent aussi.
@@ -88,4 +89,4 @@ Le jour même, l'Agenda (vues Jour et Liste) et « Aujourd'hui » du tableau de 
 Valider une cure (J1) ou une séance (J8…) dans le dossier ouvre ensuite la fenêtre de prix de la consultation de chimio.
 
 ## À venir
-- Arrivée sans rendez-vous (urgence, passage), réglages (seuils d'attente) dans Paramètres.
+- Arrivée sans rendez-vous (urgence, passage).

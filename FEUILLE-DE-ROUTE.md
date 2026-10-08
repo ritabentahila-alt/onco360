@@ -812,7 +812,11 @@ Nouvelle page **« Salle d'attente »** dans le menu, **entre Agenda et Patients
 **SA2 – Sans rendez-vous, prix et total, Configuration**
 - [ ] « + Arrivée sans rendez-vous » (patient connu ou nouveau patient, motif, urgence).
 - [x] Colonne **prix** et **total** ; fenêtre de prix pour la secrétaire : faits en SA1 bis.
-- [ ] Configuration : seuils d'attente, ordre de la liste.
+- [x] Paramètres › Alertes : **seuils d'attente** de la salle d'attente (orange, rouge ; `parametres/reglages.salle`, défaut
+      20 et 45 min). Ordre de la liste : tri personnel (fait en SA1 quater).
+- [x] Corrigé : commentaire refusé sur une consultation vue sans document de salle d'attente (étape vide toujours écrite ;
+      test de règle) ; stylo du commentaire centré ; anciens prix v1 d'une consultation faite dans un autre établissement
+      (ex. HCK 225 → 250 DH) : brut cherché dans tous les établissements (migration `encaissementsBrutV1b`).
 
 **SA3 – Dans l'agenda et le tableau de bord** (fait le 08/10, appelé « SA2 » par Dr Bentahila)
 - [x] Statut et temps d'attente (« En salle · 12 min », « En consultation · 5 min », chimio « Vu 10:42 ») dans l'**Agenda**
@@ -1048,3 +1052,4 @@ Onco360_Package_Cession/
 | 08/10/2026 | 5 – P4 Tâches | Tâches automatiques : 2 fixes (dosimétrie, fin de RT ; terminées toutes seules) + règles du médecin (dernière cure, non venu, nouveau patient, N mois après la RT, veille J1), activables, responsable et délai réglables ; fonctions `tachesAutoPatient` / `tachesAutoNuit` ; tâches du patient dans « Rendez-vous et tâches à venir » (+ Tâche). Tests logique 73/73, règles 85/85, navigateur, bilan 352 317 DH. Pas encore en ligne. |
 | 08/10/2026 | 5 – P4 | Dosimétrie à valider : une tâche seulement (retirée de l'agenda, des 7 jours, du programme du jour, de Google Agenda). Tâche créée seulement du scanner à la 1re séance ; responsable des tâches fixes = médecin. Tests logique 75/75, bilan 352 317 DH. Pas encore en ligne. |
 | 08/10/2026 | 6 – Salle d'attente (retouches + SA3) | Prix payé d'avance, libellés courts et centrés, fenêtre de prix après validation de cure / séance, anciennes chimio « Vu », statut de salle d'attente dans l'Agenda (Jour, Liste) et le tableau de bord. Règles 88/88, navigateur (secrétaire, médecin, bilan de référence inchangé). |
+| 08/10/2026 | 6 – Salle d'attente (corrections) | Commentaire sur une consultation vue, stylo centré, anciens prix HCK en brut, seuils d'attente dans Paramètres › Alertes. Règles 90/90, navigateur, bilan de référence inchangé. |

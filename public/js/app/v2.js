@@ -143,10 +143,10 @@ async function migrations() {
     if (!fait.ordostypesExcel1) {
       await remplacerOrdosTypes().then(() => setDoc(doc(db, "espaces", ESPACE, "parametres", "migrations"), { ordostypesExcel1: D.t }, { merge: true })).catch((er) => console.warn("ordonnances types", er));
     }
-    if (!peut("finances") || (fait.encaissementsJours && fait.encaissementsBrutV1)) return;
+    if (!peut("finances") || (fait.encaissementsJours && fait.encaissementsBrutV1b)) return;
     const sf = await getDocs(collection(db, "espaces", ESPACE, "patientsFinances"));
     for (const d of sf.docs) { const x = D.patients.find((p) => p.id === d.id); if (!x) continue; let M = {}; try { M = JSON.parse(d.data().montantsJson || "{}"); } catch (er) {} await ecrireEncaissements(x, M); }
-    await setDoc(doc(db, "espaces", ESPACE, "parametres", "migrations"), { encaissements: D.t, encaissementsJours: D.t, encaissementsBrutV1: D.t }, { merge: true });
+    await setDoc(doc(db, "espaces", ESPACE, "parametres", "migrations"), { encaissements: D.t, encaissementsJours: D.t, encaissementsBrutV1: D.t, encaissementsBrutV1b: D.t }, { merge: true });
   } catch (er) { console.warn("migrations", er); }
 }
 // Tarifs des consultations lisibles par toute l'équipe (la secrétaire fait payer les patients) : le prix brut de chaque activité
