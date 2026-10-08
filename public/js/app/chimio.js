@@ -295,7 +295,16 @@ const rafraichir = (x) => { const cm = CM; A.fermerFenetre(); A.pageDossier(x.id
 window.chTog = (id, i) => { SEL.pid = id; SEL.l = SEL.l === i ? null : i; SEL.c = null; A.pageDossier(id); };
 window.chOuvrir = (id, i, k, j) => { SEL.pid = id; SEL.l = i; SEL.c = k; CM = { pid: id, i, k, j: j || null }; A.pageDossier(id); ouvrirCure(); };
 const boutons = (lib, cls) => '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="chSousAnnuler()">Annuler</button><button class="bt ' + (cls || "plein") + '" id="fOk">' + lib + "</button></div>";
-async function executer(x, fn) { A.occupe(document.getElementById("fOk"), true); try { await fn(); A.toast("Enregistré."); rafraichir(x); } catch (e) { A.occupe(document.getElementById("fOk"), false); A.erreur(e.message); } }
+async function executer(x, fn) { A.occupe(document.getElementById("fOk"), true); try { await fn(); A.toast("Enregistré."); rafraichir(x); return true; } catch (e) { A.occupe(document.getElementById("fOk"), false); A.erreur(e.message); return false; } }
+// Après la validation d'une cure (J1) ou d'une séance (J8…) dans le dossier, la fenêtre de prix de la consultation de chimio
+// s'ouvre, comme à la validation d'un rendez-vous (08/10/2026), sauf si ce jour a déjà son prix
+async function proposerPrix(pid, lid, n, j) {
+  if (!(A.peut("finances") || prixParServeur())) return;
+  const s = await getDoc(doc(db, "espaces", A.ESPACE, "encaissements", pid)).catch(() => null);
+  const E = s && s.exists() ? JSON.parse(s.data().data || "{}") : {};
+  if (E.cons && E.cons[lid + "|" + n + "|" + j]) return;
+  window.chVenuChimio(pid, lid, n, j);
+}
 async function direct(x, fn) { try { await fn(); rafraichir(x); } catch (e) { A.toast(e.message); A.pageDossier(x.id); } }
 const choixSuite = (id, nom, def) => '<div class="large"><label>' + nom + '</label><label style="font-weight:normal"><input type="radio" name="' + id + '" value="seule"' + (def !== "suite" ? " checked" : "") + ' style="width:auto;margin-right:6px">Cette date seulement (la suite ne bouge pas)</label><label style="font-weight:normal"><input type="radio" name="' + id + '" value="suite"' + (def === "suite" ? " checked" : "") + ' style="width:auto;margin-right:6px">Recalculer toute la suite</label></div>';
 const choix = (id) => { const r = document.querySelector('input[name="' + id + '"]:checked'); return r ? r.value : "seule"; };
@@ -328,7 +337,7 @@ window.chValiderJ1 = (id, i, k) => {
     if (g.length > 1) { c.sea = c.sea || {}; g.slice(1).forEach((s) => { if (!c.sea[s.j]) c.sea[s.j] = { st: "prevue" }; }); }
     await sauverLignes(x, lignes, "Cure C" + (k + 1) + " validée (" + A.dfrA(d) + ")");
     SEL.pid = x.id; SEL.l = i; SEL.c = k; if (CM) CM.j = null;
-  });
+  }).then((ok) => { if (ok) proposerPrix(x.id, x.P.lignes[i].id, k + 1, 1); });
 };
 window.chRetablir = (id, i, k) => {
   const x = trouver(id); if (!confirm("Remettre la cure C" + (k + 1) + " en « prévue » ?")) return;
@@ -370,7 +379,7 @@ window.chFiche = (id, i, k) => {
 
 // ───── Séances J8 / J15… ─────
 window.chValiderSeance = (id, i, k, j) => window.chOuvrir(id, i, k, j);
-window.chValiderJ = (id, i, k, j) => { const x = trouver(id); executer(x, async () => { await majSeance(x, i, k, j, A.val("sD") || D().t, true); if (CM) CM.j = null; }); };
+window.chValiderJ = (id, i, k, j) => { const x = trouver(id); executer(x, async () => { await majSeance(x, i, k, j, A.val("sD") || D().t, true); if (CM) CM.j = null; }).then((ok) => { if (ok) proposerPrix(x.id, x.P.lignes[i].id, k + 1, j); }); };
 window.chDateSeance = (id, i, k, j, v) => {
   const x = trouver(id); if (!v) return;
   A.fenetre("<h3>Nouvelle date de J" + j + " – cure C" + (k + 1) + '</h3><p class="sous">→ <b>' + A.dfrA(v) + '</b></p><div class="form">' + choixSuite("sS", "Séances et cures suivantes") + "</div>" + boutons("Enregistrer"));
@@ -437,7 +446,8 @@ window.chVenuChimio = async (pid, lid, n, j) => {
   if (sec) { const E = EC[x.id] || (await getDoc(doc(db, "espaces", A.ESPACE, "encaissements", x.id)).then((s) => (s.exists() ? JSON.parse(s.data().data || "{}") : null)).catch(() => null)); const v = E && E.cons && E.cons[lid + "|" + n + "|" + j]; if (v) J[j] = v.m; }
   else { const M = await chargerMontants(x); J = consJours((M.cures[lid] || {})[n]); }
   const tC = tarifDe(x, "cchimio", date);
-  const def = J[j] != null ? J[j] : j === 1 ? tC || 0 : 0, fmt = (v) => A.fmtMil(v);
+  const pp = A.prixPrevu(pid, "c-" + lid + "-" + n + "-" + j, date); // prix convenu d'avance dans la salle d'attente
+  const def = J[j] != null ? J[j] : pp != null ? pp : j === 1 ? tC || 0 : 0, fmt = (v) => A.fmtMil(v);
   A.fenetre("<h3>" + A.esc(x.r.nm) + " – Chimiothérapie C" + n + " J" + j + '</h3><p class="sous">' + A.esc(q.nom) + (date ? " · " + A.cap(A.jourLong(date)) : "") + "</p>" +
     '<div class="form"><div><label for="pvM">Montant de la consultation (DH)</label><input id="pvM" class="mt" inputmode="decimal" value="' + A.esc(fmt(def)) + '"></div></div>' +
     '<p class="mesures">J1 : tarif de la consultation de chimiothérapie' + (tC != null ? " (" + fmt(tC) + " DH)" : "") + ". J8, J15… : 0 par défaut. Modifiez le montant en cas de réduction, de gratuité (0) ou de consultation facturée.</p>" +

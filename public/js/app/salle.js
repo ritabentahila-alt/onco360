@@ -74,7 +74,24 @@ async function lireJour(j) {
   if (s) s.docs.forEach((d) => SA.set(d.id, d.data()));
   LU[j] = 1;
 }
+// Badge de salle d'attente (agenda, tableau de bord) : « En salle · 12 min », « En consultation · 5 min », « Vu 10:42 », « Absent » ;
+// cle = "r-RDV" ou "chimio" (première séance de chimio du patient ce jour-là). Mis à jour en direct (majBadges).
+export function badgeSalle(pid, cle) { return '<span class="sa-badge" data-sa="' + A.esc(pid + "|" + cle) + '">' + contenuBadge(lignes([D().t]), pid, cle) + "</span>"; }
+function contenuBadge(L, pid, cle) {
+  const l = L.find((z) => z.pid === pid && (cle === "chimio" ? !!z.chimio : z.cle === cle)); if (!l) return "";
+  const d = l.doc;
+  if (l.etat === "salle") { const m = minutes(d.arr || Date.now()); return '<span class="st ' + (m >= SEUIL_R ? "rouge" : m >= SEUIL_O ? "orange" : "salle") + '"><i></i>En salle · ' + duree(m) + "</span>"; }
+  if (l.etat === "consult") return '<span class="st consult"><i></i>En consultation · ' + duree(minutes(d.deb || Date.now())) + "</span>";
+  if (l.etat === "vu" && cle === "chimio") return '<span class="st vu"><i></i>Vu' + (d.fin ? " " + hm(d.fin) : "") + "</span>";
+  return "";
+}
+function majBadges() {
+  const z = document.querySelectorAll(".sa-badge[data-sa]"); if (!z.length) return;
+  const L = lignes([D().t]); z.forEach((e) => { const i = e.dataset.sa.indexOf("|"); e.innerHTML = contenuBadge(L, e.dataset.sa.slice(0, i), e.dataset.sa.slice(i + 1)); });
+}
+setInterval(() => { if (A && D()) majBadges(); }, 30000);
 function apresChangement() {
+  majBadges();
   const n = lignes([D().t]).filter((l) => l.etat === "salle").length, e = $("nbSalle");
   if (e) { e.textContent = n; e.classList.toggle("cache", !n); e.title = n + " patient" + (n > 1 ? "s" : "") + " en salle d'attente"; }
   if (location.hash.startsWith("#salle") && $("saL")) dessiner();
@@ -83,11 +100,12 @@ function apresChangement() {
 
 // ───── Lignes d'un ou plusieurs jours ─────
 // Catégorie (couleur du badge) et libellé court du type de consultation
+// Libellés courts (08/10/2026 : chimiothérapie = chimio, hebdomadaire = hebdo) pour que les colonnes ne se chevauchent pas
 function typeDe(v) {
-  if (v.type === T_RTC) return ["En cours de radiothérapie", "b-rt"];
-  if (v.act) return [v.type || "Consultation", "b-gr"];
+  if (v.type === T_RTC) return ["RT hebdo", "b-rt"];
+  if (v.act) return [A.cap(String(v.type || "Consultation").replace(/^consultation\s+(de\s+|d')?/i, "").replace(/chimioth[ée]rapie/gi, "chimio").replace(/radioth[ée]rapie/gi, "RT").replace(/hebdomadaire/gi, "hebdo")), "b-gr"];
   const t = typeRdv(v.type);
-  return t === "annonce" ? ["Consultation d'annonce", "b-or"] : t === "controle" ? ["Contrôle", "b-gr"] : [libRdv(v).replace(/^Consultation /, "Consultation de "), "b-co"];
+  return t === "annonce" ? ["Annonce", "b-or"] : t === "controle" ? ["Contrôle", "b-gr"] : [A.cap(String(v.type || "Suivi").toLowerCase()), "b-co"];
 }
 // Une ligne = { jour, cle, pid, x, h, type, cls, motif, etat, doc, rdv | chimio } ; jours = liste de dates AAAA-MM-JJ
 export function lignes(jours) {
@@ -110,7 +128,12 @@ export function lignes(jours) {
         seancesCure(L, e, D().ctx.bib).forEach((s) => { if ((s.st === "prevue" && J.has(s.prevue) && !L.arret) || (s.st === "recue" && J.has(s.d))) jl.push({ j: s.j, d: s.st === "recue" ? s.d : s.prevue, recue: s.st === "recue" }); });
         jl.forEach(({ j, d, recue }) => {
           const cle = "c-" + L.id + "-" + e.n + "-" + j, sd = SA.get(idDoc(d, x.id, cle)) || {};
-          out.push({ jour: d, cle, pid: x.id, x, h: "", type: "Séance de chimiothérapie", cls: "b-ch", motif: sd.motif || pn + " · C" + e.n + " J" + j, etat: sd.etat || "", doc: sd, chimio: { lid: L.id, n: e.n, j, recue, lib: pn } });
+          // Venue déjà notée ailleurs (avant la salle d'attente, ou depuis le dossier) : « Vu » si la consultation de chimio a
+          // son prix, ou, pour un jour passé, si la cure / séance est validée (reçue)
+          let etat = sd.etat || "", derive = false;
+          if (!etat && recue && d < D().t) { etat = "vu"; derive = true; }
+          if (!etat && recue && voitPrix()) { const E = encDe(x); if (E && E.cons && E.cons[L.id + "|" + e.n + "|" + j]) { etat = "vu"; derive = true; } }
+          out.push({ jour: d, cle, pid: x.id, x, h: "", type: "Séance chimio", cls: "b-ch", motif: sd.motif || pn + " · C" + e.n + " J" + j, etat, derive, doc: sd, chimio: { lid: L.id, n: e.n, j, recue, lib: pn } });
         });
       });
     });
@@ -143,14 +166,27 @@ function prixDe(l) {
     else { const v = E && E.cons && E.cons[l.chimio.lid + "|" + l.chimio.n + "|" + l.chimio.j]; if (v) return { m: v.m, ok: true }; }
     return { m: null, nonValide: true };
   }
+  if (l.doc.prix != null) return { m: l.doc.prix, convenu: true }; // prix convenu d'avance (patient qui paie avant la consultation)
   if (l.rdv) { if (l.rdv.type === T_RTC) return { m: 0 }; const t = T && tarif(T, etab, l.rdv.act || typeRdv(l.rdv.type), l.jour); return { m: t ? t.brut : null }; }
   if (l.chimio.j > 1) return { m: 0 };
   const t = T && tarif(T, etab, "cchimio", l.jour); return { m: t ? t.brut : null };
 }
 window.saPrix = (pid, cle) => {
   const l = trouver(pid, cle); if (!l || !A.peutPrix()) return;
+  if (l.etat !== "vu") { prixAvance(l); return; }
   if (l.rdv) window.prixRdv(pid, l.rdv.id); else window.chVenuChimio(pid, l.chimio.lid, l.chimio.n, l.chimio.j);
 };
+// Prix d'une consultation pas encore vue (le patient paie avant) : gardé dans la salle d'attente, proposé à la validation
+export const prixPrevu = (pid, cle, jour) => { const d = SA.get(idDoc(jour, pid, cle)); return d && d.prix != null ? d.prix : null; };
+function prixAvance(l) {
+  const p = prixDe(l) || {}, fmt = (v) => A.fmtMil(v);
+  A.fenetre("<h3>Prix – " + A.esc(l.x.r.nm) + '</h3><p class="sous">' + A.esc(l.type) + " · " + A.cap(A.jourLong(l.jour)) + (l.h ? " à " + l.h : "") + '</p><div class="form"><div><label for="saPx">Montant (DH)</label><input id="saPx" class="mt" inputmode="decimal" value="' + A.esc(p.m != null ? fmt(p.m) : "") + '"></div></div>' +
+    '<p class="mesures">Pour un patient qui paie avant la consultation (réduction, gratuité : 0). Ce montant sera proposé dans la fenêtre de prix à la validation.</p>' +
+    '<div class="err" id="fErr"></div><div class="boutons">' + (l.doc.prix != null ? '<button class="bt gris" id="saPxT" style="margin-right:auto">Revenir au tarif</button>' : "") + '<button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt plein" id="fOk">Enregistrer</button></div>');
+  const fin = (m) => essayer(async () => { await ecrire(l, m == null ? { prix: null, prixPar: null, prixNom: null } : Object.assign({ prix: m }, qui("prix"))); A.fermerFenetre(); A.toast("Prix enregistré."); });
+  if ($("saPxT")) $("saPxT").onclick = () => fin(null);
+  $("fOk").onclick = () => { const m = parseFloat(A.val("saPx").replace(/[\s\u202f\u00a0]/g, "").replace(",", ".")); if (isNaN(m) || m < 0) { A.erreur("Indiquez le montant (0 si gratuit)."); return; } fin(m); };
+}
 
 // ───── Écriture d'un document (jour, patient, ligne) ─────
 async function ecrire(l, maj) {
@@ -354,7 +390,7 @@ function dessiner() {
   const vide = { avenir: JOUR < t ? "Aucune consultation restée sans validation." : JOUR > t ? "Aucune consultation prévue ce jour-là." : "Plus aucun patient attendu aujourd'hui.", salle: "Personne en salle d'attente.", vus: "Aucun patient vu.", absents: "Aucun absent." }[VUE];
   const sc = window.scrollY;
   const cv = colsVues(); $("saL").style.setProperty("--cols", cv.map((c) => c[2]).join(" "));
-  $("saL").innerHTML = l.length ? '<div class="sa-l ent">' + cv.map((c) => '<span title="' + c[1] + '">' + (c[0] === "civ" ? "Civ." : c[0] === "ord" ? "N°" : c[1]) + "</span>").join("") + "</div>" + l.map((z) => ligneHtml(z, cv)).join("") : '<p class="sous" style="margin:6px 0">' + vide + "</p>";
+  $("saL").innerHTML = l.length ? '<div class="sa-l ent">' + cv.map((c) => '<span class="c-' + c[0] + '" title="' + c[1] + '">' + (c[0] === "civ" ? "Civ." : c[0] === "ord" ? "N°" : c[1]) + "</span>").join("") + "</div>" + l.map((z) => ligneHtml(z, cv)).join("") : '<p class="sous" style="margin:6px 0">' + vide + "</p>";
   // Total du jour (établissement choisi), sans les absents : encaissé (vus, prix validé) et prévu (le reste, au tarif)
   if (voitPrix()) {
     let enc = 0, prev = 0, nv = 0;
@@ -384,23 +420,23 @@ function ligneHtml(l, cv) {
     else if (l.etat === "salle") act = (okR ? b("Démarrer", "saDemarrer", "v", "Démarrer la consultation (ouvre le dossier)") : "") + (okV ? b("Valider", "saValider") : "") + b("Annuler", "saAnnuler");
     else if (l.etat === "consult") act = okR ? (okV ? b("Valider", "saValider", "v") : "") + b("Retour en salle", "saRetour") : "";
   } else if (l.jour < t && (l.etat === "" || l.etat === "salle" || l.etat === "consult")) act = (okV ? b("Valider", "saValider", "v") : "") + (okR && l.etat === "" ? b("Absent", "saAbsent", "r") : "");
-  if ((l.etat === "vu" || l.etat === "absent") && okR && (l.rdv || A.peutPrix() || l.etat === "absent") && !l.orphelin) act = b("Annuler", "saAnnuler");
+  if ((l.etat === "vu" || l.etat === "absent") && okR && (l.rdv || A.peutPrix() || l.etat === "absent") && !l.orphelin && !l.derive) act = b("Annuler", "saAnnuler");
   // Motif : visible si la personne voit les consultations (l'infirmière : celui des séances de chimio seulement)
   const voitMo = !!l.chimio || A.voitRdv(), mo = voitMo ? A.esc(l.motif) : "", etab = !ETAB && $("saEtab") && l.x.doc.etablissementId ? ' <span class="badge b-gr">' + A.esc(l.x.doc.etablissementId) + "</span>" : "";
-  const p = prixDe(l), px = !p ? "" : p.charge ? '<span class="mesures">…</span>' : p.nonValide ? '<span class="mesures">Prix non fixé</span>' : p.m == null ? "—" : '<span class="' + (p.ok ? "px-ok" : "px-prev") + '" title="' + (p.ok ? "Prix validé" : "Prix prévu (tarif)") + '">' + A.fmtMil(p.m) + " DH</span>";
-  const crayonPx = l.etat === "vu" && A.peutPrix() && !(l.rdv && l.rdv.type === T_RTC) && !(p && p.v1 && !A.peut("finances")) ? '<button class="crayon" onclick="saPrix(' + q + ')" title="Modifier le prix" aria-label="Modifier le prix"><svg class="pi"><use href="#i-crayon"/></svg></button>' : "";
+  const p = prixDe(l), px = !p ? "" : p.charge ? '<span class="mesures">…</span>' : p.nonValide ? (l.derive ? "—" : '<span class="mesures">Prix non fixé</span>') : p.m == null ? "—" : '<span class="' + (p.ok ? "px-ok" : p.convenu ? "px-conv" : "px-prev") + '" title="' + (p.ok ? "Prix validé" : p.convenu ? "Prix payé d'avance (proposé à la validation)" : "Prix prévu (tarif)") + '">' + A.fmtMil(p.m) + " DH</span>";
+  const crayonPx = l.etat !== "absent" && A.peutPrix() && !(l.rdv && l.rdv.type === T_RTC) && !(p && p.v1 && !A.peut("finances")) && !(l.derive && !(p && p.ok)) ? '<button class="crayon" onclick="saPrix(' + q + ')" title="' + (l.etat === "vu" ? "Modifier le prix" : "Prix payé d'avance") + '" aria-label="Modifier le prix"><svg class="pi"><use href="#i-crayon"/></svg></button>' : "";
   const P = l.x.P, crayon = (fn, t) => '<button class="crayon" onclick="' + fn + "(" + q + ')" title="' + t + '" aria-label="' + t + '"><svg class="pi"><use href="#i-crayon"/></svg></button>';
   const cel = {
     ord: '<span class="ord" title="N° d\'ordre de passage">' + fmtOrdre(l.doc.ordre) + "</span>",
     h: '<span class="h">' + A.esc(l.h || "—") + "</span>",
     civ: '<span class="civ">' + (P.sexe === "F" ? "Mme" : P.sexe === "H" ? "M." : "") + "</span>",
     nm: '<span class="nm"><button class="lien-nm" onclick="ouvrirDossier(\'' + l.pid + '\')" title="Ouvrir le dossier (sans changer le statut)">' + A.esc(l.x.r.nm) + "</button>" + etab + presenceHtml(l.pid) + "</span>",
-    type: '<span><span class="badge ' + l.cls + '">' + A.esc(l.type) + "</span></span>",
+    type: '<span class="c-type"><span class="badge ' + l.cls + '">' + A.esc(l.type) + "</span></span>",
     mo: '<span class="mo" data-l="Motif">' + mo + (voitMo && okR ? crayon("saMotif", "Modifier le motif") : "") + "</span>",
     cor: '<span class="cor" data-l="Correspondant" title="' + A.esc(P.cor || "") + '">' + A.esc(court(P.cor)) + "</span>",
     mut: '<span class="mut" data-l="Mutuelle" title="' + A.esc(P.mut || "") + '">' + A.esc(court(P.mut)) + "</span>",
     ar: '<span class="ar" data-l="Arrivée">' + (l.doc.arr ? hm(l.doc.arr) : "") + "</span>",
-    st: "<span>" + statut(l) + "</span>",
+    st: '<span class="c-st">' + statut(l) + "</span>",
     px: '<span class="px" data-l="Prix">' + px + crayonPx + "</span>",
     com: '<span class="com" data-l="Commentaire"' + (l.doc.comNom ? ' title="' + A.esc(l.doc.comNom) + '"' : "") + ">" + A.esc(l.doc.com || "") + crayon("saCom", l.doc.com ? "Modifier le commentaire" : "Ajouter un commentaire") + "</span>",
     act: '<span class="actr">' + act + "</span>",

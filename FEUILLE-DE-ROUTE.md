@@ -797,16 +797,27 @@ Nouvelle page **« Salle d'attente »** dans le menu, **entre Agenda et Patients
 - [x] **Imprimer la liste du jour** (A4 paysage, par statut, colonnes affichées, jour / établissement / période / recherche).
 - Non retenus : panneau patient à droite, post-it patient, confirmation du rendez-vous, compteurs.
 
+**SA1 quinquies – Retouches du 08/10 (après mise en ligne)**
+- [x] **Prix payé d'avance** : crayon du prix aussi dans « À venir » / « En salle » (secrétaire et médecin) ; gardé dans la
+      salle d'attente (`salle.prix`, règle : droit encaissements ou finances, 3 tests) et proposé dans la fenêtre de prix à la
+      validation (rendez-vous et consultation de chimio).
+- [x] Type en libellés courts (Suivi, Annonce, Contrôle, RT hebdo, Séance chimio ; activités sans « Consultation de »),
+      badges de Type et pastilles de Statut centrés dans leur colonne, motif coupé proprement.
+- [x] Validation d'une **cure J1 ou d'une séance J8…** dans le dossier : la fenêtre de prix de la consultation de chimio s'ouvre
+      ensuite (sauf si déjà fixé) ; « Venu » d'un rendez-vous : fenêtre de prix pour le médecin et la secrétaire, même sans
+      tarifs publiés.
+- [x] **Anciennes séances de chimio** validées dans le dossier (avant la salle d'attente) : « Vu » (cure reçue un jour passé,
+      ou consultation de chimio déjà payée) ; plus « À valider ».
+
 **SA2 – Sans rendez-vous, prix et total, Configuration**
 - [ ] « + Arrivée sans rendez-vous » (patient connu ou nouveau patient, motif, urgence).
 - [x] Colonne **prix** et **total** ; fenêtre de prix pour la secrétaire : faits en SA1 bis.
 - [ ] Configuration : seuils d'attente, ordre de la liste.
 
-**SA3 – Dans l'agenda et le tableau de bord**
-- [ ] Le temps d'attente et le statut s'affichent aussi dans l'**Agenda** (vue Jour / Liste) et dans « Aujourd'hui » du
-      tableau de bord, pour que le médecin voie d'un coup d'œil qui attend depuis combien de temps.
-- [ ] **Consignes d'arrivée** (« Veuillez patienter dans votre véhicule… ») : message WhatsApp prêt, modèles dans
-      Configuration › Messages.
+**SA3 – Dans l'agenda et le tableau de bord** (fait le 08/10, appelé « SA2 » par Dr Bentahila)
+- [x] Statut et temps d'attente (« En salle · 12 min », « En consultation · 5 min », chimio « Vu 10:42 ») dans l'**Agenda**
+      (vues Jour et Liste) et dans « Aujourd'hui » du tableau de bord, mis à jour en direct (`badgeSalle`, salle.js).
+- Annulé (08/10) : message WhatsApp de consignes d'arrivée.
 
 ## Étape 7 – RCP (réunion de concertation pluridisciplinaire)
 **À décider** : une RCP par établissement ou une seule pour le cabinet ? Jour fixe (ex. chaque mardi) ou dates saisies
@@ -1036,3 +1047,4 @@ Onco360_Package_Cession/
 | 08/10/2026 | 2 – Retouches | Fiche patient : « 2e téléphone » (après Téléphone), « Adresse » et « E-mail » (après Mutuelle), dans Nouveau patient, Modifier et Afficher ; 2e téléphone aussi dans le dossier ; mis en ligne (v2.js?v=20261008s). |
 | 08/10/2026 | 5 – P4 Tâches | Tâches automatiques : 2 fixes (dosimétrie, fin de RT ; terminées toutes seules) + règles du médecin (dernière cure, non venu, nouveau patient, N mois après la RT, veille J1), activables, responsable et délai réglables ; fonctions `tachesAutoPatient` / `tachesAutoNuit` ; tâches du patient dans « Rendez-vous et tâches à venir » (+ Tâche). Tests logique 73/73, règles 85/85, navigateur, bilan 352 317 DH. Pas encore en ligne. |
 | 08/10/2026 | 5 – P4 | Dosimétrie à valider : une tâche seulement (retirée de l'agenda, des 7 jours, du programme du jour, de Google Agenda). Tâche créée seulement du scanner à la 1re séance ; responsable des tâches fixes = médecin. Tests logique 75/75, bilan 352 317 DH. Pas encore en ligne. |
+| 08/10/2026 | 6 – Salle d'attente (retouches + SA3) | Prix payé d'avance, libellés courts et centrés, fenêtre de prix après validation de cure / séance, anciennes chimio « Vu », statut de salle d'attente dans l'Agenda (Jour, Liste) et le tableau de bord. Règles 88/88, navigateur (secrétaire, médecin, bilan de référence inchangé). |

@@ -100,6 +100,8 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
 - `presence/{uid}` (« Dossier ouvert par », salle.js `presenceDossier`) : { patientId, nom, role, le }, écrit par la personne
   elle-même à chaque ouverture de dossier (route) et chaque minute ; lu par les membres ; considéré fermé après 3 min.
   Réglages personnels de la salle d'attente dans `utilisateurs/{uid}` : `salleCachees` (colonnes), `salleTri`.
+  Salle : `prix` = prix payé d'avance (proposé dans la fenêtre de prix, `prixPrevu`) ; `ordre` = n° de passage ; `com`.
+  `badgeSalle(pid, "r-RDV" | "chimio")` : statut du jour affiché dans l'Agenda et le tableau de bord (mis à jour en direct).
 - Report de chimio avec le seul droit « planning » (secrétaire, depuis le 08/10/2026) : `sauverLignes` n'écrit que `planningJson` ;
   l'historique du report y est gardé (`planning[ligne][n].rep`, `.srep[j]`), ajouté par `fusionner`, repris dans `lignesJson` au
   prochain enregistrement du médecin.

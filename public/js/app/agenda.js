@@ -51,8 +51,10 @@ function evenements(du, au) {
   });
   return out.sort((a, b) => (a.d + (a.h || "")).localeCompare(b.d + (b.h || "")) || a.nm.localeCompare(b.nm));
 }
+// Statut de salle d'attente du jour même (vues Jour et Liste) : « En salle · 12 min », « En consultation · 5 min »…
+const badge = (e) => (e.d === D().t && (e.cat === "co" || e.cat === "ch") && A.badgeSalle ? A.badgeSalle(e.pid, e.cat === "co" ? "r-" + e.rid : "chimio") : "");
 const EM = { co: "🩺", ho: '<svg class="pi"><use href="#i-hopital"/></svg>', ch: "💉", rt: "☢️" };
-const chip = (e, i) => '<button class="ev-c c-' + e.cat + (e.st === "fait" ? " fait" : e.st === "absent" ? " nv" : "") + '" onclick="agEv(' + i + ')" title="' + A.esc(e.nm + " – " + e.t) + '">' + EM[e.cat] + " <b>" + A.esc(e.nm) + "</b> " + A.esc(e.t) + "</button>";
+const chip = (e, i) => '<button class="ev-c c-' + e.cat + (e.st === "fait" ? " fait" : e.st === "absent" ? " nv" : "") + '" onclick="agEv(' + i + ')" title="' + A.esc(e.nm + " – " + e.t) + '">' + EM[e.cat] + " <b>" + A.esc(e.nm) + "</b> " + A.esc(e.t) + (AG.vue === "jour" ? badge(e) : "") + "</button>";
 const absence = (d) => (D().cal.abs || []).find((a) => d >= a.du && d <= a.au);
 const ferie = (d) => (D().ctx.feries || []).find((f) => f.d === d);
 let EVS = [];
@@ -114,7 +116,7 @@ function vueGrille(du, n) {
     if (!ferme) { let pos = 0; pl.forEach((p) => { if (y(p[0]) > pos) c += '<i class="hach" style="top:' + pos + "px;height:" + (y(p[0]) - pos) + 'px"></i>'; pos = Math.max(pos, y(p[1])); }); if (pos < haut) c += '<i class="hach" style="top:' + pos + "px;height:" + (haut - pos) + 'px"></i>'; }
     const tim = parJour[k].filter(([e]) => e.h).map(([e, i]) => ({ e, i, a: mn(e.h), b: mn(e.h) + DUREE }));
     tim.forEach((o) => { o.col = 0; tim.forEach((p) => { if (p !== o && p.a < o.b && o.a < p.b && tim.indexOf(p) < tim.indexOf(o)) o.col++; }); });
-    tim.forEach(({ e, i, a, col }) => { const top = (a - H0 * 60) / 15 * PAS; if (top < 0 || top > haut) return; c += '<button class="ev-g c-' + e.cat + (e.st === "fait" ? " fait" : e.st === "absent" ? " nv" : "") + '" style="top:' + top + "px;height:" + (DUREE / 15 * PAS - 2) + "px;left:" + (2 + col * 14) + 'px" onclick="event.stopPropagation();agEv(' + i + ')"><b>' + e.h + " " + A.esc(e.nm) + "</b><span>" + A.esc(e.t) + "</span></button>"; });
+    tim.forEach(({ e, i, a, col }) => { const top = (a - H0 * 60) / 15 * PAS; if (top < 0 || top > haut) return; c += '<button class="ev-g c-' + e.cat + (e.st === "fait" ? " fait" : e.st === "absent" ? " nv" : "") + '" style="top:' + top + "px;height:" + (DUREE / 15 * PAS - 2) + "px;left:" + (2 + col * 14) + 'px" onclick="event.stopPropagation();agEv(' + i + ')"><b>' + e.h + " " + A.esc(e.nm) + "</b><span>" + A.esc(e.t) + "</span>" + (n === 1 ? badge(e) : "") + "</button>"; });
     if (d === t && nowM >= H0 * 60 && nowM <= H1 * 60) c += '<i class="maint" style="top:' + (nowM - H0 * 60) / 15 * PAS + 'px"></i>';
     return c + "</div>";
   }).join("") + "</div></div>";
@@ -135,7 +137,7 @@ function vueListe() {
   let h = "", jc = "";
   EVS.forEach((e, i) => {
     if (e.d !== jc) { if (jc) h += "</div>"; jc = e.d; h += '<div class="jour7"><h4>' + A.cap(A.jourLong(e.d)) + (absence(e.d) ? ' <span class="badge b-al">Absence</span>' : "") + "</h4>"; }
-    h += '<div class="ev" onclick="agEv(' + i + ')"><span class="h' + (e.h ? "" : " j") + '">' + (e.h || "Journée") + "</span><span>" + EM[e.cat] + '</span><div class="tx"><b>' + A.esc(e.nm) + "</b><br><span>" + A.esc(e.t) + (e.st === "fait" ? " · fait" : e.st === "absent" ? " · non venu" : "") + '</span></div><button class="lien">Ouvrir</button></div>';
+    h += '<div class="ev" onclick="agEv(' + i + ')"><span class="h' + (e.h ? "" : " j") + '">' + (e.h || "Journée") + "</span><span>" + EM[e.cat] + '</span><div class="tx"><b>' + A.esc(e.nm) + "</b><br><span>" + A.esc(e.t) + (e.st === "fait" ? " · fait" : e.st === "absent" ? " · non venu" : "") + "</span>" + badge(e) + '</div><button class="lien">Ouvrir</button></div>';
   });
   return h + "</div>";
 }

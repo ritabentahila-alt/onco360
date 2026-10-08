@@ -1,6 +1,6 @@
 # Onco360 – La salle d'attente
 
-Guide d'utilisation (08/10/2026, parties SA1 et SA1 bis). Il servira de base au guide complet d'Onco360 (étape F3).
+Guide d'utilisation (08/10/2026). Il servira de base au guide complet d'Onco360 (étape F3).
 
 ## À quoi sert la salle d'attente ?
 Suivre le passage des patients le jour même, de leur arrivée à la fin de la consultation, sur tous les écrans du cabinet
@@ -20,10 +20,11 @@ Le médecin peut choisir un établissement (ou « Tous ») ; la secrétaire et l
 La pastille du menu indique le nombre de patients qui attendent.
 
 ## Les quatre onglets
-- **À venir** : patients attendus, pas encore arrivés. Un patient dont l'heure est passée est signalé « En retard ».
-- **En salle d'attente** : patients arrivés (« En attente depuis 12 min », orange à 20 min, rouge à 45 min) et, en haut,
+- **À venir** : patients attendus, pas encore arrivés (séances de chimio en tête).
+- **En salle d'attente** : patients arrivés (« Attente 12 min », orange à 20 min, rouge à 45 min) et, en haut,
   ceux qui sont **en consultation**.
-- **Vus** : consultations validées, avec l'heure, le temps d'attente et la durée de la consultation.
+- **Vus** : consultations validées, avec l'heure, l'attente, la durée de la consultation et le temps de présence. Les séances
+  de chimio validées dans le dossier avant la salle d'attente y apparaissent aussi.
 - **Absents**.
 
 Colonnes : heure du rendez-vous, civilité, patient, type, **motif de consultation**, correspondant, mutuelle, heure
@@ -76,6 +77,15 @@ date change dans le protocole ; la séance reste dans « Absents » avec « Repo
 Séance de chimiothérapie : validez d'abord la cure (ou la séance J8, J15…) dans l'onglet Chimiothérapie du dossier, puis
 cliquez **Valider** pour la consultation. Si la cure n'est pas encore validée, Onco360 le signale.
 
-## À venir (parties suivantes)
-- SA2 : arrivée sans rendez-vous (urgence, passage), réglages (seuils d'attente, ordre de la liste) dans Configuration.
-- SA3 : statut et temps d'attente dans l'Agenda et le tableau de bord, message WhatsApp de consignes d'arrivée.
+## Prix payé d'avance
+Un patient paie avant la consultation : crayon ✎ à côté du prix (même dans « À venir ») → montant (0 si gratuit). Ce montant
+s'affiche en bleu et sera proposé dans la fenêtre de prix au moment de valider.
+
+## Dans l'agenda et le tableau de bord
+Le jour même, l'Agenda (vues Jour et Liste) et « Aujourd'hui » du tableau de bord montrent « En salle · 12 min »,
+« En consultation · 5 min » (et « Vu » pour la chimio), mis à jour en direct.
+
+Valider une cure (J1) ou une séance (J8…) dans le dossier ouvre ensuite la fenêtre de prix de la consultation de chimio.
+
+## À venir
+- Arrivée sans rendez-vous (urgence, passage), réglages (seuils d'attente) dans Paramètres.

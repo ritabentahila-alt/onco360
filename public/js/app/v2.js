@@ -26,7 +26,7 @@ import { installer as installerFichiers, htmlFichiers, nbFichiers, oublierFichie
 import { installer as installerConsultations, htmlConsultations, nbConsultations, oublierConsultations, suivreEtablissement, supprimerConsultations } from "./consultations.js";
 import { installer as installerReglages, reglages, appliquerImpression } from "./reglages.js";
 import { installer as installerTaches, pageTaches, demarrerTaches, blocAccueil as blocTaches, tachesDuPatient } from "./taches.js";
-import { installer as installerSalle, pageSalle, demarrerSalle, apresStatutRdv, apresVenuChimio, apresPrix, bullesDossier, presenceDossier, majPresenceDossier } from "./salle.js";
+import { installer as installerSalle, pageSalle, demarrerSalle, apresStatutRdv, apresVenuChimio, apresPrix, bullesDossier, presenceDossier, majPresenceDossier, prixPrevu, badgeSalle } from "./salle.js";
 import { ACTES_RT } from "../donnees/listes.js";
 import { deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -231,7 +231,7 @@ function fmtSaisie(el) {
 document.addEventListener("input", (ev) => { if (ev.target && ev.target.classList && ev.target.classList.contains("mt")) fmtSaisie(ev.target); });
 const ferieLe = (d) => (D.ctx.feries || []).map((f) => (typeof f === "string" ? { d: f, nom: "Jour férié" } : f)).find((f) => f.d === d);
 const API = { D: () => D, ESPACE, $, esc, ic, dfr, dfrA, cap, jourLong, val, occupe, erreur, toast, fenetre, fermerFenetre: () => window.fermerFenetre(), peut, voit, traitMod, enregistrer, pageDossier: (id) => reafficher(id), recalculer, journal };
-API.sansAcc = sansAcc; API.medecinFiche = () => medecinFiche(); API.entete = () => entete(); API.voitRdv = () => voitRdv(); API.voitRT = (x) => voitRT(x); API.champsMed = (C, off) => champsMed(C, off); API.CHAMPS_MED = () => CHAMPS_MED; API.fmtMil = (n) => fmtMil(n); API.ferieLe = (d) => ferieLe(d); API.salleVenuChimio = (x, lid, n, j, oui) => apresVenuChimio(x, lid, n, j, oui); API.serveur = appelServeur; API.tarifsVus = () => tarifsVus(); API.publierTarifsC = () => publierTarifsC(); API.encaissementsDe = (x, f) => encaissementsDe(x, f); API.peutPrix = () => peut("finances") || prixParServeur();
+API.sansAcc = sansAcc; API.medecinFiche = () => medecinFiche(); API.entete = () => entete(); API.voitRdv = () => voitRdv(); API.voitRT = (x) => voitRT(x); API.champsMed = (C, off) => champsMed(C, off); API.CHAMPS_MED = () => CHAMPS_MED; API.fmtMil = (n) => fmtMil(n); API.ferieLe = (d) => ferieLe(d); API.salleVenuChimio = (x, lid, n, j, oui) => apresVenuChimio(x, lid, n, j, oui); API.serveur = appelServeur; API.prixPrevu = (p, c, j) => prixPrevu(p, c, j); API.badgeSalle = (p, c) => badgeSalle(p, c); API.tarifsVus = () => tarifsVus(); API.publierTarifsC = () => publierTarifsC(); API.encaissementsDe = (x, f) => encaissementsDe(x, f); API.peutPrix = () => peut("finances") || prixParServeur();
 installerChimio(API); installerAgenda(API); installerConfig(API); installerProfil(API); installerProtocoles(API); installerParametres(API); installerBilan(API); installerConsultations(API); installerOrdonnances(API); installerDocuments(API); installerFichiers(API); installerTaches(API); installerReglages(API); installerSalle(API);
 
 function entete() {
@@ -262,7 +262,7 @@ function programmeDuJour() {
     // « Dosimétrie à valider » : une tâche pour le médecin (P4, 08/10/2026), plus une ligne du programme du jour
     if (okCo) (P.rdvs || []).forEach((x) => {
       if (x.st === "absent") return; const hs = typeRdv(x.type) === "hospit";
-      if (hs ? x.d <= t && (x.f || x.d) >= t : x.d === t) co.push({ id, nm: r.nm, h: hs ? "Hospit." : x.h || "—", lib: hs ? "Hospitalisation" : cap(libRdv(x).replace("Consultation ", "")), fait: x.st === "fait" });
+      if (hs ? x.d <= t && (x.f || x.d) >= t : x.d === t) co.push({ id, rid: x.id, nm: r.nm, h: hs ? "Hospit." : x.h || "—", lib: hs ? "Hospitalisation" : cap(libRdv(x).replace("Consultation ", "")), fait: x.st === "fait" });
     });
     (r.act || []).forEach((a) => { if (a.d === t) ch.push({ id, nm: r.nm, lib: "C" + a.k + " J" + (a.sj || 1), de: a.nom.replace(/ · J\d+$/, "") }); });
   });
@@ -379,7 +379,7 @@ function pageAccueil() {
   const pj = programmeDuJour(), ag = agenda7(), ab = absences(), tot = pj.rt.length + pj.co.length + pj.ch.length;
   const ligne = (o, cat) => '<div class="li" onclick="ouvrirDossier(\'' + o.id + '\')">' + (cat === "co" ? '<span class="h">' + esc(o.h) + "</span>" : "") +
     '<div class="tx"><b>' + esc(o.nm) + '</b><div class="de">' + esc(cat === "co" ? o.lib : o.de) + "</div></div>" +
-    (cat === "co" ? (o.fait ? '<span class="badge b-ch">Vu</span>' : "") : '<span class="badge ' + (o.cls || "b-ch") + '">' + esc(o.lib) + "</span>") + "</div>";
+    (cat === "co" ? (o.fait ? '<span class="badge b-ch">Vu</span>' : o.rid ? badgeSalle(o.id, "r-" + o.rid) : "") : (cat === "ch" ? badgeSalle(o.id, "chimio") : "") + '<span class="badge ' + (o.cls || "b-ch") + '">' + esc(o.lib) + "</span>") + "</div>";
   const categorie = (cls, titre, l) => l.length ? '<div class="cat"><div class="tc">' + titre + '<span class="n">' + l.length + "</span></div>" + l.map((o) => ligne(o, cls)).join("") + "</div>" : "";
 
   let h = '<section class="accueil"><div><h2>Bonjour ' + esc([D.titre, D.nomAff].filter(Boolean).join(" ")) + " 👋</h2><p>" + cap(jourLong(D.t)) + "</p></div>" +
@@ -566,9 +566,9 @@ function pageDossier(id) {
       if (!EN || v.st !== "fait") return "";
       if (v.type === T_RTC) return '<span class="badge b-gr" title="Consultation en cours de radiothérapie : comprise dans l\'acte">0 DH</span>';
       const o = (EN.rdv || {})[v.id], hs = typeRdv(v.type) === "hospit";
-      if (!o) return '<span class="badge b-gr" title="Le prix est fixé quand on valide « Venu »">Prix non validé</span>' + ((peut("finances") || prixParServeur()) && tarifsVus() && v.type !== T_RTC ? b("Fixer le prix", "prixRdv('" + x.id + "','" + v.id + "')") : "");
+      if (!o) return '<span class="badge b-gr" title="Le prix est fixé quand on valide « Venu »">Prix non validé</span>' + ((peut("finances") || prixParServeur()) && v.type !== T_RTC ? b("Fixer le prix", "prixRdv('" + x.id + "','" + v.id + "')") : "");
       const nj = hs ? joursH(v) : 0, m = o.tj != null ? o.tj * (nj || 1) : o.b != null ? o.b : o.m; // b : brut d'un prix repris de l'ancienne application
-      return '<span class="badge b-ch" title="Prix validé">' + fmtMil(m) + " DH" + (o.tj != null && nj > 1 ? " (" + nj + " j × " + fmtMil(o.tj) + ")" : "") + "</span>" + ((peut("finances") || (prixParServeur() && !o.v1)) && tarifsVus() && v.type !== T_RTC ? b("Modifier le prix", "prixRdv('" + x.id + "','" + v.id + "')") : "");
+      return '<span class="badge b-ch" title="Prix validé">' + fmtMil(m) + " DH" + (o.tj != null && nj > 1 ? " (" + nj + " j × " + fmtMil(o.tj) + ")" : "") + "</span>" + ((peut("finances") || (prixParServeur() && !o.v1)) && v.type !== T_RTC ? b("Modifier le prix", "prixRdv('" + x.id + "','" + v.id + "')") : "");
     };
     const lignes = (P.rdvs || []).filter((v) => !aVenir(v)).map((v) => ({ d: v.d, h: v.h || "", v }));
     // Jours de chimio reçus (J1, J8…) depuis le 07/10/2026, et tous ceux validés « Venu » (avec leur prix)
@@ -781,7 +781,7 @@ window.statutRdv = async (id, rid, st) => {
   else if (st === "absent" && ancien === "prevu") { absentRdv(x, l, r); return; }
   else if (st === "fait") {
     // Médecin (« finances ») et secrétaire (« encaissements ») : prix de la consultation (réduction, gratuité) avant « venu »
-    if ((peut("finances") || prixParServeur()) && tarifsVus() && r.type !== T_RTC) { prixVenu(x, l, r); return; }
+    if ((peut("finances") || prixParServeur()) && r.type !== T_RTC) { prixVenu(x, l, r); return; }
     r.st = "fait"; r.dv = r.d; r.sp = D.u.uid;
   }
   else if (st === "absent") { r.st = "absent"; delete r.dv; r.sp = D.u.uid; }
@@ -793,13 +793,14 @@ window.statutRdv = async (id, rid, st) => {
 // Fenêtre « Venu » : prix pré-rempli au tarif de l'établissement, modifiable ; enregistré dans les montants du dossier.
 // Médecin : directement ; secrétaire : par le serveur (prixConsultation). Rendez-vous déjà « Venu » : seul le prix change.
 async function prixVenu(x, l, r) {
-  const t = r.act || typeRdv(r.type), hs = t === "hospit", etab = x.P.hop || x.doc.etablissementId || "", v = tarifAu(tarifsVus(), etab, t, r.d) || { brut: 0, retro: 0, impot: 0 };
+  const t = r.act || typeRdv(r.type), hs = t === "hospit", etab = x.P.hop || x.doc.etablissementId || "", v = (tarifsVus() && tarifAu(tarifsVus(), etab, t, r.d)) || { brut: 0, retro: 0, impot: 0 };
   const sec = !peut("finances"), deja = r.st === "fait";
   let M0 = {};
   if (sec) { try { const s = await getDoc(doc(db, "espaces", ESPACE, "encaissements", x.id)); const E = s.exists() ? JSON.parse(s.data().data || "{}") : {}, o = (E.rdv || {})[r.id]; if (o) M0 = { rdv: { [r.id]: o.tj != null ? { tj: o.tj } : { brut: o.m } } }; } catch (e) {} }
   else { try { const s = await getDoc(doc(db, "espaces", ESPACE, "patientsFinances", x.id)); M0 = s.exists() ? JSON.parse(s.data().montantsJson || "{}") : {}; } catch (e) {} }
   const o0 = (M0.rdv || {})[r.id] || {}, nj = hs ? joursH(r) : 1;
-  const def = o0.v1 ? o0.prix : hs ? (o0.tj != null ? o0.tj : v.brut) : o0.brut != null ? o0.brut : v.brut;
+  const pp = deja ? null : prixPrevu(x.id, "r-" + r.id, r.d); // prix convenu d'avance dans la salle d'attente (payé avant la consultation)
+  const def = o0.v1 ? o0.prix : hs ? (o0.tj != null ? o0.tj : pp != null ? pp : v.brut) : o0.brut != null ? o0.brut : pp != null ? pp : v.brut;
   const fmt = (n) => (n == null || n === "" || isNaN(n) ? "" : Number(n).toLocaleString("fr-FR", { maximumFractionDigits: 2 }).replace(/[\u202f\u00a0]/g, " "));
   fenetre("<h3>" + esc(x.r.nm) + " – " + esc(libRdv(r)) + '</h3><p class="sous">' + cap(jourLong(r.d)) + (r.h ? " à " + r.h : "") + (hs && nj ? " · " + nj + " jour" + (nj > 1 ? "s" : "") + " d'hospitalisation" : "") + "</p>" +
     '<div class="form"><div><label for="pvM">' + (hs && !o0.v1 ? "Tarif journalier (DH)" : "Montant de la consultation (DH)") + '</label><input id="pvM" class="mt" inputmode="decimal" value="' + esc(fmt(def)) + '"></div></div>' +
@@ -823,7 +824,7 @@ async function prixVenu(x, l, r) {
   };
 }
 window.prixRdv = (id, rid) => {
-  const x = D.patients.find((p) => p.id === id); if (!x || !(peut("finances") || prixParServeur()) || !tarifsVus()) return;
+  const x = D.patients.find((p) => p.id === id); if (!x || !(peut("finances") || prixParServeur())) return;
   const l = lireRdvs(x), r = l.find((v) => v.id === rid); if (r && r.st === "fait") prixVenu(x, l, r);
 };
 // « Non venu » : fenêtre Absent, avec ou sans report du rendez-vous (08/10/2026). Le rendez-vous manqué reste « Non venu »

@@ -158,13 +158,17 @@ service cloud.firestore {
             && d.majPar == request.auth.uid && s == d.jour + '_' + d.patientId + '_' + d.cle;
         }
         allow read: if dansPerimetre(resource.data.etablissementId);
-        allow create: if dansPerimetre(request.resource.data.etablissementId) && valideSalle(request.resource.data) && etapeLibre(request.resource.data);
+        // prix payé d'avance (prix) : seulement avec le droit « encaissements » ou « finances » (08/10/2026)
+        function prixPermis() { return droit('encaissements') || droit('finances'); }
+        allow create: if dansPerimetre(request.resource.data.etablissementId) && valideSalle(request.resource.data) && etapeLibre(request.resource.data)
+          && (!request.resource.data.keys().hasAny(['prix']) || prixPermis());
         // commentaire du jour (com) : tout membre du périmètre, quelle que soit l'étape (infirmière comprise, 08/10/2026)
         function commentaireSeul() { return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['com', 'comPar', 'comNom', 'maj', 'majPar']); }
         allow update: if dansPerimetre(resource.data.etablissementId) && dansPerimetre(request.resource.data.etablissementId)
           && valideSalle(request.resource.data) && request.resource.data.patientId == resource.data.patientId
           && request.resource.data.jour == resource.data.jour
-          && ((etapeLibre(resource.data) && etapeLibre(request.resource.data)) || commentaireSeul());
+          && ((etapeLibre(resource.data) && etapeLibre(request.resource.data)) || commentaireSeul())
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['prix', 'prixPar', 'prixNom']) || prixPermis());
         allow delete: if dansPerimetre(resource.data.etablissementId) && etapeLibre(resource.data);
       }
       // « Dossier ouvert par » (salle d'attente, 08/10/2026) : chacun écrit seulement son propre document (patient ouvert, nom,

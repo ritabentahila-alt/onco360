@@ -8,7 +8,7 @@ setLogLevel("silent");
 
 const E = "cabinet-test", P = "espaces/" + E, J = "2026-10-08";
 const env = await initializeTestEnvironment({ projectId: "demo-onco360", firestore: { rules: readFileSync(new URL("../../firestore.rules", import.meta.url), "utf8"), host: "127.0.0.1", port: 8080 } });
-const membre = (role, etabs, rdv, actif = true) => ({ role, actif, nom: role, tousEtablissements: etabs === "*", etablissements: etabs === "*" ? [] : etabs, droits: { rendezvous: rdv } });
+const membre = (role, etabs, rdv, actif = true) => ({ role, actif, nom: role, tousEtablissements: etabs === "*", etablissements: etabs === "*" ? [] : etabs, droits: { rendezvous: rdv, encaissements: rdv } });
 const id = (pid, cle) => J + "_" + pid + "_" + cle;
 const ligne = (par, o = {}) => Object.assign({ jour: J, patientId: "p1", etablissementId: "HGC", cle: "r-a", etat: "salle", arr: 1, majPar: par, maj: serverTimestamp() }, o);
 
@@ -63,6 +63,11 @@ console.log("Commentaire");
 await cas("l'infirmière commente une ligne en consultation", () => assertSucceeds(setDoc(S("INF", id("p1", "r-c")), ligne("MED", { cle: "r-c", etat: "consult", com: "À jeun", comPar: "INF", majPar: "INF" }))));
 await cas("refusé : l'infirmière commente ET change l'étape d'une ligne en consultation", () => assertFails(setDoc(S("INF", id("p1", "r-c")), ligne("INF", { cle: "r-c", etat: "salle", com: "x" }))));
 await cas("refusé : la secrétaire HGC commente une ligne HCK", () => assertFails(setDoc(S("SEC", id("p2", "r-b")), ligne("SECK", { patientId: "p2", etablissementId: "HCK", cle: "r-b", com: "x", majPar: "SEC" }))));
+
+console.log("Prix payé d'avance");
+await cas("la secrétaire note un prix payé d'avance", () => assertSucceeds(setDoc(S("SEC", id("p1", "r-a")), ligne("SEC", { prix: 200, prixPar: "SEC" }))));
+await cas("refusé : l'infirmière note un prix", () => assertFails(setDoc(S("INF", id("p1", "r-a")), ligne("INF", { prix: 0, prixPar: "INF" }))));
+await cas("refusé : l'infirmière crée une ligne avec un prix", () => assertFails(setDoc(S("INF", id("p1", "r-n")), ligne("INF", { cle: "r-n", prix: 0 }))));
 
 console.log("Dossier ouvert par");
 await cas("la secrétaire signale le dossier qu'elle a ouvert", () => assertSucceeds(setDoc(doc(db("SEC"), P + "/presence/SEC"), { patientId: "p1", nom: "Sara", le: serverTimestamp() })));
