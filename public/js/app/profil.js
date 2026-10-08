@@ -45,16 +45,19 @@ export function lireImage(input, max, jpeg) {
   });
 }
 
+// Profil (08/10/2026) : seulement les informations de la personne ; Lieux d'exercice, Google Agenda et Accès sont des onglets
+// de la page Paramètres (configuration.js : htmlOngletProfil / apresOngletProfil)
 export async function pageProfil() {
-  if (!ESPACE_DOC) { const s = await getDoc(doc(db, "espaces", A.ESPACE)).catch(() => null); ESPACE_DOC = s && s.exists() ? s.data() : {}; }
-  const esc = A.esc, onglet = (k, ico, t) => '<button class="' + (ONG === k ? "on" : "") + '" onclick="pfOnglet(\'' + k + '\')">' + A.ic(ico) + t + "</button>";
-  let h = '<section class="accueil"><div><h2>Profil</h2><p>Vos informations, vos lieux d\'exercice' + (estTitulaire() ? " et les accès de votre équipe" : "") + ".</p></div></section>" +
-    '<div class="ag-vues" style="align-self:flex-start">' + onglet("infos", "profil", "Informations") + onglet("lieux", "accueil", "Lieux d'exercice") + onglet("gagenda", "agenda", "Google Agenda") + (estTitulaire() ? onglet("acces", "patients", "Accès") : "") + "</div>";
-  if (ONG === "infos") h += vueInfos(); else if (ONG === "lieux") h += vueLieux(); else if (ONG === "gagenda") h += await vueAgendaG(); else h += await vueAcces();
-  A.$("page").innerHTML = h;
-  if (ONG === "lieux") { const q = A.$("pfQ"); if (q) { q.oninput = () => { Q = q.value; A.$("pfL").innerHTML = listeLieux(); }; if (Q) { q.focus(); q.setSelectionRange(Q.length, Q.length); } } }
+  A.$("page").innerHTML = '<section class="accueil"><div><h2>Profil</h2><p>Vos informations.</p></div></section>' + vueInfos();
 }
-window.pfOnglet = (o) => { ONG = o; pageProfil(); };
+async function chargerEspace() { if (!ESPACE_DOC) { const s = await getDoc(doc(db, "espaces", A.ESPACE)).catch(() => null); ESPACE_DOC = s && s.exists() ? s.data() : {}; } }
+// Onglets repris dans Paramètres : lieux | gagenda | acces
+export async function htmlOngletProfil(k) { await chargerEspace(); return k === "lieux" ? vueLieux() : k === "gagenda" ? await vueAgendaG() : k === "acces" ? await vueAcces() : ""; }
+export function apresOngletProfil(k) { if (k === "lieux") { const q = A.$("pfQ"); if (q) { q.oninput = () => { Q = q.value; A.$("pfL").innerHTML = listeLieux(); }; if (Q) { q.focus(); q.setSelectionRange(Q.length, Q.length); } } } }
+export const titulaireConnecte = async () => { await chargerEspace(); return estTitulaire(); };
+// Après une action (lieu, agenda, accès) : la page Paramètres se redessine (le Profil, s'il est affiché)
+const rafraichir = () => (location.hash.startsWith("#parametres") && A.pageParametres ? A.pageParametres() : pageProfil());
+window.pfOnglet = (o) => { location.hash = "parametres/" + (o === "gagenda" ? "couleurs" : o); }; // anciens liens
 
 // ───── Informations ─────
 function vueInfos() {
@@ -126,7 +129,7 @@ window.pfLieu = (code) => {
         if (D().activites) { delete D().activites[code]; await setDoc(doc(db, "espaces", A.ESPACE, "parametres", "activites"), { data: JSON.stringify(D().activites) }).catch(() => {}); }
       }
       D().etabsTous = (D().etabsTous || D().etabs).filter((z) => z.code !== code); D().etabs = D().etabsTous.filter((z) => z.actif !== false);
-      A.journal({ id: "", r: { nm: "" } }, "Établissement supprimé : " + code); A.fermerFenetre(); A.toast("Établissement supprimé."); pageProfil();
+      A.journal({ id: "", r: { nm: "" } }, "Établissement supprimé : " + code); A.fermerFenetre(); A.toast("Établissement supprimé."); rafraichir();
     } catch (er) { A.occupe(A.$("lSup"), false); A.erreur(er && er.code === "permission-denied" ? "Vous n'avez pas le droit de supprimer les établissements." : (er.message || String(er))); }
   };
   A.$("fOk").onclick = async () => {
@@ -141,7 +144,7 @@ window.pfLieu = (code) => {
       const tous = (D().etabsTous || D().etabs).filter((z) => z.code !== c).concat([n]).sort((a, z) => a.code.localeCompare(z.code));
       D().etabsTous = tous; D().etabs = tous.filter((z) => z.actif !== false);
       A.journal({ id: "", r: { nm: "" } }, (code ? "Établissement modifié : " : "Établissement ajouté : ") + c);
-      A.fermerFenetre(); A.toast("Établissement enregistré."); pageProfil();
+      A.fermerFenetre(); A.toast("Établissement enregistré."); rafraichir();
     } catch (er) { A.occupe(A.$("fOk"), false); A.erreur(er && er.code === "permission-denied" ? "Vous n'avez pas le droit de modifier les établissements." : (er.message || String(er))); }
   };
 };
@@ -192,7 +195,7 @@ window.pfLierAgenda = () => {
       A.occupe(b, true); A.toast("Liaison en cours : création de l'agenda « Onco360 » et ajout des rendez-vous…");
       try { const o = await appelServeur("agendaLier", { code: r.code, espace: A.ESPACE }); A.journal({ id: "", r: { nm: "" } }, "Google Agenda relié (" + o.email + ")"); A.toast("Google Agenda relié : " + o.nb + " événement(s) ajouté(s) dans « Onco360 »."); }
       catch (e) { A.toast(e.message); }
-      pageProfil();
+      rafraichir();
     },
     error_callback: (e) => A.toast(e && e.type === "popup_closed" ? "Fenêtre Google fermée : liaison annulée." : e && e.type === "popup_failed_to_open" ? "Autorisez les fenêtres (pop-up) pour chimio-hgc.web.app, puis recommencez." : "Liaison impossible."),
   }).requestCode();
@@ -200,13 +203,13 @@ window.pfLierAgenda = () => {
 window.pfMajAgenda = async () => {
   const b = A.$("gaMaj"); A.occupe(b, true);
   try { const o = await appelServeur("agendaMaj"); A.toast("Google Agenda à jour : " + o.nb + " événement(s)."); } catch (e) { A.toast(e.message); }
-  pageProfil();
+  rafraichir();
 };
 window.pfDelierAgenda = async () => {
   if (!confirm("Délier votre Google Agenda ? Onco360 ne le mettra plus à jour.")) return;
   const sup = confirm("Supprimer aussi l'agenda « Onco360 » de votre compte Google ?\n\nOK = le supprimer · Annuler = le garder (il ne sera plus mis à jour)");
   try { await appelServeur("agendaDelier", { supprimer: sup }); A.journal({ id: "", r: { nm: "" } }, "Google Agenda délié"); A.toast("Google Agenda délié."); } catch (e) { A.toast(e.message); }
-  pageProfil();
+  rafraichir();
 };
 
 // ───── Accès de l'équipe (médecin titulaire) ─────
@@ -242,7 +245,7 @@ window.pfMembre = (uid) => {
     if (A.$("mSup")) A.$("mSup").onclick = async () => {
       if (!confirm("Supprimer l'accès de " + (m.nom || m.email) + " ?\n\nLa personne ne pourra plus se connecter à Onco360. L'historique de ses actions est conservé.")) return;
       A.occupe(A.$("mSup"), true);
-      try { await deleteDoc(doc(db, "espaces", A.ESPACE, "membres", uid)); A.journal({ id: "", r: { nm: "" } }, "Accès supprimé : " + (m.nom || m.email)); MEMBRES = null; A.fermerFenetre(); A.toast("Accès supprimé."); pageProfil(); }
+      try { await deleteDoc(doc(db, "espaces", A.ESPACE, "membres", uid)); A.journal({ id: "", r: { nm: "" } }, "Accès supprimé : " + (m.nom || m.email)); MEMBRES = null; A.fermerFenetre(); A.toast("Accès supprimé."); rafraichir(); }
       catch (e) { A.occupe(A.$("mSup"), false); A.erreur(e && e.code === "permission-denied" ? "Seul le médecin titulaire peut supprimer un accès." : (e.message || String(e))); }
     };
     const lire = () => { m.tousEtablissements = A.$("mTous").checked; m.etablissements = [...document.querySelectorAll("[data-e]")].filter((c) => c.checked).map((c) => c.dataset.e); document.querySelectorAll("[data-d]").forEach((c) => { m.droits[c.dataset.d] = c.tagName === "SELECT" ? c.value : c.checked; }); if (A.$("mActif")) m.actif = A.$("mActif").checked; ["mPre", "mNom", "mMail", "mTel"].forEach((i) => { if (A.$(i)) m["_" + i] = A.val(i); }); };
@@ -268,7 +271,7 @@ window.pfMembre = (uid) => {
           A.journal({ id: "", r: { nm: "" } }, "Accès créé : " + nom + " (" + ROLES[m.role] + ")");
           A.toast(nouvel.existant ? "Accès ajouté : ce compte existait déjà, la personne garde son mot de passe." : "Accès créé : un e-mail a été envoyé à " + email + " pour choisir le mot de passe.");
         }
-        MEMBRES = null; A.fermerFenetre(); if (m0) A.toast("Droits enregistrés."); pageProfil();
+        MEMBRES = null; A.fermerFenetre(); if (m0) A.toast("Droits enregistrés."); rafraichir();
       } catch (e) { A.occupe(A.$("fOk"), false); A.erreur(e && e.code === "permission-denied" ? "Seul le médecin titulaire peut gérer les accès." : (e.message || String(e))); }
     };
   };

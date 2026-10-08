@@ -12,7 +12,7 @@ const faux = async (url, o) => {
   if ((r = p.match(/^\/calendars\/([^/]+)$/))) { if (!CAL[r[1]]) return rep(404, {}); if (m === "DELETE") { delete CAL[r[1]]; return rep(204); } return rep(200, { id: r[1] }); }
   if ((r = p.match(/^\/calendars\/([^/]+)\/events$/))) {
     const c = CAL[r[1]];
-    if (m === "POST") { if (c[b.id]) return rep(409, {}); c[b.id] = b; return rep(200, b); }
+    if (m === "POST") { if (b.start && b.start.dateTime && !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:00$/.test(b.start.dateTime)) return rep(400, { error: { message: "Invalid start time." } }); if (c[b.id]) return rep(409, {}); c[b.id] = b; return rep(200, b); }
     const [fk, fv] = u.searchParams.get("privateExtendedProperty").split("="), tmin = u.searchParams.get("timeMin");
     const fin = (e) => (e.end.date ? e.end.date + "T00:00:00Z" : e.end.dateTime + "Z");
     return rep(200, { items: Object.values(c).filter((e) => e.status !== "cancelled" && e.extendedProperties.private[fk] === fv && fin(e) > tmin) });
@@ -190,4 +190,18 @@ const infirmiere = { actif: true, etablissements: ["HGC", "CIOC"], droits: { tra
   const f = L.filtrer(tous, { exclus: ["rdv:annonce", "chimio:seance", "tache:Rappel perso", "rdv:act:2nd avis"] });
   ok(f.length === tous.length - 4 && !f.some((e) => ["P|r|1", "P|s|0|2|8", "tache-a|t", "P|r|6"].indexOf(e.k) >= 0), "annonces, séances J8, rappels perso et 2nd avis décochés : retirés, le reste gardé");
   ok(L.evtsTaches([{ id: "z", pour: "U", statut: "afaire", ech: "2026-10-20", titre: "t", type: "Question" }], "U", "2026-10-08")[0].tt === "Question", "tâche : son type est transmis pour le filtre");
+})();
+
+// ───── Heures mal écrites et événement refusé par Google (08/10/2026) ─────
+(async () => {
+  await new Promise((ok) => setTimeout(ok, 300));
+  ok(L.heure("9:30") === "09:30" && L.heure("13h00") === "13:00" && L.heure("08:30:00") === "08:30" && L.heure("") === "" && L.heure("matin") === "" && L.heure("25:00") === "", "heure remise au format HH:MM (9:30, 13h00, 08:30:00) ; illisible → journée entière");
+  const b = L.corps({ k: "P|r|h", t: "x", d: "2026-10-20", h: "9:30" });
+  ok(b.start.dateTime === "2026-10-20T09:30:00" && b.end.dateTime === "2026-10-20T10:00:00", "rendez-vous à « 9:30 » envoyé à 09:30");
+  ok(L.evtsPatient({ etablissementId: "HGC", resume: JSON.stringify({ ag: [{ k: "P|r|z", t: "x", d: "2026-1-5" }, { k: "P|r|y", t: "y", d: "2026-10-20" }] }) }, { actif: true, tousEtablissements: true, droits: { traitements: "voir", radiotherapie: "voir" } }, "2026-10-08").length === 1, "date mal écrite (2026-1-5) : événement écarté");
+  // Google refuse un événement : les autres passent quand même
+  const cal = (await api.creerAgenda()).id, faux = { k: "P|r|bad", t: "x", d: "2026-10-20", h: "10:00" }, bon = { k: "P|r|good", t: "y", d: "2026-10-21" };
+  const api2 = Object.assign({}, api, { creer: async (c, bb) => { if (bb.id === L.idEv("P|r|bad")) { const e = new Error("Google Agenda 400 : Invalid start time."); e.statut = 400; throw e; } return api.creer(c, bb); } });
+  const r = await L.appliquer(api2, cal, [faux, bon], [], "2026-10-08");
+  ok(r.crees === 1 && r.refuses.length === 1 && r.refuses[0] === "P|r|bad", "un événement refusé (400) est mis de côté, le reste de l'agenda est mis à jour");
 })();

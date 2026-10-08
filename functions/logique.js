@@ -29,7 +29,10 @@ function permis(m, ev, r) {
   return true;
 }
 // Seulement ce qui est à venir (ou en cours) dans l'horizon de l'agenda
-const dansFenetre = (e, auj) => e && e.k && e.d && (e.f && e.f > e.d ? e.f : e.d) >= auj && e.d <= addJ(auj, HORIZON - 1);
+const DATE_OK = /^\d{4}-\d{2}-\d{2}$/;
+const dansFenetre = (e, auj) => e && e.k && DATE_OK.test(e.d || "") && (e.f && DATE_OK.test(e.f) && e.f > e.d ? e.f : e.d) >= auj && e.d <= addJ(auj, HORIZON - 1);
+// Heure « HH:MM » quel que soit l'écrit (« 9:30 », « 13h00 », « 08:30:00 ») ; illisible → "" (journée entière) (08/10/2026)
+const heure = (h) => { const m = String(h || "").trim().match(/^(\d{1,2})\s*[:hH.]\s*(\d{2})/); return m && +m[1] < 24 && +m[2] < 60 ? m[1].padStart(2, "0") + ":" + m[2] : ""; };
 
 function evtsPatient(docData, membre, auj) {
   if (!docData || !voitPatient(membre, docData.etablissementId)) return [];
@@ -111,8 +114,9 @@ function corps(e) {
     id: idEv(e.k), summary: e.t, description: [e.x || "", "— Onco360 (mise à jour automatique : modifier dans Onco360)"].filter(Boolean).join("\n\n"), status: "confirmed",
     extendedProperties: { private: { onco360: "1", g: groupe(e.k), k: String(e.k).slice(0, 900), sig: signature(e) } },
   };
-  if (e.h) { b.start = { dateTime: e.d + "T" + e.h + ":00", timeZone: TZ }; b.end = { dateTime: finHeure(e.d, e.h, e.dur), timeZone: TZ }; }
-  else { b.start = { date: e.d }; b.end = { date: addJ(e.f && e.f > e.d ? e.f : e.d, 1) }; }
+  const h = heure(e.h);
+  if (h) { b.start = { dateTime: e.d + "T" + h + ":00", timeZone: TZ }; b.end = { dateTime: finHeure(e.d, h, e.dur), timeZone: TZ }; }
+  else { b.start = { date: e.d }; b.end = { date: addJ(e.f && DATE_OK.test(e.f) && e.f > e.d ? e.f : e.d, 1) }; }
   if ("coul" in e) b.colorId = e.coul || null; // null : retour à la couleur de l'agenda
   if (e.tache) Object.assign(b, { transparency: "transparent", reminders: { useDefault: false, overrides: [] } });
   return b;
@@ -120,18 +124,20 @@ function corps(e) {
 // Met l'agenda en accord avec la liste voulue : crée, modifie, supprime (seulement les événements Onco360 listés)
 // Dernier jour d'un événement de l'agenda (journées : fin exclusive ; heure fixe : son jour de début)
 const dernierJour = (x) => (x.start && x.start.date ? addJ(x.end.date, -1) : String((x.start && x.start.dateTime) || "").slice(0, 10));
+// Un événement refusé par Google (400 : données invalides) est mis de côté, sans bloquer les autres (08/10/2026)
 async function appliquer(api, calId, voulus, existants, auj) {
-  const parId = new Map(existants.map((x) => [x.id, x])), vus = new Set();
+  const parId = new Map(existants.map((x) => [x.id, x])), vus = new Set(), refuses = [];
   let crees = 0, modifies = 0, supprimes = 0;
   for (const e of voulus) {
     const b = corps(e); if (vus.has(b.id)) continue; vus.add(b.id);
     const x = parId.get(b.id); parId.delete(b.id);
     const sig = x && x.extendedProperties && x.extendedProperties.private && x.extendedProperties.private.sig;
     if (x && sig === b.extendedProperties.private.sig && x.status !== "cancelled") continue;
-    if (x) { await api.modifier(calId, b.id, b); modifies++; } else { await api.creer(calId, b); crees++; }
+    try { if (x) { await api.modifier(calId, b.id, b); modifies++; } else { await api.creer(calId, b); crees++; } }
+    catch (er) { if (er.statut !== 400) throw er; refuses.push(e.k); console.error("événement refusé par Google", e.k, e.d, e.h || "", String(er.message).slice(0, 160)); }
   }
   for (const x of parId.values()) { if (auj && dernierJour(x) < auj) continue; await api.supprimer(calId, x.id); supprimes++; } // le passé reste (historique)
-  return { crees, modifies, supprimes };
+  return { crees, modifies, supprimes, refuses };
 }
 
 // Accès à l'API Google Agenda (REST) avec un jeton d'accès ; nouvel essai sur 429 / 5xx
@@ -211,4 +217,4 @@ function appliquerPrix(dossier, M, E, q) {
   return "Chimiothérapie C" + n + " J" + j + (m == null ? " : statut annulé" : " : venu (" + m + " DH)");
 }
 
-module.exports = { TZ, jourCasa, addJ, voitPatient, permis, evtsPatient, evtsAbsences, evtsTaches, COULEURS0, categorie, colorer, cleFiltre, filtrer, idEv, corps, appliquer, creerApi, timeMin, groupe, peutPrix, appliquerPrix };
+module.exports = { TZ, jourCasa, addJ, voitPatient, permis, evtsPatient, evtsAbsences, evtsTaches, heure, COULEURS0, categorie, colorer, cleFiltre, filtrer, idEv, corps, appliquer, creerApi, timeMin, groupe, peutPrix, appliquerPrix };

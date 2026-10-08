@@ -36,7 +36,7 @@ Après déploiement : recharger sans cache (Cmd + Maj + R). Les `.js` sont servi
 | `js/app/agenda.js` | agenda Liste/Jour/Semaine/Mois, filtre par établissement |
 | `js/app/configuration.js` | page **Paramètres** (menu ; `#configuration` y renvoie, 08/10/2026) : onglets `ONGLETS()` = horaires (par établissement), absences, fériés, WhatsApp, couleurs Google Agenda (`parametres/couleursAgenda`), types de documents, types de tâches, listes (diagnostics, mutuelles, correspondants : `parametres/listes` { diag, mut, cor, complet } ; nom corrigé → corrigé dans les dossiers ; nom nouveau d'une fiche patient → ajouté, `enrichirListes`, règle ouverte aux droits identité / fiche / créer), Google Agenda personnel (`utilisateurs/{uid}.agendaFiltre`, cases par catégorie) + couleurs, bibliothèques (fenêtres de prescription en gestion : `gererListe` d'ordonnances.js), impression, alertes, Activités et rémunérations (parametres.js, droit finances) |
 | `js/app/reglages.js` | réglages simples `parametres/reglages` (marges d'impression A5 / A4 / documents, délai du bouton WhatsApp vert, délais des alertes) : `reglages()`, `margesMm()`, variables CSS de l'aperçu |
-| `js/app/profil.js` | profil, photo, lieux d'exercice (logos), accès et droits de l'équipe |
+| `js/app/profil.js` | page Profil = informations de la personne (photo, INPE, signature, mot de passe) ; fournit à Paramètres (`htmlOngletProfil`) les onglets Lieux d'exercice (logos), Google Agenda (« Mon Google Agenda » : lier, mettre à jour, délier) et Accès (droits de l'équipe, titulaire) |
 | `js/app/protocoles.js` | bibliothèque de 316+ protocoles |
 | `js/app/parametres.js` | onglet « Activités et rémunérations » de la page Paramètres : tarifs par établissement (dates d'effet), activités, actes RT, VMAT |
 | `js/app/bilan.js` | bilan financier, exports Excel/PDF |
@@ -137,12 +137,13 @@ Ancienne application : collections racine `patients`, `protocoles`, `finances`, 
   E-mail en cas d'échec. Pas encore d'outil de restauration.
 
 ## Google Agenda (sens unique Onco360 → Google)
-- **Par personne (en cours de mise en place)** : Profil › Google Agenda › « Lier mon Google Agenda » (fenêtre Google, droit
+- **Par personne** : Paramètres › Google Agenda › « Mon Google Agenda » › « Lier mon Google Agenda » (Profil jusqu'au 08/10/2026) (fenêtre Google, droit
   `calendar.app.created` : Onco360 ne voit que l'agenda « Onco360 » qu'il crée). Fonctions serveur `functions/` (région
   europe-west1) : `agendaLier` / `agendaMaj` / `agendaDelier` (appelées par profil.js), `agendaPatient` (à chaque écriture
   d'un dossier), `agendaAbsences` (titulaire), `agendaMembre` (droits modifiés), `agendaNuit` (3 h 30). Événements =
   `resume.ag` filtrés par périmètre (établissements) et droits (chimio / RT) du membre ; identifiant Google = sha1 de la clé
-  `k` ; le passé n'est jamais effacé. Tâches (08/10/2026) : `agendaTache` (écriture d'une tâche) et remise à plat ajoutent
+  `k` ; le passé n'est jamais effacé. Heures normalisées (`heure`), dates invalides écartées, un événement refusé par Google
+  (400) est mis de côté sans bloquer la mise à jour (08/10/2026, panne « Invalid start time »). Tâches (08/10/2026) : `agendaTache` (écriture d'une tâche) et remise à plat ajoutent
   l'échéance des tâches non terminées dans l'agenda du **responsable** seulement (`evtsTaches` : groupe `tache-ID`, journée
   entière ou 15 min, aucun rappel, couleur 8 / 11, « EN RETARD » reportée chaque nuit sur le jour même, retirée une fois terminée).
   Couleurs (08/10/2026) : `categorie` / `colorer` (logique.js) donnent à chaque événement la couleur de sa catégorie

@@ -623,7 +623,19 @@ Décisions de Dr Bentahila (08/10) :
 - [x] Données : `utilisateurs/{uid}.agendaFiltre` = { exclus: [clés] } ; serveur : `cleFiltre` / `filtrer` (logique.js) dans
       la remise à plat et chaque mise à jour ; nouvelle fonction `agendaFiltre` (case changée → agenda de la personne refait).
 - [x] Tests : logique (clé de chaque événement, filtres) ; navigateur (cases, nouveau type de tâche, 390 px, bilan 352 317 DH).
-- [ ] Mise en ligne : règles, **fonctions**, site.
+- [ ] Mise en ligne : règles, **fonctions**, site. (08/10 : fonctions et site mis en ligne par Dr Bentahila ; avertissement
+      « extensions » sans conséquence ; **la mise à jour Google Agenda échouait** → corrigé ci-dessous, à remettre en ligne.)
+**P3 bis – Tout Google Agenda dans Paramètres ; Profil réduit** (demandé et fait le 08/10, pas encore en ligne)
+- [x] **Panne de synchronisation corrigée** : Google refusait un événement (« Invalid start time ») et toute la mise à jour
+      échouait. Heures remises au format HH:MM (« 9:30 », « 13h00 », « 08:30:00 »), dates mal écrites écartées, et un
+      événement refusé est mis de côté (journal du serveur) sans bloquer les autres. Tests logique : 60/60.
+- [x] Paramètres › **Google Agenda** : 1re case **« Mon Google Agenda »** (liaison, mise à jour, délier ; venu du Profil), puis
+      « ce qui y apparaît », puis les couleurs. Message adapté pour qui n'a pas le droit « paramètres ».
+- [x] Paramètres › **Lieux d'exercice** et **Accès** (médecin titulaire) : venus du Profil, mêmes fenêtres, la page reste sur
+      Paramètres après un enregistrement. 13 onglets.
+- [x] **Profil = Mes informations seulement**, sans onglets. Anciens liens (agenda, fiche chimio, guide) mis à jour.
+- [x] Tests : médecin (13 onglets, lieu modifié, accès), secrétaire (sans Accès, relie son agenda), 390 px, bilan 352 317 DH.
+- [ ] Mise en ligne : **fonctions** (correction de la panne) et site.
 **P4 – Tâches automatiques de radiothérapie** et tâches du patient dans « Rendez-vous à venir ». Ajouté le 08/10 : chaque tâche
 automatique **activable / désactivable**, et le médecin peut **en créer** (tâches automatiques personnalisées : à préciser au
 début de P4 : quel déclencheur, quelle échéance, pour qui).
@@ -972,3 +984,4 @@ Onco360_Package_Cession/
 | 08/10/2026 | 5 – P2 Paramètres | Configuration et Paramètres fusionnés en une page « Paramètres » (9 onglets ; Activités et rémunérations avec le droit finances) ; nouveaux onglets Impression (marges) et Alertes (délais), délai du bouton WhatsApp vert ; `parametres/reglages`. Testé (2 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |
 | 08/10/2026 | 5 – P2 bis Paramètres | Onglets Listes (diagnostics, mutuelles, correspondants modifiables, nombre de dossiers) et Bibliothèques (les 5 listes de prescriptions en gestion, sans patient). Testé (2 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |
 | 08/10/2026 | 5 – P2 ter / P3 | Listes reliées aux dossiers (correction propagée aux dossiers, nouveaux noms dont diagnostics ajoutés par toute l'équipe ; règle `parametres/listes`, 8 tests) ; Google Agenda : chacun coche ce qui va dans son agenda (types de consultation, activités, cures / séances, RT, types de tâches) ; fonction `agendaFiltre`. Testé (règles 81/81, logique, navigateur 2 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |
+| 08/10/2026 | 5 – P3 bis | Panne Google Agenda (« Invalid start time ») corrigée : heures normalisées, dates invalides écartées, événement refusé mis de côté sans bloquer (tests 60/60). Google Agenda, Lieux d'exercice et Accès déplacés du Profil vers Paramètres (13 onglets), Profil = informations seulement. Testé (2 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |

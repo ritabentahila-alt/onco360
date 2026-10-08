@@ -44,7 +44,7 @@ Les tâches d'un patient n'apparaissent pas dans son dossier : on les retrouve d
   demandes ».
 
 ## Dans Google Agenda
-Si vous avez relié votre Google Agenda (Profil › Google Agenda), les tâches **dont vous êtes responsable** et qui ont une
+Si vous avez relié votre Google Agenda (Paramètres › Google Agenda), les tâches **dont vous êtes responsable** et qui ont une
 **échéance** apparaissent dans votre agenda « Onco360 » :
 - sans heure : en **journée entière** (bandeau en haut du jour) ; avec heure : petit événement de 15 minutes ;
 - « URGENT – Tâche – … » en rouge ; les autres en gris ;
