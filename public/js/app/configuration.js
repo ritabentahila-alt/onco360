@@ -8,7 +8,7 @@ import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/
 import { db } from "../config.js";
 import { FERIES0 } from "../donnees/listes.js";
 import { typesDocuments, enregistrerTypes, TYPES_DOCUMENTS0 } from "./fichiers.js";
-import { typesTaches, enregistrerTypesTaches, TYPES_TACHES0, TYPE_RT } from "./taches.js";
+import { typesTaches, enregistrerTypesTaches, TYPES_TACHES0, TYPE_RT, listeMembres } from "./taches.js";
 import { reglages, enregistrerReglages, REGLAGES0 } from "./reglages.js";
 import { pageParametres } from "./parametres.js";
 import { listeDiag, listeMut, listeCor, LISTES0 } from "./chimio.js";
@@ -49,6 +49,19 @@ const CAT_COUL = [["annonce", "Consultation d'annonce"], ["suivi", "Consultation
   ["chimio", "Chimiothérapie (cures J1, J8, J15…)"], ["rt", "Radiothérapie (scanner, 1re séance, fin)"], ["dosi", "Dosimétrie à valider"], ["abs", "Absences et congés"], ["tache", "Tâches"], ["tacheUrg", "Tâches urgentes ou en retard"]];
 let COUL = null; // couleurs du cabinet lues (null = à lire)
 let TDOC = null; // types de documents du dossier (onglet Documents, 08/10/2026 ; null = à lire)
+// Tâches automatiques (P4, 08/10/2026) : parametres/tachesAuto = { data: JSON { regles } } ; mêmes règles fixes et événements
+// que functions/logique.js (REGLES_FIXES, tachesAutoPatient) ; calcul et création par le serveur (tachesAutoPatient / Nuit)
+const AUTO_FIXES = [{ id: "dosi", ev: "dosi", fixe: true, actif: true, titre: "Valider la dosimétrie", type: "Radiothérapie", pour: "titulaire", n: 0, depuis: "" },
+  { id: "finrt", ev: "finrt", fixe: true, actif: true, titre: "Valider la fin de radiothérapie", type: "Radiothérapie", pour: "titulaire", n: 0, depuis: "" }];
+const EV_AUTO = { dosi: ["Dosimétrie à valider", "Créée le jour du scanner de centrage ; échéance = 1re séance. Terminée toute seule quand la dosimétrie est validée dans le dossier."],
+  finrt: ["Fin de radiothérapie à valider", "Créée le lendemain de la fin prévue si la radiothérapie n'est pas clôturée. Terminée toute seule à la clôture."],
+  derniereCure: ["Dernière cure d'un protocole", "Créée quand la dernière cure est la prochaine ; échéance = date de cette cure + N jours.", "jours après la cure"],
+  nonVenu: ["Rendez-vous marqué « Non venu »", "Créée quand un rendez-vous est marqué Non venu ; échéance = date du rendez-vous + N jours.", "jours après"],
+  nouveauPatient: ["Nouveau patient créé", "Créée à la création du dossier ; échéance = N jours après.", "jours après"],
+  apresFinRT: ["Après la fin d'une radiothérapie", "Créée N mois après la fin (clôture) d'une radiothérapie, par exemple pour la consultation de contrôle.", "mois après la fin"],
+  veilleJ1: ["Veille d'une cure J1", "Créée la veille de chaque cure J1 (préparation, pharmacie…) ; échéance = la veille."] };
+const reglesAutoC = (cfg) => { const l = (cfg && Array.isArray(cfg.regles) ? cfg.regles : []).filter((r) => r && r.id && EV_AUTO[r.ev]); return AUTO_FIXES.map((f) => Object.assign({}, f, l.find((r) => r.id === f.id) || {}, { fixe: true, ev: f.ev })).concat(l.filter((r) => !AUTO_FIXES.some((f) => f.id === r.id))); };
+let AUTO = null, MBR = null; // règles lues, membres (responsables)
 let TTA = null; // types de tâches (onglet Tâches, 08/10/2026 ; null = à lire ; sans « Radiothérapie », fixe)
 let ED = null, ONG = "horaires", MOD = false, HET = ""; // HET : établissement dont on règle les horaires ("" = par défaut)
 
@@ -67,9 +80,10 @@ export function pageConfiguration(arg) {
   if (!ONGLETS().some((o) => o[0] === ONG)) ONG = "horaires";
   if (ONG === "activites") { pageParametres(); return; }
   if (COUL === null) { COUL = {}; getDoc(doc(db, "espaces", A.ESPACE, "parametres", "couleursAgenda")).then((s) => { COUL = s.exists() ? JSON.parse(s.data().data || "{}") : {}; if (!MOD && location.hash.startsWith("#parametres")) { ED = null; pageConfiguration(); } }).catch(() => {}); }
+  if (AUTO === null) { AUTO = reglesAutoC({}); Promise.all([getDoc(doc(db, "espaces", A.ESPACE, "parametres", "tachesAuto")).catch(() => null), listeMembres().catch(() => [])]).then(([sa, mb]) => { let c = {}; try { c = sa && sa.exists() ? JSON.parse(sa.data().data || "{}") : {}; } catch (e) { /* illisible */ } AUTO = reglesAutoC(c); MBR = mb; if (!MOD && location.hash.startsWith("#parametres")) { ED = null; pageConfiguration(); } }); }
   if (TTA === null) { TTA = []; typesTaches().then((L) => { TTA = L.filter((t) => t !== TYPE_RT); if (!MOD && location.hash.startsWith("#parametres")) { ED = null; pageConfiguration(); } }).catch(() => {}); }
   if (TDOC === null) { TDOC = []; typesDocuments().then((L) => { TDOC = L.slice(); if (!MOD && location.hash.startsWith("#parametres")) { ED = null; pageConfiguration(); } }).catch(() => {}); }
-  if (!ED || !MOD) ED = { horaires: copie(horaires()), horairesEtab: copie(D().cal.horairesEtab || {}), abs: copie(D().cal.abs || []), feries: copie(D().cal.feries || []), wa: Object.assign({}, D().wa || {}), reg: reglages(), listes: { diag: listeDiag().slice(), mut: listeMut(), cor: listeCor() }, listesOrig: { diag: listeDiag().slice(), mut: listeMut(), cor: listeCor() }, coul: Object.assign({}, COULEURS0, COUL), tdoc: TDOC.slice(), ttache: TTA.slice() };
+  if (!ED || !MOD) ED = { horaires: copie(horaires()), horairesEtab: copie(D().cal.horairesEtab || {}), abs: copie(D().cal.abs || []), feries: copie(D().cal.feries || []), wa: Object.assign({}, D().wa || {}), reg: reglages(), listes: { diag: listeDiag().slice(), mut: listeMut(), cor: listeCor() }, listesOrig: { diag: listeDiag().slice(), mut: listeMut(), cor: listeCor() }, coul: Object.assign({}, COULEURS0, COUL), tdoc: TDOC.slice(), ttache: TTA.slice(), auto: JSON.parse(JSON.stringify(AUTO)) };
   const ok = A.peut("parametres"), esc = A.esc, dis = ok ? "" : " disabled";
   let h = entete();
   if (!ok) h += '<p class="mesures">' + (ONG === "couleurs" ? "Votre Google Agenda et ce qui y apparaît se règlent ici ; les couleurs sont en lecture seule (droit « paramètres »)." : "Lecture seule : la modification demande le droit « paramètres ».") + "</p>";
@@ -99,6 +113,7 @@ export function pageConfiguration(arg) {
         (ok ? '<button class="ico" title="Monter" aria-label="Monter" onclick="cfTtBouger(' + i + ',-1)"' + (i ? "" : " disabled") + '>↑</button><button class="ico" title="Descendre" aria-label="Descendre" onclick="cfTtBouger(' + i + ',1)"' + (i < L.length - 1 ? "" : " disabled") + '>↓</button><button class="mini rouge" title="Retirer ce type" aria-label="Retirer ' + esc(t) + '" onclick="cfTtSup(' + i + ')">✕</button>' : "") + "</div>").join("") +
         '<div class="it"><b class="n">' + (L.length + 1) + '</b><input value="' + esc(TYPE_RT) + '" disabled aria-label="Type fixe ' + esc(TYPE_RT) + '"><span class="mesures">fixe : tâches automatiques (dosimétrie, fin de radiothérapie)</span></div></div>' +
       (ok ? '<button class="bt clair petit" style="margin-top:10px" onclick="cfTtAj()">' + A.ic("plus") + "Ajouter un type</button>" : "") + "</section>";
+    h += sectionAuto(ok, dis);
   } else if (ONG === "documents") {
     // Types de documents du dossier patient (onglet Documents) : liste du cabinet, dans l'ordre du menu
     const L = ED.tdoc;
@@ -183,6 +198,26 @@ window.cfAjPlage = (j) => { const l = HC().jours[j], der = l[l.length - 1]; l.pu
 window.cfSupPlage = (j, k) => { HC().jours[j].splice(k, 1); modif(true); };
 window.cfWa = (k, v) => { ED.wa[k] = v; const e = A.$("waEx_" + k); if (e) e.textContent = remplir(v, { prenom: "Fatima", nom: "ALAOUI Fatima", jour: "mardi 14 octobre", heure: "à 10h00", lieu: "Hôpital Cheikh Khalifa", adresse: "", medecin: "Dr BENTAHILA" }); modif(); };
 window.cfWaDef = (k) => { delete ED.wa[k]; modif(true); };
+// ───── Tâches automatiques : une carte par règle (actif, titre, type, responsable, délai) ; + règle du médecin ─────
+function sectionAuto(ok, dis) {
+  const esc = A.esc, types = ED.ttache.concat([TYPE_RT]), mb = (MBR || []).filter((m) => m.actif !== false);
+  const optsPour = (v) => '<option value="titulaire"' + (v === "titulaire" ? " selected" : "") + ">Médecin titulaire</option>" + mb.map((m) => '<option value="' + esc(m.uid) + '"' + (m.uid === v ? " selected" : "") + ">" + esc(m.nom || m.email) + "</option>").join("") + (v !== "titulaire" && !mb.some((m) => m.uid === v) ? '<option value="' + esc(v) + '" selected>(n\'a plus accès : médecin titulaire)</option>' : "");
+  return '<section class="carte"><h3><span class="ic">' + A.ic("horloge") + '</span>Tâches automatiques</h3><p class="sous">Onco360 crée ces tâches tout seul (à chaque enregistrement d\'un dossier et chaque nuit), une seule fois par patient et par événement, même si vous la supprimez ensuite. Elles apparaissent dans les Tâches de la personne responsable, dans le dossier du patient et, si elles ont une échéance, dans son Google Agenda.</p>' +
+    ED.auto.map((R, i) => { const E = EV_AUTO[R.ev] || ["?", ""];
+      return '<div class="cf-auto' + (R.actif === false ? " off" : "") + '"><div class="t"><label class="chk"><input type="checkbox"' + (R.actif !== false ? " checked" : "") + dis + ' onchange="cfAuto(' + i + ',\'actif\',this.checked)"> <b>' + esc(E[0]) + "</b></label>" + (R.fixe ? '<span class="badge b-gr">fixe</span>' : ok ? '<button class="mini rouge" onclick="cfAutoSup(' + i + ')" aria-label="Supprimer cette tâche automatique">✕</button>' : "") + '</div><p class="mesures">' + esc(E[1]) + "</p>" +
+        '<div class="form" style="grid-template-columns:2fr 1fr 1fr' + (E[2] ? " 120px" : "") + '"><div><label>Titre de la tâche</label><input value="' + esc(R.titre) + '"' + dis + ' onchange="cfAuto(' + i + ',\'titre\',this.value)"></div>' +
+        '<div><label>Type</label><select' + dis + ' onchange="cfAuto(' + i + ',\'type\',this.value)">' + types.concat(R.type && types.indexOf(R.type) < 0 ? [R.type] : []).map((t) => "<option" + (t === R.type ? " selected" : "") + ">" + esc(t) + "</option>").join("") + "</select></div>" +
+        '<div><label>Pour</label><select' + dis + ' onchange="cfAuto(' + i + ',\'pour\',this.value)">' + optsPour(R.pour || "titulaire") + "</select></div>" +
+        (E[2] ? '<div><label>' + esc(E[2]) + '</label><input type="number" min="0" max="365" value="' + esc(R.n == null ? 0 : R.n) + '"' + dis + ' onchange="cfAuto(' + i + ',\'n\',this.value)"></div>' : "") + "</div></div>";
+    }).join("") +
+    (ok ? '<div class="actr" style="justify-content:flex-start;margin-top:10px"><select id="cfAutoEv">' + Object.keys(EV_AUTO).filter((k) => !AUTO_FIXES.some((f) => f.ev === k)).map((k) => '<option value="' + k + '">' + esc(EV_AUTO[k][0]) + "</option>").join("") + '</select><button class="bt clair petit" onclick="cfAutoAj()">' + A.ic("plus") + "Ajouter une tâche automatique</button></div>" : "") + "</section>";
+}
+window.cfAuto = (i, k, v) => { const R = ED.auto[i]; if (k === "n") v = Math.max(0, parseInt(v, 10) || 0); R[k] = v; if (k === "actif" && v && !R.fixe) R.depuis = D().t; modif(k === "actif"); };
+window.cfAutoSup = (i) => { if (!ED.auto[i] || ED.auto[i].fixe) return; ED.auto.splice(i, 1); modif(true); };
+window.cfAutoAj = () => {
+  const ev = A.val("cfAutoEv"), def = { derniereCure: ["Dernière cure : prévoir la suite (bilan, consultation)", 7], nonVenu: ["Rappeler le patient (rendez-vous manqué)", 1], nouveauPatient: ["Nouveau patient : compléter le dossier", 2], apresFinRT: ["Consultation de contrôle après radiothérapie", 3], veilleJ1: ["Préparer la cure de demain", 0] }[ev] || ["Tâche", 0];
+  ED.auto.push({ id: "a" + Date.now().toString(36), ev, actif: true, titre: def[0], type: ED.ttache[0] || TYPE_RT, pour: "titulaire", n: def[1], depuis: D().t }); modif(true);
+};
 // ───── Google Agenda : ce que CHAQUE personne met dans son agenda (P3, 08/10/2026) ─────
 // utilisateurs/{uid}.agendaFiltre = { exclus: [clés] } ; mêmes clés que cleFiltre (functions/logique.js). Les catégories suivent
 // les types de consultation (activités des Paramètres) et les types de tâches ajoutés au fur et à mesure ; nouvelles = cochées.
@@ -289,6 +324,7 @@ window.cfEnregistrer = async () => {
   const tdoc = ED.tdoc.map((t) => String(t || "").trim()).filter(Boolean);
   if (tdoc.some((t, i) => tdoc.findIndex((u) => u.toLowerCase() === t.toLowerCase()) !== i)) { A.toast("Deux types de documents portent le même nom."); return; }
   if (TDOC && TDOC.length && !tdoc.length) { A.toast("Gardez au moins un type de document."); return; }
+  if (ED.auto.some((R) => !String(R.titre || "").trim())) { A.toast("Tâches automatiques : donnez un titre à chaque tâche."); return; }
   const ttache = ED.ttache.map((t) => String(t || "").trim()).filter(Boolean);
   if (ttache.concat([TYPE_RT]).some((t, i, a) => a.findIndex((u) => u.toLowerCase() === t.toLowerCase()) !== i)) { A.toast("Deux types de tâches portent le même nom (« " + TYPE_RT + " » est déjà le type fixe)."); return; }
   const cal = Object.assign({}, D().cal, { horaires: ED.horaires, horairesEtab: ED.horairesEtab, abs: ED.abs, feries: ED.feries.slice().sort((a, b) => a.d.localeCompare(b.d)) });
@@ -306,6 +342,7 @@ window.cfEnregistrer = async () => {
     }
     let ko = 0; for (let i = 0; i < aMaj.length; i++) { A.toast("Correction des dossiers : " + (i + 1) + " / " + aMaj.length + "…"); try { await A.enregistrer(aMaj[i].x, aMaj[i].ch, aMaj[i].quoi); } catch (e) { ko++; console.warn("liste → dossier", aMaj[i].x.id, e); } }
     if (ko) setTimeout(() => A.toast(ko + " dossier(s) n'ont pas pu être corrigés : réessayez (ils ont peut-être été modifiés en même temps)."), 4000);
+    if (JSON.stringify(ED.auto) !== JSON.stringify(AUTO)) { const regles = ED.auto.map((R) => { const o = Object.assign({}, R); delete o.fixe; return o; }); await setDoc(doc(db, "espaces", A.ESPACE, "parametres", "tachesAuto"), { data: JSON.stringify({ regles }) }); AUTO = JSON.parse(JSON.stringify(ED.auto)); }
     if (JSON.stringify(ttache) !== JSON.stringify(TTA || [])) { await enregistrerTypesTaches(ttache.length ? ttache : TYPES_TACHES0.slice()); TTA = ttache.length ? ttache : TYPES_TACHES0.slice(); }
     D().cal = cal; D().ctx.feries = cal.feries;
     D().patients.forEach((x) => A.recalculer(x, x.doc)); // les dates de radiothérapie dépendent des jours fériés

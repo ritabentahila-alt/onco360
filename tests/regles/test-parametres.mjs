@@ -35,6 +35,11 @@ console.log("Autres paramètres : droit « paramètres » seulement");
 await cas("refusé : la secrétaire modifie les réglages (impression…)", () => assertFails(setDoc(D("SEC", "reglages"), { data: "{}" })));
 await cas("refusé : la secrétaire modifie les types de tâches", () => assertFails(setDoc(D("SEC", "typesTaches"), { data: "[]" })));
 await cas("le médecin modifie les réglages", () => assertSucceeds(setDoc(D("MED", "reglages"), { data: "{}" })));
+console.log("Tâches automatiques (P4)");
+await cas("le médecin modifie les règles des tâches automatiques", () => assertSucceeds(setDoc(D("MED", "tachesAuto"), { data: '{"regles":[]}' })));
+await cas("refusé : la secrétaire modifie les règles des tâches automatiques", () => assertFails(setDoc(D("SEC", "tachesAuto"), { data: "{}" })));
+await cas("refusé : registre des tâches automatiques invisible depuis le navigateur (même le médecin)", () => assertFails(getDoc(doc(db("MED"), P + "/tachesAuto/auto-x"))));
+await cas("refusé : écrire dans le registre (ne pas empêcher une tâche)", () => assertFails(setDoc(doc(db("MED"), P + "/tachesAuto/auto-x"), { le: "x" })));
 
 await env.cleanup();
 console.log("\n" + ok + " réussi(s), " + ko + " échoué(s)");

@@ -7,6 +7,8 @@
 //   • agendaTache : une tâche écrite (échéance dans l'agenda de son responsable, T6 du 08/10/2026) ;
 //   • agendaCouleurs : couleurs par type changées (Paramètres › Google Agenda) : tous les agendas du cabinet repeints ;
 //   • agendaFiltre : une personne a changé ce qui va dans SON agenda (utilisateurs/{uid}.agendaFiltre) : son agenda refait.
+// Tâches automatiques (P4, 08/10/2026) : tachesAutoPatient (chaque écriture d'un dossier) et tachesAutoNuit (3 h) créent les
+// tâches dues (logique.js tachesAutoPatient) et terminent celles dont la condition est réglée (dosimétrie validée, RT close).
 // Jetons Google : collection agendaJetons/{uid}, inaccessible depuis le navigateur (aucune règle ne l'ouvre).
 // État visible par la personne : utilisateurs/{uid}.agendaGoogle = { email, calendrier, le, nb, erreur }.
 const { setGlobalOptions } = require("firebase-functions/v2");
@@ -193,6 +195,49 @@ exports.agendaFiltre = onDocumentWritten(Object.assign({ document: "utilisateurs
   if (JSON.stringify(a || {}) === JSON.stringify(b || {})) return; // autres écritures du profil (tâches lues, état de l'agenda…)
   const s = await db.doc("agendaJetons/" + ev.params.uid).get(); if (!s.exists || s.data().revoque) return;
   try { await syncComplet(ev.params.uid, s.data()); } catch (e) { await echec(ev.params.uid, e); }
+});
+// ───── Tâches automatiques ─────
+const SYS = "onco360", SYS_NOM = "Onco360 (automatique)";
+async function contexteAuto(e) {
+  const [sr, sc, se, sm] = await Promise.all([db.doc("espaces/" + e + "/parametres/tachesAuto").get(), db.doc("espaces/" + e + "/parametres/calendrier").get(), db.doc("espaces/" + e).get(), db.collection("espaces/" + e + "/membres").get()]);
+  let cfg = {}, cal = {}; try { cfg = sr.exists ? JSON.parse(sr.data().data || "{}") : {}; } catch (er) { /* illisible */ } try { cal = sc.exists ? JSON.parse(sc.data().data || "{}") : {}; } catch (er) { /* illisible */ }
+  const membres = {}; sm.forEach((d) => { membres[d.id] = d.data(); });
+  return { regles: L.reglesAuto(cfg), feries: cal.feries || [], titulaire: se.exists ? se.data().titulaire : null, membres };
+}
+async function tachesAuto(e, pid, docData, ctx, opts) {
+  if (!docData) return;
+  const auj = L.jourCasa(), { voulues, resolues } = L.tachesAutoPatient(pid, docData, ctx.regles, auj, ctx.feries, opts);
+  let r0 = {}; try { r0 = JSON.parse(docData.resume || "{}"); } catch (er) { /* résumé illisible */ }
+  for (const v of voulues) {
+    const reg = db.doc("espaces/" + e + "/tachesAuto/" + v.id);
+    if ((await reg.get()).exists) continue; // déjà créée une fois (même si elle a été supprimée depuis)
+    let pour = v.pour === "titulaire" ? ctx.titulaire : v.pour; const m = ctx.membres[pour];
+    if (!m || m.actif === false) { pour = ctx.titulaire; } const mp = ctx.membres[pour]; if (!pour || !mp) continue;
+    const le = new Date().toISOString();
+    await db.doc("espaces/" + e + "/taches/" + v.id).set({
+      titre: v.titre, desc: "Tâche créée automatiquement par Onco360 (Paramètres › Tâches › Tâches automatiques).", type: v.type, urgent: false, ech: v.ech, h: "",
+      patientId: pid, patientNom: r0.nm || "", etablissementId: docData.etablissementId || "", pour, pourNom: String(mp.nom || mp.email || ""), de: SYS, deNom: SYS_NOM, qui: [SYS, pour],
+      statut: "afaire", fil: [{ le, par: SYS, parNom: SYS_NOM, txt: "Créée automatiquement" }], o: Date.now(), cree: FieldValue.serverTimestamp(), maj: FieldValue.serverTimestamp(), majPar: SYS,
+      auto: { regle: v.regle, ev: v.ev, cle: v.cle, rt: v.rt || "" },
+    });
+    await reg.set({ le, patientId: pid, regle: v.regle });
+  }
+  for (const id of resolues) {
+    const ref = db.doc("espaces/" + e + "/taches/" + id), s = await ref.get(); if (!s.exists || s.data().statut === "fait") continue;
+    const le = new Date().toISOString(), txt = s.data().auto && s.data().auto.ev === "dosi" ? "Terminée automatiquement : dosimétrie validée dans le dossier" : "Terminée automatiquement : radiothérapie clôturée dans le dossier";
+    await ref.update({ statut: "fait", faitPar: SYS, faitParNom: SYS_NOM, faitLe: le, fil: FieldValue.arrayUnion({ le, par: SYS, parNom: SYS_NOM, txt }), maj: FieldValue.serverTimestamp(), majPar: SYS });
+  }
+}
+exports.tachesAutoPatient = onDocumentWritten(Object.assign({ document: "espaces/{e}/patients/{p}" }, OPTS), async (ev) => {
+  if (!ev.data.after.exists) return;
+  try { await tachesAuto(ev.params.e, ev.params.p, ev.data.after.data(), await contexteAuto(ev.params.e), { nouveau: !ev.data.before.exists }); }
+  catch (er) { console.error("tâches automatiques", ev.params.p, er); }
+});
+exports.tachesAutoNuit = onSchedule(Object.assign({ schedule: "0 3 * * *", timeZone: L.TZ }, OPTS), async () => {
+  for (const es of (await db.collection("espaces").get()).docs) {
+    const ctx = await contexteAuto(es.id); if (!ctx.regles.some((r) => r.actif !== false)) continue;
+    for (const d of (await db.collection("espaces/" + es.id + "/patients").get()).docs) { try { await tachesAuto(es.id, d.id, d.data(), ctx, {}); } catch (er) { console.error("tâches automatiques", d.id, er); } }
+  }
 });
 exports.agendaNuit = onSchedule(Object.assign({ schedule: "30 3 * * *", timeZone: L.TZ }, OPTS), async () => {
   const l = (await db.collection("agendaJetons").get()).docs.filter((d) => !d.data().revoque);

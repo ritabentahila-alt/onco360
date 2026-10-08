@@ -81,7 +81,10 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
   `faitLe`, `fil` [{ le, par, parNom, txt, c }] (historique et commentaires `c: true` ; une entrée par modification, ajoutée
   par `arrayUnion`, signée par la personne connectée : règle) ; lues par
   tous les médecins, sinon par l'auteur et le responsable ; modifiées par eux ; supprimées par l'auteur (toujours) ou par
-  un médecin (non terminées). Pas affichées dans le dossier patient. Lues : `utilisateurs/{uid}.tachesVu` { idTâche: longueur du fil }.
+  un médecin (non terminées). Affichées dans le dossier (« Rendez-vous et tâches à venir », `tachesDuPatient`, 08/10/2026).
+  Tâches automatiques : `de` = "onco360", `auto` { regle, ev, cle, rt } ; règles `parametres/tachesAuto` { regles } (Paramètres ›
+  Tâches) ; créées par les fonctions `tachesAutoPatient` / `tachesAutoNuit` (logique.js `tachesAutoPatient`), une fois
+  (registre `tachesAuto/{id}`, sans règle = invisible du navigateur). Lues : `utilisateurs/{uid}.tachesVu` { idTâche: longueur du fil }.
 - `salle/{AAAA-MM-JJ_patient_clé}` (salle d'attente, 08/10/2026) : `jour`, `patientId`, `etablissementId`, `cle` (`r-RDV` ou
   `c-LIGNE-CURE-JOUR`), `etat` "" | salle | consult | vu | absent, `motif` (chimio ; celui d'un rendez-vous est `mo` dans
   `rdvsJson`), `arr` / `deb` / `fin` (ms) + `…Par` / `…Nom`, `sp`, `majPar`. Le rendez-vous reste « prevu » jusqu'à Vu (bilan

@@ -636,9 +636,29 @@ Décisions de Dr Bentahila (08/10) :
 - [x] **Profil = Mes informations seulement**, sans onglets. Anciens liens (agenda, fiche chimio, guide) mis à jour.
 - [x] Tests : médecin (13 onglets, lieu modifié, accès), secrétaire (sans Accès, relie son agenda), 390 px, bilan 352 317 DH.
 - [ ] Mise en ligne : **fonctions** (correction de la panne) et site.
-**P4 – Tâches automatiques de radiothérapie** et tâches du patient dans « Rendez-vous à venir ». Ajouté le 08/10 : chaque tâche
-automatique **activable / désactivable**, et le médecin peut **en créer** (tâches automatiques personnalisées : à préciser au
-début de P4 : quel déclencheur, quelle échéance, pour qui).
+**P4 – Tâches automatiques et tâches dans le dossier** (décidé et fait le 08/10, pas encore en ligne)
+Décisions (08/10) : événements des tâches automatiques du médecin = **dernière cure d'un protocole, rendez-vous « Non venu »,
+nouveau patient, N mois après la fin d'une radiothérapie, veille d'une cure J1** ; la dosimétrie reste ailleurs (programme du
+jour, agenda, Google Agenda) mais **dans le dossier sous forme de tâche**.
+- [x] **Serveur** : `tachesAutoPatient` (chaque écriture d'un dossier) et `tachesAutoNuit` (3 h) créent les tâches dues
+      (auteur « Onco360 (automatique) », identifiant fixe par règle / patient / occurrence, **une seule fois** : registre
+      `tachesAuto/{id}`, invisible du navigateur) et terminent toutes seules « Valider la dosimétrie » (dosimétrie validée) et
+      « Valider la fin de radiothérapie » (RT clôturée). Logique pure `tachesAutoPatient` (logique.js), 13 tests.
+- [x] **Règles fixes** (type « Radiothérapie », pour le médecin titulaire par défaut) : dosimétrie à valider (créée le jour du
+      scanner, échéance = 1re séance) ; fin de radiothérapie à valider (créée le lendemain de la fin prévue, jours ouvrés et
+      fériés comme l'écran).
+- [x] Paramètres › Tâches › **Tâches automatiques** : chaque règle activable / désactivable, titre, type, responsable (médecin
+      titulaire ou un membre), délai (jours ; mois après la fin de RT) ; « + Ajouter une tâche automatique » (5 événements) ;
+      date « depuis » posée à l'activation (pas de rattrapage du passé). `parametres/tachesAuto` (droit « paramètres »).
+- [x] Fiche d'une tâche automatique de RT : bouton **« Valider la dosimétrie » / « Valider la fin de radiothérapie »** (ouvre
+      le dossier et la fenêtre habituelle).
+- [x] Dossier : carte **« Rendez-vous et tâches à venir »** : tâches ouvertes du patient dans la même liste (date d'échéance,
+      rouge si en retard, « Ouvrir »), ligne « Dosimétrie à valider » remplacée par la tâche, bouton **« + Tâche »** à côté de
+      « Ajouter un rendez-vous » ; liste rafraîchie après une tâche créée ou modifiée depuis le dossier. (Remplace la décision
+      du 07/10 « tâches absentes du dossier ».)
+- [x] Tests : logique 73/73, règles 85/85, navigateur (tâche automatique simulée : dossier, message, bouton Valider ; réglages ;
+      secrétaire en lecture seule ; 390 px ; bilan 352 317 DH ; aucune erreur).
+- [ ] Mise en ligne : règles, **fonctions** (2 nouvelles), site. Puis vérifier sur un vrai dossier (dosimétrie en attente).
 
 ---
 
@@ -1005,3 +1025,4 @@ Onco360_Package_Cession/
 | 08/10/2026 | 5 – P2 ter / P3 | Listes reliées aux dossiers (correction propagée aux dossiers, nouveaux noms dont diagnostics ajoutés par toute l'équipe ; règle `parametres/listes`, 8 tests) ; Google Agenda : chacun coche ce qui va dans son agenda (types de consultation, activités, cures / séances, RT, types de tâches) ; fonction `agendaFiltre`. Testé (règles 81/81, logique, navigateur 2 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |
 | 08/10/2026 | 5 – P3 bis | Panne Google Agenda (« Invalid start time ») corrigée : heures normalisées, dates invalides écartées, événement refusé mis de côté sans bloquer (tests 60/60). Google Agenda, Lieux d'exercice et Accès déplacés du Profil vers Paramètres (13 onglets), Profil = informations seulement. Testé (2 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |
 | 08/10/2026 | 2 – Retouches | Fiche patient : « 2e téléphone » (après Téléphone), « Adresse » et « E-mail » (après Mutuelle), dans Nouveau patient, Modifier et Afficher ; 2e téléphone aussi dans le dossier ; mis en ligne (v2.js?v=20261008s). |
+| 08/10/2026 | 5 – P4 Tâches | Tâches automatiques : 2 fixes (dosimétrie, fin de RT ; terminées toutes seules) + règles du médecin (dernière cure, non venu, nouveau patient, N mois après la RT, veille J1), activables, responsable et délai réglables ; fonctions `tachesAutoPatient` / `tachesAutoNuit` ; tâches du patient dans « Rendez-vous et tâches à venir » (+ Tâche). Tests logique 73/73, règles 85/85, navigateur, bilan 352 317 DH. Pas encore en ligne. |

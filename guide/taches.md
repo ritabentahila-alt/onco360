@@ -16,7 +16,7 @@ question d'un patient… Chaque tâche a **une seule personne responsable**, pou
 - **Échéance** (date, heure facultative), case **Urgent**, **patient** (facultatif : tapez son nom).
 - « De la part de » est rempli automatiquement avec votre nom.
 
-Les tâches d'un patient n'apparaissent pas dans son dossier : on les retrouve dans le menu Tâches (recherche par son nom).
+Les tâches ouvertes d'un patient apparaissent aussi dans son dossier, carte « Rendez-vous et tâches à venir » (bouton « + Tâche »).
 
 ## Retrouver ses tâches
 - **Mes tâches** : celles dont vous êtes responsable.
@@ -42,6 +42,14 @@ Les tâches d'un patient n'apparaissent pas dans son dossier : on les retrouve d
 - **Pastille orange** à côté de « Tâches » (sur le bouton du menu au téléphone) : nouveautés + vos tâches en retard.
 - **Tableau de bord** : carte « Mes tâches » (en retard, urgentes, nouvelles, dans les 7 jours) et « Du nouveau sur vos
   demandes ».
+
+## Tâches automatiques
+Onco360 crée certaines tâches tout seul (Paramètres › Tâches › Tâches automatiques), une seule fois par patient et par
+événement, signées « Onco360 (automatique) » :
+- **Valider la dosimétrie** (le jour du scanner, échéance = 1re séance) et **Valider la fin de radiothérapie** (le lendemain
+  de la fin prévue) : bouton « Valider » dans la fiche ; elles se terminent toutes seules une fois validé dans le dossier ;
+- celles que le médecin ajoute : dernière cure d'un protocole, rendez-vous « Non venu », nouveau patient, N mois après la fin
+  d'une radiothérapie, veille d'une cure J1 (titre, type, responsable et délai réglables ; activer / désactiver).
 
 ## Dans Google Agenda
 Si vous avez relié votre Google Agenda (Paramètres › Google Agenda), les tâches **dont vous êtes responsable** et qui ont une

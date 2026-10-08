@@ -205,3 +205,42 @@ const infirmiere = { actif: true, etablissements: ["HGC", "CIOC"], droits: { tra
   const r = await L.appliquer(api2, cal, [faux, bon], [], "2026-10-08");
   ok(r.crees === 1 && r.refuses.length === 1 && r.refuses[0] === "P|r|bad", "un événement refusé (400) est mis de côté, le reste de l'agenda est mis à jour");
 })();
+
+// ───── Tâches automatiques (P4, 08/10/2026) ─────
+(async () => {
+  await new Promise((ok) => setTimeout(ok, 400));
+  const J = "2026-10-08", feries = [{ d: "2026-11-06", nom: "Marche verte" }];
+  const regles = L.reglesAuto({ regles: [
+    { id: "r1", ev: "derniereCure", actif: true, titre: "Prévoir la suite", type: "Rappel perso", pour: "titulaire", n: 7, depuis: "2026-10-01" },
+    { id: "r2", ev: "nonVenu", actif: true, titre: "Rappeler le patient", type: "Question patient", pour: "SEC", n: 1, depuis: "2026-10-01" },
+    { id: "r3", ev: "nouveauPatient", actif: true, titre: "Ouvrir le dossier mutuelle", type: "Autre", pour: "SEC", n: 2, depuis: "" },
+    { id: "r4", ev: "apresFinRT", actif: true, titre: "Consultation de contrôle", type: "Rendez-vous ajouté/déplacé", pour: "titulaire", n: 3, depuis: "2026-01-01" },
+    { id: "r5", ev: "veilleJ1", actif: true, titre: "Préparer la cure", type: "Rappel perso", pour: "INF", n: 0, depuis: "" },
+    { id: "r6", ev: "nonVenu", actif: false, titre: "Désactivée", type: "", pour: "titulaire", n: 0, depuis: "" },
+  ] });
+  ok(regles.length === 8 && regles[0].id === "dosi" && regles[1].id === "finrt" && regles[0].fixe, "règles : les 2 fixes (dosimétrie, fin de RT) toujours présentes, puis celles du médecin");
+  const dossier = {
+    rtsJson: JSON.stringify([
+      { id: "rA", acte: "Sein", scan: "2026-10-05", deb: "2026-10-12", nb: "15", ryt: "1" },              // dosimétrie à valider
+      { id: "rB", acte: "Prostate", scan: "2026-08-01", dosi: "2026-08-03", deb: "2026-08-04", nb: "20" },  // fin prévue dépassée, non close
+      { id: "rC", acte: "ORL", scan: "2026-03-01", dosi: "2026-03-02", deb: "2026-03-03", nb: "5", fin: "2026-03-09" }, // close : contrôle à 3 mois
+      { id: "rD", acte: "Futur", scan: "2026-10-20" },                                                        // scanner pas encore fait
+    ]),
+    rdvsJson: JSON.stringify([{ id: "v1", d: "2026-10-06", st: "absent" }, { id: "v0", d: "2026-09-10", st: "absent" }, { id: "v2", d: "2026-10-07", st: "fait" }]),
+    resume: JSON.stringify({ nm: "ALAMI Fatima", act: [{ nom: "FOLFOX", k: 6, nb: 6, d: "2026-10-09", c: 14 }, { nom: "FOLFOX · J8", k: 5, nb: 6, d: "2026-10-09", sj: 8 }] }),
+  };
+  const { voulues, resolues } = L.tachesAutoPatient("P1", dossier, regles, J, feries, { nouveau: false });
+  const par = (rg) => voulues.filter((v) => v.regle === rg);
+  ok(par("dosi").length === 1 && par("dosi")[0].cle === "rA" && par("dosi")[0].ech === "2026-10-12" && par("dosi")[0].rt === "rA", "dosimétrie : tâche dès le jour du scanner, échéance = 1re séance (scanner futur : rien)");
+  ok(resolues.indexOf(L.idAuto("dosi", "P1", "rB")) >= 0 && resolues.indexOf(L.idAuto("finrt", "P1", "rC")) >= 0, "dosimétrie validée ou RT close : leurs tâches seront terminées toutes seules");
+  ok(par("finrt").length === 1 && par("finrt")[0].cle === "rB" && /fin prévue le/.test(par("finrt")[0].titre), "fin de radiothérapie dépassée et non close : tâche « Valider la fin de radiothérapie »");
+  ok(L.finRT({ deb: "2026-11-02", nb: "5" }, feries) === "2026-11-09", "fin prévue : jours ouvrés, fériés sautés (Marche verte)");
+  ok(par("r1").length === 1 && par("r1")[0].ech === "2026-10-16" && /C6\/6 FOLFOX/.test(par("r1")[0].titre), "dernière cure (C6/6) : tâche, échéance = date de la cure + 7 jours");
+  ok(par("r2").length === 1 && par("r2")[0].cle === "v1" && par("r2")[0].ech === "2026-10-07" && par("r2")[0].pour === "SEC", "non venu : une tâche (avant la date « depuis » : rien), pour la secrétaire");
+  ok(!par("r6").length, "règle désactivée : rien");
+  ok(!par("r3").length && L.tachesAutoPatient("P1", dossier, regles, J, feries, { nouveau: true }).voulues.filter((v) => v.regle === "r3").length === 1, "nouveau patient : seulement à la création du dossier");
+  ok(par("r4").length === 1 && par("r4")[0].ech === "2026-06-09", "3 mois après la fin de la RT (09/03) : tâche le 09/06");
+  ok(par("r5").length === 1 && par("r5")[0].ech === "2026-10-08" && L.tachesAutoPatient("P1", dossier, regles, "2026-10-06", feries).voulues.filter((v) => v.regle === "r5").length === 0, "veille d'une cure J1 : tâche la veille (pas avant)");
+  ok(L.idAuto("dosi", "P1", "rA") === L.idAuto("dosi", "P1", "rA") && L.idAuto("dosi", "P1", "rA") !== L.idAuto("dosi", "P2", "rA"), "identifiant fixe par règle, patient et occurrence (jamais deux fois la même tâche)");
+  ok(L.addMois("2026-01-31", 1) === "2026-02-28", "ajout de mois : fin de mois respectée");
+})();

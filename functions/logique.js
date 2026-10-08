@@ -108,6 +108,51 @@ function evtsTaches(taches, uid, auj, noms) {
     };
   }).filter((e) => dansFenetre(e, auj));
 }
+// ───── Tâches automatiques (P4, 08/10/2026) ─────
+// Règles : espaces/{e}/parametres/tachesAuto = { data: JSON { regles: [{ id, ev, actif, titre, type, pour ("titulaire" | uid),
+// n (décalage : jours, ou mois pour apresFinRT), depuis (AAAA-MM-JJ : pas d'événement plus ancien) }] } }.
+// Deux règles fixes (type « Radiothérapie ») : dosimétrie à valider, fin de radiothérapie à valider (terminées toutes seules
+// quand c'est validé dans le dossier). Règles du médecin : derniereCure, nonVenu, nouveauPatient, apresFinRT, veilleJ1.
+// Une tâche par règle, patient et occurrence (identifiant fixe idAuto), créée une seule fois (registre tachesAuto/{id}).
+const REGLES_FIXES = [
+  { id: "dosi", ev: "dosi", fixe: true, actif: true, titre: "Valider la dosimétrie", type: "Radiothérapie", pour: "titulaire", n: 0, depuis: "" },
+  { id: "finrt", ev: "finrt", fixe: true, actif: true, titre: "Valider la fin de radiothérapie", type: "Radiothérapie", pour: "titulaire", n: 0, depuis: "" },
+];
+const EVENEMENTS_AUTO = ["dosi", "finrt", "derniereCure", "nonVenu", "nouveauPatient", "apresFinRT", "veilleJ1"];
+function reglesAuto(cfg) {
+  const l = (cfg && Array.isArray(cfg.regles) ? cfg.regles : []).filter((r) => r && r.id && EVENEMENTS_AUTO.indexOf(r.ev) >= 0);
+  return REGLES_FIXES.map((f) => Object.assign({}, f, l.find((r) => r.id === f.id) || {}, { fixe: true, ev: f.ev })).concat(l.filter((r) => !REGLES_FIXES.some((f) => f.id === r.id)));
+}
+const ouvreJ = (d, feries) => { const w = new Date(d + "T12:00:00Z").getUTCDay(); return w !== 0 && w !== 6 && !(feries || []).some((f) => (typeof f === "string" ? f : f && f.d) === d); };
+// Fin prévue d'une radiothérapie (même calcul que public/js/moteur/rt.js finRT : saisie, sinon Nième séance en jours ouvrés)
+function finRT(r, feries) {
+  if (r.finPrev) return r.finPrev;
+  const nb = parseInt(r.nb, 10); if (!r.deb || !nb || nb < 1) return null;
+  const pas = r.ryt === "2" ? 2 : 1; let d = r.deb, c = 0, w = 0;
+  for (let g = 0; g < 800; g++) { if (ouvreJ(d, feries)) { if (w % pas === 0) { c++; if (c === nb) return d; } w++; } d = addJ(d, 1); }
+  return null;
+}
+const addMois = (d, n) => { const x = new Date(d + "T12:00:00Z"), j = x.getUTCDate(); x.setUTCDate(1); x.setUTCMonth(x.getUTCMonth() + n); const fin = new Date(Date.UTC(x.getUTCFullYear(), x.getUTCMonth() + 1, 0)).getUTCDate(); x.setUTCDate(Math.min(j, fin)); return x.toISOString().slice(0, 10); };
+const idAuto = (regle, pid, cle) => "auto-" + crypto.createHash("sha1").update(regle + "|" + pid + "|" + cle).digest("hex").slice(0, 24);
+const jfr = (d) => (d ? d.slice(8, 10) + "/" + d.slice(5, 7) + "/" + d.slice(0, 4) : "");
+const lire = (j, def) => { try { return JSON.parse(j || def); } catch (e) { return JSON.parse(def); } };
+// Tâches dues pour un dossier : { voulues: [{ id, regle, ev, cle, titre, type, pour, ech, rt }], resolues: [id] }
+function tachesAutoPatient(pid, docData, regles, auj, feries, opts) {
+  const voulues = [], resolues = []; if (!docData) return { voulues, resolues };
+  const rts = lire(docData.rtsJson, "[]"), rdvs = lire(docData.rdvsJson, "[]"), r0 = lire(docData.resume, "{}"), act = (r0.act || []).filter((a) => !a.sj && a.d && a.k);
+  (regles || []).filter((R) => R.actif !== false).forEach((R) => {
+    const n = parseInt(R.n, 10) || 0, ok = (d) => !R.depuis || (d && d >= R.depuis);
+    const v = (cle, ech, suffixe, rt) => voulues.push({ id: idAuto(R.id, pid, cle), regle: R.id, ev: R.ev, cle, titre: R.titre + (suffixe ? " – " + suffixe : ""), type: R.type || "", pour: R.pour || "titulaire", ech: ech || "", rt: rt || "" });
+    if (R.ev === "dosi") rts.forEach((r) => { if (!r.id || !r.scan || r.annule) return; if (r.dosi || r.fin) resolues.push(idAuto(R.id, pid, r.id)); else if (auj >= r.scan) v(r.id, r.deb || "", r.acte || "", r.id); });
+    if (R.ev === "finrt") rts.forEach((r) => { if (!r.id || !r.deb || r.annule) return; if (r.fin) { resolues.push(idAuto(R.id, pid, r.id)); return; } const fp = finRT(r, feries); if (fp && auj > fp) v(r.id, addJ(fp, 1), (r.acte || "radiothérapie") + " (fin prévue le " + jfr(fp) + ")", r.id); });
+    if (R.ev === "derniereCure") act.forEach((a) => { if (a.k === a.nb && ok(a.d)) v(a.nom + "|" + a.k, addJ(a.d, n), "C" + a.k + "/" + a.nb + " " + a.nom + " le " + jfr(a.d)); });
+    if (R.ev === "veilleJ1") act.forEach((a) => { const dv = addJ(a.d, -1); if (auj >= dv && auj <= a.d && ok(dv)) v(a.nom + "|" + a.k + "|" + a.d, dv, "C" + a.k + " " + a.nom + " le " + jfr(a.d)); });
+    if (R.ev === "nonVenu") rdvs.forEach((x) => { if (x.st === "absent" && x.d && ok(x.d)) v(x.id || x.d, addJ(x.d, n), "non venu le " + jfr(x.d)); });
+    if (R.ev === "nouveauPatient" && opts && opts.nouveau) v("creation", addJ(auj, n), "");
+    if (R.ev === "apresFinRT") rts.forEach((r) => { if (!r.id || !r.fin || r.annule) return; const dt = addMois(r.fin, n || 3); if (auj >= dt && ok(dt)) v(r.id, dt, (r.acte || "radiothérapie") + " terminée le " + jfr(r.fin), r.id); });
+  });
+  return { voulues, resolues };
+}
 // Corps d'un événement Google Agenda
 function corps(e) {
   const b = {
@@ -217,4 +262,4 @@ function appliquerPrix(dossier, M, E, q) {
   return "Chimiothérapie C" + n + " J" + j + (m == null ? " : statut annulé" : " : venu (" + m + " DH)");
 }
 
-module.exports = { TZ, jourCasa, addJ, voitPatient, permis, evtsPatient, evtsAbsences, evtsTaches, heure, COULEURS0, categorie, colorer, cleFiltre, filtrer, idEv, corps, appliquer, creerApi, timeMin, groupe, peutPrix, appliquerPrix };
+module.exports = { TZ, jourCasa, addJ, voitPatient, permis, evtsPatient, evtsAbsences, evtsTaches, heure, REGLES_FIXES, EVENEMENTS_AUTO, reglesAuto, tachesAutoPatient, finRT, addMois, idAuto, COULEURS0, categorie, colorer, cleFiltre, filtrer, idEv, corps, appliquer, creerApi, timeMin, groupe, peutPrix, appliquerPrix };

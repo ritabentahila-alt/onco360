@@ -46,6 +46,9 @@ async function membres() {
   if (!MB) { const s = await getDocs(collection(db, "espaces", A.ESPACE, "membres")); MB = s.docs.map((d) => Object.assign({ uid: d.id }, d.data())).sort((a, b) => String(a.nom || a.email).localeCompare(String(b.nom || b.email))); }
   return MB;
 }
+export const listeMembres = () => membres(); // Paramètres › Tâches automatiques (responsable)
+// Tâches ouvertes d'un patient (dossier : « Rendez-vous et tâches à venir », P4 08/10/2026)
+export const tachesDuPatient = (pid) => (T || []).filter((t) => t.patientId === pid && t.statut !== "fait");
 const nomMembre = (m) => m ? String(m.nom || m.email || "").trim() : "";
 // Le médecin lit toutes les tâches ; les autres celles où ils sont auteur ou responsable (même filtre que les règles)
 const requete = () => (estMedecin() ? col() : query(col(), where("qui", "array-contains", D().u.uid)));
@@ -248,8 +251,12 @@ function liste() {
   }
   $("taL").innerHTML = h;
 }
-// Après une modification : page redessinée (nombres des onglets), filtres gardés
-const raf = () => { if (location.hash.startsWith("#taches") && T && $("taL")) dessiner(); };
+// Après une modification : page redessinée (nombres des onglets), filtres gardés ; dossier affiché : sa liste « Rendez-vous et
+// tâches à venir » aussi (fenêtre fermée seulement)
+const raf = () => {
+  if (location.hash.startsWith("#taches") && T && $("taL")) dessiner();
+  else if (location.hash.startsWith("#dossier/") && $("fenetre") && $("fenetre").classList.contains("cache")) A.pageDossier(decodeURIComponent(location.hash.slice(9)));
+};
 window.taVue = (k) => { VUE = k; if (T && $("taL")) dessiner(); else pageTaches(); };
 window.taTerminees = () => { TERM = !TERM; liste(); };
 window.taEffacer = () => { F = Object.assign({}, F0); if (T && $("taL")) dessiner(); };
@@ -304,6 +311,7 @@ function taFiche(t) {
     champ("Échéance", t.ech ? esc(A.dfrA(t.ech) + (t.h ? " à " + t.h : "")) : "") +
     '<div><label>De la part de</label><div>' + esc(t.deNom || "?") + '</div></div><div><label' + (reattr ? ' for="taRe"' : "") + '>Pour</label><div class="ta-re">' + pour + "</div></div>" +
     '<div class="large"><label for="taSt">Statut</label><select id="taSt" onchange="taStatut(' + q + ',this.value)">' + STATUTS.map(([k, l]) => '<option value="' + k + '"' + (t.statut === k ? " selected" : "") + ">" + l + "</option>").join("") + "</select></div></div>" +
+    (t.auto && (t.auto.ev === "dosi" || t.auto.ev === "finrt") && t.auto.rt && t.patientId && t.statut !== "fait" && dossierDe(t) ? '<div class="ta-auto"><button class="bt vert" onclick="taValiderAuto(' + q + ')">' + A.ic("check") + (t.auto.ev === "dosi" ? "Valider la dosimétrie" : "Valider la fin de radiothérapie") + '</button><span class="mesures">Ouvre le dossier ; la tâche se termine toute seule une fois validé.</span></div>' : "") +
     '<h4 class="soustitre">Fil de la tâche</h4><div class="ta-fil" id="taFil">' + fil + "</div>" +
     '<div class="ta-ecrire"><textarea id="taCom" rows="2" placeholder="Écrire un commentaire (consigne, précision…)"></textarea><button class="bt plein" id="taComOk" onclick="taCommenter(' + q + ')">Envoyer</button></div>' +
     '<div class="err" id="fErr"></div><div class="boutons">' + (peutSupprimer(t) ? '<button class="bt gris" style="margin-right:auto;color:var(--rouge)" onclick="taSupprimer(' + q + ')">' + A.ic("corbeille") + "Supprimer</button>" : "") +
@@ -314,6 +322,12 @@ function taFiche(t) {
   $("taCom").onkeydown = (ev) => { if (ev.key === "Enter" && (ev.metaKey || ev.ctrlKey)) { ev.preventDefault(); window.taCommenter(t.id); } };
 }
 // Ouverture : affichée tout de suite, puis relue si l'écoute en direct est coupée (un collègue a pu commenter depuis)
+// Tâche automatique de radiothérapie : validation dans le dossier (les mêmes fenêtres) ; le serveur termine la tâche ensuite
+window.taValiderAuto = (id) => {
+  const t = trouver(id); if (!t || !t.auto) return; const pid = t.patientId, rt = t.auto.rt, ev = t.auto.ev;
+  A.fermerFenetre(); location.hash = "dossier/" + encodeURIComponent(pid);
+  setTimeout(() => (ev === "dosi" ? window.dosiRT : window.terminerRT)(pid, rt), 400);
+};
 window.taOuvrir = async (id) => {
   const t = trouver(id); if (!t) { A.toast("Cette tâche n'existe plus ou ne vous est plus visible."); return; } taFiche(t);
   if (ECOUTE) return;
