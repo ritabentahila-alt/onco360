@@ -4,7 +4,7 @@
   "type": "module",
   "description": "Tests des règles de sécurité Firestore sur l'émulateur (Java 21 nécessaire)",
   "scripts": {
-    "test": "cd ../.. && JAVA_HOME=$(/usr/libexec/java_home -v 21) && PATH=\"$JAVA_HOME/bin:$PATH\" firebase emulators:exec --only firestore --project demo-onco360 \"$(which node) tests/regles/test-taches.mjs && $(which node) tests/regles/test-salle.mjs\""
+    "test": "cd ../.. && JAVA_HOME=$(/usr/libexec/java_home -v 21) && PATH=\"$JAVA_HOME/bin:$PATH\" firebase emulators:exec --only firestore --project demo-onco360 \"$(which node) tests/regles/test-taches.mjs && $(which node) tests/regles/test-salle.mjs && $(which node) tests/regles/test-parametres.mjs\""
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "^4.0.1",

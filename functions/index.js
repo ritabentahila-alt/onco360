@@ -5,7 +5,8 @@
 //   • agendaPatient : à chaque enregistrement d'un dossier ; agendaAbsences : absences du cabinet (titulaire) ;
 //   • agendaMembre : droits ou établissements d'un membre modifiés ; agendaNuit : remise à plat chaque nuit ;
 //   • agendaTache : une tâche écrite (échéance dans l'agenda de son responsable, T6 du 08/10/2026) ;
-//   • agendaCouleurs : couleurs par type changées (Configuration › Google Agenda) : tous les agendas du cabinet repeints.
+//   • agendaCouleurs : couleurs par type changées (Paramètres › Google Agenda) : tous les agendas du cabinet repeints ;
+//   • agendaFiltre : une personne a changé ce qui va dans SON agenda (utilisateurs/{uid}.agendaFiltre) : son agenda refait.
 // Jetons Google : collection agendaJetons/{uid}, inaccessible depuis le navigateur (aucune règle ne l'ouvre).
 // État visible par la personne : utilisateurs/{uid}.agendaGoogle = { email, calendrier, le, nb, erreur }.
 const { setGlobalOptions } = require("firebase-functions/v2");
@@ -45,6 +46,8 @@ async function echec(uid, e) {
 const membre = async (e, uid) => { const s = await db.doc("espaces/" + e + "/membres/" + uid).get(); return s.exists ? s.data() : null; };
 const titulaire = async (e) => { const s = await db.doc("espaces/" + e).get(); return s.exists ? s.data().titulaire : null; };
 
+// Ce que la personne a choisi de voir dans son agenda (absent : tout)
+async function filtreDe(uid) { try { const s = await db.doc("utilisateurs/" + uid).get(); return (s.exists && s.data().agendaFiltre) || {}; } catch (e) { return {}; } }
 // Couleurs choisies par le cabinet (absent : couleurs par défaut)
 async function couleurs(e) { try { const s = await db.doc("espaces/" + e + "/parametres/couleursAgenda").get(); return s.exists ? JSON.parse(s.data().data || "{}") : {}; } catch (er) { return {}; } }
 // ───── Remise à plat complète de l'agenda d'une personne ─────
@@ -63,6 +66,7 @@ async function syncComplet(uid, J) {
     const c = await db.doc("espaces/" + J.espace + "/parametres/calendrier").get();
     try { voulus = voulus.concat(L.evtsAbsences(c.exists ? JSON.parse(c.data().data || "{}") : {}, auj)); } catch (e) { /* calendrier illisible */ }
   }
+  voulus = L.filtrer(voulus, await filtreDe(uid));
   L.colorer(voulus, await couleurs(J.espace));
   const existants = await api.lister(J.calendrier, "onco360=1", L.timeMin(auj));
   const r = await L.appliquer(api, J.calendrier, voulus, existants, auj);
@@ -73,7 +77,7 @@ async function syncComplet(uid, J) {
 async function syncGroupe(uid, J, g, voulus) {
   const api = await apiPour(J), auj = L.jourCasa();
   const existants = await api.lister(J.calendrier, "g=" + g, L.timeMin(auj));
-  await L.appliquer(api, J.calendrier, L.colorer(voulus.filter((e) => L.groupe(e.k) === g), await couleurs(J.espace)), existants, auj);
+  await L.appliquer(api, J.calendrier, L.colorer(L.filtrer(voulus.filter((e) => L.groupe(e.k) === g), await filtreDe(uid)), await couleurs(J.espace)), existants, auj);
   await etat(uid, { le: new Date().toISOString(), erreur: "" });
 }
 const liesA = async (e) => (await db.collection("agendaJetons").where("espace", "==", e).get()).docs.filter((d) => !d.data().revoque);
@@ -184,6 +188,12 @@ exports.prixConsultation = onCall({ timeoutSeconds: 30, memory: "256MiB" }, asyn
   } catch (e) { throw new HttpsError("failed-precondition", e.message); }
 });
 
+exports.agendaFiltre = onDocumentWritten(Object.assign({ document: "utilisateurs/{uid}" }, OPTS), async (ev) => {
+  const a = ev.data.before.exists ? ev.data.before.data().agendaFiltre : null, b = ev.data.after.exists ? ev.data.after.data().agendaFiltre : null;
+  if (JSON.stringify(a || {}) === JSON.stringify(b || {})) return; // autres écritures du profil (tâches lues, état de l'agenda…)
+  const s = await db.doc("agendaJetons/" + ev.params.uid).get(); if (!s.exists || s.data().revoque) return;
+  try { await syncComplet(ev.params.uid, s.data()); } catch (e) { await echec(ev.params.uid, e); }
+});
 exports.agendaNuit = onSchedule(Object.assign({ schedule: "30 3 * * *", timeZone: L.TZ }, OPTS), async () => {
   const l = (await db.collection("agendaJetons").get()).docs.filter((d) => !d.data().revoque);
   for (const d of l) { try { await syncComplet(d.id, d.data()); } catch (e) { await echec(d.id, e); } }

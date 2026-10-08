@@ -66,6 +66,27 @@ function categorie(e) {
   if (/Consultation (de )?(suivi|contrôle)/i.test(t)) return "suivi";
   return "autre"; // activités ajoutées dans les Paramètres (2nd avis…)
 }
+// Ce que chacun met dans SON agenda (P3, 08/10/2026) : utilisateurs/{uid}.agendaFiltre = { exclus: [clés] } ; une clé absente
+// (nouveau type de consultation ou de tâche) est incluse. Clés (mêmes que public/js/app/configuration.js) :
+// rdv:annonce | rdv:suivi | rdv:controle | rdv:rtc | rdv:hospit | rdv:act:<nom de l'activité en minuscules> |
+// chimio:cure (J1) | chimio:seance (J8, J15…) | rt:scan | rt:deb | rt:fin | rt:dosi | abs | tache:<type de tâche>
+function cleFiltre(e) {
+  if (e.tache) return "tache:" + (e.tt || "");
+  const p = String(e.k || "").split("|"), t = String(e.t || "");
+  if (p[0] === "abs") return "abs";
+  if (p[1] === "c") return "chimio:cure";
+  if (p[1] === "s") return "chimio:seance";
+  if (p[1] === "rt") return "rt:" + p[p.length - 1];
+  if (p[1] !== "r") return "";
+  const i = t.indexOf(" – "), lib = (i >= 0 ? t.slice(i + 3) : t).replace(/ \([A-Z0-9]{2,8}\)$/, "").trim(); // sans l'établissement « (HGC) »
+  if (/^Hospitalisation/.test(lib)) return "rdv:hospit";
+  if (/^Consultation en cours de radioth/i.test(lib)) return "rdv:rtc";
+  if (/^Consultation (d'|de )?annonce$/i.test(lib)) return "rdv:annonce";
+  if (/^Consultation (de )?suivi$/i.test(lib)) return "rdv:suivi";
+  if (/^Consultation (de )?contrôle$/i.test(lib)) return "rdv:controle";
+  return "rdv:act:" + lib.toLowerCase();
+}
+const filtrer = (evts, filtre) => { const ex = (filtre && filtre.exclus) || []; return ex.length ? (evts || []).filter((e) => ex.indexOf(cleFiltre(e)) < 0) : evts || []; };
 // Couleur de chaque événement selon sa catégorie (réglages du cabinet, sinon par défaut)
 function colorer(evts, reglages) {
   (evts || []).forEach((e) => { const c = categorie(e), r = reglages || {}; e.coul = c ? String(c in r ? r[c] : COULEURS0[c] || "") : ""; });
@@ -78,7 +99,7 @@ function evtsTaches(taches, uid, auj, noms) {
   return (taches || []).filter((t) => t && t.pour === uid && t.statut !== "fait" && /^\d{4}-\d{2}-\d{2}$/.test(t.ech || "")).map((t) => {
     const enRetard = t.ech < auj, pat = t.patientId ? (noms && noms[t.patientId]) || t.patientNom || "" : "";
     return {
-      k: "tache-" + t.id + "|t", tache: true, d: enRetard ? auj : t.ech, h: enRetard ? "" : t.h || "", dur: 15, urg: !!(enRetard || t.urgent),
+      k: "tache-" + t.id + "|t", tache: true, tt: t.type || "", d: enRetard ? auj : t.ech, h: enRetard ? "" : t.h || "", dur: 15, urg: !!(enRetard || t.urgent),
       t: [enRetard ? "EN RETARD" : "", t.urgent ? "URGENT" : "", "Tâche"].filter(Boolean).join(" – ") + " – " + t.titre + (pat ? " (" + pat + ")" : ""),
       x: [t.desc || "", "Demandée par " + (t.de === uid ? "vous-même" : t.deNom || "?") + (enRetard ? " · échéance du " + t.ech.split("-").reverse().join("/") : ""), "Ouvrir les tâches : " + LIEN_TACHES].filter(Boolean).join("\n"),
     };
@@ -190,4 +211,4 @@ function appliquerPrix(dossier, M, E, q) {
   return "Chimiothérapie C" + n + " J" + j + (m == null ? " : statut annulé" : " : venu (" + m + " DH)");
 }
 
-module.exports = { TZ, jourCasa, addJ, voitPatient, permis, evtsPatient, evtsAbsences, evtsTaches, COULEURS0, categorie, colorer, idEv, corps, appliquer, creerApi, timeMin, groupe, peutPrix, appliquerPrix };
+module.exports = { TZ, jourCasa, addJ, voitPatient, permis, evtsPatient, evtsAbsences, evtsTaches, COULEURS0, categorie, colorer, cleFiltre, filtrer, idEv, corps, appliquer, creerApi, timeMin, groupe, peutPrix, appliquerPrix };

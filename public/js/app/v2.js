@@ -647,7 +647,7 @@ window.modifierIdentite = (id) => {
     if (okE && val("fEtab") && val("fEtab") !== x.doc.etablissementId) changes.etablissementId = val("fEtab");
     if (!Object.keys(changes).length) { fermerFenetre(); return; }
     occupe($("fOk"), true);
-    try { await enregistrer(x, changes, "Identité modifiée"); if (changes.etablissementId) { await suivreEtablissement(x, changes.etablissementId); await suivreEtablissementDocs(x, changes.etablissementId); await suivreEtablissementFichiers(x, changes.etablissementId); } if (okI) await enrichirListes(val("fCor"), val("fMut")); fermerFenetre(); toast("Dossier enregistré."); pageDossier(x.id); }
+    try { await enregistrer(x, changes, "Identité modifiée"); if (changes.etablissementId) { await suivreEtablissement(x, changes.etablissementId); await suivreEtablissementDocs(x, changes.etablissementId); await suivreEtablissementFichiers(x, changes.etablissementId); } if (okI || okC) await enrichirListes(okI ? val("fCor") : "", okI ? val("fMut") : "", okC ? val("fDiag") : ""); fermerFenetre(); toast("Dossier enregistré."); pageDossier(x.id); }
     catch (e) { occupe($("fOk"), false); erreur(e.message); }
   };
 };

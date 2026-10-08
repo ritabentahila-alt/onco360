@@ -174,3 +174,20 @@ const infirmiere = { actif: true, etablissements: ["HGC", "CIOC"], droits: { tra
   ok(JSON.stringify(M.rt) === '{"x":{"m":1}}', "radiothérapie jamais touchée");
 })();
 
+// ───── Ce que chacun voit dans son agenda (P3, 08/10/2026) ─────
+(async () => {
+  await new Promise((ok) => setTimeout(ok, 200));
+  const E = (k, t, o) => Object.assign({ k, t, d: "2026-10-20" }, o || {});
+  const cas = [[E("P|r|1", "🩺 ALAMI Fatima – Consultation annonce (HGC)"), "rdv:annonce"], [E("P|r|2", "🩺 ALAMI Fatima – Consultation suivi"), "rdv:suivi"], [E("P|r|3", "🩺 ALAMI – Consultation de contrôle (HCK)"), "rdv:controle"],
+    [E("P|r|4", "🩺 ALAMI – Consultation en cours de radiothérapie (HGC)"), "rdv:rtc"], [E("P|r|5", "ALAMI – Hospitalisation du 20/10/2026 au 22/10/2026 (3 j ouvrés) (HGC)"), "rdv:hospit"],
+    [E("P|r|6", "🩺 ALAMI – 2nd avis (CIOC)"), "rdv:act:2nd avis"], [E("P|r|7", "🩺 ALAMI – Téléconsultation (vidéo)"), "rdv:act:téléconsultation (vidéo)"],
+    [E("P|c|0|2", "💉 ALAMI – C2/6 · FOLFOX"), "chimio:cure"], [E("P|s|0|2|8", "💉 ALAMI – C2 J8 · FOLFOX"), "chimio:seance"], [E("P|rt|r1|scan", "x"), "rt:scan"], [E("P|rt|r1|deb", "x"), "rt:deb"], [E("P|rt|r1|fin", "x"), "rt:fin"], [E("P|rt|r1|dosi", "x"), "rt:dosi"],
+    [E("abs|2026-10-20|2026-10-22", "Absence : Congrès"), "abs"], [E("tache-a|t", "Tâche – x", { tache: true, tt: "Rappel perso" }), "tache:Rappel perso"], [E("tache-b|t", "Tâche – y", { tache: true, tt: "" }), "tache:"]];
+  const faux = cas.filter(([e, c]) => L.cleFiltre(e) !== c).map(([e, c]) => c + " ≠ " + L.cleFiltre(e));
+  ok(!faux.length, "clé de chaque événement (consultations par type et par activité, cures / séances, RT, absences, tâches par type)" + (faux.length ? " : " + faux.join(" ; ") : ""));
+  const tous = cas.map(([e]) => e);
+  ok(L.filtrer(tous, {}).length === tous.length && L.filtrer(tous, null).length === tous.length, "sans réglage : tout va dans l'agenda");
+  const f = L.filtrer(tous, { exclus: ["rdv:annonce", "chimio:seance", "tache:Rappel perso", "rdv:act:2nd avis"] });
+  ok(f.length === tous.length - 4 && !f.some((e) => ["P|r|1", "P|s|0|2|8", "tache-a|t", "P|r|6"].indexOf(e.k) >= 0), "annonces, séances J8, rappels perso et 2nd avis décochés : retirés, le reste gardé");
+  ok(L.evtsTaches([{ id: "z", pour: "U", statut: "afaire", ech: "2026-10-20", titre: "t", type: "Question" }], "U", "2026-10-08")[0].tt === "Question", "tâche : son type est transmis pour le filtre");
+})();

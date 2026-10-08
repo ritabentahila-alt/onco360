@@ -603,8 +603,30 @@ Décisions de Dr Bentahila (08/10) :
       modification, retour à la liste), **prescriptions depuis le dossier inchangées** (même après la gestion dans Paramètres),
       secrétaire en lecture seule, 390 px, bilan 352 317 DH, aucune erreur.
 - [ ] Mise en ligne (site).
-**P3 – Google Agenda : ce que chacun y voit** (cases à cocher par personne).
-**P4 – Tâches automatiques de radiothérapie** et tâches du patient dans « Rendez-vous à venir ».
+**P2 ter – Listes reliées aux dossiers** (demandé le 08/10 ; fait et testé le 08/10, pas encore en ligne)
+- [x] **Nom corrigé dans Paramètres › Listes → corrigé dans tous les dossiers** qui l'utilisent (mutuelle, correspondant,
+      diagnostic), après confirmation (« 17 dossiers seront corrigés aussi ») ; une ligne « Liste corrigée (Paramètres) » dans
+      l'historique de chaque dossier. Un nom retiré ne change pas les dossiers.
+- [x] **Nom nouveau tapé dans une fiche patient → ajouté à la liste**, à la création comme à la modification, mutuelle,
+      correspondant **et diagnostic** (avant : mutuelle et correspondant, et seulement avec le droit « paramètres ») ; pour tout
+      membre qui crée ou modifie une fiche. Règle `parametres/listes` ouverte aux droits identité / fiche patient / créer un
+      patient ; autres paramètres : droit « paramètres » seulement. Tests des règles : `tests/regles/test-parametres.mjs` (8 cas).
+- Bibliothèques des prescriptions : **déjà une seule liste** (dossier et Paramètres modifient la même) ; la « Ligne libre »
+  d'une ordonnance et le ✎ d'une ligne de l'ordonnance en préparation ne touchent pas la liste (voulu). **Question à Dr
+  Bentahila** : ajouter une case « Ajouter à la liste du cabinet » sur la ligne libre ?
+**P3 – Google Agenda : ce que chacun y voit** (fait et testé le 08/10, pas encore en ligne)
+- [x] Paramètres › Google Agenda, en haut : **« Votre Google Agenda : ce qui y apparaît »**, réglage **personnel** (chacun pour
+      son agenda, enregistré tout de suite, même sans le droit « paramètres ») : cases par type de consultation (annonce, suivi,
+      contrôle, en cours de RT, hospitalisation **+ chaque activité des Paramètres**, ex. 2nd avis), cures J1 / séances J8-J15,
+      scanner / 1re séance / fin / dosimétrie, **chaque type de tâche** (liste de Paramètres › Tâches, « Radiothérapie », sans
+      type), absences (médecin). Un nouveau type apparaît tout seul, coché.
+- [x] Données : `utilisateurs/{uid}.agendaFiltre` = { exclus: [clés] } ; serveur : `cleFiltre` / `filtrer` (logique.js) dans
+      la remise à plat et chaque mise à jour ; nouvelle fonction `agendaFiltre` (case changée → agenda de la personne refait).
+- [x] Tests : logique (clé de chaque événement, filtres) ; navigateur (cases, nouveau type de tâche, 390 px, bilan 352 317 DH).
+- [ ] Mise en ligne : règles, **fonctions**, site.
+**P4 – Tâches automatiques de radiothérapie** et tâches du patient dans « Rendez-vous à venir ». Ajouté le 08/10 : chaque tâche
+automatique **activable / désactivable**, et le médecin peut **en créer** (tâches automatiques personnalisées : à préciser au
+début de P4 : quel déclencheur, quelle échéance, pour qui).
 
 ---
 
@@ -949,3 +971,4 @@ Onco360_Package_Cession/
 | 08/10/2026 | 5 – P1 Tâches | Plan P1 à P4 décidé (types de tâches modifiables, Paramètres unique, Google Agenda par personne, tâches automatiques de radiothérapie, tâches dans « Rendez-vous à venir »). P1 fait : description visible dans la liste, Configuration › Tâches (types modifiables, « Radiothérapie » fixe). Testé (2 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |
 | 08/10/2026 | 5 – P2 Paramètres | Configuration et Paramètres fusionnés en une page « Paramètres » (9 onglets ; Activités et rémunérations avec le droit finances) ; nouveaux onglets Impression (marges) et Alertes (délais), délai du bouton WhatsApp vert ; `parametres/reglages`. Testé (2 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |
 | 08/10/2026 | 5 – P2 bis Paramètres | Onglets Listes (diagnostics, mutuelles, correspondants modifiables, nombre de dossiers) et Bibliothèques (les 5 listes de prescriptions en gestion, sans patient). Testé (2 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |
+| 08/10/2026 | 5 – P2 ter / P3 | Listes reliées aux dossiers (correction propagée aux dossiers, nouveaux noms dont diagnostics ajoutés par toute l'équipe ; règle `parametres/listes`, 8 tests) ; Google Agenda : chacun coche ce qui va dans son agenda (types de consultation, activités, cures / séances, RT, types de tâches) ; fonction `agendaFiltre`. Testé (règles 81/81, logique, navigateur 2 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |

@@ -184,6 +184,9 @@ service cloud.firestore {
       // Bibliothèque et paramètres : lecture par les membres, modification avec le droit « paramètres »
       match /protocoles/{d} { allow read: if estMembre(); allow write: if droit('parametres'); }
       match /parametres/{d} { allow read: if estMembre(); allow write: if droit('parametres'); }
+      // Listes (diagnostics, mutuelles, correspondants) : un nom nouveau tapé dans une fiche patient s'y ajoute, pour tout
+      // membre qui crée ou modifie une fiche (08/10/2026) ; corrections et suppressions dans Paramètres (droit « paramètres »)
+      match /parametres/listes { allow write: if droit('identite') || droit('fichePatient') || droit('creerPatient'); }
       // « Administrée par… le… à… » : ajout seulement, jamais modifié ni effacé
       match /administrations/{a} {
         allow read: if dansPerimetre(resource.data.etablissementId);

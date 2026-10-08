@@ -65,7 +65,7 @@ export function pageConfiguration(arg) {
   if (COUL === null) { COUL = {}; getDoc(doc(db, "espaces", A.ESPACE, "parametres", "couleursAgenda")).then((s) => { COUL = s.exists() ? JSON.parse(s.data().data || "{}") : {}; if (!MOD && location.hash.startsWith("#parametres")) { ED = null; pageConfiguration(); } }).catch(() => {}); }
   if (TTA === null) { TTA = []; typesTaches().then((L) => { TTA = L.filter((t) => t !== TYPE_RT); if (!MOD && location.hash.startsWith("#parametres")) { ED = null; pageConfiguration(); } }).catch(() => {}); }
   if (TDOC === null) { TDOC = []; typesDocuments().then((L) => { TDOC = L.slice(); if (!MOD && location.hash.startsWith("#parametres")) { ED = null; pageConfiguration(); } }).catch(() => {}); }
-  if (!ED || !MOD) ED = { horaires: copie(horaires()), horairesEtab: copie(D().cal.horairesEtab || {}), abs: copie(D().cal.abs || []), feries: copie(D().cal.feries || []), wa: Object.assign({}, D().wa || {}), reg: reglages(), listes: { diag: listeDiag().slice(), mut: listeMut(), cor: listeCor() }, coul: Object.assign({}, COULEURS0, COUL), tdoc: TDOC.slice(), ttache: TTA.slice() };
+  if (!ED || !MOD) ED = { horaires: copie(horaires()), horairesEtab: copie(D().cal.horairesEtab || {}), abs: copie(D().cal.abs || []), feries: copie(D().cal.feries || []), wa: Object.assign({}, D().wa || {}), reg: reglages(), listes: { diag: listeDiag().slice(), mut: listeMut(), cor: listeCor() }, listesOrig: { diag: listeDiag().slice(), mut: listeMut(), cor: listeCor() }, coul: Object.assign({}, COULEURS0, COUL), tdoc: TDOC.slice(), ttache: TTA.slice() };
   const ok = A.peut("parametres"), esc = A.esc, dis = ok ? "" : " disabled";
   let h = entete();
   if (!ok) h += '<p class="mesures">Lecture seule : la modification demande le droit « paramètres ».</p>';
@@ -103,6 +103,7 @@ export function pageConfiguration(arg) {
         (ok ? '<button class="ico" title="Monter" aria-label="Monter" onclick="cfTdBouger(' + i + ',-1)"' + (i ? "" : " disabled") + '>↑</button><button class="ico" title="Descendre" aria-label="Descendre" onclick="cfTdBouger(' + i + ',1)"' + (i < L.length - 1 ? "" : " disabled") + '>↓</button><button class="mini rouge" title="Retirer ce type" aria-label="Retirer ' + esc(t) + '" onclick="cfTdSup(' + i + ')">✕</button>' : "") + "</div>").join("") + "</div>" +
       (ok ? '<button class="bt clair petit" style="margin-top:10px" onclick="cfTdAj()">' + A.ic("plus") + "Ajouter un type</button>" : "") + "</section>";
   } else if (ONG === "couleurs") {
+    h += sectionMonAgenda();
     h += '<section class="carte"><h3><span class="ic">' + A.ic("agenda") + '</span>Couleurs dans Google Agenda</h3><p class="sous">Couleur de chaque type d\'événement dans l\'agenda « Onco360 » de chaque membre qui a relié son Google Agenda (Profil › Google Agenda). Après l\'enregistrement, les agendas sont repeints en quelques minutes.</p>' +
       CAT_COUL.map(([k, lib]) => {
         const v = ED.coul[k] != null ? ED.coul[k] : "", nom = (COUL_G.find((c) => c[0] === v) || COUL_G[0])[1];
@@ -175,6 +176,37 @@ window.cfAjPlage = (j) => { const l = HC().jours[j], der = l[l.length - 1]; l.pu
 window.cfSupPlage = (j, k) => { HC().jours[j].splice(k, 1); modif(true); };
 window.cfWa = (k, v) => { ED.wa[k] = v; const e = A.$("waEx_" + k); if (e) e.textContent = remplir(v, { prenom: "Fatima", nom: "ALAOUI Fatima", jour: "mardi 14 octobre", heure: "à 10h00", lieu: "Hôpital Cheikh Khalifa", adresse: "", medecin: "Dr BENTAHILA" }); modif(); };
 window.cfWaDef = (k) => { delete ED.wa[k]; modif(true); };
+// ───── Google Agenda : ce que CHAQUE personne met dans son agenda (P3, 08/10/2026) ─────
+// utilisateurs/{uid}.agendaFiltre = { exclus: [clés] } ; mêmes clés que cleFiltre (functions/logique.js). Les catégories suivent
+// les types de consultation (activités des Paramètres) et les types de tâches ajoutés au fur et à mesure ; nouvelles = cochées.
+function categoriesAgenda() {
+  const std = ["annonce", "suivi", "controle", "hospit", "seance", "cchimio", "rt"], acts = {};
+  const ajout = (t, lib) => { lib = String(lib || "").replace(/\s*\(par jour ouvré\)\s*$/i, "").trim(); if (lib && std.indexOf(t) < 0) acts[lib.toLowerCase()] = acts[lib.toLowerCase()] || lib; };
+  const T = D().tarifs; if (T && T.etablissements) Object.values(T.etablissements).forEach((e) => (e.activites || []).forEach((a) => ajout(a.type, a.libelle)));
+  if (D().activites) Object.values(D().activites).forEach((l) => (l || []).forEach((a) => ajout(a.t, a.lib)));
+  const types = (TTA && TTA.length ? TTA : TYPES_TACHES0).concat([TYPE_RT]);
+  return [
+    ["Consultations et hospitalisations", [["rdv:annonce", "Consultation d'annonce"], ["rdv:suivi", "Consultation de suivi"], ["rdv:controle", "Consultation de contrôle"], ["rdv:rtc", "Consultation en cours de radiothérapie"], ["rdv:hospit", "Hospitalisation"]]
+      .concat(Object.keys(acts).sort().map((k) => ["rdv:act:" + k, acts[k]]))],
+    ["Chimiothérapie", [["chimio:cure", "Cures (J1)"], ["chimio:seance", "Séances J8, J15…"]]],
+    ["Radiothérapie", [["rt:scan", "Scanner de centrage"], ["rt:deb", "1re séance"], ["rt:fin", "Fin de radiothérapie prévue"], ["rt:dosi", "Dosimétrie à valider"]]],
+    ["Tâches dont vous êtes responsable (avec une échéance)", types.map((t) => ["tache:" + t, t]).concat([["tache:", "Tâches sans type"]])],
+  ].concat(D().membre.role === "medecin" ? [["Cabinet", [["abs", "Absences et congés (agenda du médecin titulaire)"]]]] : []);
+}
+function sectionMonAgenda() {
+  const esc = A.esc, ex = ((D().profil && D().profil.agendaFiltre) || {}).exclus || [], ag = D().profil && D().profil.agendaGoogle;
+  return '<section class="carte"><h3><span class="ic">' + A.ic("agenda") + '</span>Votre Google Agenda : ce qui y apparaît</h3><p class="sous">Réglage <b>personnel</b> : chaque membre de l\'équipe choisit pour son propre agenda « Onco360 ». Décochez ce que vous ne voulez pas y voir ; c\'est enregistré tout de suite et votre agenda est mis à jour en quelques minutes. Un nouveau type (consultation, tâche) est coché d\'office.</p>' +
+    (ag && ag.calendrier ? "" : '<p class="mesures" style="color:var(--orange)">Votre Google Agenda n\'est pas encore relié (Profil › Google Agenda) : ce réglage servira dès que vous le relierez.</p>') +
+    categoriesAgenda().map(([titre, l]) => '<h4 class="soustitre">' + esc(titre) + '</h4><div class="cf-ag">' + l.map(([k, lib]) => '<label class="chk"><input type="checkbox"' + (ex.indexOf(k) < 0 ? " checked" : "") + ' data-k="' + esc(k) + '" onchange="cfAgenda(this)"> ' + esc(lib) + "</label>").join("") + "</div>").join("") + "</section>";
+}
+window.cfAgenda = async (cb) => {
+  const k = cb.dataset.k, P = D().profil || (D().profil = {}), ex = ((P.agendaFiltre || {}).exclus || []).filter((x) => x !== k);
+  if (!cb.checked) ex.push(k);
+  try {
+    await setDoc(doc(db, "utilisateurs", D().u.uid), { agendaFiltre: { exclus: ex, le: new Date().toISOString() } }, { merge: true });
+    P.agendaFiltre = { exclus: ex }; A.toast(cb.checked ? "Ajouté à votre Google Agenda." : "Retiré de votre Google Agenda.");
+  } catch (e) { cb.checked = !cb.checked; A.toast("Enregistrement impossible : " + ((e && e.message) || e)); }
+};
 // Onglet Listes : affichage filtré (la recherche garde le curseur), nombre de dossiers qui utilisent chaque nom
 let LS = "diag", LQ = "";
 function listeL() {
@@ -188,8 +220,8 @@ function listeL() {
 }
 window.cfLs = (k) => { LS = k; LQ = ""; pageConfiguration(); };
 window.cfL = (i, v) => { ED.listes[LS][i] = String(v || "").trim(); modif(); };
-window.cfLSup = (i) => { ED.listes[LS].splice(i, 1); modif(); listeL(); };
-window.cfLAj = () => { LQ = ""; ED.listes[LS].push(""); modif(true); setTimeout(() => { const l = document.querySelectorAll("#cfLl input"); if (l.length) { l[l.length - 1].scrollIntoView({ block: "center" }); l[l.length - 1].focus(); } }, 30); };
+window.cfLSup = (i) => { ED.listes[LS].splice(i, 1); ED.listesOrig[LS].splice(i, 1); modif(); listeL(); };
+window.cfLAj = () => { LQ = ""; ED.listes[LS].push(""); ED.listesOrig[LS].push(""); modif(true); setTimeout(() => { const l = document.querySelectorAll("#cfLl input"); if (l.length) { l[l.length - 1].scrollIntoView({ block: "center" }); l[l.length - 1].focus(); } }, 30); };
 window.cfBib = (n) => gererListe(n);
 window.cfReg = (g, k, v) => { ED.reg[g][k] = parseInt(v, 10) || 0; modif(); };
 window.cfImp = (q, n, v) => { const x = parseInt(v, 10); ED.reg.impression[q][n] = isNaN(x) ? REGLAGES0.impression[q][n] : Math.max(0, Math.min(150, x)); modif(); };
@@ -210,7 +242,7 @@ window.cfAjFer = () => { ED.feries.push({ d: D().t, nom: "Jour férié" }); modi
 window.cfSupFer = (i) => { ED.feries.splice(i, 1); modif(true); };
 window.cfDefaut = () => {
   if (ONG === "whatsapp") { if (!confirm("Rétablir tous les messages WhatsApp et le délai du bouton vert par défaut ?")) return; ED.wa = {}; ED.reg.whatsapp = copie(REGLAGES0.whatsapp); modif(true); return; }
-  if (ONG === "listes") { if (!confirm("Rétablir les listes de départ (diagnostics, mutuelles, correspondants) ?\nLes ajouts et corrections du cabinet seront perdus.")) return; ED.listes = { diag: LISTES0.diag.slice(), mut: LISTES0.mut.slice().sort((a, z) => a.localeCompare(z, "fr")), cor: LISTES0.cor.slice().sort((a, z) => a.localeCompare(z, "fr")) }; modif(true); return; }
+  if (ONG === "listes") { if (!confirm("Rétablir les listes de départ (diagnostics, mutuelles, correspondants) ?\nLes ajouts et corrections du cabinet seront perdus.")) return; ED.listes = { diag: LISTES0.diag.slice(), mut: LISTES0.mut.slice().sort((a, z) => a.localeCompare(z, "fr")), cor: LISTES0.cor.slice().sort((a, z) => a.localeCompare(z, "fr")) }; ED.listesOrig = JSON.parse(JSON.stringify(ED.listes)); modif(true); return; }
   if (ONG === "impression") { if (!confirm("Rétablir les marges d'impression par défaut ?")) return; ED.reg.impression = copie(REGLAGES0.impression); modif(true); return; }
   if (ONG === "alertes") { if (!confirm("Rétablir les délais des alertes par défaut ?")) return; ED.reg.alertes = copie(REGLAGES0.alertes); modif(true); return; }
   if (ONG === "couleurs") { if (!confirm("Rétablir les couleurs Google Agenda par défaut ?")) return; ED.coul = Object.assign({}, COULEURS0); modif(true); return; }
@@ -229,6 +261,16 @@ window.cfEnregistrer = async () => {
     }
     H.jours[j] = pl;
   }
+  // Noms corrigés dans Paramètres › Listes : corrigés aussi dans les dossiers qui les utilisent (08/10/2026)
+  const CHAMP_L = { diag: ["clinique", "diag", "Diagnostic"], mut: ["identite", "mut", "Mutuelle"], cor: ["identite", "cor", "Correspondant"] }, renoms = [];
+  for (const k of ["diag", "mut", "cor"]) ED.listes[k].forEach((v, i) => { const de = String(ED.listesOrig[k][i] || "").trim(), vers = String(v || "").trim(); if (de && vers && de !== vers) renoms.push({ k, de, vers }); });
+  const aMaj = [];
+  D().patients.forEach((x) => {
+    const ch = {}, qu = [];
+    renoms.forEach(({ k, de, vers }) => { const [bloc, f, lib] = CHAMP_L[k], B = ch[bloc] || Object.assign({}, x.doc[bloc] || {}); if (String(B[f] || "").trim().toLowerCase() === de.toLowerCase()) { B[f] = vers; ch[bloc] = B; qu.push(lib + " : " + de + " → " + vers); } });
+    if (qu.length) aMaj.push({ x, ch, quoi: "Liste corrigée (Paramètres) : " + qu.join(" ; ") });
+  });
+  if (aMaj.length && !confirm(renoms.length + " nom" + (renoms.length > 1 ? "s corrigés" : " corrigé") + " dans les listes :\n" + renoms.slice(0, 8).map((r) => "• " + r.de + " → " + r.vers).join("\n") + (renoms.length > 8 ? "\n…" : "") + "\n\n" + aMaj.length + " dossier" + (aMaj.length > 1 ? "s seront corrigés" : " sera corrigé") + " aussi. Continuer ?")) return;
   const listes = {}; for (const k of ["diag", "mut", "cor"]) {
     const l = ED.listes[k].map((t) => String(t || "").trim()).filter(Boolean);
     const dbl = l.find((t, i) => l.findIndex((u) => u.toLowerCase() === t.toLowerCase()) !== i); if (dbl) { A.toast("Listes : « " + dbl + " » figure deux fois."); return; }
@@ -255,6 +297,8 @@ window.cfEnregistrer = async () => {
     if (JSON.stringify(listes) !== JSON.stringify({ diag: listeDiag(), mut: listeMut(), cor: listeCor() })) {
       const L = Object.assign(listes, { complet: true }); await setDoc(doc(db, "espaces", A.ESPACE, "parametres", "listes"), { data: JSON.stringify(L) }); D().listes = L;
     }
+    let ko = 0; for (let i = 0; i < aMaj.length; i++) { A.toast("Correction des dossiers : " + (i + 1) + " / " + aMaj.length + "…"); try { await A.enregistrer(aMaj[i].x, aMaj[i].ch, aMaj[i].quoi); } catch (e) { ko++; console.warn("liste → dossier", aMaj[i].x.id, e); } }
+    if (ko) setTimeout(() => A.toast(ko + " dossier(s) n'ont pas pu être corrigés : réessayez (ils ont peut-être été modifiés en même temps)."), 4000);
     if (JSON.stringify(ttache) !== JSON.stringify(TTA || [])) { await enregistrerTypesTaches(ttache.length ? ttache : TYPES_TACHES0.slice()); TTA = ttache.length ? ttache : TYPES_TACHES0.slice(); }
     D().cal = cal; D().ctx.feries = cal.feries;
     D().patients.forEach((x) => A.recalculer(x, x.doc)); // les dates de radiothérapie dépendent des jours fériés

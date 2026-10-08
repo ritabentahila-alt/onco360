@@ -728,15 +728,20 @@ export function activerDiag(idD, idP) {
 const LC = () => D().listes || {};
 export const LISTES0 = { diag: DIAG, mut: MUT0, cor: COR0 };
 const alphaFr = (a, z) => a.localeCompare(z, "fr");
-export const listeDiag = () => (LC().complet && Array.isArray(LC().diag) ? LC().diag : DIAG);
+export const listeDiag = () => (LC().complet && Array.isArray(LC().diag) ? LC().diag : DIAG.concat((LC().diag || []).filter((d) => DIAG.indexOf(d) < 0)));
 export const listeMut = () => (LC().complet ? (LC().mut || []).slice() : MUT0.concat((LC().mut || []).filter((m) => MUT0.indexOf(m) < 0))).sort(alphaFr);
 export const listeCor = () => (LC().complet ? (LC().cor || []).slice() : COR0.concat((LC().cor || []).filter((m) => COR0.indexOf(m) < 0))).sort(alphaFr);
-// Ajoute un correspondant ou une mutuelle inconnus aux listes partagées (droit « paramètres »)
-export async function enrichirListes(cor, mut) {
-  const L = D().listes, base = (t) => (L.complet ? [] : t === "cor" ? COR0 : MUT0);
-  const ajout = (t, v) => { if (!v || base(t).concat(L[t] || []).some((z) => z.toLowerCase() === v.toLowerCase())) return false; (L[t] = L[t] || []).push(v); return true; };
-  const a = ajout("cor", cor), m = ajout("mut", mut);
-  if ((a || m) && A.peut("parametres")) await setDoc(doc(db, "espaces", A.ESPACE, "parametres", "listes"), { data: JSON.stringify(L) }, { merge: true }).catch(() => {});
+// Un correspondant, une mutuelle ou un diagnostic nouveaux, tapés dans une fiche patient, s'ajoutent aux listes du cabinet
+// (08/10/2026 : pour tout membre qui crée ou modifie une fiche ; règle parametres/listes). Liste relue juste avant.
+export async function enrichirListes(cor, mut, diag) {
+  const ref = doc(db, "espaces", A.ESPACE, "parametres", "listes"), s = await getDoc(ref).catch(() => null);
+  let L = D().listes || {}; try { if (s && s.exists()) L = JSON.parse(s.data().data || "{}"); } catch (e) { /* liste locale */ }
+  const base = (t) => (L.complet ? [] : t === "cor" ? COR0 : t === "mut" ? MUT0 : []), diagBase = () => (L.complet && Array.isArray(L.diag) ? [] : DIAG);
+  const ajout = (t, v) => { v = String(v || "").trim(); if (!v || base(t).concat(t === "diag" ? diagBase() : [], L[t] || []).some((z) => z.toLowerCase() === v.toLowerCase())) return false; (L[t] = L[t] || []).push(v); return true; };
+  if (diag && !L.complet && !Array.isArray(L.diag)) L.diag = []; // ancien format : diagnostics ajoutés à ceux de départ
+  const a = ajout("cor", cor), m = ajout("mut", mut), d = ajout("diag", diag);
+  D().listes = L;
+  if (a || m || d) await setDoc(ref, { data: JSON.stringify(L) }).catch((e) => console.warn("listes", e));
 }
 
 // ───── Nouveau patient (même formulaire que l'application actuelle) ─────
@@ -772,7 +777,7 @@ export function nouveauPatient() {
     try {
       await setDoc(doc(db, "espaces", A.ESPACE, "patients", id), docP);
       if (A.peut("finances")) await setDoc(doc(db, "espaces", A.ESPACE, "patientsFinances", id), { etablissementId: etab, montantsJson: JSON.stringify({ rdv: {}, rt: {}, cures: {} }) });
-      await enrichirListes(A.val("pCor"), A.val("pMut"));
+      await enrichirListes(A.val("pCor"), A.val("pMut"), A.val("pDiag"));
       A.recalculer(x, Object.assign({}, docP, { maj: null })); D().patients.push(x); D().patients.sort((a, z) => String(a.r.nm).localeCompare(String(z.r.nm)));
       A.journal(x, "Patient créé"); A.fermerFenetre(); A.toast("Dossier créé."); location.hash = "dossier/" + encodeURIComponent(id);
     } catch (e) { A.occupe(document.getElementById("fOk"), false); A.erreur(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de créer ce dossier." : "Création impossible : " + ((e && e.message) || e)); }
