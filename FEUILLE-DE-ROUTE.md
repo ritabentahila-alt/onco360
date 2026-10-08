@@ -499,7 +499,21 @@ Découpé en **sous-étapes, une fenêtre chacune** : T1 à T5 (T6 facultatif).
 - [x] Tests : médecin, secrétaire limitée à l'HGC, responsable désactivée / retirée, bilan 352 317 DH, aucune erreur.
 - [ ] Mise en ligne (site seulement : les règles n'ont pas changé depuis T4).
 
-**T6 – Facultatif** : échéance dans le Google Agenda du responsable ; notifications sur le téléphone même Onco360 fermé.
+**T6 – Échéances dans Google Agenda** (décidé, fait et testé le 08/10, pas encore en ligne ; les notifications sur le
+téléphone quand Onco360 est fermé restent pour plus tard)
+Décisions de Dr Bentahila (08/10) : seulement dans l'agenda « Onco360 » du **responsable** (pas de l'auteur ; le médecin ne
+reçoit pas les tâches qu'il a demandées) ; **sans heure = journée entière** ; **aucun rappel Google** ; **en retard =
+reportée chaque jour sur aujourd'hui** avec « EN RETARD ».
+- [x] Tâches avec échéance, non terminées : journée entière (sans heure) ou 15 min à l'heure prévue ; titre « Tâche – titre
+      (patient) », « URGENT – … », « EN RETARD – … » ; couleur graphite, rouge si urgente ou en retard ; ne bloque pas le
+      créneau ; aucun rappel ; description : texte, « Demandée par… », lien vers les tâches.
+- [x] Terminée → retirée ; réattribuée → retirée de l'ancien responsable, ajoutée au nouveau ; titre, échéance, patient
+      modifiés → mis à jour ; commentaires seuls → rien. En retard : déplacée chaque nuit (3 h 30) sur le jour même.
+- [x] Serveur : `agendaTache` (nouvelle fonction, à chaque écriture d'une tâche) ; tâches ajoutées à la remise à plat
+      (liaison, « Mettre à jour », nuit) ; nom actuel du patient lu dans son dossier. Profil › Google Agenda : texte complété.
+- [x] Tests de la logique sur un faux Google Agenda : `node functions/test-logique.js` (32/32, dont 15 pour les tâches).
+- [ ] Mise en ligne : **fonctions** (`firebase deploy --only functions`) puis site. Vérifier ensuite dans le Google Agenda
+      d'un responsable relié (créer une tâche avec échéance, la terminer).
 
 ---
 
@@ -763,3 +777,4 @@ Onco360_Package_Cession/
 | 08/10/2026 | 5 – T3 Tâches | Fil de la tâche (événements + commentaires en bulles), commenter, réattribuer depuis la fiche, nombre de commentaires dans la liste ; règles : fil signé par la personne connectée. Tests des règles sur l'émulateur (`tests/regles`, 40/40). Testé (3 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |
 | 08/10/2026 | 5 – T4 Tâches | Temps réel (écoute en direct), messages à l'écran, non lues (profil), pastilles menu + titre de l'onglet, carte « Mes tâches » du tableau de bord ; l'auteur peut supprimer sa tâche même terminée. Règles 44/44 sur l'émulateur. Testé (2 onglets médecin + secrétaire, 390 px, bilan 352 317 DH). Pas encore en ligne. |
 | 08/10/2026 | 5 – T5 Tâches | Finition : nom du patient à jour, patient hors périmètre sans lien, responsable sans accès « À réattribuer » (statut / commentaire bloqués s'il est retiré), guide `guide/taches.md`. Testé (médecin, secrétaire HGC, bilan 352 317 DH). Pas encore en ligne. |
+| 08/10/2026 | 5 – T6 Tâches | Échéances dans le Google Agenda du responsable (journée entière ou 15 min, sans rappel, « EN RETARD » reportée chaque jour, retirée une fois terminée, suit les réattributions) : fonction `agendaTache` + remise à plat. Tests logique 32/32. Pas encore en ligne. |

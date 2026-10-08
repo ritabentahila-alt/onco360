@@ -83,3 +83,39 @@ const infirmiere = { actif: true, etablissements: ["HGC", "CIOC"], droits: { tra
   ok(r.crees === 1, "Google indisponible 2 fois de suite : réussi au 3e essai");
   ok(L.jourCasa(new Date("2026-10-06T12:00:00Z")) === "2026-10-06", "date du jour (fuseau Africa/Casablanca)");
 })();
+
+// ───── Tâches (T6, 08/10/2026) : échéance dans l'agenda du responsable ─────
+(async () => {
+  await new Promise((ok) => setTimeout(ok, 50)); // après les tests précédents
+  const J0 = "2026-10-08", base = { de: "MED", deNom: "Dr Bentahila", pour: "SEC", pourNom: "Sara", statut: "afaire", titre: "Relancer le labo", desc: "Résultat du bilan", urgent: false, h: "" };
+  const T1 = Object.assign({}, base, { id: "t1", ech: "2026-10-10" });
+  const T2 = Object.assign({}, base, { id: "t2", ech: "2026-10-09", h: "14:30", urgent: true, patientId: "P1", patientNom: "ANCIEN NOM" });
+  const T3 = Object.assign({}, base, { id: "t3", ech: "" }), T4 = Object.assign({}, base, { id: "t4", ech: "2026-10-10", statut: "fait" }), T5 = Object.assign({}, base, { id: "t5", ech: "2026-10-10", pour: "INF" });
+  const ev = L.evtsTaches([T1, T2, T3, T4, T5], "SEC", J0, { P1: "PATIENT TEST" });
+  ok(ev.length === 2, "tâches du responsable avec échéance, non terminées (sans échéance, terminée, autre responsable : exclues)");
+  const b1 = L.corps(ev.find((e) => e.k === "tache-t1|t")), b2 = L.corps(ev.find((e) => e.k === "tache-t2|t"));
+  ok(b1.start.date === "2026-10-10" && b1.end.date === "2026-10-11" && b1.summary === "Tâche – Relancer le labo", "sans heure : journée entière, titre « Tâche – … »");
+  ok(b2.start.dateTime === "2026-10-09T14:30:00" && b2.end.dateTime === "2026-10-09T14:45:00", "avec heure : 15 minutes");
+  ok(b2.summary === "URGENT – Tâche – Relancer le labo (PATIENT TEST)" && b2.colorId === "11" && b1.colorId === "8", "urgente : « URGENT », rouge ; nom actuel du patient ; autres : graphite");
+  ok(b1.reminders.useDefault === false && b1.reminders.overrides.length === 0 && b1.transparency === "transparent", "aucun rappel Google, créneau laissé libre");
+  ok(/Demandée par Dr Bentahila/.test(b1.description) && /chimio-hgc\.web\.app\/v2\.html#taches/.test(b1.description), "description : auteur et lien vers les tâches");
+  ok(L.evtsTaches([Object.assign({}, T1, { pour: "MED" })], "MED", J0).length === 1 && /vous-même/.test(L.evtsTaches([Object.assign({}, T1, { pour: "MED", de: "MED" })], "MED", J0)[0].x), "tâche pour soi-même : « Demandée par vous-même »");
+  // Dans l'agenda : création, retard (reportée sur aujourd'hui), terminée (retirée), réattribuée (retirée de l'ancien)
+  const cal = (await api.creerAgenda()).id, g = "tache-t1";
+  let r = await L.appliquer(api, cal, L.evtsTaches([T1], "SEC", J0), await api.lister(cal, "g=" + g, L.timeMin(J0)), J0);
+  ok(r.crees === 1, "échéance ajoutée à l'agenda de la secrétaire");
+  r = await L.appliquer(api, cal, L.evtsTaches([T1], "SEC", J0), await api.lister(cal, "g=" + g, L.timeMin(J0)), J0);
+  ok(r.crees === 0 && r.modifies === 0, "rien de changé : aucune écriture dans Google");
+  const J3 = "2026-10-12", evR = L.evtsTaches([T1], "SEC", J3);
+  ok(evR.length === 1 && evR[0].d === J3 && /^EN RETARD – Tâche/.test(evR[0].t) && evR[0].coul === "11" && /échéance du 10\/10\/2026/.test(evR[0].x), "en retard : reportée sur aujourd'hui, « EN RETARD », rouge, échéance d'origine rappelée");
+  r = await L.appliquer(api, cal, evR, await api.lister(cal, "g=" + g, L.timeMin(J3)), J3);
+  const e1 = CAL[cal][L.idEv("tache-t1|t")];
+  ok(e1.start.date === J3 && Object.values(CAL[cal]).filter((e) => e.status !== "cancelled").length === 1, "nuit suivante : déplacée sur le jour même, sans doublon");
+  r = await L.appliquer(api, cal, L.evtsTaches([Object.assign({}, T1, { statut: "fait" })], "SEC", J3), await api.lister(cal, "g=" + g, L.timeMin(J3)), J3);
+  ok(r.supprimes === 1 && e1.status === "cancelled", "terminée : retirée de l'agenda");
+  const cal3 = (await api.creerAgenda()).id;
+  await L.appliquer(api, cal3, L.evtsTaches([T2], "SEC", J0), [], J0);
+  r = await L.appliquer(api, cal3, L.evtsTaches([Object.assign({}, T2, { pour: "INF" })], "SEC", J0), await api.lister(cal3, "g=tache-t2", L.timeMin(J0)), J0);
+  ok(r.supprimes === 1, "réattribuée à l'infirmière : retirée de l'agenda de la secrétaire");
+  ok(L.groupe("tache-t2|t") === "tache-t2", "une tâche = un groupe (mise à jour d'une seule tâche)");
+})();

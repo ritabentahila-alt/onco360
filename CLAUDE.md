@@ -113,7 +113,9 @@ Ancienne application : collections racine `patients`, `protocoles`, `finances`, 
   europe-west1) : `agendaLier` / `agendaMaj` / `agendaDelier` (appelées par profil.js), `agendaPatient` (à chaque écriture
   d'un dossier), `agendaAbsences` (titulaire), `agendaMembre` (droits modifiés), `agendaNuit` (3 h 30). Événements =
   `resume.ag` filtrés par périmètre (établissements) et droits (chimio / RT) du membre ; identifiant Google = sha1 de la clé
-  `k` ; le passé n'est jamais effacé. Jetons : `agendaJetons/{uid}` (aucune règle = invisible du navigateur) ; état :
+  `k` ; le passé n'est jamais effacé. Tâches (08/10/2026) : `agendaTache` (écriture d'une tâche) et remise à plat ajoutent
+  l'échéance des tâches non terminées dans l'agenda du **responsable** seulement (`evtsTaches` : groupe `tache-ID`, journée
+  entière ou 15 min, aucun rappel, couleur 8 / 11, « EN RETARD » reportée chaque nuit sur le jour même, retirée une fois terminée). Jetons : `agendaJetons/{uid}` (aucune règle = invisible du navigateur) ; état :
   `utilisateurs/{uid}.agendaGoogle`. Logique pure : `functions/logique.js`, tests : `node functions/test-logique.js`.
   Prérequis : API Google Calendar activée, écran de consentement « Onco360 » publié, client OAuth Web (ID dans
   `public/js/config.js` GOOGLE_CLIENT_ID et `functions/.env` ; secret : `firebase functions:secrets:set GOOGLE_CLIENT_SECRET`).

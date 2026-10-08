@@ -3,7 +3,8 @@
 // tenu à jour dans un seul sens (Onco360 → Google) avec les patients qu'il a le droit de voir.
 //   • agendaLier / agendaMaj / agendaDelier : appelées depuis Onco360 (personne connectée) ;
 //   • agendaPatient : à chaque enregistrement d'un dossier ; agendaAbsences : absences du cabinet (titulaire) ;
-//   • agendaMembre : droits ou établissements d'un membre modifiés ; agendaNuit : remise à plat chaque nuit.
+//   • agendaMembre : droits ou établissements d'un membre modifiés ; agendaNuit : remise à plat chaque nuit ;
+//   • agendaTache : une tâche écrite (échéance dans l'agenda de son responsable, T6 du 08/10/2026).
 // Jetons Google : collection agendaJetons/{uid}, inaccessible depuis le navigateur (aucune règle ne l'ouvre).
 // État visible par la personne : utilisateurs/{uid}.agendaGoogle = { email, calendrier, le, nb, erreur }.
 const { setGlobalOptions } = require("firebase-functions/v2");
@@ -51,6 +52,10 @@ async function syncComplet(uid, J) {
   const pats = await db.collection("espaces/" + J.espace + "/patients").select("resume", "etablissementId").get();
   let voulus = [];
   pats.forEach((d) => { voulus = voulus.concat(L.evtsPatient(d.data(), m, auj)); });
+  // Tâches dont la personne est responsable (nom actuel du patient lu dans son dossier)
+  const ts = await db.collection("espaces/" + J.espace + "/taches").where("pour", "==", uid).get(), noms = {};
+  pats.forEach((d) => { try { noms[d.id] = JSON.parse(d.data().resume || "{}").nm || ""; } catch (e) { /* résumé illisible */ } });
+  voulus = voulus.concat(L.evtsTaches(ts.docs.map((d) => Object.assign({ id: d.id }, d.data())), uid, auj, noms));
   if ((await titulaire(J.espace)) === uid) {
     const c = await db.doc("espaces/" + J.espace + "/parametres/calendrier").get();
     try { voulus = voulus.concat(L.evtsAbsences(c.exists ? JSON.parse(c.data().data || "{}") : {}, auj)); } catch (e) { /* calendrier illisible */ }
@@ -132,6 +137,19 @@ exports.agendaMembre = onDocumentWritten(Object.assign({ document: "espaces/{e}/
   const s = await db.doc("agendaJetons/" + ev.params.uid).get();
   if (!s.exists || s.data().revoque || s.data().espace !== ev.params.e) return;
   try { await syncComplet(ev.params.uid, s.data()); } catch (e) { await echec(ev.params.uid, e); }
+});
+// Tâche écrite : agenda de son responsable, et de l'ancien si elle a été réattribuée (les commentaires seuls ne changent rien)
+const CHAMPS_AGENDA = ["titre", "desc", "ech", "h", "urgent", "statut", "pour", "patientId", "patientNom", "deNom"];
+exports.agendaTache = onDocumentWritten(Object.assign({ document: "espaces/{e}/taches/{t}" }, OPTS), async (ev) => {
+  const avant = ev.data.before.exists ? ev.data.before.data() : null, apres = ev.data.after.exists ? ev.data.after.data() : null;
+  if (avant && apres && CHAMPS_AGENDA.every((k) => JSON.stringify(avant[k]) === JSON.stringify(apres[k]))) return;
+  const e = ev.params.e, t = apres ? Object.assign({ id: ev.params.t }, apres) : null, noms = {};
+  if (t && t.patientId) { try { const p = await db.doc("espaces/" + e + "/patients/" + t.patientId).get(); if (p.exists) noms[t.patientId] = JSON.parse(p.data().resume || "{}").nm || ""; } catch (er) { /* nom gardé dans la tâche */ } }
+  for (const uid of new Set([avant && avant.pour, apres && apres.pour].filter(Boolean))) {
+    const s = await db.doc("agendaJetons/" + uid).get(); if (!s.exists || s.data().revoque || s.data().espace !== e) continue;
+    const m = await membre(e, uid); if (!m || m.actif === false) continue;
+    try { await syncGroupe(uid, s.data(), "tache-" + ev.params.t, L.evtsTaches(t ? [t] : [], uid, L.jourCasa(), noms)); } catch (er) { await echec(uid, er); }
+  }
 });
 exports.agendaNuit = onSchedule(Object.assign({ schedule: "30 3 * * *", timeZone: L.TZ }, OPTS), async () => {
   const l = (await db.collection("agendaJetons").get()).docs.filter((d) => !d.data().revoque);

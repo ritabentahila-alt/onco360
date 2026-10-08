@@ -1,6 +1,8 @@
 // Onco360 – Google Agenda de chaque membre : calculs purs (sans Firebase), testables hors ligne.
 // Les événements viennent de resume.ag de chaque dossier (préparés par public/js/moteur/agenda.js) :
 // { k: "PID|r|…" | "PID|c|…" | "PID|s|…" | "PID|rt|…", t: titre, x: description, d: "AAAA-MM-JJ", h: "HH:MM", f: fin (journées) }
+// Tâches (T6, 08/10/2026) : k = "tache-ID|t", groupe « tache-ID » (une tâche = un groupe), seulement dans l'agenda du
+// responsable ; options en plus : tache (vrai), dur (minutes), coul (couleur Google), sans rappel, n'occupe pas le créneau.
 const crypto = require("crypto");
 
 const TZ = "Africa/Casablanca";
@@ -41,10 +43,24 @@ function evtsAbsences(cal, auj) {
 
 const groupe = (k) => String(k).split("|")[0]; // identifiant du patient, ou « abs »
 const idEv = (k) => crypto.createHash("sha1").update("onco360|" + k).digest("hex"); // 40 caractères 0-9 a-f : identifiant Google valide
-const signature = (e) => crypto.createHash("sha1").update(JSON.stringify([e.t, e.x || "", e.d, e.h || "", e.f || ""])).digest("hex").slice(0, 16);
-function finHeure(d, h) {
-  const p = String(h).split(":"), m = +p[0] * 60 + (+p[1] || 0) + DUREE, j = Math.floor(m / 1440), r = m % 1440;
+// (couleur et durée des tâches comprises ; inchangée pour les autres événements, déjà dans les agendas)
+const signature = (e) => crypto.createHash("sha1").update(JSON.stringify([e.t, e.x || "", e.d, e.h || "", e.f || ""].concat(e.tache ? [e.coul, e.dur] : []))).digest("hex").slice(0, 16);
+function finHeure(d, h, dur) {
+  const p = String(h).split(":"), m = +p[0] * 60 + (+p[1] || 0) + (dur || DUREE), j = Math.floor(m / 1440), r = m % 1440;
   return addJ(d, j) + "T" + String(Math.floor(r / 60)).padStart(2, "0") + ":" + String(r % 60).padStart(2, "0") + ":00";
+}
+// Tâches du responsable : échéance fixée, non terminées. Sans heure : journée entière ; avec heure : 15 min ; en retard :
+// reportée chaque nuit sur aujourd'hui (journée entière, « EN RETARD ») ; aucun rappel Google (décisions du 08/10/2026)
+const LIEN_TACHES = "https://chimio-hgc.web.app/v2.html#taches";
+function evtsTaches(taches, uid, auj, noms) {
+  return (taches || []).filter((t) => t && t.pour === uid && t.statut !== "fait" && /^\d{4}-\d{2}-\d{2}$/.test(t.ech || "")).map((t) => {
+    const enRetard = t.ech < auj, pat = t.patientId ? (noms && noms[t.patientId]) || t.patientNom || "" : "";
+    return {
+      k: "tache-" + t.id + "|t", tache: true, d: enRetard ? auj : t.ech, h: enRetard ? "" : t.h || "", dur: 15, coul: enRetard || t.urgent ? "11" : "8",
+      t: [enRetard ? "EN RETARD" : "", t.urgent ? "URGENT" : "", "Tâche"].filter(Boolean).join(" – ") + " – " + t.titre + (pat ? " (" + pat + ")" : ""),
+      x: [t.desc || "", "Demandée par " + (t.de === uid ? "vous-même" : t.deNom || "?") + (enRetard ? " · échéance du " + t.ech.split("-").reverse().join("/") : ""), "Ouvrir les tâches : " + LIEN_TACHES].filter(Boolean).join("\n"),
+    };
+  }).filter((e) => dansFenetre(e, auj));
 }
 // Corps d'un événement Google Agenda
 function corps(e) {
@@ -52,8 +68,9 @@ function corps(e) {
     id: idEv(e.k), summary: e.t, description: [e.x || "", "— Onco360 (mise à jour automatique : modifier dans Onco360)"].filter(Boolean).join("\n\n"), status: "confirmed",
     extendedProperties: { private: { onco360: "1", g: groupe(e.k), k: String(e.k).slice(0, 900), sig: signature(e) } },
   };
-  if (e.h) { b.start = { dateTime: e.d + "T" + e.h + ":00", timeZone: TZ }; b.end = { dateTime: finHeure(e.d, e.h), timeZone: TZ }; }
+  if (e.h) { b.start = { dateTime: e.d + "T" + e.h + ":00", timeZone: TZ }; b.end = { dateTime: finHeure(e.d, e.h, e.dur), timeZone: TZ }; }
   else { b.start = { date: e.d }; b.end = { date: addJ(e.f && e.f > e.d ? e.f : e.d, 1) }; }
+  if (e.tache) Object.assign(b, { colorId: e.coul, transparency: "transparent", reminders: { useDefault: false, overrides: [] } });
   return b;
 }
 // Met l'agenda en accord avec la liste voulue : crée, modifie, supprime (seulement les événements Onco360 listés)
@@ -107,4 +124,4 @@ function creerApi(jeton, fetchFn) {
 // Début de la fenêtre pour lister l'agenda (minuit UTC du jour : les jours passés ne sont jamais touchés)
 const timeMin = (auj) => auj + "T00:00:00Z";
 
-module.exports = { TZ, jourCasa, addJ, voitPatient, permis, evtsPatient, evtsAbsences, idEv, corps, appliquer, creerApi, timeMin, groupe };
+module.exports = { TZ, jourCasa, addJ, voitPatient, permis, evtsPatient, evtsAbsences, evtsTaches, idEv, corps, appliquer, creerApi, timeMin, groupe };

@@ -43,6 +43,15 @@ Les tâches d'un patient n'apparaissent pas dans son dossier : on les retrouve d
 - **Tableau de bord** : carte « Mes tâches » (en retard, urgentes, nouvelles, dans les 7 jours) et « Du nouveau sur vos
   demandes ».
 
+## Dans Google Agenda
+Si vous avez relié votre Google Agenda (Profil › Google Agenda), les tâches **dont vous êtes responsable** et qui ont une
+**échéance** apparaissent dans votre agenda « Onco360 » :
+- sans heure : en **journée entière** (bandeau en haut du jour) ; avec heure : petit événement de 15 minutes ;
+- « URGENT – Tâche – … » en rouge ; les autres en gris ;
+- **en retard** : « EN RETARD – Tâche – … », reportée chaque jour sur aujourd'hui jusqu'à ce qu'elle soit terminée ;
+- terminée : elle disparaît ; réattribuée : elle passe dans l'agenda de la nouvelle personne ;
+- pas de rappel Google (Onco360 vous prévient déjà) ; les tâches que vous avez demandées aux autres n'y sont pas.
+
 ## Qui peut faire quoi ?
 | | Auteur | Responsable | Médecin | Autres |
 |---|---|---|---|---|
