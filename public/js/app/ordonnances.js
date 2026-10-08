@@ -79,6 +79,22 @@ async function chargerTypes() { return (TYPES = await lireListe("ordostypes")); 
 async function modifierTypes(fn) { TYPES = await modifierListe("ordostypes", fn); }
 let ANA = null, BIL = null; // famille ouverte (FAM) : analyses ou examens [{ id, nom, cat, note, fav }] et bilans [{ id, nom, items: [noms], fav }]
 
+// ───── Gestion des listes depuis Paramètres › Bibliothèques (P2 bis, 08/10/2026) : les mêmes fenêtres, sans patient ni
+// ordonnance (titre « liste du cabinet ») ; un clic sur une ligne ouvre sa fiche (médecin) ; lecture seule pour les autres.
+const GEST = () => !!(S && S.gestion); // fenêtres Médicaments, Ordo. type, Analyses, Examens (Courriers : CQ.gestion)
+const titrePat = (x) => (x ? " — " + A.esc(x.r.nm) : " — liste du cabinet");
+const basGestion = '<div class="boutons"><button class="bt plein" onclick="fermerFenetre()">Fermer</button></div>';
+export async function gererListe(n) {
+  T = null; A.fenetre('<p class="sous">Chargement…</p>', "large");
+  if (n === "courriers") { S = null; CQ = { pid: null, q: "", gestion: true }; CR = await lireListe("courriers"); vueCourriers(); return; }
+  CQ = null; S = { pid: null, gestion: true, t: n === "medicaments" ? "medic" : n === "ordostypes" ? "ordo" : n === "examens" ? "exam" : "analyse", q: "", items: [], types: [] };
+  if (n === "medicaments") { await chargerBib(); vueListe(); }
+  else if (n === "ordostypes") { await Promise.all([chargerBib(), chargerTypes()]); vueTypes(); }
+  else { await chargerAnalyses(S.t); vueAnalyses(); }
+}
+// Nombre d'éléments de chaque liste (Paramètres › Bibliothèques)
+export async function tailleListe(n) { return (await lireListe(n)).length; }
+
 // ───── Fenêtre « Médicaments » : recherche, liste, ordonnance en préparation ─────
 let S = null; // { pid, t (medic | ordo), q, items: [{ nom, poso }], ed (n° du médicament en cours de modification), types, modif }
 let T = null; // ordonnance type en cours de création / modification : { id, nom, items, ed }
@@ -91,12 +107,12 @@ window.ordMedicaments = async (pid) => {
 };
 function vueListe() {
   const x = trouver(S.pid);
-  A.fenetre("<h3>" + (S.modif ? "Modifier l'ordonnance du " + A.dfrA(S.modif.d) : "Médicaments") + " — " + A.esc(x.r.nm) + "</h3>" +
+  A.fenetre("<h3>" + (S.modif ? "Modifier l'ordonnance du " + A.dfrA(S.modif.d) : "Médicaments") + titrePat(x) + "</h3>" +
     '<div class="md-barre"><div class="recherche">' + A.ic("loupe") + '<input id="mdQ" type="search" autocomplete="off" placeholder="Rechercher un médicament, une posologie, une classe…" value="' + A.esc(S.q) + '"></div>' +
     gerer('<button class="bt clair petit" onclick="mdFiche()">' + A.ic("plus") + "Nouveau médicament</button>") + "</div>" +
-    '<div class="md-liste" id="mdListe"></div><p class="mesures" style="margin:6px 0 0">Double-cliquez sur un médicament (ou touchez ' + ico("plus") + ") pour l'ajouter à l'ordonnance.</p>" +
-    '<h4 class="soustitre">Ordonnance</h4><div id="mdOrdo" class="md-ordo"></div>' +
-    '<div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt plein" onclick="mdAfficher()">Afficher l\'ordonnance</button></div>', "large");
+    '<div class="md-liste" id="mdListe"></div>' + (S.gestion ? "" : '<p class="mesures" style="margin:6px 0 0">Double-cliquez sur un médicament (ou touchez ' + ico("plus") + ") pour l'ajouter à l'ordonnance.</p>" +
+    '<h4 class="soustitre">Ordonnance</h4><div id="mdOrdo" class="md-ordo"></div>') +
+    (S.gestion ? basGestion : '<div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt plein" onclick="mdAfficher()">Afficher l\'ordonnance</button></div>'), "large");
   $("mdQ").oninput = () => { S.q = $("mdQ").value; liste(); };
   liste(); ordo();
   setTimeout(() => { const q = $("mdQ"); if (q) q.focus(); }, 60);
@@ -107,13 +123,14 @@ function liste() {
   $("mdListe").innerHTML = L.length ? '<table class="md-t"><tr><th>Médicament</th><th>Posologie</th><th></th></tr>' + L.map((m) => {
     const q = "'" + m.id + "'";
     return '<tr class="m" ondblclick="mdAjouter(' + q + ')"><td><b>' + A.esc(m.nom) + "</b>" + (m.classe ? '<div class="cl">' + A.esc(m.classe) + "</div>" : "") + "</td><td>" + A.esc(m.poso) + '</td><td class="act">' + etoile(m, "mdFavori") +
-      '<button class="ico vert" title="Ajouter à l\'ordonnance" aria-label="Ajouter ' + A.esc(m.nom) + ' à l\'ordonnance" onclick="mdAjouter(' + q + ')">' + ico("plus") + "</button>" +
+      (S && S.gestion ? "" : '<button class="ico vert" title="Ajouter à l\'ordonnance" aria-label="Ajouter ' + A.esc(m.nom) + ' à l\'ordonnance" onclick="mdAjouter(' + q + ')">' + ico("plus") + "</button>") +
       gerer('<button class="ico" title="Modifier" aria-label="Modifier ' + A.esc(m.nom) + '" onclick="mdFiche(' + q + ')">' + ico("crayon") + "</button>" +
       '<button class="ico rouge" title="Supprimer de la liste" aria-label="Supprimer ' + A.esc(m.nom) + '" onclick="mdSupprimer(' + q + ')">' + ico("croix") + "</button>") + "</td></tr>";
   }).join("") + "</table>" : '<p class="sous" style="padding:12px">Aucun médicament ne correspond.' + gerer(" « Nouveau médicament » pour l'ajouter à la liste.") + "</p>";
 }
 // Médicaments de l'ordonnance en préparation : modifier ✎ (nom, posologie), monter, descendre, retirer
 function ordo() {
+  if (!$("mdOrdo")) return; // gestion de la liste : pas d'ordonnance
   const h = CUR(), L = h.items;
   $("mdOrdo").innerHTML = L.length ? L.map((it, i) => i === h.ed
     ? '<div class="it ed"><b class="n">' + (i + 1) + '/</b><div class="tx"><input id="edNom" value="' + A.esc(it.nom) + '" placeholder="' + (modeAna() ? "Analyse, bilan ou examen (tapez le début : la liste propose)" : "Médicament (tapez le début : la liste propose)") + '" aria-label="Nom" autocomplete="off"><div id="edSug" class="sug ed-sug cache"></div><textarea id="edPoso" rows="2" placeholder="' + (modeAna() ? "Précision (facultatif, imprimée entre parenthèses)" : "Posologie") + '" aria-label="' + (modeAna() ? "Précision" : "Posologie") + '">' + A.esc(it.poso) + "</textarea></div>" +
@@ -150,7 +167,7 @@ window.edChoisir = (k) => {
   } else { const m = (BIB || []).find((z) => z.id === k); if (!m) return; h.items[i] = { nom: m.nom, poso: m.poso || "" }; }
   ordo(); const e = $("edPoso"); if (e) e.focus();
 };
-window.mdAjouter = (id) => { const m = BIB.find((z) => z.id === id), h = CUR(); if (!m || !h) return; h.items.push({ nom: m.nom, poso: m.poso }); ordo(); A.toast(m.nom + " ajouté."); };
+window.mdAjouter = (id) => { if (GEST() && !T) { window.mdFiche(id); return; } const m = BIB.find((z) => z.id === id), h = CUR(); if (!m || !h) return; h.items.push({ nom: m.nom, poso: m.poso }); ordo(); A.toast(m.nom + " ajouté."); };
 window.mdRetirer = (i) => { const h = CUR(); h.items.splice(i, 1); h.ed = null; ordo(); };
 window.mdBouger = (i, s) => { const L = CUR().items, j = i + s; if (j < 0 || j >= L.length) return; const t = L[i]; L[i] = L[j]; L[j] = t; CUR().ed = null; ordo(); };
 window.mdEdit = (i) => { CUR().ed = i; ordo(); };
@@ -190,12 +207,12 @@ window.ordTypes = async (pid) => {
 };
 function vueTypes() {
   const x = trouver(S.pid); T = null;
-  A.fenetre("<h3>" + (S.modif ? "Modifier l'ordonnance du " + A.dfrA(S.modif.d) : "Ordonnances types") + " — " + A.esc(x.r.nm) + "</h3>" +
+  A.fenetre("<h3>" + (S.modif ? "Modifier l'ordonnance du " + A.dfrA(S.modif.d) : "Ordonnances types") + titrePat(x) + "</h3>" +
     '<div class="md-barre"><div class="recherche">' + A.ic("loupe") + '<input id="otQ" type="search" autocomplete="off" placeholder="Rechercher une ordonnance type ou un médicament…" value="' + A.esc(S.q) + '"></div>' +
     gerer('<button class="bt clair petit" onclick="otFiche()">' + A.ic("plus") + "Nouvelle ordonnance type</button>") + "</div>" +
-    '<div class="md-liste" id="otListe"></div><p class="mesures" style="margin:6px 0 0">Cliquez sur une ordonnance type (ou touchez ' + ico("plus") + ") : tous ses médicaments passent dans l'ordonnance ci-dessous.</p>" +
+    '<div class="md-liste" id="otListe"></div>' + (S.gestion ? basGestion : '<p class="mesures" style="margin:6px 0 0">Cliquez sur une ordonnance type (ou touchez ' + ico("plus") + ") : tous ses médicaments passent dans l'ordonnance ci-dessous.</p>" +
     '<h4 class="soustitre">Ordonnance</h4><div id="mdOrdo" class="md-ordo"></div>' + champAjout() +
-    '<div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt plein" onclick="mdAfficher()">Afficher l\'ordonnance</button></div>', "large");
+    '<div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt plein" onclick="mdAfficher()">Afficher l\'ordonnance</button></div>'), "large");
   $("otQ").oninput = () => { S.q = $("otQ").value; listeTypes(); };
   listeTypes(); ordo(); brancherAjout();
 }
@@ -205,12 +222,13 @@ function listeTypes() {
   $("otListe").innerHTML = L.length ? '<table class="md-t"><tr><th>Ordonnance type</th><th>Médicaments</th><th></th></tr>' + L.map((o) => {
     const q = "'" + o.id + "'";
     return '<tr class="m" onclick="otAjouter(' + q + ')"><td><b>' + A.esc(o.nom) + '</b><div class="cl">' + o.items.length + " médicament" + (o.items.length > 1 ? "s" : "") + "</div></td><td>" + A.esc(o.items.map((i) => i.nom).join(" ; ")) + '</td><td class="act" onclick="event.stopPropagation()">' + etoile(o, "otFavori") +
-      '<button class="ico vert" title="Mettre ses médicaments dans l\'ordonnance" aria-label="Utiliser ' + A.esc(o.nom) + '" onclick="otAjouter(' + q + ')">' + ico("plus") + "</button>" +
+      (S && S.gestion ? "" : '<button class="ico vert" title="Mettre ses médicaments dans l\'ordonnance" aria-label="Utiliser ' + A.esc(o.nom) + '" onclick="otAjouter(' + q + ')">' + ico("plus") + "</button>") +
       gerer('<button class="ico" title="Modifier l\'ordonnance type" aria-label="Modifier ' + A.esc(o.nom) + '" onclick="otFiche(' + q + ')">' + ico("crayon") + "</button>" +
       '<button class="ico rouge" title="Supprimer l\'ordonnance type" aria-label="Supprimer ' + A.esc(o.nom) + '" onclick="otSupprimer(' + q + ')">' + ico("croix") + "</button>") + "</td></tr>";
   }).join("") + "</table>" : '<p class="sous" style="padding:12px">Aucune ordonnance type ne correspond.' + gerer(" « Nouvelle ordonnance type » pour en créer une.") + "</p>";
 }
 window.otAjouter = (id) => {
+  if (GEST()) { window.otFiche(id); return; }
   const o = TYPES.find((z) => z.id === id); if (!o || !S) return;
   o.items.forEach((i) => S.items.push({ nom: i.nom, poso: i.poso })); if (S.types.indexOf(o.nom) < 0) S.types.push(o.nom);
   S.ed = null; ordo(); A.toast("« " + o.nom + " » : " + o.items.length + " médicament" + (o.items.length > 1 ? "s ajoutés." : " ajouté."));
@@ -300,12 +318,12 @@ window.ordAnalyses = async (pid, f) => {
 window.ordExamens = (pid) => window.ordAnalyses(pid, "exam");
 function vueAnalyses() {
   const x = trouver(S.pid); T = null;
-  A.fenetre("<h3>" + (S.modif ? "Modifier l'ordonnance du " + A.dfrA(S.modif.d) : FAM.titre) + " — " + A.esc(x.r.nm) + "</h3>" +
+  A.fenetre("<h3>" + (S.modif ? "Modifier l'ordonnance du " + A.dfrA(S.modif.d) : FAM.titre) + titrePat(x) + "</h3>" +
     '<div class="md-barre"><div class="recherche">' + A.ic("loupe") + '<input id="anQ" type="search" autocomplete="off" placeholder="' + FAM.cherche + '" value="' + A.esc(S.q) + '"></div>' +
     gerer((FAM.lb ? '<button class="bt clair petit" onclick="bilFiche()">' + A.ic("plus") + FAM.nouvB + "</button>" : "") + '<button class="bt clair petit" onclick="anaFiche()">' + A.ic("plus") + FAM.nouvA + "</button>") + "</div>" +
-    '<div class="md-liste" id="anListe"></div><p class="mesures" style="margin:6px 0 0">' + A.esc(FAM.aide) + "</p>" +
+    '<div class="md-liste" id="anListe"></div>' + (S.gestion ? basGestion : '<p class="mesures" style="margin:6px 0 0">' + A.esc(FAM.aide) + "</p>" +
     '<h4 class="soustitre">Ordonnance</h4><div id="mdOrdo" class="md-ordo"></div>' + champAjout() +
-    '<div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt plein" onclick="mdAfficher()">Afficher l\'ordonnance</button></div>', "large");
+    '<div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt plein" onclick="mdAfficher()">Afficher l\'ordonnance</button></div>'), "large");
   $("anQ").oninput = () => { S.q = $("anQ").value; listeAnalyses(); };
   listeAnalyses(); ordo(); brancherAjout();
 }
@@ -323,6 +341,7 @@ function listeAnalyses() {
 }
 // Ajout : dans l'ordonnance du patient (lignes développées) ou dans la fiche d'un bilan (le nom de l'analyse ou du bilan)
 window.anaAjouter = (k) => {
+  if (GEST() && !T) { if (k[0] === "b") window.bilFiche(k.slice(2)); else window.anaFiche(k.slice(2)); return; }
   const h = CUR(); if (!h) return; const id = k.slice(2), o = k[0] === "b" ? BIL.find((z) => z.id === id) : ANA.find((z) => z.id === id); if (!o) return;
   const lignes = T ? [{ nom: o.nom, poso: "" }] : k[0] === "a" ? [{ nom: o.nom, poso: o.note || "" }] : lignesDe(o); let n = 0;
   lignes.forEach((l) => { if (!h.items.some((i) => sansAcc(i.nom) === sansAcc(l.nom))) { h.items.push(l); n++; } });
@@ -416,10 +435,10 @@ window.ordCourriers = async (pid) => {
 };
 function vueCourriers() {
   const x = trouver(CQ.pid);
-  A.fenetre("<h3>Courriers — " + A.esc(x.r.nm) + "</h3>" +
+  A.fenetre("<h3>Courriers" + titrePat(x) + "</h3>" +
     '<div class="md-barre"><div class="recherche">' + A.ic("loupe") + '<input id="crQ" type="search" autocomplete="off" placeholder="Rechercher un modèle de courrier…" value="' + A.esc(CQ.q) + '"></div>' +
     gerer('<button class="bt clair petit" onclick="crFiche()">' + A.ic("plus") + "Nouveau modèle</button>") + "</div>" +
-    '<div class="md-liste" id="crListe"></div><p class="mesures" style="margin:6px 0 0">Cliquez sur un modèle : il s\'ouvre rempli pour le patient (nom, âge, diagnostic, date…) ; complétez les zones surlignées en jaune.</p>' +
+    '<div class="md-liste" id="crListe"></div>' + (CQ.gestion ? "" : '<p class="mesures" style="margin:6px 0 0">Cliquez sur un modèle : il s\'ouvre rempli pour le patient (nom, âge, diagnostic, date…) ; complétez les zones surlignées en jaune.</p>') +
     '<div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Fermer</button></div>', "large");
   $("crQ").oninput = () => { CQ.q = $("crQ").value; listeCourriers(); };
   listeCourriers();
@@ -454,6 +473,7 @@ function remplirCourrier(html, x) {
   return h.replace(/\bde le /g, "du ").replace(/\bà le /g, "au ");
 }
 window.crUtiliser = (id) => {
+  if (CQ && CQ.gestion) { window.crFiche(id); return; }
   const m = CR.find((z) => z.id === id), x = CQ && trouver(CQ.pid); if (!m || !x) return;
   ouvrirOrdonnance({ pid: CQ.pid, t: "courrier", types: [m.nom], html: remplirCourrier(m.html, x), format: "A4", taille: 0 });
 };

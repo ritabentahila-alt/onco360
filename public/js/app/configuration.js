@@ -11,6 +11,8 @@ import { typesDocuments, enregistrerTypes, TYPES_DOCUMENTS0 } from "./fichiers.j
 import { typesTaches, enregistrerTypesTaches, TYPES_TACHES0, TYPE_RT } from "./taches.js";
 import { reglages, enregistrerReglages, REGLAGES0 } from "./reglages.js";
 import { pageParametres } from "./parametres.js";
+import { listeDiag, listeMut, listeCor, LISTES0 } from "./chimio.js";
+import { gererListe, tailleListe } from "./ordonnances.js";
 
 let A = null;
 export function installer(api) { A = api; A.enteteParametres = () => entete(); }
@@ -50,10 +52,10 @@ let TTA = null; // types de tâches (onglet Tâches, 08/10/2026 ; null = à lire
 let ED = null, ONG = "horaires", MOD = false, HET = ""; // HET : établissement dont on règle les horaires ("" = par défaut)
 
 // Onglets de la page Paramètres (« Activités et rémunérations » : droit « finances »)
-const ONGLETS = () => [["horaires", "horloge", "Créneaux & horaires"], ["fermetures", "avion", "Fermetures, congés & jours fériés"], ["whatsapp", "whatsapp", "WhatsApp"], ["couleurs", "agenda", "Google Agenda"], ["documents", "document", "Documents"], ["taches", "taches", "Tâches"], ["impression", "imprimer", "Impression"], ["alertes", "alerte", "Alertes"]]
+const ONGLETS = () => [["horaires", "horloge", "Créneaux & horaires"], ["fermetures", "avion", "Fermetures, congés & jours fériés"], ["whatsapp", "whatsapp", "WhatsApp"], ["couleurs", "agenda", "Google Agenda"], ["documents", "document", "Documents"], ["taches", "taches", "Tâches"], ["listes", "liste", "Listes"], ["bibliotheques", "pilule", "Bibliothèques"], ["impression", "imprimer", "Impression"], ["alertes", "alerte", "Alertes"]]
   .concat(A.peut("finances") && D().tarifs ? [["activites", "bilan", "Activités et rémunérations"]] : []);
 function entete() {
-  return '<section class="accueil"><div><h2>Paramètres</h2><p>Horaires, absences et jours fériés, WhatsApp, Google Agenda, types de documents et de tâches, impression, alertes' + (A.peut("finances") ? ", activités et rémunérations" : "") + ".</p></div></section>" +
+  return '<section class="accueil"><div><h2>Paramètres</h2><p>Horaires, absences et jours fériés, WhatsApp, Google Agenda, types de documents et de tâches, listes, bibliothèques des prescriptions, impression, alertes' + (A.peut("finances") ? ", activités et rémunérations" : "") + ".</p></div></section>" +
     '<div class="ag-vues" style="align-self:flex-start">' + ONGLETS().map(([k, ico, lib]) => '<button class="' + (ONG === k ? "on" : "") + '" onclick="cfOnglet(\'' + k + "')\">" + A.ic(ico) + lib + "</button>").join("") + "</div>";
 }
 export function pageConfiguration(arg) {
@@ -63,7 +65,7 @@ export function pageConfiguration(arg) {
   if (COUL === null) { COUL = {}; getDoc(doc(db, "espaces", A.ESPACE, "parametres", "couleursAgenda")).then((s) => { COUL = s.exists() ? JSON.parse(s.data().data || "{}") : {}; if (!MOD && location.hash.startsWith("#parametres")) { ED = null; pageConfiguration(); } }).catch(() => {}); }
   if (TTA === null) { TTA = []; typesTaches().then((L) => { TTA = L.filter((t) => t !== TYPE_RT); if (!MOD && location.hash.startsWith("#parametres")) { ED = null; pageConfiguration(); } }).catch(() => {}); }
   if (TDOC === null) { TDOC = []; typesDocuments().then((L) => { TDOC = L.slice(); if (!MOD && location.hash.startsWith("#parametres")) { ED = null; pageConfiguration(); } }).catch(() => {}); }
-  if (!ED || !MOD) ED = { horaires: copie(horaires()), horairesEtab: copie(D().cal.horairesEtab || {}), abs: copie(D().cal.abs || []), feries: copie(D().cal.feries || []), wa: Object.assign({}, D().wa || {}), reg: reglages(), coul: Object.assign({}, COULEURS0, COUL), tdoc: TDOC.slice(), ttache: TTA.slice() };
+  if (!ED || !MOD) ED = { horaires: copie(horaires()), horairesEtab: copie(D().cal.horairesEtab || {}), abs: copie(D().cal.abs || []), feries: copie(D().cal.feries || []), wa: Object.assign({}, D().wa || {}), reg: reglages(), listes: { diag: listeDiag().slice(), mut: listeMut(), cor: listeCor() }, coul: Object.assign({}, COULEURS0, COUL), tdoc: TDOC.slice(), ttache: TTA.slice() };
   const ok = A.peut("parametres"), esc = A.esc, dis = ok ? "" : " disabled";
   let h = entete();
   if (!ok) h += '<p class="mesures">Lecture seule : la modification demande le droit « paramètres ».</p>';
@@ -107,6 +109,18 @@ export function pageConfiguration(arg) {
         return '<div class="cf-coul"><div class="lib"><b>' + esc(lib) + '</b><span class="mesures">' + esc(nom) + (v !== COULEURS0[k] ? " · modifiée" : "") + '</span></div><div class="nuancier" role="radiogroup" aria-label="' + esc(lib) + '">' +
           COUL_G.map(([c, n, hex]) => '<button type="button" role="radio" aria-checked="' + (c === v) + '" title="' + esc(n) + '" aria-label="' + esc(n) + '" class="pastc' + (c === v ? " on" : "") + (c ? "" : " vide") + '" style="background:' + hex + '"' + dis + ' onclick="cfCoul(\'' + k + "','" + c + "')\"></button>").join("") + "</div></div>";
       }).join("") + "</section>";
+  } else if (ONG === "listes") {
+    // Listes proposées dans les fiches patients (P2 bis, 08/10/2026) : corriger, retirer, ajouter ; nombre de dossiers concernés
+    const lib = { diag: "Diagnostics", mut: "Mutuelles", cor: "Correspondants" };
+    h += '<section class="carte"><h3><span class="ic">' + A.ic("liste") + '</span>Listes</h3><p class="sous">Propositions des champs Diagnostic, Mutuelle et Correspondant des fiches patients. Corriger ou retirer un nom ici ne modifie pas les dossiers qui l\'utilisent déjà (leur nombre est indiqué).</p>' +
+      '<div class="puces">' + Object.keys(lib).map((k) => '<button class="puce' + (LS === k ? " on" : "") + '" onclick="cfLs(\'' + k + "')\">" + lib[k] + " (" + ED.listes[k].length + ")</button>").join("") + "</div>" +
+      '<div class="recherche" style="max-width:420px;margin-bottom:8px">' + A.ic("loupe") + '<input id="cfLq" type="search" autocomplete="off" placeholder="Rechercher dans la liste…" value="' + esc(LQ) + '"></div>' +
+      '<div class="cf-td cf-l" id="cfLl"></div>' + (ok ? '<button class="bt clair petit" style="margin-top:10px" onclick="cfLAj()">' + A.ic("plus") + "Ajouter</button>" : "") + "</section>";
+  } else if (ONG === "bibliotheques") {
+    // Bibliothèques des prescriptions : les mêmes fenêtres que dans le dossier, en gestion de la liste (sans patient)
+    const B = [["medicaments", "pilule", "Médicaments", "Nom, posologie, classe thérapeutique"], ["ordostypes", "presse", "Ordonnances types", "Groupes de médicaments prescrits ensemble"], ["analyses", "tube", "Analyses et bilans", "Analyses, bilans et bilans généraux"], ["examens", "loupe", "Examens complémentaires", "Imagerie, explorations, précautions"], ["courriers", "courrier", "Modèles de courriers", "Certificats, courriers, ALD… avec champs remplis automatiquement"]];
+    h += '<section class="carte"><h3><span class="ic">' + A.ic("pilule") + '</span>Bibliothèques des prescriptions</h3><p class="sous">Listes du cabinet utilisées par les boutons Médic., Ordo. type, Analyses, Examens compl. et Courriers du dossier. ' + (A.D().membre.role === "medecin" ? "Ajoutez, modifiez, supprimez et mettez en favori (étoile : en tête de liste) ; chaque changement est enregistré tout de suite." : "Consultation seulement : le médecin les modifie.") + "</p>" +
+      '<div class="cf-bib">' + B.map(([k, ico, t, sous]) => '<button class="cf-b" onclick="cfBib(\'' + k + "')\"><span class=\"ic\">" + A.ic(ico) + "</span><span><b>" + t + '</b><span class="mesures">' + sous + '</span><span class="mesures" id="cfBn-' + k + '"></span></span></button>').join("") + "</div></section>";
   } else if (ONG === "impression") {
     // Marges d'impression (mm) : la marge du haut laisse la place à l'en-tête déjà imprimé sur le papier
     const I = ED.reg.impression, champ = (q, n, lib) => '<div><label for="cfI' + q + n + '">' + lib + '</label><input id="cfI' + q + n + '" type="number" min="0" max="150" step="1" inputmode="numeric" value="' + I[q][n] + '"' + dis + ' onchange="cfImp(\'' + q + "'," + n + ',this.value)"></div>';
@@ -142,8 +156,11 @@ export function pageConfiguration(arg) {
       '<div class="tableau" style="max-height:460px;overflow:auto"><table class="tcures"><tr><th style="width:190px">Date</th><th>Fête</th><th></th></tr>' + fs.map(({ f, i }) => '<tr><td><input type="date" value="' + esc(f.d) + '"' + dis + ' onchange="cfFer(' + i + ',\'d\',this.value)"></td><td><input value="' + esc(f.nom || "") + '"' + dis + ' onchange="cfFer(' + i + ',\'nom\',this.value)" style="width:100%"></td><td>' + (ok ? '<button class="mini rouge" onclick="cfSupFer(' + i + ')">✕</button>' : "") + "</td></tr>").join("") + "</table></div>" +
       (ok ? '<button class="bt clair petit" style="margin-top:10px" onclick="cfAjFer()">' + A.ic("plus") + "Ajouter un jour férié</button>" : "") + "</section>";
   }
-  if (ok) h += '<div class="barre-enr"><button class="bt gris" onclick="cfDefaut()">↺ Rétablir les valeurs par défaut</button><span id="cfMod" class="mesures' + (MOD ? "" : " cache") + '">Modifications non enregistrées</span><button class="bt plein" id="cfOk" onclick="cfEnregistrer()"><svg class="pi"><use href="#i-enregistrer"/></svg>Enregistrer</button></div>';
+  if (ok && ONG !== "bibliotheques") h += '<div class="barre-enr"><button class="bt gris" onclick="cfDefaut()">↺ Rétablir les valeurs par défaut</button><span id="cfMod" class="mesures' + (MOD ? "" : " cache") + '">Modifications non enregistrées</span><button class="bt plein" id="cfOk" onclick="cfEnregistrer()"><svg class="pi"><use href="#i-enregistrer"/></svg>Enregistrer</button></div>';
   A.$("page").innerHTML = h;
+  if (ONG === "listes") { listeL(); A.$("cfLq").oninput = () => { LQ = A.$("cfLq").value; listeL(); }; }
+  if (ONG === "bibliotheques") [["medicaments", ["medicaments"], [["médicament", "médicaments"]]], ["ordostypes", ["ordostypes"], [["ordonnance type", "ordonnances types"]]], ["analyses", ["analyses", "bilans"], [["analyse", "analyses"], ["bilan", "bilans"]]], ["examens", ["examens"], [["examen", "examens"]]], ["courriers", ["courriers"], [["modèle", "modèles"]]]].forEach(([k, ls, mots]) =>
+    Promise.all(ls.map((n) => tailleListe(n))).then((t) => { const e = A.$("cfBn-" + k); if (e) e.textContent = t.map((v, i) => v + " " + mots[i][v > 1 ? 1 : 0]).join(" · "); }).catch(() => {}));
 }
 export const remplir = (m, v) => String(m || "").replace(/\{(\w+)\}/g, (t, k) => (v[k] != null ? v[k] : t)).replace(/[ \t]+([.,])/g, "$1").replace(/ {2,}/g, " ");
 const modif = (redessiner) => { MOD = true; if (redessiner) pageConfiguration(); else { const m = A.$("cfMod"); if (m) m.classList.remove("cache"); } };
@@ -158,6 +175,22 @@ window.cfAjPlage = (j) => { const l = HC().jours[j], der = l[l.length - 1]; l.pu
 window.cfSupPlage = (j, k) => { HC().jours[j].splice(k, 1); modif(true); };
 window.cfWa = (k, v) => { ED.wa[k] = v; const e = A.$("waEx_" + k); if (e) e.textContent = remplir(v, { prenom: "Fatima", nom: "ALAOUI Fatima", jour: "mardi 14 octobre", heure: "à 10h00", lieu: "Hôpital Cheikh Khalifa", adresse: "", medecin: "Dr BENTAHILA" }); modif(); };
 window.cfWaDef = (k) => { delete ED.wa[k]; modif(true); };
+// Onglet Listes : affichage filtré (la recherche garde le curseur), nombre de dossiers qui utilisent chaque nom
+let LS = "diag", LQ = "";
+function listeL() {
+  const z = A.$("cfLl"); if (!z) return;
+  const champ = { diag: "diag", mut: "mut", cor: "cor" }[LS], n = {}, ok = A.peut("parametres"), esc = A.esc;
+  D().patients.forEach((x) => { const v = String((x.P && x.P[champ]) || "").trim().toLowerCase(); if (v) n[v] = (n[v] || 0) + 1; });
+  const mots = A.sansAcc(LQ).split(/\s+/).filter(Boolean), L = ED.listes[LS].map((t, i) => ({ t, i })).filter(({ t }) => !t || mots.every((w) => A.sansAcc(t).indexOf(w) >= 0));
+  z.innerHTML = L.length ? L.map(({ t, i }) => { const c = n[String(t).trim().toLowerCase()] || 0;
+    return '<div class="it"><input value="' + esc(t) + '"' + (ok ? "" : " disabled") + ' aria-label="Nom" onchange="cfL(' + i + ',this.value)"><span class="mesures nb">' + (c ? c + " dossier" + (c > 1 ? "s" : "") : "") + "</span>" + (ok ? '<button class="mini rouge" title="Retirer de la liste" aria-label="Retirer ' + esc(t) + '" onclick="cfLSup(' + i + ')">✕</button>' : "") + "</div>"; }).join("")
+    : '<p class="sous">Rien ne correspond.</p>';
+}
+window.cfLs = (k) => { LS = k; LQ = ""; pageConfiguration(); };
+window.cfL = (i, v) => { ED.listes[LS][i] = String(v || "").trim(); modif(); };
+window.cfLSup = (i) => { ED.listes[LS].splice(i, 1); modif(); listeL(); };
+window.cfLAj = () => { LQ = ""; ED.listes[LS].push(""); modif(true); setTimeout(() => { const l = document.querySelectorAll("#cfLl input"); if (l.length) { l[l.length - 1].scrollIntoView({ block: "center" }); l[l.length - 1].focus(); } }, 30); };
+window.cfBib = (n) => gererListe(n);
 window.cfReg = (g, k, v) => { ED.reg[g][k] = parseInt(v, 10) || 0; modif(); };
 window.cfImp = (q, n, v) => { const x = parseInt(v, 10); ED.reg.impression[q][n] = isNaN(x) ? REGLAGES0.impression[q][n] : Math.max(0, Math.min(150, x)); modif(); };
 window.cfCoul = (k, c) => { ED.coul[k] = c; modif(true); };
@@ -177,6 +210,7 @@ window.cfAjFer = () => { ED.feries.push({ d: D().t, nom: "Jour férié" }); modi
 window.cfSupFer = (i) => { ED.feries.splice(i, 1); modif(true); };
 window.cfDefaut = () => {
   if (ONG === "whatsapp") { if (!confirm("Rétablir tous les messages WhatsApp et le délai du bouton vert par défaut ?")) return; ED.wa = {}; ED.reg.whatsapp = copie(REGLAGES0.whatsapp); modif(true); return; }
+  if (ONG === "listes") { if (!confirm("Rétablir les listes de départ (diagnostics, mutuelles, correspondants) ?\nLes ajouts et corrections du cabinet seront perdus.")) return; ED.listes = { diag: LISTES0.diag.slice(), mut: LISTES0.mut.slice().sort((a, z) => a.localeCompare(z, "fr")), cor: LISTES0.cor.slice().sort((a, z) => a.localeCompare(z, "fr")) }; modif(true); return; }
   if (ONG === "impression") { if (!confirm("Rétablir les marges d'impression par défaut ?")) return; ED.reg.impression = copie(REGLAGES0.impression); modif(true); return; }
   if (ONG === "alertes") { if (!confirm("Rétablir les délais des alertes par défaut ?")) return; ED.reg.alertes = copie(REGLAGES0.alertes); modif(true); return; }
   if (ONG === "couleurs") { if (!confirm("Rétablir les couleurs Google Agenda par défaut ?")) return; ED.coul = Object.assign({}, COULEURS0); modif(true); return; }
@@ -194,6 +228,11 @@ window.cfEnregistrer = async () => {
       if (k && pl[k][0] < pl[k - 1][1]) { A.toast(t + " : deux plages se chevauchent."); return; }
     }
     H.jours[j] = pl;
+  }
+  const listes = {}; for (const k of ["diag", "mut", "cor"]) {
+    const l = ED.listes[k].map((t) => String(t || "").trim()).filter(Boolean);
+    const dbl = l.find((t, i) => l.findIndex((u) => u.toLowerCase() === t.toLowerCase()) !== i); if (dbl) { A.toast("Listes : « " + dbl + " » figure deux fois."); return; }
+    listes[k] = k === "diag" ? l : l.sort((a, z) => a.localeCompare(z, "fr"));
   }
   if (ED.reg.whatsapp.de > ED.reg.whatsapp.a) { A.toast("Bouton WhatsApp vert : « jusqu'à » doit être plus proche du rendez-vous que « à partir de »."); return; }
   for (const a of ED.abs) { if (!a.du) { A.toast("Une absence n'a pas de date de début."); return; } if (!a.au || a.au < a.du) a.au = a.du; }
@@ -213,10 +252,13 @@ window.cfEnregistrer = async () => {
     if (JSON.stringify(coul) !== JSON.stringify(COUL || {})) { await setDoc(doc(db, "espaces", A.ESPACE, "parametres", "couleursAgenda"), { data: JSON.stringify(coul) }); COUL = coul; }
     if (tdoc.length && JSON.stringify(tdoc) !== JSON.stringify(TDOC || [])) { await enregistrerTypes(tdoc); TDOC = tdoc.slice(); }
     if (JSON.stringify(ED.reg) !== JSON.stringify(reglages())) await enregistrerReglages(ED.reg);
+    if (JSON.stringify(listes) !== JSON.stringify({ diag: listeDiag(), mut: listeMut(), cor: listeCor() })) {
+      const L = Object.assign(listes, { complet: true }); await setDoc(doc(db, "espaces", A.ESPACE, "parametres", "listes"), { data: JSON.stringify(L) }); D().listes = L;
+    }
     if (JSON.stringify(ttache) !== JSON.stringify(TTA || [])) { await enregistrerTypesTaches(ttache.length ? ttache : TYPES_TACHES0.slice()); TTA = ttache.length ? ttache : TYPES_TACHES0.slice(); }
     D().cal = cal; D().ctx.feries = cal.feries;
     D().patients.forEach((x) => A.recalculer(x, x.doc)); // les dates de radiothérapie dépendent des jours fériés
-    A.journal({ id: "", r: { nm: "" } }, "Configuration modifiée (horaires, absences, jours fériés, messages WhatsApp, couleurs Google Agenda, types de documents et de tâches, impression, alertes)");
+    A.journal({ id: "", r: { nm: "" } }, "Configuration modifiée (horaires, absences, jours fériés, messages WhatsApp, couleurs Google Agenda, types de documents et de tâches, listes, impression, alertes)");
     MOD = false; A.toast("Paramètres enregistrés."); A.entete(); pageConfiguration();
   } catch (e) { A.occupe(b, false); A.toast(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de modifier les paramètres." : "Enregistrement impossible : " + ((e && e.message) || e)); }
 };

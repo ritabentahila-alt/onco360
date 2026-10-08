@@ -590,8 +590,19 @@ Décisions de Dr Bentahila (08/10) :
 - [ ] Mise en ligne (site).
 - Note pour la salle d'attente (SA2) : un nouvel onglet de Paramètres s'ajoute dans `ONGLETS()` de `configuration.js`
   (plus de barre d'onglets écrite en dur).
-**P2 bis – Listes et bibliothèques dans Paramètres** : listes (diagnostics, mutuelles, correspondants) ; bibliothèques des
-prescriptions (médicaments, ordonnances types, analyses, examens, courriers) gérées depuis Paramètres.
+**P2 bis – Listes et bibliothèques dans Paramètres** (fait et testé le 08/10, pas encore en ligne)
+- [x] Paramètres › **Listes** : diagnostics (40), mutuelles, correspondants : corriger un nom, retirer, ajouter, rechercher ;
+      nombre de dossiers qui utilisent chaque nom ; doublons refusés ; « Rétablir les valeurs par défaut » = listes de départ.
+      Corriger ou retirer un nom ne modifie pas les dossiers. Données : `parametres/listes` = { diag, mut, cor, complet: true }
+      (listes entières ; l'ancien format « ajouts aux listes de départ » reste lu tant que rien n'est modifié).
+- [x] Paramètres › **Bibliothèques** : Médicaments, Ordonnances types, Analyses et bilans, Examens complémentaires, Modèles de
+      courriers (avec leur nombre). Chaque carte ouvre la fenêtre habituelle en **gestion de la liste** (titre « liste du
+      cabinet », sans patient ni ordonnance) : recherche, + Nouveau, ✎, ✕, favori ; un clic sur une ligne ouvre sa fiche. Médecin
+      seulement ; lecture seule pour les autres.
+- [x] Tests : listes (correction, ajout, doublon, fiche patient qui propose la nouvelle liste), 5 bibliothèques (ouverture,
+      modification, retour à la liste), **prescriptions depuis le dossier inchangées** (même après la gestion dans Paramètres),
+      secrétaire en lecture seule, 390 px, bilan 352 317 DH, aucune erreur.
+- [ ] Mise en ligne (site).
 **P3 – Google Agenda : ce que chacun y voit** (cases à cocher par personne).
 **P4 – Tâches automatiques de radiothérapie** et tâches du patient dans « Rendez-vous à venir ».
 
@@ -937,3 +948,4 @@ Onco360_Package_Cession/
 | 08/10/2026 | 6 – SA1 ter et quater Salle d'attente | Mis en ligne (règles salle + presence, fonction prixConsultation, site v2.js?v=20261008s). Les changements non enregistrés d'une autre session (bouton « + Rendez-vous », rendez-vous à venir déplacés dans le dossier) sont partis avec. |
 | 08/10/2026 | 5 – P1 Tâches | Plan P1 à P4 décidé (types de tâches modifiables, Paramètres unique, Google Agenda par personne, tâches automatiques de radiothérapie, tâches dans « Rendez-vous à venir »). P1 fait : description visible dans la liste, Configuration › Tâches (types modifiables, « Radiothérapie » fixe). Testé (2 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |
 | 08/10/2026 | 5 – P2 Paramètres | Configuration et Paramètres fusionnés en une page « Paramètres » (9 onglets ; Activités et rémunérations avec le droit finances) ; nouveaux onglets Impression (marges) et Alertes (délais), délai du bouton WhatsApp vert ; `parametres/reglages`. Testé (2 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |
+| 08/10/2026 | 5 – P2 bis Paramètres | Onglets Listes (diagnostics, mutuelles, correspondants modifiables, nombre de dossiers) et Bibliothèques (les 5 listes de prescriptions en gestion, sans patient). Testé (2 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |

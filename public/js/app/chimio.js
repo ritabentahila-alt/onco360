@@ -719,17 +719,24 @@ export function champDiag(idD, idP, v, vp, dis) {
 export function activerDiag(idD, idP) {
   const i = document.getElementById(idD), s = document.getElementById(idD + "S"); if (!i || i.disabled) return;
   const sansAcc = (z) => String(z || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-  const maj = () => { const m = sansAcc(i.value).split(/\s+/).filter(Boolean), l = DIAG.filter((d) => m.every((w) => sansAcc(d).indexOf(w) >= 0)); s.innerHTML = l.length ? l.map((d) => '<div data-v="' + A.esc(d) + '">' + A.esc(d) + "</div>").join("") : '<div class="mesures" style="cursor:default">Pas dans la liste : le texte tapé sera gardé tel quel</div>'; s.classList.remove("cache"); };
+  const maj = () => { const m = sansAcc(i.value).split(/\s+/).filter(Boolean), l = listeDiag().filter((d) => m.every((w) => sansAcc(d).indexOf(w) >= 0)); s.innerHTML = l.length ? l.map((d) => '<div data-v="' + A.esc(d) + '">' + A.esc(d) + "</div>").join("") : '<div class="mesures" style="cursor:default">Pas dans la liste : le texte tapé sera gardé tel quel</div>'; s.classList.remove("cache"); };
   i.oninput = maj; i.onfocus = maj; i.onblur = () => setTimeout(() => s.classList.add("cache"), 200);
   s.onmousedown = (ev) => { const t = ev.target.closest("[data-v]"); if (!t) return; i.value = t.dataset.v; s.classList.add("cache"); const p = document.getElementById(idP); if (p) setTimeout(() => p.focus(), 10); };
 }
-export const listeMut = () => MUT0.concat((D().listes.mut || []).filter((m) => MUT0.indexOf(m) < 0)).sort((a, z) => a.localeCompare(z, "fr"));
-export const listeCor = () => COR0.concat((D().listes.cor || []).filter((m) => COR0.indexOf(m) < 0)).sort((a, z) => a.localeCompare(z, "fr"));
+// Listes du cabinet : parametres/listes = { cor, mut } (ajouts aux listes de départ de donnees/listes.js) ; depuis le 08/10/2026
+// (Paramètres › Listes) { diag, mut, cor, complet: true } = listes entières, corrigées et triées par le médecin
+const LC = () => D().listes || {};
+export const LISTES0 = { diag: DIAG, mut: MUT0, cor: COR0 };
+const alphaFr = (a, z) => a.localeCompare(z, "fr");
+export const listeDiag = () => (LC().complet && Array.isArray(LC().diag) ? LC().diag : DIAG);
+export const listeMut = () => (LC().complet ? (LC().mut || []).slice() : MUT0.concat((LC().mut || []).filter((m) => MUT0.indexOf(m) < 0))).sort(alphaFr);
+export const listeCor = () => (LC().complet ? (LC().cor || []).slice() : COR0.concat((LC().cor || []).filter((m) => COR0.indexOf(m) < 0))).sort(alphaFr);
 // Ajoute un correspondant ou une mutuelle inconnus aux listes partagées (droit « paramètres »)
 export async function enrichirListes(cor, mut) {
-  const L = D().listes, ajout = (t, v, base) => { if (!v || base.concat(L[t] || []).some((z) => z.toLowerCase() === v.toLowerCase())) return false; (L[t] = L[t] || []).push(v); return true; };
-  const a = ajout("cor", cor, COR0), m = ajout("mut", mut, MUT0);
-  if ((a || m) && A.peut("parametres")) await setDoc(doc(db, "espaces", A.ESPACE, "parametres", "listes"), { data: JSON.stringify({ cor: L.cor || [], mut: L.mut || [] }) }, { merge: true }).catch(() => {});
+  const L = D().listes, base = (t) => (L.complet ? [] : t === "cor" ? COR0 : MUT0);
+  const ajout = (t, v) => { if (!v || base(t).concat(L[t] || []).some((z) => z.toLowerCase() === v.toLowerCase())) return false; (L[t] = L[t] || []).push(v); return true; };
+  const a = ajout("cor", cor), m = ajout("mut", mut);
+  if ((a || m) && A.peut("parametres")) await setDoc(doc(db, "espaces", A.ESPACE, "parametres", "listes"), { data: JSON.stringify(L) }, { merge: true }).catch(() => {});
 }
 
 // ───── Nouveau patient (même formulaire que l'application actuelle) ─────
