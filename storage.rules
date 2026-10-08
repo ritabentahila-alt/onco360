@@ -2,7 +2,7 @@ rules_version = '2';
 // Onco360 – fichiers déposés dans les dossiers patients (onglet Documents, 08/10/2026).
 // espaces/{e}/patients/{p}/fichiers/{id}/{nom} : lus et déposés par les membres actifs du cabinet qui ont le droit
 // « documents », pour un patient de leur périmètre (établissements) ; 25 Mo au plus ; jamais remplacés ; supprimés par le
-// médecin ou par qui les a déposés (métadonnée creePar). Tout le reste du stockage est fermé.
+// médecin ou par qui les a déposés (métadonnée creePar). Documentation du cabinet : voir plus bas. Tout le reste est fermé.
 service firebase.storage {
   match /b/{bucket}/o {
     function membre(e) { return firestore.get(/databases/(default)/documents/espaces/$(e)/membres/$(request.auth.uid)).data; }
@@ -17,6 +17,14 @@ service firebase.storage {
         && request.resource.metadata.creePar == request.auth.uid;
       allow update: if false;
       allow delete: if peut(e, p) && (membre(e).role == 'medecin' || resource.metadata.creePar == request.auth.uid);
+    }
+    // Documentation du cabinet (bouton « Doc. », 08/10/2026) : PDF lus par les membres actifs, ajoutés et supprimés par le médecin
+    match /espaces/{e}/documentation/{f}/{nom} {
+      allow read: if request.auth != null && membre(e).actif == true;
+      allow create: if request.auth != null && membre(e).actif == true && membre(e).role == 'medecin'
+        && request.resource.size < 25 * 1024 * 1024 && request.resource.contentType == 'application/pdf';
+      allow update: if false;
+      allow delete: if request.auth != null && membre(e).actif == true && membre(e).role == 'medecin';
     }
     match /{tout=**} { allow read, write: if false; }
   }

@@ -30,6 +30,7 @@ export const FAMILLES = [
   { t: "ordo", lib: "Ordo. type", ic: "presse", titre: "Ordonnances types" },
   { t: "analyse", lib: "Analyses", ic: "tube", titre: "Analyses" },
   { t: "courrier", lib: "Courriers", ic: "courrier", titre: "Courriers" },
+  { t: "doc", lib: "Doc.", ic: "document", titre: "Documentation (fiches à remettre au patient)" },
 ];
 // Nom affiché : type (menu) · titre (libre) ; les premières consultations n'avaient qu'un titre
 const nomCs = (c) => [c.type, c.titre].filter(Boolean).join(" · ") || "Consultation";
@@ -65,7 +66,7 @@ export function htmlConsultations(x) {
     h += '<div class="cs' + (on ? " on" : "") + '"><button class="cs-t" aria-expanded="' + on + '" onclick="csTog(' + qc + ')"><span class="fl">' + (on ? "▾" : "▸") + '</span><span class="dt">' + A.dfrA(c.d) + '</span><span class="ti">' + esc(nomCs(c)) + '</span><span class="au">' + esc(c.creeParNom || "") + "</span></button>";
     if (on) {
       h += '<div class="cs-c"><table class="cs-l"><tr><th>Note</th><td>' + (c.note ? esc(c.note) : '<span class="mesures">—</span>') + '</td><td class="au">' + esc(c.creeParNom || "") + "</td></tr>" +
-        (c.lignes || []).map((l) => "<tr><th>" + esc(libLigne(l.t)) + "</th><td>" + (l.html ? '<button class="lien-l" title="Voir, modifier ou réimprimer l\'ordonnance" onclick="ordVoir(' + qc + ",'" + l.id + '\')">' + esc(l.lib || "Ordonnance") + "</button>" : esc(l.lib || "")) + '</td><td class="au">' + esc(l.par || "") + "</td></tr>").join("") + "</table>";
+        (c.lignes || []).map((l) => "<tr><th>" + esc(libLigne(l.t)) + "</th><td>" + (l.html ? '<button class="lien-l" title="Voir, modifier ou réimprimer l\'ordonnance" onclick="ordVoir(' + qc + ",'" + l.id + '\')">' + esc(l.lib || "Ordonnance") + "</button>" : l.t === "doc" && l.docId ? '<button class="lien-l" title="Rouvrir le document remis" onclick="docOuvrirLigne(\'' + esc(l.docId) + '\')">' + esc(l.lib || "") + "</button>" : esc(l.lib || "")) + '</td><td class="au">' + esc(l.par || "") + "</td></tr>").join("") + "</table>";
       if (peutEcrire()) {
         h += '<div class="actr" style="justify-content:flex-start;margin-top:10px"><button class="mini" onclick="csModifier(' + qc + ')">Modifier</button>' + (peutSupprimer(c) ? '<button class="mini r" onclick="csSupprimer(' + qc + ')">Supprimer</button>' : "") + "</div>";
       }
@@ -139,6 +140,7 @@ window.csPrescrire = (pid, t) => {
   if (t === "analyse") { window.ordAnalyses(pid); return; }
   if (t === "exam") { window.ordExamens(pid); return; }
   if (t === "courrier") { window.ordCourriers(pid); return; }
+  if (t === "doc") { window.ordDocumentation(pid); return; }
   const f = FAMILLES.find((z) => z.t === t); A.toast((f ? f.titre : "Prescriptions") + " : bientôt disponible (en cours de construction).");
 };
 // Consultations du patient lues (pour les antécédents des prescriptions)
@@ -148,6 +150,10 @@ export function prescriptionsDe(pid, t) {
   const r = [];
   (CS[pid] || []).forEach((c) => (c.lignes || []).forEach((l) => { if (l.t === t && l.html) r.push({ cid: c.id, l }); }));
   return r.sort((a, b) => (b.l.d || "").localeCompare(a.l.d || "") || String(b.l.id).localeCompare(String(a.l.id)));
+}
+// Toutes les lignes d'une famille (même sans feuille : documentation remise, « Doc. »)
+export function lignesType(pid, t) {
+  const r = []; (CS[pid] || []).forEach((c) => (c.lignes || []).forEach((l) => { if (l.t === t) r.push({ cid: c.id, l }); })); return r;
 }
 // Ordonnance supprimée : retirée de sa consultation ; la consultation créée automatiquement pour elle seule disparaît aussi
 export async function supprimerPrescription(x, lid) {
@@ -189,7 +195,7 @@ export async function enregistrerPrescription(x, ligne) {
   Object.assign(c, s.exists() ? s.data() : {}, { lignes }, maj); OUV[x.id] = c.id;
   A.journal(x, (i >= 0 ? "Ordonnance modifiée (" : "Ordonnance (") + libLigne(ligne.t) + ") : " + ligne.lib);
 }
-window.csAntecedents = (pid, t) => window.ordAntecedents(pid, t);
+window.csAntecedents = (pid, t) => (t === "doc" ? window.docHistorique(pid) : window.ordAntecedents(pid, t));
 
 // ───── Suivi du dossier ─────
 // Hôpital du patient changé : ses consultations suivent (pour les membres limités à certains établissements)

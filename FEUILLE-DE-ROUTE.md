@@ -96,6 +96,14 @@ de leur radiothérapie :
     activé le 08/10 (europe-west1, bucket `chimio-hgc.firebasestorage.app`, corbeille de 7 jours), règles `storage.rules`
     (membre actif, droit « documents », périmètre), fiches `fichiers/{id}`. **Les fichiers ne sont pas dans les sauvegardes
     quotidiennes de la base** (à prévoir : copie du stockage).
+  - [x] **Bouton « Doc. »** (08/10, testé, pas encore en ligne) à côté de Courriers : documentation du cabinet à remettre
+    aux patients (PDF) ; les 2 régimes de radiothérapie pelvienne y sont passés (retirés de Courriers). Recherche, filtre
+    par catégorie, tri (favoris puis A → Z, plus récents, par catégorie), ⭐ ; **le médecin** ajoute (+ PDF, titre,
+    catégorie), modifie, supprime ; secrétaire : ouvrir et remettre. « Remettre » ouvre le PDF et note une ligne « Doc. »
+    dans la consultation du jour (badge « remis le … ») ; petite flèche = ce qui a déjà été remis au patient.
+    `bibliotheques/documentation`, PDF dans Cloud Storage `espaces/{e}/documentation/…` (storage.rules).
+  - [x] **Ligne libre avec suggestions** (08/10, toutes les fenêtres de prescription) : en tapant « NF », la liste propose
+    NFS – plaquettes (médicaments avec leur posologie ; un bilan choisi est développé) ; sinon le texte tapé reste.
 - [x] Données : `documentsRT/{patient}_{radiothérapie}_{pli|cr|rdv}` (une version par radiothérapie et par type : html,
       date, auteur) ; règle : droit « documents » (médecin, secrétaire) dans le périmètre. Patient supprimé ou changé
       d'hôpital : ses documents suivent.
@@ -799,3 +807,4 @@ Onco360_Package_Cession/
 | 08/10/2026 | 5 – T6 Tâches | Échéances dans le Google Agenda du responsable (journée entière ou 15 min, sans rappel, « EN RETARD » reportée chaque jour, retirée une fois terminée, suit les réattributions) : fonction `agendaTache` + remise à plat. Tests logique 32/32. Pas encore en ligne. |
 | 08/10/2026 | Google Agenda – couleurs | Couleurs par type d'événement modifiables (Configuration › Google Agenda), par défaut : annonce Flamant, suivi Paon, RT en cours Lavande, hospitalisation Myrtille, chimio Basilic, RT Raisin, dosimétrie Mandarine, absences Banane, tâches Graphite / Tomate. Fonction `agendaCouleurs`. Tests 40/40. Mis en ligne (règles, fonctions, site). |
 | 08/10/2026 | Documents du dossier | Onglet Documents : dépôt de fichiers (PDF, Word, photos…) avec titre, date et type, liste récente d'abord, recherche et filtre par type, ouvrir / télécharger / modifier / supprimer ; types de documents dans Configuration › Documents ; Cloud Storage activé (Europe) et règles publiées. Testé (médecin, secrétaire, infirmière, 390 px, bilan 352 317 DH). Pas encore en ligne (avec la salle d'attente, après accord). |
+| 08/10/2026 | Doc. et ligne libre | Bouton « Doc. » (documentation PDF du cabinet à remettre aux patients, régimes déplacés de Courriers, recherche, catégories, tri, remis noté dans la consultation, médecin seul gère) ; ligne libre avec suggestions de la liste. Testé (médecin, secrétaire, 390 px, bilan 352 317 DH). Pas encore en ligne. |

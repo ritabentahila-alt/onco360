@@ -53,8 +53,3 @@ export const COURRIERS0 = [
     "<p>" + AC + "</p>" +
     '<p class="or-sig"><b>{medecin}</b><br>{lieu}</p>' },
 ];
-// Fiches à remettre au patient : PDF prêts à imprimer (public/documents/), sans données du patient
-export const FICHES_PATIENT = [
-  { nom: "Régime – radiothérapie pelvienne (français)", fichier: "documents/regime-radiotherapie-pelvienne-fr.pdf" },
-  { nom: "Régime – radiothérapie pelvienne (darija)", fichier: "documents/regime-radiotherapie-pelvienne-darija.pdf" },
-];

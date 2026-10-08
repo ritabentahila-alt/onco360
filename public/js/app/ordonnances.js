@@ -15,12 +15,13 @@ import { MEDICAMENTS0 } from "../donnees/medicaments.js";
 import { ORDOS_TYPES0 } from "../donnees/ordostypes.js";
 import { ANALYSES0, BILANS0 } from "../donnees/analyses.js";
 import { EXAMENS0 } from "../donnees/examens.js";
-import { COURRIERS0, CHAMPS_COURRIER, FICHES_PATIENT } from "../donnees/courriers.js";
+import { COURRIERS0, CHAMPS_COURRIER } from "../donnees/courriers.js";
 import { age } from "../moteur/outils.js";
+import { installer as installerDocumentation } from "./documentation.js"; // bouton « Doc. » (08/10/2026)
 import { enregistrerPrescription, trouverLigne, assurerConsultations, prescriptionsDe, supprimerPrescription, FAMILLES } from "./consultations.js";
 
 let A = null;
-export function installer(api) { A = api; }
+export function installer(api) { A = api; installerDocumentation(api); }
 const D = () => A.D();
 const $ = (i) => document.getElementById(i);
 const trouver = (pid) => D().patients.find((p) => p.id === pid);
@@ -114,7 +115,7 @@ function liste() {
 function ordo() {
   const h = CUR(), L = h.items;
   $("mdOrdo").innerHTML = L.length ? L.map((it, i) => i === h.ed
-    ? '<div class="it ed"><b class="n">' + (i + 1) + '/</b><div class="tx"><input id="edNom" value="' + A.esc(it.nom) + '" placeholder="Médicament" aria-label="Médicament"><textarea id="edPoso" rows="2" placeholder="Posologie" aria-label="Posologie">' + A.esc(it.poso) + "</textarea></div>" +
+    ? '<div class="it ed"><b class="n">' + (i + 1) + '/</b><div class="tx"><input id="edNom" value="' + A.esc(it.nom) + '" placeholder="' + (modeAna() ? "Analyse, bilan ou examen (tapez le début : la liste propose)" : "Médicament (tapez le début : la liste propose)") + '" aria-label="Nom" autocomplete="off"><div id="edSug" class="sug ed-sug cache"></div><textarea id="edPoso" rows="2" placeholder="' + (modeAna() ? "Précision (facultatif, imprimée entre parenthèses)" : "Posologie") + '" aria-label="' + (modeAna() ? "Précision" : "Posologie") + '">' + A.esc(it.poso) + "</textarea></div>" +
       '<div class="actr"><button class="bt plein petit" onclick="mdEditOk(' + i + ')">OK</button><button class="bt gris petit" onclick="mdEditAnnuler(' + i + ')">Annuler</button></div></div>'
     : '<div class="it"><b class="n">' + (i + 1) + '/</b><div class="tx"><b>' + A.esc(it.nom) + '</b><div class="mesures">' + A.esc(it.poso) + "</div></div>" +
     '<div class="actr"><button class="ico" title="Monter" aria-label="Monter" onclick="mdBouger(' + i + ',-1)"' + (i ? "" : " disabled") + ">↑</button>" +
@@ -122,8 +123,32 @@ function ordo() {
     '<button class="ico" title="Modifier le nom ou la posologie" aria-label="Modifier" onclick="mdEdit(' + i + ')">' + ico("crayon") + "</button>" +
     '<button class="ico rouge" title="Retirer" aria-label="Retirer" onclick="mdRetirer(' + i + ')">' + ico("croix") + "</button></div></div>").join("")
     : '<p class="sous" style="margin:0">' + (T ? "Aucun médicament : ajoutez-en avec la recherche ci-dessous." : "Aucun médicament choisi : « Afficher l'ordonnance » donnera une ordonnance vierge, à remplir à la main.") + "</p>";
-  if (h.ed != null) setTimeout(() => { const e = $("edNom"); if (e && !e.value) e.focus(); else if ($("edPoso")) $("edPoso").focus(); }, 30);
+  if (h.ed != null) { brancherSug(); setTimeout(() => { const e = $("edNom"); if (e && !e.value) e.focus(); else if ($("edPoso")) $("edPoso").focus(); }, 30); }
 }
+// Ligne libre / modification : en tapant le nom, la liste propose ce qui correspond (« NF » → NFS – plaquettes ;
+// médicaments avec leur posologie ; un bilan choisi est développé comme d'habitude) ; sinon le texte tapé reste tel quel
+function brancherSug() {
+  const q = $("edNom"), z = $("edSug"); if (!q || !z) return;
+  q.oninput = () => {
+    const mots = sansAcc(q.value).split(/\s+/).filter(Boolean), ana = modeAna();
+    const src = ana ? BIL.map((b) => ({ k: "b:" + b.id, nom: b.nom, sous: b.items.join(", ") })).concat(ANA.map((a) => ({ k: "a:" + a.id, nom: a.nom, sous: [a.cat, a.note].filter(Boolean).join(" · ") })))
+      : (BIB || []).map((m) => ({ k: m.id, nom: m.nom, sous: m.poso, cherche: m.classe }));
+    const debut = (m) => (sansAcc(m.nom).indexOf(mots[0] || "") === 0 ? 0 : mots.every((w) => sansAcc(m.nom).indexOf(w) >= 0) ? 1 : 2);
+    const L = mots.length ? src.filter((m) => { const t = sansAcc(m.nom + " " + m.sous + " " + (m.cherche || "")); return mots.every((w) => t.indexOf(w) >= 0); }).sort((a, b) => debut(a) - debut(b)).slice(0, 8) : [];
+    z.innerHTML = L.map((m) => '<div onmousedown="event.preventDefault()" onclick="edChoisir(\'' + m.k + '\')"><b>' + A.esc(m.nom) + '</b><br><span class="mesures">' + A.esc(m.sous || "") + "</span></div>").join("");
+    z.classList.toggle("cache", !L.length);
+  };
+  q.onblur = () => setTimeout(() => z.classList.add("cache"), 150);
+}
+window.edChoisir = (k) => {
+  const h = CUR(); if (!h || h.ed == null) return; const i = h.ed;
+  if (modeAna()) {
+    const id = k.slice(2), o = k[0] === "b" ? BIL.find((z) => z.id === id) : ANA.find((z) => z.id === id); if (!o) return;
+    if (k[0] === "b" && !T) { h.items.splice(i, 1); h.ed = null; window.anaAjouter(k); return; } // bilan : ses lignes, comme un clic dans la liste
+    h.items[i] = { nom: o.nom, poso: T ? "" : o.note || "" };
+  } else { const m = (BIB || []).find((z) => z.id === k); if (!m) return; h.items[i] = { nom: m.nom, poso: m.poso || "" }; }
+  ordo(); const e = $("edPoso"); if (e) e.focus();
+};
 window.mdAjouter = (id) => { const m = BIB.find((z) => z.id === id), h = CUR(); if (!m || !h) return; h.items.push({ nom: m.nom, poso: m.poso }); ordo(); A.toast(m.nom + " ajouté."); };
 window.mdRetirer = (i) => { const h = CUR(); h.items.splice(i, 1); h.ed = null; ordo(); };
 window.mdBouger = (i, s) => { const L = CUR().items, j = i + s; if (j < 0 || j >= L.length) return; const t = L[i]; L[i] = L[j]; L[j] = t; CUR().ed = null; ordo(); };
@@ -378,7 +403,8 @@ window.mdSupprimer = async (id) => {
 
 // ───── Fenêtre « Courriers » (07/10/2026) : modèles du cabinet (bibliotheques/courriers = [{ id, nom, html, fav }], départ :
 // donnees/courriers.js), remplis pour le patient (nom, âge, diagnostic, date, ville…) puis ouverts sur la feuille A4
-// modifiable comme une ordonnance (ligne « Courriers » de la consultation du jour, antécédents) ; fiches PDF pour le patient.
+// modifiable comme une ordonnance (ligne « Courriers » de la consultation du jour, antécédents). Les fiches PDF pour le
+// patient (régimes…) sont dans le bouton « Doc. » (documentation.js, 08/10/2026).
 let CR = null, CQ = null, CRF = null; // modèles ; { pid, q } ; modèle en cours de création / modification { id }
 const ZONE = '<mark class="or-ac">À compléter</mark>';
 window.ordCourriers = async (pid) => {
@@ -393,8 +419,6 @@ function vueCourriers() {
     '<div class="md-barre"><div class="recherche">' + A.ic("loupe") + '<input id="crQ" type="search" autocomplete="off" placeholder="Rechercher un modèle de courrier…" value="' + A.esc(CQ.q) + '"></div>' +
     gerer('<button class="bt clair petit" onclick="crFiche()">' + A.ic("plus") + "Nouveau modèle</button>") + "</div>" +
     '<div class="md-liste" id="crListe"></div><p class="mesures" style="margin:6px 0 0">Cliquez sur un modèle : il s\'ouvre rempli pour le patient (nom, âge, diagnostic, date…) ; complétez les zones surlignées en jaune.</p>' +
-    '<h4 class="soustitre">Fiches à remettre au patient</h4><div class="cr-fiches">' + FICHES_PATIENT.map((f) => '<a class="bt clair petit" href="' + A.esc(f.fichier) + '" target="_blank" rel="noopener">' + A.ic("document") + A.esc(f.nom) + "</a>").join("") + "</div>" +
-    '<p class="mesures" style="margin:6px 0 0">PDF prêts à imprimer : ils s\'ouvrent dans un nouvel onglet.</p>' +
     '<div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Fermer</button></div>', "large");
   $("crQ").oninput = () => { CQ.q = $("crQ").value; listeCourriers(); };
   listeCourriers();

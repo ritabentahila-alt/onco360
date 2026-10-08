@@ -70,6 +70,10 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
   `espaces/{e}/patients/{p}/fichiers/{id}/{nom}`, règles `storage.rules`, 25 Mo), `creePar(Nom)`, `majPar(Nom)` ; droit
   `documents` ; supprimés par le médecin ou leur auteur. Types : `parametres/typesDocuments` (Configuration › Documents).
   Le stockage n'est pas dans les sauvegardes de la base.
+- `bibliotheques/documentation` : documentation à remettre aux patients (bouton « Doc. », `js/app/documentation.js`,
+  08/10/2026) = JSON [{ id, titre, cat, nom, taille, chemin (Cloud Storage `espaces/{e}/documentation/{id}/{nom}`) ou url
+  (fiche de départ du site, `donnees/documentation.js`), fav, le, par }] ; géré par le médecin ; « Remettre » = ligne
+  { t: "doc", lib, docId } dans la consultation du jour.
 - `taches/{id}` : `titre`, `desc`, `type`, `urgent`, `ech` (date), `h`, `patientId`, `patientNom`, `etablissementId`, `pour` /
   `pourNom` (responsable), `de` / `deNom` (auteur), `qui` = [auteur, responsable], `statut` afaire|encours|fait, `faitPar(Nom)`,
   `faitLe`, `fil` [{ le, par, parNom, txt, c }] (historique et commentaires `c: true` ; une entrée par modification, ajoutée
