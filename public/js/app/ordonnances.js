@@ -19,6 +19,7 @@ import { COURRIERS0, CHAMPS_COURRIER } from "../donnees/courriers.js";
 import { age } from "../moteur/outils.js";
 import { installer as installerDocumentation } from "./documentation.js"; // bouton « Doc. » (08/10/2026)
 import { enregistrerPrescription, trouverLigne, assurerConsultations, prescriptionsDe, supprimerPrescription, FAMILLES } from "./consultations.js";
+import { margesMm } from "./reglages.js"; // marges d'impression réglables (Paramètres › Impression)
 
 let A = null;
 export function installer(api) { A = api; installerDocumentation(api); }
@@ -666,7 +667,7 @@ function imprimer(w, html, format, taille) {
   const a4 = format === "A4", pt = (a4 ? 12 : 11) + taille * 0.75;
   // Marges sur chaque page (07/10/2026 : côtés élargis deux fois, haut agrandi pour l'en-tête du papier, à régler quand
   // Dr Bentahila aura mesuré ses en-têtes)
-  const css = "@page{size:" + (a4 ? "A4" : "A5") + " portrait;margin:" + (a4 ? "60mm 35mm 22mm" : "45mm 28mm 18mm") + "}html,body{margin:0}body{font-family:Arial,Helvetica,sans-serif;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact}" +
+  const css = "@page{size:" + (a4 ? "A4" : "A5") + " portrait;margin:" + margesMm(a4 ? "a4" : "a5") + "}html,body{margin:0}body{font-family:Arial,Helvetica,sans-serif;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact}" +
     ".pg{font-size:" + pt + "pt;line-height:1.45}.or-date{text-align:right;margin:0 0 6mm}.or-pat{margin:0 0 7mm}.or-m{margin:4mm 0 1mm}.or-p{margin:0 0 0 6mm}.or-sig{margin-top:10mm;text-align:right}p{margin:0 0 1.5mm}" +
     ".or-t{margin:0 0 3mm}p.or-a{margin:0 0 1.5mm 4mm}.or-rc{margin-top:6mm}mark.or-ac{background:none;color:inherit}" +
     (html.indexOf("or-ti") >= 0 ? "p{margin:0 0 4mm;text-align:justify}.or-ti{text-align:center;font-weight:bold;font-size:1.1em;margin:0 0 9mm}.or-sig{text-align:right}.or-date{text-align:right}" : ""); // courriers

@@ -14,7 +14,7 @@ ligne au journal (en bas).
 ---
 
 ## Questions et rappels pour Dr Bentahila (Claude les rappelle en début de session)
-- [ ] **Mesurer la hauteur des en-têtes du papier** (ordonnance A5, ordonnance A4, papier A4 des documents) et la largeur
+- [ ] **Mesurer la hauteur des en-têtes du papier** (réglable soi-même depuis le 08/10 : Paramètres › Impression) (ordonnance A5, ordonnance A4, papier A4 des documents) et la largeur
       des marges souhaitées, pour régler exactement les marges d'impression. Réglage provisoire du 07/10 : A5 haut 45 mm /
       côtés 28 mm ; ordonnance A4 haut 60 mm / côtés 35 mm ; documents A4 (pli, compte rendu, rendez-vous) haut 45 mm /
       côtés 35 mm ; bas 18 à 22 mm.
@@ -572,7 +572,26 @@ Décisions de Dr Bentahila (08/10) :
 - [x] Tests : médecin (renommer, ajouter, retirer, doublon refusé, boutons de la fenêtre Nouvelle tâche), secrétaire (lecture
       seule), 390 px, bilan 352 317 DH, aucune erreur.
 - [ ] Mise en ligne (site).
-**P2 – Page « Paramètres » unique** (Configuration + Paramètres, nouveaux réglages ci-dessus).
+**P2 – Page « Paramètres » unique** (fait et testé le 08/10, pas encore en ligne)
+- [x] **Une seule entrée « Paramètres »** dans le menu (visible par toute l'équipe ; « Configuration » retirée, l'ancienne
+      adresse `#configuration` renvoie vers `#parametres`). Onglets : Créneaux & horaires · Fermetures, congés & jours fériés ·
+      WhatsApp · Google Agenda · Documents · Tâches · **Impression** · **Alertes** · **Activités et rémunérations** (droit
+      « finances » : ancienne page Paramètres, son propre bouton Enregistrer). L'onglet choisi reste après un rechargement
+      (`#parametres/impression`…). Modification : droit « paramètres » (lecture seule sinon), comme avant.
+- [x] **Impression** : marges en mm (haut = place de l'en-tête du papier, côtés, bas) pour les ordonnances A5, les
+      ordonnances A4 et les documents A4 (pli, CR, rendez-vous RT) ; utilisées à l'impression et dans l'aperçu à l'écran
+      (zone « En-tête du papier »). Par défaut : 45/28/18, 60/35/22, 45/35/22 mm (les réglages d'avant).
+- [x] **Alertes** : cure annoncée N jours avant (3 par défaut), traitement terminé signalé N jours (30 par défaut).
+- [x] **WhatsApp** : délai du bouton vert réglable (par défaut 1 à 2 jours avant = 24 à 48 h) ; textes mis à jour.
+- [x] Données : `parametres/reglages` = { data: JSON { impression, whatsapp, alertes } } (seulement ce qui a changé), lu au
+      démarrage ; module `js/app/reglages.js`.
+- [x] Tests : médecin (9 onglets, enregistrement, marges à l'impression et à l'écran, textes WhatsApp), secrétaire (8 onglets,
+      sans Activités, lecture seule), 390 px, bilan 352 317 DH, aucune erreur.
+- [ ] Mise en ligne (site).
+- Note pour la salle d'attente (SA2) : un nouvel onglet de Paramètres s'ajoute dans `ONGLETS()` de `configuration.js`
+  (plus de barre d'onglets écrite en dur).
+**P2 bis – Listes et bibliothèques dans Paramètres** : listes (diagnostics, mutuelles, correspondants) ; bibliothèques des
+prescriptions (médicaments, ordonnances types, analyses, examens, courriers) gérées depuis Paramètres.
 **P3 – Google Agenda : ce que chacun y voit** (cases à cocher par personne).
 **P4 – Tâches automatiques de radiothérapie** et tâches du patient dans « Rendez-vous à venir ».
 
@@ -917,3 +936,4 @@ Onco360_Package_Cession/
 | 08/10/2026 | 6 – SA1 quater Salle d'attente | Repris de GestiCab : Matinée / Après-midi / Journée, n° d'ordre de passage, temps de présence, lignes colorées, « Dossier ouvert par », tri et recherche, impression de la liste. Règles 73/73, navigateur (390 px, bilan de référence inchangé). |
 | 08/10/2026 | 6 – SA1 ter et quater Salle d'attente | Mis en ligne (règles salle + presence, fonction prixConsultation, site v2.js?v=20261008s). Les changements non enregistrés d'une autre session (bouton « + Rendez-vous », rendez-vous à venir déplacés dans le dossier) sont partis avec. |
 | 08/10/2026 | 5 – P1 Tâches | Plan P1 à P4 décidé (types de tâches modifiables, Paramètres unique, Google Agenda par personne, tâches automatiques de radiothérapie, tâches dans « Rendez-vous à venir »). P1 fait : description visible dans la liste, Configuration › Tâches (types modifiables, « Radiothérapie » fixe). Testé (2 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |
+| 08/10/2026 | 5 – P2 Paramètres | Configuration et Paramètres fusionnés en une page « Paramètres » (9 onglets ; Activités et rémunérations avec le droit finances) ; nouveaux onglets Impression (marges) et Alertes (délais), délai du bouton WhatsApp vert ; `parametres/reglages`. Testé (2 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |

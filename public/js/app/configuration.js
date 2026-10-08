@@ -1,4 +1,6 @@
-// Onco360 – Configuration (étape C4) : créneaux et horaires, absences (fermetures, congés, congrès), jours fériés.
+// Onco360 – page « Paramètres » (Configuration et Paramètres fusionnés le 08/10/2026, P2) : créneaux et horaires, absences
+// (fermetures, congés, congrès), jours fériés, WhatsApp, Google Agenda, types de documents et de tâches, impression, alertes ;
+// onglet « Activités et rémunérations » (droit « finances ») = ancienne page Paramètres (parametres.js).
 // Tout est enregistré dans parametres/calendrier (même document que l'application actuelle : feries, abs) + horaires.
 // Couleurs Google Agenda (08/10/2026) : parametres/couleursAgenda { data: JSON { catégorie: "1"…"11" | "" } } (seulement ce
 // qui diffère des couleurs par défaut, les mêmes que COULEURS0 dans functions/logique.js) ; repeint par agendaCouleurs.
@@ -7,9 +9,11 @@ import { db } from "../config.js";
 import { FERIES0 } from "../donnees/listes.js";
 import { typesDocuments, enregistrerTypes, TYPES_DOCUMENTS0 } from "./fichiers.js";
 import { typesTaches, enregistrerTypesTaches, TYPES_TACHES0, TYPE_RT } from "./taches.js";
+import { reglages, enregistrerReglages, REGLAGES0 } from "./reglages.js";
+import { pageParametres } from "./parametres.js";
 
 let A = null;
-export function installer(api) { A = api; }
+export function installer(api) { A = api; A.enteteParametres = () => entete(); }
 const D = () => A.D();
 const JOURS = [[1, "Lundi"], [2, "Mardi"], [3, "Mercredi"], [4, "Jeudi"], [5, "Vendredi"], [6, "Samedi"], [0, "Dimanche"]];
 const TYPES = ["Congé", "Congrès", "Voyage", "Formation", "Fermeture du cabinet", "Autre"];
@@ -45,14 +49,23 @@ let TDOC = null; // types de documents du dossier (onglet Documents, 08/10/2026 
 let TTA = null; // types de tâches (onglet Tâches, 08/10/2026 ; null = à lire ; sans « Radiothérapie », fixe)
 let ED = null, ONG = "horaires", MOD = false, HET = ""; // HET : établissement dont on règle les horaires ("" = par défaut)
 
-export function pageConfiguration() {
-  if (COUL === null) { COUL = {}; getDoc(doc(db, "espaces", A.ESPACE, "parametres", "couleursAgenda")).then((s) => { COUL = s.exists() ? JSON.parse(s.data().data || "{}") : {}; if (!MOD && location.hash.startsWith("#configuration")) { ED = null; pageConfiguration(); } }).catch(() => {}); }
-  if (TTA === null) { TTA = []; typesTaches().then((L) => { TTA = L.filter((t) => t !== TYPE_RT); if (!MOD && location.hash.startsWith("#configuration")) { ED = null; pageConfiguration(); } }).catch(() => {}); }
-  if (TDOC === null) { TDOC = []; typesDocuments().then((L) => { TDOC = L.slice(); if (!MOD && location.hash.startsWith("#configuration")) { ED = null; pageConfiguration(); } }).catch(() => {}); }
-  if (!ED || !MOD) ED = { horaires: copie(horaires()), horairesEtab: copie(D().cal.horairesEtab || {}), abs: copie(D().cal.abs || []), feries: copie(D().cal.feries || []), wa: Object.assign({}, D().wa || {}), coul: Object.assign({}, COULEURS0, COUL), tdoc: TDOC.slice(), ttache: TTA.slice() };
+// Onglets de la page Paramètres (« Activités et rémunérations » : droit « finances »)
+const ONGLETS = () => [["horaires", "horloge", "Créneaux & horaires"], ["fermetures", "avion", "Fermetures, congés & jours fériés"], ["whatsapp", "whatsapp", "WhatsApp"], ["couleurs", "agenda", "Google Agenda"], ["documents", "document", "Documents"], ["taches", "taches", "Tâches"], ["impression", "imprimer", "Impression"], ["alertes", "alerte", "Alertes"]]
+  .concat(A.peut("finances") && D().tarifs ? [["activites", "bilan", "Activités et rémunérations"]] : []);
+function entete() {
+  return '<section class="accueil"><div><h2>Paramètres</h2><p>Horaires, absences et jours fériés, WhatsApp, Google Agenda, types de documents et de tâches, impression, alertes' + (A.peut("finances") ? ", activités et rémunérations" : "") + ".</p></div></section>" +
+    '<div class="ag-vues" style="align-self:flex-start">' + ONGLETS().map(([k, ico, lib]) => '<button class="' + (ONG === k ? "on" : "") + '" onclick="cfOnglet(\'' + k + "')\">" + A.ic(ico) + lib + "</button>").join("") + "</div>";
+}
+export function pageConfiguration(arg) {
+  if (arg && ONGLETS().some((o) => o[0] === arg)) ONG = arg;
+  if (!ONGLETS().some((o) => o[0] === ONG)) ONG = "horaires";
+  if (ONG === "activites") { pageParametres(); return; }
+  if (COUL === null) { COUL = {}; getDoc(doc(db, "espaces", A.ESPACE, "parametres", "couleursAgenda")).then((s) => { COUL = s.exists() ? JSON.parse(s.data().data || "{}") : {}; if (!MOD && location.hash.startsWith("#parametres")) { ED = null; pageConfiguration(); } }).catch(() => {}); }
+  if (TTA === null) { TTA = []; typesTaches().then((L) => { TTA = L.filter((t) => t !== TYPE_RT); if (!MOD && location.hash.startsWith("#parametres")) { ED = null; pageConfiguration(); } }).catch(() => {}); }
+  if (TDOC === null) { TDOC = []; typesDocuments().then((L) => { TDOC = L.slice(); if (!MOD && location.hash.startsWith("#parametres")) { ED = null; pageConfiguration(); } }).catch(() => {}); }
+  if (!ED || !MOD) ED = { horaires: copie(horaires()), horairesEtab: copie(D().cal.horairesEtab || {}), abs: copie(D().cal.abs || []), feries: copie(D().cal.feries || []), wa: Object.assign({}, D().wa || {}), reg: reglages(), coul: Object.assign({}, COULEURS0, COUL), tdoc: TDOC.slice(), ttache: TTA.slice() };
   const ok = A.peut("parametres"), esc = A.esc, dis = ok ? "" : " disabled";
-  let h = '<section class="accueil"><div><h2>Configuration</h2><p>Horaires de consultation par établissement, absences, jours fériés, messages WhatsApp, couleurs Google Agenda, types de documents et types de tâches.</p></div></section>' +
-    '<div class="ag-vues" style="align-self:flex-start"><button class="' + (ONG === "horaires" ? "on" : "") + '" onclick="cfOnglet(\'horaires\')">' + A.ic("horloge") + 'Créneaux & horaires</button><button class="' + (ONG === "fermetures" ? "on" : "") + '" onclick="cfOnglet(\'fermetures\')">' + A.ic("avion") + "Fermetures, congés & jours fériés</button><button class=\"" + (ONG === "whatsapp" ? "on" : "") + "\" onclick=\"cfOnglet('whatsapp')\">" + A.ic("whatsapp") + "WhatsApp</button><button class=\"" + (ONG === "couleurs" ? "on" : "") + "\" onclick=\"cfOnglet('couleurs')\">" + A.ic("agenda") + "Google Agenda</button><button class=\"" + (ONG === "documents" ? "on" : "") + "\" onclick=\"cfOnglet('documents')\">" + A.ic("document") + "Documents</button><button class=\"" + (ONG === "taches" ? "on" : "") + "\" onclick=\"cfOnglet('taches')\">" + A.ic("taches") + "Tâches</button></div>";
+  let h = entete();
   if (!ok) h += '<p class="mesures">Lecture seule : la modification demande le droit « paramètres ».</p>';
   if (ONG === "horaires") {
     // membre limité à certains établissements (secrétaire d'un centre) : seulement leurs horaires (07/10/2026)
@@ -94,10 +107,25 @@ export function pageConfiguration() {
         return '<div class="cf-coul"><div class="lib"><b>' + esc(lib) + '</b><span class="mesures">' + esc(nom) + (v !== COULEURS0[k] ? " · modifiée" : "") + '</span></div><div class="nuancier" role="radiogroup" aria-label="' + esc(lib) + '">' +
           COUL_G.map(([c, n, hex]) => '<button type="button" role="radio" aria-checked="' + (c === v) + '" title="' + esc(n) + '" aria-label="' + esc(n) + '" class="pastc' + (c === v ? " on" : "") + (c ? "" : " vide") + '" style="background:' + hex + '"' + dis + ' onclick="cfCoul(\'' + k + "','" + c + "')\"></button>").join("") + "</div></div>";
       }).join("") + "</section>";
+  } else if (ONG === "impression") {
+    // Marges d'impression (mm) : la marge du haut laisse la place à l'en-tête déjà imprimé sur le papier
+    const I = ED.reg.impression, champ = (q, n, lib) => '<div><label for="cfI' + q + n + '">' + lib + '</label><input id="cfI' + q + n + '" type="number" min="0" max="150" step="1" inputmode="numeric" value="' + I[q][n] + '"' + dis + ' onchange="cfImp(\'' + q + "'," + n + ',this.value)"></div>';
+    h += '<section class="carte"><h3><span class="ic">' + A.ic("imprimer") + '</span>Mise en page d\'impression</h3><p class="sous">Marges en millimètres. <b>Haut</b> = place laissée à l\'en-tête déjà imprimé sur votre papier : mesurez l\'en-tête avec une règle et ajoutez 5 à 10 mm. L\'aperçu à l\'écran (zone « En-tête du papier ») suit ces réglages.</p>' +
+      [["a5", "Ordonnances A5", "Médicaments, analyses, examens, ordonnances types, courriers en A5"], ["a4", "Ordonnances A4", "Les mêmes, imprimées en A4"], ["doc", "Documents A4", "Pli confidentiel, compte rendu de fin et rendez-vous de radiothérapie"]].map(([q, t, sous]) =>
+        '<h4 class="soustitre">' + t + '</h4><p class="mesures" style="margin:-4px 0 8px">' + sous + ' · par défaut ' + REGLAGES0.impression[q].join(" / ") + ' mm</p><div class="form" style="grid-template-columns:repeat(3,minmax(0,150px))">' + champ(q, 0, "Haut (en-tête)") + champ(q, 1, "Côtés") + champ(q, 2, "Bas") + "</div>").join("") + "</section>";
+  } else if (ONG === "alertes") {
+    const RA = ED.reg.alertes, sel = (k, l, lib, suff) => '<div><label for="cfA' + k + '">' + lib + '</label><select id="cfA' + k + '"' + dis + ' onchange="cfReg(\'alertes\',\'' + k + "',this.value)\">" + l.map((n) => "<option value=\"" + n + "\"" + (RA[k] === n ? " selected" : "") + ">" + n + " " + suff + "</option>").join("") + "</select></div>";
+    h += '<section class="carte"><h3><span class="ic">' + A.ic("alerte") + '</span>Alertes (cloche)</h3><p class="sous">Délais des alertes de la cloche, en haut de l\'écran.</p><div class="form" style="grid-template-columns:repeat(2,minmax(0,280px))">' +
+      sel("cure", [1, 2, 3, 4, 5, 7, 10, 14], "Cure prévue : prévenir", "jour(s) avant") + sel("finTrait", [7, 15, 30, 45, 60, 90], "Traitement terminé : signaler pendant", "jours") + "</div>" +
+      '<p class="mesures">Toujours signalés : cure prévue et non validée (date dépassée), dernière cure d\'un protocole, fin de radiothérapie dépassée, dosimétrie à valider.</p></section>';
   } else if (ONG === "whatsapp") {
     const ex = { prenom: "Fatima", nom: "ALAOUI Fatima", jour: "mardi 14 octobre", heure: "à 10h00", lieu: "Hôpital Cheikh Khalifa", adresse: "", medecin: "Dr BENTAHILA" };
-    h += '<section class="carte"><h3><span class="ic">' + A.ic("whatsapp") + '</span>Rappels WhatsApp</h3><p class="sous">Un bouton WhatsApp apparaît à côté de chaque rendez-vous (tableau de bord, 7 prochains jours, et dossier patient). Il ouvre WhatsApp avec le message ci-dessous déjà rempli : il ne reste qu\'à appuyer sur Envoyer. Le bouton est vert quand le rendez-vous est dans 24 à 48 h.</p>' +
+    h += '<section class="carte"><h3><span class="ic">' + A.ic("whatsapp") + '</span>Rappels WhatsApp</h3><p class="sous">Un bouton WhatsApp apparaît à côté de chaque rendez-vous (tableau de bord, 7 prochains jours, et dossier patient). Il ouvre WhatsApp avec le message ci-dessous déjà rempli : il ne reste qu\'à appuyer sur Envoyer. Le bouton est vert quand le rendez-vous est dans ' + (ED.reg.whatsapp.de * 24) + " à " + (ED.reg.whatsapp.a * 24) + ' h (réglable ci-dessous).</p>' +
       '<p class="mesures">Variables remplacées automatiquement : <b>{prenom}</b> · <b>{nom}</b> (nom complet) · <b>{jour}</b> (mardi 14 octobre) · <b>{heure}</b> (« à 10h00 », vide si pas d\'heure) · <b>{lieu}</b> (établissement) · <b>{adresse}</b> · <b>{medecin}</b>.</p></section>';
+    const RW = ED.reg.whatsapp, jr = (n) => (n === 0 ? "le jour même" : n + " jour" + (n > 1 ? "s" : "") + " avant (" + n * 24 + " h)");
+    h += '<section class="carte"><h3><span class="ic">' + A.ic("horloge") + '</span>Bouton WhatsApp vert</h3><p class="sous">Le bouton devient vert quand il est temps d\'envoyer le rappel.</p><div class="form" style="grid-template-columns:repeat(2,minmax(0,220px))">' +
+      '<div><label for="cfWde">Vert à partir de</label><select id="cfWde"' + dis + ' onchange="cfReg(\'whatsapp\',\'a\',this.value)">' + [1, 2, 3, 4, 5, 7].map((n) => "<option value=\"" + n + "\"" + (RW.a === n ? " selected" : "") + ">" + jr(n) + "</option>").join("") + "</select></div>" +
+      '<div><label for="cfWa">jusqu\'à</label><select id="cfWa"' + dis + ' onchange="cfReg(\'whatsapp\',\'de\',this.value)">' + [0, 1, 2, 3].map((n) => "<option value=\"" + n + "\"" + (RW.de === n ? " selected" : "") + ">" + jr(n) + "</option>").join("") + "</select></div></div></section>";
     CAT_WA().forEach(([k, lib]) => {
       const v = ED.wa[k] != null ? ED.wa[k] : WA0[k] || WA0.autre, perso = ED.wa[k] != null && ED.wa[k] !== (WA0[k] || WA0.autre);
       h += '<section class="carte"><div class="entete"><h3 style="margin:0">' + (k === "autre" ? A.ic("agenda") : k === "hospit" ? A.ic("hopital") : "") + esc(lib) + (perso ? ' <span class="badge b-or">personnalisé</span>' : "") + "</h3>" + (ok && perso ? '<button class="mini" onclick="cfWaDef(\'' + k + "')\">↺ Message par défaut</button>" : "") + "</div>" +
@@ -119,7 +147,7 @@ export function pageConfiguration() {
 }
 export const remplir = (m, v) => String(m || "").replace(/\{(\w+)\}/g, (t, k) => (v[k] != null ? v[k] : t)).replace(/[ \t]+([.,])/g, "$1").replace(/ {2,}/g, " ");
 const modif = (redessiner) => { MOD = true; if (redessiner) pageConfiguration(); else { const m = A.$("cfMod"); if (m) m.classList.remove("cache"); } };
-window.cfOnglet = (o) => { ONG = o; pageConfiguration(); };
+window.cfOnglet = (o) => { ONG = o; history.replaceState(null, "", "#parametres/" + o); pageConfiguration(); }; // l'onglet reste après un rechargement
 const HC = () => (HET ? ED.horairesEtab[HET] : ED.horaires);
 window.cfEtab = (c) => { HET = c; pageConfiguration(); };
 window.cfPropre = (on) => { if (on) ED.horairesEtab[HET] = copie(ED.horaires); else delete ED.horairesEtab[HET]; modif(true); };
@@ -130,6 +158,8 @@ window.cfAjPlage = (j) => { const l = HC().jours[j], der = l[l.length - 1]; l.pu
 window.cfSupPlage = (j, k) => { HC().jours[j].splice(k, 1); modif(true); };
 window.cfWa = (k, v) => { ED.wa[k] = v; const e = A.$("waEx_" + k); if (e) e.textContent = remplir(v, { prenom: "Fatima", nom: "ALAOUI Fatima", jour: "mardi 14 octobre", heure: "à 10h00", lieu: "Hôpital Cheikh Khalifa", adresse: "", medecin: "Dr BENTAHILA" }); modif(); };
 window.cfWaDef = (k) => { delete ED.wa[k]; modif(true); };
+window.cfReg = (g, k, v) => { ED.reg[g][k] = parseInt(v, 10) || 0; modif(); };
+window.cfImp = (q, n, v) => { const x = parseInt(v, 10); ED.reg.impression[q][n] = isNaN(x) ? REGLAGES0.impression[q][n] : Math.max(0, Math.min(150, x)); modif(); };
 window.cfCoul = (k, c) => { ED.coul[k] = c; modif(true); };
 window.cfTd = (i, v) => { ED.tdoc[i] = String(v || "").trim(); modif(); };
 window.cfTdBouger = (i, s) => { const L = ED.tdoc, j = i + s; if (j < 0 || j >= L.length) return; const t = L[i]; L[i] = L[j]; L[j] = t; modif(true); };
@@ -146,7 +176,9 @@ window.cfFer = (i, f, v) => { ED.feries[i][f] = v; modif(f === "d"); };
 window.cfAjFer = () => { ED.feries.push({ d: D().t, nom: "Jour férié" }); modif(true); };
 window.cfSupFer = (i) => { ED.feries.splice(i, 1); modif(true); };
 window.cfDefaut = () => {
-  if (ONG === "whatsapp") { if (!confirm("Rétablir tous les messages WhatsApp par défaut ?")) return; ED.wa = {}; modif(true); return; }
+  if (ONG === "whatsapp") { if (!confirm("Rétablir tous les messages WhatsApp et le délai du bouton vert par défaut ?")) return; ED.wa = {}; ED.reg.whatsapp = copie(REGLAGES0.whatsapp); modif(true); return; }
+  if (ONG === "impression") { if (!confirm("Rétablir les marges d'impression par défaut ?")) return; ED.reg.impression = copie(REGLAGES0.impression); modif(true); return; }
+  if (ONG === "alertes") { if (!confirm("Rétablir les délais des alertes par défaut ?")) return; ED.reg.alertes = copie(REGLAGES0.alertes); modif(true); return; }
   if (ONG === "couleurs") { if (!confirm("Rétablir les couleurs Google Agenda par défaut ?")) return; ED.coul = Object.assign({}, COULEURS0); modif(true); return; }
   if (ONG === "taches") { if (!confirm("Rétablir la liste des types de tâches de base ?")) return; ED.ttache = TYPES_TACHES0.slice(); modif(true); return; }
   if (ONG === "documents") { if (!confirm("Rétablir la liste des types de documents de départ ?")) return; ED.tdoc = TYPES_DOCUMENTS0.slice(); modif(true); return; }
@@ -163,6 +195,7 @@ window.cfEnregistrer = async () => {
     }
     H.jours[j] = pl;
   }
+  if (ED.reg.whatsapp.de > ED.reg.whatsapp.a) { A.toast("Bouton WhatsApp vert : « jusqu'à » doit être plus proche du rendez-vous que « à partir de »."); return; }
   for (const a of ED.abs) { if (!a.du) { A.toast("Une absence n'a pas de date de début."); return; } if (!a.au || a.au < a.du) a.au = a.du; }
   if (ED.feries.some((f) => !f.d)) { A.toast("Un jour férié n'a pas de date."); return; }
   const tdoc = ED.tdoc.map((t) => String(t || "").trim()).filter(Boolean);
@@ -179,10 +212,11 @@ window.cfEnregistrer = async () => {
     const coul = {}; Object.keys(COULEURS0).forEach((k) => { if (ED.coul[k] != null && ED.coul[k] !== COULEURS0[k]) coul[k] = ED.coul[k]; });
     if (JSON.stringify(coul) !== JSON.stringify(COUL || {})) { await setDoc(doc(db, "espaces", A.ESPACE, "parametres", "couleursAgenda"), { data: JSON.stringify(coul) }); COUL = coul; }
     if (tdoc.length && JSON.stringify(tdoc) !== JSON.stringify(TDOC || [])) { await enregistrerTypes(tdoc); TDOC = tdoc.slice(); }
+    if (JSON.stringify(ED.reg) !== JSON.stringify(reglages())) await enregistrerReglages(ED.reg);
     if (JSON.stringify(ttache) !== JSON.stringify(TTA || [])) { await enregistrerTypesTaches(ttache.length ? ttache : TYPES_TACHES0.slice()); TTA = ttache.length ? ttache : TYPES_TACHES0.slice(); }
     D().cal = cal; D().ctx.feries = cal.feries;
     D().patients.forEach((x) => A.recalculer(x, x.doc)); // les dates de radiothérapie dépendent des jours fériés
-    A.journal({ id: "", r: { nm: "" } }, "Configuration modifiée (horaires, absences, jours fériés, messages WhatsApp, couleurs Google Agenda, types de documents, types de tâches)");
-    MOD = false; A.toast("Configuration enregistrée."); A.entete(); pageConfiguration();
-  } catch (e) { A.occupe(b, false); A.toast(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de modifier la configuration." : "Enregistrement impossible : " + ((e && e.message) || e)); }
+    A.journal({ id: "", r: { nm: "" } }, "Configuration modifiée (horaires, absences, jours fériés, messages WhatsApp, couleurs Google Agenda, types de documents et de tâches, impression, alertes)");
+    MOD = false; A.toast("Paramètres enregistrés."); A.entete(); pageConfiguration();
+  } catch (e) { A.occupe(b, false); A.toast(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de modifier les paramètres." : "Enregistrement impossible : " + ((e && e.message) || e)); }
 };

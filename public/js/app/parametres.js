@@ -1,4 +1,4 @@
-// Onco360 – Paramètres (étape C5) : activités et rémunérations par établissement (avec date d'effet et historique),
+// Onco360 – Paramètres › Activités et rémunérations (étape C5 ; onglet de la page Paramètres depuis le 08/10/2026) : activités et rémunérations par établissement (avec date d'effet et historique),
 // catalogue des actes de radiothérapie et montant VMAT. Réservé au droit « finances » (document finances/tarifs).
 import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { db } from "../config.js";
@@ -15,13 +15,13 @@ const STD = ACTIVITES.map((a) => a[0]);
 
 export function pageParametres() {
   const esc = A.esc;
-  if (!A.peut("finances") || !D().tarifs) { A.$("page").innerHTML = '<section class="accueil"><div><h2>Paramètres</h2></div></section><section class="carte"><p class="sous">Les tarifs et rémunérations sont réservés au droit « finances ».</p></section>'; return; }
+  if (!A.peut("finances") || !D().tarifs) { A.$("page").innerHTML = A.enteteParametres() + '<section class="carte"><p class="sous">Les tarifs et rémunérations sont réservés au droit « finances ».</p></section>'; return; }
   if (!ED || !MOD) { ED = JSON.parse(JSON.stringify(D().tarifs)); ED.etablissements = ED.etablissements || {}; ED.actesRT = ED.actesRT || []; }
   EFFET = EFFET || D().t;
   const etabs = (D().etabsTous || D().etabs).map((e) => e.code); Object.keys(ED.etablissements).forEach((c) => { if (etabs.indexOf(c) < 0) etabs.push(c); });
   if (!ETAB || etabs.indexOf(ETAB) < 0) ETAB = etabs[0];
   const E = ED.etablissements[ETAB], nomE = ((D().etabsTous || D().etabs).find((e) => e.code === ETAB) || {}).nom || ETAB;
-  let h = '<section class="accueil"><div><h2>Paramètres</h2><p>Tarifs et rémunérations par établissement, actes de radiothérapie.</p></div></section>' +
+  let h = A.enteteParametres() + // onglet « Activités et rémunérations » de la page Paramètres (08/10/2026)
     '<section class="carte"><h3><span class="ic">' + A.ic("bilan") + '</span>Activités et rémunérations</h3><p class="sous">Net = brut × (1 − rétrocession) × (1 − impôt). Un changement s\'applique aux actes réalisés à partir de sa date d\'effet ; les actes plus anciens gardent l\'ancien tarif.</p>' +
     '<div class="puces">' + etabs.map((c) => '<button class="puce' + (c === ETAB ? " on" : "") + '" onclick="paEtab(\'' + esc(c) + "')\">" + esc(c) + "</button>").join("") + "</div>";
   if (!E) h += '<p class="sous">' + esc(nomE) + ' n\'a pas encore de grille tarifaire.</p><button class="bt clair petit" onclick="paCreer()">' + A.ic("plus") + "Créer la grille (copie de " + esc(ED.repli || "HGC") + ")</button>";

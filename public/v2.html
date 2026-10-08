@@ -235,8 +235,11 @@ details summary{cursor:pointer;color:var(--prim);font-weight:bold;font-size:13.5
 .or-outils{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px}.or-outils .sep{width:1px;height:24px;background:var(--trait);margin:0 4px}.or-outils .ag-vues button{padding:7px 12px}
 .or-zone{background:#E6EAF1;border-radius:var(--r-m);padding:16px;overflow:auto;max-height:60vh}
 .or-feuille{position:relative;background:#fff;margin:0 auto;box-shadow:0 2px 12px rgba(30,42,68,.15);font-family:Arial,Helvetica,sans-serif;color:#111;line-height:1.45;outline:none}
-.or-feuille.a5{width:min(100%,520px);min-height:736px;padding:158px 98px 63px}.or-feuille.a4{width:min(100%,720px);min-height:1018px;padding:206px 120px 76px}.or-feuille.a4.dc{padding-top:154px}
-.or-feuille::before{content:"En-tête du papier";position:absolute;top:0;left:0;right:0;height:128px;border-bottom:1px dashed #C9D2E2;color:#A6AEBE;font-size:11px;display:flex;align-items:center;justify-content:center;pointer-events:none}.or-feuille.a4::before{height:176px}.or-feuille.a4.dc::before{height:124px}
+/* Marges réglables (Paramètres › Impression, 08/10/2026) : mm × échelle de l'aperçu (A5 520 px = 148 mm, A4 720 px = 210 mm) */
+.or-feuille.a5{--k:3.51px;--zh:calc(var(--a5-h,45)*var(--k));width:min(100%,520px);min-height:736px;padding:var(--zh) calc(var(--a5-c,28)*var(--k)) calc(var(--a5-b,18)*var(--k))}
+.or-feuille.a4{--k:3.43px;--zh:calc(var(--a4-h,60)*var(--k));width:min(100%,720px);min-height:1018px;padding:var(--zh) calc(var(--a4-c,35)*var(--k)) calc(var(--a4-b,22)*var(--k))}
+.or-feuille.a4.dc{--zh:calc(var(--dc-h,45)*var(--k));padding:var(--zh) calc(var(--dc-c,35)*var(--k)) calc(var(--dc-b,22)*var(--k))}
+.or-feuille::before{content:"En-tête du papier";position:absolute;top:0;left:0;right:0;height:max(40px,calc(var(--zh,158px) - 30px));border-bottom:1px dashed #C9D2E2;color:#A6AEBE;font-size:11px;display:flex;align-items:center;justify-content:center;pointer-events:none}.or-feuille.a4::before{height:176px}.or-feuille.a4.dc::before{height:124px}
 .or-feuille:focus{box-shadow:0 0 0 3px #9DB6E8,0 2px 12px rgba(30,42,68,.15)}
 .or-feuille p{margin:0 0 6px}.or-feuille .or-date{text-align:right;margin-bottom:20px}.or-feuille .or-pat{margin-bottom:22px}.or-feuille .or-m{margin:14px 0 3px}.or-feuille .or-p{margin:0 0 0 22px}.or-feuille .or-sig{margin-top:34px;text-align:right}.or-feuille .or-t{margin-bottom:12px}.or-feuille .or-a{margin:0 0 6px 14px}.or-feuille .or-rc{margin-top:22px}
 /* Antécédents des prescriptions : dates à gauche, ordonnance au centre, boutons à droite */
@@ -251,7 +254,7 @@ details summary{cursor:pointer;color:var(--prim);font-weight:bold;font-size:13.5
 @media (max-width:640px){
   .md-liste{max-height:38vh}.md-t,.md-t tbody,.md-t tr,.md-t td{display:block;width:auto!important}.md-t tr:first-child{display:none}
   .md-t tr{border-top:1px solid #EEF1F6;padding:6px 2px}.md-t td{border:0;padding:2px 8px}.md-t td.act{text-align:left;padding-top:4px}.md-t td.act .ico:first-child{margin-left:0}
-  .or-zone{padding:8px}.or-feuille.a5,.or-feuille.a4{padding:84px 18px 24px;min-height:0}.or-feuille::before,.or-feuille.a4::before{height:64px}
+  .or-zone{padding:8px}.or-feuille.a5,.or-feuille.a4,.or-feuille.a4.dc{padding:84px 18px 24px;min-height:0}.or-feuille::before,.or-feuille.a4::before{height:64px}
 }
 @media (max-width:640px){
   .cs-t{flex-wrap:wrap;gap:4px 8px}.cs-t .ti{flex-basis:calc(100% - 22px);order:3;margin-left:20px}.cs-t .au{margin-left:auto}
@@ -595,8 +598,7 @@ nav a.actif .nb-menu{background:#fff;color:var(--prim)}
     <a href="#patients" data-p="patients"><svg class="i"><use href="#i-patients"/></svg>Patients</a>
     <a href="#taches" data-p="taches"><svg class="i"><use href="#i-taches"/></svg>Tâches<span class="nb-menu cache" id="nbTaches"></span></a>
     <a href="#protocoles" data-p="protocoles"><svg class="i"><use href="#i-protocoles"/></svg>Protocoles</a>
-    <a href="#configuration" data-p="configuration"><svg class="i"><use href="#i-configuration"/></svg>Configuration</a>
-    <a href="#parametres" data-p="parametres" data-droit="parametres"><svg class="i"><use href="#i-parametres"/></svg>Paramètres</a>
+    <a href="#parametres" data-p="parametres"><svg class="i"><use href="#i-parametres"/></svg>Paramètres</a>
     <a href="#bilan" data-p="bilan" data-droit="finances"><svg class="i"><use href="#i-bilan"/></svg>Bilan</a>
     <a href="#profil" data-p="profil"><svg class="i"><use href="#i-profil"/></svg>Profil</a>
   </nav>

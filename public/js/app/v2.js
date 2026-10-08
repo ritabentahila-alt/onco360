@@ -24,6 +24,7 @@ import { installer as installerBilan, pagePageBilan } from "./bilan.js";
 import { installer as installerOrdonnances, remplacerOrdosTypes } from "./ordonnances.js";
 import { installer as installerFichiers, htmlFichiers, nbFichiers, oublierFichiers, suivreEtablissementFichiers, supprimerFichiers } from "./fichiers.js";
 import { installer as installerConsultations, htmlConsultations, nbConsultations, oublierConsultations, suivreEtablissement, supprimerConsultations } from "./consultations.js";
+import { installer as installerReglages, reglages, appliquerImpression } from "./reglages.js";
 import { installer as installerTaches, pageTaches, demarrerTaches, blocAccueil as blocTaches } from "./taches.js";
 import { installer as installerSalle, pageSalle, demarrerSalle, apresStatutRdv, apresVenuChimio, apresPrix, bullesDossier, presenceDossier, majPresenceDossier } from "./salle.js";
 import { ACTES_RT } from "../donnees/listes.js";
@@ -50,7 +51,7 @@ window.nouveauPatient = () => creerPatient();
 // ───── Chargement ─────
 onAuthStateChanged(auth, async (u) => {
   if (!u) { location.replace("index.html"); return; }
-  try { D = await charger(u); entete(); route(); demarrerTaches(); demarrerSalle(); publierTarifsC(); nomTitulaire().then(migrations); }
+  try { D = await charger(u); appliquerImpression(); entete(); route(); demarrerTaches(); demarrerSalle(); publierTarifsC(); nomTitulaire().then(migrations); }
   catch (e) { $("page").innerHTML = '<div class="carte"><h3>Impossible d\'ouvrir Onco360</h3><p class="sous">' + esc(e && e.code === "permission-denied" ? "Accès refusé : votre accès a peut-être été désactivé. Contactez le médecin titulaire." : e.message) + '</p><button class="bt clair" onclick="document.getElementById(\'btSortie\').click()">Se déconnecter</button></div>'; }
 });
 async function charger(u) {
@@ -59,7 +60,7 @@ async function charger(u) {
   if (m.data().actif === false) throw new Error("Votre accès à Onco360 a été désactivé. Contactez le médecin titulaire.");
   // Toutes les lectures partent en même temps (au lieu de l'une après l'autre) : ouverture nettement plus rapide
   const membre = m.data(); membre.droitsStockes = membre.droits || {}; membre.droits = droitsEffectifs(membre); const col = collection(db, "espaces", ESPACE, "patients"), E = (c, i) => doc(db, "espaces", ESPACE, c, i);
-  const [pr, sp, sc, qs, sl, sE, sT, sA, sW, sG, sMT, sTC] = await Promise.all([
+  const [pr, sp, sc, qs, sl, sE, sT, sA, sW, sG, sMT, sTC, sRG] = await Promise.all([
     getDoc(doc(db, "utilisateurs", u.uid)).catch(() => null),
     getDocs(collection(db, "espaces", ESPACE, "protocoles")),
     getDoc(E("parametres", "calendrier")),
@@ -72,6 +73,7 @@ async function charger(u) {
     getDoc(E("parametres", "agendaGoogle")).catch(() => null),
     getDoc(E("parametres", "medecinTitulaire")).catch(() => null),
     getDoc(E("parametres", "tarifsConsultations")).catch(() => null),
+    getDoc(E("parametres", "reglages")).catch(() => null), // Paramètres : impression, WhatsApp, alertes (08/10/2026)
   ]);
   const profil = pr && pr.exists() ? pr.data() : {}, bib = {};
   const bibDoc = {}, bibOrdre = {};
@@ -87,7 +89,8 @@ async function charger(u) {
   const agendaG = sG && sG.exists() ? JSON.parse(sG.data().data || "{}") : null;
   const medTitulaire = sMT && sMT.exists() ? sMT.data() : null;
   const tarifsC = sTC && sTC.exists() ? JSON.parse(sTC.data().data || "null") : null;
-  return { u, membre, profil, cal, ctx, t, patients, listes, etabs, etabsTous, tarifs, bibDoc, bibOrdre, activites, wa, agendaG, medTitulaire, tarifsC };
+  let reglagesC = {}; try { reglagesC = sRG && sRG.exists() ? JSON.parse(sRG.data().data || "{}") : {}; } catch (e) { /* réglages illisibles : par défaut */ }
+  return { u, membre, profil, cal, ctx, t, patients, listes, etabs, etabsTous, tarifs, bibDoc, bibOrdre, activites, wa, agendaG, medTitulaire, tarifsC, reglages: reglagesC };
 }
 // Nom du médecin titulaire (signature des messages WhatsApp envoyés par la secrétaire ou l'infirmière)
 async function nomTitulaire() {
@@ -229,7 +232,7 @@ document.addEventListener("input", (ev) => { if (ev.target && ev.target.classLis
 const ferieLe = (d) => (D.ctx.feries || []).map((f) => (typeof f === "string" ? { d: f, nom: "Jour férié" } : f)).find((f) => f.d === d);
 const API = { D: () => D, ESPACE, $, esc, ic, dfr, dfrA, cap, jourLong, val, occupe, erreur, toast, fenetre, fermerFenetre: () => window.fermerFenetre(), peut, voit, traitMod, enregistrer, pageDossier: (id) => reafficher(id), recalculer, journal };
 API.sansAcc = sansAcc; API.medecinFiche = () => medecinFiche(); API.entete = () => entete(); API.voitRdv = () => voitRdv(); API.voitRT = (x) => voitRT(x); API.champsMed = (C, off) => champsMed(C, off); API.CHAMPS_MED = () => CHAMPS_MED; API.fmtMil = (n) => fmtMil(n); API.ferieLe = (d) => ferieLe(d); API.salleVenuChimio = (x, lid, n, j, oui) => apresVenuChimio(x, lid, n, j, oui); API.serveur = appelServeur; API.tarifsVus = () => tarifsVus(); API.publierTarifsC = () => publierTarifsC(); API.encaissementsDe = (x, f) => encaissementsDe(x, f); API.peutPrix = () => peut("finances") || prixParServeur();
-installerChimio(API); installerAgenda(API); installerConfig(API); installerProfil(API); installerProtocoles(API); installerParametres(API); installerBilan(API); installerConsultations(API); installerOrdonnances(API); installerDocuments(API); installerFichiers(API); installerTaches(API); installerSalle(API);
+installerChimio(API); installerAgenda(API); installerConfig(API); installerProfil(API); installerProtocoles(API); installerParametres(API); installerBilan(API); installerConsultations(API); installerOrdonnances(API); installerDocuments(API); installerFichiers(API); installerTaches(API); installerReglages(API); installerSalle(API);
 
 function entete() {
   const p = D.profil, mb = D.membre, nom = (p.nom || mb.nom || "").replace(/^Dr\.?\s*/i, "");
@@ -297,7 +300,7 @@ function messageWA(x, cat, d, h) {
   return remplir(m, { prenom: P.prenom ? cap(String(P.prenom).toLowerCase()) : x.r.nm, nom: x.r.nm, jour: JOURS_L[j.getDay()] + " " + j.getDate() + " " + MOIS_L[j.getMonth()], heure: h ? "à " + h.replace(":", "h") : "", lieu: e.nom || x.doc.etablissementId || "", adresse: e.adresse || "", medecin: signatureWA() });
 }
 const btnWA = (x, cat, d, h) => {
-  if (!cat) return ""; const g = ecart(d, D.t), proche = g >= 1 && g <= 2, ok = !!numeroWA(x.P.tel);
+  if (!cat) return ""; const g = ecart(d, D.t), RW = reglages().whatsapp, proche = g >= RW.de && g <= RW.a, ok = !!numeroWA(x.P.tel);
   return '<button class="wa' + (proche ? " proche" : "") + '"' + (ok ? "" : " disabled") + ' aria-label="Rappel WhatsApp" title="' + (ok ? "Rappel WhatsApp" + (proche ? " (rendez-vous dans " + g * 24 + " h)" : "") : "Pas de numéro de téléphone dans le dossier") + '" onclick="event.stopPropagation();envoyerWA(\'' + x.id + "','" + cat + "','" + d + "','" + (h || "") + '\')">' + LOGO_WA + "</button>";
 };
 const LOGO_WA = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.6.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.3-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 0 0 1.8-1.2 2.2 2.2 0 0 0 .1-1.2c0-.1-.2-.2-.5-.3Z"/></svg>';
@@ -323,15 +326,16 @@ function absences() {
   return ab.concat(fe).sort((p, q) => p.a.du.localeCompare(q.a.du));
 }
 function alertes() {
+  const RA = reglages().alertes; // délais réglables (Paramètres › Alertes)
   const t = D.t, al = [], R = "var(--rouge)", O = "#E07A2F", J = "#D6B42A", V = "var(--vert)";
   D.patients.forEach(({ id, r }) => {
     (r.act || []).forEach((a) => {
       if (!a.d) return; const g = ecart(a.d, t);
       if (g < 0) al.push({ o: 0, c: R, h: "<b>" + esc(r.nm) + "</b> – " + esc(a.nom) + " C" + a.k + " prévue le " + dfr(a.d) + ", non validée", id });
-      else if (g > 0 && g <= 3) al.push({ o: 1, c: O, h: "<b>" + esc(r.nm) + "</b> – " + esc(a.nom) + " C" + a.k + " dans " + g + " jour" + (g > 1 ? "s" : "") + " (" + dfr(a.d) + ")", id });
+      else if (g > 0 && g <= RA.cure) al.push({ o: 1, c: O, h: "<b>" + esc(r.nm) + "</b> – " + esc(a.nom) + " C" + a.k + " dans " + g + " jour" + (g > 1 ? "s" : "") + " (" + dfr(a.d) + ")", id });
       if (a.c && a.k === a.nb) al.push({ o: 2, c: J, h: "<b>" + esc(r.nm) + "</b> – " + esc(a.nom) + " : dernière cure (C" + a.k + "/" + a.nb + ")", id });
     });
-    if (r.t && r.t.st === "fin" && r.t.fin && ecart(t, r.t.fin) <= 30) al.push({ o: 3, c: V, h: "<b>" + esc(r.nm) + "</b> – " + esc(r.t.nom) + " terminé le " + dfr(r.t.fin), id });
+    if (r.t && r.t.st === "fin" && r.t.fin && ecart(t, r.t.fin) <= RA.finTrait) al.push({ o: 3, c: V, h: "<b>" + esc(r.nm) + "</b> – " + esc(r.t.nom) + " terminé le " + dfr(r.t.fin), id });
     if (voitRT({ r })) (r.rtE || []).forEach((x) => { if (x.fin && x.fin < t) al.push({ o: 1, c: O, h: "<b>" + esc(r.nm) + "</b> – radiothérapie " + esc(x.acte) + " : fin prévue dépassée, à clôturer", id }); });
     if (voitRT({ r })) (r.rt || []).forEach((x) => { if (x.dosi && x.d <= t) al.push({ o: x.deb && ecart(x.deb, t) <= 2 ? 0 : 1, c: x.deb && ecart(x.deb, t) <= 2 ? R : O, h: "<b>" + esc(r.nm) + "</b> – dosimétrie à valider" + (x.deb ? " (1re séance le " + dfr(x.deb) + ")" : ""), id }); });
   });
@@ -348,7 +352,8 @@ const FILTRES = {
 };
 
 // ───── Pages ─────
-const PAGES = { accueil: ["Tableau de bord", pageAccueil], agenda: ["Agenda / Rendez-vous", () => pageAgenda()], configuration: ["Configuration", () => pageConfiguration()], profil: ["Profil", () => pageProfil()], protocoles: ["Protocoles", () => pageProtocoles()], parametres: ["Paramètres", () => pageParametres()], bilan: ["Bilan", () => pagePageBilan()], salle: ["Salle d'attente", () => pageSalle()], patients: ["Patients", pagePatients], taches: ["Tâches", () => pageTaches()], dossier: ["Dossier patient", pageDossier] };
+// « Configuration » et « Paramètres » fusionnés en une page « Paramètres » (P2, 08/10/2026) : #configuration y renvoie
+const PAGES = { accueil: ["Tableau de bord", pageAccueil], agenda: ["Agenda / Rendez-vous", () => pageAgenda()], configuration: ["Paramètres", () => { location.replace("#parametres"); }], profil: ["Profil", () => pageProfil()], protocoles: ["Protocoles", () => pageProtocoles()], parametres: ["Paramètres", (a) => pageConfiguration(a)], bilan: ["Bilan", () => pagePageBilan()], salle: ["Salle d'attente", () => pageSalle()], patients: ["Patients", pagePatients], taches: ["Tâches", () => pageTaches()], dossier: ["Dossier patient", pageDossier] };
 function route() {
   const h = location.hash.replace("#", ""), i = h.indexOf("/"), p = i < 0 ? h : h.slice(0, i), arg = i < 0 ? null : decodeURIComponent(h.slice(i + 1)), nom = PAGES[p] ? p : "accueil";
   if (!$("fenetre").classList.contains("cache")) window.fermerFenetre();
@@ -384,7 +389,7 @@ function pageAccueil() {
     categorie("rt", "☢️ Radiothérapie", pj.rt) + categorie("co", "🩺 Consultations", pj.co) + categorie("ch", "💉 Chimiothérapie", pj.ch) +
     (tot ? "" : '<div class="cat"><div class="vide" style="padding:12px 14px">Rien de prévu aujourd\'hui.</div></div>') + "</section>";
 
-  h += '<section class="carte"><h3><span class="ic">' + ic("liste") + '</span>Les 7 prochains jours</h3><p class="sous">Rendez-vous, cures, séances et radiothérapie. Bouton WhatsApp vert : rappel à envoyer (rendez-vous dans 24 à 48 h).</p>';
+  h += '<section class="carte"><h3><span class="ic">' + ic("liste") + '</span>Les 7 prochains jours</h3><p class="sous">Rendez-vous, cures, séances et radiothérapie. Bouton WhatsApp vert : rappel à envoyer (rendez-vous dans ' + (reglages().whatsapp.de * 24) + " à " + (reglages().whatsapp.a * 24) + ' h).</p>';
   if (!ag.length) h += '<p class="sous">Rien de prévu sur les 7 prochains jours.</p>';
   let jc = "";
   ag.forEach((e) => {
