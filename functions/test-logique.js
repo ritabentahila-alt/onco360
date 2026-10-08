@@ -244,3 +244,19 @@ const infirmiere = { actif: true, etablissements: ["HGC", "CIOC"], droits: { tra
   ok(L.idAuto("dosi", "P1", "rA") === L.idAuto("dosi", "P1", "rA") && L.idAuto("dosi", "P1", "rA") !== L.idAuto("dosi", "P2", "rA"), "identifiant fixe par règle, patient et occurrence (jamais deux fois la même tâche)");
   ok(L.addMois("2026-01-31", 1) === "2026-02-28", "ajout de mois : fin de mois respectée");
 })();
+
+// ───── Dosimétrie à valider : une tâche, plus un événement d'agenda (08/10/2026) ─────
+(async () => {
+  await new Promise((ok) => setTimeout(ok, 500));
+  const P = { etablissementId: "HGC", resume: JSON.stringify({ ag: [{ k: "P|rt|r1|dosi", t: "☢️ X – Dosimétrie à valider", d: "2026-10-09", f: "2026-10-12" }, { k: "P|rt|r1|deb", t: "☢️ X – 1re séance", d: "2026-10-12" }] }) };
+  const ev = L.evtsPatient(P, { actif: true, tousEtablissements: true, droits: { radiotherapie: "voir" } }, "2026-10-08");
+  ok(ev.length === 1 && ev[0].k === "P|rt|r1|deb", "résumé ancien contenant « Dosimétrie à valider » : pas envoyé à Google Agenda (la 1re séance oui)");
+})();
+
+// Dosimétrie : tâche seulement entre le scanner et la 1re séance (pas pour une ancienne radiothérapie jamais validée)
+(async () => {
+  await new Promise((ok) => setTimeout(ok, 600));
+  const d = { rtsJson: JSON.stringify([{ id: "vieux", scan: "2026-05-01", deb: "2026-05-10", nb: "20" }, { id: "sansdeb", scan: "2026-10-01" }, { id: "encours", scan: "2026-10-05", deb: "2026-10-08" }]), rdvsJson: "[]", resume: "{}" };
+  const v = L.tachesAutoPatient("P", d, L.reglesAuto({}), "2026-10-08", []).voulues.filter((x) => x.regle === "dosi").map((x) => x.cle).sort().join(",");
+  ok(v === "encours,sansdeb", "dosimétrie : tâche pendant la période scanner → 1re séance (ou sans 1re séance), pas pour une RT déjà commencée");
+})();

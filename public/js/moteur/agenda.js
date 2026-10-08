@@ -1,7 +1,7 @@
 // Chimio HGC v2 – événements Google Agenda d'un dossier (règle D3). Les clés « k » sont identiques à la v1 (pas de doublon à la bascule).
 import { etatLigne, protocoleDe, protocoleCure, seancesDe, seancesCure } from "./doses.js";
 import { typeRdv, libRdv } from "./rdv.js";
-import { finRT, dosimetrie } from "./rt.js";
+import { finRT } from "./rt.js";
 export function evtsAgenda(P, ctx) {
   const t = ctx.aujourdhui, out = [], nm = P.nom || (P.nomF || "").toUpperCase() + " " + (P.prenom || ""), pid = P.id, hop = P.hop ? " (" + P.hop + ")" : "";
   (P.rdvs || []).forEach((r) => {
@@ -19,8 +19,7 @@ export function evtsAgenda(P, ctx) {
   (P.rts || []).forEach((r, j) => {
     if (r.fin) return; const f = finRT(r, ctx.feries), id = r.id || j, a = r.acte || "Radiothérapie", hr = r.hop ? " (" + r.hop + ")" : hop;
     [[r.scan, "scan", "Scanner de centrage"], [r.deb, "deb", "1re séance de radiothérapie"], [f, "fin", "Fin de radiothérapie prévue"]].forEach((z) => { if (z[0] && z[0] >= t) out.push({ k: pid + "|rt|" + id + "|" + z[1], t: "☢️ " + nm + " – " + z[2] + " · " + a + hr, x: P.diag || "", d: z[0] }); });
-    // Dosimétrie à valider : du scanner à la 1re séance (journées entières), jusqu'à la validation par le médecin
-    const dz = dosimetrie(r, t); if (dz) out.push({ k: pid + "|rt|" + id + "|dosi", t: "☢️ " + nm + " – Dosimétrie à valider · " + a + hr, x: P.diag || "", d: dz.du, f: dz.au > dz.du ? dz.au : "" });
+    // Dosimétrie à valider : plus un événement d'agenda depuis le 08/10/2026 (c'est une tâche pour le médecin, P4)
   });
   return out;
 }

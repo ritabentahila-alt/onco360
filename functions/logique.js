@@ -38,7 +38,7 @@ function evtsPatient(docData, membre, auj) {
   if (!docData || !voitPatient(membre, docData.etablissementId)) return [];
   let r = {};
   try { r = JSON.parse(docData.resume || "{}"); } catch (e) { return []; }
-  return (r.ag || []).filter((e) => dansFenetre(e, auj) && permis(membre, e, r));
+  return (r.ag || []).filter((e) => dansFenetre(e, auj) && permis(membre, e, r) && !/\|dosi$/.test(String(e.k))); // dosimétrie : une tâche (08/10/2026)
 }
 // Absences du cabinet (Configuration › Fermetures) : dans l'agenda du médecin titulaire seulement
 function evtsAbsences(cal, auj) {
@@ -143,7 +143,7 @@ function tachesAutoPatient(pid, docData, regles, auj, feries, opts) {
   (regles || []).filter((R) => R.actif !== false).forEach((R) => {
     const n = parseInt(R.n, 10) || 0, ok = (d) => !R.depuis || (d && d >= R.depuis);
     const v = (cle, ech, suffixe, rt) => voulues.push({ id: idAuto(R.id, pid, cle), regle: R.id, ev: R.ev, cle, titre: R.titre + (suffixe ? " – " + suffixe : ""), type: R.type || "", pour: R.pour || "titulaire", ech: ech || "", rt: rt || "" });
-    if (R.ev === "dosi") rts.forEach((r) => { if (!r.id || !r.scan || r.annule) return; if (r.dosi || r.fin) resolues.push(idAuto(R.id, pid, r.id)); else if (auj >= r.scan) v(r.id, r.deb || "", r.acte || "", r.id); });
+    if (R.ev === "dosi") rts.forEach((r) => { if (!r.id || !r.scan || r.annule) return; if (r.dosi || r.fin) resolues.push(idAuto(R.id, pid, r.id)); else if (auj >= r.scan && (!r.deb || auj <= r.deb)) v(r.id, r.deb || "", r.acte || "", r.id); }); // même période que l'écran (rt.js dosimetrie) : du scanner à la 1re séance
     if (R.ev === "finrt") rts.forEach((r) => { if (!r.id || !r.deb || r.annule) return; if (r.fin) { resolues.push(idAuto(R.id, pid, r.id)); return; } const fp = finRT(r, feries); if (fp && auj > fp) v(r.id, addJ(fp, 1), (r.acte || "radiothérapie") + " (fin prévue le " + jfr(fp) + ")", r.id); });
     if (R.ev === "derniereCure") act.forEach((a) => { if (a.k === a.nb && ok(a.d)) v(a.nom + "|" + a.k, addJ(a.d, n), "C" + a.k + "/" + a.nb + " " + a.nom + " le " + jfr(a.d)); });
     if (R.ev === "veilleJ1") act.forEach((a) => { const dv = addJ(a.d, -1); if (auj >= dv && auj <= a.d && ok(dv)) v(a.nom + "|" + a.k + "|" + a.d, dv, "C" + a.k + " " + a.nom + " le " + jfr(a.d)); });

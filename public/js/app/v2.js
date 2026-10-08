@@ -259,7 +259,7 @@ function programmeDuJour() {
       rt.push({ id, nm: r.nm, lib, de: x.acte, cls: x.deb === t ? "b-ch" : x.rest <= 5 ? "b-or" : "b-rt", o: x.deb === t ? 0 : x.rest <= 5 ? 1 : 2 });
     });
     if (okRT) (r.rt || []).forEach((x) => { if (x.d === t && /Scanner/.test(x.lib)) rt.push({ id, nm: r.nm, lib: "Scanner de centrage", de: x.lib.replace(/^RT · /, "").replace(/ · Scanner de centrage$/, ""), cls: "b-co", o: 0 }); });
-    if (okRT) (r.rt || []).forEach((x) => { if (x.dosi && x.d <= t && (x.f || x.d) >= t) rt.push({ id, nm: r.nm, lib: "Dosimétrie à valider", de: x.lib.replace(/^RT · /, "").replace(/ · Dosimétrie à valider$/, ""), cls: "b-or", o: 0 }); });
+    // « Dosimétrie à valider » : une tâche pour le médecin (P4, 08/10/2026), plus une ligne du programme du jour
     if (okCo) (P.rdvs || []).forEach((x) => {
       if (x.st === "absent") return; const hs = typeRdv(x.type) === "hospit";
       if (hs ? x.d <= t && (x.f || x.d) >= t : x.d === t) co.push({ id, nm: r.nm, h: hs ? "Hospit." : x.h || "—", lib: hs ? "Hospitalisation" : cap(libRdv(x).replace("Consultation ", "")), fait: x.st === "fait" });

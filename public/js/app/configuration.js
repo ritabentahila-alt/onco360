@@ -46,7 +46,7 @@ const copie = (o) => JSON.parse(JSON.stringify(o));
 const COUL_G = [["", "Couleur de l'agenda", "#FFFFFF"], ["11", "Tomate", "#D50000"], ["4", "Flamant", "#E67C73"], ["6", "Mandarine", "#F4511E"], ["5", "Banane", "#F6BF26"], ["2", "Sauge", "#33B679"], ["10", "Basilic", "#0B8043"], ["7", "Paon", "#039BE5"], ["9", "Myrtille", "#3F51B5"], ["1", "Lavande", "#7986CB"], ["3", "Raisin", "#8E24AA"], ["8", "Graphite", "#616161"]];
 export const COULEURS0 = { annonce: "4", suivi: "7", rtc: "1", hospit: "9", autre: "7", chimio: "10", rt: "3", dosi: "6", abs: "5", tache: "8", tacheUrg: "11" };
 const CAT_COUL = [["annonce", "Consultation d'annonce"], ["suivi", "Consultation de suivi / contrôle"], ["rtc", "Consultation en cours de radiothérapie"], ["hospit", "Hospitalisation"], ["autre", "Autres consultations (activités des Paramètres : 2nd avis…)"],
-  ["chimio", "Chimiothérapie (cures J1, J8, J15…)"], ["rt", "Radiothérapie (scanner, 1re séance, fin)"], ["dosi", "Dosimétrie à valider"], ["abs", "Absences et congés"], ["tache", "Tâches"], ["tacheUrg", "Tâches urgentes ou en retard"]];
+  ["chimio", "Chimiothérapie (cures J1, J8, J15…)"], ["rt", "Radiothérapie (scanner, 1re séance, fin)"], ["abs", "Absences et congés"], ["tache", "Tâches"], ["tacheUrg", "Tâches urgentes ou en retard"]];
 let COUL = null; // couleurs du cabinet lues (null = à lire)
 let TDOC = null; // types de documents du dossier (onglet Documents, 08/10/2026 ; null = à lire)
 // Tâches automatiques (P4, 08/10/2026) : parametres/tachesAuto = { data: JSON { regles } } ; mêmes règles fixes et événements
@@ -201,13 +201,14 @@ window.cfWaDef = (k) => { delete ED.wa[k]; modif(true); };
 // ───── Tâches automatiques : une carte par règle (actif, titre, type, responsable, délai) ; + règle du médecin ─────
 function sectionAuto(ok, dis) {
   const esc = A.esc, types = ED.ttache.concat([TYPE_RT]), mb = (MBR || []).filter((m) => m.actif !== false);
-  const optsPour = (v) => '<option value="titulaire"' + (v === "titulaire" ? " selected" : "") + ">Médecin titulaire</option>" + mb.map((m) => '<option value="' + esc(m.uid) + '"' + (m.uid === v ? " selected" : "") + ">" + esc(m.nom || m.email) + "</option>").join("") + (v !== "titulaire" && !mb.some((m) => m.uid === v) ? '<option value="' + esc(v) + '" selected>(n\'a plus accès : médecin titulaire)</option>' : "");
+  // dosimétrie et fin de RT : validées par un médecin seulement, donc responsable = un médecin
+  const optsPour = (v, fixe) => '<option value="titulaire"' + (v === "titulaire" ? " selected" : "") + ">Médecin titulaire</option>" + mb.filter((m) => !fixe || m.role === "medecin").map((m) => '<option value="' + esc(m.uid) + '"' + (m.uid === v ? " selected" : "") + ">" + esc(m.nom || m.email) + "</option>").join("") + (v !== "titulaire" && !mb.some((m) => m.uid === v) ? '<option value="' + esc(v) + '" selected>(n\'a plus accès : médecin titulaire)</option>' : "");
   return '<section class="carte"><h3><span class="ic">' + A.ic("horloge") + '</span>Tâches automatiques</h3><p class="sous">Onco360 crée ces tâches tout seul (à chaque enregistrement d\'un dossier et chaque nuit), une seule fois par patient et par événement, même si vous la supprimez ensuite. Elles apparaissent dans les Tâches de la personne responsable, dans le dossier du patient et, si elles ont une échéance, dans son Google Agenda.</p>' +
     ED.auto.map((R, i) => { const E = EV_AUTO[R.ev] || ["?", ""];
       return '<div class="cf-auto' + (R.actif === false ? " off" : "") + '"><div class="t"><label class="chk"><input type="checkbox"' + (R.actif !== false ? " checked" : "") + dis + ' onchange="cfAuto(' + i + ',\'actif\',this.checked)"> <b>' + esc(E[0]) + "</b></label>" + (R.fixe ? '<span class="badge b-gr">fixe</span>' : ok ? '<button class="mini rouge" onclick="cfAutoSup(' + i + ')" aria-label="Supprimer cette tâche automatique">✕</button>' : "") + '</div><p class="mesures">' + esc(E[1]) + "</p>" +
         '<div class="form" style="grid-template-columns:2fr 1fr 1fr' + (E[2] ? " 120px" : "") + '"><div><label>Titre de la tâche</label><input value="' + esc(R.titre) + '"' + dis + ' onchange="cfAuto(' + i + ',\'titre\',this.value)"></div>' +
         '<div><label>Type</label><select' + dis + ' onchange="cfAuto(' + i + ',\'type\',this.value)">' + types.concat(R.type && types.indexOf(R.type) < 0 ? [R.type] : []).map((t) => "<option" + (t === R.type ? " selected" : "") + ">" + esc(t) + "</option>").join("") + "</select></div>" +
-        '<div><label>Pour</label><select' + dis + ' onchange="cfAuto(' + i + ',\'pour\',this.value)">' + optsPour(R.pour || "titulaire") + "</select></div>" +
+        '<div><label>Pour</label><select' + dis + ' onchange="cfAuto(' + i + ',\'pour\',this.value)">' + optsPour(R.pour || "titulaire", R.fixe) + "</select></div>" +
         (E[2] ? '<div><label>' + esc(E[2]) + '</label><input type="number" min="0" max="365" value="' + esc(R.n == null ? 0 : R.n) + '"' + dis + ' onchange="cfAuto(' + i + ',\'n\',this.value)"></div>' : "") + "</div></div>";
     }).join("") +
     (ok ? '<div class="actr" style="justify-content:flex-start;margin-top:10px"><select id="cfAutoEv">' + Object.keys(EV_AUTO).filter((k) => !AUTO_FIXES.some((f) => f.ev === k)).map((k) => '<option value="' + k + '">' + esc(EV_AUTO[k][0]) + "</option>").join("") + '</select><button class="bt clair petit" onclick="cfAutoAj()">' + A.ic("plus") + "Ajouter une tâche automatique</button></div>" : "") + "</section>";
@@ -231,7 +232,7 @@ function categoriesAgenda() {
     ["Consultations et hospitalisations", [["rdv:annonce", "Consultation d'annonce"], ["rdv:suivi", "Consultation de suivi"], ["rdv:controle", "Consultation de contrôle"], ["rdv:rtc", "Consultation en cours de radiothérapie"], ["rdv:hospit", "Hospitalisation"]]
       .concat(Object.keys(acts).sort().map((k) => ["rdv:act:" + k, acts[k]]))],
     ["Chimiothérapie", [["chimio:cure", "Cures (J1)"], ["chimio:seance", "Séances J8, J15…"]]],
-    ["Radiothérapie", [["rt:scan", "Scanner de centrage"], ["rt:deb", "1re séance"], ["rt:fin", "Fin de radiothérapie prévue"], ["rt:dosi", "Dosimétrie à valider"]]],
+    ["Radiothérapie", [["rt:scan", "Scanner de centrage"], ["rt:deb", "1re séance"], ["rt:fin", "Fin de radiothérapie prévue"]]],
     ["Tâches dont vous êtes responsable (avec une échéance)", types.map((t) => ["tache:" + t, t]).concat([["tache:", "Tâches sans type"]])],
   ].concat(D().membre.role === "medecin" ? [["Cabinet", [["abs", "Absences et congés (agenda du médecin titulaire)"]]]] : []);
 }

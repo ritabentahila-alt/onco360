@@ -2,7 +2,7 @@
 // Les consultations ont une heure (grille au pas de 15 min) ; cures, séances, hospitalisations et étapes de radiothérapie
 // s'affichent dans la ligne « Journée ». Toucher un créneau libre = créer un rendez-vous à cette heure.
 import { etatLigne, protocoleDe, seancesCure } from "../moteur/doses.js";
-import { finRT, dosimetrie } from "../moteur/rt.js";
+import { finRT } from "../moteur/rt.js";
 import { typeRdv, libRdv } from "../moteur/rdv.js";
 import { addJ, ouvre } from "../moteur/outils.js";
 import { horaires } from "./configuration.js";
@@ -45,7 +45,7 @@ function evenements(du, au) {
     });
     if (A.voitRT(x)) (P.rts || []).forEach((r) => {
       const fin = r.fin || finRT(r, ctx.feries), a = r.acte || "Radiothérapie";
-      const dz = dosimetrie(r, D().t); if (dz && dz.au >= du && dz.du <= au) out.push({ pid: x.id, cat: "rt", d: dz.du, f: dz.au, h: "", nm, t: "Dosimétrie à valider · " + a, st: "prevu" });
+      // « Dosimétrie à valider » : une tâche pour le médecin (P4, 08/10/2026), plus un rendez-vous de l'agenda
       [[r.scan, "Scanner de centrage"], [r.dosi, "Dosimétrie validée"], [r.deb, "1re séance"], [fin, r.fin ? "Fin de radiothérapie" : "Fin de radiothérapie prévue"]].forEach((z) => { if (z[0] && z[0] >= du && z[0] <= au) out.push({ pid: x.id, cat: "rt", d: z[0], f: z[0], h: "", nm, t: z[1] + " · " + a, st: r.fin && z[0] <= r.fin ? "fait" : "prevu" }); });
     });
   });

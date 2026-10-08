@@ -658,6 +658,15 @@ jour, agenda, Google Agenda) mais **dans le dossier sous forme de tâche**.
       du 07/10 « tâches absentes du dossier ».)
 - [x] Tests : logique 73/73, règles 85/85, navigateur (tâche automatique simulée : dossier, message, bouton Valider ; réglages ;
       secrétaire en lecture seule ; 390 px ; bilan 352 317 DH ; aucune erreur).
+- [x] **Dosimétrie à valider = une tâche seulement** (demandé le 08/10 : « c'est une tâche pour le médecin, pas un rendez-vous ») :
+      retirée de l'agenda Onco360, des 7 prochains jours, du programme du jour, de Google Agenda (case et couleur retirées ;
+      le serveur l'ignore aussi dans les résumés anciens). Reste : la tâche, l'étape « Valider » de la carte radiothérapie, et
+      l'alerte de la cloche (voir question ci-dessous).
+- [x] Discordances corrigées : la tâche « Valider la dosimétrie » n'est créée qu'entre le scanner et la 1re séance (comme
+      l'écran ; sinon des tâches pour d'anciennes RT jamais validées dans Onco360) ; responsable des 2 tâches fixes = un
+      médecin (lui seul valide). Sur les données du 06/10, la mise en ligne ne créerait qu'une tâche (une fin de RT dépassée).
+- [ ] **Question à Dr Bentahila** : retirer de la cloche les alertes qui doublent une tâche automatique active (dosimétrie à
+      valider, fin de radiothérapie dépassée, dernière cure si la règle est activée) ?
 - [ ] Mise en ligne : règles, **fonctions** (2 nouvelles), site. Puis vérifier sur un vrai dossier (dosimétrie en attente).
 
 ---
@@ -1026,3 +1035,4 @@ Onco360_Package_Cession/
 | 08/10/2026 | 5 – P3 bis | Panne Google Agenda (« Invalid start time ») corrigée : heures normalisées, dates invalides écartées, événement refusé mis de côté sans bloquer (tests 60/60). Google Agenda, Lieux d'exercice et Accès déplacés du Profil vers Paramètres (13 onglets), Profil = informations seulement. Testé (2 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |
 | 08/10/2026 | 2 – Retouches | Fiche patient : « 2e téléphone » (après Téléphone), « Adresse » et « E-mail » (après Mutuelle), dans Nouveau patient, Modifier et Afficher ; 2e téléphone aussi dans le dossier ; mis en ligne (v2.js?v=20261008s). |
 | 08/10/2026 | 5 – P4 Tâches | Tâches automatiques : 2 fixes (dosimétrie, fin de RT ; terminées toutes seules) + règles du médecin (dernière cure, non venu, nouveau patient, N mois après la RT, veille J1), activables, responsable et délai réglables ; fonctions `tachesAutoPatient` / `tachesAutoNuit` ; tâches du patient dans « Rendez-vous et tâches à venir » (+ Tâche). Tests logique 73/73, règles 85/85, navigateur, bilan 352 317 DH. Pas encore en ligne. |
+| 08/10/2026 | 5 – P4 | Dosimétrie à valider : une tâche seulement (retirée de l'agenda, des 7 jours, du programme du jour, de Google Agenda). Tâche créée seulement du scanner à la 1re séance ; responsable des tâches fixes = médecin. Tests logique 75/75, bilan 352 317 DH. Pas encore en ligne. |
