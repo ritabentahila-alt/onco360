@@ -753,10 +753,10 @@ export function nouveauPatient() {
   A.fenetre('<h3>Nouveau patient</h3><div class="form">' + ch("pNom", "Nom") + ch("pPre", "Prénom") + ch("pDdn", "Date de naissance", { type: "date" }) +
     '<div><label for="pSexe">Sexe</label><select id="pSexe"><option value=""></option><option value="F">Femme</option><option value="H">Homme</option></select></div>' +
     (okC ? ch("pTaille", "Taille (cm)", { mode: "numeric" }) + ch("pPoids", "Poids (kg)", { mode: "decimal" }) + champDiag("pDiag", "pDiagP", "", "") : "") +
-    ch("pTel", "Téléphone", { type: "tel", ph: "06…" }) +
+    ch("pTel", "Téléphone", { type: "tel", ph: "06…" }) + ch("pTel2", "2e téléphone", { type: "tel", ph: "Autre numéro (proche…)" }) +
     '<div><label for="pEtab">Hôpital</label><select id="pEtab">' + permis.map((e) => '<option value="' + A.esc(e.code) + '">' + A.esc(e.code + " – " + e.nom) + "</option>").join("") + "</select></div>" +
     '<div><label for="pAld">ALD</label><select id="pAld"><option></option><option>Oui</option><option>Non</option></select></div>' +
-    ch("pCor", "Correspondant", { liste: "lCor", large: true, ph: "Taper pour chercher, ou saisir un nouveau…" }) + ch("pMut", "Mutuelle", { liste: "lMut", large: true, ph: "Taper pour chercher, ou saisir une nouvelle…" }) + (okC ? A.champsMed({}) : "") +
+    ch("pCor", "Correspondant", { liste: "lCor", large: true, ph: "Taper pour chercher, ou saisir un nouveau…" }) + ch("pMut", "Mutuelle", { liste: "lMut", large: true, ph: "Taper pour chercher, ou saisir une nouvelle…" }) + ch("pAdr", "Adresse", { large: true }) + ch("pMail", "E-mail", { type: "email", large: true }) + (okC ? A.champsMed({}) : "") +
     '<p class="large mesures" style="margin:0">Nom et prénom obligatoires. Date de naissance, sexe, taille et poids : demandés avant la première ligne de chimiothérapie.</p></div>' +
     '<datalist id="lMut">' + listeMut().map((m) => '<option value="' + A.esc(m) + '">').join("") + '</datalist><datalist id="lCor">' + listeCor().map((m) => '<option value="' + A.esc(m) + '">').join("") + "</datalist>" + boutons("Créer le dossier"));
   if (okC) activerDiag("pDiag", "pDiagP");
@@ -765,7 +765,7 @@ export function nouveauPatient() {
     const deja = D().patients.find((p) => (p.P.nomF || "").toUpperCase() === nomF && String(p.P.prenom || "").toLowerCase() === prenom.toLowerCase());
     if (deja && !confirm("Un patient " + deja.r.nm + " existe déjà. Créer quand même un nouveau dossier ?")) return;
     const id = "P" + Date.now().toString(36) + Math.floor(Math.random() * 1000), etab = A.val("pEtab");
-    const docP = { etablissementId: etab, identite: { nomF, prenom, nom: nomF + " " + prenom, ddn: A.val("pDdn"), sexe: A.val("pSexe"), tel: A.val("pTel"), mut: A.val("pMut"), cor: A.val("pCor"), ald: A.val("pAld"), cree: D().t },
+    const docP = { etablissementId: etab, identite: { nomF, prenom, nom: nomF + " " + prenom, ddn: A.val("pDdn"), sexe: A.val("pSexe"), tel: A.val("pTel"), ...(A.val("pTel2") ? { tel2: A.val("pTel2") } : {}), ...(A.val("pAdr") ? { adresse: A.val("pAdr") } : {}), ...(A.val("pMail") ? { email: A.val("pMail") } : {}), mut: A.val("pMut"), cor: A.val("pCor"), ald: A.val("pAld"), cree: D().t },
       version: 1, maj: serverTimestamp(), majPar: D().u.uid };
     if (okC) { docP.clinique = { diag: A.val("pDiag"), diagP: A.val("pDiagP"), poids: A.val("pPoids").replace(",", "."), taille: A.val("pTaille") }; A.CHAMPS_MED().forEach(([k]) => { if (A.val("f_" + k)) docP.clinique[k] = A.val("f_" + k); }); }
     if (A.traitMod()) Object.assign(docP, { lignesJson: "[]", planningJson: "{}" });

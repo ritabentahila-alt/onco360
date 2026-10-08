@@ -471,8 +471,8 @@ function pageDossier(id) {
   h += '<section class="carte"><div class="ident">' + (peut("identite") ? '<button class="bulle-photo" onclick="photoPatient(\'' + x.id + '\')" title="' + (P.photo ? "Changer ou retirer la photo" : "Ajouter une photo du patient") + '" aria-label="Photo du patient">' + bulle(x) + "</button>" : bulle(x)) + '<div style="flex:1;min-width:200px"><h2>' + esc(r.nm) + "</h2><p>" +
     esc([P.ddn ? "Né(e) le " + dfrA(P.ddn) + (a != null ? " (" + a + " ans)" : "") : "", P.sexe === "F" ? "Femme" : P.sexe === "H" ? "Homme" : "", P.taille ? P.taille + " cm" : "", P.poids ? P.poids + " kg" : ""].filter(Boolean).join(" · ")) + "</p>" +
     '<div class="bd">' + (P.hop ? '<span class="badge b-gr">' + esc(P.hop) + "</span>" : "") + (r.t && r.t.st === "cours" ? '<span class="badge b-co">Chimiothérapie en cours</span>' : "") + ((r.rtS || []).some((s) => s.st === "cours") ? '<span class="badge b-rt">RT en cours</span>' : "") + "</div></div>" +
-    '<div class="actr" style="align-self:flex-start"><button class="bt gris" onclick="afficherPatient(\'' + x.id + '\')">Afficher</button>' + (peut("identite") || peut("fichePatient") || traitMod() ? '<button class="bt clair" onclick="modifierIdentite(\'' + x.id + '\')">Modifier</button>' : "") + '<button class="bt clair" onclick="taNouvelle(\'' + x.id + '\')" title="Nouvelle tâche pour ce patient">' + ic("plus") + "Tâche</button></div></div>" +
-    '<div class="champs">' + champ("Diagnostic", r.diag) + (P.tel ? '<div><label>Téléphone</label><b><a href="tel:' + esc(P.tel) + '">' + esc(P.tel) + "</a></b></div>" : "") + champ("Hôpital", P.hop) + champ("ALD", P.ald) + champ("Correspondant", P.cor) + champ("Mutuelle", P.mut) + "</div>" +
+    '<div class="actr" style="align-self:flex-start"><button class="bt gris" onclick="afficherPatient(\'' + x.id + '\')">Afficher</button>' + (peut("identite") || peut("fichePatient") || traitMod() ? '<button class="bt clair" onclick="modifierIdentite(\'' + x.id + '\')">Modifier</button>' : "") + '<button class="bt clair" onclick="taNouvelle(\'' + x.id + '\')" title="Nouvelle tâche pour ce patient">' + ic("plus") + "Tâche</button>" + (peut("rendezvous") ? '<button class="bt clair" onclick="ouvrirRdv(\'' + x.id + '\')" title="Ajouter un rendez-vous pour ce patient">' + ic("plus") + "Rendez-vous</button>" : "") + "</div></div>" +
+    '<div class="champs">' + champ("Diagnostic", r.diag) + (P.tel ? '<div><label>Téléphone</label><b><a href="tel:' + esc(P.tel) + '">' + esc(P.tel) + "</a></b></div>" : "") + (P.tel2 ? '<div><label>2e téléphone</label><b><a href="tel:' + esc(P.tel2) + '">' + esc(P.tel2) + "</a></b></div>" : "") + champ("Hôpital", P.hop) + champ("ALD", P.ald) + champ("Correspondant", P.cor) + champ("Mutuelle", P.mut) + "</div>" +
     '<div class="resume"><div class="entete"><label for="nTxt" style="flex:1">Résumé du patient</label>' + (okN ? '<span class="mesures" id="nEtat">' + (NOTES.pid === x.id && NOTES.txt != null ? "Modifications en cours…" : "") + "</span>" : "") + "</div>" +
     (okN ? '<textarea id="nTxt" class="notes" placeholder="Quelques phrases de résumé : histoire, antécédents, points d\'attention…" oninput="notesSaisie(\'' + x.id + '\',this)" onblur="sauverNotesMaintenant()">' + esc(NOTES.pid === x.id && NOTES.txt != null ? NOTES.txt : P.notes || "") + "</textarea>"
       : (P.notes ? '<div class="notes lecture">' + esc(P.notes) + "</div>" : '<p class="sous">Aucun résumé.</p>')) + "</div></section>";
@@ -500,10 +500,10 @@ function pageDossier(id) {
   const qx = "'" + x.id + "'";
   if (voitRTdossier(x)) (r.rt || []).forEach((v) => av.push({ d: v.d, f: v.f, h: "", em: "☢️", t: v.lib.replace(/^RT · /, ""), dosi: !!v.dosi, act: v.dosi ? (peutDosi() ? '<div class="actr"><button class="mini vert" onclick="dosiRT(\'' + x.id + "','" + v.dosi + '\')"><svg class="pi"><use href="#i-check"/></svg>Valider la dosimétrie</button></div>' : "") : /Fin de radioth/.test(v.lib) ? "" : '<div class="actr">' + btnWA(x, "rt", v.d, "") + "</div>" }));
   av.sort((p, q) => (p.d + (p.h || "00")).localeCompare(q.d + (q.h || "00")));
-  h += '<section class="carte"><div class="entete"><h3><span class="ic">' + ic("agenda") + "</span>Rendez-vous à venir</h3>" + (okR ? '<button class="bt clair petit" onclick="ouvrirRdv(' + qx + ')">' + ic("plus") + "Ajouter un rendez-vous</button>" : "") + "</div>" +
+  const hRdv = '<section class="carte"><div class="entete"><h3><span class="ic">' + ic("agenda") + "</span>Rendez-vous à venir</h3>" + (okR ? '<button class="bt clair petit" onclick="ouvrirRdv(' + qx + ')">' + ic("plus") + "Ajouter un rendez-vous</button>" : "") + "</div>" +
     // Liste dans une zone qui défile : les 5 prochains visibles (hauteur réglée après l'affichage, limiterHauteur)
     (av.length > 5 ? '<p class="mesures" style="margin:4px 0 0">' + av.length + " rendez-vous : faites défiler la liste pour voir les suivants.</p>" : "") +
-    '<div class="rdv-liste" id="rdvListe">' + (av.length ? av.map((v) => '<div class="rdv">' + (absenceLe(v.d) ? '<span class="badge b-al"><svg class="pi"><use href="#i-stop"/></svg>Absente</span>' : ferieLe(v.d) ? '<span class="badge b-al">Férié</span>' : "") + '<span class="badge ' + (v.retard ? "b-al" : "b-co") + '">' + dfr(v.d) + (v.f && v.f !== v.d ? " → " + dfr(v.f) : "") + (v.h ? " " + v.h : "") + "</span><span>" + v.em + '</span><div class="tx">' + esc(v.t) + (v.rep && v.rep.length ? '<div class="mesures">Reporté (initialement le ' + dfrA(v.rep[0].d) + ")</div>" : "") + "</div>" + (v.act || "") + "</div>").join("") : '<p class="sous">Aucun rendez-vous à venir.</p>') + '</div><p class="mesures" style="margin:8px 0 0">Prochaine étape de chimiothérapie et de radiothérapie (automatique) et consultations programmées. Les consultations passées sont listées en bas de la page.</p></section>';
+    '<div class="rdv-liste" id="rdvListe">' + (av.length ? av.map((v) => '<div class="rdv">' + (absenceLe(v.d) ? '<span class="badge b-al"><svg class="pi"><use href="#i-stop"/></svg>Absente</span>' : ferieLe(v.d) ? '<span class="badge b-al">Férié</span>' : "") + '<span class="badge ' + (v.retard ? "b-al" : "b-co") + '">' + dfr(v.d) + (v.f && v.f !== v.d ? " → " + dfr(v.f) : "") + (v.h ? " " + v.h : "") + "</span><span>" + v.em + '</span><div class="tx">' + esc(v.t) + (v.rep && v.rep.length ? '<div class="mesures">Reporté (initialement le ' + dfrA(v.rep[0].d) + ")</div>" : "") + "</div>" + (v.act || "") + "</div>").join("") : '<p class="sous">Aucun rendez-vous à venir.</p>') + '</div><p class="mesures" style="margin:8px 0 0">Prochaine étape de chimiothérapie et de radiothérapie (automatique) et consultations programmées. Les consultations passées sont listées juste en dessous.</p></section>';
 
   // Un seul cadre à onglets (07/10/2026) : Consultation · Chimiothérapie · Radiothérapie · Documents, selon les droits
   const ong = [];
@@ -553,6 +553,9 @@ function pageDossier(id) {
     h += '<section class="carte onglets"><div class="o-barre" role="tablist" aria-label="Dossier">' + ong.map((o) => '<button role="tab" id="og-' + o.k + '" aria-controls="op-' + o.k + '" aria-selected="' + (o.k === act) + '"' + (o.k === act ? ' class="on"' : "") + ' onclick="ongletDossier(\'' + x.id + "','" + o.k + '\')"><svg class="pi" aria-hidden="true"><use href="#i-' + o.ic + '"/></svg>' + o.lib + (o.n ? '<span class="n">' + o.n + "</span>" : "") + "</button>").join("") + "</div>" +
       ong.map((o) => '<div class="o-pan' + (o.k === act ? "" : " cache") + '" id="op-' + o.k + '" role="tabpanel" aria-labelledby="og-' + o.k + '">' + o.h + "</div>").join("") + "</section>";
   }
+
+  // Rendez-vous à venir, juste au-dessus des consultations passées (décision du 08/10/2026)
+  h += hRdv;
 
   // Consultations et hospitalisations : passées ou déjà validées (venu / non venu), avec le prix à encaisser (droit « encaissements »)
   if (voitRdv()) {
@@ -614,10 +617,10 @@ window.modifierIdentite = (id) => {
     champ("fDdn", "Date de naissance", I.ddn, { type: "date", off: !okI }) + sel("fSexe", "Sexe", I.sexe, [["", ""], ["F", "Femme"], ["H", "Homme"]], !okI) +
     champ("fTaille", "Taille (cm)", C.taille, { mode: "numeric", off: !okC }) + champ("fPoids", "Poids (kg)", C.poids, { mode: "decimal", off: !okC }) +
     champDiag("fDiag", "fDiagP", C.diag, C.diagP, !okC) +
-    champ("fTel", "Téléphone", I.tel, { type: "tel", off: !okI, ph: "06…" }) +
+    champ("fTel", "Téléphone", I.tel, { type: "tel", off: !okI, ph: "06…" }) + champ("fTel2", "2e téléphone", I.tel2, { type: "tel", off: !okI, ph: "Autre numéro (proche…)" }) +
     (okE ? '<div><label for="fEtab">Hôpital</label><select id="fEtab">' + D.etabs.map((e) => '<option value="' + esc(e.code) + '"' + (e.code === x.doc.etablissementId ? " selected" : "") + ">" + esc(e.code + " – " + e.nom) + "</option>").join("") + "</select></div>" : "") +
     sel("fAld", "ALD", I.ald, [["", ""], ["Oui", "Oui"], ["Non", "Non"]], !okI) +
-    champ("fCor", "Correspondant", I.cor, { liste: "lCor", off: !okI, large: true, ph: "Taper pour chercher, ou saisir un nouveau…" }) + champ("fMut", "Mutuelle", I.mut, { liste: "lMut", off: !okI, large: true, ph: "Taper pour chercher, ou saisir une nouvelle…" }) + champsMed(C, !okC) + "</div>" +
+    champ("fCor", "Correspondant", I.cor, { liste: "lCor", off: !okI, large: true, ph: "Taper pour chercher, ou saisir un nouveau…" }) + champ("fMut", "Mutuelle", I.mut, { liste: "lMut", off: !okI, large: true, ph: "Taper pour chercher, ou saisir une nouvelle…" }) + champ("fAdr", "Adresse", I.adresse, { off: !okI, large: true }) + champ("fMail", "E-mail", I.email, { type: "email", off: !okI, large: true }) + champsMed(C, !okC) + "</div>" +
     '<datalist id="lMut">' + listeMut().map((m) => '<option value="' + esc(m) + '">').join("") + '</datalist><datalist id="lCor">' + listeCor().map((m) => '<option value="' + esc(m) + '">').join("") + "</datalist>" +
     '<div class="err" id="fErr"></div><div class="boutons">' + (peut("supprimerPatient") ? '<button class="bt gris" id="fSup" style="margin-right:auto;color:var(--rouge)"><svg class="pi"><use href="#i-corbeille"/></svg>Supprimer le patient</button>' : "") + '<button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt plein" id="fOk">Enregistrer</button></div>');
   activerDiag("fDiag", "fDiagP");
@@ -636,7 +639,8 @@ window.modifierIdentite = (id) => {
     if (okC) CHAMPS_MED.forEach(([k]) => { const v = val("f_" + k); if (v) nC[k] = v; else delete nC[k]; });
     if (okI) {
       if (!val("fNomF") || !val("fPrenom")) { erreur("Le nom et le prénom sont obligatoires."); return; }
-      Object.assign(nI, { nomF: val("fNomF").toUpperCase(), prenom: val("fPrenom"), ddn: val("fDdn"), sexe: val("fSexe"), tel: val("fTel"), ald: val("fAld"), mut: val("fMut"), cor: val("fCor") });
+      Object.assign(nI, { nomF: val("fNomF").toUpperCase(), prenom: val("fPrenom"), ddn: val("fDdn"), sexe: val("fSexe"), tel: val("fTel"), tel2: val("fTel2"), adresse: val("fAdr"), email: val("fMail"), ald: val("fAld"), mut: val("fMut"), cor: val("fCor") });
+      ["tel2", "adresse", "email"].forEach((k) => { if (!nI[k]) delete nI[k]; });
       nI.nom = (nI.nomF + " " + nI.prenom).trim();
       if (JSON.stringify(nI) !== JSON.stringify(I)) changes.identite = nI;
     }
@@ -695,8 +699,8 @@ window.afficherPatient = (id) => {
   const l = (lib, v) => '<div class="' + (String(v || "").length > 60 || /\n/.test(v || "") ? "large" : "") + '"><label>' + lib + "</label><div>" + (v ? "<b>" + esc(v) + "</b>" : '<span class="mesures">—</span>') + "</div></div>";
   fenetre("<h3>" + esc(x.r.nm) + '</h3><div class="form fiche-lecture">' +
     l("Nom", P.nomF) + l("Prénom", P.prenom) + l("Date de naissance", P.ddn ? dfrA(P.ddn) + (a != null ? " (" + a + " ans)" : "") : "") + l("Sexe", P.sexe === "F" ? "Femme" : P.sexe === "H" ? "Homme" : "") +
-    l("Taille", P.taille ? P.taille + " cm" : "") + l("Poids", P.poids ? P.poids + " kg" : "") + l("Diagnostic", [P.diag, P.diagP].filter(Boolean).join(" – ")) + l("Téléphone", P.tel) +
-    l("Hôpital", et.nom ? et.code + " – " + et.nom : x.doc.etablissementId) + l("ALD", P.ald) + l("Correspondant", P.cor) + l("Mutuelle", P.mut) +
+    l("Taille", P.taille ? P.taille + " cm" : "") + l("Poids", P.poids ? P.poids + " kg" : "") + l("Diagnostic", [P.diag, P.diagP].filter(Boolean).join(" – ")) + l("Téléphone", P.tel) + l("2e téléphone", P.tel2) +
+    l("Hôpital", et.nom ? et.code + " – " + et.nom : x.doc.etablissementId) + l("ALD", P.ald) + l("Correspondant", P.cor) + l("Mutuelle", P.mut) + l("Adresse", P.adresse) + l("E-mail", P.email) +
     CHAMPS_MED.map(([k, lib]) => l(lib, P[k])).join("") + "</div>" +
     '<div class="boutons">' + (peut("identite") || peut("fichePatient") || traitMod() ? '<button class="bt clair" onclick="fermerFenetre();modifierIdentite(\'' + x.id + '\')">Modifier</button>' : "") + '<button class="bt plein" onclick="fermerFenetre()">Fermer</button></div>');
 };
