@@ -385,11 +385,15 @@ nav a.actif .nb-menu{background:#fff;color:var(--prim)}
 .sa-l .actr{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.sa-l .badge{white-space:normal}.sa-l .st{white-space:normal}
 .sa-o .sm{display:none}.sa-o button{flex:1 1 0;justify-content:center;min-width:0}
 .sa-l.ent{background:var(--prim-c);color:var(--titre);border-radius:var(--r-s);border-bottom:0;padding:9px 4px;margin-bottom:2px;font-size:12px;letter-spacing:.2px}
-.sa-l.consult{background:#F3FAF6}.sa-l.vu .h,.sa-l.absent .h{color:var(--doux)}
+.sa-l.salle{background:#F1F6FD}.sa-l.consult{background:#FFF4E3}.sa-l.vu{background:#EEF8F1}.sa-l.absent{background:#FCF0F2}.sa-l.ent{background:var(--prim-c)}.sa-l:not(.ent){border-radius:var(--r-s);margin-top:3px;border-bottom:0}.sa-l .ord{font-weight:bold;color:var(--titre)}.sa-l.vu .h,.sa-l.absent .h{color:var(--doux)}
 .st{display:inline-flex;align-items:center;gap:6px;border:1.5px solid currentColor;border-radius:20px;padding:2px 10px;font-size:12.5px;font-weight:bold;white-space:nowrap;background:#fff}
 .st i{width:8px;height:8px;border-radius:50%;background:currentColor;flex:none}
 .st.prevu{color:#7A8499}.st.salle{color:var(--bleu)}.st.consult{color:var(--vert)}.st.vu{color:#2E7D5B}.st.absent,.st.rouge{color:var(--rouge)}.st.orange{color:var(--orange)}
 .mini.bleu{color:var(--bleu);border-color:#BFD0EC}
+.sa-outils{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.sa-outils .recherche{flex:1 1 200px;min-width:0}.sa-outils select{padding:11px 10px;border:1px solid #CCD3E0;border-radius:var(--r-m);background:#fff;font-size:14.5px}
+.sa-per{display:inline-flex;border:1px solid var(--trait);border-radius:var(--r-m);overflow:hidden;background:#fff}.sa-per button{border:0;background:none;padding:11px 14px;font-weight:bold;font-size:14px;color:var(--doux)}.sa-per button+button{border-left:1px solid var(--trait)}.sa-per button.on{background:var(--prim);color:#fff}
+.sa-pres{font-size:11.5px;color:#B86E00;font-weight:bold;margin-top:2px}.sa-pres .pi{width:12px;height:12px}
+.pres-dossier{background:#FFF4E3;border:1px solid #F0C990;color:#8A5300;border-radius:var(--r-m);padding:9px 14px;font-size:14px}
 .sa-l .px{white-space:nowrap}.sa-l .civ{color:var(--doux);font-weight:bold}.sa-l .cor,.sa-l .mut,.sa-l .com{min-width:0;overflow-wrap:break-word;font-size:13.5px}.sa-l .com{white-space:pre-wrap}.sa-etab{display:flex;gap:8px;flex-wrap:wrap}
 .pa-auto{display:inline-flex;align-items:center;gap:6px;cursor:pointer}.pa-auto input{width:18px;height:18px}.px-ok{font-weight:bold;color:var(--vert)}.px-prev{color:var(--doux)}
 .sa-tot{display:flex;gap:10px 24px;flex-wrap:wrap;align-items:center;justify-content:flex-end;padding:12px 4px 2px;font-size:14.5px;color:var(--titre)}.sa-tot b{font-size:16px}
@@ -413,12 +417,12 @@ nav a.actif .nb-menu{background:#fff;color:var(--prim)}
 @media (max-width:900px){
   .sa-l.ent{display:none}
   .sa-l{grid-template-columns:48px minmax(0,1fr);gap:5px 10px}
-  .sa-l>*:not(:first-child){grid-column:2}
+  .sa-l{grid-auto-flow:row dense}.sa-l>*{grid-column:2}.sa-l .h{grid-column:1;grid-row:1}.sa-l .ord{grid-column:1;grid-row:2;font-size:12px}
   .sa-l .actr{justify-content:flex-start}
   .sa-l .mo:empty,.sa-l .ar:empty,.sa-l .px:empty,.sa-l .civ:empty,.sa-l .cor:empty,.sa-l .mut:empty{display:none}
   .sa-l [data-l]:not(:empty)::before{content:attr(data-l) " : ";color:var(--doux);font-weight:normal}
 }
-@media (max-width:640px){.sa-fl{width:32px;height:48px;font-size:20px}.sa-sem{gap:3px;flex:1 1 calc(100% - 96px)}.sa-j{padding:5px 0}.sa-j b{font-size:15px}.sa-j span{font-size:11px}.sa-cal,.sa-jours #saAuj{flex:1 1 40%;justify-content:center;height:42px}.sa-tot{justify-content:flex-start}}
+@media (max-width:640px){.sa-per{width:100%}.sa-per button{flex:1;padding:10px 4px;font-size:13px}.sa-outils select{flex:1}.sa-fl{width:32px;height:48px;font-size:20px}.sa-sem{gap:3px;flex:1 1 calc(100% - 96px)}.sa-j{padding:5px 0}.sa-j b{font-size:15px}.sa-j span{font-size:11px}.sa-cal,.sa-jours #saAuj{flex:1 1 40%;justify-content:center;height:42px}.sa-tot{justify-content:flex-start}}
 @media (max-width:640px){.sa-o button{flex-direction:row;gap:5px;font-size:13px}.sa-o .n{position:static;padding:0 6px}.sa-o .lg{display:none}.sa-o .sm{display:inline}}
 @media (max-width:640px){.sa-b{flex-direction:row;flex-wrap:wrap;align-items:center}.sa-b .lbl{width:100%;justify-content:center}.sa-b .bt{padding:11px 16px}.sa-etab{width:100%}.sa-etab select{width:100%}}
 
@@ -628,6 +632,6 @@ function onco360Deconnecter() {
 }
 </script>
 
-<script type="module" src="./js/app/v2.js?v=20261008m"></script>
+<script type="module" src="./js/app/v2.js?v=20261008s"></script>
 </body>
 </html>

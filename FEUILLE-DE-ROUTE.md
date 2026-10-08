@@ -658,6 +658,18 @@ Nouvelle page **« Salle d'attente »** dans le menu, **entre Agenda et Patients
 
 - [x] Onglets sur toute la largeur (ordinateur et téléphone, largeurs égales) ; titres des colonnes dans un bandeau.
 
+**SA1 quater – Repris de GestiCab (choix du 08/10)**
+- [x] Filtre **Matinée / Après-midi / Toute la journée** (avant / après 13 h ; sans heure : toujours affiché).
+- [x] **N° d'ordre de passage** (0001, 0002…) donné à l'arrivée, par jour et par établissement ; colonne « N° ».
+- [x] Temps de **présence** (arrivée → fin) ajouté dans « Vus » (attente, consultation, présence) ; pas de colonne « temps avant
+      prise en charge » (= l'attente, déjà affichée).
+- [x] **Lignes colorées** selon le statut : bleu en salle, orange en consultation, vert vu, rose absent.
+- [x] **« Dossier ouvert par »** : collègues qui ont le dossier ouvert (sous le nom dans la salle d'attente, bandeau en haut du
+      dossier) ; collection `presence/{uid}` (chacun écrit le sien, renouvelé chaque minute, oublié après 3 min ; 4 tests).
+- [x] **Tri** heure du rendez-vous / heure d'arrivée / alphabétique (réglage personnel `salleTri`) et **recherche** dans la liste.
+- [x] **Imprimer la liste du jour** (A4 paysage, par statut, colonnes affichées, jour / établissement / période / recherche).
+- Non retenus : panneau patient à droite, post-it patient, confirmation du rendez-vous, compteurs.
+
 **SA2 – Sans rendez-vous, prix et total, Configuration**
 - [ ] « + Arrivée sans rendez-vous » (patient connu ou nouveau patient, motif, urgence).
 - [x] Colonne **prix** et **total** ; fenêtre de prix pour la secrétaire : faits en SA1 bis.
@@ -886,3 +898,4 @@ Onco360_Package_Cession/
 | 08/10/2026 | 6 – SA1 et SA1 bis Salle d'attente | Mis en ligne (règles, fonction prixConsultation, site v2.js?v=20261008m), avec l'onglet Documents de l'autre session. À faire par Dr Bentahila : ouvrir Onco360 une fois avec son compte (publie les tarifs des consultations pour la secrétaire). |
 | 08/10/2026 | 6 – SA1 ter Salle d'attente | Chimio en tête d'À venir, plus de « En retard », colonnes civilité / correspondant / mutuelle / commentaire et choix des colonnes, prix bruts (anciens prix HCK), Non venu à 0 DH dans le dossier, case « Payé auto. » des Paramètres (bilan). Règles 69/69, logique 52/52, navigateur (médecin, infirmière, 390 px, bilan 352 317 DH). Pas encore en ligne. |
 | 08/10/2026 | 6 – SA1 ter Salle d'attente | Séance de chimio manquée : report depuis la salle d'attente (médecin et secrétaire, planning seul pour elle), onglets sur toute la largeur, bandeau des titres. Navigateur (secrétaire, médecin, 390 px, bilan de référence inchangé). Pas encore en ligne. |
+| 08/10/2026 | 6 – SA1 quater Salle d'attente | Repris de GestiCab : Matinée / Après-midi / Journée, n° d'ordre de passage, temps de présence, lignes colorées, « Dossier ouvert par », tri et recherche, impression de la liste. Règles 73/73, navigateur (390 px, bilan de référence inchangé). |

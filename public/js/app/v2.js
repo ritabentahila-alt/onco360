@@ -25,7 +25,7 @@ import { installer as installerOrdonnances, remplacerOrdosTypes } from "./ordonn
 import { installer as installerFichiers, htmlFichiers, nbFichiers, oublierFichiers, suivreEtablissementFichiers, supprimerFichiers } from "./fichiers.js";
 import { installer as installerConsultations, htmlConsultations, nbConsultations, oublierConsultations, suivreEtablissement, supprimerConsultations } from "./consultations.js";
 import { installer as installerTaches, pageTaches, demarrerTaches, blocAccueil as blocTaches } from "./taches.js";
-import { installer as installerSalle, pageSalle, demarrerSalle, apresStatutRdv, apresVenuChimio, apresPrix, bullesDossier } from "./salle.js";
+import { installer as installerSalle, pageSalle, demarrerSalle, apresStatutRdv, apresVenuChimio, apresPrix, bullesDossier, presenceDossier, majPresenceDossier } from "./salle.js";
 import { ACTES_RT } from "../donnees/listes.js";
 import { deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -356,6 +356,7 @@ function route() {
   document.querySelectorAll("nav a").forEach((a) => a.classList.toggle("actif", a.dataset.p === (nom === "dossier" ? "patients" : nom)));
   if (nom === "dossier" && arg) { delete ONGLET[arg]; oublierConsultations(arg); oublierDocs(arg); oublierFichiers(arg); } // dossier ouvert : onglet Consultation, consultations relues
   PAGES[nom][1](arg); window.scrollTo(0, 0);
+  presenceDossier(nom === "dossier" ? arg : null); // « Dossier ouvert par » (salle d'attente)
 }
 // Changer de page : le résumé en cours d'écriture est d'abord enregistré ; s'il ne peut pas l'être, on reste sur le dossier
 window.addEventListener("hashchange", async () => {
@@ -582,6 +583,7 @@ function pageDossier(id) {
   const pos = $("rdvListe") ? $("rdvListe").scrollTop : 0;
   $("page").innerHTML = h;
   limiterHauteur("rdvListe", 5); if ($("rdvListe")) $("rdvListe").scrollTop = pos;
+  majPresenceDossier(); // collègues qui ont ce dossier ouvert
 }
 // Après un enregistrement : la page en cours est réaffichée (salle d'attente ou dossier)
 function reafficher(id) { if (String(D.page || "").indexOf("salle") === 0) pageSalle(); else pageDossier(id); }

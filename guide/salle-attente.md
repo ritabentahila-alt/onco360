@@ -36,6 +36,14 @@ Bouton **Colonnes** (en haut à droite) : chacun coche les colonnes qu'il veut v
 appareils. Heure, patient, statut et boutons restent toujours affichés. Dans « À venir », les séances de chimio sont en tête.
 Les prix sont toujours affichés en **brut** (les anciens prix HCK repris à 225 DH s'affichent 250 DH).
 
+## Outils de la liste
+- **Matinée / Après-midi / Toute la journée** : un clic (avant ou après 13 h ; les séances sans heure restent affichées).
+- **Recherche** d'un patient par son nom, **tri** par heure du rendez-vous, heure d'arrivée ou ordre alphabétique (gardé pour
+  vous), **Imprimer** la liste du jour (tous les statuts, colonnes affichées).
+- **N° d'ordre** : 0001, 0002… donné à l'arrivée (Mettre en salle).
+- Couleur de la ligne : bleu en salle, orange en consultation, vert vu, rose absent.
+- **Ouvert par …** sous le nom du patient : un collègue a son dossier ouvert en ce moment (bandeau aussi en haut du dossier).
+
 ## Payé automatiquement (Paramètres)
 Dans Paramètres › Activités et rémunérations, la case **« Payé auto. »** de chaque activité (par établissement) :
 cochée, une consultation validée à partir de ce jour compte « Payé (auto.) » dans le bilan ; décochée, vous cochez « Payé »

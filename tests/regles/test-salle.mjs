@@ -64,6 +64,12 @@ await cas("l'infirmière commente une ligne en consultation", () => assertSuccee
 await cas("refusé : l'infirmière commente ET change l'étape d'une ligne en consultation", () => assertFails(setDoc(S("INF", id("p1", "r-c")), ligne("INF", { cle: "r-c", etat: "salle", com: "x" }))));
 await cas("refusé : la secrétaire HGC commente une ligne HCK", () => assertFails(setDoc(S("SEC", id("p2", "r-b")), ligne("SECK", { patientId: "p2", etablissementId: "HCK", cle: "r-b", com: "x", majPar: "SEC" }))));
 
+console.log("Dossier ouvert par");
+await cas("la secrétaire signale le dossier qu'elle a ouvert", () => assertSucceeds(setDoc(doc(db("SEC"), P + "/presence/SEC"), { patientId: "p1", nom: "Sara", le: serverTimestamp() })));
+await cas("le médecin voit qui a ouvert quel dossier", () => assertSucceeds(getDocs(collection(db("MED"), P + "/presence"))));
+await cas("refusé : écrire la présence d'un autre", () => assertFails(setDoc(doc(db("SEC"), P + "/presence/MED"), { patientId: "p1", nom: "x" })));
+await cas("refusé : accès désactivé", () => assertFails(getDocs(collection(db("OFF"), P + "/presence"))));
+
 console.log("Suppression");
 await cas("l'infirmière supprime une ligne en salle", () => assertSucceeds(deleteDoc(S("INF", id("p1", "r-a")))));
 await cas("refusé : l'infirmière supprime une ligne en consultation", () => assertFails(deleteDoc(S("INF", id("p1", "r-c")))));

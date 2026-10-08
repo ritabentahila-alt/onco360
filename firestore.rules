@@ -167,6 +167,12 @@ service cloud.firestore {
           && ((etapeLibre(resource.data) && etapeLibre(request.resource.data)) || commentaireSeul());
         allow delete: if dansPerimetre(resource.data.etablissementId) && etapeLibre(resource.data);
       }
+      // « Dossier ouvert par » (salle d'attente, 08/10/2026) : chacun écrit seulement son propre document (patient ouvert, nom,
+      // heure), lu par les membres du cabinet
+      match /presence/{uid} {
+        allow read: if estMembre();
+        allow write: if estMembre() && uid == request.auth.uid;
+      }
       // Montants des dossiers, tarifs, paiements, versements : uniquement avec le droit « finances »
       match /patientsFinances/{p} { allow read, write: if droit('finances'); }
       // Prix à encaisser (consultations validées, consultation de chimio) : extrait des montants, lisible avec le droit « encaissements »

@@ -93,6 +93,9 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
 - `encaissements` : un prix repris de la v1 porte `v1: true` et, s'il vaut le net du tarif, `b` = brut affiché (HCK 225 → 250 DH).
 - Bilan « payé » : `finances/paiements` (coché à la main) + « Payé auto. » des Paramètres (`payeAuto` = date de l'activité dans
   `finances/tarifs` : actes de ce type et de cet établissement à partir de cette date comptés payés ; bilan.js `paiementsEffectifs`).
+- `presence/{uid}` (« Dossier ouvert par », salle.js `presenceDossier`) : { patientId, nom, role, le }, écrit par la personne
+  elle-même à chaque ouverture de dossier (route) et chaque minute ; lu par les membres ; considéré fermé après 3 min.
+  Réglages personnels de la salle d'attente dans `utilisateurs/{uid}` : `salleCachees` (colonnes), `salleTri`.
 - Report de chimio avec le seul droit « planning » (secrétaire, depuis le 08/10/2026) : `sauverLignes` n'écrit que `planningJson` ;
   l'historique du report y est gardé (`planning[ligne][n].rep`, `.srep[j]`), ajouté par `fusionner`, repris dans `lignesJson` au
   prochain enregistrement du médecin.
