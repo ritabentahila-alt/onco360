@@ -486,7 +486,19 @@ Découpé en **sous-étapes, une fenêtre chacune** : T1 à T5 (T6 facultatif).
 - [ ] Mise en ligne : règles **puis** site. À la première ouverture, les tâches déjà créées par un collègue apparaissent
       « Nouveau » (jamais ouvertes) : un clic suffit.
 
-**T5 – Finition** : lien tâche → dossier vérifié pour les membres limités à un établissement ; CLAUDE.md ; guide.
+**T5 – Finition** (fait et testé le 08/10, pas encore en ligne)
+- [x] **Nom du patient à jour** : la tâche affiche le nom actuel du dossier (s'il a été corrigé depuis), dans la liste, la
+      fiche, le tableau de bord et la recherche.
+- [x] **Membre limité à un établissement** : patient hors de son périmètre (ou dossier supprimé) = nom sans lien, et dans
+      la fiche « dossier non accessible » ; patient de son établissement = lien vers le dossier (testé : secrétaire HGC).
+- [x] **Responsable qui n'a plus accès** (désactivé ou retiré de l'équipe) : badge « À réattribuer », message dans la fiche,
+      son nom gardé dans le menu « Pour » ; s'il a été retiré, statut et commentaire bloqués avec un message clair (les
+      règles refuseraient) jusqu'à la réattribution.
+- [x] **Guide d'utilisation** : `guide/taches.md` (créer, retrouver, suivre, être prévenu, qui peut faire quoi, cas
+      particuliers), base du guide complet (F3).
+- [x] Tests : médecin, secrétaire limitée à l'HGC, responsable désactivée / retirée, bilan 352 317 DH, aucune erreur.
+- [ ] Mise en ligne (site seulement : les règles n'ont pas changé depuis T4).
+
 **T6 – Facultatif** : échéance dans le Google Agenda du responsable ; notifications sur le téléphone même Onco360 fermé.
 
 ---
@@ -496,7 +508,7 @@ Liste complète donnée par Dr Bentahila le 08/10, à faire **au fur et à mesur
 commence par ses questions « À décider » (Claude les pose avant d'écrire le code).
 
 ## Ordre proposé (à valider par Dr Bentahila ; elle peut le changer à tout moment)
-1. Terminer l'en cours : T1 (Tâches) en ligne le 08/10 ; puis T2 à T5.
+1. Terminer l'en cours : Tâches T1 à T5 faites le 08/10 (T6 facultatif, plus tard).
 2. **Étape 6 – Salle d'attente** (usage quotidien, le plus utile tout de suite).
 3. **Étape 7 – RCP**.
 4. **Étape 8 – Numéro de dossier et recherche des patients**.
@@ -750,3 +762,4 @@ Onco360_Package_Cession/
 | 08/10/2026 | 5 – T2 Tâches | Mis en ligne par Dr Bentahila. |
 | 08/10/2026 | 5 – T3 Tâches | Fil de la tâche (événements + commentaires en bulles), commenter, réattribuer depuis la fiche, nombre de commentaires dans la liste ; règles : fil signé par la personne connectée. Tests des règles sur l'émulateur (`tests/regles`, 40/40). Testé (3 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |
 | 08/10/2026 | 5 – T4 Tâches | Temps réel (écoute en direct), messages à l'écran, non lues (profil), pastilles menu + titre de l'onglet, carte « Mes tâches » du tableau de bord ; l'auteur peut supprimer sa tâche même terminée. Règles 44/44 sur l'émulateur. Testé (2 onglets médecin + secrétaire, 390 px, bilan 352 317 DH). Pas encore en ligne. |
+| 08/10/2026 | 5 – T5 Tâches | Finition : nom du patient à jour, patient hors périmètre sans lien, responsable sans accès « À réattribuer » (statut / commentaire bloqués s'il est retiré), guide `guide/taches.md`. Testé (médecin, secrétaire HGC, bilan 352 317 DH). Pas encore en ligne. |

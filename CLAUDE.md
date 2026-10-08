@@ -42,6 +42,7 @@ Après déploiement : recharger sans cache (Cmd + Maj + R). Les `.js` sont servi
 | `js/donnees/conversion.js` | `separer` / `fusionner` : dossier médical ↔ montants (les montants ne sont jamais dans le dossier patient) |
 | `js/donnees/listes.js` | DIAG, MUT0, COR0, ACTES_RT, DICT (molécules), FERIES0 |
 | `js/donnees/migration.js` | conversion v1 → v2 (`idsParDefaut` encore utilisé par v2.js) ; `bascule.js`, `conversion-v2.html`, `import.html`, `test-droits.html` : retirés du site le 06/10/2026, rangés dans `archives/` (non publié) |
+| `guide/` (hors `public/`) | guides d'utilisation par module (`taches.md`), base du guide complet (F3) |
 | `historique.html` | historique de l'ancienne application (lien depuis `ancienne-app.html`, lecture seule) : à retirer avec elle (phase F2) |
 
 ## Données (Firestore)

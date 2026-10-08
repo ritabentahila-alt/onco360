@@ -114,7 +114,7 @@ function contenuAccueil() {
   const demandes = T.filter((t) => t.pour !== moi && nonLue(t)); // mes demandes : commentées, terminées…
   if (!mes.length && !demandes.length) return "";
   const li = (t) => '<div class="ta-mini' + (nonLue(t) ? " nonlue" : "") + '" onclick="taVoir(\'' + t.id + '\')"><div class="tx"><b>' + esc(t.titre) + "</b>" + (nonLue(t) ? '<span class="badge b-co">Nouveau</span>' : "") + badges(t) +
-    '<div class="de">' + esc([t.patientNom, t.ech ? echeance(t) : "", t.pour === moi ? (t.de === moi ? "" : "de " + t.deNom) : "pour " + t.pourNom + (t.statut === "fait" ? " · terminée" : "")].filter(Boolean).join(" · ")) + "</div></div></div>";
+    '<div class="de">' + esc([t.patientId ? nomPat(t) : "", t.ech ? echeance(t) : "", t.pour === moi ? (t.de === moi ? "" : "de " + t.deNom) : "pour " + t.pourNom + (t.statut === "fait" ? " · terminée" : "")].filter(Boolean).join(" · ")) + "</div></div></div>";
   let h = '<h3><span class="ic">' + A.ic("taches") + '</span>Mes tâches</h3><p class="sous">En retard, urgentes, nouvelles ou à faire dans les 7 jours.</p>';
   h += imp.length ? imp.slice(0, 6).map(li).join("") : '<p class="sous">Rien d\'urgent : ' + mes.length + " tâche" + (mes.length > 1 ? "s" : "") + " à faire plus tard.</p>";
   if (demandes.length) h += '<h4 class="soustitre">Du nouveau sur vos demandes</h4>' + demandes.slice(0, 4).map(li).join("");
@@ -137,13 +137,23 @@ function badges(t) {
   let h = t.urgent && t.statut !== "fait" ? '<span class="badge b-al">Urgent</span>' : "";
   if (retard(t)) h += '<span class="badge b-al">En retard</span>';
   else if (t.statut !== "fait" && t.ech === D().t) h += '<span class="badge b-or">Aujourd\'hui</span>';
+  if (sansAcces(t)) h += '<span class="badge b-or" title="' + A.esc(t.pourNom || "") + ' n\'a plus accès à Onco360">À réattribuer</span>';
   return h;
 }
+// Patient : nom actuel de son dossier (corrigé depuis ?) s'il est dans mes établissements, sinon le nom gardé dans la tâche
+const dossierDe = (t) => (t.patientId ? D().patients.find((p) => p.id === t.patientId) : null);
+const nomPat = (t) => { const x = dossierDe(t); return x ? x.r.nm : t.patientNom || "Patient"; };
+const lienPat = (t, stop) => !t.patientId ? "" : dossierDe(t)
+  ? '<button class="lien-p" onclick="' + (stop ? "event.stopPropagation();" : "") + "taPatient('" + t.id + "')\">" + A.esc(nomPat(t)) + "</button>"
+  : '<span title="Dossier hors de vos établissements ou supprimé">' + A.esc(nomPat(t)) + "</span>";
+// Responsable qui n'a plus accès (désactivé ou retiré de l'équipe) : la tâche est à réattribuer
+const membreDe = (uid) => (MB || []).find((m) => m.uid === uid);
+const sansAcces = (t) => !!MB && t.statut !== "fait" && !(membreDe(t.pour) && membreDe(t.pour).actif !== false);
 const nbCom = (t) => (t.fil || []).filter((f) => f.c).length;
 function ligne(t) {
   const esc = A.esc, q = "'" + t.id + "'", moi = D().u.uid;
   const qui = t.de === t.pour ? "Pour soi-même (" + (t.de === moi ? "moi" : t.deNom) + ")" : "De " + (t.de === moi ? "moi" : t.deNom || "?") + " → pour " + (t.pour === moi ? "moi" : t.pourNom || "?");
-  const pat = t.patientId ? '<button class="lien-p" onclick="event.stopPropagation();taPatient(' + q + ')">' + esc(t.patientNom || "Patient") + "</button>" : "";
+  const pat = lienPat(t, true);
   const fin = t.statut === "fait" ? "Terminée par " + esc(t.faitParNom || "?") + (t.faitLe ? " le " + quand(t.faitLe) : "") : "";
   return '<div class="tache st-' + t.statut + (retard(t) ? " retard" : "") + (t.urgent && t.statut !== "fait" ? " urgent" : "") + (nonLue(t) ? " nonlue" : "") + '" onclick="taOuvrir(' + q + ')">' +
     '<div class="tx"><div class="ti"><b>' + esc(t.titre) + "</b>" + (nonLue(t) ? '<span class="badge b-co">Nouveau</span>' : "") + badges(t) + "</div>" +
@@ -159,7 +169,7 @@ const finSemaine = () => { const d = new Date(D().t + "T12:00:00"); d.setDate(d.
 function filtrer(l) {
   const mots = A.sansAcc(F.q).split(/\s+/).filter(Boolean), t0 = D().t, fs = finSemaine(), role = (uid) => ((MB || []).find((m) => m.uid === uid) || {}).role;
   return l.filter((t) => {
-    if (mots.length) { const hay = A.sansAcc([t.titre, t.desc, t.type, t.patientNom, t.deNom, t.pourNom].join(" ")); if (!mots.every((w) => hay.indexOf(w) >= 0)) return false; }
+    if (mots.length) { const hay = A.sansAcc([t.titre, t.desc, t.type, t.patientNom, t.patientId ? nomPat(t) : "", t.deNom, t.pourNom].join(" ")); if (!mots.every((w) => hay.indexOf(w) >= 0)) return false; }
     if (F.qui && VUE === "toutes") {
       const [k, v] = [F.qui.slice(0, 2), F.qui.slice(2)];
       if (k === "r:" && role(t.pour) !== v) return false; if (k === "u:" && t.pour !== v) return false; if (k === "d:" && t.de !== v) return false;
@@ -242,8 +252,11 @@ async function ecrire(t, champs, txt, c) {
 }
 const messageErreur = (e) => e && e.code === "permission-denied" ? "Vous n'avez pas le droit de modifier cette tâche." : "Enregistrement impossible : " + ((e && e.message) || e);
 
+// Responsable retiré de l'équipe : toute écriture est refusée par les règles tant que la tâche n'est pas réattribuée
+const bloquee = (t) => { if (!MB || membreDe(t.pour)) return false; A.toast((t.pourNom || "Le responsable") + " ne fait plus partie de l'équipe : réattribuez d'abord la tâche."); return true; };
 window.taStatut = async (id, s) => {
   const t = trouver(id); if (!t || t.statut === s) return;
+  if (bloquee(t)) { if (ficheOuverte(id)) taFiche(t); else raf(); return; }
   const champs = { statut: s }, avant = t.statut;
   if (s === "fait") Object.assign(champs, { faitPar: D().u.uid, faitParNom: nomConnecte(), faitLe: new Date().toISOString() });
   else if (avant === "fait") Object.assign(champs, { faitPar: null, faitParNom: null, faitLe: null });
@@ -260,14 +273,18 @@ function taFiche(t) {
   const champ = (lib, v) => v ? '<div class="large"><label>' + lib + "</label><div>" + v + "</div></div>" : "";
   // Responsable : changé ici par l'auteur, le responsable ou un médecin (tâche non terminée)
   const reattr = peutModifier(t) && t.statut !== "fait" && MB;
-  const pour = reattr ? '<select id="taRe" aria-label="Pour">' + MB.filter((m) => m.actif !== false || m.uid === t.pour).map((m) => '<option value="' + esc(m.uid) + '"' + (m.uid === t.pour ? " selected" : "") + ">" + esc(m.uid === moi ? "Moi-même (" + nomMembre(m) + ")" : nomMembre(m)) + "</option>").join("") + '</select><button class="bt plein petit cache" id="taReOk" onclick="taReattribuer(' + q + ')">Réattribuer</button>' : esc(t.pourNom || "?");
+  const actuel = membreDe(t.pour), opts = MB ? MB.filter((m) => m.actif !== false) : [];
+  const optPour = (actuel && actuel.actif !== false ? "" : '<option value="' + esc(t.pour) + '" selected>' + esc((t.pourNom || "?") + " (n'a plus accès)") + "</option>") +
+    opts.map((m) => '<option value="' + esc(m.uid) + '"' + (m.uid === t.pour ? " selected" : "") + ">" + esc(m.uid === moi ? "Moi-même (" + nomMembre(m) + ")" : nomMembre(m)) + "</option>").join("");
+  const pour = (reattr ? '<select id="taRe" aria-label="Pour">' + optPour + '</select><button class="bt plein petit cache" id="taReOk" onclick="taReattribuer(' + q + ')">Réattribuer</button>' : esc(t.pourNom || "?")) +
+    (sansAcces(t) ? '<div class="mesures" style="width:100%;color:var(--orange)">' + esc(t.pourNom || "Cette personne") + " n'a plus accès à Onco360 : réattribuez la tâche." + "</div>" : "");
   // Fil : dans l'ordre, les événements en petit, les commentaires en bulles
   const fil = (t.fil || []).map((f) => f.c
     ? '<div class="ta-c' + (f.par === moi ? " moi" : "") + '"><div class="qui"><b>' + esc(f.parNom || "") + "</b>" + esc(quand(f.le)) + '</div><div class="txt">' + esc(f.txt || "") + "</div></div>"
     : '<div class="ta-ev"><span class="dt">' + esc(quand(f.le).replace(" à ", " ")) + "</span><b>" + esc(f.parNom || "") + "</b> " + esc(f.txt || "") + "</div>").join("");
   A.fenetre('<div id="taFiche" data-id="' + esc(t.id) + '" data-n="' + (t.fil || []).length + '"><h3>' + esc(t.titre) + "</h3>" + '<div class="ti" style="margin:-6px 0 12px">' + badges(t) + "</div>" +
     '<div class="form">' + champ("Type", esc(t.type)) + champ("Description", t.desc ? '<div class="ta-desc">' + esc(t.desc) + "</div>" : "") +
-    champ("Patient", t.patientId ? '<button class="lien-p" onclick="taPatient(' + q + ')">' + esc(t.patientNom || "Patient") + "</button>" : "") +
+    champ("Patient", t.patientId ? lienPat(t) + (dossierDe(t) ? "" : ' <span class="mesures">(dossier non accessible : hors de vos établissements ou supprimé)</span>') : "") +
     champ("Échéance", t.ech ? esc(A.dfrA(t.ech) + (t.h ? " à " + t.h : "")) : "") +
     '<div><label>De la part de</label><div>' + esc(t.deNom || "?") + '</div></div><div><label' + (reattr ? ' for="taRe"' : "") + '>Pour</label><div class="ta-re">' + pour + "</div></div>" +
     '<div class="large"><label for="taSt">Statut</label><select id="taSt" onchange="taStatut(' + q + ',this.value)">' + STATUTS.map(([k, l]) => '<option value="' + k + '"' + (t.statut === k ? " selected" : "") + ">" + l + "</option>").join("") + "</select></div></div>" +
@@ -291,6 +308,7 @@ window.taOuvrir = async (id) => {
 };
 window.taCommenter = async (id) => {
   const t = trouver(id), txt = String(($("taCom") || {}).value || "").trim(); if (!t || !txt) { if ($("taCom")) $("taCom").focus(); return; }
+  if (bloquee(t)) return;
   A.occupe($("taComOk"), true);
   try { await ecrire(t, {}, txt, true); if (ficheOuverte(id)) { taFiche(t); setTimeout(() => $("taCom") && $("taCom").focus(), 80); } raf(); }
   catch (e) { A.occupe($("taComOk"), false); A.erreur(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de commenter cette tâche." : "Envoi impossible : " + ((e && e.message) || e)); }
@@ -318,7 +336,7 @@ window.taSupprimer = async (id) => {
 async function formulaire(t, pid) {
   const esc = A.esc, moi = D().u.uid;
   let mb; try { mb = (await membres()).filter((m) => m.actif !== false || (t && m.uid === t.pour)); } catch (e) { A.toast("La liste de l'équipe n'a pas pu être lue."); return; }
-  const P = { id: t ? t.patientId || "" : pid || "", nom: t ? t.patientNom || "" : "" };
+  const P = { id: t ? t.patientId || "" : pid || "", nom: t && t.patientId ? nomPat(t) : "" };
   if (P.id && !P.nom) { const x = D().patients.find((z) => z.id === P.id); P.nom = x ? x.r.nm : ""; }
   let type = t ? t.type || "" : "";
   const optsPour = '<option value="">— Choisir —</option>' + mb.map((m) => '<option value="' + esc(m.uid) + '"' + (t && t.pour === m.uid ? " selected" : "") + ">" + esc(m.uid === moi ? "Moi-même (" + nomMembre(m) + ")" : nomMembre(m) + " – " + (ROLES[m.role] || m.role || "")) + "</option>").join("");
