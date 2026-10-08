@@ -88,6 +88,14 @@ de leur radiothérapie :
   - **Médecin et secrétaire** peuvent modifier et enregistrer ces documents.
   - **L'onglet Documents est gardé** pour y **déposer des fichiers venus d'ailleurs** (PDF, photos : anapath, imagerie,
     bilans) → étape à part (Firebase Storage, taille limitée, suppression par le médecin, sauvegarde des fichiers à prévoir).
+  - [x] **Fait le 08/10** (testé, pas encore en ligne) : onglet Documents = dépôt de fichiers (PDF, Word, JPEG, PNG… 25 Mo
+    au plus) avec **titre, date du document et type** ; liste du plus récent au plus ancien, **recherche** (titre, type, nom
+    du fichier) et **filtre par type** ; Ouvrir, Télécharger, Modifier (titre, date, type), Supprimer (médecin : tous ;
+    secrétaire : ceux qu'elle a déposés) ; infirmière : pas d'onglet (droit « documents »). **Types modifiables par le
+    médecin** dans Configuration › Documents (ajouter, renommer, ordre, retirer ; un document garde son type). Cloud Storage
+    activé le 08/10 (europe-west1, bucket `chimio-hgc.firebasestorage.app`, corbeille de 7 jours), règles `storage.rules`
+    (membre actif, droit « documents », périmètre), fiches `fichiers/{id}`. **Les fichiers ne sont pas dans les sauvegardes
+    quotidiennes de la base** (à prévoir : copie du stockage).
 - [x] Données : `documentsRT/{patient}_{radiothérapie}_{pli|cr|rdv}` (une version par radiothérapie et par type : html,
       date, auteur) ; règle : droit « documents » (médecin, secrétaire) dans le périmètre. Patient supprimé ou changé
       d'hôpital : ses documents suivent.
@@ -790,3 +798,4 @@ Onco360_Package_Cession/
 | 08/10/2026 | 5 – T5 Tâches | Finition : nom du patient à jour, patient hors périmètre sans lien, responsable sans accès « À réattribuer » (statut / commentaire bloqués s'il est retiré), guide `guide/taches.md`. Testé (médecin, secrétaire HGC, bilan 352 317 DH). Pas encore en ligne. |
 | 08/10/2026 | 5 – T6 Tâches | Échéances dans le Google Agenda du responsable (journée entière ou 15 min, sans rappel, « EN RETARD » reportée chaque jour, retirée une fois terminée, suit les réattributions) : fonction `agendaTache` + remise à plat. Tests logique 32/32. Pas encore en ligne. |
 | 08/10/2026 | Google Agenda – couleurs | Couleurs par type d'événement modifiables (Configuration › Google Agenda), par défaut : annonce Flamant, suivi Paon, RT en cours Lavande, hospitalisation Myrtille, chimio Basilic, RT Raisin, dosimétrie Mandarine, absences Banane, tâches Graphite / Tomate. Fonction `agendaCouleurs`. Tests 40/40. Mis en ligne (règles, fonctions, site). |
+| 08/10/2026 | Documents du dossier | Onglet Documents : dépôt de fichiers (PDF, Word, photos…) avec titre, date et type, liste récente d'abord, recherche et filtre par type, ouvrir / télécharger / modifier / supprimer ; types de documents dans Configuration › Documents ; Cloud Storage activé (Europe) et règles publiées. Testé (médecin, secrétaire, infirmière, 390 px, bilan 352 317 DH). Pas encore en ligne (avec la salle d'attente, après accord). |

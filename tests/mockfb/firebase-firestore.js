@@ -1,6 +1,7 @@
 const cl = (v) => JSON.parse(JSON.stringify(v, (k, x) => (x && x.__ts ? new Date().toISOString() : x)));
 export function getFirestore() { return {}; }
-export function doc(db, ...p) { if (db && db.col) p = [db.col, ...p]; const path = p.join("/"); return { path, id: p[p.length - 1] }; }
+export function doc(db, ...p) { if (db && db.col) p = [db.col, ...p]; if (db && db.col && p.length === 1) p.push("a" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8)); // doc(collection) : identifiant automatique
+  const path = p.join("/"); return { path, id: p[p.length - 1] }; }
 export function collection(db, ...p) { return { col: p.join("/") }; }
 export function serverTimestamp() { return { __ts: 1 }; }
 export function query(c, ...f) { return { col: c.col, f }; }

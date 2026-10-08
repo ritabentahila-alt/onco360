@@ -1,0 +1,23 @@
+rules_version = '2';
+// Onco360 – fichiers déposés dans les dossiers patients (onglet Documents, 08/10/2026).
+// espaces/{e}/patients/{p}/fichiers/{id}/{nom} : lus et déposés par les membres actifs du cabinet qui ont le droit
+// « documents », pour un patient de leur périmètre (établissements) ; 25 Mo au plus ; jamais remplacés ; supprimés par le
+// médecin ou par qui les a déposés (métadonnée creePar). Tout le reste du stockage est fermé.
+service firebase.storage {
+  match /b/{bucket}/o {
+    function membre(e) { return firestore.get(/databases/(default)/documents/espaces/$(e)/membres/$(request.auth.uid)).data; }
+    function etabPatient(e, p) { return firestore.get(/databases/(default)/documents/espaces/$(e)/patients/$(p)).data.etablissementId; }
+    function peut(e, p) {
+      return request.auth != null && membre(e).actif == true && membre(e).droits.documents == true
+        && (membre(e).tousEtablissements == true || etabPatient(e, p) in membre(e).etablissements);
+    }
+    match /espaces/{e}/patients/{p}/fichiers/{f}/{nom} {
+      allow read: if peut(e, p);
+      allow create: if peut(e, p) && request.resource.size < 25 * 1024 * 1024
+        && request.resource.metadata.creePar == request.auth.uid;
+      allow update: if false;
+      allow delete: if peut(e, p) && (membre(e).role == 'medecin' || resource.metadata.creePar == request.auth.uid);
+    }
+    match /{tout=**} { allow read, write: if false; }
+  }
+}

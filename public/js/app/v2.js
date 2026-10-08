@@ -22,6 +22,7 @@ import { installer as installerProtocoles, pageProtocoles } from "./protocoles.j
 import { installer as installerParametres, pageParametres } from "./parametres.js";
 import { installer as installerBilan, pagePageBilan } from "./bilan.js";
 import { installer as installerOrdonnances, remplacerOrdosTypes } from "./ordonnances.js";
+import { installer as installerFichiers, htmlFichiers, nbFichiers, oublierFichiers, suivreEtablissementFichiers, supprimerFichiers } from "./fichiers.js";
 import { installer as installerConsultations, htmlConsultations, nbConsultations, oublierConsultations, suivreEtablissement, supprimerConsultations } from "./consultations.js";
 import { installer as installerTaches, pageTaches, demarrerTaches, blocAccueil as blocTaches } from "./taches.js";
 import { ACTES_RT } from "../donnees/listes.js";
@@ -198,7 +199,7 @@ document.addEventListener("input", (ev) => { if (ev.target && ev.target.classLis
 const ferieLe = (d) => (D.ctx.feries || []).map((f) => (typeof f === "string" ? { d: f, nom: "Jour férié" } : f)).find((f) => f.d === d);
 const API = { D: () => D, ESPACE, $, esc, ic, dfr, dfrA, cap, jourLong, val, occupe, erreur, toast, fenetre, fermerFenetre: () => window.fermerFenetre(), peut, traitMod, enregistrer, pageDossier: (id) => pageDossier(id), recalculer, journal };
 API.sansAcc = sansAcc; API.medecinFiche = () => medecinFiche(); API.entete = () => entete(); API.voitRdv = () => voitRdv(); API.voitRT = (x) => voitRT(x); API.champsMed = (C, off) => champsMed(C, off); API.CHAMPS_MED = () => CHAMPS_MED; API.fmtMil = (n) => fmtMil(n); API.ferieLe = (d) => ferieLe(d);
-installerChimio(API); installerAgenda(API); installerConfig(API); installerProfil(API); installerProtocoles(API); installerParametres(API); installerBilan(API); installerConsultations(API); installerOrdonnances(API); installerDocuments(API); installerTaches(API);
+installerChimio(API); installerAgenda(API); installerConfig(API); installerProfil(API); installerProtocoles(API); installerParametres(API); installerBilan(API); installerConsultations(API); installerOrdonnances(API); installerDocuments(API); installerFichiers(API); installerTaches(API);
 
 function entete() {
   const p = D.profil, mb = D.membre, nom = (p.nom || mb.nom || "").replace(/^Dr\.?\s*/i, "");
@@ -323,7 +324,7 @@ function route() {
   if (!$("fenetre").classList.contains("cache")) window.fermerFenetre();
   D.page = nom + (arg ? "/" + encodeURIComponent(arg) : ""); $("titrePage").textContent = PAGES[nom][0]; $("page").classList.toggle("large", nom === "agenda");
   document.querySelectorAll("nav a").forEach((a) => a.classList.toggle("actif", a.dataset.p === (nom === "dossier" ? "patients" : nom)));
-  if (nom === "dossier" && arg) { delete ONGLET[arg]; oublierConsultations(arg); oublierDocs(arg); } // dossier ouvert : onglet Consultation, consultations relues
+  if (nom === "dossier" && arg) { delete ONGLET[arg]; oublierConsultations(arg); oublierDocs(arg); oublierFichiers(arg); } // dossier ouvert : onglet Consultation, consultations relues
   PAGES[nom][1](arg); window.scrollTo(0, 0);
 }
 // Changer de page : le résumé en cours d'écriture est d'abord enregistré ; s'il ne peut pas l'être, on reste sur le dossier
@@ -506,8 +507,8 @@ function pageDossier(id) {
     ong.push({ k: "rt", ic: "radiation", lib: "Radiothérapie", n: (P.rts || []).length, h: hr });
   }
 
-  // Documents (droit « documents ») : les documents générés (pli, compte rendu, rendez-vous, ordonnances…) y seront enregistrés
-  if (peut("documents")) ong.push({ k: "doc", ic: "document", lib: "Documents", n: 0, h: '<p class="sous" style="margin:2px 0 0">Aucun document enregistré pour ce patient. Ici, vous pourrez bientôt déposer des fichiers venus d\'ailleurs (PDF, photos : anapath, imagerie, bilans). Le pli confidentiel, le compte rendu de fin et les rendez-vous restent dans la carte de leur radiothérapie ; les ordonnances et courriers, dans l\'onglet Consultation.</p>' });
+  // Documents (droit « documents », 08/10/2026) : fichiers déposés (PDF, Word, photos…), voir fichiers.js
+  if (peut("documents")) { const hf = htmlFichiers(x); ong.push({ k: "doc", ic: "document", lib: "Documents", n: nbFichiers(x), h: hf }); }
 
   // Le dossier s'ouvre sur Consultation (sur Chimiothérapie pour l'infirmière) ; l'onglet choisi reste affiché quand le
   // dossier se réaffiche après un enregistrement
@@ -582,7 +583,7 @@ window.modifierIdentite = (id) => {
     if (!confirm("Supprimer définitivement le dossier de " + x.r.nm + " ?\n\nToutes ses lignes de traitement et ses cures seront effacées.")) return;
     if (!confirm("Confirmer la suppression de " + x.r.nm + " ? Cette action est irréversible.")) return;
     try {
-      await supprimerConsultations(x); await supprimerDocs(x);
+      await supprimerConsultations(x); await supprimerDocs(x); await supprimerFichiers(x);
       await deleteDoc(doc(db, "espaces", ESPACE, "patients", x.id));
       if (peut("finances")) { await deleteDoc(doc(db, "espaces", ESPACE, "patientsFinances", x.id)).catch(() => {}); await deleteDoc(doc(db, "espaces", ESPACE, "encaissements", x.id)).catch(() => {}); }
       journal(x, "Patient supprimé"); D.patients.splice(D.patients.indexOf(x), 1); fermerFenetre(); toast("Dossier supprimé."); location.hash = "patients";
@@ -604,7 +605,7 @@ window.modifierIdentite = (id) => {
     if (okE && val("fEtab") && val("fEtab") !== x.doc.etablissementId) changes.etablissementId = val("fEtab");
     if (!Object.keys(changes).length) { fermerFenetre(); return; }
     occupe($("fOk"), true);
-    try { await enregistrer(x, changes, "Identité modifiée"); if (changes.etablissementId) { await suivreEtablissement(x, changes.etablissementId); await suivreEtablissementDocs(x, changes.etablissementId); } if (okI) await enrichirListes(val("fCor"), val("fMut")); fermerFenetre(); toast("Dossier enregistré."); pageDossier(x.id); }
+    try { await enregistrer(x, changes, "Identité modifiée"); if (changes.etablissementId) { await suivreEtablissement(x, changes.etablissementId); await suivreEtablissementDocs(x, changes.etablissementId); await suivreEtablissementFichiers(x, changes.etablissementId); } if (okI) await enrichirListes(val("fCor"), val("fMut")); fermerFenetre(); toast("Dossier enregistré."); pageDossier(x.id); }
     catch (e) { occupe($("fOk"), false); erreur(e.message); }
   };
 };

@@ -115,6 +115,18 @@ service cloud.firestore {
         allow update: if droit('documents') && dansPerimetre(resource.data.etablissementId) && dansPerimetre(request.resource.data.etablissementId)
           && request.resource.data.majPar == request.auth.uid;
       }
+      // Documents déposés dans le dossier (onglet Documents, 08/10/2026) : fiche du fichier (titre, date, type, chemin dans le
+      // stockage, voir storage.rules) ; droit « documents » dans le périmètre ; supprimés par le médecin ou par qui les a déposés
+      match /fichiers/{f} {
+        allow read: if droit('documents') && dansPerimetre(resource.data.etablissementId);
+        allow create: if droit('documents') && dansPerimetre(request.resource.data.etablissementId)
+          && request.resource.data.creePar == request.auth.uid && request.resource.data.majPar == request.auth.uid;
+        allow update: if droit('documents') && dansPerimetre(resource.data.etablissementId) && dansPerimetre(request.resource.data.etablissementId)
+          && request.resource.data.majPar == request.auth.uid && request.resource.data.creePar == resource.data.creePar
+          && request.resource.data.patientId == resource.data.patientId && request.resource.data.chemin == resource.data.chemin;
+        allow delete: if droit('documents') && dansPerimetre(resource.data.etablissementId)
+          && (m().role == 'medecin' || resource.data.creePar == request.auth.uid);
+      }
       // Tâches de l'équipe (07/10/2026) : les médecins les voient toutes ; les autres celles qu'ils ont créées ou dont ils sont
       // responsables (qui = [auteur, responsable]). Modification et réattribution : l'auteur, le responsable, les médecins ;
       // l'auteur ne change jamais ; chaque modification ou commentaire ajoute une entrée au fil (historique), qui ne rétrécit

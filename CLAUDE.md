@@ -65,6 +65,11 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
   lu par les membres, écrit par le **médecin** seulement (07/10/2026 : la secrétaire s'en sert sans les modifier)
 - `documentsRT/{patient}_{rt}_{pli|cr|rdv}` : `html` du document enregistré (une version par radiothérapie et par type),
   `patientId`, `etablissementId`, `rtId`, `type`, `majLe`, `majPar(Nom)` ; droit `documents` (médecin, secrétaire)
+- `fichiers/{id}` : documents déposés (onglet Documents, `js/app/fichiers.js`, 08/10/2026) = `patientId`, `etablissementId`,
+  `titre`, `d` (date du document), `type`, `nom`, `taille`, `mime`, `chemin` (Cloud Storage
+  `espaces/{e}/patients/{p}/fichiers/{id}/{nom}`, règles `storage.rules`, 25 Mo), `creePar(Nom)`, `majPar(Nom)` ; droit
+  `documents` ; supprimés par le médecin ou leur auteur. Types : `parametres/typesDocuments` (Configuration › Documents).
+  Le stockage n'est pas dans les sauvegardes de la base.
 - `taches/{id}` : `titre`, `desc`, `type`, `urgent`, `ech` (date), `h`, `patientId`, `patientNom`, `etablissementId`, `pour` /
   `pourNom` (responsable), `de` / `deNom` (auteur), `qui` = [auteur, responsable], `statut` afaire|encours|fait, `faitPar(Nom)`,
   `faitLe`, `fil` [{ le, par, parNom, txt, c }] (historique et commentaires `c: true` ; une entrée par modification, ajoutée
