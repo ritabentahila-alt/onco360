@@ -47,7 +47,7 @@ async def main():
         ta = await pa.inner_text('main')
         ok('Oncologie – Radiothérapie' in ta and 'Médecine générale' in ta and 'Gynécologie' in ta and '316' in ta and 'En place' in ta and 'À créer' in ta, 'onglet Bibliothèques : une par spécialité, compteurs')
         await pa.click('nav#onglets a[href="#modules"]'); await pa.wait_for_timeout(400); tm = await pa.inner_text('main')
-        ok('Modules communs' in tm and 'Chimiothérapie et protocoles' in tm.split('Oncologie – Radiothérapie')[1] and 'Traitements et stocks' in tm and 'Prévu' in tm, 'onglet Modules et menus : communs, oncologie (Protocoles), médecine générale (prévus)')
+        ok('Modules communs' in tm and 'Chimiothérapie et protocoles' in tm.split('Modules communs')[1].split('Médecine générale')[0] and 'Chimiothérapie et protocoles' not in tm.split('Modules communs')[1].split('Oncologie – Radiothérapie\n')[0] and 'Traitements et stocks' in tm and 'Prévu' in tm, 'onglet Modules et menus : communs, oncologie (Protocoles), médecine générale (prévus)')
         await pa.click('nav#onglets a[href="#reference"]'); await pa.wait_for_timeout(400)
         await pa.click('[data-bib="bib-oncologie"]'); await pa.wait_for_timeout(1200)
         ok((await pa.evaluate('window.__bo && window.__bo.bib')) == 'bib-oncologie' or 'espace=bib-oncologie' in pa.url, '« Ouvrir et modifier » ouvre la bibliothèque dans Onco360')

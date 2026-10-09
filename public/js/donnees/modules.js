@@ -27,10 +27,13 @@ export const MODULES_PREVUS = [["stocks", "Traitements et stocks", "bib-generali
 export const ROLES_MAX = [["medecin", "Médecins"], ["assistante", "Secrétaires"], ["infirmiere", "Infirmières"], ["comptable", "Comptables"], ["etablissements", "Lieux d'exercice"], ["patients", "Dossiers patients"]];
 // Spécialités (09/10/2026) : chaque formule appartient à une spécialité. Médecine générale et gynécologie : modules à créer plus
 // tard (feuille de route), avec leurs propres formules.
-export const SPECIALITES = ["Oncologie médicale", "Radiothérapie", "Oncologie-radiothérapie", "Médecine générale", "Gynécologie"];
+// Une seule spécialité d'oncologie depuis le 10/10/2026 (oncologie médicale, radiothérapie, onco-radiothérapie = packs) ; anciens noms
+// reconnus (SPECIALITE_ANCIENNE) pour les packs enregistrés avant
+export const SPECIALITES = ["Oncologie – Radiothérapie", "Médecine générale", "Gynécologie"];
+export const specialiteDe = (s) => (["Oncologie médicale", "Radiothérapie", "Oncologie-radiothérapie"].indexOf(s) >= 0 ? "Oncologie – Radiothérapie" : s || "Oncologie – Radiothérapie");
 // Bibliothèques de référence par spécialité (10/10/2026) : ce que reçoit un cabinet neuf selon la spécialité de sa formule
 export const BIBLIOTHEQUES_SPE = [
-  { id: "bib-oncologie", lib: "Oncologie – Radiothérapie", specialites: ["Oncologie médicale", "Radiothérapie", "Oncologie-radiothérapie"] },
+  { id: "bib-oncologie", lib: "Oncologie – Radiothérapie", specialites: ["Oncologie – Radiothérapie", "Oncologie médicale", "Radiothérapie", "Oncologie-radiothérapie"] },
   { id: "bib-generaliste", lib: "Médecine générale", specialites: ["Médecine générale"] },
   { id: "bib-gynecologie", lib: "Gynécologie", specialites: ["Gynécologie"] },
 ];
@@ -40,14 +43,14 @@ const COMMUNS = ["agenda", "prescriptions", "documents", "listes", "gagenda", "b
 const f = (specialite, lib, modules, max) => ({ lib, specialite, modules: MODULES.map((m) => m[0]).filter((k) => modules.indexOf(k) >= 0), max });
 const mx = (medecin, assistante, infirmiere, etablissements, patients, comptable = null) => ({ medecin, assistante, infirmiere, comptable, etablissements, patients });
 export const FORMULES = {
-  essentiel: f("Oncologie médicale", "Oncologie – Essentiel", ["chimio"].concat(COMMUNS), mx(1, 1, 0, 1, 300)),
-  "onco-pro": f("Oncologie médicale", "Oncologie – Pro", ["chimio"].concat(COMMUNS, EQUIPE), mx(1, 2, 2, 2, 1000)),
-  "onco-clinique": f("Oncologie médicale", "Oncologie – Clinique", ["chimio"].concat(COMMUNS, EQUIPE), mx(5, 5, 10, null, null)),
-  radiotherapie: f("Radiothérapie", "Radiothérapie – Essentiel", ["rt"].concat(COMMUNS), mx(1, 1, 0, 1, 300)),
-  "rt-pro": f("Radiothérapie", "Radiothérapie – Pro", ["rt"].concat(COMMUNS, EQUIPE), mx(1, 2, 1, 2, 1000)),
-  "rt-centre": f("Radiothérapie", "Radiothérapie – Centre", ["rt"].concat(COMMUNS, EQUIPE), mx(5, 5, 5, null, null)),
-  "oncort-pro": f("Oncologie-radiothérapie", "Onco-radiothérapie – Pro", ["chimio", "rt"].concat(COMMUNS, EQUIPE), mx(1, 2, 2, 2, 1000)),
-  complet: f("Oncologie-radiothérapie", "Onco-radiothérapie – Clinique", ["chimio", "rt"].concat(COMMUNS, EQUIPE), mx(5, 5, 10, null, null)),
+  essentiel: f("Oncologie – Radiothérapie", "Oncologie – Essentiel", ["chimio"].concat(COMMUNS), mx(1, 1, 0, 1, 300)),
+  "onco-pro": f("Oncologie – Radiothérapie", "Oncologie – Pro", ["chimio"].concat(COMMUNS, EQUIPE), mx(1, 2, 2, 2, 1000)),
+  "onco-clinique": f("Oncologie – Radiothérapie", "Oncologie – Clinique", ["chimio"].concat(COMMUNS, EQUIPE), mx(5, 5, 10, null, null)),
+  radiotherapie: f("Oncologie – Radiothérapie", "Radiothérapie – Essentiel", ["rt"].concat(COMMUNS), mx(1, 1, 0, 1, 300)),
+  "rt-pro": f("Oncologie – Radiothérapie", "Radiothérapie – Pro", ["rt"].concat(COMMUNS, EQUIPE), mx(1, 2, 1, 2, 1000)),
+  "rt-centre": f("Oncologie – Radiothérapie", "Radiothérapie – Centre", ["rt"].concat(COMMUNS, EQUIPE), mx(5, 5, 5, null, null)),
+  "oncort-pro": f("Oncologie – Radiothérapie", "Onco-radiothérapie – Pro", ["chimio", "rt"].concat(COMMUNS, EQUIPE), mx(1, 2, 2, 2, 1000)),
+  complet: f("Oncologie – Radiothérapie", "Onco-radiothérapie – Clinique", ["chimio", "rt"].concat(COMMUNS, EQUIPE), mx(5, 5, 10, null, null)),
 };
 // Abonnement tel qu'il s'applique : sans abonnement, tous les modules ; avec un abonnement, seulement les modules cochés (un module
 // créé plus tard, ex. pour la médecine générale, n'apparaît pas chez les cabinets qui ne l'ont pas reçu) ; maximum absent = sans

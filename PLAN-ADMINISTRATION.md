@@ -1,4 +1,4 @@
-# Onco360 – Plan de l'administration par spécialité (10/10/2026)
+# Onco360 – Plan de l'administration par spécialité (10/10/2026) — étape 16 de la feuille de route
 
 Demande de Dr Bentahila (10/10/2026) : tout gérer depuis le compte d'administration, **par spécialité** :
 - choisir **module par module** ce qu'a une spécialité (boutons **+** / **−**, « Ajouter un module », **flèches** pour l'ordre du menu) ;
@@ -148,7 +148,21 @@ Une fonction retirée est **cachée, ses données gardées** (comme pour les mod
 
 ---
 
-## 5. Questions à valider avant de commencer
+## 5. Décisions du 10/10/2026 (Dr Bentahila)
+1. **Une seule spécialité « Oncologie – Radiothérapie »** (oncologie médicale, radiothérapie et onco-radiothérapie sont des
+   **packs** de cette spécialité).
+2. Les fonctions de la partie 1.2 conviennent. **Le tableau de bord aussi est réglable** : chaque carte (Aujourd'hui, 7 prochains
+   jours, Mes tâches, Conflits, Statistiques…) peut être montée, descendue, mise ou retirée.
+3. **Tout est réglable cabinet par cabinet** : ordre du menu, modules, fonctions, cartes du tableau de bord, sections de
+   paramétrage, bibliothèques, limites. La spécialité propose des **packs** (ex. « pack avec tout », « pack sans … ») qui servent
+   de **point de départ** ; on applique un pack à un cabinet, puis on le retouche à volonté (le cabinet devient « sur mesure »).
+4. Liste des cabinets : nom, ville, médecin, spécialité, pack (formule), statut, équipe, nombre de dossiers, date de création.
+
+Conséquence sur le modèle (§ 2.3) : un **réglage complet** (menu ordonné, modules, fonctions, cartes du tableau de bord, sections,
+bibliothèques, maximums) a la même forme pour un **pack** et pour un **cabinet** ; appliquer un pack = copier son réglage dans le
+cabinet ; l'écran « Réglage du cabinet » est le même que l'écran « Pack » (+ / − / ↑ ↓ partout).
+
+## 5 bis. Questions posées le 10/10/2026 (réponses ci-dessus)
 1. **Spécialités** : une seule spécialité « Oncologie – Radiothérapie » (avec, à l'intérieur, les formules Oncologie médicale,
    Radiothérapie, Onco-radiothérapie à plusieurs niveaux), ou trois spécialités séparées qui partagent la même bibliothèque ?
 2. **Fonctions activables** : la liste des « candidates » du tableau 1.2 vous convient-elle ? (à retirer / ajouter)

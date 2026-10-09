@@ -58,6 +58,11 @@ button.rouge{background:var(--rouge);color:#fff}.bt.wa{background:#1FA855}
 .chiffres{grid-auto-flow:row}
 .modl{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;padding:10px 0;border-bottom:1px solid #EEF1F6}.modl .n{text-align:right;white-space:nowrap}.modl.prevu{opacity:.75}
 .liste-m{margin:0 0 12px;padding-left:20px;color:var(--doux);font-size:13.5px;line-height:1.6}
+/* Liste des cabinets (10/10/2026) */
+table.lc{width:100%;border-collapse:collapse;font-size:14px}table.lc th{text-align:left;color:var(--doux);font-weight:normal;font-size:12.5px;border-bottom:1px solid var(--trait);padding:8px}
+table.lc td{padding:9px 8px;border-bottom:1px solid #F0F2F7;vertical-align:top}table.lc .n{text-align:right}tr.lc-l{cursor:pointer}tr.lc-l:hover{background:var(--prim-c)}tr.lc-l.susp td{color:var(--doux)}
+.liste-c{padding:6px 10px}.cab.fiche{box-shadow:none;border:0;padding:0}
+@media (max-width:760px){table.lc thead{display:none}table.lc,table.lc tbody,table.lc tr,table.lc td{display:block}table.lc tr{border-bottom:1px solid var(--trait);padding:8px 0}table.lc td{border:0;padding:2px 4px}table.lc td.n{text-align:left}table.lc td[data-l]::before{content:attr(data-l) " : ";color:var(--doux);font-size:12px}table.lc td[data-l="Cabinet"]::before{content:""}}
 .bdg.al{background:var(--rouge-c);color:var(--rouge)}
 /* Formules */
 .puces{display:flex;gap:6px;flex-wrap:wrap}.puce{background:#fff;color:var(--doux);border:1px solid var(--trait);padding:7px 12px;font-size:13.5px}.puce.on{background:var(--prim);color:#fff;border-color:var(--prim)}.puce.on .nb{background:rgba(255,255,255,.25);color:#fff}
@@ -85,5 +90,5 @@ textarea{font-size:13px;margin-top:4px}
 <nav id="onglets"></nav></header>
 <main id="page"><div class="carte"><p class="sous">Chargement…</p></div></main>
 <div id="modal" class="cache"></div>
-<script type="module" src="./js/app/admin.js?v=20261010c"></script>
+<script type="module" src="./js/app/admin.js?v=20261010d"></script>
 </body></html>

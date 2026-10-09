@@ -57,14 +57,14 @@ const COMMUNS = ["agenda", "prescriptions", "documents", "listes", "gagenda", "b
 const fo = (specialite, lib, modules, max) => ({ lib, specialite, modules: MODULES.filter((k) => modules.indexOf(k) >= 0), max });
 const mx = (medecin, assistante, infirmiere, etablissements, patients, comptable = null) => ({ medecin, assistante, infirmiere, comptable, etablissements, patients });
 const FORMULES = {
-  essentiel: fo("Oncologie médicale", "Oncologie – Essentiel", ["chimio"].concat(COMMUNS), mx(1, 1, 0, 1, 300)),
-  "onco-pro": fo("Oncologie médicale", "Oncologie – Pro", ["chimio"].concat(COMMUNS, EQUIPE), mx(1, 2, 2, 2, 1000)),
-  "onco-clinique": fo("Oncologie médicale", "Oncologie – Clinique", ["chimio"].concat(COMMUNS, EQUIPE), mx(5, 5, 10, null, null)),
-  radiotherapie: fo("Radiothérapie", "Radiothérapie – Essentiel", ["rt"].concat(COMMUNS), mx(1, 1, 0, 1, 300)),
-  "rt-pro": fo("Radiothérapie", "Radiothérapie – Pro", ["rt"].concat(COMMUNS, EQUIPE), mx(1, 2, 1, 2, 1000)),
-  "rt-centre": fo("Radiothérapie", "Radiothérapie – Centre", ["rt"].concat(COMMUNS, EQUIPE), mx(5, 5, 5, null, null)),
-  "oncort-pro": fo("Oncologie-radiothérapie", "Onco-radiothérapie – Pro", ["chimio", "rt"].concat(COMMUNS, EQUIPE), mx(1, 2, 2, 2, 1000)),
-  complet: fo("Oncologie-radiothérapie", "Onco-radiothérapie – Clinique", ["chimio", "rt"].concat(COMMUNS, EQUIPE), mx(5, 5, 10, null, null)),
+  essentiel: fo("Oncologie – Radiothérapie", "Oncologie – Essentiel", ["chimio"].concat(COMMUNS), mx(1, 1, 0, 1, 300)),
+  "onco-pro": fo("Oncologie – Radiothérapie", "Oncologie – Pro", ["chimio"].concat(COMMUNS, EQUIPE), mx(1, 2, 2, 2, 1000)),
+  "onco-clinique": fo("Oncologie – Radiothérapie", "Oncologie – Clinique", ["chimio"].concat(COMMUNS, EQUIPE), mx(5, 5, 10, null, null)),
+  radiotherapie: fo("Oncologie – Radiothérapie", "Radiothérapie – Essentiel", ["rt"].concat(COMMUNS), mx(1, 1, 0, 1, 300)),
+  "rt-pro": fo("Oncologie – Radiothérapie", "Radiothérapie – Pro", ["rt"].concat(COMMUNS, EQUIPE), mx(1, 2, 1, 2, 1000)),
+  "rt-centre": fo("Oncologie – Radiothérapie", "Radiothérapie – Centre", ["rt"].concat(COMMUNS, EQUIPE), mx(5, 5, 5, null, null)),
+  "oncort-pro": fo("Oncologie – Radiothérapie", "Onco-radiothérapie – Pro", ["chimio", "rt"].concat(COMMUNS, EQUIPE), mx(1, 2, 2, 2, 1000)),
+  complet: fo("Oncologie – Radiothérapie", "Onco-radiothérapie – Clinique", ["chimio", "rt"].concat(COMMUNS, EQUIPE), mx(5, 5, 10, null, null)),
 };
 // Abonnement envoyé par la page Administration, nettoyé : formule connue (ou « sur mesure »), chaque module oui / non, maximums
 // entiers ≥ 0 ou null (sans limite). Sans modules précisés : ceux de la formule.
@@ -117,7 +117,7 @@ function membreDemande(o, jour, par) {
 // les écrans d'Onco360 ; un cabinet neuf reçoit la copie de la bibliothèque de la spécialité de sa formule. Même liste dans
 // public/js/donnees/modules.js (BIBLIOTHEQUES_SPE, vérifié par le test).
 const BIBS = [
-  { id: "bib-oncologie", lib: "Oncologie – Radiothérapie", specialites: ["Oncologie médicale", "Radiothérapie", "Oncologie-radiothérapie"] },
+  { id: "bib-oncologie", lib: "Oncologie – Radiothérapie", specialites: ["Oncologie – Radiothérapie", "Oncologie médicale", "Radiothérapie", "Oncologie-radiothérapie"] },
   { id: "bib-generaliste", lib: "Médecine générale", specialites: ["Médecine générale"] },
   { id: "bib-gynecologie", lib: "Gynécologie", specialites: ["Gynécologie"] },
 ];

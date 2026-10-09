@@ -1069,17 +1069,24 @@ dans Profil › Accès › Droits.
       consommables…) : à décider et construire (étape 14).
 - [ ] Plus tard si besoin : renommer un menu ou changer son ordre depuis l'Administration (aujourd'hui : dans le code).
 
-## Étape 15 – Administration par spécialité (demandé le 10/10/2026) — plan : `PLAN-ADMINISTRATION.md`
+## Étape 16 – Administration par spécialité (demandé le 10/10/2026) — plan : `PLAN-ADMINISTRATION.md`
 Demande : choisir module par module (+ / −, « Ajouter un module », flèches pour l'ordre du menu), fonction par fonction dans un
 module, section par section pour les paramètres, bibliothèque par bibliothèque ; un onglet « Par spécialité » regroupant Formules,
 Modules et menus, Bibliothèques et paramètres ; cabinets en liste ; onglet listant les bibliothèques.
 - [x] Inventaire de tout ce qui existe et plan détaillé (`PLAN-ADMINISTRATION.md`, 10/10).
-- [ ] Questions du plan (§ 5) validées par Dr Bentahila.
-- [ ] 15.1 Catalogue (modules, fonctions, sections de paramétrage, bibliothèques) ; spécialité Oncologie – Radiothérapie.
-- [ ] 15.2 Onglet « Par spécialité » (menu et modules, paramètres, bibliothèques, formules).
-- [ ] 15.3 Onco360 applique la spécialité (ordre du menu, fonctions cachées à l'écran et sur le serveur).
-- [ ] 15.4 Cabinets en liste, fiche du cabinet ; onglet Bibliothèques.
-- [ ] 15.5 Nouvelle spécialité (copie ou vide) ; Médecine générale, Gynécologie prêtes pour l'étape 14.
+- [x] Questions validées (10/10) : une seule spécialité Oncologie – Radiothérapie (packs à l'intérieur) ; liste 1.2 validée ;
+      tableau de bord réglable aussi (cartes montées / descendues / retirées) ; **tout réglable cabinet par cabinet** (packs = point
+      de départ) ; colonnes de la liste des cabinets validées.
+- [ ] 16.1 Catalogue (modules, fonctions, sections de paramétrage, bibliothèques) ; spécialité Oncologie – Radiothérapie.
+- [ ] 16.2 Onglet « Par spécialité » (menu et modules, paramètres, bibliothèques, formules).
+- [ ] 16.3 Onco360 applique la spécialité (ordre du menu, fonctions cachées à l'écran et sur le serveur).
+- [x] 16.4 (en partie, 10/10) Cabinets en **liste** (nom, ville, médecin, spécialité, pack, statut, équipe, dossiers, créé le ;
+      mobile en lignes empilées), clic = **fiche du cabinet** en fenêtre (toutes les actions). Reste : onglet listant toutes les bibliothèques.
+- [x] Une seule spécialité **Oncologie – Radiothérapie** (10/10) : les 8 packs y sont ; anciens noms reconnus (`specialiteDe`).
+- [x] 16.1 (début, 10/10) Catalogue `public/js/donnees/catalogue.js` : menu, fonctions de chaque module, cartes du tableau de bord,
+      sections de paramétrage, bibliothèques ; réglage complet `reglageDepart` / `reglageEffectif`.
+- [ ] 16.4 Onglet listant toutes les bibliothèques.
+- [ ] 16.5 Nouvelle spécialité (copie ou vide) ; Médecine générale, Gynécologie prêtes pour l'étape 14.
 
 ## Étape 14 – Autres spécialités (demandé le 09/10/2026) : nouveaux modules et leurs formules
 Onco360 s'ouvrira avec le temps à d'autres médecins : **médecine générale**, **gynécologie**, puis d'autres spécialités. Pour
@@ -1329,4 +1336,5 @@ Onco360_Package_Cession/
 | 09/10/2026 | 15 – Retouches | « Règlements reçus des cliniques et hôpitaux » ; sans les actes de la période ; virement sans date d'encaissement ; règlement hors période (05/05) désormais montré (période élargie) ; « KL » et ligne du détail des consultations retirés de la page Bilan. Bilan 352 317 DH, aucune erreur. Pas encore en ligne. |
 | 09/10/2026 | 15 – En ligne | Versements autres limités à la période choisie ; exports : « Payé » sans date. Bilan 352 317 DH, aucune erreur. Site mis en ligne (v2.js?v=20261010b). |
 | 09/10/2026 | 15 – Un seul cadre | « Versements autres » et « Règlements reçus » fusionnés en « Versements et règlements reçus » (colonne Type, totaux séparés, une seule fenêtre, versement modifiable). Bilan 352 317 DH. Pas encore en ligne. |
-| 10/10/2026 | 15 – Plan administration | Demande : tout régler par spécialité (modules + / − / ↑ ↓, fonctions, paramètres, bibliothèques), onglet « Par spécialité », cabinets en liste, onglet Bibliothèques. Inventaire complet et plan en 5 étapes : `PLAN-ADMINISTRATION.md`. 4 questions à valider. |
+| 10/10/2026 | 16 – Plan administration | Demande : tout régler par spécialité (modules + / − / ↑ ↓, fonctions, paramètres, bibliothèques), onglet « Par spécialité », cabinets en liste, onglet Bibliothèques. Inventaire complet et plan en 5 étapes : `PLAN-ADMINISTRATION.md`. 4 questions à valider. |
+| 10/10/2026 | 16 – début | Décisions : une seule spécialité Oncologie – Radiothérapie, tout réglable cabinet par cabinet (packs = point de départ, retouches : options, ordre du tableau de bord, ordre des onglets des Paramètres…). Catalogue commencé, cabinets en liste + fiche. Tests 46/46, 21/21, 48/48, bilan 352 317 DH. Mis en ligne. |

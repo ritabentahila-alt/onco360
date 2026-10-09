@@ -6,7 +6,7 @@
 import { app, auth, db } from "../config.js";
 import { onAuthStateChanged, sendPasswordResetEmail, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { MODULES, ROLES_MAX, SPECIALITES, FORMULES as FORMULES0, abonnementEffectif, BIBLIOTHEQUES_SPE, MODULE_FAMILLE, MODULE_MENU, MENU_COMMUN, MODULES_PREVUS } from "../donnees/modules.js";
+import { MODULES, ROLES_MAX, SPECIALITES, specialiteDe, FORMULES as FORMULES0, abonnementEffectif, BIBLIOTHEQUES_SPE, MODULE_FAMILLE, MODULE_MENU, MENU_COMMUN, MODULES_PREVUS } from "../donnees/modules.js";
 
 const $ = (i) => document.getElementById(i);
 const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -38,7 +38,7 @@ let GARDER = false;
 window.addEventListener("hashchange", () => { if (!GARDER) RES = ""; GARDER = false; dessiner(); });
 async function charger() {
   try {
-    const o = await serveur("listeCabinets"); if (o.formules) FS = o.formules; BIBS = o.bibliotheques || []; MSG = "";
+    const o = await serveur("listeCabinets"); if (o.formules) { FS = o.formules; Object.values(FS).forEach((f) => { f.specialite = specialiteDe(f.specialite); }); } BIBS = o.bibliotheques || []; MSG = "";
     CABINETS = (o.cabinets || []).map((c) => Object.assign({}, c, { cree: typeof c.cree === "string" ? c.cree : "", suspenduLe: typeof c.suspenduLe === "string" ? c.suspenduLe : "", titulaire: c.titulaire || {} }));
   } catch (e) { CABINETS = []; MSG = '<p class="err">Liste des cabinets indisponible : ' + esc(e.message) + ' <button class="clair petit" onclick="location.reload()">Réessayer</button></p>'; }
   dessiner();
@@ -81,7 +81,20 @@ function htmlCabinets() {
     '<a class="bt" href="#nouveau">+ Nouveau cabinet</a></div>' +
     '<p class="sous" style="margin:10px 0 0">' + V.length + " cabinet" + (V.length > 1 ? "s" : "") + (V.length !== L.length ? " sur " + L.length : "") + " · aucune donnée médicale, seulement des nombres.</p></section>" +
     (L.some((c) => c.demo) ? "" : '<section class="carte demo-c"><h2>Cabinet de démonstration</h2><p class="sous">Un cabinet rempli de 8 patients fictifs (PATIENT TEST 1 à 8 : chimiothérapies, radiothérapies, rendez-vous, consultations), pour les démonstrations, les guides et les captures d\'écran. Aucune donnée réelle.</p><button id="dCree">Créer le cabinet de démonstration</button></section>') +
-    (V.length ? '<div class="cabs">' + V.map(carteCabinet).join("") + "</div>" : '<section class="carte"><p class="sous">Aucun cabinet ne correspond.</p></section>');
+    (V.length ? '<section class="carte liste-c"><div class="tableau"><table class="lc"><thead><tr><th>Cabinet</th><th>Médecin</th><th>Spécialité</th><th>Pack</th><th>Statut</th><th class="n">Équipe</th><th class="n">Dossiers</th><th>Créé le</th></tr></thead><tbody>' + V.map(ligneCabinet).join("") + "</tbody></table></div></section>" : '<section class="carte"><p class="sous">Aucun cabinet ne correspond.</p></section>');
+}
+// Liste des cabinets (10/10/2026) : une ligne par cabinet ; un clic ouvre sa fiche (fenêtre : informations, équipe, actions)
+function ligneCabinet(c) {
+  const F = formuleDe(c.abonnement), statut = c.actif ? '<span class="bdg ok">Actif</span>' : '<span class="bdg al">Suspendu</span>';
+  return '<tr class="lc-l' + (c.actif ? "" : " susp") + '" data-fiche="' + esc(c.id) + '" tabindex="0"><td data-l="Cabinet"><b>' + esc(c.nom) + "</b>" + (c.demo ? ' <span class="bdg demo">Démonstration</span>' : "") + '<div class="m">' + esc(c.ville || "") + "</div></td>" +
+    '<td data-l="Médecin">' + esc(c.titulaire.nom || "—") + '<div class="m">' + esc(c.titulaire.email || "") + "</div></td>" +
+    '<td data-l="Spécialité">' + esc(F ? specialiteDe(F.specialite) : "—") + '</td><td data-l="Pack">' + esc(nomFormule(c.abonnement)) + '</td><td data-l="Statut">' + statut + "</td>" +
+    '<td data-l="Équipe" class="n">' + (c.equipe ? c.equipe.filter((m) => m.actif).length : c.membres == null ? "?" : c.membres) + '</td><td data-l="Dossiers" class="n">' + (c.patients == null ? "?" : c.patients) + '</td><td data-l="Créé le">' + esc(dfr(c.cree) || "—") + "</td></tr>";
+}
+function ouvrirFiche(c) {
+  if (!c) return;
+  fenetre(carteCabinet(c).replace('<article class="cab', '<article class="cab fiche'));
+  brancherActions($("modal"));
 }
 function carteCabinet(c) {
   const ab = c.abonnement, F = formuleDe(ab), r = c.roles || {}, mx = abonnementEffectif(ab).max;
@@ -99,10 +112,15 @@ function carteCabinet(c) {
     "</div></article>";
 }
 function brancherCabinets() {
+  document.querySelectorAll("[data-fiche]").forEach((tr) => { const o = () => ouvrirFiche(cab(tr.dataset.fiche)); tr.onclick = o; tr.onkeydown = (e) => { if (e.key === "Enter") o(); }; });
+  if ($("dCree")) $("dCree").onclick = creerDemo;
   const q = $("cQ"); if (q) q.oninput = () => { Q = q.value; const pos = q.selectionStart; dessiner(); const q2 = $("cQ"); q2.focus(); q2.setSelectionRange(pos, pos); };
   if ($("cSt")) $("cSt").onchange = (e) => { STATUT = e.target.value; dessiner(); };
   if ($("cSp")) $("cSp").onchange = (e) => { SPE = e.target.value; dessiner(); };
-  const on = (sel, f) => document.querySelectorAll(sel).forEach((b) => { b.onclick = () => f(b); });
+}
+// Boutons d'action d'un cabinet (dans sa fiche)
+function brancherActions(R) {
+  const on = (sel, f) => R.querySelectorAll(sel).forEach((b) => { b.onclick = () => f(b); });
   on("[data-info]", (b) => ouvrirInfos(cab(b.dataset.info)));
   on("[data-form]", (b) => ouvrirFormule(cab(b.dataset.form)));
   on("[data-lien]", (b) => lien(b, cab(b.dataset.lien)));
@@ -111,7 +129,6 @@ function brancherCabinets() {
   on("[data-react]", (b) => etat(b, cab(b.dataset.react), true));
   on("[data-suppr]", (b) => supprimer(b, cab(b.dataset.suppr)));
   on("[data-reinit]", (b) => reinitDemo(b));
-  if ($("dCree")) $("dCree").onclick = creerDemo;
 }
 // ───── Cabinet de démonstration (étape 9 S3, 09/10/2026) ─────
 async function creerDemo() {
@@ -127,7 +144,7 @@ async function creerDemo() {
 async function reinitDemo(b) {
   if (!confirm("Réinitialiser le cabinet de démonstration ?\n\nLes patients, consultations, tâches et rendez-vous de la démo sont effacés puis recréés (8 patients fictifs, dates d'aujourd'hui). Aucun autre cabinet n'est touché.")) return;
   b.disabled = true; b.textContent = "Réinitialisation…";
-  try { const o = await serveur("demoReinitialiser"); RES = "Démonstration réinitialisée : " + o.patients + " patients fictifs au " + esc(dfr(o.jour)) + "."; CABINETS = null; dessiner(); charger(); }
+  try { const o = await serveur("demoReinitialiser"); fermer(); RES = "Démonstration réinitialisée : " + o.patients + " patients fictifs au " + esc(dfr(o.jour)) + "."; CABINETS = null; dessiner(); charger(); }
   catch (e) { b.disabled = false; b.textContent = "Réinitialiser la démo"; alert("Impossible : " + e.message); }
 }
 // ───── Onglet Bibliothèques (10/10/2026) : une bibliothèque de référence par spécialité ─────
@@ -267,7 +284,7 @@ async function etat(b, c, actif) {
   if (!c) return;
   if (!confirm(actif ? "Réactiver le cabinet « " + c.nom + " » ? Son équipe pourra de nouveau se connecter." : "Suspendre le cabinet « " + c.nom + " » ?\n\nPlus personne de ce cabinet ne pourra se connecter. Rien n'est effacé : vous pourrez le réactiver à tout moment.")) return;
   b.disabled = true;
-  try { await serveur("etatCabinet", { espace: c.id, actif }); c.actif = actif; c.suspenduLe = actif ? "" : new Date().toISOString(); RES = "Cabinet « " + esc(c.nom) + " » " + (actif ? "réactivé." : "suspendu."); dessiner(); }
+  try { await serveur("etatCabinet", { espace: c.id, actif }); fermer(); c.actif = actif; c.suspenduLe = actif ? "" : new Date().toISOString(); RES = "Cabinet « " + esc(c.nom) + " » " + (actif ? "réactivé." : "suspendu."); dessiner(); }
   catch (e) { b.disabled = false; alert("Impossible : " + e.message); }
 }
 // Supprimer définitivement (cabinet suspendu seulement, nom retapé)
@@ -277,7 +294,7 @@ async function supprimer(b, c) {
   if (t == null) return;
   if (t.trim() !== String(c.nom).trim()) { alert("Le nom ne correspond pas : rien n'a été supprimé."); return; }
   b.disabled = true; b.textContent = "Suppression…";
-  try { const o = await serveur("supprimerCabinet", { espace: c.id, confirmation: t.trim() }); CABINETS = CABINETS.filter((x) => x.id !== c.id); RES = "Cabinet « " + esc(c.nom) + " » supprimé (" + o.comptes + " compte(s) effacé(s))."; dessiner(); }
+  try { const o = await serveur("supprimerCabinet", { espace: c.id, confirmation: t.trim() }); fermer(); CABINETS = CABINETS.filter((x) => x.id !== c.id); RES = "Cabinet « " + esc(c.nom) + " » supprimé (" + o.comptes + " compte(s) effacé(s))."; dessiner(); }
   catch (e) { b.disabled = false; b.textContent = "Supprimer"; alert("Suppression impossible : " + e.message); }
 }
 

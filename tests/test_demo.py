@@ -61,7 +61,7 @@ window.__fonctions={listeCabinets:async()=>({cabinets:window.__L,bibliotheques:[
         await pa.click('#dCree'); await pa.wait_for_timeout(800)
         ok((await pa.evaluate('window.__dm && window.__dm.email')) == 'ritabentahila+demo@gmail.com' and 'Démonstration' in await pa.inner_text('main'), 'cabinet de démonstration créé et listé (badge Démonstration)')
         ok(await pa.evaluate("!document.getElementById('dCree')"), 'bouton de création retiré une fois la démo créée')
-        await pa.click('[data-reinit]'); await pa.wait_for_timeout(500)
+        await pa.click('[data-fiche="cab-demonstration"]'); await pa.wait_for_timeout(300); await pa.click('[data-reinit]'); await pa.wait_for_timeout(500)
         ok(await pa.evaluate('window.__ri') == 1 and 'réinitialisée' in await pa.inner_text('main'), 'démonstration réinitialisée')
         await pa.click('nav#onglets a[href="#reference"]'); await pa.wait_for_timeout(400)
         ok('Oncologie – Radiothérapie' in await pa.inner_text('main') and '316' in await pa.inner_text('main'), 'onglet Bibliothèques (Oncologie – Radiothérapie : 316 protocoles)')
