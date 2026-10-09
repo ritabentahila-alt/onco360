@@ -28,7 +28,8 @@ function paiementsEffectifs(R) {
   R.forEach((x) => (x.fin || []).forEach((e) => { const o = { id: x.id, t: e[1], d: e[0], lib: e[3], hop: e[2] || "" }, k = clePaye(o); if (!p[k] && autoPaye(o)) p[k] = o.d; }));
   return p;
 }
-const payeTxt = (o) => (o.t === "kl" ? "Reçu" : estPaye(o, PE) ? (B.paiements[clePaye(o)] ? "Payé le " + A.dfrA(PE[clePaye(o)]) : "Payé (automatique)") : "À recevoir");
+// Exports : « Payé » ou « À recevoir » seulement (la date du clic du médecin n'est pas la date du paiement)
+const payeTxt = (o) => (o.t === "kl" ? "Reçu" : estPaye(o, PE) ? "Payé" : "À recevoir");
 
 // ───── Relevé financier du comptable (étape 9 S2, 09/10/2026) ─────
 // espaces/{e}/comptabilite/releve_0…n = { data: JSON [{ id, nm, num, cor, hop, c1, fin }] } (fin = lignes du bilan : date, acte,
@@ -128,9 +129,10 @@ function dessiner() {
   }
   if (b.prev.length) h += '<section class="carte"><h3><span class="ic">☢️</span>Radiothérapies en cours ou prévues (prévisionnel, non comptées)</h3><div class="tableau"><table class="tcures bilan"><tr><th>Fin prévue</th><th>Patient</th><th>Hôpital</th><th>Acte</th><th class="n">NET prévisionnel</th></tr>' +
     b.prev.map((o) => "<tr" + lienDossier(o.id) + "><td>" + (o.d ? A.dfrA(o.d) : "—") + "</td><td>" + esc(o.nm) + "</td><td>" + esc(o.hop || "—") + "</td><td>" + esc(o.lib) + '</td><td class="n">' + dh(o.net) + "</td></tr>").join("") + "</table></div></section>";
-  const KL = B.versements.map((e, i) => ({ e, i })).sort((a, z) => z.e.d.localeCompare(a.e.d));
-  h += '<section class="carte"><h3><span class="ic"><svg class="i"><use href="#i-banque"/></svg></span>Versements autres</h3><p class="sous">Sommes reçues hors patients (laboratoire…), ajoutées au bilan à leur date, établissement « Non renseigné ».</p>' +
-    (KL.length ? '<div class="tableau"><table class="tcures bilan"><tr><th>Date</th><th>Libellé</th><th class="n">Montant</th><th></th></tr>' + KL.map(({ e, i }) => "<tr><td>" + A.dfrA(e.d) + "</td><td>" + esc(e.lib || "Versement") + '</td><td class="n">' + dh(e.m) + '</td><td><button class="mini rouge" onclick="biKlSup(' + i + ')">✕</button></td></tr>').join("") + "</table></div>" : '<p class="mesures">Aucun versement.</p>') +
+  // Versements de la période choisie en haut de la page (liste courte)
+  const KL = B.versements.map((e, i) => ({ e, i })).filter(({ e }) => e.d >= b.pr[0] && e.d <= b.pr[1]).sort((a, z) => z.e.d.localeCompare(a.e.d));
+  h += '<section class="carte"><h3><span class="ic"><svg class="i"><use href="#i-banque"/></svg></span>Versements autres</h3><p class="sous">Sommes reçues hors patients (laboratoire…), ajoutées au bilan à leur date, établissement « Non renseigné ». Période : celle choisie en haut de la page.</p>' +
+    (KL.length ? '<div class="tableau"><table class="tcures bilan"><tr><th>Date</th><th>Libellé</th><th class="n">Montant</th><th></th></tr>' + KL.map(({ e, i }) => "<tr><td>" + A.dfrA(e.d) + "</td><td>" + esc(e.lib || "Versement") + '</td><td class="n">' + dh(e.m) + '</td><td><button class="mini rouge" onclick="biKlSup(' + i + ')">✕</button></td></tr>').join("") + "</table></div>" : '<p class="mesures">' + (B.versements.length ? "Aucun versement sur cette période." : "Aucun versement.") + "</p>") +
     '<div class="actr" style="justify-content:flex-start;margin-top:10px"><input id="klD" type="date" class="champ" style="max-width:170px;font-size:15px;padding:8px" value="' + D().t + '"><input id="klM" inputmode="decimal" class="champ mt" style="max-width:150px;font-size:15px;padding:8px" placeholder="Montant DH"><input id="klL" class="champ" style="flex:1;min-width:180px;font-size:15px;padding:8px" placeholder="Libellé * (ex. laboratoire…)"><button class="bt clair petit" onclick="biKlAj()">+ Ajouter</button></div></section>';
   h += htmlReglements(b);
   A.$("page").innerHTML = h;
@@ -149,6 +151,8 @@ async function sauverKL() { await setDoc(doc(db, "espaces", A.ESPACE, "finances"
 window.biKlAj = async () => {
   const d = A.val("klD"), m = num(A.val("klM")), l = A.val("klL");
   if (!d || m == null || !l) { A.toast("Date, montant et libellé obligatoires."); return; }
+  // Versement hors de la période affichée : période élargie à son année pour le montrer
+  if (DATA && (d < DATA.pr[0] || d > DATA.pr[1])) { const y = d.slice(0, 4); if (y === D().t.slice(0, 4)) F.per = "annee"; else Object.assign(F, { per: "perso", du: y + "-01-01", au: y + "-12-31" }); A.toast("Versement enregistré. Période affichée : année " + y + "."); }
   B.versements.push({ d, m, lib: l }); try { await sauverKL(); A.journal({ id: "", r: { nm: "" } }, "Versement ajouté : " + l + " (" + m + " DH)"); } catch (e) { B.versements.pop(); A.toast(e.message); }
 };
 window.biKlSup = async (i) => { const e = B.versements[i]; if (!confirm("Supprimer le versement « " + (e.lib || "Versement") + " » de " + dh(e.m) + " ?")) return; B.versements.splice(i, 1); try { await sauverKL(); } catch (er) { B.versements.splice(i, 0, e); A.toast(er.message); } };

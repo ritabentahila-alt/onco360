@@ -790,7 +790,7 @@ commence par ses questions « À décider » (Claude les pose avant d'écrire le
 8. **Étape 4 – Plusieurs cabinets** (complétée ci-dessus : licences, quotas).
 9. **Étape 12 – Dossier de cession, démo et guides**.
 10. **Étape 13 – Interopérabilité** (la plus lourde, en dernier).
-- **Étape 15 – Bilan : virements et chèques reçus des cliniques** (fait et testé le 09/10, pas encore en ligne).
+- **Étape 15 – Bilan : virements et chèques reçus des cliniques et hôpitaux** (fait et mis en ligne le 09/10).
 
 **Décidé le 08/10 : vendre des deux façons.** (a) **abonnements** (phase F, étape 4 : chaque cabinet paie, code
 d'activation) ; (b) **cession** du logiciel à un éditeur ou une ESN (prix visé 120 000 à 180 000 DH, étape 12). Les
@@ -1085,7 +1085,7 @@ formule tant que leurs modules n'existent pas).
   `data-mod`, sa page dans `PAGE_MODULE` (v2.js) ; « Ajouter les formules proposées par Onco360 » (onglet Formules) ajoute les
   nouvelles formules sans toucher à celles déjà modifiées. Le nom « Onco360 » sera peut-être à revoir pour les autres spécialités.
 
-## Étape 15 – Module Bilan : virements et chèques reçus des cliniques et hôpitaux (demandé le 09/10/2026 ; fait et testé le 09/10, pas encore en ligne)
+## Étape 15 – Module Bilan : virements et chèques reçus des cliniques et hôpitaux (demandé le 09/10/2026 ; fait, testé et mis en ligne le 09/10)
 But : dans la page **Bilan**, un endroit pour noter **chaque règlement reçu d'une clinique** (virement ou chèque) avec sa
 **date de réception**, pour la comptabilité de fin d'année. **Ne compte pas dans le bilan** : le bilan, c'est déjà l'activité
 elle-même (sinon tout serait compté deux fois). À ne pas confondre avec « **Versements autres** » (KL, `finances/versements`),
@@ -1121,7 +1121,10 @@ l'avis de virement ; liste à part, sans lien avec le pointage « Payé » des a
       avec la page sur le mois en cours) était enregistré mais invisible → période élargie à son année, filtres remis, message.
       Page Bilan : « KL » retiré de « Versements autres » (propre au Dr Bentahila ; ses anciens libellés « Versement KL » restent) ;
       ligne « Consultations : chimio · annonce · suivi · contrôle » (détail du total des consultations par type) retirée de l'écran.
-- [ ] Mise en ligne (site seulement : `firebase deploy --only hosting`), avec l'accord de Dr Bentahila.
+- [x] Retouches (09/10, suite) : « Versements autres » n'affiche plus que les versements **de la période choisie** (un versement
+      ajouté hors période : période élargie à son année) ; exports PDF et Excel : colonne Paiement = « Payé » ou « À recevoir »,
+      **sans date** (le clic du médecin sert seulement à savoir ce qui est payé).
+- [x] Mise en ligne le 09/10 (site, v2.js?v=20261010b), accord de Dr Bentahila.
 
 ## Étape 12 – Dossier de cession, démonstration et guides
 But : un acheteur (éditeur, ESN, clinique) reprend Onco360 **sans avoir besoin d'appeler Dr Bentahila**.
@@ -1302,3 +1305,4 @@ Onco360_Package_Cession/
 | 09/10/2026 | Plan – Bilan | Demande notée : étape 15, « Règlements reçus » (virements et chèques des cliniques, date de réception) dans la page Bilan, hors bilan, pour la comptabilité ; questions à valider au début de l'étape. |
 | 09/10/2026 | 15 – Bilan, règlements reçus | Cadre « Règlements reçus des cliniques » sous « Versements autres » (virements et chèques, date de réception, référence, banque, période concernée, encaissé le, note), hors bilan ; totaux par clinique et par mois, rappel des actes de la période pour information ; Excel et PDF ; comptable en lecture seule. `finances/reglements`, règles inchangées (+4 tests). Bilan 352 317 DH, 390 px, aucune erreur. Pas encore en ligne. |
 | 09/10/2026 | 15 – Retouches | « Règlements reçus des cliniques et hôpitaux » ; sans les actes de la période ; virement sans date d'encaissement ; règlement hors période (05/05) désormais montré (période élargie) ; « KL » et ligne du détail des consultations retirés de la page Bilan. Bilan 352 317 DH, aucune erreur. Pas encore en ligne. |
+| 09/10/2026 | 15 – En ligne | Versements autres limités à la période choisie ; exports : « Payé » sans date. Bilan 352 317 DH, aucune erreur. Site mis en ligne (v2.js?v=20261010b). |
