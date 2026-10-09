@@ -6,7 +6,7 @@
 import { app, auth, db } from "../config.js";
 import { onAuthStateChanged, sendPasswordResetEmail, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { MENU, FONCTIONS, FONCTIONS_RELIEES, CARTES, SECTIONS, BIBLIOTHEQUES, reglageEffectif } from "../donnees/catalogue.js";
+import { MENU, FONCTIONS, FONCTIONS_RELIEES, CARTES, SECTIONS, BIBLIOTHEQUES, FICHE, TYPES_CHAMP, reglageEffectif } from "../donnees/catalogue.js";
 import { MODULES, ROLES_MAX, SPECIALITES, specialiteDe, FORMULES as FORMULES0, abonnementEffectif, BIBLIOTHEQUES_SPE, MODULE_FAMILLE } from "../donnees/modules.js";
 
 const $ = (i) => document.getElementById(i);
@@ -235,7 +235,23 @@ function ouvrirInfos(c) {
 // compte(k), enregistrer(A, R, nom) }.
 function editeurReglage(o) {
   const A = o.A, R = o.R, LIB_MENU = Object.fromEntries(MENU.map((m) => [m[0], m])), LIB_CARTE = Object.fromEntries(CARTES), LIB_SEC = Object.fromEntries(SECTIONS.map((x) => [x[0], x[1]]));
-  let nom = o.nom || "";
+  let nom = o.nom || "", ED_CH = null; // ED_CH : champ ajouté en cours de modification (id) ou "nouveau"
+  // Fiche patient : champs existants et ajoutés (ordre, présence) ; formulaire d'un champ ajouté
+  const htmlFiche = () => {
+    const FI = R.fiche, LIB = Object.fromEntries(FICHE.map((c) => [c[0], c])), AJ = Object.fromEntries(FI.ajouts.map((a) => [a.id, a]));
+    const ligne = (k, i) => { const c = LIB[k], a = AJ[k]; if (!c && !a) return "";
+      return '<div class="rg-l">' + fleches("fiche", i) + '<span class="rg-t">' + esc(c ? c[1] : a.lib) + ' <span class="m">' + (c ? (c[2] === "clinique" ? "fiche clinique" : "identité") : "ajouté · " + ((TYPES_CHAMP.find((t) => t[0] === a.type) || [])[1] || a.type).toLowerCase() + (a.imprimer ? " · imprimé" : "") + (a.entete ? " · en-tête" : "")) + "</span></span>" +
+        (a ? '<button class="clair petit" data-chm="' + k + '" aria-label="Modifier le champ">✎</button><button class="clair petit" data-chs="' + k + '" aria-label="Supprimer le champ">✕</button>' : "") +
+        (c && c[3] ? '<span class="m">toujours</span>' : caseC('data-rch="' + k + '"', FI.champs[k] !== false, "")) + "</div>"; };
+    const a = ED_CH && ED_CH !== "nouveau" ? AJ[ED_CH] || {} : { type: "texte", partie: "identite" };
+    const form = ED_CH ? '<div class="ch-f"><div class="form"><div><label for="chLib">Nom du champ</label><input id="chLib" value="' + esc(a.lib || "") + '" placeholder="ex. Groupe sanguin"></div>' +
+      '<div><label for="chType">Type</label><select id="chType">' + TYPES_CHAMP.map(([k, l]) => '<option value="' + k + '"' + (a.type === k ? " selected" : "") + ">" + esc(l) + "</option>").join("") + "</select></div>" +
+      '<div><label for="chPartie">Partie de la fiche</label><select id="chPartie"><option value="identite"' + (a.partie !== "clinique" ? " selected" : "") + '>Identité</option><option value="clinique"' + (a.partie === "clinique" ? " selected" : "") + ">Fiche clinique</option></select></div>" +
+      '<div class="large" id="chChoixZ"' + (a.type === "choix" ? "" : ' style="display:none"') + '><label for="chChoix">Choix possibles (un par ligne)</label><textarea id="chChoix" rows="3">' + esc((a.choix || []).join("\n")) + "</textarea></div></div>" +
+      '<div class="barre" style="margin-top:6px">' + caseC('id="chImp"', !!a.imprimer, "À imprimer (fiche chimio, courriers)") + caseC('id="chEnt"', !!a.entete, "En tête du dossier") + '<button class="petit" id="chOk">' + (ED_CH === "nouveau" ? "Ajouter le champ" : "Enregistrer le champ") + '</button><button class="clair petit" id="chAnn">Annuler</button></div></div>' : "";
+    return '<h3 class="st">Fiche patient <span class="m">(ordre ↑ ↓, présence ; un champ retiré est caché, sa valeur gardée)</span></h3><div class="rg-b fiche-b">' + FI.ordre.map(ligne).join("") + "</div>" +
+      (ED_CH ? form : '<div style="margin-top:8px"><button class="clair petit" id="chNouv">+ Ajouter un champ</button></div>');
+  };
   const fleches = (l, i) => '<span class="fl"><button class="clair petit" data-haut="' + l + ":" + i + '"' + (i ? "" : " disabled") + ' aria-label="Monter">↑</button><button class="clair petit" data-bas="' + l + ":" + i + '" aria-label="Descendre">↓</button></span>';
   const caseC = (attr, on, txt) => '<label class="rg-c"><input type="checkbox" ' + attr + (on ? " checked" : "") + "><span>" + txt + "</span></label>";
   const corps = () => {
@@ -246,6 +262,7 @@ function editeurReglage(o) {
       '<div class="rg-b"><h3 class="st">Tableau de bord (cartes)</h3>' + R.accueil.map((k, i) => '<div class="rg-l">' + fleches("accueil", i) + '<span class="rg-t">' + esc(LIB_CARTE[k] || k) + "</span>" + caseC('data-rcarte="' + k + '"', R.cartes[k] !== false, "") + "</div>").join("") + "</div>" +
       '<div class="rg-b"><h3 class="st">Paramètres (onglets)</h3>' + R.ordreSections.map((k, i) => '<div class="rg-l">' + fleches("ordreSections", i) + '<span class="rg-t">' + esc(LIB_SEC[k] || k) + "</span>" + caseC('data-rsec="' + k + '"', R.sections[k] !== false, "") + "</div>").join("") + "</div>" +
       '<div class="rg-b"><h3 class="st">Bibliothèques</h3>' + BIBLIOTHEQUES.map(([k, lib]) => '<div class="rg-l"><span class="rg-t">' + esc(lib) + "</span>" + caseC('data-rbib="' + k + '"', R.bibliotheques[k] !== false, "") + "</div>").join("") + "</div></div>" +
+      htmlFiche() +
       '<h3 class="st">Modules et fonctions</h3><div class="mods">' + mods.map(([k, lib, de]) => '<div class="mod-f' + (A.modules[k] ? "" : " off") + '">' + caseC('data-rmod="' + k + '"', A.modules[k], "<b>" + esc(lib) + '</b><br><span class="m">' + esc(de) + "</span>") +
         ((FONCTIONS[k] || []).length ? "<details><summary>Fonctions (" + FONCTIONS[k].filter(([f]) => R.fonctions[k + "." + f] !== false).length + " / " + FONCTIONS[k].length + ")</summary>" + FONCTIONS[k].map(([f, l, base]) => base ? '<div class="rg-c base"><span>✓</span><span>' + esc(l) + ' <span class="m">(fonction de base, toujours là)</span></span></div>' : caseC('data-rfn="' + k + "." + f + '"', R.fonctions[k + "." + f] !== false, esc(l) + (FONCTIONS_RELIEES.indexOf(k + "." + f) < 0 ? ' <span class="m">(bientôt)</span>' : ""))).join("") + "</details>" : "") + "</div>").join("") + "</div>" +
       '<h3 class="st">Nombre maximum <span class="m">(vide = sans limite, 0 = aucun)</span></h3><div class="form">' + ROLES_MAX.map(([k, lib]) => { const c = o.compte ? o.compte(k) : undefined; return '<div><label for="fMx' + k + '">' + esc(lib) + (c === undefined ? "" : ' <span class="m">(actuellement ' + (c == null ? "?" : c) + ")</span>") + '</label><input id="fMx' + k + '" type="number" min="0" data-x="' + k + '" placeholder="sans limite" value="' + (A.max[k] == null ? "" : A.max[k]) + '"></div>'; }).join("") + "</div>";
@@ -253,7 +270,7 @@ function editeurReglage(o) {
   fenetre("<h2>" + esc(o.titre) + '</h2><p class="sous">' + o.intro + '</p><div id="fCorps">' + corps() + '</div><div class="pied"><button id="fOk">Enregistrer</button><button class="clair" id="fAnn">Fermer</button></div>');
   const lire = () => { document.querySelectorAll("#fCorps [data-x]").forEach((x) => { A.max[x.dataset.x] = x.value === "" ? null : Number(x.value); }); if ($("fNom")) nom = $("fNom").value.trim(); };
   const refaire = (sansLire) => { if (!sansLire) lire(); const ouverts = [...document.querySelectorAll("#fCorps details")].map((d) => d.open); $("fCorps").innerHTML = corps(); document.querySelectorAll("#fCorps details").forEach((d, i) => { d.open = !!ouverts[i]; }); brancher(); };
-  const bouger = (v, sens) => { const [l, i] = v.split(":"), k = Number(i), j = k + sens, L = R[l]; if (j < 0 || j >= L.length) return; [L[k], L[j]] = [L[j], L[k]]; refaire(); };
+  const bouger = (v, sens) => { const [l, i] = v.split(":"), k = Number(i), j = k + sens, L = l === "fiche" ? R.fiche.ordre : R[l]; if (j < 0 || j >= L.length) return; [L[k], L[j]] = [L[j], L[k]]; refaire(); };
   const brancher = () => {
     if ($("fFor")) $("fFor").onchange = () => { const F = FORMULES_()[$("fFor").value]; if (!F) return; A.formule = $("fFor").value; A.max = Object.assign({}, F.max); MODULES.forEach(([k]) => { A.modules[k] = F.modules.indexOf(k) >= 0; }); Object.assign(R, reglageEffectif(F.reglage)); refaire(true); }; // tout le pack (pas les limites affichées)
     if ($("fDepart")) $("fDepart").onclick = () => { Object.assign(R, reglageEffectif((FORMULES_()[A.formule] || {}).reglage)); refaire(); };
@@ -264,6 +281,21 @@ function editeurReglage(o) {
     document.querySelectorAll("#fCorps [data-rsec]").forEach((x) => { x.onchange = () => { R.sections[x.dataset.rsec] = x.checked; }; });
     document.querySelectorAll("#fCorps [data-rbib]").forEach((x) => { x.onchange = () => { R.bibliotheques[x.dataset.rbib] = x.checked; }; });
     document.querySelectorAll("#fCorps [data-rfn]").forEach((x) => { x.onchange = () => { R.fonctions[x.dataset.rfn] = x.checked; refaire(); }; });
+    // Fiche patient
+    document.querySelectorAll("#fCorps [data-rch]").forEach((x) => { x.onchange = () => { R.fiche.champs[x.dataset.rch] = x.checked; }; });
+    document.querySelectorAll("#fCorps [data-chm]").forEach((b) => { b.onclick = () => { ED_CH = b.dataset.chm; refaire(); }; });
+    document.querySelectorAll("#fCorps [data-chs]").forEach((b) => { b.onclick = () => { const k = b.dataset.chs, a = R.fiche.ajouts.find((z) => z.id === k); if (!confirm("Retirer le champ « " + (a && a.lib) + " » de la fiche ?\n(Les valeurs déjà saisies restent dans les dossiers.)")) return; R.fiche.ajouts = R.fiche.ajouts.filter((z) => z.id !== k); R.fiche.ordre = R.fiche.ordre.filter((z) => z !== k); delete R.fiche.champs[k]; refaire(); }; });
+    if ($("chNouv")) $("chNouv").onclick = () => { ED_CH = "nouveau"; refaire(); };
+    if ($("chType")) $("chType").onchange = () => { $("chChoixZ").style.display = $("chType").value === "choix" ? "" : "none"; };
+    if ($("chAnn")) $("chAnn").onclick = () => { ED_CH = null; refaire(); };
+    if ($("chOk")) $("chOk").onclick = () => {
+      const lib = $("chLib").value.trim(); if (!lib) { alert("Indiquez le nom du champ."); return; }
+      const d = { lib: lib.slice(0, 60), type: $("chType").value, partie: $("chPartie").value, choix: $("chChoix").value.split("\n").map((c) => c.trim()).filter(Boolean).slice(0, 40), imprimer: $("chImp").checked, entete: $("chEnt").checked };
+      if (d.type === "choix" && !d.choix.length) { alert("Indiquez au moins un choix (un par ligne)."); return; }
+      if (ED_CH === "nouveau") { const id = "x" + Date.now().toString(36) + Math.floor(Math.random() * 1296).toString(36); R.fiche.ajouts.push(Object.assign({ id }, d)); R.fiche.ordre.push(id); R.fiche.champs[id] = true; }
+      else { const a = R.fiche.ajouts.find((z) => z.id === ED_CH); if (a) Object.assign(a, d); }
+      ED_CH = null; refaire();
+    };
   };
   brancher();
   $("fAnn").onclick = fermer;

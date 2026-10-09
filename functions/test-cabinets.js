@@ -118,3 +118,11 @@ const echoue = (f) => { try { f(); return false; } catch (e) { return true; } };
   const c = C.abonnement({ formule: "pack-a", modules: { chimio: true, agenda: true }, max: {}, reglage: { menu: ["bilan"] }, identiqueAuPack: true }, FS);
   ok(!c.surMesure && c.retouche === false, "réglage identique au pack : pas sur mesure");
 })();
+// Fiche patient réglable (10/10/2026)
+(() => {
+  const C = require("./cabinets"), ok = (c, m) => { console.log((c ? "✅ " : "❌ ") + m); if (!c) process.exitCode = 1; };
+  const r = C.reglageNettoye({ fiche: { ordre: ["xgs01", "nom", "<b>"], champs: { ald: false, x: "non" }, ajouts: [{ id: "xgs01", lib: "  Groupe   sanguin ", type: "choix", choix: ["A+", "", "O+"], partie: "clinique", imprimer: true, entete: "oui" }, { id: "pirate", lib: "X" }, { id: "xvide", lib: "  " }, { id: "xbiz1", lib: "Biz", type: "html" }] } });
+  const a = r.fiche.ajouts;
+  ok(JSON.stringify(r.fiche.ordre) === '["xgs01","nom"]' && r.fiche.champs.ald === false && !("x" in r.fiche.champs), "fiche : ordre et présence nettoyés");
+  ok(a.length === 2 && a[0].lib === "Groupe sanguin" && a[0].type === "choix" && JSON.stringify(a[0].choix) === '["A+","O+"]' && a[0].partie === "clinique" && a[0].imprimer === true && a[0].entete === false && a[1].type === "texte", "champs ajoutés : libellé, type, choix, partie ; type inconnu → texte ; identifiant ou libellé invalide refusé");
+})();

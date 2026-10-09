@@ -11,6 +11,7 @@ import { tarif } from "../moteur/tarifs.js";
 import { typeRdv, T_RTC } from "../moteur/rdv.js";
 import { DIAG, MUT0, COR0, DICT } from "../donnees/listes.js";
 import { poso, doseTxt, ficheHTML, imprimerFiche } from "./fiche.js";
+import * as ficheP from "./fichepatient.js"; // fiche patient réglable (10/10/2026)
 
 let A = null; // outils fournis par l'application (v2.js)
 export function installer(api) { A = api; const f0 = window.fermerFenetre; window.fermerFenetre = () => { CM = null; f0(); }; }
@@ -380,7 +381,8 @@ window.chFiche = (id, i, k) => {
   const x = trouver(id), L = x.P.lignes[i], { q, e } = etatCure(L, k, x.P);
   // Médecin prescripteur : « Dr NOM Prénom » et INPE du Profil ; imprimée par l'infirmière ou la secrétaire : ceux du médecin titulaire
   const M = A.medecinFiche(), med = { nom: M.nom, inpe: M.inpe, logo: "" }; // pas de logo : papier à en-tête
-  if (!imprimerFiche(ficheHTML(x.P, L, q, e, med))) A.toast("Autorisez l'ouverture des fenêtres pour imprimer la fiche (orientation Paysage).");
+  // + champs ajoutés de la fiche à imprimer (10/10/2026)
+  if (!imprimerFiche(ficheHTML(Object.assign({}, x.P, { _imp: ficheP.aImprimer(x).filter((c) => c.texte) }), L, q, e, med))) A.toast("Autorisez l'ouverture des fenêtres pour imprimer la fiche (orientation Paysage).");
 };
 
 // ───── Séances J8 / J15… ─────
@@ -729,8 +731,8 @@ window.chNouvelleLigne = (id) => {
 
 // ───── Diagnostic : recherche dans la liste + précision libre (comme l'application actuelle) ─────
 export function champDiag(idD, idP, v, vp, dis) {
-  return '<div class="large" style="position:relative"><label for="' + idD + '">Diagnostic</label><input id="' + idD + '" autocomplete="off" value="' + A.esc(v || "") + '" placeholder="Tapez pour chercher : prostate, sein, neuro…"' + (dis ? " disabled" : "") + '><div id="' + idD + 'S" class="sug cache"></div></div>' +
-    '<div class="large"><label for="' + idP + '">Précision du diagnostic (facultatif)</label><input id="' + idP + '" value="' + A.esc(vp || "") + '" placeholder="ex. métastatique, localisé, grade 2, N+…"' + (dis ? " disabled" : "") + "></div>";
+  return '<div class="large" data-champ="diag" style="position:relative"><label for="' + idD + '">Diagnostic</label><input id="' + idD + '" autocomplete="off" value="' + A.esc(v || "") + '" placeholder="Tapez pour chercher : prostate, sein, neuro…"' + (dis ? " disabled" : "") + '><div id="' + idD + 'S" class="sug cache"></div></div>' +
+    '<div class="large" data-champ="diag"><label for="' + idP + '">Précision du diagnostic (facultatif)</label><input id="' + idP + '" value="' + A.esc(vp || "") + '" placeholder="ex. métastatique, localisé, grade 2, N+…"' + (dis ? " disabled" : "") + "></div>";
 }
 export function activerDiag(idD, idP) {
   const i = document.getElementById(idD), s = document.getElementById(idD + "S"); if (!i || i.disabled) return;
@@ -770,16 +772,18 @@ export function nouveauPatient() {
   const maxP = D().abo && D().abo.max.patients; // formule du cabinet (09/10/2026)
   if (maxP != null && D().patients.length >= maxP) { alert("Votre formule Onco360 permet " + maxP + " dossiers patients : la limite est atteinte.\nContactez l'éditeur d'Onco360 pour passer à une formule supérieure."); return; }
   const ch = (i, lib, o) => '<div class="' + (o && o.large ? "large" : "") + '"><label for="' + i + '">' + lib + '</label><input id="' + i + '"' + (o && o.type ? ' type="' + o.type + '"' : "") + (o && o.liste ? ' list="' + o.liste + '"' : "") + (o && o.mode ? ' inputmode="' + o.mode + '"' : "") + (o && o.ph ? ' placeholder="' + o.ph + '"' : "") + "></div>";
-  A.fenetre('<h3>Nouveau patient</h3><div class="form">' + ch("pNom", "Nom") + ch("pPre", "Prénom") + ch("pDdn", "Date de naissance", { type: "date" }) +
-    '<div><label for="pSexe">Sexe</label><select id="pSexe"><option value=""></option><option value="F">Femme</option><option value="H">Homme</option></select></div>' +
-    (okC ? ch("pTaille", "Taille (cm)", { mode: "numeric" }) + ch("pPoids", "Poids (kg)", { mode: "decimal" }) + champDiag("pDiag", "pDiagP", "", "") : "") +
-    ch("pTel", "Téléphone", { type: "tel", ph: "06…" }) + ch("pTel2", "2e téléphone", { type: "tel", ph: "Autre numéro (proche…)" }) +
-    '<div><label for="pEtab">Hôpital</label><select id="pEtab">' + permis.map((e) => '<option value="' + A.esc(e.code) + '">' + A.esc(e.code + " – " + e.nom) + "</option>").join("") + "</select></div>" +
-    '<div><label for="pAld">ALD</label><select id="pAld"><option></option><option>Oui</option><option>Non</option></select></div>' +
-    ch("pCor", "Correspondant", { liste: "lCor", large: true, ph: "Taper pour chercher, ou saisir un nouveau…" }).replace("<div", '<div data-fn="listes.cor"') + ch("pMut", "Mutuelle", { liste: "lMut", large: true, ph: "Taper pour chercher, ou saisir une nouvelle…" }) + ch("pAdr", "Adresse", { large: true }) + ch("pMail", "E-mail", { type: "email", large: true }) + (okC ? A.champsMed({}) : "") +
+  A.fenetre('<h3>Nouveau patient</h3><div class="form">' + ch("pNom", "Nom").replace("<div", '<div data-champ="nom"') + ch("pPre", "Prénom").replace("<div", '<div data-champ="prenom"') + ch("pDdn", "Date de naissance", { type: "date" }).replace("<div", '<div data-champ="ddn"') +
+    '<div data-champ="sexe"><label for="pSexe">Sexe</label><select id="pSexe"><option value=""></option><option value="F">Femme</option><option value="H">Homme</option></select></div>' +
+    (okC ? ch("pTaille", "Taille (cm)", { mode: "numeric" }).replace("<div", '<div data-champ="taille"') + ch("pPoids", "Poids (kg)", { mode: "decimal" }).replace("<div", '<div data-champ="poids"') + champDiag("pDiag", "pDiagP", "", "") : "") +
+    ch("pTel", "Téléphone", { type: "tel", ph: "06…" }).replace("<div", '<div data-champ="tel"') + ch("pTel2", "2e téléphone", { type: "tel", ph: "Autre numéro (proche…)" }).replace("<div", '<div data-champ="tel2"') +
+    '<div data-champ="etab"><label for="pEtab">Hôpital</label><select id="pEtab">' + permis.map((e) => '<option value="' + A.esc(e.code) + '">' + A.esc(e.code + " – " + e.nom) + "</option>").join("") + "</select></div>" +
+    '<div data-champ="ald"><label for="pAld">ALD</label><select id="pAld"><option></option><option>Oui</option><option>Non</option></select></div>' +
+    ch("pCor", "Correspondant", { liste: "lCor", large: true, ph: "Taper pour chercher, ou saisir un nouveau…" }).replace("<div", '<div data-champ="cor" data-fn="listes.cor"') + ch("pMut", "Mutuelle", { liste: "lMut", large: true, ph: "Taper pour chercher, ou saisir une nouvelle…" }).replace("<div", '<div data-champ="mut"') + ch("pAdr", "Adresse", { large: true }).replace("<div", '<div data-champ="adresse"') + ch("pMail", "E-mail", { type: "email", large: true }).replace("<div", '<div data-champ="email"') + (okC ? A.champsMed({}) : "") +
+    ficheP.htmlSaisie(null, (p) => p === "clinique" && !okC) + // champs ajoutés (réglage du cabinet)
     '<p class="large mesures" style="margin:0">Nom et prénom obligatoires. Date de naissance, sexe, taille et poids : demandés avant la première ligne de chimiothérapie.</p></div>' +
     '<datalist id="lMut">' + listeMut().map((m) => '<option value="' + A.esc(m) + '">').join("") + '</datalist><datalist id="lCor">' + listeCor().map((m) => '<option value="' + A.esc(m) + '">').join("") + "</datalist>" + boutons("Créer le dossier"));
   if (okC) activerDiag("pDiag", "pDiagP");
+  ficheP.appliquerFiche(document.querySelector("#fenetre .form"));
   document.getElementById("fOk").onclick = async () => {
     const nomF = A.val("pNom").toUpperCase(), prenom = A.val("pPre"); if (!nomF || !prenom) { A.erreur("Le nom et le prénom sont obligatoires."); return; }
     const deja = D().patients.find((p) => (p.P.nomF || "").toUpperCase() === nomF && String(p.P.prenom || "").toLowerCase() === prenom.toLowerCase());
@@ -788,6 +792,9 @@ export function nouveauPatient() {
     const docP = { etablissementId: etab, identite: { nomF, prenom, nom: nomF + " " + prenom, ddn: A.val("pDdn"), sexe: A.val("pSexe"), tel: A.val("pTel"), ...(A.val("pTel2") ? { tel2: A.val("pTel2") } : {}), ...(A.val("pAdr") ? { adresse: A.val("pAdr") } : {}), ...(A.val("pMail") ? { email: A.val("pMail") } : {}), mut: A.val("pMut"), cor: A.val("pCor"), ald: A.val("pAld"), cree: D().t },
       version: 1, maj: serverTimestamp(), majPar: D().u.uid };
     if (okC) { docP.clinique = { diag: A.val("pDiag"), diagP: A.val("pDiagP"), poids: A.val("pPoids").replace(",", "."), taille: A.val("pTaille") }; A.CHAMPS_MED().forEach(([k]) => { if (A.val("f_" + k)) docP.clinique[k] = A.val("f_" + k); }); }
+    const saisie = ficheP.lireSaisie(); // champs ajoutés
+    if (Object.keys(saisie.identite).length) docP.identite.extra = saisie.identite;
+    if (okC && Object.keys(saisie.clinique).length) docP.clinique.extra = saisie.clinique;
     if (A.traitMod()) Object.assign(docP, { lignesJson: "[]", planningJson: "{}" });
     if (A.peut("rendezvous")) docP.rdvsJson = "[]";
     if (mb.droits && mb.droits.radiotherapie === "modifier") docP.rtsJson = "[]";

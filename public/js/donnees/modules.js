@@ -14,7 +14,7 @@ export const MODULES = [
   ["prescriptions", "Prescriptions et bibliothèques", "Médicaments, ordonnances types, analyses, examens, courriers, documentation"],
   ["documents", "Documents", "Documents déposés, pli confidentiel, compte rendu"],
   ["gagenda", "Google Agenda", "Chacun relie son Google Agenda"],
-  ["listes", "Listes", "Diagnostics et mutuelles modifiables (Paramètres › Listes)"],
+  ["listes", "Listes", "Diagnostics, mutuelles, correspondants : contenu de la bibliothèque de la spécialité, modifiable dans Paramètres › Listes"],
   ["bilan", "Bilan financier", "Page Bilan, exports"],
 ];
 // Modules et menus par spécialité (10/10/2026) : un module sans famille sert à toutes les spécialités ; sinon il appartient à la

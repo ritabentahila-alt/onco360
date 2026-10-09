@@ -149,6 +149,16 @@ function reglageNettoye(r) {
   const cle = (k) => typeof k === "string" && /^[a-z0-9._-]{1,40}$/i.test(k), out = {};
   ["menu", "accueil", "ordreSections"].forEach((k) => { if (Array.isArray(r[k])) out[k] = r[k].filter(cle).slice(0, 80); });
   ["cartes", "sections", "bibliotheques", "fonctions"].forEach((k) => { if (r[k] && typeof r[k] === "object") { const o = {}; Object.entries(r[k]).slice(0, 300).forEach(([c, v]) => { if (cle(c) && typeof v === "boolean") o[c] = v; }); out[k] = o; } });
+  // Fiche patient (10/10/2026) : ordre, présence, champs ajoutés (libellé, type, choix, partie, imprimer, en-tête)
+  if (r.fiche && typeof r.fiche === "object") {
+    const f = r.fiche, t = (v, n) => String(v == null ? "" : v).replace(/\s+/g, " ").trim().slice(0, n), F = {};
+    if (Array.isArray(f.ordre)) F.ordre = f.ordre.filter(cle).slice(0, 120);
+    if (f.champs && typeof f.champs === "object") { F.champs = {}; Object.entries(f.champs).slice(0, 120).forEach(([c, v]) => { if (cle(c) && typeof v === "boolean") F.champs[c] = v; }); }
+    if (Array.isArray(f.ajouts)) F.ajouts = f.ajouts.filter((a) => a && /^x[a-z0-9]{3,20}$/.test(a.id || "") && t(a.lib, 60)).slice(0, 60).map((a) => ({ id: a.id, lib: t(a.lib, 60),
+      type: ["texte", "nombre", "date", "choix", "ouinon"].indexOf(a.type) >= 0 ? a.type : "texte", choix: Array.isArray(a.choix) ? a.choix.map((c) => t(c, 60)).filter(Boolean).slice(0, 40) : [],
+      partie: a.partie === "clinique" ? "clinique" : "identite", imprimer: a.imprimer === true, entete: a.entete === true }));
+    out.fiche = F;
+  }
   return out;
 }
 module.exports = { reglageNettoye, PARAMS_SPE, parametreDepart, BIBS, bibDe, estBib, DROITS_BIB, MODULES_BIB, infos, ROLES, membreDemande, MODULES, MAX, FORMULES, formulesValides, abonnement, horsQuota, MODELE, BIBLIOTHEQUES, DROITS_MEDECIN, MIGRATIONS, verifier, idCabinet, listesDepart, calendrierDepart, tarifsDepart, migrationsFaites, membreTitulaire };

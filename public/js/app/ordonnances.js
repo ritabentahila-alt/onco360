@@ -16,6 +16,7 @@ import { ORDOS_TYPES0 } from "../donnees/ordostypes.js";
 import { ANALYSES0, BILANS0 } from "../donnees/analyses.js";
 import { EXAMENS0 } from "../donnees/examens.js";
 import { COURRIERS0, CHAMPS_COURRIER } from "../donnees/courriers.js";
+import * as ficheP from "./fichepatient.js"; // champs ajoutés de la fiche, insérables dans les courriers (10/10/2026)
 import { age } from "../moteur/outils.js";
 import { installer as installerDocumentation } from "./documentation.js"; // bouton « Doc. » (08/10/2026)
 import { enregistrerPrescription, trouverLigne, assurerConsultations, prescriptionsDe, supprimerPrescription, FAMILLES } from "./consultations.js";
@@ -472,12 +473,13 @@ function remplirCourrier(html, x) {
   const nom = P.nomF ? String(P.nomF).toUpperCase() + (P.prenom ? " " + String(P.prenom).toLowerCase().replace(/(^|[\s-])\S/g, (c) => c.toUpperCase()) : "") : x.r.nm;
   const V = { patient: civilite(x) + nom, age: a != null ? a + " ans" : "", naissance: P.ddn ? dateFr(P.ddn) : "", diagnostic: x.r.diag || "", mutuelle: P.mut || "",
     etablissement: nomEt ? art + nomEt : "", lieu: nomEt, ville: et.ville || "Casablanca", date: dateFr(D().t), medecin: medecin() };
+  ficheP.aImprimer(x).forEach((c) => { V["c_" + c.id] = c.texte; }); // champs ajoutés de la fiche (10/10/2026) : {c_identifiant}
   let h = P.sexe === "F" ? html.replace(/\(e\)/g, "e") : P.sexe === "H" ? html.replace(/\(e\)/g, "") : html;
-  h = h.replace(/\{([a-z]+)\}/g, (m, k) => {
+  h = h.replace(/\{([a-z0-9_]+)\}/g, (m, k) => {
     if (!(k in V)) return m;
     if (k === "date") return '<span class="or-jour">' + e(V.date) + "</span>";
     if (k === "medecin") return '<span class="or-med">' + e(V.medecin) + "</span>";
-    const c = CHAMPS_COURRIER.find((z) => z[0] === k);
+    const c = CHAMPS_COURRIER.find((z) => z[0] === k) || ficheP.champsAjoutes().filter((a) => "c_" + a.id === k).map((a) => [k, a.lib])[0];
     return V[k] ? e(V[k]) : '<mark class="or-ac">À compléter : ' + e(c ? c[1].toLowerCase() : k) + "</mark>";
   });
   return h.replace(/\bde le /g, "du ").replace(/\bà le /g, "au ");
@@ -496,7 +498,7 @@ window.crFiche = (id) => {
   A.fenetre("<h3>" + (m ? "Modifier le modèle de courrier" : "Nouveau modèle de courrier") + "</h3>" +
     '<div class="form"><div class="large"><label for="crNom">Nom du modèle</label><input id="crNom" value="' + A.esc(m ? m.nom : "") + '" placeholder="Ex. Certificat de non contre-indication"></div></div>' +
     '<div class="or-outils">' + b("Gras", "<b>G</b>", "orStyle('bold')") + b("Souligné", "<u>S</u>", "orStyle('underline')") + b("Centrer", "≡", "orStyle('justifyCenter')") + b("Aligner à gauche", "⇤", "orStyle('justifyLeft')") + b("Aligner à droite", "⇥", "orStyle('justifyRight')") + "</div>" +
-    '<div class="cr-champs"><span class="mesures">Insérer :</span>' + CHAMPS_COURRIER.map(([k, lib]) => '<button class="mini" onmousedown="event.preventDefault()" onclick="crChamp(\'' + k + '\')" title="Remplacé à chaque courrier par : ' + A.esc(lib.toLowerCase()) + '">' + A.esc(lib) + "</button>").join("") +
+    '<div class="cr-champs"><span class="mesures">Insérer :</span>' + CHAMPS_COURRIER.concat(ficheP.champsAjoutes().filter((a) => a.imprimer).map((a) => ["c_" + a.id, a.lib])).map(([k, lib]) => '<button class="mini" onmousedown="event.preventDefault()" onclick="crChamp(\'' + k + '\')" title="Remplacé à chaque courrier par : ' + A.esc(lib.toLowerCase()) + '">' + A.esc(lib) + "</button>").join("") +
     '<button class="mini cr-z" onmousedown="event.preventDefault()" onclick="crZone()" title="Zone surlignée, à compléter à chaque courrier">Zone à compléter</button></div>' +
     '<p class="mesures" style="margin:0 0 8px">Les champs entre accolades ({patient}, {date}…) sont remplis pour chaque patient ; « (e) » s\'accorde (suivi(e) → suivie pour une patiente). Les zones jaunes sont à compléter à chaque courrier.</p>' +
     '<div class="or-zone"><div id="crPage" class="or-feuille a4" contenteditable="true" spellcheck="true" style="font-size:15px"></div></div>' +

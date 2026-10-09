@@ -36,6 +36,25 @@ export const FONCTIONS_RELIEES = ["prescriptions.medic", "prescriptions.exam", "
   "salle.prix", "salle.passage", "salle.commentaire", "salle.attente", "salle.colonnes", "salle.bulles",
   "documents.depot", "documents.types", "documents.rt", "gagenda.filtre", "gagenda.couleurs", "listes.cor",
   "chimio.fiche", "chimio.protocoles", "chimio.molecules", "chimio.report", "rt.taches", "rt.hebdo", "rt.documents", "rt.tarifs"];
+// Fiche patient (10/10/2026) : champs existants [clé, libellé, partie (identite | clinique), base = toujours présent], dans l'ordre de
+// départ (celui d'aujourd'hui pour l'oncologie). Champs ajoutés par l'administration (pack ou cabinet) : reglage.fiche.ajouts =
+// [{ id: "x…", lib, type: texte|nombre|date|choix|ouinon, choix: […], partie, imprimer, entete }] ; valeurs dans identite.extra /
+// clinique.extra du dossier.
+const ordre = (l, ref) => (Array.isArray(l) ? l.filter((k, i) => ref.indexOf(k) >= 0 && l.indexOf(k) === i) : []).concat(ref.filter((k) => !(Array.isArray(l) && l.indexOf(k) >= 0)));
+export const FICHE = [
+  ["nom", "Nom", "identite", true], ["prenom", "Prénom", "identite", true], ["ddn", "Date de naissance", "identite"], ["sexe", "Sexe", "identite"],
+  ["taille", "Taille", "clinique"], ["poids", "Poids", "clinique"], ["diag", "Diagnostic", "clinique"], ["tel", "Téléphone", "identite"], ["tel2", "2e téléphone", "identite"],
+  ["etab", "Hôpital (lieu d'exercice)", "identite", true], ["ald", "ALD", "identite"], ["cor", "Correspondant", "identite"], ["mut", "Mutuelle", "identite"],
+  ["adresse", "Adresse", "identite"], ["email", "E-mail", "identite"], ["allergies", "Allergies", "clinique"], ["atcdMed", "Antécédents médicaux", "clinique"],
+  ["atcdFam", "Antécédents familiaux", "clinique"], ["modeVie", "Mode de vie", "clinique"], ["traitCours", "Traitement en cours", "clinique"],
+];
+export const TYPES_CHAMP = [["texte", "Texte"], ["nombre", "Nombre"], ["date", "Date"], ["choix", "Liste de choix"], ["ouinon", "Oui / Non"]];
+export function ficheEffective(f) {
+  const x = f || {}, ajouts = (Array.isArray(x.ajouts) ? x.ajouts : []).filter((a) => a && /^x[a-z0-9]{3,20}$/.test(a.id || "") && a.lib);
+  const ref = FICHE.map((c) => c[0]).concat(ajouts.map((a) => a.id)), champs = {};
+  ref.forEach((k) => { champs[k] = !(x.champs && x.champs[k] === false); }); FICHE.forEach(([k, , , base]) => { if (base) champs[k] = true; });
+  return { ordre: ordre(x.ordre, ref), champs, ajouts };
+}
 // Cartes du tableau de bord (ordre de départ)
 export const CARTES = [["ppas", "Pour commencer (cabinet neuf)"], ["jour", "Aujourd'hui"], ["sept", "Les 7 prochains jours"], ["taches", "Mes tâches"], ["conflits", "Conflits : rendez-vous à décaler"], ["stats", "Statistiques"]];
 // Sections de paramétrage (page Paramètres), et si leurs valeurs viennent de la bibliothèque de la spécialité
@@ -52,14 +71,13 @@ export const BIBLIOTHEQUES = [["protocoles", "Protocoles de chimiothérapie"], [
 //   { menu: [ordre du menu], accueil: [ordre des cartes], cartes: { carte: bool }, ordreSections: [ordre des onglets des Paramètres],
 //     sections: { onglet: bool }, bibliotheques: { bibliothèque: bool }, fonctions: { "module.fonction": bool } }
 // Absent = présent, dans l'ordre du catalogue (ce qui est ajouté au code plus tard apparaît à la fin).
-const ordre = (l, ref) => (Array.isArray(l) ? l.filter((k, i) => ref.indexOf(k) >= 0 && l.indexOf(k) === i) : []).concat(ref.filter((k) => !(Array.isArray(l) && l.indexOf(k) >= 0)));
 const vrais = (l) => l.reduce((o, [k]) => ((o[k] = true), o), {});
 export const toutesFonctions = () => { const o = {}; Object.entries(FONCTIONS).forEach(([m, l]) => l.forEach(([k]) => { o[m + "." + k] = true; })); return o; };
 export const fonctionsDeBase = () => { const o = {}; Object.entries(FONCTIONS).forEach(([m, l]) => l.forEach(([k, , base]) => { if (base) o[m + "." + k] = true; })); return o; };
 export function reglageEffectif(r) {
   const x = r || {}, b = (o, d) => Object.assign(d, Object.fromEntries(Object.entries(o || {}).filter(([k, v]) => k in d && typeof v === "boolean")));
   return { menu: ordre(x.menu, MENU.map((m) => m[0])), accueil: ordre(x.accueil, CARTES.map((c) => c[0])), cartes: b(x.cartes, vrais(CARTES)),
-    ordreSections: ordre(x.ordreSections, SECTIONS.map((c) => c[0])), sections: b(x.sections, vrais(SECTIONS)), bibliotheques: b(x.bibliotheques, vrais(BIBLIOTHEQUES)), fonctions: Object.assign(b(x.fonctions, toutesFonctions()), fonctionsDeBase()) };
+    ordreSections: ordre(x.ordreSections, SECTIONS.map((c) => c[0])), sections: b(x.sections, vrais(SECTIONS)), bibliotheques: b(x.bibliotheques, vrais(BIBLIOTHEQUES)), fonctions: Object.assign(b(x.fonctions, toutesFonctions()), fonctionsDeBase()), fiche: ficheEffective(x.fiche) };
 }
 // Éléments de l'écran liés à une bibliothèque (bouton du dossier, carte de Paramètres › Bibliothèques) : data-bib
 export const BIB_BOUTON = { medicaments: "medic", ordostypes: "ordo", analyses: "analyse", examens: "exam", courriers: "courrier", documentation: "doc" };

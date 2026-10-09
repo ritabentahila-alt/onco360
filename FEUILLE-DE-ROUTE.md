@@ -1067,7 +1067,7 @@ dans Profil › Accès › Droits.
       consommables : médecine générale) ; onglet « Modules et menus » ; formules : seulement les modules de leur spécialité.
 - [ ] Bibliothèque et paramètres Médecine générale / Gynécologie, et leurs modules (Traitements et stocks, Matériel et
       consommables…) : à décider et construire (étape 14).
-- [ ] Plus tard si besoin : renommer un menu ou changer son ordre depuis l'Administration (aujourd'hui : dans le code).
+- [ ] Plus tard si besoin : renommer un menu depuis l'Administration (l'ordre du menu se règle déjà par pack et par cabinet).
 
 ## Étape 16 – Administration par spécialité (demandé le 10/10/2026) — plan : `PLAN-ADMINISTRATION.md`
 Demande : choisir module par module (+ / −, « Ajouter un module », flèches pour l'ordre du menu), fonction par fonction dans un
@@ -1111,6 +1111,17 @@ Modules et menus, Bibliothèques et paramètres ; cabinets en liste ; onglet lis
 - [x] 16.1 (début, 10/10) Catalogue `public/js/donnees/catalogue.js` : menu, fonctions de chaque module, cartes du tableau de bord,
       sections de paramétrage, bibliothèques ; réglage complet `reglageDepart` / `reglageEffectif`.
 - [x] 16.4 Onglet « Bibliothèques » : toutes les bibliothèques (une carte par spécialité, compteurs, ouvrir et modifier).
+- [x] **16.6 Fiche patient réglable** (10/10, décidé avec Dr Bentahila : types texte, nombre, date, liste de choix, oui / non ; champ
+      ajouté possible dans un seul cabinet ; champs ajoutés imprimables) : bloc « Fiche patient » de l'écran de réglage (pack et
+      cabinet) : ordre (↑ ↓) et présence des 20 champs existants (Nom, Prénom, Hôpital : toujours), **« + Ajouter un champ »**
+      (nom, type, choix, partie identité / fiche clinique, à imprimer, en tête du dossier ; ✎ / ✕). Appliqué dans Nouveau patient,
+      Modifier, Afficher et l'en-tête du dossier (`js/app/fichepatient.js`, repères `data-champ`) ; un champ retiré est caché,
+      sa valeur gardée ; valeurs ajoutées dans `identite.extra` / `clinique.extra` ; impression : sous l'identité de la fiche
+      chimio, et insérables dans les courriers (`{c_identifiant}`). Sans réglage, la fiche d'oncologie est inchangée.
+      Tests `tests/test_fiche.py` 11/11, serveur 56/56.
+- [ ] **16.7 Formulaire de consultation réglable par spécialité** (demandé le 10/10, sur le même principe) : sections et champs
+      de la fenêtre « + Nouvelle consultation » (mesures, constantes, évaluation…) choisis par spécialité, pack et cabinet ;
+      l'oncologie garde la sienne telle quelle. Le détail se décidera avec chaque spécialité (étape 14).
 - [ ] 16.5 Nouvelle spécialité (copie ou vide) ; Médecine générale, Gynécologie prêtes pour l'étape 14.
 
 ## Étape 14 – Autres spécialités (demandé le 09/10/2026) : nouveaux modules et leurs formules
@@ -1367,3 +1378,4 @@ Onco360_Package_Cession/
 | 10/10/2026 | 16.3 Fonctions reliées | Les 63 fonctions du catalogue : 46 activables reliées (écran ; tâches automatiques et échéances Google Agenda aussi côté serveur), 17 fonctions de base toujours présentes (affichées sans case). Tests réglage 14/14, cabinets 52/52, bilan 352 317 DH. Mis en ligne. |
 | 10/10/2026 | 16.2 Par spécialité | Onglet Par spécialité (packs avec réglage complet, modules et menus, bibliothèque et paramètres) ; un cabinet reçoit le réglage de son pack puis peut être retouché ; modifier un pack met à jour les cabinets non retouchés. Tests 53/53, 21/21, 14/14, serveur 54/54, bilan 352 317 DH. Mis en ligne. |
 | 10/10/2026 | 16 – Administration allégée | Décidé avec Dr Bentahila : sous-onglet « Modules et menus » retiré (déjà dans l'écran d'un pack) et onglet « Bibliothèques » retiré (doublon de Par spécialité › Bibliothèque et paramètres) ; Administration = Cabinets, Nouveau cabinet, Par spécialité. Modules prévus pour la médecine générale : feuille de route (étape 14). Prochaine demande : fiche patient réglable par spécialité et par cabinet (champs, ordre, champs ajoutés). Mis en ligne. |
+| 10/10/2026 | 16.6 Fiche patient réglable | Ordre et présence des champs de la fiche, champs ajoutés (5 types, imprimables, en-tête), par pack et par cabinet ; appliqué partout (création, modification, affichage, en-tête, fiche chimio, courriers) ; oncologie inchangée sans réglage. Principe retenu pour la consultation (16.7). Tests 11/11, 51/51, 56/56, bilan 352 317 DH. Mis en ligne. |
