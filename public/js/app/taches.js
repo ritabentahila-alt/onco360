@@ -40,7 +40,7 @@ export async function enregistrerTypesTaches(L) {
 const TYPES = () => (TY || TYPES_TACHES0).filter((x) => x !== TYPE_RT).concat([TYPE_RT]);
 const STATUTS = [["afaire", "À faire"], ["encours", "En cours"], ["fait", "Terminée"]];
 const libStatut = (s) => (STATUTS.find((z) => z[0] === s) || STATUTS[0])[1];
-const ROLES = { medecin: "Médecin", infirmiere: "Infirmière", assistante: "Secrétaire" };
+const ROLES = { medecin: "Médecin", infirmiere: "Infirmière", assistante: "Secrétaire", comptable: "Comptable" };
 
 // ───── Lecture ─────
 async function membres() {

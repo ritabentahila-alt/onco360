@@ -17,7 +17,7 @@ export const MODULES = [
   ["listes", "Listes", "Diagnostics et mutuelles modifiables (Paramètres › Listes)"],
   ["bilan", "Bilan financier", "Page Bilan, exports"],
 ];
-export const ROLES_MAX = [["medecin", "Médecins"], ["assistante", "Secrétaires"], ["infirmiere", "Infirmières"], ["etablissements", "Lieux d'exercice"], ["patients", "Dossiers patients"]];
+export const ROLES_MAX = [["medecin", "Médecins"], ["assistante", "Secrétaires"], ["infirmiere", "Infirmières"], ["comptable", "Comptables"], ["etablissements", "Lieux d'exercice"], ["patients", "Dossiers patients"]];
 // Spécialités (09/10/2026) : chaque formule appartient à une spécialité. Médecine générale et gynécologie : modules à créer plus
 // tard (feuille de route), avec leurs propres formules.
 export const SPECIALITES = ["Oncologie médicale", "Radiothérapie", "Oncologie-radiothérapie", "Médecine générale", "Gynécologie"];
@@ -25,7 +25,7 @@ export const SPECIALITES = ["Oncologie médicale", "Radiothérapie", "Oncologie-
 // leur identifiant d'origine pour les cabinets qui les ont déjà)
 const COMMUNS = ["agenda", "prescriptions", "documents", "listes", "gagenda", "bilan"], EQUIPE = ["salle", "taches", "rcp"];
 const f = (specialite, lib, modules, max) => ({ lib, specialite, modules: MODULES.map((m) => m[0]).filter((k) => modules.indexOf(k) >= 0), max });
-const mx = (medecin, assistante, infirmiere, etablissements, patients) => ({ medecin, assistante, infirmiere, etablissements, patients });
+const mx = (medecin, assistante, infirmiere, etablissements, patients, comptable = null) => ({ medecin, assistante, infirmiere, comptable, etablissements, patients });
 export const FORMULES = {
   essentiel: f("Oncologie médicale", "Oncologie – Essentiel", ["chimio"].concat(COMMUNS), mx(1, 1, 0, 1, 300)),
   "onco-pro": f("Oncologie médicale", "Oncologie – Pro", ["chimio"].concat(COMMUNS, EQUIPE), mx(1, 2, 2, 2, 1000)),

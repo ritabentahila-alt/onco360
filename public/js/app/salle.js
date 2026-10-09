@@ -493,7 +493,7 @@ window.saImprimer = () => {
 // minute tant que le dossier reste ouvert ; considéré comme fermé après 3 minutes sans nouvelle (onglet fermé, coupure).
 const PRES = new Map(); let ECOUTE_P = null, MON_DOSSIER = "", BATTEMENT = null;
 const ms = (v) => (v && typeof v.toMillis === "function" ? v.toMillis() : v ? new Date(v).getTime() : Date.now());
-const ROLES = { medecin: "Médecin", infirmiere: "Infirmière", assistante: "Secrétaire" };
+const ROLES = { medecin: "Médecin", infirmiere: "Infirmière", assistante: "Secrétaire", comptable: "Comptable" };
 function ecrirePresence() {
   setDoc(doc(db, "espaces", A.ESPACE, "presence", D().u.uid), { patientId: MON_DOSSIER, nom: nomConnecte(), role: D().membre.role || "", le: serverTimestamp() }).catch(() => {});
 }

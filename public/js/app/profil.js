@@ -8,13 +8,15 @@ let A = null;
 export function installer(api) { A = api; }
 const D = () => A.D();
 let ONG = "infos", MEMBRES = null, ESPACE_DOC = null, Q = "";
-const ROLES = { medecin: "Médecin", infirmiere: "Infirmière", assistante: "Assistante / secrétaire" };
+const ROLES = { medecin: "Médecin", infirmiere: "Infirmière", assistante: "Assistante / secrétaire", comptable: "Comptable" };
 // Droits proposés par défaut selon le rôle (grille validée en phase B1, complétée le 06/10/2026 et le 07/10/2026), modifiables membre par membre.
 // radiotherapie : "aucun" | "voir" | "modifier" | "chimio" (= voir, seulement les patients sous chimio en même temps)
 export const DROITS_ROLE = {
   medecin: { identite: true, fichePatient: true, rendezvous: true, consultations: true, ecrireConsultations: true, planningChimio: true, traitements: "modifier", radiotherapie: "modifier", documents: true, administrer: true, encaissements: true, creerPatient: true, supprimerPatient: true, finances: true, parametres: true },
   infirmiere: { identite: false, fichePatient: false, rendezvous: false, consultations: false, ecrireConsultations: false, planningChimio: false, traitements: "voir", radiotherapie: "chimio", documents: false, administrer: true, encaissements: false, creerPatient: false, supprimerPatient: false, finances: false, parametres: false },
   assistante: { identite: true, fichePatient: true, rendezvous: true, consultations: true, ecrireConsultations: true, planningChimio: true, traitements: "voir", radiotherapie: "aucun", documents: true, administrer: false, encaissements: true, creerPatient: true, supprimerPatient: false, finances: false, parametres: false },
+  // Comptable (étape 9 S2, 09/10/2026) : bilan et pointage des paiements seulement ; aucun dossier (les règles le lui ferment)
+  comptable: { identite: false, fichePatient: false, rendezvous: false, consultations: false, ecrireConsultations: false, planningChimio: false, traitements: "aucun", radiotherapie: "aucun", documents: false, administrer: false, encaissements: false, creerPatient: false, supprimerPatient: false, finances: true, parametres: false },
 };
 // Droits d'un membre : ceux de sa grille, complétés par les valeurs par défaut de son rôle pour les droits ajoutés depuis
 export const droitsEffectifs = (m) => Object.assign({}, DROITS_ROLE[(m && m.role)] || {}, (m && m.droits) || {});
@@ -218,7 +220,7 @@ window.pfDelierAgenda = async () => {
 // ───── Accès de l'équipe (médecin titulaire) ─────
 // Comptes utilisés / permis par la formule du cabinet (rien si sans limite)
 function quotas() {
-  const mx = (D().abo && D().abo.max) || {}, l = [["medecin", "Médecins"], ["assistante", "Secrétaires"], ["infirmiere", "Infirmières"]].filter(([k]) => mx[k] != null);
+  const mx = (D().abo && D().abo.max) || {}, l = [["medecin", "Médecins"], ["assistante", "Secrétaires"], ["infirmiere", "Infirmières"], ["comptable", "Comptables"]].filter(([k]) => mx[k] != null);
   if (!l.length) return "";
   return '<p class="mesures">Votre formule : ' + l.map(([k, lib]) => lib + " " + MEMBRES.filter((x) => x.role === k && x.actif !== false).length + " / " + mx[k]).join(" · ") + "</p>";
 }
@@ -258,10 +260,11 @@ window.pfMembre = (uid) => {
       catch (e) { A.occupe(A.$("mSup"), false); A.erreur(e && e.code === "permission-denied" ? "Seul le médecin titulaire peut supprimer un accès." : (e.message || String(e))); }
     };
     const lire = () => { m.tousEtablissements = A.$("mTous").checked; m.etablissements = [...document.querySelectorAll("[data-e]")].filter((c) => c.checked).map((c) => c.dataset.e); document.querySelectorAll("[data-d]").forEach((c) => { m.droits[c.dataset.d] = c.tagName === "SELECT" ? c.value : c.checked; }); if (A.$("mActif")) m.actif = A.$("mActif").checked; ["mPre", "mNom", "mMail", "mTel"].forEach((i) => { if (A.$(i)) m["_" + i] = A.val(i); }); };
-    A.$("mRole").onchange = () => { lire(); const r = A.val("mRole"); if (confirm("Appliquer les droits par défaut du rôle « " + ROLES[r] + " » ?")) m.droits = Object.assign({}, DROITS_ROLE[r]); m.role = r; if (r === "medecin") m.tousEtablissements = true; dessiner(); ["mPre", "mNom", "mMail", "mTel"].forEach((i) => { if (A.$(i)) A.$(i).value = m["_" + i] || ""; }); };
+    A.$("mRole").onchange = () => { lire(); const r = A.val("mRole"); if (confirm("Appliquer les droits par défaut du rôle « " + ROLES[r] + " » ?")) m.droits = Object.assign({}, DROITS_ROLE[r]); m.role = r; if (r === "medecin" || r === "comptable") m.tousEtablissements = true; dessiner(); ["mPre", "mNom", "mMail", "mTel"].forEach((i) => { if (A.$(i)) A.$(i).value = m["_" + i] || ""; }); };
     A.$("mTous").onchange = () => document.querySelectorAll("[data-e]").forEach((c) => { c.disabled = A.$("mTous").checked; });
     A.$("fOk").onclick = async () => {
       lire(); m.role = A.val("mRole");
+      if (m.role === "comptable") m.tousEtablissements = true; // le bilan de tout le cabinet (aucun dossier ne lui est ouvert)
       if (!m.tousEtablissements && !m.etablissements.length) { A.erreur("Choisissez au moins un établissement."); return; }
       A.occupe(A.$("fOk"), true);
       try {

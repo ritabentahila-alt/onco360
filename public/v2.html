@@ -165,6 +165,8 @@ details summary{cursor:pointer;color:var(--prim);font-weight:bold;font-size:13.5
 .etapes{margin-top:8px}
 /* Modules de la formule du cabinet (09/10/2026) : body.sans-<module> cache [data-mod] */
 body.sans-chimio [data-mod~="chimio"],body.sans-rt [data-mod~="rt"],body.sans-agenda [data-mod~="agenda"],body.sans-salle [data-mod~="salle"],body.sans-taches [data-mod~="taches"],body.sans-rcp [data-mod~="rcp"],body.sans-prescriptions [data-mod~="prescriptions"],body.sans-documents [data-mod~="documents"],body.sans-gagenda [data-mod~="gagenda"],body.sans-listes [data-mod~="listes"],body.sans-bilan [data-mod~="bilan"]{display:none!important}
+/* Comptable (09/10/2026) : menu réduit au bilan et au profil */
+body.role-comptable nav a[data-p]:not([data-p="bilan"]):not([data-p="profil"]){display:none!important}
 /* Journal d'audit (Paramètres, 09/10/2026) */
 .au-f{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}.au-bas{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:12px 0 8px}.au-bas .mesures{flex:1}
 .au-t td{font-size:13.5px;vertical-align:top}.au-t td:first-child{white-space:nowrap}
@@ -701,6 +703,6 @@ function onco360Deconnecter() {
 }
 </script>
 
-<script type="module" src="./js/app/v2.js?v=20261009s"></script>
+<script type="module" src="./js/app/v2.js?v=20261009t"></script>
 </body>
 </html>

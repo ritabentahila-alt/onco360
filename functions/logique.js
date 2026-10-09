@@ -233,7 +233,7 @@ const timeMin = (auj) => auj + "T00:00:00Z";
 // (chimio.js majMontants / construireEncaissements). Rien d'autre n'est touché (honoraires, radiothérapie).
 const DROITS0 = { medecin: { encaissements: true, rendezvous: true }, assistante: { encaissements: true, rendezvous: true }, infirmiere: {} };
 const droitM = (m, k) => { const d = (m && m.droits) || {}; return k in d ? d[k] === true : !!(DROITS0[m && m.role] || {})[k]; };
-const peutPrix = (m) => !!m && m.actif !== false && droitM(m, "encaissements") && droitM(m, "rendezvous");
+const peutPrix = (m) => !!m && m.actif !== false && m.role !== "comptable" && droitM(m, "encaissements") && droitM(m, "rendezvous");
 const num = (v) => { if (v == null || v === "") return null; const n = parseFloat(String(v).replace(",", ".")); return isNaN(n) ? null : n; };
 function consJours(c) {
   if (!c) return {};

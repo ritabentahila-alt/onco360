@@ -147,7 +147,8 @@ Ancienne application : collections racine `patients`, `protocoles`, `finances`, 
   le contourage » (scanner → 1re séance), « Valider la dosimétrie » (contourage validé → 1re séance), « Valider la fin de
   radiothérapie » ; valider la tâche = valider dans le dossier (même fenêtre, `taValiderAuto`).
 - Bilan : doit rester identique au dirham près (référence : année 2026 = 352 317 DH au 06/10/2026).
-- Droits : `medecin` / `infirmiere` / `assistante`, grille par membre ; un membre ne modifie pas ses propres droits.
+- Droits : `medecin` / `infirmiere` / `assistante` / `comptable` (09/10/2026 : bilan et pointage des paiements sur le relevé
+  `comptabilite/releve_*` préparé par le médecin, `publierReleve` de bilan.js ; aucun dossier : règles `comptable()` / `dansPerimetre`), grille par membre ; un membre ne modifie pas ses propres droits.
   Droits ajoutés le 06/10/2026 (DROITS_ROLE et `droitsEffectifs` dans profil.js : un droit absent de la grille d'un membre
   prend la valeur par défaut de son rôle ; `migrations()` dans v2.js l'écrit dans les fiches des membres, une fois, par le titulaire) :
   `fichePatient` (poids, taille, diagnostic, allergies, antécédents ; règle : `clinique` sans toucher à `clinique.notes`),

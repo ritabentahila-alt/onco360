@@ -936,7 +936,7 @@ application : la date de leur création là-bas, pas le 06/10).
       numéro conservé), 390 px, bilan 352 317 DH.
 
 ## Étape 9 – Sécurité et conformité (obligatoire pour vendre)
-**S1 – Journal d'audit (traçabilité)** (fait et testé le 09/10, pas encore en ligne)
+**S1 – Journal d'audit (traçabilité)** (fait, testé et mis en ligne le 09/10)
 **Décidé le 09/10** : modifications, suppressions et **ouvertures de dossier** (pas les impressions ni les connexions) ; pour une
 modification, **la partie touchée** (Rendez-vous, Chimiothérapie…), jamais les valeurs ; lu par le **titulaire seul** ; **tout est
 gardé** pour l'instant (durée à fixer avec le juriste).
@@ -949,10 +949,18 @@ gardé** pour l'instant (durée à fixer avec le juriste).
 - [x] Page **Paramètres › Journal d'audit** (titulaire) : période (7 derniers jours par défaut), filtres personne / action / partie /
       patient, nombre de lignes par action, lien vers le dossier (« Dossier supprimé » sinon), **export Excel** ; bouton **Journal**
       dans le dossier (titulaire) = journal de ce patient sur 1 an. `public/js/app/audit.js`. Tests navigateur 12/12.
-- [ ] Mise en ligne (fonction `auditEcriture`, règles, site), après accord. Le journal commence à la mise en ligne.
+- [x] Mise en ligne le 09/10 (fonction `auditEcriture`, règles, site) : le journal note depuis ce jour.
 - [ ] Durée de conservation à décider (avec le juriste). Volume à surveiller (une ligne par écriture et par ouverture).
 **S2 – Rôles et droits affinés**
-- [ ] Nouveau rôle **Comptable** : volet financier seulement (bilan, encaissements, tarifs), aucune donnée médicale.
+- [x] Nouveau rôle **Comptable** (09/10, fait et testé, pas encore en ligne). **Décidé** : patients en nom + n° de dossier (aucun
+      diagnostic) ; il **pointe les paiements** et saisit les versements, sans toucher aux tarifs ; relevé préparé quand un médecin
+      ouvre Onco360 ou enregistre un dossier, **date affichée**. Relevé financier `comptabilite/releve_0…n` + `meta` (bilan.js
+      `publierReleve`, 3 s après l'ouverture, 2 min après un enregistrement ; réécrit seulement s'il a changé). Règles : le
+      périmètre lui est fermé (`dansPerimetre`), ni présence ni historique, écrit seulement `finances/paiements|versements`
+      (15 tests, total 182/182). Écran : Bilan et Profil seulement, aucun lien vers un dossier ; même bilan que le médecin
+      (352 317 DH, tous les indicateurs identiques ; `tests/test_comptable.py` 13/13). Paramètres › Accès : rôle « Comptable »
+      (tout le cabinet), limite « Comptables » dans les formules.
+      Limite : relevé à jour au dernier passage d'un médecin (un prix fixé par la secrétaire apparaît au suivant).
 - [ ] Infirmière : constantes et administrations (voir étape 11) ; médecin : accès complet. Vérifier que chaque droit de la
       grille est aussi imposé par les **règles du serveur** (pas seulement masqué à l'écran).
 - [ ] Rôle **Pharmacien** si l'étape 11 (PUI) est faite.
@@ -1176,3 +1184,4 @@ Onco360_Package_Cession/
 | 09/10/2026 | 4 – F1 Administration | Formules modifiables par l'administration (nom, modules, maximums ; nouvelle formule ; suppression si aucun cabinet ne l'utilise) : `plateforme/formules` (serveur seulement), fonction `formulesEnregistrer` (cabinets sans retouche mis à jour) ; « Modifier » un cabinet (nom, ville, adresse, téléphone, nom et téléphone du titulaire : `infosCabinet`). Maximum vide = sans limite, chiffre = bloqué, 0 = aucun. Tests cabinets 32/32, navigateur 38/38. Mis en ligne. |
 | 09/10/2026 | 4 – F1 Administration | 8 formules proposées par spécialité (Oncologie : Essentiel / Pro / Clinique ; Radiothérapie : Essentiel / Pro / Centre ; Onco-radiothérapie : Pro / Clinique), spécialité modifiable ; page Administration refaite : onglets Cabinets (chiffres, recherche, filtres statut / spécialité, cartes) / Nouveau cabinet (spécialité → formule, aperçu) / Formules (par spécialité, barre d'enregistrement) ; réglages dans une fenêtre. Étape 14 ajoutée (autres spécialités). Tests 33/33, navigateur 44/44, bilan 352 317 DH. Mis en ligne. |
 | 09/10/2026 | 9 – S1 Journal d'audit | Décidé : modifications, suppressions, ouvertures ; partie touchée sans valeurs ; titulaire seul ; tout gardé. Fonction `auditEcriture` (identité réelle, infalsifiable), `audit/{e}/lignes`, page Paramètres › Journal d'audit (filtres, export Excel), bouton Journal du dossier. Corrigé : lien direct vers un onglet du titulaire (Accès, Journal) qui retombait sur le 1er onglet. Règles 167/167, logique 25/25, navigateur 12/12 + 44/44, bilan 352 317 DH. Code sur GitHub (dépôt privé ritabentahila-alt/onco360). Pas encore en ligne. |
+| 09/10/2026 | 9 – S1 en ligne, S2 Comptable | Journal d'audit mis en ligne. Rôle Comptable : relevé financier préparé par le médecin (nom + n° de dossier, actes, montants, sans diagnostic), pointage des paiements et versements, aucun dossier ouvert (règles), Bilan et Profil seulement. Règles 182/182, navigateur 13/13, bilan identique 352 317 DH. Pas encore en ligne. |

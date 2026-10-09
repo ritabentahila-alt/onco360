@@ -20,7 +20,7 @@ import { installer as installerConfig, pageConfiguration, horaires, WA0, remplir
 import { installer as installerProfil, pageProfil, DROITS_ROLE, droitsEffectifs, lireImage } from "./profil.js";
 import { installer as installerProtocoles, pageProtocoles } from "./protocoles.js";
 import { installer as installerParametres, pageParametres } from "./parametres.js";
-import { installer as installerBilan, pagePageBilan } from "./bilan.js";
+import { installer as installerBilan, pagePageBilan, publierReleve } from "./bilan.js";
 import { installer as installerOrdonnances, remplacerOrdosTypes } from "./ordonnances.js";
 import { installer as installerFichiers, htmlFichiers, nbFichiers, oublierFichiers, suivreEtablissementFichiers, supprimerFichiers } from "./fichiers.js";
 import { installer as installerConsultations, htmlConsultations, nbConsultations, oublierConsultations, suivreEtablissement, supprimerConsultations } from "./consultations.js";
@@ -57,7 +57,7 @@ window.nouveauPatient = () => creerPatient();
 // ───── Chargement ─────
 onAuthStateChanged(auth, async (u) => {
   if (!u) { location.replace("index.html"); return; }
-  try { D = await charger(u); appliquerImpression(); entete(); route(); if (module("taches")) demarrerTaches(); if (module("salle")) demarrerSalle(); if (module("rcp")) demarrerRcp(); publierTarifsC(); nomTitulaire().then(migrations); }
+  try { D = await charger(u); appliquerImpression(); entete(); route(); if (D.membre.role !== "comptable") { if (module("taches")) demarrerTaches(); if (module("salle")) demarrerSalle(); if (module("rcp")) demarrerRcp(); } publierTarifsC(); planifierReleve(3000); nomTitulaire().then(migrations); }
   catch (e) { $("page").innerHTML = '<div class="carte"><h3>Impossible d\'ouvrir Onco360</h3><p class="sous">' + esc(e && e.code === "permission-denied" ? "Accès refusé : votre accès a peut-être été désactivé. Contactez le médecin titulaire." : e.message) + '</p><button class="bt clair" onclick="document.getElementById(\'btSortie\').click()">Se déconnecter</button></div>'; }
 });
 async function cabinetDe(u) {
@@ -87,7 +87,8 @@ async function charger(u) {
     getDoc(doc(db, "utilisateurs", u.uid)).catch(() => null),
     getDocs(collection(db, "espaces", ESPACE, "protocoles")),
     getDoc(E("parametres", "calendrier")),
-    membre.tousEtablissements ? getDocs(col) : getDocs(query(col, where("etablissementId", "in", membre.etablissements || ["—"]))),
+    // Comptable (étape 9 S2) : aucun dossier patient (les règles le lui ferment) ; il travaille sur le relevé financier
+    membre.role === "comptable" ? Promise.resolve({ docs: [] }) : membre.tousEtablissements ? getDocs(col) : getDocs(query(col, where("etablissementId", "in", membre.etablissements || ["—"]))),
     getDoc(E("parametres", "listes")).catch(() => null),
     getDocs(collection(db, "espaces", ESPACE, "etablissements")).catch(() => null),
     membre.droits && membre.droits.finances === true ? getDoc(E("finances", "tarifs")).catch(() => null) : Promise.resolve(null),
@@ -257,7 +258,14 @@ async function enregistrer(x, changes, quoi) {
     }
     throw new Error("Enregistrement impossible : " + ((e && e.message) || e));
   }
-  nouveau.version = v + 1; recalculer(x, nouveau); journal(x, quoi);
+  nouveau.version = v + 1; recalculer(x, nouveau); journal(x, quoi); planifierReleve(120000);
+}
+// Relevé financier du comptable (étape 9 S2) : préparé par un médecin qui a le droit « finances », peu après l'ouverture
+// d'Onco360 et 2 min après le dernier enregistrement d'un dossier ou de ses montants (une seule fois pour plusieurs enregistrements)
+let RELEVE_T = null;
+function planifierReleve(delai) {
+  if (!D || !peut("finances") || estComptable()) return;
+  clearTimeout(RELEVE_T); RELEVE_T = setTimeout(() => publierReleve().catch((e) => console.warn("relevé du comptable", e)), delai);
 }
 function journal(x, quoi) { addDoc(collection(db, "espaces", ESPACE, "historique"), { parUid: D.u.uid, parNom: $("nomMenu").textContent, le: serverTimestamp(), patientId: x.id, patient: (x.r && x.r.nm) || "", quoi }).catch(() => {}); }
 
@@ -279,7 +287,7 @@ function fmtSaisie(el) {
 document.addEventListener("input", (ev) => { if (ev.target && ev.target.classList && ev.target.classList.contains("mt")) fmtSaisie(ev.target); });
 const ferieLe = (d) => (D.ctx.feries || []).map((f) => (typeof f === "string" ? { d: f, nom: "Jour férié" } : f)).find((f) => f.d === d);
 const API = { D: () => D, get ESPACE() { return ESPACE; }, $, esc, ic, dfr, dfrA, cap, jourLong, val, occupe, erreur, toast, fenetre, fermerFenetre: () => window.fermerFenetre(), peut, voit, traitMod, enregistrer, pageDossier: (id) => reafficher(id), recalculer, journal };
-API.sansAcc = sansAcc; API.module = (k) => module(k); API.attribuerNumero = (x) => attribuerNumero(x); API.numDossier = (x) => numDossier(x); API.medecinFiche = () => medecinFiche(); API.entete = () => entete(); API.voitRdv = () => voitRdv(); API.voitRT = (x) => voitRT(x); API.champsMed = (C, off) => champsMed(C, off); API.CHAMPS_MED = () => CHAMPS_MED; API.fmtMil = (n) => fmtMil(n); API.ferieLe = (d) => ferieLe(d); API.salleVenuChimio = (x, lid, n, j, oui) => apresVenuChimio(x, lid, n, j, oui); API.serveur = appelServeur; API.prixPrevu = (p, c, j) => prixPrevu(p, c, j); API.badgeSalle = (p, c) => badgeSalle(p, c); API.tarifsVus = () => tarifsVus(); API.publierTarifsC = () => publierTarifsC(); API.encaissementsDe = (x, f) => encaissementsDe(x, f); API.peutPrix = () => peut("finances") || prixParServeur();
+API.sansAcc = sansAcc; API.module = (k) => module(k); API.planifierReleve = (d) => planifierReleve(d || 120000); API.attribuerNumero = (x) => attribuerNumero(x); API.numDossier = (x) => numDossier(x); API.medecinFiche = () => medecinFiche(); API.entete = () => entete(); API.voitRdv = () => voitRdv(); API.voitRT = (x) => voitRT(x); API.champsMed = (C, off) => champsMed(C, off); API.CHAMPS_MED = () => CHAMPS_MED; API.fmtMil = (n) => fmtMil(n); API.ferieLe = (d) => ferieLe(d); API.salleVenuChimio = (x, lid, n, j, oui) => apresVenuChimio(x, lid, n, j, oui); API.serveur = appelServeur; API.prixPrevu = (p, c, j) => prixPrevu(p, c, j); API.badgeSalle = (p, c) => badgeSalle(p, c); API.tarifsVus = () => tarifsVus(); API.publierTarifsC = () => publierTarifsC(); API.encaissementsDe = (x, f) => encaissementsDe(x, f); API.peutPrix = () => peut("finances") || prixParServeur();
 installerChimio(API); installerAudit(API); installerAgenda(API); installerConfig(API); installerProfil(API); installerProtocoles(API); installerParametres(API); installerBilan(API); installerConsultations(API); installerOrdonnances(API); installerDocuments(API); installerFichiers(API); installerTaches(API); installerReglages(API); installerSalle(API); installerRcp(API);
 
 function entete() {
@@ -292,6 +300,7 @@ function entete() {
   document.querySelectorAll("nav a[data-droit]").forEach((a) => { if (!(mb.droits && mb.droits[a.dataset.droit])) a.classList.add("cache"); });
   // Modules de la formule : body.sans-<module> cache tout ce qui porte data-mod="<module>" (menu, boutons, onglets)
   Object.keys(D.abo.modules).forEach((k) => document.body.classList.toggle("sans-" + k, !D.abo.modules[k]));
+  document.body.classList.toggle("role-comptable", mb.role === "comptable"); // menu réduit au bilan et au profil
   const al = alertes();
   $("nbAl").textContent = al.length; $("nbAl").classList.toggle("cache", !al.length);
   $("panneauAlertes").innerHTML = "<h3>Alertes (" + al.length + ")</h3>" + (al.length ? al.map((a) => '<div class="al" onclick="ouvrirDossier(\'' + a.id + '\')"><i class="pt" style="background:' + a.c + '"></i><div>' + a.h + "</div></div>").join("") : '<div class="al">Aucune alerte.</div>');
@@ -404,17 +413,20 @@ const FILTRES = {
 // ───── Pages ─────
 // « Configuration » et « Paramètres » fusionnés en une page « Paramètres » (P2, 08/10/2026) : #configuration y renvoie
 // Module dont dépend chaque page (formule du cabinet) : page d'un module retiré → tableau de bord
+// Comptable : le bilan et son profil seulement
+const PAGES_COMPTABLE = ["bilan", "profil"];
+const estComptable = () => !!(D && D.membre && D.membre.role === "comptable");
 const PAGE_MODULE = { agenda: "agenda", salle: "salle", taches: "taches", protocoles: "chimio", bilan: "bilan" };
 const module = (k) => !D || !D.abo || D.abo.modules[k] !== false;
 const PAGES = { accueil: ["Tableau de bord", pageAccueil], agenda: ["Agenda / Rendez-vous", () => pageAgenda()], configuration: ["Paramètres", () => { location.replace("#parametres"); }], profil: ["Profil", () => pageProfil()], protocoles: ["Protocoles", () => pageProtocoles()], parametres: ["Paramètres", (a) => pageConfiguration(a)], bilan: ["Bilan", () => pagePageBilan()], salle: ["Salle d'attente", () => pageSalle()], patients: ["Patients", pagePatients], taches: ["Tâches", (a) => pageTaches(a)], dossier: ["Dossier patient", pageDossier] };
 function route() {
-  const h = location.hash.replace("#", ""), i = h.indexOf("/"), p = i < 0 ? h : h.slice(0, i), arg = i < 0 ? null : decodeURIComponent(h.slice(i + 1)), nom = PAGES[p] && module(PAGE_MODULE[p] || "") ? p : "accueil";
+  const h = location.hash.replace("#", ""), i = h.indexOf("/"), p = i < 0 ? h : h.slice(0, i), arg = i < 0 ? null : decodeURIComponent(h.slice(i + 1)), nom = PAGES[p] && module(PAGE_MODULE[p] || "") && (!estComptable() || PAGES_COMPTABLE.indexOf(p) >= 0) ? p : estComptable() ? "bilan" : "accueil";
   if (!$("fenetre").classList.contains("cache")) window.fermerFenetre();
   D.page = nom + (arg ? "/" + encodeURIComponent(arg) : ""); $("titrePage").textContent = PAGES[nom][0]; $("page").classList.toggle("large", nom === "agenda");
   document.querySelectorAll("nav a").forEach((a) => a.classList.toggle("actif", a.dataset.p === (nom === "dossier" ? "patients" : nom)));
   if (nom === "dossier" && arg) { delete ONGLET[arg]; oublierConsultations(arg); oublierDocs(arg); oublierFichiers(arg); } // dossier ouvert : onglet Consultation, consultations relues
   PAGES[nom][1](arg); window.scrollTo(0, 0);
-  presenceDossier(nom === "dossier" ? arg : null); // « Dossier ouvert par » (salle d'attente)
+  if (!estComptable()) presenceDossier(nom === "dossier" ? arg : null); // « Dossier ouvert par » (salle d'attente)
 }
 // Changer de page : le résumé en cours d'écriture est d'abord enregistré ; s'il ne peut pas l'être, on reste sur le dossier
 window.addEventListener("hashchange", async () => {

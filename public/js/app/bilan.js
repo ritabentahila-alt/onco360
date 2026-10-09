@@ -1,7 +1,7 @@
 // Onco360 – Bilan (étape C6), repris de l'application actuelle : période et filtres, totaux, journal détaillé avec
 // « Payé / à recevoir », référents, radiothérapies prévisionnelles, autres versements, export Excel et PDF.
 // Réservé au droit « finances ». Les calculs viennent du moteur v2 (même résultat au dirham près que la v1).
-import { doc, getDoc, getDocs, setDoc, collection } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { doc, getDoc, getDocs, setDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { db } from "../config.js";
 import { evtsFin } from "../moteur/finances.js";
 import { calculerBilan, dh, clePaye, estPaye } from "../moteur/bilan.js";
@@ -29,6 +29,38 @@ function paiementsEffectifs(R) {
 }
 const payeTxt = (o) => (o.t === "kl" ? "Reçu" : estPaye(o, PE) ? (B.paiements[clePaye(o)] ? "Payé le " + A.dfrA(PE[clePaye(o)]) : "Payé (automatique)") : "À recevoir");
 
+// ───── Relevé financier du comptable (étape 9 S2, 09/10/2026) ─────
+// espaces/{e}/comptabilite/releve_0…n = { data: JSON [{ id, nm, num, cor, hop, c1, fin }] } (fin = lignes du bilan : date, acte,
+// établissement, libellé, brut, taux, net, statut), meta = { n, le, par, parNom, sig } : préparé par un médecin qui a le droit
+// « finances » (ouverture d'Onco360, enregistrement d'un dossier), sans diagnostic ni contenu médical ; le comptable ne lit que ça.
+const estComptable = () => D().membre.role === "comptable";
+let SIG = null, RELEVE_LE = null;
+const signature = (s) => { let h = 5381; for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0; return s.length + "-" + (h >>> 0).toString(36); };
+export async function publierReleve() {
+  if (!A.peut("finances") || estComptable() || !D().tarifs) return;
+  await charger(); RES = null;
+  const R = resumes().map((x) => ({ id: x.id, nm: x.nm, num: A.numDossier((D().patients || []).find((p) => p.id === x.id)), cor: x.cor, hop: x.hop, c1: x.c1, fin: x.fin }));
+  const tout = JSON.stringify(R), sig = signature(tout), E = (i) => doc(db, "espaces", A.ESPACE, "comptabilite", i);
+  if (SIG === null) { const m = await getDoc(E("meta")).catch(() => null); SIG = m && m.exists() ? m.data().sig || "" : ""; }
+  if (sig === SIG) return; // rien n'a changé depuis le dernier relevé
+  const parts = []; let cur = [], taille = 0; // documents de 600 Ko au plus (limite Firestore : 1 Mo)
+  R.forEach((r) => { const t = JSON.stringify(r).length; if (cur.length && taille + t > 600000) { parts.push(cur); cur = []; taille = 0; } cur.push(r); taille += t; });
+  parts.push(cur);
+  for (let i = 0; i < parts.length; i++) await setDoc(E("releve_" + i), { data: JSON.stringify(parts[i]) });
+  await setDoc(E("meta"), { n: parts.length, le: serverTimestamp(), par: D().u.uid, parNom: [D().profil.titre || "Dr", D().profil.prenom, D().profil.nom].filter(Boolean).join(" "), sig, nb: R.length });
+  SIG = sig;
+}
+async function chargerReleve() {
+  const E = (c, i) => doc(db, "espaces", A.ESPACE, c, i), m = await getDoc(E("comptabilite", "meta"));
+  const meta = m.exists() ? m.data() : { n: 0 }, parts = await Promise.all(Array.from({ length: meta.n || 0 }, (_, i) => getDoc(E("comptabilite", "releve_" + i))));
+  RES = [].concat(...parts.map((p) => (p.exists() ? JSON.parse(p.data().data || "[]") : []))).map((x) => Object.assign({ diag: "" }, x));
+  RELEVE_LE = !meta.le ? null : meta.le.toDate ? meta.le.toDate() : new Date(meta.le);
+  const [sp, sv] = await Promise.all([getDoc(E("finances", "paiements")).catch(() => null), getDoc(E("finances", "versements")).catch(() => null)]);
+  B = { M: {}, paiements: sp && sp.exists() ? JSON.parse(sp.data().data || "{}") : {}, versements: sv && sv.exists() ? JSON.parse(sv.data().data || "[]") : [] };
+}
+// Lien vers le dossier depuis une ligne du bilan (pas pour le comptable : il n'ouvre aucun dossier)
+const lienDossier = (id) => (id && !estComptable() ? ' class="cl" onclick="ouvrirDossier(\'' + id + "')\"" : "");
+
 // Chargement : montants de tous les dossiers, paiements, versements (une fois par session ; « Actualiser » recharge)
 async function charger() {
   const E = (c, i) => doc(db, "espaces", A.ESPACE, c, i);
@@ -51,7 +83,7 @@ const netPer = (x, pr) => (x.fin || []).filter((e) => e[1] !== "rtprev" && e[0] 
 
 export async function pagePageBilan() {
   if (!A.peut("finances") || !D().tarifs) { A.$("page").innerHTML = '<section class="accueil"><div><h2>Bilan</h2></div></section><section class="carte"><p class="sous">Le bilan est réservé au droit « finances ».</p></section>'; return; }
-  if (!B) { A.$("page").innerHTML = '<div class="chargement">Calcul du bilan…</div>'; try { await charger(); } catch (e) { A.$("page").innerHTML = '<section class="carte"><p class="sous">Bilan indisponible : ' + A.esc(e.message) + "</p></section>"; return; } }
+  if (!B) { A.$("page").innerHTML = '<div class="chargement">Calcul du bilan…</div>'; try { await (estComptable() ? chargerReleve() : charger()); } catch (e) { A.$("page").innerHTML = '<section class="carte"><p class="sous">Bilan indisponible : ' + A.esc(e.message) + "</p></section>"; return; } }
   dessiner();
 }
 function dessiner() {
@@ -60,7 +92,8 @@ function dessiner() {
   const sel = (id, v, opts, f) => '<select id="' + id + '" onchange="biF(\'' + f + '\',this.value)">' + opts.map((o) => '<option value="' + esc(o[0]) + '"' + (o[0] === v ? " selected" : "") + ">" + esc(o[1]) + "</option>").join("") + "</select>";
   const refs = [...new Set(R.map((x) => x.cor || ""))].sort((a, z) => a.localeCompare(z, "fr"));
   const etabs = (D().etabsTous || D().etabs).map((e) => [e.code, e.code]);
-  let h = '<section class="accueil"><div><h2>Bilan</h2><p>Du ' + A.dfrA(b.pr[0] > "0001" ? b.pr[0] : "") + " au " + A.dfrA(b.pr[1] < "9999" ? b.pr[1] : "") + "</p></div>" +
+  let h = '<section class="accueil"><div><h2>Bilan</h2><p>Du ' + A.dfrA(b.pr[0] > "0001" ? b.pr[0] : "") + " au " + A.dfrA(b.pr[1] < "9999" ? b.pr[1] : "") +
+    (estComptable() ? " · " + (RELEVE_LE ? "relevé à jour au " + RELEVE_LE.toLocaleDateString("fr-FR") + " " + RELEVE_LE.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) : "aucun relevé : il est préparé quand un médecin ouvre Onco360") : "") + "</p></div>" +
     '<div class="actions"><button class="bt clair" onclick="biExport(\'xlsx\')"><svg class="pi"><use href="#i-telecharger"/></svg>Excel</button><button class="bt clair" onclick="biExport(\'pdf\')"><svg class="pi"><use href="#i-telecharger"/></svg>PDF</button><button class="bt gris" onclick="biActualiser()"><svg class="pi"><use href="#i-actualiser"/></svg>Actualiser</button></div></section>' +
     '<section class="carte"><div class="form" style="grid-template-columns:repeat(auto-fit,minmax(190px,1fr))">' +
     "<div><label>Période</label>" + sel("biPer", F.per, PER, "per") + "</div>" +
@@ -79,14 +112,14 @@ function dessiner() {
   h += '<section class="carte"><h3><span class="ic">' + A.ic("liste") + "</span>Journal détaillé (" + all.length + " acte" + (all.length > 1 ? "s" : "") + ')</h3><div class="tableau"><table class="tcures bilan"><tr><th>Date</th><th>Patient</th><th>Hôpital</th><th>Acte / prestation</th><th>Statut</th><th class="n">Brut</th><th class="n">Taux</th><th class="n">NET médecin</th><th>Paiement</th></tr>' +
     (all.length ? all.map((o, i) => {
       const cor = o.id ? (R.find((x) => x.id === o.id) || {}).cor : "";
-      return "<tr" + (o.id ? ' class="cl" onclick="ouvrirDossier(\'' + o.id + "')\"" : "") + "><td>" + A.dfrA(o.d) + "</td><td>" + esc(o.nm) + (cor ? '<div class="mesures">' + esc(cor) + "</div>" : "") + "</td><td>" + esc(o.hop || "—") + "</td><td>" + esc(o.lib) + "</td><td>" + esc(o.st) + '</td><td class="n">' + dh(o.brut) + '</td><td class="n">' + tauxTxt(o) + '</td><td class="n"><b>' + dh(o.net) + "</b></td>" +
+      return "<tr" + lienDossier(o.id) + "><td>" + A.dfrA(o.d) + "</td><td>" + esc(o.nm) + (cor ? '<div class="mesures">' + esc(cor) + "</div>" : "") + "</td><td>" + esc(o.hop || "—") + "</td><td>" + esc(o.lib) + "</td><td>" + esc(o.st) + '</td><td class="n">' + dh(o.brut) + '</td><td class="n">' + tauxTxt(o) + '</td><td class="n"><b>' + dh(o.net) + "</b></td>" +
         '<td onclick="event.stopPropagation()">' + (o.t === "kl" ? '<span class="badge b-ch">Reçu</span>' : '<button class="mini ' + (estPaye(o, PE) ? "vert" : "") + '" title="' + (estPaye(o, PE) ? (B.paiements[clePaye(o)] ? "Payé le " + A.dfrA(PE[clePaye(o)]) + " – cliquer pour annuler" : "Payé automatiquement à la validation (Paramètres)") : "Cliquer quand la clinique a payé") + '" onclick="biPaye(' + i + ')">' + (estPaye(o, PE) ? (B.paiements[clePaye(o)] ? "✓ Payé" : "✓ Payé (auto.)") : "Payé") + "</button>") + "</td></tr>";
     }).join("") + '<tr class="tot"><td colspan="7" class="n"><b>Total</b></td><td class="n"><b>' + dh(T.caNet) + "</b></td><td></td></tr>" : '<tr><td colspan="9" class="mesures">Aucun acte sur la période.</td></tr>') + "</table></div></section>";
   // Référents
   if (F.cor !== "tous") {
     const l = R.filter((x) => (x.cor || "") === F.cor).sort((a, z) => String(z.c1).localeCompare(String(a.c1)));
     h += '<section class="carte"><h3><span class="ic">' + A.ic("patients") + "</span>Patients adressés par " + esc(F.cor || "— (sans référent)") + " (" + l.length + ')</h3><div class="tableau"><table class="tcures bilan"><tr><th>1re venue</th><th>Patient</th><th>Diagnostic</th><th>Hôpital</th><th class="n">NET sur la période</th><th class="n">NET total</th></tr>' +
-      l.map((x) => '<tr class="cl" onclick="ouvrirDossier(\'' + x.id + "')\"><td>" + (x.c1 ? A.dfrA(x.c1) : "—") + "</td><td>" + esc(x.nm) + "</td><td>" + esc(x.diag) + "</td><td>" + esc(x.hop || "—") + '</td><td class="n">' + dh(netPer(x, b.pr)) + '</td><td class="n">' + dh(netPer(x, ["0000", "9999"])) + "</td></tr>").join("") + '</table></div><button class="mini" style="margin-top:8px" onclick="biF(\'cor\',\'tous\')">← Tous les référents</button></section>';
+      l.map((x) => "<tr" + lienDossier(x.id) + "><td>" + (x.c1 ? A.dfrA(x.c1) : "—") + "</td><td>" + esc(x.nm) + "</td><td>" + esc(x.diag) + "</td><td>" + esc(x.hop || "—") + '</td><td class="n">' + dh(netPer(x, b.pr)) + '</td><td class="n">' + dh(netPer(x, ["0000", "9999"])) + "</td></tr>").join("") + '</table></div><button class="mini" style="margin-top:8px" onclick="biF(\'cor\',\'tous\')">← Tous les référents</button></section>';
   } else {
     const m = {}; R.forEach((x) => { const c = x.cor || ""; m[c] = m[c] || { n: 0, np: 0, net: 0 }; m[c].n++; if (x.c1 && x.c1 >= b.pr[0] && x.c1 <= b.pr[1]) m[c].np++; m[c].net += netPer(x, b.pr); });
     const l = Object.keys(m).sort((a, z) => m[z].n - m[a].n || m[z].net - m[a].net);
@@ -94,7 +127,7 @@ function dessiner() {
       l.map((c) => '<tr class="cl" onclick="biF(\'cor\',' + esc(JSON.stringify(c)) + ')"><td>' + esc(c || "— (sans référent)") + '</td><td class="n">' + m[c].n + '</td><td class="n">' + m[c].np + '</td><td class="n">' + dh(m[c].net) + "</td></tr>").join("") + "</table></div></section>";
   }
   if (b.prev.length) h += '<section class="carte"><h3><span class="ic">☢️</span>Radiothérapies en cours ou prévues (prévisionnel, non comptées)</h3><div class="tableau"><table class="tcures bilan"><tr><th>Fin prévue</th><th>Patient</th><th>Hôpital</th><th>Acte</th><th class="n">NET prévisionnel</th></tr>' +
-    b.prev.map((o) => '<tr class="cl" onclick="ouvrirDossier(\'' + o.id + "')\"><td>" + (o.d ? A.dfrA(o.d) : "—") + "</td><td>" + esc(o.nm) + "</td><td>" + esc(o.hop || "—") + "</td><td>" + esc(o.lib) + '</td><td class="n">' + dh(o.net) + "</td></tr>").join("") + "</table></div></section>";
+    b.prev.map((o) => "<tr" + lienDossier(o.id) + "><td>" + (o.d ? A.dfrA(o.d) : "—") + "</td><td>" + esc(o.nm) + "</td><td>" + esc(o.hop || "—") + "</td><td>" + esc(o.lib) + '</td><td class="n">' + dh(o.net) + "</td></tr>").join("") + "</table></div></section>";
   const KL = B.versements.map((e, i) => ({ e, i })).sort((a, z) => z.e.d.localeCompare(a.e.d));
   h += '<section class="carte"><h3><span class="ic"><svg class="i"><use href="#i-banque"/></svg></span>Versements autres</h3><p class="sous">Sommes reçues hors patients (KL, laboratoire…), ajoutées au bilan à leur date, établissement « Non renseigné ».</p>' +
     (KL.length ? '<div class="tableau"><table class="tcures bilan"><tr><th>Date</th><th>Libellé</th><th class="n">Montant</th><th></th></tr>' + KL.map(({ e, i }) => "<tr><td>" + A.dfrA(e.d) + "</td><td>" + esc(e.lib || "KL") + '</td><td class="n">' + dh(e.m) + '</td><td><button class="mini rouge" onclick="biKlSup(' + i + ')">✕</button></td></tr>').join("") + "</table></div>" : '<p class="mesures">Aucun versement.</p>') +
@@ -121,7 +154,7 @@ window.biKlSup = async (i) => { const e = B.versements[i]; if (!confirm("Supprim
 
 // ───── Exports ─────
 const filtresTxt = () => ["Période : du " + A.dfrA(DATA.pr[0] > "0001" ? DATA.pr[0] : "") + " au " + A.dfrA(DATA.pr[1] < "9999" ? DATA.pr[1] : ""), "Établissement : " + (F.hop === "tous" ? "tous" : F.hop), "Type d'acte : " + (typesActes().find((t) => t[0] === F.typ) || [0, F.typ])[1], "Paiement : " + ({ tous: "payés et à recevoir", paye: "payés", att: "à recevoir" }[F.pay]), "Référent : " + (F.cor === "tous" ? "tous" : F.cor || "sans référent")].concat(F.q ? ["Recherche : " + F.q] : []);
-const nomMed = () => { const p = D().profil || {}; return [p.titre || "Dr", p.prenom, String(p.nom || "").replace(/^Dr\.?\s*/i, "").toLowerCase().replace(/(^|[\s-])\S/g, (c) => c.toUpperCase())].filter(Boolean).join(" "); };
+const nomMed = () => { if (estComptable()) return String((D().medTitulaire && D().medTitulaire.nom) || D().nomTitulaire || ""); const p = D().profil || {}; return [p.titre || "Dr", p.prenom, String(p.nom || "").replace(/^Dr\.?\s*/i, "").toLowerCase().replace(/(^|[\s-])\S/g, (c) => c.toUpperCase())].filter(Boolean).join(" "); };
 const indic = () => { const T = DATA.tot; return [["CA NET médecin", T.caNet, T.nbActes], ["Chimio (séances)", T.chimio, T.nbChimio], ["Consultations", T.consultations, T.nbConsultations], ["Hospitalisations", T.hospit, T.nbHospit], ["Radiothérapie (terminées)", T.rt, T.nbRt], ["Autres versements", T.versements, T.nbVersements], ["Payé", T.paye, ""], ["À recevoir", T.aRecevoir, ""]]; };
 window.biExport = async (fmt) => {
   if (!DATA) return;

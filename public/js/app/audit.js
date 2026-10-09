@@ -10,7 +10,7 @@ export function installer(api) { A = api; }
 const D = () => A.D();
 const MAX = 3000; // lignes lues au plus pour une période (au-delà : message, choisir une période plus courte)
 const ACTIONS = { creation: "Création", modification: "Modification", suppression: "Suppression", ouverture: "Ouverture" };
-const ROLES = { medecin: "Médecin", assistante: "Secrétaire", infirmiere: "Infirmière" };
+const ROLES = { medecin: "Médecin", assistante: "Secrétaire", infirmiere: "Infirmière", comptable: "Comptable" };
 const jour = (d) => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
 const dateDe = (v) => (v && typeof v.toDate === "function" ? v.toDate() : v ? new Date(v) : null);
 const heure = (d) => (d ? d.toLocaleDateString("fr-FR") + " " + d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) : "");

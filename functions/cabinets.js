@@ -52,10 +52,10 @@ const membreTitulaire = (d, jour, par) => ({ role: "medecin", nom: "Dr " + [d.pr
 
 // Modules et formules (09/10/2026) : mêmes valeurs que public/js/donnees/modules.js (vérifié par le test)
 const MODULES = ["chimio", "rt", "agenda", "salle", "taches", "rcp", "prescriptions", "documents", "gagenda", "listes", "bilan"];
-const MAX = ["medecin", "assistante", "infirmiere", "etablissements", "patients"];
+const MAX = ["medecin", "assistante", "infirmiere", "comptable", "etablissements", "patients"];
 const COMMUNS = ["agenda", "prescriptions", "documents", "listes", "gagenda", "bilan"], EQUIPE = ["salle", "taches", "rcp"];
 const fo = (specialite, lib, modules, max) => ({ lib, specialite, modules: MODULES.filter((k) => modules.indexOf(k) >= 0), max });
-const mx = (medecin, assistante, infirmiere, etablissements, patients) => ({ medecin, assistante, infirmiere, etablissements, patients });
+const mx = (medecin, assistante, infirmiere, etablissements, patients, comptable = null) => ({ medecin, assistante, infirmiere, comptable, etablissements, patients });
 const FORMULES = {
   essentiel: fo("Oncologie médicale", "Oncologie – Essentiel", ["chimio"].concat(COMMUNS), mx(1, 1, 0, 1, 300)),
   "onco-pro": fo("Oncologie médicale", "Oncologie – Pro", ["chimio"].concat(COMMUNS, EQUIPE), mx(1, 2, 2, 2, 1000)),

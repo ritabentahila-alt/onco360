@@ -57,7 +57,9 @@ service cloud.firestore {
       function traitementsModif() { return estMembre() && m().droits.traitements == 'modifier'; }
       function rtModif() { return estMembre() && m().droits.radiotherapie == 'modifier'; }
       function tousEtab() { return estMembre() && m().tousEtablissements == true; }
-      function dansPerimetre(etab) { return estMembre() && (m().tousEtablissements == true || etab in m().etablissements); }
+      // Comptable (étape 9 S2, 09/10/2026) : volet financier seulement ; aucun dossier ni donnée médicale (le périmètre lui est fermé)
+      function comptable() { return estMembre() && m().role == 'comptable'; }
+      function dansPerimetre(etab) { return estMembre() && m().role != 'comptable' && (m().tousEtablissements == true || etab in m().etablissements); }
       // Champs d'un dossier patient que ce membre a le droit de modifier
       function champsAutorises() {
         return ['resume', 'version', 'maj', 'majPar']
@@ -204,17 +206,21 @@ service cloud.firestore {
       // « Dossier ouvert par » (salle d'attente, 08/10/2026) : chacun écrit seulement son propre document (patient ouvert, nom,
       // heure), lu par les membres du cabinet
       match /presence/{uid} {
-        allow read: if estMembre();
+        allow read: if estMembre() && !comptable();
         allow write: if estMembre() && uid == request.auth.uid;
       }
       // Montants des dossiers, tarifs, paiements, versements : uniquement avec le droit « finances »
-      match /patientsFinances/{p} { allow read, write: if droit('finances'); }
+      match /patientsFinances/{p} { allow read: if droit('finances'); allow write: if droit('finances') && !comptable(); }
+      // Relevé financier du comptable (date, acte facturé, montant ; nom et n° de dossier, sans diagnostic) : préparé par un médecin
+      // qui a le droit « finances » (bilan.js publierReleve), lu avec ce droit (comptable compris)
+      match /comptabilite/{d} { allow read: if droit('finances'); allow write: if droit('finances') && !comptable(); }
       // Prix à encaisser (consultations validées, consultation de chimio) : extrait des montants, lisible avec le droit « encaissements »
       match /encaissements/{p} {
         allow read: if (droit('finances') || droit('encaissements')) && (resource == null || dansPerimetre(resource.data.etablissementId));
-        allow write: if droit('finances');
+        allow write: if droit('finances') && !comptable();
       }
-      match /finances/{d} { allow read, write: if droit('finances'); }
+      // Comptable : pointe les paiements et saisit les versements, sans toucher aux tarifs
+      match /finances/{d} { allow read: if droit('finances'); allow write: if droit('finances') && (!comptable() || d in ['paiements', 'versements']); }
       // Bibliothèque et paramètres : lecture par les membres, modification avec le droit « paramètres »
       match /protocoles/{d} { allow read: if estMembre(); allow write: if droit('parametres'); }
       match /parametres/{d} { allow read: if estMembre(); allow write: if droit('parametres'); }
@@ -230,7 +236,7 @@ service cloud.firestore {
       }
       // Historique : ajout seulement ; lecture complète avec le droit « finances » (médecin), sinon ses propres actions
       match /historique/{h} {
-        allow read: if droit('finances') || (estMembre() && resource.data.parUid == request.auth.uid);
+        allow read: if (droit('finances') && !comptable()) || (estMembre() && resource.data.parUid == request.auth.uid);
         allow create: if estMembre() && request.resource.data.parUid == request.auth.uid;
         allow update, delete: if false;
       }

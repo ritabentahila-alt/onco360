@@ -60,6 +60,7 @@ export async function majMontants(x, fn) {
   const M = await chargerMontants(x); fn(M);
   await setDoc(doc(db, "espaces", A.ESPACE, "patientsFinances", x.id), { etablissementId: x.doc.etablissementId || "", montantsJson: JSON.stringify(M) }, { merge: true });
   await ecrireEncaissements(x, M).catch((e) => console.warn("encaissements", e));
+  if (A.planifierReleve) A.planifierReleve(); // relevé du comptable mis à jour (étape 9 S2)
 }
 // ───── Prix à encaisser (droit « encaissements », secrétaire) : extrait des montants, sans les honoraires ni la radiothérapie ─────
 // encaissements/{patient} = { etablissementId, data: { rdv: { idRdv: { m } | { tj } }, cons: { "ligne|n": { m, d, lib, n } } } }

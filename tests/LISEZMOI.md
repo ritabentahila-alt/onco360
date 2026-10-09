@@ -16,6 +16,7 @@ python tests/test_bilan.py        # bilan de l'année (352 317 DH au 06/10/2026)
 python tests/test_cures.py        # J1 / J8, paramètres par séance, report des doses, fiche chimio
 python tests/test_seances.py      # report de J8, molécules ajoutées / retirées à J8
 python tests/test_protocoles.py   # menus en cascade, fenêtre « Venu »
+python tests/test_comptable.py    # rôle Comptable : relevé sans diagnostic, même bilan, aucun dossier
 python tests/test_audit.py        # journal d'audit (titulaire, filtres, export, secrétaire sans accès)
 python tests/test_cabinets.py     # cabinet neuf (rien de Dr Bentahila), premier démarrage, page Administration
 ```
@@ -28,6 +29,7 @@ Java 21 nécessaire (Temurin, installé le 08/10/2026).
 cd tests/regles && npm install      # une fois
 npm test                            # lance l'émulateur, les cas de test, puis l'arrête
 ```
+`test-comptable.mjs` : rôle Comptable (aucun dossier, paiements et versements seulement).
 `test-audit.mjs` : journal d'audit (lecture par le titulaire seul, aucune écriture).
 `test-cabinets.mjs` : étanchéité entre cabinets, compte d'administration, `comptes/{uid}`.
 `test-taches.mjs` : tâches (lecture, création, statut, commentaires, réattribution, suppression, usurpations).
