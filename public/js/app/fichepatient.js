@@ -1,12 +1,13 @@
-// Onco360 – fiche patient réglable (étape 16, 10/10/2026). Le réglage du cabinet (pack, puis retouches : D().reg.fiche) dit quels
-// champs de la fiche sont présents, dans quel ordre, et ajoute des champs (texte, nombre, date, liste de choix, oui / non).
+// Onco360 – fiche patient réglable (étape 16, 10/10/2026). La fiche de la spécialité (la même pour tous les packs), puis les retouches
+// du cabinet (D().reg.fiche) disent quels champs sont présents, dans quel ordre, sous quel nom, et ajoutent des champs (texte,
+// nombre, date, liste de choix, oui / non).
 // Les formulaires (Nouveau patient, Modifier, Afficher, en-tête du dossier) marquent chaque champ existant (data-champ="clé") ;
 // appliquerFiche() les remet dans l'ordre, cache ceux qui sont retirés (leur valeur est gardée) et place les champs ajoutés.
 // Valeurs des champs ajoutés : identite.extra { id: valeur } ou clinique.extra (selon la partie du champ).
 let A = null;
 export function installer(api) { A = api; }
 const D = () => A.D();
-const F = () => (D().reg && D().reg.fiche) || { ordre: [], champs: {}, ajouts: [] };
+const F = () => (D().reg && D().reg.fiche) || { ordre: [], champs: {}, libs: {}, ajouts: [] };
 export const champsAjoutes = () => F().ajouts;
 const valeurDe = (x, a) => { const d = (x && x.doc) || {}, src = a.partie === "clinique" ? d.clinique : d.identite; return ((src && src.extra) || {})[a.id]; };
 const texteDe = (a, v) => (v == null || v === "" ? "" : a.type === "date" ? A.dfrA(v) : a.type === "ouinon" ? (v === true || v === "oui" ? "Oui" : "Non") : String(v));
@@ -50,5 +51,8 @@ export function appliquerFiche(racine) {
   const rang = (k) => { const i = R.ordre.indexOf(k); return i < 0 ? 999 : i; };
   const ancre = els[0].previousSibling, parent = els[0].parentNode, tries = els.slice().sort((a, b) => rang(a.dataset.champ) - rang(b.dataset.champ));
   let apres = ancre; tries.forEach((e) => { parent.insertBefore(e, apres ? apres.nextSibling : parent.firstChild); apres = e; });
-  els.forEach((e) => { if (R.champs[e.dataset.champ] === false) e.style.display = "none"; });
+  const vus = {};
+  els.forEach((e) => { const k = e.dataset.champ; if (R.champs[k] === false) e.style.display = "none";
+    // Nom affiché (réglé par l'administration) : premier texte du libellé du premier élément de ce champ
+    if (R.libs && R.libs[k] && !vus[k]) { vus[k] = 1; const l = e.querySelector(":scope > label"), t = l && [...l.childNodes].find((n) => n.nodeType === 3 && n.textContent.trim()); if (t) t.textContent = R.libs[k] + (/\s$/.test(t.textContent) ? " " : ""); } });
 }

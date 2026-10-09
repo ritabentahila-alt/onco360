@@ -1,12 +1,15 @@
 import pathlib; __file__=str(pathlib.Path(__file__).resolve()); exec(open(pathlib.Path(__file__).parent/'base.py').read())
-# Fiche patient réglable (étape 16, 10/10/2026) : ordre, champ retiré (valeur gardée), champs ajoutés (saisie, affichage, en-tête,
-# impression sur la fiche chimio) ; sans réglage, la fiche d'oncologie est inchangée ; écran du pack dans l'Administration.
+# Fiche patient réglable (étape 16, 10/10/2026) : fiche de la spécialité (espaces/{e}.ficheSpe, la même pour tous les packs) +
+# retouches du cabinet ; ordre, champ retiré (valeur gardée), nom affiché, champs ajoutés (saisie, affichage, en-tête, impression
+# sur la fiche chimio) ; sans réglage, la fiche d'oncologie est inchangée ; Administration : fiche de la spécialité, pas de fiche
+# dans un pack, retouches d'un cabinet.
 ok = lambda c, m: print(('✅ ' if c else '❌ ') + m)
 GS = {'id': 'xgs001', 'lib': 'Groupe sanguin', 'type': 'choix', 'choix': ['A+', 'O+', 'B-'], 'partie': 'clinique', 'imprimer': True, 'entete': True}
 MT = {'id': 'xmt001', 'lib': 'Médecin traitant', 'type': 'texte', 'choix': [], 'partie': 'identite', 'imprimer': True, 'entete': False}
 S2 = dict(S); e = dict(S2[E[:-1]])
 e['abonnement'] = {'formule': 'complet', 'modules': {k: True for k in ['chimio', 'rt', 'agenda', 'salle', 'taches', 'rcp', 'prescriptions', 'documents', 'gagenda', 'listes', 'bilan']}, 'max': {},
-  'reglage': {'fiche': {'ordre': ['mut', 'nom', 'prenom'], 'champs': {'ald': False}, 'ajouts': [GS, MT]}}}
+  'reglage': {'fiche': {'ajouts': [MT]}}} # retouche du cabinet : un champ en plus
+e['ficheSpe'] = {'ordre': ['mut', 'nom', 'prenom'], 'champs': {'ald': False}, 'libs': {'tel': 'Téléphone portable'}, 'ajouts': [GS]} # fiche de la spécialité
 S2[E[:-1]] = e
 pid = [k.split('/')[-1] for k, v in S.items() if k.startswith(E + 'patients/') and len(v.get('lignesJson') or '') > 50][0]
 P0 = dict(S2[E + 'patients/' + pid]); I0 = dict(P0['identite']); I0['ald'] = 'Oui'; P0['identite'] = I0; S2[E + 'patients/' + pid] = P0
@@ -22,7 +25,8 @@ async def main():
         pg = await ouvrir(b, S2); await pg.goto(f'http://localhost:{PORT}/v2.html#patients'); await pg.wait_for_timeout(2000)
         await pg.evaluate("nouveauPatient()"); await pg.wait_for_timeout(400)
         k1 = await pg.evaluate("[...document.querySelectorAll('#fenetre .form > [data-champ]')].filter(e=>e.style.display!=='none').map(e=>e.dataset.champ)")
-        ok(k1[0] == 'mut' and 'ald' not in k1 and 'xgs001' in k1 and 'xmt001' in k1, 'Nouveau patient : Mutuelle en premier, ALD retiré, 2 champs ajoutés ' + str(k1[:4]))
+        ok(k1[0] == 'mut' and 'ald' not in k1 and 'xgs001' in k1 and 'xmt001' in k1, 'Nouveau patient : Mutuelle en premier, ALD retiré, champ de la spécialité + champ du cabinet ' + str(k1[:4]))
+        ok(await pg.evaluate("document.querySelector('#fenetre [data-champ=\"tel\"] label').textContent") == 'Téléphone portable', 'nom affiché réglé par la spécialité : « Téléphone portable »')
         await pg.fill('#pNom', 'Fiche'); await pg.fill('#pPre', 'Essai'); await pg.select_option('#fx_xgs001', 'O+'); await pg.fill('#fx_xmt001', 'Dr Alami')
         await pg.click('#fOk'); await pg.wait_for_timeout(1200)
         fs = await pg.evaluate("window.__fs"); np = [v for k, v in fs.items() if k.startswith(E + 'patients/') and (v.get('identite') or {}).get('nomF') == 'FICHE']
@@ -44,15 +48,32 @@ async def main():
         hh = await pg.evaluate("(window.__win||[]).map(w=>w.w.document._h).join('')")
         ok(bt is not None and 'Groupe sanguin : A+' in hh, 'fiche chimio imprimée : « Groupe sanguin : A+ » sous l\'identité')
         ok(not pg.errs and not p0.errs, 'aucune erreur JavaScript ' + str((pg.errs + p0.errs)[:2]))
-        # Administration : champ ajouté dans un pack
-        pa = await ouvrir(b, S2); await pa.add_init_script("""window.__uid='ADM';window.__fs['administrateurs/ADM']={email:'a@b.ma'};window.__fonctions={listeCabinets:async()=>({cabinets:[]}),formulesEnregistrer:async(d)=>{window.__fml=d;return {formules:d.formules,cabinets:0}}};""")
+        # Administration : fiche de la spécialité (Par spécialité › Bibliothèque et paramètres)
+        pa = await ouvrir(b, S2); await pa.add_init_script("""window.__uid='ADM';window.__fs['administrateurs/ADM']={email:'a@b.ma'};window.__fonctions={listeCabinets:async()=>({cabinets:[{id:'cab-t',nom:'Cabinet T',cree:'2026-10-09',actif:true,titulaire:{nom:'Dr T',email:'t@t.ma'},membres:1,patients:0,abonnement:{formule:'essentiel',reglage:{fiche:{ajouts:[{id:'xmt001',lib:'Médecin traitant',type:'texte'}]}}}}],specialites:{'Oncologie – Radiothérapie':{fiche:{ajouts:[{id:'xgs001',lib:'Groupe sanguin',type:'choix',choix:['A+']}],champs:{ald:false}}}}}),formulesEnregistrer:async(d)=>{window.__fml=d;return {formules:d.formules,cabinets:0}},ficheSpecialite:async(d)=>{window.__fspe=d;return {fiche:d.fiche,cabinets:3}},abonnementCabinet:async(d)=>{window.__abo=d;return {abonnement:d}}};""")
         await pa.goto(f'http://localhost:{PORT}/admin.html#specialites'); await pa.wait_for_timeout(1500)
         await pa.click('[data-pm="essentiel"]'); await pa.wait_for_timeout(400)
-        await pa.click('#chNouv'); await pa.wait_for_timeout(200); await pa.fill('#chLib', 'Statut'); await pa.select_option('#chType', 'choix'); await pa.fill('#chChoix', 'Nouveau cas\nAncien cas'); await pa.check('#chImp'); await pa.click('#chOk'); await pa.wait_for_timeout(300)
-        await pa.click('#fCorps [data-haut="fiche:20"]'); await pa.wait_for_timeout(200); await pa.uncheck('#fCorps [data-rch="email"]')
+        ok(await pa.evaluate("!document.querySelector('#fCorps .fiche-b')"), 'un pack n\'a plus de fiche patient (elle est commune à la spécialité)')
         await pa.click('#fOk'); await pa.wait_for_timeout(600)
-        FI = (await pa.evaluate('window.__fml'))['formules']['essentiel']['reglage']['fiche']; aj = FI['ajouts']
-        ok(len(aj) == 1 and aj[0]['lib'] == 'Statut' and aj[0]['type'] == 'choix' and aj[0]['choix'] == ['Nouveau cas', 'Ancien cas'] and aj[0]['imprimer'] and FI['ordre'][19] == aj[0]['id'] and FI['champs']['email'] is False, 'Administration › pack : champ « Statut » ajouté (liste de choix, imprimé), monté d\'un cran, E-mail retiré')
+        ok('fiche' not in ((await pa.evaluate('window.__fml'))['formules']['essentiel'].get('reglage') or {}), 'pack enregistré sans fiche')
+        await pa.click('[data-sous="biblio"]'); await pa.wait_for_timeout(300)
+        ok('Fiche patient' in await pa.inner_text('#page') and '1 ajouté' in await pa.inner_text('#page'), 'Bibliothèque et paramètres : carte « Fiche patient » de la spécialité')
+        await pa.click('#fsOuvrir'); await pa.wait_for_timeout(300)
+        await pa.click('#chNouv'); await pa.wait_for_timeout(200); await pa.fill('#chLib', 'Statut'); await pa.select_option('#chType', 'choix'); await pa.fill('#chChoix', 'Nouveau cas\nAncien cas'); await pa.check('#chImp'); await pa.click('#chOk'); await pa.wait_for_timeout(300)
+        await pa.click('#fsCorps [data-fh="21"]'); await pa.wait_for_timeout(200); await pa.uncheck('#fsCorps [data-rch="email"]')
+        await pa.click('#fsCorps [data-chl="atcdFam"]'); await pa.wait_for_timeout(200); await pa.fill('#chNomA', 'Antécédents familiaux et héréditaires'); await pa.click('#chLOk'); await pa.wait_for_timeout(200)
+        ok('nom d\'origine : Antécédents familiaux' in await pa.inner_text('#fsCorps'), 'champ existant renommé (nom d\'origine rappelé)')
+        await pa.click('#fsOk'); await pa.wait_for_timeout(600)
+        F = await pa.evaluate('window.__fspe'); FI = F['fiche']; aj = FI['ajouts']
+        ok(F['specialite'] == 'Oncologie – Radiothérapie' and len(aj) == 2 and aj[1]['lib'] == 'Statut' and aj[1]['choix'] == ['Nouveau cas', 'Ancien cas'] and aj[1]['imprimer'] and FI['ordre'][20] == aj[1]['id'] and FI['champs']['email'] is False and FI['champs']['ald'] is False and FI['libs']['atcdFam'] == 'Antécédents familiaux et héréditaires' and 'cabinet' not in aj[0], 'fiche de la spécialité enregistrée : « Statut » ajouté et monté, E-mail retiré, ALD toujours retiré, antécédents familiaux renommés')
+        ok('3 cabinet(s) mis à jour' in await pa.inner_text('body'), 'message : cabinets de la spécialité mis à jour')
+        # Retouches d'un cabinet : seules les différences avec la fiche de la spécialité sont enregistrées
+        await pa.evaluate("location.hash='cabinets'"); await pa.wait_for_timeout(400)
+        await pa.click('[data-fiche="cab-t"]'); await pa.wait_for_timeout(300); await pa.click('[data-form="cab-t"]'); await pa.wait_for_timeout(400)
+        t = await pa.inner_text('#fCorps .fiche-b')
+        ok('Statut' in t and 'Médecin traitant' in t and 'ajouté pour ce cabinet' in t and await pa.evaluate("!document.querySelector('#fCorps [data-chs=\"xgs001\"]') && !!document.querySelector('#fCorps [data-chs=\"xmt001\"]')"), 'réglage du cabinet : champs de la spécialité (non supprimables ici) + champ propre au cabinet')
+        await pa.check('#fCorps [data-rch="ald"]'); await pa.click('#fOk'); await pa.wait_for_timeout(600)
+        G = (await pa.evaluate('window.__abo'))['reglage']['fiche']
+        ok(G.get('champs') == {'ald': True} and [a['id'] for a in G['ajouts']] == ['xmt001'] and 'ordre' not in G and 'libs' not in G, 'retouches du cabinet = différences seulement (ALD remis, son champ) ' + str(G)[:120])
         ok(not pa.errs, 'aucune erreur JavaScript (Administration) ' + str(pa.errs[:2]))
         await b.close()
 asyncio.run(main())

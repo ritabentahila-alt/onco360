@@ -77,7 +77,7 @@ function formulesValides(o) {
     if (!/^[a-z0-9-]{2,30}$/.test(k) || !f) return;
     const max = {}; MAX.forEach((m) => { max[m] = nombre(f.max && f.max[m]); });
     out[k] = { lib: String(f.lib || k).replace(/\s+/g, " ").trim().slice(0, 40) || k, specialite: String(f.specialite || "").replace(/\s+/g, " ").trim().slice(0, 40), modules: MODULES.filter((m) => (f.modules || []).indexOf(m) >= 0), max };
-    const rg = reglageNettoye(f.reglage); if (rg) out[k].reglage = rg; // réglage complet du pack (menu, cartes, onglets, fonctions…, 10/10/2026)
+    const rg = reglageNettoye(f.reglage); if (rg) { delete rg.fiche; out[k].reglage = rg; } // réglage complet du pack (menu, cartes, onglets, fonctions…, 10/10/2026) ; la fiche patient est celle de la spécialité
     if (out[k].modules.indexOf("taches") < 0) out[k].modules = out[k].modules.filter((m) => m !== "rcp");
   });
   return Object.keys(out).length ? out : null;
@@ -142,6 +142,20 @@ function parametreDepart(id, v, jour) {
   if (id === "rcp") return { jours: v.jours || [], heure: v.heure || "", lieu: "", plus: [], annulees: [] };
   return JSON.parse(JSON.stringify(v));
 }
+// Fiche patient (10/10/2026) : ordre, présence, nom affiché des champs (libs), champs ajoutés (libellé, type, choix, partie, imprimer,
+// en-tête). Sert à la fiche de la spécialité (ficheSpecialite) et aux retouches d'un cabinet.
+function ficheNettoyee(f) {
+  if (!f || typeof f !== "object") return null;
+  const cle = (k) => typeof k === "string" && /^[a-z0-9._-]{1,40}$/i.test(k), t = (v, n) => String(v == null ? "" : v).replace(/\s+/g, " ").trim().slice(0, n), F = {};
+  if (Array.isArray(f.ordre)) F.ordre = f.ordre.filter(cle).slice(0, 120);
+  if (f.champs && typeof f.champs === "object") { F.champs = {}; Object.entries(f.champs).slice(0, 120).forEach(([c, v]) => { if (cle(c) && typeof v === "boolean") F.champs[c] = v; }); }
+  if (f.libs && typeof f.libs === "object") { F.libs = {}; Object.entries(f.libs).slice(0, 120).forEach(([c, v]) => { if (cle(c) && t(v, 60)) F.libs[c] = t(v, 60); }); }
+  if (Array.isArray(f.ajouts)) F.ajouts = f.ajouts.filter((a) => a && /^x[a-z0-9]{3,20}$/.test(a.id || "") && t(a.lib, 60)).slice(0, 60).map((a) => ({ id: a.id, lib: t(a.lib, 60),
+    type: ["texte", "nombre", "date", "choix", "ouinon"].indexOf(a.type) >= 0 ? a.type : "texte", choix: Array.isArray(a.choix) ? a.choix.map((c) => t(c, 60)).filter(Boolean).slice(0, 40) : [],
+    partie: a.partie === "clinique" ? "clinique" : "identite", imprimer: a.imprimer === true, entete: a.entete === true }));
+  return F;
+}
+const idSpecialite = (s) => String(s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "specialite";
 // Retouches d'un cabinet (10/10/2026) : listes ordonnées et cases oui / non, clés courtes seulement (le catalogue est sur le site :
 // public/js/donnees/catalogue.js ; une clé inconnue est ignorée à l'affichage)
 function reglageNettoye(r) {
@@ -149,16 +163,8 @@ function reglageNettoye(r) {
   const cle = (k) => typeof k === "string" && /^[a-z0-9._-]{1,40}$/i.test(k), out = {};
   ["menu", "accueil", "ordreSections"].forEach((k) => { if (Array.isArray(r[k])) out[k] = r[k].filter(cle).slice(0, 80); });
   ["cartes", "sections", "bibliotheques", "fonctions"].forEach((k) => { if (r[k] && typeof r[k] === "object") { const o = {}; Object.entries(r[k]).slice(0, 300).forEach(([c, v]) => { if (cle(c) && typeof v === "boolean") o[c] = v; }); out[k] = o; } });
-  // Fiche patient (10/10/2026) : ordre, présence, champs ajoutés (libellé, type, choix, partie, imprimer, en-tête)
-  if (r.fiche && typeof r.fiche === "object") {
-    const f = r.fiche, t = (v, n) => String(v == null ? "" : v).replace(/\s+/g, " ").trim().slice(0, n), F = {};
-    if (Array.isArray(f.ordre)) F.ordre = f.ordre.filter(cle).slice(0, 120);
-    if (f.champs && typeof f.champs === "object") { F.champs = {}; Object.entries(f.champs).slice(0, 120).forEach(([c, v]) => { if (cle(c) && typeof v === "boolean") F.champs[c] = v; }); }
-    if (Array.isArray(f.ajouts)) F.ajouts = f.ajouts.filter((a) => a && /^x[a-z0-9]{3,20}$/.test(a.id || "") && t(a.lib, 60)).slice(0, 60).map((a) => ({ id: a.id, lib: t(a.lib, 60),
-      type: ["texte", "nombre", "date", "choix", "ouinon"].indexOf(a.type) >= 0 ? a.type : "texte", choix: Array.isArray(a.choix) ? a.choix.map((c) => t(c, 60)).filter(Boolean).slice(0, 40) : [],
-      partie: a.partie === "clinique" ? "clinique" : "identite", imprimer: a.imprimer === true, entete: a.entete === true }));
-    out.fiche = F;
-  }
+  // Fiche patient : retouches du cabinet (en plus de la fiche de la spécialité)
+  const F = ficheNettoyee(r.fiche); if (F) out.fiche = F;
   return out;
 }
-module.exports = { reglageNettoye, PARAMS_SPE, parametreDepart, BIBS, bibDe, estBib, DROITS_BIB, MODULES_BIB, infos, ROLES, membreDemande, MODULES, MAX, FORMULES, formulesValides, abonnement, horsQuota, MODELE, BIBLIOTHEQUES, DROITS_MEDECIN, MIGRATIONS, verifier, idCabinet, listesDepart, calendrierDepart, tarifsDepart, migrationsFaites, membreTitulaire };
+module.exports = { ficheNettoyee, idSpecialite, reglageNettoye, PARAMS_SPE, parametreDepart, BIBS, bibDe, estBib, DROITS_BIB, MODULES_BIB, infos, ROLES, membreDemande, MODULES, MAX, FORMULES, formulesValides, abonnement, horsQuota, MODELE, BIBLIOTHEQUES, DROITS_MEDECIN, MIGRATIONS, verifier, idCabinet, listesDepart, calendrierDepart, tarifsDepart, migrationsFaites, membreTitulaire };

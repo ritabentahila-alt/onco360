@@ -6,7 +6,7 @@
 import { app, auth, db } from "../config.js";
 import { onAuthStateChanged, sendPasswordResetEmail, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { MENU, FONCTIONS, FONCTIONS_RELIEES, CARTES, SECTIONS, BIBLIOTHEQUES, FICHE, TYPES_CHAMP, reglageEffectif } from "../donnees/catalogue.js";
+import { MENU, FONCTIONS, FONCTIONS_RELIEES, CARTES, SECTIONS, BIBLIOTHEQUES, FICHE, TYPES_CHAMP, reglageEffectif, ficheEffective, ficheRetouches, libChamp } from "../donnees/catalogue.js";
 import { MODULES, ROLES_MAX, SPECIALITES, specialiteDe, FORMULES as FORMULES0, abonnementEffectif, BIBLIOTHEQUES_SPE, MODULE_FAMILLE } from "../donnees/modules.js";
 
 const $ = (i) => document.getElementById(i);
@@ -15,6 +15,7 @@ const dfr = (d) => (typeof d === "string" && d.length >= 10 ? d.slice(8, 10) + "
 const sansAcc = (x) => String(x || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 const ONGLETS = [["cabinets", "Cabinets"], ["nouveau", "Nouveau cabinet"], ["specialites", "Par spécialité"]];
 // CABINETS : liste (null = chargement) ; FS : packs (formules) enregistrés (sinon ceux de départ)
+let SPES = {}; // fiche patient de chaque spécialité { nom: { fiche, le } } (plateforme/specialites)
 let CABINETS = null, FS = null, BIBS = null, // BIBS : bibliothèques de référence par spécialité (null = pas encore lues)
    MSG = "", RES = "", Q = "", STATUT = "", SPE = "", SPEF = "";
 const FORMULES_ = () => FS || FORMULES0;
@@ -39,7 +40,7 @@ let GARDER = false;
 window.addEventListener("hashchange", () => { if (!GARDER) RES = ""; GARDER = false; dessiner(); });
 async function charger() {
   try {
-    const o = await serveur("listeCabinets"); if (o.formules) { FS = o.formules; Object.values(FS).forEach((f) => { f.specialite = specialiteDe(f.specialite); }); } BIBS = o.bibliotheques || []; MSG = "";
+    const o = await serveur("listeCabinets"); if (o.formules) { FS = o.formules; Object.values(FS).forEach((f) => { f.specialite = specialiteDe(f.specialite); }); } BIBS = o.bibliotheques || []; SPES = {}; Object.entries(o.specialites || {}).forEach(([n, v]) => { SPES[specialiteDe(n)] = v; }); MSG = "";
     CABINETS = (o.cabinets || []).map((c) => Object.assign({}, c, { cree: typeof c.cree === "string" ? c.cree : "", suspenduLe: typeof c.suspenduLe === "string" ? c.suspenduLe : "", titulaire: c.titulaire || {} }));
   } catch (e) { CABINETS = []; MSG = '<p class="err">Liste des cabinets indisponible : ' + esc(e.message) + ' <button class="clair petit" onclick="location.reload()">Réessayer</button></p>'; }
   dessiner();
@@ -229,31 +230,69 @@ function ouvrirInfos(c) {
   };
 }
 
+const fleches = (l, i) => '<span class="fl"><button class="clair petit" data-haut="' + l + ":" + i + '"' + (i ? "" : " disabled") + ' aria-label="Monter">↑</button><button class="clair petit" data-bas="' + l + ":" + i + '" aria-label="Descendre">↓</button></span>';
+const caseC = (attr, on, txt) => '<label class="rg-c"><input type="checkbox" ' + attr + (on ? " checked" : "") + "><span>" + txt + "</span></label>";
+
+// ───── Fiche patient (10/10/2026) : réglée une fois par spécialité (la même pour tous les packs) ; un cabinet peut la retoucher ─────
+// mode "spe" : fiche de la spécialité (tout se modifie) ; "cabinet" : champs de la spécialité = présence, ordre, nom affiché ; champs
+// ajoutés propres au cabinet (cabinet: true) modifiables. FI = fiche effective (ficheEffective), modifiée sur place.
+function editeurFiche(FI, mode) {
+  let ED = null; // "nouveau", id d'un champ ajouté, ou "lib:clé" (nom affiché d'un champ existant)
+  const LIB = Object.fromEntries(FICHE.map((c) => [c[0], c])), AJ = () => Object.fromEntries(FI.ajouts.map((a) => [a.id, a]));
+  const modifiable = (a) => mode === "spe" || a.cabinet === true;
+  const typeLib = (t) => ((TYPES_CHAMP.find((x) => x[0] === t) || [])[1] || t).toLowerCase();
+  const fl = (i) => '<span class="fl"><button class="clair petit" data-fh="' + i + '"' + (i ? "" : " disabled") + ' aria-label="Monter">↑</button><button class="clair petit" data-fb="' + i + '"' + (i < FI.ordre.length - 1 ? "" : " disabled") + ' aria-label="Descendre">↓</button></span>';
+  const ligne = (k, i) => { const c = LIB[k], a = AJ()[k]; if (!c && !a) return "";
+    const nomA = c ? libChamp(k, FI) : a.lib, renomme = c && nomA !== c[1];
+    const info = c ? (c[2] === "clinique" ? "fiche clinique" : "identité") + (renomme ? " · nom d'origine : " + c[1] : "")
+      : "ajouté" + (mode === "cabinet" ? (a.cabinet ? " pour ce cabinet" : " (spécialité)") : "") + " · " + typeLib(a.type) + (a.type === "choix" && a.choix && a.choix.length ? " (" + a.choix.join(", ") + ")" : "") + (a.imprimer ? " · imprimé" : "") + (a.entete ? " · en-tête" : "");
+    return '<div class="rg-l">' + fl(i) + '<span class="rg-t">' + esc(nomA) + ' <span class="m">' + esc(info) + "</span></span>" +
+      (c ? '<button class="clair petit" data-chl="' + k + '" title="Changer le nom affiché" aria-label="Changer le nom affiché">✎</button>' : modifiable(a) ? '<button class="clair petit" data-chm="' + k + '" aria-label="Modifier le champ">✎</button><button class="clair petit" data-chs="' + k + '" aria-label="Supprimer le champ">✕</button>' : "") +
+      (c && c[3] ? '<span class="m">toujours</span>' : caseC('data-rch="' + k + '"', FI.champs[k] !== false, "")) + "</div>"; };
+  const formAjout = () => { const a = ED !== "nouveau" ? AJ()[ED] || {} : { type: "texte", partie: "identite" };
+    return '<div class="ch-f"><div class="form"><div><label for="chLib">Nom du champ</label><input id="chLib" value="' + esc(a.lib || "") + '" placeholder="ex. Groupe sanguin"></div>' +
+      '<div><label for="chType">Type</label><select id="chType">' + TYPES_CHAMP.map(([k, l]) => '<option value="' + k + '"' + (a.type === k ? " selected" : "") + ">" + esc(l) + "</option>").join("") + "</select></div>" +
+      '<div><label for="chPartie">Partie de la fiche</label><select id="chPartie"><option value="identite"' + (a.partie !== "clinique" ? " selected" : "") + '>Identité</option><option value="clinique"' + (a.partie === "clinique" ? " selected" : "") + ">Fiche clinique</option></select></div>" +
+      '<div class="large" id="chChoixZ"' + (a.type === "choix" ? "" : ' style="display:none"') + '><label for="chChoix">Choix possibles (un par ligne)</label><textarea id="chChoix" rows="3">' + esc((a.choix || []).join("\n")) + "</textarea></div></div>" +
+      '<div class="barre" style="margin-top:6px">' + caseC('id="chImp"', !!a.imprimer, "À imprimer (fiche chimio, courriers)") + caseC('id="chEnt"', !!a.entete, "En tête du dossier") + '<button class="petit" id="chOk">' + (ED === "nouveau" ? "Ajouter le champ" : "Enregistrer le champ") + '</button><button class="clair petit" id="chAnn">Annuler</button></div></div>'; };
+  const formLib = (k) => '<div class="ch-f"><div class="form"><div><label for="chNomA">Nom affiché de « ' + esc(LIB[k][1]) + ' »</label><input id="chNomA" value="' + esc(libChamp(k, FI)) + '"></div></div>' +
+    '<div class="barre" style="margin-top:6px"><button class="petit" id="chLOk">Enregistrer le nom</button><button class="clair petit" id="chLOrig">Revenir au nom d\'origine</button><button class="clair petit" id="chAnn">Annuler</button></div></div>';
+  const html = () => '<div class="rg-b fiche-b">' + FI.ordre.map(ligne).join("") + "</div>" +
+    (ED && ED.indexOf("lib:") === 0 ? formLib(ED.slice(4)) : ED ? formAjout() : '<div style="margin-top:8px"><button class="clair petit" id="chNouv">+ Ajouter un champ' + (mode === "cabinet" ? " pour ce cabinet" : "") + "</button></div>");
+  const brancher = (refaire) => {
+    const q = (sel) => document.querySelectorAll(".fiche-b " + sel + ", .ch-f " + sel);
+    const bouge = (i, d) => { const j = i + d, L = FI.ordre; if (j < 0 || j >= L.length) return; [L[i], L[j]] = [L[j], L[i]]; refaire(); };
+    q("[data-fh]").forEach((b) => { b.onclick = () => bouge(Number(b.dataset.fh), -1); });
+    q("[data-fb]").forEach((b) => { b.onclick = () => bouge(Number(b.dataset.fb), 1); });
+    q("[data-rch]").forEach((x) => { x.onchange = () => { FI.champs[x.dataset.rch] = x.checked; }; });
+    q("[data-chl]").forEach((b) => { b.onclick = () => { ED = "lib:" + b.dataset.chl; refaire(); }; });
+    q("[data-chm]").forEach((b) => { b.onclick = () => { ED = b.dataset.chm; refaire(); }; });
+    q("[data-chs]").forEach((b) => { b.onclick = () => { const k = b.dataset.chs, a = FI.ajouts.find((z) => z.id === k); if (!confirm("Retirer le champ « " + (a && a.lib) + " » de la fiche ?\n(Les valeurs déjà saisies restent dans les dossiers.)")) return; FI.ajouts = FI.ajouts.filter((z) => z.id !== k); FI.ordre = FI.ordre.filter((z) => z !== k); delete FI.champs[k]; refaire(); }; });
+    if ($("chNouv")) $("chNouv").onclick = () => { ED = "nouveau"; refaire(); };
+    if ($("chType")) $("chType").onchange = () => { $("chChoixZ").style.display = $("chType").value === "choix" ? "" : "none"; };
+    if ($("chAnn")) $("chAnn").onclick = () => { ED = null; refaire(); };
+    const k = ED && ED.indexOf("lib:") === 0 ? ED.slice(4) : null;
+    if ($("chLOk")) $("chLOk").onclick = () => { const v = $("chNomA").value.replace(/\s+/g, " ").trim().slice(0, 60); FI.libs = FI.libs || {}; if (!v || v === LIB[k][1]) delete FI.libs[k]; else FI.libs[k] = v; ED = null; refaire(); };
+    if ($("chLOrig")) $("chLOrig").onclick = () => { FI.libs = FI.libs || {}; delete FI.libs[k]; ED = null; refaire(); };
+    if ($("chOk")) $("chOk").onclick = () => {
+      const lib = $("chLib").value.trim(); if (!lib) { alert("Indiquez le nom du champ."); return; }
+      const d = { lib: lib.slice(0, 60), type: $("chType").value, partie: $("chPartie").value, choix: $("chChoix").value.split("\n").map((c) => c.trim()).filter(Boolean).slice(0, 40), imprimer: $("chImp").checked, entete: $("chEnt").checked };
+      if (d.type === "choix" && !d.choix.length) { alert("Indiquez au moins un choix (un par ligne)."); return; }
+      if (ED === "nouveau") { const id = "x" + Date.now().toString(36) + Math.floor(Math.random() * 1296).toString(36); FI.ajouts.push(Object.assign({ id, cabinet: mode === "cabinet" }, d)); FI.ordre.push(id); FI.champs[id] = true; }
+      else { const a = FI.ajouts.find((z) => z.id === ED); if (a) Object.assign(a, d); }
+      ED = null; refaire();
+    };
+  };
+  return { html, brancher, enCours: () => !!ED };
+}
 // ───── Écran de réglage (10/10/2026) : le même pour un pack et pour un cabinet ─────
 // Menu (ordre), modules et leurs fonctions, cartes du tableau de bord (ordre, présence), onglets des Paramètres (ordre, présence),
 // bibliothèques, maximums. o = { titre, intro, A { formule, modules, max }, R (réglage complet), spe(), avecPack, nom (pack),
 // compte(k), enregistrer(A, R, nom) }.
 function editeurReglage(o) {
   const A = o.A, R = o.R, LIB_MENU = Object.fromEntries(MENU.map((m) => [m[0], m])), LIB_CARTE = Object.fromEntries(CARTES), LIB_SEC = Object.fromEntries(SECTIONS.map((x) => [x[0], x[1]]));
-  let nom = o.nom || "", ED_CH = null; // ED_CH : champ ajouté en cours de modification (id) ou "nouveau"
-  // Fiche patient : champs existants et ajoutés (ordre, présence) ; formulaire d'un champ ajouté
-  const htmlFiche = () => {
-    const FI = R.fiche, LIB = Object.fromEntries(FICHE.map((c) => [c[0], c])), AJ = Object.fromEntries(FI.ajouts.map((a) => [a.id, a]));
-    const ligne = (k, i) => { const c = LIB[k], a = AJ[k]; if (!c && !a) return "";
-      return '<div class="rg-l">' + fleches("fiche", i) + '<span class="rg-t">' + esc(c ? c[1] : a.lib) + ' <span class="m">' + (c ? (c[2] === "clinique" ? "fiche clinique" : "identité") : "ajouté · " + ((TYPES_CHAMP.find((t) => t[0] === a.type) || [])[1] || a.type).toLowerCase() + (a.imprimer ? " · imprimé" : "") + (a.entete ? " · en-tête" : "")) + "</span></span>" +
-        (a ? '<button class="clair petit" data-chm="' + k + '" aria-label="Modifier le champ">✎</button><button class="clair petit" data-chs="' + k + '" aria-label="Supprimer le champ">✕</button>' : "") +
-        (c && c[3] ? '<span class="m">toujours</span>' : caseC('data-rch="' + k + '"', FI.champs[k] !== false, "")) + "</div>"; };
-    const a = ED_CH && ED_CH !== "nouveau" ? AJ[ED_CH] || {} : { type: "texte", partie: "identite" };
-    const form = ED_CH ? '<div class="ch-f"><div class="form"><div><label for="chLib">Nom du champ</label><input id="chLib" value="' + esc(a.lib || "") + '" placeholder="ex. Groupe sanguin"></div>' +
-      '<div><label for="chType">Type</label><select id="chType">' + TYPES_CHAMP.map(([k, l]) => '<option value="' + k + '"' + (a.type === k ? " selected" : "") + ">" + esc(l) + "</option>").join("") + "</select></div>" +
-      '<div><label for="chPartie">Partie de la fiche</label><select id="chPartie"><option value="identite"' + (a.partie !== "clinique" ? " selected" : "") + '>Identité</option><option value="clinique"' + (a.partie === "clinique" ? " selected" : "") + ">Fiche clinique</option></select></div>" +
-      '<div class="large" id="chChoixZ"' + (a.type === "choix" ? "" : ' style="display:none"') + '><label for="chChoix">Choix possibles (un par ligne)</label><textarea id="chChoix" rows="3">' + esc((a.choix || []).join("\n")) + "</textarea></div></div>" +
-      '<div class="barre" style="margin-top:6px">' + caseC('id="chImp"', !!a.imprimer, "À imprimer (fiche chimio, courriers)") + caseC('id="chEnt"', !!a.entete, "En tête du dossier") + '<button class="petit" id="chOk">' + (ED_CH === "nouveau" ? "Ajouter le champ" : "Enregistrer le champ") + '</button><button class="clair petit" id="chAnn">Annuler</button></div></div>' : "";
-    return '<h3 class="st">Fiche patient <span class="m">(ordre ↑ ↓, présence ; un champ retiré est caché, sa valeur gardée)</span></h3><div class="rg-b fiche-b">' + FI.ordre.map(ligne).join("") + "</div>" +
-      (ED_CH ? form : '<div style="margin-top:8px"><button class="clair petit" id="chNouv">+ Ajouter un champ</button></div>');
-  };
-  const fleches = (l, i) => '<span class="fl"><button class="clair petit" data-haut="' + l + ":" + i + '"' + (i ? "" : " disabled") + ' aria-label="Monter">↑</button><button class="clair petit" data-bas="' + l + ":" + i + '" aria-label="Descendre">↓</button></span>';
-  const caseC = (attr, on, txt) => '<label class="rg-c"><input type="checkbox" ' + attr + (on ? " checked" : "") + "><span>" + txt + "</span></label>";
+  let nom = o.nom || "";
+  const FE = o.fiche ? editeurFiche(R.fiche, "cabinet") : null; // fiche patient : retouches du cabinet (pas dans un pack)
   const corps = () => {
     const mods = MODULES.filter(([k]) => modulePour(k, o.spe()));
     return (o.avecPack ? '<div class="form" style="grid-template-columns:minmax(0,340px) auto;align-items:end"><div><label for="fFor">Pack de départ</label><select id="fFor">' + optionsFormules(A.formule) + '</select></div><div><button class="clair petit" id="fDepart" title="Réglage du pack (ordre, cartes, onglets, fonctions, bibliothèques) ; les modules et limites restent">Revenir au réglage du pack</button></div></div>'
@@ -262,7 +301,7 @@ function editeurReglage(o) {
       '<div class="rg-b"><h3 class="st">Tableau de bord (cartes)</h3>' + R.accueil.map((k, i) => '<div class="rg-l">' + fleches("accueil", i) + '<span class="rg-t">' + esc(LIB_CARTE[k] || k) + "</span>" + caseC('data-rcarte="' + k + '"', R.cartes[k] !== false, "") + "</div>").join("") + "</div>" +
       '<div class="rg-b"><h3 class="st">Paramètres (onglets)</h3>' + R.ordreSections.map((k, i) => '<div class="rg-l">' + fleches("ordreSections", i) + '<span class="rg-t">' + esc(LIB_SEC[k] || k) + "</span>" + caseC('data-rsec="' + k + '"', R.sections[k] !== false, "") + "</div>").join("") + "</div>" +
       '<div class="rg-b"><h3 class="st">Bibliothèques</h3>' + BIBLIOTHEQUES.map(([k, lib]) => '<div class="rg-l"><span class="rg-t">' + esc(lib) + "</span>" + caseC('data-rbib="' + k + '"', R.bibliotheques[k] !== false, "") + "</div>").join("") + "</div></div>" +
-      htmlFiche() +
+      (FE ? '<h3 class="st">Fiche patient <span class="m">(retouches de ce cabinet ; la fiche commune à tous les packs se règle dans Par spécialité › Bibliothèque et paramètres)</span></h3>' + FE.html() : "") +
       '<h3 class="st">Modules et fonctions</h3><div class="mods">' + mods.map(([k, lib, de]) => '<div class="mod-f' + (A.modules[k] ? "" : " off") + '">' + caseC('data-rmod="' + k + '"', A.modules[k], "<b>" + esc(lib) + '</b><br><span class="m">' + esc(de) + "</span>") +
         ((FONCTIONS[k] || []).length ? "<details><summary>Fonctions (" + FONCTIONS[k].filter(([f]) => R.fonctions[k + "." + f] !== false).length + " / " + FONCTIONS[k].length + ")</summary>" + FONCTIONS[k].map(([f, l, base]) => base ? '<div class="rg-c base"><span>✓</span><span>' + esc(l) + ' <span class="m">(fonction de base, toujours là)</span></span></div>' : caseC('data-rfn="' + k + "." + f + '"', R.fonctions[k + "." + f] !== false, esc(l) + (FONCTIONS_RELIEES.indexOf(k + "." + f) < 0 ? ' <span class="m">(bientôt)</span>' : ""))).join("") + "</details>" : "") + "</div>").join("") + "</div>" +
       '<h3 class="st">Nombre maximum <span class="m">(vide = sans limite, 0 = aucun)</span></h3><div class="form">' + ROLES_MAX.map(([k, lib]) => { const c = o.compte ? o.compte(k) : undefined; return '<div><label for="fMx' + k + '">' + esc(lib) + (c === undefined ? "" : ' <span class="m">(actuellement ' + (c == null ? "?" : c) + ")</span>") + '</label><input id="fMx' + k + '" type="number" min="0" data-x="' + k + '" placeholder="sans limite" value="' + (A.max[k] == null ? "" : A.max[k]) + '"></div>'; }).join("") + "</div>";
@@ -270,10 +309,10 @@ function editeurReglage(o) {
   fenetre("<h2>" + esc(o.titre) + '</h2><p class="sous">' + o.intro + '</p><div id="fCorps">' + corps() + '</div><div class="pied"><button id="fOk">Enregistrer</button><button class="clair" id="fAnn">Fermer</button></div>');
   const lire = () => { document.querySelectorAll("#fCorps [data-x]").forEach((x) => { A.max[x.dataset.x] = x.value === "" ? null : Number(x.value); }); if ($("fNom")) nom = $("fNom").value.trim(); };
   const refaire = (sansLire) => { if (!sansLire) lire(); const ouverts = [...document.querySelectorAll("#fCorps details")].map((d) => d.open); $("fCorps").innerHTML = corps(); document.querySelectorAll("#fCorps details").forEach((d, i) => { d.open = !!ouverts[i]; }); brancher(); };
-  const bouger = (v, sens) => { const [l, i] = v.split(":"), k = Number(i), j = k + sens, L = l === "fiche" ? R.fiche.ordre : R[l]; if (j < 0 || j >= L.length) return; [L[k], L[j]] = [L[j], L[k]]; refaire(); };
+  const bouger = (v, sens) => { const [l, i] = v.split(":"), k = Number(i), j = k + sens, L = R[l]; if (j < 0 || j >= L.length) return; [L[k], L[j]] = [L[j], L[k]]; refaire(); };
   const brancher = () => {
-    if ($("fFor")) $("fFor").onchange = () => { const F = FORMULES_()[$("fFor").value]; if (!F) return; A.formule = $("fFor").value; A.max = Object.assign({}, F.max); MODULES.forEach(([k]) => { A.modules[k] = F.modules.indexOf(k) >= 0; }); Object.assign(R, reglageEffectif(F.reglage)); refaire(true); }; // tout le pack (pas les limites affichées)
-    if ($("fDepart")) $("fDepart").onclick = () => { Object.assign(R, reglageEffectif((FORMULES_()[A.formule] || {}).reglage)); refaire(); };
+    if ($("fFor")) $("fFor").onchange = () => { const F = FORMULES_()[$("fFor").value]; if (!F) return; A.formule = $("fFor").value; A.max = Object.assign({}, F.max); MODULES.forEach(([k]) => { A.modules[k] = F.modules.indexOf(k) >= 0; }); const fi = R.fiche; Object.assign(R, reglageEffectif(F.reglage)); R.fiche = fi; refaire(true); }; // tout le pack (la fiche patient reste : spécialité + retouches) (pas les limites affichées)
+    if ($("fDepart")) $("fDepart").onclick = () => { const fi = R.fiche; Object.assign(R, reglageEffectif((FORMULES_()[A.formule] || {}).reglage)); R.fiche = fi; refaire(); };
     document.querySelectorAll("#fCorps [data-haut]").forEach((b) => { b.onclick = () => bouger(b.dataset.haut, -1); });
     document.querySelectorAll("#fCorps [data-bas]").forEach((b) => { b.onclick = () => bouger(b.dataset.bas, 1); });
     document.querySelectorAll("#fCorps [data-rmod]").forEach((x) => { x.onchange = () => { const k = x.dataset.rmod; A.modules[k] = x.checked; if (k === "rcp" && x.checked) A.modules.taches = true; if (k === "taches" && !x.checked) A.modules.rcp = false; refaire(); }; });
@@ -281,21 +320,7 @@ function editeurReglage(o) {
     document.querySelectorAll("#fCorps [data-rsec]").forEach((x) => { x.onchange = () => { R.sections[x.dataset.rsec] = x.checked; }; });
     document.querySelectorAll("#fCorps [data-rbib]").forEach((x) => { x.onchange = () => { R.bibliotheques[x.dataset.rbib] = x.checked; }; });
     document.querySelectorAll("#fCorps [data-rfn]").forEach((x) => { x.onchange = () => { R.fonctions[x.dataset.rfn] = x.checked; refaire(); }; });
-    // Fiche patient
-    document.querySelectorAll("#fCorps [data-rch]").forEach((x) => { x.onchange = () => { R.fiche.champs[x.dataset.rch] = x.checked; }; });
-    document.querySelectorAll("#fCorps [data-chm]").forEach((b) => { b.onclick = () => { ED_CH = b.dataset.chm; refaire(); }; });
-    document.querySelectorAll("#fCorps [data-chs]").forEach((b) => { b.onclick = () => { const k = b.dataset.chs, a = R.fiche.ajouts.find((z) => z.id === k); if (!confirm("Retirer le champ « " + (a && a.lib) + " » de la fiche ?\n(Les valeurs déjà saisies restent dans les dossiers.)")) return; R.fiche.ajouts = R.fiche.ajouts.filter((z) => z.id !== k); R.fiche.ordre = R.fiche.ordre.filter((z) => z !== k); delete R.fiche.champs[k]; refaire(); }; });
-    if ($("chNouv")) $("chNouv").onclick = () => { ED_CH = "nouveau"; refaire(); };
-    if ($("chType")) $("chType").onchange = () => { $("chChoixZ").style.display = $("chType").value === "choix" ? "" : "none"; };
-    if ($("chAnn")) $("chAnn").onclick = () => { ED_CH = null; refaire(); };
-    if ($("chOk")) $("chOk").onclick = () => {
-      const lib = $("chLib").value.trim(); if (!lib) { alert("Indiquez le nom du champ."); return; }
-      const d = { lib: lib.slice(0, 60), type: $("chType").value, partie: $("chPartie").value, choix: $("chChoix").value.split("\n").map((c) => c.trim()).filter(Boolean).slice(0, 40), imprimer: $("chImp").checked, entete: $("chEnt").checked };
-      if (d.type === "choix" && !d.choix.length) { alert("Indiquez au moins un choix (un par ligne)."); return; }
-      if (ED_CH === "nouveau") { const id = "x" + Date.now().toString(36) + Math.floor(Math.random() * 1296).toString(36); R.fiche.ajouts.push(Object.assign({ id }, d)); R.fiche.ordre.push(id); R.fiche.champs[id] = true; }
-      else { const a = R.fiche.ajouts.find((z) => z.id === ED_CH); if (a) Object.assign(a, d); }
-      ED_CH = null; refaire();
-    };
+    if (FE) FE.brancher(() => refaire());
   };
   brancher();
   $("fAnn").onclick = fermer;
@@ -309,12 +334,15 @@ function editeurReglage(o) {
 function ouvrirFormule(c) {
   if (!c) return;
   const A = JSON.parse(JSON.stringify(abonnementEffectif(c.abonnement))); A.formule = A.formule || "complet";
-  editeurReglage({ titre: "Réglage de « " + c.nom + " »", avecPack: true, A, R: reglageEffectif(c.abonnement && c.abonnement.reglage), spe: () => (FORMULES_()[A.formule] || {}).specialite,
+  const speDe = () => specialiteDe((FORMULES_()[A.formule] || {}).specialite), ficheSpe = () => (SPES[speDe()] || {}).fiche || null;
+  editeurReglage({ titre: "Réglage de « " + c.nom + " »", avecPack: true, A, R: reglageEffectif(c.abonnement && c.abonnement.reglage, ficheSpe()), spe: speDe, fiche: true,
     intro: "Choisissez le pack (il apporte ses modules, ses limites et son réglage), puis retouchez à volonté pour ce cabinet : ordre (↑ ↓), présence (cases), fonctions de chaque module. Ce qui est retiré est caché, les données sont gardées. Le changement s'applique à la prochaine ouverture d'Onco360 par l'équipe.",
     compte: (k) => (k === "patients" ? c.patients : k === "etablissements" ? c.etablissements : (c.roles || {})[k] || 0),
     enregistrer: async (A2, R2) => {
-      const F = FORMULES_()[A2.formule] || {}, identique = JSON.stringify(R2) === JSON.stringify(reglageEffectif(F.reglage));
-      const o = await serveur("abonnementCabinet", { espace: c.id, formule: A2.formule, modules: A2.modules, max: A2.max, reglage: R2, identiqueAuPack: identique });
+      // Fiche patient : seulement les différences avec celle de la spécialité ; « identique au pack » se juge sans elle
+      const F = FORMULES_()[A2.formule] || {}, fiche = ficheRetouches(R2.fiche, ficheEffective(null, ficheSpe())), sans = Object.assign({}, R2), P = reglageEffectif(F.reglage);
+      delete sans.fiche; delete P.fiche; const identique = JSON.stringify(sans) === JSON.stringify(P);
+      const o = await serveur("abonnementCabinet", { espace: c.id, formule: A2.formule, modules: A2.modules, max: A2.max, reglage: Object.assign(sans, Object.keys(fiche).length ? { fiche } : {}), identiqueAuPack: identique });
       c.abonnement = o.abonnement; fermer(); RES = "Réglage enregistré pour « " + esc(c.nom) + " » : " + esc(nomFormule(o.abonnement)) + ". Il s'applique à la prochaine ouverture d'Onco360 par l'équipe."; dessiner();
     } });
 }
@@ -376,7 +404,7 @@ function htmlSpecialites() {
     '<p class="m" style="margin:8px 4px">Nouvelle spécialité : étape 16.5.</p></div>';
   const sous = [["packs", "Packs"], ["biblio", "Bibliothèque et paramètres"]]; // « Modules et menus » retiré (10/10/2026 : déjà dans l'écran d'un pack)
   let droite = '<div class="puces">' + sous.map(([k, l]) => '<button class="puce' + (k === SOUS ? " on" : "") + '" data-sous="' + k + '">' + esc(l) + "</button>").join("") + "</div>";
-  if (SOUS === "biblio") { const B = (BIBS || []).find((b) => b.specialites.indexOf(SPEC) >= 0) || BIBLIOTHEQUES_SPE.find((b) => b.specialites.indexOf(SPEC) >= 0); droite += '<section class="carte"><p class="sous">Ce que reçoit chaque nouveau cabinet de cette spécialité : bibliothèques (protocoles, médicaments, ordonnances types, analyses et bilans, examens, courriers, documentation) et paramètres de base (horaires, fériés, WhatsApp, couleurs, types, tâches automatiques, RCP, listes, impression, alertes, tarifs RT). Jamais : correspondants, prix des consultations, lieux, équipe, patients.</p></section>' + (B ? '<div class="cabs">' + carteBib(B) + "</div>" : ""); }
+  if (SOUS === "biblio") { const B = (BIBS || []).find((b) => b.specialites.indexOf(SPEC) >= 0) || BIBLIOTHEQUES_SPE.find((b) => b.specialites.indexOf(SPEC) >= 0); droite += '<section class="carte"><p class="sous">Ce que reçoit chaque nouveau cabinet de cette spécialité : bibliothèques (protocoles, médicaments, ordonnances types, analyses et bilans, examens, courriers, documentation) et paramètres de base (horaires, fériés, WhatsApp, couleurs, types, tâches automatiques, RCP, listes, impression, alertes, tarifs RT). Jamais : correspondants, prix des consultations, lieux, équipe, patients.</p></section>' + (B ? '<div class="cabs">' + carteBib(B) + "</div>" : "") + carteFicheSpe(); }
   else {
     const L = packsDe(SPEC);
     droite += '<section class="carte"><p class="sous">Les packs de départ de « ' + esc(SPEC) + ' ». Chacun a son réglage complet (modules et fonctions, menu, cartes du tableau de bord, onglets des Paramètres, bibliothèques, limites). Un cabinet reçoit le réglage de son pack, puis peut être retouché. Modifier un pack met à jour les cabinets qui le suivent sans retouche.</p>' +
@@ -385,6 +413,25 @@ function htmlSpecialites() {
       '<div class="barre" style="margin-top:12px"><button id="pNouv">+ Nouveau pack</button>' + (Object.keys(FORMULES0).some((k) => !FORMULES_()[k] && specialiteDe(FORMULES0[k].specialite) === SPEC) ? '<button class="clair" id="pProp">Ajouter les packs proposés par Onco360</button>' : "") + "</div></section>";
   }
   return '<div class="spe-g">' + gauche + '<div class="spe-d">' + droite + "</div></div>";
+}
+// Fiche patient de la spécialité : la même pour tous ses packs et tous ses cabinets (retouches d'un cabinet en plus)
+function carteFicheSpe() {
+  const FI = ficheEffective(null, (SPES[SPEC] || {}).fiche), pres = FI.ordre.filter((k) => FI.champs[k] !== false).length, ren = Object.keys(FI.libs).length;
+  return '<section class="carte" style="margin-top:14px"><h2>Fiche patient</h2><p class="sous">La même pour tous les packs de « ' + esc(SPEC) + ' » et tous ses cabinets : ordre des champs, champs présents, nom affiché des champs existants, champs ajoutés. Enregistrer met à jour aussitôt tous les cabinets de la spécialité (un cabinet peut avoir en plus ses propres retouches, dans son réglage).</p>' +
+    '<p class="m">' + pres + " champ(s) présent(s) sur " + FI.ordre.length + " · " + FI.ajouts.length + " ajouté(s) · " + ren + " renommé(s)" + ((SPES[SPEC] || {}).le ? " · modifiée le " + esc(String(SPES[SPEC].le).slice(0, 10).split("-").reverse().join("/")) : "") + '</p><div style="margin-top:10px"><button id="fsOuvrir">Modifier la fiche patient</button></div></section>';
+}
+function ouvrirFicheSpe() {
+  const spe = SPEC, FI = ficheEffective(null, (SPES[spe] || {}).fiche), FE = editeurFiche(FI, "spe");
+  fenetre("<h2>Fiche patient · " + esc(spe) + '</h2><p class="sous">Ordre (↑ ↓), présence (cases), nom affiché (✎), champs ajoutés (texte, nombre, date, liste de choix, oui / non). Un champ retiré est caché, sa valeur reste dans les dossiers. Nom, prénom et hôpital sont toujours présents.</p><div id="fsCorps">' + FE.html() + '</div><div class="pied"><button id="fsOk">Enregistrer pour tous les cabinets</button><button class="clair" id="fsAnn">Fermer</button></div>');
+  const refaire = () => { $("fsCorps").innerHTML = FE.html(); FE.brancher(refaire); };
+  FE.brancher(refaire); $("fsAnn").onclick = fermer;
+  $("fsOk").onclick = async () => {
+    if (FE.enCours() && !confirm("Un champ est en cours de modification et ne sera pas enregistré. Continuer ?")) return;
+    const b = $("fsOk"); b.disabled = true; b.textContent = "Enregistrement…";
+    const fiche = { ordre: FI.ordre, champs: FI.champs, libs: FI.libs, ajouts: FI.ajouts.map((a) => { const c = Object.assign({}, a); delete c.cabinet; return c; }) };
+    try { const o = await serveur("ficheSpecialite", { specialite: spe, fiche }); SPES[spe] = { fiche: o.fiche, le: new Date().toISOString() }; fermer(); RES = "Fiche patient de « " + esc(spe) + " » enregistrée : " + o.cabinets + " cabinet(s) mis à jour (à la prochaine ouverture d'Onco360)."; dessiner(); }
+    catch (e) { b.disabled = false; b.textContent = "Enregistrer pour tous les cabinets"; alert("Enregistrement impossible : " + e.message); }
+  };
 }
 async function enregistrerPacks(L, message) {
   const o = await serveur("formulesEnregistrer", { formules: L }); FS = o.formules; Object.values(FS).forEach((f) => { f.specialite = specialiteDe(f.specialite); });
@@ -398,13 +445,15 @@ function ouvrirPack(k, modele) {
     enregistrer: async (A2, R2, nom) => {
       const L = JSON.parse(JSON.stringify(FORMULES_())); let cle = k;
       if (!L[cle]) { let base = sansAcc(nom).replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 26); if (base.length < 2) base = "pack"; cle = base; let n = 2; while (L[cle]) cle = base + "-" + n++; }
-      L[cle] = { lib: nom.slice(0, 40), specialite: SPEC, modules: MODULES.map(([m]) => m).filter((m) => A2.modules[m]), max: A2.max, reglage: R2 };
+      const rg = Object.assign({}, R2); delete rg.fiche; // la fiche patient est celle de la spécialité (Bibliothèque et paramètres)
+      L[cle] = { lib: nom.slice(0, 40), specialite: SPEC, modules: MODULES.map(([m]) => m).filter((m) => A2.modules[m]), max: A2.max, reglage: rg };
       fermer(); await enregistrerPacks(L, "Pack « " + esc(nom) + " » enregistré");
     } });
 }
 function brancherSpecialites() {
   document.querySelectorAll("[data-spec]").forEach((b) => { b.onclick = () => { SPEC = b.dataset.spec; dessiner(); }; });
   document.querySelectorAll("[data-sous]").forEach((b) => { b.onclick = () => { SOUS = b.dataset.sous; dessiner(); }; });
+  if ($("fsOuvrir")) $("fsOuvrir").onclick = ouvrirFicheSpe;
   document.querySelectorAll("[data-pm]").forEach((b) => { b.onclick = () => ouvrirPack(b.dataset.pm); });
   document.querySelectorAll("[data-pd]").forEach((b) => { b.onclick = () => { const F = JSON.parse(JSON.stringify(FORMULES_()[b.dataset.pd])); F.lib = (F.lib + " (copie)").slice(0, 40); ouvrirPack("", F); }; });
   document.querySelectorAll("[data-ps]").forEach((b) => { b.onclick = async () => { const L = JSON.parse(JSON.stringify(FORMULES_())), f = L[b.dataset.ps]; if (!confirm("Supprimer le pack « " + f.lib + " » ? (aucun cabinet ne l'utilise)")) return; delete L[b.dataset.ps]; try { await enregistrerPacks(L, "Pack « " + esc(f.lib) + " » supprimé"); } catch (e) { alert("Impossible : " + e.message); } }; });

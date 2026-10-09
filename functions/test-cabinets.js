@@ -126,3 +126,16 @@ const echoue = (f) => { try { f(); return false; } catch (e) { return true; } };
   ok(JSON.stringify(r.fiche.ordre) === '["xgs01","nom"]' && r.fiche.champs.ald === false && !("x" in r.fiche.champs), "fiche : ordre et présence nettoyés");
   ok(a.length === 2 && a[0].lib === "Groupe sanguin" && a[0].type === "choix" && JSON.stringify(a[0].choix) === '["A+","O+"]' && a[0].partie === "clinique" && a[0].imprimer === true && a[0].entete === false && a[1].type === "texte", "champs ajoutés : libellé, type, choix, partie ; type inconnu → texte ; identifiant ou libellé invalide refusé");
 })();
+// Fiche de la spécialité (10/10/2026)
+(() => {
+  const C = require("./cabinets"), ok = (c, m) => { console.log((c ? "✅ " : "❌ ") + m); if (!c) process.exitCode = 1; };
+  const f = C.ficheNettoyee({ libs: { atcdFam: "  Antécédents   familiaux et héréditaires ", x: "" }, champs: { ald: false }, ajouts: [{ id: "xst001", lib: "Statut", type: "choix", choix: ["Nouveau cas", "Ancien cas"] }] });
+  ok(f.libs.atcdFam === "Antécédents familiaux et héréditaires" && !("x" in f.libs) && f.champs.ald === false && f.ajouts[0].choix.length === 2, "fiche de la spécialité : noms affichés, présence, champs ajoutés");
+  ok(C.idSpecialite("Oncologie – Radiothérapie") === "oncologie-radiotherapie" && C.idSpecialite("Médecine générale") === "medecine-generale", "identifiant de spécialité");
+  ok(C.reglageNettoye({ fiche: { libs: { nom: "Nom de famille" } } }).fiche.libs.nom === "Nom de famille", "retouches du cabinet : nom affiché d'un champ");
+})();
+(() => {
+  const C = require("./cabinets"), ok = (c, m) => { console.log((c ? "✅ " : "❌ ") + m); if (!c) process.exitCode = 1; };
+  const FS = C.formulesValides({ p1: { lib: "P", specialite: "Oncologie – Radiothérapie", modules: ["chimio"], max: {}, reglage: { menu: ["patients"], fiche: { champs: { ald: false } } } } });
+  ok(FS.p1.reglage && !FS.p1.reglage.fiche, "un pack n'a pas de fiche patient (celle de la spécialité)");
+})();

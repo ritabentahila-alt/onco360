@@ -1119,9 +1119,18 @@ Modules et menus, Bibliothèques et paramètres ; cabinets en liste ; onglet lis
       sa valeur gardée ; valeurs ajoutées dans `identite.extra` / `clinique.extra` ; impression : sous l'identité de la fiche
       chimio, et insérables dans les courriers (`{c_identifiant}`). Sans réglage, la fiche d'oncologie est inchangée.
       Tests `tests/test_fiche.py` 11/11, serveur 56/56.
+- [x] **16.6 bis Fiche patient de la spécialité** (10/10, demandé par Dr Bentahila : « pareil dans tous les packs ») : la fiche se
+      règle **une fois par spécialité**, dans **Par spécialité › Bibliothèque et paramètres › Fiche patient** (ordre, présence,
+      **nom affiché des champs existants** ✎, champs ajoutés) ; enregistrée dans `plateforme/specialites` et recopiée aussitôt
+      dans tous les cabinets de la spécialité (`espaces/{e}.ficheSpe`, fonction `ficheSpecialite`, cabinets neufs compris).
+      Plus de fiche dans les packs. Le réglage d'un cabinet garde des **retouches** (champs en plus pour lui seul, présence,
+      ordre, nom) : seules les différences sont gardées, le cabinet suit le reste de la fiche de la spécialité.
+      Tests `tests/test_fiche.py` 19/19, serveur 60/60.
 - [ ] **16.7 Formulaire de consultation réglable par spécialité** (demandé le 10/10, sur le même principe) : sections et champs
       de la fenêtre « + Nouvelle consultation » (mesures, constantes, évaluation…) choisis par spécialité, pack et cabinet ;
       l'oncologie garde la sienne telle quelle. Le détail se décidera avec chaque spécialité (étape 14).
+      **Même système que la fiche (décidé le 10/10)** : réglée une fois par spécialité dans Bibliothèque et paramètres (commune
+      à tous les packs), champs existants modifiables, retouches possibles par cabinet.
 - [ ] 16.5 Nouvelle spécialité (copie ou vide) ; Médecine générale, Gynécologie prêtes pour l'étape 14.
 
 ## Étape 14 – Autres spécialités (demandé le 09/10/2026) : nouveaux modules et leurs formules
@@ -1379,3 +1388,4 @@ Onco360_Package_Cession/
 | 10/10/2026 | 16.2 Par spécialité | Onglet Par spécialité (packs avec réglage complet, modules et menus, bibliothèque et paramètres) ; un cabinet reçoit le réglage de son pack puis peut être retouché ; modifier un pack met à jour les cabinets non retouchés. Tests 53/53, 21/21, 14/14, serveur 54/54, bilan 352 317 DH. Mis en ligne. |
 | 10/10/2026 | 16 – Administration allégée | Décidé avec Dr Bentahila : sous-onglet « Modules et menus » retiré (déjà dans l'écran d'un pack) et onglet « Bibliothèques » retiré (doublon de Par spécialité › Bibliothèque et paramètres) ; Administration = Cabinets, Nouveau cabinet, Par spécialité. Modules prévus pour la médecine générale : feuille de route (étape 14). Prochaine demande : fiche patient réglable par spécialité et par cabinet (champs, ordre, champs ajoutés). Mis en ligne. |
 | 10/10/2026 | 16.6 Fiche patient réglable | Ordre et présence des champs de la fiche, champs ajoutés (5 types, imprimables, en-tête), par pack et par cabinet ; appliqué partout (création, modification, affichage, en-tête, fiche chimio, courriers) ; oncologie inchangée sans réglage. Principe retenu pour la consultation (16.7). Tests 11/11, 51/51, 56/56, bilan 352 317 DH. Mis en ligne. |
+| 10/10/2026 | 16.6 bis Fiche de la spécialité | Fiche patient réglée une fois par spécialité (Bibliothèque et paramètres), la même pour tous les packs, envoyée à tous les cabinets de la spécialité ; champs existants renommables ; retouches par cabinet (différences seulement) ; plus de fiche dans les packs. Tests 19/19, serveur 60/60. |

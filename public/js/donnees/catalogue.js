@@ -49,11 +49,29 @@ export const FICHE = [
   ["atcdFam", "Antécédents familiaux", "clinique"], ["modeVie", "Mode de vie", "clinique"], ["traitCours", "Traitement en cours", "clinique"],
 ];
 export const TYPES_CHAMP = [["texte", "Texte"], ["nombre", "Nombre"], ["date", "Date"], ["choix", "Liste de choix"], ["ouinon", "Oui / Non"]];
-export function ficheEffective(f) {
-  const x = f || {}, ajouts = (Array.isArray(x.ajouts) ? x.ajouts : []).filter((a) => a && /^x[a-z0-9]{3,20}$/.test(a.id || "") && a.lib);
-  const ref = FICHE.map((c) => c[0]).concat(ajouts.map((a) => a.id)), champs = {};
-  ref.forEach((k) => { champs[k] = !(x.champs && x.champs[k] === false); }); FICHE.forEach(([k, , , base]) => { if (base) champs[k] = true; });
-  return { ordre: ordre(x.ordre, ref), champs, ajouts };
+// Fiche effective d'un cabinet = fiche de la spécialité (spe, espaces/{e}.ficheSpe : la même pour tous les packs) + retouches du cabinet
+// (f = reglage.fiche : ordre, présence, noms affichés, champs ajoutés propres au cabinet, marqués cabinet: true).
+// libs = nom affiché d'un champ existant (absent = nom d'origine du catalogue).
+export function ficheEffective(f, spe) {
+  const x = f || {}, s = spe || {}, ok = (a) => a && /^x[a-z0-9]{3,20}$/.test(a.id || "") && a.lib;
+  const aS = (Array.isArray(s.ajouts) ? s.ajouts : []).filter(ok).map((a) => Object.assign({}, a, { cabinet: false })), ids = aS.map((a) => a.id);
+  const aC = (Array.isArray(x.ajouts) ? x.ajouts : []).filter((a) => ok(a) && ids.indexOf(a.id) < 0).map((a) => Object.assign({}, a, { cabinet: true }));
+  const ajouts = aS.concat(aC), ref = FICHE.map((c) => c[0]).concat(ajouts.map((a) => a.id)), champs = {}, libs = {};
+  ref.forEach((k) => { const v = x.champs && typeof x.champs[k] === "boolean" ? x.champs[k] : s.champs && s.champs[k]; champs[k] = v !== false; });
+  FICHE.forEach(([k, , , base]) => { if (base) champs[k] = true; const l = (x.libs && x.libs[k]) || (s.libs && s.libs[k]); if (l) libs[k] = l; });
+  return { ordre: ordre(Array.isArray(x.ordre) && x.ordre.length ? x.ordre : s.ordre, ref), champs, libs, ajouts };
+}
+export const libChamp = (k, fiche) => (fiche && fiche.libs && fiche.libs[k]) || ((FICHE.find((c) => c[0] === k) || [])[1]) || k;
+// Retouches d'un cabinet = différences entre sa fiche (R, effective) et celle de la spécialité (base = ficheEffective(null, spe))
+export function ficheRetouches(R, base) {
+  const out = {}, ch = {}, lb = {};
+  const attendu = base.ordre.concat(R.ajouts.filter((a) => a.cabinet).map((a) => a.id)); // champs propres au cabinet : à la fin
+  if (JSON.stringify(R.ordre) !== JSON.stringify(attendu)) out.ordre = R.ordre.slice();
+  Object.keys(R.champs).forEach((k) => { if (R.champs[k] !== (base.champs[k] !== false)) ch[k] = R.champs[k]; });
+  FICHE.forEach(([k]) => { if (libChamp(k, R) !== libChamp(k, base)) lb[k] = libChamp(k, R); });
+  if (Object.keys(ch).length) out.champs = ch; if (Object.keys(lb).length) out.libs = lb;
+  const aj = R.ajouts.filter((a) => a.cabinet).map((a) => { const c = Object.assign({}, a); delete c.cabinet; return c; }); if (aj.length) out.ajouts = aj;
+  return out;
 }
 // Cartes du tableau de bord (ordre de départ)
 export const CARTES = [["ppas", "Pour commencer (cabinet neuf)"], ["jour", "Aujourd'hui"], ["sept", "Les 7 prochains jours"], ["taches", "Mes tâches"], ["conflits", "Conflits : rendez-vous à décaler"], ["stats", "Statistiques"]];
@@ -74,10 +92,10 @@ export const BIBLIOTHEQUES = [["protocoles", "Protocoles de chimiothérapie"], [
 const vrais = (l) => l.reduce((o, [k]) => ((o[k] = true), o), {});
 export const toutesFonctions = () => { const o = {}; Object.entries(FONCTIONS).forEach(([m, l]) => l.forEach(([k]) => { o[m + "." + k] = true; })); return o; };
 export const fonctionsDeBase = () => { const o = {}; Object.entries(FONCTIONS).forEach(([m, l]) => l.forEach(([k, , base]) => { if (base) o[m + "." + k] = true; })); return o; };
-export function reglageEffectif(r) {
+export function reglageEffectif(r, spe) {
   const x = r || {}, b = (o, d) => Object.assign(d, Object.fromEntries(Object.entries(o || {}).filter(([k, v]) => k in d && typeof v === "boolean")));
   return { menu: ordre(x.menu, MENU.map((m) => m[0])), accueil: ordre(x.accueil, CARTES.map((c) => c[0])), cartes: b(x.cartes, vrais(CARTES)),
-    ordreSections: ordre(x.ordreSections, SECTIONS.map((c) => c[0])), sections: b(x.sections, vrais(SECTIONS)), bibliotheques: b(x.bibliotheques, vrais(BIBLIOTHEQUES)), fonctions: Object.assign(b(x.fonctions, toutesFonctions()), fonctionsDeBase()), fiche: ficheEffective(x.fiche) };
+    ordreSections: ordre(x.ordreSections, SECTIONS.map((c) => c[0])), sections: b(x.sections, vrais(SECTIONS)), bibliotheques: b(x.bibliotheques, vrais(BIBLIOTHEQUES)), fonctions: Object.assign(b(x.fonctions, toutesFonctions()), fonctionsDeBase()), fiche: ficheEffective(x.fiche, spe) };
 }
 // Éléments de l'écran liés à une bibliothèque (bouton du dossier, carte de Paramètres › Bibliothèques) : data-bib
 export const BIB_BOUTON = { medicaments: "medic", ordostypes: "ordo", analyses: "analyse", examens: "exam", courriers: "courrier", documentation: "doc" };

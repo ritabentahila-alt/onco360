@@ -149,8 +149,11 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
   `reglageEffectif`, `styleRetraits`) ; dans Onco360 `D.reg` (menu réordonné, cartes de `pageAccueil` via `carte(k, …)`, onglets de
   `ONGLETS()`, éléments `[data-fn~="module.fonction"]` / `[data-bib~="…"]` cachés, `A.fn(k)` / `fnOn(k)` dans le code) ; FONCTIONS : 3e élément
   true = fonction de base (toujours présente) ; serveur : `contexteAuto` (taches.auto, rt.taches), `fonctionPresente` (taches.gagenda).
-  Fiche patient réglable (10/10/2026) : `reglage.fiche` { ordre, champs, ajouts [{ id x…, lib, type, choix, partie, imprimer, entete }] },
-  catalogue `FICHE` / `ficheEffective` (catalogue.js) ; `js/app/fichepatient.js` (`appliquerFiche` sur les `[data-champ]` des formulaires,
+  Fiche patient réglable (10/10/2026) : **fiche de la spécialité** (la même pour tous les packs) `plateforme/specialites` { idSpécialité: { nom, fiche } },
+  réglée dans Administration › Par spécialité › Bibliothèque et paramètres, recopiée dans `espaces/{e}.ficheSpe` de chaque cabinet de la spécialité
+  (fonction `ficheSpecialite`, aussi à la création) ; fiche = { ordre, champs, libs (nom affiché d'un champ existant), ajouts [{ id x…, lib, type,
+  choix, partie, imprimer, entete }] } ; retouches du cabinet `reglage.fiche` (différences seulement, `ficheRetouches`) ; pas de fiche dans un pack ;
+  catalogue `FICHE` / `ficheEffective(retouches, ficheSpe)` / `libChamp` (catalogue.js) ; `js/app/fichepatient.js` (`appliquerFiche` sur les `[data-champ]` des formulaires,
   `htmlSaisie` / `lireSaisie` / `fusionnerExtra`, `htmlLecture`, `aImprimer`) ; valeurs `identite.extra` / `clinique.extra`. Comptes de l'équipe : `creerMembre` / `lienMembre` (serveur ;
   la création de comptes depuis le navigateur est fermée dans Firebase). Cabinet de
   démonstration : `cab-demonstration` (`demo: true`), `creerCabinetDemo` / `demoReinitialiser`, patients fictifs `functions/demo.js`.
