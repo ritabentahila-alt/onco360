@@ -252,7 +252,7 @@ function vueJour(x, i, k, j) {
     // Molécules : ajout ou retrait à partir de cette séance (J1, J8…), puis pour toutes les cures suivantes
     const ms = L.mods || [], qd = qc + "," + gr.j, ici = (m) => m.k === k && (m.j || 1) === gr.j;
     h += '<div class="bloc gris"><div class="entete"><span class="mesures" style="flex:1"><b>Molécules</b> – un ajout ou un retrait s\'applique à partir de ' + (gr.j > 1 ? "C" + e.n + " J" + gr.j : "cette cure") + " et à toutes les cures suivantes.</span>" +
-      (okT ? '<span class="actr">' + b("+ Ajouter une molécule", "chAjMol(" + qd + ")", "fonce") + b("− Retirer une molécule", "chRetMol(" + qd + ")") + "</span>" : "") + "</div>" +
+      (okT ? '<span class="actr" data-fn="chimio.molecules">' + b("+ Ajouter une molécule", "chAjMol(" + qd + ")", "fonce") + b("− Retirer une molécule", "chRetMol(" + qd + ")") + "</span>" : "") + "</div>" +
       (ms.some((m) => m.k <= k) ? '<div style="margin-top:6px">' + ms.map((m, jj) => m.k > k ? "" : '<span class="badge b-gr" style="margin:2px">' + (m.op === "add" ? '<svg class="pi"><use href="#i-plus"/></svg>' : '<svg class="pi"><use href="#i-moins"/></svg>') + esc(m.op === "add" ? m.d.p : m.nom) + " · depuis C" + (m.k + 1) + (m.j > 1 ? " J" + m.j : "") + (ici(m) && okT ? ' <a href="#" class="lienr" onclick="chAnnMod(' + qc + "," + jj + ');return false">annuler</a>' : "") + "</span>").join("") + "</div>" : "") + "</div>";
   }
   // Jours de la séance : chaque jour de traitement va à la séance qui a commencé avant lui
@@ -267,7 +267,7 @@ function vueJour(x, i, k, j) {
     else if (e.st === "annulee") h += '<span class="badge b-al">✖ Cure annulée</span>';
     else if (okT) h += '<div class="form" style="grid-template-columns:minmax(0,220px) 1fr;align-items:end"><div><label for="vD">Date de réalisation</label>' + dateInput("vD", D().t) + "</div>" +
       (e.date ? '<div class="mesures" id="vSz">' + choixSuite("vS", "Si la date diffère de la date prévue (" + A.dfrA(e.date) + ")") + "</div>" : "<div></div>") + "</div>" +
-      '<div class="err" id="fErr"></div><div class="boutons" style="margin-top:8px"><button class="bt gris" style="color:#B46A00" onclick="chReporter(' + qc + ')">↪ Reporter' + (multi ? " J1 (la cure)" : " la cure") + '</button><button class="bt vert" id="fOk" onclick="chValiderJ1(' + qc + ')"><svg class="pi"><use href="#i-check"/></svg>' + (multi ? "Valider J1" : "Valider la cure") + "</button></div>";
+      '<div class="err" id="fErr"></div><div class="boutons" style="margin-top:8px"><button class="bt gris" data-fn="chimio.report" style="color:#B46A00" onclick="chReporter(' + qc + ')">↪ Reporter' + (multi ? " J1 (la cure)" : " la cure") + '</button><button class="bt vert" id="fOk" onclick="chValiderJ1(' + qc + ')"><svg class="pi"><use href="#i-check"/></svg>' + (multi ? "Valider J1" : "Valider la cure") + "</button></div>";
   } else if (sea) {
     const rp = ((c.sea || {})[j] || {}).rep || [];
     if (rp.length) h += '<p class="mesures" style="margin:0 0 8px">' + rp.map((r) => "↪ Reportée du " + A.dfrA(r.de) + " au " + A.dfrA(r.a) + " (" + esc(r.raison) + (r.com ? " – " + esc(r.com) : "") + ")").join("<br>") + "</p>";
@@ -776,7 +776,7 @@ export function nouveauPatient() {
     ch("pTel", "Téléphone", { type: "tel", ph: "06…" }) + ch("pTel2", "2e téléphone", { type: "tel", ph: "Autre numéro (proche…)" }) +
     '<div><label for="pEtab">Hôpital</label><select id="pEtab">' + permis.map((e) => '<option value="' + A.esc(e.code) + '">' + A.esc(e.code + " – " + e.nom) + "</option>").join("") + "</select></div>" +
     '<div><label for="pAld">ALD</label><select id="pAld"><option></option><option>Oui</option><option>Non</option></select></div>' +
-    ch("pCor", "Correspondant", { liste: "lCor", large: true, ph: "Taper pour chercher, ou saisir un nouveau…" }) + ch("pMut", "Mutuelle", { liste: "lMut", large: true, ph: "Taper pour chercher, ou saisir une nouvelle…" }) + ch("pAdr", "Adresse", { large: true }) + ch("pMail", "E-mail", { type: "email", large: true }) + (okC ? A.champsMed({}) : "") +
+    ch("pCor", "Correspondant", { liste: "lCor", large: true, ph: "Taper pour chercher, ou saisir un nouveau…" }).replace("<div", '<div data-fn="listes.cor"') + ch("pMut", "Mutuelle", { liste: "lMut", large: true, ph: "Taper pour chercher, ou saisir une nouvelle…" }) + ch("pAdr", "Adresse", { large: true }) + ch("pMail", "E-mail", { type: "email", large: true }) + (okC ? A.champsMed({}) : "") +
     '<p class="large mesures" style="margin:0">Nom et prénom obligatoires. Date de naissance, sexe, taille et poids : demandés avant la première ligne de chimiothérapie.</p></div>' +
     '<datalist id="lMut">' + listeMut().map((m) => '<option value="' + A.esc(m) + '">').join("") + '</datalist><datalist id="lCor">' + listeCor().map((m) => '<option value="' + A.esc(m) + '">').join("") + "</datalist>" + boutons("Créer le dossier"));
   if (okC) activerDiag("pDiag", "pDiagP");

@@ -305,10 +305,13 @@ const COLS = [
   ["ord", "N° d'ordre", "42px"], ["h", "Heure", "44px", 1], ["civ", "Civilité", "38px"], ["nm", "Patient", "minmax(100px,1.2fr)", 1], ["type", "Type", "minmax(80px,.9fr)"],
   ["mo", "Motif", "minmax(78px,1fr)"], ["cor", "Correspondant", "minmax(68px,.8fr)"], ["mut", "Mutuelle", "minmax(58px,.7fr)"], ["ar", "Arrivée", "48px"],
   ["st", "Statut", "minmax(96px,1fr)", 1], ["px", "Prix", "70px"], ["com", "Commentaire", "minmax(68px,1fr)"], ["act", "", "minmax(152px,236px)", 1]];
-const cachees = () => (D().profil && D().profil.salleCachees) || [];
+// Réglage du cabinet (10/10/2026) : n° de passage, prix, commentaire retirés = colonnes absentes pour tous
+const fnS = (k) => !D().reg || D().reg.fonctions["salle." + k] !== false;
+const COL_FN = { ord: "passage", px: "prix", com: "commentaire" };
+const cachees = () => ((D().profil && D().profil.salleCachees) || []).concat(Object.keys(COL_FN).filter((c) => !fnS(COL_FN[c])));
 const colsVues = () => COLS.filter((c) => c[3] || (cachees().indexOf(c[0]) < 0 && (c[0] !== "px" || voitPrix())));
 window.saColonnes = () => {
-  const l = COLS.filter((c) => !c[3] && (c[0] !== "px" || voitPrix()));
+  const l = COLS.filter((c) => !c[3] && (c[0] !== "px" || voitPrix()) && (!COL_FN[c[0]] || fnS(COL_FN[c[0]])));
   A.fenetre('<h3>Colonnes de la salle d\'attente</h3><p class="sous">Cochez les colonnes à afficher (réglage personnel, gardé sur tous vos appareils). Heure, patient, statut et boutons restent toujours affichés.</p><div class="form">' +
     l.map((c) => '<div><label style="font-weight:normal"><input type="checkbox" data-c="' + c[0] + '"' + (cachees().indexOf(c[0]) < 0 ? " checked" : "") + ' style="width:auto;margin-right:8px">' + c[1] + "</label></div>").join("") + "</div>" +
     '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt plein" id="fOk">Enregistrer</button></div>');
@@ -342,7 +345,7 @@ export function pageSalle(j) {
   if (ETAB && etabs.indexOf(ETAB) < 0) ETAB = "";
   $("page").innerHTML = '<section class="accueil"><div><h2>Salle d\'attente</h2><p id="saTitre"></p></div>' +
     '<div class="actions sa-etab">' + (etabs.length > 1 ? '<select id="saEtab" aria-label="Établissement"><option value="">Tous les établissements</option>' + etabs.map((c) => '<option value="' + A.esc(c) + '"' + (c === ETAB ? " selected" : "") + ">" + A.esc(c) + "</option>").join("") + "</select>" : "") +
-    '<button class="bt gris" onclick="saColonnes()" title="Choisir les colonnes affichées"><svg class="i"><use href="#i-liste"/></svg>Colonnes</button></div></section>' +
+    '<button class="bt gris" data-fn="salle.colonnes" onclick="saColonnes()" title="Choisir les colonnes affichées"><svg class="i"><use href="#i-liste"/></svg>Colonnes</button></div></section>' +
     '<div class="sa-jours"><button class="sa-fl" onclick="saJour(-1)" aria-label="Jour précédent" title="Jour précédent">‹</button><div class="sa-sem" id="saSem"></div><button class="sa-fl" onclick="saJour(1)" aria-label="Jour suivant" title="Jour suivant">›</button>' +
     '<label class="sa-cal" title="Choisir un jour dans le calendrier"><svg class="i"><use href="#i-agenda"/></svg><span>Calendrier</span><input type="date" id="saD" aria-label="Choisir un jour"></label>' +
     '<button class="bt clair petit" id="saAuj" onclick="saAller(\'' + D().t + '\')">Aujourd\'hui</button></div>' +
@@ -405,7 +408,7 @@ function dessiner() {
 // Pastille de statut (au trait) avec le temps écoulé
 function statut(l) {
   const d = l.doc, now = Date.now(), auj = l.jour === D().t;
-  if (l.etat === "salle") { if (!auj) return '<span class="pst salle"><i></i>Arrivé' + (d.arr ? " à " + hm(d.arr) : "") + "</span>"; const m = minutes(d.arr || now), c = m >= seuils()[1] ? "rouge" : m >= seuils()[0] ? "orange" : "salle"; return '<span class="pst ' + c + '" title="En attente depuis ' + duree(m) + '"><i></i>Attente ' + duree(m) + "</span>"; }
+  if (l.etat === "salle") { if (!auj || !fnS("attente")) return '<span class="pst salle"><i></i>Arrivé' + (d.arr ? " à " + hm(d.arr) : "") + "</span>"; const m = minutes(d.arr || now), c = m >= seuils()[1] ? "rouge" : m >= seuils()[0] ? "orange" : "salle"; return '<span class="pst ' + c + '" title="En attente depuis ' + duree(m) + '"><i></i>Attente ' + duree(m) + "</span>"; }
   if (l.etat === "consult") return '<span class="pst consult"><i></i>' + (auj ? "Consultation " + duree(minutes(d.deb || now)) : "En consultation") + "</span>";
   if (l.etat === "vu") return '<span class="pst vu"><i></i>Vu' + (d.fin ? " à " + hm(d.fin) : "") + "</span>" + (d.arr && d.deb ? '<div class="mesures">Attente ' + duree(Math.max(0, Math.round((d.deb - d.arr) / 60000))) + (d.fin ? " · consultation " + duree(Math.max(0, Math.round((d.fin - d.deb) / 60000))) + " · présence " + duree(Math.max(0, Math.round((d.fin - d.arr) / 60000))) : "") + "</div>" : "");
   if (l.etat === "absent") return '<span class="pst absent"><i></i>Absent</span>' + (d.rep ? '<div class="mesures">Reportée au ' + A.dfrA(d.rep) + "</div>" : "");
@@ -449,7 +452,7 @@ function ligneHtml(l, cv) {
 
 // ───── Dossier ouvert pendant la consultation : bulles Valider / Retour en salle (en bas à gauche) ─────
 export function bullesDossier(x) {
-  if (!peutRdv()) return "";
+  if (!peutRdv() || !fnS("bulles")) return "";
   const l = lignes([D().t]).filter((z) => z.pid === x.id && z.etat === "consult");
   if (!l.length) return "";
   return '<div class="sa-bulles" id="saBulles" data-pid="' + A.esc(x.id) + '">' + l.map((z) => {

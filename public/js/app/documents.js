@@ -123,7 +123,7 @@ export function docsDe(x, quandLu) {
 // Bouton d'un document dans la carte radiothérapie : coché s'il a déjà été enregistré
 export function boutonDoc(x, r, type, lib) {
   const e = (DOCS[x.id] || {})[idDoc(x.id, r.id, type)];
-  return '<button class="mini' + (e ? " doc-ok" : "") + '" onclick="docRT(\'' + x.id + "','" + r.id + "','" + type + '\')"' + (e ? ' title="Enregistré' + (e.majLe ? " le " + dfrA(e.majLe) : "") + (e.majParNom ? " par " + esc(e.majParNom) : "") + ' : un clic le rouvre"' : "") + ">" + (e ? '<svg class="pi"><use href="#i-check"/></svg>' : "") + lib + "</button>";
+  return '<button data-fn="documents.rt rt.documents" class="mini' + (e ? " doc-ok" : "") + '" onclick="docRT(\'' + x.id + "','" + r.id + "','" + type + '\')"' + (e ? ' title="Enregistré' + (e.majLe ? " le " + dfrA(e.majLe) : "") + (e.majParNom ? " par " + esc(e.majParNom) : "") + ' : un clic le rouvre"' : "") + ">" + (e ? '<svg class="pi"><use href="#i-check"/></svg>' : "") + lib + "</button>";
 }
 
 // ───── Fenêtre du document ─────

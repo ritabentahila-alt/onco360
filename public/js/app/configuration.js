@@ -155,7 +155,7 @@ export function pageConfiguration(arg) {
     h += '<div id="cfProfil"><p class="sous">Chargement…</p></div>';
   } else if (ONG === "couleurs") {
     if (!A.D().bib) h += '<div id="cfProfil"><p class="sous">Chargement de votre Google Agenda…</p></div>' + sectionMonAgenda(); // liaison personnelle : pas dans la bibliothèque
-    h += '<section class="carte"><h3><span class="ic">' + A.ic("agenda") + '</span>Couleurs dans Google Agenda</h3><p class="sous">Couleur de chaque type d\'événement dans l\'agenda « Onco360 » de chaque membre qui a relié son Google Agenda (Profil › Google Agenda). Après l\'enregistrement, les agendas sont repeints en quelques minutes.</p>' +
+    h += '<section class="carte" data-fn="gagenda.couleurs"><h3><span class="ic">' + A.ic("agenda") + '</span>Couleurs dans Google Agenda</h3><p class="sous">Couleur de chaque type d\'événement dans l\'agenda « Onco360 » de chaque membre qui a relié son Google Agenda (Profil › Google Agenda). Après l\'enregistrement, les agendas sont repeints en quelques minutes.</p>' +
       CAT_COUL.map(([k, lib]) => {
         const v = ED.coul[k] != null ? ED.coul[k] : "", nom = (COUL_G.find((c) => c[0] === v) || COUL_G[0])[1];
         return '<div class="cf-coul"><div class="lib"><b>' + esc(lib) + '</b><span class="mesures">' + esc(nom) + (v !== COULEURS0[k] ? " · modifiée" : "") + '</span></div><div class="nuancier" role="radiogroup" aria-label="' + esc(lib) + '">' +
@@ -165,7 +165,7 @@ export function pageConfiguration(arg) {
     // Listes proposées dans les fiches patients (P2 bis, 08/10/2026) : corriger, retirer, ajouter ; nombre de dossiers concernés
     const lib = { diag: "Diagnostics", mut: "Mutuelles", cor: "Correspondants" };
     h += '<section class="carte"><h3><span class="ic">' + A.ic("liste") + '</span>Listes</h3><p class="sous">Propositions des champs Diagnostic, Mutuelle et Correspondant des fiches patients. Corriger ou retirer un nom ici ne modifie pas les dossiers qui l\'utilisent déjà (leur nombre est indiqué).</p>' +
-      '<div class="puces">' + Object.keys(lib).map((k) => '<button class="puce' + (LS === k ? " on" : "") + '" onclick="cfLs(\'' + k + "')\">" + lib[k] + " (" + ED.listes[k].length + ")</button>").join("") + "</div>" +
+      '<div class="puces">' + Object.keys(lib).map((k) => '<button' + (k === "cor" ? ' data-fn="listes.cor"' : "") + ' class="puce' + (LS === k ? " on" : "") + '" onclick="cfLs(\'' + k + "')\">" + lib[k] + " (" + ED.listes[k].length + ")</button>").join("") + "</div>" +
       '<div class="recherche" style="max-width:420px;margin-bottom:8px">' + A.ic("loupe") + '<input id="cfLq" type="search" autocomplete="off" placeholder="Rechercher dans la liste…" value="' + esc(LQ) + '"></div>' +
       '<div class="cf-td cf-l" id="cfLl"></div>' + (ok ? '<button class="bt clair petit" style="margin-top:10px" onclick="cfLAj()">' + A.ic("plus") + "Ajouter</button>" : "") + "</section>";
   } else if (ONG === "bibliotheques") {
@@ -276,7 +276,7 @@ function categoriesAgenda() {
 }
 function sectionMonAgenda() {
   const esc = A.esc, ex = ((D().profil && D().profil.agendaFiltre) || {}).exclus || [], ag = D().profil && D().profil.agendaGoogle;
-  return '<section class="carte"><h3><span class="ic">' + A.ic("agenda") + '</span>Votre Google Agenda : ce qui y apparaît</h3><p class="sous">Réglage <b>personnel</b> : chaque membre de l\'équipe choisit pour son propre agenda « Onco360 ». Décochez ce que vous ne voulez pas y voir ; c\'est enregistré tout de suite et votre agenda est mis à jour en quelques minutes. Un nouveau type (consultation, tâche) est coché d\'office.</p>' +
+  return '<section class="carte" data-fn="gagenda.filtre"><h3><span class="ic">' + A.ic("agenda") + '</span>Votre Google Agenda : ce qui y apparaît</h3><p class="sous">Réglage <b>personnel</b> : chaque membre de l\'équipe choisit pour son propre agenda « Onco360 ». Décochez ce que vous ne voulez pas y voir ; c\'est enregistré tout de suite et votre agenda est mis à jour en quelques minutes. Un nouveau type (consultation, tâche) est coché d\'office.</p>' +
     (ag && ag.calendrier ? "" : '<p class="mesures" style="color:var(--orange)">Votre Google Agenda n\'est pas encore relié (case « Mon Google Agenda » ci-dessus) : ce réglage servira dès que vous le relierez.</p>') +
     categoriesAgenda().map(([titre, l]) => '<h4 class="soustitre">' + esc(titre) + '</h4><div class="cf-ag">' + l.map(([k, lib]) => '<label class="chk"><input type="checkbox"' + (ex.indexOf(k) < 0 ? " checked" : "") + ' data-k="' + esc(k) + '" onchange="cfAgenda(this)"> ' + esc(lib) + "</label>").join("") + "</div>").join("") + "</section>";
 }

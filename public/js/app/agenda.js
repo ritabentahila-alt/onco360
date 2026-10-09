@@ -12,7 +12,9 @@ export function installer(api) { A = api; }
 const AG = { vue: "semaine", d: null, mois: null, etab: null }; // etab : "" = tous les établissements
 const PAS = 22; // 22 px par quart d'heure
 let H0 = 7, H1 = 20, DUREE = 30; // grille et durée : d'après les horaires de la Configuration
-const plagesDe = (d) => (horaires(AG.etab).jours[jsem(d)] || []);
+// Réglage du cabinet (10/10/2026) : « horaires grisés » ou « absences et fériés » retirés
+const fnA = (k) => !D().reg || D().reg.fonctions["agenda." + k] !== false;
+const plagesDe = (d) => (fnA("horaires") ? horaires(AG.etab).jours[jsem(d)] || [] : [["00:00", "24:00"]]);
 // Établissements visibles par la personne connectée ; une secrétaire rattachée à un seul établissement voit directement le sien
 const etabsVus = () => { const mb = D().membre, l = (D().etabs || []).map((e) => e.code); return mb.tousEtablissements ? l : l.filter((c) => (mb.etablissements || []).indexOf(c) >= 0); };
 const JC = ["Dim.", "Lun.", "Mar.", "Mer.", "Jeu.", "Ven.", "Sam."], MC = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
@@ -55,8 +57,8 @@ function evenements(du, au) {
 const badge = (e) => (e.d === D().t && (e.cat === "co" || e.cat === "ch") && A.badgeSalle ? A.badgeSalle(e.pid, e.cat === "co" ? "r-" + e.rid : "chimio") : "");
 const EM = { co: "🩺", ho: '<svg class="pi"><use href="#i-hopital"/></svg>', ch: "💉", rt: "☢️" };
 const chip = (e, i) => '<button class="ev-c c-' + e.cat + (e.st === "fait" ? " fait" : e.st === "absent" ? " nv" : "") + '" onclick="agEv(' + i + ')" title="' + A.esc(e.nm + " – " + e.t) + '">' + EM[e.cat] + " <b>" + A.esc(e.nm) + "</b> " + A.esc(e.t) + (AG.vue === "jour" ? badge(e) : "") + "</button>";
-const absence = (d) => (D().cal.abs || []).find((a) => d >= a.du && d <= a.au);
-const ferie = (d) => (D().ctx.feries || []).find((f) => f.d === d);
+const absence = (d) => (fnA("absences") ? (D().cal.abs || []).find((a) => d >= a.du && d <= a.au) : null);
+const ferie = (d) => (fnA("absences") ? (D().ctx.feries || []).find((f) => f.d === d) : null);
 let EVS = [];
 
 // ───── Page ─────
@@ -77,7 +79,7 @@ export function pageAgenda() {
   let h = '<section class="accueil"><div><h2>Agenda</h2><p>Vos prochains rendez-vous, regroupés par jour.</p></div><div class="actions"><button class="bt plein" onclick="nouveauRdv(null,null,\'' + esc(AG.etab || "") + '\')">' + A.ic("plus") + "Nouveau rendez-vous</button></div></section>" +
     '<div class="ag-barre"><div class="ag-vues">' + onglet("liste", "liste", "Liste") + onglet("jour", "agenda", "Jour") + onglet("semaine", "agenda", "Semaine") + onglet("mois", "accueil", "Mois") + "</div>" +
     '<div class="ag-nav"><button class="rond" onclick="agNav(-1)" aria-label="Précédent">' + A.ic("retour") + '</button><button class="bt clair petit" onclick="agAuj()">Aujourd\'hui</button><b>' + esc(lib) + '</b><button class="rond" onclick="agNav(1)" aria-label="Suivant" style="transform:scaleX(-1)">' + A.ic("retour") + "</button></div>" +
-    (EV.length > 1 ? '<select class="ag-etab" aria-label="Établissement" onchange="agEtab(this.value)"><option value="">Tous les établissements</option>' + EV.map((c) => '<option value="' + esc(c) + '"' + (AG.etab === c ? " selected" : "") + ">" + esc(c) + "</option>").join("") + "</select>" : EV.length === 1 ? '<span class="badge b-gr">' + esc(EV[0]) + "</span>" : "") + "</div>" +
+    (EV.length > 1 ? '<select class="ag-etab" data-fn="agenda.filtre" aria-label="Établissement" onchange="agEtab(this.value)"><option value="">Tous les établissements</option>' + EV.map((c) => '<option value="' + esc(c) + '"' + (AG.etab === c ? " selected" : "") + ">" + esc(c) + "</option>").join("") + "</select>" : EV.length === 1 ? '<span class="badge b-gr">' + esc(EV[0]) + "</span>" : "") + "</div>" +
     '<div class="ag-corps"><aside class="ag-cote">' + cote + '</aside><div class="ag-main carte">' + main + "</div></div>" +
     ((D().profil.agendaGoogle || {}).email ? '<p class="mesures">Vos rendez-vous apparaissent aussi dans votre Google Agenda (agenda « Onco360 »), dans un seul sens. <a href="#profil" onclick="pfOnglet(\'gagenda\')">État</a></p>'
       : '<p class="mesures">Voir ces rendez-vous dans votre Google Agenda : <a href="#parametres/couleurs">Paramètres › Google Agenda</a>.</p>');

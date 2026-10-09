@@ -61,7 +61,7 @@ export function htmlFichiers(x) {
   const types = (TYPES || TYPES_DOCUMENTS0).concat(L.map((f) => f.type).filter((t) => t && (TYPES || TYPES_DOCUMENTS0).indexOf(t) < 0));
   const presents = types.filter((t, i) => types.indexOf(t) === i);
   h += '<div class="fi-barre"><div class="recherche">' + A.ic("loupe") + '<input id="fiQ" type="search" autocomplete="off" placeholder="Rechercher un document (titre, type, fichier)…" value="' + esc(F.q) + '" oninput="fiFiltre(' + q + ')" aria-label="Rechercher un document"></div>' +
-    '<select id="fiT" onchange="fiFiltre(' + q + ')" aria-label="Type de document"><option value="">Tous les types</option>' + presents.map((t) => '<option' + (F.t === t ? " selected" : "") + ">" + esc(t) + "</option>").join("") + "</select>" +
+    '<select id="fiT" data-fn="documents.types" onchange="fiFiltre(' + q + ')" aria-label="Type de document"><option value="">Tous les types</option>' + presents.map((t) => '<option' + (F.t === t ? " selected" : "") + ">" + esc(t) + "</option>").join("") + "</select>" +
     (peutDeposer() ? '<button class="bt clair petit" onclick="fiAjouter(' + q + ')">' + A.ic("plus") + "Ajouter un document</button>" : "") + "</div>" +
     '<div id="fiListe">' + listeHtml(x) + "</div>" +
     '<p class="mesures" style="margin:8px 0 0">PDF, Word, photos (JPEG, PNG…) ou autre, 25 Mo au plus par fichier. Le pli confidentiel, le compte rendu de fin et les rendez-vous restent dans la carte de leur radiothérapie ; les ordonnances et les courriers, dans l\'onglet Consultation.</p>';
@@ -92,7 +92,7 @@ const champs = (f, types) => {
   const esc = A.esc, liste = types.concat(f && f.type && types.indexOf(f.type) < 0 ? [f.type] : []);
   return '<div class="form"><div class="large"><label for="fiTitre">Titre</label><input id="fiTitre" value="' + esc(f ? f.titre || "" : "") + '" placeholder="Ex. Compte rendu anatomopathologique de la biopsie"></div>' +
     '<div><label for="fiDate">Date du document</label><input id="fiDate" type="date" value="' + esc(f ? f.d : D().t) + '"></div>' +
-    '<div><label for="fiType">Type de document</label><select id="fiType"><option value=""></option>' + liste.map((t) => "<option" + (f && f.type === t ? " selected" : "") + ">" + esc(t) + "</option>").join("") + "</select></div></div>";
+    '<div data-fn="documents.types"><label for="fiType">Type de document</label><select id="fiType"><option value=""></option>' + liste.map((t) => "<option" + (f && f.type === t ? " selected" : "") + ">" + esc(t) + "</option>").join("") + "</select></div></div>";
 };
 window.fiAjouter = async (pid) => {
   const x = trouver(pid); if (!x || !peutDeposer()) return; NV = { pid, fichier: null };

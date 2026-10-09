@@ -243,7 +243,7 @@ function dessiner() {
     (VUE === "toutes" ? sel("taFqui", "Responsable", F.qui, optsQui) : "") +
     sel("taFst", "Statut", F.st, [["ouv", "À faire et en cours"], ["afaire", "À faire"], ["encours", "En cours"], ["fait", "Terminées"], ["tous", "Tous les statuts"]]) +
     sel("taFech", "Échéance", F.ech, [["", "Toutes les échéances"], ["retard", "En retard"], ["auj", "Aujourd'hui"], ["sem", "Cette semaine"], ["sans", "Sans échéance"]]) +
-    sel("taFtype", "Type", F.type, [["", "Tous les types"]].concat(types.map((x) => [x, x]))) +
+    sel("taFtype", "Type", F.type, [["", "Tous les types"]].concat(types.map((x) => [x, x]))).replace("<select ", '<select data-fn="taches.types" ') +
     sel("taFlieu", "Lieu d'exercice", F.lieu, [["", "Tous les lieux"]].concat(lieux.map((c) => [c, c + (nomLieu[c] ? " – " + nomLieu[c] : "")]), [["-", "Sans patient"]])) + "</div>" +
     '<section class="carte"><div class="ta-entete"><span class="sous" id="taNb"></span><button class="lien' + (filtresActifs() ? "" : " cache") + '" id="taFx" onclick="taEffacer()">Effacer les filtres</button></div><div id="taL"></div></section>';
   $("page").innerHTML = h;
@@ -320,7 +320,7 @@ function taFiche(t) {
   const actuel = membreDe(t.pour), opts = MB ? MB.filter((m) => m.actif !== false) : [];
   const optPour = (actuel && actuel.actif !== false ? "" : '<option value="' + esc(t.pour) + '" selected>' + esc((t.pourNom || "?") + " (n'a plus accès)") + "</option>") +
     opts.map((m) => '<option value="' + esc(m.uid) + '"' + (m.uid === t.pour ? " selected" : "") + ">" + esc(m.uid === moi ? "Moi-même (" + nomMembre(m) + ")" : nomMembre(m)) + "</option>").join("");
-  const pour = (reattr ? '<select id="taRe" aria-label="Pour">' + optPour + '</select><button class="bt plein petit cache" id="taReOk" onclick="taReattribuer(' + q + ')">Réattribuer</button>' : esc(t.pourNom || "?")) +
+  const pour = (reattr && A.fn("taches.reattribuer") ? '<select id="taRe" aria-label="Pour">' + optPour + '</select><button class="bt plein petit cache" id="taReOk" onclick="taReattribuer(' + q + ')">Réattribuer</button>' : esc(t.pourNom || "?")) +
     (sansAcces(t) ? '<div class="mesures" style="width:100%;color:var(--orange)">' + esc(t.pourNom || "Cette personne") + " n'a plus accès à Onco360 : réattribuez la tâche." + "</div>" : "");
   // Fil : dans l'ordre, les événements en petit, les commentaires en bulles
   const fil = (t.fil || []).map((f) => f.c
@@ -397,13 +397,13 @@ async function formulaire(t, pid) {
   let type = t ? t.type || "" : "";
   const optsPour = '<option value="">— Choisir —</option>' + mb.map((m) => '<option value="' + esc(m.uid) + '"' + (t && t.pour === m.uid ? " selected" : "") + ">" + esc(m.uid === moi ? "Moi-même (" + nomMembre(m) + ")" : nomMembre(m) + " – " + (ROLES[m.role] || m.role || "")) + "</option>").join("");
   A.fenetre("<h3>" + (t ? "Modifier la tâche" : "Nouvelle tâche") + "</h3>" +
-    '<div class="puces" id="taTypes" role="radiogroup" aria-label="Type de tâche">' + TYPES().concat(type && TYPES().indexOf(type) < 0 ? [type] : []).map((x) => '<button type="button" class="puce' + (x === type ? " on" : "") + '" role="radio" aria-checked="' + (x === type) + '" data-t="' + esc(x) + '">' + esc(x) + "</button>").join("") + "</div>" +
+    '<div class="puces" data-fn="taches.types" id="taTypes" role="radiogroup" aria-label="Type de tâche">' + TYPES().concat(type && TYPES().indexOf(type) < 0 ? [type] : []).map((x) => '<button type="button" class="puce' + (x === type ? " on" : "") + '" role="radio" aria-checked="' + (x === type) + '" data-t="' + esc(x) + '">' + esc(x) + "</button>").join("") + "</div>" +
     '<div class="form"><div class="large"><label for="taTitre">Titre</label><input id="taTitre" value="' + esc(t ? t.titre : "") + '" placeholder="Ex. Relancer le laboratoire"></div>' +
     '<div class="large"><label for="taDesc">Description <span class="mesures">(facultatif)</span></label><textarea id="taDesc" rows="3">' + esc(t ? t.desc || "" : "") + "</textarea></div>" +
     '<div class="large"><label for="taPour">Pour qui</label><select id="taPour">' + optsPour + "</select></div>" +
     '<div><label for="taEch">Échéance <span class="mesures">(facultatif)</span></label><input id="taEch" type="date" value="' + esc(t ? t.ech || "" : "") + '"></div>' +
     '<div><label for="taH">Heure <span class="mesures">(facultatif)</span></label><input id="taH" type="time" value="' + esc(t ? t.h || "" : "") + '"></div>' +
-    '<div class="large"><label style="font-weight:normal;color:var(--encre)"><input id="taUrg" type="checkbox" style="width:auto;margin-right:8px"' + (t && t.urgent ? " checked" : "") + ">Urgent</label></div>" +
+    '<div class="large" data-fn="taches.urgent"><label style="font-weight:normal;color:var(--encre)"><input id="taUrg" type="checkbox" style="width:auto;margin-right:8px"' + (t && t.urgent ? " checked" : "") + ">Urgent</label></div>" +
     '<div class="large" style="position:relative"><label for="taPq">Patient <span class="mesures">(facultatif)</span></label><div id="taPch"></div><input id="taPq" placeholder="Nom, prénom…" autocomplete="off"><div id="taPl" class="sug cache"></div></div></div>' +
     '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt plein" id="taOk">' + (t ? "Enregistrer" : "Créer la tâche") + "</button></div>");
   // Type rapide : préremplit le titre s'il est vide (ou s'il n'était que le type précédent)

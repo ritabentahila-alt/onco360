@@ -48,6 +48,11 @@ async function echec(uid, e) {
 const membre = async (e, uid) => { const s = await db.doc("espaces/" + e + "/membres/" + uid).get(); return s.exists ? s.data() : null; };
 const titulaire = async (e) => { const s = await db.doc("espaces/" + e).get(); return s.exists ? s.data().titulaire : null; };
 
+// Fonction du réglage du cabinet (10/10/2026) : absente du réglage = présente ; module retiré = absente
+async function fonctionPresente(e, k) {
+  try { const s = await db.doc("espaces/" + e).get(), ab = (s.exists && s.data().abonnement) || {}, m = k.split(".")[0];
+    return !(ab.modules && ab.modules[m] === false) && !(ab.reglage && ab.reglage.fonctions && ab.reglage.fonctions[k] === false); } catch (er) { return true; }
+}
 // Ce que la personne a choisi de voir dans son agenda (absent : tout)
 async function filtreDe(uid) { try { const s = await db.doc("utilisateurs/" + uid).get(); return (s.exists && s.data().agendaFiltre) || {}; } catch (e) { return {}; } }
 // Couleurs choisies par le cabinet (absent : couleurs par défaut)
@@ -63,7 +68,7 @@ async function syncComplet(uid, J) {
   // Tâches dont la personne est responsable (nom actuel du patient lu dans son dossier)
   const ts = await db.collection("espaces/" + J.espace + "/taches").where("pour", "==", uid).get(), noms = {};
   pats.forEach((d) => { try { noms[d.id] = JSON.parse(d.data().resume || "{}").nm || ""; } catch (e) { /* résumé illisible */ } });
-  voulus = voulus.concat(L.evtsTaches(ts.docs.map((d) => Object.assign({ id: d.id }, d.data())), uid, auj, noms));
+  if (await fonctionPresente(J.espace, "taches.gagenda")) voulus = voulus.concat(L.evtsTaches(ts.docs.map((d) => Object.assign({ id: d.id }, d.data())), uid, auj, noms)); // réglage du cabinet
   if ((await titulaire(J.espace)) === uid) {
     const c = await db.doc("espaces/" + J.espace + "/parametres/calendrier").get();
     try { voulus = voulus.concat(L.evtsAbsences(c.exists ? JSON.parse(c.data().data || "{}") : {}, auj)); } catch (e) { /* calendrier illisible */ }
@@ -160,7 +165,7 @@ exports.agendaTache = onDocumentWritten(Object.assign({ document: "espaces/{e}/t
   for (const uid of new Set([avant && avant.pour, apres && apres.pour].filter(Boolean))) {
     const s = await db.doc("agendaJetons/" + uid).get(); if (!s.exists || s.data().revoque || s.data().espace !== e) continue;
     const m = await membre(e, uid); if (!m || m.actif === false) continue;
-    try { await syncGroupe(uid, s.data(), "tache-" + ev.params.t, L.evtsTaches(t ? [t] : [], uid, L.jourCasa(), noms)); } catch (er) { await echec(uid, er); }
+    try { await syncGroupe(uid, s.data(), "tache-" + ev.params.t, L.evtsTaches(t && (await fonctionPresente(e, "taches.gagenda")) ? [t] : [], uid, L.jourCasa(), noms)); } catch (er) { await echec(uid, er); }
   }
 });
 exports.agendaCouleurs = onDocumentWritten(Object.assign({ document: "espaces/{e}/parametres/couleursAgenda" }, OPTS), async (ev) => {

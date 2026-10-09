@@ -1087,7 +1087,16 @@ Modules et menus, Bibliothèques et paramètres ; cabinets en liste ; onglet lis
       serveur**), « Toutes les tâches », impression RCP, exports du bilan, rappel WhatsApp, vues Jour / Semaine / Mois, fiche chimio,
       Protocoles, tâches fixes de radiothérapie (serveur). Les autres sont enregistrées et marquées « (bientôt) » : à relier une à une.
       Bibliothèques reliées : boutons et cartes de gestion (Diagnostics / Mutuelles : à relier). Tests : cabinets 52/52.
-- [ ] 16.3 suite : relier les fonctions « bientôt » (salle d'attente : prix, n° de passage…, agenda : filtre, horaires…, bilan…).
+- [x] 16.3 suite (10/10) : **toutes les fonctions reliées** : 46 activables (agenda : filtre, horaires grisés, absences et fériés,
+      WhatsApp, vues ; salle d'attente : prix, n° de passage, commentaire, temps d'attente, colonnes, bulles ; tâches : toutes, types,
+      urgent, réattribuer, automatiques, échéances dans Google Agenda (serveur) ; RCP : impression ; prescriptions : 6 boutons, format
+      A5 / A4, antécédents ; documents : dépôt, types, pli / CR / RDV ; Google Agenda : ce que je vois, couleurs ; listes :
+      correspondants ; bilan : filtres, versements, référents, RT prévisionnelles, exports, relevé du comptable ; chimio : fiche,
+      protocoles, molécules, report ; RT : tâches fixes (serveur), consultations hebdomadaires, documents, tarifs) et **17 fonctions de
+      base**, toujours présentes avec leur module (venu / non venu, états de la salle, fil des tâches, inscription / calendrier /
+      décision RCP, liaison Google Agenda, diagnostics, mutuelles, payé / à recevoir, lignes, cures, doses, % par séance, planning
+      de chimio, prescription et déroulé RT). « Administrations (infirmière) » retirée du catalogue (pas encore construite, étape 11).
+      Test `tests/test_reglage.py` 14/14 (sans réglage : tout est là, bilan 352 317 DH).
 - [ ] 16.2 Onglet « Par spécialité » (packs avec le même réglage complet ; modules, paramètres, bibliothèques de la spécialité).
 - [ ] 16.3 Onco360 applique la spécialité (ordre du menu, fonctions cachées à l'écran et sur le serveur).
 - [x] 16.4 (en partie, 10/10) Cabinets en **liste** (nom, ville, médecin, spécialité, pack, statut, équipe, dossiers, créé le ;
@@ -1349,3 +1358,4 @@ Onco360_Package_Cession/
 | 10/10/2026 | 16 – Plan administration | Demande : tout régler par spécialité (modules + / − / ↑ ↓, fonctions, paramètres, bibliothèques), onglet « Par spécialité », cabinets en liste, onglet Bibliothèques. Inventaire complet et plan en 5 étapes : `PLAN-ADMINISTRATION.md`. 4 questions à valider. |
 | 10/10/2026 | 16 – début | Décisions : une seule spécialité Oncologie – Radiothérapie, tout réglable cabinet par cabinet (packs = point de départ, retouches : options, ordre du tableau de bord, ordre des onglets des Paramètres…). Catalogue commencé, cabinets en liste + fiche. Tests 46/46, 21/21, 48/48, bilan 352 317 DH. Mis en ligne. |
 | 10/10/2026 | 16.3 Réglage du cabinet | Pack de départ puis retouches cabinet par cabinet : ordre du menu, modules et fonctions, cartes du tableau de bord, onglets des Paramètres, bibliothèques, maximums ; appliqué dans Onco360 ; 15 fonctions reliées (dont tâches automatiques côté serveur), les autres marquées « bientôt ». Corrigé : limites du pack écrasées au changement de pack. Tests 52/52, 21/21, 50/50, bilan 352 317 DH. Mis en ligne. |
+| 10/10/2026 | 16.3 Fonctions reliées | Les 63 fonctions du catalogue : 46 activables reliées (écran ; tâches automatiques et échéances Google Agenda aussi côté serveur), 17 fonctions de base toujours présentes (affichées sans case). Tests réglage 14/14, cabinets 52/52, bilan 352 317 DH. Mis en ligne. |

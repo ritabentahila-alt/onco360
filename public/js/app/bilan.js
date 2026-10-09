@@ -38,7 +38,7 @@ const estComptable = () => D().membre.role === "comptable";
 let SIG = null, RELEVE_LE = null;
 const signature = (s) => { let h = 5381; for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0; return s.length + "-" + (h >>> 0).toString(36); };
 export async function publierReleve() {
-  if (!A.peut("finances") || estComptable() || !D().tarifs) return;
+  if (!A.peut("finances") || estComptable() || !D().tarifs || !A.fn("bilan.comptable")) return; // relevé du comptable (réglage du cabinet)
   await charger(); RES = null;
   const R = resumes().map((x) => ({ id: x.id, nm: x.nm, num: A.numDossier((D().patients || []).find((p) => p.id === x.id)), cor: x.cor, hop: x.hop, c1: x.c1, fin: x.fin }));
   const tout = JSON.stringify(R), sig = signature(tout), E = (i) => doc(db, "espaces", A.ESPACE, "comptabilite", i);
@@ -96,7 +96,7 @@ function dessiner() {
   let h = '<section class="accueil"><div><h2>Bilan</h2><p>Du ' + A.dfrA(b.pr[0] > "0001" ? b.pr[0] : "") + " au " + A.dfrA(b.pr[1] < "9999" ? b.pr[1] : "") +
     (estComptable() ? " · " + (RELEVE_LE ? "relevé à jour au " + RELEVE_LE.toLocaleDateString("fr-FR") + " " + RELEVE_LE.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) : "aucun relevé : il est préparé quand un médecin ouvre Onco360") : "") + "</p></div>" +
     '<div class="actions" data-fn="bilan.exports"><button class="bt clair" onclick="biExport(\'xlsx\')"><svg class="pi"><use href="#i-telecharger"/></svg>Excel</button><button class="bt clair" onclick="biExport(\'pdf\')"><svg class="pi"><use href="#i-telecharger"/></svg>PDF</button><button class="bt gris" onclick="biActualiser()"><svg class="pi"><use href="#i-actualiser"/></svg>Actualiser</button></div></section>' +
-    '<section class="carte"><div class="form" style="grid-template-columns:repeat(auto-fit,minmax(190px,1fr))">' +
+    '<section class="carte" data-fn="bilan.filtres"><div class="form" style="grid-template-columns:repeat(auto-fit,minmax(190px,1fr))">' +
     "<div><label>Période</label>" + sel("biPer", F.per, PER, "per") + "</div>" +
     (F.per === "perso" ? '<div><label>Du</label><input type="date" value="' + esc(F.du) + '" onchange="biF(\'du\',this.value)"></div><div><label>Au</label><input type="date" value="' + esc(F.au) + '" onchange="biF(\'au\',this.value)"></div>' : "") +
     "<div><label>Établissement</label>" + sel("biHop", F.hop, [["tous", "Tous les centres"]].concat(etabs).concat([["—", "Non renseigné / autres"]]), "hop") + "</div>" +
@@ -123,10 +123,10 @@ function dessiner() {
   } else {
     const m = {}; R.forEach((x) => { const c = x.cor || ""; m[c] = m[c] || { n: 0, np: 0, net: 0 }; m[c].n++; if (x.c1 && x.c1 >= b.pr[0] && x.c1 <= b.pr[1]) m[c].np++; m[c].net += netPer(x, b.pr); });
     const l = Object.keys(m).sort((a, z) => m[z].n - m[a].n || m[z].net - m[a].net);
-    h += '<section class="carte"><h3><span class="ic">' + A.ic("patients") + '</span>Référents</h3><p class="sous">Touchez un référent pour voir les patients qu\'il vous a adressés.</p><div class="tableau"><table class="tcures bilan"><tr><th>Référent</th><th class="n">Patients adressés</th><th class="n">Nouveaux sur la période</th><th class="n">NET sur la période</th></tr>' +
+    h += '<section class="carte" data-fn="bilan.referents"><h3><span class="ic">' + A.ic("patients") + '</span>Référents</h3><p class="sous">Touchez un référent pour voir les patients qu\'il vous a adressés.</p><div class="tableau"><table class="tcures bilan"><tr><th>Référent</th><th class="n">Patients adressés</th><th class="n">Nouveaux sur la période</th><th class="n">NET sur la période</th></tr>' +
       l.map((c) => '<tr class="cl" onclick="biF(\'cor\',' + esc(JSON.stringify(c)) + ')"><td>' + esc(c || "— (sans référent)") + '</td><td class="n">' + m[c].n + '</td><td class="n">' + m[c].np + '</td><td class="n">' + dh(m[c].net) + "</td></tr>").join("") + "</table></div></section>";
   }
-  if (b.prev.length) h += '<section class="carte"><h3><span class="ic">☢️</span>Radiothérapies en cours ou prévues (prévisionnel, non comptées)</h3><div class="tableau"><table class="tcures bilan"><tr><th>Fin prévue</th><th>Patient</th><th>Hôpital</th><th>Acte</th><th class="n">NET prévisionnel</th></tr>' +
+  if (b.prev.length) h += '<section class="carte" data-fn="bilan.rtprev"><h3><span class="ic">☢️</span>Radiothérapies en cours ou prévues (prévisionnel, non comptées)</h3><div class="tableau"><table class="tcures bilan"><tr><th>Fin prévue</th><th>Patient</th><th>Hôpital</th><th>Acte</th><th class="n">NET prévisionnel</th></tr>' +
     b.prev.map((o) => "<tr" + lienDossier(o.id) + "><td>" + (o.d ? A.dfrA(o.d) : "—") + "</td><td>" + esc(o.nm) + "</td><td>" + esc(o.hop || "—") + "</td><td>" + esc(o.lib) + '</td><td class="n">' + dh(o.net) + "</td></tr>").join("") + "</table></div></section>";
   h += htmlRecus(b);
   A.$("page").innerHTML = h;
@@ -171,7 +171,7 @@ function htmlRecus(b) {
   const esc = A.esc, L = recusFiltres(b.pr), RG = L.filter((r) => r.k === "rg"), KL = L.filter((r) => r.k === "kl"), ed = (r) => (r.k === "rg" ? peutRg() : peutKL());
   DATA.rg = L;
   const sel = (v, opts, f) => '<select onchange="biF(\'' + f + '\',this.value)">' + opts.map((o) => '<option value="' + o[0] + '"' + (o[0] === v ? " selected" : "") + ">" + o[1] + "</option>").join("") + "</select>";
-  let h = '<section class="carte" id="biRg"><h3><span class="ic"><svg class="i"><use href="#i-banque"/></svg></span>Versements et règlements reçus</h3>' +
+  let h = '<section class="carte" data-fn="bilan.versements" id="biRg"><h3><span class="ic"><svg class="i"><use href="#i-banque"/></svg></span>Versements et règlements reçus</h3>' +
     '<p class="sous"><b>Règlements</b> des cliniques et hôpitaux (virements, chèques) : pour la comptabilité, <b>non comptés dans le bilan</b> (le bilan compte déjà les actes). <b>Autres versements</b> (laboratoire…) : <b>ajoutés au bilan</b> à leur date, établissement « Non renseigné ». Période et établissement : ceux choisis en haut de la page.' + (peutRg() ? "" : " Règlements en lecture seule.") + "</p>" +
     '<div class="form" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr));margin-bottom:10px"><div><label>Type</label>' + sel(F.rtype, [["tous", "Tout"], ["rg", "Règlements (hors bilan)"], ["kl", "Autres versements (dans le bilan)"]], "rtype") + "</div>" +
     "<div><label>Mode</label>" + sel(F.rmode, [["tous", "Tous les modes"], ["vir", "Virements"], ["chq", "Chèques"]], "rmode") + "</div>" +
