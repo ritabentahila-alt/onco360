@@ -250,3 +250,46 @@ exports.agendaNuit = onSchedule(Object.assign({ schedule: "30 3 * * *", timeZone
   const l = (await db.collection("agendaJetons").get()).docs.filter((d) => !d.data().revoque);
   for (const d of l) { try { await syncComplet(d.id, d.data()); } catch (e) { await echec(d.id, e); } }
 });
+
+// ───── Numéro de dossier (étape 8, 09/10/2026) : AAAAMM + rang d'inscription dans le mois (functions/numeros.js) ─────
+// Attribué ici, dans une transaction, pour qu'il n'y ait jamais de doublon (deux personnes qui créent un patient en même temps).
+// Compteurs : espaces/{e}/compteurs/dossiers = { "202610": 7, … } (aucune règle : invisible et non modifiable depuis le navigateur).
+// Le numéro est écrit dans identite.numero (version + 1, comme toute écriture d'un dossier) et ne change plus jamais.
+const N = require("./numeros");
+const voit = (m, etab) => !!m && m.actif !== false && (m.tousEtablissements === true || (m.etablissements || []).indexOf(etab) >= 0);
+exports.numeroDossier = onCall({ timeoutSeconds: 30, memory: "256MiB" }, async (req) => {
+  if (!req.auth) throw new HttpsError("unauthenticated", "Connectez-vous à Onco360.");
+  const { espace, patientId } = req.data || {};
+  if (!espace || !patientId) throw new HttpsError("invalid-argument", "Demande incomplète.");
+  const m = await membre(espace, req.auth.uid);
+  if (!m || m.actif === false) throw new HttpsError("permission-denied", "Vous n'êtes pas membre actif de cet espace.");
+  const ref = db.doc("espaces/" + espace + "/patients/" + patientId), cpt = db.doc("espaces/" + espace + "/compteurs/dossiers");
+  const numero = await db.runTransaction(async (tx) => {
+    const p = await tx.get(ref); if (!p.exists) throw new HttpsError("not-found", "Dossier introuvable.");
+    const d = p.data(); if (!voit(m, d.etablissementId)) throw new HttpsError("permission-denied", "Dossier hors de vos établissements.");
+    if (d.identite && d.identite.numero) return d.identite.numero; // déjà numéroté : on ne change rien
+    const c = await tx.get(cpt), r = N.attribuer([{ id: patientId, ms: Date.now() }], c.exists ? c.data() : {});
+    tx.set(cpt, r.compteurs, { merge: true });
+    tx.update(ref, { "identite.numero": r.attributions[0].numero, version: (d.version || 1) + 1, maj: FieldValue.serverTimestamp(), majPar: req.auth.uid });
+    return r.attributions[0].numero;
+  });
+  return { numero };
+});
+// Numérotation, une fois, des dossiers qui n'ont pas encore de numéro, dans l'ordre de leur inscription (médecin titulaire)
+exports.numerosManquants = onCall({ timeoutSeconds: 120, memory: "256MiB" }, async (req) => {
+  if (!req.auth) throw new HttpsError("unauthenticated", "Connectez-vous à Onco360.");
+  const { espace } = req.data || {};
+  if (!espace) throw new HttpsError("invalid-argument", "Demande incomplète.");
+  if ((await titulaire(espace)) !== req.auth.uid) throw new HttpsError("permission-denied", "Réservé au médecin titulaire.");
+  const col = db.collection("espaces/" + espace + "/patients"), cpt = db.doc("espaces/" + espace + "/compteurs/dossiers");
+  return db.runTransaction(async (tx) => {
+    const snap = await tx.get(col), c = await tx.get(cpt), sans = [], docs = {};
+    snap.forEach((d) => { const x = d.data(); if (x.identite && x.identite.numero) return; docs[d.id] = x; sans.push({ id: d.id, ms: N.dateCreation(d.id, x.identite || {}, d.createTime ? d.createTime.toMillis() : 0) }); });
+    if (!sans.length) return { nb: 0 };
+    if (sans.length > 450) throw new HttpsError("resource-exhausted", "Trop de dossiers à numéroter d'un coup.");
+    const r = N.attribuer(sans, c.exists ? c.data() : {});
+    tx.set(cpt, r.compteurs, { merge: true });
+    r.attributions.forEach((a) => tx.update(col.doc(a.id), { "identite.numero": a.numero, version: (docs[a.id].version || 1) + 1, maj: FieldValue.serverTimestamp(), majPar: req.auth.uid }));
+    return { nb: r.attributions.length };
+  });
+});

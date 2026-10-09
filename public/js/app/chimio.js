@@ -795,6 +795,7 @@ export function nouveauPatient() {
       await enrichirListes(A.val("pCor"), A.val("pMut"), A.val("pDiag"));
       A.recalculer(x, Object.assign({}, docP, { maj: null })); D().patients.push(x); D().patients.sort((a, z) => String(a.r.nm).localeCompare(String(z.r.nm)));
       A.journal(x, "Patient créé"); A.fermerFenetre(); A.toast("Dossier créé."); location.hash = "dossier/" + encodeURIComponent(id);
+      A.attribuerNumero(x).then((n) => { if (n) A.toast("Dossier créé : n° " + n + "."); }); // numéro de dossier (serveur, sans doublon)
     } catch (e) { A.occupe(document.getElementById("fOk"), false); A.erreur(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de créer ce dossier." : "Création impossible : " + ((e && e.message) || e)); }
   };
 }

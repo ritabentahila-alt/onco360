@@ -1,7 +1,7 @@
 // Chimio HGC v2 – conversion d'un dossier v1 vers la v2, et l'inverse (fusion).
 // Un dossier v1 est séparé en : dossier médical (patients/{id}, sans aucun montant) + montants (patientsFinances/{id}).
 // Les dates de cures et de séances déplacées vont dans « planningJson » (modifiable avec le droit planning HDJ).
-const IDENTITE = ["nomF", "prenom", "nom", "ddn", "sexe", "tel", "cin", "mut", "cor", "num", "ald", "age", "photo", "cree", "tel2", "adresse", "email"]; // tel2, adresse, email : 08/10/2026 // photo : image réduite (data URL)
+const IDENTITE = ["nomF", "prenom", "nom", "ddn", "sexe", "tel", "cin", "mut", "cor", "num", "ald", "age", "photo", "cree", "tel2", "adresse", "email", "numero"]; // numero : numéro de dossier (étape 8) // tel2, adresse, email : 08/10/2026 // photo : image réduite (data URL)
 const CLINIQUE = ["diag", "diagP", "notes", "poids", "taille", "cures", "j1", "nb", "protoId", "allergies", "atcdMed", "atcdFam", "modeVie", "traitCours"]; // + anciens champs de 1re version
 const TECHNIQUES = ["dossier", "_rtcCh", "id", "hop", "lignes", "rdvs", "rts"];
 const copie = (o) => JSON.parse(JSON.stringify(o));
