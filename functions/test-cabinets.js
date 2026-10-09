@@ -106,3 +106,15 @@ const echoue = (f) => { try { f(); return false; } catch (e) { return true; } };
   ok(JSON.stringify(r.menu) === '["bilan","accueil"]' && r.cartes.stats === false && !("x" in r.cartes) && r.fonctions["taches.auto"] === false && !("pirate" in r), "retouches nettoyées (clés courtes, oui / non)");
   ok(C.reglageNettoye(null) === null && C.reglageNettoye("x") === null, "sans retouche : rien");
 })();
+// Packs avec réglage complet (10/10/2026)
+(() => {
+  const C = require("./cabinets"), ok = (c, m) => { console.log((c ? "✅ " : "❌ ") + m); if (!c) process.exitCode = 1; };
+  const FS = C.formulesValides({ "pack-a": { lib: "Pack A", specialite: "Oncologie – Radiothérapie", modules: ["chimio", "agenda"], max: {}, reglage: { menu: ["bilan"], cartes: { stats: false }, x: 1 } } });
+  ok(FS["pack-a"].reglage && FS["pack-a"].reglage.cartes.stats === false && !("x" in FS["pack-a"].reglage), "pack : réglage gardé et nettoyé");
+  const a = C.abonnement({ formule: "pack-a" }, FS);
+  ok(a.reglage && a.reglage.menu[0] === "bilan" && !a.surMesure && a.retouche === false, "cabinet neuf : reçoit le réglage du pack, sans retouche");
+  const b = C.abonnement({ formule: "pack-a", modules: { chimio: true, agenda: true }, max: {}, reglage: { menu: ["accueil"] }, identiqueAuPack: false }, FS);
+  ok(b.retouche && b.surMesure && b.reglage.menu[0] === "accueil", "retouches du cabinet : sur mesure");
+  const c = C.abonnement({ formule: "pack-a", modules: { chimio: true, agenda: true }, max: {}, reglage: { menu: ["bilan"] }, identiqueAuPack: true }, FS);
+  ok(!c.surMesure && c.retouche === false, "réglage identique au pack : pas sur mesure");
+})();

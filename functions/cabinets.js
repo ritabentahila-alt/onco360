@@ -77,6 +77,7 @@ function formulesValides(o) {
     if (!/^[a-z0-9-]{2,30}$/.test(k) || !f) return;
     const max = {}; MAX.forEach((m) => { max[m] = nombre(f.max && f.max[m]); });
     out[k] = { lib: String(f.lib || k).replace(/\s+/g, " ").trim().slice(0, 40) || k, specialite: String(f.specialite || "").replace(/\s+/g, " ").trim().slice(0, 40), modules: MODULES.filter((m) => (f.modules || []).indexOf(m) >= 0), max };
+    const rg = reglageNettoye(f.reglage); if (rg) out[k].reglage = rg; // réglage complet du pack (menu, cartes, onglets, fonctions…, 10/10/2026)
     if (out[k].modules.indexOf("taches") < 0) out[k].modules = out[k].modules.filter((m) => m !== "rcp");
   });
   return Object.keys(out).length ? out : null;
@@ -87,7 +88,9 @@ function abonnement(o, formules) {
   if (!mod.taches) mod.rcp = false;
   MAX.forEach((k) => { max[k] = nombre(o.max && k in o.max ? o.max[k] : F.max[k]); });
   const pareil = MODULES.every((k) => mod[k] === (F.modules.indexOf(k) >= 0)) && MAX.every((k) => max[k] === nombre(F.max[k]));
-  return { formule: f, surMesure: !pareil, modules: mod, max };
+  // Réglage : celui envoyé (retouches du cabinet ; « identiqueAuPack » dit s'il est le même que celui du pack), sinon celui du pack
+  const rg = o.reglage ? reglageNettoye(o.reglage) : F.reglage ? JSON.parse(JSON.stringify(F.reglage)) : null, retouche = !!o.reglage && o.identiqueAuPack === false;
+  return Object.assign({ formule: f, surMesure: !pareil || retouche, retouche, modules: mod, max }, rg ? { reglage: rg } : {});
 }
 // Trop de comptes actifs pour ce rôle ? (max null = sans limite)
 const horsQuota = (ab, role, nbActifs) => { const m = ab && ab.max && ab.max[role]; return m != null && nbActifs > m; };

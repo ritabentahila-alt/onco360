@@ -1097,14 +1097,20 @@ Modules et menus, Bibliothèques et paramètres ; cabinets en liste ; onglet lis
       décision RCP, liaison Google Agenda, diagnostics, mutuelles, payé / à recevoir, lignes, cures, doses, % par séance, planning
       de chimio, prescription et déroulé RT). « Administrations (infirmière) » retirée du catalogue (pas encore construite, étape 11).
       Test `tests/test_reglage.py` 14/14 (sans réglage : tout est là, bilan 352 317 DH).
-- [ ] 16.2 Onglet « Par spécialité » (packs avec le même réglage complet ; modules, paramètres, bibliothèques de la spécialité).
+- [x] **16.2 Onglet « Par spécialité »** (10/10) : remplace Formules, Modules et menus, Bibliothèques et paramètres ; à gauche les
+      spécialités (packs, cabinets), à droite 3 sous-onglets : **Packs** (liste ; ↑ ↓ ordre, Modifier, Dupliquer, Supprimer si
+      inutilisé, + Nouveau pack, packs proposés manquants), **Modules et menus** (communs + propres à la spécialité + prévus),
+      **Bibliothèque et paramètres** (ouvrir et modifier). **Un pack a le même réglage complet qu'un cabinet** (même écran :
+      `editeurReglage`) ; un cabinet reçoit le réglage de son pack (création, changement de pack, « Revenir au réglage du pack ») ;
+      retouché, il devient « sur mesure » (`retouche`, `identiqueAuPack`) ; modifier un pack met à jour les cabinets qui le suivent
+      sans retouche. Onglets de l'Administration : Cabinets, Nouveau cabinet, Par spécialité, Bibliothèques (toutes).
 - [ ] 16.3 Onco360 applique la spécialité (ordre du menu, fonctions cachées à l'écran et sur le serveur).
 - [x] 16.4 (en partie, 10/10) Cabinets en **liste** (nom, ville, médecin, spécialité, pack, statut, équipe, dossiers, créé le ;
       mobile en lignes empilées), clic = **fiche du cabinet** en fenêtre (toutes les actions). Reste : onglet listant toutes les bibliothèques.
 - [x] Une seule spécialité **Oncologie – Radiothérapie** (10/10) : les 8 packs y sont ; anciens noms reconnus (`specialiteDe`).
 - [x] 16.1 (début, 10/10) Catalogue `public/js/donnees/catalogue.js` : menu, fonctions de chaque module, cartes du tableau de bord,
       sections de paramétrage, bibliothèques ; réglage complet `reglageDepart` / `reglageEffectif`.
-- [ ] 16.4 Onglet listant toutes les bibliothèques.
+- [x] 16.4 Onglet « Bibliothèques » : toutes les bibliothèques (une carte par spécialité, compteurs, ouvrir et modifier).
 - [ ] 16.5 Nouvelle spécialité (copie ou vide) ; Médecine générale, Gynécologie prêtes pour l'étape 14.
 
 ## Étape 14 – Autres spécialités (demandé le 09/10/2026) : nouveaux modules et leurs formules
@@ -1359,3 +1365,4 @@ Onco360_Package_Cession/
 | 10/10/2026 | 16 – début | Décisions : une seule spécialité Oncologie – Radiothérapie, tout réglable cabinet par cabinet (packs = point de départ, retouches : options, ordre du tableau de bord, ordre des onglets des Paramètres…). Catalogue commencé, cabinets en liste + fiche. Tests 46/46, 21/21, 48/48, bilan 352 317 DH. Mis en ligne. |
 | 10/10/2026 | 16.3 Réglage du cabinet | Pack de départ puis retouches cabinet par cabinet : ordre du menu, modules et fonctions, cartes du tableau de bord, onglets des Paramètres, bibliothèques, maximums ; appliqué dans Onco360 ; 15 fonctions reliées (dont tâches automatiques côté serveur), les autres marquées « bientôt ». Corrigé : limites du pack écrasées au changement de pack. Tests 52/52, 21/21, 50/50, bilan 352 317 DH. Mis en ligne. |
 | 10/10/2026 | 16.3 Fonctions reliées | Les 63 fonctions du catalogue : 46 activables reliées (écran ; tâches automatiques et échéances Google Agenda aussi côté serveur), 17 fonctions de base toujours présentes (affichées sans case). Tests réglage 14/14, cabinets 52/52, bilan 352 317 DH. Mis en ligne. |
+| 10/10/2026 | 16.2 Par spécialité | Onglet Par spécialité (packs avec réglage complet, modules et menus, bibliothèque et paramètres) ; un cabinet reçoit le réglage de son pack puis peut être retouché ; modifier un pack met à jour les cabinets non retouchés. Tests 53/53, 21/21, 14/14, 58/58, bilan 352 317 DH. Mis en ligne. |

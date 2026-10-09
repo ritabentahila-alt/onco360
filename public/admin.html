@@ -68,6 +68,10 @@ table.lc td{padding:9px 8px;border-bottom:1px solid #F0F2F7;vertical-align:top}t
 .rg-c{display:flex;gap:6px;align-items:flex-start;margin:0;font-size:13.5px;color:inherit;cursor:pointer}.rg-c input{width:auto;margin-top:2px}
 .rg-c.base{color:var(--doux);cursor:default;padding:3px 0 3px 18px}.rg-c.base>span:first-child{color:var(--vert);font-weight:bold}
 .mod-f{border:1px solid var(--trait);border-radius:10px;padding:8px 10px}.mod-f.off{opacity:.6}.mod-f details{margin-top:6px}.mod-f summary{cursor:pointer;color:var(--prim);font-size:13px}.mod-f details .rg-c{padding:3px 0 3px 18px}
+.spe-g{display:grid;grid-template-columns:260px minmax(0,1fr);gap:14px;align-items:start}.spe-l{display:flex;flex-direction:column;gap:6px}
+.spe{background:#fff;color:inherit;border:1px solid var(--trait);border-radius:12px;padding:10px 12px;text-align:left;display:flex;flex-direction:column;gap:2px;white-space:normal}.spe.on{border-color:var(--prim);background:var(--prim-c)}
+.spe-d{display:grid;gap:12px;min-width:0}.lc .fl{display:flex;gap:2px}.lc .fl button{padding:2px 7px}.lc td.act{display:flex;gap:6px;flex-wrap:wrap}
+@media (max-width:760px){.spe-g{grid-template-columns:minmax(0,1fr)}.spe-l{flex-direction:row;overflow-x:auto}.spe{min-width:180px}}
 .bdg.al{background:var(--rouge-c);color:var(--rouge)}
 /* Formules */
 .puces{display:flex;gap:6px;flex-wrap:wrap}.puce{background:#fff;color:var(--doux);border:1px solid var(--trait);padding:7px 12px;font-size:13.5px}.puce.on{background:var(--prim);color:#fff;border-color:var(--prim)}.puce.on .nb{background:rgba(255,255,255,.25);color:#fff}
@@ -95,5 +99,5 @@ textarea{font-size:13px;margin-top:4px}
 <nav id="onglets"></nav></header>
 <main id="page"><div class="carte"><p class="sous">Chargement…</p></div></main>
 <div id="modal" class="cache"></div>
-<script type="module" src="./js/app/admin.js?v=20261010g"></script>
+<script type="module" src="./js/app/admin.js?v=20261010h"></script>
 </body></html>

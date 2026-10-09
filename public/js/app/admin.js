@@ -13,12 +13,12 @@ const $ = (i) => document.getElementById(i);
 const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const dfr = (d) => (typeof d === "string" && d.length >= 10 ? d.slice(8, 10) + "/" + d.slice(5, 7) + "/" + d.slice(0, 4) : "");
 const sansAcc = (x) => String(x || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
-const ONGLETS = [["cabinets", "Cabinets"], ["nouveau", "Nouveau cabinet"], ["formules", "Formules"], ["modules", "Modules et menus"], ["reference", "Bibliothèques et paramètres"]];
-// CABINETS : liste (null = chargement) ; FS : formules enregistrées (sinon celles de départ) ; FED : formules en cours de modification
-let CABINETS = null, FS = null, FED = null, BIBS = null, // BIBS : bibliothèques de référence par spécialité (null = pas encore lues)
+const ONGLETS = [["cabinets", "Cabinets"], ["nouveau", "Nouveau cabinet"], ["specialites", "Par spécialité"], ["reference", "Bibliothèques"]];
+// CABINETS : liste (null = chargement) ; FS : packs (formules) enregistrés (sinon ceux de départ)
+let CABINETS = null, FS = null, BIBS = null, // BIBS : bibliothèques de référence par spécialité (null = pas encore lues)
    MSG = "", RES = "", Q = "", STATUT = "", SPE = "", SPEF = "";
 const FORMULES_ = () => FS || FORMULES0;
-const ONG = () => { const h = location.hash.replace("#", ""); return ONGLETS.some((o) => o[0] === h) ? h : "cabinets"; };
+const ONG = () => { const h = location.hash.replace("#", ""); return h === "formules" || h === "modules" ? "specialites" : ONGLETS.some((o) => o[0] === h) ? h : "cabinets"; };
 
 async function serveur(nom, donnees) {
   const { getFunctions, httpsCallable } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js");
@@ -46,7 +46,7 @@ async function charger() {
 }
 const cab = (id) => (CABINETS || []).find((c) => c.id === id);
 const formuleDe = (ab) => (ab && FORMULES_()[ab.formule]) || null;
-const nomFormule = (ab) => (!ab ? "Tout compris (sans formule)" : ((formuleDe(ab) || {}).lib || ab.formule) + (ab.surMesure || (ab.reglage && Object.keys(ab.reglage).length) ? " · sur mesure" : ""));
+const nomFormule = (ab) => (!ab ? "Tout compris (sans formule)" : ((formuleDe(ab) || {}).lib || ab.formule) + (ab.surMesure || (ab.reglage && ab.retouche === undefined && Object.keys(ab.reglage).length) ? " · sur mesure" : ""));
 const ROLES_LIB = { medecin: "Médecin", assistante: "Secrétaire", infirmiere: "Infirmière", comptable: "Comptable" };
 const ch = (id, lib, ph, type, v) => '<div><label for="' + id + '">' + esc(lib) + '</label><input id="' + id + '"' + (type ? ' type="' + type + '"' : "") + (ph ? ' placeholder="' + esc(ph) + '"' : "") + ' value="' + esc(v || "") + '" autocomplete="off"></div>';
 // Menu des formules, rangées par spécialité
@@ -60,9 +60,9 @@ function dessiner() {
   const o = ONG();
   $("onglets").innerHTML = ONGLETS.map(([k, lib]) => '<a href="#' + k + '" class="' + (k === o ? "on" : "") + '">' + esc(lib) + (k === "cabinets" && CABINETS ? ' <span class="nb">' + CABINETS.length + "</span>" : "") + "</a>").join("");
   const bandeau = RES ? '<div class="ok bandeau">' + RES + '<button class="x" id="resX" aria-label="Fermer">✕</button></div>' : "";
-  $("page").innerHTML = bandeau + (o === "nouveau" ? htmlNouveau() : o === "formules" ? htmlFormules() : o === "reference" ? htmlReference() : o === "modules" ? htmlModules() : htmlCabinets());
+  $("page").innerHTML = bandeau + (o === "nouveau" ? htmlNouveau() : o === "specialites" ? htmlSpecialites() : o === "reference" ? htmlReference() : htmlCabinets());
   if ($("resX")) $("resX").onclick = () => { RES = ""; dessiner(); };
-  if (o === "nouveau") brancherNouveau(); else if (o === "formules") brancherFormules(); else if (o === "reference") brancherReference(); else brancherCabinets();
+  if (o === "nouveau") brancherNouveau(); else if (o === "specialites") brancherSpecialites(); else if (o === "reference") brancherReference(); else brancherCabinets();
 }
 
 // ───── Onglet Cabinets : chiffres, recherche, filtres, cartes ─────
@@ -159,9 +159,12 @@ function htmlReference() {
     '<li><b>Paramètres de base</b> : créneaux et horaires, jours fériés, messages WhatsApp, couleurs de Google Agenda, types de documents et de tâches, tâches automatiques, jours et heure de RCP, diagnostics et mutuelles, marges d\'impression, alertes, tarifs de radiothérapie.</li>' +
     '<li><b>Jamais</b> : correspondants, prix des consultations, lieux d\'exercice, équipe, patients.</li></ul>' +
     '<p class="sous">Tout est <b>mis de côté</b> : ce que fait un médecin dans son cabinet, y compris le Dr Bentahila, n\'y change rien. Vous les modifiez ici (« Ouvrir et modifier »), avec les écrans habituels d\'Onco360. Les cabinets déjà créés gardent leur propre copie.</p></section>' +
-    (L === null ? '<section class="carte"><p class="sous">Chargement…</p></section>' : '<div class="cabs">' + L.map((B) => '<article class="cab"><div class="haut"><div><h3>' + esc(B.lib) + '</h3><div class="m">' + esc(B.specialites.join(" · ")) + "</div></div>" + (B.existe ? '<span class="bdg ok">En place</span>' : '<span class="bdg">À créer</span>') + "</div>" +
+    (L === null ? '<section class="carte"><p class="sous">Chargement…</p></section>' : '<div class="cabs">' + L.map(carteBib).join("") + "</div>");
+}
+function carteBib(B) {
+  return ('<article class="cab"><div class="haut"><div><h3>' + esc(B.lib) + '</h3><div class="m">' + esc(B.specialites[0]) + "</div></div>" + (B.existe ? '<span class="bdg ok">En place</span>' : '<span class="bdg">À créer</span>') + "</div>" +
       (B.existe ? '<div class="chiffres" style="grid-template-columns:repeat(4,minmax(0,1fr))">' + LIBS.map(([k, lib]) => "<div><b>" + (B.nb && B.nb[k] != null ? B.nb[k] : "départ") + "</b><span>" + esc(lib) + "</span></div>").join("") + "</div>" : '<p class="m">' + (B.id === "bib-oncologie" ? "Sera créée à partir de la copie mise de côté le 09/10 (bibliothèque du Dr Bentahila)." : "Sera créée vide : vous la remplirez (les modules de cette spécialité restent à construire).") + "</p>") +
-      '<div class="act"><button data-bib="' + esc(B.id) + '">' + (B.existe ? "Ouvrir et modifier" : "Créer et ouvrir") + "</button></div></article>").join("") + "</div>");
+      '<div class="act"><button data-bib="' + esc(B.id) + '">' + (B.existe ? "Ouvrir et modifier" : "Créer et ouvrir") + "</button></div></article>");
 }
 function brancherReference() {
   document.querySelectorAll("[data-bib]").forEach((b) => { b.onclick = async () => {
@@ -235,36 +238,34 @@ function ouvrirInfos(c) {
   };
 }
 
-// ───── Réglage du cabinet (10/10/2026) : pack de départ, puis retouches à l'intérieur du cabinet ─────
+// ───── Écran de réglage (10/10/2026) : le même pour un pack et pour un cabinet ─────
 // Menu (ordre), modules et leurs fonctions, cartes du tableau de bord (ordre, présence), onglets des Paramètres (ordre, présence),
-// bibliothèques, maximums. Enregistré par abonnementCabinet (modules, max, reglage).
-function ouvrirFormule(c) {
-  if (!c) return;
-  const A = JSON.parse(JSON.stringify(abonnementEffectif(c.abonnement))); A.formule = A.formule || "complet";
-  const R = reglageEffectif(c.abonnement && c.abonnement.reglage);
-  const n = (k) => (k === "patients" ? c.patients : k === "etablissements" ? c.etablissements : (c.roles || {})[k] || 0);
-  const spe = () => (FORMULES_()[A.formule] || {}).specialite;
-  const LIB_MOD = Object.fromEntries(MODULES.map((m) => [m[0], m[1]])), LIB_MENU = Object.fromEntries(MENU.map((m) => [m[0], m])), LIB_CARTE = Object.fromEntries(CARTES), LIB_SEC = Object.fromEntries(SECTIONS.map((x) => [x[0], x[1]]));
+// bibliothèques, maximums. o = { titre, intro, A { formule, modules, max }, R (réglage complet), spe(), avecPack, nom (pack),
+// compte(k), enregistrer(A, R, nom) }.
+function editeurReglage(o) {
+  const A = o.A, R = o.R, LIB_MENU = Object.fromEntries(MENU.map((m) => [m[0], m])), LIB_CARTE = Object.fromEntries(CARTES), LIB_SEC = Object.fromEntries(SECTIONS.map((x) => [x[0], x[1]]));
+  let nom = o.nom || "";
   const fleches = (l, i) => '<span class="fl"><button class="clair petit" data-haut="' + l + ":" + i + '"' + (i ? "" : " disabled") + ' aria-label="Monter">↑</button><button class="clair petit" data-bas="' + l + ":" + i + '" aria-label="Descendre">↓</button></span>';
   const caseC = (attr, on, txt) => '<label class="rg-c"><input type="checkbox" ' + attr + (on ? " checked" : "") + "><span>" + txt + "</span></label>";
   const corps = () => {
-    const mods = MODULES.filter(([k]) => modulePour(k, spe()));
-    return '<div class="form" style="grid-template-columns:minmax(0,340px) auto;align-items:end"><div><label for="fFor">Pack de départ</label><select id="fFor">' + optionsFormules(A.formule) + '</select></div><div><button class="clair petit" id="fDepart" title="Ordre et présence par défaut ; les modules et limites du pack restent">Remettre l\'ordre de départ</button></div></div>' +
-      '<div class="rg"><div class="rg-b"><h3 class="st">Menu (ordre)</h3>' + R.menu.map((k, i) => { const m = LIB_MENU[k]; if (!m) return ""; return '<div class="rg-l">' + fleches("menu", i) + "<span class=\"rg-t\">" + esc(m[1]) + "</span>" + (m[2] ? caseC('data-rmod="' + m[2] + '"', A.modules[m[2]], "") : '<span class="m">toujours</span>') + "</div>"; }).join("") + "</div>" +
+    const mods = MODULES.filter(([k]) => modulePour(k, o.spe()));
+    return (o.avecPack ? '<div class="form" style="grid-template-columns:minmax(0,340px) auto;align-items:end"><div><label for="fFor">Pack de départ</label><select id="fFor">' + optionsFormules(A.formule) + '</select></div><div><button class="clair petit" id="fDepart" title="Réglage du pack (ordre, cartes, onglets, fonctions, bibliothèques) ; les modules et limites restent">Revenir au réglage du pack</button></div></div>'
+      : '<div class="form" style="grid-template-columns:minmax(0,340px)"><div><label for="fNom">Nom du pack</label><input id="fNom" value="' + esc(nom) + '"></div></div>') +
+      '<div class="rg"><div class="rg-b"><h3 class="st">Menu (ordre)</h3>' + R.menu.map((k, i) => { const m = LIB_MENU[k]; if (!m) return ""; return '<div class="rg-l">' + fleches("menu", i) + '<span class="rg-t">' + esc(m[1]) + "</span>" + (m[2] ? caseC('data-rmod="' + m[2] + '"', A.modules[m[2]], "") : '<span class="m">toujours</span>') + "</div>"; }).join("") + "</div>" +
       '<div class="rg-b"><h3 class="st">Tableau de bord (cartes)</h3>' + R.accueil.map((k, i) => '<div class="rg-l">' + fleches("accueil", i) + '<span class="rg-t">' + esc(LIB_CARTE[k] || k) + "</span>" + caseC('data-rcarte="' + k + '"', R.cartes[k] !== false, "") + "</div>").join("") + "</div>" +
       '<div class="rg-b"><h3 class="st">Paramètres (onglets)</h3>' + R.ordreSections.map((k, i) => '<div class="rg-l">' + fleches("ordreSections", i) + '<span class="rg-t">' + esc(LIB_SEC[k] || k) + "</span>" + caseC('data-rsec="' + k + '"', R.sections[k] !== false, "") + "</div>").join("") + "</div>" +
       '<div class="rg-b"><h3 class="st">Bibliothèques</h3>' + BIBLIOTHEQUES.map(([k, lib]) => '<div class="rg-l"><span class="rg-t">' + esc(lib) + "</span>" + caseC('data-rbib="' + k + '"', R.bibliotheques[k] !== false, "") + "</div>").join("") + "</div></div>" +
       '<h3 class="st">Modules et fonctions</h3><div class="mods">' + mods.map(([k, lib, de]) => '<div class="mod-f' + (A.modules[k] ? "" : " off") + '">' + caseC('data-rmod="' + k + '"', A.modules[k], "<b>" + esc(lib) + '</b><br><span class="m">' + esc(de) + "</span>") +
-        ((FONCTIONS[k] || []).length ? '<details' + (A.modules[k] ? "" : "") + "><summary>Fonctions (" + FONCTIONS[k].filter(([f]) => R.fonctions[k + "." + f] !== false).length + " / " + FONCTIONS[k].length + ")</summary>" + FONCTIONS[k].map(([f, l, base]) => base ? '<div class="rg-c base"><span>✓</span><span>' + esc(l) + ' <span class="m">(fonction de base, toujours là)</span></span></div>' : caseC('data-rfn="' + k + "." + f + '"', R.fonctions[k + "." + f] !== false, esc(l) + (FONCTIONS_RELIEES.indexOf(k + "." + f) < 0 ? ' <span class="m">(bientôt)</span>' : ""))).join("") + "</details>" : "") + "</div>").join("") + "</div>" +
-      '<h3 class="st">Nombre maximum <span class="m">(vide = sans limite, 0 = aucun)</span></h3><div class="form">' + ROLES_MAX.map(([k, lib]) => '<div><label for="fMx' + k + '">' + esc(lib) + ' <span class="m">(actuellement ' + (n(k) == null ? "?" : n(k)) + ')</span></label><input id="fMx' + k + '" type="number" min="0" data-x="' + k + '" placeholder="sans limite" value="' + (A.max[k] == null ? "" : A.max[k]) + '"></div>').join("") + "</div>";
+        ((FONCTIONS[k] || []).length ? "<details><summary>Fonctions (" + FONCTIONS[k].filter(([f]) => R.fonctions[k + "." + f] !== false).length + " / " + FONCTIONS[k].length + ")</summary>" + FONCTIONS[k].map(([f, l, base]) => base ? '<div class="rg-c base"><span>✓</span><span>' + esc(l) + ' <span class="m">(fonction de base, toujours là)</span></span></div>' : caseC('data-rfn="' + k + "." + f + '"', R.fonctions[k + "." + f] !== false, esc(l) + (FONCTIONS_RELIEES.indexOf(k + "." + f) < 0 ? ' <span class="m">(bientôt)</span>' : ""))).join("") + "</details>" : "") + "</div>").join("") + "</div>" +
+      '<h3 class="st">Nombre maximum <span class="m">(vide = sans limite, 0 = aucun)</span></h3><div class="form">' + ROLES_MAX.map(([k, lib]) => { const c = o.compte ? o.compte(k) : undefined; return '<div><label for="fMx' + k + '">' + esc(lib) + (c === undefined ? "" : ' <span class="m">(actuellement ' + (c == null ? "?" : c) + ")</span>") + '</label><input id="fMx' + k + '" type="number" min="0" data-x="' + k + '" placeholder="sans limite" value="' + (A.max[k] == null ? "" : A.max[k]) + '"></div>'; }).join("") + "</div>";
   };
-  fenetre("<h2>Réglage de « " + esc(c.nom) + ' »</h2><p class="sous">Choisissez le pack, puis retouchez à volonté pour ce cabinet : ordre (↑ ↓), présence (cases), fonctions de chaque module. Ce qui est retiré est caché, les données sont gardées. Le changement s\'applique à la prochaine ouverture d\'Onco360 par l\'équipe.</p><div id="fCorps">' + corps() + '</div><div class="pied"><button id="fOk">Enregistrer</button><button class="clair" id="fAnn">Fermer</button></div>');
-  const lireMax = () => document.querySelectorAll("#fCorps [data-x]").forEach((x) => { A.max[x.dataset.x] = x.value === "" ? null : Number(x.value); });
-  const refaire = (sansLire) => { if (!sansLire) lireMax(); const ouverts = [...document.querySelectorAll("#fCorps details")].map((d) => d.open); $("fCorps").innerHTML = corps(); document.querySelectorAll("#fCorps details").forEach((d, i) => { d.open = !!ouverts[i]; }); brancher(); };
+  fenetre("<h2>" + esc(o.titre) + '</h2><p class="sous">' + o.intro + '</p><div id="fCorps">' + corps() + '</div><div class="pied"><button id="fOk">Enregistrer</button><button class="clair" id="fAnn">Fermer</button></div>');
+  const lire = () => { document.querySelectorAll("#fCorps [data-x]").forEach((x) => { A.max[x.dataset.x] = x.value === "" ? null : Number(x.value); }); if ($("fNom")) nom = $("fNom").value.trim(); };
+  const refaire = (sansLire) => { if (!sansLire) lire(); const ouverts = [...document.querySelectorAll("#fCorps details")].map((d) => d.open); $("fCorps").innerHTML = corps(); document.querySelectorAll("#fCorps details").forEach((d, i) => { d.open = !!ouverts[i]; }); brancher(); };
   const bouger = (v, sens) => { const [l, i] = v.split(":"), k = Number(i), j = k + sens, L = R[l]; if (j < 0 || j >= L.length) return; [L[k], L[j]] = [L[j], L[k]]; refaire(); };
   const brancher = () => {
-    $("fFor").onchange = () => { const F = FORMULES_()[$("fFor").value]; if (!F) return; A.formule = $("fFor").value; A.max = Object.assign({}, F.max); MODULES.forEach(([k]) => { A.modules[k] = F.modules.indexOf(k) >= 0; }); refaire(true); }; // limites du pack (pas celles affichées)
-    $("fDepart").onclick = () => { Object.assign(R, reglageEffectif(null)); refaire(); };
+    if ($("fFor")) $("fFor").onchange = () => { const F = FORMULES_()[$("fFor").value]; if (!F) return; A.formule = $("fFor").value; A.max = Object.assign({}, F.max); MODULES.forEach(([k]) => { A.modules[k] = F.modules.indexOf(k) >= 0; }); Object.assign(R, reglageEffectif(F.reglage)); refaire(true); }; // tout le pack (pas les limites affichées)
+    if ($("fDepart")) $("fDepart").onclick = () => { Object.assign(R, reglageEffectif((FORMULES_()[A.formule] || {}).reglage)); refaire(); };
     document.querySelectorAll("#fCorps [data-haut]").forEach((b) => { b.onclick = () => bouger(b.dataset.haut, -1); });
     document.querySelectorAll("#fCorps [data-bas]").forEach((b) => { b.onclick = () => bouger(b.dataset.bas, 1); });
     document.querySelectorAll("#fCorps [data-rmod]").forEach((x) => { x.onchange = () => { const k = x.dataset.rmod; A.modules[k] = x.checked; if (k === "rcp" && x.checked) A.modules.taches = true; if (k === "taches" && !x.checked) A.modules.rcp = false; refaire(); }; });
@@ -276,12 +277,24 @@ function ouvrirFormule(c) {
   brancher();
   $("fAnn").onclick = fermer;
   $("fOk").onclick = async () => {
-    lireMax(); const b = $("fOk"); b.disabled = true; b.textContent = "Enregistrement…";
-    try { const o = await serveur("abonnementCabinet", { espace: c.id, formule: A.formule, modules: A.modules, max: A.max, reglage: R }); c.abonnement = o.abonnement; fermer(); RES = "Réglage enregistré pour « " + esc(c.nom) + " » : " + esc(nomFormule(o.abonnement)) + ". Il s'applique à la prochaine ouverture d'Onco360 par l'équipe."; dessiner(); }
-    catch (e) { b.disabled = false; b.textContent = "Enregistrer"; alert("Enregistrement impossible : " + e.message); }
+    lire(); if (!o.avecPack && !nom) { alert("Indiquez le nom du pack."); return; }
+    const b = $("fOk"); b.disabled = true; b.textContent = "Enregistrement…";
+    try { await o.enregistrer(A, R, nom); } catch (e) { b.disabled = false; b.textContent = "Enregistrer"; alert("Enregistrement impossible : " + e.message); }
   };
 }
-
+// Réglage d'un cabinet : pack de départ, puis retouches dans le cabinet
+function ouvrirFormule(c) {
+  if (!c) return;
+  const A = JSON.parse(JSON.stringify(abonnementEffectif(c.abonnement))); A.formule = A.formule || "complet";
+  editeurReglage({ titre: "Réglage de « " + c.nom + " »", avecPack: true, A, R: reglageEffectif(c.abonnement && c.abonnement.reglage), spe: () => (FORMULES_()[A.formule] || {}).specialite,
+    intro: "Choisissez le pack (il apporte ses modules, ses limites et son réglage), puis retouchez à volonté pour ce cabinet : ordre (↑ ↓), présence (cases), fonctions de chaque module. Ce qui est retiré est caché, les données sont gardées. Le changement s'applique à la prochaine ouverture d'Onco360 par l'équipe.",
+    compte: (k) => (k === "patients" ? c.patients : k === "etablissements" ? c.etablissements : (c.roles || {})[k] || 0),
+    enregistrer: async (A2, R2) => {
+      const F = FORMULES_()[A2.formule] || {}, identique = JSON.stringify(R2) === JSON.stringify(reglageEffectif(F.reglage));
+      const o = await serveur("abonnementCabinet", { espace: c.id, formule: A2.formule, modules: A2.modules, max: A2.max, reglage: R2, identiqueAuPack: identique });
+      c.abonnement = o.abonnement; fermer(); RES = "Réglage enregistré pour « " + esc(c.nom) + " » : " + esc(nomFormule(o.abonnement)) + ". Il s'applique à la prochaine ouverture d'Onco360 par l'équipe."; dessiner();
+    } });
+}
 // ───── Mot de passe, suspension, suppression ─────
 async function renvoyer(b, email) {
   b.disabled = true;
@@ -323,64 +336,72 @@ async function supprimer(b, c) {
   catch (e) { b.disabled = false; b.textContent = "Supprimer"; alert("Suppression impossible : " + e.message); }
 }
 
-// ───── Onglet Formules : par spécialité ; nom, spécialité, modules, maximums ; ajouter, supprimer ─────
-function htmlFormules() {
-  const L = FED || JSON.parse(JSON.stringify(FORMULES_())), util = (k) => (CABINETS || []).filter((c) => c.abonnement && c.abonnement.formule === k).length;
-  const spes = SPECIALITES.concat(Object.values(L).map((f) => f.specialite || "Autres").filter((s, i, a) => SPECIALITES.indexOf(s) < 0 && a.indexOf(s) === i));
-  const manquantes = Object.keys(FORMULES0).filter((k) => !L[k]).length;
-  const carte = ([k, f]) => '<div class="fml" data-f="' + esc(k) + '"><div class="fml-haut"><input class="nomf" data-fl="lib" value="' + esc(f.lib) + '" aria-label="Nom de la formule">' +
-    '<select data-fs aria-label="Spécialité">' + spes.map((s) => "<option" + (s === (f.specialite || "Autres") ? " selected" : "") + ">" + esc(s) + "</option>").join("") + "</select>" +
-    '<span class="m">' + util(k) + " cabinet(s)</span>" + (util(k) ? "" : '<button class="rouge petit" data-fsup="' + esc(k) + '">Supprimer</button>') + "</div>" +
-    '<div class="mods">' + MODULES.filter(([m]) => modulePour(m, f.specialite)).map(([m, lib]) => '<label class="mod"><input type="checkbox" data-fm="' + m + '"' + ((f.modules || []).indexOf(m) >= 0 ? " checked" : "") + "><span>" + esc(lib) + (MODULE_FAMILLE[m] ? ' <span class="m">(' + esc(famille(MODULE_FAMILLE[m])) + ")</span>" : "") + "</span></label>").join("") + "</div>" +
-    '<div class="form maxs">' + ROLES_MAX.map(([m, lib]) => "<div><label>" + esc(lib) + '</label><input type="number" min="0" data-fx="' + m + '" value="' + (f.max && f.max[m] != null ? f.max[m] : "") + '" placeholder="sans limite"></div>').join("") + "</div></div>";
-  return '<section class="carte"><h2>Formules</h2><p class="sous">Ce que contient chaque formule, rangée par spécialité. Les cabinets qui suivent une formule sans retouche reçoivent ses nouvelles valeurs dès l\'enregistrement ; un cabinet « sur mesure » garde les siennes. Maximum vide = sans limite, 0 = aucun.</p>' +
-    '<div class="puces"><button class="puce' + (SPE === "" ? " on" : "") + '" data-spe="">Toutes</button>' + spes.map((s) => '<button class="puce' + (s === SPE ? " on" : "") + '" data-spe="' + esc(s) + '">' + esc(s) + ' <span class="nb">' + Object.values(L).filter((f) => (f.specialite || "Autres") === s).length + "</span></button>").join("") + "</div>" +
-    '<div class="barre" style="margin-top:12px"><button class="clair" id="fNouv">+ Nouvelle formule</button>' + (manquantes ? '<button class="clair" id="fProp">Ajouter les ' + manquantes + " formule(s) proposée(s) par Onco360</button>" : "") + "</div></section>" +
-    spes.filter((s) => !SPE || s === SPE).map((s) => { const l = Object.entries(L).filter(([, f]) => (f.specialite || "Autres") === s); return '<section class="carte"><h2>' + esc(s) + ' <span class="m">' + l.length + " formule" + (l.length > 1 ? "s" : "") + "</span></h2>" + (l.length ? l.map(carte).join("") : '<p class="sous">Aucune formule pour l\'instant' + (/générale|Gynéco/.test(s) ? " : les modules de cette spécialité sont à créer (feuille de route)." : ".") + "</p>") + "</section>"; }).join("") +
-    '<div class="enreg' + (FED ? " on" : "") + '" id="fBarre"><span>Modifications non enregistrées</span><button class="clair" id="fAnnul">Annuler</button><button id="fEnr">Enregistrer les formules</button></div>';
-}
-function lireFormules() {
-  const L = JSON.parse(JSON.stringify(FED || FORMULES_())); // formules cachées par le filtre de spécialité : gardées telles quelles
-  document.querySelectorAll(".fml").forEach((z) => {
-    const k = z.dataset.f, max = {};
-    z.querySelectorAll("[data-fx]").forEach((x) => { max[x.dataset.fx] = x.value === "" ? null : Number(x.value); });
-    L[k] = { lib: z.querySelector("[data-fl]").value.trim() || k, specialite: z.querySelector("[data-fs]").value, modules: [...z.querySelectorAll("[data-fm]")].filter((x) => x.checked).map((x) => x.dataset.fm), max };
-    if (L[k].modules.indexOf("taches") < 0) L[k].modules = L[k].modules.filter((m) => m !== "rcp");
-  });
-  return L;
-}
-function brancherFormules() {
-  const modif = () => { FED = lireFormules(); $("fBarre").classList.add("on"); };
-  document.querySelectorAll(".fml input, .fml select").forEach((x) => { x.oninput = x.onchange = () => { modif(); if (x.type === "checkbox" || x.tagName === "SELECT") dessiner(); }; });
-  document.querySelectorAll("[data-spe]").forEach((b) => { b.onclick = () => { if (FED) FED = lireFormules(); SPE = b.dataset.spe; dessiner(); }; });
-  document.querySelectorAll("[data-fsup]").forEach((b) => { b.onclick = () => { const L = lireFormules(); if (!confirm("Supprimer la formule « " + (L[b.dataset.fsup] || {}).lib + " » ?")) return; delete L[b.dataset.fsup]; FED = L; dessiner(); }; });
-  $("fNouv").onclick = () => {
-    const nom = prompt("Nom de la nouvelle formule :"); if (!nom || !nom.trim()) return;
-    const L = lireFormules(); let base = sansAcc(nom).replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 26);
-    if (base.length < 2) base = "formule"; let k = base, n = 2; while (L[k]) k = base + "-" + n++;
-    L[k] = { lib: nom.trim().slice(0, 40), specialite: SPE || SPECIALITES[0], modules: MODULES.map((m) => m[0]), max: { medecin: 1, assistante: 1, infirmiere: 0, etablissements: 1, patients: null } }; FED = L; dessiner();
-  };
-  if ($("fProp")) $("fProp").onclick = () => { const L = lireFormules(); Object.entries(FORMULES0).forEach(([k, f]) => { if (!L[k]) L[k] = JSON.parse(JSON.stringify(f)); }); FED = L; dessiner(); };
-  $("fAnnul").onclick = () => { FED = null; dessiner(); };
-  $("fEnr").onclick = async () => {
-    const b = $("fEnr"), L = lireFormules(); b.disabled = true; b.textContent = "Enregistrement…";
-    try { const o = await serveur("formulesEnregistrer", { formules: L }); FS = o.formules; FED = null; RES = "Formules enregistrées" + (o.cabinets ? " ; " + o.cabinets + " cabinet(s) mis à jour" : "") + "."; CABINETS = null; dessiner(); charger(); }
-    catch (e) { b.disabled = false; b.textContent = "Enregistrer les formules"; alert("Enregistrement impossible : " + e.message); }
-  };
-}
 // ───── Onglet Modules et menus (10/10/2026) ─────
 // Chaque module : à quelle(s) spécialité(s) il sert, ce qu'il ajoute au menu et au dossier, dans quelles formules et chez combien de
 // cabinets. Le contenu d'un module (ses écrans) est le même pour tous : une modification s'applique à tous les cabinets qui l'ont.
 const famille = (id) => (BIBLIOTHEQUES_SPE.find((b) => b.id === id) || {}).lib || id;
 const bibDe = (spe) => (BIBLIOTHEQUES_SPE.find((b) => b.specialites.indexOf(spe) >= 0) || BIBLIOTHEQUES_SPE[0]).id;
 const modulePour = (k, spe) => !MODULE_FAMILLE[k] || MODULE_FAMILLE[k] === bibDe(spe || SPECIALITES[0]);
-function htmlModules() {
-  const F = FORMULES_(), C = CABINETS || [];
-  const ligne = ([k, lib, de]) => { const fs = Object.values(F).filter((f) => (f.modules || []).indexOf(k) >= 0).map((f) => f.lib), nc = C.filter((c) => c.actif && abonnementEffectif(c.abonnement).modules[k]).length;
-    return '<div class="modl"><div><b>' + esc(lib) + '</b><div class="m">' + esc(de) + '</div><div class="m">↳ ' + esc(MODULE_MENU[k] || "") + '</div></div><div class="m n">' + nc + " cabinet" + (nc > 1 ? "s" : "") + " actif" + (nc > 1 ? "s" : "") + "<br>" + (fs.length ? esc(fs.length + " formule" + (fs.length > 1 ? "s" : "")) : "aucune formule") + "</div></div>"; };
-  return '<section class="carte"><h2>Modules et menus</h2><p class="sous">Un <b>module</b> est une partie d\'Onco360 (menu, onglet ou bouton). Les modules communs servent à toutes les spécialités ; d\'autres sont propres à une spécialité (ex. Protocoles : oncologie – radiothérapie). <b>Le contenu d\'un module est le même pour tous</b> : quand vous demandez une modification (ex. « modifie le module Tâches »), elle s\'applique, dès sa mise en ligne, à <b>tous les cabinets actifs qui ont ce module</b>. Qui a quel module : onglet Formules, et « Formule et modules » de chaque cabinet.</p>' +
-    '<h3 class="st">Toujours présents (toutes spécialités)</h3><p class="m">' + esc(MENU_COMMUN.join(" · ")) + "</p></section>" +
-    '<section class="carte"><h2>Modules communs</h2><p class="m">Toutes les spécialités, selon la formule.</p>' + MODULES.filter(([k]) => !MODULE_FAMILLE[k]).map(ligne).join("") + "</section>" +
-    BIBLIOTHEQUES_SPE.map((B) => { const l = MODULES.filter(([k]) => MODULE_FAMILLE[k] === B.id), p = MODULES_PREVUS.filter((x) => x[2] === B.id);
-      return '<section class="carte"><h2>' + esc(B.lib) + '</h2><p class="m">' + esc(B.specialites.join(" · ")) + "</p>" + l.map(ligne).join("") + p.map(([, lib]) => '<div class="modl prevu"><div><b>' + esc(lib) + '</b><div class="m">À construire (feuille de route, étape 14)</div></div><span class="bdg">Prévu</span></div>').join("") + (l.length || p.length ? "" : '<p class="m">Aucun module propre pour l\'instant (à décider).</p>') + "</section>"; }).join("");
+// Modules et menus d'une spécialité : communs + propres à sa famille + prévus
+function htmlModules(spe) {
+  const F = FORMULES_(), C = CABINETS || [], fam = bibDe(spe);
+  const ligne = ([k, lib, de]) => { const fs = Object.values(F).filter((f) => specialiteDe(f.specialite) === spe && (f.modules || []).indexOf(k) >= 0).length, nc = C.filter((c) => c.actif && abonnementEffectif(c.abonnement).modules[k] && specialiteDe((formuleDe(c.abonnement) || {}).specialite) === spe).length;
+    return '<div class="modl"><div><b>' + esc(lib) + '</b><div class="m">' + esc(de) + '</div><div class="m">↳ ' + esc(MODULE_MENU[k] || "") + (FONCTIONS[k] ? " · " + FONCTIONS[k].length + " fonctions" : "") + '</div></div><div class="m n">' + nc + " cabinet" + (nc > 1 ? "s" : "") + " actif" + (nc > 1 ? "s" : "") + "<br>dans " + fs + " pack" + (fs > 1 ? "s" : "") + "</div></div>"; };
+  const propres = MODULES.filter(([k]) => MODULE_FAMILLE[k] === fam), prevus = MODULES_PREVUS.filter((x) => x[2] === fam);
+  return '<section class="carte"><p class="sous">Un <b>module</b> est une partie d\'Onco360 (menu, onglet ou bouton). <b>Son contenu est le même pour tous</b> : une modification demandée (ex. « modifie le module Tâches ») s\'applique, dès sa mise en ligne, à tous les cabinets actifs qui l\'ont. Qui a quoi : les packs, et le réglage de chaque cabinet.</p><h3 class="st">Toujours présents</h3><p class="m">' + esc(MENU_COMMUN.join(" · ")) + "</p>" +
+    '<h3 class="st">Modules communs (toutes les spécialités)</h3>' + MODULES.filter(([k]) => !MODULE_FAMILLE[k]).map(ligne).join("") +
+    '<h3 class="st">Propres à ' + esc(spe) + "</h3>" + (propres.length ? propres.map(ligne).join("") : "") + prevus.map(([, lib]) => '<div class="modl prevu"><div><b>' + esc(lib) + '</b><div class="m">À construire (feuille de route, étape 14)</div></div><span class="bdg">Prévu</span></div>').join("") + (propres.length || prevus.length ? "" : '<p class="m">Aucun module propre pour l\'instant (à décider).</p>') + "</section>";
+}
+// ───── Onglet Par spécialité (16.2, 10/10/2026) : packs, modules et menus, bibliothèques et paramètres ─────
+let SPEC = null, SOUS = "packs";
+const packsDe = (spe) => Object.entries(FORMULES_()).filter(([, f]) => specialiteDe(f.specialite) === spe);
+const cabinetsDuPack = (k) => (CABINETS || []).filter((c) => c.abonnement && c.abonnement.formule === k).length;
+function htmlSpecialites() {
+  SPEC = SPEC || SPECIALITES[0];
+  const gauche = '<div class="spe-l">' + SPECIALITES.map((s) => { const np = packsDe(s).length, nc = (CABINETS || []).filter((c) => specialiteDe((formuleDe(c.abonnement) || {}).specialite) === s && c.abonnement).length;
+    return '<button class="spe' + (s === SPEC ? " on" : "") + '" data-spec="' + esc(s) + '"><b>' + esc(s) + '</b><span class="m">' + np + " pack" + (np > 1 ? "s" : "") + " · " + nc + " cabinet" + (nc > 1 ? "s" : "") + "</span></button>"; }).join("") +
+    '<p class="m" style="margin:8px 4px">Nouvelle spécialité : étape 16.5.</p></div>';
+  const sous = [["packs", "Packs"], ["modules", "Modules et menus"], ["biblio", "Bibliothèque et paramètres"]];
+  let droite = '<div class="puces">' + sous.map(([k, l]) => '<button class="puce' + (k === SOUS ? " on" : "") + '" data-sous="' + k + '">' + esc(l) + "</button>").join("") + "</div>";
+  if (SOUS === "modules") droite += htmlModules(SPEC);
+  else if (SOUS === "biblio") { const B = (BIBS || []).find((b) => b.specialites.indexOf(SPEC) >= 0) || BIBLIOTHEQUES_SPE.find((b) => b.specialites.indexOf(SPEC) >= 0); droite += '<section class="carte"><p class="sous">Ce que reçoit chaque nouveau cabinet de cette spécialité : bibliothèques (protocoles, médicaments, ordonnances types, analyses et bilans, examens, courriers, documentation) et paramètres de base (horaires, fériés, WhatsApp, couleurs, types, tâches automatiques, RCP, listes, impression, alertes, tarifs RT). Jamais : correspondants, prix des consultations, lieux, équipe, patients.</p></section>' + (B ? '<div class="cabs">' + carteBib(B) + "</div>" : ""); }
+  else {
+    const L = packsDe(SPEC);
+    droite += '<section class="carte"><p class="sous">Les packs de départ de « ' + esc(SPEC) + ' ». Chacun a son réglage complet (modules et fonctions, menu, cartes du tableau de bord, onglets des Paramètres, bibliothèques, limites). Un cabinet reçoit le réglage de son pack, puis peut être retouché. Modifier un pack met à jour les cabinets qui le suivent sans retouche.</p>' +
+      (L.length ? '<div class="tableau"><table class="lc"><thead><tr><th></th><th>Pack</th><th>Modules</th><th>Limites</th><th class="n">Cabinets</th><th></th></tr></thead><tbody>' + L.map(([k, f], i) => { const nm = (f.modules || []).length, mx = ROLES_MAX.filter(([r]) => f.max && f.max[r] != null).map(([r, lib]) => f.max[r] + " " + lib.toLowerCase()).join(", ") || "sans limite", nc = cabinetsDuPack(k);
+        return '<tr><td><span class="fl"><button class="clair petit" data-ph="' + esc(k) + '"' + (i ? "" : " disabled") + ' aria-label="Monter">↑</button><button class="clair petit" data-pb="' + esc(k) + '"' + (i < L.length - 1 ? "" : " disabled") + ' aria-label="Descendre">↓</button></span></td><td data-l="Pack"><b>' + esc(f.lib) + '</b>' + (f.reglage ? ' <span class="bdg">réglage complet</span>' : "") + '</td><td data-l="Modules">' + nm + ' / ' + MODULES.filter(([m]) => modulePour(m, SPEC)).length + '</td><td data-l="Limites" class="m">' + esc(mx) + '</td><td data-l="Cabinets" class="n">' + nc + '</td><td class="act"><button class="clair petit" data-pm="' + esc(k) + '">Modifier</button><button class="clair petit" data-pd="' + esc(k) + '">Dupliquer</button>' + (nc ? "" : '<button class="rouge petit" data-ps="' + esc(k) + '">Supprimer</button>') + "</td></tr>"; }).join("") + "</tbody></table></div>" : '<p class="sous">Aucun pack pour l\'instant' + (/générale|Gynéco/.test(SPEC) ? " : les modules de cette spécialité sont à construire (étape 14)." : ".") + "</p>") +
+      '<div class="barre" style="margin-top:12px"><button id="pNouv">+ Nouveau pack</button>' + (Object.keys(FORMULES0).some((k) => !FORMULES_()[k] && specialiteDe(FORMULES0[k].specialite) === SPEC) ? '<button class="clair" id="pProp">Ajouter les packs proposés par Onco360</button>' : "") + "</div></section>";
+  }
+  return '<div class="spe-g">' + gauche + '<div class="spe-d">' + droite + "</div></div>";
+}
+async function enregistrerPacks(L, message) {
+  const o = await serveur("formulesEnregistrer", { formules: L }); FS = o.formules; Object.values(FS).forEach((f) => { f.specialite = specialiteDe(f.specialite); });
+  RES = message + (o.cabinets ? " ; " + o.cabinets + " cabinet(s) mis à jour" : "") + "."; CABINETS = null; dessiner(); charger();
+}
+function ouvrirPack(k, modele) {
+  const F0 = modele || FORMULES_()[k] || { lib: "", specialite: SPEC, modules: MODULES.filter(([m]) => modulePour(m, SPEC)).map((m) => m[0]), max: {} };
+  const A = { formule: k, modules: Object.fromEntries(MODULES.map(([m]) => [m, (F0.modules || []).indexOf(m) >= 0])), max: Object.fromEntries(ROLES_MAX.map(([r]) => [r, F0.max && F0.max[r] != null ? F0.max[r] : null])) };
+  editeurReglage({ titre: (FORMULES_()[k] ? "Pack « " + F0.lib + " »" : "Nouveau pack") + " · " + SPEC, avecPack: false, nom: F0.lib, A, R: reglageEffectif(F0.reglage), spe: () => SPEC,
+    intro: "Le réglage de départ des cabinets qui reçoivent ce pack. Les cabinets qui le suivent sans retouche reçoivent aussitôt les modifications ; un cabinet retouché garde les siennes.",
+    enregistrer: async (A2, R2, nom) => {
+      const L = JSON.parse(JSON.stringify(FORMULES_())); let cle = k;
+      if (!L[cle]) { let base = sansAcc(nom).replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 26); if (base.length < 2) base = "pack"; cle = base; let n = 2; while (L[cle]) cle = base + "-" + n++; }
+      L[cle] = { lib: nom.slice(0, 40), specialite: SPEC, modules: MODULES.map(([m]) => m).filter((m) => A2.modules[m]), max: A2.max, reglage: R2 };
+      fermer(); await enregistrerPacks(L, "Pack « " + esc(nom) + " » enregistré");
+    } });
+}
+function brancherSpecialites() {
+  document.querySelectorAll("[data-spec]").forEach((b) => { b.onclick = () => { SPEC = b.dataset.spec; dessiner(); }; });
+  document.querySelectorAll("[data-sous]").forEach((b) => { b.onclick = () => { SOUS = b.dataset.sous; dessiner(); }; });
+  document.querySelectorAll("[data-pm]").forEach((b) => { b.onclick = () => ouvrirPack(b.dataset.pm); });
+  document.querySelectorAll("[data-pd]").forEach((b) => { b.onclick = () => { const F = JSON.parse(JSON.stringify(FORMULES_()[b.dataset.pd])); F.lib = (F.lib + " (copie)").slice(0, 40); ouvrirPack("", F); }; });
+  document.querySelectorAll("[data-ps]").forEach((b) => { b.onclick = async () => { const L = JSON.parse(JSON.stringify(FORMULES_())), f = L[b.dataset.ps]; if (!confirm("Supprimer le pack « " + f.lib + " » ? (aucun cabinet ne l'utilise)")) return; delete L[b.dataset.ps]; try { await enregistrerPacks(L, "Pack « " + esc(f.lib) + " » supprimé"); } catch (e) { alert("Impossible : " + e.message); } }; });
+  const bouge = async (k, sens) => { const E = Object.entries(FORMULES_()), mes = E.filter(([, f]) => specialiteDe(f.specialite) === SPEC).map(([c]) => c), i = mes.indexOf(k), j = i + sens; if (j < 0 || j >= mes.length) return;
+    [mes[i], mes[j]] = [mes[j], mes[i]]; const L = {}; E.filter(([, f]) => specialiteDe(f.specialite) !== SPEC).forEach(([c, f]) => { L[c] = f; }); mes.forEach((c) => { L[c] = FORMULES_()[c]; });
+    try { await enregistrerPacks(JSON.parse(JSON.stringify(L)), "Ordre des packs enregistré"); } catch (e) { alert("Impossible : " + e.message); } };
+  document.querySelectorAll("[data-ph]").forEach((b) => { b.onclick = () => bouge(b.dataset.ph, -1); });
+  document.querySelectorAll("[data-pb]").forEach((b) => { b.onclick = () => bouge(b.dataset.pb, 1); });
+  if ($("pNouv")) $("pNouv").onclick = () => ouvrirPack("");
+  if ($("pProp")) $("pProp").onclick = async () => { const L = JSON.parse(JSON.stringify(FORMULES_())); Object.entries(FORMULES0).forEach(([k, f]) => { if (!L[k] && specialiteDe(f.specialite) === SPEC) L[k] = JSON.parse(JSON.stringify(f)); }); try { await enregistrerPacks(L, "Packs proposés ajoutés"); } catch (e) { alert("Impossible : " + e.message); } };
+  brancherReference();
 }

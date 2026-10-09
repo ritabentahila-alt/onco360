@@ -604,8 +604,8 @@ exports.abonnementCabinet = onCall({ timeoutSeconds: 30, memory: "256MiB" }, asy
   if (!(await estAdministrateur(par))) throw new HttpsError("permission-denied", "Réservé à l'administration d'Onco360.");
   const { espace } = req.data || {};
   const ref = db.doc("espaces/" + String(espace || "x")); if (!espace || !(await ref.get()).exists) throw new HttpsError("not-found", "Cabinet introuvable.");
+  // Pack + retouches du cabinet (ordre, cartes, onglets, fonctions… ; identiqueAuPack : réglage égal à celui du pack)
   const ab = Object.assign(C.abonnement(req.data || {}, await formules()), { le: new Date().toISOString(), par });
-  const rg = C.reglageNettoye((req.data || {}).reglage); if (rg) ab.reglage = rg; // retouches du cabinet (ordre, cartes, onglets, fonctions…)
   await ref.update({ abonnement: ab });
   console.log("abonnement", espace, ab.formule, ab.surMesure ? "(sur mesure)" : "", "par", par);
   return { abonnement: ab };
@@ -618,11 +618,13 @@ exports.formulesEnregistrer = onCall({ timeoutSeconds: 60, memory: "256MiB" }, a
   const FS = C.formulesValides((req.data || {}).formules);
   if (!FS) throw new HttpsError("invalid-argument", "Il faut au moins une formule.");
   const es = await db.collection("espaces").get(), utilisees = new Set(), maj = [];
-  es.forEach((d) => { const ab = d.data().abonnement; if (ab && ab.formule) { utilisees.add(ab.formule); if (FS[ab.formule] && !ab.surMesure) maj.push(d); } });
+  // Cabinets qui suivent un pack sans retouche : ils reçoivent ses nouvelles valeurs (modules, limites, réglage) ; un cabinet retouché
+  // (ou réglé avant le 10/10 sans le savoir : réglage sans « retouche » noté) garde les siens
+  es.forEach((d) => { const ab = d.data().abonnement; if (ab && ab.formule) { utilisees.add(ab.formule); if (FS[ab.formule] && !ab.surMesure && !(ab.reglage && ab.retouche !== false)) maj.push(d); } });
   const manquantes = [...utilisees].filter((f) => !FS[f]);
   if (manquantes.length) throw new HttpsError("failed-precondition", "Formule encore utilisée par un cabinet : " + manquantes.join(", ") + ". Changez d'abord la formule de ce cabinet.");
   await db.doc("plateforme/formules").set({ data: JSON.stringify(FS), le: new Date().toISOString(), par });
-  for (const d of maj) { const a0 = d.data().abonnement; await d.ref.update({ abonnement: Object.assign(C.abonnement({ formule: a0.formule }, FS), a0.reglage ? { reglage: a0.reglage } : {}, { le: new Date().toISOString(), par }) }); } // retouches gardées
+  for (const d of maj) await d.ref.update({ abonnement: Object.assign(C.abonnement({ formule: d.data().abonnement.formule }, FS), { le: new Date().toISOString(), par }) });
   console.log("formules enregistrées par", par, Object.keys(FS).join(", "), "cabinets mis à jour", maj.length);
   return { formules: FS, cabinets: maj.length };
 });
