@@ -133,6 +133,9 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
   { formule, surMesure, modules, max } écrit par `abonnementCabinet` ; `D.abo` / `module(k)` (v2.js, `A.module`) ; module retiré =
   `body.sans-<k>` cache `[data-mod~=k]`, `PAGE_MODULE` renvoie au tableau de bord ; suspendre / supprimer : `etatCabinet` /
   `supprimerCabinet` (`espaces/{e}.actif = false` → règles `cabinetActif()`) ; lien du mot de passe : `lienMotDePasse`.
+  Bibliothèque de référence : `plateforme/reference` (+ `/docs/{col}__{id}`), copie nettoyée du cabinet de Dr Bentahila prise par
+  `referenceMaj` (ou à la 1re création) ; `creerEspace` (index.js) copie la référence, jamais le cabinet en direct. Cabinet de
+  démonstration : `cab-demonstration` (`demo: true`), `creerCabinetDemo` / `demoReinitialiser`, patients fictifs `functions/demo.js`.
 Ancienne application : collections racine `patients`, `protocoles`, `finances`, `parametres` (lecture seule).
 
 ## Règles métier importantes

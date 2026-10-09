@@ -295,6 +295,7 @@ function entete() {
   D.titre = p.titre || (mb.role === "medecin" ? "Dr" : ""); D.nomAff = cap(nom.toLowerCase());
   $("nomMenu").textContent = [D.titre, p.prenom, D.nomAff].filter(Boolean).join(" ") || D.u.email;
   $("specMenu").textContent = p.specialite || { medecin: "Médecin", infirmiere: "Infirmière", assistante: "Assistante" }[mb.role] || "";
+  if (D.espaceDoc && D.espaceDoc.demo) $("specMenu").textContent = "Cabinet de démonstration (patients fictifs)"; // étape 9 S3
   const ini = initiales((p.prenom || "") + " " + nom);
   ["avMenu", "avTete"].forEach((i) => { if (p.photo) $(i).innerHTML = '<img src="' + p.photo + '" alt="' + esc(ini) + '">'; else $(i).textContent = ini; }); $("avTete").title = D.u.email;
   document.querySelectorAll("nav a[data-droit]").forEach((a) => { if (!(mb.droits && mb.droits[a.dataset.droit])) a.classList.add("cache"); });

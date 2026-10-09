@@ -952,7 +952,7 @@ gardé** pour l'instant (durée à fixer avec le juriste).
 - [x] Mise en ligne le 09/10 (fonction `auditEcriture`, règles, site) : le journal note depuis ce jour.
 - [ ] Durée de conservation à décider (avec le juriste). Volume à surveiller (une ligne par écriture et par ouverture).
 **S2 – Rôles et droits affinés**
-- [x] Nouveau rôle **Comptable** (09/10, fait et testé, pas encore en ligne). **Décidé** : patients en nom + n° de dossier (aucun
+- [x] Nouveau rôle **Comptable** (09/10, fait, testé et mis en ligne). **Décidé** : patients en nom + n° de dossier (aucun
       diagnostic) ; il **pointe les paiements** et saisit les versements, sans toucher aux tarifs ; relevé préparé quand un médecin
       ouvre Onco360 ou enregistre un dossier, **date affichée**. Relevé financier `comptabilite/releve_0…n` + `meta` (bilan.js
       `publierReleve`, 3 s après l'ouverture, 2 min après un enregistrement ; réécrit seulement s'il a changé). Règles : le
@@ -968,7 +968,18 @@ gardé** pour l'instant (durée à fixer avec le juriste).
 - [ ] Bouton **« Mode démo »** (médecin) : noms, prénoms, téléphones, dates de naissance, photos **remplacés à l'écran**
       par des faux (« Patient Test 12 ») ; rien n'est modifié dans la base ; bandeau « MODE DÉMO » ; impressions bloquées
       ou anonymisées.
-- [ ] Mieux encore pour les démonstrations : un **cabinet de démonstration** séparé rempli de faux patients (étape 12).
+- [x] **Cabinet de démonstration** (décidé le 09/10 à la place du bouton, fait et testé) : page Administration › Cabinets ›
+      « Créer le cabinet de démonstration » (fonction `creerCabinetDemo`, `cab-demonstration`, `demo: true`, formule Complète,
+      compte de démonstration à l'e-mail choisi, par défaut ritabentahila+demo@gmail.com), clinique fictive DEMO et ses tarifs,
+      **8 patients fictifs** PATIENT TEST 1 à 8 (`functions/demo.js` : chimios en cours, RT en cours / contourage à valider,
+      rendez-vous du jour et à venir, consultations), badge « Démonstration », « **Réinitialiser la démo** » (`demoReinitialiser` :
+      tout refait aux dates du jour). Dans Onco360 : « Cabinet de démonstration (patients fictifs) » sous le nom. Tests : moteur 9/9
+      (`node functions/test-demo.js`), navigateur 14/14 (`tests/test_demo.py`).
+- [ ] Bouton « Mode démo » (anonymisation à l'écran d'un vrai cabinet) : plus tard si besoin.
+- [x] **Bibliothèque de référence** (demandé le 09/10) : ce que reçoit un cabinet neuf vient d'une **copie mise de côté**
+      (`plateforme/reference`, serveur seulement, déjà nettoyée : ni correspondants, ni tarifs, ni absences), prise dans le cabinet
+      de Dr Bentahila à la 1re création puis seulement quand l'administration clique « Mettre à jour depuis le cabinet du Dr
+      Bentahila » (onglet « Bibliothèque de référence », `referenceMaj`). Les modifications d'un médecin restent dans son cabinet.
 
 ## Étape 10 – Mode hors-ligne (application installable)
 - [ ] Onco360 **installable** sur ordinateur, tablette et téléphone (icône, plein écran).
@@ -1185,3 +1196,4 @@ Onco360_Package_Cession/
 | 09/10/2026 | 4 – F1 Administration | 8 formules proposées par spécialité (Oncologie : Essentiel / Pro / Clinique ; Radiothérapie : Essentiel / Pro / Centre ; Onco-radiothérapie : Pro / Clinique), spécialité modifiable ; page Administration refaite : onglets Cabinets (chiffres, recherche, filtres statut / spécialité, cartes) / Nouveau cabinet (spécialité → formule, aperçu) / Formules (par spécialité, barre d'enregistrement) ; réglages dans une fenêtre. Étape 14 ajoutée (autres spécialités). Tests 33/33, navigateur 44/44, bilan 352 317 DH. Mis en ligne. |
 | 09/10/2026 | 9 – S1 Journal d'audit | Décidé : modifications, suppressions, ouvertures ; partie touchée sans valeurs ; titulaire seul ; tout gardé. Fonction `auditEcriture` (identité réelle, infalsifiable), `audit/{e}/lignes`, page Paramètres › Journal d'audit (filtres, export Excel), bouton Journal du dossier. Corrigé : lien direct vers un onglet du titulaire (Accès, Journal) qui retombait sur le 1er onglet. Règles 167/167, logique 25/25, navigateur 12/12 + 44/44, bilan 352 317 DH. Code sur GitHub (dépôt privé ritabentahila-alt/onco360). Pas encore en ligne. |
 | 09/10/2026 | 9 – S1 en ligne, S2 Comptable | Journal d'audit mis en ligne. Rôle Comptable : relevé financier préparé par le médecin (nom + n° de dossier, actes, montants, sans diagnostic), pointage des paiements et versements, aucun dossier ouvert (règles), Bilan et Profil seulement. Règles 182/182, navigateur 13/13, bilan identique 352 317 DH. Pas encore en ligne. |
+| 09/10/2026 | 9 – S2 en ligne, S3 Démo, référence | Comptable mis en ligne. Bibliothèque de référence mise de côté (plateforme/reference, mise à jour à la demande, onglet de l'Administration). Cabinet de démonstration : 8 patients fictifs, réinitialisable, badge. Tests démo 9/9 + 14/14, cabinets 44/44, comptable 13/13, bilan 352 317 DH. Mis en ligne (fonctions, site). |

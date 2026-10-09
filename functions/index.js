@@ -331,10 +331,43 @@ exports.compteMembre = onDocumentWritten({ document: "espaces/{e}/membres/{uid}"
 });
 // Nouveau cabinet : compte du médecin (créé s'il n'existe pas), cabinet, fiche de membre titulaire, copie de ce que reçoit un
 // cabinet neuf (cabinets.js). Le mot de passe est choisi par le médecin (e-mail envoyé par la page Administration).
-exports.creerCabinet = onCall({ timeoutSeconds: 120, memory: "256MiB" }, async (req) => {
+// ───── Bibliothèque de référence (09/10/2026) ─────
+// Ce que reçoit un cabinet neuf vient d'une COPIE mise de côté (plateforme/reference + plateforme/reference/docs/{chemin}), prise
+// dans le cabinet de Dr Bentahila quand l'administration le décide (« Mettre à jour la bibliothèque de référence »), et déjà
+// nettoyée (ni correspondants, ni tarifs du cabinet, ni absences). Les modifications d'un médecin dans son cabinet ne touchent que
+// son cabinet ; celles de Dr Bentahila ne passent aux nouveaux cabinets qu'après une mise à jour de la référence. Serveur seulement.
+const REF = "plateforme/reference";
+async function prendreReference(par) {
+  const M = "espaces/" + C.MODELE + "/", json = (s) => { try { return s.exists ? JSON.parse(s.data().data || "null") : null; } catch (er) { return null; } };
+  const [prot, sl, sc, st, ...sb] = await Promise.all([db.collection(M + "protocoles").get(), db.doc(M + "parametres/listes").get(), db.doc(M + "parametres/calendrier").get(), db.doc(M + "finances/tarifs").get()].concat(C.BIBLIOTHEQUES.map((b) => db.doc(M + "bibliotheques/" + b).get())));
+  const docs = [];
+  prot.forEach((p) => docs.push(["protocoles__" + p.id, p.data()]));
+  docs.push(["parametres__listes", { data: JSON.stringify(C.listesDepart(json(sl))) }], ["parametres__calendrier", { data: JSON.stringify(C.calendrierDepart(json(sc))) }], ["finances__tarifs", { data: JSON.stringify(C.tarifsDepart(json(st))) }]);
+  sb.forEach((x, i) => { if (x.exists) docs.push(["bibliotheques__" + C.BIBLIOTHEQUES[i], x.data()]); });
+  const anciens = await db.collection(REF + "/docs").listDocuments(), b = db.batch();
+  anciens.forEach((r) => b.delete(r));
+  docs.forEach(([k, v]) => b.set(db.doc(REF + "/docs/" + k), v));
+  const nb = { protocoles: prot.docs.reduce((n, p) => { try { return n + JSON.parse(p.data().data || "[]").length; } catch (e) { return n; } }, 0) };
+  sb.forEach((x, i) => { if (x.exists) { try { nb[C.BIBLIOTHEQUES[i]] = JSON.parse(x.data().data || "[]").length; } catch (e) { /* illisible */ } } });
+  const meta = { le: new Date().toISOString(), par, source: C.MODELE, nb, docs: docs.length };
+  b.set(db.doc(REF), meta); await b.commit();
+  console.log("bibliothèque de référence prise par", par, JSON.stringify(nb));
+  return meta;
+}
+// Ce que reçoit un cabinet neuf : la référence (prise une première fois si elle n'existe pas encore)
+async function source(par) {
+  if (!(await db.doc(REF).get()).exists) await prendreReference(par);
+  const s = await db.collection(REF + "/docs").get(), out = { protocoles: [], docs: [] };
+  s.forEach((d) => { const [col, id] = d.id.split("__"); if (col === "protocoles") out.protocoles.push({ id, data: d.data() }); else out.docs.push({ chemin: col + "/" + id, data: d.data() }); });
+  return out;
+}
+exports.referenceMaj = onCall({ timeoutSeconds: 120, memory: "256MiB" }, async (req) => {
   const par = req.auth && req.auth.uid;
   if (!(await estAdministrateur(par))) throw new HttpsError("permission-denied", "Réservé à l'administration d'Onco360.");
-  let d; try { d = C.verifier(req.data || {}); } catch (e) { throw new HttpsError("invalid-argument", e.message); }
+  return { reference: await prendreReference(par) };
+});
+// Création d'un cabinet (compte du titulaire, cabinet, copie de la référence) ; utilisée par creerCabinet et creerCabinetDemo
+async function creerEspace(d, par, opts) {
   const auth = getAuth(); let u = null, existant = false;
   try { u = await auth.getUserByEmail(d.email); existant = true; } catch (e) { if (e.code !== "auth/user-not-found") throw e; }
   if (existant) {
@@ -345,23 +378,65 @@ exports.creerCabinet = onCall({ timeoutSeconds: 120, memory: "256MiB" }, async (
     const mdp = require("node:crypto").randomBytes(24).toString("base64") + "a9!";
     u = await auth.createUser({ email: d.email, password: mdp, displayName: ("Dr " + d.prenom + " " + d.nom).replace(/\s+/g, " ").trim() });
   }
-  const ids = (await db.collection("espaces").listDocuments()).map((x) => x.id), e = C.idCabinet(d.cabinet, ids), jour = new Date().toISOString().slice(0, 10);
-  const M = "espaces/" + C.MODELE + "/", E = "espaces/" + e + "/", json = (s) => { try { return s.exists ? JSON.parse(s.data().data || "null") : null; } catch (er) { return null; } };
-  const [prot, sl, sc, st, ...sb] = await Promise.all([db.collection(M + "protocoles").get(), db.doc(M + "parametres/listes").get(), db.doc(M + "parametres/calendrier").get(), db.doc(M + "finances/tarifs").get()].concat(C.BIBLIOTHEQUES.map((b) => db.doc(M + "bibliotheques/" + b).get())));
-  const b = db.batch();
-  b.set(db.doc("espaces/" + e), { nom: d.cabinet, titulaire: u.uid, cree: jour, creePar: par, actif: true, abonnement: C.abonnement({ formule: (req.data || {}).formule || "complet" }, await formules()) });
+  const ids = (await db.collection("espaces").listDocuments()).map((x) => x.id), e = opts.id && ids.indexOf(opts.id) < 0 ? opts.id : C.idCabinet(d.cabinet, ids), jour = new Date().toISOString().slice(0, 10), E = "espaces/" + e + "/";
+  const src = await source(par), b = db.batch();
+  b.set(db.doc("espaces/" + e), Object.assign({ nom: d.cabinet, titulaire: u.uid, cree: jour, creePar: par, actif: true, abonnement: C.abonnement({ formule: opts.formule || "complet" }, await formules()) }, opts.espace || {}));
   b.set(db.doc(E + "membres/" + u.uid), C.membreTitulaire(d, jour, par));
-  prot.forEach((p) => b.set(db.doc(E + "protocoles/" + p.id), p.data()));
-  b.set(db.doc(E + "parametres/listes"), { data: JSON.stringify(C.listesDepart(json(sl))) });
-  b.set(db.doc(E + "parametres/calendrier"), { data: JSON.stringify(C.calendrierDepart(json(sc))) });
-  b.set(db.doc(E + "finances/tarifs"), { data: JSON.stringify(C.tarifsDepart(json(st))) });
-  sb.forEach((s, i) => { if (s.exists) b.set(db.doc(E + "bibliotheques/" + C.BIBLIOTHEQUES[i]), s.data()); });
+  src.protocoles.forEach((p) => b.set(db.doc(E + "protocoles/" + p.id), p.data));
+  src.docs.forEach((x) => b.set(db.doc(E + x.chemin), x.data));
   b.set(db.doc(E + "parametres/migrations"), C.migrationsFaites(jour));
   b.set(db.doc("comptes/" + u.uid), { espace: e, le: new Date().toISOString() });
-  b.set(db.doc("utilisateurs/" + u.uid), { email: d.email, prenom: d.prenom, nom: d.nom, telephone: d.telephone, titre: "Dr", profession: "medecin" }, { merge: true });
+  b.set(db.doc("utilisateurs/" + u.uid), Object.assign({ email: d.email, prenom: d.prenom, nom: d.nom, telephone: d.telephone, titre: "Dr", profession: "medecin" }, opts.profil || {}), { merge: true });
   await b.commit();
-  console.log("cabinet créé", e, d.email, "par", par);
-  return { espace: e, existant, protocoles: prot.size };
+  return { espace: e, uid: u.uid, existant, protocoles: src.protocoles.length, jour };
+}
+exports.creerCabinet = onCall({ timeoutSeconds: 120, memory: "256MiB" }, async (req) => {
+  const par = req.auth && req.auth.uid;
+  if (!(await estAdministrateur(par))) throw new HttpsError("permission-denied", "Réservé à l'administration d'Onco360.");
+  let d; try { d = C.verifier(req.data || {}); } catch (e) { throw new HttpsError("invalid-argument", e.message); }
+  const o = await creerEspace(d, par, { formule: (req.data || {}).formule });
+  console.log("cabinet créé", o.espace, d.email, "par", par);
+  return { espace: o.espace, existant: o.existant, protocoles: o.protocoles };
+});
+// ───── Cabinet de démonstration (étape 9 S3, 09/10/2026) ─────
+// Un seul, « cab-demonstration » (espaces/{e}.demo = true), formule Complète, clinique fictive DEMO avec ses tarifs, 8 patients
+// fictifs (demo.js) ; « Réinitialiser » refait patients, consultations, tâches, salle et montants au jour près. Le compte de
+// démonstration est un compte comme les autres (son e-mail, son mot de passe), à utiliser pour les démonstrations et les guides.
+const Dm = require("./demo");
+const DEMO = "cab-demonstration";
+async function remplirDemo(e, uid) {
+  const E = "espaces/" + e + "/";
+  for (const c of ["patients", "patientsFinances", "encaissements", "consultations", "taches", "salle", "rcp", "fichiers", "documentsRT", "presence"]) await db.recursiveDelete(db.collection(E + c)).catch(() => {});
+  const jour = new Date().toISOString().slice(0, 10), [sp, st] = await Promise.all([db.collection(E + "protocoles").get(), db.doc(E + "finances/tarifs").get()]);
+  const protos = [].concat(...sp.docs.map((d) => { try { return JSON.parse(d.data().data || "[]"); } catch (er) { return []; } }));
+  let T = {}; try { T = JSON.parse((st.exists && st.data().data) || "{}"); } catch (er) { T = {}; }
+  const P = Dm.patientsDemo(protos, T.actesRT || [], jour), b = db.batch(), now = FieldValue.serverTimestamp();
+  b.set(db.doc(E + "etablissements/DEMO"), Dm.ETAB);
+  b.set(db.doc(E + "finances/tarifs"), { data: JSON.stringify(Dm.tarifsDemo(T)) });
+  P.forEach((p) => b.set(db.doc(E + "patients/" + p.id), Object.assign({}, p.data, { maj: now, majPar: uid })));
+  Dm.consultationsDemo(P, jour, uid).forEach((c, i) => b.set(db.doc(E + "consultations/demo" + (i + 1)), Object.assign(c, { maj: now })));
+  b.set(db.doc(E + "compteurs/dossiers"), { [jour.slice(0, 7).replace("-", "")]: P.length });
+  await b.commit();
+  return { patients: P.length, jour };
+}
+exports.creerCabinetDemo = onCall({ timeoutSeconds: 300, memory: "512MiB" }, async (req) => {
+  const par = req.auth && req.auth.uid;
+  if (!(await estAdministrateur(par))) throw new HttpsError("permission-denied", "Réservé à l'administration d'Onco360.");
+  if ((await db.doc("espaces/" + DEMO).get()).exists) throw new HttpsError("already-exists", "Le cabinet de démonstration existe déjà : utilisez « Réinitialiser ».");
+  let d; try { d = C.verifier({ cabinet: "Cabinet de démonstration", prenom: "Démo", nom: "ONCO360", email: (req.data || {}).email, telephone: "" }); } catch (e) { throw new HttpsError("invalid-argument", e.message); }
+  const o = await creerEspace(d, par, { id: DEMO, formule: "complet", espace: { demo: true, ville: "Casablanca" }, profil: { specialite: "Oncologue-radiothérapeute (démonstration)", inpe: "000000000" } });
+  const r = await remplirDemo(o.espace, o.uid);
+  console.log("cabinet de démonstration créé", o.espace, d.email, "par", par);
+  return { espace: o.espace, existant: o.existant, protocoles: o.protocoles, patients: r.patients };
+});
+exports.demoReinitialiser = onCall({ timeoutSeconds: 300, memory: "512MiB" }, async (req) => {
+  const par = req.auth && req.auth.uid;
+  if (!(await estAdministrateur(par))) throw new HttpsError("permission-denied", "Réservé à l'administration d'Onco360.");
+  const s = await db.doc("espaces/" + DEMO).get();
+  if (!s.exists || s.data().demo !== true) throw new HttpsError("not-found", "Pas de cabinet de démonstration.");
+  const r = await remplirDemo(DEMO, s.data().titulaire);
+  console.log("démonstration réinitialisée par", par);
+  return r;
 });
 // Liste des cabinets pour la page Administration : nom, titulaire, date, nombre de membres et de dossiers (aucune donnée médicale)
 exports.listeCabinets = onCall({ timeoutSeconds: 60, memory: "256MiB" }, async (req) => {
@@ -378,10 +453,11 @@ exports.listeCabinets = onCall({ timeoutSeconds: 60, memory: "256MiB" }, async (
     // Date de création : texte AAAA-MM-JJ (le cabinet de référence l'a en date Firebase) ; sinon date de la fiche
     const jour = (v) => (!v ? "" : typeof v === "string" ? v.slice(0, 10) : v.toDate ? v.toDate().toISOString().slice(0, 10) : "");
     return { id: r.id, nom: x.nom || (r.id === C.MODELE ? "Cabinet du Dr Bentahila" : r.id), cree: jour(x.cree) || (s.createTime ? s.createTime.toDate().toISOString().slice(0, 10) : ""), actif: x.actif !== false, modele: r.id === C.MODELE, suspenduLe: x.suspenduLe || "",
-      titulaire: { nom: t.nom || "", email: t.email || "", telephone: t.telephone || "" }, membres, patients, roles, etablissements: netab, abonnement: x.abonnement || null, ville: x.ville || "", adresse: x.adresse || "", telephone: x.telephone || "" };
+      titulaire: { nom: t.nom || "", email: t.email || "", telephone: t.telephone || "" }, membres, patients, roles, etablissements: netab, abonnement: x.abonnement || null, ville: x.ville || "", adresse: x.adresse || "", telephone: x.telephone || "", demo: x.demo === true };
   }));
   console.log("listeCabinets : terminé en " + (Date.now() - t0) + " ms");
-  return { cabinets: out, formules: FS };
+  const ref = await db.doc(REF).get().catch(() => null);
+  return { cabinets: out, formules: FS, reference: ref && ref.exists ? ref.data() : null };
 });
 // Suspendre (abonnement non payé) ou réactiver un cabinet : espaces/{e}.actif. Suspendu = plus personne n'y entre (règles), rien
 // n'est effacé. Jamais le cabinet modèle (celui de Dr Bentahila).
