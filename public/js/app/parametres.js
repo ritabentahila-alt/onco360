@@ -24,7 +24,9 @@ export function pageParametres() {
   let h = A.enteteParametres() + // onglet « Activités et rémunérations » de la page Paramètres (08/10/2026)
     '<section class="carte"><h3><span class="ic">' + A.ic("bilan") + '</span>Activités et rémunérations</h3><p class="sous">Net = brut × (1 − rétrocession) × (1 − impôt). Un changement s\'applique aux actes réalisés à partir de sa date d\'effet ; les actes plus anciens gardent l\'ancien tarif.</p>' +
     '<div class="puces">' + etabs.map((c) => '<button class="puce' + (c === ETAB ? " on" : "") + '" onclick="paEtab(\'' + esc(c) + "')\">" + esc(c) + "</button>").join("") + "</div>";
-  if (!E) h += '<p class="sous">' + esc(nomE) + ' n\'a pas encore de grille tarifaire.</p><button class="bt clair petit" onclick="paCreer()">' + A.ic("plus") + "Créer la grille (copie de " + esc(ED.repli || "HGC") + ")</button>";
+  const srcG = sourceGrille();
+  if (!ETAB) h += '<p class="sous">Ajoutez d\'abord un lieu d\'exercice (Paramètres › Lieux d\'exercice) : chaque lieu a sa grille tarifaire.</p>';
+  else if (!E) h += '<p class="sous">' + esc(nomE) + ' n\'a pas encore de grille tarifaire.</p><button class="bt clair petit" onclick="paCreer()">' + A.ic("plus") + (srcG ? "Créer la grille (copie de " + esc(srcG[0]) + ")" : "Créer la grille") + "</button>";
   else {
     h += '<p style="margin:4px 0 10px"><b>' + esc(nomE) + '</b></p><div class="form" style="grid-template-columns:minmax(0,240px);margin-bottom:10px"><div><label for="paEff">Date d\'effet des modifications</label><input id="paEff" type="date" value="' + esc(EFFET) + '" onchange="paEffet(this.value)"></div></div>' +
       '<div class="tableau"><table class="tcures"><tr><th>Activité</th><th>Brut (DH)</th><th>Rétrocession %</th><th>Impôt %</th><th>Net (DH)</th><th title="Cochée : une consultation validée compte directement « Payé » dans le bilan (à partir de la date affichée). Décochée : vous cochez « Payé » vous-même dans le bilan.">Payé auto.</th><th>En vigueur depuis</th></tr>' +
@@ -84,7 +86,14 @@ window.paSupAct = (i) => {
   if (!confirm("Retirer l'activité « " + a.libelle + " » de " + ETAB + " ?\n\nElle ne sera plus proposée pour les rendez-vous. Les actes déjà réalisés de ce type ne seront plus comptés au bilan pour cet établissement.")) return;
   ED.etablissements[ETAB].activites.splice(i, 1); modif(true);
 };
-window.paCreer = () => { const src = ED.etablissements[ED.repli || "HGC"] || Object.values(ED.etablissements)[0]; ED.etablissements[ETAB] = src ? JSON.parse(JSON.stringify(src)) : { activites: [] }; modif(true); };
+// Grille copiée pour un nouveau lieu : celle de l'établissement de repli, sinon la première ; cabinet neuf : toutes les activités à 0
+const sourceGrille = () => { const c = ED.etablissements[ED.repli || "HGC"] ? (ED.repli || "HGC") : Object.keys(ED.etablissements)[0]; return c ? [c, ED.etablissements[c]] : null; };
+window.paCreer = () => {
+  const src = sourceGrille();
+  ED.etablissements[ETAB] = src ? JSON.parse(JSON.stringify(src[1])) : { activites: ACTIVITES.map(([type, libelle]) => ({ type, libelle, historique: [{ depuis: "2000-01-01", brut: type === "rt" ? null : 0, retro: 0, impot: 0 }] })) };
+  if (!ED.repli) ED.repli = ETAB; // premier lieu d'un cabinet neuf : établissement de repli
+  modif(true);
+};
 window.paActe = (i, f, v) => { ED.actesRT[i][f] = f === "prix" ? num(v) : String(v).trim(); modif(); };
 window.paAjActe = () => { ED.actesRT.push({ nom: "Nouvel acte", prix: 0 }); modif(true); };
 window.paSupActe = (i) => { if (!confirm("Retirer l'acte « " + ED.actesRT[i].nom + " » du catalogue ?\nLes prescriptions existantes gardent leur acte et leur prix.")) return; ED.actesRT.splice(i, 1); modif(true); };

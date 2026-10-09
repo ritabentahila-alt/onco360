@@ -63,7 +63,7 @@ function htmlPli(P, r, ctx, o) {
   const acte = (r.acte || "") + (r.acte && r.vmat && !/vmat/i.test(r.acte) ? " + VMAT" : ""), resume = (P.notes || r.note || "").trim().replace(/\s*[.;]\s*$/, "");
   const civ = P.sexe === "F" ? "Madame" : P.sexe === "H" ? "Monsieur" : "", patient = AR(civ) + " " + AR((P.nomF || "").toUpperCase()) + " " + AR(P.prenom || "");
   const jour = dateLongue(ctx.aujourdhui), diag = [P.diag, P.diagP].filter(Boolean).join(" – ");
-  return '<p class="dc-titre">PLI CONFIDENTIEL</p><p class="dc-d">Casablanca, le ' + jour + "</p>" +
+  return '<p class="dc-titre">PLI CONFIDENTIEL</p><p class="dc-d">' + esc(o.ville || "Casablanca") + ", le " + jour + "</p>" +
     "<p>Monsieur le Médecin Conseil,</p><p>Cher(e) Confrère,</p><p>Je vous prie de bien vouloir trouver ci-joint les renseignements cliniques concernant :</p>" +
     '<p class="dc-c"><b>' + patient + "</b></p><p>ayant droit à la couverture médicale par l’organisme dont vous assurez le conseil.</p>" +
     "<p>Je vous écris pour information et en vue des démarches administratives nécessaires à une prise en charge ou à un accord de principe.</p>" +
@@ -130,7 +130,7 @@ export function boutonDoc(x, r, type, lib) {
 let F = null; // { pid, rid, type }
 function infos(x, r) {
   const et = (D().etabsTous || D().etabs).find((e) => e.code === (r.hop || x.doc.etablissementId)) || {}, M = A.medecinFiche() || {};
-  return { medecin: M.nom || "", specialite: M.specialite || "", etabNom: et.nom || "" };
+  return { medecin: M.nom || "", specialite: M.specialite || "", etabNom: et.nom || "", ville: et.ville || "Casablanca" }; // ville du lieu (Paramètres › Lieux d'exercice)
 }
 function contenuNeuf(x, r, type) {
   const o = infos(x, r);

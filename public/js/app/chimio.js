@@ -741,17 +741,19 @@ export function activerDiag(idD, idP) {
 // Listes du cabinet : parametres/listes = { cor, mut } (ajouts aux listes de départ de donnees/listes.js) ; depuis le 08/10/2026
 // (Paramètres › Listes) { diag, mut, cor, complet: true } = listes entières, corrigées et triées par le médecin
 const LC = () => D().listes || {};
-export const LISTES0 = { diag: DIAG, mut: MUT0, cor: COR0 };
+// Correspondants de départ (COR0) : ceux du premier cabinet seulement ; un cabinet neuf commence sans (phase F, 09/10/2026)
+const cor0 = () => (A && A.ESPACE === "cabinet-bentahila" ? COR0 : []);
+export const LISTES0 = { diag: DIAG, mut: MUT0, get cor() { return cor0(); } };
 const alphaFr = (a, z) => a.localeCompare(z, "fr");
 export const listeDiag = () => (LC().complet && Array.isArray(LC().diag) ? LC().diag : DIAG.concat((LC().diag || []).filter((d) => DIAG.indexOf(d) < 0)));
 export const listeMut = () => (LC().complet ? (LC().mut || []).slice() : MUT0.concat((LC().mut || []).filter((m) => MUT0.indexOf(m) < 0))).sort(alphaFr);
-export const listeCor = () => (LC().complet ? (LC().cor || []).slice() : COR0.concat((LC().cor || []).filter((m) => COR0.indexOf(m) < 0))).sort(alphaFr);
+export const listeCor = () => (LC().complet ? (LC().cor || []).slice() : cor0().concat((LC().cor || []).filter((m) => cor0().indexOf(m) < 0))).sort(alphaFr);
 // Un correspondant, une mutuelle ou un diagnostic nouveaux, tapés dans une fiche patient, s'ajoutent aux listes du cabinet
 // (08/10/2026 : pour tout membre qui crée ou modifie une fiche ; règle parametres/listes). Liste relue juste avant.
 export async function enrichirListes(cor, mut, diag) {
   const ref = doc(db, "espaces", A.ESPACE, "parametres", "listes"), s = await getDoc(ref).catch(() => null);
   let L = D().listes || {}; try { if (s && s.exists()) L = JSON.parse(s.data().data || "{}"); } catch (e) { /* liste locale */ }
-  const base = (t) => (L.complet ? [] : t === "cor" ? COR0 : t === "mut" ? MUT0 : []), diagBase = () => (L.complet && Array.isArray(L.diag) ? [] : DIAG);
+  const base = (t) => (L.complet ? [] : t === "cor" ? cor0() : t === "mut" ? MUT0 : []), diagBase = () => (L.complet && Array.isArray(L.diag) ? [] : DIAG);
   const ajout = (t, v) => { v = String(v || "").trim(); if (!v || base(t).concat(t === "diag" ? diagBase() : [], L[t] || []).some((z) => z.toLowerCase() === v.toLowerCase())) return false; (L[t] = L[t] || []).push(v); return true; };
   if (diag && !L.complet && !Array.isArray(L.diag)) L.diag = []; // ancien format : diagnostics ajoutés à ceux de départ
   const a = ajout("cor", cor), m = ajout("mut", mut), d = ajout("diag", diag);
@@ -764,6 +766,8 @@ export function nouveauPatient() {
   const okC = A.traitMod() || A.peut("fichePatient"), etabs = D().etabs, mb = D().membre;
   const permis = mb.tousEtablissements ? etabs : etabs.filter((e) => (mb.etablissements || []).indexOf(e.code) >= 0);
   if (!A.peut("creerPatient")) { A.toast("Vous n'avez pas le droit de créer un patient."); return; }
+  const maxP = D().abo && D().abo.max.patients; // formule du cabinet (09/10/2026)
+  if (maxP != null && D().patients.length >= maxP) { alert("Votre formule Onco360 permet " + maxP + " dossiers patients : la limite est atteinte.\nContactez l'éditeur d'Onco360 pour passer à une formule supérieure."); return; }
   const ch = (i, lib, o) => '<div class="' + (o && o.large ? "large" : "") + '"><label for="' + i + '">' + lib + '</label><input id="' + i + '"' + (o && o.type ? ' type="' + o.type + '"' : "") + (o && o.liste ? ' list="' + o.liste + '"' : "") + (o && o.mode ? ' inputmode="' + o.mode + '"' : "") + (o && o.ph ? ' placeholder="' + o.ph + '"' : "") + "></div>";
   A.fenetre('<h3>Nouveau patient</h3><div class="form">' + ch("pNom", "Nom") + ch("pPre", "Prénom") + ch("pDdn", "Date de naissance", { type: "date" }) +
     '<div><label for="pSexe">Sexe</label><select id="pSexe"><option value=""></option><option value="F">Femme</option><option value="H">Homme</option></select></div>' +

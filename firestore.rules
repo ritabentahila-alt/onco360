@@ -22,21 +22,29 @@ service cloud.firestore {
     match /historique/{id} { allow read: if estAdminV1(); allow create, update, delete: if false; }
 
     // ───────────── PARTIE 2 : v2 ─────────────
-    // Administrateurs de la plateforme
-    function estAdmin() { return proprietaire() || (connecte() && exists(/databases/$(database)/documents/administrateurs/$(request.auth.uid))); }
-    match /administrateurs/{uid} { allow read: if connecte() && (request.auth.uid == uid || estAdmin()); allow write: if estAdmin(); }
+    // Administrateurs de la plateforme (compte d'administration séparé depuis le 09/10/2026) : chacun lit sa fiche ; liste tenue
+    // par Dr Bentahila (console). Le compte d'administration ne lit ni les profils ni les cabinets : tout passe par les fonctions.
+    match /administrateurs/{uid} { allow read: if connecte() && (request.auth.uid == uid || proprietaire()); allow write: if proprietaire(); }
 
-    // Profil personnel : chacun lit et modifie le sien (aucun droit n'y est stocké)
+    // Profil personnel : chacun lit et modifie le sien (aucun droit n'y est stocké) ; Dr Bentahila aussi ceux de son équipe (inchangé)
     match /utilisateurs/{uid} {
-      allow read: if connecte() && (request.auth.uid == uid || estAdmin());
-      allow create, update: if connecte() && (request.auth.uid == uid || estAdmin());
-      allow delete: if estAdmin();
+      allow read: if connecte() && (request.auth.uid == uid || proprietaire());
+      allow create, update: if connecte() && (request.auth.uid == uid || proprietaire());
+      allow delete: if proprietaire();
     }
 
+    // Cabinet ouvert par chaque compte (phase F, 09/10/2026) : lu par la personne, écrit par le serveur seulement (compteMembre, creerCabinet)
+    match /comptes/{uid} { allow read: if connecte() && request.auth.uid == uid; allow write: if false; }
+
     match /espaces/{e} {
+      // Plusieurs cabinets (09/10/2026) : le compte de Dr Bentahila ne garde ses pouvoirs d'administratrice que dans son propre
+      // cabinet ; le compte d'administration (collection administrateurs) n'ouvre aucun cabinet (création par fonction serveur).
+      function adminIci() { return proprietaire() && e == 'cabinet-bentahila'; }
       function cheminMembre() { return /databases/$(database)/documents/espaces/$(e)/membres/$(request.auth.uid); }
       function m() { return get(cheminMembre()).data; }
-      function estMembre() { return connecte() && exists(cheminMembre()) && m().actif == true; }
+      // Cabinet suspendu par l'administration (abonnement non payé, 09/10/2026) : plus personne n'y entre ; rien n'est effacé
+      function cabinetActif() { return get(/databases/$(database)/documents/espaces/$(e)).data.get('actif', true) != false; }
+      function estMembre() { return connecte() && exists(cheminMembre()) && m().actif == true && cabinetActif(); }
       function estTitulaire() { return connecte() && get(/databases/$(database)/documents/espaces/$(e)).data.titulaire == request.auth.uid; }
       function droit(k) { return estMembre() && m().droits[k] == true; }
       function traitementsModif() { return estMembre() && m().droits.traitements == 'modifier'; }
@@ -66,18 +74,19 @@ service cloud.firestore {
           && request.resource.data.maj == request.time;
       }
 
-      allow read: if estMembre() || estAdmin();
-      allow write: if estAdmin();
+      // Fiche du cabinet : aussi lisible par ses membres quand il est suspendu (message « accès suspendu »)
+      allow read: if estMembre() || adminIci() || (connecte() && exists(cheminMembre()));
+      allow write: if adminIci();
 
       // Membres et leurs droits : gérés par le médecin titulaire (ou l'administrateur). Un membre ne modifie jamais ses propres droits.
       match /membres/{uid} {
-        allow read: if estMembre() || estAdmin();
-        allow write: if estAdmin() || (estTitulaire() && uid != request.auth.uid);
+        allow read: if estMembre() || adminIci();
+        allow write: if adminIci() || (estTitulaire() && uid != request.auth.uid);
       }
       // Établissements (nom, adresse, logo) : visibles par les membres, modifiables avec le droit « paramètres »
       match /etablissements/{x} {
-        allow read: if estMembre() || estAdmin();
-        allow write: if droit('parametres') || estAdmin();
+        allow read: if estMembre() || adminIci();
+        allow write: if droit('parametres') || adminIci();
       }
       // Dossiers patients (sans aucun montant)
       match /patients/{p} {
@@ -103,6 +112,20 @@ service cloud.firestore {
         allow delete: if droit('ecrireConsultations') && dansPerimetre(resource.data.etablissementId)
           && (m().role == 'medecin' || resource.data.creePar == request.auth.uid || (resource.data.titre == 'Ordonnance' && resource.data.get('type', '') == ''
               && resource.data.get('note', '') == '' && resource.data.get('lignes', []).size() == 0));
+      }
+      // Inscriptions en RCP (09/10/2026, rcp.js) : lues par tous les membres (périmètre) ; inscrire, modifier, cocher « Fait » :
+      // droit « ecrireConsultations » (médecin, secrétaire) ; l'auteur et le patient ne changent pas ; désinscrire : le médecin,
+      // ou qui a inscrit
+      match /rcp/{r} {
+        allow read: if dansPerimetre(resource.data.etablissementId);
+        allow create: if droit('ecrireConsultations') && dansPerimetre(request.resource.data.etablissementId)
+          && request.resource.data.creePar == request.auth.uid && request.resource.data.majPar == request.auth.uid
+          && request.resource.data.d is string && request.resource.data.patientId is string;
+        allow update: if droit('ecrireConsultations') && dansPerimetre(resource.data.etablissementId)
+          && dansPerimetre(request.resource.data.etablissementId) && request.resource.data.majPar == request.auth.uid
+          && request.resource.data.creePar == resource.data.creePar && request.resource.data.patientId == resource.data.patientId;
+        allow delete: if droit('ecrireConsultations') && dansPerimetre(resource.data.etablissementId)
+          && (m().role == 'medecin' || resource.data.creePar == request.auth.uid);
       }
       // Bibliothèques des prescriptions (médicaments, examens, ordonnances types, analyses, courriers) : lues par les
       // membres, modifiées par le médecin seulement (07/10/2026 : la secrétaire s'en sert sans les changer)

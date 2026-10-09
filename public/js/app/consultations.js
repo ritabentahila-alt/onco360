@@ -81,7 +81,9 @@ export function htmlConsultations(x) {
 function barre(x) {
   if (!peutEcrire()) return "";
   const q = "'" + x.id + "'";
-  return '<div class="presc-bas"><div class="lbl">Prescriptions</div><div class="presc">' + FAMILLES.map((f) => '<div class="pr"><button onclick="csPrescrire(' + q + ",'" + f.t + '\')" title="' + f.titre + ' : nouvelle prescription"><svg class="pi"><use href="#i-' + f.ic + '"/></svg>' + f.lib + '</button><button class="fl" onclick="csAntecedents(' + q + ",'" + f.t + '\')" title="' + f.titre + ' : antécédents des prescriptions" aria-label="' + f.titre + ' : antécédents des prescriptions">▾</button></div>').join("") + "</div></div>";
+  return '<div class="presc-bas"><div class="lbl">Prescriptions</div><div class="presc">' + FAMILLES.map((f) => '<div class="pr" data-mod="prescriptions"><button onclick="csPrescrire(' + q + ",'" + f.t + '\')" title="' + f.titre + ' : nouvelle prescription"><svg class="pi"><use href="#i-' + f.ic + '"/></svg>' + f.lib + '</button><button class="fl" onclick="csAntecedents(' + q + ",'" + f.t + '\')" title="' + f.titre + ' : antécédents des prescriptions" aria-label="' + f.titre + ' : antécédents des prescriptions">▾</button></div>').join("") +
+    // « + RCP » (09/10/2026, rcp.js) : inscription à la prochaine RCP ; flèche = inscriptions du patient
+    '<div class="pr" data-mod="rcp"><button onclick="rcpInscrire(' + q + ')" title="Inscrire le patient à la prochaine RCP"><svg class="pi"><use href="#i-rcp"/></svg>+ RCP</button><button class="fl" onclick="rcpHistorique(' + q + ')" title="RCP du patient" aria-label="RCP du patient">▾</button></div>' + "</div></div>";
 }
 // Consultation dépliée : celle qu'on vient d'ouvrir, d'ajouter ou de compléter ; à l'ouverture du dossier, toutes sont fermées
 function ouverte(pid) {
@@ -96,13 +98,17 @@ window.csTog = (pid, cid) => {
 };
 
 // ───── Nouvelle consultation / modifier : titre, date (du jour par défaut), note ─────
-function formulaire(x, c) {
+// pre { type, titre, d, note } : nouvelle consultation déjà remplie ; apres(id, champs) : appelé une fois enregistrée
+// (décision de RCP, rcp.js 09/10/2026)
+function formulaire(x, c, pre, apres) {
+  pre = c ? null : pre || null;
   A.fenetre("<h3>" + (c ? "Modifier la consultation" : "Nouvelle consultation") + "</h3>" +
-    '<div class="form"><div><label for="csType">Consultation</label><select id="csType">' + TYPES.concat(c && c.type && TYPES.indexOf(c.type) < 0 ? [c.type] : []).map((t) => '<option' + (c && c.type === t ? " selected" : "") + ">" + A.esc(t) + "</option>").join("") + "</select></div>" +
-    '<div><label for="csDate">Date</label><input id="csDate" type="date" value="' + A.esc(c ? c.d : D().t) + '"></div>' +
-    '<div class="large"><label for="csTitre">Titre de la consultation</label><input id="csTitre" value="' + A.esc(c ? c.titre || "" : "") + '" placeholder="Ex. J1C1 FOLFOX"></div>' +
-    '<div class="large"><label for="csNote">Note</label><textarea id="csNote" rows="9" class="cs-note" placeholder="Examen, poids, PS, conduite à tenir…">' + A.esc(c ? c.note || "" : "") + "</textarea></div></div>" +
+    '<div class="form"><div><label for="csType">Consultation</label><select id="csType">' + TYPES.concat(c && c.type && TYPES.indexOf(c.type) < 0 ? [c.type] : []).map((t) => '<option' + ((c || pre) && (c || pre).type === t ? " selected" : "") + ">" + A.esc(t) + "</option>").join("") + "</select></div>" +
+    '<div><label for="csDate">Date</label><input id="csDate" type="date" value="' + A.esc(c ? c.d : (pre && pre.d) || D().t) + '"></div>' +
+    '<div class="large"><label for="csTitre">Titre de la consultation</label><input id="csTitre" value="' + A.esc(c ? c.titre || "" : (pre && pre.titre) || "") + '" placeholder="Ex. J1C1 FOLFOX"></div>' +
+    '<div class="large"><label for="csNote">Note</label><textarea id="csNote" rows="9" class="cs-note" placeholder="Examen, poids, PS, conduite à tenir…">' + A.esc(c ? c.note || "" : (pre && pre.note) || "") + "</textarea></div></div>" +
     '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt plein" id="csOk">Enregistrer</button></div>');
+  if (pre && pre.note) setTimeout(() => { const n = document.getElementById("csNote"); if (n) { n.focus(); n.setSelectionRange(n.value.length, n.value.length); } }, 80); // décision de RCP : curseur après « Décision : »
   document.getElementById("csOk").onclick = async () => {
     const type = A.val("csType"), titre = A.val("csTitre"), d = A.val("csDate"), note = String(document.getElementById("csNote").value || "").replace(/\s+$/, "");
     if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) { A.erreur("Choisissez la date de la consultation."); return; }
@@ -112,10 +118,12 @@ function formulaire(x, c) {
       if (c) {
         await updateDoc(doc(db, "espaces", A.ESPACE, "consultations", c.id), base);
         Object.assign(c, base); CS[x.id].sort(tri); A.journal(x, "Consultation modifiée : " + nomCs(base));
+        if (apres) await apres(c.id, base);
       } else {
         const n = Object.assign({ patientId: x.id, etablissementId: x.doc.etablissementId || "", lignes: [], o: Date.now(), creePar: D().u.uid, creeParNom: nomConnecte(), cree: serverTimestamp() }, base);
         const r = await addDoc(col(), n);
         CS[x.id] = (CS[x.id] || []).concat([Object.assign({ id: r.id }, n)]).sort(tri); OUV[x.id] = r.id; A.journal(x, "Consultation ajoutée : " + nomCs(base));
+        if (apres) await apres(r.id, base);
       }
       A.fermerFenetre(); A.toast("Consultation enregistrée."); A.pageDossier(x.id);
     } catch (e) {
@@ -125,6 +133,8 @@ function formulaire(x, c) {
   };
 }
 window.csNouvelle = (pid) => { const x = trouver(pid); if (x && peutEcrire()) formulaire(x, null); };
+export const nouvelleConsultation = (pid, pre, apres) => { const x = trouver(pid); if (x && peutEcrire()) formulaire(x, null, pre, apres); };
+export const modifierConsultation = (pid, cid, apres) => { const x = trouver(pid), c = (CS[pid] || []).find((z) => z.id === cid); if (x && c && peutEcrire()) { OUV[pid] = cid; formulaire(x, c, null, apres); } };
 window.csModifier = (pid, cid) => { const x = trouver(pid), c = (CS[pid] || []).find((z) => z.id === cid); if (x && c && peutEcrire()) formulaire(x, c); };
 window.csSupprimer = async (pid, cid) => {
   const x = trouver(pid), c = (CS[pid] || []).find((z) => z.id === cid); if (!x || !c || !peutSupprimer(c)) return;

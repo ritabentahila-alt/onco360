@@ -11,6 +11,7 @@
 // utilisateurs/{uid}.tachesVu { idTâche: longueur du fil lue } ; pastille du menu, titre de l'onglet, bloc du tableau de bord.
 import { collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, query, where, serverTimestamp, arrayUnion, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { db } from "../config.js";
+import { htmlOngletRcp, pageRcp, nbRcpAFaire } from "./rcp.js"; // onglet « RCP » (09/10/2026)
 
 let A = null;
 export function installer(api) { A = api; }
@@ -108,7 +109,11 @@ function notifier(m, id) {
 }
 // Ouvrir une tâche depuis n'importe quelle page (message, tableau de bord)
 let A_OUVRIR = null;
-window.taVoir = (id) => { if (location.hash.startsWith("#taches") && $("taL")) window.taOuvrir(id); else { A_OUVRIR = id; location.hash = "taches"; } };
+window.taVoir = (id) => {
+  if (location.hash.startsWith("#taches") && $("taL")) window.taOuvrir(id);
+  else if (location.hash.startsWith("#taches") && T) { A_OUVRIR = id; window.taVue("mes"); } // onglet RCP affiché
+  else { A_OUVRIR = id; location.hash = "taches"; }
+};
 // Après chaque changement : pastille, titre de l'onglet, page Tâches, fiche ouverte, tableau de bord
 function apresChangement() {
   if (!T) return; const moi = D().u.uid;
@@ -208,7 +213,9 @@ function filtrer(l) {
 }
 const filtresActifs = () => Object.keys(F0).some((k) => F[k] !== F0[k] && !(k === "qui" && VUE !== "toutes"));
 
-export async function pageTaches() {
+// #taches/rcp : onglet RCP (retour du dossier ouvert depuis la liste des RCP) ; #taches : Mes tâches / Toutes les tâches
+export async function pageTaches(arg) {
+  if (arg === "rcp") VUE = "rcp"; else if (VUE === "rcp") VUE = "mes";
   $("page").innerHTML = '<p class="sous">Chargement des tâches…</p>';
   try { await Promise.all([charger(), membres(), typesTaches()]); }
   catch (e) { console.warn("tâches", e); $("page").innerHTML = '<div class="carte"><h3>Tâches</h3><p class="sous" style="color:var(--rouge)">Les tâches n\'ont pas pu être lues. Rechargez la page.</p></div>'; return; }
@@ -227,8 +234,10 @@ function dessiner() {
   const etT = D().etabsTous || D().etabs || [], nomLieu = {}; etT.forEach((e) => { nomLieu[e.code] = e.nom || ""; });
   const lieux = (D().membre.tousEtablissements ? etT.map((e) => e.code) : (D().membre.etablissements || []).slice()).concat(T.map(lieuDe)).filter((c, i, a) => c && a.indexOf(c) === i).sort();
   let h = '<section class="accueil"><div><h2>Tâches</h2><p>Rappels, demandes et suivis de l\'équipe.</p></div><div class="actions"><button class="bt plein" onclick="taNouvelle()">' + A.ic("plus") + "Nouvelle tâche</button></div></section>" +
-    '<div class="ag-vues" style="align-self:flex-start">' + onglet("mes", "profil", "Mes tâches", nbOuv(mes)) + onglet("toutes", "taches", "Toutes les tâches", nbOuv(T)) + "</div>" +
-    '<div class="ta-filtres"><div class="recherche">' + A.ic("loupe") + '<input id="taQ" type="search" placeholder="Rechercher : titre, patient, personne…" autocomplete="off" value="' + esc(F.q) + '"></div>' +
+    '<div class="ag-vues ta-vues" style="align-self:flex-start">' + onglet("mes", "profil", "Mes tâches", nbOuv(mes)) + onglet("toutes", "taches", '<span class="lg">Toutes les tâches</span><span class="sm">Toutes</span>', nbOuv(T)) + (A.module("rcp") ? onglet("rcp", "rcp", "RCP", nbRcpAFaire()) : "") + "</div>";
+  // Onglet RCP (rcp.js) : calendrier des semaines, période, dossiers inscrits et case Fait
+  if (VUE === "rcp") { $("page").innerHTML = h + htmlOngletRcp(); pageRcp(); return; }
+  h += '<div class="ta-filtres"><div class="recherche">' + A.ic("loupe") + '<input id="taQ" type="search" placeholder="Rechercher : titre, patient, personne…" autocomplete="off" value="' + esc(F.q) + '"></div>' +
     (VUE === "toutes" ? sel("taFqui", "Responsable", F.qui, optsQui) : "") +
     sel("taFst", "Statut", F.st, [["ouv", "À faire et en cours"], ["afaire", "À faire"], ["encours", "En cours"], ["fait", "Terminées"], ["tous", "Tous les statuts"]]) +
     sel("taFech", "Échéance", F.ech, [["", "Toutes les échéances"], ["retard", "En retard"], ["auj", "Aujourd'hui"], ["sem", "Cette semaine"], ["sans", "Sans échéance"]]) +
@@ -265,7 +274,7 @@ const raf = () => {
   if (location.hash.startsWith("#taches") && T && $("taL")) dessiner();
   else if (location.hash.startsWith("#dossier/") && $("fenetre") && $("fenetre").classList.contains("cache")) A.pageDossier(decodeURIComponent(location.hash.slice(9)));
 };
-window.taVue = (k) => { VUE = k; if (T && $("taL")) dessiner(); else pageTaches(); };
+window.taVue = (k) => { VUE = k; history.replaceState(null, "", k === "rcp" ? "#taches/rcp" : "#taches"); if (T) dessiner(); else pageTaches(k); };
 window.taTerminees = () => { TERM = !TERM; liste(); };
 window.taEffacer = () => { F = Object.assign({}, F0); if (T && $("taL")) dessiner(); };
 window.taPatient = (id) => {

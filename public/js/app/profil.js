@@ -30,7 +30,7 @@ const LIB_DROITS = [
 ];
 const NIVEAUX = [["aucun", "Non visible"], ["voir", "Voir"], ["modifier", "Modifier"]];
 const NIVEAUX_RT = [["aucun", "Non visible"], ["chimio", "Voir : patients sous chimio"], ["voir", "Voir : tous"], ["modifier", "Modifier"]];
-const estTitulaire = () => (ESPACE_DOC && ESPACE_DOC.titulaire === D().u.uid) || (D().u.email || "").toLowerCase() === "ritabentahila@gmail.com";
+const estTitulaire = () => !!(ESPACE_DOC && ESPACE_DOC.titulaire === D().u.uid);
 
 // Image (signature, logo) réduite et enregistrée directement dans le document
 export function lireImage(input, max, jpeg) {
@@ -61,8 +61,8 @@ window.pfOnglet = (o) => { location.hash = "parametres/" + (o === "gagenda" ? "c
 
 // ───── Informations ─────
 function vueInfos() {
-  const p = D().profil || {}, mb = D().membre, esc = A.esc, proprio = (D().u.email || "").toLowerCase() === "ritabentahila@gmail.com";
-  const inpe = p.inpe || (proprio ? "061371266" : "");
+  const p = D().profil || {}, mb = D().membre, esc = A.esc;
+  const inpe = p.inpe || "";
   const ch = (id, lib, v, o) => '<div class="' + (o && o.large ? "large" : "") + '"><label for="' + id + '">' + lib + '</label><input id="' + id + '" value="' + esc(v || "") + '"' + (o && o.type ? ' type="' + o.type + '"' : "") + (o && o.off ? " disabled" : "") + (o && o.ph ? ' placeholder="' + o.ph + '"' : "") + (o && o.ac ? ' autocomplete="' + o.ac + '"' : "") + "></div>";
   return '<section class="carte"><h3><span class="ic">' + A.ic("profil") + '</span>Mes informations</h3><p class="sous">Le nom, l\'INPE et la signature apparaissent sur la fiche de chimiothérapie et les comptes rendus.</p>' +
     '<div class="photo-pf"><div class="av grand">' + (p.photo ? '<img src="' + p.photo + '" alt="Photo">' : esc(((p.prenom || "")[0] || "") + ((String(p.nom || "").replace(/^Dr\.?\s*/i, ""))[0] || "")).toUpperCase() || "?") + '</div><div><label for="pfPhoto">Photo (facultatif)</label><input id="pfPhoto" type="file" accept="image/*"><div class="mesures">Elle remplace vos initiales dans la bulle du profil.</div>' + (p.photo ? '<label style="font-weight:normal;margin-top:6px"><input id="pfPhotoSup" type="checkbox" style="width:auto;margin-right:6px">Retirer la photo</label>' : "") + "</div></div><div class=\"form\">" +
@@ -109,10 +109,13 @@ function listeLieux() {
     (A.peut("parametres") ? '<button class="mini" onclick="pfLieu(\'' + esc(e.code) + "')\">Modifier</button>" : "") + "</div>").join("");
 }
 window.pfLieu = (code) => {
+  const maxE = D().abo && D().abo.max.etablissements; // formule du cabinet (09/10/2026)
+  if (!code && maxE != null && (D().etabsTous || D().etabs).length >= maxE) { alert("Votre formule Onco360 permet " + maxE + " lieu" + (maxE > 1 ? "x" : "") + " d'exercice : la limite est atteinte.\nContactez l'éditeur d'Onco360 pour en ajouter."); return; }
   const e = code ? (D().etabsTous || D().etabs).find((z) => z.code === code) : { actif: true }, esc = A.esc;
   A.fenetre("<h3>" + (code ? "Modifier l'établissement" : "Ajouter un hôpital") + '</h3><div class="form">' +
     '<div><label for="lCode">Code court</label><input id="lCode" value="' + esc(e.code || "") + '" placeholder="ex. HGC"' + (code ? " disabled" : "") + '></div><div><label for="lTel">Téléphone</label><input id="lTel" type="tel" value="' + esc(e.tel || "") + '"></div>' +
     '<div class="large"><label for="lNom">Nom complet</label><input id="lNom" value="' + esc(e.nom || "") + '"></div><div class="large"><label for="lAdr">Adresse</label><input id="lAdr" value="' + esc(e.adresse || "") + '"></div>' +
+    '<div><label for="lVille">Ville</label><input id="lVille" value="' + esc(e.ville || "") + '" placeholder="Casablanca"></div>' +
     '<div class="large"><label>Logo (facultatif)</label><div class="sig">' + (e.logo ? '<img src="' + e.logo + '" alt="Logo">' : "") + '<input id="lLogo" type="file" accept="image/*"></div></div>' +
     (code ? '<div class="large"><label style="font-weight:normal"><input id="lActif" type="checkbox" style="width:auto;margin-right:6px"' + (e.actif !== false ? " checked" : "") + ">Établissement actif (proposé pour les nouveaux dossiers)</label></div>" : "") +
     '</div><p class="mesures">Le code ne peut plus être changé ensuite : il est enregistré dans les dossiers des patients.</p><div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button>' + (code ? '<button class="bt gris" id="lSup" style="color:var(--rouge)"><svg class="pi"><use href="#i-corbeille"/></svg>Supprimer</button>' : "") + '<button class="bt plein" id="fOk">Enregistrer</button></div>');
@@ -138,7 +141,7 @@ window.pfLieu = (code) => {
     if (!code && (D().etabsTous || D().etabs).some((z) => z.code === c)) { A.erreur("Ce code existe déjà."); return; }
     A.occupe(A.$("fOk"), true);
     try {
-      const n = Object.assign({}, e, { code: c, nom, adresse: A.val("lAdr"), tel: A.val("lTel"), actif: A.$("lActif") ? A.$("lActif").checked : true });
+      const n = Object.assign({}, e, { code: c, nom, adresse: A.val("lAdr"), ville: A.val("lVille"), tel: A.val("lTel"), actif: A.$("lActif") ? A.$("lActif").checked : true });
       const logo = await lireImage(A.$("lLogo"), 400); if (logo) n.logo = logo;
       await setDoc(doc(db, "espaces", A.ESPACE, "etablissements", c), n);
       const tous = (D().etabsTous || D().etabs).filter((z) => z.code !== c).concat([n]).sort((a, z) => a.code.localeCompare(z.code));
@@ -213,13 +216,19 @@ window.pfDelierAgenda = async () => {
 };
 
 // ───── Accès de l'équipe (médecin titulaire) ─────
+// Comptes utilisés / permis par la formule du cabinet (rien si sans limite)
+function quotas() {
+  const mx = (D().abo && D().abo.max) || {}, l = [["medecin", "Médecins"], ["assistante", "Secrétaires"], ["infirmiere", "Infirmières"]].filter(([k]) => mx[k] != null);
+  if (!l.length) return "";
+  return '<p class="mesures">Votre formule : ' + l.map(([k, lib]) => lib + " " + MEMBRES.filter((x) => x.role === k && x.actif !== false).length + " / " + mx[k]).join(" · ") + "</p>";
+}
 async function vueAcces() {
   if (!MEMBRES) { const s = await getDocs(collection(db, "espaces", A.ESPACE, "membres")); MEMBRES = s.docs.map((d) => Object.assign({ uid: d.id }, d.data())).sort((a, b) => String(a.nom).localeCompare(String(b.nom))); }
   const esc = A.esc, moi = D().u.uid;
   return '<section class="carte"><div class="entete"><h3><span class="ic">' + A.ic("patients") + '</span>Gestion des accès</h3><button class="bt plein petit" onclick="pfMembre()">' + A.ic("plus") + "Ajouter un accès</button></div>" +
-    '<p class="sous">Chaque membre a sa propre grille de droits, pré-remplie selon son rôle et modifiable. Le serveur la fait respecter : un membre ne peut ni voir ni modifier ce que sa grille ne permet pas.</p>' +
+    '<p class="sous">Chaque membre a sa propre grille de droits, pré-remplie selon son rôle et modifiable. Le serveur la fait respecter : un membre ne peut ni voir ni modifier ce que sa grille ne permet pas.</p>' + quotas() +
     MEMBRES.map((m) => '<div class="lieu' + (m.actif === false ? " off" : "") + '"><span class="av">' + esc(String(m.nom || m.email || "?").replace(/^Dr\.?\s*/i, "").split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase()) + "</span>" +
-      '<div class="tx"><b>' + esc(m.nom || m.email) + ' <span class="badge b-co">' + esc(ROLES[m.role] || m.role) + "</span>" + (m.actif === false ? ' <span class="badge b-al">Désactivé</span>' : "") + (m.uid === moi ? ' <span class="badge b-gr">Vous</span>' : "") + "</b><span>" + esc([m.email, m.telephone, m.tousEtablissements ? "Tous les établissements" : (m.etablissements || []).join(", ")].filter(Boolean).join(" · ")) + "</span></div>" +
+      '<div class="tx"><b>' + esc(m.nom || m.email) + ' <span class="badge b-co">' + esc(ROLES[m.role] || m.role) + "</span>" + (m.actif === false ? ' <span class="badge b-al">' + (m.horsQuota ? "Hors formule" : "Désactivé") + "</span>" : "") + (m.uid === moi ? ' <span class="badge b-gr">Vous</span>' : "") + "</b><span>" + esc([m.email, m.telephone, m.tousEtablissements ? "Tous les établissements" : (m.etablissements || []).join(", ")].filter(Boolean).join(" · ")) + "</span></div>" +
       (m.uid === moi ? "" : '<button class="mini" onclick="pfMembre(\'' + m.uid + "')\">Droits</button>") + "</div>").join("") + "</section>";
 }
 function grille(dr, role) {
@@ -261,6 +270,8 @@ window.pfMembre = (uid) => {
           await setDoc(doc(db, "espaces", A.ESPACE, "membres", uid), data);
           A.journal({ id: "", r: { nm: "" } }, "Droits modifiés : " + (m.nom || m.email) + (m.actif === false ? " (accès désactivé)" : ""));
         } else {
+          const lim = D().abo && D().abo.max[m.role]; // formule du cabinet (09/10/2026)
+          if (lim != null && MEMBRES.filter((x) => x.role === m.role && x.actif !== false).length >= lim) throw new Error("Votre formule Onco360 permet " + lim + " compte(s) « " + (ROLES[m.role] || m.role) + " » : la limite est atteinte. Contactez l'éditeur d'Onco360 pour en ajouter.");
           const email = String(m._mMail || "").trim().toLowerCase(), nom = [m._mPre, String(m._mNom || "").toUpperCase()].filter(Boolean).join(" ");
           if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) throw new Error("Indiquez une adresse e-mail valide.");
           if (!m._mNom) throw new Error("Indiquez le nom.");

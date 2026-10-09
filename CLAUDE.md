@@ -22,7 +22,8 @@ Après déploiement : recharger sans cache (Cmd + Maj + R). Les `.js` sont servi
 ## Structure (`public/`)
 | Fichier | Rôle |
 |---|---|
-| `index.html` | connexion Firebase Auth → `v2.html` |
+| `index.html` | connexion Firebase Auth → `v2.html` (compte d'administration → `admin.html`) |
+| `admin.html` + `js/app/admin.js` | Administration (09/10/2026) : créer un cabinet pour un confrère, liste des cabinets (sans données médicales) |
 | `v2.html` | Onco360 : structure, CSS complet, symboles SVG, logo |
 | `js/config.js` | initialisation Firebase (clé web publique, normal) |
 | `js/app/v2.js` | chargement, tableau de bord, patients, dossier, identité, RDV (prix « Venu »), radiothérapie (dosimétrie, documents), WhatsApp, routage, droits |
@@ -33,6 +34,7 @@ Après déploiement : recharger sans cache (Cmd + Maj + R). Les `.js` sont servi
 | `js/app/ordonnances.js` | boutons Médic., Ordo. type, Analyses, Examens compl. et Courriers (modèles remplis pour le patient, fiches PDF `documents/`) : bibliothèques du cabinet (médicaments, ordonnances types ; recherche, + / ✎ / ✕), ordonnance en préparation (✎ / ↑ ↓ / ✕, ajout, ligne libre), ordonnance A5/A4 modifiable, impression, antécédents ; listes de départ : `js/donnees/medicaments.js`, `js/donnees/ordostypes.js`, `js/donnees/analyses.js`, `js/donnees/examens.js` |
 | `js/app/taches.js` | page Tâches (menu, entre Patients et Protocoles) : Mes tâches / Toutes les tâches, filtres (recherche, responsable, statut, échéance, type), nouvelle tâche (aussi « + Tâche » du dossier), description visible, types du cabinet (`parametres/typesTaches`, Configuration › Tâches ; « Radiothérapie » fixe), statuts, fiche avec fil (historique + commentaires), réattribuer, modifier / supprimer ; temps réel (`demarrerTaches`, écoute `onSnapshot` lancée au démarrage), messages à l'écran, non lues, pastilles `nbTaches` / `nbTachesB`, carte « Mes tâches » du tableau de bord (`blocAccueil`) |
 | `js/app/salle.js` | page Salle d'attente (menu, entre Agenda et Patients, SA1 08/10/2026) : rendez-vous de consultation et séances de chimio du jour, onglets À venir / En salle / Vus / Absents, Mettre en salle, Démarrer, Valider (= « Venu » : `statutRdv` / `chVenuChimio`), Absent, Annuler, motif ; temps réel (`demarrerSalle`, écoute lancée au démarrage, dossier relu après l'écriture d'un collègue), pastille `nbSalle`, bulles Valider / Retour en salle dans le dossier (`bullesDossier`), bandeau de la semaine (jour affiché `JOUR`), colonne prix et total, colonnes au choix (`utilisateurs/{uid}.salleCachees`), commentaire du jour (`com`) ; Absent → fenêtre de report (`absentRdv`, v2.js) ; guide `guide/salle-attente.md` |
+| `js/app/rcp.js` | RCP (étape 7, 09/10/2026) : dates (`parametres/rcp`, Paramètres › RCP : jours de la semaine, heure, lieu, dates ajoutées / annulées, pas de RCP un jour férié), bouton « + RCP » de la barre des prescriptions (inscription à la prochaine date, question, date d'inscription ; ▾ = RCP du patient), onglet « RCP » de la page Tâches (`#taches/rcp` : calendrier des semaines, période, Tous / À faire / Faits, case Fait, impression), dossier ouvert depuis la liste = bulles Décision RCP (consultation type « RCP » pré-remplie, `nouvelleConsultation` de consultations.js) · Valider (case Fait, retour à la liste) · Fermer ; inscriptions non faites dans « Rendez-vous et tâches à venir » ; écoute en direct (`demarrerRcp`) |
 | `js/app/agenda.js` | agenda Liste/Jour/Semaine/Mois, filtre par établissement |
 | `js/app/configuration.js` | page **Paramètres** (menu ; `#configuration` y renvoie, 08/10/2026) : onglets `ONGLETS()` = horaires (par établissement), absences, fériés, WhatsApp, couleurs Google Agenda (`parametres/couleursAgenda`), types de documents, types de tâches, listes (diagnostics, mutuelles, correspondants : `parametres/listes` { diag, mut, cor, complet } ; nom corrigé → corrigé dans les dossiers ; nom nouveau d'une fiche patient → ajouté, `enrichirListes`, règle ouverte aux droits identité / fiche / créer), Google Agenda personnel (`utilisateurs/{uid}.agendaFiltre`, cases par catégorie) + couleurs, bibliothèques (fenêtres de prescription en gestion : `gererListe` d'ordonnances.js), impression, alertes, Activités et rémunérations (parametres.js, droit finances) |
 | `js/app/reglages.js` | réglages simples `parametres/reglages` (marges d'impression A5 / A4 / documents, délai du bouton WhatsApp vert, délais des alertes) : `reglages()`, `margesMm()`, variables CSS de l'aperçu |
@@ -76,6 +78,10 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
   08/10/2026) = JSON [{ id, titre, cat, nom, taille, chemin (Cloud Storage `espaces/{e}/documentation/{id}/{nom}`) ou url
   (fiche de départ du site, `donnees/documentation.js`), fav, le, par }] ; géré par le médecin ; « Remettre » = ligne
   { t: "doc", lib, docId } dans la consultation du jour.
+- `rcp/{id}` (09/10/2026) : `patientId`, `patientNom`, `etablissementId`, `d` (date de la RCP), `q` (question), `ins` (date
+  d'inscription), `fait`, `faitLe`, `faitPar(Nom)`, `decision` (id de la consultation « RCP »), `decisionTxt`, `o`, `creePar(Nom)`,
+  `majPar(Nom)` ; lu par les membres (périmètre), écrit avec `ecrireConsultations`, retiré par le médecin ou son auteur
+  (`tests/regles/test-rcp.mjs`). Dates : `parametres/rcp` { data: JSON { jours, heure, lieu, plus, annulees } }.
 - `taches/{id}` : `titre`, `desc`, `type`, `urgent`, `ech` (date), `h`, `patientId`, `patientNom`, `etablissementId`, `pour` /
   `pourNom` (responsable), `de` / `deNom` (auteur), `qui` = [auteur, responsable], `statut` afaire|encours|fait, `faitPar(Nom)`,
   `faitLe`, `fil` [{ le, par, parNom, txt, c }] (historique et commentaires `c: true` ; une entrée par modification, ajoutée
@@ -105,7 +111,23 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
 - Report de chimio avec le seul droit « planning » (secrétaire, depuis le 08/10/2026) : `sauverLignes` n'écrit que `planningJson` ;
   l'historique du report y est gardé (`planning[ligne][n].rep`, `.srep[j]`), ajouté par `fusionner`, repris dans `lignesJson` au
   prochain enregistrement du médecin.
+- Numéro de dossier (étape 8, 09/10/2026) : `identite.numero` = AAAAMM + rang d'inscription dans le mois (`functions/numeros.js`),
+  attribué par les fonctions serveur `numeroDossier` (à la création, appelée par `attribuerNumero` de v2.js) et `numerosManquants`
+  (dossiers sans numéro, une fois, par le titulaire dans `migrations()`), transaction sur `compteurs/dossiers` { "AAAAMM": n }
+  (aucune règle : serveur seulement). Jamais modifié ; `numDossier(x)` pour l'afficher ; recherche et filtre par hôpital (page Patients).
 - `utilisateurs/{uid}` : profil (nom, INPE, signature, photo)
+- **Plusieurs cabinets (09/10/2026)** : `comptes/{uid}` = { espace } = cabinet ouvert par la personne (v2.js `cabinetDe` ; absent
+  = cabinet-bentahila), écrit par le serveur seulement (`creerCabinet`, `compteMembre` à chaque fiche de membre écrite). Cabinets
+  neufs `espaces/cab-…` créés par le compte d'administration (collection `administrateurs`, page `admin.html` / `js/app/admin.js`,
+  fonctions `creerCabinet` / `listeCabinets`) ; copie de ce que reçoit un cabinet neuf : `functions/cabinets.js` (protocoles,
+  fériés, diagnostics, mutuelles, bibliothèques de prescription, tarifs RT ; pas de correspondants, établissements, autres tarifs,
+  patients, profil, bilan) ; `functions/listes-depart.json` = copie de DIAG / MUT0 (vérifiée par `node functions/test-cabinets.js`).
+  Règles : `adminIci()` = pouvoirs de `proprietaire()` dans cabinet-bentahila seulement ; l'administration n'ouvre aucun cabinet
+  (`tests/regles/test-cabinets.mjs`). Premier démarrage : carte `premiersPas()` du tableau de bord. `A.ESPACE` est un accesseur.
+  Formules et modules (09/10/2026) : `public/js/donnees/modules.js` (= `functions/cabinets.js` MODULES / FORMULES) ; `espaces/{e}.abonnement`
+  { formule, surMesure, modules, max } écrit par `abonnementCabinet` ; `D.abo` / `module(k)` (v2.js, `A.module`) ; module retiré =
+  `body.sans-<k>` cache `[data-mod~=k]`, `PAGE_MODULE` renvoie au tableau de bord ; suspendre / supprimer : `etatCabinet` /
+  `supprimerCabinet` (`espaces/{e}.actif = false` → règles `cabinetActif()`) ; lien du mot de passe : `lienMotDePasse`.
 Ancienne application : collections racine `patients`, `protocoles`, `finances`, `parametres` (lecture seule).
 
 ## Règles métier importantes

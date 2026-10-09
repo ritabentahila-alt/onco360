@@ -6,9 +6,11 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
     function membre(e) { return firestore.get(/databases/(default)/documents/espaces/$(e)/membres/$(request.auth.uid)).data; }
+    // Cabinet non suspendu par l'administration (09/10/2026)
+    function cabinetOk(e) { return firestore.get(/databases/(default)/documents/espaces/$(e)).data.get('actif', true) != false; }
     function etabPatient(e, p) { return firestore.get(/databases/(default)/documents/espaces/$(e)/patients/$(p)).data.etablissementId; }
     function peut(e, p) {
-      return request.auth != null && membre(e).actif == true && membre(e).droits.documents == true
+      return request.auth != null && cabinetOk(e) && membre(e).actif == true && membre(e).droits.documents == true
         && (membre(e).tousEtablissements == true || etabPatient(e, p) in membre(e).etablissements);
     }
     match /espaces/{e}/patients/{p}/fichiers/{f}/{nom} {
@@ -20,11 +22,11 @@ service firebase.storage {
     }
     // Documentation du cabinet (bouton « Doc. », 08/10/2026) : PDF lus par les membres actifs, ajoutés et supprimés par le médecin
     match /espaces/{e}/documentation/{f}/{nom} {
-      allow read: if request.auth != null && membre(e).actif == true;
-      allow create: if request.auth != null && membre(e).actif == true && membre(e).role == 'medecin'
+      allow read: if request.auth != null && cabinetOk(e) && membre(e).actif == true;
+      allow create: if request.auth != null && cabinetOk(e) && membre(e).actif == true && membre(e).role == 'medecin'
         && request.resource.size < 25 * 1024 * 1024 && request.resource.contentType == 'application/pdf';
       allow update: if false;
-      allow delete: if request.auth != null && membre(e).actif == true && membre(e).role == 'medecin';
+      allow delete: if request.auth != null && cabinetOk(e) && membre(e).actif == true && membre(e).role == 'medecin';
     }
     match /{tout=**} { allow read, write: if false; }
   }

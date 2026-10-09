@@ -163,6 +163,15 @@ details summary{cursor:pointer;color:var(--prim);font-weight:bold;font-size:13.5
 .tableau{overflow-x:auto}
 .rt{border:1px solid var(--trait);border-radius:var(--r-m);padding:14px;margin-top:12px}
 .etapes{margin-top:8px}
+/* Modules de la formule du cabinet (09/10/2026) : body.sans-<module> cache [data-mod] */
+body.sans-chimio [data-mod~="chimio"],body.sans-rt [data-mod~="rt"],body.sans-agenda [data-mod~="agenda"],body.sans-salle [data-mod~="salle"],body.sans-taches [data-mod~="taches"],body.sans-rcp [data-mod~="rcp"],body.sans-prescriptions [data-mod~="prescriptions"],body.sans-documents [data-mod~="documents"],body.sans-gagenda [data-mod~="gagenda"],body.sans-listes [data-mod~="listes"],body.sans-bilan [data-mod~="bilan"]{display:none!important}
+/* Premier démarrage d'un cabinet neuf (09/10/2026) */
+.ppas .pp{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;border:1px solid #E9EDF4;margin-top:8px;color:inherit;text-decoration:none;background:#fff}
+.ppas .pp:hover{border-color:var(--prim);background:var(--prim-c)}
+.ppas .pp .n{width:28px;height:28px;border-radius:50%;background:var(--prim);color:#fff;display:grid;place-items:center;font-weight:bold;flex:none}
+.ppas .pp.ok .n{background:var(--vert)}.ppas .pp .n .i{width:16px;height:16px}
+.ppas .pp .tx{flex:1;min-width:0;display:flex;flex-direction:column}.ppas .pp .tx span{color:var(--doux);font-size:13px}
+.ppas .pp.ok b{text-decoration:line-through;color:var(--doux)}.ppas .pp .fl{font-size:22px;color:var(--doux)}
 .etape{display:flex;align-items:center;gap:9px;padding:3px 0;font-size:14.5px;color:var(--doux)}
 .etape.fait{color:var(--encre)}
 .etape .ck{width:20px;height:20px;border-radius:50%;border:2px solid #CBD3E1;display:grid;place-items:center;flex:none}
@@ -429,6 +438,47 @@ nav a.actif .nb-menu{background:#fff;color:var(--prim)}
 .sa-b .lbl i{width:8px;height:8px;border-radius:50%;background:currentColor}
 .sa-b .bt{border-radius:28px;padding:12px 20px;box-shadow:0 10px 26px rgba(30,42,68,.28)}
 .sa-espace{height:150px}
+/* RCP (étape 7, 09/10/2026) : calendrier des semaines, liste des dossiers inscrits, bulles du dossier ouvert depuis la liste */
+.rcp-haut{display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:18px 28px;align-items:start}
+.rcp-nav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}.rcp-nav b{font-size:16px;color:var(--titre)}.rcp-nav .sa-fl{height:36px}
+.rcp-cal{display:grid;grid-template-columns:44px repeat(7,minmax(0,1fr));gap:3px}
+.rcp-cal .tt{font-size:11.5px;color:var(--doux);text-align:center;font-weight:bold;padding-bottom:2px}
+.rcp-cal button{position:relative;border:1px solid transparent;background:none;border-radius:8px;height:40px;font-size:14px;color:var(--encre);padding:0}
+.rcp-cal .sem{font-size:11.5px;font-weight:bold;color:var(--prim);background:var(--prim-c)}.rcp-cal .sem:hover{border-color:var(--prim-cc)}.rcp-cal .sem.on{background:var(--prim);color:#fff}
+.rcp-cal .j:hover{background:var(--gris-c)}.rcp-cal .j.hors{color:#B3BACA}
+.rcp-cal .j.rcp{border-color:var(--prim-cc);background:#fff;font-weight:bold;color:var(--titre)}
+.rcp-cal .j.sel{background:var(--prim-c);border-color:var(--prim-cc)}.rcp-cal .j.auj{box-shadow:inset 0 0 0 2px var(--prim)}
+.rcp-cal .j i{position:absolute;right:2px;top:2px;min-width:16px;height:16px;border-radius:8px;background:var(--orange);color:#fff;font-style:normal;font-size:10.5px;line-height:16px;padding:0 3px}
+.rcp-cal .j i.ok{background:var(--vert)}.rcp-cal .j i.ret{background:var(--rouge)}.rcp-cal .j i.vide{min-width:7px;width:7px;height:7px;padding:0;background:var(--prim);top:4px;right:4px}
+.rcp-leg{display:inline-block;width:12px;height:12px;border:1px solid var(--prim-cc);border-radius:3px;vertical-align:-2px;margin-right:5px}
+.rcp-droite .lbl{font-size:12.5px;font-weight:bold;color:var(--doux);margin-bottom:4px}
+.rcp-per{display:flex;gap:10px;flex-wrap:wrap}.rcp-per label{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--doux)}
+.rcp-per input{padding:9px 10px;border:1px solid #CCD3E0;border-radius:var(--r-s);font-size:15px;background:#fff}
+.rcp-alerte{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--rouge-c);color:var(--rouge);border-radius:var(--r-m);padding:10px 14px}.rcp-alerte .i{width:18px;height:18px}.rcp-alerte span{flex:1;min-width:200px}
+.rcp-j{margin-top:14px}.rcp-j h4{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin:0 0 6px;font-size:15px;color:var(--titre);border-bottom:2px solid var(--prim-c);padding-bottom:5px}.rcp-j h4 .mesures{font-weight:normal}
+.rcp-l{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1.6fr) minmax(0,1.4fr) 110px 150px;gap:6px 14px;align-items:start;padding:9px 6px;border-bottom:1px solid var(--trait);font-size:14px}
+.rcp-l.ent{font-size:12px;font-weight:bold;color:var(--doux);padding:4px 6px;border-bottom:1px solid var(--trait)}.rcp-l .c{text-align:right;display:flex;align-items:center;justify-content:flex-end;gap:2px}
+.rcp-l .q,.rcp-l .dec{white-space:pre-line;overflow-wrap:anywhere}.rcp-l .dec{color:var(--titre)}.rcp-l .rpat{display:flex;flex-direction:column;align-items:flex-start;gap:2px}.rcp-l .rpat .lien-l{font-weight:bold}
+.rcp-l.fait{background:#F6FBF8}.rcp-l.ret{background:#FFF8F8}
+.rcp-ck{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--trait);border-radius:20px;padding:4px 10px;background:#fff;font-weight:bold;font-size:13px;cursor:pointer}
+.rcp-ck input{width:18px;height:18px;margin:0;accent-color:var(--vert)}.rcp-l.fait .rcp-ck{border-color:#BFE3CC;color:var(--vert)}
+.rcp-h{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap;padding:9px 0;border-top:1px solid var(--trait)}.rcp-h .tx{flex:1;min-width:200px}.rcp-h .tx b{white-space:pre-line}
+.rcp-dec{margin-top:4px;padding:6px 10px;background:var(--vert-c);border-radius:var(--r-s);white-space:pre-line;font-size:13.5px}
+.rcp-bulle{position:fixed;right:24px;bottom:calc(22px + env(safe-area-inset-bottom));z-index:61;width:min(500px,calc(100vw - var(--menu) - 48px));background:#fff;border:1.5px solid var(--prim);border-radius:18px;padding:12px 14px;box-shadow:0 12px 30px rgba(30,42,68,.28);display:flex;flex-direction:column;gap:8px}
+.rcp-bulle .lbl{display:flex;align-items:center;gap:8px;color:var(--prim)}.rcp-bulle .lbl .i{width:20px;height:20px}
+.rcp-bulle .q{font-size:13.5px;max-height:66px;overflow:auto;white-space:pre-line}.rcp-bulle .q.dec{background:var(--vert-c);border-radius:var(--r-s);padding:5px 8px}
+.rcp-bulle .bts{display:flex;gap:8px;flex-wrap:wrap}.rcp-bulle .bt{border-radius:24px;padding:10px 14px}
+.rcp-espace{height:190px}
+.ta-vues .sm{display:none}
+@media (max-width:640px){.ta-vues{flex-wrap:nowrap;align-self:stretch!important}.ta-vues button{flex:1 1 auto;justify-content:center;padding:7px 6px}.ta-vues .lg{display:none}.ta-vues .sm{display:inline}}
+@media (max-width:1023px){.rcp-bulle{width:auto;left:auto;max-width:calc(100vw - 24px);right:12px}}
+@media (max-width:900px){
+  .rcp-haut{grid-template-columns:1fr}
+  .rcp-l.ent{display:none}
+  .rcp-l{grid-template-columns:minmax(0,1fr) auto}.rcp-l .rpat{grid-column:1;grid-row:1}.rcp-l .c{grid-column:2;grid-row:1}.rcp-l .q,.rcp-l .dec,.rcp-l .ins{grid-column:1/-1}
+  .rcp-l .dec:empty{display:none}.rcp-l [data-l]:not(:empty)::before{content:attr(data-l) " : ";color:var(--doux);font-weight:normal}
+}
+@media (max-width:640px){.rcp-bulle{left:12px;right:12px;max-width:none}.rcp-bulle .bt{flex:1;padding:10px 10px;justify-content:center}.rcp-cal button{height:38px}.rcp-per label{flex:1}.rcp-per input{width:100%}}
 @media (max-width:1023px){.sa-bulles{left:12px}}
 @media (max-width:900px){
   .sa-l.ent{display:none}
@@ -600,18 +650,19 @@ nav a.actif .nb-menu{background:#fff;color:var(--prim)}
   <symbol id="i-salle" viewBox="0 0 24 24"><path d="M6 3.5v9.5h11M6 13v7.5M17 13v7.5M6 17h11M17 8.5h-7.5a1.5 1.5 0 0 0-1.5 1.5v3"/><circle cx="15" cy="4.8" r="1.8"/></symbol>
   <symbol id="i-bulle" viewBox="0 0 24 24"><path d="M5 4h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-8l-5 4v-4H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"/></symbol>
   <symbol id="i-document" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7ZM14 2v4a2 2 0 0 0 2 2h4M10 9H8M16 13H8M16 17H8"/></symbol>
+  <symbol id="i-rcp" viewBox="0 0 24 24"><circle cx="12" cy="5.5" r="2.3"/><circle cx="4.8" cy="9" r="2"/><circle cx="19.2" cy="9" r="2"/><path d="M8 13.5a4 4 0 0 1 8 0M2.5 15.5a3 3 0 0 1 4.4-2.6M21.5 15.5a3 3 0 0 0-4.4-2.6M3 18.5h18M6 18.5V21M18 18.5V21"/></symbol>
 </svg>
 <aside id="menu" aria-label="Menu principal">
   <div class="marque"><svg class="logo" viewBox="0 0 120 120" aria-hidden="true"><defs><linearGradient id="og" x1="0.1" y1="0.1" x2="0.9" y2="0.9"><stop offset="0" stop-color="#1D3F94"/><stop offset=".45" stop-color="#1B86C2"/><stop offset="1" stop-color="#3AB59A"/></linearGradient><linearGradient id="og2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1A6E9E"/><stop offset="1" stop-color="#3AB59A"/></linearGradient><mask id="om"><rect width="120" height="120" fill="#fff"/><circle cx="64" cy="56" r="43" fill="#000"/><rect x="78" y="28" width="34" height="34" rx="8" fill="#000"/></mask></defs><circle cx="60" cy="62" r="54" fill="url(#og)" mask="url(#om)"/><path d="M22 92c22 14 52 10 68-14" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/><circle cx="57" cy="41" r="10.5" fill="url(#og2)"/><path fill="url(#og2)" d="M41 88c-4-11-3-23 2-30 4-6 10-9 17-9 6 0 12 1 17 3-11 3-21 10-27 21-3 5-5 10-6 15Z"/><path fill="url(#og2)" d="M90 30h8a2.5 2.5 0 0 1 2.5 2.5v8h8a2.5 2.5 0 0 1 2.5 2.5v8a2.5 2.5 0 0 1-2.5 2.5h-8v8a2.5 2.5 0 0 1-2.5 2.5h-8a2.5 2.5 0 0 1-2.5-2.5v-8h-8a2.5 2.5 0 0 1-2.5-2.5v-8a2.5 2.5 0 0 1 2.5-2.5h8v-8A2.5 2.5 0 0 1 90 30Z"/></svg><b>Onco<span>360</span></b></div>
   <nav>
     <a href="#accueil" data-p="accueil"><svg class="i"><use href="#i-accueil"/></svg>Tableau de bord</a>
-    <a href="#agenda" data-p="agenda"><svg class="i"><use href="#i-agenda"/></svg>Agenda / Rendez-vous</a>
-    <a href="#salle" data-p="salle"><svg class="i"><use href="#i-salle"/></svg>Salle d'attente<span class="nb-menu cache" id="nbSalle"></span></a>
+    <a href="#agenda" data-p="agenda" data-mod="agenda"><svg class="i"><use href="#i-agenda"/></svg>Agenda / Rendez-vous</a>
+    <a href="#salle" data-p="salle" data-mod="salle"><svg class="i"><use href="#i-salle"/></svg>Salle d'attente<span class="nb-menu cache" id="nbSalle"></span></a>
     <a href="#patients" data-p="patients"><svg class="i"><use href="#i-patients"/></svg>Patients</a>
-    <a href="#taches" data-p="taches"><svg class="i"><use href="#i-taches"/></svg>Tâches<span class="nb-menu cache" id="nbTaches"></span></a>
-    <a href="#protocoles" data-p="protocoles"><svg class="i"><use href="#i-protocoles"/></svg>Protocoles</a>
+    <a href="#taches" data-p="taches" data-mod="taches"><svg class="i"><use href="#i-taches"/></svg>Tâches<span class="nb-menu cache" id="nbTaches"></span></a>
+    <a href="#protocoles" data-p="protocoles" data-mod="chimio"><svg class="i"><use href="#i-protocoles"/></svg>Protocoles</a>
     <a href="#parametres" data-p="parametres"><svg class="i"><use href="#i-parametres"/></svg>Paramètres</a>
-    <a href="#bilan" data-p="bilan" data-droit="finances"><svg class="i"><use href="#i-bilan"/></svg>Bilan</a>
+    <a href="#bilan" data-p="bilan" data-droit="finances" data-mod="bilan"><svg class="i"><use href="#i-bilan"/></svg>Bilan</a>
     <a href="#profil" data-p="profil"><svg class="i"><use href="#i-profil"/></svg>Profil</a>
   </nav>
   <div class="pied">
@@ -647,6 +698,6 @@ function onco360Deconnecter() {
 }
 </script>
 
-<script type="module" src="./js/app/v2.js?v=20261008v"></script>
+<script type="module" src="./js/app/v2.js?v=20261009r"></script>
 </body>
 </html>

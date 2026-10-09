@@ -121,7 +121,7 @@ window.biKlSup = async (i) => { const e = B.versements[i]; if (!confirm("Supprim
 
 // ───── Exports ─────
 const filtresTxt = () => ["Période : du " + A.dfrA(DATA.pr[0] > "0001" ? DATA.pr[0] : "") + " au " + A.dfrA(DATA.pr[1] < "9999" ? DATA.pr[1] : ""), "Établissement : " + (F.hop === "tous" ? "tous" : F.hop), "Type d'acte : " + (typesActes().find((t) => t[0] === F.typ) || [0, F.typ])[1], "Paiement : " + ({ tous: "payés et à recevoir", paye: "payés", att: "à recevoir" }[F.pay]), "Référent : " + (F.cor === "tous" ? "tous" : F.cor || "sans référent")].concat(F.q ? ["Recherche : " + F.q] : []);
-const nomMed = () => { const p = D().profil || {}; return [p.titre || "Dr", p.prenom, String(p.nom || "Bentahila").replace(/^Dr\.?\s*/i, "").toLowerCase().replace(/(^|[\s-])\S/g, (c) => c.toUpperCase())].filter(Boolean).join(" "); };
+const nomMed = () => { const p = D().profil || {}; return [p.titre || "Dr", p.prenom, String(p.nom || "").replace(/^Dr\.?\s*/i, "").toLowerCase().replace(/(^|[\s-])\S/g, (c) => c.toUpperCase())].filter(Boolean).join(" "); };
 const indic = () => { const T = DATA.tot; return [["CA NET médecin", T.caNet, T.nbActes], ["Chimio (séances)", T.chimio, T.nbChimio], ["Consultations", T.consultations, T.nbConsultations], ["Hospitalisations", T.hospit, T.nbHospit], ["Radiothérapie (terminées)", T.rt, T.nbRt], ["Autres versements", T.versements, T.nbVersements], ["Payé", T.paye, ""], ["À recevoir", T.aRecevoir, ""]]; };
 window.biExport = async (fmt) => {
   if (!DATA) return;

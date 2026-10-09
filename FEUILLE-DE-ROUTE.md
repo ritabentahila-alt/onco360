@@ -394,20 +394,69 @@ Décisions déjà prises :
 - chaque médecin relie son Google Agenda (c'est déjà en place).
 
 - **F1 – Plusieurs cabinets**
-  - [ ] **D'abord : établir ensemble la liste exacte de ce que reçoit un nouveau cabinet.** Par exemple : les protocoles,
-        les jours fériés marocains, la liste des diagnostics… mais **pas** la liste des correspondants de Dr Bentahila.
-  - [ ] Inscription avec code, et création automatique du cabinet.
-  - [ ] Onco360 ouvre le cabinet de la personne connectée (aujourd'hui, « cabinet-bentahila » est écrit dans le code).
-  - [ ] Page « Administration » réservée à l'éditrice : codes, cabinets, abonnements, sans aucune donnée médicale.
+  - [x] **Liste de ce que reçoit un nouveau cabinet (décidé le 09/10)** : les **protocoles**, les **jours fériés**, la liste
+        des **diagnostics**, les bibliothèques **médicaments**, **ordonnances types**, **analyses** et **courriers**, les **tarifs
+        de radiothérapie** (actes RT, VMAT), la possibilité de **relier son propre Google Agenda**. **Pas** : les
+        correspondants, les tarifs (consultations, séances), les établissements, les patients et leurs dossiers, le profil
+        de Dr Bentahila, son bilan.
+        Note : ajouter un confrère par Paramètres › Accès le ferait entrer dans **le cabinet de Dr Bentahila** (il verrait
+        ses patients) : un autre cabinet se crée à part.
+  - **Décidé le 09/10** : cabinets créés depuis un **compte d'administration séparé** (pas le compte de Dr Bentahila) ;
+    mutuelles reçues ; autres réglages = valeurs de départ ; documentation patients = fiches de départ seules.
+  - [x] **Création d'un cabinet (09/10, fait, testé et mis en ligne)** : page `admin.html` (compte de la collection
+        `administrateurs`) → fonction `creerCabinet` : compte du médecin, cabinet `cab-…`, titulaire (tous les droits),
+        copie de ce qui est décidé (`functions/cabinets.js`), e-mail pour choisir le mot de passe. Liste des cabinets
+        (`listeCabinets` : titulaire, membres, nombre de dossiers ; aucune donnée médicale), « Renvoyer l'e-mail ».
+        Code d'activation (inscription par le médecin lui-même) : plus tard, avec les abonnements.
+  - [x] Onco360 ouvre le cabinet de la personne connectée : `comptes/{uid}` = { espace }, écrit par le serveur seulement
+        (`creerCabinet`, et `compteMembre` à chaque fiche de membre écrite ; profil de départ du membre ajouté). Sans fiche :
+        cabinet-bentahila (membres actuels).
+  - [x] Règles : chaque cabinet fermé aux autres ; le compte de Dr Bentahila n'a plus de pouvoir d'administratrice que
+        dans son cabinet ; le compte d'administration n'ouvre aucun cabinet. 27 tests (`test-cabinets.mjs`), 143/143.
+  - [x] Mise en ligne le 09/10 (règles, fonctions compteMembre / creerCabinet / listeCabinets, site v2.js?v=20261009p).
+  - [ ] **À faire par Dr Bentahila avant le premier cabinet** : créer le compte d'administration (Firebase › Authentication)
+        et sa fiche `administrateurs/{UID}` (2e document de la collection existante).
+  - [x] Administration (09/10, en ligne) : « Lien du mot de passe » (message prêt à copier ou à envoyer par WhatsApp, fonction
+        `lienMotDePasse`, titulaires des cabinets neufs seulement) ; liste des cabinets réécrite (cabinet de référence inclus,
+        comptages séparés, journaux) ; **Suspendre / Réactiver** (`etatCabinet` : `espaces/{e}.actif = false` → règles Firestore et
+        Storage : plus personne n'entre, message « accès suspendu », rien d'effacé) ; **Supprimer** (`supprimerCabinet` : cabinet
+        suspendu + nom retapé ; base, fichiers, comptes des membres et liaisons Google Agenda effacés). Jamais le cabinet de Dr
+        Bentahila. Règles 155/155.
+  - [ ] Page « Administration » : codes d'activation, abonnements (avec les licences ci-dessous).
+  - [x] **Modules par cabinet (fait le 09/10, en ligne)** : `public/js/donnees/modules.js` (11 modules, 3 formules : Essentiel
+        (chimio, sans RT ni RCP ; 1 médecin, 1 secrétaire, 0 infirmière, 1 lieu, 500 dossiers), Radiothérapie (sans chimio, mêmes
+        limites), Complet (tout ; 3 / 3 / 3, lieux et dossiers sans limite)) ; `espaces/{e}.abonnement` écrit par
+        `abonnementCabinet` (page Administration › « Formule et modules », aussi pour le cabinet de Dr Bentahila) ; formule choisie
+        à la création. Sans abonnement : tout, sans limite (cabinet de Dr Bentahila aujourd'hui). Module retiré : `body.sans-<module>`
+        cache `[data-mod]` (menu, boutons, onglets), page → tableau de bord, droits chimio / RT / documents coupés à l'écran,
+        écoutes en direct non lancées ; Google Agenda refusé par `agendaLier`. Limites : membres (écran + `compteMembre` qui
+        désactive un compte en trop, « Hors formule »), lieux et dossiers (écran). Le cabinet de Dr Bentahila s'affiche comme un
+        cabinet normal « Actif » (suspension et suppression toujours refusées par le serveur, par sécurité).
+        À faire plus tard : limites des dossiers et des lieux aussi imposées par le serveur ; modules imposés par les règles.
+  - [ ] ~~Modules par cabinet (demandé le 09/10)~~ : le compte d'administration choisit pour chaque cabinet ce à quoi il a
+        droit : secrétaire, infirmière, chimiothérapie (protocoles), radiothérapie, agenda, tâches, bibliothèques, salle
+        d'attente, RCP, Google Agenda, listes (sauf correspondants), bilan… Un module non attribué est absent pour tout le
+        cabinet. **Décidé le 09/10** : formules toutes prêtes (ex. Essentiel, Complet) puis retouches module par module ;
+        **nombre maximum** de comptes par rôle (médecins, secrétaires, infirmières) ; module retiré = **caché, données gardées**
+        (il revient tel quel si on le remet).
+  - Note (09/10) : la collection `administrateurs` contient déjà le compte de Dr Bentahila (06/10) : on la garde ; le compte
+    d'administration séparé y est ajouté comme un 2e document (ID = son UID).
   - [ ] **Gestion des licences (« Super Admin », demandé le 08/10)** : activer / désactiver l'accès d'un cabinet ou d'une
         clinique en un clic, clé de licence, date d'échéance de l'abonnement (accès bloqué ou en lecture seule après).
   - [ ] **Quotas selon la formule** (08/10) : ex. **Standard** = 1 établissement, 500 patients au maximum ; **Premium** =
         établissements et patients illimités. Limites imposées aussi par les règles du serveur. Formules et prix à décider.
-  - [ ] Retirer ce qui est propre à Dr Bentahila :
-    - son INPE et son nom par défaut sur la fiche chimio ;
-    - HGC et HCK comme établissements et tarifs par défaut.
-  - [ ] Premier démarrage guidé : lieu d'exercice, tarifs.
-  - [ ] Tests d'étanchéité : un cabinet ne voit rien d'un autre. Le bilan de Dr Bentahila reste inchangé.
+  - [x] Retirer ce qui est propre à Dr Bentahila (09/10) : son e-mail (titulaire) et son INPE par défaut (Profil), son nom
+        (bilan, exemple WhatsApp), « Hôpital Cheikh Khalifa » (exemple WhatsApp), ses correspondants de départ (COR0 : son
+        cabinet seulement), « Casablanca » du pli (ville du lieu d'exercice, nouveau champ « Ville » ; Casablanca si vide).
+        Grille tarifaire d'un premier lieu : toutes les activités à 0 (plus de copie de HGC). Restent dans le code sans effet
+        pour un autre cabinet : repli « HGC » des tarifs (moteur du bilan, inchangé) ; COR0 à retirer du code en F2.
+  - [x] Premier démarrage guidé (09/10) : carte « Bienvenue dans Onco360 : pour commencer » sur le tableau de bord du médecin
+        (profil / INPE, lieu d'exercice, tarifs ; équipe et Google Agenda facultatifs) tant que les 3 premiers ne sont pas faits.
+  - [x] Tests d'étanchéité (09/10) : règles (27 cas) ; navigateur `tests/test_cabinets.py` (cabinet neuf : aucun patient ni
+        correspondant ni établissement de Dr Bentahila, 316 protocoles, listes, grille, 390 px ; page Administration) ;
+        `node functions/test-cabinets.js` (17 cas). Bilan de Dr Bentahila inchangé (352 317 DH).
+  - [ ] Après mise en ligne : créer un **cabinet d'essai** (adresse e-mail à soi), s'y connecter, vérifier, puis le premier
+        vrai cabinet.
 - **F2 – Rendre Onco360 vendable**
   - [ ] Un nom de domaine (par exemple onco360.ma) à la place de chimio-hgc.web.app.
   - [ ] Retirer de la version client l'ancienne application (`ancienne-app.html`, `historique.html`, `app.html`, `js/pont.js`, `js/shim.js`, `js/ajustements.js`) ; outils de conversion déjà retirés le 06/10.
@@ -571,7 +620,7 @@ Décisions de Dr Bentahila (08/10) :
       « paramètres ». Données : `parametres/typesTaches` = { data: JSON [noms] }. Une tâche garde son type si on le renomme.
 - [x] Tests : médecin (renommer, ajouter, retirer, doublon refusé, boutons de la fenêtre Nouvelle tâche), secrétaire (lecture
       seule), 390 px, bilan 352 317 DH, aucune erreur.
-- [ ] Mise en ligne (site).
+- [x] Mise en ligne (site).
 **P2 – Page « Paramètres » unique** (fait et testé le 08/10, pas encore en ligne)
 - [x] **Une seule entrée « Paramètres »** dans le menu (visible par toute l'équipe ; « Configuration » retirée, l'ancienne
       adresse `#configuration` renvoie vers `#parametres`). Onglets : Créneaux & horaires · Fermetures, congés & jours fériés ·
@@ -587,7 +636,7 @@ Décisions de Dr Bentahila (08/10) :
       démarrage ; module `js/app/reglages.js`.
 - [x] Tests : médecin (9 onglets, enregistrement, marges à l'impression et à l'écran, textes WhatsApp), secrétaire (8 onglets,
       sans Activités, lecture seule), 390 px, bilan 352 317 DH, aucune erreur.
-- [ ] Mise en ligne (site).
+- [x] Mise en ligne (site).
 - Note pour la salle d'attente (SA2) : un nouvel onglet de Paramètres s'ajoute dans `ONGLETS()` de `configuration.js`
   (plus de barre d'onglets écrite en dur).
 **P2 bis – Listes et bibliothèques dans Paramètres** (fait et testé le 08/10, pas encore en ligne)
@@ -602,7 +651,7 @@ Décisions de Dr Bentahila (08/10) :
 - [x] Tests : listes (correction, ajout, doublon, fiche patient qui propose la nouvelle liste), 5 bibliothèques (ouverture,
       modification, retour à la liste), **prescriptions depuis le dossier inchangées** (même après la gestion dans Paramètres),
       secrétaire en lecture seule, 390 px, bilan 352 317 DH, aucune erreur.
-- [ ] Mise en ligne (site).
+- [x] Mise en ligne (site).
 **P2 ter – Listes reliées aux dossiers** (demandé le 08/10 ; fait et testé le 08/10, pas encore en ligne)
 - [x] **Nom corrigé dans Paramètres › Listes → corrigé dans tous les dossiers** qui l'utilisent (mutuelle, correspondant,
       diagnostic), après confirmation (« 17 dossiers seront corrigés aussi ») ; une ligne « Liste corrigée (Paramètres) » dans
@@ -623,7 +672,7 @@ Décisions de Dr Bentahila (08/10) :
 - [x] Données : `utilisateurs/{uid}.agendaFiltre` = { exclus: [clés] } ; serveur : `cleFiltre` / `filtrer` (logique.js) dans
       la remise à plat et chaque mise à jour ; nouvelle fonction `agendaFiltre` (case changée → agenda de la personne refait).
 - [x] Tests : logique (clé de chaque événement, filtres) ; navigateur (cases, nouveau type de tâche, 390 px, bilan 352 317 DH).
-- [ ] Mise en ligne : règles, **fonctions**, site. (08/10 : fonctions et site mis en ligne par Dr Bentahila ; avertissement
+- [x] Mise en ligne : règles, **fonctions**, site. (08/10 : fonctions et site mis en ligne par Dr Bentahila ; avertissement
       « extensions » sans conséquence ; **la mise à jour Google Agenda échouait** → corrigé ci-dessous, à remettre en ligne.)
 **P3 bis – Tout Google Agenda dans Paramètres ; Profil réduit** (demandé et fait le 08/10, pas encore en ligne)
 - [x] **Panne de synchronisation corrigée** : Google refusait un événement (« Invalid start time ») et toute la mise à jour
@@ -635,7 +684,7 @@ Décisions de Dr Bentahila (08/10) :
       Paramètres après un enregistrement. 13 onglets.
 - [x] **Profil = Mes informations seulement**, sans onglets. Anciens liens (agenda, fiche chimio, guide) mis à jour.
 - [x] Tests : médecin (13 onglets, lieu modifié, accès), secrétaire (sans Accès, relie son agenda), 390 px, bilan 352 317 DH.
-- [ ] Mise en ligne : **fonctions** (correction de la panne) et site.
+- [x] Mise en ligne : **fonctions** (correction de la panne) et site.
 **P4 – Tâches automatiques et tâches dans le dossier** (décidé et fait le 08/10, pas encore en ligne)
 Décisions (08/10) : événements des tâches automatiques du médecin = **dernière cure d'un protocole, rendez-vous « Non venu »,
 nouveau patient, N mois après la fin d'une radiothérapie, veille d'une cure J1** ; la dosimétrie reste ailleurs (programme du
@@ -683,9 +732,9 @@ jour, agenda, Google Agenda) mais **dans le dossier sous forme de tâche**.
 - [x] Page Tâches : filtre **Lieu d'exercice** (09/10, à côté de « Tous les types ») : Tous les lieux, chaque établissement du
       membre (et ceux de ses tâches), « Sans patient » ; lieu = celui du dossier du patient aujourd'hui (s'il a changé
       d'établissement), sinon celui noté dans la tâche. Testé (médecin, secrétaire HGC, 390 px).
-- [ ] **Question à Dr Bentahila** : retirer de la cloche les alertes qui doublent une tâche automatique active (dosimétrie à
+- [x] **Décidé le 09/10 : on ne retire rien de la cloche.** Question : retirer de la cloche les alertes qui doublent une tâche automatique active (dosimétrie à
       valider, fin de radiothérapie dépassée, dernière cure si la règle est activée) ?
-- [ ] Mise en ligne : règles, **fonctions** (2 nouvelles), site. Puis vérifier sur un vrai dossier (dosimétrie en attente).
+- [x] Mise en ligne : règles, **fonctions** (2 nouvelles), site. Puis vérifier sur un vrai dossier (dosimétrie en attente).
 
 ---
 
@@ -696,7 +745,7 @@ commence par ses questions « À décider » (Claude les pose avant d'écrire le
 ## Ordre proposé (à valider par Dr Bentahila ; elle peut le changer à tout moment)
 1. Terminer l'en cours : Tâches T1 à T5 faites le 08/10 (T6 facultatif, plus tard).
 2. **Étape 6 – Salle d'attente** (usage quotidien, le plus utile tout de suite).
-3. **Étape 7 – RCP**.
+3. **Étape 7 – RCP** (fait le 09/10, pas encore en ligne).
 4. **Étape 8 – Numéro de dossier et recherche des patients**.
 5. **Étape 9 – Sécurité et conformité** (journal d'audit, rôles, mode démo) : indispensable avant de vendre.
 6. **Étape 10 – Mode hors-ligne**.
@@ -841,31 +890,50 @@ Nouvelle page **« Salle d'attente »** dans le menu, **entre Agenda et Patients
       (vues Jour et Liste) et dans « Aujourd'hui » du tableau de bord, mis à jour en direct (`badgeSalle`, salle.js).
 - Annulé (08/10) : message WhatsApp de consignes d'arrivée.
 
-## Étape 7 – RCP (réunion de concertation pluridisciplinaire)
-**À décider** : une RCP par établissement ou une seule pour le cabinet ? Jour fixe (ex. chaque mardi) ou dates saisies
-une par une ? Après le jour J : le dossier sort de la liste tout seul, ou reste « décision à saisir » tant que la décision
-n'est pas écrite ? Que noter à l'inscription (question posée, documents à présenter) ?
-- [ ] **Configuration › Dates de RCP** : jour de la semaine et heure (récurrence) et/ou dates une par une, par
-      établissement ; dates annulées (fériés, absences).
-- [ ] Dossier patient : bouton **« Inscrire en RCP »** → inscrit automatiquement à la **prochaine date de RCP** (date
-      modifiable), avec la question posée ; visible dans le dossier **jusqu'au jour J** ; « Désinscrire ».
-- [ ] **Liste des dossiers inscrits** : onglet **RCP** dans la page Salle d'attente (ou page à part, à décider), groupés par
-      date de RCP, avec la question posée ; clic = dossier.
-- [ ] Après la RCP : « Saisir la décision » → consultation de type **RCP** (déjà dans le menu des consultations) avec la
-      décision ; le dossier sort de la liste.
-- [ ] Fiche RCP imprimable (liste des dossiers du jour, pour la réunion) — à confirmer.
-- [ ] Tests, 390 px, bilan 352 317 DH.
+## Étape 7 – RCP (réunion de concertation pluridisciplinaire) (fait et testé le 09/10, pas encore en ligne)
+**Demande de Dr Bentahila (09/10)** : dates de RCP dans les Paramètres ; bouton « + RCP » à côté de Doc. (inscription à la
+prochaine RCP, fenêtre avec la question et la date d'inscription) ; onglet « RCP » dans Tâches à côté de « Toutes les tâches »
+(calendrier des semaines, période choisie, dossiers inscrits avec la question et une case Fait) ; dossier ouvert depuis la
+liste : décision saisie en nouvelle consultation « RCP », bulles Valider (coche Fait, retour à la liste) et Fermer.
+**Choix faits par Claude (à confirmer)** : une seule RCP pour le cabinet (pas par établissement) ; un dossier reste « à faire »
+tant que la case Fait n'est pas cochée (alerte « RCP passée sans case Fait ») ; inscrire, cocher et écrire la décision =
+médecin et secrétaire (droit « Journal des consultations ») ; infirmière : lecture seule ; désinscrire = médecin ou qui a
+inscrit.
+- [x] **Paramètres › RCP** : jours de la semaine, heure, lieu ; dates ajoutées (RCP exceptionnelles) et dates annulées ; pas
+      de RCP un jour férié (sauf date ajoutée) ; aperçu des 10 prochaines RCP. `parametres/rcp`.
+- [x] Dossier : bouton **« + RCP »** dans la barre des prescriptions, après Doc. → fenêtre : date de RCP (prochaine proposée,
+      menu des 12 suivantes ou autre date), date d'inscription (du jour, modifiable), question posée ; inscriptions déjà
+      faites du patient (Modifier, Désinscrire). Flèche ▾ = toutes les RCP du patient (avec la décision).
+- [x] Inscriptions non faites visibles dans « Rendez-vous et tâches à venir » (en rouge « décision à saisir » après la date).
+- [x] **Tâches › onglet RCP** (`#taches/rcp`) : calendrier du mois (une ligne par semaine ; clic sur « S42 » = la semaine, sur un
+      jour = ce jour ; jours de RCP encadrés, nombre de dossiers en pastille orange / verte (tous faits) / rouge (passée non
+      faite)) ; période Du / Au, « Prochaine RCP », « Cette semaine », « Ce mois » ; Tous / À faire / Faits ; liste par date de
+      RCP : patient (âge, diagnostic), question, décision, inscrit le / par, case **Fait** ; ✎ / ✕ ; **Imprimer** (fiche A4
+      paysage pour la réunion, colonne Décision). Alerte « N dossiers de RCP passées sans case Fait » → les afficher.
+- [x] Clic sur le patient → dossier avec **bulles** en bas à droite : **Décision RCP** (nouvelle consultation type « RCP », note
+      « Question : … / Décision : » pré-remplie ; ensuite « Modifier la décision »), **Valider** (coche Fait, retour à la liste),
+      **Fermer** (retour à la liste). La décision est recopiée dans la liste et sur la fiche imprimée.
+- [x] Règles `rcp` (26 tests, total 116/116 sur l'émulateur).
+- [x] Tests navigateur : médecin (paramètres, inscription, liste, décision, Valider, Fermer, case Fait, alerte, impression),
+      secrétaire (inscrit, coche), infirmière (lecture seule, bulle Fermer seule), téléphone 390 px, bilan 352 317 DH.
+- [x] Mise en ligne (règles + site), après accord. (09/10 : tout est en ligne, confirmé par Dr Bentahila.)
+- Plus tard si besoin : RCP dans Google Agenda, une RCP par établissement.
 
-## Étape 8 – Numéro de dossier et recherche des patients
-**À décider** : format exact. Proposition « **AAAAMM + numéro** » : 202610**001** = 1er patient créé en octobre 2026.
-Le numéro repart-il à 001 chaque mois ? Un numéro par hôpital (préfixe HGC-, HCK-…) ou un seul compteur pour le cabinet ?
-Les patients déjà enregistrés reçoivent un numéro selon leur date de création ?
-- [ ] Numéro de dossier attribué automatiquement à la création (sans doublon, même si deux personnes créent un patient en
-      même temps), jamais changé ; affiché en haut du dossier, dans la liste, sur la fiche chimio et les documents.
-- [ ] Numéros donnés une fois aux patients existants.
-- [ ] **Recherche** des patients par **nom, prénom, date de naissance, numéro de dossier** (dans la page Patients et la
-      recherche rapide) ; filtre **par hôpital / établissement**.
-- [ ] Tests, 390 px, bilan 352 317 DH.
+## Étape 8 – Numéro de dossier et recherche des patients (fait, testé et mis en ligne le 09/10)
+**Décidé le 09/10** : « AAAAMM + numéro dans l'ordre d'inscription » : **202610001** = 1er patient inscrit en octobre 2026,
+le numéro **repart à 001 chaque mois** (4 chiffres au-delà de 999), **un seul compteur pour le cabinet** (le filtre par hôpital
+se fait dans la recherche), les patients existants numérotés selon leur vraie date d'inscription (pour ceux venus de l'ancienne
+application : la date de leur création là-bas, pas le 06/10).
+- [x] Numéro attribué **par le serveur** à la création (fonction `numeroDossier`, transaction sur `compteurs/dossiers` : jamais de
+      doublon, même si deux personnes créent un patient en même temps), écrit dans `identite.numero`, jamais changé (gardé par
+      Modifier, les saisies de chimio, `separer`). Affiché en haut du dossier (« Dossier n° … »), dans la liste des patients,
+      dans le choix du patient d'un rendez-vous et sur la fiche chimio. **Pas encore sur le pli / compte rendu** (documents.js).
+- [x] Numéros donnés **une fois** aux patients existants à la 1re ouverture d'Onco360 par le médecin titulaire (fonction
+      `numerosManquants`, dans l'ordre d'inscription). Test sur les 62 dossiers : 202609001 → 202609061, puis 202610001.
+- [x] **Recherche** par nom, prénom, date de naissance (JJ/MM/AAAA) ou **numéro** (page Patients et choix du patient d'un
+      rendez-vous) ; **filtre par hôpital** dans la page Patients (si la personne voit plusieurs établissements).
+- [x] Tests : logique `node functions/test-numeros.js` (10 cas), navigateur (numérotation, recherche, filtre, création,
+      numéro conservé), 390 px, bilan 352 317 DH.
 
 ## Étape 9 – Sécurité et conformité (obligatoire pour vendre)
 **S1 – Journal d'audit (traçabilité)**
@@ -911,6 +979,22 @@ dans Profil › Accès › Droits.
       l'infirmière, neutropénie fébrile signalée, **bilan biologique anormal avant cure** (seuils à définir : PNN, plaquettes,
       créatinine…).
 - [ ] Même système que T6 (Tâches) : à construire une seule fois.
+
+## Étape 14 – Autres spécialités (demandé le 09/10/2026) : nouveaux modules et leurs formules
+Onco360 s'ouvrira avec le temps à d'autres médecins : **médecine générale**, **gynécologie**, puis d'autres spécialités. Pour
+chacune : des **modules propres** (créés au fur et à mesure) et des **formules propres**, rangées par spécialité dans la page
+Administration (onglet Formules : déjà par spécialité depuis le 09/10 ; « Médecine générale » et « Gynécologie » y figurent, sans
+formule tant que leurs modules n'existent pas).
+- Formules par spécialité, chacune avec tous ses niveaux (ex. Essentiel / Pro / Clinique) : oncologue médical, radiothérapeute,
+  oncologue-radiothérapeute (faites le 09/10), généraliste, gynécologue (à faire avec leurs modules).
+- [ ] Médecine générale : à décider avec Dr Bentahila (ex. consultation de médecine générale, vaccinations, certificats,
+      suivi des maladies chroniques, courbes de croissance…), puis modules + formules.
+- [ ] Gynécologie : à décider (ex. suivi de grossesse, échographies, dépistage, contraception…), puis modules + formules.
+- Avant le 1er module d'une autre spécialité : donner une formule au cabinet de Dr Bentahila (ex. Onco-radiothérapie – Clinique),
+  sinon il reçoit tous les modules (cabinet sans abonnement = tout). Avec un abonnement, un module absent = non attribué (09/10).
+- Technique : un module = une clé dans `public/js/donnees/modules.js` et `functions/cabinets.js` (MODULES), ses écrans marqués
+  `data-mod`, sa page dans `PAGE_MODULE` (v2.js) ; « Ajouter les formules proposées par Onco360 » (onglet Formules) ajoute les
+  nouvelles formules sans toucher à celles déjà modifiées. Le nom « Onco360 » sera peut-être à revoir pour les autres spécialités.
 
 ## Étape 12 – Dossier de cession, démonstration et guides
 But : un acheteur (éditeur, ESN, clinique) reprend Onco360 **sans avoir besoin d'appeler Dr Bentahila**.
@@ -1072,4 +1156,13 @@ Onco360_Package_Cession/
 | 08/10/2026 | 6 – Salle d'attente (retouches + SA3) | Prix payé d'avance, libellés courts et centrés, fenêtre de prix après validation de cure / séance, anciennes chimio « Vu », statut de salle d'attente dans l'Agenda (Jour, Liste) et le tableau de bord. Règles 88/88, navigateur (secrétaire, médecin, bilan de référence inchangé). |
 | 08/10/2026 | 6 – Salle d'attente (corrections) | Commentaire sur une consultation vue, stylo centré, anciens prix HCK en brut, seuils d'attente dans Paramètres › Alertes. Règles 90/90, navigateur, bilan de référence inchangé. |
 | 08/10/2026 | 2 – Retouches (téléphone) | Pastille de la salle d'attente renommée (.pst) : elle déformait la ligne de dose de la radiothérapie, la chimio arrêtée et le statut des tâches ; boutons Afficher / Modifier / Tâche / RDV alignés ; consultations passées : libellé non recouvert par les badges. 390 px vérifié, bilan de référence inchangé. |
+| 09/10/2026 | 7 – RCP | Paramètres › RCP (jours, heure, lieu, dates ajoutées / annulées), bouton « + RCP » du dossier (question, date d'inscription, prochaine RCP), onglet RCP des Tâches (calendrier des semaines, période, case Fait, impression), bulles Décision RCP / Valider / Fermer dans le dossier, inscriptions dans « Rendez-vous et tâches à venir ». Règles 116/116, navigateur (3 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |
 | 09/10/2026 | 5 – P4 Radiothérapie | Contourage ajouté au déroulé (scanner → contourage → dosimétrie → 1re séance) : étape et validation dans le dossier, tâche automatique « Valider le contourage », « Valider la dosimétrie » créée après le contourage, valider la tâche = valider dans le dossier. Tests logique 79/79, navigateur (dossier et tâche), bilan 352 317 DH. Pas encore en ligne. |
+| 09/10/2026 | 8 – Numéro de dossier | AAAAMM + rang dans le mois (serveur, sans doublon), patients existants numérotés une fois, recherche par numéro / naissance, filtre par hôpital ; mis en ligne (fonctions + site v2.js?v=20261009n). |
+| 09/10/2026 | 4 – F1 Plusieurs cabinets | Liste de ce que reçoit un cabinet neuf décidée ; compte d'administration séparé, page Administration (création d'un cabinet, liste sans données médicales) ; cabinet de la personne connectée (`comptes/{uid}`) ; règles : cabinets étanches, plus de pouvoir d'administratrice hors de son cabinet ; premier démarrage guidé ; ce qui était propre à Dr Bentahila retiré (ville du lieu sur le pli). Tests règles 143/143, cabinets 17/17, navigateur 18/18, bilan 352 317 DH. Mis en ligne (règles, 3 fonctions, site v2.js?v=20261009p). Modules par cabinet décidés (formules + retouches, nombre max de comptes par rôle, module retiré = caché) : prochaine session. (`test_cures` / `test_seances` échouaient déjà avant : à mettre à jour.) |
+| 09/10/2026 | 4 – F1 compte d'administration | Compte d'administration = gbentahila@hotmail.fr (fiche `administrateurs/{UID}` ajoutée par Dr Bentahila ; sa propre fiche retirée : son cabinet n'en dépend pas, ses pouvoirs viennent de son e-mail). Règles : `administrateurs` et `utilisateurs` (profils) fermés au compte d'administration (tenus par Dr Bentahila seule). Règles 149/149, mises en ligne. |
+| 09/10/2026 | 4 – F1 Administration | 1er cabinet créé par Dr Bentahila (Dr Gorbin) ; e-mail du mot de passe classé en indésirables → bouton « Lien du mot de passe » (WhatsApp). Liste des cabinets bloquée sur « Chargement… » → fonction réécrite. Suspendre / Réactiver / Supprimer un cabinet. Règles 155/155, navigateur, bilan 352 317 DH. Mis en ligne (fonctions, règles Firestore et Storage, site). |
+| 09/10/2026 | 4 – F1 Administration | Liste des cabinets bloquée : la date de création du cabinet de référence est une date Firebase (pas un texte) → l'affichage plantait. Corrigé (serveur + page, test avec ce cas) et mis en ligne ; vérifié en direct : 4 cabinets listés (Dr Gorbin, Dr Zizi, référence, test-b1). |
+| 09/10/2026 | 4 – F1 Modules par cabinet | Formules (Essentiel, Radiothérapie, Complet) + retouches module par module + maximums (médecins, secrétaires, infirmières, lieux, dossiers) depuis la page Administration ; modules retirés cachés (données gardées) ; cabinet de Dr Bentahila affiché comme cabinet normal. Tests cabinets 27/27, navigateur 33/33, bilan 352 317 DH. Mis en ligne (fonctions, site v2.js?v=20261009q). |
+| 09/10/2026 | 4 – F1 Administration | Formules modifiables par l'administration (nom, modules, maximums ; nouvelle formule ; suppression si aucun cabinet ne l'utilise) : `plateforme/formules` (serveur seulement), fonction `formulesEnregistrer` (cabinets sans retouche mis à jour) ; « Modifier » un cabinet (nom, ville, adresse, téléphone, nom et téléphone du titulaire : `infosCabinet`). Maximum vide = sans limite, chiffre = bloqué, 0 = aucun. Tests cabinets 32/32, navigateur 38/38. Mis en ligne. |
+| 09/10/2026 | 4 – F1 Administration | 8 formules proposées par spécialité (Oncologie : Essentiel / Pro / Clinique ; Radiothérapie : Essentiel / Pro / Centre ; Onco-radiothérapie : Pro / Clinique), spécialité modifiable ; page Administration refaite : onglets Cabinets (chiffres, recherche, filtres statut / spécialité, cartes) / Nouveau cabinet (spécialité → formule, aperçu) / Formules (par spécialité, barre d'enregistrement) ; réglages dans une fenêtre. Étape 14 ajoutée (autres spécialités). Tests 33/33, navigateur 44/44, bilan 352 317 DH. Mis en ligne. |

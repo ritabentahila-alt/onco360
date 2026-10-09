@@ -91,6 +91,8 @@ exports.agendaLier = onCall(OPTS, async (req) => {
   if (!code || !espace) throw new HttpsError("invalid-argument", "Demande incomplète.");
   const m = await membre(espace, uid);
   if (!m || m.actif === false) throw new HttpsError("permission-denied", "Vous n'êtes pas membre actif de cet espace.");
+  const ab = (await db.doc("espaces/" + espace).get()).data() || {};
+  if (ab.abonnement && ab.abonnement.modules && ab.abonnement.modules.gagenda === false) throw new HttpsError("permission-denied", "Google Agenda ne fait pas partie de la formule de ce cabinet.");
   let t;
   try { t = await oauth({ grant_type: "authorization_code", code, redirect_uri: "postmessage" }); }
   catch (e) { throw new HttpsError("failed-precondition", "Google a refusé la liaison : " + e.message); }
@@ -292,4 +294,185 @@ exports.numerosManquants = onCall({ timeoutSeconds: 120, memory: "256MiB" }, asy
     r.attributions.forEach((a) => tx.update(col.doc(a.id), { "identite.numero": a.numero, version: (docs[a.id].version || 1) + 1, maj: FieldValue.serverTimestamp(), majPar: req.auth.uid }));
     return { nb: r.attributions.length };
   });
+});
+
+// ───── Plusieurs cabinets (phase F, étape 4, 09/10/2026) ─────
+// comptes/{uid} = { espace } : le cabinet qu'Onco360 ouvre pour cette personne (lu par elle seule, écrit ici seulement).
+// Tenu à jour à chaque fiche de membre écrite (ajout d'un membre par le titulaire de n'importe quel cabinet) ; un compte
+// appartient à un seul cabinet : le premier gardé (sauf le cabinet modèle). Les membres du cabinet modèle sans fiche « comptes » l'ouvrent par défaut.
+// Administration (compte séparé, collection administrateurs) : crée les cabinets et en voit la liste, sans aucune donnée médicale ;
+// les règles ne lui ouvrent aucun cabinet (tout passe par ces fonctions).
+const C = require("./cabinets");
+const { getAuth } = require("firebase-admin/auth");
+const estAdministrateur = async (uid) => !!uid && (await db.doc("administrateurs/" + uid).get()).exists;
+// Formules modifiées par l'administration : plateforme/formules (aucune règle : serveur seulement), sinon formules de départ
+async function formules() { try { const s = await db.doc("plateforme/formules").get(); return (s.exists && C.formulesValides(JSON.parse(s.data().data || "{}"))) || C.FORMULES; } catch (e) { return C.FORMULES; } }
+exports.compteMembre = onDocumentWritten({ document: "espaces/{e}/membres/{uid}", timeoutSeconds: 60, memory: "256MiB" }, async (ev) => {
+  const { e, uid } = ev.params, ref = db.doc("comptes/" + uid), c = await ref.get(), apres = ev.data.after.exists ? ev.data.after.data() : null;
+  if (apres) {
+    // Déjà rattaché ailleurs : on ne change rien, sauf pour le cabinet modèle (ses membres l'ouvrent toujours, même s'ils
+    // figurent aussi dans un cabinet d'essai)
+    if (c.exists && c.data().espace && c.data().espace !== e && e !== C.MODELE) { console.warn("compte déjà rattaché à un autre cabinet", uid, c.data().espace, e); return; }
+    if (!c.exists || c.data().espace !== e) await ref.set({ espace: e, le: new Date().toISOString() });
+    // Nombre maximum de comptes de ce rôle (formule du cabinet) : au-delà, ce compte est désactivé (« hors formule »), jamais le titulaire
+    if (apres.actif !== false) {
+      const es = (await db.doc("espaces/" + e).get()).data() || {};
+      if (es.abonnement && es.titulaire !== uid) {
+        const n = (await db.collection("espaces/" + e + "/membres").where("role", "==", apres.role || "").get()).docs.filter((d) => d.data().actif !== false).length;
+        if (C.horsQuota(es.abonnement, apres.role, n)) { await ev.data.after.ref.update({ actif: false, horsQuota: true }); console.log("hors formule", e, uid, apres.role, n); return; }
+      }
+    }
+    // Profil de départ d'un membre ajouté par son titulaire (le navigateur ne peut pas écrire le profil d'une autre personne)
+    if (!ev.data.before.exists) {
+      const p = db.doc("utilisateurs/" + uid), sp = await p.get();
+      if (!sp.exists || !sp.data().nom) await p.set({ email: apres.email || "", nom: String(apres.nom || "").replace(/^(Dr|Pr)\.?\s+/i, ""), telephone: apres.telephone || "", titre: apres.role === "medecin" ? "Dr" : "", profession: apres.role || "" }, { merge: true });
+    }
+  } else if (c.exists && c.data().espace === e) await ref.delete();
+});
+// Nouveau cabinet : compte du médecin (créé s'il n'existe pas), cabinet, fiche de membre titulaire, copie de ce que reçoit un
+// cabinet neuf (cabinets.js). Le mot de passe est choisi par le médecin (e-mail envoyé par la page Administration).
+exports.creerCabinet = onCall({ timeoutSeconds: 120, memory: "256MiB" }, async (req) => {
+  const par = req.auth && req.auth.uid;
+  if (!(await estAdministrateur(par))) throw new HttpsError("permission-denied", "Réservé à l'administration d'Onco360.");
+  let d; try { d = C.verifier(req.data || {}); } catch (e) { throw new HttpsError("invalid-argument", e.message); }
+  const auth = getAuth(); let u = null, existant = false;
+  try { u = await auth.getUserByEmail(d.email); existant = true; } catch (e) { if (e.code !== "auth/user-not-found") throw e; }
+  if (existant) {
+    const c = await db.doc("comptes/" + u.uid).get();
+    if ((c.exists && c.data().espace) || (await db.doc("espaces/" + C.MODELE + "/membres/" + u.uid).get()).exists) throw new HttpsError("already-exists", "Cette adresse e-mail est déjà utilisée dans un cabinet Onco360.");
+    if (await estAdministrateur(u.uid)) throw new HttpsError("already-exists", "Cette adresse est celle d'un compte d'administration.");
+  } else {
+    const mdp = require("node:crypto").randomBytes(24).toString("base64") + "a9!";
+    u = await auth.createUser({ email: d.email, password: mdp, displayName: ("Dr " + d.prenom + " " + d.nom).replace(/\s+/g, " ").trim() });
+  }
+  const ids = (await db.collection("espaces").listDocuments()).map((x) => x.id), e = C.idCabinet(d.cabinet, ids), jour = new Date().toISOString().slice(0, 10);
+  const M = "espaces/" + C.MODELE + "/", E = "espaces/" + e + "/", json = (s) => { try { return s.exists ? JSON.parse(s.data().data || "null") : null; } catch (er) { return null; } };
+  const [prot, sl, sc, st, ...sb] = await Promise.all([db.collection(M + "protocoles").get(), db.doc(M + "parametres/listes").get(), db.doc(M + "parametres/calendrier").get(), db.doc(M + "finances/tarifs").get()].concat(C.BIBLIOTHEQUES.map((b) => db.doc(M + "bibliotheques/" + b).get())));
+  const b = db.batch();
+  b.set(db.doc("espaces/" + e), { nom: d.cabinet, titulaire: u.uid, cree: jour, creePar: par, actif: true, abonnement: C.abonnement({ formule: (req.data || {}).formule || "complet" }, await formules()) });
+  b.set(db.doc(E + "membres/" + u.uid), C.membreTitulaire(d, jour, par));
+  prot.forEach((p) => b.set(db.doc(E + "protocoles/" + p.id), p.data()));
+  b.set(db.doc(E + "parametres/listes"), { data: JSON.stringify(C.listesDepart(json(sl))) });
+  b.set(db.doc(E + "parametres/calendrier"), { data: JSON.stringify(C.calendrierDepart(json(sc))) });
+  b.set(db.doc(E + "finances/tarifs"), { data: JSON.stringify(C.tarifsDepart(json(st))) });
+  sb.forEach((s, i) => { if (s.exists) b.set(db.doc(E + "bibliotheques/" + C.BIBLIOTHEQUES[i]), s.data()); });
+  b.set(db.doc(E + "parametres/migrations"), C.migrationsFaites(jour));
+  b.set(db.doc("comptes/" + u.uid), { espace: e, le: new Date().toISOString() });
+  b.set(db.doc("utilisateurs/" + u.uid), { email: d.email, prenom: d.prenom, nom: d.nom, telephone: d.telephone, titre: "Dr", profession: "medecin" }, { merge: true });
+  await b.commit();
+  console.log("cabinet créé", e, d.email, "par", par);
+  return { espace: e, existant, protocoles: prot.size };
+});
+// Liste des cabinets pour la page Administration : nom, titulaire, date, nombre de membres et de dossiers (aucune donnée médicale)
+exports.listeCabinets = onCall({ timeoutSeconds: 60, memory: "256MiB" }, async (req) => {
+  if (!(await estAdministrateur(req.auth && req.auth.uid))) throw new HttpsError("permission-denied", "Réservé à l'administration d'Onco360.");
+  const t0 = Date.now(), [snap, FS] = await Promise.all([db.collection("espaces").get(), formules()]);
+  console.log("listeCabinets : " + snap.size + " cabinets lus en " + (Date.now() - t0) + " ms");
+  // Chaque comptage à part : un cabinet illisible n'empêche pas d'afficher les autres
+  const nb = async (q) => { try { return (await q.count().get()).data().count; } catch (e) { console.warn("comptage", e.message); return null; } };
+  const out = await Promise.all(snap.docs.map(async (s) => {
+    const r = s.ref, x = s.data() || {};
+    const [sm, patients, netab] = await Promise.all([r.collection("membres").select("role", "actif", "nom", "email", "telephone").get().catch(() => null), nb(r.collection("patients")), nb(r.collection("etablissements"))]);
+    const roles = {}; let membres = null, t = {};
+    if (sm) { membres = sm.size; sm.forEach((d) => { const m = d.data(); if (m.actif !== false) roles[m.role] = (roles[m.role] || 0) + 1; if (d.id === x.titulaire) t = m; }); }
+    // Date de création : texte AAAA-MM-JJ (le cabinet de référence l'a en date Firebase) ; sinon date de la fiche
+    const jour = (v) => (!v ? "" : typeof v === "string" ? v.slice(0, 10) : v.toDate ? v.toDate().toISOString().slice(0, 10) : "");
+    return { id: r.id, nom: x.nom || (r.id === C.MODELE ? "Cabinet du Dr Bentahila" : r.id), cree: jour(x.cree) || (s.createTime ? s.createTime.toDate().toISOString().slice(0, 10) : ""), actif: x.actif !== false, modele: r.id === C.MODELE, suspenduLe: x.suspenduLe || "",
+      titulaire: { nom: t.nom || "", email: t.email || "", telephone: t.telephone || "" }, membres, patients, roles, etablissements: netab, abonnement: x.abonnement || null, ville: x.ville || "", adresse: x.adresse || "", telephone: x.telephone || "" };
+  }));
+  console.log("listeCabinets : terminé en " + (Date.now() - t0) + " ms");
+  return { cabinets: out, formules: FS };
+});
+// Suspendre (abonnement non payé) ou réactiver un cabinet : espaces/{e}.actif. Suspendu = plus personne n'y entre (règles), rien
+// n'est effacé. Jamais le cabinet modèle (celui de Dr Bentahila).
+exports.etatCabinet = onCall({ timeoutSeconds: 30, memory: "256MiB" }, async (req) => {
+  const par = req.auth && req.auth.uid;
+  if (!(await estAdministrateur(par))) throw new HttpsError("permission-denied", "Réservé à l'administration d'Onco360.");
+  const { espace, actif } = req.data || {};
+  if (!espace || espace === C.MODELE) throw new HttpsError("permission-denied", "Ce cabinet ne peut pas être suspendu.");
+  const ref = db.doc("espaces/" + espace); if (!(await ref.get()).exists) throw new HttpsError("not-found", "Cabinet introuvable.");
+  const le = new Date().toISOString();
+  await ref.update(actif ? { actif: true, suspenduLe: FieldValue.delete(), reactiveLe: le, etatPar: par } : { actif: false, suspenduLe: le, etatPar: par });
+  console.log("cabinet", espace, actif ? "réactivé" : "suspendu", "par", par);
+  return { actif: !!actif };
+});
+// Supprimer un cabinet, définitivement : seulement s'il est suspendu et si son nom exact est retapé. Efface ses données (base et
+// fichiers déposés), les comptes de ses membres (connexion et rattachement) et leurs liaisons Google Agenda. Jamais le cabinet
+// modèle ; jamais un compte d'administration ni un membre du cabinet modèle. Les sauvegardes quotidiennes de la base gardent
+// une copie 14 semaines.
+const { getStorage } = require("firebase-admin/storage");
+exports.supprimerCabinet = onCall({ timeoutSeconds: 300, memory: "512MiB" }, async (req) => {
+  const par = req.auth && req.auth.uid;
+  if (!(await estAdministrateur(par))) throw new HttpsError("permission-denied", "Réservé à l'administration d'Onco360.");
+  const { espace, confirmation } = req.data || {};
+  if (!espace || espace === C.MODELE || !/^cab-/.test(espace)) throw new HttpsError("permission-denied", "Ce cabinet ne peut pas être supprimé.");
+  const ref = db.doc("espaces/" + espace), s = await ref.get();
+  if (!s.exists) throw new HttpsError("not-found", "Cabinet introuvable.");
+  const x = s.data();
+  if (x.actif !== false) throw new HttpsError("failed-precondition", "Suspendez d'abord le cabinet.");
+  if (String(confirmation || "").trim() !== String(x.nom || espace).trim()) throw new HttpsError("invalid-argument", "Le nom retapé ne correspond pas.");
+  const membres = await ref.collection("membres").get(), auth = getAuth(), comptes = [];
+  for (const m of membres.docs) {
+    const uid = m.id, c = await db.doc("comptes/" + uid).get();
+    if (c.exists && c.data().espace === espace) await c.ref.delete();
+    await db.doc("agendaJetons/" + uid).delete().catch(() => {});
+    const garder = (await estAdministrateur(uid)) || (await db.doc("espaces/" + C.MODELE + "/membres/" + uid).get()).exists;
+    if (!garder) { await auth.deleteUser(uid).catch((e) => console.warn("compte", uid, e.message)); await db.doc("utilisateurs/" + uid).delete().catch(() => {}); comptes.push(uid); }
+  }
+  await db.recursiveDelete(ref);
+  await getStorage().bucket().deleteFiles({ prefix: "espaces/" + espace + "/" }).catch((e) => console.warn("fichiers", e.message));
+  console.log("cabinet supprimé", espace, x.nom, "par", par, "comptes supprimés", comptes.length);
+  return { comptes: comptes.length };
+});
+// Lien pour choisir son mot de passe (09/10/2026 : l'e-mail de Firebase arrive souvent dans les indésirables) : l'administration
+// le copie ou l'envoie par WhatsApp. Seulement pour le titulaire d'un cabinet neuf (jamais un membre du cabinet modèle ni un
+// compte d'administration : le lien donne l'accès au compte).
+exports.lienMotDePasse = onCall({ timeoutSeconds: 30, memory: "256MiB" }, async (req) => {
+  if (!(await estAdministrateur(req.auth && req.auth.uid))) throw new HttpsError("permission-denied", "Réservé à l'administration d'Onco360.");
+  const email = String((req.data || {}).email || "").trim().toLowerCase();
+  let u; try { u = await getAuth().getUserByEmail(email); } catch (e) { throw new HttpsError("not-found", "Compte introuvable."); }
+  const c = await db.doc("comptes/" + u.uid).get(), e = c.exists ? c.data().espace : "";
+  if (!e || e === C.MODELE || (await titulaire(e)) !== u.uid || (await estAdministrateur(u.uid))) throw new HttpsError("permission-denied", "Lien possible seulement pour le médecin titulaire d'un cabinet créé ici.");
+  return { lien: await getAuth().generatePasswordResetLink(email, { url: "https://chimio-hgc.web.app" }) };
+});
+// Formule et modules d'un cabinet (page Administration) : espaces/{e}.abonnement, nettoyé par cabinets.js. Un module retiré est
+// caché dans Onco360, ses données sont gardées. Possible aussi pour le cabinet de Dr Bentahila.
+exports.abonnementCabinet = onCall({ timeoutSeconds: 30, memory: "256MiB" }, async (req) => {
+  const par = req.auth && req.auth.uid;
+  if (!(await estAdministrateur(par))) throw new HttpsError("permission-denied", "Réservé à l'administration d'Onco360.");
+  const { espace } = req.data || {};
+  const ref = db.doc("espaces/" + String(espace || "x")); if (!espace || !(await ref.get()).exists) throw new HttpsError("not-found", "Cabinet introuvable.");
+  const ab = Object.assign(C.abonnement(req.data || {}, await formules()), { le: new Date().toISOString(), par });
+  await ref.update({ abonnement: ab });
+  console.log("abonnement", espace, ab.formule, ab.surMesure ? "(sur mesure)" : "", "par", par);
+  return { abonnement: ab };
+});
+// Formules modifiées par l'administration (nom, modules, maximums ; ajout, suppression si aucun cabinet ne l'utilise). Les cabinets
+// qui suivent une formule sans retouche (« sur mesure ») reçoivent ses nouvelles valeurs.
+exports.formulesEnregistrer = onCall({ timeoutSeconds: 60, memory: "256MiB" }, async (req) => {
+  const par = req.auth && req.auth.uid;
+  if (!(await estAdministrateur(par))) throw new HttpsError("permission-denied", "Réservé à l'administration d'Onco360.");
+  const FS = C.formulesValides((req.data || {}).formules);
+  if (!FS) throw new HttpsError("invalid-argument", "Il faut au moins une formule.");
+  const es = await db.collection("espaces").get(), utilisees = new Set(), maj = [];
+  es.forEach((d) => { const ab = d.data().abonnement; if (ab && ab.formule) { utilisees.add(ab.formule); if (FS[ab.formule] && !ab.surMesure) maj.push(d); } });
+  const manquantes = [...utilisees].filter((f) => !FS[f]);
+  if (manquantes.length) throw new HttpsError("failed-precondition", "Formule encore utilisée par un cabinet : " + manquantes.join(", ") + ". Changez d'abord la formule de ce cabinet.");
+  await db.doc("plateforme/formules").set({ data: JSON.stringify(FS), le: new Date().toISOString(), par });
+  for (const d of maj) await d.ref.update({ abonnement: Object.assign(C.abonnement({ formule: d.data().abonnement.formule }, FS), { le: new Date().toISOString(), par }) });
+  console.log("formules enregistrées par", par, Object.keys(FS).join(", "), "cabinets mis à jour", maj.length);
+  return { formules: FS, cabinets: maj.length };
+});
+// Nom et coordonnées d'un cabinet, nom et téléphone de son médecin titulaire (page Administration)
+exports.infosCabinet = onCall({ timeoutSeconds: 30, memory: "256MiB" }, async (req) => {
+  const par = req.auth && req.auth.uid;
+  if (!(await estAdministrateur(par))) throw new HttpsError("permission-denied", "Réservé à l'administration d'Onco360.");
+  let d; try { d = C.infos(req.data || {}); } catch (e) { throw new HttpsError("invalid-argument", e.message); }
+  const ref = db.doc("espaces/" + String((req.data || {}).espace || "x")), s = await ref.get();
+  if (!(req.data || {}).espace || !s.exists) throw new HttpsError("not-found", "Cabinet introuvable.");
+  await ref.update({ nom: d.nom, ville: d.ville, adresse: d.adresse, telephone: d.telephone, infosLe: new Date().toISOString(), infosPar: par });
+  const tit = s.data().titulaire;
+  if (tit && d.titulaireNom) await ref.collection("membres").doc(tit).update({ nom: d.titulaireNom, telephone: d.titulaireTel }).catch((e) => console.warn("titulaire", e.message));
+  console.log("infos du cabinet", s.id, "par", par);
+  return { ok: true };
 });
