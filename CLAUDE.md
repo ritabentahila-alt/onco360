@@ -103,7 +103,7 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
   ni RT), publiés par le médecin (`publierTarifsC`, v2.js). `majMontants` relit toujours les montants avant d'écrire.
 - `encaissements` : un prix repris de la v1 porte `v1: true` et, s'il vaut le net du tarif, `b` = brut affiché (HCK 225 → 250 DH).
 - Règlements reçus des cliniques et hôpitaux (étape 15, 09/10/2026) : `finances/reglements` { data: JSON [{ id, d (réception), hop, mode vir|chq,
-  m, ref, banque, per, enc (chèque encaissé le ; vide pour un virement), note, par, parNom, le }] } ; cadre sous « Versements autres » (bilan.js `htmlReglements`),
+  m, ref, banque, per, enc (chèque encaissé le ; vide pour un virement), note, par, parNom, le }] } ; cadre unique « Versements et règlements reçus » avec les autres versements (`finances/versements`, comptés) (bilan.js `htmlRecus`),
   **jamais comptés dans le bilan** ; écrits par le droit « finances », lus par le comptable (règle : il n'écrit que paiements / versements).
 - Bilan « payé » : `finances/paiements` (coché à la main) + « Payé auto. » des Paramètres (`payeAuto` = date de l'activité dans
   `finances/tarifs` : actes de ce type et de cet établissement à partir de cette date comptés payés ; bilan.js `paiementsEffectifs`).

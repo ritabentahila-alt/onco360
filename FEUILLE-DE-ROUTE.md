@@ -1125,6 +1125,16 @@ l'avis de virement ; liste à part, sans lien avec le pointage « Payé » des a
       ajouté hors période : période élargie à son année) ; exports PDF et Excel : colonne Paiement = « Payé » ou « À recevoir »,
       **sans date** (le clic du médecin sert seulement à savoir ce qui est payé).
 - [x] Mise en ligne le 09/10 (site, v2.js?v=20261010b), accord de Dr Bentahila.
+- [x] **Un seul cadre « Versements et règlements reçus »** (09/10, demandé par Dr Bentahila : deux choses semblables) : une seule
+      liste avec une colonne **Type** = « Règlement » (clinique ou hôpital, **hors bilan**) ou « Autre versement » (laboratoire…,
+      **dans le bilan**) ; filtres Type / Mode / Encaissement + période et établissement du haut ; totaux séparés (règlements hors
+      bilan, autres versements dans le bilan, par clinique, par mois) ; une seule fenêtre « + Nouveau versement ou règlement reçu »
+      (type, puis les mêmes champs ; libellé obligatoire pour un autre versement) ; un autre versement se **modifie** désormais
+      (avant : supprimer seulement). Données toujours séparées (`finances/reglements` hors bilan, `finances/versements` dans le
+      bilan : moteur inchangé). Comptable : autres versements comme avant (ajout, modification, suppression), règlements en lecture.
+      Exports : un tableau / une feuille « Versements et règlements » avec le type. Tests : bilan 352 317 DH (un autre versement
+      ajouté / modifié / supprimé fait bouger le bilan, un règlement non), comptable, 390 px, aucune erreur.
+- [ ] Mise en ligne du cadre unique (accord de Dr Bentahila).
 
 ## Étape 12 – Dossier de cession, démonstration et guides
 But : un acheteur (éditeur, ESN, clinique) reprend Onco360 **sans avoir besoin d'appeler Dr Bentahila**.
@@ -1306,3 +1316,4 @@ Onco360_Package_Cession/
 | 09/10/2026 | 15 – Bilan, règlements reçus | Cadre « Règlements reçus des cliniques » sous « Versements autres » (virements et chèques, date de réception, référence, banque, période concernée, encaissé le, note), hors bilan ; totaux par clinique et par mois, rappel des actes de la période pour information ; Excel et PDF ; comptable en lecture seule. `finances/reglements`, règles inchangées (+4 tests). Bilan 352 317 DH, 390 px, aucune erreur. Pas encore en ligne. |
 | 09/10/2026 | 15 – Retouches | « Règlements reçus des cliniques et hôpitaux » ; sans les actes de la période ; virement sans date d'encaissement ; règlement hors période (05/05) désormais montré (période élargie) ; « KL » et ligne du détail des consultations retirés de la page Bilan. Bilan 352 317 DH, aucune erreur. Pas encore en ligne. |
 | 09/10/2026 | 15 – En ligne | Versements autres limités à la période choisie ; exports : « Payé » sans date. Bilan 352 317 DH, aucune erreur. Site mis en ligne (v2.js?v=20261010b). |
+| 09/10/2026 | 15 – Un seul cadre | « Versements autres » et « Règlements reçus » fusionnés en « Versements et règlements reçus » (colonne Type, totaux séparés, une seule fenêtre, versement modifiable). Bilan 352 317 DH. Pas encore en ligne. |
