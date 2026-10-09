@@ -320,7 +320,7 @@ function entete() {
   document.body.classList.toggle("mode-bib", D.bib); // bibliothèque de référence : Protocoles et Paramètres
   if (D.bib) {
     $("specMenu").textContent = (D.espaceDoc.nom || "Bibliothèque de référence") + " : ce que reçoivent les nouveaux cabinets";
-    if (!$("lienAdmin")) { const a = document.createElement("a"); a.id = "lienAdmin"; a.href = "admin.html#reference"; a.innerHTML = ic("retour") + "Retour à l'Administration"; document.querySelector("nav").appendChild(a); }
+    if (!$("lienAdmin")) { const a = document.createElement("a"); a.id = "lienAdmin"; a.href = "admin.html#specialites"; a.innerHTML = ic("retour") + "Retour à l'Administration"; document.querySelector("nav").appendChild(a); }
   }
   const al = alertes();
   $("nbAl").textContent = al.length; $("nbAl").classList.toggle("cache", !al.length);

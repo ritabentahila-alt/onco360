@@ -55,7 +55,7 @@ async def main():
         ok(not pg.errs, 'aucune erreur JavaScript ' + str(pg.errs[:2]))
         # Administration : création, réinitialisation, bibliothèque de référence
         pa = await ouvrir(b, S2); await pa.add_init_script("""window.__uid='ADM';window.__fs['administrateurs/ADM']={email:'a@b.ma'};window.__L=[{id:'cabinet-bentahila',nom:'Cabinet Dr Bentahila',modele:true,actif:true,cree:'2026-10-04',titulaire:{nom:'Dr Bentahila',email:'r@b.ma'},membres:3,patients:62}];
-window.__fonctions={listeCabinets:async()=>({cabinets:window.__L,bibliotheques:[{id:'bib-oncologie',lib:'Oncologie – Radiothérapie',specialites:['Oncologie médicale'],existe:true,nb:{protocoles:316}}]}),creerCabinetDemo:async(d)=>{window.__dm=d;window.__L.push({id:'cab-demonstration',nom:'Cabinet de démonstration',demo:true,actif:true,cree:'2026-10-06',titulaire:{nom:'Dr Démo ONCO360',email:d.email},membres:1,patients:8,abonnement:{formule:'complet'}});return {patients:8,protocoles:12}},demoReinitialiser:async()=>{window.__ri=1;return {patients:8,jour:'2026-10-06'}},referenceMaj:async()=>{window.__ref={le:'2026-10-06T10:00:00Z',nb:{protocoles:316,medicaments:120}};return {reference:window.__ref}}};""")
+window.__fonctions={listeCabinets:async()=>({cabinets:window.__L,bibliotheques:[{id:'bib-oncologie',lib:'Oncologie – Radiothérapie',specialites:['Oncologie – Radiothérapie'],existe:true,nb:{protocoles:316}}]}),creerCabinetDemo:async(d)=>{window.__dm=d;window.__L.push({id:'cab-demonstration',nom:'Cabinet de démonstration',demo:true,actif:true,cree:'2026-10-06',titulaire:{nom:'Dr Démo ONCO360',email:d.email},membres:1,patients:8,abonnement:{formule:'complet'}});return {patients:8,protocoles:12}},demoReinitialiser:async()=>{window.__ri=1;return {patients:8,jour:'2026-10-06'}},referenceMaj:async()=>{window.__ref={le:'2026-10-06T10:00:00Z',nb:{protocoles:316,medicaments:120}};return {reference:window.__ref}}};""")
         await pa.goto(f'http://localhost:{PORT}/admin.html'); await pa.wait_for_timeout(1500)
         await pa.evaluate("window.prompt=(m,d)=>d")  # e-mail proposé par défaut
         await pa.click('#dCree'); await pa.wait_for_timeout(800)
@@ -63,8 +63,8 @@ window.__fonctions={listeCabinets:async()=>({cabinets:window.__L,bibliotheques:[
         ok(await pa.evaluate("!document.getElementById('dCree')"), 'bouton de création retiré une fois la démo créée')
         await pa.click('[data-fiche="cab-demonstration"]'); await pa.wait_for_timeout(300); await pa.click('[data-reinit]'); await pa.wait_for_timeout(500)
         ok(await pa.evaluate('window.__ri') == 1 and 'réinitialisée' in await pa.inner_text('main'), 'démonstration réinitialisée')
-        await pa.click('nav#onglets a[href="#reference"]'); await pa.wait_for_timeout(400)
-        ok('Oncologie – Radiothérapie' in await pa.inner_text('main') and '316' in await pa.inner_text('main'), 'onglet Bibliothèques (Oncologie – Radiothérapie : 316 protocoles)')
+        await pa.click('nav#onglets a[href="#specialites"]'); await pa.wait_for_timeout(400); await pa.click('[data-sous="biblio"]'); await pa.wait_for_timeout(300)
+        ok('Oncologie – Radiothérapie' in await pa.inner_text('main') and '316' in await pa.inner_text('main'), 'Par spécialité › Bibliothèque (Oncologie – Radiothérapie : 316 protocoles)')
         ok(not pa.errs, 'aucune erreur JavaScript (Administration) ' + str(pa.errs[:2]))
         await b.close()
 asyncio.run(main())

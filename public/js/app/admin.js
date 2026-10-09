@@ -7,18 +7,18 @@ import { app, auth, db } from "../config.js";
 import { onAuthStateChanged, sendPasswordResetEmail, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { MENU, FONCTIONS, FONCTIONS_RELIEES, CARTES, SECTIONS, BIBLIOTHEQUES, reglageEffectif } from "../donnees/catalogue.js";
-import { MODULES, ROLES_MAX, SPECIALITES, specialiteDe, FORMULES as FORMULES0, abonnementEffectif, BIBLIOTHEQUES_SPE, MODULE_FAMILLE, MODULE_MENU, MENU_COMMUN, MODULES_PREVUS } from "../donnees/modules.js";
+import { MODULES, ROLES_MAX, SPECIALITES, specialiteDe, FORMULES as FORMULES0, abonnementEffectif, BIBLIOTHEQUES_SPE, MODULE_FAMILLE } from "../donnees/modules.js";
 
 const $ = (i) => document.getElementById(i);
 const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const dfr = (d) => (typeof d === "string" && d.length >= 10 ? d.slice(8, 10) + "/" + d.slice(5, 7) + "/" + d.slice(0, 4) : "");
 const sansAcc = (x) => String(x || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
-const ONGLETS = [["cabinets", "Cabinets"], ["nouveau", "Nouveau cabinet"], ["specialites", "Par spécialité"], ["reference", "Bibliothèques"]];
+const ONGLETS = [["cabinets", "Cabinets"], ["nouveau", "Nouveau cabinet"], ["specialites", "Par spécialité"]];
 // CABINETS : liste (null = chargement) ; FS : packs (formules) enregistrés (sinon ceux de départ)
 let CABINETS = null, FS = null, BIBS = null, // BIBS : bibliothèques de référence par spécialité (null = pas encore lues)
    MSG = "", RES = "", Q = "", STATUT = "", SPE = "", SPEF = "";
 const FORMULES_ = () => FS || FORMULES0;
-const ONG = () => { const h = location.hash.replace("#", ""); return h === "formules" || h === "modules" ? "specialites" : ONGLETS.some((o) => o[0] === h) ? h : "cabinets"; };
+const ONG = () => { const h = location.hash.replace("#", ""); return h === "formules" || h === "modules" || h === "reference" ? "specialites" : ONGLETS.some((o) => o[0] === h) ? h : "cabinets"; };
 
 async function serveur(nom, donnees) {
   const { getFunctions, httpsCallable } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js");
@@ -60,9 +60,9 @@ function dessiner() {
   const o = ONG();
   $("onglets").innerHTML = ONGLETS.map(([k, lib]) => '<a href="#' + k + '" class="' + (k === o ? "on" : "") + '">' + esc(lib) + (k === "cabinets" && CABINETS ? ' <span class="nb">' + CABINETS.length + "</span>" : "") + "</a>").join("");
   const bandeau = RES ? '<div class="ok bandeau">' + RES + '<button class="x" id="resX" aria-label="Fermer">✕</button></div>' : "";
-  $("page").innerHTML = bandeau + (o === "nouveau" ? htmlNouveau() : o === "specialites" ? htmlSpecialites() : o === "reference" ? htmlReference() : htmlCabinets());
+  $("page").innerHTML = bandeau + (o === "nouveau" ? htmlNouveau() : o === "specialites" ? htmlSpecialites() : htmlCabinets());
   if ($("resX")) $("resX").onclick = () => { RES = ""; dessiner(); };
-  if (o === "nouveau") brancherNouveau(); else if (o === "specialites") brancherSpecialites(); else if (o === "reference") brancherReference(); else brancherCabinets();
+  if (o === "nouveau") brancherNouveau(); else if (o === "specialites") brancherSpecialites(); else brancherCabinets();
 }
 
 // ───── Onglet Cabinets : chiffres, recherche, filtres, cartes ─────
@@ -152,15 +152,6 @@ async function reinitDemo(b) {
 // Ce que reçoit un cabinet neuf, selon la spécialité de sa formule. Chacune est un espace sans patient, ouvert dans Onco360
 // (v2.html?espace=bib-…) pour tout ajouter, modifier, supprimer avec les écrans habituels ; aucun cabinet n'y est relié.
 const LIBS = [["protocoles", "Protocoles de chimiothérapie"], ["medicaments", "Médicaments"], ["ordostypes", "Ordonnances types"], ["analyses", "Analyses"], ["bilans", "Bilans biologiques"], ["examens", "Examens complémentaires"], ["courriers", "Courriers"], ["documentation", "Documentation (Doc.)"]];
-function htmlReference() {
-  const L = BIBS === null ? null : BIBS;
-  return '<section class="carte"><h2>Bibliothèques et paramètres de base</h2><p class="sous">Pour chaque spécialité, ce que reçoit chaque <b>nouveau</b> cabinet selon la spécialité de sa formule :</p>' +
-    '<ul class="liste-m"><li><b>Bibliothèques</b> : protocoles de chimiothérapie, médicaments, ordonnances types, analyses et bilans, examens complémentaires, courriers, documentation (Doc.).</li>' +
-    '<li><b>Paramètres de base</b> : créneaux et horaires, jours fériés, messages WhatsApp, couleurs de Google Agenda, types de documents et de tâches, tâches automatiques, jours et heure de RCP, diagnostics et mutuelles, marges d\'impression, alertes, tarifs de radiothérapie.</li>' +
-    '<li><b>Jamais</b> : correspondants, prix des consultations, lieux d\'exercice, équipe, patients.</li></ul>' +
-    '<p class="sous">Tout est <b>mis de côté</b> : ce que fait un médecin dans son cabinet, y compris le Dr Bentahila, n\'y change rien. Vous les modifiez ici (« Ouvrir et modifier »), avec les écrans habituels d\'Onco360. Les cabinets déjà créés gardent leur propre copie.</p></section>' +
-    (L === null ? '<section class="carte"><p class="sous">Chargement…</p></section>' : '<div class="cabs">' + L.map(carteBib).join("") + "</div>");
-}
 function carteBib(B) {
   return ('<article class="cab"><div class="haut"><div><h3>' + esc(B.lib) + '</h3><div class="m">' + esc(B.specialites[0]) + "</div></div>" + (B.existe ? '<span class="bdg ok">En place</span>' : '<span class="bdg">À créer</span>') + "</div>" +
       (B.existe ? '<div class="chiffres" style="grid-template-columns:repeat(4,minmax(0,1fr))">' + LIBS.map(([k, lib]) => "<div><b>" + (B.nb && B.nb[k] != null ? B.nb[k] : "départ") + "</b><span>" + esc(lib) + "</span></div>").join("") + "</div>" : '<p class="m">' + (B.id === "bib-oncologie" ? "Sera créée à partir de la copie mise de côté le 09/10 (bibliothèque du Dr Bentahila)." : "Sera créée vide : vous la remplirez (les modules de cette spécialité restent à construire).") + "</p>") +
@@ -342,16 +333,6 @@ async function supprimer(b, c) {
 const famille = (id) => (BIBLIOTHEQUES_SPE.find((b) => b.id === id) || {}).lib || id;
 const bibDe = (spe) => (BIBLIOTHEQUES_SPE.find((b) => b.specialites.indexOf(spe) >= 0) || BIBLIOTHEQUES_SPE[0]).id;
 const modulePour = (k, spe) => !MODULE_FAMILLE[k] || MODULE_FAMILLE[k] === bibDe(spe || SPECIALITES[0]);
-// Modules et menus d'une spécialité : communs + propres à sa famille + prévus
-function htmlModules(spe) {
-  const F = FORMULES_(), C = CABINETS || [], fam = bibDe(spe);
-  const ligne = ([k, lib, de]) => { const fs = Object.values(F).filter((f) => specialiteDe(f.specialite) === spe && (f.modules || []).indexOf(k) >= 0).length, nc = C.filter((c) => c.actif && abonnementEffectif(c.abonnement).modules[k] && specialiteDe((formuleDe(c.abonnement) || {}).specialite) === spe).length;
-    return '<div class="modl"><div><b>' + esc(lib) + '</b><div class="m">' + esc(de) + '</div><div class="m">↳ ' + esc(MODULE_MENU[k] || "") + (FONCTIONS[k] ? " · " + FONCTIONS[k].length + " fonctions" : "") + '</div></div><div class="m n">' + nc + " cabinet" + (nc > 1 ? "s" : "") + " actif" + (nc > 1 ? "s" : "") + "<br>dans " + fs + " pack" + (fs > 1 ? "s" : "") + "</div></div>"; };
-  const propres = MODULES.filter(([k]) => MODULE_FAMILLE[k] === fam), prevus = MODULES_PREVUS.filter((x) => x[2] === fam);
-  return '<section class="carte"><p class="sous">Un <b>module</b> est une partie d\'Onco360 (menu, onglet ou bouton). <b>Son contenu est le même pour tous</b> : une modification demandée (ex. « modifie le module Tâches ») s\'applique, dès sa mise en ligne, à tous les cabinets actifs qui l\'ont. Qui a quoi : les packs, et le réglage de chaque cabinet.</p><h3 class="st">Toujours présents</h3><p class="m">' + esc(MENU_COMMUN.join(" · ")) + "</p>" +
-    '<h3 class="st">Modules communs (toutes les spécialités)</h3>' + MODULES.filter(([k]) => !MODULE_FAMILLE[k]).map(ligne).join("") +
-    '<h3 class="st">Propres à ' + esc(spe) + "</h3>" + (propres.length ? propres.map(ligne).join("") : "") + prevus.map(([, lib]) => '<div class="modl prevu"><div><b>' + esc(lib) + '</b><div class="m">À construire (feuille de route, étape 14)</div></div><span class="bdg">Prévu</span></div>').join("") + (propres.length || prevus.length ? "" : '<p class="m">Aucun module propre pour l\'instant (à décider).</p>') + "</section>";
-}
 // ───── Onglet Par spécialité (16.2, 10/10/2026) : packs, modules et menus, bibliothèques et paramètres ─────
 let SPEC = null, SOUS = "packs";
 const packsDe = (spe) => Object.entries(FORMULES_()).filter(([, f]) => specialiteDe(f.specialite) === spe);
@@ -361,10 +342,9 @@ function htmlSpecialites() {
   const gauche = '<div class="spe-l">' + SPECIALITES.map((s) => { const np = packsDe(s).length, nc = (CABINETS || []).filter((c) => specialiteDe((formuleDe(c.abonnement) || {}).specialite) === s && c.abonnement).length;
     return '<button class="spe' + (s === SPEC ? " on" : "") + '" data-spec="' + esc(s) + '"><b>' + esc(s) + '</b><span class="m">' + np + " pack" + (np > 1 ? "s" : "") + " · " + nc + " cabinet" + (nc > 1 ? "s" : "") + "</span></button>"; }).join("") +
     '<p class="m" style="margin:8px 4px">Nouvelle spécialité : étape 16.5.</p></div>';
-  const sous = [["packs", "Packs"], ["modules", "Modules et menus"], ["biblio", "Bibliothèque et paramètres"]];
+  const sous = [["packs", "Packs"], ["biblio", "Bibliothèque et paramètres"]]; // « Modules et menus » retiré (10/10/2026 : déjà dans l'écran d'un pack)
   let droite = '<div class="puces">' + sous.map(([k, l]) => '<button class="puce' + (k === SOUS ? " on" : "") + '" data-sous="' + k + '">' + esc(l) + "</button>").join("") + "</div>";
-  if (SOUS === "modules") droite += htmlModules(SPEC);
-  else if (SOUS === "biblio") { const B = (BIBS || []).find((b) => b.specialites.indexOf(SPEC) >= 0) || BIBLIOTHEQUES_SPE.find((b) => b.specialites.indexOf(SPEC) >= 0); droite += '<section class="carte"><p class="sous">Ce que reçoit chaque nouveau cabinet de cette spécialité : bibliothèques (protocoles, médicaments, ordonnances types, analyses et bilans, examens, courriers, documentation) et paramètres de base (horaires, fériés, WhatsApp, couleurs, types, tâches automatiques, RCP, listes, impression, alertes, tarifs RT). Jamais : correspondants, prix des consultations, lieux, équipe, patients.</p></section>' + (B ? '<div class="cabs">' + carteBib(B) + "</div>" : ""); }
+  if (SOUS === "biblio") { const B = (BIBS || []).find((b) => b.specialites.indexOf(SPEC) >= 0) || BIBLIOTHEQUES_SPE.find((b) => b.specialites.indexOf(SPEC) >= 0); droite += '<section class="carte"><p class="sous">Ce que reçoit chaque nouveau cabinet de cette spécialité : bibliothèques (protocoles, médicaments, ordonnances types, analyses et bilans, examens, courriers, documentation) et paramètres de base (horaires, fériés, WhatsApp, couleurs, types, tâches automatiques, RCP, listes, impression, alertes, tarifs RT). Jamais : correspondants, prix des consultations, lieux, équipe, patients.</p></section>' + (B ? '<div class="cabs">' + carteBib(B) + "</div>" : ""); }
   else {
     const L = packsDe(SPEC);
     droite += '<section class="carte"><p class="sous">Les packs de départ de « ' + esc(SPEC) + ' ». Chacun a son réglage complet (modules et fonctions, menu, cartes du tableau de bord, onglets des Paramètres, bibliothèques, limites). Un cabinet reçoit le réglage de son pack, puis peut être retouché. Modifier un pack met à jour les cabinets qui le suivent sans retouche.</p>' +
