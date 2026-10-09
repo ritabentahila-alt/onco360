@@ -757,6 +757,10 @@ jour, agenda, Google Agenda) mais **dans le dossier sous forme de tâche**.
       à Paramètres › Tâches › Tâches automatiques. **Valider la tâche = valider dans le dossier** : bouton « Valider… » de la
       fiche, ou statut « Terminée » → même fenêtre de validation (sans quitter la page), et le serveur termine la tâche ; valider
       dans le dossier termine la tâche. Tests logique 79/79 ; mise en ligne : une seule tâche créée (données du 06/10).
+- [x] Google Agenda (09/10) : « Valider le contourage » et « Valider la dosimétrie » en **bandeau sur toute la période** (du
+      scanner, resp. de la validation du contourage, jusqu'à la 1re séance) au lieu du seul jour de la 1re séance ; champ
+      `debut` des tâches (complété par le serveur pour les tâches déjà créées) ; liste des tâches : « Du 08/10 au 19/10/2026 ».
+      Tests logique 85/85. À remettre en ligne : fonctions et site.
 - [x] Correction (09/10) : « Valider la dosimétrie » apparaissait en même temps que « Valider le contourage » : créée par la
       version précédente des fonctions (dosimétrie dès le scanner). Le serveur retire maintenant une tâche de dosimétrie
       ouverte tant que le contourage n'est pas validé (si personne n'y a touché) et efface son registre : elle est recréée à
@@ -1255,3 +1259,4 @@ Onco360_Package_Cession/
 | 09/10/2026 | 9 – S2 en ligne, S3 Démo, référence | Comptable mis en ligne. Bibliothèque de référence mise de côté (plateforme/reference, mise à jour à la demande, onglet de l'Administration). Cabinet de démonstration : 8 patients fictifs, réinitialisable, badge. Tests démo 9/9 + 14/14, cabinets 44/44, comptable 13/13, bilan 352 317 DH. Mis en ligne (fonctions, site). |
 | 10/10/2026 | Organisation, bibliothèques, équipe | Le cabinet du Dr Bentahila devient un cabinet comme les autres ; tout se gère depuis l'administration. Bibliothèques de référence par spécialité (Oncologie – Radiothérapie en place), modifiées depuis l'administration avec les écrans d'Onco360, listes de départ figées, copiées aux nouveaux cabinets selon la spécialité. Création des comptes de l'équipe par le serveur (Firebase refusait la création depuis le navigateur) + lien du mot de passe ; équipe visible dans l'Administration. Vocabulaire fixé (cabinet, équipe, module, formule, bibliothèque). Tests 19/19, 42/42, autres inchangés, bilan 352 317 DH. |
 | 10/10/2026 | Paramètres et menus par spécialité | Paramètres de base mis de côté dans la bibliothèque Oncologie – Radiothérapie (repris une fois du cabinet du Dr Bentahila, nettoyés : ni correspondants, ni prix des consultations, ni absences, ni lieu de RCP), modifiables depuis l'Administration, copiés aux nouveaux cabinets. Onglet « Modules et menus » (modules communs, propres à une spécialité, prévus pour la médecine générale). Tests 21/21, 48/48, 44/44, bilan 352 317 DH. Mis en ligne. |
+| 09/10/2026 | 5 – Tâches RT | Tâches contourage / dosimétrie en bandeau sur toute la période dans Google Agenda (champ `debut`), « Du … au … » dans la liste. Tests 85/85. Pas encore en ligne. |
