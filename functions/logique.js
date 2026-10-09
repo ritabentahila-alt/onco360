@@ -101,8 +101,10 @@ const LIEN_TACHES = "https://chimio-hgc.web.app/v2.html#taches";
 function evtsTaches(taches, uid, auj, noms) {
   return (taches || []).filter((t) => t && t.pour === uid && t.statut !== "fait" && /^\d{4}-\d{2}-\d{2}$/.test(t.ech || "")).map((t) => {
     const enRetard = t.ech < auj, pat = t.patientId ? (noms && noms[t.patientId]) || t.patientNom || "" : "";
+    // période à valider (contourage, dosimétrie : debut → échéance) : bandeau en journées entières sur toute la durée (09/10/2026)
+    const periode = !enRetard && !t.h && DATE_OK.test(t.debut || "") && t.debut < t.ech;
     return {
-      k: "tache-" + t.id + "|t", tache: true, tt: t.type || "", d: enRetard ? auj : t.ech, h: enRetard ? "" : t.h || "", dur: 15, urg: !!(enRetard || t.urgent),
+      k: "tache-" + t.id + "|t", tache: true, tt: t.type || "", d: enRetard ? auj : periode ? t.debut : t.ech, f: periode ? t.ech : "", h: enRetard ? "" : t.h || "", dur: 15, urg: !!(enRetard || t.urgent),
       t: [enRetard ? "EN RETARD" : "", t.urgent ? "URGENT" : "", "Tâche"].filter(Boolean).join(" – ") + " – " + t.titre + (pat ? " (" + pat + ")" : ""),
       x: [t.desc || "", "Demandée par " + (t.de === uid ? "vous-même" : t.deNom || "?") + (enRetard ? " · échéance du " + t.ech.split("-").reverse().join("/") : ""), "Ouvrir les tâches : " + LIEN_TACHES].filter(Boolean).join("\n"),
     };
@@ -146,11 +148,12 @@ function tachesAutoPatient(pid, docData, regles, auj, feries, opts) {
   const rts = lire(docData.rtsJson, "[]"), rdvs = lire(docData.rdvsJson, "[]"), r0 = lire(docData.resume, "{}"), act = (r0.act || []).filter((a) => !a.sj && a.d && a.k);
   (regles || []).filter((R) => R.actif !== false).forEach((R) => {
     const n = parseInt(R.n, 10) || 0, ok = (d) => !R.depuis || (d && d >= R.depuis);
-    const v = (cle, ech, suffixe, rt) => voulues.push({ id: idAuto(R.id, pid, cle), regle: R.id, ev: R.ev, cle, titre: R.titre + (suffixe ? " – " + suffixe : ""), type: R.type || "", pour: R.pour || "titulaire", ech: ech || "", rt: rt || "" });
+    // debut (09/10/2026) : début de la période à valider (contourage : scanner ; dosimétrie : validation du contourage)
+    const v = (cle, ech, suffixe, rt, debut) => voulues.push({ id: idAuto(R.id, pid, cle), regle: R.id, ev: R.ev, cle, titre: R.titre + (suffixe ? " – " + suffixe : ""), type: R.type || "", pour: R.pour || "titulaire", ech: ech || "", rt: rt || "", debut: debut || "" });
     // mêmes périodes que l'écran (rt.js contourage / dosimetrie) : contourage du scanner à la 1re séance ; dosimétrie de la
     // validation du contourage à la 1re séance (pas avant le contourage, pas pour une RT déjà commencée)
-    if (R.ev === "cont") rts.forEach((r) => { if (!r.id || !r.scan || r.annule) return; if (r.cont || r.dosi || r.fin) resolues.push(idAuto(R.id, pid, r.id)); else if (auj >= r.scan && (!r.deb || auj <= r.deb)) v(r.id, r.deb || "", r.acte || "", r.id); });
-    if (R.ev === "dosi") rts.forEach((r) => { if (!r.id || !r.scan || r.annule) return; if (r.dosi || r.fin) resolues.push(idAuto(R.id, pid, r.id)); else if (!r.cont) premature.push(idAuto(R.id, pid, r.id)); else if (!r.deb || auj <= r.deb) v(r.id, r.deb || "", r.acte || "", r.id); });
+    if (R.ev === "cont") rts.forEach((r) => { if (!r.id || !r.scan || r.annule) return; if (r.cont || r.dosi || r.fin) resolues.push(idAuto(R.id, pid, r.id)); else if (auj >= r.scan && (!r.deb || auj <= r.deb)) v(r.id, r.deb || "", r.acte || "", r.id, r.scan); });
+    if (R.ev === "dosi") rts.forEach((r) => { if (!r.id || !r.scan || r.annule) return; if (r.dosi || r.fin) resolues.push(idAuto(R.id, pid, r.id)); else if (!r.cont) premature.push(idAuto(R.id, pid, r.id)); else if (!r.deb || auj <= r.deb) v(r.id, r.deb || "", r.acte || "", r.id, r.cont); });
     if (R.ev === "finrt") rts.forEach((r) => { if (!r.id || !r.deb || r.annule) return; if (r.fin) { resolues.push(idAuto(R.id, pid, r.id)); return; } const fp = finRT(r, feries); if (fp && auj > fp) v(r.id, addJ(fp, 1), (r.acte || "radiothérapie") + " (fin prévue le " + jfr(fp) + ")", r.id); });
     if (R.ev === "derniereCure") act.forEach((a) => { if (a.k === a.nb && ok(a.d)) v(a.nom + "|" + a.k, addJ(a.d, n), "C" + a.k + "/" + a.nb + " " + a.nom + " le " + jfr(a.d)); });
     if (R.ev === "veilleJ1") act.forEach((a) => { const dv = addJ(a.d, -1); if (auj >= dv && auj <= a.d && ok(dv)) v(a.nom + "|" + a.k + "|" + a.d, dv, "C" + a.k + " " + a.nom + " le " + jfr(a.d)); });

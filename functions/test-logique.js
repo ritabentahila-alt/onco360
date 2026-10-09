@@ -277,3 +277,18 @@ const infirmiere = { actif: true, etablissements: ["HGC", "CIOC"], droits: { tra
   ok(x.voulues.filter((v) => v.cle === "r").map((v) => v.regle).join() === "cont" && x.premature.length === 1 && x.premature[0] === L.idAuto("dosi", "P", "r"), "contourage non validé : seule « Valider le contourage » est voulue ; une « Valider la dosimétrie » déjà créée est à retirer");
   ok(x.voulues.some((v) => v.regle === "dosi" && v.cle === "c") && x.premature.indexOf(L.idAuto("dosi", "P", "c")) < 0, "contourage validé : « Valider la dosimétrie » voulue, rien à retirer");
 })();
+
+// Tâches de contourage et de dosimétrie : période (début → 1re séance) en bandeau dans Google Agenda (09/10/2026)
+(async () => {
+  await new Promise((ok) => setTimeout(ok, 800));
+  const d = { rtsJson: JSON.stringify([{ id: "a", acte: "Prostate", scan: "2026-10-08", deb: "2026-10-19" }, { id: "b", acte: "Sein", scan: "2026-10-05", cont: "2026-10-07", deb: "2026-10-16" }]), rdvsJson: "[]", resume: "{}" };
+  const vv = L.tachesAutoPatient("P", d, L.reglesAuto({}), "2026-10-09", []).voulues;
+  ok(vv.find((x) => x.regle === "cont").debut === "2026-10-08" && vv.find((x) => x.regle === "dosi").debut === "2026-10-07", "contourage : début = scanner ; dosimétrie : début = validation du contourage");
+  const base = { pour: "M", statut: "afaire", titre: "Valider le contourage – Prostate", de: "onco360", deNom: "Onco360 (automatique)", h: "" };
+  const e1 = L.evtsTaches([Object.assign({ id: "t", ech: "2026-10-19", debut: "2026-10-08" }, base)], "M", "2026-10-09")[0], b1 = L.corps(e1);
+  ok(b1.start.date === "2026-10-08" && b1.end.date === "2026-10-20", "Google Agenda : bandeau du 08/10 au 19/10 inclus (toute la période jusqu'à la 1re séance)");
+  const e2 = L.evtsTaches([Object.assign({ id: "t", ech: "2026-10-19" }, base)], "M", "2026-10-09")[0];
+  ok(e2.d === "2026-10-19" && !e2.f, "tâche sans période : un seul jour, à l'échéance (comme avant)");
+  const e3 = L.evtsTaches([Object.assign({ id: "t", ech: "2026-10-05", debut: "2026-09-30" }, base)], "M", "2026-10-09")[0];
+  ok(e3.d === "2026-10-09" && !e3.f && /^EN RETARD/.test(e3.t), "période dépassée : « EN RETARD » sur le jour même");
+})();

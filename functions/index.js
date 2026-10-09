@@ -151,7 +151,7 @@ exports.agendaMembre = onDocumentWritten(Object.assign({ document: "espaces/{e}/
   try { await syncComplet(ev.params.uid, s.data()); } catch (e) { await echec(ev.params.uid, e); }
 });
 // Tâche écrite : agenda de son responsable, et de l'ancien si elle a été réattribuée (les commentaires seuls ne changent rien)
-const CHAMPS_AGENDA = ["titre", "desc", "ech", "h", "urgent", "statut", "pour", "patientId", "patientNom", "deNom"];
+const CHAMPS_AGENDA = ["titre", "desc", "ech", "debut", "h", "urgent", "statut", "pour", "patientId", "patientNom", "deNom"];
 exports.agendaTache = onDocumentWritten(Object.assign({ document: "espaces/{e}/taches/{t}" }, OPTS), async (ev) => {
   const avant = ev.data.before.exists ? ev.data.before.data() : null, apres = ev.data.after.exists ? ev.data.after.data() : null;
   if (avant && apres && CHAMPS_AGENDA.every((k) => JSON.stringify(avant[k]) === JSON.stringify(apres[k]))) return;
@@ -218,13 +218,16 @@ async function tachesAuto(e, pid, docData, ctx, opts) {
   let r0 = {}; try { r0 = JSON.parse(docData.resume || "{}"); } catch (er) { /* résumé illisible */ }
   for (const v of voulues) {
     const reg = db.doc("espaces/" + e + "/tachesAuto/" + v.id);
-    if ((await reg.get()).exists) continue; // déjà créée une fois (même si elle a été supprimée depuis)
+    if ((await reg.get()).exists) { // déjà créée une fois (même si elle a été supprimée depuis) : début de période complété ou mis à jour
+      if (v.debut) { const tr = db.doc("espaces/" + e + "/taches/" + v.id), ts = await tr.get(); if (ts.exists && ts.data().statut !== "fait" && ts.data().debut !== v.debut) await tr.update({ debut: v.debut }); }
+      continue;
+    }
     if ((await db.doc("espaces/" + e + "/taches/" + v.id).get()).exists) { await reg.set({ le: new Date().toISOString(), patientId: pid, regle: v.regle }); continue; } // tâche déjà là : jamais écrasée
     let pour = v.pour === "titulaire" ? ctx.titulaire : v.pour; const m = ctx.membres[pour];
     if (!m || m.actif === false) { pour = ctx.titulaire; } const mp = ctx.membres[pour]; if (!pour || !mp) continue;
     const le = new Date().toISOString();
     await db.doc("espaces/" + e + "/taches/" + v.id).set({
-      titre: v.titre, desc: "Tâche créée automatiquement par Onco360 (Paramètres › Tâches › Tâches automatiques).", type: v.type, urgent: false, ech: v.ech, h: "",
+      titre: v.titre, desc: "Tâche créée automatiquement par Onco360 (Paramètres › Tâches › Tâches automatiques).", type: v.type, urgent: false, ech: v.ech, debut: v.debut || "", h: "",
       patientId: pid, patientNom: r0.nm || "", etablissementId: docData.etablissementId || "", pour, pourNom: String(mp.nom || mp.email || ""), de: SYS, deNom: SYS_NOM, qui: [SYS, pour],
       statut: "afaire", fil: [{ le, par: SYS, parNom: SYS_NOM, txt: "Créée automatiquement" }], o: Date.now(), cree: FieldValue.serverTimestamp(), maj: FieldValue.serverTimestamp(), majPar: SYS,
       auto: { regle: v.regle, ev: v.ev, cle: v.cle, rt: v.rt || "" },

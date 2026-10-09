@@ -155,7 +155,8 @@ const ordre = (a, b) => (b.urgent ? 1 : 0) - (a.urgent ? 1 : 0) || (retard(b) ? 
   ((a.ech || "9999") + (a.h || "99")).localeCompare((b.ech || "9999") + (b.h || "99")) || (b.o || 0) - (a.o || 0);
 // Date et heure locales d'un moment enregistré en ISO (UTC) : « 08/10/2026 à 00:25 »
 const quand = (iso) => { const d = new Date(iso); if (isNaN(d)) return ""; const z = (n) => String(n).padStart(2, "0"); return z(d.getDate()) + "/" + z(d.getMonth() + 1) + "/" + d.getFullYear() + " à " + z(d.getHours()) + ":" + z(d.getMinutes()); };
-const echeance = (t) => t.ech ? "Échéance : " + A.dfrA(t.ech) + (t.h ? " à " + t.h : "") : "";
+// Tâche avec une période (contourage, dosimétrie : du début à l'échéance, 09/10/2026) : « Du 08/10 au 19/10/2026 »
+const echeance = (t) => !t.ech ? "" : t.debut && t.debut < t.ech && !t.h ? "Du " + A.dfr(t.debut) + " au " + A.dfrA(t.ech) : "Échéance : " + A.dfrA(t.ech) + (t.h ? " à " + t.h : "");
 function badges(t) {
   let h = t.urgent && t.statut !== "fait" ? '<span class="badge b-al">Urgent</span>' : "";
   if (retard(t)) h += '<span class="badge b-al">En retard</span>';
