@@ -1085,7 +1085,7 @@ formule tant que leurs modules n'existent pas).
   `data-mod`, sa page dans `PAGE_MODULE` (v2.js) ; « Ajouter les formules proposées par Onco360 » (onglet Formules) ajoute les
   nouvelles formules sans toucher à celles déjà modifiées. Le nom « Onco360 » sera peut-être à revoir pour les autres spécialités.
 
-## Étape 15 – Module Bilan : virements et chèques reçus des cliniques (demandé le 09/10/2026 ; fait et testé le 09/10, pas encore en ligne)
+## Étape 15 – Module Bilan : virements et chèques reçus des cliniques et hôpitaux (demandé le 09/10/2026 ; fait et testé le 09/10, pas encore en ligne)
 But : dans la page **Bilan**, un endroit pour noter **chaque règlement reçu d'une clinique** (virement ou chèque) avec sa
 **date de réception**, pour la comptabilité de fin d'année. **Ne compte pas dans le bilan** : le bilan, c'est déjà l'activité
 elle-même (sinon tout serait compté deux fois). À ne pas confondre avec « **Versements autres** » (KL, `finances/versements`),
@@ -1114,6 +1114,13 @@ l'avis de virement ; liste à part, sans lien avec le pointage « Payé » des a
 - [x] Tests : règles (toutes réussies, 19/19 pour le comptable) ; navigateur avec le faux Firebase : ajout, contrôles, modification,
       suppression, filtres mode / encaissement / clinique / période, PDF, Excel sans erreur, comptable en lecture seule, téléphone
       390 px sans débordement, **bilan 2026 inchangé (352 317 DH)**, aucune erreur dans la console.
+- [x] **Retouches du 09/10** (demandées par Dr Bentahila) : cadre renommé « **Règlements reçus des cliniques et hôpitaux** » ;
+      colonnes « Actes de la période / dont payé / dont à recevoir » retirées (les cliniques paient en vrac de temps en temps) ;
+      **virement = reçu directement** : pas de date d'encaissement (champ affiché pour un chèque seulement, colonne « Chèque encaissé
+      le », « — » pour un virement, compté encaissé) ; corrigé : un règlement hors de la période affichée (ex. virement du 05/05
+      avec la page sur le mois en cours) était enregistré mais invisible → période élargie à son année, filtres remis, message.
+      Page Bilan : « KL » retiré de « Versements autres » (propre au Dr Bentahila ; ses anciens libellés « Versement KL » restent) ;
+      ligne « Consultations : chimio · annonce · suivi · contrôle » (détail du total des consultations par type) retirée de l'écran.
 - [ ] Mise en ligne (site seulement : `firebase deploy --only hosting`), avec l'accord de Dr Bentahila.
 
 ## Étape 12 – Dossier de cession, démonstration et guides
@@ -1294,3 +1301,4 @@ Onco360_Package_Cession/
 | 09/10/2026 | 5 – Tâches RT | Tâches contourage / dosimétrie en bandeau sur toute la période dans Google Agenda (champ `debut`), « Du … au … » dans la liste. Tests 85/85. Pas encore en ligne. |
 | 09/10/2026 | Plan – Bilan | Demande notée : étape 15, « Règlements reçus » (virements et chèques des cliniques, date de réception) dans la page Bilan, hors bilan, pour la comptabilité ; questions à valider au début de l'étape. |
 | 09/10/2026 | 15 – Bilan, règlements reçus | Cadre « Règlements reçus des cliniques » sous « Versements autres » (virements et chèques, date de réception, référence, banque, période concernée, encaissé le, note), hors bilan ; totaux par clinique et par mois, rappel des actes de la période pour information ; Excel et PDF ; comptable en lecture seule. `finances/reglements`, règles inchangées (+4 tests). Bilan 352 317 DH, 390 px, aucune erreur. Pas encore en ligne. |
+| 09/10/2026 | 15 – Retouches | « Règlements reçus des cliniques et hôpitaux » ; sans les actes de la période ; virement sans date d'encaissement ; règlement hors période (05/05) désormais montré (période élargie) ; « KL » et ligne du détail des consultations retirés de la page Bilan. Bilan 352 317 DH, aucune erreur. Pas encore en ligne. |
