@@ -23,7 +23,7 @@ Après déploiement : recharger sans cache (Cmd + Maj + R). Les `.js` sont servi
 | Fichier | Rôle |
 |---|---|
 | `index.html` | connexion Firebase Auth → `v2.html` (compte d'administration → `admin.html`) |
-| `admin.html` + `js/app/admin.js` | Administration (09/10/2026) : créer un cabinet pour un confrère, liste des cabinets (sans données médicales) |
+| `admin.html` + `js/app/admin.js` | Administration : onglets Cabinets (équipe, formule, démo, suspendre…), Nouveau cabinet, Formules, Bibliothèques (par spécialité) |
 | `v2.html` | Onco360 : structure, CSS complet, symboles SVG, logo |
 | `js/config.js` | initialisation Firebase (clé web publique, normal) |
 | `js/app/v2.js` | chargement, tableau de bord, patients, dossier, identité, RDV (prix « Venu »), radiothérapie (dosimétrie, documents), WhatsApp, routage, droits |
@@ -133,8 +133,12 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
   { formule, surMesure, modules, max } écrit par `abonnementCabinet` ; `D.abo` / `module(k)` (v2.js, `A.module`) ; module retiré =
   `body.sans-<k>` cache `[data-mod~=k]`, `PAGE_MODULE` renvoie au tableau de bord ; suspendre / supprimer : `etatCabinet` /
   `supprimerCabinet` (`espaces/{e}.actif = false` → règles `cabinetActif()`) ; lien du mot de passe : `lienMotDePasse`.
-  Bibliothèque de référence : `plateforme/reference` (+ `/docs/{col}__{id}`), copie nettoyée du cabinet de Dr Bentahila prise par
-  `referenceMaj` (ou à la 1re création) ; `creerEspace` (index.js) copie la référence, jamais le cabinet en direct. Cabinet de
+  Bibliothèques de référence par spécialité (10/10/2026) : espaces sans patient `espaces/bib-oncologie|bib-generaliste|bib-gynecologie`
+  (`bibliotheque: true`, `BIBS` de cabinets.js = `BIBLIOTHEQUES_SPE` de modules.js), ouverts par l'administration (`bibliothequeOuvrir`,
+  `v2.html?espace=bib-…`, `D.bib` : Protocoles + Paramètres seulement, listes de départ figées par `figerListes` / `figerDocumentation`) ;
+  `creerEspace` copie la bibliothèque de la spécialité de la formule (`sourceBib`, PDF recopiés) ; `plateforme/reference` = ancienne copie
+  (09/10), source de bib-oncologie. `compteMembre` ignore les bibliothèques. Comptes de l'équipe : `creerMembre` / `lienMembre` (serveur ;
+  la création de comptes depuis le navigateur est fermée dans Firebase). Cabinet de
   démonstration : `cab-demonstration` (`demo: true`), `creerCabinetDemo` / `demoReinitialiser`, patients fictifs `functions/demo.js`.
 Ancienne application : collections racine `patients`, `protocoles`, `finances`, `parametres` (lecture seule).
 

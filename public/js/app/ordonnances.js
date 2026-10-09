@@ -66,6 +66,16 @@ async function modifierListe(n, fn) {
   await setDoc(refListe(n), { data: JSON.stringify(L), maj: serverTimestamp(), majPar: D().u.uid });
   return (CACHE[n] = L);
 }
+// Bibliothèque de référence (10/10/2026) : les listes encore « de départ » y sont enregistrées telles quelles, pour être mises de
+// côté (une liste de départ changée plus tard dans le code ne changera plus ce que reçoivent les nouveaux cabinets)
+export async function figerListes() {
+  let n = 0;
+  for (const k of Object.keys(DEPART)) {
+    const s = await getDoc(refListe(k)).catch(() => null);
+    if (s && !s.exists()) { await setDoc(refListe(k), { data: JSON.stringify(DEPART[k]().sort(alpha)), maj: serverTimestamp(), majPar: D().u.uid }); n++; }
+  }
+  return n;
+}
 // Liste du cabinet remplacée par la liste de départ (version Excel corrigée par le médecin) : mise à niveau ponctuelle
 export async function remplacerOrdosTypes() {
   const L = DEPART.ordostypes().sort(alpha);

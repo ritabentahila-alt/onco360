@@ -69,3 +69,20 @@ const echoue = (f) => { try { f(); return false; } catch (e) { return true; } };
   const e1 = MO.abonnementEffectif(a1);
   ok(!e1.modules.rt && e1.modules.chimio && e1.max.medecin === 1 && e1.max.etablissements === 1, "abonnement appliqué sur le site");
 })();
+// Membre créé par le titulaire (10/10/2026)
+(() => {
+  const C = require("./cabinets"), ok = (c, m) => { console.log((c ? "✅ " : "❌ ") + m); if (!c) process.exitCode = 1; }, echoue = (f) => { try { f(); return false; } catch (e) { return true; } };
+  const d = C.membreDemande({ role: "assistante", email: " Sara@Ex.ma ", prenom: "Sara", nom: "el amrani", tousEtablissements: false, etablissements: ["HGC"], droits: { identite: true, traitements: "voir", radiotherapie: "pirate", finances: "oui", inconnu: true } }, "2026-10-10", "T");
+  ok(d.email === "sara@ex.ma" && d.membre.nom === "Sara EL AMRANI" && d.membre.role === "assistante" && JSON.stringify(d.membre.etablissements) === '["HGC"]', "membre : e-mail, nom, rôle, établissements");
+  ok(d.membre.droits.identite === true && d.membre.droits.traitements === "voir" && d.membre.droits.radiotherapie === "aucun" && d.membre.droits.finances === false && !("inconnu" in d.membre.droits), "droits nettoyés (valeurs inconnues refusées)");
+  ok(C.membreDemande({ role: "medecin", email: "a@b.ma", nom: "X" }, "j", "T").membre.nom === "Dr X" && C.membreDemande({ role: "comptable", email: "a@b.ma", nom: "X" }, "j", "T").membre.tousEtablissements === true, "médecin « Dr », comptable : tout le cabinet");
+  ok(echoue(() => C.membreDemande({ role: "admin", email: "a@b.ma", nom: "X" })) && echoue(() => C.membreDemande({ role: "assistante", email: "a@b.ma", nom: "X", etablissements: [] })) && echoue(() => C.membreDemande({ role: "assistante", email: "pas", nom: "X", tousEtablissements: true })), "rôle inconnu, sans établissement, e-mail invalide : refusés");
+})();
+// Bibliothèques par spécialité (10/10/2026)
+(async () => {
+  const C = require("./cabinets"), MO = await import("../public/js/donnees/modules.js"), ok = (c, m) => { console.log((c ? "✅ " : "❌ ") + m); if (!c) process.exitCode = 1; };
+  ok(JSON.stringify(MO.BIBLIOTHEQUES_SPE) === JSON.stringify(C.BIBS), "bibliothèques par spécialité : même liste sur le site et le serveur");
+  ok(C.bibDe("Radiothérapie") === "bib-oncologie" && C.bibDe("Médecine générale") === "bib-generaliste" && C.bibDe("inconnue") === "bib-oncologie", "spécialité → bibliothèque");
+  ok(Object.values(MO.FORMULES).every((f) => C.BIBS.some((b) => b.specialites.indexOf(f.specialite) >= 0)), "chaque formule a sa bibliothèque");
+  ok(C.estBib("bib-oncologie") && !C.estBib("cab-x") && C.DROITS_BIB.creerPatient === false && C.DROITS_BIB.identite === false, "bibliothèque : aucun droit sur les patients");
+})();

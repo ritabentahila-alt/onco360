@@ -33,6 +33,12 @@ async function lire() {
   const s = await getDoc(refListe()).catch(() => null);
   return (DOCS = s && s.exists() ? JSON.parse(s.data().data || "[]") : DEPART());
 }
+// Bibliothèque de référence (10/10/2026) : la liste de départ enregistrée telle quelle (mise de côté)
+export async function figerDocumentation() {
+  const s = await getDoc(refListe()).catch(() => null);
+  if (s && !s.exists()) { await setDoc(refListe(), { data: JSON.stringify(DEPART()), maj: serverTimestamp(), majPar: D().u.uid }); return 1; }
+  return 0;
+}
 async function modifier(fn) {
   const s = await getDoc(refListe()).catch(() => null), L = s && s.exists() ? JSON.parse(s.data().data || "[]") : DEPART();
   fn(L); await setDoc(refListe(), { data: JSON.stringify(L), maj: serverTimestamp(), majPar: D().u.uid });
@@ -43,6 +49,13 @@ const erreurDroit = (e, quoi) => (e && /permission|unauthorized/.test(e.code || 
 // ───── Fenêtre « Documentation » : recherche, catégorie, tri, liste ─────
 let V = null; // { pid, q, cat, tri }
 const TRIS = [["fav", "Favoris, puis A → Z"], ["recent", "Plus récents d'abord"], ["cat", "Par catégorie"]];
+// Gestion de la liste sans patient (Paramètres › Bibliothèques, 10/10/2026) : ajouter, modifier, supprimer, favoris
+window.ordDocumentationGestion = async () => {
+  if (!gere()) { A.toast("Réservé au médecin."); return; }
+  V = { q: "", cat: "", tri: "fav", pid: null };
+  A.fenetre('<p class="sous">Chargement de la documentation…</p>', "large");
+  await lire(); vue();
+};
 window.ordDocumentation = async (pid) => {
   const x = trouver(pid); if (!x || !peutRemettre()) return;
   V = Object.assign({ q: "", cat: "", tri: "fav" }, V && V.pid === pid ? V : {}, { pid });
@@ -50,14 +63,14 @@ window.ordDocumentation = async (pid) => {
   await Promise.all([lire(), assurerConsultations(x)]); vue();
 };
 function vue() {
-  const x = trouver(V.pid), esc = A.esc, cats = [...new Set(DOCS.map((d) => d.cat).filter(Boolean))].sort((a, b) => sansAcc(a).localeCompare(sansAcc(b)));
-  A.fenetre("<h3>Documentation — " + esc(x.r.nm) + "</h3>" +
+  const x = V.pid ? trouver(V.pid) : null, esc = A.esc, cats = [...new Set(DOCS.map((d) => d.cat).filter(Boolean))].sort((a, b) => sansAcc(a).localeCompare(sansAcc(b)));
+  A.fenetre("<h3>Documentation" + (x ? " — " + esc(x.r.nm) : " à remettre aux patients") + "</h3>" +
     '<div class="md-barre"><div class="recherche">' + A.ic("loupe") + '<input id="dcQ" type="search" autocomplete="off" placeholder="Rechercher un document (titre, catégorie)…" value="' + esc(V.q) + '"></div>' +
     '<select id="dcCat" aria-label="Catégorie"><option value="">Toutes les catégories</option>' + cats.map((c) => "<option" + (V.cat === c ? " selected" : "") + ">" + esc(c) + "</option>").join("") + "</select>" +
     '<select id="dcTri" aria-label="Trier">' + TRIS.map(([k, l]) => '<option value="' + k + '"' + (V.tri === k ? " selected" : "") + ">" + l + "</option>").join("") + "</select>" +
     (gere() ? '<button class="bt clair petit" onclick="dcAjouter()">' + A.ic("plus") + "Ajouter un PDF</button>" : "") + "</div>" +
     '<div class="md-liste" id="dcListe"></div>' +
-    '<p class="mesures" style="margin:6px 0 0">« Remettre » ouvre le PDF pour l\'imprimer et le note dans la consultation du jour ; la petite flèche à côté de « Doc. » montre ce qui a déjà été remis à ce patient.' + (gere() ? " Vous seul (médecin) ajoutez, modifiez et supprimez les documents." : "") + "</p>" +
+    '<p class="mesures" style="margin:6px 0 0">' + (x ? "« Remettre » ouvre le PDF pour l\'imprimer et le note dans la consultation du jour ; la petite flèche à côté de « Doc. » montre ce qui a déjà été remis à ce patient." : "Liste du bouton « Doc. » du dossier.") + (gere() ? " Vous seul (médecin) ajoutez, modifiez et supprimez les documents." : "") + "</p>" +
     '<div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Fermer</button></div>', "large");
   $("dcQ").oninput = () => { V.q = $("dcQ").value; liste(); };
   $("dcCat").onchange = () => { V.cat = $("dcCat").value; liste(); };
@@ -67,7 +80,7 @@ function vue() {
 const alpha = (a, b) => sansAcc(a.titre).localeCompare(sansAcc(b.titre));
 function liste() {
   const esc = A.esc, mots = sansAcc(V.q).split(/\s+/).filter(Boolean);
-  const remis = {}; lignesType(V.pid, "doc").forEach(({ l }) => { if (l.docId && (!remis[l.docId] || l.d > remis[l.docId])) remis[l.docId] = l.d; });
+  const remis = {}; (V.pid ? lignesType(V.pid, "doc") : []).forEach(({ l }) => { if (l.docId && (!remis[l.docId] || l.d > remis[l.docId])) remis[l.docId] = l.d; });
   const L = DOCS.filter((d) => (!V.cat || d.cat === V.cat) && mots.every((w) => sansAcc(d.titre + " " + (d.cat || "") + " " + (d.nom || "")).indexOf(w) >= 0))
     .sort(V.tri === "recent" ? (a, b) => String(b.le || "").localeCompare(String(a.le || "")) || alpha(a, b)
       : V.tri === "cat" ? (a, b) => sansAcc(a.cat || "~").localeCompare(sansAcc(b.cat || "~")) || alpha(a, b)
@@ -78,7 +91,7 @@ function liste() {
     const etoile = gere() ? '<button class="ico etoile' + (d.fav ? " on" : "") + '" aria-pressed="' + !!d.fav + '" title="' + (d.fav ? "Retirer des favoris" : "Mettre en favori (en tête de liste)") + '" aria-label="Favori : ' + esc(d.titre) + '" onclick="dcFavori(' + q + ')">' + ico("etoile") + "</button>"
       : d.fav ? '<span class="ico etoile on" title="Favori">' + ico("etoile") + "</span>" : "";
     return sep + '<tr><td><b>' + esc(d.titre) + '</b><div class="cl">PDF · ' + taille(d.taille) + (remis[d.id] ? ' · <span class="badge b-ch">remis le ' + A.dfrA(remis[d.id]) + "</span>" : "") + "</div></td><td>" + esc(d.cat || "") + '</td><td class="act">' + etoile +
-      '<button class="mini" onclick="dcOuvrir(' + q + ')">Ouvrir</button><button class="mini v" title="Ouvrir pour imprimer et noter dans la consultation du jour" onclick="dcRemettre(' + q + ')">Remettre</button>' +
+      '<button class="mini" onclick="dcOuvrir(' + q + ')">Ouvrir</button>' + (V.pid ? '<button class="mini v" title="Ouvrir pour imprimer et noter dans la consultation du jour" onclick="dcRemettre(' + q + ')">Remettre</button>' : "") +
       (gere() ? '<button class="ico" title="Modifier le titre ou la catégorie" aria-label="Modifier ' + esc(d.titre) + '" onclick="dcFiche(' + q + ')">' + ico("crayon") + '</button><button class="ico rouge" title="Supprimer le document" aria-label="Supprimer ' + esc(d.titre) + '" onclick="dcSupprimer(' + q + ')">' + ico("croix") + "</button>" : "") + "</td></tr>";
   }).join("") + "</table>" : '<p class="sous" style="padding:12px">Aucun document ne correspond.' + (gere() ? " « Ajouter un PDF » pour en ajouter un." : "") + "</p>";
 }

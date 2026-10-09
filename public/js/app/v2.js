@@ -21,7 +21,8 @@ import { installer as installerProfil, pageProfil, DROITS_ROLE, droitsEffectifs,
 import { installer as installerProtocoles, pageProtocoles } from "./protocoles.js";
 import { installer as installerParametres, pageParametres } from "./parametres.js";
 import { installer as installerBilan, pagePageBilan, publierReleve } from "./bilan.js";
-import { installer as installerOrdonnances, remplacerOrdosTypes } from "./ordonnances.js";
+import { installer as installerOrdonnances, remplacerOrdosTypes, figerListes } from "./ordonnances.js";
+import { figerDocumentation } from "./documentation.js";
 import { installer as installerFichiers, htmlFichiers, nbFichiers, oublierFichiers, suivreEtablissementFichiers, supprimerFichiers } from "./fichiers.js";
 import { installer as installerConsultations, htmlConsultations, nbConsultations, oublierConsultations, suivreEtablissement, supprimerConsultations } from "./consultations.js";
 import { installer as installerReglages, reglages, appliquerImpression } from "./reglages.js";
@@ -57,10 +58,14 @@ window.nouveauPatient = () => creerPatient();
 // ───── Chargement ─────
 onAuthStateChanged(auth, async (u) => {
   if (!u) { location.replace("index.html"); return; }
-  try { D = await charger(u); appliquerImpression(); entete(); route(); if (D.membre.role !== "comptable") { if (module("taches")) demarrerTaches(); if (module("salle")) demarrerSalle(); if (module("rcp")) demarrerRcp(); } publierTarifsC(); planifierReleve(3000); nomTitulaire().then(migrations); }
+  try { D = await charger(u); appliquerImpression(); entete(); route();
+    if (D.bib) { Promise.all([figerListes(), figerDocumentation()]).catch((e) => console.warn("bibliothèque", e)); return; } // bibliothèque de référence : rien d'autre
+    if (D.membre.role !== "comptable") { if (module("taches")) demarrerTaches(); if (module("salle")) demarrerSalle(); if (module("rcp")) demarrerRcp(); } publierTarifsC(); planifierReleve(3000); nomTitulaire().then(migrations); }
   catch (e) { $("page").innerHTML = '<div class="carte"><h3>Impossible d\'ouvrir Onco360</h3><p class="sous">' + esc(e && e.code === "permission-denied" ? "Accès refusé : votre accès a peut-être été désactivé. Contactez le médecin titulaire." : e.message) + '</p><button class="bt clair" onclick="document.getElementById(\'btSortie\').click()">Se déconnecter</button></div>'; }
 });
 async function cabinetDe(u) {
+  // Bibliothèque de référence ouverte depuis l'Administration (v2.html?espace=bib-…, 10/10/2026)
+  const q = new URLSearchParams(location.search).get("espace"); if (q && /^bib-[a-z-]+$/.test(q)) return q;
   const c = await getDoc(doc(db, "comptes", u.uid)).catch(() => null);
   return (c && c.exists() && c.data().espace) || ESPACE_MODELE;
 }
@@ -70,6 +75,7 @@ async function charger(u) {
   const lireMembre = (e) => getDoc(doc(db, "espaces", e, "membres", u.uid)).then((s) => (s.exists() ? s : null)).catch((er) => { refus = refus || er; return null; });
   ESPACE = await cabinetDe(u);
   let m = await lireMembre(ESPACE);
+  if (!m && /^bib-/.test(ESPACE)) throw new Error("Cette bibliothèque s'ouvre depuis la page Administration (bouton « Ouvrir et modifier »).");
   if (!m && ESPACE !== ESPACE_MODELE) { const m2 = await lireMembre(ESPACE_MODELE); if (m2) { ESPACE = ESPACE_MODELE; m = m2; } }
   if (!m) {
     // Compte d'administration (aucun cabinet) : page Administration
@@ -121,7 +127,7 @@ async function charger(u) {
   if (!abo.modules.chimio) Object.assign(membre.droits, { traitements: "aucun", planningChimio: false, administrer: false });
   if (!abo.modules.rt) membre.droits.radiotherapie = "aucun";
   if (!abo.modules.documents) membre.droits.documents = false;
-  return { u, membre, profil, cal, ctx, t, patients, listes, etabs, etabsTous, tarifs, bibDoc, bibOrdre, activites, wa, agendaG, medTitulaire, tarifsC, reglages: reglagesC, abo, espaceDoc };
+  return { u, membre, profil, cal, ctx, t, patients, listes, etabs, etabsTous, tarifs, bibDoc, bibOrdre, activites, wa, agendaG, medTitulaire, tarifsC, reglages: reglagesC, abo, espaceDoc, bib: espaceDoc.bibliotheque === true };
 }
 // Nom du médecin titulaire (signature des messages WhatsApp envoyés par la secrétaire ou l'infirmière)
 async function nomTitulaire() {
@@ -302,6 +308,11 @@ function entete() {
   // Modules de la formule : body.sans-<module> cache tout ce qui porte data-mod="<module>" (menu, boutons, onglets)
   Object.keys(D.abo.modules).forEach((k) => document.body.classList.toggle("sans-" + k, !D.abo.modules[k]));
   document.body.classList.toggle("role-comptable", mb.role === "comptable"); // menu réduit au bilan et au profil
+  document.body.classList.toggle("mode-bib", D.bib); // bibliothèque de référence : Protocoles et Paramètres
+  if (D.bib) {
+    $("specMenu").textContent = (D.espaceDoc.nom || "Bibliothèque de référence") + " : ce que reçoivent les nouveaux cabinets";
+    if (!$("lienAdmin")) { const a = document.createElement("a"); a.id = "lienAdmin"; a.href = "admin.html#reference"; a.innerHTML = ic("retour") + "Retour à l'Administration"; document.querySelector("nav").appendChild(a); }
+  }
   const al = alertes();
   $("nbAl").textContent = al.length; $("nbAl").classList.toggle("cache", !al.length);
   $("panneauAlertes").innerHTML = "<h3>Alertes (" + al.length + ")</h3>" + (al.length ? al.map((a) => '<div class="al" onclick="ouvrirDossier(\'' + a.id + '\')"><i class="pt" style="background:' + a.c + '"></i><div>' + a.h + "</div></div>").join("") : '<div class="al">Aucune alerte.</div>');
@@ -416,18 +427,20 @@ const FILTRES = {
 // Module dont dépend chaque page (formule du cabinet) : page d'un module retiré → tableau de bord
 // Comptable : le bilan et son profil seulement
 const PAGES_COMPTABLE = ["bilan", "profil"];
+// Bibliothèque de référence (10/10/2026) : protocoles et paramètres (bibliothèques, listes, fériés, tarifs RT) seulement
+const PAGES_BIB = ["protocoles", "parametres", "configuration"];
 const estComptable = () => !!(D && D.membre && D.membre.role === "comptable");
 const PAGE_MODULE = { agenda: "agenda", salle: "salle", taches: "taches", protocoles: "chimio", bilan: "bilan" };
 const module = (k) => !D || !D.abo || D.abo.modules[k] !== false;
 const PAGES = { accueil: ["Tableau de bord", pageAccueil], agenda: ["Agenda / Rendez-vous", () => pageAgenda()], configuration: ["Paramètres", () => { location.replace("#parametres"); }], profil: ["Profil", () => pageProfil()], protocoles: ["Protocoles", () => pageProtocoles()], parametres: ["Paramètres", (a) => pageConfiguration(a)], bilan: ["Bilan", () => pagePageBilan()], salle: ["Salle d'attente", () => pageSalle()], patients: ["Patients", pagePatients], taches: ["Tâches", (a) => pageTaches(a)], dossier: ["Dossier patient", pageDossier] };
 function route() {
-  const h = location.hash.replace("#", ""), i = h.indexOf("/"), p = i < 0 ? h : h.slice(0, i), arg = i < 0 ? null : decodeURIComponent(h.slice(i + 1)), nom = PAGES[p] && module(PAGE_MODULE[p] || "") && (!estComptable() || PAGES_COMPTABLE.indexOf(p) >= 0) ? p : estComptable() ? "bilan" : "accueil";
+  const h = location.hash.replace("#", ""), i = h.indexOf("/"), p = i < 0 ? h : h.slice(0, i), arg = i < 0 ? null : decodeURIComponent(h.slice(i + 1)), nom = PAGES[p] && module(PAGE_MODULE[p] || "") && (!estComptable() || PAGES_COMPTABLE.indexOf(p) >= 0) && (!D.bib || PAGES_BIB.indexOf(p) >= 0) ? p : estComptable() ? "bilan" : D.bib ? "protocoles" : "accueil";
   if (!$("fenetre").classList.contains("cache")) window.fermerFenetre();
   D.page = nom + (arg ? "/" + encodeURIComponent(arg) : ""); $("titrePage").textContent = PAGES[nom][0]; $("page").classList.toggle("large", nom === "agenda");
   document.querySelectorAll("nav a").forEach((a) => a.classList.toggle("actif", a.dataset.p === (nom === "dossier" ? "patients" : nom)));
   if (nom === "dossier" && arg) { delete ONGLET[arg]; oublierConsultations(arg); oublierDocs(arg); oublierFichiers(arg); } // dossier ouvert : onglet Consultation, consultations relues
   PAGES[nom][1](arg); window.scrollTo(0, 0);
-  if (!estComptable()) presenceDossier(nom === "dossier" ? arg : null); // « Dossier ouvert par » (salle d'attente)
+  if (!estComptable() && !D.bib) presenceDossier(nom === "dossier" ? arg : null); // « Dossier ouvert par » (salle d'attente)
 }
 // Changer de page : le résumé en cours d'écriture est d'abord enregistré ; s'il ne peut pas l'être, on reste sur le dossier
 window.addEventListener("hashchange", async () => {
@@ -443,6 +456,7 @@ window.addEventListener("beforeunload", (e) => { if (NOTES.txt != null || NOTES.
 
 // Premier démarrage d'un cabinet neuf (phase F, 09/10/2026) : étapes pour le médecin, jusqu'à ce que profil, lieu et tarifs soient faits
 function premiersPas() {
+  if (D.bib) return "";
   if (D.membre.role !== "medecin" || !peut("parametres")) return "";
   const T = D.tarifs, et = [
     ["profil", "Votre profil", "Nom, INPE et signature (fiche de chimiothérapie, comptes rendus, ordonnances).", !!(D.profil && D.profil.inpe)],

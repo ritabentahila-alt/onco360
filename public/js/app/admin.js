@@ -12,9 +12,9 @@ const $ = (i) => document.getElementById(i);
 const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const dfr = (d) => (typeof d === "string" && d.length >= 10 ? d.slice(8, 10) + "/" + d.slice(5, 7) + "/" + d.slice(0, 4) : "");
 const sansAcc = (x) => String(x || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
-const ONGLETS = [["cabinets", "Cabinets"], ["nouveau", "Nouveau cabinet"], ["formules", "Formules"], ["reference", "Bibliothèque de référence"]];
+const ONGLETS = [["cabinets", "Cabinets"], ["nouveau", "Nouveau cabinet"], ["formules", "Formules"], ["reference", "Bibliothèques"]];
 // CABINETS : liste (null = chargement) ; FS : formules enregistrées (sinon celles de départ) ; FED : formules en cours de modification
-let CABINETS = null, FS = null, FED = null, REFM = undefined, // REFM : bibliothèque de référence (undefined = pas encore lue)
+let CABINETS = null, FS = null, FED = null, BIBS = null, // BIBS : bibliothèques de référence par spécialité (null = pas encore lues)
    MSG = "", RES = "", Q = "", STATUT = "", SPE = "", SPEF = "";
 const FORMULES_ = () => FS || FORMULES0;
 const ONG = () => { const h = location.hash.replace("#", ""); return ONGLETS.some((o) => o[0] === h) ? h : "cabinets"; };
@@ -38,7 +38,7 @@ let GARDER = false;
 window.addEventListener("hashchange", () => { if (!GARDER) RES = ""; GARDER = false; dessiner(); });
 async function charger() {
   try {
-    const o = await serveur("listeCabinets"); if (o.formules) FS = o.formules; REFM = o.reference || null; MSG = "";
+    const o = await serveur("listeCabinets"); if (o.formules) FS = o.formules; BIBS = o.bibliotheques || []; MSG = "";
     CABINETS = (o.cabinets || []).map((c) => Object.assign({}, c, { cree: typeof c.cree === "string" ? c.cree : "", suspenduLe: typeof c.suspenduLe === "string" ? c.suspenduLe : "", titulaire: c.titulaire || {} }));
   } catch (e) { CABINETS = []; MSG = '<p class="err">Liste des cabinets indisponible : ' + esc(e.message) + ' <button class="clair petit" onclick="location.reload()">Réessayer</button></p>'; }
   dessiner();
@@ -46,6 +46,7 @@ async function charger() {
 const cab = (id) => (CABINETS || []).find((c) => c.id === id);
 const formuleDe = (ab) => (ab && FORMULES_()[ab.formule]) || null;
 const nomFormule = (ab) => (!ab ? "Tout compris (sans formule)" : ((formuleDe(ab) || {}).lib || ab.formule) + (ab.surMesure ? " · sur mesure" : ""));
+const ROLES_LIB = { medecin: "Médecin", assistante: "Secrétaire", infirmiere: "Infirmière", comptable: "Comptable" };
 const ch = (id, lib, ph, type, v) => '<div><label for="' + id + '">' + esc(lib) + '</label><input id="' + id + '"' + (type ? ' type="' + type + '"' : "") + (ph ? ' placeholder="' + esc(ph) + '"' : "") + ' value="' + esc(v || "") + '" autocomplete="off"></div>';
 // Menu des formules, rangées par spécialité
 const optionsFormules = (choisie, spe) => SPECIALITES.concat(Object.values(FORMULES_()).map((f) => f.specialite || "Autres").filter((s, i, a) => SPECIALITES.indexOf(s) < 0 && a.indexOf(s) === i)).filter((s) => !spe || s === spe).map((s) => {
@@ -89,7 +90,8 @@ function carteCabinet(c) {
     (c.demo ? '<span class="bdg demo">Démonstration</span> ' : "") + (c.actif ? '<span class="bdg ok">Actif</span>' : '<span class="bdg al">Suspendu' + (c.suspenduLe ? " le " + esc(dfr(c.suspenduLe.slice(0, 10))) : "") + "</span>") + "</div>" +
     '<div class="medecin"><b>' + esc(c.titulaire.nom || "—") + '</b><span class="m">' + esc([c.titulaire.email, c.titulaire.telephone].filter(Boolean).join(" · ")) + "</span></div>" +
     '<div class="formule"><span class="bdg">' + esc(nomFormule(ab)) + "</span>" + (F && F.specialite ? '<span class="m">' + esc(F.specialite) + "</span>" : "") + "</div>" +
-    '<div class="chiffres">' + chiffre(r.medecin || 0, mx.medecin, "Médecins") + chiffre(r.assistante || 0, mx.assistante, "Secrétaires") + chiffre(r.infirmiere || 0, mx.infirmiere, "Infirmières") + chiffre(c.etablissements, mx.etablissements, "Lieux") + chiffre(c.patients, mx.patients, "Dossiers") + "</div>" +
+    '<div class="chiffres">' + chiffre(r.medecin || 0, mx.medecin, "Médecins") + chiffre(r.assistante || 0, mx.assistante, "Secrétaires") + chiffre(r.infirmiere || 0, mx.infirmiere, "Infirmières") + (r.comptable || mx.comptable != null ? chiffre(r.comptable || 0, mx.comptable, "Comptables") : "") + chiffre(c.etablissements, mx.etablissements, "Lieux") + chiffre(c.patients, mx.patients, "Dossiers") + "</div>" +
+    (c.equipe && c.equipe.length ? '<details class="equipe"><summary>Équipe (' + c.equipe.length + ")</summary>" + c.equipe.slice().sort((a, b) => (b.titulaire ? 1 : 0) - (a.titulaire ? 1 : 0) || String(a.role).localeCompare(String(b.role))).map((m) => '<div class="mb' + (m.actif ? "" : " off") + '"><b>' + esc(m.nom || "—") + '</b> <span class="bdg">' + esc(ROLES_LIB[m.role] || m.role) + (m.titulaire ? " titulaire" : "") + "</span>" + (m.actif ? "" : ' <span class="bdg al">désactivé</span>') + '<div class="m">' + esc(m.email) + "</div></div>").join("") + "</details>" : "") +
     '<div class="m">Créé le ' + esc(dfr(c.cree) || "—") + "</div>" +
     '<div class="act">' + (c.demo ? '<button class="clair petit" data-reinit="' + esc(c.id) + '">Réinitialiser la démo</button>' : "") + '<button class="clair petit" data-info="' + esc(c.id) + '">Modifier</button><button class="clair petit" data-form="' + esc(c.id) + '">Formule et modules</button>' +
     (c.modele ? "" : (c.titulaire.email ? '<button class="clair petit" data-lien="' + esc(c.id) + '">Lien du mot de passe</button><button class="clair petit" data-mail="' + esc(c.titulaire.email) + '">Renvoyer l\'e-mail</button>' : "") +
@@ -128,24 +130,23 @@ async function reinitDemo(b) {
   try { const o = await serveur("demoReinitialiser"); RES = "Démonstration réinitialisée : " + o.patients + " patients fictifs au " + esc(dfr(o.jour)) + "."; CABINETS = null; dessiner(); charger(); }
   catch (e) { b.disabled = false; b.textContent = "Réinitialiser la démo"; alert("Impossible : " + e.message); }
 }
-// ───── Onglet Bibliothèque de référence (09/10/2026) ─────
-const LIBS = [["protocoles", "Protocoles de chimiothérapie"], ["medicaments", "Médicaments"], ["ordostypes", "Ordonnances types"], ["analyses", "Analyses"], ["bilans", "Bilans biologiques"], ["examens", "Examens complémentaires"], ["courriers", "Courriers"]];
+// ───── Onglet Bibliothèques (10/10/2026) : une bibliothèque de référence par spécialité ─────
+// Ce que reçoit un cabinet neuf, selon la spécialité de sa formule. Chacune est un espace sans patient, ouvert dans Onco360
+// (v2.html?espace=bib-…) pour tout ajouter, modifier, supprimer avec les écrans habituels ; aucun cabinet n'y est relié.
+const LIBS = [["protocoles", "Protocoles de chimiothérapie"], ["medicaments", "Médicaments"], ["ordostypes", "Ordonnances types"], ["analyses", "Analyses"], ["bilans", "Bilans biologiques"], ["examens", "Examens complémentaires"], ["courriers", "Courriers"], ["documentation", "Documentation (Doc.)"]];
 function htmlReference() {
-  const R = REFM;
-  return '<section class="carte"><h2>Bibliothèque de référence</h2><p class="sous">C\'est ce que reçoit chaque nouveau cabinet : protocoles de chimiothérapie, bibliothèques de prescription, jours fériés, diagnostics, mutuelles et tarifs de radiothérapie. C\'est une <b>copie mise de côté</b>, prise dans le cabinet du Dr Bentahila : ni les modifications d\'un médecin dans son cabinet (elles restent chez lui), ni celles du Dr Bentahila dans le sien ne la changent, tant que vous ne la mettez pas à jour ici. Elle ne contient ni correspondants, ni tarifs de consultation, ni patients.</p>' +
-    (R === undefined ? '<p class="sous">Chargement…</p>' : !R ? '<p class="ok" style="background:#FFF6E5;color:#8A5A00">Pas encore de copie : elle sera prise automatiquement à la création du prochain cabinet, ou maintenant avec le bouton ci-dessous.</p>' :
-      '<div class="tuiles" style="margin:6px 0 4px">' + LIBS.filter(([k]) => R.nb && R.nb[k] != null).map(([k, lib]) => '<div class="tuile"><b>' + R.nb[k] + "</b><span>" + esc(lib) + "</span></div>").join("") + "</div>" +
-      '<p class="m">Copie prise le ' + esc(new Date(R.le).toLocaleString("fr-FR")) + " depuis le cabinet du Dr Bentahila.</p>") +
-    '<div class="pied"><button id="refMaj">Mettre à jour depuis le cabinet du Dr Bentahila</button></div>' +
-    '<p class="m" style="margin-top:10px">Les cabinets déjà créés ne changent pas : ils gardent leur propre bibliothèque, qu\'ils modifient comme ils veulent.</p></section>';
+  const L = BIBS === null ? null : BIBS;
+  return '<section class="carte"><h2>Bibliothèques</h2><p class="sous">Une bibliothèque par spécialité : c\'est ce que reçoit chaque <b>nouveau</b> cabinet selon la spécialité de sa formule (protocoles, médicaments, ordonnances types, analyses et bilans, examens, courriers, documentation, diagnostics et mutuelles, jours fériés, tarifs de radiothérapie). Elles sont <b>mises de côté</b> : ce que fait un médecin dans son cabinet, y compris le Dr Bentahila, ne les change pas. Vous les modifiez ici, avec les écrans habituels d\'Onco360. Les cabinets déjà créés gardent leur propre copie.</p></section>' +
+    (L === null ? '<section class="carte"><p class="sous">Chargement…</p></section>' : '<div class="cabs">' + L.map((B) => '<article class="cab"><div class="haut"><div><h3>' + esc(B.lib) + '</h3><div class="m">' + esc(B.specialites.join(" · ")) + "</div></div>" + (B.existe ? '<span class="bdg ok">En place</span>' : '<span class="bdg">À créer</span>') + "</div>" +
+      (B.existe ? '<div class="chiffres" style="grid-template-columns:repeat(4,minmax(0,1fr))">' + LIBS.map(([k, lib]) => "<div><b>" + (B.nb && B.nb[k] != null ? B.nb[k] : "départ") + "</b><span>" + esc(lib) + "</span></div>").join("") + "</div>" : '<p class="m">' + (B.id === "bib-oncologie" ? "Sera créée à partir de la copie mise de côté le 09/10 (bibliothèque du Dr Bentahila)." : "Sera créée vide : vous la remplirez (les modules de cette spécialité restent à construire).") + "</p>") +
+      '<div class="act"><button data-bib="' + esc(B.id) + '">' + (B.existe ? "Ouvrir et modifier" : "Créer et ouvrir") + "</button></div></article>").join("") + "</div>");
 }
 function brancherReference() {
-  $("refMaj").onclick = async () => {
-    if (!confirm("Remplacer la bibliothèque de référence par une nouvelle copie de celle du cabinet du Dr Bentahila ?\n\nLes prochains cabinets créés recevront cette nouvelle version. Les cabinets existants ne changent pas.")) return;
-    const b = $("refMaj"); b.disabled = true; b.textContent = "Copie en cours…";
-    try { const o = await serveur("referenceMaj"); REFM = o.reference; RES = "Bibliothèque de référence mise à jour (" + (o.reference.nb.protocoles || 0) + " protocoles)."; dessiner(); }
-    catch (e) { b.disabled = false; b.textContent = "Mettre à jour depuis le cabinet du Dr Bentahila"; alert("Impossible : " + e.message); }
-  };
+  document.querySelectorAll("[data-bib]").forEach((b) => { b.onclick = async () => {
+    b.disabled = true; b.textContent = "Ouverture…";
+    try { const o = await serveur("bibliothequeOuvrir", { bib: b.dataset.bib }); location.href = "v2.html?espace=" + encodeURIComponent(o.espace) + "#protocoles"; }
+    catch (e) { b.disabled = false; b.textContent = "Ouvrir et modifier"; alert("Impossible : " + e.message); }
+  }; });
 }
 
 // ───── Fenêtre (réglages d'un cabinet, lien du mot de passe) ─────

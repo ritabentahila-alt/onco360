@@ -308,7 +308,8 @@ const estAdministrateur = async (uid) => !!uid && (await db.doc("administrateurs
 // Formules modifiées par l'administration : plateforme/formules (aucune règle : serveur seulement), sinon formules de départ
 async function formules() { try { const s = await db.doc("plateforme/formules").get(); return (s.exists && C.formulesValides(JSON.parse(s.data().data || "{}"))) || C.FORMULES; } catch (e) { return C.FORMULES; } }
 exports.compteMembre = onDocumentWritten({ document: "espaces/{e}/membres/{uid}", timeoutSeconds: 60, memory: "256MiB" }, async (ev) => {
-  const { e, uid } = ev.params, ref = db.doc("comptes/" + uid), c = await ref.get(), apres = ev.data.after.exists ? ev.data.after.data() : null;
+  const { e, uid } = ev.params; if (C.estBib(e)) return; // bibliothèque de référence : le compte d'administration garde sa page
+  const ref = db.doc("comptes/" + uid), c = await ref.get(), apres = ev.data.after.exists ? ev.data.after.data() : null;
   if (apres) {
     // Déjà rattaché ailleurs : on ne change rien, sauf pour le cabinet modèle (ses membres l'ouvrent toujours, même s'ils
     // figurent aussi dans un cabinet d'essai)
@@ -354,17 +355,54 @@ async function prendreReference(par) {
   console.log("bibliothèque de référence prise par", par, JSON.stringify(nb));
   return meta;
 }
-// Ce que reçoit un cabinet neuf : la référence (prise une première fois si elle n'existe pas encore)
-async function source(par) {
+// Ce que reçoit un cabinet neuf : la bibliothèque de référence de sa spécialité (espaces/bib-…, 10/10/2026), nettoyée à la copie
+// (listes sans correspondants, fériés sans absences, tarifs : actes RT seulement) ; documents PDF déposés recopiés. Si elle n'existe
+// pas encore : l'ancienne copie mise de côté (plateforme/reference).
+async function sourceBib(bib) {
+  const B = "espaces/" + bib + "/", json = (x) => { try { return x.exists ? JSON.parse(x.data().data || "null") : null; } catch (er) { return null; } };
+  const [prot, sl, sc, st, bibs] = await Promise.all([db.collection(B + "protocoles").get(), db.doc(B + "parametres/listes").get(), db.doc(B + "parametres/calendrier").get(), db.doc(B + "finances/tarifs").get(), db.collection(B + "bibliotheques").get()]);
+  const out = { protocoles: prot.docs.map((d) => ({ id: d.id, data: d.data() })), docs: [], fichiers: [], bib };
+  if (sl.exists) out.docs.push({ chemin: "parametres/listes", data: { data: JSON.stringify(C.listesDepart(json(sl))) } });
+  if (sc.exists) out.docs.push({ chemin: "parametres/calendrier", data: { data: JSON.stringify(C.calendrierDepart(json(sc))) } });
+  out.docs.push({ chemin: "finances/tarifs", data: { data: JSON.stringify(C.tarifsDepart(json(st))) } });
+  bibs.forEach((d) => out.docs.push({ chemin: "bibliotheques/" + d.id, data: d.data() }));
+  return out;
+}
+async function source(par, specialite) {
+  const bib = C.bibDe(specialite);
+  if ((await db.doc("espaces/" + bib).get()).exists) return sourceBib(bib);
   if (!(await db.doc(REF).get()).exists) await prendreReference(par);
   const s = await db.collection(REF + "/docs").get(), out = { protocoles: [], docs: [] };
   s.forEach((d) => { const [col, id] = d.id.split("__"); if (col === "protocoles") out.protocoles.push({ id, data: d.data() }); else out.docs.push({ chemin: col + "/" + id, data: d.data() }); });
   return out;
 }
-exports.referenceMaj = onCall({ timeoutSeconds: 120, memory: "256MiB" }, async (req) => {
+// Ouvrir une bibliothèque de référence pour la modifier (page Administration) : créée la 1re fois (Oncologie – Radiothérapie : à
+// partir de la copie mise de côté le 09/10 ; autres spécialités : listes vides, à remplir), avec le compte d'administration comme
+// membre (aucun droit sur les patients ; il n'y a aucun patient). Renvoie l'identifiant à ouvrir dans Onco360 (v2.html?espace=…).
+exports.bibliothequeOuvrir = onCall({ timeoutSeconds: 120, memory: "256MiB" }, async (req) => {
   const par = req.auth && req.auth.uid;
   if (!(await estAdministrateur(par))) throw new HttpsError("permission-denied", "Réservé à l'administration d'Onco360.");
-  return { reference: await prendreReference(par) };
+  const B = C.BIBS.find((x) => x.id === (req.data || {}).bib); if (!B) throw new HttpsError("invalid-argument", "Bibliothèque inconnue.");
+  const ref = db.doc("espaces/" + B.id), s = await ref.get(), jour = new Date().toISOString().slice(0, 10), b = db.batch(), E = "espaces/" + B.id + "/";
+  const moi = await getAuth().getUser(par);
+  b.set(db.doc(E + "membres/" + par), { role: "medecin", nom: "Administration Onco360", email: moi.email || "", actif: true, tousEtablissements: true, etablissements: [], droits: Object.assign({}, C.DROITS_BIB), cree: jour, creePar: par });
+  if (!s.exists) {
+    b.set(ref, { nom: "Bibliothèque " + B.lib, bibliotheque: true, specialites: B.specialites, titulaire: par, cree: jour, creePar: par, actif: true, abonnement: { formule: "bibliotheque", surMesure: true, modules: Object.assign({}, C.MODULES_BIB), max: {} } });
+    b.set(db.doc(E + "parametres/migrations"), C.migrationsFaites(jour));
+    if (B.id === "bib-oncologie") {
+      if (!(await db.doc(REF).get()).exists) await prendreReference(par);
+      (await db.collection(REF + "/docs").get()).forEach((d) => { const [col, id] = d.id.split("__"); b.set(db.doc(E + col + "/" + id), d.data()); });
+    } else {
+      // Autre spécialité : listes vides (sinon Onco360 afficherait les listes de départ de l'oncologie)
+      ["medicaments", "ordostypes", "analyses", "bilans", "examens", "courriers", "documentation"].forEach((k) => b.set(db.doc(E + "bibliotheques/" + k), { data: "[]" }));
+      b.set(db.doc(E + "parametres/listes"), { data: JSON.stringify({ diag: [], mut: C.listesDepart(null).mut, cor: [], complet: true }) });
+      const rc = await db.doc(REF + "/docs/parametres__calendrier").get(); if (rc.exists) b.set(db.doc(E + "parametres/calendrier"), rc.data());
+      b.set(db.doc(E + "finances/tarifs"), { data: JSON.stringify({ repli: "", etablissements: {}, actesRT: [], vmat: null }) });
+    }
+  }
+  await b.commit();
+  console.log("bibliothèque ouverte", B.id, "par", par, s.exists ? "" : "(créée)");
+  return { espace: B.id, cree: !s.exists };
 });
 // Création d'un cabinet (compte du titulaire, cabinet, copie de la référence) ; utilisée par creerCabinet et creerCabinetDemo
 async function creerEspace(d, par, opts) {
@@ -379,16 +417,26 @@ async function creerEspace(d, par, opts) {
     u = await auth.createUser({ email: d.email, password: mdp, displayName: ("Dr " + d.prenom + " " + d.nom).replace(/\s+/g, " ").trim() });
   }
   const ids = (await db.collection("espaces").listDocuments()).map((x) => x.id), e = opts.id && ids.indexOf(opts.id) < 0 ? opts.id : C.idCabinet(d.cabinet, ids), jour = new Date().toISOString().slice(0, 10), E = "espaces/" + e + "/";
-  const src = await source(par), b = db.batch();
+  const FS = await formules(), spe = ((FS[opts.formule || "complet"] || FS.complet || {}).specialite) || "Oncologie médicale";
+  const src = await source(par, spe), b = db.batch();
   b.set(db.doc("espaces/" + e), Object.assign({ nom: d.cabinet, titulaire: u.uid, cree: jour, creePar: par, actif: true, abonnement: C.abonnement({ formule: opts.formule || "complet" }, await formules()) }, opts.espace || {}));
   b.set(db.doc(E + "membres/" + u.uid), C.membreTitulaire(d, jour, par));
   src.protocoles.forEach((p) => b.set(db.doc(E + "protocoles/" + p.id), p.data));
-  src.docs.forEach((x) => b.set(db.doc(E + x.chemin), x.data));
+  // Documentation : les PDF déposés dans la bibliothèque sont recopiés dans le cabinet (chemin réécrit)
+  const copies = [];
+  src.docs.forEach((x) => {
+    if (x.chemin === "bibliotheques/documentation" && src.bib) {
+      let L = []; try { L = JSON.parse(x.data.data || "[]"); } catch (er) { L = []; }
+      L.forEach((dd) => { if (dd.chemin && dd.chemin.indexOf("espaces/" + src.bib + "/") === 0) { const n = "espaces/" + e + "/" + dd.chemin.slice(("espaces/" + src.bib + "/").length); copies.push([dd.chemin, n]); dd.chemin = n; } });
+      b.set(db.doc(E + x.chemin), Object.assign({}, x.data, { data: JSON.stringify(L) }));
+    } else b.set(db.doc(E + x.chemin), x.data);
+  });
   b.set(db.doc(E + "parametres/migrations"), C.migrationsFaites(jour));
   b.set(db.doc("comptes/" + u.uid), { espace: e, le: new Date().toISOString() });
   b.set(db.doc("utilisateurs/" + u.uid), Object.assign({ email: d.email, prenom: d.prenom, nom: d.nom, telephone: d.telephone, titre: "Dr", profession: "medecin" }, opts.profil || {}), { merge: true });
   await b.commit();
-  return { espace: e, uid: u.uid, existant, protocoles: src.protocoles.length, jour };
+  for (const [de, vers] of copies) await getStorage().bucket().file(de).copy(vers).catch((er) => console.warn("copie du document", de, er.message));
+  return { espace: e, uid: u.uid, existant, protocoles: src.protocoles.length, jour, bibliotheque: src.bib || "reference" };
 }
 exports.creerCabinet = onCall({ timeoutSeconds: 120, memory: "256MiB" }, async (req) => {
   const par = req.auth && req.auth.uid;
@@ -445,19 +493,27 @@ exports.listeCabinets = onCall({ timeoutSeconds: 60, memory: "256MiB" }, async (
   console.log("listeCabinets : " + snap.size + " cabinets lus en " + (Date.now() - t0) + " ms");
   // Chaque comptage à part : un cabinet illisible n'empêche pas d'afficher les autres
   const nb = async (q) => { try { return (await q.count().get()).data().count; } catch (e) { console.warn("comptage", e.message); return null; } };
-  const out = await Promise.all(snap.docs.map(async (s) => {
+  const out = await Promise.all(snap.docs.filter((s) => !C.estBib(s.id)).map(async (s) => {
     const r = s.ref, x = s.data() || {};
     const [sm, patients, netab] = await Promise.all([r.collection("membres").select("role", "actif", "nom", "email", "telephone").get().catch(() => null), nb(r.collection("patients")), nb(r.collection("etablissements"))]);
     const roles = {}; let membres = null, t = {};
-    if (sm) { membres = sm.size; sm.forEach((d) => { const m = d.data(); if (m.actif !== false) roles[m.role] = (roles[m.role] || 0) + 1; if (d.id === x.titulaire) t = m; }); }
+    const equipe = [];
+    if (sm) { membres = sm.size; sm.forEach((d) => { const m = d.data(); if (m.actif !== false) roles[m.role] = (roles[m.role] || 0) + 1; if (d.id === x.titulaire) t = m; equipe.push({ nom: m.nom || "", role: m.role || "", email: m.email || "", actif: m.actif !== false, titulaire: d.id === x.titulaire }); }); }
     // Date de création : texte AAAA-MM-JJ (le cabinet de référence l'a en date Firebase) ; sinon date de la fiche
     const jour = (v) => (!v ? "" : typeof v === "string" ? v.slice(0, 10) : v.toDate ? v.toDate().toISOString().slice(0, 10) : "");
     return { id: r.id, nom: x.nom || (r.id === C.MODELE ? "Cabinet du Dr Bentahila" : r.id), cree: jour(x.cree) || (s.createTime ? s.createTime.toDate().toISOString().slice(0, 10) : ""), actif: x.actif !== false, modele: r.id === C.MODELE, suspenduLe: x.suspenduLe || "",
-      titulaire: { nom: t.nom || "", email: t.email || "", telephone: t.telephone || "" }, membres, patients, roles, etablissements: netab, abonnement: x.abonnement || null, ville: x.ville || "", adresse: x.adresse || "", telephone: x.telephone || "", demo: x.demo === true };
+      titulaire: { nom: t.nom || "", email: t.email || "", telephone: t.telephone || "" }, membres, patients, roles, etablissements: netab, abonnement: x.abonnement || null, ville: x.ville || "", adresse: x.adresse || "", telephone: x.telephone || "", demo: x.demo === true, equipe };
   }));
   console.log("listeCabinets : terminé en " + (Date.now() - t0) + " ms");
-  const ref = await db.doc(REF).get().catch(() => null);
-  return { cabinets: out, formules: FS, reference: ref && ref.exists ? ref.data() : null };
+  // Bibliothèques de référence : nombre d'éléments de chaque liste (null = liste de départ d'Onco360)
+  const bibliotheques = await Promise.all(C.BIBS.map(async (B) => {
+    const s = snap.docs.find((d) => d.id === B.id); if (!s) return Object.assign({}, B, { existe: false });
+    const [p, l] = await Promise.all([db.collection("espaces/" + B.id + "/protocoles").get(), db.collection("espaces/" + B.id + "/bibliotheques").get()]), nb = {};
+    nb.protocoles = p.docs.reduce((n, d) => { try { return n + JSON.parse(d.data().data || "[]").length; } catch (er) { return n; } }, 0);
+    l.forEach((d) => { try { nb[d.id] = JSON.parse(d.data().data || "[]").length; } catch (er) { /* illisible */ } });
+    return Object.assign({}, B, { existe: true, nb, cree: s.data().cree || "" });
+  }));
+  return { cabinets: out, formules: FS, bibliotheques };
 });
 // Suspendre (abonnement non payé) ou réactiver un cabinet : espaces/{e}.actif. Suspendu = plus personne n'y entre (règles), rien
 // n'est effacé. Jamais le cabinet modèle (celui de Dr Bentahila).
@@ -583,4 +639,49 @@ exports.auditEcriture = onDocumentWrittenWithAuthContext({ document: "espaces/{e
   if (l.patientId && !l.patientNom) { const p = await db.doc("espaces/" + e + "/patients/" + l.patientId).get().catch(() => null); if (p && p.exists) l.patientNom = AU.nomIdentite(p.data()); }
   const m = await membreNom(e, l.par || l.pour);
   await db.doc("audit/" + e + "/lignes/" + ev.id).set(Object.assign(l, { le: ev.time ? new Date(ev.time) : new Date(), parNom: m.nom, parRole: m.role }));
+});
+// ───── Comptes de l'équipe d'un cabinet (10/10/2026) ─────
+// La création de comptes depuis le navigateur est fermée dans Firebase (personne ne peut s'inscrire seul) : le titulaire crée
+// ici le compte d'un membre (secrétaire, infirmière, médecin, comptable), dans la limite de sa formule ; la personne choisit son
+// mot de passe par l'e-mail de Firebase ou par le lien que le titulaire lui envoie (lienMembre).
+exports.creerMembre = onCall({ timeoutSeconds: 60, memory: "256MiB" }, async (req) => {
+  const par = req.auth && req.auth.uid, o = req.data || {}, e = String(o.espace || "");
+  if (!par) throw new HttpsError("unauthenticated", "Connectez-vous à Onco360.");
+  const es = e ? await db.doc("espaces/" + e).get() : null;
+  if (!es || !es.exists) throw new HttpsError("not-found", "Cabinet introuvable.");
+  const x = es.data();
+  if (x.titulaire !== par) throw new HttpsError("permission-denied", "Seul le médecin titulaire peut créer un accès.");
+  if (x.actif === false) throw new HttpsError("permission-denied", "Le cabinet est suspendu.");
+  let d; try { d = C.membreDemande(o, new Date().toISOString().slice(0, 10), par); } catch (er) { throw new HttpsError("invalid-argument", er.message); }
+  const sm = await db.collection("espaces/" + e + "/membres").get();
+  const n = sm.docs.filter((m) => m.data().role === d.membre.role && m.data().actif !== false).length;
+  if (x.abonnement && C.horsQuota(x.abonnement, d.membre.role, n + 1)) throw new HttpsError("resource-exhausted", "Votre formule Onco360 permet " + x.abonnement.max[d.membre.role] + " compte(s) de ce rôle : la limite est atteinte. Contactez l'éditeur d'Onco360 pour en ajouter.");
+  const auth = getAuth(); let u = null, existant = false;
+  try { u = await auth.getUserByEmail(d.email); existant = true; } catch (er) { if (er.code !== "auth/user-not-found") throw er; }
+  if (existant) {
+    if (sm.docs.some((m) => m.id === u.uid)) throw new HttpsError("already-exists", "Cette personne a déjà un accès à votre cabinet.");
+    const c = await db.doc("comptes/" + u.uid).get();
+    if ((c.exists && c.data().espace && c.data().espace !== e) || (e !== C.MODELE && (await db.doc("espaces/" + C.MODELE + "/membres/" + u.uid).get()).exists)) throw new HttpsError("already-exists", "Cette adresse e-mail est déjà utilisée dans un autre cabinet Onco360 : prenez une autre adresse.");
+    if (await estAdministrateur(u.uid)) throw new HttpsError("already-exists", "Cette adresse est celle d'un compte d'administration.");
+  } else u = await auth.createUser({ email: d.email, password: require("node:crypto").randomBytes(24).toString("base64") + "a9!", displayName: d.membre.nom });
+  const b = db.batch();
+  b.set(db.doc("espaces/" + e + "/membres/" + u.uid), d.membre);
+  b.set(db.doc("comptes/" + u.uid), { espace: e, le: new Date().toISOString() });
+  b.set(db.doc("utilisateurs/" + u.uid), { email: d.email, prenom: d.prenom, nom: d.nomFamille, telephone: d.membre.telephone, titre: d.membre.role === "medecin" ? "Dr" : "", profession: d.membre.role }, { merge: true });
+  await b.commit();
+  console.log("membre créé", e, d.membre.role, "par", par);
+  return { uid: u.uid, existant };
+});
+// Lien pour choisir son mot de passe, à envoyer par le titulaire à un membre de son équipe (WhatsApp, SMS) ; jamais pour lui-même,
+// un compte d'administration ou un membre d'un autre cabinet
+exports.lienMembre = onCall({ timeoutSeconds: 30, memory: "256MiB" }, async (req) => {
+  const par = req.auth && req.auth.uid, { espace, uid } = req.data || {};
+  if (!par) throw new HttpsError("unauthenticated", "Connectez-vous à Onco360.");
+  const es = espace ? await db.doc("espaces/" + espace).get() : null;
+  if (!es || !es.exists || es.data().titulaire !== par) throw new HttpsError("permission-denied", "Réservé au médecin titulaire.");
+  if (!uid || uid === par) throw new HttpsError("invalid-argument", "Demande incomplète.");
+  const m = await db.doc("espaces/" + espace + "/membres/" + uid).get(), c = await db.doc("comptes/" + uid).get();
+  if (!m.exists || (await estAdministrateur(uid)) || (c.exists && c.data().espace !== espace) || (!c.exists && espace !== C.MODELE)) throw new HttpsError("permission-denied", "Lien impossible pour ce compte.");
+  const email = (await getAuth().getUser(uid)).email;
+  return { lien: await getAuth().generatePasswordResetLink(email, { url: "https://chimio-hgc.web.app" }), email };
 });

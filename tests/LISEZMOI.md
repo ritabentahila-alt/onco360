@@ -16,6 +16,7 @@ python tests/test_bilan.py        # bilan de l'année (352 317 DH au 06/10/2026)
 python tests/test_cures.py        # J1 / J8, paramètres par séance, report des doses, fiche chimio
 python tests/test_seances.py      # report de J8, molécules ajoutées / retirées à J8
 python tests/test_protocoles.py   # menus en cascade, fenêtre « Venu »
+python tests/test_bibliotheque.py # bibliothèque de référence ouverte par l'administration, création d'une secrétaire (serveur)
 python tests/test_demo.py         # cabinet de démonstration (8 patients fictifs), Administration (démo, référence)
 python tests/test_comptable.py    # rôle Comptable : relevé sans diagnostic, même bilan, aucun dossier
 python tests/test_audit.py        # journal d'audit (titulaire, filtres, export, secrétaire sans accès)

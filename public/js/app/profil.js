@@ -1,8 +1,7 @@
 // Onco360 – Profil (étape C7) : mes informations, mes lieux d'exercice, accès et droits de l'équipe (médecin titulaire).
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, sendPasswordResetEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { sendPasswordResetEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { doc, getDoc, getDocs, setDoc, deleteDoc, collection, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { db, auth, app, firebaseConfig, GOOGLE_CLIENT_ID } from "../config.js";
+import { db, auth, app, GOOGLE_CLIENT_ID } from "../config.js";
 
 let A = null;
 export function installer(api) { A = api; }
@@ -231,7 +230,7 @@ async function vueAcces() {
     '<p class="sous">Chaque membre a sa propre grille de droits, pré-remplie selon son rôle et modifiable. Le serveur la fait respecter : un membre ne peut ni voir ni modifier ce que sa grille ne permet pas.</p>' + quotas() +
     MEMBRES.map((m) => '<div class="lieu' + (m.actif === false ? " off" : "") + '"><span class="av">' + esc(String(m.nom || m.email || "?").replace(/^Dr\.?\s*/i, "").split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase()) + "</span>" +
       '<div class="tx"><b>' + esc(m.nom || m.email) + ' <span class="badge b-co">' + esc(ROLES[m.role] || m.role) + "</span>" + (m.actif === false ? ' <span class="badge b-al">' + (m.horsQuota ? "Hors formule" : "Désactivé") + "</span>" : "") + (m.uid === moi ? ' <span class="badge b-gr">Vous</span>' : "") + "</b><span>" + esc([m.email, m.telephone, m.tousEtablissements ? "Tous les établissements" : (m.etablissements || []).join(", ")].filter(Boolean).join(" · ")) + "</span></div>" +
-      (m.uid === moi ? "" : '<button class="mini" onclick="pfMembre(\'' + m.uid + "')\">Droits</button>") + "</div>").join("") + "</section>";
+      (m.uid === moi ? "" : '<button class="mini" onclick="pfLienMdp(\'' + m.uid + '\')" title="Lien pour choisir son mot de passe, à lui envoyer (WhatsApp, SMS)">Lien du mot de passe</button><button class="mini" onclick="pfMembre(\'' + m.uid + '\')">Droits</button>') + "</div>").join("") + "</section>";
 }
 function grille(dr, role) {
   const esc = A.esc;
@@ -278,12 +277,14 @@ window.pfMembre = (uid) => {
           const email = String(m._mMail || "").trim().toLowerCase(), nom = [m._mPre, String(m._mNom || "").toUpperCase()].filter(Boolean).join(" ");
           if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) throw new Error("Indiquez une adresse e-mail valide.");
           if (!m._mNom) throw new Error("Indiquez le nom.");
-          const nouvel = await creerCompte(email);
-          const data = { role: m.role, nom: (m.role === "medecin" ? "Dr " : "") + nom, email, telephone: m._mTel || "", actif: true, tousEtablissements: m.tousEtablissements, etablissements: m.etablissements, droits: m.droits, cree: D().t, creePar: D().u.uid };
-          await setDoc(doc(db, "espaces", A.ESPACE, "membres", nouvel.uid), data);
-          await setDoc(doc(db, "utilisateurs", nouvel.uid), { email, prenom: m._mPre || "", nom: String(m._mNom || "").toUpperCase(), telephone: m._mTel || "", titre: m.role === "medecin" ? "Dr" : "", profession: m.role }, { merge: true }).catch(() => {});
+          // Compte créé par le serveur (la création depuis le navigateur est fermée dans Firebase, 10/10/2026)
+          const nouvel = await appelServeur("creerMembre", { espace: A.ESPACE, email, prenom: m._mPre || "", nom: m._mNom || "", telephone: m._mTel || "", role: m.role, tousEtablissements: m.tousEtablissements, etablissements: m.etablissements, droits: m.droits });
+          let envoi = "";
+          if (!nouvel.existant) { try { await sendPasswordResetEmail(auth, email); envoi = "Un e-mail a été envoyé à " + email + " (souvent dans les indésirables) pour choisir le mot de passe."; } catch (er) { envoi = "L'e-mail n'a pas pu partir."; } }
           A.journal({ id: "", r: { nm: "" } }, "Accès créé : " + nom + " (" + ROLES[m.role] + ")");
-          A.toast(nouvel.existant ? "Accès ajouté : ce compte existait déjà, la personne garde son mot de passe." : "Accès créé : un e-mail a été envoyé à " + email + " pour choisir le mot de passe.");
+          MEMBRES = null; rafraichir();
+          fenetreMotDePasse({ uid: nouvel.uid, nom, email, telephone: m._mTel || "" }, nouvel.existant ? "Accès ajouté : ce compte existait déjà, la personne garde son mot de passe." : "Accès créé. " + envoi + " Vous pouvez aussi lui envoyer le lien vous-même :");
+          return;
         }
         MEMBRES = null; A.fermerFenetre(); if (m0) A.toast("Droits enregistrés."); rafraichir();
       } catch (e) { A.occupe(A.$("fOk"), false); A.erreur(e && e.code === "permission-denied" ? "Seul le médecin titulaire peut gérer les accès." : (e.message || String(e))); }
@@ -291,22 +292,19 @@ window.pfMembre = (uid) => {
   };
   dessiner();
 };
-// Création du compte sans déconnecter le médecin : instance Firebase secondaire, mot de passe temporaire, e-mail de choix du mot de passe
-let AUTH2 = null;
-async function creerCompte(email) {
-  if (!AUTH2) AUTH2 = getAuth(initializeApp(firebaseConfig, "creation-comptes"));
-  const tmp = Array.from(crypto.getRandomValues(new Uint8Array(18))).map((x) => x.toString(36)).join("").slice(0, 24) + "A9!";
-  try {
-    const c = await createUserWithEmailAndPassword(AUTH2, email, tmp); const uid = c.user.uid; await signOut(AUTH2).catch(() => {});
-    await sendPasswordResetEmail(auth, email);
-    return { uid, existant: false };
-  } catch (e) {
-    if (e && e.code === "auth/email-already-in-use") {
-      const s = await getDocs(query(collection(db, "utilisateurs"), where("email", "==", email))).catch(() => null);
-      if (s && s.docs.length) return { uid: s.docs[0].id, existant: true };
-      throw new Error("Cette adresse a déjà un compte, mais son profil est introuvable. Demandez à la personne de se connecter une fois sur chimio-hgc.web.app, puis recommencez.");
-    }
-    if (e && e.code === "auth/invalid-email") throw new Error("Adresse e-mail invalide.");
-    throw new Error("Création du compte impossible : " + ((e && e.message) || e));
-  }
+// Lien du mot de passe d'un membre (titulaire) : message prêt à copier ou à envoyer par WhatsApp (10/10/2026)
+window.pfLienMdp = (uid) => { const m = (MEMBRES || []).find((z) => z.uid === uid); if (m) fenetreMotDePasse({ uid, nom: m.nom || m.email, email: m.email, telephone: m.telephone || "" }, "Lien pour choisir le mot de passe (valable 1 heure, un seul usage) :"); };
+function fenetreMotDePasse(m, intro) {
+  const esc = A.esc;
+  A.fenetre("<h3>Mot de passe de " + esc(m.nom) + '</h3><p class="sous">' + esc(intro) + '</p><div id="lmZone"><button class="bt plein" id="lmFaire">Préparer le lien</button></div><div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Fermer</button></div>');
+  A.$("lmFaire").onclick = async () => {
+    A.occupe(A.$("lmFaire"), true);
+    try {
+      const o = await appelServeur("lienMembre", { espace: A.ESPACE, uid: m.uid });
+      const txt = "Bonjour " + m.nom + ",\nVotre accès à Onco360 est prêt. Cliquez sur ce lien pour choisir votre mot de passe (valable 1 heure) :\n" + o.lien + "\n\nEnsuite, connectez-vous sur " + location.origin + " avec votre adresse " + o.email + ".";
+      const tel = String(m.telephone || "").replace(/[^0-9]/g, "").replace(/^00/, "").replace(/^0(?=[5-7])/, "212");
+      A.$("lmZone").innerHTML = '<textarea id="lmTxt" class="notes" rows="7" readonly>' + esc(txt) + '</textarea><div class="actr" style="justify-content:flex-start;margin-top:8px"><button class="bt clair" id="lmCopier">Copier le message</button><a class="bt plein" style="background:#1FA855" target="_blank" rel="noopener" href="https://wa.me/' + tel + "?text=" + encodeURIComponent(txt) + '">Envoyer par WhatsApp</a></div>';
+      A.$("lmCopier").onclick = async () => { const t = A.$("lmTxt"); try { await navigator.clipboard.writeText(t.value); } catch (e) { t.select(); document.execCommand("copy"); } A.$("lmCopier").textContent = "Copié"; };
+    } catch (e) { A.occupe(A.$("lmFaire"), false); A.erreur(e.message || String(e)); }
+  };
 }

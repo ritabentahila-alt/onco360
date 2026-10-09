@@ -21,6 +21,12 @@ export const ROLES_MAX = [["medecin", "Médecins"], ["assistante", "Secrétaires
 // Spécialités (09/10/2026) : chaque formule appartient à une spécialité. Médecine générale et gynécologie : modules à créer plus
 // tard (feuille de route), avec leurs propres formules.
 export const SPECIALITES = ["Oncologie médicale", "Radiothérapie", "Oncologie-radiothérapie", "Médecine générale", "Gynécologie"];
+// Bibliothèques de référence par spécialité (10/10/2026) : ce que reçoit un cabinet neuf selon la spécialité de sa formule
+export const BIBLIOTHEQUES_SPE = [
+  { id: "bib-oncologie", lib: "Oncologie – Radiothérapie", specialites: ["Oncologie médicale", "Radiothérapie", "Oncologie-radiothérapie"] },
+  { id: "bib-generaliste", lib: "Médecine générale", specialites: ["Médecine générale"] },
+  { id: "bib-gynecologie", lib: "Gynécologie", specialites: ["Gynécologie"] },
+];
 // Formules proposées par Onco360 (modifiables par l'administration ; « essentiel », « radiotherapie » et « complet » gardent
 // leur identifiant d'origine pour les cabinets qui les ont déjà)
 const COMMUNS = ["agenda", "prescriptions", "documents", "listes", "gagenda", "bilan"], EQUIPE = ["salle", "taches", "rcp"];

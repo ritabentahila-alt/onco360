@@ -33,6 +33,27 @@ ligne au journal (en bas).
 
 ---
 
+## Organisation d'Onco360 depuis le 10/10/2026 (décidé par Dr Bentahila) : qui gère quoi
+**Tout se gère depuis le compte d'administration** (gbentahila@hotmail.fr, page `admin.html`). Le **cabinet du Dr Bentahila est un
+cabinet comme les autres** : ce qu'elle y fait ne change rien pour les autres cabinets ni pour ce que reçoivent les nouveaux.
+Vocabulaire (le même partout, dans l'application, la feuille de route et les guides) :
+- **Cabinet** : l'espace d'un médecin titulaire et de son équipe (ses patients, ses réglages, sa copie des bibliothèques).
+- **Équipe** : les comptes d'un cabinet (médecins, secrétaires, infirmières, comptables), créés par le **titulaire** dans
+  Paramètres › Accès (compte créé par le serveur ; mot de passe choisi par la personne avec l'e-mail de Firebase, souvent dans
+  les indésirables, ou avec le **lien du mot de passe** que le titulaire lui envoie par WhatsApp). Limites selon la formule.
+- **Module** : une partie de l'application (Chimiothérapie, Radiothérapie, Agenda, Salle d'attente, Tâches, RCP, Prescriptions,
+  Documents, Google Agenda, Listes, Bilan…). **Le code est le même pour tous** : une modification d'un module (ex. « modifie le
+  module Bilan ») s'applique, dès sa mise en ligne, à **tous les cabinets actifs** qui ont ce module dans leur formule.
+- **Formule** : ce à quoi un cabinet a droit (modules + nombre maximum de comptes, lieux, dossiers), par spécialité ; réglée par
+  l'administration (onglet Formules, et « Formule et modules » de chaque cabinet).
+- **Bibliothèque de référence** : par spécialité (aujourd'hui **Oncologie – Radiothérapie** ; plus tard Médecine générale,
+  Gynécologie…), ce que reçoit **un nouveau cabinet** : protocoles de chimiothérapie, médicaments (Médic.), examens complémentaires,
+  ordonnances types, analyses et bilans, courriers, documentation (Doc.), diagnostics et mutuelles, jours fériés, tarifs de
+  radiothérapie. **Mise de côté** : modifiée **seulement depuis l'administration** (onglet Bibliothèques › « Ouvrir et modifier »,
+  avec les écrans habituels d'Onco360 : ajouter, modifier, supprimer). Chaque cabinet reçoit **sa copie** à la création, puis la
+  modifie comme il veut (ça ne change que son cabinet). Les cabinets déjà créés ne reçoivent pas les modifications ultérieures.
+- **Cabinet de démonstration** : patients fictifs, pour les démonstrations et les guides.
+
 ## Étape 1 – Remodelage du dossier patient (document « gesticab explication », reçu le 06/10/2026)
 But : un dossier patient à onglets, avec un vrai journal de consultations et des ordonnances comme dans GestiCab
 (médicaments, examens complémentaires, ordonnances types, courriers, analyses), imprimables en A5 ou A4.
@@ -976,7 +997,7 @@ gardé** pour l'instant (durée à fixer avec le juriste).
       tout refait aux dates du jour). Dans Onco360 : « Cabinet de démonstration (patients fictifs) » sous le nom. Tests : moteur 9/9
       (`node functions/test-demo.js`), navigateur 14/14 (`tests/test_demo.py`).
 - [ ] Bouton « Mode démo » (anonymisation à l'écran d'un vrai cabinet) : plus tard si besoin.
-- [x] **Bibliothèque de référence** (demandé le 09/10) : ce que reçoit un cabinet neuf vient d'une **copie mise de côté**
+- [x] **Bibliothèque de référence** (demandé le 09/10 ; remplacée le 10/10 par les bibliothèques par spécialité, voir plus bas) : ce que reçoit un cabinet neuf vient d'une **copie mise de côté**
       (`plateforme/reference`, serveur seulement, déjà nettoyée : ni correspondants, ni tarifs, ni absences), prise dans le cabinet
       de Dr Bentahila à la 1re création puis seulement quand l'administration clique « Mettre à jour depuis le cabinet du Dr
       Bentahila » (onglet « Bibliothèque de référence », `referenceMaj`). Les modifications d'un médecin restent dans son cabinet.
@@ -1007,6 +1028,21 @@ dans Profil › Accès › Droits.
       l'infirmière, neutropénie fébrile signalée, **bilan biologique anormal avant cure** (seuils à définir : PNN, plaquettes,
       créatinine…).
 - [ ] Même système que T6 (Tâches) : à construire une seule fois.
+
+## 10/10/2026 – Bibliothèques gérées par l'administration, comptes de l'équipe
+- [x] **Bibliothèques par spécialité** : espaces sans patient `espaces/bib-oncologie` (puis `bib-generaliste`, `bib-gynecologie`),
+      ouverts par l'administration (`bibliothequeOuvrir`, page Onco360 `v2.html?espace=bib-…` : Protocoles et Paramètres ›
+      Fermetures (fériés), Listes, Bibliothèques (dont la **documentation**, gérée sans patient), Activités (tarifs RT) ; menu réduit,
+      « Retour à l'Administration »). Oncologie – Radiothérapie créée depuis la copie du 09/10 ; à la 1re ouverture, les listes
+      encore « de départ » (médicaments, analyses, courriers, documentation…) y sont **figées** (enregistrées telles quelles). Un
+      cabinet neuf reçoit la copie de la bibliothèque de **la spécialité de sa formule** (documents PDF recopiés). Le bouton « Mettre
+      à jour depuis le cabinet du Dr Bentahila » est retiré. Tests : `tests/test_bibliotheque.py` 19/19, `node functions/test-cabinets.js` 42/42.
+- [x] **Comptes de l'équipe** : la création de comptes depuis le navigateur est fermée dans Firebase (erreur
+      « auth/admin-restricted-operation » en voulant créer une secrétaire) → fonction serveur `creerMembre` (titulaire, limite de la
+      formule vérifiée par le serveur, droits nettoyés), e-mail de Firebase + **« Lien du mot de passe »** dans Paramètres › Accès
+      (`lienMembre`, message prêt pour WhatsApp). Page Administration : **équipe** de chaque cabinet (noms, rôles, e-mails ; aucune
+      donnée médicale), comptables comptés.
+- [ ] Bibliothèque Médecine générale / Gynécologie : à remplir quand leurs modules existeront (étape 14).
 
 ## Étape 14 – Autres spécialités (demandé le 09/10/2026) : nouveaux modules et leurs formules
 Onco360 s'ouvrira avec le temps à d'autres médecins : **médecine générale**, **gynécologie**, puis d'autres spécialités. Pour
@@ -1197,3 +1233,4 @@ Onco360_Package_Cession/
 | 09/10/2026 | 9 – S1 Journal d'audit | Décidé : modifications, suppressions, ouvertures ; partie touchée sans valeurs ; titulaire seul ; tout gardé. Fonction `auditEcriture` (identité réelle, infalsifiable), `audit/{e}/lignes`, page Paramètres › Journal d'audit (filtres, export Excel), bouton Journal du dossier. Corrigé : lien direct vers un onglet du titulaire (Accès, Journal) qui retombait sur le 1er onglet. Règles 167/167, logique 25/25, navigateur 12/12 + 44/44, bilan 352 317 DH. Code sur GitHub (dépôt privé ritabentahila-alt/onco360). Pas encore en ligne. |
 | 09/10/2026 | 9 – S1 en ligne, S2 Comptable | Journal d'audit mis en ligne. Rôle Comptable : relevé financier préparé par le médecin (nom + n° de dossier, actes, montants, sans diagnostic), pointage des paiements et versements, aucun dossier ouvert (règles), Bilan et Profil seulement. Règles 182/182, navigateur 13/13, bilan identique 352 317 DH. Pas encore en ligne. |
 | 09/10/2026 | 9 – S2 en ligne, S3 Démo, référence | Comptable mis en ligne. Bibliothèque de référence mise de côté (plateforme/reference, mise à jour à la demande, onglet de l'Administration). Cabinet de démonstration : 8 patients fictifs, réinitialisable, badge. Tests démo 9/9 + 14/14, cabinets 44/44, comptable 13/13, bilan 352 317 DH. Mis en ligne (fonctions, site). |
+| 10/10/2026 | Organisation, bibliothèques, équipe | Le cabinet du Dr Bentahila devient un cabinet comme les autres ; tout se gère depuis l'administration. Bibliothèques de référence par spécialité (Oncologie – Radiothérapie en place), modifiées depuis l'administration avec les écrans d'Onco360, listes de départ figées, copiées aux nouveaux cabinets selon la spécialité. Création des comptes de l'équipe par le serveur (Firebase refusait la création depuis le navigateur) + lien du mot de passe ; équipe visible dans l'Administration. Vocabulaire fixé (cabinet, équipe, module, formule, bibliothèque). Tests 19/19, 42/42, autres inchangés, bilan 352 317 DH. |

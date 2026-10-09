@@ -99,4 +99,31 @@ function infos(o) {
   if (d.nom.length < 2) throw new Error("Indiquez le nom du cabinet.");
   return d;
 }
-module.exports = { infos, MODULES, MAX, FORMULES, formulesValides, abonnement, horsQuota, MODELE, BIBLIOTHEQUES, DROITS_MEDECIN, MIGRATIONS, verifier, idCabinet, listesDepart, calendrierDepart, tarifsDepart, migrationsFaites, membreTitulaire };
+// Membre de l'équipe créé par le titulaire (Paramètres › Accès) : rôle connu, droits connus, établissements (10/10/2026)
+const ROLES = ["medecin", "assistante", "infirmiere", "comptable"];
+const NIVEAUX = { traitements: ["aucun", "voir", "modifier"], radiotherapie: ["aucun", "chimio", "voir", "modifier"] };
+function membreDemande(o, jour, par) {
+  const t = (v, n) => String(v == null ? "" : v).replace(/\s+/g, " ").trim().slice(0, n);
+  const role = ROLES.indexOf(o.role) >= 0 ? o.role : null; if (!role) throw new Error("Rôle inconnu.");
+  const email = t(o.email, 120).toLowerCase(); if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) throw new Error("Indiquez une adresse e-mail valide.");
+  const nom = t(o.nom, 60).toUpperCase(), prenom = t(o.prenom, 60); if (!nom) throw new Error("Indiquez le nom.");
+  const droits = {}; Object.keys(DROITS_MEDECIN).forEach((k) => { const v = (o.droits || {})[k]; droits[k] = NIVEAUX[k] ? (NIVEAUX[k].indexOf(v) >= 0 ? v : "aucun") : v === true; });
+  const tous = role === "medecin" || role === "comptable" ? o.tousEtablissements !== false : o.tousEtablissements === true;
+  const etabs = Array.isArray(o.etablissements) ? o.etablissements.map((x) => t(x, 20)).filter(Boolean).slice(0, 50) : [];
+  if (!tous && !etabs.length) throw new Error("Choisissez au moins un établissement.");
+  return { email, prenom, nomFamille: nom, membre: { role, nom: (role === "medecin" ? "Dr " : "") + [prenom, nom].filter(Boolean).join(" "), email, telephone: t(o.telephone, 30), actif: true, tousEtablissements: tous, etablissements: tous ? [] : etabs, droits, cree: jour, creePar: par } };
+}
+// Bibliothèques de référence par spécialité (10/10/2026) : un espace sans patient (espaces/bib-…), modifié par l'administration avec
+// les écrans d'Onco360 ; un cabinet neuf reçoit la copie de la bibliothèque de la spécialité de sa formule. Même liste dans
+// public/js/donnees/modules.js (BIBLIOTHEQUES_SPE, vérifié par le test).
+const BIBS = [
+  { id: "bib-oncologie", lib: "Oncologie – Radiothérapie", specialites: ["Oncologie médicale", "Radiothérapie", "Oncologie-radiothérapie"] },
+  { id: "bib-generaliste", lib: "Médecine générale", specialites: ["Médecine générale"] },
+  { id: "bib-gynecologie", lib: "Gynécologie", specialites: ["Gynécologie"] },
+];
+const bibDe = (specialite) => (BIBS.find((b) => b.specialites.indexOf(specialite) >= 0) || BIBS[0]).id;
+const estBib = (e) => /^bib-/.test(String(e || ""));
+// Droits du compte d'administration dans une bibliothèque : protocoles, prescriptions, listes, fériés, tarifs RT ; aucun patient
+const DROITS_BIB = { identite: false, fichePatient: false, rendezvous: false, consultations: false, ecrireConsultations: true, planningChimio: false, traitements: "modifier", radiotherapie: "modifier", documents: false, administrer: false, encaissements: false, creerPatient: false, supprimerPatient: false, finances: true, parametres: true };
+const MODULES_BIB = { chimio: true, rt: true, agenda: false, salle: false, taches: false, rcp: false, prescriptions: true, documents: false, gagenda: false, listes: true, bilan: false };
+module.exports = { BIBS, bibDe, estBib, DROITS_BIB, MODULES_BIB, infos, ROLES, membreDemande, MODULES, MAX, FORMULES, formulesValides, abonnement, horsQuota, MODELE, BIBLIOTHEQUES, DROITS_MEDECIN, MIGRATIONS, verifier, idCabinet, listesDepart, calendrierDepart, tarifsDepart, migrationsFaites, membreTitulaire };
