@@ -665,6 +665,16 @@ jour, agenda, Google Agenda) mais **dans le dossier sous forme de tâche**.
 - [x] Discordances corrigées : la tâche « Valider la dosimétrie » n'est créée qu'entre le scanner et la 1re séance (comme
       l'écran ; sinon des tâches pour d'anciennes RT jamais validées dans Onco360) ; responsable des 2 tâches fixes = un
       médecin (lui seul valide). Sur les données du 06/10, la mise en ligne ne créerait qu'une tâche (une fin de RT dépassée).
+- [x] **Déroulé de la radiothérapie avec contourage** (demandé le 09/10) : Scanner → **Contourage** → Dosimétrie → 1re séance.
+      Carte radiothérapie du dossier : « Contourage à valider — du (scanner) au (1re séance) » + bouton **Valider le
+      contourage** (date, case de vérification) ; « Contourage validé — date » + annuler (pas si la dosimétrie est validée) ;
+      « Dosimétrie (après le contourage) », puis « Dosimétrie à valider — du (contourage) au (1re séance) » ; la dosimétrie ne
+      se valide qu'après le contourage. Données : `rtsJson` r.cont / contPar / contLe (moteur rt.js `contourage`).
+- [x] Tâches automatiques : nouvelle tâche fixe **« Valider le contourage »** (type Radiothérapie, du scanner à la 1re séance,
+      médecin) ; **« Valider la dosimétrie »** créée seulement à la validation du contourage, jusqu'à la 1re séance ; ajoutées
+      à Paramètres › Tâches › Tâches automatiques. **Valider la tâche = valider dans le dossier** : bouton « Valider… » de la
+      fiche, ou statut « Terminée » → même fenêtre de validation (sans quitter la page), et le serveur termine la tâche ; valider
+      dans le dossier termine la tâche. Tests logique 79/79 ; mise en ligne : une seule tâche créée (données du 06/10).
 - [ ] **Question à Dr Bentahila** : retirer de la cloche les alertes qui doublent une tâche automatique active (dosimétrie à
       valider, fin de radiothérapie dépassée, dernière cure si la règle est activée) ?
 - [ ] Mise en ligne : règles, **fonctions** (2 nouvelles), site. Puis vérifier sur un vrai dossier (dosimétrie en attente).
@@ -1054,3 +1064,4 @@ Onco360_Package_Cession/
 | 08/10/2026 | 6 – Salle d'attente (retouches + SA3) | Prix payé d'avance, libellés courts et centrés, fenêtre de prix après validation de cure / séance, anciennes chimio « Vu », statut de salle d'attente dans l'Agenda (Jour, Liste) et le tableau de bord. Règles 88/88, navigateur (secrétaire, médecin, bilan de référence inchangé). |
 | 08/10/2026 | 6 – Salle d'attente (corrections) | Commentaire sur une consultation vue, stylo centré, anciens prix HCK en brut, seuils d'attente dans Paramètres › Alertes. Règles 90/90, navigateur, bilan de référence inchangé. |
 | 08/10/2026 | 2 – Retouches (téléphone) | Pastille de la salle d'attente renommée (.pst) : elle déformait la ligne de dose de la radiothérapie, la chimio arrêtée et le statut des tâches ; boutons Afficher / Modifier / Tâche / RDV alignés ; consultations passées : libellé non recouvert par les badges. 390 px vérifié, bilan de référence inchangé. |
+| 09/10/2026 | 5 – P4 Radiothérapie | Contourage ajouté au déroulé (scanner → contourage → dosimétrie → 1re séance) : étape et validation dans le dossier, tâche automatique « Valider le contourage », « Valider la dosimétrie » créée après le contourage, valider la tâche = valider dans le dossier. Tests logique 79/79, navigateur (dossier et tâche), bilan 352 317 DH. Pas encore en ligne. |

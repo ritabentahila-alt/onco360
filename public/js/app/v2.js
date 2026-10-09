@@ -7,7 +7,7 @@ import { fusionner } from "../donnees/conversion.js";
 import { resume } from "../moteur/resume.js";
 import { chimioAVenir } from "../moteur/agenda.js";
 import { etatLigne, protocoleDe, seancesCure } from "../moteur/doses.js";
-import { finRT, statutRT, nbA, compteurRT, dosimetrie } from "../moteur/rt.js";
+import { finRT, statutRT, nbA, compteurRT, dosimetrie, contourage } from "../moteur/rt.js";
 import { auj, addJ, ecart, ouvre, age } from "../moteur/outils.js";
 import { typeRdv, libRdv, joursH, T_RTC } from "../moteur/rdv.js";
 import { tarif as tarifAu } from "../moteur/tarifs.js";
@@ -528,11 +528,14 @@ function pageDossier(id) {
       const nb = parseInt(v.nb, 10), dose = parseFloat(String(v.dose || "").replace(",", ".")), dpf = dose && nb ? Math.round((dose / nb) * 100) / 100 : null, q = "'" + x.id + "','" + v.id + "'";
       const etape = (lib, d, fait, plus) => '<div class="etape' + (fait ? " fait" : "") + '"><span class="ck">' + (fait ? ic("check") : "") + "</span>" + lib + (d ? " — " + dfrA(d) : "") + (plus || "") + "</div>";
       const finFaite = !!v.fin || (f && f < t);
-      const dz = dosimetrie(v, t); // période « Dosimétrie à valider » : du scanner à la 1re séance
+      const dz = dosimetrie(v, t), cz = contourage(v, t); // périodes à valider : contourage (scanner → 1re séance), puis dosimétrie (contourage → 1re séance)
       hr += '<div class="rt"><div class="tl" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><b style="font-size:16px;color:var(--titre)">' + esc(v.acte || "Radiothérapie") + (nbA(v) > 1 ? " × " + nbA(v) : "") + '</b><span class="badge ' + cls + '">' + ({ fin: '<svg class="pi"><use href="#i-check"/></svg>', cours: '<i class="dot v"></i>', dep: '<i class="dot o"></i>', prev: '<svg class="pi"><use href="#i-horloge"/></svg>' }[s.c] || "") + esc(s.lib) + "</span>" + (v.hop ? '<span class="badge b-gr">' + esc(v.hop) + "</span>" : "") + (v.intent ? '<span class="badge b-gr">' + (v.intent === "curative" ? "Curative" : "Palliative") + "</span>" : "") + "</div>" +
         '<p class="st" style="color:var(--doux);font-size:13.5px;margin:6px 0 0">' + esc([dose ? String(dose).replace(".", ",") + " Gy" : "", nb ? nb + " fractions" : "", dpf ? String(dpf).replace(".", ",") + " Gy/fraction" : "", TECH[v.tech] || (v.vmat ? "VMAT" : ""), v.ryt === "2" ? "1 jour sur 2" : "quotidien"].filter(Boolean).join(" · ")) + "</p>" +
         '<div class="etapes">' + (v.scan ? etape("Scanner de centrage", v.scan, v.scan <= t) : "") +
-        (v.dosi ? etape("Dosimétrie validée", v.dosi, true, okRT && peutDosi() && !v.fin ? ' <a href="#" class="lienr" onclick="dosiRT(' + q + ',1);return false">annuler</a>' : "") : (dz ? etape("Dosimétrie à valider", "", false, (dz.au !== dz.du ? " — du " + dfrA(dz.du) + " au " + dfrA(dz.au) : "") + (v.scan <= t && peutDosi() ? ' <button class="mini vert" style="margin-left:8px" onclick="dosiRT(' + q + ')"><svg class="pi"><use href="#i-check"/></svg>Valider la dosimétrie</button>' : v.scan > t ? ' <span class="mesures">(à partir du scanner)</span>' : "")) : "")) +
+        // Contourage (09/10/2026) : validé par le médecin entre le scanner et la dosimétrie
+        (v.cont ? etape("Contourage validé", v.cont, true, okRT && peutDosi() && !v.dosi && !v.fin ? ' <a href="#" class="lienr" onclick="contRT(' + q + ',1);return false">annuler</a>' : "")
+          : cz ? etape("Contourage à valider", "", false, (cz.au !== cz.du ? " — du " + dfrA(cz.du) + " au " + dfrA(cz.au) : "") + (v.scan <= t && peutDosi() ? ' <button class="mini vert" style="margin-left:8px" onclick="contRT(' + q + ')"><svg class="pi"><use href="#i-check"/></svg>Valider le contourage</button>' : v.scan > t ? ' <span class="mesures">(à partir du scanner)</span>' : "")) : "") +
+        (v.dosi ? etape("Dosimétrie validée", v.dosi, true, okRT && peutDosi() && !v.fin ? ' <a href="#" class="lienr" onclick="dosiRT(' + q + ',1);return false">annuler</a>' : "") : (dz ? etape("Dosimétrie à valider", "", false, (dz.au !== dz.du ? " — du " + dfrA(dz.du) + " au " + dfrA(dz.au) : "") + (peutDosi() ? ' <button class="mini vert" style="margin-left:8px" onclick="dosiRT(' + q + ')"><svg class="pi"><use href="#i-check"/></svg>Valider la dosimétrie</button>' : "")) : cz ? etape("Dosimétrie", "", false, ' <span class="mesures">(après le contourage)</span>') : "")) +
         (v.deb ? etape("1re séance", v.deb, v.deb <= t) : "") +
         (v.fin || f ? etape(v.fin ? "Fin de traitement" : "Fin de traitement prévue", v.fin || f, finFaite) : "") + "</div>" +
         (v.cj ? '<p class="st" style="color:var(--doux);font-size:13.5px;margin:2px 0 0">Consultation hebdomadaire le ' + JS[+v.cj] + (v.ch ? " à " + esc(v.ch) : "") + "</p>" : "") +
@@ -927,12 +930,13 @@ async function sauverRT(x, liste, quoi) {
 }
 // Dosimétrie : validée par un médecin (contourage et plan de traitement vérifiés) ; « annuler » la remet à valider
 const peutDosi = () => traitModRT() && D.membre.role === "medecin";
-window.dosiRT = (id, rid, annuler) => {
+window.dosiRT = (id, rid, annuler, apres) => {
   const x = D.patients.find((p) => p.id === id); if (!x) return;
   if (!peutDosi()) { toast("La dosimétrie est validée par le médecin."); return; }
   const l = JSON.parse(x.doc.rtsJson || "[]"), r = l.find((v) => v.id === rid); if (!r) return;
-  if (annuler) { if (!confirm("Annuler la validation de la dosimétrie du " + dfrA(r.dosi) + " ?")) return; delete r.dosi; delete r.dosiPar; delete r.dosiLe; sauverRT(x, l, "Validation de la dosimétrie annulée").then(() => { toast("Dosimétrie remise à valider."); pageDossier(x.id); }).catch((e) => toast(e.message)); return; }
-  fenetre("<h3>☢️ Valider la dosimétrie – " + esc(x.r.nm) + '</h3><p class="sous">' + esc(r.acte || "Radiothérapie") + (r.scan ? " · scanner le " + dfrA(r.scan) : "") + (r.deb ? " · 1re séance le " + dfrA(r.deb) : "") + "</p>" +
+  if (annuler) { if (!confirm("Annuler la validation de la dosimétrie du " + dfrA(r.dosi) + " ?")) return; delete r.dosi; delete r.dosiPar; delete r.dosiLe; sauverRT(x, l, "Validation de la dosimétrie annulée").then(() => { toast("Dosimétrie remise à valider."); apres ? apres() : pageDossier(x.id); }).catch((e) => toast(e.message)); return; }
+  if (!r.cont) { toast("Validez d'abord le contourage (étape avant la dosimétrie)."); return; }
+  fenetre("<h3>Valider la dosimétrie – " + esc(x.r.nm) + '</h3><p class="sous">' + esc(r.acte || "Radiothérapie") + (r.scan ? " · scanner le " + dfrA(r.scan) : "") + (r.deb ? " · 1re séance le " + dfrA(r.deb) : "") + "</p>" +
     '<div class="form"><div><label for="dD">Date de validation</label><input id="dD" type="date" value="' + D.t + '"></div><div></div>' +
     '<label class="large chk" style="font-weight:normal"><input id="dOk" type="checkbox"> J\'ai vérifié les volumes (contourage), la dose prescrite et le plan de traitement, et je valide la dosimétrie.</label></div>' +
     '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt vert" id="fOk"><svg class="pi"><use href="#i-check"/></svg>Valider la dosimétrie</button></div>');
@@ -941,22 +945,48 @@ window.dosiRT = (id, rid, annuler) => {
     if (!$("dOk").checked) { erreur("Cochez la case de vérification pour valider."); return; }
     if (r.scan && d < r.scan) { erreur("La date est avant le scanner (" + dfrA(r.scan) + ")."); return; }
     Object.assign(r, { dosi: d, dosiPar: nomMedecin(), dosiLe: new Date().toISOString() }); occupe($("fOk"), true);
-    try { await sauverRT(x, l, "Dosimétrie validée le " + dfrA(d) + " (" + nomMedecin() + ")"); fermerFenetre(); toast("Dosimétrie validée."); pageDossier(x.id); }
+    try { await sauverRT(x, l, "Dosimétrie validée le " + dfrA(d) + " (" + nomMedecin() + ")"); fermerFenetre(); toast("Dosimétrie validée."); apres ? apres() : pageDossier(x.id); }
+    catch (e) { occupe($("fOk"), false); erreur(e.message); }
+  };
+};
+// Contourage (09/10/2026) : validé par un médecin (volumes cibles et organes à risque) ; ouvre la dosimétrie (et sa tâche).
+// « annuler » le remet à valider (pas si la dosimétrie est déjà validée). « apres » : appelé à la place de réafficher le dossier.
+window.contRT = (id, rid, annuler, apres) => {
+  const x = D.patients.find((p) => p.id === id); if (!x) return;
+  if (!peutDosi()) { toast("Le contourage est validé par le médecin."); return; }
+  const l = JSON.parse(x.doc.rtsJson || "[]"), r = l.find((v) => v.id === rid); if (!r) return;
+  const fin = () => (apres ? apres() : pageDossier(x.id));
+  if (annuler) {
+    if (r.dosi) { toast("Annulez d'abord la validation de la dosimétrie."); return; }
+    if (!confirm("Annuler la validation du contourage du " + dfrA(r.cont) + " ?")) return;
+    delete r.cont; delete r.contPar; delete r.contLe; sauverRT(x, l, "Validation du contourage annulée").then(() => { toast("Contourage remis à valider."); fin(); }).catch((e) => toast(e.message)); return;
+  }
+  fenetre("<h3>Valider le contourage – " + esc(x.r.nm) + '</h3><p class="sous">' + esc(r.acte || "Radiothérapie") + (r.scan ? " · scanner le " + dfrA(r.scan) : "") + (r.deb ? " · 1re séance le " + dfrA(r.deb) : "") + "</p>" +
+    '<div class="form"><div><label for="cD">Date de validation</label><input id="cD" type="date" value="' + D.t + '"></div><div></div>' +
+    '<label class="large chk" style="font-weight:normal"><input id="cOk" type="checkbox"> J\'ai réalisé et vérifié le contourage (volumes cibles et organes à risque) et je le valide.</label></div>' +
+    '<p class="mesures">La dosimétrie devient alors « à valider » (tâche pour le médecin jusqu\'à la 1re séance).</p>' +
+    '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt vert" id="fOk"><svg class="pi"><use href="#i-check"/></svg>Valider le contourage</button></div>');
+  $("fOk").onclick = async () => {
+    const d = val("cD"); if (!d) { erreur("Indiquez la date."); return; }
+    if (!$("cOk").checked) { erreur("Cochez la case de vérification pour valider."); return; }
+    if (r.scan && d < r.scan) { erreur("La date est avant le scanner (" + dfrA(r.scan) + ")."); return; }
+    Object.assign(r, { cont: d, contPar: nomMedecin(), contLe: new Date().toISOString() }); occupe($("fOk"), true);
+    try { await sauverRT(x, l, "Contourage validé le " + dfrA(d) + " (" + nomMedecin() + ")"); fermerFenetre(); toast("Contourage validé : la dosimétrie est à valider."); fin(); }
     catch (e) { occupe($("fOk"), false); erreur(e.message); }
   };
 };
 // Bouton « Terminé » : clôture à la date choisie (aujourd'hui par défaut) ; « Rouvrir » annule la clôture
-window.terminerRT = (id, rid, rouvrir) => {
+window.terminerRT = (id, rid, rouvrir, apres) => {
   const x = D.patients.find((p) => p.id === id); if (!x) return;
   const l = JSON.parse(x.doc.rtsJson || "[]"), r = l.find((v) => v.id === rid); if (!r) return;
-  if (rouvrir) { if (!confirm("Rouvrir cette radiothérapie (annuler la clôture du " + dfrA(r.fin) + ") ?")) return; delete r.fin; sauverRT(x, l, "Radiothérapie rouverte").then(() => { toast("Radiothérapie rouverte."); pageDossier(x.id); }).catch((e) => toast(e.message)); return; }
+  if (rouvrir) { if (!confirm("Rouvrir cette radiothérapie (annuler la clôture du " + dfrA(r.fin) + ") ?")) return; delete r.fin; sauverRT(x, l, "Radiothérapie rouverte").then(() => { toast("Radiothérapie rouverte."); apres ? apres() : pageDossier(x.id); }).catch((e) => toast(e.message)); return; }
   fenetre("<h3>Terminer la radiothérapie – " + esc(x.r.nm) + '</h3><p class="sous">' + esc(r.acte || "") + (r.deb ? " · 1re séance le " + dfrA(r.deb) : "") + '</p><div class="form"><div class="large"><label for="tD">Date de la dernière séance</label><input id="tD" type="date" value="' + D.t + '"></div></div>' +
     '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt plein" id="fOk">Clôturer le traitement</button></div>');
   $("fOk").onclick = async () => {
     const d = val("tD"); if (!d) { erreur("Indiquez la date."); return; }
     if (r.deb && d < r.deb) { erreur("La date est avant la 1re séance (" + dfrA(r.deb) + ")."); return; }
     r.fin = d; occupe($("fOk"), true);
-    try { await sauverRT(x, l, "Radiothérapie terminée le " + dfrA(d)); fermerFenetre(); toast("Radiothérapie clôturée."); pageDossier(x.id); }
+    try { await sauverRT(x, l, "Radiothérapie terminée le " + dfrA(d)); fermerFenetre(); toast("Radiothérapie clôturée."); apres ? apres() : pageDossier(x.id); }
     catch (e) { occupe($("fOk"), false); erreur(e.message); }
   };
 };

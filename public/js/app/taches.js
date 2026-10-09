@@ -279,6 +279,8 @@ const messageErreur = (e) => e && e.code === "permission-denied" ? "Vous n'avez 
 const bloquee = (t) => { if (!MB || membreDe(t.pour)) return false; A.toast((t.pourNom || "Le responsable") + " ne fait plus partie de l'équipe : réattribuez d'abord la tâche."); return true; };
 window.taStatut = async (id, s) => {
   const t = trouver(id); if (!t || t.statut === s) return;
+  // « Terminée » sur une tâche du déroulé de radiothérapie = valider l'étape dans le dossier (le statut suit tout seul)
+  if (s === "fait" && estRT(t)) { if (ficheOuverte(id)) A.fermerFenetre(); else raf(); window.taValiderAuto(id); return; }
   if (bloquee(t)) { if (ficheOuverte(id)) taFiche(t); else raf(); return; }
   const champs = { statut: s }, avant = t.statut;
   if (s === "fait") Object.assign(champs, { faitPar: D().u.uid, faitParNom: nomConnecte(), faitLe: new Date().toISOString() });
@@ -311,7 +313,7 @@ function taFiche(t) {
     champ("Échéance", t.ech ? esc(A.dfrA(t.ech) + (t.h ? " à " + t.h : "")) : "") +
     '<div><label>De la part de</label><div>' + esc(t.deNom || "?") + '</div></div><div><label' + (reattr ? ' for="taRe"' : "") + '>Pour</label><div class="ta-re">' + pour + "</div></div>" +
     '<div class="large"><label for="taSt">Statut</label><select id="taSt" onchange="taStatut(' + q + ',this.value)">' + STATUTS.map(([k, l]) => '<option value="' + k + '"' + (t.statut === k ? " selected" : "") + ">" + l + "</option>").join("") + "</select></div></div>" +
-    (t.auto && (t.auto.ev === "dosi" || t.auto.ev === "finrt") && t.auto.rt && t.patientId && t.statut !== "fait" && dossierDe(t) ? '<div class="ta-auto"><button class="bt vert" onclick="taValiderAuto(' + q + ')">' + A.ic("check") + (t.auto.ev === "dosi" ? "Valider la dosimétrie" : "Valider la fin de radiothérapie") + '</button><span class="mesures">Ouvre le dossier ; la tâche se termine toute seule une fois validé.</span></div>' : "") +
+    (estRT(t) && t.statut !== "fait" && dossierDe(t) ? '<div class="ta-auto"><button class="bt vert" onclick="taValiderAuto(' + q + ')">' + A.ic("check") + LIB_RT[t.auto.ev] + '</button><span class="mesures">Valide aussi dans le dossier du patient ; la tâche se termine toute seule.</span></div>' : "") +
     '<h4 class="soustitre">Fil de la tâche</h4><div class="ta-fil" id="taFil">' + fil + "</div>" +
     '<div class="ta-ecrire"><textarea id="taCom" rows="2" placeholder="Écrire un commentaire (consigne, précision…)"></textarea><button class="bt plein" id="taComOk" onclick="taCommenter(' + q + ')">Envoyer</button></div>' +
     '<div class="err" id="fErr"></div><div class="boutons">' + (peutSupprimer(t) ? '<button class="bt gris" style="margin-right:auto;color:var(--rouge)" onclick="taSupprimer(' + q + ')">' + A.ic("corbeille") + "Supprimer</button>" : "") +
@@ -323,10 +325,15 @@ function taFiche(t) {
 }
 // Ouverture : affichée tout de suite, puis relue si l'écoute en direct est coupée (un collègue a pu commenter depuis)
 // Tâche automatique de radiothérapie : validation dans le dossier (les mêmes fenêtres) ; le serveur termine la tâche ensuite
+// Tâches automatiques du déroulé de radiothérapie (contourage, dosimétrie, fin) : les valider = valider l'étape dans le dossier
+// (mêmes fenêtres) ; le serveur termine alors la tâche (et crée la suivante : contourage validé → dosimétrie à valider)
+const LIB_RT = { cont: "Valider le contourage", dosi: "Valider la dosimétrie", finrt: "Valider la fin de radiothérapie" };
+const estRT = (t) => !!(t && t.auto && LIB_RT[t.auto.ev] && t.auto.rt && t.patientId);
 window.taValiderAuto = (id) => {
-  const t = trouver(id); if (!t || !t.auto) return; const pid = t.patientId, rt = t.auto.rt, ev = t.auto.ev;
-  A.fermerFenetre(); location.hash = "dossier/" + encodeURIComponent(pid);
-  setTimeout(() => (ev === "dosi" ? window.dosiRT : window.terminerRT)(pid, rt), 400);
+  const t = trouver(id); if (!estRT(t)) return;
+  if (!dossierDe(t)) { A.toast("Ce dossier n'est pas dans vos établissements."); return; }
+  const f = { cont: window.contRT, dosi: window.dosiRT, finrt: window.terminerRT }[t.auto.ev];
+  f(t.patientId, t.auto.rt, false, () => { A.toast(LIB_RT[t.auto.ev].replace("Valider", "Validé :").replace("Validé : la", "Validée : la") + " — la tâche se termine dans quelques secondes."); raf(); });
 };
 window.taOuvrir = async (id) => {
   const t = trouver(id); if (!t) { A.toast("Cette tâche n'existe plus ou ne vous est plus visible."); return; } taFiche(t);

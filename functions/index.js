@@ -224,7 +224,7 @@ async function tachesAuto(e, pid, docData, ctx, opts) {
   }
   for (const id of resolues) {
     const ref = db.doc("espaces/" + e + "/taches/" + id), s = await ref.get(); if (!s.exists || s.data().statut === "fait") continue;
-    const le = new Date().toISOString(), txt = s.data().auto && s.data().auto.ev === "dosi" ? "Terminée automatiquement : dosimétrie validée dans le dossier" : "Terminée automatiquement : radiothérapie clôturée dans le dossier";
+    const le = new Date().toISOString(), ev = s.data().auto && s.data().auto.ev, txt = "Terminée automatiquement : " + (ev === "cont" ? "contourage validé" : ev === "dosi" ? "dosimétrie validée" : "radiothérapie clôturée") + " dans le dossier";
     await ref.update({ statut: "fait", faitPar: SYS, faitParNom: SYS_NOM, faitLe: le, fil: FieldValue.arrayUnion({ le, par: SYS, parNom: SYS_NOM, txt }), maj: FieldValue.serverTimestamp(), majPar: SYS });
   }
 }

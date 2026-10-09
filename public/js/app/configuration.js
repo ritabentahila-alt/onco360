@@ -51,9 +51,11 @@ let COUL = null; // couleurs du cabinet lues (null = à lire)
 let TDOC = null; // types de documents du dossier (onglet Documents, 08/10/2026 ; null = à lire)
 // Tâches automatiques (P4, 08/10/2026) : parametres/tachesAuto = { data: JSON { regles } } ; mêmes règles fixes et événements
 // que functions/logique.js (REGLES_FIXES, tachesAutoPatient) ; calcul et création par le serveur (tachesAutoPatient / Nuit)
-const AUTO_FIXES = [{ id: "dosi", ev: "dosi", fixe: true, actif: true, titre: "Valider la dosimétrie", type: "Radiothérapie", pour: "titulaire", n: 0, depuis: "" },
+const AUTO_FIXES = [{ id: "cont", ev: "cont", fixe: true, actif: true, titre: "Valider le contourage", type: "Radiothérapie", pour: "titulaire", n: 0, depuis: "" },
+  { id: "dosi", ev: "dosi", fixe: true, actif: true, titre: "Valider la dosimétrie", type: "Radiothérapie", pour: "titulaire", n: 0, depuis: "" },
   { id: "finrt", ev: "finrt", fixe: true, actif: true, titre: "Valider la fin de radiothérapie", type: "Radiothérapie", pour: "titulaire", n: 0, depuis: "" }];
-const EV_AUTO = { dosi: ["Dosimétrie à valider", "Créée le jour du scanner de centrage ; échéance = 1re séance. Terminée toute seule quand la dosimétrie est validée dans le dossier."],
+const EV_AUTO = { cont: ["Contourage à valider", "Créée le jour du scanner de centrage ; échéance = 1re séance. Terminée toute seule quand le contourage est validé (dans le dossier ou depuis la tâche) ; ouvre la dosimétrie."],
+  dosi: ["Dosimétrie à valider", "Créée à la validation du contourage ; échéance = 1re séance. Terminée toute seule quand la dosimétrie est validée (dans le dossier ou depuis la tâche)."],
   finrt: ["Fin de radiothérapie à valider", "Créée le lendemain de la fin prévue si la radiothérapie n'est pas clôturée. Terminée toute seule à la clôture."],
   derniereCure: ["Dernière cure d'un protocole", "Créée quand la dernière cure est la prochaine ; échéance = date de cette cure + N jours.", "jours après la cure"],
   nonVenu: ["Rendez-vous marqué « Non venu »", "Créée quand un rendez-vous est marqué Non venu ; échéance = date du rendez-vous + N jours.", "jours après"],

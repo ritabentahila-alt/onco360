@@ -111,14 +111,16 @@ function evtsTaches(taches, uid, auj, noms) {
 // ───── Tâches automatiques (P4, 08/10/2026) ─────
 // Règles : espaces/{e}/parametres/tachesAuto = { data: JSON { regles: [{ id, ev, actif, titre, type, pour ("titulaire" | uid),
 // n (décalage : jours, ou mois pour apresFinRT), depuis (AAAA-MM-JJ : pas d'événement plus ancien) }] } }.
-// Deux règles fixes (type « Radiothérapie ») : dosimétrie à valider, fin de radiothérapie à valider (terminées toutes seules
-// quand c'est validé dans le dossier). Règles du médecin : derniereCure, nonVenu, nouveauPatient, apresFinRT, veilleJ1.
+// Trois règles fixes (type « Radiothérapie »), le déroulé de la radiothérapie (09/10/2026) : contourage à valider (du scanner
+// à la 1re séance), dosimétrie à valider (de la validation du contourage à la 1re séance), fin de radiothérapie à valider
+// (lendemain de la fin prévue) ; terminées toutes seules quand c'est validé dans le dossier. Règles du médecin : derniereCure, nonVenu, nouveauPatient, apresFinRT, veilleJ1.
 // Une tâche par règle, patient et occurrence (identifiant fixe idAuto), créée une seule fois (registre tachesAuto/{id}).
 const REGLES_FIXES = [
+  { id: "cont", ev: "cont", fixe: true, actif: true, titre: "Valider le contourage", type: "Radiothérapie", pour: "titulaire", n: 0, depuis: "" },
   { id: "dosi", ev: "dosi", fixe: true, actif: true, titre: "Valider la dosimétrie", type: "Radiothérapie", pour: "titulaire", n: 0, depuis: "" },
   { id: "finrt", ev: "finrt", fixe: true, actif: true, titre: "Valider la fin de radiothérapie", type: "Radiothérapie", pour: "titulaire", n: 0, depuis: "" },
 ];
-const EVENEMENTS_AUTO = ["dosi", "finrt", "derniereCure", "nonVenu", "nouveauPatient", "apresFinRT", "veilleJ1"];
+const EVENEMENTS_AUTO = ["cont", "dosi", "finrt", "derniereCure", "nonVenu", "nouveauPatient", "apresFinRT", "veilleJ1"];
 function reglesAuto(cfg) {
   const l = (cfg && Array.isArray(cfg.regles) ? cfg.regles : []).filter((r) => r && r.id && EVENEMENTS_AUTO.indexOf(r.ev) >= 0);
   return REGLES_FIXES.map((f) => Object.assign({}, f, l.find((r) => r.id === f.id) || {}, { fixe: true, ev: f.ev })).concat(l.filter((r) => !REGLES_FIXES.some((f) => f.id === r.id)));
@@ -143,7 +145,10 @@ function tachesAutoPatient(pid, docData, regles, auj, feries, opts) {
   (regles || []).filter((R) => R.actif !== false).forEach((R) => {
     const n = parseInt(R.n, 10) || 0, ok = (d) => !R.depuis || (d && d >= R.depuis);
     const v = (cle, ech, suffixe, rt) => voulues.push({ id: idAuto(R.id, pid, cle), regle: R.id, ev: R.ev, cle, titre: R.titre + (suffixe ? " – " + suffixe : ""), type: R.type || "", pour: R.pour || "titulaire", ech: ech || "", rt: rt || "" });
-    if (R.ev === "dosi") rts.forEach((r) => { if (!r.id || !r.scan || r.annule) return; if (r.dosi || r.fin) resolues.push(idAuto(R.id, pid, r.id)); else if (auj >= r.scan && (!r.deb || auj <= r.deb)) v(r.id, r.deb || "", r.acte || "", r.id); }); // même période que l'écran (rt.js dosimetrie) : du scanner à la 1re séance
+    // mêmes périodes que l'écran (rt.js contourage / dosimetrie) : contourage du scanner à la 1re séance ; dosimétrie de la
+    // validation du contourage à la 1re séance (pas avant le contourage, pas pour une RT déjà commencée)
+    if (R.ev === "cont") rts.forEach((r) => { if (!r.id || !r.scan || r.annule) return; if (r.cont || r.dosi || r.fin) resolues.push(idAuto(R.id, pid, r.id)); else if (auj >= r.scan && (!r.deb || auj <= r.deb)) v(r.id, r.deb || "", r.acte || "", r.id); });
+    if (R.ev === "dosi") rts.forEach((r) => { if (!r.id || !r.scan || r.annule) return; if (r.dosi || r.fin) resolues.push(idAuto(R.id, pid, r.id)); else if (r.cont && (!r.deb || auj <= r.deb)) v(r.id, r.deb || "", r.acte || "", r.id); });
     if (R.ev === "finrt") rts.forEach((r) => { if (!r.id || !r.deb || r.annule) return; if (r.fin) { resolues.push(idAuto(R.id, pid, r.id)); return; } const fp = finRT(r, feries); if (fp && auj > fp) v(r.id, addJ(fp, 1), (r.acte || "radiothérapie") + " (fin prévue le " + jfr(fp) + ")", r.id); });
     if (R.ev === "derniereCure") act.forEach((a) => { if (a.k === a.nb && ok(a.d)) v(a.nom + "|" + a.k, addJ(a.d, n), "C" + a.k + "/" + a.nb + " " + a.nom + " le " + jfr(a.d)); });
     if (R.ev === "veilleJ1") act.forEach((a) => { const dv = addJ(a.d, -1); if (auj >= dv && auj <= a.d && ok(dv)) v(a.nom + "|" + a.k + "|" + a.d, dv, "C" + a.k + " " + a.nom + " le " + jfr(a.d)); });

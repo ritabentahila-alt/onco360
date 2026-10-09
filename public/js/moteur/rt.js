@@ -1,13 +1,20 @@
 // Chimio HGC v2 – radiothérapie : fin prévue, séances restantes, statut (règles C1–C4).
 import { addJ, ouvre } from "./outils.js";
 import { dfr } from "./rdv.js";
-// Dosimétrie à valider par le médecin : période du scanner de centrage (inclus) à la 1re séance (incluse), tant qu'elle
-// n'est pas validée (r.dosi = date). Sans 1re séance prévue : du scanner jusqu'à aujourd'hui (elle se prolonge chaque jour).
-// Rien une fois validée, pour un traitement clos, ou quand la 1re séance est passée. Renvoie { du, au } ou null.
+// Déroulé de la radiothérapie (09/10/2026) : scanner de centrage → contourage (r.cont = date) → dosimétrie (r.dosi = date)
+// → 1re séance. Chaque validation par le médecin ouvre l'étape suivante (et sa tâche automatique, functions/logique.js).
+// Contourage à valider : du scanner (inclus) à la 1re séance (incluse), tant qu'il n'est pas validé.
+// Dosimétrie à valider : de la validation du contourage à la 1re séance, tant qu'elle n'est pas validée.
+// Sans 1re séance prévue : jusqu'à aujourd'hui (la période se prolonge chaque jour). Rien pour un traitement clos, ni une
+// fois la 1re séance passée. Renvoient { du, au } ou null.
+const periodeRT = (du, r, t) => { const au = r.deb ? (r.deb > du ? r.deb : du) : (t > du ? t : du); return au < t ? null : { du, au }; };
+export function contourage(r, t) {
+  if (!r.scan || r.cont || r.dosi || r.fin) return null;
+  return periodeRT(r.scan, r, t);
+}
 export function dosimetrie(r, t) {
-  if (!r.scan || r.dosi || r.fin) return null;
-  const au = r.deb ? (r.deb > r.scan ? r.deb : r.scan) : (t > r.scan ? t : r.scan);
-  return au < t ? null : { du: r.scan, au };
+  if (!r.scan || !r.cont || r.dosi || r.fin) return null;
+  return periodeRT(r.cont, r, t);
 }
 export function nbA(r) { const n = parseInt(r.nbA, 10); return n > 0 ? n : 1; }
 // C1/C2 – date de la Nième séance (jours ouvrés, rythme quotidien ou 1 jour sur 2)

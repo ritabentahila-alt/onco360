@@ -218,7 +218,7 @@ const infirmiere = { actif: true, etablissements: ["HGC", "CIOC"], droits: { tra
     { id: "r5", ev: "veilleJ1", actif: true, titre: "Préparer la cure", type: "Rappel perso", pour: "INF", n: 0, depuis: "" },
     { id: "r6", ev: "nonVenu", actif: false, titre: "Désactivée", type: "", pour: "titulaire", n: 0, depuis: "" },
   ] });
-  ok(regles.length === 8 && regles[0].id === "dosi" && regles[1].id === "finrt" && regles[0].fixe, "règles : les 2 fixes (dosimétrie, fin de RT) toujours présentes, puis celles du médecin");
+  ok(regles.length === 9 && regles[0].id === "cont" && regles[1].id === "dosi" && regles[2].id === "finrt" && regles[0].fixe, "règles : les 3 fixes (contourage, dosimétrie, fin de RT) toujours présentes, puis celles du médecin");
   const dossier = {
     rtsJson: JSON.stringify([
       { id: "rA", acte: "Sein", scan: "2026-10-05", deb: "2026-10-12", nb: "15", ryt: "1" },              // dosimétrie à valider
@@ -231,7 +231,8 @@ const infirmiere = { actif: true, etablissements: ["HGC", "CIOC"], droits: { tra
   };
   const { voulues, resolues } = L.tachesAutoPatient("P1", dossier, regles, J, feries, { nouveau: false });
   const par = (rg) => voulues.filter((v) => v.regle === rg);
-  ok(par("dosi").length === 1 && par("dosi")[0].cle === "rA" && par("dosi")[0].ech === "2026-10-12" && par("dosi")[0].rt === "rA", "dosimétrie : tâche dès le jour du scanner, échéance = 1re séance (scanner futur : rien)");
+  ok(par("cont").length === 1 && par("cont")[0].cle === "rA" && par("cont")[0].ech === "2026-10-12" && par("cont")[0].rt === "rA", "contourage : tâche dès le jour du scanner, échéance = 1re séance (scanner futur : rien)");
+  ok(!par("dosi").length, "dosimétrie : pas de tâche tant que le contourage n'est pas validé");
   ok(resolues.indexOf(L.idAuto("dosi", "P1", "rB")) >= 0 && resolues.indexOf(L.idAuto("finrt", "P1", "rC")) >= 0, "dosimétrie validée ou RT close : leurs tâches seront terminées toutes seules");
   ok(par("finrt").length === 1 && par("finrt")[0].cle === "rB" && /fin prévue le/.test(par("finrt")[0].titre), "fin de radiothérapie dépassée et non close : tâche « Valider la fin de radiothérapie »");
   ok(L.finRT({ deb: "2026-11-02", nb: "5" }, feries) === "2026-11-09", "fin prévue : jours ouvrés, fériés sautés (Marche verte)");
@@ -257,6 +258,13 @@ const infirmiere = { actif: true, etablissements: ["HGC", "CIOC"], droits: { tra
 (async () => {
   await new Promise((ok) => setTimeout(ok, 600));
   const d = { rtsJson: JSON.stringify([{ id: "vieux", scan: "2026-05-01", deb: "2026-05-10", nb: "20" }, { id: "sansdeb", scan: "2026-10-01" }, { id: "encours", scan: "2026-10-05", deb: "2026-10-08" }]), rdvsJson: "[]", resume: "{}" };
-  const v = L.tachesAutoPatient("P", d, L.reglesAuto({}), "2026-10-08", []).voulues.filter((x) => x.regle === "dosi").map((x) => x.cle).sort().join(",");
-  ok(v === "encours,sansdeb", "dosimétrie : tâche pendant la période scanner → 1re séance (ou sans 1re séance), pas pour une RT déjà commencée");
+  const v = L.tachesAutoPatient("P", d, L.reglesAuto({}), "2026-10-08", []).voulues.filter((x) => x.regle === "cont").map((x) => x.cle).sort().join(",");
+  ok(v === "encours,sansdeb", "contourage : tâche pendant la période scanner → 1re séance (ou sans 1re séance), pas pour une RT déjà commencée");
+  // Déroulé : contourage validé → sa tâche se termine, celle de la dosimétrie est créée (jusqu'à la 1re séance)
+  const d2 = { rtsJson: JSON.stringify([{ id: "x", acte: "Sein", scan: "2026-10-05", cont: "2026-10-07", deb: "2026-10-12" }, { id: "y", scan: "2026-09-01", cont: "2026-09-02", deb: "2026-09-10" }]), rdvsJson: "[]", resume: "{}" };
+  const r2 = L.tachesAutoPatient("P", d2, L.reglesAuto({}), "2026-10-08", []);
+  ok(r2.resolues.indexOf(L.idAuto("cont", "P", "x")) >= 0 && r2.voulues.some((z) => z.regle === "dosi" && z.cle === "x" && z.ech === "2026-10-12") && !r2.voulues.some((z) => z.regle === "cont"), "contourage validé : sa tâche se termine, « Valider la dosimétrie » est créée (échéance 1re séance)");
+  ok(!r2.voulues.some((z) => z.cle === "y"), "RT déjà commencée (1re séance passée) : pas de tâche de dosimétrie");
+  const r3 = L.tachesAutoPatient("P", { rtsJson: JSON.stringify([{ id: "x", scan: "2026-10-05", cont: "2026-10-07", dosi: "2026-10-08", deb: "2026-10-12" }]), rdvsJson: "[]", resume: "{}" }, L.reglesAuto({}), "2026-10-08", []);
+  ok(r3.resolues.indexOf(L.idAuto("cont", "P", "x")) >= 0 && r3.resolues.indexOf(L.idAuto("dosi", "P", "x")) >= 0 && !r3.voulues.length, "dosimétrie validée : les tâches contourage et dosimétrie se terminent, plus rien à créer");
 })();

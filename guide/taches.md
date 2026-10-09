@@ -46,8 +46,10 @@ Les tâches ouvertes d'un patient apparaissent aussi dans son dossier, carte « 
 ## Tâches automatiques
 Onco360 crée certaines tâches tout seul (Paramètres › Tâches › Tâches automatiques), une seule fois par patient et par
 événement, signées « Onco360 (automatique) » :
-- **Valider la dosimétrie** (le jour du scanner, échéance = 1re séance) et **Valider la fin de radiothérapie** (le lendemain
-  de la fin prévue) : bouton « Valider » dans la fiche ; elles se terminent toutes seules une fois validé dans le dossier ;
+- **Valider le contourage** (le jour du scanner, échéance = 1re séance), puis **Valider la dosimétrie** (dès que le contourage
+  est validé, échéance = 1re séance), et **Valider la fin de radiothérapie** (le lendemain de la fin prévue) : bouton
+  « Valider » dans la fiche, ou statut « Terminée » ; c'est la même validation que dans le dossier, et la tâche se termine toute
+  seule (valider dans le dossier la termine aussi) ;
 - celles que le médecin ajoute : dernière cure d'un protocole, rendez-vous « Non venu », nouveau patient, N mois après la fin
   d'une radiothérapie, veille d'une cure J1 (titre, type, responsable et délai réglables ; activer / désactiver).
 

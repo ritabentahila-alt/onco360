@@ -115,6 +115,10 @@ Ancienne application : collections racine `patients`, `protocoles`, `finances`, 
 - Molécules ajoutées/retirées : `L.mods = [{k, j?, op:"add"|"del"}]` (à partir de la cure k, jour j).
 - Honoraires de séance de chimio : tarif des Paramètres (500 DH brut par jour validé : J1 et J8 = 2 × 500 DH).
   Pas de saisie manuelle par séance dans l'interface (voulu, ne pas en ajouter ; `chHon` n'est relié à aucun bouton).
+- Radiothérapie (09/10/2026) : déroulé scanner (`scan`) → contourage (`cont`, `contPar`, `contLe` : `contRT`) → dosimétrie (`dosi` :
+  `dosiRT`, seulement après le contourage) → 1re séance (`deb`) → fin (`fin` : `terminerRT`) ; tâches automatiques fixes « Valider
+  le contourage » (scanner → 1re séance), « Valider la dosimétrie » (contourage validé → 1re séance), « Valider la fin de
+  radiothérapie » ; valider la tâche = valider dans le dossier (même fenêtre, `taValiderAuto`).
 - Bilan : doit rester identique au dirham près (référence : année 2026 = 352 317 DH au 06/10/2026).
 - Droits : `medecin` / `infirmiere` / `assistante`, grille par membre ; un membre ne modifie pas ses propres droits.
   Droits ajoutés le 06/10/2026 (DROITS_ROLE et `droitsEffectifs` dans profil.js : un droit absent de la grille d'un membre
