@@ -680,6 +680,9 @@ jour, agenda, Google Agenda) mais **dans le dossier sous forme de tâche**.
       ouverte tant que le contourage n'est pas validé (si personne n'y a touché) et efface son registre : elle est recréée à
       la validation du contourage. Une tâche existante n'est jamais écrasée. Tests logique 81/81. À remettre en ligne
       (fonctions).
+- [x] Page Tâches : filtre **Lieu d'exercice** (09/10, à côté de « Tous les types ») : Tous les lieux, chaque établissement du
+      membre (et ceux de ses tâches), « Sans patient » ; lieu = celui du dossier du patient aujourd'hui (s'il a changé
+      d'établissement), sinon celui noté dans la tâche. Testé (médecin, secrétaire HGC, 390 px).
 - [ ] **Question à Dr Bentahila** : retirer de la cloche les alertes qui doublent une tâche automatique active (dosimétrie à
       valider, fin de radiothérapie dépassée, dernière cure si la règle est activée) ?
 - [ ] Mise en ligne : règles, **fonctions** (2 nouvelles), site. Puis vérifier sur un vrai dossier (dosimétrie en attente).

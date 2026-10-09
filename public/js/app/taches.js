@@ -182,7 +182,10 @@ function ligne(t) {
 }
 
 // ───── Filtres (T2, 08/10/2026) : recherche, responsable (onglet Toutes les tâches), statut, échéance, type ─────
-const F0 = { q: "", qui: "", st: "ouv", ech: "", type: "" };
+const F0 = { q: "", qui: "", st: "ouv", ech: "", type: "", lieu: "" };
+// Lieu d'exercice d'une tâche (09/10/2026) : celui du dossier du patient aujourd'hui (il a pu changer), sinon celui noté dans la
+// tâche ; "" = tâche sans patient
+const lieuDe = (t) => { const x = t.patientId ? dossierDe(t) : null; return (x && x.doc && x.doc.etablissementId) || t.etablissementId || ""; };
 let F = Object.assign({}, F0);
 const finSemaine = () => { const d = new Date(D().t + "T12:00:00"); d.setDate(d.getDate() + ((7 - d.getDay()) % 7)); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
 function filtrer(l) {
@@ -199,6 +202,7 @@ function filtrer(l) {
     if (F.ech === "sem" && !(t.statut !== "fait" && t.ech && t.ech <= fs)) return false; // en retard compris : à traiter cette semaine
     if (F.ech === "sans" && t.ech) return false;
     if (F.type && t.type !== F.type) return false;
+    if (F.lieu && (F.lieu === "-" ? lieuDe(t) !== "" : lieuDe(t) !== F.lieu)) return false;
     return true;
   });
 }
@@ -219,17 +223,21 @@ function dessiner() {
   // Responsable : rôles et membres (médecin), « Demandées par moi » (tous) ; seulement dans « Toutes les tâches »
   const optsQui = [["", "Toute l'équipe"]].concat(estMedecin() ? [["r:medecin", "Pour les médecins"], ["r:assistante", "Pour les secrétaires"], ["r:infirmiere", "Pour les infirmières"], ["—", "Pour…"]].concat((MB || []).filter((m) => T.some((t) => t.pour === m.uid) || m.actif !== false).map((m) => ["u:" + m.uid, m.uid === moi ? "Moi" : nomMembre(m)])).concat([["/—", ""]]) : [["u:" + moi, "Pour moi"]]).concat([["d:" + moi, "Demandées par moi"]]);
   const types = TYPES().concat(T.map((t) => t.type).filter((x) => x && TYPES().indexOf(x) < 0)).filter((x, i, a) => a.indexOf(x) === i);
+  // Lieux d'exercice proposés : ceux du membre (tous s'il voit tous les établissements) et ceux de ses tâches
+  const etT = D().etabsTous || D().etabs || [], nomLieu = {}; etT.forEach((e) => { nomLieu[e.code] = e.nom || ""; });
+  const lieux = (D().membre.tousEtablissements ? etT.map((e) => e.code) : (D().membre.etablissements || []).slice()).concat(T.map(lieuDe)).filter((c, i, a) => c && a.indexOf(c) === i).sort();
   let h = '<section class="accueil"><div><h2>Tâches</h2><p>Rappels, demandes et suivis de l\'équipe.</p></div><div class="actions"><button class="bt plein" onclick="taNouvelle()">' + A.ic("plus") + "Nouvelle tâche</button></div></section>" +
     '<div class="ag-vues" style="align-self:flex-start">' + onglet("mes", "profil", "Mes tâches", nbOuv(mes)) + onglet("toutes", "taches", "Toutes les tâches", nbOuv(T)) + "</div>" +
     '<div class="ta-filtres"><div class="recherche">' + A.ic("loupe") + '<input id="taQ" type="search" placeholder="Rechercher : titre, patient, personne…" autocomplete="off" value="' + esc(F.q) + '"></div>' +
     (VUE === "toutes" ? sel("taFqui", "Responsable", F.qui, optsQui) : "") +
     sel("taFst", "Statut", F.st, [["ouv", "À faire et en cours"], ["afaire", "À faire"], ["encours", "En cours"], ["fait", "Terminées"], ["tous", "Tous les statuts"]]) +
     sel("taFech", "Échéance", F.ech, [["", "Toutes les échéances"], ["retard", "En retard"], ["auj", "Aujourd'hui"], ["sem", "Cette semaine"], ["sans", "Sans échéance"]]) +
-    sel("taFtype", "Type", F.type, [["", "Tous les types"]].concat(types.map((x) => [x, x]))) + "</div>" +
+    sel("taFtype", "Type", F.type, [["", "Tous les types"]].concat(types.map((x) => [x, x]))) +
+    sel("taFlieu", "Lieu d'exercice", F.lieu, [["", "Tous les lieux"]].concat(lieux.map((c) => [c, c + (nomLieu[c] ? " – " + nomLieu[c] : "")]), [["-", "Sans patient"]])) + "</div>" +
     '<section class="carte"><div class="ta-entete"><span class="sous" id="taNb"></span><button class="lien' + (filtresActifs() ? "" : " cache") + '" id="taFx" onclick="taEffacer()">Effacer les filtres</button></div><div id="taL"></div></section>';
   $("page").innerHTML = h;
   $("taQ").oninput = () => { F.q = $("taQ").value; liste(); };
-  [["taFqui", "qui"], ["taFst", "st"], ["taFech", "ech"], ["taFtype", "type"]].forEach(([i, k]) => { if ($(i)) $(i).onchange = () => { F[k] = $(i).value; liste(); }; });
+  [["taFqui", "qui"], ["taFst", "st"], ["taFech", "ech"], ["taFtype", "type"], ["taFlieu", "lieu"]].forEach(([i, k]) => { if ($(i)) $(i).onchange = () => { F[k] = $(i).value; liste(); }; });
   liste();
   if (A_OUVRIR) { const id = A_OUVRIR; A_OUVRIR = null; window.taOuvrir(id); }
 }
