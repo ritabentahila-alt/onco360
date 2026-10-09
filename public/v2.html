@@ -165,6 +165,9 @@ details summary{cursor:pointer;color:var(--prim);font-weight:bold;font-size:13.5
 .etapes{margin-top:8px}
 /* Modules de la formule du cabinet (09/10/2026) : body.sans-<module> cache [data-mod] */
 body.sans-chimio [data-mod~="chimio"],body.sans-rt [data-mod~="rt"],body.sans-agenda [data-mod~="agenda"],body.sans-salle [data-mod~="salle"],body.sans-taches [data-mod~="taches"],body.sans-rcp [data-mod~="rcp"],body.sans-prescriptions [data-mod~="prescriptions"],body.sans-documents [data-mod~="documents"],body.sans-gagenda [data-mod~="gagenda"],body.sans-listes [data-mod~="listes"],body.sans-bilan [data-mod~="bilan"]{display:none!important}
+/* Journal d'audit (Paramètres, 09/10/2026) */
+.au-f{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}.au-bas{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:12px 0 8px}.au-bas .mesures{flex:1}
+.au-t td{font-size:13.5px;vertical-align:top}.au-t td:first-child{white-space:nowrap}
 /* Premier démarrage d'un cabinet neuf (09/10/2026) */
 .ppas .pp{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;border:1px solid #E9EDF4;margin-top:8px;color:inherit;text-decoration:none;background:#fff}
 .ppas .pp:hover{border-color:var(--prim);background:var(--prim-c)}
@@ -698,6 +701,6 @@ function onco360Deconnecter() {
 }
 </script>
 
-<script type="module" src="./js/app/v2.js?v=20261009r"></script>
+<script type="module" src="./js/app/v2.js?v=20261009s"></script>
 </body>
 </html>

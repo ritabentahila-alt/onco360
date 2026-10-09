@@ -936,12 +936,21 @@ application : la date de leur création là-bas, pas le 06/10).
       numéro conservé), 390 px, bilan 352 317 DH.
 
 ## Étape 9 – Sécurité et conformité (obligatoire pour vendre)
-**S1 – Journal d'audit (traçabilité)**
-- [ ] Journal **infalsifiable** : qui a **consulté, modifié ou supprimé** quelle donnée, et quand. Les écritures sont notées
-      par le serveur (fonctions Firebase déclenchées à chaque écriture : impossible à contourner) ; les **ouvertures de
-      dossier** sont notées par l'application. Règles : on peut **ajouter** une ligne, jamais la modifier ni l'effacer.
-- [ ] Page « Journal d'audit » (médecin titulaire seulement) : filtres par personne, patient, date, action ; export.
-- [ ] Durée de conservation à décider (avec le juriste). Volume et coût à surveiller (une ligne par ouverture de dossier).
+**S1 – Journal d'audit (traçabilité)** (fait et testé le 09/10, pas encore en ligne)
+**Décidé le 09/10** : modifications, suppressions et **ouvertures de dossier** (pas les impressions ni les connexions) ; pour une
+modification, **la partie touchée** (Rendez-vous, Chimiothérapie…), jamais les valeurs ; lu par le **titulaire seul** ; **tout est
+gardé** pour l'instant (durée à fixer avec le juriste).
+- [x] Journal **infalsifiable** : fonction `auditEcriture` (déclencheur « avec identité » sur `espaces/{e}/{collection}/{document}` :
+      la personne réellement connectée, impossible à falsifier ; écriture d'une fonction serveur = « Onco360 (serveur) pour X »),
+      lignes dans `audit/{e}/lignes/{événement}` (une seule ligne même si l'événement est rejoué). Ouvertures : signal « Dossier
+      ouvert par » (`presence`) qui change de dossier, ou le même après 30 min. Logique `functions/audit.js` (25 tests). Règles :
+      lecture par le titulaire (cabinet non suspendu), **aucune écriture** depuis le navigateur, même pas le titulaire (12 tests,
+      total 167/167). Journal effacé avec le cabinet (`supprimerCabinet`).
+- [x] Page **Paramètres › Journal d'audit** (titulaire) : période (7 derniers jours par défaut), filtres personne / action / partie /
+      patient, nombre de lignes par action, lien vers le dossier (« Dossier supprimé » sinon), **export Excel** ; bouton **Journal**
+      dans le dossier (titulaire) = journal de ce patient sur 1 an. `public/js/app/audit.js`. Tests navigateur 12/12.
+- [ ] Mise en ligne (fonction `auditEcriture`, règles, site), après accord. Le journal commence à la mise en ligne.
+- [ ] Durée de conservation à décider (avec le juriste). Volume à surveiller (une ligne par écriture et par ouverture).
 **S2 – Rôles et droits affinés**
 - [ ] Nouveau rôle **Comptable** : volet financier seulement (bilan, encaissements, tarifs), aucune donnée médicale.
 - [ ] Infirmière : constantes et administrations (voir étape 11) ; médecin : accès complet. Vérifier que chaque droit de la
@@ -1166,3 +1175,4 @@ Onco360_Package_Cession/
 | 09/10/2026 | 4 – F1 Modules par cabinet | Formules (Essentiel, Radiothérapie, Complet) + retouches module par module + maximums (médecins, secrétaires, infirmières, lieux, dossiers) depuis la page Administration ; modules retirés cachés (données gardées) ; cabinet de Dr Bentahila affiché comme cabinet normal. Tests cabinets 27/27, navigateur 33/33, bilan 352 317 DH. Mis en ligne (fonctions, site v2.js?v=20261009q). |
 | 09/10/2026 | 4 – F1 Administration | Formules modifiables par l'administration (nom, modules, maximums ; nouvelle formule ; suppression si aucun cabinet ne l'utilise) : `plateforme/formules` (serveur seulement), fonction `formulesEnregistrer` (cabinets sans retouche mis à jour) ; « Modifier » un cabinet (nom, ville, adresse, téléphone, nom et téléphone du titulaire : `infosCabinet`). Maximum vide = sans limite, chiffre = bloqué, 0 = aucun. Tests cabinets 32/32, navigateur 38/38. Mis en ligne. |
 | 09/10/2026 | 4 – F1 Administration | 8 formules proposées par spécialité (Oncologie : Essentiel / Pro / Clinique ; Radiothérapie : Essentiel / Pro / Centre ; Onco-radiothérapie : Pro / Clinique), spécialité modifiable ; page Administration refaite : onglets Cabinets (chiffres, recherche, filtres statut / spécialité, cartes) / Nouveau cabinet (spécialité → formule, aperçu) / Formules (par spécialité, barre d'enregistrement) ; réglages dans une fenêtre. Étape 14 ajoutée (autres spécialités). Tests 33/33, navigateur 44/44, bilan 352 317 DH. Mis en ligne. |
+| 09/10/2026 | 9 – S1 Journal d'audit | Décidé : modifications, suppressions, ouvertures ; partie touchée sans valeurs ; titulaire seul ; tout gardé. Fonction `auditEcriture` (identité réelle, infalsifiable), `audit/{e}/lignes`, page Paramètres › Journal d'audit (filtres, export Excel), bouton Journal du dossier. Corrigé : lien direct vers un onglet du titulaire (Accès, Journal) qui retombait sur le 1er onglet. Règles 167/167, logique 25/25, navigateur 12/12 + 44/44, bilan 352 317 DH. Code sur GitHub (dépôt privé ritabentahila-alt/onco360). Pas encore en ligne. |

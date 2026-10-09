@@ -420,6 +420,7 @@ exports.supprimerCabinet = onCall({ timeoutSeconds: 300, memory: "512MiB" }, asy
     if (!garder) { await auth.deleteUser(uid).catch((e) => console.warn("compte", uid, e.message)); await db.doc("utilisateurs/" + uid).delete().catch(() => {}); comptes.push(uid); }
   }
   await db.recursiveDelete(ref);
+  await db.recursiveDelete(db.doc("audit/" + espace)).catch((e) => console.warn("journal", e.message)); // son journal d'audit aussi
   await getStorage().bucket().deleteFiles({ prefix: "espaces/" + espace + "/" }).catch((e) => console.warn("fichiers", e.message));
   console.log("cabinet supprimé", espace, x.nom, "par", par, "comptes supprimés", comptes.length);
   return { comptes: comptes.length };
@@ -475,4 +476,35 @@ exports.infosCabinet = onCall({ timeoutSeconds: 30, memory: "256MiB" }, async (r
   if (tit && d.titulaireNom) await ref.collection("membres").doc(tit).update({ nom: d.titulaireNom, telephone: d.titulaireTel }).catch((e) => console.warn("titulaire", e.message));
   console.log("infos du cabinet", s.id, "par", par);
   return { ok: true };
+});
+// ───── Journal d'audit (étape 9 S1, 09/10/2026) ─────
+// Chaque écriture dans un cabinet (espaces/{e}/{collection}/{document}) est notée par le serveur, avec l'identité réelle de la
+// personne connectée (déclencheur « avec contexte d'authentification » : impossible à falsifier depuis le navigateur), dans
+// audit/{e}/lignes/{identifiant de l'événement} (une seule ligne même si l'événement est rejoué). Ouvertures de dossier : signal
+// de présence (presence/{uid}) qui change de dossier, ou le même après 30 min. Règles : lecture par le titulaire seul, aucune
+// écriture. Logique : audit.js. Rien n'est effacé (durée de conservation à fixer avec le juriste).
+const AU = require("./audit");
+const { onDocumentWrittenWithAuthContext } = require("firebase-functions/v2/firestore");
+const MEMBRES_CACHE = new Map();
+async function membreNom(e, uid) {
+  if (!uid) return { nom: "", role: "" };
+  const k = e + "/" + uid, c = MEMBRES_CACHE.get(k); if (c && Date.now() - c.t < 600000) return c.v;
+  const m = await membre(e, uid).catch(() => null), v = { nom: (m && (m.nom || m.email)) || "", role: (m && m.role) || "" };
+  MEMBRES_CACHE.set(k, { t: Date.now(), v }); return v;
+}
+const ms = (v) => (v && typeof v.toMillis === "function" ? v.toMillis() : 0);
+exports.auditEcriture = onDocumentWrittenWithAuthContext({ document: "espaces/{e}/{col}/{id}", timeoutSeconds: 60, memory: "256MiB" }, async (ev) => {
+  const { e, col, id } = ev.params, avant = ev.data.before.exists ? ev.data.before.data() : null, apres = ev.data.after.exists ? ev.data.after.data() : null;
+  let l = null;
+  if (col === "presence") {
+    if (!AU.ouverture(avant, apres, ms(avant && avant.le), ms(apres && apres.le))) return;
+    l = { type: "ouverture", col: "patients", lib: "Dossier patient", docId: apres.patientId, element: "", quoi: [], patientId: apres.patientId, patientNom: "", par: ev.authType === "app_user" ? ev.authId : id, via: "onco360", pour: "" };
+  } else {
+    l = AU.ligne(col, id, avant, apres, AU.auteur(ev.authType, ev.authId, apres));
+    if (!l) return;
+    if (!apres && !(await db.doc("espaces/" + e).get()).exists) return; // cabinet supprimé en entier : rien à noter
+  }
+  if (l.patientId && !l.patientNom) { const p = await db.doc("espaces/" + e + "/patients/" + l.patientId).get().catch(() => null); if (p && p.exists) l.patientNom = AU.nomIdentite(p.data()); }
+  const m = await membreNom(e, l.par || l.pour);
+  await db.doc("audit/" + e + "/lignes/" + ev.id).set(Object.assign(l, { le: ev.time ? new Date(ev.time) : new Date(), parNom: m.nom, parRole: m.role }));
 });

@@ -33,6 +33,13 @@ service cloud.firestore {
       allow delete: if proprietaire();
     }
 
+    // Journal d'audit (étape 9, 09/10/2026) : écrit par le serveur seulement (auditEcriture), jamais modifié ni effacé depuis le
+    // navigateur ; lu par le médecin titulaire du cabinet (cabinet non suspendu)
+    match /audit/{e}/lignes/{l} {
+      allow read: if connecte() && get(/databases/$(database)/documents/espaces/$(e)).data.titulaire == request.auth.uid
+        && get(/databases/$(database)/documents/espaces/$(e)).data.get('actif', true) != false;
+      allow write: if false;
+    }
     // Cabinet ouvert par chaque compte (phase F, 09/10/2026) : lu par la personne, écrit par le serveur seulement (compteMembre, creerCabinet)
     match /comptes/{uid} { allow read: if connecte() && request.auth.uid == uid; allow write: if false; }
 

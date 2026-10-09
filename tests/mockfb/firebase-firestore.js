@@ -21,7 +21,7 @@ export async function addDoc(c, v) { const id = "a" + Math.random().toString(36)
 export async function getDocs(c) {
   const n = c.col.split("/").length + 1;
   let docs = Object.keys(window.__fs).filter((k) => k.startsWith(c.col + "/") && k.split("/").length === n).map((k) => ({ id: k.split("/").pop(), ref: { path: k, id: k.split("/").pop() }, data: () => cl(window.__fs[k]), exists: () => true }));
-  (c.f || []).filter(Boolean).forEach((w) => { if (w.op === "array-contains") docs = docs.filter((d) => (d.data()[w.k] || []).indexOf(w.v) >= 0); else if (w.op === "in") docs = docs.filter((d) => w.v.indexOf(d.data()[w.k]) >= 0); else if (w.op === "==") docs = docs.filter((d) => d.data()[w.k] === w.v); });
+  (c.f || []).filter(Boolean).forEach((w) => { if (w.op === "array-contains") docs = docs.filter((d) => (d.data()[w.k] || []).indexOf(w.v) >= 0); else if (w.op === "in") docs = docs.filter((d) => w.v.indexOf(d.data()[w.k]) >= 0); else if (w.op === "==") docs = docs.filter((d) => d.data()[w.k] === w.v); else if ([">=", ">", "<", "<="].indexOf(w.op) >= 0) { const n = (x) => (x instanceof Date || (typeof x === "string" && /^\d{4}-\d\d-\d\dT/.test(x)) ? new Date(x).getTime() : x); docs = docs.filter((d) => { const a = n(d.data()[w.k]), b = n(w.v); return w.op === ">=" ? a >= b : w.op === ">" ? a > b : w.op === "<" ? a < b : a <= b; }); } });
   return { docs, size: docs.length, empty: !docs.length, forEach: (f) => docs.forEach(f) };
 }
 export function writeBatch() { const ops = []; return { set: (r, v) => ops.push(() => setDoc(r, v)), delete: (r) => ops.push(() => deleteDoc(r)), commit: async () => { for (const o of ops) await o(); } }; }

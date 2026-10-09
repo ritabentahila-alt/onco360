@@ -14,6 +14,7 @@ import { pageParametres } from "./parametres.js";
 import { listeDiag, listeMut, listeCor, LISTES0 } from "./chimio.js";
 import { gererListe, tailleListe } from "./ordonnances.js";
 import { htmlOngletProfil, apresOngletProfil, titulaireConnecte } from "./profil.js";
+import { afficherAudit } from "./audit.js"; // onglet « Journal d'audit » (titulaire, 09/10/2026)
 import { configRcp, configChargee, chargerConfigRcp, enregistrerConfigRcp, prochainesRcp, CFG0 as RCP0, libDate } from "./rcp.js";
 
 let A = null;
@@ -71,7 +72,7 @@ let ED = null, ONG = "horaires", MOD = false, HET = ""; // HET : établissement 
 // Onglets de la page Paramètres (« Activités et rémunérations » : droit « finances »)
 // Lieux d'exercice, Google Agenda (liaison) et Accès : venus du Profil le 08/10/2026 (Accès : médecin titulaire)
 let TIT = null;
-const ONGLETS = () => [["horaires", "horloge", "Créneaux & horaires"], ["fermetures", "avion", "Fermetures, congés & jours fériés"], ["lieux", "hopital", "Lieux d'exercice"]].concat(TIT ? [["acces", "patients", "Accès"]] : []).concat([["whatsapp", "whatsapp", "WhatsApp"], ["couleurs", "agenda", "Google Agenda"], ["documents", "document", "Documents"], ["taches", "taches", "Tâches"], ["rcp", "rcp", "RCP"], ["listes", "liste", "Listes"], ["bibliotheques", "pilule", "Bibliothèques"], ["impression", "imprimer", "Impression"], ["alertes", "alerte", "Alertes"]])
+const ONGLETS = () => [["horaires", "horloge", "Créneaux & horaires"], ["fermetures", "avion", "Fermetures, congés & jours fériés"], ["lieux", "hopital", "Lieux d'exercice"]].concat(TIT ? [["acces", "patients", "Accès"], ["audit", "liste", "Journal d'audit"]] : []).concat([["whatsapp", "whatsapp", "WhatsApp"], ["couleurs", "agenda", "Google Agenda"], ["documents", "document", "Documents"], ["taches", "taches", "Tâches"], ["rcp", "rcp", "RCP"], ["listes", "liste", "Listes"], ["bibliotheques", "pilule", "Bibliothèques"], ["impression", "imprimer", "Impression"], ["alertes", "alerte", "Alertes"]])
   .concat(A.peut("finances") && D().tarifs ? [["activites", "bilan", "Activités et rémunérations"]] : [])
   .filter((o) => A.module(MODULE_ONGLET[o[0]] || "")); // onglets d'un module retiré de la formule du cabinet : cachés
 const MODULE_ONGLET = { couleurs: "gagenda", taches: "taches", rcp: "rcp", listes: "listes", bibliotheques: "prescriptions" };
@@ -80,7 +81,8 @@ function entete() {
     '<div class="ag-vues" style="align-self:flex-start">' + ONGLETS().map(([k, ico, lib]) => '<button class="' + (ONG === k ? "on" : "") + '" onclick="cfOnglet(\'' + k + "')\">" + A.ic(ico) + lib + "</button>").join("") + "</div>";
 }
 export function pageConfiguration(arg) {
-  if (TIT === null) { TIT = false; titulaireConnecte().then((v) => { TIT = v; if (v && location.hash.startsWith("#parametres") && !MOD) pageConfiguration(); }).catch(() => {}); }
+  // Onglets du titulaire (Accès, Journal d'audit) connus un instant plus tard : l'onglet demandé par le lien est ouvert ensuite
+  if (TIT === null) { TIT = false; titulaireConnecte().then((v) => { TIT = v; const dem = (location.hash.match(/^#parametres\/([^/?]+)/) || [])[1]; if (v && location.hash.startsWith("#parametres") && !MOD) pageConfiguration(dem); }).catch(() => {}); }
   if (arg && ONGLETS().some((o) => o[0] === arg)) ONG = arg;
   if (!ONGLETS().some((o) => o[0] === ONG)) ONG = "horaires";
   if (ONG === "activites") { pageParametres(); return; }
@@ -141,6 +143,8 @@ export function pageConfiguration(arg) {
       '<div class="cf-td">' + L.map((t, i) => '<div class="it"><b class="n">' + (i + 1) + '</b><input value="' + esc(t) + '"' + dis + ' aria-label="Type ' + (i + 1) + '" onchange="cfTd(' + i + ',this.value)">' +
         (ok ? '<button class="ico" title="Monter" aria-label="Monter" onclick="cfTdBouger(' + i + ',-1)"' + (i ? "" : " disabled") + '>↑</button><button class="ico" title="Descendre" aria-label="Descendre" onclick="cfTdBouger(' + i + ',1)"' + (i < L.length - 1 ? "" : " disabled") + '>↓</button><button class="mini rouge" title="Retirer ce type" aria-label="Retirer ' + esc(t) + '" onclick="cfTdSup(' + i + ')">✕</button>' : "") + "</div>").join("") + "</div>" +
       (ok ? '<button class="bt clair petit" style="margin-top:10px" onclick="cfTdAj()">' + A.ic("plus") + "Ajouter un type</button>" : "") + "</section>";
+  } else if (ONG === "audit") {
+    h += '<div id="cfAudit"></div>';
   } else if (ONG === "lieux" || ONG === "acces") {
     h += '<div id="cfProfil"><p class="sous">Chargement…</p></div>';
   } else if (ONG === "couleurs") {
@@ -202,9 +206,10 @@ export function pageConfiguration(arg) {
       '<div class="tableau" style="max-height:460px;overflow:auto"><table class="tcures"><tr><th style="width:190px">Date</th><th>Fête</th><th></th></tr>' + fs.map(({ f, i }) => '<tr><td><input type="date" value="' + esc(f.d) + '"' + dis + ' onchange="cfFer(' + i + ',\'d\',this.value)"></td><td><input value="' + esc(f.nom || "") + '"' + dis + ' onchange="cfFer(' + i + ',\'nom\',this.value)" style="width:100%"></td><td>' + (ok ? '<button class="mini rouge" onclick="cfSupFer(' + i + ')">✕</button>' : "") + "</td></tr>").join("") + "</table></div>" +
       (ok ? '<button class="bt clair petit" style="margin-top:10px" onclick="cfAjFer()">' + A.ic("plus") + "Ajouter un jour férié</button>" : "") + "</section>";
   }
-  if (ok && ["bibliotheques", "lieux", "acces"].indexOf(ONG) < 0) h += '<div class="barre-enr"><button class="bt gris" onclick="cfDefaut()">↺ Rétablir les valeurs par défaut</button><span id="cfMod" class="mesures' + (MOD ? "" : " cache") + '">Modifications non enregistrées</span><button class="bt plein" id="cfOk" onclick="cfEnregistrer()"><svg class="pi"><use href="#i-enregistrer"/></svg>Enregistrer</button></div>';
+  if (ok && ["bibliotheques", "lieux", "acces", "audit"].indexOf(ONG) < 0) h += '<div class="barre-enr"><button class="bt gris" onclick="cfDefaut()">↺ Rétablir les valeurs par défaut</button><span id="cfMod" class="mesures' + (MOD ? "" : " cache") + '">Modifications non enregistrées</span><button class="bt plein" id="cfOk" onclick="cfEnregistrer()"><svg class="pi"><use href="#i-enregistrer"/></svg>Enregistrer</button></div>';
   A.$("page").innerHTML = h;
   if (A.$("cfProfil")) { const o = ONG === "couleurs" ? "gagenda" : ONG; htmlOngletProfil(o).then((x) => { const z = A.$("cfProfil"); if (z && ONG === (o === "gagenda" ? "couleurs" : o)) { z.innerHTML = x; apresOngletProfil(o); } }).catch((e) => { const z = A.$("cfProfil"); if (z) z.innerHTML = '<p class="sous" style="color:var(--rouge)">Lecture impossible : ' + A.esc(e.message || String(e)) + "</p>"; }); }
+  if (ONG === "audit") afficherAudit(A.$("cfAudit"));
   if (ONG === "listes") { listeL(); A.$("cfLq").oninput = () => { LQ = A.$("cfLq").value; listeL(); }; }
   if (ONG === "bibliotheques") [["medicaments", ["medicaments"], [["médicament", "médicaments"]]], ["ordostypes", ["ordostypes"], [["ordonnance type", "ordonnances types"]]], ["analyses", ["analyses", "bilans"], [["analyse", "analyses"], ["bilan", "bilans"]]], ["examens", ["examens"], [["examen", "examens"]]], ["courriers", ["courriers"], [["modèle", "modèles"]]]].forEach(([k, ls, mots]) =>
     Promise.all(ls.map((n) => tailleListe(n))).then((t) => { const e = A.$("cfBn-" + k); if (e) e.textContent = t.map((v, i) => v + " " + mots[i][v > 1 ? 1 : 0]).join(" · "); }).catch(() => {}));
