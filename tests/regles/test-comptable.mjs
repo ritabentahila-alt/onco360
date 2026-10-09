@@ -22,6 +22,7 @@ async function preparer() {
     await setDoc(doc(db, P + "/encaissements/p1"), { etablissementId: "HGC" });
     await setDoc(doc(db, P + "/comptabilite/meta"), { n: 1 });
     await setDoc(doc(db, P + "/finances/tarifs"), { data: "{}" });
+    await setDoc(doc(db, P + "/finances/reglements"), { data: "[]" });
     await setDoc(doc(db, P + "/presence/MED"), { patientId: "p1" });
     await setDoc(doc(db, P + "/historique/h1"), { parUid: "MED", txt: "Cure validée" });
   });
@@ -35,6 +36,11 @@ await cas("le comptable lit le relevé, les tarifs, les paiements", async () => 
 await cas("le comptable pointe un paiement et saisit un versement", async () => { await assertSucceeds(setDoc(D("COMP", "finances/paiements"), { data: "{}" })); await assertSucceeds(setDoc(D("COMP", "finances/versements"), { data: "[]" })); });
 await cas("refusé : le comptable modifie les tarifs", () => assertFails(setDoc(D("COMP", "finances/tarifs"), { data: "{}" })));
 await cas("refusé : le comptable écrit le relevé, les montants, les encaissements", async () => { await assertFails(setDoc(D("COMP", "comptabilite/meta"), { n: 2 })); await assertFails(setDoc(D("COMP", "patientsFinances/p1"), { montantsJson: "{}" })); await assertFails(setDoc(D("COMP", "encaissements/p1"), { etablissementId: "HGC" })); });
+console.log("Règlements reçus des cliniques (étape 15)");
+await cas("le comptable lit les règlements reçus", () => assertSucceeds(getDoc(D("COMP", "finances/reglements"))));
+await cas("refusé : le comptable saisit un règlement reçu", () => assertFails(setDoc(D("COMP", "finances/reglements"), { data: '[{"id":"x","m":1000}]' })));
+await cas("le médecin saisit un règlement reçu", () => assertSucceeds(setDoc(D("MED", "finances/reglements"), { data: '[{"id":"x","m":1000}]' })));
+await cas("refusé : la secrétaire (sans « finances ») lit ou saisit un règlement", async () => { await assertFails(getDoc(D("SEC", "finances/reglements"))); await assertFails(setDoc(D("SEC", "finances/reglements"), { data: "[]" })); });
 await cas("le médecin prépare le relevé", () => assertSucceeds(setDoc(D("MED", "comptabilite/meta"), { n: 2 })));
 await cas("refusé : la secrétaire (sans « finances ») lit le relevé", () => assertFails(getDoc(D("SEC", "comptabilite/meta"))));
 console.log("Aucune donnée médicale");

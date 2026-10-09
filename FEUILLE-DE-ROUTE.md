@@ -790,8 +790,7 @@ commence par ses questions « À décider » (Claude les pose avant d'écrire le
 8. **Étape 4 – Plusieurs cabinets** (complétée ci-dessus : licences, quotas).
 9. **Étape 12 – Dossier de cession, démo et guides**.
 10. **Étape 13 – Interopérabilité** (la plus lourde, en dernier).
-- **Étape 15 – Bilan : virements et chèques reçus des cliniques** (demandé le 09/10, courte : une session ; à placer où Dr
-  Bentahila le souhaite).
+- **Étape 15 – Bilan : virements et chèques reçus des cliniques** (fait et testé le 09/10, pas encore en ligne).
 
 **Décidé le 08/10 : vendre des deux façons.** (a) **abonnements** (phase F, étape 4 : chaque cabinet paie, code
 d'activation) ; (b) **cession** du logiciel à un éditeur ou une ESN (prix visé 120 000 à 180 000 DH, étape 12). Les
@@ -1086,41 +1085,36 @@ formule tant que leurs modules n'existent pas).
   `data-mod`, sa page dans `PAGE_MODULE` (v2.js) ; « Ajouter les formules proposées par Onco360 » (onglet Formules) ajoute les
   nouvelles formules sans toucher à celles déjà modifiées. Le nom « Onco360 » sera peut-être à revoir pour les autres spécialités.
 
-## Étape 15 – Module Bilan : virements et chèques reçus des cliniques (demandé le 09/10/2026)
+## Étape 15 – Module Bilan : virements et chèques reçus des cliniques (demandé le 09/10/2026 ; fait et testé le 09/10, pas encore en ligne)
 But : dans la page **Bilan**, un endroit pour noter **chaque règlement reçu d'une clinique** (virement ou chèque) avec sa
 **date de réception**, pour la comptabilité de fin d'année. **Ne compte pas dans le bilan** : le bilan, c'est déjà l'activité
-elle-même (sinon tout serait compté deux fois). Le bilan doit rester identique au dirham près (352 317 DH pour 2026).
-À ne pas confondre avec « **Autres versements** » (KL, `finances/versements`), qui, eux, **s'ajoutent** au CA du bilan.
-Module « Bilan » : s'applique à tous les cabinets qui ont ce module.
+elle-même (sinon tout serait compté deux fois). À ne pas confondre avec « **Versements autres** » (KL, `finances/versements`),
+qui, eux, **s'ajoutent** au CA du bilan. Module « Bilan » : s'applique à tous les cabinets qui ont ce module.
 
-**Proposé (à valider par Dr Bentahila au début de l'étape)**
-- [ ] Nouvel onglet ou cadre **« Règlements reçus »** dans la page Bilan (sous les indicateurs, à part, avec la mention « non compté
-      dans le bilan »).
-- [ ] Une ligne = un règlement : **date de réception**, **clinique** (liste des lieux d'exercice du cabinet), **mode** (virement /
-      chèque), **montant**, **référence** (n° du chèque ou référence du virement), **banque**, **période ou actes concernés** (ex.
-      « honoraires septembre 2026 »), **date d'encaissement** (chèque déposé / virement vu sur le relevé de banque), **note**.
-- [ ] Ajouter, modifier, supprimer ; liste du plus récent au plus ancien ; **filtres** : année / mois, clinique, mode,
-      encaissé ou non ; **totaux** par clinique et par mois.
-- [ ] **Export Excel et PDF** (pour le comptable), comme le reste du bilan.
-- [ ] Pour information seulement (sans rien changer au bilan) : à côté du total reçu d'une clinique sur une période, rappeler le
-      montant « Payé » / « À recevoir » du bilan pour cette clinique et cette période (écart visible).
-- [ ] Qui : le **médecin** (droit « finances ») et le **comptable** (il pointe déjà les paiements et saisit les versements) ;
-      pas la secrétaire ni l'infirmière.
-- [ ] Données : une fiche par règlement `espaces/{e}/reglements/{id}` = { d (réception), etablissementId, mode, m, ref, banque,
-      periode, enc (date d'encaissement), note, creePar(Nom), majPar(Nom) } (une fiche par règlement plutôt qu'un seul document :
-      pas de limite de taille, deux personnes peuvent saisir en même temps). Règles : lu et écrit avec le droit « finances »,
-      comptable compris ; tests de règles à ajouter (`tests/regles`). Inclus automatiquement dans le journal d'audit et dans la
-      sauvegarde Drive (collections trouvées automatiquement). Cabinet neuf : liste vide.
-
-**Questions pour Dr Bentahila (début de l'étape)**
-- [ ] Ajouter aussi les **espèces** et les règlements d'autres payeurs (mutuelle, patient) ou seulement les cliniques ?
-- [ ] Joindre une **photo du chèque ou de l'avis de virement** (Cloud Storage, comme l'onglet Documents) ?
-- [ ] Un règlement reçu doit-il pouvoir **cocher « Payé »** les actes qu'il couvre (lien avec le pointage du bilan), ou rester
-      une simple liste à part ? (Proposé : liste à part pour commencer, le pointage reste manuel.)
-- [ ] Le comptable peut-il les **saisir**, ou seulement les **lire** ?
-
-**Tests** : médecin, comptable (saisie ou lecture selon la décision), secrétaire (rien), 390 px, **bilan 2026 inchangé
-(352 317 DH)**, règles de sécurité, aucune erreur dans la console.
+**Décidé par Dr Bentahila (09/10)** : cliniques seulement (ni espèces, ni mutuelles, ni patients) ; pas de photo du chèque ou de
+l'avis de virement ; liste à part, sans lien avec le pointage « Payé » des actes ; le comptable **lit** seulement ; cadre placé
+**sous « Versements autres »**.
+- [x] Cadre **« Règlements reçus des cliniques »** sous « Versements autres », avec la mention « non comptés dans le bilan ».
+- [x] Une ligne = un règlement : **date de réception**, **clinique** (lieux d'exercice du cabinet), **mode** (virement / chèque),
+      **montant**, **n° du chèque ou référence du virement**, **banque**, **période ou actes concernés**, **encaissé le** (banque ;
+      vide = « Pas encore »), **note**. Contrôles : date, clinique, montant obligatoires ; encaissement pas avant la réception.
+- [x] Ajouter (« + Nouveau règlement reçu »), modifier ✎, supprimer ✕ ; liste du plus récent au plus ancien. Filtres : la
+      **période et l'établissement du haut de la page** (date de réception), plus **mode** et **encaissement** (encaissés / pas
+      encore).
+- [x] **Totaux** : total reçu, par clinique (virements, chèques, total) et **par mois de réception** (si la période couvre
+      plusieurs mois). Pour information à côté de chaque clinique : actes de la même période dans le bilan (NET, dont payé, dont à
+      recevoir), sans rien changer au bilan.
+- [x] **Exports** : feuille « Règlements reçus » dans l'Excel du bilan, tableau à la fin du PDF (indicateurs du bilan inchangés).
+- [x] Qui : médecin (droit « finances ») ajoute, modifie, supprime ; **comptable : lecture seule** (aucun bouton) ; secrétaire et
+      infirmière : rien (pas de page Bilan).
+- [x] Données : `finances/reglements` = { data: JSON [{ id, d, hop, mode vir|chq, m, ref, banque, per, enc, note, par, parNom,
+      le }] } (comme les versements ; liste relue juste avant chaque enregistrement). **Règles inchangées** : la règle existante
+      donne déjà l'écriture au droit « finances » et ne laisse au comptable que paiements et versements. 4 tests de règles ajoutés
+      (`test-comptable.mjs`). Journal d'audit et sauvegarde Drive : automatiques (collection `finances`).
+- [x] Tests : règles (toutes réussies, 19/19 pour le comptable) ; navigateur avec le faux Firebase : ajout, contrôles, modification,
+      suppression, filtres mode / encaissement / clinique / période, PDF, Excel sans erreur, comptable en lecture seule, téléphone
+      390 px sans débordement, **bilan 2026 inchangé (352 317 DH)**, aucune erreur dans la console.
+- [ ] Mise en ligne (site seulement : `firebase deploy --only hosting`), avec l'accord de Dr Bentahila.
 
 ## Étape 12 – Dossier de cession, démonstration et guides
 But : un acheteur (éditeur, ESN, clinique) reprend Onco360 **sans avoir besoin d'appeler Dr Bentahila**.
@@ -1299,3 +1293,4 @@ Onco360_Package_Cession/
 | 10/10/2026 | Paramètres et menus par spécialité | Paramètres de base mis de côté dans la bibliothèque Oncologie – Radiothérapie (repris une fois du cabinet du Dr Bentahila, nettoyés : ni correspondants, ni prix des consultations, ni absences, ni lieu de RCP), modifiables depuis l'Administration, copiés aux nouveaux cabinets. Onglet « Modules et menus » (modules communs, propres à une spécialité, prévus pour la médecine générale). Tests 21/21, 48/48, 44/44, bilan 352 317 DH. Mis en ligne. |
 | 09/10/2026 | 5 – Tâches RT | Tâches contourage / dosimétrie en bandeau sur toute la période dans Google Agenda (champ `debut`), « Du … au … » dans la liste. Tests 85/85. Pas encore en ligne. |
 | 09/10/2026 | Plan – Bilan | Demande notée : étape 15, « Règlements reçus » (virements et chèques des cliniques, date de réception) dans la page Bilan, hors bilan, pour la comptabilité ; questions à valider au début de l'étape. |
+| 09/10/2026 | 15 – Bilan, règlements reçus | Cadre « Règlements reçus des cliniques » sous « Versements autres » (virements et chèques, date de réception, référence, banque, période concernée, encaissé le, note), hors bilan ; totaux par clinique et par mois, rappel des actes de la période pour information ; Excel et PDF ; comptable en lecture seule. `finances/reglements`, règles inchangées (+4 tests). Bilan 352 317 DH, 390 px, aucune erreur. Pas encore en ligne. |

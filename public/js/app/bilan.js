@@ -1,5 +1,6 @@
 // Onco360 – Bilan (étape C6), repris de l'application actuelle : période et filtres, totaux, journal détaillé avec
-// « Payé / à recevoir », référents, radiothérapies prévisionnelles, autres versements, export Excel et PDF.
+// « Payé / à recevoir », référents, radiothérapies prévisionnelles, autres versements, règlements reçus des cliniques (hors
+// bilan), export Excel et PDF.
 // Réservé au droit « finances ». Les calculs viennent du moteur v2 (même résultat au dirham près que la v1).
 import { doc, getDoc, getDocs, setDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { db } from "../config.js";
@@ -11,7 +12,7 @@ import { activite } from "../moteur/tarifs.js";
 let A = null;
 export function installer(api) { A = api; }
 const D = () => A.D();
-let F = { per: "mois", du: "", au: "", hop: "tous", typ: "tous", q: "", cor: "tous", pay: "tous" }, B = null, RES = null, DATA = null;
+let F = { per: "mois", du: "", au: "", hop: "tous", typ: "tous", q: "", cor: "tous", pay: "tous", rmode: "tous", renc: "tous" }, B = null, RES = null, DATA = null;
 const TYPES0 = [["tous", "Tous les actes"], ["seance", "Séances chimio"], ["cchimio", "Consultations chimio"], ["annonce", "Consultations annonce"], ["suivi", "Consultations suivi"], ["controle", "Contrôles"], ["hospit", "Hospitalisations"], ["rt", "Radiothérapie"], ["kl", "Autres versements"]];
 // Types d'actes : liste de base + activités ajoutées dans les Paramètres (2nd avis…)
 const typesActes = () => { const l = TYPES0.slice(), T = D().tarifs || {}; Object.values(T.etablissements || {}).forEach((e) => (e.activites || []).forEach((a) => { if (!l.some((x) => x[0] === a.type)) l.splice(l.length - 1, 0, [a.type, a.libelle]); })); return l; };
@@ -55,8 +56,8 @@ async function chargerReleve() {
   const meta = m.exists() ? m.data() : { n: 0 }, parts = await Promise.all(Array.from({ length: meta.n || 0 }, (_, i) => getDoc(E("comptabilite", "releve_" + i))));
   RES = [].concat(...parts.map((p) => (p.exists() ? JSON.parse(p.data().data || "[]") : []))).map((x) => Object.assign({ diag: "" }, x));
   RELEVE_LE = !meta.le ? null : meta.le.toDate ? meta.le.toDate() : new Date(meta.le);
-  const [sp, sv] = await Promise.all([getDoc(E("finances", "paiements")).catch(() => null), getDoc(E("finances", "versements")).catch(() => null)]);
-  B = { M: {}, paiements: sp && sp.exists() ? JSON.parse(sp.data().data || "{}") : {}, versements: sv && sv.exists() ? JSON.parse(sv.data().data || "[]") : [] };
+  const [sp, sv, sr] = await Promise.all([getDoc(E("finances", "paiements")).catch(() => null), getDoc(E("finances", "versements")).catch(() => null), getDoc(E("finances", "reglements")).catch(() => null)]);
+  B = { M: {}, paiements: sp && sp.exists() ? JSON.parse(sp.data().data || "{}") : {}, versements: sv && sv.exists() ? JSON.parse(sv.data().data || "[]") : [], reglements: liste(sr) };
 }
 // Lien vers le dossier depuis une ligne du bilan (pas pour le comptable : il n'ouvre aucun dossier)
 const lienDossier = (id) => (id && !estComptable() ? ' class="cl" onclick="ouvrirDossier(\'' + id + "')\"" : "");
@@ -64,9 +65,9 @@ const lienDossier = (id) => (id && !estComptable() ? ' class="cl" onclick="ouvri
 // Chargement : montants de tous les dossiers, paiements, versements (une fois par session ; « Actualiser » recharge)
 async function charger() {
   const E = (c, i) => doc(db, "espaces", A.ESPACE, c, i);
-  const [sf, sp, sv] = await Promise.all([getDocs(collection(db, "espaces", A.ESPACE, "patientsFinances")), getDoc(E("finances", "paiements")).catch(() => null), getDoc(E("finances", "versements")).catch(() => null)]);
+  const [sf, sp, sv, sr] = await Promise.all([getDocs(collection(db, "espaces", A.ESPACE, "patientsFinances")), getDoc(E("finances", "paiements")).catch(() => null), getDoc(E("finances", "versements")).catch(() => null), getDoc(E("finances", "reglements")).catch(() => null)]);
   const M = {}; sf.forEach((d) => { try { M[d.id] = JSON.parse(d.data().montantsJson || "{}"); } catch (e) { M[d.id] = {}; } });
-  B = { M, paiements: sp && sp.exists() ? JSON.parse(sp.data().data || "{}") : {}, versements: sv && sv.exists() ? JSON.parse(sv.data().data || "[]") : [] };
+  B = { M, paiements: sp && sp.exists() ? JSON.parse(sp.data().data || "{}") : {}, versements: sv && sv.exists() ? JSON.parse(sv.data().data || "[]") : [], reglements: liste(sr) };
   RES = null;
 }
 function resumes() {
@@ -132,6 +133,7 @@ function dessiner() {
   h += '<section class="carte"><h3><span class="ic"><svg class="i"><use href="#i-banque"/></svg></span>Versements autres</h3><p class="sous">Sommes reçues hors patients (KL, laboratoire…), ajoutées au bilan à leur date, établissement « Non renseigné ».</p>' +
     (KL.length ? '<div class="tableau"><table class="tcures bilan"><tr><th>Date</th><th>Libellé</th><th class="n">Montant</th><th></th></tr>' + KL.map(({ e, i }) => "<tr><td>" + A.dfrA(e.d) + "</td><td>" + esc(e.lib || "KL") + '</td><td class="n">' + dh(e.m) + '</td><td><button class="mini rouge" onclick="biKlSup(' + i + ')">✕</button></td></tr>').join("") + "</table></div>" : '<p class="mesures">Aucun versement.</p>') +
     '<div class="actr" style="justify-content:flex-start;margin-top:10px"><input id="klD" type="date" class="champ" style="max-width:170px;font-size:15px;padding:8px" value="' + D().t + '"><input id="klM" inputmode="decimal" class="champ mt" style="max-width:150px;font-size:15px;padding:8px" placeholder="Montant DH"><input id="klL" class="champ" style="flex:1;min-width:180px;font-size:15px;padding:8px" placeholder="Libellé * (ex. KL, laboratoire…)"><button class="bt clair petit" onclick="biKlAj()">+ Ajouter</button></div></section>';
+  h += htmlReglements(b, R);
   A.$("page").innerHTML = h;
   const q = A.$("biQ"); q.oninput = () => { clearTimeout(q.t); q.t = setTimeout(() => { F.q = q.value; dessiner(); const i = A.$("biQ"); i.focus(); i.setSelectionRange(i.value.length, i.value.length); }, 300); };
 }
@@ -152,6 +154,99 @@ window.biKlAj = async () => {
 };
 window.biKlSup = async (i) => { const e = B.versements[i]; if (!confirm("Supprimer le versement « " + (e.lib || "KL") + " » de " + dh(e.m) + " ?")) return; B.versements.splice(i, 1); try { await sauverKL(); } catch (er) { B.versements.splice(i, 0, e); A.toast(er.message); } };
 
+// ───── Règlements reçus des cliniques (étape 15, 09/10/2026) ─────
+// finances/reglements = { data: JSON [{ id, d (date de réception), hop (clinique), mode vir|chq, m, ref (n° du chèque ou référence
+// du virement), banque, per (période ou actes concernés), enc (encaissé le), note, par, parNom, le }] }.
+// Pour la comptabilité seulement : jamais comptés dans le bilan (le bilan compte déjà les actes). Écrits par le médecin
+// (droit « finances »), lus par le comptable (règle : il n'écrit que paiements et versements).
+const liste = (s) => { try { return s && s.exists() ? JSON.parse(s.data().data || "[]") : []; } catch (e) { return []; } };
+const MODES = { vir: "Virement", chq: "Chèque" };
+const peutRg = () => A.peut("finances") && !estComptable();
+const somme = (l) => l.reduce((a, r) => a + (num(r.m) || 0), 0);
+const moisTxt = (m) => { const t = new Date(m + "-15T12:00:00").toLocaleDateString("fr-FR", { month: "long", year: "numeric" }); return t.charAt(0).toUpperCase() + t.slice(1); };
+const etabNom = (c) => { const e = (D().etabsTous || D().etabs || []).find((z) => z.code === c); return "<b>" + A.esc(c || "—") + "</b>" + (e && e.nom ? '<div class="mesures">' + A.esc(e.nom) + "</div>" : ""); };
+// Règlements de la période et de l'établissement choisis en haut de la page, puis mode et encaissement
+function reglementsFiltres(pr) {
+  return (B.reglements || []).filter((r) => r.d >= pr[0] && r.d <= pr[1] && (F.hop === "tous" || (r.hop || "—") === F.hop) &&
+    (F.rmode === "tous" || r.mode === F.rmode) && (F.renc === "tous" || (F.renc === "oui" ? !!r.enc : !r.enc))).sort((a, z) => z.d.localeCompare(a.d) || (z.le || 0) - (a.le || 0));
+}
+function htmlReglements(b, R) {
+  const esc = A.esc, L = reglementsFiltres(b.pr), tot = somme(L), ed = peutRg();
+  DATA.rg = L;
+  const sel = (v, opts, f) => '<select onchange="biF(\'' + f + '\',this.value)">' + opts.map((o) => '<option value="' + o[0] + '"' + (o[0] === v ? " selected" : "") + ">" + o[1] + "</option>").join("") + "</select>";
+  let h = '<section class="carte" id="biRg"><h3><span class="ic"><svg class="i"><use href="#i-banque"/></svg></span>Règlements reçus des cliniques</h3>' +
+    '<p class="sous">Virements et chèques reçus des cliniques, avec leur date de réception, pour la comptabilité. <b>Non comptés dans le bilan</b> (le bilan compte déjà les actes). Période et établissement : ceux choisis en haut de la page.' + (ed ? "" : " Lecture seule.") + "</p>" +
+    '<div class="form" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr));margin-bottom:10px"><div><label>Mode</label>' + sel(F.rmode, [["tous", "Virements et chèques"], ["vir", "Virements"], ["chq", "Chèques"]], "rmode") + "</div>" +
+    "<div><label>Encaissement</label>" + sel(F.renc, [["tous", "Tous"], ["oui", "Encaissés"], ["non", "Pas encore encaissés"]], "renc") + "</div></div>";
+  if (L.length) {
+    // Par clinique, avec pour information les actes de la même période dans le bilan (NET, payé, à recevoir)
+    const cl = [...new Set(L.map((r) => r.hop || "—"))].sort();
+    h += '<div class="kpi" style="margin-bottom:10px"><div class="k fort"><b>' + dh(tot) + "</b><span>Total reçu – " + L.length + " règlement" + (L.length > 1 ? "s" : "") + "</span></div>" +
+      cl.map((c) => { const l = L.filter((r) => (r.hop || "—") === c); return '<div class="k"><b>' + dh(somme(l)) + "</b><span>" + esc(c) + " – " + l.length + "</span></div>"; }).join("") + "</div>";
+    h += '<div class="tableau"><table class="tcures bilan"><tr><th>Clinique</th><th class="n">Virements</th><th class="n">Chèques</th><th class="n">Total reçu</th><th class="n">Actes de la période (NET)</th><th class="n">dont payé</th><th class="n">dont à recevoir</th></tr>' +
+      cl.map((c) => {
+        const l = L.filter((r) => (r.hop || "—") === c), T = calculerBilan(R, [], PE, { per: "", du: b.pr[0], au: b.pr[1], hop: c }, D().t).tot;
+        return "<tr><td>" + etabNom(c) + '</td><td class="n">' + dh(somme(l.filter((r) => r.mode === "vir"))) + '</td><td class="n">' + dh(somme(l.filter((r) => r.mode === "chq"))) + '</td><td class="n"><b>' + dh(somme(l)) + '</b></td><td class="n">' + dh(T.caNet) + '</td><td class="n">' + dh(T.paye) + '</td><td class="n">' + dh(T.aRecevoir) + "</td></tr>";
+      }).join("") + '</table></div><p class="mesures" style="margin:4px 0 12px">Actes de la période : pour information seulement (un règlement reçu un mois paie souvent les actes d\'un mois précédent).</p>';
+    // Par mois, si la période en couvre plusieurs
+    const mois = [...new Set(L.map((r) => r.d.slice(0, 7)))].sort().reverse();
+    if (mois.length > 1) h += '<div class="tableau"><table class="tcures bilan"><tr><th>Mois de réception</th><th>Par clinique</th><th class="n">Total reçu</th></tr>' +
+      mois.map((m) => { const l = L.filter((r) => r.d.slice(0, 7) === m), parC = {}; l.forEach((r) => { parC[r.hop || "—"] = (parC[r.hop || "—"] || 0) + (num(r.m) || 0); });
+        return "<tr><td>" + moisTxt(m) + "</td><td>" + Object.keys(parC).sort().map((c) => esc(c) + " " + dh(parC[c])).join(" · ") + '</td><td class="n"><b>' + dh(somme(l)) + "</b></td></tr>"; }).join("") + "</table></div>";
+    h += '<div class="tableau" style="margin-top:12px"><table class="tcures bilan"><tr><th>Reçu le</th><th>Clinique</th><th>Mode</th><th>Référence</th><th>Banque</th><th>Période concernée</th><th class="n">Montant</th><th>Encaissé le</th><th>Note</th>' + (ed ? "<th></th>" : "") + "</tr>" +
+      L.map((r) => "<tr><td>" + A.dfrA(r.d) + "</td><td>" + esc(r.hop || "—") + "</td><td>" + (MODES[r.mode] || "—") + "</td><td>" + esc(r.ref || "") + "</td><td>" + esc(r.banque || "") + "</td><td>" + esc(r.per || "") + '</td><td class="n"><b>' + dh(r.m) + "</b></td><td>" +
+        (r.enc ? A.dfrA(r.enc) : '<span style="color:var(--orange);font-weight:bold">Pas encore</span>') + '</td><td class="mesures">' + esc(r.note || "") + "</td>" +
+        (ed ? '<td style="white-space:nowrap"><button class="mini" title="Modifier" onclick="biRgFiche(\'' + esc(r.id) + '\')">✎</button> <button class="mini rouge" title="Supprimer" onclick="biRgSup(\'' + esc(r.id) + '\')">✕</button></td>' : "") + "</tr>").join("") +
+      '<tr class="tot"><td colspan="6" class="n"><b>Total</b></td><td class="n"><b>' + dh(tot) + '</b></td><td colspan="' + (ed ? 3 : 2) + '"></td></tr></table></div>';
+  } else h += '<p class="mesures">' + ((B.reglements || []).length ? "Aucun règlement reçu sur cette période." : "Aucun règlement enregistré.") + "</p>";
+  if (ed) h += '<div class="actr" style="justify-content:flex-start;margin-top:10px"><button class="bt clair petit" onclick="biRgFiche()">+ Nouveau règlement reçu</button></div>';
+  return h + "</section>";
+}
+// Écriture : la liste est relue juste avant (deux personnes peuvent saisir en même temps), puis réécrite
+async function sauverRg(op) {
+  const R = doc(db, "espaces", A.ESPACE, "finances", "reglements"), l = op(liste(await getDoc(R)));
+  await setDoc(R, { data: JSON.stringify(l) }); B.reglements = l;
+}
+const redessinerRg = () => { const y = window.scrollY; dessiner(); window.scrollTo(0, y); };
+window.biRgFiche = (id) => {
+  if (!peutRg()) return;
+  const r = id ? (B.reglements || []).find((z) => z.id === id) : null; if (id && !r) return;
+  const esc = A.esc, v = (k, d) => esc(r ? r[k] || "" : d || ""), etabs = (D().etabsTous || D().etabs || []).filter((e) => e.actif !== false || (r && r.hop === e.code));
+  const hop0 = r ? r.hop : F.hop !== "tous" && F.hop !== "—" ? F.hop : (D().etabs[0] || {}).code || "";
+  A.fenetre("<h3>" + (r ? "Modifier le règlement reçu" : "Nouveau règlement reçu") + '</h3><p class="sous">Virement ou chèque reçu d\'une clinique. Pour la comptabilité : non compté dans le bilan.</p><div class="form">' +
+    '<div><label for="rgD">Date de réception *</label><input id="rgD" type="date" value="' + v("d", D().t) + '"></div>' +
+    '<div><label for="rgHop">Clinique *</label><select id="rgHop"><option value="">—</option>' + etabs.map((e) => '<option value="' + esc(e.code) + '"' + (e.code === hop0 ? " selected" : "") + ">" + esc(e.code + (e.nom ? " – " + e.nom : "")) + "</option>").join("") + "</select></div>" +
+    '<div><label for="rgMode">Mode *</label><select id="rgMode">' + Object.keys(MODES).map((k) => '<option value="' + k + '"' + ((r ? r.mode : "vir") === k ? " selected" : "") + ">" + MODES[k] + "</option>").join("") + "</select></div>" +
+    '<div><label for="rgM">Montant (DH) *</label><input id="rgM" inputmode="decimal" value="' + (r ? esc(String(r.m)) : "") + '"></div>' +
+    '<div><label for="rgRef">N° du chèque ou référence du virement</label><input id="rgRef" value="' + v("ref") + '"></div>' +
+    '<div><label for="rgBq">Banque</label><input id="rgBq" value="' + v("banque") + '"></div>' +
+    '<div><label for="rgPer">Période ou actes concernés</label><input id="rgPer" value="' + v("per") + '" placeholder="ex. honoraires septembre 2026"></div>' +
+    '<div><label for="rgEnc">Encaissé le (banque)</label><input id="rgEnc" type="date" value="' + v("enc") + '"></div>' +
+    '<div class="large"><label for="rgNote">Note</label><textarea id="rgNote" rows="2">' + v("note") + "</textarea></div></div>" +
+    '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt plein" id="rgOk">Enregistrer</button></div>');
+  A.$("rgOk").onclick = async () => {
+    const n = { d: A.val("rgD"), hop: A.val("rgHop"), mode: A.val("rgMode"), m: num(A.val("rgM")), ref: A.val("rgRef"), banque: A.val("rgBq"), per: A.val("rgPer"), enc: A.val("rgEnc"), note: A.val("rgNote") };
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(n.d)) { A.erreur("Indiquez la date de réception."); return; }
+    if (!n.hop) { A.erreur("Choisissez la clinique."); return; }
+    if (n.m == null || !(n.m > 0)) { A.erreur("Indiquez le montant reçu."); return; }
+    if (n.enc && n.enc < n.d) { A.erreur("La date d'encaissement est avant la date de réception."); return; }
+    const p = D().profil || {}, qui = { par: D().u.uid, parNom: [p.titre || "Dr", p.prenom, p.nom].filter(Boolean).join(" "), le: Date.now() };
+    A.occupe(A.$("rgOk"), true);
+    try {
+      if (r) await sauverRg((l) => l.map((z) => (z.id === r.id ? Object.assign({}, z, n, qui) : z)));
+      else await sauverRg((l) => l.concat([Object.assign({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6) }, n, qui)]));
+      A.journal({ id: "", r: { nm: "" } }, (r ? "Règlement reçu modifié : " : "Règlement reçu ajouté : ") + MODES[n.mode] + " " + n.hop + " (" + n.m + " DH)");
+      A.fermerFenetre(); A.toast(r ? "Règlement modifié." : "Règlement enregistré."); redessinerRg();
+    } catch (e) { A.occupe(A.$("rgOk"), false); A.erreur(e && e.code === "permission-denied" ? "Vous n'avez pas le droit d'enregistrer un règlement." : "Enregistrement impossible : " + ((e && e.message) || e)); }
+  };
+};
+window.biRgSup = async (id) => {
+  const r = (B.reglements || []).find((z) => z.id === id); if (!r || !peutRg()) return;
+  if (!confirm("Supprimer le règlement reçu le " + A.dfrA(r.d) + " de " + (r.hop || "—") + " (" + (MODES[r.mode] || "") + ", " + dh(r.m) + ") ?")) return;
+  try { await sauverRg((l) => l.filter((z) => z.id !== id)); A.journal({ id: "", r: { nm: "" } }, "Règlement reçu supprimé : " + (r.hop || "") + " (" + r.m + " DH)"); redessinerRg(); }
+  catch (e) { A.toast("Suppression impossible : " + ((e && e.message) || e)); }
+};
+
 // ───── Exports ─────
 const filtresTxt = () => ["Période : du " + A.dfrA(DATA.pr[0] > "0001" ? DATA.pr[0] : "") + " au " + A.dfrA(DATA.pr[1] < "9999" ? DATA.pr[1] : ""), "Établissement : " + (F.hop === "tous" ? "tous" : F.hop), "Type d'acte : " + (typesActes().find((t) => t[0] === F.typ) || [0, F.typ])[1], "Paiement : " + ({ tous: "payés et à recevoir", paye: "payés", att: "à recevoir" }[F.pay]), "Référent : " + (F.cor === "tous" ? "tous" : F.cor || "sans référent")].concat(F.q ? ["Recherche : " + F.q] : []);
 const nomMed = () => { if (estComptable()) return String((D().medTitulaire && D().medTitulaire.nom) || D().nomTitulaire || ""); const p = D().profil || {}; return [p.titre || "Dr", p.prenom, String(p.nom || "").replace(/^Dr\.?\s*/i, "").toLowerCase().replace(/(^|[\s-])\S/g, (c) => c.toUpperCase())].filter(Boolean).join(" "); };
@@ -164,7 +259,10 @@ window.biExport = async (fmt) => {
     const html = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + nom + '</title><style>@page{size:A4 landscape;margin:12mm}body{font-family:Arial,sans-serif;font-size:9pt;color:#222}table{border-collapse:collapse;width:100%;margin-top:8px}th{background:#2B2D5C;color:#fff;padding:4px 5px;text-align:left}</style></head><body>' +
       '<div style="font-size:15pt;font-weight:bold;color:#2B2D5C">BILAN – ' + esc(nomMed()) + '</div><div style="color:#666">Édité le ' + A.dfrA(D().t) + "</div><div style=\"margin:6px 0\">" + filtresTxt().map(esc).join("<br>") + "</div>" +
       "<table><tr><th>Indicateur</th><th>Montant NET</th><th>Nombre</th></tr>" + indic().map((k) => "<tr><td " + td + ">" + k[0] + "</td><td " + tr + ">" + dh(k[1]) + "</td><td " + tr + ">" + k[2] + "</td></tr>").join("") + "</table>" +
-      "<table><tr><th>Date</th><th>Patient</th><th>Hôpital</th><th>Acte / prestation</th><th>Statut</th><th>Brut</th><th>Taux</th><th>NET</th><th>Paiement</th></tr>" + DATA.all.map((o) => "<tr><td " + td + ">" + A.dfrA(o.d) + "</td><td " + td + ">" + esc(o.nm) + "</td><td " + td + ">" + esc(o.hop || "—") + "</td><td " + td + ">" + esc(o.lib) + "</td><td " + td + ">" + esc(o.st) + "</td><td " + tr + ">" + dh(o.brut) + "</td><td " + tr + ">" + tauxTxt(o) + "</td><td " + tr + "><b>" + dh(o.net) + "</b></td><td " + td + ">" + payeTxt(o) + "</td></tr>").join("") + "</table></body></html>";
+      "<table><tr><th>Date</th><th>Patient</th><th>Hôpital</th><th>Acte / prestation</th><th>Statut</th><th>Brut</th><th>Taux</th><th>NET</th><th>Paiement</th></tr>" + DATA.all.map((o) => "<tr><td " + td + ">" + A.dfrA(o.d) + "</td><td " + td + ">" + esc(o.nm) + "</td><td " + td + ">" + esc(o.hop || "—") + "</td><td " + td + ">" + esc(o.lib) + "</td><td " + td + ">" + esc(o.st) + "</td><td " + tr + ">" + dh(o.brut) + "</td><td " + tr + ">" + tauxTxt(o) + "</td><td " + tr + "><b>" + dh(o.net) + "</b></td><td " + td + ">" + payeTxt(o) + "</td></tr>").join("") + "</table>" +
+      (DATA.rg && DATA.rg.length ? '<div style="font-size:12pt;font-weight:bold;color:#2B2D5C;margin-top:14px">Règlements reçus des cliniques (non comptés dans le bilan)</div><table><tr><th>Reçu le</th><th>Clinique</th><th>Mode</th><th>Référence</th><th>Banque</th><th>Période concernée</th><th>Montant</th><th>Encaissé le</th><th>Note</th></tr>' +
+        DATA.rg.map((r) => "<tr><td " + td + ">" + A.dfrA(r.d) + "</td><td " + td + ">" + esc(r.hop || "—") + "</td><td " + td + ">" + (MODES[r.mode] || "") + "</td><td " + td + ">" + esc(r.ref || "") + "</td><td " + td + ">" + esc(r.banque || "") + "</td><td " + td + ">" + esc(r.per || "") + "</td><td " + tr + ">" + dh(r.m) + "</td><td " + td + ">" + (r.enc ? A.dfrA(r.enc) : "pas encore") + "</td><td " + td + ">" + esc(r.note || "") + "</td></tr>").join("") +
+        "<tr><td " + td + ' colspan="6"><b>Total reçu</b></td><td ' + tr + "><b>" + dh(somme(DATA.rg)) + "</b></td><td " + td + ' colspan="2"></td></tr></table>' : "") + "</body></html>";
     const w = window.open("", "_blank"); if (!w) { A.toast("Autorisez l'ouverture des fenêtres pour imprimer le bilan."); return; }
     w.document.open(); w.document.write(html); w.document.close(); setTimeout(() => { w.focus(); w.print(); }, 500); return;
   }
@@ -176,6 +274,7 @@ window.biExport = async (fmt) => {
     jr.push(["", "", "", "", "", "", "", "TOTAL", Math.round(DATA.tot.caNet * 100) / 100, ""]);
     const feuilles = [["Synthèse", syn, [48, 18, 10]], ["Journal", jr, [11, 28, 22, 9, 52, 11, 12, 16, 16, 18]]];
     if (DATA.prev.length) feuilles.push(["RT prévisionnel", [["Fin prévue", "Patient", "Hôpital", "Acte", "NET prévisionnel (DH)"]].concat(DATA.prev.map((o) => [o.d ? A.dfrA(o.d) : "—", o.nm, o.hop || "—", o.lib, num(o.net) || 0])), [11, 28, 9, 45, 18]]);
+    if (DATA.rg && DATA.rg.length) feuilles.push(["Règlements reçus", [["Reçu le", "Clinique", "Mode", "Référence", "Banque", "Période concernée", "Montant (DH)", "Encaissé le", "Note"]].concat(DATA.rg.map((r) => [A.dfrA(r.d), r.hop || "—", MODES[r.mode] || "", r.ref || "", r.banque || "", r.per || "", num(r.m) || 0, r.enc ? A.dfrA(r.enc) : "pas encore", r.note || ""])).concat([["", "", "", "", "", "TOTAL (non compté dans le bilan)", Math.round(somme(DATA.rg) * 100) / 100, "", ""]]), [11, 10, 10, 18, 14, 30, 14, 12, 30]]);
     await excel(feuilles, nom + ".xlsx");
   } catch (e) { A.toast("Export Excel impossible : " + e.message); }
 };
