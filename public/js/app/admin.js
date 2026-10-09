@@ -6,13 +6,13 @@
 import { app, auth, db } from "../config.js";
 import { onAuthStateChanged, sendPasswordResetEmail, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { MODULES, ROLES_MAX, SPECIALITES, FORMULES as FORMULES0, abonnementEffectif } from "../donnees/modules.js";
+import { MODULES, ROLES_MAX, SPECIALITES, FORMULES as FORMULES0, abonnementEffectif, BIBLIOTHEQUES_SPE, MODULE_FAMILLE, MODULE_MENU, MENU_COMMUN, MODULES_PREVUS } from "../donnees/modules.js";
 
 const $ = (i) => document.getElementById(i);
 const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const dfr = (d) => (typeof d === "string" && d.length >= 10 ? d.slice(8, 10) + "/" + d.slice(5, 7) + "/" + d.slice(0, 4) : "");
 const sansAcc = (x) => String(x || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
-const ONGLETS = [["cabinets", "Cabinets"], ["nouveau", "Nouveau cabinet"], ["formules", "Formules"], ["reference", "Bibliothèques"]];
+const ONGLETS = [["cabinets", "Cabinets"], ["nouveau", "Nouveau cabinet"], ["formules", "Formules"], ["modules", "Modules et menus"], ["reference", "Bibliothèques et paramètres"]];
 // CABINETS : liste (null = chargement) ; FS : formules enregistrées (sinon celles de départ) ; FED : formules en cours de modification
 let CABINETS = null, FS = null, FED = null, BIBS = null, // BIBS : bibliothèques de référence par spécialité (null = pas encore lues)
    MSG = "", RES = "", Q = "", STATUT = "", SPE = "", SPEF = "";
@@ -59,7 +59,7 @@ function dessiner() {
   const o = ONG();
   $("onglets").innerHTML = ONGLETS.map(([k, lib]) => '<a href="#' + k + '" class="' + (k === o ? "on" : "") + '">' + esc(lib) + (k === "cabinets" && CABINETS ? ' <span class="nb">' + CABINETS.length + "</span>" : "") + "</a>").join("");
   const bandeau = RES ? '<div class="ok bandeau">' + RES + '<button class="x" id="resX" aria-label="Fermer">✕</button></div>' : "";
-  $("page").innerHTML = bandeau + (o === "nouveau" ? htmlNouveau() : o === "formules" ? htmlFormules() : o === "reference" ? htmlReference() : htmlCabinets());
+  $("page").innerHTML = bandeau + (o === "nouveau" ? htmlNouveau() : o === "formules" ? htmlFormules() : o === "reference" ? htmlReference() : o === "modules" ? htmlModules() : htmlCabinets());
   if ($("resX")) $("resX").onclick = () => { RES = ""; dessiner(); };
   if (o === "nouveau") brancherNouveau(); else if (o === "formules") brancherFormules(); else if (o === "reference") brancherReference(); else brancherCabinets();
 }
@@ -136,7 +136,11 @@ async function reinitDemo(b) {
 const LIBS = [["protocoles", "Protocoles de chimiothérapie"], ["medicaments", "Médicaments"], ["ordostypes", "Ordonnances types"], ["analyses", "Analyses"], ["bilans", "Bilans biologiques"], ["examens", "Examens complémentaires"], ["courriers", "Courriers"], ["documentation", "Documentation (Doc.)"]];
 function htmlReference() {
   const L = BIBS === null ? null : BIBS;
-  return '<section class="carte"><h2>Bibliothèques</h2><p class="sous">Une bibliothèque par spécialité : c\'est ce que reçoit chaque <b>nouveau</b> cabinet selon la spécialité de sa formule (protocoles, médicaments, ordonnances types, analyses et bilans, examens, courriers, documentation, diagnostics et mutuelles, jours fériés, tarifs de radiothérapie). Elles sont <b>mises de côté</b> : ce que fait un médecin dans son cabinet, y compris le Dr Bentahila, ne les change pas. Vous les modifiez ici, avec les écrans habituels d\'Onco360. Les cabinets déjà créés gardent leur propre copie.</p></section>' +
+  return '<section class="carte"><h2>Bibliothèques et paramètres de base</h2><p class="sous">Pour chaque spécialité, ce que reçoit chaque <b>nouveau</b> cabinet selon la spécialité de sa formule :</p>' +
+    '<ul class="liste-m"><li><b>Bibliothèques</b> : protocoles de chimiothérapie, médicaments, ordonnances types, analyses et bilans, examens complémentaires, courriers, documentation (Doc.).</li>' +
+    '<li><b>Paramètres de base</b> : créneaux et horaires, jours fériés, messages WhatsApp, couleurs de Google Agenda, types de documents et de tâches, tâches automatiques, jours et heure de RCP, diagnostics et mutuelles, marges d\'impression, alertes, tarifs de radiothérapie.</li>' +
+    '<li><b>Jamais</b> : correspondants, prix des consultations, lieux d\'exercice, équipe, patients.</li></ul>' +
+    '<p class="sous">Tout est <b>mis de côté</b> : ce que fait un médecin dans son cabinet, y compris le Dr Bentahila, n\'y change rien. Vous les modifiez ici (« Ouvrir et modifier »), avec les écrans habituels d\'Onco360. Les cabinets déjà créés gardent leur propre copie.</p></section>' +
     (L === null ? '<section class="carte"><p class="sous">Chargement…</p></section>' : '<div class="cabs">' + L.map((B) => '<article class="cab"><div class="haut"><div><h3>' + esc(B.lib) + '</h3><div class="m">' + esc(B.specialites.join(" · ")) + "</div></div>" + (B.existe ? '<span class="bdg ok">En place</span>' : '<span class="bdg">À créer</span>') + "</div>" +
       (B.existe ? '<div class="chiffres" style="grid-template-columns:repeat(4,minmax(0,1fr))">' + LIBS.map(([k, lib]) => "<div><b>" + (B.nb && B.nb[k] != null ? B.nb[k] : "départ") + "</b><span>" + esc(lib) + "</span></div>").join("") + "</div>" : '<p class="m">' + (B.id === "bib-oncologie" ? "Sera créée à partir de la copie mise de côté le 09/10 (bibliothèque du Dr Bentahila)." : "Sera créée vide : vous la remplirez (les modules de cette spécialité restent à construire).") + "</p>") +
       '<div class="act"><button data-bib="' + esc(B.id) + '">' + (B.existe ? "Ouvrir et modifier" : "Créer et ouvrir") + "</button></div></article>").join("") + "</div>");
@@ -219,7 +223,7 @@ function ouvrirFormule(c) {
   const A = JSON.parse(JSON.stringify(abonnementEffectif(c.abonnement))); A.formule = A.formule || "complet";
   const n = (k) => (k === "patients" ? c.patients : k === "etablissements" ? c.etablissements : (c.roles || {})[k] || 0);
   const corps = () => '<div class="form" style="grid-template-columns:minmax(0,340px)"><div><label for="fFor">Formule de départ</label><select id="fFor">' + optionsFormules(A.formule) + "</select></div></div>" +
-    '<h3 class="st">Modules</h3><div class="mods">' + MODULES.map(([k, lib, de]) => '<label class="mod"><input type="checkbox" data-m="' + k + '"' + (A.modules[k] ? " checked" : "") + "><span><b>" + esc(lib) + '</b><br><span class="m">' + esc(de) + "</span></span></label>").join("") + "</div>" +
+    '<h3 class="st">Modules</h3><div class="mods">' + MODULES.filter(([k]) => modulePour(k, (FORMULES_()[A.formule] || {}).specialite)).map(([k, lib, de]) => '<label class="mod"><input type="checkbox" data-m="' + k + '"' + (A.modules[k] ? " checked" : "") + "><span><b>" + esc(lib) + '</b><br><span class="m">' + esc(de) + "</span></span></label>").join("") + "</div>" +
     '<h3 class="st">Nombre maximum <span class="m">(vide = sans limite, 0 = aucun)</span></h3><div class="form">' + ROLES_MAX.map(([k, lib]) => '<div><label for="fMx' + k + '">' + esc(lib) + ' <span class="m">(actuellement ' + (n(k) == null ? "?" : n(k)) + ')</span></label><input id="fMx' + k + '" type="number" min="0" data-x="' + k + '" placeholder="sans limite" value="' + (A.max[k] == null ? "" : A.max[k]) + '"></div>').join("") + "</div>";
   fenetre("<h2>Formule de « " + esc(c.nom) + " »</h2><p class=\"sous\">Un module retiré disparaît pour tout le cabinet ; ses données sont gardées et reviennent si vous le remettez.</p><div id=\"fCorps\">" + corps() + '</div><div class="pied"><button id="fOk">Enregistrer</button><button class="clair" id="fAnn">Fermer</button></div>');
   const lire = () => { document.querySelectorAll("#fCorps [data-m]").forEach((x) => { A.modules[x.dataset.m] = x.checked; }); document.querySelectorAll("#fCorps [data-x]").forEach((x) => { A.max[x.dataset.x] = x.value === "" ? null : Number(x.value); }); };
@@ -285,7 +289,7 @@ function htmlFormules() {
   const carte = ([k, f]) => '<div class="fml" data-f="' + esc(k) + '"><div class="fml-haut"><input class="nomf" data-fl="lib" value="' + esc(f.lib) + '" aria-label="Nom de la formule">' +
     '<select data-fs aria-label="Spécialité">' + spes.map((s) => "<option" + (s === (f.specialite || "Autres") ? " selected" : "") + ">" + esc(s) + "</option>").join("") + "</select>" +
     '<span class="m">' + util(k) + " cabinet(s)</span>" + (util(k) ? "" : '<button class="rouge petit" data-fsup="' + esc(k) + '">Supprimer</button>') + "</div>" +
-    '<div class="mods">' + MODULES.map(([m, lib]) => '<label class="mod"><input type="checkbox" data-fm="' + m + '"' + ((f.modules || []).indexOf(m) >= 0 ? " checked" : "") + "><span>" + esc(lib) + "</span></label>").join("") + "</div>" +
+    '<div class="mods">' + MODULES.filter(([m]) => modulePour(m, f.specialite)).map(([m, lib]) => '<label class="mod"><input type="checkbox" data-fm="' + m + '"' + ((f.modules || []).indexOf(m) >= 0 ? " checked" : "") + "><span>" + esc(lib) + (MODULE_FAMILLE[m] ? ' <span class="m">(' + esc(famille(MODULE_FAMILLE[m])) + ")</span>" : "") + "</span></label>").join("") + "</div>" +
     '<div class="form maxs">' + ROLES_MAX.map(([m, lib]) => "<div><label>" + esc(lib) + '</label><input type="number" min="0" data-fx="' + m + '" value="' + (f.max && f.max[m] != null ? f.max[m] : "") + '" placeholder="sans limite"></div>').join("") + "</div></div>";
   return '<section class="carte"><h2>Formules</h2><p class="sous">Ce que contient chaque formule, rangée par spécialité. Les cabinets qui suivent une formule sans retouche reçoivent ses nouvelles valeurs dès l\'enregistrement ; un cabinet « sur mesure » garde les siennes. Maximum vide = sans limite, 0 = aucun.</p>' +
     '<div class="puces"><button class="puce' + (SPE === "" ? " on" : "") + '" data-spe="">Toutes</button>' + spes.map((s) => '<button class="puce' + (s === SPE ? " on" : "") + '" data-spe="' + esc(s) + '">' + esc(s) + ' <span class="nb">' + Object.values(L).filter((f) => (f.specialite || "Autres") === s).length + "</span></button>").join("") + "</div>" +
@@ -321,4 +325,20 @@ function brancherFormules() {
     try { const o = await serveur("formulesEnregistrer", { formules: L }); FS = o.formules; FED = null; RES = "Formules enregistrées" + (o.cabinets ? " ; " + o.cabinets + " cabinet(s) mis à jour" : "") + "."; CABINETS = null; dessiner(); charger(); }
     catch (e) { b.disabled = false; b.textContent = "Enregistrer les formules"; alert("Enregistrement impossible : " + e.message); }
   };
+}
+// ───── Onglet Modules et menus (10/10/2026) ─────
+// Chaque module : à quelle(s) spécialité(s) il sert, ce qu'il ajoute au menu et au dossier, dans quelles formules et chez combien de
+// cabinets. Le contenu d'un module (ses écrans) est le même pour tous : une modification s'applique à tous les cabinets qui l'ont.
+const famille = (id) => (BIBLIOTHEQUES_SPE.find((b) => b.id === id) || {}).lib || id;
+const bibDe = (spe) => (BIBLIOTHEQUES_SPE.find((b) => b.specialites.indexOf(spe) >= 0) || BIBLIOTHEQUES_SPE[0]).id;
+const modulePour = (k, spe) => !MODULE_FAMILLE[k] || MODULE_FAMILLE[k] === bibDe(spe || SPECIALITES[0]);
+function htmlModules() {
+  const F = FORMULES_(), C = CABINETS || [];
+  const ligne = ([k, lib, de]) => { const fs = Object.values(F).filter((f) => (f.modules || []).indexOf(k) >= 0).map((f) => f.lib), nc = C.filter((c) => c.actif && abonnementEffectif(c.abonnement).modules[k]).length;
+    return '<div class="modl"><div><b>' + esc(lib) + '</b><div class="m">' + esc(de) + '</div><div class="m">↳ ' + esc(MODULE_MENU[k] || "") + '</div></div><div class="m n">' + nc + " cabinet" + (nc > 1 ? "s" : "") + " actif" + (nc > 1 ? "s" : "") + "<br>" + (fs.length ? esc(fs.length + " formule" + (fs.length > 1 ? "s" : "")) : "aucune formule") + "</div></div>"; };
+  return '<section class="carte"><h2>Modules et menus</h2><p class="sous">Un <b>module</b> est une partie d\'Onco360 (menu, onglet ou bouton). Les modules communs servent à toutes les spécialités ; d\'autres sont propres à une spécialité (ex. Protocoles : oncologie – radiothérapie). <b>Le contenu d\'un module est le même pour tous</b> : quand vous demandez une modification (ex. « modifie le module Tâches »), elle s\'applique, dès sa mise en ligne, à <b>tous les cabinets actifs qui ont ce module</b>. Qui a quel module : onglet Formules, et « Formule et modules » de chaque cabinet.</p>' +
+    '<h3 class="st">Toujours présents (toutes spécialités)</h3><p class="m">' + esc(MENU_COMMUN.join(" · ")) + "</p></section>" +
+    '<section class="carte"><h2>Modules communs</h2><p class="m">Toutes les spécialités, selon la formule.</p>' + MODULES.filter(([k]) => !MODULE_FAMILLE[k]).map(ligne).join("") + "</section>" +
+    BIBLIOTHEQUES_SPE.map((B) => { const l = MODULES.filter(([k]) => MODULE_FAMILLE[k] === B.id), p = MODULES_PREVUS.filter((x) => x[2] === B.id);
+      return '<section class="carte"><h2>' + esc(B.lib) + '</h2><p class="m">' + esc(B.specialites.join(" · ")) + "</p>" + l.map(ligne).join("") + p.map(([, lib]) => '<div class="modl prevu"><div><b>' + esc(lib) + '</b><div class="m">À construire (feuille de route, étape 14)</div></div><span class="bdg">Prévu</span></div>').join("") + (l.length || p.length ? "" : '<p class="m">Aucun module propre pour l\'instant (à décider).</p>') + "</section>"; }).join("");
 }

@@ -76,7 +76,7 @@ async def main():
         ok(pa.url.endswith('admin.html'), 'le compte d\'administration arrive sur la page Administration')
         ta = await pa.inner_text('body')
         ok('Cabinet Test' in ta and 'Dr Salma BENNANI' in ta and await pa.evaluate("document.querySelectorAll('.cab').length") == 2, 'onglet Cabinets : 2 cartes')
-        ok(await pa.evaluate("document.querySelectorAll('nav#onglets a').length") == 4, '4 onglets : Cabinets, Nouveau cabinet, Formules, Bibliothèque de référence')
+        ok(await pa.evaluate("document.querySelectorAll('nav#onglets a').length") == 5, '5 onglets : Cabinets, Nouveau cabinet, Formules, Modules et menus, Bibliothèques et paramètres')
         await pa.fill('#cQ', 'benn'); await pa.wait_for_timeout(300)
         ok(await pa.evaluate("document.querySelectorAll('.cab').length") == 1 and await pa.evaluate("document.activeElement.id") == 'cQ', 'recherche (« benn » → 1 cabinet), la saisie garde le focus')
         await pa.fill('#cQ', ''); await pa.wait_for_timeout(300)

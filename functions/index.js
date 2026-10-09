@@ -360,10 +360,10 @@ async function prendreReference(par) {
 // pas encore : l'ancienne copie mise de côté (plateforme/reference).
 async function sourceBib(bib) {
   const B = "espaces/" + bib + "/", json = (x) => { try { return x.exists ? JSON.parse(x.data().data || "null") : null; } catch (er) { return null; } };
-  const [prot, sl, sc, st, bibs] = await Promise.all([db.collection(B + "protocoles").get(), db.doc(B + "parametres/listes").get(), db.doc(B + "parametres/calendrier").get(), db.doc(B + "finances/tarifs").get(), db.collection(B + "bibliotheques").get()]);
-  const out = { protocoles: prot.docs.map((d) => ({ id: d.id, data: d.data() })), docs: [], fichiers: [], bib };
-  if (sl.exists) out.docs.push({ chemin: "parametres/listes", data: { data: JSON.stringify(C.listesDepart(json(sl))) } });
-  if (sc.exists) out.docs.push({ chemin: "parametres/calendrier", data: { data: JSON.stringify(C.calendrierDepart(json(sc))) } });
+  const [prot, st, bibs, ...sp] = await Promise.all([db.collection(B + "protocoles").get(), db.doc(B + "finances/tarifs").get(), db.collection(B + "bibliotheques").get()].concat(C.PARAMS_SPE.map((k) => db.doc(B + "parametres/" + k).get())));
+  const out = { protocoles: prot.docs.map((d) => ({ id: d.id, data: d.data() })), docs: [], fichiers: [], bib }, jour = new Date().toISOString().slice(0, 10);
+  // Paramètres de base de la spécialité (horaires, fériés, WhatsApp, couleurs, types, tâches automatiques, RCP, réglages, listes)
+  sp.forEach((x, i) => { const v = C.parametreDepart(C.PARAMS_SPE[i], json(x), jour); if (v) out.docs.push({ chemin: "parametres/" + C.PARAMS_SPE[i], data: { data: JSON.stringify(v) } }); });
   out.docs.push({ chemin: "finances/tarifs", data: { data: JSON.stringify(C.tarifsDepart(json(st))) } });
   bibs.forEach((d) => out.docs.push({ chemin: "bibliotheques/" + d.id, data: d.data() }));
   return out;
@@ -386,6 +386,20 @@ exports.bibliothequeOuvrir = onCall({ timeoutSeconds: 120, memory: "256MiB" }, a
   const ref = db.doc("espaces/" + B.id), s = await ref.get(), jour = new Date().toISOString().slice(0, 10), b = db.batch(), E = "espaces/" + B.id + "/";
   const moi = await getAuth().getUser(par);
   b.set(db.doc(E + "membres/" + par), { role: "medecin", nom: "Administration Onco360", email: moi.email || "", actif: true, tousEtablissements: true, etablissements: [], droits: Object.assign({}, C.DROITS_BIB), cree: jour, creePar: par });
+  if (s.exists) b.set(ref, { abonnement: { formule: "bibliotheque", surMesure: true, modules: Object.assign({}, C.MODULES_BIB), max: {} } }, { merge: true });
+  // Oncologie – Radiothérapie : paramètres de base repris UNE FOIS du cabinet du Dr Bentahila (10/10/2026), nettoyés ; ensuite
+  // ils ne dépendent plus de son cabinet
+  let importe = false;
+  if (B.id === "bib-oncologie" && !(s.exists && s.data().parametresImportes)) {
+    const M = "espaces/" + C.MODELE + "/parametres/", json = (x) => { try { return x.exists ? JSON.parse(x.data().data || "null") : null; } catch (er) { return null; } };
+    const [src, deja] = await Promise.all([Promise.all(C.PARAMS_SPE.map((k) => db.doc(M + k).get())), Promise.all(C.PARAMS_SPE.map((k) => db.doc(E + "parametres/" + k).get()))]);
+    C.PARAMS_SPE.forEach((k, i) => {
+      const v = C.parametreDepart(k, json(src[i]), jour), d0 = json(deja[i]); if (!v) return;
+      if (!deja[i].exists) b.set(db.doc(E + "parametres/" + k), { data: JSON.stringify(v) });
+      else if (k === "calendrier" && d0 && !d0.horaires && v.horaires) b.set(db.doc(E + "parametres/" + k), { data: JSON.stringify(Object.assign({}, d0, { horaires: v.horaires })) });
+    });
+    importe = true;
+  }
   if (!s.exists) {
     b.set(ref, { nom: "Bibliothèque " + B.lib, bibliotheque: true, specialites: B.specialites, titulaire: par, cree: jour, creePar: par, actif: true, abonnement: { formule: "bibliotheque", surMesure: true, modules: Object.assign({}, C.MODULES_BIB), max: {} } });
     b.set(db.doc(E + "parametres/migrations"), C.migrationsFaites(jour));
@@ -400,6 +414,7 @@ exports.bibliothequeOuvrir = onCall({ timeoutSeconds: 120, memory: "256MiB" }, a
       b.set(db.doc(E + "finances/tarifs"), { data: JSON.stringify({ repli: "", etablissements: {}, actesRT: [], vmat: null }) });
     }
   }
+  if (importe) b.set(ref, { parametresImportes: jour }, { merge: true }); // après la création de la fiche
   await b.commit();
   console.log("bibliothèque ouverte", B.id, "par", par, s.exists ? "" : "(créée)");
   return { espace: B.id, cree: !s.exists };

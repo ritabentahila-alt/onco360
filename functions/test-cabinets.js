@@ -86,3 +86,16 @@ const echoue = (f) => { try { f(); return false; } catch (e) { return true; } };
   ok(Object.values(MO.FORMULES).every((f) => C.BIBS.some((b) => b.specialites.indexOf(f.specialite) >= 0)), "chaque formule a sa bibliothèque");
   ok(C.estBib("bib-oncologie") && !C.estBib("cab-x") && C.DROITS_BIB.creerPatient === false && C.DROITS_BIB.identite === false, "bibliothèque : aucun droit sur les patients");
 })();
+// Paramètres de base d'une spécialité (10/10/2026)
+(() => {
+  const C = require("./cabinets"), ok = (c, m) => { console.log((c ? "✅ " : "❌ ") + m); if (!c) process.exitCode = 1; };
+  const cal = C.parametreDepart("calendrier", { horaires: { lun: [["08:00", "12:00"]] }, horairesEtab: { HGC: {} }, abs: [{ du: "x" }], feries: [{ d: "2026-11-18" }] }, "2026-10-10");
+  ok(cal.horaires.lun && cal.feries.length === 1 && !cal.abs.length && !Object.keys(cal.horairesEtab).length, "calendrier : horaires et fériés, sans absences ni horaires par établissement");
+  const ta = C.parametreDepart("tachesAuto", { regles: [{ id: "a1", ev: "nonvenu", pour: "UID_SECRETAIRE", depuis: "2026-01-01" }, { id: "cont", pour: "titulaire" }] }, "2026-10-10");
+  ok(ta.regles.every((r) => r.pour === "titulaire" && r.depuis === "2026-10-10"), "tâches automatiques : confiées au titulaire, à partir de la création");
+  const r = C.parametreDepart("rcp", { jours: [2], heure: "14:00", lieu: "Salle du Dr B", plus: ["2026-10-20"], annulees: ["x"] });
+  ok(r.jours[0] === 2 && r.heure === "14:00" && r.lieu === "" && !r.plus.length && !r.annulees.length, "RCP : jours et heure, sans lieu ni dates exceptionnelles");
+  ok(C.parametreDepart("listes", { diag: ["A"], mut: ["B"], cor: ["Dr X"], complet: true }).cor.length === 0, "listes : jamais les correspondants");
+  ok(C.parametreDepart("tarifsConsultations", { a: 1 }) === null && C.parametreDepart("medecinTitulaire", { a: 1 }) === null, "jamais les prix des consultations ni le titulaire");
+  const w = { annonce: "Bonjour {prenom}" }; ok(C.parametreDepart("whatsapp", w).annonce === "Bonjour {prenom}" && C.parametreDepart("whatsapp", w) !== w, "messages WhatsApp copiés");
+})();

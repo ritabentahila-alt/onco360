@@ -75,8 +75,9 @@ let TIT = null;
 const ONGLETS = () => [["horaires", "horloge", "Créneaux & horaires"], ["fermetures", "avion", "Fermetures, congés & jours fériés"], ["lieux", "hopital", "Lieux d'exercice"]].concat(TIT ? [["acces", "patients", "Accès"], ["audit", "liste", "Journal d'audit"]] : []).concat([["whatsapp", "whatsapp", "WhatsApp"], ["couleurs", "agenda", "Google Agenda"], ["documents", "document", "Documents"], ["taches", "taches", "Tâches"], ["rcp", "rcp", "RCP"], ["listes", "liste", "Listes"], ["bibliotheques", "pilule", "Bibliothèques"], ["impression", "imprimer", "Impression"], ["alertes", "alerte", "Alertes"]])
   .concat(A.peut("finances") && D().tarifs ? [["activites", "bilan", "Activités et rémunérations"]] : [])
   .filter((o) => A.module(MODULE_ONGLET[o[0]] || "")) // onglets d'un module retiré de la formule du cabinet : cachés
-  .filter((o) => !A.D().bib || ONGLETS_BIB.indexOf(o[0]) >= 0); // bibliothèque de référence : ce que reçoivent les cabinets neufs
-const ONGLETS_BIB = ["fermetures", "listes", "bibliotheques", "activites"];
+  .filter((o) => !A.D().bib || HORS_BIB.indexOf(o[0]) < 0); // bibliothèque de référence : paramètres de base de la spécialité
+// Propres à chaque cabinet, donc absents de la bibliothèque de référence : lieux, équipe, journal d'audit
+const HORS_BIB = ["lieux", "acces", "audit"];
 const MODULE_ONGLET = { couleurs: "gagenda", taches: "taches", rcp: "rcp", listes: "listes", bibliotheques: "prescriptions" };
 function entete() {
   return '<section class="accueil"><div><h2>Paramètres</h2><p>Horaires, absences et jours fériés, lieux d\'exercice' + (TIT ? ", accès de l\'équipe" : "") + ', WhatsApp, Google Agenda, types de documents et de tâches, dates de RCP, listes, bibliothèques des prescriptions, impression, alertes' + (A.peut("finances") ? ", activités et rémunérations" : "") + ".</p></div></section>" +
@@ -150,7 +151,7 @@ export function pageConfiguration(arg) {
   } else if (ONG === "lieux" || ONG === "acces") {
     h += '<div id="cfProfil"><p class="sous">Chargement…</p></div>';
   } else if (ONG === "couleurs") {
-    h += '<div id="cfProfil"><p class="sous">Chargement de votre Google Agenda…</p></div>' + sectionMonAgenda();
+    if (!A.D().bib) h += '<div id="cfProfil"><p class="sous">Chargement de votre Google Agenda…</p></div>' + sectionMonAgenda(); // liaison personnelle : pas dans la bibliothèque
     h += '<section class="carte"><h3><span class="ic">' + A.ic("agenda") + '</span>Couleurs dans Google Agenda</h3><p class="sous">Couleur de chaque type d\'événement dans l\'agenda « Onco360 » de chaque membre qui a relié son Google Agenda (Profil › Google Agenda). Après l\'enregistrement, les agendas sont repeints en quelques minutes.</p>' +
       CAT_COUL.map(([k, lib]) => {
         const v = ED.coul[k] != null ? ED.coul[k] : "", nom = (COUL_G.find((c) => c[0] === v) || COUL_G[0])[1];

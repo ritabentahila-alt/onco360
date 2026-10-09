@@ -5,7 +5,7 @@ import pathlib; __file__=str(pathlib.Path(__file__).resolve()); exec(open(pathli
 ok = lambda c, m: print(('✅ ' if c else '❌ ') + m)
 CAB = E; B = 'espaces/bib-oncologie/'
 S2 = dict(S)
-S2['espaces/bib-oncologie'] = {'nom': 'Bibliothèque Oncologie – Radiothérapie', 'bibliotheque': True, 'titulaire': 'ADM', 'actif': True, 'abonnement': {'formule': 'bibliotheque', 'modules': {'chimio': True, 'rt': True, 'prescriptions': True, 'listes': True}, 'max': {}}}
+S2['espaces/bib-oncologie'] = {'nom': 'Bibliothèque Oncologie – Radiothérapie', 'bibliotheque': True, 'titulaire': 'ADM', 'actif': True, 'abonnement': {'formule': 'bibliotheque', 'modules': {'chimio': True, 'rt': True, 'prescriptions': True, 'listes': True, 'taches': True, 'rcp': True, 'gagenda': True}, 'max': {}}}
 S2[B + 'membres/ADM'] = {'role': 'medecin', 'nom': 'Administration Onco360', 'actif': True, 'tousEtablissements': True, 'etablissements': [], 'droits': {'ecrireConsultations': True, 'traitements': 'modifier', 'radiotherapie': 'modifier', 'finances': True, 'parametres': True}}
 for k, v in S.items():
     if k.startswith(CAB + 'protocoles/') or k in (CAB + 'parametres/listes', CAB + 'parametres/calendrier'): S2[B + k[len(CAB):]] = v
@@ -28,7 +28,10 @@ async def main():
         await pg.evaluate("location.hash='parametres/bibliotheques'"); await pg.wait_for_timeout(1000); tp = await pg.inner_text('#page')
         ok('Documentation' in tp and 'Médicaments' in tp, 'Paramètres › Bibliothèques : médicaments… et documentation')
         ong = await pg.evaluate("[...document.querySelectorAll('.ag-vues button')].map(b=>b.innerText.trim())")
-        ok(len(ong) == 4 and any('Listes' in o for o in ong) and any('Activités' in o for o in ong), 'Paramètres : 4 onglets (fériés, listes, bibliothèques, tarifs) ' + str(ong))
+        ok(len(ong) == 12 and not any(x in ' '.join(ong) for x in ['Lieux', 'Accès', 'Journal']) and any('Tâches' in o for o in ong) and any('RCP' in o for o in ong), 'Paramètres : tous les paramètres de base (12 onglets), sans lieux, accès ni journal ' + str(len(ong)))
+        await pg.evaluate("location.hash='parametres/couleurs'"); await pg.wait_for_timeout(800)
+        ok('Lier mon Google Agenda' not in await pg.inner_text('#page') and 'Couleurs' in await pg.inner_text('#page'), 'Google Agenda : les couleurs, sans liaison personnelle')
+        await pg.evaluate("location.hash='parametres/bibliotheques'"); await pg.wait_for_timeout(800)
         await pg.click('text=Fiches PDF à remettre'); await pg.wait_for_timeout(800); tw = await pg.inner_text('#fenetre')
         ok('à remettre aux patients' in tw and 'Ajouter un PDF' in tw and 'Remettre' not in tw.replace('à remettre', ''), 'documentation gérée sans patient (ajouter, sans « Remettre »)')
         await pg.evaluate("fermerFenetre()")
@@ -43,6 +46,9 @@ async def main():
         await pa.goto(f'http://localhost:{PORT}/admin.html#reference'); await pa.wait_for_timeout(1500)
         ta = await pa.inner_text('main')
         ok('Oncologie – Radiothérapie' in ta and 'Médecine générale' in ta and 'Gynécologie' in ta and '316' in ta and 'En place' in ta and 'À créer' in ta, 'onglet Bibliothèques : une par spécialité, compteurs')
+        await pa.click('nav#onglets a[href="#modules"]'); await pa.wait_for_timeout(400); tm = await pa.inner_text('main')
+        ok('Modules communs' in tm and 'Chimiothérapie et protocoles' in tm.split('Oncologie – Radiothérapie')[1] and 'Traitements et stocks' in tm and 'Prévu' in tm, 'onglet Modules et menus : communs, oncologie (Protocoles), médecine générale (prévus)')
+        await pa.click('nav#onglets a[href="#reference"]'); await pa.wait_for_timeout(400)
         await pa.click('[data-bib="bib-oncologie"]'); await pa.wait_for_timeout(1200)
         ok((await pa.evaluate('window.__bo && window.__bo.bib')) == 'bib-oncologie' or 'espace=bib-oncologie' in pa.url, '« Ouvrir et modifier » ouvre la bibliothèque dans Onco360')
         ok(not pa.errs, 'aucune erreur JavaScript (Administration) ' + str(pa.errs[:2]))

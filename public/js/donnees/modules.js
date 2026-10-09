@@ -17,6 +17,13 @@ export const MODULES = [
   ["listes", "Listes", "Diagnostics et mutuelles modifiables (Paramètres › Listes)"],
   ["bilan", "Bilan financier", "Page Bilan, exports"],
 ];
+// Modules et menus par spécialité (10/10/2026) : un module sans famille sert à toutes les spécialités ; sinon il appartient à la
+// famille d'une bibliothèque (ex. Chimiothérapie et protocoles : Oncologie – Radiothérapie). Menu toujours présent : MENU_COMMUN.
+export const MODULE_FAMILLE = { chimio: "bib-oncologie", rt: "bib-oncologie" };
+export const MODULE_MENU = { chimio: "Menu « Protocoles » ; onglet Chimiothérapie du dossier", rt: "Onglet Radiothérapie du dossier", agenda: "Menu « Agenda / Rendez-vous »", salle: "Menu « Salle d'attente »", taches: "Menu « Tâches »", rcp: "Bouton « + RCP » du dossier ; onglet RCP des Tâches", prescriptions: "Boutons Médic., Examens compl., Ordo. type, Analyses, Courriers, Doc. du dossier", documents: "Onglet Documents du dossier ; pli, compte rendu", gagenda: "Paramètres › Google Agenda", listes: "Paramètres › Listes", bilan: "Menu « Bilan »" };
+export const MENU_COMMUN = ["Tableau de bord", "Patients (dossiers, consultations, rendez-vous)", "Paramètres", "Profil"];
+// Modules prévus pour d'autres spécialités (à construire, feuille de route étape 14)
+export const MODULES_PREVUS = [["stocks", "Traitements et stocks", "bib-generaliste"], ["materiel", "Matériel et consommables", "bib-generaliste"]];
 export const ROLES_MAX = [["medecin", "Médecins"], ["assistante", "Secrétaires"], ["infirmiere", "Infirmières"], ["comptable", "Comptables"], ["etablissements", "Lieux d'exercice"], ["patients", "Dossiers patients"]];
 // Spécialités (09/10/2026) : chaque formule appartient à une spécialité. Médecine générale et gynécologie : modules à créer plus
 // tard (feuille de route), avec leurs propres formules.

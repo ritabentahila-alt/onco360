@@ -125,5 +125,18 @@ const bibDe = (specialite) => (BIBS.find((b) => b.specialites.indexOf(specialite
 const estBib = (e) => /^bib-/.test(String(e || ""));
 // Droits du compte d'administration dans une bibliothèque : protocoles, prescriptions, listes, fériés, tarifs RT ; aucun patient
 const DROITS_BIB = { identite: false, fichePatient: false, rendezvous: false, consultations: false, ecrireConsultations: true, planningChimio: false, traitements: "modifier", radiotherapie: "modifier", documents: false, administrer: false, encaissements: false, creerPatient: false, supprimerPatient: false, finances: true, parametres: true };
-const MODULES_BIB = { chimio: true, rt: true, agenda: false, salle: false, taches: false, rcp: false, prescriptions: true, documents: false, gagenda: false, listes: true, bilan: false };
-module.exports = { BIBS, bibDe, estBib, DROITS_BIB, MODULES_BIB, infos, ROLES, membreDemande, MODULES, MAX, FORMULES, formulesValides, abonnement, horsQuota, MODELE, BIBLIOTHEQUES, DROITS_MEDECIN, MIGRATIONS, verifier, idCabinet, listesDepart, calendrierDepart, tarifsDepart, migrationsFaites, membreTitulaire };
+// (modules ouverts pour régler les paramètres correspondants : tâches, RCP, couleurs de Google Agenda… ; la bibliothèque n'a pas de patient)
+const MODULES_BIB = { chimio: true, rt: true, agenda: false, salle: false, taches: true, rcp: true, prescriptions: true, documents: false, gagenda: true, listes: true, bilan: false };
+// Paramètres de base d'une spécialité (10/10/2026) : gardés dans la bibliothèque de référence, modifiés par l'administration, copiés
+// dans chaque cabinet neuf, nettoyés : ni correspondants, ni prix des consultations (tarifs : actes RT seulement, à part), ni
+// absences, ni horaires par établissement, ni lieu et dates exceptionnelles de la RCP ; tâches automatiques confiées au titulaire.
+const PARAMS_SPE = ["listes", "calendrier", "whatsapp", "couleursAgenda", "typesDocuments", "typesTaches", "tachesAuto", "rcp", "reglages"];
+function parametreDepart(id, v, jour) {
+  if (PARAMS_SPE.indexOf(id) < 0 || v == null) return null;
+  if (id === "listes") return listesDepart(v);
+  if (id === "calendrier") return Object.assign(v.horaires ? { horaires: v.horaires } : {}, { feries: (v.feries || []).slice(), abs: [], horairesEtab: {} });
+  if (id === "tachesAuto") return { regles: (v.regles || []).map((r) => Object.assign({}, r, { pour: "titulaire", depuis: jour || r.depuis || "" })) };
+  if (id === "rcp") return { jours: v.jours || [], heure: v.heure || "", lieu: "", plus: [], annulees: [] };
+  return JSON.parse(JSON.stringify(v));
+}
+module.exports = { PARAMS_SPE, parametreDepart, BIBS, bibDe, estBib, DROITS_BIB, MODULES_BIB, infos, ROLES, membreDemande, MODULES, MAX, FORMULES, formulesValides, abonnement, horsQuota, MODELE, BIBLIOTHEQUES, DROITS_MEDECIN, MIGRATIONS, verifier, idCabinet, listesDepart, calendrierDepart, tarifsDepart, migrationsFaites, membreTitulaire };

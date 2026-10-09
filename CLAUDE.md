@@ -137,7 +137,9 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
   (`bibliotheque: true`, `BIBS` de cabinets.js = `BIBLIOTHEQUES_SPE` de modules.js), ouverts par l'administration (`bibliothequeOuvrir`,
   `v2.html?espace=bib-…`, `D.bib` : Protocoles + Paramètres seulement, listes de départ figées par `figerListes` / `figerDocumentation`) ;
   `creerEspace` copie la bibliothèque de la spécialité de la formule (`sourceBib`, PDF recopiés) ; `plateforme/reference` = ancienne copie
-  (09/10), source de bib-oncologie. `compteMembre` ignore les bibliothèques. Comptes de l'équipe : `creerMembre` / `lienMembre` (serveur ;
+  (09/10), source de bib-oncologie. `compteMembre` ignore les bibliothèques. Paramètres de base de la spécialité (`PARAMS_SPE`,
+  `parametreDepart`) dans la bibliothèque, copiés aux cabinets neufs. Modules par spécialité : `MODULE_FAMILLE`, `MODULE_MENU`,
+  `MODULES_PREVUS` (modules.js), onglet « Modules et menus » de l'Administration. Comptes de l'équipe : `creerMembre` / `lienMembre` (serveur ;
   la création de comptes depuis le navigateur est fermée dans Firebase). Cabinet de
   démonstration : `cab-demonstration` (`demo: true`), `creerCabinetDemo` / `demoReinitialiser`, patients fictifs `functions/demo.js`.
 Ancienne application : collections racine `patients`, `protocoles`, `finances`, `parametres` (lecture seule).

@@ -52,6 +52,18 @@ Vocabulaire (le même partout, dans l'application, la feuille de route et les gu
   radiothérapie. **Mise de côté** : modifiée **seulement depuis l'administration** (onglet Bibliothèques › « Ouvrir et modifier »,
   avec les écrans habituels d'Onco360 : ajouter, modifier, supprimer). Chaque cabinet reçoit **sa copie** à la création, puis la
   modifie comme il veut (ça ne change que son cabinet). Les cabinets déjà créés ne reçoivent pas les modifications ultérieures.
+  Les **paramètres de base** de la spécialité y sont aussi (depuis le 10/10) : créneaux et horaires, jours fériés, messages
+  WhatsApp, couleurs de Google Agenda, types de documents et de tâches, tâches automatiques (confiées au titulaire), jours et heure
+  de RCP, diagnostics et mutuelles, marges d'impression, alertes, tarifs de radiothérapie. **Jamais** : correspondants, prix des
+  consultations, absences, lieux d'exercice, équipe, patients. Repris **une fois** du cabinet du Dr Bentahila le 10/10, puis
+  indépendants de son cabinet.
+- **Menu par spécialité** : toujours présents pour toutes les spécialités (selon la formule) : Tableau de bord, Agenda /
+  Rendez-vous, Salle d'attente, Patients, Tâches, Paramètres, Bilan, Profil ; propres à une spécialité : **Protocoles** et
+  Radiothérapie (Oncologie – Radiothérapie) ; plus tard pour la médecine générale par exemple **Traitements et stocks**, **Matériel
+  et consommables**… Onglet **« Modules et menus »** de l'Administration : chaque module, sa spécialité, ce qu'il ajoute au menu,
+  ses formules, le nombre de cabinets qui l'ont.
+- **Une modification d'un module** (ex. « modifie le module Tâches ») se répercute sur **tous les cabinets actifs qui l'ont**,
+  dès la mise en ligne (un seul code pour tous).
 - **Cabinet de démonstration** : patients fictifs, pour les démonstrations et les guides.
 
 ## Étape 1 – Remodelage du dossier patient (document « gesticab explication », reçu le 06/10/2026)
@@ -1042,7 +1054,15 @@ dans Profil › Accès › Droits.
       formule vérifiée par le serveur, droits nettoyés), e-mail de Firebase + **« Lien du mot de passe »** dans Paramètres › Accès
       (`lienMembre`, message prêt pour WhatsApp). Page Administration : **équipe** de chaque cabinet (noms, rôles, e-mails ; aucune
       donnée médicale), comptables comptés.
-- [ ] Bibliothèque Médecine générale / Gynécologie : à remplir quand leurs modules existeront (étape 14).
+- [x] **Paramètres de base par spécialité** (10/10) : dans la bibliothèque de référence (`PARAMS_SPE` de cabinets.js, nettoyés par
+      `parametreDepart`), repris une fois du cabinet du Dr Bentahila (`parametresImportes`), modifiables dans la bibliothèque
+      (Paramètres : tous les onglets sauf Lieux, Accès, Journal ; Google Agenda : couleurs seulement), copiés aux cabinets neufs.
+- [x] **Modules et menus par spécialité** (10/10) : `MODULE_FAMILLE` (Protocoles / chimio et radiothérapie : Oncologie –
+      Radiothérapie ; les autres : toutes spécialités), `MODULE_MENU`, `MODULES_PREVUS` (Traitements et stocks, Matériel et
+      consommables : médecine générale) ; onglet « Modules et menus » ; formules : seulement les modules de leur spécialité.
+- [ ] Bibliothèque et paramètres Médecine générale / Gynécologie, et leurs modules (Traitements et stocks, Matériel et
+      consommables…) : à décider et construire (étape 14).
+- [ ] Plus tard si besoin : renommer un menu ou changer son ordre depuis l'Administration (aujourd'hui : dans le code).
 
 ## Étape 14 – Autres spécialités (demandé le 09/10/2026) : nouveaux modules et leurs formules
 Onco360 s'ouvrira avec le temps à d'autres médecins : **médecine générale**, **gynécologie**, puis d'autres spécialités. Pour
@@ -1234,3 +1254,4 @@ Onco360_Package_Cession/
 | 09/10/2026 | 9 – S1 en ligne, S2 Comptable | Journal d'audit mis en ligne. Rôle Comptable : relevé financier préparé par le médecin (nom + n° de dossier, actes, montants, sans diagnostic), pointage des paiements et versements, aucun dossier ouvert (règles), Bilan et Profil seulement. Règles 182/182, navigateur 13/13, bilan identique 352 317 DH. Pas encore en ligne. |
 | 09/10/2026 | 9 – S2 en ligne, S3 Démo, référence | Comptable mis en ligne. Bibliothèque de référence mise de côté (plateforme/reference, mise à jour à la demande, onglet de l'Administration). Cabinet de démonstration : 8 patients fictifs, réinitialisable, badge. Tests démo 9/9 + 14/14, cabinets 44/44, comptable 13/13, bilan 352 317 DH. Mis en ligne (fonctions, site). |
 | 10/10/2026 | Organisation, bibliothèques, équipe | Le cabinet du Dr Bentahila devient un cabinet comme les autres ; tout se gère depuis l'administration. Bibliothèques de référence par spécialité (Oncologie – Radiothérapie en place), modifiées depuis l'administration avec les écrans d'Onco360, listes de départ figées, copiées aux nouveaux cabinets selon la spécialité. Création des comptes de l'équipe par le serveur (Firebase refusait la création depuis le navigateur) + lien du mot de passe ; équipe visible dans l'Administration. Vocabulaire fixé (cabinet, équipe, module, formule, bibliothèque). Tests 19/19, 42/42, autres inchangés, bilan 352 317 DH. |
+| 10/10/2026 | Paramètres et menus par spécialité | Paramètres de base mis de côté dans la bibliothèque Oncologie – Radiothérapie (repris une fois du cabinet du Dr Bentahila, nettoyés : ni correspondants, ni prix des consultations, ni absences, ni lieu de RCP), modifiables depuis l'Administration, copiés aux nouveaux cabinets. Onglet « Modules et menus » (modules communs, propres à une spécialité, prévus pour la médecine générale). Tests 21/21, 48/48, 44/44, bilan 352 317 DH. Mis en ligne. |
