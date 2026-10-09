@@ -675,6 +675,11 @@ jour, agenda, Google Agenda) mais **dans le dossier sous forme de tâche**.
       à Paramètres › Tâches › Tâches automatiques. **Valider la tâche = valider dans le dossier** : bouton « Valider… » de la
       fiche, ou statut « Terminée » → même fenêtre de validation (sans quitter la page), et le serveur termine la tâche ; valider
       dans le dossier termine la tâche. Tests logique 79/79 ; mise en ligne : une seule tâche créée (données du 06/10).
+- [x] Correction (09/10) : « Valider la dosimétrie » apparaissait en même temps que « Valider le contourage » : créée par la
+      version précédente des fonctions (dosimétrie dès le scanner). Le serveur retire maintenant une tâche de dosimétrie
+      ouverte tant que le contourage n'est pas validé (si personne n'y a touché) et efface son registre : elle est recréée à
+      la validation du contourage. Une tâche existante n'est jamais écrasée. Tests logique 81/81. À remettre en ligne
+      (fonctions).
 - [ ] **Question à Dr Bentahila** : retirer de la cloche les alertes qui doublent une tâche automatique active (dosimétrie à
       valider, fin de radiothérapie dépassée, dernière cure si la règle est activée) ?
 - [ ] Mise en ligne : règles, **fonctions** (2 nouvelles), site. Puis vérifier sur un vrai dossier (dosimétrie en attente).

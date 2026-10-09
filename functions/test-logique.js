@@ -268,3 +268,12 @@ const infirmiere = { actif: true, etablissements: ["HGC", "CIOC"], droits: { tra
   const r3 = L.tachesAutoPatient("P", { rtsJson: JSON.stringify([{ id: "x", scan: "2026-10-05", cont: "2026-10-07", dosi: "2026-10-08", deb: "2026-10-12" }]), rdvsJson: "[]", resume: "{}" }, L.reglesAuto({}), "2026-10-08", []);
   ok(r3.resolues.indexOf(L.idAuto("cont", "P", "x")) >= 0 && r3.resolues.indexOf(L.idAuto("dosi", "P", "x")) >= 0 && !r3.voulues.length, "dosimétrie validée : les tâches contourage et dosimétrie se terminent, plus rien à créer");
 })();
+
+// Dosimétrie créée trop tôt par l'ancienne version (avant le contourage) : signalée pour être retirée (09/10/2026)
+(async () => {
+  await new Promise((ok) => setTimeout(ok, 700));
+  const d = { rtsJson: JSON.stringify([{ id: "r", acte: "Prostate conformationnelle", scan: "2026-10-08", deb: "2026-10-19", nb: "39" }, { id: "c", scan: "2026-10-08", cont: "2026-10-09", deb: "2026-10-19" }]), rdvsJson: "[]", resume: "{}" };
+  const x = L.tachesAutoPatient("P", d, L.reglesAuto({}), "2026-10-09", []);
+  ok(x.voulues.filter((v) => v.cle === "r").map((v) => v.regle).join() === "cont" && x.premature.length === 1 && x.premature[0] === L.idAuto("dosi", "P", "r"), "contourage non validé : seule « Valider le contourage » est voulue ; une « Valider la dosimétrie » déjà créée est à retirer");
+  ok(x.voulues.some((v) => v.regle === "dosi" && v.cle === "c") && x.premature.indexOf(L.idAuto("dosi", "P", "c")) < 0, "contourage validé : « Valider la dosimétrie » voulue, rien à retirer");
+})();

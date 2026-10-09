@@ -138,9 +138,11 @@ const addMois = (d, n) => { const x = new Date(d + "T12:00:00Z"), j = x.getUTCDa
 const idAuto = (regle, pid, cle) => "auto-" + crypto.createHash("sha1").update(regle + "|" + pid + "|" + cle).digest("hex").slice(0, 24);
 const jfr = (d) => (d ? d.slice(8, 10) + "/" + d.slice(5, 7) + "/" + d.slice(0, 4) : "");
 const lire = (j, def) => { try { return JSON.parse(j || def); } catch (e) { return JSON.parse(def); } };
-// Tâches dues pour un dossier : { voulues: [{ id, regle, ev, cle, titre, type, pour, ech, rt }], resolues: [id] }
+// Tâches dues pour un dossier : { voulues: [{ id, regle, ev, cle, titre, type, pour, ech, rt }], resolues: [id], premature: [id] }
+// premature : « Valider la dosimétrie » alors que le contourage n'est pas validé (créée par la version d'avant le 09/10/2026) :
+// à retirer (avec son registre) pour être recréée au bon moment
 function tachesAutoPatient(pid, docData, regles, auj, feries, opts) {
-  const voulues = [], resolues = []; if (!docData) return { voulues, resolues };
+  const voulues = [], resolues = [], premature = []; if (!docData) return { voulues, resolues, premature };
   const rts = lire(docData.rtsJson, "[]"), rdvs = lire(docData.rdvsJson, "[]"), r0 = lire(docData.resume, "{}"), act = (r0.act || []).filter((a) => !a.sj && a.d && a.k);
   (regles || []).filter((R) => R.actif !== false).forEach((R) => {
     const n = parseInt(R.n, 10) || 0, ok = (d) => !R.depuis || (d && d >= R.depuis);
@@ -148,7 +150,7 @@ function tachesAutoPatient(pid, docData, regles, auj, feries, opts) {
     // mêmes périodes que l'écran (rt.js contourage / dosimetrie) : contourage du scanner à la 1re séance ; dosimétrie de la
     // validation du contourage à la 1re séance (pas avant le contourage, pas pour une RT déjà commencée)
     if (R.ev === "cont") rts.forEach((r) => { if (!r.id || !r.scan || r.annule) return; if (r.cont || r.dosi || r.fin) resolues.push(idAuto(R.id, pid, r.id)); else if (auj >= r.scan && (!r.deb || auj <= r.deb)) v(r.id, r.deb || "", r.acte || "", r.id); });
-    if (R.ev === "dosi") rts.forEach((r) => { if (!r.id || !r.scan || r.annule) return; if (r.dosi || r.fin) resolues.push(idAuto(R.id, pid, r.id)); else if (r.cont && (!r.deb || auj <= r.deb)) v(r.id, r.deb || "", r.acte || "", r.id); });
+    if (R.ev === "dosi") rts.forEach((r) => { if (!r.id || !r.scan || r.annule) return; if (r.dosi || r.fin) resolues.push(idAuto(R.id, pid, r.id)); else if (!r.cont) premature.push(idAuto(R.id, pid, r.id)); else if (!r.deb || auj <= r.deb) v(r.id, r.deb || "", r.acte || "", r.id); });
     if (R.ev === "finrt") rts.forEach((r) => { if (!r.id || !r.deb || r.annule) return; if (r.fin) { resolues.push(idAuto(R.id, pid, r.id)); return; } const fp = finRT(r, feries); if (fp && auj > fp) v(r.id, addJ(fp, 1), (r.acte || "radiothérapie") + " (fin prévue le " + jfr(fp) + ")", r.id); });
     if (R.ev === "derniereCure") act.forEach((a) => { if (a.k === a.nb && ok(a.d)) v(a.nom + "|" + a.k, addJ(a.d, n), "C" + a.k + "/" + a.nb + " " + a.nom + " le " + jfr(a.d)); });
     if (R.ev === "veilleJ1") act.forEach((a) => { const dv = addJ(a.d, -1); if (auj >= dv && auj <= a.d && ok(dv)) v(a.nom + "|" + a.k + "|" + a.d, dv, "C" + a.k + " " + a.nom + " le " + jfr(a.d)); });
@@ -156,7 +158,7 @@ function tachesAutoPatient(pid, docData, regles, auj, feries, opts) {
     if (R.ev === "nouveauPatient" && opts && opts.nouveau) v("creation", addJ(auj, n), "");
     if (R.ev === "apresFinRT") rts.forEach((r) => { if (!r.id || !r.fin || r.annule) return; const dt = addMois(r.fin, n || 3); if (auj >= dt && ok(dt)) v(r.id, dt, (r.acte || "radiothérapie") + " terminée le " + jfr(r.fin), r.id); });
   });
-  return { voulues, resolues };
+  return { voulues, resolues, premature };
 }
 // Corps d'un événement Google Agenda
 function corps(e) {

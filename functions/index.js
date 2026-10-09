@@ -206,11 +206,18 @@ async function contexteAuto(e) {
 }
 async function tachesAuto(e, pid, docData, ctx, opts) {
   if (!docData) return;
-  const auj = L.jourCasa(), { voulues, resolues } = L.tachesAutoPatient(pid, docData, ctx.regles, auj, ctx.feries, opts);
+  const auj = L.jourCasa(), { voulues, resolues, premature } = L.tachesAutoPatient(pid, docData, ctx.regles, auj, ctx.feries, opts);
+  // Dosimétrie créée trop tôt (avant le contourage, ancienne version) : tâche retirée si personne n'y a touché, registre effacé
+  for (const id of premature || []) {
+    const reg = db.doc("espaces/" + e + "/tachesAuto/" + id), ref = db.doc("espaces/" + e + "/taches/" + id), s = await ref.get();
+    if (s.exists && s.data().statut !== "fait" && (s.data().fil || []).length <= 1) await ref.delete();
+    if (!s.exists || (s.data().statut !== "fait" && (s.data().fil || []).length <= 1)) await reg.delete();
+  }
   let r0 = {}; try { r0 = JSON.parse(docData.resume || "{}"); } catch (er) { /* résumé illisible */ }
   for (const v of voulues) {
     const reg = db.doc("espaces/" + e + "/tachesAuto/" + v.id);
     if ((await reg.get()).exists) continue; // déjà créée une fois (même si elle a été supprimée depuis)
+    if ((await db.doc("espaces/" + e + "/taches/" + v.id).get()).exists) { await reg.set({ le: new Date().toISOString(), patientId: pid, regle: v.regle }); continue; } // tâche déjà là : jamais écrasée
     let pour = v.pour === "titulaire" ? ctx.titulaire : v.pour; const m = ctx.membres[pour];
     if (!m || m.actif === false) { pour = ctx.titulaire; } const mp = ctx.membres[pour]; if (!pour || !mp) continue;
     const le = new Date().toISOString();
