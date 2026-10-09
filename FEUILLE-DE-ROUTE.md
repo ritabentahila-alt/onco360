@@ -1078,7 +1078,17 @@ Modules et menus, Bibliothèques et paramètres ; cabinets en liste ; onglet lis
       tableau de bord réglable aussi (cartes montées / descendues / retirées) ; **tout réglable cabinet par cabinet** (packs = point
       de départ) ; colonnes de la liste des cabinets validées.
 - [ ] 16.1 Catalogue (modules, fonctions, sections de paramétrage, bibliothèques) ; spécialité Oncologie – Radiothérapie.
-- [ ] 16.2 Onglet « Par spécialité » (menu et modules, paramètres, bibliothèques, formules).
+- [x] **16.3 (en grande partie, 10/10) Réglage du cabinet** : Administration › Cabinets › fiche › « **Réglage du cabinet** » : pack de
+      départ, puis retouches (↑ ↓ et cases) : **ordre du menu**, **modules et chacune de leurs fonctions**, **cartes du tableau de
+      bord** (ordre, présence), **onglets des Paramètres** (ordre, présence), **bibliothèques**, maximums ; enregistré dans
+      `espaces/{e}.abonnement.reglage` (`abonnementCabinet`, `reglageNettoye` ; gardé quand un pack est modifié). Appliqué dans
+      Onco360 (`D.reg`, `reglageEffectif` / `styleRetraits` de catalogue.js : menu réordonné, cartes, onglets, `[data-fn]` / `[data-bib]`
+      cachés). Fonctions **reliées** aujourd'hui (`FONCTIONS_RELIEES`) : boutons de prescription (6), tâches automatiques (écran **et
+      serveur**), « Toutes les tâches », impression RCP, exports du bilan, rappel WhatsApp, vues Jour / Semaine / Mois, fiche chimio,
+      Protocoles, tâches fixes de radiothérapie (serveur). Les autres sont enregistrées et marquées « (bientôt) » : à relier une à une.
+      Bibliothèques reliées : boutons et cartes de gestion (Diagnostics / Mutuelles : à relier). Tests : cabinets 52/52.
+- [ ] 16.3 suite : relier les fonctions « bientôt » (salle d'attente : prix, n° de passage…, agenda : filtre, horaires…, bilan…).
+- [ ] 16.2 Onglet « Par spécialité » (packs avec le même réglage complet ; modules, paramètres, bibliothèques de la spécialité).
 - [ ] 16.3 Onco360 applique la spécialité (ordre du menu, fonctions cachées à l'écran et sur le serveur).
 - [x] 16.4 (en partie, 10/10) Cabinets en **liste** (nom, ville, médecin, spécialité, pack, statut, équipe, dossiers, créé le ;
       mobile en lignes empilées), clic = **fiche du cabinet** en fenêtre (toutes les actions). Reste : onglet listant toutes les bibliothèques.
@@ -1338,3 +1348,4 @@ Onco360_Package_Cession/
 | 09/10/2026 | 15 – Un seul cadre | « Versements autres » et « Règlements reçus » fusionnés en « Versements et règlements reçus » (colonne Type, totaux séparés, une seule fenêtre, versement modifiable). Bilan 352 317 DH. Pas encore en ligne. |
 | 10/10/2026 | 16 – Plan administration | Demande : tout régler par spécialité (modules + / − / ↑ ↓, fonctions, paramètres, bibliothèques), onglet « Par spécialité », cabinets en liste, onglet Bibliothèques. Inventaire complet et plan en 5 étapes : `PLAN-ADMINISTRATION.md`. 4 questions à valider. |
 | 10/10/2026 | 16 – début | Décisions : une seule spécialité Oncologie – Radiothérapie, tout réglable cabinet par cabinet (packs = point de départ, retouches : options, ordre du tableau de bord, ordre des onglets des Paramètres…). Catalogue commencé, cabinets en liste + fiche. Tests 46/46, 21/21, 48/48, bilan 352 317 DH. Mis en ligne. |
+| 10/10/2026 | 16.3 Réglage du cabinet | Pack de départ puis retouches cabinet par cabinet : ordre du menu, modules et fonctions, cartes du tableau de bord, onglets des Paramètres, bibliothèques, maximums ; appliqué dans Onco360 ; 15 fonctions reliées (dont tâches automatiques côté serveur), les autres marquées « bientôt ». Corrigé : limites du pack écrasées au changement de pack. Tests 52/52, 21/21, 50/50, bilan 352 317 DH. Mis en ligne. |

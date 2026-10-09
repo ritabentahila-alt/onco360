@@ -6,6 +6,7 @@
 import { app, auth, db } from "../config.js";
 import { onAuthStateChanged, sendPasswordResetEmail, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { MENU, FONCTIONS, FONCTIONS_RELIEES, CARTES, SECTIONS, BIBLIOTHEQUES, reglageEffectif } from "../donnees/catalogue.js";
 import { MODULES, ROLES_MAX, SPECIALITES, specialiteDe, FORMULES as FORMULES0, abonnementEffectif, BIBLIOTHEQUES_SPE, MODULE_FAMILLE, MODULE_MENU, MENU_COMMUN, MODULES_PREVUS } from "../donnees/modules.js";
 
 const $ = (i) => document.getElementById(i);
@@ -45,7 +46,7 @@ async function charger() {
 }
 const cab = (id) => (CABINETS || []).find((c) => c.id === id);
 const formuleDe = (ab) => (ab && FORMULES_()[ab.formule]) || null;
-const nomFormule = (ab) => (!ab ? "Tout compris (sans formule)" : ((formuleDe(ab) || {}).lib || ab.formule) + (ab.surMesure ? " · sur mesure" : ""));
+const nomFormule = (ab) => (!ab ? "Tout compris (sans formule)" : ((formuleDe(ab) || {}).lib || ab.formule) + (ab.surMesure || (ab.reglage && Object.keys(ab.reglage).length) ? " · sur mesure" : ""));
 const ROLES_LIB = { medecin: "Médecin", assistante: "Secrétaire", infirmiere: "Infirmière", comptable: "Comptable" };
 const ch = (id, lib, ph, type, v) => '<div><label for="' + id + '">' + esc(lib) + '</label><input id="' + id + '"' + (type ? ' type="' + type + '"' : "") + (ph ? ' placeholder="' + esc(ph) + '"' : "") + ' value="' + esc(v || "") + '" autocomplete="off"></div>';
 // Menu des formules, rangées par spécialité
@@ -106,7 +107,7 @@ function carteCabinet(c) {
     '<div class="chiffres">' + chiffre(r.medecin || 0, mx.medecin, "Médecins") + chiffre(r.assistante || 0, mx.assistante, "Secrétaires") + chiffre(r.infirmiere || 0, mx.infirmiere, "Infirmières") + (r.comptable || mx.comptable != null ? chiffre(r.comptable || 0, mx.comptable, "Comptables") : "") + chiffre(c.etablissements, mx.etablissements, "Lieux") + chiffre(c.patients, mx.patients, "Dossiers") + "</div>" +
     (c.equipe && c.equipe.length ? '<details class="equipe"><summary>Équipe (' + c.equipe.length + ")</summary>" + c.equipe.slice().sort((a, b) => (b.titulaire ? 1 : 0) - (a.titulaire ? 1 : 0) || String(a.role).localeCompare(String(b.role))).map((m) => '<div class="mb' + (m.actif ? "" : " off") + '"><b>' + esc(m.nom || "—") + '</b> <span class="bdg">' + esc(ROLES_LIB[m.role] || m.role) + (m.titulaire ? " titulaire" : "") + "</span>" + (m.actif ? "" : ' <span class="bdg al">désactivé</span>') + '<div class="m">' + esc(m.email) + "</div></div>").join("") + "</details>" : "") +
     '<div class="m">Créé le ' + esc(dfr(c.cree) || "—") + "</div>" +
-    '<div class="act">' + (c.demo ? '<button class="clair petit" data-reinit="' + esc(c.id) + '">Réinitialiser la démo</button>' : "") + '<button class="clair petit" data-info="' + esc(c.id) + '">Modifier</button><button class="clair petit" data-form="' + esc(c.id) + '">Formule et modules</button>' +
+    '<div class="act">' + (c.demo ? '<button class="clair petit" data-reinit="' + esc(c.id) + '">Réinitialiser la démo</button>' : "") + '<button class="clair petit" data-info="' + esc(c.id) + '">Modifier</button><button class="clair petit" data-form="' + esc(c.id) + '">Réglage du cabinet</button>' +
     (c.modele ? "" : (c.titulaire.email ? '<button class="clair petit" data-lien="' + esc(c.id) + '">Lien du mot de passe</button><button class="clair petit" data-mail="' + esc(c.titulaire.email) + '">Renvoyer l\'e-mail</button>' : "") +
       (c.actif ? '<button class="clair petit" data-susp="' + esc(c.id) + '">Suspendre</button>' : '<button class="clair petit" data-react="' + esc(c.id) + '">Réactiver</button><button class="rouge petit" data-suppr="' + esc(c.id) + '">Supprimer</button>')) +
     "</div></article>";
@@ -234,25 +235,49 @@ function ouvrirInfos(c) {
   };
 }
 
-// ───── Formule et modules d'un cabinet ─────
+// ───── Réglage du cabinet (10/10/2026) : pack de départ, puis retouches à l'intérieur du cabinet ─────
+// Menu (ordre), modules et leurs fonctions, cartes du tableau de bord (ordre, présence), onglets des Paramètres (ordre, présence),
+// bibliothèques, maximums. Enregistré par abonnementCabinet (modules, max, reglage).
 function ouvrirFormule(c) {
   if (!c) return;
   const A = JSON.parse(JSON.stringify(abonnementEffectif(c.abonnement))); A.formule = A.formule || "complet";
+  const R = reglageEffectif(c.abonnement && c.abonnement.reglage);
   const n = (k) => (k === "patients" ? c.patients : k === "etablissements" ? c.etablissements : (c.roles || {})[k] || 0);
-  const corps = () => '<div class="form" style="grid-template-columns:minmax(0,340px)"><div><label for="fFor">Formule de départ</label><select id="fFor">' + optionsFormules(A.formule) + "</select></div></div>" +
-    '<h3 class="st">Modules</h3><div class="mods">' + MODULES.filter(([k]) => modulePour(k, (FORMULES_()[A.formule] || {}).specialite)).map(([k, lib, de]) => '<label class="mod"><input type="checkbox" data-m="' + k + '"' + (A.modules[k] ? " checked" : "") + "><span><b>" + esc(lib) + '</b><br><span class="m">' + esc(de) + "</span></span></label>").join("") + "</div>" +
-    '<h3 class="st">Nombre maximum <span class="m">(vide = sans limite, 0 = aucun)</span></h3><div class="form">' + ROLES_MAX.map(([k, lib]) => '<div><label for="fMx' + k + '">' + esc(lib) + ' <span class="m">(actuellement ' + (n(k) == null ? "?" : n(k)) + ')</span></label><input id="fMx' + k + '" type="number" min="0" data-x="' + k + '" placeholder="sans limite" value="' + (A.max[k] == null ? "" : A.max[k]) + '"></div>').join("") + "</div>";
-  fenetre("<h2>Formule de « " + esc(c.nom) + " »</h2><p class=\"sous\">Un module retiré disparaît pour tout le cabinet ; ses données sont gardées et reviennent si vous le remettez.</p><div id=\"fCorps\">" + corps() + '</div><div class="pied"><button id="fOk">Enregistrer</button><button class="clair" id="fAnn">Fermer</button></div>');
-  const lire = () => { document.querySelectorAll("#fCorps [data-m]").forEach((x) => { A.modules[x.dataset.m] = x.checked; }); document.querySelectorAll("#fCorps [data-x]").forEach((x) => { A.max[x.dataset.x] = x.value === "" ? null : Number(x.value); }); };
+  const spe = () => (FORMULES_()[A.formule] || {}).specialite;
+  const LIB_MOD = Object.fromEntries(MODULES.map((m) => [m[0], m[1]])), LIB_MENU = Object.fromEntries(MENU.map((m) => [m[0], m])), LIB_CARTE = Object.fromEntries(CARTES), LIB_SEC = Object.fromEntries(SECTIONS.map((x) => [x[0], x[1]]));
+  const fleches = (l, i) => '<span class="fl"><button class="clair petit" data-haut="' + l + ":" + i + '"' + (i ? "" : " disabled") + ' aria-label="Monter">↑</button><button class="clair petit" data-bas="' + l + ":" + i + '" aria-label="Descendre">↓</button></span>';
+  const caseC = (attr, on, txt) => '<label class="rg-c"><input type="checkbox" ' + attr + (on ? " checked" : "") + "><span>" + txt + "</span></label>";
+  const corps = () => {
+    const mods = MODULES.filter(([k]) => modulePour(k, spe()));
+    return '<div class="form" style="grid-template-columns:minmax(0,340px) auto;align-items:end"><div><label for="fFor">Pack de départ</label><select id="fFor">' + optionsFormules(A.formule) + '</select></div><div><button class="clair petit" id="fDepart" title="Ordre et présence par défaut ; les modules et limites du pack restent">Remettre l\'ordre de départ</button></div></div>' +
+      '<div class="rg"><div class="rg-b"><h3 class="st">Menu (ordre)</h3>' + R.menu.map((k, i) => { const m = LIB_MENU[k]; if (!m) return ""; return '<div class="rg-l">' + fleches("menu", i) + "<span class=\"rg-t\">" + esc(m[1]) + "</span>" + (m[2] ? caseC('data-rmod="' + m[2] + '"', A.modules[m[2]], "") : '<span class="m">toujours</span>') + "</div>"; }).join("") + "</div>" +
+      '<div class="rg-b"><h3 class="st">Tableau de bord (cartes)</h3>' + R.accueil.map((k, i) => '<div class="rg-l">' + fleches("accueil", i) + '<span class="rg-t">' + esc(LIB_CARTE[k] || k) + "</span>" + caseC('data-rcarte="' + k + '"', R.cartes[k] !== false, "") + "</div>").join("") + "</div>" +
+      '<div class="rg-b"><h3 class="st">Paramètres (onglets)</h3>' + R.ordreSections.map((k, i) => '<div class="rg-l">' + fleches("ordreSections", i) + '<span class="rg-t">' + esc(LIB_SEC[k] || k) + "</span>" + caseC('data-rsec="' + k + '"', R.sections[k] !== false, "") + "</div>").join("") + "</div>" +
+      '<div class="rg-b"><h3 class="st">Bibliothèques</h3>' + BIBLIOTHEQUES.map(([k, lib]) => '<div class="rg-l"><span class="rg-t">' + esc(lib) + "</span>" + caseC('data-rbib="' + k + '"', R.bibliotheques[k] !== false, "") + "</div>").join("") + "</div></div>" +
+      '<h3 class="st">Modules et fonctions</h3><div class="mods">' + mods.map(([k, lib, de]) => '<div class="mod-f' + (A.modules[k] ? "" : " off") + '">' + caseC('data-rmod="' + k + '"', A.modules[k], "<b>" + esc(lib) + '</b><br><span class="m">' + esc(de) + "</span>") +
+        ((FONCTIONS[k] || []).length ? '<details' + (A.modules[k] ? "" : "") + "><summary>Fonctions (" + FONCTIONS[k].filter(([f]) => R.fonctions[k + "." + f] !== false).length + " / " + FONCTIONS[k].length + ")</summary>" + FONCTIONS[k].map(([f, l]) => caseC('data-rfn="' + k + "." + f + '"', R.fonctions[k + "." + f] !== false, esc(l) + (FONCTIONS_RELIEES.indexOf(k + "." + f) < 0 ? ' <span class="m">(bientôt)</span>' : ""))).join("") + "</details>" : "") + "</div>").join("") + "</div>" +
+      '<h3 class="st">Nombre maximum <span class="m">(vide = sans limite, 0 = aucun)</span></h3><div class="form">' + ROLES_MAX.map(([k, lib]) => '<div><label for="fMx' + k + '">' + esc(lib) + ' <span class="m">(actuellement ' + (n(k) == null ? "?" : n(k)) + ')</span></label><input id="fMx' + k + '" type="number" min="0" data-x="' + k + '" placeholder="sans limite" value="' + (A.max[k] == null ? "" : A.max[k]) + '"></div>').join("") + "</div>";
+  };
+  fenetre("<h2>Réglage de « " + esc(c.nom) + ' »</h2><p class="sous">Choisissez le pack, puis retouchez à volonté pour ce cabinet : ordre (↑ ↓), présence (cases), fonctions de chaque module. Ce qui est retiré est caché, les données sont gardées. Le changement s\'applique à la prochaine ouverture d\'Onco360 par l\'équipe.</p><div id="fCorps">' + corps() + '</div><div class="pied"><button id="fOk">Enregistrer</button><button class="clair" id="fAnn">Fermer</button></div>');
+  const lireMax = () => document.querySelectorAll("#fCorps [data-x]").forEach((x) => { A.max[x.dataset.x] = x.value === "" ? null : Number(x.value); });
+  const refaire = (sansLire) => { if (!sansLire) lireMax(); const ouverts = [...document.querySelectorAll("#fCorps details")].map((d) => d.open); $("fCorps").innerHTML = corps(); document.querySelectorAll("#fCorps details").forEach((d, i) => { d.open = !!ouverts[i]; }); brancher(); };
+  const bouger = (v, sens) => { const [l, i] = v.split(":"), k = Number(i), j = k + sens, L = R[l]; if (j < 0 || j >= L.length) return; [L[k], L[j]] = [L[j], L[k]]; refaire(); };
   const brancher = () => {
-    $("fFor").onchange = () => { const F = FORMULES_()[$("fFor").value]; if (!F) return; A.formule = $("fFor").value; A.max = Object.assign({}, F.max); MODULES.forEach(([k]) => { A.modules[k] = F.modules.indexOf(k) >= 0; }); $("fCorps").innerHTML = corps(); brancher(); };
-    document.querySelectorAll("#fCorps [data-m]").forEach((x) => { x.onchange = () => { lire(); if (x.dataset.m === "rcp" && x.checked) A.modules.taches = true; if (x.dataset.m === "taches" && !x.checked) A.modules.rcp = false; $("fCorps").innerHTML = corps(); brancher(); }; });
+    $("fFor").onchange = () => { const F = FORMULES_()[$("fFor").value]; if (!F) return; A.formule = $("fFor").value; A.max = Object.assign({}, F.max); MODULES.forEach(([k]) => { A.modules[k] = F.modules.indexOf(k) >= 0; }); refaire(true); }; // limites du pack (pas celles affichées)
+    $("fDepart").onclick = () => { Object.assign(R, reglageEffectif(null)); refaire(); };
+    document.querySelectorAll("#fCorps [data-haut]").forEach((b) => { b.onclick = () => bouger(b.dataset.haut, -1); });
+    document.querySelectorAll("#fCorps [data-bas]").forEach((b) => { b.onclick = () => bouger(b.dataset.bas, 1); });
+    document.querySelectorAll("#fCorps [data-rmod]").forEach((x) => { x.onchange = () => { const k = x.dataset.rmod; A.modules[k] = x.checked; if (k === "rcp" && x.checked) A.modules.taches = true; if (k === "taches" && !x.checked) A.modules.rcp = false; refaire(); }; });
+    document.querySelectorAll("#fCorps [data-rcarte]").forEach((x) => { x.onchange = () => { R.cartes[x.dataset.rcarte] = x.checked; }; });
+    document.querySelectorAll("#fCorps [data-rsec]").forEach((x) => { x.onchange = () => { R.sections[x.dataset.rsec] = x.checked; }; });
+    document.querySelectorAll("#fCorps [data-rbib]").forEach((x) => { x.onchange = () => { R.bibliotheques[x.dataset.rbib] = x.checked; }; });
+    document.querySelectorAll("#fCorps [data-rfn]").forEach((x) => { x.onchange = () => { R.fonctions[x.dataset.rfn] = x.checked; refaire(); }; });
   };
   brancher();
   $("fAnn").onclick = fermer;
   $("fOk").onclick = async () => {
-    lire(); const b = $("fOk"); b.disabled = true; b.textContent = "Enregistrement…";
-    try { const o = await serveur("abonnementCabinet", { espace: c.id, formule: A.formule, modules: A.modules, max: A.max }); c.abonnement = o.abonnement; fermer(); RES = "Formule enregistrée pour « " + esc(c.nom) + " » : " + esc(nomFormule(o.abonnement)) + ". Elle s'applique à la prochaine ouverture d'Onco360 par l'équipe."; dessiner(); }
+    lireMax(); const b = $("fOk"); b.disabled = true; b.textContent = "Enregistrement…";
+    try { const o = await serveur("abonnementCabinet", { espace: c.id, formule: A.formule, modules: A.modules, max: A.max, reglage: R }); c.abonnement = o.abonnement; fermer(); RES = "Réglage enregistré pour « " + esc(c.nom) + " » : " + esc(nomFormule(o.abonnement)) + ". Il s'applique à la prochaine ouverture d'Onco360 par l'équipe."; dessiner(); }
     catch (e) { b.disabled = false; b.textContent = "Enregistrer"; alert("Enregistrement impossible : " + e.message); }
   };
 }

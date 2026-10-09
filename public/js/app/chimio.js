@@ -205,7 +205,7 @@ function vueCure(x, i, k) {
   const g = groupes(q), multi = g.length > 1, motif = (o) => (o ? esc(o.raison || "") + (o.com ? " – " + esc(o.com) : "") : "");
   let h = '<div class="cure-ent"><div><h3 style="margin:0">Cure C' + e.n + (q.c ? " / " + L.cures.length : "") + " — " + esc(q.nom) + "</h3>" +
     '<p class="sous" style="margin:4px 0 0">' + esc(x.r.nm) + " " + badgeCure(e) + "</p></div>" +
-    '<button class="bt fonce petit" onclick="chFiche(' + qc + ')"><svg class="pi"><use href="#i-imprimer"/></svg>FICHE CHIMIO</button></div>';
+    '<button class="bt fonce petit" data-fn="chimio.fiche" onclick="chFiche(' + qc + ')"><svg class="pi"><use href="#i-imprimer"/></svg>FICHE CHIMIO</button></div>';
   const td = (lib, v, cls) => '<td data-l="' + lib + '"' + (cls ? ' class="' + cls + '"' : "") + ">" + v + "</td>";
   const reps = (l) => (l && l.length ? '<div class="mesures">' + l.map((r) => "↪ reportée du " + A.dfrA(r.de) + " (" + esc(r.raison) + ")").join("<br>") + "</div>" : "");
   const statut = (st, rep, ann) => st === "recue" ? '<span class="badge b-ch"><svg class="pi"><use href="#i-check"/></svg>Reçue</span>' : st === "annulee" ? '<span class="badge b-al">✖ Annulée</span>' + (ann ? '<div class="mesures">' + motif(ann) + "</div>" : "") : rep ? '<span class="badge b-or">↪ Reportée</span>' : '<span class="badge b-gr"><svg class="pi"><use href="#i-horloge"/></svg>Prévue</span>';
@@ -240,7 +240,7 @@ function vueJour(x, i, k, j) {
   const dJ = j === 1 ? (e.st === "recue" ? c.reelle : e.date) : sea ? (sea.st === "recue" ? sea.d : sea.prevue) : null;
   let h = '<button class="lien" style="margin-bottom:8px" onclick="chRetourCure()">‹ Retour à la cure C' + e.n + "</button>" +
     '<div class="cure-ent"><div><h3 style="margin:0">C' + e.n + " · " + etiquette(gr) + " — " + esc(q.nom) + '</h3><p class="sous" style="margin:4px 0 0">' + esc(x.r.nm) + (dJ ? " · " + A.dfrA(dJ) : "") + "</p></div>" +
-    (j === 1 ? '<button class="bt fonce petit" onclick="chFiche(' + qc + ')"><svg class="pi"><use href="#i-imprimer"/></svg>FICHE CHIMIO</button>' : "") + "</div>";
+    (j === 1 ? '<button class="bt fonce petit" data-fn="chimio.fiche" onclick="chFiche(' + qc + ')"><svg class="pi"><use href="#i-imprimer"/></svg>FICHE CHIMIO</button>' : "") + "</div>";
   // Paramètres de la séance (J1, J8…) : saisis ici, sinon repris de la séance précédente (puis de la cure précédente)
   const G = (e.g && e.g[gi]) || { poids: e.poids, creat: e.creat, sc: e.sc, cl: e.cl, pctAll: num(c.pctAll), saisi: {} };
   h += '<div class="form" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-top:4px"><div><label>Poids (kg)</label><input inputmode="decimal" value="' + esc(G.poids || "") + '"' + (G.saisi.poids ? ' class="saisi"' : "") + dis + ' onchange="chChamp(' + qc + ',\'poids\',this.value,' + gr.j + ')"></div>' +

@@ -204,7 +204,13 @@ async function contexteAuto(e) {
   const [sr, sc, se, sm] = await Promise.all([db.doc("espaces/" + e + "/parametres/tachesAuto").get(), db.doc("espaces/" + e + "/parametres/calendrier").get(), db.doc("espaces/" + e).get(), db.collection("espaces/" + e + "/membres").get()]);
   let cfg = {}, cal = {}; try { cfg = sr.exists ? JSON.parse(sr.data().data || "{}") : {}; } catch (er) { /* illisible */ } try { cal = sc.exists ? JSON.parse(sc.data().data || "{}") : {}; } catch (er) { /* illisible */ }
   const membres = {}; sm.forEach((d) => { membres[d.id] = d.data(); });
-  return { regles: L.reglesAuto(cfg), feries: cal.feries || [], titulaire: se.exists ? se.data().titulaire : null, membres };
+  // Réglage du cabinet (10/10/2026) : module Tâches ou fonction « Tâches automatiques » retirés = aucune ; « Tâches fixes » de la
+  // radiothérapie retirées = sans contourage / dosimétrie / fin
+  const ab = (se.exists && se.data().abonnement) || {}, fn = (ab.reglage && ab.reglage.fonctions) || {};
+  let regles = L.reglesAuto(cfg);
+  if ((ab.modules && ab.modules.taches === false) || fn["taches.auto"] === false) regles = [];
+  else if (fn["rt.taches"] === false || (ab.modules && ab.modules.rt === false)) regles = regles.filter((r) => ["cont", "dosi", "finrt"].indexOf(r.id) < 0);
+  return { regles, feries: cal.feries || [], titulaire: se.exists ? se.data().titulaire : null, membres };
 }
 async function tachesAuto(e, pid, docData, ctx, opts) {
   if (!docData) return;
@@ -594,6 +600,7 @@ exports.abonnementCabinet = onCall({ timeoutSeconds: 30, memory: "256MiB" }, asy
   const { espace } = req.data || {};
   const ref = db.doc("espaces/" + String(espace || "x")); if (!espace || !(await ref.get()).exists) throw new HttpsError("not-found", "Cabinet introuvable.");
   const ab = Object.assign(C.abonnement(req.data || {}, await formules()), { le: new Date().toISOString(), par });
+  const rg = C.reglageNettoye((req.data || {}).reglage); if (rg) ab.reglage = rg; // retouches du cabinet (ordre, cartes, onglets, fonctions…)
   await ref.update({ abonnement: ab });
   console.log("abonnement", espace, ab.formule, ab.surMesure ? "(sur mesure)" : "", "par", par);
   return { abonnement: ab };
@@ -610,7 +617,7 @@ exports.formulesEnregistrer = onCall({ timeoutSeconds: 60, memory: "256MiB" }, a
   const manquantes = [...utilisees].filter((f) => !FS[f]);
   if (manquantes.length) throw new HttpsError("failed-precondition", "Formule encore utilisée par un cabinet : " + manquantes.join(", ") + ". Changez d'abord la formule de ce cabinet.");
   await db.doc("plateforme/formules").set({ data: JSON.stringify(FS), le: new Date().toISOString(), par });
-  for (const d of maj) await d.ref.update({ abonnement: Object.assign(C.abonnement({ formule: d.data().abonnement.formule }, FS), { le: new Date().toISOString(), par }) });
+  for (const d of maj) { const a0 = d.data().abonnement; await d.ref.update({ abonnement: Object.assign(C.abonnement({ formule: a0.formule }, FS), a0.reglage ? { reglage: a0.reglage } : {}, { le: new Date().toISOString(), par }) }); } // retouches gardées
   console.log("formules enregistrées par", par, Object.keys(FS).join(", "), "cabinets mis à jour", maj.length);
   return { formules: FS, cabinets: maj.length };
 });

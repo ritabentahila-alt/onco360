@@ -227,6 +227,7 @@ const base = () => (VUE === "mes" ? T.filter((t) => t.pour === D().u.uid) : T);
 function dessiner() {
   const esc = A.esc, moi = D().u.uid, mes = T.filter((t) => t.pour === moi);
   const onglet = (k, ico, lib, n) => '<button class="' + (VUE === k ? "on" : "") + '" onclick="taVue(\'' + k + '\')">' + A.ic(ico) + lib + ' <span class="nb" id="taNb-' + k + '">' + n + "</span></button>";
+  const ongletT = (k, ico, lib, n) => onglet(k, ico, lib, n).replace("<button ", '<button data-fn="taches.toutes" '); // réglage du cabinet
   const sel = (id, lib, v, opts) => '<select id="' + id + '" aria-label="' + lib + '">' + opts.map(([k, l]) => (k === "—" ? '<optgroup label="' + esc(l) + '">' : k === "/—" ? "</optgroup>" : '<option value="' + esc(k) + '"' + (k === v ? " selected" : "") + ">" + esc(l) + "</option>")).join("") + "</select>";
   // Responsable : rôles et membres (médecin), « Demandées par moi » (tous) ; seulement dans « Toutes les tâches »
   const optsQui = [["", "Toute l'équipe"]].concat(estMedecin() ? [["r:medecin", "Pour les médecins"], ["r:assistante", "Pour les secrétaires"], ["r:infirmiere", "Pour les infirmières"], ["—", "Pour…"]].concat((MB || []).filter((m) => T.some((t) => t.pour === m.uid) || m.actif !== false).map((m) => ["u:" + m.uid, m.uid === moi ? "Moi" : nomMembre(m)])).concat([["/—", ""]]) : [["u:" + moi, "Pour moi"]]).concat([["d:" + moi, "Demandées par moi"]]);
@@ -235,7 +236,7 @@ function dessiner() {
   const etT = D().etabsTous || D().etabs || [], nomLieu = {}; etT.forEach((e) => { nomLieu[e.code] = e.nom || ""; });
   const lieux = (D().membre.tousEtablissements ? etT.map((e) => e.code) : (D().membre.etablissements || []).slice()).concat(T.map(lieuDe)).filter((c, i, a) => c && a.indexOf(c) === i).sort();
   let h = '<section class="accueil"><div><h2>Tâches</h2><p>Rappels, demandes et suivis de l\'équipe.</p></div><div class="actions"><button class="bt plein" onclick="taNouvelle()">' + A.ic("plus") + "Nouvelle tâche</button></div></section>" +
-    '<div class="ag-vues ta-vues" style="align-self:flex-start">' + onglet("mes", "profil", "Mes tâches", nbOuv(mes)) + onglet("toutes", "taches", '<span class="lg">Toutes les tâches</span><span class="sm">Toutes</span>', nbOuv(T)) + (A.module("rcp") ? onglet("rcp", "rcp", "RCP", nbRcpAFaire()) : "") + "</div>";
+    '<div class="ag-vues ta-vues" style="align-self:flex-start">' + onglet("mes", "profil", "Mes tâches", nbOuv(mes)) + ongletT("toutes", "taches", '<span class="lg">Toutes les tâches</span><span class="sm">Toutes</span>', nbOuv(T)) + (A.module("rcp") ? onglet("rcp", "rcp", "RCP", nbRcpAFaire()) : "") + "</div>";
   // Onglet RCP (rcp.js) : calendrier des semaines, période, dossiers inscrits et case Fait
   if (VUE === "rcp") { $("page").innerHTML = h + htmlOngletRcp(); pageRcp(); return; }
   h += '<div class="ta-filtres"><div class="recherche">' + A.ic("loupe") + '<input id="taQ" type="search" placeholder="Rechercher : titre, patient, personne…" autocomplete="off" value="' + esc(F.q) + '"></div>' +

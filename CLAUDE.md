@@ -142,7 +142,11 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
   `creerEspace` copie la bibliothèque de la spécialité de la formule (`sourceBib`, PDF recopiés) ; `plateforme/reference` = ancienne copie
   (09/10), source de bib-oncologie. `compteMembre` ignore les bibliothèques. Paramètres de base de la spécialité (`PARAMS_SPE`,
   `parametreDepart`) dans la bibliothèque, copiés aux cabinets neufs. Modules par spécialité : `MODULE_FAMILLE`, `MODULE_MENU`,
-  `MODULES_PREVUS` (modules.js), onglet « Modules et menus » de l'Administration. Comptes de l'équipe : `creerMembre` / `lienMembre` (serveur ;
+  `MODULES_PREVUS` (modules.js), onglet « Modules et menus » de l'Administration.
+  Réglage du cabinet (10/10/2026) : `espaces/{e}.abonnement.reglage` { menu, accueil, cartes, ordreSections, sections, bibliotheques,
+  fonctions } ; catalogue `public/js/donnees/catalogue.js` (MENU, FONCTIONS, FONCTIONS_RELIEES, CARTES, SECTIONS, BIBLIOTHEQUES,
+  `reglageEffectif`, `styleRetraits`) ; dans Onco360 `D.reg` (menu réordonné, cartes de `pageAccueil` via `carte(k, …)`, onglets de
+  `ONGLETS()`, éléments `[data-fn~="module.fonction"]` / `[data-bib~="…"]` cachés) ; serveur : `contexteAuto` respecte taches.auto / rt.taches. Comptes de l'équipe : `creerMembre` / `lienMembre` (serveur ;
   la création de comptes depuis le navigateur est fermée dans Firebase). Cabinet de
   démonstration : `cab-demonstration` (`demo: true`), `creerCabinetDemo` / `demoReinitialiser`, patients fictifs `functions/demo.js`.
 Ancienne application : collections racine `patients`, `protocoles`, `finances`, `parametres` (lecture seule).

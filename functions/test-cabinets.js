@@ -99,3 +99,10 @@ const echoue = (f) => { try { f(); return false; } catch (e) { return true; } };
   ok(C.parametreDepart("tarifsConsultations", { a: 1 }) === null && C.parametreDepart("medecinTitulaire", { a: 1 }) === null, "jamais les prix des consultations ni le titulaire");
   const w = { annonce: "Bonjour {prenom}" }; ok(C.parametreDepart("whatsapp", w).annonce === "Bonjour {prenom}" && C.parametreDepart("whatsapp", w) !== w, "messages WhatsApp copiés");
 })();
+// Retouches d'un cabinet (10/10/2026)
+(() => {
+  const C = require("./cabinets"), ok = (c, m) => { console.log((c ? "✅ " : "❌ ") + m); if (!c) process.exitCode = 1; };
+  const r = C.reglageNettoye({ menu: ["bilan", "accueil", "<script>", 3], cartes: { stats: false, x: "non" }, fonctions: { "taches.auto": false }, pirate: { a: 1 } });
+  ok(JSON.stringify(r.menu) === '["bilan","accueil"]' && r.cartes.stats === false && !("x" in r.cartes) && r.fonctions["taches.auto"] === false && !("pirate" in r), "retouches nettoyées (clés courtes, oui / non)");
+  ok(C.reglageNettoye(null) === null && C.reglageNettoye("x") === null, "sans retouche : rien");
+})();

@@ -204,7 +204,7 @@ function dessinerListe() {
   const jours = Array.from(new Set(L.map((r) => r.d).concat(FILTRE === "fait" ? [] : datesRcp(DU, AU, c)))).sort();
   const per = DU === AU ? "le " + libDate(DU) : "du " + A.dfrA(DU) + " au " + A.dfrA(AU);
   h += '<section class="carte"><div class="ta-entete"><span class="sous">RCP ' + esc(per) + " · " + L.length + " dossier" + (L.length > 1 ? "s" : "") + (FILTRE === "afaire" ? " à faire" : FILTRE === "fait" ? " faits" : "") + "</span>" +
-    (L.length ? '<button class="bt gris petit" onclick="rcpImprimer()" title="Imprimer la liste des dossiers de la période">' + A.ic("imprimer") + "Imprimer</button>" : "") + "</div>";
+    (L.length ? '<button class="bt gris petit" data-fn="rcp.impression" onclick="rcpImprimer()" title="Imprimer la liste des dossiers de la période">' + A.ic("imprimer") + "Imprimer</button>" : "") + "</div>";
   if (!jours.length) h += '<p class="sous">Aucune RCP ni aucun dossier inscrit sur cette période.</p>';
   jours.forEach((d) => {
     const l = L.filter((r) => r.d === d), nf = l.filter((r) => r.fait).length;

@@ -73,7 +73,7 @@ export function pageAgenda() {
   else { du = AG.d; au = addJ(AG.d, 30); lib = "À partir du " + court(AG.d); }
   EVS = evenements(du, au);
   const main = v === "mois" ? vueMois(du) : v === "liste" ? vueListe() : vueGrille(du, v === "jour" ? 1 : 7), cote = miniCal() + aVenir();
-  const onglet = (k, ico, t) => '<button class="' + (v === k ? "on" : "") + '" onclick="agVue(\'' + k + '\')">' + A.ic(ico) + t + "</button>";
+  const onglet = (k, ico, t) => '<button' + (k === "liste" ? "" : ' data-fn="agenda.vues"') + ' class="' + (v === k ? "on" : "") + '" onclick="agVue(\'' + k + '\')">' + A.ic(ico) + t + "</button>";
   let h = '<section class="accueil"><div><h2>Agenda</h2><p>Vos prochains rendez-vous, regroupés par jour.</p></div><div class="actions"><button class="bt plein" onclick="nouveauRdv(null,null,\'' + esc(AG.etab || "") + '\')">' + A.ic("plus") + "Nouveau rendez-vous</button></div></section>" +
     '<div class="ag-barre"><div class="ag-vues">' + onglet("liste", "liste", "Liste") + onglet("jour", "agenda", "Jour") + onglet("semaine", "agenda", "Semaine") + onglet("mois", "accueil", "Mois") + "</div>" +
     '<div class="ag-nav"><button class="rond" onclick="agNav(-1)" aria-label="Précédent">' + A.ic("retour") + '</button><button class="bt clair petit" onclick="agAuj()">Aujourd\'hui</button><b>' + esc(lib) + '</b><button class="rond" onclick="agNav(1)" aria-label="Suivant" style="transform:scaleX(-1)">' + A.ic("retour") + "</button></div>" +

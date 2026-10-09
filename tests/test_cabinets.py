@@ -5,7 +5,7 @@ import subprocess
 JS = r'''
 const C = require(process.argv[1] + "/functions/cabinets.js"), S = JSON.parse(require("fs").readFileSync(0, "utf8")), M = "espaces/" + C.MODELE + "/", E = "espaces/cab-test/";
 const J = (k) => { try { return S[k] ? JSON.parse(S[k].data || "null") : null; } catch (e) { return null; } }, out = Object.assign({}, S), d = C.verifier({ cabinet: "Cabinet Test", prenom: "Salma", nom: "Bennani", email: "uidb@test.ma" });
-out["espaces/cab-test"] = { nom: d.cabinet, titulaire: "UIDB", cree: "2026-10-09", actif: true, abonnement: C.abonnement({ formule: "onco-pro", modules: { salle: false, rcp: false }, max: { etablissements: 1 } }) };
+out["espaces/cab-test"] = { nom: d.cabinet, titulaire: "UIDB", cree: "2026-10-09", actif: true, abonnement: Object.assign(C.abonnement({ formule: "onco-pro", modules: { salle: false, rcp: false }, max: { etablissements: 1 } }), { reglage: { menu: ["bilan", "accueil"], accueil: ["stats", "jour"], cartes: { sept: false }, ordreSections: ["listes", "taches"], sections: { whatsapp: false }, bibliotheques: { courriers: false }, fonctions: { "prescriptions.medic": false, "taches.auto": false } } }) };
 out[E + "membres/UIDB"] = C.membreTitulaire(d, "2026-10-09", "ADM");
 Object.keys(S).filter((k) => k.startsWith(M + "protocoles/")).forEach((k) => { out[E + k.slice(M.length)] = S[k]; });
 out[E + "parametres/listes"] = { data: JSON.stringify(C.listesDepart(J(M + "parametres/listes"))) };
@@ -69,6 +69,20 @@ async def main():
         await pg.evaluate("location.hash='parametres/lieux'"); await pg.wait_for_timeout(700); n0 = len(pg.dlg)
         await pg.evaluate("pfLieu()"); await pg.wait_for_timeout(300)
         ok(len(pg.dlg) > n0 and 'limite' in pg.dlg[-1], 'formule : 1 lieu d\'exercice au plus')
+        # Réglage du cabinet appliqué : menu, cartes, onglets, fonctions, bibliothèques
+        await pg.set_viewport_size({'width': 1300, 'height': 900})
+        vis = await pg.evaluate("[...document.querySelectorAll('nav a')].filter(a=>a.offsetParent!==null).map(a=>a.dataset.p)")
+        ok(vis[:2] == ['bilan', 'accueil'], 'menu dans l\'ordre du réglage ' + str(vis))
+        await pg.evaluate("location.hash='accueil'"); await pg.wait_for_timeout(600)
+        h3 = await pg.evaluate("[...document.querySelectorAll('#page section h3')].map(h=>h.innerText.trim())")
+        ok(h3 and 'Statistiques' in h3[0] and not any('7 prochains' in x for x in h3), 'tableau de bord : Statistiques en premier, « 7 prochains jours » retirée ' + str(h3[:3]))
+        await pg.evaluate("location.hash='parametres'"); await pg.wait_for_timeout(900)
+        ong = await pg.evaluate("[...document.querySelectorAll('.ag-vues button')].map(b=>b.innerText.trim())")
+        ok(ong and 'Listes' in ong[0] and not any('WhatsApp' in o for o in ong), 'Paramètres : Listes en premier, WhatsApp retiré ' + str(ong[:3]))
+        await pg.evaluate("location.hash='parametres/taches'"); await pg.wait_for_timeout(900)
+        ok(await pg.evaluate("![...document.querySelectorAll('[data-fn=\"taches.auto\"]')].some(e=>e.offsetParent!==null)"), 'fonction « Tâches automatiques » retirée : section cachée')
+        await pg.evaluate("location.hash='parametres/bibliotheques'"); await pg.wait_for_timeout(900)
+        ok(await pg.evaluate("!document.querySelector('[data-bib=\"courriers\"]').offsetParent && !!document.querySelector('[data-bib=\"medicaments\"]').offsetParent"), 'bibliothèque Courriers retirée, Médicaments présente')
         ok(not pg.errs, 'aucune erreur JavaScript ' + str(pg.errs[:2]))
         # ── Page Administration ──
         pa = await ouvrir(b, S2); await pa.add_init_script("""window.__uid='ADM';window.__fonctions={etatCabinet:async(d)=>{window.__etat=d;return {actif:d.actif}},supprimerCabinet:async(d)=>{window.__suppr=d;return {comptes:1}},listeCabinets:async()=>({cabinets:[{id:'cabinet-bentahila',nom:'Cabinet du Dr Bentahila',modele:true,actif:true,cree:{_seconds:1},titulaire:{nom:'Dr Rita BENTAHILA',email:'ritabentahila@gmail.com'},membres:4,patients:62},{id:'cab-test',nom:'Cabinet Test',cree:'2026-10-09',actif:true,titulaire:{nom:'Dr Salma BENNANI',email:'uidb@test.ma',telephone:'06 61 00 00 00'},membres:1,patients:0}]}),lienMotDePasse:async(d)=>({lien:'https://chimio-hgc.firebaseapp.com/__/auth/action?mode=resetPassword&oobCode=TEST&e='+d.email}),creerCabinet:async(d)=>{window.__cree=d;return {espace:'cab-x',existant:false,protocoles:12}}}""")
@@ -111,13 +125,17 @@ async def main():
         # Formule et modules d'un cabinet (fenêtre)
         await pa.evaluate("window.__fonctions.abonnementCabinet=async(d)=>{window.__abo=d;return {abonnement:Object.assign({surMesure:true},d)}};0")
         await pa.click('[data-fiche="cab-test"]'); await pa.wait_for_timeout(300); await pa.click('[data-form="cab-test"]'); await pa.wait_for_timeout(400)
-        ok('Formule de « Cabinet Test »' in await pa.inner_text('#modal'), 'réglage de la formule ouvert')
+        ok('Réglage de « Cabinet Test »' in await pa.inner_text('#modal'), 'réglage du cabinet ouvert')
         await pa.select_option('#fFor', 'essentiel'); await pa.wait_for_timeout(300)
-        await pa.uncheck('#fCorps [data-m="taches"]'); await pa.wait_for_timeout(300)
-        ok(not await pa.is_checked('#fCorps [data-m="rcp"]'), 'Tâches retiré → RCP retirée aussi')
+        await pa.uncheck('#fCorps .mods [data-rmod="taches"]'); await pa.wait_for_timeout(300)
+        ok(not await pa.is_checked('#fCorps .mods [data-rmod="rcp"]'), 'Tâches retiré → RCP retirée aussi')
+        await pa.click('#fCorps [data-bas="accueil:0"]'); await pa.wait_for_timeout(200); await pa.uncheck('#fCorps [data-rcarte="stats"]'); await pa.click('#fCorps [data-haut="menu:7"]'); await pa.wait_for_timeout(200)
+        await pa.evaluate("document.querySelectorAll('#fCorps .mods details').forEach(d => d.open = true)"); await pa.uncheck('#fCorps [data-rfn="agenda.whatsapp"]'); await pa.wait_for_timeout(200); await pa.uncheck('#fCorps [data-rsec="alertes"]'); await pa.uncheck('#fCorps [data-rbib="examens"]')
         await pa.fill('#fMxassistante', '2'); await pa.click('#fOk'); await pa.wait_for_timeout(500)
         A = await pa.evaluate('window.__abo')
         ok(A['espace'] == 'cab-test' and A['formule'] == 'essentiel' and A['modules']['taches'] is False and A['modules']['rt'] is False and A['max']['assistante'] == 2 and A['max']['patients'] == 300, 'formule enregistrée (Oncologie – Essentiel, Tâches retiré, 2 secrétaires)')
+        G = A['reglage']
+        ok(G['accueil'][:2] == ['jour', 'ppas'] and G['cartes']['stats'] is False and G['menu'][6] == 'bilan' and G['fonctions']['agenda.whatsapp'] is False and G['sections']['alertes'] is False and G['bibliotheques']['examens'] is False, 'retouches enregistrées : ordre des cartes et du menu, carte, fonction, onglet, bibliothèque')
         # Modifier un cabinet (fenêtre)
         await pa.evaluate("window.__fonctions.infosCabinet=async(d)=>{window.__info=d;return {ok:true}};window.__fonctions.formulesEnregistrer=async(d)=>{window.__fml=d;return {formules:d.formules,cabinets:1}};0")
         await pa.click('[data-fiche="cab-test"]'); await pa.wait_for_timeout(300); await pa.click('[data-info="cab-test"]'); await pa.wait_for_timeout(300)

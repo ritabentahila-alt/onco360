@@ -32,6 +32,7 @@ import { installer as installerAudit } from "./audit.js";
 import { installer as installerRcp, demarrerRcp, rcpDuPatient, bulleRcp, suivreEtablissementRcp, supprimerRcp } from "./rcp.js";
 import { ACTES_RT } from "../donnees/listes.js";
 import { abonnementEffectif } from "../donnees/modules.js";
+import { reglageEffectif, styleRetraits } from "../donnees/catalogue.js";
 import { deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 // Cabinet ouvert : celui de la personne connectée (comptes/{uid}, écrit par le serveur ; phase F, 09/10/2026). Les membres du
@@ -127,7 +128,9 @@ async function charger(u) {
   if (!abo.modules.chimio) Object.assign(membre.droits, { traitements: "aucun", planningChimio: false, administrer: false });
   if (!abo.modules.rt) membre.droits.radiotherapie = "aucun";
   if (!abo.modules.documents) membre.droits.documents = false;
-  return { u, membre, profil, cal, ctx, t, patients, listes, etabs, etabsTous, tarifs, bibDoc, bibOrdre, activites, wa, agendaG, medTitulaire, tarifsC, reglages: reglagesC, abo, espaceDoc, bib: espaceDoc.bibliotheque === true };
+  // Réglage du cabinet (10/10/2026) : ordre du menu, cartes du tableau de bord, onglets des Paramètres, bibliothèques, fonctions
+  const reg = reglageEffectif(espaceDoc.bibliotheque === true ? null : espaceDoc.abonnement && espaceDoc.abonnement.reglage);
+  return { u, membre, profil, cal, ctx, t, patients, listes, etabs, etabsTous, tarifs, bibDoc, bibOrdre, activites, wa, agendaG, medTitulaire, tarifsC, reglages: reglagesC, abo, espaceDoc, bib: espaceDoc.bibliotheque === true, reg };
 }
 // Nom du médecin titulaire (signature des messages WhatsApp envoyés par la secrétaire ou l'infirmière)
 async function nomTitulaire() {
@@ -308,6 +311,11 @@ function entete() {
   // Modules de la formule : body.sans-<module> cache tout ce qui porte data-mod="<module>" (menu, boutons, onglets)
   Object.keys(D.abo.modules).forEach((k) => document.body.classList.toggle("sans-" + k, !D.abo.modules[k]));
   document.body.classList.toggle("role-comptable", mb.role === "comptable"); // menu réduit au bilan et au profil
+  // Réglage du cabinet : menu dans l'ordre choisi, éléments retirés cachés (fonctions, bibliothèques)
+  const nav = document.querySelector("nav");
+  D.reg.menu.forEach((k) => { const a = nav.querySelector('a[data-p="' + k + '"]'); if (a) nav.appendChild(a); });
+  let st = document.getElementById("styleReglage"); if (!st) { st = document.createElement("style"); st.id = "styleReglage"; document.head.appendChild(st); }
+  st.textContent = styleRetraits(D.reg);
   document.body.classList.toggle("mode-bib", D.bib); // bibliothèque de référence : Protocoles et Paramètres
   if (D.bib) {
     $("specMenu").textContent = (D.espaceDoc.nom || "Bibliothèque de référence") + " : ce que reçoivent les nouveaux cabinets";
@@ -372,7 +380,7 @@ function messageWA(x, cat, d, h) {
 }
 const btnWA = (x, cat, d, h) => {
   if (!cat) return ""; const g = ecart(d, D.t), RW = reglages().whatsapp, proche = g >= RW.de && g <= RW.a, ok = !!numeroWA(x.P.tel);
-  return '<button class="wa' + (proche ? " proche" : "") + '"' + (ok ? "" : " disabled") + ' aria-label="Rappel WhatsApp" title="' + (ok ? "Rappel WhatsApp" + (proche ? " (rendez-vous dans " + g * 24 + " h)" : "") : "Pas de numéro de téléphone dans le dossier") + '" onclick="event.stopPropagation();envoyerWA(\'' + x.id + "','" + cat + "','" + d + "','" + (h || "") + '\')">' + LOGO_WA + "</button>";
+  return '<button data-fn="agenda.whatsapp" class="wa' + (proche ? " proche" : "") + '"' + (ok ? "" : " disabled") + ' aria-label="Rappel WhatsApp" title="' + (ok ? "Rappel WhatsApp" + (proche ? " (rendez-vous dans " + g * 24 + " h)" : "") : "Pas de numéro de téléphone dans le dossier") + '" onclick="event.stopPropagation();envoyerWA(\'' + x.id + "','" + cat + "','" + d + "','" + (h || "") + '\')">' + LOGO_WA + "</button>";
 };
 const LOGO_WA = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.6.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.3-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 0 0 1.8-1.2 2.2 2.2 0 0 0 .1-1.2c0-.1-.2-.2-.5-.3Z"/></svg>';
 window.envoyerWA = (pid, cat, d, h) => {
@@ -434,7 +442,7 @@ const PAGE_MODULE = { agenda: "agenda", salle: "salle", taches: "taches", protoc
 const module = (k) => !D || !D.abo || D.abo.modules[k] !== false;
 const PAGES = { accueil: ["Tableau de bord", pageAccueil], agenda: ["Agenda / Rendez-vous", () => pageAgenda()], configuration: ["Paramètres", () => { location.replace("#parametres"); }], profil: ["Profil", () => pageProfil()], protocoles: ["Protocoles", () => pageProtocoles()], parametres: ["Paramètres", (a) => pageConfiguration(a)], bilan: ["Bilan", () => pagePageBilan()], salle: ["Salle d'attente", () => pageSalle()], patients: ["Patients", pagePatients], taches: ["Tâches", (a) => pageTaches(a)], dossier: ["Dossier patient", pageDossier] };
 function route() {
-  const h = location.hash.replace("#", ""), i = h.indexOf("/"), p = i < 0 ? h : h.slice(0, i), arg = i < 0 ? null : decodeURIComponent(h.slice(i + 1)), nom = PAGES[p] && module(PAGE_MODULE[p] || "") && (!estComptable() || PAGES_COMPTABLE.indexOf(p) >= 0) && (!D.bib || PAGES_BIB.indexOf(p) >= 0) ? p : estComptable() ? "bilan" : D.bib ? "protocoles" : "accueil";
+  const h = location.hash.replace("#", ""), i = h.indexOf("/"), p = i < 0 ? h : h.slice(0, i), arg = i < 0 ? null : decodeURIComponent(h.slice(i + 1)), nom = PAGES[p] && module(PAGE_MODULE[p] || "") && !(p === "protocoles" && D.reg && D.reg.fonctions["chimio.protocoles"] === false) && (!estComptable() || PAGES_COMPTABLE.indexOf(p) >= 0) && (!D.bib || PAGES_BIB.indexOf(p) >= 0) ? p : estComptable() ? "bilan" : D.bib ? "protocoles" : "accueil";
   if (!$("fenetre").classList.contains("cache")) window.fermerFenetre();
   D.page = nom + (arg ? "/" + encodeURIComponent(arg) : ""); $("titrePage").textContent = PAGES[nom][0]; $("page").classList.toggle("large", nom === "agenda");
   document.querySelectorAll("nav a").forEach((a) => a.classList.toggle("actif", a.dataset.p === (nom === "dossier" ? "patients" : nom)));
@@ -480,11 +488,17 @@ function pageAccueil() {
   let h = '<section class="accueil"><div><h2>Bonjour ' + esc([D.titre, D.nomAff].filter(Boolean).join(" ")) + " 👋</h2><p>" + cap(jourLong(D.t)) + "</p></div>" +
     '<div class="actions"><button class="bt clair" onclick="nouveauPatient()">' + ic("plus") + '<span class="lg">Nouveau patient</span><span class="sm">Patient</span></button><button class="bt plein" onclick="nouveauRdv()">' + ic("plus") + '<span class="lg">Nouveau rendez-vous</span><span class="sm">Rendez-vous</span></button></div></section>';
 
-  h += premiersPas();
+  // Cartes du tableau de bord : construites une par une, puis affichées dans l'ordre et selon le réglage du cabinet (10/10/2026)
+  const cartes = {}, carte = (k, fn) => { const avant = h; h = ""; fn(); cartes[k] = h; h = avant; };
+  carte("ppas", () => { h += premiersPas(); });
+  carte("jour", () => {
   h += '<section class="jour"><div class="ent"><h3><span class="ic">' + ic("agenda") + "</span>Aujourd'hui</h3><span>" + cap(jourLong(D.t)) + (ouvre(D.t, D.ctx.feries) ? "" : " · jour non ouvré") + '</span><span class="tot">' + tot + " au programme</span></div>" +
     categorie("rt", "☢️ Radiothérapie", pj.rt) + categorie("co", "🩺 Consultations", pj.co) + categorie("ch", "💉 Chimiothérapie", pj.ch) +
     (tot ? "" : '<div class="cat"><div class="vide" style="padding:12px 14px">Rien de prévu aujourd\'hui.</div></div>') + "</section>";
 
+  });
+
+  carte("sept", () => {
   h += '<section class="carte"><h3><span class="ic">' + ic("liste") + '</span>Les 7 prochains jours</h3><p class="sous">Rendez-vous, cures, séances et radiothérapie. Bouton WhatsApp vert : rappel à envoyer (rendez-vous dans ' + (reglages().whatsapp.de * 24) + " à " + (reglages().whatsapp.a * 24) + ' h).</p>';
   if (!ag.length) h += '<p class="sous">Rien de prévu sur les 7 prochains jours.</p>';
   let jc = "";
@@ -494,8 +508,11 @@ function pageAccueil() {
   });
   if (jc) h += "</div>";
   h += "</section>";
-  if (module("taches")) h += blocTaches(); // Mes tâches (étape T4), avec les 7 prochains jours et les conflits
 
+  });
+  carte("taches", () => { if (module("taches")) h += blocTaches(); }); // Mes tâches (étape T4)
+
+  carte("conflits", () => {
   if (ab.length) {
     h += '<section class="carte abs"><h3><span class="ic">' + ic("avion") + '</span>Conflits : rendez-vous à décaler</h3><p class="sous">Tout ce qui tombe pendant une absence ou un jour férié doit être déplacé.</p>';
     ab.forEach(({ a, l }) => {
@@ -506,11 +523,17 @@ function pageAccueil() {
     h += "</section>";
   }
 
+  });
+
+  carte("stats", () => {
   const n = (f) => D.patients.filter(FILTRES[f][1]).length, curesMois = D.patients.reduce((s, x) => s + (x.r.rec || []).filter((d) => d && d.slice(0, 7) === D.t.slice(0, 7)).length, 0);
   const k = (f, ico, v, lib) => '<button class="k" onclick="location.hash=\'patients/' + f + '\'"><span class="ic">' + ico + "</span><b>" + v + "</b><span>" + lib + "</span></button>";
   h += '<section class="carte"><h3><span class="ic">' + ic("bilan") + '</span>Statistiques</h3><p class="sous">Touchez une case pour voir la liste des patients.</p><div class="kpi">' +
     k("tous", ic("patients"), D.patients.length, "Patients") + k("chc", "💉", n("chc"), "Chimiothérapies en cours") + k("rtc", "☢️", n("rtc"), "Radiothérapies en cours") +
     k("rtp", ic("horloge"), n("rtp"), "Radiothérapies prévues") + k("cm", ic("check"), curesMois, "Cures reçues ce mois") + k("fin", ic("drapeau"), n("fin"), "Chimiothérapies terminées") + "</div></section>";
+
+  });
+  D.reg.accueil.filter((k) => D.reg.cartes[k] !== false).forEach((k) => { h += cartes[k] || ""; });
   $("page").innerHTML = h;
 }
 

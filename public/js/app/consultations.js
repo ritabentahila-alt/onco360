@@ -76,12 +76,14 @@ export function htmlConsultations(x) {
   });
   return h + "</div>" + barre(x);
 }
+// Bibliothèque de chaque bouton (réglage du cabinet, 10/10/2026 : une bibliothèque retirée cache son bouton)
+const BIB_DE = { medic: "medicaments", ordo: "ordostypes", analyse: "analyses", exam: "examens", courrier: "courriers", doc: "documentation" };
 // Barre des prescriptions, en bas de l'onglet, indépendante des consultations : une ordonnance faite ici s'ajoute en ligne
 // dans la consultation du jour
 function barre(x) {
   if (!peutEcrire()) return "";
   const q = "'" + x.id + "'";
-  return '<div class="presc-bas"><div class="lbl">Prescriptions</div><div class="presc">' + FAMILLES.map((f) => '<div class="pr" data-mod="prescriptions"><button onclick="csPrescrire(' + q + ",'" + f.t + '\')" title="' + f.titre + ' : nouvelle prescription"><svg class="pi"><use href="#i-' + f.ic + '"/></svg>' + f.lib + '</button><button class="fl" onclick="csAntecedents(' + q + ",'" + f.t + '\')" title="' + f.titre + ' : antécédents des prescriptions" aria-label="' + f.titre + ' : antécédents des prescriptions">▾</button></div>').join("") +
+  return '<div class="presc-bas"><div class="lbl">Prescriptions</div><div class="presc">' + FAMILLES.map((f) => '<div class="pr" data-mod="prescriptions" data-fn="prescriptions.' + f.t + '" data-bib="' + (BIB_DE[f.t] || "") + '"><button onclick="csPrescrire(' + q + ",'" + f.t + '\')" title="' + f.titre + ' : nouvelle prescription"><svg class="pi"><use href="#i-' + f.ic + '"/></svg>' + f.lib + '</button><button class="fl" onclick="csAntecedents(' + q + ",'" + f.t + '\')" title="' + f.titre + ' : antécédents des prescriptions" aria-label="' + f.titre + ' : antécédents des prescriptions">▾</button></div>').join("") +
     // « + RCP » (09/10/2026, rcp.js) : inscription à la prochaine RCP ; flèche = inscriptions du patient
     '<div class="pr" data-mod="rcp"><button onclick="rcpInscrire(' + q + ')" title="Inscrire le patient à la prochaine RCP"><svg class="pi"><use href="#i-rcp"/></svg>+ RCP</button><button class="fl" onclick="rcpHistorique(' + q + ')" title="RCP du patient" aria-label="RCP du patient">▾</button></div>' + "</div></div>";
 }

@@ -27,6 +27,9 @@ export const FONCTIONS = {
   chimio: [["lignes", "Lignes de traitement"], ["cures", "Cures J1 / J8 / J15"], ["doses", "Calcul des doses"], ["seances", "% et doses par séance"], ["molecules", "Molécules ajoutées / retirées"], ["report", "Report de cure"], ["fiche", "Fiche chimio A4"], ["planning", "Planning de l'hôpital de jour"], ["administrations", "Administrations (infirmière)"], ["protocoles", "Bibliothèque de protocoles"]],
   rt: [["prescription", "Prescription (acte, séances, VMAT)"], ["deroule", "Scanner → contourage → dosimétrie → séances → fin"], ["hebdo", "Consultations hebdomadaires"], ["taches", "Tâches fixes (contourage, dosimétrie, fin)"], ["documents", "Pli, compte rendu, rendez-vous"], ["tarifs", "Tarifs des actes RT"]],
 };
+// Fonctions déjà reliées à l'écran (ou au serveur) le 10/10/2026 ; les autres sont enregistrées mais pas encore appliquées (« bientôt »)
+export const FONCTIONS_RELIEES = ["prescriptions.medic", "prescriptions.exam", "prescriptions.ordo", "prescriptions.analyse", "prescriptions.courrier", "prescriptions.doc",
+  "taches.auto", "taches.toutes", "rcp.impression", "bilan.exports", "agenda.whatsapp", "agenda.vues", "chimio.fiche", "chimio.protocoles", "rt.taches"];
 // Cartes du tableau de bord (ordre de départ)
 export const CARTES = [["ppas", "Pour commencer (cabinet neuf)"], ["jour", "Aujourd'hui"], ["sept", "Les 7 prochains jours"], ["taches", "Mes tâches"], ["conflits", "Conflits : rendez-vous à décaler"], ["stats", "Statistiques"]];
 // Sections de paramétrage (page Paramètres), et si leurs valeurs viennent de la bibliothèque de la spécialité
@@ -38,18 +41,25 @@ export const SECTIONS = [
 // Bibliothèques (copiées de la bibliothèque de la spécialité dans chaque cabinet neuf)
 export const BIBLIOTHEQUES = [["protocoles", "Protocoles de chimiothérapie"], ["medicaments", "Médicaments"], ["ordostypes", "Ordonnances types"], ["analyses", "Analyses"], ["bilans", "Bilans biologiques"], ["examens", "Examens complémentaires"], ["courriers", "Courriers"], ["documentation", "Documentation (Doc.)"], ["diag", "Diagnostics"], ["mut", "Mutuelles"]];
 
-// Réglage complet de départ d'un pack : ses modules ; tout le reste présent, dans l'ordre du catalogue
-export function reglageDepart(f) {
-  f = f || {}; const mods = f.modules || MODULES.map((m) => m[0]), on = (l) => l.reduce((o, [k]) => ((o[k] = true), o), {});
-  const fonctions = {}; Object.entries(FONCTIONS).forEach(([m, l]) => l.forEach(([k]) => { fonctions[m + "." + k] = true; }));
-  return { menu: MENU.map((x) => x[0]), modules: MODULES.reduce((o, [k]) => ((o[k] = mods.indexOf(k) >= 0), o), {}), fonctions,
-    accueil: CARTES.map((x) => x[0]), sections: on(SECTIONS), bibliotheques: on(BIBLIOTHEQUES), max: Object.assign({}, f.max || {}) };
-}
-// Réglage d'un cabinet tel qu'il s'applique : complété avec le catalogue (ce qui a été ajouté au code depuis reste présent, sauf les
-// modules) ; menu et cartes dans l'ordre choisi, suivis de ceux qui manquent
+// Réglage d'un cabinet (espaces/{e}.abonnement.reglage, 10/10/2026), retouché depuis l'administration sur la base de son pack (les
+// modules et les maximums restent dans l'abonnement) :
+//   { menu: [ordre du menu], accueil: [ordre des cartes], cartes: { carte: bool }, ordreSections: [ordre des onglets des Paramètres],
+//     sections: { onglet: bool }, bibliotheques: { bibliothèque: bool }, fonctions: { "module.fonction": bool } }
+// Absent = présent, dans l'ordre du catalogue (ce qui est ajouté au code plus tard apparaît à la fin).
+const ordre = (l, ref) => (Array.isArray(l) ? l.filter((k, i) => ref.indexOf(k) >= 0 && l.indexOf(k) === i) : []).concat(ref.filter((k) => !(Array.isArray(l) && l.indexOf(k) >= 0)));
+const vrais = (l) => l.reduce((o, [k]) => ((o[k] = true), o), {});
+export const toutesFonctions = () => { const o = {}; Object.entries(FONCTIONS).forEach(([m, l]) => l.forEach(([k]) => { o[m + "." + k] = true; })); return o; };
 export function reglageEffectif(r) {
-  const d = reglageDepart(), x = r || {}, ordre = (l, ref) => (Array.isArray(l) ? l.filter((k) => ref.indexOf(k) >= 0) : []).concat(ref.filter((k) => !(Array.isArray(l) && l.indexOf(k) >= 0)));
-  return { menu: ordre(x.menu, d.menu), modules: Object.assign({}, d.modules, x.modules || {}), fonctions: Object.assign({}, d.fonctions, x.fonctions || {}),
-    accueil: ordre(x.accueil, d.accueil), sections: Object.assign({}, d.sections, x.sections || {}), bibliotheques: Object.assign({}, d.bibliotheques, x.bibliotheques || {}), max: Object.assign({}, x.max || {}) };
+  const x = r || {}, b = (o, d) => Object.assign(d, Object.fromEntries(Object.entries(o || {}).filter(([k, v]) => k in d && typeof v === "boolean")));
+  return { menu: ordre(x.menu, MENU.map((m) => m[0])), accueil: ordre(x.accueil, CARTES.map((c) => c[0])), cartes: b(x.cartes, vrais(CARTES)),
+    ordreSections: ordre(x.ordreSections, SECTIONS.map((c) => c[0])), sections: b(x.sections, vrais(SECTIONS)), bibliotheques: b(x.bibliotheques, vrais(BIBLIOTHEQUES)), fonctions: b(x.fonctions, toutesFonctions()) };
+}
+// Éléments de l'écran liés à une bibliothèque (bouton du dossier, carte de Paramètres › Bibliothèques) : data-bib
+export const BIB_BOUTON = { medicaments: "medic", ordostypes: "ordo", analyses: "analyse", examens: "exam", courriers: "courrier", documentation: "doc" };
+// Feuille de style qui cache ce qui est retiré du cabinet : [data-fn~="module.fonction"], [data-bib~="bibliothèque"], [data-carte~="carte"]
+export function styleRetraits(R) {
+  const sel = Object.keys(R.fonctions).filter((k) => R.fonctions[k] === false).map((k) => '[data-fn~="' + k + '"]')
+    .concat(Object.keys(R.bibliotheques).filter((k) => R.bibliotheques[k] === false).map((k) => '[data-bib~="' + k + '"]'));
+  return sel.length ? sel.join(",") + "{display:none!important}" : "";
 }
 export const FORMULES_DEPART = FORMULES;
