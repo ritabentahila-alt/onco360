@@ -771,24 +771,28 @@ function pageDossier(id) {
     const JS = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"], TECH = { stereo: "Stéréotaxie", vmat: "VMAT", imrt: "IMRT", "3d": "3D" };
     let hr = okRT ? '<div class="entete"><button class="bt clair petit" onclick="ouvrirRT(\'' + x.id + '\')">' + ic("plus") + "Prescription</button></div>" : "";
     if (!(P.rts || []).length) hr += '<p class="sous" style="margin:2px 0 0">Aucune prescription de radiothérapie.</p>';
+    // Une seule radiothérapie ouverte (11/10/2026) : la plus récente à l'ouverture du dossier ; les autres fermées (titre, dose, séances,
+    // boutons ; sans les étapes)
+    if (RTO.pid !== x.id) { RTO.pid = x.id; RTO.id = (P.rts || []).length ? P.rts[P.rts.length - 1].id : null; }
     (P.rts || []).slice().reverse().forEach((v) => {
+      const ouv = RTO.id === v.id;
       const s = statutRT(v, ctx), f = finRT(v, ctx.feries), c = compteurRT(v, ctx), cls = s.c === "fin" ? "b-ch" : s.c === "cours" ? "b-rt" : s.c === "dep" ? "b-or" : "b-co";
       const nb = parseInt(v.nb, 10), dose = parseFloat(String(v.dose || "").replace(",", ".")), dpf = dose && nb ? Math.round((dose / nb) * 100) / 100 : null, q = "'" + x.id + "','" + v.id + "'";
       const etape = (lib, d, fait, plus) => '<div class="etape' + (fait ? " fait" : "") + '"><span class="ck">' + (fait ? ic("check") : "") + "</span>" + lib + (d ? " — " + dfrA(d) : "") + (plus || "") + "</div>";
       const finFaite = !!v.fin || (f && f < t);
       const dz = dosimetrie(v, t), cz = contourage(v, t); // périodes à valider : contourage (scanner → 1re séance), puis dosimétrie (contourage → 1re séance)
-      hr += '<div class="rt"><div class="tl" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><b style="font-size:16px;color:var(--titre)">' + esc(v.acte || "Radiothérapie") + (nbA(v) > 1 ? " × " + nbA(v) : "") + '</b><span class="badge ' + cls + '">' + ({ fin: '<svg class="pi"><use href="#i-check"/></svg>', cours: '<i class="dot v"></i>', dep: '<i class="dot o"></i>', prev: '<svg class="pi"><use href="#i-horloge"/></svg>' }[s.c] || "") + esc(s.lib) + "</span>" + (v.hop ? '<span class="badge b-gr">' + esc(v.hop) + "</span>" : "") + (v.intent ? '<span class="badge b-gr">' + (v.intent === "curative" ? "Curative" : "Palliative") + "</span>" : "") + "</div>" +
+      hr += '<div class="rt' + (ouv ? " on" : "") + '"><div class="tl" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;cursor:pointer" onclick="rtTog(' + q + ')" title="' + (ouv ? "Refermer" : "Voir les étapes") + '"><b style="font-size:16px;color:var(--titre)">' + (ouv ? "▾ " : "▸ ") + esc(v.acte || "Radiothérapie") + (nbA(v) > 1 ? " × " + nbA(v) : "") + '</b><span class="badge ' + cls + '">' + ({ fin: '<svg class="pi"><use href="#i-check"/></svg>', cours: '<i class="dot v"></i>', dep: '<i class="dot o"></i>', prev: '<svg class="pi"><use href="#i-horloge"/></svg>' }[s.c] || "") + esc(s.lib) + "</span>" + (v.hop ? '<span class="badge b-gr">' + esc(v.hop) + "</span>" : "") + (v.intent ? '<span class="badge b-gr">' + (v.intent === "curative" ? "Curative" : "Palliative") + "</span>" : "") + "</div>" +
         '<p class="st" style="color:var(--doux);font-size:13.5px;margin:6px 0 0">' + esc([dose ? String(dose).replace(".", ",") + " Gy" : "", nb ? nb + " fractions" : "", dpf ? String(dpf).replace(".", ",") + " Gy/fraction" : "", TECH[v.tech] || (v.vmat ? "VMAT" : ""), v.ryt === "2" ? "1 jour sur 2" : "quotidien"].filter(Boolean).join(" · ")) + "</p>" +
-        '<div class="etapes">' + (v.scan ? etape("Scanner de centrage", v.scan, v.scan <= t) : "") +
+        (ouv ? '<div class="etapes">' + (v.scan ? etape("Scanner de centrage", v.scan, v.scan <= t) : "") +
         // Contourage (09/10/2026) : validé par le médecin entre le scanner et la dosimétrie
         (v.cont ? etape("Contourage validé", v.cont, true, okRT && peutDosi() && !v.dosi && !v.fin ? ' <a href="#" class="lienr" onclick="contRT(' + q + ',1);return false">annuler</a>' : "")
           : cz ? etape("Contourage à valider", "", false, (cz.au !== cz.du ? " — du " + dfrA(cz.du) + " au " + dfrA(cz.au) : "") + (v.scan <= t && peutDosi() ? ' <button class="mini vert" style="margin-left:8px" onclick="contRT(' + q + ')"><svg class="pi"><use href="#i-check"/></svg>Valider le contourage</button>' : v.scan > t ? ' <span class="mesures">(à partir du scanner)</span>' : "")) : "") +
         (v.dosi ? etape("Dosimétrie validée", v.dosi, true, okRT && peutDosi() && !v.fin ? ' <a href="#" class="lienr" onclick="dosiRT(' + q + ',1);return false">annuler</a>' : "") : (dz ? etape("Dosimétrie à valider", "", false, (dz.au !== dz.du ? " — du " + dfrA(dz.du) + " au " + dfrA(dz.au) : "") + (peutDosi() ? ' <button class="mini vert" style="margin-left:8px" onclick="dosiRT(' + q + ')"><svg class="pi"><use href="#i-check"/></svg>Valider la dosimétrie</button>' : "")) : cz ? etape("Dosimétrie", "", false, ' <span class="mesures">(après le contourage)</span>') : "")) +
         (v.deb ? etape("1re séance", v.deb, v.deb <= t) : "") +
-        (v.fin || f ? etape(v.fin ? "Fin de traitement" : "Fin de traitement prévue", v.fin || f, finFaite) : "") + "</div>" +
-        (v.cj ? '<p class="st" style="color:var(--doux);font-size:13.5px;margin:2px 0 0">Consultation hebdomadaire le ' + JS[+v.cj] + (v.ch ? " à " + esc(v.ch) : "") + "</p>" : "") +
+        (v.fin || f ? etape(v.fin ? "Fin de traitement" : "Fin de traitement prévue", v.fin || f, finFaite) : "") + "</div>" : "") + // étapes : seulement ouverte
+        (v.cj && ouv ? '<p class="st" style="color:var(--doux);font-size:13.5px;margin:2px 0 0">Consultation hebdomadaire le ' + JS[+v.cj] + (v.ch ? " à " + esc(v.ch) : "") + "</p>" : "") +
         (c ? '<div style="margin-top:10px"><b>Séances réalisées : ' + c.faites + " / " + c.nb + "</b> (" + c.pct + ' %)<div class="barre"><i style="width:' + c.pct + '%"></i></div></div>' : "") +
-        (v.note ? '<p class="sous" style="margin:8px 0 0">' + esc(v.note) + "</p>" : "") +
+        (v.note && ouv ? '<p class="sous" style="margin:8px 0 0">' + esc(v.note) + "</p>" : "") +
         '<div class="actr" style="justify-content:flex-start;margin-top:12px">' + (okRT ? '<button class="mini" onclick="ouvrirRT(' + q + ')">Modifier</button>' + (v.deb ? (v.fin ? '<button class="mini" onclick="terminerRT(' + q + ',1)">Rouvrir</button>' : '<button class="mini v" onclick="terminerRT(' + q + ')">Terminé</button>') : "") : "") +
         (v.acte && peut("documents") ? boutonDoc(x, v, "pli", "Pli confidentiel") : "") +
         (v.deb && nb && peut("documents") ? boutonDoc(x, v, "cr", "Compte rendu de fin") + boutonDoc(x, v, "rdv", "Rendez-vous") : "") + "</div></div>";
@@ -1072,6 +1076,8 @@ function imprimerRecu(w, x, o) {
 // Reçu réimprimé depuis « Consultations et hospitalisations » (prix à encaisser du dossier)
 window.recuRdv = (pid, rid) => { const x = D.patients.find((p) => p.id === pid), E = x && encaissementsDe(x), o = E && (E.rdv || {})[rid], r = x && lireRdvs(x).find((v) => v.id === rid); if (!o || !r) return; imprimerRecu(window.open("", "_blank"), x, { d: r.dv || r.d, lib: libRdv(r), m: o.m, mode: o.mode }); };
 window.recuCons = (pid, k) => { const x = D.patients.find((p) => p.id === pid), E = x && encaissementsDe(x), o = E && (E.cons || {})[k]; if (!o) return; imprimerRecu(window.open("", "_blank"), x, { d: o.d, lib: "Consultation de chimiothérapie", m: o.m, mode: o.mode }); };
+const RTO = { pid: null, id: null }; // radiothérapie ouverte dans le dossier
+window.rtTog = (pid, id) => { RTO.pid = pid; RTO.id = RTO.id === id ? null : id; pageDossier(pid); };
 // Rendez-vous en dehors des plages de l'établissement du patient (Configuration › Créneaux & horaires) : message, sinon ""
 const JNOM = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
 function horsHoraires(etab, d, h) {
