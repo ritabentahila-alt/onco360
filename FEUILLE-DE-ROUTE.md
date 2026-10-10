@@ -1372,6 +1372,45 @@ l'avis de virement ; liste à part, sans lien avec le pointage « Payé » des a
       ajouté / modifié / supprimé fait bouger le bilan, un règlement non), comptable, 390 px, aucune erreur.
 - [ ] Mise en ligne du cadre unique (accord de Dr Bentahila).
 
+## Étape 15 bis – Audit du module Bilan (fait le 10/10/2026 : plan à valider par Dr Bentahila)
+Relecture de `bilan.js`, `moteur/bilan.js`, `moteur/finances.js`, `moteur/tarifs.js`. Rien n'est encore corrigé.
+
+**B1 – Bugs : chiffres justes (priorité 1)**
+- [ ] **Bilan pas à jour** : montants et calculs gardés en mémoire à la 1re ouverture de la page. Une cure validée, un prix fixé par
+      la secrétaire ou un dossier créé ensuite n'apparaissent qu'après « Actualiser » ou ~2 min (relevé du comptable) ; **jamais**
+      si la fonction « relevé du comptable » est désactivée dans le réglage du cabinet. → Recalculer à chaque ouverture de la page.
+- [ ] **Changer l'hôpital d'un patient déplace tout son passé** : séances de chimio et consultations prennent l'hôpital **actuel**
+      du dossier (`P.hop`), avec ses tarifs → le bilan passé des deux hôpitaux change. → Garder l'hôpital de chaque acte (figé à la
+      validation ; une fois pour les actes déjà faits : l'hôpital d'aujourd'hui).
+- [ ] **Pointage « Payé » perdu** : la case est retrouvée par « patient + type + date + libellé ». Une cure dont la date est corrigée
+      après coup, un protocole renommé, un libellé de rendez-vous changé → l'acte repasse « À recevoir ». Deux actes identiques le
+      même jour partagent la même case. → Repérer l'acte par son identifiant (cure, séance, rendez-vous), reprise des cases existantes.
+- [ ] **Pointages écrasés** : « Payé » réécrit toute la liste lue à l'ouverture de la page. Médecin et comptable (ou deux onglets)
+      → les clics de l'un effacent ceux de l'autre. Même chose pour les autres versements (suppression par rang : peut retirer le
+      mauvais). → Relire juste avant d'écrire (comme les règlements), identifiant pour chaque versement.
+
+**B2 – Affichage**
+- [ ] Colonne **Taux** trompeuse : consultations « 100 % » alors que le NET retire l'impôt (250 → 225) ; impôt lu sur le 1er
+      établissement seulement. → Afficher le vrai taux de l'acte (rétrocession et impôt de son tarif).
+- [ ] Acte sans tarif = **0 DH sans prévenir** (cabinet neuf, activité non réglée pour un lieu ; repli silencieux sur « HGC »).
+      → Alerte « n actes sans tarif » avec lien vers Paramètres › Activités.
+- [ ] Cabinet sans tarifs : message « réservé au droit finances » → « Renseignez vos tarifs ».
+- [ ] Bouton « Actualiser » caché quand les exports sont désactivés (même bloc).
+- [ ] Moteur : un versement sans libellé s'appelle encore « KL ».
+- [ ] Référents : ne suivent pas les filtres Établissement / Type d'acte.
+- [ ] Lenteur sur une année : journal entier affiché, recherche du référent ligne par ligne → « Afficher plus », calcul plus rapide.
+
+**B3 – Améliorations proposées**
+- [ ] **Pointer en lot** : « Marquer payés » tous les actes à recevoir d'une clinique jusqu'à une date (quand un virement en vrac
+      arrive), avec annulation.
+- [ ] Périodes : **année dernière**, trimestre, choix de l'année (bilan de fin d'année pour le comptable).
+- [ ] **Tableau par établissement** : NET, payé, à recevoir, ancienneté de l'à recevoir (plus de 30 / 60 / 90 jours).
+- [ ] **Évolution mois par mois** (graphique 12 mois) et comparaison avec l'année précédente.
+- [ ] **Relevé pour une clinique** (PDF des actes à recevoir, à lui envoyer).
+- [ ] Tests automatiques du calcul du bilan (sans navigateur), avant de toucher B1.
+
+**Ordre proposé** : B1 (une session, avec tests) → B2 → B3 au choix.
+
 ## Étape 12 – Dossier de cession, démonstration et guides
 But : un acheteur (éditeur, ESN, clinique) reprend Onco360 **sans avoir besoin d'appeler Dr Bentahila**.
 **C1 – Vérification complète du dossier de l'application**
@@ -1628,3 +1667,4 @@ On garde le bleu Onco360 (#3563B0) et Arial ; les impressions (ordonnances, fich
 | 11/10/2026 | 20.3 Relief | Cartes plus détachées du fond, chiffres clés qui se soulèvent au survol (une ligne sur grand écran), menu actif et boutons principaux en relief. Vérifié à 1920, 1280 et 390 px (tableau de bord, bilan, patients). Tests menu 27/27. Pas encore en ligne. |
 | 11/10/2026 | 20.4 Même présentation | Onglets soulignés (Paramètres, Profil), titres de colonnes en petites majuscules grises, messages « Aucun… » centrés ; lien « État » de l'agenda → Paramètres › Google Agenda. Vérifié à 1440 et 390 px (paramètres, profil, bilan, salle, tâches, patients, agenda, dossier). Pas encore en ligne. |
 | 11/10/2026 | Photo du patient | Photo du dossier carrée et plus grande (120 px, 96 px sur téléphone) pour reconnaître le patient ; initiales au même format sans photo ; ajout toujours par clic sur la bulle ; photos neuves enregistrées en 420 px (les anciennes, en 240 px, un peu moins nettes jusqu'à leur remplacement). Vérifié à 1280 et 390 px. En ligne (v2.js?v=20261011j). |
+| 10/10/2026 | 15 bis – Audit du Bilan | Relecture du module : 4 bugs de données (bilan pas à jour, changement d'hôpital, pointage perdu, pointages écrasés), 7 points d'affichage, 6 améliorations ; plan B1 → B3 à valider. |
