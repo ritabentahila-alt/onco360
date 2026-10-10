@@ -1295,7 +1295,10 @@ Décisions de Dr Bentahila (10/10) :
       journée) ; bilan : « ✓ Encaissé » / « Non payé » (sans mode noté, avant le 19.5 : « Payé auto. » comme avant). Total du bilan
       inchangé (352 317 DH, répartition payé / à recevoir identique). Serveur 92/92. **À régler par Dr Bentahila après la mise en
       ligne : HGC et CIOC « au cabinet »** (HCK reste « par l'établissement »).
-- [ ] 19.6 Sécurité médicale et alertes : alerte poids, documents préparés par la secrétaire à signer, alertes de la secrétaire.
+- [x] 19.6 Sécurité médicale et alertes : **close sans développement** (décision de Dr Bentahila, 10/10) : pas d'alerte de poids (la
+      secrétaire a le droit de changer le poids) ; pas de validation médicale des ordonnances ni des certificats (elle est formée) ;
+      seule exigence, déjà en place : ce qu'elle crée porte son nom (consultation créée à son nom, chaque ordonnance avec « par »).
+      Alertes de la secrétaire : faites en 19.3.
 - [ ] 19.7 Plusieurs cabinets, confort : pastilles par cabinet, vue « Tous mes cabinets », dépôt de plusieurs fichiers.
 - [ ] Guide de la secrétaire (avec l'étape 12).
 
@@ -1579,3 +1582,4 @@ Onco360_Package_Cession/
 | 10/10/2026 | 19.5 Qui encaisse | Le médecin (fin de consultation, bulles du dossier, « Venu ») valide seulement le prix : consultation « à encaisser » (mode `ae`), sans paiement ni reçu. La secrétaire encaisse depuis Salle d'attente › Vus (bouton **Encaisser** : mode de paiement, reçu ; puis **Reçu** pour réimprimer) ou depuis le dossier ; « À encaisser : x DH » à côté de « Encaissé (vus) » ; bilan : « À encaisser » tant que ce n'est pas encaissé. Serveur 93/93, navigateur. |
 | 10/10/2026 | 19.5 Le médecin encaisse aussi | Jour sans secrétaire : case « Encaisser maintenant » dans la fenêtre « Venu » du médecin (décochée = à encaisser) ; boutons Encaisser de l'onglet Vus et du dossier aussi pour lui (case cochée). Paramètres › Activités : lieu « au cabinet » → consultations « à l'encaissement » à la place de « Payé auto. » (sans effet pour elles). |
 | 10/10/2026 | 19.5 « Payé auto. » retiré | Décision de Dr Bentahila : case retirée de Paramètres › Activités (consultations au cabinet = encaissement ; séances de chimio, hospitalisations, lieux payés par l'établissement = virement, « Payé » coché dans le bilan). L'ancien réglage reste appliqué aux actes validés avant le 12/10/2026 (bilan passé inchangé : payé 186 004 DH identique). |
+| 10/10/2026 | 19.6 close | Pas d'alerte de poids ni de validation des ordonnances de la secrétaire (décision) ; son nom figure déjà sur ce qu'elle crée. Reste 19.7 (plusieurs cabinets, confort). |
