@@ -917,6 +917,8 @@ window.modifierIdentite = (id) => {
       if (JSON.stringify(nC) !== JSON.stringify(C)) changes.clinique = nC;
     }
     if (okE && val("fEtab") && val("fEtab") !== x.doc.etablissementId) changes.etablissementId = val("fEtab");
+    // Changement d'hôpital (15 bis, 10/10/2026) : les actes faits avant aujourd'hui restent à l'ancien hôpital dans le bilan (moteur hopAu)
+    if (changes.etablissementId && x.doc.etablissementId) changes.hopHist = (x.doc.hopHist || []).concat([{ hop: x.doc.etablissementId, avant: D.t, le: Date.now(), par: D.u.uid }]);
     if (!Object.keys(changes).length) { fermerFenetre(); return; }
     occupe($("fOk"), true);
     try { await enregistrer(x, changes, "Identité modifiée"); if (changes.etablissementId) { await suivreEtablissement(x, changes.etablissementId); await suivreEtablissementDocs(x, changes.etablissementId); await suivreEtablissementFichiers(x, changes.etablissementId); await suivreEtablissementRcp(x, changes.etablissementId); } if (okI || okC) await enrichirListes(okI ? val("fCor") : "", okI ? val("fMut") : "", okC ? val("fDiag") : ""); fermerFenetre(); toast("Dossier enregistré."); pageDossier(x.id); }

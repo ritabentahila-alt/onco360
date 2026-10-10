@@ -69,7 +69,7 @@ service cloud.firestore {
           .concat(droit('planningChimio') || traitementsModif() ? ['planningJson'] : [])
           .concat(traitementsModif() ? ['lignesJson', 'clinique'] : [])
           .concat(rtModif() ? ['rtsJson'] : [])
-          .concat(tousEtab() ? ['etablissementId'] : []);
+          .concat(tousEtab() ? ['etablissementId', 'hopHist'] : []); // hopHist : hôpital des actes faits avant un changement (15 bis)
       }
       // Fiche du patient (droit « fichePatient », secrétaire) : poids, taille, allergies… mais pas le résumé médical (clinique.notes)
       function notesInchangees() {

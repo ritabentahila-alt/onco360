@@ -1375,19 +1375,31 @@ l'avis de virement ; liste à part, sans lien avec le pointage « Payé » des a
 ## Étape 15 bis – Audit du module Bilan (fait le 10/10/2026 : plan à valider par Dr Bentahila)
 Relecture de `bilan.js`, `moteur/bilan.js`, `moteur/finances.js`, `moteur/tarifs.js`. Rien n'est encore corrigé.
 
-**B1 – Bugs : chiffres justes (priorité 1)**
-- [ ] **Bilan pas à jour** : montants et calculs gardés en mémoire à la 1re ouverture de la page. Une cure validée, un prix fixé par
+**B1 – Bugs : chiffres justes (priorité 1)** (fait et testé le 10/10, pas encore en ligne)
+- [x] **Bilan pas à jour** : montants et calculs gardés en mémoire à la 1re ouverture de la page. Une cure validée, un prix fixé par
       la secrétaire ou un dossier créé ensuite n'apparaissent qu'après « Actualiser » ou ~2 min (relevé du comptable) ; **jamais**
       si la fonction « relevé du comptable » est désactivée dans le réglage du cabinet. → Recalculer à chaque ouverture de la page.
-- [ ] **Changer l'hôpital d'un patient déplace tout son passé** : séances de chimio et consultations prennent l'hôpital **actuel**
+- [x] **Changer l'hôpital d'un patient déplace tout son passé** : séances de chimio et consultations prennent l'hôpital **actuel**
       du dossier (`P.hop`), avec ses tarifs → le bilan passé des deux hôpitaux change. → Garder l'hôpital de chaque acte (figé à la
       validation ; une fois pour les actes déjà faits : l'hôpital d'aujourd'hui).
-- [ ] **Pointage « Payé » perdu** : la case est retrouvée par « patient + type + date + libellé ». Une cure dont la date est corrigée
+      **Fait autrement** (plus simple, sans toucher aux droits chimio / rendez-vous) : à chaque changement d'hôpital, le dossier note
+      `hopHist` [{ hop: ancien hôpital, avant: date du changement }] ; un acte daté **avant** le changement reste à l'ancien hôpital
+      (tarifs compris), un acte du jour même ou après va au nouveau (`hopAu`, moteur/finances.js). Règle : `hopHist` avec le droit
+      « tous les établissements », comme l'hôpital. Dossiers déjà changés avant le 10/10 : pas d'historique, inchangés.
+- [x] **Pointage « Payé » perdu** : la case est retrouvée par « patient + type + date + libellé ». Une cure dont la date est corrigée
       après coup, un protocole renommé, un libellé de rendez-vous changé → l'acte repasse « À recevoir ». Deux actes identiques le
       même jour partagent la même case. → Repérer l'acte par son identifiant (cure, séance, rendez-vous), reprise des cases existantes.
-- [ ] **Pointages écrasés** : « Payé » réécrit toute la liste lue à l'ouverture de la page. Médecin et comptable (ou deux onglets)
+      **Fait** : 10e colonne des actes = identifiant (`s|ligne|cure|jour`, `cc|ligne|cure`, `r|rendez-vous`, `rt|radiothérapie`) ;
+      case = « patient#identifiant » ; anciennes cases reprises une fois à l'ouverture du Bilan par le médecin (`migrerPaiements` :
+      mêmes actes payés, bilan identique), encore lues tant qu'elles existent.
+- [x] **Pointages écrasés** : « Payé » réécrit toute la liste lue à l'ouverture de la page. Médecin et comptable (ou deux onglets)
       → les clics de l'un effacent ceux de l'autre. Même chose pour les autres versements (suppression par rang : peut retirer le
       mauvais). → Relire juste avant d'écrire (comme les règlements), identifiant pour chaque versement.
+- [x] Tests : `node tests/moteur/test-bilan.mjs` (nouveau, sans navigateur : bilan du jeu de test = référence 352 317 DH, identifiants,
+      hôpital par date, reprise des cases, 14/14) ; règles `tests/regles/test-bilan.mjs` 4/4 (toutes les règles réussies) ; navigateur :
+      reprise 64/64 cases, payé 186 004 / à recevoir 166 313 inchangés, versement ajouté ailleurs visible au retour sur la page,
+      pointage et versement d'une autre personne gardés, changement d'hôpital sans effet sur les totaux par hôpital, aucune erreur.
+- [ ] Mise en ligne : site **et règles** (`firebase deploy --only hosting,firestore:rules`), avec l'accord de Dr Bentahila.
 
 **B2 – Affichage**
 - [ ] Colonne **Taux** trompeuse : consultations « 100 % » alors que le NET retire l'impôt (250 → 225) ; impôt lu sur le 1er
@@ -1668,3 +1680,4 @@ On garde le bleu Onco360 (#3563B0) et Arial ; les impressions (ordonnances, fich
 | 11/10/2026 | 20.4 Même présentation | Onglets soulignés (Paramètres, Profil), titres de colonnes en petites majuscules grises, messages « Aucun… » centrés ; lien « État » de l'agenda → Paramètres › Google Agenda. Vérifié à 1440 et 390 px (paramètres, profil, bilan, salle, tâches, patients, agenda, dossier). Pas encore en ligne. |
 | 11/10/2026 | Photo du patient | Photo du dossier carrée et plus grande (120 px, 96 px sur téléphone) pour reconnaître le patient ; initiales au même format sans photo ; ajout toujours par clic sur la bulle ; photos neuves enregistrées en 420 px (les anciennes, en 240 px, un peu moins nettes jusqu'à leur remplacement). Vérifié à 1280 et 390 px. En ligne (v2.js?v=20261011j). |
 | 10/10/2026 | 15 bis – Audit du Bilan | Relecture du module : 4 bugs de données (bilan pas à jour, changement d'hôpital, pointage perdu, pointages écrasés), 7 points d'affichage, 6 améliorations ; plan B1 → B3 à valider. |
+| 10/10/2026 | 15 bis – B1 | Bilan recalculé à chaque ouverture ; hôpital des actes gardé lors d'un changement d'hôpital (`hopHist`) ; cases « Payé » repérées par l'identifiant de l'acte (anciennes reprises) ; pointages et versements relus avant écriture. Tests moteur 14/14, règles +4, navigateur. Pas encore en ligne. |

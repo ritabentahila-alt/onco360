@@ -12,6 +12,7 @@ Le seed simule l'état d'Onco360 converti depuis cette sauvegarde ; le bilan de 
 
 ## Lancer
 ```
+node tests/moteur/test-bilan.mjs  # calcul du bilan sans navigateur (référence, hôpital par date, cases « Payé »)
 python tests/test_bilan.py        # bilan de l'année (352 317 DH au 06/10/2026) + aucune erreur JavaScript
 python tests/test_cures.py        # J1 / J8, paramètres par séance, report des doses, fiche chimio
 python tests/test_seances.py      # report de J8, molécules ajoutées / retirées à J8
@@ -34,6 +35,7 @@ Java 21 nécessaire (Temurin, installé le 08/10/2026).
 cd tests/regles && npm install      # une fois
 npm test                            # lance l'émulateur, les cas de test, puis l'arrête
 ```
+`test-bilan.mjs` : changement d'hôpital d'un dossier et historique `hopHist`.
 `test-comptable.mjs` : rôle Comptable (aucun dossier, paiements et versements seulement).
 `test-audit.mjs` : journal d'audit (lecture par le titulaire seul, aucune écriture).
 `test-cabinets.mjs` : étanchéité entre cabinets, compte d'administration, `comptes/{uid}`.

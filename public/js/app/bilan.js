@@ -4,7 +4,7 @@
 import { doc, getDoc, getDocs, setDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { db } from "../config.js";
 import { evtsFin } from "../moteur/finances.js";
-import { calculerBilan, dh, clePaye, estPaye } from "../moteur/bilan.js";
+import { calculerBilan, dh, clePaye, cleAncienne, estPaye, migrerPaiements } from "../moteur/bilan.js";
 import { num } from "../moteur/outils.js";
 import { activite } from "../moteur/tarifs.js";
 
@@ -31,13 +31,16 @@ const lieuCabinet = (hop) => ((D().etabsTous || D().etabs || []).find((e) => e.c
 let ENC = {}; // clé → "enc" (encaissé au cabinet) | "np" (non payé par le patient)
 function paiementsEffectifs(R) {
   const p = Object.assign({}, B.paiements); ENC = {};
-  R.forEach((x) => (x.fin || []).forEach((e) => { const o = { id: x.id, t: e[1], d: e[0], lib: e[3], hop: e[2] || "" }, k = clePaye(o);
+  R.forEach((x) => (x.fin || []).forEach((e) => { const o = { id: x.id, t: e[1], d: e[0], lib: e[3], hop: e[2] || "", a: e[9] || "" }, k = clePaye(o);
+    if (p[k] == null && p[cleAncienne(o)] != null) p[k] = p[cleAncienne(o)]; // case pas encore reprise (migrerPaiements)
     if (e[8] && lieuCabinet(o.hop)) ENC[k] = e[8] === "np" || e[8] === "ae" ? "np" : "enc";
     if (p[k]) return;
     if (ENC[k]) { if (ENC[k] === "enc") p[k] = o.d; return; }
     if (autoPaye(o)) p[k] = o.d; }));
   return p;
 }
+// Case « Payé » cochée à la main pour cet acte (nouvelle clé, sinon l'ancienne pas encore reprise)
+const coche = (o) => B.paiements[clePaye(o)] || B.paiements[cleAncienne(o)];
 // Exports : « Payé » ou « À recevoir » seulement (la date du clic du médecin n'est pas la date du paiement)
 const payeTxt = (o) => (o.t === "kl" ? "Reçu" : estPaye(o, PE) ? "Payé" : "À recevoir");
 
@@ -93,10 +96,33 @@ function resumes() {
 }
 const netPer = (x, pr) => (x.fin || []).filter((e) => e[1] !== "rtprev" && e[0] && e[0] >= pr[0] && e[0] <= pr[1]).reduce((a, e) => a + (num(e[6]) || 0), 0);
 
+// Ouverture de la page (15 bis, 10/10/2026) : montants relus et bilan recalculé à chaque fois (avant : gardés depuis la 1re ouverture,
+// une cure validée ou un prix fixé ensuite n'apparaissaient qu'après « Actualiser »). Dernier bilan affiché tout de suite, puis mis à jour.
 export async function pagePageBilan() {
   if (!A.peut("finances") || !D().tarifs) { A.$("page").innerHTML = '<section class="accueil"><div><h2>Bilan</h2></div></section><section class="carte"><p class="sous">Le bilan est réservé au droit « finances ».</p></section>'; return; }
-  if (!B) { A.$("page").innerHTML = '<div class="chargement">Calcul du bilan…</div>'; try { await (estComptable() ? chargerReleve() : charger()); } catch (e) { A.$("page").innerHTML = '<section class="carte"><p class="sous">Bilan indisponible : ' + A.esc(e.message) + "</p></section>"; return; } }
-  dessiner();
+  const lire = () => (estComptable() ? chargerReleve() : charger());
+  if (!B) {
+    A.$("page").innerHTML = '<div class="chargement">Calcul du bilan…</div>';
+    try { await lire(); } catch (e) { A.$("page").innerHTML = '<section class="carte"><p class="sous">Bilan indisponible : ' + A.esc(e.message) + "</p></section>"; return; }
+    await reprendrePaiements(); dessiner(); return;
+  }
+  RES = null; dessiner();
+  try { await lire(); } catch (e) { return; } // le bilan affiché reste celui de la dernière lecture
+  if (!A.$("biRg")) return; // page quittée entre-temps
+  await reprendrePaiements(); redessinerRg();
+}
+// Cases « Payé » : reprise des anciennes clés (patient|type|date|libellé) vers l'identifiant de l'acte, une fois (médecin)
+let REPRISE = false;
+async function reprendrePaiements() {
+  if (REPRISE || estComptable() || !migrerPaiements(resumes(), B.paiements).change) return;
+  REPRISE = true;
+  try { B.paiements = await majPaiements((p) => { const m = migrerPaiements(resumes(), p).p; Object.keys(p).forEach((k) => delete p[k]); Object.assign(p, m); }); }
+  catch (e) { console.warn("reprise des cases Payé", e); }
+}
+// Écriture des cases « Payé » : la liste est relue juste avant (médecin et comptable, deux onglets : aucun clic perdu)
+async function majPaiements(op) {
+  const R = doc(db, "espaces", A.ESPACE, "finances", "paiements"), s = await getDoc(R), p = s.exists() ? JSON.parse(s.data().data || "{}") : {};
+  op(p); await setDoc(R, { data: JSON.stringify(p) }); return p;
 }
 function dessiner() {
   const esc = A.esc, R = resumes(), b = (PE = paiementsEffectifs(R), calculerBilan(R, B.versements, PE, F.per === "perso" ? Object.assign({}, F, { per: "" }) : F, D().t)), T = b.tot, all = b.all;
@@ -124,7 +150,7 @@ function dessiner() {
     (all.length ? all.map((o, i) => {
       const cor = o.id ? (R.find((x) => x.id === o.id) || {}).cor : "";
       return "<tr" + lienDossier(o.id) + "><td>" + A.dfrA(o.d) + "</td><td>" + esc(o.nm) + (cor ? '<div class="mesures">' + esc(cor) + "</div>" : "") + "</td><td>" + esc(o.hop || "—") + "</td><td>" + esc(o.lib) + "</td><td>" + esc(o.st) + '</td><td class="n">' + dh(o.brut) + '</td><td class="n">' + tauxTxt(o) + '</td><td class="n"><b>' + dh(o.net) + "</b></td>" +
-        '<td onclick="event.stopPropagation()">' + (o.t === "kl" ? '<span class="badge b-ch">Reçu</span>' : '<button class="mini ' + (estPaye(o, PE) ? "vert" : "") + '" title="' + (estPaye(o, PE) ? (B.paiements[clePaye(o)] ? "Payé le " + A.dfrA(PE[clePaye(o)]) + " – cliquer pour annuler" : ENC[clePaye(o)] === "enc" ? "Encaissé au cabinet (fenêtre « Venu »)" : "Payé automatiquement (ancienne case « Payé auto. », avant le 12/10/2026)") : ENC[clePaye(o)] === "np" ? "Non payé par le patient : à encaisser depuis le dossier (ou cliquer quand il a payé)" : "Cliquer quand la clinique a payé") + '" onclick="biPaye(' + i + ')">' + (estPaye(o, PE) ? (B.paiements[clePaye(o)] ? "✓ Payé" : ENC[clePaye(o)] === "enc" ? "✓ Encaissé" : "✓ Payé (auto.)") : ENC[clePaye(o)] === "np" ? "À encaisser" : "Payé") + "</button>") + "</td></tr>";
+        '<td onclick="event.stopPropagation()">' + (o.t === "kl" ? '<span class="badge b-ch">Reçu</span>' : '<button class="mini ' + (estPaye(o, PE) ? "vert" : "") + '" title="' + (estPaye(o, PE) ? (coche(o) ? "Payé le " + A.dfrA(coche(o)) + " – cliquer pour annuler" : ENC[clePaye(o)] === "enc" ? "Encaissé au cabinet (fenêtre « Venu »)" : "Payé automatiquement (ancienne case « Payé auto. », avant le 12/10/2026)") : ENC[clePaye(o)] === "np" ? "Non payé par le patient : à encaisser depuis le dossier (ou cliquer quand il a payé)" : "Cliquer quand la clinique a payé") + '" onclick="biPaye(' + i + ')">' + (estPaye(o, PE) ? (coche(o) ? "✓ Payé" : ENC[clePaye(o)] === "enc" ? "✓ Encaissé" : "✓ Payé (auto.)") : ENC[clePaye(o)] === "np" ? "À encaisser" : "Payé") + "</button>") + "</td></tr>";
     }).join("") + '<tr class="tot"><td colspan="7" class="n"><b>Total</b></td><td class="n"><b>' + dh(T.caNet) + "</b></td><td></td></tr>" : '<tr><td colspan="9" class="mesures">Aucun acte sur la période.</td></tr>') + "</table></div></section>";
   // Référents
   if (F.cor !== "tous") {
@@ -146,11 +172,11 @@ function dessiner() {
 window.biF = (f, v) => { F[f] = v; dessiner(); };
 window.biActualiser = async () => { B = null; await pagePageBilan(); A.toast("Bilan actualisé."); };
 window.biPaye = async (i) => {
-  const o = DATA.all[i]; if (!o || o.t === "kl") return; const k = clePaye(o), avant = B.paiements[k];
+  const o = DATA.all[i]; if (!o || o.t === "kl") return; const k = clePaye(o), v = cleAncienne(o), avant = coche(o);
   if (!avant && PE[k]) { A.toast(ENC[k] === "enc" ? "Encaissé au cabinet : pour le changer, modifiez le prix ou le paiement dans le dossier du patient." : "Payé automatiquement (ancienne case « Payé auto. », actes validés avant le 12/10/2026)."); return; }
-  if (avant) { if (!confirm("Remettre « " + o.lib + " » en attente de paiement ?")) return; delete B.paiements[k]; } else B.paiements[k] = D().t;
-  try { await setDoc(doc(db, "espaces", A.ESPACE, "finances", "paiements"), { data: JSON.stringify(B.paiements) }); dessiner(); }
-  catch (e) { if (avant) B.paiements[k] = avant; else delete B.paiements[k]; A.toast("Enregistrement impossible : " + e.message); }
+  if (avant && !confirm("Remettre « " + o.lib + " » en attente de paiement ?")) return;
+  try { B.paiements = await majPaiements((p) => { if (avant) { delete p[k]; delete p[v]; } else p[k] = D().t; }); redessinerRg(); }
+  catch (e) { A.toast("Enregistrement impossible : " + e.message); }
 };
 // ───── Versements et règlements reçus (étape 15, 09/10/2026 ; un seul cadre depuis le 09/10) ─────
 // Deux sortes de sommes reçues, dans une même liste :
@@ -160,6 +186,10 @@ window.biPaye = async (i) => {
 //   (droit « finances »), lu par le comptable (règle : il n'écrit que paiements et versements).
 // - « Autre versement » (laboratoire…) : finances/versements = { data: JSON [{ d, m, lib, + mode, ref, banque, enc, note }] } ;
 //   **compté dans le bilan** à sa date (moteur : d, m, lib seulement), établissement « Non renseigné » ; médecin et comptable.
+// Autre versement : identifiant (15 bis ; les anciens n'en ont pas : date|montant|libellé), pour modifier ou supprimer le bon
+const cleV = (e) => e.id || "v:" + e.d + "|" + e.m + "|" + (e.lib || "");
+const nouvelId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+let CLES = []; // clés des autres versements de la liste affichée (boutons ✎ ✕)
 const liste = (s) => { try { return s && s.exists() ? JSON.parse(s.data().data || "[]") : []; } catch (e) { return []; } };
 const MODES = { vir: "Virement", chq: "Chèque" };
 const peutRg = () => A.peut("finances") && !estComptable();
@@ -174,11 +204,12 @@ const etabNom = (c) => { const e = (D().etabsTous || D().etabs || []).find((z) =
 // Sommes reçues de la période et de l'établissement choisis en haut de la page (un autre versement est « Non renseigné »,
 // comme dans le bilan), puis type, mode et encaissement
 function recusFiltres(pr) {
-  const U = (B.reglements || []).map((r) => Object.assign({ k: "rg" }, r)).concat(B.versements.map((e, i) => Object.assign({ k: "kl", i, hop: "", per: e.lib || "Versement" }, e, { hop: "" })));
+  const U = (B.reglements || []).map((r) => Object.assign({ k: "rg" }, r)).concat(B.versements.map((e) => Object.assign({ k: "kl", vk: cleV(e), hop: "", per: e.lib || "Versement" }, e, { hop: "" })));
   return U.filter((r) => r.d >= pr[0] && r.d <= pr[1] && (F.hop === "tous" || (r.hop || "—") === F.hop) && (F.rtype === "tous" || r.k === F.rtype) &&
     (F.rmode === "tous" || r.mode === F.rmode) && (F.renc === "tous" || (F.renc === "oui" ? encaisse(r) : !encaisse(r)))).sort((a, z) => z.d.localeCompare(a.d) || (z.le || 0) - (a.le || 0));
 }
 function htmlRecus(b) {
+  CLES = [];
   const esc = A.esc, L = recusFiltres(b.pr), RG = L.filter((r) => r.k === "rg"), KL = L.filter((r) => r.k === "kl"), ed = (r) => (r.k === "rg" ? peutRg() : peutKL());
   DATA.rg = L;
   const sel = (v, opts, f) => '<select onchange="biF(\'' + f + '\',this.value)">' + opts.map((o) => '<option value="' + o[0] + '"' + (o[0] === v ? " selected" : "") + ">" + o[1] + "</option>").join("") + "</select>";
@@ -203,7 +234,7 @@ function htmlRecus(b) {
         return "<tr><td>" + moisTxt(m) + "</td><td>" + (Object.keys(parC).sort().map((c) => esc(c) + " " + dh(parC[c])).join(" · ") || "—") + '</td><td class="n">' + dh(somme(l.filter((r) => r.k === "kl"))) + '</td><td class="n"><b>' + dh(somme(l)) + "</b></td></tr>"; }).join("") + "</table></div>";
     const act = L.some(ed);
     h += '<div class="tableau" style="margin-top:12px"><table class="tcures bilan"><tr><th>Reçu le</th><th>Type</th><th>Clinique / hôpital</th><th>Mode</th><th>Référence</th><th>Banque</th><th>Libellé / période concernée</th><th class="n">Montant</th><th>Chèque encaissé le</th><th>Note</th>' + (act ? "<th></th>" : "") + "</tr>" +
-      L.map((r) => { const cle = r.k === "rg" ? "'" + esc(r.id) + "'" : r.i;
+      L.map((r) => { const cle = r.k === "rg" ? "'" + esc(r.id) + "'" : CLES.push(r.vk) - 1;
         return "<tr><td>" + A.dfrA(r.d) + "</td><td>" + (r.k === "rg" ? "Règlement" + '<div class="mesures">hors bilan</div>' : "Autre versement" + '<div class="mesures" style="color:var(--vert)">dans le bilan</div>') + "</td><td>" + esc(r.hop || "—") + "</td><td>" + (MODES[r.mode] || "—") + "</td><td>" + esc(r.ref || "") + "</td><td>" + esc(r.banque || "") + "</td><td>" + esc(r.per || "") + '</td><td class="n"><b>' + dh(r.m) + "</b></td><td>" +
           (encaisse(r) ? encTxt(r) : '<span style="color:var(--orange);font-weight:bold">Pas encore</span>') + '</td><td class="mesures">' + esc(r.note || "") + "</td>" +
           (act ? '<td style="white-space:nowrap">' + (ed(r) ? '<button class="mini" title="Modifier" onclick="biRgFiche(\'' + r.k + "'," + cle + ')">✎</button> <button class="mini rouge" title="Supprimer" onclick="' + (r.k === "rg" ? "biRgSup" : "biKlSup") + "(" + cle + ')">✕</button>' : "") + "</td>" : "") + "</tr>"; }).join("") +
@@ -217,12 +248,18 @@ async function sauverRg(op) {
   const R = doc(db, "espaces", A.ESPACE, "finances", "reglements"), l = op(liste(await getDoc(R)));
   await setDoc(R, { data: JSON.stringify(l) }); B.reglements = l;
 }
-async function sauverKL() { await setDoc(doc(db, "espaces", A.ESPACE, "finances", "versements"), { data: JSON.stringify(B.versements) }); }
+// Écriture des autres versements : liste relue juste avant (médecin et comptable), modifiée par sa clé, réécrite
+async function sauverKL(op) {
+  const R = doc(db, "espaces", A.ESPACE, "finances", "versements"), l = op(liste(await getDoc(R)));
+  await setDoc(R, { data: JSON.stringify(l) }); B.versements = l;
+}
+const introuvable = () => { throw new Error("ce versement vient d'être modifié ou supprimé par quelqu'un d'autre : « Actualiser » puis recommencez."); };
 const redessinerRg = () => { const y = window.scrollY; dessiner(); window.scrollTo(0, y); };
-// Fiche : k = "rg" (règlement) ou "kl" (autre versement) ; cle = id du règlement ou rang du versement ; sans k = nouveau
+// Fiche : k = "rg" (règlement) ou "kl" (autre versement) ; cle = id du règlement ou rang dans CLES (versement) ; sans k = nouveau
 window.biRgFiche = (k, cle) => {
   if (!peutKL()) return;
-  const nouv = !k, r0 = k === "rg" ? (B.reglements || []).find((z) => z.id === cle) : k === "kl" ? B.versements[cle] : null;
+  if (k === "kl") cle = CLES[cle];
+  const nouv = !k, r0 = k === "rg" ? (B.reglements || []).find((z) => z.id === cle) : k === "kl" ? B.versements.find((e) => cleV(e) === cle) : null;
   if (!nouv && !r0) return; if (k === "rg" && !peutRg()) return;
   const r = r0 ? Object.assign({}, r0, k === "kl" ? { per: r0.lib || "" } : {}) : null;
   const esc = A.esc, v = (c, d) => esc(r ? r[c] || "" : d || ""), etabs = (D().etabsTous || D().etabs || []).filter((e) => e.actif !== false || (r && r.hop === e.code));
@@ -264,9 +301,8 @@ window.biRgFiche = (k, cle) => {
         else await sauverRg((l) => l.concat([Object.assign({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6) }, n, qui)]));
         A.journal({ id: "", r: { nm: "" } }, (r ? "Règlement reçu modifié : " : "Règlement reçu ajouté : ") + MODES[n.mode] + " " + n.hop + " (" + n.m + " DH)");
       } else {
-        const avant = B.versements.slice();
-        if (r) B.versements[cle] = Object.assign({}, B.versements[cle], n); else B.versements.push(n);
-        try { await sauverKL(); } catch (e) { B.versements = avant; throw e; }
+        if (r) await sauverKL((l) => { if (!l.some((e) => cleV(e) === cle)) introuvable(); return l.map((e) => (cleV(e) === cle ? Object.assign({}, e, n, { id: e.id || nouvelId() }) : e)); });
+        else await sauverKL((l) => l.concat([Object.assign({ id: nouvelId() }, n)]));
         A.journal({ id: "", r: { nm: "" } }, (r ? "Versement modifié : " : "Versement ajouté : ") + n.lib + " (" + n.m + " DH)");
       }
       // Hors de ce qui est affiché (ex. reçu en mai, page sur le mois en cours) : période et filtres élargis pour le montrer
@@ -291,12 +327,11 @@ window.biRgSup = async (id) => {
   try { await sauverRg((l) => l.filter((z) => z.id !== id)); A.journal({ id: "", r: { nm: "" } }, "Règlement reçu supprimé : " + (r.hop || "") + " (" + r.m + " DH)"); redessinerRg(); }
   catch (e) { A.toast("Suppression impossible : " + ((e && e.message) || e)); }
 };
-window.biKlSup = async (i) => {
-  const e = B.versements[i]; if (!e || !peutKL()) return;
+window.biKlSup = async (n) => {
+  const cle = CLES[n], e = B.versements.find((z) => cleV(z) === cle); if (!e || !peutKL()) return;
   if (!confirm("Supprimer le versement « " + (e.lib || "Versement") + " » du " + A.dfrA(e.d) + " (" + dh(e.m) + ") ?\n\nIl sera retiré du bilan.")) return;
-  B.versements.splice(i, 1);
-  try { await sauverKL(); A.journal({ id: "", r: { nm: "" } }, "Versement supprimé : " + (e.lib || "Versement") + " (" + e.m + " DH)"); redessinerRg(); }
-  catch (er) { B.versements.splice(i, 0, e); A.toast("Suppression impossible : " + er.message); }
+  try { await sauverKL((l) => { if (!l.some((z) => cleV(z) === cle)) introuvable(); return l.filter((z) => cleV(z) !== cle); }); A.journal({ id: "", r: { nm: "" } }, "Versement supprimé : " + (e.lib || "Versement") + " (" + e.m + " DH)"); redessinerRg(); }
+  catch (er) { A.toast("Suppression impossible : " + er.message); }
 };
 
 // ───── Exports ─────

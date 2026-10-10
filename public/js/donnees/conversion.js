@@ -3,7 +3,7 @@
 // Les dates de cures et de séances déplacées vont dans « planningJson » (modifiable avec le droit planning HDJ).
 const IDENTITE = ["nomF", "prenom", "nom", "ddn", "sexe", "tel", "cin", "mut", "cor", "num", "ald", "age", "photo", "cree", "tel2", "adresse", "email", "numero"]; // numero : numéro de dossier (étape 8) // tel2, adresse, email : 08/10/2026 // photo : image réduite (data URL)
 const CLINIQUE = ["diag", "diagP", "notes", "poids", "taille", "cures", "j1", "nb", "protoId", "allergies", "atcdMed", "atcdFam", "modeVie", "traitCours"]; // + anciens champs de 1re version
-const TECHNIQUES = ["dossier", "_rtcCh", "id", "hop", "lignes", "rdvs", "rts"];
+const TECHNIQUES = ["dossier", "_rtcCh", "id", "hop", "hopHist", "lignes", "rdvs", "rts"]; // hopHist : champ du document (changements d'hôpital, 10/10/2026)
 const copie = (o) => JSON.parse(JSON.stringify(o));
 
 export function separer(P0) {
@@ -33,6 +33,7 @@ export function fusionner(id, doc, montants) {
   const cl = Object.assign({}, doc.clinique || {}), autres = cl._autres || {}; delete cl._autres;
   Object.assign(P, cl, autres);
   P.hop = doc.etablissementId || "";
+  if (doc.hopHist) P.hopHist = doc.hopHist; // [{ hop, avant }] : hôpital des actes faits avant un changement d'hôpital (moteur/finances.js hopAu)
   const planning = JSON.parse(doc.planningJson || "{}"), M = montants || null;
   P.lignes = JSON.parse(doc.lignesJson || "[]").map((L) => {
     (L.cures || []).forEach((c, i) => {
