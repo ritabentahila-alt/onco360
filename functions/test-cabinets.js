@@ -188,3 +188,11 @@ const echoue = (f) => { try { f(); return false; } catch (e) { return true; } };
   const e = F.editeurNettoye({ raison: " Onco360 SARL ", ice: "001 234 567 000 089", if: "1234", adresse: "1 rue", ville: "Casablanca" });
   ok(e.ice === "001234567000089" && e.tva === 20 && F.editeurIncomplet(e).length === 0 && F.editeurIncomplet({ raison: "x" }).indexOf("ice") >= 0, "Mon entreprise : nettoyé, mentions obligatoires vérifiées");
 })();
+// Relances (18.6)
+(() => {
+  const F = require("./facturation"), ok = (c, m) => { console.log((c ? "✅ " : "❌ ") + m); if (!c) process.exitCode = 1; };
+  const R = F.reglagesAbo({ modeles: { retard: "Bonjour {medecin}", essai: "" } });
+  ok(R.modeles.retard === "Bonjour {medecin}" && R.modeles.essai === F.MODELES_RELANCE0.essai && R.modeles.renouveler === F.MODELES_RELANCE0.renouveler, "modèles de relance : modifiés, vide = message de départ");
+  ok(F.remplirRelance("{medecin} · {montant} · {echeance} · {x}", { medecin: "Dr A", montant: "1 190 DH", echeance: "02/09/2026" }) === "Dr A · 1 190 DH · 02/09/2026 · {x}", "message de relance rempli");
+  ok(["retard", "renouveler", "essai"].every((k) => /\{montant\}/.test(F.MODELES_RELANCE0[k]) && /\{echeance\}/.test(F.MODELES_RELANCE0[k])), "chaque message de départ cite le montant et l'échéance");
+})();

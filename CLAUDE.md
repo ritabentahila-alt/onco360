@@ -132,6 +132,8 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
   Factures (18.4) : `factures/{id}` (serveur seulement) { numero F-AAAA-NNNN | AV-AAAA-NNNN, type, d, espace, client, editeur, lignes, ht, tva,
   ttc, paiement, ref } créées par `facturer` (functions/index.js) à chaque paiement (avoir au retrait), compteur `compteurs/factures` ;
   `plateforme/editeur` (Mon entreprise, `editeurEnregistrer`) ; mise en page `public/js/donnees/factures.js` (`htmlFacture`, `montantEnLettres`).
+  Relances (18.6) : `facturation.relances` [{ le, par, canal whatsapp|email|telephone|autre, type retard|renouveler|essai }] (action `relance`) ;
+  modèles `plateforme/abonnements.modeles` (`MODELES_RELANCE0`, `remplirRelance`) ; Comptabilité › Relances (admin.js `htmlRelances`, `ouvrirRelance`).
 - **Journal de l'Administration (17.5)** : `journalAdmin/{id}` (racine, serveur seulement) = { le, par, parEmail, type, espace, cabinet, txt },
   écrit par `jAdmin` dans chaque fonction d'administration (et `abonnementsNuit`), lu par la fonction `journalAdmin` (onglet Journal de admin.js).
 - **Journal d'audit (09/10/2026)** : `audit/{e}/lignes/{idÉvénement}` = { type creation|modification|suppression|ouverture, col, lib,

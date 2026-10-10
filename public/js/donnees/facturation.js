@@ -9,10 +9,19 @@
 // Même code : functions/facturation.js (serveur) et public/js/donnees/facturation.js (site), vérifié par node functions/test-cabinets.js.
 const ESSAI_JOURS = 30, DELAI_SUSPENSION = 30, RAPPEL_JOURS = 15, TVA = 20;
 // Réglages des abonnements (plateforme/abonnements, 18.3) : suspension demander | auto | jamais, délais en jours
-const REGLAGES_ABO0 = { suspension: "demander", delai: DELAI_SUSPENSION, rappel: RAPPEL_JOURS, essai: ESSAI_JOURS };
+const REGLAGES_ABO0 = { suspension: "demander", delai: DELAI_SUSPENSION, rappel: RAPPEL_JOURS, essai: ESSAI_JOURS }; // + modeles (relances, 18.6) : voir reglagesAbo
+// Relances (18.6) : messages de départ, modifiables (Comptabilité › Relances › Modèles des messages) ; champs {medecin} {cabinet}
+// {pack} {montant} {montantAn} {echeance} {jours} {rib} {raison}
+const MODELES_RELANCE0 = {
+  retard: "Bonjour {medecin},\nVotre abonnement Onco360 ({pack}) est arrivé à échéance le {echeance} ({jours} jours de retard). Montant à régler : {montant} TTC.\nPour continuer sans interruption, merci d'effectuer le règlement par virement (RIB {rib}, au nom de {raison}) ou par chèque.\nMerci et bonne journée,\nL'équipe Onco360",
+  renouveler: "Bonjour {medecin},\nVotre abonnement Onco360 ({pack}) arrive à échéance le {echeance}, dans {jours} jours. Montant : {montant} TTC, ou {montantAn} TTC pour l'année (2 mois offerts).\nRèglement par virement (RIB {rib}, au nom de {raison}) ou par chèque.\nMerci,\nL'équipe Onco360",
+  essai: "Bonjour {medecin},\nVotre essai gratuit d'Onco360 se termine le {echeance} (dans {jours} jours). Pour continuer : {montant} TTC par mois, ou {montantAn} TTC par an (2 mois offerts).\nRépondez simplement à ce message pour choisir votre formule.\nL'équipe Onco360" };
+const CANAUX = [["whatsapp", "WhatsApp"], ["email", "E-mail"], ["telephone", "Téléphone"], ["autre", "Autre"]];
 function reglagesAbo(o) {
   const x = o || {}, n = (v, d, a, b) => { const k = Math.round(Number(v)); return isNaN(k) || v === "" || v == null ? d : Math.min(b, Math.max(a, k)); };
-  return { suspension: ["demander", "auto", "jamais"].indexOf(x.suspension) >= 0 ? x.suspension : "demander", delai: n(x.delai, DELAI_SUSPENSION, 1, 365), rappel: n(x.rappel, RAPPEL_JOURS, 0, 90), essai: n(x.essai, ESSAI_JOURS, 1, 365) };
+  const m = x.modeles || {}, modeles = {};
+  Object.keys(MODELES_RELANCE0).forEach((k) => { const v = String(m[k] == null ? "" : m[k]).replace(/\r/g, "").trim().slice(0, 1500); modeles[k] = v || MODELES_RELANCE0[k]; });
+  return { suspension: ["demander", "auto", "jamais"].indexOf(x.suspension) >= 0 ? x.suspension : "demander", delai: n(x.delai, DELAI_SUSPENSION, 1, 365), rappel: n(x.rappel, RAPPEL_JOURS, 0, 90), essai: n(x.essai, ESSAI_JOURS, 1, 365), modeles };
 }
 const MODES_FACT = [["essai", "Essai gratuit"], ["mensuel", "Mensuel"], ["annuel", "Annuel"], ["gratuit", "Gratuit, sans limite"]];
 const MOYENS = [["virement", "Virement"], ["cheque", "Chèque"], ["especes", "Espèces"], ["carte", "Carte"], ["autre", "Autre"]];
@@ -101,4 +110,6 @@ const EDITEUR_REQUIS = ["raison", "ice", "if", "adresse", "ville"];
 function editeurNettoye(o) { const x = o || {}, out = {}; CHAMPS_EDITEUR.forEach(([k, , n]) => { out[k] = String(x[k] == null ? "" : x[k]).replace(/[ \t]+/g, " ").trim().slice(0, n); }); out.ice = out.ice.replace(/\s/g, ""); out.tva = TVA; return out; }
 const editeurIncomplet = (e) => EDITEUR_REQUIS.filter((k) => !(e && e[k]));
 const numeroFacture = (type, annee, rang) => (type === "avoir" ? "AV" : "F") + "-" + annee + "-" + String(rang).padStart(4, "0");
-export { ESSAI_JOURS, DELAI_SUSPENSION, RAPPEL_JOURS, TVA, REGLAGES_ABO0, reglagesAbo, MODES_FACT, MOYENS, PRIX0, ajouterJours, ecart, prolonger, etatFacturation, prixCabinet, reglageFacturation, paiementNettoye, clientNettoye, attendus, impaye, montants, CHAMPS_EDITEUR, EDITEUR_REQUIS, editeurNettoye, editeurIncomplet, numeroFacture };
+// Message de relance rempli (18.6) : remplace {champ} par sa valeur (champ inconnu : laissé tel quel)
+const remplirRelance = (modele, V) => String(modele || "").replace(/\{([a-zA-Z]+)\}/g, (t, k) => (V[k] != null && V[k] !== "" ? String(V[k]) : k === "rib" ? "à demander" : t));
+export { ESSAI_JOURS, DELAI_SUSPENSION, RAPPEL_JOURS, TVA, REGLAGES_ABO0, MODELES_RELANCE0, CANAUX, reglagesAbo, MODES_FACT, MOYENS, PRIX0, ajouterJours, ecart, prolonger, etatFacturation, prixCabinet, reglageFacturation, paiementNettoye, clientNettoye, attendus, impaye, montants, CHAMPS_EDITEUR, EDITEUR_REQUIS, editeurNettoye, editeurIncomplet, numeroFacture, remplirRelance };

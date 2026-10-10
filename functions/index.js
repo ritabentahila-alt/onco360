@@ -816,6 +816,11 @@ exports.facturationCabinet = onCall({ timeoutSeconds: 30, memory: "256MiB" }, as
     const p = (f.paiements || []).find((x) => x.id === d.id); if (!p) throw new HttpsError("not-found", "Paiement introuvable.");
     if (p.facture) throw new HttpsError("already-exists", "Ce paiement a déjà sa facture (" + p.facture + ").");
     const FAC = await facturer("facture", e, se.data(), f, p, par); p.facture = FAC.numero; p.factureId = FAC.id; NV.push(FAC.doc); jr.push("Facture " + FAC.numero + " (paiement du " + p.d + ")");
+  } else if (d.action === "relance") {
+    // Relance (18.6) : notée (date, moyen, type) ; l'envoi lui-même est fait par l'administration (WhatsApp, e-mail, téléphone)
+    const canal = Fa.CANAUX.some((x) => x[0] === d.canal) ? d.canal : "autre", type = ["retard", "renouveler", "essai"].indexOf(d.type) >= 0 ? d.type : "retard";
+    f.relances = (f.relances || []).concat([{ id: "r" + Date.now().toString(36), le, par, canal, type, note: String(d.note || "").trim().slice(0, 200) }]).slice(-100);
+    jr.push("Relance (" + (Fa.CANAUX.find((x) => x[0] === canal) || [])[1] + ") : " + { retard: "retard de paiement", renouveler: "échéance proche", essai: "fin d'essai" }[type]);
   } else if (d.action === "demandeTraitee") {
     const q = (f.demandes || []).find((x) => x.id === d.id); if (!q) throw new HttpsError("not-found", "Demande introuvable.");
     q.traitee = true; q.traiteeLe = le; q.traiteePar = par; jr.push("Demande du " + q.le.slice(0, 10) + " traitée");

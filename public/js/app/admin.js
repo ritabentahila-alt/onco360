@@ -8,7 +8,7 @@ import { onAuthStateChanged, sendPasswordResetEmail, signOut } from "https://www
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { MENU, FONCTIONS, FONCTIONS_RELIEES, CARTES, SECTIONS, BIBLIOTHEQUES, FICHE, TYPES_CHAMP, TOUJOURS_ENTETE, CONSULT, TYPES_CHAMP_CS, reglageEffectif, ficheEffective, ficheRetouches, consultEffective, formRetouches, libDe } from "../donnees/catalogue.js";
 import { htmlFacture, dh2 } from "../donnees/factures.js";
-import { CHAMPS_EDITEUR, EDITEUR_REQUIS, editeurIncomplet, REGLAGES_ABO0, MODES_FACT, MOYENS, PRIX0, ajouterJours, prolonger, etatFacturation, prixCabinet, attendus, impaye } from "../donnees/facturation.js";
+import { CHAMPS_EDITEUR, EDITEUR_REQUIS, editeurIncomplet, REGLAGES_ABO0, MODELES_RELANCE0, CANAUX, remplirRelance, MODES_FACT, MOYENS, PRIX0, ajouterJours, prolonger, etatFacturation, prixCabinet, attendus, impaye } from "../donnees/facturation.js";
 import { MODULES, ROLES_MAX, SPECIALITES, specialiteDe, FORMULES as FORMULES0, abonnementEffectif, BIBLIOTHEQUES_SPE, MODULE_FAMILLE, MODULE_MENU, MODULES_BASE, MODULES_PREVUS } from "../donnees/modules.js";
 
 const $ = (i) => document.getElementById(i);
@@ -45,7 +45,7 @@ let GARDER = false;
 window.addEventListener("hashchange", () => { if (!GARDER) RES = ""; GARDER = false; dessiner(); });
 async function charger() {
   try {
-    const o = await serveur("listeCabinets"); if (o.formules) { FS = o.formules; Object.values(FS).forEach((f) => { f.specialite = specialiteDe(f.specialite); }); } BIBS = o.bibliotheques || []; ARCH = o.archives || []; RA = Object.assign({}, REGLAGES_ABO0, o.reglagesAbo || {}); EDITEUR = o.editeur || null; FACT = (o.factures || []).map((x) => Object.assign({}, x, { le: typeof x.le === "string" ? x.le : "" })); LU = o.lu || new Date().toISOString(); SPES = {}; Object.entries(o.specialites || {}).forEach(([n, v]) => { SPES[specialiteDe(n)] = v; }); MSG = "";
+    const o = await serveur("listeCabinets"); if (o.formules) { FS = o.formules; Object.values(FS).forEach((f) => { f.specialite = specialiteDe(f.specialite); }); } BIBS = o.bibliotheques || []; ARCH = o.archives || []; RA = Object.assign({ modeles: Object.assign({}, MODELES_RELANCE0) }, REGLAGES_ABO0, o.reglagesAbo || {}); EDITEUR = o.editeur || null; FACT = (o.factures || []).map((x) => Object.assign({}, x, { le: typeof x.le === "string" ? x.le : "" })); LU = o.lu || new Date().toISOString(); SPES = {}; Object.entries(o.specialites || {}).forEach(([n, v]) => { SPES[specialiteDe(n)] = v; }); MSG = "";
     CABINETS = (o.cabinets || []).map((c) => Object.assign({}, c, { cree: typeof c.cree === "string" ? c.cree : "", suspenduLe: typeof c.suspenduLe === "string" ? c.suspenduLe : "", titulaire: c.titulaire || {} }));
   } catch (e) { CABINETS = []; MSG = '<p class="err">Liste des cabinets indisponible : ' + esc(e.message) + ' <button class="clair petit" onclick="location.reload()">Réessayer</button></p>'; }
   dessiner();
@@ -55,6 +55,55 @@ const formuleDe = (ab) => (ab && FORMULES_()[ab.formule]) || null;
 // Cabinet sans abonnement (le vôtre, créé avant les packs) : tous les modules, sans limite, en Oncologie – Radiothérapie (A1, 17.1)
 const speDuCab = (c) => (c.abonnement ? specialiteDe((formuleDe(c.abonnement) || {}).specialite) || "" : SPECIALITES[0]);
 const nomFormule = (ab) => (!ab ? "Tout compris, sans limite" : ((formuleDe(ab) || {}).lib || ab.formule) + (ab.surMesure || (ab.reglage && ab.retouche === undefined && Object.keys(ab.reglage).length) ? " · sur mesure" : ""));
+// ───── Relances (18.6) : cabinets en retard, à renouveler, en fin d'essai ; message prêt (WhatsApp, e-mail), relance notée ─────
+const TYPES_REL = { retard: "Retard de paiement", renouveler: "Échéance proche", essai: "Fin d'essai" };
+function aRelancer(c) {
+  if (!c || c.modele || c.demo || !c.facturation || c.facturation.mode === "gratuit") return null;
+  const E = etatDe(c);
+  return E.etat === "retard" || E.etat === "suspendre" ? "retard" : E.etat === "renouveler" ? "renouveler" : E.etat === "essai" && E.jours <= RA.rappel ? "essai" : null;
+}
+const derniereRelance = (c) => { const r = ((c.facturation || {}).relances || []).slice(-1)[0]; return r ? new Date(r.le).toLocaleDateString("fr-FR") + " par " + ((CANAUX.find((x) => x[0] === r.canal) || [])[1] || r.canal) : ""; };
+const telWa = (t) => String(t || "").replace(/[^0-9]/g, "").replace(/^00/, "").replace(/^0(?=[5-7])/, "212");
+function variablesRelance(c, type) {
+  const E = etatDe(c), F = formuleDe(c.abonnement) || {}, P = F.prix || PRIX0[c.abonnement && c.abonnement.formule] || {};
+  const m = type === "retard" ? impaye(c.facturation, prixDe(c), JOUR()) : type === "renouveler" ? prixDe(c).prix : P.mois;
+  return { medecin: c.titulaire.nom || "Docteur", cabinet: c.nom, pack: nomFormule(c.abonnement), montant: dh(m), montantAn: dh(P.an), echeance: dfr(E.fin), jours: E.jours, rib: (EDITEUR || {}).rib || "", raison: (EDITEUR || {}).raison || "Onco360" };
+}
+function htmlRelances() {
+  const L = (CABINETS || []).map((c) => ({ c, t: aRelancer(c) })).filter((x) => x.t).sort((a, b) => ["retard", "renouveler", "essai"].indexOf(a.t) - ["retard", "renouveler", "essai"].indexOf(b.t));
+  return '<section class="carte"><div class="barre" style="justify-content:space-between"><h2 style="margin:0">Relances</h2><button class="clair petit" data-modeles>Modèles des messages</button></div><p class="sous">Cabinets en retard, à renouveler (' + RA.rappel + " jours avant l'échéance) ou en fin d'essai. Le message est prêt ; c'est vous qui l'envoyez (WhatsApp, e-mail) : la relance est alors notée.</p>" +
+    (L.length ? '<div class="tableau"><table class="lc"><thead><tr><th>Cabinet</th><th>Motif</th><th>Échéance</th><th class="n">Montant</th><th>Dernière relance</th><th></th></tr></thead><tbody>' + L.map(({ c, t }) => { const E = etatDe(c), V = variablesRelance(c, t);
+      return '<tr><td data-l="Cabinet"><b>' + esc(c.nom) + '</b><div class="m">' + esc([c.titulaire.nom, c.titulaire.telephone].filter(Boolean).join(" · ")) + '</div></td><td data-l="Motif"><span class="bdg ' + (t === "retard" ? "al" : "rt") + '">' + esc(TYPES_REL[t]) + '</span><div class="m">' + esc(E.lib) + '</div></td><td data-l="Échéance">' + esc(dfr(E.fin)) + '</td><td data-l="Montant" class="n">' + esc(V.montant) + '</td><td data-l="Dernière relance">' + esc(derniereRelance(c) || "jamais") + '</td><td><button class="petit" data-rel="' + esc(c.id) + '">Relancer</button></td></tr>'; }).join("") + "</tbody></table></div>"
+      : '<p class="m">Aucune relance à faire.</p>') + "</section>";
+}
+document.addEventListener("click", (e) => { const t = e.target.closest && e.target.closest("[data-rel],[data-modeles]"); if (!t) return; if (t.dataset.rel) ouvrirRelance(cab(t.dataset.rel)); else ouvrirModeles(); });
+function ouvrirRelance(c) {
+  const type = aRelancer(c) || "retard"; if (!c) return;
+  const txt = remplirRelance(RA.modeles[type] || MODELES_RELANCE0[type], variablesRelance(c, type)), tel = telWa(c.titulaire.telephone), mail = (c.facturation && c.facturation.client && c.facturation.client.email) || c.titulaire.email || "";
+  fenetre("<h2>Relancer « " + esc(c.nom) + ' »</h2><p class="sous">' + esc(TYPES_REL[type]) + " · " + esc(etatDe(c).lib) + " · dernière relance : " + esc(derniereRelance(c) || "jamais") + '. Modifiez le message si besoin, puis envoyez-le : la relance est notée.</p>' +
+    '<textarea id="rlTxt" rows="9">' + esc(txt) + "</textarea>" +
+    '<div class="pied"><button class="bt wa" id="rlWa"' + (tel ? "" : ' disabled title="Pas de téléphone pour ce médecin (Modifier)"') + ">Envoyer par WhatsApp</button><button id=\"rlMail\"" + (mail ? "" : " disabled") + '>Envoyer par e-mail</button><button class="clair" id="rlCop">Copier</button><button class="clair" id="rlTel">Noter : relancé par téléphone</button><button class="clair" id="rlAnn">Fermer</button></div>' +
+    '<p class="m">' + esc([tel ? "WhatsApp : +" + tel : "", mail ? "E-mail : " + mail : ""].filter(Boolean).join(" · ")) + "</p>");
+  const noter = async (canal) => { try { await envoyerFacturation(c, { action: "relance", canal, type }, "Relance notée (" + ((CANAUX.find((x) => x[0] === canal) || [])[1]) + ") pour « " + esc(c.nom) + " »."); } catch (e) { alert("Relance non notée : " + e.message); } };
+  $("rlAnn").onclick = fermer;
+  $("rlWa").onclick = () => { window.open("https://wa.me/" + tel + "?text=" + encodeURIComponent($("rlTxt").value), "_blank"); noter("whatsapp"); };
+  $("rlMail").onclick = () => { window.open("mailto:" + encodeURIComponent(mail) + "?subject=" + encodeURIComponent("Votre abonnement Onco360") + "&body=" + encodeURIComponent($("rlTxt").value), "_blank"); noter("email"); };
+  $("rlCop").onclick = async () => { const t = $("rlTxt"); try { await navigator.clipboard.writeText(t.value); } catch (e) { t.select(); document.execCommand("copy"); } $("rlCop").textContent = "Copié"; };
+  $("rlTel").onclick = () => noter("telephone");
+}
+function ouvrirModeles() {
+  fenetre('<h2>Modèles des messages de relance</h2><p class="sous">Champs remplis pour chaque cabinet : {medecin} {cabinet} {pack} {montant} {montantAn} {echeance} {jours} {rib} {raison}. Vide = message proposé par Onco360.</p>' +
+    Object.keys(MODELES_RELANCE0).map((k) => '<label for="md_' + k + '">' + esc(TYPES_REL[k]) + '</label><textarea id="md_' + k + '" rows="6">' + esc(RA.modeles[k] || "") + "</textarea>").join("") +
+    '<div class="pied"><button id="mdOk">Enregistrer</button><button class="clair" id="mdDep">Revenir aux messages proposés</button><button class="clair" id="mdAnn">Fermer</button></div>');
+  $("mdAnn").onclick = fermer;
+  $("mdDep").onclick = () => { Object.keys(MODELES_RELANCE0).forEach((k) => { $("md_" + k).value = MODELES_RELANCE0[k]; }); };
+  $("mdOk").onclick = async () => {
+    const modeles = {}; Object.keys(MODELES_RELANCE0).forEach((k) => { modeles[k] = $("md_" + k).value; });
+    const b = $("mdOk"); b.disabled = true; b.textContent = "Enregistrement…";
+    try { const o = await serveur("reglagesAbonnements", { reglages: Object.assign({}, RA, { modeles }) }); RA = Object.assign({ modeles: Object.assign({}, MODELES_RELANCE0) }, REGLAGES_ABO0, o.reglages); fermer(true); RES = "Modèles des messages de relance enregistrés."; dessiner(); }
+    catch (e) { b.disabled = false; b.textContent = "Enregistrer"; alert("Enregistrement impossible : " + e.message); }
+  };
+}
 // ───── Factures (18.4) : Mon entreprise, voir / imprimer une facture ─────
 document.addEventListener("click", (e) => { const t = e.target.closest && e.target.closest("[data-vfac],[data-editeur]"); if (!t) return; if (t.dataset.editeur !== undefined) ouvrirEditeur(); else voirFacture(FACT.find((x) => x.id === t.dataset.vfac || x.numero === t.dataset.num)); });
 function voirFacture(F) {
@@ -89,7 +138,7 @@ function ouvrirReglagesAbo() {
     const r = { suspension: (document.querySelector('input[name="raSusp"]:checked') || {}).value || "demander", delai: $("raDel").value, rappel: $("raRap").value, essai: $("raEss").value };
     if (r.suspension === "auto" && !confirm("Suspendre automatiquement les cabinets en retard de plus de " + r.delai + " jours ?\n\nChaque nuit, Onco360 le fera sans vous demander.")) return;
     const b = $("raOk"); b.disabled = true; b.textContent = "Enregistrement…";
-    try { const o = await serveur("reglagesAbonnements", { reglages: r }); RA = Object.assign({}, REGLAGES_ABO0, o.reglages); fermer(true); RES = "Réglages des abonnements enregistrés."; dessiner(); }
+    try { const o = await serveur("reglagesAbonnements", { reglages: Object.assign({ modeles: RA.modeles }, r) }); RA = Object.assign({ modeles: Object.assign({}, MODELES_RELANCE0) }, REGLAGES_ABO0, o.reglages); fermer(true); RES = "Réglages des abonnements enregistrés."; dessiner(); }
     catch (e) { b.disabled = false; b.textContent = "Enregistrer"; alert("Enregistrement impossible : " + e.message); }
   };
 }
@@ -196,6 +245,8 @@ function blocAbonnement(c) {
     (f ? '<div class="m">' + esc(mode) + (f.mode === "mensuel" || f.mode === "annuel" ? " · " + dh(P.prix) + (P.periode === "an" ? " par an" : " par mois") + (f.prix != null && P.catalogue && f.prix !== P.catalogue ? " (prix du pack : " + dh(P.catalogue) + ")" : "") : "") + (f.note ? " · " + esc(f.note) : "") + "</div>" : '<div class="m">Pas encore de fiche d\'abonnement : « Modifier l\'abonnement » pour la créer.</div>') +
     (E.etat === "retard" || E.etat === "suspendre" ? '<div class="m" style="color:var(--rouge)">' + (E.etat === "retard" && RA.suspension === "auto" && !f.jamaisSuspendre ? "Suspendu automatiquement dans " + Math.max(0, RA.delai - E.jours + 1) + " jour(s) sans paiement." : E.etat === "suspendre" && c.actif && RA.suspension === "demander" && !f.jamaisSuspendre ? "Retard de plus de " + RA.delai + " jours : à vous de décider (Suspendre, dans la zone sensible ci-dessous, ou attendre)." : "En retard : " + suiteRetard(c) + ".") + "</div>" : "") +
     (f && f.jamaisSuspendre ? '<div class="m">Ce cabinet n\'est jamais suspendu automatiquement.</div>' : "") +
+    // Relances (18.6) : dernière relance ; « Relancer » quand le cabinet est en retard, à renouveler ou en fin d'essai
+    (aRelancer(c) || (f && (f.relances || []).length) ? '<div class="m">' + (derniereRelance(c) ? "Dernière relance : " + esc(derniereRelance(c)) : "Jamais relancé") + (aRelancer(c) ? ' · <button class="lien" data-rel="' + esc(c.id) + '">Relancer</button>' : "") + "</div>" : "") +
     // Demandes du médecin (Profil & Paramètres › Abonnement, 18.5) : à traiter
     (f && (f.demandes || []).some((q) => !q.traitee) ? '<div class="avert">' + f.demandes.filter((q) => !q.traitee).map((q) => "<b>Demande du " + esc(new Date(q.le).toLocaleDateString("fr-FR")) + "</b> (" + esc(q.parNom || "titulaire") + ") : " + esc({ renouveler: "renouveler l'abonnement", annuel: "passer à l'annuel", mensuel: "passer au mensuel" }[q.type] || q.type) + (q.message ? " · « " + esc(q.message) + " »" : "") + ' <button class="lien" data-dt="' + esc(c.id) + ":" + esc(q.id) + '">Marquer traitée</button>').join("<br>") + "</div>" : "") +
     (f && f.client && f.client.raison ? '<div class="m">Facturé à : ' + esc([f.client.raison, f.client.ice ? "ICE " + f.client.ice : "", f.client.adresse].filter(Boolean).join(" · ")) + "</div>" : "") +
@@ -681,7 +732,7 @@ function htmlCompta() {
       '<p class="sous" style="margin:10px 0 0"><b>' + esc(dh(somme(P))) + "</b> · " + P.length + " paiement" + (P.length > 1 ? "s" : "") + (du > "0000" && au < "9999" ? " du " + esc(dfr(du)) + " au " + esc(dfr(au)) : "") + "</p>" +
       '<div class="rg" style="margin-top:10px"><div class="rg-b"><h3 class="st">Par pack</h3>' + barres(rep((p) => p.pack || "Cabinet supprimé")) + '</div><div class="rg-b"><h3 class="st">Par moyen de paiement</h3>' + barres(rep((p) => moyenLib(p.moyen))) + "</div></div>" +
       (P.length ? '<div class="tableau"><table class="lc cp"><thead><tr><th>Date</th><th>Cabinet</th><th class="n">Montant</th><th>Période</th><th>Moyen</th><th>Référence</th><th>Échéance après</th></tr></thead><tbody>' + P.map((p) => '<tr><td data-l="Date">' + esc(dfr(p.d)) + '</td><td data-l="Cabinet">' + esc(p.nomCab) + (p.client.raison ? '<div class="m">' + esc(p.client.raison) + "</div>" : "") + '</td><td data-l="Montant" class="n"><b>' + esc(dh(p.m)) + '</b></td><td data-l="Période">' + (p.periode === "an" ? "1 an" : "1 mois") + '</td><td data-l="Moyen">' + esc(moyenLib(p.moyen)) + '</td><td data-l="Référence" class="m">' + esc(p.ref || "") + (p.note ? " " + esc(p.note) : "") + '</td><td data-l="Échéance après">' + esc(dfr(p.apres || "")) + "</td></tr>").join("") + '</tbody><tfoot><tr><td colspan="2"><b>Total</b></td><td class="n"><b>' + esc(dh(somme(P))) + '</b></td><td colspan="4"></td></tr></tfoot></table></div>' : '<p class="sous">Aucun paiement sur cette période' + (CP.per !== "tout" ? " (essayez « Tout »)" : "") + ".</p>") + "</section>" +
-    htmlFactures(du, au) +
+    htmlRelances() + htmlFactures(du, au) +
     '<div class="rg"><section class="carte"><h2>À encaisser (90 jours)</h2>' + (A90.length ? '<table class="pt">' + A90.map((x) => "<tr><td>" + esc(dfr(x.d)) + '</td><td><button class="lien" data-vf="' + esc(x.c.id) + '">' + esc(x.c.nom) + "</button>" + (x.essai ? ' <span class="bdg">fin d\'essai</span>' : "") + '</td><td class="n">' + esc(dh(x.m)) + "</td></tr>").join("") + "</table>" : '<p class="m">Aucune échéance dans les 90 jours.</p>') + "</section>" +
       '<section class="carte"><h2>Impayés</h2>' + (IMP.length ? '<table class="pt">' + IMP.map((x) => '<tr><td><button class="lien" data-vf="' + esc(x.c.id) + '">' + esc(x.c.nom) + '</button><div class="m">échéance du ' + esc(dfr(x.E.fin)) + " · " + esc(x.E.lib) + (x.c.actif ? "" : " · suspendu") + '</div></td><td class="n"><b>' + esc(dh(x.m)) + "</b></td></tr>").join("") + "</table>" : '<p class="m">Aucun impayé.</p>') + "</section></div>";
 }

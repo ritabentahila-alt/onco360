@@ -120,5 +120,5 @@ Tous les écrans ont été revus avec des cabinets proches de la réalité : le 
 | 18.3 Réglages des abonnements | Suspension « me demander » (par défaut), automatique ou jamais ; délais ; cabinet exclu ; prix TTC | ✅ fait |
 | 18.4 Factures | Mon entreprise (mentions légales) ; facture à chaque paiement (F-AAAA-NNNN), avoir (AV-AAAA-NNNN) ; HT / TVA 20 % / TTC ; Comptabilité › Factures | ✅ fait |
 | 18.5 Profil & Paramètres (Onco360) | Onglets Informations, Accès, Abonnement (demande de renouvellement ou de passage à l'annuel), Factures ; carte du tableau de bord | ✅ fait |
-| 18.6 Relances | Retards et échéances, message WhatsApp prêt | à faire |
+| 18.6 Relances | Retards et échéances, message WhatsApp prêt | ✅ fait |
 | 16.5 Nouvelle spécialité | Copie ou vide | à faire |

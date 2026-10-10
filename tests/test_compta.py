@@ -40,7 +40,8 @@ async def main():
         await pa.click('.avert.rouge-a [data-reg-abo]'); await pa.wait_for_timeout(300)
         ok(await pa.is_checked('input[name="raSusp"][value="demander"]'), 'réglages : « Me demander » par défaut')
         await pa.fill('#raDel', '45'); await pa.click('#raOk'); await pa.wait_for_timeout(500)
-        ok((await pa.evaluate('window.__ra'))['reglages'] == {'suspension': 'demander', 'delai': '45', 'rappel': '15', 'essai': '30'} and not await pa.evaluate("!!document.querySelector('.avert.rouge-a')"), 'délai porté à 45 jours : Delta (35 j) n\'est plus à décider')
+        rr = (await pa.evaluate('window.__ra'))['reglages']
+        ok({k: rr[k] for k in ['suspension', 'delai', 'rappel', 'essai']} == {'suspension': 'demander', 'delai': '45', 'rappel': '15', 'essai': '30'} and 'retard' in rr.get('modeles', {}) and not await pa.evaluate("!!document.querySelector('.avert.rouge-a')"), 'délai porté à 45 jours : Delta (35 j) n\'est plus à décider')
         await pa.click('[data-actu]'); await pa.wait_for_timeout(700)
         ok(await pa.evaluate('window.__nl') == 2, '« Actualiser » relit les cabinets')
         await pa.evaluate("location.hash='compta'"); await pa.wait_for_timeout(300)

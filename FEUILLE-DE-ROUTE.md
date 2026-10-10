@@ -1212,7 +1212,13 @@ Modules et menus, Bibliothèques et paramètres ; cabinets en liste ; onglet lis
       échéance, barre, « Renouveler » → onglet Abonnement) ; titulaire seulement (les autres membres : Informations) ; `abonnement.js`,
       fonctions `monAbonnement` / `demandeAbonnement` ; Administration : demandes des médecins (bandeau bleu, fiche du cabinet,
       « Marquer traitée »). Tests `tests/test_profil_abo.py` 16/16.
-- [ ] **18.6 Relances** : retards et échéances proches, message WhatsApp prêt, date de la dernière relance.
+- [x] **18.6 Relances** (10/10) : Comptabilité › **Relances** = cabinets en retard, à renouveler (délai du rappel) ou en fin
+      d'essai (ni gratuits, ni votre cabinet, ni la démonstration) : motif, échéance, montant, dernière relance ; « Relancer » (aussi
+      dans la fiche du cabinet) = message prêt et modifiable (médecin, pack, montant dû, échéance, retard, RIB), **Envoyer par
+      WhatsApp** (numéro mis au format +212) ou **par e-mail**, Copier, « Noter : relancé par téléphone » ; la relance est notée
+      (`facturation.relances`, action `relance`, journal de l'Administration) ; **Modèles des messages** (3 messages : retard,
+      échéance proche, fin d'essai ; champs {medecin} {pack} {montant} {montantAn} {echeance} {jours} {rib} {raison}…), gardés
+      avec les réglages des abonnements. Aucun envoi automatique. Tests `tests/test_relances.py` 12/12, serveur 82/82.
 - [ ] 16.5 Nouvelle spécialité (copie ou vide) ; Médecine générale, Gynécologie prêtes pour l'étape 14.
 
 ## Étape 14 – Autres spécialités (demandé le 09/10/2026) : nouveaux modules et leurs formules
@@ -1483,3 +1489,4 @@ Onco360_Package_Cession/
 | 10/10/2026 | 18.3 Réglages des abonnements | Suspension « me demander » par défaut (ou automatique, ou jamais), délais réglables, cabinet exclu possible ; prix TTC. Plan : 18.4 factures, 18.5 Profil & Paramètres (Abonnement, Factures) dans Onco360, 18.6 relances. Mis en ligne. |
 | 10/10/2026 | 18.4 Factures | Mon entreprise (mentions légales), facture à chaque paiement (F-AAAA-NNNN), avoir (AV-AAAA-NNNN), facture A4 avec montant en lettres, Comptabilité › Factures et export. Mis en ligne. |
 | 10/10/2026 | 18.5 Profil & Paramètres | Onco360 : onglets Informations, Accès, Abonnement, Factures ; carte d'abonnement sur le tableau de bord (comme Tbibclic) ; demandes des médecins dans l'Administration. Décision : le bilan de test (352 317 DH) n'est plus vérifié à chaque étape. Mis en ligne. |
+| 10/10/2026 | 18.6 Relances | Comptabilité › Relances : retards, échéances proches, fins d'essai ; message prêt (WhatsApp, e-mail), relance notée, modèles des messages. Plan de l'audit terminé (reste 16.5). Mis en ligne. |
