@@ -785,7 +785,9 @@ export async function enrichirListes(cor, mut, diag) {
 }
 
 // ───── Nouveau patient (même formulaire que l'application actuelle) ─────
-export function nouveauPatient() {
+// opts (19.4) : { nom (tapé dans la recherche), ensuite(x) } : depuis « Nouveau rendez-vous », on revient au rendez-vous au lieu du dossier
+export function nouveauPatient(opts) {
+  const o = opts || {};
   const okC = A.traitMod() || A.peut("fichePatient"), etabs = D().etabs, mb = D().membre;
   const permis = mb.tousEtablissements ? etabs : etabs.filter((e) => (mb.etablissements || []).indexOf(e.code) >= 0);
   if (!A.peut("creerPatient")) { A.toast("Vous n'avez pas le droit de créer un patient."); return; }
@@ -804,6 +806,8 @@ export function nouveauPatient() {
     '<datalist id="lMut">' + listeMut().map((m) => '<option value="' + A.esc(m) + '">').join("") + '</datalist><datalist id="lCor">' + listeCor().map((m) => '<option value="' + A.esc(m) + '">').join("") + "</datalist>" + boutons("Créer le dossier"));
   if (okC) activerDiag("pDiag", "pDiagP");
   ficheP.appliquerFiche(document.querySelector("#fenetre .form"));
+  // nom tapé dans la recherche du rendez-vous : « NOM Prénom » → Nom, Prénom
+  if (o.nom) { const m = String(o.nom).trim().split(/\s+/); document.getElementById("pNom").value = (m.shift() || "").toUpperCase(); document.getElementById("pPre").value = m.join(" "); }
   document.getElementById("fOk").onclick = async () => {
     const nomF = A.val("pNom").toUpperCase(), prenom = A.val("pPre"); if (!nomF || !prenom) { A.erreur("Le nom et le prénom sont obligatoires."); return; }
     const deja = D().patients.find((p) => (p.P.nomF || "").toUpperCase() === nomF && String(p.P.prenom || "").toLowerCase() === prenom.toLowerCase());
@@ -826,7 +830,7 @@ export function nouveauPatient() {
       if (A.peut("finances")) await setDoc(doc(db, "espaces", A.ESPACE, "patientsFinances", id), { etablissementId: etab, montantsJson: JSON.stringify({ rdv: {}, rt: {}, cures: {} }) });
       await enrichirListes(A.val("pCor"), A.val("pMut"), A.val("pDiag"));
       A.recalculer(x, Object.assign({}, docP, { maj: null })); D().patients.push(x); D().patients.sort((a, z) => String(a.r.nm).localeCompare(String(z.r.nm)));
-      A.journal(x, "Patient créé"); A.fermerFenetre(); A.toast("Dossier créé."); location.hash = "dossier/" + encodeURIComponent(id);
+      A.journal(x, "Patient créé"); A.fermerFenetre(); A.toast("Dossier créé."); if (o.ensuite) o.ensuite(x); else location.hash = "dossier/" + encodeURIComponent(id);
       A.attribuerNumero(x).then((n) => { if (n) A.toast("Dossier créé : n° " + n + "."); }); // numéro de dossier (serveur, sans doublon)
     } catch (e) { A.occupe(document.getElementById("fOk"), false); A.erreur(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de créer ce dossier." : "Création impossible : " + ((e && e.message) || e)); }
   };

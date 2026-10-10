@@ -65,7 +65,7 @@ service cloud.firestore {
         return ['resume', 'version', 'maj', 'majPar']
           .concat(droit('identite') ? ['identite'] : [])
           .concat(droit('fichePatient') ? ['clinique'] : [])
-          .concat(droit('rendezvous') ? ['rdvsJson'] : [])
+          .concat(droit('rendezvous') ? ['rdvsJson', 'rappels'] : []) // rappels : rappels WhatsApp envoyés (19.4)
           .concat(droit('planningChimio') || traitementsModif() ? ['planningJson'] : [])
           .concat(traitementsModif() ? ['lignesJson', 'clinique'] : [])
           .concat(rtModif() ? ['rtsJson'] : [])

@@ -405,17 +405,39 @@ function messageWA(x, cat, d, h) {
   const m = D.wa && D.wa[cat] != null ? D.wa[cat] : WA0[cat] || WA0.autre;
   return remplir(m, { prenom: P.prenom ? cap(String(P.prenom).toLowerCase()) : x.r.nm, nom: x.r.nm, jour: JOURS_L[j.getDay()] + " " + j.getDate() + " " + MOIS_L[j.getMonth()], heure: h ? "à " + h.replace(":", "h") : "", lieu: e.nom || x.doc.etablissementId || "", adresse: e.adresse || "", medecin: signatureWA() });
 }
+// Rappels envoyés (19.4, 10/10/2026) : dans le dossier, champ rappels { "AAAA-MM-JJ|catégorie": { le, par, nom } } (droit « rendezvous »)
+const rappelDe = (x, d, cat) => ((x.doc && x.doc.rappels) || {})[d + "|" + cat] || null;
+const libEnvoi = (s) => "envoyé par " + (s.nom || "") + " le " + dfrA(String(s.le).slice(0, 10)) + " à " + new Date(s.le).toTimeString().slice(0, 5).replace(":", " h ");
 const btnWA = (x, cat, d, h) => {
-  if (!cat) return ""; const g = ecart(d, D.t), RW = reglages().whatsapp, proche = g >= RW.de && g <= RW.a, ok = !!numeroWA(x.P.tel);
-  return '<button data-fn="agenda.whatsapp" class="wa' + (proche ? " proche" : "") + '"' + (ok ? "" : " disabled") + ' aria-label="Rappel WhatsApp" title="' + (ok ? "Rappel WhatsApp" + (proche ? " (rendez-vous dans " + g * 24 + " h)" : "") : "Pas de numéro de téléphone dans le dossier") + '" onclick="event.stopPropagation();envoyerWA(\'' + x.id + "','" + cat + "','" + d + "','" + (h || "") + '\')">' + LOGO_WA + "</button>";
+  if (!cat) return ""; const g = ecart(d, D.t), RW = reglages().whatsapp, env = rappelDe(x, d, cat), proche = !env && g >= RW.de && g <= RW.a, ok = !!numeroWA(x.P.tel);
+  return '<button data-fn="agenda.whatsapp" class="wa' + (proche ? " proche" : "") + (env ? " envoye" : "") + '"' + (ok ? "" : " disabled") + ' aria-label="Rappel WhatsApp' + (env ? " (déjà envoyé)" : "") + '" title="' + (ok ? (env ? "Rappel " + libEnvoi(env) + " (cliquez pour le renvoyer)" : "Rappel WhatsApp" + (proche ? " (rendez-vous dans " + g * 24 + " h)" : "")) : "Pas de numéro de téléphone dans le dossier") + '" onclick="event.stopPropagation();envoyerWA(\'' + x.id + "','" + cat + "','" + d + "','" + (h || "") + '\')">' + LOGO_WA + "</button>";
 };
 const LOGO_WA = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.6.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.3-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 0 0 1.8-1.2 2.2 2.2 0 0 0 .1-1.2c0-.1-.2-.2-.5-.3Z"/></svg>';
 window.envoyerWA = (pid, cat, d, h) => {
   const x = D.patients.find((z) => z.id === pid); if (!x) return; const n = numeroWA(x.P.tel);
   if (!n) { toast("Pas de numéro de téléphone dans le dossier."); return; }
   window.open("https://wa.me/" + n + "?text=" + encodeURIComponent(messageWA(x, cat, d, h)), "_blank");
-  journal(x, "Rappel WhatsApp ouvert (rendez-vous du " + dfrA(d) + ")");
+  journal(x, (cat === "confirm" ? "Confirmation" : "Rappel") + " WhatsApp ouvert (rendez-vous du " + dfrA(d) + ")");
+  noterRappel(x, d, cat);
 };
+// Rappel (ou confirmation) noté envoyé dans le dossier ; les rappels de plus de 7 jours sont retirés au passage
+async function noterRappel(x, d, cat) {
+  if (!peut("rendezvous")) return;
+  const l = {}, lim = addJ(D.t, -7); Object.entries(x.doc.rappels || {}).forEach(([k, v]) => { if (k.slice(0, 10) >= lim) l[k] = v; });
+  l[d + "|" + cat] = { le: new Date().toISOString(), par: D.u.uid, nom: $("nomMenu").textContent };
+  try { await enregistrer(x, { rappels: l }, (cat === "confirm" ? "Confirmation" : "Rappel") + " WhatsApp envoyé (rendez-vous du " + dfrA(d) + ")"); entete(); route(); } catch (e) { console.warn("rappel noté", e); }
+}
+// Rappels à envoyer (19.4) : rendez-vous, cures, séances dans la fenêtre du bouton vert (Paramètres › WhatsApp), envoyés ou non
+function rappelsAEnvoyer() {
+  const t = D.t, RW = reglages().whatsapp, l = [], vus = {};
+  D.patients.forEach((pt) => (pt.r.ag || []).forEach((e) => {
+    const g = ecart(e.d, t); if (g < RW.de || g > RW.a || !evtVisible(pt, e.k)) return; const cat = catEvt(pt.id, e.k); if (!cat) return;
+    const k = pt.id + "|" + e.d + "|" + cat; if (vus[k]) return; vus[k] = 1;
+    const titre = e.t.replace(/^\S+\s/, ""), m = titre.match(/^(.*?) – (.*)$/);
+    l.push({ x: pt, id: pt.id, d: e.d, h: e.h || "", cat, nm: m ? m[1] : titre, de: m ? m[2] : "", env: rappelDe(pt, e.d, cat), tel: !!numeroWA(pt.P.tel) });
+  }));
+  return l.sort((a, b) => (a.d + (a.h || "00:00") + a.nm).localeCompare(b.d + (b.h || "00:00") + b.nm));
+}
 
 // Conflits : rendez-vous pendant une absence (toute la période) ou un jour férié (rendez-vous qui commencent ce jour-là)
 function absences() {
@@ -439,7 +461,7 @@ function alertesSecretariat() {
   agenda7().forEach((e) => {
     const x = D.patients.find((z) => z.id === e.id); if (!x || !e.cat) return; const g = ecart(e.d, D.t), quand = (e.de || "rendez-vous") + " le " + dfr(e.d) + (e.h ? " à " + e.h : "");
     if (!numeroWA(x.P.tel)) al.push({ o: 1, c: O, h: "<b>" + esc(e.nm) + "</b> – " + esc(quand) + " : pas de numéro de téléphone dans le dossier", id: e.id });
-    else if (g >= RW.de && g <= RW.a) al.push({ o: 2, c: V, h: "<b>" + esc(e.nm) + "</b> – rappel WhatsApp à envoyer (" + esc(quand) + ")", id: e.id });
+    else if (g >= RW.de && g <= RW.a && !rappelDe(x, e.d, e.cat)) al.push({ o: 2, c: V, h: "<b>" + esc(e.nm) + "</b> – rappel WhatsApp à envoyer (" + esc(quand) + ")", id: e.id });
   });
   return al.sort((a, b) => a.o - b.o);
 }
@@ -551,6 +573,14 @@ function pageAccueil() {
 
   });
   carte("taches", () => { if (module("taches")) h += blocTaches(); }); // Mes tâches (étape T4)
+  // Rappels WhatsApp à envoyer (19.4) : ceux de la fenêtre du bouton vert, avec ceux déjà envoyés (qui, quand)
+  carte("rappels", () => {
+    if (!fnOn("agenda.whatsapp") || !peut("rendezvous")) return;
+    const L = rappelsAEnvoyer(); if (!L.length) return; const n = L.filter((o) => !o.env && o.tel).length;
+    h += '<section class="carte" data-fn="agenda.whatsapp"><h3><span class="ic">' + ic("whatsapp") + "</span>Rappels WhatsApp" + '<span class="badge ' + (n ? "b-or" : "b-ch") + '" style="margin-left:8px">' + (n ? n + " à envoyer" : "tous envoyés") + "</span></h3>" +
+      '<p class="sous">Rendez-vous, cures et séances dans ' + (reglages().whatsapp.de * 24) + " à " + (reglages().whatsapp.a * 24) + " h. Un clic ouvre WhatsApp avec le message prêt ; le rappel est ensuite noté envoyé.</p>" +
+      L.map((o) => '<div class="ev" onclick="ouvrirDossier(\'' + o.id + '\')"><span class="h' + (o.h ? "" : " j") + '">' + esc(dfr(o.d)) + (o.h ? " " + o.h : "") + '</span><div class="tx"><b>' + esc(o.nm) + "</b><br><span>" + esc(o.de) + (o.env ? ' · <span class="mesures">✓ ' + esc(libEnvoi(o.env)) + "</span>" : !o.tel ? ' · <span style="color:var(--orange)">pas de numéro</span>' : "") + "</span></div>" + btnWA(o.x, o.cat, o.d, o.h) + "</div>").join("") + "</section>";
+  });
 
   carte("conflits", () => {
   if (ab.length) {
@@ -914,11 +944,22 @@ window.ouvrirRdv = (id, rid, pre) => {
     '<div><label for="fD">Date</label><input id="fD" type="date" value="' + esc(R.d || "") + '"></div>' +
     '<div id="zH"><label for="fH">Heure</label><input id="fH" type="time" step="900" value="' + esc(R.h || "") + '"></div>' +
     '<div id="zF" class="cache"><label for="fF">Date de sortie</label><input id="fF" type="date" value="' + esc(R.f || "") + '"></div>' +
+    '<div class="large" id="fCr"></div>' +
     '<div class="large"><label for="fN">Note</label><input id="fN" value="' + esc(R.n || "") + '"></div><p class="large mesures" id="fHor" style="margin:0"></p></div>' +
     '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt plein" id="fOk">Enregistrer</button></div>');
   const maj = () => { const hs = val("fType") === "s:Hospitalisation"; $("zH").classList.toggle("cache", hs); $("zF").classList.toggle("cache", !hs); };
   const majH = () => { const d = val("fD"); if (!d) { $("fHor").textContent = ""; return; } const pl = horaires(x.doc.etablissementId).jours[new Date(d + "T12:00:00").getDay()] || []; $("fHor").textContent = "Horaires " + (x.doc.etablissementId || "du cabinet") + " le " + JNOM[new Date(d + "T12:00:00").getDay()] + " : " + (pl.length ? pl.map((p) => p[0] + "–" + p[1]).join(", ") : "fermé") + "."; };
-  $("fType").onchange = maj; maj(); $("fD").addEventListener("change", majH); majH();
+  const sauf = r0 ? { pid: x.id, rid } : null;
+  const majC = () => {
+    const z = $("fCr"), d = val("fD"); if (!z) return;
+    if (!d || val("fType") === "s:Hospitalisation") { z.innerHTML = ""; return; }
+    const C = creneaux(x.doc.etablissementId, d, sauf), libres = C.l.filter((c) => !c.occ.length).length, hc = val("fH");
+    z.innerHTML = C.l.length ? '<label>Créneaux du ' + esc(dfrA(d)) + ' <span class="mesures">(' + libres + " libre" + (libres > 1 ? "s" : "") + ", " + C.du + " min)</span></label><div class=\"crx\">" + C.l.map((c) => c.occ.length
+      ? '<span class="cr pris" title="' + esc(c.occ.map((o) => o.h + " " + o.nm).join(", ")) + '">' + c.h + "<i>" + esc(c.occ[0].nm.split(" ")[0]) + "</i></span>"
+      : '<button type="button" class="cr' + (hc === c.h ? " on" : "") + '" data-h="' + c.h + '">' + c.h + "</button>").join("") + "</div>" : "";
+  };
+  $("fCr").onclick = (ev) => { const b = ev.target.closest("[data-h]"); if (b) { $("fH").value = b.dataset.h; majC(); } };
+  $("fType").onchange = () => { maj(); majC(); }; maj(); $("fD").addEventListener("change", () => { majH(); majC(); }); $("fH").addEventListener("change", majC); majH(); majC();
   $("fOk").onclick = async () => {
     const o = types.find((z) => z.v === val("fType")) || types[0], type = o.type, act = o.act, d = val("fD"), hs = type === "Hospitalisation", h = hs ? "" : val("fH"), f = hs ? val("fF") : "";
     if (!d) { erreur("Indiquez la date."); return; }
@@ -927,6 +968,9 @@ window.ouvrirRdv = (id, rid, pre) => {
     if (!ab && !fe && hz && !confirm(hz + "\n\nEnregistrer quand même (urgence, rendez-vous exceptionnel) ?")) return;
     if (fe && !confirm("Le " + dfrA(d) + " est un jour férié (" + (fe.nom || "") + "). Enregistrer quand même ?")) return;
     if (ab && !confirm("Absence prévue ce jour-là (" + (ab.m || "absence") + ", du " + dfrA(ab.du) + " au " + dfrA(ab.au) + "). Enregistrer quand même ?")) return;
+    // double réservation (19.4) : un autre rendez-vous de consultation qui chevauche cette heure
+    if (h) { const du = horaires(x.doc.etablissementId).duree || 30, cf = rdvsDuJour(d, sauf).filter((o) => mnH(o.h) < mnH(h) + du && mnH(h) < mnH(o.h) + du);
+      if (cf.length && !confirm("Le " + dfrA(d) + " à " + h + ", il y a déjà : " + cf.map((o) => o.nm + " (" + o.h + ")").join(", ") + ".\n\nEnregistrer quand même ?")) return; }
     const l = lireRdvs(x);
     if (r0) {
       const r = l.find((v) => v.id === rid);
@@ -936,10 +980,17 @@ window.ouvrirRdv = (id, rid, pre) => {
       const r = { id: "r" + Date.now().toString(36), type, d, h, n: val("fN"), st: "prevu" }; if (hs) r.f = f; if (act) r.act = act; if (val("fMo")) r.mo = val("fMo"); l.push(r);
     }
     occupe($("fOk"), true);
-    try { await enregistrer(x, { rdvsJson: JSON.stringify(l) }, r0 ? "Rendez-vous modifié" : "Rendez-vous ajouté"); fermerFenetre(); toast("Rendez-vous enregistré."); apresRdv(x); }
+    try { await enregistrer(x, { rdvsJson: JSON.stringify(l) }, r0 ? "Rendez-vous modifié" : "Rendez-vous ajouté"); fermerFenetre(); toast("Rendez-vous enregistré."); apresRdv(x);
+      if (!r0 && !hs && d >= D.t && numeroWA(x.P.tel) && fnOn("agenda.whatsapp")) proposerConfirmation(x, d, h); }
     catch (e) { occupe($("fOk"), false); erreur(e.message); }
   };
 };
+// Juste après un nouveau rendez-vous (19.4) : confirmation par WhatsApp (message « Confirmation d'un rendez-vous » des Paramètres)
+function proposerConfirmation(x, d, h) {
+  fenetre("<h3>Rendez-vous enregistré</h3><p class=\"sous\">" + esc(x.r.nm) + " – " + cap(jourLong(d)) + (h ? " à " + h : "") + ". Envoyer la confirmation par WhatsApp ?</p>" +
+    '<div class="wa-ex">' + esc(messageWA(x, "confirm", d, h)) + "</div>" +
+    '<div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Plus tard</button><button class="bt plein" style="background:#1FA855" onclick="fermerFenetre();envoyerWA(\'' + x.id + "','confirm','" + d + "','" + (h || "") + '\')">' + LOGO_WA + " Envoyer la confirmation</button></div>");
+}
 // Rendez-vous en dehors des plages de l'établissement du patient (Configuration › Créneaux & horaires) : message, sinon ""
 const JNOM = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
 function horsHoraires(etab, d, h) {
@@ -1036,12 +1087,28 @@ function absentRdv(x, l, r) {
 // Nouveau rendez-vous depuis le tableau de bord ou l'agenda : choisir d'abord le patient
 window.nouveauRdv = (d, h, etab) => {
   if (!peut("rendezvous")) { toast("Vous n'avez pas le droit de gérer les rendez-vous."); return; }
-  fenetre("<h3>Nouveau rendez-vous" + (d ? " – " + cap(jourLong(d)) + (h ? " à " + h : "") : "") + '</h3><div class="form"><div class="large"><label for="rq">Patient</label><input id="rq" placeholder="Nom, prénom…" autocomplete="off"></div></div><div id="rqL" class="liste-choix"></div><p class="mesures">Patient absent de la liste ? Créez d\'abord son dossier (+ Nouveau patient).</p><div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button></div>');
+  fenetre("<h3>Nouveau rendez-vous" + (d ? " – " + cap(jourLong(d)) + (h ? " à " + h : "") : "") + '</h3><div class="form"><div class="large"><label for="rq">Patient</label><input id="rq" placeholder="Nom, prénom…" autocomplete="off"></div></div><div id="rqL" class="liste-choix"></div>' + (peut("creerPatient") ? '<p class="mesures" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">Patient absent de la liste ? <button class="bt clair petit" id="rqNv">' + ic("plus") + "Nouveau patient</button> (puis le rendez-vous)</p>" : '<p class="mesures">Patient absent de la liste : demandez la création de son dossier.</p>') + '<div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button></div>');
   const maj = () => { const m = sansAcc(val("rq")).split(/\s+/).filter(Boolean), l = D.patients.filter((x) => (!etab || x.doc.etablissementId === etab) && m.every((w) => sansAcc(x.r.nm + " " + numDossier(x) + " " + dfrA(x.r.ddn)).indexOf(w) >= 0)).slice(0, 8);
     $("rqL").innerHTML = l.map((x) => '<button class="pat" style="width:100%;background:none;border:0;border-bottom:1px solid var(--trait);text-align:left" data-id="' + esc(x.id) + '">' + bulle(x) + '<div class="tx"><b>' + esc(x.r.nm) + "</b><span>" + esc([numDossier(x) ? "N° " + numDossier(x) : "", x.r.ddn ? dfrA(x.r.ddn) : "", x.r.diag].filter(Boolean).join(" · ")) + "</span></div></button>").join("") || '<p class="sous">Aucun patient trouvé.</p>'; };
   $("rq").oninput = maj; maj();
   $("rqL").onclick = (ev) => { const b = ev.target.closest("[data-id]"); if (b) window.ouvrirRdv(b.dataset.id, null, d ? { d, h: h || "" } : null); };
+  if ($("rqNv")) $("rqNv").onclick = () => creerPatient({ nom: val("rq"), ensuite: (x) => window.ouvrirRdv(x.id, null, d ? { d, h: h || "" } : null) });
 };
+// Créneaux d'un jour (19.4) : plages de l'établissement découpées selon la durée d'un rendez-vous ; pris = un rendez-vous de
+// consultation (tous les patients visibles, sauf celui qu'on modifie) qui chevauche le créneau
+const mnH = (h) => { const p = String(h || "").split(":"); return +p[0] * 60 + (+p[1] || 0); };
+const hhM = (m) => ("0" + Math.floor(m / 60)).slice(-2) + ":" + ("0" + (m % 60)).slice(-2);
+function rdvsDuJour(d, sauf) {
+  const l = [];
+  D.patients.forEach((x) => { if (!voitRdv()) return; (x.P.rdvs || []).forEach((r) => { if (r.d === d && r.h && typeRdv(r.type) !== "hospit" && r.st !== "absent" && !(sauf && x.id === sauf.pid && r.id === sauf.rid)) l.push({ h: r.h, nm: x.r.nm }); }); });
+  return l.sort((a, b) => a.h.localeCompare(b.h));
+}
+function creneaux(etab, d, sauf) {
+  const H = horaires(etab), du = H.duree || 30, pl = (H.jours[new Date(d + "T12:00:00").getDay()] || []).slice().sort((a, b) => a[0].localeCompare(b[0])), pris = rdvsDuJour(d, sauf);
+  const n = new Date(), now = d === D.t ? n.getHours() * 60 + n.getMinutes() : -1, out = [];
+  pl.forEach(([a, b]) => { for (let m = mnH(a); m + du <= mnH(b); m += du) { if (m + du <= now) continue; out.push({ h: hhM(m), occ: pris.filter((r) => mnH(r.h) < m + du && m < mnH(r.h) + du) }); } });
+  return { l: out, du, pris };
+}
 // Bouton « Décaler » des absences : rendez-vous → fenêtre de modification ; cure, séance ou radiothérapie → dossier
 window.decaler = (pid, k) => { const p = String(k || "").split("|"); if (p[1] === "r") window.ouvrirRdv(pid, p.slice(2).join("|")); else window.ouvrirDossier(pid); };
 

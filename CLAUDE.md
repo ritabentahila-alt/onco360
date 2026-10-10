@@ -124,6 +124,9 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
   (dossiers sans numéro, une fois, par le titulaire dans `migrations()`), transaction sur `compteurs/dossiers` { "AAAAMM": n }
   (aucune règle : serveur seulement). Jamais modifié ; `numDossier(x)` pour l'afficher ; recherche et filtre par hôpital (page Patients).
 - `utilisateurs/{uid}` : profil (nom, INPE, signature, photo)
+- Rappels WhatsApp envoyés (19.4) : `patients/{id}.rappels` { "AAAA-MM-JJ|catégorie": { le, par, nom } } (catégorie `confirm` = confirmation
+  après la prise du rendez-vous), écrit avec le droit `rendezvous` (règle), plus de 7 jours retirés ; v2.js `noterRappel`, `rappelsAEnvoyer`,
+  carte « rappels » du tableau de bord ; créneaux du jour `creneaux` / `rdvsDuJour` (fenêtre du rendez-vous).
 - CIN (19.3, 10/10/2026) : `identite.cin`, champ de base `cin` du catalogue FICHE (après `diag`, en tête par défaut, {cin} des courriers) ;
   `ordreAvecNouveaux` (catalogue.js) place un champ nouveau du catalogue après son prédécesseur dans une fiche déjà réglée.
 - Listes corrigées (Paramètres › Listes) : fonction serveur `corrigerListes` (tous les dossiers du cabinet ; logique `renomsValides` /

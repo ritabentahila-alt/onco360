@@ -546,6 +546,7 @@ nav a.actif .nb-menu{background:#fff;color:var(--prim)}
 .col{position:relative;border-left:1px solid var(--trait);cursor:pointer;background-image:repeating-linear-gradient(to bottom,#E3E8F0 0 1px,transparent 1px 88px),repeating-linear-gradient(to bottom,#F3F5F9 0 1px,transparent 1px 22px)}
 .col.ferme{background-color:#F6F7FA}.col.ferme::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(45deg,#ECEFF4 0 6px,transparent 6px 12px);pointer-events:none}
 .hach{position:absolute;left:0;right:0;background:repeating-linear-gradient(45deg,#EEF1F6 0 6px,transparent 6px 12px);pointer-events:none}
+.ev-g.part b,.ev-g.part span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ev-g{position:absolute;right:2px;border:0;border-radius:6px;padding:2px 6px;text-align:left;font-size:11.5px;overflow:hidden;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.08);z-index:2}
 .ev-g b,.ev-g span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ev-g span{opacity:.85}
 .maint{position:absolute;left:0;right:0;height:2px;background:#E5484D;z-index:3;pointer-events:none}
@@ -581,6 +582,9 @@ nav a.actif .nb-menu{background:#fff;color:var(--prim)}
 .cascade select{width:100%;padding:9px 10px;border:1px solid #CCD3E0;border-radius:8px;font-size:15px;background:#fff;color:var(--encre)}.cascade select:disabled{background:#F4F6FA;color:#A0A7B5}
 /* Rappels WhatsApp */
 .wa{display:inline-flex;align-items:center;justify-content:center;border:1px solid #25D366;background:#fff;color:#128C4A;border-radius:8px;padding:5px 7px;font-size:12.5px;font-weight:bold;white-space:nowrap;flex:none;cursor:pointer}
+.wa.envoye{background:#F1F5F2;color:#6B7C72;border-color:#C9D6CE}.wa.envoye::after{content:"✓";margin-left:3px;font-size:12px}
+.crx{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}.cr{border:1px solid var(--trait);background:#fff;border-radius:8px;padding:6px 9px;font-size:13px;font-weight:bold;color:var(--titre);cursor:pointer;font-family:inherit}
+.cr:hover{border-color:var(--bleu,#3563B0)}.cr.on{background:#3563B0;color:#fff;border-color:#3563B0}.cr.pris{background:#F2F3F6;color:#9AA0AE;cursor:default;font-weight:normal;display:inline-flex;flex-direction:column;line-height:1.15}.cr.pris i{font-style:normal;font-size:10.5px;max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .wa svg{width:18px;height:18px}.wa:hover{background:#EDFBF2}.wa.proche{background:#25D366;color:#fff;border-color:#25D366}.wa.proche:hover{background:#1EBE5A}
 .wa:disabled{border-color:#D5D9E2;color:#A0A7B5;background:#F6F7FA;cursor:not-allowed}
 .wa-ex{margin-top:8px;padding:10px 12px;border-radius:10px 10px 10px 2px;background:#E7FBD9;font-size:13.5px;white-space:pre-wrap;color:#1E2A22;max-width:560px}
@@ -721,6 +725,6 @@ function onco360Deconnecter() {
 }
 </script>
 
-<script type="module" src="./js/app/v2.js?v=20261010n"></script>
+<script type="module" src="./js/app/v2.js?v=20261010o"></script>
 </body>
 </html>

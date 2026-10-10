@@ -107,7 +107,7 @@ export const ficheRetouches = (R, base) => formRetouches(FICHE, R, base);
 export const libChamp = (k, R) => libDe(FICHE, k, R);
 export const consultEffective = (f, spe) => formEffectif(CONSULT, f, spe);
 // Cartes du tableau de bord (ordre de départ)
-export const CARTES = [["ppas", "Pour commencer (cabinet neuf)"], ["jour", "Aujourd'hui"], ["sept", "Les 7 prochains jours"], ["taches", "Mes tâches"], ["conflits", "Conflits : rendez-vous à décaler"], ["stats", "Statistiques"]];
+export const CARTES = [["ppas", "Pour commencer (cabinet neuf)"], ["jour", "Aujourd'hui"], ["rappels", "Rappels WhatsApp à envoyer"], ["sept", "Les 7 prochains jours"], ["taches", "Mes tâches"], ["conflits", "Conflits : rendez-vous à décaler"], ["stats", "Statistiques"]];
 // Sections de paramétrage (page Paramètres), et si leurs valeurs viennent de la bibliothèque de la spécialité
 export const SECTIONS = [
   ["horaires", "Créneaux & horaires", true], ["fermetures", "Fermetures, congés & jours fériés", true], ["lieux", "Lieux d'exercice", false], ["acces", "Accès (équipe)", false],
@@ -127,7 +127,7 @@ export const toutesFonctions = () => { const o = {}; Object.entries(FONCTIONS).f
 export const fonctionsDeBase = () => { const o = {}; Object.entries(FONCTIONS).forEach(([m, l]) => l.forEach(([k, , base]) => { if (base) o[m + "." + k] = true; })); return o; };
 export function reglageEffectif(r, spe, speCs) {
   const x = r || {}, b = (o, d) => Object.assign(d, Object.fromEntries(Object.entries(o || {}).filter(([k, v]) => k in d && typeof v === "boolean")));
-  return { menu: ordre(x.menu, MENU.map((m) => m[0])), accueil: ordre(x.accueil, CARTES.map((c) => c[0])), cartes: b(x.cartes, vrais(CARTES)),
+  return { menu: ordre(x.menu, MENU.map((m) => m[0])), accueil: ordreAvecNouveaux(x.accueil, CARTES.map((c) => c[0]), CARTES.map((c) => c[0])), cartes: b(x.cartes, vrais(CARTES)),
     ordreSections: ordre(x.ordreSections, SECTIONS.map((c) => c[0])), sections: b(x.sections, vrais(SECTIONS)), bibliotheques: b(x.bibliotheques, vrais(BIBLIOTHEQUES)), fonctions: Object.assign(b(x.fonctions, toutesFonctions()), fonctionsDeBase()), fiche: ficheEffective(x.fiche, spe), consultation: consultEffective(x.consultation, speCs) };
 }
 // Éléments de l'écran liés à une bibliothèque (bouton du dossier, carte de Paramètres › Bibliothèques) : data-bib

@@ -1278,8 +1278,13 @@ Décisions de Dr Bentahila (10/10) :
       pas de n° d'affiliation) : champ de base de la fiche patient pour tous les cabinets, actuels et à créer, placé juste après
       Diagnostic (CIN | Téléphone, puis 2e téléphone | Hôpital), en tête du dossier, champ {cin} des courriers ; un champ ajouté au
       catalogue se place après celui qui le précède, même dans une fiche déjà réglée. Règles 225/225, serveur 91/91, navigateur.
-- [ ] 19.4 Agenda du secrétariat : créneaux libres, double réservation, nouveau patient depuis le rendez-vous, confirmation
-      WhatsApp, rappels marqués « envoyé » + carte des rappels, page d'accueil au choix.
+- [x] 19.4 Agenda du secrétariat (fait et testé le 10/10, pas encore en ligne) : **créneaux du jour** dans la fenêtre du rendez-vous
+      (libres cliquables, pris en gris avec le nom), **alerte de double réservation**, **« Nouveau patient »** depuis le rendez-vous
+      (nom repris, retour au rendez-vous), **confirmation WhatsApp** proposée juste après (nouveau message « Confirmation d'un
+      rendez-vous » dans Paramètres › WhatsApp), **rappels notés envoyés** (champ `rappels` du dossier, qui / quand, bouton gris ✓,
+      retirés de la cloche) et carte **« Rappels WhatsApp »** du tableau de bord ; agenda : **rendez-vous à la même heure côte à
+      côte** (case partagée) au lieu d'être empilés. Page d'accueil : tableau de bord pour tous (décision du 10/10, rien à changer).
+      Règles 227/227, navigateur (ordinateur, 390 px).
 - [ ] 19.5 Caisse : mode de paiement, reçu / note d'honoraires, caisse du jour, reste à payer.
 - [ ] 19.6 Sécurité médicale et alertes : alerte poids, documents préparés par la secrétaire à signer, alertes de la secrétaire.
 - [ ] 19.7 Plusieurs cabinets, confort : pastilles par cabinet, vue « Tous mes cabinets », dépôt de plusieurs fichiers.
@@ -1559,3 +1564,4 @@ Onco360_Package_Cession/
 | 10/10/2026 | 19.2 Plusieurs cabinets | Une secrétaire (ou tout membre non titulaire) peut avoir plusieurs cabinets : ajout confirmé par le titulaire, menu « Cabinet » sous le logo, lien du mot de passe bloqué pour ces comptes. Un seul Google Agenda pour tous ses cabinets (nom du cabinet dans le titre), cases par cabinet, couleurs personnelles. Règles 221/221, serveur 88/88, navigateur. Pas encore en ligne. |
 | 10/10/2026 | Audit n° 2 secrétaire | Tout le parcours de la secrétaire revu (ordinateur, téléphone, deux cabinets) : 5 corrections, 7 améliorations, 9 ajouts ; plan 19.3 à 19.7 dans `AUDIT-SECRETAIRE.md`, 4 questions à valider. |
 | 10/10/2026 | 19.3 Corrections secrétaire | Listes corrigées par le serveur dans tout le cabinet, cloche de la secrétaire, « Bonjour Salma », adresse de son lieu, CIN (après Diagnostic, tous les cabinets, en-tête, courriers). Règles 225/225, serveur 91/91, navigateur. Pas encore en ligne. |
+| 10/10/2026 | 19.4 Agenda du secrétariat | Créneaux du jour, double réservation, nouveau patient depuis le rendez-vous, confirmation WhatsApp, rappels notés envoyés + carte du tableau de bord, rendez-vous à la même heure côte à côte. Règles 227/227, navigateur. Pas encore en ligne. |

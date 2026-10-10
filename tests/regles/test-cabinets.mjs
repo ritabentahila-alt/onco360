@@ -3,7 +3,7 @@
 // cab-autre (DRB = titulaire, SECB = sa secrétaire). ADM = compte d'administration (collection administrateurs).
 import { readFileSync } from "node:fs";
 import { initializeTestEnvironment, assertSucceeds, assertFails } from "@firebase/rules-unit-testing";
-import { doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, collection, setLogLevel } from "firebase/firestore";
+import { doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, collection, setLogLevel, serverTimestamp } from "firebase/firestore";
 setLogLevel("silent");
 
 const A = "espaces/cabinet-bentahila", B = "espaces/cab-autre";
@@ -32,7 +32,7 @@ async function preparer() {
     await setDoc(doc(db, "comptes/DRB"), { espace: "cab-autre" });
     for (const u of ["RITA", "SECA", "DRB"]) await setDoc(doc(db, "utilisateurs/" + u), { nom: u });
     // SEC2 : secrétaire des deux cabinets (19.2) ; SEC2X : retirée du cabinet B (plus de fiche de membre)
-    await setDoc(doc(db, A + "/membres/SEC2"), secretaire("Sec deux cabinets"));
+    await setDoc(doc(db, A + "/membres/SEC2"), Object.assign(secretaire("Sec deux cabinets"), { droits: { identite: true, fichePatient: true, rendezvous: true, consultations: true, ecrireConsultations: true, planningChimio: true, traitements: "voir", radiotherapie: "aucun", documents: true, administrer: false, encaissements: true, creerPatient: true, supprimerPatient: false, finances: false, parametres: false, secretariat: true } }));
     await setDoc(doc(db, B + "/membres/SEC2"), secretaire("Sec deux cabinets"));
     await setDoc(doc(db, "comptes/SEC2"), { espace: "cabinet-bentahila", espaces: ["cabinet-bentahila", "cab-autre"] });
     await setDoc(doc(db, "espaces/cab-trois"), { nom: "Cabinet C", titulaire: "DRC" });
@@ -55,6 +55,8 @@ await cas("refusé : elle modifie sa liste de cabinets", () => assertFails(setDo
 await cas("refusé : elle lit un patient d'un troisième cabinet", () => assertFails(getDoc(doc(db("SEC2"), "espaces/cab-trois/patients/pc"))));
 await cas("refusé : le médecin B lit la fiche comptes de sa secrétaire", () => assertFails(getDoc(doc(db("DRB"), "comptes/SEC2"))));
 await cas("retirée du cabinet B : plus rien de B", async () => { await env.withSecurityRulesDisabled((c) => deleteDoc(doc(c.firestore(), B + "/membres/SEC2"))); await assertFails(getDoc(doc(db("SEC2"), B + "/patients/pb"))); await assertSucceeds(getDoc(doc(db("SEC2"), A + "/patients/pa"))); });
+await cas("rappel WhatsApp noté envoyé dans le dossier (droit rendez-vous, 19.4)", () => assertSucceeds(updateDoc(doc(db("SEC2"), A + "/patients/pa"), { rappels: { "2026-10-12|suivi": { le: "x", par: "SEC2", nom: "Sec" } }, version: 2, maj: serverTimestamp(), majPar: "SEC2" })));
+await cas("refusé : rappels écrits sans le droit rendez-vous (médecin B hors cabinet)", () => assertFails(updateDoc(doc(db("DRB"), A + "/patients/pa"), { rappels: {}, version: 2, maj: serverTimestamp(), majPar: "DRB" })));
 await cas("elle écrit ses couleurs Google Agenda personnelles", () => assertSucceeds(setDoc(doc(db("SEC2"), "utilisateurs/SEC2"), { agendaCouleurs: { chimio: "11" } }, { merge: true })));
 console.log("Étanchéité");
 await cas("refusé : le médecin B lit un patient de Dr Bentahila", () => assertFails(getDoc(doc(db("DRB"), A + "/patients/pa"))));

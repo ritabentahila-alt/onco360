@@ -117,8 +117,17 @@ function vueGrille(du, n) {
     let c = '<div class="col' + (ferme ? " ferme" : "") + '" data-d="' + d + '" onclick="agCreneau(event,\'' + d + "')\">";
     if (!ferme) { let pos = 0; pl.forEach((p) => { if (y(p[0]) > pos) c += '<i class="hach" style="top:' + pos + "px;height:" + (y(p[0]) - pos) + 'px"></i>'; pos = Math.max(pos, y(p[1])); }); if (pos < haut) c += '<i class="hach" style="top:' + pos + "px;height:" + (haut - pos) + 'px"></i>'; }
     const tim = parJour[k].filter(([e]) => e.h).map(([e, i]) => ({ e, i, a: mn(e.h), b: mn(e.h) + DUREE }));
-    tim.forEach((o) => { o.col = 0; tim.forEach((p) => { if (p !== o && p.a < o.b && o.a < p.b && tim.indexOf(p) < tim.indexOf(o)) o.col++; }); });
-    tim.forEach(({ e, i, a, col }) => { const top = (a - H0 * 60) / 15 * PAS; if (top < 0 || top > haut) return; c += '<button class="ev-g c-' + e.cat + (e.st === "fait" ? " fait" : e.st === "absent" ? " nv" : "") + '" style="top:' + top + "px;height:" + (DUREE / 15 * PAS - 2) + "px;left:" + (2 + col * 14) + 'px" onclick="event.stopPropagation();agEv(' + i + ')"><b>' + e.h + " " + A.esc(e.nm) + "</b><span>" + A.esc(e.t) + "</span>" + (n === 1 ? badge(e) : "") + "</button>"; });
+    // Rendez-vous qui se chevauchent (même heure…) : la case est partagée en colonnes côte à côte (19.4, 10/10/2026), au lieu
+    // d'être empilés ; chaque groupe de rendez-vous qui se touchent a son nombre de colonnes
+    tim.sort((p, q) => p.a - q.a || p.b - q.b);
+    let grp = [], fin = -1; const fermer = () => { const nc = Math.max(1, ...grp.map((o) => o.col + 1)); grp.forEach((o) => { o.nc = nc; }); grp = []; };
+    tim.forEach((o) => {
+      if (grp.length && o.a >= fin) fermer();
+      const prises = grp.filter((p) => p.b > o.a).map((p) => p.col); let k = 0; while (prises.indexOf(k) >= 0) k++;
+      o.col = k; grp.push(o); fin = Math.max(fin, o.b);
+    });
+    if (grp.length) fermer();
+    tim.forEach(({ e, i, a, col, nc }) => { const top = (a - H0 * 60) / 15 * PAS; if (top < 0 || top > haut) return; c += '<button class="ev-g c-' + e.cat + (e.st === "fait" ? " fait" : e.st === "absent" ? " nv" : "") + (nc > 1 ? " part" : "") + '" style="top:' + top + "px;height:" + (DUREE / 15 * PAS - 2) + "px;left:calc(" + (col * 100 / nc).toFixed(3) + "% + 2px);width:calc(" + (100 / nc).toFixed(3) + '% - 4px);right:auto" title="' + A.esc(e.h + " " + e.nm + " – " + e.t) + '" onclick="event.stopPropagation();agEv(' + i + ')"><b>' + e.h + " " + A.esc(e.nm) + "</b><span>" + A.esc(e.t) + "</span>" + (n === 1 ? badge(e) : "") + "</button>"; });
     if (d === t && nowM >= H0 * 60 && nowM <= H1 * 60) c += '<i class="maint" style="top:' + (nowM - H0 * 60) / 15 * PAS + 'px"></i>';
     return c + "</div>";
   }).join("") + "</div></div>";

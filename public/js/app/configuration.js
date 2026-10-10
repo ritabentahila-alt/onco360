@@ -27,6 +27,8 @@ export const HORAIRES0 = () => ({ duree: 30, jours: { 1: [["08:30", "18:00"]], 2
 export const horaires = (etab) => { const c = D().cal || {}; return (etab && c.horairesEtab && c.horairesEtab[etab]) || c.horaires || HORAIRES0(); };
 // Messages WhatsApp prédéfinis. Variables : {prenom} {nom} {jour} {heure} {lieu} {adresse} {medecin}
 export const WA0 = {
+  // Confirmation proposée juste après la prise d'un rendez-vous (19.4, 10/10/2026)
+  confirm: "Bonjour {prenom}, votre rendez-vous est confirmé le {jour} {heure} à {lieu}.\nEn cas d'empêchement, merci de nous prévenir.\n{medecin}",
   chimio: "Bonjour {prenom}, nous vous rappelons votre séance de chimiothérapie le {jour} {heure} à {lieu}.\nMerci d'apporter votre bilan sanguin récent (NFS, plaquettes, créatinine), vos ordonnances et vos derniers comptes rendus. Pensez à prendre votre prémédication si elle vous a été prescrite.\nEn cas de fièvre ou de problème, appelez-nous avant de vous déplacer.\n{medecin}",
   annonce: "Bonjour {prenom}, nous vous rappelons votre consultation d'annonce le {jour} {heure} à {lieu}.\nMerci d'apporter tous vos examens (biopsie, compte rendu anatomopathologique, imagerie, bilans sanguins) et, si vous le souhaitez, d'être accompagné(e) d'un proche.\n{medecin}",
   suivi: "Bonjour {prenom}, nous vous rappelons votre consultation de suivi le {jour} {heure} à {lieu}.\nMerci d'apporter vos derniers examens (bilan sanguin, imagerie) et vos ordonnances en cours.\n{medecin}",
@@ -37,7 +39,7 @@ export const WA0 = {
   autre: "Bonjour {prenom}, nous vous rappelons votre rendez-vous le {jour} {heure} à {lieu}.\n{medecin}",
 };
 export const CAT_WA = () => {
-  const l = [["chimio", "💉 Séance de chimiothérapie"], ["annonce", "🩺 Consultation d'annonce"], ["suivi", "🩺 Consultation de suivi"], ["controle", "🩺 Consultation de contrôle"], ["rtc", "☢️ Consultation en cours de radiothérapie"], ["hospit", "Hospitalisation"], ["rt", "☢️ Radiothérapie (scanner de centrage, 1re séance)"]];
+  const l = [["confirm", "✅ Confirmation d'un rendez-vous (proposée juste après sa prise)"], ["chimio", "💉 Séance de chimiothérapie"], ["annonce", "🩺 Consultation d'annonce"], ["suivi", "🩺 Consultation de suivi"], ["controle", "🩺 Consultation de contrôle"], ["rtc", "☢️ Consultation en cours de radiothérapie"], ["hospit", "Hospitalisation"], ["rt", "☢️ Radiothérapie (scanner de centrage, 1re séance)"]];
   const vus = {}, ajout = (t, lib) => { if (["annonce", "suivi", "controle", "cchimio", "seance", "hospit", "rt"].indexOf(t) >= 0 || vus[t]) return; vus[t] = 1; l.push([t, "🩺 " + lib]); };
   const T = D().tarifs; if (T && T.etablissements) Object.values(T.etablissements).forEach((e) => (e.activites || []).forEach((a) => ajout(a.type, a.libelle)));
   else if (D().activites) Object.values(D().activites).forEach((e) => e.forEach((a) => ajout(a.t, a.lib)));
