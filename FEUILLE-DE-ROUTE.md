@@ -1375,7 +1375,7 @@ l'avis de virement ; liste à part, sans lien avec le pointage « Payé » des a
 ## Étape 15 bis – Audit du module Bilan (fait le 10/10/2026 : plan à valider par Dr Bentahila)
 Relecture de `bilan.js`, `moteur/bilan.js`, `moteur/finances.js`, `moteur/tarifs.js`. Rien n'est encore corrigé.
 
-**B1 – Bugs : chiffres justes (priorité 1)** (fait et testé le 10/10, pas encore en ligne)
+**B1 – Bugs : chiffres justes (priorité 1)** (fait, testé et mis en ligne le 10/10)
 - [x] **Bilan pas à jour** : montants et calculs gardés en mémoire à la 1re ouverture de la page. Une cure validée, un prix fixé par
       la secrétaire ou un dossier créé ensuite n'apparaissent qu'après « Actualiser » ou ~2 min (relevé du comptable) ; **jamais**
       si la fonction « relevé du comptable » est désactivée dans le réglage du cabinet. → Recalculer à chaque ouverture de la page.
@@ -1399,9 +1399,9 @@ Relecture de `bilan.js`, `moteur/bilan.js`, `moteur/finances.js`, `moteur/tarifs
       hôpital par date, reprise des cases, 14/14) ; règles `tests/regles/test-bilan.mjs` 4/4 (toutes les règles réussies) ; navigateur :
       reprise 64/64 cases, payé 186 004 / à recevoir 166 313 inchangés, versement ajouté ailleurs visible au retour sur la page,
       pointage et versement d'une autre personne gardés, changement d'hôpital sans effet sur les totaux par hôpital, aucune erreur.
-- [ ] Mise en ligne : site **et règles** (`firebase deploy --only hosting,firestore:rules`), avec l'accord de Dr Bentahila.
+- [x] Mise en ligne le 10/10 avec B2 (site v2.js?v=20261011l **et règles**), après reconnexion Firebase (erreur 401).
 
-**B2 – Affichage** (fait et testé le 10/10, pas encore en ligne)
+**B2 – Affichage** (fait, testé et mis en ligne le 10/10)
 - [x] Colonne **Taux** trompeuse : consultations « 100 % » alors que le NET retire l'impôt (250 → 225) ; impôt lu sur le 1er
       établissement seulement. → Afficher le vrai taux de l'acte. **Fait** : NET / brut (« − 10 % »), radiothérapie « part − impôt » du tarif de son lieu.
 - [x] Acte sans tarif = **0 DH sans prévenir** (cabinet neuf, activité non réglée pour un lieu ; repli silencieux sur « HGC »).
@@ -1688,3 +1688,4 @@ On garde le bleu Onco360 (#3563B0) et Arial ; les impressions (ordonnances, fich
 | 10/10/2026 | 15 bis – Audit du Bilan | Relecture du module : 4 bugs de données (bilan pas à jour, changement d'hôpital, pointage perdu, pointages écrasés), 7 points d'affichage, 6 améliorations ; plan B1 → B3 à valider. |
 | 10/10/2026 | 15 bis – B1 | Bilan recalculé à chaque ouverture ; hôpital des actes gardé lors d'un changement d'hôpital (`hopHist`) ; cases « Payé » repérées par l'identifiant de l'acte (anciennes reprises) ; pointages et versements relus avant écriture. Tests moteur 14/14, règles +4, navigateur. Pas encore en ligne. |
 | 10/10/2026 | 15 bis – B2 | Taux réel de chaque acte, alerte « actes sans tarif » (0 DH), message sans tarifs, Actualiser séparé des exports, versement sans libellé = « Versement », référents selon établissement et type, journal par 300 lignes. Tests 17/17 + navigateur. Pas encore en ligne. |
+| 10/10/2026 | 15 bis – En ligne | B1 et B2 mis en ligne (site et règles). |
