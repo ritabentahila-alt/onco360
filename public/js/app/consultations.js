@@ -65,6 +65,7 @@ export function htmlConsultations(x) {
   if (L === undefined) return h + '<p class="sous" style="margin:2px 0 0">Chargement des consultations…</p>';
   if (L === null) return h + '<p class="sous" style="margin:2px 0 0;color:var(--rouge)">Les consultations n\'ont pas pu être lues. Rechargez la page.</p>';
   if (!L.length) return h + '<p class="sous" style="margin:2px 0 0">Aucune consultation.' + (peutEcrire() ? " « Nouvelle consultation » pour en ajouter une." : "") + "</p>" + barre(x);
+  setTimeout(apresAffichage, 0);
   const ouv = ouverte(x.id);
   // Liste dans une zone qui défile (environ 10 consultations fermées visibles), la plus récente en haut
   h += (L.length > 10 ? '<p class="mesures" style="margin:6px 0 0">' + L.length + " consultations : faites défiler la liste pour voir les plus anciennes.</p>" : "") + '<div class="cs-liste" id="csListe">';
@@ -72,7 +73,10 @@ export function htmlConsultations(x) {
     const on = c.id === ouv, qc = q + ",'" + c.id + "'";
     h += '<div class="cs' + (on ? " on" : "") + '"><button class="cs-t" aria-expanded="' + on + '" onclick="csTog(' + qc + ')"><span class="fl">' + (on ? "▾" : "▸") + '</span><span class="dt">' + A.dfrA(c.d) + '</span><span class="ti">' + esc(nomCs(c)) + '</span><span class="au">' + esc(c.creeParNom || "") + "</span></button>";
     if (on) {
-      h += '<div class="cs-c"><table class="cs-l">' + (FORM().champs.note !== false || c.note ? "<tr><th>" + esc(lib("note")) + "</th><td>" + (c.note ? esc(c.note) : '<span class="mesures">—</span>') + '</td><td class="au">' + esc(c.creeParNom || "") + "</td></tr>" : "") + htmlExtra(c) +
+      // Note : écrite directement dans la consultation ouverte, enregistrée toute seule (11/10/2026) ; « Modifier » pour le reste
+      const noteH = peutEcrire() ? '<textarea class="cs-note" id="csN-' + c.id + '" rows="3" placeholder="Écrire la note de consultation…" aria-label="' + esc(lib("note")) + '" oninput="csNote(' + qc + ')" onblur="csNoteFin(' + qc + ')">' + esc(c.note || "") + '</textarea><span class="mesures cs-etat" id="csE-' + c.id + '"></span>'
+        : c.note ? esc(c.note) : '<span class="mesures">—</span>';
+      h += '<div class="cs-c"><table class="cs-l">' + (FORM().champs.note !== false || c.note ? "<tr><th>" + esc(lib("note")) + "</th><td>" + noteH + '</td><td class="au">' + esc(c.creeParNom || "") + "</td></tr>" : "") + htmlExtra(c) +
         (c.lignes || []).map((l) => "<tr><th>" + esc(libLigne(l.t)) + "</th><td>" + (l.html ? '<button class="lien-l" title="Voir, modifier ou réimprimer l\'ordonnance" onclick="ordVoir(' + qc + ",'" + l.id + '\')">' + esc(l.lib || "Ordonnance") + "</button>" : l.t === "doc" && l.docId ? '<button class="lien-l" title="Rouvrir le document remis" onclick="docOuvrirLigne(\'' + esc(l.docId) + '\')">' + esc(l.lib || "") + "</button>" : esc(l.lib || "")) + '</td><td class="au">' + esc(l.par || "") + "</td></tr>").join("") + "</table>";
       if (peutEcrire()) {
         h += '<div class="actr" style="justify-content:flex-start;margin-top:10px"><button class="mini" onclick="csModifier(' + qc + ')">Modifier</button>' + (peutSupprimer(c) ? '<button class="mini r" onclick="csSupprimer(' + qc + ')">Supprimer</button>' : "") + "</div>";
@@ -104,10 +108,36 @@ function barre(x) {
     // « + RCP » (09/10/2026, rcp.js) : inscription à la prochaine RCP ; flèche = inscriptions du patient
     '<div class="pr" data-mod="rcp"><button onclick="rcpInscrire(' + q + ')" title="Inscrire le patient à la prochaine RCP"><svg class="pi"><use href="#i-rcp"/></svg>+ RCP</button><button class="fl" onclick="rcpHistorique(' + q + ')" title="RCP du patient" aria-label="RCP du patient">▾</button></div>' + "</div></div>";
 }
-// Consultation dépliée : celle qu'on vient d'ouvrir, d'ajouter ou de compléter ; à l'ouverture du dossier, toutes sont fermées
+// Consultation dépliée : celle qu'on vient d'ouvrir, d'ajouter ou de compléter ; à l'ouverture du dossier, la plus récente (11/10/2026) ;
+// une seule à la fois
 function ouverte(pid) {
   const L = CS[pid] || [];
+  if (OUV[pid] === undefined && L.length) return L[0].id; // liste triée : la plus récente en tête
   return L.some((c) => c.id === OUV[pid]) ? OUV[pid] : null;
+}
+// Note écrite directement : enregistrée 1,5 s après la dernière frappe, et en quittant la zone ; le texte est gardé en mémoire à
+// chaque frappe (un dossier redessiné entre-temps le réaffiche, curseur remis à sa place)
+const NOTE = { t: null, cid: null, pid: null, pos: null };
+const hauteurNote = (z) => { z.style.height = "auto"; z.style.height = Math.min(Math.max(z.scrollHeight + 2, 70), 420) + "px"; };
+async function sauverNote(pid, cid) {
+  const c = (CS[pid] || []).find((z) => z.id === cid), z = document.getElementById("csN-" + cid), e = document.getElementById("csE-" + cid); if (!c) return;
+  const v = z ? z.value : c.note || ""; if (v === (c.noteEnr != null ? c.noteEnr : c.note || "") && c.noteEnr != null) return;
+  try {
+    await updateDoc(doc(db, "espaces", A.ESPACE, "consultations", cid), { note: v, majPar: D().u.uid, majParNom: nomConnecte(), maj: serverTimestamp() });
+    c.note = v; c.noteEnr = v; const e2 = document.getElementById("csE-" + cid); if (e2) e2.textContent = "Enregistré";
+  } catch (er) { if (e) { e.textContent = "Non enregistré : " + (er && er.code === "permission-denied" ? "droit refusé" : (er && er.message) || er); e.style.color = "var(--rouge)"; } }
+}
+window.csNote = (pid, cid) => {
+  const z = document.getElementById("csN-" + cid), c = (CS[pid] || []).find((y) => y.id === cid); if (!z || !c) return;
+  if (c.noteEnr == null) c.noteEnr = c.note || ""; c.note = z.value; hauteurNote(z);
+  Object.assign(NOTE, { cid, pid, pos: z.selectionStart }); const e = document.getElementById("csE-" + cid); if (e) { e.textContent = "…"; e.style.color = ""; }
+  clearTimeout(NOTE.t); NOTE.t = setTimeout(() => sauverNote(pid, cid), 1500);
+};
+window.csNoteFin = (pid, cid) => { clearTimeout(NOTE.t); NOTE.cid = null; sauverNote(pid, cid); };
+// Après chaque affichage de l'onglet : hauteur des notes, et curseur remis dans la note en cours d'écriture
+function apresAffichage() {
+  document.querySelectorAll("textarea.cs-note").forEach(hauteurNote);
+  if (NOTE.cid) { const z = document.getElementById("csN-" + NOTE.cid); if (z && document.activeElement !== z) { z.focus(); try { z.setSelectionRange(NOTE.pos, NOTE.pos); } catch (e) { /* zone changée */ } } }
 }
 // Plier / déplier : la zone qui défile garde sa position
 window.csTog = (pid, cid) => {
@@ -163,7 +193,7 @@ function formulaire(x, c, pre, apres) {
       } else {
         const n = Object.assign({ patientId: x.id, etablissementId: x.doc.etablissementId || "", lignes: [], o: Date.now(), creePar: D().u.uid, creeParNom: nomConnecte(), cree: serverTimestamp() }, base);
         const r = await addDoc(col(), n);
-        CS[x.id] = (CS[x.id] || []).concat([Object.assign({ id: r.id }, n)]).sort(tri); OUV[x.id] = r.id; A.journal(x, "Consultation ajoutée : " + nomCs(base));
+        CS[x.id] = (CS[x.id] || []).concat([Object.assign({ id: r.id }, n)]).sort(tri); OUV[x.id] = r.id; Object.assign(NOTE, { cid: r.id, pid: x.id, pos: (n.note || "").length }); A.journal(x, "Consultation ajoutée : " + nomCs(base)); // curseur dans la note
         if (apres) await apres(r.id, base);
       }
       A.fermerFenetre(); A.toast("Consultation enregistrée."); A.pageDossier(x.id);
