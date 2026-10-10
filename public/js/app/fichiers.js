@@ -81,7 +81,7 @@ async function afficherVue(x) {
   // Aperçu seul (sans en-tête, qui doublait la liste) ; actions dans le menu « ⋯ » flottant, en bas à droite de l'aperçu
   SEL[x.id] = f.id; const qf = "'" + x.id + "','" + f.id + "'", it = (lib, fn, cls) => '<button class="' + (cls || "") + '" onclick="fiMenu(false);' + fn + "(" + qf + ')">' + lib + "</button>";
   z.innerHTML = '<div class="fi-vc" id="fiVueC"><p class="sous" style="margin:12px">Chargement du document…</p></div>' +
-    '<div class="fi-menu"><div class="fi-mm cache" id="fiMm" role="menu"><span class="t" title="' + esc(f.titre || f.nom) + '">' + esc(f.titre || f.nom) + "</span>" + it("Nouvelle fenêtre", "fiOuvrir") + it("Télécharger", "fiTelecharger") + (peutDeposer() ? it("Modifier (nom, date, type)", "fiModifier") : "") + (peutSupprimer(f) ? it("Supprimer", "fiSupprimer", "r") : "") + "</div>" +
+    '<div class="fi-menu"><div class="fi-mm cache" id="fiMm" role="menu"><span class="t" title="' + esc(f.titre || f.nom) + '">' + esc(f.titre || f.nom) + "</span>" + it("Plein écran", "fiPleinEcran") + it("Nouvelle fenêtre", "fiOuvrir") + it("Télécharger", "fiTelecharger") + (peutDeposer() ? it("Modifier (nom, date, type)", "fiModifier") : "") + (peutSupprimer(f) ? it("Supprimer", "fiSupprimer", "r") : "") + "</div>" +
     '<button class="fi-mb" onclick="fiMenu()" title="Nouvelle fenêtre, télécharger, modifier, supprimer" aria-label="Actions sur le document" aria-haspopup="menu">⋯</button></div>';
   const g = genre(f);
   if (!g) { $("fiVueC").innerHTML = '<div class="fi-sans"><span class="fi-ic fi-' + icone(f).toLowerCase() + '">' + icone(f) + "</span><p>Aperçu impossible pour ce type de fichier (" + esc(f.nom) + ').</p><p class="mesures">Utilisez « Télécharger » ou « Nouvelle fenêtre ».</p></div>'; return; }
@@ -91,6 +91,9 @@ async function afficherVue(x) {
     c.innerHTML = g === "pdf" ? '<iframe src="' + URLS[f.id] + '" title="' + esc(f.titre || f.nom) + '"></iframe>' : '<img src="' + URLS[f.id] + '" alt="' + esc(f.titre || f.nom) + '">';
   } catch (e) { const c = $("fiVueC"); if (c) c.innerHTML = '<p class="err" style="margin:12px">' + esc(e && /unauthorized|permission/.test(e.code || "") ? "Vous n'avez pas accès à ce document." : "Aperçu impossible : " + ((e && e.message) || e)) + "</p>"; }
 }
+// Plein écran (19.7 ter) : l'aperçu prend tout l'écran (la barre d'outils du lecteur PDF a toute la place) ; Échap pour revenir
+window.fiPleinEcran = () => { const v = $("fiVue"); if (!v) return; if (document.fullscreenElement) document.exitFullscreen(); else if (v.requestFullscreen) v.requestFullscreen().catch(() => A.toast("Plein écran refusé par le navigateur : utilisez « Nouvelle fenêtre »."));
+  else if (v.webkitRequestFullscreen) v.webkitRequestFullscreen(); else A.toast("Plein écran non disponible : utilisez « Nouvelle fenêtre »."); };
 window.fiMenu = (ouvrir) => { const m = $("fiMm"); if (m) m.classList.toggle("cache", ouvrir === false ? true : !m.classList.contains("cache")); };
 window.fiChoisir = (pid, id) => { const x = trouver(pid); if (!x) return; SEL[pid] = id; document.querySelectorAll("#fiListe .fi").forEach((e) => e.classList.toggle("on", e.dataset.id === id)); afficherVue(x); };
 const icone = (f) => { const m = String(f.mime || ""), n = sansAcc(f.nom); return /pdf/.test(m) || /\.pdf$/.test(n) ? "PDF" : /^image\//.test(m) ? "IMG" : /word|officedocument\.wordprocessing|msword/.test(m) || /\.docx?$/.test(n) ? "DOC" : /sheet|excel/.test(m) || /\.xlsx?$/.test(n) ? "XLS" : "FIC"; };
