@@ -1141,6 +1141,18 @@ Modules et menus, Bibliothèques et paramètres ; cabinets en liste ; onglet lis
       d'audit, Profil ; `MODULES_BASE` de modules.js), 11 modules activables (spécialité, place dans Onco360, fonctions de base /
       bientôt, packs et cabinets qui l'ont) et 2 prévus (Traitements et stocks, Matériel et consommables) ; filtres De base /
       Activables / Prévus, par spécialité, recherche. Lecture seule. Tests `tests/test_modules.py` 10/10.
+- [x] **17.1 Corrections de l'Administration** (10/10, audit `AUDIT-ADMINISTRATION.md`) : votre cabinet (sans abonnement)
+      compté en Oncologie – Radiothérapie, « Tout compris, sans limite » ; Nouveau cabinet : texte réécrit (ce que reçoit le
+      cabinet = bibliothèque et paramètres de sa spécialité, fiche, consultation), spécialité puis pack (plus de « Toutes ») ;
+      limites lisibles (`texteLimites` : « 1 médecin · 2 secrétaires · sans limite : comptables ») ; « Supprimer » d'un pack en
+      lien discret ; badge de la fiche décalé de la croix ; « liste Onco360 » au lieu de « départ » ; éditeurs de fiche et
+      consultation sur une colonne, liste des types résumée ; onglets sur deux lignes au téléphone ; avertissement avant
+      d'ouvrir une bibliothèque.
+- [x] **17.2 Fenêtre de réglage** (10/10) : sous-onglets Modules et limites (en premier) · Menu et tableau de bord ·
+      Paramètres et bibliothèques · Fiche et consultation (cabinet) ; bouton Enregistrer toujours visible, « Modifications non
+      enregistrées », confirmation avant de fermer (`GARDE`) ; cabinet : pastille « retouché » par bloc et sur les sous-onglets
+      (différences avec le pack ; fiche et consultation : avec la spécialité), « Revenir au pack » bloc par bloc.
+      Tests : cabinets 59/59, fiche 19/19, consultation 15/15, bibliothèque 21/21, modules 10/10, bilan 352 317 DH.
 - [ ] 16.5 Nouvelle spécialité (copie ou vide) ; Médecine générale, Gynécologie prêtes pour l'étape 14.
 
 ## Étape 14 – Autres spécialités (demandé le 09/10/2026) : nouveaux modules et leurs formules
@@ -1402,3 +1414,4 @@ Onco360_Package_Cession/
 | 10/10/2026 | 16.7 Consultation réglable | Formulaire « Nouvelle consultation » réglé par spécialité (commun aux packs) : ordre, présence, noms, liste des types, champs ajoutés (texte long, nombre avec unité, section…), retouches par cabinet ; oncologie inchangée sans réglage. Tests 15/15, serveur 63/63. |
 | 10/10/2026 | 16.8 Onglet Modules | Administration : liste de tous les modules (de base, activables, prévus), toutes spécialités, avec fonctions, packs et cabinets ; filtres et recherche. Tests 10/10. |
 | 10/10/2026 | Audit de l'Administration | Tous les écrans revus (ordinateur et téléphone) : 9 corrections, 9 améliorations, 5 ajouts ; plan 17.1 à 17.5 puis 16.5 dans `AUDIT-ADMINISTRATION.md` (à valider par Dr Bentahila). |
+| 10/10/2026 | 17.1 et 17.2 | Corrections de l'audit (A1 à A9) et nouvelle fenêtre de réglage (sous-onglets, Enregistrer toujours visible, retouché / revenir au pack). Tests au vert, bilan 352 317 DH. Mis en ligne. |

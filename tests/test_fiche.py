@@ -69,6 +69,7 @@ async def main():
         # Retouches d'un cabinet : seules les différences avec la fiche de la spécialité sont enregistrées
         await pa.evaluate("location.hash='cabinets'"); await pa.wait_for_timeout(400)
         await pa.click('[data-fiche="cab-t"]'); await pa.wait_for_timeout(300); await pa.click('[data-form="cab-t"]'); await pa.wait_for_timeout(400)
+        await pa.click('[data-fo="fiche"]'); await pa.wait_for_timeout(200)
         t = await pa.inner_text('#fCorps .fiche-b')
         ok('Statut' in t and 'Médecin traitant' in t and 'ajouté pour ce cabinet' in t and await pa.evaluate("!document.querySelector('#fCorps [data-chs=\"xgs001\"]') && !!document.querySelector('#fCorps [data-chs=\"xmt001\"]')"), 'réglage du cabinet : champs de la spécialité (non supprimables ici) + champ propre au cabinet')
         await pa.check('#fCorps [data-rch="ald"]'); await pa.click('#fOk'); await pa.wait_for_timeout(600)

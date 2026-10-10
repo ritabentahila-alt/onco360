@@ -47,7 +47,9 @@ async function charger() {
 }
 const cab = (id) => (CABINETS || []).find((c) => c.id === id);
 const formuleDe = (ab) => (ab && FORMULES_()[ab.formule]) || null;
-const nomFormule = (ab) => (!ab ? "Tout compris (sans formule)" : ((formuleDe(ab) || {}).lib || ab.formule) + (ab.surMesure || (ab.reglage && ab.retouche === undefined && Object.keys(ab.reglage).length) ? " · sur mesure" : ""));
+// Cabinet sans abonnement (le vôtre, créé avant les packs) : tous les modules, sans limite, en Oncologie – Radiothérapie (A1, 17.1)
+const speDuCab = (c) => (c.abonnement ? specialiteDe((formuleDe(c.abonnement) || {}).specialite) || "" : SPECIALITES[0]);
+const nomFormule = (ab) => (!ab ? "Tout compris, sans limite" : ((formuleDe(ab) || {}).lib || ab.formule) + (ab.surMesure || (ab.reglage && ab.retouche === undefined && Object.keys(ab.reglage).length) ? " · sur mesure" : ""));
 const ROLES_LIB = { medecin: "Médecin", assistante: "Secrétaire", infirmiere: "Infirmière", comptable: "Comptable" };
 const ch = (id, lib, ph, type, v) => '<div><label for="' + id + '">' + esc(lib) + '</label><input id="' + id + '"' + (type ? ' type="' + type + '"' : "") + (ph ? ' placeholder="' + esc(ph) + '"' : "") + ' value="' + esc(v || "") + '" autocomplete="off"></div>';
 // Menu des formules, rangées par spécialité
@@ -71,9 +73,9 @@ function htmlCabinets() {
   if (CABINETS === null) return '<section class="carte"><p class="sous">Chargement des cabinets…</p></section>';
   const L = CABINETS, act = L.filter((c) => c.actif).length, dos = L.reduce((n, c) => n + (c.patients || 0), 0);
   const tuile = (n, lib, cls) => '<div class="tuile' + (cls ? " " + cls : "") + '"><b>' + n + "</b><span>" + esc(lib) + "</span></div>";
-  const spes = [...new Set(L.map((c) => (formuleDe(c.abonnement) || {}).specialite).filter(Boolean))];
+  const spes = [...new Set(L.map(speDuCab).filter(Boolean))];
   const m = sansAcc(Q).split(/\s+/).filter(Boolean);
-  const V = L.filter((c) => (!STATUT || (STATUT === "actif") === c.actif) && (!SPE || (formuleDe(c.abonnement) || {}).specialite === SPE) &&
+  const V = L.filter((c) => (!STATUT || (STATUT === "actif") === c.actif) && (!SPE || speDuCab(c) === SPE) &&
     m.every((w) => sansAcc([c.nom, c.ville, c.id, c.titulaire.nom, c.titulaire.email, nomFormule(c.abonnement)].join(" ")).indexOf(w) >= 0))
     .sort((a, b) => String(b.cree).localeCompare(String(a.cree)) || String(a.nom).localeCompare(String(b.nom)));
   return '<div class="tuiles">' + tuile(L.length, "Cabinets") + tuile(act, "Actifs", "vert") + tuile(L.length - act, "Suspendus", L.length - act ? "rouge" : "") + tuile(dos, "Dossiers patients au total") + "</div>" + MSG +
@@ -87,10 +89,10 @@ function htmlCabinets() {
 }
 // Liste des cabinets (10/10/2026) : une ligne par cabinet ; un clic ouvre sa fiche (fenêtre : informations, équipe, actions)
 function ligneCabinet(c) {
-  const F = formuleDe(c.abonnement), statut = c.actif ? '<span class="bdg ok">Actif</span>' : '<span class="bdg al">Suspendu</span>';
+  const statut = c.actif ? '<span class="bdg ok">Actif</span>' : '<span class="bdg al">Suspendu</span>';
   return '<tr class="lc-l' + (c.actif ? "" : " susp") + '" data-fiche="' + esc(c.id) + '" tabindex="0"><td data-l="Cabinet"><b>' + esc(c.nom) + "</b>" + (c.demo ? ' <span class="bdg demo">Démonstration</span>' : "") + '<div class="m">' + esc(c.ville || "") + "</div></td>" +
     '<td data-l="Médecin">' + esc(c.titulaire.nom || "—") + '<div class="m">' + esc(c.titulaire.email || "") + "</div></td>" +
-    '<td data-l="Spécialité">' + esc(F ? specialiteDe(F.specialite) : "—") + '</td><td data-l="Pack">' + esc(nomFormule(c.abonnement)) + '</td><td data-l="Statut">' + statut + "</td>" +
+    '<td data-l="Spécialité">' + esc(speDuCab(c) || "—") + '</td><td data-l="Pack">' + esc(nomFormule(c.abonnement)) + '</td><td data-l="Statut">' + statut + "</td>" +
     '<td data-l="Équipe" class="n">' + (c.equipe ? c.equipe.filter((m) => m.actif).length : c.membres == null ? "?" : c.membres) + '</td><td data-l="Dossiers" class="n">' + (c.patients == null ? "?" : c.patients) + '</td><td data-l="Créé le">' + esc(dfr(c.cree) || "—") + "</td></tr>";
 }
 function ouvrirFiche(c) {
@@ -104,7 +106,7 @@ function carteCabinet(c) {
   return '<article class="cab' + (c.actif ? "" : " susp") + '" data-cab="' + esc(c.id) + '"><div class="haut"><div><h3>' + esc(c.nom) + '</h3><div class="m">' + esc([c.ville, c.id].filter(Boolean).join(" · ")) + "</div></div>" +
     (c.demo ? '<span class="bdg demo">Démonstration</span> ' : "") + (c.actif ? '<span class="bdg ok">Actif</span>' : '<span class="bdg al">Suspendu' + (c.suspenduLe ? " le " + esc(dfr(c.suspenduLe.slice(0, 10))) : "") + "</span>") + "</div>" +
     '<div class="medecin"><b>' + esc(c.titulaire.nom || "—") + '</b><span class="m">' + esc([c.titulaire.email, c.titulaire.telephone].filter(Boolean).join(" · ")) + "</span></div>" +
-    '<div class="formule"><span class="bdg">' + esc(nomFormule(ab)) + "</span>" + (F && F.specialite ? '<span class="m">' + esc(F.specialite) + "</span>" : "") + "</div>" +
+    '<div class="formule"><span class="bdg">' + esc(nomFormule(ab)) + "</span>" + (speDuCab(c) ? '<span class="m">' + esc(speDuCab(c)) + "</span>" : "") + "</div>" +
     '<div class="chiffres">' + chiffre(r.medecin || 0, mx.medecin, "Médecins") + chiffre(r.assistante || 0, mx.assistante, "Secrétaires") + chiffre(r.infirmiere || 0, mx.infirmiere, "Infirmières") + (r.comptable || mx.comptable != null ? chiffre(r.comptable || 0, mx.comptable, "Comptables") : "") + chiffre(c.etablissements, mx.etablissements, "Lieux") + chiffre(c.patients, mx.patients, "Dossiers") + "</div>" +
     (c.equipe && c.equipe.length ? '<details class="equipe"><summary>Équipe (' + c.equipe.length + ")</summary>" + c.equipe.slice().sort((a, b) => (b.titulaire ? 1 : 0) - (a.titulaire ? 1 : 0) || String(a.role).localeCompare(String(b.role))).map((m) => '<div class="mb' + (m.actif ? "" : " off") + '"><b>' + esc(m.nom || "—") + '</b> <span class="bdg">' + esc(ROLES_LIB[m.role] || m.role) + (m.titulaire ? " titulaire" : "") + "</span>" + (m.actif ? "" : ' <span class="bdg al">désactivé</span>') + '<div class="m">' + esc(m.email) + "</div></div>").join("") + "</details>" : "") +
     '<div class="m">Créé le ' + esc(dfr(c.cree) || "—") + "</div>" +
@@ -155,11 +157,12 @@ async function reinitDemo(b) {
 const LIBS = [["protocoles", "Protocoles de chimiothérapie"], ["medicaments", "Médicaments"], ["ordostypes", "Ordonnances types"], ["analyses", "Analyses"], ["bilans", "Bilans biologiques"], ["examens", "Examens complémentaires"], ["courriers", "Courriers"], ["documentation", "Documentation (Doc.)"]];
 function carteBib(B) {
   return ('<article class="cab"><div class="haut"><div><h3>' + esc(B.lib) + '</h3><div class="m">' + esc(B.specialites[0]) + "</div></div>" + (B.existe ? '<span class="bdg ok">En place</span>' : '<span class="bdg">À créer</span>') + "</div>" +
-      (B.existe ? '<div class="chiffres" style="grid-template-columns:repeat(4,minmax(0,1fr))">' + LIBS.map(([k, lib]) => "<div><b>" + (B.nb && B.nb[k] != null ? B.nb[k] : "départ") + "</b><span>" + esc(lib) + "</span></div>").join("") + "</div>" : '<p class="m">' + (B.id === "bib-oncologie" ? "Sera créée à partir de la copie mise de côté le 09/10 (bibliothèque du Dr Bentahila)." : "Sera créée vide : vous la remplirez (les modules de cette spécialité restent à construire).") + "</p>") +
+      (B.existe ? '<div class="chiffres" style="grid-template-columns:repeat(4,minmax(0,1fr))">' + LIBS.map(([k, lib]) => (B.nb && B.nb[k] != null ? "<div><b>" + B.nb[k] + "</b><span>" + esc(lib) + "</span></div>" : '<div title="La liste fournie par Onco360, pas encore modifiée"><b class="dep">liste Onco360</b><span>' + esc(lib) + "</span></div>")).join("") + "</div>" : '<p class="m">' + (B.id === "bib-oncologie" ? "Sera créée à partir de la copie mise de côté le 09/10 (bibliothèque du Dr Bentahila)." : "Sera créée vide : vous la remplirez (les modules de cette spécialité restent à construire).") + "</p>") +
       '<div class="act"><button data-bib="' + esc(B.id) + '">' + (B.existe ? "Ouvrir et modifier" : "Créer et ouvrir") + "</button></div></article>");
 }
 function brancherReference() {
   document.querySelectorAll("[data-bib]").forEach((b) => { b.onclick = async () => {
+    if (!confirm("La bibliothèque s'ouvre dans Onco360 (Protocoles et Paramètres), à la place de l'Administration.\nPour revenir : lien « Retour à l'Administration » du menu.")) return;
     b.disabled = true; b.textContent = "Ouverture…";
     try { const o = await serveur("bibliothequeOuvrir", { bib: b.dataset.bib }); location.href = "v2.html?espace=" + encodeURIComponent(o.espace) + "#protocoles"; }
     catch (e) { b.disabled = false; b.textContent = "Ouvrir et modifier"; alert("Impossible : " + e.message); }
@@ -172,29 +175,41 @@ function fenetre(html) {
   $("modal").classList.remove("cache"); document.body.classList.add("bloque");
   $("mX").onclick = fermer; $("modal").onclick = (e) => { if (e.target === $("modal")) fermer(); };
 }
-function fermer() { $("modal").classList.add("cache"); $("modal").innerHTML = ""; document.body.classList.remove("bloque"); }
+// GARDE : fonction appelée avant de fermer la fenêtre (réglage modifié et non enregistré : confirmation) ; fermer(true) ferme sans demander
+let GARDE = null;
+function fermer(force) { if (force !== true && GARDE && !GARDE()) return; GARDE = null; $("modal").classList.add("cache"); $("modal").innerHTML = ""; document.body.classList.remove("bloque"); }
 document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("modal").classList.contains("cache")) fermer(); });
 
 // ───── Onglet Nouveau cabinet ─────
 function htmlNouveau() {
-  return '<section class="carte"><h2>Nouveau cabinet</h2><p class="sous">Pour un confrère qui utilisera Onco360 avec ses propres patients. Il reçoit un e-mail pour choisir son mot de passe (souvent classé en indésirables : vous pouvez aussi lui envoyer le lien vous-même, bouton « Lien du mot de passe » de sa carte), puis il est guidé à sa première connexion.</p>' +
+  SPEF = SPECIALITES.indexOf(SPEF) >= 0 ? SPEF : SPECIALITES[0];
+  const def = (packsDe(SPEF)[0] || [""])[0];
+  return '<section class="carte"><h2>Nouveau cabinet</h2><p class="sous">Pour un médecin qui utilisera Onco360 avec ses propres patients. Il reçoit un e-mail pour choisir son mot de passe (souvent classé en indésirables : vous pouvez aussi lui envoyer le lien vous-même, bouton « Lien du mot de passe » de sa fiche, onglet Cabinets), puis il est guidé à sa première connexion.</p>' +
     '<h3 class="st">Le cabinet</h3><div class="form">' + ch("aCab", "Nom du cabinet ou de la clinique", "ex. Cabinet d'oncologie Agdal") + ch("aVil", "Ville", "ex. Rabat") + "</div>" +
     '<h3 class="st">Le médecin titulaire</h3><div class="form">' + ch("aPre", "Prénom") + ch("aNom", "Nom") + ch("aMail", "E-mail (identifiant de connexion)", "", "email") + ch("aTel", "Téléphone (WhatsApp)", "06…", "tel") + "</div>" +
-    '<h3 class="st">La formule</h3><div class="form"><div><label for="aSpe">Spécialité</label><select id="aSpe"><option value="">Toutes</option>' + SPECIALITES.map((s) => "<option" + (s === SPEF ? " selected" : "") + ">" + esc(s) + "</option>").join("") + '</select></div><div><label for="aFor">Formule</label><select id="aFor">' + optionsFormules("onco-pro", SPEF) + "</select></div></div>" +
+    '<h3 class="st">Spécialité et pack</h3><div class="form"><div><label for="aSpe">Spécialité</label><select id="aSpe">' + SPECIALITES.map((x) => "<option" + (x === SPEF ? " selected" : "") + ">" + esc(x) + "</option>").join("") + '</select></div><div><label for="aFor">Pack</label><select id="aFor">' + optionsFormules(packsDe(SPEF).some(([k]) => k === "onco-pro") ? "onco-pro" : def, SPEF) + "</select></div></div>" +
     '<div id="aApercu"></div>' +
-    '<p class="recu"><b>Le cabinet reçoit</b> une copie de la bibliothèque de protocoles, des bibliothèques de prescription (médicaments, ordonnances types, analyses et bilans, examens, courriers), des jours fériés, des listes de diagnostics et de mutuelles, et des tarifs de radiothérapie. <b>Il ne reçoit pas</b> vos patients, vos correspondants, vos établissements, vos autres tarifs, votre profil ni votre bilan.</p>' +
     '<div style="margin-top:14px"><button id="aOk">Créer le cabinet</button></div><div id="aRes"></div></section>';
 }
-const resumeFormule = (k) => { const F = FORMULES_()[k]; if (!F) return ""; return '<p class="m apercu">' + esc(MODULES.filter((m) => F.modules.indexOf(m[0]) >= 0).map((m) => m[1]).join(" · ")) + "<br>" + esc(ROLES_MAX.map(([r, lib]) => lib + " : " + (F.max[r] == null ? "sans limite" : F.max[r])).join(" · ")) + "</p>"; };
+// Ce que reçoit un cabinet neuf : la bibliothèque et les paramètres de base de sa spécialité, sa fiche patient et son formulaire de consultation
+const recu = (spe) => '<p class="recu"><b>Le cabinet reçoit</b> la bibliothèque et les paramètres de base de « ' + esc(spe) + ' » (protocoles, médicaments, ordonnances types, analyses et bilans, examens, courriers, documentation, jours fériés, diagnostics, mutuelles, horaires, WhatsApp, tâches automatiques, RCP, impression, alertes, tarifs de radiothérapie), sa fiche patient et son formulaire de consultation. <b>Il ne reçoit jamais</b> de patients, de correspondants, de lieux d\'exercice, de prix de consultation ni de données d\'un autre cabinet.</p>';
+const resumeFormule = (k) => { const F = FORMULES_()[k]; if (!F) return '<p class="m apercu">Aucun pack pour cette spécialité : créez-en un dans Par spécialité.</p>'; return '<p class="m apercu"><b>Modules :</b> ' + esc(MODULES.filter((m) => F.modules.indexOf(m[0]) >= 0).map((m) => m[1]).join(" · ")) + "<br><b>Limites :</b> " + esc(texteLimites(F.max)) + "</p>" + recu(specialiteDe(F.specialite)); };
+// Limites lisibles (A4, 17.1) : « 1 médecin · 2 secrétaires · 0 infirmière » puis « sans limite : comptables, dossiers patients »
+const NOMS_MAX = { medecin: ["médecin", "médecins"], assistante: ["secrétaire", "secrétaires"], infirmiere: ["infirmière", "infirmières"], comptable: ["comptable", "comptables"], etablissements: ["lieu d'exercice", "lieux d'exercice"], patients: ["dossier patient", "dossiers patients"] };
+function texteLimites(max) {
+  const m = max || {}, fix = ROLES_MAX.filter(([r]) => m[r] != null && m[r] !== ""), libre = ROLES_MAX.filter(([r]) => m[r] == null || m[r] === "");
+  return fix.map(([r]) => { const n = Number(m[r]); return n + " " + NOMS_MAX[r][n > 1 ? 1 : 0]; }).join(" · ") + (libre.length ? (fix.length ? " · " : "") + "sans limite : " + libre.map(([r]) => NOMS_MAX[r][1]).join(", ") : "");
+}
 function brancherNouveau() {
   const ap = () => { $("aApercu").innerHTML = resumeFormule($("aFor").value); };
-  $("aSpe").onchange = () => { SPEF = $("aSpe").value; const v = $("aFor").value; $("aFor").innerHTML = optionsFormules(v, SPEF); ap(); };
+  $("aSpe").onchange = () => { SPEF = $("aSpe").value; $("aFor").innerHTML = optionsFormules((packsDe(SPEF)[0] || [""])[0], SPEF); ap(); };
   $("aFor").onchange = ap; ap();
   $("aOk").onclick = creer;
 }
 async function creer() {
   const v = (i) => $(i).value.trim(), d = { cabinet: v("aCab"), prenom: v("aPre"), nom: v("aNom"), email: v("aMail").toLowerCase(), telephone: v("aTel"), formule: $("aFor").value }, ville = v("aVil"), res = $("aRes");
   res.innerHTML = "";
+  if (!d.formule || !FORMULES_()[d.formule]) { res.innerHTML = '<p class="err">Choisissez un pack (aucun pack pour cette spécialité : créez-en un dans Par spécialité).</p>'; return; }
   if (!d.cabinet || !d.nom || !d.email) { res.innerHTML = '<p class="err">Indiquez au moins le nom du cabinet, le nom du médecin et son e-mail.</p>'; return; }
   if (!confirm("Créer le cabinet « " + d.cabinet + " » pour " + [d.prenom, d.nom].join(" ") + " (" + d.email + ") ?")) return;
   const b = $("aOk"); b.disabled = true; b.textContent = "Création…";
@@ -204,7 +219,7 @@ async function creer() {
     let mail = "";
     if (!o.existant) { try { await sendPasswordResetEmail(auth, d.email); mail = "Un e-mail a été envoyé à " + d.email + " pour choisir le mot de passe (vérifier aussi les indésirables)."; } catch (e) { mail = "L'e-mail du mot de passe n'a pas pu partir (" + e.message + ") : utilisez « Lien du mot de passe » sur sa carte."; } }
     else mail = "Ce compte existait déjà : la personne garde son mot de passe.";
-    RES = "Cabinet « " + esc(d.cabinet) + " » créé (" + o.protocoles + " fichiers de protocoles copiés). " + esc(mail) + " Adresse à lui donner : <b>" + esc(location.origin) + "</b>";
+    RES = "Cabinet « " + esc(d.cabinet) + " » créé (bibliothèque de la spécialité copiée : " + o.protocoles + " fichiers de protocoles). " + esc(mail) + " Adresse à lui donner : <b>" + esc(location.origin) + "</b>";
     CABINETS = null; GARDER = true; location.hash = "cabinets"; dessiner(); charger();
   } catch (e) { b.disabled = false; b.textContent = "Créer le cabinet"; res.innerHTML = '<p class="err">' + esc(e.message) + "</p>"; }
 }
@@ -248,7 +263,7 @@ function editeurFiche(FI, mode, cs) {
   const fl = (i) => '<span class="fl"><button class="clair petit" data-fh="' + i + '"' + (i ? "" : " disabled") + ' aria-label="Monter">↑</button><button class="clair petit" data-fb="' + i + '"' + (i < FI.ordre.length - 1 ? "" : " disabled") + ' aria-label="Descendre">↓</button></span>';
   const ligne = (k, i) => { const c = LIB[k], a = AJ()[k]; if (!c && !a) return "";
     const nomA = c ? nomDe(k) : a.lib, renomme = c && nomA !== c[1];
-    const info = c ? (cs ? "existant" : c[2] === "clinique" ? "fiche clinique" : "identité") + (c[4] ? " · liste : " + ((FI.choixs || {})[k] || c[4]).join(", ") : "") + (renomme ? " · nom d'origine : " + c[1] : "")
+    const info = c ? (cs ? "existant" : c[2] === "clinique" ? "fiche clinique" : "identité") + (c[4] ? " · liste de " + ((FI.choixs || {})[k] || c[4]).length + " choix (✎ pour la voir)" : "") + (renomme ? " · nom d'origine : " + c[1] : "")
       : "ajouté" + (mode === "cabinet" ? (a.cabinet ? " pour ce cabinet" : " (spécialité)") : "") + " · " + typeLib(a.type) + (a.type === "nombre" && a.unite ? " (" + a.unite + ")" : "") + (a.type === "choix" && a.choix && a.choix.length ? " (" + a.choix.join(", ") + ")" : "") + (a.imprimer ? " · imprimé" : "") + (a.entete ? " · en-tête" : "");
     return '<div class="rg-l">' + fl(i) + '<span class="rg-t">' + esc(nomA) + ' <span class="m">' + esc(info) + "</span></span>" +
       (c ? '<button class="clair petit" data-chl="' + k + '" title="Changer le nom affiché' + (c[4] ? " et la liste" : "") + '" aria-label="Modifier le champ existant">✎</button>' : modifiable(a) ? '<button class="clair petit" data-chm="' + k + '" aria-label="Modifier le champ">✎</button><button class="clair petit" data-chs="' + k + '" aria-label="Supprimer le champ">✕</button>' : "") +
@@ -294,35 +309,72 @@ function editeurFiche(FI, mode, cs) {
   };
   return { html, brancher, enCours: () => !!ED };
 }
-// ───── Écran de réglage (10/10/2026) : le même pour un pack et pour un cabinet ─────
-// Menu (ordre), modules et leurs fonctions, cartes du tableau de bord (ordre, présence), onglets des Paramètres (ordre, présence),
-// bibliothèques, maximums. o = { titre, intro, A { formule, modules, max }, R (réglage complet), spe(), avecPack, nom (pack),
-// compte(k), enregistrer(A, R, nom) }.
+// ───── Écran de réglage (10/10/2026 ; refait le 10/10, 17.2) : le même pour un pack et pour un cabinet ─────
+// Sous-onglets : Modules et limites · Menu et tableau de bord · Paramètres et bibliothèques · Fiche et consultation (cabinet) ;
+// bouton Enregistrer toujours visible, « Modifications non enregistrées » (confirmation avant de fermer) ; pour un cabinet, pastille
+// « retouché » sur ce qui diffère du pack (fiche et consultation : de la spécialité) et « Revenir au pack » bloc par bloc.
+// o = { titre, intro, A { formule, modules, max }, R (réglage complet), spe(), avecPack, nom (pack), fiche (cabinet : éditeurs de
+// fiche et de consultation), baseFiche(), baseConsult(), compte(k), enregistrer(A, R, nom) }.
+let ONGLET_REG = "modules";
 function editeurReglage(o) {
   const A = o.A, R = o.R, LIB_MENU = Object.fromEntries(MENU.map((m) => [m[0], m])), LIB_CARTE = Object.fromEntries(CARTES), LIB_SEC = Object.fromEntries(SECTIONS.map((x) => [x[0], x[1]]));
   let nom = o.nom || "";
   const FE = o.fiche ? editeurFiche(R.fiche, "cabinet") : null; // fiche patient : retouches du cabinet (pas dans un pack)
   const CE = o.fiche ? editeurFiche(R.consultation, "cabinet", true) : null; // formulaire de consultation : retouches du cabinet (16.7)
-  const corps = () => {
-    const mods = MODULES.filter(([k]) => modulePour(k, o.spe()));
-    return (o.avecPack ? '<div class="form" style="grid-template-columns:minmax(0,340px) auto;align-items:end"><div><label for="fFor">Pack de départ</label><select id="fFor">' + optionsFormules(A.formule) + '</select></div><div><button class="clair petit" id="fDepart" title="Réglage du pack (ordre, cartes, onglets, fonctions, bibliothèques) ; les modules et limites restent">Revenir au réglage du pack</button></div></div>'
-      : '<div class="form" style="grid-template-columns:minmax(0,340px)"><div><label for="fNom">Nom du pack</label><input id="fNom" value="' + esc(nom) + '"></div></div>') +
-      '<div class="rg"><div class="rg-b"><h3 class="st">Menu (ordre)</h3>' + R.menu.map((k, i) => { const m = LIB_MENU[k]; if (!m) return ""; return '<div class="rg-l">' + fleches("menu", i) + '<span class="rg-t">' + esc(m[1]) + "</span>" + (m[2] ? caseC('data-rmod="' + m[2] + '"', A.modules[m[2]], "") : '<span class="m">toujours</span>') + "</div>"; }).join("") + "</div>" +
-      '<div class="rg-b"><h3 class="st">Tableau de bord (cartes)</h3>' + R.accueil.map((k, i) => '<div class="rg-l">' + fleches("accueil", i) + '<span class="rg-t">' + esc(LIB_CARTE[k] || k) + "</span>" + caseC('data-rcarte="' + k + '"', R.cartes[k] !== false, "") + "</div>").join("") + "</div>" +
-      '<div class="rg-b"><h3 class="st">Paramètres (onglets)</h3>' + R.ordreSections.map((k, i) => '<div class="rg-l">' + fleches("ordreSections", i) + '<span class="rg-t">' + esc(LIB_SEC[k] || k) + "</span>" + caseC('data-rsec="' + k + '"', R.sections[k] !== false, "") + "</div>").join("") + "</div>" +
-      '<div class="rg-b"><h3 class="st">Bibliothèques</h3>' + BIBLIOTHEQUES.map(([k, lib]) => '<div class="rg-l"><span class="rg-t">' + esc(lib) + "</span>" + caseC('data-rbib="' + k + '"', R.bibliotheques[k] !== false, "") + "</div>").join("") + "</div></div>" +
-      (FE ? '<h3 class="st">Fiche patient <span class="m">(retouches de ce cabinet ; la fiche commune à tous les packs se règle dans Par spécialité › Bibliothèque et paramètres)</span></h3>' + FE.html() : "") +
-      (CE ? '<h3 class="st">Formulaire de consultation <span class="m">(retouches de ce cabinet ; le formulaire commun se règle dans Par spécialité › Bibliothèque et paramètres)</span></h3><div class="cs-ed">' + CE.html() + "</div>" : "") +
-      '<h3 class="st">Modules et fonctions</h3><div class="mods">' + mods.map(([k, lib, de]) => '<div class="mod-f' + (A.modules[k] ? "" : " off") + '">' + caseC('data-rmod="' + k + '"', A.modules[k], "<b>" + esc(lib) + '</b><br><span class="m">' + esc(de) + "</span>") +
-        ((FONCTIONS[k] || []).length ? "<details><summary>Fonctions (" + FONCTIONS[k].filter(([f]) => R.fonctions[k + "." + f] !== false).length + " / " + FONCTIONS[k].length + ")</summary>" + FONCTIONS[k].map(([f, l, base]) => base ? '<div class="rg-c base"><span>✓</span><span>' + esc(l) + ' <span class="m">(fonction de base, toujours là)</span></span></div>' : caseC('data-rfn="' + k + "." + f + '"', R.fonctions[k + "." + f] !== false, esc(l) + (FONCTIONS_RELIEES.indexOf(k + "." + f) < 0 ? ' <span class="m">(bientôt)</span>' : ""))).join("") + "</details>" : "") + "</div>").join("") + "</div>" +
-      '<h3 class="st">Nombre maximum <span class="m">(vide = sans limite, 0 = aucun)</span></h3><div class="form">' + ROLES_MAX.map(([k, lib]) => { const c = o.compte ? o.compte(k) : undefined; return '<div><label for="fMx' + k + '">' + esc(lib) + (c === undefined ? "" : ' <span class="m">(actuellement ' + (c == null ? "?" : c) + ")</span>") + '</label><input id="fMx' + k + '" type="number" min="0" data-x="' + k + '" placeholder="sans limite" value="' + (A.max[k] == null ? "" : A.max[k]) + '"></div>'; }).join("") + "</div>";
+  const SOUS_REG = [["modules", "Modules et limites", ["modules", "max"]], ["menu", "Menu et tableau de bord", ["menu", "accueil"]], ["param", "Paramètres et bibliothèques", ["sections", "bibliotheques"]]].concat(o.fiche ? [["fiche", "Fiche et consultation", ["fiche", "consultation"]]] : []);
+  ONGLET_REG = "modules"; // chaque fenêtre s'ouvre sur Modules et limites
+  const J = (x) => JSON.stringify(x), num = (v) => (v == null || v === "" || isNaN(v) ? null : Number(v));
+  // Ce qui diffère du pack (cabinet seulement)
+  const ecarts = () => {
+    if (!o.avecPack) return {};
+    const F = FORMULES_()[A.formule] || { modules: [], max: {} }, P = reglageEffectif(F.reglage);
+    return { modules: MODULES.some(([k]) => !!A.modules[k] !== (F.modules.indexOf(k) >= 0)) || J(R.fonctions) !== J(P.fonctions),
+      max: ROLES_MAX.some(([k]) => num(A.max[k]) !== num((F.max || {})[k])), menu: J(R.menu) !== J(P.menu), accueil: J([R.accueil, R.cartes]) !== J([P.accueil, P.cartes]),
+      sections: J([R.ordreSections, R.sections]) !== J([P.ordreSections, P.sections]), bibliotheques: J(R.bibliotheques) !== J(P.bibliotheques),
+      fiche: !!(o.baseFiche && Object.keys(ficheRetouches(R.fiche, o.baseFiche())).length), consultation: !!(o.baseConsult && Object.keys(formRetouches(CONSULT, R.consultation, o.baseConsult())).length) };
   };
-  fenetre("<h2>" + esc(o.titre) + '</h2><p class="sous">' + o.intro + '</p><div id="fCorps">' + corps() + '</div><div class="pied"><button id="fOk">Enregistrer</button><button class="clair" id="fAnn">Fermer</button></div>');
+  const revenir = (part) => {
+    const F = FORMULES_()[A.formule] || { modules: [], max: {} }, P = reglageEffectif(F.reglage), cl = (x) => JSON.parse(J(x));
+    if (part === "modules") { MODULES.forEach(([k]) => { A.modules[k] = F.modules.indexOf(k) >= 0; }); R.fonctions = cl(P.fonctions); }
+    else if (part === "max") A.max = Object.assign({}, F.max);
+    else if (part === "menu") R.menu = cl(P.menu);
+    else if (part === "accueil") { R.accueil = cl(P.accueil); R.cartes = cl(P.cartes); }
+    else if (part === "sections") { R.ordreSections = cl(P.ordreSections); R.sections = cl(P.sections); }
+    else if (part === "bibliotheques") R.bibliotheques = cl(P.bibliotheques);
+    else if (part === "fiche") Object.assign(R.fiche, cl(o.baseFiche()));
+    else if (part === "consultation") Object.assign(R.consultation, cl(o.baseConsult()));
+  };
+  const titre = (part, txt, aide, E) => '<h3 class="st">' + txt + (aide ? ' <span class="m">' + aide + "</span>" : "") + (E[part] ? ' <span class="bdg rt">retouché</span> <button class="lien petit" data-rev="' + part + '">' + (part === "fiche" || part === "consultation" ? "Revenir à la spécialité" : "Revenir au pack") + "</button>" : "") + "</h3>";
+  const corps = () => {
+    const E = ecarts(), mods = MODULES.filter(([k]) => modulePour(k, o.spe()));
+    const panneau = (k, h) => '<div class="ong-p" data-op="' + k + '"' + (k === ONGLET_REG ? "" : " hidden") + ">" + h + "</div>";
+    return (o.avecPack ? '<div class="form" style="grid-template-columns:minmax(0,340px) auto;align-items:end"><div><label for="fFor">Pack de départ</label><select id="fFor">' + optionsFormules(A.formule) + '</select></div><div><button class="clair petit" id="fDepart" title="Tout le réglage du pack (ordre, cartes, onglets, fonctions, bibliothèques) ; les modules et limites restent">Tout revenir au pack</button></div></div>'
+      : '<div class="form" style="grid-template-columns:minmax(0,340px)"><div><label for="fNom">Nom du pack</label><input id="fNom" value="' + esc(nom) + '"></div></div>') +
+      '<div class="puces ong-r" role="tablist">' + SOUS_REG.map(([k, l, parts]) => '<button class="puce' + (k === ONGLET_REG ? " on" : "") + '" role="tab" aria-selected="' + (k === ONGLET_REG) + '" data-fo="' + k + '">' + esc(l) + (parts.some((x) => E[x]) ? ' <span class="pt-r" title="Retouché par rapport au pack">●</span>' : "") + "</button>").join("") + "</div>" +
+      panneau("modules", titre("modules", "Modules et fonctions", "", E) + '<div class="mods">' + mods.map(([k, lib, de]) => '<div class="mod-f' + (A.modules[k] ? "" : " off") + '">' + caseC('data-rmod="' + k + '"', A.modules[k], "<b>" + esc(lib) + '</b><br><span class="m">' + esc(de) + "</span>") +
+          ((FONCTIONS[k] || []).length ? "<details><summary>Fonctions (" + FONCTIONS[k].filter(([f]) => R.fonctions[k + "." + f] !== false).length + " / " + FONCTIONS[k].length + ")</summary>" + FONCTIONS[k].map(([f, l, base]) => base ? '<div class="rg-c base"><span>✓</span><span>' + esc(l) + ' <span class="m">(fonction de base, toujours là)</span></span></div>' : caseC('data-rfn="' + k + "." + f + '"', R.fonctions[k + "." + f] !== false, esc(l) + (FONCTIONS_RELIEES.indexOf(k + "." + f) < 0 ? ' <span class="m">(bientôt)</span>' : ""))).join("") + "</details>" : "") + "</div>").join("") + "</div>" +
+        titre("max", "Nombre maximum", "(vide = sans limite, 0 = aucun)", E) + '<div class="form">' + ROLES_MAX.map(([k, lib]) => { const c = o.compte ? o.compte(k) : undefined; return '<div><label for="fMx' + k + '">' + esc(lib) + (c === undefined ? "" : ' <span class="m">(actuellement ' + (c == null ? "?" : c) + ")</span>") + '</label><input id="fMx' + k + '" type="number" min="0" data-x="' + k + '" placeholder="sans limite" value="' + (A.max[k] == null ? "" : A.max[k]) + '"></div>'; }).join("") + "</div>") +
+      panneau("menu", '<div class="rg"><div class="rg-b">' + titre("menu", "Menu", "(ordre ; case = module présent)", E) + R.menu.map((k, i) => { const m = LIB_MENU[k]; if (!m) return ""; return '<div class="rg-l">' + fleches("menu", i) + '<span class="rg-t">' + esc(m[1]) + "</span>" + (m[2] ? caseC('data-rmod="' + m[2] + '"', A.modules[m[2]], "") : '<span class="m">toujours</span>') + "</div>"; }).join("") + "</div>" +
+        '<div class="rg-b">' + titre("accueil", "Tableau de bord", "(cartes)", E) + R.accueil.map((k, i) => '<div class="rg-l">' + fleches("accueil", i) + '<span class="rg-t">' + esc(LIB_CARTE[k] || k) + "</span>" + caseC('data-rcarte="' + k + '"', R.cartes[k] !== false, "") + "</div>").join("") + "</div></div>") +
+      panneau("param", '<div class="rg"><div class="rg-b">' + titre("sections", "Paramètres", "(onglets)", E) + R.ordreSections.map((k, i) => '<div class="rg-l">' + fleches("ordreSections", i) + '<span class="rg-t">' + esc(LIB_SEC[k] || k) + "</span>" + caseC('data-rsec="' + k + '"', R.sections[k] !== false, "") + "</div>").join("") + "</div>" +
+        '<div class="rg-b">' + titre("bibliotheques", "Bibliothèques", "", E) + BIBLIOTHEQUES.map(([k, lib]) => '<div class="rg-l"><span class="rg-t">' + esc(lib) + "</span>" + caseC('data-rbib="' + k + '"', R.bibliotheques[k] !== false, "") + "</div>").join("") + "</div></div>") +
+      (o.fiche ? panneau("fiche", titre("fiche", "Fiche patient", "(retouches de ce cabinet ; la fiche commune se règle dans Par spécialité › Bibliothèque et paramètres)", E) + FE.html() +
+        titre("consultation", "Formulaire de consultation", "(retouches de ce cabinet ; le formulaire commun se règle dans Par spécialité › Bibliothèque et paramètres)", E) + '<div class="cs-ed">' + CE.html() + "</div>") : "");
+  };
+  fenetre("<h2>" + esc(o.titre) + '</h2><p class="sous">' + o.intro + '</p><div id="fCorps">' + corps() + '</div><div class="pied colle"><button id="fOk">Enregistrer</button><button class="clair" id="fAnn">Fermer</button><span class="m" id="fEtat"></span></div>');
   const lire = () => { document.querySelectorAll("#fCorps [data-x]").forEach((x) => { A.max[x.dataset.x] = x.value === "" ? null : Number(x.value); }); if ($("fNom")) nom = $("fNom").value.trim(); };
-  const refaire = (sansLire) => { if (!sansLire) lire(); const ouverts = [...document.querySelectorAll("#fCorps details")].map((d) => d.open); $("fCorps").innerHTML = corps(); document.querySelectorAll("#fCorps details").forEach((d, i) => { d.open = !!ouverts[i]; }); brancher(); };
+  const etat0 = J([A, R, nom]), modifie = () => J([A, R, nom]) !== etat0;
+  const majEtat = () => { const e = $("fEtat"); if (e) e.textContent = modifie() ? "Modifications non enregistrées" : ""; };
+  GARDE = () => { lire(); return !modifie() || confirm("Fermer sans enregistrer ?\nLes modifications de ce réglage seront perdues."); };
+  const refaire = (sansLire) => { if (!sansLire) lire(); const ouverts = [...document.querySelectorAll("#fCorps details")].map((d) => d.open); $("fCorps").innerHTML = corps(); document.querySelectorAll("#fCorps details").forEach((d, i) => { d.open = !!ouverts[i]; }); brancher(); majEtat(); };
   const bouger = (v, sens) => { const [l, i] = v.split(":"), k = Number(i), j = k + sens, L = R[l]; if (j < 0 || j >= L.length) return; [L[k], L[j]] = [L[j], L[k]]; refaire(); };
+  // Toute modification (case, nombre) : pastilles « retouché » et état mis à jour (refaire léger, sans perdre la saisie en cours d'un nombre)
+  $("fCorps").addEventListener("change", (e) => { if (e.target.matches("[data-x],[data-rcarte],[data-rsec],[data-rbib]")) refaire(); });
+  $("fCorps").addEventListener("input", (e) => { if (e.target.matches("[data-x],#fNom")) { lire(); majEtat(); } });
   const brancher = () => {
-    if ($("fFor")) $("fFor").onchange = () => { const F = FORMULES_()[$("fFor").value]; if (!F) return; A.formule = $("fFor").value; A.max = Object.assign({}, F.max); MODULES.forEach(([k]) => { A.modules[k] = F.modules.indexOf(k) >= 0; }); const fi = R.fiche, cs = R.consultation; Object.assign(R, reglageEffectif(F.reglage)); R.fiche = fi; R.consultation = cs; refaire(true); }; // tout le pack (la fiche patient reste : spécialité + retouches) (pas les limites affichées)
+    document.querySelectorAll("#fCorps [data-fo]").forEach((b) => { b.onclick = () => { ONGLET_REG = b.dataset.fo; refaire(); }; });
+    document.querySelectorAll("#fCorps [data-rev]").forEach((b) => { b.onclick = () => { revenir(b.dataset.rev); refaire(true); }; });
+    if ($("fFor")) $("fFor").onchange = () => { const F = FORMULES_()[$("fFor").value]; if (!F) return; A.formule = $("fFor").value; A.max = Object.assign({}, F.max); MODULES.forEach(([k]) => { A.modules[k] = F.modules.indexOf(k) >= 0; }); const fi = R.fiche, cs = R.consultation; Object.assign(R, reglageEffectif(F.reglage)); R.fiche = fi; R.consultation = cs; refaire(true); }; // tout le pack (la fiche patient reste : spécialité + retouches)
     if ($("fDepart")) $("fDepart").onclick = () => { const fi = R.fiche, cs = R.consultation; Object.assign(R, reglageEffectif((FORMULES_()[A.formule] || {}).reglage)); R.fiche = fi; R.consultation = cs; refaire(); };
     document.querySelectorAll("#fCorps [data-haut]").forEach((b) => { b.onclick = () => bouger(b.dataset.haut, -1); });
     document.querySelectorAll("#fCorps [data-bas]").forEach((b) => { b.onclick = () => bouger(b.dataset.bas, 1); });
@@ -338,8 +390,9 @@ function editeurReglage(o) {
   $("fAnn").onclick = fermer;
   $("fOk").onclick = async () => {
     lire(); if (!o.avecPack && !nom) { alert("Indiquez le nom du pack."); return; }
-    const b = $("fOk"); b.disabled = true; b.textContent = "Enregistrement…";
-    try { await o.enregistrer(A, R, nom); } catch (e) { b.disabled = false; b.textContent = "Enregistrer"; alert("Enregistrement impossible : " + e.message); }
+    if ((FE && FE.enCours()) || (CE && CE.enCours())) { if (!confirm("Un champ est en cours de modification (fiche ou consultation) et ne sera pas enregistré. Continuer ?")) return; }
+    const b = $("fOk"), g = GARDE; b.disabled = true; b.textContent = "Enregistrement…"; GARDE = null;
+    try { await o.enregistrer(A, R, nom); } catch (e) { GARDE = g; b.disabled = false; b.textContent = "Enregistrer"; alert("Enregistrement impossible : " + e.message); }
   };
 }
 // Réglage d'un cabinet : pack de départ, puis retouches dans le cabinet
@@ -348,7 +401,8 @@ function ouvrirFormule(c) {
   const A = JSON.parse(JSON.stringify(abonnementEffectif(c.abonnement))); A.formule = A.formule || "complet";
   const speDe = () => specialiteDe((FORMULES_()[A.formule] || {}).specialite), ficheSpe = () => (SPES[speDe()] || {}).fiche || null, csSpe = () => (SPES[speDe()] || {}).consultation || null;
   editeurReglage({ titre: "Réglage de « " + c.nom + " »", avecPack: true, A, R: reglageEffectif(c.abonnement && c.abonnement.reglage, ficheSpe(), csSpe()), spe: speDe, fiche: true,
-    intro: "Choisissez le pack (il apporte ses modules, ses limites et son réglage), puis retouchez à volonté pour ce cabinet : ordre (↑ ↓), présence (cases), fonctions de chaque module. Ce qui est retiré est caché, les données sont gardées. Le changement s'applique à la prochaine ouverture d'Onco360 par l'équipe.",
+    baseFiche: () => ficheEffective(null, ficheSpe()), baseConsult: () => consultEffective(null, csSpe()),
+    intro: "Le pack apporte ses modules, ses limites et son réglage ; retouchez ensuite pour ce cabinet (ordre ↑ ↓, cases). <span class=\"bdg rt\">retouché</span> = différent du pack. Ce qui est retiré est caché, les données sont gardées ; l'équipe voit le changement à sa prochaine ouverture d'Onco360.",
     compte: (k) => (k === "patients" ? c.patients : k === "etablissements" ? c.etablissements : (c.roles || {})[k] || 0),
     enregistrer: async (A2, R2) => {
       // Fiche patient : seulement les différences avec celle de la spécialité ; « identique au pack » se juge sans elle
@@ -451,7 +505,7 @@ const packsDe = (spe) => Object.entries(FORMULES_()).filter(([, f]) => specialit
 const cabinetsDuPack = (k) => (CABINETS || []).filter((c) => c.abonnement && c.abonnement.formule === k).length;
 function htmlSpecialites() {
   SPEC = SPEC || SPECIALITES[0];
-  const gauche = '<div class="spe-l">' + SPECIALITES.map((s) => { const np = packsDe(s).length, nc = (CABINETS || []).filter((c) => specialiteDe((formuleDe(c.abonnement) || {}).specialite) === s && c.abonnement).length;
+  const gauche = '<div class="spe-l">' + SPECIALITES.map((s) => { const np = packsDe(s).length, nc = (CABINETS || []).filter((c) => !c.bibliotheque && speDuCab(c) === s).length;
     return '<button class="spe' + (s === SPEC ? " on" : "") + '" data-spec="' + esc(s) + '"><b>' + esc(s) + '</b><span class="m">' + np + " pack" + (np > 1 ? "s" : "") + " · " + nc + " cabinet" + (nc > 1 ? "s" : "") + "</span></button>"; }).join("") +
     '<p class="m" style="margin:8px 4px">Nouvelle spécialité : étape 16.5.</p></div>';
   const sous = [["packs", "Packs"], ["biblio", "Bibliothèque et paramètres"]]; // « Modules et menus » retiré (10/10/2026 : déjà dans l'écran d'un pack)
@@ -460,8 +514,8 @@ function htmlSpecialites() {
   else {
     const L = packsDe(SPEC);
     droite += '<section class="carte"><p class="sous">Les packs de départ de « ' + esc(SPEC) + ' ». Chacun a son réglage complet (modules et fonctions, menu, cartes du tableau de bord, onglets des Paramètres, bibliothèques, limites). Un cabinet reçoit le réglage de son pack, puis peut être retouché. Modifier un pack met à jour les cabinets qui le suivent sans retouche.</p>' +
-      (L.length ? '<div class="tableau"><table class="lc"><thead><tr><th></th><th>Pack</th><th>Modules</th><th>Limites</th><th class="n">Cabinets</th><th></th></tr></thead><tbody>' + L.map(([k, f], i) => { const nm = (f.modules || []).length, mx = ROLES_MAX.filter(([r]) => f.max && f.max[r] != null).map(([r, lib]) => f.max[r] + " " + lib.toLowerCase()).join(", ") || "sans limite", nc = cabinetsDuPack(k);
-        return '<tr><td><span class="fl"><button class="clair petit" data-ph="' + esc(k) + '"' + (i ? "" : " disabled") + ' aria-label="Monter">↑</button><button class="clair petit" data-pb="' + esc(k) + '"' + (i < L.length - 1 ? "" : " disabled") + ' aria-label="Descendre">↓</button></span></td><td data-l="Pack"><b>' + esc(f.lib) + '</b>' + (f.reglage ? ' <span class="bdg">réglage complet</span>' : "") + '</td><td data-l="Modules">' + nm + ' / ' + MODULES.filter(([m]) => modulePour(m, SPEC)).length + '</td><td data-l="Limites" class="m">' + esc(mx) + '</td><td data-l="Cabinets" class="n">' + nc + '</td><td class="act"><button class="clair petit" data-pm="' + esc(k) + '">Modifier</button><button class="clair petit" data-pd="' + esc(k) + '">Dupliquer</button>' + (nc ? "" : '<button class="rouge petit" data-ps="' + esc(k) + '">Supprimer</button>') + "</td></tr>"; }).join("") + "</tbody></table></div>" : '<p class="sous">Aucun pack pour l\'instant' + (/générale|Gynéco/.test(SPEC) ? " : les modules de cette spécialité sont à construire (étape 14)." : ".") + "</p>") +
+      (L.length ? '<div class="tableau"><table class="lc"><thead><tr><th></th><th>Pack</th><th>Modules</th><th>Limites</th><th class="n">Cabinets</th><th></th></tr></thead><tbody>' + L.map(([k, f], i) => { const nm = (f.modules || []).length, mx = texteLimites(f.max), nc = cabinetsDuPack(k);
+        return '<tr><td><span class="fl"><button class="clair petit" data-ph="' + esc(k) + '"' + (i ? "" : " disabled") + ' aria-label="Monter">↑</button><button class="clair petit" data-pb="' + esc(k) + '"' + (i < L.length - 1 ? "" : " disabled") + ' aria-label="Descendre">↓</button></span></td><td data-l="Pack"><b>' + esc(f.lib) + '</b>' + (f.reglage ? ' <span class="bdg">réglage complet</span>' : "") + '</td><td data-l="Modules">' + nm + ' / ' + MODULES.filter(([m]) => modulePour(m, SPEC)).length + '</td><td data-l="Limites" class="m">' + esc(mx) + '</td><td data-l="Cabinets" class="n">' + nc + '</td><td class="act"><button class="clair petit" data-pm="' + esc(k) + '">Modifier</button><button class="clair petit" data-pd="' + esc(k) + '">Dupliquer</button>' + (nc ? "" : '<button class="lien-r petit" data-ps="' + esc(k) + '" title="Supprimer ce pack (aucun cabinet ne l\'utilise)">Supprimer</button>') + "</td></tr>"; }).join("") + "</tbody></table></div>" : '<p class="sous">Aucun pack pour l\'instant' + (/générale|Gynéco/.test(SPEC) ? " : les modules de cette spécialité sont à construire (étape 14)." : ".") + "</p>") +
       '<div class="barre" style="margin-top:12px"><button id="pNouv">+ Nouveau pack</button>' + (Object.keys(FORMULES0).some((k) => !FORMULES_()[k] && specialiteDe(FORMULES0[k].specialite) === SPEC) ? '<button class="clair" id="pProp">Ajouter les packs proposés par Onco360</button>' : "") + "</div></section>";
   }
   return '<div class="spe-g">' + gauche + '<div class="spe-d">' + droite + "</div></div>";
@@ -499,7 +553,7 @@ function ouvrirPack(k, modele) {
   const F0 = modele || FORMULES_()[k] || { lib: "", specialite: SPEC, modules: MODULES.filter(([m]) => modulePour(m, SPEC)).map((m) => m[0]), max: {} };
   const A = { formule: k, modules: Object.fromEntries(MODULES.map(([m]) => [m, (F0.modules || []).indexOf(m) >= 0])), max: Object.fromEntries(ROLES_MAX.map(([r]) => [r, F0.max && F0.max[r] != null ? F0.max[r] : null])) };
   editeurReglage({ titre: (FORMULES_()[k] ? "Pack « " + F0.lib + " »" : "Nouveau pack") + " · " + SPEC, avecPack: false, nom: F0.lib, A, R: reglageEffectif(F0.reglage), spe: () => SPEC,
-    intro: "Le réglage de départ des cabinets qui reçoivent ce pack. Les cabinets qui le suivent sans retouche reçoivent aussitôt les modifications ; un cabinet retouché garde les siennes.",
+    intro: "Le réglage de départ des cabinets qui reçoivent ce pack. Les cabinets qui le suivent sans retouche reçoivent aussitôt les modifications ; un cabinet retouché garde les siennes. Fiche patient et consultation : communes à la spécialité (Bibliothèque et paramètres).",
     enregistrer: async (A2, R2, nom) => {
       const L = JSON.parse(JSON.stringify(FORMULES_())); let cle = k;
       if (!L[cle]) { let base = sansAcc(nom).replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 26); if (base.length < 2) base = "pack"; cle = base; let n = 2; while (L[cle]) cle = base + "-" + n++; }

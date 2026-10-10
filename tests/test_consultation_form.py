@@ -60,6 +60,7 @@ async def main():
         # Réglage d'un cabinet : deux éditeurs dans la même fenêtre
         await pa.evaluate("location.hash='cabinets'"); await pa.wait_for_timeout(400)
         await pa.click('[data-fiche="cab-t"]'); await pa.wait_for_timeout(300); await pa.click('[data-form="cab-t"]'); await pa.wait_for_timeout(400)
+        await pa.click('[data-fo="fiche"]'); await pa.wait_for_timeout(200)
         await pa.click('#cqNouv'); await pa.wait_for_timeout(200); await pa.fill('#cqLib', 'Pieds'); await pa.select_option('#cqType', 'textelong'); await pa.click('#cqOk'); await pa.wait_for_timeout(200)
         await pa.click('#chNouv'); await pa.wait_for_timeout(200); await pa.fill('#chLib', 'Groupe sanguin'); await pa.click('#chOk'); await pa.wait_for_timeout(200)
         await pa.click('#fOk'); await pa.wait_for_timeout(600)
