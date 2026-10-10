@@ -100,6 +100,7 @@ window.fiAjouter = async (pid) => {
   const types = await typesDocuments();
   A.fenetre("<h3>Ajouter des documents — " + A.esc(x.r.nm) + "</h3>" +
     '<label class="fi-depot" id="fiDepot" for="fiF"><input type="file" id="fiF" class="cache-vis" multiple><b>Choisir un ou plusieurs fichiers</b><span class="mesures">ou les glisser ici · PDF, Word, photo (JPEG, PNG…) ou autre · 25 Mo au plus par fichier</span><span id="fiNom" class="fi-nom"></span></label>' +
+    '<label class="chk cache" id="fiPdfZ" style="margin:8px 0 2px"><input type="checkbox" id="fiPdf" checked> Regrouper les images en un seul document PDF (une page par image, dans l\'ordre des noms de fichiers)</label>' +
     champs(null, types) + '<p class="mesures cache" id="fiPlus" style="margin:-4px 0 6px">Plusieurs fichiers : chacun est enregistré avec son nom comme titre, le type et la date choisis ci-dessus.</p>' +
     '<div class="fi-prog cache" id="fiProg"><div id="fiBarre"></div></div><p class="mesures cache" id="fiEtape" style="margin:4px 0 0"></p>' +
     '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" id="fiAnn" onclick="fiAnnuler()">Annuler</button><button class="bt plein" id="fiOk" onclick="fiEnvoyer()">Enregistrer</button></div>');
@@ -107,18 +108,61 @@ window.fiAjouter = async (pid) => {
     const L = [...(liste || [])]; if (!L.length) return;
     const lourds = L.filter((f) => f.size > MAX), ok = L.filter((f) => f.size <= MAX);
     A.erreur(lourds.length ? "Trop lourd (25 Mo au plus) : " + lourds.map((f) => f.name + " (" + taille(f.size) + ")").join(", ") + "." : "");
-    NV.fichiers = ok; const n = ok.length;
-    $("fiNom").innerHTML = ok.map((f) => A.esc(f.name) + " · " + taille(f.size)).join("<br>");
-    const zt = $("fiTitre") && $("fiTitre").closest("div"); if (zt) zt.classList.toggle("cache", n > 1); $("fiPlus").classList.toggle("cache", n < 2);
-    if (n === 1 && !A.val("fiTitre")) $("fiTitre").value = titreDe(ok[0]);
-    $("fiOk").textContent = n > 1 ? "Enregistrer les " + n + " documents" : "Enregistrer";
+    NV.fichiers = ok.slice().sort((a, b) => a.name.localeCompare(b.name, "fr", { numeric: true })); const n = ok.length;
+    $("fiNom").innerHTML = NV.fichiers.map((f) => A.esc(f.name) + " · " + taille(f.size)).join("<br>");
+    // plusieurs images (photos d'une bio de 4 pages…) : regroupées en un seul PDF par défaut (19.7 bis, 10/10/2026)
+    const images = n > 1 && NV.fichiers.every(estImage); $("fiPdfZ").classList.toggle("cache", !images); if (!images) $("fiPdf").checked = false; else $("fiPdf").checked = true;
+    majPlus();
   };
+  const majPlus = () => {
+    const n = NV.fichiers.length, pdf = n > 1 && $("fiPdf").checked, zt = $("fiTitre") && $("fiTitre").closest("div");
+    if (zt) zt.classList.toggle("cache", n > 1 && !pdf); $("fiPlus").classList.toggle("cache", n < 2 || pdf);
+    if ((n === 1 || pdf) && !A.val("fiTitre")) $("fiTitre").value = n === 1 ? titreDe(NV.fichiers[0]) : "";
+    $("fiOk").textContent = pdf ? "Enregistrer le PDF (" + n + " pages)" : n > 1 ? "Enregistrer les " + n + " documents" : "Enregistrer";
+  };
+  $("fiPdf").onchange = majPlus;
   $("fiF").onchange = () => choisir($("fiF").files);
   const z = $("fiDepot");
   z.ondragover = (e) => { e.preventDefault(); z.classList.add("on"); };
   z.ondragleave = () => z.classList.remove("on");
   z.ondrop = (e) => { e.preventDefault(); z.classList.remove("on"); choisir(e.dataTransfer.files); };
 };
+const estImage = (f) => /^image\/(jpeg|png|webp|gif|bmp|heic|heif)$/i.test(f.type || "") || /\.(jpe?g|png|webp|gif|bmp|heic|heif)$/i.test(f.name || "");
+// Images → un PDF (une page A4 par image, portrait ou paysage selon l'image, marges 20 pt) ; chaque image est réduite (2000 px au
+// plus, JPEG) : PDF écrit ici, sans bibliothèque extérieure
+function enJpeg(f) {
+  return new Promise((ok, ko) => {
+    const u = URL.createObjectURL(f), img = new Image();
+    img.onerror = () => { URL.revokeObjectURL(u); ko(new Error("Image illisible : " + f.name + " (format non pris en charge par le navigateur ?)")); };
+    img.onload = () => {
+      const k = Math.min(1, 2000 / Math.max(img.naturalWidth, img.naturalHeight)), c = document.createElement("canvas");
+      c.width = Math.max(1, Math.round(img.naturalWidth * k)); c.height = Math.max(1, Math.round(img.naturalHeight * k));
+      const g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height); g.drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(u);
+      c.toBlob((b) => { if (!b) { ko(new Error("Conversion impossible : " + f.name)); return; } b.arrayBuffer().then((a) => ok({ data: new Uint8Array(a), w: c.width, h: c.height })); }, "image/jpeg", 0.85);
+    };
+    img.src = u;
+  });
+}
+export async function imagesEnPdf(fichiers) {
+  const P = []; for (const f of fichiers) P.push(await enJpeg(f));
+  const te = new TextEncoder(), parts = [], offs = []; let len = 0;
+  const push = (x) => { const b = typeof x === "string" ? te.encode(x) : x; parts.push(b); len += b.length; };
+  const obj = (n, f) => { offs[n] = len; push(n + " 0 obj\n"); f(); push("\nendobj\n"); };
+  push("%PDF-1.4\n"); push(new Uint8Array([37, 226, 227, 207, 211, 10]));
+  obj(1, () => push("<< /Type /Catalog /Pages 2 0 R >>"));
+  obj(2, () => push("<< /Type /Pages /Kids [" + P.map((_, i) => 3 + 3 * i + " 0 R").join(" ") + "] /Count " + P.length + " >>"));
+  P.forEach((p, i) => {
+    const pay = p.w > p.h, W = pay ? 842 : 595, H = pay ? 595 : 842, m = 20, k = Math.min((W - 2 * m) / p.w, (H - 2 * m) / p.h), dw = p.w * k, dh = p.h * k;
+    const c = "q " + dw.toFixed(2) + " 0 0 " + dh.toFixed(2) + " " + ((W - dw) / 2).toFixed(2) + " " + ((H - dh) / 2).toFixed(2) + " cm /Im" + i + " Do Q";
+    obj(3 + 3 * i, () => push("<< /Type /Page /Parent 2 0 R /MediaBox [0 0 " + W + " " + H + "] /Resources << /XObject << /Im" + i + " " + (5 + 3 * i) + " 0 R >> >> /Contents " + (4 + 3 * i) + " 0 R >>"));
+    obj(4 + 3 * i, () => push("<< /Length " + c.length + " >>\nstream\n" + c + "\nendstream"));
+    obj(5 + 3 * i, () => { push("<< /Type /XObject /Subtype /Image /Width " + p.w + " /Height " + p.h + " /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length " + p.data.length + " >>\nstream\n"); push(p.data); push("\nendstream"); });
+  });
+  const nb = 3 + 3 * P.length, x0 = len;
+  push("xref\n0 " + nb + "\n0000000000 65535 f \n" + Array.from({ length: nb - 1 }, (_, i) => String(offs[i + 1]).padStart(10, "0") + " 00000 n \n").join(""));
+  push("trailer\n<< /Size " + nb + " /Root 1 0 R >>\nstartxref\n" + x0 + "\n%%EOF\n");
+  return new Blob(parts, { type: "application/pdf" });
+}
 const titreDe = (fl) => fl.name.replace(/\.[^.]+$/, "").replace(/[_]+/g, " ");
 let TACHE = null;
 window.fiAnnuler = () => { if (TACHE) try { TACHE.cancel(); } catch (e) {} TACHE = null; NV = null; A.fermerFenetre(); };
@@ -138,14 +182,21 @@ async function envoyerUn(x, fl, titre, d, type) {
 }
 window.fiEnvoyer = async () => {
   if (!NV) return; const x = trouver(NV.pid), L = NV.fichiers || []; if (!x) return;
-  const plusieurs = L.length > 1, titre = A.val("fiTitre"), d = A.val("fiDate"), type = A.val("fiType");
+  const pdf = L.length > 1 && $("fiPdf") && $("fiPdf").checked, plusieurs = L.length > 1 && !pdf, titre = A.val("fiTitre"), d = A.val("fiDate"), type = A.val("fiType");
   if (!L.length) { A.erreur("Choisissez un fichier."); return; }
-  if (!plusieurs && !titre) { A.erreur("Donnez un titre au document."); return; }
+  if (!plusieurs && !titre) { A.erreur("Donnez un titre au document" + (pdf ? " PDF (ex. Bilan biologique du 12/10)." : ".")); return; }
   if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) { A.erreur("Indiquez la date du document."); return; }
   if (!type) { A.erreur("Choisissez le type de document."); return; }
   A.occupe($("fiOk"), true); A.erreur(""); $("fiProg").classList.remove("cache");
   let faits = 0;
   try {
+    if (pdf) {
+      $("fiEtape").classList.remove("cache"); $("fiEtape").textContent = "Préparation du PDF (" + L.length + " pages)…";
+      const b = await imagesEnPdf(L); if (b.size > MAX) throw new Error("PDF trop lourd (" + taille(b.size) + ") : 25 Mo au plus. Déposez les images en plusieurs fois.");
+      $("fiEtape").textContent = "Envoi du PDF (" + taille(b.size) + ")…";
+      await envoyerUn(x, new File([b], (titre.replace(/[\/\\#?\[\]*:"<>|]/g, " ").trim().slice(0, 100) || "document") + ".pdf", { type: "application/pdf" }), titre, d, type);
+      NV = null; A.fermerFenetre(); A.toast("Document PDF (" + L.length + " pages) ajouté au dossier."); A.pageDossier(x.id); return;
+    }
     for (const fl of L) {
       if (plusieurs) { $("fiEtape").classList.remove("cache"); $("fiEtape").textContent = "Fichier " + (faits + 1) + " / " + L.length + " : " + fl.name; $("fiBarre").style.width = "0%"; }
       await envoyerUn(x, fl, plusieurs ? titreDe(fl) : titre, d, type); faits++;
