@@ -283,7 +283,7 @@ temporaire si le cache npm du Mac refuse) — à relancer avant chaque mise en l
 ## Méthode de travail souhaitée
 - Réponses en français, directes ; l'utilisateur n'est pas développeur : commandes Terminal prêtes à copier.
 - Toujours tester (navigateur + bilan) avant livraison ; vérifier mobile (largeur 390 px sans débordement).
-- Design : Arial, fond #F5F7FB, couleur principale #3563B0, cartes blanches arrondies, page 1240 px.
+- Design : Arial, fond #F5F7FB, couleur principale #3563B0, cartes blanches arrondies, page pleine largeur (du menu au bord droit, 11/10/2026 ; avant : 1240 px).
   Étape 20 (design, 11/10/2026, `FEUILLE-DE-ROUTE.md`) : menu repliable (`body.menu-replie`, `--menu` 76 px, bouton `btReplier`,
   `localStorage` `onco360.menuReplie`) ; barres d'onglets longues = `ag-vues defile` (une ligne qui défile, flèches ajoutées par v2.js).
 

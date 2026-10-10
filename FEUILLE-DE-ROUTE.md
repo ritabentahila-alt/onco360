@@ -1427,8 +1427,9 @@ Onco360_Package_Cession/
 ## Étape 20 – Design (demandé le 11/10/2026, modèle : captures de Tbibclic)
 But : profiter de tout l'écran sur ordinateur, menu repliable, cartes en relief, présentation identique d'une page à l'autre.
 On garde le bleu Onco360 (#3563B0) et Arial ; les impressions (ordonnances, fiches, plis) ne changent pas.
-- [ ] 20.1 Pleine largeur : le contenu va du menu au bord droit de l'écran (marges 32 à 40 px) ; formulaires et textes longs
-      gardent une largeur lisible à l'intérieur des cartes ; tableau de bord : 4 chiffres clés par ligne, cartes côte à côte.
+- [x] 20.1 Pleine largeur (11/10) : plus de limite de 1240 px, le contenu va du menu au bord droit de l'écran (marges 36 px),
+      menu déplié ou replié ; vérifié à 1280 et 1920 px (tableau de bord, agenda, salle, patients, tâches, protocoles,
+      paramètres, bilan, profil, dossier). Reste (avec 20.3) : 4 chiffres clés par ligne, cartes côte à côte sur grand écran.
 - [x] 20.2 Menu repliable (11/10) : bouton ‹ à côté du logo → colonne d'icônes de 76 px, contenu élargi d'autant ; nom de la
       page au survol, pastilles gardées sur l'icône, avatar et déconnexion en icônes ; choix gardé sur l'appareil
       (`localStorage` `onco360.menuReplie`) ; tablette et téléphone : menu « burger » inchangé.
@@ -1443,6 +1444,8 @@ On garde le bleu Onco360 (#3563B0) et Arial ; les impressions (ordonnances, fich
 - Tests : `tests/test_menu.py` ; 390, 1024, 1440 et 1920 px ; 3 rôles ; impressions inchangées.
 
 ## Idées en attente (à placer dans une étape)
+- Réécrire `tests/test_cures.py` et `tests/test_seances.py` : écrits pour la première version (avant le remodelage du dossier du
+  06/10), ils ne trouvent plus la fenêtre des cures (le dossier s'ouvre sur Consultation, puis vue des jours J1 / J8). Constaté le 11/10.
 - Outil de restauration d'une sauvegarde.
 
 - Annulés le 06/10 (décision de Dr Bentahila) : rappels WhatsApp automatiques, assistant IA.
@@ -1614,3 +1617,4 @@ On garde le bleu Onco360 (#3563B0) et Arial ; les impressions (ordonnances, fich
 | 11/10/2026 | Dossier : onglets à la hauteur de l'écran | Onglets Chimiothérapie et Radiothérapie : défilement intérieur (hauteur de l'écran moins l'en-tête), position gardée quand le dossier se redessine ; chimio : la ligne en cours (sinon la dernière) ouverte, les autres fermées. Consultation : défilement déjà en place. Pas encore en ligne. |
 | 11/10/2026 | Dossier : radiothérapies repliables | Une seule radiothérapie ouverte (la plus récente à l'ouverture) ; fermée = titre, badges, dose, séances réalisées et boutons (sans les étapes, la consultation hebdomadaire ni la note) ; clic sur le titre pour ouvrir / fermer. Pas encore en ligne. |
 | 11/10/2026 | 20.2 Menu repliable et onglets | Plan design (étape 20, d'après Tbibclic). Fait : menu repliable en colonne d'icônes (choix gardé, nom au survol, téléphone inchangé) ; onglets des Paramètres et du Profil sur une seule ligne qui défile vers la droite (molette, flèches ‹ ›). Tests menu 22/22, profil 16/16, réglage 14/14, audit 12/12, consultation 15/15 ; test_fiche : 2 échecs déjà présents avant (Administration, en-tête de la fiche). Pas encore en ligne. |
+| 11/10/2026 | 20.1 Pleine largeur | Page élargie du menu au bord droit de l'écran (plus de limite de 1240 px). test_fiche réparé (21/21) : ses 2 échecs venaient du champ CIN ajouté le 10/10 (un champ de plus dans la fiche), pas d'un défaut d'Onco360. test_cures / test_seances : trop anciens, à réécrire (Idées en attente). Tests menu 24/24, profil 16/16, réglage 14/14, audit 12/12, consultation 15/15, protocoles sans erreur. Pas encore en ligne. |

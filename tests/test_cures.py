@@ -5,6 +5,7 @@ async def main():
     async with async_playwright() as p:
         b=await p.chromium.launch(); pg=await ouvrir(b, S2); ev=pg.evaluate
         await pg.goto('http://localhost:8767/v2.html#dossier/'+ESS); await pg.wait_for_timeout(2500)
+        await pg.click('#og-ch'); await pg.wait_for_timeout(400)  # le dossier s'ouvre sur Consultation : onglet Chimiothérapie
         await pg.click('.acc.on .tcures tr:has-text("C3") >> text=Ouvrir'); await pg.wait_for_timeout(500)
         await pg.click('.jc >> nth=0'); await pg.wait_for_timeout(300)
         await pg.fill('#vD','2026-10-06'); await pg.click('#fOk'); await pg.wait_for_timeout(700)

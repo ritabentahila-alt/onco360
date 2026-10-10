@@ -89,7 +89,7 @@ nav a.actif .i{color:#fff}
 
 /* ── Contenu : une seule colonne ── */
 #zone{margin-left:var(--menu);min-height:100vh;transition:margin-left .2s ease}
-#page{max-width:1240px;margin:0 auto;padding:26px 32px 60px;display:flex;flex-direction:column;gap:18px}
+#page{max-width:none;margin:0;padding:26px 36px 60px;display:flex;flex-direction:column;gap:18px}
 .accueil{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap}
 .accueil h2{font-size:28px;margin:0;color:var(--titre)}
 .accueil p{margin:3px 0 0;color:var(--doux)}
@@ -550,7 +550,7 @@ nav a.actif .nb-menu{background:#fff;color:var(--prim)}
 @media (max-width:640px){.sa-b{flex-direction:row;flex-wrap:wrap;align-items:center}.sa-b .lbl{width:100%;justify-content:center}.sa-b .bt{padding:11px 16px}.sa-etab{width:100%}.sa-etab select{width:100%}}
 
 /* Agenda */
-#page.large{max-width:1240px}
+#page.large{max-width:none}
 .ag-barre{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
 .ag-vues{display:flex;flex-wrap:wrap;background:#fff;border:1px solid var(--trait);border-radius:var(--r-m);padding:4px;gap:2px}
 .ag-vues button{display:flex;align-items:center;gap:6px;border:0;background:none;padding:8px 14px;border-radius:9px;font-weight:bold;color:var(--doux)}
@@ -761,6 +761,6 @@ function onco360Deconnecter() {
 }
 </script>
 
-<script type="module" src="./js/app/v2.js?v=20261011e"></script>
+<script type="module" src="./js/app/v2.js?v=20261011f"></script>
 </body>
 </html>
