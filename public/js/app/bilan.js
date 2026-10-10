@@ -364,26 +364,29 @@ window.biKlSup = async (n) => {
 
 // ───── Par établissement, mois par mois, relevé pour une clinique (15 bis B3, 10/10/2026) ─────
 // Par établissement : actes affichés (filtres du haut), NET, payé, à recevoir et son ancienneté (jours depuis la date de l'acte) ;
-// les autres versements vont avec « Non renseigné ». Un clic sur une ligne choisit l'établissement ; « Relevé » = PDF à lui envoyer.
+// les autres versements ont leur propre ligne (« kl », en bas). Un clic sur une ligne choisit l'établissement (ou le type « Autres
+// versements ») ; « Relevé » = PDF à lui envoyer.
 const jours = (d) => Math.floor((new Date(D().t + "T12:00:00") - new Date(d + "T12:00:00")) / 864e5);
 function parEtab(all) {
   const g = {};
   all.forEach((o) => {
-    const h = o.t === "kl" ? "—" : o.hop || "—", x = (g[h] = g[h] || { h, n: 0, net: 0, paye: 0, rec: 0, r30: 0, r60: 0, r90: 0 }), v = num(o.net) || 0;
+    const h = o.t === "kl" ? "kl" : o.hop || "—", x = (g[h] = g[h] || { h, n: 0, net: 0, paye: 0, rec: 0, r30: 0, r60: 0, r90: 0 }), v = num(o.net) || 0;
     x.n++; x.net += v;
     if (estPaye(o, PE)) x.paye += v; else { x.rec += v; const a = jours(o.d); if (a > 90) x.r90 += v; else if (a > 60) x.r60 += v; else if (a > 30) x.r30 += v; }
   });
-  return Object.values(g).sort((a, z) => (a.h === "—") - (z.h === "—") || z.net - a.net);
+  const rang = (h) => (h === "kl" ? 2 : h === "—" ? 1 : 0);
+  return Object.values(g).sort((a, z) => rang(a.h) - rang(z.h) || z.net - a.net);
 }
 function htmlEtabs(all) {
   const L = parEtab(all); DATA.etabs = L; if (!L.length) return "";
-  const esc = A.esc, nom = (h) => (h === "—" ? "Non renseigné / autres" : ((D().etabsTous || D().etabs || []).find((e) => e.code === h) || {}).nom || "");
+  const esc = A.esc, nom = (h) => (h === "kl" ? "" : h === "—" ? "Établissement non renseigné" : ((D().etabsTous || D().etabs || []).find((e) => e.code === h) || {}).nom || "");
+  const code = (h) => (h === "kl" ? "Autres versements" : h), clic = (h) => (h === "kl" ? "biF('typ','kl')" : "biF('hop','" + esc(h) + "')");
   const tot = L.reduce((a, x) => { ["n", "net", "paye", "rec", "r30", "r60", "r90"].forEach((k) => { a[k] += x[k]; }); return a; }, { n: 0, net: 0, paye: 0, rec: 0, r30: 0, r60: 0, r90: 0 });
   const ret = (v) => (v ? dh(v) : "—");
   return '<section class="carte"><h3><span class="ic">' + A.ic("hopital") + '</span>Par établissement</h3><p class="sous">Actes de la période et des filtres choisis. « À recevoir » détaillé par ancienneté (jours depuis la date de l\'acte). Touchez une ligne pour ne voir que cet établissement.</p>' +
     '<div class="tableau"><table class="tcures bilan"><tr><th>Établissement</th><th class="n">Actes</th><th class="n">NET</th><th class="n">Payé</th><th class="n">À recevoir</th><th class="n">dont 31 à 60 j</th><th class="n">dont 61 à 90 j</th><th class="n">dont + de 90 j</th><th></th></tr>' +
-    L.map((x) => '<tr class="cl" onclick="biF(\'hop\',\'' + esc(x.h) + '\')"><td><b>' + esc(x.h) + "</b>" + (nom(x.h) ? '<div class="mesures">' + esc(nom(x.h)) + "</div>" : "") + '</td><td class="n">' + x.n + '</td><td class="n"><b>' + dh(x.net) + '</b></td><td class="n">' + dh(x.paye) + '</td><td class="n">' + dh(x.rec) + '</td><td class="n">' + ret(x.r30) + '</td><td class="n">' + ret(x.r60) + '</td><td class="n"' + (x.r90 ? ' style="color:var(--rouge);font-weight:bold"' : "") + ">" + ret(x.r90) + "</td>" +
-      '<td onclick="event.stopPropagation()">' + (x.h !== "—" && x.rec > 0 ? '<button class="mini" data-fn="bilan.exports" title="Actes à régler de cet établissement sur la période (PDF à lui envoyer)" onclick="biReleve(\'' + esc(x.h) + '\')">Relevé</button>' : "") + "</td></tr>").join("") +
+    L.map((x) => '<tr class="cl" onclick="' + clic(x.h) + '"><td><b>' + esc(code(x.h)) + "</b>" + (nom(x.h) ? '<div class="mesures">' + esc(nom(x.h)) + "</div>" : "") + '</td><td class="n">' + x.n + '</td><td class="n"><b>' + dh(x.net) + '</b></td><td class="n">' + dh(x.paye) + '</td><td class="n">' + dh(x.rec) + '</td><td class="n">' + ret(x.r30) + '</td><td class="n">' + ret(x.r60) + '</td><td class="n"' + (x.r90 ? ' style="color:var(--rouge);font-weight:bold"' : "") + ">" + ret(x.r90) + "</td>" +
+      '<td onclick="event.stopPropagation()">' + (x.h !== "—" && x.h !== "kl" && x.rec > 0 ? '<button class="mini" data-fn="bilan.exports" title="Actes à régler de cet établissement sur la période (PDF à lui envoyer)" onclick="biReleve(\'' + esc(x.h) + '\')">Relevé</button>' : "") + "</td></tr>").join("") +
     (L.length > 1 ? '<tr class="tot"><td><b>Total</b></td><td class="n">' + tot.n + '</td><td class="n"><b>' + dh(tot.net) + '</b></td><td class="n">' + dh(tot.paye) + '</td><td class="n">' + dh(tot.rec) + '</td><td class="n">' + ret(tot.r30) + '</td><td class="n">' + ret(tot.r60) + '</td><td class="n">' + ret(tot.r90) + "</td><td></td></tr>" : "") + "</table></div></section>";
 }
 // Mois par mois : NET de chaque mois de l'année de la période choisie, comparé à l'année d'avant (mêmes filtres, sauf période et paiement)
@@ -472,7 +475,7 @@ window.biExport = async (fmt) => {
     const jr = [["Date", "Patient", "Référent", "Hôpital", "Acte / prestation", "Statut", "Brut (DH)", "Taux", "NET médecin (DH)", "Paiement"]].concat(DATA.all.map((o) => [A.dfrA(o.d), o.nm, o.id ? cor(o.id) : "", o.hop || "—", o.lib, o.st, num(o.brut) || 0, tauxTxt(o), Math.round((num(o.net) || 0) * 100) / 100, payeTxt(o)]));
     jr.push(["", "", "", "", "", "", "", "TOTAL", Math.round(DATA.tot.caNet * 100) / 100, ""]);
     const feuilles = [["Synthèse", syn, [48, 18, 10]], ["Journal", jr, [11, 28, 22, 9, 52, 11, 12, 16, 16, 18]]];
-    if (DATA.etabs && DATA.etabs.length) feuilles.push(["Par établissement", [["Établissement", "Actes", "NET (DH)", "Payé (DH)", "À recevoir (DH)", "dont 31 à 60 j", "dont 61 à 90 j", "dont + de 90 j"]].concat(DATA.etabs.map((x) => [x.h === "—" ? "Non renseigné / autres" : x.h, x.n].concat(["net", "paye", "rec", "r30", "r60", "r90"].map((k) => Math.round(x[k] * 100) / 100)))), [24, 8, 14, 14, 14, 14, 14, 14]]);
+    if (DATA.etabs && DATA.etabs.length) feuilles.push(["Par établissement", [["Établissement", "Actes", "NET (DH)", "Payé (DH)", "À recevoir (DH)", "dont 31 à 60 j", "dont 61 à 90 j", "dont + de 90 j"]].concat(DATA.etabs.map((x) => [x.h === "kl" ? "Autres versements" : x.h === "—" ? "Établissement non renseigné" : x.h, x.n].concat(["net", "paye", "rec", "r30", "r60", "r90"].map((k) => Math.round(x[k] * 100) / 100)))), [24, 8, 14, 14, 14, 14, 14, 14]]);
     if (DATA.prev.length) feuilles.push(["RT prévisionnel", [["Fin prévue", "Patient", "Hôpital", "Acte", "NET prévisionnel (DH)"]].concat(DATA.prev.map((o) => [o.d ? A.dfrA(o.d) : "—", o.nm, o.hop || "—", o.lib, num(o.net) || 0])), [11, 28, 9, 45, 18]]);
     if (DATA.rg && DATA.rg.length) feuilles.push(["Versements et règlements", [["Reçu le", "Type", "Clinique / hôpital", "Mode", "Référence", "Banque", "Libellé / période concernée", "Montant (DH)", "Chèque encaissé le", "Note"]].concat(DATA.rg.map((r) => [A.dfrA(r.d), typeTxt(r), r.hop || "—", MODES[r.mode] || "", r.ref || "", r.banque || "", r.per || "", num(r.m) || 0, encTxt(r), r.note || ""])).concat([["", "", "", "", "", "", "TOTAL REÇU", Math.round(somme(DATA.rg) * 100) / 100, "", ""]]), [11, 28, 10, 10, 18, 14, 30, 14, 12, 30]]);
     await excel(feuilles, nom + ".xlsx");

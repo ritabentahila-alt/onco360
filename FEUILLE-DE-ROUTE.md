@@ -1697,3 +1697,4 @@ On garde le bleu Onco360 (#3563B0) et Arial ; les impressions (ordonnances, fich
 | 10/10/2026 | 15 bis – En ligne | B1 et B2 mis en ligne (site et règles). |
 | 10/10/2026 | 15 bis – B3 | Trimestres, année dernière et années précédentes ; tableau « Par établissement » (à recevoir par ancienneté) ; graphique mois par mois comparé à l'année d'avant ; relevé PDF des actes à régler pour un établissement. Pointage en lot non retenu. Tests 22/22 + navigateur. Pas encore en ligne. |
 | 10/10/2026 | 15 bis – B3 en ligne | Site mis en ligne par Dr Bentahila (v2.js?v=20261011m). |
+| 10/10/2026 | 15 bis – Retouche | Tableau « Par établissement » : la ligne « Non renseigné / autres » (qui regroupait les autres versements) devient « Autres versements » (clic = type Autres versements) ; les actes sans établissement ont leur propre ligne « — ». Pas encore en ligne. |
