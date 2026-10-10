@@ -126,15 +126,15 @@ window.fiAjouter = async (pid) => {
   const x = trouver(pid); if (!x || !peutDeposer()) return; NV = { pid, fichiers: [] };
   const types = await typesDocuments();
   A.fenetre("<h3>Ajouter des documents — " + A.esc(x.r.nm) + "</h3>" +
-    '<label class="fi-depot" id="fiDepot" for="fiF"><input type="file" id="fiF" class="cache-vis" multiple><b>Choisir un ou plusieurs fichiers</b><span class="mesures">ou les glisser ici · PDF, Word, photo (JPEG, PNG…) ou autre · 25 Mo au plus par fichier</span><span id="fiNom" class="fi-nom"></span></label>' +
+    '<label class="fi-depot" id="fiDepot" for="fiF"><input type="file" id="fiF" class="cache-vis" multiple><b>Choisir un ou plusieurs fichiers</b><span class="mesures">ou les glisser ici · tout est enregistré en PDF (photos, Word .docx, Excel convertis) · 25 Mo au plus par fichier</span><span id="fiNom" class="fi-nom"></span></label>' +
     '<label class="chk cache" id="fiPdfZ" style="margin:8px 0 2px"><input type="checkbox" id="fiPdf" checked> Regrouper les images en un seul document PDF (une page par image, dans l\'ordre des noms de fichiers)</label>' +
     champs(null, types) + '<p class="mesures cache" id="fiPlus" style="margin:-4px 0 6px">Plusieurs fichiers : chacun est enregistré avec son nom comme titre, le type et la date choisis ci-dessus.</p>' +
     '<div class="fi-prog cache" id="fiProg"><div id="fiBarre"></div></div><p class="mesures cache" id="fiEtape" style="margin:4px 0 0"></p>' +
     '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" id="fiAnn" onclick="fiAnnuler()">Annuler</button><button class="bt plein" id="fiOk" onclick="fiEnvoyer()">Enregistrer</button></div>');
   const choisir = (liste) => {
     const L = [...(liste || [])]; if (!L.length) return;
-    const lourds = L.filter((f) => f.size > MAX), ok = L.filter((f) => f.size <= MAX);
-    A.erreur(lourds.length ? "Trop lourd (25 Mo au plus) : " + lourds.map((f) => f.name + " (" + taille(f.size) + ")").join(", ") + "." : "");
+    const lourds = L.filter((f) => f.size > MAX), autres = L.filter((f) => f.size <= MAX && !convertible(f)), ok = L.filter((f) => f.size <= MAX && convertible(f));
+    A.erreur([lourds.length ? "Trop lourd (25 Mo au plus) : " + lourds.map((f) => f.name + " (" + taille(f.size) + ")").join(", ") + "." : "", autres.length ? "Format non convertible en PDF ici : " + autres.map((f) => f.name).join(", ") + ". Ouvrez-le et enregistrez-le en PDF (Word : Fichier › Enregistrer sous › PDF), puis déposez le PDF." : ""].filter(Boolean).join(" "));
     NV.fichiers = ok.slice().sort((a, b) => a.name.localeCompare(b.name, "fr", { numeric: true })); const n = ok.length;
     $("fiNom").innerHTML = NV.fichiers.map((f) => A.esc(f.name) + " · " + taille(f.size)).join("<br>");
     // plusieurs images (photos d'une bio de 4 pages…) : regroupées en un seul PDF par défaut (19.7 bis, 10/10/2026)
@@ -172,6 +172,10 @@ function enJpeg(f) {
 }
 export async function imagesEnPdf(fichiers) {
   const P = []; for (const f of fichiers) P.push(await enJpeg(f));
+  return pdfDePages(P);
+}
+// PDF à partir de pages déjà en JPEG [{ data, w, h }] (A4 portrait ou paysage selon la page)
+function pdfDePages(P) {
   const te = new TextEncoder(), parts = [], offs = []; let len = 0;
   const push = (x) => { const b = typeof x === "string" ? te.encode(x) : x; parts.push(b); len += b.length; };
   const obj = (n, f) => { offs[n] = len; push(n + " 0 obj\n"); f(); push("\nendobj\n"); };
@@ -189,6 +193,55 @@ export async function imagesEnPdf(fichiers) {
   push("xref\n0 " + nb + "\n0000000000 65535 f \n" + Array.from({ length: nb - 1 }, (_, i) => String(offs[i + 1]).padStart(10, "0") + " 00000 n \n").join(""));
   push("trailer\n<< /Size " + nb + " /Root 1 0 R >>\nstartxref\n" + x0 + "\n%%EOF\n");
   return new Blob(parts, { type: "application/pdf" });
+}
+// ───── Tout en PDF (11/10/2026, décision de Dr Bentahila) : photos, Word (.docx), Excel (.xlsx, .xls, .csv, .ods), texte convertis
+// dans le navigateur avant l'envoi ; anciens formats illisibles ici (.doc, PowerPoint…) refusés avec la marche à suivre ─────
+const ext = (f) => (String(f.name || "").match(/\.([a-z0-9]+)$/i) || ["", ""])[1].toLowerCase();
+const estPdf = (f) => /pdf/i.test(f.type || "") || ext(f) === "pdf";
+const estWord = (f) => ext(f) === "docx";
+const estTableur = (f) => ["xlsx", "xls", "csv", "ods", "xlsm"].indexOf(ext(f)) >= 0;
+const estTexte = (f) => ext(f) === "txt" || (/^text\/plain/.test(f.type || "") && ext(f) !== "rtf");
+const convertible = (f) => estPdf(f) || estImage(f) || estWord(f) || estTableur(f) || estTexte(f);
+const SCRIPTS = {};
+const script = (url) => SCRIPTS[url] || (SCRIPTS[url] = new Promise((ok, ko) => { const e = document.createElement("script"); e.src = url; e.onload = ok; e.onerror = () => { delete SCRIPTS[url]; ko(new Error("Outil de conversion indisponible (connexion ?)")); }; document.head.appendChild(e); }));
+const CDN = "https://cdnjs.cloudflare.com/ajax/libs/";
+// Page HTML (Word, tableur, texte) → images A4 → PDF : mise en page à 96 ppp (A4 = 794 × 1123 px), coupée entre deux lignes de texte
+async function htmlEnPdf(html, paysage) {
+  await script(CDN + "html2canvas/1.4.1/html2canvas.min.js");
+  const W = paysage ? 1123 : 794, H = paysage ? 794 : 1123, d = document.createElement("div");
+  d.style.cssText = "position:fixed;left:-20000px;top:0;width:" + W + "px;padding:0 52px;box-sizing:border-box;background:#fff;color:#000;font:12.5px/1.45 Arial,Helvetica,sans-serif";
+  d.innerHTML = '<style>.cv img{max-width:100%}.cv table{border-collapse:collapse;max-width:100%}.cv td,.cv th{border:1px solid #999;padding:3px 6px;font-size:11px;vertical-align:top}.cv p{margin:0 0 6px}.cv h1,.cv h2,.cv h3{margin:8px 0}.cv pre{white-space:pre-wrap;font:12px/1.4 Arial}</style><div class="cv">' + html + "</div>";
+  document.body.appendChild(d);
+  try {
+    // marges de 48 px en haut et en bas de chaque page ; hp = hauteur de texte par page
+    const k = 1.6, c = await window.html2canvas(d, { scale: k, backgroundColor: "#ffffff", logging: false, useCORS: true }), g = c.getContext("2d"), mg = 48 * k, hp = H * k - 2 * mg, P = [];
+    // ligne blanche la plus proche au-dessus de la coupe (pour ne pas couper une ligne de texte en deux)
+    const coupe = (y) => { for (let z = y; z > y - 160 * k && z > 0; z -= 2) { const px = g.getImageData(0, z, c.width, 1).data; let blanc = true; for (let i = 0; i < px.length; i += 16) if (px[i] < 235 || px[i + 1] < 235 || px[i + 2] < 235) { blanc = false; break; } if (blanc) return z; } return y; };
+    for (let y = 0; y < c.height - 2;) {
+      const fin = y + hp >= c.height ? c.height : coupe(y + hp), h = Math.max(1, fin - y), pc = document.createElement("canvas");
+      pc.width = c.width; pc.height = H * k; const pg = pc.getContext("2d"); pg.fillStyle = "#fff"; pg.fillRect(0, 0, pc.width, pc.height); pg.drawImage(c, 0, y, c.width, h, 0, mg, c.width, h);
+      const b = await new Promise((ok) => pc.toBlob(ok, "image/jpeg", 0.8)); P.push({ data: new Uint8Array(await b.arrayBuffer()), w: pc.width, h: pc.height }); y = fin;
+    }
+    return pdfDePages(P);
+  } finally { d.remove(); }
+}
+const echapper = (t) => String(t).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+async function enPdf(f) {
+  if (estPdf(f)) return f;
+  const nom = String(f.name || "document").replace(/\.[^.]+$/, "") + ".pdf";
+  let b;
+  if (estImage(f)) b = await imagesEnPdf([f]);
+  else if (estWord(f)) { await script(CDN + "mammoth/1.6.0/mammoth.browser.min.js"); const r = await window.mammoth.convertToHtml({ arrayBuffer: await f.arrayBuffer() }); b = await htmlEnPdf(r.value || "<p>(document vide)</p>"); }
+  else if (estTableur(f)) {
+    await script(CDN + "xlsx/0.18.5/xlsx.full.min.js");
+    // CSV : lu comme texte UTF-8, valeurs gardées telles quelles (pas de dates retraduites) ; Excel : tel qu'affiché dans le fichier
+    const wb = ext(f) === "csv" ? window.XLSX.read(await f.text(), { type: "string", raw: true }) : window.XLSX.read(await f.arrayBuffer(), { type: "array" });
+    const html = wb.SheetNames.map((n) => (wb.SheetNames.length > 1 ? "<h3>" + echapper(n) + "</h3>" : "") + window.XLSX.utils.sheet_to_html(wb.Sheets[n], { header: "", footer: "" })).join("");
+    b = await htmlEnPdf(html, true);
+  } else if (estTexte(f)) b = await htmlEnPdf("<pre>" + echapper(await f.text()) + "</pre>");
+  else throw new Error("« " + f.name + " » : ce format ne peut pas être converti en PDF ici. Ouvrez-le et enregistrez-le en PDF (Word : Fichier › Enregistrer sous › PDF), puis déposez le PDF.");
+  if (b.size > MAX) throw new Error("« " + f.name + " » donne un PDF trop lourd (" + taille(b.size) + ") : 25 Mo au plus.");
+  return new File([b], nom, { type: "application/pdf" });
 }
 const titreDe = (fl) => fl.name.replace(/\.[^.]+$/, "").replace(/[_]+/g, " ");
 let TACHE = null;
@@ -226,8 +279,9 @@ window.fiEnvoyer = async () => {
       NV = null; A.fermerFenetre(); A.toast("Document PDF (" + L.length + " pages) ajouté au dossier."); A.pageDossier(x.id); return;
     }
     for (const fl of L) {
-      if (plusieurs) { $("fiEtape").classList.remove("cache"); $("fiEtape").textContent = "Fichier " + (faits + 1) + " / " + L.length + " : " + fl.name; $("fiBarre").style.width = "0%"; }
-      await envoyerUn(x, fl, plusieurs ? titreDe(fl) : titre, d, type); faits++;
+      $("fiEtape").classList.remove("cache"); $("fiEtape").textContent = (plusieurs ? "Fichier " + (faits + 1) + " / " + L.length + " : " : "") + (estPdf(fl) ? "envoi de " : "conversion en PDF de ") + fl.name + "…"; $("fiBarre").style.width = "0%";
+      const pf = await enPdf(fl); // tout est enregistré en PDF
+      await envoyerUn(x, pf, plusieurs ? titreDe(fl) : titre, d, type); faits++;
     }
     NV = null; A.fermerFenetre(); A.toast(plusieurs ? faits + " documents ajoutés au dossier." : "Document ajouté au dossier."); A.pageDossier(x.id);
   } catch (e) {
