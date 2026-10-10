@@ -319,6 +319,18 @@ exports.numerosManquants = onCall({ timeoutSeconds: 120, memory: "256MiB" }, asy
 const C = require("./cabinets");
 const { getAuth } = require("firebase-admin/auth");
 const estAdministrateur = async (uid) => !!uid && (await db.doc("administrateurs/" + uid).get()).exists;
+// ───── Journal de l'Administration (17.5, 10/10/2026) ─────
+// journalAdmin/{id} (serveur seulement, aucune règle) = { le, par, parEmail, type, espace, cabinet, txt } : une ligne par action du
+// compte d'administration (création, réglage, suspension, suppression, abonnement, packs, spécialité…) ou d'Onco360 (suspension
+// automatique). Écrit sans jamais bloquer l'action elle-même ; jamais de donnée médicale.
+const EMAILS = {};
+async function jAdmin(par, type, espace, cabinet, txt) {
+  try {
+    if (par && par !== "onco360" && !(par in EMAILS)) EMAILS[par] = await getAuth().getUser(par).then((u) => u.email || "").catch(() => "");
+    await db.collection("journalAdmin").add({ le: new Date(), par: par || "", parEmail: par === "onco360" ? "Onco360 (automatique)" : EMAILS[par] || "", type, espace: espace || "", cabinet: String(cabinet || "").slice(0, 120), txt: String(txt || "").slice(0, 500) });
+  } catch (e) { console.warn("journal de l'administration", e.message); }
+}
+const nomCab = async (e) => { try { const s = await db.doc("espaces/" + e).get(); return (s.exists && s.data().nom) || e; } catch (er) { return e; } };
 // Formules modifiées par l'administration : plateforme/formules (aucune règle : serveur seulement), sinon formules de départ
 async function formules() { try { const s = await db.doc("plateforme/formules").get(); return (s.exists && C.formulesValides(JSON.parse(s.data().data || "{}"))) || C.FORMULES; } catch (e) { return C.FORMULES; } }
 exports.compteMembre = onDocumentWritten({ document: "espaces/{e}/membres/{uid}", timeoutSeconds: 60, memory: "256MiB" }, async (ev) => {
@@ -397,6 +409,7 @@ exports.bibliothequeOuvrir = onCall({ timeoutSeconds: 120, memory: "256MiB" }, a
   const par = req.auth && req.auth.uid;
   if (!(await estAdministrateur(par))) throw new HttpsError("permission-denied", "Réservé à l'administration d'Onco360.");
   const B = C.BIBS.find((x) => x.id === (req.data || {}).bib); if (!B) throw new HttpsError("invalid-argument", "Bibliothèque inconnue.");
+  await jAdmin(par, "bibliotheque", B.id, "Bibliothèque " + B.lib, "Bibliothèque de référence ouverte pour modification");
   const ref = db.doc("espaces/" + B.id), s = await ref.get(), jour = new Date().toISOString().slice(0, 10), b = db.batch(), E = "espaces/" + B.id + "/";
   const moi = await getAuth().getUser(par);
   b.set(db.doc(E + "membres/" + par), { role: "medecin", nom: "Administration Onco360", email: moi.email || "", actif: true, tousEtablissements: true, etablissements: [], droits: Object.assign({}, C.DROITS_BIB), cree: jour, creePar: par });
@@ -478,6 +491,7 @@ exports.creerCabinet = onCall({ timeoutSeconds: 120, memory: "256MiB" }, async (
   if (f.mode === "essai") f.essaiFin = Fa.ajouterJours(jour, Fa.ESSAI_JOURS);
   if (f.mode === "mensuel" || f.mode === "annuel") f.echeance = jour; // à régler dès le premier paiement
   await db.doc("facturation/" + o.espace).set(Object.assign(f, { debut: jour, paiements: [], journal: [{ le: new Date().toISOString(), par, txt: "Cabinet créé : " + (Fa.MODES_FACT.find((m) => m[0] === f.mode) || [])[1] }] }));
+  await jAdmin(par, "creation", o.espace, d.cabinet, "Cabinet créé pour " + [d.prenom, d.nom].join(" ").trim() + " (" + d.email + ") · pack " + (((await formules())[(req.data || {}).formule] || {}).lib || (req.data || {}).formule || "") + " · " + ((Fa.MODES_FACT.find((m) => m[0] === f.mode) || [])[1] || f.mode) + (o.existant ? " · compte déjà existant" : ""));
   console.log("cabinet créé", o.espace, d.email, "par", par);
   return { espace: o.espace, existant: o.existant, protocoles: o.protocoles };
 });
@@ -510,6 +524,7 @@ exports.creerCabinetDemo = onCall({ timeoutSeconds: 300, memory: "512MiB" }, asy
   let d; try { d = C.verifier({ cabinet: "Cabinet de démonstration", prenom: "Démo", nom: "ONCO360", email: (req.data || {}).email, telephone: "" }); } catch (e) { throw new HttpsError("invalid-argument", e.message); }
   const o = await creerEspace(d, par, { id: DEMO, formule: "complet", espace: { demo: true, ville: "Casablanca" }, profil: { specialite: "Oncologue-radiothérapeute (démonstration)", inpe: "000000000" } });
   const r = await remplirDemo(o.espace, o.uid);
+  await jAdmin(par, "creation", o.espace, "Cabinet de démonstration", "Cabinet de démonstration créé (" + d.email + ", " + r.patients + " patients fictifs)");
   console.log("cabinet de démonstration créé", o.espace, d.email, "par", par);
   return { espace: o.espace, existant: o.existant, protocoles: o.protocoles, patients: r.patients };
 });
@@ -519,6 +534,7 @@ exports.demoReinitialiser = onCall({ timeoutSeconds: 300, memory: "512MiB" }, as
   const s = await db.doc("espaces/" + DEMO).get();
   if (!s.exists || s.data().demo !== true) throw new HttpsError("not-found", "Pas de cabinet de démonstration.");
   const r = await remplirDemo(DEMO, s.data().titulaire);
+  await jAdmin(par, "demo", DEMO, s.data().nom || "Cabinet de démonstration", "Démonstration réinitialisée (" + r.patients + " patients fictifs)");
   console.log("démonstration réinitialisée par", par);
   return r;
 });
@@ -568,6 +584,7 @@ exports.etatCabinet = onCall({ timeoutSeconds: 30, memory: "256MiB" }, async (re
   const ref = db.doc("espaces/" + espace); if (!(await ref.get()).exists) throw new HttpsError("not-found", "Cabinet introuvable.");
   const le = new Date().toISOString();
   await ref.update(actif ? { actif: true, suspenduLe: FieldValue.delete(), reactiveLe: le, etatPar: par } : { actif: false, suspenduLe: le, etatPar: par });
+  await jAdmin(par, actif ? "reactivation" : "suspension", espace, await nomCab(espace), actif ? "Cabinet réactivé" : "Cabinet suspendu");
   console.log("cabinet", espace, actif ? "réactivé" : "suspendu", "par", par);
   return { actif: !!actif };
 });
@@ -597,6 +614,8 @@ exports.supprimerCabinet = onCall({ timeoutSeconds: 300, memory: "512MiB" }, asy
   await db.recursiveDelete(ref);
   await db.recursiveDelete(db.doc("audit/" + espace)).catch((e) => console.warn("journal", e.message)); // son journal d'audit aussi
   await getStorage().bucket().deleteFiles({ prefix: "espaces/" + espace + "/" }).catch((e) => console.warn("fichiers", e.message));
+  await db.doc("facturation/" + espace).delete().catch(() => {});
+  await jAdmin(par, "suppression", espace, x.nom || espace, "Cabinet supprimé définitivement (" + membres.size + " membre(s), " + comptes.length + " compte(s) effacé(s))");
   console.log("cabinet supprimé", espace, x.nom, "par", par, "comptes supprimés", comptes.length);
   return { comptes: comptes.length };
 });
@@ -609,7 +628,9 @@ exports.lienMotDePasse = onCall({ timeoutSeconds: 30, memory: "256MiB" }, async 
   let u; try { u = await getAuth().getUserByEmail(email); } catch (e) { throw new HttpsError("not-found", "Compte introuvable."); }
   const c = await db.doc("comptes/" + u.uid).get(), e = c.exists ? c.data().espace : "";
   if (!e || e === C.MODELE || (await titulaire(e)) !== u.uid || (await estAdministrateur(u.uid))) throw new HttpsError("permission-denied", "Lien possible seulement pour le médecin titulaire d'un cabinet créé ici.");
-  return { lien: await getAuth().generatePasswordResetLink(email, { url: "https://chimio-hgc.web.app" }) };
+  const lien = await getAuth().generatePasswordResetLink(email, { url: "https://chimio-hgc.web.app" });
+  await jAdmin(req.auth.uid, "acces", e, await nomCab(e), "Lien du mot de passe créé pour " + email);
+  return { lien };
 });
 // Formule et modules d'un cabinet (page Administration) : espaces/{e}.abonnement, nettoyé par cabinets.js. Un module retiré est
 // caché dans Onco360, ses données sont gardées. Possible aussi pour le cabinet de Dr Bentahila.
@@ -621,6 +642,7 @@ exports.abonnementCabinet = onCall({ timeoutSeconds: 30, memory: "256MiB" }, asy
   // Pack + retouches du cabinet (ordre, cartes, onglets, fonctions… ; identiqueAuPack : réglage égal à celui du pack)
   const ab = Object.assign(C.abonnement(req.data || {}, await formules()), { le: new Date().toISOString(), par });
   await ref.update({ abonnement: ab });
+  await jAdmin(par, "reglage", espace, await nomCab(espace), "Réglage du cabinet : pack " + (((await formules())[ab.formule] || {}).lib || ab.formule) + (ab.retouche ? " avec retouches" : "") + " · " + C.MODULES.filter((k) => ab.modules[k]).length + " module(s)");
   console.log("abonnement", espace, ab.formule, ab.surMesure ? "(sur mesure)" : "", "par", par);
   return { abonnement: ab };
 });
@@ -643,6 +665,7 @@ exports.formulesEnregistrer = onCall({ timeoutSeconds: 60, memory: "256MiB" }, a
     ["fiche", "consultation"].forEach((q) => { if (ab0.reglage && ab0.reglage[q]) ab.reglage = Object.assign({}, ab.reglage || {}, { [q]: ab0.reglage[q] }); }); // retouches de la fiche patient et de la consultation gardées
     await d.ref.update({ abonnement: ab });
   }
+  await jAdmin(par, "packs", "", "", "Packs enregistrés (" + Object.values(FS).map((f) => f.lib).join(", ") + ")" + (maj.length ? " · " + maj.length + " cabinet(s) mis à jour" : ""));
   console.log("formules enregistrées par", par, Object.keys(FS).join(", "), "cabinets mis à jour", maj.length);
   return { formules: FS, cabinets: maj.length };
 });
@@ -656,6 +679,7 @@ exports.infosCabinet = onCall({ timeoutSeconds: 30, memory: "256MiB" }, async (r
   await ref.update({ nom: d.nom, ville: d.ville, adresse: d.adresse, telephone: d.telephone, infosLe: new Date().toISOString(), infosPar: par });
   const tit = s.data().titulaire;
   if (tit && d.titulaireNom) await ref.collection("membres").doc(tit).update({ nom: d.titulaireNom, telephone: d.titulaireTel }).catch((e) => console.warn("titulaire", e.message));
+  await jAdmin(par, "infos", s.id, d.nom, "Informations modifiées" + (s.data().nom !== d.nom ? " (ancien nom : " + s.data().nom + ")" : ""));
   console.log("infos du cabinet", s.id, "par", par);
   return { ok: true };
 });
@@ -753,6 +777,7 @@ exports.ficheSpecialite = onCall({ timeoutSeconds: 120, memory: "256MiB" }, asyn
   await ref.set(tout);
   const FS = await formules(), bib = C.bibDe(spe), es = await db.collection("espaces").get(); let n = 0;
   for (const e of es.docs) { if (C.estBib(e.id) || bibDuCabinet(e.data(), FS) !== bib) continue; await e.ref.update({ [CHAMP_ESPACE[quoi]]: fiche }); n++; }
+  await jAdmin(par, "specialite", "", "", (quoi === "consultation" ? "Formulaire de consultation" : "Fiche patient") + " de « " + spe + " » enregistré · " + n + " cabinet(s) mis à jour");
   console.log(quoi, "de la spécialité", spe, "par", par, n, "cabinet(s)");
   return { cabinets: n, fiche };
 });
@@ -786,6 +811,7 @@ exports.facturationCabinet = onCall({ timeoutSeconds: 30, memory: "256MiB" }, as
   } else throw new HttpsError("invalid-argument", "Action inconnue.");
   f.journal = (f.journal || []).concat(jr.map((txt) => ({ le, par, txt }))).slice(-300); f.maj = le;
   await ref.set(f);
+  await jAdmin(par, "abonnement", e, se.data().nom || e, jr.join(" · "));
   console.log("facturation", e, d.action, "par", par);
   return { facturation: f, actif: d.action === "paiement" ? true : se.data().actif !== false };
 });
@@ -801,7 +827,18 @@ exports.abonnementsNuit = onSchedule({ schedule: "0 4 * * *", timeZone: "Africa/
     const le = new Date().toISOString();
     await esp.update({ actif: false, suspenduLe: le, etatPar: "onco360" });
     await d.ref.update({ suspenduPour: et.fin, journal: FieldValue.arrayUnion({ le, par: "onco360", txt: "Suspendu automatiquement : échéance du " + et.fin + " non payée depuis " + et.jours + " jours" }) });
+    await jAdmin("onco360", "suspension", d.id, se.data().nom || d.id, "Suspendu automatiquement : échéance du " + et.fin + " non payée depuis " + et.jours + " jours");
     n++; console.log("abonnement : cabinet suspendu pour retard", d.id, et.fin, et.jours, "j");
   }
   console.log("abonnementsNuit :", n, "cabinet(s) suspendu(s)");
+});
+// Lecture du journal de l'Administration (onglet Journal) : période (du, au : AAAA-MM-JJ), au plus 2 000 lignes, la plus récente d'abord
+exports.journalAdmin = onCall({ timeoutSeconds: 60, memory: "256MiB" }, async (req) => {
+  if (!(await estAdministrateur(req.auth && req.auth.uid))) throw new HttpsError("permission-denied", "Réservé à l'administration d'Onco360.");
+  const d = req.data || {}, ok = (x) => typeof x === "string" && /^\d{4}-\d{2}-\d{2}$/.test(x);
+  let q = db.collection("journalAdmin");
+  if (ok(d.du)) q = q.where("le", ">=", new Date(d.du + "T00:00:00Z"));
+  if (ok(d.au)) q = q.where("le", "<", new Date(new Date(d.au + "T00:00:00Z").getTime() + 86400000));
+  const s = await q.orderBy("le", "desc").limit(2000).get();
+  return { lignes: s.docs.map((x) => { const l = x.data(); return Object.assign({}, l, { id: x.id, le: l.le && l.le.toDate ? l.le.toDate().toISOString() : String(l.le || "") }); }) };
 });

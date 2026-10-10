@@ -14,7 +14,7 @@ const $ = (i) => document.getElementById(i);
 const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const dfr = (d) => (typeof d === "string" && d.length >= 10 ? d.slice(8, 10) + "/" + d.slice(5, 7) + "/" + d.slice(0, 4) : "");
 const sansAcc = (x) => String(x || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
-const ONGLETS = [["cabinets", "Cabinets"], ["nouveau", "Nouveau cabinet"], ["specialites", "Par spécialité"], ["modules", "Modules"]];
+const ONGLETS = [["cabinets", "Cabinets"], ["nouveau", "Nouveau cabinet"], ["specialites", "Par spécialité"], ["modules", "Modules"], ["journal", "Journal"]];
 // CABINETS : liste (null = chargement) ; FS : packs (formules) enregistrés (sinon ceux de départ)
 let SPES = {}; // fiche patient de chaque spécialité { nom: { fiche, le } } (plateforme/specialites)
 let CABINETS = null, FS = null, BIBS = null, // BIBS : bibliothèques de référence par spécialité (null = pas encore lues)
@@ -24,7 +24,7 @@ const ONG = () => { const h = location.hash.replace("#", ""); return h === "form
 
 async function serveur(nom, donnees) {
   const { getFunctions, httpsCallable } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js");
-  try { return (await httpsCallable(getFunctions(app, "europe-west1"), nom, { timeout: 120000 })(donnees || {})).data; }
+  try { const r = (await httpsCallable(getFunctions(app, "europe-west1"), nom, { timeout: 120000 })(donnees || {})).data; if (nom !== "journalAdmin" && nom !== "listeCabinets") JL = null; return r; } // une action : le journal sera relu
   catch (e) { throw new Error(String((e && e.message) || e).replace(/^(FirebaseError: )?/, "")); }
 }
 
@@ -72,9 +72,9 @@ function dessiner() {
   const o = ONG();
   $("onglets").innerHTML = ONGLETS.map(([k, lib]) => '<a href="#' + k + '" class="' + (k === o ? "on" : "") + '">' + esc(lib) + (k === "cabinets" && CABINETS ? ' <span class="nb">' + CABINETS.length + "</span>" : "") + "</a>").join("");
   const bandeau = RES ? '<div class="ok bandeau">' + RES + '<button class="x" id="resX" aria-label="Fermer">✕</button></div>' : "";
-  $("page").innerHTML = bandeau + (o === "nouveau" ? htmlNouveau() : o === "specialites" ? htmlSpecialites() : o === "modules" ? htmlModules() : htmlCabinets());
+  $("page").innerHTML = bandeau + (o === "nouveau" ? htmlNouveau() : o === "specialites" ? htmlSpecialites() : o === "modules" ? htmlModules() : o === "journal" ? htmlJournal() : htmlCabinets());
   if ($("resX")) $("resX").onclick = () => { RES = ""; dessiner(); };
-  if (o === "nouveau") brancherNouveau(); else if (o === "specialites") brancherSpecialites(); else if (o === "modules") brancherModules(); else brancherCabinets();
+  if (o === "nouveau") brancherNouveau(); else if (o === "specialites") brancherSpecialites(); else if (o === "modules") brancherModules(); else if (o === "journal") brancherJournal(); else brancherCabinets();
 }
 
 // ───── Onglet Cabinets : chiffres, recherche, filtres, cartes ─────
@@ -130,7 +130,7 @@ function carteCabinet(c) {
     blocAbonnement(c) +
     '<div class="m">Créé le ' + esc(dfr(c.cree) || "—") + (c.activite ? " · dernière activité : " + esc(ilYa(c.activite.derniere)) + (c.activite.par ? " (" + esc(c.activite.par) + ")" : "") + " · " + (c.activite.n30 || 0) + " action" + ((c.activite.n30 || 0) > 1 ? "s" : "") + " en 30 jours" : "") + "</div>" +
     // Actions regroupées (17.3) : gérer · accès · zone sensible
-    '<div class="act-g"><div><span class="m">Gérer</span>' + (c.demo ? '<button class="clair petit" data-reinit="' + esc(c.id) + '">Réinitialiser la démo</button>' : "") + '<button class="clair petit" data-info="' + esc(c.id) + '">Modifier</button><button class="clair petit" data-form="' + esc(c.id) + '">Réglage du cabinet</button></div>' +
+    '<div class="act-g"><div><span class="m">Gérer</span>' + (c.demo ? '<button class="clair petit" data-reinit="' + esc(c.id) + '">Réinitialiser la démo</button>' : "") + '<button class="clair petit" data-info="' + esc(c.id) + '">Modifier</button><button class="clair petit" data-form="' + esc(c.id) + '">Réglage du cabinet</button><button class="clair petit" data-jcab="' + esc(c.id) + '" title="Actions de l\'administration sur ce cabinet">Journal</button></div>' +
     (c.modele || !c.titulaire.email ? "" : '<div><span class="m">Accès du médecin</span><button class="clair petit" data-lien="' + esc(c.id) + '">Lien du mot de passe</button><button class="clair petit" data-mail="' + esc(c.titulaire.email) + '">Renvoyer l\'e-mail</button></div>') +
     (c.modele ? "" : '<div class="sensible"><span class="m">Zone sensible</span>' + (c.actif ? '<button class="clair petit rouge-t" data-susp="' + esc(c.id) + '">Suspendre</button>' : '<button class="clair petit" data-react="' + esc(c.id) + '">Réactiver</button><button class="rouge petit" data-suppr="' + esc(c.id) + '">Supprimer</button>') + "</div>") +
     "</div></article>";
@@ -214,6 +214,7 @@ function brancherActions(R) {
   on("[data-suppr]", (b) => supprimer(b, cab(b.dataset.suppr)));
   on("[data-reinit]", (b) => reinitDemo(b));
   on("[data-paye]", (b) => ouvrirPaiement(cab(b.dataset.paye)));
+  on("[data-jcab]", (b) => { JF = Object.assign(JF, { cab: b.dataset.jcab, periode: "tout" }); JL = null; fermer(true); location.hash = "journal"; });
   on("[data-abo]", (b) => ouvrirAbonnement(cab(b.dataset.abo)));
   on("[data-rp]", async (b) => { const [id, pid] = b.dataset.rp.split(":"), c = cab(id), p = c && ((c.facturation || {}).paiements || []).find((x) => x.id === pid); if (!p || !confirm("Retirer le paiement du " + dfr(p.d) + " (" + dh(p.m) + ") ?")) return;
     b.disabled = true; try { await envoyerFacturation(c, { action: "retirerPaiement", id: pid }, "Paiement retiré."); } catch (e) { b.disabled = false; alert("Impossible : " + e.message); } });
@@ -547,6 +548,46 @@ async function supprimer(b, c) {
 const famille = (id) => (BIBLIOTHEQUES_SPE.find((b) => b.id === id) || {}).lib || id;
 const bibDe = (spe) => (BIBLIOTHEQUES_SPE.find((b) => b.specialites.indexOf(spe) >= 0) || BIBLIOTHEQUES_SPE[0]).id;
 const modulePour = (k, spe) => !MODULE_FAMILLE[k] || MODULE_FAMILLE[k] === bibDe(spe || SPECIALITES[0]);
+// ───── Onglet Journal (17.5, 10/10/2026) : actions du compte d'administration et d'Onco360 (suspension automatique) ─────
+// Lu par la fonction journalAdmin (période) ; filtres cabinet, type, recherche ; export pour Excel.
+const TYPES_J = [["creation", "Création"], ["reglage", "Réglage"], ["infos", "Informations"], ["abonnement", "Abonnement"], ["suspension", "Suspension"], ["reactivation", "Réactivation"], ["suppression", "Suppression"], ["acces", "Accès du médecin"], ["packs", "Packs"], ["specialite", "Spécialité"], ["bibliotheque", "Bibliothèque"], ["demo", "Démonstration"]];
+const BADGE_J = { creation: "ok", reactivation: "ok", suspension: "al", suppression: "al", abonnement: "", reglage: "", packs: "demo", specialite: "demo", bibliotheque: "demo" };
+let JL = null, JERR = "", JF = { periode: "30", cab: "", type: "", q: "" };
+const periodeJ = () => { const n = { "7": 7, "30": 30, "90": 90, "365": 365 }[JF.periode]; return n ? { du: new Date(Date.now() - (n - 1) * 86400000).toISOString().slice(0, 10) } : {}; };
+async function chargerJournal() {
+  try { const o = await serveur("journalAdmin", periodeJ()); JL = o.lignes || []; JERR = ""; } catch (e) { JL = []; JERR = e.message; }
+  if (ONG() === "journal") dessiner();
+}
+const lignesJ = () => { const m = sansAcc(JF.q).split(/\s+/).filter(Boolean);
+  return (JL || []).filter((l) => (!JF.cab || l.espace === JF.cab) && (!JF.type || l.type === JF.type) && m.every((w) => sansAcc([l.cabinet, l.txt, l.parEmail].join(" ")).indexOf(w) >= 0)); };
+function htmlJournal() {
+  if (JL === null) { JL = undefined; chargerJournal(); }
+  if (!JL) return '<section class="carte"><p class="sous">Chargement du journal…</p></section>';
+  const L = lignesJ(), cabs = [...new Map((JL || []).filter((l) => l.espace).map((l) => [l.espace, l.cabinet || l.espace])).entries()].sort((a, b) => String(a[1]).localeCompare(String(b[1])));
+  if (JF.cab && !cabs.some(([k]) => k === JF.cab)) cabs.push([JF.cab, (cab(JF.cab) || {}).nom || JF.cab]);
+  const lib = (t) => (TYPES_J.find((x) => x[0] === t) || [t, t])[1];
+  return '<section class="carte"><h2>Journal de l\'Administration</h2><p class="sous">Qui a créé, réglé, suspendu, supprimé quel cabinet, et quand ; paiements, packs, fiche et consultation des spécialités ; suspensions automatiques. Aucune donnée médicale. Tout est gardé.</p>' +
+    '<div class="barre" style="margin-top:10px"><select id="jPer" aria-label="Période">' + [["7", "7 derniers jours"], ["30", "30 derniers jours"], ["90", "3 derniers mois"], ["365", "12 derniers mois"], ["tout", "Tout"]].map(([k, l]) => '<option value="' + k + '"' + (JF.periode === k ? " selected" : "") + ">" + l + "</option>").join("") + "</select>" +
+    '<select id="jCab" aria-label="Cabinet"><option value="">Tous les cabinets</option>' + cabs.map(([k, n]) => '<option value="' + esc(k) + '"' + (JF.cab === k ? " selected" : "") + ">" + esc(n) + "</option>").join("") + "</select>" +
+    '<select id="jType" aria-label="Type"><option value="">Toutes les actions</option>' + TYPES_J.map(([k, l]) => '<option value="' + k + '"' + (JF.type === k ? " selected" : "") + ">" + l + "</option>").join("") + "</select>" +
+    '<input id="jQ" type="search" placeholder="Rechercher…" value="' + esc(JF.q) + '" aria-label="Rechercher"><button class="clair" id="jExp"' + (L.length ? "" : " disabled") + ">Exporter (Excel)</button></div>" +
+    (JERR ? '<p class="err">Journal indisponible : ' + esc(JERR) + "</p>" : "") +
+    '<p class="sous" style="margin:10px 0 0">' + L.length + " action" + (L.length > 1 ? "s" : "") + (L.length !== JL.length ? " sur " + JL.length : "") + "</p>" +
+    (L.length ? '<div class="tableau"><table class="lc jr"><thead><tr><th>Date</th><th>Action</th><th>Cabinet</th><th>Détail</th><th>Par</th></tr></thead><tbody>' + L.map((l) => '<tr><td data-l="Date" class="dt">' + esc(new Date(l.le).toLocaleDateString("fr-FR")) + '<div class="m">' + esc(new Date(l.le).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })) + '</div></td><td data-l="Action"><span class="bdg ' + (BADGE_J[l.type] || "") + '">' + esc(lib(l.type)) + '</span></td><td data-l="Cabinet">' + (l.cabinet ? esc(l.cabinet) : '<span class="m">—</span>') + '</td><td data-l="Détail">' + esc(l.txt) + '</td><td data-l="Par" class="m">' + esc(l.parEmail || l.par || "") + "</td></tr>").join("") + "</tbody></table></div>"
+      : '<p class="sous">Aucune action pour ces filtres' + (JF.periode !== "tout" ? " (essayez « Tout »)" : "") + ".</p>") + "</section>";
+}
+function brancherJournal() {
+  if (!$("jPer")) return;
+  $("jPer").onchange = () => { JF.periode = $("jPer").value; JL = null; dessiner(); };
+  $("jCab").onchange = () => { JF.cab = $("jCab").value; dessiner(); };
+  $("jType").onchange = () => { JF.type = $("jType").value; dessiner(); };
+  $("jQ").oninput = () => { JF.q = $("jQ").value; const pos = $("jQ").selectionStart; dessiner(); $("jQ").focus(); $("jQ").setSelectionRange(pos, pos); };
+  $("jExp").onclick = () => {
+    const c = (v) => '"' + String(v == null ? "" : v).replace(/"/g, '""') + '"', lib = (t) => (TYPES_J.find((x) => x[0] === t) || [t, t])[1];
+    const csv = "\ufeff" + ["Date;Heure;Action;Cabinet;Détail;Par"].concat(lignesJ().map((l) => [new Date(l.le).toLocaleDateString("fr-FR"), new Date(l.le).toLocaleTimeString("fr-FR"), lib(l.type), l.cabinet, l.txt, l.parEmail || l.par].map(c).join(";"))).join("\r\n");
+    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" })); a.download = "Journal-administration-" + JOUR() + ".csv"; document.body.appendChild(a); a.click(); a.remove();
+  };
+}
 // ───── Onglet Modules (10/10/2026) : tous les modules d'Onco360, toutes spécialités confondues ─────
 // Parties de base (toujours là), modules activables (packs, cabinets) et modules prévus (à construire) ; pour chacun : spécialités,
 // place dans Onco360, fonctions (de base, reliées, bientôt), packs et cabinets qui l'ont.

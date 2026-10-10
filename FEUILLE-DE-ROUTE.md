@@ -1168,6 +1168,12 @@ Modules et menus, Bibliothèques et paramètres ; cabinets en liste ; onglet lis
       `functions/facturation.js` = `public/js/donnees/facturation.js`. Cabinets déjà créés : « Non suivi » tant que leur abonnement
       n'est pas réglé dans leur fiche.
       Tests `tests/test_abonnements.py` 19/19, serveur 69/69, règles 193.
+- [x] **17.5 Journal de l'Administration** (10/10) : chaque action du compte d'administration est notée par le serveur
+      (`jAdmin` → `journalAdmin/{id}`, serveur seulement : règles) : création de cabinet et de démonstration, réglage, informations,
+      abonnement et paiements, suspension, réactivation, suppression, lien du mot de passe, packs, fiche et consultation des
+      spécialités, ouverture d'une bibliothèque, et les suspensions automatiques d'Onco360. Onglet **Journal** (période, cabinet,
+      type, recherche, export pour Excel) ; bouton « Journal » dans la fiche d'un cabinet. Rien n'est noté avant le 10/10/2026.
+      Tests `tests/test_journal.py` 10/10, règles + 2.
 - [ ] 16.5 Nouvelle spécialité (copie ou vide) ; Médecine générale, Gynécologie prêtes pour l'étape 14.
 
 ## Étape 14 – Autres spécialités (demandé le 09/10/2026) : nouveaux modules et leurs formules
@@ -1431,3 +1437,4 @@ Onco360_Package_Cession/
 | 10/10/2026 | Audit de l'Administration | Tous les écrans revus (ordinateur et téléphone) : 9 corrections, 9 améliorations, 5 ajouts ; plan 17.1 à 17.5 puis 16.5 dans `AUDIT-ADMINISTRATION.md` (à valider par Dr Bentahila). |
 | 10/10/2026 | 17.1 et 17.2 | Corrections de l'audit (A1 à A9) et nouvelle fenêtre de réglage (sous-onglets, Enregistrer toujours visible, retouché / revenir au pack). Tests au vert, bilan 352 317 DH. Mis en ligne. |
 | 10/10/2026 | 17.3 et 17.4 | Liste des cabinets (tuiles, tri, activité, fiche regroupée) et abonnements (prix des packs, essai 30 j, gratuit, paiements, suspension automatique après 30 j de retard). Tests au vert, bilan 352 317 DH. Mis en ligne. |
+| 10/10/2026 | 17.5 Journal de l'Administration | Toutes les actions de l'administration (et suspensions automatiques) notées par le serveur ; onglet Journal avec filtres et export. Mis en ligne. |

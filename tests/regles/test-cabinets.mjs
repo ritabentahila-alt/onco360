@@ -90,6 +90,9 @@ await cas("le titulaire d'un cabinet ne lit pas son abonnement", async () => { a
 await cas("ni ne l'écrit (prix, échéance)", async () => { await assertFails(setDoc(doc(db("DRB"), "facturation/cab-autre"), { mode: "gratuit" })); });
 await cas("Dr Bentahila ne lit pas l'abonnement d'un autre cabinet", async () => { await fact(); await assertFails(getDoc(doc(db("RITA"), "facturation/cab-autre"))); });
 await cas("le compte d'administration non plus depuis le navigateur (fonction serveur)", async () => { await fact(); await assertFails(getDoc(doc(db("ADM"), "facturation/cab-autre"))); });
+console.log("Journal de l'Administration (journalAdmin, 17.5) : serveur seulement");
+await cas("un cabinet ne lit pas le journal de l'administration", async () => { await env.withSecurityRulesDisabled(async (c) => { await setDoc(doc(c.firestore(), "journalAdmin/j1"), { type: "suspension", espace: "cab-autre" }); }); await assertFails(getDoc(doc(db("DRB"), "journalAdmin/j1"))); await assertFails(getDocs(collection(db("RITA"), "journalAdmin"))); });
+await cas("personne n'y écrit depuis le navigateur (pas même l'administration)", async () => { await assertFails(setDoc(doc(db("ADM"), "journalAdmin/j2"), { type: "creation" })); await assertFails(setDoc(doc(db("RITA"), "journalAdmin/j3"), { type: "creation" })); });
 console.log("\n" + ok + " réussis, " + ko + " échoués");
 await env.cleanup();
 if (ko) process.exit(1);

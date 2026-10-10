@@ -23,7 +23,7 @@ Après déploiement : recharger sans cache (Cmd + Maj + R). Les `.js` sont servi
 | Fichier | Rôle |
 |---|---|
 | `index.html` | connexion Firebase Auth → `v2.html` (compte d'administration → `admin.html`) |
-| `admin.html` + `js/app/admin.js` | Administration : onglets Cabinets (liste, fiche, réglage du cabinet, équipe, démo, suspendre…), Nouveau cabinet, Par spécialité (packs avec réglage complet `editeurReglage`, bibliothèque et paramètres : fiche patient, formulaire de consultation), Modules (tous les modules, `MODULES_BASE` / MODULES / MODULES_PREVUS, lecture seule) |
+| `admin.html` + `js/app/admin.js` | Administration : onglets Cabinets (liste, fiche, réglage du cabinet, équipe, démo, suspendre…), Nouveau cabinet, Par spécialité (packs avec réglage complet `editeurReglage`, bibliothèque et paramètres : fiche patient, formulaire de consultation), Modules (tous les modules, `MODULES_BASE` / MODULES / MODULES_PREVUS, lecture seule), Journal (actions de l'administration) |
 | `v2.html` | Onco360 : structure, CSS complet, symboles SVG, logo |
 | `js/config.js` | initialisation Firebase (clé web publique, normal) |
 | `js/app/v2.js` | chargement, tableau de bord, patients, dossier, identité, RDV (prix « Venu »), radiothérapie (dosimétrie, documents), WhatsApp, routage, droits |
@@ -125,6 +125,8 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
   (vide = prix du pack), essaiFin, echeance, paiements [{ id, d, m, periode, moyen, ref, avant, apres }], journal, suspenduPour } ; fonctions
   `facturationCabinet` (admin) et `abonnementsNuit` (4 h : suspension 30 j après l'échéance, jamais cabinet-bentahila / démo / gratuit) ;
   prix des packs `prix { mois, an }` (`PRIX0`) ; logique `functions/facturation.js` = `public/js/donnees/facturation.js` (même code, test).
+- **Journal de l'Administration (17.5)** : `journalAdmin/{id}` (racine, serveur seulement) = { le, par, parEmail, type, espace, cabinet, txt },
+  écrit par `jAdmin` dans chaque fonction d'administration (et `abonnementsNuit`), lu par la fonction `journalAdmin` (onglet Journal de admin.js).
 - **Journal d'audit (09/10/2026)** : `audit/{e}/lignes/{idÉvénement}` = { type creation|modification|suppression|ouverture, col, lib,
   docId, element, quoi [parties touchées, sans valeurs], patientId, patientNom, par, parNom, parRole, via onco360|serveur, pour, le },
   écrit par la fonction `auditEcriture` seulement (identité réelle ; logique `functions/audit.js`) ; lu par le titulaire
