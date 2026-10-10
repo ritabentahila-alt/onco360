@@ -576,7 +576,7 @@ function pageAccueil() {
   carte("taches", () => { if (module("taches")) h += blocTaches(); }); // Mes tâches (étape T4)
   // Rappels WhatsApp à envoyer (19.4) : ceux de la fenêtre du bouton vert, avec ceux déjà envoyés (qui, quand)
   carte("rappels", () => {
-    if (!fnOn("agenda.whatsapp") || !peut("rendezvous")) return;
+    if (!fnOn("agenda.whatsapp") || !peut("rendezvous") || D.membre.role !== "assistante") return; // la secrétaire les envoie, pas le médecin
     const L = rappelsAEnvoyer(); if (!L.length) return; const n = L.filter((o) => !o.env && o.tel).length;
     h += '<section class="carte" data-fn="agenda.whatsapp"><h3><span class="ic">' + ic("whatsapp") + "</span>Rappels WhatsApp" + '<span class="badge ' + (n ? "b-or" : "b-ch") + '" style="margin-left:8px">' + (n ? n + " à envoyer" : "tous envoyés") + "</span></h3>" +
       '<p class="sous">Rendez-vous, cures et séances dans ' + (reglages().whatsapp.de * 24) + " à " + (reglages().whatsapp.a * 24) + " h. Un clic ouvre WhatsApp avec le message prêt ; le rappel est ensuite noté envoyé.</p>" +

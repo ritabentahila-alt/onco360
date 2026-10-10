@@ -400,9 +400,10 @@ function dessiner() {
   // Total du jour (établissement choisi), sans les absents : encaissé (vus, prix validé) et prévu (le reste, au tarif)
   if (voitPrix()) {
     // non payé (19.5, lieux « payé au cabinet ») : vu mais pas encaissé, compté à part
-    let enc = 0, prev = 0, nv = 0, np = 0;
-    L.forEach((z) => { const p = prixDe(z); if (!p) return; if (z.etat === "vu") { if (p.ok && p.np) np += p.m || 0; else if (p.ok) enc += p.m || 0; else nv++; } else prev += p.m || 0; });
-    $("saTot").innerHTML = '<div class="sa-tot"><span>Encaissé (vus) : <b>' + A.fmtMil(enc) + " DH</b></span>" + (np ? '<span style="color:var(--orange)">Non payé : <b>' + A.fmtMil(np) + " DH</b></span>" : "") + "<span>Prévu (restant) : <b>" + A.fmtMil(prev) + " DH</b></span>" + (nv ? '<span class="mesures">' + nv + " consultation" + (nv > 1 ? "s" : "") + " vue" + (nv > 1 ? "s" : "") + " sans prix</span>" : "") + "</div>";
+    // lieux payés par l'établissement (virement, ex. HCK) : comptés dans les vus, pour que le médecin les voie, et montrés à part
+    let enc = 0, prev = 0, nv = 0, np = 0, etb = 0;
+    L.forEach((z) => { const p = prixDe(z); if (!p) return; if (z.etat === "vu") { if (p.ok && p.np) np += p.m || 0; else if (p.ok) { enc += p.m || 0; if (!A.payeCabinet(z.x)) etb += p.m || 0; } else nv++; } else prev += p.m || 0; });
+    $("saTot").innerHTML = '<div class="sa-tot"><span>Encaissé (vus) : <b>' + A.fmtMil(enc) + " DH</b>" + (etb && etb < enc ? ' <span class="mesures">dont ' + A.fmtMil(etb) + " DH payés par l'établissement</span>" : etb ? ' <span class="mesures">(payé par l\'établissement)</span>' : "") + "</span>" + (np ? '<span style="color:var(--orange)">Non payé : <b>' + A.fmtMil(np) + " DH</b></span>" : "") + "<span>Prévu (restant) : <b>" + A.fmtMil(prev) + " DH</b></span>" + (nv ? '<span class="mesures">' + nv + " consultation" + (nv > 1 ? "s" : "") + " vue" + (nv > 1 ? "s" : "") + " sans prix</span>" : "") + "</div>";
   } else $("saTot").innerHTML = "";
   window.scrollTo(0, sc);
 }
