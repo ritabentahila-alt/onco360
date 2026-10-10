@@ -1230,8 +1230,8 @@ Décisions de Dr Bentahila (10/10) :
 - médicament absent de la liste : « Ligne libre » dans Médic. (pour tous) **et** la secrétaire peut ajouter un médicament à la liste ;
 - elle **modifie** (complété le 10/10) : fermetures, congés et jours fériés, créneaux et horaires (de ses lieux), messages
   WhatsApp et bouton vert, tout l'onglet RCP (si le médecin le lui demande), listes, types de tâches et de documents, impression,
-  alertes et temps d'attente de la salle ; **lecture seule** : tâches automatiques, couleurs de Google Agenda, bibliothèques (sauf
-  ajout d'un médicament) ;
+  alertes et temps d'attente de la salle, **couleurs de son Google Agenda** (c'est le sien) ; **lecture seule** : tâches
+  automatiques, bibliothèques (sauf ajout d'un médicament) ;
 - Google Agenda : elle relie le sien et coche, **par médecin** (donc par cabinet, 19.2), ce qu'elle veut y voir ;
 - chimio : elle **valide le poids** de la séance prévue du jour (elle voit le patient avant).
 
@@ -1251,14 +1251,24 @@ Décisions de Dr Bentahila (10/10) :
       du médecin ; « Poids validé par … le … » affiché ; doses recalculées.
 - [ ] Documents : le dépôt marche dans le test avec les droits par défaut. Si la secrétaire ne peut toujours pas déposer : vérifier
       la case « Documents » de sa grille (Profil & Paramètres › Accès) et noter le message affiché.
-- [ ] Mise en ligne (règles + site ; fonctions pour `creerMembre`).
+- [ ] Mise en ligne (avec 19.2).
 
-**19.2 – Une secrétaire, plusieurs cabinets** (à faire, une session)
-- [ ] `comptes/{uid}` avec plusieurs cabinets ; `creerMembre` accepte une adresse déjà utilisée par une secrétaire d'un autre
-      cabinet (avec l'accord du titulaire qui l'ajoute) ; menu « Cabinet du Dr … » en haut de l'écran ; tout (patients, agenda,
-      paramètres, tâches, RCP, Google Agenda) suit le cabinet choisi ; règles et tests d'étanchéité.
-- [ ] Google Agenda de la secrétaire : elle coche par médecin (cabinet) ce qu'elle veut y voir ; un agenda par cabinet ou un seul
-      pour tous (à décider).
+**19.2 – Une secrétaire, plusieurs cabinets** (fait et testé le 10/10, pas encore en ligne)
+- [x] `comptes/{uid}` = { espace (principal), espaces [tous] } tenu par `compteMembre` (ajout / retrait d'une fiche de membre) ;
+      logique `espacesCompte` / `compteModifie` (functions/cabinets.js, testée).
+- [x] Ajout par un titulaire d'une personne qui a déjà un compte dans un autre cabinet : `creerMembre` répond « AUTRE_CABINET »,
+      l'écran Accès demande confirmation, puis l'accès est ajouté (même mot de passe, profil inchangé). Jamais le médecin titulaire
+      d'un autre cabinet.
+- [x] Menu **« Cabinet »** sous le logo (seulement s'il y a plusieurs cabinets) : changer recharge Onco360 dans l'autre cabinet ;
+      choix gardé dans le navigateur ; si un cabinet est suspendu ou l'accès désactivé, le suivant s'ouvre.
+- [x] Sécurité : « Lien du mot de passe » refusé pour un compte de plusieurs cabinets (il donnerait accès aux autres cabinets ; la
+      personne utilise « Mot de passe oublié ») ; cabinet supprimé = seulement retiré de sa liste (compte et agenda gardés).
+- [x] Google Agenda : **un seul agenda « Onco360 »** pour tous ses cabinets, le nom du cabinet ajouté au titre de chaque événement ;
+      cases « ce qui y apparaît » **par cabinet** (`agendaFiltre.cabinets[cabinet]`) ; **couleurs personnelles**
+      (`utilisateurs/{uid}.agendaCouleurs`, sans le droit « paramètres »), qui passent avant celles du cabinet.
+- [x] Tests : règles 221/221 (secrétaire de deux cabinets : lit les deux, pas un troisième, ne modifie pas sa liste), serveur 88/88,
+      navigateur (changement de cabinet, cases, couleurs, ajout depuis Accès, 390 px).
+- [ ] Mise en ligne : règles, site, **toutes les fonctions** (comptes, Google Agenda).
 
 ## Étape 14 – Autres spécialités (demandé le 09/10/2026) : nouveaux modules et leurs formules
 Onco360 s'ouvrira avec le temps à d'autres médecins : **médecine générale**, **gynécologie**, puis d'autres spécialités. Pour
@@ -1531,3 +1541,4 @@ Onco360_Package_Cession/
 | 10/10/2026 | 18.6 Relances | Comptabilité › Relances : retards, échéances proches, fins d'essai ; message prêt (WhatsApp, e-mail), relance notée, modèles des messages. Plan de l'audit terminé (reste 16.5). Mis en ligne. |
 | 10/10/2026 | 19.1 Secrétaire | Audit des accès de la secrétaire (`AUDIT-SECRETAIRE.md`). Décidé : secrétaire pour plusieurs cabinets (19.2, à faire). Fait : droit « Paramètres du secrétariat » (congés, horaires de ses lieux, listes, types, bouton WhatsApp vert), Médic. avec ligne libre et ajout d'un médicament par la secrétaire, ses lieux seulement, profil allégé. Règles 211/211, serveur 0 échec, navigateur (ordinateur et 390 px). Pas encore en ligne. |
 | 10/10/2026 | 19.1 Secrétaire (suite) | Droit élargi : jours fériés, messages WhatsApp, RCP, impression, alertes, salle d'attente. Validation du poids de la séance du jour par la secrétaire (planning, repris dans le dossier par le médecin). Règles 212/212, navigateur. Pas encore en ligne. |
+| 10/10/2026 | 19.2 Plusieurs cabinets | Une secrétaire (ou tout membre non titulaire) peut avoir plusieurs cabinets : ajout confirmé par le titulaire, menu « Cabinet » sous le logo, lien du mot de passe bloqué pour ces comptes. Un seul Google Agenda pour tous ses cabinets (nom du cabinet dans le titre), cases par cabinet, couleurs personnelles. Règles 221/221, serveur 88/88, navigateur. Pas encore en ligne. |

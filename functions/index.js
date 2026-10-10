@@ -6,7 +6,10 @@
 //   • agendaMembre : droits ou établissements d'un membre modifiés ; agendaNuit : remise à plat chaque nuit ;
 //   • agendaTache : une tâche écrite (échéance dans l'agenda de son responsable, T6 du 08/10/2026) ;
 //   • agendaCouleurs : couleurs par type changées (Paramètres › Google Agenda) : tous les agendas du cabinet repeints ;
-//   • agendaFiltre : une personne a changé ce qui va dans SON agenda (utilisateurs/{uid}.agendaFiltre) : son agenda refait.
+//   • agendaFiltre : une personne a changé ce qui va dans SON agenda (utilisateurs/{uid}.agendaFiltre, par cabinet depuis le 19.2)
+//     ou ses couleurs (agendaCouleurs, qui passent avant celles du cabinet) : son agenda refait.
+// Plusieurs cabinets (19.2, 10/10/2026) : une secrétaire de plusieurs médecins a un seul agenda « Onco360 » avec tous ses cabinets
+// (comptes/{uid}.espaces), le nom du cabinet ajouté au titre de chaque événement ; agendaJetons/{uid}.espaces = cabinets reçus.
 // Tâches automatiques (P4, 08/10/2026) : tachesAutoPatient (chaque écriture d'un dossier) et tachesAutoNuit (3 h) créent les
 // tâches dues (logique.js tachesAutoPatient) et terminent celles dont la condition est réglée (dosimétrie validée, RT close).
 // Jetons Google : collection agendaJetons/{uid}, inaccessible depuis le navigateur (aucune règle ne l'ouvre).
@@ -53,41 +56,71 @@ async function fonctionPresente(e, k) {
   try { const s = await db.doc("espaces/" + e).get(), ab = (s.exists && s.data().abonnement) || {}, m = k.split(".")[0];
     return !(ab.modules && ab.modules[m] === false) && !(ab.reglage && ab.reglage.fonctions && ab.reglage.fonctions[k] === false); } catch (er) { return true; }
 }
-// Ce que la personne a choisi de voir dans son agenda (absent : tout)
-async function filtreDe(uid) { try { const s = await db.doc("utilisateurs/" + uid).get(); return (s.exists && s.data().agendaFiltre) || {}; } catch (e) { return {}; } }
-// Couleurs choisies par le cabinet (absent : couleurs par défaut)
-async function couleurs(e) { try { const s = await db.doc("espaces/" + e + "/parametres/couleursAgenda").get(); return s.exists ? JSON.parse(s.data().data || "{}") : {}; } catch (er) { return {}; } }
-// ───── Remise à plat complète de l'agenda d'une personne ─────
-async function syncComplet(uid, J) {
-  const m = await membre(J.espace, uid);
-  if (!m || m.actif === false) throw new Error("Votre accès à Onco360 est désactivé : l'agenda n'est plus mis à jour.");
-  const auj = L.jourCasa(), api = await apiPour(J);
-  const pats = await db.collection("espaces/" + J.espace + "/patients").select("resume", "etablissementId").get();
-  let voulus = [];
-  pats.forEach((d) => { voulus = voulus.concat(L.evtsPatient(d.data(), m, auj)); });
-  // Tâches dont la personne est responsable (nom actuel du patient lu dans son dossier)
-  const ts = await db.collection("espaces/" + J.espace + "/taches").where("pour", "==", uid).get(), noms = {};
-  pats.forEach((d) => { try { noms[d.id] = JSON.parse(d.data().resume || "{}").nm || ""; } catch (e) { /* résumé illisible */ } });
-  if (await fonctionPresente(J.espace, "taches.gagenda")) voulus = voulus.concat(L.evtsTaches(ts.docs.map((d) => Object.assign({ id: d.id }, d.data())), uid, auj, noms)); // réglage du cabinet
-  if ((await titulaire(J.espace)) === uid) {
-    const c = await db.doc("espaces/" + J.espace + "/parametres/calendrier").get();
-    try { voulus = voulus.concat(L.evtsAbsences(c.exists ? JSON.parse(c.data().data || "{}") : {}, auj)); } catch (e) { /* calendrier illisible */ }
+// Profil de la personne : ce qu'elle veut voir (agendaFiltre) et ses couleurs (agendaCouleurs, 10/10/2026)
+async function profilAgenda(uid) { try { const s = await db.doc("utilisateurs/" + uid).get(); return s.exists ? s.data() : {}; } catch (e) { return {}; } }
+// Filtre d'un cabinet (19.2) : agendaFiltre.cabinets[e] s'il existe, sinon le réglage d'avant (agendaFiltre.exclus)
+const filtreCabinet = (f, e) => (f && f.cabinets && f.cabinets[e]) || f || {};
+// Couleurs : celles de la personne (agendaCouleurs, Paramètres › Google Agenda) passent avant celles du cabinet (sinon par défaut)
+async function couleurs(e, perso) { let c = {}; try { const s = await db.doc("espaces/" + e + "/parametres/couleursAgenda").get(); c = s.exists ? JSON.parse(s.data().data || "{}") : {}; } catch (er) { c = {}; } return Object.assign(c, perso || {}); }
+// Cabinets dont l'agenda reçoit les événements (19.2 : une secrétaire de plusieurs médecins a un seul agenda pour tous) : ceux de
+// comptes/{uid} (+ celui de la liaison, + extra), où elle est membre actif, cabinet non suspendu, Google Agenda dans la formule
+async function cabinetsAgenda(uid, J, extra) {
+  const c = await db.doc("comptes/" + uid).get(), l = C.espacesCompte(c.exists ? c.data() : null, !c.exists);
+  [J.espace].concat(extra || []).forEach((e) => { if (e && l.indexOf(e) < 0) l.push(e); });
+  const r = [];
+  for (const e of l) {
+    if (C.estBib(e)) continue;
+    const m = await membre(e, uid); if (!m || m.actif === false) continue;
+    const es = await db.doc("espaces/" + e).get(), x = es.exists ? es.data() : null; if (!x || x.actif === false) continue;
+    if (x.abonnement && x.abonnement.modules && x.abonnement.modules.gagenda === false) continue;
+    r.push({ e, m, nom: x.nom || e, titulaire: x.titulaire });
   }
-  voulus = L.filtrer(voulus, await filtreDe(uid));
-  L.colorer(voulus, await couleurs(J.espace));
+  return r;
+}
+// Plusieurs cabinets dans le même agenda : le nom du cabinet ajouté au titre (« … · Cabinet Dr Gorbin »)
+const etiqueter = (evts, nom, plusieurs) => { if (plusieurs) evts.forEach((v) => { v.t = v.t + " · " + nom; }); return evts; };
+// ───── Remise à plat complète de l'agenda d'une personne ─────
+async function syncComplet(uid, J, extra) {
+  const cabs = await cabinetsAgenda(uid, J, extra);
+  if (!cabs.length) throw new Error("Votre accès à Onco360 est désactivé : l'agenda n'est plus mis à jour.");
+  const auj = L.jourCasa(), api = await apiPour(J), P = await profilAgenda(uid), plus = cabs.length > 1;
+  let voulus = [];
+  for (const { e, m, nom, titulaire: tit } of cabs) {
+    const pats = await db.collection("espaces/" + e + "/patients").select("resume", "etablissementId").get();
+    let v = [];
+    pats.forEach((d) => { v = v.concat(L.evtsPatient(d.data(), m, auj)); });
+    // Tâches dont la personne est responsable (nom actuel du patient lu dans son dossier)
+    const ts = await db.collection("espaces/" + e + "/taches").where("pour", "==", uid).get(), noms = {};
+    pats.forEach((d) => { try { noms[d.id] = JSON.parse(d.data().resume || "{}").nm || ""; } catch (er) { /* résumé illisible */ } });
+    if (await fonctionPresente(e, "taches.gagenda")) v = v.concat(L.evtsTaches(ts.docs.map((d) => Object.assign({ id: d.id }, d.data())), uid, auj, noms)); // réglage du cabinet
+    if (tit === uid) {
+      const c = await db.doc("espaces/" + e + "/parametres/calendrier").get();
+      try { v = v.concat(L.evtsAbsences(c.exists ? JSON.parse(c.data().data || "{}") : {}, auj)); } catch (er) { /* calendrier illisible */ }
+    }
+    v = L.filtrer(v, filtreCabinet(P.agendaFiltre, e));
+    L.colorer(v, await couleurs(e, P.agendaCouleurs));
+    voulus = voulus.concat(etiqueter(v, nom, plus));
+  }
   const existants = await api.lister(J.calendrier, "onco360=1", L.timeMin(auj));
   const r = await L.appliquer(api, J.calendrier, voulus, existants, auj);
+  await db.doc("agendaJetons/" + uid).set({ espaces: cabs.map((x) => x.e) }, { merge: true }).catch(() => {});
   await etat(uid, { email: J.email || "", calendrier: "Onco360", le: new Date().toISOString(), nb: voulus.length, erreur: "" });
   return Object.assign({ nb: voulus.length }, r);
 }
-// Un seul groupe (un patient, ou les absences) pour une personne
-async function syncGroupe(uid, J, g, voulus) {
-  const api = await apiPour(J), auj = L.jourCasa();
+// Un seul groupe (un patient, les absences, une tâche) du cabinet e pour une personne
+async function syncGroupe(uid, J, e, g, voulus) {
+  const api = await apiPour(J), auj = L.jourCasa(), P = await profilAgenda(uid), plus = (J.espaces || []).length > 1;
   const existants = await api.lister(J.calendrier, "g=" + g, L.timeMin(auj));
-  await L.appliquer(api, J.calendrier, L.colorer(L.filtrer(voulus.filter((e) => L.groupe(e.k) === g), await filtreDe(uid)), await couleurs(J.espace)), existants, auj);
+  const v = L.colorer(L.filtrer(voulus.filter((x) => L.groupe(x.k) === g), filtreCabinet(P.agendaFiltre, e)), await couleurs(e, P.agendaCouleurs));
+  await L.appliquer(api, J.calendrier, etiqueter(v, plus ? await nomCab(e) : "", plus), existants, auj);
   await etat(uid, { le: new Date().toISOString(), erreur: "" });
 }
-const liesA = async (e) => (await db.collection("agendaJetons").where("espace", "==", e).get()).docs.filter((d) => !d.data().revoque);
+// Comptes reliés à Google Agenda qui reçoivent le cabinet e (liaison faite dans ce cabinet, ou cabinet dans leur liste)
+const liesA = async (e) => {
+  const [a, b] = await Promise.all([db.collection("agendaJetons").where("espace", "==", e).get(), db.collection("agendaJetons").where("espaces", "array-contains", e).get()]);
+  const vus = new Set(); return a.docs.concat(b.docs).filter((d) => !d.data().revoque && !vus.has(d.id) && vus.add(d.id));
+};
+const recoit = (J, e) => !!J && !J.revoque && (J.espace === e || (J.espaces || []).indexOf(e) >= 0);
 
 // ───── Appelées depuis Onco360 ─────
 exports.agendaLier = onCall(OPTS, async (req) => {
@@ -140,20 +173,21 @@ exports.agendaPatient = onDocumentWritten(Object.assign({ document: "espaces/{e}
   if (avant && apres && avant.resume === apres.resume && avant.etablissementId === apres.etablissementId) return;
   const auj = L.jourCasa();
   for (const d of await liesA(ev.params.e)) {
-    try { const m = await membre(ev.params.e, d.id); await syncGroupe(d.id, d.data(), ev.params.p, L.evtsPatient(apres, m, auj)); }
+    try { const m = await membre(ev.params.e, d.id); await syncGroupe(d.id, d.data(), ev.params.e, ev.params.p, L.evtsPatient(apres, m, auj)); }
     catch (e) { await echec(d.id, e); }
   }
 });
 exports.agendaAbsences = onDocumentWritten(Object.assign({ document: "espaces/{e}/parametres/calendrier" }, OPTS), async (ev) => {
   const tit = await titulaire(ev.params.e); if (!tit) return;
-  const s = await db.doc("agendaJetons/" + tit).get(); if (!s.exists || s.data().revoque || s.data().espace !== ev.params.e) return;
+  const s = await db.doc("agendaJetons/" + tit).get(); if (!s.exists || !recoit(s.data(), ev.params.e)) return;
   let cal = {}; try { cal = ev.data.after.exists ? JSON.parse(ev.data.after.data().data || "{}") : {}; } catch (e) { /* illisible */ }
-  try { await syncGroupe(tit, s.data(), "abs", L.evtsAbsences(cal, L.jourCasa())); } catch (e) { await echec(tit, e); }
+  try { await syncGroupe(tit, s.data(), ev.params.e, "abs", L.evtsAbsences(cal, L.jourCasa())); } catch (e) { await echec(tit, e); }
 });
 exports.agendaMembre = onDocumentWritten(Object.assign({ document: "espaces/{e}/membres/{uid}" }, OPTS), async (ev) => {
   const s = await db.doc("agendaJetons/" + ev.params.uid).get();
-  if (!s.exists || s.data().revoque || s.data().espace !== ev.params.e) return;
-  try { await syncComplet(ev.params.uid, s.data()); } catch (e) { await echec(ev.params.uid, e); }
+  if (!s.exists || s.data().revoque || C.estBib(ev.params.e)) return;
+  // fiche ajoutée dans un autre cabinet (19.2) ou modifiée : agenda refait avec ce cabinet (la liste comptes peut arriver juste après)
+  try { await syncComplet(ev.params.uid, s.data(), ev.data.after.exists ? [ev.params.e] : []); } catch (e) { await echec(ev.params.uid, e); }
 });
 // Tâche écrite : agenda de son responsable, et de l'ancien si elle a été réattribuée (les commentaires seuls ne changent rien)
 const CHAMPS_AGENDA = ["titre", "desc", "ech", "debut", "h", "urgent", "statut", "pour", "patientId", "patientNom", "deNom"];
@@ -163,9 +197,9 @@ exports.agendaTache = onDocumentWritten(Object.assign({ document: "espaces/{e}/t
   const e = ev.params.e, t = apres ? Object.assign({ id: ev.params.t }, apres) : null, noms = {};
   if (t && t.patientId) { try { const p = await db.doc("espaces/" + e + "/patients/" + t.patientId).get(); if (p.exists) noms[t.patientId] = JSON.parse(p.data().resume || "{}").nm || ""; } catch (er) { /* nom gardé dans la tâche */ } }
   for (const uid of new Set([avant && avant.pour, apres && apres.pour].filter(Boolean))) {
-    const s = await db.doc("agendaJetons/" + uid).get(); if (!s.exists || s.data().revoque || s.data().espace !== e) continue;
+    const s = await db.doc("agendaJetons/" + uid).get(); if (!s.exists || !recoit(s.data(), e)) continue;
     const m = await membre(e, uid); if (!m || m.actif === false) continue;
-    try { await syncGroupe(uid, s.data(), "tache-" + ev.params.t, L.evtsTaches(t && (await fonctionPresente(e, "taches.gagenda")) ? [t] : [], uid, L.jourCasa(), noms)); } catch (er) { await echec(uid, er); }
+    try { await syncGroupe(uid, s.data(), e, "tache-" + ev.params.t, L.evtsTaches(t && (await fonctionPresente(e, "taches.gagenda")) ? [t] : [], uid, L.jourCasa(), noms)); } catch (er) { await echec(uid, er); }
   }
 });
 exports.agendaCouleurs = onDocumentWritten(Object.assign({ document: "espaces/{e}/parametres/couleursAgenda" }, OPTS), async (ev) => {
@@ -198,8 +232,8 @@ exports.prixConsultation = onCall({ timeoutSeconds: 30, memory: "256MiB" }, asyn
 });
 
 exports.agendaFiltre = onDocumentWritten(Object.assign({ document: "utilisateurs/{uid}" }, OPTS), async (ev) => {
-  const a = ev.data.before.exists ? ev.data.before.data().agendaFiltre : null, b = ev.data.after.exists ? ev.data.after.data().agendaFiltre : null;
-  if (JSON.stringify(a || {}) === JSON.stringify(b || {})) return; // autres écritures du profil (tâches lues, état de l'agenda…)
+  const lire = (x) => (x.exists ? [x.data().agendaFiltre || {}, x.data().agendaCouleurs || {}] : [{}, {}]);
+  if (JSON.stringify(lire(ev.data.before)) === JSON.stringify(lire(ev.data.after))) return; // autres écritures du profil (tâches lues, état de l'agenda…)
   const s = await db.doc("agendaJetons/" + ev.params.uid).get(); if (!s.exists || s.data().revoque) return;
   try { await syncComplet(ev.params.uid, s.data()); } catch (e) { await echec(ev.params.uid, e); }
 });
@@ -311,9 +345,9 @@ exports.numerosManquants = onCall({ timeoutSeconds: 120, memory: "256MiB" }, asy
 });
 
 // ───── Plusieurs cabinets (phase F, étape 4, 09/10/2026) ─────
-// comptes/{uid} = { espace } : le cabinet qu'Onco360 ouvre pour cette personne (lu par elle seule, écrit ici seulement).
-// Tenu à jour à chaque fiche de membre écrite (ajout d'un membre par le titulaire de n'importe quel cabinet) ; un compte
-// appartient à un seul cabinet : le premier gardé (sauf le cabinet modèle). Les membres du cabinet modèle sans fiche « comptes » l'ouvrent par défaut.
+// comptes/{uid} = { espace, espaces } : les cabinets de cette personne (lu par elle seule, écrit ici seulement). Tenu à jour à chaque
+// fiche de membre écrite ou retirée ; depuis le 10/10/2026 (19.2) un compte peut avoir plusieurs cabinets (secrétaire de plusieurs
+// médecins : menu « Cabinet » dans Onco360) ; espace = cabinet principal. Les membres du cabinet modèle sans fiche « comptes » l'ouvrent par défaut.
 // Administration (compte séparé, collection administrateurs) : crée les cabinets et en voit la liste, sans aucune donnée médicale ;
 // les règles ne lui ouvrent aucun cabinet (tout passe par ces fonctions).
 const C = require("./cabinets");
@@ -336,11 +370,12 @@ async function formules() { try { const s = await db.doc("plateforme/formules").
 exports.compteMembre = onDocumentWritten({ document: "espaces/{e}/membres/{uid}", timeoutSeconds: 60, memory: "256MiB" }, async (ev) => {
   const { e, uid } = ev.params; if (C.estBib(e)) return; // bibliothèque de référence : le compte d'administration garde sa page
   const ref = db.doc("comptes/" + uid), c = await ref.get(), apres = ev.data.after.exists ? ev.data.after.data() : null;
+  // Liste des cabinets du compte (19.2) : ce cabinet ajouté (fiche écrite) ou retiré (fiche effacée)
+  const mm = !c.exists && e !== C.MODELE ? (await db.doc("espaces/" + C.MODELE + "/membres/" + uid).get()).exists : false;
+  const nv = C.compteModifie(c.exists ? c.data() : null, mm, e, !!apres);
+  if (!nv) { if (c.exists) await ref.delete(); }
+  else if (!c.exists || c.data().espace !== nv.espace || JSON.stringify(c.data().espaces || []) !== JSON.stringify(nv.espaces)) await ref.set(Object.assign(nv, { le: new Date().toISOString() }));
   if (apres) {
-    // Déjà rattaché ailleurs : on ne change rien, sauf pour le cabinet modèle (ses membres l'ouvrent toujours, même s'ils
-    // figurent aussi dans un cabinet d'essai)
-    if (c.exists && c.data().espace && c.data().espace !== e && e !== C.MODELE) { console.warn("compte déjà rattaché à un autre cabinet", uid, c.data().espace, e); return; }
-    if (!c.exists || c.data().espace !== e) await ref.set({ espace: e, le: new Date().toISOString() });
     // Nombre maximum de comptes de ce rôle (formule du cabinet) : au-delà, ce compte est désactivé (« hors formule »), jamais le titulaire
     if (apres.actif !== false) {
       const es = (await db.doc("espaces/" + e).get()).data() || {};
@@ -354,7 +389,7 @@ exports.compteMembre = onDocumentWritten({ document: "espaces/{e}/membres/{uid}"
       const p = db.doc("utilisateurs/" + uid), sp = await p.get();
       if (!sp.exists || !sp.data().nom) await p.set({ email: apres.email || "", nom: String(apres.nom || "").replace(/^(Dr|Pr)\.?\s+/i, ""), telephone: apres.telephone || "", titre: apres.role === "medecin" ? "Dr" : "", profession: apres.role || "" }, { merge: true });
     }
-  } else if (c.exists && c.data().espace === e) await ref.delete();
+  }
 });
 // Nouveau cabinet : compte du médecin (créé s'il n'existe pas), cabinet, fiche de membre titulaire, copie de ce que reçoit un
 // cabinet neuf (cabinets.js). Le mot de passe est choisi par le médecin (e-mail envoyé par la page Administration).
@@ -610,9 +645,11 @@ exports.supprimerCabinet = onCall({ timeoutSeconds: 300, memory: "512MiB" }, asy
   const membres = await ref.collection("membres").get(), auth = getAuth(), comptes = [];
   for (const m of membres.docs) {
     const uid = m.id, c = await db.doc("comptes/" + uid).get();
-    if (c.exists && c.data().espace === espace) await c.ref.delete();
-    await db.doc("agendaJetons/" + uid).delete().catch(() => {});
-    const garder = (await estAdministrateur(uid)) || (await db.doc("espaces/" + C.MODELE + "/membres/" + uid).get()).exists;
+    // membre d'autres cabinets aussi (19.2) : ce cabinet est seulement retiré de sa liste ; son compte et son Google Agenda restent
+    const nv = C.compteModifie(c.exists ? c.data() : null, false, espace, false);
+    if (c.exists) { if (nv) await c.ref.set(Object.assign(nv, { le: new Date().toISOString() })); else await c.ref.delete(); }
+    if (!nv) await db.doc("agendaJetons/" + uid).delete().catch(() => {});
+    const garder = !!nv || (await estAdministrateur(uid)) || (await db.doc("espaces/" + C.MODELE + "/membres/" + uid).get()).exists;
     if (!garder) { await auth.deleteUser(uid).catch((e) => console.warn("compte", uid, e.message)); await db.doc("utilisateurs/" + uid).delete().catch(() => {}); comptes.push(uid); }
   }
   await db.recursiveDelete(ref);
@@ -737,16 +774,23 @@ exports.creerMembre = onCall({ timeoutSeconds: 60, memory: "256MiB" }, async (re
   if (x.abonnement && C.horsQuota(x.abonnement, d.membre.role, n + 1)) throw new HttpsError("resource-exhausted", "Votre formule Onco360 permet " + x.abonnement.max[d.membre.role] + " compte(s) de ce rôle : la limite est atteinte. Contactez l'éditeur d'Onco360 pour en ajouter.");
   const auth = getAuth(); let u = null, existant = false;
   try { u = await auth.getUserByEmail(d.email); existant = true; } catch (er) { if (er.code !== "auth/user-not-found") throw er; }
+  let compte = null;
   if (existant) {
     if (sm.docs.some((m) => m.id === u.uid)) throw new HttpsError("already-exists", "Cette personne a déjà un accès à votre cabinet.");
-    const c = await db.doc("comptes/" + u.uid).get();
-    if ((c.exists && c.data().espace && c.data().espace !== e) || (e !== C.MODELE && (await db.doc("espaces/" + C.MODELE + "/membres/" + u.uid).get()).exists)) throw new HttpsError("already-exists", "Cette adresse e-mail est déjà utilisée dans un autre cabinet Onco360 : prenez une autre adresse.");
     if (await estAdministrateur(u.uid)) throw new HttpsError("already-exists", "Cette adresse est celle d'un compte d'administration.");
+    // Déjà dans un autre cabinet (19.2) : possible pour une secrétaire, une infirmière… qui travaille pour plusieurs médecins, après
+    // confirmation du titulaire (autreCabinet) ; jamais le médecin titulaire d'un autre cabinet
+    const c = await db.doc("comptes/" + u.uid).get(), mm = !c.exists && (await db.doc("espaces/" + C.MODELE + "/membres/" + u.uid).get()).exists;
+    const autres = C.espacesCompte(c.exists ? c.data() : null, mm).filter((x) => x !== e);
+    for (const a of autres) if ((await titulaire(a)) === u.uid) throw new HttpsError("already-exists", "Cette adresse est celle du médecin titulaire d'un autre cabinet Onco360 : prenez une autre adresse.");
+    if (autres.length && o.autreCabinet !== true) throw new HttpsError("already-exists", "AUTRE_CABINET");
+    compte = C.compteModifie(c.exists ? c.data() : null, mm, e, true);
   } else u = await auth.createUser({ email: d.email, password: require("node:crypto").randomBytes(24).toString("base64") + "a9!", displayName: d.membre.nom });
   const b = db.batch();
   b.set(db.doc("espaces/" + e + "/membres/" + u.uid), d.membre);
-  b.set(db.doc("comptes/" + u.uid), { espace: e, le: new Date().toISOString() });
-  b.set(db.doc("utilisateurs/" + u.uid), { email: d.email, prenom: d.prenom, nom: d.nomFamille, telephone: d.membre.telephone, titre: d.membre.role === "medecin" ? "Dr" : "", profession: d.membre.role }, { merge: true });
+  b.set(db.doc("comptes/" + u.uid), Object.assign(compte || { espace: e, espaces: [e] }, { le: new Date().toISOString() }));
+  // profil : celui d'une personne qui a déjà un compte n'est pas changé (c'est le sien)
+  if (!compte) b.set(db.doc("utilisateurs/" + u.uid), { email: d.email, prenom: d.prenom, nom: d.nomFamille, telephone: d.membre.telephone, titre: d.membre.role === "medecin" ? "Dr" : "", profession: d.membre.role }, { merge: true });
   await b.commit();
   console.log("membre créé", e, d.membre.role, "par", par);
   return { uid: u.uid, existant };
@@ -760,7 +804,10 @@ exports.lienMembre = onCall({ timeoutSeconds: 30, memory: "256MiB" }, async (req
   if (!es || !es.exists || es.data().titulaire !== par) throw new HttpsError("permission-denied", "Réservé au médecin titulaire.");
   if (!uid || uid === par) throw new HttpsError("invalid-argument", "Demande incomplète.");
   const m = await db.doc("espaces/" + espace + "/membres/" + uid).get(), c = await db.doc("comptes/" + uid).get();
-  if (!m.exists || (await estAdministrateur(uid)) || (c.exists && c.data().espace !== espace) || (!c.exists && espace !== C.MODELE)) throw new HttpsError("permission-denied", "Lien impossible pour ce compte.");
+  const l = C.espacesCompte(c.exists ? c.data() : null, !c.exists && espace === C.MODELE);
+  // compte de plusieurs cabinets (19.2) : le lien donnerait l'accès aux autres cabinets ; la personne change son mot de passe elle-même
+  if (m.exists && l.length > 1 && l.indexOf(espace) >= 0) throw new HttpsError("permission-denied", "Cette personne a aussi accès au cabinet d'un autre médecin : elle choisit son mot de passe elle-même (« Mot de passe oublié » sur la page de connexion).");
+  if (!m.exists || (await estAdministrateur(uid)) || l.length !== 1 || l[0] !== espace) throw new HttpsError("permission-denied", "Lien impossible pour ce compte.");
   const email = (await getAuth().getUser(uid)).email;
   return { lien: await getAuth().generatePasswordResetLink(email, { url: "https://chimio-hgc.web.app" }), email };
 });

@@ -143,8 +143,10 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
   docId, element, quoi [parties touchées, sans valeurs], patientId, patientNom, par, parNom, parRole, via onco360|serveur, pour, le },
   écrit par la fonction `auditEcriture` seulement (identité réelle ; logique `functions/audit.js`) ; lu par le titulaire
   (Paramètres › Journal d'audit, `js/app/audit.js` ; bouton « Journal » du dossier = `auditPatient`).
-- **Plusieurs cabinets (09/10/2026)** : `comptes/{uid}` = { espace } = cabinet ouvert par la personne (v2.js `cabinetDe` ; absent
-  = cabinet-bentahila), écrit par le serveur seulement (`creerCabinet`, `compteMembre` à chaque fiche de membre écrite). Cabinets
+- **Plusieurs cabinets (09/10/2026)** : `comptes/{uid}` = { espace (principal), espaces [tous ses cabinets, 19.2 du 10/10/2026] }
+  (v2.js `cabinetsDe`, menu « Cabinet » `menuCabinets`, choix dans localStorage `onco360.cabinet.{uid}` ; absent = cabinet-bentahila),
+  écrit par le serveur seulement (`creerCabinet`, `creerMembre` avec `autreCabinet` confirmé, `compteMembre` à chaque fiche de membre
+  écrite ou retirée ; logique `espacesCompte` / `compteModifie` de cabinets.js). `lienMembre` refusé pour un compte de plusieurs cabinets. Cabinets
   neufs `espaces/cab-…` créés par le compte d'administration (collection `administrateurs`, page `admin.html` / `js/app/admin.js`,
   fonctions `creerCabinet` / `listeCabinets`) ; copie de ce que reçoit un cabinet neuf : `functions/cabinets.js` (protocoles,
   fériés, diagnostics, mutuelles, bibliothèques de prescription, tarifs RT ; pas de correspondants, établissements, autres tarifs,
@@ -234,6 +236,9 @@ Ancienne application : collections racine `patients`, `protocoles`, `finances`, 
   entière ou 15 min, aucun rappel, couleur 8 / 11, « EN RETARD » reportée chaque nuit sur le jour même, retirée une fois terminée).
   Couleurs (08/10/2026) : `categorie` / `colorer` (logique.js) donnent à chaque événement la couleur de sa catégorie
   (`parametres/couleursAgenda`, sinon `COULEURS0`, mêmes valeurs dans configuration.js) ; `agendaCouleurs` repeint tout.
+  Couleurs personnelles (10/10/2026) : `utilisateurs/{uid}.agendaCouleurs` (membres sans droit « paramètres »), avant celles du cabinet.
+  Plusieurs cabinets (19.2) : un seul agenda par personne pour tous ses cabinets (`cabinetsAgenda`, nom du cabinet ajouté au titre),
+  `agendaJetons/{uid}.espaces` ; filtre par cabinet `agendaFiltre.cabinets[e].exclus` (sinon `agendaFiltre.exclus`).
   Ce que chacun voit (P3, 08/10/2026) : `utilisateurs/{uid}.agendaFiltre.exclus` (clés `cleFiltre` : rdv:annonce, rdv:act:<activité>,
   chimio:cure / seance, rt:scan|deb|fin|dosi, abs, tache:<type>) ; `agendaFiltre` refait l'agenda de la personne. Jetons : `agendaJetons/{uid}` (aucune règle = invisible du navigateur) ; état :
   `utilisateurs/{uid}.agendaGoogle`. Logique pure : `functions/logique.js`, tests : `node functions/test-logique.js`.

@@ -61,25 +61,49 @@ window.nouveauPatient = () => creerPatient();
 // ───── Chargement ─────
 onAuthStateChanged(auth, async (u) => {
   if (!u) { location.replace("index.html"); return; }
-  try { D = await charger(u); appliquerImpression(); entete(); route();
+  try { D = await charger(u); appliquerImpression(); entete(); route(); menuCabinets().catch(() => {});
     if (D.bib) { Promise.all([figerListes(), figerDocumentation()]).catch((e) => console.warn("bibliothèque", e)); return; } // bibliothèque de référence : rien d'autre
     if (D.membre.role !== "comptable") { if (module("taches")) demarrerTaches(); if (module("salle")) demarrerSalle(); if (module("rcp")) demarrerRcp(); } publierTarifsC(); planifierReleve(3000); nomTitulaire().then(migrations); }
   catch (e) { $("page").innerHTML = '<div class="carte"><h3>Impossible d\'ouvrir Onco360</h3><p class="sous">' + esc(e && e.code === "permission-denied" ? "Accès refusé : votre accès a peut-être été désactivé. Contactez le médecin titulaire." : e.message) + '</p><button class="bt clair" onclick="document.getElementById(\'btSortie\').click()">Se déconnecter</button></div>'; }
 });
-async function cabinetDe(u) {
+// Cabinets de la personne (19.2, 10/10/2026 : secrétaire de plusieurs médecins) : comptes/{uid}.espaces, le cabinet choisi dans le
+// menu « Cabinet » en premier (gardé dans ce navigateur), puis le principal ; les autres servent de repli (cabinet suspendu…)
+const CLE_CAB = (u) => "onco360.cabinet." + u.uid;
+let CABINETS = []; // identifiants, dans l'ordre du menu
+async function cabinetsDe(u) {
   // Bibliothèque de référence ouverte depuis l'Administration (v2.html?espace=bib-…, 10/10/2026)
-  const q = new URLSearchParams(location.search).get("espace"); if (q && /^bib-[a-z-]+$/.test(q)) return q;
-  const c = await getDoc(doc(db, "comptes", u.uid)).catch(() => null);
-  return (c && c.exists() && c.data().espace) || ESPACE_MODELE;
+  const q = new URLSearchParams(location.search).get("espace"); if (q && /^bib-[a-z-]+$/.test(q)) return [q];
+  const c = await getDoc(doc(db, "comptes", u.uid)).catch(() => null), x = c && c.exists() ? c.data() : null, l = [];
+  const aj = (e) => { if (e && typeof e === "string" && l.indexOf(e) < 0) l.push(e); };
+  if (x) { aj(x.espace); (x.espaces || []).forEach(aj); }
+  if (!l.length) aj(ESPACE_MODELE);
+  CABINETS = l.slice();
+  let ch = null; try { ch = localStorage.getItem(CLE_CAB(u)); } catch (e) { /* stockage indisponible */ }
+  if (ch && l.indexOf(ch) > 0) { l.splice(l.indexOf(ch), 1); l.unshift(ch); }
+  return l;
+}
+// Menu « Cabinet » (sous le logo) : seulement pour une personne qui a plusieurs cabinets ; changer = recharger Onco360 dans l'autre
+async function menuCabinets() {
+  const z = $("cabChoix"); if (!z || CABINETS.length < 2 || D.bib) return;
+  const noms = await Promise.all(CABINETS.map((e) => getDoc(doc(db, "espaces", e)).then((s) => (s.exists() ? s.data().nom || e : null)).catch(() => null)));
+  const L = CABINETS.map((e, i) => ({ e, nom: noms[i] })).filter((o) => o.nom || o.e === ESPACE);
+  if (L.length < 2) return;
+  z.innerHTML = '<label for="cabSel">Cabinet</label><select id="cabSel">' + L.map((o) => '<option value="' + esc(o.e) + '"' + (o.e === ESPACE ? " selected" : "") + ">" + esc(o.nom || o.e) + "</option>").join("") + "</select>";
+  z.classList.remove("cache"); D.cabinets = L;
+  $("cabSel").onchange = () => { try { localStorage.setItem(CLE_CAB(D.u), $("cabSel").value); } catch (e) { /* stockage indisponible */ } location.hash = "accueil"; location.reload(); };
 }
 async function charger(u) {
   // Fiche de membre (refus = accès désactivé, ou cabinet d'un autre) ; repli sur le premier cabinet
   let refus = null;
   const lireMembre = (e) => getDoc(doc(db, "espaces", e, "membres", u.uid)).then((s) => (s.exists() ? s : null)).catch((er) => { refus = refus || er; return null; });
-  ESPACE = await cabinetDe(u);
-  let m = await lireMembre(ESPACE);
+  const cands = await cabinetsDe(u);
+  ESPACE = cands[0];
+  // le cabinet choisi, sinon le suivant de la liste (accès désactivé ou cabinet suspendu dans l'un d'eux)
+  let m = null, inactif = null;
+  for (const e of cands) { const s = await lireMembre(e); if (s && s.data().actif === false) { inactif = inactif || s; continue; } if (s) { ESPACE = e; m = s; break; } }
   if (!m && /^bib-/.test(ESPACE)) throw new Error("Cette bibliothèque s'ouvre depuis la page Administration (bouton « Ouvrir et modifier »).");
-  if (!m && ESPACE !== ESPACE_MODELE) { const m2 = await lireMembre(ESPACE_MODELE); if (m2) { ESPACE = ESPACE_MODELE; m = m2; } }
+  if (!m && cands.indexOf(ESPACE_MODELE) < 0) { const m2 = await lireMembre(ESPACE_MODELE); if (m2) { ESPACE = ESPACE_MODELE; m = m2; } }
+  if (!m && inactif) m = inactif; // message « accès désactivé » ci-dessous
   if (!m) {
     // Compte d'administration (aucun cabinet) : page Administration
     const ad = await getDoc(doc(db, "administrateurs", u.uid)).catch(() => null);

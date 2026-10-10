@@ -31,6 +31,12 @@ async function preparer() {
     await setDoc(doc(db, "administrateurs/ADM"), { email: "admin@onco360.test" });
     await setDoc(doc(db, "comptes/DRB"), { espace: "cab-autre" });
     for (const u of ["RITA", "SECA", "DRB"]) await setDoc(doc(db, "utilisateurs/" + u), { nom: u });
+    // SEC2 : secrétaire des deux cabinets (19.2) ; SEC2X : retirée du cabinet B (plus de fiche de membre)
+    await setDoc(doc(db, A + "/membres/SEC2"), secretaire("Sec deux cabinets"));
+    await setDoc(doc(db, B + "/membres/SEC2"), secretaire("Sec deux cabinets"));
+    await setDoc(doc(db, "comptes/SEC2"), { espace: "cabinet-bentahila", espaces: ["cabinet-bentahila", "cab-autre"] });
+    await setDoc(doc(db, "espaces/cab-trois"), { nom: "Cabinet C", titulaire: "DRC" });
+    await setDoc(doc(db, "espaces/cab-trois/patients/pc"), { identite: { nom: "PATIENT C" }, etablissementId: "X", version: 1 });
   });
 }
 const db = (u) => env.authenticatedContext(u, u === "RITA" ? { email: "ritabentahila@gmail.com" } : { email: u.toLowerCase() + "@test.ma" }).firestore();
@@ -40,6 +46,16 @@ async function cas(nom, f) { await preparer(); try { await f(); ok++; console.lo
 console.log("Chaque cabinet voit les siens");
 await cas("le médecin B lit son patient", () => assertSucceeds(getDoc(doc(db("DRB"), B + "/patients/pb"))));
 await cas("Dr Bentahila lit son patient", () => assertSucceeds(getDoc(doc(db("RITA"), A + "/patients/pa"))));
+console.log("Secrétaire de deux cabinets (19.2)");
+await cas("elle lit un patient du cabinet A", () => assertSucceeds(getDoc(doc(db("SEC2"), A + "/patients/pa"))));
+await cas("elle lit un patient du cabinet B", () => assertSucceeds(getDoc(doc(db("SEC2"), B + "/patients/pb"))));
+await cas("elle lit le nom de ses deux cabinets (menu « Cabinet »)", async () => { await assertSucceeds(getDoc(doc(db("SEC2"), A))); await assertSucceeds(getDoc(doc(db("SEC2"), B))); });
+await cas("elle lit sa fiche comptes (liste de ses cabinets)", () => assertSucceeds(getDoc(doc(db("SEC2"), "comptes/SEC2"))));
+await cas("refusé : elle modifie sa liste de cabinets", () => assertFails(setDoc(doc(db("SEC2"), "comptes/SEC2"), { espace: "cab-trois", espaces: ["cab-trois"] })));
+await cas("refusé : elle lit un patient d'un troisième cabinet", () => assertFails(getDoc(doc(db("SEC2"), "espaces/cab-trois/patients/pc"))));
+await cas("refusé : le médecin B lit la fiche comptes de sa secrétaire", () => assertFails(getDoc(doc(db("DRB"), "comptes/SEC2"))));
+await cas("retirée du cabinet B : plus rien de B", async () => { await env.withSecurityRulesDisabled((c) => deleteDoc(doc(c.firestore(), B + "/membres/SEC2"))); await assertFails(getDoc(doc(db("SEC2"), B + "/patients/pb"))); await assertSucceeds(getDoc(doc(db("SEC2"), A + "/patients/pa"))); });
+await cas("elle écrit ses couleurs Google Agenda personnelles", () => assertSucceeds(setDoc(doc(db("SEC2"), "utilisateurs/SEC2"), { agendaCouleurs: { chimio: "11" } }, { merge: true })));
 console.log("Étanchéité");
 await cas("refusé : le médecin B lit un patient de Dr Bentahila", () => assertFails(getDoc(doc(db("DRB"), A + "/patients/pa"))));
 await cas("refusé : le médecin B liste les patients de Dr Bentahila", () => assertFails(getDocs(collection(db("DRB"), A + "/patients"))));

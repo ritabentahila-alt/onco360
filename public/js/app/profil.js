@@ -295,7 +295,19 @@ window.pfMembre = (uid) => {
           if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) throw new Error("Indiquez une adresse e-mail valide.");
           if (!m._mNom) throw new Error("Indiquez le nom.");
           // Compte créé par le serveur (la création depuis le navigateur est fermée dans Firebase, 10/10/2026)
-          const nouvel = await appelServeur("creerMembre", { espace: A.ESPACE, email, prenom: m._mPre || "", nom: m._mNom || "", telephone: m._mTel || "", role: m.role, tousEtablissements: m.tousEtablissements, etablissements: m.etablissements, droits: m.droits });
+          const dem = { espace: A.ESPACE, email, prenom: m._mPre || "", nom: m._mNom || "", telephone: m._mTel || "", role: m.role, tousEtablissements: m.tousEtablissements, etablissements: m.etablissements, droits: m.droits };
+          let nouvel;
+          // Personne déjà dans un autre cabinet Onco360 (19.2 : secrétaire de plusieurs médecins) : accès ajouté après confirmation
+          try { nouvel = await appelServeur("creerMembre", dem); }
+          catch (er) {
+            if (!/AUTRE_CABINET/.test(er.message || "")) throw er;
+            if (!confirm("Cette adresse est déjà celle d'un compte Onco360 dans le cabinet d'un autre médecin (par exemple une secrétaire qui travaille aussi pour lui).\n\nLui donner aussi l'accès à votre cabinet ?\nElle garde son mot de passe et passe d'un cabinet à l'autre avec le menu « Cabinet ». Elle ne voit que ce que vous lui permettez ici, et vous ne voyez rien de l'autre cabinet.")) { A.occupe(A.$("fOk"), false); return; }
+            nouvel = await appelServeur("creerMembre", Object.assign(dem, { autreCabinet: true }));
+            A.journal({ id: "", r: { nm: "" } }, "Accès ajouté : " + nom + " (" + ROLES[m.role] + "), compte d'un autre cabinet");
+            MEMBRES = null; A.fermerFenetre(); rafraichir();
+            alert("Accès ajouté pour " + nom + ".\nElle se connecte avec son mot de passe habituel et choisit votre cabinet dans le menu « Cabinet » (à gauche, sous le logo).");
+            return;
+          }
           let envoi = "";
           if (!nouvel.existant) { try { await sendPasswordResetEmail(auth, email); envoi = "Un e-mail a été envoyé à " + email + " (souvent dans les indésirables) pour choisir le mot de passe."; } catch (er) { envoi = "L'e-mail n'a pas pu partir."; } }
           A.journal({ id: "", r: { nm: "" } }, "Accès créé : " + nom + " (" + ROLES[m.role] + ")");

@@ -120,6 +120,19 @@ function membreDemande(o, jour, par) {
   if (!tous && !etabs.length) throw new Error("Choisissez au moins un établissement.");
   return { email, prenom, nomFamille: nom, membre: { role, nom: (role === "medecin" ? "Dr " : "") + [prenom, nom].filter(Boolean).join(" "), email, telephone: t(o.telephone, 30), actif: true, tousEtablissements: tous, etablissements: tous ? [] : etabs, droits, cree: jour, creePar: par } };
 }
+// Plusieurs cabinets pour un compte (19.2, 10/10/2026 : une secrétaire qui travaille pour plusieurs médecins) :
+// comptes/{uid} = { espace (cabinet principal, ouvert par défaut), espaces: [tous ses cabinets] } ; anciens comptes : { espace } seul ;
+// aucune fiche = cabinet modèle si la personne y est membre (membreModele)
+function espacesCompte(c, membreModele) {
+  const l = [], aj = (x) => { if (x && typeof x === "string" && l.indexOf(x) < 0) l.push(x); };
+  if (c) { aj(c.espace); (Array.isArray(c.espaces) ? c.espaces : []).forEach(aj); } else if (membreModele) aj(MODELE);
+  return l;
+}
+// Fiche comptes après l'ajout (present) ou le retrait d'un cabinet ; null = plus aucun cabinet (fiche à effacer)
+function compteModifie(c, membreModele, e, present) {
+  const l0 = espacesCompte(c, membreModele), l = present ? (l0.indexOf(e) >= 0 ? l0 : l0.concat([e])) : l0.filter((x) => x !== e);
+  return l.length ? { espace: l[0], espaces: l } : null;
+}
 // Bibliothèques de référence par spécialité (10/10/2026) : un espace sans patient (espaces/bib-…), modifié par l'administration avec
 // les écrans d'Onco360 ; un cabinet neuf reçoit la copie de la bibliothèque de la spécialité de sa formule. Même liste dans
 // public/js/donnees/modules.js (BIBLIOTHEQUES_SPE, vérifié par le test).
@@ -178,4 +191,4 @@ function reglageNettoye(r) {
   const Cs = ficheNettoyee(r.consultation); if (Cs) out.consultation = Cs; // formulaire de consultation : retouches du cabinet (16.7)
   return out;
 }
-module.exports = { ficheNettoyee, idSpecialite, reglageNettoye, PARAMS_SPE, parametreDepart, BIBS, bibDe, estBib, DROITS_BIB, MODULES_BIB, infos, ROLES, membreDemande, MODULES, MAX, FORMULES, formulesValides, abonnement, horsQuota, MODELE, BIBLIOTHEQUES, DROITS_MEDECIN, MIGRATIONS, verifier, idCabinet, listesDepart, calendrierDepart, tarifsDepart, migrationsFaites, membreTitulaire };
+module.exports = { espacesCompte, compteModifie, ficheNettoyee, idSpecialite, reglageNettoye, PARAMS_SPE, parametreDepart, BIBS, bibDe, estBib, DROITS_BIB, MODULES_BIB, infos, ROLES, membreDemande, MODULES, MAX, FORMULES, formulesValides, abonnement, horsQuota, MODELE, BIBLIOTHEQUES, DROITS_MEDECIN, MIGRATIONS, verifier, idCabinet, listesDepart, calendrierDepart, tarifsDepart, migrationsFaites, membreTitulaire };

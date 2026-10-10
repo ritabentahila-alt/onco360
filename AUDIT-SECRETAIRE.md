@@ -70,3 +70,6 @@ cabinet ; le menu « Cabinet du Dr … » (19.2) servira de choix du médecin. S
 **Complété le 10/10** : elle modifie aussi les jours fériés, les messages WhatsApp, tout l'onglet RCP, l'impression, les alertes et
 le temps d'attente de la salle ; elle valide le poids de la séance de chimio prévue du jour. Google Agenda : choix par médecin
 avec 19.2.
+
+**19.2 fait le 10/10** : une secrétaire peut travailler pour plusieurs cabinets (menu « Cabinet » sous le logo, qui sert de choix du
+médecin pour tous les paramètres) ; un seul Google Agenda pour tous ses cabinets, avec ses cases par cabinet et ses propres couleurs.

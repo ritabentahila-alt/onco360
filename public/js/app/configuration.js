@@ -4,7 +4,7 @@
 // Tout est enregistré dans parametres/calendrier (même document que l'application actuelle : feries, abs) + horaires.
 // Couleurs Google Agenda (08/10/2026) : parametres/couleursAgenda { data: JSON { catégorie: "1"…"11" | "" } } (seulement ce
 // qui diffère des couleurs par défaut, les mêmes que COULEURS0 dans functions/logique.js) ; repeint par agendaCouleurs.
-import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { db } from "../config.js";
 import { FERIES0 } from "../donnees/listes.js";
 import { typesDocuments, enregistrerTypes, TYPES_DOCUMENTS0 } from "./fichiers.js";
@@ -109,7 +109,7 @@ export function pageConfiguration(arg) {
   // documents, bouton WhatsApp vert ; okE / disE = ce que la personne peut modifier dans l'onglet affiché
   const sec = !ok && secretariat(), okE = ok || (sec && ONGLETS_SEC.indexOf(ONG) >= 0), disE = okE ? "" : " disabled";
   let h = entete();
-  if (!ok && !(ONG === "bibliotheques" && A.peut("ecrireConsultations")) && !(okE && !MSG_SEC[ONG])) h += '<p class="mesures">' + (ONG === "couleurs" ? "Votre Google Agenda et ce qui y apparaît se règlent ici ; les couleurs sont en lecture seule (droit « paramètres »)." : sec && MSG_SEC[ONG] ? MSG_SEC[ONG] : "Lecture seule : la modification demande le droit « paramètres ».") + "</p>";
+  if (!ok && !(ONG === "bibliotheques" && A.peut("ecrireConsultations")) && !(okE && !MSG_SEC[ONG])) h += '<p class="mesures">' + (ONG === "couleurs" ? "Votre Google Agenda, ce qui y apparaît et ses couleurs se règlent ici : ce sont vos réglages personnels." : sec && MSG_SEC[ONG] ? MSG_SEC[ONG] : "Lecture seule : la modification demande le droit « paramètres ».") + "</p>";
   if (ONG === "horaires") {
     // membre limité à certains établissements (secrétaire d'un centre) : seulement leurs horaires (07/10/2026)
     const limite = !D().membre.tousEtablissements, etabs = limite ? (D().membre.etablissements || []).slice() : (D().etabsTous || D().etabs).map((e) => e.code);
@@ -164,11 +164,14 @@ export function pageConfiguration(arg) {
     h += '<div id="cfProfil"><p class="sous">Chargement…</p></div>';
   } else if (ONG === "couleurs") {
     if (!A.D().bib) h += '<div id="cfProfil"><p class="sous">Chargement de votre Google Agenda…</p></div>' + sectionMonAgenda(); // liaison personnelle : pas dans la bibliothèque
-    h += '<section class="carte" data-fn="gagenda.couleurs"><h3><span class="ic">' + A.ic("agenda") + '</span>Couleurs dans Google Agenda</h3><p class="sous">Couleur de chaque type d\'événement dans l\'agenda « Onco360 » de chaque membre qui a relié son Google Agenda (Profil › Google Agenda). Après l\'enregistrement, les agendas sont repeints en quelques minutes.</p>' +
+    // sans le droit « paramètres » (secrétaire…) : ses propres couleurs (utilisateurs/{uid}.agendaCouleurs, 10/10/2026), enregistrées
+    // tout de suite ; elles passent avant celles du cabinet dans SON agenda
+    const perso = !ok && !A.D().bib, PC = (D().profil && D().profil.agendaCouleurs) || {}, CO = perso ? Object.assign({}, ED.coul, PC) : ED.coul;
+    h += '<section class="carte" data-fn="gagenda.couleurs"><h3><span class="ic">' + A.ic("agenda") + "</span>" + (perso ? "Couleurs dans votre Google Agenda" : "Couleurs dans Google Agenda") + '</h3><p class="sous">' + (perso ? "Réglage <b>personnel</b> : couleur de chaque type d\'événement dans votre agenda « Onco360 ». Enregistré tout de suite ; votre agenda est repeint en quelques minutes." + (Object.keys(PC).length ? ' <button class="mini" onclick="cfCoulPersoDef()">↺ Couleurs du cabinet</button>' : "") : "Couleur de chaque type d\'événement dans l\'agenda « Onco360 » de chaque membre qui a relié son Google Agenda (Profil › Google Agenda). Chacun peut ensuite choisir les siennes. Après l\'enregistrement, les agendas sont repeints en quelques minutes.") + "</p>" +
       CAT_COUL.map(([k, lib]) => {
-        const v = ED.coul[k] != null ? ED.coul[k] : "", nom = (COUL_G.find((c) => c[0] === v) || COUL_G[0])[1];
+        const v = CO[k] != null ? CO[k] : "", nom = (COUL_G.find((c) => c[0] === v) || COUL_G[0])[1];
         return '<div class="cf-coul"><div class="lib"><b>' + esc(lib) + '</b><span class="mesures">' + esc(nom) + (v !== COULEURS0[k] ? " · modifiée" : "") + '</span></div><div class="nuancier" role="radiogroup" aria-label="' + esc(lib) + '">' +
-          COUL_G.map(([c, n, hex]) => '<button type="button" role="radio" aria-checked="' + (c === v) + '" title="' + esc(n) + '" aria-label="' + esc(n) + '" class="pastc' + (c === v ? " on" : "") + (c ? "" : " vide") + '" style="background:' + hex + '"' + dis + ' onclick="cfCoul(\'' + k + "','" + c + "')\"></button>").join("") + "</div></div>";
+          COUL_G.map(([c, n, hex]) => '<button type="button" role="radio" aria-checked="' + (c === v) + '" title="' + esc(n) + '" aria-label="' + esc(n) + '" class="pastc' + (c === v ? " on" : "") + (c ? "" : " vide") + '" style="background:' + hex + '"' + (perso ? "" : dis) + ' onclick="' + (perso ? "cfCoulPerso" : "cfCoul") + "('" + k + "','" + c + "')\"></button>").join("") + "</div></div>";
       }).join("") + "</section>";
   } else if (ONG === "listes") {
     // Listes proposées dans les fiches patients (P2 bis, 08/10/2026) : corriger, retirer, ajouter ; nombre de dossiers concernés
@@ -285,18 +288,23 @@ function categoriesAgenda() {
     ["Tâches dont vous êtes responsable (avec une échéance)", types.map((t) => ["tache:" + t, t]).concat([["tache:", "Tâches sans type"]])],
   ].concat(D().membre.role === "medecin" ? [["Cabinet", [["abs", "Absences et congés (agenda du médecin titulaire)"]]]] : []);
 }
+// Ce que la personne veut voir, pour le cabinet ouvert (19.2, 10/10/2026) : agendaFiltre.cabinets[cabinet].exclus, sinon le réglage
+// d'avant (agendaFiltre.exclus) ; même lecture côté serveur (functions/index.js filtreCabinet)
+const filtreIci = () => { const f = (D().profil && D().profil.agendaFiltre) || {}; return (f.cabinets && f.cabinets[A.ESPACE]) || f; };
+const nomCabinetIci = () => ((D().cabinets || []).find((c) => c.e === A.ESPACE) || {}).nom || "";
 function sectionMonAgenda() {
-  const esc = A.esc, ex = ((D().profil && D().profil.agendaFiltre) || {}).exclus || [], ag = D().profil && D().profil.agendaGoogle;
-  return '<section class="carte" data-fn="gagenda.filtre"><h3><span class="ic">' + A.ic("agenda") + '</span>Votre Google Agenda : ce qui y apparaît</h3><p class="sous">Réglage <b>personnel</b> : chaque membre de l\'équipe choisit pour son propre agenda « Onco360 ». Décochez ce que vous ne voulez pas y voir ; c\'est enregistré tout de suite et votre agenda est mis à jour en quelques minutes. Un nouveau type (consultation, tâche) est coché d\'office.</p>' +
+  const esc = A.esc, ex = filtreIci().exclus || [], ag = D().profil && D().profil.agendaGoogle, cab = (D().cabinets || []).length > 1 ? nomCabinetIci() : "";
+  return '<section class="carte" data-fn="gagenda.filtre"><h3><span class="ic">' + A.ic("agenda") + '</span>Votre Google Agenda : ce qui y apparaît' + (cab ? " pour « " + esc(cab) + " »" : "") + "</h3>" + (cab ? '<p class="mesures">Vous travaillez pour plusieurs cabinets : un seul agenda « Onco360 » les réunit (le nom du cabinet est ajouté à chaque événement). Ces cases valent pour ce cabinet ; pour un autre, choisissez-le dans le menu « Cabinet ».</p>' : "") + '<p class="sous">Réglage <b>personnel</b> : chaque membre de l\'équipe choisit pour son propre agenda « Onco360 ». Décochez ce que vous ne voulez pas y voir ; c\'est enregistré tout de suite et votre agenda est mis à jour en quelques minutes. Un nouveau type (consultation, tâche) est coché d\'office.</p>' +
     (ag && ag.calendrier ? "" : '<p class="mesures" style="color:var(--orange)">Votre Google Agenda n\'est pas encore relié (case « Mon Google Agenda » ci-dessus) : ce réglage servira dès que vous le relierez.</p>') +
     categoriesAgenda().map(([titre, l]) => '<h4 class="soustitre">' + esc(titre) + '</h4><div class="cf-ag">' + l.map(([k, lib]) => '<label class="chk"><input type="checkbox"' + (ex.indexOf(k) < 0 ? " checked" : "") + ' data-k="' + esc(k) + '" onchange="cfAgenda(this)"> ' + esc(lib) + "</label>").join("") + "</div>").join("") + "</section>";
 }
 window.cfAgenda = async (cb) => {
-  const k = cb.dataset.k, P = D().profil || (D().profil = {}), ex = ((P.agendaFiltre || {}).exclus || []).filter((x) => x !== k);
+  const k = cb.dataset.k, P = D().profil || (D().profil = {}), ex = (filtreIci().exclus || []).filter((x) => x !== k);
   if (!cb.checked) ex.push(k);
+  const f0 = P.agendaFiltre || {}, f = Object.assign({}, f0, { cabinets: Object.assign({}, f0.cabinets || {}, { [A.ESPACE]: { exclus: ex } }), le: new Date().toISOString() });
   try {
-    await setDoc(doc(db, "utilisateurs", D().u.uid), { agendaFiltre: { exclus: ex, le: new Date().toISOString() } }, { merge: true });
-    P.agendaFiltre = { exclus: ex }; A.toast(cb.checked ? "Ajouté à votre Google Agenda." : "Retiré de votre Google Agenda.");
+    await setDoc(doc(db, "utilisateurs", D().u.uid), { agendaFiltre: f }, { merge: true });
+    P.agendaFiltre = f; A.toast(cb.checked ? "Ajouté à votre Google Agenda." : "Retiré de votre Google Agenda.");
   } catch (e) { cb.checked = !cb.checked; A.toast("Enregistrement impossible : " + ((e && e.message) || e)); }
 };
 // Onglet Listes : affichage filtré (la recherche garde le curseur), nombre de dossiers qui utilisent chaque nom
@@ -318,6 +326,15 @@ window.cfBib = (n) => gererListe(n);
 window.cfReg = (g, k, v) => { ED.reg[g][k] = parseInt(v, 10) || 0; modif(g === "salle"); };
 window.cfImp = (q, n, v) => { const x = parseInt(v, 10); ED.reg.impression[q][n] = isNaN(x) ? REGLAGES0.impression[q][n] : Math.max(0, Math.min(150, x)); modif(); };
 window.cfCoul = (k, c) => { ED.coul[k] = c; modif(true); };
+// Couleurs personnelles (sans le droit « paramètres ») : seulement ce qui diffère des couleurs du cabinet
+async function ecrireCoulPerso(PC) {
+  const P = D().profil || (D().profil = {});
+  const ref = doc(db, "utilisateurs", D().u.uid); // updateDoc : le champ est remplacé en entier (une couleur remise au défaut disparaît)
+  try { await updateDoc(ref, { agendaCouleurs: PC }).catch((e) => { if (e && e.code === "not-found") return setDoc(ref, { agendaCouleurs: PC }, { merge: true }); throw e; }); P.agendaCouleurs = PC; A.toast("Couleurs de votre Google Agenda enregistrées."); pageConfiguration(); }
+  catch (e) { A.toast("Enregistrement impossible : " + ((e && e.message) || e)); }
+}
+window.cfCoulPerso = (k, c) => { const PC = Object.assign({}, (D().profil && D().profil.agendaCouleurs) || {}); if (c === (ED.coul[k] != null ? ED.coul[k] : "")) delete PC[k]; else PC[k] = c; ecrireCoulPerso(PC); };
+window.cfCoulPersoDef = () => ecrireCoulPerso({});
 window.cfTd = (i, v) => { ED.tdoc[i] = String(v || "").trim(); modif(); };
 window.cfTdBouger = (i, s) => { const L = ED.tdoc, j = i + s; if (j < 0 || j >= L.length) return; const t = L[i]; L[i] = L[j]; L[j] = t; modif(true); };
 window.cfTdSup = (i) => { ED.tdoc.splice(i, 1); modif(true); };

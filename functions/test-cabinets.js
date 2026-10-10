@@ -196,3 +196,13 @@ const echoue = (f) => { try { f(); return false; } catch (e) { return true; } };
   ok(F.remplirRelance("{medecin} · {montant} · {echeance} · {x}", { medecin: "Dr A", montant: "1 190 DH", echeance: "02/09/2026" }) === "Dr A · 1 190 DH · 02/09/2026 · {x}", "message de relance rempli");
   ok(["retard", "renouveler", "essai"].every((k) => /\{montant\}/.test(F.MODELES_RELANCE0[k]) && /\{echeance\}/.test(F.MODELES_RELANCE0[k])), "chaque message de départ cite le montant et l'échéance");
 })();
+// Plusieurs cabinets pour un compte (19.2, 10/10/2026)
+(() => {
+  const C = require("./cabinets"), ok = (c, m) => { console.log((c ? "✅ " : "❌ ") + m); if (!c) process.exitCode = 1; }, J = JSON.stringify;
+  ok(J(C.espacesCompte({ espace: "cab-a" })) === '["cab-a"]' && J(C.espacesCompte(null, true)) === '["cabinet-bentahila"]' && J(C.espacesCompte(null, false)) === "[]", "cabinets d'un compte : ancienne fiche, membre du cabinet modèle sans fiche, aucun");
+  ok(J(C.compteModifie({ espace: "cab-a" }, false, "cab-b", true)) === '{"espace":"cab-a","espaces":["cab-a","cab-b"]}', "cabinet ajouté : le principal reste le premier");
+  ok(J(C.compteModifie(null, true, "cab-b", true)) === '{"espace":"cabinet-bentahila","espaces":["cabinet-bentahila","cab-b"]}', "secrétaire du cabinet modèle (sans fiche) ajoutée à un autre cabinet : les deux");
+  ok(J(C.compteModifie({ espace: "cab-a", espaces: ["cab-a", "cab-b"] }, false, "cab-a", true)) === '{"espace":"cab-a","espaces":["cab-a","cab-b"]}', "fiche réécrite dans un cabinet déjà connu : rien ne change");
+  ok(J(C.compteModifie({ espace: "cab-a", espaces: ["cab-a", "cab-b"] }, false, "cab-a", false)) === '{"espace":"cab-b","espaces":["cab-b"]}', "retirée du cabinet principal : le suivant devient principal");
+  ok(C.compteModifie({ espace: "cab-a" }, false, "cab-a", false) === null, "retirée de son seul cabinet : fiche effacée");
+})();
