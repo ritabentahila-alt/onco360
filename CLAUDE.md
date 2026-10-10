@@ -23,7 +23,7 @@ Après déploiement : recharger sans cache (Cmd + Maj + R). Les `.js` sont servi
 | Fichier | Rôle |
 |---|---|
 | `index.html` | connexion Firebase Auth → `v2.html` (compte d'administration → `admin.html`) |
-| `admin.html` + `js/app/admin.js` | Administration : onglets Cabinets (liste, fiche, réglage du cabinet, équipe, démo, suspendre…), Nouveau cabinet, Par spécialité (packs avec réglage complet `editeurReglage`, bibliothèque et paramètres) |
+| `admin.html` + `js/app/admin.js` | Administration : onglets Cabinets (liste, fiche, réglage du cabinet, équipe, démo, suspendre…), Nouveau cabinet, Par spécialité (packs avec réglage complet `editeurReglage`, bibliothèque et paramètres : fiche patient, formulaire de consultation), Modules (tous les modules, `MODULES_BASE` / MODULES / MODULES_PREVUS, lecture seule) |
 | `v2.html` | Onco360 : structure, CSS complet, symboles SVG, logo |
 | `js/config.js` | initialisation Firebase (clé web publique, normal) |
 | `js/app/v2.js` | chargement, tableau de bord, patients, dossier, identité, RDV (prix « Venu »), radiothérapie (dosimétrie, documents), WhatsApp, routage, droits |

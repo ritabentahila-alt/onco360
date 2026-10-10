@@ -1136,6 +1136,11 @@ Modules et menus, Bibliothèques et paramètres ; cabinets en liste ; onglet lis
       inchangée). Une décision de RCP garde son type « RCP » et son titre même s'ils sont retirés. Pas encore : calculs
       automatiques (IMC), impression de la consultation.
       Tests `tests/test_consultation_form.py` 15/15, serveur 63/63.
+- [x] **16.8 Onglet « Modules » de l'Administration** (10/10, demandé avant 16.5) : tous les modules, toutes spécialités
+      confondues : 7 parties de base (Tableau de bord, Patients et dossiers, Consultations, Paramètres, Équipe et droits, Journal
+      d'audit, Profil ; `MODULES_BASE` de modules.js), 11 modules activables (spécialité, place dans Onco360, fonctions de base /
+      bientôt, packs et cabinets qui l'ont) et 2 prévus (Traitements et stocks, Matériel et consommables) ; filtres De base /
+      Activables / Prévus, par spécialité, recherche. Lecture seule. Tests `tests/test_modules.py` 10/10.
 - [ ] 16.5 Nouvelle spécialité (copie ou vide) ; Médecine générale, Gynécologie prêtes pour l'étape 14.
 
 ## Étape 14 – Autres spécialités (demandé le 09/10/2026) : nouveaux modules et leurs formules
@@ -1395,3 +1400,4 @@ Onco360_Package_Cession/
 | 10/10/2026 | 16.6 Fiche patient réglable | Ordre et présence des champs de la fiche, champs ajoutés (5 types, imprimables, en-tête), par pack et par cabinet ; appliqué partout (création, modification, affichage, en-tête, fiche chimio, courriers) ; oncologie inchangée sans réglage. Principe retenu pour la consultation (16.7). Tests 11/11, 51/51, 56/56, bilan 352 317 DH. Mis en ligne. |
 | 10/10/2026 | 16.6 bis Fiche de la spécialité | Fiche patient réglée une fois par spécialité (Bibliothèque et paramètres), la même pour tous les packs, envoyée à tous les cabinets de la spécialité ; champs existants renommables ; retouches par cabinet (différences seulement) ; plus de fiche dans les packs. Tests 19/19, serveur 60/60. |
 | 10/10/2026 | 16.7 Consultation réglable | Formulaire « Nouvelle consultation » réglé par spécialité (commun aux packs) : ordre, présence, noms, liste des types, champs ajoutés (texte long, nombre avec unité, section…), retouches par cabinet ; oncologie inchangée sans réglage. Tests 15/15, serveur 63/63. |
+| 10/10/2026 | 16.8 Onglet Modules | Administration : liste de tous les modules (de base, activables, prévus), toutes spécialités, avec fonctions, packs et cabinets ; filtres et recherche. Tests 10/10. |

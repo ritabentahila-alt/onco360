@@ -7,19 +7,19 @@ import { app, auth, db } from "../config.js";
 import { onAuthStateChanged, sendPasswordResetEmail, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { MENU, FONCTIONS, FONCTIONS_RELIEES, CARTES, SECTIONS, BIBLIOTHEQUES, FICHE, TYPES_CHAMP, CONSULT, TYPES_CHAMP_CS, reglageEffectif, ficheEffective, ficheRetouches, consultEffective, formRetouches, libDe } from "../donnees/catalogue.js";
-import { MODULES, ROLES_MAX, SPECIALITES, specialiteDe, FORMULES as FORMULES0, abonnementEffectif, BIBLIOTHEQUES_SPE, MODULE_FAMILLE } from "../donnees/modules.js";
+import { MODULES, ROLES_MAX, SPECIALITES, specialiteDe, FORMULES as FORMULES0, abonnementEffectif, BIBLIOTHEQUES_SPE, MODULE_FAMILLE, MODULE_MENU, MODULES_BASE, MODULES_PREVUS } from "../donnees/modules.js";
 
 const $ = (i) => document.getElementById(i);
 const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const dfr = (d) => (typeof d === "string" && d.length >= 10 ? d.slice(8, 10) + "/" + d.slice(5, 7) + "/" + d.slice(0, 4) : "");
 const sansAcc = (x) => String(x || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
-const ONGLETS = [["cabinets", "Cabinets"], ["nouveau", "Nouveau cabinet"], ["specialites", "Par spécialité"]];
+const ONGLETS = [["cabinets", "Cabinets"], ["nouveau", "Nouveau cabinet"], ["specialites", "Par spécialité"], ["modules", "Modules"]];
 // CABINETS : liste (null = chargement) ; FS : packs (formules) enregistrés (sinon ceux de départ)
 let SPES = {}; // fiche patient de chaque spécialité { nom: { fiche, le } } (plateforme/specialites)
 let CABINETS = null, FS = null, BIBS = null, // BIBS : bibliothèques de référence par spécialité (null = pas encore lues)
    MSG = "", RES = "", Q = "", STATUT = "", SPE = "", SPEF = "";
 const FORMULES_ = () => FS || FORMULES0;
-const ONG = () => { const h = location.hash.replace("#", ""); return h === "formules" || h === "modules" || h === "reference" ? "specialites" : ONGLETS.some((o) => o[0] === h) ? h : "cabinets"; };
+const ONG = () => { const h = location.hash.replace("#", ""); return h === "formules" || h === "reference" ? "specialites" : ONGLETS.some((o) => o[0] === h) ? h : "cabinets"; };
 
 async function serveur(nom, donnees) {
   const { getFunctions, httpsCallable } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js");
@@ -61,9 +61,9 @@ function dessiner() {
   const o = ONG();
   $("onglets").innerHTML = ONGLETS.map(([k, lib]) => '<a href="#' + k + '" class="' + (k === o ? "on" : "") + '">' + esc(lib) + (k === "cabinets" && CABINETS ? ' <span class="nb">' + CABINETS.length + "</span>" : "") + "</a>").join("");
   const bandeau = RES ? '<div class="ok bandeau">' + RES + '<button class="x" id="resX" aria-label="Fermer">✕</button></div>' : "";
-  $("page").innerHTML = bandeau + (o === "nouveau" ? htmlNouveau() : o === "specialites" ? htmlSpecialites() : htmlCabinets());
+  $("page").innerHTML = bandeau + (o === "nouveau" ? htmlNouveau() : o === "specialites" ? htmlSpecialites() : o === "modules" ? htmlModules() : htmlCabinets());
   if ($("resX")) $("resX").onclick = () => { RES = ""; dessiner(); };
-  if (o === "nouveau") brancherNouveau(); else if (o === "specialites") brancherSpecialites(); else brancherCabinets();
+  if (o === "nouveau") brancherNouveau(); else if (o === "specialites") brancherSpecialites(); else if (o === "modules") brancherModules(); else brancherCabinets();
 }
 
 // ───── Onglet Cabinets : chiffres, recherche, filtres, cartes ─────
@@ -405,6 +405,46 @@ async function supprimer(b, c) {
 const famille = (id) => (BIBLIOTHEQUES_SPE.find((b) => b.id === id) || {}).lib || id;
 const bibDe = (spe) => (BIBLIOTHEQUES_SPE.find((b) => b.specialites.indexOf(spe) >= 0) || BIBLIOTHEQUES_SPE[0]).id;
 const modulePour = (k, spe) => !MODULE_FAMILLE[k] || MODULE_FAMILLE[k] === bibDe(spe || SPECIALITES[0]);
+// ───── Onglet Modules (10/10/2026) : tous les modules d'Onco360, toutes spécialités confondues ─────
+// Parties de base (toujours là), modules activables (packs, cabinets) et modules prévus (à construire) ; pour chacun : spécialités,
+// place dans Onco360, fonctions (de base, reliées, bientôt), packs et cabinets qui l'ont.
+let MF = { genre: "", spe: "", q: "" };
+function listeModules() {
+  const FS = Object.entries(FORMULES_()), cabs = (CABINETS || []).filter((c) => !c.bibliotheque);
+  const nomBib = (id) => (BIBLIOTHEQUES_SPE.find((b) => b.id === id) || {}).lib || id;
+  const base = MODULES_BASE.map(([k, lib, de, ou, cont]) => ({ k, lib, de, ou, genre: "base", spes: [], fonctions: (cont === "cartes" ? CARTES.map((c) => c[1]) : cont === "sections" ? SECTIONS.map((c) => c[1]) : cont).map((l) => ({ lib: l, etat: "" })), packs: null, cabinets: cabs.length }));
+  const act = MODULES.map(([k, lib, de]) => ({ k, lib, de, ou: MODULE_MENU[k] || "", genre: "activable", spes: MODULE_FAMILLE[k] ? [nomBib(MODULE_FAMILLE[k])] : [],
+    fonctions: (FONCTIONS[k] || []).map(([f, l, b]) => ({ lib: l, etat: b ? "base" : FONCTIONS_RELIEES.indexOf(k + "." + f) < 0 ? "bientot" : "" })),
+    packs: FS.filter(([, f]) => (f.modules || []).indexOf(k) >= 0).map(([, f]) => f.lib), cabinets: cabs.filter((c) => abonnementEffectif(c.abonnement).modules[k]).length }));
+  const prev = MODULES_PREVUS.map(([k, lib, bib]) => ({ k, lib, de: "À construire (feuille de route, étape 14)", ou: "", genre: "prevu", spes: [nomBib(bib)], fonctions: [], packs: [], cabinets: 0 }));
+  return base.concat(act, prev);
+}
+function htmlModules() {
+  const T = listeModules(), sansAcc2 = (t) => sansAcc(String(t || "")).toLowerCase(), q = sansAcc2(MF.q);
+  const L = T.filter((m) => (!MF.genre || m.genre === MF.genre) && (!MF.spe || !m.spes.length || m.spes.indexOf(MF.spe) >= 0) && (!q || sansAcc2(m.lib + " " + m.de + " " + m.ou + " " + m.fonctions.map((f) => f.lib).join(" ")).indexOf(q) >= 0));
+  const nb = (g) => T.filter((m) => m.genre === g).length, GENRES = [["", "Tous", T.length], ["base", "De base", nb("base")], ["activable", "Activables", nb("activable")], ["prevu", "Prévus", nb("prevu")]];
+  const BADGE = { base: '<span class="bdg">de base</span>', activable: '<span class="bdg ok">activable</span>', prevu: '<span class="bdg demo">prévu</span>' };
+  const ETAT = { base: ' <span class="m">(de base)</span>', bientot: ' <span class="m">(bientôt)</span>', "": "" };
+  return '<section class="carte"><h2>Modules d\'Onco360</h2><p class="sous">Tous les modules, toutes spécialités confondues. <b>De base</b> : toujours présents dans chaque cabinet. <b>Activables</b> : choisis dans un pack puis cabinet par cabinet (Par spécialité, réglage d\'un cabinet). <b>Prévus</b> : à construire pour d\'autres spécialités. Un module sans spécialité sert à toutes.</p>' +
+    '<div class="barre" style="margin:10px 0">' + '<div class="puces">' + GENRES.map(([k, l, n]) => '<button class="puce' + (k === MF.genre ? " on" : "") + '" data-mg="' + k + '">' + esc(l) + ' <span class="nb">' + n + "</span></button>").join("") + "</div>" +
+    '<select id="mSpe" aria-label="Spécialité"><option value="">Toutes les spécialités</option>' + SPECIALITES.map((x) => "<option" + (x === MF.spe ? " selected" : "") + ">" + esc(x) + "</option>").join("") + "</select>" +
+    '<input id="mQ" type="search" placeholder="Rechercher un module, une fonction…" value="' + esc(MF.q) + '" aria-label="Rechercher"></div>' +
+    (L.length ? '<div class="tableau"><table class="lc mods-t"><thead><tr><th>Module</th><th>Type</th><th>Spécialité</th><th>Dans Onco360</th><th>Fonctions</th><th>Packs</th><th class="n">Cabinets</th></tr></thead><tbody>' +
+      L.map((m) => '<tr data-module="' + esc(m.k) + '"><td data-l="Module"><b>' + esc(m.lib) + '</b><div class="m">' + esc(m.de) + "</div></td>" +
+        '<td data-l="Type">' + BADGE[m.genre] + "</td>" +
+        '<td data-l="Spécialité">' + (m.spes.length ? esc(m.spes.join(", ")) : '<span class="m">Toutes</span>') + "</td>" +
+        '<td data-l="Dans Onco360" class="m">' + esc(m.ou || "—") + "</td>" +
+        '<td data-l="Fonctions">' + (m.fonctions.length ? "<details><summary>" + m.fonctions.length + " fonction" + (m.fonctions.length > 1 ? "s" : "") + "</summary><ul class=\"mods-f\">" + m.fonctions.map((f) => "<li>" + esc(f.lib) + ETAT[f.etat] + "</li>").join("") + "</ul></details>" : '<span class="m">—</span>') + "</td>" +
+        '<td data-l="Packs">' + (m.packs === null ? '<span class="m">tous</span>' : m.packs.length ? "<details><summary>" + m.packs.length + " pack" + (m.packs.length > 1 ? "s" : "") + "</summary><ul class=\"mods-f\">" + m.packs.map((p) => "<li>" + esc(p) + "</li>").join("") + "</ul></details>" : '<span class="m">aucun</span>') + "</td>" +
+        '<td data-l="Cabinets" class="n">' + (CABINETS ? m.cabinets : "…") + "</td></tr>").join("") + "</tbody></table></div>"
+      : '<p class="sous">Aucun module ne correspond.</p>') + "</section>";
+}
+function brancherModules() {
+  document.querySelectorAll("[data-mg]").forEach((b) => { b.onclick = () => { MF.genre = b.dataset.mg; dessiner(); }; });
+  $("mSpe").onchange = () => { MF.spe = $("mSpe").value; dessiner(); };
+  $("mQ").oninput = () => { MF.q = $("mQ").value; const pos = $("mQ").selectionStart; dessiner(); $("mQ").focus(); $("mQ").setSelectionRange(pos, pos); };
+}
+
 // ───── Onglet Par spécialité (16.2, 10/10/2026) : packs, modules et menus, bibliothèques et paramètres ─────
 let SPEC = null, SOUS = "packs";
 const packsDe = (spe) => Object.entries(FORMULES_()).filter(([, f]) => specialiteDe(f.specialite) === spe);
