@@ -1418,14 +1418,20 @@ Relecture de `bilan.js`, `moteur/bilan.js`, `moteur/finances.js`, `moteur/tarifs
       établissement / type, pagination, 12 actes sans tarif signalés (tarifs de séance retirés), 390 px, bilan 352 317 DH, aucune erreur.
 
 
-**B3 – Améliorations proposées**
+**B3 – Améliorations** (fait et testé le 10/10 sauf le pointage en lot, pas encore en ligne)
 - [ ] **Pointer en lot** : « Marquer payés » tous les actes à recevoir d'une clinique jusqu'à une date (quand un virement en vrac
-      arrive), avec annulation.
-- [ ] Périodes : **année dernière**, trimestre, choix de l'année (bilan de fin d'année pour le comptable).
-- [ ] **Tableau par établissement** : NET, payé, à recevoir, ancienneté de l'à recevoir (plus de 30 / 60 / 90 jours).
-- [ ] **Évolution mois par mois** (graphique 12 mois) et comparaison avec l'année précédente.
-- [ ] **Relevé pour une clinique** (PDF des actes à recevoir, à lui envoyer).
-- [ ] Tests automatiques du calcul du bilan (sans navigateur), avant de toucher B1.
+      arrive), avec annulation. **Pas retenu pour l'instant** (Dr Bentahila, 10/10).
+- [x] Périodes : trimestre en cours, trimestre dernier, **année dernière**, chaque année depuis le 1er acte enregistré (« Année 2024 »…)
+      (moteur `periode` : `trim`, `trimprec`, `anneeprec`, `aAAAA`).
+- [x] **Tableau « Par établissement »** (sous les chiffres) : actes, NET, payé, à recevoir et son ancienneté (31 à 60 j, 61 à 90 j,
+      + de 90 j en rouge), total ; clic sur une ligne = filtre de l'établissement ; aussi en feuille Excel « Par établissement ».
+- [x] **Mois par mois** : NET de chaque mois de l'année de la période choisie, barres comparées à l'année d'avant (bleu / orange,
+      palette vérifiée pour les daltoniens), total et écart en % sur les mêmes mois, survol = montants, clic sur un mois = ce mois ;
+      « Voir les chiffres » (tableau) ; dessin adapté au téléphone.
+- [x] **Relevé pour un établissement** : bouton « Relevé » de la ligne (s'il reste à recevoir) = PDF des actes non réglés de la
+      période (date, patient, n° de dossier, acte, brut, NET, totaux), à envoyer à la clinique.
+- [x] Tests automatiques du calcul (faits en B1, + 5 tests de périodes : 22/22). Navigateur : périodes, tableau par établissement
+      (total 352 317 DH, payé 186 004 DH), relevé HCK, mois par mois et clic sur juillet, 390 px, aucune erreur.
 
 **Ordre proposé** : B1 (une session, avec tests) → B2 → B3 au choix.
 
@@ -1689,3 +1695,4 @@ On garde le bleu Onco360 (#3563B0) et Arial ; les impressions (ordonnances, fich
 | 10/10/2026 | 15 bis – B1 | Bilan recalculé à chaque ouverture ; hôpital des actes gardé lors d'un changement d'hôpital (`hopHist`) ; cases « Payé » repérées par l'identifiant de l'acte (anciennes reprises) ; pointages et versements relus avant écriture. Tests moteur 14/14, règles +4, navigateur. Pas encore en ligne. |
 | 10/10/2026 | 15 bis – B2 | Taux réel de chaque acte, alerte « actes sans tarif » (0 DH), message sans tarifs, Actualiser séparé des exports, versement sans libellé = « Versement », référents selon établissement et type, journal par 300 lignes. Tests 17/17 + navigateur. Pas encore en ligne. |
 | 10/10/2026 | 15 bis – En ligne | B1 et B2 mis en ligne (site et règles). |
+| 10/10/2026 | 15 bis – B3 | Trimestres, année dernière et années précédentes ; tableau « Par établissement » (à recevoir par ancienneté) ; graphique mois par mois comparé à l'année d'avant ; relevé PDF des actes à régler pour un établissement. Pointage en lot non retenu. Tests 22/22 + navigateur. Pas encore en ligne. |

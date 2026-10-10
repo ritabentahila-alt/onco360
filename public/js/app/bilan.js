@@ -15,7 +15,9 @@ let F = { per: "mois", du: "", au: "", hop: "tous", typ: "tous", q: "", cor: "to
 const TYPES0 = [["tous", "Tous les actes"], ["seance", "Séances chimio"], ["cchimio", "Consultations chimio"], ["annonce", "Consultations annonce"], ["suivi", "Consultations suivi"], ["controle", "Contrôles"], ["hospit", "Hospitalisations"], ["rt", "Radiothérapie"], ["kl", "Autres versements"]];
 // Types d'actes : liste de base + activités ajoutées dans les Paramètres (2nd avis…)
 const typesActes = () => { const l = TYPES0.slice(), T = D().tarifs || {}; Object.values(T.etablissements || {}).forEach((e) => (e.activites || []).forEach((a) => { if (!l.some((x) => x[0] === a.type)) l.splice(l.length - 1, 0, [a.type, a.libelle]); })); return l; };
-const PER = [["semaine", "Semaine en cours"], ["mois", "Mois en cours"], ["moisprec", "Mois dernier"], ["annee", "Année civile"], ["perso", "Période personnalisée"]];
+// Périodes (B3 : trimestres, année dernière, années précédentes depuis le 1er acte enregistré)
+const PER0 = [["semaine", "Semaine en cours"], ["mois", "Mois en cours"], ["moisprec", "Mois dernier"], ["trim", "Trimestre en cours"], ["trimprec", "Trimestre dernier"], ["annee", "Année civile"], ["anneeprec", "Année dernière"]];
+const periodes = (R) => { const y = +D().t.slice(0, 4); let y0 = y; R.forEach((x) => (x.fin || []).forEach((e) => { const a = +String(e[0] || "").slice(0, 4); if (a > 1990 && a < y0) y0 = a; })); const l = PER0.slice(); for (let a = y - 2; a >= y0; a--) l.push(["a" + a, "Année " + a]); return l.concat([["perso", "Période personnalisée"]]); };
 // Taux affiché (15 bis B2, 10/10/2026) : ce que l'acte garde vraiment (NET / brut), au lieu de l'impôt du 1er établissement pour tous
 // (une consultation 250 → 225 s'affichait « 100 % ») ; radiothérapie : part du médecin − impôt du tarif de son lieu
 const pctTxt = (x) => String(Math.round(x * 10) / 10).replace(".", ",");
@@ -158,7 +160,7 @@ function dessiner() {
     (estComptable() ? " · " + (RELEVE_LE ? "relevé à jour au " + RELEVE_LE.toLocaleDateString("fr-FR") + " " + RELEVE_LE.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) : "aucun relevé : il est préparé quand un médecin ouvre Onco360") : "") + "</p></div>" +
     '<div class="actions"><button class="bt clair" data-fn="bilan.exports" onclick="biExport(\'xlsx\')"><svg class="pi"><use href="#i-telecharger"/></svg>Excel</button><button class="bt clair" data-fn="bilan.exports" onclick="biExport(\'pdf\')"><svg class="pi"><use href="#i-telecharger"/></svg>PDF</button><button class="bt gris" onclick="biActualiser()"><svg class="pi"><use href="#i-actualiser"/></svg>Actualiser</button></div></section>' +
     '<section class="carte" data-fn="bilan.filtres"><div class="form" style="grid-template-columns:repeat(auto-fit,minmax(190px,1fr))">' +
-    "<div><label>Période</label>" + sel("biPer", F.per, PER, "per") + "</div>" +
+    "<div><label>Période</label>" + sel("biPer", F.per, periodes(R), "per") + "</div>" +
     (F.per === "perso" ? '<div><label>Du</label><input type="date" value="' + esc(F.du) + '" onchange="biF(\'du\',this.value)"></div><div><label>Au</label><input type="date" value="' + esc(F.au) + '" onchange="biF(\'au\',this.value)"></div>' : "") +
     "<div><label>Établissement</label>" + sel("biHop", F.hop, [["tous", "Tous les centres"]].concat(etabs).concat([["—", "Non renseigné / autres"]]), "hop") + "</div>" +
     "<div><label>Type d'acte</label>" + sel("biTyp", F.typ, typesActes(), "typ") + "</div>" +
@@ -170,6 +172,7 @@ function dessiner() {
   h += '<section class="carte"><div class="kpi">' + k(T.caNet, "CA NET médecin", "fort") + k(T.chimio, "Chimio – " + T.nbChimio + " séance(s)") + k(T.consultations, "Consultations – " + T.nbConsultations) + k(T.hospit, "Hospitalisations – " + T.nbHospit) + k(T.rt, "Radiothérapie – " + T.nbRt + " terminée(s)") + k(T.versements, "Autres versements – " + T.nbVersements) + "</div>" +
     '<div class="actr" style="justify-content:flex-start;gap:16px;margin-top:12px"><b style="color:var(--vert)"><svg class="pi"><use href="#i-check"/></svg>Payé : ' + dh(T.paye) + '</b><b style="color:var(--orange)"><svg class="pi"><use href="#i-sablier"/></svg>À recevoir : ' + dh(T.aRecevoir) + "</b></div>" +
     (T.nbPrev ? '<p class="mesures" style="margin:4px 0 0">☢️ Radiothérapies en cours ou prévues (non comptées) : ' + T.nbPrev + " – NET prévisionnel " + dh(T.netPrev) + "</p>" : "") + "</section>";
+  h += htmlEtabs(all) + htmlMois(b, R);
   h += '<section class="carte"><h3><span class="ic">' + A.ic("liste") + "</span>Journal détaillé (" + all.length + " acte" + (all.length > 1 ? "s" : "") + ')</h3><div class="tableau"><table class="tcures bilan"><tr><th>Date</th><th>Patient</th><th>Hôpital</th><th>Acte / prestation</th><th>Statut</th><th class="n">Brut</th><th class="n">Taux</th><th class="n">NET médecin</th><th>Paiement</th></tr>' +
     (all.length ? all.slice(0, LIM).map((o, i) => {
       const cor = o.id ? corDe[o.id] : "";
@@ -359,6 +362,90 @@ window.biKlSup = async (n) => {
   catch (er) { A.toast("Suppression impossible : " + er.message); }
 };
 
+// ───── Par établissement, mois par mois, relevé pour une clinique (15 bis B3, 10/10/2026) ─────
+// Par établissement : actes affichés (filtres du haut), NET, payé, à recevoir et son ancienneté (jours depuis la date de l'acte) ;
+// les autres versements vont avec « Non renseigné ». Un clic sur une ligne choisit l'établissement ; « Relevé » = PDF à lui envoyer.
+const jours = (d) => Math.floor((new Date(D().t + "T12:00:00") - new Date(d + "T12:00:00")) / 864e5);
+function parEtab(all) {
+  const g = {};
+  all.forEach((o) => {
+    const h = o.t === "kl" ? "—" : o.hop || "—", x = (g[h] = g[h] || { h, n: 0, net: 0, paye: 0, rec: 0, r30: 0, r60: 0, r90: 0 }), v = num(o.net) || 0;
+    x.n++; x.net += v;
+    if (estPaye(o, PE)) x.paye += v; else { x.rec += v; const a = jours(o.d); if (a > 90) x.r90 += v; else if (a > 60) x.r60 += v; else if (a > 30) x.r30 += v; }
+  });
+  return Object.values(g).sort((a, z) => (a.h === "—") - (z.h === "—") || z.net - a.net);
+}
+function htmlEtabs(all) {
+  const L = parEtab(all); DATA.etabs = L; if (!L.length) return "";
+  const esc = A.esc, nom = (h) => (h === "—" ? "Non renseigné / autres" : ((D().etabsTous || D().etabs || []).find((e) => e.code === h) || {}).nom || "");
+  const tot = L.reduce((a, x) => { ["n", "net", "paye", "rec", "r30", "r60", "r90"].forEach((k) => { a[k] += x[k]; }); return a; }, { n: 0, net: 0, paye: 0, rec: 0, r30: 0, r60: 0, r90: 0 });
+  const ret = (v) => (v ? dh(v) : "—");
+  return '<section class="carte"><h3><span class="ic">' + A.ic("hopital") + '</span>Par établissement</h3><p class="sous">Actes de la période et des filtres choisis. « À recevoir » détaillé par ancienneté (jours depuis la date de l\'acte). Touchez une ligne pour ne voir que cet établissement.</p>' +
+    '<div class="tableau"><table class="tcures bilan"><tr><th>Établissement</th><th class="n">Actes</th><th class="n">NET</th><th class="n">Payé</th><th class="n">À recevoir</th><th class="n">dont 31 à 60 j</th><th class="n">dont 61 à 90 j</th><th class="n">dont + de 90 j</th><th></th></tr>' +
+    L.map((x) => '<tr class="cl" onclick="biF(\'hop\',\'' + esc(x.h) + '\')"><td><b>' + esc(x.h) + "</b>" + (nom(x.h) ? '<div class="mesures">' + esc(nom(x.h)) + "</div>" : "") + '</td><td class="n">' + x.n + '</td><td class="n"><b>' + dh(x.net) + '</b></td><td class="n">' + dh(x.paye) + '</td><td class="n">' + dh(x.rec) + '</td><td class="n">' + ret(x.r30) + '</td><td class="n">' + ret(x.r60) + '</td><td class="n"' + (x.r90 ? ' style="color:var(--rouge);font-weight:bold"' : "") + ">" + ret(x.r90) + "</td>" +
+      '<td onclick="event.stopPropagation()">' + (x.h !== "—" && x.rec > 0 ? '<button class="mini" data-fn="bilan.exports" title="Actes à régler de cet établissement sur la période (PDF à lui envoyer)" onclick="biReleve(\'' + esc(x.h) + '\')">Relevé</button>' : "") + "</td></tr>").join("") +
+    (L.length > 1 ? '<tr class="tot"><td><b>Total</b></td><td class="n">' + tot.n + '</td><td class="n"><b>' + dh(tot.net) + '</b></td><td class="n">' + dh(tot.paye) + '</td><td class="n">' + dh(tot.rec) + '</td><td class="n">' + ret(tot.r30) + '</td><td class="n">' + ret(tot.r60) + '</td><td class="n">' + ret(tot.r90) + "</td><td></td></tr>" : "") + "</table></div></section>";
+}
+// Mois par mois : NET de chaque mois de l'année de la période choisie, comparé à l'année d'avant (mêmes filtres, sauf période et paiement)
+const MOIS_C = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
+const MOIS_L = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
+const COUL_AN = "#3563B0", COUL_AVANT = "#D9822B"; // palette vérifiée (dataviz : écart de couleur suffisant, aussi pour les daltoniens)
+function netParMois(R, an) {
+  const m = Array(12).fill(0);
+  calculerBilan(R, B.versements, PE, Object.assign({}, F, { per: "", du: an + "-01-01", au: an + "-12-31", pay: "tous" }), D().t).all.forEach((o) => { m[+o.d.slice(5, 7) - 1] += num(o.net) || 0; });
+  return m;
+}
+function htmlMois(b, R) {
+  const y = +(b.pr[1] < "9999" ? b.pr[1] : D().t).slice(0, 4), A1 = netParMois(R, y), A0 = netParMois(R, y - 1);
+  if (!A1.some((v) => v) && !A0.some((v) => v)) return "";
+  // Année en cours : comparaison sur les mêmes mois (janvier → mois actuel)
+  const enCours = y === +D().t.slice(0, 4), nM = enCours ? +D().t.slice(5, 7) : 12, s1 = A1.slice(0, nM).reduce((a, v) => a + v, 0), s0 = A0.slice(0, nM).reduce((a, v) => a + v, 0);
+  const ev = s0 ? Math.round(((s1 - s0) / s0) * 100) : null;
+  const etroit = window.innerWidth < 600, W = etroit ? 400 : 720, H = etroit ? 240 : 230, g = etroit ? 42 : 58, d = 8; // téléphone : dessin plus étroit, texte lisible
+  const hh = 26, top = 12, ph = H - hh - top, pas = (W - g - d) / 12, bw = Math.min(18, (pas - 10) / 2);
+  const q = Math.max(...A1, ...A0, 1) / 4, e = Math.pow(10, Math.floor(Math.log10(q))), f = q / e, haut = 4 * e * [1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10].find((n) => f <= n); // 4 graduations rondes, au plus près du maximum
+  const Y = (v) => top + ph - (v / haut) * ph, k = (v) => (v >= 1000 ? String(Math.round(v / 100) / 10).replace(".", ",") + " k" : String(Math.round(v)));
+  const barre = (x, v, c) => { if (!v) return ""; const y1 = Y(v), y0 = top + ph, r = Math.min(4, (y0 - y1) / 2); return '<path d="M' + x + "," + y0 + "V" + (y1 + r) + "Q" + x + "," + y1 + " " + (x + r) + "," + y1 + "H" + (x + bw - r) + "Q" + (x + bw) + "," + y1 + " " + (x + bw) + "," + (y1 + r) + "V" + y0 + 'Z" fill="' + c + '"/>'; };
+  let svg = '<svg viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="NET par mois, ' + y + " et " + (y - 1) + '" style="width:100%;height:auto;display:block;font-family:Arial,sans-serif">';
+  for (let i = 0; i <= 4; i++) { const v = (haut / 4) * i, yy = Y(v); svg += '<line x1="' + g + '" x2="' + (W - d) + '" y1="' + yy + '" y2="' + yy + '" stroke="#E2E7F0" stroke-width="1"/><text x="' + (g - 6) + '" y="' + (yy + 4) + '" text-anchor="end" font-size="11" fill="#64708A">' + k(v) + "</text>"; }
+  for (let i = 0; i < 12; i++) {
+    const x0 = g + i * pas, c = x0 + pas / 2;
+    svg += '<g class="biM" style="cursor:pointer" onclick="biMois(' + y + "," + (i + 1) + ')"><title>' + MOIS_L[i] + " " + y + " : " + dh(A1[i]) + "\n" + MOIS_L[i] + " " + (y - 1) + " : " + dh(A0[i]) + '</title><rect x="' + x0 + '" y="' + top + '" width="' + pas + '" height="' + ph + '" fill="transparent"/>' +
+      barre(c - bw - 1, A0[i], COUL_AVANT) + barre(c + 1, A1[i], COUL_AN) + '<text x="' + c + '" y="' + (H - 8) + '" text-anchor="middle" font-size="11" fill="#64708A">' + (etroit ? MOIS_L[i][0] : MOIS_C[i]) + "</text></g>";
+  }
+  svg += '<line x1="' + g + '" x2="' + (W - d) + '" y1="' + (top + ph) + '" y2="' + (top + ph) + '" stroke="#C9D1DE" stroke-width="1"/></svg>';
+  const pastille = (c, t) => '<span style="display:inline-flex;align-items:center;gap:6px;margin-right:16px"><span style="width:12px;height:12px;border-radius:3px;background:' + c + '"></span>' + t + "</span>";
+  return '<section class="carte"><h3><span class="ic">' + A.ic("bilan") + "</span>Mois par mois – " + y + " comparé à " + (y - 1) + "</h3>" +
+    '<p class="sous">NET de chaque mois, avec les filtres choisis (sauf période et paiement). Touchez un mois pour l\'afficher. ' +
+    (enCours ? "Janvier à " + MOIS_L[nM - 1].toLowerCase() + " " : "Année ") + y + " : <b>" + dh(s1) + "</b> · même période " + (y - 1) + " : <b>" + dh(s0) + "</b>" +
+    (ev != null ? ' (<b style="color:' + (ev >= 0 ? "var(--vert)" : "var(--rouge)") + '">' + (ev >= 0 ? "+" : "") + ev + " %</b>)" : "") + ".</p>" +
+    '<div class="mesures" style="margin:4px 0 6px">' + pastille(COUL_AN, String(y)) + pastille(COUL_AVANT, String(y - 1)) + "</div>" + svg +
+    '<details style="margin-top:8px"><summary class="mesures" style="cursor:pointer">Voir les chiffres</summary><div class="tableau"><table class="tcures bilan"><tr><th>Mois</th><th class="n">' + y + '</th><th class="n">' + (y - 1) + '</th><th class="n">Écart</th></tr>' +
+    MOIS_L.map((m, i) => "<tr><td>" + m + '</td><td class="n">' + dh(A1[i]) + '</td><td class="n">' + dh(A0[i]) + '</td><td class="n">' + (A1[i] - A0[i] >= 0 ? "+" : "−") + dh(Math.abs(A1[i] - A0[i])) + "</td></tr>").join("") +
+    '<tr class="tot"><td><b>Total</b></td><td class="n"><b>' + dh(A1.reduce((a, v) => a + v, 0)) + '</b></td><td class="n"><b>' + dh(A0.reduce((a, v) => a + v, 0)) + "</b></td><td></td></tr></table></div></details></section>";
+}
+window.biMois = (y, m) => { const p2 = (n) => (n < 10 ? "0" : "") + n; Object.assign(F, { per: "perso", du: y + "-" + p2(m) + "-01", au: y + "-" + p2(m) + "-" + p2(new Date(y, m, 0).getDate()) }); LIM = 300; dessiner(); window.scrollTo(0, 0); };
+// Relevé pour un établissement : actes à régler (non payés) de la période choisie, à lui envoyer (PDF par l'impression)
+window.biReleve = (h) => {
+  if (!DATA) return;
+  const esc = A.esc, R = resumes(), l = calculerBilan(R, [], PE, { per: "", du: DATA.pr[0], au: DATA.pr[1], hop: h, pay: "att" }, D().t).all;
+  if (!l.length) { A.toast("Aucun acte à régler pour " + h + " sur la période."); return; }
+  const e = (D().etabsTous || D().etabs || []).find((z) => z.code === h) || {}, numDe = (id) => { const x = (RES || []).find((r) => r.id === id) || {}; return x.num || A.numDossier((D().patients || []).find((p) => p.id === id)) || ""; };
+  const td = 'style="border:1px solid #ccc;padding:4px 6px"', tr = 'style="border:1px solid #ccc;padding:4px 6px;text-align:right"', sb = l.reduce((a, o) => a + (num(o.brut) || 0), 0), sn = l.reduce((a, o) => a + (num(o.net) || 0), 0);
+  const per = "du " + A.dfrA(DATA.pr[0] > "0001" ? DATA.pr[0] : l[0].d) + " au " + A.dfrA(DATA.pr[1] < "9999" ? DATA.pr[1] : D().t);
+  const html = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Releve_' + esc(h) + "_" + DATA.pr[0] + "_" + DATA.pr[1] + '</title><style>@page{size:A4;margin:14mm}body{font-family:Arial,sans-serif;font-size:10pt;color:#222}table{border-collapse:collapse;width:100%;margin-top:10px}th{background:#2B2D5C;color:#fff;padding:5px 6px;text-align:left}</style></head><body>' +
+    '<div style="font-size:15pt;font-weight:bold;color:#2B2D5C">Relevé des actes à régler</div>' +
+    '<div style="margin-top:6px"><b>' + esc(nomMed()) + "</b></div>" +
+    '<div style="margin-top:10px">Établissement : <b>' + esc(h + (e.nom ? " – " + e.nom : "")) + "</b>" + (e.adresse ? "<br>" + esc(e.adresse) : "") + "</div>" +
+    "<div>Période : " + per + " · Édité le " + A.dfrA(D().t) + "</div>" +
+    "<table><tr><th>Date</th><th>Patient</th><th>N° dossier</th><th>Acte</th><th>Brut</th><th>NET médecin</th></tr>" +
+    l.map((o) => "<tr><td " + td + ">" + A.dfrA(o.d) + "</td><td " + td + ">" + esc(o.nm) + "</td><td " + td + ">" + esc(numDe(o.id)) + "</td><td " + td + ">" + esc(o.lib) + "</td><td " + tr + ">" + dh(o.brut) + "</td><td " + tr + ">" + dh(o.net) + "</td></tr>").join("") +
+    "<tr><td " + td + ' colspan="4"><b>Total – ' + l.length + " acte" + (l.length > 1 ? "s" : "") + "</b></td><td " + tr + "><b>" + dh(sb) + "</b></td><td " + tr + "><b>" + dh(sn) + "</b></td></tr></table>" +
+    '<p style="margin-top:12px;color:#555">Actes réalisés sur la période et non encore réglés à la date d\'édition.</p></body></html>';
+  const w = window.open("", "_blank"); if (!w) { A.toast("Autorisez l'ouverture des fenêtres pour imprimer le relevé."); return; }
+  w.document.open(); w.document.write(html); w.document.close(); setTimeout(() => { w.focus(); w.print(); }, 500);
+};
+
 // ───── Exports ─────
 const filtresTxt = () => ["Période : du " + A.dfrA(DATA.pr[0] > "0001" ? DATA.pr[0] : "") + " au " + A.dfrA(DATA.pr[1] < "9999" ? DATA.pr[1] : ""), "Établissement : " + (F.hop === "tous" ? "tous" : F.hop), "Type d'acte : " + (typesActes().find((t) => t[0] === F.typ) || [0, F.typ])[1], "Paiement : " + ({ tous: "payés et à recevoir", paye: "payés", att: "à recevoir" }[F.pay]), "Référent : " + (F.cor === "tous" ? "tous" : F.cor || "sans référent")].concat(F.q ? ["Recherche : " + F.q] : []);
 const nomMed = () => { if (estComptable()) return String((D().medTitulaire && D().medTitulaire.nom) || D().nomTitulaire || ""); const p = D().profil || {}; return [p.titre || "Dr", p.prenom, String(p.nom || "").replace(/^Dr\.?\s*/i, "").toLowerCase().replace(/(^|[\s-])\S/g, (c) => c.toUpperCase())].filter(Boolean).join(" "); };
@@ -385,6 +472,7 @@ window.biExport = async (fmt) => {
     const jr = [["Date", "Patient", "Référent", "Hôpital", "Acte / prestation", "Statut", "Brut (DH)", "Taux", "NET médecin (DH)", "Paiement"]].concat(DATA.all.map((o) => [A.dfrA(o.d), o.nm, o.id ? cor(o.id) : "", o.hop || "—", o.lib, o.st, num(o.brut) || 0, tauxTxt(o), Math.round((num(o.net) || 0) * 100) / 100, payeTxt(o)]));
     jr.push(["", "", "", "", "", "", "", "TOTAL", Math.round(DATA.tot.caNet * 100) / 100, ""]);
     const feuilles = [["Synthèse", syn, [48, 18, 10]], ["Journal", jr, [11, 28, 22, 9, 52, 11, 12, 16, 16, 18]]];
+    if (DATA.etabs && DATA.etabs.length) feuilles.push(["Par établissement", [["Établissement", "Actes", "NET (DH)", "Payé (DH)", "À recevoir (DH)", "dont 31 à 60 j", "dont 61 à 90 j", "dont + de 90 j"]].concat(DATA.etabs.map((x) => [x.h === "—" ? "Non renseigné / autres" : x.h, x.n].concat(["net", "paye", "rec", "r30", "r60", "r90"].map((k) => Math.round(x[k] * 100) / 100)))), [24, 8, 14, 14, 14, 14, 14, 14]]);
     if (DATA.prev.length) feuilles.push(["RT prévisionnel", [["Fin prévue", "Patient", "Hôpital", "Acte", "NET prévisionnel (DH)"]].concat(DATA.prev.map((o) => [o.d ? A.dfrA(o.d) : "—", o.nm, o.hop || "—", o.lib, num(o.net) || 0])), [11, 28, 9, 45, 18]]);
     if (DATA.rg && DATA.rg.length) feuilles.push(["Versements et règlements", [["Reçu le", "Type", "Clinique / hôpital", "Mode", "Référence", "Banque", "Libellé / période concernée", "Montant (DH)", "Chèque encaissé le", "Note"]].concat(DATA.rg.map((r) => [A.dfrA(r.d), typeTxt(r), r.hop || "—", MODES[r.mode] || "", r.ref || "", r.banque || "", r.per || "", num(r.m) || 0, encTxt(r), r.note || ""])).concat([["", "", "", "", "", "", "TOTAL REÇU", Math.round(somme(DATA.rg) * 100) / 100, "", ""]]), [11, 28, 10, 10, 18, 14, 30, 14, 12, 30]]);
     await excel(feuilles, nom + ".xlsx");

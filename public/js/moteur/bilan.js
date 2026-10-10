@@ -26,6 +26,10 @@ export function periode(f, aujourdhui) {
   if (f.per === "mois") return [y + "-" + p(m + 1) + "-01", y + "-" + p(m + 1) + "-" + p(new Date(y, m + 1, 0).getDate())];
   if (f.per === "moisprec") { const y2 = m ? y : y - 1, m2 = m ? m - 1 : 11; return [y2 + "-" + p(m2 + 1) + "-01", y2 + "-" + p(m2 + 1) + "-" + p(new Date(y2, m2 + 1, 0).getDate())]; }
   if (f.per === "annee") return [y + "-01-01", y + "-12-31"];
+  // 15 bis B3 (10/10/2026) : trimestre en cours / dernier, année dernière, une année au choix (« a2025 »)
+  if (f.per === "trim" || f.per === "trimprec") { let q = Math.floor(m / 3), y2 = y; if (f.per === "trimprec") { q--; if (q < 0) { q = 3; y2--; } } return [y2 + "-" + p(3 * q + 1) + "-01", y2 + "-" + p(3 * q + 3) + "-" + p(new Date(y2, 3 * q + 3, 0).getDate())]; }
+  if (f.per === "anneeprec") return [(y - 1) + "-01-01", (y - 1) + "-12-31"];
+  if (/^a\d{4}$/.test(f.per || "")) return [f.per.slice(1) + "-01-01", f.per.slice(1) + "-12-31"];
   return [f.du || "0000-01-01", f.au || "9999-12-31"];
 }
 

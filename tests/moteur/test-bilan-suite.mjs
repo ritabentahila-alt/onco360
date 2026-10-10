@@ -30,6 +30,13 @@ export async function lancer({ res, ctx, pai, ver, B, cas, T0, evtsFin }) {
   const { hopAu } = await import("../../public/js/moteur/finances.js");
   cas("hopAu : A avant mars, B de mars à juin, C ensuite", hopAu(P4, "2026-02-28") === "A" && hopAu(P4, "2026-03-01") === "B" && hopAu(P4, "2026-05-31") === "B" && hopAu(P4, "2026-06-01") === "C");
 
+  console.log("Périodes (B3)");
+  const pe = (per, t) => B.periode({ per }, t).join(" → ");
+  cas("trimestre en cours (10/10/2026) : octobre à décembre", pe("trim", "2026-10-10") === "2026-10-01 → 2026-12-31");
+  cas("trimestre dernier (10/10/2026) : juillet à septembre", pe("trimprec", "2026-10-10") === "2026-07-01 → 2026-09-30");
+  cas("trimestre dernier en février : octobre à décembre de l'année d'avant", pe("trimprec", "2027-02-15") === "2026-10-01 → 2026-12-31");
+  cas("trimestre en cours en mars : janvier à mars", pe("trim", "2026-03-31") === "2026-01-01 → 2026-03-31");
+  cas("année dernière, année au choix", pe("anneeprec", "2026-10-10") === "2025-01-01 → 2025-12-31" && pe("a2024", "2026-10-10") === "2024-01-01 → 2024-12-31");
   console.log("Cases « Payé »");
   const m = B.migrerPaiements(res, pai);
   cas("reprise des anciennes cases : quelque chose à reprendre", m.change);
