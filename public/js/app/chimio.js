@@ -453,7 +453,7 @@ async function prixChimioServeur(x, lid, n, j, m, date, lib, mode) {
   await A.serveur("prixConsultation", Object.assign({ espace: A.ESPACE, patientId: x.id, lid, n, j, montant: m, d: date || "", lib: lib || "" }, mode ? { mode } : {}));
   delete EC[x.id];
 }
-window.chVenuChimio = async (pid, lid, n, j) => {
+window.chVenuChimio = async (pid, lid, n, j, encaisser) => {
   const x = trouver(pid), sec = prixParServeur(); if (!x || !(A.peut("finances") || sec)) return;
   const i = x.P.lignes.findIndex((z) => z.id === lid); if (i < 0) return;
   const L = x.P.lignes[i], { q, e } = etatCure(L, n - 1, x.P), sz = j > 1 ? seancesCure(L, e, D().ctx.bib).find((z) => z.j === j) : null;
@@ -463,15 +463,17 @@ window.chVenuChimio = async (pid, lid, n, j) => {
   else { const M = await chargerMontants(x), cc0 = (M.cures[lid] || {})[n]; J = consJours(cc0); mode0 = ((cc0 && cc0.consModeJ) || {})[j] || ""; }
   // lieu « payé au cabinet » (19.5) : la secrétaire encaisse (mode de paiement, reçu) ; le médecin valide seulement → « à encaisser »
   const lieuCab = A.payeCabinet(x), cab = lieuCab && A.encaisseIci(), ae = (k) => k === "np" || k === "ae", enc = cab && J[j] != null && ae(mode0);
+  const medCab = lieuCab && !A.encaisseIci(), dejaPaye = (!!mode0 && !ae(mode0)) || !!encaisser, encT = enc || (medCab && !!encaisser && J[j] != null && ae(mode0)); // médecin sans secrétaire : « Encaisser maintenant »
   const tC = tarifDe(x, "cchimio", date);
   const pp = A.prixPrevu(pid, "c-" + lid + "-" + n + "-" + j, date); // prix convenu d'avance dans la salle d'attente
   const def = J[j] != null ? J[j] : pp != null ? pp : j === 1 ? tC || 0 : 0, fmt = (v) => A.fmtMil(v);
   A.fenetre("<h3>" + A.esc(x.r.nm) + " – Chimiothérapie C" + n + " J" + j + '</h3><p class="sous">' + A.esc(q.nom) + (date ? " · " + A.cap(A.jourLong(date)) : "") + "</p>" +
-    '<div class="form"><div><label for="pvM">Montant de la consultation (DH)</label><input id="pvM" class="mt" inputmode="decimal" value="' + A.esc(fmt(def)) + '"></div>' + (cab ? A.htmlMode(mode0) : "") + "</div>" +
+    '<div class="form"><div><label for="pvM">Montant de la consultation (DH)</label><input id="pvM" class="mt" inputmode="decimal" value="' + A.esc(fmt(def)) + '"></div>' + (cab ? A.htmlMode(mode0) : medCab ? '<div id="pvEncZ"' + (dejaPaye ? "" : ' class="cache"') + ">" + A.htmlMode(mode0).replace(/^<div>|<\/div>$/g, "") + "</div>" : "") + "</div>" +
+    (medCab ? '<label class="chk" style="margin:4px 0 6px"><input type="checkbox" id="pvEncK"' + (dejaPaye ? " checked" : "") + '> Encaisser maintenant (pas de secrétaire : le patient me paie)</label>' : "") +
     '<p class="mesures">J1 : tarif de la consultation de chimiothérapie' + (tC != null ? " (" + fmt(tC) + " DH)" : "") + ". J8, J15… : 0 par défaut. Modifiez le montant en cas de réduction, de gratuité (0) ou de consultation facturée.</p>" +
-    '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button>' + (cab ? '<button class="bt clair" id="fOkR">' + A.ic("imprimer") + (enc ? "Encaisser et imprimer le reçu" : "Valider et imprimer le reçu") + "</button>" : "") + '<button class="bt vert" id="fOk">' + A.ic("check") + (enc ? "Encaisser" : "Valider : venu") + "</button></div>");
+    '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button>' + (cab || medCab ? '<button class="bt clair' + (medCab && !dejaPaye ? " cache" : "") + '" id="fOkR">' + A.ic("imprimer") + (encT ? "Encaisser et imprimer le reçu" : "Valider et imprimer le reçu") + "</button>" : "") + '<button class="bt vert" id="fOk">' + A.ic("check") + (encT ? "Encaisser" : "Valider : venu") + "</button></div>");
   const valider = async (recu) => {
-    const m = parseFloat(A.val("pvM").replace(/[\s\u202f\u00a0]/g, "").replace(",", ".")), mode = cab ? A.val("pvMode") : lieuCab ? (mode0 && !ae(mode0) ? mode0 : "ae") : "";
+    const m = parseFloat(A.val("pvM").replace(/[\s\u202f\u00a0]/g, "").replace(",", ".")), mode = cab || (medCab && document.getElementById("pvEncK").checked) ? A.val("pvMode") : lieuCab ? "ae" : "";
     if (isNaN(m) || m < 0) { A.erreur("Indiquez le montant (0 si rien à payer)."); return; }
     const w = recu && mode !== "np" && m > 0 ? window.open("", "_blank") : null; // fenêtre d'impression ouverte tout de suite (bloqueur)
     A.occupe(document.getElementById("fOk"), true);
@@ -484,6 +486,7 @@ window.chVenuChimio = async (pid, lid, n, j) => {
   };
   document.getElementById("fOk").onclick = () => valider(false);
   if (document.getElementById("fOkR")) document.getElementById("fOkR").onclick = () => valider(true);
+  const k0 = document.getElementById("pvEncK"); if (k0) k0.onchange = () => { document.getElementById("pvEncZ").classList.toggle("cache", !k0.checked); document.getElementById("fOkR").classList.toggle("cache", !k0.checked); };
 };
 window.chAnnulerVenuChimio = (pid, lid, n, j) => {
   const x = trouver(pid), sec = prixParServeur(); if (!x || !(A.peut("finances") || sec)) return;

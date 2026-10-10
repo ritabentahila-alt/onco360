@@ -243,7 +243,7 @@ window.saAbsent = (pid, cle) => {
   if (i < 0 || !(A.traitMod() || A.peut("planningChimio"))) { if (confirm(l.x.r.nm + " : marquer absent(e) à la séance de chimiothérapie ?\n\n(Le report de la séance se fait par le médecin.)")) marquer(null); return; }
   if (l.chimio.j === 1) window.chReporter(pid, i, l.chimio.n - 1, marquer); else window.chReporterJ(pid, i, l.chimio.n - 1, l.chimio.j, marquer);
 };
-window.saEncaisser = (pid, cle) => { const l = trouver(pid, cle); if (!l) return; if (l.rdv) window.prixRdv(pid, l.rdv.id); else window.chVenuChimio(pid, l.chimio.lid, l.chimio.n, l.chimio.j); };
+window.saEncaisser = (pid, cle) => { const l = trouver(pid, cle); if (!l) return; if (l.rdv) window.prixRdv(pid, l.rdv.id, true); else window.chVenuChimio(pid, l.chimio.lid, l.chimio.n, l.chimio.j, true); };
 window.saRecu = (pid, cle) => { const l = trouver(pid, cle); if (!l) return; if (l.rdv) window.recuRdv(pid, l.rdv.id); else window.recuCons(pid, l.chimio.lid + "|" + l.chimio.n + "|" + l.chimio.j); };
 // Annuler : retour à l'étape précédente (Vu → En consultation, Absent → À venir, En salle → À venir, En consultation → En salle)
 window.saAnnuler = (pid, cle) => {
@@ -436,7 +436,7 @@ function ligneHtml(l, cv) {
   const p = prixDe(l), px = !p ? "" : p.charge ? '<span class="mesures">…</span>' : p.nonValide ? (l.derive ? "—" : '<span class="mesures">Prix non fixé</span>') : p.m == null ? "—" : '<span class="' + (p.ok ? "px-ok" : p.convenu ? "px-conv" : "px-prev") + '" title="' + (p.ok ? "Prix validé" : p.convenu ? "Prix payé d'avance (proposé à la validation)" : "Prix prévu (tarif)") + '">' + A.fmtMil(p.m) + " DH</span>";
   const crayonPx = l.etat !== "absent" && A.peutPrix() && !(l.rdv && l.rdv.type === T_RTC) && !(p && p.v1 && !A.peut("finances")) && !(l.derive && !(p && p.ok)) ? '<button class="crayon" onclick="saPrix(' + q + ')" title="' + (l.etat === "vu" ? "Modifier le prix" : "Prix payé d'avance") + '" aria-label="Modifier le prix"><svg class="pi"><use href="#i-crayon"/></svg></button>' : "";
   // Encaisser (19.5) : la secrétaire reçoit le paiement d'un patient vu (mode de paiement, reçu) ; ensuite « Reçu » pour le réimprimer
-  if (l.etat === "vu" && p && p.ok && A.payeCabinet(l.x) && A.encaisseIci() && A.peutPrix()) act = (p.np ? b("Encaisser", "saEncaisser", "v", "Paiement reçu : mode de paiement et reçu") : p.mode && p.m > 0 ? b("Reçu", "saRecu", "", "Réimprimer le reçu") : "") + act;
+  if (l.etat === "vu" && p && p.ok && A.payeCabinet(l.x) && A.peutPrix()) act = (p.np ? b("Encaisser", "saEncaisser", "v", "Paiement reçu : mode de paiement et reçu") : p.mode && p.m > 0 ? b("Reçu", "saRecu", "", "Réimprimer le reçu") : "") + act;
   const P = l.x.P, crayon = (fn, t) => '<button class="crayon" onclick="' + fn + "(" + q + ')" title="' + t + '" aria-label="' + t + '"><svg class="pi"><use href="#i-crayon"/></svg></button>';
   const cel = {
     ord: '<span class="ord" title="N° d\'ordre de passage">' + fmtOrdre(l.doc.ordre) + "</span>",
