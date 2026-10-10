@@ -171,3 +171,11 @@ const echoue = (f) => { try { f(); return false; } catch (e) { return true; } };
   const c = F.clientNettoye({ raison: "  SARL  Cabinet  Agdal ", ice: "001 234 567 000 089", email: "Compta@X.MA" });
   ok(c.raison === "SARL Cabinet Agdal" && c.ice === "001234567000089" && c.email === "compta@x.ma", "coordonnées de facturation nettoyées");
 })();
+// Réglages des abonnements (18.3)
+(() => {
+  const F = require("./facturation"), ok = (c, m) => { console.log((c ? "✅ " : "❌ ") + m); if (!c) process.exitCode = 1; };
+  ok(F.reglagesAbo(null).suspension === "demander" && F.reglagesAbo({ suspension: "x", delai: "0" }).delai === 1 && F.reglagesAbo({ suspension: "auto", delai: 45, rappel: "", essai: 14 }).essai === 14, "réglages : « me demander » par défaut, valeurs bornées");
+  const f = { mode: "mensuel", echeance: "2026-09-01" };
+  ok(F.etatFacturation(f, "2026-10-10").etat === "suspendre" && F.etatFacturation(f, "2026-10-10", { delai: 45, rappel: 15 }).etat === "retard" && F.etatFacturation({ mode: "mensuel", echeance: "2026-10-30" }, "2026-10-10", { delai: 30, rappel: 30 }).etat === "renouveler", "délai de suspension et rappel réglables");
+  ok(F.reglageFacturation({ mode: "mensuel", jamaisSuspendre: true }).jamaisSuspendre === true, "un cabinet peut être exclu des suspensions");
+})();

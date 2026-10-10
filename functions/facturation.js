@@ -1,15 +1,23 @@
 "use strict";
 // Abonnements des cabinets (étape 17.4, 10/10/2026, décidé par Dr Bentahila) : prix mensuel et annuel par pack (annuel = 10 mois),
-// essai gratuit de 30 jours, gratuit sans limite possible (amis), rappel 15 jours avant l'échéance, cabinet suspendu
-// automatiquement 30 jours après une échéance non payée (jamais le cabinet de Dr Bentahila ni la démonstration).
+// essai gratuit de 30 jours, gratuit sans limite possible (amis), rappel 15 jours avant l'échéance ; après 30 jours de retard,
+// suspension selon les réglages de l'administration (18.3 : « me demander » par défaut, automatique ou jamais ; délais réglables ;
+// un cabinet peut être exclu : jamaisSuspendre) ; jamais le cabinet de Dr Bentahila ni la démonstration.
+// Prix TTC (TVA 20 % comprise, décidé le 10/10/2026 : les médecins ne récupèrent pas la TVA, le prix affiché est celui payé).
 // Fiche de facturation : facturation/{espace} (serveur seulement, invisible des cabinets) = { mode: essai|mensuel|annuel|gratuit,
 // prix (DH par période ; vide = prix du pack), essaiFin, echeance (AAAA-MM-JJ : fin de la période payée), paiements [{ id, d, m,
 // periode: mois|an, moyen, ref, note, par, le }], note, journal [{ le, par, txt }], suspenduPour (échéance qui a valu la suspension) }.
 // Même code : functions/facturation.js (serveur) et public/js/donnees/facturation.js (site), vérifié par node functions/test-cabinets.js.
-const ESSAI_JOURS = 30, DELAI_SUSPENSION = 30, RAPPEL_JOURS = 15;
+const ESSAI_JOURS = 30, DELAI_SUSPENSION = 30, RAPPEL_JOURS = 15, TVA = 20;
+// Réglages des abonnements (plateforme/abonnements, 18.3) : suspension demander | auto | jamais, délais en jours
+const REGLAGES_ABO0 = { suspension: "demander", delai: DELAI_SUSPENSION, rappel: RAPPEL_JOURS, essai: ESSAI_JOURS };
+function reglagesAbo(o) {
+  const x = o || {}, n = (v, d, a, b) => { const k = Math.round(Number(v)); return isNaN(k) || v === "" || v == null ? d : Math.min(b, Math.max(a, k)); };
+  return { suspension: ["demander", "auto", "jamais"].indexOf(x.suspension) >= 0 ? x.suspension : "demander", delai: n(x.delai, DELAI_SUSPENSION, 1, 365), rappel: n(x.rappel, RAPPEL_JOURS, 0, 90), essai: n(x.essai, ESSAI_JOURS, 1, 365) };
+}
 const MODES_FACT = [["essai", "Essai gratuit"], ["mensuel", "Mensuel"], ["annuel", "Annuel"], ["gratuit", "Gratuit, sans limite"]];
 const MOYENS = [["virement", "Virement"], ["cheque", "Chèque"], ["especes", "Espèces"], ["carte", "Carte"], ["autre", "Autre"]];
-// Prix proposés par Onco360 (DH hors taxes) : repères = logiciels de cabinet (100 à 140 € par mois en France), Onco360 étant spécialisé
+// Prix proposés par Onco360 (DH TTC) : repères = logiciels de cabinet (100 à 140 € par mois en France), Onco360 étant spécialisé
 // (chimiothérapie, radiothérapie) ; annuel = 10 mois (2 mois offerts)
 const PRIX0 = { essentiel: { mois: 690, an: 6900 }, "onco-pro": { mois: 1190, an: 11900 }, "onco-clinique": { mois: 2490, an: 24900 },
   radiotherapie: { mois: 690, an: 6900 }, "rt-pro": { mois: 1190, an: 11900 }, "rt-centre": { mois: 2490, an: 24900 },
@@ -29,16 +37,17 @@ function prolonger(f, d, periode) {
 }
 // État de l'abonnement d'un cabinet au jour donné : { etat, jours (restants ou de retard), fin, lib }
 //   nonSuivi (pas de fiche), gratuit, essai, ajour, renouveler (≤ 15 j), retard (≤ 30 j), suspendre (> 30 j de retard)
-function etatFacturation(f, jour) {
+function etatFacturation(f, jour, R) {
+  const delai = (R && R.delai) || DELAI_SUSPENSION, rappel = R && R.rappel != null ? R.rappel : RAPPEL_JOURS;
   if (!f || !f.mode) return { etat: "nonSuivi", jours: null, fin: "", lib: "Non suivi" };
   if (f.mode === "gratuit") return { etat: "gratuit", jours: null, fin: "", lib: "Gratuit" };
   const fin = f.mode === "essai" && !f.echeance ? f.essaiFin || "" : f.echeance || f.essaiFin || "";
   if (!fin) return { etat: "retard", jours: 0, fin: "", lib: "Échéance à fixer" };
   const n = ecart(jour, fin);
   if (n >= 0) { if (f.mode === "essai" && !f.echeance) return { etat: "essai", jours: n, fin, lib: "Essai : " + n + " j restant" + (n > 1 ? "s" : "") };
-    return n <= RAPPEL_JOURS ? { etat: "renouveler", jours: n, fin, lib: "À renouveler (" + n + " j)" } : { etat: "ajour", jours: n, fin, lib: "À jour" }; }
+    return n <= rappel ? { etat: "renouveler", jours: n, fin, lib: "À renouveler (" + n + " j)" } : { etat: "ajour", jours: n, fin, lib: "À jour" }; }
   const r = -n;
-  return r > DELAI_SUSPENSION ? { etat: "suspendre", jours: r, fin, lib: "Retard de " + r + " j" } : { etat: "retard", jours: r, fin, lib: "Retard de " + r + " j" };
+  return r > delai ? { etat: "suspendre", jours: r, fin, lib: "Retard de " + r + " j" } : { etat: "retard", jours: r, fin, lib: "Retard de " + r + " j" };
 }
 // Prix d'un cabinet par période et en équivalent mensuel (revenu mensuel du tableau de bord)
 function prixCabinet(f, pack, cle) {
@@ -52,7 +61,7 @@ const dateOk = (s) => (typeof s === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s) ? 
 const nombreOk = (v) => (v == null || v === "" || isNaN(v) || Number(v) < 0 ? null : Math.round(Number(v)));
 function reglageFacturation(o) {
   const x = o || {}, mode = MODES_FACT.some((m) => m[0] === x.mode) ? x.mode : "essai";
-  return { mode, prix: nombreOk(x.prix), essaiFin: dateOk(x.essaiFin), echeance: dateOk(x.echeance), note: String(x.note || "").replace(/\s+/g, " ").trim().slice(0, 300) };
+  return { mode, prix: nombreOk(x.prix), essaiFin: dateOk(x.essaiFin), echeance: dateOk(x.echeance), note: String(x.note || "").replace(/\s+/g, " ").trim().slice(0, 300), jamaisSuspendre: x.jamaisSuspendre === true };
 }
 function paiementNettoye(o) {
   const x = o || {}, d = dateOk(x.d), m = nombreOk(x.m);
@@ -82,4 +91,4 @@ function impaye(f, P, jour) {
   const r = ecart(fin, jour), an = f.mode === "annuel", nb = an ? Math.ceil(r / 365) : Math.ceil(r / 30.4);
   return Math.max(1, nb) * ((f.mode === "essai" && !f.echeance ? P.catalogue : P.prix || P.catalogue) || 0);
 }
-module.exports = { ESSAI_JOURS, DELAI_SUSPENSION, RAPPEL_JOURS, MODES_FACT, MOYENS, PRIX0, ajouterJours, ecart, prolonger, etatFacturation, prixCabinet, reglageFacturation, paiementNettoye, clientNettoye, attendus, impaye };
+module.exports = { ESSAI_JOURS, DELAI_SUSPENSION, RAPPEL_JOURS, TVA, REGLAGES_ABO0, reglagesAbo, MODES_FACT, MOYENS, PRIX0, ajouterJours, ecart, prolonger, etatFacturation, prixCabinet, reglageFacturation, paiementNettoye, clientNettoye, attendus, impaye };

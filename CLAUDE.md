@@ -127,6 +127,8 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
   prix des packs `prix { mois, an }` (`PRIX0`) ; logique `functions/facturation.js` = `public/js/donnees/facturation.js` (même code, test).
   `client` { raison, ice, if, adresse, email } (coordonnées de facturation, 18.1) ; cabinet supprimé : fiche gardée (`supprime`, `cabinetNom`),
   renvoyée dans `archives` par `listeCabinets` ; onglet **Comptabilité** de admin.js (18.2 : `attendus`, `impaye`, export comptable).
+  Réglages (18.3) : `plateforme/abonnements` { suspension demander|auto|jamais (défaut : demander), delai, rappel, essai } (`reglagesAbo`,
+  fonction `reglagesAbonnements`) ; `abonnementsNuit` ne suspend qu'en « auto » ; `facturation.jamaisSuspendre`. Prix TTC (TVA 20 %).
 - **Journal de l'Administration (17.5)** : `journalAdmin/{id}` (racine, serveur seulement) = { le, par, parEmail, type, espace, cabinet, txt },
   écrit par `jAdmin` dans chaque fonction d'administration (et `abonnementsNuit`), lu par la fonction `journalAdmin` (onglet Journal de admin.js).
 - **Journal d'audit (09/10/2026)** : `audit/{e}/lignes/{idÉvénement}` = { type creation|modification|suppression|ouverture, col, lib,

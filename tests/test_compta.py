@@ -8,7 +8,7 @@ CABS = """[
 {id:'cab-c',nom:'Cabinet Gamma',cree:'2026-09-25',actif:true,titulaire:{nom:'Dr C',email:'c@c.ma'},membres:1,patients:0,abonnement:{formule:'onco-pro'},facturation:{mode:'essai',essaiFin:'2026-10-25',paiements:[]}},
 {id:'cab-d',nom:'Cabinet Delta',cree:'2026-07-01',actif:true,titulaire:{nom:'Dr D',email:'d@d.ma'},membres:1,patients:3,abonnement:{formule:'onco-pro'},facturation:{mode:'mensuel',echeance:'2026-09-01',paiements:[]}}]"""
 ARCH = "[{id:'cab-e',nom:'Cabinet Epsilon',supprimeLe:'2026-08-01',facturation:{mode:'mensuel',supprime:true,paiements:[{id:'p3',d:'2026-05-10',m:690,periode:'mois',moyen:'especes',apres:'2026-06-10'}]}}]"
-INIT = "window.__uid='ADM';window.__fs['administrateurs/ADM']={email:'a@b.ma'};window.__nl=0;window.__fonctions={listeCabinets:async()=>{window.__nl++;return {cabinets:" + CABS + ",archives:" + ARCH + ",lu:new Date().toISOString()}},facturationCabinet:async(x)=>{window.__fact=x;return {facturation:{mode:'mensuel',echeance:'2026-10-20',client:x.client,paiements:[]},actif:true}}};"
+INIT = "window.__uid='ADM';window.__ra=null;window.__fs['administrateurs/ADM']={email:'a@b.ma'};window.__nl=0;window.__fonctions={listeCabinets:async()=>{window.__nl++;return {cabinets:" + CABS + ",archives:" + ARCH + ",reglagesAbo:window.__ra&&Object.assign({},window.__ra.reglages,{delai:Number(window.__ra.reglages.delai)}),lu:new Date().toISOString()}},reglagesAbonnements:async(x)=>{window.__ra=x;return {reglages:Object.assign({suspension:'demander',delai:30,rappel:15,essai:30},x.reglages,{delai:Number(x.reglages.delai)})}},facturationCabinet:async(x)=>{window.__fact=x;return {facturation:{mode:'mensuel',echeance:'2026-10-20',client:x.client,paiements:[]},actif:true}}};"
 async def main():
     async with async_playwright() as p:
         b = await p.chromium.launch()
@@ -35,8 +35,17 @@ async def main():
         # 18.1 : Actualiser, coordonnées de facturation, démonstration dans Nouveau cabinet
         await pa.evaluate("location.hash='cabinets'"); await pa.wait_for_timeout(300)
         ok('Chiffres lus à' in await pa.inner_text('#page') and not await pa.evaluate("!!document.querySelector('#page #dCree')"), 'Cabinets : heure de lecture ; plus de carte démonstration dans la liste')
+        bd = await pa.inner_text('.avert.rouge-a')
+        ok('1 cabinet en retard de plus de 30 jours' in bd and 'Cabinet Delta' in bd and 'à vous de décider' in bd, 'réglage « me demander » : bandeau des cabinets à suspendre (rien n\'est suspendu tout seul)')
+        await pa.click('.avert.rouge-a [data-reg-abo]'); await pa.wait_for_timeout(300)
+        ok(await pa.is_checked('input[name="raSusp"][value="demander"]'), 'réglages : « Me demander » par défaut')
+        await pa.fill('#raDel', '45'); await pa.click('#raOk'); await pa.wait_for_timeout(500)
+        ok((await pa.evaluate('window.__ra'))['reglages'] == {'suspension': 'demander', 'delai': '45', 'rappel': '15', 'essai': '30'} and not await pa.evaluate("!!document.querySelector('.avert.rouge-a')"), 'délai porté à 45 jours : Delta (35 j) n\'est plus à décider')
         await pa.click('[data-actu]'); await pa.wait_for_timeout(700)
         ok(await pa.evaluate('window.__nl') == 2, '« Actualiser » relit les cabinets')
+        await pa.evaluate("location.hash='compta'"); await pa.wait_for_timeout(300)
+        ok('Onco360 vous demande' in await pa.inner_text('#page') and 'après 45 jours' in await pa.inner_text('#page'), 'Comptabilité : rappel des réglages de suspension')
+        await pa.evaluate("location.hash='cabinets'"); await pa.wait_for_timeout(300)
         await pa.click('[data-fiche="cab-a"]'); await pa.wait_for_timeout(300)
         ok('Facturé à : SARL Alpha · ICE 001234567000089' in await pa.inner_text('#modal'), 'fiche : coordonnées de facturation affichées')
         await pa.click('[data-client="cab-a"]'); await pa.wait_for_timeout(300); await pa.fill('#clAdr', '12 rue X, Rabat'); await pa.click('#clOk'); await pa.wait_for_timeout(500)

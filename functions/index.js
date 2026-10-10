@@ -487,8 +487,8 @@ exports.creerCabinet = onCall({ timeoutSeconds: 120, memory: "256MiB" }, async (
   let d; try { d = C.verifier(req.data || {}); } catch (e) { throw new HttpsError("invalid-argument", e.message); }
   const o = await creerEspace(d, par, { formule: (req.data || {}).formule });
   // Abonnement de départ (17.4) : essai gratuit de 30 jours, sauf choix contraire (mensuel, annuel, gratuit sans limite)
-  const jour = new Date().toISOString().slice(0, 10), f = Fa.reglageFacturation({ mode: (req.data || {}).modeFacturation || "essai" });
-  if (f.mode === "essai") f.essaiFin = Fa.ajouterJours(jour, Fa.ESSAI_JOURS);
+  const jour = new Date().toISOString().slice(0, 10), f = Fa.reglageFacturation({ mode: (req.data || {}).modeFacturation || "essai" }), RA = await reglagesAbo();
+  if (f.mode === "essai") f.essaiFin = Fa.ajouterJours(jour, RA.essai);
   if (f.mode === "mensuel" || f.mode === "annuel") f.echeance = jour; // à régler dès le premier paiement
   await db.doc("facturation/" + o.espace).set(Object.assign(f, { debut: jour, paiements: [], journal: [{ le: new Date().toISOString(), par, txt: "Cabinet créé : " + (Fa.MODES_FACT.find((m) => m[0] === f.mode) || [])[1] }] }));
   await jAdmin(par, "creation", o.espace, d.cabinet, "Cabinet créé pour " + [d.prenom, d.nom].join(" ").trim() + " (" + d.email + ") · pack " + (((await formules())[(req.data || {}).formule] || {}).lib || (req.data || {}).formule || "") + " · " + ((Fa.MODES_FACT.find((m) => m[0] === f.mode) || [])[1] || f.mode) + (o.existant ? " · compte déjà existant" : ""));
@@ -574,7 +574,7 @@ exports.listeCabinets = onCall({ timeoutSeconds: 60, memory: "256MiB" }, async (
   if (sp && sp.exists) Object.values(sp.data()).forEach((o) => { if (o && o.nom) specialites[o.nom] = { fiche: o.fiche || {}, le: o.ficheLe || o.le || "", consultation: o.consultation || {}, csLe: o.consultationLe || "" }; });
   // Cabinets supprimés dont la facturation est gardée (comptabilité)
   const vivants = new Set(snap.docs.map((d) => d.id)), archives = Object.entries(FACT).filter(([id]) => !vivants.has(id)).map(([id, f]) => ({ id, nom: f.cabinetNom || id, supprimeLe: f.supprimeLe || "", facturation: f }));
-  return { cabinets: out, formules: FS, bibliotheques, specialites, archives, lu: new Date().toISOString() };
+  return { cabinets: out, formules: FS, bibliotheques, specialites, archives, reglagesAbo: await reglagesAbo(), lu: new Date().toISOString() };
 });
 // Suspendre (abonnement non payé) ou réactiver un cabinet : espaces/{e}.actif. Suspendu = plus personne n'y entre (règles), rien
 // n'est effacé. Jamais le cabinet modèle (celui de Dr Bentahila).
@@ -796,8 +796,9 @@ exports.facturationCabinet = onCall({ timeoutSeconds: 30, memory: "256MiB" }, as
   const s0 = await ref.get(), f = s0.exists ? s0.data() : { paiements: [], journal: [], debut: new Date().toISOString().slice(0, 10) }, le = new Date().toISOString(), jr = [];
   if (d.action === "regler") {
     const r = Fa.reglageFacturation(d.reglage);
-    if (r.mode === "essai" && !r.essaiFin) r.essaiFin = Fa.ajouterJours(le.slice(0, 10), Fa.ESSAI_JOURS);
-    Object.assign(f, r); jr.push("Abonnement : " + (Fa.MODES_FACT.find((m) => m[0] === r.mode) || [])[1] + (r.prix != null ? ", " + r.prix + " DH" : "") + (r.echeance ? ", échéance " + r.echeance : r.essaiFin ? ", essai jusqu'au " + r.essaiFin : ""));
+    if (r.mode === "essai" && !r.essaiFin) r.essaiFin = Fa.ajouterJours(le.slice(0, 10), (await reglagesAbo()).essai);
+    if (!r.jamaisSuspendre) delete r.jamaisSuspendre; if (!r.jamaisSuspendre) delete f.jamaisSuspendre;
+    Object.assign(f, r); jr.push("Abonnement : " + (Fa.MODES_FACT.find((m) => m[0] === r.mode) || [])[1] + (r.prix != null ? ", " + r.prix + " DH" : "") + (r.echeance ? ", échéance " + r.echeance : r.essaiFin ? ", essai jusqu'au " + r.essaiFin : "") + (r.jamaisSuspendre ? ", jamais suspendu automatiquement" : ""));
   } else if (d.action === "paiement") {
     let p; try { p = Fa.paiementNettoye(d.paiement); } catch (er) { throw new HttpsError("invalid-argument", er.message); }
     const ech = Fa.prolonger(f, p.d, p.periode);
@@ -823,11 +824,14 @@ exports.facturationCabinet = onCall({ timeoutSeconds: 30, memory: "256MiB" }, as
 // Chaque nuit (4 h) : un cabinet dont l'échéance est dépassée de plus de 30 jours est suspendu (données gardées), une seule fois par
 // échéance (une réactivation à la main n'est pas annulée la nuit suivante) ; jamais le cabinet de Dr Bentahila, la démonstration,
 // un cabinet gratuit ou sans fiche de facturation
+// Réglages (18.3) : suspension « demander » (par défaut : rien n'est suspendu, la liste attend la décision de l'administration),
+// « auto » (suspendu après le délai) ou « jamais » ; un cabinet marqué jamaisSuspendre ne l'est jamais automatiquement.
 exports.abonnementsNuit = onSchedule({ schedule: "0 4 * * *", timeZone: "Africa/Casablanca", timeoutSeconds: 300, memory: "256MiB" }, async () => {
+  const RA = await reglagesAbo(); if (RA.suspension !== "auto") { console.log("abonnementsNuit : suspension « " + RA.suspension + " », rien n'est suspendu automatiquement"); return; }
   const jour = new Date().toISOString().slice(0, 10), sf = await db.collection("facturation").get(); let n = 0;
   for (const d of sf.docs) {
-    const f = d.data(), et = Fa.etatFacturation(f, jour);
-    if (et.etat !== "suspendre" || d.id === C.MODELE || d.id === DEMO || f.suspenduPour === et.fin) continue;
+    const f = d.data(), et = Fa.etatFacturation(f, jour, RA);
+    if (et.etat !== "suspendre" || d.id === C.MODELE || d.id === DEMO || f.suspenduPour === et.fin || f.jamaisSuspendre || f.supprime) continue;
     const esp = db.doc("espaces/" + d.id), se = await esp.get(); if (!se.exists || se.data().actif === false || se.data().demo) continue;
     const le = new Date().toISOString();
     await esp.update({ actif: false, suspenduLe: le, etatPar: "onco360" });
@@ -846,4 +850,14 @@ exports.journalAdmin = onCall({ timeoutSeconds: 60, memory: "256MiB" }, async (r
   if (ok(d.au)) q = q.where("le", "<", new Date(new Date(d.au + "T00:00:00Z").getTime() + 86400000));
   const s = await q.orderBy("le", "desc").limit(2000).get();
   return { lignes: s.docs.map((x) => { const l = x.data(); return Object.assign({}, l, { id: x.id, le: l.le && l.le.toDate ? l.le.toDate().toISOString() : String(l.le || "") }); }) };
+});
+// Réglages des abonnements (18.3) : plateforme/abonnements (serveur seulement) ; lus partout par reglagesAbo()
+async function reglagesAbo() { try { const s = await db.doc("plateforme/abonnements").get(); return Fa.reglagesAbo(s.exists ? s.data() : null); } catch (e) { return Fa.reglagesAbo(null); } }
+exports.reglagesAbonnements = onCall({ timeoutSeconds: 30, memory: "256MiB" }, async (req) => {
+  const par = req.auth && req.auth.uid;
+  if (!(await estAdministrateur(par))) throw new HttpsError("permission-denied", "Réservé à l'administration d'Onco360.");
+  const R = Fa.reglagesAbo((req.data || {}).reglages), LIB = { demander: "me demander", auto: "automatique", jamais: "jamais" };
+  await db.doc("plateforme/abonnements").set(Object.assign({}, R, { le: new Date().toISOString(), par }));
+  await jAdmin(par, "abonnement", "", "", "Réglages des abonnements : suspension " + LIB[R.suspension] + " après " + R.delai + " jours de retard, rappel " + R.rappel + " jours avant, essai " + R.essai + " jours");
+  return { reglages: R };
 });

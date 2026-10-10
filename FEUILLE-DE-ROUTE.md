@@ -1188,7 +1188,24 @@ Modules et menus, Bibliothèques et paramètres ; cabinets en liste ; onglet lis
       sociale, ICE, total) ; listes « À encaisser (90 jours) » et « Impayés » (clic = fiche du cabinet). Un cabinet supprimé garde
       sa facturation (`supprime: true`, `archives` de `listeCabinets`) : la comptabilité reste juste.
       Tests `tests/test_compta.py` 17/17, serveur 73/73. 18.5 (validation en deux étapes) : abandonnée (décision du 10/10).
-- [ ] **18.3 Factures** (à décider : statut juridique de l'éditrice, TVA, HT ou TTC, préfixe) · **18.4 Relances**.
+- [x] **18.3 Réglages des abonnements** (10/10, demandé par Dr Bentahila : « je veux avoir la main sur quand suspendre ») :
+      fenêtre « Réglages des abonnements » (Cabinets et Comptabilité) : suspension d'un cabinet en retard **« Me demander »
+      (par défaut)** · automatique · jamais ; délai après l'échéance (30 j), rappel « À renouveler » (15 j), durée de l'essai
+      (30 j) ; `plateforme/abonnements`, fonction `reglagesAbonnements` ; `abonnementsNuit` ne suspend plus qu'en mode
+      automatique ; bandeau rouge « à vous de décider » pour les cabinets en retard au-delà du délai ; case « Ne jamais suspendre
+      ce cabinet automatiquement » (fiche › Modifier l'abonnement, `jamaisSuspendre`). **Prix TTC** (TVA 20 % comprise, décidé le
+      10/10 : les médecins ne récupèrent pas la TVA). Tests compta 21/21, abonnements 21/21, serveur 76/76.
+- [ ] **18.4 Factures** (décisions du 10/10 : assujettie à la TVA ; prix TTC, TVA 20 % ; numéros **F-AAAA-NNNN**, avoirs
+      **AV-AAAA-NNNN**, numérotation continue par année) : fenêtre « Mon entreprise » (raison sociale, forme, ICE, IF, RC,
+      patente, adresse, RIB, logo, mentions) ; une facture créée à chaque paiement enregistré (numéro attribué par le serveur),
+      un avoir quand un paiement est retiré ; facture A4 (HT, TVA, TTC, « payée le … ») à imprimer ou envoyer ; liste dans
+      Comptabilité › Factures, export.
+- [ ] **18.5 « Profil & Paramètres » dans Onco360** (demandé le 10/10, modèle : captures Tbibclic) : le menu Profil devient
+      « Profil & Paramètres » avec les onglets Informations · Accès (repris des Paramètres) · **Abonnement** (formule, état,
+      échéance, prix mensuel / annuel, « 2 mois offerts » à l'annuel ; boutons « Renouveler » / « Passer à l'annuel » = demande
+      envoyée à l'administration, pas de paiement en ligne) · **Factures** (les factures du cabinet, à télécharger) ; lecture par
+      une fonction serveur réservée au titulaire (la facturation reste invisible des autres membres).
+- [ ] **18.6 Relances** : retards et échéances proches, message WhatsApp prêt, date de la dernière relance.
 - [ ] 16.5 Nouvelle spécialité (copie ou vide) ; Médecine générale, Gynécologie prêtes pour l'étape 14.
 
 ## Étape 14 – Autres spécialités (demandé le 09/10/2026) : nouveaux modules et leurs formules
@@ -1456,3 +1473,4 @@ Onco360_Package_Cession/
 | 10/10/2026 | 16.6 ter En-tête du dossier | Case « en-tête » pour chaque champ de la fiche patient (existants compris) : ce qui s'affiche en haut du dossier se règle par spécialité, puis par cabinet. Mis en ligne. |
 | 10/10/2026 | Audit n° 2 de l'Administration | Tuile « Cabinets » = tout afficher (bug signalé), « Effacer les filtres », bandeau des cabinets sans abonnement, activité « aucune », revenu HT. Plan 18.1 à 18.5 (onglet Comptabilité, factures, relances, sécurité) dans `AUDIT-ADMINISTRATION.md`. Mis en ligne. |
 | 10/10/2026 | 18.1 et 18.2 | Finitions (démo dans Nouveau cabinet, Actualiser, coordonnées de facturation) et onglet Comptabilité (encaissé, à encaisser, impayés, évolution, encaissements, export comptable). 18.5 abandonnée. Mis en ligne. |
+| 10/10/2026 | 18.3 Réglages des abonnements | Suspension « me demander » par défaut (ou automatique, ou jamais), délais réglables, cabinet exclu possible ; prix TTC. Plan : 18.4 factures, 18.5 Profil & Paramètres (Abonnement, Factures) dans Onco360, 18.6 relances. Mis en ligne. |
