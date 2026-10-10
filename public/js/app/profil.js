@@ -4,6 +4,7 @@ import { doc, getDoc, getDocs, setDoc, deleteDoc, collection, query, where } fro
 import { db, auth, app, GOOGLE_CLIENT_ID } from "../config.js";
 
 let A = null;
+import * as aboP from "./abonnement.js";
 export function installer(api) { A = api; }
 const D = () => A.D();
 let ONG = "infos", MEMBRES = null, ESPACE_DOC = null, Q = "";
@@ -46,10 +47,23 @@ export function lireImage(input, max, jpeg) {
   });
 }
 
-// Profil (08/10/2026) : seulement les informations de la personne ; Lieux d'exercice, Google Agenda et Accès sont des onglets
-// de la page Paramètres (configuration.js : htmlOngletProfil / apresOngletProfil)
-export async function pageProfil() {
-  A.$("page").innerHTML = '<section class="accueil"><div><h2>Profil</h2><p>Vos informations.</p></div></section>' + vueInfos();
+// Profil & Paramètres (18.5, 10/10/2026, modèle Tbibclic) : onglets Informations (la personne) · Accès (équipe, titulaire ; repris
+// de la page Paramètres) · Abonnement et Factures (titulaire, abonnement.js). Lieux d'exercice et Google Agenda restent dans
+// Paramètres (configuration.js : htmlOngletProfil / apresOngletProfil).
+let PF_ONG = "infos";
+const ONGLETS_PF = () => [["infos", "profil", "Informations"]].concat(estTitulaire() && !D().bib ? (D().reg && D().reg.sections && D().reg.sections.acces === false ? [] : [["acces", "patients", "Accès"]]).concat([["abonnement", "banque", "Abonnement"], ["factures", "document", "Factures"]]) : []);
+export async function pageProfil(arg) {
+  await chargerEspace();
+  if (arg) PF_ONG = arg;
+  if (!ONGLETS_PF().some((o) => o[0] === PF_ONG)) PF_ONG = "infos";
+  const barre = ONGLETS_PF().length > 1 ? '<div class="ag-vues" style="align-self:flex-start">' + ONGLETS_PF().map(([k, ico, lib]) => '<button class="' + (PF_ONG === k ? "on" : "") + '" onclick="location.hash=\'profil/' + k + '\'">' + A.ic(ico) + lib + "</button>").join("") + "</div>" : "";
+  const tete = '<section class="accueil"><div><h2>Profil &amp; Paramètres</h2><p>' + (ONGLETS_PF().length > 1 ? "Vos informations, l'accès de votre équipe, votre abonnement et vos factures." : "Vos informations.") + "</p></div></section>" + barre;
+  if (PF_ONG === "acces") { A.$("page").innerHTML = tete + '<div id="cfProfil">' + (await vueAcces()) + "</div>"; return; }
+  if (PF_ONG === "abonnement" || PF_ONG === "factures") {
+    const dessiner = () => { if (!location.hash.startsWith("#profil")) return; A.$("page").innerHTML = tete + (PF_ONG === "abonnement" ? aboP.htmlAbonnement() : aboP.htmlFactures()); };
+    dessiner(); aboP.chargerAbo(true).then(dessiner); return;
+  }
+  A.$("page").innerHTML = tete + vueInfos();
 }
 async function chargerEspace() { if (!ESPACE_DOC) { const s = await getDoc(doc(db, "espaces", A.ESPACE)).catch(() => null); ESPACE_DOC = s && s.exists() ? s.data() : {}; } }
 // Onglets repris dans Paramètres : lieux | gagenda | acces
@@ -57,7 +71,7 @@ export async function htmlOngletProfil(k) { await chargerEspace(); return k === 
 export function apresOngletProfil(k) { if (k === "lieux") { const q = A.$("pfQ"); if (q) { q.oninput = () => { Q = q.value; A.$("pfL").innerHTML = listeLieux(); }; if (Q) { q.focus(); q.setSelectionRange(Q.length, Q.length); } } } }
 export const titulaireConnecte = async () => { await chargerEspace(); return estTitulaire(); };
 // Après une action (lieu, agenda, accès) : la page Paramètres se redessine (le Profil, s'il est affiché)
-const rafraichir = () => (location.hash.startsWith("#parametres") && A.pageParametres ? A.pageParametres() : pageProfil());
+const rafraichir = () => (location.hash.startsWith("#parametres") && A.pageParametres ? A.pageParametres() : pageProfil(PF_ONG));
 window.pfOnglet = (o) => { location.hash = "parametres/" + (o === "gagenda" ? "couleurs" : o); }; // anciens liens
 
 // ───── Informations ─────
@@ -90,7 +104,7 @@ window.pfEnregistrer = async () => {
       catch (e) { throw new Error("Mot de passe actuel incorrect : le mot de passe n'a pas été changé (le reste est enregistré)."); }
       await updatePassword(auth.currentUser, n1);
     }
-    D().profil = Object.assign({}, p, maj); A.entete(); A.toast(n1 ? "Profil et mot de passe enregistrés." : "Profil enregistré."); pageProfil();
+    D().profil = Object.assign({}, p, maj); A.entete(); A.toast(n1 ? "Profil et mot de passe enregistrés." : "Profil enregistré."); pageProfil("infos");
   } catch (e) { A.occupe(b, false); err(e.message || String(e)); }
 };
 

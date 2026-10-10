@@ -34,6 +34,7 @@ import { installer as installerRcp, demarrerRcp, rcpDuPatient, bulleRcp, suivreE
 import { ACTES_RT } from "../donnees/listes.js";
 import { abonnementEffectif } from "../donnees/modules.js";
 import { reglageEffectif, styleRetraits } from "../donnees/catalogue.js";
+import * as aboP from "./abonnement.js";
 import { deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 // Cabinet ouvert : celui de la personne connectée (comptes/{uid}, écrit par le serveur ; phase F, 09/10/2026). Les membres du
@@ -299,7 +300,7 @@ document.addEventListener("input", (ev) => { if (ev.target && ev.target.classLis
 const ferieLe = (d) => (D.ctx.feries || []).map((f) => (typeof f === "string" ? { d: f, nom: "Jour férié" } : f)).find((f) => f.d === d);
 const API = { D: () => D, get ESPACE() { return ESPACE; }, $, esc, ic, dfr, dfrA, cap, jourLong, val, occupe, erreur, toast, fenetre, fermerFenetre: () => window.fermerFenetre(), peut, voit, traitMod, enregistrer, pageDossier: (id) => reafficher(id), recalculer, journal };
 API.sansAcc = sansAcc; API.fn = (k) => fnOn(k); API.module = (k) => module(k); API.planifierReleve = (d) => planifierReleve(d || 120000); API.attribuerNumero = (x) => attribuerNumero(x); API.numDossier = (x) => numDossier(x); API.medecinFiche = () => medecinFiche(); API.entete = () => entete(); API.voitRdv = () => voitRdv(); API.voitRT = (x) => voitRT(x); API.champsMed = (C, off) => champsMed(C, off); API.CHAMPS_MED = () => CHAMPS_MED; API.fmtMil = (n) => fmtMil(n); API.ferieLe = (d) => ferieLe(d); API.salleVenuChimio = (x, lid, n, j, oui) => apresVenuChimio(x, lid, n, j, oui); API.serveur = appelServeur; API.prixPrevu = (p, c, j) => prixPrevu(p, c, j); API.badgeSalle = (p, c) => badgeSalle(p, c); API.tarifsVus = () => tarifsVus(); API.publierTarifsC = () => publierTarifsC(); API.encaissementsDe = (x, f) => encaissementsDe(x, f); API.peutPrix = () => peut("finances") || prixParServeur();
-installerChimio(API); installerAudit(API); ficheP.installer(API); installerAgenda(API); installerConfig(API); installerProfil(API); installerProtocoles(API); installerParametres(API); installerBilan(API); installerConsultations(API); installerOrdonnances(API); installerDocuments(API); installerFichiers(API); installerTaches(API); installerReglages(API); installerSalle(API); installerRcp(API);
+installerChimio(API); installerAudit(API); aboP.installer(API); ficheP.installer(API); installerAgenda(API); installerConfig(API); installerProfil(API); installerProtocoles(API); installerParametres(API); installerBilan(API); installerConsultations(API); installerOrdonnances(API); installerDocuments(API); installerFichiers(API); installerTaches(API); installerReglages(API); installerSalle(API); installerRcp(API);
 
 function entete() {
   const p = D.profil, mb = D.membre, nom = (p.nom || mb.nom || "").replace(/^Dr\.?\s*/i, "");
@@ -442,7 +443,7 @@ const PAGES_BIB = ["protocoles", "parametres", "configuration"];
 const estComptable = () => !!(D && D.membre && D.membre.role === "comptable");
 const PAGE_MODULE = { agenda: "agenda", salle: "salle", taches: "taches", protocoles: "chimio", bilan: "bilan" };
 const module = (k) => !D || !D.abo || D.abo.modules[k] !== false;
-const PAGES = { accueil: ["Tableau de bord", pageAccueil], agenda: ["Agenda / Rendez-vous", () => pageAgenda()], configuration: ["Paramètres", () => { location.replace("#parametres"); }], profil: ["Profil", () => pageProfil()], protocoles: ["Protocoles", () => pageProtocoles()], parametres: ["Paramètres", (a) => pageConfiguration(a)], bilan: ["Bilan", () => pagePageBilan()], salle: ["Salle d'attente", () => pageSalle()], patients: ["Patients", pagePatients], taches: ["Tâches", (a) => pageTaches(a)], dossier: ["Dossier patient", pageDossier] };
+const PAGES = { accueil: ["Tableau de bord", pageAccueil], agenda: ["Agenda / Rendez-vous", () => pageAgenda()], configuration: ["Paramètres", () => { location.replace("#parametres"); }], profil: ["Profil & Paramètres", (a) => pageProfil(a)], protocoles: ["Protocoles", () => pageProtocoles()], parametres: ["Paramètres", (a) => pageConfiguration(a)], bilan: ["Bilan", () => pagePageBilan()], salle: ["Salle d'attente", () => pageSalle()], patients: ["Patients", pagePatients], taches: ["Tâches", (a) => pageTaches(a)], dossier: ["Dossier patient", pageDossier] };
 function route() {
   const h = location.hash.replace("#", ""), i = h.indexOf("/"), p = i < 0 ? h : h.slice(0, i), arg = i < 0 ? null : decodeURIComponent(h.slice(i + 1)), nom = PAGES[p] && module(PAGE_MODULE[p] || "") && !(p === "protocoles" && D.reg && D.reg.fonctions["chimio.protocoles"] === false) && (!estComptable() || PAGES_COMPTABLE.indexOf(p) >= 0) && (!D.bib || PAGES_BIB.indexOf(p) >= 0) ? p : estComptable() ? "bilan" : D.bib ? "protocoles" : "accueil";
   if (!$("fenetre").classList.contains("cache")) window.fermerFenetre();
@@ -537,6 +538,7 @@ function pageAccueil() {
   });
   D.reg.accueil.filter((k) => D.reg.cartes[k] !== false).forEach((k) => { h += cartes[k] || ""; });
   $("page").innerHTML = h;
+  aboP.apresAccueil(); // abonnement à renouveler, essai qui se termine, échéance dépassée : carte en haut (titulaire, 18.5)
 }
 
 // ───── Patients ─────

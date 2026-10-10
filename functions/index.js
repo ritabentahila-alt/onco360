@@ -816,6 +816,9 @@ exports.facturationCabinet = onCall({ timeoutSeconds: 30, memory: "256MiB" }, as
     const p = (f.paiements || []).find((x) => x.id === d.id); if (!p) throw new HttpsError("not-found", "Paiement introuvable.");
     if (p.facture) throw new HttpsError("already-exists", "Ce paiement a déjà sa facture (" + p.facture + ").");
     const FAC = await facturer("facture", e, se.data(), f, p, par); p.facture = FAC.numero; p.factureId = FAC.id; NV.push(FAC.doc); jr.push("Facture " + FAC.numero + " (paiement du " + p.d + ")");
+  } else if (d.action === "demandeTraitee") {
+    const q = (f.demandes || []).find((x) => x.id === d.id); if (!q) throw new HttpsError("not-found", "Demande introuvable.");
+    q.traitee = true; q.traiteeLe = le; q.traiteePar = par; jr.push("Demande du " + q.le.slice(0, 10) + " traitée");
   } else if (d.action === "client") {
     f.client = Fa.clientNettoye(d.client); jr.push("Coordonnées de facturation : " + [f.client.raison, f.client.ice ? "ICE " + f.client.ice : ""].filter(Boolean).join(", "));
   } else if (d.action === "retirerPaiement") {
@@ -899,4 +902,37 @@ exports.editeurEnregistrer = onCall({ timeoutSeconds: 30, memory: "256MiB" }, as
   await db.doc("plateforme/editeur").set(Object.assign({}, E, { le: new Date().toISOString(), par }));
   await jAdmin(par, "abonnement", "", "", "Mon entreprise (mentions des factures) enregistré : " + [E.raison, E.ice ? "ICE " + E.ice : ""].filter(Boolean).join(", "));
   return { editeur: E, manque: Fa.editeurIncomplet(E) };
+});
+// ───── Profil & Paramètres › Abonnement et Factures (18.5, 10/10/2026) ─────
+// Lus par le médecin titulaire seulement (la facturation reste invisible des autres membres et des règles) : formule, état,
+// échéance, prix du pack (mensuel, annuel), paiements, factures du cabinet, coordonnées de paiement (RIB) ; demandes envoyées.
+async function titulaireDe(req) {
+  const uid = req.auth && req.auth.uid, e = String((req.data || {}).espace || "");
+  if (!uid || !e || C.estBib(e)) throw new HttpsError("permission-denied", "Réservé au médecin titulaire du cabinet.");
+  const s = await db.doc("espaces/" + e).get();
+  if (!s.exists || s.data().titulaire !== uid) throw new HttpsError("permission-denied", "Réservé au médecin titulaire du cabinet.");
+  return { uid, e, esp: s.data() };
+}
+exports.monAbonnement = onCall({ timeoutSeconds: 30, memory: "256MiB" }, async (req) => {
+  const { e, esp } = await titulaireDe(req);
+  const [sf, FS, RA, se, sfa] = await Promise.all([db.doc("facturation/" + e).get(), formules(), reglagesAbo(), db.doc("plateforme/editeur").get(), db.collection("factures").where("espace", "==", e).get()]);
+  const f = sf.exists ? sf.data() : null, k = (esp.abonnement || {}).formule || "", F = FS[k] || {}, P = F.prix || Fa.PRIX0[k] || {}, E = se.exists ? se.data() : {};
+  const jour = new Date().toISOString().slice(0, 10), et = Fa.etatFacturation(f, jour, RA), pc = Fa.prixCabinet(f, F, k);
+  const factures = sfa.docs.map((x) => { const v = x.data(); return Object.assign({ id: x.id }, v, { le: v.le && v.le.toDate ? v.le.toDate().toISOString() : "" }); }).sort((a, b) => String(b.numero).localeCompare(String(a.numero)));
+  return { suivi: !!f && !esp.demo, demo: esp.demo === true, modele: e === C.MODELE, pack: F.lib || (esp.abonnement ? k : "Tout compris"), specialite: F.specialite || "", mode: f ? f.mode : "", prix: pc.prix, periode: pc.periode, prixPack: { mois: P.mois || null, an: P.an || null },
+    etat: et, essaiFin: (f && f.essaiFin) || "", echeance: (f && f.echeance) || "", debut: (f && f.debut) || "", rappel: RA.rappel, actif: esp.actif !== false,
+    paiements: ((f && f.paiements) || []).map((p) => ({ d: p.d, m: p.m, periode: p.periode, moyen: p.moyen, facture: p.facture || "" })).reverse(),
+    demandes: ((f && f.demandes) || []).filter((q) => !q.traitee).map((q) => ({ le: q.le, type: q.type, message: q.message || "" })),
+    factures, paiement: { raison: E.raison || "", rib: E.rib || "", banque: E.banque || "", email: E.email || "", tel: E.tel || "" } };
+});
+// Demande du titulaire (« Renouveler », « Passer à l'annuel », « Passer au mensuel ») : notée dans sa fiche de facturation et dans le
+// journal de l'Administration ; pas de paiement en ligne (l'administration enregistre le paiement reçu)
+exports.demandeAbonnement = onCall({ timeoutSeconds: 30, memory: "256MiB" }, async (req) => {
+  const { uid, e, esp } = await titulaireDe(req), d = req.data || {};
+  const type = ["renouveler", "annuel", "mensuel"].indexOf(d.type) >= 0 ? d.type : "renouveler", message = String(d.message || "").replace(/\s+/g, " ").trim().slice(0, 500);
+  const m = await db.doc("espaces/" + e + "/membres/" + uid).get(), nom = (m.exists && m.data().nom) || "", le = new Date().toISOString();
+  const LIB = { renouveler: "renouveler l'abonnement", annuel: "passer à l'abonnement annuel", mensuel: "passer à l'abonnement mensuel" };
+  await db.doc("facturation/" + e).set({ demandes: FieldValue.arrayUnion({ id: "d" + Date.now().toString(36), le, par: uid, parNom: nom, type, message, traitee: false }) }, { merge: true });
+  await jAdmin(uid, "abonnement", e, esp.nom || e, "Demande du cabinet (" + (nom || "titulaire") + ") : " + LIB[type] + (message ? " · « " + message + " »" : ""));
+  return { ok: true };
 });

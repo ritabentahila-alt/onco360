@@ -1204,11 +1204,14 @@ Modules et menus, Bibliothèques et paramètres ; cabinets en liste ; onglet lis
       facture A4 (`public/js/donnees/factures.js` : HT, TVA, TTC, **montant en lettres**, « payée le … par … », RIB) à voir et
       imprimer ; Comptabilité › **Factures** (période, cabinet, totaux HT / TVA / TTC, export Excel, avoirs en négatif) ;
       `factures/{id}` serveur seulement (règles). Tests `tests/test_factures.py` 10/10, serveur 79/79.
-- [ ] **18.5 « Profil & Paramètres » dans Onco360** (demandé le 10/10, modèle : captures Tbibclic) : le menu Profil devient
-      « Profil & Paramètres » avec les onglets Informations · Accès (repris des Paramètres) · **Abonnement** (formule, état,
-      échéance, prix mensuel / annuel, « 2 mois offerts » à l'annuel ; boutons « Renouveler » / « Passer à l'annuel » = demande
-      envoyée à l'administration, pas de paiement en ligne) · **Factures** (les factures du cabinet, à télécharger) ; lecture par
-      une fonction serveur réservée au titulaire (la facturation reste invisible des autres membres).
+- [x] **18.5 « Profil & Paramètres » dans Onco360** (10/10, modèle : captures Tbibclic) : menu « Profil » renommé ; onglets
+      Informations · **Accès** (déplacé de Paramètres ; `#parametres/acces` → `#profil/acces`) · **Abonnement** (formule, état,
+      échéance, cartes Mensuel / Annuel « 2 mois offerts » avec prix barré et économie, RIB ; « Renouveler maintenant », « Passer à
+      l'annuel / au mensuel » = demande à l'équipe Onco360, pas de paiement en ligne) · **Factures** (factures et avoirs du cabinet,
+      « Télécharger » = impression / PDF) ; **carte du tableau de bord** (essai qui se termine, à renouveler, expiré : jours restants,
+      échéance, barre, « Renouveler » → onglet Abonnement) ; titulaire seulement (les autres membres : Informations) ; `abonnement.js`,
+      fonctions `monAbonnement` / `demandeAbonnement` ; Administration : demandes des médecins (bandeau bleu, fiche du cabinet,
+      « Marquer traitée »). Tests `tests/test_profil_abo.py` 16/16.
 - [ ] **18.6 Relances** : retards et échéances proches, message WhatsApp prêt, date de la dernière relance.
 - [ ] 16.5 Nouvelle spécialité (copie ou vide) ; Médecine générale, Gynécologie prêtes pour l'étape 14.
 
@@ -1479,3 +1482,4 @@ Onco360_Package_Cession/
 | 10/10/2026 | 18.1 et 18.2 | Finitions (démo dans Nouveau cabinet, Actualiser, coordonnées de facturation) et onglet Comptabilité (encaissé, à encaisser, impayés, évolution, encaissements, export comptable). 18.5 abandonnée. Mis en ligne. |
 | 10/10/2026 | 18.3 Réglages des abonnements | Suspension « me demander » par défaut (ou automatique, ou jamais), délais réglables, cabinet exclu possible ; prix TTC. Plan : 18.4 factures, 18.5 Profil & Paramètres (Abonnement, Factures) dans Onco360, 18.6 relances. Mis en ligne. |
 | 10/10/2026 | 18.4 Factures | Mon entreprise (mentions légales), facture à chaque paiement (F-AAAA-NNNN), avoir (AV-AAAA-NNNN), facture A4 avec montant en lettres, Comptabilité › Factures et export. Mis en ligne. |
+| 10/10/2026 | 18.5 Profil & Paramètres | Onco360 : onglets Informations, Accès, Abonnement, Factures ; carte d'abonnement sur le tableau de bord (comme Tbibclic) ; demandes des médecins dans l'Administration. Décision : le bilan de test (352 317 DH) n'est plus vérifié à chaque étape. Mis en ligne. |

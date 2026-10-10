@@ -72,7 +72,8 @@ let ED = null, ONG = "horaires", MOD = false, HET = ""; // HET : établissement 
 // Onglets de la page Paramètres (« Activités et rémunérations » : droit « finances »)
 // Lieux d'exercice, Google Agenda (liaison) et Accès : venus du Profil le 08/10/2026 (Accès : médecin titulaire)
 let TIT = null;
-const ONGLETS = () => [["horaires", "horloge", "Créneaux & horaires"], ["fermetures", "avion", "Fermetures, congés & jours fériés"], ["lieux", "hopital", "Lieux d'exercice"]].concat(TIT ? [["acces", "patients", "Accès"], ["audit", "liste", "Journal d'audit"]] : []).concat([["whatsapp", "whatsapp", "WhatsApp"], ["couleurs", "agenda", "Google Agenda"], ["documents", "document", "Documents"], ["taches", "taches", "Tâches"], ["rcp", "rcp", "RCP"], ["listes", "liste", "Listes"], ["bibliotheques", "pilule", "Bibliothèques"], ["impression", "imprimer", "Impression"], ["alertes", "alerte", "Alertes"]])
+// Accès : dans Profil & Paramètres depuis le 10/10/2026 (18.5)
+const ONGLETS = () => [["horaires", "horloge", "Créneaux & horaires"], ["fermetures", "avion", "Fermetures, congés & jours fériés"], ["lieux", "hopital", "Lieux d'exercice"]].concat(TIT ? [["audit", "liste", "Journal d'audit"]] : []).concat([["whatsapp", "whatsapp", "WhatsApp"], ["couleurs", "agenda", "Google Agenda"], ["documents", "document", "Documents"], ["taches", "taches", "Tâches"], ["rcp", "rcp", "RCP"], ["listes", "liste", "Listes"], ["bibliotheques", "pilule", "Bibliothèques"], ["impression", "imprimer", "Impression"], ["alertes", "alerte", "Alertes"]])
   .concat(A.peut("finances") && D().tarifs ? [["activites", "bilan", "Activités et rémunérations"]] : [])
   .filter((o) => A.module(MODULE_ONGLET[o[0]] || "")) // onglets d'un module retiré de la formule du cabinet : cachés
   .filter((o) => !A.D().bib || HORS_BIB.indexOf(o[0]) < 0) // bibliothèque de référence : paramètres de base de la spécialité
@@ -83,10 +84,11 @@ const ONGLETS = () => [["horaires", "horloge", "Créneaux & horaires"], ["fermet
 const HORS_BIB = ["lieux", "acces", "audit"];
 const MODULE_ONGLET = { couleurs: "gagenda", taches: "taches", rcp: "rcp", listes: "listes", bibliotheques: "prescriptions" };
 function entete() {
-  return '<section class="accueil"><div><h2>Paramètres</h2><p>Horaires, absences et jours fériés, lieux d\'exercice' + (TIT ? ", accès de l\'équipe" : "") + ', WhatsApp, Google Agenda, types de documents et de tâches, dates de RCP, listes, bibliothèques des prescriptions, impression, alertes' + (A.peut("finances") ? ", activités et rémunérations" : "") + ".</p></div></section>" +
+  return '<section class="accueil"><div><h2>Paramètres</h2><p>Horaires, absences et jours fériés, lieux d\'exercice' + "" + ', WhatsApp, Google Agenda, types de documents et de tâches, dates de RCP, listes, bibliothèques des prescriptions, impression, alertes' + (A.peut("finances") ? ", activités et rémunérations" : "") + ".</p></div></section>" +
     '<div class="ag-vues" style="align-self:flex-start">' + ONGLETS().map(([k, ico, lib]) => '<button class="' + (ONG === k ? "on" : "") + '" onclick="cfOnglet(\'' + k + "')\">" + A.ic(ico) + lib + "</button>").join("") + "</div>";
 }
 export function pageConfiguration(arg) {
+  if (arg === "acces") { location.replace("#profil/acces"); return; } // ancien lien : l'onglet Accès est dans Profil & Paramètres
   // Onglets du titulaire (Accès, Journal d'audit) connus un instant plus tard : l'onglet demandé par le lien est ouvert ensuite
   if (TIT === null) { TIT = false; titulaireConnecte().then((v) => { TIT = v; const dem = (location.hash.match(/^#parametres\/([^/?]+)/) || [])[1]; if (v && location.hash.startsWith("#parametres") && !MOD) pageConfiguration(dem); }).catch(() => {}); }
   if (arg && ONGLETS().some((o) => o[0] === arg)) ONG = arg;

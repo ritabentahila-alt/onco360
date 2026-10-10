@@ -40,7 +40,7 @@ Après déploiement : recharger sans cache (Cmd + Maj + R). Les `.js` sont servi
 | `js/app/agenda.js` | agenda Liste/Jour/Semaine/Mois, filtre par établissement |
 | `js/app/configuration.js` | page **Paramètres** (menu ; `#configuration` y renvoie, 08/10/2026) : onglets `ONGLETS()` = horaires (par établissement), absences, fériés, WhatsApp, couleurs Google Agenda (`parametres/couleursAgenda`), types de documents, types de tâches, listes (diagnostics, mutuelles, correspondants : `parametres/listes` { diag, mut, cor, complet } ; nom corrigé → corrigé dans les dossiers ; nom nouveau d'une fiche patient → ajouté, `enrichirListes`, règle ouverte aux droits identité / fiche / créer), Google Agenda personnel (`utilisateurs/{uid}.agendaFiltre`, cases par catégorie) + couleurs, bibliothèques (fenêtres de prescription en gestion : `gererListe` d'ordonnances.js), impression, alertes, Activités et rémunérations (parametres.js, droit finances) |
 | `js/app/reglages.js` | réglages simples `parametres/reglages` (marges d'impression A5 / A4 / documents, délai du bouton WhatsApp vert, délais des alertes) : `reglages()`, `margesMm()`, variables CSS de l'aperçu |
-| `js/app/profil.js` | page Profil = informations de la personne (photo, INPE, signature, mot de passe) ; fournit à Paramètres (`htmlOngletProfil`) les onglets Lieux d'exercice (logos), Google Agenda (« Mon Google Agenda » : lier, mettre à jour, délier) et Accès (droits de l'équipe, titulaire) |
+| `js/app/profil.js` | page **Profil & Paramètres** (18.5) : onglets Informations (photo, INPE, signature, mot de passe), Accès (droits de l'équipe, titulaire), Abonnement et Factures (titulaire, `js/app/abonnement.js` : fonctions `monAbonnement` / `demandeAbonnement`, carte du tableau de bord) ; fournit à Paramètres (`htmlOngletProfil`) les onglets Lieux d'exercice et Google Agenda |
 | `js/app/protocoles.js` | bibliothèque de 316+ protocoles |
 | `js/app/parametres.js` | onglet « Activités et rémunérations » de la page Paramètres : tarifs par établissement (dates d'effet), activités, actes RT, VMAT |
 | `js/app/bilan.js` | bilan financier, exports Excel/PDF |
@@ -186,7 +186,7 @@ Ancienne application : collections racine `patients`, `protocoles`, `finances`, 
   `dosiRT`, seulement après le contourage) → 1re séance (`deb`) → fin (`fin` : `terminerRT`) ; tâches automatiques fixes « Valider
   le contourage » (scanner → 1re séance), « Valider la dosimétrie » (contourage validé → 1re séance), « Valider la fin de
   radiothérapie » ; valider la tâche = valider dans le dossier (même fenêtre, `taValiderAuto`).
-- Bilan : doit rester identique au dirham près (référence : année 2026 = 352 317 DH au 06/10/2026).
+- Bilan : `tests/test_bilan.py` compare au chiffre du jeu de test figé (352 317 DH, copie du 06/10/2026), pas au cabinet en ligne ; décidé le 10/10/2026 : ne plus le vérifier à chaque étape, seulement si bilan.js ou les calculs changent.
 - Droits : `medecin` / `infirmiere` / `assistante` / `comptable` (09/10/2026 : bilan et pointage des paiements sur le relevé
   `comptabilite/releve_*` préparé par le médecin, `publierReleve` de bilan.js ; aucun dossier : règles `comptable()` / `dansPerimetre`), grille par membre ; un membre ne modifie pas ses propres droits.
   Droits ajoutés le 06/10/2026 (DROITS_ROLE et `droitsEffectifs` dans profil.js : un droit absent de la grille d'un membre
