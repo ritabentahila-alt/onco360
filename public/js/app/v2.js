@@ -1335,6 +1335,43 @@ const fermerMenu = () => { document.body.classList.remove("menu-ouvert"); $("voi
 $("burger").onclick = () => { document.body.classList.add("menu-ouvert"); $("voile").classList.remove("cache"); };
 $("voile").onclick = fermerMenu;
 document.querySelectorAll("nav a").forEach((a) => a.addEventListener("click", fermerMenu));
+// Menu repliable (20.2) : colonne d'icônes sur ordinateur, choix gardé sur l'appareil ; nom de la page au survol
+const menuReplie = (oui) => {
+  document.body.classList.toggle("menu-replie", oui);
+  const b = $("btReplier"), t = oui ? "Déplier le menu" : "Replier le menu"; b.title = t; b.setAttribute("aria-label", t);
+  try { localStorage.setItem("onco360.menuReplie", oui ? "1" : "0"); } catch (e) { /* stockage indisponible : choix non gardé */ }
+};
+$("btReplier").onclick = () => menuReplie(!document.body.classList.contains("menu-replie"));
+menuReplie(document.body.classList.contains("menu-replie"));
+$("menu").addEventListener("mouseover", (e) => {
+  const a = e.target.closest("nav a, .sortie, .qui"); if (!a) return;
+  const r = document.body.classList.contains("menu-replie");
+  a.title = !r ? "" : a.classList.contains("qui") ? $("nomMenu").textContent : [...a.childNodes].filter((n) => n.nodeType === 3).map((n) => n.textContent).join("").trim();
+});
+// Onglets sur une ligne qui défile (Paramètres, Profil) : onglet choisi visible, molette verticale = défilement horizontal, bords estompés
+const bordsDefile = (el) => {
+  const g = el.scrollLeft > 2, d = el.scrollLeft + el.clientWidth < el.scrollWidth - 2;
+  [el, el.parentNode].forEach((x) => { x.classList.toggle("g", g); x.classList.toggle("d", d); });
+};
+new MutationObserver(() => document.querySelectorAll(".ag-vues.defile:not([data-vu])").forEach((el) => {
+  el.dataset.vu = "1";
+  // cadre avec flèches ‹ › (visibles seulement s'il reste des onglets de ce côté)
+  const cadre = document.createElement("div"); cadre.className = "defile-cadre"; cadre.style.alignSelf = el.style.alignSelf; el.before(cadre); cadre.append(el);
+  [["g", -1, "Onglets précédents"], ["d", 1, "Onglets suivants"]].forEach(([c, s, t]) => {
+    const f = document.createElement("button"); f.type = "button"; f.className = "df-fl " + c; f.title = t; f.setAttribute("aria-label", t); f.innerHTML = ic("retour");
+    f.onclick = () => el.scrollBy({ left: s * el.clientWidth * 0.7 }); cadre.append(f);
+  });
+  const on = el.querySelector("button.on");
+  if (on) { el.style.scrollBehavior = "auto"; el.scrollLeft = Math.max(0, on.offsetLeft - (el.clientWidth - on.offsetWidth) / 2); el.style.scrollBehavior = ""; }
+  bordsDefile(el);
+  el.addEventListener("scroll", () => bordsDefile(el), { passive: true });
+})).observe($("page"), { childList: true, subtree: true });
+window.addEventListener("resize", () => document.querySelectorAll(".ag-vues.defile").forEach(bordsDefile));
+document.addEventListener("wheel", (e) => {
+  const el = e.target.closest && e.target.closest(".ag-vues.defile");
+  if (!el || el.scrollWidth <= el.clientWidth || Math.abs(e.deltaX) >= Math.abs(e.deltaY)) return;
+  e.preventDefault(); el.scrollLeft += e.deltaY;
+}, { passive: false });
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") { fermerMenu(); $("panneauAlertes").classList.add("cache"); } });
 $("cloche").onclick = (e) => { e.stopPropagation(); $("panneauAlertes").classList.toggle("cache"); };
 document.addEventListener("click", (e) => { if (!$("panneauAlertes").contains(e.target)) $("panneauAlertes").classList.add("cache"); });

@@ -91,7 +91,7 @@ const secretariat = () => A.peut("secretariat") && !A.D().bib;
 const MODULE_ONGLET = { couleurs: "gagenda", taches: "taches", rcp: "rcp", listes: "listes", bibliotheques: "prescriptions" };
 function entete() {
   return '<section class="accueil"><div><h2>Paramètres</h2><p>Horaires, absences et jours fériés, lieux d\'exercice' + "" + ', WhatsApp, Google Agenda, types de documents et de tâches, dates de RCP, listes, bibliothèques des prescriptions, impression, alertes' + (A.peut("finances") ? ", activités et rémunérations" : "") + ".</p></div></section>" +
-    '<div class="ag-vues" style="align-self:flex-start">' + ONGLETS().map(([k, ico, lib]) => '<button class="' + (ONG === k ? "on" : "") + '" onclick="cfOnglet(\'' + k + "')\">" + A.ic(ico) + lib + "</button>").join("") + "</div>";
+    '<div class="ag-vues defile" style="align-self:flex-start">' + ONGLETS().map(([k, ico, lib]) => '<button class="' + (ONG === k ? "on" : "") + '" onclick="cfOnglet(\'' + k + "')\">" + A.ic(ico) + lib + "</button>").join("") + "</div>";
 }
 export function pageConfiguration(arg) {
   if (arg === "acces") { location.replace("#profil/acces"); return; } // ancien lien : l'onglet Accès est dans Profil & Paramètres

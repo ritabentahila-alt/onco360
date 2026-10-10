@@ -1424,6 +1424,24 @@ Onco360_Package_Cession/
 - [ ] **Imagerie (DICOM)** : au minimum, **liens** vers les clichés (scanner, IRM) ou la console de radiothérapie dans le
       dossier ; plus tard, visionneuse intégrée.
 
+## Étape 20 – Design (demandé le 11/10/2026, modèle : captures de Tbibclic)
+But : profiter de tout l'écran sur ordinateur, menu repliable, cartes en relief, présentation identique d'une page à l'autre.
+On garde le bleu Onco360 (#3563B0) et Arial ; les impressions (ordonnances, fiches, plis) ne changent pas.
+- [ ] 20.1 Pleine largeur : le contenu va du menu au bord droit de l'écran (marges 32 à 40 px) ; formulaires et textes longs
+      gardent une largeur lisible à l'intérieur des cartes ; tableau de bord : 4 chiffres clés par ligne, cartes côte à côte.
+- [x] 20.2 Menu repliable (11/10) : bouton ‹ à côté du logo → colonne d'icônes de 76 px, contenu élargi d'autant ; nom de la
+      page au survol, pastilles gardées sur l'icône, avatar et déconnexion en icônes ; choix gardé sur l'appareil
+      (`localStorage` `onco360.menuReplie`) ; tablette et téléphone : menu « burger » inchangé.
+- [x] 20.2 bis Onglets sur une ligne (11/10, demande de Dr Bentahila) : Paramètres et Profil & Paramètres = une seule ligne qui
+      défile vers la droite (molette, glisser, flèches ‹ › aux bouts, bords estompés), onglet choisi toujours visible ; plus
+      d'onglets empilés sur plusieurs lignes (classe `ag-vues defile`, réutilisable pour d'autres barres).
+- [ ] 20.3 Relief : ombre plus marquée des cartes, cartes cliquables qui se soulèvent au survol, ombre colorée du menu actif
+      et des boutons principaux, chiffres clés « carré d'icône + grand chiffre », fond légèrement teinté.
+- [ ] 20.4 Même présentation partout : en-tête de page (titre, sous-titre, bouton à droite), onglets soulignés avec icône,
+      titres de colonnes en petites majuscules, initiales des patients en cercle, messages « Aucun… » centrés.
+- [ ] 20.5 Barre du haut : recherche en pilule toujours visible sur ordinateur, cloche et avatar plus marqués.
+- Tests : `tests/test_menu.py` ; 390, 1024, 1440 et 1920 px ; 3 rôles ; impressions inchangées.
+
 ## Idées en attente (à placer dans une étape)
 - Outil de restauration d'une sauvegarde.
 
@@ -1595,3 +1613,4 @@ Onco360_Package_Cession/
 | 11/10/2026 | Documents : tout en PDF | Décision de Dr Bentahila : tout document déposé est enregistré en PDF. Converti dans le navigateur avant l'envoi : photos, Word .docx (mammoth), Excel .xlsx/.xls/.ods et CSV (SheetJS), texte ; pages A4 (paysage pour les tableaux), coupées entre deux lignes, marges ; anciens formats (.doc, PowerPoint…) refusés avec la marche à suivre. Le texte converti est une image (non sélectionnable). Documents déjà déposés inchangés. Testé (Word 3 pages, CSV, texte, refus .doc). Pas encore en ligne. |
 | 11/10/2026 | Dossier : onglets à la hauteur de l'écran | Onglets Chimiothérapie et Radiothérapie : défilement intérieur (hauteur de l'écran moins l'en-tête), position gardée quand le dossier se redessine ; chimio : la ligne en cours (sinon la dernière) ouverte, les autres fermées. Consultation : défilement déjà en place. Pas encore en ligne. |
 | 11/10/2026 | Dossier : radiothérapies repliables | Une seule radiothérapie ouverte (la plus récente à l'ouverture) ; fermée = titre, badges, dose, séances réalisées et boutons (sans les étapes, la consultation hebdomadaire ni la note) ; clic sur le titre pour ouvrir / fermer. Pas encore en ligne. |
+| 11/10/2026 | 20.2 Menu repliable et onglets | Plan design (étape 20, d'après Tbibclic). Fait : menu repliable en colonne d'icônes (choix gardé, nom au survol, téléphone inchangé) ; onglets des Paramètres et du Profil sur une seule ligne qui défile vers la droite (molette, flèches ‹ ›). Tests menu 22/22, profil 16/16, réglage 14/14, audit 12/12, consultation 15/15 ; test_fiche : 2 échecs déjà présents avant (Administration, en-tête de la fiche). Pas encore en ligne. |

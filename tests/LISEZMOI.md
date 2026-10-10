@@ -23,6 +23,7 @@ python tests/test_demo.py         # cabinet de démonstration (8 patients fictif
 python tests/test_comptable.py    # rôle Comptable : relevé sans diagnostic, même bilan, aucun dossier
 python tests/test_audit.py        # journal d'audit (titulaire, filtres, export, secrétaire sans accès)
 python tests/test_cabinets.py     # cabinet neuf (rien de Dr Bentahila), premier démarrage, page Administration
+python tests/test_menu.py         # menu repliable (choix gardé, téléphone), onglets des Paramètres sur une ligne qui défile
 ```
 Un petit serveur local (port 8767) sert `public/`. Les dates sont figées au 06/10/2026 dans `base.py` (`ouvrir(..., t=...)`).
 
