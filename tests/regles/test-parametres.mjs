@@ -42,8 +42,8 @@ await cas("refusé : la secrétaire modifie les règles des tâches automatiques
 await cas("refusé : registre des tâches automatiques invisible depuis le navigateur (même le médecin)", () => assertFails(getDoc(doc(db("MED"), P + "/tachesAuto/auto-x"))));
 await cas("refusé : écrire dans le registre (ne pas empêcher une tâche)", () => assertFails(setDoc(doc(db("MED"), P + "/tachesAuto/auto-x"), { le: "x" })));
 console.log("Paramètres du secrétariat (droit « secretariat », 10/10/2026)");
-for (const n of ["calendrier", "listes", "typesTaches", "typesDocuments", "reglages"]) await cas("la secrétaire (secrétariat) modifie " + n, () => assertSucceeds(setDoc(D("SECP", n), { data: "{}" })));
-for (const n of ["whatsapp", "tachesAuto", "couleursAgenda", "rcp", "medecinTitulaire"]) await cas("refusé : la secrétaire (secrétariat) modifie " + n, () => assertFails(setDoc(D("SECP", n), { data: "{}" })));
+for (const n of ["calendrier", "listes", "typesTaches", "typesDocuments", "reglages", "whatsapp", "rcp"]) await cas("la secrétaire (secrétariat) modifie " + n, () => assertSucceeds(setDoc(D("SECP", n), { data: "{}" })));
+for (const n of ["tachesAuto", "couleursAgenda", "medecinTitulaire", "tarifsConsultations"]) await cas("refusé : la secrétaire (secrétariat) modifie " + n, () => assertFails(setDoc(D("SECP", n), { data: "{}" })));
 await cas("refusé : secrétaire sans le droit secrétariat → calendrier", () => assertFails(setDoc(D("SEC", "calendrier"), { data: "{}" })));
 await cas("refusé : l'infirmière → calendrier", () => assertFails(setDoc(D("INF", "calendrier"), { data: "{}" })));
 console.log("Bibliothèques : la secrétaire ajoute un médicament (10/10/2026)");

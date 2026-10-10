@@ -29,7 +29,7 @@ const LIB_DROITS = [
   ["planningChimio", "Planning de l'hôpital de jour (déplacer les cures)"],
   ["encaissements", "Prix à encaisser : consultations validées par le médecin, consultation de chimio"],
   ["creerPatient", "Créer un patient"], ["supprimerPatient", "Supprimer un patient"], ["finances", "Montants, tarifs, bilan"], ["parametres", "Paramètres, bibliothèque, configuration, établissements"],
-  ["secretariat", "Paramètres du secrétariat : absences et congés, horaires de ses lieux, listes, types de tâches et de documents, bouton WhatsApp vert"],
+  ["secretariat", "Paramètres du secrétariat : absences, jours fériés, horaires de ses lieux, messages WhatsApp, RCP, listes, types de tâches et de documents, impression, alertes"],
 ];
 const NIVEAUX = [["aucun", "Non visible"], ["voir", "Voir"], ["modifier", "Modifier"]];
 const NIVEAUX_RT = [["aucun", "Non visible"], ["chimio", "Voir : patients sous chimio"], ["voir", "Voir : tous"], ["modifier", "Modifier"]];

@@ -37,6 +37,9 @@ async function sauverLignes(x, lignes, quoi, extra) {
       (L.cures || []).forEach((c, i) => { const c0 = L0.cures[i] || {}, n = i + 1, o = () => ((pl[L.id] = pl[L.id] || {})[n] = pl[L.id][n] || {});
         const r = (c.rep || []).slice((c0.rep || []).length); if (r.length) o().rep = r;
         Object.keys(c.sea || {}).forEach((j) => { const r2 = ((c.sea[j] || {}).rep || []).slice((((c0.sea || {})[j] || {}).rep || []).length); if (r2.length) { const z = o(); (z.srep = z.srep || {})[j] = r2; } }); }); });
+    // poids validés par la secrétaire (poids, spoids, pv) : gardés tels quels
+    const ancien = JSON.parse(x.doc.planningJson || "{}");
+    Object.keys(ancien).forEach((lid) => Object.keys(ancien[lid] || {}).forEach((n) => { const a = ancien[lid][n] || {}; ["poids", "spoids", "pv"].forEach((f) => { if (a[f] != null) ((pl[lid] = pl[lid] || {})[n] = pl[lid][n] || {})[f] = a[f]; }); }));
     const pj = JSON.stringify(pl); if (pj === (x.doc.planningJson || "{}")) return;
     await A.enregistrer(x, { planningJson: pj }, quoi); return;
   }
@@ -244,7 +247,12 @@ function vueJour(x, i, k, j) {
     (j === 1 ? '<button class="bt fonce petit" data-fn="chimio.fiche" onclick="chFiche(' + qc + ')"><svg class="pi"><use href="#i-imprimer"/></svg>FICHE CHIMIO</button>' : "") + "</div>";
   // Paramètres de la séance (J1, J8…) : saisis ici, sinon repris de la séance précédente (puis de la cure précédente)
   const G = (e.g && e.g[gi]) || { poids: e.poids, creat: e.creat, sc: e.sc, cl: e.cl, pctAll: num(c.pctAll), saisi: {} };
-  h += '<div class="form" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-top:4px"><div><label>Poids (kg)</label><input inputmode="decimal" value="' + esc(G.poids || "") + '"' + (G.saisi.poids ? ' class="saisi"' : "") + dis + ' onchange="chChamp(' + qc + ',\'poids\',this.value,' + gr.j + ')"></div>' +
+  // Poids validé par la secrétaire (10/10/2026) : séance prévue aujourd'hui (ou en retard), droit « planning » sans « traitements »
+  const enAttente = j === 1 ? e.st === "prevue" : e.st === "recue" && !!sea && sea.st === "prevue";
+  const poidsSec = !okT && A.peut("planningChimio") && enAttente && !!dJ && dJ <= D().t, pv = (c.pv || {})[gr.j];
+  h += '<div class="form" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-top:4px"><div><label for="chPoids">Poids (kg)</label><input id="chPoids" inputmode="decimal" value="' + esc(G.poids || "") + '"' + (G.saisi.poids ? ' class="saisi"' : "") + (poidsSec ? "" : dis) + ' onchange="chChamp(' + qc + ',\'poids\',this.value,' + gr.j + ')">' +
+    (poidsSec ? '<button class="bt vert petit" style="margin-top:6px" onclick="chChamp(' + qc + ',\'poids\',document.getElementById(\'chPoids\').value,' + gr.j + ')"><svg class="pi"><use href="#i-check"/></svg>Valider le poids</button>' : "") +
+    (pv ? '<div class="mesures">Poids validé par ' + esc(pv.nom || "") + " le " + A.dfrA(String(pv.le || "").slice(0, 10)) + " à " + String(pv.le ? new Date(pv.le).toTimeString().slice(0, 5) : "").replace(":", " h ") + "</div>" : "") + "</div>" +
     (auc ? "<div><label>Créatinine (" + u + ')</label><input inputmode="decimal" value="' + esc(G.creat || "") + '"' + (G.saisi.creat ? ' class="saisi"' : "") + dis + ' onchange="chChamp(' + qc + ',\'creat\',this.value,' + gr.j + ')"></div><div><label>Clairance (Cockcroft)</label><input disabled value="' + (G.cl ? G.cl + " ml/min" : P.sexe ? "—" : "sexe manquant") + '"></div>' : "") +
     '<div><label>Surface corporelle</label><input disabled value="' + (G.sc ? fr2(G.sc) + " m²" : "—") + '"></div>' +
     '<div><label>Dose des anticancéreux (%)</label><input inputmode="decimal" placeholder="100" value="' + esc(G.pctAll == null ? "" : G.pctAll) + '"' + (G.pctAll != null ? ' class="saisi"' : "") + dis + ' onchange="chChamp(' + qc + ',\'pctAll\',this.value,' + gr.j + ')"></div></div>' +
@@ -486,6 +494,7 @@ window.chHon = (id, i, k, j, v) => { const x = trouver(id), L = x.P.lignes[i]; d
 // Poids, créatinine, % des anticancéreux : à J1 dans la cure, à J8/J15… dans la séance (c.sea[j])
 window.chChamp = (id, i, k, f, v, j) => {
   const x = trouver(id); j = j || 1;
+  if (f === "poids" && !A.traitMod()) { direct(x, () => poidsSecretaire(x, lignesDe(x)[i], k, j, v)); return; }
   direct(x, async () => {
     const lignes = lignesDe(x), L = lignes[i], c = L.cures[k], w = String(v || "").replace(",", ".").trim();
     let o = c; if (j > 1) { c.sea = c.sea || {}; o = c.sea[j] = c.sea[j] || {}; }
@@ -499,6 +508,17 @@ window.chChamp = (id, i, k, f, v, j) => {
     await sauverLignes(x, lignes, { poids: "Poids", creat: "Créatinine", pctAll: "Dose des anticancéreux" }[f] + " de la C" + (k + 1) + (j > 1 ? " J" + j : "") + " modifié(e)");
   });
 };
+// Poids pesé et validé par la secrétaire (droit « planning » seul, 10/10/2026) : gardé dans le planning (poids, spoids[j], pv[j] = qui et
+// quand), comme les reports ; fusionner le met dans la cure, repris dans le dossier au prochain enregistrement du médecin
+async function poidsSecretaire(x, L, k, j, v) {
+  const w = String(v || "").replace(",", ".").trim(), n = k + 1;
+  if (!(Number(w) > 0)) throw new Error("Indiquez le poids en kg.");
+  const pl = JSON.parse(x.doc.planningJson || "{}"), o = ((pl[L.id] = pl[L.id] || {})[n] = pl[L.id][n] || {});
+  if (j > 1) (o.spoids = o.spoids || {})[j] = w; else o.poids = w;
+  (o.pv = o.pv || {})[j] = { nom: document.getElementById("nomMenu").textContent, par: D().u.uid, le: new Date().toISOString() };
+  await A.enregistrer(x, { planningJson: JSON.stringify(pl) }, "Poids de la C" + n + (j > 1 ? " J" + j : "") + " validé : " + w + " kg");
+  A.toast("Poids validé : " + w + " kg.");
+}
 function eclate(c, d) { ["pct", "ov"].forEach((t) => { if (c[t] && num(c[t][d.id]) != null) { joursDe(d).forEach((j) => { if (c[t][d.id + "@" + j] == null) c[t][d.id + "@" + j] = c[t][d.id]; }); delete c[t][d.id]; } }); }
 function majDose(id, i, k, did, j, v, type) {
   const x = trouver(id);

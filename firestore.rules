@@ -227,12 +227,12 @@ service cloud.firestore {
       match /finances/{d} { allow read: if droit('finances'); allow write: if droit('finances') && (!comptable() || d in ['paiements', 'versements']); }
       // Bibliothèque et paramètres : lecture par les membres, modification avec le droit « paramètres »
       match /protocoles/{d} { allow read: if estMembre(); allow write: if droit('parametres'); }
-      // Paramètres du secrétariat (droit « secretariat », secrétaire, 10/10/2026) : absences et horaires (calendrier), listes, types
-      // de tâches et de documents, bouton WhatsApp vert (reglages) ; l'écran ne lui ouvre que ces parties (fériés, messages,
-      // impression, alertes en lecture seule)
+      // Paramètres du secrétariat (droit « secretariat », secrétaire, 10/10/2026) : absences, jours fériés et horaires (calendrier),
+      // listes, types de tâches et de documents, messages WhatsApp, dates de RCP, réglages (bouton vert, impression, alertes, salle
+      // d'attente) ; restent au droit « paramètres » : couleurs Google Agenda, tâches automatiques, tarifs, etc.
       match /parametres/{d} {
         allow read: if estMembre();
-        allow write: if droit('parametres') || (droit('secretariat') && d in ['calendrier', 'listes', 'typesTaches', 'typesDocuments', 'reglages']);
+        allow write: if droit('parametres') || (droit('secretariat') && d in ['calendrier', 'listes', 'typesTaches', 'typesDocuments', 'reglages', 'whatsapp', 'rcp']);
       }
       // Listes (diagnostics, mutuelles, correspondants) : un nom nouveau tapé dans une fiche patient s'y ajoute, pour tout
       // membre qui crée ou modifie une fiche (08/10/2026) ; corrections et suppressions dans Paramètres (droit « paramètres »)

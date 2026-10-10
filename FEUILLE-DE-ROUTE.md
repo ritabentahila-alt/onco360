@@ -1228,9 +1228,12 @@ Décisions de Dr Bentahila (10/10) :
 - une secrétaire peut travailler pour **plusieurs médecins qui ont chacun leur cabinet Onco360** : un compte relié à plusieurs
   cabinets, menu « Cabinet du Dr … » pour passer de l'un à l'autre (ses patients, ses paramètres) ;
 - médicament absent de la liste : « Ligne libre » dans Médic. (pour tous) **et** la secrétaire peut ajouter un médicament à la liste ;
-- elle **modifie** : fermetures et congés, créneaux et horaires (de ses lieux), listes, types de tâches et de documents, bouton
-  WhatsApp vert ; **lecture seule** : messages WhatsApp, jours fériés, tâches automatiques, RCP, couleurs, impression, alertes,
-  bibliothèques (sauf ajout d'un médicament).
+- elle **modifie** (complété le 10/10) : fermetures, congés et jours fériés, créneaux et horaires (de ses lieux), messages
+  WhatsApp et bouton vert, tout l'onglet RCP (si le médecin le lui demande), listes, types de tâches et de documents, impression,
+  alertes et temps d'attente de la salle ; **lecture seule** : tâches automatiques, couleurs de Google Agenda, bibliothèques (sauf
+  ajout d'un médicament) ;
+- Google Agenda : elle relie le sien et coche, **par médecin** (donc par cabinet, 19.2), ce qu'elle veut y voir ;
+- chimio : elle **valide le poids** de la séance prévue du jour (elle voit le patient avant).
 
 **19.1 – Corrections et droits de modification** (fait et testé le 10/10, pas encore en ligne)
 - [x] Nouveau droit « Paramètres du secrétariat » (`secretariat`, grille Accès ; oui par défaut pour la secrétaire et le médecin) :
@@ -1241,6 +1244,11 @@ Décisions de Dr Bentahila (10/10) :
       `ecrireConsultations`.
 - [x] Lieux d'exercice : ses lieux seulement (« Mon lieu d'exercice ») ; exemple des messages WhatsApp avec son lieu.
 - [x] Profil d'un non-médecin : sans titre Dr / Pr, spécialité, INPE ni signature.
+- [x] Droit « secretariat » élargi : jours fériés, messages WhatsApp, onglet RCP, impression, alertes, salle d'attente (règle :
+      + `parametres/whatsapp`, `parametres/rcp`) ; « Rétablir » aussi pour elle (sauf horaires / fermetures).
+- [x] Poids de la séance (J1 ou J8…) prévue aujourd'hui ou en retard : la secrétaire le saisit ou clique « Valider le poids » ;
+      gardé dans `planningJson` (`poids`, `spoids[j]`, `pv[j]` = qui et quand), repris dans le dossier au prochain enregistrement
+      du médecin ; « Poids validé par … le … » affiché ; doses recalculées.
 - [ ] Documents : le dépôt marche dans le test avec les droits par défaut. Si la secrétaire ne peut toujours pas déposer : vérifier
       la case « Documents » de sa grille (Profil & Paramètres › Accès) et noter le message affiché.
 - [ ] Mise en ligne (règles + site ; fonctions pour `creerMembre`).
@@ -1249,7 +1257,8 @@ Décisions de Dr Bentahila (10/10) :
 - [ ] `comptes/{uid}` avec plusieurs cabinets ; `creerMembre` accepte une adresse déjà utilisée par une secrétaire d'un autre
       cabinet (avec l'accord du titulaire qui l'ajoute) ; menu « Cabinet du Dr … » en haut de l'écran ; tout (patients, agenda,
       paramètres, tâches, RCP, Google Agenda) suit le cabinet choisi ; règles et tests d'étanchéité.
-- [ ] Google Agenda de la secrétaire : un agenda par cabinet ou un seul pour tous (à décider).
+- [ ] Google Agenda de la secrétaire : elle coche par médecin (cabinet) ce qu'elle veut y voir ; un agenda par cabinet ou un seul
+      pour tous (à décider).
 
 ## Étape 14 – Autres spécialités (demandé le 09/10/2026) : nouveaux modules et leurs formules
 Onco360 s'ouvrira avec le temps à d'autres médecins : **médecine générale**, **gynécologie**, puis d'autres spécialités. Pour
@@ -1521,3 +1530,4 @@ Onco360_Package_Cession/
 | 10/10/2026 | 18.5 Profil & Paramètres | Onco360 : onglets Informations, Accès, Abonnement, Factures ; carte d'abonnement sur le tableau de bord (comme Tbibclic) ; demandes des médecins dans l'Administration. Décision : le bilan de test (352 317 DH) n'est plus vérifié à chaque étape. Mis en ligne. |
 | 10/10/2026 | 18.6 Relances | Comptabilité › Relances : retards, échéances proches, fins d'essai ; message prêt (WhatsApp, e-mail), relance notée, modèles des messages. Plan de l'audit terminé (reste 16.5). Mis en ligne. |
 | 10/10/2026 | 19.1 Secrétaire | Audit des accès de la secrétaire (`AUDIT-SECRETAIRE.md`). Décidé : secrétaire pour plusieurs cabinets (19.2, à faire). Fait : droit « Paramètres du secrétariat » (congés, horaires de ses lieux, listes, types, bouton WhatsApp vert), Médic. avec ligne libre et ajout d'un médicament par la secrétaire, ses lieux seulement, profil allégé. Règles 211/211, serveur 0 échec, navigateur (ordinateur et 390 px). Pas encore en ligne. |
+| 10/10/2026 | 19.1 Secrétaire (suite) | Droit élargi : jours fériés, messages WhatsApp, RCP, impression, alertes, salle d'attente. Validation du poids de la séance du jour par la secrétaire (planning, repris dans le dossier par le médecin). Règles 212/212, navigateur. Pas encore en ligne. |

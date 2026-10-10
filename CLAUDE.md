@@ -114,6 +114,8 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
   Réglages personnels de la salle d'attente dans `utilisateurs/{uid}` : `salleCachees` (colonnes), `salleTri`.
   Salle : `prix` = prix payé d'avance (proposé dans la fenêtre de prix, `prixPrevu`) ; `ordre` = n° de passage ; `com`.
   `badgeSalle(pid, "r-RDV" | "chimio")` : statut du jour affiché dans l'Agenda et le tableau de bord (mis à jour en direct).
+- Poids validé par la secrétaire (droit « planning » seul, 10/10/2026) : séance prévue du jour, `planning[ligne][n].poids` / `.spoids[j]` /
+  `.pv[j]` { nom, par, le }, ajouté par `fusionner`, repris dans `lignesJson` au prochain enregistrement du médecin (`poidsSecretaire`, chimio.js).
 - Report de chimio avec le seul droit « planning » (secrétaire, depuis le 08/10/2026) : `sauverLignes` n'écrit que `planningJson` ;
   l'historique du report y est gardé (`planning[ligne][n].rep`, `.srep[j]`), ajouté par `fusionner`, repris dans `lignesJson` au
   prochain enregistrement du médecin.
@@ -195,8 +197,9 @@ Ancienne application : collections racine `patients`, `protocoles`, `finances`, 
   Droits ajoutés le 06/10/2026 (DROITS_ROLE et `droitsEffectifs` dans profil.js : un droit absent de la grille d'un membre
   prend la valeur par défaut de son rôle ; `migrations()` dans v2.js l'écrit dans les fiches des membres, une fois, par le titulaire) :
   `fichePatient` (poids, taille, diagnostic, allergies, antécédents ; règle : `clinique` sans toucher à `clinique.notes`),
-  `secretariat` (10/10/2026, étape 19 : absences, horaires de ses lieux, listes, types de tâches et de documents, bouton
-  WhatsApp vert ; règle `parametres/{calendrier, listes, typesTaches, typesDocuments, reglages}` ; `ONGLETS_SEC` de configuration.js),
+  `secretariat` (10/10/2026, étape 19 : absences, fériés, horaires de ses lieux, messages WhatsApp, RCP, listes, types de tâches
+  et de documents, impression, alertes ; règle `parametres/{calendrier, listes, typesTaches, typesDocuments, reglages, whatsapp, rcp}` ;
+  `ONGLETS_SEC` de configuration.js),
   `consultations` (voir consultations et hospitalisations), `documents` (pli, CR, rendez-vous Excel), `encaissements`
   (collection `encaissements/{patient}` = prix des consultations validées + consultation de chimio cochée, écrite par
   `majMontants` / `ecrireEncaissements` dans chimio.js, sans honoraires ni RT), `radiotherapie: "chimio"` (voir la RT

@@ -83,8 +83,8 @@ const ONGLETS = () => [["horaires", "horloge", "Créneaux & horaires"], ["fermet
 // Propres à chaque cabinet, donc absents de la bibliothèque de référence : lieux, équipe, journal d'audit
 const HORS_BIB = ["lieux", "acces", "audit"];
 // Onglets que la secrétaire (droit « secretariat », sans « paramètres ») peut modifier, et ce qu'elle y modifie
-const ONGLETS_SEC = ["horaires", "fermetures", "whatsapp", "documents", "taches", "listes"];
-const MSG_SEC = { horaires: "Vous pouvez régler les horaires de vos lieux.", fermetures: "Vous pouvez ajouter et modifier les absences du médecin ; les jours fériés sont réglés par le médecin.", whatsapp: "Vous pouvez régler le bouton WhatsApp vert ; les messages sont rédigés par le médecin.", taches: "Vous pouvez modifier les types de tâches ; les tâches automatiques sont réglées par le médecin.", documents: "Vous pouvez modifier les types de documents.", listes: "Vous pouvez corriger, ajouter et retirer des noms." };
+const ONGLETS_SEC = ["horaires", "fermetures", "whatsapp", "documents", "taches", "rcp", "listes", "impression", "alertes"];
+const MSG_SEC = { horaires: "Vous pouvez régler les horaires de vos lieux.", taches: "Vous pouvez modifier les types de tâches ; les tâches automatiques sont réglées par le médecin." };
 const secretariat = () => A.peut("secretariat") && !A.D().bib;
 const MODULE_ONGLET = { couleurs: "gagenda", taches: "taches", rcp: "rcp", listes: "listes", bibliotheques: "prescriptions" };
 function entete() {
@@ -109,7 +109,7 @@ export function pageConfiguration(arg) {
   // documents, bouton WhatsApp vert ; okE / disE = ce que la personne peut modifier dans l'onglet affiché
   const sec = !ok && secretariat(), okE = ok || (sec && ONGLETS_SEC.indexOf(ONG) >= 0), disE = okE ? "" : " disabled";
   let h = entete();
-  if (!ok && !(ONG === "bibliotheques" && A.peut("ecrireConsultations"))) h += '<p class="mesures">' + (ONG === "couleurs" ? "Votre Google Agenda et ce qui y apparaît se règlent ici ; les couleurs sont en lecture seule (droit « paramètres »)." : sec && MSG_SEC[ONG] ? MSG_SEC[ONG] : "Lecture seule : la modification demande le droit « paramètres ».") + "</p>";
+  if (!ok && !(ONG === "bibliotheques" && A.peut("ecrireConsultations")) && !(okE && !MSG_SEC[ONG])) h += '<p class="mesures">' + (ONG === "couleurs" ? "Votre Google Agenda et ce qui y apparaît se règlent ici ; les couleurs sont en lecture seule (droit « paramètres »)." : sec && MSG_SEC[ONG] ? MSG_SEC[ONG] : "Lecture seule : la modification demande le droit « paramètres ».") + "</p>";
   if (ONG === "horaires") {
     // membre limité à certains établissements (secrétaire d'un centre) : seulement leurs horaires (07/10/2026)
     const limite = !D().membre.tousEtablissements, etabs = limite ? (D().membre.etablissements || []).slice() : (D().etabsTous || D().etabs).map((e) => e.code);
@@ -140,13 +140,13 @@ export function pageConfiguration(arg) {
   } else if (ONG === "rcp") {
     // Dates de RCP (étape 7, 09/10/2026) : jours de la semaine, heure, lieu, dates ajoutées et annulées (rcp.js)
     const C = ED.rcp, dates = (k, titre, sous, aj) => '<section class="carte"><h3>' + titre + '</h3><p class="sous">' + sous + "</p>" +
-      (C[k].length ? '<div class="cf-td">' + C[k].map((d, i) => '<div class="it"><input type="date" value="' + esc(d) + '"' + dis + ' aria-label="' + titre + " " + (i + 1) + '" onchange="cfRcpDate(\'' + k + "'," + i + ',this.value)" style="max-width:190px"><span class="mesures">' + esc(d ? libDate(d) : "") + "</span>" + (ok ? '<button class="mini rouge" aria-label="Retirer" onclick="cfRcpSup(\'' + k + "'," + i + ')">✕</button>' : "") + "</div>").join("") + "</div>" : '<p class="mesures">Aucune.</p>') +
-      (ok ? '<button class="bt clair petit" style="margin-top:10px" onclick="cfRcpAj(\'' + k + "')\">" + A.ic("plus") + aj + "</button>" : "") + "</section>";
+      (C[k].length ? '<div class="cf-td">' + C[k].map((d, i) => '<div class="it"><input type="date" value="' + esc(d) + '"' + disE + ' aria-label="' + titre + " " + (i + 1) + '" onchange="cfRcpDate(\'' + k + "'," + i + ',this.value)" style="max-width:190px"><span class="mesures">' + esc(d ? libDate(d) : "") + "</span>" + (okE ? '<button class="mini rouge" aria-label="Retirer" onclick="cfRcpSup(\'' + k + "'," + i + ')">✕</button>' : "") + "</div>").join("") + "</div>" : '<p class="mesures">Aucune.</p>') +
+      (okE ? '<button class="bt clair petit" style="margin-top:10px" onclick="cfRcpAj(\'' + k + "')\">" + A.ic("plus") + aj + "</button>" : "") + "</section>";
     const pro = prochainesRcp(10, C);
     h += '<section class="carte"><h3><span class="ic">' + A.ic("rcp") + '</span>Dates de RCP</h3><p class="sous">Le bouton « + RCP » du dossier (à côté de Doc.) inscrit le patient à la prochaine date de RCP (modifiable). Liste des dossiers inscrits : page Tâches › onglet RCP.</p>' +
-      '<div class="puces"><span class="tl">Chaque semaine le</span>' + JOURS.map(([j, nom]) => '<button class="puce' + (C.jours.indexOf(j) >= 0 ? " on" : "") + '"' + dis + ' aria-pressed="' + (C.jours.indexOf(j) >= 0) + '" onclick="cfRcpJour(' + j + ')">' + nom + "</button>").join("") + "</div>" +
-      '<div class="form" style="grid-template-columns:repeat(2,minmax(0,260px))"><div><label for="cfRh">Heure</label><input id="cfRh" type="time" step="900" value="' + esc(C.heure) + '"' + dis + ' onchange="cfRcp(\'heure\',this.value)"></div>' +
-      '<div><label for="cfRl">Lieu</label><input id="cfRl" value="' + esc(C.lieu) + '" placeholder="Ex. salle de staff, visioconférence"' + dis + ' onchange="cfRcp(\'lieu\',this.value)"></div></div>' +
+      '<div class="puces"><span class="tl">Chaque semaine le</span>' + JOURS.map(([j, nom]) => '<button class="puce' + (C.jours.indexOf(j) >= 0 ? " on" : "") + '"' + disE + ' aria-pressed="' + (C.jours.indexOf(j) >= 0) + '" onclick="cfRcpJour(' + j + ')">' + nom + "</button>").join("") + "</div>" +
+      '<div class="form" style="grid-template-columns:repeat(2,minmax(0,260px))"><div><label for="cfRh">Heure</label><input id="cfRh" type="time" step="900" value="' + esc(C.heure) + '"' + disE + ' onchange="cfRcp(\'heure\',this.value)"></div>' +
+      '<div><label for="cfRl">Lieu</label><input id="cfRl" value="' + esc(C.lieu) + '" placeholder="Ex. salle de staff, visioconférence"' + disE + ' onchange="cfRcp(\'lieu\',this.value)"></div></div>' +
       '<p class="mesures">Un jour férié (onglet Fermetures) n\'a pas de RCP, sauf s\'il est ajouté ci-dessous.</p></section>';
     h += dates("plus", "Dates ajoutées", "RCP exceptionnelles, en plus des jours de la semaine (ou si la RCP n'a pas de jour fixe).", "Ajouter une date") +
       dates("annulees", "Dates annulées", "Jours où la RCP n'a pas lieu (congés, congrès…).", "Annuler une date");
@@ -185,16 +185,16 @@ export function pageConfiguration(arg) {
       (A.D().membre.role === "medecin" ? '<button class="cf-b" data-bib="documentation" onclick="ordDocumentationGestion()"><span class="ic">' + A.ic("document") + '</span><span><b>Documentation</b><span class="mesures">Fiches PDF à remettre aux patients (bouton « Doc. »)</span></span></button>' : "") + "</div></section>";
   } else if (ONG === "impression") {
     // Marges d'impression (mm) : la marge du haut laisse la place à l'en-tête déjà imprimé sur le papier
-    const I = ED.reg.impression, champ = (q, n, lib) => '<div><label for="cfI' + q + n + '">' + lib + '</label><input id="cfI' + q + n + '" type="number" min="0" max="150" step="1" inputmode="numeric" value="' + I[q][n] + '"' + dis + ' onchange="cfImp(\'' + q + "'," + n + ',this.value)"></div>';
+    const I = ED.reg.impression, champ = (q, n, lib) => '<div><label for="cfI' + q + n + '">' + lib + '</label><input id="cfI' + q + n + '" type="number" min="0" max="150" step="1" inputmode="numeric" value="' + I[q][n] + '"' + disE + ' onchange="cfImp(\'' + q + "'," + n + ',this.value)"></div>';
     h += '<section class="carte"><h3><span class="ic">' + A.ic("imprimer") + '</span>Mise en page d\'impression</h3><p class="sous">Marges en millimètres. <b>Haut</b> = place laissée à l\'en-tête déjà imprimé sur votre papier : mesurez l\'en-tête avec une règle et ajoutez 5 à 10 mm. L\'aperçu à l\'écran (zone « En-tête du papier ») suit ces réglages.</p>' +
       [["a5", "Ordonnances A5", "Médicaments, analyses, examens, ordonnances types, courriers en A5"], ["a4", "Ordonnances A4", "Les mêmes, imprimées en A4"], ["doc", "Documents A4", "Pli confidentiel, compte rendu de fin et rendez-vous de radiothérapie"]].map(([q, t, sous]) =>
         '<h4 class="soustitre">' + t + '</h4><p class="mesures" style="margin:-4px 0 8px">' + sous + ' · par défaut ' + REGLAGES0.impression[q].join(" / ") + ' mm</p><div class="form" style="grid-template-columns:repeat(3,minmax(0,150px))">' + champ(q, 0, "Haut (en-tête)") + champ(q, 1, "Côtés") + champ(q, 2, "Bas") + "</div>").join("") + "</section>";
   } else if (ONG === "alertes") {
-    const RA = ED.reg.alertes, sel = (k, l, lib, suff) => '<div><label for="cfA' + k + '">' + lib + '</label><select id="cfA' + k + '"' + dis + ' onchange="cfReg(\'alertes\',\'' + k + "',this.value)\">" + l.map((n) => "<option value=\"" + n + "\"" + (RA[k] === n ? " selected" : "") + ">" + n + " " + suff + "</option>").join("") + "</select></div>";
+    const RA = ED.reg.alertes, sel = (k, l, lib, suff) => '<div><label for="cfA' + k + '">' + lib + '</label><select id="cfA' + k + '"' + disE + ' onchange="cfReg(\'alertes\',\'' + k + "',this.value)\">" + l.map((n) => "<option value=\"" + n + "\"" + (RA[k] === n ? " selected" : "") + ">" + n + " " + suff + "</option>").join("") + "</select></div>";
     h += '<section class="carte"><h3><span class="ic">' + A.ic("alerte") + '</span>Alertes (cloche)</h3><p class="sous">Délais des alertes de la cloche, en haut de l\'écran.</p><div class="form" style="grid-template-columns:repeat(2,minmax(0,280px))">' +
       sel("cure", [1, 2, 3, 4, 5, 7, 10, 14], "Cure prévue : prévenir", "jour(s) avant") + sel("finTrait", [7, 15, 30, 45, 60, 90], "Traitement terminé : signaler pendant", "jours") + "</div>" +
       '<p class="mesures">Toujours signalés : cure prévue et non validée (date dépassée), dernière cure d\'un protocole, fin de radiothérapie dépassée, dosimétrie à valider.</p></section>';
-    const RS = ED.reg.salle, selS = (k, l, lib) => '<div><label for="cfS' + k + '">' + lib + '</label><select id="cfS' + k + '"' + dis + ' onchange="cfReg(\'salle\',\'' + k + "',this.value)\">" + l.map((n) => '<option value="' + n + '"' + (RS[k] === n ? " selected" : "") + ">" + n + " min</option>").join("") + "</select></div>";
+    const RS = ED.reg.salle, selS = (k, l, lib) => '<div><label for="cfS' + k + '">' + lib + '</label><select id="cfS' + k + '"' + disE + ' onchange="cfReg(\'salle\',\'' + k + "',this.value)\">" + l.map((n) => '<option value="' + n + '"' + (RS[k] === n ? " selected" : "") + ">" + n + " min</option>").join("") + "</select></div>";
     h += '<section class="carte"><h3><span class="ic">' + A.ic("horloge") + '</span>Salle d\'attente : temps d\'attente</h3><p class="sous">Le compteur « Attente 12 min » d\'un patient en salle passe à l\'orange, puis au rouge (salle d\'attente, agenda, tableau de bord).</p><div class="form" style="grid-template-columns:repeat(2,minmax(0,280px))">' +
       selS("orange", [5, 10, 15, 20, 25, 30, 40, 45, 60], "Orange à partir de") + selS("rouge", [15, 20, 30, 40, 45, 60, 75, 90, 120], "Rouge à partir de") + "</div>" +
       (RS.rouge <= RS.orange ? '<p class="err">Le rouge doit venir après l\'orange.</p>' : "") + "</section>";
@@ -208,8 +208,8 @@ export function pageConfiguration(arg) {
       '<div><label for="cfWa">jusqu\'à</label><select id="cfWa"' + disE + ' onchange="cfReg(\'whatsapp\',\'de\',this.value)">' + [0, 1, 2, 3].map((n) => "<option value=\"" + n + "\"" + (RW.de === n ? " selected" : "") + ">" + jr(n) + "</option>").join("") + "</select></div></div></section>";
     CAT_WA().forEach(([k, lib]) => {
       const v = ED.wa[k] != null ? ED.wa[k] : WA0[k] || WA0.autre, perso = ED.wa[k] != null && ED.wa[k] !== (WA0[k] || WA0.autre);
-      h += '<section class="carte"><div class="entete"><h3 style="margin:0">' + (k === "autre" ? A.ic("agenda") : k === "hospit" ? A.ic("hopital") : "") + esc(lib) + (perso ? ' <span class="badge b-or">personnalisé</span>' : "") + "</h3>" + (ok && perso ? '<button class="mini" onclick="cfWaDef(\'' + k + "')\">↺ Message par défaut</button>" : "") + "</div>" +
-        '<textarea class="notes" rows="5"' + dis + ' oninput="cfWa(\'' + k + "',this.value)\">" + esc(v) + '</textarea><div class="wa-ex" id="waEx_' + k + '">' + esc(remplir(v, ex)) + "</div></section>";
+      h += '<section class="carte"><div class="entete"><h3 style="margin:0">' + (k === "autre" ? A.ic("agenda") : k === "hospit" ? A.ic("hopital") : "") + esc(lib) + (perso ? ' <span class="badge b-or">personnalisé</span>' : "") + "</h3>" + (okE && perso ? '<button class="mini" onclick="cfWaDef(\'' + k + "')\">↺ Message par défaut</button>" : "") + "</div>" +
+        '<textarea class="notes" rows="5"' + disE + ' oninput="cfWa(\'' + k + "',this.value)\">" + esc(v) + '</textarea><div class="wa-ex" id="waEx_' + k + '">' + esc(remplir(v, ex)) + "</div></section>";
     });
   } else {
     const abs = ED.abs.map((a, i) => ({ a, i })).sort((p, q) => String(p.a.du).localeCompare(String(q.a.du)));
@@ -219,10 +219,10 @@ export function pageConfiguration(arg) {
       (okE ? '<button class="bt clair petit" style="margin-top:10px" onclick="cfAjAbs()">' + A.ic("plus") + "Ajouter une absence</button>" : "") + "</section>";
     const fs = ED.feries.map((f, i) => ({ f, i })).sort((p, q) => String(p.f.d).localeCompare(String(q.f.d)));
     h += '<section class="carte"><h3><span class="ic">' + A.ic("drapeau") + '</span>Jours fériés (exclus du calcul des dates de radiothérapie)</h3><p class="sous">Les fêtes religieuses dépendent de l\'observation du croissant : ajustez la date dès l\'annonce officielle du ministère des Habous. ' + fs.length + " jours enregistrés.</p>" +
-      '<div class="tableau" style="max-height:460px;overflow:auto"><table class="tcures"><tr><th style="width:190px">Date</th><th>Fête</th><th></th></tr>' + fs.map(({ f, i }) => '<tr><td><input type="date" value="' + esc(f.d) + '"' + dis + ' onchange="cfFer(' + i + ',\'d\',this.value)"></td><td><input value="' + esc(f.nom || "") + '"' + dis + ' onchange="cfFer(' + i + ',\'nom\',this.value)" style="width:100%"></td><td>' + (ok ? '<button class="mini rouge" onclick="cfSupFer(' + i + ')">✕</button>' : "") + "</td></tr>").join("") + "</table></div>" +
-      (ok ? '<button class="bt clair petit" style="margin-top:10px" onclick="cfAjFer()">' + A.ic("plus") + "Ajouter un jour férié</button>" : "") + "</section>";
+      '<div class="tableau" style="max-height:460px;overflow:auto"><table class="tcures"><tr><th style="width:190px">Date</th><th>Fête</th><th></th></tr>' + fs.map(({ f, i }) => '<tr><td><input type="date" value="' + esc(f.d) + '"' + disE + ' onchange="cfFer(' + i + ',\'d\',this.value)"></td><td><input value="' + esc(f.nom || "") + '"' + disE + ' onchange="cfFer(' + i + ',\'nom\',this.value)" style="width:100%"></td><td>' + (okE ? '<button class="mini rouge" onclick="cfSupFer(' + i + ')">✕</button>' : "") + "</td></tr>").join("") + "</table></div>" +
+      (okE ? '<button class="bt clair petit" style="margin-top:10px" onclick="cfAjFer()">' + A.ic("plus") + "Ajouter un jour férié</button>" : "") + "</section>";
   }
-  if (okE && ["bibliotheques", "lieux", "acces", "audit"].indexOf(ONG) < 0) h += '<div class="barre-enr">' + (ok ? '<button class="bt gris" onclick="cfDefaut()">↺ Rétablir les valeurs par défaut</button>' : "") + '<span id="cfMod" class="mesures' + (MOD ? "" : " cache") + '">Modifications non enregistrées</span><button class="bt plein" id="cfOk" onclick="cfEnregistrer()"><svg class="pi"><use href="#i-enregistrer"/></svg>Enregistrer</button></div>';
+  if (okE && ["bibliotheques", "lieux", "acces", "audit"].indexOf(ONG) < 0) h += '<div class="barre-enr">' + (ok || ["horaires", "fermetures"].indexOf(ONG) < 0 ? '<button class="bt gris" onclick="cfDefaut()">↺ Rétablir les valeurs par défaut</button>' : "") + '<span id="cfMod" class="mesures' + (MOD ? "" : " cache") + '">Modifications non enregistrées</span><button class="bt plein" id="cfOk" onclick="cfEnregistrer()"><svg class="pi"><use href="#i-enregistrer"/></svg>Enregistrer</button></div>';
   A.$("page").innerHTML = h;
   if (A.$("cfProfil")) { const o = ONG === "couleurs" ? "gagenda" : ONG; htmlOngletProfil(o).then((x) => { const z = A.$("cfProfil"); if (z && ONG === (o === "gagenda" ? "couleurs" : o)) { z.innerHTML = x; apresOngletProfil(o); } }).catch((e) => { const z = A.$("cfProfil"); if (z) z.innerHTML = '<p class="sous" style="color:var(--rouge)">Lecture impossible : ' + A.esc(e.message || String(e)) + "</p>"; }); }
   if (ONG === "audit") afficherAudit(A.$("cfAudit"));
@@ -386,11 +386,11 @@ window.cfEnregistrer = async () => {
   const rcp = Object.assign({}, ED.rcp, { jours: ED.rcp.jours.slice().sort(), plus: Array.from(new Set(ED.rcp.plus.filter(Boolean))).sort(), annulees: Array.from(new Set(ED.rcp.annulees.filter(Boolean))).sort() });
   const cal = Object.assign({}, D().cal, { horaires: ED.horaires, horairesEtab: ED.horairesEtab, abs: ED.abs, feries: ED.feries.slice().sort((a, b) => a.d.localeCompare(b.d)) });
   const b = A.$("cfOk"); A.occupe(b, true);
-  const tout = A.peut("parametres"); // sinon secrétaire : seulement calendrier, listes, types, réglages (règles du serveur)
+  const tout = A.peut("parametres"); // sinon secrétaire : ni couleurs Google Agenda, ni tâches automatiques (règles du serveur)
   try {
     await setDoc(doc(db, "espaces", A.ESPACE, "parametres", "calendrier"), { data: JSON.stringify(cal) }, { merge: true });
     const wa = {}; Object.entries(ED.wa).forEach(([k, v]) => { if (v !== (WA0[k] || WA0.autre)) wa[k] = v; });
-    if (tout && JSON.stringify(wa) !== JSON.stringify(D().wa || {})) { await setDoc(doc(db, "espaces", A.ESPACE, "parametres", "whatsapp"), { data: JSON.stringify(wa) }); D().wa = wa; }
+    if ((tout || secretariat()) && JSON.stringify(wa) !== JSON.stringify(D().wa || {})) { await setDoc(doc(db, "espaces", A.ESPACE, "parametres", "whatsapp"), { data: JSON.stringify(wa) }); D().wa = wa; }
     const coul = {}; Object.keys(COULEURS0).forEach((k) => { if (ED.coul[k] != null && ED.coul[k] !== COULEURS0[k]) coul[k] = ED.coul[k]; });
     if (tout && JSON.stringify(coul) !== JSON.stringify(COUL || {})) { await setDoc(doc(db, "espaces", A.ESPACE, "parametres", "couleursAgenda"), { data: JSON.stringify(coul) }); COUL = coul; }
     if (tdoc.length && JSON.stringify(tdoc) !== JSON.stringify(TDOC || [])) { await enregistrerTypes(tdoc); TDOC = tdoc.slice(); }
@@ -401,7 +401,7 @@ window.cfEnregistrer = async () => {
     let ko = 0; for (let i = 0; i < aMaj.length; i++) { A.toast("Correction des dossiers : " + (i + 1) + " / " + aMaj.length + "…"); try { await A.enregistrer(aMaj[i].x, aMaj[i].ch, aMaj[i].quoi); } catch (e) { ko++; console.warn("liste → dossier", aMaj[i].x.id, e); } }
     if (ko) setTimeout(() => A.toast(ko + " dossier(s) n'ont pas pu être corrigés : réessayez (ils ont peut-être été modifiés en même temps)."), 4000);
     if (tout && JSON.stringify(ED.auto) !== JSON.stringify(AUTO)) { const regles = ED.auto.map((R) => { const o = Object.assign({}, R); delete o.fixe; return o; }); await setDoc(doc(db, "espaces", A.ESPACE, "parametres", "tachesAuto"), { data: JSON.stringify({ regles }) }); AUTO = JSON.parse(JSON.stringify(ED.auto)); }
-    if (tout && JSON.stringify(rcp) !== JSON.stringify(configRcp())) { await enregistrerConfigRcp(rcp); ED.rcp = configRcp(); }
+    if ((tout || secretariat()) && JSON.stringify(rcp) !== JSON.stringify(configRcp())) { await enregistrerConfigRcp(rcp); ED.rcp = configRcp(); }
     if (JSON.stringify(ttache) !== JSON.stringify(TTA || [])) { await enregistrerTypesTaches(ttache.length ? ttache : TYPES_TACHES0.slice()); TTA = ttache.length ? ttache : TYPES_TACHES0.slice(); }
     D().cal = cal; D().ctx.feries = cal.feries;
     D().patients.forEach((x) => A.recalculer(x, x.doc)); // les dates de radiothérapie dépendent des jours fériés

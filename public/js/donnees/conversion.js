@@ -42,6 +42,10 @@ export function fusionner(id, doc, montants) {
       // ajouté après celui du dossier ; repris dans le dossier au prochain enregistrement du médecin (separer ne les garde pas ici)
       if (pl && pl.rep) c.rep = (c.rep || []).concat(pl.rep);
       if (pl && pl.srep) Object.keys(pl.srep).forEach((j) => { c.sea = c.sea || {}; c.sea[j] = c.sea[j] || { st: "prevue" }; c.sea[j].rep = (c.sea[j].rep || []).concat(pl.srep[j]); });
+      // Poids validé par la secrétaire (10/10/2026) : poids (J1), spoids[j] (J8…), pv[j] = qui et quand (gardé ensuite dans le dossier)
+      if (pl && pl.poids != null) c.poids = pl.poids;
+      if (pl && pl.spoids) Object.keys(pl.spoids).forEach((j) => { c.sea = c.sea || {}; c.sea[j] = c.sea[j] || { st: "prevue" }; c.sea[j].poids = pl.spoids[j]; });
+      if (pl && pl.pv) c.pv = Object.assign({}, c.pv || {}, pl.pv);
       const m = M && M.cures && M.cures[L.id] && M.cures[L.id][n]; if (m) { if (m.hon != null) c.hon = m.hon; if (m.cons != null) c.cons = m.cons; }
     });
     return L;

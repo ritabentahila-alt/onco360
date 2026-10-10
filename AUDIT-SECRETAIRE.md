@@ -66,3 +66,7 @@ Pour qu'elle choisisse un médecin dans un menu déroulant, il faut d'abord choi
 **Fait le 10/10 (19.1)** : S1, S3, S4, S7, et le nouveau droit « Paramètres du secrétariat » (grille Accès, oui par défaut pour
 la secrétaire). S2 : à vérifier chez vous (case Documents de sa grille). S5 / S6 : chaque médecin aura ses réglages dans son
 cabinet ; le menu « Cabinet du Dr … » (19.2) servira de choix du médecin. S8 : reste à voir après 19.2.
+
+**Complété le 10/10** : elle modifie aussi les jours fériés, les messages WhatsApp, tout l'onglet RCP, l'impression, les alertes et
+le temps d'attente de la salle ; elle valide le poids de la séance de chimio prévue du jour. Google Agenda : choix par médecin
+avec 19.2.
