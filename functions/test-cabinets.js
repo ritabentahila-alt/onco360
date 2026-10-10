@@ -206,3 +206,13 @@ const echoue = (f) => { try { f(); return false; } catch (e) { return true; } };
   ok(J(C.compteModifie({ espace: "cab-a", espaces: ["cab-a", "cab-b"] }, false, "cab-a", false)) === '{"espace":"cab-b","espaces":["cab-b"]}', "retirée du cabinet principal : le suivant devient principal");
   ok(C.compteModifie({ espace: "cab-a" }, false, "cab-a", false) === null, "retirée de son seul cabinet : fiche effacée");
 })();
+// Listes corrigées dans tout le cabinet (19.3, 10/10/2026)
+(() => {
+  const C = require("./cabinets"), ok = (c, m) => { console.log((c ? "✅ " : "❌ ") + m); if (!c) process.exitCode = 1; };
+  const R = C.renomsValides([{ k: "cor", de: " Dr Bensaad ", vers: "Dr Bensaad Ahmed" }, { k: "x", de: "a", vers: "b" }, { k: "mut", de: "CNSS", vers: "CNSS" }, { k: "diag", de: "K sein", vers: "Cancer du sein" }]);
+  ok(R.length === 2 && R[0].de === "Dr Bensaad", "renoms nettoyés (champ inconnu et nom inchangé écartés)");
+  const d = { identite: { cor: "dr bensaad", mut: "CNSS" }, clinique: { diag: "K sein", poids: "70" }, resume: JSON.stringify({ nm: "X", diag: "K sein" }) };
+  const ch = C.corrigerDossier(d, R);
+  ok(ch && ch.identite.cor === "Dr Bensaad Ahmed" && ch.identite.mut === "CNSS" && ch.clinique.diag === "Cancer du sein" && ch.clinique.poids === "70" && JSON.parse(ch.resume).diag === "Cancer du sein", "dossier corrigé (sans casse), autres champs gardés, résumé à jour");
+  ok(C.corrigerDossier({ identite: { cor: "Autre" } }, R) === null, "dossier non concerné : rien");
+})();

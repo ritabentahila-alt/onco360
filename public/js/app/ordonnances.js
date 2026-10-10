@@ -475,7 +475,7 @@ function remplirCourrier(html, x) {
   const a = age(P.ddn, D().t), nomEt = et.nom || x.doc.etablissementId || "";
   const art = /^[aeiouyhéèêâîôûàAEIOUYHÉÈÊÂÎÔÛÀ]/.test(nomEt) ? "l'" : /^(centre|cabinet|service|pôle|institut)\b/i.test(nomEt) ? "le " : /^(clinique|polyclinique|fondation|maison)\b/i.test(nomEt) ? "la " : "";
   const nom = P.nomF ? String(P.nomF).toUpperCase() + (P.prenom ? " " + String(P.prenom).toLowerCase().replace(/(^|[\s-])\S/g, (c) => c.toUpperCase()) : "") : x.r.nm;
-  const V = { patient: civilite(x) + nom, age: a != null ? a + " ans" : "", naissance: P.ddn ? dateFr(P.ddn) : "", diagnostic: x.r.diag || "", mutuelle: P.mut || "",
+  const V = { patient: civilite(x) + nom, age: a != null ? a + " ans" : "", naissance: P.ddn ? dateFr(P.ddn) : "", diagnostic: x.r.diag || "", mutuelle: P.mut || "", cin: P.cin || "",
     etablissement: nomEt ? art + nomEt : "", lieu: nomEt, ville: et.ville || "Casablanca", date: dateFr(D().t), medecin: medecin() };
   ficheP.aImprimer(x).forEach((c) => { V["c_" + c.id] = c.texte; }); // champs ajoutés de la fiche (10/10/2026) : {c_identifiant}
   let h = P.sexe === "F" ? html.replace(/\(e\)/g, "e") : P.sexe === "H" ? html.replace(/\(e\)/g, "") : html;

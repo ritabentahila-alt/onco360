@@ -124,8 +124,26 @@ function listeLieux() {
   if (!l.length) return '<p class="sous">Aucun établissement.</p>';
   return l.map((e) => '<div class="lieu' + (e.actif === false ? " off" : "") + '">' + (e.logo ? '<img src="' + e.logo + '" alt="">' : '<span class="av">' + esc(e.code) + "</span>") +
     '<div class="tx"><b>' + esc(e.nom) + ' <span class="badge b-gr">' + esc(e.code) + "</span>" + (e.actif === false ? ' <span class="badge b-al">Désactivé</span>' : "") + "</b><span>" + esc([e.adresse, e.tel].filter(Boolean).join(" · ") || "Adresse et téléphone à compléter") + "</span></div>" +
-    (A.peut("parametres") ? '<button class="mini" onclick="pfLieu(\'' + esc(e.code) + "')\">Modifier</button>" : "") + "</div>").join("");
+    (A.peut("parametres") ? '<button class="mini" onclick="pfLieu(\'' + esc(e.code) + "')\">Modifier</button>" : A.peut("secretariat") && !D().bib ? '<button class="mini" onclick="pfLieuSec(\'' + esc(e.code) + "')\">Compléter</button>" : "") + "</div>").join("");
 }
+// Secrétaire (droit « secretariat », 19.3, 10/10/2026) : adresse, téléphone et ville de son lieu ({adresse} des messages WhatsApp,
+// « Fait à {ville} » des courriers) ; le nom, le code et le logo restent au médecin
+window.pfLieuSec = (code) => {
+  const e = (D().etabsTous || D().etabs).find((z) => z.code === code), esc = A.esc; if (!e) return;
+  A.fenetre("<h3>" + esc(e.code + " – " + e.nom) + '</h3><p class="sous">Adresse et téléphone repris dans les messages WhatsApp ({adresse}) ; ville reprise dans les courriers (« Fait à … »).</p><div class="form">' +
+    '<div class="large"><label for="lAdr">Adresse</label><input id="lAdr" value="' + esc(e.adresse || "") + '"></div><div><label for="lTel">Téléphone</label><input id="lTel" type="tel" value="' + esc(e.tel || "") + '"></div>' +
+    '<div><label for="lVille">Ville</label><input id="lVille" value="' + esc(e.ville || "") + '" placeholder="Casablanca"></div></div><div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt plein" id="fOk">Enregistrer</button></div>');
+  A.$("fOk").onclick = async () => {
+    A.occupe(A.$("fOk"), true);
+    try {
+      const n = Object.assign({}, e, { adresse: A.val("lAdr"), tel: A.val("lTel"), ville: A.val("lVille") });
+      await setDoc(doc(db, "espaces", A.ESPACE, "etablissements", code), n);
+      const tous = (D().etabsTous || D().etabs).map((z) => (z.code === code ? n : z)); D().etabsTous = tous; D().etabs = tous.filter((z) => z.actif !== false);
+      A.journal({ id: "", r: { nm: "" } }, "Établissement complété (adresse, téléphone) : " + code);
+      A.fermerFenetre(); A.toast("Lieu enregistré."); rafraichir();
+    } catch (er) { A.occupe(A.$("fOk"), false); A.erreur(er && er.code === "permission-denied" ? "Vous n'avez pas le droit de modifier ce lieu." : (er.message || String(er))); }
+  };
+};
 window.pfLieu = (code) => {
   const maxE = D().abo && D().abo.max.etablissements; // formule du cabinet (09/10/2026)
   if (!code && maxE != null && (D().etabsTous || D().etabs).length >= maxE) { alert("Votre formule Onco360 permet " + maxE + " lieu" + (maxE > 1 ? "x" : "") + " d'exercice : la limite est atteinte.\nContactez l'éditeur d'Onco360 pour en ajouter."); return; }

@@ -84,7 +84,7 @@ const ONGLETS = () => [["horaires", "horloge", "Créneaux & horaires"], ["fermet
 const HORS_BIB = ["lieux", "acces", "audit"];
 // Onglets que la secrétaire (droit « secretariat », sans « paramètres ») peut modifier, et ce qu'elle y modifie
 const ONGLETS_SEC = ["horaires", "fermetures", "whatsapp", "documents", "taches", "rcp", "listes", "impression", "alertes"];
-const MSG_SEC = { horaires: "Vous pouvez régler les horaires de vos lieux.", taches: "Vous pouvez modifier les types de tâches ; les tâches automatiques sont réglées par le médecin." };
+const MSG_SEC = { lieux: "Vous pouvez compléter l'adresse, le téléphone et la ville de votre lieu (« Compléter »).", horaires: "Vous pouvez régler les horaires de vos lieux.", taches: "Vous pouvez modifier les types de tâches ; les tâches automatiques sont réglées par le médecin." };
 const secretariat = () => A.peut("secretariat") && !A.D().bib;
 const MODULE_ONGLET = { couleurs: "gagenda", taches: "taches", rcp: "rcp", listes: "listes", bibliotheques: "prescriptions" };
 function entete() {
@@ -385,7 +385,7 @@ window.cfEnregistrer = async () => {
     renoms.forEach(({ k, de, vers }) => { const [bloc, f, lib] = CHAMP_L[k], B = ch[bloc] || Object.assign({}, x.doc[bloc] || {}); if (String(B[f] || "").trim().toLowerCase() === de.toLowerCase()) { B[f] = vers; ch[bloc] = B; qu.push(lib + " : " + de + " → " + vers); } });
     if (qu.length) aMaj.push({ x, ch, quoi: "Liste corrigée (Paramètres) : " + qu.join(" ; ") });
   });
-  if (aMaj.length && !confirm(renoms.length + " nom" + (renoms.length > 1 ? "s corrigés" : " corrigé") + " dans les listes :\n" + renoms.slice(0, 8).map((r) => "• " + r.de + " → " + r.vers).join("\n") + (renoms.length > 8 ? "\n…" : "") + "\n\n" + aMaj.length + " dossier" + (aMaj.length > 1 ? "s seront corrigés" : " sera corrigé") + " aussi. Continuer ?")) return;
+  if (aMaj.length && !confirm(renoms.length + " nom" + (renoms.length > 1 ? "s corrigés" : " corrigé") + " dans les listes :\n" + renoms.slice(0, 8).map((r) => "• " + r.de + " → " + r.vers).join("\n") + (renoms.length > 8 ? "\n…" : "") + "\n\n" + aMaj.length + " dossier" + (aMaj.length > 1 ? "s" : "") + " de vos patients" + (D().membre.tousEtablissements ? "" : " (et ceux des autres lieux du cabinet)") + " seront corrigés aussi. Continuer ?")) return;
   const listes = {}; for (const k of ["diag", "mut", "cor"]) {
     const l = ED.listes[k].map((t) => String(t || "").trim()).filter(Boolean);
     const dbl = l.find((t, i) => l.findIndex((u) => u.toLowerCase() === t.toLowerCase()) !== i); if (dbl) { A.toast("Listes : « " + dbl + " » figure deux fois."); return; }
@@ -415,8 +415,13 @@ window.cfEnregistrer = async () => {
     if (JSON.stringify(listes) !== JSON.stringify({ diag: listeDiag(), mut: listeMut(), cor: listeCor() })) {
       const L = Object.assign(listes, { complet: true }); await setDoc(doc(db, "espaces", A.ESPACE, "parametres", "listes"), { data: JSON.stringify(L) }); D().listes = L;
     }
-    let ko = 0; for (let i = 0; i < aMaj.length; i++) { A.toast("Correction des dossiers : " + (i + 1) + " / " + aMaj.length + "…"); try { await A.enregistrer(aMaj[i].x, aMaj[i].ch, aMaj[i].quoi); } catch (e) { ko++; console.warn("liste → dossier", aMaj[i].x.id, e); } }
-    if (ko) setTimeout(() => A.toast(ko + " dossier(s) n'ont pas pu être corrigés : réessayez (ils ont peut-être été modifiés en même temps)."), 4000);
+    // dossiers corrigés par le serveur, dans tout le cabinet (19.3 : une secrétaire d'un seul lieu ne voit pas les autres dossiers),
+    // puis relus ici
+    if (renoms.length) {
+      try { A.toast("Correction des dossiers…"); await A.serveur("corrigerListes", { espace: A.ESPACE, renoms });
+        for (const { x } of aMaj) { const s2 = await getDoc(doc(db, "espaces", A.ESPACE, "patients", x.id)).catch(() => null); if (s2 && s2.exists()) A.recalculer(x, s2.data()); } }
+      catch (e) { console.warn("listes → dossiers", e); setTimeout(() => A.toast("Les listes sont enregistrées, mais les dossiers n'ont pas pu être corrigés : " + ((e && e.message) || e)), 4000); }
+    }
     if (tout && JSON.stringify(ED.auto) !== JSON.stringify(AUTO)) { const regles = ED.auto.map((R) => { const o = Object.assign({}, R); delete o.fixe; return o; }); await setDoc(doc(db, "espaces", A.ESPACE, "parametres", "tachesAuto"), { data: JSON.stringify({ regles }) }); AUTO = JSON.parse(JSON.stringify(ED.auto)); }
     if ((tout || secretariat()) && JSON.stringify(rcp) !== JSON.stringify(configRcp())) { await enregistrerConfigRcp(rcp); ED.rcp = configRcp(); }
     if (JSON.stringify(ttache) !== JSON.stringify(TTA || [])) { await enregistrerTypesTaches(ttache.length ? ttache : TYPES_TACHES0.slice()); TTA = ttache.length ? ttache : TYPES_TACHES0.slice(); }

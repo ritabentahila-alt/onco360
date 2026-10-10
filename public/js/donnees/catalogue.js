@@ -40,16 +40,25 @@ export const FONCTIONS_RELIEES = ["prescriptions.medic", "prescriptions.exam", "
 // départ (celui d'aujourd'hui pour l'oncologie). Champs ajoutés par l'administration (pack ou cabinet) : reglage.fiche.ajouts =
 // [{ id: "x…", lib, type: texte|nombre|date|choix|ouinon, choix: […], partie, imprimer, entete }] ; valeurs dans identite.extra /
 // clinique.extra du dossier.
+// Ordre réglé + champs du catalogue ajoutés depuis (ex. CIN, 10/10/2026) : placés juste après le champ qui les précède dans le
+// catalogue (CIN après Diagnostic), pas à la fin ; les autres manquants à la fin
+function ordreAvecNouveaux(l, ref, cat) {
+  if (!Array.isArray(l) || !l.length) return ref.slice();
+  const r = l.filter((k, i) => ref.indexOf(k) >= 0 && l.indexOf(k) === i);
+  cat.forEach((k, i) => { if (r.indexOf(k) >= 0) return; let j = -1; for (let p = i - 1; p >= 0 && j < 0; p--) j = r.indexOf(cat[p]); r.splice(j + 1, 0, k); });
+  ref.forEach((k) => { if (r.indexOf(k) < 0) r.push(k); });
+  return r;
+}
 const ordre = (l, ref) => (Array.isArray(l) ? l.filter((k, i) => ref.indexOf(k) >= 0 && l.indexOf(k) === i) : []).concat(ref.filter((k) => !(Array.isArray(l) && l.indexOf(k) >= 0)));
 export const FICHE = [
   ["nom", "Nom", "identite", true], ["prenom", "Prénom", "identite", true], ["ddn", "Date de naissance", "identite"], ["sexe", "Sexe", "identite"],
-  ["taille", "Taille", "clinique"], ["poids", "Poids", "clinique"], ["diag", "Diagnostic", "clinique"], ["tel", "Téléphone", "identite"], ["tel2", "2e téléphone", "identite"],
+  ["taille", "Taille", "clinique"], ["poids", "Poids", "clinique"], ["diag", "Diagnostic", "clinique"], ["cin", "CIN", "identite"], ["tel", "Téléphone", "identite"], ["tel2", "2e téléphone", "identite"],
   ["etab", "Hôpital (lieu d'exercice)", "identite", true], ["ald", "ALD", "identite"], ["cor", "Correspondant", "identite"], ["mut", "Mutuelle", "identite"],
   ["adresse", "Adresse", "identite"], ["email", "E-mail", "identite"], ["allergies", "Allergies", "clinique"], ["atcdMed", "Antécédents médicaux", "clinique"],
   ["atcdFam", "Antécédents familiaux", "clinique"], ["modeVie", "Mode de vie", "clinique"], ["traitCours", "Traitement en cours", "clinique"],
 ];
 // En tête du dossier (sous le nom du patient) au départ : ce qui y est aujourd'hui (10/10/2026) ; réglable champ par champ (entetes)
-export const ENTETE0 = ["ddn", "sexe", "taille", "poids", "diag", "tel", "tel2", "etab", "ald", "cor", "mut"];
+export const ENTETE0 = ["ddn", "sexe", "taille", "poids", "diag", "cin", "tel", "tel2", "etab", "ald", "cor", "mut"];
 export const TOUJOURS_ENTETE = ["nom", "prenom"]; // le nom du patient : toujours en tête
 export const TYPES_CHAMP = [["texte", "Texte"], ["nombre", "Nombre"], ["date", "Date"], ["choix", "Liste de choix"], ["ouinon", "Oui / Non"]];
 // Formulaire de consultation (16.7, 10/10/2026) : champs existants [clé, libellé, -, base, choix de départ (liste modifiable)] = la
@@ -69,7 +78,7 @@ export function formEffectif(CAT, f, spe) {
   ref.forEach((k) => { const v = x.champs && typeof x.champs[k] === "boolean" ? x.champs[k] : s.champs && s.champs[k]; champs[k] = v !== false; });
   CAT.forEach(([k, , , base, ch0]) => { if (base) champs[k] = true; const l = (x.libs && x.libs[k]) || (s.libs && s.libs[k]); if (l) libs[k] = l;
     if (ch0) { const c = (x.choixs && x.choixs[k]) || (s.choixs && s.choixs[k]); choixs[k] = Array.isArray(c) && c.length ? c.slice() : ch0.slice(); } });
-  const out = { ordre: ordre(Array.isArray(x.ordre) && x.ordre.length ? x.ordre : s.ordre, ref), champs, libs, choixs, ajouts };
+  const out = { ordre: ordreAvecNouveaux(Array.isArray(x.ordre) && x.ordre.length ? x.ordre : s.ordre, ref, CAT.map((c) => c[0])), champs, libs, choixs, ajouts };
   // Fiche patient : en tête du dossier ou non, champ par champ (champs existants : ENTETE0 au départ ; champs ajoutés : leur case « En tête »)
   if (CAT === FICHE) { const en = {}, v = (k) => (x.entetes && typeof x.entetes[k] === "boolean" ? x.entetes[k] : s.entetes && typeof s.entetes[k] === "boolean" ? s.entetes[k] : undefined);
     FICHE.forEach(([k]) => { const b = v(k); en[k] = TOUJOURS_ENTETE.indexOf(k) >= 0 || (b === undefined ? ENTETE0.indexOf(k) >= 0 : b); });

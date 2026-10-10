@@ -10,7 +10,7 @@ const D = () => A.D();
 const F = () => (D().reg && D().reg.fiche) || { ordre: [], champs: {}, libs: {}, ajouts: [] };
 export const champsAjoutes = () => F().ajouts;
 // En tête du dossier ? (réglé champ par champ : spécialité, puis retouches du cabinet ; sans réglage : l'en-tête d'aujourd'hui)
-const ENTETE0 = ["ddn", "sexe", "taille", "poids", "diag", "tel", "tel2", "etab", "ald", "cor", "mut"];
+const ENTETE0 = ["ddn", "sexe", "taille", "poids", "diag", "cin", "tel", "tel2", "etab", "ald", "cor", "mut"];
 export const enTete = (k) => { const R = F(), a = R.ajouts.find((z) => z.id === k); return R.champs[k] !== false && (R.entetes && k in R.entetes ? R.entetes[k] : a ? a.entete === true : ENTETE0.indexOf(k) >= 0); };
 const valeurDe = (x, a) => { const d = (x && x.doc) || {}, src = a.partie === "clinique" ? d.clinique : d.identite; return ((src && src.extra) || {})[a.id]; };
 const texteDe = (a, v) => (v == null || v === "" ? "" : a.type === "date" ? A.dfrA(v) : a.type === "ouinon" ? (v === true || v === "oui" ? "Oui" : "Non") : String(v));

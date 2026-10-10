@@ -96,6 +96,9 @@ service cloud.firestore {
       match /etablissements/{x} {
         allow read: if estMembre() || adminIci();
         allow write: if droit('parametres') || adminIci();
+        // secrétaire (droit « secretariat », 19.3) : adresse, téléphone et ville de ses lieux seulement (ni code, ni nom, ni logo)
+        allow update: if droit('secretariat') && (tousEtab() || x in m().etablissements)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['adresse', 'tel', 'ville']);
       }
       // Dossiers patients (sans aucun montant)
       match /patients/{p} {

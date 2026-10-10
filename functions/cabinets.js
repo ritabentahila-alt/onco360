@@ -133,6 +133,21 @@ function compteModifie(c, membreModele, e, present) {
   const l0 = espacesCompte(c, membreModele), l = present ? (l0.indexOf(e) >= 0 ? l0 : l0.concat([e])) : l0.filter((x) => x !== e);
   return l.length ? { espace: l[0], espaces: l } : null;
 }
+// Noms corrigés dans Paramètres › Listes (19.3, 10/10/2026) : corrigés dans TOUS les dossiers du cabinet par le serveur (une secrétaire
+// d'un seul lieu ne voit pas les autres dossiers) ; diagnostic, mutuelle, correspondant ; comparaison sans casse ni espaces autour
+const CHAMP_LISTE = { diag: ["clinique", "diag"], mut: ["identite", "mut"], cor: ["identite", "cor"] };
+function renomsValides(l) {
+  return (Array.isArray(l) ? l : []).filter((r) => r && CHAMP_LISTE[r.k] && typeof r.de === "string" && typeof r.vers === "string")
+    .map((r) => ({ k: r.k, de: r.de.trim().slice(0, 200), vers: r.vers.trim().slice(0, 200) })).filter((r) => r.de && r.vers && r.de !== r.vers).slice(0, 200);
+}
+// Changements d'un dossier (null = rien à corriger) ; le résumé garde le diagnostic à jour
+function corrigerDossier(d, renoms) {
+  const ch = {};
+  renoms.forEach(({ k, de, vers }) => { const [b, f] = CHAMP_LISTE[k], B = ch[b] || Object.assign({}, d[b] || {}); if (String(B[f] || "").trim().toLowerCase() === de.toLowerCase()) { B[f] = vers; ch[b] = B; } });
+  if (!Object.keys(ch).length) return null;
+  if (ch.clinique && d.resume) { try { const r = JSON.parse(d.resume); r.diag = ch.clinique.diag || ""; ch.resume = JSON.stringify(r); } catch (e) { /* résumé illisible : refait au prochain enregistrement */ } }
+  return ch;
+}
 // Bibliothèques de référence par spécialité (10/10/2026) : un espace sans patient (espaces/bib-…), modifié par l'administration avec
 // les écrans d'Onco360 ; un cabinet neuf reçoit la copie de la bibliothèque de la spécialité de sa formule. Même liste dans
 // public/js/donnees/modules.js (BIBLIOTHEQUES_SPE, vérifié par le test).
@@ -191,4 +206,4 @@ function reglageNettoye(r) {
   const Cs = ficheNettoyee(r.consultation); if (Cs) out.consultation = Cs; // formulaire de consultation : retouches du cabinet (16.7)
   return out;
 }
-module.exports = { espacesCompte, compteModifie, ficheNettoyee, idSpecialite, reglageNettoye, PARAMS_SPE, parametreDepart, BIBS, bibDe, estBib, DROITS_BIB, MODULES_BIB, infos, ROLES, membreDemande, MODULES, MAX, FORMULES, formulesValides, abonnement, horsQuota, MODELE, BIBLIOTHEQUES, DROITS_MEDECIN, MIGRATIONS, verifier, idCabinet, listesDepart, calendrierDepart, tarifsDepart, migrationsFaites, membreTitulaire };
+module.exports = { renomsValides, corrigerDossier, espacesCompte, compteModifie, ficheNettoyee, idSpecialite, reglageNettoye, PARAMS_SPE, parametreDepart, BIBS, bibDe, estBib, DROITS_BIB, MODULES_BIB, infos, ROLES, membreDemande, MODULES, MAX, FORMULES, formulesValides, abonnement, horsQuota, MODELE, BIBLIOTHEQUES, DROITS_MEDECIN, MIGRATIONS, verifier, idCabinet, listesDepart, calendrierDepart, tarifsDepart, migrationsFaites, membreTitulaire };

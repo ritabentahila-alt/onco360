@@ -46,6 +46,13 @@ for (const n of ["calendrier", "listes", "typesTaches", "typesDocuments", "regla
 for (const n of ["tachesAuto", "couleursAgenda", "medecinTitulaire", "tarifsConsultations"]) await cas("refusé : la secrétaire (secrétariat) modifie " + n, () => assertFails(setDoc(D("SECP", n), { data: "{}" })));
 await cas("refusé : secrétaire sans le droit secrétariat → calendrier", () => assertFails(setDoc(D("SEC", "calendrier"), { data: "{}" })));
 await cas("refusé : l'infirmière → calendrier", () => assertFails(setDoc(D("INF", "calendrier"), { data: "{}" })));
+console.log("Lieux : la secrétaire complète adresse, téléphone, ville (19.3)");
+const L = (u) => doc(db(u), P + "/etablissements/HCK");
+const lieu = async () => env.withSecurityRulesDisabled((c) => setDoc(doc(c.firestore(), P + "/etablissements/HCK"), { code: "HCK", nom: "Hôpital Cheikh Khalifa", actif: true }));
+await cas("la secrétaire complète l'adresse et le téléphone", async () => { await lieu(); await assertSucceeds(setDoc(L("SECP"), { code: "HCK", nom: "Hôpital Cheikh Khalifa", actif: true, adresse: "Bd Mohammed Taieb Naciri", tel: "0529004444", ville: "Casablanca" })); });
+await cas("refusé : la secrétaire change le nom du lieu", async () => { await lieu(); await assertFails(setDoc(L("SECP"), { code: "HCK", nom: "Autre nom", actif: true })); });
+await cas("refusé : la secrétaire crée un lieu", () => assertFails(setDoc(doc(db("SECP"), P + "/etablissements/NOUV"), { code: "NOUV", nom: "X" })));
+await cas("refusé : la secrétaire sans le droit secrétariat", async () => { await lieu(); await assertFails(setDoc(L("SEC"), { code: "HCK", nom: "Hôpital Cheikh Khalifa", actif: true, tel: "1" })); });
 console.log("Bibliothèques : la secrétaire ajoute un médicament (10/10/2026)");
 const B = (u, n) => doc(db(u), P + "/bibliotheques/" + n);
 await cas("la secrétaire (journal des consultations) modifie la liste des médicaments", () => assertSucceeds(setDoc(B("SECP", "medicaments"), { data: "[]" })));

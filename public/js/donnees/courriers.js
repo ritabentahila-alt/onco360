@@ -6,6 +6,7 @@ export const CHAMPS_COURRIER = [
   ["patient", "Patient", "Mme NOM Prénom"],
   ["age", "Âge", "62 ans"],
   ["naissance", "Date de naissance", "12/03/1964"],
+  ["cin", "CIN", "BE123456"],
   ["diagnostic", "Diagnostic", ""],
   ["mutuelle", "Mutuelle", ""],
   ["etablissement", "Établissement", "l'Hôpital…"],

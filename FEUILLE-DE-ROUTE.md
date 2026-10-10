@@ -1268,12 +1268,16 @@ Décisions de Dr Bentahila (10/10) :
       (`utilisateurs/{uid}.agendaCouleurs`, sans le droit « paramètres »), qui passent avant celles du cabinet.
 - [x] Tests : règles 221/221 (secrétaire de deux cabinets : lit les deux, pas un troisième, ne modifie pas sa liste), serveur 88/88,
       navigateur (changement de cabinet, cases, couleurs, ajout depuis Accès, 390 px).
-- [ ] Mise en ligne : règles, site, **toutes les fonctions** (comptes, Google Agenda).
+- [ ] Mise en ligne : règles, site, **toutes les fonctions** (comptes, Google Agenda, `corrigerListes`).
 
 **Audit n° 2 de la secrétaire (10/10)** : détail dans `AUDIT-SECRETAIRE.md` (5 corrections, 7 améliorations, 9 ajouts). Plan proposé,
 à valider par Dr Bentahila (4 questions dans l'audit) :
-- [ ] 19.3 Corrections : listes corrigées dans tout le cabinet (serveur), cloche selon le rôle, « Bonjour Salma », adresse et
-      téléphone de son lieu, champs CIN et n° d'affiliation.
+- [x] 19.3 Corrections (fait et testé le 10/10, pas encore en ligne) : listes corrigées dans tout le cabinet (fonction serveur
+      `corrigerListes`), cloche de la secrétaire (rendez-vous à décaler, rappels WhatsApp à envoyer, numéro manquant), « Bonjour
+      Salma », adresse / téléphone / ville de son lieu (« Compléter », règle limitée à ces 3 champs), **CIN** (décision du 10/10 :
+      pas de n° d'affiliation) : champ de base de la fiche patient pour tous les cabinets, actuels et à créer, placé juste après
+      Diagnostic (CIN | Téléphone, puis 2e téléphone | Hôpital), en tête du dossier, champ {cin} des courriers ; un champ ajouté au
+      catalogue se place après celui qui le précède, même dans une fiche déjà réglée. Règles 225/225, serveur 91/91, navigateur.
 - [ ] 19.4 Agenda du secrétariat : créneaux libres, double réservation, nouveau patient depuis le rendez-vous, confirmation
       WhatsApp, rappels marqués « envoyé » + carte des rappels, page d'accueil au choix.
 - [ ] 19.5 Caisse : mode de paiement, reçu / note d'honoraires, caisse du jour, reste à payer.
@@ -1554,3 +1558,4 @@ Onco360_Package_Cession/
 | 10/10/2026 | 19.1 Secrétaire (suite) | Droit élargi : jours fériés, messages WhatsApp, RCP, impression, alertes, salle d'attente. Validation du poids de la séance du jour par la secrétaire (planning, repris dans le dossier par le médecin). Règles 212/212, navigateur. Pas encore en ligne. |
 | 10/10/2026 | 19.2 Plusieurs cabinets | Une secrétaire (ou tout membre non titulaire) peut avoir plusieurs cabinets : ajout confirmé par le titulaire, menu « Cabinet » sous le logo, lien du mot de passe bloqué pour ces comptes. Un seul Google Agenda pour tous ses cabinets (nom du cabinet dans le titre), cases par cabinet, couleurs personnelles. Règles 221/221, serveur 88/88, navigateur. Pas encore en ligne. |
 | 10/10/2026 | Audit n° 2 secrétaire | Tout le parcours de la secrétaire revu (ordinateur, téléphone, deux cabinets) : 5 corrections, 7 améliorations, 9 ajouts ; plan 19.3 à 19.7 dans `AUDIT-SECRETAIRE.md`, 4 questions à valider. |
+| 10/10/2026 | 19.3 Corrections secrétaire | Listes corrigées par le serveur dans tout le cabinet, cloche de la secrétaire, « Bonjour Salma », adresse de son lieu, CIN (après Diagnostic, tous les cabinets, en-tête, courriers). Règles 225/225, serveur 91/91, navigateur. Pas encore en ligne. |

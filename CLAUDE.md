@@ -124,6 +124,10 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
   (dossiers sans numéro, une fois, par le titulaire dans `migrations()`), transaction sur `compteurs/dossiers` { "AAAAMM": n }
   (aucune règle : serveur seulement). Jamais modifié ; `numDossier(x)` pour l'afficher ; recherche et filtre par hôpital (page Patients).
 - `utilisateurs/{uid}` : profil (nom, INPE, signature, photo)
+- CIN (19.3, 10/10/2026) : `identite.cin`, champ de base `cin` du catalogue FICHE (après `diag`, en tête par défaut, {cin} des courriers) ;
+  `ordreAvecNouveaux` (catalogue.js) place un champ nouveau du catalogue après son prédécesseur dans une fiche déjà réglée.
+- Listes corrigées (Paramètres › Listes) : fonction serveur `corrigerListes` (tous les dossiers du cabinet ; logique `renomsValides` /
+  `corrigerDossier` de cabinets.js). Lieux : la secrétaire (`secretariat`) complète adresse / tel / ville de ses lieux (`pfLieuSec`, règle).
 - **Abonnements (17.4, 10/10/2026)** : `facturation/{e}` (racine, serveur seulement, aucune règle) = { mode essai|mensuel|annuel|gratuit, prix
   (vide = prix du pack), essaiFin, echeance, paiements [{ id, d, m, periode, moyen, ref, avant, apres }], journal, suspenduPour } ; fonctions
   `facturationCabinet` (admin) et `abonnementsNuit` (4 h : suspension 30 j après l'échéance, jamais cabinet-bentahila / démo / gratuit) ;

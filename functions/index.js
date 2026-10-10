@@ -811,6 +811,25 @@ exports.lienMembre = onCall({ timeoutSeconds: 30, memory: "256MiB" }, async (req
   const email = (await getAuth().getUser(uid)).email;
   return { lien: await getAuth().generatePasswordResetLink(email, { url: "https://chimio-hgc.web.app" }), email };
 });
+// ───── Listes corrigées dans tous les dossiers du cabinet (19.3, 10/10/2026) ─────
+// Paramètres › Listes : un nom corrigé (diagnostic, mutuelle, correspondant) l'est dans tous les dossiers qui l'utilisent, même ceux
+// des lieux que la personne ne voit pas (secrétaire d'un seul lieu). Droit « paramètres » ou « secretariat ». Logique : cabinets.js.
+exports.corrigerListes = onCall({ timeoutSeconds: 120, memory: "256MiB" }, async (req) => {
+  const par = req.auth && req.auth.uid, { espace } = req.data || {};
+  if (!par) throw new HttpsError("unauthenticated", "Connectez-vous à Onco360.");
+  const es = espace ? await db.doc("espaces/" + espace).get() : null, m = es && es.exists ? await membre(espace, par) : null;
+  if (!m || m.actif === false || es.data().actif === false || !(m.droits && (m.droits.parametres === true || m.droits.secretariat === true))) throw new HttpsError("permission-denied", "Vous n'avez pas le droit de corriger les listes.");
+  const R = C.renomsValides((req.data || {}).renoms); if (!R.length) return { n: 0 };
+  const snap = await db.collection("espaces/" + espace + "/patients").get(); let n = 0, b = db.batch(), k = 0;
+  for (const d of snap.docs) {
+    const ch = C.corrigerDossier(d.data(), R); if (!ch) continue;
+    b.update(d.ref, Object.assign(ch, { version: (d.data().version || 1) + 1, maj: FieldValue.serverTimestamp(), majPar: par })); n++;
+    if (++k >= 400) { await b.commit(); b = db.batch(); k = 0; }
+  }
+  if (k) await b.commit();
+  console.log("listes corrigées", espace, R.length, "nom(s),", n, "dossier(s), par", par);
+  return { n };
+});
 // ───── Fiche patient et formulaire de consultation de la spécialité (10/10/2026, 16.6 bis et 16.7) ─────
 // Réglés une fois par spécialité (Administration › Par spécialité › Bibliothèque et paramètres), les mêmes pour tous les packs ;
 // gardés dans plateforme/specialites { idSpécialité: { nom, fiche, consultation } } et recopiés dans chaque cabinet de la spécialité

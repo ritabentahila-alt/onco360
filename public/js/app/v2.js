@@ -431,7 +431,20 @@ function absences() {
   }).filter((x) => x.l.length);
   return ab.concat(fe).sort((p, q) => p.a.du.localeCompare(q.a.du));
 }
+// Alertes de la secrétaire (19.3, 10/10/2026) : ce qu'elle peut faire elle-même (rendez-vous à décaler, rappels WhatsApp à
+// envoyer, numéro manquant) au lieu des alertes médicales (cures, dosimétrie…)
+function alertesSecretariat() {
+  const al = [], R = "var(--rouge)", O = "#E07A2F", V = "var(--vert)", RW = reglages().whatsapp;
+  absences().forEach(({ a, l }) => l.forEach((o) => al.push({ o: 0, c: R, h: "<b>" + esc(o.t) + "</b> le " + dfr(o.d) + " : pendant « " + esc(a.m || (a.fe ? "jour férié" : "absence")) + " », à décaler", id: o.id })));
+  agenda7().forEach((e) => {
+    const x = D.patients.find((z) => z.id === e.id); if (!x || !e.cat) return; const g = ecart(e.d, D.t), quand = (e.de || "rendez-vous") + " le " + dfr(e.d) + (e.h ? " à " + e.h : "");
+    if (!numeroWA(x.P.tel)) al.push({ o: 1, c: O, h: "<b>" + esc(e.nm) + "</b> – " + esc(quand) + " : pas de numéro de téléphone dans le dossier", id: e.id });
+    else if (g >= RW.de && g <= RW.a) al.push({ o: 2, c: V, h: "<b>" + esc(e.nm) + "</b> – rappel WhatsApp à envoyer (" + esc(quand) + ")", id: e.id });
+  });
+  return al.sort((a, b) => a.o - b.o);
+}
 function alertes() {
+  if (D.membre.role === "assistante") return alertesSecretariat();
   const RA = reglages().alertes; // délais réglables (Paramètres › Alertes)
   const t = D.t, al = [], R = "var(--rouge)", O = "#E07A2F", J = "#D6B42A", V = "var(--vert)";
   D.patients.forEach(({ id, r }) => {
@@ -512,7 +525,7 @@ function pageAccueil() {
     (cat === "co" ? (o.fait ? '<span class="badge b-ch">Vu</span>' : o.rid ? badgeSalle(o.id, "r-" + o.rid) : "") : (cat === "ch" ? badgeSalle(o.id, "chimio") : "") + '<span class="badge ' + (o.cls || "b-ch") + '">' + esc(o.lib) + "</span>") + "</div>";
   const categorie = (cls, titre, l) => l.length ? '<div class="cat"><div class="tc">' + titre + '<span class="n">' + l.length + "</span></div>" + l.map((o) => ligne(o, cls)).join("") + "</div>" : "";
 
-  let h = '<section class="accueil"><div><h2>Bonjour ' + esc([D.titre, D.nomAff].filter(Boolean).join(" ")) + " 👋</h2><p>" + cap(jourLong(D.t)) + "</p></div>" +
+  let h = '<section class="accueil"><div><h2>Bonjour ' + esc(D.membre.role === "medecin" ? [D.titre, D.nomAff].filter(Boolean).join(" ") : cap(String((D.profil && D.profil.prenom) || "").toLowerCase()) || D.nomAff) + " 👋</h2><p>" + cap(jourLong(D.t)) + "</p></div>" +
     '<div class="actions"><button class="bt clair" onclick="nouveauPatient()">' + ic("plus") + '<span class="lg">Nouveau patient</span><span class="sm">Patient</span></button><button class="bt plein" onclick="nouveauRdv()">' + ic("plus") + '<span class="lg">Nouveau rendez-vous</span><span class="sm">Rendez-vous</span></button></div></section>';
 
   // Cartes du tableau de bord : construites une par une, puis affichées dans l'ordre et selon le réglage du cabinet (10/10/2026)
@@ -622,7 +635,7 @@ function pageDossier(id) {
     '<div class="bd">' + (P.hop ? '<span class="badge b-gr">' + esc(P.hop) + "</span>" : "") + (r.t && r.t.st === "cours" ? '<span class="badge b-co">Chimiothérapie en cours</span>' : "") + ((r.rtS || []).some((s) => s.st === "cours") ? '<span class="badge b-rt">RT en cours</span>' : "") + "</div></div>" +
     '<div class="actr id-bt" style="align-self:flex-start"><button class="bt gris" onclick="afficherPatient(\'' + x.id + '\')">Afficher</button>' + (D.espaceDoc && D.espaceDoc.titulaire === D.u.uid ? '<button class="bt gris" onclick="auditPatient(\'' + x.id + '\')" title="Journal d\'audit de ce dossier : qui l\'a ouvert, modifié…">Journal</button>' : "") + (peut("identite") || peut("fichePatient") || traitMod() ? '<button class="bt clair" onclick="modifierIdentite(\'' + x.id + '\')">Modifier</button>' : "") + '<button class="bt clair" data-mod="taches" onclick="taNouvelle(\'' + x.id + '\')" title="Nouvelle tâche pour ce patient">' + ic("plus") + "Tâche</button>" + (peut("rendezvous") ? '<button class="bt clair" onclick="ouvrirRdv(\'' + x.id + '\')" title="Ajouter un rendez-vous pour ce patient">' + ic("plus") + '<span class="lg">Rendez-vous</span><span class="sm">RDV</span></button>' : "") + "</div></div>" +
     // Champs en tête du dossier : réglés champ par champ (Administration › fiche patient de la spécialité, case « en-tête »)
-    '<div class="champs">' + (ENT("diag") ? champ("Diagnostic", r.diag).replace("<div", '<div data-champ="diag"') : "") + (ENT("tel") && P.tel ? '<div data-champ="tel"><label>Téléphone</label><b><a href="tel:' + esc(P.tel) + '">' + esc(P.tel) + "</a></b></div>" : "") + (ENT("tel2") && P.tel2 ? '<div data-champ="tel2"><label>2e téléphone</label><b><a href="tel:' + esc(P.tel2) + '">' + esc(P.tel2) + "</a></b></div>" : "") +
+    '<div class="champs">' + (ENT("diag") ? champ("Diagnostic", r.diag).replace("<div", '<div data-champ="diag"') : "") + (ENT("cin") && P.cin ? champ("CIN", P.cin).replace("<div", '<div data-champ="cin"') : "") + (ENT("tel") && P.tel ? '<div data-champ="tel"><label>Téléphone</label><b><a href="tel:' + esc(P.tel) + '">' + esc(P.tel) + "</a></b></div>" : "") + (ENT("tel2") && P.tel2 ? '<div data-champ="tel2"><label>2e téléphone</label><b><a href="tel:' + esc(P.tel2) + '">' + esc(P.tel2) + "</a></b></div>" : "") +
       (ENT("etab") ? champ("Hôpital", P.hop).replace("<div", '<div data-champ="etab"') : "") + (ENT("ald") ? champ("ALD", P.ald).replace("<div", '<div data-champ="ald"') : "") + (ENT("cor") ? champ("Correspondant", P.cor).replace("<div", '<div data-champ="cor" data-fn="listes.cor"') : "") + (ENT("mut") ? champ("Mutuelle", P.mut).replace("<div", '<div data-champ="mut"') : "") +
       (ENT("adresse") ? champ("Adresse", P.adresse).replace("<div", '<div data-champ="adresse"') : "") + (ENT("email") ? champ("E-mail", P.email).replace("<div", '<div data-champ="email"') : "") +
       CHAMPS_MED.filter(([k]) => ENT(k) && P[k]).map(([k, lib]) => champ(lib, P[k]).replace("<div", '<div data-champ="' + k + '"' + (String(P[k]).length > 60 ? ' class="large"' : ""))).join("") + ficheP.htmlLecture(x, true) + "</div>" +
@@ -779,7 +792,7 @@ window.modifierIdentite = (id) => {
     champ("fDdn", "Date de naissance", I.ddn, { type: "date", off: !okI }).replace("<div", '<div data-champ="ddn"') + sel("fSexe", "Sexe", I.sexe, [["", ""], ["F", "Femme"], ["H", "Homme"]], !okI).replace("<div", '<div data-champ="sexe"') +
     champ("fTaille", "Taille (cm)", C.taille, { mode: "numeric", off: !okC }).replace("<div", '<div data-champ="taille"') + champ("fPoids", "Poids (kg)", C.poids, { mode: "decimal", off: !okC }).replace("<div", '<div data-champ="poids"') +
     champDiag("fDiag", "fDiagP", C.diag, C.diagP, !okC) +
-    champ("fTel", "Téléphone", I.tel, { type: "tel", off: !okI, ph: "06…" }).replace("<div", '<div data-champ="tel"') + champ("fTel2", "2e téléphone", I.tel2, { type: "tel", off: !okI, ph: "Autre numéro (proche…)" }).replace("<div", '<div data-champ="tel2"') +
+    champ("fCin", "CIN", I.cin, { off: !okI, ph: "ex. BE123456" }).replace("<div", '<div data-champ="cin"') + champ("fTel", "Téléphone", I.tel, { type: "tel", off: !okI, ph: "06…" }).replace("<div", '<div data-champ="tel"') + champ("fTel2", "2e téléphone", I.tel2, { type: "tel", off: !okI, ph: "Autre numéro (proche…)" }).replace("<div", '<div data-champ="tel2"') +
     (okE ? '<div data-champ="etab"><label for="fEtab">Hôpital</label><select id="fEtab">' + D.etabs.map((e) => '<option value="' + esc(e.code) + '"' + (e.code === x.doc.etablissementId ? " selected" : "") + ">" + esc(e.code + " – " + e.nom) + "</option>").join("") + "</select></div>" : "") +
     sel("fAld", "ALD", I.ald, [["", ""], ["Oui", "Oui"], ["Non", "Non"]], !okI).replace("<div", '<div data-champ="ald"') +
     champ("fCor", "Correspondant", I.cor, { liste: "lCor", off: !okI, large: true, ph: "Taper pour chercher, ou saisir un nouveau…" }).replace("<div", '<div data-champ="cor" data-fn="listes.cor"') + champ("fMut", "Mutuelle", I.mut, { liste: "lMut", off: !okI, large: true, ph: "Taper pour chercher, ou saisir une nouvelle…" }).replace("<div", '<div data-champ="mut"') + champ("fAdr", "Adresse", I.adresse, { off: !okI, large: true }).replace("<div", '<div data-champ="adresse"') + champ("fMail", "E-mail", I.email, { type: "email", off: !okI, large: true }).replace("<div", '<div data-champ="email"') + champsMed(C, !okC) +
@@ -802,7 +815,7 @@ window.modifierIdentite = (id) => {
     if (okC) CHAMPS_MED.forEach(([k]) => { const v = val("f_" + k); if (v) nC[k] = v; else delete nC[k]; });
     if (okI) {
       if (!val("fNomF") || !val("fPrenom")) { erreur("Le nom et le prénom sont obligatoires."); return; }
-      Object.assign(nI, { nomF: val("fNomF").toUpperCase(), prenom: val("fPrenom"), ddn: val("fDdn"), sexe: val("fSexe"), tel: val("fTel"), tel2: val("fTel2"), adresse: val("fAdr"), email: val("fMail"), ald: val("fAld"), mut: val("fMut"), cor: val("fCor") });
+      Object.assign(nI, { nomF: val("fNomF").toUpperCase(), prenom: val("fPrenom"), ddn: val("fDdn"), sexe: val("fSexe"), tel: val("fTel"), tel2: val("fTel2"), cin: val("fCin").toUpperCase(), adresse: val("fAdr"), email: val("fMail"), ald: val("fAld"), mut: val("fMut"), cor: val("fCor") });
       ["tel2", "adresse", "email"].forEach((k) => { if (!nI[k]) delete nI[k]; });
       nI.nom = (nI.nomF + " " + nI.prenom).trim();
       const exI = ficheP.fusionnerExtra(I, "identite", saisie); if (Object.keys(exI).length) nI.extra = exI; else delete nI.extra;
@@ -865,7 +878,7 @@ window.afficherPatient = (id) => {
   const m = (k, h) => h.replace("<div", '<div data-champ="' + k + '"'); // champ de la fiche (réglage du cabinet)
   fenetre("<h3>" + esc(x.r.nm) + '</h3><div class="form fiche-lecture">' +
     m("nom", l("Nom", P.nomF)) + m("prenom", l("Prénom", P.prenom)) + m("ddn", l("Date de naissance", P.ddn ? dfrA(P.ddn) + (a != null ? " (" + a + " ans)" : "") : "")) + m("sexe", l("Sexe", P.sexe === "F" ? "Femme" : P.sexe === "H" ? "Homme" : "")) +
-    m("taille", l("Taille", P.taille ? P.taille + " cm" : "")) + m("poids", l("Poids", P.poids ? P.poids + " kg" : "")) + m("diag", l("Diagnostic", [P.diag, P.diagP].filter(Boolean).join(" – "))) + m("tel", l("Téléphone", P.tel)) + m("tel2", l("2e téléphone", P.tel2)) +
+    m("taille", l("Taille", P.taille ? P.taille + " cm" : "")) + m("poids", l("Poids", P.poids ? P.poids + " kg" : "")) + m("diag", l("Diagnostic", [P.diag, P.diagP].filter(Boolean).join(" – "))) + m("cin", l("CIN", P.cin)) + m("tel", l("Téléphone", P.tel)) + m("tel2", l("2e téléphone", P.tel2)) +
     m("etab", l("Hôpital", et.nom ? et.code + " – " + et.nom : x.doc.etablissementId)) + m("ald", l("ALD", P.ald)) + l("Correspondant", P.cor).replace("<div", '<div data-champ="cor" data-fn="listes.cor"') + m("mut", l("Mutuelle", P.mut)) + m("adresse", l("Adresse", P.adresse)) + m("email", l("E-mail", P.email)) +
     CHAMPS_MED.map(([k, lib]) => m(k, l(lib, P[k]))).join("") + ficheP.htmlLecture(x) + "</div>" +
     '<div class="boutons">' + (peut("identite") || peut("fichePatient") || traitMod() ? '<button class="bt clair" onclick="fermerFenetre();modifierIdentite(\'' + x.id + '\')">Modifier</button>' : "") + '<button class="bt plein" onclick="fermerFenetre()">Fermer</button></div>');
