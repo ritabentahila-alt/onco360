@@ -72,6 +72,15 @@ await cas("la secrétaire note un prix payé d'avance", () => assertSucceeds(set
 await cas("refusé : l'infirmière note un prix", () => assertFails(setDoc(S("INF", id("p1", "r-a")), ligne("INF", { prix: 0, prixPar: "INF" }))));
 await cas("refusé : l'infirmière crée une ligne avec un prix", () => assertFails(setDoc(S("INF", id("p1", "r-n")), ligne("INF", { cle: "r-n", prix: 0 }))));
 
+console.log("N° d'ordre (compteur)");
+const O = (u, i) => doc(db(u), P + "/salleOrdre/" + i);
+await cas("la secrétaire crée le compteur du jour de son centre", () => assertSucceeds(setDoc(O("SEC", J + "_HGC"), { jour: J, etablissementId: "HGC", n: 1, majPar: "SEC" })));
+await cas("le compteur monte", async () => { await env.withSecurityRulesDisabled((c) => setDoc(doc(c.firestore(), P + "/salleOrdre/" + J + "_HGC"), { jour: J, etablissementId: "HGC", n: 4, majPar: "MED" })); await assertSucceeds(setDoc(O("INF", J + "_HGC"), { jour: J, etablissementId: "HGC", n: 5, majPar: "INF" })); });
+await cas("refusé : le compteur redescend", async () => { await env.withSecurityRulesDisabled((c) => setDoc(doc(c.firestore(), P + "/salleOrdre/" + J + "_HGC"), { jour: J, etablissementId: "HGC", n: 4, majPar: "MED" })); await assertFails(setDoc(O("SEC", J + "_HGC"), { jour: J, etablissementId: "HGC", n: 4, majPar: "SEC" })); });
+await cas("refusé : compteur d'un autre centre", () => assertFails(setDoc(O("SEC", J + "_HCK"), { jour: J, etablissementId: "HCK", n: 1, majPar: "SEC" })));
+await cas("lecture d'une ligne pas encore créée (transaction)", () => assertSucceeds(getDoc(S("SEC", id("p1", "r-pasencore")))));
+await cas("refusé : lire une ligne existante d'un autre centre", () => assertFails(getDoc(S("SEC", id("p2", "r-b")))));
+
 console.log("Dossier ouvert par");
 await cas("la secrétaire signale le dossier qu'elle a ouvert", () => assertSucceeds(setDoc(doc(db("SEC"), P + "/presence/SEC"), { patientId: "p1", nom: "Sara", le: serverTimestamp() })));
 await cas("le médecin voit qui a ouvert quel dossier", () => assertSucceeds(getDocs(collection(db("MED"), P + "/presence"))));

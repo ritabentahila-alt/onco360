@@ -41,3 +41,8 @@ export function onSnapshot(q, next, err) {
   setTimeout(tour, 0);
   return () => { fini = true; };
 }
+// Transaction simulée : lectures puis écritures appliquées à la fin (pas de concurrence réelle dans le navigateur de test)
+export async function runTransaction(db, fn) {
+  const ops = [], t = { get: (r) => getDoc(r), set: (r, v, o) => { ops.push(() => setDoc(r, v, o)); return t; }, update: (r, v) => { ops.push(() => updateDoc(r, v)); return t; }, delete: (r) => { ops.push(() => deleteDoc(r)); return t; } };
+  const res = await fn(t); for (const o of ops) await o(); return res;
+}

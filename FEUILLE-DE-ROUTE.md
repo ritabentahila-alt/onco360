@@ -930,8 +930,12 @@ Nouvelle page **« Salle d'attente »** dans le menu, **entre Agenda et Patients
 
 ## Étape 6 bis – Audit de la salle d'attente (fait le 10/10/2026 : plan à valider par Dr Bentahila)
 Détail : `AUDIT-SALLE-ATTENTE.md` (10 bugs, mesure avec 620 dossiers, manques pour 20 à 30 patients par jour).
-- [ ] **SA4 – Fiabilité** : écriture des seuls champs modifiés (une action d'un collègue n'efface plus l'autre), n° d'ordre sans
-      doublon (compteur en transaction), heures du serveur, passage de minuit, libellé des séances reportées, impression.
+- [x] **SA4 – Fiabilité** (10/10) : chaque action est une transaction qui relit la ligne (une action d'un collègue n'est plus
+      effacée ; une action devenue impossible est refusée : « X est déjà en consultation (Dr …) ») ; n° d'ordre tiré du compteur
+      `salleOrdre/{jour_établissement}` (sans doublon) ; heures corrigées d'après l'horloge du serveur et affichées à l'heure du
+      Maroc (fuseau Africa/Casablanca, même sur un ordinateur réglé ailleurs) ; passage automatique au nouveau jour à minuit ;
+      libellé court des séances reportées ; impression qui attend les prix. Règles : lecture d'une ligne pas encore créée,
+      compteur qui ne fait que monter (6 tests).
 - [ ] **SA5 – Rapidité** : lignes du jour gardées en mémoire (badges Agenda / tableau de bord : 0,7 s → quelques ms), minutes
       mises à jour sans tout redessiner, mise à jour ligne par ligne.
 - [ ] **SA6 – Salle pleine** (au choix) : affichage compact + titres fixés, « Patient suivant », un patient = une arrivée,
@@ -1710,3 +1714,4 @@ On garde le bleu Onco360 (#3563B0) et Arial ; les impressions (ordonnances, fich
 | 10/10/2026 | 15 bis – B3 en ligne | Site mis en ligne par Dr Bentahila (v2.js?v=20261011m). |
 | 10/10/2026 | 15 bis – Retouche | Tableau « Par établissement » : la ligne « Non renseigné / autres » (qui regroupait les autres versements) devient « Autres versements » (clic = type Autres versements) ; les actes sans établissement ont leur propre ligne « — ». Mis en ligne (v2.js?v=20261011n). |
 | 10/10/2026 | 6 bis – Audit salle d'attente | Audit complet (`AUDIT-SALLE-ATTENTE.md`) : 10 bugs (écritures qui s'écrasent, n° d'ordre en double, horloge des ordinateurs, minuit, badges lents…), manques pour 20-30 patients, plan SA4 à SA7 à valider. |
+| 10/10/2026 | 6 bis – SA4 Salle d'attente | Fiabilité : transactions (plus d'action effacée, refus clair si un collègue a agi), n° d'ordre par compteur, heure du serveur affichée à l'heure du Maroc, passage de minuit, libellé, impression. Règles (toutes les suites) et navigateur (deux écrans simulés, ordinateur à l'heure belge, 390 px) testés. |

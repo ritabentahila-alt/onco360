@@ -14,7 +14,11 @@
 // (médecin, secrétaire). Prix (colonne, total, fenêtre de prix) : droit « encaissements » ; la secrétaire enregistre le prix par
 // le serveur (prixConsultation). Jours passés : validation seulement ; jours à venir : consultation (et motif).
 // Colonnes au choix de chaque personne (utilisateurs/{uid}.salleCachees) ; commentaire du jour (com) écrit par tout membre.
-import { collection, doc, getDoc, getDocs, setDoc, query, where, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+// Fiabilité (SA4, 10/10/2026) : chaque action est une transaction qui relit la ligne sur le serveur (une action d'un collègue
+// n'est plus effacée ; une action devenue impossible est refusée avec un message) ; n° d'ordre tiré d'un compteur
+// salleOrdre/{jour_établissement} ; heures corrigées d'après l'horloge du serveur et affichées à l'heure du Maroc ; passage
+// automatique au nouveau jour à minuit.
+import { collection, doc, getDoc, getDocs, setDoc, query, where, serverTimestamp, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { db } from "../config.js";
 import { typeRdv, libRdv, joursH, T_RTC } from "../moteur/rdv.js";
 import { etatLigne, protocoleDe, seancesCure } from "../moteur/doses.js";
@@ -35,8 +39,14 @@ let ECOUTE = null, VUE = "salle", ETAB = "", RETOUR = null, MINUT = null, JOUR =
 const MIDI = "13:00"; // Matinée : rendez-vous (ou arrivée) avant 13 h ; Après-midi : à partir de 13 h ; sans heure : dans les deux
 const triPerso = () => (D().profil && D().profil.salleTri) || "rdv"; // rdv | arrivee | alpha (réglage personnel)
 
-const hm = (ms) => { if (!ms) return ""; const d = new Date(ms); return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0"); };
-const minutes = (ms) => Math.max(0, Math.floor((Date.now() - ms) / 60000));
+// Horloge : écart entre cet ordinateur et le serveur (mesuré sur l'écho de nos propres écritures), pour que les heures d'arrivée et
+// les attentes soient les mêmes sur tous les postes même si une horloge est fausse ; affichage à l'heure du Maroc.
+let ECART = 0, ECRIT = 0;
+const maintenant = () => Date.now() + ECART;
+function noterEcart(ts) { const v = ts && typeof ts.toMillis === "function" ? ts.toMillis() : null; if (v && Date.now() - ECRIT < 15000) ECART = v - Date.now(); }
+const HM = new Intl.DateTimeFormat("fr-FR", { timeZone: "Africa/Casablanca", hour: "2-digit", minute: "2-digit", hour12: false });
+const hm = (ms) => (ms ? HM.format(new Date(ms)).replace(/\s/g, "") : "");
+const minutes = (ms) => Math.max(0, Math.floor((maintenant() - ms) / 60000));
 const duree = (m) => (m < 60 ? m + " min" : Math.floor(m / 60) + " h " + String(m % 60).padStart(2, "0"));
 const peutRdv = () => A.peut("rendezvous");
 const voitPrix = () => A.peut("finances") || A.peut("encaissements");
@@ -54,12 +64,23 @@ export function demarrerSalle() {
     s.docChanges().forEach((c) => {
       if (c.type === "removed") SA.delete(c.doc.id); else SA.set(c.doc.id, c.doc.data());
       const d = c.doc.data(); if (!premier && d && d.majPar !== D().u.uid) autres.push(d.patientId);
+      if (d && d.majPar === D().u.uid) noterEcart(d.maj);
     });
     premier = false;
     // Écriture d'un collègue : le dossier concerné et ses prix sont relus (statut du rendez-vous, prix, nouveau patient)
     Promise.all([...new Set(autres)].map(relire)).then(apresChangement);
     apresChangement();
   }, (e) => { console.warn("salle d'attente (écoute)", e); ECOUTE = null; });
+  ECRIT = Date.now(); ecrirePresence(); // première mesure de l'écart d'horloge (écho de la présence)
+  setInterval(nouveauJour, 60000);
+}
+// Écran resté ouvert après minuit : Onco360 se recharge sur le nouveau jour (sauf fenêtre ou saisie en cours : message)
+function nouveauJour() {
+  const d = new Date(maintenant()), j = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  if (j <= D().t) return;
+  const saisie = document.activeElement && /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName);
+  if ($("fenetre") && $("fenetre").classList.contains("cache") && !saisie) location.reload();
+  else A.toast("Nouveau jour : terminez votre saisie, puis rechargez la page (Cmd + R).");
 }
 async function relire(pid) {
   if (!pid) return;
@@ -82,8 +103,8 @@ export function badgeSalle(pid, cle) { return '<span class="sa-badge" data-sa="'
 function contenuBadge(L, pid, cle) {
   const l = L.find((z) => z.pid === pid && (cle === "chimio" ? !!z.chimio : z.cle === cle)); if (!l) return "";
   const d = l.doc;
-  if (l.etat === "salle") { const m = minutes(d.arr || Date.now()); return '<span class="pst ' + (m >= seuils()[1] ? "rouge" : m >= seuils()[0] ? "orange" : "salle") + '"><i></i>En salle · ' + duree(m) + "</span>"; }
-  if (l.etat === "consult") return '<span class="pst consult"><i></i>En consultation · ' + duree(minutes(d.deb || Date.now())) + "</span>";
+  if (l.etat === "salle") { const m = minutes(d.arr || maintenant()); return '<span class="pst ' + (m >= seuils()[1] ? "rouge" : m >= seuils()[0] ? "orange" : "salle") + '"><i></i>En salle · ' + duree(m) + "</span>"; }
+  if (l.etat === "consult") return '<span class="pst consult"><i></i>En consultation · ' + duree(minutes(d.deb || maintenant())) + "</span>";
   if (l.etat === "vu" && cle === "chimio") return '<span class="pst vu"><i></i>Vu' + (d.fin ? " " + hm(d.fin) : "") + "</span>";
   return "";
 }
@@ -144,7 +165,7 @@ export function lignes(jours) {
   SA.forEach((d, id) => {
     if (!d || d.etat !== "absent" || !J.has(d.jour) || String(d.cle || "").indexOf("c-") !== 0 || out.some((o) => o.jour === d.jour && o.pid === d.patientId && o.cle === d.cle)) return;
     const x = D().patients.find((p) => p.id === d.patientId), m = /^c-(.+)-(\d+)-(\d+)$/.exec(d.cle); if (!x || !m) return;
-    out.push({ jour: d.jour, cle: d.cle, pid: x.id, x, h: "", type: "Séance de chimiothérapie", cls: "b-ch", motif: d.motif || "", etat: "absent", doc: d, orphelin: true, chimio: { lid: m[1], n: +m[2], j: +m[3], recue: false } });
+    out.push({ jour: d.jour, cle: d.cle, pid: x.id, x, h: "", type: "Séance chimio", cls: "b-ch", motif: d.motif || "", etat: "absent", doc: d, orphelin: true, chimio: { lid: m[1], n: +m[2], j: +m[3], recue: false } });
   });
   return out;
 }
@@ -191,36 +212,56 @@ function prixAvance(l) {
 }
 
 // ───── Écriture d'un document (jour, patient, ligne) ─────
-async function ecrire(l, maj) {
-  const id = idDoc(l.jour, l.pid, l.cle), d = Object.assign({ etat: "" }, SA.get(id) || {}, maj, { jour: l.jour, patientId: l.pid, etablissementId: l.x.doc.etablissementId || "", cle: l.cle, majPar: D().u.uid, maj: serverTimestamp() });
-  if (d.etat == null) d.etat = ""; // ligne sans document (vue avant la salle d'attente…) : étape vide, le rendez-vous reste la référence
-  Object.keys(d).forEach((k) => { if (d[k] === undefined || d[k] === null) delete d[k]; });
-  const avant = SA.get(id); SA.set(id, d); apresChangement();
-  try { await setDoc(doc(col(), id), d); }
-  catch (e) { if (avant) SA.set(id, avant); else SA.delete(id); apresChangement(); throw new Error(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de faire cette modification." : "Enregistrement impossible : " + ((e && e.message) || e)); }
+// opts.attendu : étapes depuis lesquelles l'action est possible (sinon refus : un collègue a agi entre-temps) ;
+// opts.ordre : donner le n° d'ordre de passage (compteur du jour et de l'établissement) si la ligne n'en a pas.
+const LIB_ETAT = { "": "à venir", salle: "en salle d'attente", consult: "en consultation", vu: "vu", absent: "absent" };
+const propre = (o) => { Object.keys(o).forEach((k) => { if (o[k] === undefined || o[k] === null) delete o[k]; }); return o; };
+async function ecrire(l, maj, opts) {
+  opts = opts || {};
+  const id = idDoc(l.jour, l.pid, l.cle), etab = l.x.doc.etablissementId || "", ref = doc(col(), id), base = { jour: l.jour, patientId: l.pid, etablissementId: etab, cle: l.cle, majPar: D().u.uid };
+  const avant = SA.get(id); SA.set(id, propre(Object.assign({ etat: "" }, avant || {}, maj, base))); apresChangement(); // affichage immédiat
+  ECRIT = Date.now();
+  try {
+    const d = await runTransaction(db, async (t) => {
+      const s = await t.get(ref), cur = s.exists() ? s.data() : { etat: "" };
+      if (opts.attendu && opts.attendu.indexOf(cur.etat || "") < 0) { const e = new Error(l.x.r.nm + " est déjà " + (LIB_ETAT[cur.etat] || cur.etat) + (cur.finNom || cur.debNom || cur.arrNom ? " (" + (cur.finNom || cur.debNom || cur.arrNom) + ")" : "") + "."); e.cur = cur; throw e; }
+      const n = propre(Object.assign({ etat: "" }, cur, maj, base, { maj: serverTimestamp() }));
+      if (opts.ordre && !cur.ordre) {
+        const rc = doc(db, "espaces", A.ESPACE, "salleOrdre", l.jour + "_" + etab), sc = await t.get(rc);
+        let m = sc.exists() ? sc.data().n || 0 : 0; SA.forEach((z) => { if (z && z.jour === l.jour && (z.etablissementId || "") === etab && z.ordre > m && z !== SA.get(id)) m = z.ordre; });
+        n.ordre = m + 1; t.set(rc, { jour: l.jour, etablissementId: etab, n: n.ordre, majPar: D().u.uid });
+      }
+      t.set(ref, n); return n;
+    });
+    SA.set(id, Object.assign({}, d, { maj: null })); apresChangement();
+  } catch (e) {
+    if (e && e.cur) SA.set(id, e.cur); else if (avant) SA.set(id, avant); else SA.delete(id);
+    apresChangement();
+    throw new Error(e && e.cur ? e.message : e && e.code === "permission-denied" ? "Vous n'avez pas le droit de faire cette modification." : "Enregistrement impossible : " + ((e && e.message) || e));
+  }
 }
 const qui = (k) => ({ [k + "Par"]: D().u.uid, [k + "Nom"]: nomConnecte() });
 const trouver = (pid, cle, jour) => lignes([jour || jourVu()]).find((l) => l.pid === pid && l.cle === cle) || (!jour && jourVu() !== D().t ? lignes([D().t]).find((l) => l.pid === pid && l.cle === cle) : null);
 const essayer = (f) => f().catch((e) => A.toast(e.message || String(e)));
 
 // ───── Actions ─────
-// N° d'ordre de passage : attribué à l'arrivée, à la suite des arrivées du jour du même établissement (0001, 0002…)
-const prochainOrdre = (l) => { let m = 0; SA.forEach((d) => { if (d && d.jour === l.jour && (d.etablissementId || "") === (l.x.doc.etablissementId || "") && d.ordre > m) m = d.ordre; }); return m + 1; };
+// N° d'ordre de passage : attribué à l'arrivée, à la suite des arrivées du jour du même établissement (0001, 0002…), par le
+// compteur salleOrdre (ecrire, opts.ordre) : deux arrivées au même moment n'ont jamais le même numéro
 const fmtOrdre = (n) => (n ? String(n).padStart(4, "0") : "");
 window.saEnSalle = (pid, cle) => essayer(async () => {
   const l = trouver(pid, cle); if (!l || l.jour !== D().t) return;
-  await ecrire(l, Object.assign({ etat: "salle", arr: Date.now(), ordre: l.doc.ordre || prochainOrdre(l), deb: null, debPar: null, debNom: null }, qui("arr")));
-  A.toast(l.x.r.nm + " : en salle d'attente (" + hm(Date.now()) + ").");
+  await ecrire(l, Object.assign({ etat: "salle", arr: maintenant(), deb: null, debPar: null, debNom: null }, qui("arr")), { attendu: [""], ordre: true });
+  A.toast(l.x.r.nm + " : en salle d'attente (" + hm(maintenant()) + ").");
 });
 window.saDemarrer = (pid, cle) => essayer(async () => {
   const l = trouver(pid, cle); if (!l || !peutRdv() || l.jour !== D().t) return;
-  const m = { etat: "consult", deb: Date.now() }; if (!l.doc.arr) Object.assign(m, { arr: m.deb, ordre: l.doc.ordre || prochainOrdre(l) }, qui("arr"));
-  await ecrire(l, Object.assign(m, qui("deb")));
+  const m = { etat: "consult", deb: maintenant() }; if (!l.doc.arr) Object.assign(m, { arr: m.deb }, qui("arr"));
+  await ecrire(l, Object.assign(m, qui("deb")), { attendu: ["", "salle"], ordre: true });
   window.ouvrirDossier(pid);
 });
 window.saRetour = (pid, cle) => essayer(async () => {
   const l = trouver(pid, cle, D().t) || trouver(pid, cle); if (!l || !peutRdv()) return;
-  await ecrire(l, { etat: "salle", deb: null, debPar: null, debNom: null });
+  await ecrire(l, { etat: "salle", deb: null, debPar: null, debNom: null }, { attendu: ["consult"] });
   A.toast(l.x.r.nm + " : retour en salle d'attente."); location.hash = "salle";
 });
 // Valider : rendez-vous → « Venu » (fenêtre de prix) ; chimio → « Venu » de la consultation de chimio (fenêtre de prix)
@@ -238,7 +279,7 @@ window.saValider = (pid, cle, depuisDossier) => {
 window.saAbsent = (pid, cle) => {
   const l = trouver(pid, cle); if (!l || !peutRdv() || l.jour > D().t) return;
   if (l.rdv) { window.statutRdv(pid, l.rdv.id, "absent"); return; }
-  const marquer = (nd) => essayer(() => ecrire(l, Object.assign({ etat: "absent", sp: D().u.uid, rep: nd || null, motif: l.motif, fin: Date.now() }, qui("fin"))));
+  const marquer = (nd) => essayer(() => ecrire(l, Object.assign({ etat: "absent", sp: D().u.uid, rep: nd || null, motif: l.motif, fin: maintenant() }, qui("fin"))));
   const i = l.x.P.lignes.findIndex((z) => z.id === l.chimio.lid);
   if (i < 0 || !(A.traitMod() || A.peut("planningChimio"))) { if (confirm(l.x.r.nm + " : marquer absent(e) à la séance de chimiothérapie ?\n\n(Le report de la séance se fait par le médecin.)")) marquer(null); return; }
   if (l.chimio.j === 1) window.chReporter(pid, i, l.chimio.n - 1, marquer); else window.chReporterJ(pid, i, l.chimio.n - 1, l.chimio.j, marquer);
@@ -248,7 +289,7 @@ window.saRecu = (pid, cle) => { const l = trouver(pid, cle); if (!l) return; if 
 // Annuler : retour à l'étape précédente (Vu → En consultation, Absent → À venir, En salle → À venir, En consultation → En salle)
 window.saAnnuler = (pid, cle) => {
   const l = trouver(pid, cle); if (!l) return;
-  if (l.etat === "salle") { if (!confirm("Annuler l'arrivée de " + l.x.r.nm + " (retour dans « À venir ») ?")) return; essayer(() => ecrire(l, { etat: "", arr: null, arrPar: null, arrNom: null, ordre: null })); return; }
+  if (l.etat === "salle") { if (!confirm("Annuler l'arrivée de " + l.x.r.nm + " (retour dans « À venir ») ?")) return; essayer(() => ecrire(l, { etat: "", arr: null, arrPar: null, arrNom: null, ordre: null }, { attendu: ["salle"] })); return; }
   if (!peutRdv()) return;
   if (l.etat === "consult") { window.saRetour(pid, cle); return; }
   if (l.rdv) { window.statutRdv(pid, l.rdv.id, "prevu"); return; }
@@ -281,8 +322,8 @@ export function apresStatutRdv(x, r, st, ancien) {
   if (!r || st === "supprimer" || r.d > D().t) return;
   const l = trouver(x.id, "r-" + r.id, r.d); if (!l) return;
   let m;
-  if (st === "fait") m = Object.assign({ etat: "vu", fin: Date.now(), sp: D().u.uid }, qui("fin"));
-  else if (st === "absent") m = Object.assign({ etat: "absent", fin: Date.now(), sp: D().u.uid }, qui("fin"));
+  if (st === "fait") m = Object.assign({ etat: "vu", fin: maintenant(), sp: D().u.uid }, qui("fin"));
+  else if (st === "absent") m = Object.assign({ etat: "absent", fin: maintenant(), sp: D().u.uid }, qui("fin"));
   else m = { etat: ancien === "absent" || !l.doc.arr ? "" : l.doc.deb ? "consult" : "salle", fin: null, finPar: null, finNom: null, sp: null };
   oublierEncaissements(x.id); delete CHARGE[x.id];
   essayer(() => ecrire(l, m));
@@ -293,13 +334,13 @@ export function apresVenuChimio(x, lid, n, j, oui) {
   const cle = "c-" + lid + "-" + n + "-" + j, l = trouver(x.id, cle); if (!l || l.jour > D().t) return;
   oublierEncaissements(x.id); delete CHARGE[x.id];
   const deja = l.etat === "vu" && oui;
-  essayer(() => ecrire(l, deja ? { prixLe: Date.now() } : oui ? Object.assign({ etat: "vu", fin: Date.now(), sp: D().u.uid }, qui("fin")) : { etat: l.doc.arr ? "consult" : "", fin: null, finPar: null, finNom: null, sp: null }));
+  essayer(() => ecrire(l, deja ? { prixLe: maintenant() } : oui ? Object.assign({ etat: "vu", fin: maintenant(), sp: D().u.uid }, qui("fin")) : { etat: l.doc.arr ? "consult" : "", fin: null, finPar: null, finNom: null, sp: null }));
   if (oui && RETOUR === l.cle) { RETOUR = null; JOUR = D().t; location.hash = "salle"; }
 }
 // Prix d'une consultation déjà vue changé (médecin ou secrétaire) : les autres écrans relisent les prix
 export function apresPrix(x, cle, jour) {
   oublierEncaissements(x.id); delete CHARGE[x.id];
-  if (jour > D().t) return; const l = trouver(x.id, cle, jour); if (l) essayer(() => ecrire(l, { prixLe: Date.now() }));
+  if (jour > D().t) return; const l = trouver(x.id, cle, jour); if (l) essayer(() => ecrire(l, { prixLe: maintenant() }));
 }
 
 // ───── Colonnes (08/10/2026) : chacun choisit celles qu'il voit ; Heure, Patient, Statut et les boutons restent toujours ─────
@@ -411,7 +452,7 @@ function dessiner() {
 }
 // Pastille de statut (au trait) avec le temps écoulé
 function statut(l) {
-  const d = l.doc, now = Date.now(), auj = l.jour === D().t;
+  const d = l.doc, now = maintenant(), auj = l.jour === D().t;
   if (l.etat === "salle") { if (!auj || !fnS("attente")) return '<span class="pst salle"><i></i>Arrivé' + (d.arr ? " à " + hm(d.arr) : "") + "</span>"; const m = minutes(d.arr || now), c = m >= seuils()[1] ? "rouge" : m >= seuils()[0] ? "orange" : "salle"; return '<span class="pst ' + c + '" title="En attente depuis ' + duree(m) + '"><i></i>Attente ' + duree(m) + "</span>"; }
   if (l.etat === "consult") return '<span class="pst consult"><i></i>' + (auj ? "Consultation " + duree(minutes(d.deb || now)) : "En consultation") + "</span>";
   if (l.etat === "vu") return '<span class="pst vu"><i></i>Vu' + (d.fin ? " à " + hm(d.fin) : "") + "</span>" + (d.arr && d.deb ? '<div class="mesures">Attente ' + duree(Math.max(0, Math.round((d.deb - d.arr) / 60000))) + (d.fin ? " · consultation " + duree(Math.max(0, Math.round((d.fin - d.deb) / 60000))) + " · présence " + duree(Math.max(0, Math.round((d.fin - d.arr) / 60000))) : "") + "</div>" : "");
@@ -463,7 +504,7 @@ export function bullesDossier(x) {
   if (!l.length) return "";
   return '<div class="sa-bulles" id="saBulles" data-pid="' + A.esc(x.id) + '">' + l.map((z) => {
     const q = "'" + z.pid + "','" + z.cle + "'", okV = z.rdv || A.peutPrix();
-    return '<div class="sa-b"><span class="lbl"><i></i>En consultation depuis ' + duree(minutes(z.doc.deb || Date.now())) + (l.length > 1 ? " · " + A.esc(z.type) : "") + "</span>" +
+    return '<div class="sa-b"><span class="lbl"><i></i>En consultation depuis ' + duree(minutes(z.doc.deb || maintenant())) + (l.length > 1 ? " · " + A.esc(z.type) : "") + "</span>" +
       (okV ? '<button class="bt vert" onclick="saValider(' + q + ',1)"><svg class="i"><use href="#i-check"/></svg>Valider</button>' : "") +
       '<button class="bt fonce" onclick="saRetour(' + q + ')"><svg class="i"><use href="#i-retour"/></svg>Retour en salle</button></div>';
   }).join("") + '</div><div class="sa-espace"></div>';
@@ -478,8 +519,12 @@ function majBulles() {
 }
 
 // ───── Imprimer la liste du jour (08/10/2026) : jour, établissement, période et recherche choisis ; colonnes affichées ─────
-window.saImprimer = () => {
+window.saImprimer = async () => {
+  // fenêtre ouverte tout de suite (sinon le navigateur la bloque), remplie quand les prix des patients vus sont chargés
+  let w = null; try { w = window.open("", "_blank"); } catch (er) { w = null; }
+  if (!w || !w.document) { A.toast("Autorisez l'ouverture des fenêtres pour imprimer la liste."); return; }
   const t = D().t, L = lignes([JOUR]).filter((l) => dansFiltre(l) && dansPeriode(l) && dansRecherche(l));
+  for (let k = 0; k < 40 && voitPrix() && L.some((l) => { const p = prixDe(l); return p && p.charge; }); k++) await new Promise((r) => setTimeout(r, 100));
   const cv = colsVues().filter((c) => c[0] !== "act"), lib = { "": "À venir", salle: "En salle d'attente", consult: "En consultation", vu: "Vus", absent: "Absents" };
   const st = (l) => ({ salle: "En salle", consult: "En consultation", vu: "Vu", absent: "Absent" }[l.etat] || (l.jour < t ? "Non validé" : "Prévu"));
   const val = (l, k) => {
@@ -490,10 +535,8 @@ window.saImprimer = () => {
   const groupes = ["consult", "salle", "", "vu", "absent"].map((e) => [e, trier(L.filter((l) => l.etat === e), e === "" ? "avenir" : e === "consult" ? "salle" : e === "vu" ? "vus" : "absents")]).filter((g) => g[1].length);
   const e = ETAB ? ((D().etabsTous || D().etabs).find((z) => z.code === ETAB) || {}).nom || ETAB : "Tous les établissements";
   const html = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Salle d\'attente – ' + A.esc(A.dfrA(JOUR)) + '</title><style>@page{size:A4 landscape;margin:12mm}body{font-family:Arial,sans-serif;font-size:11px;color:#1E2A44}h1{font-size:17px;margin:0 0 2px}p{margin:0 0 10px;color:#64708A}h2{font-size:13px;margin:14px 0 4px;color:#24365F}table{width:100%;border-collapse:collapse}th,td{border:1px solid #CCD3E0;padding:4px 6px;text-align:left;vertical-align:top}th{background:#EAF0FA}</style></head><body>' +
-    "<h1>Salle d'attente – " + A.esc(A.cap(A.jourLong(JOUR))) + " " + JOUR.slice(0, 4) + "</h1><p>" + A.esc(e) + ({ matin: " · Matinée", am: " · Après-midi" }[PER] || "") + (RECH ? " · Recherche : " + A.esc(RECH) : "") + " · " + L.length + " patient" + (L.length > 1 ? "s" : "") + " · imprimé le " + A.esc(A.dfrA(t)) + " à " + hm(Date.now()) + "</p>" +
+    "<h1>Salle d'attente – " + A.esc(A.cap(A.jourLong(JOUR))) + " " + JOUR.slice(0, 4) + "</h1><p>" + A.esc(e) + ({ matin: " · Matinée", am: " · Après-midi" }[PER] || "") + (RECH ? " · Recherche : " + A.esc(RECH) : "") + " · " + L.length + " patient" + (L.length > 1 ? "s" : "") + " · imprimé le " + A.esc(A.dfrA(t)) + " à " + hm(maintenant()) + "</p>" +
     (groupes.length ? groupes.map(([k, g]) => "<h2>" + lib[k] + " (" + g.length + ")</h2><table><tr>" + cv.map((c) => "<th>" + A.esc(c[0] === "ord" ? "N°" : c[1]) + "</th>").join("") + "</tr>" + g.map((l) => "<tr>" + cv.map((c) => "<td>" + A.esc(val(l, c[0])) + "</td>").join("") + "</tr>").join("") + "</table>").join("") : "<p>Aucun patient.</p>") + "</body></html>";
-  let w = null; try { w = window.open("", "_blank"); } catch (er) { w = null; }
-  if (!w || !w.document) { A.toast("Autorisez l'ouverture des fenêtres pour imprimer la liste."); return; }
   w.document.open(); w.document.write(html); w.document.close(); setTimeout(() => { w.focus(); w.print(); }, 400);
 };
 
@@ -501,9 +544,10 @@ window.saImprimer = () => {
 // espaces/{e}/presence/{uid} = { patientId (ou ""), nom, role, le } : écrit par la personne elle-même (règles), renouvelé chaque
 // minute tant que le dossier reste ouvert ; considéré comme fermé après 3 minutes sans nouvelle (onglet fermé, coupure).
 const PRES = new Map(); let ECOUTE_P = null, MON_DOSSIER = "", BATTEMENT = null;
-const ms = (v) => (v && typeof v.toMillis === "function" ? v.toMillis() : v ? new Date(v).getTime() : Date.now());
+const ms = (v) => (v && typeof v.toMillis === "function" ? v.toMillis() : v ? new Date(v).getTime() : maintenant());
 const ROLES = { medecin: "Médecin", infirmiere: "Infirmière", assistante: "Secrétaire", comptable: "Comptable" };
 function ecrirePresence() {
+  ECRIT = Date.now();
   setDoc(doc(db, "espaces", A.ESPACE, "presence", D().u.uid), { patientId: MON_DOSSIER, nom: nomConnecte(), role: D().membre.role || "", le: serverTimestamp() }).catch(() => {});
 }
 export function presenceDossier(pid) {
@@ -511,7 +555,7 @@ export function presenceDossier(pid) {
   if (pid !== MON_DOSSIER) { MON_DOSSIER = pid; ecrirePresence(); clearInterval(BATTEMENT); if (pid) BATTEMENT = setInterval(ecrirePresence, 60000); }
   if (!ECOUTE_P) {
     ECOUTE_P = onSnapshot(collection(db, "espaces", A.ESPACE, "presence"), (s) => {
-      s.docChanges().forEach((c) => { if (c.type === "removed") PRES.delete(c.doc.id); else PRES.set(c.doc.id, c.doc.data()); });
+      s.docChanges().forEach((c) => { if (c.type === "removed") PRES.delete(c.doc.id); else { PRES.set(c.doc.id, c.doc.data()); if (c.doc.id === D().u.uid) noterEcart(c.doc.data().le); } });
       majPresence();
     }, (e) => { console.warn("présence (écoute)", e); ECOUTE_P = null; });
     window.addEventListener("pagehide", () => { if (MON_DOSSIER) { MON_DOSSIER = ""; ecrirePresence(); } });
@@ -519,7 +563,7 @@ export function presenceDossier(pid) {
   majPresence();
 }
 // Collègues qui ont ce dossier ouvert (moi exclu)
-const qui0uvre = (pid) => { const l = []; PRES.forEach((p, uid) => { if (uid !== D().u.uid && p && p.patientId === pid && Date.now() - ms(p.le) < 180000) l.push(p.nom + (ROLES[p.role] ? " (" + ROLES[p.role].toLowerCase() + ")" : "")); }); return l; };
+const qui0uvre = (pid) => { const l = []; PRES.forEach((p, uid) => { if (uid !== D().u.uid && p && p.patientId === pid && maintenant() - ms(p.le) < 180000) l.push(p.nom + (ROLES[p.role] ? " (" + ROLES[p.role].toLowerCase() + ")" : "")); }); return l; };
 function presenceHtml(pid) { const l = qui0uvre(pid); return l.length ? '<div class="sa-pres" title="Dossier ouvert en ce moment par ' + A.esc(l.join(", ")) + '"><svg class="pi"><use href="#i-document"/></svg>Ouvert par ' + A.esc(l.join(", ")) + "</div>" : ""; }
 function majPresence() {
   if (location.hash.startsWith("#salle") && $("saL")) dessiner();
