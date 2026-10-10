@@ -710,7 +710,7 @@ function pageDossier(id) {
   const champ = (lib, v) => v ? "<div><label>" + lib + "</label><b>" + esc(v) + "</b></div>" : "";
   const ENT = ficheP.enTete; // champ en tête du dossier (réglage de la fiche patient)
   const okN = traitMod();
-  h += '<section class="carte"><div class="ident">' + (peut("identite") ? '<button class="bulle-photo" onclick="photoPatient(\'' + x.id + '\')" title="' + (P.photo ? "Changer ou retirer la photo" : "Ajouter une photo du patient") + '" aria-label="Photo du patient">' + bulle(x) + "</button>" : bulle(x)) + '<div style="flex:1;min-width:200px"><h2>' + esc(r.nm) + "</h2><p>" +
+  h += '<section class="carte"><div class="ident">' + (peut("identite") ? '<button class="bulle-photo" onclick="photoPatient(\'' + x.id + '\')" title="' + (P.photo ? "Changer ou retirer la photo" : "Ajouter une photo du patient") + '" aria-label="Photo du patient">' + bulle(x, "ph-dos") + "</button>" : bulle(x, "ph-dos")) + '<div style="flex:1;min-width:200px"><h2>' + esc(r.nm) + "</h2><p>" +
     esc([P.numero ? "Dossier n° " + P.numero : "", ENT("ddn") && P.ddn ? "Né(e) le " + dfrA(P.ddn) + (a != null ? " (" + a + " ans)" : "") : "", ENT("sexe") ? (P.sexe === "F" ? "Femme" : P.sexe === "H" ? "Homme" : "") : "", ENT("taille") && P.taille ? P.taille + " cm" : "", ENT("poids") && P.poids ? P.poids + " kg" : ""].filter(Boolean).join(" · ")) + "</p>" +
     '<div class="bd">' + (P.hop ? '<span class="badge b-gr">' + esc(P.hop) + "</span>" : "") + (r.t && r.t.st === "cours" ? '<span class="badge b-co">Chimiothérapie en cours</span>' : "") + ((r.rtS || []).some((s) => s.st === "cours") ? '<span class="badge b-rt">RT en cours</span>' : "") + "</div></div>" +
     '<div class="actr id-bt" style="align-self:flex-start"><button class="bt gris" onclick="afficherPatient(\'' + x.id + '\')">Afficher</button>' + (D.espaceDoc && D.espaceDoc.titulaire === D.u.uid ? '<button class="bt gris" onclick="auditPatient(\'' + x.id + '\')" title="Journal d\'audit de ce dossier : qui l\'a ouvert, modifié…">Journal</button>' : "") + (peut("identite") || peut("fichePatient") || traitMod() ? '<button class="bt clair" onclick="modifierIdentite(\'' + x.id + '\')">Modifier</button>' : "") + '<button class="bt clair" data-mod="taches" onclick="taNouvelle(\'' + x.id + '\')" title="Nouvelle tâche pour ce patient">' + ic("plus") + "Tâche</button>" + (peut("rendezvous") ? '<button class="bt clair" onclick="ouvrirRdv(\'' + x.id + '\')" title="Ajouter un rendez-vous pour ce patient">' + ic("plus") + '<span class="lg">Rendez-vous</span><span class="sm">RDV</span></button>' : "") + "</div></div>" +
@@ -930,13 +930,13 @@ window.photoPatient = (id) => {
   const choisir = () => {
     const i = document.createElement("input"); i.type = "file"; i.accept = "image/*";
     i.onchange = async () => {
-      let ph = null; try { ph = await lireImage(i, 240, true); } catch (e) { toast(e.message); return; } if (!ph) return;
+      let ph = null; try { ph = await lireImage(i, 420, true); } catch (e) { toast(e.message); return; } if (!ph) return;
       try { await enregistrer(x, { identite: Object.assign({}, x.doc.identite || {}, { photo: ph }) }, "Photo du patient ajoutée"); fermerFenetre(); toast("Photo enregistrée."); pageDossier(x.id); } catch (e) { toast(e.message); }
     };
     i.click();
   };
   if (!(x.doc.identite || {}).photo) { choisir(); return; }
-  fenetre("<h3>Photo de " + esc(x.r.nm) + '</h3><div class="photo-pf">' + bulle(x, "grand") + '</div><div class="boutons"><button class="bt gris" style="margin-right:auto;color:var(--rouge)" id="phSup">Retirer la photo</button><button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt plein" id="phCh">Changer la photo</button></div>');
+  fenetre("<h3>Photo de " + esc(x.r.nm) + '</h3><div class="photo-pf">' + bulle(x, "ph-dos") + '</div><div class="boutons"><button class="bt gris" style="margin-right:auto;color:var(--rouge)" id="phSup">Retirer la photo</button><button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt plein" id="phCh">Changer la photo</button></div>');
   $("phCh").onclick = choisir;
   $("phSup").onclick = async () => { const I = Object.assign({}, x.doc.identite || {}); delete I.photo; try { await enregistrer(x, { identite: I }, "Photo du patient retirée"); fermerFenetre(); toast("Photo retirée."); pageDossier(x.id); } catch (e) { toast(e.message); } };
 };
