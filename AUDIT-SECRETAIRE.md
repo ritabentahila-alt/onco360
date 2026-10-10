@@ -73,3 +73,64 @@ avec 19.2.
 
 **19.2 fait le 10/10** : une secrétaire peut travailler pour plusieurs cabinets (menu « Cabinet » sous le logo, qui sert de choix du
 médecin pour tous les paramètres) ; un seul Google Agenda pour tous ses cabinets, avec ses cases par cabinet et ses propres couleurs.
+
+---
+
+# Audit n° 2 : tout ce qui concerne la secrétaire (10/10/2026, après 19.1 et 19.2)
+
+Parcours refait en secrétaire (compte limité à HCK, puis compte de deux cabinets) : tableau de bord, agenda, nouveau rendez-vous,
+salle d'attente, nouveau patient, dossier (consultation, prescriptions, documents, chimio, radiothérapie, RCP), tâches, cloche,
+Paramètres, Profil, menu « Cabinet », téléphone 390 px. Aucune erreur JavaScript. Ce qui a été fait aujourd'hui fonctionne.
+
+## A. À corriger
+
+| # | Où | Problème | Correction proposée |
+|---|---|---|---|
+| A1 | Paramètres › Listes | Une secrétaire limitée à un lieu qui corrige un nom (ex. un correspondant) ne corrige que les dossiers de son lieu : les autres gardent l'ancien nom. | Correction des dossiers faite par le serveur, pour tout le cabinet. |
+| A2 | Cloche | Ses alertes sont celles du médecin (cure non validée, dosimétrie à valider, dernière cure…) : elle ne peut rien en faire. | Alertes selon le rôle (voir C9). |
+| A3 | Tableau de bord | « Bonjour Secretaire » : le nom de famille au lieu du prénom. | « Bonjour Salma » pour qui n'est pas médecin. |
+| A4 | Paramètres › Lieux d'exercice | Lecture seule, alors que c'est elle qui connaît l'adresse et le téléphone du lieu (repris dans les messages WhatsApp, {adresse}). | Elle complète l'adresse et le téléphone de son lieu (pas le nom ni le code). |
+| A5 | Nouveau patient | Pas de champ CIN ni de numéro d'affiliation à la mutuelle, utiles pour les prises en charge. | Deux champs de base dans la fiche patient (réglables comme les autres). |
+
+## B. À améliorer (confort)
+
+| # | Où | Proposition |
+|---|---|---|
+| B1 | Nouveau rendez-vous | Montrer les **créneaux libres** du jour choisi (horaires du lieu, durée, rendez-vous déjà pris) : un clic sur un créneau remplit l'heure. |
+| B2 | Nouveau rendez-vous | Prévenir d'une **double réservation** (un autre patient à la même heure). |
+| B3 | Nouveau rendez-vous | Bouton « Nouveau patient » dans la fenêtre (aujourd'hui : « créez d'abord son dossier »), puis retour au rendez-vous. |
+| B4 | Après un rendez-vous | Proposer d'**envoyer la confirmation par WhatsApp** tout de suite. |
+| B5 | Rappels WhatsApp | Marquer le rappel **envoyé** (« ✓ envoyé par Salma à 10 h ») ; carte « Rappels à envoyer » (demain, après-demain) avec ceux déjà faits. |
+| B6 | Documents | Déposer **plusieurs fichiers d'un coup** (aujourd'hui un par un). |
+| B7 | Page d'accueil | Ouvrir Onco360 sur la page choisie par chacun (ex. Salle d'attente ou Agenda pour la secrétaire). |
+
+## C. À ajouter
+
+| # | Sujet | Proposition |
+|---|---|---|
+| C1 | Caisse | **Mode de paiement** à la validation (espèces, carte, chèque, virement, mutuelle / tiers payant). |
+| C2 | Caisse | **Reçu / note d'honoraires** imprimable pour le patient (nom du médecin, INPE, acte, montant, date, mode). |
+| C3 | Caisse | **Caisse du jour** : total par mode de paiement, liste des encaissements, impression pour la remise au médecin ; « reste à payer » d'un patient. |
+| C4 | Sécurité médicale | Poids validé par la secrétaire très différent du précédent (seuil à choisir, ex. 5 %) : alerte et tâche au médecin pour vérifier les doses. |
+| C5 | Sécurité médicale | Ordonnance, courrier ou certificat **préparé par la secrétaire** : marqué « préparé par … », avec une tâche « à signer » pour le médecin (ou validation avant impression : à choisir). |
+| C6 | Plusieurs cabinets | Pastilles **par cabinet** dans le menu « Cabinet » (tâches, salle d'attente) pour voir qu'il se passe quelque chose chez l'autre médecin. |
+| C7 | Plusieurs cabinets | Vue **« Tous mes cabinets »** pour la journée : rendez-vous et salle d'attente des deux médecins sur une seule page. |
+| C8 | Guide | **Guide de la secrétaire** (à intégrer au guide complet, étape 12 / F3). |
+| C9 | Cloche | Alertes de la secrétaire : rappels WhatsApp à envoyer, patient sans téléphone avec un rendez-vous, rendez-vous pendant une absence, consultation « Venu » sans prix, document de radiothérapie à préparer. |
+
+## Plan proposé (une session chacune)
+
+| Étape | Contenu | Pourquoi d'abord |
+|---|---|---|
+| **19.3 Corrections** | A1 à A5 | petites, sans décision |
+| **19.4 Agenda du secrétariat** | B1 à B5, B7 | ce qu'elle fait le plus souvent |
+| **19.5 Caisse** | C1 à C3 | argent encaissé au cabinet, traçable |
+| **19.6 Sécurité médicale et alertes** | C4, C5, C9 (et A2) | le médecin garde la main sur ce que prépare la secrétaire |
+| **19.7 Plusieurs cabinets, confort** | C6, C7, B6 | utile dès qu'une secrétaire a deux médecins |
+| (avec l'étape 12) | C8 guide de la secrétaire | quand les écrans sont stables |
+
+Questions à trancher avant 19.5 et 19.6 :
+1. Modes de paiement à proposer, et faut-il un numéro sur chaque reçu ?
+2. Seuil d'alerte pour le poids (5 % ?).
+3. Ce que prépare la secrétaire (ordonnance, certificat) : simple marque + tâche au médecin, ou impression bloquée tant que le médecin n'a pas validé ?
+4. Page d'accueil de la secrétaire par défaut : Salle d'attente, Agenda ou Tableau de bord ?

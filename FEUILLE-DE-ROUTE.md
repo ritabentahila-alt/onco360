@@ -1270,6 +1270,17 @@ Décisions de Dr Bentahila (10/10) :
       navigateur (changement de cabinet, cases, couleurs, ajout depuis Accès, 390 px).
 - [ ] Mise en ligne : règles, site, **toutes les fonctions** (comptes, Google Agenda).
 
+**Audit n° 2 de la secrétaire (10/10)** : détail dans `AUDIT-SECRETAIRE.md` (5 corrections, 7 améliorations, 9 ajouts). Plan proposé,
+à valider par Dr Bentahila (4 questions dans l'audit) :
+- [ ] 19.3 Corrections : listes corrigées dans tout le cabinet (serveur), cloche selon le rôle, « Bonjour Salma », adresse et
+      téléphone de son lieu, champs CIN et n° d'affiliation.
+- [ ] 19.4 Agenda du secrétariat : créneaux libres, double réservation, nouveau patient depuis le rendez-vous, confirmation
+      WhatsApp, rappels marqués « envoyé » + carte des rappels, page d'accueil au choix.
+- [ ] 19.5 Caisse : mode de paiement, reçu / note d'honoraires, caisse du jour, reste à payer.
+- [ ] 19.6 Sécurité médicale et alertes : alerte poids, documents préparés par la secrétaire à signer, alertes de la secrétaire.
+- [ ] 19.7 Plusieurs cabinets, confort : pastilles par cabinet, vue « Tous mes cabinets », dépôt de plusieurs fichiers.
+- [ ] Guide de la secrétaire (avec l'étape 12).
+
 ## Étape 14 – Autres spécialités (demandé le 09/10/2026) : nouveaux modules et leurs formules
 Onco360 s'ouvrira avec le temps à d'autres médecins : **médecine générale**, **gynécologie**, puis d'autres spécialités. Pour
 chacune : des **modules propres** (créés au fur et à mesure) et des **formules propres**, rangées par spécialité dans la page
@@ -1542,3 +1553,4 @@ Onco360_Package_Cession/
 | 10/10/2026 | 19.1 Secrétaire | Audit des accès de la secrétaire (`AUDIT-SECRETAIRE.md`). Décidé : secrétaire pour plusieurs cabinets (19.2, à faire). Fait : droit « Paramètres du secrétariat » (congés, horaires de ses lieux, listes, types, bouton WhatsApp vert), Médic. avec ligne libre et ajout d'un médicament par la secrétaire, ses lieux seulement, profil allégé. Règles 211/211, serveur 0 échec, navigateur (ordinateur et 390 px). Pas encore en ligne. |
 | 10/10/2026 | 19.1 Secrétaire (suite) | Droit élargi : jours fériés, messages WhatsApp, RCP, impression, alertes, salle d'attente. Validation du poids de la séance du jour par la secrétaire (planning, repris dans le dossier par le médecin). Règles 212/212, navigateur. Pas encore en ligne. |
 | 10/10/2026 | 19.2 Plusieurs cabinets | Une secrétaire (ou tout membre non titulaire) peut avoir plusieurs cabinets : ajout confirmé par le titulaire, menu « Cabinet » sous le logo, lien du mot de passe bloqué pour ces comptes. Un seul Google Agenda pour tous ses cabinets (nom du cabinet dans le titre), cases par cabinet, couleurs personnelles. Règles 221/221, serveur 88/88, navigateur. Pas encore en ligne. |
+| 10/10/2026 | Audit n° 2 secrétaire | Tout le parcours de la secrétaire revu (ordinateur, téléphone, deux cabinets) : 5 corrections, 7 améliorations, 9 ajouts ; plan 19.3 à 19.7 dans `AUDIT-SECRETAIRE.md`, 4 questions à valider. |
