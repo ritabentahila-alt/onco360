@@ -1153,6 +1153,21 @@ Modules et menus, Bibliothèques et paramètres ; cabinets en liste ; onglet lis
       enregistrées », confirmation avant de fermer (`GARDE`) ; cabinet : pastille « retouché » par bloc et sur les sous-onglets
       (différences avec le pack ; fiche et consultation : avec la spécialité), « Revenir au pack » bloc par bloc.
       Tests : cabinets 59/59, fiche 19/19, consultation 15/15, bibliothèque 21/21, modules 10/10, bilan 352 317 DH.
+- [x] **17.3 Liste et fiche des cabinets** (10/10) : tuiles du tableau de bord (cabinets, revenu mensuel, en essai, à renouveler,
+      en retard ; un clic filtre), filtre Abonnement, tri par colonne (`TRI`), colonnes Abonnement et Activité (dernière action du
+      journal d'audit, actions des 30 derniers jours ; `listeCabinets` → `activite`), fiche du cabinet : bloc Abonnement, actions
+      regroupées Gérer · Accès du médecin · Zone sensible ; message flottant (toujours visible).
+- [x] **17.4 Abonnements** (10/10, choix délégués par Dr Bentahila : mensuel et annuel, essai gratuit, gratuit sans limite pour
+      les amis, suspension après 30 jours de retard) : prix proposés (DH HT ; annuel = 10 mois) Essentiel 690 / 6 900,
+      Pro 1 190 / 11 900, Onco-radiothérapie Pro 1 490 / 14 900, Clinique / Centre 2 490 / 24 900, Onco-radiothérapie Clinique
+      2 990 / 29 900 (`PRIX0`, modifiables par pack dans Par spécialité) ; essai gratuit de 30 jours à la création (ou mensuel,
+      annuel, gratuit) ; fiche `facturation/{e}` (serveur seulement, invisible des cabinets : règles) ; fonction `facturationCabinet`
+      (réglage, paiement qui prolonge l'échéance d'un mois / d'un an et réactive un cabinet suspendu pour retard, retrait d'un
+      paiement) ; `abonnementsNuit` (4 h) suspend un cabinet 30 jours après une échéance non payée, une fois par échéance, jamais
+      votre cabinet, la démonstration ni un gratuit ; rappel « À renouveler » 15 jours avant. Logique commune
+      `functions/facturation.js` = `public/js/donnees/facturation.js`. Cabinets déjà créés : « Non suivi » tant que leur abonnement
+      n'est pas réglé dans leur fiche.
+      Tests `tests/test_abonnements.py` 19/19, serveur 69/69, règles 193.
 - [ ] 16.5 Nouvelle spécialité (copie ou vide) ; Médecine générale, Gynécologie prêtes pour l'étape 14.
 
 ## Étape 14 – Autres spécialités (demandé le 09/10/2026) : nouveaux modules et leurs formules
@@ -1415,3 +1430,4 @@ Onco360_Package_Cession/
 | 10/10/2026 | 16.8 Onglet Modules | Administration : liste de tous les modules (de base, activables, prévus), toutes spécialités, avec fonctions, packs et cabinets ; filtres et recherche. Tests 10/10. |
 | 10/10/2026 | Audit de l'Administration | Tous les écrans revus (ordinateur et téléphone) : 9 corrections, 9 améliorations, 5 ajouts ; plan 17.1 à 17.5 puis 16.5 dans `AUDIT-ADMINISTRATION.md` (à valider par Dr Bentahila). |
 | 10/10/2026 | 17.1 et 17.2 | Corrections de l'audit (A1 à A9) et nouvelle fenêtre de réglage (sous-onglets, Enregistrer toujours visible, retouché / revenir au pack). Tests au vert, bilan 352 317 DH. Mis en ligne. |
+| 10/10/2026 | 17.3 et 17.4 | Liste des cabinets (tuiles, tri, activité, fiche regroupée) et abonnements (prix des packs, essai 30 j, gratuit, paiements, suspension automatique après 30 j de retard). Tests au vert, bilan 352 317 DH. Mis en ligne. |

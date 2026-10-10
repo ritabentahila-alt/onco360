@@ -52,8 +52,8 @@ Aucune erreur JavaScript. L'ensemble fonctionne, mais plusieurs textes sont pér
 |---|---|---|---|
 | **17.1 Corrections** ✅ fait le 10/10 | A1 à A9 | 1 session | aucune |
 | **17.2 Fenêtre de réglage** ✅ fait le 10/10 | B1 à B4 : sous-onglets, modules en premier, Enregistrer toujours visible, pastilles « retouché » | 1 session | aucune |
-| **17.3 Cabinets** | B5, B6, B8, C3 : tri, actions regroupées, message flottant, activité de chaque cabinet | 1 session | aucune |
-| **17.4 Abonnements** | C1, C2 : prix, échéances, paiements, tableau de bord | 1 à 2 sessions | prix des packs ; mensuel et / ou annuel ; essai gratuit (durée) ; délai avant suspension |
+| **17.3 Cabinets** ✅ fait le 10/10 | B5, B6, B8, C3 : tri, actions regroupées, message flottant, activité de chaque cabinet | 1 session | aucune |
+| **17.4 Abonnements** ✅ fait le 10/10 | C1, C2 : prix, échéances, paiements, tableau de bord | 1 à 2 sessions | prix des packs ; mensuel et / ou annuel ; essai gratuit (durée) ; délai avant suspension |
 | **17.5 Journal de l'Administration** | C4 | ½ session | aucune |
 | **16.5 Nouvelle spécialité** | C5, B7, B9 | 1 session | copie d'une spécialité ou vide |
 

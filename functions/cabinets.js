@@ -55,6 +55,7 @@ const MODULES = ["chimio", "rt", "agenda", "salle", "taches", "rcp", "prescripti
 const MAX = ["medecin", "assistante", "infirmiere", "comptable", "etablissements", "patients"];
 const COMMUNS = ["agenda", "prescriptions", "documents", "listes", "gagenda", "bilan"], EQUIPE = ["salle", "taches", "rcp"];
 const fo = (specialite, lib, modules, max) => ({ lib, specialite, modules: MODULES.filter((k) => modules.indexOf(k) >= 0), max });
+const { PRIX0 } = require("./facturation");
 const mx = (medecin, assistante, infirmiere, etablissements, patients, comptable = null) => ({ medecin, assistante, infirmiere, comptable, etablissements, patients });
 const FORMULES = {
   essentiel: fo("Oncologie – Radiothérapie", "Oncologie – Essentiel", ["chimio"].concat(COMMUNS), mx(1, 1, 0, 1, 300)),
@@ -66,6 +67,7 @@ const FORMULES = {
   "oncort-pro": fo("Oncologie – Radiothérapie", "Onco-radiothérapie – Pro", ["chimio", "rt"].concat(COMMUNS, EQUIPE), mx(1, 2, 2, 2, 1000)),
   complet: fo("Oncologie – Radiothérapie", "Onco-radiothérapie – Clinique", ["chimio", "rt"].concat(COMMUNS, EQUIPE), mx(5, 5, 10, null, null)),
 };
+Object.keys(FORMULES).forEach((k) => { FORMULES[k].prix = Object.assign({}, PRIX0[k]); }); // prix proposés (17.4), modifiables pack par pack
 // Abonnement envoyé par la page Administration, nettoyé : formule connue (ou « sur mesure »), chaque module oui / non, maximums
 // entiers ≥ 0 ou null (sans limite). Sans modules précisés : ceux de la formule.
 // Formules modifiées par l'administration (plateforme/formules, 09/10/2026), nettoyées : identifiant court, nom, modules connus,
@@ -79,6 +81,8 @@ function formulesValides(o) {
     out[k] = { lib: String(f.lib || k).replace(/\s+/g, " ").trim().slice(0, 40) || k, specialite: String(f.specialite || "").replace(/\s+/g, " ").trim().slice(0, 40), modules: MODULES.filter((m) => (f.modules || []).indexOf(m) >= 0), max };
     const rg = reglageNettoye(f.reglage); if (rg) { delete rg.fiche; delete rg.consultation; out[k].reglage = rg; } // réglage complet du pack (menu, cartes, onglets, fonctions…, 10/10/2026) ; la fiche patient est celle de la spécialité
     if (out[k].modules.indexOf("taches") < 0) out[k].modules = out[k].modules.filter((m) => m !== "rcp");
+    // Prix du pack (17.4) : DH hors taxes par mois et par an ; absent = prix proposé par Onco360 pour ce pack, sinon aucun
+    const px = f.prix || PRIX0[k]; if (px) out[k].prix = { mois: nombre(px.mois), an: nombre(px.an) };
   });
   return Object.keys(out).length ? out : null;
 }

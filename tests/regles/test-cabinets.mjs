@@ -84,6 +84,12 @@ await cas("refusé : changer soi-même de cabinet", async () => { await assertFa
 await cas("refusé : l'administration écrit un compte", () => assertFails(setDoc(doc(db("ADM"), "comptes/X"), { espace: "cab-autre" })));
 await cas("refusé : supprimer son rattachement", () => assertFails(deleteDoc(doc(db("DRB"), "comptes/DRB"))));
 
+console.log("Abonnements (facturation/{e}, 17.4) : serveur seulement");
+const fact = async () => env.withSecurityRulesDisabled(async (c) => { await setDoc(doc(c.firestore(), "facturation/cab-autre"), { mode: "mensuel", prix: 900 }); });
+await cas("le titulaire d'un cabinet ne lit pas son abonnement", async () => { await fact(); await assertFails(getDoc(doc(db("DRB"), "facturation/cab-autre"))); });
+await cas("ni ne l'écrit (prix, échéance)", async () => { await assertFails(setDoc(doc(db("DRB"), "facturation/cab-autre"), { mode: "gratuit" })); });
+await cas("Dr Bentahila ne lit pas l'abonnement d'un autre cabinet", async () => { await fact(); await assertFails(getDoc(doc(db("RITA"), "facturation/cab-autre"))); });
+await cas("le compte d'administration non plus depuis le navigateur (fonction serveur)", async () => { await fact(); await assertFails(getDoc(doc(db("ADM"), "facturation/cab-autre"))); });
 console.log("\n" + ok + " réussis, " + ko + " échoués");
 await env.cleanup();
 if (ko) process.exit(1);

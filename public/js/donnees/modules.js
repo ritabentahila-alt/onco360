@@ -53,6 +53,7 @@ export const BIBLIOTHEQUES_SPE = [
 const COMMUNS = ["agenda", "prescriptions", "documents", "listes", "gagenda", "bilan"], EQUIPE = ["salle", "taches", "rcp"];
 const f = (specialite, lib, modules, max) => ({ lib, specialite, modules: MODULES.map((m) => m[0]).filter((k) => modules.indexOf(k) >= 0), max });
 const mx = (medecin, assistante, infirmiere, etablissements, patients, comptable = null) => ({ medecin, assistante, infirmiere, comptable, etablissements, patients });
+import { PRIX0 } from "./facturation.js";
 export const FORMULES = {
   essentiel: f("Oncologie – Radiothérapie", "Oncologie – Essentiel", ["chimio"].concat(COMMUNS), mx(1, 1, 0, 1, 300)),
   "onco-pro": f("Oncologie – Radiothérapie", "Oncologie – Pro", ["chimio"].concat(COMMUNS, EQUIPE), mx(1, 2, 2, 2, 1000)),
@@ -63,6 +64,7 @@ export const FORMULES = {
   "oncort-pro": f("Oncologie – Radiothérapie", "Onco-radiothérapie – Pro", ["chimio", "rt"].concat(COMMUNS, EQUIPE), mx(1, 2, 2, 2, 1000)),
   complet: f("Oncologie – Radiothérapie", "Onco-radiothérapie – Clinique", ["chimio", "rt"].concat(COMMUNS, EQUIPE), mx(5, 5, 10, null, null)),
 };
+Object.keys(FORMULES).forEach((k) => { FORMULES[k].prix = Object.assign({}, PRIX0[k]); }); // prix proposés (17.4), modifiables pack par pack
 // Abonnement tel qu'il s'applique : sans abonnement, tous les modules ; avec un abonnement, seulement les modules cochés (un module
 // créé plus tard, ex. pour la médecine générale, n'apparaît pas chez les cabinets qui ne l'ont pas reçu) ; maximum absent = sans
 // limite ; RCP sans Tâches = sans RCP

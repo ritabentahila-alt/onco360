@@ -149,3 +149,16 @@ const echoue = (f) => { try { f(); return false; } catch (e) { return true; } };
   const FS = C.formulesValides({ p1: { lib: "P", specialite: "x", modules: [], max: {}, reglage: { menu: ["patients"], consultation: { champs: { note: false } } } } });
   ok(!FS.p1.reglage.consultation, "un pack n'a pas de formulaire de consultation (celui de la spécialité)");
 })();
+// Abonnements (17.4)
+(() => {
+  const F = require("./facturation"), C = require("./cabinets"), ok = (c, m) => { console.log((c ? "✅ " : "❌ ") + m); if (!c) process.exitCode = 1; };
+  const fs = require("fs"), site = fs.readFileSync(__dirname + "/../public/js/donnees/facturation.js", "utf8").replace(/^export \{[^}]*\};?\s*$/m, ""), serveur = fs.readFileSync(__dirname + "/facturation.js", "utf8").replace('"use strict";\n', "").replace(/^module\.exports = \{[^}]*\};?\s*$/m, "");
+  ok(site.trim() === serveur.trim(), "facturation : même code sur le site et le serveur");
+  ok(F.prolonger({ echeance: "2026-01-31" }, "2026-02-02", "mois") === "2026-02-28" && F.prolonger({ echeance: "2026-03-15" }, "2026-03-20", "an") === "2027-03-15" && F.prolonger({ echeance: "2024-01-01" }, "2026-10-10", "mois") === "2026-11-10", "paiement : échéance prolongée d'un mois / d'un an (reprise après une longue interruption : depuis le paiement)");
+  const E = (f) => F.etatFacturation(f, "2026-10-10").etat;
+  ok(E(null) === "nonSuivi" && E({ mode: "gratuit" }) === "gratuit" && E({ mode: "essai", essaiFin: "2026-10-20" }) === "essai" && E({ mode: "essai", essaiFin: "2026-10-01" }) === "retard" && E({ mode: "mensuel", echeance: "2026-11-30" }) === "ajour" && E({ mode: "mensuel", echeance: "2026-10-20" }) === "renouveler" && E({ mode: "annuel", echeance: "2026-09-15" }) === "retard" && E({ mode: "mensuel", echeance: "2026-09-09" }) === "suspendre" && E({ mode: "mensuel", echeance: "2026-09-10" }) === "retard", "états : non suivi, gratuit, essai, à jour, à renouveler (15 j), retard, à suspendre (> 30 j)");
+  const P = F.prixCabinet({ mode: "annuel" }, C.FORMULES.complet, "complet"), Q = F.prixCabinet({ mode: "mensuel", prix: 900 }, C.FORMULES["onco-pro"], "onco-pro");
+  ok(P.prix === 29900 && P.mensuel === 2492 && Q.prix === 900 && F.prixCabinet({ mode: "gratuit" }, C.FORMULES.complet, "complet").mensuel === 0, "prix : annuel du pack (équivalent mensuel), prix remisé, gratuit");
+  ok(C.formulesValides({ x1: { lib: "X", modules: [], max: {}, prix: { mois: "500", an: 5000 } } }).x1.prix.mois === 500 && C.formulesValides({ essentiel: { lib: "E", modules: [], max: {} } }).essentiel.prix.mois === 690, "prix d'un pack gardés ; pack enregistré sans prix : prix proposé");
+  let er = ""; try { F.paiementNettoye({ d: "2026-10-10", m: 0 }); } catch (e) { er = e.message; } ok(/Montant/.test(er), "paiement sans montant refusé");
+})();

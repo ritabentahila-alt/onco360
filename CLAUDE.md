@@ -121,6 +121,10 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
   (dossiers sans numéro, une fois, par le titulaire dans `migrations()`), transaction sur `compteurs/dossiers` { "AAAAMM": n }
   (aucune règle : serveur seulement). Jamais modifié ; `numDossier(x)` pour l'afficher ; recherche et filtre par hôpital (page Patients).
 - `utilisateurs/{uid}` : profil (nom, INPE, signature, photo)
+- **Abonnements (17.4, 10/10/2026)** : `facturation/{e}` (racine, serveur seulement, aucune règle) = { mode essai|mensuel|annuel|gratuit, prix
+  (vide = prix du pack), essaiFin, echeance, paiements [{ id, d, m, periode, moyen, ref, avant, apres }], journal, suspenduPour } ; fonctions
+  `facturationCabinet` (admin) et `abonnementsNuit` (4 h : suspension 30 j après l'échéance, jamais cabinet-bentahila / démo / gratuit) ;
+  prix des packs `prix { mois, an }` (`PRIX0`) ; logique `functions/facturation.js` = `public/js/donnees/facturation.js` (même code, test).
 - **Journal d'audit (09/10/2026)** : `audit/{e}/lignes/{idÉvénement}` = { type creation|modification|suppression|ouverture, col, lib,
   docId, element, quoi [parties touchées, sans valeurs], patientId, patientNom, par, parNom, parRole, via onco360|serveur, pour, le },
   écrit par la fonction `auditEcriture` seulement (identité réelle ; logique `functions/audit.js`) ; lu par le titulaire

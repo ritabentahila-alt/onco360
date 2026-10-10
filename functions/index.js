@@ -473,6 +473,11 @@ exports.creerCabinet = onCall({ timeoutSeconds: 120, memory: "256MiB" }, async (
   if (!(await estAdministrateur(par))) throw new HttpsError("permission-denied", "Réservé à l'administration d'Onco360.");
   let d; try { d = C.verifier(req.data || {}); } catch (e) { throw new HttpsError("invalid-argument", e.message); }
   const o = await creerEspace(d, par, { formule: (req.data || {}).formule });
+  // Abonnement de départ (17.4) : essai gratuit de 30 jours, sauf choix contraire (mensuel, annuel, gratuit sans limite)
+  const jour = new Date().toISOString().slice(0, 10), f = Fa.reglageFacturation({ mode: (req.data || {}).modeFacturation || "essai" });
+  if (f.mode === "essai") f.essaiFin = Fa.ajouterJours(jour, Fa.ESSAI_JOURS);
+  if (f.mode === "mensuel" || f.mode === "annuel") f.echeance = jour; // à régler dès le premier paiement
+  await db.doc("facturation/" + o.espace).set(Object.assign(f, { debut: jour, paiements: [], journal: [{ le: new Date().toISOString(), par, txt: "Cabinet créé : " + (Fa.MODES_FACT.find((m) => m[0] === f.mode) || [])[1] }] }));
   console.log("cabinet créé", o.espace, d.email, "par", par);
   return { espace: o.espace, existant: o.existant, protocoles: o.protocoles };
 });
@@ -481,6 +486,7 @@ exports.creerCabinet = onCall({ timeoutSeconds: 120, memory: "256MiB" }, async (
 // fictifs (demo.js) ; « Réinitialiser » refait patients, consultations, tâches, salle et montants au jour près. Le compte de
 // démonstration est un compte comme les autres (son e-mail, son mot de passe), à utiliser pour les démonstrations et les guides.
 const Dm = require("./demo");
+const Fa = require("./facturation");
 const DEMO = "cab-demonstration";
 async function remplirDemo(e, uid) {
   const E = "espaces/" + e + "/";
@@ -519,20 +525,25 @@ exports.demoReinitialiser = onCall({ timeoutSeconds: 300, memory: "512MiB" }, as
 // Liste des cabinets pour la page Administration : nom, titulaire, date, nombre de membres et de dossiers (aucune donnée médicale)
 exports.listeCabinets = onCall({ timeoutSeconds: 60, memory: "256MiB" }, async (req) => {
   if (!(await estAdministrateur(req.auth && req.auth.uid))) throw new HttpsError("permission-denied", "Réservé à l'administration d'Onco360.");
-  const t0 = Date.now(), [snap, FS] = await Promise.all([db.collection("espaces").get(), formules()]);
+  const t0 = Date.now(), [snap, FS, sf] = await Promise.all([db.collection("espaces").get(), formules(), db.collection("facturation").get().catch(() => null)]);
+  const FACT = {}; if (sf) sf.forEach((d) => { FACT[d.id] = d.data(); });
+  // Activité (17.3) : dernière ligne du journal d'audit et nombre d'actions des 30 derniers jours (aucune donnée médicale)
+  const il30 = new Date(Date.now() - 30 * 86400000);
+  const activite = async (id) => { try { const l = db.collection("audit/" + id + "/lignes"), [s1, n] = await Promise.all([l.orderBy("le", "desc").limit(1).get(), l.where("le", ">=", il30).count().get()]);
+    const x = s1.docs[0] && s1.docs[0].data(); return { derniere: x && x.le && x.le.toDate ? x.le.toDate().toISOString() : "", par: (x && x.parNom) || "", n30: n.data().count }; } catch (e) { console.warn("activité", id, e.message); return null; } };
   console.log("listeCabinets : " + snap.size + " cabinets lus en " + (Date.now() - t0) + " ms");
   // Chaque comptage à part : un cabinet illisible n'empêche pas d'afficher les autres
   const nb = async (q) => { try { return (await q.count().get()).data().count; } catch (e) { console.warn("comptage", e.message); return null; } };
   const out = await Promise.all(snap.docs.filter((s) => !C.estBib(s.id)).map(async (s) => {
     const r = s.ref, x = s.data() || {};
-    const [sm, patients, netab] = await Promise.all([r.collection("membres").select("role", "actif", "nom", "email", "telephone").get().catch(() => null), nb(r.collection("patients")), nb(r.collection("etablissements"))]);
+    const [sm, patients, netab, act] = await Promise.all([r.collection("membres").select("role", "actif", "nom", "email", "telephone").get().catch(() => null), nb(r.collection("patients")), nb(r.collection("etablissements")), activite(r.id)]);
     const roles = {}; let membres = null, t = {};
     const equipe = [];
     if (sm) { membres = sm.size; sm.forEach((d) => { const m = d.data(); if (m.actif !== false) roles[m.role] = (roles[m.role] || 0) + 1; if (d.id === x.titulaire) t = m; equipe.push({ nom: m.nom || "", role: m.role || "", email: m.email || "", actif: m.actif !== false, titulaire: d.id === x.titulaire }); }); }
     // Date de création : texte AAAA-MM-JJ (le cabinet de référence l'a en date Firebase) ; sinon date de la fiche
     const jour = (v) => (!v ? "" : typeof v === "string" ? v.slice(0, 10) : v.toDate ? v.toDate().toISOString().slice(0, 10) : "");
     return { id: r.id, nom: x.nom || (r.id === C.MODELE ? "Cabinet du Dr Bentahila" : r.id), cree: jour(x.cree) || (s.createTime ? s.createTime.toDate().toISOString().slice(0, 10) : ""), actif: x.actif !== false, modele: r.id === C.MODELE, suspenduLe: x.suspenduLe || "",
-      titulaire: { nom: t.nom || "", email: t.email || "", telephone: t.telephone || "" }, membres, patients, roles, etablissements: netab, abonnement: x.abonnement || null, ville: x.ville || "", adresse: x.adresse || "", telephone: x.telephone || "", demo: x.demo === true, equipe };
+      titulaire: { nom: t.nom || "", email: t.email || "", telephone: t.telephone || "" }, membres, patients, roles, etablissements: netab, abonnement: x.abonnement || null, ville: x.ville || "", adresse: x.adresse || "", telephone: x.telephone || "", demo: x.demo === true, equipe, activite: act, facturation: FACT[r.id] || null, suspenduAuto: !!(FACT[r.id] && FACT[r.id].suspenduPour && x.actif === false) };
   }));
   console.log("listeCabinets : terminé en " + (Date.now() - t0) + " ms");
   // Bibliothèques de référence : nombre d'éléments de chaque liste (null = liste de départ d'Onco360)
@@ -746,3 +757,51 @@ exports.ficheSpecialite = onCall({ timeoutSeconds: 120, memory: "256MiB" }, asyn
   return { cabinets: n, fiche };
 });
 async function ficheDe(specialite) { try { const s = await db.doc("plateforme/specialites").get(), o = s.exists ? s.data()[C.idSpecialite(specialite)] : null; return o || {}; } catch (e) { return {}; } }
+// ───── Abonnements (17.4, 10/10/2026) ─────
+// Fiche de facturation d'un cabinet (facturation/{e}, serveur seulement) : réglage (mode, prix, fin d'essai, échéance, note),
+// paiement reçu (prolonge l'échéance d'un mois ou d'un an ; réactive un cabinet suspendu pour retard), paiement retiré.
+exports.facturationCabinet = onCall({ timeoutSeconds: 30, memory: "256MiB" }, async (req) => {
+  const par = req.auth && req.auth.uid, d = req.data || {};
+  if (!(await estAdministrateur(par))) throw new HttpsError("permission-denied", "Réservé à l'administration d'Onco360.");
+  const e = String(d.espace || ""), ref = db.doc("facturation/" + e), esp = db.doc("espaces/" + e), se = await esp.get();
+  if (!e || !se.exists || C.estBib(e)) throw new HttpsError("not-found", "Cabinet introuvable.");
+  const s0 = await ref.get(), f = s0.exists ? s0.data() : { paiements: [], journal: [], debut: new Date().toISOString().slice(0, 10) }, le = new Date().toISOString(), jr = [];
+  if (d.action === "regler") {
+    const r = Fa.reglageFacturation(d.reglage);
+    if (r.mode === "essai" && !r.essaiFin) r.essaiFin = Fa.ajouterJours(le.slice(0, 10), Fa.ESSAI_JOURS);
+    Object.assign(f, r); jr.push("Abonnement : " + (Fa.MODES_FACT.find((m) => m[0] === r.mode) || [])[1] + (r.prix != null ? ", " + r.prix + " DH" : "") + (r.echeance ? ", échéance " + r.echeance : r.essaiFin ? ", essai jusqu'au " + r.essaiFin : ""));
+  } else if (d.action === "paiement") {
+    let p; try { p = Fa.paiementNettoye(d.paiement); } catch (er) { throw new HttpsError("invalid-argument", er.message); }
+    const ech = Fa.prolonger(f, p.d, p.periode);
+    f.paiements = (f.paiements || []).concat([Object.assign({ id: "p" + Date.now().toString(36), par, le, avant: f.echeance || f.essaiFin || "", apres: ech }, p)]).slice(-200);
+    f.echeance = ech; if (f.mode === "essai" || !f.mode) f.mode = p.periode === "an" ? "annuel" : "mensuel";
+    jr.push("Paiement de " + p.m + " DH (" + (p.periode === "an" ? "1 an" : "1 mois") + ") : échéance au " + ech);
+    // Cabinet suspendu pour retard : réactivé dès le paiement
+    if (se.data().actif === false && f.suspenduPour) { await esp.update({ actif: true, suspenduLe: FieldValue.delete(), reactiveLe: le, etatPar: par }); jr.push("Cabinet réactivé (paiement reçu)"); delete f.suspenduPour; }
+  } else if (d.action === "retirerPaiement") {
+    const p = (f.paiements || []).find((x) => x.id === d.id); if (!p) throw new HttpsError("not-found", "Paiement introuvable.");
+    f.paiements = f.paiements.filter((x) => x.id !== d.id);
+    if (f.echeance === p.apres) f.echeance = p.avant || ""; // dernier paiement retiré : échéance d'avant
+    jr.push("Paiement du " + p.d + " (" + p.m + " DH) retiré");
+  } else throw new HttpsError("invalid-argument", "Action inconnue.");
+  f.journal = (f.journal || []).concat(jr.map((txt) => ({ le, par, txt }))).slice(-300); f.maj = le;
+  await ref.set(f);
+  console.log("facturation", e, d.action, "par", par);
+  return { facturation: f, actif: d.action === "paiement" ? true : se.data().actif !== false };
+});
+// Chaque nuit (4 h) : un cabinet dont l'échéance est dépassée de plus de 30 jours est suspendu (données gardées), une seule fois par
+// échéance (une réactivation à la main n'est pas annulée la nuit suivante) ; jamais le cabinet de Dr Bentahila, la démonstration,
+// un cabinet gratuit ou sans fiche de facturation
+exports.abonnementsNuit = onSchedule({ schedule: "0 4 * * *", timeZone: "Africa/Casablanca", timeoutSeconds: 300, memory: "256MiB" }, async () => {
+  const jour = new Date().toISOString().slice(0, 10), sf = await db.collection("facturation").get(); let n = 0;
+  for (const d of sf.docs) {
+    const f = d.data(), et = Fa.etatFacturation(f, jour);
+    if (et.etat !== "suspendre" || d.id === C.MODELE || d.id === DEMO || f.suspenduPour === et.fin) continue;
+    const esp = db.doc("espaces/" + d.id), se = await esp.get(); if (!se.exists || se.data().actif === false || se.data().demo) continue;
+    const le = new Date().toISOString();
+    await esp.update({ actif: false, suspenduLe: le, etatPar: "onco360" });
+    await d.ref.update({ suspenduPour: et.fin, journal: FieldValue.arrayUnion({ le, par: "onco360", txt: "Suspendu automatiquement : échéance du " + et.fin + " non payée depuis " + et.jours + " jours" }) });
+    n++; console.log("abonnement : cabinet suspendu pour retard", d.id, et.fin, et.jours, "j");
+  }
+  console.log("abonnementsNuit :", n, "cabinet(s) suspendu(s)");
+});

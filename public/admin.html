@@ -33,9 +33,12 @@ button.rouge{background:var(--rouge);color:#fff}.bt.wa{background:#1FA855}
 .err{color:var(--rouge);font-size:14px;margin:8px 0 0}
 .ok{color:var(--vert);background:var(--vert-c);border-radius:12px;padding:11px 14px;font-size:14px}
 .bandeau{display:flex;gap:10px;align-items:flex-start}.bandeau .x{margin-left:auto}
+/* Message flottant (17.3) : toujours visible, en bas de l'écran */
+.ok.bandeau{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:40;max-width:min(720px,calc(100% - 32px));box-shadow:0 10px 30px rgba(20,30,60,.25)}
 .x{background:transparent;color:var(--doux);padding:2px 6px;font-size:16px}
 /* Chiffres */
 .tuiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.tuiles.t5{grid-template-columns:repeat(5,minmax(0,1fr))}.tuile{min-width:0;overflow-wrap:anywhere}.tuile.clic{cursor:pointer}.tuile.clic:hover,.tuile.on{border-color:var(--prim);box-shadow:0 0 0 2px var(--prim-c)}.tuile.orange b{color:#B26A00}
 .tuile{background:#fff;border-radius:14px;border:1px solid #E9EDF4;box-shadow:var(--ombre);padding:14px 16px}
 .tuile b{display:block;font-size:26px;color:var(--prim-f)}.tuile span{color:var(--doux);font-size:13px}
 .tuile.vert b{color:var(--vert)}.tuile.rouge b{color:var(--rouge)}
@@ -95,6 +98,12 @@ table.lc td{padding:9px 8px;border-bottom:1px solid #F0F2F7;vertical-align:top}t
 .boite>.x{position:absolute;top:12px;right:12px}.boite h2{padding-right:30px}
 .pied{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
 /* 17.1 / 17.2 (10/10/2026) */
+th button.tri{background:none;border:0;padding:0;color:var(--doux);font-size:12.5px;font-weight:normal;cursor:pointer}th button.tri:hover{color:var(--prim)}
+.abo{background:#F7F9FC;border-radius:12px;padding:10px 12px;display:grid;gap:4px}.abo-h{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.abo-h .m{display:inline}
+details.paie summary{cursor:pointer;color:var(--prim);font-size:13px;margin-top:4px}table.pt{width:100%;font-size:13px;border-collapse:collapse;margin-top:4px}table.pt td{padding:3px 6px;border-bottom:1px solid #EEF1F6}table.pt .n{text-align:right;white-space:nowrap}
+.act-g{display:grid;gap:8px;border-top:1px solid #EEF1F6;padding-top:10px}.act-g>div{display:flex;gap:6px;flex-wrap:wrap;align-items:center}.act-g>div>.m{min-width:118px;font-size:12px}
+.act-g .sensible{border-top:1px dashed #F0D5DA;padding-top:8px}.rouge-t{color:var(--rouge)!important}
+td.prix{white-space:nowrap}
 .pied.colle{position:sticky;bottom:-22px;background:#fff;margin:16px -22px -22px;padding:12px 22px;border-top:1px solid var(--trait);border-radius:0 0 18px 18px;align-items:center;z-index:3}
 #fEtat{color:#B26A00;font-weight:bold}
 .ong-r{margin:14px 0 4px;border-bottom:1px solid var(--trait);padding-bottom:10px}.pt-r{color:#E08A00;font-size:11px}
@@ -106,12 +115,12 @@ button.lien-r{background:none;border:0;color:var(--rouge,#B3261E);padding:4px 6p
 b.dep{font-size:12px;font-weight:normal;color:var(--doux);padding:3px 0}
 @media (max-width:760px){nav#onglets{flex-wrap:wrap;overflow-x:visible}nav#onglets a{padding:9px 10px}}
 textarea{font-size:13px;margin-top:4px}
-@media (max-width:760px){.tuiles{grid-template-columns:repeat(2,minmax(0,1fr))}.cabs{grid-template-columns:minmax(0,1fr)}.maxs{grid-template-columns:repeat(2,minmax(0,1fr))}.tete .t{display:none}.tete .q{display:none}#modal{padding:12px}.barre select{flex:1}}
+@media (max-width:760px){.tuiles,.tuiles.t5{grid-template-columns:repeat(2,minmax(0,1fr))}.tuile b{font-size:21px}.cabs{grid-template-columns:minmax(0,1fr)}.maxs{grid-template-columns:repeat(2,minmax(0,1fr))}.tete .t{display:none}.tete .q{display:none}#modal{padding:12px}.barre select{flex:1}}
 </style></head>
 <body>
 <header><div class="tete"><img src="onco360-icone.png" alt=""><b>Onco<span>360</span></b><span class="t">Administration</span><span class="q" id="qui"></span><button class="clair petit" id="btSortie">Se déconnecter</button></div>
 <nav id="onglets"></nav></header>
 <main id="page"><div class="carte"><p class="sous">Chargement…</p></div></main>
 <div id="modal" class="cache"></div>
-<script type="module" src="./js/app/admin.js?v=20261010n"></script>
+<script type="module" src="./js/app/admin.js?v=20261010o"></script>
 </body></html>
