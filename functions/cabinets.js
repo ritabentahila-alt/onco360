@@ -77,7 +77,7 @@ function formulesValides(o) {
     if (!/^[a-z0-9-]{2,30}$/.test(k) || !f) return;
     const max = {}; MAX.forEach((m) => { max[m] = nombre(f.max && f.max[m]); });
     out[k] = { lib: String(f.lib || k).replace(/\s+/g, " ").trim().slice(0, 40) || k, specialite: String(f.specialite || "").replace(/\s+/g, " ").trim().slice(0, 40), modules: MODULES.filter((m) => (f.modules || []).indexOf(m) >= 0), max };
-    const rg = reglageNettoye(f.reglage); if (rg) { delete rg.fiche; out[k].reglage = rg; } // réglage complet du pack (menu, cartes, onglets, fonctions…, 10/10/2026) ; la fiche patient est celle de la spécialité
+    const rg = reglageNettoye(f.reglage); if (rg) { delete rg.fiche; delete rg.consultation; out[k].reglage = rg; } // réglage complet du pack (menu, cartes, onglets, fonctions…, 10/10/2026) ; la fiche patient est celle de la spécialité
     if (out[k].modules.indexOf("taches") < 0) out[k].modules = out[k].modules.filter((m) => m !== "rcp");
   });
   return Object.keys(out).length ? out : null;
@@ -144,15 +144,20 @@ function parametreDepart(id, v, jour) {
 }
 // Fiche patient (10/10/2026) : ordre, présence, nom affiché des champs (libs), champs ajoutés (libellé, type, choix, partie, imprimer,
 // en-tête). Sert à la fiche de la spécialité (ficheSpecialite) et aux retouches d'un cabinet.
+// Sert aussi au formulaire de consultation (16.7 : types texte long et titre de section, unité d'un nombre, choixs = listes de choix
+// des champs existants).
+const TYPES_CHAMP = ["texte", "textelong", "nombre", "date", "choix", "ouinon", "section"];
 function ficheNettoyee(f) {
   if (!f || typeof f !== "object") return null;
   const cle = (k) => typeof k === "string" && /^[a-z0-9._-]{1,40}$/i.test(k), t = (v, n) => String(v == null ? "" : v).replace(/\s+/g, " ").trim().slice(0, n), F = {};
   if (Array.isArray(f.ordre)) F.ordre = f.ordre.filter(cle).slice(0, 120);
   if (f.champs && typeof f.champs === "object") { F.champs = {}; Object.entries(f.champs).slice(0, 120).forEach(([c, v]) => { if (cle(c) && typeof v === "boolean") F.champs[c] = v; }); }
   if (f.libs && typeof f.libs === "object") { F.libs = {}; Object.entries(f.libs).slice(0, 120).forEach(([c, v]) => { if (cle(c) && t(v, 60)) F.libs[c] = t(v, 60); }); }
-  if (Array.isArray(f.ajouts)) F.ajouts = f.ajouts.filter((a) => a && /^x[a-z0-9]{3,20}$/.test(a.id || "") && t(a.lib, 60)).slice(0, 60).map((a) => ({ id: a.id, lib: t(a.lib, 60),
-    type: ["texte", "nombre", "date", "choix", "ouinon"].indexOf(a.type) >= 0 ? a.type : "texte", choix: Array.isArray(a.choix) ? a.choix.map((c) => t(c, 60)).filter(Boolean).slice(0, 40) : [],
-    partie: a.partie === "clinique" ? "clinique" : "identite", imprimer: a.imprimer === true, entete: a.entete === true }));
+  const liste = (l) => (Array.isArray(l) ? l.map((c) => t(c, 60)).filter(Boolean).slice(0, 40) : []);
+  if (f.choixs && typeof f.choixs === "object") { F.choixs = {}; Object.entries(f.choixs).slice(0, 20).forEach(([c, v]) => { const l = liste(v); if (cle(c) && l.length) F.choixs[c] = l; }); }
+  if (Array.isArray(f.ajouts)) F.ajouts = f.ajouts.filter((a) => a && /^x[a-z0-9]{3,20}$/.test(a.id || "") && t(a.lib, 60)).slice(0, 80).map((a) => Object.assign({ id: a.id, lib: t(a.lib, 60),
+    type: TYPES_CHAMP.indexOf(a.type) >= 0 ? a.type : "texte", choix: liste(a.choix),
+    partie: a.partie === "clinique" ? "clinique" : "identite", imprimer: a.imprimer === true, entete: a.entete === true }, t(a.unite, 15) ? { unite: t(a.unite, 15) } : {}));
   return F;
 }
 const idSpecialite = (s) => String(s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "specialite";
@@ -165,6 +170,7 @@ function reglageNettoye(r) {
   ["cartes", "sections", "bibliotheques", "fonctions"].forEach((k) => { if (r[k] && typeof r[k] === "object") { const o = {}; Object.entries(r[k]).slice(0, 300).forEach(([c, v]) => { if (cle(c) && typeof v === "boolean") o[c] = v; }); out[k] = o; } });
   // Fiche patient : retouches du cabinet (en plus de la fiche de la spécialité)
   const F = ficheNettoyee(r.fiche); if (F) out.fiche = F;
+  const Cs = ficheNettoyee(r.consultation); if (Cs) out.consultation = Cs; // formulaire de consultation : retouches du cabinet (16.7)
   return out;
 }
 module.exports = { ficheNettoyee, idSpecialite, reglageNettoye, PARAMS_SPE, parametreDepart, BIBS, bibDe, estBib, DROITS_BIB, MODULES_BIB, infos, ROLES, membreDemande, MODULES, MAX, FORMULES, formulesValides, abonnement, horsQuota, MODELE, BIBLIOTHEQUES, DROITS_MEDECIN, MIGRATIONS, verifier, idCabinet, listesDepart, calendrierDepart, tarifsDepart, migrationsFaites, membreTitulaire };

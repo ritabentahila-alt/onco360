@@ -9,6 +9,7 @@
 // jour : étapes 1C à 1E. Ici : créer, modifier, supprimer, plier / déplier.
 import { collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { db } from "../config.js";
+import { CONSULT, consultEffective, libDe } from "../donnees/catalogue.js";
 
 let A = null;
 export function installer(api) { A = api; }
@@ -35,7 +36,13 @@ export const FAMILLES = [
 // Nom affiché : type (menu) · titre (libre) ; les premières consultations n'avaient qu'un titre
 const nomCs = (c) => [c.type, c.titre].filter(Boolean).join(" · ") || "Consultation";
 const libLigne = (t) => (FAMILLES.find((f) => f.t === t) || { lib: t }).lib;
-const TYPES = ["Consultation de suivi", "Consultation d'annonce", "RCP", "Consultation de contrôle", "Consultation de chimiothérapie", "Consultation en cours de radiothérapie", "Consultation de fin de traitement"];
+// Formulaire de consultation réglable (16.7, 10/10/2026) : celui de la spécialité (le même pour tous les packs) + retouches du cabinet
+// (D().reg.consultation) : ordre, champs présents, nom affiché, liste des types, champs ajoutés (valeurs dans extra { id: valeur }).
+// Sans réglage : la fenêtre d'aujourd'hui (type, date, titre, note).
+const FORM = () => (D().reg && D().reg.consultation) || consultEffective(null, null);
+const lib = (k) => libDe(CONSULT, k, FORM());
+const champsAjoutes = () => FORM().ajouts;
+const texteDe = (a, v) => (v == null || v === "" ? "" : a.type === "date" ? A.dfrA(v) : a.type === "ouinon" ? (v === "oui" ? "Oui" : "Non") : String(v) + (a.type === "nombre" && a.unite ? " " + a.unite : ""));
 
 // Lecture des consultations d'un patient (filtre d'établissement pour un membre limité à certains établissements)
 function charger(x) {
@@ -65,7 +72,7 @@ export function htmlConsultations(x) {
     const on = c.id === ouv, qc = q + ",'" + c.id + "'";
     h += '<div class="cs' + (on ? " on" : "") + '"><button class="cs-t" aria-expanded="' + on + '" onclick="csTog(' + qc + ')"><span class="fl">' + (on ? "▾" : "▸") + '</span><span class="dt">' + A.dfrA(c.d) + '</span><span class="ti">' + esc(nomCs(c)) + '</span><span class="au">' + esc(c.creeParNom || "") + "</span></button>";
     if (on) {
-      h += '<div class="cs-c"><table class="cs-l"><tr><th>Note</th><td>' + (c.note ? esc(c.note) : '<span class="mesures">—</span>') + '</td><td class="au">' + esc(c.creeParNom || "") + "</td></tr>" +
+      h += '<div class="cs-c"><table class="cs-l">' + (FORM().champs.note !== false || c.note ? "<tr><th>" + esc(lib("note")) + "</th><td>" + (c.note ? esc(c.note) : '<span class="mesures">—</span>') + '</td><td class="au">' + esc(c.creeParNom || "") + "</td></tr>" : "") + htmlExtra(c) +
         (c.lignes || []).map((l) => "<tr><th>" + esc(libLigne(l.t)) + "</th><td>" + (l.html ? '<button class="lien-l" title="Voir, modifier ou réimprimer l\'ordonnance" onclick="ordVoir(' + qc + ",'" + l.id + '\')">' + esc(l.lib || "Ordonnance") + "</button>" : l.t === "doc" && l.docId ? '<button class="lien-l" title="Rouvrir le document remis" onclick="docOuvrirLigne(\'' + esc(l.docId) + '\')">' + esc(l.lib || "") + "</button>" : esc(l.lib || "")) + '</td><td class="au">' + esc(l.par || "") + "</td></tr>").join("") + "</table>";
       if (peutEcrire()) {
         h += '<div class="actr" style="justify-content:flex-start;margin-top:10px"><button class="mini" onclick="csModifier(' + qc + ')">Modifier</button>' + (peutSupprimer(c) ? '<button class="mini r" onclick="csSupprimer(' + qc + ')">Supprimer</button>' : "") + "</div>";
@@ -75,6 +82,16 @@ export function htmlConsultations(x) {
     h += "</div>";
   });
   return h + "</div>" + barre(x);
+}
+// Champs ajoutés d'une consultation (lecture) : un titre de section n'apparaît que s'il est suivi d'une valeur
+function htmlExtra(c) {
+  const ex = c.extra || {}, R = FORM(), esc = A.esc; let h = "", sec = null;
+  R.ordre.forEach((k) => { const a = R.ajouts.find((z) => z.id === k); if (!a || R.champs[k] === false && ex[k] == null) return;
+    if (a.type === "section") { sec = a; return; }
+    const t = texteDe(a, ex[k]); if (!t) return;
+    if (sec) { h += '<tr class="cs-sec"><th colspan="3">' + esc(sec.lib) + "</th></tr>"; sec = null; }
+    h += "<tr><th>" + esc(a.lib) + "</th><td>" + esc(t).replace(/\n/g, "<br>") + "</td><td></td></tr>"; });
+  return h;
 }
 // Bibliothèque de chaque bouton (réglage du cabinet, 10/10/2026 : une bibliothèque retirée cache son bouton)
 const BIB_DE = { medic: "medicaments", ordo: "ordostypes", analyse: "analyses", exam: "examens", courrier: "courriers", doc: "documentation" };
@@ -104,19 +121,41 @@ window.csTog = (pid, cid) => {
 // (décision de RCP, rcp.js 09/10/2026)
 function formulaire(x, c, pre, apres) {
   pre = c ? null : pre || null;
+  const esc = A.esc, R = FORM(), v0 = (k) => (c ? c[k] || "" : (pre && pre[k]) || ""), ex = (c && c.extra) || (pre && pre.extra) || {};
+  // Un champ existant retiré reste affiché s'il a déjà une valeur (consultation ancienne, décision de RCP)
+  const visible = (k) => R.champs[k] !== false || (k !== "d" && !!v0(k));
+  const types = (R.choixs.type || []).concat([v0("type")].filter((t) => t && (R.choixs.type || []).indexOf(t) < 0));
+  const champ = (k) => {
+    const a = R.ajouts.find((z) => z.id === k);
+    if (!a) {
+      if (!visible(k)) return "";
+      if (k === "type") return '<div><label for="csType">' + esc(lib("type")) + '</label><select id="csType">' + types.map((t) => "<option" + (v0("type") === t ? " selected" : "") + ">" + esc(t) + "</option>").join("") + "</select></div>";
+      if (k === "d") return '<div><label for="csDate">' + esc(lib("d")) + '</label><input id="csDate" type="date" value="' + esc(c ? c.d : (pre && pre.d) || D().t) + '"></div>';
+      if (k === "titre") return '<div class="large"><label for="csTitre">' + esc(lib("titre")) + '</label><input id="csTitre" value="' + esc(v0("titre")) + '" placeholder="Ex. J1C1 FOLFOX"></div>';
+      if (k === "note") return '<div class="large"><label for="csNote">' + esc(lib("note")) + '</label><textarea id="csNote" rows="' + (R.ajouts.length ? 5 : 9) + '" class="cs-note" placeholder="Examen, poids, PS, conduite à tenir…">' + esc(v0("note")) + "</textarea></div>";
+      return "";
+    }
+    if (R.champs[k] === false && ex[k] == null) return "";
+    const v = ex[k] == null ? "" : ex[k], id = "cx_" + a.id, lab = '<label for="' + id + '">' + esc(a.lib) + (a.type === "nombre" && a.unite ? " (" + esc(a.unite) + ")" : "") + "</label>";
+    if (a.type === "section") return '<div class="large cs-sec">' + esc(a.lib) + "</div>";
+    if (a.type === "textelong") return '<div class="large">' + lab + '<textarea id="' + id + '" rows="3">' + esc(v) + "</textarea></div>";
+    if (a.type === "choix") return "<div>" + lab + '<select id="' + id + '"><option value=""></option>' + (a.choix || []).concat(v && (a.choix || []).indexOf(v) < 0 ? [v] : []).map((t) => "<option" + (t === v ? " selected" : "") + ">" + esc(t) + "</option>").join("") + "</select></div>";
+    if (a.type === "ouinon") return "<div>" + lab + '<select id="' + id + '"><option value=""></option><option value="oui"' + (v === "oui" ? " selected" : "") + '>Oui</option><option value="non"' + (v === "non" ? " selected" : "") + ">Non</option></select></div>";
+    return "<div" + (a.type === "texte" ? ' class="large"' : "") + ">" + lab + '<input id="' + id + '"' + (a.type === "date" ? ' type="date"' : a.type === "nombre" ? ' inputmode="decimal"' : "") + ' value="' + esc(v) + '"></div>';
+  };
   A.fenetre("<h3>" + (c ? "Modifier la consultation" : "Nouvelle consultation") + "</h3>" +
-    '<div class="form"><div><label for="csType">Consultation</label><select id="csType">' + TYPES.concat(c && c.type && TYPES.indexOf(c.type) < 0 ? [c.type] : []).map((t) => '<option' + ((c || pre) && (c || pre).type === t ? " selected" : "") + ">" + A.esc(t) + "</option>").join("") + "</select></div>" +
-    '<div><label for="csDate">Date</label><input id="csDate" type="date" value="' + A.esc(c ? c.d : (pre && pre.d) || D().t) + '"></div>' +
-    '<div class="large"><label for="csTitre">Titre de la consultation</label><input id="csTitre" value="' + A.esc(c ? c.titre || "" : (pre && pre.titre) || "") + '" placeholder="Ex. J1C1 FOLFOX"></div>' +
-    '<div class="large"><label for="csNote">Note</label><textarea id="csNote" rows="9" class="cs-note" placeholder="Examen, poids, PS, conduite à tenir…">' + A.esc(c ? c.note || "" : (pre && pre.note) || "") + "</textarea></div></div>" +
+    '<div class="form">' + R.ordre.map(champ).join("") + "</div>" +
     '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt plein" id="csOk">Enregistrer</button></div>');
   if (pre && pre.note) setTimeout(() => { const n = document.getElementById("csNote"); if (n) { n.focus(); n.setSelectionRange(n.value.length, n.value.length); } }, 80); // décision de RCP : curseur après « Décision : »
   document.getElementById("csOk").onclick = async () => {
-    const type = A.val("csType"), titre = A.val("csTitre"), d = A.val("csDate"), note = String(document.getElementById("csNote").value || "").replace(/\s+$/, "");
+    const el = (i) => document.getElementById(i), type = el("csType") ? A.val("csType") : v0("type"), titre = el("csTitre") ? A.val("csTitre") : v0("titre"), d = A.val("csDate");
+    const note = el("csNote") ? String(el("csNote").value || "").replace(/\s+$/, "") : v0("note");
+    // Champs ajoutés : valeurs saisies (vides retirées) ; celles des champs absents du formulaire sont gardées
+    const extra = Object.assign({}, ex); R.ajouts.forEach((a) => { const e = el("cx_" + a.id); if (!e) return; const v = String(e.value || "").replace(/\s+$/, "").trim(); if (v === "") delete extra[a.id]; else extra[a.id] = a.type === "nombre" ? v.replace(",", ".") : v; });
     if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) { A.erreur("Choisissez la date de la consultation."); return; }
     A.occupe(document.getElementById("csOk"), true);
     try {
-      const base = { type, titre, d, note, majPar: D().u.uid, majParNom: nomConnecte(), maj: serverTimestamp() };
+      const base = Object.assign({ type, titre, d, note, majPar: D().u.uid, majParNom: nomConnecte(), maj: serverTimestamp() }, Object.keys(extra).length || (c && c.extra) ? { extra } : {});
       if (c) {
         await updateDoc(doc(db, "espaces", A.ESPACE, "consultations", c.id), base);
         Object.assign(c, base); CS[x.id].sort(tri); A.journal(x, "Consultation modifiée : " + nomCs(base));

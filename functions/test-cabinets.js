@@ -139,3 +139,13 @@ const echoue = (f) => { try { f(); return false; } catch (e) { return true; } };
   const FS = C.formulesValides({ p1: { lib: "P", specialite: "Oncologie – Radiothérapie", modules: ["chimio"], max: {}, reglage: { menu: ["patients"], fiche: { champs: { ald: false } } } } });
   ok(FS.p1.reglage && !FS.p1.reglage.fiche, "un pack n'a pas de fiche patient (celle de la spécialité)");
 })();
+// Formulaire de consultation (16.7)
+(() => {
+  const C = require("./cabinets"), ok = (c, m) => { console.log((c ? "✅ " : "❌ ") + m); if (!c) process.exitCode = 1; };
+  const f = C.ficheNettoyee({ choixs: { type: ["Première consultation", " Suivi ", ""] }, ajouts: [{ id: "xsec01", lib: "Mesures", type: "section" }, { id: "xpds01", lib: "Poids", type: "nombre", unite: "kg" }, { id: "xobs01", lib: "Observance", type: "textelong" }] });
+  ok(f.choixs.type.length === 2 && f.choixs.type[1] === "Suivi" && f.ajouts[0].type === "section" && f.ajouts[1].unite === "kg" && f.ajouts[2].type === "textelong", "consultation : listes de choix des champs existants, section, unité, texte long");
+  const r = C.reglageNettoye({ consultation: { champs: { titre: false } } });
+  ok(r.consultation.champs.titre === false, "retouches du cabinet : formulaire de consultation");
+  const FS = C.formulesValides({ p1: { lib: "P", specialite: "x", modules: [], max: {}, reglage: { menu: ["patients"], consultation: { champs: { note: false } } } } });
+  ok(!FS.p1.reglage.consultation, "un pack n'a pas de formulaire de consultation (celui de la spécialité)");
+})();

@@ -130,7 +130,7 @@ async function charger(u) {
   if (!abo.modules.rt) membre.droits.radiotherapie = "aucun";
   if (!abo.modules.documents) membre.droits.documents = false;
   // Réglage du cabinet (10/10/2026) : ordre du menu, cartes du tableau de bord, onglets des Paramètres, bibliothèques, fonctions
-  const reg = reglageEffectif(espaceDoc.bibliotheque === true ? null : espaceDoc.abonnement && espaceDoc.abonnement.reglage, espaceDoc.ficheSpe); // fiche patient : celle de la spécialité + retouches du cabinet
+  const reg = reglageEffectif(espaceDoc.bibliotheque === true ? null : espaceDoc.abonnement && espaceDoc.abonnement.reglage, espaceDoc.ficheSpe, espaceDoc.consultSpe); // fiche patient et consultation : celles de la spécialité + retouches du cabinet
   return { u, membre, profil, cal, ctx, t, patients, listes, etabs, etabsTous, tarifs, bibDoc, bibOrdre, activites, wa, agendaG, medTitulaire, tarifsC, reglages: reglagesC, abo, espaceDoc, bib: espaceDoc.bibliotheque === true, reg };
 }
 // Nom du médecin titulaire (signature des messages WhatsApp envoyés par la secrétaire ou l'infirmière)

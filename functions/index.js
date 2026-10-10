@@ -448,8 +448,8 @@ async function creerEspace(d, par, opts) {
   const ids = (await db.collection("espaces").listDocuments()).map((x) => x.id), e = opts.id && ids.indexOf(opts.id) < 0 ? opts.id : C.idCabinet(d.cabinet, ids), jour = new Date().toISOString().slice(0, 10), E = "espaces/" + e + "/";
   const FS = await formules(), spe = ((FS[opts.formule || "complet"] || FS.complet || {}).specialite) || "Oncologie médicale";
   const src = await source(par, spe), b = db.batch();
-  const fiche = await ficheDe(spe);
-  b.set(db.doc("espaces/" + e), Object.assign({ nom: d.cabinet, titulaire: u.uid, cree: jour, creePar: par, actif: true, abonnement: C.abonnement({ formule: opts.formule || "complet" }, await formules()) }, fiche ? { ficheSpe: fiche } : {}, opts.espace || {}));
+  const sp = await ficheDe(spe); // fiche patient et consultation de la spécialité
+  b.set(db.doc("espaces/" + e), Object.assign({ nom: d.cabinet, titulaire: u.uid, cree: jour, creePar: par, actif: true, abonnement: C.abonnement({ formule: opts.formule || "complet" }, await formules()) }, sp.fiche ? { ficheSpe: sp.fiche } : {}, sp.consultation ? { consultSpe: sp.consultation } : {}, opts.espace || {}));
   b.set(db.doc(E + "membres/" + u.uid), C.membreTitulaire(d, jour, par));
   src.protocoles.forEach((p) => b.set(db.doc(E + "protocoles/" + p.id), p.data));
   // Documentation : les PDF déposés dans la bibliothèque sont recopiés dans le cabinet (chemin réécrit)
@@ -544,7 +544,7 @@ exports.listeCabinets = onCall({ timeoutSeconds: 60, memory: "256MiB" }, async (
     return Object.assign({}, B, { existe: true, nb, cree: s.data().cree || "" });
   }));
   const sp = await db.doc("plateforme/specialites").get().catch(() => null), specialites = {};
-  if (sp && sp.exists) Object.values(sp.data()).forEach((o) => { if (o && o.nom) specialites[o.nom] = { fiche: o.fiche || {}, le: o.le || "" }; });
+  if (sp && sp.exists) Object.values(sp.data()).forEach((o) => { if (o && o.nom) specialites[o.nom] = { fiche: o.fiche || {}, le: o.ficheLe || o.le || "", consultation: o.consultation || {}, csLe: o.consultationLe || "" }; });
   return { cabinets: out, formules: FS, bibliotheques, specialites };
 });
 // Suspendre (abonnement non payé) ou réactiver un cabinet : espaces/{e}.actif. Suspendu = plus personne n'y entre (règles), rien
@@ -629,7 +629,7 @@ exports.formulesEnregistrer = onCall({ timeoutSeconds: 60, memory: "256MiB" }, a
   await db.doc("plateforme/formules").set({ data: JSON.stringify(FS), le: new Date().toISOString(), par });
   for (const d of maj) {
     const ab0 = d.data().abonnement, ab = Object.assign(C.abonnement({ formule: ab0.formule }, FS), { le: new Date().toISOString(), par });
-    if (ab0.reglage && ab0.reglage.fiche) ab.reglage = Object.assign({}, ab.reglage || {}, { fiche: ab0.reglage.fiche }); // retouches de la fiche patient gardées
+    ["fiche", "consultation"].forEach((q) => { if (ab0.reglage && ab0.reglage[q]) ab.reglage = Object.assign({}, ab.reglage || {}, { [q]: ab0.reglage[q] }); }); // retouches de la fiche patient et de la consultation gardées
     await d.ref.update({ abonnement: ab });
   }
   console.log("formules enregistrées par", par, Object.keys(FS).join(", "), "cabinets mis à jour", maj.length);
@@ -724,20 +724,25 @@ exports.lienMembre = onCall({ timeoutSeconds: 30, memory: "256MiB" }, async (req
   const email = (await getAuth().getUser(uid)).email;
   return { lien: await getAuth().generatePasswordResetLink(email, { url: "https://chimio-hgc.web.app" }), email };
 });
-// ───── Fiche patient de la spécialité (10/10/2026) ─────
-// Réglée une fois par spécialité (Administration › Par spécialité › Bibliothèque et paramètres), la même pour tous les packs ;
-// gardée dans plateforme/specialites/{id} et recopiée dans chaque cabinet de la spécialité (espaces/{e}.ficheSpe, lisible par son
-// équipe), cabinets déjà créés compris ; les retouches d'un cabinet (abonnement.reglage.fiche) s'y ajoutent.
+// ───── Fiche patient et formulaire de consultation de la spécialité (10/10/2026, 16.6 bis et 16.7) ─────
+// Réglés une fois par spécialité (Administration › Par spécialité › Bibliothèque et paramètres), les mêmes pour tous les packs ;
+// gardés dans plateforme/specialites { idSpécialité: { nom, fiche, consultation } } et recopiés dans chaque cabinet de la spécialité
+// (espaces/{e}.ficheSpe / consultSpe, lisibles par son équipe), cabinets déjà créés compris ; les retouches d'un cabinet
+// (abonnement.reglage.fiche / consultation) s'y ajoutent.
 const bibDuCabinet = (x, FS) => C.bibDe((x.abonnement && FS[x.abonnement.formule] && FS[x.abonnement.formule].specialite) || "Oncologie – Radiothérapie");
+const CHAMP_ESPACE = { fiche: "ficheSpe", consultation: "consultSpe" };
 exports.ficheSpecialite = onCall({ timeoutSeconds: 120, memory: "256MiB" }, async (req) => {
-  const par = req.auth && req.auth.uid;
+  const par = req.auth && req.auth.uid, d = req.data || {}, quoi = d.quoi === "consultation" ? "consultation" : "fiche";
   if (!(await estAdministrateur(par))) throw new HttpsError("permission-denied", "Réservé à l'administration d'Onco360.");
-  const spe = String((req.data || {}).specialite || "").trim().slice(0, 40), fiche = C.ficheNettoyee((req.data || {}).fiche) || {};
+  const spe = String(d.specialite || "").trim().slice(0, 40), fiche = C.ficheNettoyee(d.fiche) || {};
   if (!spe) throw new HttpsError("invalid-argument", "Spécialité manquante.");
-  await db.doc("plateforme/specialites").set({ [C.idSpecialite(spe)]: { nom: spe, fiche, le: new Date().toISOString(), par } }, { merge: true });
+  // Document relu puis réécrit en entier : une clé retirée (nom affiché, case) disparaît vraiment
+  const ref = db.doc("plateforme/specialites"), s0 = await ref.get(), tout = s0.exists ? s0.data() : {}, id = C.idSpecialite(spe);
+  tout[id] = Object.assign({}, tout[id] || {}, { nom: spe, [quoi]: fiche, [quoi + "Le"]: new Date().toISOString(), [quoi + "Par"]: par });
+  await ref.set(tout);
   const FS = await formules(), bib = C.bibDe(spe), es = await db.collection("espaces").get(); let n = 0;
-  for (const d of es.docs) { if (C.estBib(d.id) || bibDuCabinet(d.data(), FS) !== bib) continue; await d.ref.update({ ficheSpe: fiche }); n++; }
-  console.log("fiche de la spécialité", spe, "par", par, n, "cabinet(s)");
+  for (const e of es.docs) { if (C.estBib(e.id) || bibDuCabinet(e.data(), FS) !== bib) continue; await e.ref.update({ [CHAMP_ESPACE[quoi]]: fiche }); n++; }
+  console.log(quoi, "de la spécialité", spe, "par", par, n, "cabinet(s)");
   return { cabinets: n, fiche };
 });
-async function ficheDe(specialite) { try { const s = await db.doc("plateforme/specialites").get(), o = s.exists ? s.data()[C.idSpecialite(specialite)] : null; return (o && o.fiche) || null; } catch (e) { return null; } }
+async function ficheDe(specialite) { try { const s = await db.doc("plateforme/specialites").get(), o = s.exists ? s.data()[C.idSpecialite(specialite)] : null; return o || {}; } catch (e) { return {}; } }

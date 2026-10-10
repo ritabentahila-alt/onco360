@@ -57,7 +57,7 @@ async def main():
         ok('fiche' not in ((await pa.evaluate('window.__fml'))['formules']['essentiel'].get('reglage') or {}), 'pack enregistré sans fiche')
         await pa.click('[data-sous="biblio"]'); await pa.wait_for_timeout(300)
         ok('Fiche patient' in await pa.inner_text('#page') and '1 ajouté' in await pa.inner_text('#page'), 'Bibliothèque et paramètres : carte « Fiche patient » de la spécialité')
-        await pa.click('#fsOuvrir'); await pa.wait_for_timeout(300)
+        await pa.click('[data-fsouvrir="fiche"]'); await pa.wait_for_timeout(300)
         await pa.click('#chNouv'); await pa.wait_for_timeout(200); await pa.fill('#chLib', 'Statut'); await pa.select_option('#chType', 'choix'); await pa.fill('#chChoix', 'Nouveau cas\nAncien cas'); await pa.check('#chImp'); await pa.click('#chOk'); await pa.wait_for_timeout(300)
         await pa.click('#fsCorps [data-fh="21"]'); await pa.wait_for_timeout(200); await pa.uncheck('#fsCorps [data-rch="email"]')
         await pa.click('#fsCorps [data-chl="atcdFam"]'); await pa.wait_for_timeout(200); await pa.fill('#chNomA', 'Antécédents familiaux et héréditaires'); await pa.click('#chLOk'); await pa.wait_for_timeout(200)

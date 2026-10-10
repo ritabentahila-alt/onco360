@@ -153,7 +153,10 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
   réglée dans Administration › Par spécialité › Bibliothèque et paramètres, recopiée dans `espaces/{e}.ficheSpe` de chaque cabinet de la spécialité
   (fonction `ficheSpecialite`, aussi à la création) ; fiche = { ordre, champs, libs (nom affiché d'un champ existant), ajouts [{ id x…, lib, type,
   choix, partie, imprimer, entete }] } ; retouches du cabinet `reglage.fiche` (différences seulement, `ficheRetouches`) ; pas de fiche dans un pack ;
-  catalogue `FICHE` / `ficheEffective(retouches, ficheSpe)` / `libChamp` (catalogue.js) ; `js/app/fichepatient.js` (`appliquerFiche` sur les `[data-champ]` des formulaires,
+  catalogue `FICHE` / `ficheEffective(retouches, ficheSpe)` / `libChamp` (catalogue.js, fonctions communes `formEffectif` / `formRetouches` / `libDe`) ;
+  **Formulaire de consultation (16.7)** : même système (`CONSULT`, `consultEffective`, `TYPES_CHAMP_CS` : + texte long, section, unité ;
+  `choixs.type` = liste des types de consultation), spécialité `plateforme/specialites[id].consultation` → `espaces/{e}.consultSpe`,
+  retouches `reglage.consultation`, valeurs `consultations/{c}.extra` (consultations.js `formulaire`, `htmlExtra`) ; `js/app/fichepatient.js` (`appliquerFiche` sur les `[data-champ]` des formulaires,
   `htmlSaisie` / `lireSaisie` / `fusionnerExtra`, `htmlLecture`, `aImprimer`) ; valeurs `identite.extra` / `clinique.extra`. Comptes de l'équipe : `creerMembre` / `lienMembre` (serveur ;
   la création de comptes depuis le navigateur est fermée dans Firebase). Cabinet de
   démonstration : `cab-demonstration` (`demo: true`), `creerCabinetDemo` / `demoReinitialiser`, patients fictifs `functions/demo.js`.
