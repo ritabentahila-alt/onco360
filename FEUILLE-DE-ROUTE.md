@@ -1418,7 +1418,7 @@ Relecture de `bilan.js`, `moteur/bilan.js`, `moteur/finances.js`, `moteur/tarifs
       établissement / type, pagination, 12 actes sans tarif signalés (tarifs de séance retirés), 390 px, bilan 352 317 DH, aucune erreur.
 
 
-**B3 – Améliorations** (fait et testé le 10/10 sauf le pointage en lot, pas encore en ligne)
+**B3 – Améliorations** (fait, testé et mis en ligne le 10/10 sauf le pointage en lot)
 - [ ] **Pointer en lot** : « Marquer payés » tous les actes à recevoir d'une clinique jusqu'à une date (quand un virement en vrac
       arrive), avec annulation. **Pas retenu pour l'instant** (Dr Bentahila, 10/10).
 - [x] Périodes : trimestre en cours, trimestre dernier, **année dernière**, chaque année depuis le 1er acte enregistré (« Année 2024 »…)
@@ -1696,3 +1696,4 @@ On garde le bleu Onco360 (#3563B0) et Arial ; les impressions (ordonnances, fich
 | 10/10/2026 | 15 bis – B2 | Taux réel de chaque acte, alerte « actes sans tarif » (0 DH), message sans tarifs, Actualiser séparé des exports, versement sans libellé = « Versement », référents selon établissement et type, journal par 300 lignes. Tests 17/17 + navigateur. Pas encore en ligne. |
 | 10/10/2026 | 15 bis – En ligne | B1 et B2 mis en ligne (site et règles). |
 | 10/10/2026 | 15 bis – B3 | Trimestres, année dernière et années précédentes ; tableau « Par établissement » (à recevoir par ancienneté) ; graphique mois par mois comparé à l'année d'avant ; relevé PDF des actes à régler pour un établissement. Pointage en lot non retenu. Tests 22/22 + navigateur. Pas encore en ligne. |
+| 10/10/2026 | 15 bis – B3 en ligne | Site mis en ligne par Dr Bentahila (v2.js?v=20261011m). |
