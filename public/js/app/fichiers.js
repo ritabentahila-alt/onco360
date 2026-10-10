@@ -47,6 +47,8 @@ function charger(x) {
     .catch((e) => { console.warn("documents", e); FI[x.id] = null; });
 }
 export function oublierFichiers(pid) { delete FI[pid]; }
+// Document affiché dans l'aperçu (19.7 ter, 10/10/2026) : pid → id ; fichiers déjà lus : id → adresse locale (blob)
+const SEL = {}, URLS = {};
 export const nbFichiers = (x) => (FI[x.id] || []).length;
 const redessiner = (pid) => { if (D().page === "dossier/" + encodeURIComponent(pid)) A.pageDossier(pid); };
 
@@ -63,10 +65,33 @@ export function htmlFichiers(x) {
   h += '<div class="fi-barre"><div class="recherche">' + A.ic("loupe") + '<input id="fiQ" type="search" autocomplete="off" placeholder="Rechercher un document (titre, type, fichier)…" value="' + esc(F.q) + '" oninput="fiFiltre(' + q + ')" aria-label="Rechercher un document"></div>' +
     '<select id="fiT" data-fn="documents.types" onchange="fiFiltre(' + q + ')" aria-label="Type de document"><option value="">Tous les types</option>' + presents.map((t) => '<option' + (F.t === t ? " selected" : "") + ">" + esc(t) + "</option>").join("") + "</select>" +
     (peutDeposer() ? '<button class="bt clair petit" onclick="fiAjouter(' + q + ')">' + A.ic("plus") + "Ajouter un document</button>" : "") + "</div>" +
-    '<div id="fiListe">' + listeHtml(x) + "</div>" +
-    '<p class="mesures" style="margin:8px 0 0">PDF, Word, photos (JPEG, PNG…) ou autre, 25 Mo au plus par fichier. Le pli confidentiel, le compte rendu de fin et les rendez-vous restent dans la carte de leur radiothérapie ; les ordonnances et les courriers, dans l\'onglet Consultation.</p>';
+    // Fenêtre coupée en deux : la liste à gauche, l'aperçu du document choisi à droite (sur téléphone : l'un sous l'autre)
+    (L.length ? '<div class="fi-split"><div id="fiListe" class="fi-g">' + listeHtml(x) + '</div><div class="fi-v" id="fiVue"></div></div>' : '<div id="fiListe">' + listeHtml(x) + "</div>");
+  if (L.length) setTimeout(() => afficherVue(x), 0); // aperçu rempli une fois la page affichée
   return h;
 }
+// Document choisi : celui cliqué, sinon le premier de la liste filtrée
+const visibles = (x) => { const L = FI[x.id] || [], F = FQ[x.id] || { q: "", t: "" }, mots = sansAcc(F.q).split(/\s+/).filter(Boolean);
+  return L.filter((f) => (!F.t || f.type === F.t) && mots.every((w) => sansAcc([f.titre, f.type, f.nom, f.creeParNom].join(" ")).indexOf(w) >= 0)); };
+const choisi = (x) => { const V = visibles(x); return V.find((f) => f.id === SEL[x.id]) || V[0] || null; };
+const genre = (f) => { const i = icone(f); return i === "PDF" ? "pdf" : i === "IMG" ? "img" : ""; };
+async function afficherVue(x) {
+  const z = $("fiVue"); if (!z) return; const f = choisi(x), esc = A.esc;
+  if (!f) { z.innerHTML = '<p class="sous" style="margin:12px">Aucun document à afficher.</p>'; return; }
+  SEL[x.id] = f.id; const qf = "'" + x.id + "','" + f.id + "'";
+  z.innerHTML = '<div class="fi-vt"><div class="tx"><b>' + esc(f.titre || f.nom) + '</b><div class="fi-m"><span class="badge b-co">' + esc(A.dfrA(f.d)) + "</span>" + (f.type ? '<span class="badge b-gr">' + esc(f.type) + "</span>" : "") + '</div><div class="mesures">' + esc(f.nom) + " · " + taille(f.taille || 0) + (f.creeParNom ? " · déposé par " + esc(f.creeParNom) : "") + "</div></div>" +
+    '<div class="actr"><button class="mini" onclick="fiOuvrir(' + qf + ')" title="Ouvrir dans une nouvelle fenêtre">Nouvelle fenêtre</button><button class="mini" onclick="fiTelecharger(' + qf + ')">Télécharger</button>' +
+    (peutDeposer() ? '<button class="mini" onclick="fiModifier(' + qf + ')">Modifier</button>' : "") + (peutSupprimer(f) ? '<button class="mini r" onclick="fiSupprimer(' + qf + ')">Supprimer</button>' : "") + "</div></div>" +
+    '<div class="fi-vc" id="fiVueC"><p class="sous" style="margin:12px">Chargement du document…</p></div>';
+  const g = genre(f);
+  if (!g) { $("fiVueC").innerHTML = '<div class="fi-sans"><span class="fi-ic fi-' + icone(f).toLowerCase() + '">' + icone(f) + "</span><p>Aperçu impossible pour ce type de fichier (" + esc(f.nom) + ').</p><p class="mesures">Utilisez « Télécharger » ou « Nouvelle fenêtre ».</p></div>'; return; }
+  try {
+    if (!URLS[f.id]) { const b = await lireFichier(f); URLS[f.id] = URL.createObjectURL(b.type ? b : new Blob([b], { type: f.mime || (g === "pdf" ? "application/pdf" : "image/jpeg") })); }
+    const c = $("fiVueC"); if (!c || SEL[x.id] !== f.id) return; // un autre document a été choisi entre-temps
+    c.innerHTML = g === "pdf" ? '<iframe src="' + URLS[f.id] + '" title="' + esc(f.titre || f.nom) + '"></iframe>' : '<img src="' + URLS[f.id] + '" alt="' + esc(f.titre || f.nom) + '">';
+  } catch (e) { const c = $("fiVueC"); if (c) c.innerHTML = '<p class="err" style="margin:12px">' + esc(e && /unauthorized|permission/.test(e.code || "") ? "Vous n'avez pas accès à ce document." : "Aperçu impossible : " + ((e && e.message) || e)) + "</p>"; }
+}
+window.fiChoisir = (pid, id) => { const x = trouver(pid); if (!x) return; SEL[pid] = id; document.querySelectorAll("#fiListe .fi").forEach((e) => e.classList.toggle("on", e.dataset.id === id)); afficherVue(x); };
 const icone = (f) => { const m = String(f.mime || ""), n = sansAcc(f.nom); return /pdf/.test(m) || /\.pdf$/.test(n) ? "PDF" : /^image\//.test(m) ? "IMG" : /word|officedocument\.wordprocessing|msword/.test(m) || /\.docx?$/.test(n) ? "DOC" : /sheet|excel/.test(m) || /\.xlsx?$/.test(n) ? "XLS" : "FIC"; };
 const taille = (o) => (o >= 1048576 ? (o / 1048576).toFixed(1).replace(".", ",") + " Mo" : Math.max(1, Math.round(o / 1024)) + " Ko");
 function listeHtml(x) {
@@ -75,16 +100,14 @@ function listeHtml(x) {
   const V = L.filter((f) => (!F.t || f.type === F.t) && mots.every((w) => sansAcc([f.titre, f.type, f.nom, f.creeParNom].join(" ")).indexOf(w) >= 0));
   if (!L.length) return '<p class="sous" style="margin:10px 0 0">Aucun document dans ce dossier.' + (peutDeposer() ? " « Ajouter un document » pour en déposer un (PDF, Word, photo…)." : "") + "</p>";
   if (!V.length) return '<p class="sous" style="margin:10px 0 0">Aucun document ne correspond' + (F.t ? " (type « " + esc(F.t) + " »)" : "") + ".</p>";
+  const sel = choisi(x);
   return (V.length < L.length ? '<p class="mesures" style="margin:8px 0 0">' + V.length + " document" + (V.length > 1 ? "s" : "") + " sur " + L.length + "</p>" : "") + '<div class="fi-liste">' + V.map((f) => {
-    const qf = "'" + x.id + "','" + f.id + "'";
-    return '<div class="fi"><span class="fi-ic fi-' + icone(f).toLowerCase() + '" aria-hidden="true">' + icone(f) + '</span><div class="tx"><b>' + esc(f.titre || f.nom) + '</b><div class="fi-m"><span class="badge b-co">' + esc(A.dfrA(f.d)) + "</span>" + (f.type ? '<span class="badge b-gr">' + esc(f.type) + "</span>" : "") + "</div>" +
-      '<div class="mesures">' + esc(f.nom) + " · " + taille(f.taille || 0) + (f.creeParNom ? " · déposé par " + esc(f.creeParNom) : "") + "</div></div>" +
-      '<div class="actr"><button class="mini" onclick="fiOuvrir(' + qf + ')">Ouvrir</button><button class="mini" onclick="fiTelecharger(' + qf + ')">Télécharger</button>' +
-      (peutDeposer() ? '<button class="mini" onclick="fiModifier(' + qf + ')">Modifier</button>' : "") + (peutSupprimer(f) ? '<button class="mini r" onclick="fiSupprimer(' + qf + ')">Supprimer</button>' : "") + "</div></div>";
+    return '<button type="button" class="fi' + (sel && sel.id === f.id ? " on" : "") + '" data-id="' + esc(f.id) + '" onclick="fiChoisir(\'' + x.id + "','" + f.id + '\')"><span class="fi-ic fi-' + icone(f).toLowerCase() + '" aria-hidden="true">' + icone(f) + '</span><span class="tx"><b>' + esc(f.titre || f.nom) + '</b><span class="fi-m"><span class="badge b-co">' + esc(A.dfrA(f.d)) + "</span>" + (f.type ? '<span class="badge b-gr">' + esc(f.type) + "</span>" : "") + "</span>" +
+      '<span class="mesures">' + taille(f.taille || 0) + (f.creeParNom ? " · " + esc(f.creeParNom) : "") + "</span></span></button>";
   }).join("") + "</div>";
 }
 // Recherche et filtre : seule la liste est redessinée (le curseur reste dans la recherche)
-window.fiFiltre = (pid) => { const x = trouver(pid); if (!x) return; FQ[pid] = { q: $("fiQ") ? $("fiQ").value : "", t: $("fiT") ? $("fiT").value : "" }; $("fiListe").innerHTML = listeHtml(x); };
+window.fiFiltre = (pid) => { const x = trouver(pid); if (!x) return; FQ[pid] = { q: $("fiQ") ? $("fiQ").value : "", t: $("fiT") ? $("fiT").value : "" }; const avant = SEL[pid]; $("fiListe").innerHTML = listeHtml(x); const c = choisi(x); if (!c || c.id !== avant) afficherVue(x); };
 
 // ───── Ajouter : fichier (choisi ou déposé), titre, date du document, type ─────
 let NV = null; // { pid, fichier }
@@ -179,6 +202,7 @@ async function envoyerUn(x, fl, titre, d, type) {
   try { await setDoc(r, f); } catch (e) { await deleteObject(sr).catch(() => {}); throw e; }
   FI[x.id] = (FI[x.id] || []).concat([Object.assign({ id: r.id }, f)]).sort(tri);
   A.journal(x, "Document ajouté (" + type + ") : " + titre);
+  SEL[x.id] = r.id; // le document déposé s'affiche dans l'aperçu
 }
 window.fiEnvoyer = async () => {
   if (!NV) return; const x = trouver(NV.pid), L = NV.fichiers || []; if (!x) return;
