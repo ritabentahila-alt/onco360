@@ -138,7 +138,11 @@ service cloud.firestore {
       }
       // Bibliothèques des prescriptions (médicaments, examens, ordonnances types, analyses, courriers) : lues par les
       // membres, modifiées par le médecin seulement (07/10/2026 : la secrétaire s'en sert sans les changer)
-      match /bibliotheques/{b} { allow read: if estMembre(); allow write: if droit('ecrireConsultations') && m().role == 'medecin'; }
+      // 10/10/2026 : la secrétaire peut ajouter un médicament à la liste (« Nouveau médicament ») ; le reste reste au médecin
+      match /bibliotheques/{b} {
+        allow read: if estMembre();
+        allow write: if droit('ecrireConsultations') && (m().role == 'medecin' || b == 'medicaments');
+      }
       // Documents de radiothérapie (pli confidentiel, compte rendu de fin, rendez-vous) enregistrés depuis leur fenêtre :
       // lus, modifiés et supprimés avec le droit « documents » (médecin, secrétaire), dans le périmètre du membre
       match /documentsRT/{d} {
@@ -223,7 +227,13 @@ service cloud.firestore {
       match /finances/{d} { allow read: if droit('finances'); allow write: if droit('finances') && (!comptable() || d in ['paiements', 'versements']); }
       // Bibliothèque et paramètres : lecture par les membres, modification avec le droit « paramètres »
       match /protocoles/{d} { allow read: if estMembre(); allow write: if droit('parametres'); }
-      match /parametres/{d} { allow read: if estMembre(); allow write: if droit('parametres'); }
+      // Paramètres du secrétariat (droit « secretariat », secrétaire, 10/10/2026) : absences et horaires (calendrier), listes, types
+      // de tâches et de documents, bouton WhatsApp vert (reglages) ; l'écran ne lui ouvre que ces parties (fériés, messages,
+      // impression, alertes en lecture seule)
+      match /parametres/{d} {
+        allow read: if estMembre();
+        allow write: if droit('parametres') || (droit('secretariat') && d in ['calendrier', 'listes', 'typesTaches', 'typesDocuments', 'reglages']);
+      }
       // Listes (diagnostics, mutuelles, correspondants) : un nom nouveau tapé dans une fiche patient s'y ajoute, pour tout
       // membre qui crée ou modifie une fiche (08/10/2026) ; corrections et suppressions dans Paramètres (droit « paramètres »)
       match /parametres/listes { allow write: if droit('identite') || droit('fichePatient') || droit('creerPatient'); }

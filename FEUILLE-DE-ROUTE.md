@@ -1221,6 +1221,36 @@ Modules et menus, Bibliothèques et paramètres ; cabinets en liste ; onglet lis
       avec les réglages des abonnements. Aucun envoi automatique. Tests `tests/test_relances.py` 12/12, serveur 82/82.
 - [ ] 16.5 Nouvelle spécialité (copie ou vide) ; Médecine générale, Gynécologie prêtes pour l'étape 14.
 
+## Étape 19 – Accès et paramètres de la secrétaire (demandé le 10/10/2026) — audit : `AUDIT-SECRETAIRE.md`
+Audit fait en secrétaire (compte de test, droits par défaut, rattachée à HCK) : liste complète de ce qu'elle peut et ne peut pas
+faire dans `AUDIT-SECRETAIRE.md`.
+Décisions de Dr Bentahila (10/10) :
+- une secrétaire peut travailler pour **plusieurs médecins qui ont chacun leur cabinet Onco360** : un compte relié à plusieurs
+  cabinets, menu « Cabinet du Dr … » pour passer de l'un à l'autre (ses patients, ses paramètres) ;
+- médicament absent de la liste : « Ligne libre » dans Médic. (pour tous) **et** la secrétaire peut ajouter un médicament à la liste ;
+- elle **modifie** : fermetures et congés, créneaux et horaires (de ses lieux), listes, types de tâches et de documents, bouton
+  WhatsApp vert ; **lecture seule** : messages WhatsApp, jours fériés, tâches automatiques, RCP, couleurs, impression, alertes,
+  bibliothèques (sauf ajout d'un médicament).
+
+**19.1 – Corrections et droits de modification** (fait et testé le 10/10, pas encore en ligne)
+- [x] Nouveau droit « Paramètres du secrétariat » (`secretariat`, grille Accès ; oui par défaut pour la secrétaire et le médecin) :
+      règle `parametres/{calendrier, listes, typesTaches, typesDocuments, reglages}` ; l'écran n'ouvre que les parties décidées.
+      Écrit dans la fiche de la secrétaire à la prochaine connexion du titulaire (`migrations()`).
+- [x] Médic. : « Ligne libre (médicament hors liste) » ; « Nouveau médicament » pour la secrétaire (ajouté à la liste et à
+      l'ordonnance) ; modifier / supprimer / favoris restent au médecin. Règle : `bibliotheques/medicaments` écrit avec
+      `ecrireConsultations`.
+- [x] Lieux d'exercice : ses lieux seulement (« Mon lieu d'exercice ») ; exemple des messages WhatsApp avec son lieu.
+- [x] Profil d'un non-médecin : sans titre Dr / Pr, spécialité, INPE ni signature.
+- [ ] Documents : le dépôt marche dans le test avec les droits par défaut. Si la secrétaire ne peut toujours pas déposer : vérifier
+      la case « Documents » de sa grille (Profil & Paramètres › Accès) et noter le message affiché.
+- [ ] Mise en ligne (règles + site ; fonctions pour `creerMembre`).
+
+**19.2 – Une secrétaire, plusieurs cabinets** (à faire, une session)
+- [ ] `comptes/{uid}` avec plusieurs cabinets ; `creerMembre` accepte une adresse déjà utilisée par une secrétaire d'un autre
+      cabinet (avec l'accord du titulaire qui l'ajoute) ; menu « Cabinet du Dr … » en haut de l'écran ; tout (patients, agenda,
+      paramètres, tâches, RCP, Google Agenda) suit le cabinet choisi ; règles et tests d'étanchéité.
+- [ ] Google Agenda de la secrétaire : un agenda par cabinet ou un seul pour tous (à décider).
+
 ## Étape 14 – Autres spécialités (demandé le 09/10/2026) : nouveaux modules et leurs formules
 Onco360 s'ouvrira avec le temps à d'autres médecins : **médecine générale**, **gynécologie**, puis d'autres spécialités. Pour
 chacune : des **modules propres** (créés au fur et à mesure) et des **formules propres**, rangées par spécialité dans la page
@@ -1490,3 +1520,4 @@ Onco360_Package_Cession/
 | 10/10/2026 | 18.4 Factures | Mon entreprise (mentions légales), facture à chaque paiement (F-AAAA-NNNN), avoir (AV-AAAA-NNNN), facture A4 avec montant en lettres, Comptabilité › Factures et export. Mis en ligne. |
 | 10/10/2026 | 18.5 Profil & Paramètres | Onco360 : onglets Informations, Accès, Abonnement, Factures ; carte d'abonnement sur le tableau de bord (comme Tbibclic) ; demandes des médecins dans l'Administration. Décision : le bilan de test (352 317 DH) n'est plus vérifié à chaque étape. Mis en ligne. |
 | 10/10/2026 | 18.6 Relances | Comptabilité › Relances : retards, échéances proches, fins d'essai ; message prêt (WhatsApp, e-mail), relance notée, modèles des messages. Plan de l'audit terminé (reste 16.5). Mis en ligne. |
+| 10/10/2026 | 19.1 Secrétaire | Audit des accès de la secrétaire (`AUDIT-SECRETAIRE.md`). Décidé : secrétaire pour plusieurs cabinets (19.2, à faire). Fait : droit « Paramètres du secrétariat » (congés, horaires de ses lieux, listes, types, bouton WhatsApp vert), Médic. avec ligne libre et ajout d'un médicament par la secrétaire, ses lieux seulement, profil allégé. Règles 211/211, serveur 0 échec, navigateur (ordinateur et 390 px). Pas encore en ligne. |

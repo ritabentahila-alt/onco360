@@ -68,7 +68,8 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
   (absents = `donnees/analyses.js`) ; `bibliotheques/examens` [{ id, nom, cat, note }]
   (absent = `donnees/examens.js` ; pas de bilans d'imagerie) ; `bibliotheques/courriers` [{ id, nom, html, fav }] (absent = `donnees/courriers.js` :
   modèles avec champs {patient} {age} {date}… et zones `<mark class="or-ac">` à compléter) ; `fav` = favori ⭐ (en tête de liste) sur toutes ces listes ;
-  lu par les membres, écrit par le **médecin** seulement (07/10/2026 : la secrétaire s'en sert sans les modifier)
+  lu par les membres, écrit par le **médecin** seulement (07/10/2026 : la secrétaire s'en sert sans les modifier ; 10/10/2026 :
+  sauf `medicaments`, où elle ajoute un médicament, droit `ecrireConsultations`)
 - `documentsRT/{patient}_{rt}_{pli|cr|rdv}` : `html` du document enregistré (une version par radiothérapie et par type),
   `patientId`, `etablissementId`, `rtId`, `type`, `majLe`, `majPar(Nom)` ; droit `documents` (médecin, secrétaire)
 - `fichiers/{id}` : documents déposés (onglet Documents, `js/app/fichiers.js`, 08/10/2026) = `patientId`, `etablissementId`,
@@ -194,6 +195,8 @@ Ancienne application : collections racine `patients`, `protocoles`, `finances`, 
   Droits ajoutés le 06/10/2026 (DROITS_ROLE et `droitsEffectifs` dans profil.js : un droit absent de la grille d'un membre
   prend la valeur par défaut de son rôle ; `migrations()` dans v2.js l'écrit dans les fiches des membres, une fois, par le titulaire) :
   `fichePatient` (poids, taille, diagnostic, allergies, antécédents ; règle : `clinique` sans toucher à `clinique.notes`),
+  `secretariat` (10/10/2026, étape 19 : absences, horaires de ses lieux, listes, types de tâches et de documents, bouton
+  WhatsApp vert ; règle `parametres/{calendrier, listes, typesTaches, typesDocuments, reglages}` ; `ONGLETS_SEC` de configuration.js),
   `consultations` (voir consultations et hospitalisations), `documents` (pli, CR, rendez-vous Excel), `encaissements`
   (collection `encaissements/{patient}` = prix des consultations validées + consultation de chimio cochée, écrite par
   `majMontants` / `ecrireEncaissements` dans chimio.js, sans honoraires ni RT), `radiotherapie: "chimio"` (voir la RT

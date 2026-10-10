@@ -12,11 +12,11 @@ const ROLES = { medecin: "Médecin", infirmiere: "Infirmière", assistante: "Ass
 // Droits proposés par défaut selon le rôle (grille validée en phase B1, complétée le 06/10/2026 et le 07/10/2026), modifiables membre par membre.
 // radiotherapie : "aucun" | "voir" | "modifier" | "chimio" (= voir, seulement les patients sous chimio en même temps)
 export const DROITS_ROLE = {
-  medecin: { identite: true, fichePatient: true, rendezvous: true, consultations: true, ecrireConsultations: true, planningChimio: true, traitements: "modifier", radiotherapie: "modifier", documents: true, administrer: true, encaissements: true, creerPatient: true, supprimerPatient: true, finances: true, parametres: true },
-  infirmiere: { identite: false, fichePatient: false, rendezvous: false, consultations: false, ecrireConsultations: false, planningChimio: false, traitements: "voir", radiotherapie: "chimio", documents: false, administrer: true, encaissements: false, creerPatient: false, supprimerPatient: false, finances: false, parametres: false },
-  assistante: { identite: true, fichePatient: true, rendezvous: true, consultations: true, ecrireConsultations: true, planningChimio: true, traitements: "voir", radiotherapie: "aucun", documents: true, administrer: false, encaissements: true, creerPatient: true, supprimerPatient: false, finances: false, parametres: false },
+  medecin: { identite: true, fichePatient: true, rendezvous: true, consultations: true, ecrireConsultations: true, planningChimio: true, traitements: "modifier", radiotherapie: "modifier", documents: true, administrer: true, encaissements: true, creerPatient: true, supprimerPatient: true, finances: true, parametres: true, secretariat: true },
+  infirmiere: { identite: false, fichePatient: false, rendezvous: false, consultations: false, ecrireConsultations: false, planningChimio: false, traitements: "voir", radiotherapie: "chimio", documents: false, administrer: true, encaissements: false, creerPatient: false, supprimerPatient: false, finances: false, parametres: false, secretariat: false },
+  assistante: { identite: true, fichePatient: true, rendezvous: true, consultations: true, ecrireConsultations: true, planningChimio: true, traitements: "voir", radiotherapie: "aucun", documents: true, administrer: false, encaissements: true, creerPatient: true, supprimerPatient: false, finances: false, parametres: false, secretariat: true },
   // Comptable (étape 9 S2, 09/10/2026) : bilan et pointage des paiements seulement ; aucun dossier (les règles le lui ferment)
-  comptable: { identite: false, fichePatient: false, rendezvous: false, consultations: false, ecrireConsultations: false, planningChimio: false, traitements: "aucun", radiotherapie: "aucun", documents: false, administrer: false, encaissements: false, creerPatient: false, supprimerPatient: false, finances: true, parametres: false },
+  comptable: { identite: false, fichePatient: false, rendezvous: false, consultations: false, ecrireConsultations: false, planningChimio: false, traitements: "aucun", radiotherapie: "aucun", documents: false, administrer: false, encaissements: false, creerPatient: false, supprimerPatient: false, finances: true, parametres: false, secretariat: false },
 };
 // Droits d'un membre : ceux de sa grille, complétés par les valeurs par défaut de son rôle pour les droits ajoutés depuis
 export const droitsEffectifs = (m) => Object.assign({}, DROITS_ROLE[(m && m.role)] || {}, (m && m.droits) || {});
@@ -29,6 +29,7 @@ const LIB_DROITS = [
   ["planningChimio", "Planning de l'hôpital de jour (déplacer les cures)"],
   ["encaissements", "Prix à encaisser : consultations validées par le médecin, consultation de chimio"],
   ["creerPatient", "Créer un patient"], ["supprimerPatient", "Supprimer un patient"], ["finances", "Montants, tarifs, bilan"], ["parametres", "Paramètres, bibliothèque, configuration, établissements"],
+  ["secretariat", "Paramètres du secrétariat : absences et congés, horaires de ses lieux, listes, types de tâches et de documents, bouton WhatsApp vert"],
 ];
 const NIVEAUX = [["aucun", "Non visible"], ["voir", "Voir"], ["modifier", "Modifier"]];
 const NIVEAUX_RT = [["aucun", "Non visible"], ["chimio", "Voir : patients sous chimio"], ["voir", "Voir : tous"], ["modifier", "Modifier"]];
@@ -77,15 +78,15 @@ window.pfOnglet = (o) => { location.hash = "parametres/" + (o === "gagenda" ? "c
 // ───── Informations ─────
 function vueInfos() {
   const p = D().profil || {}, mb = D().membre, esc = A.esc;
-  const inpe = p.inpe || "";
+  const inpe = p.inpe || "", med = mb.role === "medecin"; // titre Dr / Pr, spécialité, INPE, signature : médecins seulement (10/10/2026)
   const ch = (id, lib, v, o) => '<div class="' + (o && o.large ? "large" : "") + '"><label for="' + id + '">' + lib + '</label><input id="' + id + '" value="' + esc(v || "") + '"' + (o && o.type ? ' type="' + o.type + '"' : "") + (o && o.off ? " disabled" : "") + (o && o.ph ? ' placeholder="' + o.ph + '"' : "") + (o && o.ac ? ' autocomplete="' + o.ac + '"' : "") + "></div>";
-  return '<section class="carte"><h3><span class="ic">' + A.ic("profil") + '</span>Mes informations</h3><p class="sous">Le nom, l\'INPE et la signature apparaissent sur la fiche de chimiothérapie et les comptes rendus.</p>' +
+  return '<section class="carte"><h3><span class="ic">' + A.ic("profil") + '</span>Mes informations</h3><p class="sous">' + (med ? "Le nom, l\'INPE et la signature apparaissent sur la fiche de chimiothérapie et les comptes rendus." : "Votre nom apparaît dans les consultations, les tâches et les ordonnances que vous préparez.") + "</p>" +
     '<div class="photo-pf"><div class="av grand">' + (p.photo ? '<img src="' + p.photo + '" alt="Photo">' : esc(((p.prenom || "")[0] || "") + ((String(p.nom || "").replace(/^Dr\.?\s*/i, ""))[0] || "")).toUpperCase() || "?") + '</div><div><label for="pfPhoto">Photo (facultatif)</label><input id="pfPhoto" type="file" accept="image/*"><div class="mesures">Elle remplace vos initiales dans la bulle du profil.</div>' + (p.photo ? '<label style="font-weight:normal;margin-top:6px"><input id="pfPhotoSup" type="checkbox" style="width:auto;margin-right:6px">Retirer la photo</label>' : "") + "</div></div><div class=\"form\">" +
-    '<div><label for="pfTitre">Titre</label><select id="pfTitre">' + ["", "Dr", "Pr", "M.", "Mme"].map((t) => "<option" + ((p.titre || "") === t ? " selected" : "") + ">" + t + "</option>").join("") + "</select></div>" +
-    ch("pfSpe", "Spécialité", p.specialite, { ph: "Oncologue-radiothérapeute, oncologue médical…" }) + ch("pfPre", "Prénom", p.prenom) + ch("pfNom", "Nom", p.nom) +
+    '<div><label for="pfTitre">Titre</label><select id="pfTitre">' + (med ? ["", "Dr", "Pr", "M.", "Mme"] : ["", "M.", "Mme"]).map((t) => "<option" + ((p.titre || "") === t ? " selected" : "") + ">" + t + "</option>").join("") + "</select></div>" +
+    (med ? ch("pfSpe", "Spécialité", p.specialite, { ph: "Oncologue-radiothérapeute, oncologue médical…" }) : "") + ch("pfPre", "Prénom", p.prenom) + ch("pfNom", "Nom", p.nom) +
     ch("pfMail", "E-mail (identifiant de connexion)", D().u.email, { off: true }) + ch("pfTel", "Téléphone", p.telephone, { type: "tel", ph: "06…" }) +
-    ch("pfRole", "Rôle dans l'espace", ROLES[mb.role] || mb.role, { off: true }) + ch("pfInpe", "INPE", inpe, { ph: "N° INPE" }) +
-    '<div class="large"><label>Signature (image scannée, facultatif)</label><div class="sig">' + (p.signature ? '<img src="' + p.signature + '" alt="Signature">' : '<span class="mesures">Aucune signature enregistrée.</span>') + '<input id="pfSig" type="file" accept="image/*">' + (p.signature ? '<label style="font-weight:normal"><input id="pfSigSup" type="checkbox" style="width:auto;margin-right:6px">Retirer la signature</label>' : "") + "</div></div>" +
+    ch("pfRole", "Rôle dans l'espace", ROLES[mb.role] || mb.role, { off: true }) + (med ? ch("pfInpe", "INPE", inpe, { ph: "N° INPE" }) +
+    '<div class="large"><label>Signature (image scannée, facultatif)</label><div class="sig">' + (p.signature ? '<img src="' + p.signature + '" alt="Signature">' : '<span class="mesures">Aucune signature enregistrée.</span>') + '<input id="pfSig" type="file" accept="image/*">' + (p.signature ? '<label style="font-weight:normal"><input id="pfSigSup" type="checkbox" style="width:auto;margin-right:6px">Retirer la signature</label>' : "") + "</div></div>" : "") +
     '</div><h4 class="soustitre">Mot de passe</h4><p class="mesures">Laissez vide pour ne pas le changer.</p><div class="form">' + ch("pfMdpA", "Mot de passe actuel", "", { type: "password", ac: "current-password" }) + ch("pfMdp", "Nouveau mot de passe (8 caractères minimum)", "", { type: "password", ac: "new-password" }) + ch("pfMdp2", "Confirmer le nouveau mot de passe", "", { type: "password", ac: "new-password" }) + "</div>" +
     '<div class="err" id="fErr"></div><div class="boutons"><button class="bt plein" id="pfOk" onclick="pfEnregistrer()"><svg class="pi"><use href="#i-enregistrer"/></svg>Enregistrer</button></div></section>';
 }
@@ -95,8 +96,9 @@ window.pfEnregistrer = async () => {
   if (n1 || n2) { if (n1.length < 8) { err("Le nouveau mot de passe doit faire au moins 8 caractères."); return; } if (n1 !== n2) { err("Les deux mots de passe ne sont pas identiques."); return; } if (!old) { err("Indiquez votre mot de passe actuel pour le changer."); return; } }
   A.occupe(b, true); err("");
   try {
-    const maj = { email: D().u.email, titre: v("pfTitre"), specialite: v("pfSpe"), prenom: v("pfPre"), nom: v("pfNom").toUpperCase(), telephone: v("pfTel"), inpe: v("pfInpe") };
-    const sig = await lireImage(A.$("pfSig"), 500); if (sig) maj.signature = sig; else if (A.$("pfSigSup") && A.$("pfSigSup").checked) maj.signature = "";
+    const maj = { email: D().u.email, titre: v("pfTitre"), prenom: v("pfPre"), nom: v("pfNom").toUpperCase(), telephone: v("pfTel") };
+    if (A.$("pfInpe")) Object.assign(maj, { specialite: v("pfSpe"), inpe: v("pfInpe") }); // médecins
+    const sig = A.$("pfSig") ? await lireImage(A.$("pfSig"), 500) : null; if (sig) maj.signature = sig; else if (A.$("pfSigSup") && A.$("pfSigSup").checked) maj.signature = "";
     const ph = await lireImage(A.$("pfPhoto"), 256, true); if (ph) maj.photo = ph; else if (A.$("pfPhotoSup") && A.$("pfPhotoSup").checked) maj.photo = "";
     await setDoc(doc(db, "utilisateurs", D().u.uid), maj, { merge: true });
     if (n1) {
@@ -111,13 +113,14 @@ window.pfEnregistrer = async () => {
 // ───── Lieux d'exercice ─────
 function vueLieux() {
   const ok = A.peut("parametres");
-  return '<section class="carte"><div class="entete"><h3><span class="ic">' + A.ic("accueil") + '</span>Mes lieux d\'exercice</h3>' + (ok ? '<button class="bt clair petit" onclick="pfLieu()">' + A.ic("plus") + "Ajouter un hôpital</button>" : "") + "</div>" +
+  return '<section class="carte"><div class="entete"><h3><span class="ic">' + A.ic("accueil") + '</span>' + (D().membre.tousEtablissements ? "Mes lieux d\'exercice" : "Mon lieu d\'exercice") + "</h3>" + (ok ? '<button class="bt clair petit" onclick="pfLieu()">' + A.ic("plus") + "Ajouter un hôpital</button>" : "") + "</div>" +
     '<p class="sous">Chaque patient est rattaché à un établissement : il détermine les tarifs appliqués et les membres de l\'équipe qui voient le dossier.</p>' +
     '<div class="recherche" style="max-width:460px">' + A.ic("loupe") + '<input id="pfQ" type="search" placeholder="Rechercher un établissement…" value="' + A.esc(Q) + '"></div><div id="pfL" style="margin-top:10px">' + listeLieux() + "</div></section>";
 }
 function listeLieux() {
   const esc = A.esc, sa = (s) => String(s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""), m = sa(Q).split(/\s+/).filter(Boolean);
-  const l = (D().etabsTous || D().etabs).filter((e) => m.every((w) => sa(e.code + " " + e.nom + " " + (e.adresse || "")).indexOf(w) >= 0));
+  // membre limité à certains établissements (secrétaire d'un centre, 10/10/2026) : seulement les siens
+  const mb = D().membre, l = (D().etabsTous || D().etabs).filter((e) => (mb.tousEtablissements || (mb.etablissements || []).indexOf(e.code) >= 0) && m.every((w) => sa(e.code + " " + e.nom + " " + (e.adresse || "")).indexOf(w) >= 0));
   if (!l.length) return '<p class="sous">Aucun établissement.</p>';
   return l.map((e) => '<div class="lieu' + (e.actif === false ? " off" : "") + '">' + (e.logo ? '<img src="' + e.logo + '" alt="">' : '<span class="av">' + esc(e.code) + "</span>") +
     '<div class="tx"><b>' + esc(e.nom) + ' <span class="badge b-gr">' + esc(e.code) + "</span>" + (e.actif === false ? ' <span class="badge b-al">Désactivé</span>' : "") + "</b><span>" + esc([e.adresse, e.tel].filter(Boolean).join(" · ") || "Adresse et téléphone à compléter") + "</span></div>" +

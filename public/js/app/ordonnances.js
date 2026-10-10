@@ -35,6 +35,8 @@ const alpha = (a, b) => (b.fav ? 1 : 0) - (a.fav ? 1 : 0) || sansAcc(a.nom).loca
 // et mises en favori par le médecin seulement (07/10/2026) ; la secrétaire s'en sert pour prescrire
 const gereListes = () => peutEcrire() && D().membre.role === "medecin";
 const gerer = (h) => (gereListes() ? h : "");
+// Nouveau médicament dans la liste du cabinet : aussi la secrétaire (10/10/2026) ; modifier, supprimer, favoris : le médecin
+const ajouteMedic = () => peutEcrire();
 const etoile = (o, fn) => !gereListes() ? (o.fav ? '<span class="ico etoile on" title="Favori" aria-label="Favori">' + ico("etoile") + "</span>" : "") : '<button class="ico etoile' + (o.fav ? " on" : "") + '" aria-pressed="' + !!o.fav + '" title="' + (o.fav ? "Retirer des favoris" : "Mettre en favori (en tête de liste)") + '" aria-label="Favori : ' + A.esc(o.nom) + '" onclick="' + fn + "('" + o.id + "')\">" + ico("etoile") + "</button>";
 const ico = (n) => '<svg class="pi"><use href="#i-' + n + '"/></svg>';
 
@@ -120,9 +122,10 @@ function vueListe() {
   const x = trouver(S.pid);
   A.fenetre("<h3>" + (S.modif ? "Modifier l'ordonnance du " + A.dfrA(S.modif.d) : "Médicaments") + titrePat(x) + "</h3>" +
     '<div class="md-barre"><div class="recherche">' + A.ic("loupe") + '<input id="mdQ" type="search" autocomplete="off" placeholder="Rechercher un médicament, une posologie, une classe…" value="' + A.esc(S.q) + '"></div>' +
-    gerer('<button class="bt clair petit" onclick="mdFiche()">' + A.ic("plus") + "Nouveau médicament</button>") + "</div>" +
+    (ajouteMedic() ? '<button class="bt clair petit" onclick="mdFiche()">' + A.ic("plus") + "Nouveau médicament</button>" : "") + "</div>" +
     '<div class="md-liste" id="mdListe"></div>' + (S.gestion ? "" : '<p class="mesures" style="margin:6px 0 0">Double-cliquez sur un médicament (ou touchez ' + ico("plus") + ") pour l'ajouter à l'ordonnance.</p>" +
-    '<h4 class="soustitre">Ordonnance</h4><div id="mdOrdo" class="md-ordo"></div>') +
+    '<h4 class="soustitre">Ordonnance</h4><div id="mdOrdo" class="md-ordo"></div>' +
+    '<div class="md-ajout"><button class="bt gris petit" onclick="mdLigneLibre()">' + A.ic("plus") + "Ligne libre (médicament hors liste)</button></div>") +
     (S.gestion ? basGestion : '<div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt plein" onclick="mdAfficher()">Afficher l\'ordonnance</button></div>'), "large");
   $("mdQ").oninput = () => { S.q = $("mdQ").value; liste(); };
   liste(); ordo();
@@ -137,7 +140,7 @@ function liste() {
       (S && S.gestion ? "" : '<button class="ico vert" title="Ajouter à l\'ordonnance" aria-label="Ajouter ' + A.esc(m.nom) + ' à l\'ordonnance" onclick="mdAjouter(' + q + ')">' + ico("plus") + "</button>") +
       gerer('<button class="ico" title="Modifier" aria-label="Modifier ' + A.esc(m.nom) + '" onclick="mdFiche(' + q + ')">' + ico("crayon") + "</button>" +
       '<button class="ico rouge" title="Supprimer de la liste" aria-label="Supprimer ' + A.esc(m.nom) + '" onclick="mdSupprimer(' + q + ')">' + ico("croix") + "</button>") + "</td></tr>";
-  }).join("") + "</table>" : '<p class="sous" style="padding:12px">Aucun médicament ne correspond.' + gerer(" « Nouveau médicament » pour l'ajouter à la liste.") + "</p>";
+  }).join("") + "</table>" : '<p class="sous" style="padding:12px">Aucun médicament ne correspond.' + (ajouteMedic() ? " « Nouveau médicament » pour l'ajouter à la liste" + (S && !S.gestion ? ", ou « Ligne libre » pour l'écrire seulement dans cette ordonnance." : ".") : "") + "</p>";
 }
 // Médicaments de l'ordonnance en préparation : modifier ✎ (nom, posologie), monter, descendre, retirer
 function ordo() {
@@ -276,7 +279,7 @@ window.otSupprimer = async (id) => {
 
 // Nouveau médicament / modifier : nom, posologie, classe thérapeutique
 window.mdFiche = (id) => {
-  if (!gereListes()) return;
+  if (id ? !gereListes() : !ajouteMedic()) return;
   T = null;
   const m = id ? BIB.find((z) => z.id === id) : null, classes = [...new Set(BIB.map((z) => z.classe).filter(Boolean))].sort();
   A.fenetre("<h3>" + (m ? "Modifier le médicament" : "Nouveau médicament") + "</h3>" +
@@ -292,7 +295,8 @@ window.mdFiche = (id) => {
     A.occupe($("mdOk"), true);
     try {
       await modifierBib((L) => { const z = m && L.find((y) => y.id === m.id); if (z) Object.assign(z, { nom, poso, classe }); else L.push({ id: "m" + Date.now().toString(36), nom, poso, classe }); });
-      A.toast(m ? "Médicament modifié." : "Médicament ajouté à la liste."); mdRetour();
+      const pourOrdo = !m && S && !S.gestion; if (pourOrdo) S.items.push({ nom, poso }); // ordonnance du patient : ajouté aussi
+      A.toast(m ? "Médicament modifié." : pourOrdo ? "Médicament ajouté à la liste et à l'ordonnance." : "Médicament ajouté à la liste."); mdRetour();
     } catch (e) { A.occupe($("mdOk"), false); A.erreur(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de modifier la liste des médicaments." : "Enregistrement impossible : " + ((e && e.message) || e)); }
   };
 };
