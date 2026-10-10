@@ -1251,7 +1251,7 @@ Décisions de Dr Bentahila (10/10) :
       du médecin ; « Poids validé par … le … » affiché ; doses recalculées.
 - [ ] Documents : le dépôt marche dans le test avec les droits par défaut. Si la secrétaire ne peut toujours pas déposer : vérifier
       la case « Documents » de sa grille (Profil & Paramètres › Accès) et noter le message affiché.
-- [ ] Mise en ligne (avec 19.2).
+- [x] Mise en ligne (avec 19.2, le 10/10).
 
 **19.2 – Une secrétaire, plusieurs cabinets** (fait et testé le 10/10, pas encore en ligne)
 - [x] `comptes/{uid}` = { espace (principal), espaces [tous] } tenu par `compteMembre` (ajout / retrait d'une fiche de membre) ;
@@ -1268,7 +1268,7 @@ Décisions de Dr Bentahila (10/10) :
       (`utilisateurs/{uid}.agendaCouleurs`, sans le droit « paramètres »), qui passent avant celles du cabinet.
 - [x] Tests : règles 221/221 (secrétaire de deux cabinets : lit les deux, pas un troisième, ne modifie pas sa liste), serveur 88/88,
       navigateur (changement de cabinet, cases, couleurs, ajout depuis Accès, 390 px).
-- [ ] Mise en ligne : règles, site, **toutes les fonctions** (comptes, Google Agenda, `corrigerListes`).
+- [x] Mise en ligne : règles, site, toutes les fonctions (vérifié le 10/10 : règles et fonctions déjà à jour, site remis avec la 19.7).
 
 **Audit n° 2 de la secrétaire (10/10)** : détail dans `AUDIT-SECRETAIRE.md` (5 corrections, 7 améliorations, 9 ajouts). Plan proposé,
 à valider par Dr Bentahila (4 questions dans l'audit) :
@@ -1587,3 +1587,4 @@ Onco360_Package_Cession/
 | 10/10/2026 | 19.5 « Payé auto. » retiré | Décision de Dr Bentahila : case retirée de Paramètres › Activités (consultations au cabinet = encaissement ; séances de chimio, hospitalisations, lieux payés par l'établissement = virement, « Payé » coché dans le bilan). L'ancien réglage reste appliqué aux actes validés avant le 12/10/2026 (bilan passé inchangé : payé 186 004 DH identique). |
 | 10/10/2026 | 19.6 close | Pas d'alerte de poids ni de validation des ordonnances de la secrétaire (décision) ; son nom figure déjà sur ce qu'elle crée. Reste 19.7 (plusieurs cabinets, confort). |
 | 10/10/2026 | 19.7 Plusieurs cabinets, confort | Pastilles par cabinet dans le menu « Cabinet », page « Mes cabinets aujourd'hui », dépôt de plusieurs fichiers. Étape 19 terminée (reste le guide de la secrétaire, avec l'étape 12). |
+| 10/10/2026 | Mise en ligne 19.1 à 19.7 | Vérifié : règles et fonctions déjà à jour en ligne (mises par Dr Bentahila), site remis (v2.js?v=20261010w, avec la 19.7). Règles 227/227 avant. GitHub à jour. À faire par Dr Bentahila : HGC et CIOC « au cabinet ». |
