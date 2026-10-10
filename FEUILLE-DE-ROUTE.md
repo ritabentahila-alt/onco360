@@ -1436,8 +1436,10 @@ On garde le bleu Onco360 (#3563B0) et Arial ; les impressions (ordonnances, fich
 - [x] 20.2 bis Onglets sur une ligne (11/10, demande de Dr Bentahila) : Paramètres et Profil & Paramètres = une seule ligne qui
       défile vers la droite (molette, glisser, flèches ‹ › aux bouts, bords estompés), onglet choisi toujours visible ; plus
       d'onglets empilés sur plusieurs lignes (classe `ag-vues defile`, réutilisable pour d'autres barres).
-- [ ] 20.3 Relief : ombre plus marquée des cartes, cartes cliquables qui se soulèvent au survol, ombre colorée du menu actif
-      et des boutons principaux, chiffres clés « carré d'icône + grand chiffre », fond légèrement teinté.
+- [x] 20.3 Relief (11/10) : fond légèrement teinté (#F1F5FB), ombre des cartes plus marquée, coins 18 px ; chiffres clés en
+      cartes (carré d'icône, grand chiffre) qui se soulèvent au survol, sur une seule ligne à partir de 1600 px ; ombre bleue du
+      menu actif, des boutons principaux et de l'onglet choisi ; lignes de listes surlignées au survol ; barre du haut
+      légèrement ombrée. Bloc « Relief (20.3) » à la fin du style de v2.html (jetons `--ombre`, `--ombre-h`, `--ombre-prim`).
 - [ ] 20.4 Même présentation partout : en-tête de page (titre, sous-titre, bouton à droite), onglets soulignés avec icône,
       titres de colonnes en petites majuscules, initiales des patients en cercle, messages « Aucun… » centrés.
 - [ ] 20.5 Barre du haut : recherche en pilule toujours visible sur ordinateur, cloche et avatar plus marqués.
@@ -1619,3 +1621,4 @@ On garde le bleu Onco360 (#3563B0) et Arial ; les impressions (ordonnances, fich
 | 11/10/2026 | 20.2 Menu repliable et onglets | Plan design (étape 20, d'après Tbibclic). Fait : menu repliable en colonne d'icônes (choix gardé, nom au survol, téléphone inchangé) ; onglets des Paramètres et du Profil sur une seule ligne qui défile vers la droite (molette, flèches ‹ ›). Tests menu 22/22, profil 16/16, réglage 14/14, audit 12/12, consultation 15/15 ; test_fiche : 2 échecs déjà présents avant (Administration, en-tête de la fiche). Pas encore en ligne. |
 | 11/10/2026 | 20.1 Pleine largeur | Page élargie du menu au bord droit de l'écran (plus de limite de 1240 px). test_fiche réparé (21/21) : ses 2 échecs venaient du champ CIN ajouté le 10/10 (un champ de plus dans la fiche), pas d'un défaut d'Onco360. test_cures / test_seances : trop anciens, à réécrire (Idées en attente). Tests menu 24/24, profil 16/16, réglage 14/14, audit 12/12, consultation 15/15, protocoles sans erreur. Pas encore en ligne. |
 | 11/10/2026 | Dossier : consultations | À l'ouverture du dossier, la consultation la plus récente est ouverte (une seule à la fois, comme la chimio et la radiothérapie : vérifié) ; note écrite directement dans la consultation ouverte, enregistrée toute seule (1,5 s après la dernière frappe ou en quittant la zone), curseur placé dans la note d'une consultation qu'on vient de créer ; « Modifier » pour le type, la date et les autres champs. Pas encore en ligne. |
+| 11/10/2026 | 20.3 Relief | Cartes plus détachées du fond, chiffres clés qui se soulèvent au survol (une ligne sur grand écran), menu actif et boutons principaux en relief. Vérifié à 1920, 1280 et 390 px (tableau de bord, bilan, patients). Tests menu 27/27. Pas encore en ligne. |

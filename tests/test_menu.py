@@ -47,6 +47,12 @@ async def main():
         await pg.evaluate("location.hash='profil'"); await pg.wait_for_timeout(1000)
         ok(await pg.evaluate("!!document.querySelector('.ag-vues.defile')"), 'Profil & Paramètres : même barre d\'onglets')
         ok(not pg.errs, 'aucune erreur JavaScript ' + str(pg.errs[:2]))
+        # Relief (20.3) : chiffres clés sur une ligne en grand écran, case cliquable qui se soulève au survol
+        await pg.set_viewport_size({'width': 1920, 'height': 1000}); await pg.evaluate("location.hash='accueil'"); await pg.wait_for_timeout(1500)
+        ok(await pg.evaluate("new Set([...document.querySelectorAll('.kpi .k')].map(k=>k.offsetTop)).size") == 1, '1920 px : les 6 chiffres clés sur une seule ligne')
+        await pg.evaluate("document.querySelector('.kpi').scrollIntoView({block:'center'})"); await pg.hover('.kpi .k >> nth=0'); await pg.wait_for_timeout(300)
+        ok(await pg.evaluate("getComputedStyle(document.querySelector('.kpi .k')).transform") == 'matrix(1, 0, 0, 1, 0, -2)', 'chiffre clé : se soulève au survol')
+        ok(await pg.evaluate("getComputedStyle(document.querySelector('nav a.actif')).boxShadow") != 'none', 'menu actif en relief')
         # Téléphone
         m = await ouvrir(b, w=390, h=844); await m.add_init_script("localStorage.setItem('onco360.menuReplie','1')")
         await m.goto(f'http://localhost:{PORT}/v2.html#parametres'); await m.wait_for_timeout(2500)

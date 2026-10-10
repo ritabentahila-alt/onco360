@@ -10,13 +10,14 @@
 <title>Onco360</title>
 <style>
 :root{
-  --fond:#F5F7FB; --carte:#FFFFFF; --encre:#1E2A44; --titre:#24365F; --doux:#64708A; --trait:#E2E7F0;
+  --fond:#F1F5FB; --carte:#FFFFFF; --encre:#1E2A44; --titre:#24365F; --doux:#64708A; --trait:#E2E7F0;
   --prim:#3563B0; --prim-f:#284E8F; --prim-c:#EAF0FA; --prim-cc:#D6E2F5;
   --vert:#1F8A4C; --vert-c:#DFF3E6; --bleu:#2A5DA8; --bleu-c:#E3ECF9;
   --violet:#5650C2; --violet-c:#ECEBFB; --orange:#B86E00; --orange-c:#FDEFD6;
   --rouge:#B3263E; --rouge-c:#F9E1E5; --gris-c:#EEF0F4;
-  --r-l:16px; --r-m:12px; --r-s:9px;
-  --ombre:0 1px 3px rgba(30,42,68,.05),0 6px 18px rgba(30,42,68,.06);
+  --r-l:18px; --r-m:12px; --r-s:9px;
+  --ombre:0 1px 2px rgba(30,42,68,.06),0 8px 24px rgba(30,42,68,.08);
+  --ombre-h:0 2px 4px rgba(30,42,68,.07),0 14px 32px rgba(30,42,68,.13); --ombre-prim:0 6px 16px rgba(53,99,176,.30);
   --menu:252px;
 }
 *{box-sizing:border-box}
@@ -662,6 +663,21 @@ nav a.actif .nb-menu{background:#fff;color:var(--prim)}
 .tcures.bilan td,.tcures.bilan th{font-size:13.5px}.tcures .n{text-align:right;white-space:nowrap}.tcures tr.cl{cursor:pointer}.tcures tr.cl:hover td{background:#F7F9FD}.tcures tr.tot td{background:#F2F4F8}
 .k.fort{background:#E6F4EA;border-color:#BFE3CC}.k.fort b{color:#1F6E3D}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+/* ── Relief (20.3, 11/10/2026) : cartes plus détachées du fond, éléments cliquables qui se soulèvent ── */
+.carte{border-color:#E4E9F2}
+.k{border-color:#E4E9F2;border-radius:var(--r-l);padding:16px 18px;box-shadow:var(--ombre);transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease}
+button.k:hover,a.k:hover{transform:translateY(-2px);box-shadow:var(--ombre-h);border-color:var(--prim-cc);background:#fff}
+.k .ic{width:42px;height:42px;border-radius:12px}.k b{font-size:30px}
+@media (min-width:1600px){.kpi{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr)}}
+.jour{box-shadow:var(--ombre)}
+nav a.actif{box-shadow:var(--ombre-prim)}
+.bt{transition:background .15s ease,box-shadow .15s ease,transform .15s ease}
+.bt.plein{box-shadow:var(--ombre-prim)}.bt.plein:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(53,99,176,.36)}
+.bt.plein:disabled{transform:none;box-shadow:none}
+.ag-vues{box-shadow:0 1px 2px rgba(30,42,68,.05)}.ag-vues button.on{box-shadow:0 4px 12px rgba(53,99,176,.28)}
+.li,.ev,.pat{transition:background .12s ease}.li:hover,.ev:hover,.pat:hover{background:#F3F7FE}
+#tete{box-shadow:0 1px 0 var(--trait),0 4px 14px rgba(30,42,68,.04)}
+@media (prefers-reduced-motion:reduce){.k,.bt{transition:none}button.k:hover,a.k:hover,.bt.plein:hover{transform:none}}
 </style>
 </head>
 <body>
