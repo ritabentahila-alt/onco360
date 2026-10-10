@@ -250,8 +250,10 @@ function majCons(cc) {
 }
 // dossier = document patient ; M = montants (objet) ; E = prix à encaisser (objet) ; q = { rdvId } ou { lid, n, j, d, lib }, montant
 // (null pour une consultation de chimio : retirer la validation). Modifie M et E ; renvoie un libellé pour l'historique.
+// Mode de paiement (19.5, 10/10/2026 ; lieux « payé au cabinet ») : esp | carte | chq | np (non payé, à régler plus tard)
+const MODES_PAIEMENT = ["esp", "carte", "chq", "np"];
 function appliquerPrix(dossier, M, E, q) {
-  const m = q.montant == null ? null : num(q.montant);
+  const m = q.montant == null ? null : num(q.montant), mode = MODES_PAIEMENT.indexOf(q.mode) >= 0 ? q.mode : null;
   if (q.montant != null && (m == null || m < 0 || m > 1000000)) throw new Error("Montant invalide.");
   M.rdv = M.rdv || {}; M.cures = M.cures || {}; M.rt = M.rt || {}; E.rdv = E.rdv || {}; E.cons = E.cons || {};
   if (q.rdvId) {
@@ -262,14 +264,16 @@ function appliquerPrix(dossier, M, E, q) {
     const o = M.rdv[r.id] = M.rdv[r.id] || {}, hs = !r.act && r.type === "Hospitalisation";
     if (o.v1) throw new Error("Prix repris de l'ancienne application : seul le médecin peut le modifier.");
     if (hs) { o.tj = m; delete o.brut; E.rdv[r.id] = { tj: m }; } else { o.brut = m; E.rdv[r.id] = { m }; }
+    if (mode && !hs) { o.mode = mode; E.rdv[r.id].mode = mode; } else delete o.mode;
     return "Prix de la consultation du " + r.d + " : " + m + " DH";
   }
   const n = parseInt(q.n, 10), j = parseInt(q.j, 10), L = JSON.parse(dossier.lignesJson || "[]").find((z) => z.id === q.lid);
   if (!L || !(n >= 1) || !(j >= 1) || !L.cures || !L.cures[n - 1]) throw new Error("Cure introuvable.");
   const a = M.cures[q.lid] = M.cures[q.lid] || {}, cc = a[n] = a[n] || {}, J = Object.assign({}, consJours(cc)), k = q.lid + "|" + n + "|" + j;
-  if (m == null) { delete J[j]; delete E.cons[k]; } else { J[j] = m; E.cons[k] = { m, d: String(q.d || "").slice(0, 10), lib: String(q.lib || "").slice(0, 120), n, j: "J" + j }; }
-  cc.consJ = J; majCons(cc);
+  const MJ = Object.assign({}, cc.consModeJ || {});
+  if (m == null) { delete J[j]; delete E.cons[k]; delete MJ[j]; } else { J[j] = m; E.cons[k] = { m, d: String(q.d || "").slice(0, 10), lib: String(q.lib || "").slice(0, 120), n, j: "J" + j }; if (mode) { MJ[j] = mode; E.cons[k].mode = mode; } else delete MJ[j]; }
+  cc.consJ = J; majCons(cc); if (Object.keys(MJ).length) cc.consModeJ = MJ; else delete cc.consModeJ;
   return "Chimiothérapie C" + n + " J" + j + (m == null ? " : statut annulé" : " : venu (" + m + " DH)");
 }
 
-module.exports = { TZ, jourCasa, addJ, voitPatient, permis, evtsPatient, evtsAbsences, evtsTaches, heure, REGLES_FIXES, EVENEMENTS_AUTO, reglesAuto, tachesAutoPatient, finRT, addMois, idAuto, COULEURS0, categorie, colorer, cleFiltre, filtrer, idEv, corps, appliquer, creerApi, timeMin, groupe, peutPrix, appliquerPrix };
+module.exports = { MODES_PAIEMENT, TZ, jourCasa, addJ, voitPatient, permis, evtsPatient, evtsAbsences, evtsTaches, heure, REGLES_FIXES, EVENEMENTS_AUTO, reglesAuto, tachesAutoPatient, finRT, addMois, idAuto, COULEURS0, categorie, colorer, cleFiltre, filtrer, idEv, corps, appliquer, creerApi, timeMin, groupe, peutPrix, appliquerPrix };

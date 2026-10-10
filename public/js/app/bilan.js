@@ -22,9 +22,17 @@ const tauxTxt = (o) => (o.t === "rt" ? (o.taux == null ? "ancien calcul" : o.tau
 // de l'établissement, actes à partir de la date où elle a été cochée : 08/10/2026)
 let PE = {};
 const autoPaye = (o) => { const T = D().tarifs; if (!T || !o.t || o.t === "kl" || o.t === "rtprev" || !o.d) return false; const a = activite(T, o.hop, o.t); return !!(a && a.payeAuto && o.d >= a.payeAuto); };
+// Lieux « payé au cabinet » (19.5, 10/10/2026) : une consultation dont le mode de paiement est noté (9e colonne) est payée si elle a été
+// encaissée (espèces, carte, chèque) et impayée si « non payé » ; sans mode (avant le 19.5, autres lieux) : « Payé auto. » comme avant
+const lieuCabinet = (hop) => ((D().etabsTous || D().etabs || []).find((e) => e.code === hop) || {}).paiement === "cabinet";
+let ENC = {}; // clé → "enc" (encaissé au cabinet) | "np" (non payé par le patient)
 function paiementsEffectifs(R) {
-  const p = Object.assign({}, B.paiements);
-  R.forEach((x) => (x.fin || []).forEach((e) => { const o = { id: x.id, t: e[1], d: e[0], lib: e[3], hop: e[2] || "" }, k = clePaye(o); if (!p[k] && autoPaye(o)) p[k] = o.d; }));
+  const p = Object.assign({}, B.paiements); ENC = {};
+  R.forEach((x) => (x.fin || []).forEach((e) => { const o = { id: x.id, t: e[1], d: e[0], lib: e[3], hop: e[2] || "" }, k = clePaye(o);
+    if (e[8] && lieuCabinet(o.hop)) ENC[k] = e[8] === "np" ? "np" : "enc";
+    if (p[k]) return;
+    if (ENC[k]) { if (ENC[k] === "enc") p[k] = o.d; return; }
+    if (autoPaye(o)) p[k] = o.d; }));
   return p;
 }
 // Exports : « Payé » ou « À recevoir » seulement (la date du clic du médecin n'est pas la date du paiement)
@@ -113,7 +121,7 @@ function dessiner() {
     (all.length ? all.map((o, i) => {
       const cor = o.id ? (R.find((x) => x.id === o.id) || {}).cor : "";
       return "<tr" + lienDossier(o.id) + "><td>" + A.dfrA(o.d) + "</td><td>" + esc(o.nm) + (cor ? '<div class="mesures">' + esc(cor) + "</div>" : "") + "</td><td>" + esc(o.hop || "—") + "</td><td>" + esc(o.lib) + "</td><td>" + esc(o.st) + '</td><td class="n">' + dh(o.brut) + '</td><td class="n">' + tauxTxt(o) + '</td><td class="n"><b>' + dh(o.net) + "</b></td>" +
-        '<td onclick="event.stopPropagation()">' + (o.t === "kl" ? '<span class="badge b-ch">Reçu</span>' : '<button class="mini ' + (estPaye(o, PE) ? "vert" : "") + '" title="' + (estPaye(o, PE) ? (B.paiements[clePaye(o)] ? "Payé le " + A.dfrA(PE[clePaye(o)]) + " – cliquer pour annuler" : "Payé automatiquement à la validation (Paramètres)") : "Cliquer quand la clinique a payé") + '" onclick="biPaye(' + i + ')">' + (estPaye(o, PE) ? (B.paiements[clePaye(o)] ? "✓ Payé" : "✓ Payé (auto.)") : "Payé") + "</button>") + "</td></tr>";
+        '<td onclick="event.stopPropagation()">' + (o.t === "kl" ? '<span class="badge b-ch">Reçu</span>' : '<button class="mini ' + (estPaye(o, PE) ? "vert" : "") + '" title="' + (estPaye(o, PE) ? (B.paiements[clePaye(o)] ? "Payé le " + A.dfrA(PE[clePaye(o)]) + " – cliquer pour annuler" : ENC[clePaye(o)] === "enc" ? "Encaissé au cabinet (fenêtre « Venu »)" : "Payé automatiquement à la validation (Paramètres)") : ENC[clePaye(o)] === "np" ? "Non payé par le patient : à encaisser depuis le dossier (ou cliquer quand il a payé)" : "Cliquer quand la clinique a payé") + '" onclick="biPaye(' + i + ')">' + (estPaye(o, PE) ? (B.paiements[clePaye(o)] ? "✓ Payé" : ENC[clePaye(o)] === "enc" ? "✓ Encaissé" : "✓ Payé (auto.)") : ENC[clePaye(o)] === "np" ? "Non payé" : "Payé") + "</button>") + "</td></tr>";
     }).join("") + '<tr class="tot"><td colspan="7" class="n"><b>Total</b></td><td class="n"><b>' + dh(T.caNet) + "</b></td><td></td></tr>" : '<tr><td colspan="9" class="mesures">Aucun acte sur la période.</td></tr>') + "</table></div></section>";
   // Référents
   if (F.cor !== "tous") {

@@ -164,8 +164,8 @@ function prixDe(l) {
   const etab = l.x.doc.etablissementId || "", T = A.tarifsVus();
   if (l.etat === "vu") {
     const E = encDe(l.x); if (E === undefined) return { m: null, charge: true };
-    if (l.rdv) { const o = E && E.rdv && E.rdv[l.rdv.id]; if (o) return { m: o.tj != null ? o.tj * (joursH(l.rdv) || 1) : o.b != null ? o.b : o.m, ok: true, v1: !!o.v1 }; if (l.rdv.type === T_RTC) return { m: 0, ok: true }; }
-    else { const v = E && E.cons && E.cons[l.chimio.lid + "|" + l.chimio.n + "|" + l.chimio.j]; if (v) return { m: v.m, ok: true }; }
+    if (l.rdv) { const o = E && E.rdv && E.rdv[l.rdv.id]; if (o) return { m: o.tj != null ? o.tj * (joursH(l.rdv) || 1) : o.b != null ? o.b : o.m, ok: true, v1: !!o.v1, np: o.mode === "np" }; if (l.rdv.type === T_RTC) return { m: 0, ok: true }; }
+    else { const v = E && E.cons && E.cons[l.chimio.lid + "|" + l.chimio.n + "|" + l.chimio.j]; if (v) return { m: v.m, ok: true, np: v.mode === "np" }; }
     return { m: null, nonValide: true };
   }
   if (l.doc.prix != null) return { m: l.doc.prix, convenu: true }; // prix convenu d'avance (patient qui paie avant la consultation)
@@ -399,9 +399,10 @@ function dessiner() {
   $("saL").innerHTML = l.length ? '<div class="sa-l ent">' + cv.map((c) => '<span class="c-' + c[0] + '" title="' + c[1] + '">' + (c[0] === "civ" ? "Civ." : c[0] === "ord" ? "N°" : c[1]) + "</span>").join("") + "</div>" + l.map((z) => ligneHtml(z, cv)).join("") : '<p class="sous" style="margin:6px 0">' + vide + "</p>";
   // Total du jour (établissement choisi), sans les absents : encaissé (vus, prix validé) et prévu (le reste, au tarif)
   if (voitPrix()) {
-    let enc = 0, prev = 0, nv = 0;
-    L.forEach((z) => { const p = prixDe(z); if (!p) return; if (z.etat === "vu") { if (p.ok) enc += p.m || 0; else nv++; } else prev += p.m || 0; });
-    $("saTot").innerHTML = '<div class="sa-tot"><span>Encaissé (vus) : <b>' + A.fmtMil(enc) + " DH</b></span><span>Prévu (restant) : <b>" + A.fmtMil(prev) + " DH</b></span>" + (nv ? '<span class="mesures">' + nv + " consultation" + (nv > 1 ? "s" : "") + " vue" + (nv > 1 ? "s" : "") + " sans prix</span>" : "") + "</div>";
+    // non payé (19.5, lieux « payé au cabinet ») : vu mais pas encaissé, compté à part
+    let enc = 0, prev = 0, nv = 0, np = 0;
+    L.forEach((z) => { const p = prixDe(z); if (!p) return; if (z.etat === "vu") { if (p.ok && p.np) np += p.m || 0; else if (p.ok) enc += p.m || 0; else nv++; } else prev += p.m || 0; });
+    $("saTot").innerHTML = '<div class="sa-tot"><span>Encaissé (vus) : <b>' + A.fmtMil(enc) + " DH</b></span>" + (np ? '<span style="color:var(--orange)">Non payé : <b>' + A.fmtMil(np) + " DH</b></span>" : "") + "<span>Prévu (restant) : <b>" + A.fmtMil(prev) + " DH</b></span>" + (nv ? '<span class="mesures">' + nv + " consultation" + (nv > 1 ? "s" : "") + " vue" + (nv > 1 ? "s" : "") + " sans prix</span>" : "") + "</div>";
   } else $("saTot").innerHTML = "";
   window.scrollTo(0, sc);
 }

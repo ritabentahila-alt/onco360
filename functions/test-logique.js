@@ -173,6 +173,25 @@ const infirmiere = { actif: true, etablissements: ["HGC", "CIOC"], droits: { tra
   ok(/introuvable/.test(er), "refusé : cure inconnue");
   ok(JSON.stringify(M.rt) === '{"x":{"m":1}}', "radiothérapie jamais touchée");
 })();
+// Mode de paiement (19.5)
+(() => {
+  const dos = { rdvsJson: JSON.stringify([{ id: "r1", type: "Suivi", d: "2026-10-08", st: "fait" }, { id: "r2", type: "Hospitalisation", d: "2026-10-08", st: "fait" }]), lignesJson: JSON.stringify([{ id: "L1", cures: [{}] }]) };
+  const M = { rdv: {}, cures: {} }, E = { rdv: {}, cons: {} };
+  L.appliquerPrix(dos, M, E, { rdvId: "r1", montant: 300, mode: "esp" });
+  ok(M.rdv.r1.mode === "esp" && E.rdv.r1.mode === "esp", "mode de paiement gardé (montants et prix à encaisser)");
+  L.appliquerPrix(dos, M, E, { rdvId: "r1", montant: 300, mode: "np" });
+  ok(M.rdv.r1.mode === "np" && E.rdv.r1.mode === "np", "non payé : noté");
+  L.appliquerPrix(dos, M, E, { rdvId: "r1", montant: 300 });
+  ok(!("mode" in M.rdv.r1), "sans mode (lieu payé par l'établissement) : rien");
+  L.appliquerPrix(dos, M, E, { rdvId: "r1", montant: 300, mode: "bitcoin" });
+  ok(!("mode" in M.rdv.r1), "mode inconnu refusé");
+  L.appliquerPrix(dos, M, E, { rdvId: "r2", montant: 400, mode: "esp" });
+  ok(!("mode" in M.rdv.r2), "hospitalisation : pas de mode");
+  L.appliquerPrix(dos, M, E, { lid: "L1", n: 1, j: 1, montant: 250, mode: "carte" });
+  ok(M.cures.L1[1].consModeJ[1] === "carte" && E.cons["L1|1|1"].mode === "carte", "consultation de chimio : mode par jour");
+  L.appliquerPrix(dos, M, E, { lid: "L1", n: 1, j: 1, montant: null });
+  ok(!M.cures.L1[1].consModeJ, "consultation de chimio annulée : mode retiré");
+})();
 
 // ───── Ce que chacun voit dans son agenda (P3, 08/10/2026) ─────
 (async () => {

@@ -1285,7 +1285,16 @@ Décisions de Dr Bentahila (10/10) :
       retirés de la cloche) et carte **« Rappels WhatsApp »** du tableau de bord ; agenda : **rendez-vous à la même heure côte à
       côte** (case partagée) au lieu d'être empilés. Page d'accueil : tableau de bord pour tous (décision du 10/10, rien à changer).
       Règles 227/227, navigateur (ordinateur, 390 px).
-- [ ] 19.5 Caisse : mode de paiement, reçu / note d'honoraires, caisse du jour, reste à payer.
+- [x] 19.5 Caisse (fait et testé le 10/10, pas encore en ligne). Décisions de Dr Bentahila : réglage **par lieu** (pour tous les
+      médecins, rien de propre à son cabinet) ; payé au cabinet = compté payé dans le bilan **seulement s'il est encaissé** ; reçu
+      A5 **sans numéro** ; **pas de remise de caisse** ; lieux payés par l'établissement (ex. HCK, virement en fin de mois) : comme
+      avant, dans le bilan. Fait : Lieu d'exercice › « Les consultations sont payées : par l'établissement / au cabinet »
+      (`etablissements/{code}.paiement = "cabinet"`) ; fenêtre « Venu » (rendez-vous et jour de chimio) : **Paiement** espèces /
+      carte / chèque / **non payé** + « Valider et imprimer le reçu » ; dossier : « non payé » + **Encaisser**, bouton **Reçu** ;
+      salle d'attente : « Encaissé (vus) » sans les non payés, « Non payé : x DH » à part (Encaissé = l'argent à avoir en fin de
+      journée) ; bilan : « ✓ Encaissé » / « Non payé » (sans mode noté, avant le 19.5 : « Payé auto. » comme avant). Total du bilan
+      inchangé (352 317 DH, répartition payé / à recevoir identique). Serveur 92/92. **À régler par Dr Bentahila après la mise en
+      ligne : HGC et CIOC « au cabinet »** (HCK reste « par l'établissement »).
 - [ ] 19.6 Sécurité médicale et alertes : alerte poids, documents préparés par la secrétaire à signer, alertes de la secrétaire.
 - [ ] 19.7 Plusieurs cabinets, confort : pastilles par cabinet, vue « Tous mes cabinets », dépôt de plusieurs fichiers.
 - [ ] Guide de la secrétaire (avec l'étape 12).
@@ -1565,3 +1574,4 @@ Onco360_Package_Cession/
 | 10/10/2026 | Audit n° 2 secrétaire | Tout le parcours de la secrétaire revu (ordinateur, téléphone, deux cabinets) : 5 corrections, 7 améliorations, 9 ajouts ; plan 19.3 à 19.7 dans `AUDIT-SECRETAIRE.md`, 4 questions à valider. |
 | 10/10/2026 | 19.3 Corrections secrétaire | Listes corrigées par le serveur dans tout le cabinet, cloche de la secrétaire, « Bonjour Salma », adresse de son lieu, CIN (après Diagnostic, tous les cabinets, en-tête, courriers). Règles 225/225, serveur 91/91, navigateur. Pas encore en ligne. |
 | 10/10/2026 | 19.4 Agenda du secrétariat | Créneaux du jour, double réservation, nouveau patient depuis le rendez-vous, confirmation WhatsApp, rappels notés envoyés + carte du tableau de bord, rendez-vous à la même heure côte à côte. Règles 227/227, navigateur. Pas encore en ligne. |
+| 10/10/2026 | 19.5 Caisse | Réglage par lieu (payé au cabinet / par l'établissement), mode de paiement et « non payé » à la validation, reçu A5, Encaisser depuis le dossier, salle d'attente (non payé à part), bilan : payé seulement si encaissé pour les lieux « au cabinet ». Bilan inchangé, serveur 92/92, navigateur. Pas encore en ligne. |

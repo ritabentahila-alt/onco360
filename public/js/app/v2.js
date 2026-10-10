@@ -26,7 +26,8 @@ import { figerDocumentation } from "./documentation.js";
 import * as ficheP from "./fichepatient.js";
 import { installer as installerFichiers, htmlFichiers, nbFichiers, oublierFichiers, suivreEtablissementFichiers, supprimerFichiers } from "./fichiers.js";
 import { installer as installerConsultations, htmlConsultations, nbConsultations, oublierConsultations, suivreEtablissement, supprimerConsultations } from "./consultations.js";
-import { installer as installerReglages, reglages, appliquerImpression } from "./reglages.js";
+import { installer as installerReglages, reglages, appliquerImpression, margesMm } from "./reglages.js";
+import { montantEnLettres } from "../donnees/factures.js";
 import { installer as installerTaches, pageTaches, demarrerTaches, blocAccueil as blocTaches, tachesDuPatient } from "./taches.js";
 import { installer as installerSalle, pageSalle, demarrerSalle, apresStatutRdv, apresVenuChimio, apresPrix, bullesDossier, presenceDossier, majPresenceDossier, prixPrevu, badgeSalle } from "./salle.js";
 import { installer as installerAudit } from "./audit.js";
@@ -323,7 +324,7 @@ function fmtSaisie(el) {
 document.addEventListener("input", (ev) => { if (ev.target && ev.target.classList && ev.target.classList.contains("mt")) fmtSaisie(ev.target); });
 const ferieLe = (d) => (D.ctx.feries || []).map((f) => (typeof f === "string" ? { d: f, nom: "Jour férié" } : f)).find((f) => f.d === d);
 const API = { D: () => D, get ESPACE() { return ESPACE; }, $, esc, ic, dfr, dfrA, cap, jourLong, val, occupe, erreur, toast, fenetre, fermerFenetre: () => window.fermerFenetre(), peut, voit, traitMod, enregistrer, pageDossier: (id) => reafficher(id), recalculer, journal };
-API.sansAcc = sansAcc; API.fn = (k) => fnOn(k); API.module = (k) => module(k); API.planifierReleve = (d) => planifierReleve(d || 120000); API.attribuerNumero = (x) => attribuerNumero(x); API.numDossier = (x) => numDossier(x); API.medecinFiche = () => medecinFiche(); API.entete = () => entete(); API.voitRdv = () => voitRdv(); API.voitRT = (x) => voitRT(x); API.champsMed = (C, off) => champsMed(C, off); API.CHAMPS_MED = () => CHAMPS_MED; API.fmtMil = (n) => fmtMil(n); API.ferieLe = (d) => ferieLe(d); API.salleVenuChimio = (x, lid, n, j, oui) => apresVenuChimio(x, lid, n, j, oui); API.serveur = appelServeur; API.prixPrevu = (p, c, j) => prixPrevu(p, c, j); API.badgeSalle = (p, c) => badgeSalle(p, c); API.tarifsVus = () => tarifsVus(); API.publierTarifsC = () => publierTarifsC(); API.encaissementsDe = (x, f) => encaissementsDe(x, f); API.peutPrix = () => peut("finances") || prixParServeur();
+API.payeCabinet = (x) => payeCabinet(x); API.htmlMode = (c) => htmlMode(c); API.libMode = (k) => libMode(k); API.imprimerRecu = (w, x, o) => imprimerRecu(w, x, o); API.sansAcc = sansAcc; API.fn = (k) => fnOn(k); API.module = (k) => module(k); API.planifierReleve = (d) => planifierReleve(d || 120000); API.attribuerNumero = (x) => attribuerNumero(x); API.numDossier = (x) => numDossier(x); API.medecinFiche = () => medecinFiche(); API.entete = () => entete(); API.voitRdv = () => voitRdv(); API.voitRT = (x) => voitRT(x); API.champsMed = (C, off) => champsMed(C, off); API.CHAMPS_MED = () => CHAMPS_MED; API.fmtMil = (n) => fmtMil(n); API.ferieLe = (d) => ferieLe(d); API.salleVenuChimio = (x, lid, n, j, oui) => apresVenuChimio(x, lid, n, j, oui); API.serveur = appelServeur; API.prixPrevu = (p, c, j) => prixPrevu(p, c, j); API.badgeSalle = (p, c) => badgeSalle(p, c); API.tarifsVus = () => tarifsVus(); API.publierTarifsC = () => publierTarifsC(); API.encaissementsDe = (x, f) => encaissementsDe(x, f); API.peutPrix = () => peut("finances") || prixParServeur();
 installerChimio(API); installerAudit(API); aboP.installer(API); ficheP.installer(API); installerAgenda(API); installerConfig(API); installerProfil(API); installerProtocoles(API); installerParametres(API); installerBilan(API); installerConsultations(API); installerOrdonnances(API); installerDocuments(API); installerFichiers(API); installerTaches(API); installerReglages(API); installerSalle(API); installerRcp(API);
 
 function entete() {
@@ -769,7 +770,10 @@ function pageDossier(id) {
       const o = (EN.rdv || {})[v.id], hs = typeRdv(v.type) === "hospit";
       if (!o) return '<span class="badge b-gr" title="Le prix est fixé quand on valide « Venu »">Prix non validé</span>' + ((peut("finances") || prixParServeur()) && v.type !== T_RTC ? b("Fixer le prix", "prixRdv('" + x.id + "','" + v.id + "')") : "");
       const nj = hs ? joursH(v) : 0, m = o.tj != null ? o.tj * (nj || 1) : o.b != null ? o.b : o.m; // b : brut d'un prix repris de l'ancienne application
-      return '<span class="badge b-ch" title="Prix validé">' + fmtMil(m) + " DH" + (o.tj != null && nj > 1 ? " (" + nj + " j × " + fmtMil(o.tj) + ")" : "") + "</span>" + ((peut("finances") || (prixParServeur() && !o.v1)) && v.type !== T_RTC ? b("Modifier le prix", "prixRdv('" + x.id + "','" + v.id + "')") : "");
+      const np = o.mode === "np", q2 = "'" + x.id + "','" + v.id + "'";
+      return '<span class="badge ' + (np ? "b-or" : "b-ch") + '" title="' + (np ? "Non payé : à régler" : o.mode ? "Payé " + esc(((MODES.find((z) => z[0] === o.mode) || [])[2]) || "") : "Prix validé") + '">' + fmtMil(m) + " DH" + (o.tj != null && nj > 1 ? " (" + nj + " j × " + fmtMil(o.tj) + ")" : "") + (np ? " · non payé" : "") + "</span>" +
+        (np && (peut("finances") || prixParServeur()) ? b("Encaisser", "prixRdv(" + q2 + ")", "v") : (peut("finances") || (prixParServeur() && !o.v1)) && v.type !== T_RTC ? b("Modifier le prix", "prixRdv(" + q2 + ")") : "") +
+        (o.mode && !np && o.m > 0 ? b("Reçu", "recuRdv(" + q2 + ")") : "");
     };
     const lignes = (P.rdvs || []).filter((v) => !aVenir(v)).map((v) => ({ d: v.d, h: v.h || "", v }));
     // Jours de chimio reçus (J1, J8…) depuis le 07/10/2026, et tous ceux validés « Venu » (avec leur prix)
@@ -784,7 +788,7 @@ function pageDossier(id) {
     h += '<section class="carte"><h3><span class="ic">' + ic("agenda") + '</span>Consultations et hospitalisations</h3>' + (EN === undefined ? '<p class="mesures">Chargement des prix…</p>' : "") +
       (lignes.length ? lignes.map(({ v, c, d }) => {
         if (c) return '<div class="rdv"><span class="badge b-gr">' + (d ? dfrA(d) : "—") + '</span><div class="tx"><b>Chimiothérapie</b><div class="mesures">' + esc((c.lib || "") + " · C" + c.n + " J" + c.j) + "</div></div>" +
-          (c.v ? '<span class="badge b-ch">Venu</span><span class="badge b-ch" title="Prix validé">' + (c.v.m != null ? fmtMil(c.v.m) + " DH" : "—") + "</span>" + (peut("finances") ? '<div class="actr">' + b("Annuler le statut", "chAnnulerVenuChimio('" + x.id + "','" + c.lid + "'," + c.n + "," + c.j + ")") + "</div>" : prixParServeur() ? '<div class="actr">' + b("Modifier le prix", "chVenuChimio('" + x.id + "','" + c.lid + "'," + c.n + "," + c.j + ")") + "</div>" : "")
+          (c.v ? '<span class="badge b-ch">Venu</span><span class="badge ' + (c.v.mode === "np" ? "b-or" : "b-ch") + '" title="Prix validé">' + (c.v.m != null ? fmtMil(c.v.m) + " DH" : "—") + (c.v.mode === "np" ? " · non payé" : "") + "</span>" + (c.v.mode && c.v.mode !== "np" && c.v.m > 0 ? b("Reçu", "recuCons('" + x.id + "','" + c.lid + "|" + c.n + "|" + c.j + "')") : "") + (peut("finances") ? '<div class="actr">' + b("Annuler le statut", "chAnnulerVenuChimio('" + x.id + "','" + c.lid + "'," + c.n + "," + c.j + ")") + "</div>" : prixParServeur() ? '<div class="actr">' + b("Modifier le prix", "chVenuChimio('" + x.id + "','" + c.lid + "'," + c.n + "," + c.j + ")") + "</div>" : "")
             : '<span class="badge b-or">À valider</span>' + (peut("finances") || prixParServeur() ? '<div class="actr">' + b("Venu", "chVenuChimio('" + x.id + "','" + c.lid + "'," + c.n + "," + c.j + ")", "v") + "</div>" : "")) + "</div>";
         const s = (v.st || "prevu") === "prevu" ? ["À valider", "b-or"] : ST_RDV[v.st] || [v.st, "b-gr"];
         return '<div class="rdv"><span class="badge b-gr">' + dfrA(v.d) + (v.h ? " " + v.h : "") + '</span><div class="tx"><b>' + esc(libRdv(v)) + "</b>" + (v.mo ? '<div class="mesures">Motif : ' + esc(v.mo) + "</div>" : "") + (v.n ? '<div class="mesures">' + esc(v.n) + "</div>" : "") + (v.rep && v.rep.length ? '<div class="mesures">Reporté (initialement le ' + dfrA(v.rep[0].d) + ")</div>" : "") + '</div><span class="badge ' + s[1] + '">' + s[0] + "</span>" + prix(v) + actionsRdv(v) + "</div>";
@@ -991,6 +995,28 @@ function proposerConfirmation(x, d, h) {
     '<div class="wa-ex">' + esc(messageWA(x, "confirm", d, h)) + "</div>" +
     '<div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Plus tard</button><button class="bt plein" style="background:#1FA855" onclick="fermerFenetre();envoyerWA(\'' + x.id + "','confirm','" + d + "','" + (h || "") + '\')">' + LOGO_WA + " Envoyer la confirmation</button></div>");
 }
+// ───── Caisse (19.5, 10/10/2026) : lieux « payé au cabinet » (réglage du lieu d'exercice) : mode de paiement à « Venu », reçu A5 ─────
+const payeCabinet = (x) => ((D.etabsTous || D.etabs).find((e) => e.code === (x.doc.etablissementId || "")) || {}).paiement === "cabinet";
+const MODES = [["esp", "Espèces", "en espèces"], ["carte", "Carte bancaire", "par carte bancaire"], ["chq", "Chèque", "par chèque"], ["np", "Non payé (à régler plus tard)", ""]];
+const libMode = (k) => (MODES.find((z) => z[0] === k) || ["", ""])[1];
+const htmlMode = (cur) => '<div><label for="pvMode">Paiement</label><select id="pvMode">' + MODES.map(([k, lib]) => '<option value="' + k + '"' + ((cur || "esp") === k ? " selected" : "") + ">" + lib + "</option>").join("") + "</select></div>";
+// Reçu au patient (A5, papier à en-tête, sans numéro) ; w = fenêtre ouverte au clic (sinon bloquée par le navigateur)
+function imprimerRecu(w, x, o) {
+  if (!w) return; const P = x.P, et = (D.etabsTous || D.etabs).find((e) => e.code === x.doc.etablissementId) || {}, med = medecinFiche().nom || "";
+  const civ = P.sexe === "F" ? "Mme " : P.sexe === "H" ? "M. " : "", nom = civ + String(P.nomF || x.r.nm || "").toUpperCase() + (P.prenom ? " " + cap(String(P.prenom).toLowerCase()) : "");
+  const mode = (MODES.find((z) => z[0] === o.mode) || [])[2] || "", jr = (d) => { const z = new Date(d + "T12:00:00"); return z.getDate() + " " + ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"][z.getMonth()] + " " + z.getFullYear(); };
+  const html = '<p class="d">' + esc(et.ville ? et.ville + ", le " : "Le ") + jr(D.t) + '</p><p class="t">REÇU</p>' +
+    "<p>Reçu de <b>" + esc(nom) + "</b> la somme de <b>" + fmtMil(o.m) + " DH</b> (" + esc(montantEnLettres(o.m)) + ")" + (mode ? ", réglée " + mode : "") + ".</p>" +
+    "<p>Objet : " + esc(String(o.lib || "consultation").charAt(0).toLowerCase() + String(o.lib || "consultation").slice(1)) + " du " + dfrA(o.d) + ".</p>" +
+    '<p class="s">Cachet et signature<br><b>' + esc(med) + "</b></p>";
+  const css = "@page{size:A5 portrait;margin:" + margesMm("a5") + "}html,body{margin:0}body{font-family:Arial,Helvetica,sans-serif;color:#000;font-size:12pt;line-height:1.5}p{margin:0 0 4mm}.d{text-align:right;margin-bottom:8mm}.t{text-align:center;font-weight:bold;font-size:15pt;letter-spacing:2px;margin-bottom:9mm}.s{text-align:right;margin-top:14mm}";
+  w.document.open(); w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>&#8203;</title><style>' + css + "</style></head><body>" + html + "</body></html>"); w.document.close();
+  setTimeout(() => { try { w.focus(); w.print(); } catch (e) { /* fenêtre fermée */ } }, 400);
+  journal(x, "Reçu imprimé (" + fmtMil(o.m) + " DH, " + dfrA(o.d) + ")");
+}
+// Reçu réimprimé depuis « Consultations et hospitalisations » (prix à encaisser du dossier)
+window.recuRdv = (pid, rid) => { const x = D.patients.find((p) => p.id === pid), E = x && encaissementsDe(x), o = E && (E.rdv || {})[rid], r = x && lireRdvs(x).find((v) => v.id === rid); if (!o || !r) return; imprimerRecu(window.open("", "_blank"), x, { d: r.dv || r.d, lib: libRdv(r), m: o.m, mode: o.mode }); };
+window.recuCons = (pid, k) => { const x = D.patients.find((p) => p.id === pid), E = x && encaissementsDe(x), o = E && (E.cons || {})[k]; if (!o) return; imprimerRecu(window.open("", "_blank"), x, { d: o.d, lib: "Consultation de chimiothérapie", m: o.m, mode: o.mode }); };
 // Rendez-vous en dehors des plages de l'établissement du patient (Configuration › Créneaux & horaires) : message, sinon ""
 const JNOM = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
 function horsHoraires(etab, d, h) {
@@ -1025,32 +1051,36 @@ async function prixVenu(x, l, r) {
   const t = r.act || typeRdv(r.type), hs = t === "hospit", etab = x.P.hop || x.doc.etablissementId || "", v = (tarifsVus() && tarifAu(tarifsVus(), etab, t, r.d)) || { brut: 0, retro: 0, impot: 0 };
   const sec = !peut("finances"), deja = r.st === "fait";
   let M0 = {};
-  if (sec) { try { const s = await getDoc(doc(db, "espaces", ESPACE, "encaissements", x.id)); const E = s.exists() ? JSON.parse(s.data().data || "{}") : {}, o = (E.rdv || {})[r.id]; if (o) M0 = { rdv: { [r.id]: o.tj != null ? { tj: o.tj } : { brut: o.m } } }; } catch (e) {} }
+  if (sec) { try { const s = await getDoc(doc(db, "espaces", ESPACE, "encaissements", x.id)); const E = s.exists() ? JSON.parse(s.data().data || "{}") : {}, o = (E.rdv || {})[r.id]; if (o) M0 = { rdv: { [r.id]: o.tj != null ? { tj: o.tj } : { brut: o.m, mode: o.mode } } }; } catch (e) {} }
   else { try { const s = await getDoc(doc(db, "espaces", ESPACE, "patientsFinances", x.id)); M0 = s.exists() ? JSON.parse(s.data().montantsJson || "{}") : {}; } catch (e) {} }
-  const o0 = (M0.rdv || {})[r.id] || {}, nj = hs ? joursH(r) : 1;
+  const o0 = (M0.rdv || {})[r.id] || {}, nj = hs ? joursH(r) : 1, cab = payeCabinet(x) && !hs && !o0.v1; // lieu « payé au cabinet » (19.5)
   const pp = deja ? null : prixPrevu(x.id, "r-" + r.id, r.d); // prix convenu d'avance dans la salle d'attente (payé avant la consultation)
   const def = o0.v1 ? o0.prix : hs ? (o0.tj != null ? o0.tj : pp != null ? pp : v.brut) : o0.brut != null ? o0.brut : pp != null ? pp : v.brut;
   const fmt = (n) => (n == null || n === "" || isNaN(n) ? "" : Number(n).toLocaleString("fr-FR", { maximumFractionDigits: 2 }).replace(/[\u202f\u00a0]/g, " "));
   fenetre("<h3>" + esc(x.r.nm) + " – " + esc(libRdv(r)) + '</h3><p class="sous">' + cap(jourLong(r.d)) + (r.h ? " à " + r.h : "") + (hs && nj ? " · " + nj + " jour" + (nj > 1 ? "s" : "") + " d'hospitalisation" : "") + "</p>" +
-    '<div class="form"><div><label for="pvM">' + (hs && !o0.v1 ? "Tarif journalier (DH)" : "Montant de la consultation (DH)") + '</label><input id="pvM" class="mt" inputmode="decimal" value="' + esc(fmt(def)) + '"></div></div>' +
+    '<div class="form"><div><label for="pvM">' + (hs && !o0.v1 ? "Tarif journalier (DH)" : "Montant de la consultation (DH)") + '</label><input id="pvM" class="mt" inputmode="decimal" value="' + esc(fmt(def)) + '"></div>' + (cab ? htmlMode(o0.mode === "np" ? "esp" : o0.mode) : "") + "</div>" +
     '<p class="mesures">Tarif ' + esc(etab || "de l'établissement") + " : " + fmt(v.brut) + " DH" + (hs ? " par jour" : "") + ". Modifiez le montant en cas de réduction ou de gratuité (0).</p>" +
-    '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt vert" id="fOk"><svg class="pi"><use href="#i-check"/></svg>' + (deja ? "Enregistrer le prix" : "Valider : venu") + "</button></div>");
-  $("fOk").onclick = async () => {
-    const m = parseFloat(val("pvM").replace(/[\s\u202f\u00a0]/g, "").replace(",", "."));
+    '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button>' + (cab ? '<button class="bt clair" id="fOkR">' + ic("imprimer") + (deja ? "Enregistrer et imprimer le reçu" : "Valider et imprimer le reçu") + "</button>" : "") + '<button class="bt vert" id="fOk"><svg class="pi"><use href="#i-check"/></svg>' + (deja ? "Enregistrer le prix" : "Valider : venu") + "</button></div>");
+  const valider = async (recu) => {
+    const m = parseFloat(val("pvM").replace(/[\s\u202f\u00a0]/g, "").replace(",", ".")), mode = cab ? val("pvMode") : "";
     if (isNaN(m) || m < 0) { erreur("Indiquez le montant (0 si gratuit)."); return; }
+    const w = recu && mode !== "np" && m > 0 ? window.open("", "_blank") : null; // fenêtre d'impression ouverte au clic
     occupe($("fOk"), true);
     try {
-      const lib = fmt(m) + " DH" + (hs && !o0.v1 ? "/jour" : "");
+      const lib = fmt(m) + " DH" + (hs && !o0.v1 ? "/jour" : "") + (mode ? ", " + libMode(mode) : "");
       if (!deja) { r.st = "fait"; r.dv = r.d; r.sp = D.u.uid; await enregistrer(x, { rdvsJson: JSON.stringify(l) }, "Rendez-vous : venu (" + lib + ")"); }
       if (sec) {
-        try { await appelServeur("prixConsultation", { espace: ESPACE, patientId: x.id, rdvId: r.id, montant: m }); }
+        try { await appelServeur("prixConsultation", Object.assign({ espace: ESPACE, patientId: x.id, rdvId: r.id, montant: m }, mode ? { mode } : {})); }
         catch (e) { if (!deja) { fermerFenetre(); toast("Rendez-vous validé, mais le prix n'a pas pu être enregistré : " + e.message); apresStatutRdv(x, r, "fait", "prevu"); reafficher(x.id); return; } throw e; }
         oublierEncaissements(x.id);
-      } else await majMontants(x, (M) => { M.rdv = M.rdv || {}; const o = M.rdv[r.id] = M.rdv[r.id] || {}; if (o.v1) o.prix = m; else if (hs) { o.tj = m; delete o.brut; } else o.brut = m; });
+      } else await majMontants(x, (M) => { M.rdv = M.rdv || {}; const o = M.rdv[r.id] = M.rdv[r.id] || {}; if (o.v1) o.prix = m; else if (hs) { o.tj = m; delete o.brut; } else o.brut = m; if (mode) o.mode = mode; else delete o.mode; });
       if (deja) journal(x, "Prix de la consultation du " + dfrA(r.d) + " : " + lib);
       fermerFenetre(); toast("Enregistré."); if (deja) apresPrix(x, "r-" + r.id, r.d); else apresStatutRdv(x, r, "fait", "prevu"); reafficher(x.id);
-    } catch (e) { occupe($("fOk"), false); erreur(e.message || String(e)); }
+      if (w) imprimerRecu(w, x, { d: r.dv || r.d, lib: libRdv(r), m, mode });
+    } catch (e) { if (w) w.close(); occupe($("fOk"), false); erreur(e.message || String(e)); }
   };
+  $("fOk").onclick = () => valider(false);
+  if ($("fOkR")) $("fOkR").onclick = () => valider(true);
 }
 window.prixRdv = (id, rid) => {
   const x = D.patients.find((p) => p.id === id); if (!x || !(peut("finances") || prixParServeur())) return;

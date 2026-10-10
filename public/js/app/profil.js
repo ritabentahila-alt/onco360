@@ -123,7 +123,7 @@ function listeLieux() {
   const mb = D().membre, l = (D().etabsTous || D().etabs).filter((e) => (mb.tousEtablissements || (mb.etablissements || []).indexOf(e.code) >= 0) && m.every((w) => sa(e.code + " " + e.nom + " " + (e.adresse || "")).indexOf(w) >= 0));
   if (!l.length) return '<p class="sous">Aucun établissement.</p>';
   return l.map((e) => '<div class="lieu' + (e.actif === false ? " off" : "") + '">' + (e.logo ? '<img src="' + e.logo + '" alt="">' : '<span class="av">' + esc(e.code) + "</span>") +
-    '<div class="tx"><b>' + esc(e.nom) + ' <span class="badge b-gr">' + esc(e.code) + "</span>" + (e.actif === false ? ' <span class="badge b-al">Désactivé</span>' : "") + "</b><span>" + esc([e.adresse, e.tel].filter(Boolean).join(" · ") || "Adresse et téléphone à compléter") + "</span></div>" +
+    '<div class="tx"><b>' + esc(e.nom) + ' <span class="badge b-gr">' + esc(e.code) + "</span>" + (e.actif === false ? ' <span class="badge b-al">Désactivé</span>' : "") + (e.paiement === "cabinet" ? ' <span class="badge b-ch">Payé au cabinet</span>' : ' <span class="badge b-gr">Payé par l\'établissement</span>') + "</b><span>" + esc([e.adresse, e.tel].filter(Boolean).join(" · ") || "Adresse et téléphone à compléter") + "</span></div>" +
     (A.peut("parametres") ? '<button class="mini" onclick="pfLieu(\'' + esc(e.code) + "')\">Modifier</button>" : A.peut("secretariat") && !D().bib ? '<button class="mini" onclick="pfLieuSec(\'' + esc(e.code) + "')\">Compléter</button>" : "") + "</div>").join("");
 }
 // Secrétaire (droit « secretariat », 19.3, 10/10/2026) : adresse, téléphone et ville de son lieu ({adresse} des messages WhatsApp,
@@ -152,6 +152,9 @@ window.pfLieu = (code) => {
     '<div><label for="lCode">Code court</label><input id="lCode" value="' + esc(e.code || "") + '" placeholder="ex. HGC"' + (code ? " disabled" : "") + '></div><div><label for="lTel">Téléphone</label><input id="lTel" type="tel" value="' + esc(e.tel || "") + '"></div>' +
     '<div class="large"><label for="lNom">Nom complet</label><input id="lNom" value="' + esc(e.nom || "") + '"></div><div class="large"><label for="lAdr">Adresse</label><input id="lAdr" value="' + esc(e.adresse || "") + '"></div>' +
     '<div><label for="lVille">Ville</label><input id="lVille" value="' + esc(e.ville || "") + '" placeholder="Casablanca"></div>' +
+    // 19.5 : au cabinet = le patient paie à la secrétaire (mode de paiement, reçu ; payé dans le bilan seulement si encaissé) ;
+    // par l'établissement (virement, convention) = rien à encaisser au cabinet, bilan comme avant (« Payé auto. » ou coché à la main)
+    '<div class="large"><label for="lPay">Les consultations sont payées</label><select id="lPay"><option value="">par l\'établissement (virement, convention) : rien à encaisser au cabinet</option><option value="cabinet"' + (e.paiement === "cabinet" ? " selected" : "") + ">au cabinet, par le patient (espèces, carte, chèque) : reçu, caisse du jour</option></select></div>" +
     '<div class="large"><label>Logo (facultatif)</label><div class="sig">' + (e.logo ? '<img src="' + e.logo + '" alt="Logo">' : "") + '<input id="lLogo" type="file" accept="image/*"></div></div>' +
     (code ? '<div class="large"><label style="font-weight:normal"><input id="lActif" type="checkbox" style="width:auto;margin-right:6px"' + (e.actif !== false ? " checked" : "") + ">Établissement actif (proposé pour les nouveaux dossiers)</label></div>" : "") +
     '</div><p class="mesures">Le code ne peut plus être changé ensuite : il est enregistré dans les dossiers des patients.</p><div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button>' + (code ? '<button class="bt gris" id="lSup" style="color:var(--rouge)"><svg class="pi"><use href="#i-corbeille"/></svg>Supprimer</button>' : "") + '<button class="bt plein" id="fOk">Enregistrer</button></div>');
@@ -178,6 +181,7 @@ window.pfLieu = (code) => {
     A.occupe(A.$("fOk"), true);
     try {
       const n = Object.assign({}, e, { code: c, nom, adresse: A.val("lAdr"), ville: A.val("lVille"), tel: A.val("lTel"), actif: A.$("lActif") ? A.$("lActif").checked : true });
+      if (A.val("lPay") === "cabinet") n.paiement = "cabinet"; else delete n.paiement;
       const logo = await lireImage(A.$("lLogo"), 400); if (logo) n.logo = logo;
       await setDoc(doc(db, "espaces", A.ESPACE, "etablissements", c), n);
       const tous = (D().etabsTous || D().etabs).filter((z) => z.code !== c).concat([n]).sort((a, z) => a.code.localeCompare(z.code));

@@ -107,6 +107,10 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
 - Règlements reçus des cliniques et hôpitaux (étape 15, 09/10/2026) : `finances/reglements` { data: JSON [{ id, d (réception), hop, mode vir|chq,
   m, ref, banque, per, enc (chèque encaissé le ; vide pour un virement), note, par, parNom, le }] } ; cadre unique « Versements et règlements reçus » avec les autres versements (`finances/versements`, comptés) (bilan.js `htmlRecus`),
   **jamais comptés dans le bilan** ; écrits par le droit « finances », lus par le comptable (règle : il n'écrit que paiements / versements).
+- Caisse (19.5, 10/10/2026) : lieu « payé au cabinet » = `etablissements/{code}.paiement = "cabinet"` (Lieux d'exercice) ; mode de paiement
+  `mode` esp|carte|chq|np dans `patientsFinances.rdv[rid].mode` / `cures[L][n].consModeJ[j]` et `encaissements` (serveur : `appliquerPrix`
+  q.mode) ; 9e colonne de `evtsFin` ; bilan.js `paiementsEffectifs` : lieu au cabinet + mode noté → payé si encaissé (pas « np »), sinon règle
+  d'avant ; reçu A5 `imprimerRecu` (v2.js), `recuRdv` / `recuCons`.
 - Bilan « payé » : `finances/paiements` (coché à la main) + « Payé auto. » des Paramètres (`payeAuto` = date de l'activité dans
   `finances/tarifs` : actes de ce type et de cet établissement à partir de cette date comptés payés ; bilan.js `paiementsEffectifs`).
 - `presence/{uid}` (« Dossier ouvert par », salle.js `presenceDossier`) : { patientId, nom, role, le }, écrit par la personne
