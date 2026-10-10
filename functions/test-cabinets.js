@@ -179,3 +179,12 @@ const echoue = (f) => { try { f(); return false; } catch (e) { return true; } };
   ok(F.etatFacturation(f, "2026-10-10").etat === "suspendre" && F.etatFacturation(f, "2026-10-10", { delai: 45, rappel: 15 }).etat === "retard" && F.etatFacturation({ mode: "mensuel", echeance: "2026-10-30" }, "2026-10-10", { delai: 30, rappel: 30 }).etat === "renouveler", "délai de suspension et rappel réglables");
   ok(F.reglageFacturation({ mode: "mensuel", jamaisSuspendre: true }).jamaisSuspendre === true, "un cabinet peut être exclu des suspensions");
 })();
+// Factures (18.4)
+(() => {
+  const F = require("./facturation"), ok = (c, m) => { console.log((c ? "✅ " : "❌ ") + m); if (!c) process.exitCode = 1; };
+  const a = F.montants(1190), b = F.montants(29900), z = F.montants(0.01);
+  ok(a.ht === 991.67 && a.tva === 198.33 && a.ht + a.tva === 1190 && b.ht === 24916.67 && b.tva === 4983.33 && z.ttc === 0.01, "montants : HT et TVA 20 % tirés du TTC, au centime, HT + TVA = TTC");
+  ok(F.numeroFacture("facture", 2026, 1) === "F-2026-0001" && F.numeroFacture("avoir", 2027, 12) === "AV-2027-0012", "numéros F-AAAA-NNNN et AV-AAAA-NNNN");
+  const e = F.editeurNettoye({ raison: " Onco360 SARL ", ice: "001 234 567 000 089", if: "1234", adresse: "1 rue", ville: "Casablanca" });
+  ok(e.ice === "001234567000089" && e.tva === 20 && F.editeurIncomplet(e).length === 0 && F.editeurIncomplet({ raison: "x" }).indexOf("ice") >= 0, "Mon entreprise : nettoyé, mentions obligatoires vérifiées");
+})();

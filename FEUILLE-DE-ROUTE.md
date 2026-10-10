@@ -1195,11 +1195,15 @@ Modules et menus, Bibliothèques et paramètres ; cabinets en liste ; onglet lis
       automatique ; bandeau rouge « à vous de décider » pour les cabinets en retard au-delà du délai ; case « Ne jamais suspendre
       ce cabinet automatiquement » (fiche › Modifier l'abonnement, `jamaisSuspendre`). **Prix TTC** (TVA 20 % comprise, décidé le
       10/10 : les médecins ne récupèrent pas la TVA). Tests compta 21/21, abonnements 21/21, serveur 76/76.
-- [ ] **18.4 Factures** (décisions du 10/10 : assujettie à la TVA ; prix TTC, TVA 20 % ; numéros **F-AAAA-NNNN**, avoirs
-      **AV-AAAA-NNNN**, numérotation continue par année) : fenêtre « Mon entreprise » (raison sociale, forme, ICE, IF, RC,
-      patente, adresse, RIB, logo, mentions) ; une facture créée à chaque paiement enregistré (numéro attribué par le serveur),
-      un avoir quand un paiement est retiré ; facture A4 (HT, TVA, TTC, « payée le … ») à imprimer ou envoyer ; liste dans
-      Comptabilité › Factures, export.
+- [x] **18.4 Factures** (10/10 ; décidé : assujettie à la TVA, prix TTC, TVA 20 %, numéros **F-AAAA-NNNN**, avoirs
+      **AV-AAAA-NNNN**) : fenêtre **« Mon entreprise »** (Comptabilité ; raison sociale, forme, ICE, IF, RC, patente, CNSS,
+      adresse, ville, téléphone, e-mail, RIB, banque, mentions ; obligatoires : raison sociale, ICE, IF, adresse, ville ;
+      `plateforme/editeur`, fonction `editeurEnregistrer`) ; une facture créée par le serveur à chaque paiement (`facturer` :
+      numéro continu par année, transaction sur `compteurs/factures`, copie des mentions du jour, HT = TTC / 1,2) ; un **avoir**
+      quand un paiement facturé est retiré (une facture n'est jamais effacée) ; « Créer la facture » pour un paiement plus ancien ;
+      facture A4 (`public/js/donnees/factures.js` : HT, TVA, TTC, **montant en lettres**, « payée le … par … », RIB) à voir et
+      imprimer ; Comptabilité › **Factures** (période, cabinet, totaux HT / TVA / TTC, export Excel, avoirs en négatif) ;
+      `factures/{id}` serveur seulement (règles). Tests `tests/test_factures.py` 10/10, serveur 79/79.
 - [ ] **18.5 « Profil & Paramètres » dans Onco360** (demandé le 10/10, modèle : captures Tbibclic) : le menu Profil devient
       « Profil & Paramètres » avec les onglets Informations · Accès (repris des Paramètres) · **Abonnement** (formule, état,
       échéance, prix mensuel / annuel, « 2 mois offerts » à l'annuel ; boutons « Renouveler » / « Passer à l'annuel » = demande
@@ -1474,3 +1478,4 @@ Onco360_Package_Cession/
 | 10/10/2026 | Audit n° 2 de l'Administration | Tuile « Cabinets » = tout afficher (bug signalé), « Effacer les filtres », bandeau des cabinets sans abonnement, activité « aucune », revenu HT. Plan 18.1 à 18.5 (onglet Comptabilité, factures, relances, sécurité) dans `AUDIT-ADMINISTRATION.md`. Mis en ligne. |
 | 10/10/2026 | 18.1 et 18.2 | Finitions (démo dans Nouveau cabinet, Actualiser, coordonnées de facturation) et onglet Comptabilité (encaissé, à encaisser, impayés, évolution, encaissements, export comptable). 18.5 abandonnée. Mis en ligne. |
 | 10/10/2026 | 18.3 Réglages des abonnements | Suspension « me demander » par défaut (ou automatique, ou jamais), délais réglables, cabinet exclu possible ; prix TTC. Plan : 18.4 factures, 18.5 Profil & Paramètres (Abonnement, Factures) dans Onco360, 18.6 relances. Mis en ligne. |
+| 10/10/2026 | 18.4 Factures | Mon entreprise (mentions légales), facture à chaque paiement (F-AAAA-NNNN), avoir (AV-AAAA-NNNN), facture A4 avec montant en lettres, Comptabilité › Factures et export. Mis en ligne. |

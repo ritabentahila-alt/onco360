@@ -7,7 +7,8 @@ import { app, auth, db } from "../config.js";
 import { onAuthStateChanged, sendPasswordResetEmail, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { MENU, FONCTIONS, FONCTIONS_RELIEES, CARTES, SECTIONS, BIBLIOTHEQUES, FICHE, TYPES_CHAMP, TOUJOURS_ENTETE, CONSULT, TYPES_CHAMP_CS, reglageEffectif, ficheEffective, ficheRetouches, consultEffective, formRetouches, libDe } from "../donnees/catalogue.js";
-import { REGLAGES_ABO0, MODES_FACT, MOYENS, PRIX0, ajouterJours, prolonger, etatFacturation, prixCabinet, attendus, impaye } from "../donnees/facturation.js";
+import { htmlFacture, dh2 } from "../donnees/factures.js";
+import { CHAMPS_EDITEUR, EDITEUR_REQUIS, editeurIncomplet, REGLAGES_ABO0, MODES_FACT, MOYENS, PRIX0, ajouterJours, prolonger, etatFacturation, prixCabinet, attendus, impaye } from "../donnees/facturation.js";
 import { MODULES, ROLES_MAX, SPECIALITES, specialiteDe, FORMULES as FORMULES0, abonnementEffectif, BIBLIOTHEQUES_SPE, MODULE_FAMILLE, MODULE_MENU, MODULES_BASE, MODULES_PREVUS } from "../donnees/modules.js";
 
 const $ = (i) => document.getElementById(i);
@@ -17,6 +18,7 @@ const sansAcc = (x) => String(x || "").toLowerCase().normalize("NFD").replace(/[
 const ONGLETS = [["cabinets", "Cabinets"], ["nouveau", "Nouveau cabinet"], ["compta", "Comptabilité"], ["specialites", "Par spécialité"], ["modules", "Modules"], ["journal", "Journal"]];
 // CABINETS : liste (null = chargement) ; FS : packs (formules) enregistrés (sinon ceux de départ)
 let RA = Object.assign({}, REGLAGES_ABO0); // réglages des abonnements (suspension, délais ; 18.3)
+let EDITEUR = null, FACT = []; // Mon entreprise (mentions des factures) ; factures et avoirs (18.4)
 let ARCH = [], LU = ""; // cabinets supprimés dont la facturation est gardée (comptabilité) ; heure de la dernière lecture
 let SPES = {}; // fiche patient de chaque spécialité { nom: { fiche, le } } (plateforme/specialites)
 let CABINETS = null, FS = null, BIBS = null, // BIBS : bibliothèques de référence par spécialité (null = pas encore lues)
@@ -43,7 +45,7 @@ let GARDER = false;
 window.addEventListener("hashchange", () => { if (!GARDER) RES = ""; GARDER = false; dessiner(); });
 async function charger() {
   try {
-    const o = await serveur("listeCabinets"); if (o.formules) { FS = o.formules; Object.values(FS).forEach((f) => { f.specialite = specialiteDe(f.specialite); }); } BIBS = o.bibliotheques || []; ARCH = o.archives || []; RA = Object.assign({}, REGLAGES_ABO0, o.reglagesAbo || {}); LU = o.lu || new Date().toISOString(); SPES = {}; Object.entries(o.specialites || {}).forEach(([n, v]) => { SPES[specialiteDe(n)] = v; }); MSG = "";
+    const o = await serveur("listeCabinets"); if (o.formules) { FS = o.formules; Object.values(FS).forEach((f) => { f.specialite = specialiteDe(f.specialite); }); } BIBS = o.bibliotheques || []; ARCH = o.archives || []; RA = Object.assign({}, REGLAGES_ABO0, o.reglagesAbo || {}); EDITEUR = o.editeur || null; FACT = (o.factures || []).map((x) => Object.assign({}, x, { le: typeof x.le === "string" ? x.le : "" })); LU = o.lu || new Date().toISOString(); SPES = {}; Object.entries(o.specialites || {}).forEach(([n, v]) => { SPES[specialiteDe(n)] = v; }); MSG = "";
     CABINETS = (o.cabinets || []).map((c) => Object.assign({}, c, { cree: typeof c.cree === "string" ? c.cree : "", suspenduLe: typeof c.suspenduLe === "string" ? c.suspenduLe : "", titulaire: c.titulaire || {} }));
   } catch (e) { CABINETS = []; MSG = '<p class="err">Liste des cabinets indisponible : ' + esc(e.message) + ' <button class="clair petit" onclick="location.reload()">Réessayer</button></p>'; }
   dessiner();
@@ -53,6 +55,26 @@ const formuleDe = (ab) => (ab && FORMULES_()[ab.formule]) || null;
 // Cabinet sans abonnement (le vôtre, créé avant les packs) : tous les modules, sans limite, en Oncologie – Radiothérapie (A1, 17.1)
 const speDuCab = (c) => (c.abonnement ? specialiteDe((formuleDe(c.abonnement) || {}).specialite) || "" : SPECIALITES[0]);
 const nomFormule = (ab) => (!ab ? "Tout compris, sans limite" : ((formuleDe(ab) || {}).lib || ab.formule) + (ab.surMesure || (ab.reglage && ab.retouche === undefined && Object.keys(ab.reglage).length) ? " · sur mesure" : ""));
+// ───── Factures (18.4) : Mon entreprise, voir / imprimer une facture ─────
+document.addEventListener("click", (e) => { const t = e.target.closest && e.target.closest("[data-vfac],[data-editeur]"); if (!t) return; if (t.dataset.editeur !== undefined) ouvrirEditeur(); else voirFacture(FACT.find((x) => x.id === t.dataset.vfac || x.numero === t.dataset.num)); });
+function voirFacture(F) {
+  if (!F) { alert("Facture introuvable (actualisez la page)."); return; }
+  const w = window.open("", "_blank"); if (!w) { alert("Autorisez les fenêtres (pop-up) pour afficher la facture."); return; }
+  w.document.open(); w.document.write(htmlFacture(F).replace("</body>", '<script>setTimeout(function(){window.print()},300)<\/script></body>')); w.document.close(); w.focus();
+}
+function ouvrirEditeur() {
+  const E = EDITEUR || {};
+  fenetre('<h2>Mon entreprise</h2><p class="sous">Les mentions de vos factures (obligatoires : raison sociale, ICE, IF, adresse, ville). Prix TTC, TVA ' + 20 + ' % ; numéros F-AAAA-NNNN, avoirs AV-AAAA-NNNN. Une facture garde les mentions du jour où elle est faite.</p><div class="form">' +
+    CHAMPS_EDITEUR.map(([k, l]) => k === "mentions" ? '<div class="large"><label for="ed_' + k + '">' + esc(l) + '</label><textarea id="ed_' + k + '" rows="2">' + esc(E[k] || "") + "</textarea></div>" : ch("ed_" + k, l + (EDITEUR_REQUIS.indexOf(k) >= 0 ? " *" : ""), "", k === "email" ? "email" : "", E[k])).join("") + "</div>" +
+    '<div class="pied"><button id="edOk">Enregistrer</button><button class="clair" id="edAnn">Fermer</button></div>');
+  $("edAnn").onclick = fermer;
+  $("edOk").onclick = async () => {
+    const d = {}; CHAMPS_EDITEUR.forEach(([k]) => { d[k] = $("ed_" + k).value; });
+    const b = $("edOk"); b.disabled = true; b.textContent = "Enregistrement…";
+    try { const o = await serveur("editeurEnregistrer", { editeur: d }); EDITEUR = o.editeur; fermer(true); RES = "Mon entreprise enregistré" + (o.manque.length ? " (à compléter pour faire des factures : " + esc(o.manque.join(", ")) + ")" : " : les factures peuvent être créées") + "."; dessiner(); }
+    catch (e) { b.disabled = false; b.textContent = "Enregistrer"; alert("Enregistrement impossible : " + e.message); }
+  };
+}
 // Réglages des abonnements (18.3) : suspension des cabinets en retard (me demander, automatique, jamais), délais
 document.addEventListener("click", (e) => { const t = e.target.closest && e.target.closest("[data-reg-abo],[data-fiche-o]"); if (!t) return; if (t.dataset.ficheO) ouvrirFiche(cab(t.dataset.ficheO)); else ouvrirReglagesAbo(); });
 function ouvrirReglagesAbo() {
@@ -174,12 +196,12 @@ function blocAbonnement(c) {
     (f && f.jamaisSuspendre ? '<div class="m">Ce cabinet n\'est jamais suspendu automatiquement.</div>' : "") +
     (f && f.client && f.client.raison ? '<div class="m">Facturé à : ' + esc([f.client.raison, f.client.ice ? "ICE " + f.client.ice : "", f.client.adresse].filter(Boolean).join(" · ")) + "</div>" : "") +
     '<div class="barre" style="margin-top:6px"><button class="petit" data-paye="' + esc(c.id) + '">Enregistrer un paiement</button><button class="clair petit" data-abo="' + esc(c.id) + '">Modifier l\'abonnement</button><button class="clair petit" data-client="' + esc(c.id) + '">Coordonnées de facturation</button></div>' +
-    (f && (f.paiements || []).length ? '<details class="paie"><summary>Paiements (' + f.paiements.length + ")</summary><table class=\"pt\">" + f.paiements.slice().reverse().map((p) => "<tr><td>" + esc(dfr(p.d)) + "</td><td class=\"n\">" + esc(dh(p.m)) + "</td><td>" + (p.periode === "an" ? "1 an" : "1 mois") + " · " + esc((MOYENS.find((x) => x[0] === p.moyen) || [])[1] || p.moyen) + (p.ref ? " · " + esc(p.ref) : "") + '</td><td class="m">→ ' + esc(dfr(p.apres)) + '</td><td><button class="lien-r petit" data-rp="' + esc(c.id) + ":" + esc(p.id) + '">Retirer</button></td></tr>').join("") + "</table></details>" : "") +
+    (f && (f.paiements || []).length ? '<details class="paie"><summary>Paiements (' + f.paiements.length + ")</summary><table class=\"pt\">" + f.paiements.slice().reverse().map((p) => "<tr><td>" + esc(dfr(p.d)) + "</td><td class=\"n\">" + esc(dh(p.m)) + "</td><td>" + (p.periode === "an" ? "1 an" : "1 mois") + " · " + esc((MOYENS.find((x) => x[0] === p.moyen) || [])[1] || p.moyen) + (p.ref ? " · " + esc(p.ref) : "") + '</td><td class="m">→ ' + esc(dfr(p.apres)) + "</td><td>" + (p.facture ? '<button class="lien petit" data-vfac="' + esc(p.factureId || "") + '" data-num="' + esc(p.facture) + '">' + esc(p.facture) + "</button>" : '<button class="lien petit" data-facturer="' + esc(c.id) + ":" + esc(p.id) + '">Créer la facture</button>') + '</td><td><button class="lien-r petit" data-rp="' + esc(c.id) + ":" + esc(p.id) + '" title="' + (p.facture ? "Retirer le paiement : un avoir annule sa facture" : "Retirer le paiement") + '">Retirer</button></td></tr>').join("") + "</table></details>" : "") +
     (f && (f.journal || []).length ? '<details class="paie"><summary>Historique</summary>' + f.journal.slice(-30).reverse().map((j) => '<div class="m">' + esc(new Date(j.le).toLocaleDateString("fr-FR")) + " · " + esc(j.txt) + "</div>").join("") + "</details>" : "") + "</div>";
 }
 async function envoyerFacturation(c, d, message) {
   const o = await serveur("facturationCabinet", Object.assign({ espace: c.id }, d));
-  c.facturation = o.facturation; if (o.actif && !c.actif) { c.actif = true; c.suspenduLe = ""; c.suspenduAuto = false; }
+  c.facturation = o.facturation; (o.factures || []).forEach((x) => FACT.unshift(x)); if (o.actif && !c.actif) { c.actif = true; c.suspenduLe = ""; c.suspenduAuto = false; }
   fermer(true); RES = message; dessiner(); ouvrirFiche(c);
 }
 function ouvrirAbonnement(c) {
@@ -236,7 +258,7 @@ function ouvrirPaiement(c) {
     const p = { d: $("pD").value, m: $("pM").value, periode: $("pPer").value, moyen: $("pMoy").value, ref: $("pRef").value, note: $("pNote").value };
     if (!p.d || !(Number(p.m) > 0)) { alert("Indiquez la date et le montant."); return; }
     const b = $("pOk"); b.disabled = true; b.textContent = "Enregistrement…";
-    try { await envoyerFacturation(c, { action: "paiement", paiement: p }, "Paiement de " + esc(dh(p.m)) + " enregistré pour « " + esc(c.nom) + " »."); } catch (e) { b.disabled = false; b.textContent = "Enregistrer le paiement"; alert("Enregistrement impossible : " + e.message); }
+    try { const n0 = FACT.length; await envoyerFacturation(c, { action: "paiement", paiement: p }, "Paiement de " + esc(dh(p.m)) + " enregistré pour « " + esc(c.nom) + " »."); if (FACT.length > n0) RES += " Facture " + esc(FACT[0].numero) + " créée."; else RES += " Facture non créée : complétez « Mon entreprise » (Comptabilité), puis « Créer la facture » dans les paiements du cabinet."; dessiner(); ouvrirFiche(c); } catch (e) { b.disabled = false; b.textContent = "Enregistrer le paiement"; alert("Enregistrement impossible : " + e.message); }
   };
 }
 function brancherCabinets() {
@@ -263,6 +285,8 @@ function brancherActions(R) {
   on("[data-jcab]", (b) => { JF = Object.assign(JF, { cab: b.dataset.jcab, periode: "tout" }); JL = null; fermer(true); location.hash = "journal"; });
   on("[data-abo]", (b) => ouvrirAbonnement(cab(b.dataset.abo)));
   on("[data-client]", (b) => ouvrirClient(cab(b.dataset.client)));
+  on("[data-facturer]", async (b) => { const [id, pid] = b.dataset.facturer.split(":"), c = cab(id); if (editeurIncomplet(EDITEUR).length) { alert("Complétez d'abord « Mon entreprise » (onglet Comptabilité) : raison sociale, ICE, IF, adresse, ville."); return; }
+    b.disabled = true; try { await envoyerFacturation(c, { action: "facturer", id: pid }, "Facture créée."); } catch (e) { b.disabled = false; alert("Impossible : " + e.message); } });
   on("[data-rp]", async (b) => { const [id, pid] = b.dataset.rp.split(":"), c = cab(id), p = c && ((c.facturation || {}).paiements || []).find((x) => x.id === pid); if (!p || !confirm("Retirer le paiement du " + dfr(p.d) + " (" + dh(p.m) + ") ?")) return;
     b.disabled = true; try { await envoyerFacturation(c, { action: "retirerPaiement", id: pid }, "Paiement retiré."); } catch (e) { b.disabled = false; alert("Impossible : " + e.message); } });
 }
@@ -641,7 +665,8 @@ function htmlCompta() {
   return '<div class="tuiles t5">' + tuile(dh(somme(T.filter((p) => dans(p, moisC[0], moisC[1])))), "Encaissé ce mois", "vert") + tuile(dh(somme(T.filter((p) => dans(p, anC[0], anC[1])))), "Encaissé en " + j.slice(0, 4), "vert") +
       tuile(dh(sA(30)), "À encaisser (30 j)<br><small>60 j : " + esc(dh(sA(60))) + " · 90 j : " + esc(dh(sA(90))) + "</small>", "", "Échéances à venir des abonnements mensuels et annuels") +
       tuile(dh(somme(IMP)), "Impayés · " + IMP.length + " cabinet" + (IMP.length > 1 ? "s" : ""), IMP.length ? "rouge" : "", "Périodes échues non payées") + tuile(essais.length, "Fins d'essai (30 j)<br><small>" + esc(dh(somme(essais))) + " si tous s'abonnent</small>", "") + "</div>" +
-    '<p class="m reg-l">Suspension des cabinets en retard : <b>' + esc({ demander: "Onco360 vous demande", auto: "automatique", jamais: "jamais" }[RA.suspension]) + "</b> après " + RA.delai + " jours · rappel " + RA.rappel + " jours avant l'échéance · essai " + RA.essai + ' jours · <button class="lien" data-reg-abo>Réglages des abonnements</button></p>' +
+    (editeurIncomplet(EDITEUR).length ? '<div class="avert">Pour créer les factures, complétez <b>Mon entreprise</b> (raison sociale, ICE, IF, adresse, ville). <button class="lien" data-editeur>Compléter</button></div>' : "") +
+    '<p class="m reg-l">Suspension des cabinets en retard : <b>' + esc({ demander: "Onco360 vous demande", auto: "automatique", jamais: "jamais" }[RA.suspension]) + "</b> après " + RA.delai + " jours · rappel " + RA.rappel + " jours avant l'échéance · essai " + RA.essai + ' jours · <button class="lien" data-reg-abo>Réglages des abonnements</button> · <button class="lien" data-editeur>Mon entreprise (factures)</button></p>' +
     '<section class="carte"><h2>Évolution des encaissements</h2><p class="sous">12 derniers mois, tous cabinets (montants TTC, tels qu\'enregistrés).</p><div class="evo">' + mois.map((m, i) => '<div class="evo-b" title="' + esc(MOIS[Number(m.slice(5)) - 1] + " " + m.slice(0, 4) + " : " + dh(parMois[i])) + '"><span class="v">' + (parMois[i] ? esc(String(Math.round(parMois[i] / 100) / 10).replace(".", ",")) + " k" : "") + '</span><i style="height:' + Math.round((parMois[i] / max) * 100) + '%"></i><span class="mo">' + MOIS[Number(m.slice(5)) - 1] + "</span></div>").join("") + "</div>" + actualiser() + "</section>" +
     '<section class="carte"><h2>Encaissements</h2><div class="barre" style="margin-top:8px"><select id="cpPer" aria-label="Période">' + PER.map(([k, l]) => '<option value="' + k + '"' + (CP.per === k ? " selected" : "") + ">" + l + "</option>").join("") + "</select>" +
       (CP.per === "perso" ? '<input id="cpDu" type="date" value="' + esc(CP.du) + '" aria-label="Du"><input id="cpAu" type="date" value="' + esc(CP.au) + '" aria-label="Au">' : "") +
@@ -651,10 +676,28 @@ function htmlCompta() {
       '<p class="sous" style="margin:10px 0 0"><b>' + esc(dh(somme(P))) + "</b> · " + P.length + " paiement" + (P.length > 1 ? "s" : "") + (du > "0000" && au < "9999" ? " du " + esc(dfr(du)) + " au " + esc(dfr(au)) : "") + "</p>" +
       '<div class="rg" style="margin-top:10px"><div class="rg-b"><h3 class="st">Par pack</h3>' + barres(rep((p) => p.pack || "Cabinet supprimé")) + '</div><div class="rg-b"><h3 class="st">Par moyen de paiement</h3>' + barres(rep((p) => moyenLib(p.moyen))) + "</div></div>" +
       (P.length ? '<div class="tableau"><table class="lc cp"><thead><tr><th>Date</th><th>Cabinet</th><th class="n">Montant</th><th>Période</th><th>Moyen</th><th>Référence</th><th>Échéance après</th></tr></thead><tbody>' + P.map((p) => '<tr><td data-l="Date">' + esc(dfr(p.d)) + '</td><td data-l="Cabinet">' + esc(p.nomCab) + (p.client.raison ? '<div class="m">' + esc(p.client.raison) + "</div>" : "") + '</td><td data-l="Montant" class="n"><b>' + esc(dh(p.m)) + '</b></td><td data-l="Période">' + (p.periode === "an" ? "1 an" : "1 mois") + '</td><td data-l="Moyen">' + esc(moyenLib(p.moyen)) + '</td><td data-l="Référence" class="m">' + esc(p.ref || "") + (p.note ? " " + esc(p.note) : "") + '</td><td data-l="Échéance après">' + esc(dfr(p.apres || "")) + "</td></tr>").join("") + '</tbody><tfoot><tr><td colspan="2"><b>Total</b></td><td class="n"><b>' + esc(dh(somme(P))) + '</b></td><td colspan="4"></td></tr></tfoot></table></div>' : '<p class="sous">Aucun paiement sur cette période' + (CP.per !== "tout" ? " (essayez « Tout »)" : "") + ".</p>") + "</section>" +
+    htmlFactures(du, au) +
     '<div class="rg"><section class="carte"><h2>À encaisser (90 jours)</h2>' + (A90.length ? '<table class="pt">' + A90.map((x) => "<tr><td>" + esc(dfr(x.d)) + '</td><td><button class="lien" data-vf="' + esc(x.c.id) + '">' + esc(x.c.nom) + "</button>" + (x.essai ? ' <span class="bdg">fin d\'essai</span>' : "") + '</td><td class="n">' + esc(dh(x.m)) + "</td></tr>").join("") + "</table>" : '<p class="m">Aucune échéance dans les 90 jours.</p>') + "</section>" +
       '<section class="carte"><h2>Impayés</h2>' + (IMP.length ? '<table class="pt">' + IMP.map((x) => '<tr><td><button class="lien" data-vf="' + esc(x.c.id) + '">' + esc(x.c.nom) + '</button><div class="m">échéance du ' + esc(dfr(x.E.fin)) + " · " + esc(x.E.lib) + (x.c.actif ? "" : " · suspendu") + '</div></td><td class="n"><b>' + esc(dh(x.m)) + "</b></td></tr>").join("") + "</table>" : '<p class="m">Aucun impayé.</p>') + "</section></div>";
 }
+// Factures et avoirs de la période choisie (même période et même cabinet que les encaissements)
+function htmlFactures(du, au) {
+  const L = FACT.filter((F) => F.d >= du && F.d <= au && (!CP.cab || F.espace === CP.cab)).sort((a, b) => String(b.numero).localeCompare(String(a.numero)));
+  const sg = (F) => (F.type === "avoir" ? -1 : 1), tot = (k) => L.reduce((n, F) => n + sg(F) * (Number(F[k]) || 0), 0);
+  return '<section class="carte"><h2>Factures</h2><p class="sous">Une facture à chaque paiement enregistré, un avoir quand un paiement est retiré. Période et cabinet : ceux des encaissements ci-dessus.</p>' +
+    (L.length ? '<div class="barre" style="margin:8px 0"><span class="m">' + L.length + " document" + (L.length > 1 ? "s" : "") + " · HT " + esc(dh2(tot("ht"))) + " · TVA " + esc(dh2(tot("tva"))) + " · <b>TTC " + esc(dh2(tot("ttc"))) + '</b></span><button class="clair" id="faExp">Exporter les factures (Excel)</button></div>' +
+      '<div class="tableau"><table class="lc"><thead><tr><th>Numéro</th><th>Date</th><th>Client</th><th class="n">HT</th><th class="n">TVA</th><th class="n">TTC</th><th></th></tr></thead><tbody>' +
+      L.map((F) => '<tr><td data-l="Numéro"><b>' + esc(F.numero) + "</b>" + (F.type === "avoir" ? ' <span class="bdg al">avoir</span><div class="m">annule ' + esc(F.ref) + "</div>" : "") + '</td><td data-l="Date">' + esc(dfr(F.d)) + '</td><td data-l="Client">' + esc((F.client || {}).raison || F.cabinet) + ((F.client || {}).ice ? '<div class="m">ICE ' + esc(F.client.ice) + "</div>" : "") + '</td><td data-l="HT" class="n">' + esc(dh2(sg(F) * F.ht)) + '</td><td data-l="TVA" class="n">' + esc(dh2(sg(F) * F.tva)) + '</td><td data-l="TTC" class="n"><b>' + esc(dh2(sg(F) * F.ttc)) + '</b></td><td><button class="clair petit" data-vfac="' + esc(F.id) + '">Voir / imprimer</button></td></tr>').join("") + "</tbody></table></div>"
+      : '<p class="m">Aucune facture sur cette période.</p>') + "</section>";
+}
 function brancherCompta() {
+  if ($("faExp")) $("faExp").onclick = () => {
+    const [du, au] = bornesCP(), q = (v) => '"' + String(v == null ? "" : v).replace(/"/g, '""') + '"', n = (x) => String((Number(x) || 0).toFixed(2)).replace(".", ",");
+    const L = FACT.filter((F) => F.d >= du && F.d <= au && (!CP.cab || F.espace === CP.cab)).sort((a, b) => String(a.numero).localeCompare(String(b.numero)));
+    const csv = "\ufeff" + ["Numéro;Type;Date;Client;ICE client;IF client;Cabinet;HT;TVA;TTC;Taux TVA;Payée le;Moyen;Référence;Facture annulée"].concat(L.map((F) => { const s = F.type === "avoir" ? -1 : 1, C = F.client || {}, P = F.paiement || {};
+      return [F.numero, F.type === "avoir" ? "Avoir" : "Facture", dfr(F.d), C.raison, C.ice, C.if, F.cabinet, n(s * F.ht), n(s * F.tva), n(s * F.ttc), F.taux + " %", dfr(P.d), P.moyen, P.ref, F.ref].map(q).join(";"); })).join("\r\n");
+    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" })); a.download = "Onco360-factures-" + (CP.per === "tout" ? "tout" : du + "_" + au) + ".csv"; document.body.appendChild(a); a.click(); a.remove();
+  };
   if (!$("cpPer")) return;
   $("cpPer").onchange = () => { CP.per = $("cpPer").value; dessiner(); };
   if ($("cpDu")) $("cpDu").onchange = () => { CP.du = $("cpDu").value; dessiner(); };

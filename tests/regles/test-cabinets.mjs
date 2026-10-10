@@ -93,6 +93,9 @@ await cas("le compte d'administration non plus depuis le navigateur (fonction se
 console.log("Journal de l'Administration (journalAdmin, 17.5) : serveur seulement");
 await cas("un cabinet ne lit pas le journal de l'administration", async () => { await env.withSecurityRulesDisabled(async (c) => { await setDoc(doc(c.firestore(), "journalAdmin/j1"), { type: "suspension", espace: "cab-autre" }); }); await assertFails(getDoc(doc(db("DRB"), "journalAdmin/j1"))); await assertFails(getDocs(collection(db("RITA"), "journalAdmin"))); });
 await cas("personne n'y écrit depuis le navigateur (pas même l'administration)", async () => { await assertFails(setDoc(doc(db("ADM"), "journalAdmin/j2"), { type: "creation" })); await assertFails(setDoc(doc(db("RITA"), "journalAdmin/j3"), { type: "creation" })); });
+console.log("Factures (factures, plateforme/editeur, compteurs/factures, 18.4) : serveur seulement");
+await cas("un cabinet ne lit ni ses factures ni celles des autres depuis le navigateur", async () => { await env.withSecurityRulesDisabled(async (c) => { await setDoc(doc(c.firestore(), "factures/f1"), { numero: "F-2026-0001", espace: "cab-autre" }); await setDoc(doc(c.firestore(), "plateforme/editeur"), { raison: "X" }); }); await assertFails(getDoc(doc(db("DRB"), "factures/f1"))); await assertFails(getDocs(collection(db("RITA"), "factures"))); await assertFails(getDoc(doc(db("DRB"), "plateforme/editeur"))); });
+await cas("personne ne crée de facture ni ne change le compteur depuis le navigateur", async () => { await assertFails(setDoc(doc(db("ADM"), "factures/f9"), { numero: "F-2026-0009" })); await assertFails(setDoc(doc(db("RITA"), "compteurs/factures"), { "F-2026": 0 })); });
 console.log("\n" + ok + " réussis, " + ko + " échoués");
 await env.cleanup();
 if (ko) process.exit(1);

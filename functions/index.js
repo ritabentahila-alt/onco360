@@ -574,7 +574,9 @@ exports.listeCabinets = onCall({ timeoutSeconds: 60, memory: "256MiB" }, async (
   if (sp && sp.exists) Object.values(sp.data()).forEach((o) => { if (o && o.nom) specialites[o.nom] = { fiche: o.fiche || {}, le: o.ficheLe || o.le || "", consultation: o.consultation || {}, csLe: o.consultationLe || "" }; });
   // Cabinets supprimés dont la facturation est gardée (comptabilité)
   const vivants = new Set(snap.docs.map((d) => d.id)), archives = Object.entries(FACT).filter(([id]) => !vivants.has(id)).map(([id, f]) => ({ id, nom: f.cabinetNom || id, supprimeLe: f.supprimeLe || "", facturation: f }));
-  return { cabinets: out, formules: FS, bibliotheques, specialites, archives, reglagesAbo: await reglagesAbo(), lu: new Date().toISOString() };
+  const [se2, sfa] = await Promise.all([db.doc("plateforme/editeur").get().catch(() => null), db.collection("factures").orderBy("le", "desc").limit(2000).get().catch(() => null)]);
+  const factures = sfa ? sfa.docs.map((x) => Object.assign({ id: x.id }, x.data())) : [];
+  return { cabinets: out, formules: FS, bibliotheques, specialites, archives, reglagesAbo: await reglagesAbo(), editeur: se2 && se2.exists ? se2.data() : null, factures, lu: new Date().toISOString() };
 });
 // Suspendre (abonnement non payé) ou réactiver un cabinet : espaces/{e}.actif. Suspendu = plus personne n'y entre (règles), rien
 // n'est effacé. Jamais le cabinet modèle (celui de Dr Bentahila).
@@ -793,7 +795,7 @@ exports.facturationCabinet = onCall({ timeoutSeconds: 30, memory: "256MiB" }, as
   if (!(await estAdministrateur(par))) throw new HttpsError("permission-denied", "Réservé à l'administration d'Onco360.");
   const e = String(d.espace || ""), ref = db.doc("facturation/" + e), esp = db.doc("espaces/" + e), se = await esp.get();
   if (!e || !se.exists || C.estBib(e)) throw new HttpsError("not-found", "Cabinet introuvable.");
-  const s0 = await ref.get(), f = s0.exists ? s0.data() : { paiements: [], journal: [], debut: new Date().toISOString().slice(0, 10) }, le = new Date().toISOString(), jr = [];
+  const s0 = await ref.get(), f = s0.exists ? s0.data() : { paiements: [], journal: [], debut: new Date().toISOString().slice(0, 10) }, le = new Date().toISOString(), jr = [], NV = [];
   if (d.action === "regler") {
     const r = Fa.reglageFacturation(d.reglage);
     if (r.mode === "essai" && !r.essaiFin) r.essaiFin = Fa.ajouterJours(le.slice(0, 10), (await reglagesAbo()).essai);
@@ -801,16 +803,25 @@ exports.facturationCabinet = onCall({ timeoutSeconds: 30, memory: "256MiB" }, as
     Object.assign(f, r); jr.push("Abonnement : " + (Fa.MODES_FACT.find((m) => m[0] === r.mode) || [])[1] + (r.prix != null ? ", " + r.prix + " DH" : "") + (r.echeance ? ", échéance " + r.echeance : r.essaiFin ? ", essai jusqu'au " + r.essaiFin : "") + (r.jamaisSuspendre ? ", jamais suspendu automatiquement" : ""));
   } else if (d.action === "paiement") {
     let p; try { p = Fa.paiementNettoye(d.paiement); } catch (er) { throw new HttpsError("invalid-argument", er.message); }
-    const ech = Fa.prolonger(f, p.d, p.periode);
-    f.paiements = (f.paiements || []).concat([Object.assign({ id: "p" + Date.now().toString(36), par, le, avant: f.echeance || f.essaiFin || "", apres: ech }, p)]).slice(-200);
+    const ech = Fa.prolonger(f, p.d, p.periode), P = Object.assign({ id: "p" + Date.now().toString(36), par, le, avant: f.echeance || f.essaiFin || "", apres: ech }, p);
+    // Facture (18.4) : créée si « Mon entreprise » est complet ; sinon le paiement est gardé, la facture pourra être créée ensuite
+    const FAC = await facturer("facture", e, se.data(), f, P, par).catch((er) => { console.warn("facture", er.message); return null; });
+    if (FAC) { P.facture = FAC.numero; P.factureId = FAC.id; NV.push(FAC.doc); jr.push("Facture " + FAC.numero); } else jr.push("Facture non créée (« Mon entreprise » incomplet)");
+    f.paiements = (f.paiements || []).concat([P]).slice(-200);
     f.echeance = ech; if (f.mode === "essai" || !f.mode) f.mode = p.periode === "an" ? "annuel" : "mensuel";
     jr.push("Paiement de " + p.m + " DH (" + (p.periode === "an" ? "1 an" : "1 mois") + ") : échéance au " + ech);
     // Cabinet suspendu pour retard : réactivé dès le paiement
     if (se.data().actif === false && f.suspenduPour) { await esp.update({ actif: true, suspenduLe: FieldValue.delete(), reactiveLe: le, etatPar: par }); jr.push("Cabinet réactivé (paiement reçu)"); delete f.suspenduPour; }
+  } else if (d.action === "facturer") {
+    const p = (f.paiements || []).find((x) => x.id === d.id); if (!p) throw new HttpsError("not-found", "Paiement introuvable.");
+    if (p.facture) throw new HttpsError("already-exists", "Ce paiement a déjà sa facture (" + p.facture + ").");
+    const FAC = await facturer("facture", e, se.data(), f, p, par); p.facture = FAC.numero; p.factureId = FAC.id; NV.push(FAC.doc); jr.push("Facture " + FAC.numero + " (paiement du " + p.d + ")");
   } else if (d.action === "client") {
     f.client = Fa.clientNettoye(d.client); jr.push("Coordonnées de facturation : " + [f.client.raison, f.client.ice ? "ICE " + f.client.ice : ""].filter(Boolean).join(", "));
   } else if (d.action === "retirerPaiement") {
     const p = (f.paiements || []).find((x) => x.id === d.id); if (!p) throw new HttpsError("not-found", "Paiement introuvable.");
+    // Paiement déjà facturé : un avoir annule la facture (une facture n'est jamais effacée)
+    if (p.facture) { const AV = await facturer("avoir", e, se.data(), f, p, par); NV.push(AV.doc); jr.push("Avoir " + AV.numero + " (annule la facture " + p.facture + ")"); }
     f.paiements = f.paiements.filter((x) => x.id !== d.id);
     if (f.echeance === p.apres) f.echeance = p.avant || ""; // dernier paiement retiré : échéance d'avant
     jr.push("Paiement du " + p.d + " (" + p.m + " DH) retiré");
@@ -819,7 +830,7 @@ exports.facturationCabinet = onCall({ timeoutSeconds: 30, memory: "256MiB" }, as
   await ref.set(f);
   await jAdmin(par, "abonnement", e, se.data().nom || e, jr.join(" · "));
   console.log("facturation", e, d.action, "par", par);
-  return { facturation: f, actif: d.action === "paiement" ? true : se.data().actif !== false };
+  return { facturation: f, actif: d.action === "paiement" ? true : se.data().actif !== false, factures: NV };
 });
 // Chaque nuit (4 h) : un cabinet dont l'échéance est dépassée de plus de 30 jours est suspendu (données gardées), une seule fois par
 // échéance (une réactivation à la main n'est pas annulée la nuit suivante) ; jamais le cabinet de Dr Bentahila, la démonstration,
@@ -860,4 +871,32 @@ exports.reglagesAbonnements = onCall({ timeoutSeconds: 30, memory: "256MiB" }, a
   await db.doc("plateforme/abonnements").set(Object.assign({}, R, { le: new Date().toISOString(), par }));
   await jAdmin(par, "abonnement", "", "", "Réglages des abonnements : suspension " + LIB[R.suspension] + " après " + R.delai + " jours de retard, rappel " + R.rappel + " jours avant, essai " + R.essai + " jours");
   return { reglages: R };
+});
+// ───── Factures (18.4, 10/10/2026) ─────
+// factures/{id} (serveur seulement) = { numero F-AAAA-NNNN | AV-AAAA-NNNN, type facture|avoir, annee, rang, d (émission), espace, cabinet,
+// client, editeur (copie au jour de la facture), lignes [{ lib, du, au, ht, tva, ttc }], ht, tva, ttc, taux, paiement { id, d, moyen, ref },
+// ref (avoir : facture annulée), le, par }. Numéros continus par année et par type : compteurs/factures { "F-2026": n } (transaction).
+async function facturer(type, e, esp, f, p, par) {
+  const ed = await db.doc("plateforme/editeur").get(), E = ed.exists ? ed.data() : null, manque = Fa.editeurIncomplet(E);
+  if (manque.length) throw new HttpsError("failed-precondition", "Complétez d'abord « Mon entreprise » (Comptabilité) : " + manque.join(", ") + ".");
+  const jour = new Date().toISOString().slice(0, 10), annee = jour.slice(0, 4), cle = (type === "avoir" ? "AV-" : "F-") + annee, cpt = db.doc("compteurs/factures");
+  const rang = await db.runTransaction(async (t) => { const s = await t.get(cpt), n = ((s.exists && s.data()[cle]) || 0) + 1; t.set(cpt, { [cle]: n }, { merge: true }); return n; });
+  const FS = await formules(), pack = ((FS[(esp.abonnement || {}).formule] || {}).lib) || "", M = Fa.montants(p.m, E.tva);
+  const cl = Object.assign({ raison: esp.nom || e, adresse: [esp.adresse, esp.ville].filter(Boolean).join(", ") }, Object.fromEntries(Object.entries(f.client || {}).filter(([, v]) => v)));
+  const lib = "Abonnement Onco360" + (pack ? " – " + pack : "") + " – " + (p.periode === "an" ? "1 an" : "1 mois");
+  const F = { numero: Fa.numeroFacture(type, annee, rang), type, annee: Number(annee), rang, d: jour, espace: e, cabinet: esp.nom || e, client: cl, editeur: E,
+    lignes: [Object.assign({ lib: (type === "avoir" ? "Annulation : " : "") + lib, du: p.avant && p.avant < p.apres ? p.avant : p.d, au: p.apres }, M)], ht: M.ht, tva: M.tva, ttc: M.ttc, taux: M.taux,
+    paiement: { id: p.id, d: p.d, moyen: p.moyen, ref: p.ref || "" }, ref: type === "avoir" ? p.facture || "" : "", le: new Date(), par };
+  const r = await db.collection("factures").add(F);
+  await jAdmin(par, "abonnement", e, esp.nom || e, (type === "avoir" ? "Avoir " : "Facture ") + F.numero + " : " + M.ttc + " DH TTC" + (F.ref ? " (annule " + F.ref + ")" : ""));
+  return { id: r.id, numero: F.numero, doc: Object.assign({ id: r.id }, F, { le: F.le.toISOString() }) };
+}
+// Mon entreprise (mentions légales des factures) : plateforme/editeur
+exports.editeurEnregistrer = onCall({ timeoutSeconds: 30, memory: "256MiB" }, async (req) => {
+  const par = req.auth && req.auth.uid;
+  if (!(await estAdministrateur(par))) throw new HttpsError("permission-denied", "Réservé à l'administration d'Onco360.");
+  const E = Fa.editeurNettoye((req.data || {}).editeur);
+  await db.doc("plateforme/editeur").set(Object.assign({}, E, { le: new Date().toISOString(), par }));
+  await jAdmin(par, "abonnement", "", "", "Mon entreprise (mentions des factures) enregistré : " + [E.raison, E.ice ? "ICE " + E.ice : ""].filter(Boolean).join(", "));
+  return { editeur: E, manque: Fa.editeurIncomplet(E) };
 });

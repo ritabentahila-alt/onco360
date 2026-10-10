@@ -91,4 +91,15 @@ function impaye(f, P, jour) {
   const r = ecart(fin, jour), an = f.mode === "annuel", nb = an ? Math.ceil(r / 365) : Math.ceil(r / 30.4);
   return Math.max(1, nb) * ((f.mode === "essai" && !f.echeance ? P.catalogue : P.prix || P.catalogue) || 0);
 }
-module.exports = { ESSAI_JOURS, DELAI_SUSPENSION, RAPPEL_JOURS, TVA, REGLAGES_ABO0, reglagesAbo, MODES_FACT, MOYENS, PRIX0, ajouterJours, ecart, prolonger, etatFacturation, prixCabinet, reglageFacturation, paiementNettoye, clientNettoye, attendus, impaye };
+// ───── Factures (18.4, 10/10/2026 ; décidé : TVA 20 %, prix TTC, numéros F-AAAA-NNNN, avoirs AV-AAAA-NNNN) ─────
+// Montants d'une facture à partir du TTC payé : HT = TTC / (1 + taux), TVA = TTC − HT (au centime)
+const c2 = (x) => Math.round(x * 100) / 100;
+function montants(ttc, taux) { const t = taux == null ? TVA : Number(taux), T = c2(Number(ttc) || 0), H = c2(T / (1 + t / 100)); return { ttc: T, ht: H, tva: c2(T - H), taux: t }; }
+// L'éditrice d'Onco360 (plateforme/editeur) : mentions légales des factures (article 145 du CGI : nom, adresse, IF, ICE, RC, taxe
+// professionnelle…)
+const CHAMPS_EDITEUR = [["raison", "Raison sociale (ou nom)", 120], ["forme", "Forme juridique (SARL, SARLAU, auto-entrepreneur…)", 60], ["ice", "ICE", 20], ["if", "Identifiant fiscal (IF)", 20], ["rc", "Registre de commerce (RC, ville)", 40], ["patente", "Taxe professionnelle (patente)", 30], ["cnss", "CNSS (facultatif)", 30], ["adresse", "Adresse", 200], ["ville", "Ville", 60], ["tel", "Téléphone", 30], ["email", "E-mail", 120], ["rib", "RIB (pour les virements)", 40], ["banque", "Banque", 60], ["mentions", "Mentions en bas de facture (facultatif)", 400]];
+const EDITEUR_REQUIS = ["raison", "ice", "if", "adresse", "ville"];
+function editeurNettoye(o) { const x = o || {}, out = {}; CHAMPS_EDITEUR.forEach(([k, , n]) => { out[k] = String(x[k] == null ? "" : x[k]).replace(/[ \t]+/g, " ").trim().slice(0, n); }); out.ice = out.ice.replace(/\s/g, ""); out.tva = TVA; return out; }
+const editeurIncomplet = (e) => EDITEUR_REQUIS.filter((k) => !(e && e[k]));
+const numeroFacture = (type, annee, rang) => (type === "avoir" ? "AV" : "F") + "-" + annee + "-" + String(rang).padStart(4, "0");
+module.exports = { ESSAI_JOURS, DELAI_SUSPENSION, RAPPEL_JOURS, TVA, REGLAGES_ABO0, reglagesAbo, MODES_FACT, MOYENS, PRIX0, ajouterJours, ecart, prolonger, etatFacturation, prixCabinet, reglageFacturation, paiementNettoye, clientNettoye, attendus, impaye, montants, CHAMPS_EDITEUR, EDITEUR_REQUIS, editeurNettoye, editeurIncomplet, numeroFacture };
