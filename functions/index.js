@@ -572,7 +572,9 @@ exports.listeCabinets = onCall({ timeoutSeconds: 60, memory: "256MiB" }, async (
   }));
   const sp = await db.doc("plateforme/specialites").get().catch(() => null), specialites = {};
   if (sp && sp.exists) Object.values(sp.data()).forEach((o) => { if (o && o.nom) specialites[o.nom] = { fiche: o.fiche || {}, le: o.ficheLe || o.le || "", consultation: o.consultation || {}, csLe: o.consultationLe || "" }; });
-  return { cabinets: out, formules: FS, bibliotheques, specialites };
+  // Cabinets supprimés dont la facturation est gardée (comptabilité)
+  const vivants = new Set(snap.docs.map((d) => d.id)), archives = Object.entries(FACT).filter(([id]) => !vivants.has(id)).map(([id, f]) => ({ id, nom: f.cabinetNom || id, supprimeLe: f.supprimeLe || "", facturation: f }));
+  return { cabinets: out, formules: FS, bibliotheques, specialites, archives, lu: new Date().toISOString() };
 });
 // Suspendre (abonnement non payé) ou réactiver un cabinet : espaces/{e}.actif. Suspendu = plus personne n'y entre (règles), rien
 // n'est effacé. Jamais le cabinet modèle (celui de Dr Bentahila).
@@ -614,7 +616,8 @@ exports.supprimerCabinet = onCall({ timeoutSeconds: 300, memory: "512MiB" }, asy
   await db.recursiveDelete(ref);
   await db.recursiveDelete(db.doc("audit/" + espace)).catch((e) => console.warn("journal", e.message)); // son journal d'audit aussi
   await getStorage().bucket().deleteFiles({ prefix: "espaces/" + espace + "/" }).catch((e) => console.warn("fichiers", e.message));
-  await db.doc("facturation/" + espace).delete().catch(() => {});
+  // Comptabilité (18.2) : la fiche de facturation (paiements) est gardée, marquée « supprimé », avec le nom du cabinet
+  await db.doc("facturation/" + espace).set({ supprime: true, supprimeLe: new Date().toISOString(), cabinetNom: x.nom || espace }, { merge: true }).catch(() => {});
   await jAdmin(par, "suppression", espace, x.nom || espace, "Cabinet supprimé définitivement (" + membres.size + " membre(s), " + comptes.length + " compte(s) effacé(s))");
   console.log("cabinet supprimé", espace, x.nom, "par", par, "comptes supprimés", comptes.length);
   return { comptes: comptes.length };
@@ -803,6 +806,8 @@ exports.facturationCabinet = onCall({ timeoutSeconds: 30, memory: "256MiB" }, as
     jr.push("Paiement de " + p.m + " DH (" + (p.periode === "an" ? "1 an" : "1 mois") + ") : échéance au " + ech);
     // Cabinet suspendu pour retard : réactivé dès le paiement
     if (se.data().actif === false && f.suspenduPour) { await esp.update({ actif: true, suspenduLe: FieldValue.delete(), reactiveLe: le, etatPar: par }); jr.push("Cabinet réactivé (paiement reçu)"); delete f.suspenduPour; }
+  } else if (d.action === "client") {
+    f.client = Fa.clientNettoye(d.client); jr.push("Coordonnées de facturation : " + [f.client.raison, f.client.ice ? "ICE " + f.client.ice : ""].filter(Boolean).join(", "));
   } else if (d.action === "retirerPaiement") {
     const p = (f.paiements || []).find((x) => x.id === d.id); if (!p) throw new HttpsError("not-found", "Paiement introuvable.");
     f.paiements = f.paiements.filter((x) => x.id !== d.id);

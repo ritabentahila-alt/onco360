@@ -106,9 +106,9 @@ Tous les écrans ont été revus avec des cabinets proches de la réalité : le 
 
 | Étape | Contenu | Décision à prendre avant |
 |---|---|---|
-| **18.1 Finitions** | D1, D2, D5 | aucune |
-| **18.2 Comptabilité : tableau de bord et encaissements** | E1, E2 (+ export Excel) | aucune |
+| **18.1 Finitions** ✅ fait le 10/10 | D1, D2, D5 | aucune |
+| **18.2 Comptabilité : tableau de bord et encaissements** ✅ fait le 10/10 | E1, E2 (+ export Excel) | aucune |
 | **18.3 Factures** | E3, E5, D3, D4 | statut juridique, TVA, HT/TTC, préfixe |
 | **18.4 Relances** | E4 | aucune |
-| **18.5 Sécurité du compte d'administration** | D6 | numéro de téléphone pour le code |
+| ~~**18.5 Sécurité du compte d'administration**~~ abandonnée (10/10) | D6 | numéro de téléphone pour le code |
 | **16.5 Nouvelle spécialité** | avec D7 | copie ou vide |

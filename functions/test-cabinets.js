@@ -162,3 +162,12 @@ const echoue = (f) => { try { f(); return false; } catch (e) { return true; } };
   ok(C.formulesValides({ x1: { lib: "X", modules: [], max: {}, prix: { mois: "500", an: 5000 } } }).x1.prix.mois === 500 && C.formulesValides({ essentiel: { lib: "E", modules: [], max: {} } }).essentiel.prix.mois === 690, "prix d'un pack gardés ; pack enregistré sans prix : prix proposé");
   let er = ""; try { F.paiementNettoye({ d: "2026-10-10", m: 0 }); } catch (e) { er = e.message; } ok(/Montant/.test(er), "paiement sans montant refusé");
 })();
+// Comptabilité (18.2)
+(() => {
+  const F = require("./facturation"), ok = (c, m) => { console.log((c ? "✅ " : "❌ ") + m); if (!c) process.exitCode = 1; };
+  ok(JSON.stringify(F.attendus({ mode: "mensuel", echeance: "2026-10-20" }, { prix: 900 }, "2026-10-10", 60).map((x) => x.d)) === '["2026-10-20","2026-11-20"]' && F.attendus({ mode: "annuel", echeance: "2027-01-01" }, { prix: 29900 }, "2026-10-10", 90)[0].m === 29900 && F.attendus({ mode: "gratuit" }, {}, "2026-10-10", 90).length === 0, "à encaisser : échéances des n prochains jours (mensuel, annuel ; gratuit : rien)");
+  ok(F.attendus({ mode: "essai", essaiFin: "2026-10-25" }, { catalogue: 1190 }, "2026-10-10", 30)[0].essai === true && F.attendus({ mode: "mensuel", echeance: "2026-09-01" }, { prix: 900 }, "2026-10-10", 30).length === 0, "fin d'essai attendue ; un retard n'est pas « à encaisser »");
+  ok(F.impaye({ mode: "mensuel", echeance: "2026-09-01" }, { prix: 900 }, "2026-10-10") === 1800 && F.impaye({ mode: "mensuel", echeance: "2026-10-05" }, { prix: 900 }, "2026-10-10") === 900 && F.impaye({ mode: "mensuel", echeance: "2026-11-05" }, { prix: 900 }, "2026-10-10") === 0, "impayés : périodes échues × prix");
+  const c = F.clientNettoye({ raison: "  SARL  Cabinet  Agdal ", ice: "001 234 567 000 089", email: "Compta@X.MA" });
+  ok(c.raison === "SARL Cabinet Agdal" && c.ice === "001234567000089" && c.email === "compta@x.ma", "coordonnées de facturation nettoyées");
+})();

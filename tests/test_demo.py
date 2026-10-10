@@ -58,6 +58,7 @@ async def main():
 window.__fonctions={listeCabinets:async()=>({cabinets:window.__L,bibliotheques:[{id:'bib-oncologie',lib:'Oncologie – Radiothérapie',specialites:['Oncologie – Radiothérapie'],existe:true,nb:{protocoles:316}}]}),creerCabinetDemo:async(d)=>{window.__dm=d;window.__L.push({id:'cab-demonstration',nom:'Cabinet de démonstration',demo:true,actif:true,cree:'2026-10-06',titulaire:{nom:'Dr Démo ONCO360',email:d.email},membres:1,patients:8,abonnement:{formule:'complet'}});return {patients:8,protocoles:12}},demoReinitialiser:async()=>{window.__ri=1;return {patients:8,jour:'2026-10-06'}},referenceMaj:async()=>{window.__ref={le:'2026-10-06T10:00:00Z',nb:{protocoles:316,medicaments:120}};return {reference:window.__ref}}};""")
         await pa.goto(f'http://localhost:{PORT}/admin.html'); await pa.wait_for_timeout(1500)
         await pa.evaluate("window.prompt=(m,d)=>d")  # e-mail proposé par défaut
+        await pa.evaluate("location.hash='nouveau'"); await pa.wait_for_timeout(300)  # carte de la démonstration : onglet Nouveau cabinet (18.1)
         await pa.click('#dCree'); await pa.wait_for_timeout(800)
         ok((await pa.evaluate('window.__dm && window.__dm.email')) == 'ritabentahila+demo@gmail.com' and 'Démonstration' in await pa.inner_text('main'), 'cabinet de démonstration créé et listé (badge Démonstration)')
         ok(await pa.evaluate("!document.getElementById('dCree')"), 'bouton de création retiré une fois la démo créée')

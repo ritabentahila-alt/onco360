@@ -1179,6 +1179,16 @@ Modules et menus, Bibliothèques et paramètres ; cabinets en liste ; onglet lis
       ou seulement dans « Afficher ») à côté de **« présent »** ; `entetes { champ: bool }` (au départ : l'en-tête d'aujourd'hui,
       `ENTETE0` = naissance, sexe, taille, poids, diagnostic, téléphones, hôpital, ALD, correspondant, mutuelle) ; nom et prénom :
       toujours (nom du dossier). Tests fiche 21/21.
+- [x] **18.1 Finitions de l'Administration** (10/10) : carte « Cabinet de démonstration » déplacée dans Nouveau cabinet ;
+      « Actualiser » et heure de lecture des chiffres ; **coordonnées de facturation** de chaque cabinet (raison sociale, ICE, IF,
+      adresse, e-mail ; fiche › bloc Abonnement ; `facturation/{e}.client`, action `client` de `facturationCabinet`).
+- [x] **18.2 Onglet Comptabilité** (10/10) : encaissé du mois et de l'année, à encaisser 30 / 60 / 90 jours (`attendus`),
+      impayés (`impaye` : périodes échues × prix), fins d'essai ; évolution des 12 derniers mois ; encaissements de tous les
+      cabinets (période, cabinet, moyen ; répartition par pack et par moyen ; total) et **export pour le comptable** (raison
+      sociale, ICE, total) ; listes « À encaisser (90 jours) » et « Impayés » (clic = fiche du cabinet). Un cabinet supprimé garde
+      sa facturation (`supprime: true`, `archives` de `listeCabinets`) : la comptabilité reste juste.
+      Tests `tests/test_compta.py` 17/17, serveur 73/73. 18.5 (validation en deux étapes) : abandonnée (décision du 10/10).
+- [ ] **18.3 Factures** (à décider : statut juridique de l'éditrice, TVA, HT ou TTC, préfixe) · **18.4 Relances**.
 - [ ] 16.5 Nouvelle spécialité (copie ou vide) ; Médecine générale, Gynécologie prêtes pour l'étape 14.
 
 ## Étape 14 – Autres spécialités (demandé le 09/10/2026) : nouveaux modules et leurs formules
@@ -1445,3 +1455,4 @@ Onco360_Package_Cession/
 | 10/10/2026 | 17.5 Journal de l'Administration | Toutes les actions de l'administration (et suspensions automatiques) notées par le serveur ; onglet Journal avec filtres et export. Mis en ligne. |
 | 10/10/2026 | 16.6 ter En-tête du dossier | Case « en-tête » pour chaque champ de la fiche patient (existants compris) : ce qui s'affiche en haut du dossier se règle par spécialité, puis par cabinet. Mis en ligne. |
 | 10/10/2026 | Audit n° 2 de l'Administration | Tuile « Cabinets » = tout afficher (bug signalé), « Effacer les filtres », bandeau des cabinets sans abonnement, activité « aucune », revenu HT. Plan 18.1 à 18.5 (onglet Comptabilité, factures, relances, sécurité) dans `AUDIT-ADMINISTRATION.md`. Mis en ligne. |
+| 10/10/2026 | 18.1 et 18.2 | Finitions (démo dans Nouveau cabinet, Actualiser, coordonnées de facturation) et onglet Comptabilité (encaissé, à encaisser, impayés, évolution, encaissements, export comptable). 18.5 abandonnée. Mis en ligne. |

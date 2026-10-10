@@ -60,4 +60,26 @@ function paiementNettoye(o) {
   if (m == null || m <= 0) throw new Error("Montant du paiement manquant.");
   return { d, m, periode: x.periode === "an" ? "an" : "mois", moyen: MOYENS.some((y) => y[0] === x.moyen) ? x.moyen : "virement", ref: String(x.ref || "").trim().slice(0, 60), note: String(x.note || "").trim().slice(0, 200) };
 }
-module.exports = { ESSAI_JOURS, DELAI_SUSPENSION, RAPPEL_JOURS, MODES_FACT, MOYENS, PRIX0, ajouterJours, ecart, prolonger, etatFacturation, prixCabinet, reglageFacturation, paiementNettoye };
+// Coordonnées de facturation d'un cabinet (18.1) : raison sociale, ICE (15 chiffres au Maroc), IF, adresse, e-mail de facturation
+function clientNettoye(o) {
+  const x = o || {}, t = (v, n) => String(v == null ? "" : v).replace(/\s+/g, " ").trim().slice(0, n);
+  return { raison: t(x.raison, 120), ice: t(x.ice, 20).replace(/\s/g, ""), if: t(x.if, 20), adresse: t(x.adresse, 200), email: t(x.email, 120).toLowerCase() };
+}
+// Échéances attendues dans les n prochains jours (18.2) : [{ d, m }] pour un cabinet mensuel / annuel actif ; essai : son premier
+// paiement attendu à la fin de l'essai (prix du pack, mensuel)
+function attendus(f, P, jour, n) {
+  const out = []; if (!f || f.mode === "gratuit") return out;
+  const fin = ajouterJours(jour, n), prix = P.prix || P.catalogue || 0;
+  if (f.mode === "essai" && !f.echeance) { if (f.essaiFin && f.essaiFin >= jour && f.essaiFin <= fin) out.push({ d: f.essaiFin, m: P.catalogue || 0, essai: true }); return out; }
+  let d = f.echeance; if (!d || d < jour) return out; // en retard : compté dans les impayés
+  for (let i = 0; i < 40 && d <= fin; i++) { out.push({ d, m: prix }); d = prolonger({ echeance: d }, d, f.mode === "annuel" ? "an" : "mois"); }
+  return out;
+}
+// Impayé d'un cabinet en retard (18.2) : périodes échues depuis l'échéance (au moins une) × prix
+function impaye(f, P, jour) {
+  if (!f || f.mode === "gratuit") return 0;
+  const fin = f.mode === "essai" && !f.echeance ? f.essaiFin : f.echeance; if (!fin || fin >= jour) return 0;
+  const r = ecart(fin, jour), an = f.mode === "annuel", nb = an ? Math.ceil(r / 365) : Math.ceil(r / 30.4);
+  return Math.max(1, nb) * ((f.mode === "essai" && !f.echeance ? P.catalogue : P.prix || P.catalogue) || 0);
+}
+module.exports = { ESSAI_JOURS, DELAI_SUSPENSION, RAPPEL_JOURS, MODES_FACT, MOYENS, PRIX0, ajouterJours, ecart, prolonger, etatFacturation, prixCabinet, reglageFacturation, paiementNettoye, clientNettoye, attendus, impaye };

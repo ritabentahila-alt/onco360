@@ -7,15 +7,16 @@ import { app, auth, db } from "../config.js";
 import { onAuthStateChanged, sendPasswordResetEmail, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { MENU, FONCTIONS, FONCTIONS_RELIEES, CARTES, SECTIONS, BIBLIOTHEQUES, FICHE, TYPES_CHAMP, TOUJOURS_ENTETE, CONSULT, TYPES_CHAMP_CS, reglageEffectif, ficheEffective, ficheRetouches, consultEffective, formRetouches, libDe } from "../donnees/catalogue.js";
-import { ESSAI_JOURS, DELAI_SUSPENSION, MODES_FACT, MOYENS, PRIX0, ajouterJours, prolonger, etatFacturation, prixCabinet } from "../donnees/facturation.js";
+import { ESSAI_JOURS, DELAI_SUSPENSION, MODES_FACT, MOYENS, PRIX0, ajouterJours, prolonger, etatFacturation, prixCabinet, attendus, impaye } from "../donnees/facturation.js";
 import { MODULES, ROLES_MAX, SPECIALITES, specialiteDe, FORMULES as FORMULES0, abonnementEffectif, BIBLIOTHEQUES_SPE, MODULE_FAMILLE, MODULE_MENU, MODULES_BASE, MODULES_PREVUS } from "../donnees/modules.js";
 
 const $ = (i) => document.getElementById(i);
 const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const dfr = (d) => (typeof d === "string" && d.length >= 10 ? d.slice(8, 10) + "/" + d.slice(5, 7) + "/" + d.slice(0, 4) : "");
 const sansAcc = (x) => String(x || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
-const ONGLETS = [["cabinets", "Cabinets"], ["nouveau", "Nouveau cabinet"], ["specialites", "Par spécialité"], ["modules", "Modules"], ["journal", "Journal"]];
+const ONGLETS = [["cabinets", "Cabinets"], ["nouveau", "Nouveau cabinet"], ["compta", "Comptabilité"], ["specialites", "Par spécialité"], ["modules", "Modules"], ["journal", "Journal"]];
 // CABINETS : liste (null = chargement) ; FS : packs (formules) enregistrés (sinon ceux de départ)
+let ARCH = [], LU = ""; // cabinets supprimés dont la facturation est gardée (comptabilité) ; heure de la dernière lecture
 let SPES = {}; // fiche patient de chaque spécialité { nom: { fiche, le } } (plateforme/specialites)
 let CABINETS = null, FS = null, BIBS = null, // BIBS : bibliothèques de référence par spécialité (null = pas encore lues)
    MSG = "", RES = "", Q = "", STATUT = "", SPE = "", SPEF = "", PAIE = "", TRI = { k: "cree", sens: -1 };
@@ -41,7 +42,7 @@ let GARDER = false;
 window.addEventListener("hashchange", () => { if (!GARDER) RES = ""; GARDER = false; dessiner(); });
 async function charger() {
   try {
-    const o = await serveur("listeCabinets"); if (o.formules) { FS = o.formules; Object.values(FS).forEach((f) => { f.specialite = specialiteDe(f.specialite); }); } BIBS = o.bibliotheques || []; SPES = {}; Object.entries(o.specialites || {}).forEach(([n, v]) => { SPES[specialiteDe(n)] = v; }); MSG = "";
+    const o = await serveur("listeCabinets"); if (o.formules) { FS = o.formules; Object.values(FS).forEach((f) => { f.specialite = specialiteDe(f.specialite); }); } BIBS = o.bibliotheques || []; ARCH = o.archives || []; LU = o.lu || new Date().toISOString(); SPES = {}; Object.entries(o.specialites || {}).forEach(([n, v]) => { SPES[specialiteDe(n)] = v; }); MSG = "";
     CABINETS = (o.cabinets || []).map((c) => Object.assign({}, c, { cree: typeof c.cree === "string" ? c.cree : "", suspenduLe: typeof c.suspenduLe === "string" ? c.suspenduLe : "", titulaire: c.titulaire || {} }));
   } catch (e) { CABINETS = []; MSG = '<p class="err">Liste des cabinets indisponible : ' + esc(e.message) + ' <button class="clair petit" onclick="location.reload()">Réessayer</button></p>'; }
   dessiner();
@@ -51,6 +52,9 @@ const formuleDe = (ab) => (ab && FORMULES_()[ab.formule]) || null;
 // Cabinet sans abonnement (le vôtre, créé avant les packs) : tous les modules, sans limite, en Oncologie – Radiothérapie (A1, 17.1)
 const speDuCab = (c) => (c.abonnement ? specialiteDe((formuleDe(c.abonnement) || {}).specialite) || "" : SPECIALITES[0]);
 const nomFormule = (ab) => (!ab ? "Tout compris, sans limite" : ((formuleDe(ab) || {}).lib || ab.formule) + (ab.surMesure || (ab.reglage && ab.retouche === undefined && Object.keys(ab.reglage).length) ? " · sur mesure" : ""));
+// Actualiser (18.1) : relit cabinets, abonnements et activité ; heure de la dernière lecture
+const actualiser = () => '<p class="m lu">' + (LU ? "Chiffres lus à " + esc(new Date(LU).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })) + " · " : "") + '<button class="lien" data-actu>Actualiser</button></p>';
+document.addEventListener("click", (e) => { const b = e.target.closest && e.target.closest("[data-actu]"); if (!b) return; b.disabled = true; b.textContent = "Lecture…"; CABINETS = null; dessiner(); charger(); });
 // ───── Abonnements (17.4) : état, prix, badge ─────
 const JOUR = () => new Date().toISOString().slice(0, 10);
 const etatDe = (c) => etatFacturation(c.facturation, JOUR());
@@ -72,9 +76,9 @@ function dessiner() {
   const o = ONG();
   $("onglets").innerHTML = ONGLETS.map(([k, lib]) => '<a href="#' + k + '" class="' + (k === o ? "on" : "") + '">' + esc(lib) + (k === "cabinets" && CABINETS ? ' <span class="nb">' + CABINETS.length + "</span>" : "") + "</a>").join("");
   const bandeau = RES ? '<div class="ok bandeau">' + RES + '<button class="x" id="resX" aria-label="Fermer">✕</button></div>' : "";
-  $("page").innerHTML = bandeau + (o === "nouveau" ? htmlNouveau() : o === "specialites" ? htmlSpecialites() : o === "modules" ? htmlModules() : o === "journal" ? htmlJournal() : htmlCabinets());
+  $("page").innerHTML = bandeau + (o === "nouveau" ? htmlNouveau() : o === "specialites" ? htmlSpecialites() : o === "modules" ? htmlModules() : o === "journal" ? htmlJournal() : o === "compta" ? htmlCompta() : htmlCabinets());
   if ($("resX")) $("resX").onclick = () => { RES = ""; dessiner(); };
-  if (o === "nouveau") brancherNouveau(); else if (o === "specialites") brancherSpecialites(); else if (o === "modules") brancherModules(); else if (o === "journal") brancherJournal(); else brancherCabinets();
+  if (o === "nouveau") brancherNouveau(); else if (o === "specialites") brancherSpecialites(); else if (o === "modules") brancherModules(); else if (o === "journal") brancherJournal(); else if (o === "compta") brancherCompta(); else brancherCabinets();
 }
 
 // ───── Onglet Cabinets : chiffres, recherche, filtres, cartes ─────
@@ -102,9 +106,8 @@ function htmlCabinets() {
     '<select id="cSt" aria-label="Statut"><option value="">Tous les statuts</option><option value="actif"' + (STATUT === "actif" ? " selected" : "") + '>Actifs</option><option value="susp"' + (STATUT === "susp" ? " selected" : "") + ">Suspendus</option></select>" +
     '<select id="cPa" aria-label="Abonnement"><option value="">Tous les abonnements</option>' + [["essai", "En essai"], ["ajour", "À jour"], ["renouveler", "À renouveler"], ["retard", "En retard"], ["gratuit", "Gratuits"], ["nonSuivi", "Non suivis"]].map(([k, l]) => '<option value="' + k + '"' + (PAIE === k ? " selected" : "") + ">" + l + "</option>").join("") + "</select>" +
     (spes.length > 1 ? '<select id="cSp" aria-label="Spécialité"><option value="">Toutes les spécialités</option>' + spes.map((x) => '<option' + (x === SPE ? " selected" : "") + ">" + esc(x) + "</option>").join("") + "</select>" : "") +
-    '<a class="bt" href="#nouveau">+ Nouveau cabinet</a></div>' +
+    '<a class="bt" href="#nouveau">+ Nouveau cabinet</a></div>' + actualiser() +
     '<p class="sous" style="margin:10px 0 0">' + V.length + " cabinet" + (V.length > 1 ? "s" : "") + (V.length !== L.length ? " sur " + L.length : "") + " · aucune donnée médicale, seulement des nombres · cliquez un titre de colonne pour trier.</p></section>" +
-    (L.some((c) => c.demo) ? "" : '<section class="carte demo-c"><h2>Cabinet de démonstration</h2><p class="sous">Un cabinet rempli de 8 patients fictifs (PATIENT TEST 1 à 8 : chimiothérapies, radiothérapies, rendez-vous, consultations), pour les démonstrations, les guides et les captures d\'écran. Aucune donnée réelle.</p><button id="dCree">Créer le cabinet de démonstration</button></section>') +
     (V.length ? '<section class="carte liste-c"><div class="tableau"><table class="lc"><thead><tr>' + th("nom", "Cabinet") + th("medecin", "Médecin") + th("pack", "Pack") + th("abo", "Abonnement") + th("statut", "Statut") + th("equipe", "Équipe", "n") + th("dossiers", "Dossiers", "n") + th("activite", "Activité") + th("cree", "Créé le") + "</tr></thead><tbody>" + V.map(ligneCabinet).join("") + "</tbody></table></div></section>" : '<section class="carte"><p class="sous">Aucun cabinet ne correspond' + (filtre ? '. <button class="lien" data-paie="tous">Effacer les filtres</button>' : ".") + "</p></section>");
 }
 // Liste des cabinets (10/10/2026) : une ligne par cabinet ; un clic ouvre sa fiche (fenêtre : informations, équipe, actions)
@@ -144,7 +147,8 @@ function blocAbonnement(c) {
   return '<div class="abo"><div class="abo-h"><b>Abonnement</b> ' + badgeAbo(c) + "</div>" +
     (f ? '<div class="m">' + esc(mode) + (f.mode === "mensuel" || f.mode === "annuel" ? " · " + dh(P.prix) + (P.periode === "an" ? " par an" : " par mois") + (f.prix != null && P.catalogue && f.prix !== P.catalogue ? " (prix du pack : " + dh(P.catalogue) + ")" : "") : "") + (f.note ? " · " + esc(f.note) : "") + "</div>" : '<div class="m">Pas encore de fiche d\'abonnement : « Modifier l\'abonnement » pour la créer.</div>') +
     (E.etat === "retard" ? '<div class="m" style="color:var(--rouge)">Suspendu automatiquement dans ' + Math.max(0, DELAI_SUSPENSION - E.jours + 1) + " jour(s) sans paiement.</div>" : "") +
-    '<div class="barre" style="margin-top:6px"><button class="petit" data-paye="' + esc(c.id) + '">Enregistrer un paiement</button><button class="clair petit" data-abo="' + esc(c.id) + '">Modifier l\'abonnement</button></div>' +
+    (f && f.client && f.client.raison ? '<div class="m">Facturé à : ' + esc([f.client.raison, f.client.ice ? "ICE " + f.client.ice : "", f.client.adresse].filter(Boolean).join(" · ")) + "</div>" : "") +
+    '<div class="barre" style="margin-top:6px"><button class="petit" data-paye="' + esc(c.id) + '">Enregistrer un paiement</button><button class="clair petit" data-abo="' + esc(c.id) + '">Modifier l\'abonnement</button><button class="clair petit" data-client="' + esc(c.id) + '">Coordonnées de facturation</button></div>' +
     (f && (f.paiements || []).length ? '<details class="paie"><summary>Paiements (' + f.paiements.length + ")</summary><table class=\"pt\">" + f.paiements.slice().reverse().map((p) => "<tr><td>" + esc(dfr(p.d)) + "</td><td class=\"n\">" + esc(dh(p.m)) + "</td><td>" + (p.periode === "an" ? "1 an" : "1 mois") + " · " + esc((MOYENS.find((x) => x[0] === p.moyen) || [])[1] || p.moyen) + (p.ref ? " · " + esc(p.ref) : "") + '</td><td class="m">→ ' + esc(dfr(p.apres)) + '</td><td><button class="lien-r petit" data-rp="' + esc(c.id) + ":" + esc(p.id) + '">Retirer</button></td></tr>').join("") + "</table></details>" : "") +
     (f && (f.journal || []).length ? '<details class="paie"><summary>Historique</summary>' + f.journal.slice(-30).reverse().map((j) => '<div class="m">' + esc(new Date(j.le).toLocaleDateString("fr-FR")) + " · " + esc(j.txt) + "</div>").join("") + "</details>" : "") + "</div>";
 }
@@ -173,6 +177,21 @@ function ouvrirAbonnement(c) {
     try { await envoyerFacturation(c, { action: "regler", reglage: r }, "Abonnement de « " + esc(c.nom) + " » enregistré."); } catch (e) { b.disabled = false; b.textContent = "Enregistrer"; alert("Enregistrement impossible : " + e.message); }
   };
 }
+function ouvrirClient(c) {
+  if (!c) return;
+  const k = (c.facturation && c.facturation.client) || {};
+  fenetre("<h2>Coordonnées de facturation · " + esc(c.nom) + '</h2><p class="sous">Ce qui figurera sur les factures de ce cabinet (raison sociale, ICE…). Vide = nom du cabinet et du médecin titulaire.</p>' +
+    '<div class="form">' + ch("clRai", "Raison sociale (ou nom du médecin)", c.nom, "", k.raison) + ch("clIce", "ICE (15 chiffres)", "", "", k.ice) + ch("clIf", "Identifiant fiscal (IF)", "", "", k.if) + ch("clMail", "E-mail de facturation", c.titulaire.email || "", "email", k.email) +
+    '<div class="large"><label for="clAdr">Adresse de facturation</label><input id="clAdr" value="' + esc(k.adresse || "") + '" placeholder="' + esc([c.adresse, c.ville].filter(Boolean).join(", ")) + '"></div></div>' +
+    '<p class="m" id="clAide"></p><div class="pied"><button id="clOk">Enregistrer</button><button class="clair" id="clAnn">Fermer</button></div>');
+  $("clAnn").onclick = fermer;
+  $("clOk").onclick = async () => {
+    const d = { raison: $("clRai").value, ice: $("clIce").value, if: $("clIf").value, email: $("clMail").value, adresse: $("clAdr").value }, ice = d.ice.replace(/\s/g, "");
+    if (ice && !/^\d{15}$/.test(ice) && !confirm("L'ICE marocain compte 15 chiffres (ici : " + ice.length + "). Enregistrer quand même ?")) return;
+    const b = $("clOk"); b.disabled = true; b.textContent = "Enregistrement…";
+    try { await envoyerFacturation(c, { action: "client", client: d }, "Coordonnées de facturation de « " + esc(c.nom) + " » enregistrées."); } catch (e) { b.disabled = false; b.textContent = "Enregistrer"; alert("Enregistrement impossible : " + e.message); }
+  };
+}
 function ouvrirPaiement(c) {
   if (!c) return;
   const f = c.facturation || {}, an = f.mode === "annuel", F = formuleDe(c.abonnement) || {}, P = F.prix || PRIX0[c.abonnement && c.abonnement.formule] || {};
@@ -199,7 +218,6 @@ function brancherCabinets() {
   document.querySelectorAll("[data-paie]").forEach((b) => { b.onclick = () => { if (b.dataset.paie === "tous") { PAIE = ""; STATUT = ""; SPE = ""; Q = ""; } else PAIE = PAIE === b.dataset.paie ? "" : b.dataset.paie; dessiner(); }; b.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); b.onclick(); } }; });
   if ($("cPa")) $("cPa").onchange = (e) => { PAIE = e.target.value; dessiner(); };
   document.querySelectorAll("[data-fiche]").forEach((tr) => { const o = () => ouvrirFiche(cab(tr.dataset.fiche)); tr.onclick = o; tr.onkeydown = (e) => { if (e.key === "Enter") o(); }; });
-  if ($("dCree")) $("dCree").onclick = creerDemo;
   const q = $("cQ"); if (q) q.oninput = () => { Q = q.value; const pos = q.selectionStart; dessiner(); const q2 = $("cQ"); q2.focus(); q2.setSelectionRange(pos, pos); };
   if ($("cSt")) $("cSt").onchange = (e) => { STATUT = e.target.value; dessiner(); };
   if ($("cSp")) $("cSp").onchange = (e) => { SPE = e.target.value; dessiner(); };
@@ -218,6 +236,7 @@ function brancherActions(R) {
   on("[data-paye]", (b) => ouvrirPaiement(cab(b.dataset.paye)));
   on("[data-jcab]", (b) => { JF = Object.assign(JF, { cab: b.dataset.jcab, periode: "tout" }); JL = null; fermer(true); location.hash = "journal"; });
   on("[data-abo]", (b) => ouvrirAbonnement(cab(b.dataset.abo)));
+  on("[data-client]", (b) => ouvrirClient(cab(b.dataset.client)));
   on("[data-rp]", async (b) => { const [id, pid] = b.dataset.rp.split(":"), c = cab(id), p = c && ((c.facturation || {}).paiements || []).find((x) => x.id === pid); if (!p || !confirm("Retirer le paiement du " + dfr(p.d) + " (" + dh(p.m) + ") ?")) return;
     b.disabled = true; try { await envoyerFacturation(c, { action: "retirerPaiement", id: pid }, "Paiement retiré."); } catch (e) { b.disabled = false; alert("Impossible : " + e.message); } });
 }
@@ -228,8 +247,8 @@ async function creerDemo() {
   const b = $("dCree"); b.disabled = true; b.textContent = "Création du cabinet et des 8 patients fictifs…";
   try {
     const o = await serveur("creerCabinetDemo", { email: email.trim().toLowerCase() });
-    RES = "Cabinet de démonstration créé : " + o.patients + " patients fictifs, " + o.protocoles + " fichiers de protocoles. Pour vous y connecter, utilisez « Lien du mot de passe » sur sa carte (compte " + esc(email.trim()) + ").";
-    CABINETS = null; dessiner(); charger();
+    RES = "Cabinet de démonstration créé : " + o.patients + " patients fictifs, " + o.protocoles + " fichiers de protocoles. Pour vous y connecter, utilisez « Lien du mot de passe » dans sa fiche (compte " + esc(email.trim()) + ").";
+    CABINETS = null; GARDER = true; location.hash = "cabinets"; dessiner(); charger(); // retour à la liste (la carte est dans Nouveau cabinet depuis le 10/10)
   } catch (e) { b.disabled = false; b.textContent = "Créer le cabinet de démonstration"; alert("Création impossible : " + e.message); }
 }
 async function reinitDemo(b) {
@@ -277,7 +296,9 @@ function htmlNouveau() {
     '<h3 class="st">Spécialité et pack</h3><div class="form"><div><label for="aSpe">Spécialité</label><select id="aSpe">' + SPECIALITES.map((x) => "<option" + (x === SPEF ? " selected" : "") + ">" + esc(x) + "</option>").join("") + '</select></div><div><label for="aFor">Pack</label><select id="aFor">' + optionsFormules(packsDe(SPEF).some(([k]) => k === "onco-pro") ? "onco-pro" : def, SPEF) + "</select></div></div>" +
     '<div id="aApercu"></div>' +
     '<h3 class="st">Abonnement</h3><div class="form"><div><label for="aFact">Formule de paiement</label><select id="aFact">' + MODES_FACT.map(([k, l]) => '<option value="' + k + '">' + esc(k === "essai" ? l + " de " + ESSAI_JOURS + " jours" : l) + "</option>").join("") + '</select></div><div class="m" id="aFactAide" style="align-self:end"></div></div>' +
-    '<div style="margin-top:14px"><button id="aOk">Créer le cabinet</button></div><div id="aRes"></div></section>';
+    '<div style="margin-top:14px"><button id="aOk">Créer le cabinet</button></div><div id="aRes"></div></section>' +
+    // Cabinet de démonstration (déplacé ici le 10/10/2026, 18.1)
+    ((CABINETS || []).some((c) => c.demo) ? "" : '<section class="carte demo-c"><h2>Cabinet de démonstration</h2><p class="sous">Un cabinet rempli de 8 patients fictifs (PATIENT TEST 1 à 8 : chimiothérapies, radiothérapies, rendez-vous, consultations), pour les démonstrations, les guides et les captures d\'écran. Aucune donnée réelle.</p><button id="dCree">Créer le cabinet de démonstration</button></section>');
 }
 // Ce que reçoit un cabinet neuf : la bibliothèque et les paramètres de base de sa spécialité, sa fiche patient et son formulaire de consultation
 const recu = (spe) => '<p class="recu"><b>Le cabinet reçoit</b> la bibliothèque et les paramètres de base de « ' + esc(spe) + ' » (protocoles, médicaments, ordonnances types, analyses et bilans, examens, courriers, documentation, jours fériés, diagnostics, mutuelles, horaires, WhatsApp, tâches automatiques, RCP, impression, alertes, tarifs de radiothérapie), sa fiche patient et son formulaire de consultation. <b>Il ne reçoit jamais</b> de patients, de correspondants, de lieux d\'exercice, de prix de consultation ni de données d\'un autre cabinet.</p>';
@@ -292,6 +313,7 @@ function brancherNouveau() {
   const ap = () => { $("aApercu").innerHTML = resumeFormule($("aFor").value); };
   $("aSpe").onchange = () => { SPEF = $("aSpe").value; $("aFor").innerHTML = optionsFormules((packsDe(SPEF)[0] || [""])[0], SPEF); ap(); };
   $("aFor").onchange = ap; ap();
+  if ($("dCree")) $("dCree").onclick = creerDemo;
   const af = () => { const m = $("aFact").value; $("aFactAide").textContent = m === "essai" ? "Jusqu'au " + dfr(ajouterJours(JOUR(), ESSAI_JOURS)) + ", puis paiement attendu." : m === "gratuit" ? "Jamais suspendu (amis, partenaires)." : "Premier paiement à enregistrer dans sa fiche."; };
   $("aFact").onchange = af; af();
   $("aOk").onclick = creer;
@@ -554,6 +576,72 @@ async function supprimer(b, c) {
 const famille = (id) => (BIBLIOTHEQUES_SPE.find((b) => b.id === id) || {}).lib || id;
 const bibDe = (spe) => (BIBLIOTHEQUES_SPE.find((b) => b.specialites.indexOf(spe) >= 0) || BIBLIOTHEQUES_SPE[0]).id;
 const modulePour = (k, spe) => !MODULE_FAMILLE[k] || MODULE_FAMILLE[k] === bibDe(spe || SPECIALITES[0]);
+// ───── Onglet Comptabilité (18.2, 10/10/2026) : encaissé, à encaisser, impayés, évolution, répartition, encaissements, export ─────
+// Tout vient des fiches de facturation (paiements enregistrés dans la fiche de chaque cabinet), cabinets supprimés compris (ARCH).
+// Montants tels qu'enregistrés (prix des packs : hors taxes ; factures et TVA : étape 18.3).
+let CP = { per: "annee", du: "", au: "", cab: "", moyen: "" };
+const MOIS = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
+function paiementsTous() {
+  const L = [];
+  (CABINETS || []).concat(ARCH.map((a) => Object.assign({ archive: true, titulaire: {}, abonnement: null }, a))).forEach((c) => ((c.facturation || {}).paiements || []).forEach((p) => L.push(Object.assign({}, p, { cab: c.id, nomCab: c.nom + (c.archive ? " (supprimé)" : ""), pack: c.archive ? "" : nomFormule(c.abonnement), client: (c.facturation.client || {}) }))));
+  return L.sort((a, b) => String(b.d).localeCompare(String(a.d)) || String(b.le || "").localeCompare(String(a.le || "")));
+}
+function bornesCP() {
+  const j = JOUR(), a = j.slice(0, 4), m = j.slice(0, 7), mp = (() => { const d = new Date(j + "T12:00:00Z"); d.setUTCDate(1); d.setUTCMonth(d.getUTCMonth() - 1); return d.toISOString().slice(0, 7); })();
+  const finMois = (ym) => { const d = new Date(ym + "-01T12:00:00Z"); d.setUTCMonth(d.getUTCMonth() + 1); d.setUTCDate(0); return d.toISOString().slice(0, 10); };
+  return { mois: [m + "-01", finMois(m)], moisp: [mp + "-01", finMois(mp)], annee: [a + "-01-01", a + "-12-31"], anneep: [(a - 1) + "-01-01", (a - 1) + "-12-31"], m12: [ajouterJours(j, -364), j], tout: ["0000-01-01", "9999-12-31"], perso: [CP.du || "0000-01-01", CP.au || "9999-12-31"] }[CP.per];
+}
+const somme = (L) => L.reduce((n, p) => n + (Number(p.m) || 0), 0);
+function htmlCompta() {
+  if (CABINETS === null) return '<section class="carte"><p class="sous">Chargement…</p></section>';
+  const j = JOUR(), T = paiementsTous(), [du, au] = bornesCP(), dans = (p, a, b) => p.d >= a && p.d <= b;
+  const B = bornesCP; const moisC = (() => { const x = CP.per; CP.per = "mois"; const r = B(); CP.per = x; return r; })(), anC = (() => { const x = CP.per; CP.per = "annee"; const r = B(); CP.per = x; return r; })();
+  const actifs = (CABINETS || []).filter((c) => c.actif && !c.modele && !c.demo && c.facturation);
+  const att = (n) => actifs.flatMap((c) => attendus(c.facturation, prixDe(c), j, n).map((x) => Object.assign({ c }, x)));
+  const A90 = att(90).sort((a, b) => a.d.localeCompare(b.d)), sA = (n) => somme(A90.filter((x) => !x.essai && x.d <= ajouterJours(j, n)));
+  const IMP = (CABINETS || []).filter((c) => !c.modele && !c.demo && c.facturation && ["retard", "suspendre"].indexOf(etatDe(c).etat) >= 0).map((c) => ({ c, m: impaye(c.facturation, prixDe(c), j), E: etatDe(c) }));
+  const essais = A90.filter((x) => x.essai && x.d <= ajouterJours(j, 30));
+  const tuile = (n, lib, cls, aide) => '<div class="tuile' + (cls ? " " + cls : "") + '"' + (aide ? ' title="' + esc(aide) + '"' : "") + "><b>" + n + "</b><span>" + lib + "</span></div>";
+  // Évolution : 12 derniers mois
+  const mois = []; { const d = new Date(j.slice(0, 7) + "-01T12:00:00Z"); for (let i = 11; i >= 0; i--) { const x = new Date(d); x.setUTCMonth(d.getUTCMonth() - i); mois.push(x.toISOString().slice(0, 7)); } }
+  const parMois = mois.map((m) => somme(T.filter((p) => String(p.d).slice(0, 7) === m))), max = Math.max(1, ...parMois);
+  // Période choisie
+  const P = T.filter((p) => dans(p, du, au) && (!CP.cab || p.cab === CP.cab) && (!CP.moyen || p.moyen === CP.moyen));
+  const rep = (cle) => { const o = {}; P.forEach((p) => { const k = cle(p) || "—"; o[k] = (o[k] || 0) + (Number(p.m) || 0); }); return Object.entries(o).sort((a, b) => b[1] - a[1]); };
+  const barres = (L) => { const t = Math.max(1, ...L.map((x) => x[1])); return L.length ? L.map(([k, v]) => '<div class="rp"><span>' + esc(k) + '</span><i style="width:' + Math.round((v / t) * 100) + '%"></i><b>' + esc(dh(v)) + "</b></div>").join("") : '<p class="m">Aucun encaissement sur la période.</p>'; };
+  const cabs = [...new Map(T.map((p) => [p.cab, p.nomCab])).entries()].sort((a, b) => String(a[1]).localeCompare(String(b[1])));
+  const PER = [["mois", "Ce mois"], ["moisp", "Mois dernier"], ["annee", "Cette année"], ["anneep", "Année dernière"], ["m12", "12 derniers mois"], ["tout", "Tout"], ["perso", "Période…"]];
+  const moyenLib = (k) => (MOYENS.find((x) => x[0] === k) || [k, k])[1];
+  return '<div class="tuiles t5">' + tuile(dh(somme(T.filter((p) => dans(p, moisC[0], moisC[1])))), "Encaissé ce mois", "vert") + tuile(dh(somme(T.filter((p) => dans(p, anC[0], anC[1])))), "Encaissé en " + j.slice(0, 4), "vert") +
+      tuile(dh(sA(30)), "À encaisser (30 j)<br><small>60 j : " + esc(dh(sA(60))) + " · 90 j : " + esc(dh(sA(90))) + "</small>", "", "Échéances à venir des abonnements mensuels et annuels") +
+      tuile(dh(somme(IMP)), "Impayés · " + IMP.length + " cabinet" + (IMP.length > 1 ? "s" : ""), IMP.length ? "rouge" : "", "Périodes échues non payées") + tuile(essais.length, "Fins d'essai (30 j)<br><small>" + esc(dh(somme(essais))) + " si tous s'abonnent</small>", "") + "</div>" +
+    '<section class="carte"><h2>Évolution des encaissements</h2><p class="sous">12 derniers mois, tous cabinets (prix hors taxes, tels qu\'enregistrés).</p><div class="evo">' + mois.map((m, i) => '<div class="evo-b" title="' + esc(MOIS[Number(m.slice(5)) - 1] + " " + m.slice(0, 4) + " : " + dh(parMois[i])) + '"><span class="v">' + (parMois[i] ? esc(String(Math.round(parMois[i] / 100) / 10).replace(".", ",")) + " k" : "") + '</span><i style="height:' + Math.round((parMois[i] / max) * 100) + '%"></i><span class="mo">' + MOIS[Number(m.slice(5)) - 1] + "</span></div>").join("") + "</div>" + actualiser() + "</section>" +
+    '<section class="carte"><h2>Encaissements</h2><div class="barre" style="margin-top:8px"><select id="cpPer" aria-label="Période">' + PER.map(([k, l]) => '<option value="' + k + '"' + (CP.per === k ? " selected" : "") + ">" + l + "</option>").join("") + "</select>" +
+      (CP.per === "perso" ? '<input id="cpDu" type="date" value="' + esc(CP.du) + '" aria-label="Du"><input id="cpAu" type="date" value="' + esc(CP.au) + '" aria-label="Au">' : "") +
+      '<select id="cpCab" aria-label="Cabinet"><option value="">Tous les cabinets</option>' + cabs.map(([k, n]) => '<option value="' + esc(k) + '"' + (CP.cab === k ? " selected" : "") + ">" + esc(n) + "</option>").join("") + "</select>" +
+      '<select id="cpMoy" aria-label="Moyen"><option value="">Tous les moyens</option>' + MOYENS.map(([k, l]) => '<option value="' + k + '"' + (CP.moyen === k ? " selected" : "") + ">" + l + "</option>").join("") + "</select>" +
+      '<button class="clair" id="cpExp"' + (P.length ? "" : " disabled") + ">Exporter pour le comptable (Excel)</button></div>" +
+      '<p class="sous" style="margin:10px 0 0"><b>' + esc(dh(somme(P))) + "</b> · " + P.length + " paiement" + (P.length > 1 ? "s" : "") + (du > "0000" && au < "9999" ? " du " + esc(dfr(du)) + " au " + esc(dfr(au)) : "") + "</p>" +
+      '<div class="rg" style="margin-top:10px"><div class="rg-b"><h3 class="st">Par pack</h3>' + barres(rep((p) => p.pack || "Cabinet supprimé")) + '</div><div class="rg-b"><h3 class="st">Par moyen de paiement</h3>' + barres(rep((p) => moyenLib(p.moyen))) + "</div></div>" +
+      (P.length ? '<div class="tableau"><table class="lc cp"><thead><tr><th>Date</th><th>Cabinet</th><th class="n">Montant</th><th>Période</th><th>Moyen</th><th>Référence</th><th>Échéance après</th></tr></thead><tbody>' + P.map((p) => '<tr><td data-l="Date">' + esc(dfr(p.d)) + '</td><td data-l="Cabinet">' + esc(p.nomCab) + (p.client.raison ? '<div class="m">' + esc(p.client.raison) + "</div>" : "") + '</td><td data-l="Montant" class="n"><b>' + esc(dh(p.m)) + '</b></td><td data-l="Période">' + (p.periode === "an" ? "1 an" : "1 mois") + '</td><td data-l="Moyen">' + esc(moyenLib(p.moyen)) + '</td><td data-l="Référence" class="m">' + esc(p.ref || "") + (p.note ? " " + esc(p.note) : "") + '</td><td data-l="Échéance après">' + esc(dfr(p.apres || "")) + "</td></tr>").join("") + '</tbody><tfoot><tr><td colspan="2"><b>Total</b></td><td class="n"><b>' + esc(dh(somme(P))) + '</b></td><td colspan="4"></td></tr></tfoot></table></div>' : '<p class="sous">Aucun paiement sur cette période' + (CP.per !== "tout" ? " (essayez « Tout »)" : "") + ".</p>") + "</section>" +
+    '<div class="rg"><section class="carte"><h2>À encaisser (90 jours)</h2>' + (A90.length ? '<table class="pt">' + A90.map((x) => "<tr><td>" + esc(dfr(x.d)) + '</td><td><button class="lien" data-vf="' + esc(x.c.id) + '">' + esc(x.c.nom) + "</button>" + (x.essai ? ' <span class="bdg">fin d\'essai</span>' : "") + '</td><td class="n">' + esc(dh(x.m)) + "</td></tr>").join("") + "</table>" : '<p class="m">Aucune échéance dans les 90 jours.</p>') + "</section>" +
+      '<section class="carte"><h2>Impayés</h2>' + (IMP.length ? '<table class="pt">' + IMP.map((x) => '<tr><td><button class="lien" data-vf="' + esc(x.c.id) + '">' + esc(x.c.nom) + '</button><div class="m">échéance du ' + esc(dfr(x.E.fin)) + " · " + esc(x.E.lib) + (x.c.actif ? "" : " · suspendu") + '</div></td><td class="n"><b>' + esc(dh(x.m)) + "</b></td></tr>").join("") + "</table>" : '<p class="m">Aucun impayé.</p>') + "</section></div>";
+}
+function brancherCompta() {
+  if (!$("cpPer")) return;
+  $("cpPer").onchange = () => { CP.per = $("cpPer").value; dessiner(); };
+  if ($("cpDu")) $("cpDu").onchange = () => { CP.du = $("cpDu").value; dessiner(); };
+  if ($("cpAu")) $("cpAu").onchange = () => { CP.au = $("cpAu").value; dessiner(); };
+  $("cpCab").onchange = () => { CP.cab = $("cpCab").value; dessiner(); };
+  $("cpMoy").onchange = () => { CP.moyen = $("cpMoy").value; dessiner(); };
+  document.querySelectorAll("[data-vf]").forEach((b) => { b.onclick = () => { const c = cab(b.dataset.vf); if (c) ouvrirFiche(c); }; });
+  $("cpExp").onclick = () => {
+    const [du, au] = bornesCP(), q = (v) => '"' + String(v == null ? "" : v).replace(/"/g, '""') + '"', mo = (k) => (MOYENS.find((x) => x[0] === k) || [k, k])[1];
+    const L = paiementsTous().filter((p) => p.d >= du && p.d <= au && (!CP.cab || p.cab === CP.cab) && (!CP.moyen || p.moyen === CP.moyen));
+    const csv = "\ufeff" + ["Date;Cabinet;Raison sociale;ICE;Pack;Montant (DH);Période;Moyen;Référence;Note;Échéance après"].concat(L.map((p) => [dfr(p.d), p.nomCab, p.client.raison, p.client.ice, p.pack, String(p.m).replace(".", ","), p.periode === "an" ? "1 an" : "1 mois", mo(p.moyen), p.ref, p.note, dfr(p.apres || "")].map(q).join(";"))).concat(["" + ";;;;;" + q(String(somme(L)).replace(".", ",")) + ";Total"]).join("\r\n");
+    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" })); a.download = "Onco360-encaissements-" + (CP.per === "tout" ? "tout" : du + "_" + au) + ".csv"; document.body.appendChild(a); a.click(); a.remove();
+  };
+}
 // ───── Onglet Journal (17.5, 10/10/2026) : actions du compte d'administration et d'Onco360 (suspension automatique) ─────
 // Lu par la fonction journalAdmin (période) ; filtres cabinet, type, recherche ; export pour Excel.
 const TYPES_J = [["creation", "Création"], ["reglage", "Réglage"], ["infos", "Informations"], ["abonnement", "Abonnement"], ["suspension", "Suspension"], ["reactivation", "Réactivation"], ["suppression", "Suppression"], ["acces", "Accès du médecin"], ["packs", "Packs"], ["specialite", "Spécialité"], ["bibliotheque", "Bibliothèque"], ["demo", "Démonstration"]];
