@@ -6,7 +6,7 @@ import { db } from "../config.js";
 import { evtsFin } from "../moteur/finances.js";
 import { calculerBilan, dh, clePaye, cleAncienne, estPaye, migrerPaiements } from "../moteur/bilan.js";
 import { num } from "../moteur/outils.js";
-import { activite } from "../moteur/tarifs.js";
+import { activite, tarif } from "../moteur/tarifs.js";
 
 let A = null;
 export function installer(api) { A = api; }
@@ -16,8 +16,16 @@ const TYPES0 = [["tous", "Tous les actes"], ["seance", "Séances chimio"], ["cch
 // Types d'actes : liste de base + activités ajoutées dans les Paramètres (2nd avis…)
 const typesActes = () => { const l = TYPES0.slice(), T = D().tarifs || {}; Object.values(T.etablissements || {}).forEach((e) => (e.activites || []).forEach((a) => { if (!l.some((x) => x[0] === a.type)) l.splice(l.length - 1, 0, [a.type, a.libelle]); })); return l; };
 const PER = [["semaine", "Semaine en cours"], ["mois", "Mois en cours"], ["moisprec", "Mois dernier"], ["annee", "Année civile"], ["perso", "Période personnalisée"]];
-const impot = () => { const T = D().tarifs || {}; const h = T.etablissements && Object.values(T.etablissements)[0]; const a = h && h.activites.find((x) => x.type === "seance"); const v = a && a.historique && a.historique[a.historique.length - 1]; return v && v.impot != null ? v.impot : 10; };
-const tauxTxt = (o) => (o.t === "rt" ? (o.taux == null ? "ancien calcul" : o.taux + " % − " + impot() + " %") : o.t === "seance" || o.t === "hospit" ? "− " + impot() + " %" : "100 %");
+// Taux affiché (15 bis B2, 10/10/2026) : ce que l'acte garde vraiment (NET / brut), au lieu de l'impôt du 1er établissement pour tous
+// (une consultation 250 → 225 s'affichait « 100 % ») ; radiothérapie : part du médecin − impôt du tarif de son lieu
+const pctTxt = (x) => String(Math.round(x * 10) / 10).replace(".", ",");
+const tauxTxt = (o) => {
+  if (o.sansT) return "sans tarif";
+  if (o.t === "kl") return "100 %";
+  if (o.t === "rt") { if (o.taux == null) return "ancien calcul"; const v = D().tarifs && tarif(D().tarifs, o.hop, "rt", o.d); return o.taux + " % − " + (v && v.impot != null ? v.impot : 10) + " %"; }
+  const b = num(o.brut) || 0, n = num(o.net) || 0; if (!b) return "—";
+  const r = 100 - (n / b) * 100; return Math.abs(r) < 0.05 ? "100 %" : "− " + pctTxt(r) + " %";
+};
 // Paiements : ceux cochés dans le bilan, plus les actes « payés automatiquement » (Paramètres, case « Payé auto. » de l'activité
 // de l'établissement, actes à partir de la date où elle a été cochée : 08/10/2026)
 let PE = {};
@@ -94,12 +102,17 @@ function resumes() {
   });
   return RES;
 }
-const netPer = (x, pr) => (x.fin || []).filter((e) => e[1] !== "rtprev" && e[0] && e[0] >= pr[0] && e[0] <= pr[1]).reduce((a, e) => a + (num(e[6]) || 0), 0);
+// Référents (15 bis B2) : établissement et type d'acte choisis en haut de la page (avant : ignorés)
+const acteOK = (e) => (F.hop === "tous" || (e[2] || "—") === F.hop) && (F.typ === "tous" || (F.typ === "rt" ? e[1] === "rt" : e[1] === F.typ));
+const patientOK = (x) => F.hop === "tous" || (x.hop || "—") === F.hop || (x.fin || []).some((e) => (e[2] || "—") === F.hop);
+const netPer = (x, pr) => (x.fin || []).filter((e) => e[1] !== "rtprev" && e[0] && e[0] >= pr[0] && e[0] <= pr[1] && acteOK(e)).reduce((a, e) => a + (num(e[6]) || 0), 0);
 
 // Ouverture de la page (15 bis, 10/10/2026) : montants relus et bilan recalculé à chaque fois (avant : gardés depuis la 1re ouverture,
 // une cure validée ou un prix fixé ensuite n'apparaissaient qu'après « Actualiser »). Dernier bilan affiché tout de suite, puis mis à jour.
 export async function pagePageBilan() {
-  if (!A.peut("finances") || !D().tarifs) { A.$("page").innerHTML = '<section class="accueil"><div><h2>Bilan</h2></div></section><section class="carte"><p class="sous">Le bilan est réservé au droit « finances ».</p></section>'; return; }
+  const msg = (t) => { A.$("page").innerHTML = '<section class="accueil"><div><h2>Bilan</h2></div></section><section class="carte"><p class="sous">' + t + "</p></section>"; };
+  if (!A.peut("finances")) { msg("Le bilan est réservé au droit « finances »."); return; }
+  if (!D().tarifs) { msg("Aucun tarif enregistré pour ce cabinet : " + (estComptable() ? "le médecin doit d'abord renseigner ses lieux et ses tarifs (Paramètres › Activités et rémunérations)." : 'renseignez vos lieux et vos tarifs dans <a href="#parametres/activites">Paramètres › Activités et rémunérations</a>.')); return; }
   const lire = () => (estComptable() ? chargerReleve() : charger());
   if (!B) {
     A.$("page").innerHTML = '<div class="chargement">Calcul du bilan…</div>';
@@ -124,15 +137,26 @@ async function majPaiements(op) {
   const R = doc(db, "espaces", A.ESPACE, "finances", "paiements"), s = await getDoc(R), p = s.exists() ? JSON.parse(s.data().data || "{}") : {};
   op(p); await setDoc(R, { data: JSON.stringify(p) }); return p;
 }
+// Actes sans tarif (15 bis B2) : aucun tarif pour ce lieu et cette activité, ni montant saisi → comptés 0 DH ; regroupés par activité et lieu
+function alerteSansTarif(all) {
+  const g = {}; all.filter((o) => o.sansT).forEach((o) => { const k = o.t + "|" + (o.hop || "—"); g[k] = (g[k] || 0) + 1; });
+  const ks = Object.keys(g); if (!ks.length) return "";
+  const n = ks.reduce((a, k) => a + g[k], 0), types = typesActes(), lib = (t) => (types.find((x) => x[0] === t) || [0, t === "rt" ? "Radiothérapie" : t])[1];
+  return '<p class="mesures" style="color:var(--orange);font-weight:bold"><svg class="pi"><use href="#i-alerte"/></svg>' + n + " acte" + (n > 1 ? "s" : "") + " sans tarif, compté" + (n > 1 ? "s" : "") + " 0 DH : " +
+    ks.map((k) => { const [t, h] = k.split("|"); return A.esc(lib(t)) + " à " + A.esc(h) + " (" + g[k] + ")"; }).join(", ") + ". " +
+    (estComptable() ? "Le médecin doit régler ces tarifs." : '<a href="#parametres/activites">Régler les tarifs</a> (radiothérapie : prix de l\'acte).') + "</p>";
+}
+let LIM = 300; // lignes du journal affichées (« Afficher plus »)
 function dessiner() {
   const esc = A.esc, R = resumes(), b = (PE = paiementsEffectifs(R), calculerBilan(R, B.versements, PE, F.per === "perso" ? Object.assign({}, F, { per: "" }) : F, D().t)), T = b.tot, all = b.all;
   DATA = b;
+  const corDe = {}; R.forEach((x) => { corDe[x.id] = x.cor || ""; });
   const sel = (id, v, opts, f) => '<select id="' + id + '" onchange="biF(\'' + f + '\',this.value)">' + opts.map((o) => '<option value="' + esc(o[0]) + '"' + (o[0] === v ? " selected" : "") + ">" + esc(o[1]) + "</option>").join("") + "</select>";
   const refs = [...new Set(R.map((x) => x.cor || ""))].sort((a, z) => a.localeCompare(z, "fr"));
   const etabs = (D().etabsTous || D().etabs).map((e) => [e.code, e.code]);
   let h = '<section class="accueil"><div><h2>Bilan</h2><p>Du ' + A.dfrA(b.pr[0] > "0001" ? b.pr[0] : "") + " au " + A.dfrA(b.pr[1] < "9999" ? b.pr[1] : "") +
     (estComptable() ? " · " + (RELEVE_LE ? "relevé à jour au " + RELEVE_LE.toLocaleDateString("fr-FR") + " " + RELEVE_LE.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) : "aucun relevé : il est préparé quand un médecin ouvre Onco360") : "") + "</p></div>" +
-    '<div class="actions" data-fn="bilan.exports"><button class="bt clair" onclick="biExport(\'xlsx\')"><svg class="pi"><use href="#i-telecharger"/></svg>Excel</button><button class="bt clair" onclick="biExport(\'pdf\')"><svg class="pi"><use href="#i-telecharger"/></svg>PDF</button><button class="bt gris" onclick="biActualiser()"><svg class="pi"><use href="#i-actualiser"/></svg>Actualiser</button></div></section>' +
+    '<div class="actions"><button class="bt clair" data-fn="bilan.exports" onclick="biExport(\'xlsx\')"><svg class="pi"><use href="#i-telecharger"/></svg>Excel</button><button class="bt clair" data-fn="bilan.exports" onclick="biExport(\'pdf\')"><svg class="pi"><use href="#i-telecharger"/></svg>PDF</button><button class="bt gris" onclick="biActualiser()"><svg class="pi"><use href="#i-actualiser"/></svg>Actualiser</button></div></section>' +
     '<section class="carte" data-fn="bilan.filtres"><div class="form" style="grid-template-columns:repeat(auto-fit,minmax(190px,1fr))">' +
     "<div><label>Période</label>" + sel("biPer", F.per, PER, "per") + "</div>" +
     (F.per === "perso" ? '<div><label>Du</label><input type="date" value="' + esc(F.du) + '" onchange="biF(\'du\',this.value)"></div><div><label>Au</label><input type="date" value="' + esc(F.au) + '" onchange="biF(\'au\',this.value)"></div>' : "") +
@@ -141,26 +165,26 @@ function dessiner() {
     "<div><label>Paiement</label>" + sel("biPay", F.pay, [["tous", "Payés et à recevoir"], ["paye", "Payés"], ["att", "À recevoir"]], "pay") + "</div>" +
     "<div><label>Référent</label>" + sel("biCor", F.cor, [["tous", "Tous les référents"]].concat(refs.map((c) => [c, c || "Sans référent"])), "cor") + "</div>" +
     '<div style="grid-column:1/-1"><label>Rechercher un acte ou un patient</label><input id="biQ" value="' + esc(F.q) + '" placeholder="ex. FOLFOX, prostate, VMAT, Zometa, nom…"></div></div>' +
-    (b.manque ? '<p class="mesures"><svg class="pi"><use href="#i-alerte"/></svg>' + b.manque + " dossier(s) n'ont pas pu être calculés.</p>" : "") + "</section>";
+    (b.manque ? '<p class="mesures"><svg class="pi"><use href="#i-alerte"/></svg>' + b.manque + " dossier(s) n'ont pas pu être calculés.</p>" : "") + alerteSansTarif(all) + "</section>";
   const k = (v, lib, cls) => '<div class="k' + (cls ? " " + cls : "") + '"><b>' + dh(v) + "</b><span>" + lib + "</span></div>";
   h += '<section class="carte"><div class="kpi">' + k(T.caNet, "CA NET médecin", "fort") + k(T.chimio, "Chimio – " + T.nbChimio + " séance(s)") + k(T.consultations, "Consultations – " + T.nbConsultations) + k(T.hospit, "Hospitalisations – " + T.nbHospit) + k(T.rt, "Radiothérapie – " + T.nbRt + " terminée(s)") + k(T.versements, "Autres versements – " + T.nbVersements) + "</div>" +
     '<div class="actr" style="justify-content:flex-start;gap:16px;margin-top:12px"><b style="color:var(--vert)"><svg class="pi"><use href="#i-check"/></svg>Payé : ' + dh(T.paye) + '</b><b style="color:var(--orange)"><svg class="pi"><use href="#i-sablier"/></svg>À recevoir : ' + dh(T.aRecevoir) + "</b></div>" +
     (T.nbPrev ? '<p class="mesures" style="margin:4px 0 0">☢️ Radiothérapies en cours ou prévues (non comptées) : ' + T.nbPrev + " – NET prévisionnel " + dh(T.netPrev) + "</p>" : "") + "</section>";
   h += '<section class="carte"><h3><span class="ic">' + A.ic("liste") + "</span>Journal détaillé (" + all.length + " acte" + (all.length > 1 ? "s" : "") + ')</h3><div class="tableau"><table class="tcures bilan"><tr><th>Date</th><th>Patient</th><th>Hôpital</th><th>Acte / prestation</th><th>Statut</th><th class="n">Brut</th><th class="n">Taux</th><th class="n">NET médecin</th><th>Paiement</th></tr>' +
-    (all.length ? all.map((o, i) => {
-      const cor = o.id ? (R.find((x) => x.id === o.id) || {}).cor : "";
+    (all.length ? all.slice(0, LIM).map((o, i) => {
+      const cor = o.id ? corDe[o.id] : "";
       return "<tr" + lienDossier(o.id) + "><td>" + A.dfrA(o.d) + "</td><td>" + esc(o.nm) + (cor ? '<div class="mesures">' + esc(cor) + "</div>" : "") + "</td><td>" + esc(o.hop || "—") + "</td><td>" + esc(o.lib) + "</td><td>" + esc(o.st) + '</td><td class="n">' + dh(o.brut) + '</td><td class="n">' + tauxTxt(o) + '</td><td class="n"><b>' + dh(o.net) + "</b></td>" +
         '<td onclick="event.stopPropagation()">' + (o.t === "kl" ? '<span class="badge b-ch">Reçu</span>' : '<button class="mini ' + (estPaye(o, PE) ? "vert" : "") + '" title="' + (estPaye(o, PE) ? (coche(o) ? "Payé le " + A.dfrA(coche(o)) + " – cliquer pour annuler" : ENC[clePaye(o)] === "enc" ? "Encaissé au cabinet (fenêtre « Venu »)" : "Payé automatiquement (ancienne case « Payé auto. », avant le 12/10/2026)") : ENC[clePaye(o)] === "np" ? "Non payé par le patient : à encaisser depuis le dossier (ou cliquer quand il a payé)" : "Cliquer quand la clinique a payé") + '" onclick="biPaye(' + i + ')">' + (estPaye(o, PE) ? (coche(o) ? "✓ Payé" : ENC[clePaye(o)] === "enc" ? "✓ Encaissé" : "✓ Payé (auto.)") : ENC[clePaye(o)] === "np" ? "À encaisser" : "Payé") + "</button>") + "</td></tr>";
-    }).join("") + '<tr class="tot"><td colspan="7" class="n"><b>Total</b></td><td class="n"><b>' + dh(T.caNet) + "</b></td><td></td></tr>" : '<tr><td colspan="9" class="mesures">Aucun acte sur la période.</td></tr>') + "</table></div></section>";
+    }).join("") + (all.length > LIM ? '<tr><td colspan="9" class="mesures">' + LIM + " actes affichés sur " + all.length + ' (le total et les exports comptent tout). <button class="mini" onclick="biPlus(300)">Afficher 300 de plus</button> <button class="mini" onclick="biPlus(0)">Tout afficher</button></td></tr>' : "") + '<tr class="tot"><td colspan="7" class="n"><b>Total</b></td><td class="n"><b>' + dh(T.caNet) + "</b></td><td></td></tr>" : '<tr><td colspan="9" class="mesures">Aucun acte sur la période.</td></tr>') + "</table></div></section>";
   // Référents
   if (F.cor !== "tous") {
-    const l = R.filter((x) => (x.cor || "") === F.cor).sort((a, z) => String(z.c1).localeCompare(String(a.c1)));
+    const l = R.filter((x) => (x.cor || "") === F.cor && patientOK(x)).sort((a, z) => String(z.c1).localeCompare(String(a.c1)));
     h += '<section class="carte"><h3><span class="ic">' + A.ic("patients") + "</span>Patients adressés par " + esc(F.cor || "— (sans référent)") + " (" + l.length + ')</h3><div class="tableau"><table class="tcures bilan"><tr><th>1re venue</th><th>Patient</th><th>Diagnostic</th><th>Hôpital</th><th class="n">NET sur la période</th><th class="n">NET total</th></tr>' +
       l.map((x) => "<tr" + lienDossier(x.id) + "><td>" + (x.c1 ? A.dfrA(x.c1) : "—") + "</td><td>" + esc(x.nm) + "</td><td>" + esc(x.diag) + "</td><td>" + esc(x.hop || "—") + '</td><td class="n">' + dh(netPer(x, b.pr)) + '</td><td class="n">' + dh(netPer(x, ["0000", "9999"])) + "</td></tr>").join("") + '</table></div><button class="mini" style="margin-top:8px" onclick="biF(\'cor\',\'tous\')">← Tous les référents</button></section>';
   } else {
-    const m = {}; R.forEach((x) => { const c = x.cor || ""; m[c] = m[c] || { n: 0, np: 0, net: 0 }; m[c].n++; if (x.c1 && x.c1 >= b.pr[0] && x.c1 <= b.pr[1]) m[c].np++; m[c].net += netPer(x, b.pr); });
+    const m = {}; R.filter(patientOK).forEach((x) => { const c = x.cor || ""; m[c] = m[c] || { n: 0, np: 0, net: 0 }; m[c].n++; if (x.c1 && x.c1 >= b.pr[0] && x.c1 <= b.pr[1]) m[c].np++; m[c].net += netPer(x, b.pr); });
     const l = Object.keys(m).sort((a, z) => m[z].n - m[a].n || m[z].net - m[a].net);
-    h += '<section class="carte" data-fn="bilan.referents"><h3><span class="ic">' + A.ic("patients") + '</span>Référents</h3><p class="sous">Touchez un référent pour voir les patients qu\'il vous a adressés.</p><div class="tableau"><table class="tcures bilan"><tr><th>Référent</th><th class="n">Patients adressés</th><th class="n">Nouveaux sur la période</th><th class="n">NET sur la période</th></tr>' +
+    h += '<section class="carte" data-fn="bilan.referents"><h3><span class="ic">' + A.ic("patients") + '</span>Référents</h3><p class="sous">Touchez un référent pour voir les patients qu\'il vous a adressés. Selon l\'établissement et le type d\'acte choisis en haut.</p><div class="tableau"><table class="tcures bilan"><tr><th>Référent</th><th class="n">Patients adressés</th><th class="n">Nouveaux sur la période</th><th class="n">NET sur la période</th></tr>' +
       l.map((c) => '<tr class="cl" onclick="biF(\'cor\',' + esc(JSON.stringify(c)) + ')"><td>' + esc(c || "— (sans référent)") + '</td><td class="n">' + m[c].n + '</td><td class="n">' + m[c].np + '</td><td class="n">' + dh(m[c].net) + "</td></tr>").join("") + "</table></div></section>";
   }
   if (b.prev.length) h += '<section class="carte" data-fn="bilan.rtprev"><h3><span class="ic">☢️</span>Radiothérapies en cours ou prévues (prévisionnel, non comptées)</h3><div class="tableau"><table class="tcures bilan"><tr><th>Fin prévue</th><th>Patient</th><th>Hôpital</th><th>Acte</th><th class="n">NET prévisionnel</th></tr>' +
@@ -169,7 +193,8 @@ function dessiner() {
   A.$("page").innerHTML = h;
   const q = A.$("biQ"); q.oninput = () => { clearTimeout(q.t); q.t = setTimeout(() => { F.q = q.value; dessiner(); const i = A.$("biQ"); i.focus(); i.setSelectionRange(i.value.length, i.value.length); }, 300); };
 }
-window.biF = (f, v) => { F[f] = v; dessiner(); };
+window.biF = (f, v) => { F[f] = v; LIM = 300; dessiner(); };
+window.biPlus = (n) => { LIM = n ? LIM + n : Infinity; redessinerRg(); };
 window.biActualiser = async () => { B = null; await pagePageBilan(); A.toast("Bilan actualisé."); };
 window.biPaye = async (i) => {
   const o = DATA.all[i]; if (!o || o.t === "kl") return; const k = clePaye(o), v = cleAncienne(o), avant = coche(o);

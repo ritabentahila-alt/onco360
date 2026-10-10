@@ -2,7 +2,7 @@
 import { num, addJ } from "./outils.js";
 export const sansAcc = (x) => String(x || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 export const dh = (n) => (n == null || isNaN(n) ? "—" : Math.round(n).toLocaleString("fr-FR") + " DH");
-const libV = (e) => { const l = (e.lib || "").trim(); return !l || l === "Versement KL" ? "KL" : l; };
+const libV = (e) => { const l = (e.lib || "").trim(); return !l ? "Versement" : l === "Versement KL" ? "KL" : l; }; // « KL » : anciens versements du cabinet Bentahila
 // Case « Payé » d'un acte (finances/paiements) : « patient#identifiant de l'acte » (15 bis, 10/10/2026) ; avant : « patient|type|date|
 // libellé » (cleAncienne), perdue quand la date ou le libellé changeaient ; encore lue tant que migrerPaiements ne l'a pas remplacée.
 export const cleAncienne = (o) => (o.id || "KL") + "|" + o.t + "|" + o.d + "|" + o.lib;
@@ -38,7 +38,7 @@ export function calculerBilan(resumes, versements, paiements, filtre, aujourdhui
   resumes.forEach((x) => {
     if (!x.fin) { manque++; return; } if (!corOK(x)) return;
     x.fin.forEach((e) => {
-      const o = { d: e[0], t: e[1], hop: e[2] || "", lib: e[3], brut: e[4], taux: e[5], net: e[6], st: e[7], nm: x.nm, id: x.id, a: e[9] || "" };
+      const o = { d: e[0], t: e[1], hop: e[2] || "", lib: e[3], brut: e[4], taux: e[5], net: e[6], st: e[7], nm: x.nm, id: x.id, a: e[9] || "", sansT: !!e[10] };
       if (F.hop !== "tous" && (o.hop || "—") !== F.hop) return;
       if (F.typ !== "tous" && !(F.typ === "rt" ? /^rt/.test(o.t) : o.t === F.typ)) return;
       if (F.q && sansAcc(o.lib + " " + o.nm).indexOf(sansAcc(F.q)) < 0) return;

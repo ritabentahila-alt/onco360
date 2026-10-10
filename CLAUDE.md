@@ -113,7 +113,7 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
   q.mode) ; 9e colonne de `evtsFin` ; bilan.js `paiementsEffectifs` : lieu au cabinet + mode noté → payé si encaissé (pas « np »), sinon règle
   d'avant ; reçu A5 `imprimerRecu` (v2.js), `recuRdv` / `recuCons`.
 - « Payé auto. » : case retirée le 10/10/2026 ; `payeAuto` des tarifs encore appliqué aux actes **avant le 12/10/2026** (`FIN_PAYE_AUTO`, bilan.js).
-- Bilan (15 bis B1, 10/10/2026) : acte = 10 colonnes (`evtsFin` : …, mode, identifiant `s|ligne|cure|jour`, `cc|…`, `r|rdv`, `rt|…`) ;
+- Bilan (15 bis B1-B2, 10/10/2026) : acte = 11 colonnes (`evtsFin` : …, mode, identifiant `s|ligne|cure|jour`, `cc|…`, `r|rdv`, `rt|…`, sans tarif 0/1) ;
   case « Payé » = `patient#identifiant` (`clePaye` ; ancienne `cleAncienne` reprise par `migrerPaiements`) ; `finances/paiements` et
   `versements` (avec `id`) relus avant chaque écriture ; page recalculée à chaque ouverture ; `patients/{id}.hopHist` [{ hop, avant }] noté à
   chaque changement d'hôpital (`hopAu` : acte daté avant = ancien hôpital ; règle : droit « tous les établissements »).

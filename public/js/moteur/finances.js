@@ -1,5 +1,6 @@
 // Chimio HGC v2 – honoraires (règles E1–E8), calculés à partir du tableau des tarifs et des montants du dossier.
-// Chaque acte : [date, type, établissement, libellé, brut, taux %, net, statut, mode de paiement (19.5) ou null, identifiant de l'acte]
+// Chaque acte : [date, type, établissement, libellé, brut, taux %, net, statut, mode de paiement (19.5) ou null, identifiant de l'acte,
+// sans tarif (1 : aucun tarif pour ce lieu et cette activité ni montant saisi → compté 0 DH ; 0 sinon) (15 bis B2)]
 // Identifiant (15 bis, 10/10/2026) : « s|ligne|cure|jour » (séance), « cc|ligne|cure » (consultation de chimio), « r|rendez-vous »,
 // « rt|radiothérapie » : sert à retrouver la case « Payé » même si la date ou le libellé de l'acte changent.
 import { num } from "./outils.js";
@@ -37,21 +38,23 @@ export function evtsFin(P, M, ctx) {
       if (e.st !== "recue") return; const c = e.c, x = cm(L, e.n), lib = p.nom + " · C" + e.n;
       const vS = (d) => tf(hopA(d), "seance", d), hon = x.hon || {}, cle = L.id + "|" + e.n;
       const m1 = hon[1] && hon[1].m != null ? hon[1].m : (vS(c.reelle) || {}).brut;
-      ev.push([c.reelle, "seance", hopA(c.reelle), "Séance chimio J1 – " + lib, m1, 100, r2(net(num(m1) || 0, vS(c.reelle))), "Validée", null, "s|" + cle + "|1"]);
-      if (c.sea) Object.keys(c.sea).forEach((j) => { const s = c.sea[j]; if (s.st === "recue") { const m = hon[j] && hon[j].m != null ? hon[j].m : (vS(s.d) || {}).brut; ev.push([s.d, "seance", hopA(s.d), "Séance chimio J" + j + " – " + lib, m, 100, r2(net(num(m) || 0, vS(s.d))), "Validée", null, "s|" + cle + "|" + j]); } });
-      if (x.cons && x.cons.enc) { const hC = hopA(c.reelle), vC = tf(hC, "cchimio", c.reelle), mc = x.cons.m != null ? x.cons.m : (vC || {}).brut, mj = Object.values(x.consModeJ || {}); ev.push([c.reelle, "cchimio", hC, "Consultation chimio – " + lib, mc, 100, r2(net(num(mc) || 0, vC)), "Encaissée", mj.length ? (mj.indexOf("np") >= 0 ? "np" : mj.indexOf("ae") >= 0 ? "ae" : mj[0]) : null, "cc|" + cle]); }
+      const sansT = (j, d) => (hon[j] && hon[j].m != null) || vS(d) ? 0 : 1;
+      ev.push([c.reelle, "seance", hopA(c.reelle), "Séance chimio J1 – " + lib, m1, 100, r2(net(num(m1) || 0, vS(c.reelle))), "Validée", null, "s|" + cle + "|1", sansT(1, c.reelle)]);
+      if (c.sea) Object.keys(c.sea).forEach((j) => { const s = c.sea[j]; if (s.st === "recue") { const m = hon[j] && hon[j].m != null ? hon[j].m : (vS(s.d) || {}).brut; ev.push([s.d, "seance", hopA(s.d), "Séance chimio J" + j + " – " + lib, m, 100, r2(net(num(m) || 0, vS(s.d))), "Validée", null, "s|" + cle + "|" + j, sansT(j, s.d)]); } });
+      if (x.cons && x.cons.enc) { const hC = hopA(c.reelle), vC = tf(hC, "cchimio", c.reelle), mc = x.cons.m != null ? x.cons.m : (vC || {}).brut, mj = Object.values(x.consModeJ || {}); ev.push([c.reelle, "cchimio", hC, "Consultation chimio – " + lib, mc, 100, r2(net(num(mc) || 0, vC)), "Encaissée", mj.length ? (mj.indexOf("np") >= 0 ? "np" : mj.indexOf("ae") >= 0 ? "ae" : mj[0]) : null, "cc|" + cle, x.cons.m != null || vC ? 0 : 1]); }
     });
   });
   (P.rdvs || []).forEach((r) => {
     if (r.st !== "fait") return; const t = r.act || typeRdv(r.type), d = r.dv || r.d, x = (mt.rdv || {})[r.id] || {}, hs = t === "hospit", hopP = hopA(d);
-    let brut, nt;
+    let brut, nt, sansT = 0;
     if (x.v1) { brut = x.prix; const vH = tf(hopP, "hospit", d); nt = hs ? r2((num(brut) || 0) * (1 - ((vH && vH.impot) != null ? vH.impot : 10) / 100)) : brut; }
     else {
-      const v = r.type === T_RTC ? { brut: 0, retro: 0, impot: 0 } : tf(hopP, t, d) || { brut: 0, retro: 0, impot: 0 };
+      const v0 = r.type === T_RTC ? { brut: 0, retro: 0, impot: 0 } : tf(hopP, t, d), v = v0 || { brut: 0, retro: 0, impot: 0 };
+      if (!v0 && x.brut == null && !(hs && x.tj != null)) sansT = 1;
       brut = x.brut != null ? x.brut : hs ? joursH(r) * (x.tj != null ? x.tj : v.brut) : v.brut;
       nt = r2(net(num(brut) || 0, v));
     }
-    ev.push([d, t, hopP, libRdv(r), brut, 100, nt, hs ? "Réalisée" : "Venu", x.mode || null, "r|" + (r.id || r.d + "|" + (r.type || ""))]); // 9e : mode de paiement (19.5)
+    ev.push([d, t, hopP, libRdv(r), brut, 100, nt, hs ? "Réalisée" : "Venu", x.mode || null, "r|" + (r.id || r.d + "|" + (r.type || "")), sansT]); // 9e : mode de paiement (19.5)
   });
   (P.rts || []).forEach((r) => {
     const h = r.hop || P.hop || "", x = (mt.rt || {})[r.id] || {}, dRef = r.fin || finRT(r, ctx.feries) || r.deb || "", v = tf(h, "rt", dRef) || { retro: 60, impot: 10 };
@@ -59,8 +62,9 @@ export function evtsFin(P, M, ctx) {
     const brut = (num(prix) || 0) * nbA(r) + (r.vmat ? num(x.vmatPrix != null ? x.vmatPrix : tab.vmat) || 0 : 0);
     const fx = x.netFixe != null && r.fin, nt = fx ? x.netFixe : Math.round(brut * (100 - v.retro) / 100 * (1 - v.impot / 100));
     const lib = "RT " + (r.acte || "") + (nbA(r) > 1 ? " × " + nbA(r) : "") + (r.vmat ? " + VMAT" : "");
-    if (r.fin) ev.push([r.fin, "rt", h, lib, brut, fx ? null : 100 - v.retro, nt, "Terminée", null, "rt|" + r.id]);
-    else if (r.deb || r.nb) ev.push([finRT(r, ctx.feries) || r.deb || "", "rtprev", h, lib, brut, 100 - v.retro, nt, "En cours / prévue", null, "rt|" + r.id]);
+    const sansT = prix == null && !fx ? 1 : 0;
+    if (r.fin) ev.push([r.fin, "rt", h, lib, brut, fx ? null : 100 - v.retro, nt, "Terminée", null, "rt|" + r.id, sansT]);
+    else if (r.deb || r.nb) ev.push([finRT(r, ctx.feries) || r.deb || "", "rtprev", h, lib, brut, 100 - v.retro, nt, "En cours / prévue", null, "rt|" + r.id, sansT]);
   });
   return ev;
 }

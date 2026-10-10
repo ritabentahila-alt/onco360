@@ -4,7 +4,15 @@ export async function lancer({ res, ctx, pai, ver, B, cas, T0, evtsFin }) {
   const ref = txt(res, pai);
   console.log("Identifiants des actes");
   const lignes = res.flatMap((x) => (x.fin || []).map((e) => ({ x, e })));
-  cas("chaque acte a 10 colonnes et un identifiant (" + lignes.length + " actes)", lignes.every(({ e }) => e.length === 10 && typeof e[9] === "string" && e[9].length > 2));
+  cas("chaque acte a 11 colonnes et un identifiant (" + lignes.length + " actes)", lignes.every(({ e }) => e.length === 11 && typeof e[9] === "string" && e[9].length > 2));
+  cas("jeu de test : aucun acte sans tarif", lignes.every(({ e }) => e[10] === 0));
+  console.log("Actes sans tarif (B2)");
+  const table0 = JSON.parse(JSON.stringify(ctx.table)); Object.values(table0.etablissements).forEach((h) => { h.activites = h.activites.filter((a) => a.type !== "seance"); });
+  const xs = res.find((r) => (r.fin || []).some((e) => e[1] === "seance")), fs = evtsFin(xs.P, {}, Object.assign({}, ctx, { table: table0 })).filter((e) => e[1] === "seance");
+  cas("séance sans tarif de séance (aucun lieu) : signalée, 0 DH", fs.length > 0 && fs.every((e) => e[10] === 1 && !(e[6] > 0)));
+  const xr = res.find((r) => (r.fin || []).some((e) => e[1] === "rt")), tRT = Object.assign(JSON.parse(JSON.stringify(ctx.table)), { actesRT: [] });
+  const fr = evtsFin(Object.assign(JSON.parse(JSON.stringify(xr.P))), {}, Object.assign({}, ctx, { table: tRT })).filter((e) => e[1] === "rt");
+  cas("radiothérapie dont l'acte n'a pas de prix : signalée", fr.length > 0 && fr.every((e) => e[10] === 1));
   const dbl = res.some((x) => { const ids = (x.fin || []).filter((e) => e[1] !== "rtprev").map((e) => e[9]); return new Set(ids).size !== ids.length; });
   cas("identifiants uniques dans chaque dossier", !dbl);
 

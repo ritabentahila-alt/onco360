@@ -1401,16 +1401,22 @@ Relecture de `bilan.js`, `moteur/bilan.js`, `moteur/finances.js`, `moteur/tarifs
       pointage et versement d'une autre personne gardés, changement d'hôpital sans effet sur les totaux par hôpital, aucune erreur.
 - [ ] Mise en ligne : site **et règles** (`firebase deploy --only hosting,firestore:rules`), avec l'accord de Dr Bentahila.
 
-**B2 – Affichage**
-- [ ] Colonne **Taux** trompeuse : consultations « 100 % » alors que le NET retire l'impôt (250 → 225) ; impôt lu sur le 1er
-      établissement seulement. → Afficher le vrai taux de l'acte (rétrocession et impôt de son tarif).
-- [ ] Acte sans tarif = **0 DH sans prévenir** (cabinet neuf, activité non réglée pour un lieu ; repli silencieux sur « HGC »).
-      → Alerte « n actes sans tarif » avec lien vers Paramètres › Activités.
-- [ ] Cabinet sans tarifs : message « réservé au droit finances » → « Renseignez vos tarifs ».
-- [ ] Bouton « Actualiser » caché quand les exports sont désactivés (même bloc).
-- [ ] Moteur : un versement sans libellé s'appelle encore « KL ».
-- [ ] Référents : ne suivent pas les filtres Établissement / Type d'acte.
-- [ ] Lenteur sur une année : journal entier affiché, recherche du référent ligne par ligne → « Afficher plus », calcul plus rapide.
+**B2 – Affichage** (fait et testé le 10/10, pas encore en ligne)
+- [x] Colonne **Taux** trompeuse : consultations « 100 % » alors que le NET retire l'impôt (250 → 225) ; impôt lu sur le 1er
+      établissement seulement. → Afficher le vrai taux de l'acte. **Fait** : NET / brut (« − 10 % »), radiothérapie « part − impôt » du tarif de son lieu.
+- [x] Acte sans tarif = **0 DH sans prévenir** (cabinet neuf, activité non réglée pour un lieu ; repli silencieux sur « HGC »).
+      → Alerte « n actes sans tarif » avec lien vers Paramètres › Activités. **Fait** : 11e colonne des actes (`evtsFin`, 1 = aucun
+      tarif après le repli ni montant saisi), alerte sous les filtres par activité et lieu, « sans tarif » dans la colonne Taux. Le
+      repli sur le 1er établissement (séances à HCK au tarif HGC, comme la v1) est gardé : il ne change pas le bilan.
+- [x] Cabinet sans tarifs : message « réservé au droit finances » → « Renseignez vos tarifs ».
+- [x] Bouton « Actualiser » caché quand les exports sont désactivés (même bloc).
+- [x] Moteur : un versement sans libellé s'appelle encore « KL ».
+- [x] Référents : ne suivent pas les filtres Établissement / Type d'acte.
+- [x] Lenteur sur une année : journal entier affiché, recherche du référent ligne par ligne → « Afficher plus », calcul plus rapide.
+      **Fait** : 300 lignes, « Afficher 300 de plus » / « Tout afficher » (total et exports : tout).
+- [x] Tests : moteur 17/17 (`node tests/moteur/test-bilan.mjs`) ; navigateur : taux, Actualiser sans exports, référents par
+      établissement / type, pagination, 12 actes sans tarif signalés (tarifs de séance retirés), 390 px, bilan 352 317 DH, aucune erreur.
+
 
 **B3 – Améliorations proposées**
 - [ ] **Pointer en lot** : « Marquer payés » tous les actes à recevoir d'une clinique jusqu'à une date (quand un virement en vrac
@@ -1681,3 +1687,4 @@ On garde le bleu Onco360 (#3563B0) et Arial ; les impressions (ordonnances, fich
 | 11/10/2026 | Photo du patient | Photo du dossier carrée et plus grande (120 px, 96 px sur téléphone) pour reconnaître le patient ; initiales au même format sans photo ; ajout toujours par clic sur la bulle ; photos neuves enregistrées en 420 px (les anciennes, en 240 px, un peu moins nettes jusqu'à leur remplacement). Vérifié à 1280 et 390 px. En ligne (v2.js?v=20261011j). |
 | 10/10/2026 | 15 bis – Audit du Bilan | Relecture du module : 4 bugs de données (bilan pas à jour, changement d'hôpital, pointage perdu, pointages écrasés), 7 points d'affichage, 6 améliorations ; plan B1 → B3 à valider. |
 | 10/10/2026 | 15 bis – B1 | Bilan recalculé à chaque ouverture ; hôpital des actes gardé lors d'un changement d'hôpital (`hopHist`) ; cases « Payé » repérées par l'identifiant de l'acte (anciennes reprises) ; pointages et versements relus avant écriture. Tests moteur 14/14, règles +4, navigateur. Pas encore en ligne. |
+| 10/10/2026 | 15 bis – B2 | Taux réel de chaque acte, alerte « actes sans tarif » (0 DH), message sans tarifs, Actualiser séparé des exports, versement sans libellé = « Versement », référents selon établissement et type, journal par 300 lignes. Tests 17/17 + navigateur. Pas encore en ligne. |
