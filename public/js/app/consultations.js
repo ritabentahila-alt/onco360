@@ -64,7 +64,7 @@ export function htmlConsultations(x) {
   let h = peutEcrire() ? '<div class="entete"><button class="bt clair petit" onclick="csNouvelle(' + q + ')">' + A.ic("plus") + "Nouvelle consultation</button></div>" : "";
   if (L === undefined) return h + '<p class="sous" style="margin:2px 0 0">Chargement des consultations…</p>';
   if (L === null) return h + '<p class="sous" style="margin:2px 0 0;color:var(--rouge)">Les consultations n\'ont pas pu être lues. Rechargez la page.</p>';
-  if (!L.length) return h + '<p class="sous" style="margin:2px 0 0">Aucune consultation.' + (peutEcrire() ? " « Nouvelle consultation » pour en ajouter une." : "") + "</p>" + barre(x);
+  if (!L.length) return h + '<p class="vide-c">Aucune consultation.' + (peutEcrire() ? " « Nouvelle consultation » pour en ajouter une." : "") + "</p>" + barre(x);
   setTimeout(apresAffichage, 0);
   const ouv = ouverte(x.id);
   // Liste dans une zone qui défile (environ 10 consultations fermées visibles), la plus récente en haut

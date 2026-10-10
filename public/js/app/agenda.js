@@ -81,7 +81,7 @@ export function pageAgenda() {
     '<div class="ag-nav"><button class="rond" onclick="agNav(-1)" aria-label="Précédent">' + A.ic("retour") + '</button><button class="bt clair petit" onclick="agAuj()">Aujourd\'hui</button><b>' + esc(lib) + '</b><button class="rond" onclick="agNav(1)" aria-label="Suivant" style="transform:scaleX(-1)">' + A.ic("retour") + "</button></div>" +
     (EV.length > 1 ? '<select class="ag-etab" data-fn="agenda.filtre" aria-label="Établissement" onchange="agEtab(this.value)"><option value="">Tous les établissements</option>' + EV.map((c) => '<option value="' + esc(c) + '"' + (AG.etab === c ? " selected" : "") + ">" + esc(c) + "</option>").join("") + "</select>" : EV.length === 1 ? '<span class="badge b-gr">' + esc(EV[0]) + "</span>" : "") + "</div>" +
     '<div class="ag-corps"><aside class="ag-cote">' + cote + '</aside><div class="ag-main carte">' + main + "</div></div>" +
-    ((D().profil.agendaGoogle || {}).email ? '<p class="mesures">Vos rendez-vous apparaissent aussi dans votre Google Agenda (agenda « Onco360 »), dans un seul sens. <a href="#profil" onclick="pfOnglet(\'gagenda\')">État</a></p>'
+    ((D().profil.agendaGoogle || {}).email ? '<p class="mesures">Vos rendez-vous apparaissent aussi dans votre Google Agenda (agenda « Onco360 »), dans un seul sens. <a href="#parametres/couleurs">État</a></p>'
       : '<p class="mesures">Voir ces rendez-vous dans votre Google Agenda : <a href="#parametres/couleurs">Paramètres › Google Agenda</a>.</p>');
   A.$("page").innerHTML = h;
   const g = document.querySelector(".ag-grille"), deb = tout.length ? Math.min(...tout.map((p) => mn(p[0]))) : 8 * 60; if (g && !AG.defile) { g.scrollTop = (deb - H0 * 60) / 15 * PAS - 10; }

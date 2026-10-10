@@ -262,11 +262,11 @@ function liste() {
   $("taFx").classList.toggle("cache", !actifs);
   let h = ouvertes.map(ligne).join("");
   if (F.st === "ouv") {
-    if (!ouvertes.length) h += '<p class="sous">' + (actifs ? "Aucune tâche ne correspond aux filtres." : "Aucune tâche à faire." + (VUE === "mes" ? " « Nouvelle tâche » pour en créer une." : "")) + "</p>";
+    if (!ouvertes.length) h += '<p class="vide-c">' + (actifs ? "Aucune tâche ne correspond aux filtres." : "Aucune tâche à faire." + (VUE === "mes" ? " « Nouvelle tâche » pour en créer une." : "")) + "</p>";
     if (finies.length) h += '<button class="lien" style="margin-top:12px" onclick="taTerminees()">' + (TERM ? "▾ Masquer" : "▸ Afficher") + " les tâches terminées (" + finies.length + ")</button>" + (TERM ? '<div class="taches-finies">' + finies.map(ligne).join("") + "</div>" : "");
   } else {
     h += finies.map(ligne).join("");
-    if (!l.length) h += '<p class="sous">Aucune tâche ne correspond aux filtres.</p>';
+    if (!l.length) h += '<p class="vide-c">Aucune tâche ne correspond aux filtres.</p>';
   }
   $("taL").innerHTML = h;
 }

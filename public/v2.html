@@ -678,6 +678,20 @@ nav a.actif{box-shadow:var(--ombre-prim)}
 .li,.ev,.pat{transition:background .12s ease}.li:hover,.ev:hover,.pat:hover{background:#F3F7FE}
 #tete{box-shadow:0 1px 0 var(--trait),0 4px 14px rgba(30,42,68,.04)}
 @media (prefers-reduced-motion:reduce){.k,.bt{transition:none}button.k:hover,a.k:hover,.bt.plein:hover{transform:none}}
+/* ── Même présentation partout (20.4, 11/10/2026) ── */
+/* Onglets soulignés (comme le dossier) pour les longues barres : Paramètres, Profil & Paramètres */
+.ag-vues.defile{background:none;border:0;border-bottom:1px solid var(--trait);border-radius:0;padding:0;gap:4px;box-shadow:none;align-self:stretch!important}
+.defile-cadre{align-self:stretch!important}
+.ag-vues.defile button{border-radius:0;border-bottom:3px solid transparent;margin-bottom:-1px;padding:12px 12px 10px;font-size:15px;background:none}
+.ag-vues.defile button:hover{color:var(--titre);background:none}
+.ag-vues.defile button.on{background:none;color:var(--prim);border-bottom-color:var(--prim);box-shadow:none}
+.ag-vues.defile .i{width:18px;height:18px}
+@media (max-width:640px){.ag-vues.defile button{padding:10px 9px 8px;font-size:14px}}
+/* Titres de colonnes : petites majuscules grises sur fond clair */
+.tcures th,.tcures.bilan th{background:#F5F7FB;color:var(--doux);font-weight:bold;font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;padding:10px 8px;border-bottom:1px solid var(--trait)}
+/* Listes vides : message centré */
+.sa-l.ent{background:#F5F7FB;color:var(--doux);font-size:11.5px;text-transform:uppercase;letter-spacing:.05em}
+.vide-c{text-align:center;color:var(--doux);padding:26px 16px;margin:0;font-size:14.5px}
 </style>
 </head>
 <body>
@@ -778,6 +792,6 @@ function onco360Deconnecter() {
 }
 </script>
 
-<script type="module" src="./js/app/v2.js?v=20261011g"></script>
+<script type="module" src="./js/app/v2.js?v=20261011i"></script>
 </body>
 </html>

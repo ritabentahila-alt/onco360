@@ -687,7 +687,7 @@ function listePatients() {
     if (rtC) { tr = (tr ? tr + " · " : "") + "☢️ " + rtC.a + " jusqu'au " + dfr(rtC.fin); bd += ' <span class="badge b-rt">RT en cours</span>'; }
     else if (rtP) { tr = (tr ? tr + " · " : "") + "☢️ " + rtP.a + " à partir du " + dfr(rtP.deb); bd += ' <span class="badge b-rt">RT prévue</span>'; }
     return '<div class="pat" onclick="ouvrirDossier(\'' + id + '\')">' + bulle(D.patients.find((z) => z.id === id)) + '<div class="tx"><b>' + esc(r.nm) + "</b><span>" + esc([numDossier(xp) ? "N° " + numDossier(xp) : "", r.ddn ? "Né(e) le " + dfrA(r.ddn) + (a != null ? " (" + a + " ans)" : "") : "", r.diag].filter(Boolean).join(" · ")) + "</span>" + (tr ? "<span>" + esc(tr) + "</span>" : "") + '</div><div class="dr">' + (r.hop ? '<span class="badge b-gr">' + esc(r.hop) + "</span>" : "") + bd + "</div></div>";
-  }).join("") : '<p class="sous">Aucun patient ne correspond. Essayez un autre nom ou retirez le filtre.</p>';
+  }).join("") : '<p class="vide-c">Aucun patient ne correspond. Essayez un autre nom ou retirez le filtre.</p>';
 }
 
 // ───── Dossier patient (lecture) ─────
@@ -761,7 +761,7 @@ function pageDossier(id) {
   { const hc = htmlConsultations(x); ong.push({ k: "co", ic: "stetho", lib: "Consultation", n: nbConsultations(x), h: hc }); }
 
   // Chimiothérapie
-  if (voit("traitements")) ong.push({ k: "ch", ic: "seringue", lib: "Chimiothérapie", n: (P.lignes || []).length, h: htmlChimio(x) || '<p class="sous" style="margin:2px 0 0">Aucune ligne de chimiothérapie.</p>' });
+  if (voit("traitements")) ong.push({ k: "ch", ic: "seringue", lib: "Chimiothérapie", n: (P.lignes || []).length, h: htmlChimio(x) || '<p class="vide-c">Aucune ligne de chimiothérapie.</p>' });
 
   // Radiothérapie
   // (l'infirmière, radiothérapie « patients sous chimio » ailleurs, voit l'onglet en lecture pour tous ses patients : 07/10/2026)
@@ -770,7 +770,7 @@ function pageDossier(id) {
   if (voitRTdossier(x) || D.membre.droits.radiotherapie === "chimio") {
     const JS = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"], TECH = { stereo: "Stéréotaxie", vmat: "VMAT", imrt: "IMRT", "3d": "3D" };
     let hr = okRT ? '<div class="entete"><button class="bt clair petit" onclick="ouvrirRT(\'' + x.id + '\')">' + ic("plus") + "Prescription</button></div>" : "";
-    if (!(P.rts || []).length) hr += '<p class="sous" style="margin:2px 0 0">Aucune prescription de radiothérapie.</p>';
+    if (!(P.rts || []).length) hr += '<p class="vide-c">Aucune prescription de radiothérapie.</p>';
     // Une seule radiothérapie ouverte (11/10/2026) : la plus récente à l'ouverture du dossier ; les autres fermées (titre, dose, séances,
     // boutons ; sans les étapes)
     if (RTO.pid !== x.id) { RTO.pid = x.id; RTO.id = (P.rts || []).length ? P.rts[P.rts.length - 1].id : null; }
@@ -846,7 +846,7 @@ function pageDossier(id) {
             : '<span class="badge b-or">À valider</span>' + (peut("finances") || prixParServeur() ? '<div class="actr">' + b("Venu", "chVenuChimio('" + x.id + "','" + c.lid + "'," + c.n + "," + c.j + ")", "v") + "</div>" : "")) + "</div>";
         const s = (v.st || "prevu") === "prevu" ? ["À valider", "b-or"] : ST_RDV[v.st] || [v.st, "b-gr"];
         return '<div class="rdv"><span class="badge b-gr">' + dfrA(v.d) + (v.h ? " " + v.h : "") + '</span><div class="tx"><b>' + esc(libRdv(v)) + "</b>" + (v.mo ? '<div class="mesures">Motif : ' + esc(v.mo) + "</div>" : "") + (v.n ? '<div class="mesures">' + esc(v.n) + "</div>" : "") + (v.rep && v.rep.length ? '<div class="mesures">Reporté (initialement le ' + dfrA(v.rep[0].d) + ")</div>" : "") + '</div><span class="badge ' + s[1] + '">' + s[0] + "</span>" + prix(v) + actionsRdv(v) + "</div>";
-      }).join("") : '<p class="sous">Aucune consultation passée.</p>') + "</section>";
+      }).join("") : '<p class="vide-c">Aucune consultation passée.</p>') + "</section>";
   }
   h += bullesDossier(x); // patient en consultation (salle d'attente) : bulles Valider / Retour en salle
   h += bulleRcp(x); // dossier ouvert depuis la liste des RCP : Décision RCP · Valider · Fermer

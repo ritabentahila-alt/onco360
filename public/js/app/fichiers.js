@@ -102,8 +102,8 @@ function listeHtml(x) {
   const esc = A.esc, L = FI[x.id] || [], F = FQ[x.id] || { q: "", t: "" };
   const mots = sansAcc(F.q).split(/\s+/).filter(Boolean);
   const V = L.filter((f) => (!F.t || f.type === F.t) && mots.every((w) => sansAcc([f.titre, f.type, f.nom, f.creeParNom].join(" ")).indexOf(w) >= 0));
-  if (!L.length) return '<p class="sous" style="margin:10px 0 0">Aucun document dans ce dossier.' + (peutDeposer() ? " « Ajouter un document » pour en déposer un (PDF, Word, photo…)." : "") + "</p>";
-  if (!V.length) return '<p class="sous" style="margin:10px 0 0">Aucun document ne correspond' + (F.t ? " (type « " + esc(F.t) + " »)" : "") + ".</p>";
+  if (!L.length) return '<p class="vide-c">Aucun document dans ce dossier.' + (peutDeposer() ? " « Ajouter un document » pour en déposer un (PDF, Word, photo…)." : "") + "</p>";
+  if (!V.length) return '<p class="vide-c">Aucun document ne correspond' + (F.t ? " (type « " + esc(F.t) + " »)" : "") + ".</p>";
   const sel = choisi(x);
   return (V.length < L.length ? '<p class="mesures" style="margin:8px 0 0">' + V.length + " document" + (V.length > 1 ? "s" : "") + " sur " + L.length + "</p>" : "") + '<div class="fi-liste">' + V.map((f) => {
     // une seule ligne : titre, date, type (150 documents restent lisibles ; la liste défile à la hauteur de l'aperçu)
