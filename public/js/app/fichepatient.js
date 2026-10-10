@@ -9,6 +9,9 @@ export function installer(api) { A = api; }
 const D = () => A.D();
 const F = () => (D().reg && D().reg.fiche) || { ordre: [], champs: {}, libs: {}, ajouts: [] };
 export const champsAjoutes = () => F().ajouts;
+// En tête du dossier ? (réglé champ par champ : spécialité, puis retouches du cabinet ; sans réglage : l'en-tête d'aujourd'hui)
+const ENTETE0 = ["ddn", "sexe", "taille", "poids", "diag", "tel", "tel2", "etab", "ald", "cor", "mut"];
+export const enTete = (k) => { const R = F(), a = R.ajouts.find((z) => z.id === k); return R.champs[k] !== false && (R.entetes && k in R.entetes ? R.entetes[k] : a ? a.entete === true : ENTETE0.indexOf(k) >= 0); };
 const valeurDe = (x, a) => { const d = (x && x.doc) || {}, src = a.partie === "clinique" ? d.clinique : d.identite; return ((src && src.extra) || {})[a.id]; };
 const texteDe = (a, v) => (v == null || v === "" ? "" : a.type === "date" ? A.dfrA(v) : a.type === "ouinon" ? (v === true || v === "oui" ? "Oui" : "Non") : String(v));
 
@@ -38,7 +41,7 @@ export function fusionnerExtra(partieDoc, partie, saisie) {
 // Champs ajoutés en lecture (Afficher, en-tête du dossier)
 export function htmlLecture(x, seulementEntete) {
   const esc = A.esc;
-  return champsAjoutes().filter((a) => !seulementEntete || a.entete).map((a) => { const t = texteDe(a, valeurDe(x, a));
+  return champsAjoutes().filter((a) => !seulementEntete || enTete(a.id)).map((a) => { const t = texteDe(a, valeurDe(x, a));
     return seulementEntete ? (t ? '<div data-champ="' + a.id + '"><label>' + esc(a.lib) + "</label><b>" + esc(t) + "</b></div>" : "")
       : '<div data-champ="' + a.id + '"' + (t.length > 60 ? ' class="large"' : "") + "><label>" + esc(a.lib) + "</label><div>" + (t ? "<b>" + esc(t) + "</b>" : '<span class="mesures">—</span>') + "</div></div>"; }).join("");
 }

@@ -48,6 +48,9 @@ export const FICHE = [
   ["adresse", "Adresse", "identite"], ["email", "E-mail", "identite"], ["allergies", "Allergies", "clinique"], ["atcdMed", "Antécédents médicaux", "clinique"],
   ["atcdFam", "Antécédents familiaux", "clinique"], ["modeVie", "Mode de vie", "clinique"], ["traitCours", "Traitement en cours", "clinique"],
 ];
+// En tête du dossier (sous le nom du patient) au départ : ce qui y est aujourd'hui (10/10/2026) ; réglable champ par champ (entetes)
+export const ENTETE0 = ["ddn", "sexe", "taille", "poids", "diag", "tel", "tel2", "etab", "ald", "cor", "mut"];
+export const TOUJOURS_ENTETE = ["nom", "prenom"]; // le nom du patient : toujours en tête
 export const TYPES_CHAMP = [["texte", "Texte"], ["nombre", "Nombre"], ["date", "Date"], ["choix", "Liste de choix"], ["ouinon", "Oui / Non"]];
 // Formulaire de consultation (16.7, 10/10/2026) : champs existants [clé, libellé, -, base, choix de départ (liste modifiable)] = la
 // fenêtre « Nouvelle consultation » d'aujourd'hui (oncologie) ; champs ajoutés : mêmes types que la fiche + texte long, titre de section,
@@ -66,7 +69,13 @@ export function formEffectif(CAT, f, spe) {
   ref.forEach((k) => { const v = x.champs && typeof x.champs[k] === "boolean" ? x.champs[k] : s.champs && s.champs[k]; champs[k] = v !== false; });
   CAT.forEach(([k, , , base, ch0]) => { if (base) champs[k] = true; const l = (x.libs && x.libs[k]) || (s.libs && s.libs[k]); if (l) libs[k] = l;
     if (ch0) { const c = (x.choixs && x.choixs[k]) || (s.choixs && s.choixs[k]); choixs[k] = Array.isArray(c) && c.length ? c.slice() : ch0.slice(); } });
-  return { ordre: ordre(Array.isArray(x.ordre) && x.ordre.length ? x.ordre : s.ordre, ref), champs, libs, choixs, ajouts };
+  const out = { ordre: ordre(Array.isArray(x.ordre) && x.ordre.length ? x.ordre : s.ordre, ref), champs, libs, choixs, ajouts };
+  // Fiche patient : en tête du dossier ou non, champ par champ (champs existants : ENTETE0 au départ ; champs ajoutés : leur case « En tête »)
+  if (CAT === FICHE) { const en = {}, v = (k) => (x.entetes && typeof x.entetes[k] === "boolean" ? x.entetes[k] : s.entetes && typeof s.entetes[k] === "boolean" ? s.entetes[k] : undefined);
+    FICHE.forEach(([k]) => { const b = v(k); en[k] = TOUJOURS_ENTETE.indexOf(k) >= 0 || (b === undefined ? ENTETE0.indexOf(k) >= 0 : b); });
+    ajouts.forEach((a) => { const b = v(a.id); en[a.id] = b === undefined ? a.entete === true : b; });
+    out.entetes = en; }
+  return out;
 }
 export const libDe = (CAT, k, R) => (R && R.libs && R.libs[k]) || ((CAT.find((c) => c[0] === k) || [])[1]) || k;
 // Retouches d'un cabinet = différences entre son formulaire (R, effectif) et celui de la spécialité (base = formEffectif(CAT, null, spe))
@@ -78,6 +87,8 @@ export function formRetouches(CAT, R, base) {
   CAT.forEach(([k, , , , ch0]) => { if (libDe(CAT, k, R) !== libDe(CAT, k, base)) lb[k] = libDe(CAT, k, R);
     if (ch0 && JSON.stringify((R.choixs || {})[k] || ch0) !== JSON.stringify((base.choixs || {})[k] || ch0)) cx[k] = (R.choixs || {})[k]; });
   if (Object.keys(ch).length) out.champs = ch; if (Object.keys(lb).length) out.libs = lb; if (Object.keys(cx).length) out.choixs = cx;
+  // En tête du dossier (fiche) : différences avec la spécialité ; un champ propre au cabinet garde son réglage dans le champ lui-même
+  if (R.entetes) { const en = {}; Object.keys(R.entetes).forEach((k) => { const a = R.ajouts.find((z) => z.id === k); if (a && a.cabinet) { a.entete = R.entetes[k]; return; } if (R.entetes[k] !== !!(base.entetes || {})[k]) en[k] = R.entetes[k]; }); if (Object.keys(en).length) out.entetes = en; }
   const aj = R.ajouts.filter((a) => a.cabinet).map((a) => { const c = Object.assign({}, a); delete c.cabinet; return c; }); if (aj.length) out.ajouts = aj;
   return out;
 }

@@ -1174,6 +1174,11 @@ Modules et menus, Bibliothèques et paramètres ; cabinets en liste ; onglet lis
       spécialités, ouverture d'une bibliothèque, et les suspensions automatiques d'Onco360. Onglet **Journal** (période, cabinet,
       type, recherche, export pour Excel) ; bouton « Journal » dans la fiche d'un cabinet. Rien n'est noté avant le 10/10/2026.
       Tests `tests/test_journal.py` 10/10, règles + 2.
+- [x] **16.6 ter En-tête du dossier réglable** (10/10, demandé par Dr Bentahila) : dans la fiche patient de la spécialité (et les
+      retouches d'un cabinet), chaque champ, existant ou ajouté, a une case **« en-tête »** (affiché en haut du dossier, sous le nom,
+      ou seulement dans « Afficher ») à côté de **« présent »** ; `entetes { champ: bool }` (au départ : l'en-tête d'aujourd'hui,
+      `ENTETE0` = naissance, sexe, taille, poids, diagnostic, téléphones, hôpital, ALD, correspondant, mutuelle) ; nom et prénom :
+      toujours (nom du dossier). Tests fiche 21/21.
 - [ ] 16.5 Nouvelle spécialité (copie ou vide) ; Médecine générale, Gynécologie prêtes pour l'étape 14.
 
 ## Étape 14 – Autres spécialités (demandé le 09/10/2026) : nouveaux modules et leurs formules
@@ -1438,3 +1443,4 @@ Onco360_Package_Cession/
 | 10/10/2026 | 17.1 et 17.2 | Corrections de l'audit (A1 à A9) et nouvelle fenêtre de réglage (sous-onglets, Enregistrer toujours visible, retouché / revenir au pack). Tests au vert, bilan 352 317 DH. Mis en ligne. |
 | 10/10/2026 | 17.3 et 17.4 | Liste des cabinets (tuiles, tri, activité, fiche regroupée) et abonnements (prix des packs, essai 30 j, gratuit, paiements, suspension automatique après 30 j de retard). Tests au vert, bilan 352 317 DH. Mis en ligne. |
 | 10/10/2026 | 17.5 Journal de l'Administration | Toutes les actions de l'administration (et suspensions automatiques) notées par le serveur ; onglet Journal avec filtres et export. Mis en ligne. |
+| 10/10/2026 | 16.6 ter En-tête du dossier | Case « en-tête » pour chaque champ de la fiche patient (existants compris) : ce qui s'affiche en haut du dossier se règle par spécialité, puis par cabinet. Mis en ligne. |

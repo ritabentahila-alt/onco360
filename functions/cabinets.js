@@ -156,6 +156,7 @@ function ficheNettoyee(f) {
   const cle = (k) => typeof k === "string" && /^[a-z0-9._-]{1,40}$/i.test(k), t = (v, n) => String(v == null ? "" : v).replace(/\s+/g, " ").trim().slice(0, n), F = {};
   if (Array.isArray(f.ordre)) F.ordre = f.ordre.filter(cle).slice(0, 120);
   if (f.champs && typeof f.champs === "object") { F.champs = {}; Object.entries(f.champs).slice(0, 120).forEach(([c, v]) => { if (cle(c) && typeof v === "boolean") F.champs[c] = v; }); }
+  if (f.entetes && typeof f.entetes === "object") { F.entetes = {}; Object.entries(f.entetes).slice(0, 120).forEach(([c, v]) => { if (cle(c) && typeof v === "boolean") F.entetes[c] = v; }); } // en tête du dossier (fiche)
   if (f.libs && typeof f.libs === "object") { F.libs = {}; Object.entries(f.libs).slice(0, 120).forEach(([c, v]) => { if (cle(c) && t(v, 60)) F.libs[c] = t(v, 60); }); }
   const liste = (l) => (Array.isArray(l) ? l.map((c) => t(c, 60)).filter(Boolean).slice(0, 40) : []);
   if (f.choixs && typeof f.choixs === "object") { F.choixs = {}; Object.entries(f.choixs).slice(0, 20).forEach(([c, v]) => { const l = liste(v); if (cle(c) && l.length) F.choixs[c] = l; }); }

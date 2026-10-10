@@ -9,10 +9,10 @@ MT = {'id': 'xmt001', 'lib': 'Médecin traitant', 'type': 'texte', 'choix': [], 
 S2 = dict(S); e = dict(S2[E[:-1]])
 e['abonnement'] = {'formule': 'complet', 'modules': {k: True for k in ['chimio', 'rt', 'agenda', 'salle', 'taches', 'rcp', 'prescriptions', 'documents', 'gagenda', 'listes', 'bilan']}, 'max': {},
   'reglage': {'fiche': {'ajouts': [MT]}}} # retouche du cabinet : un champ en plus
-e['ficheSpe'] = {'ordre': ['mut', 'nom', 'prenom'], 'champs': {'ald': False}, 'libs': {'tel': 'Téléphone portable'}, 'ajouts': [GS]} # fiche de la spécialité
+e['ficheSpe'] = {'ordre': ['mut', 'nom', 'prenom'], 'champs': {'ald': False}, 'libs': {'tel': 'Téléphone portable'}, 'entetes': {'allergies': True, 'tel2': False}, 'ajouts': [GS]} # fiche de la spécialité
 S2[E[:-1]] = e
 pid = [k.split('/')[-1] for k, v in S.items() if k.startswith(E + 'patients/') and len(v.get('lignesJson') or '') > 50][0]
-P0 = dict(S2[E + 'patients/' + pid]); I0 = dict(P0['identite']); I0['ald'] = 'Oui'; P0['identite'] = I0; S2[E + 'patients/' + pid] = P0
+P0 = dict(S2[E + 'patients/' + pid]); I0 = dict(P0['identite']); I0['ald'] = 'Oui'; I0['tel2'] = '0600000002'; P0['identite'] = I0; C0 = dict(P0.get('clinique') or {}); C0['allergies'] = 'Pénicilline'; P0['clinique'] = C0; S2[E + 'patients/' + pid] = P0
 async def main():
     async with async_playwright() as p:
         b = await p.chromium.launch()
@@ -40,6 +40,7 @@ async def main():
         ok(d['clinique'].get('extra', {}).get('xgs001') == 'A+' and d['identite'].get('ald') == 'Oui', 'Modifier : Groupe sanguin enregistré, ALD caché mais gardé (Oui)')
         await pg.evaluate(f"location.hash='patients'"); await pg.wait_for_timeout(300); await pg.evaluate(f"location.hash='dossier/{pid}'"); await pg.wait_for_timeout(1500)
         ok('Groupe sanguin' in await pg.inner_text('#page .champs') and 'A+' in await pg.inner_text('#page .champs'), 'en-tête du dossier : Groupe sanguin = A+')
+        ok('Pénicilline' in await pg.inner_text('#page .champs') and await pg.evaluate("!document.querySelector('#page .champs [data-champ=\"tel2\"]') && !!document.querySelector('#page .champs [data-champ=\"tel\"]')"), 'en-tête réglé champ par champ : Allergies ajoutées, 2e téléphone retiré (Téléphone gardé)')
         await pg.evaluate(f"afficherPatient('{pid}')"); await pg.wait_for_timeout(400); ta = await pg.inner_text('#fenetre')
         ok('Groupe sanguin' in ta and 'Médecin traitant' in ta, 'Afficher : champs ajoutés')
         await pg.evaluate("fermerFenetre()")
@@ -60,11 +61,13 @@ async def main():
         await pa.click('[data-fsouvrir="fiche"]'); await pa.wait_for_timeout(300)
         await pa.click('#chNouv'); await pa.wait_for_timeout(200); await pa.fill('#chLib', 'Statut'); await pa.select_option('#chType', 'choix'); await pa.fill('#chChoix', 'Nouveau cas\nAncien cas'); await pa.check('#chImp'); await pa.click('#chOk'); await pa.wait_for_timeout(300)
         await pa.click('#fsCorps [data-fh="21"]'); await pa.wait_for_timeout(200); await pa.uncheck('#fsCorps [data-rch="email"]')
+        await pa.uncheck('#fsCorps [data-ren="mut"]'); await pa.check('#fsCorps [data-ren="atcdMed"]')
+        ok(await pa.evaluate("!document.querySelector('#fsCorps [data-ren=\"nom\"]') && document.querySelectorAll('#fsCorps [data-ren]').length == 20"), 'case « en-tête » sur chaque champ (sauf nom et prénom : toujours le nom du dossier)')
         await pa.click('#fsCorps [data-chl="atcdFam"]'); await pa.wait_for_timeout(200); await pa.fill('#chNomA', 'Antécédents familiaux et héréditaires'); await pa.click('#chLOk'); await pa.wait_for_timeout(200)
         ok('nom d\'origine : Antécédents familiaux' in await pa.inner_text('#fsCorps'), 'champ existant renommé (nom d\'origine rappelé)')
         await pa.click('#fsOk'); await pa.wait_for_timeout(600)
         F = await pa.evaluate('window.__fspe'); FI = F['fiche']; aj = FI['ajouts']
-        ok(F['specialite'] == 'Oncologie – Radiothérapie' and len(aj) == 2 and aj[1]['lib'] == 'Statut' and aj[1]['choix'] == ['Nouveau cas', 'Ancien cas'] and aj[1]['imprimer'] and FI['ordre'][20] == aj[1]['id'] and FI['champs']['email'] is False and FI['champs']['ald'] is False and FI['libs']['atcdFam'] == 'Antécédents familiaux et héréditaires' and 'cabinet' not in aj[0], 'fiche de la spécialité enregistrée : « Statut » ajouté et monté, E-mail retiré, ALD toujours retiré, antécédents familiaux renommés')
+        ok(F['specialite'] == 'Oncologie – Radiothérapie' and len(aj) == 2 and aj[1]['lib'] == 'Statut' and aj[1]['choix'] == ['Nouveau cas', 'Ancien cas'] and aj[1]['imprimer'] and FI['ordre'][20] == aj[1]['id'] and FI['champs']['email'] is False and FI['champs']['ald'] is False and FI['libs']['atcdFam'] == 'Antécédents familiaux et héréditaires' and 'cabinet' not in aj[0] and FI['entetes']['mut'] is False and FI['entetes']['atcdMed'] is True and FI['entetes']['diag'] is True, 'fiche de la spécialité enregistrée : « Statut » ajouté et monté, E-mail retiré, ALD toujours retiré, antécédents familiaux renommés')
         ok('3 cabinet(s) mis à jour' in await pa.inner_text('body'), 'message : cabinets de la spécialité mis à jour')
         # Retouches d'un cabinet : seules les différences avec la fiche de la spécialité sont enregistrées
         await pa.evaluate("location.hash='cabinets'"); await pa.wait_for_timeout(400)

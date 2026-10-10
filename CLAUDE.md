@@ -157,7 +157,7 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
   true = fonction de base (toujours présente) ; serveur : `contexteAuto` (taches.auto, rt.taches), `fonctionPresente` (taches.gagenda).
   Fiche patient réglable (10/10/2026) : **fiche de la spécialité** (la même pour tous les packs) `plateforme/specialites` { idSpécialité: { nom, fiche } },
   réglée dans Administration › Par spécialité › Bibliothèque et paramètres, recopiée dans `espaces/{e}.ficheSpe` de chaque cabinet de la spécialité
-  (fonction `ficheSpecialite`, aussi à la création) ; fiche = { ordre, champs, libs (nom affiché d'un champ existant), ajouts [{ id x…, lib, type,
+  (fonction `ficheSpecialite`, aussi à la création) ; fiche = { ordre, champs, libs (nom affiché d'un champ existant), entetes (en tête du dossier, champ par champ ; départ `ENTETE0`), ajouts [{ id x…, lib, type,
   choix, partie, imprimer, entete }] } ; retouches du cabinet `reglage.fiche` (différences seulement, `ficheRetouches`) ; pas de fiche dans un pack ;
   catalogue `FICHE` / `ficheEffective(retouches, ficheSpe)` / `libChamp` (catalogue.js, fonctions communes `formEffectif` / `formRetouches` / `libDe`) ;
   **Formulaire de consultation (16.7)** : même système (`CONSULT`, `consultEffective`, `TYPES_CHAMP_CS` : + texte long, section, unité ;
