@@ -1299,7 +1299,10 @@ Décisions de Dr Bentahila (10/10) :
       secrétaire a le droit de changer le poids) ; pas de validation médicale des ordonnances ni des certificats (elle est formée) ;
       seule exigence, déjà en place : ce qu'elle crée porte son nom (consultation créée à son nom, chaque ordonnance avec « par »).
       Alertes de la secrétaire : faites en 19.3.
-- [ ] 19.7 Plusieurs cabinets, confort : pastilles par cabinet, vue « Tous mes cabinets », dépôt de plusieurs fichiers.
+- [x] 19.7 Plusieurs cabinets, confort (fait et testé le 10/10) : menu « Cabinet » avec, pour chaque autre cabinet, « 2 en salle, 1 tâche »
+      (point orange sur « Cabinet », relu toutes les 2 min) ; page **« Mes cabinets aujourd'hui »** (menu, secrétaire de plusieurs cabinets) :
+      rendez-vous, cures et séances du jour de chaque cabinet avec l'état de la salle d'attente, « Ouvrir » passe dans le cabinet du patient ;
+      onglet Documents : **plusieurs fichiers d'un coup** (même type et date, titre = nom du fichier). Navigateur testé.
 - [ ] Guide de la secrétaire (avec l'étape 12).
 
 ## Étape 14 – Autres spécialités (demandé le 09/10/2026) : nouveaux modules et leurs formules
@@ -1583,3 +1586,4 @@ Onco360_Package_Cession/
 | 10/10/2026 | 19.5 Le médecin encaisse aussi | Jour sans secrétaire : case « Encaisser maintenant » dans la fenêtre « Venu » du médecin (décochée = à encaisser) ; boutons Encaisser de l'onglet Vus et du dossier aussi pour lui (case cochée). Paramètres › Activités : lieu « au cabinet » → consultations « à l'encaissement » à la place de « Payé auto. » (sans effet pour elles). |
 | 10/10/2026 | 19.5 « Payé auto. » retiré | Décision de Dr Bentahila : case retirée de Paramètres › Activités (consultations au cabinet = encaissement ; séances de chimio, hospitalisations, lieux payés par l'établissement = virement, « Payé » coché dans le bilan). L'ancien réglage reste appliqué aux actes validés avant le 12/10/2026 (bilan passé inchangé : payé 186 004 DH identique). |
 | 10/10/2026 | 19.6 close | Pas d'alerte de poids ni de validation des ordonnances de la secrétaire (décision) ; son nom figure déjà sur ce qu'elle crée. Reste 19.7 (plusieurs cabinets, confort). |
+| 10/10/2026 | 19.7 Plusieurs cabinets, confort | Pastilles par cabinet dans le menu « Cabinet », page « Mes cabinets aujourd'hui », dépôt de plusieurs fichiers. Étape 19 terminée (reste le guide de la secrétaire, avec l'étape 12). |

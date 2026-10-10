@@ -94,53 +94,68 @@ const champs = (f, types) => {
     '<div><label for="fiDate">Date du document</label><input id="fiDate" type="date" value="' + esc(f ? f.d : D().t) + '"></div>' +
     '<div data-fn="documents.types"><label for="fiType">Type de document</label><select id="fiType"><option value=""></option>' + liste.map((t) => "<option" + (f && f.type === t ? " selected" : "") + ">" + esc(t) + "</option>").join("") + "</select></div></div>";
 };
+// Plusieurs fichiers d'un coup (19.7, 10/10/2026) : même type et même date ; un seul fichier → titre libre, plusieurs → titre = nom du fichier
 window.fiAjouter = async (pid) => {
-  const x = trouver(pid); if (!x || !peutDeposer()) return; NV = { pid, fichier: null };
+  const x = trouver(pid); if (!x || !peutDeposer()) return; NV = { pid, fichiers: [] };
   const types = await typesDocuments();
-  A.fenetre("<h3>Ajouter un document — " + A.esc(x.r.nm) + "</h3>" +
-    '<label class="fi-depot" id="fiDepot" for="fiF"><input type="file" id="fiF" class="cache-vis"><b>Choisir un fichier</b><span class="mesures">ou le glisser ici · PDF, Word, photo (JPEG, PNG…) ou autre · 25 Mo au plus</span><span id="fiNom" class="fi-nom"></span></label>' +
-    champs(null, types) +
-    '<div class="fi-prog cache" id="fiProg"><div id="fiBarre"></div></div>' +
+  A.fenetre("<h3>Ajouter des documents — " + A.esc(x.r.nm) + "</h3>" +
+    '<label class="fi-depot" id="fiDepot" for="fiF"><input type="file" id="fiF" class="cache-vis" multiple><b>Choisir un ou plusieurs fichiers</b><span class="mesures">ou les glisser ici · PDF, Word, photo (JPEG, PNG…) ou autre · 25 Mo au plus par fichier</span><span id="fiNom" class="fi-nom"></span></label>' +
+    champs(null, types) + '<p class="mesures cache" id="fiPlus" style="margin:-4px 0 6px">Plusieurs fichiers : chacun est enregistré avec son nom comme titre, le type et la date choisis ci-dessus.</p>' +
+    '<div class="fi-prog cache" id="fiProg"><div id="fiBarre"></div></div><p class="mesures cache" id="fiEtape" style="margin:4px 0 0"></p>' +
     '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" id="fiAnn" onclick="fiAnnuler()">Annuler</button><button class="bt plein" id="fiOk" onclick="fiEnvoyer()">Enregistrer</button></div>');
-  const choisir = (fl) => {
-    if (!fl) return; if (fl.size > MAX) { A.erreur("Fichier trop lourd (" + taille(fl.size) + ") : 25 Mo au plus."); return; }
-    NV.fichier = fl; A.erreur(""); $("fiNom").textContent = fl.name + " · " + taille(fl.size);
-    if (!A.val("fiTitre")) $("fiTitre").value = fl.name.replace(/\.[^.]+$/, "").replace(/[_]+/g, " ");
+  const choisir = (liste) => {
+    const L = [...(liste || [])]; if (!L.length) return;
+    const lourds = L.filter((f) => f.size > MAX), ok = L.filter((f) => f.size <= MAX);
+    A.erreur(lourds.length ? "Trop lourd (25 Mo au plus) : " + lourds.map((f) => f.name + " (" + taille(f.size) + ")").join(", ") + "." : "");
+    NV.fichiers = ok; const n = ok.length;
+    $("fiNom").innerHTML = ok.map((f) => A.esc(f.name) + " · " + taille(f.size)).join("<br>");
+    const zt = $("fiTitre") && $("fiTitre").closest("div"); if (zt) zt.classList.toggle("cache", n > 1); $("fiPlus").classList.toggle("cache", n < 2);
+    if (n === 1 && !A.val("fiTitre")) $("fiTitre").value = titreDe(ok[0]);
+    $("fiOk").textContent = n > 1 ? "Enregistrer les " + n + " documents" : "Enregistrer";
   };
-  $("fiF").onchange = () => choisir($("fiF").files[0]);
+  $("fiF").onchange = () => choisir($("fiF").files);
   const z = $("fiDepot");
   z.ondragover = (e) => { e.preventDefault(); z.classList.add("on"); };
   z.ondragleave = () => z.classList.remove("on");
-  z.ondrop = (e) => { e.preventDefault(); z.classList.remove("on"); choisir(e.dataTransfer.files[0]); };
+  z.ondrop = (e) => { e.preventDefault(); z.classList.remove("on"); choisir(e.dataTransfer.files); };
 };
+const titreDe = (fl) => fl.name.replace(/\.[^.]+$/, "").replace(/[_]+/g, " ");
 let TACHE = null;
 window.fiAnnuler = () => { if (TACHE) try { TACHE.cancel(); } catch (e) {} TACHE = null; NV = null; A.fermerFenetre(); };
-window.fiEnvoyer = async () => {
-  if (!NV) return; const x = trouver(NV.pid), fl = NV.fichier; if (!x) return;
-  const titre = A.val("fiTitre"), d = A.val("fiDate"), type = A.val("fiType");
-  if (!fl) { A.erreur("Choisissez un fichier."); return; }
-  if (!titre) { A.erreur("Donnez un titre au document."); return; }
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) { A.erreur("Indiquez la date du document."); return; }
-  if (!type) { A.erreur("Choisissez le type de document."); return; }
-  A.occupe($("fiOk"), true); A.erreur("");
+// Un fichier : envoi dans le stockage, puis fiche du document (retirée du stockage si la fiche est refusée)
+async function envoyerUn(x, fl, titre, d, type) {
   const r = doc(col()), nom = fl.name.replace(/[\/\\#?\[\]*]/g, "_").slice(-120) || "document";
   const chemin = "espaces/" + A.ESPACE + "/patients/" + x.id + "/fichiers/" + r.id + "/" + nom, sr = ref(st(), chemin);
-  $("fiProg").classList.remove("cache");
+  await new Promise((ok, ko) => {
+    TACHE = uploadBytesResumable(sr, fl, { contentType: fl.type || "application/octet-stream", customMetadata: { creePar: D().u.uid, patientId: x.id } });
+    TACHE.on("state_changed", (s) => { const b = $("fiBarre"); if (b && s.totalBytes) b.style.width = Math.round((s.bytesTransferred / s.totalBytes) * 100) + "%"; }, ko, ok);
+  });
+  TACHE = null;
+  const f = { patientId: x.id, etablissementId: x.doc.etablissementId || "", titre, d, type, nom, taille: fl.size, mime: fl.type || "", chemin, o: Date.now(), creePar: D().u.uid, creeParNom: nomConnecte(), cree: serverTimestamp(), majPar: D().u.uid, majParNom: nomConnecte(), maj: serverTimestamp() };
+  try { await setDoc(r, f); } catch (e) { await deleteObject(sr).catch(() => {}); throw e; }
+  FI[x.id] = (FI[x.id] || []).concat([Object.assign({ id: r.id }, f)]).sort(tri);
+  A.journal(x, "Document ajouté (" + type + ") : " + titre);
+}
+window.fiEnvoyer = async () => {
+  if (!NV) return; const x = trouver(NV.pid), L = NV.fichiers || []; if (!x) return;
+  const plusieurs = L.length > 1, titre = A.val("fiTitre"), d = A.val("fiDate"), type = A.val("fiType");
+  if (!L.length) { A.erreur("Choisissez un fichier."); return; }
+  if (!plusieurs && !titre) { A.erreur("Donnez un titre au document."); return; }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) { A.erreur("Indiquez la date du document."); return; }
+  if (!type) { A.erreur("Choisissez le type de document."); return; }
+  A.occupe($("fiOk"), true); A.erreur(""); $("fiProg").classList.remove("cache");
+  let faits = 0;
   try {
-    await new Promise((ok, ko) => {
-      TACHE = uploadBytesResumable(sr, fl, { contentType: fl.type || "application/octet-stream", customMetadata: { creePar: D().u.uid, patientId: x.id } });
-      TACHE.on("state_changed", (s) => { const b = $("fiBarre"); if (b && s.totalBytes) b.style.width = Math.round((s.bytesTransferred / s.totalBytes) * 100) + "%"; }, ko, ok);
-    });
-    TACHE = null;
-    const f = { patientId: x.id, etablissementId: x.doc.etablissementId || "", titre, d, type, nom, taille: fl.size, mime: fl.type || "", chemin, o: Date.now(), creePar: D().u.uid, creeParNom: nomConnecte(), cree: serverTimestamp(), majPar: D().u.uid, majParNom: nomConnecte(), maj: serverTimestamp() };
-    try { await setDoc(r, f); } catch (e) { await deleteObject(sr).catch(() => {}); throw e; }
-    FI[x.id] = (FI[x.id] || []).concat([Object.assign({ id: r.id }, f)]).sort(tri);
-    A.journal(x, "Document ajouté (" + type + ") : " + titre);
-    NV = null; A.fermerFenetre(); A.toast("Document ajouté au dossier."); A.pageDossier(x.id);
+    for (const fl of L) {
+      if (plusieurs) { $("fiEtape").classList.remove("cache"); $("fiEtape").textContent = "Fichier " + (faits + 1) + " / " + L.length + " : " + fl.name; $("fiBarre").style.width = "0%"; }
+      await envoyerUn(x, fl, plusieurs ? titreDe(fl) : titre, d, type); faits++;
+    }
+    NV = null; A.fermerFenetre(); A.toast(plusieurs ? faits + " documents ajoutés au dossier." : "Document ajouté au dossier."); A.pageDossier(x.id);
   } catch (e) {
     TACHE = null; A.occupe($("fiOk"), false); $("fiProg").classList.add("cache");
+    if (faits) { NV.fichiers = L.slice(faits); A.pageDossier(x.id); }
     if (e && e.code === "storage/canceled") return;
-    A.erreur(e && /unauthorized|permission/.test(e.code || "") ? "Vous n'avez pas le droit de déposer un document dans ce dossier." : "Envoi impossible : " + ((e && e.message) || e));
+    A.erreur((faits ? faits + " fichier(s) enregistré(s). " : "") + (e && /unauthorized|permission/.test(e.code || "") ? "Vous n'avez pas le droit de déposer un document dans ce dossier." : "Envoi impossible : " + ((e && e.message) || e)));
   }
 };
 

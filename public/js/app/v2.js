@@ -89,9 +89,55 @@ async function menuCabinets() {
   const noms = await Promise.all(CABINETS.map((e) => getDoc(doc(db, "espaces", e)).then((s) => (s.exists() ? s.data().nom || e : null)).catch(() => null)));
   const L = CABINETS.map((e, i) => ({ e, nom: noms[i] })).filter((o) => o.nom || o.e === ESPACE);
   if (L.length < 2) return;
-  z.innerHTML = '<label for="cabSel">Cabinet</label><select id="cabSel">' + L.map((o) => '<option value="' + esc(o.e) + '"' + (o.e === ESPACE ? " selected" : "") + ">" + esc(o.nom || o.e) + "</option>").join("") + "</select>";
   z.classList.remove("cache"); D.cabinets = L;
-  $("cabSel").onchange = () => { try { localStorage.setItem(CLE_CAB(D.u), $("cabSel").value); } catch (e) { /* stockage indisponible */ } location.hash = "accueil"; location.reload(); };
+  const dessiner = (act) => {
+    const ailleurs = L.some((o) => o.e !== ESPACE && act[o.e] && (act[o.e].salle || act[o.e].taches));
+    z.innerHTML = '<label for="cabSel">Cabinet' + (ailleurs ? ' <span class="cab-pt" title="Du nouveau dans un autre cabinet"></span>' : "") + '</label><select id="cabSel">' + L.map((o) => { const a = o.e !== ESPACE && act[o.e], p = a ? [a.salle ? a.salle + " en salle" : "", a.taches ? a.taches + " tâche" + (a.taches > 1 ? "s" : "") : ""].filter(Boolean).join(", ") : "";
+      return '<option value="' + esc(o.e) + '"' + (o.e === ESPACE ? " selected" : "") + ">" + esc(o.nom || o.e) + (p ? " · " + p : "") + "</option>"; }).join("") + "</select>";
+    $("cabSel").onchange = () => { allerCabinet($("cabSel").value, "accueil"); };
+  };
+  dessiner({});
+  if (!document.querySelector('nav a[data-p="tous"]')) { const a = document.createElement("a"); a.href = "#tous"; a.dataset.p = "tous"; a.innerHTML = ic("agenda") + "Mes cabinets aujourd'hui"; const nav = document.querySelector("nav"), ac = nav.querySelector('a[data-p="accueil"]'); if (ac) ac.after(a); else nav.prepend(a); }
+  // Pastilles (19.7) : patients en salle et tâches à faire dans les autres cabinets, relues toutes les 2 minutes
+  const relire = async () => { const act = {}; for (const o of L) if (o.e !== ESPACE) act[o.e] = await activiteCabinet(o.e).catch(() => null); dessiner(act); };
+  relire(); setInterval(relire, 120000);
+}
+// Passer dans un autre cabinet (menu « Cabinet », vue « Mes cabinets aujourd'hui ») : Onco360 rechargé sur la page voulue
+function allerCabinet(e, page) { try { localStorage.setItem(CLE_CAB(D.u), e); } catch (er) { /* stockage indisponible */ } location.hash = page || "accueil"; location.reload(); }
+window.allerCabinet = (e, page) => (e === ESPACE ? (location.hash = page || "accueil") : allerCabinet(e, page));
+// Fiche de membre de la personne dans un autre cabinet, et filtre de ses lieux (règles : périmètre)
+async function membreDans(e) { const s = await getDoc(doc(db, "espaces", e, "membres", D.u.uid)); const m = s.exists() ? s.data() : null; return m && m.actif !== false ? m : null; }
+const filtreLieux = (m) => (m.tousEtablissements ? [] : [where("etablissementId", "in", (m.etablissements || []).length ? m.etablissements.slice(0, 30) : ["—"])]);
+async function activiteCabinet(e) {
+  const m = await membreDans(e); if (!m) return null;
+  const [ss, st] = await Promise.all([getDocs(query(collection(db, "espaces", e, "salle"), where("jour", "==", D.t), ...filtreLieux(m))).catch(() => null), getDocs(query(collection(db, "espaces", e, "taches"), where("qui", "array-contains", D.u.uid))).catch(() => null)]);
+  return { salle: ss ? ss.docs.filter((d) => d.data().etat === "salle").length : 0, taches: st ? st.docs.filter((d) => d.data().pour === D.u.uid && d.data().statut !== "fait").length : 0 };
+}
+// ───── Mes cabinets aujourd'hui (19.7) : rendez-vous, cures et séances du jour de chaque cabinet, avec l'état de la salle d'attente ─────
+const ETAT_SALLE = { "": ["À venir", "b-gr"], salle: ["En salle", "b-or"], consult: ["En consultation", "b-co"], vu: ["Vu", "b-ch"], absent: ["Absent", "b-al"] };
+async function pageTous() {
+  const L = D.cabinets || CABINETS.map((e) => ({ e, nom: e }));
+  $("page").innerHTML = '<section class="accueil"><div><h2>Mes cabinets aujourd\'hui</h2><p>' + cap(jourLong(D.t)) + " · rendez-vous, cures et séances de chacun de vos cabinets. « Ouvrir » passe dans le cabinet du patient.</p></div></section><div id=\"tousL\"><p class=\"sous\">Chargement…</p></div>";
+  let h = "";
+  for (const o of L) {
+    let lignes = [], err = "";
+    try {
+      const m = o.e === ESPACE ? D.membre : await membreDans(o.e); if (!m) continue;
+      const [sp, ss] = await Promise.all([getDocs(query(collection(db, "espaces", o.e, "patients"), ...filtreLieux(m))), getDocs(query(collection(db, "espaces", o.e, "salle"), where("jour", "==", D.t), ...filtreLieux(m))).catch(() => null)]);
+      const etat = {}; if (ss) ss.docs.forEach((d) => { const x = d.data(); etat[x.patientId + "|" + x.cle] = x.etat || ""; if (!((x.patientId + "|*") in etat) || x.etat) etat[x.patientId + "|*"] = x.etat || ""; });
+      sp.docs.forEach((d) => { let r = {}; try { r = JSON.parse(d.data().resume || "{}"); } catch (er) { return; }
+        (r.ag || []).forEach((ev) => { if (/\|dosi$/.test(String(ev.k)) || !(ev.d === D.t || (ev.f && ev.d <= D.t && ev.f >= D.t))) return;
+          const p = String(ev.k).split("|"), cle = p[1] === "r" ? "r-" + p.slice(2).join("|") : "", e2 = cle && (d.id + "|" + cle) in etat ? etat[d.id + "|" + cle] : etat[d.id + "|*"];
+          lignes.push({ pid: d.id, h: ev.h || "", t: ev.t || "", etat: e2 }); }); });
+      lignes.sort((a, b) => (a.h || "99").localeCompare(b.h || "99") || a.t.localeCompare(b.t));
+    } catch (er) { err = er.message || String(er); }
+    const n = (k) => lignes.filter((l) => l.etat === k).length;
+    h += '<section class="carte"><div class="entete"><h3 style="margin:0">' + esc(o.nom || o.e) + (o.e === ESPACE ? ' <span class="badge b-gr">ouvert</span>' : "") + "</h3>" + (o.e === ESPACE ? "" : '<button class="bt clair petit" onclick="allerCabinet(\'' + esc(o.e) + "','salle')\">Ouvrir sa salle d'attente</button>") + "</div>" +
+      '<p class="mesures">' + lignes.length + " au programme" + (n("salle") ? " · " + n("salle") + " en salle" : "") + (n("consult") ? " · " + n("consult") + " en consultation" : "") + (n("vu") ? " · " + n("vu") + " vu" + (n("vu") > 1 ? "s" : "") : "") + "</p>" +
+      (err ? '<p class="err">Lecture impossible : ' + esc(err) + "</p>" : lignes.length ? lignes.map((l) => { const st = l.etat != null ? ETAT_SALLE[l.etat] || ETAT_SALLE[""] : null;
+        return '<div class="ev"><span class="h' + (l.h ? "" : " j") + '">' + esc(l.h || "Journée") + '</span><div class="tx"><b>' + esc(l.t) + "</b></div>" + (st ? '<span class="badge ' + st[1] + '">' + st[0] + "</span>" : "") + '<button class="lien" onclick="allerCabinet(\'' + esc(o.e) + "','dossier/" + encodeURIComponent(l.pid) + "')\">Ouvrir</button></div>"; }).join("") : '<p class="sous">Rien de prévu aujourd\'hui.</p>') + "</section>";
+  }
+  if ($("tousL") && D.page === "tous") $("tousL").innerHTML = h || '<p class="sous">Aucun cabinet.</p>';
 }
 async function charger(u) {
   // Fiche de membre (refus = accès désactivé, ou cabinet d'un autre) ; repli sur le premier cabinet
@@ -342,6 +388,7 @@ function entete() {
   // Réglage du cabinet : menu dans l'ordre choisi, éléments retirés cachés (fonctions, bibliothèques)
   const nav = document.querySelector("nav");
   D.reg.menu.forEach((k) => { const a = nav.querySelector('a[data-p="' + k + '"]'); if (a) nav.appendChild(a); });
+  { const at = nav.querySelector('a[data-p="tous"]'), ac = nav.querySelector('a[data-p="accueil"]'); if (at && ac) ac.after(at); } // « Mes cabinets aujourd'hui » (19.7)
   let st = document.getElementById("styleReglage"); if (!st) { st = document.createElement("style"); st.id = "styleReglage"; document.head.appendChild(st); }
   st.textContent = styleRetraits(D.reg);
   document.body.classList.toggle("mode-bib", D.bib); // bibliothèque de référence : Protocoles et Paramètres
@@ -503,8 +550,10 @@ const PAGES_BIB = ["protocoles", "parametres", "configuration"];
 const estComptable = () => !!(D && D.membre && D.membre.role === "comptable");
 const PAGE_MODULE = { agenda: "agenda", salle: "salle", taches: "taches", protocoles: "chimio", bilan: "bilan" };
 const module = (k) => !D || !D.abo || D.abo.modules[k] !== false;
+const PAGES_TOUS = () => ({ tous: ["Mes cabinets aujourd'hui", () => pageTous()] });
 const PAGES = { accueil: ["Tableau de bord", pageAccueil], agenda: ["Agenda / Rendez-vous", () => pageAgenda()], configuration: ["Paramètres", () => { location.replace("#parametres"); }], profil: ["Profil & Paramètres", (a) => pageProfil(a)], protocoles: ["Protocoles", () => pageProtocoles()], parametres: ["Paramètres", (a) => pageConfiguration(a)], bilan: ["Bilan", () => pagePageBilan()], salle: ["Salle d'attente", () => pageSalle()], patients: ["Patients", pagePatients], taches: ["Tâches", (a) => pageTaches(a)], dossier: ["Dossier patient", pageDossier] };
 function route() {
+  if (CABINETS.length > 1 && !PAGES.tous) Object.assign(PAGES, PAGES_TOUS()); // secrétaire de plusieurs cabinets (19.7)
   const h = location.hash.replace("#", ""), i = h.indexOf("/"), p = i < 0 ? h : h.slice(0, i), arg = i < 0 ? null : decodeURIComponent(h.slice(i + 1)), nom = PAGES[p] && module(PAGE_MODULE[p] || "") && !(p === "protocoles" && D.reg && D.reg.fonctions["chimio.protocoles"] === false) && (!estComptable() || PAGES_COMPTABLE.indexOf(p) >= 0) && (!D.bib || PAGES_BIB.indexOf(p) >= 0) ? p : estComptable() ? "bilan" : D.bib ? "protocoles" : "accueil";
   if (!$("fenetre").classList.contains("cache")) window.fermerFenetre();
   D.page = nom + (arg ? "/" + encodeURIComponent(arg) : ""); $("titrePage").textContent = PAGES[nom][0]; $("page").classList.toggle("large", nom === "agenda");
