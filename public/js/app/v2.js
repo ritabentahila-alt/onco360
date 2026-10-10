@@ -324,7 +324,7 @@ function fmtSaisie(el) {
 document.addEventListener("input", (ev) => { if (ev.target && ev.target.classList && ev.target.classList.contains("mt")) fmtSaisie(ev.target); });
 const ferieLe = (d) => (D.ctx.feries || []).map((f) => (typeof f === "string" ? { d: f, nom: "Jour férié" } : f)).find((f) => f.d === d);
 const API = { D: () => D, get ESPACE() { return ESPACE; }, $, esc, ic, dfr, dfrA, cap, jourLong, val, occupe, erreur, toast, fenetre, fermerFenetre: () => window.fermerFenetre(), peut, voit, traitMod, enregistrer, pageDossier: (id) => reafficher(id), recalculer, journal };
-API.payeCabinet = (x) => payeCabinet(x); API.htmlMode = (c) => htmlMode(c); API.libMode = (k) => libMode(k); API.imprimerRecu = (w, x, o) => imprimerRecu(w, x, o); API.sansAcc = sansAcc; API.fn = (k) => fnOn(k); API.module = (k) => module(k); API.planifierReleve = (d) => planifierReleve(d || 120000); API.attribuerNumero = (x) => attribuerNumero(x); API.numDossier = (x) => numDossier(x); API.medecinFiche = () => medecinFiche(); API.entete = () => entete(); API.voitRdv = () => voitRdv(); API.voitRT = (x) => voitRT(x); API.champsMed = (C, off) => champsMed(C, off); API.CHAMPS_MED = () => CHAMPS_MED; API.fmtMil = (n) => fmtMil(n); API.ferieLe = (d) => ferieLe(d); API.salleVenuChimio = (x, lid, n, j, oui) => apresVenuChimio(x, lid, n, j, oui); API.serveur = appelServeur; API.prixPrevu = (p, c, j) => prixPrevu(p, c, j); API.badgeSalle = (p, c) => badgeSalle(p, c); API.tarifsVus = () => tarifsVus(); API.publierTarifsC = () => publierTarifsC(); API.encaissementsDe = (x, f) => encaissementsDe(x, f); API.peutPrix = () => peut("finances") || prixParServeur();
+API.encaisseIci = () => encaisseIci(); API.payeCabinet = (x) => payeCabinet(x); API.htmlMode = (c) => htmlMode(c); API.libMode = (k) => libMode(k); API.imprimerRecu = (w, x, o) => imprimerRecu(w, x, o); API.sansAcc = sansAcc; API.fn = (k) => fnOn(k); API.module = (k) => module(k); API.planifierReleve = (d) => planifierReleve(d || 120000); API.attribuerNumero = (x) => attribuerNumero(x); API.numDossier = (x) => numDossier(x); API.medecinFiche = () => medecinFiche(); API.entete = () => entete(); API.voitRdv = () => voitRdv(); API.voitRT = (x) => voitRT(x); API.champsMed = (C, off) => champsMed(C, off); API.CHAMPS_MED = () => CHAMPS_MED; API.fmtMil = (n) => fmtMil(n); API.ferieLe = (d) => ferieLe(d); API.salleVenuChimio = (x, lid, n, j, oui) => apresVenuChimio(x, lid, n, j, oui); API.serveur = appelServeur; API.prixPrevu = (p, c, j) => prixPrevu(p, c, j); API.badgeSalle = (p, c) => badgeSalle(p, c); API.tarifsVus = () => tarifsVus(); API.publierTarifsC = () => publierTarifsC(); API.encaissementsDe = (x, f) => encaissementsDe(x, f); API.peutPrix = () => peut("finances") || prixParServeur();
 installerChimio(API); installerAudit(API); aboP.installer(API); ficheP.installer(API); installerAgenda(API); installerConfig(API); installerProfil(API); installerProtocoles(API); installerParametres(API); installerBilan(API); installerConsultations(API); installerOrdonnances(API); installerDocuments(API); installerFichiers(API); installerTaches(API); installerReglages(API); installerSalle(API); installerRcp(API);
 
 function entete() {
@@ -770,9 +770,9 @@ function pageDossier(id) {
       const o = (EN.rdv || {})[v.id], hs = typeRdv(v.type) === "hospit";
       if (!o) return '<span class="badge b-gr" title="Le prix est fixé quand on valide « Venu »">Prix non validé</span>' + ((peut("finances") || prixParServeur()) && v.type !== T_RTC ? b("Fixer le prix", "prixRdv('" + x.id + "','" + v.id + "')") : "");
       const nj = hs ? joursH(v) : 0, m = o.tj != null ? o.tj * (nj || 1) : o.b != null ? o.b : o.m; // b : brut d'un prix repris de l'ancienne application
-      const np = o.mode === "np", q2 = "'" + x.id + "','" + v.id + "'";
-      return '<span class="badge ' + (np ? "b-or" : "b-ch") + '" title="' + (np ? "Non payé : à régler" : o.mode ? "Payé " + esc(((MODES.find((z) => z[0] === o.mode) || [])[2]) || "") : "Prix validé") + '">' + fmtMil(m) + " DH" + (o.tj != null && nj > 1 ? " (" + nj + " j × " + fmtMil(o.tj) + ")" : "") + (np ? " · non payé" : "") + "</span>" +
-        (np && (peut("finances") || prixParServeur()) ? b("Encaisser", "prixRdv(" + q2 + ")", "v") : (peut("finances") || (prixParServeur() && !o.v1)) && v.type !== T_RTC ? b("Modifier le prix", "prixRdv(" + q2 + ")") : "") +
+      const np = aEncaisser(o.mode), q2 = "'" + x.id + "','" + v.id + "'";
+      return '<span class="badge ' + (np ? "b-or" : "b-ch") + '" title="' + (np ? "À encaisser" : o.mode ? "Payé " + esc(((MODES.find((z) => z[0] === o.mode) || [])[2]) || "") : "Prix validé") + '">' + fmtMil(m) + " DH" + (o.tj != null && nj > 1 ? " (" + nj + " j × " + fmtMil(o.tj) + ")" : "") + (np ? (o.mode === "np" ? " · non payé" : " · à encaisser") : "") + "</span>" +
+        (np && encaisseIci() && (peut("finances") || prixParServeur()) ? b("Encaisser", "prixRdv(" + q2 + ")", "v") : (peut("finances") || (prixParServeur() && !o.v1)) && v.type !== T_RTC ? b("Modifier le prix", "prixRdv(" + q2 + ")") : "") +
         (o.mode && !np && o.m > 0 ? b("Reçu", "recuRdv(" + q2 + ")") : "");
     };
     const lignes = (P.rdvs || []).filter((v) => !aVenir(v)).map((v) => ({ d: v.d, h: v.h || "", v }));
@@ -788,7 +788,7 @@ function pageDossier(id) {
     h += '<section class="carte"><h3><span class="ic">' + ic("agenda") + '</span>Consultations et hospitalisations</h3>' + (EN === undefined ? '<p class="mesures">Chargement des prix…</p>' : "") +
       (lignes.length ? lignes.map(({ v, c, d }) => {
         if (c) return '<div class="rdv"><span class="badge b-gr">' + (d ? dfrA(d) : "—") + '</span><div class="tx"><b>Chimiothérapie</b><div class="mesures">' + esc((c.lib || "") + " · C" + c.n + " J" + c.j) + "</div></div>" +
-          (c.v ? '<span class="badge b-ch">Venu</span><span class="badge ' + (c.v.mode === "np" ? "b-or" : "b-ch") + '" title="Prix validé">' + (c.v.m != null ? fmtMil(c.v.m) + " DH" : "—") + (c.v.mode === "np" ? " · non payé" : "") + "</span>" + (c.v.mode && c.v.mode !== "np" && c.v.m > 0 ? b("Reçu", "recuCons('" + x.id + "','" + c.lid + "|" + c.n + "|" + c.j + "')") : "") + (peut("finances") ? '<div class="actr">' + b("Annuler le statut", "chAnnulerVenuChimio('" + x.id + "','" + c.lid + "'," + c.n + "," + c.j + ")") + "</div>" : prixParServeur() ? '<div class="actr">' + b("Modifier le prix", "chVenuChimio('" + x.id + "','" + c.lid + "'," + c.n + "," + c.j + ")") + "</div>" : "")
+          (c.v ? '<span class="badge b-ch">Venu</span><span class="badge ' + (aEncaisser(c.v.mode) ? "b-or" : "b-ch") + '" title="Prix validé">' + (c.v.m != null ? fmtMil(c.v.m) + " DH" : "—") + (aEncaisser(c.v.mode) ? " · à encaisser" : "") + "</span>" + (c.v.mode && !aEncaisser(c.v.mode) && c.v.m > 0 ? b("Reçu", "recuCons('" + x.id + "','" + c.lid + "|" + c.n + "|" + c.j + "')") : "") + (peut("finances") ? '<div class="actr">' + b("Annuler le statut", "chAnnulerVenuChimio('" + x.id + "','" + c.lid + "'," + c.n + "," + c.j + ")") + "</div>" : prixParServeur() ? '<div class="actr">' + b("Modifier le prix", "chVenuChimio('" + x.id + "','" + c.lid + "'," + c.n + "," + c.j + ")") + "</div>" : "")
             : '<span class="badge b-or">À valider</span>' + (peut("finances") || prixParServeur() ? '<div class="actr">' + b("Venu", "chVenuChimio('" + x.id + "','" + c.lid + "'," + c.n + "," + c.j + ")", "v") + "</div>" : "")) + "</div>";
         const s = (v.st || "prevu") === "prevu" ? ["À valider", "b-or"] : ST_RDV[v.st] || [v.st, "b-gr"];
         return '<div class="rdv"><span class="badge b-gr">' + dfrA(v.d) + (v.h ? " " + v.h : "") + '</span><div class="tx"><b>' + esc(libRdv(v)) + "</b>" + (v.mo ? '<div class="mesures">Motif : ' + esc(v.mo) + "</div>" : "") + (v.n ? '<div class="mesures">' + esc(v.n) + "</div>" : "") + (v.rep && v.rep.length ? '<div class="mesures">Reporté (initialement le ' + dfrA(v.rep[0].d) + ")</div>" : "") + '</div><span class="badge ' + s[1] + '">' + s[0] + "</span>" + prix(v) + actionsRdv(v) + "</div>";
@@ -999,7 +999,10 @@ function proposerConfirmation(x, d, h) {
 const payeCabinet = (x) => ((D.etabsTous || D.etabs).find((e) => e.code === (x.doc.etablissementId || "")) || {}).paiement === "cabinet";
 const MODES = [["esp", "Espèces", "en espèces"], ["carte", "Carte bancaire", "par carte bancaire"], ["chq", "Chèque", "par chèque"], ["np", "Non payé (à régler plus tard)", ""]];
 const libMode = (k) => (MODES.find((z) => z[0] === k) || ["", ""])[1];
-const htmlMode = (cur) => '<div><label for="pvMode">Paiement</label><select id="pvMode">' + MODES.map(([k, lib]) => '<option value="' + k + '"' + ((cur || "esp") === k ? " selected" : "") + ">" + lib + "</option>").join("") + "</select></div>";
+const htmlMode = (cur) => { const c = !cur || cur === "np" || cur === "ae" ? "esp" : cur; return '<div><label for="pvMode">Paiement</label><select id="pvMode">' + MODES.map(([k, lib]) => '<option value="' + k + '"' + (c === k ? " selected" : "") + ">" + lib + "</option>").join("") + "</select></div>"; };
+// Qui encaisse (19.5) : la secrétaire (mode de paiement, reçu) ; le médecin valide seulement « vu » et le prix → « à encaisser »
+const encaisseIci = () => D.membre.role !== "medecin";
+const aEncaisser = (mode) => mode === "np" || mode === "ae";
 // Reçu au patient (A5, papier à en-tête, sans numéro) ; w = fenêtre ouverte au clic (sinon bloquée par le navigateur)
 function imprimerRecu(w, x, o) {
   if (!w) return; const P = x.P, et = (D.etabsTous || D.etabs).find((e) => e.code === x.doc.etablissementId) || {}, med = medecinFiche().nom || "";
@@ -1053,21 +1056,23 @@ async function prixVenu(x, l, r) {
   let M0 = {};
   if (sec) { try { const s = await getDoc(doc(db, "espaces", ESPACE, "encaissements", x.id)); const E = s.exists() ? JSON.parse(s.data().data || "{}") : {}, o = (E.rdv || {})[r.id]; if (o) M0 = { rdv: { [r.id]: o.tj != null ? { tj: o.tj } : { brut: o.m, mode: o.mode } } }; } catch (e) {} }
   else { try { const s = await getDoc(doc(db, "espaces", ESPACE, "patientsFinances", x.id)); M0 = s.exists() ? JSON.parse(s.data().montantsJson || "{}") : {}; } catch (e) {} }
-  const o0 = (M0.rdv || {})[r.id] || {}, nj = hs ? joursH(r) : 1, cab = payeCabinet(x) && !hs && !o0.v1; // lieu « payé au cabinet » (19.5)
+  const o0 = (M0.rdv || {})[r.id] || {}, nj = hs ? joursH(r) : 1, lieuCab = payeCabinet(x) && !hs && !o0.v1, cab = lieuCab && encaisseIci(); // lieu « payé au cabinet » (19.5)
+  const enc = cab && deja && aEncaisser(o0.mode); // « Encaisser » (salle d'attente, dossier) : la secrétaire reçoit le paiement
   const pp = deja ? null : prixPrevu(x.id, "r-" + r.id, r.d); // prix convenu d'avance dans la salle d'attente (payé avant la consultation)
   const def = o0.v1 ? o0.prix : hs ? (o0.tj != null ? o0.tj : pp != null ? pp : v.brut) : o0.brut != null ? o0.brut : pp != null ? pp : v.brut;
   const fmt = (n) => (n == null || n === "" || isNaN(n) ? "" : Number(n).toLocaleString("fr-FR", { maximumFractionDigits: 2 }).replace(/[\u202f\u00a0]/g, " "));
   fenetre("<h3>" + esc(x.r.nm) + " – " + esc(libRdv(r)) + '</h3><p class="sous">' + cap(jourLong(r.d)) + (r.h ? " à " + r.h : "") + (hs && nj ? " · " + nj + " jour" + (nj > 1 ? "s" : "") + " d'hospitalisation" : "") + "</p>" +
-    '<div class="form"><div><label for="pvM">' + (hs && !o0.v1 ? "Tarif journalier (DH)" : "Montant de la consultation (DH)") + '</label><input id="pvM" class="mt" inputmode="decimal" value="' + esc(fmt(def)) + '"></div>' + (cab ? htmlMode(o0.mode === "np" ? "esp" : o0.mode) : "") + "</div>" +
+    '<div class="form"><div><label for="pvM">' + (hs && !o0.v1 ? "Tarif journalier (DH)" : "Montant de la consultation (DH)") + '</label><input id="pvM" class="mt" inputmode="decimal" value="' + esc(fmt(def)) + '"></div>' + (cab ? htmlMode(o0.mode) : "") + "</div>" +
     '<p class="mesures">Tarif ' + esc(etab || "de l'établissement") + " : " + fmt(v.brut) + " DH" + (hs ? " par jour" : "") + ". Modifiez le montant en cas de réduction ou de gratuité (0).</p>" +
-    '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button>' + (cab ? '<button class="bt clair" id="fOkR">' + ic("imprimer") + (deja ? "Enregistrer et imprimer le reçu" : "Valider et imprimer le reçu") + "</button>" : "") + '<button class="bt vert" id="fOk"><svg class="pi"><use href="#i-check"/></svg>' + (deja ? "Enregistrer le prix" : "Valider : venu") + "</button></div>");
+    '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button>' + (cab ? '<button class="bt clair" id="fOkR">' + ic("imprimer") + (enc ? "Encaisser et imprimer le reçu" : deja ? "Enregistrer et imprimer le reçu" : "Valider et imprimer le reçu") + "</button>" : "") + '<button class="bt vert" id="fOk"><svg class="pi"><use href="#i-check"/></svg>' + (enc ? "Encaisser" : deja ? "Enregistrer le prix" : "Valider : venu") + "</button></div>");
   const valider = async (recu) => {
-    const m = parseFloat(val("pvM").replace(/[\s\u202f\u00a0]/g, "").replace(",", ".")), mode = cab ? val("pvMode") : "";
+    // médecin dans un lieu « au cabinet » : le paiement déjà reçu est gardé, sinon « à encaisser » (la secrétaire encaissera)
+    const m = parseFloat(val("pvM").replace(/[\s\u202f\u00a0]/g, "").replace(",", ".")), mode = cab ? val("pvMode") : lieuCab ? (o0.mode && !aEncaisser(o0.mode) ? o0.mode : "ae") : "";
     if (isNaN(m) || m < 0) { erreur("Indiquez le montant (0 si gratuit)."); return; }
     const w = recu && mode !== "np" && m > 0 ? window.open("", "_blank") : null; // fenêtre d'impression ouverte au clic
     occupe($("fOk"), true);
     try {
-      const lib = fmt(m) + " DH" + (hs && !o0.v1 ? "/jour" : "") + (mode ? ", " + libMode(mode) : "");
+      const lib = fmt(m) + " DH" + (hs && !o0.v1 ? "/jour" : "") + (mode === "ae" ? ", à encaisser" : mode ? ", " + libMode(mode) : "");
       if (!deja) { r.st = "fait"; r.dv = r.d; r.sp = D.u.uid; await enregistrer(x, { rdvsJson: JSON.stringify(l) }, "Rendez-vous : venu (" + lib + ")"); }
       if (sec) {
         try { await appelServeur("prixConsultation", Object.assign({ espace: ESPACE, patientId: x.id, rdvId: r.id, montant: m }, mode ? { mode } : {})); }

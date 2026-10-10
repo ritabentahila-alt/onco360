@@ -31,7 +31,7 @@ export function evtsFin(P, M, ctx) {
       const m1 = hon[1] && hon[1].m != null ? hon[1].m : (vS(c.reelle) || {}).brut;
       ev.push([c.reelle, "seance", hopP, "Séance chimio J1 – " + lib, m1, 100, r2(net(num(m1) || 0, vS(c.reelle))), "Validée"]);
       if (c.sea) Object.keys(c.sea).forEach((j) => { const s = c.sea[j]; if (s.st === "recue") { const m = hon[j] && hon[j].m != null ? hon[j].m : (vS(s.d) || {}).brut; ev.push([s.d, "seance", hopP, "Séance chimio J" + j + " – " + lib, m, 100, r2(net(num(m) || 0, vS(s.d))), "Validée"]); } });
-      if (x.cons && x.cons.enc) { const vC = tf(hopP, "cchimio", c.reelle), mc = x.cons.m != null ? x.cons.m : (vC || {}).brut, mj = Object.values(x.consModeJ || {}); ev.push([c.reelle, "cchimio", hopP, "Consultation chimio – " + lib, mc, 100, r2(net(num(mc) || 0, vC)), "Encaissée"].concat(mj.length ? [mj.indexOf("np") >= 0 ? "np" : mj[0]] : [])); }
+      if (x.cons && x.cons.enc) { const vC = tf(hopP, "cchimio", c.reelle), mc = x.cons.m != null ? x.cons.m : (vC || {}).brut, mj = Object.values(x.consModeJ || {}); ev.push([c.reelle, "cchimio", hopP, "Consultation chimio – " + lib, mc, 100, r2(net(num(mc) || 0, vC)), "Encaissée"].concat(mj.length ? [mj.indexOf("np") >= 0 ? "np" : mj.indexOf("ae") >= 0 ? "ae" : mj[0]] : [])); }
     });
   });
   (P.rdvs || []).forEach((r) => {

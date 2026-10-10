@@ -250,8 +250,9 @@ function majCons(cc) {
 }
 // dossier = document patient ; M = montants (objet) ; E = prix à encaisser (objet) ; q = { rdvId } ou { lid, n, j, d, lib }, montant
 // (null pour une consultation de chimio : retirer la validation). Modifie M et E ; renvoie un libellé pour l'historique.
-// Mode de paiement (19.5, 10/10/2026 ; lieux « payé au cabinet ») : esp | carte | chq | np (non payé, à régler plus tard)
-const MODES_PAIEMENT = ["esp", "carte", "chq", "np"];
+// Mode de paiement (19.5, 10/10/2026 ; lieux « payé au cabinet ») : esp | carte | chq | np (non payé, à régler plus tard) |
+// ae (à encaisser : « Venu » validé par le médecin, la secrétaire encaisse ensuite)
+const MODES_PAIEMENT = ["esp", "carte", "chq", "np", "ae"];
 function appliquerPrix(dossier, M, E, q) {
   const m = q.montant == null ? null : num(q.montant), mode = MODES_PAIEMENT.indexOf(q.mode) >= 0 ? q.mode : null;
   if (q.montant != null && (m == null || m < 0 || m > 1000000)) throw new Error("Montant invalide.");

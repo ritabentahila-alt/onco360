@@ -187,6 +187,8 @@ const infirmiere = { actif: true, etablissements: ["HGC", "CIOC"], droits: { tra
   ok(!("mode" in M.rdv.r1), "mode inconnu refusé");
   L.appliquerPrix(dos, M, E, { rdvId: "r2", montant: 400, mode: "esp" });
   ok(!("mode" in M.rdv.r2), "hospitalisation : pas de mode");
+  L.appliquerPrix(dos, M, E, { rdvId: "r1", montant: 300, mode: "ae" });
+  ok(M.rdv.r1.mode === "ae" && E.rdv.r1.mode === "ae", "à encaisser (validé par le médecin) : noté");
   L.appliquerPrix(dos, M, E, { lid: "L1", n: 1, j: 1, montant: 250, mode: "carte" });
   ok(M.cures.L1[1].consModeJ[1] === "carte" && E.cons["L1|1|1"].mode === "carte", "consultation de chimio : mode par jour");
   L.appliquerPrix(dos, M, E, { lid: "L1", n: 1, j: 1, montant: null });

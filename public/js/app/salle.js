@@ -164,8 +164,8 @@ function prixDe(l) {
   const etab = l.x.doc.etablissementId || "", T = A.tarifsVus();
   if (l.etat === "vu") {
     const E = encDe(l.x); if (E === undefined) return { m: null, charge: true };
-    if (l.rdv) { const o = E && E.rdv && E.rdv[l.rdv.id]; if (o) return { m: o.tj != null ? o.tj * (joursH(l.rdv) || 1) : o.b != null ? o.b : o.m, ok: true, v1: !!o.v1, np: o.mode === "np" }; if (l.rdv.type === T_RTC) return { m: 0, ok: true }; }
-    else { const v = E && E.cons && E.cons[l.chimio.lid + "|" + l.chimio.n + "|" + l.chimio.j]; if (v) return { m: v.m, ok: true, np: v.mode === "np" }; }
+    if (l.rdv) { const o = E && E.rdv && E.rdv[l.rdv.id]; if (o) return { m: o.tj != null ? o.tj * (joursH(l.rdv) || 1) : o.b != null ? o.b : o.m, ok: true, v1: !!o.v1, np: o.mode === "np" || o.mode === "ae", mode: o.mode }; if (l.rdv.type === T_RTC) return { m: 0, ok: true }; }
+    else { const v = E && E.cons && E.cons[l.chimio.lid + "|" + l.chimio.n + "|" + l.chimio.j]; if (v) return { m: v.m, ok: true, np: v.mode === "np" || v.mode === "ae", mode: v.mode }; }
     return { m: null, nonValide: true };
   }
   if (l.doc.prix != null) return { m: l.doc.prix, convenu: true }; // prix convenu d'avance (patient qui paie avant la consultation)
@@ -243,6 +243,8 @@ window.saAbsent = (pid, cle) => {
   if (i < 0 || !(A.traitMod() || A.peut("planningChimio"))) { if (confirm(l.x.r.nm + " : marquer absent(e) à la séance de chimiothérapie ?\n\n(Le report de la séance se fait par le médecin.)")) marquer(null); return; }
   if (l.chimio.j === 1) window.chReporter(pid, i, l.chimio.n - 1, marquer); else window.chReporterJ(pid, i, l.chimio.n - 1, l.chimio.j, marquer);
 };
+window.saEncaisser = (pid, cle) => { const l = trouver(pid, cle); if (!l) return; if (l.rdv) window.prixRdv(pid, l.rdv.id); else window.chVenuChimio(pid, l.chimio.lid, l.chimio.n, l.chimio.j); };
+window.saRecu = (pid, cle) => { const l = trouver(pid, cle); if (!l) return; if (l.rdv) window.recuRdv(pid, l.rdv.id); else window.recuCons(pid, l.chimio.lid + "|" + l.chimio.n + "|" + l.chimio.j); };
 // Annuler : retour à l'étape précédente (Vu → En consultation, Absent → À venir, En salle → À venir, En consultation → En salle)
 window.saAnnuler = (pid, cle) => {
   const l = trouver(pid, cle); if (!l) return;
@@ -399,11 +401,11 @@ function dessiner() {
   $("saL").innerHTML = l.length ? '<div class="sa-l ent">' + cv.map((c) => '<span class="c-' + c[0] + '" title="' + c[1] + '">' + (c[0] === "civ" ? "Civ." : c[0] === "ord" ? "N°" : c[1]) + "</span>").join("") + "</div>" + l.map((z) => ligneHtml(z, cv)).join("") : '<p class="sous" style="margin:6px 0">' + vide + "</p>";
   // Total du jour (établissement choisi), sans les absents : encaissé (vus, prix validé) et prévu (le reste, au tarif)
   if (voitPrix()) {
-    // non payé (19.5, lieux « payé au cabinet ») : vu mais pas encaissé, compté à part
+    // à encaisser (19.5, lieux « payé au cabinet ») : vu (validé par le médecin) mais pas encore encaissé, ou non payé : compté à part
     // lieux payés par l'établissement (virement, ex. HCK) : comptés dans les vus, pour que le médecin les voie, et montrés à part
     let enc = 0, prev = 0, nv = 0, np = 0, etb = 0;
     L.forEach((z) => { const p = prixDe(z); if (!p) return; if (z.etat === "vu") { if (p.ok && p.np) np += p.m || 0; else if (p.ok) { enc += p.m || 0; if (!A.payeCabinet(z.x)) etb += p.m || 0; } else nv++; } else prev += p.m || 0; });
-    $("saTot").innerHTML = '<div class="sa-tot"><span>Encaissé (vus) : <b>' + A.fmtMil(enc) + " DH</b>" + (etb && etb < enc ? ' <span class="mesures">dont ' + A.fmtMil(etb) + " DH payés par l'établissement</span>" : etb ? ' <span class="mesures">(payé par l\'établissement)</span>' : "") + "</span>" + (np ? '<span style="color:var(--orange)">Non payé : <b>' + A.fmtMil(np) + " DH</b></span>" : "") + "<span>Prévu (restant) : <b>" + A.fmtMil(prev) + " DH</b></span>" + (nv ? '<span class="mesures">' + nv + " consultation" + (nv > 1 ? "s" : "") + " vue" + (nv > 1 ? "s" : "") + " sans prix</span>" : "") + "</div>";
+    $("saTot").innerHTML = '<div class="sa-tot"><span>Encaissé (vus) : <b>' + A.fmtMil(enc) + " DH</b>" + (etb && etb < enc ? ' <span class="mesures">dont ' + A.fmtMil(etb) + " DH payés par l'établissement</span>" : etb ? ' <span class="mesures">(payé par l\'établissement)</span>' : "") + "</span>" + (np ? '<span style="color:var(--orange)">À encaisser : <b>' + A.fmtMil(np) + " DH</b></span>" : "") + "<span>Prévu (restant) : <b>" + A.fmtMil(prev) + " DH</b></span>" + (nv ? '<span class="mesures">' + nv + " consultation" + (nv > 1 ? "s" : "") + " vue" + (nv > 1 ? "s" : "") + " sans prix</span>" : "") + "</div>";
   } else $("saTot").innerHTML = "";
   window.scrollTo(0, sc);
 }
@@ -433,6 +435,8 @@ function ligneHtml(l, cv) {
   const voitMo = !!l.chimio || A.voitRdv(), mo = voitMo ? A.esc(l.motif) : "", etab = !ETAB && $("saEtab") && l.x.doc.etablissementId ? ' <span class="badge b-gr">' + A.esc(l.x.doc.etablissementId) + "</span>" : "";
   const p = prixDe(l), px = !p ? "" : p.charge ? '<span class="mesures">…</span>' : p.nonValide ? (l.derive ? "—" : '<span class="mesures">Prix non fixé</span>') : p.m == null ? "—" : '<span class="' + (p.ok ? "px-ok" : p.convenu ? "px-conv" : "px-prev") + '" title="' + (p.ok ? "Prix validé" : p.convenu ? "Prix payé d'avance (proposé à la validation)" : "Prix prévu (tarif)") + '">' + A.fmtMil(p.m) + " DH</span>";
   const crayonPx = l.etat !== "absent" && A.peutPrix() && !(l.rdv && l.rdv.type === T_RTC) && !(p && p.v1 && !A.peut("finances")) && !(l.derive && !(p && p.ok)) ? '<button class="crayon" onclick="saPrix(' + q + ')" title="' + (l.etat === "vu" ? "Modifier le prix" : "Prix payé d'avance") + '" aria-label="Modifier le prix"><svg class="pi"><use href="#i-crayon"/></svg></button>' : "";
+  // Encaisser (19.5) : la secrétaire reçoit le paiement d'un patient vu (mode de paiement, reçu) ; ensuite « Reçu » pour le réimprimer
+  if (l.etat === "vu" && p && p.ok && A.payeCabinet(l.x) && A.encaisseIci() && A.peutPrix()) act = (p.np ? b("Encaisser", "saEncaisser", "v", "Paiement reçu : mode de paiement et reçu") : p.mode && p.m > 0 ? b("Reçu", "saRecu", "", "Réimprimer le reçu") : "") + act;
   const P = l.x.P, crayon = (fn, t) => '<button class="crayon" onclick="' + fn + "(" + q + ')" title="' + t + '" aria-label="' + t + '"><svg class="pi"><use href="#i-crayon"/></svg></button>';
   const cel = {
     ord: '<span class="ord" title="N° d\'ordre de passage">' + fmtOrdre(l.doc.ordre) + "</span>",
