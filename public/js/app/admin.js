@@ -81,7 +81,7 @@ function dessiner() {
 function htmlCabinets() {
   if (CABINETS === null) return '<section class="carte"><p class="sous">Chargement des cabinets…</p></section>';
   const L = CABINETS, act = L.filter((c) => c.actif).length;
-  const tuile = (n, lib, cls, f, aide) => '<div class="tuile' + (cls ? " " + cls : "") + (f ? " clic" : "") + (f && PAIE === f ? " on" : "") + '"' + (f ? ' data-paie="' + f + '" role="button" tabindex="0" aria-pressed="' + (PAIE === f) + '"' : "") + (aide ? ' title="' + esc(aide) + '"' : "") + "><b>" + n + "</b><span>" + esc(lib) + "</span></div>";
+  const tuile = (n, lib, cls, f, aide) => '<div class="tuile' + (cls ? " " + cls : "") + (f ? " clic" : "") + (f && f !== "tous" && PAIE === f ? " on" : "") + '"' + (f ? ' data-paie="' + f + '" role="button" tabindex="0" aria-pressed="' + (PAIE === f) + '"' : "") + (aide ? ' title="' + esc(aide) + '"' : "") + "><b>" + n + "</b><span>" + esc(lib) + "</span></div>";
   const E = (c) => etatDe(c).etat, nbE = (l) => L.filter((c) => l.indexOf(E(c)) >= 0).length;
   const revenu = L.filter((c) => c.actif && ["ajour", "renouveler", "retard"].indexOf(E(c)) >= 0).reduce((n, c) => n + prixDe(c).mensuel, 0);
   const spes = [...new Set(L.map(speDuCab).filter(Boolean))];
@@ -93,9 +93,11 @@ function htmlCabinets() {
     m.every((w) => sansAcc([c.nom, c.ville, c.id, c.titulaire.nom, c.titulaire.email, nomFormule(c.abonnement)].join(" ")).indexOf(w) >= 0))
     .sort((a, b) => { const x = VAL[TRI.k](a), y = VAL[TRI.k](b); return (x < y ? -1 : x > y ? 1 : 0) * TRI.sens || String(a.nom).localeCompare(String(b.nom)); });
   const th = (k, lib, cls) => '<th' + (cls ? ' class="' + cls + '"' : "") + ' aria-sort="' + (TRI.k === k ? (TRI.sens > 0 ? "ascending" : "descending") : "none") + '"><button class="tri" data-tri="' + k + '">' + esc(lib) + (TRI.k === k ? (TRI.sens > 0 ? " ▲" : " ▼") : "") + "</button></th>";
-  return '<div class="tuiles t5">' + tuile(L.length, "Cabinets" + (L.length - act ? " · " + (L.length - act) + " suspendu" + (L.length - act > 1 ? "s" : "") : "")) +
-      tuile(dh(revenu), "Revenu mensuel", "vert", "", "Abonnements payants des cabinets actifs (annuel compté au 1/12)") + tuile(nbE(["essai"]), "En essai", "", "essai") +
+  const filtre = !!(PAIE || STATUT || SPE || Q), aRegler = L.filter((c) => E(c) === "nonSuivi" && !c.modele && !c.demo);
+  return '<div class="tuiles t5">' + tuile(L.length, "Cabinets" + (L.length - act ? " · " + (L.length - act) + " suspendu" + (L.length - act > 1 ? "s" : "") : "") + (filtre ? " · tout afficher" : ""), filtre ? "tous" : "", "tous", "Afficher tous les cabinets (efface les filtres)") +
+      tuile(dh(revenu), "Revenu mensuel (HT)", "vert", "", "Abonnements payants des cabinets actifs (annuel compté au 1/12), hors taxes") + tuile(nbE(["essai"]), "En essai", "", "essai") +
       tuile(nbE(["renouveler"]), "À renouveler (15 j)", nbE(["renouveler"]) ? "orange" : "", "renouveler") + tuile(nbE(["retard", "suspendre"]), "En retard", nbE(["retard", "suspendre"]) ? "rouge" : "", "retard", "Suspendu automatiquement après " + DELAI_SUSPENSION + " jours de retard") + "</div>" + MSG +
+    (aRegler.length ? '<div class="avert">' + aRegler.length + " cabinet" + (aRegler.length > 1 ? "s" : "") + " sans abonnement réglé (" + aRegler.map((c) => esc(c.nom)).join(", ") + ") : jamais suspendu" + (aRegler.length > 1 ? "s" : "") + ", hors revenu. " + '<button class="lien" data-paie="nonSuivi">Les afficher</button></div>' : "") +
     '<section class="carte"><div class="barre"><div class="recherche"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M20 20l-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><input id="cQ" type="search" placeholder="Rechercher un cabinet, une ville, un médecin, un e-mail…" value="' + esc(Q) + '"></div>' +
     '<select id="cSt" aria-label="Statut"><option value="">Tous les statuts</option><option value="actif"' + (STATUT === "actif" ? " selected" : "") + '>Actifs</option><option value="susp"' + (STATUT === "susp" ? " selected" : "") + ">Suspendus</option></select>" +
     '<select id="cPa" aria-label="Abonnement"><option value="">Tous les abonnements</option>' + [["essai", "En essai"], ["ajour", "À jour"], ["renouveler", "À renouveler"], ["retard", "En retard"], ["gratuit", "Gratuits"], ["nonSuivi", "Non suivis"]].map(([k, l]) => '<option value="' + k + '"' + (PAIE === k ? " selected" : "") + ">" + l + "</option>").join("") + "</select>" +
@@ -103,7 +105,7 @@ function htmlCabinets() {
     '<a class="bt" href="#nouveau">+ Nouveau cabinet</a></div>' +
     '<p class="sous" style="margin:10px 0 0">' + V.length + " cabinet" + (V.length > 1 ? "s" : "") + (V.length !== L.length ? " sur " + L.length : "") + " · aucune donnée médicale, seulement des nombres · cliquez un titre de colonne pour trier.</p></section>" +
     (L.some((c) => c.demo) ? "" : '<section class="carte demo-c"><h2>Cabinet de démonstration</h2><p class="sous">Un cabinet rempli de 8 patients fictifs (PATIENT TEST 1 à 8 : chimiothérapies, radiothérapies, rendez-vous, consultations), pour les démonstrations, les guides et les captures d\'écran. Aucune donnée réelle.</p><button id="dCree">Créer le cabinet de démonstration</button></section>') +
-    (V.length ? '<section class="carte liste-c"><div class="tableau"><table class="lc"><thead><tr>' + th("nom", "Cabinet") + th("medecin", "Médecin") + th("pack", "Pack") + th("abo", "Abonnement") + th("statut", "Statut") + th("equipe", "Équipe", "n") + th("dossiers", "Dossiers", "n") + th("activite", "Activité") + th("cree", "Créé le") + "</tr></thead><tbody>" + V.map(ligneCabinet).join("") + "</tbody></table></div></section>" : '<section class="carte"><p class="sous">Aucun cabinet ne correspond.</p></section>');
+    (V.length ? '<section class="carte liste-c"><div class="tableau"><table class="lc"><thead><tr>' + th("nom", "Cabinet") + th("medecin", "Médecin") + th("pack", "Pack") + th("abo", "Abonnement") + th("statut", "Statut") + th("equipe", "Équipe", "n") + th("dossiers", "Dossiers", "n") + th("activite", "Activité") + th("cree", "Créé le") + "</tr></thead><tbody>" + V.map(ligneCabinet).join("") + "</tbody></table></div></section>" : '<section class="carte"><p class="sous">Aucun cabinet ne correspond' + (filtre ? '. <button class="lien" data-paie="tous">Effacer les filtres</button>' : ".") + "</p></section>");
 }
 // Liste des cabinets (10/10/2026) : une ligne par cabinet ; un clic ouvre sa fiche (fenêtre : informations, équipe, actions)
 function ligneCabinet(c) {
@@ -111,7 +113,7 @@ function ligneCabinet(c) {
   return '<tr class="lc-l' + (c.actif ? "" : " susp") + '" data-fiche="' + esc(c.id) + '" tabindex="0"><td data-l="Cabinet"><b>' + esc(c.nom) + "</b>" + (c.demo ? ' <span class="bdg demo">Démonstration</span>' : "") + '<div class="m">' + esc(c.ville || "") + "</div></td>" +
     '<td data-l="Médecin">' + esc(c.titulaire.nom || "—") + '<div class="m">' + esc(c.titulaire.email || "") + "</div></td>" +
     '<td data-l="Pack">' + esc(nomFormule(c.abonnement)) + '<div class="m">' + esc(speDuCab(c) || "") + '</div></td><td data-l="Abonnement">' + badgeAbo(c) + '</td><td data-l="Statut">' + statut + (c.suspenduAuto && !c.actif ? '<div class="m">retard de paiement</div>' : "") + "</td>" +
-    '<td data-l="Équipe" class="n">' + (c.equipe ? c.equipe.filter((m) => m.actif).length : c.membres == null ? "?" : c.membres) + '</td><td data-l="Dossiers" class="n">' + (c.patients == null ? "?" : c.patients) + '</td><td data-l="Activité"' + (c.activite && c.activite.derniere ? ' title="' + esc(new Date(c.activite.derniere).toLocaleString("fr-FR") + (c.activite.par ? " · " + c.activite.par : "")) + '"' : "") + ">" + esc(c.activite ? ilYa(c.activite.derniere) : "—") + '</td><td data-l="Créé le">' + esc(dfr(c.cree) || "—") + "</td></tr>";
+    '<td data-l="Équipe" class="n">' + (c.equipe ? c.equipe.filter((m) => m.actif).length : c.membres == null ? "?" : c.membres) + '</td><td data-l="Dossiers" class="n">' + (c.patients == null ? "?" : c.patients) + '</td><td data-l="Activité"' + (c.activite && c.activite.derniere ? ' title="' + esc(new Date(c.activite.derniere).toLocaleString("fr-FR") + (c.activite.par ? " · " + c.activite.par : "")) + '"' : "") + ">" + esc(c.activite ? (c.activite.derniere ? ilYa(c.activite.derniere) : "aucune") : "—") + '</td><td data-l="Créé le">' + esc(dfr(c.cree) || "—") + "</td></tr>";
 }
 function ouvrirFiche(c) {
   if (!c) return;
@@ -194,7 +196,7 @@ function ouvrirPaiement(c) {
 }
 function brancherCabinets() {
   document.querySelectorAll("[data-tri]").forEach((b) => { b.onclick = () => { const k = b.dataset.tri; TRI = { k, sens: TRI.k === k ? -TRI.sens : k === "cree" || k === "activite" || k === "dossiers" || k === "equipe" ? -1 : 1 }; dessiner(); }; });
-  document.querySelectorAll("[data-paie]").forEach((b) => { b.onclick = () => { PAIE = PAIE === b.dataset.paie ? "" : b.dataset.paie; dessiner(); }; b.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); b.onclick(); } }; });
+  document.querySelectorAll("[data-paie]").forEach((b) => { b.onclick = () => { if (b.dataset.paie === "tous") { PAIE = ""; STATUT = ""; SPE = ""; Q = ""; } else PAIE = PAIE === b.dataset.paie ? "" : b.dataset.paie; dessiner(); }; b.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); b.onclick(); } }; });
   if ($("cPa")) $("cPa").onchange = (e) => { PAIE = e.target.value; dessiner(); };
   document.querySelectorAll("[data-fiche]").forEach((tr) => { const o = () => ouvrirFiche(cab(tr.dataset.fiche)); tr.onclick = o; tr.onkeydown = (e) => { if (e.key === "Enter") o(); }; });
   if ($("dCree")) $("dCree").onclick = creerDemo;

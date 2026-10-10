@@ -58,3 +58,57 @@ Aucune erreur JavaScript. L'ensemble fonctionne, mais plusieurs textes sont pér
 | **16.5 Nouvelle spécialité** | C5, B7, B9 | 1 session | copie d'une spécialité ou vide |
 
 Ordre conseillé : 17.1, puis 17.2, qui rendent l'outil plus sûr à utiliser tout de suite. Puis 17.4, nécessaire avant de vendre, et enfin 16.5.
+
+---
+
+# Audit n° 2 (10/10/2026, après les étapes 17.1 à 17.5)
+
+Tous les écrans ont été revus avec des cabinets proches de la réalité : le vôtre, celui du Dr Gorbin sans abonnement réglé, et la démonstration.
+
+## Corrigé tout de suite
+
+- **Tuile « Cabinets »** : un clic efface tous les filtres. Avant, après un clic sur « En essai » (0), rien ne permettait de revenir à la liste complète, sauf le menu déroulant.
+- **Liste vide** : bouton « Effacer les filtres ».
+- **Bandeau** pour les cabinets sans abonnement réglé (« Non suivi » : jamais suspendus, hors revenu), avec « Les afficher ».
+- **Activité** : « aucune » au lieu de « — » pour un cabinet où rien n'a encore été fait.
+- **Revenu mensuel** : indiqué « HT ».
+
+## Reste à améliorer
+
+| # | Écran | Constat | Proposition |
+|---|---|---|---|
+| D1 | Cabinets | La carte « Créer le cabinet de démonstration » s'intercale entre les filtres et la liste. | La déplacer dans l'onglet Nouveau cabinet. |
+| D2 | Cabinets | Les chiffres (activité, abonnements) sont lus une seule fois, à l'ouverture de la page. | Bouton « Actualiser » et heure de la dernière lecture. |
+| D3 | Abonnements | Le prix est hors taxes, mais rien ne précise si un paiement reçu est HT ou TTC. | Montant TTC au paiement, HT et TVA calculés (voir comptabilité). |
+| D4 | Abonnements | Un paiement ne produit ni reçu ni facture. | Facture numérotée (voir E3). |
+| D5 | Fiche d'un cabinet | Il n'y a pas de coordonnées de facturation (raison sociale, ICE, adresse de facturation). | Bloc « Facturation » dans « Modifier ». |
+| D6 | Sécurité | Le compte d'administration ne demande que son mot de passe. | Validation en deux étapes (code par SMS ou application) et alerte à chaque connexion. |
+| D7 | Modules | L'onglet est en lecture seule ; « Protocoles » fait partie de la Chimiothérapie. | Séparer Protocoles si vous le souhaitez ; rattacher un module à une spécialité depuis cet onglet (avec la 16.5). |
+| D8 | Journal | Il est vide avant le 10/10/2026. | Rien à faire (normal). |
+
+## Nouvel onglet « Comptabilité » (proposé)
+
+| # | Contenu |
+|---|---|
+| E1 | **Tableau de bord** : encaissé du mois et de l'année, à encaisser (échéances des 30, 60 et 90 prochains jours), impayés, répartition par pack et par moyen de paiement, évolution mois par mois. |
+| E2 | **Encaissements** : tous les paiements de tous les cabinets, filtres (période, cabinet, moyen), **export Excel pour le comptable**. |
+| E3 | **Factures** : numérotation continue (ex. F-2026-0001), facture A4 avec vos mentions légales et celles du cabinet (ICE…), HT, TVA, TTC, « payée le … », avoir si un paiement est retiré, envoi par WhatsApp ou e-mail. |
+| E4 | **Relances** : cabinets en retard ou à renouveler, message WhatsApp prêt à envoyer, date de la dernière relance. |
+| E5 | **Paramètres de l'éditrice** : raison sociale, forme juridique, ICE, IF, RC, patente, adresse, RIB, logo, TVA (assujettie ou non, taux), mentions de bas de facture. |
+
+**Décisions à prendre avant E3 :**
+- le statut juridique de l'éditrice d'Onco360 (société, auto-entrepreneur…) ;
+- assujettie à la TVA ou non ;
+- les prix affichés en HT ou en TTC ;
+- le préfixe des factures.
+
+## Plan proposé
+
+| Étape | Contenu | Décision à prendre avant |
+|---|---|---|
+| **18.1 Finitions** | D1, D2, D5 | aucune |
+| **18.2 Comptabilité : tableau de bord et encaissements** | E1, E2 (+ export Excel) | aucune |
+| **18.3 Factures** | E3, E5, D3, D4 | statut juridique, TVA, HT/TTC, préfixe |
+| **18.4 Relances** | E4 | aucune |
+| **18.5 Sécurité du compte d'administration** | D6 | numéro de téléphone pour le code |
+| **16.5 Nouvelle spécialité** | avec D7 | copie ou vide |

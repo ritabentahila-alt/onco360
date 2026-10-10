@@ -28,7 +28,11 @@ async def main():
         ok('il y a 3 j' in await row('cab-a') and "aujourd'hui" in await row('cabinet-bentahila'), 'colonne Activité (dernière action)')
         await pa.click('[data-paie="retard"]'); await pa.wait_for_timeout(200)
         ok(await pa.evaluate("[...document.querySelectorAll('[data-fiche]')].map(e=>e.dataset.fiche)") == ['cab-e', 'cab-d'] or sorted(await pa.evaluate("[...document.querySelectorAll('[data-fiche]')].map(e=>e.dataset.fiche)")) == ['cab-d', 'cab-e'], 'clic sur « En retard » : les 2 cabinets en retard')
-        await pa.click('[data-paie="retard"]'); await pa.wait_for_timeout(200)
+        await pa.click('.tuile[data-paie="tous"]'); await pa.wait_for_timeout(200)
+        ok(await pa.evaluate("document.querySelectorAll('[data-fiche]').length") == 7, 'clic sur la tuile « Cabinets » : tous les cabinets de nouveau')
+        await pa.fill('#cQ', 'introuvable'); await pa.wait_for_timeout(200); await pa.click('.liste-c, section.carte button.lien[data-paie="tous"]') if False else None
+        await pa.click('section.carte button.lien[data-paie="tous"]'); await pa.wait_for_timeout(200)
+        ok(await pa.evaluate("document.querySelectorAll('[data-fiche]').length") == 7 and await pa.input_value('#cQ') == '', 'liste vide : « Effacer les filtres »')
         await pa.click('[data-tri="dossiers"]'); await pa.wait_for_timeout(200)
         ok((await pa.evaluate("[...document.querySelectorAll('[data-fiche]')].map(e=>e.dataset.fiche)"))[0] == 'cabinet-bentahila', 'tri par dossiers (décroissant)')
         await pa.click('[data-tri="nom"]'); await pa.wait_for_timeout(200)
