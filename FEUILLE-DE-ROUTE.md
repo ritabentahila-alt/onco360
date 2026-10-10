@@ -928,6 +928,17 @@ Nouvelle page **« Salle d'attente »** dans le menu, **entre Agenda et Patients
       (vues Jour et Liste) et dans « Aujourd'hui » du tableau de bord, mis à jour en direct (`badgeSalle`, salle.js).
 - Annulé (08/10) : message WhatsApp de consignes d'arrivée.
 
+## Étape 6 bis – Audit de la salle d'attente (fait le 10/10/2026 : plan à valider par Dr Bentahila)
+Détail : `AUDIT-SALLE-ATTENTE.md` (10 bugs, mesure avec 620 dossiers, manques pour 20 à 30 patients par jour).
+- [ ] **SA4 – Fiabilité** : écriture des seuls champs modifiés (une action d'un collègue n'efface plus l'autre), n° d'ordre sans
+      doublon (compteur en transaction), heures du serveur, passage de minuit, libellé des séances reportées, impression.
+- [ ] **SA5 – Rapidité** : lignes du jour gardées en mémoire (badges Agenda / tableau de bord : 0,7 s → quelques ms), minutes
+      mises à jour sans tout redessiner, mise à jour ligne par ligne.
+- [ ] **SA6 – Salle pleine** (au choix) : affichage compact + titres fixés, « Patient suivant », un patient = une arrivée,
+      arrivée sans rendez-vous + Urgent, ordre de la file modifiable, messages « patient arrivé » / « attente au rouge »,
+      recherche n° de dossier / téléphone, clôture de la journée, attente moyenne, (plus tard) filtre Praticien.
+- [ ] **SA7 – Tests** : `tests/test_salle.py` dans le dépôt, calculs de la salle testés sans navigateur.
+
 ## Étape 7 – RCP (réunion de concertation pluridisciplinaire) (fait et testé le 09/10, pas encore en ligne)
 **Demande de Dr Bentahila (09/10)** : dates de RCP dans les Paramètres ; bouton « + RCP » à côté de Doc. (inscription à la
 prochaine RCP, fenêtre avec la question et la date d'inscription) ; onglet « RCP » dans Tâches à côté de « Toutes les tâches »
@@ -1698,3 +1709,4 @@ On garde le bleu Onco360 (#3563B0) et Arial ; les impressions (ordonnances, fich
 | 10/10/2026 | 15 bis – B3 | Trimestres, année dernière et années précédentes ; tableau « Par établissement » (à recevoir par ancienneté) ; graphique mois par mois comparé à l'année d'avant ; relevé PDF des actes à régler pour un établissement. Pointage en lot non retenu. Tests 22/22 + navigateur. Pas encore en ligne. |
 | 10/10/2026 | 15 bis – B3 en ligne | Site mis en ligne par Dr Bentahila (v2.js?v=20261011m). |
 | 10/10/2026 | 15 bis – Retouche | Tableau « Par établissement » : la ligne « Non renseigné / autres » (qui regroupait les autres versements) devient « Autres versements » (clic = type Autres versements) ; les actes sans établissement ont leur propre ligne « — ». Mis en ligne (v2.js?v=20261011n). |
+| 10/10/2026 | 6 bis – Audit salle d'attente | Audit complet (`AUDIT-SALLE-ATTENTE.md`) : 10 bugs (écritures qui s'écrasent, n° d'ordre en double, horloge des ordinateurs, minuit, badges lents…), manques pour 20-30 patients, plan SA4 à SA7 à valider. |
