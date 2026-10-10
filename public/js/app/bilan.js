@@ -198,7 +198,7 @@ function htmlRecus(b) {
         return "<tr><td>" + etabNom(c) + '</td><td class="n">' + dh(somme(l.filter((r) => r.mode === "vir"))) + '</td><td class="n">' + dh(somme(l.filter((r) => r.mode === "chq"))) + '</td><td class="n"><b>' + dh(somme(l)) + "</b></td></tr>"; }).join("") + "</table></div>";
     // Par mois, si la période en couvre plusieurs
     const mois = [...new Set(L.map((r) => r.d.slice(0, 7)))].sort().reverse();
-    if (mois.length > 1) h += '<div class="tableau" style="margin-top:12px"><table class="tcures bilan"><tr><th>Mois de réception</th><th>Règlements par clinique</th><th class="n">Autres versements</th><th class="n">Total reçu</th></tr>' +
+    if (mois.length > 1) h += '<div class="tableau" style="margin-top:12px"><table class="tcures bilan"><tr><th>Mois de réception</th><th>Règlements par Clinique / hôpital</th><th class="n">Autres versements</th><th class="n">Total reçu</th></tr>' +
       mois.map((m) => { const l = L.filter((r) => r.d.slice(0, 7) === m), parC = {}; l.filter((r) => r.k === "rg").forEach((r) => { parC[r.hop || "—"] = (parC[r.hop || "—"] || 0) + (num(r.m) || 0); });
         return "<tr><td>" + moisTxt(m) + "</td><td>" + (Object.keys(parC).sort().map((c) => esc(c) + " " + dh(parC[c])).join(" · ") || "—") + '</td><td class="n">' + dh(somme(l.filter((r) => r.k === "kl"))) + '</td><td class="n"><b>' + dh(somme(l)) + "</b></td></tr>"; }).join("") + "</table></div>";
     const act = L.some(ed);
