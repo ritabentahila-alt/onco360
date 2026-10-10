@@ -21,7 +21,10 @@ const tauxTxt = (o) => (o.t === "rt" ? (o.taux == null ? "ancien calcul" : o.tau
 // Paiements : ceux cochés dans le bilan, plus les actes « payés automatiquement » (Paramètres, case « Payé auto. » de l'activité
 // de l'établissement, actes à partir de la date où elle a été cochée : 08/10/2026)
 let PE = {};
-const autoPaye = (o) => { const T = D().tarifs; if (!T || !o.t || o.t === "kl" || o.t === "rtprev" || !o.d) return false; const a = activite(T, o.hop, o.t); return !!(a && a.payeAuto && o.d >= a.payeAuto); };
+// Case « Payé auto. » retirée le 10/10/2026 (19.5 : encaissement au cabinet ; séances, hospitalisations et lieux payés par
+// l'établissement : virement, coché à la main) ; gardée pour les actes validés avant le 12/10/2026, pour que le bilan passé ne change pas
+const FIN_PAYE_AUTO = "2026-10-12";
+const autoPaye = (o) => { const T = D().tarifs; if (!T || !o.t || o.t === "kl" || o.t === "rtprev" || !o.d || o.d >= FIN_PAYE_AUTO) return false; const a = activite(T, o.hop, o.t); return !!(a && a.payeAuto && o.d >= a.payeAuto); };
 // Lieux « payé au cabinet » (19.5, 10/10/2026) : une consultation dont le mode de paiement est noté (9e colonne) est payée si elle a été
 // encaissée (espèces, carte, chèque) et impayée si « non payé » ; sans mode (avant le 19.5, autres lieux) : « Payé auto. » comme avant
 const lieuCabinet = (hop) => ((D().etabsTous || D().etabs || []).find((e) => e.code === hop) || {}).paiement === "cabinet";
@@ -121,7 +124,7 @@ function dessiner() {
     (all.length ? all.map((o, i) => {
       const cor = o.id ? (R.find((x) => x.id === o.id) || {}).cor : "";
       return "<tr" + lienDossier(o.id) + "><td>" + A.dfrA(o.d) + "</td><td>" + esc(o.nm) + (cor ? '<div class="mesures">' + esc(cor) + "</div>" : "") + "</td><td>" + esc(o.hop || "—") + "</td><td>" + esc(o.lib) + "</td><td>" + esc(o.st) + '</td><td class="n">' + dh(o.brut) + '</td><td class="n">' + tauxTxt(o) + '</td><td class="n"><b>' + dh(o.net) + "</b></td>" +
-        '<td onclick="event.stopPropagation()">' + (o.t === "kl" ? '<span class="badge b-ch">Reçu</span>' : '<button class="mini ' + (estPaye(o, PE) ? "vert" : "") + '" title="' + (estPaye(o, PE) ? (B.paiements[clePaye(o)] ? "Payé le " + A.dfrA(PE[clePaye(o)]) + " – cliquer pour annuler" : ENC[clePaye(o)] === "enc" ? "Encaissé au cabinet (fenêtre « Venu »)" : "Payé automatiquement à la validation (Paramètres)") : ENC[clePaye(o)] === "np" ? "Non payé par le patient : à encaisser depuis le dossier (ou cliquer quand il a payé)" : "Cliquer quand la clinique a payé") + '" onclick="biPaye(' + i + ')">' + (estPaye(o, PE) ? (B.paiements[clePaye(o)] ? "✓ Payé" : ENC[clePaye(o)] === "enc" ? "✓ Encaissé" : "✓ Payé (auto.)") : ENC[clePaye(o)] === "np" ? "À encaisser" : "Payé") + "</button>") + "</td></tr>";
+        '<td onclick="event.stopPropagation()">' + (o.t === "kl" ? '<span class="badge b-ch">Reçu</span>' : '<button class="mini ' + (estPaye(o, PE) ? "vert" : "") + '" title="' + (estPaye(o, PE) ? (B.paiements[clePaye(o)] ? "Payé le " + A.dfrA(PE[clePaye(o)]) + " – cliquer pour annuler" : ENC[clePaye(o)] === "enc" ? "Encaissé au cabinet (fenêtre « Venu »)" : "Payé automatiquement (ancienne case « Payé auto. », avant le 12/10/2026)") : ENC[clePaye(o)] === "np" ? "Non payé par le patient : à encaisser depuis le dossier (ou cliquer quand il a payé)" : "Cliquer quand la clinique a payé") + '" onclick="biPaye(' + i + ')">' + (estPaye(o, PE) ? (B.paiements[clePaye(o)] ? "✓ Payé" : ENC[clePaye(o)] === "enc" ? "✓ Encaissé" : "✓ Payé (auto.)") : ENC[clePaye(o)] === "np" ? "À encaisser" : "Payé") + "</button>") + "</td></tr>";
     }).join("") + '<tr class="tot"><td colspan="7" class="n"><b>Total</b></td><td class="n"><b>' + dh(T.caNet) + "</b></td><td></td></tr>" : '<tr><td colspan="9" class="mesures">Aucun acte sur la période.</td></tr>') + "</table></div></section>";
   // Référents
   if (F.cor !== "tous") {
@@ -144,7 +147,7 @@ window.biF = (f, v) => { F[f] = v; dessiner(); };
 window.biActualiser = async () => { B = null; await pagePageBilan(); A.toast("Bilan actualisé."); };
 window.biPaye = async (i) => {
   const o = DATA.all[i]; if (!o || o.t === "kl") return; const k = clePaye(o), avant = B.paiements[k];
-  if (!avant && PE[k]) { A.toast("Payé automatiquement à la validation : décochez « Payé auto. » dans les Paramètres pour gérer ce paiement à la main."); return; }
+  if (!avant && PE[k]) { A.toast(ENC[k] === "enc" ? "Encaissé au cabinet : pour le changer, modifiez le prix ou le paiement dans le dossier du patient." : "Payé automatiquement (ancienne case « Payé auto. », actes validés avant le 12/10/2026)."); return; }
   if (avant) { if (!confirm("Remettre « " + o.lib + " » en attente de paiement ?")) return; delete B.paiements[k]; } else B.paiements[k] = D().t;
   try { await setDoc(doc(db, "espaces", A.ESPACE, "finances", "paiements"), { data: JSON.stringify(B.paiements) }); dessiner(); }
   catch (e) { if (avant) B.paiements[k] = avant; else delete B.paiements[k]; A.toast("Enregistrement impossible : " + e.message); }

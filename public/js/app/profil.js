@@ -153,7 +153,7 @@ window.pfLieu = (code) => {
     '<div class="large"><label for="lNom">Nom complet</label><input id="lNom" value="' + esc(e.nom || "") + '"></div><div class="large"><label for="lAdr">Adresse</label><input id="lAdr" value="' + esc(e.adresse || "") + '"></div>' +
     '<div><label for="lVille">Ville</label><input id="lVille" value="' + esc(e.ville || "") + '" placeholder="Casablanca"></div>' +
     // 19.5 : au cabinet = le patient paie à la secrétaire (mode de paiement, reçu ; payé dans le bilan seulement si encaissé) ;
-    // par l'établissement (virement, convention) = rien à encaisser au cabinet, bilan comme avant (« Payé auto. » ou coché à la main)
+    // par l'établissement (virement, convention) = rien à encaisser au cabinet ; « Payé » coché dans le bilan quand le virement arrive
     '<div class="large"><label for="lPay">Les consultations sont payées</label><select id="lPay"><option value="">par l\'établissement (virement, convention) : rien à encaisser au cabinet</option><option value="cabinet"' + (e.paiement === "cabinet" ? " selected" : "") + ">au cabinet, par le patient (espèces, carte, chèque) : reçu, caisse du jour</option></select></div>" +
     '<div class="large"><label>Logo (facultatif)</label><div class="sig">' + (e.logo ? '<img src="' + e.logo + '" alt="Logo">' : "") + '<input id="lLogo" type="file" accept="image/*"></div></div>' +
     (code ? '<div class="large"><label style="font-weight:normal"><input id="lActif" type="checkbox" style="width:auto;margin-right:6px"' + (e.actif !== false ? " checked" : "") + ">Établissement actif (proposé pour les nouveaux dossiers)</label></div>" : "") +

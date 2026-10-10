@@ -112,6 +112,7 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
   Salle d'attente › Vus, bouton Encaisser `saEncaisser`) dans `patientsFinances.rdv[rid].mode` / `cures[L][n].consModeJ[j]` et `encaissements` (serveur : `appliquerPrix`
   q.mode) ; 9e colonne de `evtsFin` ; bilan.js `paiementsEffectifs` : lieu au cabinet + mode noté → payé si encaissé (pas « np »), sinon règle
   d'avant ; reçu A5 `imprimerRecu` (v2.js), `recuRdv` / `recuCons`.
+- « Payé auto. » : case retirée le 10/10/2026 ; `payeAuto` des tarifs encore appliqué aux actes **avant le 12/10/2026** (`FIN_PAYE_AUTO`, bilan.js).
 - Bilan « payé » : `finances/paiements` (coché à la main) + « Payé auto. » des Paramètres (`payeAuto` = date de l'activité dans
   `finances/tarifs` : actes de ce type et de cet établissement à partir de cette date comptés payés ; bilan.js `paiementsEffectifs`).
 - `presence/{uid}` (« Dossier ouvert par », salle.js `presenceDossier`) : { patientId, nom, role, le }, écrit par la personne

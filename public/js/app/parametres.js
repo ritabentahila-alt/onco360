@@ -29,16 +29,14 @@ export function pageParametres() {
   else if (!E) h += '<p class="sous">' + esc(nomE) + ' n\'a pas encore de grille tarifaire.</p><button class="bt clair petit" onclick="paCreer()">' + A.ic("plus") + (srcG ? "Créer la grille (copie de " + esc(srcG[0]) + ")" : "Créer la grille") + "</button>";
   else {
     h += '<p style="margin:4px 0 10px"><b>' + esc(nomE) + '</b></p><div class="form" style="grid-template-columns:minmax(0,240px);margin-bottom:10px"><div><label for="paEff">Date d\'effet des modifications</label><input id="paEff" type="date" value="' + esc(EFFET) + '" onchange="paEffet(this.value)"></div></div>' +
-      '<div class="tableau"><table class="tcures"><tr><th>Activité</th><th>Brut (DH)</th><th>Rétrocession %</th><th>Impôt %</th><th>Net (DH)</th><th title="Cochée : une consultation validée compte directement « Payé » dans le bilan (à partir de la date affichée). Décochée : vous cochez « Payé » vous-même dans le bilan.">Payé auto.</th><th>En vigueur depuis</th></tr>' +
+      '<div class="tableau"><table class="tcures"><tr><th>Activité</th><th>Brut (DH)</th><th>Rétrocession %</th><th>Impôt %</th><th>Net (DH)</th><th>En vigueur depuis</th></tr>' +
       E.activites.map((a, i) => {
         const v = valeurAu(a, EFFET) || {}, rt = a.type === "rt", n = rt ? null : net(v.brut || 0, v), hist = (a.historique || []).length;
-        // lieu « payé au cabinet » (19.5) : une consultation est payée quand elle est encaissée (secrétaire ou médecin), pas automatiquement
-        const parEnc = ((D().etabsTous || D().etabs || []).find((e) => e.code === ETAB) || {}).paiement === "cabinet" && ["seance", "rt", "hospit"].indexOf(a.type) < 0;
         return '<tr><td><div class="actnom"><input value="' + esc(a.libelle) + '" aria-label="Nom de l\'activité" onchange="paLib(' + i + ',this.value)">' + (a.type !== "rt" ? '<button class="mini rouge" title="Retirer cette activité" onclick="paSupAct(' + i + ')">✕</button>' : "") + "</div>" + (hist > 1 ? '<div class="mesures"><a href="#" onclick="paHist(' + i + ');return false">Historique (' + hist + ")</a></div>" : "") + "</td>" +
           "<td>" + (rt ? '<span class="mesures">selon l\'acte</span>' : '<input class="mt" inputmode="decimal" style="max-width:120px" value="' + esc(mil(v.brut)) + '" onchange="paVal(' + i + ',\'brut\',this.value)">') + "</td>" +
           '<td><input inputmode="decimal" style="max-width:80px" value="' + esc(v.retro == null ? 0 : v.retro) + '" onchange="paVal(' + i + ',\'retro\',this.value)"></td><td><input inputmode="decimal" style="max-width:80px" value="' + esc(v.impot == null ? 0 : v.impot) + '" onchange="paVal(' + i + ',\'impot\',this.value)"></td>' +
           '<td class="calc">' + (rt ? "—" : fr(n)) + "</td>" +
-          "<td>" + (rt ? "" : parEnc ? '<span class="mesures" title="Lieu payé au cabinet : la consultation compte « Payé » dans le bilan quand elle est encaissée (onglet Vus de la salle d\'attente, ou dossier)">à l\'encaissement</span>' : '<label class="pa-auto" title="Payé automatiquement dans le bilan dès la validation"><input type="checkbox"' + (a.payeAuto ? " checked" : "") + ' onchange="paAuto(' + i + ',this.checked)" aria-label="Payé automatiquement">' + (a.payeAuto ? '<span class="mesures">depuis le ' + A.dfrA(a.payeAuto) + "</span>" : "") + "</label>") + "</td><td>" + (v.depuis && v.depuis > "2000-01-01" ? A.dfrA(v.depuis) : "Origine") + "</td></tr>";
+          "<td>" + (v.depuis && v.depuis > "2000-01-01" ? A.dfrA(v.depuis) : "Origine") + "</td></tr>";
       }).join("") + "</table></div>" +
       '<div class="actr" style="justify-content:flex-start;margin-top:8px"><button class="bt clair petit" onclick="paNouvAct()">' + A.ic("plus") + 'Ajouter une activité</button><span class="mesures">Le nom est modifiable directement dans le tableau. Chaque consultation apparaît dans la liste des rendez-vous des patients de ' + esc(ETAB) + ".</span></div>";
   }
@@ -62,7 +60,6 @@ window.paVal = (i, f, v) => {
 };
 // « Payé auto. » (08/10/2026) : les actes de cette activité validés à partir de la date du jour où la case est cochée comptent
 // « Payé » dans le bilan sans clic ; décochée, le médecin coche « Payé » lui-même. Les actes plus anciens ne changent pas.
-window.paAuto = (i, oui) => { const a = ED.etablissements[ETAB].activites[i]; if (oui) a.payeAuto = a.payeAuto || D().t; else delete a.payeAuto; modif(true); };
 window.paHist = (i) => {
   const a = ED.etablissements[ETAB].activites[i];
   A.fenetre("<h3>Historique – " + A.esc(a.libelle) + " (" + A.esc(ETAB) + ')</h3><div class="tableau"><table class="tcures"><tr><th>Depuis</th><th>Brut</th><th>Rétrocession %</th><th>Impôt %</th><th>Net</th></tr>' +
