@@ -78,11 +78,11 @@ const genre = (f) => { const i = icone(f); return i === "PDF" ? "pdf" : i === "I
 async function afficherVue(x) {
   const z = $("fiVue"); if (!z) return; const f = choisi(x), esc = A.esc;
   if (!f) { z.innerHTML = '<p class="sous" style="margin:12px">Aucun document à afficher.</p>'; return; }
-  SEL[x.id] = f.id; const qf = "'" + x.id + "','" + f.id + "'";
-  z.innerHTML = '<div class="fi-vt"><div class="tx"><b>' + esc(f.titre || f.nom) + '</b><div class="fi-m"><span class="badge b-co">' + esc(A.dfrA(f.d)) + "</span>" + (f.type ? '<span class="badge b-gr">' + esc(f.type) + "</span>" : "") + '</div><div class="mesures">' + esc(f.nom) + " · " + taille(f.taille || 0) + (f.creeParNom ? " · déposé par " + esc(f.creeParNom) : "") + "</div></div>" +
-    '<div class="actr"><button class="mini" onclick="fiOuvrir(' + qf + ')" title="Ouvrir dans une nouvelle fenêtre">Nouvelle fenêtre</button><button class="mini" onclick="fiTelecharger(' + qf + ')">Télécharger</button>' +
-    (peutDeposer() ? '<button class="mini" onclick="fiModifier(' + qf + ')">Modifier</button>' : "") + (peutSupprimer(f) ? '<button class="mini r" onclick="fiSupprimer(' + qf + ')">Supprimer</button>' : "") + "</div></div>" +
-    '<div class="fi-vc" id="fiVueC"><p class="sous" style="margin:12px">Chargement du document…</p></div>';
+  // Aperçu seul (sans en-tête, qui doublait la liste) ; actions dans le menu « ⋯ » flottant, en bas à droite de l'aperçu
+  SEL[x.id] = f.id; const qf = "'" + x.id + "','" + f.id + "'", it = (lib, fn, cls) => '<button class="' + (cls || "") + '" onclick="fiMenu(false);' + fn + "(" + qf + ')">' + lib + "</button>";
+  z.innerHTML = '<div class="fi-vc" id="fiVueC"><p class="sous" style="margin:12px">Chargement du document…</p></div>' +
+    '<div class="fi-menu"><div class="fi-mm cache" id="fiMm" role="menu"><span class="t" title="' + esc(f.titre || f.nom) + '">' + esc(f.titre || f.nom) + "</span>" + it("Nouvelle fenêtre", "fiOuvrir") + it("Télécharger", "fiTelecharger") + (peutDeposer() ? it("Modifier (nom, date, type)", "fiModifier") : "") + (peutSupprimer(f) ? it("Supprimer", "fiSupprimer", "r") : "") + "</div>" +
+    '<button class="fi-mb" onclick="fiMenu()" title="Nouvelle fenêtre, télécharger, modifier, supprimer" aria-label="Actions sur le document" aria-haspopup="menu">⋯</button></div>';
   const g = genre(f);
   if (!g) { $("fiVueC").innerHTML = '<div class="fi-sans"><span class="fi-ic fi-' + icone(f).toLowerCase() + '">' + icone(f) + "</span><p>Aperçu impossible pour ce type de fichier (" + esc(f.nom) + ').</p><p class="mesures">Utilisez « Télécharger » ou « Nouvelle fenêtre ».</p></div>'; return; }
   try {
@@ -91,6 +91,7 @@ async function afficherVue(x) {
     c.innerHTML = g === "pdf" ? '<iframe src="' + URLS[f.id] + '" title="' + esc(f.titre || f.nom) + '"></iframe>' : '<img src="' + URLS[f.id] + '" alt="' + esc(f.titre || f.nom) + '">';
   } catch (e) { const c = $("fiVueC"); if (c) c.innerHTML = '<p class="err" style="margin:12px">' + esc(e && /unauthorized|permission/.test(e.code || "") ? "Vous n'avez pas accès à ce document." : "Aperçu impossible : " + ((e && e.message) || e)) + "</p>"; }
 }
+window.fiMenu = (ouvrir) => { const m = $("fiMm"); if (m) m.classList.toggle("cache", ouvrir === false ? true : !m.classList.contains("cache")); };
 window.fiChoisir = (pid, id) => { const x = trouver(pid); if (!x) return; SEL[pid] = id; document.querySelectorAll("#fiListe .fi").forEach((e) => e.classList.toggle("on", e.dataset.id === id)); afficherVue(x); };
 const icone = (f) => { const m = String(f.mime || ""), n = sansAcc(f.nom); return /pdf/.test(m) || /\.pdf$/.test(n) ? "PDF" : /^image\//.test(m) ? "IMG" : /word|officedocument\.wordprocessing|msword/.test(m) || /\.docx?$/.test(n) ? "DOC" : /sheet|excel/.test(m) || /\.xlsx?$/.test(n) ? "XLS" : "FIC"; };
 const taille = (o) => (o >= 1048576 ? (o / 1048576).toFixed(1).replace(".", ",") + " Mo" : Math.max(1, Math.round(o / 1024)) + " Ko");
@@ -102,8 +103,8 @@ function listeHtml(x) {
   if (!V.length) return '<p class="sous" style="margin:10px 0 0">Aucun document ne correspond' + (F.t ? " (type « " + esc(F.t) + " »)" : "") + ".</p>";
   const sel = choisi(x);
   return (V.length < L.length ? '<p class="mesures" style="margin:8px 0 0">' + V.length + " document" + (V.length > 1 ? "s" : "") + " sur " + L.length + "</p>" : "") + '<div class="fi-liste">' + V.map((f) => {
-    return '<button type="button" class="fi' + (sel && sel.id === f.id ? " on" : "") + '" data-id="' + esc(f.id) + '" onclick="fiChoisir(\'' + x.id + "','" + f.id + '\')"><span class="fi-ic fi-' + icone(f).toLowerCase() + '" aria-hidden="true">' + icone(f) + '</span><span class="tx"><b>' + esc(f.titre || f.nom) + '</b><span class="fi-m"><span class="badge b-co">' + esc(A.dfrA(f.d)) + "</span>" + (f.type ? '<span class="badge b-gr">' + esc(f.type) + "</span>" : "") + "</span>" +
-      '<span class="mesures">' + taille(f.taille || 0) + (f.creeParNom ? " · " + esc(f.creeParNom) : "") + "</span></span></button>";
+    // une seule ligne : titre, date, type (150 documents restent lisibles ; la liste défile à la hauteur de l'aperçu)
+    return '<button type="button" class="fi' + (sel && sel.id === f.id ? " on" : "") + '" data-id="' + esc(f.id) + '" title="' + esc((f.titre || f.nom) + " · " + f.nom + " · " + taille(f.taille || 0) + (f.creeParNom ? " · déposé par " + f.creeParNom : "")) + '" onclick="fiChoisir(\'' + x.id + "','" + f.id + '\')"><b>' + esc(f.titre || f.nom) + '</b><span class="d">' + esc(A.dfrA(f.d)) + "</span>" + (f.type ? '<span class="badge b-gr">' + esc(f.type) + "</span>" : "") + "</button>";
   }).join("") + "</div>";
 }
 // Recherche et filtre : seule la liste est redessinée (le curseur reste dans la recherche)
