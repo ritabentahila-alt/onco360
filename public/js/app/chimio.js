@@ -154,7 +154,8 @@ function etatCure(L, k, P) {
 export function htmlChimio(x) {
   const P = x.P, ctx = D().ctx, okT = A.traitMod(), esc = A.esc, q1 = "'" + x.id + "'";
   if (!(P.lignes || []).length && !okT) return "";
-  if (SEL.pid !== x.id) { SEL.pid = x.id; SEL.l = ligneCourante(P, ctx); SEL.c = null; }
+  // à l'ouverture du dossier : la ligne en cours, sinon la dernière ; les autres fermées (11/10/2026)
+  if (SEL.pid !== x.id) { SEL.pid = x.id; const lc = ligneCourante(P, ctx); SEL.l = lc != null ? lc : (P.lignes || []).length ? P.lignes.length - 1 : null; SEL.c = null; }
   let h = '<section class="carte" id="cChimio"><div class="entete"><h3><span class="ic">💉</span>Chimiothérapie</h3>' + (okT ? '<button class="bt clair petit" onclick="chNouvelleLigne(' + q1 + ')">' + A.ic("plus") + "Nouvelle ligne chimio</button>" : "") + "</div>";
   if (!(P.lignes || []).length) h += '<p class="sous">Aucune ligne de chimiothérapie.</p>';
   (P.lignes || []).forEach((L, i) => {

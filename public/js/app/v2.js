@@ -804,7 +804,8 @@ function pageDossier(id) {
   if (ong.length) {
     const act = [ONGLET[x.id], D.membre.role === "infirmiere" ? "ch" : "co"].find((k) => ong.some((o) => o.k === k)) || ong[0].k;
     h += '<section class="carte onglets"><div class="o-barre" role="tablist" aria-label="Dossier">' + ong.map((o) => '<button role="tab" id="og-' + o.k + '" aria-controls="op-' + o.k + '" aria-selected="' + (o.k === act) + '"' + (o.k === act ? ' class="on"' : "") + ' onclick="ongletDossier(\'' + x.id + "','" + o.k + '\')"><svg class="pi" aria-hidden="true"><use href="#i-' + o.ic + '"/></svg>' + o.lib + (o.n ? '<span class="n">' + o.n + "</span>" : "") + "</button>").join("") + "</div>" +
-      ong.map((o) => '<div class="o-pan' + (o.k === act ? "" : " cache") + '" id="op-' + o.k + '" role="tabpanel" aria-labelledby="og-' + o.k + '">' + o.h + "</div>").join("") + "</section>";
+      // Chimiothérapie et radiothérapie : défilement intérieur à la hauteur de l'écran, pour que le dossier ne s'allonge pas (11/10/2026)
+      ong.map((o) => '<div class="o-pan' + (o.k === "ch" || o.k === "rt" ? " defile" : "") + (o.k === act ? "" : " cache") + '" id="op-' + o.k + '" role="tabpanel" aria-labelledby="og-' + o.k + '">' + o.h + "</div>").join("") + "</section>";
   }
 
   // Rendez-vous à venir, juste au-dessus des consultations passées (décision du 08/10/2026)
@@ -846,7 +847,9 @@ function pageDossier(id) {
   h += bullesDossier(x); // patient en consultation (salle d'attente) : bulles Valider / Retour en salle
   h += bulleRcp(x); // dossier ouvert depuis la liste des RCP : Décision RCP · Valider · Fermer
   const pos = $("rdvListe") ? $("rdvListe").scrollTop : 0;
+  const posO = {}; ["ch", "rt"].forEach((k) => { const e = $("op-" + k); if (e && D.dossierDefile === x.id) posO[k] = e.scrollTop; }); D.dossierDefile = x.id; // même dossier redessiné : on reste au même endroit
   $("page").innerHTML = h;
+  Object.keys(posO).forEach((k) => { const e = $("op-" + k); if (e) e.scrollTop = posO[k]; });
   ficheP.appliquerFiche(document.querySelector("#page .champs")); // en-tête du dossier : ordre et champs du réglage
   limiterHauteur("rdvListe", 5); if ($("rdvListe")) $("rdvListe").scrollTop = pos;
   majPresenceDossier(); // collègues qui ont ce dossier ouvert
