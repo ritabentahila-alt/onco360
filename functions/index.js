@@ -670,6 +670,13 @@ exports.lienMotDePasse = onCall({ timeoutSeconds: 30, memory: "256MiB" }, async 
   let u; try { u = await getAuth().getUserByEmail(email); } catch (e) { throw new HttpsError("not-found", "Compte introuvable."); }
   const c = await db.doc("comptes/" + u.uid).get(), e = c.exists ? c.data().espace : "";
   if (!e || e === C.MODELE || (await titulaire(e)) !== u.uid || (await estAdministrateur(u.uid))) throw new HttpsError("permission-denied", "Lien possible seulement pour le médecin titulaire d'un cabinet créé ici.");
+  // 1.2 (11/10/2026, audit) : seulement pour un compte jamais utilisé (premier mot de passe d'un cabinet neuf). Un médecin qui
+  // s'est déjà connecté passe par « Mot de passe oublié ? » : l'e-mail part à sa propre adresse, l'administration ne peut pas
+  // reprendre son compte.
+  if (u.metadata && u.metadata.lastSignInTime) {
+    await jAdmin(req.auth.uid, "acces", e, await nomCab(e), "Lien du mot de passe refusé (compte déjà utilisé) pour " + email);
+    throw new HttpsError("failed-precondition", "Ce médecin s'est déjà connecté à Onco360 : le lien n'est possible que pour un premier mot de passe. Pour changer son mot de passe, il clique sur « Mot de passe oublié ? » sur la page de connexion (l'e-mail part à sa propre adresse).");
+  }
   const lien = await getAuth().generatePasswordResetLink(email, { url: "https://chimio-hgc.web.app" });
   await jAdmin(req.auth.uid, "acces", e, await nomCab(e), "Lien du mot de passe créé pour " + email);
   return { lien };
