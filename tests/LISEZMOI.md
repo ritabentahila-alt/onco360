@@ -4,7 +4,7 @@ Faux Firebase en mémoire (`mockfb/`) + navigateur automatisé (Playwright, Pyth
 
 ## Préparer (une fois)
 ```
-pip install playwright && python -m playwright install chromium
+python3 -m venv tests/.venv && tests/.venv/bin/pip install playwright && tests/.venv/bin/python -m playwright install chromium   # déjà fait sur le Mac (11/10/2026)
 node tests/mkseed.mjs 2026-10-06 ~/Downloads/ChimioHGC_Firebase_2026-10-06.json   # crée tests/seed.json (NE PAS partager)
 ```
 La sauvegarde JSON se trouve dans le Drive (sauvegarde quotidienne de l'ancienne application).

@@ -10,3 +10,4 @@ tests/bilan_ref.txt
 *sauvegarde*.json
 ChimioHGC_*.json
 Onco360_*.json
+tests/.venv/
