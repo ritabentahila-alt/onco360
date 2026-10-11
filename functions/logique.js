@@ -21,8 +21,11 @@ const voitPatient = (m, etab) => !!m && m.actif !== false && (m.tousEtablissemen
 // « modifier », ou « chimio » = seulement si le patient est sous chimio en même temps ; consultations et hospitalisations
 // sauf si « consultations » est refusé (infirmière)
 const radiochimio = (r) => !!(r && r.t && r.t.st === "cours") && ((r && r.rtS) || []).some((s) => s.st !== "fin");
-function permis(m, ev, r) {
+function permis(m, ev, r, qui) {
   const dr = (m && m.droits) || {}, k = String(ev.k || "");
+  // Médecin du rendez-vous (AG4, 11/10/2026) : l'agenda d'un médecin ne reçoit que ses rendez-vous de consultation ; sans médecin
+  // noté (`m`, anciens rendez-vous) = le médecin titulaire. Secrétaire, infirmière : tous les rendez-vous (selon leurs droits).
+  if (/^[^|]+\|r\|/.test(k) && m && m.role === "medecin" && qui && qui.uid && (ev.m || qui.titulaire) && (ev.m || qui.titulaire) !== qui.uid) return false;
   if (/^[^|]+\|[cs]\|/.test(k) && ["voir", "modifier"].indexOf(dr.traitements) < 0) return false;
   if (/^[^|]+\|rt\|/.test(k) && !(["voir", "modifier"].indexOf(dr.radiotherapie) >= 0 || (dr.radiotherapie === "chimio" && radiochimio(r)))) return false;
   if (/^[^|]+\|r\|/.test(k) && dr.consultations === false) return false;
@@ -34,11 +37,11 @@ const dansFenetre = (e, auj) => e && e.k && DATE_OK.test(e.d || "") && (e.f && D
 // Heure « HH:MM » quel que soit l'écrit (« 9:30 », « 13h00 », « 08:30:00 ») ; illisible → "" (journée entière) (08/10/2026)
 const heure = (h) => { const m = String(h || "").trim().match(/^(\d{1,2})\s*[:hH.]\s*(\d{2})/); return m && +m[1] < 24 && +m[2] < 60 ? m[1].padStart(2, "0") + ":" + m[2] : ""; };
 
-function evtsPatient(docData, membre, auj) {
+function evtsPatient(docData, membre, auj, qui) { // qui = { uid, titulaire } (AG4)
   if (!docData || !voitPatient(membre, docData.etablissementId)) return [];
   let r = {};
   try { r = JSON.parse(docData.resume || "{}"); } catch (e) { return []; }
-  return (r.ag || []).filter((e) => dansFenetre(e, auj) && permis(membre, e, r) && !/\|dosi$/.test(String(e.k))); // dosimétrie : une tâche (08/10/2026)
+  return (r.ag || []).filter((e) => dansFenetre(e, auj) && permis(membre, e, r, qui) && !/\|dosi$/.test(String(e.k))); // dosimétrie : une tâche (08/10/2026)
 }
 // Absences du cabinet (Configuration › Fermetures) : dans l'agenda du médecin titulaire seulement
 function evtsAbsences(cal, auj) {
@@ -50,7 +53,7 @@ function evtsAbsences(cal, auj) {
 const groupe = (k) => String(k).split("|")[0]; // identifiant du patient, ou « abs »
 const idEv = (k) => crypto.createHash("sha1").update("onco360|" + k).digest("hex"); // 40 caractères 0-9 a-f : identifiant Google valide
 // (couleur et durée des tâches comprises ; sans couleur, la même qu'avant le 08/10/2026)
-const signature = (e) => crypto.createHash("sha1").update(JSON.stringify([e.t, e.x || "", e.d, e.h || "", e.f || ""].concat(e.tache ? [e.coul, e.dur] : e.coul ? [e.coul] : []))).digest("hex").slice(0, 16);
+const signature = (e) => crypto.createHash("sha1").update(JSON.stringify([e.t, e.x || "", e.d, e.h || "", e.f || ""].concat(e.tache ? [e.coul, e.dur] : e.coul ? [e.coul] : []).concat(!e.tache && e.dur ? ["dur", e.dur] : []))).digest("hex").slice(0, 16);
 function finHeure(d, h, dur) {
   const p = String(h).split(":"), m = +p[0] * 60 + (+p[1] || 0) + (dur || DUREE), j = Math.floor(m / 1440), r = m % 1440;
   return addJ(d, j) + "T" + String(Math.floor(r / 60)).padStart(2, "0") + ":" + String(r % 60).padStart(2, "0") + ":00";

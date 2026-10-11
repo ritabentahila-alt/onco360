@@ -49,6 +49,14 @@ const infirmiere = { actif: true, etablissements: ["HGC", "CIOC"], droits: { tra
   ok(L.evtsPatient(P1rc, inf2, AUJ).map((e) => e.k).sort().join() === "P1|c|0|3,P1|rt|x|deb,P1|s|0|3|8", "infirmière, patient radio-chimio : cures + radiothérapie, sans la consultation");
   ok(L.evtsPatient(P1rt, inf2, AUJ).map((e) => e.k).sort().join() === "P1|c|0|3,P1|s|0|3|8", "infirmière, patient sans chimio en cours : pas de radiothérapie");
   ok(L.evtsPatient(null, medecin, AUJ).length === 0 && L.evtsPatient({ etablissementId: "HGC", resume: "{abîmé" }, medecin, AUJ).length === 0, "dossier supprimé ou résumé illisible : rien (sans planter)");
+  // Médecin du rendez-vous (AG4, 11/10/2026) : un médecin ne reçoit que ses rendez-vous (sans médecin noté = le titulaire)
+  const P3 = { etablissementId: "HGC", resume: resume([{ k: "P3|r|a", t: "Dr A", d: "2026-10-08", h: "10:00", m: "UA" }, { k: "P3|r|b", t: "Dr B", d: "2026-10-08", h: "10:00", m: "UB" },
+    { k: "P3|r|v", t: "ancien", d: "2026-10-08", h: "11:00" }, { k: "P3|c|0|1", t: "cure", d: "2026-10-09" }]) };
+  const med = Object.assign({ role: "medecin" }, medecin), sec = Object.assign({ role: "assistante" }, medecin);
+  ok(L.evtsPatient(P3, med, AUJ, { uid: "UA", titulaire: "UA" }).map((e) => e.k).join() === "P3|r|a,P3|r|v,P3|c|0|1", "médecin titulaire : ses rendez-vous + anciens sans médecin + cures");
+  ok(L.evtsPatient(P3, med, AUJ, { uid: "UB", titulaire: "UA" }).map((e) => e.k).join() === "P3|r|b,P3|c|0|1", "2e médecin : seulement ses rendez-vous (+ cures)");
+  ok(L.evtsPatient(P3, sec, AUJ, { uid: "US", titulaire: "UA" }).length === 4, "secrétaire : tous les rendez-vous");
+  ok(L.evtsPatient(P3, med, AUJ).length === 4, "sans « qui » (ancien appel) : comme avant");
   // Corps des événements
   const b1 = L.corps({ k: "P1|r|r1", t: "x", d: "2026-10-08", h: "23:45" });
   ok(/^[0-9a-f]{40}$/.test(b1.id) && b1.start.dateTime === "2026-10-08T23:45:00" && b1.end.dateTime === "2026-10-09T00:15:00" && b1.start.timeZone === "Africa/Casablanca", "rendez-vous à 23 h 45 : fin à 00 h 15 le lendemain, heure du Maroc, identifiant valide");

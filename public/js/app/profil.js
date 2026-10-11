@@ -48,7 +48,7 @@ export function lireImage(input, max, jpeg) {
   });
 }
 
-// Profil & Paramètres (18.5, 10/10/2026, modèle Tbibclic) : onglets Informations (la personne) · Accès (équipe, titulaire ; repris
+// Mon compte (ex-« Profil & Paramètres », renommé le 11/10/2026 ; 18.5, 10/10/2026, modèle Tbibclic) : onglets Informations (la personne) · Accès (équipe, titulaire ; repris
 // de la page Paramètres) · Abonnement et Factures (titulaire, abonnement.js). Lieux d'exercice et Google Agenda restent dans
 // Paramètres (configuration.js : htmlOngletProfil / apresOngletProfil).
 let PF_ONG = "infos";
@@ -58,7 +58,7 @@ export async function pageProfil(arg) {
   if (arg) PF_ONG = arg;
   if (!ONGLETS_PF().some((o) => o[0] === PF_ONG)) PF_ONG = "infos";
   const barre = ONGLETS_PF().length > 1 ? '<div class="ag-vues defile" style="align-self:flex-start">' + ONGLETS_PF().map(([k, ico, lib]) => '<button class="' + (PF_ONG === k ? "on" : "") + '" onclick="location.hash=\'profil/' + k + '\'">' + A.ic(ico) + lib + "</button>").join("") + "</div>" : "";
-  const tete = '<section class="accueil"><div><h2>Profil &amp; Paramètres</h2><p>' + (ONGLETS_PF().length > 1 ? "Vos informations, l'accès de votre équipe, votre abonnement et vos factures." : "Vos informations.") + "</p></div></section>" + barre;
+  const tete = '<section class="accueil"><div><h2>Mon compte</h2><p>' + (ONGLETS_PF().length > 1 ? "Vos informations, l'accès de votre équipe, votre abonnement et vos factures." : "Vos informations.") + "</p></div></section>" + barre;
   if (PF_ONG === "acces") { A.$("page").innerHTML = tete + '<div id="cfProfil">' + (await vueAcces()) + "</div>"; return; }
   if (PF_ONG === "abonnement" || PF_ONG === "factures") {
     const dessiner = () => { if (!location.hash.startsWith("#profil")) return; A.$("page").innerHTML = tete + (PF_ONG === "abonnement" ? aboP.htmlAbonnement() : aboP.htmlFactures()); };
@@ -194,7 +194,7 @@ window.pfLieu = (code) => {
 
 // ───── Google Agenda : chaque membre relie SON compte Google ; un agenda « Onco360 » y est créé et tenu à jour
 // (sens unique) par les fonctions serveur (functions/index.js) avec les patients qu'il a le droit de voir.
-// État : utilisateurs/{uid}.agendaGoogle. Ancienne synchronisation par le script Google du titulaire : parametres/agendaGoogle.
+// État : utilisateurs/{uid}.agendaGoogle. (Ancien script Google du titulaire, parametres/agendaGoogle : retiré le 11/10/2026.)
 const URL_GAGENDA = "https://calendar.google.com/calendar/r";
 const SCOPES_GAGENDA = "openid email https://www.googleapis.com/auth/calendar.app.created";
 let GIS = null; // bibliothèque Google (fenêtre de connexion), chargée à l'ouverture de l'onglet
@@ -206,9 +206,8 @@ async function appelServeur(nom, donnees) {
 }
 const ilYa = (iso) => { const min = Math.round((Date.now() - new Date(iso).getTime()) / 60000); return min < 1 ? "à l'instant" : min < 60 ? "il y a " + min + " min" : min < 1440 ? "il y a " + Math.round(min / 60) + " h" : "le " + A.dfrA(iso.slice(0, 10)); };
 async function vueAgendaG() {
-  const [su, sa] = await Promise.all([getDoc(doc(db, "utilisateurs", D().u.uid)).catch(() => null), getDoc(doc(db, "espaces", A.ESPACE, "parametres", "agendaGoogle")).catch(() => null)]);
+  const su = await getDoc(doc(db, "utilisateurs", D().u.uid)).catch(() => null);
   const G = su && su.exists() ? su.data().agendaGoogle || null : null; D().profil.agendaGoogle = G;
-  const V = sa && sa.exists() ? JSON.parse(sa.data().data || "{}") : null; D().agendaG = V;
   if (GOOGLE_CLIENT_ID) chargerGIS().catch(() => {});
   const esc = A.esc, tit = estTitulaire(), relie = !!(G && G.email);
   let h = '<section class="carte"><h3><span class="ic">' + A.ic("agenda") + "</span>Mon Google Agenda</h3>";
@@ -221,10 +220,6 @@ async function vueAgendaG() {
     '<p class="mesures"><b>Ce qui apparaît :</b> consultations, hospitalisations' + (["voir", "modifier"].indexOf((D().membre.droits || {}).traitements) >= 0 ? ", cures J1/J8…" : "") + (["voir", "modifier"].indexOf((D().membre.droits || {}).radiotherapie) >= 0 ? ", scanner, dosimétrie, début et fin de radiothérapie" : "") + (tit ? ", absences du cabinet" : "") +
     ", pour les patients " + (D().membre.tousEtablissements ? "de tous les établissements" : "de vos établissements (" + esc((D().membre.etablissements || []).join(", ")) + ")") + ". Mise à jour à chaque enregistrement dans Onco360 (en général en moins d'une minute).</p>" +
     '<p class="mesures"><b>Sens unique :</b> ce qui est ajouté ou modifié dans Google Agenda ne revient pas dans Onco360. Créez et déplacez toujours les rendez-vous dans Onco360. <b>Tâches :</b> celles dont vous êtes responsable et qui ont une échéance (journée entière, ou 15 min à l\'heure prévue ; « EN RETARD » reportée chaque jour sur aujourd\'hui ; retirée une fois terminée ; sans rappel Google). Onco360 n\'a accès qu\'à l\'agenda « Onco360 » qu\'il a créé : vos autres agendas Google ne sont ni lus ni modifiés. L\'agenda apparaît aussi sur votre téléphone (application Google Agenda, ou Calendrier de l\'iPhone relié à ce compte Google).</p></section>';
-  // Titulaire : ancienne synchronisation (script Google, agenda « Chimio HGC » renommé) encore active
-  if (tit && V && !V.arrete && V.le) h += '<section class="carte"><h3><span class="ic">' + A.ic("horloge") + "</span>Ancienne synchronisation (script Google)</h3>" +
-    '<p class="sous">L\'agenda « ' + esc(V.calendrier || "Chimio HGC") + " » est encore rempli par votre script Google (dernière mise à jour " + esc(ilYa(V.le)) + ")." +
-    (relie ? " Votre nouvel agenda « Onco360 » le remplace : dans le script Google, lancez <b>arreterAgendaAppsScript</b>, puis supprimez l'ancien agenda dans Google Agenda si vous n'en voulez plus (ses rendez-vous passés y restent sinon)." : " Il continue de fonctionner jusqu'à ce que vous reliez votre Google Agenda ci-dessus.") + "</p></section>";
   return h;
 }
 window.pfLierAgenda = () => {

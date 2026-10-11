@@ -20,3 +20,8 @@ export function libRdv(r) {
 }
 // Ancien format « rdv » unique converti en liste
 export function rdvMigre(P) { if (P.rdv && P.rdv.d) { P.rdvs = P.rdvs || []; P.rdvs.push({ id: "r" + Date.now(), type: P.rdv.t === "Prochaine consultation" ? "Suivi" : P.rdv.t || "Suivi", d: P.rdv.d, h: P.rdv.h || "", n: P.rdv.n || "", st: "prevu" }); delete P.rdv; } P.rdvs = P.rdvs || []; }
+// Durée par type de consultation (AG2, 11/10/2026). Clé du type d'un rendez-vous (« s:Annonce », « a:2avis ») : la même que
+// celle des types de la fenêtre du rendez-vous et des durées réglées dans Paramètres › Horaires (parametres/calendrier.durees)
+export const cleRdv = (r) => (r && r.act ? "a:" + r.act : "s:" + ((r && r.type) || "Suivi"));
+// Durée d'un rendez-vous (min) : la sienne (notée à l'enregistrement, `du`), sinon celle de son type, sinon celle du lieu
+export const dureeRdv = (r, durees, duLieu) => (r && +r.du) || (durees || {})[cleRdv(r)] || duLieu || 30;

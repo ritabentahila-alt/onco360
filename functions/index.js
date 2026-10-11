@@ -88,7 +88,7 @@ async function syncComplet(uid, J, extra) {
   for (const { e, m, nom, titulaire: tit } of cabs) {
     const pats = await db.collection("espaces/" + e + "/patients").select("resume", "etablissementId").get();
     let v = [];
-    pats.forEach((d) => { v = v.concat(L.evtsPatient(d.data(), m, auj)); });
+    pats.forEach((d) => { v = v.concat(L.evtsPatient(d.data(), m, auj, { uid, titulaire: tit })); });
     // Tâches dont la personne est responsable (nom actuel du patient lu dans son dossier)
     const ts = await db.collection("espaces/" + e + "/taches").where("pour", "==", uid).get(), noms = {};
     pats.forEach((d) => { try { noms[d.id] = JSON.parse(d.data().resume || "{}").nm || ""; } catch (er) { /* résumé illisible */ } });
@@ -171,9 +171,9 @@ exports.agendaDelier = onCall(OPTS, async (req) => {
 exports.agendaPatient = onDocumentWritten(Object.assign({ document: "espaces/{e}/patients/{p}" }, OPTS), async (ev) => {
   const avant = ev.data.before.exists ? ev.data.before.data() : null, apres = ev.data.after.exists ? ev.data.after.data() : null;
   if (avant && apres && avant.resume === apres.resume && avant.etablissementId === apres.etablissementId) return;
-  const auj = L.jourCasa();
+  const auj = L.jourCasa(), tit = await titulaire(ev.params.e);
   for (const d of await liesA(ev.params.e)) {
-    try { const m = await membre(ev.params.e, d.id); await syncGroupe(d.id, d.data(), ev.params.e, ev.params.p, L.evtsPatient(apres, m, auj)); }
+    try { const m = await membre(ev.params.e, d.id); await syncGroupe(d.id, d.data(), ev.params.e, ev.params.p, L.evtsPatient(apres, m, auj, { uid: d.id, titulaire: tit })); }
     catch (e) { await echec(d.id, e); }
   }
 });

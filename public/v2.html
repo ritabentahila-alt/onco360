@@ -173,7 +173,7 @@ nav a.actif .i{color:#fff}
 .champs{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px 18px;margin-top:16px;padding-top:14px;border-top:1px solid var(--trait)}
 .champs label{display:block;font-size:12px;color:var(--doux)}
 .champs div b{font-weight:bold}
-/* Abonnement du cabinet (18.5) : carte du tableau de bord, onglets Abonnement et Factures de Profil & Paramètres */
+/* Abonnement du cabinet (18.5) : carte du tableau de bord, onglets Abonnement et Factures de Mon compte */
 .abo-c{display:flex;gap:18px;align-items:center;border-left:5px solid var(--orange);flex-wrap:wrap}.abo-c.rouge{border-left-color:var(--rouge)}.abo-c .abo-g{flex:1;min-width:240px}
 .abo-tete{display:flex;gap:10px;align-items:center;color:var(--doux);font-size:14px;margin-bottom:10px}.abo-b{background:var(--orange-c);color:var(--orange);font-weight:bold;font-size:12px;padding:4px 10px;border-radius:20px;letter-spacing:.3px}.abo-c.rouge .abo-b{background:var(--rouge-c);color:var(--rouge)}
 .abo-l{display:flex;gap:18px;align-items:center}.abo-j{border:1px solid var(--trait);border-radius:16px;padding:10px 14px;text-align:center;min-width:92px;background:#FFF8F8}.abo-j b{display:block;font-size:34px;color:var(--rouge);line-height:1.1}.abo-c.orange .abo-j b{color:var(--orange)}.abo-j span{font-size:12px;color:var(--doux)}
@@ -631,6 +631,10 @@ a.lien-nm{text-decoration:none}a.lien-nm:hover{text-decoration:underline}
 .ev-g.part b,.ev-g.part span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ev-g{position:absolute;right:2px;border:0;border-radius:6px;padding:2px 6px;text-align:left;font-size:11.5px;overflow:hidden;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.08);z-index:2}
 .ev-g b,.ev-g span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ev-g span{opacity:.85}
+/* AG3 (11/10/2026) : rendez-vous glissé vers un autre créneau */
+.ev-g.dep{cursor:grab}.ev-g.glisse{opacity:.35}
+.ag-cible{position:absolute;left:2px;right:2px;border:2px dashed var(--prim);background:rgba(53,99,176,.10);border-radius:6px;z-index:3;font-size:11.5px;font-weight:bold;font-style:normal;color:var(--prim);padding:1px 6px;pointer-events:none;box-sizing:border-box}
+.dep-de{line-height:1.7;margin:4px 0 12px}.dep-de s{color:var(--doux)}
 .maint{position:absolute;left:0;right:0;height:2px;background:#E5484D;z-index:3;pointer-events:none}
 .maint::before{content:"";position:absolute;left:-4px;top:-3px;width:8px;height:8px;border-radius:50%;background:#E5484D}
 .ag-mois{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
@@ -727,7 +731,7 @@ nav a.actif{box-shadow:var(--ombre-prim)}
 #tete{box-shadow:0 1px 0 var(--trait),0 4px 14px rgba(30,42,68,.04)}
 @media (prefers-reduced-motion:reduce){.k,.bt{transition:none}button.k:hover,a.k:hover,.bt.plein:hover{transform:none}}
 /* ── Même présentation partout (20.4, 11/10/2026) ── */
-/* Onglets soulignés (comme le dossier) pour les longues barres : Paramètres, Profil & Paramètres */
+/* Onglets soulignés (comme le dossier) pour les longues barres : Paramètres, Mon compte */
 .ag-vues.defile{background:none;border:0;border-bottom:1px solid var(--trait);border-radius:0;padding:0;gap:4px;box-shadow:none;align-self:stretch!important}
 .defile-cadre{align-self:stretch!important}
 .ag-vues.defile button{border-radius:0;border-bottom:3px solid transparent;margin-bottom:-1px;padding:12px 12px 10px;font-size:15px;background:none}
@@ -758,6 +762,44 @@ nav a.actif{box-shadow:var(--ombre-prim)}
 .abo-band{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--orange-c);color:#6B4300;border-radius:var(--r-m);padding:9px 14px;font-size:14px}
 .abo-band .i{width:18px;height:18px;color:var(--orange)}.abo-band span{flex:1;min-width:200px}.abo-band a{color:var(--orange);font-weight:bold;text-decoration:none;white-space:nowrap}
 @media (max-width:640px){.af-l{flex-wrap:wrap}.af-l .badge{order:2}}
+/* ── Paramètres en 4 familles (audit externe, 11/10/2026) ── */
+.cf-sous{display:flex;flex-wrap:wrap;gap:6px;margin:-4px 0 4px}
+.cf-sous button{border:1px solid var(--trait);background:#fff;border-radius:20px;padding:7px 14px;font-size:14px;color:var(--encre);cursor:pointer}
+.cf-sous button:hover{border-color:var(--prim-cc);color:var(--prim)}
+.cf-sous button.on{background:var(--prim-c);border-color:var(--prim-cc);color:var(--prim);font-weight:bold}
+@media (max-width:640px){.cf-sous{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}.cf-sous::-webkit-scrollbar{display:none}.cf-sous button{flex:none;white-space:nowrap;min-height:40px}}
+.cf-n{display:inline-block;min-width:22px;padding:1px 7px;border-radius:12px;background:var(--gris-c);color:var(--doux);font-size:12px;font-weight:bold;text-align:center;margin-left:4px}
+/* Retrait discret : gris, rouge au survol (plus de croix rouge sur chaque ligne) */
+.sup{border:1px solid transparent;background:none;border-radius:8px;width:32px;height:32px;display:inline-grid;place-items:center;color:#8A94A6;cursor:pointer;flex:none;padding:0}
+.sup .i{width:16px;height:16px;margin:0}.sup:hover,.sup:focus-visible{color:#A3243B;background:#FBEAEC;border-color:#F3C9D0}
+.cf-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}.cf-2>.carte{margin:0}
+/* WhatsApp : messages repliés, un ouvert à la fois */
+.wa-l{border:1px solid var(--trait);border-radius:var(--r-m);overflow:hidden}
+.wa-i+.wa-i{border-top:1px solid var(--trait)}
+.wa-t{display:grid;grid-template-columns:minmax(180px,300px) minmax(0,1fr) 16px;gap:14px;align-items:center;width:100%;text-align:left;background:#fff;border:0;padding:11px 14px;cursor:pointer;font:inherit;color:var(--encre)}
+.wa-t:hover{background:#F6F9FE}.wa-t .n{font-weight:bold;font-size:14.5px}.wa-t .ap{color:var(--doux);font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wa-t .chev{color:var(--doux);font-size:18px;transition:transform .15s ease}.wa-i.on .wa-t{background:var(--prim-c)}.wa-i.on .chev{transform:rotate(90deg)}
+.wa-ed{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;padding:4px 14px 14px;background:#FBFCFE}.wa-ed .notes{margin-top:8px}.wa-ed .wa-ex{max-width:none;margin-top:4px}
+.wa-v{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px}.wa-v .puce{cursor:pointer;font-family:inherit}
+@media (max-width:760px){.wa-t{grid-template-columns:minmax(0,1fr) 16px}.wa-t .ap{display:none}.wa-ed{grid-template-columns:1fr}}
+/* Tableau de bord du cabinet : ordre, présence, colonne */
+.cf-ord{display:flex;flex-direction:column;max-width:720px;border:1px solid var(--trait);border-radius:var(--r-m)}
+.cf-ord .it{display:flex;align-items:center;gap:10px;padding:8px 12px}.cf-ord .it+.it{border-top:1px solid var(--trait)}.cf-ord .it.off .t{color:var(--doux)}
+.cf-ord .fl2{display:flex;gap:2px}.cf-ord .fl2 .ico{margin:0}.cf-ord .t{flex:1;min-width:0;font-weight:normal}.cf-ord .t input{width:18px;height:18px}.cf-ord select{width:auto;min-width:150px}
+@media (max-width:640px){.cf-ord .it{flex-wrap:wrap}.cf-ord select{flex:1}}
+/* Éditeur de la fiche patient et du formulaire de consultation (editeurfiche.js, commun avec l'Administration) */
+.edf .rg-b{border:1px solid var(--trait);border-radius:var(--r-m);padding:4px 12px;max-width:900px}
+.edf .rg-l{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--trait)}.edf .rg-l:last-child{border-bottom:0}
+.edf .rg-t{flex:1;min-width:0;font-size:14.5px}.edf .m{color:var(--doux);font-size:12.5px;font-weight:normal}
+.edf .fl{display:flex;gap:2px;width:auto;padding:0;border:0;font-size:inherit;margin:0}
+.edf button.clair{border:1px solid var(--trait);background:#fff;border-radius:8px;padding:4px 9px;font-size:13px;font-weight:bold;color:var(--titre);cursor:pointer}
+.edf button.clair:hover{border-color:var(--prim-cc);color:var(--prim)}.edf button:disabled{opacity:.4;cursor:default}
+.edf button.petit:not(.clair){background:var(--prim);color:#fff;border:1px solid var(--prim);border-radius:8px;padding:6px 12px;font-weight:bold;cursor:pointer}
+.edf .rg-c{display:flex;gap:6px;align-items:center;margin:0;font-size:13px;font-weight:normal;cursor:pointer}.edf .rg-c input{width:16px;height:16px;margin:0}
+.edf .en-c,.edf .pr-c{white-space:nowrap;min-width:78px;color:var(--doux)}.edf .pr-c{min-width:70px}
+.edf .ch-f{border:1px dashed var(--prim);border-radius:var(--r-m);padding:12px;margin-top:10px;max-width:900px}
+.edf .barre{height:auto;background:none;overflow:visible;border-radius:0;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+@media (max-width:640px){.edf .rg-l{flex-wrap:wrap;gap:6px 10px}.edf .rg-t{flex-basis:calc(100% - 90px)}}
 </style>
 </head>
 <body>
@@ -823,7 +865,7 @@ nav a.actif{box-shadow:var(--ombre-prim)}
     <a href="#protocoles" data-p="protocoles" data-mod="chimio" data-fn="chimio.protocoles" data-bib="protocoles"><svg class="i"><use href="#i-protocoles"/></svg>Protocoles</a>
     <a href="#parametres" data-p="parametres"><svg class="i"><use href="#i-parametres"/></svg>Paramètres</a>
     <a href="#bilan" data-p="bilan" data-droit="finances" data-mod="bilan"><svg class="i"><use href="#i-bilan"/></svg>Bilan</a>
-    <a href="#profil" data-p="profil"><svg class="i"><use href="#i-profil"/></svg>Profil &amp; Paramètres</a>
+    <a href="#profil" data-p="profil"><svg class="i"><use href="#i-profil"/></svg>Mon compte</a>
   </nav>
   <div class="pied">
     <div class="qui"><div class="av" id="avMenu">··</div><div><b id="nomMenu">…</b><span id="specMenu"></span></div></div>
@@ -858,6 +900,6 @@ function onco360Deconnecter() {
 }
 </script>
 
-<script type="module" src="./js/app/v2.js?v=20261011s"></script>
+<script type="module" src="./js/app/v2.js?v=20261011t"></script>
 </body>
 </html>

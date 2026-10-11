@@ -37,7 +37,7 @@ Après déploiement : recharger sans cache (Cmd + Maj + R). Les `.js` sont servi
 | `js/app/fichepatient.js` | Fiche patient réglable : ordre, champs retirés (cachés), champs ajoutés (saisie, lecture, impression) |
 | `js/app/audit.js` | Journal d'audit (onglet Paramètres du titulaire) : période, filtres, export Excel ; `auditPatient(id)` |
 | `js/app/rcp.js` | RCP (étape 7, 09/10/2026) : dates (`parametres/rcp`, Paramètres › RCP : jours de la semaine, heure, lieu, dates ajoutées / annulées, pas de RCP un jour férié), bouton « + RCP » de la barre des prescriptions (inscription à la prochaine date, question, date d'inscription ; ▾ = RCP du patient), onglet « RCP » de la page Tâches (`#taches/rcp` : calendrier des semaines, période, Tous / À faire / Faits, case Fait, impression), dossier ouvert depuis la liste = bulles Décision RCP (consultation type « RCP » pré-remplie, `nouvelleConsultation` de consultations.js) · Valider (case Fait, retour à la liste) · Fermer ; inscriptions non faites dans « Rendez-vous et tâches à venir » ; écoute en direct (`demarrerRcp`) |
-| `js/app/agenda.js` | agenda Liste/Jour/Semaine/Mois, filtre par établissement |
+| `js/app/agenda.js` | agenda Liste/Jour/Semaine/Mois, filtre par établissement ; étape 21 (11/10/2026) : vue Jour à l'ouverture sur téléphone, hauteur = durée (`dureeDe`), glisser-déposer d'un rendez-vous (`glisser` → v2.js `deplacerRdv` : confirmation, `rep`), filtre « Médecin » (≥ 2 médecins, `AG.med`), heure facultative des séances de chimio et du scanner (`fenetreHeure`, `heureSeance` de chimio.js, `heureRT` de v2.js) ; test `tests/test_agenda.py` |
 | `js/app/configuration.js` | page **Paramètres** (menu ; `#configuration` y renvoie, 08/10/2026) : onglets `ONGLETS()` = horaires (par établissement), absences, fériés, WhatsApp, couleurs Google Agenda (`parametres/couleursAgenda`), types de documents, types de tâches, listes (diagnostics, mutuelles, correspondants : `parametres/listes` { diag, mut, cor, complet } ; nom corrigé → corrigé dans les dossiers ; nom nouveau d'une fiche patient → ajouté, `enrichirListes`, règle ouverte aux droits identité / fiche / créer), Google Agenda personnel (`utilisateurs/{uid}.agendaFiltre`, cases par catégorie) + couleurs, bibliothèques (fenêtres de prescription en gestion : `gererListe` d'ordonnances.js), impression, alertes, Activités et rémunérations (parametres.js, droit finances) |
 | `js/app/reglages.js` | réglages simples `parametres/reglages` (marges d'impression A5 / A4 / documents, délai du bouton WhatsApp vert, délais des alertes) : `reglages()`, `margesMm()`, variables CSS de l'aperçu |
 | `js/app/profil.js` | page **Profil & Paramètres** (18.5) : onglets Informations (photo, INPE, signature, mot de passe), Accès (droits de l'équipe, titulaire), Abonnement et Factures (titulaire, `js/app/abonnement.js` : fonctions `monAbonnement` / `demandeAbonnement`, carte du tableau de bord) ; fournit à Paramètres (`htmlOngletProfil`) les onglets Lieux d'exercice et Google Agenda |
@@ -150,6 +150,12 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
 - Report de chimio avec le seul droit « planning » (secrétaire, depuis le 08/10/2026) : `sauverLignes` n'écrit que `planningJson` ;
   l'historique du report y est gardé (`planning[ligne][n].rep`, `.srep[j]`), ajouté par `fusionner`, repris dans `lignesJson` au
   prochain enregistrement du médecin.
+- Agenda (étape 21, 11/10/2026) : rendez-vous `du` (durée en min, notée à l'enregistrement ; sinon `parametres/calendrier.durees`
+  { "s:Annonce" | "a:<activité>": min } = Paramètres › Horaires › « Durée par type de consultation », tous les lieux ; sinon `duree` du lieu
+  = pas des créneaux) (moteur/rdv.js `cleRdv` / `dureeRdv`, configuration.js `dureeDe` / `dureeType`) ; `med` (uid du médecin, sans = titulaire,
+  `D.medecins` chargé par `chargerMedecins`, `multiMed` / `medRdv`) ; créneaux et doubles réservations par médecin à partir de 2 médecins ;
+  heure facultative d'une séance de chimio `planning[ligne][n].hr` (J1) / `.shr[j]` = { h, du } (avec les dates : droit « planning »,
+  `separer` / `fusionner` ↔ `c.hr`, `c.sea[j].hr`) et du scanner de centrage `rts[].scanH` { h, du } (droit RT « modifier »).
 - Numéro de dossier (étape 8, 09/10/2026) : `identite.numero` = AAAAMM + rang d'inscription dans le mois (`functions/numeros.js`),
   attribué par les fonctions serveur `numeroDossier` (à la création, appelée par `attribuerNumero` de v2.js) et `numerosManquants`
   (dossiers sans numéro, une fois, par le titulaire dans `migrations()`), transaction sur `compteurs/dossiers` { "AAAAMM": n }
@@ -287,8 +293,10 @@ Ancienne application : collections racine `patients`, `protocoles`, `finances`, 
   `utilisateurs/{uid}.agendaGoogle`. Logique pure : `functions/logique.js`, tests : `node functions/test-logique.js`.
   Prérequis : API Google Calendar activée, écran de consentement « Onco360 » publié, client OAuth Web (ID dans
   `public/js/config.js` GOOGLE_CLIENT_ID et `functions/.env` ; secret : `firebase functions:secrets:set GOOGLE_CLIENT_SECRET`).
-- **Ancien (script Google du titulaire)** : `apps-script/onco360-agenda.gs`, agenda « Chimio HGC » (à renommer « Onco360 »),
-  toutes les 10 min, état dans `parametres/agendaGoogle`. À arrêter (`arreterAgendaAppsScript`) quand le Dr a relié son agenda.
+- **Ancien (script Google du titulaire)** : arrêté le 06/10, `apps-script/onco360-agenda.gs` et la carte « Ancienne synchronisation »
+  retirés le 11/10/2026 (`parametres/agendaGoogle` n'est plus lu).
+- Étape 21 (11/10/2026) : événements de rendez-vous avec `dur` (durée notée) et `m` (médecin) ; `permis(m, ev, r, qui)` : l'agenda d'un
+  médecin ne reçoit que ses rendez-vous (sans `m` = titulaire) ; séances de chimio / scanner avec heure → `h` + `dur`.
 
 ## Phase F : plusieurs cabinets (décidé le 06/10/2026, but : vendre Onco360 avec un guide complet)
 Choix de Dr Bentahila : inscription par **code d'activation** (vendu par elle) ; nouveau cabinet = **copie de sa bibliothèque

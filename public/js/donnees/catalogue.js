@@ -11,7 +11,7 @@ import { MODULES, FORMULES } from "./modules.js";
 export const MENU = [
   ["accueil", "Tableau de bord", null], ["agenda", "Agenda / Rendez-vous", "agenda"], ["salle", "Salle d'attente", "salle"],
   ["patients", "Patients", null], ["taches", "Tâches", "taches"], ["protocoles", "Protocoles", "chimio"],
-  ["parametres", "Paramètres", null], ["bilan", "Bilan", "bilan"], ["profil", "Profil", null],
+  ["parametres", "Paramètres", null], ["bilan", "Bilan", "bilan"], ["profil", "Mon compte", null],
 ];
 // Fonctions de chaque module (partie 1.2 du plan, validée le 10/10/2026) ; 3e élément true = fonction de base, toujours présente avec
 // son module (la retirer casserait le module : lignes et cures de chimio, venu / non venu…)
@@ -106,6 +106,15 @@ export const ficheEffective = (f, spe) => formEffectif(FICHE, f, spe);
 export const ficheRetouches = (R, base) => formRetouches(FICHE, R, base);
 export const libChamp = (k, R) => libDe(FICHE, k, R);
 export const consultEffective = (f, spe) => formEffectif(CONSULT, f, spe);
+// Retouches faites par le cabinet lui-même (Paramètres › Cabinet, 11/10/2026 : parametres/formulaires { fiche, consultation }), par-dessus
+// la fiche et le formulaire réglés par l'administration (spécialité + retouches de l'administration) : ceux-ci servent de base (leurs
+// champs ajoutés ne sont pas modifiables par le cabinet, seulement présents / ordre / nom / en-tête).
+export function formulairesCabinet(reg, cab) {
+  const C = cab || {}, out = Object.assign({}, reg);
+  if (C.fiche && typeof C.fiche === "object") out.fiche = formEffectif(FICHE, C.fiche, reg.fiche);
+  if (C.consultation && typeof C.consultation === "object") out.consultation = formEffectif(CONSULT, C.consultation, reg.consultation);
+  return out;
+}
 // Cartes du tableau de bord (ordre de départ ; « afaire » = « À valider par le médecin » / « À faire par la secrétaire » /
 // « À faire par l'infirmière », selon le rôle, 11/10/2026)
 export const CARTES = [["ppas", "Pour commencer (cabinet neuf)"], ["jour", "Aujourd'hui"], ["afaire", "À valider / À faire (selon le rôle)"], ["rappels", "Rappels WhatsApp à envoyer"], ["sept", "Les 7 prochains jours"], ["taches", "Mes tâches"], ["conflits", "Conflits : rendez-vous à décaler"], ["stats", "Statistiques"]];
@@ -124,7 +133,8 @@ export function accueilEffectif(reg, cab) {
 }
 // Sections de paramétrage (page Paramètres), et si leurs valeurs viennent de la bibliothèque de la spécialité
 export const SECTIONS = [
-  ["horaires", "Créneaux & horaires", true], ["fermetures", "Fermetures, congés & jours fériés", true], ["lieux", "Lieux d'exercice", false], ["acces", "Accès (équipe)", false],
+  ["horaires", "Créneaux & horaires", true], ["fermetures", "Fermetures, congés & jours fériés", true], ["lieux", "Lieux d'exercice", false],
+  ["accueil", "Tableau de bord (cartes)", false], ["fiche", "Fiche patient", false], ["consultation", "Formulaire de consultation", false], ["acces", "Accès (équipe)", false],
   ["audit", "Journal d'audit", false], ["whatsapp", "WhatsApp", true], ["couleurs", "Google Agenda", true], ["documents", "Documents (types)", true], ["taches", "Tâches", true],
   ["rcp", "RCP", true], ["listes", "Listes", true], ["bibliotheques", "Bibliothèques", true], ["impression", "Impression", true], ["alertes", "Alertes", true], ["activites", "Activités et rémunérations", true],
 ];

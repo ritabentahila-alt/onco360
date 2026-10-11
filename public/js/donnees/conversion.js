@@ -15,6 +15,9 @@ export function separer(P0) {
       const n = i + 1;
       if (c.fixe != null) { ((planning[L.id] = planning[L.id] || {})[n] = planning[L.id][n] || {}).fixe = c.fixe; delete c.fixe; }
       if (c.sea) Object.keys(c.sea).forEach((j) => { const s = c.sea[j]; if (s && s.fixe != null) { const pl = ((planning[L.id] = planning[L.id] || {})[n] = planning[L.id][n] || {}); (pl.sea = pl.sea || {})[j] = s.fixe; delete s.fixe; } });
+      // Heure d'une séance (AG5, 11/10/2026) : { h, du } de J1 (hr) et des séances J8… (shr[j]), avec les dates (droit « planning »)
+      if (c.hr) { ((planning[L.id] = planning[L.id] || {})[n] = planning[L.id][n] || {}).hr = c.hr; delete c.hr; }
+      if (c.sea) Object.keys(c.sea).forEach((j) => { const s = c.sea[j]; if (s && s.hr) { const pl = ((planning[L.id] = planning[L.id] || {})[n] = planning[L.id][n] || {}); (pl.shr = pl.shr || {})[j] = s.hr; delete s.hr; } });
       if (c.hon != null || c.cons != null) { const m = ((montants.cures[L.id] = montants.cures[L.id] || {})[n] = {}); if (c.hon != null) { m.hon = c.hon; delete c.hon; } if (c.cons != null) { m.cons = c.cons; delete c.cons; } }
     });
     return L;
@@ -47,6 +50,8 @@ export function fusionner(id, doc, montants) {
       if (pl && pl.poids != null) c.poids = pl.poids;
       if (pl && pl.spoids) Object.keys(pl.spoids).forEach((j) => { c.sea = c.sea || {}; c.sea[j] = c.sea[j] || { st: "prevue" }; c.sea[j].poids = pl.spoids[j]; });
       if (pl && pl.pv) c.pv = Object.assign({}, c.pv || {}, pl.pv);
+      if (pl && pl.hr) c.hr = pl.hr; // heure de J1 (AG5)
+      if (pl && pl.shr) Object.keys(pl.shr).forEach((j) => { c.sea = c.sea || {}; c.sea[j] = c.sea[j] || { st: "prevue" }; c.sea[j].hr = pl.shr[j]; });
       const m = M && M.cures && M.cures[L.id] && M.cures[L.id][n]; if (m) { if (m.hon != null) c.hon = m.hon; if (m.cons != null) c.cons = m.cons; }
     });
     return L;

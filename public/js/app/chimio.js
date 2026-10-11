@@ -50,6 +50,13 @@ async function sauverLignes(x, lignes, quoi, extra) {
   if (!Object.keys(changes).length) return;
   await A.enregistrer(x, changes, quoi);
 }
+// Heure facultative d'une séance (AG5, 11/10/2026), notée depuis l'agenda : hr = { h, du } ou null (retirée) ; j = 1 pour la cure (J1)
+export async function heureSeance(x, lid, n, j, hr) {
+  const lignes = lignesDe(x), L = lignes.find((z) => z.id === lid), c = L && L.cures[n - 1]; if (!c) throw new Error("Séance introuvable.");
+  if (+j === 1) { if (hr) c.hr = hr; else delete c.hr; }
+  else { c.sea = c.sea || {}; c.sea[j] = c.sea[j] || { st: "prevue" }; if (hr) c.sea[j].hr = hr; else delete c.sea[j].hr; }
+  await sauverLignes(x, lignes, "C" + n + " J" + j + (hr ? " : heure " + hr.h + " (" + hr.du + " min)" : " : heure retirée"));
+}
 async function chargerMontants(x) {
   if (!A.peut("finances")) return null;
   if (MC[x.id]) return MC[x.id];

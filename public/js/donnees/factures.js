@@ -1,5 +1,5 @@
 // Onco360 – facture et avoir A4 (étape 18.4, 10/10/2026) : mise en page à partir d'une fiche factures/{id} (voir functions/index.js
-// facturer) ; sans DOM ni Firebase (utilisée par l'Administration et, à l'étape 18.5, par Profil & Paramètres › Factures).
+// facturer) ; sans DOM ni Firebase (utilisée par l'Administration et, à l'étape 18.5, par Mon compte › Factures).
 // Mentions : éditrice (raison sociale, forme, ICE, IF, RC, patente, CNSS, adresse), client (raison sociale, ICE, IF, adresse), date,
 // numéro, désignation, période, HT, TVA 20 %, TTC, montant en lettres, « payée le … par … », RIB.
 const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);

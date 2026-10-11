@@ -1536,6 +1536,34 @@ Onco360_Package_Cession/
 - [ ] **Imagerie (DICOM)** : au minimum, **liens** vers les clichés (scanner, IRM) ou la console de radiothérapie dans le
       dossier ; plus tard, visionneuse intégrée.
 
+## Étape 21 – Agenda et rendez-vous : audit externe (11/10/2026)
+Constats : séances de chimio et étapes de RT sans heure (ligne « Journée ») ; une seule durée par lieu ; pas de médecin sur le
+rendez-vous ; déplacer = ouvrir puis modifier ; téléphone : vue Semaine illisible (7 colonnes de 37 px).
+Décisions de Dr Bentahila (11/10) : heure **facultative** pour les séances de chimio et le scanner de centrage ; durée **par type de
+consultation, la même dans tous les lieux** (réglée par le médecin ou la secrétaire, un seul réglage pour le cabinet ; la durée du
+lieu reste le pas des créneaux) ; **médecin du rendez-vous** + filtre (≥ 2 médecins) + Google Agenda d'un médecin = ses rendez-vous ;
+déplacer par **glisser-déposer avec confirmation** (vues Jour et Semaine, ordinateur).
+- [x] AG1 – Téléphone : vue Jour à l'ouverture (< 640 px) ; ancien script d'agenda retiré (fichier et carte « Ancienne synchronisation »).
+- [x] AG2 – Durée par type de consultation (Paramètres › Horaires, carte sous les horaires ; médecin ou secrétaire) : hauteur dans la
+      grille, créneaux proposés (pas du lieu, la durée doit tenir avant la fin de la plage), double réservation (chaque rendez-vous avec
+      sa durée), durée modifiable dans la fenêtre du rendez-vous et notée dessus (`du`), Google Agenda (fin de l'événement).
+- [x] AG3 – Glisser-déposer un rendez-vous (vues Jour et Semaine, souris ; repère « 15:00 – 15:20 » pendant le glisser) : confirmation
+      avec ancien / nouvel horaire et avertissements (absence, férié, horaires, déjà prévu), historique `rep`, WhatsApp proposé. Pas pour
+      un patient déjà arrivé en salle d'attente.
+- [x] AG4 – Médecin du rendez-vous (à partir de 2 médecins actifs) : choix dans la fenêtre (prérempli : le médecin connecté, sinon le
+      titulaire, ou celui du filtre), filtre « Médecin » (médecin : son agenda d'abord ; secrétaire : tous), nom du médecin sur le
+      rendez-vous en vue « Tous », créneaux et doubles réservations par médecin ; Google Agenda d'un médecin = ses rendez-vous
+      (anciens sans médecin = titulaire). Un seul médecin : rien ne change à l'écran.
+- [x] AG5 – Heure facultative des séances de chimio (J1, J8…) et du scanner de centrage : clic sur la séance = fenêtre Heure / Durée
+      (2 h / 30 min par défaut, « Retirer l'heure ») ; ou glisser la séance de « Journée » vers la grille (même jour seulement : changer
+      de jour = reporter depuis le dossier) ; Google Agenda à l'heure. Chimio : médecin et secrétaire (droit « planning ») ; scanner :
+      droit radiothérapie « modifier ». Infirmière : lecture seule.
+- Tests : `tests/test_agenda.py` (55 vérifications), `functions/test-logique.js` (+4 : médecin du rendez-vous). Salle d'attente (51),
+  réglage, fiche, protocoles, moteur (salle, bilan, reçus) inchangés.
+- [ ] Mise en ligne (accord de Dr Bentahila) : site **et fonctions** (`firebase deploy --only functions` : Google Agenda par médecin et
+      durées). Pas de nouvelle règle Firestore.
+- Plus tard si besoin : heure des séances de chimio dans la salle d'attente (ordre d'arrivée prévu) ; filtre Praticien de la salle.
+
 ## Étape 20 – Design (demandé le 11/10/2026, modèle : captures de Tbibclic)
 But : profiter de tout l'écran sur ordinateur, menu repliable, cartes en relief, présentation identique d'une page à l'autre.
 On garde le bleu Onco360 (#3563B0) et Arial ; les impressions (ordonnances, fiches, plis) ne changent pas.
@@ -1584,6 +1612,22 @@ ordre des cartes réglé seulement par l'administration ; alertes non cliniques 
 - [ ] Plus tard (à décider) : compter les séances de radiothérapie réellement faites (validation par séance) ; même libellé
       « prévues » dans le dossier (« Séances réalisées » y est aussi un calcul de calendrier).
 - Test : `tests/test_accueil.py` (3 rôles, 1440 / 1100 / 390 px, abonnement, réglage du cabinet).
+
+## Étape 23 – Audit externe n° 2 : code, modules, fonctions (11/10/2026) — plan : `AUDIT-EXTERNE-2.md` (à valider)
+Audit du Drive (dossier « Audit », version da85b72) : rien n'est figé à la validation, saisies aberrantes acceptées, radiothérapie
+mince, dossier sans données tumorales, tout chargé dans le navigateur. Déjà réglé depuis : Bilan (15 bis), salle (SA9), tableau de
+bord (22) ; agenda planifié (21). Ordre : A → B → C → D → E, F intercalé, G avant un groupe. 12 questions en fin de plan.
+- [ ] A Assainir : A1 fichiers de l'ancienne app · A2 correspondants hors du code · A3 Casablanca / soussignée / HGC / CNSS ·
+      A4 bibliothèques dans le site (SheetJS 0.20.3) · A5 tests sur jeu fictif + `test-doses.mjs` · A6 code mort, fonctions
+      communes, transactions (protocoles) · A7 feuille de route allégée
+- [ ] B Sécuriser : B1 cure figée à la validation · B2 bornes de plausibilité · B3 prémédication par molécule · B4 RT contrôlée
+      (revalidation de la dosimétrie) · B5 documents RT honnêtes · B6 protocoles : validation tracée
+- [ ] C Dossier oncologique (après `editeurfiche.js`) : C1 fiche tumeur · C2 allergies · C3 statut, archivage · C4 modèle de consultation
+- [ ] D Radiothérapie : D1 volumes · D2 rythmes libres · D3 toxicités hebdomadaires · D4 compte rendu rempli
+- [ ] E Chimiothérapie : E1 bilan avant cure · E2 doses cumulées · E3 intention / réponse · E4 écran infirmière · E5 ergonomie
+- [ ] F Ergonomie : F1 prescriptions · F2 sauvegarde des fichiers · F3 Paramètres en 5 familles, « Mon compte » · F4 bilan téléphone, « Payé auto. »
+- [ ] G Montée en charge : G1 pagination · G2 photo hors du dossier · G3 index léger
+- [ ] H Geler administration et autres spécialités (question 11)
 
 ## Idées en attente (à placer dans une étape)
 - [x] Réécrire `tests/test_cures.py` et `tests/test_seances.py` (fait le 11/10 : tableau des jours, fenêtre du prix, voir journal).
@@ -1780,3 +1824,5 @@ ordre des cartes réglé seulement par l'administration ; alertes non cliniques 
 | 11/10/2026 | 6 bis – SA9 Salle d'attente | Suites de l'audit externe : onglet d'ouverture (En salle d'abord), Correspondant et Commentaire cachés par défaut, titres entiers à 1 440 px, téléphone (Filtres repliés, zones ≥ 44 px), reçus numérotés R-AAAA-NNNN (duplicata, numéros annulés gardés). Règles (9 suites), moteur, navigateur (51) testés. En ligne (règles + version 20261011s). |
 | 11/10/2026 | Tests chimio | `tests/test_cures.py` et `tests/test_seances.py` réparés (tests seulement, application inchangée) : la fenêtre de la cure est un tableau des jours J1 / J8 (boutons Ouvrir / Valider / Reporter) et non plus des tuiles ; après chaque validation, fenêtre du prix « Valider : venu » puis retour au dossier ; fiche chimio sans logo (papier à en-tête) avec « Dossier n° ». Les deux passent, aucune erreur JavaScript. |
 | 11/10/2026 | 22 – Tableau de bord (audit externe) | Deux colonnes à partir de 1 280 px (programme du jour à gauche), bloc « À valider par le médecin » / « À faire par la secrétaire » / « À faire par l'infirmière » (bouton Valider pour contourage, dosimétrie, fin de RT ; rappels WhatsApp), organisation réglable par le cabinet (`parametres/accueil`, avec la session Paramètres), pictogrammes au trait à la place des émojis, abonnement en bandeau pendant l'essai, « Séance n / N prévue ». Hauteur 2 700 → 1 500 px à 1 440 px. tests/test_accueil.py 20/20 ; salle, réglage, modules sans échec. Alertes cliniques : à décider avec Dr Bentahila. Pas encore en ligne. |
+| 11/10/2026 | 23 – Audit externe n° 2 | Dossier Drive « Audit » lu (5 documents ; onglet « Design » absent). Comparé au code actuel : Bilan, salle et tableau de bord déjà réglés depuis la version auditée. Plan en 8 lots (A à H, ~24 sessions) et 12 questions dans `AUDIT-EXTERNE-2.md`, à valider. Aucun code modifié. |
+| 11/10/2026 | 21 – Agenda (audit externe) | AG1 vue Jour sur téléphone, ancien script retiré ; AG2 durée par type de consultation ; AG3 glisser-déposer avec confirmation ; AG4 médecin du rendez-vous (filtre, créneaux, Google Agenda par médecin) ; AG5 heure facultative des séances de chimio et du scanner. Tests agenda 55/55, fonctions, salle 51/51. Pas encore en ligne. |
