@@ -1,25 +1,14 @@
 rules_version = '2';
-// Chimio HGC – règles de sécurité
-//  • Partie 1 : application actuelle (v1) – INCHANGÉE.
-//  • Partie 2 : plateforme v2 multi-utilisateurs (espaces/…) – droits par membre, choisis par le médecin.
+// Onco360 – règles de sécurité : plateforme multi-cabinets (espaces/…), droits par membre choisis par le titulaire.
+// (L'ancienne application v1 et ses règles ont été retirées le 11/10/2026.)
 service cloud.firestore {
   match /databases/{database}/documents {
 
     function connecte() { return request.auth != null; }
     function proprietaire() { return connecte() && request.auth.token.email == 'ritabentahila@gmail.com'; }
 
-    // ───────────── PARTIE 1 : ancienne application (v1) – LECTURE SEULE depuis la bascule du 06/10/2026 ─────────────
-    // Les données sont consultables (ancienne-app.html, conversion) mais plus rien ne s'y écrit : Onco360 est la référence.
-    function cheminRole() { return /databases/$(database)/documents/roles/$(request.auth.uid); }
-    function role() { return exists(cheminRole()) ? get(cheminRole()).data.role : ''; }
-    function estAdminV1() { return proprietaire() || (connecte() && role() == 'admin'); }
-    function estEquipe() { return estAdminV1() || (connecte() && role() in ['medecin', 'secretaire']); }
-    match /patients/{id} { allow read: if estEquipe(); allow write: if false; }
-    match /protocoles/{id} { allow read: if estEquipe(); allow write: if false; }
-    match /parametres/{id} { allow read: if estEquipe(); allow write: if false; }
-    match /finances/{document=**} { allow read: if estAdminV1(); allow write: if false; }
-    match /roles/{uid} { allow read: if connecte() && (request.auth.uid == uid || estAdminV1()); allow write: if estAdminV1(); }
-    match /historique/{id} { allow read: if estAdminV1(); allow create, update, delete: if false; }
+    // Ancienne application (v1) : retirée le 11/10/2026 (site, puis règles) ; ses collections racine (patients, protocoles,
+    // parametres, finances, roles, historique) ne sont plus ouvertes à personne (aucune règle = refus).
 
     // ───────────── PARTIE 2 : v2 ─────────────
     // Administrateurs de la plateforme (compte d'administration séparé depuis le 09/10/2026) : chacun lit sa fiche ; liste tenue
