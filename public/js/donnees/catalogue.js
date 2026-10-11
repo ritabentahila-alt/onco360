@@ -106,8 +106,22 @@ export const ficheEffective = (f, spe) => formEffectif(FICHE, f, spe);
 export const ficheRetouches = (R, base) => formRetouches(FICHE, R, base);
 export const libChamp = (k, R) => libDe(FICHE, k, R);
 export const consultEffective = (f, spe) => formEffectif(CONSULT, f, spe);
-// Cartes du tableau de bord (ordre de départ)
-export const CARTES = [["ppas", "Pour commencer (cabinet neuf)"], ["jour", "Aujourd'hui"], ["rappels", "Rappels WhatsApp à envoyer"], ["sept", "Les 7 prochains jours"], ["taches", "Mes tâches"], ["conflits", "Conflits : rendez-vous à décaler"], ["stats", "Statistiques"]];
+// Cartes du tableau de bord (ordre de départ ; « afaire » = « À valider par le médecin » / « À faire par la secrétaire » /
+// « À faire par l'infirmière », selon le rôle, 11/10/2026)
+export const CARTES = [["ppas", "Pour commencer (cabinet neuf)"], ["jour", "Aujourd'hui"], ["afaire", "À valider / À faire (selon le rôle)"], ["rappels", "Rappels WhatsApp à envoyer"], ["sept", "Les 7 prochains jours"], ["taches", "Mes tâches"], ["conflits", "Conflits : rendez-vous à décaler"], ["stats", "Statistiques"]];
+// Colonne de chaque carte sur grand écran (11/10/2026) : g = gauche, d = droite, l = pleine largeur ; sur tablette et téléphone, une
+// seule colonne dans l'ordre réglé. Le programme du jour est à gauche.
+export const COLONNES0 = { ppas: "l", jour: "g", afaire: "d", rappels: "d", sept: "g", taches: "d", conflits: "d", stats: "l" };
+// Organisation du tableau de bord : réglage de l'administration (reg = reglageEffectif(...) : accueil, cartes, col éventuel) puis
+// celui du cabinet (cab = parametres/accueil décodé { ordre, cartes, col }, ou null : Paramètres › Cabinet › Tableau de bord).
+// cartes du cabinet : true et false comptent (le cabinet peut remettre une carte retirée par l'administration) ; absent = réglage
+// de l'administration. Renvoie { ordre: [clés], cartes: { clé: bool }, col: { clé: "g"|"d"|"l" } }.
+export function accueilEffectif(reg, cab) {
+  const R = reg || {}, C = cab || {}, cles = CARTES.map((c) => c[0]), bo = (o) => Object.fromEntries(Object.entries(o || {}).filter(([k, v]) => cles.indexOf(k) >= 0 && typeof v === "boolean"));
+  const co = (o) => Object.fromEntries(Object.entries(o || {}).filter(([k, v]) => cles.indexOf(k) >= 0 && ["g", "d", "l"].indexOf(v) >= 0));
+  const base = ordreAvecNouveaux(R.accueil, cles, cles);
+  return { ordre: Array.isArray(C.ordre) && C.ordre.length ? ordreAvecNouveaux(C.ordre, cles, cles) : base, cartes: Object.assign(vrais(CARTES), bo(R.cartes), bo(C.cartes)), col: Object.assign({}, COLONNES0, co(R.col), co(C.col)) };
+}
 // Sections de paramétrage (page Paramètres), et si leurs valeurs viennent de la bibliothèque de la spécialité
 export const SECTIONS = [
   ["horaires", "Créneaux & horaires", true], ["fermetures", "Fermetures, congés & jours fériés", true], ["lieux", "Lieux d'exercice", false], ["acces", "Accès (équipe)", false],
