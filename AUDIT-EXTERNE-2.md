@@ -19,7 +19,8 @@ La version auditée (da85b72) précède 21 enregistrements. Depuis :
 | Salle d'attente : en-têtes tronqués, ouverture sur un onglet vide, zones < 44 px, filtres, reçus sans numéro | **Corrigé** (SA9, en ligne) |
 | Tableau de bord : trop long, carte d'abonnement, ordre réglé par l'administration, émojis | **Fait** (étape 22, pas encore en ligne) ; reste les **alertes cliniques** (seuils à choisir) |
 | Agenda : séances sans heure, durée par lieu, médecin du rendez-vous, déplacer, vue Semaine sur téléphone | **Planifié** (étape 21, AG1 à AG5) ; ancien script d'agenda retiré (en cours) |
-| Fiche patient réglable par chaque cabinet (Décision RB) | **En cours** (session « Paramètres » : `editeurfiche.js`, Paramètres › Cabinet) |
+| Fiche patient réglable par chaque cabinet (Décision RB) | **Fait et en ligne** (`editeurfiche.js`, Paramètres › Cabinet, 20261011t) |
+| Paramètres : trop d'onglets, « Profil & Paramètres » | **Fait et en ligne** (4 familles, « Mon compte », 20261011t) |
 
 Vérifié dans le code actuel, **toujours présent** : CASABLANCA en dur (pli p. 2 et 3), « Casablanca » par défaut, liste des
 167 correspondants dans `listes.js`, SheetJS 0.18.5 (faille connue), « Je soussignée » dans 4 courriers, protocole sans statut
@@ -181,8 +182,7 @@ atropine, facteurs de croissance, EPO, acide zolédronique, dénosumab… marque
 
 ## 4. Lot C – Dossier oncologique
 
-À faire **après** la session « Paramètres » en cours (`editeurfiche.js` : fiche réglable par chaque cabinet, visible de
-l'administration — Décision RB).
+S'appuie sur la fiche réglable par chaque cabinet (`editeurfiche.js`, en ligne le 11/10 — Décision RB).
 
 ### C1 – Fiche tumeur (1 session)
 **Décision RB** : proposée dans le paramétrage, chaque cabinet libre de la mettre ou non et de la mettre en tête du dossier ;
@@ -281,10 +281,7 @@ fiche imprimée avec allergies et % de réduction (C2).
 - Conversion en PDF : **Décision RB du 11/10** (tout en PDF) maintenue. **Question 10** : garder aussi l'original Word / Excel
   (texte sélectionnable) à côté du PDF ?
 
-### F3 – Paramètres (coordonner avec la session « Paramètres » en cours)
-- 14 onglets → 5 familles : **Cabinet**, **Agenda et rappels**, **Fonctions**, **Listes et bibliothèques**, **Finances**
-  (sous-onglets à l'intérieur).
-- « Profil & Paramètres » renommé **« Mon compte »**.
+### F3 – Paramètres (familles et « Mon compte » : faits et en ligne le 11/10, 20261011t)
 - WhatsApp (4 001 px) : un message replié par catégorie.
 - Explications longues remplacées par une bulle « ? » ; croix rouges des listes dans un menu ⋯ avec confirmation.
 - `pageConfiguration` (30 427 caractères) découpée par famille.

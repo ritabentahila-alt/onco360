@@ -1622,10 +1622,10 @@ bord (22) ; agenda planifié (21). Ordre : A → B → C → D → E, F intercal
       communes, transactions (protocoles) · A7 feuille de route allégée
 - [ ] B Sécuriser : B1 cure figée à la validation · B2 bornes de plausibilité · B3 prémédication par molécule · B4 RT contrôlée
       (revalidation de la dosimétrie) · B5 documents RT honnêtes · B6 protocoles : validation tracée
-- [ ] C Dossier oncologique (après `editeurfiche.js`) : C1 fiche tumeur · C2 allergies · C3 statut, archivage · C4 modèle de consultation
+- [ ] C Dossier oncologique (sur `editeurfiche.js`, en ligne) : C1 fiche tumeur · C2 allergies · C3 statut, archivage · C4 modèle de consultation
 - [ ] D Radiothérapie : D1 volumes · D2 rythmes libres · D3 toxicités hebdomadaires · D4 compte rendu rempli
 - [ ] E Chimiothérapie : E1 bilan avant cure · E2 doses cumulées · E3 intention / réponse · E4 écran infirmière · E5 ergonomie
-- [ ] F Ergonomie : F1 prescriptions · F2 sauvegarde des fichiers · F3 Paramètres en 5 familles, « Mon compte » · F4 bilan téléphone, « Payé auto. »
+- [ ] F Ergonomie : F1 prescriptions · F2 sauvegarde des fichiers · F3 WhatsApp replié, explications, croix rouges (familles et « Mon compte » faits) · F4 bilan téléphone, « Payé auto. »
 - [ ] G Montée en charge : G1 pagination · G2 photo hors du dossier · G3 index léger
 - [ ] H Geler administration et autres spécialités (question 11)
 
