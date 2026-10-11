@@ -264,18 +264,30 @@ Ancienne application : collections racine `patients`, `protocoles`, `finances`, 
   (`functions/logique.js` `permis`), pas par les règles (le dossier patient reste lisible en entier par le serveur).
 
 ## Sauvegardes
+**Mode d'emploi pour récupérer ses données : `outils/RESTAURER.md`** (export complet, copie lisible du Drive, copie des fichiers,
+sauvegarde Firebase).
+- **Export complet d'un cabinet (1.6, 11/10/2026)** : Paramètres › Cabinet › Export des données (médecin titulaire) → fonction
+  `exporterCabinet` (2 Go, 9 min) : ZIP dans `espaces/{e}/exports/{ms}/Onco360_export_AAAA-MM-JJ.zip` (lu par le titulaire seul :
+  storage.rules ; l'export précédent est effacé) = `LISEZMOI.txt`, `patients.csv` (BOM, « ; »), `donnees/onco360.json` { application,
+  format 1, espace, date, cabinet, collections, utilisateurs, journalAudit, dates { "col/doc" | "@cabinet" | "@audit/id": [chemins des
+  dates Firestore] }, zip { chemin du stockage: chemin dans le ZIP } }, `fichiers/<n° nom>/<date titre>.pdf`, `documentation/` ; noté dans
+  `historique`. Logique `functions/exportation.js` (test-exportation.js) ; restauration `outils/restaurer-export.mjs` (dates remises,
+  chemins adaptés au cabinet cible) ; test de bout en bout `cd tests/regles && npm run export` (émulateurs auth, firestore, storage,
+  functions ; `functions/.secret.local` factice, non versionné).
+- **Copie de secours des fichiers (1.6)** : `fichiersNuit` (2 h 15) / `fichiersSauvegarder` (administration) recopient `espaces/**`
+  (sauf `exports/`) dans le bucket `<projet>-sauvegarde-fichiers` (EUROPE-WEST4, versions gardées 30 jours, jamais public, créé la
+  1re nuit) ; logique `functions/sauvegarde.js` (test-sauvegarde.js).
 - **Code** : dépôt GitHub **privé** `ritabentahila-alt/onco360` (SSH), poussé à la fin de chaque étape testée (jamais `tests/seed.json`).
 - **Firestore natif (offre Blaze)** : sauvegarde quotidienne de TOUTE la base (v1 + Onco360) depuis le 03/10/2026,
   conservée 14 semaines (`firebase firestore:backups:list`), vers 21 h–22 h UTC, région europe-west1.
   Protection contre la suppression de la base activée. Restauration = vers une NOUVELLE base (`firestore:databases:restore`).
   Restauration à la minute près (PITR) : activée le 06/10/2026, 7 jours glissants.
 - Copies lisibles dans le Drive (Google Apps Script du compte de Dr Bentahila, projet « Chimio HGC », Drive > Sauvegardes) :
-- Ancienne application : `sauvegardeFirebase` (fichier « Firebase », copie : `apps-script/firebase-v7-deja-installe.gs`),
-  vers 2 h 30 → `Sauvegardes/Firebase/ChimioHGC_Firebase_AAAA-MM-JJ.json`.
-- Onco360 : `apps-script/onco360-sauvegarde.gs` (fichier « Onco360 », lancer `installerSauvegardeOnco360` une fois),
-  vers 3 h → `Sauvegardes/Onco360/Onco360_AAAA-MM-JJ.json` = `{ compte, documents: { "chemin/complet": champs } }`
-  (espace entier, collections trouvées automatiquement, + `utilisateurs`, `administrateurs`). 30 derniers + le 1er du mois.
-  E-mail en cas d'échec. Pas encore d'outil de restauration.
+- Ancienne application : sauvegarde arrêtée et supprimée le 11/10/2026 (ancienne application effacée).
+- Onco360 : `apps-script/onco360-sauvegarde.gs` **v10 autonome**, seul fichier du projet Apps Script « Chimio HGC » (rangé dans
+  Drive › Application Chimio HGC), installé le 11/10/2026, vers 3 h → `Application Chimio HGC/Sauvegardes/Onco360/Onco360_AAAA-MM-JJ.json`
+  = `{ compte, documents: { "chemin/complet": champs } }` (cabinet Bentahila entier, collections trouvées automatiquement, + profils des
+  membres). 30 derniers + le 1er du mois. E-mail en cas d'échec.
 
 ## Google Agenda (sens unique Onco360 → Google)
 - **Par personne** : Paramètres › Google Agenda › « Mon Google Agenda » › « Lier mon Google Agenda » (Profil jusqu'au 08/10/2026) (fenêtre Google, droit

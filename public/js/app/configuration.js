@@ -5,7 +5,7 @@
 // Couleurs Google Agenda (08/10/2026) : parametres/couleursAgenda { data: JSON { catégorie: "1"…"11" | "" } } (seulement ce
 // qui diffère des couleurs par défaut, les mêmes que COULEURS0 dans functions/logique.js) ; repeint par agendaCouleurs.
 import { doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { db } from "../config.js";
+import { db, app } from "../config.js";
 import { FERIES0 } from "../donnees/listes.js";
 import { dureeRdv } from "../moteur/rdv.js";
 import { typesDocuments, enregistrerTypes, TYPES_DOCUMENTS0 } from "./fichiers.js";
@@ -83,19 +83,19 @@ let TIT = null;
 // Quatre familles au lieu de quatorze onglets (audit externe, 11/10/2026) : barre de 4 onglets, puis les rubriques de la famille.
 // L'adresse reste #parametres/<rubrique> (anciens liens gardés). Accès : dans Mon compte depuis le 10/10/2026 (18.5).
 const FAMILLES = [
-  ["cabinet", "hopital", "Cabinet", ["lieux", "accueil", "fiche", "consultation", "impression", "audit"]],
+  ["cabinet", "hopital", "Cabinet", ["lieux", "accueil", "fiche", "consultation", "impression", "audit", "export"]],
   ["agenda", "agenda", "Agenda et rappels", ["horaires", "fermetures", "couleurs", "whatsapp", "rcp", "alertes"]],
   ["listes", "liste", "Listes et bibliothèques", ["listes", "bibliotheques", "documents", "taches"]],
   ["finances", "bilan", "Finances", ["activites"]],
 ];
 const RUB = { lieux: ["hopital", "Lieux d'exercice"], accueil: ["accueil", "Tableau de bord"], fiche: ["profil", "Fiche patient"], consultation: ["stetho", "Formulaire de consultation"],
-  impression: ["imprimer", "Impression"], audit: ["liste", "Journal d'audit"], horaires: ["horloge", "Horaires"], fermetures: ["avion", "Congés et jours fériés"],
+  impression: ["imprimer", "Impression"], audit: ["liste", "Journal d'audit"], export: ["telecharger", "Export des données"], horaires: ["horloge", "Horaires"], fermetures: ["avion", "Congés et jours fériés"],
   couleurs: ["agenda", "Google Agenda"], whatsapp: ["whatsapp", "WhatsApp"], rcp: ["rcp", "RCP"], alertes: ["alerte", "Alertes"], listes: ["liste", "Listes"],
   bibliotheques: ["pilule", "Bibliothèques"], documents: ["document", "Types de documents"], taches: ["taches", "Tâches"], activites: ["bilan", "Activités et rémunérations"] };
 const famDe = (k) => (FAMILLES.find((f) => f[3].indexOf(k) >= 0) || FAMILLES[0])[0];
 // Rubriques présentes, dans l'ordre des familles ; dans une famille, l'ordre du réglage du cabinet (Administration)
 const ONGLETS = () => FAMILLES.reduce((l, f) => l.concat(f[3]), [])
-  .filter((k) => k !== "audit" || TIT)
+  .filter((k) => (k !== "audit" && k !== "export") || TIT)
   .filter((k) => k !== "activites" || (A.peut("finances") && D().tarifs))
   .filter((k) => ["accueil", "fiche", "consultation"].indexOf(k) < 0 || A.peut("parametres")) // réglages de toute l'équipe : médecin titulaire
   .filter((k) => A.module(MODULE_ONGLET[k] || "")) // onglets d'un module retiré de la formule du cabinet : cachés
@@ -105,7 +105,7 @@ const ONGLETS = () => FAMILLES.reduce((l, f) => l.concat(f[3]), [])
   .sort((a, b) => { const R = A.D().reg, l = R && !A.D().bib ? R.ordreSections : [], fa = FAMILLES.findIndex((f) => f[0] === famDe(a)), fb = FAMILLES.findIndex((f) => f[0] === famDe(b)); return fa - fb || (l.indexOf(a) + 1 || 999) - (l.indexOf(b) + 1 || 999); })
   .map((k) => [k, RUB[k][0], RUB[k][1]]);
 // Propres à chaque cabinet, donc absents de la bibliothèque de référence : lieux, équipe, journal d'audit, présentation
-const HORS_BIB = ["lieux", "acces", "audit", "accueil", "fiche", "consultation"];
+const HORS_BIB = ["lieux", "acces", "audit", "export", "accueil", "fiche", "consultation"];
 // Onglets que la secrétaire (droit « secretariat », sans « paramètres ») peut modifier, et ce qu'elle y modifie
 const ONGLETS_SEC = ["horaires", "fermetures", "whatsapp", "documents", "taches", "rcp", "listes", "impression", "alertes"];
 const MSG_SEC = { lieux: "Vous pouvez compléter l'adresse, le téléphone et la ville de votre lieu (« Compléter »).", horaires: "Vous pouvez régler les horaires de vos lieux.", taches: "Vous pouvez modifier les types de tâches ; les tâches automatiques sont réglées par le médecin." };
@@ -180,6 +180,17 @@ const RUBRIQUES = {
     return '<section class="carte">' + titre("document", "Types de documents") + '<p class="sous">Menu « Type » de l\'onglet Documents du dossier. Les documents déjà déposés gardent leur type.</p>' + typesListe(ED.tdoc, c.okE, c.disE, "cfTd", "Ajouter un type") + "</section>";
   },
   audit() { return '<div id="cfAudit"></div>'; },
+  // Export complet du cabinet (étape 1.6, 11/10/2026) : médecin titulaire ; préparé par le serveur (exporterCabinet), téléchargé ici
+  export() {
+    return '<section class="carte">' + titre("telecharger", "Exporter tout le cabinet") +
+      '<p>Un seul fichier ZIP avec <b>toutes vos données</b>, lisibles sans Onco360 : le tableau des patients (Excel), tous les dossiers, ' +
+      "consultations, ordonnances, montants, paramètres et protocoles (fichier JSON), tous les documents déposés et la documentation (PDF), " +
+      "le journal d'audit.</p>" +
+      '<p class="sous">À garder en lieu sûr : ce fichier contient des données de santé (ne pas l\'envoyer par e-mail ni WhatsApp). La préparation ' +
+      "peut prendre une à deux minutes. L'export est noté dans le journal.</p>" +
+      '<button class="bt plein" id="cfExp" onclick="cfExporter()">' + A.ic("telecharger") + "Exporter tout le cabinet</button>" +
+      '<p class="sous" id="cfExpMsg" style="margin-top:10px"></p></section>';
+  },
   lieux() { return '<div id="cfProfil"><p class="sous">Chargement…</p></div>'; },
   couleurs(c) {
     let h = A.D().bib ? "" : '<div id="cfProfil"><p class="sous">Chargement de votre Google Agenda…</p></div>' + sectionMonAgenda(); // liaison personnelle : pas dans la bibliothèque
@@ -318,7 +329,7 @@ export function pageConfiguration(arg) {
   let h = entete();
   if (!ok && !(ONG === "bibliotheques" && A.peut("ecrireConsultations")) && !(okE && !MSG_SEC[ONG])) h += '<p class="mesures">' + (ONG === "couleurs" ? "Votre Google Agenda et ses couleurs : réglages personnels." : sec && MSG_SEC[ONG] ? MSG_SEC[ONG] : "Lecture seule : la modification demande le droit « paramètres ».") + "</p>";
   h += (RUBRIQUES[ONG] || RUBRIQUES.fermetures)({ ok, okE, disE, dis, sec });
-  if (okE && ["bibliotheques", "lieux", "acces", "audit"].indexOf(ONG) < 0) h += '<div class="barre-enr">' + (ok || ["horaires", "fermetures"].indexOf(ONG) < 0 ? '<button class="bt gris" onclick="cfDefaut()">↺ Valeurs par défaut</button>' : "<span></span>") + '<span id="cfMod" class="mesures' + (MOD ? "" : " cache") + '">Modifications non enregistrées</span><button class="bt plein" id="cfOk" onclick="cfEnregistrer()"><svg class="pi"><use href="#i-enregistrer"/></svg>Enregistrer</button></div>';
+  if (okE && ["bibliotheques", "lieux", "acces", "audit", "export"].indexOf(ONG) < 0) h += '<div class="barre-enr">' + (ok || ["horaires", "fermetures"].indexOf(ONG) < 0 ? '<button class="bt gris" onclick="cfDefaut()">↺ Valeurs par défaut</button>' : "<span></span>") + '<span id="cfMod" class="mesures' + (MOD ? "" : " cache") + '">Modifications non enregistrées</span><button class="bt plein" id="cfOk" onclick="cfEnregistrer()"><svg class="pi"><use href="#i-enregistrer"/></svg>Enregistrer</button></div>';
   A.$("page").innerHTML = h;
   if (A.$("cfProfil")) { const o = ONG === "couleurs" ? "gagenda" : ONG; htmlOngletProfil(o).then((x) => { const z = A.$("cfProfil"); if (z && ONG === (o === "gagenda" ? "couleurs" : o)) { z.innerHTML = x; apresOngletProfil(o); } }).catch((e) => { const z = A.$("cfProfil"); if (z) z.innerHTML = '<p class="sous" style="color:var(--rouge)">Lecture impossible : ' + A.esc(e.message || String(e)) + "</p>"; }); }
   if (ONG === "audit") afficherAudit(A.$("cfAudit"));
@@ -423,6 +434,20 @@ function listeL() {
     : '<p class="sous">Rien ne correspond.</p>';
 }
 window.cfLs = (k) => { LS = k; LQ = ""; pageConfiguration(); };
+window.cfExporter = async () => {
+  const b = A.$("cfExp"), msg = (t) => { const z = A.$("cfExpMsg"); if (z) z.textContent = t; };
+  A.occupe(b, true); msg("Préparation de l'export par le serveur… (une à deux minutes)");
+  try {
+    const r = await A.serveur("exporterCabinet", { espace: A.ESPACE });
+    msg("Téléchargement (" + Math.round(r.taille / 1024) + " Ko)…");
+    const { getStorage, ref, getBlob } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js");
+    const blob = await getBlob(ref(getStorage(app), r.chemin)), u = URL.createObjectURL(blob), a = document.createElement("a");
+    a.href = u; a.download = r.chemin.split("/").pop(); document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 60000);
+    msg("Export téléchargé : " + r.patients + " dossier(s), " + r.fichiers + " document(s) déposé(s), " + r.documentation + " fiche(s) de documentation" +
+      (r.manquants ? " ; " + r.manquants + " fichier(s) introuvable(s) dans le stockage" : "") + ". Il est dans le dossier Téléchargements de cet ordinateur.");
+  } catch (e) { msg(""); A.toast("Export impossible : " + ((e && e.message) || e)); }
+  A.occupe(b, false);
+};
 // Diagnostics : modifiés par un médecin seulement (1.3, 11/10/2026 ; le serveur ne corrige un diagnostic dans les dossiers que pour un médecin)
 const diagModifiable = () => LS !== "diag" || !!A.D().bib || (A.D().membre && A.D().membre.role === "medecin");
 window.cfL = (i, v) => { ED.listes[LS][i] = String(v || "").trim(); modif(); };

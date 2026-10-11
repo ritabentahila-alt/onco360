@@ -209,13 +209,16 @@ longs et ne dépendent pas du code.
       fonctions → **5.5** (recette) ; CSP appliquée pour de bon (aujourd'hui en observation) : à la mise en ligne suivante, si
       Dr Bentahila n'a rien remarqué d'anormal ; typage JSDoc du moteur → **7.2** (avec la mise en forme) ; espace d'essai « test-b1 »
       supprimé par Dr Bentahila le 11/10 (aucun compte « test-b1 » dans Authentication ; `+medecintest` inutilisé depuis le 04/10, à elle de voir).
-- [ ] **1.6 Export complet et sauvegarde des fichiers** (condition de Dr Bentahila, réversibilité demandée par tout acheteur) :
-      bouton **« Exporter tout le cabinet »** (titulaire, Paramètres › Cabinet ; aussi depuis l'administration pour un cabinet
-      client à sa demande) = fonction serveur qui prépare un ZIP : JSON de toutes les collections du cabinet, tableau des patients
-      (CSV, ouvrable dans Excel), tous les fichiers déposés (PDF) et la documentation ; lien de téléchargement valable 1 heure ;
-      noté au journal d'audit. **Copie des fichiers déposés** chaque nuit vers un second emplacement (Cloud Storage, autre
-      région, conservation 30 jours). **Restauration testée** une fois sur un projet vierge, mode d'emploi écrit (« Outil de
-      restauration » des idées en attente).
+- [x] **1.6 Export complet et sauvegarde des fichiers** (11/10, testé, pas encore en ligne) : **Paramètres › Cabinet › Export des
+      données** (médecin titulaire seul ; l'administration n'y a pas accès, aucun accès aux patients) → fonction `exporterCabinet` :
+      ZIP = tableau des patients (Excel), toutes les données (JSON), PDF déposés, documentation, journal d'audit, notice ; noté au
+      journal. **Restauration** `outils/restaurer-export.mjs` (dates et chemins remis exactement) ; **copie de secours des fichiers**
+      chaque nuit (`fichiersNuit`, second emplacement aux Pays-Bas, fichier supprimé gardé 30 jours) ; mode d'emploi
+      `outils/RESTAURER.md`. **Essayé de bout en bout sur les émulateurs** (`npm run export`, 19/19 : refus de la secrétaire,
+      contenu, PDF identiques, introuvable signalé, journal, ancien export effacé, **restauration dans un cabinet vide = données
+      identiques**, copie des fichiers). Tests : test-exportation (10), test-sauvegarde (5), test_export.py (7) ; contrôle complet
+      `avant-mise-en-ligne.sh --regles` au vert. À vérifier après la 1re nuit en ligne : création du second emplacement (journal de
+      `fichiersNuit`).
 - [ ] **1.7 Données propres au premier cabinet** (audit n° 2, Fichiers et code) : `COR0` (167 correspondants) écrit une fois dans
       `parametres/listes.cor` du cabinet Bentahila par `migrations()`, puis retiré du code ; « CASABLANCA » → ville du lieu
       (documents.js 75, 80) ; ville par défaut « Casablanca » → « À REMPLIR » surligné (documents.js 66, 133 ; ordonnances.js 479) ;

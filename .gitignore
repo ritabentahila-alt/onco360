@@ -15,3 +15,6 @@ tests/.venv/
 # Réglages locaux de Claude (chemins de cet ordinateur, copies de travail)
 .claude/launch.json
 .claude/worktrees/
+
+# Secrets factices des émulateurs (tests)
+functions/.secret.local

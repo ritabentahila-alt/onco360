@@ -29,6 +29,12 @@ service firebase.storage {
       allow update: if false;
       allow delete: if request.auth != null && cabinetOk(e) && membre(e).actif == true && membre(e).role == 'medecin';
     }
+    // Export complet du cabinet (étape 1.6, 11/10/2026) : fichier ZIP préparé par le serveur (exporterCabinet), lu par le médecin
+    // titulaire seulement ; jamais écrit depuis le navigateur
+    match /espaces/{e}/exports/{x}/{nom} {
+      allow read: if request.auth != null && cabinetOk(e) && firestore.get(/databases/(default)/documents/espaces/$(e)).data.titulaire == request.auth.uid;
+      allow write: if false;
+    }
     match /{tout=**} { allow read, write: if false; }
   }
 }

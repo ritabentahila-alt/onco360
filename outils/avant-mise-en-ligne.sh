@@ -1,7 +1,7 @@
 #!/bin/bash
 # Onco360 – contrôle avant chaque mise en ligne (étape 1.5, 11/10/2026). À lancer depuis le dossier du projet :
 #   bash outils/avant-mise-en-ligne.sh            (rapide : syntaxe, données réelles, tests sans navigateur)
-#   bash outils/avant-mise-en-ligne.sh --regles   (en plus : tests des règles de sécurité sur l'émulateur, Java 21)
+#   bash outils/avant-mise-en-ligne.sh --regles   (en plus : règles de sécurité, export et restauration sur les émulateurs, Java 21)
 # S'arrête en rouge au moindre problème ; « Tout est bon » sinon. Ne met rien en ligne.
 cd "$(dirname "$0")/.." || exit 1
 KO=0; ok() { printf "  ✔ %s\n" "$1"; }; ko() { printf "  ✘ %s\n" "$1"; KO=$((KO+1)); }
@@ -20,7 +20,7 @@ R=$(grep -rIoE '\b0[5-7][0-9]{8}\b' public functions tests "${EXCL[@]}" 2>/dev/n
 [ -f public/ancienne-app.html ] && ko "public/ancienne-app.html est revenu" || ok "ancienne application absente du site"
 
 echo "3. Tests sans navigateur"
-for t in test-logique test-cabinets test-audit test-numeros; do
+for t in test-logique test-cabinets test-audit test-numeros test-exportation test-sauvegarde; do
   if (cd functions && node $t.js > /tmp/onco360-$t.txt 2>&1) && ! grep -q '❌\|✘' /tmp/onco360-$t.txt; then ok "serveur : $t"; else ko "serveur : $t (voir /tmp/onco360-$t.txt)"; fi
 done
 for t in tests/moteur/test-recus.mjs; do node $t > /tmp/onco360-moteur.txt 2>&1 && ok "moteur : $(basename $t)" || ko "moteur : $(basename $t) (voir /tmp/onco360-moteur.txt)"; done
@@ -31,6 +31,7 @@ else echo "  (tests/seed.json absent : test-salle et test-bilan ignorés)"; fi
 if [ "$1" = "--regles" ]; then
   echo "4. Règles de sécurité (émulateur)"
   (cd tests/regles && npm test > /tmp/onco360-regles.txt 2>&1) && ! grep -q '✘' /tmp/onco360-regles.txt && ok "règles : $(grep -cE 'réussi' /tmp/onco360-regles.txt) suites" || ko "règles (voir /tmp/onco360-regles.txt)"
+  (cd tests/regles && npm run export > /tmp/onco360-export.txt 2>&1) && ! grep -q '  ✘' /tmp/onco360-export.txt && ok "export, restauration et copie des fichiers (émulateurs)" || ko "export (voir /tmp/onco360-export.txt)"
 fi
 
 echo; if [ $KO = 0 ]; then echo "✅ Tout est bon : mise en ligne possible."; else echo "❌ $KO problème(s) : ne pas mettre en ligne."; exit 1; fi
