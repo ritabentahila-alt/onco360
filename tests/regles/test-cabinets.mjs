@@ -85,7 +85,8 @@ await cas("refusé : un membre lit le profil d'un autre", () => assertFails(getD
 console.log("Dr Bentahila dans son cabinet (inchangé)");
 await cas("Dr Bentahila complète ses propres droits (mises à niveau)", () => assertSucceeds(updateDoc(doc(db("RITA"), A + "/membres/RITA"), { "droits.documents": true })));
 await cas("refusé : un titulaire de cabinet neuf modifie ses propres droits", () => assertFails(updateDoc(doc(db("DRB"), B + "/membres/DRB"), { "droits.documents": false })));
-await cas("le titulaire B ajoute une secrétaire dans son cabinet", () => assertSucceeds(setDoc(doc(db("DRB"), B + "/membres/NOUV"), secretaire("Nouvelle"))));
+// 1.3 (11/10/2026) : un nouveau membre est créé par le serveur seulement (fonction creerMembre), plus depuis le navigateur
+await cas("refusé : le titulaire B crée lui-même une fiche de membre (passe par le serveur)", () => assertFails(setDoc(doc(db("DRB"), B + "/membres/NOUV"), secretaire("Nouvelle"))));
 await cas("refusé : le titulaire B ajoute quelqu'un chez Dr Bentahila", () => assertFails(setDoc(doc(db("DRB"), A + "/membres/NOUV"), secretaire("Nouvelle"))));
 console.log("Cabinet suspendu");
 const suspendre = () => env.withSecurityRulesDisabled((c) => updateDoc(doc(c.firestore(), B), { actif: false }));

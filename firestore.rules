@@ -41,6 +41,9 @@ service cloud.firestore {
       // Cabinet suspendu par l'administration (abonnement non payé, 09/10/2026) : plus personne n'y entre ; rien n'est effacé
       function cabinetActif() { return get(/databases/$(database)/documents/espaces/$(e)).data.get('actif', true) != false; }
       function estMembre() { return connecte() && exists(cheminMembre()) && m().actif == true && cabinetActif(); }
+      // Module de la formule (1.3, 11/10/2026) : un module retiré (abonnement.modules[k] == false) est aussi fermé à l'écriture par le
+      // serveur, pas seulement caché à l'écran ; cabinet sans abonnement (cabinet Bentahila) = tous les modules
+      function moduleOn(k) { return get(/databases/$(database)/documents/espaces/$(e)).data.get('abonnement', {}).get('modules', {}).get(k, true) != false; }
       function estTitulaire() { return connecte() && get(/databases/$(database)/documents/espaces/$(e)).data.titulaire == request.auth.uid; }
       function droit(k) { return estMembre() && m().droits[k] == true; }
       function traitementsModif() { return estMembre() && m().droits.traitements == 'modifier'; }
@@ -79,7 +82,11 @@ service cloud.firestore {
       // Membres et leurs droits : gérés par le médecin titulaire (ou l'administrateur). Un membre ne modifie jamais ses propres droits.
       match /membres/{uid} {
         allow read: if estMembre() || adminIci();
-        allow write: if adminIci() || (estTitulaire() && uid != request.auth.uid);
+        // 1.3 (11/10/2026, audit) : un nouveau membre n'est créé que par le serveur (creerMembre : limite de la formule, compte
+        // vérifié) ; le titulaire modifie ou retire les fiches existantes, jamais la sienne. Il ne peut plus rattacher lui-même un
+        // compte quelconque à son cabinet.
+        allow create: if adminIci();
+        allow update, delete: if adminIci() || (estTitulaire() && uid != request.auth.uid);
       }
       // Établissements (nom, adresse, logo) : visibles par les membres, modifiables avec le droit « paramètres »
       match /etablissements/{x} {
@@ -119,7 +126,7 @@ service cloud.firestore {
       // ou qui a inscrit
       match /rcp/{r} {
         allow read: if dansPerimetre(resource.data.etablissementId);
-        allow create: if droit('ecrireConsultations') && dansPerimetre(request.resource.data.etablissementId)
+        allow create: if droit('ecrireConsultations') && moduleOn('rcp') && dansPerimetre(request.resource.data.etablissementId)
           && request.resource.data.creePar == request.auth.uid && request.resource.data.majPar == request.auth.uid
           && request.resource.data.d is string && request.resource.data.patientId is string;
         allow update: if droit('ecrireConsultations') && dansPerimetre(resource.data.etablissementId)
@@ -139,7 +146,7 @@ service cloud.firestore {
       // lus, modifiés et supprimés avec le droit « documents » (médecin, secrétaire), dans le périmètre du membre
       match /documentsRT/{d} {
         allow read, delete: if droit('documents') && dansPerimetre(resource.data.etablissementId);
-        allow create: if droit('documents') && dansPerimetre(request.resource.data.etablissementId) && request.resource.data.majPar == request.auth.uid;
+        allow create: if droit('documents') && moduleOn('documents') && dansPerimetre(request.resource.data.etablissementId) && request.resource.data.majPar == request.auth.uid;
         allow update: if droit('documents') && dansPerimetre(resource.data.etablissementId) && dansPerimetre(request.resource.data.etablissementId)
           && request.resource.data.majPar == request.auth.uid;
       }
@@ -147,7 +154,7 @@ service cloud.firestore {
       // stockage, voir storage.rules) ; droit « documents » dans le périmètre ; supprimés par le médecin ou par qui les a déposés
       match /fichiers/{f} {
         allow read: if droit('documents') && dansPerimetre(resource.data.etablissementId);
-        allow create: if droit('documents') && dansPerimetre(request.resource.data.etablissementId)
+        allow create: if droit('documents') && moduleOn('documents') && dansPerimetre(request.resource.data.etablissementId)
           && request.resource.data.creePar == request.auth.uid && request.resource.data.majPar == request.auth.uid;
         allow update: if droit('documents') && dansPerimetre(resource.data.etablissementId) && dansPerimetre(request.resource.data.etablissementId)
           && request.resource.data.majPar == request.auth.uid && request.resource.data.creePar == resource.data.creePar
@@ -169,10 +176,11 @@ service cloud.firestore {
             && exists(/databases/$(database)/documents/espaces/$(e)/membres/$(d.pour));
         }
         allow read: if concerne();
-        allow create: if estMembre() && request.resource.data.de == request.auth.uid && valide(request.resource.data)
+        allow create: if estMembre() && moduleOn('taches') && request.resource.data.de == request.auth.uid && valide(request.resource.data)
           && request.resource.data.statut == 'afaire' && request.resource.data.fil.size() == 1 && request.resource.data.fil[0].par == request.auth.uid;
         allow update: if concerne() && valide(request.resource.data) && request.resource.data.de == resource.data.de
           && request.resource.data.fil.size() == resource.data.fil.size() + 1
+          && request.resource.data.fil[0:resource.data.fil.size()] == resource.data.fil // 1.3 : l'historique déjà écrit ne change jamais
           && request.resource.data.fil[request.resource.data.fil.size() - 1].par == request.auth.uid;
         allow delete: if (estMembre() && resource.data.de == request.auth.uid) || (estMedecin() && resource.data.statut != 'fait');
       }
@@ -189,7 +197,7 @@ service cloud.firestore {
         allow read: if resource == null ? estMembre() : dansPerimetre(resource.data.etablissementId);
         // prix payé d'avance (prix) : seulement avec le droit « encaissements » ou « finances » (08/10/2026)
         function prixPermis() { return droit('encaissements') || droit('finances'); }
-        allow create: if dansPerimetre(request.resource.data.etablissementId) && valideSalle(request.resource.data) && etapeLibre(request.resource.data)
+        allow create: if moduleOn('salle') && dansPerimetre(request.resource.data.etablissementId) && valideSalle(request.resource.data) && etapeLibre(request.resource.data)
           && (!request.resource.data.keys().hasAny(['prix']) || prixPermis());
         // commentaire du jour (com) : tout membre du périmètre, quelle que soit l'étape (infirmière comprise, 08/10/2026)
         function commentaireSeul() { return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['com', 'comPar', 'comNom', 'maj', 'majPar']); }

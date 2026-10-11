@@ -251,7 +251,7 @@ async function envoyerUn(x, fl, titre, d, type) {
   const r = doc(col()), nom = fl.name.replace(/[\/\\#?\[\]*]/g, "_").slice(-120) || "document";
   const chemin = "espaces/" + A.ESPACE + "/patients/" + x.id + "/fichiers/" + r.id + "/" + nom, sr = ref(st(), chemin);
   await new Promise((ok, ko) => {
-    TACHE = uploadBytesResumable(sr, fl, { contentType: fl.type || "application/octet-stream", customMetadata: { creePar: D().u.uid, patientId: x.id } });
+    TACHE = uploadBytesResumable(sr, fl, { contentType: "application/pdf", customMetadata: { creePar: D().u.uid, patientId: x.id } }); // tout est PDF ici (enPdf) ; le stockage n'accepte que des PDF (1.3)
     TACHE.on("state_changed", (s) => { const b = $("fiBarre"); if (b && s.totalBytes) b.style.width = Math.round((s.bytesTransferred / s.totalBytes) * 100) + "%"; }, ko, ok);
   });
   TACHE = null;

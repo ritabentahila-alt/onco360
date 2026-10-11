@@ -15,7 +15,8 @@ service firebase.storage {
     }
     match /espaces/{e}/patients/{p}/fichiers/{f}/{nom} {
       allow read: if peut(e, p);
-      allow create: if peut(e, p) && request.resource.size < 25 * 1024 * 1024
+      // 1.3 (11/10/2026) : PDF seulement (tout document est converti en PDF dans le navigateur avant l'envoi, décision du 11/10)
+      allow create: if peut(e, p) && request.resource.size < 25 * 1024 * 1024 && request.resource.contentType == 'application/pdf'
         && request.resource.metadata.creePar == request.auth.uid;
       allow update: if false;
       allow delete: if peut(e, p) && (membre(e).role == 'medecin' || resource.metadata.creePar == request.auth.uid);

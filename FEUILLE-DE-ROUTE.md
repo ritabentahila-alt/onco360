@@ -185,13 +185,18 @@ longs et ne dépendent pas du code.
       déconnexion automatique ni de double authentification ; **l'accès de l'administration aux profils des autres cabinets et la
       création de cabinets restent tels quels** (e-mail propriétaire des règles gardé : le remplacer par la collection
       `administrateurs` donnerait au compte d'administration les pouvoirs du cabinet Bentahila).
-- [ ] **1.3 Droits imposés par le serveur** (étape 9 S2) : chaque droit de la grille vérifié dans les règles, pas seulement caché à
-      l'écran (consultations : droit `consultations` ; documents ; finances) ; fiches de membres écrites par le serveur seul (règle
-      93) ; modules et limites (dossiers, lieux) imposés par les règles ; historique (`fil`) d'une tâche non réécrivable (règle 185) ;
-      type des fichiers déposés contrôlé (`storage.rules`) ; correction en masse des **diagnostics** réservée au médecin
-      (`corrigerListes`), ancienne valeur gardée dans le journal ; secrétaire (droit « planning ») limitée au **poids de la séance du
-      jour** dans `planningJson`. Limite connue à écrire dans le dossier de cession : le dossier patient se lit en entier dans le
-      périmètre (Firestore ne filtre pas les champs). Un test de règles par droit (`tests/regles`).
+- [x] **1.3 Droits imposés par le serveur** (11/10, testé, pas encore en ligne) : fiches de membres **créées par le serveur
+      seulement** (`creerMembre`) ; le titulaire modifie ou retire les fiches existantes (jamais la sienne) ; **historique d'une tâche
+      jamais réécrit** (le début du fil doit rester identique) ; **modules retirés fermés à l'écriture** (`moduleOn` : salle
+      d'attente, RCP, tâches, documents déposés et documents de radiothérapie ; cabinet sans abonnement = tout) ; **fichiers déposés :
+      PDF seulement** (`storage.rules`, envoi toujours en `application/pdf`) ; **diagnostics corrigés dans les dossiers par un médecin
+      seulement** (`corrigerListes` ; Paramètres › Listes : diagnostics en lecture pour la secrétaire ; ancienne → nouvelle valeur
+      dans le journal du serveur). Tests : `tests/regles/test-droits.mjs` (13), `test-cabinets` adapté, 11 suites / 283 cas ;
+      `tests/test_securite.py` 16/16 ; réglage, fiche, salle, menu. **Non faits, par choix** : consultations lisibles par tout le
+      périmètre (décision du 07/10 : l'infirmière lit le journal) ; dossier patient lu en entier dans le périmètre (Firestore ne filtre
+      pas les champs ; limite à écrire au dossier de cession) ; poids du jour seul pour la secrétaire (planning en texte JSON, illisible
+      par les règles : risque couvert par 2.2 cure figée et 2.3 alerte d'écart de poids) ; limites de dossiers et de lieux de la
+      formule (les règles ne savent pas compter : écran + serveur à la création, à revoir avec la montée en charge 5.3).
 - [x] ~~1.4 Google Agenda discret~~ : non retenu, Google Agenda reste comme aujourd'hui (décision du 11/10).
 - [ ] **1.5 Bibliothèques et dépendances** : SheetJS 0.18.5 → 0.20.3 ; jszip, html2canvas, mammoth, SheetJS **copiées dans le site**
       (`public/vendor/`) ; SDK Firebase 10.12.2 → version actuelle (essai complet avant) ; `npm audit fix` des fonctions ;

@@ -826,7 +826,9 @@ exports.corrigerListes = onCall({ timeoutSeconds: 120, memory: "256MiB" }, async
   if (!par) throw new HttpsError("unauthenticated", "Connectez-vous à Onco360.");
   const es = espace ? await db.doc("espaces/" + espace).get() : null, m = es && es.exists ? await membre(espace, par) : null;
   if (!m || m.actif === false || es.data().actif === false || !(m.droits && (m.droits.parametres === true || m.droits.secretariat === true))) throw new HttpsError("permission-denied", "Vous n'avez pas le droit de corriger les listes.");
-  const R = C.renomsValides((req.data || {}).renoms); if (!R.length) return { n: 0 };
+  // 1.3 (11/10/2026, audit) : un diagnostic n'est corrigé dans les dossiers que par un médecin ; la secrétaire corrige mutuelles et
+  // correspondants
+  const R = C.renomsValides((req.data || {}).renoms).filter((r) => r.k !== "diag" || m.role === "medecin"); if (!R.length) return { n: 0 };
   const snap = await db.collection("espaces/" + espace + "/patients").get(); let n = 0, b = db.batch(), k = 0;
   for (const d of snap.docs) {
     const ch = C.corrigerDossier(d.data(), R); if (!ch) continue;
@@ -834,7 +836,7 @@ exports.corrigerListes = onCall({ timeoutSeconds: 120, memory: "256MiB" }, async
     if (++k >= 400) { await b.commit(); b = db.batch(); k = 0; }
   }
   if (k) await b.commit();
-  console.log("listes corrigées", espace, R.length, "nom(s),", n, "dossier(s), par", par);
+  console.log("listes corrigées", espace, R.map((r) => r.k + " : " + r.de + " → " + r.vers).join(" ; "), "|", n, "dossier(s), par", par); // ancienne et nouvelle valeur
   return { n };
 });
 // ───── Fiche patient et formulaire de consultation de la spécialité (10/10/2026, 16.6 bis et 16.7) ─────

@@ -200,7 +200,7 @@ const RUBRIQUES = {
     return '<section class="carte">' + titre("liste", "Listes de la fiche patient") + '<p class="sous">Un nom corrigé ici est corrigé aussi dans les dossiers ; un nom retiré y reste.</p>' +
       '<div class="puces">' + Object.keys(lib).map((k) => "<button" + (k === "cor" ? ' data-fn="listes.cor"' : "") + ' class="puce' + (LS === k ? " on" : "") + '" onclick="cfLs(\'' + k + "')\">" + lib[k] + " (" + ED.listes[k].length + ")</button>").join("") + "</div>" +
       '<div class="recherche" style="max-width:420px;margin-bottom:8px">' + A.ic("loupe") + '<input id="cfLq" type="search" autocomplete="off" placeholder="Rechercher dans la liste…" value="' + A.esc(LQ) + '"></div>' +
-      '<div class="cf-td cf-l" id="cfLl"></div>' + (c.okE ? '<button class="bt clair petit" style="margin-top:10px" onclick="cfLAj()">' + A.ic("plus") + "Ajouter</button>" : "") + "</section>";
+      '<div class="cf-td cf-l" id="cfLl"></div>' + (diagModifiable() ? "" : '<p class="sous" style="margin-top:8px">Les diagnostics sont modifiés par un médecin.</p>') + (c.okE && diagModifiable() ? '<button class="bt clair petit" style="margin-top:10px" onclick="cfLAj()">' + A.ic("plus") + "Ajouter</button>" : "") + "</section>";
   },
   bibliotheques() {
     // Bibliothèques des prescriptions : les mêmes fenêtres que dans le dossier, en gestion de la liste (sans patient)
@@ -415,7 +415,7 @@ window.cfAgenda = async (cb) => {
 let LS = "diag", LQ = "";
 function listeL() {
   const z = A.$("cfLl"); if (!z) return;
-  const champ = { diag: "diag", mut: "mut", cor: "cor" }[LS], n = {}, ok = A.peut("parametres") || secretariat(), esc = A.esc;
+  const champ = { diag: "diag", mut: "mut", cor: "cor" }[LS], n = {}, ok = (A.peut("parametres") || secretariat()) && diagModifiable(), esc = A.esc;
   D().patients.forEach((x) => { const v = String((x.P && x.P[champ]) || "").trim().toLowerCase(); if (v) n[v] = (n[v] || 0) + 1; });
   const mots = A.sansAcc(LQ).split(/\s+/).filter(Boolean), L = ED.listes[LS].map((t, i) => ({ t, i })).filter(({ t }) => !t || mots.every((w) => A.sansAcc(t).indexOf(w) >= 0));
   z.innerHTML = L.length ? L.map(({ t, i }) => { const c = n[String(t).trim().toLowerCase()] || 0;
@@ -423,6 +423,8 @@ function listeL() {
     : '<p class="sous">Rien ne correspond.</p>';
 }
 window.cfLs = (k) => { LS = k; LQ = ""; pageConfiguration(); };
+// Diagnostics : modifiés par un médecin seulement (1.3, 11/10/2026 ; le serveur ne corrige un diagnostic dans les dossiers que pour un médecin)
+const diagModifiable = () => LS !== "diag" || !!A.D().bib || (A.D().membre && A.D().membre.role === "medecin");
 window.cfL = (i, v) => { ED.listes[LS][i] = String(v || "").trim(); modif(); };
 window.cfLSup = (i) => { ED.listes[LS].splice(i, 1); ED.listesOrig[LS].splice(i, 1); modif(); listeL(); };
 window.cfLAj = () => { LQ = ""; ED.listes[LS].push(""); ED.listesOrig[LS].push(""); modif(true); setTimeout(() => { const l = document.querySelectorAll("#cfLl input"); if (l.length) { l[l.length - 1].scrollIntoView({ block: "center" }); l[l.length - 1].focus(); } }, 30); };
