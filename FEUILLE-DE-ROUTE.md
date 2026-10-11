@@ -198,7 +198,7 @@ longs et ne dépendent pas du code.
       par les règles : risque couvert par 2.2 cure figée et 2.3 alerte d'écart de poids) ; limites de dossiers et de lieux de la
       formule (les règles ne savent pas compter : écran + serveur à la création, à revoir avec la montée en charge 5.3).
 - [x] ~~1.4 Google Agenda discret~~ : non retenu, Google Agenda reste comme aujourd'hui (décision du 11/10).
-- [x] **1.5 Bibliothèques et contrôle avant mise en ligne** (11/10, testé, pas encore en ligne) : jszip 3.10.1, html2canvas 1.4.1,
+- [x] **1.5 Bibliothèques et contrôle avant mise en ligne** (11/10, en ligne : version 20261011w) : jszip 3.10.1, html2canvas 1.4.1,
       mammoth 1.6.0 et **SheetJS 0.20.3** (faille CVE-2023-30533 de la 0.18.5 corrigée) **copiés dans le site** (`public/vendor/`,
       empreintes officielles vérifiées, `LISEZMOI.md` : versions, sources, licences) ; plus aucun script de cdnjs, retiré de la
       politique CSP ; **`outils/avant-mise-en-ligne.sh`** (syntaxe de tout le code, aucune donnée réelle : fiche patient, IMP1,
@@ -208,7 +208,7 @@ longs et ne dépendent pas du code.
       toutes du composant `uuid`, non utilisé ainsi par Onco360) : mise à jour majeure, avec remise en ligne de toutes les
       fonctions → **5.5** (recette) ; CSP appliquée pour de bon (aujourd'hui en observation) : à la mise en ligne suivante, si
       Dr Bentahila n'a rien remarqué d'anormal ; typage JSDoc du moteur → **7.2** (avec la mise en forme) ; espace d'essai « test-b1 »
-      et ses comptes : à supprimer par Dr Bentahila dans la console Firebase (Firestore › espaces › test-b1 ; Authentication).
+      supprimé par Dr Bentahila le 11/10 (aucun compte « test-b1 » dans Authentication ; `+medecintest` inutilisé depuis le 04/10, à elle de voir).
 - [ ] **1.6 Export complet et sauvegarde des fichiers** (condition de Dr Bentahila, réversibilité demandée par tout acheteur) :
       bouton **« Exporter tout le cabinet »** (titulaire, Paramètres › Cabinet ; aussi depuis l'administration pour un cabinet
       client à sa demande) = fonction serveur qui prépare un ZIP : JSON de toutes les collections du cabinet, tableau des patients
