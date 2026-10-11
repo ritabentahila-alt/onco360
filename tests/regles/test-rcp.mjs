@@ -9,7 +9,7 @@ setLogLevel("silent");
 const P = "espaces/cabinet-test";
 const env = await initializeTestEnvironment({ projectId: "demo-onco360", firestore: { rules: readFileSync(new URL("../../firestore.rules", import.meta.url), "utf8"), host: "127.0.0.1", port: 8080 } });
 const membre = (role, etabs, ecrire, actif = true) => ({ role, actif, nom: role, tousEtablissements: etabs === "*", etablissements: etabs === "*" ? [] : etabs, droits: { ecrireConsultations: ecrire } });
-const insc = (par, o = {}) => Object.assign({ patientId: "p1", patientNom: "ALAOUI Fatima", etablissementId: "HGC", d: "2026-10-13", q: "Radiothérapie adjuvante ?", ins: "2026-10-09", fait: false, o: 1, creePar: par, creeParNom: par, majPar: par, maj: serverTimestamp() }, o);
+const insc = (par, o = {}) => Object.assign({ patientId: "p1", patientNom: "PATIENTE Test", etablissementId: "HGC", d: "2026-10-13", q: "Radiothérapie adjuvante ?", ins: "2026-10-09", fait: false, o: 1, creePar: par, creeParNom: par, majPar: par, maj: serverTimestamp() }, o);
 
 async function preparer() {
   await env.clearFirestore();
