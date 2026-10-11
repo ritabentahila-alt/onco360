@@ -20,8 +20,8 @@
 // automatique au nouveau jour à minuit.
 import { collection, doc, getDoc, getDocs, setDoc, query, where, serverTimestamp, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { db } from "../config.js";
-import { typeRdv, libRdv, joursH, T_RTC } from "../moteur/rdv.js";
-import { etatLigne, protocoleDe, seancesCure } from "../moteur/doses.js";
+import { typeRdv, joursH, T_RTC } from "../moteur/rdv.js";
+import { lignesSalle, ongletDe, dansPeriode as periodeOk, correspond, cleNum as cleNumM, trierSalle, hhmm, MIDI, idDoc } from "../moteur/salle.js"; // calculs purs (SA7)
 import { addJ } from "../moteur/outils.js";
 import { tarif } from "../moteur/tarifs.js";
 import { oublierEncaissements } from "./chimio.js";
@@ -40,7 +40,6 @@ let GEN = 0;
 class Memoire extends Map { set(k, v) { GEN++; return super.set(k, v); } delete(k) { GEN++; return super.delete(k); } }
 const SA = new Memoire();
 let ECOUTE = null, VUE = "salle", ETAB = "", RETOUR = null, MINUT = null, JOUR = null, LU = {}, PER = "jour", RECH = "";
-const MIDI = "13:00"; // Matinée : rendez-vous (ou arrivée) avant 13 h ; Après-midi : à partir de 13 h ; sans heure : dans les deux
 const triPerso = () => (D().profil && D().profil.salleTri) || "rdv"; // rdv | arrivee | alpha (réglage personnel)
 
 // Horloge : écart entre cet ordinateur et le serveur (mesuré sur l'écho de nos propres écritures), pour que les heures d'arrivée et
@@ -54,7 +53,6 @@ const minutes = (ms) => Math.max(0, Math.floor((maintenant() - ms) / 60000));
 const duree = (m) => (m < 60 ? m + " min" : Math.floor(m / 60) + " h " + String(m % 60).padStart(2, "0"));
 const peutRdv = () => A.peut("rendezvous");
 const voitPrix = () => A.peut("finances") || A.peut("encaissements");
-const idDoc = (jour, pid, cle) => jour + "_" + pid + "_" + cle;
 const nomConnecte = () => $("nomMenu").textContent;
 const jourVu = () => JOUR || D().t;
 const filtresEtab = () => { const m = D().membre; return m.tousEtablissements ? [] : [where("etablissementId", "in", (m.etablissements || []).length ? m.etablissements : ["—"])]; };
@@ -143,14 +141,6 @@ function apresChangement() {
 }
 
 // ───── Lignes d'un ou plusieurs jours ─────
-// Catégorie (couleur du badge) et libellé court du type de consultation
-// Libellés courts (08/10/2026 : chimiothérapie = chimio, hebdomadaire = hebdo) pour que les colonnes ne se chevauchent pas
-function typeDe(v) {
-  if (v.type === T_RTC) return ["RT hebdo", "b-rt"];
-  if (v.act) return [A.cap(String(v.type || "Consultation").replace(/^consultation\s+(de\s+|d')?/i, "").replace(/chimioth[ée]rapie/gi, "chimio").replace(/radioth[ée]rapie/gi, "RT").replace(/hebdomadaire/gi, "hebdo")), "b-gr"];
-  const t = typeRdv(v.type);
-  return t === "annonce" ? ["Annonce", "b-or"] : t === "controle" ? ["Contrôle", "b-gr"] : [A.cap(String(v.type || "Suivi").toLowerCase()), "b-co"];
-}
 // Une ligne = { jour, cle, pid, x, h, type, cls, motif, etat, doc, rdv | chimio } ; jours = liste de dates AAAA-MM-JJ.
 // Gardées en mémoire tant que rien ne change (documents de la salle : GEN ; dossiers : nombre et versions) : les badges de
 // l'Agenda et du tableau de bord, les minutes et chaque action ne refont plus le calcul complet (SA5, 10/10/2026).
@@ -164,42 +154,8 @@ export function lignes(jours) {
   return out;
 }
 function calculerLignes(jours) {
-  const J = new Set(jours), out = [], voitCh = A.voit("traitements");
-  D().patients.forEach((x) => {
-    const P = x.P;
-    (P.rdvs || []).forEach((v) => {
-      if (!J.has(v.d) || typeRdv(v.type) === "hospit" || v.st === "reporte") return;
-      const cle = "r-" + v.id, sd = SA.get(idDoc(v.d, x.id, cle)) || {}, [type, cls] = typeDe(v);
-      const etat = v.st === "fait" ? "vu" : v.st === "absent" ? "absent" : sd.etat || "";
-      out.push({ jour: v.d, cle, pid: x.id, x, h: v.h || "", type, cls, motif: v.mo || v.n || "", etat, doc: sd, rdv: v });
-    });
-    if (!voitCh) return;
-    (P.lignes || []).forEach((L) => {
-      let pn = "", E = []; try { pn = protocoleDe(L, D().ctx.bib).nom; E = etatLigne(L, P, D().ctx); } catch (er) { return; }
-      E.forEach((e) => {
-        if (e.st !== "recue" && e.st !== "prevue") return;
-        const jl = [];
-        if ((e.st === "prevue" && J.has(e.date) && !L.arret) || (e.st === "recue" && J.has(e.c.reelle))) jl.push({ j: 1, d: e.st === "recue" ? e.c.reelle : e.date, recue: e.st === "recue" });
-        seancesCure(L, e, D().ctx.bib).forEach((s) => { if ((s.st === "prevue" && J.has(s.prevue) && !L.arret) || (s.st === "recue" && J.has(s.d))) jl.push({ j: s.j, d: s.st === "recue" ? s.d : s.prevue, recue: s.st === "recue" }); });
-        jl.forEach(({ j, d, recue }) => {
-          const cle = "c-" + L.id + "-" + e.n + "-" + j, sd = SA.get(idDoc(d, x.id, cle)) || {};
-          // Venue déjà notée ailleurs (avant la salle d'attente, ou depuis le dossier) : « Vu » si la consultation de chimio a
-          // son prix, ou, pour un jour passé, si la cure / séance est validée (reçue)
-          let etat = sd.etat || "", derive = false;
-          if (!etat && recue && d < D().t) { etat = "vu"; derive = true; }
-          if (!etat && recue && voitPrix()) { const E = encDe(x); if (E && E.cons && E.cons[L.id + "|" + e.n + "|" + j]) { etat = "vu"; derive = true; } }
-          out.push({ jour: d, cle, pid: x.id, x, h: "", type: "Séance chimio", cls: "b-ch", motif: sd.motif || pn + " · C" + e.n + " J" + j, etat, derive, doc: sd, chimio: { lid: L.id, n: e.n, j, recue, lib: pn } });
-        });
-      });
-    });
-  });
-  // Séance de chimio marquée absente puis reportée : elle n'est plus prévue ce jour-là, mais reste dans « Absents »
-  SA.forEach((d, id) => {
-    if (!d || d.etat !== "absent" || !J.has(d.jour) || String(d.cle || "").indexOf("c-") !== 0 || out.some((o) => o.jour === d.jour && o.pid === d.patientId && o.cle === d.cle)) return;
-    const x = D().patients.find((p) => p.id === d.patientId), m = /^c-(.+)-(\d+)-(\d+)$/.exec(d.cle); if (!x || !m) return;
-    out.push({ jour: d.jour, cle: d.cle, pid: x.id, x, h: "", type: "Séance chimio", cls: "b-ch", motif: d.motif || "", etat: "absent", doc: d, orphelin: true, chimio: { lid: m[1], n: +m[2], j: +m[3], recue: false } });
-  });
-  return out;
+  return lignesSalle({ patients: D().patients, jours, ctx: D().ctx, doc: (id) => SA.get(id), docs: SA.values(), voitChimio: A.voit("traitements"),
+    consPaye: voitPrix() ? (x, lid, n, j) => { const E = encDe(x); return !!(E && E.cons && E.cons[lid + "|" + n + "|" + j]); } : null });
 }
 const dansFiltre = (l) => !ETAB || (l.x.doc.etablissementId || "") === ETAB;
 
@@ -434,7 +390,6 @@ window.saCom = (pid, cle) => {
 
 // ───── Page ─────
 const ONGLETS = [["avenir", "À venir"], ["salle", "En salle d'attente", "En salle"], ["vus", "Vus"], ["absents", "Absents"]];
-const ongletDe = (l) => (l.etat === "vu" ? "vus" : l.etat === "absent" ? "absents" : l.etat === "salle" || l.etat === "consult" ? "salle" : "avenir");
 const JC = ["dim.", "lun.", "mar.", "mer.", "jeu.", "ven.", "sam."];
 const lundi = (d) => { const w = new Date(d + "T12:00:00").getDay(); return addJ(d, w === 0 ? -6 : 1 - w); };
 export function pageSalle(j) {
@@ -474,24 +429,10 @@ window.saJour = (n) => window.saAller(addJ(JOUR || D().t, n));
 window.saOnglet = (k) => { VUE = k; dessiner(); };
 window.saPeriode = (k) => { PER = k; dessiner(); };
 // Filtres de la liste : période (heure du rendez-vous, sinon d'arrivée ; sans heure : toujours) et recherche (nom)
-const dansPeriode = (l) => { const h = l.h || (l.doc.arr ? hm(l.doc.arr) : ""); return PER === "jour" || !h || (PER === "matin" ? h < MIDI : h >= MIDI); };
-// recherche (SA6) : nom, n° de dossier, téléphone (chiffres seuls : « 0661 » trouve « 06 61 … »)
-const dansRecherche = (l) => {
-  const m = A.sansAcc(RECH).split(/\s+/).filter(Boolean); if (!m.length) return true;
-  const I = (l.x.doc && l.x.doc.identite) || {}, hay = A.sansAcc(l.x.r.nm + " " + (I.numero || "")), tel = String((l.x.P.tel || "") + " " + (I.tel2 || "")).replace(/\D/g, "");
-  return m.every((w) => hay.indexOf(w) >= 0 || (/^\d+$/.test(w) && w.length >= 3 && tel.indexOf(w.replace(/^0/, "")) >= 0));
-};
-// Tri : chimio en tête d'« À venir » ; « En salle » : en consultation d'abord ; puis heure du rendez-vous, d'arrivée ou nom
-// Place dans la file (en millisecondes) : rang posé à la main (flèches), sinon heure d'arrivée ou du rendez-vous
-const cleNum = (l) => { if (l.doc.rang != null) return l.doc.rang; const r = l.h ? new Date(l.jour + "T" + l.h + ":00").getTime() : null; return triPerso() === "arrivee" ? l.doc.arr || r || 9e15 : r || l.doc.arr || 9e15; };
-function trier(l, vue) {
-  const t = triPerso(), hh = (z) => z.h || (z.doc.arr ? hm(z.doc.arr) : "99:99"), nom = (a, b) => a.x.r.nm.localeCompare(b.x.r.nm);
-  const cle = (a, b) => (t === "alpha" ? nom(a, b) : t === "arrivee" ? (a.doc.arr || 9e15) - (b.doc.arr || 9e15) || hh(a).localeCompare(hh(b)) : hh(a).localeCompare(hh(b))) || nom(a, b);
-  if (vue === "salle") return l.sort((a, b) => (a.etat === "consult" ? 0 : 1) - (b.etat === "consult" ? 0 : 1) || (b.doc.urgent ? 1 : 0) - (a.doc.urgent ? 1 : 0) || (t === "alpha" ? cle(a, b) : cleNum(a) - cleNum(b) || nom(a, b)));
-  if (vue === "vus" && t !== "alpha") return l.sort((a, b) => (a.doc.fin || 0) - (b.doc.fin || 0) || cle(a, b));
-  if (vue === "avenir") return l.sort((a, b) => (a.chimio ? 0 : 1) - (b.chimio ? 0 : 1) || cle(a, b));
-  return l.sort(cle);
-}
+const dansPeriode = (l) => periodeOk(l, PER, hm);
+const dansRecherche = (l) => correspond(l, RECH);
+const cleNum = (l) => cleNumM(l, triPerso());
+const trier = (l, vue) => trierSalle(l, vue, triPerso(), hm);
 function dessiner() {
   if (!$("saL")) return;
   const t = D().t, j0 = lundi(JOUR), sem = Array.from({ length: 7 }, (_, i) => addJ(j0, i)), tout = lignes(sem).filter(dansFiltre);
@@ -587,7 +528,6 @@ function statut(l) {
   return '<span class="rd prevu"><i></i>Prévu</span>';
 }
 // Durées en hh:mm (colonnes Attente et Présence)
-const hhmm = (m) => (m == null ? "" : String(Math.floor(m / 60)).padStart(2, "0") + ":" + String(m % 60).padStart(2, "0"));
 function attente(l) {
   const d = l.doc; if (!d.arr) return "";
   if (l.etat === "salle") { if (l.jour !== D().t) return ""; const m = minutes(d.arr), c = m >= seuils()[1] ? "rouge" : m >= seuils()[0] ? "orange" : ""; return '<span class="' + c + '" title="En attente depuis ' + duree(m) + '">' + hhmm(m) + "</span>"; }

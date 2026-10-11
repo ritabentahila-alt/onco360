@@ -949,7 +949,10 @@ Détail : `AUDIT-SALLE-ATTENTE.md` (10 bugs, mesure avec 620 dossiers, manques p
       (restés en consultation / en salle / jamais arrivés → « Absent » sans report en un clic) et alerte de la cloche pour les
       consultations des 7 derniers jours ni « Venu » ni « Non venu » ; **attente moyenne** et la plus longue en cours.
 - [ ] Arrivée sans rendez-vous + Urgent : pas retenue pour l'instant. Filtre Praticien : plus tard (cabinets de groupe).
-- [ ] **SA7 – Tests** : `tests/test_salle.py` dans le dépôt, calculs de la salle testés sans navigateur.
+- [x] **SA7 – Tests** (11/10) : calculs de la salle déplacés dans `js/moteur/salle.js` (lignes du jour, onglet, période, recherche,
+  tri, file) et testés sans navigateur (`node tests/moteur/test-salle.mjs`, 29 vérifications) ; `tests/test_salle.py` dans le dépôt
+  (35 vérifications : médecin, secrétaire, infirmière, chimio, Patient suivant, collègue qui a déjà agi, messages, heure du Maroc
+  sur un ordinateur à l'heure belge, 390 px). `ouvrir()` de `tests/base.py` accepte un fuseau horaire (`tz`).
 - [x] **SA8a – Lignes de 30 px** (11/10, inspiré de GestiCab ; décisions : onglets gardés, compact = affichage normal, semaine
       repliée par défaut) : un seul bouton par ligne (prochaine étape : Arrivé, Démarrer, Valider, Encaisser) et menu ⋯ (aussi
       au clic droit) pour le reste ; double-clic = dossier ; lignes de 32 px sur une ligne (« … », texte complet au survol) ;
@@ -1734,3 +1737,4 @@ On garde le bleu Onco360 (#3563B0) et Arial ; les impressions (ordonnances, fich
 | 11/10/2026 | 6 bis – SA6 Salle d'attente | En-tête fixé, compact, Patient suivant, une arrivée par patient, ordre de la file, messages arrivée / rouge, recherche n° / téléphone, clôture de la journée + alerte, attente moyenne. Navigateur (médecin, secrétaire, 620 dossiers, 390 px) testé. Pas encore en ligne (avec SA5). |
 | 11/10/2026 | 6 bis – SA8a Salle d'attente | Lignes de 32 px (un bouton + menu ⋯, pastille, colonnes d'heures, civilité dans le nom), largeur des colonnes par compte, semaine repliée. Navigateur (médecin, secrétaire, 620 dossiers, 1440 / 1280 / 390 px) testé. Pas encore en ligne. |
 | 11/10/2026 | 6 bis – Salle d'attente | Ligne « Attente moyenne / la plus longue en cours » retirée (demande de Dr Bentahila). |
+| 11/10/2026 | 6 bis – SA7 Salle d'attente | Tests gardés dans le projet : calculs dans `js/moteur/salle.js` (29 vérifications sans navigateur), `tests/test_salle.py` (35 vérifications dans le navigateur). Aucun changement à l'écran. Pas encore en ligne. |

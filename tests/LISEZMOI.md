@@ -13,6 +13,8 @@ Le seed simule l'état d'Onco360 converti depuis cette sauvegarde ; le bilan de 
 ## Lancer
 ```
 node tests/moteur/test-bilan.mjs  # calcul du bilan sans navigateur (référence, hôpital par date, cases « Payé »)
+node tests/moteur/test-salle.mjs  # salle d'attente sans navigateur : lignes du jour (rendez-vous, séances de chimio), onglets, période, recherche, tri
+python tests/test_salle.py        # salle d'attente : médecin, secrétaire, infirmière, chimio, Patient suivant, messages, heure du Maroc, 390 px
 python tests/test_bilan.py        # bilan de l'année (352 317 DH au 06/10/2026) + aucune erreur JavaScript
 python tests/test_cures.py        # J1 / J8, paramètres par séance, report des doses, fiche chimio
 python tests/test_seances.py      # report de J8, molécules ajoutées / retirées à J8
