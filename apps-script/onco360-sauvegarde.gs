@@ -1,28 +1,65 @@
-/* ===== Onco360 – sauvegarde quotidienne (CODE A COLLER v9) =====
-   À coller dans un NOUVEAU fichier « Onco360 » du projet Apps Script « Chimio HGC » (le même que la sauvegarde actuelle).
-   Utilise ce qui existe déjà dans le projet : DOSSIER_ID, sousDossier_ (fichier « Code ») et fbGet_, fbVal_, dossierFb_,
-   FB_BASE (fichier « Firebase »).
+/* ===== Onco360 – sauvegarde quotidienne (CODE A COLLER v10, AUTONOME) =====
+   v10 (11/10/2026) : ce fichier se suffit à lui-même. Il ne dépend plus des fichiers « Code » et « Firebase » de l'ancienne
+   application : après l'avoir collé et lancé installerSauvegardeOnco360, on peut supprimer tous les autres fichiers du projet
+   Apps Script « Chimio HGC ». L'installation retire aussi tous les anciens déclencheurs du projet (ancienne sauvegarde de 2 h 30,
+   ancien agenda) et ne garde que celui de cette sauvegarde.
 
-   Chaque nuit vers 3 h (après la sauvegarde de l'ancienne application, vers 2 h 30), copie TOUT Onco360 dans
-   Drive > Sauvegardes > Onco360 > Onco360_AAAA-MM-JJ.json :
+   Chaque nuit vers 3 h, copie TOUT Onco360 dans Drive > Application Chimio HGC > Sauvegardes > Onco360 > Onco360_AAAA-MM-JJ.json :
      • espaces/cabinet-bentahila et toutes ses collections (patients, patientsFinances, finances, parametres, protocoles,
-       etablissements, membres, historique, administrations… et celles ajoutées plus tard, trouvées automatiquement) ;
-     • les profils (utilisateurs) des seuls membres de ce cabinet (v9, 11/10/2026 : plus ceux des autres cabinets ni la liste
-       des administrateurs).
+       etablissements, membres, consultations… et celles ajoutées plus tard, trouvées automatiquement) ;
+     • les profils (utilisateurs) des seuls membres de ce cabinet.
    Conservation : les 30 dernières sauvegardes, plus celle du 1er de chaque mois (gardée sans limite).
    En cas d'échec : e-mail d'alerte, et les anciennes sauvegardes ne sont pas effacées.
 
    À LANCER UNE FOIS : installerSauvegardeOnco360 (menu déroulant en haut, puis « Exécuter »). */
 
+var ONCO_PROJET = 'chimio-hgc';
+var ONCO_BASE = 'https://firestore.googleapis.com/v1/projects/' + ONCO_PROJET + '/databases/(default)/documents/';
+var ONCO_DOSSIER_ID = '1T_-w1N7KHQVrMotsX9byCwSvHhdejJKb'; // dossier « Application Chimio HGC » du Drive (il peut être déplacé)
 var ONCO_ESPACE = 'cabinet-bentahila';
 var ONCO_GARDER = 30;
 
+/* Lecture d'un document ou d'une page de collection Firestore, avec le compte Google qui exécute le script */
+function oncoGet_(chemin) {
+  var r = UrlFetchApp.fetch(ONCO_BASE + chemin, {
+    headers: { Authorization: 'Bearer ' + ScriptApp.getOAuthToken(), 'x-goog-user-project': ONCO_PROJET },
+    muteHttpExceptions: true
+  });
+  if (r.getResponseCode() !== 200) throw new Error('Firebase ' + r.getResponseCode() + ' : ' + r.getContentText().slice(0, 300));
+  return JSON.parse(r.getContentText());
+}
+
+/* Valeur Firestore → valeur JavaScript */
+function oncoVal_(v) {
+  if (v == null) return null;
+  if ('stringValue' in v) return v.stringValue;
+  if ('integerValue' in v) return Number(v.integerValue);
+  if ('doubleValue' in v) return v.doubleValue;
+  if ('booleanValue' in v) return v.booleanValue;
+  if ('timestampValue' in v) return v.timestampValue;
+  if ('nullValue' in v) return null;
+  if ('mapValue' in v) { var o = {}, f = v.mapValue.fields || {}; for (var k in f) o[k] = oncoVal_(f[k]); return o; }
+  if ('arrayValue' in v) return (v.arrayValue.values || []).map(oncoVal_);
+  return null;
+}
+
+/* Sous-dossier du Drive (créé s'il n'existe pas) */
+function oncoSousDossier_(parent, nom) {
+  var it = parent.getFoldersByName(nom);
+  return it.hasNext() ? it.next() : parent.createFolder(nom);
+}
+
+/* Dossier de sauvegarde : Application Chimio HGC > Sauvegardes > nom */
+function oncoDossier_(nom) {
+  return oncoSousDossier_(oncoSousDossier_(DriveApp.getFolderById(ONCO_DOSSIER_ID), 'Sauvegardes'), nom);
+}
+
 /* Requête POST à Firestore (liste des collections d'un document) */
 function oncoPost_(chemin, corps) {
-  var url = chemin ? FB_BASE + chemin : FB_BASE.replace(/\/$/, '');
+  var url = chemin ? ONCO_BASE + chemin : ONCO_BASE.replace(/\/$/, '');
   var r = UrlFetchApp.fetch(url + ':listCollectionIds', {
     method: 'post', contentType: 'application/json', payload: JSON.stringify(corps),
-    headers: { Authorization: 'Bearer ' + ScriptApp.getOAuthToken(), 'x-goog-user-project': FB_PROJET },
+    headers: { Authorization: 'Bearer ' + ScriptApp.getOAuthToken(), 'x-goog-user-project': ONCO_PROJET },
     muteHttpExceptions: true
   });
   if (r.getResponseCode() !== 200) throw new Error('Firebase ' + r.getResponseCode() + ' : ' + r.getContentText().slice(0, 300));
@@ -46,10 +83,10 @@ function oncoSousCollections_(cheminDoc) {
 function oncoDocuments_(col, out) {
   var jeton = '', nb = 0;
   for (var n = 0; n < 2000; n++) {
-    var j = fbGet_(col + '?pageSize=300' + (jeton ? '&pageToken=' + encodeURIComponent(jeton) : ''));
+    var j = oncoGet_(col + '?pageSize=300' + (jeton ? '&pageToken=' + encodeURIComponent(jeton) : ''));
     (j.documents || []).forEach(function (d) {
       var o = {}, f = d.fields || {};
-      for (var k in f) o[k] = fbVal_(f[k]);
+      for (var k in f) o[k] = oncoVal_(f[k]);
       out[col + '/' + d.name.split('/').pop()] = o; nb++;
     });
     if (!j.nextPageToken) return nb;
@@ -62,8 +99,8 @@ function oncoDocuments_(col, out) {
 function sauvegardeOnco360() {
   try {
     var esp = 'espaces/' + ONCO_ESPACE, docs = {}, compte = {};
-    var e = fbGet_(esp), fe = {}, f = e.fields || {};
-    for (var k in f) fe[k] = fbVal_(f[k]);
+    var e = oncoGet_(esp), fe = {}, f = e.fields || {};
+    for (var k in f) fe[k] = oncoVal_(f[k]);
     docs[esp] = fe;
     var cols = oncoSousCollections_(esp);
     if (cols.indexOf('patients') < 0) throw new Error('Aucune collection « patients » dans ' + esp + ' : sauvegarde annulée.');
@@ -74,8 +111,8 @@ function sauvegardeOnco360() {
       var m = ch.match(/^espaces\/[^\/]+\/membres\/([^\/]+)$/);
       if (!m) return;
       try {
-        var d = fbGet_('utilisateurs/' + m[1]), o = {}, f2 = d.fields || {};
-        for (var k2 in f2) o[k2] = fbVal_(f2[k2]);
+        var d = oncoGet_('utilisateurs/' + m[1]), o = {}, f2 = d.fields || {};
+        for (var k2 in f2) o[k2] = oncoVal_(f2[k2]);
         docs['utilisateurs/' + m[1]] = o; compte.utilisateurs++;
       } catch (e404) { /* membre sans profil */ }
     });
@@ -83,8 +120,8 @@ function sauvegardeOnco360() {
 
     var jour = Utilities.formatDate(new Date(), 'Africa/Casablanca', 'yyyy-MM-dd');
     var nom = 'Onco360_' + jour + '.json';
-    var base = { application: 'Onco360', projet: FB_PROJET, espace: ONCO_ESPACE, date: new Date().toISOString(), compte: compte, documents: docs };
-    var dos = dossierFb_('Onco360');
+    var base = { application: 'Onco360', projet: ONCO_PROJET, espace: ONCO_ESPACE, date: new Date().toISOString(), compte: compte, documents: docs };
+    var dos = oncoDossier_('Onco360');
     var ex = dos.getFilesByName(nom);
     while (ex.hasNext()) ex.next().setTrashed(true);
     var fichier = dos.createFile(Utilities.newBlob(JSON.stringify(base), 'application/json', nom));
@@ -113,7 +150,8 @@ function sauvegardeOnco360() {
 
 /* À LANCER UNE FOIS : vérifie l'accès, fait une première sauvegarde et la programme chaque nuit vers 3 h */
 function installerSauvegardeOnco360() {
-  ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === 'sauvegardeOnco360') ScriptApp.deleteTrigger(t); });
+  // v10 : tous les déclencheurs du projet sont retirés (anciens compris), puis seul celui de cette sauvegarde est recréé
+  ScriptApp.getProjectTriggers().forEach(function (t) { ScriptApp.deleteTrigger(t); });
   var msg = sauvegardeOnco360();
   ScriptApp.newTrigger('sauvegardeOnco360').timeBased().everyDays(1).atHour(3).nearMinute(0).inTimezone('Africa/Casablanca').create();
   Logger.log('✅ Sauvegarde Onco360 installée. ' + msg + ' Elle se fera désormais chaque nuit vers 3 h.');
