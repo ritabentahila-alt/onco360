@@ -38,6 +38,7 @@ l'ancienne feuille de route.
 - **Historique GitHub nettoyé** : oui (fait le 11/10, 0.3).
 - **Pas de déconnexion automatique, jamais. Pas de double authentification** (médecins, administration).
 - **Google Agenda inchangé** : le nom du patient reste affiché comme aujourd'hui.
+- **Administration** : garder son accès aux profils des autres cabinets et la création de nouveaux cabinets (ne pas les fermer).
 - **« Supprimer le patient » reste une suppression** (pas d'archivage).
 - **Allergies** : bandeau rouge seulement si une allergie est **cochée « oui »** (« aucune » ou vide : rien en rouge).
 - **Tâches de contourage / dosimétrie** : continuent après la date de 1re séance, marquées « EN RETARD ».
@@ -149,7 +150,7 @@ longs et ne dépendent pas du code.
       navigateur (`tests/base.py`, `tests/mkseed.mjs`) ; `functions/test-demo.js` et les tests de calcul qui plantent sans
       `seed.json` rendus autonomes ; contrôle automatique : aucun nom du jeu réel dans `tests/`, `functions/`, `public/`.
 
-- [ ] **0.7 Supprimer complètement l'ancienne application** (demandé le 11/10 ; Onco360 ne lit plus rien de la v1 : vérifié dans le code).
+- [x] **0.7 Supprimer complètement l'ancienne application** (terminée le 11/10 : collections racine effacées par Dr Bentahila dans la console ; `roles` n'existait pas ; Onco360 vérifié intact) (demandé le 11/10 ; Onco360 ne lit plus rien de la v1 : vérifié dans le code).
       **Fait le 11/10** : décision de Dr Bentahila = **aucune archive** (tout est dans Onco360 depuis la bascule du 06/10, bilan
       identique ; les sauvegardes Firebase gardent la v1 encore 14 semaines) ; Drive vidé par elle (« Application Chimio HGC » =
       Sauvegardes + projet Apps Script) ; copie privée du Mac à la Corbeille ; script de copie v10 autonome installé, anciens fichiers
@@ -178,9 +179,12 @@ longs et ne dépendent pas du code.
       (regex sur des images de 300 Ko : coûteux ; l'affichage est protégé). Test : `tests/test_securite.py` (10/10 : photo,
       signature et courrier piégés, CSP appliquée, contrôle qu'un script d'un autre site est refusé). Aussi : `test_menu` (28/28,
       4 familles) et `test_profil_abo` (« Mon compte ») mis à jour.
-- [ ] **1.2 Comptes** (pas de déconnexion automatique ni de double authentification : décision) : « Lien du mot de passe » réservé aux comptes jamais connectés, avec message au titulaire ; e-mail de la
-      propriétaire dans les règles (`firestore.rules` 9) remplacé par la collection `administrateurs` ; profils des autres cabinets
-      fermés (règles 27-34).
+- [x] **1.2 Comptes** (11/10, en ligne) : « Lien du mot de passe » de l'administration (`lienMotDePasse`) réservé à un compte
+      **jamais utilisé** (premier mot de passe d'un cabinet neuf) ; sinon refus expliqué (« Mot de passe oublié ? » de la page de
+      connexion, e-mail à l'adresse du médecin) et noté au journal de l'administration. **Décisions de Dr Bentahila** : pas de
+      déconnexion automatique ni de double authentification ; **l'accès de l'administration aux profils des autres cabinets et la
+      création de cabinets restent tels quels** (e-mail propriétaire des règles gardé : le remplacer par la collection
+      `administrateurs` donnerait au compte d'administration les pouvoirs du cabinet Bentahila).
 - [ ] **1.3 Droits imposés par le serveur** (étape 9 S2) : chaque droit de la grille vérifié dans les règles, pas seulement caché à
       l'écran (consultations : droit `consultations` ; documents ; finances) ; fiches de membres écrites par le serveur seul (règle
       93) ; modules et limites (dossiers, lieux) imposés par les règles ; historique (`fil`) d'une tâche non réécrivable (règle 185) ;
