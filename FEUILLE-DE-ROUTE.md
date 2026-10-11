@@ -149,6 +149,18 @@ longs et ne dépendent pas du code.
       navigateur (`tests/base.py`, `tests/mkseed.mjs`) ; `functions/test-demo.js` et les tests de calcul qui plantent sans
       `seed.json` rendus autonomes ; contrôle automatique : aucun nom du jeu réel dans `tests/`, `functions/`, `public/`.
 
+- [ ] **0.7 Supprimer complètement l'ancienne application** (demandé le 11/10 ; Onco360 ne lit plus rien de la v1 : vérifié dans le code) :
+      (1) **une archive finale** de toute la v1 (exigence de Dr Bentahila : dossiers toujours récupérables) = le JSON du 06/10
+      (restauré depuis la corbeille du Drive ; la v1 n'a plus changé depuis), rangé dans Drive › Application Chimio HGC › Archives ;
+      (2) contrôle sans afficher de nom : chaque patient de la v1 existe dans Onco360 (comparaison de la copie Onco360 du jour et de
+      l'archive) ; (3) collections racine `patients`, `protocoles`, `parametres`, `finances`, `roles`, `historique` effacées de
+      Firestore **par Dr Bentahila** (commande donnée ; les sauvegardes Firebase les gardent encore 14 semaines) ; (4) règles v1 et
+      `proprietaire()` retirées de `firestore.rules` (tests des règles) ; (5) Apps Script : script de copie Onco360 rendu autonome
+      (v10, sans les fichiers « Code » et « Firebase »), puis anciens fichiers, déclencheurs et ancienne application Apps Script
+      supprimés ; (6) Drive : `ChimioHGC_patients`, `Archives` (fiches PDF), « Refonte – données de référence » et copie privée du
+      Mac supprimés (contenus dans l'archive finale). Le code « v1 » restant dans Onco360 concerne des montants **déjà dans
+      Onco360** (prix repris, « Payé auto. ») : il part en 5.4, pas ici.
+
 ## Phase 1 – Sécurité (premier audit, constats « élevé » et « moyen »)
 
 - [x] **1.1 Injections de code** (11/10, testé, en ligne : version 20261011u) : `srcImage` (moteur/outils.js) : photo du patient, photo de
