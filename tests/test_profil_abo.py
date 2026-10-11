@@ -14,7 +14,7 @@ async def main():
         c = await pg.inner_text('[data-abo-carte]') if await pg.evaluate("!!document.querySelector('[data-abo-carte]')") else ''
         ok('EXPIRÉ' in c and 'Abonnement expiré' in c and '02 septembre 2026' in c and 'en retard de 34 jours' in c and 'Renouveler' in c, 'tableau de bord : carte « Abonnement expiré » (échéance, retard) · ' + c.replace('\n', ' ')[:80])
         ok(await pg.evaluate("document.querySelector('[data-abo-carte] a').getAttribute('href')") == '#profil/abonnement' and (await pg.evaluate('window.__ma')) == {'espace': 'cabinet-bentahila'}, '« Renouveler » mène à Profil & Paramètres › Abonnement ; lu pour ce cabinet')
-        ok('Profil & Paramètres' in await pg.inner_text('nav'), 'menu « Profil & Paramètres »')
+        ok('Mon compte' in await pg.inner_text('nav'), 'menu « Mon compte » (ex-« Profil & Paramètres », 11/10)')
         await pg.click('[data-abo-carte] a'); await pg.wait_for_timeout(800); t = await pg.inner_text('#page')
         ok('Informations' in t and 'Accès' in t and 'Abonnement' in t and 'Factures' in t and 'ONCOLOGIE – PRO' in t and 'Expiré' in t and '2 mois offerts' in t and '11 900 DH' in t and '14 280 DH' in t and 'RIB : 011 780 0000' in t, 'onglet Abonnement : formule, état, mensuel / annuel (2 mois offerts, prix barré), RIB')
         await pg.click('text=Passer à l\'annuel'); await pg.wait_for_timeout(300); await pg.fill('#aboMsg', 'Par chèque'); await pg.click('#aboOk'); await pg.wait_for_timeout(800)

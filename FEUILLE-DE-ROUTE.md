@@ -136,7 +136,7 @@ longs et ne dépendent pas du code.
       « PATIENT TEST » ; `tests/test_agenda.py` → nom lu dans le jeu de test), `.claude/launch.json` sorti du dépôt ; puis
       `git filter-repo` sur une copie : `public/ancienne-app.html` retiré de tout l'historique, les deux noms remplacés dans tous
       les commits ; vérifié (aucun des 57 dossiers, aucun nom complet ; restent deux homonymes qui ne sont pas des dossiers :
-      Hamza Benzekri, auteur, et un médecin correspondant de `COR0`, retiré en 1.7) ; envoyé sur GitHub. Reste à Dr Bentahila :
+      le nom de Hamza Benzekri dans la documentation (compte Claude prêté) et un médecin correspondant de `COR0`, retiré en 1.7) ; envoyé sur GitHub. Reste à Dr Bentahila :
       purge du cache GitHub et vérification des copies (question 2).
 - [x] ~~0.4 Double authentification~~ : non retenue (décision du 11/10).
 - [ ] **0.5 Fiche d'incident et gel** : Claude rédige la fiche (page en ligne sans connexion depuis le 06/10 au plus tard, date
@@ -152,11 +152,16 @@ longs et ne dépendent pas du code.
 
 ## Phase 1 – Sécurité (premier audit, constats « élevé » et « moyen »)
 
-- [ ] **1.1 Injections de code** : photo du patient (`v2.js` 57 `bulle`), photo de profil et signature échappées et limitées à
-      `data:image/jpeg|png` ; nettoyeur HTML (`nettoyer`, ordonnances.js 586) appliqué aussi **à l'affichage** des ordonnances,
-      courriers et documents de radiothérapie (ordonnances.js 687, documents.js 158) ; règles : format des photos et taille du HTML
-      ; **politique CSP** dans `firebase.json` (scripts du site, de gstatic et de la connexion Google seulement). Tests : règles
-      (photo `javascript:` refusée), navigateur (ordonnance piégée affichée sans exécuter de code).
+- [x] **1.1 Injections de code** (11/10, testé, pas encore en ligne) : `srcImage` (moteur/outils.js) : photo du patient, photo de
+      profil, signature et logos acceptés seulement en image base64 ou fichier Firebase Storage (v2.js `bulle`, avatar ; profil.js ;
+      fiche.js) ; nettoyeur HTML (`nettoyer`) appliqué aussi **à l'affichage** : fenêtre de l'ordonnance / du courrier, aperçu et
+      impression des antécédents, documents de radiothérapie enregistrés, et toutes les lectures de HTML enregistré (l'aperçu des
+      antécédents exécutait encore une image piégée : corrigé) ; **politique CSP** dans `firebase.json`, d'abord en observation
+      (« Report-Only ») : l'application entière l'a passée appliquée pour de bon dans les tests (médecin, secrétaire) → la passer en
+      application réelle après une journée en ligne sans alerte (1.5). Contrôle des formats dans les règles Firestore non retenu
+      (regex sur des images de 300 Ko : coûteux ; l'affichage est protégé). Test : `tests/test_securite.py` (10/10 : photo,
+      signature et courrier piégés, CSP appliquée, contrôle qu'un script d'un autre site est refusé). Aussi : `test_menu` (28/28,
+      4 familles) et `test_profil_abo` (« Mon compte ») mis à jour.
 - [ ] **1.2 Comptes** (pas de déconnexion automatique ni de double authentification : décision) : « Lien du mot de passe » réservé aux comptes jamais connectés, avec message au titulaire ; e-mail de la
       propriétaire dans les règles (`firestore.rules` 9) remplacé par la collection `administrateurs` ; profils des autres cabinets
       fermés (règles 27-34).
@@ -313,8 +318,9 @@ les étapes 1.7, 2.5, 3.2 et 3.7.
       III) ? Choisir le positionnement (« aide au calcul, sous la responsabilité du médecin »).
 - [ ] **6.3 Contenus** : autorisation d'eviQ (licence non commerciale) ou source d'origine de chaque protocole ; vérifier qu'aucun
       élément de Tbibclic ni de GestiCab n'est repris à l'identique.
-- [ ] **6.4 Société et droits** : société éditrice (compatible avec l'exercice médical) ; cessions de droits signées par toute
-      personne ayant contribué (dont Hamza Benzekri) ; statut du code écrit avec une IA.
+- [ ] **6.4 Société et droits** : société éditrice (compatible avec l'exercice médical) ; **Dr Rita Bentahila seule autrice** de
+      tout le code et de tout le contenu (Hamza Benzekri a seulement prêté son compte Claude au début, sans rien écrire : une
+      attestation de sa part peut être demandée par un acheteur) ; statut du code écrit avec une IA.
 - [ ] **6.5 Projet neutre** : organisation Google Cloud au nom de la société, projet Firebase neutre, nom de domaine (onco360.ma),
       variante hébergée au Maroc si l'acheteur est public ou d'importance vitale (loi 05-20, décret 2-24-921).
 - [ ] **6.6 Test d'intrusion** par un prestataire externe (après les phases 1 et 2).

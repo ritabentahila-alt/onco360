@@ -5,7 +5,7 @@ et la mettre à jour à la fin (cocher, décisions) ; une ligne dans `JOURNAL.md
 route (jusqu'au 11/10/2026, tout le détail des étapes 1 à 23) est dans `archives/FEUILLE-DE-ROUTE-jusqu-au-2026-10-11.md`.
 
 Application web de suivi oncologique (chimiothérapie, radiothérapie, rendez-vous, honoraires) du **Dr Rita Bentahila**,
-oncologue-radiothérapeute à Casablanca. Code écrit par Dr Rita Bentahila avec Claude (d'abord depuis le compte de Hamza Benzekri, puis depuis le sien). Interface et code **en français**.
+oncologue-radiothérapeute à Casablanca. **Dr Rita Bentahila est la seule autrice** du code et du contenu, écrits avec Claude (au début depuis le compte Claude de Hamza Benzekri, qu'il lui a seulement prêté : il n'a rien écrit ; puis depuis le sien). Interface et code **en français**.
 
 - En ligne : https://chimio-hgc.web.app (Firebase Hosting, projet `chimio-hgc`)
 - Bascule faite le **06/10/2026** : Onco360 (`public/v2.html`) est l'application de référence.

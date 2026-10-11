@@ -8,3 +8,6 @@ export function auj(date) { const d = date || new Date(); return d.getFullYear()
 export function age(ddn, ref) { if (!ddn || !ref) return null; let a = +ref.slice(0, 4) - +ddn.slice(0, 4); if (ref.slice(5) < ddn.slice(5)) a--; return a; }
 // Jour ouvré : lundi–vendredi hors jours fériés (liste [{d:'AAAA-MM-JJ'}])
 export function ouvre(d, feries) { const w = new Date(d + "T12:00:00").getDay(); return w !== 0 && w !== 6 && !(feries || []).some((f) => f.d === d); }
+// Source d'image sûre (11/10/2026, audit) : photo, signature, logo = image en base64 (data:image/…) ou fichier Firebase Storage ;
+// toute autre valeur (javascript:, guillemets, HTML…) est écartée avant d'être placée dans un src="…".
+export const srcImage = (u) => (typeof u === "string" && (/^data:image\/(png|jpe?g|gif|webp);base64,[A-Za-z0-9+/=]+$/.test(u) || /^https:\/\/firebasestorage\.googleapis\.com\/[^"'<>\s]+$/.test(u)) ? u : "");

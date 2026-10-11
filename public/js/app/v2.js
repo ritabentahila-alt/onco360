@@ -9,7 +9,7 @@ import { resume } from "../moteur/resume.js";
 import { chimioAVenir } from "../moteur/agenda.js";
 import { etatLigne, protocoleDe, seancesCure } from "../moteur/doses.js";
 import { finRT, statutRT, nbA, compteurRT, dosimetrie, contourage } from "../moteur/rt.js";
-import { auj, addJ, ecart, ouvre, age } from "../moteur/outils.js";
+import { auj, addJ, ecart, ouvre, age, srcImage } from "../moteur/outils.js";
 import { typeRdv, libRdv, joursH, T_RTC } from "../moteur/rdv.js";
 import { tarif as tarifAu } from "../moteur/tarifs.js";
 import { genererConsultRT } from "../moteur/rt.js";
@@ -54,7 +54,7 @@ const cap = (s) => s ? s.charAt(0).toUpperCase() + s.slice(1) : "";
 const dfr = (d) => d ? d.slice(8, 10) + "/" + d.slice(5, 7) : "";
 const dfrA = (d) => d ? d.slice(8, 10) + "/" + d.slice(5, 7) + "/" + d.slice(0, 4) : "";
 // Bulle d'un patient : sa photo si elle existe, sinon ses initiales
-const bulle = (x, cls) => { const ph = x && x.doc && x.doc.identite && x.doc.identite.photo; return '<div class="av' + (cls ? " " + cls : "") + '">' + (ph ? '<img src="' + ph + '" alt="">' : esc(initiales(x.r.nm))) + "</div>"; };
+const bulle = (x, cls) => { const ph = srcImage(x && x.doc && x.doc.identite && x.doc.identite.photo); return '<div class="av' + (cls ? " " + cls : "") + '">' + (ph ? '<img src="' + ph + '" alt="">' : esc(initiales(x.r.nm))) + "</div>"; };
 const initiales = (nm) => String(nm || "").split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase() || "··";
 let D = null;
 const toast = (t) => { const x = $("toast"); x.textContent = t; x.classList.remove("cache"); clearTimeout(toast.t); toast.t = setTimeout(() => x.classList.add("cache"), 3800); };
@@ -410,7 +410,7 @@ function entete() {
   $("specMenu").textContent = p.specialite || { medecin: "Médecin", infirmiere: "Infirmière", assistante: "Assistante" }[mb.role] || "";
   if (D.espaceDoc && D.espaceDoc.demo) $("specMenu").textContent = "Cabinet de démonstration (patients fictifs)"; // étape 9 S3
   const ini = initiales((p.prenom || "") + " " + nom);
-  ["avMenu", "avTete"].forEach((i) => { if (p.photo) $(i).innerHTML = '<img src="' + p.photo + '" alt="' + esc(ini) + '">'; else $(i).textContent = ini; }); $("avTete").title = D.u.email;
+  ["avMenu", "avTete"].forEach((i) => { if (srcImage(p.photo)) $(i).innerHTML = '<img src="' + srcImage(p.photo) + '" alt="' + esc(ini) + '">'; else $(i).textContent = ini; }); $("avTete").title = D.u.email;
   document.querySelectorAll("nav a[data-droit]").forEach((a) => { if (!(mb.droits && mb.droits[a.dataset.droit])) a.classList.add("cache"); });
   // Modules de la formule : body.sans-<module> cache tout ce qui porte data-mod="<module>" (menu, boutons, onglets)
   Object.keys(D.abo.modules).forEach((k) => document.body.classList.toggle("sans-" + k, !D.abo.modules[k]));

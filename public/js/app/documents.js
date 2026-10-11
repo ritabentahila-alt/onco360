@@ -143,7 +143,7 @@ window.docRT = async (pid, rid, type) => {
   A.fenetre('<p class="sous">Ouverture du document…</p>', "large");
   const s = await getDoc(doc(col(), idDoc(pid, rid, type))).catch(() => null), e = s && s.exists() ? s.data() : null;
   F = { pid, rid, type, enreg: e };
-  vue(x, r, e ? e.html : contenuNeuf(x, r, type));
+  vue(x, r, e ? nettoyer(e.html) : contenuNeuf(x, r, type)); // version enregistrée nettoyée à l'affichage (audit du 10/10)
 };
 function vue(x, r, html) {
   const e = F.enreg, d = F.type === "rdv" ? datesSeancesRT(r, D().ctx) : null;

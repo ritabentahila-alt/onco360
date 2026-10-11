@@ -458,7 +458,7 @@ function vueCourriers() {
   $("crQ").oninput = () => { CQ.q = $("crQ").value; listeCourriers(); };
   listeCourriers();
 }
-const texteModele = (html) => { const d = document.createElement("div"); d.innerHTML = html; d.querySelectorAll(".or-ti").forEach((p) => p.remove()); d.querySelectorAll("p, br").forEach((p) => p.after(" ")); return d.textContent.replace(/\s+/g, " ").trim(); };
+const texteModele = (html) => { const d = document.createElement("div"); d.innerHTML = nettoyer(html); d.querySelectorAll(".or-ti").forEach((p) => p.remove()); d.querySelectorAll("p, br").forEach((p) => p.after(" ")); return d.textContent.replace(/\s+/g, " ").trim(); };
 function listeCourriers() {
   const mots = sansAcc(CQ.q).split(/\s+/).filter(Boolean);
   const L = CR.filter((m) => { const t = sansAcc(m.nom + " " + texteModele(m.html)); return mots.every((w) => t.indexOf(w) >= 0); });
@@ -586,7 +586,7 @@ function propre(n) {
 export const nettoyer = (html) => { const t = document.createElement("template"); t.innerHTML = html; const d = document.createElement("div"); d.appendChild(propre(t.content)); return d.innerHTML; };
 // Libellé de la ligne « Médic. » de la consultation : les médicaments de l'ordonnance (ou le début du texte)
 function libelle(html) {
-  const d = document.createElement("div"); d.innerHTML = html;
+  const d = document.createElement("div"); d.innerHTML = nettoyer(html);
   const noms = [...d.querySelectorAll(".or-m, .or-a")].map((p) => p.textContent.replace(/^\s*\d+\s*\/\s*/, "").replace(/^\s*•\s*/, "").trim()).filter(Boolean);
   if (noms.length) return noms.join(" ; ");
   [".or-date", ".or-pat", ".or-sig", ".or-t", ".or-rc", ".or-ti"].forEach((s) => d.querySelectorAll(s).forEach((p) => p.remove()));
@@ -605,7 +605,7 @@ window.mdAfficher = () => {
 };
 // Médicaments d'une ordonnance enregistrée, relus sur la feuille (avec les corrections faites à la main) : nom + posologie
 function medicamentsDe(html) {
-  const d = document.createElement("div"); d.innerHTML = html; const L = [];
+  const d = document.createElement("div"); d.innerHTML = nettoyer(html); const L = [];
   d.querySelectorAll("br").forEach((b) => b.replaceWith("\n"));
   [...d.children].forEach((p) => {
     if (p.classList.contains("or-a")) { L.push({ nom: p.textContent.replace(/^\s*•\s*/, "").trim(), poso: "", fin: true }); return; } // analyses : une ligne chacune
@@ -624,7 +624,7 @@ window.ordVoir = (pid, cid, lid) => { const l = trouverLigne(pid, cid, lid); if 
 const peutSupprimer = () => peutEcrire(); // médecin et secrétaire (07/10/2026)
 // Date de l'ordonnance remplacée par celle du jour ; signature remplacée par le médecin du jour (renouvellement)
 function auJour(html, signer) {
-  const d = document.createElement("div"); d.innerHTML = html;
+  const d = document.createElement("div"); d.innerHTML = nettoyer(html);
   const jours = d.querySelectorAll(".or-jour"), meds = d.querySelectorAll(".or-med"); // courriers : date et médecin dans le texte
   if (jours.length) jours.forEach((s) => { s.textContent = dateFr(D().t); });
   else { let p = d.querySelector(".or-date"); if (!p) { p = document.createElement("p"); p.className = "or-date"; d.prepend(p); } p.textContent = "Le " + dateFr(D().t); }
@@ -646,7 +646,7 @@ function vueAntecedents() {
   const bt = (lib, fn, cls, icone) => '<button class="bt ' + (cls || "gris") + '" onclick="' + fn + '"' + (o ? "" : " disabled") + ">" + (icone ? A.ic(icone) : "") + lib + "</button>";
   A.fenetre("<h3>Antécédents — " + A.esc(f.titre) + " — " + A.esc(x.r.nm) + "</h3>" +
     (L.length ? '<div class="an"><div class="an-l" role="listbox" aria-label="Ordonnances">' + L.map(({ l }) => '<button role="option" aria-selected="' + (l.id === H.sel) + '" class="' + (l.id === H.sel ? "on" : "") + '" onclick="anChoisir(\'' + l.id + '\')"><b>' + A.dfrA(l.d) + "</b>" + (l.dm && l.dm !== l.d ? '<span class="mesures">modifiée le ' + A.dfrA(l.dm) + "</span>" : "") + "<span>" + A.esc(l.lib || "") + "</span></button>").join("") + "</div>" +
-      '<div class="an-d"><div class="or-zone"><div class="or-feuille ' + String((o && o.l.format) || "A5").toLowerCase() + '" style="font-size:' + (((o && o.l.format) === "A4" ? 15 : 14) + ((o && o.l.taille) || 0)) + 'px">' + (o ? o.l.html : "") + "</div></div>" +
+      '<div class="an-d"><div class="or-zone"><div class="or-feuille ' + String((o && o.l.format) || "A5").toLowerCase() + '" style="font-size:' + (((o && o.l.format) === "A4" ? 15 : 14) + ((o && o.l.taille) || 0)) + 'px">' + (o ? nettoyer(o.l.html) : "") + "</div></div>" +
       (o ? '<p class="mesures" style="margin:6px 0 0">Édition ' + A.esc(o.l.format || "A5") + " · faite par " + A.esc(o.l.par || "") + (o.l.med ? " · signée " + A.esc(o.l.med) : "") + "</p>" : "") + "</div>" +
       '<div class="an-b">' + (ok ? bt("Imprimer", "anImprimer()", "clair", "imprimer") + (peutSupprimer() ? bt("Supprimer", "anSupprimer()", "gris rouge-t") : "") + bt("Modifier", "anModifier()", "gris") + bt("Renouveler", "anRenouveler()", "plein") : "") +
       '<button class="bt gris" onclick="anFermer()">Fermer</button></div></div>'
@@ -655,7 +655,7 @@ function vueAntecedents() {
 const choisie = () => { const o = H && prescriptionsDe(H.pid, H.t).find((z) => z.l.id === H.sel); return o && o.l; };
 window.anChoisir = (id) => { H.sel = id; vueAntecedents(); };
 window.anFermer = () => { const pid = H && H.pid; H = null; A.fermerFenetre(); if (pid) A.pageDossier(pid); };
-window.anImprimer = () => { const l = choisie(); if (!l) return; let w = null; try { w = window.open("", "_blank"); } catch (e) { w = null; } if (w) imprimer(w, l.html, l.format || "A5", l.taille || 0); else A.toast("Impression bloquée par le navigateur : autorisez les fenêtres pour Onco360."); };
+window.anImprimer = () => { const l = choisie(); if (!l) return; let w = null; try { w = window.open("", "_blank"); } catch (e) { w = null; } if (w) imprimer(w, nettoyer(l.html), l.format || "A5", l.taille || 0); else A.toast("Impression bloquée par le navigateur : autorisez les fenêtres pour Onco360."); };
 window.anSupprimer = async () => {
   const l = choisie(), x = H && trouver(H.pid); if (!l || !x || !peutSupprimer()) return;
   if (!confirm("Supprimer l'ordonnance du " + A.dfrA(l.d) + " ?\n\n« " + (l.lib || "") + " »\n\nElle disparaît aussi de sa consultation.")) return;
@@ -684,7 +684,7 @@ function ouvrirOrdonnance(o) {
     '<div class="or-zone"><div id="orPage" class="or-feuille" ' + (o.lecture ? "" : 'contenteditable="true" spellcheck="true"') + "></div></div>" +
     '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="orFermer()">Fermer</button>' +
     (o.lecture ? "" : '<button class="bt clair" id="orOk" onclick="orValider(false)">Valider</button><button class="bt plein" id="orImp" onclick="orValider(true)">' + A.ic("imprimer") + "Valider + Imprimer</button>") + "</div>", "large");
-  $("orPage").innerHTML = o.html; miseEnPage();
+  $("orPage").innerHTML = nettoyer(o.html); miseEnPage(); // nettoyé aussi à l'affichage (audit du 10/10 : un HTML écrit directement dans la base ne doit rien exécuter)
   // un clic dans une zone « À compléter » la sélectionne : ce qu'on tape la remplace
   $("orPage").onclick = (ev) => { const m = ev.target.closest && ev.target.closest("mark.or-ac"); if (!m || !/^À compléter/.test(m.textContent)) return; const r = document.createRange(), s = window.getSelection(); r.selectNodeContents(m); s.removeAllRanges(); s.addRange(r); };
 }
