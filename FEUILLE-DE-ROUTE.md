@@ -1562,8 +1562,7 @@ On garde le bleu Onco360 (#3563B0) et Arial ; les impressions (ordonnances, fich
 - Tests : `tests/test_menu.py` ; 390, 1024, 1440 et 1920 px ; 3 rôles ; impressions inchangées.
 
 ## Idées en attente (à placer dans une étape)
-- Réécrire `tests/test_cures.py` et `tests/test_seances.py` : écrits pour la première version (avant le remodelage du dossier du
-  06/10), ils ne trouvent plus la fenêtre des cures (le dossier s'ouvre sur Consultation, puis vue des jours J1 / J8). Constaté le 11/10.
+- [x] Réécrire `tests/test_cures.py` et `tests/test_seances.py` (fait le 11/10 : tableau des jours, fenêtre du prix, voir journal).
 - Outil de restauration d'une sauvegarde.
 
 - Annulés le 06/10 (décision de Dr Bentahila) : rappels WhatsApp automatiques, assistant IA.
@@ -1755,3 +1754,4 @@ On garde le bleu Onco360 (#3563B0) et Arial ; les impressions (ordonnances, fich
 | 11/10/2026 | 6 bis – Salle d'attente | Ligne « Attente moyenne / la plus longue en cours » retirée (demande de Dr Bentahila). |
 | 11/10/2026 | 6 bis – SA7 Salle d'attente | Tests gardés dans le projet : calculs dans `js/moteur/salle.js` (29 vérifications sans navigateur), `tests/test_salle.py` (35 vérifications dans le navigateur). Aucun changement à l'écran. En ligne (version 20261011r). |
 | 11/10/2026 | 6 bis – SA9 Salle d'attente | Suites de l'audit externe : onglet d'ouverture (En salle d'abord), Correspondant et Commentaire cachés par défaut, titres entiers à 1 440 px, téléphone (Filtres repliés, zones ≥ 44 px), reçus numérotés R-AAAA-NNNN (duplicata, numéros annulés gardés). Règles (9 suites), moteur, navigateur (51) testés. En ligne (règles + version 20261011s). |
+| 11/10/2026 | Tests chimio | `tests/test_cures.py` et `tests/test_seances.py` réparés (tests seulement, application inchangée) : la fenêtre de la cure est un tableau des jours J1 / J8 (boutons Ouvrir / Valider / Reporter) et non plus des tuiles ; après chaque validation, fenêtre du prix « Valider : venu » puis retour au dossier ; fiche chimio sans logo (papier à en-tête) avec « Dossier n° ». Les deux passent, aucune erreur JavaScript. |
