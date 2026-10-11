@@ -1561,6 +1561,30 @@ On garde le bleu Onco360 (#3563B0) et Arial ; les impressions (ordonnances, fich
 - [ ] 20.5 Barre du haut : recherche en pilule toujours visible sur ordinateur, cloche et avatar plus marqués.
 - Tests : `tests/test_menu.py` ; 390, 1024, 1440 et 1920 px ; 3 rôles ; impressions inchangées.
 
+## Étape 22 – Tableau de bord (audit externe du 11/10/2026)
+Constat : complet mais trop long (2 693 px, trois écrans sur une colonne) ; carte d'abonnement avant le programme du jour ;
+ordre des cartes réglé seulement par l'administration ; alertes non cliniques ; « Séance 11 / 25 » = calendrier, pas séances faites.
+- [x] Deux colonnes à partir de 1280 px : programme du jour et 7 prochains jours à gauche ; « À valider / À faire », Mes tâches,
+      Conflits à droite ; Pour commencer et Statistiques en pleine largeur (statistiques sur une ligne). Tablette et téléphone : une
+      colonne, programme du jour d'abord. Hauteur à 1 440 px : 1 497 px avec le jeu de test (au lieu de ~2 700).
+- [x] Bloc unique selon le rôle : **À valider par le médecin** (cures du jour et en retard, contourages, dosimétries, fins de
+      radiothérapie ; bouton Valider = mêmes fenêtres que le dossier) ; **À faire par la secrétaire** (rappels WhatsApp à envoyer
+      avec le bouton, numéros manquants, rendez-vous à décaler, consultations non clôturées → Salle d'attente) ; **À faire par
+      l'infirmière** (chimiothérapies du jour). Médecin : les tâches automatiques de radiothérapie ne sont plus répétées dans
+      « Mes tâches ». Secrétaire : la carte « Rappels WhatsApp » n'apparaît que si le bloc est retiré.
+- [x] Organisation réglable par le cabinet : `parametres/accueil` { ordre, cartes, col } (onglet Paramètres › Cabinet › Tableau de
+      bord fait par la session « Paramètres ») ; `accueilEffectif` / `COLONNES0` dans catalogue.js (administration puis cabinet).
+- [x] Émojis retirés (main, ☢️, 🩺, 💉 du programme, des 7 jours et des statistiques) : pictogrammes au trait.
+- [x] Abonnement : bandeau d'une ligne pendant l'essai et avant l'échéance ; grande carte seulement les 7 derniers jours et en
+      retard, en haut de la colonne de droite (après le programme du jour sur téléphone).
+- [x] Radiothérapie : « Séance 11 / 25 prévue » (bulle : calcul d'après le calendrier, les séances faites ne sont pas enregistrées).
+- [ ] **À décider avec Dr Bentahila : alertes cliniques** (ex. perte de poids > 5 % / 10 % depuis le début de la ligne, clairance
+      de la créatinine basse avant une cure au carboplatine / cisplatine, bilan biologique non reçu avant une cure, toxicité notée).
+      Rien n'est fait tant que les seuils ne sont pas choisis par elle.
+- [ ] Plus tard (à décider) : compter les séances de radiothérapie réellement faites (validation par séance) ; même libellé
+      « prévues » dans le dossier (« Séances réalisées » y est aussi un calcul de calendrier).
+- Test : `tests/test_accueil.py` (3 rôles, 1440 / 1100 / 390 px, abonnement, réglage du cabinet).
+
 ## Idées en attente (à placer dans une étape)
 - [x] Réécrire `tests/test_cures.py` et `tests/test_seances.py` (fait le 11/10 : tableau des jours, fenêtre du prix, voir journal).
 - Outil de restauration d'une sauvegarde.
@@ -1755,3 +1779,4 @@ On garde le bleu Onco360 (#3563B0) et Arial ; les impressions (ordonnances, fich
 | 11/10/2026 | 6 bis – SA7 Salle d'attente | Tests gardés dans le projet : calculs dans `js/moteur/salle.js` (29 vérifications sans navigateur), `tests/test_salle.py` (35 vérifications dans le navigateur). Aucun changement à l'écran. En ligne (version 20261011r). |
 | 11/10/2026 | 6 bis – SA9 Salle d'attente | Suites de l'audit externe : onglet d'ouverture (En salle d'abord), Correspondant et Commentaire cachés par défaut, titres entiers à 1 440 px, téléphone (Filtres repliés, zones ≥ 44 px), reçus numérotés R-AAAA-NNNN (duplicata, numéros annulés gardés). Règles (9 suites), moteur, navigateur (51) testés. En ligne (règles + version 20261011s). |
 | 11/10/2026 | Tests chimio | `tests/test_cures.py` et `tests/test_seances.py` réparés (tests seulement, application inchangée) : la fenêtre de la cure est un tableau des jours J1 / J8 (boutons Ouvrir / Valider / Reporter) et non plus des tuiles ; après chaque validation, fenêtre du prix « Valider : venu » puis retour au dossier ; fiche chimio sans logo (papier à en-tête) avec « Dossier n° ». Les deux passent, aucune erreur JavaScript. |
+| 11/10/2026 | 22 – Tableau de bord (audit externe) | Deux colonnes à partir de 1 280 px (programme du jour à gauche), bloc « À valider par le médecin » / « À faire par la secrétaire » / « À faire par l'infirmière » (bouton Valider pour contourage, dosimétrie, fin de RT ; rappels WhatsApp), organisation réglable par le cabinet (`parametres/accueil`, avec la session Paramètres), pictogrammes au trait à la place des émojis, abonnement en bandeau pendant l'essai, « Séance n / N prévue ». Hauteur 2 700 → 1 500 px à 1 440 px. tests/test_accueil.py 20/20 ; salle, réglage, modules sans échec. Alertes cliniques : à décider avec Dr Bentahila. Pas encore en ligne. |

@@ -31,10 +31,10 @@ async def main():
         await pg.set_viewport_size({'width': 390, 'height': 800}); await pg.evaluate("location.hash='profil/abonnement'"); await pg.wait_for_timeout(700)
         ok(await pg.evaluate("document.documentElement.scrollWidth<=392"), 'Abonnement à 390 px : rien ne déborde')
         ok(not pg.errs, 'aucune erreur JavaScript ' + str(pg.errs[:2]))
-        # Essai : carte orange ; à jour : pas de carte
+        # Essai : bandeau (grande carte les 7 derniers jours) ; à jour : pas de carte
         p2 = await ouvrir(b); await p2.add_init_script(abo(ESS)); await p2.goto(f'http://localhost:{PORT}/v2.html#accueil'); await p2.wait_for_timeout(2500)
         c = await p2.inner_text('[data-abo-carte]') if await p2.evaluate("!!document.querySelector('[data-abo-carte]')") else ''
-        ok('ESSAI GRATUIT' in c and '12' in c and 'Fin de l\'essai' in c, 'essai : carte « Fin de l\'essai gratuit » (12 jours restants)')
+        ok('Essai gratuit' in c and '12 jours restants' in c and await p2.evaluate("!!document.querySelector('.abo-band') && !document.querySelector('.abo-c')"), 'essai (12 jours) : bandeau d\'une ligne, pas de grande carte (audit du tableau de bord, 11/10/2026) · ' + c.replace('\n', ' ')[:80])
         p3 = await ouvrir(b); await p3.add_init_script(abo(AJR)); await p3.goto(f'http://localhost:{PORT}/v2.html#accueil'); await p3.wait_for_timeout(2500)
         ok(not await p3.evaluate("!!document.querySelector('[data-abo-carte]')"), 'abonnement à jour : pas de carte')
         # Membre non titulaire : ni carte, ni onglets Abonnement / Factures

@@ -127,12 +127,14 @@ function apresChangement() {
 }
 
 // ───── Tableau de bord : « Mes tâches » (avec les 7 prochains jours et les conflits) ─────
-export const blocAccueil = () => { const h = contenuAccueil(); return '<section class="carte' + (h ? "" : " cache") + '" id="blocTaches">' + h + "</section>"; };
+// sansRT (11/10/2026) : tâches automatiques de radiothérapie (contourage, dosimétrie, fin) laissées au bloc « À valider par le médecin »
+let SANS_RT = false;
+export const blocAccueil = (o) => { SANS_RT = !!(o && o.sansRT); const h = contenuAccueil(); return '<section class="carte' + (h ? "" : " cache") + '" id="blocTaches">' + h + "</section>"; };
 function contenuAccueil() {
   if (!T) return "";
   const esc = A.esc, moi = D().u.uid, d7 = new Date(D().t + "T12:00:00"); d7.setDate(d7.getDate() + 7);
   const fin = d7.getFullYear() + "-" + String(d7.getMonth() + 1).padStart(2, "0") + "-" + String(d7.getDate()).padStart(2, "0");
-  const mes = T.filter((t) => t.pour === moi && t.statut !== "fait");
+  const mes = T.filter((t) => t.pour === moi && t.statut !== "fait" && !(SANS_RT && estRT(t)));
   const imp = mes.filter((t) => retard(t) || t.urgent || nonLue(t) || (t.ech && t.ech <= fin)).sort(ordre);
   const demandes = T.filter((t) => t.pour !== moi && nonLue(t)); // mes demandes : commentées, terminées…
   if (!mes.length && !demandes.length) return "";

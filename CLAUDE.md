@@ -154,6 +154,11 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
   attribué par les fonctions serveur `numeroDossier` (à la création, appelée par `attribuerNumero` de v2.js) et `numerosManquants`
   (dossiers sans numéro, une fois, par le titulaire dans `migrations()`), transaction sur `compteurs/dossiers` { "AAAAMM": n }
   (aucune règle : serveur seulement). Jamais modifié ; `numDossier(x)` pour l'afficher ; recherche et filtre par hôpital (page Patients).
+- Tableau de bord (étape 22, 11/10/2026) : `parametres/accueil` { data: JSON { ordre, cartes, col g|d|l } } (Paramètres › Cabinet ›
+  Tableau de bord) par-dessus `reglage.accueil` / `.cartes` de l'administration (`accueilEffectif`, `COLONNES0` de catalogue.js ;
+  `lireAccueilCab` / `window.majAccueilCab` dans v2.js) ; deux colonnes à partir de 1280 px (`.tb-grille`, ordre gardé sur téléphone
+  par `order`) ; carte `afaire` = `blocAFaire` (À valider par le médecin / À faire par la secrétaire / par l'infirmière) ;
+  abonnement : bandeau (`.abo-band`), carte dans `#accAbo` les 7 derniers jours et en retard. Test : `tests/test_accueil.py`.
 - `utilisateurs/{uid}` : profil (nom, INPE, signature, photo)
 - Rappels WhatsApp envoyés (19.4) : `patients/{id}.rappels` { "AAAA-MM-JJ|catégorie": { le, par, nom } } (catégorie `confirm` = confirmation
   après la prise du rendez-vous), écrit avec le droit `rendezvous` (règle), plus de 7 jours retirés ; v2.js `noterRappel`, `rappelsAEnvoyer`,

@@ -2,7 +2,7 @@
 // - carte du tableau de bord quand l'essai se termine, que l'échéance approche ou est dépassée (« Renouveler » → Profil &
 //   Paramètres › Abonnement) ;
 // - onglets Abonnement (formule, état, échéance, prix mensuel / annuel « 2 mois offerts », demande de renouvellement ou de
-//   changement de formule, coordonnées de paiement) et Factures (factures et avoirs du cabinet, à imprimer) de Profil & Paramètres.
+//   changement de formule, coordonnées de paiement) et Factures (factures et avoirs du cabinet, à imprimer) de Mon compte.
 // Lu par la fonction serveur monAbonnement (titulaire seulement : la facturation reste invisible des autres membres) ;
 // demandes : fonction demandeAbonnement (pas de paiement en ligne, l'administration enregistre le paiement reçu).
 import { htmlFacture, dh2 } from "../donnees/factures.js";
@@ -21,24 +21,35 @@ const dh = (n) => (n == null || n === "" ? "—" : Number(n).toLocaleString("fr-
 const dLong = (d) => (d ? new Date(d + "T12:00:00").toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" }) : "");
 const MODES = { essai: "Essai gratuit", mensuel: "Mensuel", annuel: "Annuel", gratuit: "Gratuit" };
 
-// ───── Carte du tableau de bord ─────
-// Affichée au titulaire si : essai en cours, à renouveler (rappel), en retard ; jamais pour un abonnement à jour ou gratuit
+// ───── Tableau de bord : bandeau ou carte ─────
+// Titulaire seulement, jamais pour un abonnement à jour ou gratuit. Audit externe (11/10/2026) : pendant l'essai et avant
+// l'échéance, un bandeau d'une ligne sous « Bonjour » ; la grande carte seulement les 7 derniers jours et en cas de retard, en haut
+// de la colonne de droite (#accAbo, préparé par pageAccueil), après le programme du jour sur téléphone.
+const DERNIERS_JOURS = 7;
 export function carteAccueil() {
-  if (!estTitulaire()) return "";
-  if (ABO === undefined) { chargerAbo().then(() => { if ((D().page || "") === "accueil") placerCarte(); }); return ""; }
-  const o = ABO; if (!o || !o.suivi) return "";
+  if (!estTitulaire()) return null;
+  if (ABO === undefined) { chargerAbo().then(() => { if ((D().page || "") === "accueil") placerCarte(); }); return null; }
+  const o = ABO; if (!o || !o.suivi) return null;
   const E = o.etat || {}, et = E.etat;
-  if (["essai", "renouveler", "retard", "suspendre"].indexOf(et) < 0) return "";
+  if (["essai", "renouveler", "retard", "suspendre"].indexOf(et) < 0) return null;
   const esc = A.esc, retard = et === "retard" || et === "suspendre", jours = retard ? 0 : E.jours || 0;
   const badge = retard ? "EXPIRÉ" : et === "essai" ? "ESSAI GRATUIT" : "À RENOUVELER", titre = retard ? "Abonnement expiré" : et === "essai" ? "Fin de l'essai gratuit" : "Abonnement bientôt à renouveler";
+  if (!retard && jours > DERNIERS_JOURS) return { bandeau: true, html: '<div class="abo-band" data-abo-carte>' + A.ic("horloge") + "<span><b>" + (et === "essai" ? "Essai gratuit" : "Abonnement") + "</b> · " + jours + " jours restants" +
+    " (" + (et === "essai" ? "fin de l'essai le " : "échéance le ") + esc(dLong(E.fin)) + ')</span><a href="#profil/abonnement">' + (et === "essai" ? "Choisir ma formule" : "Renouveler") + " ›</a></div>" };
   const total = et === "essai" ? 30 : o.periode === "an" ? 365 : 30, fait = Math.max(0, Math.min(100, Math.round(((total - jours) / total) * 100)));
-  return '<section class="carte abo-c ' + (retard ? "rouge" : "orange") + '" data-abo-carte><div class="abo-g"><div class="abo-tete"><span class="abo-b">' + badge + "</span>" + esc(o.pack || "") + "</div>" +
+  return { html: '<section class="carte abo-c ' + (retard ? "rouge" : "orange") + '" data-abo-carte><div class="abo-g"><div class="abo-tete"><span class="abo-b">' + badge + "</span>" + esc(o.pack || "") + "</div>" +
     '<div class="abo-l"><div class="abo-j"><b>' + jours + "</b><span>jour" + (jours !== 1 ? "s" : "") + "<br>restant" + (jours !== 1 ? "s" : "") + '</span></div><div class="abo-t"><h3>' + titre + "</h3>" +
     '<p class="abo-e">' + (et === "essai" ? "Fin de l'essai le " : "Échéance le ") + esc(dLong(E.fin)) + (retard ? " · en retard de " + E.jours + " jour" + (E.jours > 1 ? "s" : "") : "") + "</p>" +
     '<p class="sous">' + (retard ? "Renouvelez pour continuer à utiliser Onco360 sans interruption." : et === "essai" ? "Choisissez votre formule pour continuer après l'essai." : "Pensez à renouveler votre abonnement.") + "</p>" +
-    '<div class="abo-p"><i style="width:' + fait + '%"></i></div></div></div></div><a class="bt ' + (retard ? "rouge" : "plein") + '" href="#profil/abonnement">' + A.ic("banque") + "Renouveler ›</a></section>";
+    '<div class="abo-p"><i style="width:' + fait + '%"></i></div></div></div></div><a class="bt ' + (retard ? "rouge" : "plein") + '" href="#profil/abonnement">' + A.ic("banque") + "Renouveler ›</a></section>" };
 }
-function placerCarte() { const z = document.querySelector("#page section.accueil"); if (!z || document.querySelector("#page [data-abo-carte]")) return; const h = carteAccueil(); if (h) z.insertAdjacentHTML("afterend", h); }
+function placerCarte() {
+  if (document.querySelector("#page [data-abo-carte]")) return; const c = carteAccueil(); if (!c) return;
+  const z = document.querySelector("#page section.accueil"), p = document.getElementById("accAbo");
+  if (c.bandeau) { if (z) z.insertAdjacentHTML("afterend", c.html); return; }
+  if (p) { p.innerHTML = c.html; return; }
+  const j = document.querySelector("#page section.jour") || z; if (j) j.insertAdjacentHTML("afterend", c.html); // tableau de bord sur une colonne
+}
 export const apresAccueil = () => placerCarte();
 
 // ───── Onglet Abonnement ─────
