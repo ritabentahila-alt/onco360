@@ -427,13 +427,13 @@ function programmeDuJour() {
   rt.sort((a, b) => a.o - b.o || a.nm.localeCompare(b.nm)); co.sort((a, b) => a.h.localeCompare(b.h)); ch.sort((a, b) => a.nm.localeCompare(b.nm));
   return { rt, co, ch };
 }
-function agenda7() {
-  const t = D.t, fin = addJ(t, 7), l = [];
-  D.patients.forEach((pt) => (pt.r.ag || []).forEach((e) => {
 // Titre d'un événement du résumé (« 💉 NOM – C2/6 … ») : émoji de tête retiré (une hospitalisation n'en a pas : le nom reste
 // entier), pictogramme au trait à sa place sur le tableau de bord (11/10/2026 : plus d'émojis mêlés aux icônes)
 const sansEmoji = (t) => String(t || "").replace(/^[^\p{L}\p{N}]+\s/u, "");
 const icEvt = (t) => { const c = String(t || "").codePointAt(0); return ic(c === 0x1F489 ? "seringue" : c === 0x2622 ? "radiation" : c === 0x1FA7A ? "stetho" : "hopital"); };
+function agenda7() {
+  const t = D.t, fin = addJ(t, 7), l = [];
+  D.patients.forEach((pt) => (pt.r.ag || []).forEach((e) => {
     const { id } = pt; if (e.d <= t || e.d > fin || !evtVisible(pt, e.k)) return;
     const titre = sansEmoji(e.t), m = titre.match(/^(.*?) – (.*)$/);
     l.push({ id, d: e.d, h: e.h || "", em: icEvt(e.t), nm: m ? m[1] : titre, de: m ? m[2] : "", cat: catEvt(id, e.k) });
@@ -604,9 +604,6 @@ function premiersPas() {
     '<p class="sous">Les protocoles, les bibliothèques de prescription, les jours fériés et les listes de diagnostics et de mutuelles sont déjà en place.</p>' +
     et.map((e, i) => '<a class="pp' + (e[3] ? " ok" : "") + '" href="#' + e[0] + '"><span class="n">' + (e[3] ? ic("check") : i + 1) + '</span><span class="tx"><b>' + esc(e[1]) + "</b><span>" + esc(e[2]) + "</span></span><span class=\"fl\">›</span></a>").join("") + "</section>";
 }
-function pageAccueil() {
-  const pj = programmeDuJour(), ag = agenda7(), ab = absences(), tot = pj.rt.length + pj.co.length + pj.ch.length;
-  const ligne = (o, cat) => '<div class="li" onclick="ouvrirDossier(\'' + o.id + '\')">' + (cat === "co" ? '<span class="h">' + esc(o.h) + "</span>" : "") +
 // Organisation du tableau de bord choisie par le cabinet (Paramètres › Cabinet › Tableau de bord, 11/10/2026) : parametres/accueil
 // { data: JSON { ordre, cartes, col } }, appliquée par-dessus le réglage de l'administration (accueilEffectif de catalogue.js)
 async function lireAccueilCab() {
@@ -660,6 +657,9 @@ function blocAFaire(pj) {
   return '<section class="carte afaire"><h3><span class="ic">' + ic("check") + "</span>" + titre + "</h3>" + (G.length ? '<p class="sous">' + sous + "</p>" + G.join("") : '<p class="sous" style="margin:0">Rien à faire pour le moment.</p>') + "</section>";
 }
 
+function pageAccueil() {
+  const pj = programmeDuJour(), ag = agenda7(), ab = absences(), tot = pj.rt.length + pj.co.length + pj.ch.length;
+  const ligne = (o, cat) => '<div class="li" onclick="ouvrirDossier(\'' + o.id + '\')">' + (cat === "co" ? '<span class="h">' + esc(o.h) + "</span>" : "") +
     '<div class="tx"><b>' + esc(o.nm) + '</b><div class="de">' + esc(cat === "co" ? o.lib : o.de) + "</div></div>" +
     (cat === "co" ? (o.fait ? '<span class="badge b-ch">Vu</span>' : o.rid ? badgeSalle(o.id, "r-" + o.rid) : "") : (cat === "ch" ? badgeSalle(o.id, "chimio") : "") + '<span class="badge ' + (o.cls || "b-ch") + '"' + (cat === "rt" && / prévue$/.test(o.lib) ? ' title="Calculé d\'après le calendrier (jours ouvrés depuis la 1re séance) : les séances faites ne sont pas enregistrées."' : "") + ">" + esc(o.lib) + "</span>") + "</div>";
   const categorie = (cls, icone, titre, l) => l.length ? '<div class="cat"><div class="tc">' + ic(icone) + titre + '<span class="n">' + l.length + "</span></div>" + l.map((o) => ligne(o, cls)).join("") + "</div>" : "";
@@ -675,22 +675,22 @@ function blocAFaire(pj) {
   h += '<section class="jour"><div class="ent"><h3><span class="ic">' + ic("agenda") + "</span>Aujourd'hui</h3><span>" + cap(jourLong(D.t)) + (ouvre(D.t, D.ctx.feries) ? "" : " · jour non ouvré") + '</span><span class="tot">' + tot + " au programme</span></div>" +
     categorie("rt", "radiation", "Radiothérapie", pj.rt) + categorie("co", "stetho", "Consultations", pj.co) + categorie("ch", "seringue", "Chimiothérapie", pj.ch) +
     (tot ? "" : '<div class="cat"><div class="vide" style="padding:12px 14px">Rien de prévu aujourd\'hui.</div></div>') + "</section>";
-
   });
+  carte("afaire", () => { h += blocAFaire(pj); });
+
   carte("sept", () => {
   h += '<section class="carte sept"><h3><span class="ic">' + ic("liste") + '</span>Les 7 prochains jours</h3><p class="sous">Rendez-vous, cures, séances et radiothérapie. Bouton WhatsApp vert : rappel à envoyer (rendez-vous dans ' + (reglages().whatsapp.de * 24) + " à " + (reglages().whatsapp.a * 24) + ' h).</p>';
-  carte("afaire", () => { h += blocAFaire(pj); });
   if (!ag.length) h += '<p class="sous">Rien de prévu sur les 7 prochains jours.</p>';
+  else h += '<div class="sept-l">';
   let jc = "";
   ag.forEach((e) => {
     if (e.d !== jc) { if (jc) h += "</div>"; jc = e.d; h += '<div class="jour7"><h4>' + cap(jourLong(e.d)) + "</h4>"; }
-  else h += '<div class="sept-l">';
     h += '<div class="ev" onclick="ouvrirDossier(\'' + e.id + '\')"><span class="h' + (e.h ? "" : " j") + '">' + (e.h || "Journée") + '</span><span class="evi">' + e.em + '</span><div class="tx"><b>' + esc(e.nm) + "</b><br><span>" + esc(e.de) + '</span></div>' + btnWA(D.patients.find((z) => z.id === e.id), e.cat, e.d, e.h) + '<button class="lien">Ouvrir le dossier</button></div>';
   });
   if (jc) h += "</div>";
+  if (ag.length) h += "</div>";
   h += "</section>";
   });
-  if (ag.length) h += "</div>";
   carte("taches", () => { if (module("taches")) h += blocTaches({ sansRT: D.membre.role === "medecin" && A2.cartes.afaire !== false }); }); // Mes tâches (étape T4) ; contourage, dosimétrie, fin de RT : dans « À valider »
   // Rappels WhatsApp à envoyer (19.4) : ceux de la fenêtre du bouton vert, avec ceux déjà envoyés (qui, quand) ; la secrétaire les
   // a aussi dans « À faire » (ceux à envoyer) : cette carte garde la liste complète, ouverte seulement si « À faire » est retiré
@@ -712,8 +712,8 @@ function blocAFaire(pj) {
     });
     h += "</section>";
   }
-
   });
+
   carte("stats", () => {
   const n = (f) => D.patients.filter(FILTRES[f][1]).length, curesMois = D.patients.reduce((s, x) => s + (x.r.rec || []).filter((d) => d && d.slice(0, 7) === D.t.slice(0, 7)).length, 0);
   const k = (f, ico, v, lib) => '<button class="k" onclick="location.hash=\'patients/' + f + '\'"><span class="ic">' + ico + "</span><b>" + v + "</b><span>" + lib + "</span></button>";
