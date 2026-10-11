@@ -185,7 +185,7 @@ longs et ne dépendent pas du code.
       déconnexion automatique ni de double authentification ; **l'accès de l'administration aux profils des autres cabinets et la
       création de cabinets restent tels quels** (e-mail propriétaire des règles gardé : le remplacer par la collection
       `administrateurs` donnerait au compte d'administration les pouvoirs du cabinet Bentahila).
-- [x] **1.3 Droits imposés par le serveur** (11/10, testé, pas encore en ligne) : fiches de membres **créées par le serveur
+- [x] **1.3 Droits imposés par le serveur** (11/10, testé, en ligne : version 20261011v, règles, stockage, corrigerListes) : fiches de membres **créées par le serveur
       seulement** (`creerMembre`) ; le titulaire modifie ou retire les fiches existantes (jamais la sienne) ; **historique d'une tâche
       jamais réécrit** (le début du fil doit rester identique) ; **modules retirés fermés à l'écriture** (`moduleOn` : salle
       d'attente, RCP, tâches, documents déposés et documents de radiothérapie ; cabinet sans abonnement = tout) ; **fichiers déposés :
