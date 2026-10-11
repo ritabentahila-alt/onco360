@@ -46,6 +46,16 @@ Les prix sont toujours affichés en **brut** (les anciens prix HCK repris à 225
 - Couleur de la ligne : bleu en salle, orange en consultation, vert vu, rose absent.
 - **Ouvert par …** sous le nom du patient : un collègue a son dossier ouvert en ce moment (bandeau aussi en haut du dossier).
 
+## Lignes compactes (11/10/2026)
+- Une ligne par patient (32 px) : on voit environ 13 patients sur un écran d'ordinateur.
+- **Un seul bouton** par ligne, la prochaine étape : **Arrivé**, **Démarrer**, **Valider** ou **Encaisser**. Toutes les autres
+  actions sont dans le menu **⋯** au bout de la ligne (ou au clic droit) : Absent, Annuler, Retour en salle, faire passer
+  avant / après, motif, commentaire, prix, dossier. **Double-clic** sur la ligne : ouvre le dossier.
+- Colonnes **RDV · Arr. · Att. · Prés.** en heures (attente et présence en hh:mm) ; statut en pastille ronde de couleur ;
+  civilité devant le nom.
+- **Largeur d'une colonne** : tirez le bord droit de son titre (double-clic : largeur d'origine). Réglage gardé pour vous.
+- La semaine est repliée : cliquez sur la date pour l'afficher.
+
 ## Salle pleine (11/10/2026)
 - Les **onglets**, l'**attente moyenne** et les **titres des colonnes** restent en haut quand on fait défiler la liste.
 - **Compact** (ordinateur) : une ligne par patient, pour voir 20 à 30 patients d'un coup (réglage personnel).

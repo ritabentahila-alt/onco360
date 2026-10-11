@@ -134,6 +134,9 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
   `salleCompact` ; `saSuivant` (`fileSalle`) ; `suivre` (autres lignes du même patient) ; `rang` (ordre manuel, `cleNum`) ;
   `message` (« arrivé » médecin, « rouge » secrétaire ; `reglages.salle.notifArrivee / notifRouge`) ; `saCloturer` +
   `rdvAbsentDirect` (v2.js) + alerte `nonCloturees` (v2.js).
+  SA8a (11/10/2026) : `actionsDe(l)` = { prin (bouton), menu (⋯, `saMenu`, clic droit) } ; colonnes `att` / `pres` (hh:mm) ; pastille
+  `.rd` ; largeurs `utilisateurs/{uid}.salleLargeurs` (`gabarit`, poignée `.sa-poi`) ; semaine repliée (`localStorage`
+  `onco360.salleSemaine`) ; compact toujours.
 - Poids validé par la secrétaire (droit « planning » seul, 10/10/2026) : séance prévue du jour, `planning[ligne][n].poids` / `.spoids[j]` /
   `.pv[j]` { nom, par, le }, ajouté par `fusionner`, repris dans `lignesJson` au prochain enregistrement du médecin (`poidsSecretaire`, chimio.js).
 - Report de chimio avec le seul droit « planning » (secrétaire, depuis le 08/10/2026) : `sauverLignes` n'écrit que `planningJson` ;

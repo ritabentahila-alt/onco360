@@ -392,10 +392,15 @@ export function apresPrix(x, cle, jour) {
 }
 
 // ───── Colonnes (08/10/2026) : chacun choisit celles qu'il voit ; Heure, Patient, Statut et les boutons restent toujours ─────
+// SA8a (11/10/2026) : civilité dans le nom, heures étroites (RDV, Arrivée, Attente, Présence en hh:mm), largeur de chaque colonne
+// réglable à la souris (poignée du titre), gardée pour chaque compte (utilisateurs/{uid}.salleLargeurs { colonne: px })
 const COLS = [
-  ["ord", "N° d'ordre", "42px"], ["h", "Heure", "44px", 1], ["civ", "Civilité", "38px"], ["nm", "Patient", "minmax(100px,1.2fr)", 1], ["type", "Type", "minmax(80px,.9fr)"],
-  ["mo", "Motif", "minmax(78px,1fr)"], ["cor", "Correspondant", "minmax(68px,.8fr)"], ["mut", "Mutuelle", "minmax(58px,.7fr)"], ["ar", "Arrivée", "48px"],
-  ["st", "Statut", "minmax(96px,1fr)", 1], ["px", "Prix", "70px"], ["com", "Commentaire", "minmax(68px,1fr)"], ["act", "", "minmax(152px,236px)", 1]];
+  ["ord", "N° d'ordre", "40px"], ["h", "RDV", "44px", 1], ["nm", "Patient", "minmax(130px,1.6fr)", 1], ["type", "Type", "76px"],
+  ["mo", "Motif", "minmax(80px,1.2fr)"], ["cor", "Correspondant", "minmax(70px,.8fr)"], ["mut", "Mutuelle", "58px"], ["ar", "Arrivée", "46px"],
+  ["att", "Attente", "46px"], ["pres", "Présence", "50px"], ["st", "Statut", "92px", 1], ["px", "Prix", "58px"], ["com", "Commentaire", "minmax(70px,1fr)"], ["act", "", "104px", 1]];
+const TITRE_COURT = { ord: "N°", ar: "Arr.", att: "Att.", pres: "Prés.", cor: "Corresp.", com: "Comment." };
+const largeurs = () => (D().profil && D().profil.salleLargeurs) || {};
+const gabarit = (cv) => cv.map((c) => (c[0] !== "act" && largeurs()[c[0]] ? largeurs()[c[0]] + "px" : c[2])).join(" ");
 // Réglage du cabinet (10/10/2026) : n° de passage, prix, commentaire retirés = colonnes absentes pour tous
 const fnS = (k) => !D().reg || D().reg.fonctions["salle." + k] !== false;
 const COL_FN = { ord: "passage", px: "prix", com: "commentaire" };
@@ -405,11 +410,13 @@ window.saColonnes = () => {
   const l = COLS.filter((c) => !c[3] && (c[0] !== "px" || voitPrix()) && (!COL_FN[c[0]] || fnS(COL_FN[c[0]])));
   A.fenetre('<h3>Colonnes de la salle d\'attente</h3><p class="sous">Cochez les colonnes à afficher (réglage personnel, gardé sur tous vos appareils). Heure, patient, statut et boutons restent toujours affichés.</p><div class="form">' +
     l.map((c) => '<div><label style="font-weight:normal"><input type="checkbox" data-c="' + c[0] + '"' + (cachees().indexOf(c[0]) < 0 ? " checked" : "") + ' style="width:auto;margin-right:8px">' + c[1] + "</label></div>").join("") + "</div>" +
+    (Object.keys(largeurs()).length ? '<p class="mesures" style="margin-top:10px"><label style="font-weight:normal"><input type="checkbox" id="saLargRaz" style="width:auto;margin-right:8px">Remettre les largeurs de colonnes d\'origine</label></p>' : '<p class="mesures" style="margin-top:10px">Largeur d\'une colonne : tirez le bord droit de son titre.</p>') +
     '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt plein" id="fOk">Enregistrer</button></div>');
   $("fOk").onclick = async () => {
     const c = [...document.querySelectorAll("#fenetreCorps input[data-c]")].filter((e) => !e.checked).map((e) => e.dataset.c);
     if (!voitPrix() && cachees().indexOf("px") >= 0) c.push("px");
     D().profil.salleCachees = c; A.fermerFenetre(); dessiner();
+    if ($("saLargRaz") && $("saLargRaz").checked) { D().profil.salleLargeurs = {}; dessiner(); setDoc(doc(db, "utilisateurs", D().u.uid), { salleLargeurs: {} }, { merge: true }).catch(() => {}); }
     setDoc(doc(db, "utilisateurs", D().u.uid), { salleCachees: c }, { merge: true }).catch((e) => A.toast("Réglage non enregistré : " + e.message));
   };
 };
@@ -437,9 +444,8 @@ export function pageSalle(j) {
   $("page").innerHTML = '<section class="accueil"><div><h2>Salle d\'attente</h2><p id="saTitre"></p></div>' +
     '<div class="actions sa-etab">' + (etabs.length > 1 ? '<select id="saEtab" aria-label="Établissement"><option value="">Tous les établissements</option>' + etabs.map((c) => '<option value="' + A.esc(c) + '"' + (c === ETAB ? " selected" : "") + ">" + A.esc(c) + "</option>").join("") + "</select>" : "") +
     '<button class="bt vert cache" id="saSuiv" onclick="saSuivant()"><svg class="i"><use href="#i-check"/></svg>Patient suivant</button>' +
-    '<button class="bt gris" id="saCmp" onclick="saCompact()" title="Une ligne par patient (réglage personnel)"><svg class="i"><use href="#i-liste"/></svg>Compact</button>' +
     '<button class="bt gris" data-fn="salle.colonnes" onclick="saColonnes()" title="Choisir les colonnes affichées"><svg class="i"><use href="#i-liste"/></svg>Colonnes</button></div></section>' +
-    '<div class="sa-jours"><button class="sa-fl" onclick="saJour(-1)" aria-label="Jour précédent" title="Jour précédent">‹</button><div class="sa-sem" id="saSem"></div><button class="sa-fl" onclick="saJour(1)" aria-label="Jour suivant" title="Jour suivant">›</button>' +
+    '<div class="sa-jours' + (semaineOuverte() ? "" : " repli") + '" id="saJours"><button class="sa-fl" onclick="saJour(-1)" aria-label="Jour précédent" title="Jour précédent">‹</button><button class="sa-jtxt" id="saJtxt" onclick="saSemaine()" title="Afficher ou replier la semaine"></button><div class="sa-sem" id="saSem"></div><button class="sa-fl" onclick="saJour(1)" aria-label="Jour suivant" title="Jour suivant">›</button>' +
     '<label class="sa-cal" title="Choisir un jour dans le calendrier"><svg class="i"><use href="#i-agenda"/></svg><span>Calendrier</span><input type="date" id="saD" aria-label="Choisir un jour"></label>' +
     '<button class="bt clair petit" id="saAuj" onclick="saAller(\'' + D().t + '\')">Aujourd\'hui</button></div>' +
     '<div class="sa-outils"><div class="sa-per" role="group" aria-label="Période">' + [["matin", "Matinée"], ["am", "Après-midi"], ["jour", "Toute la journée"]].map(([k, t]) => '<button data-per="' + k + '" onclick="saPeriode(\'' + k + '\')">' + t + "</button>").join("") + "</div>" +
@@ -498,9 +504,10 @@ function dessiner() {
   remplir($("saO"), ONGLETS.map(([k, lib, court]) => { if (k === "avenir" && JOUR < t) { lib = "À valider"; court = ""; } return '<button role="tab" aria-selected="' + (k === VUE) + '"' + (k === VUE ? ' class="on"' : "") + ' onclick="saOnglet(\'' + k + '\')">' + (court ? '<span class="lg">' + lib + '</span><span class="sm">' + court + "</span>" : lib) + '<span class="n">' + n[k] + "</span></button>"; }).join(""));
   const l = trier(L.filter((z) => ongletDe(z) === VUE), VUE);
   const vide = { avenir: JOUR < t ? "Aucune consultation restée sans validation." : JOUR > t ? "Aucune consultation prévue ce jour-là." : "Plus aucun patient attendu aujourd'hui.", salle: "Personne en salle d'attente.", vus: "Aucun patient vu.", absents: "Aucun absent." }[VUE];
-  const cv = colsVues(), gc = cv.map((c) => c[2]).join(" "); $("saL").style.setProperty("--cols", gc); $("saE").style.setProperty("--cols", gc);
-  $("saCarte").classList.toggle("compact", !!(D().profil && D().profil.salleCompact)); $("saCmp").classList.toggle("on", !!(D().profil && D().profil.salleCompact));
-  remplir($("saE"), l.length ? '<div class="sa-l ent">' + cv.map((c) => '<span class="c-' + c[0] + '" title="' + c[1] + '">' + (c[0] === "civ" ? "Civ." : c[0] === "ord" ? "N°" : c[1]) + "</span>").join("") + "</div>" : "");
+  const cv = colsVues(), gc = gabarit(cv); $("saL").style.setProperty("--cols", gc); $("saE").style.setProperty("--cols", gc);
+  $("saCarte").classList.add("compact"); // compact = affichage normal (11/10/2026)
+  remplir($("saJtxt"), A.cap(A.jourLong(JOUR)) + (JOUR === t ? " · aujourd'hui" : "") + ' <span class="fl">' + (semaineOuverte() ? "▴" : "▾") + "</span>");
+  remplir($("saE"), l.length ? '<div class="sa-l ent">' + cv.map((c) => '<span class="c-' + c[0] + '" title="' + c[1] + '">' + (TITRE_COURT[c[0]] || c[1]) + (c[0] !== "act" ? '<i class="sa-poi" data-c="' + c[0] + '" title="Tirer pour élargir ; double-clic : largeur d\'origine"></i>' : "") + "</span>").join("") + "</div>" : "");
   // Mise à jour ligne par ligne : une ligne inchangée n'est pas touchée (clic en cours, survol et défilement gardés)
   poser($("saL"), l.length ? l.map((z) => ({ k: z.pid + "|" + z.cle, h: ligneHtml(z, cv) })) : [{ k: "vide", h: '<p class="vide-c" data-k="vide">' + vide + "</p>" }]);
   // Patient suivant (médecin, aujourd'hui) ; Clôturer la journée (aujourd'hui et jours passés)
@@ -540,7 +547,22 @@ function majIndicateurs(L) {
   const moy = Math.round(at.reduce((a, b) => a + b, 0) / at.length), max = enCours.sort((a, b) => b[0] - a[0])[0];
   remplir($("saInd"), "<span>Attente moyenne aujourd'hui : <b>" + duree(moy) + "</b></span>" + (max ? '<span class="' + (max[0] >= seuils()[1] ? "rouge" : max[0] >= seuils()[0] ? "orange" : "") + '">La plus longue en cours : <b>' + duree(max[0]) + "</b> (" + A.esc(max[1].x.r.nm) + ")</span>" : ""));
 }
-window.saCompact = () => { const v = !(D().profil && D().profil.salleCompact); D().profil.salleCompact = v; dessiner(); setDoc(doc(db, "utilisateurs", D().u.uid), { salleCompact: v }, { merge: true }).catch(() => {}); };
+// Bandeau de la semaine : replié par défaut, ouvert au clic sur la date (réglage gardé sur cet ordinateur)
+const semaineOuverte = () => { try { return localStorage.getItem("onco360.salleSemaine") === "1"; } catch (e) { return false; } };
+window.saSemaine = () => { const v = !semaineOuverte(); try { localStorage.setItem("onco360.salleSemaine", v ? "1" : "0"); } catch (e) { /* navigation privée */ } $("saJours").classList.toggle("repli", !v); dessiner(); };
+// Largeur des colonnes : poignée du titre (tirer), double-clic = largeur d'origine ; enregistrée pour le compte
+document.addEventListener("pointerdown", (ev) => {
+  const p = ev.target.closest && ev.target.closest(".sa-poi"); if (!p) return;
+  ev.preventDefault(); const k = p.dataset.c, cel = p.parentElement, x0 = ev.clientX, w0 = cel.getBoundingClientRect().width;
+  const bouge = (e) => { const L = Object.assign({}, largeurs(), { [k]: Math.max(34, Math.round(w0 + e.clientX - x0)) }); D().profil.salleLargeurs = L; const gc = gabarit(colsVues()); $("saL").style.setProperty("--cols", gc); $("saE").style.setProperty("--cols", gc); };
+  const fin = () => { document.removeEventListener("pointermove", bouge); document.removeEventListener("pointerup", fin); setDoc(doc(db, "utilisateurs", D().u.uid), { salleLargeurs: largeurs() }, { merge: true }).catch(() => {}); };
+  document.addEventListener("pointermove", bouge); document.addEventListener("pointerup", fin);
+});
+document.addEventListener("dblclick", (ev) => {
+  const p = ev.target.closest && ev.target.closest(".sa-poi"); if (!p) return;
+  const L = Object.assign({}, largeurs()); delete L[p.dataset.c]; D().profil.salleLargeurs = L; dessiner();
+  setDoc(doc(db, "utilisateurs", D().u.uid), { salleLargeurs: L }, { merge: true }).catch(() => {});
+});
 // Clôturer la journée (SA6) : patients restés en consultation, en salle ou jamais arrivés ; les jamais arrivés en « Absent » d'un clic
 window.saCloturer = () => {
   const L = lignes([JOUR]).filter((l) => dansFiltre(l) && (l.etat === "" || l.etat === "salle" || l.etat === "consult")), q = (l) => "'" + l.pid + "','" + l.cle + "'";
@@ -561,55 +583,94 @@ function majMinutes() {
   const L = lignes([JOUR]);
   majIndicateurs(L.filter((l) => dansFiltre(l) && dansPeriode(l) && dansRecherche(l)));
   document.querySelectorAll("#saL .sa-l.salle[data-k], #saL .sa-l.consult[data-k]").forEach((e) => {
-    const k = e.dataset.k, i = k.indexOf("|"), l = L.find((z) => z.pid === k.slice(0, i) && z.cle === k.slice(i + 1)), c = e.querySelector(".c-st");
-    if (l && c) c.innerHTML = statut(l);
+    const k = e.dataset.k, i = k.indexOf("|"), l = L.find((z) => z.pid === k.slice(0, i) && z.cle === k.slice(i + 1)); if (!l) return;
+    [[".c-st", statut], [".att", attente], [".pres", presence]].forEach(([s, f]) => { const c = e.querySelector(s); if (c) c.innerHTML = f(l); });
   });
 }
-// Pastille de statut (au trait) avec le temps écoulé
+// Statut : pastille ronde de couleur + mot court (SA8a, 11/10/2026) ; les minutes sont dans les colonnes Attente et Présence
 function statut(l) {
-  const d = l.doc, now = maintenant(), auj = l.jour === D().t;
-  if (l.etat === "salle") { if (!auj || !fnS("attente")) return '<span class="pst salle"><i></i>Arrivé' + (d.arr ? " à " + hm(d.arr) : "") + "</span>"; const m = minutes(d.arr || now), c = m >= seuils()[1] ? "rouge" : m >= seuils()[0] ? "orange" : "salle"; return '<span class="pst ' + c + '" title="En attente depuis ' + duree(m) + '"><i></i>Attente ' + duree(m) + "</span>"; }
-  if (l.etat === "consult") return '<span class="pst consult"><i></i>' + (auj ? "Consultation " + duree(minutes(d.deb || now)) : "En consultation") + "</span>";
-  if (l.etat === "vu") return '<span class="pst vu"><i></i>Vu' + (d.fin ? " à " + hm(d.fin) : "") + "</span>" + (d.arr && d.deb ? '<div class="mesures">Attente ' + duree(Math.max(0, Math.round((d.deb - d.arr) / 60000))) + (d.fin ? " · consultation " + duree(Math.max(0, Math.round((d.fin - d.deb) / 60000))) + " · présence " + duree(Math.max(0, Math.round((d.fin - d.arr) / 60000))) : "") + "</div>" : "");
-  if (l.etat === "absent") return '<span class="pst absent"><i></i>Absent</span>' + (d.rep ? '<div class="mesures">Reportée au ' + A.dfrA(d.rep) + "</div>" : "");
-  if (l.jour < D().t) return '<span class="pst orange"><i></i>Non validé</span>';
-  return '<span class="pst prevu"><i></i>Prévu</span>';
+  const d = l.doc, auj = l.jour === D().t;
+  if (l.etat === "salle") { const m = auj && d.arr ? minutes(d.arr) : 0, c = m >= seuils()[1] ? "rouge" : m >= seuils()[0] ? "orange" : "salle"; return '<span class="rd ' + c + '"><i></i>En salle</span>'; }
+  if (l.etat === "consult") return '<span class="rd consult"><i></i>En consult.</span>';
+  if (l.etat === "vu") return '<span class="rd vu"><i></i>Vu' + (d.fin ? " " + hm(d.fin) : "") + "</span>";
+  if (l.etat === "absent") return '<span class="rd absent" title="' + (d.rep ? "Reportée au " + A.dfrA(d.rep) : "Absent") + '"><i></i>Absent' + (d.rep ? " → " + A.dfrA(d.rep).slice(0, 5) : "") + "</span>";
+  if (l.jour < D().t) return '<span class="rd orange"><i></i>Non validé</span>';
+  return '<span class="rd prevu"><i></i>Prévu</span>';
+}
+// Durées en hh:mm (colonnes Attente et Présence)
+const hhmm = (m) => (m == null ? "" : String(Math.floor(m / 60)).padStart(2, "0") + ":" + String(m % 60).padStart(2, "0"));
+function attente(l) {
+  const d = l.doc; if (!d.arr) return "";
+  if (l.etat === "salle") { if (l.jour !== D().t) return ""; const m = minutes(d.arr), c = m >= seuils()[1] ? "rouge" : m >= seuils()[0] ? "orange" : ""; return '<span class="' + c + '" title="En attente depuis ' + duree(m) + '">' + hhmm(m) + "</span>"; }
+  return d.deb ? hhmm(Math.max(0, Math.round((d.deb - d.arr) / 60000))) : "";
+}
+function presence(l) {
+  const d = l.doc; if (!d.arr || l.etat === "absent") return "";
+  if (d.fin && l.etat === "vu") return hhmm(Math.max(0, Math.round((d.fin - d.arr) / 60000)));
+  return (l.etat === "salle" || l.etat === "consult") && l.jour === D().t ? hhmm(minutes(d.arr)) : "";
 }
 // « CNOPS — Caisse nationale… » → « CNOPS » (nom complet au survol)
 const court = (s) => String(s || "").split(/\s+[—–]\s+/)[0];
-function ligneHtml(l, cv) {
-  const q = "'" + l.pid + "','" + l.cle + "'", b = (lib, fn, cls, ti) => '<button class="mini ' + (cls || "") + '" onclick="' + fn + "(" + q + ')"' + (ti ? ' title="' + ti + '"' : "") + ">" + lib + "</button>";
-  const okR = peutRdv(), okV = okR && (l.rdv || A.peutPrix()), t = D().t;
-  let act = "";
+// Actions d'une ligne (SA8a) : la prochaine étape en bouton, toutes les autres dans le menu ⋯ (aussi au clic droit)
+function actionsDe(l) {
+  const okR = peutRdv(), okV = okR && (l.rdv || A.peutPrix()), t = D().t, p = prixDe(l), L = [];
+  let prin = null;
   if (l.jour === t) {
-    if (l.etat === "") act = b("Mettre en salle", "saEnSalle", "bleu") + (okR ? b("Démarrer", "saDemarrer", "v") + b("Absent", "saAbsent", "r") : "");
-    else if (l.etat === "salle") act = (okR && VUE === "salle" && triPerso() !== "alpha" ? '<button class="mini fl" onclick="saBouger(' + q + ',-1)" title="Faire passer avant" aria-label="Monter dans la file">↑</button><button class="mini fl" onclick="saBouger(' + q + ',1)" title="Faire passer après" aria-label="Descendre dans la file">↓</button>' : "") + (okR ? b("Démarrer", "saDemarrer", "v", "Démarrer la consultation (ouvre le dossier)") : "") + (okV ? b("Valider", "saValider") : "") + b("Annuler", "saAnnuler");
-    else if (l.etat === "consult") act = okR ? (okV ? b("Valider", "saValider", "v") : "") + b("Retour en salle", "saRetour") : "";
-  } else if (l.jour < t && (l.etat === "" || l.etat === "salle" || l.etat === "consult")) act = (okV ? b("Valider", "saValider", "v") : "") + (okR && l.etat === "" ? b("Absent", "saAbsent", "r") : "");
-  if ((l.etat === "vu" || l.etat === "absent") && okR && (l.rdv || A.peutPrix() || l.etat === "absent") && !l.orphelin && !l.derive) act = b("Annuler", "saAnnuler");
-  // Motif : visible si la personne voit les consultations (l'infirmière : celui des séances de chimio seulement)
-  const voitMo = !!l.chimio || A.voitRdv(), mo = voitMo ? A.esc(l.motif) : "", etab = !ETAB && $("saEtab") && l.x.doc.etablissementId ? ' <span class="badge b-gr">' + A.esc(l.x.doc.etablissementId) + "</span>" : "";
-  const p = prixDe(l), px = !p ? "" : p.charge ? '<span class="mesures">…</span>' : p.nonValide ? (l.derive ? "—" : '<span class="mesures">Prix non fixé</span>') : p.m == null ? "—" : '<span class="' + (p.ok ? "px-ok" : p.convenu ? "px-conv" : "px-prev") + '" title="' + (p.ok ? "Prix validé" : p.convenu ? "Prix payé d'avance (proposé à la validation)" : "Prix prévu (tarif)") + '">' + A.fmtMil(p.m) + " DH</span>";
-  const crayonPx = l.etat !== "absent" && A.peutPrix() && !(l.rdv && l.rdv.type === T_RTC) && !(p && p.v1 && !A.peut("finances")) && !(l.derive && !(p && p.ok)) ? '<button class="crayon" onclick="saPrix(' + q + ')" title="' + (l.etat === "vu" ? "Modifier le prix" : "Prix payé d'avance") + '" aria-label="Modifier le prix"><svg class="pi"><use href="#i-crayon"/></svg></button>' : "";
-  // Encaisser (19.5) : la secrétaire reçoit le paiement d'un patient vu (mode de paiement, reçu) ; ensuite « Reçu » pour le réimprimer
-  if (l.etat === "vu" && p && p.ok && A.payeCabinet(l.x) && A.peutPrix()) act = (p.np ? b("Encaisser", "saEncaisser", "v", "Paiement reçu : mode de paiement et reçu") : p.mode && p.m > 0 ? b("Reçu", "saRecu", "", "Réimprimer le reçu") : "") + act;
-  const P = l.x.P, crayon = (fn, t) => '<button class="crayon" onclick="' + fn + "(" + q + ')" title="' + t + '" aria-label="' + t + '"><svg class="pi"><use href="#i-crayon"/></svg></button>';
+    if (l.etat === "") { prin = ["Arrivé", "saEnSalle", "Mettre en salle d'attente (heure d'arrivée notée)"]; if (okR) L.push(["Démarrer la consultation", "saDemarrer"], ["Absent", "saAbsent"]); }
+    else if (l.etat === "salle") { if (okR) prin = ["Démarrer", "saDemarrer", "Démarrer la consultation (ouvre le dossier)"]; if (okV) L.push(["Valider", "saValider"]); if (okR && triPerso() !== "alpha") L.push(["Faire passer avant ↑", "saMonter"], ["Faire passer après ↓", "saDescendre"]); L.push(["Annuler l'arrivée", "saAnnuler"]); }
+    else if (l.etat === "consult" && okR) { if (okV) prin = ["Valider", "saValider", "Consultation terminée : fenêtre de prix"]; L.push(["Retour en salle", "saRetour"]); }
+  } else if (l.jour < t && (l.etat === "" || l.etat === "salle" || l.etat === "consult")) { if (okV) prin = ["Valider", "saValider"]; if (okR && l.etat === "") L.push(["Absent", "saAbsent"]); }
+  if (l.etat === "vu" && p && p.ok && A.payeCabinet(l.x) && A.peutPrix()) { if (p.np) prin = ["Encaisser", "saEncaisser", "Paiement reçu : mode de paiement et reçu"]; else if (p.mode && p.m > 0) L.push(["Réimprimer le reçu", "saRecu"]); }
+  if ((l.etat === "vu" || l.etat === "absent") && okR && (l.rdv || A.peutPrix() || l.etat === "absent") && !l.orphelin && !l.derive) L.push(["Annuler le statut", "saAnnuler"]);
+  if ((!!l.chimio || A.voitRdv()) && okR) L.push(["Motif de consultation", "saMotif"]);
+  L.push(["Commentaire", "saCom"]);
+  if (l.etat !== "absent" && A.peutPrix() && !(l.rdv && l.rdv.type === T_RTC) && !(p && p.v1 && !A.peut("finances")) && !(l.derive && !(p && p.ok))) L.push([l.etat === "vu" ? "Modifier le prix" : "Prix payé d'avance", "saPrix"]);
+  L.push(["Ouvrir le dossier", "saDossier"]);
+  return { prin, menu: L };
+}
+window.saMonter = (pid, cle) => window.saBouger(pid, cle, -1);
+window.saDescendre = (pid, cle) => window.saBouger(pid, cle, 1);
+window.saDossier = (pid) => window.ouvrirDossier(pid);
+// Menu ⋯ (une seule fenêtre flottante, fermée au clic ailleurs ou par Échap)
+window.saMenu = (ev, pid, cle) => {
+  ev.preventDefault(); ev.stopPropagation(); fermerMenu();
+  const l = trouver(pid, cle); if (!l) return;
+  const { menu } = actionsDe(l), m = document.createElement("div"), q = "'" + pid + "','" + cle + "'";
+  m.id = "saMenuF"; m.className = "sa-menu"; m.setAttribute("role", "menu");
+  m.innerHTML = '<div class="sa-menu-t">' + A.esc(l.x.r.nm) + "</div>" + menu.map(([lib, fn]) => '<button role="menuitem" onclick="fermerSaMenu();' + fn + "(" + q + ')">' + A.esc(lib) + "</button>").join("");
+  document.body.appendChild(m);
+  const r = (ev.currentTarget && ev.currentTarget.getBoundingClientRect && ev.type === "click") ? ev.currentTarget.getBoundingClientRect() : { right: ev.clientX, bottom: ev.clientY, top: ev.clientY };
+  const w = m.offsetWidth, h = m.offsetHeight, x = Math.max(8, Math.min(r.right - w, innerWidth - w - 8)), y = r.bottom + h + 8 > innerHeight ? Math.max(8, r.top - h - 4) : r.bottom + 4;
+  m.style.left = x + "px"; m.style.top = y + "px";
+  const b = m.querySelector("button"); if (b) b.focus();
+};
+function fermerMenu() { const m = $("saMenuF"); if (m) m.remove(); }
+window.fermerSaMenu = fermerMenu;
+document.addEventListener("click", (e) => { if ($("saMenuF") && !e.target.closest("#saMenuF")) fermerMenu(); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") fermerMenu(); });
+window.addEventListener("scroll", fermerMenu); // défilement de la page seulement (pas celui de la liste)
+function ligneHtml(l, cv) {
+  const q = "'" + l.pid + "','" + l.cle + "'", { prin } = actionsDe(l);
+  const voitMo = !!l.chimio || A.voitRdv(), P = l.x.P, civ = P.sexe === "F" ? "Mme " : P.sexe === "H" ? "M. " : "";
+  const p = prixDe(l), px = !p ? "" : p.charge ? '<span class="mesures">…</span>' : p.nonValide ? (l.derive ? "—" : '<span class="mesures" title="Prix non fixé">?</span>') : p.m == null ? "—" : '<span class="' + (p.ok ? "px-ok" : p.convenu ? "px-conv" : "px-prev") + '" title="' + (p.ok ? "Prix validé" : p.convenu ? "Prix payé d'avance (proposé à la validation)" : "Prix prévu (tarif)") + '">' + A.fmtMil(p.m) + "</span>";
+  const etab = !ETAB && $("saEtab") && l.x.doc.etablissementId ? ' <span class="sa-etb">' + A.esc(l.x.doc.etablissementId) + "</span>" : "";
   const cel = {
     ord: '<span class="ord" title="N° d\'ordre de passage">' + fmtOrdre(l.doc.ordre) + "</span>",
     h: '<span class="h">' + A.esc(l.h || "—") + "</span>",
-    civ: '<span class="civ">' + (P.sexe === "F" ? "Mme" : P.sexe === "H" ? "M." : "") + "</span>",
-    nm: '<span class="nm"><button class="lien-nm" onclick="ouvrirDossier(\'' + l.pid + '\')" title="Ouvrir le dossier (sans changer le statut)">' + A.esc(l.x.r.nm) + "</button>" + etab + '<span class="sa-pz" data-p="' + A.esc(l.pid) + '">' + presenceHtml(l.pid) + "</span></span>",
+    nm: '<span class="nm" title="' + A.esc(civ + l.x.r.nm) + '"><span class="civ">' + civ + '</span><a class="lien-nm" href="#dossier/' + encodeURIComponent(l.pid) + '">' + A.esc(l.x.r.nm) + "</a>" + etab + '<span class="sa-pz" data-p="' + A.esc(l.pid) + '">' + presenceHtml(l.pid) + "</span></span>",
     type: '<span class="c-type"><span class="badge ' + l.cls + '">' + A.esc(l.type) + "</span></span>",
-    mo: '<span class="mo" data-l="Motif">' + mo + (voitMo && okR ? crayon("saMotif", "Modifier le motif") : "") + "</span>",
+    mo: '<span class="mo" data-l="Motif" title="' + A.esc(voitMo ? l.motif : "") + '">' + (voitMo ? A.esc(l.motif) : "") + "</span>",
     cor: '<span class="cor" data-l="Correspondant" title="' + A.esc(P.cor || "") + '">' + A.esc(court(P.cor)) + "</span>",
     mut: '<span class="mut" data-l="Mutuelle" title="' + A.esc(P.mut || "") + '">' + A.esc(court(P.mut)) + "</span>",
     ar: '<span class="ar" data-l="Arrivée">' + (l.doc.arr ? hm(l.doc.arr) : "") + "</span>",
+    att: '<span class="att" data-l="Attente">' + attente(l) + "</span>",
+    pres: '<span class="pres" data-l="Présence">' + presence(l) + "</span>",
     st: '<span class="c-st">' + statut(l) + "</span>",
-    px: '<span class="px" data-l="Prix">' + px + crayonPx + "</span>",
-    com: '<span class="com" data-l="Commentaire"' + (l.doc.comNom ? ' title="' + A.esc(l.doc.comNom) + '"' : "") + ">" + A.esc(l.doc.com || "") + crayon("saCom", l.doc.com ? "Modifier le commentaire" : "Ajouter un commentaire") + "</span>",
-    act: '<span class="actr">' + act + "</span>",
+    px: '<span class="px" data-l="Prix">' + px + "</span>",
+    com: '<span class="com" data-l="Commentaire" title="' + A.esc((l.doc.com || "") + (l.doc.comNom ? " — " + l.doc.comNom : "")) + '">' + A.esc(l.doc.com || "") + "</span>",
+    act: '<span class="actr">' + (prin ? '<button class="mini v" onclick="' + prin[1] + "(" + q + ')"' + (prin[2] ? ' title="' + prin[2] + '"' : "") + ">" + prin[0] + "</button>" : "") + '<button class="mini sa-plus" onclick="saMenu(event,' + q + ')" aria-label="Autres actions" title="Autres actions">⋯</button></span>',
   };
-  return '<div class="sa-l ' + (l.etat || "prevu") + '" data-k="' + A.esc(l.pid + "|" + l.cle) + '">' + cv.map((c) => cel[c[0]]).join("") + "</div>";
+  return '<div class="sa-l ' + (l.etat || "prevu") + '" data-k="' + A.esc(l.pid + "|" + l.cle) + '" ondblclick="if(!event.target.closest(\'button,a\'))ouvrirDossier(\'' + l.pid + '\')" oncontextmenu="saMenu(event,' + q + ')">' + cv.map((c) => cel[c[0]]).join("") + "</div>";
 }
 
 // ───── Dossier ouvert pendant la consultation : bulles Valider / Retour en salle (en bas à gauche) ─────
@@ -647,7 +708,7 @@ window.saImprimer = async () => {
   const st = (l) => ({ salle: "En salle", consult: "En consultation", vu: "Vu", absent: "Absent" }[l.etat] || (l.jour < t ? "Non validé" : "Prévu"));
   const val = (l, k) => {
     const P = l.x.P, d = l.doc, p = k === "px" ? prixDe(l) : null;
-    return { ord: fmtOrdre(d.ordre), h: l.h || "—", civ: P.sexe === "F" ? "Mme" : P.sexe === "H" ? "M." : "", nm: l.x.r.nm, type: l.type, mo: l.chimio || A.voitRdv() ? l.motif : "", cor: P.cor || "", mut: court(P.mut), ar: d.arr ? hm(d.arr) : "",
+    return { ord: fmtOrdre(d.ordre), h: l.h || "—", nm: (P.sexe === "F" ? "Mme " : P.sexe === "H" ? "M. " : "") + l.x.r.nm, att: attente(l).replace(/<[^>]+>/g, ""), pres: presence(l), type: l.type, mo: l.chimio || A.voitRdv() ? l.motif : "", cor: P.cor || "", mut: court(P.mut), ar: d.arr ? hm(d.arr) : "",
       st: st(l) + (l.etat === "vu" && d.fin ? " à " + hm(d.fin) : "") + (d.rep ? " (reportée au " + A.dfrA(d.rep) + ")" : ""), px: p && p.m != null ? A.fmtMil(p.m) + " DH" : "", com: d.com || "" }[k];
   };
   const groupes = ["consult", "salle", "", "vu", "absent"].map((e) => [e, trier(L.filter((l) => l.etat === e), e === "" ? "avenir" : e === "consult" ? "salle" : e === "vu" ? "vus" : "absents")]).filter((g) => g[1].length);

@@ -950,6 +950,13 @@ Détail : `AUDIT-SALLE-ATTENTE.md` (10 bugs, mesure avec 620 dossiers, manques p
       consultations des 7 derniers jours ni « Venu » ni « Non venu » ; **attente moyenne** et la plus longue en cours.
 - [ ] Arrivée sans rendez-vous + Urgent : pas retenue pour l'instant. Filtre Praticien : plus tard (cabinets de groupe).
 - [ ] **SA7 – Tests** : `tests/test_salle.py` dans le dépôt, calculs de la salle testés sans navigateur.
+- [x] **SA8a – Lignes de 30 px** (11/10, inspiré de GestiCab ; décisions : onglets gardés, compact = affichage normal, semaine
+      repliée par défaut) : un seul bouton par ligne (prochaine étape : Arrivé, Démarrer, Valider, Encaisser) et menu ⋯ (aussi
+      au clic droit) pour le reste ; double-clic = dossier ; lignes de 32 px sur une ligne (« … », texte complet au survol) ;
+      statut en pastille ronde ; colonnes RDV · Arr. · Att. · Prés. (hh:mm, alignées) ; civilité collée au nom ; **largeur de
+      chaque colonne réglable** (tirer le bord du titre ; double-clic = d'origine ; `utilisateurs/{uid}.salleLargeurs`) ;
+      colonne des boutons toujours visible à droite ; bandeau de la semaine replié (clic sur la date pour l'ouvrir).
+      1440 px : 13 patients visibles au lieu de 4 à 5.
 
 ## Étape 7 – RCP (réunion de concertation pluridisciplinaire) (fait et testé le 09/10, pas encore en ligne)
 **Demande de Dr Bentahila (09/10)** : dates de RCP dans les Paramètres ; bouton « + RCP » à côté de Doc. (inscription à la
@@ -1725,3 +1732,4 @@ On garde le bleu Onco360 (#3563B0) et Arial ; les impressions (ordonnances, fich
 | 10/10/2026 | 6 bis – SA4 Salle d'attente | Fiabilité : transactions (plus d'action effacée, refus clair si un collègue a agi), n° d'ordre par compteur, heure du serveur affichée à l'heure du Maroc, passage de minuit, libellé, impression. Règles (toutes les suites) et navigateur (deux écrans simulés, ordinateur à l'heure belge, 390 px) testés. |
 | 11/10/2026 | 6 bis – SA5 Salle d'attente | Rapidité : mémoire des lignes (Agenda 673 → 51 ms, tableau de bord 777 → 17 ms avec 620 dossiers), minutes sans redessin, mise à jour ligne par ligne. Navigateur testé (aucune erreur, 390 px). Pas encore en ligne. |
 | 11/10/2026 | 6 bis – SA6 Salle d'attente | En-tête fixé, compact, Patient suivant, une arrivée par patient, ordre de la file, messages arrivée / rouge, recherche n° / téléphone, clôture de la journée + alerte, attente moyenne. Navigateur (médecin, secrétaire, 620 dossiers, 390 px) testé. Pas encore en ligne (avec SA5). |
+| 11/10/2026 | 6 bis – SA8a Salle d'attente | Lignes de 32 px (un bouton + menu ⋯, pastille, colonnes d'heures, civilité dans le nom), largeur des colonnes par compte, semaine repliée. Navigateur (médecin, secrétaire, 620 dossiers, 1440 / 1280 / 390 px) testé. Pas encore en ligne. |
