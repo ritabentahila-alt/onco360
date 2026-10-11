@@ -1,0 +1,1829 @@
+# Onco360 – feuille de route
+
+Document de suivi du projet, tenu à jour à chaque étape. **Une étape = une fenêtre (conversation)**.
+Au début de chaque fenêtre, Claude lit ce fichier. À la fin, il coche ce qui est fait, note les décisions et ajoute une
+ligne au journal (en bas).
+
+## Comment on travaille
+- Une seule étape à la fois, dans l'ordre ci-dessous. Une nouvelle fenêtre pour chaque étape.
+- Avant toute mise en ligne : test dans le navigateur, bilan 2026 inchangé (352 317 DH au 06/10/2026), écran de téléphone
+  (390 px, rien ne déborde). Claude demande l'accord avant de mettre en ligne.
+- Les idées qui arrivent en cours de route vont dans « Idées en attente » (en bas), pour ne pas les perdre sans
+  changer d'étape.
+
+---
+
+## Questions et rappels pour Dr Bentahila (Claude les rappelle en début de session)
+- [ ] **Mesurer la hauteur des en-têtes du papier** (réglable soi-même depuis le 08/10 : Paramètres › Impression) (ordonnance A5, ordonnance A4, papier A4 des documents) et la largeur
+      des marges souhaitées, pour régler exactement les marges d'impression. Réglage provisoire du 07/10 : A5 haut 45 mm /
+      côtés 28 mm ; ordonnance A4 haut 60 mm / côtés 35 mm ; documents A4 (pli, compte rendu, rendez-vous) haut 45 mm /
+      côtés 35 mm ; bas 18 à 22 mm.
+
+- [x] Java 21 installé le 08/10 : les règles de sécurité se testent sur l'émulateur (`tests/regles`).
+
+## Déjà fait (jusqu'au 06/10/2026)
+- [x] Onco360 complet (phases A à D) et bascule : Onco360 est l'application de référence, l'ancienne est en lecture seule.
+- [x] Sauvegardes :
+  - sauvegarde Firebase chaque soir (14 semaines) ;
+  - restauration à la minute près sur 7 jours (activée le 06/10) ;
+  - copie lisible dans le Drive : code prêt (`apps-script/onco360-sauvegarde.gs`), installation facultative.
+- [x] Google Agenda **par personne** : Profil › Google Agenda › « Lier mon Google Agenda ». Chaque membre a un agenda
+      « Onco360 » dans son propre compte Google, avec ses patients selon ses droits. Relié pour Dr Bentahila le 06/10.
+- [x] Ancien agenda (script Google, ex-« Chimio HGC ») arrêté et supprimé par Dr Bentahila le 06/10.
+
+---
+
+## Organisation d'Onco360 depuis le 10/10/2026 (décidé par Dr Bentahila) : qui gère quoi
+**Tout se gère depuis le compte d'administration** (gbentahila@hotmail.fr, page `admin.html`). Le **cabinet du Dr Bentahila est un
+cabinet comme les autres** : ce qu'elle y fait ne change rien pour les autres cabinets ni pour ce que reçoivent les nouveaux.
+Vocabulaire (le même partout, dans l'application, la feuille de route et les guides) :
+- **Cabinet** : l'espace d'un médecin titulaire et de son équipe (ses patients, ses réglages, sa copie des bibliothèques).
+- **Équipe** : les comptes d'un cabinet (médecins, secrétaires, infirmières, comptables), créés par le **titulaire** dans
+  Paramètres › Accès (compte créé par le serveur ; mot de passe choisi par la personne avec l'e-mail de Firebase, souvent dans
+  les indésirables, ou avec le **lien du mot de passe** que le titulaire lui envoie par WhatsApp). Limites selon la formule.
+- **Module** : une partie de l'application (Chimiothérapie, Radiothérapie, Agenda, Salle d'attente, Tâches, RCP, Prescriptions,
+  Documents, Google Agenda, Listes, Bilan…). **Le code est le même pour tous** : une modification d'un module (ex. « modifie le
+  module Bilan ») s'applique, dès sa mise en ligne, à **tous les cabinets actifs** qui ont ce module dans leur formule.
+- **Formule** : ce à quoi un cabinet a droit (modules + nombre maximum de comptes, lieux, dossiers), par spécialité ; réglée par
+  l'administration (onglet Formules, et « Formule et modules » de chaque cabinet).
+- **Bibliothèque de référence** : par spécialité (aujourd'hui **Oncologie – Radiothérapie** ; plus tard Médecine générale,
+  Gynécologie…), ce que reçoit **un nouveau cabinet** : protocoles de chimiothérapie, médicaments (Médic.), examens complémentaires,
+  ordonnances types, analyses et bilans, courriers, documentation (Doc.), diagnostics et mutuelles, jours fériés, tarifs de
+  radiothérapie. **Mise de côté** : modifiée **seulement depuis l'administration** (onglet Bibliothèques › « Ouvrir et modifier »,
+  avec les écrans habituels d'Onco360 : ajouter, modifier, supprimer). Chaque cabinet reçoit **sa copie** à la création, puis la
+  modifie comme il veut (ça ne change que son cabinet). Les cabinets déjà créés ne reçoivent pas les modifications ultérieures.
+  Les **paramètres de base** de la spécialité y sont aussi (depuis le 10/10) : créneaux et horaires, jours fériés, messages
+  WhatsApp, couleurs de Google Agenda, types de documents et de tâches, tâches automatiques (confiées au titulaire), jours et heure
+  de RCP, diagnostics et mutuelles, marges d'impression, alertes, tarifs de radiothérapie. **Jamais** : correspondants, prix des
+  consultations, absences, lieux d'exercice, équipe, patients. Repris **une fois** du cabinet du Dr Bentahila le 10/10, puis
+  indépendants de son cabinet.
+- **Menu par spécialité** : toujours présents pour toutes les spécialités (selon la formule) : Tableau de bord, Agenda /
+  Rendez-vous, Salle d'attente, Patients, Tâches, Paramètres, Bilan, Profil ; propres à une spécialité : **Protocoles** et
+  Radiothérapie (Oncologie – Radiothérapie) ; plus tard pour la médecine générale par exemple **Traitements et stocks**, **Matériel
+  et consommables**… Onglet **« Modules et menus »** de l'Administration : chaque module, sa spécialité, ce qu'il ajoute au menu,
+  ses formules, le nombre de cabinets qui l'ont.
+- **Une modification d'un module** (ex. « modifie le module Tâches ») se répercute sur **tous les cabinets actifs qui l'ont**,
+  dès la mise en ligne (un seul code pour tous).
+- **Cabinet de démonstration** : patients fictifs, pour les démonstrations et les guides.
+
+## Étape 1 – Remodelage du dossier patient (document « gesticab explication », reçu le 06/10/2026)
+But : un dossier patient à onglets, avec un vrai journal de consultations et des ordonnances comme dans GestiCab
+(médicaments, examens complémentaires, ordonnances types, courriers, analyses), imprimables en A5 ou A4.
+L'étape est longue : elle est découpée en **sous-étapes, une fenêtre chacune**, dans l'ordre. Un seul « moteur »
+d'ordonnance est construit en 1C, puis réutilisé tel quel en 1E pour les quatre autres familles.
+
+**1.0 – Préparation**
+- [x] Historique des versions (git) **dans le dossier du projet** (fait le 07/10) : première version enregistrée = point de
+      retour avant le remodelage. Exclus de l'historique : données de test des patients (`tests/seed.json`), sauvegardes
+      JSON, `node_modules`, journaux. Le dossier git vide ouvert par erreur sur tout le dossier personnel (`~/.git`)
+      a été supprimé par Dr Bentahila le 07/10.
+- [x] Réponses de Dr Bentahila aux questions ci-dessous (toutes réglées le 07/10).
+
+**1A – Onglets du dossier** (fait, testé et mis en ligne le 07/10)
+Disposition décidée par Dr Bentahila le 07/10, de haut en bas :
+- [x] En haut, inchangés : identité + résumé du patient, rendez-vous à venir.
+- [x] En dessous, **un seul cadre** avec 4 onglets : **Consultation · Chimiothérapie · Radiothérapie · Documents** (avec
+      leur nombre), **pictogrammes au trait** (pas d'émoticônes).
+- [x] Tout en bas, **dans un autre cadre** : « Consultations et hospitalisations » (rendez-vous passés, venu / non venu,
+      prix à encaisser), gardé tel qu'aujourd'hui, en dehors des onglets.
+- [x] Chimiothérapie = carte chimio actuelle ; Radiothérapie = carte RT actuelle, **avec ses boutons pli confidentiel,
+      compte rendu de fin et rendez-vous Excel** (c'est de là qu'on les génère, décision du 07/10).
+- [x] Documents : pour l'instant un message. **Décision du 07/10 : rien n'ira dans cet onglet** (voir 1A bis).
+- [x] Le dossier **s'ouvre toujours sur Consultation** ; un clic sur un onglet affiche sa carte ; l'onglet reste affiché
+      après un enregistrement, et on revient sur Consultation en rouvrant le dossier. Sans l'onglet Consultation
+      (infirmière), le premier onglet permis s'ouvre.
+- [x] Onglets montrés selon les droits (testé) : médecin 4 onglets ; secrétaire Consultation, Radiothérapie, Documents ;
+      **infirmière (décision du 07/10) : Consultation en lecture, Chimiothérapie ouverte en premier, Radiothérapie en
+      lecture pour tous ses patients** (tableau de bord et agenda inchangés : radiothérapie des patients sous chimio).
+      Les onglets Consultation et Chimiothérapie sont toujours présents (message « aucune… » s'ils sont vides).
+- [x] Téléphone 390 px : les 4 onglets tiennent sur la largeur (pictogramme au-dessus du nom), rien ne déborde.
+- [x] Bilan 2026 inchangé : 352 317 DH. Aucune erreur dans la console.
+- [x] Mise en ligne (accord de Dr Bentahila le 07/10).
+
+Test : Playwright n'est pas installé sur ce Mac ; testé dans le navigateur intégré avec le faux Firebase, sur une copie
+du site dans un dossier temporaire (macOS empêche le serveur de test de lire le Bureau).
+
+**1A bis – Documents de radiothérapie dans une fenêtre** (fait, testé et mis en ligne le 07/10 ; décision du 07/10, remplace l'ancienne idée de
+« copies dans l'onglet Documents », abandonnée)
+Décision : **rien ne va dans un onglet Documents**. Les ordonnances et courriers restent derrière leur petite flèche
+(antécédents, 1D / 1E). Le pli confidentiel, le compte rendu de fin et les rendez-vous de radiothérapie restent dans la carte
+de leur radiothérapie :
+- [x] Clic sur « Pli confidentiel » (ou « Compte rendu de fin », « Rendez-vous ») → une **fenêtre s'ouvre avec le document**
+      rempli depuis le dossier ; le médecin le **modifie**, peut l'**imprimer**, et l'**enregistre**.
+- [x] Le document enregistré **reste attaché à sa radiothérapie** : un nouveau clic sur le même bouton rouvre **la version
+      modifiée et enregistrée** (pas un nouveau document).
+- [ ] Même fonctionnement pour les courriers (1E).
+- [x] Réponses de Dr Bentahila (07/10) :
+  - **Pli confidentiel et compte rendu de fin : fenêtre seulement**, plus de fichier Word. La mise en page de ses modèles
+    Word (`modeles/`) est recréée dans Onco360 (texte modifiable, impression A4, papier à en-tête).
+  - **Rendez-vous de radiothérapie : tableau des séances dans la fenêtre** (modifiable, imprimable, enregistré), plus
+    d'Excel.
+  - **Médecin et secrétaire** peuvent modifier et enregistrer ces documents.
+  - **L'onglet Documents est gardé** pour y **déposer des fichiers venus d'ailleurs** (PDF, photos : anapath, imagerie,
+    bilans) → étape à part (Firebase Storage, taille limitée, suppression par le médecin, sauvegarde des fichiers à prévoir).
+  - [x] **Fait le 08/10** (testé, pas encore en ligne) : onglet Documents = dépôt de fichiers (PDF, Word, JPEG, PNG… 25 Mo
+    au plus) avec **titre, date du document et type** ; liste du plus récent au plus ancien, **recherche** (titre, type, nom
+    du fichier) et **filtre par type** ; Ouvrir, Télécharger, Modifier (titre, date, type), Supprimer (médecin : tous ;
+    secrétaire : ceux qu'elle a déposés) ; infirmière : pas d'onglet (droit « documents »). **Types modifiables par le
+    médecin** dans Configuration › Documents (ajouter, renommer, ordre, retirer ; un document garde son type). Cloud Storage
+    activé le 08/10 (europe-west1, bucket `chimio-hgc.firebasestorage.app`, corbeille de 7 jours), règles `storage.rules`
+    (membre actif, droit « documents », périmètre), fiches `fichiers/{id}`. **Les fichiers ne sont pas dans les sauvegardes
+    quotidiennes de la base** (à prévoir : copie du stockage).
+  - [x] **Bouton « Doc. »** (08/10, testé, pas encore en ligne) à côté de Courriers : documentation du cabinet à remettre
+    aux patients (PDF) ; les 2 régimes de radiothérapie pelvienne y sont passés (retirés de Courriers). Recherche, filtre
+    par catégorie, tri (favoris puis A → Z, plus récents, par catégorie), ⭐ ; **le médecin** ajoute (+ PDF, titre,
+    catégorie), modifie, supprime ; secrétaire : ouvrir et remettre. « Remettre » ouvre le PDF et note une ligne « Doc. »
+    dans la consultation du jour (badge « remis le … ») ; petite flèche = ce qui a déjà été remis au patient.
+    `bibliotheques/documentation`, PDF dans Cloud Storage `espaces/{e}/documentation/…` (storage.rules).
+  - [x] **Ligne libre avec suggestions** (08/10, toutes les fenêtres de prescription) : en tapant « NF », la liste propose
+    NFS – plaquettes (médicaments avec leur posologie ; un bilan choisi est développé) ; sinon le texte tapé reste.
+- [x] Données : `documentsRT/{patient}_{radiothérapie}_{pli|cr|rdv}` (une version par radiothérapie et par type : html,
+      date, auteur) ; règle : droit « documents » (médecin, secrétaire) dans le périmètre. Patient supprimé ou changé
+      d'hôpital : ses documents suivent.
+- [x] Fenêtre : feuille A4 (zone « En-tête du papier » en haut, comme l'ordonnance), texte modifiable (gras, souligné),
+      **Fermer · Enregistrer · Enregistrer + Imprimer** ; « Repartir du dossier » sur une version enregistrée (document neuf
+      avec les informations actuelles). Bouton coché en vert dans la carte quand le document est enregistré (date et auteur
+      au survol).
+- [x] **Pli confidentiel** : les 3 pages du modèle (lettre, compte rendu médical, ordonnance médicale), « À REMPLIR »
+      surligné si une information manque, saut de page à l'impression. **Compte rendu de fin** : les 6 rubriques et le
+      tableau du modèle, « à compléter par le médecin » en gris. **Rendez-vous** : dates de début et de fin, patient,
+      médecin, tableau des séances (date, durée, activité, ressource, état), cases modifiables.
+- [x] Signature : « Dr NOM Prénom » + spécialité du médecin (celui de la secrétaire si c'est elle : la spécialité du
+      titulaire est enregistrée dans `parametres/medecinTitulaire` à sa prochaine ouverture d'Onco360).
+- [x] Code Word / Excel retiré (`documents.js` réécrit) ; les modèles Word restent dans `modeles/` comme référence.
+- [x] Tests : pli (modifié, enregistré, imprimé, rouvert avec la modification), compte rendu, rendez-vous (case modifiée
+      et enregistrée), secrétaire (signature de son médecin), infirmière (aucun bouton), téléphone 390 px, bilan 352 317 DH.
+- [x] Mise en ligne le 07/10 (site + règle `documentsRT`).
+- [x] Marges encore resserrées et haut agrandi le 07/10 (voir « Questions et rappels » en haut : mesurer les en-têtes).
+- [x] **Marges d'impression élargies (07/10, le texte collait aux côtés)**, sur chaque page : ordonnances A5 36 mm (haut) /
+      22 mm (côtés) / 18 mm (bas), ordonnances A4 48 / 28 / 22 mm, documents RT A4 34 / 28 / 22 mm ; aperçu à l'écran
+      ajusté. Vérifié en PDF (Chrome). La fiche chimio (A4 paysage) garde ses marges.
+
+**1B – Consultations (journal médical)** (fait, testé et mis en ligne le 07/10)
+- [x] Menu des consultations : **RCP** ajouté le 07/10.
+- [x] « Nouvelle consultation » : **menu déroulant** (Consultation de suivi, d'annonce, de chimiothérapie…) **et titre à
+      remplir** (ex. « J1C1 FOLFOX »), date du jour (modifiable), note ; nom de la personne qui l'a créée. Affiché :
+      « Consultation de chimiothérapie · J1C1 FOLFOX » (retouche du 07/10). Créée **à la main** par le médecin ou la secrétaire : marquer un rendez-vous « Venu » ne crée rien.
+- [x] À l'intérieur : ligne **Note** (texte libre, à la place de « Motif Cs »), avec le nom de son auteur à droite.
+- [ ] Chaque prescription faite ajoute une ligne : « Médic. — Amlodipine 5 mg », « Analyses — NFS Urée Créatinine »,
+      « Examens compl. — … », « Ordo type — … », « Courrier — … ». Clic sur la ligne = revoir le document.
+      → l'affichage des lignes est prêt (champ `lignes`) ; elles seront ajoutées par les ordonnances (1C à 1E).
+- [x] Consultations **pliables** (date + titre + auteur), la plus récente ouverte ; un clic plie / déplie.
+- [x] Barre de 5 boutons **indépendante des consultations, en bas de l'onglet** (retouche du 07/10) : **Médic. ▾ ·
+      Examens compl. ▾ · Ordo. type ▾ · Analyses ▾ · Courriers ▾** (pictogrammes). Une ordonnance faite depuis cette barre
+      s'ajoutera **en ligne dans la consultation du jour** (« Médic. — … »). Pour l'instant « bientôt disponible »
+      (construits en 1C à 1E).
+- [x] **Modifier** (titre, date, note) : médecin et secrétaire ; **Supprimer** : médecin seulement (avec confirmation).
+- [x] Données : collection `consultations` (une fiche par consultation, avec le patient et son établissement ; pas une
+      sous-collection, pour que la copie Drive la sauvegarde aussi). Règles de sécurité : **lecture par tous les membres**
+      (dans leur périmètre ; l'infirmière lit), écriture avec le nouveau droit **« Journal des consultations et
+      ordonnances : créer, modifier »** (oui par défaut médecin et secrétaire, non infirmière), suppression par un médecin.
+      Patient supprimé → ses consultations aussi ; hôpital du patient changé → ses consultations suivent.
+- [x] **Secrétaire : onglet Chimiothérapie en lecture** (décision du 07/10) : droit « Chimiothérapie » passé de « Non
+      visible » à « Voir » par défaut, et pour les secrétaires existantes (mise à niveau faite une fois, à l'ouverture
+      d'Onco360 par Dr Bentahila). Son Google Agenda recevra aussi les cures (comme l'agenda d'Onco360).
+- [x] Infirmière (confirmé le 07/10) : rendez-vous de radiothérapie seulement des patients sous radio-chimiothérapie
+      concomitante ; dans le dossier, toutes les prescriptions de chimio et de radiothérapie en lecture.
+- [x] Tests : médecin (créer, plier, modifier, supprimer, relecture à la réouverture), secrétaire (créer, modifier, pas
+      supprimer, chimio en lecture), infirmière (lecture seule), téléphone 390 px, bilan 352 317 DH, règles de sécurité
+      compilées, aucune erreur.
+- [x] Mise en ligne le 07/10 : site **et règles de sécurité** (accord de Dr Bentahila). Ensuite, **Dr Bentahila ouvre
+      Onco360 en premier** (mise à niveau des droits de l'équipe) avant que la secrétaire écrive une consultation.
+
+**1C – Médicaments et ordonnance** (le moteur commun) (fait et testé le 07/10, pas encore en ligne)
+- [x] **Décidé le 07/10** : si l'on fait une ordonnance sans consultation à la date du jour, Onco360 crée automatiquement
+      une consultation du jour qui ne contient que l'ordonnance (ligne « Médic. — … »).
+- [x] Liste des médicaments reçue le 07/10 (`Ordonnances_Chimio.xlsx`, 225 lignes) → nettoyée dans
+      `listes/Medicaments_Onco360.xlsx` : **147 lignes** (doublons fusionnés ; quand un même médicament avait des
+      posologies vraiment différentes, elles sont gardées comme variantes), posologies rédigées en clair (« 1 comprimé
+      matin et soir (soit 2 comprimés par jour) »), **colonne « Classe thérapeutique »** (vérifiée sur les sites marocains
+      medicament.ma / annuaire-gratuit.ma / med.ma pour les noms incertains), colonne « Remarque » (ce qui a changé).
+- [x] Lignes en jaune relues et corrigées par Dr Bentahila le 07/10 (quelques lignes supprimées) ; colonne « Remarque »
+      retirée.
+- [x] **30 médicaments d'oncologie ajoutés** (en vert dans le fichier) : chimiothérapies orales (capécitabine, témozolomide
+      adjuvant, vinorelbine orale, cyclophosphamide métronomique), hormonothérapies (anastrozole, exémestane, fulvestrant,
+      goséréline 3,6, triptoréline 3 mg, cyprotérone), thérapies ciblées (palbociclib, ribociclib, abémaciclib, olaparib,
+      imatinib, osimertinib), soins de support (pegfilgrastim, dénosumab 120 / 60, acide zolédronique, énoxaparine,
+      dexaméthasone, olanzapine, lévétiracétam, lévothyroxine, anétholtrithione, Biafine, fentanyl patch).
+      Présence au Maroc vérifiée pour NEULASTIM, XGEVA, PROLIA, NAVELBINE orale, FASLODEX, ARIMIDEX, ANDROCUR, LEVOTHYROX.
+      → **162 médicaments**. Les posologies dépendant de la surface corporelle gardent des « … » à remplir sur l'ordonnance.
+- [x] Fichier validé par Dr Bentahila le 07/10 (+ KEYTRUDA et PEMORIAL (pembrolizumab) ajoutés par elle, + IMFINZI
+      (durvalumab) ajouté par Claude, DECAPEPTYL en intramusculaire, TEGUMA 1 comprimé le matin 7 jours) : **165 médicaments**.
+- [x] Liste de tous les médicaments du cabinet (bouton **Médic.**) : **Recherche** (nom, posologie ou classe, sans accents) ;
+      colonnes Médicament (+ classe), Posologie ; **+** ajouter à l'ordonnance, **✎** modifier, **✕** supprimer ;
+      « Nouveau médicament ».
+- [x] Nouveau / modifier : Nom + Posologie + Classe (facultatif) → Valider / Annuler ; doublon (même nom et posologie) refusé.
+- [x] **Double-clic** (ou bouton +) → le médicament passe dans l'ordonnance en préparation (retirer ✕, monter ↑, descendre ↓).
+- [x] **Afficher l'ordonnance** / **Annuler** ; ordonnance vierge (lignes vides) si aucun médicament choisi.
+- [x] Feuille de l'ordonnance : date du jour à droite ; « Mme / M. NOM Prénom » ; médicaments **numérotés** (1/ nom souligné
+      en gras, posologie dessous) ; « Cachet et signature du médecin : Dr NOM Prénom » ; **toute la feuille reste
+      modifiable** (gras, souligné, taille du texte A− / A+). Le haut est laissé libre (papier à en-tête), zone « En-tête du
+      papier » visible à l'écran seulement.
+- [x] **Édition A5 / A4** (le dernier choix est retenu sur l'ordinateur) ; **Valider** · **Valider + Imprimer** ·
+      **Fermer**. Signée au nom du médecin connecté, ou de **son médecin** (titulaire) si c'est la secrétaire.
+- [x] Enregistrée en ligne **« Médic. — … »** (noms des médicaments) dans la consultation du jour ; s'il n'y en a pas,
+      consultation « Ordonnance » créée automatiquement. Clic sur la ligne = revoir, modifier ou réimprimer l'ordonnance
+      (lecture seule pour l'infirmière). Le texte enregistré est nettoyé (pas de code).
+- [x] Liste de départ = `public/js/donnees/medicaments.js` (165) ; la 1re modification l'enregistre dans
+      `bibliotheques/medicaments` (règle : lue par les membres, modifiée avec le droit d'écrire les consultations).
+- [x] Tests : médecin (liste, recherche par classe, double-clic, ordre, A4, Valider + Imprimer, 2e ordonnance le même jour,
+      réouverture et modification, ajout / modification / doublon / suppression d'un médicament), secrétaire (signature
+      « Dr BENTAHILA Rita »), infirmière (lecture seule, sans barre), téléphone 390 px, bilan 352 317 DH, règles compilées.
+- [x] Mise en ligne le 07/10 (site + règle `bibliotheques`).
+- [x] **Décidé le 07/10** : les ordonnances **ne vont pas dans l'onglet Documents** et ne génèrent aucun fichier (pas de
+      Word / PDF gardé) : elles sont seulement enregistrées dans la consultation, et on les retrouve par l'historique des
+      prescriptions (1D : voir, réimprimer, renouveler), pour ne pas surcharger. Courriers : pareil (confirmé le 07/10).
+- [ ] Plus tard (si plusieurs médecins dans un cabinet) : choisir le médecin signataire dans la fenêtre de l'ordonnance.
+
+**1D – Antécédents des prescriptions** (petite flèche) (fait, testé et mis en ligne le 07/10)
+- [x] Fenêtre « Antécédents — Médicaments — patient » : dates à gauche (la plus récente en haut, « modifiée le … » si
+      besoin), ordonnance au centre (telle qu'enregistrée, A5 ou A4), à droite **Imprimer · Supprimer · Modifier ·
+      Renouveler · Fermer** (« Modifier » ajouté le 07/10 à la demande de Dr Bentahila).
+- [x] **Modifier** = la même ordonnance **à sa date de prescription** (corrigé le 07/10 : la date du jour, c'est
+      « Renouveler ») ; une fois enregistrée, elle **change aussi dans sa consultation** (liste : « modifiée le … »).
+- [x] **Modifier rouvre la liste des médicaments** (retouche du 07/10) avec ceux déjà sur l'ordonnance (posologies relues sur
+      la feuille, corrections à la main comprises) : ajouter, retirer, réordonner, puis « Afficher l'ordonnance » (même date,
+      même signataire, même format). Une ordonnance écrite à la main (sans médicament de la liste) s'ouvre telle quelle.
+- [x] **Renouveler** = nouvelle ordonnance du jour, même contenu, signée par le médecin du jour, mêmes options (A5/A4,
+      Valider, Valider + Imprimer, Fermer) ; enregistrée dans la consultation du jour (créée si besoin).
+- [x] **Supprimer** (médecin et secrétaire, avec confirmation ; décision du 07/10) : l'ordonnance disparaît aussi de sa consultation ; une
+      consultation « Ordonnance » créée automatiquement et devenue vide est supprimée.
+- [x] Un clic sur la ligne « Médic. » d'une consultation ouvre cette fenêtre, sur cette ordonnance.
+- [x] Droits : secrétaire = tous les boutons ; infirmière = lecture seule (Fermer). Règle : la secrétaire peut supprimer
+      une consultation « Ordonnance » créée automatiquement une fois vidée ; les autres consultations, le médecin seul.
+- [x] Fenêtre prévue pour toutes les familles (examens, ordonnances types, analyses, courriers : 1E).
+- [x] Tests : modifier (date du jour, consultation d'origine mise à jour), renouveler (nouvelle consultation du jour,
+      signature), supprimer (consultation vide retirée), impression A4, clic depuis la consultation, 3 rôles, 390 px,
+      bilan 352 317 DH.
+- [x] Mise en ligne le 07/10 (site + règles de sécurité).
+
+**1E – Les quatre autres familles (même système, modèles créés par Dr Bentahila)**
+- [ ] **Règle (07/10) : tout ce qui est fait pour Médic. vaut pour Ordo. type et Analyses** (et les autres familles) :
+      liste avec recherche + / ✎ / ✕, double-clic, ordonnance A5/A4 modifiable, consultation du jour, antécédents
+      (Imprimer · Supprimer · Modifier = liste rouverte à la date de prescription · Renouveler · Fermer).
+- [x] **Examens compl.** (fait, relu par Dr Bentahila et mis en ligne le 07/10) : fichier
+      `Examens_Complementaires_Oncologie.xlsx` (42 examens) rangé → **55 examens** (`public/js/donnees/examens.js` ;
+      relecture : `listes/Examens_Onco360.xlsx`). Mammographie corrigée, nasofibroscopie / panendoscopie séparées,
+      précautions des endoscopies (« à jeun 6 heures »…), ajouts validés (TDM thoracique / abdomino-pelvienne, uro-TDM,
+      IRM prostatique / rectale / ORL, radiographies, panoramique dentaire, ostéodensitométrie, rectosigmoïdoscopie,
+      audiogramme, cytoponction, ponction pleurale). **Pas de bilans d'imagerie** (décision du Dr).
+  - Même fenêtre que les Analyses (code commun, `FAMS` dans ordonnances.js, `lb: null` pour les examens) : une ligne par
+    examen, précautions entre parenthèses, « Nouvel examen » (nom, catégorie, précautions), ✎ ✕ ⭐, antécédents ;
+    liste `bibliotheques/examens`.
+  - Ordonnance d'analyses et d'examens (décision du 07/10) : titre « Prière de bien vouloir faire : », **sans
+    renseignements cliniques** ; un bilan s'imprime **sans son titre** (« ASAT, ALAT, GGT… »).
+  - Corrigé au passage : dans la liste des analyses en ligne, des éléments de bilans étaient coupés à la virgule dans une
+    parenthèse (« DFG (clairance de la créatinine » / « CKD-EPI) ») : recollés dans analyses.js et à la lecture des listes.
+- [x] **Ordonnances types** (fait, testé et mis en ligne le 07/10) : fichier de Dr Bentahila
+      (`Ordonnances_Par_Type_Complete.xlsx`, 15 types) repris, harmonisé avec la liste des médicaments, corrigé et complété
+      → **26 ordonnances types, 94 lignes** (`public/js/donnees/ordostypes.js`, relecture : `listes/Ordonnances_types_Onco360.xlsx`,
+      colonne « Ce que j'ai changé », nouveaux types en vert). Corrections : TEGUMA retiré du syndrome pieds-mains
+      (antifongique), MOTILIUM / NAUSELIUM (même molécule), FEMARA et TAMOXIFÈNE séparés, « Douleurs & Neuropathies »
+      séparé en 4 (paliers 1-2, tramadol LP, morphine + FORLAX, neuropathiques), un seul alpha-bloquant (UROREC 8 mg),
+      VESICA → VECA, lignes « A / B » séparées. Ajouts : constipation, chimiothérapie très émétisante, éruption acnéiforme
+      anti-EGFR, prémédication pémétrexed, mycose génitale, soins gynécologiques (RT pelvienne), antibiothérapie orale.
+  - Bouton **Ordo. type** : liste des ordonnances types (recherche par nom ou médicament) ; **un clic** sur une ordonnance
+    type met tous ses médicaments dans l'ordonnance en bas ; chaque médicament : **✎ modifier** (nom, posologie), ↑ ↓,
+    **✕ retirer** ; « Ajouter un médicament de la liste » (recherche) et « Ligne libre » ; puis **Afficher l'ordonnance**
+    (A5/A4, Valider, Valider + Imprimer). Ligne « Ordo. type — Diarrhée : … » dans la consultation du jour.
+  - **Nouvelle ordonnance type / ✎ modifier / ✕ supprimer** (nom + médicaments) ; liste du cabinet dans
+    `bibliotheques/ordostypes` (règle existante : droit d'écrire les consultations).
+  - Antécédents (petite flèche) : Modifier rouvre la fenêtre des ordonnances types avec les médicaments de l'ordonnance.
+  - ✎ sur chaque médicament ajouté aussi dans la fenêtre Médic.
+  - Tests : utilisation, modification, retrait, recherche, ligne libre, impression, consultation, création / modification /
+    doublon / suppression d'un type, antécédents, secrétaire (signature), 390 px, bilan 352 317 DH.
+  - [x] Relu et corrigé par Dr Bentahila dans `listes/Ordonnances_types_Onco360.xlsx` (07/10) : sa version (26 types,
+        90 lignes) est la liste de départ et a remplacé une fois la liste du cabinet (migration `ordostypesExcel1`, à la
+        1re ouverture d'Onco360 par la titulaire). Modifier l'Excel ne met PAS Onco360 à jour : corriger dans Onco360
+        (✎ / ✕ / Nouvelle ordonnance type), ou envoyer l'Excel à Claude pour une nouvelle reprise.
+  - [x] **Favoris ⭐** (07/10) sur les médicaments et les ordonnances types : en tête de liste, pour tout le cabinet ;
+        l'étoile est gardée quand on modifie. À reprendre pour Analyses et Examens compl. (1E).
+  - [x] Mise en ligne le 07/10.
+- [x] **Courriers** (fait, testé et mis en ligne le 07/10) : modèles du fichier de Dr Bentahila `COURRIERS.docx`
+      (ajoutés directement, sans relecture commune, à sa demande) : **Demande d'ALD, Certificat d'arrêt de travail,
+      Certificat médical, Courrier médical, Pli confidentiel, Compte rendu médical** (`public/js/donnees/courriers.js` ;
+      liste du cabinet `bibliotheques/courriers` [{ id, nom, html, fav }]).
+  - Bouton **Courriers** : liste des modèles (recherche, ⭐, ✎, ✕, « Nouveau modèle ») ; clic = feuille A4 modifiable
+    remplie pour le patient : {patient} (Mme NOM Prénom), {age}, {naissance}, {diagnostic}, {mutuelle}, {etablissement}
+    (« l'Hôpital… », « du Centre… »), {lieu}, {ville} (Casablanca), {date}, {medecin} ; « (e) » accordé avec le sexe ;
+    zones jaunes « À compléter » (un clic les sélectionne ; surlignage non imprimé ; avertissement s'il en reste) ;
+    champ vide du dossier → zone à compléter. Valider / Valider + Imprimer → ligne « Courriers — Demande d'ALD » dans la
+    consultation du jour ; antécédents (Imprimer, Supprimer, Modifier, Renouveler = date et médecin du jour).
+  - Éditeur de modèle : nom, feuille modifiable, G / S / alignements, boutons « Insérer » pour chaque champ et pour une
+    zone à compléter.
+  - **Fiches patient en PDF** (pas de données du patient, prêtes à imprimer) : régime pendant une radiothérapie pelvienne,
+    **français** et **darija** (écrit de droite à gauche), `public/documents/` ; source : `listes/regimes_pdf.py`.
+    Darija mis au pluriel de politesse (le texte s'adressait à une femme, or les patients de RT prostatique sont des
+    hommes) ; petites corrections (« فcase », « L'عدس »…).
+- [x] **Analyses** (fait, testé et mis en ligne le 07/10) : fichier de Dr Bentahila
+      (`Prescriptions_Biologiques_Oncologie.xlsx` : 40 bilans, 66 analyses) rangé → **34 bilans dont 7 bilans généraux,
+      94 analyses** (`public/js/donnees/analyses.js` ; relecture : `listes/Analyses_Onco360.xlsx`, colonne « Ce que j'ai
+      changé », nouveautés en vert). Doublons retirés (IHC, NGS, HRD, PD-L1, biopsie liquide), tests de génétique et de
+      biologie moléculaire passés en analyses, bilan de coagulation créé, marqueurs tumoraux par organe et « avant
+      5-FU / capécitabine » ajoutés, bilan immunothérapie intercure complété (à valider).
+  - Bouton **Analyses** : liste des bilans (« Bilan général » indiqué) puis des analyses, recherche (nom d'abord, puis
+    contenu) ; clic sur une analyse = 1 ligne ; sur un bilan = 1 ligne « Bilan … : analyses » ; sur un **bilan général** =
+    une ligne par bilan qu'il contient ; pas de doublon. ✎ / ↑ ↓ / ✕, « Ajouter une analyse ou un bilan », ligne libre.
+  - Ordonnance : « Prière de faire pratiquer : », lignes « • … », « Renseignements cliniques : » (diagnostic du dossier),
+    signature ; A5/A4 ; ligne « Analyses — Bilan … : NFS ; … » dans la consultation du jour ; antécédents (Modifier rouvre
+    la fenêtre des analyses).
+  - **Nouveau bilan** (analyses et/ou bilans : avec des bilans, il devient général), **Nouvelle analyse** (nom,
+    catégorie), ✎, ✕, **favoris ⭐** ; listes du cabinet `bibliotheques/analyses` et `bibliotheques/bilans`.
+  - Tests : bilan général, doublon, ajout, retrait, impression, consultation, création d'un bilan, favori, nouvelle
+    analyse, antécédents, 390 px, bilan 352 317 DH.
+  - [x] Relu et corrigé par Dr Bentahila (07/10) : bilans chimio / immuno / abiratérone / curiethérapie / PAC écrits avec
+        leurs analyses (au lieu des bilans inclus), immunothérapie intercure = NFS seule, « IHC » → « Immunohistochimie » ;
+        sa version est la liste de départ (aucune liste du cabinet n'existait encore).
+- [ ] Antécédents (petite flèche) pour chacune, comme en 1D.
+
+**1F – Finition**
+- [ ] Tests : navigateur, 3 rôles, téléphone 390 px, bilan 2026 inchangé (352 317 DH) ; mise en ligne avec accord.
+- [ ] Mise à jour de `CLAUDE.md` ; ajouter les bibliothèques (médicaments, modèles) à la liste « ce que reçoit un nouveau
+      cabinet » de l'étape 4 (à décider avec Dr Bentahila).
+
+**Questions à trancher avant 1B / 1C**
+1. ~~En-tête de l'ordonnance~~ **Réponse (06/10) : papier à en-tête déjà imprimé.** Ni logo ni signature dans aucun document
+   (déjà appliqué au pli, au compte rendu, aux rendez-vous Excel et à la fiche chimio). Prévoir une marge en haut.
+2. ~~Consultation créée quand un rendez-vous est « Venu » ?~~ **Réponse (07/10) : non.** Le médecin ou la secrétaire crée
+   la consultation (= une note dans le dossier).
+3. ~~Secrétaire et consultations ?~~ **Réponse (07/10) : voir oui, écrire oui** (et imprimer, renouveler).
+4. ~~Champs automatiques des courriers ?~~ **Réponse (07/10) : nom, âge, diagnostic, date, « à Casablanca » : oui ;
+   correspondant : non.** Modèles faits ensemble (ALD, courrier, certificat), et Dr Bentahila peut en créer d'autres.
+5. ~~Liste de médicaments ?~~ **Réponse (07/10) : Dr Bentahila fournira un Excel des médicaments et un Excel des
+   analyses / bilans.**
+6. ~~Nom sur une ordonnance faite par la secrétaire ?~~ **Réponse (07/10) : le nom de son médecin** (le titulaire du
+   cabinet auquel elle appartient), avec « saisie par [secrétaire] » gardé dans l'historique, invisible sur l'impression.
+   S'il y a plusieurs médecins dans le cabinet : le médecin est choisi dans la fenêtre de l'ordonnance (titulaire par défaut).
+
+## Étape 2 – Retouches au fil de l'eau
+Ce que Dr Bentahila remarque en utilisant Onco360 au quotidien.
+- [x] « Dosimétrie à valider » : période du scanner (inclus) à la 1re séance (incluse), jusqu'à la validation par le médecin
+      (dossier, tableau de bord, agenda, Google Agenda). Sans 1re séance : du scanner à aujourd'hui. Fait, testé et mis en ligne le 06/10.
+- [x] Bouton WhatsApp : seulement le logo (sans le mot « WhatsApp »), partout. Mis en ligne le 06/10, puis les scripts du site ne sont plus gardés en cache (les mises à jour s'affichent tout de suite).
+- [x] Pli confidentiel et compte rendu de fin de RT : Onco360 remplit les modèles Word de Dr Bentahila (`modeles/`, étiquettes `{{…}}`,
+      `{{SPECIALITE}}` ajoutée, `{{MEDECIN}}` = « Dr NOM Prénom », établissement en nom complet, « au sein de l’établissement … »). **Ni logo ni signature** dans aucun document
+      (pli, CR, rendez-vous Excel, fiche chimio) : impression sur papier à en-tête. Mis en ligne le 06/10.
+- [x] Pli confidentiel : « Radiothérapie {acte} + VMAT » sous TRAITEMENT PROPOSÉ (page 1), dans « nécessitant un traitement par… »
+      (page 2) et dans l'ordonnance (page 3) :
+      « Radiothérapie {acte} + VMAT » (VMAT si coché). Consultations et hospitalisations
+      sans émoticônes. Allergies : plus affichées dans le dossier (seulement dans Modifier l'identité). WhatsApp signé « Dr NOM »
+      (médecin connecté, sinon titulaire). Mis en ligne le 06/10.
+- [x] 🎉 retiré (jours fériés : pictogramme drapeau), le 07/10.
+- [x] Émoticônes remplacées par des pictogrammes au trait (07/10) : ✈️ absence (avion), ⚠️ (triangle d'alerte), ⏳ à recevoir
+      (sablier), 💬 WhatsApp (logo au trait), 📅 autre rendez-vous (agenda) ; Google Agenda : « Absence : motif ». Mis en ligne le 07/10.
+- [x] Remplacés aussi le 07/10 (pictogrammes au trait ou pastilles de couleur) : ⬇️ Excel/PDF, 🔄, 🏦, ✅, 🕐, 🟢, 🟠, 🟡, ⛔,
+      🗑, ⭐, 🏥, ➕ ➖. Mis en ligne.
+- [x] 💾 Enregistrer (disquette) et 🖨️ Fiche chimio (imprimante) remplacés le 07/10, mis en ligne.
+- [ ] Encore en suspens : 💉 ☢️ 🩺 👋.
+- [x] Dossier : boutons **« Afficher »** (toute la fiche en lecture) et **« Modifier »** (ex-« Modifier l'identité »). Résumé du
+      patient **enregistré tout seul** (1 s après la frappe, en quittant la case) ; on ne quitte pas la page tant qu'il n'est pas
+      enregistré (sinon on reste sur le dossier avec un message), et le navigateur prévient à la fermeture. Mis en ligne le 07/10.
+- [x] Dossier : allergies, antécédents médicaux et familiaux, mode de vie ne s'affichent plus (seulement dans Modifier
+      l'identité). Nouveau champ **« Traitement en cours »** sous Mode de vie (création et modification ; `clinique.traitCours`).
+      Mis en ligne le 07/10.
+- [x] Rendez-vous à venir : **toutes** les séances de chimio prévues (J1, J8, J15…) de toutes les cures jusqu'à la dernière
+      (avant : seulement la cure en cours) ; les dates suivent le protocole. Mis en ligne le 07/10.
+- [x] Rendez-vous de chimio validés comme les autres (07/10) : bouton **« Venu »** (droit finances) dans Rendez-vous à venir
+      et dans Consultations et hospitalisations (jours de chimio reçus depuis le 07/10 : « À valider ») → fenêtre de prix,
+      **J1 = tarif consultation chimio (250 DH), J8 / J15… = 0**, modifiable ; « Annuler le statut ». La date ne se change que
+      dans le protocole. Case « Consultation encaissée » retirée de la fenêtre de cure. Données : `consJ` { jour: montant } par
+      cure dans les montants ; `cons` (bilan) = total payé, bilan inchangé (352 317 DH). Mis en ligne le 07/10.
+- [x] Fenêtre d'une cure : tableau des séances (J1, J8, J15…) au lieu des tuiles, avec Ouvrir / Valider / Reporter / Annuler
+      (ou Annuler la validation / Rétablir) ; date prévue modifiable dans le tableau ; cartes sur téléphone. Nouveau : **annuler une
+      séance J8/J15** (motif), retirée de l'agenda, du tableau de bord et de Google Agenda, non facturée. Consultation encaissée : case
+      blanche, montant modifiable, **« Encaissée à » J1 / J8 / … / autre date** (vu par la secrétaire). Mis en ligne le 06/10.
+- [x] Photo du patient (facultative) : clic sur la bulle des initiales en haut du dossier → choix du fichier (ou photo au
+      téléphone) ; s'il y a déjà une photo : Changer / Retirer. Droit « Identité ». Elle remplace la bulle (dossier, liste des
+      patients, choix du patient d'un rendez-vous). Gardée dans `identite.photo` (~10 Ko). Mis en ligne le 06/10.
+- [x] Fiche chimio : « Médecin prescripteur » = « Dr NOM Prénom » + INPE du Profil du médecin (imprimée par l'équipe :
+      ceux du médecin titulaire, `parametres/medecinTitulaire`). Plus d'INPE ni de nom écrits dans le code. Mis en ligne le 06/10.
+- [ ] (à remplir au fur et à mesure)
+- Petits défauts déjà repérés :
+  - [x] message périmé de l'Agenda (« synchronisation… phase D ») : déjà remplacé lors du Google Agenda, vérifié en ligne le 06/10 ;
+  - [x] anciens outils retirés du site le 06/10 (import, conversion, test des droits) → dossier `archives/` ; `historique.html` gardé (sert à l'ancienne application, à retirer avec elle en F2) ;
+  - [x] onglet « Assistant IA » retiré du menu le 06/10 (l'assistant IA est annulé) ;
+  - [x] page de secours (si Onco360 ne démarre pas) : boutons « Recharger » et « Se déconnecter » qui marchent (corrigé, testé et mis en ligne le 06/10) ;
+  - [x] garder un historique des versions du code (git), pour pouvoir revenir en arrière (fait le 07/10, étape 1.0).
+
+## Étape 3 – Accès et vues de la secrétaire et de l'infirmière
+- [x] Droits demandés le 06/10 (mis en ligne le 06/10 ; **à essayer avec le compte de la secrétaire** : modifier un poids, voir un prix) :
+  - **Secrétaire** :
+    - modifie la fiche du patient (poids, taille, diagnostic, allergies, antécédents ; pas le résumé médical) ;
+    - voit et télécharge les documents (pli confidentiel, compte rendu, rendez-vous Excel) ;
+    - voit le prix des consultations validées par le médecin et la consultation de chimio cochée (250 DH), pour faire payer.
+  - **Infirmière** :
+    - ne voit que les rendez-vous de chimio, et la radiothérapie des patients sous chimio en même temps ;
+    - ne télécharge pas les documents.
+  - Nouvelles lignes dans Profil › Accès › Droits : Fiche du patient, Voir les consultations, Documents, Prix à encaisser,
+    Radiothérapie « Voir : patients sous chimio ». La pastille « modifié » de la grille a été retirée.
+- [x] Abandonnés le 06/10 (décision de Dr Bentahila) : « Marquer administrée » (**repris le 08/10**, étape 11), commande pharmacie J−1, relevé mensuel.
+  La ligne « Marquer « Administrée » » a été retirée de la grille des droits (la règle `administrations` reste, inutilisée).
+
+## Étape 4 – Plusieurs cabinets (phase F) : vendre Onco360
+Décisions déjà prises :
+- un médecin crée son compte avec un **code d'activation** vendu par Dr Bentahila ;
+- un nouveau cabinet reçoit une **copie de la bibliothèque de protocoles** ;
+- l'éditrice n'a **aucun accès aux patients** des autres cabinets ;
+- chaque médecin relie son Google Agenda (c'est déjà en place).
+
+- **F1 – Plusieurs cabinets**
+  - [x] **Liste de ce que reçoit un nouveau cabinet (décidé le 09/10)** : les **protocoles**, les **jours fériés**, la liste
+        des **diagnostics**, les bibliothèques **médicaments**, **ordonnances types**, **analyses** et **courriers**, les **tarifs
+        de radiothérapie** (actes RT, VMAT), la possibilité de **relier son propre Google Agenda**. **Pas** : les
+        correspondants, les tarifs (consultations, séances), les établissements, les patients et leurs dossiers, le profil
+        de Dr Bentahila, son bilan.
+        Note : ajouter un confrère par Paramètres › Accès le ferait entrer dans **le cabinet de Dr Bentahila** (il verrait
+        ses patients) : un autre cabinet se crée à part.
+  - **Décidé le 09/10** : cabinets créés depuis un **compte d'administration séparé** (pas le compte de Dr Bentahila) ;
+    mutuelles reçues ; autres réglages = valeurs de départ ; documentation patients = fiches de départ seules.
+  - [x] **Création d'un cabinet (09/10, fait, testé et mis en ligne)** : page `admin.html` (compte de la collection
+        `administrateurs`) → fonction `creerCabinet` : compte du médecin, cabinet `cab-…`, titulaire (tous les droits),
+        copie de ce qui est décidé (`functions/cabinets.js`), e-mail pour choisir le mot de passe. Liste des cabinets
+        (`listeCabinets` : titulaire, membres, nombre de dossiers ; aucune donnée médicale), « Renvoyer l'e-mail ».
+        Code d'activation (inscription par le médecin lui-même) : plus tard, avec les abonnements.
+  - [x] Onco360 ouvre le cabinet de la personne connectée : `comptes/{uid}` = { espace }, écrit par le serveur seulement
+        (`creerCabinet`, et `compteMembre` à chaque fiche de membre écrite ; profil de départ du membre ajouté). Sans fiche :
+        cabinet-bentahila (membres actuels).
+  - [x] Règles : chaque cabinet fermé aux autres ; le compte de Dr Bentahila n'a plus de pouvoir d'administratrice que
+        dans son cabinet ; le compte d'administration n'ouvre aucun cabinet. 27 tests (`test-cabinets.mjs`), 143/143.
+  - [x] Mise en ligne le 09/10 (règles, fonctions compteMembre / creerCabinet / listeCabinets, site v2.js?v=20261009p).
+  - [ ] **À faire par Dr Bentahila avant le premier cabinet** : créer le compte d'administration (Firebase › Authentication)
+        et sa fiche `administrateurs/{UID}` (2e document de la collection existante).
+  - [x] Administration (09/10, en ligne) : « Lien du mot de passe » (message prêt à copier ou à envoyer par WhatsApp, fonction
+        `lienMotDePasse`, titulaires des cabinets neufs seulement) ; liste des cabinets réécrite (cabinet de référence inclus,
+        comptages séparés, journaux) ; **Suspendre / Réactiver** (`etatCabinet` : `espaces/{e}.actif = false` → règles Firestore et
+        Storage : plus personne n'entre, message « accès suspendu », rien d'effacé) ; **Supprimer** (`supprimerCabinet` : cabinet
+        suspendu + nom retapé ; base, fichiers, comptes des membres et liaisons Google Agenda effacés). Jamais le cabinet de Dr
+        Bentahila. Règles 155/155.
+  - [ ] Page « Administration » : codes d'activation, abonnements (avec les licences ci-dessous).
+  - [x] **Modules par cabinet (fait le 09/10, en ligne)** : `public/js/donnees/modules.js` (11 modules, 3 formules : Essentiel
+        (chimio, sans RT ni RCP ; 1 médecin, 1 secrétaire, 0 infirmière, 1 lieu, 500 dossiers), Radiothérapie (sans chimio, mêmes
+        limites), Complet (tout ; 3 / 3 / 3, lieux et dossiers sans limite)) ; `espaces/{e}.abonnement` écrit par
+        `abonnementCabinet` (page Administration › « Formule et modules », aussi pour le cabinet de Dr Bentahila) ; formule choisie
+        à la création. Sans abonnement : tout, sans limite (cabinet de Dr Bentahila aujourd'hui). Module retiré : `body.sans-<module>`
+        cache `[data-mod]` (menu, boutons, onglets), page → tableau de bord, droits chimio / RT / documents coupés à l'écran,
+        écoutes en direct non lancées ; Google Agenda refusé par `agendaLier`. Limites : membres (écran + `compteMembre` qui
+        désactive un compte en trop, « Hors formule »), lieux et dossiers (écran). Le cabinet de Dr Bentahila s'affiche comme un
+        cabinet normal « Actif » (suspension et suppression toujours refusées par le serveur, par sécurité).
+        À faire plus tard : limites des dossiers et des lieux aussi imposées par le serveur ; modules imposés par les règles.
+  - [ ] ~~Modules par cabinet (demandé le 09/10)~~ : le compte d'administration choisit pour chaque cabinet ce à quoi il a
+        droit : secrétaire, infirmière, chimiothérapie (protocoles), radiothérapie, agenda, tâches, bibliothèques, salle
+        d'attente, RCP, Google Agenda, listes (sauf correspondants), bilan… Un module non attribué est absent pour tout le
+        cabinet. **Décidé le 09/10** : formules toutes prêtes (ex. Essentiel, Complet) puis retouches module par module ;
+        **nombre maximum** de comptes par rôle (médecins, secrétaires, infirmières) ; module retiré = **caché, données gardées**
+        (il revient tel quel si on le remet).
+  - Note (09/10) : la collection `administrateurs` contient déjà le compte de Dr Bentahila (06/10) : on la garde ; le compte
+    d'administration séparé y est ajouté comme un 2e document (ID = son UID).
+  - [ ] **Gestion des licences (« Super Admin », demandé le 08/10)** : activer / désactiver l'accès d'un cabinet ou d'une
+        clinique en un clic, clé de licence, date d'échéance de l'abonnement (accès bloqué ou en lecture seule après).
+  - [ ] **Quotas selon la formule** (08/10) : ex. **Standard** = 1 établissement, 500 patients au maximum ; **Premium** =
+        établissements et patients illimités. Limites imposées aussi par les règles du serveur. Formules et prix à décider.
+  - [x] Retirer ce qui est propre à Dr Bentahila (09/10) : son e-mail (titulaire) et son INPE par défaut (Profil), son nom
+        (bilan, exemple WhatsApp), « Hôpital Cheikh Khalifa » (exemple WhatsApp), ses correspondants de départ (COR0 : son
+        cabinet seulement), « Casablanca » du pli (ville du lieu d'exercice, nouveau champ « Ville » ; Casablanca si vide).
+        Grille tarifaire d'un premier lieu : toutes les activités à 0 (plus de copie de HGC). Restent dans le code sans effet
+        pour un autre cabinet : repli « HGC » des tarifs (moteur du bilan, inchangé) ; COR0 à retirer du code en F2.
+  - [x] Premier démarrage guidé (09/10) : carte « Bienvenue dans Onco360 : pour commencer » sur le tableau de bord du médecin
+        (profil / INPE, lieu d'exercice, tarifs ; équipe et Google Agenda facultatifs) tant que les 3 premiers ne sont pas faits.
+  - [x] Tests d'étanchéité (09/10) : règles (27 cas) ; navigateur `tests/test_cabinets.py` (cabinet neuf : aucun patient ni
+        correspondant ni établissement de Dr Bentahila, 316 protocoles, listes, grille, 390 px ; page Administration) ;
+        `node functions/test-cabinets.js` (17 cas). Bilan de Dr Bentahila inchangé (352 317 DH).
+  - [ ] Après mise en ligne : créer un **cabinet d'essai** (adresse e-mail à soi), s'y connecter, vérifier, puis le premier
+        vrai cabinet.
+- **F2 – Rendre Onco360 vendable**
+  - [ ] Un nom de domaine (par exemple onco360.ma) à la place de chimio-hgc.web.app.
+  - [ ] Retirer de la version client l'ancienne application (`ancienne-app.html`, `historique.html`, `app.html`, `js/pont.js`, `js/shim.js`, `js/ajustements.js`) ; outils de conversion déjà retirés le 06/10.
+  - [ ] Nettoyer l'espace d'essai « test-b1 » et ses comptes de test dans Firebase (créés par l'ancien test des droits).
+  - [ ] Conditions d'utilisation et politique de confidentialité (Google les demande aussi pour retirer l'avertissement
+        « application non validée »).
+  - [ ] Suivi des abonnements : date de fin, rappel.
+  - [ ] **Point juridique, à voir avec un juriste avant le premier client** : données de santé, loi 09-08 / CNDP,
+        hébergement des données en Belgique.
+- **F3 – Le guide complet**
+  - [ ] Un guide PDF illustré, et une aide dans l'application. → détaillé à l'étape 12 (C2, C3 : guides par rôle).
+
+---
+
+## Étape 5 – Tâches de l'équipe (demandé le 07/10/2026)
+But : rappels, demandes et suivis entre le médecin, la secrétaire et l'infirmière (relancer un laboratoire, certificat
+demandé, rendez-vous déplacé, question d'un patient…), chacun avec un responsable et un historique.
+Découpé en **sous-étapes, une fenêtre chacune** : T1 à T5 (T6 facultatif).
+
+**Décisions de Dr Bentahila (07/10)**
+- Page **« Tâches »** dans le menu, entre Patients et Protocoles. Bouton **« + Tâche »** dans le dossier, à côté de
+  Afficher / Modifier (patient déjà choisi). **Les tâches d'un patient ne s'affichent pas dans son dossier.**
+- Une tâche : titre (obligatoire), description, échéance (date, heure facultative), Urgent, patient (facultatif),
+  **pour qui (obligatoire)**, de la part de (le compte connecté), statut À faire / En cours / Terminée.
+- Types rapides : **Rappel perso, Examens à voir, Courriers à faire, Rendez-vous ajouté/déplacé, Question patient, Question,
+  Autre** (un clic préremplit le titre).
+- Qui voit quoi : **tous les médecins voient toutes les tâches** ; la secrétaire et l'infirmière voient celles **pour elles**
+  et celles **qu'elles ont créées** (pour savoir quand elles sont terminées).
+- Modifier, réattribuer : la personne qui l'a créée, la personne responsable, le médecin. Supprimer : **la personne qui l'a
+  créée, toujours, même terminée (changé le 08/10)** ; le médecin, la tâche d'un autre si elle n'est pas terminée.
+- Historique de chaque tâche (créée, réattribuée, statut, terminée par qui et quand), jamais effacé.
+- « Filtrer par agenda » = **par échéance** (en retard, aujourd'hui, cette semaine).
+- Bloc « Mes tâches » du tableau de bord : **dans la partie « 7 prochains jours » et « Conflits »** (T4).
+
+**T1 – Les bases** (fait, testé et mis en ligne le 08/10)
+- [x] « Tâches » dans le menu (pictogramme liste cochée) ; onglets **Mes tâches** / **Toutes les tâches** (avec leur nombre).
+- [x] Fenêtre « Nouvelle tâche » / « Modifier » : types rapides, titre, description, pour qui, échéance + heure, Urgent,
+      patient (recherche par nom, ✕ pour le retirer).
+- [x] Liste : urgentes et en retard en tête (trait rouge), « Aujourd'hui » en orange, puis par échéance ; statut changé
+      directement dans la liste ; tâches terminées rangées à part (« Afficher les tâches terminées », barrées, « Terminée
+      par X le … à … »).
+- [x] Fiche d'une tâche (clic) : détails, statut, **historique**, Modifier, Supprimer (selon les droits). Clic sur le patient
+      = son dossier.
+- [x] Bouton « + Tâche » dans le dossier.
+- [x] Règles de sécurité `taches` (lecture, création, modification, suppression comme décidé ; historique qui ne fait que
+      grandir). Vérifiées par Firebase (compilation), puis sur l'émulateur en T3 (40 cas).
+- [x] Tests (faux Firebase, 3 comptes : médecin, secrétaire, infirmière) : création, réattribution, statuts, suppression,
+      droits de chacun, téléphone 390 px, bilan 2026 inchangé (352 317 DH), aucune erreur dans la console.
+- [x] Mise en ligne (site + règles) par Dr Bentahila le 08/10.
+
+**T2 – Filtres** (fait, testé et mis en ligne le 08/10)
+- [x] Barre de filtres au-dessus de la liste (les deux onglets) : **recherche** (titre, description, patient, personnes,
+      type), **statut** (À faire et en cours · À faire · En cours · Terminées · Tous), **échéance** (En retard · Aujourd'hui ·
+      Cette semaine, retards compris, jusqu'au dimanche · Sans échéance), **type**.
+- [x] Onglet « Toutes les tâches » : **responsable** ; médecin : Toute l'équipe, Pour les médecins / secrétaires /
+      infirmières, pour chaque membre, Demandées par moi ; secrétaire et infirmière : Pour moi, Demandées par moi.
+- [x] Nombre de tâches affichées, « (filtrées) », bouton « Effacer les filtres » ; filtres gardés après un changement de
+      statut ou une modification ; trait rouge des urgentes gardé quand elles sont « En cours ».
+- [x] Tests (médecin, secrétaire, 390 px, bilan 352 317 DH, aucune erreur).
+- [x] Mise en ligne par Dr Bentahila le 08/10.
+
+**T3 – Commentaires et réattribution** (fait et testé le 08/10, pas encore en ligne)
+- [x] Fiche d'une tâche : **« Fil de la tâche »** dans l'ordre (le plus récent en bas) : événements en petit (créée, statut,
+      réattribuée, modifiée), **commentaires en bulles** (nom, date et heure ; les siens à droite, en bleu clair).
+- [x] Case « Écrire un commentaire » + **Envoyer** (ou Cmd + Entrée) : tous ceux qui voient la tâche peuvent commenter,
+      même terminée.
+- [x] **Réattribuer depuis la fiche** (menu « Pour » + bouton Réattribuer) : l'auteur, le responsable, le médecin. Si la
+      personne ne verra plus la tâche (ni auteur ni médecin), elle est prévenue et la tâche quitte sa liste.
+- [x] Liste : nombre de commentaires (pictogramme bulle). Fiche relue à l'ouverture (commentaires des collègues).
+- [x] Règles : chaque entrée du fil est **signée par la personne connectée** (impossible d'écrire au nom d'un collègue).
+- [x] **Tests des règles sur l'émulateur Firebase** (Java 21 installé le 08/10) : `cd tests/regles && npm test`,
+      40 cas (lecture, création, statut, commentaires, réattribution, suppression, usurpations) : 40 réussis.
+- [x] Tests dans le navigateur (médecin, secrétaire, infirmière, 390 px, bilan 352 317 DH, aucune erreur).
+- [x] Mise en ligne : avec T4 (règles puis site).
+
+**T4 – Temps réel et notifications** (fait, testé et mis en ligne le 08/10)
+- [x] **Écoute en direct** ouverte dès l'ouverture d'Onco360 : listes, nombres des onglets et fiche ouverte se mettent à jour
+      sans recharger (la fiche n'est pas redessinée pendant qu'on écrit un commentaire).
+- [x] **Messages à l'écran** (en haut à droite ; en bas sur téléphone ; 12 s ; clic = ouvre la tâche) quand un collègue
+      agit sur une tâche dont on est l'auteur ou le responsable : « Nouvelle tâche de… », « … vous a confié… », « … a
+      commenté… », « … a terminé… », autres modifications. Rien pour ses propres actions, rien si la fiche est déjà ouverte.
+- [x] **Non lues** : badge « Nouveau » (liste, tableau de bord), lues à l'ouverture de la fiche ; gardées dans le profil
+      (`utilisateurs/{uid}.tachesVu`), donc les mêmes sur tous les appareils.
+- [x] **Pastille** orange à côté de « Tâches » dans le menu (et sur le bouton du menu au téléphone) = non lues + mes tâches en
+      retard ; titre de l'onglet du navigateur « (2) Onco360 » = non lues.
+- [x] **Tableau de bord** : carte « Mes tâches » entre « Les 7 prochains jours » et « Conflits » : mes tâches en retard,
+      urgentes, nouvelles ou à faire dans les 7 jours (6 au plus) + « Du nouveau sur vos demandes » + « Voir mes tâches ».
+- [x] **Suppression par l'auteur même terminée** (demande du 08/10), avec avertissement ; règles et tests mis à jour.
+- [x] Tests : règles sur l'émulateur 44/44 ; navigateur avec deux onglets en même temps (médecin + secrétaire) : messages,
+      fiche mise à jour en direct, nouvelle tâche, pastilles, lu / non lu ; téléphone 390 px ; bilan 352 317 DH ; aucune
+      erreur.
+- [x] Mise en ligne le 08/10. À la première ouverture, les tâches déjà créées par un collègue apparaissent
+      « Nouveau » (jamais ouvertes) : un clic suffit.
+
+**T5 – Finition** (fait, testé et mis en ligne le 08/10)
+- [x] **Nom du patient à jour** : la tâche affiche le nom actuel du dossier (s'il a été corrigé depuis), dans la liste, la
+      fiche, le tableau de bord et la recherche.
+- [x] **Membre limité à un établissement** : patient hors de son périmètre (ou dossier supprimé) = nom sans lien, et dans
+      la fiche « dossier non accessible » ; patient de son établissement = lien vers le dossier (testé : secrétaire HGC).
+- [x] **Responsable qui n'a plus accès** (désactivé ou retiré de l'équipe) : badge « À réattribuer », message dans la fiche,
+      son nom gardé dans le menu « Pour » ; s'il a été retiré, statut et commentaire bloqués avec un message clair (les
+      règles refuseraient) jusqu'à la réattribution.
+- [x] **Guide d'utilisation** : `guide/taches.md` (créer, retrouver, suivre, être prévenu, qui peut faire quoi, cas
+      particuliers), base du guide complet (F3).
+- [x] Tests : médecin, secrétaire limitée à l'HGC, responsable désactivée / retirée, bilan 352 317 DH, aucune erreur.
+- [x] Mise en ligne le 08/10 (règles, fonctions, site, par Claude avec l'accord de Dr Bentahila).
+
+**T6 – Échéances dans Google Agenda** (décidé, fait et testé le 08/10, pas encore en ligne ; les notifications sur le
+téléphone quand Onco360 est fermé restent pour plus tard)
+Décisions de Dr Bentahila (08/10) : seulement dans l'agenda « Onco360 » du **responsable** (pas de l'auteur ; le médecin ne
+reçoit pas les tâches qu'il a demandées) ; **sans heure = journée entière** ; **aucun rappel Google** ; **en retard =
+reportée chaque jour sur aujourd'hui** avec « EN RETARD ».
+- [x] Tâches avec échéance, non terminées : journée entière (sans heure) ou 15 min à l'heure prévue ; titre « Tâche – titre
+      (patient) », « URGENT – … », « EN RETARD – … » ; couleur graphite, rouge si urgente ou en retard ; ne bloque pas le
+      créneau ; aucun rappel ; description : texte, « Demandée par… », lien vers les tâches.
+- [x] Terminée → retirée ; réattribuée → retirée de l'ancien responsable, ajoutée au nouveau ; titre, échéance, patient
+      modifiés → mis à jour ; commentaires seuls → rien. En retard : déplacée chaque nuit (3 h 30) sur le jour même.
+- [x] Serveur : `agendaTache` (nouvelle fonction, à chaque écriture d'une tâche) ; tâches ajoutées à la remise à plat
+      (liaison, « Mettre à jour », nuit) ; nom actuel du patient lu dans son dossier. Profil › Google Agenda : texte complété.
+- [x] Tests de la logique sur un faux Google Agenda : `node functions/test-logique.js` (32/32, dont 15 pour les tâches).
+- [x] Mise en ligne des fonctions par Dr Bentahila le 08/10 (`agendaTache` créée).
+- [ ] Vérifier dans le Google Agenda d'un responsable relié (créer une tâche avec échéance, la terminer).
+
+**Couleurs dans Google Agenda** (demandé et décidé le 08/10 : couleurs **modifiables**, par défaut comme le tableau ;
+fait, testé et mis en ligne le 08/10)
+- [x] Configuration › **Google Agenda** : nuancier des 11 couleurs Google (+ « couleur de l'agenda ») pour : consultation
+      d'annonce (Flamant), suivi / contrôle (Paon), en cours de radiothérapie (Lavande), hospitalisation (Myrtille), autres
+      consultations (Paon), chimiothérapie (Basilic), radiothérapie (Raisin), dosimétrie à valider (Mandarine), absences et
+      congés (Banane), tâches (Graphite), tâches urgentes ou en retard (Tomate). Droit « paramètres ».
+- [x] Enregistré dans `parametres/couleursAgenda` (seulement ce qui diffère) ; nouvelle fonction `agendaCouleurs` : tous les
+      agendas reliés sont repeints ; couleur appliquée aussi à chaque mise à jour et chaque nuit.
+- [x] Tests logique 40/40 (catégorie de chaque événement, couleurs par défaut et du cabinet, repeint, retour à la couleur de
+      l'agenda) ; navigateur (390 px, bilan 352 317 DH, aucune erreur).
+
+---
+
+**Suite des tâches et page « Paramètres »** (demandé le 08/10 ; sous-étapes P1 à P4, une fenêtre chacune)
+Décisions de Dr Bentahila (08/10) :
+- Types de tâches **modifiables par le médecin** (liste de base = celle de T1) ; type fixe **« Radiothérapie »** pour les
+  tâches automatiques, non supprimable.
+- **Configuration et Paramètres fusionnés** en une seule page « Paramètres », avec l'onglet « Activités et
+  rémunérations » dedans. Lieux d'exercice et accès de l'équipe **restent dans le Profil**.
+- Réglages ajoutés à Paramètres : **mise en page d'impression** (en-têtes et marges A5 / A4 / documents), **listes**
+  (diagnostics, mutuelles, correspondants), **délais des alertes**, **bibliothèques des prescriptions**, **délai du bouton
+  WhatsApp vert**, **tâches automatiques** (activer / désactiver chacune, responsable). Pas encore tranché : types de
+  consultation et types d'absence modifiables.
+- Google Agenda : **chacun choisit pour son agenda** ce qui y apparaît (cases à cocher par type de rendez-vous et par type
+  de tâche), au-dessus des couleurs.
+- Tâches automatiques **pour le médecin titulaire**, type « Radiothérapie » : **dosimétrie à valider** (créée le jour du
+  scanner, échéance = 1re séance si renseignée) ; **fin de radiothérapie à valider** (créée le lendemain de la fin prévue,
+  échéance ce jour-là) ; terminées toutes seules quand c'est validé dans le dossier.
+- **Les tâches d'un patient s'affichent dans « Rendez-vous à venir » de son dossier** (même liste ; titre à renommer, par
+  exemple « Rendez-vous et tâches à venir » ; bouton « + Tâche » à côté de « Ajouter un rendez-vous ») : remplace la
+  décision du 07/10 (« tâches absentes du dossier »). La dosimétrie n'est pas retirée de partout (à préciser en P4).
+
+**P1 – Description visible et types de tâches modifiables** (fait et testé le 08/10, pas encore en ligne)
+- [x] Liste des tâches : la **description** s'affiche directement (2 lignes au plus) sous le type, le patient et l'échéance ;
+      1 ligne dans la carte « Mes tâches » du tableau de bord.
+- [x] Configuration › **Tâches** : types renommés, ajoutés (+ Ajouter un type), retirés, réordonnés (↑ ↓), « Rétablir les
+      valeurs par défaut » ; « Radiothérapie » affiché fixe, à la fin ; doublons refusés. Lecture seule sans le droit
+      « paramètres ». Données : `parametres/typesTaches` = { data: JSON [noms] }. Une tâche garde son type si on le renomme.
+- [x] Tests : médecin (renommer, ajouter, retirer, doublon refusé, boutons de la fenêtre Nouvelle tâche), secrétaire (lecture
+      seule), 390 px, bilan 352 317 DH, aucune erreur.
+- [x] Mise en ligne (site).
+**P2 – Page « Paramètres » unique** (fait et testé le 08/10, pas encore en ligne)
+- [x] **Une seule entrée « Paramètres »** dans le menu (visible par toute l'équipe ; « Configuration » retirée, l'ancienne
+      adresse `#configuration` renvoie vers `#parametres`). Onglets : Créneaux & horaires · Fermetures, congés & jours fériés ·
+      WhatsApp · Google Agenda · Documents · Tâches · **Impression** · **Alertes** · **Activités et rémunérations** (droit
+      « finances » : ancienne page Paramètres, son propre bouton Enregistrer). L'onglet choisi reste après un rechargement
+      (`#parametres/impression`…). Modification : droit « paramètres » (lecture seule sinon), comme avant.
+- [x] **Impression** : marges en mm (haut = place de l'en-tête du papier, côtés, bas) pour les ordonnances A5, les
+      ordonnances A4 et les documents A4 (pli, CR, rendez-vous RT) ; utilisées à l'impression et dans l'aperçu à l'écran
+      (zone « En-tête du papier »). Par défaut : 45/28/18, 60/35/22, 45/35/22 mm (les réglages d'avant).
+- [x] **Alertes** : cure annoncée N jours avant (3 par défaut), traitement terminé signalé N jours (30 par défaut).
+- [x] **WhatsApp** : délai du bouton vert réglable (par défaut 1 à 2 jours avant = 24 à 48 h) ; textes mis à jour.
+- [x] Données : `parametres/reglages` = { data: JSON { impression, whatsapp, alertes } } (seulement ce qui a changé), lu au
+      démarrage ; module `js/app/reglages.js`.
+- [x] Tests : médecin (9 onglets, enregistrement, marges à l'impression et à l'écran, textes WhatsApp), secrétaire (8 onglets,
+      sans Activités, lecture seule), 390 px, bilan 352 317 DH, aucune erreur.
+- [x] Mise en ligne (site).
+- Note pour la salle d'attente (SA2) : un nouvel onglet de Paramètres s'ajoute dans `ONGLETS()` de `configuration.js`
+  (plus de barre d'onglets écrite en dur).
+**P2 bis – Listes et bibliothèques dans Paramètres** (fait et testé le 08/10, pas encore en ligne)
+- [x] Paramètres › **Listes** : diagnostics (40), mutuelles, correspondants : corriger un nom, retirer, ajouter, rechercher ;
+      nombre de dossiers qui utilisent chaque nom ; doublons refusés ; « Rétablir les valeurs par défaut » = listes de départ.
+      Corriger ou retirer un nom ne modifie pas les dossiers. Données : `parametres/listes` = { diag, mut, cor, complet: true }
+      (listes entières ; l'ancien format « ajouts aux listes de départ » reste lu tant que rien n'est modifié).
+- [x] Paramètres › **Bibliothèques** : Médicaments, Ordonnances types, Analyses et bilans, Examens complémentaires, Modèles de
+      courriers (avec leur nombre). Chaque carte ouvre la fenêtre habituelle en **gestion de la liste** (titre « liste du
+      cabinet », sans patient ni ordonnance) : recherche, + Nouveau, ✎, ✕, favori ; un clic sur une ligne ouvre sa fiche. Médecin
+      seulement ; lecture seule pour les autres.
+- [x] Tests : listes (correction, ajout, doublon, fiche patient qui propose la nouvelle liste), 5 bibliothèques (ouverture,
+      modification, retour à la liste), **prescriptions depuis le dossier inchangées** (même après la gestion dans Paramètres),
+      secrétaire en lecture seule, 390 px, bilan 352 317 DH, aucune erreur.
+- [x] Mise en ligne (site).
+**P2 ter – Listes reliées aux dossiers** (demandé le 08/10 ; fait et testé le 08/10, pas encore en ligne)
+- [x] **Nom corrigé dans Paramètres › Listes → corrigé dans tous les dossiers** qui l'utilisent (mutuelle, correspondant,
+      diagnostic), après confirmation (« 17 dossiers seront corrigés aussi ») ; une ligne « Liste corrigée (Paramètres) » dans
+      l'historique de chaque dossier. Un nom retiré ne change pas les dossiers.
+- [x] **Nom nouveau tapé dans une fiche patient → ajouté à la liste**, à la création comme à la modification, mutuelle,
+      correspondant **et diagnostic** (avant : mutuelle et correspondant, et seulement avec le droit « paramètres ») ; pour tout
+      membre qui crée ou modifie une fiche. Règle `parametres/listes` ouverte aux droits identité / fiche patient / créer un
+      patient ; autres paramètres : droit « paramètres » seulement. Tests des règles : `tests/regles/test-parametres.mjs` (8 cas).
+- Bibliothèques des prescriptions : **déjà une seule liste** (dossier et Paramètres modifient la même) ; la « Ligne libre »
+  d'une ordonnance et le ✎ d'une ligne de l'ordonnance en préparation ne touchent pas la liste (voulu). **Question à Dr
+  Bentahila** : ajouter une case « Ajouter à la liste du cabinet » sur la ligne libre ?
+**P3 – Google Agenda : ce que chacun y voit** (fait et testé le 08/10, pas encore en ligne)
+- [x] Paramètres › Google Agenda, en haut : **« Votre Google Agenda : ce qui y apparaît »**, réglage **personnel** (chacun pour
+      son agenda, enregistré tout de suite, même sans le droit « paramètres ») : cases par type de consultation (annonce, suivi,
+      contrôle, en cours de RT, hospitalisation **+ chaque activité des Paramètres**, ex. 2nd avis), cures J1 / séances J8-J15,
+      scanner / 1re séance / fin / dosimétrie, **chaque type de tâche** (liste de Paramètres › Tâches, « Radiothérapie », sans
+      type), absences (médecin). Un nouveau type apparaît tout seul, coché.
+- [x] Données : `utilisateurs/{uid}.agendaFiltre` = { exclus: [clés] } ; serveur : `cleFiltre` / `filtrer` (logique.js) dans
+      la remise à plat et chaque mise à jour ; nouvelle fonction `agendaFiltre` (case changée → agenda de la personne refait).
+- [x] Tests : logique (clé de chaque événement, filtres) ; navigateur (cases, nouveau type de tâche, 390 px, bilan 352 317 DH).
+- [x] Mise en ligne : règles, **fonctions**, site. (08/10 : fonctions et site mis en ligne par Dr Bentahila ; avertissement
+      « extensions » sans conséquence ; **la mise à jour Google Agenda échouait** → corrigé ci-dessous, à remettre en ligne.)
+**P3 bis – Tout Google Agenda dans Paramètres ; Profil réduit** (demandé et fait le 08/10, pas encore en ligne)
+- [x] **Panne de synchronisation corrigée** : Google refusait un événement (« Invalid start time ») et toute la mise à jour
+      échouait. Heures remises au format HH:MM (« 9:30 », « 13h00 », « 08:30:00 »), dates mal écrites écartées, et un
+      événement refusé est mis de côté (journal du serveur) sans bloquer les autres. Tests logique : 60/60.
+- [x] Paramètres › **Google Agenda** : 1re case **« Mon Google Agenda »** (liaison, mise à jour, délier ; venu du Profil), puis
+      « ce qui y apparaît », puis les couleurs. Message adapté pour qui n'a pas le droit « paramètres ».
+- [x] Paramètres › **Lieux d'exercice** et **Accès** (médecin titulaire) : venus du Profil, mêmes fenêtres, la page reste sur
+      Paramètres après un enregistrement. 13 onglets.
+- [x] **Profil = Mes informations seulement**, sans onglets. Anciens liens (agenda, fiche chimio, guide) mis à jour.
+- [x] Tests : médecin (13 onglets, lieu modifié, accès), secrétaire (sans Accès, relie son agenda), 390 px, bilan 352 317 DH.
+- [x] Mise en ligne : **fonctions** (correction de la panne) et site.
+**P4 – Tâches automatiques et tâches dans le dossier** (décidé et fait le 08/10, pas encore en ligne)
+Décisions (08/10) : événements des tâches automatiques du médecin = **dernière cure d'un protocole, rendez-vous « Non venu »,
+nouveau patient, N mois après la fin d'une radiothérapie, veille d'une cure J1** ; la dosimétrie reste ailleurs (programme du
+jour, agenda, Google Agenda) mais **dans le dossier sous forme de tâche**.
+- [x] **Serveur** : `tachesAutoPatient` (chaque écriture d'un dossier) et `tachesAutoNuit` (3 h) créent les tâches dues
+      (auteur « Onco360 (automatique) », identifiant fixe par règle / patient / occurrence, **une seule fois** : registre
+      `tachesAuto/{id}`, invisible du navigateur) et terminent toutes seules « Valider la dosimétrie » (dosimétrie validée) et
+      « Valider la fin de radiothérapie » (RT clôturée). Logique pure `tachesAutoPatient` (logique.js), 13 tests.
+- [x] **Règles fixes** (type « Radiothérapie », pour le médecin titulaire par défaut) : dosimétrie à valider (créée le jour du
+      scanner, échéance = 1re séance) ; fin de radiothérapie à valider (créée le lendemain de la fin prévue, jours ouvrés et
+      fériés comme l'écran).
+- [x] Paramètres › Tâches › **Tâches automatiques** : chaque règle activable / désactivable, titre, type, responsable (médecin
+      titulaire ou un membre), délai (jours ; mois après la fin de RT) ; « + Ajouter une tâche automatique » (5 événements) ;
+      date « depuis » posée à l'activation (pas de rattrapage du passé). `parametres/tachesAuto` (droit « paramètres »).
+- [x] Fiche d'une tâche automatique de RT : bouton **« Valider la dosimétrie » / « Valider la fin de radiothérapie »** (ouvre
+      le dossier et la fenêtre habituelle).
+- [x] Dossier : carte **« Rendez-vous et tâches à venir »** : tâches ouvertes du patient dans la même liste (date d'échéance,
+      rouge si en retard, « Ouvrir »), ligne « Dosimétrie à valider » remplacée par la tâche, bouton **« + Tâche »** à côté de
+      « Ajouter un rendez-vous » ; liste rafraîchie après une tâche créée ou modifiée depuis le dossier. (Remplace la décision
+      du 07/10 « tâches absentes du dossier ».)
+- [x] Tests : logique 73/73, règles 85/85, navigateur (tâche automatique simulée : dossier, message, bouton Valider ; réglages ;
+      secrétaire en lecture seule ; 390 px ; bilan 352 317 DH ; aucune erreur).
+- [x] **Dosimétrie à valider = une tâche seulement** (demandé le 08/10 : « c'est une tâche pour le médecin, pas un rendez-vous ») :
+      retirée de l'agenda Onco360, des 7 prochains jours, du programme du jour, de Google Agenda (case et couleur retirées ;
+      le serveur l'ignore aussi dans les résumés anciens). Reste : la tâche, l'étape « Valider » de la carte radiothérapie, et
+      l'alerte de la cloche (voir question ci-dessous).
+- [x] Discordances corrigées : la tâche « Valider la dosimétrie » n'est créée qu'entre le scanner et la 1re séance (comme
+      l'écran ; sinon des tâches pour d'anciennes RT jamais validées dans Onco360) ; responsable des 2 tâches fixes = un
+      médecin (lui seul valide). Sur les données du 06/10, la mise en ligne ne créerait qu'une tâche (une fin de RT dépassée).
+- [x] **Déroulé de la radiothérapie avec contourage** (demandé le 09/10) : Scanner → **Contourage** → Dosimétrie → 1re séance.
+      Carte radiothérapie du dossier : « Contourage à valider — du (scanner) au (1re séance) » + bouton **Valider le
+      contourage** (date, case de vérification) ; « Contourage validé — date » + annuler (pas si la dosimétrie est validée) ;
+      « Dosimétrie (après le contourage) », puis « Dosimétrie à valider — du (contourage) au (1re séance) » ; la dosimétrie ne
+      se valide qu'après le contourage. Données : `rtsJson` r.cont / contPar / contLe (moteur rt.js `contourage`).
+- [x] Tâches automatiques : nouvelle tâche fixe **« Valider le contourage »** (type Radiothérapie, du scanner à la 1re séance,
+      médecin) ; **« Valider la dosimétrie »** créée seulement à la validation du contourage, jusqu'à la 1re séance ; ajoutées
+      à Paramètres › Tâches › Tâches automatiques. **Valider la tâche = valider dans le dossier** : bouton « Valider… » de la
+      fiche, ou statut « Terminée » → même fenêtre de validation (sans quitter la page), et le serveur termine la tâche ; valider
+      dans le dossier termine la tâche. Tests logique 79/79 ; mise en ligne : une seule tâche créée (données du 06/10).
+- [x] Google Agenda (09/10) : « Valider le contourage » et « Valider la dosimétrie » en **bandeau sur toute la période** (du
+      scanner, resp. de la validation du contourage, jusqu'à la 1re séance) au lieu du seul jour de la 1re séance ; champ
+      `debut` des tâches (complété par le serveur pour les tâches déjà créées) ; liste des tâches : « Du 08/10 au 19/10/2026 ».
+      Tests logique 85/85. À remettre en ligne : fonctions et site.
+- [x] Correction (09/10) : « Valider la dosimétrie » apparaissait en même temps que « Valider le contourage » : créée par la
+      version précédente des fonctions (dosimétrie dès le scanner). Le serveur retire maintenant une tâche de dosimétrie
+      ouverte tant que le contourage n'est pas validé (si personne n'y a touché) et efface son registre : elle est recréée à
+      la validation du contourage. Une tâche existante n'est jamais écrasée. Tests logique 81/81. À remettre en ligne
+      (fonctions).
+- [x] Page Tâches : filtre **Lieu d'exercice** (09/10, à côté de « Tous les types ») : Tous les lieux, chaque établissement du
+      membre (et ceux de ses tâches), « Sans patient » ; lieu = celui du dossier du patient aujourd'hui (s'il a changé
+      d'établissement), sinon celui noté dans la tâche. Testé (médecin, secrétaire HGC, 390 px).
+- [x] **Décidé le 09/10 : on ne retire rien de la cloche.** Question : retirer de la cloche les alertes qui doublent une tâche automatique active (dosimétrie à
+      valider, fin de radiothérapie dépassée, dernière cure si la règle est activée) ?
+- [x] Mise en ligne : règles, **fonctions** (2 nouvelles), site. Puis vérifier sur un vrai dossier (dosimétrie en attente).
+
+---
+
+# Demandes du 08/10/2026 (étapes 6 à 13)
+Liste complète donnée par Dr Bentahila le 08/10, à faire **au fur et à mesure, une sous-étape par fenêtre**. Chaque étape
+commence par ses questions « À décider » (Claude les pose avant d'écrire le code).
+
+## Ordre proposé (à valider par Dr Bentahila ; elle peut le changer à tout moment)
+1. Terminer l'en cours : Tâches T1 à T5 faites le 08/10 (T6 facultatif, plus tard).
+2. **Étape 6 – Salle d'attente** (usage quotidien, le plus utile tout de suite).
+3. **Étape 7 – RCP** (fait le 09/10, pas encore en ligne).
+4. **Étape 8 – Numéro de dossier et recherche des patients**.
+5. **Étape 9 – Sécurité et conformité** (journal d'audit, rôles, mode démo) : indispensable avant de vendre.
+6. **Étape 10 – Mode hors-ligne**.
+7. **Étape 11 – Soins infirmiers, pharmacie, alertes**.
+8. **Étape 4 – Plusieurs cabinets** (complétée ci-dessus : licences, quotas).
+9. **Étape 12 – Dossier de cession, démo et guides**.
+10. **Étape 13 – Interopérabilité** (la plus lourde, en dernier).
+- **Étape 15 – Bilan : virements et chèques reçus des cliniques et hôpitaux** (fait et mis en ligne le 09/10).
+
+**Décidé le 08/10 : vendre des deux façons.** (a) **abonnements** (phase F, étape 4 : chaque cabinet paie, code
+d'activation) ; (b) **cession** du logiciel à un éditeur ou une ESN (prix visé 120 000 à 180 000 DH, étape 12). Les
+clients abonnés augmentent la valeur de la cession.
+
+## Étape 6 – Salle d'attente (cabinet / clinique)
+But : suivre en temps réel le passage des patients le jour J, de l'arrivée à la fin de la consultation.
+Nouvelle page **« Salle d'attente »** dans le menu, **entre Agenda et Patients**.
+
+**Décisions de Dr Bentahila (08/10)**
+- Statuts : Prévu → **En salle d'attente** → **En consultation** → **Vu** (= « Venu », fenêtre de prix, bilan inchangé) ;
+  **Absent** = « Non venu ». « En salle » et « En consultation » sont notés à côté du statut (le statut reste « Prévu »
+  jusqu'à « Vu » : bilan, agenda et Google Agenda inchangés).
+- **Mettre en salle** : médecin, secrétaire, infirmière. **Démarrer la consultation** : médecin et secrétaire (pas
+  l'infirmière). **Terminer / Valider** : médecin et secrétaire, **la fenêtre de prix s'ouvre pour les deux**. La secrétaire
+  n'annule pas un statut posé par le médecin (règle actuelle).
+- **Tous les types de consultation** sont dans la salle d'attente (annonce, suivi, contrôle, en cours de radiothérapie,
+  séance de chimiothérapie, activités des Paramètres) : le médecin voit le patient en consultation pour valider sa séance.
+- Colonnes : heure du RDV, nom et prénom, **type**, **motif de consultation** (texte), heure d'arrivée, temps d'attente
+  (orange à **20 min**, rouge à **45 min**, modifiables dans Configuration), **prix** (prix validé quand le patient est vu,
+  sinon prix de base prévu) avec **total en bas**. Pas de badge « nouveau patient » (il se lit dans le motif).
+- Ordre de « En salle d'attente » **au choix dans Configuration** : par heure de rendez-vous (urgences en tête, sans
+  rendez-vous à leur heure d'arrivée) ou par ordre d'arrivée.
+- **Clic sur le nom** = ouvre le dossier **sans changer le statut** (médecin et secrétaire).
+- Patient **en consultation** : dans son dossier, **deux bulles flottantes en bas à gauche** (suivent la page) :
+  **Valider** (→ Vu, fenêtre de prix) et **Retour en salle** (revient en salle d'attente sans valider).
+- **« + Arrivée sans rendez-vous »** : choisir un patient connu + motif, ou créer un nouveau patient (fenêtre du dossier)
+  + motif ; crée un rendez-vous du jour à l'heure actuelle, déjà « En salle d'attente » (case Urgence).
+- **Prix** : la secrétaire voit le **prix de base** de chaque consultation (brut, sans rétrocession ni impôt) et les
+  **prix validés** (c'est elle qui fait payer le patient) ; elle **ne voit aucun acte de radiothérapie ni honoraire**
+  (la consultation « en cours de radiothérapie » est à 0 DH : l'acte RT est payé à part ; les honoraires de séance de
+  chimiothérapie sont validés avec la cure, pas avec le rendez-vous, et ne lui sont pas montrés). L'infirmière n'a pas la colonne
+  prix. La secrétaire enregistre le prix par une **fonction serveur** limitée aux consultations du jour de son centre
+  (elle n'a toujours pas le droit « finances »).
+- **Total en bas** (journée, établissement choisi) : « Encaissé (vus) : X DH » et « Prévu (restant) : Y DH », sans les absents.
+- **Séance de chimiothérapie** : « Valider » valide **seulement la consultation** (prix de la consultation de chimio, J1
+  seulement, J8… = 0). La **cure** est validée par le médecin dans le dossier, avant de valider la consultation. La
+  secrétaire peut « Valider la consultation de séance de chimiothérapie », jamais la cure.
+- Paramètres : les deux lignes existent déjà (« Séance de chimiothérapie », « Consultation de chimiothérapie ») ; valeurs
+  voulues : séance **500 DH brut, rétrocession 0 %, impôt 10 %** ; consultation de chimio **250 DH brut, 0 %, 0 %, J1
+  seulement**. À vérifier dans Paramètres (Dr Bentahila) ; si un chiffre change, mettre la date d'effet du jour pour ne pas
+  modifier le bilan passé.
+- **Absent** : médecin et secrétaire (pas l'infirmière).
+
+**Décisions de Dr Bentahila (08/10, après SA1)**
+- **Bandeau des jours** en haut : la semaine sur une ligne, flèches jour précédent / suivant, calendrier, « Aujourd'hui ».
+- **Absent** ouvre une fenêtre : **reporter** le rendez-vous (nouvelle date et heure) ou **ne pas reporter**.
+- **Secrétaire : fenêtre de prix comme le médecin** (prix prédéfini, 0 si le patient ne paie pas) ; elle peut **changer un prix
+  déjà validé par le médecin**.
+- Séance de chimio manquée : **proposition de Claude à valider** (voir SA1 bis).
+
+**SA1 – Page, statuts, temps réel, bulles du dossier**
+- [x] Page « Salle d'attente » (menu, entre Agenda et Patients), **filtre par établissement** (la secrétaire ne voit que
+      son centre), date du jour ; **4 onglets** avec leur nombre : À venir · En salle d'attente · Vus · Absents.
+- [x] Pastilles de couleur au trait : Prévu, En retard, En salle (orange 20 min, rouge 45 min), En consultation, Vu, Absent.
+- [x] **Poinçonnage** : heure d'arrivée et auteur (« Arrivé à 14 h 22 »), heure de début et de fin de consultation.
+- [x] Colonnes (sauf prix, en SA2) ; motif saisi dans la fenêtre du rendez-vous et modifiable depuis la salle d'attente.
+- [x] Actions : Mettre en salle, Démarrer la consultation (ouvre le dossier), Valider, Absent, Annuler ; clic sur le nom.
+      Consultation de chimio validée par le médecin seulement (droit « finances ») jusqu'à la fonction serveur de SA2.
+- [x] Bulles flottantes Valider / Retour en salle dans le dossier (Valider ramène à la salle d'attente).
+- [x] Séances de chimio du jour (cures J1, J8…) dans la liste.
+- [x] Mise à jour **en temps réel** sur tous les écrans du cabinet (collection `salle`, nouvelles règles : 22 tests).
+- [x] Tests : 3 rôles, 2 établissements, 390 px, bilan 352 317 DH. Guide `guide/salle-attente.md`.
+
+**SA1 bis – Jours, absences, prix (08/10)**
+- [x] Bandeau de la semaine (nombre de patients par jour), flèches, calendrier, « Aujourd'hui ». Jours passés : onglet
+      « À valider », validation et absence seulement ; jours à venir : consultation et motif seulement.
+- [x] Absent (salle d'attente et « Non venu » du dossier) : fenêtre « Reporter le rendez-vous » (prochain jour ouvert proposé,
+      horaires de l'établissement, jours fériés et absences vérifiés) ou « Ne pas reporter ». Le rendez-vous manqué reste
+      « Non venu » ; le report est un nouveau rendez-vous « Reporté (initialement le …) ».
+- [x] Colonne **prix** (prévu au tarif / validé) et **total** (« Encaissé (vus) », « Prévu (restant) », sans les absents) ;
+      crayon pour changer le prix d'une consultation vue.
+- [x] Secrétaire : fenêtre de prix (consultations et consultation de chimio), « Modifier le prix » dans le dossier, par la
+      fonction serveur **prixConsultation** (elle n'a toujours pas le droit « finances ») ; tarifs des consultations lisibles
+      par l'équipe (`parametres/tarifsConsultations`, sans rétrocession, impôt, séance ni radiothérapie, publiés par le médecin).
+      Le médecin relit les montants avant chaque écriture (un prix changé par la secrétaire n'est pas écrasé).
+- [x] **Séance de chimio manquée** (décision du 08/10 : la secrétaire peut aussi, selon les consignes du médecin) : « Absent »
+      ouvre la fenêtre « Reporter » du dossier (raison « Patient absent », « cette date seulement » ou « recalculer toute la
+      suite ») ou « Absent, sans reporter ». La date change dans le protocole (salle d'attente, agenda, Google Agenda suivent) ;
+      la séance reste dans « Absents » du jour avec « Reportée au … ». Secrétaire : droit « planning » (activé une fois par
+      la migration `secretairePlanning`) ; elle n'écrit que `planningJson`, l'historique du report y est gardé (`rep`, `srep`).
+
+**SA1 ter – Colonnes, commentaire, prix bruts, payé automatique (demandes du 08/10 après la mise en ligne)**
+- [x] À venir : les séances de chimio en tête (même sans heure) ; plus de statut « En retard » (heure du rendez-vous et
+      d'arrivée seulement).
+- [x] Colonnes **Civilité** (M. / Mme), **Correspondant**, **Mutuelle** (nom court, complet au survol), **Commentaire** du jour
+      (médecin, secrétaire, infirmière ; règle : commentaire seul permis à tout membre du périmètre, 3 tests) ; bouton
+      **Colonnes** : chacun choisit ses colonnes (`utilisateurs/{uid}.salleCachees`, gardé sur tous ses appareils).
+- [x] Prix affichés en **brut** : les prix repris de l'ancienne application (ex. HCK 225 DH net) s'affichent 250 DH
+      (`encaissements` : `b`, reconstruits une fois par la migration `encaissementsBrutV1`) ; bilan inchangé. La secrétaire ne
+      modifie pas ces anciens prix (serveur).
+- [x] « Non venu » sans report : sort des rendez-vous à venir, apparaît dans « Consultations et hospitalisations » en
+      « Non venu · 0 DH » ; consultation en cours de RT validée : « Venu · 0 DH ».
+- [x] Paramètres : case **« Payé auto. »** par activité et par établissement (entre Net et En vigueur depuis, décochée par
+      défaut) : cochée, les actes validés à partir de ce jour comptent « Payé (auto.) » dans le bilan ; décochée, le médecin
+      coche « Payé » lui-même. Les actes plus anciens ne changent pas.
+
+- [x] Onglets sur toute la largeur (ordinateur et téléphone, largeurs égales) ; titres des colonnes dans un bandeau.
+
+**SA1 quater – Repris de GestiCab (choix du 08/10)**
+- [x] Filtre **Matinée / Après-midi / Toute la journée** (avant / après 13 h ; sans heure : toujours affiché).
+- [x] **N° d'ordre de passage** (0001, 0002…) donné à l'arrivée, par jour et par établissement ; colonne « N° ».
+- [x] Temps de **présence** (arrivée → fin) ajouté dans « Vus » (attente, consultation, présence) ; pas de colonne « temps avant
+      prise en charge » (= l'attente, déjà affichée).
+- [x] **Lignes colorées** selon le statut : bleu en salle, orange en consultation, vert vu, rose absent.
+- [x] **« Dossier ouvert par »** : collègues qui ont le dossier ouvert (sous le nom dans la salle d'attente, bandeau en haut du
+      dossier) ; collection `presence/{uid}` (chacun écrit le sien, renouvelé chaque minute, oublié après 3 min ; 4 tests).
+- [x] **Tri** heure du rendez-vous / heure d'arrivée / alphabétique (réglage personnel `salleTri`) et **recherche** dans la liste.
+- [x] **Imprimer la liste du jour** (A4 paysage, par statut, colonnes affichées, jour / établissement / période / recherche).
+- Non retenus : panneau patient à droite, post-it patient, confirmation du rendez-vous, compteurs.
+
+**SA1 quinquies – Retouches du 08/10 (après mise en ligne)**
+- [x] **Prix payé d'avance** : crayon du prix aussi dans « À venir » / « En salle » (secrétaire et médecin) ; gardé dans la
+      salle d'attente (`salle.prix`, règle : droit encaissements ou finances, 3 tests) et proposé dans la fenêtre de prix à la
+      validation (rendez-vous et consultation de chimio).
+- [x] Type en libellés courts (Suivi, Annonce, Contrôle, RT hebdo, Séance chimio ; activités sans « Consultation de »),
+      badges de Type et pastilles de Statut centrés dans leur colonne, motif coupé proprement.
+- [x] Validation d'une **cure J1 ou d'une séance J8…** dans le dossier : la fenêtre de prix de la consultation de chimio s'ouvre
+      ensuite (sauf si déjà fixé) ; « Venu » d'un rendez-vous : fenêtre de prix pour le médecin et la secrétaire, même sans
+      tarifs publiés.
+- [x] **Anciennes séances de chimio** validées dans le dossier (avant la salle d'attente) : « Vu » (cure reçue un jour passé,
+      ou consultation de chimio déjà payée) ; plus « À valider ».
+
+**SA2 – Sans rendez-vous, prix et total, Configuration**
+- [ ] « + Arrivée sans rendez-vous » (patient connu ou nouveau patient, motif, urgence).
+- [x] Colonne **prix** et **total** ; fenêtre de prix pour la secrétaire : faits en SA1 bis.
+- [x] Paramètres › Alertes : **seuils d'attente** de la salle d'attente (orange, rouge ; `parametres/reglages.salle`, défaut
+      20 et 45 min). Ordre de la liste : tri personnel (fait en SA1 quater).
+- [x] Corrigé : commentaire refusé sur une consultation vue sans document de salle d'attente (étape vide toujours écrite ;
+      test de règle) ; stylo du commentaire centré ; anciens prix v1 d'une consultation faite dans un autre établissement
+      (ex. HCK 225 → 250 DH) : brut cherché dans tous les établissements (migration `encaissementsBrutV1b`).
+
+**SA3 – Dans l'agenda et le tableau de bord** (fait le 08/10, appelé « SA2 » par Dr Bentahila)
+- [x] Statut et temps d'attente (« En salle · 12 min », « En consultation · 5 min », chimio « Vu 10:42 ») dans l'**Agenda**
+      (vues Jour et Liste) et dans « Aujourd'hui » du tableau de bord, mis à jour en direct (`badgeSalle`, salle.js).
+- Annulé (08/10) : message WhatsApp de consignes d'arrivée.
+
+## Étape 6 bis – Audit de la salle d'attente (fait le 10/10/2026 : plan à valider par Dr Bentahila)
+Détail : `AUDIT-SALLE-ATTENTE.md` (10 bugs, mesure avec 620 dossiers, manques pour 20 à 30 patients par jour).
+- [x] **SA4 – Fiabilité** (10/10) : chaque action est une transaction qui relit la ligne (une action d'un collègue n'est plus
+      effacée ; une action devenue impossible est refusée : « X est déjà en consultation (Dr …) ») ; n° d'ordre tiré du compteur
+      `salleOrdre/{jour_établissement}` (sans doublon) ; heures corrigées d'après l'horloge du serveur et affichées à l'heure du
+      Maroc (fuseau Africa/Casablanca, même sur un ordinateur réglé ailleurs) ; passage automatique au nouveau jour à minuit ;
+      libellé court des séances reportées ; impression qui attend les prix. Règles : lecture d'une ligne pas encore créée,
+      compteur qui ne fait que monter (6 tests).
+- [x] **SA5 – Rapidité** (10/10) : lignes du jour gardées en mémoire tant que rien ne change (620 dossiers : Agenda 673 → 51 ms,
+      tableau de bord 777 → 17 ms, liste 42 → 11 ms) ; toutes les 30 s seules les minutes changent (salle, badges, bulles du
+      dossier) ; mise à jour ligne par ligne quand un collègue agit (lignes inchangées, boutons, défilement gardés) ;
+      « Ouvert par » mis à jour sur place.
+- [x] **SA6 – Salle pleine** (11/10, sans l'arrivée sans rendez-vous, décision de Dr Bentahila) : onglets, attente moyenne et
+      titres des colonnes **fixés en haut** pendant le défilement ; bouton **Compact** (une ligne par patient, réglage personnel
+      `salleCompact`, ordinateur) ; **Patient suivant** (médecin : premier de la file → consultation + dossier) ; **un patient =
+      une arrivée** (rendez-vous et séance de chimio du même jour : même arrivée, même n°, démarrés et renvoyés ensemble) ;
+      **ordre de la file** (flèches ↑ ↓, `rang`) ; **messages** « X est arrivé(e) » (médecin) et « X attend depuis … » (secrétaire,
+      au rouge), réglables dans Paramètres › Alertes ; **recherche** nom, n° de dossier, téléphone ; **Clôturer la journée**
+      (restés en consultation / en salle / jamais arrivés → « Absent » sans report en un clic) et alerte de la cloche pour les
+      consultations des 7 derniers jours ni « Venu » ni « Non venu » ; **attente moyenne** et la plus longue en cours.
+- [ ] Arrivée sans rendez-vous + Urgent : pas retenue pour l'instant. Filtre Praticien : plus tard (cabinets de groupe).
+- [x] **SA7 – Tests** (11/10) : calculs de la salle déplacés dans `js/moteur/salle.js` (lignes du jour, onglet, période, recherche,
+  tri, file) et testés sans navigateur (`node tests/moteur/test-salle.mjs`, 29 vérifications) ; `tests/test_salle.py` dans le dépôt
+  (35 vérifications : médecin, secrétaire, infirmière, chimio, Patient suivant, collègue qui a déjà agi, messages, heure du Maroc
+  sur un ordinateur à l'heure belge, 390 px). `ouvrir()` de `tests/base.py` accepte un fuseau horaire (`tz`).
+- [x] **SA8a – Lignes de 30 px** (11/10, inspiré de GestiCab ; décisions : onglets gardés, compact = affichage normal, semaine
+      repliée par défaut) : un seul bouton par ligne (prochaine étape : Arrivé, Démarrer, Valider, Encaisser) et menu ⋯ (aussi
+      au clic droit) pour le reste ; double-clic = dossier ; lignes de 32 px sur une ligne (« … », texte complet au survol) ;
+      statut en pastille ronde ; colonnes RDV · Arr. · Att. · Prés. (hh:mm, alignées) ; civilité collée au nom ; **largeur de
+      chaque colonne réglable** (tirer le bord du titre ; double-clic = d'origine ; `utilisateurs/{uid}.salleLargeurs`) ;
+      colonne des boutons toujours visible à droite ; bandeau de la semaine replié (clic sur la date pour l'ouvrir).
+      1440 px : 13 patients visibles au lieu de 4 à 5.
+- [x] **SA9 – Audit externe** (11/10 ; décisions : « En salle » d'abord, réglages de colonnes déjà faits gardés, reçus
+      R-AAAA-NNNN avec un compteur unique pour le cabinet) :
+  - **SA9a – Affichage** : Correspondant et Commentaire cachés par défaut (`CACHEES0`, sans choix personnel seulement) ; bulle 💬
+    devant le nom quand la colonne Commentaire est cachée (`.sa-cm`) ; titre « Mut. » (plus de titre coupé à 1 440 px) ;
+    **onglet d'ouverture** = `ongletOuverture` (moteur/salle.js : En salle, sinon À venir, Vus, Absents), choisi une fois les
+    documents du jour reçus (`AUTO`, `PRET`), pas au retour d'un dossier (`PREC`) ni après un clic sur un onglet.
+  - **SA9b – Téléphone** : bouton **Filtres** (`saFiltres`, nombre de filtres actifs) qui replie établissement, colonnes,
+    période, recherche, tri, impression et calendrier (`.sa-pg.ouv`) ; zones à toucher ≥ 44 px (0 sous 40 px, contre 21) ;
+    liste des patients à 248 px du haut au lieu de 592.
+  - **SA9c – Reçus numérotés** : `recus/{patient}_{clé}` + `recusCompteur/{AAAA}` (règle : numéro = compteur + 1 dans la même
+    transaction ; duplicata = seules `imp` / `dernier…` changent ; montant ou mode changé = nouveau numéro, l'ancien dans
+    `annules` ; jamais supprimés ; droits « finances » ou « encaissements », périmètre) ; v2.js `numeroterRecu` /
+    `imprimerRecu` (« N° R-2026-0001 », « DUPLICATA », « remplace le n° … ») ; logique `js/moteur/recus.js`. Si le numéro ne
+    peut pas être tiré (hors ligne), le reçu s'imprime sans numéro avec un message.
+  - Tests : `tests/regles/test-recus.mjs` (21), `node tests/moteur/test-recus.mjs` (11), `test-salle.mjs` (32),
+    `tests/test_salle.py` (51).
+
+## Étape 7 – RCP (réunion de concertation pluridisciplinaire) (fait et testé le 09/10, pas encore en ligne)
+**Demande de Dr Bentahila (09/10)** : dates de RCP dans les Paramètres ; bouton « + RCP » à côté de Doc. (inscription à la
+prochaine RCP, fenêtre avec la question et la date d'inscription) ; onglet « RCP » dans Tâches à côté de « Toutes les tâches »
+(calendrier des semaines, période choisie, dossiers inscrits avec la question et une case Fait) ; dossier ouvert depuis la
+liste : décision saisie en nouvelle consultation « RCP », bulles Valider (coche Fait, retour à la liste) et Fermer.
+**Choix faits par Claude (à confirmer)** : une seule RCP pour le cabinet (pas par établissement) ; un dossier reste « à faire »
+tant que la case Fait n'est pas cochée (alerte « RCP passée sans case Fait ») ; inscrire, cocher et écrire la décision =
+médecin et secrétaire (droit « Journal des consultations ») ; infirmière : lecture seule ; désinscrire = médecin ou qui a
+inscrit.
+- [x] **Paramètres › RCP** : jours de la semaine, heure, lieu ; dates ajoutées (RCP exceptionnelles) et dates annulées ; pas
+      de RCP un jour férié (sauf date ajoutée) ; aperçu des 10 prochaines RCP. `parametres/rcp`.
+- [x] Dossier : bouton **« + RCP »** dans la barre des prescriptions, après Doc. → fenêtre : date de RCP (prochaine proposée,
+      menu des 12 suivantes ou autre date), date d'inscription (du jour, modifiable), question posée ; inscriptions déjà
+      faites du patient (Modifier, Désinscrire). Flèche ▾ = toutes les RCP du patient (avec la décision).
+- [x] Inscriptions non faites visibles dans « Rendez-vous et tâches à venir » (en rouge « décision à saisir » après la date).
+- [x] **Tâches › onglet RCP** (`#taches/rcp`) : calendrier du mois (une ligne par semaine ; clic sur « S42 » = la semaine, sur un
+      jour = ce jour ; jours de RCP encadrés, nombre de dossiers en pastille orange / verte (tous faits) / rouge (passée non
+      faite)) ; période Du / Au, « Prochaine RCP », « Cette semaine », « Ce mois » ; Tous / À faire / Faits ; liste par date de
+      RCP : patient (âge, diagnostic), question, décision, inscrit le / par, case **Fait** ; ✎ / ✕ ; **Imprimer** (fiche A4
+      paysage pour la réunion, colonne Décision). Alerte « N dossiers de RCP passées sans case Fait » → les afficher.
+- [x] Clic sur le patient → dossier avec **bulles** en bas à droite : **Décision RCP** (nouvelle consultation type « RCP », note
+      « Question : … / Décision : » pré-remplie ; ensuite « Modifier la décision »), **Valider** (coche Fait, retour à la liste),
+      **Fermer** (retour à la liste). La décision est recopiée dans la liste et sur la fiche imprimée.
+- [x] Règles `rcp` (26 tests, total 116/116 sur l'émulateur).
+- [x] Tests navigateur : médecin (paramètres, inscription, liste, décision, Valider, Fermer, case Fait, alerte, impression),
+      secrétaire (inscrit, coche), infirmière (lecture seule, bulle Fermer seule), téléphone 390 px, bilan 352 317 DH.
+- [x] Mise en ligne (règles + site), après accord. (09/10 : tout est en ligne, confirmé par Dr Bentahila.)
+- Plus tard si besoin : RCP dans Google Agenda, une RCP par établissement.
+
+## Étape 8 – Numéro de dossier et recherche des patients (fait, testé et mis en ligne le 09/10)
+**Décidé le 09/10** : « AAAAMM + numéro dans l'ordre d'inscription » : **202610001** = 1er patient inscrit en octobre 2026,
+le numéro **repart à 001 chaque mois** (4 chiffres au-delà de 999), **un seul compteur pour le cabinet** (le filtre par hôpital
+se fait dans la recherche), les patients existants numérotés selon leur vraie date d'inscription (pour ceux venus de l'ancienne
+application : la date de leur création là-bas, pas le 06/10).
+- [x] Numéro attribué **par le serveur** à la création (fonction `numeroDossier`, transaction sur `compteurs/dossiers` : jamais de
+      doublon, même si deux personnes créent un patient en même temps), écrit dans `identite.numero`, jamais changé (gardé par
+      Modifier, les saisies de chimio, `separer`). Affiché en haut du dossier (« Dossier n° … »), dans la liste des patients,
+      dans le choix du patient d'un rendez-vous et sur la fiche chimio. **Pas encore sur le pli / compte rendu** (documents.js).
+- [x] Numéros donnés **une fois** aux patients existants à la 1re ouverture d'Onco360 par le médecin titulaire (fonction
+      `numerosManquants`, dans l'ordre d'inscription). Test sur les 62 dossiers : 202609001 → 202609061, puis 202610001.
+- [x] **Recherche** par nom, prénom, date de naissance (JJ/MM/AAAA) ou **numéro** (page Patients et choix du patient d'un
+      rendez-vous) ; **filtre par hôpital** dans la page Patients (si la personne voit plusieurs établissements).
+- [x] Tests : logique `node functions/test-numeros.js` (10 cas), navigateur (numérotation, recherche, filtre, création,
+      numéro conservé), 390 px, bilan 352 317 DH.
+
+## Étape 9 – Sécurité et conformité (obligatoire pour vendre)
+**S1 – Journal d'audit (traçabilité)** (fait, testé et mis en ligne le 09/10)
+**Décidé le 09/10** : modifications, suppressions et **ouvertures de dossier** (pas les impressions ni les connexions) ; pour une
+modification, **la partie touchée** (Rendez-vous, Chimiothérapie…), jamais les valeurs ; lu par le **titulaire seul** ; **tout est
+gardé** pour l'instant (durée à fixer avec le juriste).
+- [x] Journal **infalsifiable** : fonction `auditEcriture` (déclencheur « avec identité » sur `espaces/{e}/{collection}/{document}` :
+      la personne réellement connectée, impossible à falsifier ; écriture d'une fonction serveur = « Onco360 (serveur) pour X »),
+      lignes dans `audit/{e}/lignes/{événement}` (une seule ligne même si l'événement est rejoué). Ouvertures : signal « Dossier
+      ouvert par » (`presence`) qui change de dossier, ou le même après 30 min. Logique `functions/audit.js` (25 tests). Règles :
+      lecture par le titulaire (cabinet non suspendu), **aucune écriture** depuis le navigateur, même pas le titulaire (12 tests,
+      total 167/167). Journal effacé avec le cabinet (`supprimerCabinet`).
+- [x] Page **Paramètres › Journal d'audit** (titulaire) : période (7 derniers jours par défaut), filtres personne / action / partie /
+      patient, nombre de lignes par action, lien vers le dossier (« Dossier supprimé » sinon), **export Excel** ; bouton **Journal**
+      dans le dossier (titulaire) = journal de ce patient sur 1 an. `public/js/app/audit.js`. Tests navigateur 12/12.
+- [x] Mise en ligne le 09/10 (fonction `auditEcriture`, règles, site) : le journal note depuis ce jour.
+- [ ] Durée de conservation à décider (avec le juriste). Volume à surveiller (une ligne par écriture et par ouverture).
+**S2 – Rôles et droits affinés**
+- [x] Nouveau rôle **Comptable** (09/10, fait, testé et mis en ligne). **Décidé** : patients en nom + n° de dossier (aucun
+      diagnostic) ; il **pointe les paiements** et saisit les versements, sans toucher aux tarifs ; relevé préparé quand un médecin
+      ouvre Onco360 ou enregistre un dossier, **date affichée**. Relevé financier `comptabilite/releve_0…n` + `meta` (bilan.js
+      `publierReleve`, 3 s après l'ouverture, 2 min après un enregistrement ; réécrit seulement s'il a changé). Règles : le
+      périmètre lui est fermé (`dansPerimetre`), ni présence ni historique, écrit seulement `finances/paiements|versements`
+      (15 tests, total 182/182). Écran : Bilan et Profil seulement, aucun lien vers un dossier ; même bilan que le médecin
+      (352 317 DH, tous les indicateurs identiques ; `tests/test_comptable.py` 13/13). Paramètres › Accès : rôle « Comptable »
+      (tout le cabinet), limite « Comptables » dans les formules.
+      Limite : relevé à jour au dernier passage d'un médecin (un prix fixé par la secrétaire apparaît au suivant).
+- [ ] Infirmière : constantes et administrations (voir étape 11) ; médecin : accès complet. Vérifier que chaque droit de la
+      grille est aussi imposé par les **règles du serveur** (pas seulement masqué à l'écran).
+- [ ] Rôle **Pharmacien** si l'étape 11 (PUI) est faite.
+**S3 – Mode démo (anonymisation)**
+- [ ] Bouton **« Mode démo »** (médecin) : noms, prénoms, téléphones, dates de naissance, photos **remplacés à l'écran**
+      par des faux (« Patient Test 12 ») ; rien n'est modifié dans la base ; bandeau « MODE DÉMO » ; impressions bloquées
+      ou anonymisées.
+- [x] **Cabinet de démonstration** (décidé le 09/10 à la place du bouton, fait et testé) : page Administration › Cabinets ›
+      « Créer le cabinet de démonstration » (fonction `creerCabinetDemo`, `cab-demonstration`, `demo: true`, formule Complète,
+      compte de démonstration à l'e-mail choisi, par défaut ritabentahila+demo@gmail.com), clinique fictive DEMO et ses tarifs,
+      **8 patients fictifs** PATIENT TEST 1 à 8 (`functions/demo.js` : chimios en cours, RT en cours / contourage à valider,
+      rendez-vous du jour et à venir, consultations), badge « Démonstration », « **Réinitialiser la démo** » (`demoReinitialiser` :
+      tout refait aux dates du jour). Dans Onco360 : « Cabinet de démonstration (patients fictifs) » sous le nom. Tests : moteur 9/9
+      (`node functions/test-demo.js`), navigateur 14/14 (`tests/test_demo.py`).
+- [ ] Bouton « Mode démo » (anonymisation à l'écran d'un vrai cabinet) : plus tard si besoin.
+- [x] **Bibliothèque de référence** (demandé le 09/10 ; remplacée le 10/10 par les bibliothèques par spécialité, voir plus bas) : ce que reçoit un cabinet neuf vient d'une **copie mise de côté**
+      (`plateforme/reference`, serveur seulement, déjà nettoyée : ni correspondants, ni tarifs, ni absences), prise dans le cabinet
+      de Dr Bentahila à la 1re création puis seulement quand l'administration clique « Mettre à jour depuis le cabinet du Dr
+      Bentahila » (onglet « Bibliothèque de référence », `referenceMaj`). Les modifications d'un médecin restent dans son cabinet.
+
+## Étape 10 – Mode hors-ligne (application installable)
+- [ ] Onco360 **installable** sur ordinateur, tablette et téléphone (icône, plein écran).
+- [ ] En cas de coupure de réseau : **consultation des fiches patients déjà ouvertes et du planning du jour** ; les
+      modifications faites hors ligne sont envoyées au retour du réseau (ou interdites hors ligne : à décider).
+- [ ] Bandeau « Hors ligne » visible ; données gardées sur l'appareil effacées à la déconnexion (appareils partagés).
+- [ ] Tests : couper le réseau, recharger, relire un dossier et l'agenda ; bilan 352 317 DH.
+
+## Étape 11 – Soins infirmiers, pharmacie, alertes
+**« Marquer administrée » est repris (décision du 08/10)**, après son abandon du 06/10 : c'est la validation de la
+pose des poches ci-dessous (I1). La règle `administrations` existe encore (inutilisée) ; la ligne du droit est à remettre
+dans Profil › Accès › Droits.
+**I1 – Mode tablette pour les salles de soins**
+- [ ] Écran épuré pour tablette (iPad / Android), pour l'infirmière au chevet du patient en cours de chimiothérapie :
+      patients du jour, cure et molécules à administrer.
+- [ ] Valider la **pose de chaque poche** (heure, par qui), la **voie d'abord** (chambre implantable / PAC, voie
+      périphérique, PICC line…), les constantes, et saisir en temps réel la **tolérance et les effets indésirables**.
+- [ ] Ce qui est saisi apparaît dans le dossier (onglet Chimiothérapie, cure concernée).
+**I2 – Circuit de la pharmacie (PUI)**
+- [ ] Validation de la prescription par le **pharmacien** → **préparation** (poche) → **libération** → **administration**
+      par l'infirmière ; chaque étape datée avec son auteur ; statut visible par le médecin.
+- [ ] À décider : utile seulement pour les cliniques avec pharmacie ; option activable par cabinet.
+**I3 – Alertes urgentes sur le téléphone (notifications)**
+- [ ] Alerte instantanée sur le téléphone de l'oncologue, même Onco360 fermé : effet indésirable grave saisi par
+      l'infirmière, neutropénie fébrile signalée, **bilan biologique anormal avant cure** (seuils à définir : PNN, plaquettes,
+      créatinine…).
+- [ ] Même système que T6 (Tâches) : à construire une seule fois.
+
+## 10/10/2026 – Bibliothèques gérées par l'administration, comptes de l'équipe
+- [x] **Bibliothèques par spécialité** : espaces sans patient `espaces/bib-oncologie` (puis `bib-generaliste`, `bib-gynecologie`),
+      ouverts par l'administration (`bibliothequeOuvrir`, page Onco360 `v2.html?espace=bib-…` : Protocoles et Paramètres ›
+      Fermetures (fériés), Listes, Bibliothèques (dont la **documentation**, gérée sans patient), Activités (tarifs RT) ; menu réduit,
+      « Retour à l'Administration »). Oncologie – Radiothérapie créée depuis la copie du 09/10 ; à la 1re ouverture, les listes
+      encore « de départ » (médicaments, analyses, courriers, documentation…) y sont **figées** (enregistrées telles quelles). Un
+      cabinet neuf reçoit la copie de la bibliothèque de **la spécialité de sa formule** (documents PDF recopiés). Le bouton « Mettre
+      à jour depuis le cabinet du Dr Bentahila » est retiré. Tests : `tests/test_bibliotheque.py` 19/19, `node functions/test-cabinets.js` 42/42.
+- [x] **Comptes de l'équipe** : la création de comptes depuis le navigateur est fermée dans Firebase (erreur
+      « auth/admin-restricted-operation » en voulant créer une secrétaire) → fonction serveur `creerMembre` (titulaire, limite de la
+      formule vérifiée par le serveur, droits nettoyés), e-mail de Firebase + **« Lien du mot de passe »** dans Paramètres › Accès
+      (`lienMembre`, message prêt pour WhatsApp). Page Administration : **équipe** de chaque cabinet (noms, rôles, e-mails ; aucune
+      donnée médicale), comptables comptés.
+- [x] **Paramètres de base par spécialité** (10/10) : dans la bibliothèque de référence (`PARAMS_SPE` de cabinets.js, nettoyés par
+      `parametreDepart`), repris une fois du cabinet du Dr Bentahila (`parametresImportes`), modifiables dans la bibliothèque
+      (Paramètres : tous les onglets sauf Lieux, Accès, Journal ; Google Agenda : couleurs seulement), copiés aux cabinets neufs.
+- [x] **Modules et menus par spécialité** (10/10) : `MODULE_FAMILLE` (Protocoles / chimio et radiothérapie : Oncologie –
+      Radiothérapie ; les autres : toutes spécialités), `MODULE_MENU`, `MODULES_PREVUS` (Traitements et stocks, Matériel et
+      consommables : médecine générale) ; onglet « Modules et menus » ; formules : seulement les modules de leur spécialité.
+- [ ] Bibliothèque et paramètres Médecine générale / Gynécologie, et leurs modules (Traitements et stocks, Matériel et
+      consommables…) : à décider et construire (étape 14).
+- [ ] Plus tard si besoin : renommer un menu depuis l'Administration (l'ordre du menu se règle déjà par pack et par cabinet).
+
+## Étape 16 – Administration par spécialité (demandé le 10/10/2026) — plan : `PLAN-ADMINISTRATION.md`
+Demande : choisir module par module (+ / −, « Ajouter un module », flèches pour l'ordre du menu), fonction par fonction dans un
+module, section par section pour les paramètres, bibliothèque par bibliothèque ; un onglet « Par spécialité » regroupant Formules,
+Modules et menus, Bibliothèques et paramètres ; cabinets en liste ; onglet listant les bibliothèques.
+- [x] Inventaire de tout ce qui existe et plan détaillé (`PLAN-ADMINISTRATION.md`, 10/10).
+- [x] Questions validées (10/10) : une seule spécialité Oncologie – Radiothérapie (packs à l'intérieur) ; liste 1.2 validée ;
+      tableau de bord réglable aussi (cartes montées / descendues / retirées) ; **tout réglable cabinet par cabinet** (packs = point
+      de départ) ; colonnes de la liste des cabinets validées.
+- [ ] 16.1 Catalogue (modules, fonctions, sections de paramétrage, bibliothèques) ; spécialité Oncologie – Radiothérapie.
+- [x] **16.3 (en grande partie, 10/10) Réglage du cabinet** : Administration › Cabinets › fiche › « **Réglage du cabinet** » : pack de
+      départ, puis retouches (↑ ↓ et cases) : **ordre du menu**, **modules et chacune de leurs fonctions**, **cartes du tableau de
+      bord** (ordre, présence), **onglets des Paramètres** (ordre, présence), **bibliothèques**, maximums ; enregistré dans
+      `espaces/{e}.abonnement.reglage` (`abonnementCabinet`, `reglageNettoye` ; gardé quand un pack est modifié). Appliqué dans
+      Onco360 (`D.reg`, `reglageEffectif` / `styleRetraits` de catalogue.js : menu réordonné, cartes, onglets, `[data-fn]` / `[data-bib]`
+      cachés). Fonctions **reliées** aujourd'hui (`FONCTIONS_RELIEES`) : boutons de prescription (6), tâches automatiques (écran **et
+      serveur**), « Toutes les tâches », impression RCP, exports du bilan, rappel WhatsApp, vues Jour / Semaine / Mois, fiche chimio,
+      Protocoles, tâches fixes de radiothérapie (serveur). Les autres sont enregistrées et marquées « (bientôt) » : à relier une à une.
+      Bibliothèques reliées : boutons et cartes de gestion (Diagnostics / Mutuelles : à relier). Tests : cabinets 52/52.
+- [x] 16.3 suite (10/10) : **toutes les fonctions reliées** : 46 activables (agenda : filtre, horaires grisés, absences et fériés,
+      WhatsApp, vues ; salle d'attente : prix, n° de passage, commentaire, temps d'attente, colonnes, bulles ; tâches : toutes, types,
+      urgent, réattribuer, automatiques, échéances dans Google Agenda (serveur) ; RCP : impression ; prescriptions : 6 boutons, format
+      A5 / A4, antécédents ; documents : dépôt, types, pli / CR / RDV ; Google Agenda : ce que je vois, couleurs ; listes :
+      correspondants ; bilan : filtres, versements, référents, RT prévisionnelles, exports, relevé du comptable ; chimio : fiche,
+      protocoles, molécules, report ; RT : tâches fixes (serveur), consultations hebdomadaires, documents, tarifs) et **17 fonctions de
+      base**, toujours présentes avec leur module (venu / non venu, états de la salle, fil des tâches, inscription / calendrier /
+      décision RCP, liaison Google Agenda, diagnostics, mutuelles, payé / à recevoir, lignes, cures, doses, % par séance, planning
+      de chimio, prescription et déroulé RT). « Administrations (infirmière) » retirée du catalogue (pas encore construite, étape 11).
+      Test `tests/test_reglage.py` 14/14 (sans réglage : tout est là, bilan 352 317 DH).
+- [x] **16.2 Onglet « Par spécialité »** (10/10) : remplace Formules, Modules et menus, Bibliothèques et paramètres ; à gauche les
+      spécialités (packs, cabinets), à droite 3 sous-onglets : **Packs** (liste ; ↑ ↓ ordre, Modifier, Dupliquer, Supprimer si
+      inutilisé, + Nouveau pack, packs proposés manquants), **Modules et menus** (communs + propres à la spécialité + prévus),
+      **Bibliothèque et paramètres** (ouvrir et modifier). **Un pack a le même réglage complet qu'un cabinet** (même écran :
+      `editeurReglage`) ; un cabinet reçoit le réglage de son pack (création, changement de pack, « Revenir au réglage du pack ») ;
+      retouché, il devient « sur mesure » (`retouche`, `identiqueAuPack`) ; modifier un pack met à jour les cabinets qui le suivent
+      sans retouche. Onglets de l'Administration : Cabinets, Nouveau cabinet, Par spécialité, Bibliothèques (toutes).
+- [ ] 16.3 Onco360 applique la spécialité (ordre du menu, fonctions cachées à l'écran et sur le serveur).
+- [x] 16.4 (en partie, 10/10) Cabinets en **liste** (nom, ville, médecin, spécialité, pack, statut, équipe, dossiers, créé le ;
+      mobile en lignes empilées), clic = **fiche du cabinet** en fenêtre (toutes les actions). Reste : onglet listant toutes les bibliothèques.
+- [x] Une seule spécialité **Oncologie – Radiothérapie** (10/10) : les 8 packs y sont ; anciens noms reconnus (`specialiteDe`).
+- [x] 16.1 (début, 10/10) Catalogue `public/js/donnees/catalogue.js` : menu, fonctions de chaque module, cartes du tableau de bord,
+      sections de paramétrage, bibliothèques ; réglage complet `reglageDepart` / `reglageEffectif`.
+- [x] 16.4 Onglet « Bibliothèques » : toutes les bibliothèques (une carte par spécialité, compteurs, ouvrir et modifier).
+- [x] **16.6 Fiche patient réglable** (10/10, décidé avec Dr Bentahila : types texte, nombre, date, liste de choix, oui / non ; champ
+      ajouté possible dans un seul cabinet ; champs ajoutés imprimables) : bloc « Fiche patient » de l'écran de réglage (pack et
+      cabinet) : ordre (↑ ↓) et présence des 20 champs existants (Nom, Prénom, Hôpital : toujours), **« + Ajouter un champ »**
+      (nom, type, choix, partie identité / fiche clinique, à imprimer, en tête du dossier ; ✎ / ✕). Appliqué dans Nouveau patient,
+      Modifier, Afficher et l'en-tête du dossier (`js/app/fichepatient.js`, repères `data-champ`) ; un champ retiré est caché,
+      sa valeur gardée ; valeurs ajoutées dans `identite.extra` / `clinique.extra` ; impression : sous l'identité de la fiche
+      chimio, et insérables dans les courriers (`{c_identifiant}`). Sans réglage, la fiche d'oncologie est inchangée.
+      Tests `tests/test_fiche.py` 11/11, serveur 56/56.
+- [x] **16.6 bis Fiche patient de la spécialité** (10/10, demandé par Dr Bentahila : « pareil dans tous les packs ») : la fiche se
+      règle **une fois par spécialité**, dans **Par spécialité › Bibliothèque et paramètres › Fiche patient** (ordre, présence,
+      **nom affiché des champs existants** ✎, champs ajoutés) ; enregistrée dans `plateforme/specialites` et recopiée aussitôt
+      dans tous les cabinets de la spécialité (`espaces/{e}.ficheSpe`, fonction `ficheSpecialite`, cabinets neufs compris).
+      Plus de fiche dans les packs. Le réglage d'un cabinet garde des **retouches** (champs en plus pour lui seul, présence,
+      ordre, nom) : seules les différences sont gardées, le cabinet suit le reste de la fiche de la spécialité.
+      Tests `tests/test_fiche.py` 19/19, serveur 60/60.
+- [x] **16.7 Formulaire de consultation réglable par spécialité** (10/10, même système que la fiche) : réglé une fois par
+      spécialité dans **Par spécialité › Bibliothèque et paramètres › Formulaire de consultation** (le même pour tous les packs,
+      envoyé à tous les cabinets de la spécialité : `espaces/{e}.consultSpe`, fonction `ficheSpecialite` avec `quoi: "consultation"`).
+      Champs existants (Consultation, Date, Titre, Note) : ordre, présence (Date toujours), nom affiché, **liste des types de
+      consultation modifiable** ; champs ajoutés : texte, texte long, nombre avec unité, date, liste de choix, oui / non, **titre
+      de section** (regrouper : « Mesures et constantes »…). Valeurs dans `consultations/{c}.extra`, affichées dans la consultation
+      dépliée. Retouches par cabinet (son réglage, différences seulement). Sans réglage : la fenêtre d'aujourd'hui (oncologie
+      inchangée). Une décision de RCP garde son type « RCP » et son titre même s'ils sont retirés. Pas encore : calculs
+      automatiques (IMC), impression de la consultation.
+      Tests `tests/test_consultation_form.py` 15/15, serveur 63/63.
+- [x] **16.8 Onglet « Modules » de l'Administration** (10/10, demandé avant 16.5) : tous les modules, toutes spécialités
+      confondues : 7 parties de base (Tableau de bord, Patients et dossiers, Consultations, Paramètres, Équipe et droits, Journal
+      d'audit, Profil ; `MODULES_BASE` de modules.js), 11 modules activables (spécialité, place dans Onco360, fonctions de base /
+      bientôt, packs et cabinets qui l'ont) et 2 prévus (Traitements et stocks, Matériel et consommables) ; filtres De base /
+      Activables / Prévus, par spécialité, recherche. Lecture seule. Tests `tests/test_modules.py` 10/10.
+- [x] **17.1 Corrections de l'Administration** (10/10, audit `AUDIT-ADMINISTRATION.md`) : votre cabinet (sans abonnement)
+      compté en Oncologie – Radiothérapie, « Tout compris, sans limite » ; Nouveau cabinet : texte réécrit (ce que reçoit le
+      cabinet = bibliothèque et paramètres de sa spécialité, fiche, consultation), spécialité puis pack (plus de « Toutes ») ;
+      limites lisibles (`texteLimites` : « 1 médecin · 2 secrétaires · sans limite : comptables ») ; « Supprimer » d'un pack en
+      lien discret ; badge de la fiche décalé de la croix ; « liste Onco360 » au lieu de « départ » ; éditeurs de fiche et
+      consultation sur une colonne, liste des types résumée ; onglets sur deux lignes au téléphone ; avertissement avant
+      d'ouvrir une bibliothèque.
+- [x] **17.2 Fenêtre de réglage** (10/10) : sous-onglets Modules et limites (en premier) · Menu et tableau de bord ·
+      Paramètres et bibliothèques · Fiche et consultation (cabinet) ; bouton Enregistrer toujours visible, « Modifications non
+      enregistrées », confirmation avant de fermer (`GARDE`) ; cabinet : pastille « retouché » par bloc et sur les sous-onglets
+      (différences avec le pack ; fiche et consultation : avec la spécialité), « Revenir au pack » bloc par bloc.
+      Tests : cabinets 59/59, fiche 19/19, consultation 15/15, bibliothèque 21/21, modules 10/10, bilan 352 317 DH.
+- [x] **17.3 Liste et fiche des cabinets** (10/10) : tuiles du tableau de bord (cabinets, revenu mensuel, en essai, à renouveler,
+      en retard ; un clic filtre), filtre Abonnement, tri par colonne (`TRI`), colonnes Abonnement et Activité (dernière action du
+      journal d'audit, actions des 30 derniers jours ; `listeCabinets` → `activite`), fiche du cabinet : bloc Abonnement, actions
+      regroupées Gérer · Accès du médecin · Zone sensible ; message flottant (toujours visible).
+- [x] **17.4 Abonnements** (10/10, choix délégués par Dr Bentahila : mensuel et annuel, essai gratuit, gratuit sans limite pour
+      les amis, suspension après 30 jours de retard) : prix proposés (DH HT ; annuel = 10 mois) Essentiel 690 / 6 900,
+      Pro 1 190 / 11 900, Onco-radiothérapie Pro 1 490 / 14 900, Clinique / Centre 2 490 / 24 900, Onco-radiothérapie Clinique
+      2 990 / 29 900 (`PRIX0`, modifiables par pack dans Par spécialité) ; essai gratuit de 30 jours à la création (ou mensuel,
+      annuel, gratuit) ; fiche `facturation/{e}` (serveur seulement, invisible des cabinets : règles) ; fonction `facturationCabinet`
+      (réglage, paiement qui prolonge l'échéance d'un mois / d'un an et réactive un cabinet suspendu pour retard, retrait d'un
+      paiement) ; `abonnementsNuit` (4 h) suspend un cabinet 30 jours après une échéance non payée, une fois par échéance, jamais
+      votre cabinet, la démonstration ni un gratuit ; rappel « À renouveler » 15 jours avant. Logique commune
+      `functions/facturation.js` = `public/js/donnees/facturation.js`. Cabinets déjà créés : « Non suivi » tant que leur abonnement
+      n'est pas réglé dans leur fiche.
+      Tests `tests/test_abonnements.py` 19/19, serveur 69/69, règles 193.
+- [x] **17.5 Journal de l'Administration** (10/10) : chaque action du compte d'administration est notée par le serveur
+      (`jAdmin` → `journalAdmin/{id}`, serveur seulement : règles) : création de cabinet et de démonstration, réglage, informations,
+      abonnement et paiements, suspension, réactivation, suppression, lien du mot de passe, packs, fiche et consultation des
+      spécialités, ouverture d'une bibliothèque, et les suspensions automatiques d'Onco360. Onglet **Journal** (période, cabinet,
+      type, recherche, export pour Excel) ; bouton « Journal » dans la fiche d'un cabinet. Rien n'est noté avant le 10/10/2026.
+      Tests `tests/test_journal.py` 10/10, règles + 2.
+- [x] **16.6 ter En-tête du dossier réglable** (10/10, demandé par Dr Bentahila) : dans la fiche patient de la spécialité (et les
+      retouches d'un cabinet), chaque champ, existant ou ajouté, a une case **« en-tête »** (affiché en haut du dossier, sous le nom,
+      ou seulement dans « Afficher ») à côté de **« présent »** ; `entetes { champ: bool }` (au départ : l'en-tête d'aujourd'hui,
+      `ENTETE0` = naissance, sexe, taille, poids, diagnostic, téléphones, hôpital, ALD, correspondant, mutuelle) ; nom et prénom :
+      toujours (nom du dossier). Tests fiche 21/21.
+- [x] **18.1 Finitions de l'Administration** (10/10) : carte « Cabinet de démonstration » déplacée dans Nouveau cabinet ;
+      « Actualiser » et heure de lecture des chiffres ; **coordonnées de facturation** de chaque cabinet (raison sociale, ICE, IF,
+      adresse, e-mail ; fiche › bloc Abonnement ; `facturation/{e}.client`, action `client` de `facturationCabinet`).
+- [x] **18.2 Onglet Comptabilité** (10/10) : encaissé du mois et de l'année, à encaisser 30 / 60 / 90 jours (`attendus`),
+      impayés (`impaye` : périodes échues × prix), fins d'essai ; évolution des 12 derniers mois ; encaissements de tous les
+      cabinets (période, cabinet, moyen ; répartition par pack et par moyen ; total) et **export pour le comptable** (raison
+      sociale, ICE, total) ; listes « À encaisser (90 jours) » et « Impayés » (clic = fiche du cabinet). Un cabinet supprimé garde
+      sa facturation (`supprime: true`, `archives` de `listeCabinets`) : la comptabilité reste juste.
+      Tests `tests/test_compta.py` 17/17, serveur 73/73. 18.5 (validation en deux étapes) : abandonnée (décision du 10/10).
+- [x] **18.3 Réglages des abonnements** (10/10, demandé par Dr Bentahila : « je veux avoir la main sur quand suspendre ») :
+      fenêtre « Réglages des abonnements » (Cabinets et Comptabilité) : suspension d'un cabinet en retard **« Me demander »
+      (par défaut)** · automatique · jamais ; délai après l'échéance (30 j), rappel « À renouveler » (15 j), durée de l'essai
+      (30 j) ; `plateforme/abonnements`, fonction `reglagesAbonnements` ; `abonnementsNuit` ne suspend plus qu'en mode
+      automatique ; bandeau rouge « à vous de décider » pour les cabinets en retard au-delà du délai ; case « Ne jamais suspendre
+      ce cabinet automatiquement » (fiche › Modifier l'abonnement, `jamaisSuspendre`). **Prix TTC** (TVA 20 % comprise, décidé le
+      10/10 : les médecins ne récupèrent pas la TVA). Tests compta 21/21, abonnements 21/21, serveur 76/76.
+- [x] **18.4 Factures** (10/10 ; décidé : assujettie à la TVA, prix TTC, TVA 20 %, numéros **F-AAAA-NNNN**, avoirs
+      **AV-AAAA-NNNN**) : fenêtre **« Mon entreprise »** (Comptabilité ; raison sociale, forme, ICE, IF, RC, patente, CNSS,
+      adresse, ville, téléphone, e-mail, RIB, banque, mentions ; obligatoires : raison sociale, ICE, IF, adresse, ville ;
+      `plateforme/editeur`, fonction `editeurEnregistrer`) ; une facture créée par le serveur à chaque paiement (`facturer` :
+      numéro continu par année, transaction sur `compteurs/factures`, copie des mentions du jour, HT = TTC / 1,2) ; un **avoir**
+      quand un paiement facturé est retiré (une facture n'est jamais effacée) ; « Créer la facture » pour un paiement plus ancien ;
+      facture A4 (`public/js/donnees/factures.js` : HT, TVA, TTC, **montant en lettres**, « payée le … par … », RIB) à voir et
+      imprimer ; Comptabilité › **Factures** (période, cabinet, totaux HT / TVA / TTC, export Excel, avoirs en négatif) ;
+      `factures/{id}` serveur seulement (règles). Tests `tests/test_factures.py` 10/10, serveur 79/79.
+- [x] **18.5 « Profil & Paramètres » dans Onco360** (10/10, modèle : captures Tbibclic) : menu « Profil » renommé ; onglets
+      Informations · **Accès** (déplacé de Paramètres ; `#parametres/acces` → `#profil/acces`) · **Abonnement** (formule, état,
+      échéance, cartes Mensuel / Annuel « 2 mois offerts » avec prix barré et économie, RIB ; « Renouveler maintenant », « Passer à
+      l'annuel / au mensuel » = demande à l'équipe Onco360, pas de paiement en ligne) · **Factures** (factures et avoirs du cabinet,
+      « Télécharger » = impression / PDF) ; **carte du tableau de bord** (essai qui se termine, à renouveler, expiré : jours restants,
+      échéance, barre, « Renouveler » → onglet Abonnement) ; titulaire seulement (les autres membres : Informations) ; `abonnement.js`,
+      fonctions `monAbonnement` / `demandeAbonnement` ; Administration : demandes des médecins (bandeau bleu, fiche du cabinet,
+      « Marquer traitée »). Tests `tests/test_profil_abo.py` 16/16.
+- [x] **18.6 Relances** (10/10) : Comptabilité › **Relances** = cabinets en retard, à renouveler (délai du rappel) ou en fin
+      d'essai (ni gratuits, ni votre cabinet, ni la démonstration) : motif, échéance, montant, dernière relance ; « Relancer » (aussi
+      dans la fiche du cabinet) = message prêt et modifiable (médecin, pack, montant dû, échéance, retard, RIB), **Envoyer par
+      WhatsApp** (numéro mis au format +212) ou **par e-mail**, Copier, « Noter : relancé par téléphone » ; la relance est notée
+      (`facturation.relances`, action `relance`, journal de l'Administration) ; **Modèles des messages** (3 messages : retard,
+      échéance proche, fin d'essai ; champs {medecin} {pack} {montant} {montantAn} {echeance} {jours} {rib} {raison}…), gardés
+      avec les réglages des abonnements. Aucun envoi automatique. Tests `tests/test_relances.py` 12/12, serveur 82/82.
+- [ ] 16.5 Nouvelle spécialité (copie ou vide) ; Médecine générale, Gynécologie prêtes pour l'étape 14.
+
+## Étape 19 – Accès et paramètres de la secrétaire (demandé le 10/10/2026) — audit : `AUDIT-SECRETAIRE.md`
+Audit fait en secrétaire (compte de test, droits par défaut, rattachée à HCK) : liste complète de ce qu'elle peut et ne peut pas
+faire dans `AUDIT-SECRETAIRE.md`.
+Décisions de Dr Bentahila (10/10) :
+- une secrétaire peut travailler pour **plusieurs médecins qui ont chacun leur cabinet Onco360** : un compte relié à plusieurs
+  cabinets, menu « Cabinet du Dr … » pour passer de l'un à l'autre (ses patients, ses paramètres) ;
+- médicament absent de la liste : « Ligne libre » dans Médic. (pour tous) **et** la secrétaire peut ajouter un médicament à la liste ;
+- elle **modifie** (complété le 10/10) : fermetures, congés et jours fériés, créneaux et horaires (de ses lieux), messages
+  WhatsApp et bouton vert, tout l'onglet RCP (si le médecin le lui demande), listes, types de tâches et de documents, impression,
+  alertes et temps d'attente de la salle, **couleurs de son Google Agenda** (c'est le sien) ; **lecture seule** : tâches
+  automatiques, bibliothèques (sauf ajout d'un médicament) ;
+- Google Agenda : elle relie le sien et coche, **par médecin** (donc par cabinet, 19.2), ce qu'elle veut y voir ;
+- chimio : elle **valide le poids** de la séance prévue du jour (elle voit le patient avant).
+
+**19.1 – Corrections et droits de modification** (fait et testé le 10/10, pas encore en ligne)
+- [x] Nouveau droit « Paramètres du secrétariat » (`secretariat`, grille Accès ; oui par défaut pour la secrétaire et le médecin) :
+      règle `parametres/{calendrier, listes, typesTaches, typesDocuments, reglages}` ; l'écran n'ouvre que les parties décidées.
+      Écrit dans la fiche de la secrétaire à la prochaine connexion du titulaire (`migrations()`).
+- [x] Médic. : « Ligne libre (médicament hors liste) » ; « Nouveau médicament » pour la secrétaire (ajouté à la liste et à
+      l'ordonnance) ; modifier / supprimer / favoris restent au médecin. Règle : `bibliotheques/medicaments` écrit avec
+      `ecrireConsultations`.
+- [x] Lieux d'exercice : ses lieux seulement (« Mon lieu d'exercice ») ; exemple des messages WhatsApp avec son lieu.
+- [x] Profil d'un non-médecin : sans titre Dr / Pr, spécialité, INPE ni signature.
+- [x] Droit « secretariat » élargi : jours fériés, messages WhatsApp, onglet RCP, impression, alertes, salle d'attente (règle :
+      + `parametres/whatsapp`, `parametres/rcp`) ; « Rétablir » aussi pour elle (sauf horaires / fermetures).
+- [x] Poids de la séance (J1 ou J8…) prévue aujourd'hui ou en retard : la secrétaire le saisit ou clique « Valider le poids » ;
+      gardé dans `planningJson` (`poids`, `spoids[j]`, `pv[j]` = qui et quand), repris dans le dossier au prochain enregistrement
+      du médecin ; « Poids validé par … le … » affiché ; doses recalculées.
+- [ ] Documents : le dépôt marche dans le test avec les droits par défaut. Si la secrétaire ne peut toujours pas déposer : vérifier
+      la case « Documents » de sa grille (Profil & Paramètres › Accès) et noter le message affiché.
+- [x] Mise en ligne (avec 19.2, le 10/10).
+
+**19.2 – Une secrétaire, plusieurs cabinets** (fait et testé le 10/10, pas encore en ligne)
+- [x] `comptes/{uid}` = { espace (principal), espaces [tous] } tenu par `compteMembre` (ajout / retrait d'une fiche de membre) ;
+      logique `espacesCompte` / `compteModifie` (functions/cabinets.js, testée).
+- [x] Ajout par un titulaire d'une personne qui a déjà un compte dans un autre cabinet : `creerMembre` répond « AUTRE_CABINET »,
+      l'écran Accès demande confirmation, puis l'accès est ajouté (même mot de passe, profil inchangé). Jamais le médecin titulaire
+      d'un autre cabinet.
+- [x] Menu **« Cabinet »** sous le logo (seulement s'il y a plusieurs cabinets) : changer recharge Onco360 dans l'autre cabinet ;
+      choix gardé dans le navigateur ; si un cabinet est suspendu ou l'accès désactivé, le suivant s'ouvre.
+- [x] Sécurité : « Lien du mot de passe » refusé pour un compte de plusieurs cabinets (il donnerait accès aux autres cabinets ; la
+      personne utilise « Mot de passe oublié ») ; cabinet supprimé = seulement retiré de sa liste (compte et agenda gardés).
+- [x] Google Agenda : **un seul agenda « Onco360 »** pour tous ses cabinets, le nom du cabinet ajouté au titre de chaque événement ;
+      cases « ce qui y apparaît » **par cabinet** (`agendaFiltre.cabinets[cabinet]`) ; **couleurs personnelles**
+      (`utilisateurs/{uid}.agendaCouleurs`, sans le droit « paramètres »), qui passent avant celles du cabinet.
+- [x] Tests : règles 221/221 (secrétaire de deux cabinets : lit les deux, pas un troisième, ne modifie pas sa liste), serveur 88/88,
+      navigateur (changement de cabinet, cases, couleurs, ajout depuis Accès, 390 px).
+- [x] Mise en ligne : règles, site, toutes les fonctions (vérifié le 10/10 : règles et fonctions déjà à jour, site remis avec la 19.7).
+
+**Audit n° 2 de la secrétaire (10/10)** : détail dans `AUDIT-SECRETAIRE.md` (5 corrections, 7 améliorations, 9 ajouts). Plan proposé,
+à valider par Dr Bentahila (4 questions dans l'audit) :
+- [x] 19.3 Corrections (fait et testé le 10/10, pas encore en ligne) : listes corrigées dans tout le cabinet (fonction serveur
+      `corrigerListes`), cloche de la secrétaire (rendez-vous à décaler, rappels WhatsApp à envoyer, numéro manquant), « Bonjour
+      Salma », adresse / téléphone / ville de son lieu (« Compléter », règle limitée à ces 3 champs), **CIN** (décision du 10/10 :
+      pas de n° d'affiliation) : champ de base de la fiche patient pour tous les cabinets, actuels et à créer, placé juste après
+      Diagnostic (CIN | Téléphone, puis 2e téléphone | Hôpital), en tête du dossier, champ {cin} des courriers ; un champ ajouté au
+      catalogue se place après celui qui le précède, même dans une fiche déjà réglée. Règles 225/225, serveur 91/91, navigateur.
+- [x] 19.4 Agenda du secrétariat (fait et testé le 10/10, pas encore en ligne) : **créneaux du jour** dans la fenêtre du rendez-vous
+      (libres cliquables, pris en gris avec le nom), **alerte de double réservation**, **« Nouveau patient »** depuis le rendez-vous
+      (nom repris, retour au rendez-vous), **confirmation WhatsApp** proposée juste après (nouveau message « Confirmation d'un
+      rendez-vous » dans Paramètres › WhatsApp), **rappels notés envoyés** (champ `rappels` du dossier, qui / quand, bouton gris ✓,
+      retirés de la cloche) et carte **« Rappels WhatsApp »** du tableau de bord ; agenda : **rendez-vous à la même heure côte à
+      côte** (case partagée) au lieu d'être empilés. Page d'accueil : tableau de bord pour tous (décision du 10/10, rien à changer).
+      Règles 227/227, navigateur (ordinateur, 390 px).
+- [x] 19.5 Caisse (fait et testé le 10/10, pas encore en ligne). Décisions de Dr Bentahila : réglage **par lieu** (pour tous les
+      médecins, rien de propre à son cabinet) ; payé au cabinet = compté payé dans le bilan **seulement s'il est encaissé** ; reçu
+      A5 **sans numéro** ; **pas de remise de caisse** ; lieux payés par l'établissement (ex. HCK, virement en fin de mois) : comme
+      avant, dans le bilan. Fait : Lieu d'exercice › « Les consultations sont payées : par l'établissement / au cabinet »
+      (`etablissements/{code}.paiement = "cabinet"`) ; fenêtre « Venu » (rendez-vous et jour de chimio) : **Paiement** espèces /
+      carte / chèque / **non payé** + « Valider et imprimer le reçu » ; dossier : « non payé » + **Encaisser**, bouton **Reçu** ;
+      salle d'attente : « Encaissé (vus) » sans les non payés, « Non payé : x DH » à part (Encaissé = l'argent à avoir en fin de
+      journée) ; bilan : « ✓ Encaissé » / « Non payé » (sans mode noté, avant le 19.5 : « Payé auto. » comme avant). Total du bilan
+      inchangé (352 317 DH, répartition payé / à recevoir identique). Serveur 92/92. **À régler par Dr Bentahila après la mise en
+      ligne : HGC et CIOC « au cabinet »** (HCK reste « par l'établissement »).
+- [x] 19.6 Sécurité médicale et alertes : **close sans développement** (décision de Dr Bentahila, 10/10) : pas d'alerte de poids (la
+      secrétaire a le droit de changer le poids) ; pas de validation médicale des ordonnances ni des certificats (elle est formée) ;
+      seule exigence, déjà en place : ce qu'elle crée porte son nom (consultation créée à son nom, chaque ordonnance avec « par »).
+      Alertes de la secrétaire : faites en 19.3.
+- [x] 19.7 Plusieurs cabinets, confort (fait et testé le 10/10) : menu « Cabinet » avec, pour chaque autre cabinet, « 2 en salle, 1 tâche »
+      (point orange sur « Cabinet », relu toutes les 2 min) ; page **« Mes cabinets aujourd'hui »** (menu, secrétaire de plusieurs cabinets) :
+      rendez-vous, cures et séances du jour de chaque cabinet avec l'état de la salle d'attente, « Ouvrir » passe dans le cabinet du patient ;
+      onglet Documents : **plusieurs fichiers d'un coup** (même type et date, titre = nom du fichier). Navigateur testé.
+- [ ] Guide de la secrétaire (avec l'étape 12).
+
+## Étape 14 – Autres spécialités (demandé le 09/10/2026) : nouveaux modules et leurs formules
+Onco360 s'ouvrira avec le temps à d'autres médecins : **médecine générale**, **gynécologie**, puis d'autres spécialités. Pour
+chacune : des **modules propres** (créés au fur et à mesure) et des **formules propres**, rangées par spécialité dans la page
+Administration (onglet Formules : déjà par spécialité depuis le 09/10 ; « Médecine générale » et « Gynécologie » y figurent, sans
+formule tant que leurs modules n'existent pas).
+- Formules par spécialité, chacune avec tous ses niveaux (ex. Essentiel / Pro / Clinique) : oncologue médical, radiothérapeute,
+  oncologue-radiothérapeute (faites le 09/10), généraliste, gynécologue (à faire avec leurs modules).
+- [ ] Médecine générale : à décider avec Dr Bentahila (ex. consultation de médecine générale, vaccinations, certificats,
+      suivi des maladies chroniques, courbes de croissance…), puis modules + formules.
+- [ ] Gynécologie : à décider (ex. suivi de grossesse, échographies, dépistage, contraception…), puis modules + formules.
+- Avant le 1er module d'une autre spécialité : donner une formule au cabinet de Dr Bentahila (ex. Onco-radiothérapie – Clinique),
+  sinon il reçoit tous les modules (cabinet sans abonnement = tout). Avec un abonnement, un module absent = non attribué (09/10).
+- Technique : un module = une clé dans `public/js/donnees/modules.js` et `functions/cabinets.js` (MODULES), ses écrans marqués
+  `data-mod`, sa page dans `PAGE_MODULE` (v2.js) ; « Ajouter les formules proposées par Onco360 » (onglet Formules) ajoute les
+  nouvelles formules sans toucher à celles déjà modifiées. Le nom « Onco360 » sera peut-être à revoir pour les autres spécialités.
+
+## Étape 15 – Module Bilan : virements et chèques reçus des cliniques et hôpitaux (demandé le 09/10/2026 ; fait, testé et mis en ligne le 09/10)
+But : dans la page **Bilan**, un endroit pour noter **chaque règlement reçu d'une clinique** (virement ou chèque) avec sa
+**date de réception**, pour la comptabilité de fin d'année. **Ne compte pas dans le bilan** : le bilan, c'est déjà l'activité
+elle-même (sinon tout serait compté deux fois). À ne pas confondre avec « **Versements autres** » (KL, `finances/versements`),
+qui, eux, **s'ajoutent** au CA du bilan. Module « Bilan » : s'applique à tous les cabinets qui ont ce module.
+
+**Décidé par Dr Bentahila (09/10)** : cliniques seulement (ni espèces, ni mutuelles, ni patients) ; pas de photo du chèque ou de
+l'avis de virement ; liste à part, sans lien avec le pointage « Payé » des actes ; le comptable **lit** seulement ; cadre placé
+**sous « Versements autres »**.
+- [x] Cadre **« Règlements reçus des cliniques »** sous « Versements autres », avec la mention « non comptés dans le bilan ».
+- [x] Une ligne = un règlement : **date de réception**, **clinique** (lieux d'exercice du cabinet), **mode** (virement / chèque),
+      **montant**, **n° du chèque ou référence du virement**, **banque**, **période ou actes concernés**, **encaissé le** (banque ;
+      vide = « Pas encore »), **note**. Contrôles : date, clinique, montant obligatoires ; encaissement pas avant la réception.
+- [x] Ajouter (« + Nouveau règlement reçu »), modifier ✎, supprimer ✕ ; liste du plus récent au plus ancien. Filtres : la
+      **période et l'établissement du haut de la page** (date de réception), plus **mode** et **encaissement** (encaissés / pas
+      encore).
+- [x] **Totaux** : total reçu, par clinique (virements, chèques, total) et **par mois de réception** (si la période couvre
+      plusieurs mois). Pour information à côté de chaque clinique : actes de la même période dans le bilan (NET, dont payé, dont à
+      recevoir), sans rien changer au bilan.
+- [x] **Exports** : feuille « Règlements reçus » dans l'Excel du bilan, tableau à la fin du PDF (indicateurs du bilan inchangés).
+- [x] Qui : médecin (droit « finances ») ajoute, modifie, supprime ; **comptable : lecture seule** (aucun bouton) ; secrétaire et
+      infirmière : rien (pas de page Bilan).
+- [x] Données : `finances/reglements` = { data: JSON [{ id, d, hop, mode vir|chq, m, ref, banque, per, enc, note, par, parNom,
+      le }] } (comme les versements ; liste relue juste avant chaque enregistrement). **Règles inchangées** : la règle existante
+      donne déjà l'écriture au droit « finances » et ne laisse au comptable que paiements et versements. 4 tests de règles ajoutés
+      (`test-comptable.mjs`). Journal d'audit et sauvegarde Drive : automatiques (collection `finances`).
+- [x] Tests : règles (toutes réussies, 19/19 pour le comptable) ; navigateur avec le faux Firebase : ajout, contrôles, modification,
+      suppression, filtres mode / encaissement / clinique / période, PDF, Excel sans erreur, comptable en lecture seule, téléphone
+      390 px sans débordement, **bilan 2026 inchangé (352 317 DH)**, aucune erreur dans la console.
+- [x] **Retouches du 09/10** (demandées par Dr Bentahila) : cadre renommé « **Règlements reçus des cliniques et hôpitaux** » ;
+      colonnes « Actes de la période / dont payé / dont à recevoir » retirées (les cliniques paient en vrac de temps en temps) ;
+      **virement = reçu directement** : pas de date d'encaissement (champ affiché pour un chèque seulement, colonne « Chèque encaissé
+      le », « — » pour un virement, compté encaissé) ; corrigé : un règlement hors de la période affichée (ex. virement du 05/05
+      avec la page sur le mois en cours) était enregistré mais invisible → période élargie à son année, filtres remis, message.
+      Page Bilan : « KL » retiré de « Versements autres » (propre au Dr Bentahila ; ses anciens libellés « Versement KL » restent) ;
+      ligne « Consultations : chimio · annonce · suivi · contrôle » (détail du total des consultations par type) retirée de l'écran.
+- [x] Retouches (09/10, suite) : « Versements autres » n'affiche plus que les versements **de la période choisie** (un versement
+      ajouté hors période : période élargie à son année) ; exports PDF et Excel : colonne Paiement = « Payé » ou « À recevoir »,
+      **sans date** (le clic du médecin sert seulement à savoir ce qui est payé).
+- [x] Mise en ligne le 09/10 (site, v2.js?v=20261010b), accord de Dr Bentahila.
+- [x] **Un seul cadre « Versements et règlements reçus »** (09/10, demandé par Dr Bentahila : deux choses semblables) : une seule
+      liste avec une colonne **Type** = « Règlement » (clinique ou hôpital, **hors bilan**) ou « Autre versement » (laboratoire…,
+      **dans le bilan**) ; filtres Type / Mode / Encaissement + période et établissement du haut ; totaux séparés (règlements hors
+      bilan, autres versements dans le bilan, par clinique, par mois) ; une seule fenêtre « + Nouveau versement ou règlement reçu »
+      (type, puis les mêmes champs ; libellé obligatoire pour un autre versement) ; un autre versement se **modifie** désormais
+      (avant : supprimer seulement). Données toujours séparées (`finances/reglements` hors bilan, `finances/versements` dans le
+      bilan : moteur inchangé). Comptable : autres versements comme avant (ajout, modification, suppression), règlements en lecture.
+      Exports : un tableau / une feuille « Versements et règlements » avec le type. Tests : bilan 352 317 DH (un autre versement
+      ajouté / modifié / supprimé fait bouger le bilan, un règlement non), comptable, 390 px, aucune erreur.
+- [ ] Mise en ligne du cadre unique (accord de Dr Bentahila).
+
+## Étape 15 bis – Audit du module Bilan (fait le 10/10/2026 : plan à valider par Dr Bentahila)
+Relecture de `bilan.js`, `moteur/bilan.js`, `moteur/finances.js`, `moteur/tarifs.js`. Rien n'est encore corrigé.
+
+**B1 – Bugs : chiffres justes (priorité 1)** (fait, testé et mis en ligne le 10/10)
+- [x] **Bilan pas à jour** : montants et calculs gardés en mémoire à la 1re ouverture de la page. Une cure validée, un prix fixé par
+      la secrétaire ou un dossier créé ensuite n'apparaissent qu'après « Actualiser » ou ~2 min (relevé du comptable) ; **jamais**
+      si la fonction « relevé du comptable » est désactivée dans le réglage du cabinet. → Recalculer à chaque ouverture de la page.
+- [x] **Changer l'hôpital d'un patient déplace tout son passé** : séances de chimio et consultations prennent l'hôpital **actuel**
+      du dossier (`P.hop`), avec ses tarifs → le bilan passé des deux hôpitaux change. → Garder l'hôpital de chaque acte (figé à la
+      validation ; une fois pour les actes déjà faits : l'hôpital d'aujourd'hui).
+      **Fait autrement** (plus simple, sans toucher aux droits chimio / rendez-vous) : à chaque changement d'hôpital, le dossier note
+      `hopHist` [{ hop: ancien hôpital, avant: date du changement }] ; un acte daté **avant** le changement reste à l'ancien hôpital
+      (tarifs compris), un acte du jour même ou après va au nouveau (`hopAu`, moteur/finances.js). Règle : `hopHist` avec le droit
+      « tous les établissements », comme l'hôpital. Dossiers déjà changés avant le 10/10 : pas d'historique, inchangés.
+- [x] **Pointage « Payé » perdu** : la case est retrouvée par « patient + type + date + libellé ». Une cure dont la date est corrigée
+      après coup, un protocole renommé, un libellé de rendez-vous changé → l'acte repasse « À recevoir ». Deux actes identiques le
+      même jour partagent la même case. → Repérer l'acte par son identifiant (cure, séance, rendez-vous), reprise des cases existantes.
+      **Fait** : 10e colonne des actes = identifiant (`s|ligne|cure|jour`, `cc|ligne|cure`, `r|rendez-vous`, `rt|radiothérapie`) ;
+      case = « patient#identifiant » ; anciennes cases reprises une fois à l'ouverture du Bilan par le médecin (`migrerPaiements` :
+      mêmes actes payés, bilan identique), encore lues tant qu'elles existent.
+- [x] **Pointages écrasés** : « Payé » réécrit toute la liste lue à l'ouverture de la page. Médecin et comptable (ou deux onglets)
+      → les clics de l'un effacent ceux de l'autre. Même chose pour les autres versements (suppression par rang : peut retirer le
+      mauvais). → Relire juste avant d'écrire (comme les règlements), identifiant pour chaque versement.
+- [x] Tests : `node tests/moteur/test-bilan.mjs` (nouveau, sans navigateur : bilan du jeu de test = référence 352 317 DH, identifiants,
+      hôpital par date, reprise des cases, 14/14) ; règles `tests/regles/test-bilan.mjs` 4/4 (toutes les règles réussies) ; navigateur :
+      reprise 64/64 cases, payé 186 004 / à recevoir 166 313 inchangés, versement ajouté ailleurs visible au retour sur la page,
+      pointage et versement d'une autre personne gardés, changement d'hôpital sans effet sur les totaux par hôpital, aucune erreur.
+- [x] Mise en ligne le 10/10 avec B2 (site v2.js?v=20261011l **et règles**), après reconnexion Firebase (erreur 401).
+
+**B2 – Affichage** (fait, testé et mis en ligne le 10/10)
+- [x] Colonne **Taux** trompeuse : consultations « 100 % » alors que le NET retire l'impôt (250 → 225) ; impôt lu sur le 1er
+      établissement seulement. → Afficher le vrai taux de l'acte. **Fait** : NET / brut (« − 10 % »), radiothérapie « part − impôt » du tarif de son lieu.
+- [x] Acte sans tarif = **0 DH sans prévenir** (cabinet neuf, activité non réglée pour un lieu ; repli silencieux sur « HGC »).
+      → Alerte « n actes sans tarif » avec lien vers Paramètres › Activités. **Fait** : 11e colonne des actes (`evtsFin`, 1 = aucun
+      tarif après le repli ni montant saisi), alerte sous les filtres par activité et lieu, « sans tarif » dans la colonne Taux. Le
+      repli sur le 1er établissement (séances à HCK au tarif HGC, comme la v1) est gardé : il ne change pas le bilan.
+- [x] Cabinet sans tarifs : message « réservé au droit finances » → « Renseignez vos tarifs ».
+- [x] Bouton « Actualiser » caché quand les exports sont désactivés (même bloc).
+- [x] Moteur : un versement sans libellé s'appelle encore « KL ».
+- [x] Référents : ne suivent pas les filtres Établissement / Type d'acte.
+- [x] Lenteur sur une année : journal entier affiché, recherche du référent ligne par ligne → « Afficher plus », calcul plus rapide.
+      **Fait** : 300 lignes, « Afficher 300 de plus » / « Tout afficher » (total et exports : tout).
+- [x] Tests : moteur 17/17 (`node tests/moteur/test-bilan.mjs`) ; navigateur : taux, Actualiser sans exports, référents par
+      établissement / type, pagination, 12 actes sans tarif signalés (tarifs de séance retirés), 390 px, bilan 352 317 DH, aucune erreur.
+
+
+**B3 – Améliorations** (fait, testé et mis en ligne le 10/10 sauf le pointage en lot)
+- [ ] **Pointer en lot** : « Marquer payés » tous les actes à recevoir d'une clinique jusqu'à une date (quand un virement en vrac
+      arrive), avec annulation. **Pas retenu pour l'instant** (Dr Bentahila, 10/10).
+- [x] Périodes : trimestre en cours, trimestre dernier, **année dernière**, chaque année depuis le 1er acte enregistré (« Année 2024 »…)
+      (moteur `periode` : `trim`, `trimprec`, `anneeprec`, `aAAAA`).
+- [x] **Tableau « Par établissement »** (sous les chiffres) : actes, NET, payé, à recevoir et son ancienneté (31 à 60 j, 61 à 90 j,
+      + de 90 j en rouge), total ; clic sur une ligne = filtre de l'établissement ; aussi en feuille Excel « Par établissement ».
+- [x] **Mois par mois** : NET de chaque mois de l'année de la période choisie, barres comparées à l'année d'avant (bleu / orange,
+      palette vérifiée pour les daltoniens), total et écart en % sur les mêmes mois, survol = montants, clic sur un mois = ce mois ;
+      « Voir les chiffres » (tableau) ; dessin adapté au téléphone.
+- [x] **Relevé pour un établissement** : bouton « Relevé » de la ligne (s'il reste à recevoir) = PDF des actes non réglés de la
+      période (date, patient, n° de dossier, acte, brut, NET, totaux), à envoyer à la clinique.
+- [x] Tests automatiques du calcul (faits en B1, + 5 tests de périodes : 22/22). Navigateur : périodes, tableau par établissement
+      (total 352 317 DH, payé 186 004 DH), relevé HCK, mois par mois et clic sur juillet, 390 px, aucune erreur.
+
+**Ordre proposé** : B1 (une session, avec tests) → B2 → B3 au choix.
+
+## Étape 12 – Dossier de cession, démonstration et guides
+But : un acheteur (éditeur, ESN, clinique) reprend Onco360 **sans avoir besoin d'appeler Dr Bentahila**.
+**C1 – Vérification complète du dossier de l'application**
+- [ ] Relecture de tout le projet : fichiers inutiles ou anciens, aucune clé secrète ni donnée patient dans le code,
+      cohérence des règles de sécurité, liste de ce qui reste propre à Dr Bentahila. Rapport écrit.
+**C2 – Tutoriel d'installation sur un nouveau compte Firebase** (nouveau médecin ou acheteur)
+- [ ] Pas à pas, **en moins de 30 minutes** : créer le projet Firebase, activer l'authentification, Firestore, l'offre
+      Blaze, les sauvegardes ; copier la configuration ; déployer site, règles et fonctions ; Google Agenda (client OAuth,
+      secret) ; créer le premier compte médecin ; vérifications. Testé pour de vrai sur un projet Firebase vierge.
+**C3 – Tutoriel complet des fonctionnalités** = guides par rôle (remplace F3) :
+- [ ] **Guide Médecin**, **Guide Infirmière**, **Guide Secrétariat** (PDF illustrés de captures d'écran faites sur le
+      cabinet de démonstration) + aide dans l'application.
+**C4 – Documentation technique**
+- [ ] **Architecture technique** (site, Firebase, fonctions serveur, Google Agenda, sauvegardes).
+- [ ] **Schéma de la base de données** (collections, champs, liens) en image + description.
+- [ ] **Règles de sécurité** commentées (qui lit / écrit quoi).
+- [ ] **Fonctions serveur et scripts** (Apps Script de sauvegarde, construire.mjs, tests) expliqués.
+- [ ] **Cahier de recette** : liste de toutes les fonctionnalités avec le scénario de test et le résultat attendu.
+**C5 – Jeu de démonstration**
+- [ ] 5 à 10 **faux patients** (Patient Test 1, 2…) avec historique de cures, radiothérapies, consultations,
+      ordonnances, bilans, agenda rempli, salle d'attente, tâches ; **chargé en un clic** dans un cabinet de démonstration.
+- [ ] **Scénario de démo de 15 min** (connexion médecin → dossier → protocole → validation infirmière → agenda → bilan).
+- [ ] **Plaquette commerciale** de 2 à 3 pages (positionnement, fonctionnalités clés, valeur pour une clinique).
+**C6 – Dossier juridique** (modèles rédigés par Claude, **à faire relire par un juriste** avant usage)
+- [ ] Note de conformité **CNDP / loi 09-08** (mesures intégrées : droits d'accès, traçabilité, chiffrement, sauvegardes ;
+      options d'hébergement : Firebase Belgique, cloud marocain, serveur local).
+- [ ] **Accord de confidentialité (NDA)** à signer avant d'envoyer le code ou de donner l'accès.
+- [ ] **Contrat de cession** : clause de **non-réplication** (pas de logiciel concurrent avec le même code), **assistance
+      après cession** de 30 à 60 jours (2 à 4 h par semaine).
+- [ ] **Auteur du code : Dr Rita Bentahila** (développé avec Claude, d'abord depuis le compte de Hamza Benzekri, puis
+      repris par elle sur son compte) : à écrire dans le contrat de cession.
+**C7 – Paquet de cession** : dossier `Onco360_Package_Cession/` sur le Mac, puis `.zip` remis à la signature :
+```
+Onco360_Package_Cession/
+├── 01_Code_Source/            (public/, functions/, firestore.rules, firebase.json, apps-script/, tests/ sans données,
+│                                .env.example sans vraies clés, README.md technique ; sans node_modules ni sauvegardes)
+├── 02_Documentation_Technique/ Architecture_Technique.pdf, Schema_Base_de_Donnees.pdf, Regles_Securite_Firebase.txt,
+│                                Procedures_Deploiement.md, Cahier_de_Recette.pdf
+├── 03_Dossier_Commercial_et_Demo/ Plaquette_Commerciale_Onco360.pdf, Scenario_Demo_15min.pdf, Dataset_Demo.json
+├── 04_Guides_Utilisateurs/    Manuel_Medecin.pdf, Manuel_Infirmier.pdf, Manuel_Secretaire.pdf
+└── 05_Legal_et_Conformite/    Checklist_Conformite_CNDP.pdf, Modele_NDA.pdf, Modele_Contrat_Cession.pdf
+```
+- [ ] Adapté à Onco360 : pas de `npm run dev` ni de `.next/` (site sans compilation) ; le README explique Firebase et le
+      serveur de test local. Historique git fourni ou non : à décider.
+
+## Étape 13 – Interopérabilité (connexion aux autres logiciels)
+- [ ] **HL7 / FHIR** (normes d'échange de données de santé) : export des comptes rendus et du résumé patient vers le
+      dossier informatisé d'une clinique ; import des résultats d'un laboratoire. À faire avec un premier client réel
+      (chaque laboratoire / clinique a son propre système).
+- [ ] **Imagerie (DICOM)** : au minimum, **liens** vers les clichés (scanner, IRM) ou la console de radiothérapie dans le
+      dossier ; plus tard, visionneuse intégrée.
+
+## Étape 21 – Agenda et rendez-vous : audit externe (11/10/2026)
+Constats : séances de chimio et étapes de RT sans heure (ligne « Journée ») ; une seule durée par lieu ; pas de médecin sur le
+rendez-vous ; déplacer = ouvrir puis modifier ; téléphone : vue Semaine illisible (7 colonnes de 37 px).
+Décisions de Dr Bentahila (11/10) : heure **facultative** pour les séances de chimio et le scanner de centrage ; durée **par type de
+consultation, la même dans tous les lieux** (réglée par le médecin ou la secrétaire, un seul réglage pour le cabinet ; la durée du
+lieu reste le pas des créneaux) ; **médecin du rendez-vous** + filtre (≥ 2 médecins) + Google Agenda d'un médecin = ses rendez-vous ;
+déplacer par **glisser-déposer avec confirmation** (vues Jour et Semaine, ordinateur).
+- [x] AG1 – Téléphone : vue Jour à l'ouverture (< 640 px) ; ancien script d'agenda retiré (fichier et carte « Ancienne synchronisation »).
+- [x] AG2 – Durée par type de consultation (Paramètres › Horaires, carte sous les horaires ; médecin ou secrétaire) : hauteur dans la
+      grille, créneaux proposés (pas du lieu, la durée doit tenir avant la fin de la plage), double réservation (chaque rendez-vous avec
+      sa durée), durée modifiable dans la fenêtre du rendez-vous et notée dessus (`du`), Google Agenda (fin de l'événement).
+- [x] AG3 – Glisser-déposer un rendez-vous (vues Jour et Semaine, souris ; repère « 15:00 – 15:20 » pendant le glisser) : confirmation
+      avec ancien / nouvel horaire et avertissements (absence, férié, horaires, déjà prévu), historique `rep`, WhatsApp proposé. Pas pour
+      un patient déjà arrivé en salle d'attente.
+- [x] AG4 – Médecin du rendez-vous (à partir de 2 médecins actifs) : choix dans la fenêtre (prérempli : le médecin connecté, sinon le
+      titulaire, ou celui du filtre), filtre « Médecin » (médecin : son agenda d'abord ; secrétaire : tous), nom du médecin sur le
+      rendez-vous en vue « Tous », créneaux et doubles réservations par médecin ; Google Agenda d'un médecin = ses rendez-vous
+      (anciens sans médecin = titulaire). Un seul médecin : rien ne change à l'écran.
+- [x] AG5 – Heure facultative des séances de chimio (J1, J8…) et du scanner de centrage : clic sur la séance = fenêtre Heure / Durée
+      (2 h / 30 min par défaut, « Retirer l'heure ») ; ou glisser la séance de « Journée » vers la grille (même jour seulement : changer
+      de jour = reporter depuis le dossier) ; Google Agenda à l'heure. Chimio : médecin et secrétaire (droit « planning ») ; scanner :
+      droit radiothérapie « modifier ». Infirmière : lecture seule.
+- Tests : `tests/test_agenda.py` (55 vérifications), `functions/test-logique.js` (+4 : médecin du rendez-vous). Salle d'attente (51),
+  réglage, fiche, protocoles, moteur (salle, bilan, reçus) inchangés.
+- [x] Mis en ligne le 11/10 (site 20261011t + fonctions), avec le travail en attente des autres sessions (Paramètres en 4 familles,
+      editeurfiche.js, « Mon compte »). Pas de nouvelle règle Firestore.
+- Plus tard si besoin : heure des séances de chimio dans la salle d'attente (ordre d'arrivée prévu) ; filtre Praticien de la salle.
+
+## Étape 20 – Design (demandé le 11/10/2026, modèle : captures de Tbibclic)
+But : profiter de tout l'écran sur ordinateur, menu repliable, cartes en relief, présentation identique d'une page à l'autre.
+On garde le bleu Onco360 (#3563B0) et Arial ; les impressions (ordonnances, fiches, plis) ne changent pas.
+- [x] 20.1 Pleine largeur (11/10) : plus de limite de 1240 px, le contenu va du menu au bord droit de l'écran (marges 36 px),
+      menu déplié ou replié ; vérifié à 1280 et 1920 px (tableau de bord, agenda, salle, patients, tâches, protocoles,
+      paramètres, bilan, profil, dossier). Reste (avec 20.3) : 4 chiffres clés par ligne, cartes côte à côte sur grand écran.
+- [x] 20.2 Menu repliable (11/10) : bouton ‹ à côté du logo → colonne d'icônes de 76 px, contenu élargi d'autant ; nom de la
+      page au survol, pastilles gardées sur l'icône, avatar et déconnexion en icônes ; choix gardé sur l'appareil
+      (`localStorage` `onco360.menuReplie`) ; tablette et téléphone : menu « burger » inchangé.
+- [x] 20.2 bis Onglets sur une ligne (11/10, demande de Dr Bentahila) : Paramètres et Profil & Paramètres = une seule ligne qui
+      défile vers la droite (molette, glisser, flèches ‹ › aux bouts, bords estompés), onglet choisi toujours visible ; plus
+      d'onglets empilés sur plusieurs lignes (classe `ag-vues defile`, réutilisable pour d'autres barres).
+- [x] 20.3 Relief (11/10) : fond légèrement teinté (#F1F5FB), ombre des cartes plus marquée, coins 18 px ; chiffres clés en
+      cartes (carré d'icône, grand chiffre) qui se soulèvent au survol, sur une seule ligne à partir de 1600 px ; ombre bleue du
+      menu actif, des boutons principaux et de l'onglet choisi ; lignes de listes surlignées au survol ; barre du haut
+      légèrement ombrée. Bloc « Relief (20.3) » à la fin du style de v2.html (jetons `--ombre`, `--ombre-h`, `--ombre-prim`).
+- [x] 20.4 Même présentation partout (11/10) : en-têtes de page déjà identiques (titre, sous-titre, boutons à droite) ;
+      onglets soulignés avec icône pour Paramètres et Profil & Paramètres (comme le dossier ; l'agenda garde Liste / Jour /
+      Semaine / Mois en boutons) ; titres de colonnes en petites majuscules grises sur fond clair (tous les tableaux `tcures` :
+      bilan, cures, horaires, audit…, et l'en-tête de la salle d'attente) ; messages « Aucun… » centrés (`vide-c` : patients,
+      tâches, salle, consultations, chimio, radiothérapie, documents, RCP). Initiales en cercle : déjà dans la liste des patients.
+      Corrigé aussi : lien « État » de l'agenda (Google Agenda relié) → Paramètres › Google Agenda (il menait au Profil).
+- [ ] 20.5 Barre du haut : recherche en pilule toujours visible sur ordinateur, cloche et avatar plus marqués.
+- Tests : `tests/test_menu.py` ; 390, 1024, 1440 et 1920 px ; 3 rôles ; impressions inchangées.
+
+## Étape 22 – Tableau de bord (audit externe du 11/10/2026)
+Constat : complet mais trop long (2 693 px, trois écrans sur une colonne) ; carte d'abonnement avant le programme du jour ;
+ordre des cartes réglé seulement par l'administration ; alertes non cliniques ; « Séance 11 / 25 » = calendrier, pas séances faites.
+- [x] Deux colonnes à partir de 1280 px : programme du jour et 7 prochains jours à gauche ; « À valider / À faire », Mes tâches,
+      Conflits à droite ; Pour commencer et Statistiques en pleine largeur (statistiques sur une ligne). Tablette et téléphone : une
+      colonne, programme du jour d'abord. Hauteur à 1 440 px : 1 497 px avec le jeu de test (au lieu de ~2 700).
+- [x] Bloc unique selon le rôle : **À valider par le médecin** (cures du jour et en retard, contourages, dosimétries, fins de
+      radiothérapie ; bouton Valider = mêmes fenêtres que le dossier) ; **À faire par la secrétaire** (rappels WhatsApp à envoyer
+      avec le bouton, numéros manquants, rendez-vous à décaler, consultations non clôturées → Salle d'attente) ; **À faire par
+      l'infirmière** (chimiothérapies du jour). Médecin : les tâches automatiques de radiothérapie ne sont plus répétées dans
+      « Mes tâches ». Secrétaire : la carte « Rappels WhatsApp » n'apparaît que si le bloc est retiré.
+- [x] Organisation réglable par le cabinet : `parametres/accueil` { ordre, cartes, col } (onglet Paramètres › Cabinet › Tableau de
+      bord fait par la session « Paramètres ») ; `accueilEffectif` / `COLONNES0` dans catalogue.js (administration puis cabinet).
+- [x] Émojis retirés (main, ☢️, 🩺, 💉 du programme, des 7 jours et des statistiques) : pictogrammes au trait.
+- [x] Abonnement : bandeau d'une ligne pendant l'essai et avant l'échéance ; grande carte seulement les 7 derniers jours et en
+      retard, en haut de la colonne de droite (après le programme du jour sur téléphone).
+- [x] Radiothérapie : « Séance 11 / 25 prévue » (bulle : calcul d'après le calendrier, les séances faites ne sont pas enregistrées).
+- [ ] **À décider avec Dr Bentahila : alertes cliniques** (ex. perte de poids > 5 % / 10 % depuis le début de la ligne, clairance
+      de la créatinine basse avant une cure au carboplatine / cisplatine, bilan biologique non reçu avant une cure, toxicité notée).
+      Rien n'est fait tant que les seuils ne sont pas choisis par elle.
+- [ ] Plus tard (à décider) : compter les séances de radiothérapie réellement faites (validation par séance) ; même libellé
+      « prévues » dans le dossier (« Séances réalisées » y est aussi un calcul de calendrier).
+- Test : `tests/test_accueil.py` (3 rôles, 1440 / 1100 / 390 px, abonnement, réglage du cabinet).
+
+## Étape 23 – Audit externe n° 2 : code, modules, fonctions (11/10/2026) — plan : `AUDIT-EXTERNE-2.md` (à valider)
+Audit du Drive (dossier « Audit », version da85b72) : rien n'est figé à la validation, saisies aberrantes acceptées, radiothérapie
+mince, dossier sans données tumorales, tout chargé dans le navigateur. Déjà réglé depuis : Bilan (15 bis), salle (SA9), tableau de
+bord (22) ; agenda planifié (21). Ordre : A → B → C → D → E, F intercalé, G avant un groupe. 12 questions en fin de plan.
+- [ ] A Assainir : A1 fichiers de l'ancienne app · A2 correspondants hors du code · A3 Casablanca / soussignée / HGC / CNSS ·
+      A4 bibliothèques dans le site (SheetJS 0.20.3) · A5 tests sur jeu fictif + `test-doses.mjs` · A6 code mort, fonctions
+      communes, transactions (protocoles) · A7 feuille de route allégée
+- [ ] B Sécuriser : B1 cure figée à la validation · B2 bornes de plausibilité · B3 prémédication par molécule · B4 RT contrôlée
+      (revalidation de la dosimétrie) · B5 documents RT honnêtes · B6 protocoles : validation tracée
+- [ ] C Dossier oncologique (sur `editeurfiche.js`, en ligne) : C1 fiche tumeur · C2 allergies · C3 statut, archivage · C4 modèle de consultation
+- [ ] D Radiothérapie : D1 volumes · D2 rythmes libres · D3 toxicités hebdomadaires · D4 compte rendu rempli
+- [ ] E Chimiothérapie : E1 bilan avant cure · E2 doses cumulées · E3 intention / réponse · E4 écran infirmière · E5 ergonomie
+- [ ] F Ergonomie : F1 prescriptions · F2 sauvegarde des fichiers · F3 WhatsApp replié, explications, croix rouges (familles et « Mon compte » faits) · F4 bilan téléphone, « Payé auto. »
+- [ ] G Montée en charge : G1 pagination · G2 photo hors du dossier · G3 index léger
+- [ ] H Geler administration et autres spécialités (question 11)
+
+## Idées en attente (à placer dans une étape)
+- [x] Réécrire `tests/test_cures.py` et `tests/test_seances.py` (fait le 11/10 : tableau des jours, fenêtre du prix, voir journal).
+- Outil de restauration d'une sauvegarde.
+
+- Annulés le 06/10 (décision de Dr Bentahila) : rappels WhatsApp automatiques, assistant IA.
+
+## Règles à ne pas changer
+- Honoraires de séance de chimio : tarif des Paramètres, 500 DH brut par jour validé (J1 et J8 = 2 × 500 DH), sans saisie
+  manuelle.
+- Le bilan doit rester identique au dirham près.
+
+---
+
+## Journal
+| Date | Étape | Ce qui a été fait |
+|---|---|---|
+| 06/10/2026 | Vérification | Lecture complète d'Onco360 : complet pour les phases A à D, petits défauts listés à l'étape 2. |
+| 06/10/2026 | 0 – Sauvegardes | Sauvegarde Firebase quotidienne vérifiée (déjà active), restauration à la minute près activée, script de copie Drive prêt. |
+| 06/10/2026 | 1 – Google Agenda | Google Agenda par personne : 7 fonctions serveur, onglet Profil › Google Agenda. En ligne, relié pour Dr Bentahila. |
+| 06/10/2026 | Plan | Feuille de route créée : étapes 1 à 4 (document, retouches, accès secrétaire/infirmière, plusieurs cabinets). |
+| 06/10/2026 | 2 – Retouches | Page de secours : vraie déconnexion (même si Onco360 n'a pas pu se charger), fin de la déconnexion sur la page de connexion. |
+| 06/10/2026 | 2 – Retouches | Message Agenda vérifié (déjà corrigé) ; import, conversion-v2 et test-droits retirés du site (→ archives/) ; historique.html gardé pour l'ancienne application. |
+| 06/10/2026 | 2 – Retouches | Onglet « Assistant IA » retiré du menu (et son message « bientôt ») ; usage de l'assistant noté pour plus tard. |
+| 06/10/2026 | 3 – Accès | Nouveaux droits secrétaire / infirmière (fiche, documents, prix à encaisser, consultations, RT si chimio), règles de sécurité et Google Agenda adaptés. Testé (3 rôles, bilan 352 317 DH, téléphone). |
+| 06/10/2026 | 3 – Accès | Mis en ligne : règles de sécurité, serveur Google Agenda, Onco360. Pastille « modifié » retirée ; « Marquer administrée », pharmacie J−1 et relevé mensuel abandonnés. |
+| 06/10/2026 | 1 – Plan | Document « gesticab explication » lu : étape 1 découpée en 1.0 (git), 1A (onglets), 1B (consultations), 1C (médicaments + ordonnance), 1D (antécédents), 1E (examens, ordo types, courriers, analyses), 1F (tests, mise en ligne) ; 5 questions à trancher. |
+| 06/10/2026 | 2 – Retouches | Dosimétrie à valider = période scanner → 1re séance tant que non validée ; résumés des dossiers concernés recalculés une fois (Google Agenda). Bilan 352 317 DH inchangé. |
+| 06/10/2026 | 2 – Retouches | Bouton WhatsApp réduit au logo (tableau de bord, 7 jours, dossier), mis en ligne. |
+| 06/10/2026 | 2 – Retouches | Site : scripts plus gardés en cache (mises à jour immédiates). Feuille de route : WhatsApp automatique et assistant IA annulés, ancien agenda arrêté. |
+| 06/10/2026 | 2 – Retouches | Pli confidentiel et CR de fin de RT générés à partir des modèles Word de Dr Bentahila (repli sur l'ancienne mise en page si modèle absent). |
+| 06/10/2026 | 2 – Retouches | Photo du patient (création / modification), affichée à la place des initiales. Fiche chimio : médecin et INPE du Profil. Ni logo ni signature dans les documents. |
+| 06/10/2026 | 2 – Retouches | Fenêtre de cure en tableau (actions par séance, cartes sur téléphone), annulation d'une séance J8/J15, jour d'encaissement de la consultation. Bilan inchangé. |
+| 06/10/2026 | 2 – Retouches | Mis en ligne : fenêtre de cure en tableau, pli page 3 « Radiothérapie … », sans 💰, allergies masquées dans le dossier, WhatsApp signé « Dr NOM ». |
+| 06/10/2026 | 2 – Retouches | Pli page 2 : « nécessitant un traitement par Radiothérapie … », mis en ligne. |
+| 07/10/2026 | 2 – Retouches | Mis en ligne : pictogrammes au trait (absence, alerte, à recevoir, WhatsApp, autre rendez-vous), pli « Radiothérapie … » sous TRAITEMENT PROPOSÉ, Google Agenda « Absence : motif ». |
+| 07/10/2026 | 2 – Retouches | Émoticônes remplacées par des pictogrammes (téléchargement, actualiser, banque, validé, prévu, statuts en pastilles, arrêt, corbeille, favoris, hôpital, + / −), mis en ligne. |
+| 07/10/2026 | 2 – Retouches | 💾 et 🖨️ remplacés par des pictogrammes, mis en ligne. |
+| 07/10/2026 | 1 – Plan | Disposition du dossier décidée : identité + rendez-vous à venir en haut ; dessous, un seul cadre à 4 onglets (Consultation, Chimiothérapie, Radiothérapie, Documents) ; « Consultations et hospitalisations » gardé dans un cadre à part, tout en bas. |
+| 07/10/2026 | 1 – Plan | Réponses : « Venu » ne crée pas de consultation ; secrétaire voit et écrit consultations et ordonnances ; courriers avec nom, âge, diagnostic, date, « à Casablanca » (modèles ALD, courrier, certificat à faire ensemble) ; Excel des médicaments et des analyses/bilans à venir. Reste la question 6 (nom sur l'ordonnance faite par la secrétaire). |
+| 07/10/2026 | 1 – Plan | Question 6 tranchée : une ordonnance faite par la secrétaire porte le nom de son médecin. Toutes les questions de l'étape 1 sont réglées. |
+| 07/10/2026 | 1.0 – Préparation | Historique des versions (git) créé dans le dossier du projet, première version enregistrée (sans données patient). |
+| 07/10/2026 | 1A – Onglets | Code écrit (un cadre à 4 onglets, documents RT déplacés dans « Documents », consultations et hospitalisations à part). **Pas testé, pas en ligne** : Terminal bloqué par la sécurité de l'application. |
+| 07/10/2026 | 1A – Onglets | Retouches demandées : pictogrammes au lieu des émoticônes, boutons pli / CR / rendez-vous remis dans la carte radiothérapie, ouverture sur Consultation, onglets tenant sur un téléphone. Testé (3 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |
+| 07/10/2026 | 1A – Onglets | Infirmière : Consultation (lecture), Chimiothérapie ouverte en premier, Radiothérapie (lecture). Testé (3 rôles, bilan 352 317 DH). Mis en ligne. |
+| 07/10/2026 | 1B – Consultations | Journal des consultations (créer, plier, modifier, supprimer), barre des 5 prescriptions (à venir), nouveau droit d'écriture, secrétaire : chimio en lecture. Testé (3 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |
+| 07/10/2026 | 1B – Consultations | Mis en ligne (site + règles de sécurité). |
+| 07/10/2026 | 1B – Consultations | Retouches : menu déroulant + titre libre (ex. J1C1 FOLFOX) ; barre des prescriptions indépendante, en bas de l'onglet. Testé (ordinateur, 390 px). Mis en ligne. |
+| 07/10/2026 | 1C – Médicaments | Liste des médicaments nettoyée (225 → 147 lignes, posologies en clair, classe thérapeutique, 21 lignes à vérifier en jaune). Décidé : ordonnance sans consultation du jour → consultation créée automatiquement. |
+| 07/10/2026 | 1C – Médicaments | Corrections de Dr Bentahila reprises, remarques retirées, 30 médicaments d'oncologie ajoutés (en vert) : 162 médicaments, à valider. |
+| 07/10/2026 | 1C – Médicaments et ordonnance | Liste des médicaments (165, recherche, + / ✎ / ✕, double-clic), ordonnance A5/A4 modifiable, Valider / Valider + Imprimer, ligne « Médic. » dans la consultation du jour (créée si besoin). Testé (3 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |
+| 07/10/2026 | 1C – Médicaments et ordonnance | Mis en ligne. Décidé : les ordonnances ne vont pas dans Documents (enregistrées dans la consultation seulement, historique en 1D). |
+| 07/10/2026 | 1A bis – Documents | Décidé : rien dans l'onglet Documents ; ordonnances et courriers derrière leur petite flèche ; pli, CR de fin et rendez-vous RT ouverts dans une fenêtre, modifiés, imprimés, enregistrés et rouverts depuis la carte radiothérapie. Questions posées. |
+| 07/10/2026 | 1A bis – Documents | Réponses : fenêtre seulement (plus de Word ni d'Excel), médecin et secrétaire modifient, onglet Documents gardé pour déposer des fichiers (étape à part). |
+| 07/10/2026 | 1D – Antécédents | Fenêtre des antécédents (Imprimer, Supprimer, Modifier à la date du jour, Renouveler, Fermer), ouverte aussi par la ligne « Médic. ». Testé (3 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |
+| 07/10/2026 | 1D – Antécédents | Retouches : Modifier garde la date de prescription, la secrétaire peut supprimer. Testé, mis en ligne (site + règles). |
+| 07/10/2026 | 1D – Antécédents | Modifier rouvre la liste des médicaments avec ceux de l'ordonnance (même date). « RCP » ajouté au menu des consultations. Règle : même système pour Ordo. type et Analyses. Testé (bilan 352 317 DH). Mis en ligne. |
+| 07/10/2026 | 1A bis – Documents | Pli, CR de fin et rendez-vous RT dans une fenêtre (A4 modifiable, Enregistrer / + Imprimer, version rouverte), plus de Word ni d'Excel. Testé (3 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |
+| 07/10/2026 | 1A bis – Documents | Mis en ligne (site + règle documentsRT). Marges d'impression élargies sur les côtés pour toutes les ordonnances (A5, A4) et les documents A4. |
+| 07/10/2026 | Impression | Côtés encore resserrés et place de l'en-tête agrandie (A5 45/28 mm, A4 60/35 mm, documents 45/35 mm), mis en ligne. Rappel ajouté : mesurer les en-têtes du papier. |
+| 07/10/2026 | 1E – Ordonnances types | Ordo. type : 26 ordonnances types (fichier du Dr corrigé et complété), clic = médicaments dans l'ordonnance, ✎ / ✕ / ajout, création / modification / suppression des types. Testé (bilan 352 317 DH). Pas encore en ligne. |
+| 07/10/2026 | 1E – Ordonnances types | Mis en ligne. |
+| 07/10/2026 | 2 – Retouches | Rendez-vous de chimio : « Venu » + fenêtre de prix (J1 250 DH, J8/J15 0), case « Consultation encaissée » retirée ; mis en ligne. |
+| 07/10/2026 | 2 – Retouches | Rendez-vous à venir : toutes les séances de chimio de toutes les cures prévues ; mis en ligne. |
+| 07/10/2026 | 2 – Retouches | Antécédents / mode de vie / allergies masqués dans le dossier ; champ « Traitement en cours » ajouté ; mis en ligne. |
+| 07/10/2026 | 1B – Consultations | Consultations toutes fermées à l'ouverture du dossier ; liste dans une zone qui défile (environ 10 consultations visibles, position gardée en pliant / dépliant). Testé avec 30 consultations (ordinateur, 390 px, bilan 352 317 DH), mis en ligne. |
+| 07/10/2026 | Retouches | Rendez-vous à venir : liste qui défile (5 visibles). Ordonnances types : version Excel du Dr installée. Favoris ⭐ (médicaments, ordonnances types). Testé (390 px, bilan 352 317 DH), mis en ligne. |
+| 07/10/2026 | 2 – Retouches | Boutons Afficher / Modifier ; résumé du patient enregistré automatiquement, page non quittable avant enregistrement ; mis en ligne. |
+| 07/10/2026 | 1E – Analyses | Analyses : 34 bilans (7 généraux) et 94 analyses (fichier du Dr rangé), clic = lignes dans l'ordonnance, ordonnance « Prière de faire pratiquer », création / modification / favoris. Testé (390 px, bilan 352 317 DH). Pas encore en ligne. |
+| 07/10/2026 | 1E – Analyses | Version corrigée par Dr Bentahila reprise ; mis en ligne. |
+| 07/10/2026 | 1E – Examens compl. | Examens compl. : 55 examens et 7 bilans d'imagerie (fichier du Dr rangé, ajouts à valider), même fenêtre que les analyses. Testé (390 px, bilan 352 317 DH). En attente de relecture, pas encore en ligne. |
+| 07/10/2026 | 1E – Examens compl. (mise en ligne) | Relecture du Dr : examens validés, pas de bilans d'imagerie ; ordonnances d'analyses et d'examens « Prière de bien vouloir faire », sans renseignements cliniques ni titre de bilan ; éléments de bilans coupés dans les parenthèses recollés. Testé (390 px, bilan 352 317 DH), en ligne. |
+| 07/10/2026 | 1E – Courriers | 6 modèles de courriers du Dr (ALD, arrêt de travail, certificat, courrier, pli confidentiel, compte rendu) remplis pour le patient, zones à compléter, éditeur de modèles ; régimes de RT pelvienne en PDF (français, darija de droite à gauche). Testé (3 rôles, 390 px, bilan 352 317 DH), en ligne. |
+| 07/10/2026 | Droits de la secrétaire | Supprime les consultations qu'elle a créées (le médecin : toutes) ; n'annule pas un statut « Venu / Non venu » posé par le médecin (statut noté avec son auteur `sp`, anciens statuts = médecin) ; Créneaux & horaires limités à son centre (membre limité à certains établissements) ; ne crée, ne modifie, ne supprime ni ne met en favori aucun élément des listes (Médic., Examens compl., Ordo. type, Analyses, Courriers), elle s'en sert pour prescrire. Règles : `bibliotheques` écrites par le médecin, consultations supprimées par le médecin ou leur auteur. Testé (2 rôles, 390 px, bilan 352 317 DH), en ligne. |
+| 07/10/2026 | 5 – Tâches (plan) | Plan du module Tâches (T1 à T6) proposé et décidé : qui voit, modifie, supprime ; types rapides ; « + Tâche » dans le dossier ; tâches absentes du dossier. |
+| 08/10/2026 | 5 – T1 Tâches | Page Tâches (Mes tâches / Toutes les tâches), création, modification, réattribution, statuts, historique, suppression, « + Tâche » dans le dossier, règles `taches`. Testé (3 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |
+| 08/10/2026 | Plan | Demandes du 08/10 rangées : étapes 6 (salle d'attente), 7 (RCP), 8 (numéro de dossier, recherche), 9 (audit, rôles, mode démo), 10 (hors-ligne), 11 (tablette infirmière, pharmacie, alertes), 12 (téléconsultation), 13 (cession, tutoriels, démo, juridique), 14 (HL7/FHIR, DICOM) ; licences et quotas ajoutés à l'étape 4 ; ordre proposé. |
+| 08/10/2026 | Plan | Retirés : téléconsultation, écran TV et QR code de la salle d'attente, « Prévenir d'un retard ». « Marquer administrée » repris (étape 11). Vente : abonnements **et** cession. Auteur du code : Dr Rita Bentahila. Étapes renumérotées (6 à 13). |
+| 08/10/2026 | 5 – T1 Tâches | Mis en ligne (site + règles) par Dr Bentahila. |
+| 08/10/2026 | 5 – T2 Tâches | Filtres : recherche, responsable (médecins / secrétaires / infirmières / membre / demandées par moi), statut, échéance (retard, aujourd'hui, semaine, sans), type ; effacer les filtres. Testé (médecin, secrétaire, 390 px, bilan 352 317 DH). Pas encore en ligne. |
+| 08/10/2026 | 5 – T2 Tâches | Mis en ligne par Dr Bentahila. |
+| 08/10/2026 | 5 – T3 Tâches | Fil de la tâche (événements + commentaires en bulles), commenter, réattribuer depuis la fiche, nombre de commentaires dans la liste ; règles : fil signé par la personne connectée. Tests des règles sur l'émulateur (`tests/regles`, 40/40). Testé (3 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |
+| 08/10/2026 | 5 – T4 Tâches | Temps réel (écoute en direct), messages à l'écran, non lues (profil), pastilles menu + titre de l'onglet, carte « Mes tâches » du tableau de bord ; l'auteur peut supprimer sa tâche même terminée. Règles 44/44 sur l'émulateur. Testé (2 onglets médecin + secrétaire, 390 px, bilan 352 317 DH). Pas encore en ligne. |
+| 08/10/2026 | 5 – T5 Tâches | Finition : nom du patient à jour, patient hors périmètre sans lien, responsable sans accès « À réattribuer » (statut / commentaire bloqués s'il est retiré), guide `guide/taches.md`. Testé (médecin, secrétaire HGC, bilan 352 317 DH). Pas encore en ligne. |
+| 08/10/2026 | 5 – T6 Tâches | Échéances dans le Google Agenda du responsable (journée entière ou 15 min, sans rappel, « EN RETARD » reportée chaque jour, retirée une fois terminée, suit les réattributions) : fonction `agendaTache` + remise à plat. Tests logique 32/32. Pas encore en ligne. |
+| 08/10/2026 | Google Agenda – couleurs | Couleurs par type d'événement modifiables (Configuration › Google Agenda), par défaut : annonce Flamant, suivi Paon, RT en cours Lavande, hospitalisation Myrtille, chimio Basilic, RT Raisin, dosimétrie Mandarine, absences Banane, tâches Graphite / Tomate. Fonction `agendaCouleurs`. Tests 40/40. Mis en ligne (règles, fonctions, site). |
+| 08/10/2026 | 6 – Salle d'attente | Décisions prises (statuts, qui fait quoi, tous les types de consultation, motif, prix et total, bulles Valider / Retour dans le dossier, arrivée sans rendez-vous, ordre au choix) ; étape découpée en SA1, SA2, SA3. |
+| 08/10/2026 | 6 – Salle d'attente | Décisions sur les prix (secrétaire : consultations seulement, fonction serveur), total encaissé / prévu, séance de chimio = consultation seulement (cure validée dans le dossier), Absent : médecin et secrétaire. Prêt pour SA1. |
+| 08/10/2026 | 6 – SA1 Salle d'attente | Page Salle d'attente (rendez-vous de consultation et séances de chimio du jour, 4 onglets, Mettre en salle / Démarrer / Valider / Absent / Annuler / Retour, motif, retard et temps d'attente), temps réel (collection `salle`), bulles Valider / Retour dans le dossier, motif dans la fenêtre du rendez-vous. Règles 66/66 sur l'émulateur. Testé (médecin, secrétaire HGC, infirmière HGC, chimio J15, 390 px, bilan 352 317 DH). Pas encore en ligne. |
+| 08/10/2026 | 6 – SA1 bis Salle d'attente | Bandeau de la semaine (flèches, calendrier), jours passés / à venir ; Absent → fenêtre de report du rendez-vous ; colonne prix et total ; secrétaire : fenêtre de prix et modification d'un prix validé (fonction serveur prixConsultation, tarifs des consultations publiés). Tests logique 52/52, règles 66/66, navigateur (médecin, secrétaire, chimio, 390 px, bilan 352 317 DH). Report d'une séance de chimio manquée : proposition à valider. Pas encore en ligne. |
+| 08/10/2026 | Documents du dossier | Onglet Documents : dépôt de fichiers (PDF, Word, photos…) avec titre, date et type, liste récente d'abord, recherche et filtre par type, ouvrir / télécharger / modifier / supprimer ; types de documents dans Configuration › Documents ; Cloud Storage activé (Europe) et règles publiées. Testé (médecin, secrétaire, infirmière, 390 px, bilan 352 317 DH). Pas encore en ligne (avec la salle d'attente, après accord). |
+| 08/10/2026 | Doc. et ligne libre | Bouton « Doc. » (documentation PDF du cabinet à remettre aux patients, régimes déplacés de Courriers, recherche, catégories, tri, remis noté dans la consultation, médecin seul gère) ; ligne libre avec suggestions de la liste. Testé (médecin, secrétaire, 390 px, bilan 352 317 DH). Pas encore en ligne. |
+| 08/10/2026 | Mise en ligne commune | Documents du dossier, bouton Doc., ligne libre avec suggestions et Salle d'attente mis en ligne (règles Firestore et stockage, fonction prixConsultation, site v2.js?v=20261008m), sur l'accord de Dr Bentahila. |
+| 08/10/2026 | 6 – SA1 et SA1 bis Salle d'attente | Mis en ligne (règles, fonction prixConsultation, site v2.js?v=20261008m), avec l'onglet Documents de l'autre session. À faire par Dr Bentahila : ouvrir Onco360 une fois avec son compte (publie les tarifs des consultations pour la secrétaire). |
+| 08/10/2026 | 2 – Retouches | Dossier : « Rendez-vous à venir » déplacé juste au-dessus de « Consultations et hospitalisations » ; bouton « + Rendez-vous » à côté d'Afficher / Modifier / + Tâche ; mis en ligne (v2.js?v=20261008r). |
+| 08/10/2026 | 6 – SA1 ter Salle d'attente | Chimio en tête d'À venir, plus de « En retard », colonnes civilité / correspondant / mutuelle / commentaire et choix des colonnes, prix bruts (anciens prix HCK), Non venu à 0 DH dans le dossier, case « Payé auto. » des Paramètres (bilan). Règles 69/69, logique 52/52, navigateur (médecin, infirmière, 390 px, bilan 352 317 DH). Pas encore en ligne. |
+| 08/10/2026 | 6 – SA1 ter Salle d'attente | Séance de chimio manquée : report depuis la salle d'attente (médecin et secrétaire, planning seul pour elle), onglets sur toute la largeur, bandeau des titres. Navigateur (secrétaire, médecin, 390 px, bilan de référence inchangé). Pas encore en ligne. |
+| 08/10/2026 | 6 – SA1 quater Salle d'attente | Repris de GestiCab : Matinée / Après-midi / Journée, n° d'ordre de passage, temps de présence, lignes colorées, « Dossier ouvert par », tri et recherche, impression de la liste. Règles 73/73, navigateur (390 px, bilan de référence inchangé). |
+| 08/10/2026 | 6 – SA1 ter et quater Salle d'attente | Mis en ligne (règles salle + presence, fonction prixConsultation, site v2.js?v=20261008s). Les changements non enregistrés d'une autre session (bouton « + Rendez-vous », rendez-vous à venir déplacés dans le dossier) sont partis avec. |
+| 08/10/2026 | 5 – P1 Tâches | Plan P1 à P4 décidé (types de tâches modifiables, Paramètres unique, Google Agenda par personne, tâches automatiques de radiothérapie, tâches dans « Rendez-vous à venir »). P1 fait : description visible dans la liste, Configuration › Tâches (types modifiables, « Radiothérapie » fixe). Testé (2 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |
+| 08/10/2026 | 5 – P2 Paramètres | Configuration et Paramètres fusionnés en une page « Paramètres » (9 onglets ; Activités et rémunérations avec le droit finances) ; nouveaux onglets Impression (marges) et Alertes (délais), délai du bouton WhatsApp vert ; `parametres/reglages`. Testé (2 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |
+| 08/10/2026 | 5 – P2 bis Paramètres | Onglets Listes (diagnostics, mutuelles, correspondants modifiables, nombre de dossiers) et Bibliothèques (les 5 listes de prescriptions en gestion, sans patient). Testé (2 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |
+| 08/10/2026 | 5 – P2 ter / P3 | Listes reliées aux dossiers (correction propagée aux dossiers, nouveaux noms dont diagnostics ajoutés par toute l'équipe ; règle `parametres/listes`, 8 tests) ; Google Agenda : chacun coche ce qui va dans son agenda (types de consultation, activités, cures / séances, RT, types de tâches) ; fonction `agendaFiltre`. Testé (règles 81/81, logique, navigateur 2 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |
+| 08/10/2026 | 5 – P3 bis | Panne Google Agenda (« Invalid start time ») corrigée : heures normalisées, dates invalides écartées, événement refusé mis de côté sans bloquer (tests 60/60). Google Agenda, Lieux d'exercice et Accès déplacés du Profil vers Paramètres (13 onglets), Profil = informations seulement. Testé (2 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |
+| 08/10/2026 | 2 – Retouches | Fiche patient : « 2e téléphone » (après Téléphone), « Adresse » et « E-mail » (après Mutuelle), dans Nouveau patient, Modifier et Afficher ; 2e téléphone aussi dans le dossier ; mis en ligne (v2.js?v=20261008s). |
+| 08/10/2026 | 5 – P4 Tâches | Tâches automatiques : 2 fixes (dosimétrie, fin de RT ; terminées toutes seules) + règles du médecin (dernière cure, non venu, nouveau patient, N mois après la RT, veille J1), activables, responsable et délai réglables ; fonctions `tachesAutoPatient` / `tachesAutoNuit` ; tâches du patient dans « Rendez-vous et tâches à venir » (+ Tâche). Tests logique 73/73, règles 85/85, navigateur, bilan 352 317 DH. Pas encore en ligne. |
+| 08/10/2026 | 5 – P4 | Dosimétrie à valider : une tâche seulement (retirée de l'agenda, des 7 jours, du programme du jour, de Google Agenda). Tâche créée seulement du scanner à la 1re séance ; responsable des tâches fixes = médecin. Tests logique 75/75, bilan 352 317 DH. Pas encore en ligne. |
+| 08/10/2026 | 6 – Salle d'attente (retouches + SA3) | Prix payé d'avance, libellés courts et centrés, fenêtre de prix après validation de cure / séance, anciennes chimio « Vu », statut de salle d'attente dans l'Agenda (Jour, Liste) et le tableau de bord. Règles 88/88, navigateur (secrétaire, médecin, bilan de référence inchangé). |
+| 08/10/2026 | 6 – Salle d'attente (corrections) | Commentaire sur une consultation vue, stylo centré, anciens prix HCK en brut, seuils d'attente dans Paramètres › Alertes. Règles 90/90, navigateur, bilan de référence inchangé. |
+| 08/10/2026 | 2 – Retouches (téléphone) | Pastille de la salle d'attente renommée (.pst) : elle déformait la ligne de dose de la radiothérapie, la chimio arrêtée et le statut des tâches ; boutons Afficher / Modifier / Tâche / RDV alignés ; consultations passées : libellé non recouvert par les badges. 390 px vérifié, bilan de référence inchangé. |
+| 09/10/2026 | 7 – RCP | Paramètres › RCP (jours, heure, lieu, dates ajoutées / annulées), bouton « + RCP » du dossier (question, date d'inscription, prochaine RCP), onglet RCP des Tâches (calendrier des semaines, période, case Fait, impression), bulles Décision RCP / Valider / Fermer dans le dossier, inscriptions dans « Rendez-vous et tâches à venir ». Règles 116/116, navigateur (3 rôles, 390 px, bilan 352 317 DH). Pas encore en ligne. |
+| 09/10/2026 | 5 – P4 Radiothérapie | Contourage ajouté au déroulé (scanner → contourage → dosimétrie → 1re séance) : étape et validation dans le dossier, tâche automatique « Valider le contourage », « Valider la dosimétrie » créée après le contourage, valider la tâche = valider dans le dossier. Tests logique 79/79, navigateur (dossier et tâche), bilan 352 317 DH. Pas encore en ligne. |
+| 09/10/2026 | 8 – Numéro de dossier | AAAAMM + rang dans le mois (serveur, sans doublon), patients existants numérotés une fois, recherche par numéro / naissance, filtre par hôpital ; mis en ligne (fonctions + site v2.js?v=20261009n). |
+| 09/10/2026 | 4 – F1 Plusieurs cabinets | Liste de ce que reçoit un cabinet neuf décidée ; compte d'administration séparé, page Administration (création d'un cabinet, liste sans données médicales) ; cabinet de la personne connectée (`comptes/{uid}`) ; règles : cabinets étanches, plus de pouvoir d'administratrice hors de son cabinet ; premier démarrage guidé ; ce qui était propre à Dr Bentahila retiré (ville du lieu sur le pli). Tests règles 143/143, cabinets 17/17, navigateur 18/18, bilan 352 317 DH. Mis en ligne (règles, 3 fonctions, site v2.js?v=20261009p). Modules par cabinet décidés (formules + retouches, nombre max de comptes par rôle, module retiré = caché) : prochaine session. (`test_cures` / `test_seances` échouaient déjà avant : à mettre à jour.) |
+| 09/10/2026 | 4 – F1 compte d'administration | Compte d'administration = gbentahila@hotmail.fr (fiche `administrateurs/{UID}` ajoutée par Dr Bentahila ; sa propre fiche retirée : son cabinet n'en dépend pas, ses pouvoirs viennent de son e-mail). Règles : `administrateurs` et `utilisateurs` (profils) fermés au compte d'administration (tenus par Dr Bentahila seule). Règles 149/149, mises en ligne. |
+| 09/10/2026 | 4 – F1 Administration | 1er cabinet créé par Dr Bentahila (Dr Gorbin) ; e-mail du mot de passe classé en indésirables → bouton « Lien du mot de passe » (WhatsApp). Liste des cabinets bloquée sur « Chargement… » → fonction réécrite. Suspendre / Réactiver / Supprimer un cabinet. Règles 155/155, navigateur, bilan 352 317 DH. Mis en ligne (fonctions, règles Firestore et Storage, site). |
+| 09/10/2026 | 4 – F1 Administration | Liste des cabinets bloquée : la date de création du cabinet de référence est une date Firebase (pas un texte) → l'affichage plantait. Corrigé (serveur + page, test avec ce cas) et mis en ligne ; vérifié en direct : 4 cabinets listés (Dr Gorbin, Dr Zizi, référence, test-b1). |
+| 09/10/2026 | 4 – F1 Modules par cabinet | Formules (Essentiel, Radiothérapie, Complet) + retouches module par module + maximums (médecins, secrétaires, infirmières, lieux, dossiers) depuis la page Administration ; modules retirés cachés (données gardées) ; cabinet de Dr Bentahila affiché comme cabinet normal. Tests cabinets 27/27, navigateur 33/33, bilan 352 317 DH. Mis en ligne (fonctions, site v2.js?v=20261009q). |
+| 09/10/2026 | 4 – F1 Administration | Formules modifiables par l'administration (nom, modules, maximums ; nouvelle formule ; suppression si aucun cabinet ne l'utilise) : `plateforme/formules` (serveur seulement), fonction `formulesEnregistrer` (cabinets sans retouche mis à jour) ; « Modifier » un cabinet (nom, ville, adresse, téléphone, nom et téléphone du titulaire : `infosCabinet`). Maximum vide = sans limite, chiffre = bloqué, 0 = aucun. Tests cabinets 32/32, navigateur 38/38. Mis en ligne. |
+| 09/10/2026 | 4 – F1 Administration | 8 formules proposées par spécialité (Oncologie : Essentiel / Pro / Clinique ; Radiothérapie : Essentiel / Pro / Centre ; Onco-radiothérapie : Pro / Clinique), spécialité modifiable ; page Administration refaite : onglets Cabinets (chiffres, recherche, filtres statut / spécialité, cartes) / Nouveau cabinet (spécialité → formule, aperçu) / Formules (par spécialité, barre d'enregistrement) ; réglages dans une fenêtre. Étape 14 ajoutée (autres spécialités). Tests 33/33, navigateur 44/44, bilan 352 317 DH. Mis en ligne. |
+| 09/10/2026 | 9 – S1 Journal d'audit | Décidé : modifications, suppressions, ouvertures ; partie touchée sans valeurs ; titulaire seul ; tout gardé. Fonction `auditEcriture` (identité réelle, infalsifiable), `audit/{e}/lignes`, page Paramètres › Journal d'audit (filtres, export Excel), bouton Journal du dossier. Corrigé : lien direct vers un onglet du titulaire (Accès, Journal) qui retombait sur le 1er onglet. Règles 167/167, logique 25/25, navigateur 12/12 + 44/44, bilan 352 317 DH. Code sur GitHub (dépôt privé ritabentahila-alt/onco360). Pas encore en ligne. |
+| 09/10/2026 | 9 – S1 en ligne, S2 Comptable | Journal d'audit mis en ligne. Rôle Comptable : relevé financier préparé par le médecin (nom + n° de dossier, actes, montants, sans diagnostic), pointage des paiements et versements, aucun dossier ouvert (règles), Bilan et Profil seulement. Règles 182/182, navigateur 13/13, bilan identique 352 317 DH. Pas encore en ligne. |
+| 09/10/2026 | 9 – S2 en ligne, S3 Démo, référence | Comptable mis en ligne. Bibliothèque de référence mise de côté (plateforme/reference, mise à jour à la demande, onglet de l'Administration). Cabinet de démonstration : 8 patients fictifs, réinitialisable, badge. Tests démo 9/9 + 14/14, cabinets 44/44, comptable 13/13, bilan 352 317 DH. Mis en ligne (fonctions, site). |
+| 10/10/2026 | Organisation, bibliothèques, équipe | Le cabinet du Dr Bentahila devient un cabinet comme les autres ; tout se gère depuis l'administration. Bibliothèques de référence par spécialité (Oncologie – Radiothérapie en place), modifiées depuis l'administration avec les écrans d'Onco360, listes de départ figées, copiées aux nouveaux cabinets selon la spécialité. Création des comptes de l'équipe par le serveur (Firebase refusait la création depuis le navigateur) + lien du mot de passe ; équipe visible dans l'Administration. Vocabulaire fixé (cabinet, équipe, module, formule, bibliothèque). Tests 19/19, 42/42, autres inchangés, bilan 352 317 DH. |
+| 10/10/2026 | Paramètres et menus par spécialité | Paramètres de base mis de côté dans la bibliothèque Oncologie – Radiothérapie (repris une fois du cabinet du Dr Bentahila, nettoyés : ni correspondants, ni prix des consultations, ni absences, ni lieu de RCP), modifiables depuis l'Administration, copiés aux nouveaux cabinets. Onglet « Modules et menus » (modules communs, propres à une spécialité, prévus pour la médecine générale). Tests 21/21, 48/48, 44/44, bilan 352 317 DH. Mis en ligne. |
+| 09/10/2026 | 5 – Tâches RT | Tâches contourage / dosimétrie en bandeau sur toute la période dans Google Agenda (champ `debut`), « Du … au … » dans la liste. Tests 85/85. Pas encore en ligne. |
+| 09/10/2026 | Plan – Bilan | Demande notée : étape 15, « Règlements reçus » (virements et chèques des cliniques, date de réception) dans la page Bilan, hors bilan, pour la comptabilité ; questions à valider au début de l'étape. |
+| 09/10/2026 | 15 – Bilan, règlements reçus | Cadre « Règlements reçus des cliniques » sous « Versements autres » (virements et chèques, date de réception, référence, banque, période concernée, encaissé le, note), hors bilan ; totaux par clinique et par mois, rappel des actes de la période pour information ; Excel et PDF ; comptable en lecture seule. `finances/reglements`, règles inchangées (+4 tests). Bilan 352 317 DH, 390 px, aucune erreur. Pas encore en ligne. |
+| 09/10/2026 | 15 – Retouches | « Règlements reçus des cliniques et hôpitaux » ; sans les actes de la période ; virement sans date d'encaissement ; règlement hors période (05/05) désormais montré (période élargie) ; « KL » et ligne du détail des consultations retirés de la page Bilan. Bilan 352 317 DH, aucune erreur. Pas encore en ligne. |
+| 09/10/2026 | 15 – En ligne | Versements autres limités à la période choisie ; exports : « Payé » sans date. Bilan 352 317 DH, aucune erreur. Site mis en ligne (v2.js?v=20261010b). |
+| 09/10/2026 | 15 – Un seul cadre | « Versements autres » et « Règlements reçus » fusionnés en « Versements et règlements reçus » (colonne Type, totaux séparés, une seule fenêtre, versement modifiable). Bilan 352 317 DH. Pas encore en ligne. |
+| 10/10/2026 | 16 – Plan administration | Demande : tout régler par spécialité (modules + / − / ↑ ↓, fonctions, paramètres, bibliothèques), onglet « Par spécialité », cabinets en liste, onglet Bibliothèques. Inventaire complet et plan en 5 étapes : `PLAN-ADMINISTRATION.md`. 4 questions à valider. |
+| 10/10/2026 | 16 – début | Décisions : une seule spécialité Oncologie – Radiothérapie, tout réglable cabinet par cabinet (packs = point de départ, retouches : options, ordre du tableau de bord, ordre des onglets des Paramètres…). Catalogue commencé, cabinets en liste + fiche. Tests 46/46, 21/21, 48/48, bilan 352 317 DH. Mis en ligne. |
+| 10/10/2026 | 16.3 Réglage du cabinet | Pack de départ puis retouches cabinet par cabinet : ordre du menu, modules et fonctions, cartes du tableau de bord, onglets des Paramètres, bibliothèques, maximums ; appliqué dans Onco360 ; 15 fonctions reliées (dont tâches automatiques côté serveur), les autres marquées « bientôt ». Corrigé : limites du pack écrasées au changement de pack. Tests 52/52, 21/21, 50/50, bilan 352 317 DH. Mis en ligne. |
+| 10/10/2026 | 16.3 Fonctions reliées | Les 63 fonctions du catalogue : 46 activables reliées (écran ; tâches automatiques et échéances Google Agenda aussi côté serveur), 17 fonctions de base toujours présentes (affichées sans case). Tests réglage 14/14, cabinets 52/52, bilan 352 317 DH. Mis en ligne. |
+| 10/10/2026 | 16.2 Par spécialité | Onglet Par spécialité (packs avec réglage complet, modules et menus, bibliothèque et paramètres) ; un cabinet reçoit le réglage de son pack puis peut être retouché ; modifier un pack met à jour les cabinets non retouchés. Tests 53/53, 21/21, 14/14, serveur 54/54, bilan 352 317 DH. Mis en ligne. |
+| 10/10/2026 | 16 – Administration allégée | Décidé avec Dr Bentahila : sous-onglet « Modules et menus » retiré (déjà dans l'écran d'un pack) et onglet « Bibliothèques » retiré (doublon de Par spécialité › Bibliothèque et paramètres) ; Administration = Cabinets, Nouveau cabinet, Par spécialité. Modules prévus pour la médecine générale : feuille de route (étape 14). Prochaine demande : fiche patient réglable par spécialité et par cabinet (champs, ordre, champs ajoutés). Mis en ligne. |
+| 10/10/2026 | 16.6 Fiche patient réglable | Ordre et présence des champs de la fiche, champs ajoutés (5 types, imprimables, en-tête), par pack et par cabinet ; appliqué partout (création, modification, affichage, en-tête, fiche chimio, courriers) ; oncologie inchangée sans réglage. Principe retenu pour la consultation (16.7). Tests 11/11, 51/51, 56/56, bilan 352 317 DH. Mis en ligne. |
+| 10/10/2026 | 16.6 bis Fiche de la spécialité | Fiche patient réglée une fois par spécialité (Bibliothèque et paramètres), la même pour tous les packs, envoyée à tous les cabinets de la spécialité ; champs existants renommables ; retouches par cabinet (différences seulement) ; plus de fiche dans les packs. Tests 19/19, serveur 60/60. |
+| 10/10/2026 | 16.7 Consultation réglable | Formulaire « Nouvelle consultation » réglé par spécialité (commun aux packs) : ordre, présence, noms, liste des types, champs ajoutés (texte long, nombre avec unité, section…), retouches par cabinet ; oncologie inchangée sans réglage. Tests 15/15, serveur 63/63. |
+| 10/10/2026 | 16.8 Onglet Modules | Administration : liste de tous les modules (de base, activables, prévus), toutes spécialités, avec fonctions, packs et cabinets ; filtres et recherche. Tests 10/10. |
+| 10/10/2026 | Audit de l'Administration | Tous les écrans revus (ordinateur et téléphone) : 9 corrections, 9 améliorations, 5 ajouts ; plan 17.1 à 17.5 puis 16.5 dans `AUDIT-ADMINISTRATION.md` (à valider par Dr Bentahila). |
+| 10/10/2026 | 17.1 et 17.2 | Corrections de l'audit (A1 à A9) et nouvelle fenêtre de réglage (sous-onglets, Enregistrer toujours visible, retouché / revenir au pack). Tests au vert, bilan 352 317 DH. Mis en ligne. |
+| 10/10/2026 | 17.3 et 17.4 | Liste des cabinets (tuiles, tri, activité, fiche regroupée) et abonnements (prix des packs, essai 30 j, gratuit, paiements, suspension automatique après 30 j de retard). Tests au vert, bilan 352 317 DH. Mis en ligne. |
+| 10/10/2026 | 17.5 Journal de l'Administration | Toutes les actions de l'administration (et suspensions automatiques) notées par le serveur ; onglet Journal avec filtres et export. Mis en ligne. |
+| 10/10/2026 | 16.6 ter En-tête du dossier | Case « en-tête » pour chaque champ de la fiche patient (existants compris) : ce qui s'affiche en haut du dossier se règle par spécialité, puis par cabinet. Mis en ligne. |
+| 10/10/2026 | Audit n° 2 de l'Administration | Tuile « Cabinets » = tout afficher (bug signalé), « Effacer les filtres », bandeau des cabinets sans abonnement, activité « aucune », revenu HT. Plan 18.1 à 18.5 (onglet Comptabilité, factures, relances, sécurité) dans `AUDIT-ADMINISTRATION.md`. Mis en ligne. |
+| 10/10/2026 | 18.1 et 18.2 | Finitions (démo dans Nouveau cabinet, Actualiser, coordonnées de facturation) et onglet Comptabilité (encaissé, à encaisser, impayés, évolution, encaissements, export comptable). 18.5 abandonnée. Mis en ligne. |
+| 10/10/2026 | 18.3 Réglages des abonnements | Suspension « me demander » par défaut (ou automatique, ou jamais), délais réglables, cabinet exclu possible ; prix TTC. Plan : 18.4 factures, 18.5 Profil & Paramètres (Abonnement, Factures) dans Onco360, 18.6 relances. Mis en ligne. |
+| 10/10/2026 | 18.4 Factures | Mon entreprise (mentions légales), facture à chaque paiement (F-AAAA-NNNN), avoir (AV-AAAA-NNNN), facture A4 avec montant en lettres, Comptabilité › Factures et export. Mis en ligne. |
+| 10/10/2026 | 18.5 Profil & Paramètres | Onco360 : onglets Informations, Accès, Abonnement, Factures ; carte d'abonnement sur le tableau de bord (comme Tbibclic) ; demandes des médecins dans l'Administration. Décision : le bilan de test (352 317 DH) n'est plus vérifié à chaque étape. Mis en ligne. |
+| 10/10/2026 | 18.6 Relances | Comptabilité › Relances : retards, échéances proches, fins d'essai ; message prêt (WhatsApp, e-mail), relance notée, modèles des messages. Plan de l'audit terminé (reste 16.5). Mis en ligne. |
+| 10/10/2026 | 19.1 Secrétaire | Audit des accès de la secrétaire (`AUDIT-SECRETAIRE.md`). Décidé : secrétaire pour plusieurs cabinets (19.2, à faire). Fait : droit « Paramètres du secrétariat » (congés, horaires de ses lieux, listes, types, bouton WhatsApp vert), Médic. avec ligne libre et ajout d'un médicament par la secrétaire, ses lieux seulement, profil allégé. Règles 211/211, serveur 0 échec, navigateur (ordinateur et 390 px). Pas encore en ligne. |
+| 10/10/2026 | 19.1 Secrétaire (suite) | Droit élargi : jours fériés, messages WhatsApp, RCP, impression, alertes, salle d'attente. Validation du poids de la séance du jour par la secrétaire (planning, repris dans le dossier par le médecin). Règles 212/212, navigateur. Pas encore en ligne. |
+| 10/10/2026 | 19.2 Plusieurs cabinets | Une secrétaire (ou tout membre non titulaire) peut avoir plusieurs cabinets : ajout confirmé par le titulaire, menu « Cabinet » sous le logo, lien du mot de passe bloqué pour ces comptes. Un seul Google Agenda pour tous ses cabinets (nom du cabinet dans le titre), cases par cabinet, couleurs personnelles. Règles 221/221, serveur 88/88, navigateur. Pas encore en ligne. |
+| 10/10/2026 | Audit n° 2 secrétaire | Tout le parcours de la secrétaire revu (ordinateur, téléphone, deux cabinets) : 5 corrections, 7 améliorations, 9 ajouts ; plan 19.3 à 19.7 dans `AUDIT-SECRETAIRE.md`, 4 questions à valider. |
+| 10/10/2026 | 19.3 Corrections secrétaire | Listes corrigées par le serveur dans tout le cabinet, cloche de la secrétaire, « Bonjour Salma », adresse de son lieu, CIN (après Diagnostic, tous les cabinets, en-tête, courriers). Règles 225/225, serveur 91/91, navigateur. Pas encore en ligne. |
+| 10/10/2026 | 19.4 Agenda du secrétariat | Créneaux du jour, double réservation, nouveau patient depuis le rendez-vous, confirmation WhatsApp, rappels notés envoyés + carte du tableau de bord, rendez-vous à la même heure côte à côte. Règles 227/227, navigateur. Pas encore en ligne. |
+| 10/10/2026 | 19.5 Caisse | Réglage par lieu (payé au cabinet / par l'établissement), mode de paiement et « non payé » à la validation, reçu A5, Encaisser depuis le dossier, salle d'attente (non payé à part), bilan : payé seulement si encaissé pour les lieux « au cabinet ». Bilan inchangé, serveur 92/92, navigateur. Pas encore en ligne. |
+| 10/10/2026 | 19.5 Retouches | Carte « Rappels WhatsApp » chez la secrétaire seulement ; Paramètres › Alertes de la secrétaire = ses alertes (et le temps d'attente de la salle), plus celles du médecin ; salle d'attente : vus des lieux payés par l'établissement comptés et signalés (« dont x DH payés par l'établissement »). Site déjà mis en ligne par Dr Bentahila (v2.js?v=20261010q) : régler HGC et CIOC « au cabinet » pour le reçu. |
+| 10/10/2026 | 19.5 Qui encaisse | Le médecin (fin de consultation, bulles du dossier, « Venu ») valide seulement le prix : consultation « à encaisser » (mode `ae`), sans paiement ni reçu. La secrétaire encaisse depuis Salle d'attente › Vus (bouton **Encaisser** : mode de paiement, reçu ; puis **Reçu** pour réimprimer) ou depuis le dossier ; « À encaisser : x DH » à côté de « Encaissé (vus) » ; bilan : « À encaisser » tant que ce n'est pas encaissé. Serveur 93/93, navigateur. |
+| 10/10/2026 | 19.5 Le médecin encaisse aussi | Jour sans secrétaire : case « Encaisser maintenant » dans la fenêtre « Venu » du médecin (décochée = à encaisser) ; boutons Encaisser de l'onglet Vus et du dossier aussi pour lui (case cochée). Paramètres › Activités : lieu « au cabinet » → consultations « à l'encaissement » à la place de « Payé auto. » (sans effet pour elles). |
+| 10/10/2026 | 19.5 « Payé auto. » retiré | Décision de Dr Bentahila : case retirée de Paramètres › Activités (consultations au cabinet = encaissement ; séances de chimio, hospitalisations, lieux payés par l'établissement = virement, « Payé » coché dans le bilan). L'ancien réglage reste appliqué aux actes validés avant le 12/10/2026 (bilan passé inchangé : payé 186 004 DH identique). |
+| 10/10/2026 | 19.6 close | Pas d'alerte de poids ni de validation des ordonnances de la secrétaire (décision) ; son nom figure déjà sur ce qu'elle crée. Reste 19.7 (plusieurs cabinets, confort). |
+| 10/10/2026 | 19.7 Plusieurs cabinets, confort | Pastilles par cabinet dans le menu « Cabinet », page « Mes cabinets aujourd'hui », dépôt de plusieurs fichiers. Étape 19 terminée (reste le guide de la secrétaire, avec l'étape 12). |
+| 10/10/2026 | Mise en ligne 19.1 à 19.7 | Vérifié : règles et fonctions déjà à jour en ligne (mises par Dr Bentahila), site remis (v2.js?v=20261010w, avec la 19.7). Règles 227/227 avant. GitHub à jour. À faire par Dr Bentahila : HGC et CIOC « au cabinet ». |
+| 10/10/2026 | 19.7 bis Images en un PDF | Onglet Documents (médecin et secrétaire) : plusieurs images choisies → un seul PDF (une page par image, ordre des noms de fichiers, titre et type uniques), case cochée par défaut ; PDF construit dans le navigateur (sans bibliothèque), vérifié (3 pages, lisible par l'aperçu du Mac). Pas encore en ligne. |
+| 10/10/2026 | 19.7 ter Aperçu des documents | Onglet Documents coupé en deux : liste à gauche (clic = choisir), aperçu à droite (PDF dans le cadre, images ; Word : aperçu impossible) avec Nouvelle fenêtre, Télécharger, Modifier, Supprimer ; document déposé affiché tout de suite ; phrase du bas retirée ; téléphone : l'un sous l'autre. Pas encore en ligne. |
+| 10/10/2026 | 19.7 ter Documents épurés | Liste : une ligne par document (titre, date, type ; détails au survol), même hauteur que l'aperçu, défilement au-delà ; aperçu sans en-tête, ouvert sur le document le plus récent ; actions (Nouvelle fenêtre, Télécharger, Modifier, Supprimer) dans un bouton « ⋯ » flottant en bas à droite de l'aperçu (le menu du lecteur PDF du navigateur ne peut pas être modifié). Pas encore en ligne. |
+| 11/10/2026 | Documents : aperçu recadré | Aperçu plus large (liste à 25 %), cadre du PDF ajusté exactement ; « Plein écran » dans le menu « ⋯ » (la barre d'outils du lecteur PDF de Safari a besoin de place). |
+| 11/10/2026 | Documents : tout en PDF | Décision de Dr Bentahila : tout document déposé est enregistré en PDF. Converti dans le navigateur avant l'envoi : photos, Word .docx (mammoth), Excel .xlsx/.xls/.ods et CSV (SheetJS), texte ; pages A4 (paysage pour les tableaux), coupées entre deux lignes, marges ; anciens formats (.doc, PowerPoint…) refusés avec la marche à suivre. Le texte converti est une image (non sélectionnable). Documents déjà déposés inchangés. Testé (Word 3 pages, CSV, texte, refus .doc). Pas encore en ligne. |
+| 11/10/2026 | Dossier : onglets à la hauteur de l'écran | Onglets Chimiothérapie et Radiothérapie : défilement intérieur (hauteur de l'écran moins l'en-tête), position gardée quand le dossier se redessine ; chimio : la ligne en cours (sinon la dernière) ouverte, les autres fermées. Consultation : défilement déjà en place. Pas encore en ligne. |
+| 11/10/2026 | Dossier : radiothérapies repliables | Une seule radiothérapie ouverte (la plus récente à l'ouverture) ; fermée = titre, badges, dose, séances réalisées et boutons (sans les étapes, la consultation hebdomadaire ni la note) ; clic sur le titre pour ouvrir / fermer. Pas encore en ligne. |
+| 11/10/2026 | 20.2 Menu repliable et onglets | Plan design (étape 20, d'après Tbibclic). Fait : menu repliable en colonne d'icônes (choix gardé, nom au survol, téléphone inchangé) ; onglets des Paramètres et du Profil sur une seule ligne qui défile vers la droite (molette, flèches ‹ ›). Tests menu 22/22, profil 16/16, réglage 14/14, audit 12/12, consultation 15/15 ; test_fiche : 2 échecs déjà présents avant (Administration, en-tête de la fiche). Pas encore en ligne. |
+| 11/10/2026 | 20.1 Pleine largeur | Page élargie du menu au bord droit de l'écran (plus de limite de 1240 px). test_fiche réparé (21/21) : ses 2 échecs venaient du champ CIN ajouté le 10/10 (un champ de plus dans la fiche), pas d'un défaut d'Onco360. test_cures / test_seances : trop anciens, à réécrire (Idées en attente). Tests menu 24/24, profil 16/16, réglage 14/14, audit 12/12, consultation 15/15, protocoles sans erreur. Pas encore en ligne. |
+| 11/10/2026 | Dossier : consultations | À l'ouverture du dossier, la consultation la plus récente est ouverte (une seule à la fois, comme la chimio et la radiothérapie : vérifié) ; note écrite directement dans la consultation ouverte, enregistrée toute seule (1,5 s après la dernière frappe ou en quittant la zone), curseur placé dans la note d'une consultation qu'on vient de créer ; « Modifier » pour le type, la date et les autres champs. Pas encore en ligne. |
+| 11/10/2026 | 20.3 Relief | Cartes plus détachées du fond, chiffres clés qui se soulèvent au survol (une ligne sur grand écran), menu actif et boutons principaux en relief. Vérifié à 1920, 1280 et 390 px (tableau de bord, bilan, patients). Tests menu 27/27. Pas encore en ligne. |
+| 11/10/2026 | 20.4 Même présentation | Onglets soulignés (Paramètres, Profil), titres de colonnes en petites majuscules grises, messages « Aucun… » centrés ; lien « État » de l'agenda → Paramètres › Google Agenda. Vérifié à 1440 et 390 px (paramètres, profil, bilan, salle, tâches, patients, agenda, dossier). Pas encore en ligne. |
+| 11/10/2026 | Photo du patient | Photo du dossier carrée et plus grande (120 px, 96 px sur téléphone) pour reconnaître le patient ; initiales au même format sans photo ; ajout toujours par clic sur la bulle ; photos neuves enregistrées en 420 px (les anciennes, en 240 px, un peu moins nettes jusqu'à leur remplacement). Vérifié à 1280 et 390 px. En ligne (v2.js?v=20261011j). |
+| 10/10/2026 | 15 bis – Audit du Bilan | Relecture du module : 4 bugs de données (bilan pas à jour, changement d'hôpital, pointage perdu, pointages écrasés), 7 points d'affichage, 6 améliorations ; plan B1 → B3 à valider. |
+| 10/10/2026 | 15 bis – B1 | Bilan recalculé à chaque ouverture ; hôpital des actes gardé lors d'un changement d'hôpital (`hopHist`) ; cases « Payé » repérées par l'identifiant de l'acte (anciennes reprises) ; pointages et versements relus avant écriture. Tests moteur 14/14, règles +4, navigateur. Pas encore en ligne. |
+| 10/10/2026 | 15 bis – B2 | Taux réel de chaque acte, alerte « actes sans tarif » (0 DH), message sans tarifs, Actualiser séparé des exports, versement sans libellé = « Versement », référents selon établissement et type, journal par 300 lignes. Tests 17/17 + navigateur. Pas encore en ligne. |
+| 10/10/2026 | 15 bis – En ligne | B1 et B2 mis en ligne (site et règles). |
+| 10/10/2026 | 15 bis – B3 | Trimestres, année dernière et années précédentes ; tableau « Par établissement » (à recevoir par ancienneté) ; graphique mois par mois comparé à l'année d'avant ; relevé PDF des actes à régler pour un établissement. Pointage en lot non retenu. Tests 22/22 + navigateur. Pas encore en ligne. |
+| 10/10/2026 | 15 bis – B3 en ligne | Site mis en ligne par Dr Bentahila (v2.js?v=20261011m). |
+| 10/10/2026 | 15 bis – Retouche | Tableau « Par établissement » : la ligne « Non renseigné / autres » (qui regroupait les autres versements) devient « Autres versements » (clic = type Autres versements) ; les actes sans établissement ont leur propre ligne « — ». Mis en ligne (v2.js?v=20261011n). |
+| 10/10/2026 | 6 bis – Audit salle d'attente | Audit complet (`AUDIT-SALLE-ATTENTE.md`) : 10 bugs (écritures qui s'écrasent, n° d'ordre en double, horloge des ordinateurs, minuit, badges lents…), manques pour 20-30 patients, plan SA4 à SA7 à valider. |
+| 10/10/2026 | 6 bis – SA4 Salle d'attente | Fiabilité : transactions (plus d'action effacée, refus clair si un collègue a agi), n° d'ordre par compteur, heure du serveur affichée à l'heure du Maroc, passage de minuit, libellé, impression. Règles (toutes les suites) et navigateur (deux écrans simulés, ordinateur à l'heure belge, 390 px) testés. |
+| 11/10/2026 | 6 bis – SA5 Salle d'attente | Rapidité : mémoire des lignes (Agenda 673 → 51 ms, tableau de bord 777 → 17 ms avec 620 dossiers), minutes sans redessin, mise à jour ligne par ligne. Navigateur testé (aucune erreur, 390 px). Pas encore en ligne. |
+| 11/10/2026 | 6 bis – SA6 Salle d'attente | En-tête fixé, compact, Patient suivant, une arrivée par patient, ordre de la file, messages arrivée / rouge, recherche n° / téléphone, clôture de la journée + alerte, attente moyenne. Navigateur (médecin, secrétaire, 620 dossiers, 390 px) testé. Pas encore en ligne (avec SA5). |
+| 11/10/2026 | 6 bis – SA8a Salle d'attente | Lignes de 32 px (un bouton + menu ⋯, pastille, colonnes d'heures, civilité dans le nom), largeur des colonnes par compte, semaine repliée. Navigateur (médecin, secrétaire, 620 dossiers, 1440 / 1280 / 390 px) testé. Pas encore en ligne. |
+| 11/10/2026 | 6 bis – Salle d'attente | Ligne « Attente moyenne / la plus longue en cours » retirée (demande de Dr Bentahila). |
+| 11/10/2026 | 6 bis – SA7 Salle d'attente | Tests gardés dans le projet : calculs dans `js/moteur/salle.js` (29 vérifications sans navigateur), `tests/test_salle.py` (35 vérifications dans le navigateur). Aucun changement à l'écran. En ligne (version 20261011r). |
+| 11/10/2026 | 6 bis – SA9 Salle d'attente | Suites de l'audit externe : onglet d'ouverture (En salle d'abord), Correspondant et Commentaire cachés par défaut, titres entiers à 1 440 px, téléphone (Filtres repliés, zones ≥ 44 px), reçus numérotés R-AAAA-NNNN (duplicata, numéros annulés gardés). Règles (9 suites), moteur, navigateur (51) testés. En ligne (règles + version 20261011s). |
+| 11/10/2026 | Tests chimio | `tests/test_cures.py` et `tests/test_seances.py` réparés (tests seulement, application inchangée) : la fenêtre de la cure est un tableau des jours J1 / J8 (boutons Ouvrir / Valider / Reporter) et non plus des tuiles ; après chaque validation, fenêtre du prix « Valider : venu » puis retour au dossier ; fiche chimio sans logo (papier à en-tête) avec « Dossier n° ». Les deux passent, aucune erreur JavaScript. |
+| 11/10/2026 | 22 – Tableau de bord (audit externe) | Deux colonnes à partir de 1 280 px (programme du jour à gauche), bloc « À valider par le médecin » / « À faire par la secrétaire » / « À faire par l'infirmière » (bouton Valider pour contourage, dosimétrie, fin de RT ; rappels WhatsApp), organisation réglable par le cabinet (`parametres/accueil`, avec la session Paramètres), pictogrammes au trait à la place des émojis, abonnement en bandeau pendant l'essai, « Séance n / N prévue ». Hauteur 2 700 → 1 500 px à 1 440 px. tests/test_accueil.py 20/20 ; salle, réglage, modules sans échec. Alertes cliniques : à décider avec Dr Bentahila. Pas encore en ligne. |
+| 11/10/2026 | 23 – Audit externe n° 2 | Dossier Drive « Audit » lu (5 documents ; onglet « Design » absent). Comparé au code actuel : Bilan, salle et tableau de bord déjà réglés depuis la version auditée. Plan en 8 lots (A à H, ~24 sessions) et 12 questions dans `AUDIT-EXTERNE-2.md`, à valider. Aucun code modifié. |
+| 11/10/2026 | 21 – Agenda (audit externe) | AG1 vue Jour sur téléphone, ancien script retiré ; AG2 durée par type de consultation ; AG3 glisser-déposer avec confirmation ; AG4 médecin du rendez-vous (filtre, créneaux, Google Agenda par médecin) ; AG5 heure facultative des séances de chimio et du scanner. Tests agenda 55/55, fonctions, salle 51/51. Pas encore en ligne. |
+| 11/10/2026 | 21 – Mise en ligne | Site 20261011t et fonctions en ligne (agenda étape 21 + Paramètres en 4 familles, éditeur de fiche, « Mon compte » de la session Paramètres). Tests agenda 55, salle 51, accueil 20, fiche 21, réglage 14, formulaire 15. À mettre à jour : test_menu (flèches des onglets des Paramètres) et test_profil_abo (menu « Mon compte »). |

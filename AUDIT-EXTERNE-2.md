@@ -1,5 +1,8 @@
 # Onco360 – Audit externe n° 2 : plan de travail (11/10/2026)
 
+> **Remplacé** par le plan unique de `FEUILLE-DE-ROUTE.md` (11/10/2026), qui intègre aussi l'audit pour vendre et l'onglet
+> Design. Ce fichier reste comme analyse de l'audit n° 2.
+
 Source : dossier Drive « Audit » (5 documents : Audit numéro 2, Modules, Fichiers et code, Fonctions, Essais et mesures), audit
 fait par le Claude d'un autre compte sur la version **da85b72** du dépôt, avec 8 patients fictifs, sans données réelles.
 Les annotations de Dr Bentahila dans ces documents sont reprises ici comme **décisions** (marquées « Décision RB »).

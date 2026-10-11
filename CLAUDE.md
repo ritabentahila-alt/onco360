@@ -1,15 +1,17 @@
 # Onco360 (ex-Chimio HGC) – notes pour Claude Code
 
-**Au début de chaque session : lire `FEUILLE-DE-ROUTE.md`** (étapes en cours, décisions, journal) et la mettre à jour
-à la fin (cocher, décisions, une ligne au journal). Une étape = une session.
+**Au début de chaque session : lire `FEUILLE-DE-ROUTE.md`** (plan unique en phases 0 à 7, décisions, questions en attente)
+et la mettre à jour à la fin (cocher, décisions) ; une ligne dans `JOURNAL.md`. Une étape = une session. L'ancienne feuille de
+route (jusqu'au 11/10/2026, tout le détail des étapes 1 à 23) est dans `archives/FEUILLE-DE-ROUTE-jusqu-au-2026-10-11.md`.
 
 Application web de suivi oncologique (chimiothérapie, radiothérapie, rendez-vous, honoraires) du **Dr Rita Bentahila**,
 oncologue-radiothérapeute à Casablanca. Code écrit par Dr Rita Bentahila avec Claude (d'abord depuis le compte de Hamza Benzekri, puis depuis le sien). Interface et code **en français**.
 
 - En ligne : https://chimio-hgc.web.app (Firebase Hosting, projet `chimio-hgc`)
 - Bascule faite le **06/10/2026** : Onco360 (`public/v2.html`) est l'application de référence.
-- Ancienne application (v1) : `public/ancienne-app.html`, **consultation seule** (règles Firestore : aucune écriture v1).
-  `public/app.html` ne fait plus que rediriger vers `v2.html`.
+- Ancienne application (v1) : **retirée du site le 11/10/2026** (elle contenait les dossiers réels de 57 patients, lisibles sans
+  connexion). `app.html`, `ancienne-app.html`, `historique.html` redirigent vers `v2.html` (`firebase.json`). Ses données restent
+  dans la base (collections racine, lecture seule) ; copie privée des fichiers hors du dépôt : `Desktop/ONCO360/archives-privees-onco360/`.
 
 ## Déploiement
 ```
@@ -49,7 +51,6 @@ Après déploiement : recharger sans cache (Cmd + Maj + R). Les `.js` sont servi
 | `js/donnees/listes.js` | DIAG, MUT0, COR0, ACTES_RT, DICT (molécules), FERIES0 |
 | `js/donnees/migration.js` | conversion v1 → v2 (`idsParDefaut` encore utilisé par v2.js) ; `bascule.js`, `conversion-v2.html`, `import.html`, `test-droits.html` : retirés du site le 06/10/2026, rangés dans `archives/` (non publié) |
 | `guide/` (hors `public/`) | guides d'utilisation par module (`taches.md`), base du guide complet (F3) |
-| `historique.html` | historique de l'ancienne application (lien depuis `ancienne-app.html`, lecture seule) : à retirer avec elle (phase F2) |
 
 ## Données (Firestore)
 Tout Onco360 est sous `espaces/cabinet-bentahila/` :
@@ -307,7 +308,7 @@ Google Agenda (déjà en place, par personne).
   Bentahila (INPE et nom par défaut sur la fiche, HGC/HCK par défaut dans tarifs.js / rdv.js / parametres.js) ; premier
   démarrage guidé ; tests d'étanchéité entre cabinets (bilan Bentahila inchangé : 352 317 DH).
   **À valider avec elle d'abord : la liste exacte de ce que reçoit un nouveau cabinet** (ex. PAS sa liste de correspondants).
-- F2 : nom de domaine, retirer ancienne app et outils de conversion de la version client, CGU + politique de confidentialité
+- F2 : nom de domaine, ~~retirer ancienne app~~ (fait le 11/10), CGU + politique de confidentialité
   (aussi pour la vérification Google), suivi des abonnements. Point juridique signalé : données de santé, loi 09-08 / CNDP,
   hébergement hors Maroc.
 - F3 : guide complet (PDF illustré + aide intégrée). Puis suite de la phase E (vue infirmière, pharmacie J−1, relevé mensuel).
@@ -326,7 +327,7 @@ temporaire si le cache npm du Mac refuse) — à relancer avant chaque mise en l
   `localStorage` `onco360.menuReplie`) ; barres d'onglets longues = `ag-vues defile` (une ligne qui défile, flèches ajoutées par v2.js).
 
 ## À faire
-Voir `FEUILLE-DE-ROUTE.md`. Annulés le 06/10/2026 : assistant IA, rappels WhatsApp automatiques, commande pharmacie J−1,
+Voir `FEUILLE-DE-ROUTE.md` (plan unique du 11/10/2026, d'après les deux audits externes du Drive › Audit). Annulés le 06/10/2026 : assistant IA, rappels WhatsApp automatiques, commande pharmacie J−1,
 relevé mensuel. « Marquer administrée » (vue infirmière) : repris le 08/10 (étape 11). Demandes du 08/10 = étapes 6 à 13
 de la feuille de route (salle d'attente, RCP, numéro de dossier, audit / mode démo, hors-ligne, soins infirmiers et
 pharmacie, dossier de cession, HL7/FHIR). Pas de téléconsultation. Vente : abonnements et cession.
