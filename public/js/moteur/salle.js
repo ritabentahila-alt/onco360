@@ -63,6 +63,9 @@ export function lignesSalle(o) {
 
 // Onglet d'une ligne
 export const ongletDe = (l) => (l.etat === "vu" ? "vus" : l.etat === "absent" ? "absents" : l.etat === "salle" || l.etat === "consult" ? "salle" : "avenir");
+// Onglet d'ouverture (SA9a, audit externe 11/10/2026) : « En salle » s'il y a quelqu'un (ce que cherche le médecin), sinon le premier
+// onglet non vide (À venir, Vus, Absents) ; tout vide : À venir. n = { avenir, salle, vus, absents } (nombres de lignes)
+export const ongletOuverture = (n) => (n.salle ? "salle" : n.avenir ? "avenir" : n.vus ? "vus" : n.absents ? "absents" : "avenir");
 // Période : heure du rendez-vous, sinon d'arrivée (hm = ms → « HH:MM ») ; sans heure : toujours affichée
 export function dansPeriode(l, per, hm) { const h = l.h || (l.doc.arr ? hm(l.doc.arr) : ""); return per === "jour" || !h || (per === "matin" ? h < MIDI : h >= MIDI); }
 // Recherche : nom, n° de dossier, téléphone (chiffres seuls : « 0661 » trouve « 06 61 … »)

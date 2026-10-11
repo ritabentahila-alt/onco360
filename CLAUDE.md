@@ -137,6 +137,14 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
   SA8a (11/10/2026) : `actionsDe(l)` = { prin (bouton), menu (⋯, `saMenu`, clic droit) } ; colonnes `att` / `pres` (hh:mm) ; pastille
   `.rd` ; largeurs `utilisateurs/{uid}.salleLargeurs` (`gabarit`, poignée `.sa-poi`) ; semaine repliée (`localStorage`
   `onco360.salleSemaine`) ; compact toujours.
+  SA9 (audit externe, 11/10/2026) : colonnes cachées par défaut `CACHEES0` (cor, com) si aucun choix personnel ; bulle `.sa-cm` ;
+  onglet d'ouverture `ongletOuverture` (moteur/salle.js ; `AUTO` / `PRET` / `PREC`) ; téléphone : bouton Filtres (`saFiltres`,
+  `.sa-pg.ouv`), zones ≥ 44 px.
+- **Reçus numérotés (SA9c, 11/10/2026)** : `recus/{patient}_{clé}` (clé `r-RDV` | `c-LIGNE-CURE-JOUR`) = { numero R-AAAA-NNNN, n,
+  annee, patientId, patientNom, etablissementId, cle, d, lib, m, mode, imp, par(Nom), dernier(Par/Nom), le, annules [{ numero, m,
+  mode, le, par }] } ; compteur `recusCompteur/{AAAA}` { n, majPar } (+1, même transaction, règle) ; v2.js `numeroterRecu` dans
+  `imprimerRecu` (o.cle) ; logique `js/moteur/recus.js` ; droits « finances » / « encaissements » (pas le comptable), jamais supprimés.
+  Tests : `tests/regles/test-recus.mjs`, `node tests/moteur/test-recus.mjs`.
 - Poids validé par la secrétaire (droit « planning » seul, 10/10/2026) : séance prévue du jour, `planning[ligne][n].poids` / `.spoids[j]` /
   `.pv[j]` { nom, par, le }, ajouté par `fusionner`, repris dans `lignesJson` au prochain enregistrement du médecin (`poidsSecretaire`, chimio.js).
 - Report de chimio avec le seul droit « planning » (secrétaire, depuis le 08/10/2026) : `sauverLignes` n'écrit que `planningJson` ;

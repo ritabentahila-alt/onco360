@@ -2,7 +2,8 @@
 window.__v2pret = true;
 import { app, auth, db } from "../config.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { doc, getDoc, getDocs, setDoc, collection, query, where, updateDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { doc, getDoc, getDocs, setDoc, collection, query, where, updateDoc, addDoc, serverTimestamp, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { numeroRecu, cleRecuRdv, cleRecuCons, idRecu, decisionRecu, recuAEcrire } from "../moteur/recus.js";
 import { fusionner } from "../donnees/conversion.js";
 import { resume } from "../moteur/resume.js";
 import { chimioAVenir } from "../moteur/agenda.js";
@@ -1068,22 +1069,40 @@ const htmlMode = (cur) => { const c = !cur || cur === "np" || cur === "ae" ? "es
 const encaisseIci = () => D.membre.role !== "medecin";
 const aEncaisser = (mode) => mode === "np" || mode === "ae";
 // Reçu au patient (A5, papier à en-tête, sans numéro) ; w = fenêtre ouverte au clic (sinon bloquée par le navigateur)
-function imprimerRecu(w, x, o) {
-  if (!w) return; const P = x.P, et = (D.etabsTous || D.etabs).find((e) => e.code === x.doc.etablissementId) || {}, med = medecinFiche().nom || "";
+// Numéro du reçu (SA9c, audit externe 11/10/2026) : tiré en transaction sur le compteur de l'année (aucun doublon, même si deux
+// personnes impriment en même temps) ; réimpression au même montant et même mode = duplicata (même numéro) ; sinon nouveau numéro et
+// l'ancien est noté annulé (recus/{patient}_{clé}.annules). o.cle = « r-RDV » ou « c-LIGNE-CURE-JOUR » (sans clé : pas de numéro).
+async function numeroterRecu(x, o) {
+  if (!o.cle) return null;
+  const annee = D.t.slice(0, 4), ref = doc(db, "espaces", ESPACE, "recus", idRecu(x.id, o.cle)), cpt = doc(db, "espaces", ESPACE, "recusCompteur", annee);
+  return runTransaction(db, async (tr) => {
+    const a = await tr.get(ref), ancien = a.exists() ? a.data() : null;
+    const base = { pid: x.id, nom: (x.r && x.r.nm) || "", etab: x.doc.etablissementId || "", cle: o.cle, d: o.d || D.t, lib: o.lib || "", m: o.m, mode: o.mode || "", annee, par: D.u.uid, parNom: $("nomMenu").textContent, le: Date.now() };
+    if (decisionRecu(ancien, o.m, o.mode) === "duplicata") { tr.update(ref, recuAEcrire(ancien, base)); return { numero: ancien.numero, duplicata: true }; }
+    const c = await tr.get(cpt), n = (c.exists() ? c.data().n || 0 : 0) + 1;
+    tr.set(cpt, { n, majPar: D.u.uid });
+    tr.set(ref, Object.assign(recuAEcrire(ancien, base, n), { le: serverTimestamp() }));
+    return { numero: numeroRecu(annee, n), duplicata: false, annule: ancien && ancien.numero };
+  });
+}
+async function imprimerRecu(w, x, o) {
+  if (!w) return;
+  let num = null; try { num = await numeroterRecu(x, o); } catch (e) { console.warn("numéro du reçu", e); toast("Reçu imprimé sans numéro (" + (e.message || e) + ")."); }
+  const P = x.P, et = (D.etabsTous || D.etabs).find((e) => e.code === x.doc.etablissementId) || {}, med = medecinFiche().nom || "";
   const civ = P.sexe === "F" ? "Mme " : P.sexe === "H" ? "M. " : "", nom = civ + String(P.nomF || x.r.nm || "").toUpperCase() + (P.prenom ? " " + cap(String(P.prenom).toLowerCase()) : "");
   const mode = (MODES.find((z) => z[0] === o.mode) || [])[2] || "", jr = (d) => { const z = new Date(d + "T12:00:00"); return z.getDate() + " " + ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"][z.getMonth()] + " " + z.getFullYear(); };
-  const html = '<p class="d">' + esc(et.ville ? et.ville + ", le " : "Le ") + jr(D.t) + '</p><p class="t">REÇU</p>' +
+  const html = '<p class="d">' + esc(et.ville ? et.ville + ", le " : "Le ") + jr(D.t) + '</p><p class="t">REÇU</p>' + (num ? '<p class="num">N° ' + esc(num.numero) + (num.duplicata ? " · DUPLICATA" : "") + (num.annule ? " (remplace le n° " + esc(num.annule) + ", annulé)" : "") + "</p>" : "") +
     "<p>Reçu de <b>" + esc(nom) + "</b> la somme de <b>" + fmtMil(o.m) + " DH</b> (" + esc(montantEnLettres(o.m)) + ")" + (mode ? ", réglée " + mode : "") + ".</p>" +
     "<p>Objet : " + esc(String(o.lib || "consultation").charAt(0).toLowerCase() + String(o.lib || "consultation").slice(1)) + " du " + dfrA(o.d) + ".</p>" +
     '<p class="s">Cachet et signature<br><b>' + esc(med) + "</b></p>";
-  const css = "@page{size:A5 portrait;margin:" + margesMm("a5") + "}html,body{margin:0}body{font-family:Arial,Helvetica,sans-serif;color:#000;font-size:12pt;line-height:1.5}p{margin:0 0 4mm}.d{text-align:right;margin-bottom:8mm}.t{text-align:center;font-weight:bold;font-size:15pt;letter-spacing:2px;margin-bottom:9mm}.s{text-align:right;margin-top:14mm}";
+  const css = "@page{size:A5 portrait;margin:" + margesMm("a5") + "}html,body{margin:0}body{font-family:Arial,Helvetica,sans-serif;color:#000;font-size:12pt;line-height:1.5}p{margin:0 0 4mm}.d{text-align:right;margin-bottom:8mm}.t{text-align:center;font-weight:bold;font-size:15pt;letter-spacing:2px;margin-bottom:2mm}.num{text-align:center;font-size:10.5pt;margin-bottom:8mm}.s{text-align:right;margin-top:14mm}";
   w.document.open(); w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>&#8203;</title><style>' + css + "</style></head><body>" + html + "</body></html>"); w.document.close();
   setTimeout(() => { try { w.focus(); w.print(); } catch (e) { /* fenêtre fermée */ } }, 400);
-  journal(x, "Reçu imprimé (" + fmtMil(o.m) + " DH, " + dfrA(o.d) + ")");
+  journal(x, "Reçu " + (num ? num.numero + (num.duplicata ? " (duplicata)" : "") + " " : "") + "imprimé (" + fmtMil(o.m) + " DH, " + dfrA(o.d) + ")");
 }
 // Reçu réimprimé depuis « Consultations et hospitalisations » (prix à encaisser du dossier)
-window.recuRdv = (pid, rid) => { const x = D.patients.find((p) => p.id === pid), E = x && encaissementsDe(x), o = E && (E.rdv || {})[rid], r = x && lireRdvs(x).find((v) => v.id === rid); if (!o || !r) return; imprimerRecu(window.open("", "_blank"), x, { d: r.dv || r.d, lib: libRdv(r), m: o.m, mode: o.mode }); };
-window.recuCons = (pid, k) => { const x = D.patients.find((p) => p.id === pid), E = x && encaissementsDe(x), o = E && (E.cons || {})[k]; if (!o) return; imprimerRecu(window.open("", "_blank"), x, { d: o.d, lib: "Consultation de chimiothérapie", m: o.m, mode: o.mode }); };
+window.recuRdv = (pid, rid) => { const x = D.patients.find((p) => p.id === pid), E = x && encaissementsDe(x), o = E && (E.rdv || {})[rid], r = x && lireRdvs(x).find((v) => v.id === rid); if (!o || !r) return; imprimerRecu(window.open("", "_blank"), x, { d: r.dv || r.d, lib: libRdv(r), m: o.m, mode: o.mode, cle: cleRecuRdv(rid) }); };
+window.recuCons = (pid, k) => { const x = D.patients.find((p) => p.id === pid), E = x && encaissementsDe(x), o = E && (E.cons || {})[k]; if (!o) return; imprimerRecu(window.open("", "_blank"), x, { d: o.d, lib: "Consultation de chimiothérapie", m: o.m, mode: o.mode, cle: cleRecuCons(...String(k).split("|")) }); };
 const RTO = { pid: null, id: null }; // radiothérapie ouverte dans le dossier
 window.rtTog = (pid, id) => { RTO.pid = pid; RTO.id = RTO.id === id ? null : id; pageDossier(pid); };
 // Rendez-vous en dehors des plages de l'établissement du patient (Configuration › Créneaux & horaires) : message, sinon ""
@@ -1151,7 +1170,7 @@ async function prixVenu(x, l, r, opts) {
       } else await majMontants(x, (M) => { M.rdv = M.rdv || {}; const o = M.rdv[r.id] = M.rdv[r.id] || {}; if (o.v1) o.prix = m; else if (hs) { o.tj = m; delete o.brut; } else o.brut = m; if (mode) o.mode = mode; else delete o.mode; });
       if (deja) journal(x, "Prix de la consultation du " + dfrA(r.d) + " : " + lib);
       fermerFenetre(); toast("Enregistré."); if (deja) apresPrix(x, "r-" + r.id, r.d); else apresStatutRdv(x, r, "fait", "prevu"); reafficher(x.id);
-      if (w) imprimerRecu(w, x, { d: r.dv || r.d, lib: libRdv(r), m, mode });
+      if (w) imprimerRecu(w, x, { d: r.dv || r.d, lib: libRdv(r), m, mode, cle: cleRecuRdv(r.id) });
     } catch (e) { if (w) w.close(); occupe($("fOk"), false); erreur(e.message || String(e)); }
   };
   $("fOk").onclick = () => valider(false);

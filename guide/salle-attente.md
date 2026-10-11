@@ -28,6 +28,9 @@ La pastille du menu indique le nombre de patients qui attendent.
   de chimio validées dans le dossier avant la salle d'attente y apparaissent aussi.
 - **Absents**.
 
+À l'ouverture, la page montre **En salle d'attente** s'il y a quelqu'un ; sinon le premier onglet qui n'est pas vide (À venir,
+puis Vus, puis Absents). En revenant d'un dossier, l'onglet que vous aviez choisi est gardé.
+
 Colonnes : heure du rendez-vous, civilité, patient, type, **motif de consultation**, correspondant, mutuelle, heure
 d'arrivée, statut, **commentaire** du jour (médecin, secrétaire ou infirmière : crayon ✎), **prix** (médecin et
 secrétaire : prix prévu au tarif de l'établissement, en gris ; prix validé, en vert, une fois le patient vu). En bas :
@@ -35,10 +38,13 @@ secrétaire : prix prévu au tarif de l'établissement, en gris ; prix validé, 
 secrétaire le peut aussi, même pour un prix validé par le médecin (et « Modifier le prix » dans le dossier).
 
 Bouton **Colonnes** (en haut à droite) : chacun coche les colonnes qu'il veut voir ; le choix est gardé sur tous ses
-appareils. Heure, patient, statut et boutons restent toujours affichés. Dans « À venir », les séances de chimio sont en tête.
+appareils. Au départ, **Correspondant** et **Commentaire** ne sont pas affichées (chacun peut les remettre) ; quand la colonne
+Commentaire est cachée, une petite bulle 💬 devant le nom signale un commentaire (texte au survol, clic pour le modifier). Heure, patient, statut et boutons restent toujours affichés. Dans « À venir », les séances de chimio sont en tête.
 Les prix sont toujours affichés en **brut** (les anciens prix HCK repris à 225 DH s'affichent 250 DH).
 
 ## Outils de la liste
+Sur **téléphone**, ces outils (établissement, colonnes, période, recherche, tri, impression, calendrier) sont repliés derrière
+le bouton **Filtres** (le chiffre indique les filtres actifs), pour que la liste des patients soit visible tout de suite.
 - **Matinée / Après-midi / Toute la journée** : un clic (avant ou après 13 h ; les séances sans heure restent affichées).
 - **Recherche** d'un patient par son nom, **tri** par heure du rendez-vous, heure d'arrivée ou ordre alphabétique (gardé pour
   vous), **Imprimer** la liste du jour (tous les statuts, colonnes affichées).
@@ -113,3 +119,11 @@ Valider une cure (J1) ou une séance (J8…) dans le dossier ouvre ensuite la fe
 
 ## À venir
 - Arrivée sans rendez-vous (urgence, passage).
+
+## Reçus numérotés
+Chaque reçu porte un **numéro** : **R-2026-0001**, R-2026-0002… (une seule suite pour tout le cabinet, qui repart à 0001 au
+1er janvier). Le numéro est donné à la première impression, sans doublon même si deux personnes impriment en même temps.
+- **Réimprimer** le même reçu (même montant, même mode de paiement) : même numéro, avec la mention **DUPLICATA**.
+- Si le **montant ou le mode de paiement a changé**, le reçu reçoit un nouveau numéro et indique « remplace le n° …, annulé ».
+- Tous les reçus sont gardés dans un registre (numéro, patient, montant, mode, date, auteur, numéros annulés) ; aucun n'est
+  jamais effacé.

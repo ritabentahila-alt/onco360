@@ -67,6 +67,11 @@ cas("recherche par n° de dossier", S.correspond(lk, "202610007") && S.correspon
 cas("recherche par téléphone (chiffres seuls, avec ou sans 0)", S.correspond(lk, "0611") && S.correspond(lk, "2233") && !S.correspond(lk, "12"));
 cas("recherche vide : tout le monde", S.correspond(lk, "") && xK);
 
+console.log("Onglet d'ouverture (SA9a)");
+cas("quelqu'un en salle : « En salle », même s'il reste des patients à venir", S.ongletOuverture({ avenir: 5, salle: 1, vus: 2, absents: 0 }) === "salle");
+cas("personne en salle : premier onglet non vide (À venir, puis Vus, puis Absents)", S.ongletOuverture({ avenir: 5, salle: 0, vus: 2, absents: 1 }) === "avenir" && S.ongletOuverture({ avenir: 0, salle: 0, vus: 2, absents: 1 }) === "vus" && S.ongletOuverture({ avenir: 0, salle: 0, vus: 0, absents: 1 }) === "absents");
+cas("journée vide : « À venir »", S.ongletOuverture({ avenir: 0, salle: 0, vus: 0, absents: 0 }) === "avenir");
+
 console.log("File d'attente et tri");
 const mk = (nm, h, etat, doc) => ({ x: { r: { nm } }, h, jour: T0, etat, doc: Object.assign({}, doc || {}) });
 const at = (hh) => new Date(T0 + "T" + hh + ":00").getTime();

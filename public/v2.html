@@ -479,6 +479,7 @@ nav a.actif .nb-menu{background:#fff;color:var(--prim)}
 @media (min-width:901px){.sa-l:not(.ent) .actr{position:sticky;right:0;background:inherit;padding-left:6px;z-index:1}.sa-l.prevu{background:#fff}.sa-l{gap:6px}}
 a.lien-nm{text-decoration:none}a.lien-nm:hover{text-decoration:underline}
 @media (max-width:900px){.sa-l .h,.sa-l .ar,.sa-l .att,.sa-l .pres,.sa-l .ord,.sa-l .px{text-align:left}}.mini.sa-plus{font-size:16px;line-height:1;padding:2px 9px;font-weight:bold;color:var(--doux)}
+.sa-cm{border:0;background:none;padding:0 5px 0 0;color:#B86E00;cursor:pointer;vertical-align:-2px}.sa-cm .pi{width:15px;height:15px;margin:0}.sa-cm:hover{color:var(--prim)}
 .sa-menu{position:fixed;z-index:95;background:#fff;border:1px solid var(--trait);border-radius:var(--r-m);box-shadow:0 12px 32px rgba(30,42,68,.2);padding:6px;min-width:230px;display:flex;flex-direction:column}
 .sa-menu button{border:0;background:none;text-align:left;padding:9px 12px;border-radius:8px;font-size:14px;color:var(--encre);cursor:pointer}.sa-menu button:hover,.sa-menu button:focus{background:var(--prim-c);outline:0}
 .sa-menu-t{font-size:12px;color:var(--doux);padding:6px 12px 4px;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:280px}
@@ -581,6 +582,18 @@ a.lien-nm{text-decoration:none}a.lien-nm:hover{text-decoration:underline}
 @media (max-width:640px){.sa-jours.repli .sa-jtxt{flex:1 1 calc(100% - 96px);height:48px;font-size:14px;padding:0 8px;overflow:hidden;text-overflow:ellipsis}}
 @media (max-width:640px){.sa-per{width:100%}.sa-per button{flex:1;padding:10px 4px;font-size:13px}.sa-outils select{flex:1}.sa-fl{width:32px;height:48px;font-size:20px}.sa-sem{gap:3px;flex:1 1 calc(100% - 96px)}.sa-j{padding:5px 0}.sa-j b{font-size:15px}.sa-j span{font-size:11px}.sa-cal,.sa-jours #saAuj{flex:1 1 40%;justify-content:center;height:42px}.sa-tot{justify-content:flex-start}}
 @media (max-width:640px){.sa-o button{flex-direction:row;gap:5px;font-size:13px}.sa-o .n{position:static;padding:0 6px}.sa-o .lg{display:none}.sa-o .sm{display:inline}}
+/* SA9b (audit externe, 11/10/2026) : téléphone = filtres repliés derrière « Filtres », zones à toucher d'au moins 44 px */
+.sa-pg{display:flex;flex-direction:column;gap:inherit}.sa-ftr{display:none}.sa-ftr .n:not(:empty){background:var(--prim);color:#fff;border-radius:10px;padding:0 7px;font-size:12px;margin-left:2px}
+@media (max-width:640px){
+  .sa-ftr{display:inline-flex;flex:1 1 40%;justify-content:center}.sa-etab #saSuiv{flex:1 1 40%;justify-content:center}
+  .sa-pg:not(.ouv) #saEtab,.sa-pg:not(.ouv) .sa-etab [data-fn="salle.colonnes"],.sa-pg:not(.ouv) .sa-outils,.sa-pg:not(.ouv) .sa-cal{display:none}
+  .sa-pg.ouv .sa-ftr{background:var(--prim-c);color:var(--prim)}
+  .sa-pg .bt,.sa-pg select,.sa-per button,.sa-cal,.sa-jours #saAuj,.sa-o button,.sa-menu button{min-height:44px}
+  .sa-fl{width:44px}.sa-jours.repli .sa-jtxt,.sa-sem{flex:1 1 calc(100% - 112px)}.sa-j{min-height:48px}
+  .sa-l .mini{min-height:44px;min-width:44px;padding:8px 16px;font-size:14px}.sa-l .actr{gap:8px}
+  .sa-l a.lien-nm{display:inline-block;padding:12px 0 10px;font-size:15.5px}.sa-cm{min-width:44px;min-height:44px;padding:0;text-align:center}
+  .sa-l .sa-pres{margin-top:0}
+}
 @media (max-width:640px){.sa-b{flex-direction:row;flex-wrap:wrap;align-items:center}.sa-b .lbl{width:100%;justify-content:center}.sa-b .bt{padding:11px 16px}.sa-etab{width:100%}.sa-etab select{width:100%}}
 
 /* Agenda */

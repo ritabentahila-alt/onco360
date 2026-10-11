@@ -960,6 +960,22 @@ Détail : `AUDIT-SALLE-ATTENTE.md` (10 bugs, mesure avec 620 dossiers, manques p
       chaque colonne réglable** (tirer le bord du titre ; double-clic = d'origine ; `utilisateurs/{uid}.salleLargeurs`) ;
       colonne des boutons toujours visible à droite ; bandeau de la semaine replié (clic sur la date pour l'ouvrir).
       1440 px : 13 patients visibles au lieu de 4 à 5.
+- [x] **SA9 – Audit externe** (11/10 ; décisions : « En salle » d'abord, réglages de colonnes déjà faits gardés, reçus
+      R-AAAA-NNNN avec un compteur unique pour le cabinet) :
+  - **SA9a – Affichage** : Correspondant et Commentaire cachés par défaut (`CACHEES0`, sans choix personnel seulement) ; bulle 💬
+    devant le nom quand la colonne Commentaire est cachée (`.sa-cm`) ; titre « Mut. » (plus de titre coupé à 1 440 px) ;
+    **onglet d'ouverture** = `ongletOuverture` (moteur/salle.js : En salle, sinon À venir, Vus, Absents), choisi une fois les
+    documents du jour reçus (`AUTO`, `PRET`), pas au retour d'un dossier (`PREC`) ni après un clic sur un onglet.
+  - **SA9b – Téléphone** : bouton **Filtres** (`saFiltres`, nombre de filtres actifs) qui replie établissement, colonnes,
+    période, recherche, tri, impression et calendrier (`.sa-pg.ouv`) ; zones à toucher ≥ 44 px (0 sous 40 px, contre 21) ;
+    liste des patients à 248 px du haut au lieu de 592.
+  - **SA9c – Reçus numérotés** : `recus/{patient}_{clé}` + `recusCompteur/{AAAA}` (règle : numéro = compteur + 1 dans la même
+    transaction ; duplicata = seules `imp` / `dernier…` changent ; montant ou mode changé = nouveau numéro, l'ancien dans
+    `annules` ; jamais supprimés ; droits « finances » ou « encaissements », périmètre) ; v2.js `numeroterRecu` /
+    `imprimerRecu` (« N° R-2026-0001 », « DUPLICATA », « remplace le n° … ») ; logique `js/moteur/recus.js`. Si le numéro ne
+    peut pas être tiré (hors ligne), le reçu s'imprime sans numéro avec un message.
+  - Tests : `tests/regles/test-recus.mjs` (21), `node tests/moteur/test-recus.mjs` (11), `test-salle.mjs` (32),
+    `tests/test_salle.py` (51).
 
 ## Étape 7 – RCP (réunion de concertation pluridisciplinaire) (fait et testé le 09/10, pas encore en ligne)
 **Demande de Dr Bentahila (09/10)** : dates de RCP dans les Paramètres ; bouton « + RCP » à côté de Doc. (inscription à la
@@ -1738,3 +1754,4 @@ On garde le bleu Onco360 (#3563B0) et Arial ; les impressions (ordonnances, fich
 | 11/10/2026 | 6 bis – SA8a Salle d'attente | Lignes de 32 px (un bouton + menu ⋯, pastille, colonnes d'heures, civilité dans le nom), largeur des colonnes par compte, semaine repliée. Navigateur (médecin, secrétaire, 620 dossiers, 1440 / 1280 / 390 px) testé. Pas encore en ligne. |
 | 11/10/2026 | 6 bis – Salle d'attente | Ligne « Attente moyenne / la plus longue en cours » retirée (demande de Dr Bentahila). |
 | 11/10/2026 | 6 bis – SA7 Salle d'attente | Tests gardés dans le projet : calculs dans `js/moteur/salle.js` (29 vérifications sans navigateur), `tests/test_salle.py` (35 vérifications dans le navigateur). Aucun changement à l'écran. En ligne (version 20261011r). |
+| 11/10/2026 | 6 bis – SA9 Salle d'attente | Suites de l'audit externe : onglet d'ouverture (En salle d'abord), Correspondant et Commentaire cachés par défaut, titres entiers à 1 440 px, téléphone (Filtres repliés, zones ≥ 44 px), reçus numérotés R-AAAA-NNNN (duplicata, numéros annulés gardés). Règles (9 suites), moteur, navigateur (51) testés. |

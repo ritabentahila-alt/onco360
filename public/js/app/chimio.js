@@ -482,7 +482,7 @@ window.chVenuChimio = async (pid, lid, n, j, encaisser) => {
       if (sec) await prixChimioServeur(x, lid, n, j, m, date, q.nom, mode);
       else await majMontants(x, (M2) => { const a = M2.cures[lid] = M2.cures[lid] || {}, cc = a[n] = a[n] || {}; cc.consJ = Object.assign({}, consJours(cc), { [j]: m }); majCons(cc); const MJ = Object.assign({}, cc.consModeJ || {}); if (mode) MJ[j] = mode; else delete MJ[j]; if (Object.keys(MJ).length) cc.consModeJ = MJ; else delete cc.consModeJ; });
       A.journal(x, "Chimiothérapie C" + n + " J" + j + " : venu (" + fmt(m) + " DH" + (mode === "ae" ? ", à encaisser" : mode ? ", " + A.libMode(mode) : "") + ")"); A.fermerFenetre(); A.toast("Enregistré."); A.salleVenuChimio(x, lid, n, j, true); A.pageDossier(x.id);
-      if (w) A.imprimerRecu(w, x, { d: date || D().t, lib: "Consultation de chimiothérapie", m, mode }); // sans le protocole (donnée médicale)
+      if (w) A.imprimerRecu(w, x, { d: date || D().t, lib: "Consultation de chimiothérapie", m, mode, cle: "c-" + lid + "-" + n + "-" + j }); // sans le protocole (donnée médicale) ; clé = cleRecuCons (moteur/recus.js)
     } catch (er) { if (w) w.close(); A.occupe(document.getElementById("fOk"), false); A.erreur(er.message || String(er)); }
   };
   document.getElementById("fOk").onclick = () => valider(false);

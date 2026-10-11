@@ -5,7 +5,8 @@ import pathlib; __file__=str(pathlib.Path(__file__).resolve()); exec(open(pathli
 #  2. secrétaire : prix payé d'avance proposé à la validation, prix enregistré par le serveur (fonction simulée) ;
 #  3. infirmière : seulement « Arrivé », pas de prix ;  4. chimio : une arrivée pour le rendez-vous et la séance, Patient suivant,
 #     consultation de chimio validée depuis le dossier ;  5. messages à l'écran ;  6. heure du Maroc sur un ordinateur réglé ailleurs ;
-#  7. téléphone (390 px) ;  et aucune erreur JavaScript.
+#  7. téléphone (390 px, filtres repliés, zones à toucher) ;  8. audit externe (SA9) : onglet d'ouverture, colonnes par défaut,
+#     bulle de commentaire, reçus numérotés (R-AAAA-NNNN, duplicata) ;  et aucune erreur JavaScript.
 T = '2026-10-06'
 S3 = json.loads(json.dumps(S))
 def ajout(pid, rdvs):
@@ -40,6 +41,14 @@ async def onglet(pg, k): await pg.evaluate(f"window.saOnglet('{k}')"); await pg.
 async def doc(pg, k): return await pg.evaluate(f"window.__fs['{k}']") or {}
 async def rdv(pg, pid, rid): return [x for x in json.loads(await pg.evaluate(f"window.__fs['{E}patients/{pid}'].rdvsJson")) if x['id'] == rid]
 
+# Zones à toucher de moins de 40 px (boutons, liens, champs) visibles à l'écran
+PETITES = """[...document.querySelectorAll('button, a, input, select, label.sa-cal')].filter(e => { const b = e.getBoundingClientRect(); return b.width && b.height && Math.min(b.width, b.height) < 40; }).map(e => (e.id || e.className || e.tagName) + ' ' + Math.round(e.getBoundingClientRect().width) + 'x' + Math.round(e.getBoundingClientRect().height))"""
+# Reçu (SA9c) : rendez-vous rS1 « Venu », 300 DH payés en espèces
+S8 = json.loads(json.dumps(S3))
+_R = json.loads(S8[E+'patients/'+A1]['rdvsJson']); [r.update(st='fait', dv=T) for r in _R if r['id'] == 'rS1']; S8[E+'patients/'+A1]['rdvsJson'] = json.dumps(_R)
+_F = S8.setdefault(E+'patientsFinances/'+A1, {"etablissementId": S8[E+'patients/'+A1].get('etablissementId', 'HGC'), "montantsJson": '{"rdv":{},"rt":{},"cures":{}}'})
+_M = json.loads(_F['montantsJson']); _M.setdefault('rdv', {})['rS1'] = {"brut": 300, "mode": "esp"}; _F['montantsJson'] = json.dumps(_M)
+S8[E+'encaissements/'+A1] = {"etablissementId": S8[E+'patients/'+A1].get('etablissementId', 'HGC'), "data": json.dumps({"rdv": {"rS1": {"m": 300, "mode": "esp"}}, "cons": {}})}
 async def main():
     async with async_playwright() as p:
         b = await p.chromium.launch()
@@ -145,7 +154,43 @@ async def main():
         print('7. Téléphone')
         pt = await ouvrir(b, S3, w=390, h=844, t=T+"T10:00:00"); await pt.goto(U+'#salle'); await pt.wait_for_timeout(2500)
         verif('390 px : rien ne déborde', await pt.evaluate("document.documentElement.scrollWidth") <= 390, await pt.evaluate("document.documentElement.scrollWidth"))
-        verif('aucune erreur (téléphone)', not pt.errs, pt.errs)
+        # SA9b (audit externe) : filtres repliés, zones à toucher d'au moins 40 px, patients sur le premier écran
+        verif('téléphone : filtres repliés derrière « Filtres »', await pt.evaluate("getComputedStyle(document.getElementById('saFtr')).display!=='none' && getComputedStyle(document.getElementById('saOutils')).display==='none'"))
+        petites = await pt.evaluate(PETITES)
+        verif('téléphone : aucune zone à toucher de moins de 40 px', not petites, petites)
+        verif('téléphone : liste des patients sur le premier écran', await pt.evaluate("document.getElementById('saCarte').getBoundingClientRect().top") < 400, await pt.evaluate("document.getElementById('saCarte').getBoundingClientRect().top"))
+        await pt.click('#saFtr'); await pt.fill('#saQ', 'el'); await pt.wait_for_timeout(300)
+        verif('téléphone : « Filtres » ouvre les filtres et compte ceux qui sont actifs', await pt.evaluate("getComputedStyle(document.getElementById('saOutils')).display!=='none'") and await pt.evaluate("document.getElementById('saFtrN').innerText") == '1')
+        verif('aucune erreur (téléphone)', not pt.errs, pt.errs); await pt.close()
+
+        print('8. Audit externe (SA9) : onglet d\'ouverture, colonnes, reçus numérotés')
+        p8 = await ouvrir(b, S8, t=T+"T10:00:00"); ev = p8.evaluate; await p8.goto(U+'#salle'); await p8.wait_for_timeout(2500)
+        verif('personne en salle : la page s\'ouvre sur « À venir »', (await ev("document.querySelector('#saO .on').innerText")).startswith('À venir'))
+        ent = await ev("document.getElementById('saE').innerText.toUpperCase()")
+        verif('colonnes Correspondant et Commentaire cachées par défaut', 'CORRESP' not in ent and 'COMMENT' not in ent and 'MOTIF' in ent, ent)
+        verif('1 440 px : aucun titre de colonne coupé', not await ev("[...document.querySelectorAll('#saE .sa-l.ent > span')].filter(s => s.scrollWidth > s.clientWidth + 1).map(s => s.innerText)"))
+        await onglet(p8, 'vus'); await ev(f"location.hash='#dossier/{A1}'"); await p8.wait_for_timeout(900); await ev("location.hash='#salle'"); await p8.wait_for_timeout(900)
+        verif('retour d\'un dossier : l\'onglet choisi est gardé', (await ev("document.querySelector('#saO .on').innerText")).startswith('Vus'))
+        # reçu : rendez-vous « Venu » payé en espèces (300 DH)
+        await ev(f"location.hash='#dossier/{A1}'"); await p8.wait_for_timeout(1200)
+        await ev(f"window.recuRdv('{A1}','rS1')"); await p8.wait_for_timeout(800)
+        r1 = await ev("(window.__win.slice(-1)[0]||{w:{document:{_h:''}}}).w.document._h")
+        verif('reçu : numéro R-2026-0001', 'N° R-2026-0001</p>' in r1, r1[-400:])
+        await ev(f"window.recuRdv('{A1}','rS1')"); await p8.wait_for_timeout(800)
+        r2 = await ev("window.__win.slice(-1)[0].w.document._h"); R1 = await doc(p8, E+'recus/'+A1+'_r-rS1')
+        verif('réimpression : même numéro, « DUPLICATA »', 'N° R-2026-0001 · DUPLICATA' in r2 and R1.get('imp') == 2, R1)
+        verif('compteur des reçus de l\'année : 1', (await doc(p8, E+'recusCompteur/2026')).get('n') == 1)
+        verif('aucune erreur (SA9)', not p8.errs, p8.errs); await p8.close()
+        S9 = json.loads(json.dumps(S3)); S9['utilisateurs/UIDRITA'] = dict(S9.get('utilisateurs/UIDRITA', {}), salleCachees=[])
+        S9[sid(A1,'r-rS1')] = {"jour":T,"patientId":A1,"etablissementId":"HGC","cle":"r-rS1","etat":"salle","arr":1791277200000,"majPar":"SEC","com":"À jeun"}
+        p9 = await ouvrir(b, S9, t=T+"T11:00:00"); await p9.goto(U+'#salle'); await p9.wait_for_timeout(2500)
+        verif('quelqu\'un en salle : la page s\'ouvre sur « En salle »', (await p9.evaluate("document.querySelector('#saO .on').innerText")).startswith('En salle'))
+        verif('choix de colonnes déjà fait : gardé (Correspondant affiché)', 'CORRESP' in (await p9.evaluate("document.getElementById('saE').innerText")).upper())
+        await p9.close()
+        S9['utilisateurs/UIDRITA'].pop('salleCachees')
+        p9 = await ouvrir(b, S9, t=T+"T11:00:00"); await p9.goto(U+'#salle'); await p9.wait_for_timeout(2500)
+        verif('colonne Commentaire cachée : bulle 💬 à côté du nom', 'À jeun' in (await p9.evaluate("(document.querySelector('#saL .sa-cm')||{}).title||''")))
+        verif('aucune erreur (SA9, colonnes)', not p9.errs, p9.errs)
         await b.close()
     print(f'\n{ok} réussis, {ko} échoués')
     if ko: sys.exit(1)
