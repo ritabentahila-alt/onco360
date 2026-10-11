@@ -72,7 +72,7 @@ if (sortie) history.replaceState(null, "", "index.html");
 onAuthStateChanged(auth, async (u) => {
   const aSortir = sortie; sortie = false; // seulement au premier passage : une connexion ensuite entre normalement
   if (u && aSortir) { await signOut(auth).catch(() => {}); return; } // relance onAuthStateChanged sans utilisateur
-  if (u) { location.replace("v2.html"); return; } // Onco360 (l'ancienne application reste consultable : ancienne-app.html)
+  if (u) { location.replace("v2.html"); return; } // Onco360 (ancienne application retirée du site le 11/10/2026)
   $("vueChargement").style.display = "none"; $("vueConnexion").style.display = "";
 });
 </script>

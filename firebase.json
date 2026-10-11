@@ -13,18 +13,14 @@
       "firebase.json",
       "**/.*"
     ],
+    "redirects": [
+      { "source": "/app.html", "destination": "/v2.html", "type": 301 },
+      { "source": "/ancienne-app.html", "destination": "/v2.html", "type": 301 },
+      { "source": "/historique.html", "destination": "/v2.html", "type": 301 }
+    ],
     "headers": [
       {
         "source": "**/*.html",
-        "headers": [
-          {
-            "key": "Cache-Control",
-            "value": "no-cache"
-          }
-        ]
-      },
-      {
-        "source": "modeles/**",
         "headers": [
           {
             "key": "Cache-Control",

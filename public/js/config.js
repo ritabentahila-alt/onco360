@@ -15,6 +15,5 @@ export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 auth.languageCode = "fr";
 export const db = getFirestore(app);
-export const PROPRIETAIRE = "ritabentahila@gmail.com";
 // Identifiant (public) du client Google « Onco360 » pour « Lier mon Google Agenda » (Google Cloud › Identifiants)
 export const GOOGLE_CLIENT_ID = "1041205165003-pmp33pf470djtcf0ugbt11uk86mkf8pf.apps.googleusercontent.com";
