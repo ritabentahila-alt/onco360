@@ -46,6 +46,19 @@ Les prix sont toujours affichés en **brut** (les anciens prix HCK repris à 225
 - Couleur de la ligne : bleu en salle, orange en consultation, vert vu, rose absent.
 - **Ouvert par …** sous le nom du patient : un collègue a son dossier ouvert en ce moment (bandeau aussi en haut du dossier).
 
+## Salle pleine (11/10/2026)
+- Les **onglets**, l'**attente moyenne** et les **titres des colonnes** restent en haut quand on fait défiler la liste.
+- **Compact** (ordinateur) : une ligne par patient, pour voir 20 à 30 patients d'un coup (réglage personnel).
+- **Patient suivant** (médecin) : le premier de la file passe en consultation et son dossier s'ouvre.
+- Un patient qui a un rendez-vous **et** une séance de chimio le même jour arrive une seule fois : ses deux lignes passent
+  en salle ensemble, avec le même n° ; « Démarrer » et « Retour en salle » valent pour les deux.
+- **Flèches ↑ ↓** (onglet En salle) : faire passer un patient avant ou après un autre.
+- **Messages à l'écran** : « X est arrivé(e) en salle d'attente » (médecin) et « X attend depuis … » (secrétaire, quand
+  l'attente passe au rouge). Activables dans Paramètres › Alertes.
+- **Recherche** par nom, n° de dossier ou téléphone (les chiffres suffisent : « 6387 »).
+- **Clôturer la journée** : liste des patients restés en consultation, en salle, ou jamais arrivés ; ces derniers passent
+  « Absent » (sans report) en un clic. La cloche signale les consultations des 7 derniers jours ni « Venu » ni « Non venu ».
+
 ## Payé automatiquement (Paramètres)
 Dans Paramètres › Activités et rémunérations, la case **« Payé auto. »** de chaque activité (par établissement) :
 cochée, une consultation validée à partir de ce jour compte « Payé (auto.) » dans le bilan ; décochée, vous cochez « Payé »

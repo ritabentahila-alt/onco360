@@ -513,8 +513,14 @@ function alertesSecretariat() {
   });
   return al.sort((a, b) => a.o - b.o);
 }
+// Consultations des 7 derniers jours ni « Venu » ni « Non venu » (journée pas clôturée dans la salle d'attente, SA6 11/10/2026)
+function nonCloturees() {
+  const al = [], t = D.t, d7 = addJ(t, -7); if (!voitRdv() || !peut("rendezvous")) return al;
+  D.patients.forEach((x) => (x.P.rdvs || []).forEach((v) => { if (v.d >= d7 && v.d < t && (v.st || "prevu") === "prevu" && typeRdv(v.type) !== "hospit") al.push({ o: 1, c: "#E07A2F", h: "<b>" + esc(x.r.nm) + "</b> – consultation du " + dfr(v.d) + (v.h ? " à " + v.h : "") + " ni « Venu » ni « Non venu » (salle d'attente › jour passé)", id: x.id }); }));
+  return al;
+}
 function alertes() {
-  if (D.membre.role === "assistante") return alertesSecretariat();
+  if (D.membre.role === "assistante") return alertesSecretariat().concat(nonCloturees());
   const RA = reglages().alertes; // délais réglables (Paramètres › Alertes)
   const t = D.t, al = [], R = "var(--rouge)", O = "#E07A2F", J = "#D6B42A", V = "var(--vert)";
   D.patients.forEach(({ id, r }) => {
@@ -528,7 +534,7 @@ function alertes() {
     if (voitRT({ r })) (r.rtE || []).forEach((x) => { if (x.fin && x.fin < t) al.push({ o: 1, c: O, h: "<b>" + esc(r.nm) + "</b> – radiothérapie " + esc(x.acte) + " : fin prévue dépassée, à clôturer", id }); });
     if (voitRT({ r })) (r.rt || []).forEach((x) => { if (x.dosi && x.d <= t) al.push({ o: x.deb && ecart(x.deb, t) <= 2 ? 0 : 1, c: x.deb && ecart(x.deb, t) <= 2 ? R : O, h: "<b>" + esc(r.nm) + "</b> – dosimétrie à valider" + (x.deb ? " (1re séance le " + dfr(x.deb) + ")" : ""), id }); });
   });
-  return al.sort((a, b) => a.o - b.o);
+  return al.concat(nonCloturees()).sort((a, b) => a.o - b.o);
 }
 const FILTRES = {
   tous: ["Tous les patients", () => true],
@@ -1159,6 +1165,13 @@ window.prixRdv = (id, rid, encaisser) => {
 // « Non venu » : fenêtre Absent, avec ou sans report du rendez-vous (08/10/2026). Le rendez-vous manqué reste « Non venu »
 // (trace de l'absence) ; le report crée un nouveau rendez-vous (même type, motif, note) marqué « Reporté (initialement le …) ».
 function prochainJour(etab, d) { let z = d; for (let g = 0; g < 60; g++) { z = addJ(z, 1); if (ouvre(z, D.ctx.feries) && !absenceLe(z) && (horaires(etab).jours[new Date(z + "T12:00:00").getDay()] || []).length) return z; } return addJ(d, 1); }
+// « Non venu » sans report, sans fenêtre (Clôturer la journée de la salle d'attente, SA6 11/10/2026)
+window.rdvAbsentDirect = async (pid, rid) => {
+  const x = D.patients.find((p) => p.id === pid); if (!x) return false;
+  const l = lireRdvs(x), r = l.find((v) => v.id === rid); if (!r || (r.st || "prevu") !== "prevu") return false;
+  r.st = "absent"; delete r.dv; r.sp = D.u.uid;
+  await enregistrer(x, { rdvsJson: JSON.stringify(l) }, "Rendez-vous : non venu (journée clôturée)"); apresStatutRdv(x, r, "absent", "prevu"); return true;
+};
 function absentRdv(x, l, r) {
   const etab = x.doc.etablissementId, d0 = prochainJour(etab, r.d > D.t ? r.d : D.t);
   fenetre("<h3>Absent – " + esc(x.r.nm) + '</h3><p class="sous">' + esc(libRdv(r)) + " · " + cap(jourLong(r.d)) + (r.h ? " à " + r.h : "") + "</p>" +

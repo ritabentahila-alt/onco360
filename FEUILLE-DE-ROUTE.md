@@ -940,9 +940,15 @@ Détail : `AUDIT-SALLE-ATTENTE.md` (10 bugs, mesure avec 620 dossiers, manques p
       tableau de bord 777 → 17 ms, liste 42 → 11 ms) ; toutes les 30 s seules les minutes changent (salle, badges, bulles du
       dossier) ; mise à jour ligne par ligne quand un collègue agit (lignes inchangées, boutons, défilement gardés) ;
       « Ouvert par » mis à jour sur place.
-- [ ] **SA6 – Salle pleine** (au choix) : affichage compact + titres fixés, « Patient suivant », un patient = une arrivée,
-      arrivée sans rendez-vous + Urgent, ordre de la file modifiable, messages « patient arrivé » / « attente au rouge »,
-      recherche n° de dossier / téléphone, clôture de la journée, attente moyenne, (plus tard) filtre Praticien.
+- [x] **SA6 – Salle pleine** (11/10, sans l'arrivée sans rendez-vous, décision de Dr Bentahila) : onglets, attente moyenne et
+      titres des colonnes **fixés en haut** pendant le défilement ; bouton **Compact** (une ligne par patient, réglage personnel
+      `salleCompact`, ordinateur) ; **Patient suivant** (médecin : premier de la file → consultation + dossier) ; **un patient =
+      une arrivée** (rendez-vous et séance de chimio du même jour : même arrivée, même n°, démarrés et renvoyés ensemble) ;
+      **ordre de la file** (flèches ↑ ↓, `rang`) ; **messages** « X est arrivé(e) » (médecin) et « X attend depuis … » (secrétaire,
+      au rouge), réglables dans Paramètres › Alertes ; **recherche** nom, n° de dossier, téléphone ; **Clôturer la journée**
+      (restés en consultation / en salle / jamais arrivés → « Absent » sans report en un clic) et alerte de la cloche pour les
+      consultations des 7 derniers jours ni « Venu » ni « Non venu » ; **attente moyenne** et la plus longue en cours.
+- [ ] Arrivée sans rendez-vous + Urgent : pas retenue pour l'instant. Filtre Praticien : plus tard (cabinets de groupe).
 - [ ] **SA7 – Tests** : `tests/test_salle.py` dans le dépôt, calculs de la salle testés sans navigateur.
 
 ## Étape 7 – RCP (réunion de concertation pluridisciplinaire) (fait et testé le 09/10, pas encore en ligne)
@@ -1718,3 +1724,4 @@ On garde le bleu Onco360 (#3563B0) et Arial ; les impressions (ordonnances, fich
 | 10/10/2026 | 6 bis – Audit salle d'attente | Audit complet (`AUDIT-SALLE-ATTENTE.md`) : 10 bugs (écritures qui s'écrasent, n° d'ordre en double, horloge des ordinateurs, minuit, badges lents…), manques pour 20-30 patients, plan SA4 à SA7 à valider. |
 | 10/10/2026 | 6 bis – SA4 Salle d'attente | Fiabilité : transactions (plus d'action effacée, refus clair si un collègue a agi), n° d'ordre par compteur, heure du serveur affichée à l'heure du Maroc, passage de minuit, libellé, impression. Règles (toutes les suites) et navigateur (deux écrans simulés, ordinateur à l'heure belge, 390 px) testés. |
 | 11/10/2026 | 6 bis – SA5 Salle d'attente | Rapidité : mémoire des lignes (Agenda 673 → 51 ms, tableau de bord 777 → 17 ms avec 620 dossiers), minutes sans redessin, mise à jour ligne par ligne. Navigateur testé (aucune erreur, 390 px). Pas encore en ligne. |
+| 11/10/2026 | 6 bis – SA6 Salle d'attente | En-tête fixé, compact, Patient suivant, une arrivée par patient, ordre de la file, messages arrivée / rouge, recherche n° / téléphone, clôture de la journée + alerte, attente moyenne. Navigateur (médecin, secrétaire, 620 dossiers, 390 px) testé. Pas encore en ligne (avec SA5). |

@@ -64,15 +64,17 @@ export function demarrerSalle() {
   if (ECOUTE) return;
   let premier = true;
   ECOUTE = onSnapshot(query(col(), where("jour", "==", D().t), ...filtresEtab()), (s) => {
-    const autres = [];
+    const autres = [], arrivees = [];
     s.docChanges().forEach((c) => {
+      const av = SA.get(c.doc.id);
       if (c.type === "removed") SA.delete(c.doc.id); else SA.set(c.doc.id, c.doc.data());
       const d = c.doc.data(); if (!premier && d && d.majPar !== D().u.uid) autres.push(d.patientId);
+      if (!premier && d && d.majPar !== D().u.uid && d.etat === "salle" && (!av || av.etat !== "salle") && D().membre.role === "medecin" && reglages().salle.notifArrivee !== false) arrivees.push(d);
       if (d && d.majPar === D().u.uid) noterEcart(d.maj);
     });
     premier = false;
     // Écriture d'un collègue : le dossier concerné et ses prix sont relus (statut du rendez-vous, prix, nouveau patient)
-    Promise.all([...new Set(autres)].map(relire)).then(apresChangement);
+    Promise.all([...new Set(autres)].map(relire)).then(() => { apresChangement(); arrivees.forEach((d) => { const x = D().patients.find((p) => p.id === d.patientId); if (x) message(x.r.nm + " est arrivé(e) en salle d'attente" + (d.ordre ? " (n° " + fmtOrdre(d.ordre) + ")" : "") + (d.arrNom ? " · " + d.arrNom : "") + "."); }); });
     apresChangement();
   }, (e) => { console.warn("salle d'attente (écoute)", e); ECOUTE = null; });
   ECRIT = Date.now(); ecrirePresence(); // première mesure de l'écart d'horloge (écho de la présence)
@@ -116,7 +118,22 @@ function majBadges() {
   const z = document.querySelectorAll(".sa-badge[data-sa]"); if (!z.length) return;
   const L = lignes([D().t]); z.forEach((e) => { const i = e.dataset.sa.indexOf("|"); e.innerHTML = contenuBadge(L, e.dataset.sa.slice(0, i), e.dataset.sa.slice(i + 1)); });
 }
-setInterval(() => { if (A && D()) { majBadges(); majBulles(); } }, 30000); // minutes des badges et des bulles du dossier
+setInterval(() => { if (A && D()) { majBadges(); majBulles(); alerteRouge(); } }, 30000); // minutes des badges, bulles, attente au rouge
+// Messages à l'écran (SA6, 11/10/2026) : « patient arrivé » (médecin), « attente au rouge » (secrétaire), réglables (Paramètres › Alertes)
+function message(m) {
+  let z = $("notifs"); if (!z) { z = document.createElement("div"); z.id = "notifs"; z.setAttribute("role", "status"); z.setAttribute("aria-live", "polite"); document.body.appendChild(z); }
+  const n = document.createElement("div"); n.className = "notif";
+  n.innerHTML = '<button class="tx"><svg class="i"><use href="#i-salle"/></svg><span>' + A.esc(m) + '</span></button><button class="x" aria-label="Fermer">✕</button>';
+  n.querySelector(".tx").onclick = () => { n.remove(); JOUR = D().t; VUE = "salle"; if (location.hash.startsWith("#salle")) dessiner(); else location.hash = "salle"; };
+  n.querySelector(".x").onclick = () => n.remove();
+  z.appendChild(n); while (z.children.length > 4) z.firstChild.remove();
+  setTimeout(() => n.remove(), 15000);
+}
+const ROUGES = new Set();
+function alerteRouge() {
+  if (D().membre.role !== "assistante" || reglages().salle.notifRouge === false) return;
+  lignes([D().t]).forEach((l) => { if (l.etat !== "salle" || !l.doc.arr || ROUGES.has(l.cle + l.doc.arr)) return; if (minutes(l.doc.arr) >= seuils()[1]) { ROUGES.add(l.cle + l.doc.arr); message(l.x.r.nm + " attend depuis " + duree(minutes(l.doc.arr)) + "."); } });
+}
 function apresChangement() {
   majBadges();
   const n = lignes([D().t]).filter((l) => l.etat === "salle").length, e = $("nbSalle");
@@ -248,7 +265,7 @@ async function ecrire(l, maj, opts) {
       }
       t.set(ref, n); return n;
     });
-    SA.set(id, Object.assign({}, d, { maj: null })); apresChangement();
+    SA.set(id, Object.assign({}, d, { maj: null })); apresChangement(); return d;
   } catch (e) {
     if (e && e.cur) SA.set(id, e.cur); else if (avant) SA.set(id, avant); else SA.delete(id);
     apresChangement();
@@ -263,22 +280,38 @@ const essayer = (f) => f().catch((e) => A.toast(e.message || String(e)));
 // N° d'ordre de passage : attribué à l'arrivée, à la suite des arrivées du jour du même établissement (0001, 0002…), par le
 // compteur salleOrdre (ecrire, opts.ordre) : deux arrivées au même moment n'ont jamais le même numéro
 const fmtOrdre = (n) => (n ? String(n).padStart(4, "0") : "");
+// Un patient = une arrivée (SA6, 11/10/2026) : ses autres lignes du jour (rendez-vous + séance de chimio) suivent, même n°
+const autresLignes = (l, etats) => lignes([l.jour]).filter((z) => z.pid === l.pid && z.cle !== l.cle && etats.indexOf(z.etat) >= 0);
+async function suivre(l, etats, maj) { for (const z of autresLignes(l, etats)) { try { await ecrire(z, maj, { attendu: etats }); } catch (e) { /* ligne changée par un collègue : laissée telle quelle */ } } }
 window.saEnSalle = (pid, cle) => essayer(async () => {
   const l = trouver(pid, cle); if (!l || l.jour !== D().t) return;
-  await ecrire(l, Object.assign({ etat: "salle", arr: maintenant(), deb: null, debPar: null, debNom: null }, qui("arr")), { attendu: [""], ordre: true });
-  A.toast(l.x.r.nm + " : en salle d'attente (" + hm(maintenant()) + ").");
+  const d = await ecrire(l, Object.assign({ etat: "salle", arr: maintenant(), deb: null, debPar: null, debNom: null }, qui("arr")), { attendu: [""], ordre: true });
+  await suivre(l, [""], Object.assign({ etat: "salle", arr: d.arr, ordre: d.ordre }, qui("arr")));
+  A.toast(l.x.r.nm + " : en salle d'attente (" + hm(maintenant()) + (d.ordre ? ", n° " + fmtOrdre(d.ordre) : "") + ").");
 });
 window.saDemarrer = (pid, cle) => essayer(async () => {
   const l = trouver(pid, cle); if (!l || !peutRdv() || l.jour !== D().t) return;
   const m = { etat: "consult", deb: maintenant() }; if (!l.doc.arr) Object.assign(m, { arr: m.deb }, qui("arr"));
-  await ecrire(l, Object.assign(m, qui("deb")), { attendu: ["", "salle"], ordre: true });
+  const d = await ecrire(l, Object.assign(m, qui("deb")), { attendu: ["", "salle"], ordre: true });
+  await suivre(l, ["", "salle"], Object.assign({ etat: "consult", deb: d.deb, arr: d.arr, ordre: d.ordre }, qui("deb")));
   window.ouvrirDossier(pid);
 });
 window.saRetour = (pid, cle) => essayer(async () => {
   const l = trouver(pid, cle, D().t) || trouver(pid, cle); if (!l || !peutRdv()) return;
   await ecrire(l, { etat: "salle", deb: null, debPar: null, debNom: null }, { attendu: ["consult"] });
+  await suivre(l, ["consult"], { etat: "salle", deb: null, debPar: null, debNom: null });
   A.toast(l.x.r.nm + " : retour en salle d'attente."); location.hash = "salle";
 });
+// Patient suivant (SA6) : le premier de la file « En salle » passe en consultation et son dossier s'ouvre
+const fileSalle = () => trier(lignes([D().t]).filter((l) => dansFiltre(l) && l.etat === "salle"), "salle");
+window.saSuivant = () => { const l = fileSalle()[0]; if (!l) { A.toast("Personne en salle d'attente."); return; } window.saDemarrer(l.pid, l.cle); };
+// Ordre de la file (SA6) : monter / descendre un patient « En salle » (rang = place entre ses voisins)
+window.saBouger = (pid, cle, s) => {
+  const f = fileSalle(), i = f.findIndex((l) => l.pid === pid && l.cle === cle); if (i < 0) return;
+  const a = s < 0 ? f[i - 1] : f[i + 1], b = s < 0 ? f[i - 2] : f[i + 2]; if (!a) return;
+  const rang = b ? (cleNum(a) + cleNum(b)) / 2 : cleNum(a) + s * 60000;
+  essayer(() => ecrire(f[i], { rang }, { attendu: ["salle"] }));
+};
 // Valider : rendez-vous → « Venu » (fenêtre de prix) ; chimio → « Venu » de la consultation de chimio (fenêtre de prix)
 window.saValider = (pid, cle, depuisDossier) => {
   const l = depuisDossier ? trouver(pid, cle, D().t) : trouver(pid, cle); if (!l || !peutRdv() || l.jour > D().t) return;
@@ -304,7 +337,7 @@ window.saRecu = (pid, cle) => { const l = trouver(pid, cle); if (!l) return; if 
 // Annuler : retour à l'étape précédente (Vu → En consultation, Absent → À venir, En salle → À venir, En consultation → En salle)
 window.saAnnuler = (pid, cle) => {
   const l = trouver(pid, cle); if (!l) return;
-  if (l.etat === "salle") { if (!confirm("Annuler l'arrivée de " + l.x.r.nm + " (retour dans « À venir ») ?")) return; essayer(() => ecrire(l, { etat: "", arr: null, arrPar: null, arrNom: null, ordre: null }, { attendu: ["salle"] })); return; }
+  if (l.etat === "salle") { if (!confirm("Annuler l'arrivée de " + l.x.r.nm + " (retour dans « À venir ») ?")) return; essayer(async () => { await ecrire(l, { etat: "", arr: null, arrPar: null, arrNom: null, ordre: null, rang: null }, { attendu: ["salle"] }); await suivre(l, ["salle"], { etat: "", arr: null, arrPar: null, arrNom: null, ordre: null, rang: null }); }); return; }
   if (!peutRdv()) return;
   if (l.etat === "consult") { window.saRetour(pid, cle); return; }
   if (l.rdv) { window.statutRdv(pid, l.rdv.id, "prevu"); return; }
@@ -403,15 +436,21 @@ export function pageSalle(j) {
   if (ETAB && etabs.indexOf(ETAB) < 0) ETAB = "";
   $("page").innerHTML = '<section class="accueil"><div><h2>Salle d\'attente</h2><p id="saTitre"></p></div>' +
     '<div class="actions sa-etab">' + (etabs.length > 1 ? '<select id="saEtab" aria-label="Établissement"><option value="">Tous les établissements</option>' + etabs.map((c) => '<option value="' + A.esc(c) + '"' + (c === ETAB ? " selected" : "") + ">" + A.esc(c) + "</option>").join("") + "</select>" : "") +
+    '<button class="bt vert cache" id="saSuiv" onclick="saSuivant()"><svg class="i"><use href="#i-check"/></svg>Patient suivant</button>' +
+    '<button class="bt gris" id="saCmp" onclick="saCompact()" title="Une ligne par patient (réglage personnel)"><svg class="i"><use href="#i-liste"/></svg>Compact</button>' +
     '<button class="bt gris" data-fn="salle.colonnes" onclick="saColonnes()" title="Choisir les colonnes affichées"><svg class="i"><use href="#i-liste"/></svg>Colonnes</button></div></section>' +
     '<div class="sa-jours"><button class="sa-fl" onclick="saJour(-1)" aria-label="Jour précédent" title="Jour précédent">‹</button><div class="sa-sem" id="saSem"></div><button class="sa-fl" onclick="saJour(1)" aria-label="Jour suivant" title="Jour suivant">›</button>' +
     '<label class="sa-cal" title="Choisir un jour dans le calendrier"><svg class="i"><use href="#i-agenda"/></svg><span>Calendrier</span><input type="date" id="saD" aria-label="Choisir un jour"></label>' +
     '<button class="bt clair petit" id="saAuj" onclick="saAller(\'' + D().t + '\')">Aujourd\'hui</button></div>' +
     '<div class="sa-outils"><div class="sa-per" role="group" aria-label="Période">' + [["matin", "Matinée"], ["am", "Après-midi"], ["jour", "Toute la journée"]].map(([k, t]) => '<button data-per="' + k + '" onclick="saPeriode(\'' + k + '\')">' + t + "</button>").join("") + "</div>" +
-    '<div class="recherche"><svg class="i"><use href="#i-loupe"/></svg><input id="saQ" type="search" placeholder="Rechercher un patient…" autocomplete="off" aria-label="Rechercher un patient"></div>' +
+    '<div class="recherche"><svg class="i"><use href="#i-loupe"/></svg><input id="saQ" type="search" placeholder="Nom, n° de dossier, téléphone…" autocomplete="off" aria-label="Rechercher un patient"></div>' +
     '<select id="saTri" aria-label="Tri"><option value="rdv">Tri : heure du rendez-vous</option><option value="arrivee">Tri : heure d\'arrivée</option><option value="alpha">Tri : alphabétique</option></select>' +
-    '<button class="bt gris" onclick="saImprimer()" title="Imprimer la liste du jour"><svg class="i"><use href="#i-imprimer"/></svg>Imprimer</button></div>' +
-    '<section class="carte onglets"><div class="o-barre sa-o" role="tablist" aria-label="Salle d\'attente" id="saO"></div><div class="sa-defile"><div id="saL"></div></div><div id="saTot"></div></section>';
+    '<button class="bt gris" onclick="saImprimer()" title="Imprimer la liste du jour"><svg class="i"><use href="#i-imprimer"/></svg>Imprimer</button>' +
+    '<button class="bt gris cache" id="saClo" onclick="saCloturer()" title="Patients restés en salle, en consultation ou jamais arrivés"><svg class="i"><use href="#i-check"/></svg>Clôturer la journée</button></div>' +
+    // Onglets, indicateurs et titres des colonnes restent en haut pendant le défilement (SA6, 11/10/2026)
+    '<section class="carte onglets sa-carte" id="saCarte"><div class="sa-haut"><div class="o-barre sa-o" role="tablist" aria-label="Salle d\'attente" id="saO"></div><div class="sa-ind" id="saInd"></div><div class="sa-ent-z" id="saEZ"><div id="saE"></div></div></div>' +
+    '<div class="sa-defile" id="saDef"><div id="saL"></div></div><div id="saTot"></div></section>';
+  $("saDef").onscroll = () => { $("saEZ").scrollLeft = $("saDef").scrollLeft; };
   if ($("saEtab")) $("saEtab").onchange = () => { ETAB = $("saEtab").value; dessiner(); };
   $("saD").onchange = () => { if ($("saD").value) window.saAller($("saD").value); };
   $("saQ").value = RECH; $("saQ").oninput = () => { RECH = $("saQ").value; dessiner(); };
@@ -430,12 +469,19 @@ window.saOnglet = (k) => { VUE = k; dessiner(); };
 window.saPeriode = (k) => { PER = k; dessiner(); };
 // Filtres de la liste : période (heure du rendez-vous, sinon d'arrivée ; sans heure : toujours) et recherche (nom)
 const dansPeriode = (l) => { const h = l.h || (l.doc.arr ? hm(l.doc.arr) : ""); return PER === "jour" || !h || (PER === "matin" ? h < MIDI : h >= MIDI); };
-const dansRecherche = (l) => { const m = A.sansAcc(RECH).split(/\s+/).filter(Boolean); return !m.length || m.every((w) => A.sansAcc(l.x.r.nm).indexOf(w) >= 0); };
+// recherche (SA6) : nom, n° de dossier, téléphone (chiffres seuls : « 0661 » trouve « 06 61 … »)
+const dansRecherche = (l) => {
+  const m = A.sansAcc(RECH).split(/\s+/).filter(Boolean); if (!m.length) return true;
+  const I = (l.x.doc && l.x.doc.identite) || {}, hay = A.sansAcc(l.x.r.nm + " " + (I.numero || "")), tel = String((l.x.P.tel || "") + " " + (I.tel2 || "")).replace(/\D/g, "");
+  return m.every((w) => hay.indexOf(w) >= 0 || (/^\d+$/.test(w) && w.length >= 3 && tel.indexOf(w.replace(/^0/, "")) >= 0));
+};
 // Tri : chimio en tête d'« À venir » ; « En salle » : en consultation d'abord ; puis heure du rendez-vous, d'arrivée ou nom
+// Place dans la file (en millisecondes) : rang posé à la main (flèches), sinon heure d'arrivée ou du rendez-vous
+const cleNum = (l) => { if (l.doc.rang != null) return l.doc.rang; const r = l.h ? new Date(l.jour + "T" + l.h + ":00").getTime() : null; return triPerso() === "arrivee" ? l.doc.arr || r || 9e15 : r || l.doc.arr || 9e15; };
 function trier(l, vue) {
   const t = triPerso(), hh = (z) => z.h || (z.doc.arr ? hm(z.doc.arr) : "99:99"), nom = (a, b) => a.x.r.nm.localeCompare(b.x.r.nm);
   const cle = (a, b) => (t === "alpha" ? nom(a, b) : t === "arrivee" ? (a.doc.arr || 9e15) - (b.doc.arr || 9e15) || hh(a).localeCompare(hh(b)) : hh(a).localeCompare(hh(b))) || nom(a, b);
-  if (vue === "salle") return l.sort((a, b) => (a.etat === "consult" ? 0 : 1) - (b.etat === "consult" ? 0 : 1) || (b.doc.urgent ? 1 : 0) - (a.doc.urgent ? 1 : 0) || cle(a, b));
+  if (vue === "salle") return l.sort((a, b) => (a.etat === "consult" ? 0 : 1) - (b.etat === "consult" ? 0 : 1) || (b.doc.urgent ? 1 : 0) - (a.doc.urgent ? 1 : 0) || (t === "alpha" ? cle(a, b) : cleNum(a) - cleNum(b) || nom(a, b)));
   if (vue === "vus" && t !== "alpha") return l.sort((a, b) => (a.doc.fin || 0) - (b.doc.fin || 0) || cle(a, b));
   if (vue === "avenir") return l.sort((a, b) => (a.chimio ? 0 : 1) - (b.chimio ? 0 : 1) || cle(a, b));
   return l.sort(cle);
@@ -452,9 +498,16 @@ function dessiner() {
   remplir($("saO"), ONGLETS.map(([k, lib, court]) => { if (k === "avenir" && JOUR < t) { lib = "À valider"; court = ""; } return '<button role="tab" aria-selected="' + (k === VUE) + '"' + (k === VUE ? ' class="on"' : "") + ' onclick="saOnglet(\'' + k + '\')">' + (court ? '<span class="lg">' + lib + '</span><span class="sm">' + court + "</span>" : lib) + '<span class="n">' + n[k] + "</span></button>"; }).join(""));
   const l = trier(L.filter((z) => ongletDe(z) === VUE), VUE);
   const vide = { avenir: JOUR < t ? "Aucune consultation restée sans validation." : JOUR > t ? "Aucune consultation prévue ce jour-là." : "Plus aucun patient attendu aujourd'hui.", salle: "Personne en salle d'attente.", vus: "Aucun patient vu.", absents: "Aucun absent." }[VUE];
-  const cv = colsVues(); $("saL").style.setProperty("--cols", cv.map((c) => c[2]).join(" "));
+  const cv = colsVues(), gc = cv.map((c) => c[2]).join(" "); $("saL").style.setProperty("--cols", gc); $("saE").style.setProperty("--cols", gc);
+  $("saCarte").classList.toggle("compact", !!(D().profil && D().profil.salleCompact)); $("saCmp").classList.toggle("on", !!(D().profil && D().profil.salleCompact));
+  remplir($("saE"), l.length ? '<div class="sa-l ent">' + cv.map((c) => '<span class="c-' + c[0] + '" title="' + c[1] + '">' + (c[0] === "civ" ? "Civ." : c[0] === "ord" ? "N°" : c[1]) + "</span>").join("") + "</div>" : "");
   // Mise à jour ligne par ligne : une ligne inchangée n'est pas touchée (clic en cours, survol et défilement gardés)
-  poser($("saL"), l.length ? [{ k: "ent", h: '<div class="sa-l ent" data-k="ent">' + cv.map((c) => '<span class="c-' + c[0] + '" title="' + c[1] + '">' + (c[0] === "civ" ? "Civ." : c[0] === "ord" ? "N°" : c[1]) + "</span>").join("") + "</div>" }].concat(l.map((z) => ({ k: z.pid + "|" + z.cle, h: ligneHtml(z, cv) }))) : [{ k: "vide", h: '<p class="vide-c" data-k="vide">' + vide + "</p>" }]);
+  poser($("saL"), l.length ? l.map((z) => ({ k: z.pid + "|" + z.cle, h: ligneHtml(z, cv) })) : [{ k: "vide", h: '<p class="vide-c" data-k="vide">' + vide + "</p>" }]);
+  // Patient suivant (médecin, aujourd'hui) ; Clôturer la journée (aujourd'hui et jours passés)
+  const f = JOUR === t && peutRdv() && D().membre.role === "medecin" ? fileSalle() : [];
+  $("saSuiv").classList.toggle("cache", !f.length); if (f.length) $("saSuiv").title = "Démarrer la consultation de " + f[0].x.r.nm + " (attend depuis " + duree(minutes(f[0].doc.arr || maintenant())) + ")";
+  $("saClo").classList.toggle("cache", !(JOUR <= t && peutRdv()));
+  majIndicateurs(L);
   // Total du jour (établissement choisi), sans les absents : encaissé (vus, prix validé) et prévu (le reste, au tarif)
   if (voitPrix()) {
     // à encaisser (19.5, lieux « payé au cabinet ») : vu (validé par le médecin) mais pas encore encaissé, ou non payé : compté à part
@@ -478,9 +531,35 @@ function poser(cont, items) {
   });
   [...cont.children].forEach((e) => { if (!garde.has(e)) e.remove(); });
 }
+// Attente moyenne du jour (arrivée → début de consultation, attentes en cours comprises) et la plus longue en cours (SA6)
+function majIndicateurs(L) {
+  if (JOUR !== D().t) { remplir($("saInd"), ""); return; }
+  const at = [], enCours = [];
+  L.forEach((l) => { const d = l.doc; if (!d.arr) return; if (l.etat === "salle") { const m = minutes(d.arr); at.push(m); enCours.push([m, l]); } else if (d.deb) at.push(Math.max(0, Math.round((d.deb - d.arr) / 60000))); });
+  if (!at.length) { remplir($("saInd"), ""); return; }
+  const moy = Math.round(at.reduce((a, b) => a + b, 0) / at.length), max = enCours.sort((a, b) => b[0] - a[0])[0];
+  remplir($("saInd"), "<span>Attente moyenne aujourd'hui : <b>" + duree(moy) + "</b></span>" + (max ? '<span class="' + (max[0] >= seuils()[1] ? "rouge" : max[0] >= seuils()[0] ? "orange" : "") + '">La plus longue en cours : <b>' + duree(max[0]) + "</b> (" + A.esc(max[1].x.r.nm) + ")</span>" : ""));
+}
+window.saCompact = () => { const v = !(D().profil && D().profil.salleCompact); D().profil.salleCompact = v; dessiner(); setDoc(doc(db, "utilisateurs", D().u.uid), { salleCompact: v }, { merge: true }).catch(() => {}); };
+// Clôturer la journée (SA6) : patients restés en consultation, en salle ou jamais arrivés ; les jamais arrivés en « Absent » d'un clic
+window.saCloturer = () => {
+  const L = lignes([JOUR]).filter((l) => dansFiltre(l) && (l.etat === "" || l.etat === "salle" || l.etat === "consult")), q = (l) => "'" + l.pid + "','" + l.cle + "'";
+  const g = [["consult", "En consultation"], ["salle", "Encore en salle d'attente"], ["", "Jamais arrivés"]].map(([e, t]) => [e, t, trier(L.filter((l) => l.etat === e), e === "" ? "avenir" : "salle")]).filter((z) => z[2].length);
+  const ligne = (l) => '<div class="rdv"><span class="badge b-gr">' + A.esc(l.h || "—") + '</span><div class="tx"><b>' + A.esc(l.x.r.nm) + '</b><div class="mesures">' + A.esc(l.type + (l.motif ? " · " + l.motif : "")) + "</div></div>" +
+    '<div class="actr">' + (l.rdv || A.peutPrix() ? '<button class="mini v" onclick="fermerFenetre();saValider(' + q(l) + ')">Valider</button>' : "") + '<button class="mini" onclick="fermerFenetre();ouvrirDossier(\'' + l.pid + '\')">Dossier</button></div></div>';
+  A.fenetre("<h3>Clôturer la journée – " + A.esc(A.cap(A.jourLong(JOUR))) + "</h3>" + (g.length ? '<p class="sous">Validez les patients vus (fenêtre de prix) ; ceux qui ne sont jamais arrivés passent en « Absent » (sans report), en un clic.</p>' + g.map(([e, t, l]) => '<h4 class="soustitre">' + t + " (" + l.length + ")</h4>" + l.map(ligne).join("")).join("") : '<p class="sous">Tout est clôturé : chaque patient est vu ou absent.</p>') +
+    '<div class="err" id="fErr"></div><div class="boutons">' + (L.some((l) => l.etat === "") ? '<button class="bt rouge" id="saCloA">Jamais arrivés → Absent</button>' : "") + '<button class="bt gris" onclick="fermerFenetre()">Fermer</button></div>', "large");
+  if ($("saCloA")) $("saCloA").onclick = async () => {
+    const l0 = L.filter((l) => l.etat === ""); if (!confirm(l0.length + " patient" + (l0.length > 1 ? "s" : "") + " jamais arrivé" + (l0.length > 1 ? "s" : "") + " : marquer « Absent » sans report ?")) return;
+    A.occupe($("saCloA"), true); let n = 0;
+    for (const l of l0) { try { if (l.rdv) { if (await window.rdvAbsentDirect(l.pid, l.rdv.id)) n++; } else { await ecrire(l, Object.assign({ etat: "absent", sp: D().u.uid, motif: l.motif, fin: maintenant() }, qui("fin")), { attendu: [""] }); n++; } } catch (e) { /* ligne changée entre-temps */ } }
+    A.fermerFenetre(); A.toast(n + " patient" + (n > 1 ? "s" : "") + " marqué" + (n > 1 ? "s" : "") + " absent" + (n > 1 ? "s" : "") + "."); dessiner();
+  };
+};
 // Toutes les 30 s : seules les minutes (attente, consultation) changent, sans redessiner la liste
 function majMinutes() {
   const L = lignes([JOUR]);
+  majIndicateurs(L.filter((l) => dansFiltre(l) && dansPeriode(l) && dansRecherche(l)));
   document.querySelectorAll("#saL .sa-l.salle[data-k], #saL .sa-l.consult[data-k]").forEach((e) => {
     const k = e.dataset.k, i = k.indexOf("|"), l = L.find((z) => z.pid === k.slice(0, i) && z.cle === k.slice(i + 1)), c = e.querySelector(".c-st");
     if (l && c) c.innerHTML = statut(l);
@@ -504,7 +583,7 @@ function ligneHtml(l, cv) {
   let act = "";
   if (l.jour === t) {
     if (l.etat === "") act = b("Mettre en salle", "saEnSalle", "bleu") + (okR ? b("Démarrer", "saDemarrer", "v") + b("Absent", "saAbsent", "r") : "");
-    else if (l.etat === "salle") act = (okR ? b("Démarrer", "saDemarrer", "v", "Démarrer la consultation (ouvre le dossier)") : "") + (okV ? b("Valider", "saValider") : "") + b("Annuler", "saAnnuler");
+    else if (l.etat === "salle") act = (okR && VUE === "salle" && triPerso() !== "alpha" ? '<button class="mini fl" onclick="saBouger(' + q + ',-1)" title="Faire passer avant" aria-label="Monter dans la file">↑</button><button class="mini fl" onclick="saBouger(' + q + ',1)" title="Faire passer après" aria-label="Descendre dans la file">↓</button>' : "") + (okR ? b("Démarrer", "saDemarrer", "v", "Démarrer la consultation (ouvre le dossier)") : "") + (okV ? b("Valider", "saValider") : "") + b("Annuler", "saAnnuler");
     else if (l.etat === "consult") act = okR ? (okV ? b("Valider", "saValider", "v") : "") + b("Retour en salle", "saRetour") : "";
   } else if (l.jour < t && (l.etat === "" || l.etat === "salle" || l.etat === "consult")) act = (okV ? b("Valider", "saValider", "v") : "") + (okR && l.etat === "" ? b("Absent", "saAbsent", "r") : "");
   if ((l.etat === "vu" || l.etat === "absent") && okR && (l.rdv || A.peutPrix() || l.etat === "absent") && !l.orphelin && !l.derive) act = b("Annuler", "saAnnuler");

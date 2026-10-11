@@ -202,7 +202,9 @@ export function pageConfiguration(arg) {
     const RS = ED.reg.salle, selS = (k, l, lib) => '<div><label for="cfS' + k + '">' + lib + '</label><select id="cfS' + k + '"' + disE + ' onchange="cfReg(\'salle\',\'' + k + "',this.value)\">" + l.map((n) => '<option value="' + n + '"' + (RS[k] === n ? " selected" : "") + ">" + n + " min</option>").join("") + "</select></div>";
     h += '<section class="carte"><h3><span class="ic">' + A.ic("horloge") + '</span>Salle d\'attente : temps d\'attente</h3><p class="sous">Le compteur « Attente 12 min » d\'un patient en salle passe à l\'orange, puis au rouge (salle d\'attente, agenda, tableau de bord).</p><div class="form" style="grid-template-columns:repeat(2,minmax(0,280px))">' +
       selS("orange", [5, 10, 15, 20, 25, 30, 40, 45, 60], "Orange à partir de") + selS("rouge", [15, 20, 30, 40, 45, 60, 75, 90, 120], "Rouge à partir de") + "</div>" +
-      (RS.rouge <= RS.orange ? '<p class="err">Le rouge doit venir après l\'orange.</p>' : "") + "</section>";
+      (RS.rouge <= RS.orange ? '<p class="err">Le rouge doit venir après l\'orange.</p>' : "") +
+      // Messages à l'écran de la salle d'attente (SA6, 11/10/2026)
+      '<div style="display:flex;flex-direction:column;gap:6px;margin-top:10px">' + [["notifArrivee", "Prévenir le médecin quand un patient arrive en salle d\'attente"], ["notifRouge", "Prévenir la secrétaire quand une attente passe au rouge"]].map(([k, lib]) => '<label style="font-weight:normal"><input type="checkbox"' + disE + (RS[k] !== false ? " checked" : "") + ' onchange="cfRegB(\'salle\',\'' + k + '\',this.checked)" style="width:auto;margin-right:8px">' + lib + "</label>").join("") + "</div></section>";
   } else if (ONG === "alertes") {
     const RA = ED.reg.alertes, sel = (k, l, lib, suff) => '<div><label for="cfA' + k + '">' + lib + '</label><select id="cfA' + k + '"' + disE + ' onchange="cfReg(\'alertes\',\'' + k + "',this.value)\">" + l.map((n) => "<option value=\"" + n + "\"" + (RA[k] === n ? " selected" : "") + ">" + n + " " + suff + "</option>").join("") + "</select></div>";
     h += '<section class="carte"><h3><span class="ic">' + A.ic("alerte") + '</span>Alertes (cloche)</h3><p class="sous">Délais des alertes de la cloche, en haut de l\'écran.</p><div class="form" style="grid-template-columns:repeat(2,minmax(0,280px))">' +
@@ -211,7 +213,9 @@ export function pageConfiguration(arg) {
     const RS = ED.reg.salle, selS = (k, l, lib) => '<div><label for="cfS' + k + '">' + lib + '</label><select id="cfS' + k + '"' + disE + ' onchange="cfReg(\'salle\',\'' + k + "',this.value)\">" + l.map((n) => '<option value="' + n + '"' + (RS[k] === n ? " selected" : "") + ">" + n + " min</option>").join("") + "</select></div>";
     h += '<section class="carte"><h3><span class="ic">' + A.ic("horloge") + '</span>Salle d\'attente : temps d\'attente</h3><p class="sous">Le compteur « Attente 12 min » d\'un patient en salle passe à l\'orange, puis au rouge (salle d\'attente, agenda, tableau de bord).</p><div class="form" style="grid-template-columns:repeat(2,minmax(0,280px))">' +
       selS("orange", [5, 10, 15, 20, 25, 30, 40, 45, 60], "Orange à partir de") + selS("rouge", [15, 20, 30, 40, 45, 60, 75, 90, 120], "Rouge à partir de") + "</div>" +
-      (RS.rouge <= RS.orange ? '<p class="err">Le rouge doit venir après l\'orange.</p>' : "") + "</section>";
+      (RS.rouge <= RS.orange ? '<p class="err">Le rouge doit venir après l\'orange.</p>' : "") +
+      // Messages à l'écran de la salle d'attente (SA6, 11/10/2026)
+      '<div style="display:flex;flex-direction:column;gap:6px;margin-top:10px">' + [["notifArrivee", "Prévenir le médecin quand un patient arrive en salle d\'attente"], ["notifRouge", "Prévenir la secrétaire quand une attente passe au rouge"]].map(([k, lib]) => '<label style="font-weight:normal"><input type="checkbox"' + disE + (RS[k] !== false ? " checked" : "") + ' onchange="cfRegB(\'salle\',\'' + k + '\',this.checked)" style="width:auto;margin-right:8px">' + lib + "</label>").join("") + "</div></section>";
   } else if (ONG === "whatsapp") {
     const ex = exempleWa();
     h += '<section class="carte"><h3><span class="ic">' + A.ic("whatsapp") + '</span>Rappels WhatsApp</h3><p class="sous">Un bouton WhatsApp apparaît à côté de chaque rendez-vous (tableau de bord, 7 prochains jours, et dossier patient). Il ouvre WhatsApp avec le message ci-dessous déjà rempli : il ne reste qu\'à appuyer sur Envoyer. Le bouton est vert quand le rendez-vous est dans ' + (ED.reg.whatsapp.de * 24) + " à " + (ED.reg.whatsapp.a * 24) + ' h (réglable ci-dessous).</p>' +
@@ -334,6 +338,7 @@ window.cfL = (i, v) => { ED.listes[LS][i] = String(v || "").trim(); modif(); };
 window.cfLSup = (i) => { ED.listes[LS].splice(i, 1); ED.listesOrig[LS].splice(i, 1); modif(); listeL(); };
 window.cfLAj = () => { LQ = ""; ED.listes[LS].push(""); ED.listesOrig[LS].push(""); modif(true); setTimeout(() => { const l = document.querySelectorAll("#cfLl input"); if (l.length) { l[l.length - 1].scrollIntoView({ block: "center" }); l[l.length - 1].focus(); } }, 30); };
 window.cfBib = (n) => gererListe(n);
+window.cfRegB = (g, k, v) => { ED.reg[g][k] = !!v; modif(); };
 window.cfReg = (g, k, v) => { ED.reg[g][k] = parseInt(v, 10) || 0; modif(g === "salle"); };
 window.cfImp = (q, n, v) => { const x = parseInt(v, 10); ED.reg.impression[q][n] = isNaN(x) ? REGLAGES0.impression[q][n] : Math.max(0, Math.min(150, x)); modif(); };
 window.cfCoul = (k, c) => { ED.coul[k] = c; modif(true); };
