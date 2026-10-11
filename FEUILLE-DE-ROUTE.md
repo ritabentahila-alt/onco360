@@ -151,7 +151,7 @@ longs et ne dépendent pas du code.
 
 ## Phase 1 – Sécurité (premier audit, constats « élevé » et « moyen »)
 
-- [x] **1.1 Injections de code** (11/10, testé, pas encore en ligne) : `srcImage` (moteur/outils.js) : photo du patient, photo de
+- [x] **1.1 Injections de code** (11/10, testé, en ligne : version 20261011u) : `srcImage` (moteur/outils.js) : photo du patient, photo de
       profil, signature et logos acceptés seulement en image base64 ou fichier Firebase Storage (v2.js `bulle`, avatar ; profil.js ;
       fiche.js) ; nettoyeur HTML (`nettoyer`) appliqué aussi **à l'affichage** : fenêtre de l'ordonnance / du courrier, aperçu et
       impression des antécédents, documents de radiothérapie enregistrés, et toutes les lectures de HTML enregistré (l'aperçu des
