@@ -936,8 +936,10 @@ Détail : `AUDIT-SALLE-ATTENTE.md` (10 bugs, mesure avec 620 dossiers, manques p
       Maroc (fuseau Africa/Casablanca, même sur un ordinateur réglé ailleurs) ; passage automatique au nouveau jour à minuit ;
       libellé court des séances reportées ; impression qui attend les prix. Règles : lecture d'une ligne pas encore créée,
       compteur qui ne fait que monter (6 tests).
-- [ ] **SA5 – Rapidité** : lignes du jour gardées en mémoire (badges Agenda / tableau de bord : 0,7 s → quelques ms), minutes
-      mises à jour sans tout redessiner, mise à jour ligne par ligne.
+- [x] **SA5 – Rapidité** (10/10) : lignes du jour gardées en mémoire tant que rien ne change (620 dossiers : Agenda 673 → 51 ms,
+      tableau de bord 777 → 17 ms, liste 42 → 11 ms) ; toutes les 30 s seules les minutes changent (salle, badges, bulles du
+      dossier) ; mise à jour ligne par ligne quand un collègue agit (lignes inchangées, boutons, défilement gardés) ;
+      « Ouvert par » mis à jour sur place.
 - [ ] **SA6 – Salle pleine** (au choix) : affichage compact + titres fixés, « Patient suivant », un patient = une arrivée,
       arrivée sans rendez-vous + Urgent, ordre de la file modifiable, messages « patient arrivé » / « attente au rouge »,
       recherche n° de dossier / téléphone, clôture de la journée, attente moyenne, (plus tard) filtre Praticien.
@@ -1715,3 +1717,4 @@ On garde le bleu Onco360 (#3563B0) et Arial ; les impressions (ordonnances, fich
 | 10/10/2026 | 15 bis – Retouche | Tableau « Par établissement » : la ligne « Non renseigné / autres » (qui regroupait les autres versements) devient « Autres versements » (clic = type Autres versements) ; les actes sans établissement ont leur propre ligne « — ». Mis en ligne (v2.js?v=20261011n). |
 | 10/10/2026 | 6 bis – Audit salle d'attente | Audit complet (`AUDIT-SALLE-ATTENTE.md`) : 10 bugs (écritures qui s'écrasent, n° d'ordre en double, horloge des ordinateurs, minuit, badges lents…), manques pour 20-30 patients, plan SA4 à SA7 à valider. |
 | 10/10/2026 | 6 bis – SA4 Salle d'attente | Fiabilité : transactions (plus d'action effacée, refus clair si un collègue a agi), n° d'ordre par compteur, heure du serveur affichée à l'heure du Maroc, passage de minuit, libellé, impression. Règles (toutes les suites) et navigateur (deux écrans simulés, ordinateur à l'heure belge, 390 px) testés. |
+| 11/10/2026 | 6 bis – SA5 Salle d'attente | Rapidité : mémoire des lignes (Agenda 673 → 51 ms, tableau de bord 777 → 17 ms avec 620 dossiers), minutes sans redessin, mise à jour ligne par ligne. Navigateur testé (aucune erreur, 390 px). Pas encore en ligne. |

@@ -34,7 +34,11 @@ const $ = (i) => document.getElementById(i);
 const col = () => collection(db, "espaces", A.ESPACE, "salle");
 // Minutes d'attente : orange, puis rouge (Paramètres › Alertes, parametres/reglages.salle ; par défaut 20 et 45)
 const seuils = () => { const s = (reglages().salle) || {}; return [s.orange || 20, s.rouge || 45]; };
-const SA = new Map(); // documents lus (id → données) : le jour même (écoute) et le jour affiché
+// Documents lus (id → données) : le jour même (écoute) et le jour affiché. Toute modification fait avancer GEN, qui invalide les
+// lignes gardées en mémoire (SA5, 10/10/2026)
+let GEN = 0;
+class Memoire extends Map { set(k, v) { GEN++; return super.set(k, v); } delete(k) { GEN++; return super.delete(k); } }
+const SA = new Memoire();
 let ECOUTE = null, VUE = "salle", ETAB = "", RETOUR = null, MINUT = null, JOUR = null, LU = {}, PER = "jour", RECH = "";
 const MIDI = "13:00"; // Matinée : rendez-vous (ou arrivée) avant 13 h ; Après-midi : à partir de 13 h ; sans heure : dans les deux
 const triPerso = () => (D().profil && D().profil.salleTri) || "rdv"; // rdv | arrivee | alpha (réglage personnel)
@@ -112,7 +116,7 @@ function majBadges() {
   const z = document.querySelectorAll(".sa-badge[data-sa]"); if (!z.length) return;
   const L = lignes([D().t]); z.forEach((e) => { const i = e.dataset.sa.indexOf("|"); e.innerHTML = contenuBadge(L, e.dataset.sa.slice(0, i), e.dataset.sa.slice(i + 1)); });
 }
-setInterval(() => { if (A && D()) majBadges(); }, 30000);
+setInterval(() => { if (A && D()) { majBadges(); majBulles(); } }, 30000); // minutes des badges et des bulles du dossier
 function apresChangement() {
   majBadges();
   const n = lignes([D().t]).filter((l) => l.etat === "salle").length, e = $("nbSalle");
@@ -130,9 +134,20 @@ function typeDe(v) {
   const t = typeRdv(v.type);
   return t === "annonce" ? ["Annonce", "b-or"] : t === "controle" ? ["Contrôle", "b-gr"] : [A.cap(String(v.type || "Suivi").toLowerCase()), "b-co"];
 }
-// Une ligne = { jour, cle, pid, x, h, type, cls, motif, etat, doc, rdv | chimio } ; jours = liste de dates AAAA-MM-JJ
+// Une ligne = { jour, cle, pid, x, h, type, cls, motif, etat, doc, rdv | chimio } ; jours = liste de dates AAAA-MM-JJ.
+// Gardées en mémoire tant que rien ne change (documents de la salle : GEN ; dossiers : nombre et versions) : les badges de
+// l'Agenda et du tableau de bord, les minutes et chaque action ne refont plus le calcul complet (SA5, 10/10/2026).
+const CACHE = new Map();
+const empreinte = () => { let v = 0; D().patients.forEach((x) => { v += (x.doc && x.doc.version) || 1; }); return GEN + ":" + D().patients.length + ":" + v; };
 export function lignes(jours) {
-  const J = new Set(jours || [jourVu()]), out = [], voitCh = A.voit("traitements");
+  const J = jours || [jourVu()], k = J.join(","), e = empreinte(), c = CACHE.get(k);
+  if (c && c.e === e) return c.out;
+  const out = calculerLignes(J); CACHE.set(k, { e: empreinte(), out });
+  if (CACHE.size > 12) CACHE.delete(CACHE.keys().next().value);
+  return out;
+}
+function calculerLignes(jours) {
+  const J = new Set(jours), out = [], voitCh = A.voit("traitements");
   D().patients.forEach((x) => {
     const P = x.P;
     (P.rdvs || []).forEach((v) => {
@@ -176,7 +191,7 @@ const CHARGE = {}; // prix à encaisser demandés (une lecture par patient)
 let REDESSIN = null;
 function encDe(x) {
   if (CHARGE[x.id] === 1) return undefined; // lecture en cours
-  const E = A.encaissementsDe(x, () => { delete CHARGE[x.id]; clearTimeout(REDESSIN); REDESSIN = setTimeout(() => { if ($("saL")) dessiner(); }, 60); });
+  const E = A.encaissementsDe(x, () => { delete CHARGE[x.id]; GEN++; clearTimeout(REDESSIN); REDESSIN = setTimeout(() => { if ($("saL")) dessiner(); }, 60); });
   if (E === undefined) CHARGE[x.id] = 1;
   return E;
 }
@@ -403,7 +418,7 @@ export function pageSalle(j) {
   $("saTri").value = triPerso(); $("saTri").onchange = () => { const v = $("saTri").value; D().profil.salleTri = v; dessiner(); setDoc(doc(db, "utilisateurs", D().u.uid), { salleTri: v }, { merge: true }).catch(() => {}); };
   dessiner();
   if (JOUR !== D().t && !LU[JOUR]) lireJour(JOUR).then(() => { if ($("saL")) dessiner(); });
-  clearInterval(MINUT); MINUT = setInterval(() => { if (location.hash.startsWith("#salle") && $("saL")) dessiner(); else clearInterval(MINUT); }, 30000);
+  clearInterval(MINUT); MINUT = setInterval(() => { if (location.hash.startsWith("#salle") && $("saL")) majMinutes(); else clearInterval(MINUT); }, 30000);
 }
 window.saAller = (j) => {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(j || "")) return;
@@ -430,25 +445,46 @@ function dessiner() {
   const t = D().t, j0 = lundi(JOUR), sem = Array.from({ length: 7 }, (_, i) => addJ(j0, i)), tout = lignes(sem).filter(dansFiltre);
   const nb = {}; tout.forEach((l) => { nb[l.jour] = (nb[l.jour] || 0) + 1; });
   $("saTitre").textContent = A.cap(A.jourLong(JOUR)) + " " + JOUR.slice(0, 4) + (JOUR === t ? " · aujourd'hui" : JOUR < t ? " · jour passé" : "");
-  $("saSem").innerHTML = sem.map((d) => '<button class="sa-j' + (d === JOUR ? " on" : "") + (d === t ? " auj" : "") + '" onclick="saAller(\'' + d + '\')" aria-pressed="' + (d === JOUR) + '" title="' + A.esc(A.cap(A.jourLong(d))) + '"><span>' + JC[new Date(d + "T12:00:00").getDay()] + "</span><b>" + +d.slice(8, 10) + "</b><i>" + (nb[d] || "") + "</i></button>").join("");
+  remplir($("saSem"), sem.map((d) => '<button class="sa-j' + (d === JOUR ? " on" : "") + (d === t ? " auj" : "") + '" onclick="saAller(\'' + d + '\')" aria-pressed="' + (d === JOUR) + '" title="' + A.esc(A.cap(A.jourLong(d))) + '"><span>' + JC[new Date(d + "T12:00:00").getDay()] + "</span><b>" + +d.slice(8, 10) + "</b><i>" + (nb[d] || "") + "</i></button>").join(""));
   $("saD").value = JOUR; $("saAuj").classList.toggle("cache", JOUR === t);
   document.querySelectorAll(".sa-per button").forEach((b) => b.classList.toggle("on", b.dataset.per === PER));
   const L = tout.filter((l) => l.jour === JOUR && dansPeriode(l) && dansRecherche(l)), n = {}; ONGLETS.forEach(([k]) => { n[k] = 0; }); L.forEach((l) => { n[ongletDe(l)]++; });
-  $("saO").innerHTML = ONGLETS.map(([k, lib, court]) => { if (k === "avenir" && JOUR < t) { lib = "À valider"; court = ""; } return '<button role="tab" aria-selected="' + (k === VUE) + '"' + (k === VUE ? ' class="on"' : "") + ' onclick="saOnglet(\'' + k + '\')">' + (court ? '<span class="lg">' + lib + '</span><span class="sm">' + court + "</span>" : lib) + '<span class="n">' + n[k] + "</span></button>"; }).join("");
+  remplir($("saO"), ONGLETS.map(([k, lib, court]) => { if (k === "avenir" && JOUR < t) { lib = "À valider"; court = ""; } return '<button role="tab" aria-selected="' + (k === VUE) + '"' + (k === VUE ? ' class="on"' : "") + ' onclick="saOnglet(\'' + k + '\')">' + (court ? '<span class="lg">' + lib + '</span><span class="sm">' + court + "</span>" : lib) + '<span class="n">' + n[k] + "</span></button>"; }).join(""));
   const l = trier(L.filter((z) => ongletDe(z) === VUE), VUE);
   const vide = { avenir: JOUR < t ? "Aucune consultation restée sans validation." : JOUR > t ? "Aucune consultation prévue ce jour-là." : "Plus aucun patient attendu aujourd'hui.", salle: "Personne en salle d'attente.", vus: "Aucun patient vu.", absents: "Aucun absent." }[VUE];
-  const sc = window.scrollY;
   const cv = colsVues(); $("saL").style.setProperty("--cols", cv.map((c) => c[2]).join(" "));
-  $("saL").innerHTML = l.length ? '<div class="sa-l ent">' + cv.map((c) => '<span class="c-' + c[0] + '" title="' + c[1] + '">' + (c[0] === "civ" ? "Civ." : c[0] === "ord" ? "N°" : c[1]) + "</span>").join("") + "</div>" + l.map((z) => ligneHtml(z, cv)).join("") : '<p class="vide-c">' + vide + "</p>";
+  // Mise à jour ligne par ligne : une ligne inchangée n'est pas touchée (clic en cours, survol et défilement gardés)
+  poser($("saL"), l.length ? [{ k: "ent", h: '<div class="sa-l ent" data-k="ent">' + cv.map((c) => '<span class="c-' + c[0] + '" title="' + c[1] + '">' + (c[0] === "civ" ? "Civ." : c[0] === "ord" ? "N°" : c[1]) + "</span>").join("") + "</div>" }].concat(l.map((z) => ({ k: z.pid + "|" + z.cle, h: ligneHtml(z, cv) }))) : [{ k: "vide", h: '<p class="vide-c" data-k="vide">' + vide + "</p>" }]);
   // Total du jour (établissement choisi), sans les absents : encaissé (vus, prix validé) et prévu (le reste, au tarif)
   if (voitPrix()) {
     // à encaisser (19.5, lieux « payé au cabinet ») : vu (validé par le médecin) mais pas encore encaissé, ou non payé : compté à part
     // lieux payés par l'établissement (virement, ex. HCK) : comptés dans les vus, pour que le médecin les voie, et montrés à part
     let enc = 0, prev = 0, nv = 0, np = 0, etb = 0;
     L.forEach((z) => { const p = prixDe(z); if (!p) return; if (z.etat === "vu") { if (p.ok && p.np) np += p.m || 0; else if (p.ok) { enc += p.m || 0; if (!A.payeCabinet(z.x)) etb += p.m || 0; } else nv++; } else prev += p.m || 0; });
-    $("saTot").innerHTML = '<div class="sa-tot"><span>Encaissé (vus) : <b>' + A.fmtMil(enc) + " DH</b>" + (etb && etb < enc ? ' <span class="mesures">dont ' + A.fmtMil(etb) + " DH payés par l'établissement</span>" : etb ? ' <span class="mesures">(payé par l\'établissement)</span>' : "") + "</span>" + (np ? '<span style="color:var(--orange)">À encaisser : <b>' + A.fmtMil(np) + " DH</b></span>" : "") + "<span>Prévu (restant) : <b>" + A.fmtMil(prev) + " DH</b></span>" + (nv ? '<span class="mesures">' + nv + " consultation" + (nv > 1 ? "s" : "") + " vue" + (nv > 1 ? "s" : "") + " sans prix</span>" : "") + "</div>";
-  } else $("saTot").innerHTML = "";
-  window.scrollTo(0, sc);
+    remplir($("saTot"), '<div class="sa-tot"><span>Encaissé (vus) : <b>' + A.fmtMil(enc) + " DH</b>" + (etb && etb < enc ? ' <span class="mesures">dont ' + A.fmtMil(etb) + " DH payés par l'établissement</span>" : etb ? ' <span class="mesures">(payé par l\'établissement)</span>' : "") + "</span>" + (np ? '<span style="color:var(--orange)">À encaisser : <b>' + A.fmtMil(np) + " DH</b></span>" : "") + "<span>Prévu (restant) : <b>" + A.fmtMil(prev) + " DH</b></span>" + (nv ? '<span class="mesures">' + nv + " consultation" + (nv > 1 ? "s" : "") + " vue" + (nv > 1 ? "s" : "") + " sans prix</span>" : "") + "</div>");
+  } else remplir($("saTot"), "");
+}
+// Contenu remplacé seulement s'il a changé
+function remplir(el, h) { if (el && el._h !== h) { el.innerHTML = h; el._h = h; } }
+// Liste par clé (data-k) : les éléments au même contenu sont gardés et seulement déplacés, les autres remplacés ou retirés
+function poser(cont, items) {
+  const vieux = new Map(), garde = new Set();
+  [...cont.children].forEach((e) => { if (e.dataset && e.dataset.k) vieux.set(e.dataset.k, e); });
+  items.forEach(({ k, h }, i) => {
+    let n = vieux.get(k);
+    if (!n || n._h !== h) { const t = document.createElement("div"); t.innerHTML = h; const nn = t.firstElementChild; nn._h = h; if (n) n.replaceWith(nn); n = nn; }
+    garde.add(n);
+    const cur = cont.children[i]; if (cur !== n) cont.insertBefore(n, cur || null);
+  });
+  [...cont.children].forEach((e) => { if (!garde.has(e)) e.remove(); });
+}
+// Toutes les 30 s : seules les minutes (attente, consultation) changent, sans redessiner la liste
+function majMinutes() {
+  const L = lignes([JOUR]);
+  document.querySelectorAll("#saL .sa-l.salle[data-k], #saL .sa-l.consult[data-k]").forEach((e) => {
+    const k = e.dataset.k, i = k.indexOf("|"), l = L.find((z) => z.pid === k.slice(0, i) && z.cle === k.slice(i + 1)), c = e.querySelector(".c-st");
+    if (l && c) c.innerHTML = statut(l);
+  });
 }
 // Pastille de statut (au trait) avec le temps écoulé
 function statut(l) {
@@ -483,7 +519,7 @@ function ligneHtml(l, cv) {
     ord: '<span class="ord" title="N° d\'ordre de passage">' + fmtOrdre(l.doc.ordre) + "</span>",
     h: '<span class="h">' + A.esc(l.h || "—") + "</span>",
     civ: '<span class="civ">' + (P.sexe === "F" ? "Mme" : P.sexe === "H" ? "M." : "") + "</span>",
-    nm: '<span class="nm"><button class="lien-nm" onclick="ouvrirDossier(\'' + l.pid + '\')" title="Ouvrir le dossier (sans changer le statut)">' + A.esc(l.x.r.nm) + "</button>" + etab + presenceHtml(l.pid) + "</span>",
+    nm: '<span class="nm"><button class="lien-nm" onclick="ouvrirDossier(\'' + l.pid + '\')" title="Ouvrir le dossier (sans changer le statut)">' + A.esc(l.x.r.nm) + "</button>" + etab + '<span class="sa-pz" data-p="' + A.esc(l.pid) + '">' + presenceHtml(l.pid) + "</span></span>",
     type: '<span class="c-type"><span class="badge ' + l.cls + '">' + A.esc(l.type) + "</span></span>",
     mo: '<span class="mo" data-l="Motif">' + mo + (voitMo && okR ? crayon("saMotif", "Modifier le motif") : "") + "</span>",
     cor: '<span class="cor" data-l="Correspondant" title="' + A.esc(P.cor || "") + '">' + A.esc(court(P.cor)) + "</span>",
@@ -494,7 +530,7 @@ function ligneHtml(l, cv) {
     com: '<span class="com" data-l="Commentaire"' + (l.doc.comNom ? ' title="' + A.esc(l.doc.comNom) + '"' : "") + ">" + A.esc(l.doc.com || "") + crayon("saCom", l.doc.com ? "Modifier le commentaire" : "Ajouter un commentaire") + "</span>",
     act: '<span class="actr">' + act + "</span>",
   };
-  return '<div class="sa-l ' + (l.etat || "prevu") + '">' + cv.map((c) => cel[c[0]]).join("") + "</div>";
+  return '<div class="sa-l ' + (l.etat || "prevu") + '" data-k="' + A.esc(l.pid + "|" + l.cle) + '">' + cv.map((c) => cel[c[0]]).join("") + "</div>";
 }
 
 // ───── Dossier ouvert pendant la consultation : bulles Valider / Retour en salle (en bas à gauche) ─────
@@ -504,7 +540,7 @@ export function bullesDossier(x) {
   if (!l.length) return "";
   return '<div class="sa-bulles" id="saBulles" data-pid="' + A.esc(x.id) + '">' + l.map((z) => {
     const q = "'" + z.pid + "','" + z.cle + "'", okV = z.rdv || A.peutPrix();
-    return '<div class="sa-b"><span class="lbl"><i></i>En consultation depuis ' + duree(minutes(z.doc.deb || maintenant())) + (l.length > 1 ? " · " + A.esc(z.type) : "") + "</span>" +
+    return '<div class="sa-b"><span class="lbl" data-k="' + A.esc(z.cle) + '"><i></i>En consultation depuis ' + duree(minutes(z.doc.deb || maintenant())) + (l.length > 1 ? " · " + A.esc(z.type) : "") + "</span>" +
       (okV ? '<button class="bt vert" onclick="saValider(' + q + ',1)"><svg class="i"><use href="#i-check"/></svg>Valider</button>' : "") +
       '<button class="bt fonce" onclick="saRetour(' + q + ')"><svg class="i"><use href="#i-retour"/></svg>Retour en salle</button></div>';
   }).join("") + '</div><div class="sa-espace"></div>';
@@ -514,6 +550,9 @@ function majBulles() {
   if (!pid) return;
   const x = D().patients.find((p) => p.id === pid); if (!x) return;
   const h = bullesDossier(x);
+  // mêmes bulles : seules les minutes changent (les boutons ne sont pas remplacés : aucun clic perdu)
+  if (z && h) { const t = document.createElement("div"); t.innerHTML = h; const nv = t.querySelectorAll(".lbl"), an = z.querySelectorAll(".lbl");
+    if (nv.length === an.length && [...nv].every((e, i) => e.dataset.k === an[i].dataset.k) && t.querySelectorAll("button").length === z.querySelectorAll("button").length) { nv.forEach((e, i) => { if (an[i].innerHTML !== e.innerHTML) an[i].innerHTML = e.innerHTML; }); return; } }
   if (z) { if (!h) { z.nextElementSibling && z.nextElementSibling.classList.contains("sa-espace") && z.nextElementSibling.remove(); z.remove(); } else z.outerHTML = h.replace(/<div class="sa-espace"><\/div>$/, ""); }
   else if (h && $("page")) $("page").insertAdjacentHTML("beforeend", h);
 }
@@ -566,7 +605,7 @@ export function presenceDossier(pid) {
 const qui0uvre = (pid) => { const l = []; PRES.forEach((p, uid) => { if (uid !== D().u.uid && p && p.patientId === pid && maintenant() - ms(p.le) < 180000) l.push(p.nom + (ROLES[p.role] ? " (" + ROLES[p.role].toLowerCase() + ")" : "")); }); return l; };
 function presenceHtml(pid) { const l = qui0uvre(pid); return l.length ? '<div class="sa-pres" title="Dossier ouvert en ce moment par ' + A.esc(l.join(", ")) + '"><svg class="pi"><use href="#i-document"/></svg>Ouvert par ' + A.esc(l.join(", ")) + "</div>" : ""; }
 function majPresence() {
-  if (location.hash.startsWith("#salle") && $("saL")) dessiner();
+  document.querySelectorAll("#saL .sa-pz[data-p]").forEach((e) => { const h = presenceHtml(e.dataset.p); if (e.innerHTML !== h) e.innerHTML = h; });
   const m = /^#dossier\/(.+)$/.exec(location.hash), pid = m ? decodeURIComponent(m[1]) : null; if (!pid) return;
   const l = qui0uvre(pid), z = $("presDossier");
   const h = l.length ? '<div class="pres-dossier" id="presDossier"><svg class="pi"><use href="#i-document"/></svg>Dossier ouvert aussi par <b>' + A.esc(l.join(", ")) + "</b></div>" : "";

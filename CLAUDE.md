@@ -128,7 +128,8 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
   SA4 (10/10/2026) : `ecrire` = transaction (relit la ligne ; `opts.attendu` = étapes permises, sinon refus ; `opts.ordre` = n°
   tiré de `salleOrdre/{jour_établissement}` { n, jour, etablissementId, majPar }, qui ne fait que monter) ; heures = `maintenant()`
   (horloge corrigée par l'écho serveur `noterEcart`) affichées à l'heure du Maroc (`hm`, Africa/Casablanca) ; `nouveauJour` recharge
-  à minuit.
+  à minuit. SA5 : `lignes(jours)` gardées en mémoire (`CACHE`, empreinte = `GEN` des documents + versions des dossiers) ;
+  `poser` met la liste à jour ligne par ligne (`data-k`), `majMinutes` / `majPresence` / `majBulles` sans redessiner.
 - Poids validé par la secrétaire (droit « planning » seul, 10/10/2026) : séance prévue du jour, `planning[ligne][n].poids` / `.spoids[j]` /
   `.pv[j]` { nom, par, le }, ajouté par `fusionner`, repris dans `lignesJson` au prochain enregistrement du médecin (`poidsSecretaire`, chimio.js).
 - Report de chimio avec le seul droit « planning » (secrétaire, depuis le 08/10/2026) : `sauverLignes` n'écrit que `planningJson` ;
