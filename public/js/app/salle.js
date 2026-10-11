@@ -454,7 +454,7 @@ export function pageSalle(j) {
     '<button class="bt gris" onclick="saImprimer()" title="Imprimer la liste du jour"><svg class="i"><use href="#i-imprimer"/></svg>Imprimer</button>' +
     '<button class="bt gris cache" id="saClo" onclick="saCloturer()" title="Patients restés en salle, en consultation ou jamais arrivés"><svg class="i"><use href="#i-check"/></svg>Clôturer la journée</button></div>' +
     // Onglets, indicateurs et titres des colonnes restent en haut pendant le défilement (SA6, 11/10/2026)
-    '<section class="carte onglets sa-carte" id="saCarte"><div class="sa-haut"><div class="o-barre sa-o" role="tablist" aria-label="Salle d\'attente" id="saO"></div><div class="sa-ind" id="saInd"></div><div class="sa-ent-z" id="saEZ"><div id="saE"></div></div></div>' +
+    '<section class="carte onglets sa-carte" id="saCarte"><div class="sa-haut"><div class="o-barre sa-o" role="tablist" aria-label="Salle d\'attente" id="saO"></div><div class="sa-ent-z" id="saEZ"><div id="saE"></div></div></div>' +
     '<div class="sa-defile" id="saDef"><div id="saL"></div></div><div id="saTot"></div></section>';
   $("saDef").onscroll = () => { $("saEZ").scrollLeft = $("saDef").scrollLeft; };
   if ($("saEtab")) $("saEtab").onchange = () => { ETAB = $("saEtab").value; dessiner(); };
@@ -514,7 +514,6 @@ function dessiner() {
   const f = JOUR === t && peutRdv() && D().membre.role === "medecin" ? fileSalle() : [];
   $("saSuiv").classList.toggle("cache", !f.length); if (f.length) $("saSuiv").title = "Démarrer la consultation de " + f[0].x.r.nm + " (attend depuis " + duree(minutes(f[0].doc.arr || maintenant())) + ")";
   $("saClo").classList.toggle("cache", !(JOUR <= t && peutRdv()));
-  majIndicateurs(L);
   // Total du jour (établissement choisi), sans les absents : encaissé (vus, prix validé) et prévu (le reste, au tarif)
   if (voitPrix()) {
     // à encaisser (19.5, lieux « payé au cabinet ») : vu (validé par le médecin) mais pas encore encaissé, ou non payé : compté à part
@@ -537,15 +536,6 @@ function poser(cont, items) {
     const cur = cont.children[i]; if (cur !== n) cont.insertBefore(n, cur || null);
   });
   [...cont.children].forEach((e) => { if (!garde.has(e)) e.remove(); });
-}
-// Attente moyenne du jour (arrivée → début de consultation, attentes en cours comprises) et la plus longue en cours (SA6)
-function majIndicateurs(L) {
-  if (JOUR !== D().t) { remplir($("saInd"), ""); return; }
-  const at = [], enCours = [];
-  L.forEach((l) => { const d = l.doc; if (!d.arr) return; if (l.etat === "salle") { const m = minutes(d.arr); at.push(m); enCours.push([m, l]); } else if (d.deb) at.push(Math.max(0, Math.round((d.deb - d.arr) / 60000))); });
-  if (!at.length) { remplir($("saInd"), ""); return; }
-  const moy = Math.round(at.reduce((a, b) => a + b, 0) / at.length), max = enCours.sort((a, b) => b[0] - a[0])[0];
-  remplir($("saInd"), "<span>Attente moyenne aujourd'hui : <b>" + duree(moy) + "</b></span>" + (max ? '<span class="' + (max[0] >= seuils()[1] ? "rouge" : max[0] >= seuils()[0] ? "orange" : "") + '">La plus longue en cours : <b>' + duree(max[0]) + "</b> (" + A.esc(max[1].x.r.nm) + ")</span>" : ""));
 }
 // Bandeau de la semaine : replié par défaut, ouvert au clic sur la date (réglage gardé sur cet ordinateur)
 const semaineOuverte = () => { try { return localStorage.getItem("onco360.salleSemaine") === "1"; } catch (e) { return false; } };
@@ -581,7 +571,6 @@ window.saCloturer = () => {
 // Toutes les 30 s : seules les minutes (attente, consultation) changent, sans redessiner la liste
 function majMinutes() {
   const L = lignes([JOUR]);
-  majIndicateurs(L.filter((l) => dansFiltre(l) && dansPeriode(l) && dansRecherche(l)));
   document.querySelectorAll("#saL .sa-l.salle[data-k], #saL .sa-l.consult[data-k]").forEach((e) => {
     const k = e.dataset.k, i = k.indexOf("|"), l = L.find((z) => z.pid === k.slice(0, i) && z.cle === k.slice(i + 1)); if (!l) return;
     [[".c-st", statut], [".att", attente], [".pres", presence]].forEach(([s, f]) => { const c = e.querySelector(s); if (c) c.innerHTML = f(l); });

@@ -57,7 +57,7 @@ Les prix sont toujours affichés en **brut** (les anciens prix HCK repris à 225
 - La semaine est repliée : cliquez sur la date pour l'afficher.
 
 ## Salle pleine (11/10/2026)
-- Les **onglets**, l'**attente moyenne** et les **titres des colonnes** restent en haut quand on fait défiler la liste.
+- Les **onglets** et les **titres des colonnes** restent en haut quand on fait défiler la liste.
 - **Compact** (ordinateur) : une ligne par patient, pour voir 20 à 30 patients d'un coup (réglage personnel).
 - **Patient suivant** (médecin) : le premier de la file passe en consultation et son dossier s'ouvre.
 - Un patient qui a un rendez-vous **et** une séance de chimio le même jour arrive une seule fois : ses deux lignes passent
