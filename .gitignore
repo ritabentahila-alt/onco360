@@ -11,3 +11,7 @@ tests/bilan_ref.txt
 ChimioHGC_*.json
 Onco360_*.json
 tests/.venv/
+
+# Réglages locaux de Claude (chemins de cet ordinateur, copies de travail)
+.claude/launch.json
+.claude/worktrees/

@@ -143,17 +143,18 @@ async def main():
             S6[E+'membres/'+u] = {"role":r,"nom":u,"email":u.lower()+"@test.ma","actif":True,"tousEtablissements":True,"etablissements":["HGC","HCK","CIOC"],"droits":{}}
             S6['utilisateurs/'+u] = {"nom":u,"prenom":"Test"}
         ESS = 'P1790238674279'  # suivie au CIOC
+        NOM_ESS = S6[E+'patients/'+ESS]['identite']['nomF'].upper()  # nom lu dans le jeu de test : jamais écrit dans le code
         S6[E+'membres/SEC'] = dict(S6[E+'membres/SEC'], etablissements=["HGC", "HCK", "CIOC"])
         pg = await ouvrir(b, S6, h=1400, t=T+"T08:00:00"); ev = pg.evaluate
         await pg.goto(U+'#agenda'); await pg.wait_for_timeout(3000); await ev("agJour('2026-10-08',1)"); await pg.wait_for_timeout(300)
         await ev("document.querySelector('.ag-grille').style.maxHeight='none'")
         verif('séance sans heure : dans « Journée », glissable', await ev("!!document.querySelector('.ag-journee .ev-c.c-ch.dep')"))
-        await pg.locator('.ag-journee .ev-c.c-ch', has_text='PATIENT').first.click(); await pg.wait_for_timeout(300)
+        await pg.locator('.ag-journee .ev-c.c-ch', has_text=NOM_ESS).first.click(); await pg.wait_for_timeout(300)
         verif('clic : fenêtre Heure / Durée (2 h par défaut)', await ev("!!document.getElementById('hS') && document.getElementById('hDu').value") == '120')
         await ev("document.getElementById('hS').value='09:00'"); await pg.click('#hOk'); await pg.wait_for_timeout(900)
         pl = json.loads(await ev(f"window.__fs['{E}patients/{ESS}'].planningJson") or '{}')
         verif('heure notée dans le planning (shr de J15)', any(((c or {}).get('shr') or {}).get('15') == {"h": "09:00", "du": 120} for L in pl.values() for c in L.values()), pl)
-        h = await ev("(()=>{const e=[...document.querySelectorAll('.ev-g.c-ch')].find(x=>x.innerText.includes('PATIENT'));return e?[e.innerText.slice(0,5),e.getBoundingClientRect().height]:null})()")
+        h = await ev("(()=>{const e=[...document.querySelectorAll('.ev-g.c-ch')].find(x=>x.innerText.includes('"+NOM_ESS+"'));return e?[e.innerText.slice(0,5),e.getBoundingClientRect().height]:null})()")
         verif('séance dans la grille à 09:00, 2 h (174 px)', h and h[0] == '09:00' and abs(h[1] - 174) < 1, h)
         res = json.loads(await ev(f"window.__fs['{E}patients/{ESS}'].resume"))
         verif('Google Agenda : séance à 09:00, 120 min', any(e.get('h') == '09:00' and e.get('dur') == 120 for e in res.get('ag', [])), [e for e in res.get('ag', []) if e.get('h')])
@@ -166,13 +167,13 @@ async def main():
         verif('scanner glissé à 11:00 (30 min par défaut)', rt.get('scanH') == {"h": "11:00", "du": 30}, rt)
         # autre jour refusé
         await ev("agVue('semaine')"); await pg.wait_for_timeout(300); await ev("document.querySelector('.ag-grille').style.maxHeight='none'")
-        src = pg.locator('.ev-g.c-ch', has_text='PATIENT').first; bb = await src.bounding_box()
+        src = pg.locator('.ev-g.c-ch', has_text=NOM_ESS).first; bb = await src.bounding_box()
         await pg.mouse.move(bb['x'] + 10, bb['y'] + 5); await pg.mouse.down(); await pg.mouse.move(bb['x'] + 60, bb['y'] + 20, steps=4); await pg.mouse.move(bb['x'] + bb['width'] + 40, bb['y'] + 20, steps=6); await pg.mouse.up(); await pg.wait_for_timeout(500)
         verif('glissé vers un autre jour : refusé (reporter depuis le dossier)', 'reportez la séance depuis le dossier' in await ev("document.getElementById('toast').innerText"), await ev("document.getElementById('toast').innerText"))
         # retirer l'heure
         await ev("agVue('jour')"); await pg.wait_for_timeout(300)
-        await pg.locator('.ev-g.c-ch', has_text='PATIENT').first.click(); await pg.wait_for_timeout(300); await pg.click('#hSup'); await pg.wait_for_timeout(900)
-        verif('« Retirer l\'heure » : retour dans « Journée »', await ev("!![...document.querySelectorAll('.ag-journee .ev-c.c-ch')].find(x=>x.innerText.includes('PATIENT'))"))
+        await pg.locator('.ev-g.c-ch', has_text=NOM_ESS).first.click(); await pg.wait_for_timeout(300); await pg.click('#hSup'); await pg.wait_for_timeout(900)
+        verif('« Retirer l\'heure » : retour dans « Journée »', await ev("!![...document.querySelectorAll('.ag-journee .ev-c.c-ch')].find(x=>x.innerText.includes('"+NOM_ESS+"'))"))
         verif('aucune erreur JavaScript (heures)', not pg.errs, pg.errs); await pg.close()
         # secrétaire (droit planning) : peut noter l'heure de la chimio, pas celle du scanner ; infirmière : rien
         pg = await ouvrir(b, S6, t=T+"T08:00:00"); ev = pg.evaluate; await pg.add_init_script("window.__uid='SEC'")
