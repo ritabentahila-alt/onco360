@@ -35,6 +35,25 @@ l'ancienne feuille de route.
 - **Seuils** : confirmation si poids < 30 ou > 200 kg ; si clairance < 30 ou > 200 ml/min ; **dose vide = validation refusée** (2.3).
 - **Bilan sanguin avant une cure : simple rappel**, jamais bloquant (2.6).
 - **Mise en forme automatique du code : au dossier de cession** (7.2), pas avant.
+- **Historique GitHub nettoyé** : oui (fait le 11/10, 0.3).
+- **Pas de déconnexion automatique, jamais. Pas de double authentification** (médecins, administration).
+- **Google Agenda inchangé** : le nom du patient reste affiché comme aujourd'hui.
+- **« Supprimer le patient » reste une suppression** (pas d'archivage).
+- **Allergies** : bandeau rouge seulement si une allergie est **cochée « oui »** (« aucune » ou vide : rien en rouge).
+- **Tâches de contourage / dosimétrie** : continuent après la date de 1re séance, marquées « EN RETARD ».
+- **Document « Rendez-vous » de radiothérapie** : titre « Calendrier théorique », état « Prévu ».
+- **Notes de la secrétaire** : dans le même journal des consultations.
+- **Documents déposés : tout en PDF** (pas d'original gardé).
+- **Médecine générale gardée** (Dr Bentahila va créer un cabinet pour une consœur, en plus de ce qui existe) ; **Gynécologie gelée**.
+- **Seuils supplémentaires acceptés** : taille 120-220 cm, surface 1,2-2,6 m², créatinine 3-30 mg/L (25-265 µmol/L), poids qui
+  varie de plus de 10 % depuis la cure précédente (confirmation).
+- **Radiothérapie** : confirmation si dose par fraction **> 22 Gy** ou dose totale > 80 Gy. Onco360 ne remplace pas ARIA
+  (dosimétrie, séances validées par les manipulateurs) : il **rappelle** au médecin le contourage et la dosimétrie à valider,
+  montre **où en est le patient** dans ses séances (calcul de calendrier) et **produit automatiquement** le compte rendu de fin,
+  le calendrier des rendez-vous et le pli confidentiel. Pas d'organes à risque, pas de journal des séances.
+- **Formulaires de consultation** « Oncologie » et « RT hebdomadaire » **proposés**, mais chaque cabinet peut tout décocher et ne
+  garder que titre, date et note. **Note signée sans verrou** : on peut toujours la réécrire ; elle affiche « modifiée le … et le
+  … », sans garder les anciennes versions.
 - Déjà décidé dans les audits (annotations) : fiche tumeur proposée dans le paramétrage, chaque cabinet libre de l'afficher et de
   la mettre en tête du dossier, listes types dans la spécialité Oncologie, appliquées aux cabinets actifs (3.1) ; modèle de
   consultation par le formulaire réglable, sans nouveau code (3.4) ; « Séances réalisées » de radiothérapie = calcul de calendrier,
@@ -42,22 +61,13 @@ l'ancienne feuille de route.
   l'ordonnance (3.9) ; durée par type de consultation, réglage commun médecin / secrétaire (fait, AG2).
 
 ## Questions en attente (Claude les rappelle en début de session)
-1. **Historique GitHub** : les 57 dossiers de l'ancienne application restent dans l'historique du dépôt (privé). Le nettoyer
-   (réécriture de l'historique, toutes les sessions arrêtées pendant ce temps) ? Recommandé : oui (0.3).
-2. **Tâches automatiques** de contourage / dosimétrie après la date de 1re séance : continuer, marquées « EN RETARD » ? (2.5)
-3. **Document « Rendez-vous » de radiothérapie** : titre « Calendrier théorique », état « Prévu » (plus de « Terminé » inventé) ? (2.5)
-4. **Supprimer un patient** → **archiver** (caché, restaurable) ; suppression définitive encore possible pour le titulaire seul,
-   depuis les archives ? (3.3)
-5. **Notes de la secrétaire** dans le journal des consultations : même journal, ou type « Note administrative » à part ? (3.4)
-6. **Documents Word / Excel déposés** : garder aussi l'original à côté du PDF ? (3.9)
-7. **Médecine générale et Gynécologie** (aucun pack) : les geler, cachées de l'administration, code gardé ? (phase 6)
-8. **Google Agenda** : par défaut, initiales ou n° de dossier à la place du nom, sans diagnostic ni téléphone ; chaque cabinet
-   peut remettre le nom ? (1.4)
-9. **Déconnexion automatique** après combien de minutes sans activité (proposé : 30 min ; 8 h pour l'écran de la salle
-   d'attente) ? (1.2)
-10. Seuils proposés en plus (confirmation, jamais bloquants) : taille < 120 ou > 220 cm (taille saisie en mètres), surface < 1,2 ou
-    > 2,6 m², créatinine hors 3-30 mg/L (25-265 µmol/L), poids qui varie de plus de 10 % depuis la cure précédente. D'accord ? (2.3)
-11. Mesurer la hauteur des en-têtes du papier (ordonnance A5, A4, documents) pour régler les marges (Paramètres › Impression).
+1. **Par Dr Bentahila** : mesurer la hauteur des en-têtes du papier (ordonnance A5, A4, documents) pour régler les marges
+   (Paramètres › Impression).
+2. **Par Dr Bentahila** : demander à GitHub de purger ses copies en cache (formulaire du support) ; regarder GitHub › Insights ›
+   Traffic › « Git clones » (gardé 14 jours seulement) pour savoir si le dépôt a été copié pendant qu'il était public (10/10 au
+   soir, et 11/10).
+3. **Par Dr Bentahila** : installer la copie lisible quotidienne dans le Drive (0.2, Claude guide).
+4. Seuils des alertes cliniques du tableau de bord (2.6) : perte de poids (5 % ? 10 %), PNN, plaquettes.
 
 ---
 
@@ -122,16 +132,23 @@ longs et ne dépendent pas du code.
       quel logiciel. Le script ne copie que le cabinet du Dr Bentahila (le sien), pas les autres cabinets ; il doit aussi ne plus
       emporter les profils des autres cabinets (`utilisateurs`) → limiter aux membres de son cabinet. Les fichiers déposés (PDF) ne
       sont pas dans cette copie → 1.6.
-- [ ] **0.3 Historique GitHub nettoyé** (question 1) : retirer `public/ancienne-app.html` de tout l'historique (`git filter-repo`),
-      pousser, demander à GitHub de purger ses copies en cache ; toutes les sessions arrêtées pendant l'opération, puis repartent
-      d'un dépôt neuf. La copie privée (0.1) reste sur le Mac.
-- [ ] **0.4 Comptes protégés** (par Dr Bentahila, Claude guide) : double authentification sur le compte Google propriétaire du
-      projet Firebase (ritabentahila@gmail.com) et sur le compte d'administration (gbentahila@hotmail.fr : son compte Google /
-      Microsoft) ; la double authentification **dans Onco360** (médecins, administration) vient en 1.2.
+- [x] **0.3 Historique GitHub nettoyé** (11/10) : noms de vrais patients retirés des tests (`functions/test-logique.js` →
+      « PATIENT TEST » ; `tests/test_agenda.py` → nom lu dans le jeu de test), `.claude/launch.json` sorti du dépôt ; puis
+      `git filter-repo` sur une copie : `public/ancienne-app.html` retiré de tout l'historique, les deux noms remplacés dans tous
+      les commits ; vérifié (aucun des 57 dossiers, aucun nom complet ; restent deux homonymes qui ne sont pas des dossiers :
+      Hamza Benzekri, auteur, et un médecin correspondant de `COR0`, retiré en 1.7) ; envoyé sur GitHub. Reste à Dr Bentahila :
+      purge du cache GitHub et vérification des copies (question 2).
+- [x] ~~0.4 Double authentification~~ : non retenue (décision du 11/10).
 - [ ] **0.5 Fiche d'incident et gel** : Claude rédige la fiche (page en ligne sans connexion depuis le 06/10 au plus tard, date
       exacte d'après l'historique des déploiements Firebase ; 57 patients ; ce qui était visible ; retirée le 11/10 ; dépôt GitHub
-      public moins d'une demi-heure le 10/10) pour le juriste (information de la CNDP et des patients : décision du juriste).
+      public moins d'une demi-heure le 10/10, **et de nouveau le 11/10** ; copies du dépôt d'après GitHub › Traffic, question 2)
+      pour le juriste (information de la CNDP et des patients : décision du juriste).
       **Plus de création de cabinet réel** avant l'avis juridique (6.1) ; le cabinet de démonstration reste permis.
+
+- [ ] **0.6 Jeu de test fictif, avant tout nouveau test** (avancé depuis 2.1 : chaque test écrit sur la sauvegarde réelle risque
+      d'y laisser un nom, comme `test_agenda.py` le 11/10) : jeu construit par `functions/demo.js` pour tous les tests du
+      navigateur (`tests/base.py`, `tests/mkseed.mjs`) ; `functions/test-demo.js` et les tests de calcul qui plantent sans
+      `seed.json` rendus autonomes ; contrôle automatique : aucun nom du jeu réel dans `tests/`, `functions/`, `public/`.
 
 ## Phase 1 – Sécurité (premier audit, constats « élevé » et « moyen »)
 
@@ -140,9 +157,7 @@ longs et ne dépendent pas du code.
       courriers et documents de radiothérapie (ordonnances.js 687, documents.js 158) ; règles : format des photos et taille du HTML
       ; **politique CSP** dans `firebase.json` (scripts du site, de gstatic et de la connexion Google seulement). Tests : règles
       (photo `javascript:` refusée), navigateur (ordonnance piégée affichée sans exécuter de code).
-- [ ] **1.2 Sessions et comptes** (question 9) : déconnexion après inactivité (réglable) ; double authentification pour les
-      médecins et l'administration (Identity Platform, code par application d'authentification ; à essayer d'abord sur le cabinet
-      de démonstration) ; « Lien du mot de passe » réservé aux comptes jamais connectés, avec message au titulaire ; e-mail de la
+- [ ] **1.2 Comptes** (pas de déconnexion automatique ni de double authentification : décision) : « Lien du mot de passe » réservé aux comptes jamais connectés, avec message au titulaire ; e-mail de la
       propriétaire dans les règles (`firestore.rules` 9) remplacé par la collection `administrateurs` ; profils des autres cabinets
       fermés (règles 27-34).
 - [ ] **1.3 Droits imposés par le serveur** (étape 9 S2) : chaque droit de la grille vérifié dans les règles, pas seulement caché à
@@ -152,13 +167,12 @@ longs et ne dépendent pas du code.
       (`corrigerListes`), ancienne valeur gardée dans le journal ; secrétaire (droit « planning ») limitée au **poids de la séance du
       jour** dans `planningJson`. Limite connue à écrire dans le dossier de cession : le dossier patient se lit en entier dans le
       périmètre (Firestore ne filtre pas les champs). Un test de règles par droit (`tests/regles`).
-- [ ] **1.4 Google Agenda discret** (question 8) : par défaut initiales ou n° de dossier, sans diagnostic ni téléphone
-      (`functions/logique.js`, `moteur/agenda.js`) ; réglage par cabinet (Paramètres › Google Agenda) ; agendas refaits
-      (`agendaNuit`). Le passé déjà écrit est refait aussi.
+- [x] ~~1.4 Google Agenda discret~~ : non retenu, Google Agenda reste comme aujourd'hui (décision du 11/10).
 - [ ] **1.5 Bibliothèques et dépendances** : SheetJS 0.18.5 → 0.20.3 ; jszip, html2canvas, mammoth, SheetJS **copiées dans le site**
       (`public/vendor/`) ; SDK Firebase 10.12.2 → version actuelle (essai complet avant) ; `npm audit fix` des fonctions ;
       **contrôle avant mise en ligne** (`outils/avant-mise-en-ligne.sh` : aucun nom, téléphone, date de naissance ni `nomF` dans
-      `public/`, tests lancés) ; espace d'essai « test-b1 » et ses comptes retirés de Firebase (avec l'accord de Dr Bentahila).
+      `public/`, tests lancés) ; espace d'essai « test-b1 » et ses comptes retirés de Firebase (avec l'accord de Dr Bentahila) ; **typage** léger du moteur de calcul et des fonctions serveur (commentaires JSDoc vérifiés
+      par `tsc --checkJs`, sans changer le code).
 - [ ] **1.6 Export complet et sauvegarde des fichiers** (condition de Dr Bentahila, réversibilité demandée par tout acheteur) :
       bouton **« Exporter tout le cabinet »** (titulaire, Paramètres › Cabinet ; aussi depuis l'administration pour un cabinet
       client à sa demande) = fonction serveur qui prépare un ZIP : JSON de toutes les collections du cabinet, tableau des patients
@@ -176,9 +190,9 @@ longs et ne dépendent pas du code.
 
 ## Phase 2 – Sécurité clinique (doses, radiothérapie, protocoles)
 
-- [ ] **2.1 Tests autonomes, doses comprises** (avant toute modification du calcul) : jeu fictif construit par `functions/demo.js`
-      (8 patients) pour tous les tests du navigateur à la place de `tests/seed.json` (`tests/base.py`, `tests/mkseed.mjs`) ;
-      `functions/test-demo.js` sans `seed.json` ; **`tests/moteur/test-doses.mjs`** : Mosteller, Cockcroft-Gault (mg/L, µmol/L),
+- [ ] **2.1 Tests des doses qui vérifient vraiment** (après 0.6, avant toute modification du calcul) : `test_cures.py` et
+      `test_seances.py` tournent mais ne contrôlent rien (11 affichages, 0 vérification) → vraies vérifications ;
+      **`tests/moteur/test-doses.mjs`** : Mosteller, Cockcroft-Gault (mg/L, µmol/L),
       Calvert plafonné à 125, % reconduits, molécules ajoutées / retirées, J8 / J15, reports, cas limites, et les essais 1 à 4 et 11
       de l'audit (ils échouent avant 2.2-2.3, passent après) ; `tests/tout.sh` lance tout (moteur, serveur, règles, navigateur).
 - [ ] **2.2 Cure figée à sa validation** (décision : oui) : à la validation de J1 et de chaque séance (chimio.js 352, 426), `fige` =
@@ -187,7 +201,7 @@ longs et ne dépendent pas du code.
       efface `fige` (tracé). **Une fois** (`migrations()`) : toutes les cures et séances déjà validées figées telles qu'elles
       s'affichent ce jour-là, marquées « figée le … d'après le dossier ». Journal d'audit : ancienne et nouvelle valeur pour les
       doses et les prescriptions (`functions/audit.js`). Bilan inchangé (test).
-- [ ] **2.3 Bornes et prémédication** (décisions : poids 30-200 kg, clairance 30-200 ml/min, dose vide refusée ; question 10) :
+- [ ] **2.3 Bornes et prémédication** (décisions : poids 30-200 kg, clairance 30-200 ml/min, dose vide refusée ; taille 120-220 cm, surface 1,2-2,6 m², créatinine 3-30 mg/L, écart de poids > 10 %) :
       confirmation au-delà des bornes ; **validation refusée** si la dose d'une molécule est vide ou nulle, ou carboplatine sans
       créatinine ; unité de la créatinine affichée à la saisie ; poids saisi par la secrétaire qui s'écarte de plus de 10 % →
       alerte au médecin (cloche, bloc « À valider »). Prémédication reconnue par **classe** dans le dictionnaire des molécules
@@ -199,9 +213,10 @@ longs et ne dépendent pas du code.
       12/10/2026) », puis absence de statut = non validé (protocoles.js `valide`) ; modification réservée aux **médecins** (règle
       232) ; éditeur : dose maximale, arrondi, « tous les n cycles », « C1 seule » (déjà calculés par le moteur) ; croix de
       suppression déplacée dans l'éditeur, avec confirmation. Bibliothèques de référence par spécialité suivent le même format.
-- [ ] **2.5 Radiothérapie contrôlée** (questions 2, 3) : fenêtre de prescription : dose par fraction > 8 Gy ou totale > 80 Gy →
+- [ ] **2.5 Radiothérapie contrôlée** (décisions du 11/10) : fenêtre de prescription : dose par fraction > 22 Gy ou totale > 80 Gy →
       confirmation ; 1re séance avant le scanner ou fin avant le début → refusé ; dose, fractions ou technique modifiées après la
-      dosimétrie validée → « la dosimétrie devra être revalidée », validation retirée (gardée dans l'historique), tâche recréée ;
+      dosimétrie validée → « la dosimétrie devra être revalidée », validation retirée (gardée dans l'historique), tâche recréée ; tâches de contourage / dosimétrie maintenues après la date de 1re
+      séance, « EN RETARD » (`functions/logique.js` 155-156) ;
       radiothérapie commencée sans contourage ou dosimétrie validés : étapes toujours affichées, en rouge, dans « À valider » ;
       libellé « Séances prévues à ce jour » partout ; document Rendez-vous « Calendrier théorique » ; plus d'impression des
       mentions « à compléter » / « À REMPLIR » : avertissement avant d'imprimer, comme les courriers ; ligne de signature du
@@ -218,23 +233,29 @@ longs et ne dépendent pas du code.
       OMS 0-4) ; listes types dans la fiche de la spécialité Oncologie (`plateforme/specialites`) recopiées aux cabinets actifs
       (`ficheSpecialite`) ; chaque cabinet les affiche ou non, en tête du dossier ou non ; filtres de la page Patients par
       localisation et stade.
-- [ ] **3.2 Allergies** : bandeau rouge discret et permanent en tête du dossier (style `.allergie` existant), sur la fiche de
+- [ ] **3.2 Allergies** (décision) : champ « Allergie connue : oui / non » + détail ; **seulement si « oui »** : bandeau rouge
+      discret et permanent en tête du dossier (style `.allergie` existant), sur la fiche de
       chimiothérapie (avec le % de réduction) et sur les ordonnances ; alerte simple dans la fenêtre de prescription si le
       médicament contient le mot de l'allergie. Ordonnance : âge et poids du patient (au choix du cabinet).
-- [ ] **3.3 Statut du patient et archivage** (question 4) : en traitement, en surveillance, perdu de vue, décédé (+ date) ; date des
-      dernières nouvelles (calculée) ; filtre ; décédé → plus de rappels, tâches automatiques ni alertes, rendez-vous futurs
-      signalés ; « Supprimer » → « Archiver » ; boutons « + Tâche » / « + Rendez-vous » en double retirés ; téléphone : identité
+- [ ] **3.3 Statut du patient** : en traitement, en surveillance, perdu de vue, décédé (+ date) ; date des dernières nouvelles
+      (calculée) ; filtre ; décédé → plus de rappels, tâches automatiques ni alertes, rendez-vous futurs signalés ; « Supprimer »
+      reste une suppression (décision) ; boutons « + Tâche » / « + Rendez-vous » en double retirés ; téléphone : identité
       repliée, onglets cliniques plus haut.
-- [ ] **3.4 Consultations** (décision ; question 5) : formulaire « Consultation d'oncologie » (poids, OMS, douleur EVA, toxicités
+- [ ] **3.4 Consultations** (décisions) : formulaires **proposés**, que chaque cabinet peut entièrement décocher (titre, date et
+      note seulement) : « Consultation d'oncologie » (poids, OMS, douleur EVA, toxicités
       gradées CTCAE : nausées, vomissements, diarrhée, mucite, neuropathie, asthénie, neutropénie fébrile ; conduite à tenir) et
       « RT hebdomadaire » (radiodermite, mucite, dysphagie, diarrhée, cystite, asthénie) dans la spécialité Oncologie, recopiés aux
-      cabinets actifs ; note **signée** (verrouillée ; une modification crée une version, l'ancienne gardée).
-- [ ] **3.5 Radiothérapie : volumes et rythmes** : volumes [{ nom, dose, fractions, dose par fraction }], complément séquentiel ou
-      intégré, organes à risque en note ; radiothérapies existantes = un volume (rien à ressaisir) ; rythmes : quotidien, un jour sur
+      cabinets actifs ; note **signée** mais toujours modifiable : « signée le … par … · modifiée le … et le … », sans anciennes
+      versions ; notes de la secrétaire dans le même journal.
+- [ ] **3.5 Radiothérapie : volumes et rythmes** (rappel : Onco360 n'est pas ARIA) : volumes [{ nom, dose, fractions, dose par
+      fraction }] ; petit « + » pour ajouter un complément séquentiel ou intégré ; pas d'organes à risque ; radiothérapies existantes = un volume (rien à ressaisir) ; rythmes : quotidien, un jour sur
       deux, deux par jour, un par semaine, jours choisis ; `finRT` en double (moteur/rt.js, functions/logique.js) : test de cohérence.
-- [ ] **3.6 Radiothérapie : toxicités et compte rendu** : tableau des toxicités semaine par semaine (consultations « RT
-      hebdomadaire ») ; compte rendu de fin rempli (localisation et histologie, volumes et doses, dates réelles, interruptions,
-      toxicité maximale par grade, prochain rendez-vous, bilan de contrôle) : plus aucune mention « à compléter ».
+- [ ] **3.6 Radiothérapie : compte rendu de fin rempli** (décision) : le modèle actuel est gardé ; Onco360 remplit ce qu'il sait :
+      **volumes et doses** (3.5) ; **dates** (fin renseignée, sinon fin calculée) ; **prochain rendez-vous** (s'il est pris dans
+      « + Rendez-vous ») ; **bilan de contrôle** (s'il y a une ordonnance d'examens ou d'analyses à la dernière consultation) ; le
+      reste (toxicité maximale, rendez-vous et bilan absents) **est rempli par le médecin** ; localisation, histologie et
+      interruptions ne sont pas remplies. À l'impression : aucune mention « à compléter » imprimée (avertissement avant, comme les
+      courriers). Formulaire « RT hebdomadaire » proposé (3.4), sans tableau des toxicités.
 - [ ] **3.7 Chimiothérapie : suivi et ergonomie** : doses cumulées par molécule (mg/m², plafonds : doxorubicine 450-550,
       épirubicine 900, bléomycine 400 UI ; alerte) ; intention de la ligne (néoadjuvante, adjuvante, métastatique, concomitante,
       palliative) et réponse (complète, partielle, stable, progression) ; doses visibles dès la ligne de cure ; plus de fenêtre
@@ -244,7 +265,7 @@ longs et ne dépendent pas du code.
 - [ ] **3.8 Écran de l'infirmière** (ancienne étape 11 I1) : tablette, patients du jour, cure et molécules ; pose de chaque poche
       (heure, par qui), voie d'abord (PAC, périphérique, PICC), constantes, tolérance, effets indésirables ; visible dans l'onglet
       Chimiothérapie ; règle `administrations` déjà écrite ; droit « administrer » remis dans Accès.
-- [ ] **3.9 Prescriptions et documents** (décision ; question 6) : confirmation avant de retirer une ligne de l'ordonnance en
+- [ ] **3.9 Prescriptions et documents** (décisions ; documents déposés : tout en PDF, inchangé) : confirmation avant de retirer une ligne de l'ordonnance en
       préparation ; ⭐ ✎ ✕ seulement en mode « Gérer la liste » ; doublon refusé dans toutes les familles ; **en-tête et pied
       générés** au choix du cabinet (logo du lieu, nom, INPE, signature scannée ; ou papier à en-tête) ; choix du médecin signataire
       quand le cabinet a plusieurs médecins.
@@ -312,13 +333,15 @@ les étapes 1.7, 2.5, 3.2 et 3.7.
 ---
 
 ## Gelé, plus tard, annulé
-- **Gelé** (question 7) : Médecine générale et Gynécologie (aucun pack ; modules « Traitements et stocks », « Matériel et
-  consommables ») ; aucun ajout à l'administration, aux abonnements ni aux relances avant la fin de la phase 3.
+- **Gelé** : Gynécologie (aucun pack). **Médecine générale gardée** (décision du 11/10 : Dr Bentahila va créer un cabinet pour une
+  consœur) : son pack et sa bibliothèque à préparer quand elle le demande ; aucun ajout à l'administration, aux abonnements ni aux relances avant la fin de la phase 3.
 - **Plus tard, si un client le demande** : circuit de la pharmacie (PUI) et rôle Pharmacien ; alertes sur le téléphone même Onco360
   fermé ; bouton « Mode démo » sur un vrai cabinet ; interopérabilité HL7 / FHIR, laboratoire, imagerie (liens DICOM) — en
   commençant par l'import du relevé des séances de l'accélérateur ; codes d'activation ; renommer un menu depuis l'administration ;
   « + Arrivée sans rendez-vous » et filtre Praticien de la salle d'attente.
-- **Non retenu** : pointer en lot dans le Bilan ; journal des séances de radiothérapie saisi à la main ; alerte de poids de la
+- **Non retenu** (11/10) : déconnexion automatique, double authentification, Google Agenda anonymisé, archivage des patients,
+  original Word / Excel gardé, organes à risque, tableau des toxicités de radiothérapie.
+- **Non retenu** (avant) : pointer en lot dans le Bilan ; journal des séances de radiothérapie saisi à la main ; alerte de poids de la
   secrétaire au sens de 19.6 (remplacée par l'alerte d'écart > 10 % de 2.3) ; rappels WhatsApp automatiques ; assistant IA.
 
 ## À placer

@@ -1,4 +1,4 @@
-/* ===== Onco360 – sauvegarde quotidienne (CODE A COLLER v8) =====
+/* ===== Onco360 – sauvegarde quotidienne (CODE A COLLER v9) =====
    À coller dans un NOUVEAU fichier « Onco360 » du projet Apps Script « Chimio HGC » (le même que la sauvegarde actuelle).
    Utilise ce qui existe déjà dans le projet : DOSSIER_ID, sousDossier_ (fichier « Code ») et fbGet_, fbVal_, dossierFb_,
    FB_BASE (fichier « Firebase »).
@@ -7,14 +7,14 @@
    Drive > Sauvegardes > Onco360 > Onco360_AAAA-MM-JJ.json :
      • espaces/cabinet-bentahila et toutes ses collections (patients, patientsFinances, finances, parametres, protocoles,
        etablissements, membres, historique, administrations… et celles ajoutées plus tard, trouvées automatiquement) ;
-     • les profils (utilisateurs) et les administrateurs.
+     • les profils (utilisateurs) des seuls membres de ce cabinet (v9, 11/10/2026 : plus ceux des autres cabinets ni la liste
+       des administrateurs).
    Conservation : les 30 dernières sauvegardes, plus celle du 1er de chaque mois (gardée sans limite).
    En cas d'échec : e-mail d'alerte, et les anciennes sauvegardes ne sont pas effacées.
 
    À LANCER UNE FOIS : installerSauvegardeOnco360 (menu déroulant en haut, puis « Exécuter »). */
 
 var ONCO_ESPACE = 'cabinet-bentahila';
-var ONCO_RACINE = ['utilisateurs', 'administrateurs'];
 var ONCO_GARDER = 30;
 
 /* Requête POST à Firestore (liste des collections d'un document) */
@@ -68,7 +68,17 @@ function sauvegardeOnco360() {
     var cols = oncoSousCollections_(esp);
     if (cols.indexOf('patients') < 0) throw new Error('Aucune collection « patients » dans ' + esp + ' : sauvegarde annulée.');
     cols.forEach(function (c) { compte[c] = oncoDocuments_(esp + '/' + c, docs); });
-    ONCO_RACINE.forEach(function (c) { compte[c] = oncoDocuments_(c, docs); });
+    // Profils des membres de ce cabinet seulement (nom, INPE, signature, photo)
+    compte.utilisateurs = 0;
+    Object.keys(docs).forEach(function (ch) {
+      var m = ch.match(/^espaces\/[^\/]+\/membres\/([^\/]+)$/);
+      if (!m) return;
+      try {
+        var d = fbGet_('utilisateurs/' + m[1]), o = {}, f2 = d.fields || {};
+        for (var k2 in f2) o[k2] = fbVal_(f2[k2]);
+        docs['utilisateurs/' + m[1]] = o; compte.utilisateurs++;
+      } catch (e404) { /* membre sans profil */ }
+    });
     if (!compte.patients) throw new Error('0 dossier patient lu : sauvegarde annulée (les anciennes sont gardées).');
 
     var jour = Utilities.formatDate(new Date(), 'Africa/Casablanca', 'yyyy-MM-dd');
