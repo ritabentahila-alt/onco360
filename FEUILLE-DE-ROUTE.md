@@ -1560,8 +1560,8 @@ déplacer par **glisser-déposer avec confirmation** (vues Jour et Semaine, ordi
       droit radiothérapie « modifier ». Infirmière : lecture seule.
 - Tests : `tests/test_agenda.py` (55 vérifications), `functions/test-logique.js` (+4 : médecin du rendez-vous). Salle d'attente (51),
   réglage, fiche, protocoles, moteur (salle, bilan, reçus) inchangés.
-- [ ] Mise en ligne (accord de Dr Bentahila) : site **et fonctions** (`firebase deploy --only functions` : Google Agenda par médecin et
-      durées). Pas de nouvelle règle Firestore.
+- [x] Mis en ligne le 11/10 (site 20261011t + fonctions), avec le travail en attente des autres sessions (Paramètres en 4 familles,
+      editeurfiche.js, « Mon compte »). Pas de nouvelle règle Firestore.
 - Plus tard si besoin : heure des séances de chimio dans la salle d'attente (ordre d'arrivée prévu) ; filtre Praticien de la salle.
 
 ## Étape 20 – Design (demandé le 11/10/2026, modèle : captures de Tbibclic)
@@ -1826,3 +1826,4 @@ bord (22) ; agenda planifié (21). Ordre : A → B → C → D → E, F intercal
 | 11/10/2026 | 22 – Tableau de bord (audit externe) | Deux colonnes à partir de 1 280 px (programme du jour à gauche), bloc « À valider par le médecin » / « À faire par la secrétaire » / « À faire par l'infirmière » (bouton Valider pour contourage, dosimétrie, fin de RT ; rappels WhatsApp), organisation réglable par le cabinet (`parametres/accueil`, avec la session Paramètres), pictogrammes au trait à la place des émojis, abonnement en bandeau pendant l'essai, « Séance n / N prévue ». Hauteur 2 700 → 1 500 px à 1 440 px. tests/test_accueil.py 20/20 ; salle, réglage, modules sans échec. Alertes cliniques : à décider avec Dr Bentahila. Pas encore en ligne. |
 | 11/10/2026 | 23 – Audit externe n° 2 | Dossier Drive « Audit » lu (5 documents ; onglet « Design » absent). Comparé au code actuel : Bilan, salle et tableau de bord déjà réglés depuis la version auditée. Plan en 8 lots (A à H, ~24 sessions) et 12 questions dans `AUDIT-EXTERNE-2.md`, à valider. Aucun code modifié. |
 | 11/10/2026 | 21 – Agenda (audit externe) | AG1 vue Jour sur téléphone, ancien script retiré ; AG2 durée par type de consultation ; AG3 glisser-déposer avec confirmation ; AG4 médecin du rendez-vous (filtre, créneaux, Google Agenda par médecin) ; AG5 heure facultative des séances de chimio et du scanner. Tests agenda 55/55, fonctions, salle 51/51. Pas encore en ligne. |
+| 11/10/2026 | 21 – Mise en ligne | Site 20261011t et fonctions en ligne (agenda étape 21 + Paramètres en 4 familles, éditeur de fiche, « Mon compte » de la session Paramètres). Tests agenda 55, salle 51, accueil 20, fiche 21, réglage 14, formulaire 15. À mettre à jour : test_menu (flèches des onglets des Paramètres) et test_profil_abo (menu « Mon compte »). |
