@@ -14,6 +14,8 @@ oncologue-radiothérapeute à Casablanca. **Dr Rita Bentahila est la seule autri
   dans la base (collections racine, lecture seule) ; copie privée des fichiers hors du dépôt : `Desktop/ONCO360/archives-privees-onco360/`.
 
 ## Déploiement
+Avant toute mise en ligne : `bash outils/avant-mise-en-ligne.sh` (ajouter `--regles` si les règles changent) ; mettre en ligne depuis une
+copie propre du dernier enregistrement (`git worktree`), pour ne pas publier le travail en cours d'une autre session.
 ```
 firebase deploy --only hosting            # site
 firebase deploy --only firestore:rules    # règles de sécurité
@@ -28,6 +30,7 @@ Après déploiement : recharger sans cache (Cmd + Maj + R). Les `.js` sont servi
 | `admin.html` + `js/app/admin.js` | Administration : onglets Cabinets (liste, fiche, réglage du cabinet, équipe, démo, suspendre…), Nouveau cabinet, Par spécialité (packs avec réglage complet `editeurReglage`, bibliothèque et paramètres : fiche patient, formulaire de consultation), Modules (tous les modules, `MODULES_BASE` / MODULES / MODULES_PREVUS, lecture seule), Journal (actions de l'administration) |
 | `v2.html` | Onco360 : structure, CSS complet, symboles SVG, logo |
 | `js/config.js` | initialisation Firebase (clé web publique, normal) |
+| `vendor/` | bibliothèques externes copiées dans le site (jszip, html2canvas, mammoth, SheetJS 0.20.3 ; `vendor/LISEZMOI.md`) |
 | `js/app/v2.js` | chargement, tableau de bord, patients, dossier, identité, RDV (prix « Venu »), radiothérapie (dosimétrie, documents), WhatsApp, routage, droits |
 | `js/app/chimio.js` | lignes de chimio, cures en fenêtre (J1/J8/J15), doses, molécules, report, nouvelle ligne (menus en cascade), création patient |
 | `js/app/fiche.js` | fiche chimio A4 paysage (logo de l'établissement) |

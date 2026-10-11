@@ -79,6 +79,18 @@ async def main():
             r = await ev("[...document.querySelectorAll('#cfLl input')].filter(x=>!x.disabled).length")
             ok(r > 0, qui + ' : mutuelles modifiables', r)
             ok(not pg.errs, qui + ' : aucune erreur JavaScript', pg.errs[:2]); await pg.close()
+        print('4. Bibliothèques copiées dans le site (1.5), avec la politique de sécurité appliquée')
+        pg = await ouvrir(b); msgs = await avec_csp(pg); ev = pg.evaluate
+        await pg.unroute('https://cdnjs.cloudflare.com/**')
+        await pg.goto(f'http://localhost:{PORT}/v2.html'); await pg.wait_for_timeout(1500)
+        r = await ev("""(async()=>{const ch=(u)=>new Promise((ok,ko)=>{const s=document.createElement('script');s.src=u;s.onload=ok;s.onerror=()=>ko(u);document.head.appendChild(s)});
+          for (const f of ['jszip.min.js','html2canvas.min.js','mammoth.browser.min.js','xlsx.full.min.js']) await ch('vendor/'+f);
+          const wb=XLSX.read('a,b\\n1,2',{type:'string'});
+          return {zip:typeof JSZip, h2c:typeof html2canvas, mam:typeof mammoth, xlsx:XLSX.version, csv:XLSX.utils.sheet_to_csv(wb.Sheets[wb.SheetNames[0]]).trim()}})()""")
+        ok(r['zip'] == 'function' and r['h2c'] == 'function' and r['mam'] == 'object', 'jszip, html2canvas, mammoth chargés depuis le site', r)
+        ok(r['xlsx'] == '0.20.3' and r['csv'] == 'a,b\n1,2', 'SheetJS 0.20.3 (faille de la 0.18.5 corrigée) : lecture d\'un tableau', r)
+        ok(not msgs, 'aucun blocage par la politique de sécurité', msgs[:3])
+        ok(not await ev("[...document.scripts].some(s=>/cdnjs/.test(s.src))"), 'plus aucun script chargé depuis cdnjs'); await pg.close()
         await b.close()
     print(f'\n{ok_n} réussis, {ko_n} échoués')
 asyncio.run(main())

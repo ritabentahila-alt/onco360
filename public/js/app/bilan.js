@@ -482,7 +482,7 @@ window.biExport = async (fmt) => {
   } catch (e) { A.toast("Export Excel impossible : " + e.message); }
 };
 let zipP = null;
-const chargerZip = () => window.JSZip ? Promise.resolve(window.JSZip) : (zipP = zipP || new Promise((ok, ko) => { const s = document.createElement("script"); s.src = "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"; s.onload = () => ok(window.JSZip); s.onerror = () => ko(new Error("connexion ?")); document.head.appendChild(s); }));
+const chargerZip = () => window.JSZip ? Promise.resolve(window.JSZip) : (zipP = zipP || new Promise((ok, ko) => { const s = document.createElement("script"); s.src = "vendor/jszip.min.js"; s.onload = () => ok(window.JSZip); s.onerror = () => ko(new Error("connexion ?")); document.head.appendChild(s); }));
 async function excel(feuilles, nom) {
   const JSZip = await chargerZip(), x = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const col = (i) => (i >= 26 ? String.fromCharCode(64 + Math.floor(i / 26)) : "") + String.fromCharCode(65 + (i % 26));

@@ -204,10 +204,10 @@ const estTexte = (f) => ext(f) === "txt" || (/^text\/plain/.test(f.type || "") &
 const convertible = (f) => estPdf(f) || estImage(f) || estWord(f) || estTableur(f) || estTexte(f);
 const SCRIPTS = {};
 const script = (url) => SCRIPTS[url] || (SCRIPTS[url] = new Promise((ok, ko) => { const e = document.createElement("script"); e.src = url; e.onload = ok; e.onerror = () => { delete SCRIPTS[url]; ko(new Error("Outil de conversion indisponible (connexion ?)")); }; document.head.appendChild(e); }));
-const CDN = "https://cdnjs.cloudflare.com/ajax/libs/";
+const CDN = "vendor/"; // 1.5 (11/10/2026) : bibliothèques copiées dans le site (public/vendor/LISEZMOI.md), plus de serveur tiers
 // Page HTML (Word, tableur, texte) → images A4 → PDF : mise en page à 96 ppp (A4 = 794 × 1123 px), coupée entre deux lignes de texte
 async function htmlEnPdf(html, paysage) {
-  await script(CDN + "html2canvas/1.4.1/html2canvas.min.js");
+  await script(CDN + "html2canvas.min.js");
   const W = paysage ? 1123 : 794, H = paysage ? 794 : 1123, d = document.createElement("div");
   d.style.cssText = "position:fixed;left:-20000px;top:0;width:" + W + "px;padding:0 52px;box-sizing:border-box;background:#fff;color:#000;font:12.5px/1.45 Arial,Helvetica,sans-serif";
   d.innerHTML = '<style>.cv img{max-width:100%}.cv table{border-collapse:collapse;max-width:100%}.cv td,.cv th{border:1px solid #999;padding:3px 6px;font-size:11px;vertical-align:top}.cv p{margin:0 0 6px}.cv h1,.cv h2,.cv h3{margin:8px 0}.cv pre{white-space:pre-wrap;font:12px/1.4 Arial}</style><div class="cv">' + html + "</div>";
@@ -231,9 +231,9 @@ async function enPdf(f) {
   const nom = String(f.name || "document").replace(/\.[^.]+$/, "") + ".pdf";
   let b;
   if (estImage(f)) b = await imagesEnPdf([f]);
-  else if (estWord(f)) { await script(CDN + "mammoth/1.6.0/mammoth.browser.min.js"); const r = await window.mammoth.convertToHtml({ arrayBuffer: await f.arrayBuffer() }); b = await htmlEnPdf(r.value || "<p>(document vide)</p>"); }
+  else if (estWord(f)) { await script(CDN + "mammoth.browser.min.js"); const r = await window.mammoth.convertToHtml({ arrayBuffer: await f.arrayBuffer() }); b = await htmlEnPdf(r.value || "<p>(document vide)</p>"); }
   else if (estTableur(f)) {
-    await script(CDN + "xlsx/0.18.5/xlsx.full.min.js");
+    await script(CDN + "xlsx.full.min.js");
     // CSV : lu comme texte UTF-8, valeurs gardées telles quelles (pas de dates retraduites) ; Excel : tel qu'affiché dans le fichier
     const wb = ext(f) === "csv" ? window.XLSX.read(await f.text(), { type: "string", raw: true }) : window.XLSX.read(await f.arrayBuffer(), { type: "array" });
     const html = wb.SheetNames.map((n) => (wb.SheetNames.length > 1 ? "<h3>" + echapper(n) + "</h3>" : "") + window.XLSX.utils.sheet_to_html(wb.Sheets[n], { header: "", footer: "" })).join("");
