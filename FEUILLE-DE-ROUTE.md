@@ -66,7 +66,6 @@ l'ancienne feuille de route.
 2. **Par Dr Bentahila** : demander à GitHub de purger ses copies en cache (formulaire du support) ; regarder GitHub › Insights ›
    Traffic › « Git clones » (gardé 14 jours seulement) pour savoir si le dépôt a été copié pendant qu'il était public (10/10 au
    soir, et 11/10).
-3. **Par Dr Bentahila** : installer la copie lisible quotidienne dans le Drive (0.2, Claude guide).
 4. Seuils des alertes cliniques du tableau de bord (2.6) : perte de poids (5 % ? 10 %), PNN, plaquettes.
 
 ---
@@ -125,7 +124,7 @@ longs et ne dépendent pas du code.
       de `config.js`. Vérifié : aucune donnée servie. Données v1 intactes dans la base (collections racine, lecture seule) et dans
       les copies JSON du Drive jusqu'au 06/10 (date de la bascule, plus rien n'y change) ; copie privée des fichiers hors du dépôt :
       `Desktop/ONCO360/archives-privees-onco360/`.
-- [ ] **0.2 Copie lisible de tout Onco360, chaque nuit** (condition de Dr Bentahila) : le script `apps-script/onco360-sauvegarde.gs`
+- [x] **0.2 Copie lisible de tout Onco360, chaque nuit** (installée par Dr Bentahila le 11/10 ; 1re copie `Onco360_2026-10-11.json`, 945 Ko, dans Drive › Sauvegardes › Onco360 ; ensuite chaque nuit vers 3 h) (condition de Dr Bentahila) : le script `apps-script/onco360-sauvegarde.gs`
       est prêt mais **jamais installé** (aucun fichier `Onco360_…` dans le Drive). Dr Bentahila le colle dans le projet Apps Script
       « Chimio HGC » et lance `installerSauvegardeOnco360` (5 min, Claude guide pas à pas) ; Claude vérifie la 1re copie
       (`Drive › Sauvegardes › Onco360`) : tous les dossiers, consultations, finances, réglages, au format JSON lisible par n'importe
