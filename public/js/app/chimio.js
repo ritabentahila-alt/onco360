@@ -9,7 +9,7 @@ import { etatLigne, protocoleDe, protocoleCure, seancesCure, seancesDe, dedupIds
 import { addJ, ecart, num, age } from "../moteur/outils.js";
 import { tarif } from "../moteur/tarifs.js";
 import { typeRdv, T_RTC } from "../moteur/rdv.js";
-import { DIAG, MUT0, COR0, DICT } from "../donnees/listes.js";
+import { DIAG, MUT0, DICT } from "../donnees/listes.js";
 import { poso, doseTxt, ficheHTML, imprimerFiche } from "./fiche.js";
 import * as ficheP from "./fichepatient.js"; // fiche patient réglable (10/10/2026)
 
@@ -781,8 +781,8 @@ export function activerDiag(idD, idP) {
 // Listes du cabinet : parametres/listes = { cor, mut } (ajouts aux listes de départ de donnees/listes.js) ; depuis le 08/10/2026
 // (Paramètres › Listes) { diag, mut, cor, complet: true } = listes entières, corrigées et triées par le médecin
 const LC = () => D().listes || {};
-// Correspondants de départ (COR0) : ceux du premier cabinet seulement ; un cabinet neuf commence sans (phase F, 09/10/2026)
-const cor0 = () => (A && A.ESPACE === "cabinet-bentahila" ? COR0 : []);
+// Correspondants de départ : aucun (12/10/2026, étape 1.7 : ceux du cabinet d'origine sont dans ses listes, parametres/listes)
+const cor0 = () => [];
 export const LISTES0 = { diag: DIAG, mut: MUT0, get cor() { return cor0(); } };
 const alphaFr = (a, z) => a.localeCompare(z, "fr");
 export const listeDiag = () => (LC().complet && Array.isArray(LC().diag) ? LC().diag : DIAG.concat((LC().diag || []).filter((d) => DIAG.indexOf(d) < 0)));

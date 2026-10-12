@@ -226,10 +226,10 @@ longs et ne dépendent pas du code.
       pour le cabinet d'origine seulement (son bilan ne bouge pas : test du bilan figé réussi), plus jamais pour un autre cabinet
       (tarifs, rendez-vous, grille d'un nouveau lieu) ; **« CNSS — AMO »** dans les mutuelles de départ (site et serveur) ; fenêtres
       « Aucune analyse choisie » / « Aucun examen choisi » ; démonstration avec créatinine. Tests : `tests/test_cabinet_neutre.py` 18/18,
-      fiche, profil, démo, cabinets (adapté aux 4 familles). **Reste (phase 2 de 1.7)** : la liste des 167 correspondants (`COR0`) est
-      d'abord écrite en entier dans les listes du cabinet d'origine (mise à jour automatique `listesCompletes`, à l'ouverture
-      d'Onco360 par Dr Bentahila après la mise en ligne) ; ensuite seulement, `COR0` est retiré du code (et `test_cabinets.py` ligne 44).
-      **À faire par Dr Bentahila** : Mon compte › « Accord dans les documents » › « Je soussignée ».
+      fiche, profil, démo, cabinets (adapté aux 4 familles). Liste des 167 correspondants : écrite en entier dans les listes du cabinet
+      d'origine à l'ouverture d'Onco360 par Dr Bentahila (12/10, `listesCompletes`), puis **`COR0` retiré du code** (12/10, pas encore en
+      ligne ; elle reste dans l'historique Git, privé : purge possible si demandé). **À faire par Dr Bentahila** : Mon compte ›
+      « Accord dans les documents » › « Je soussignée ».
 
 ## Phase 2 – Sécurité clinique (doses, radiothérapie, protocoles)
 

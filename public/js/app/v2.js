@@ -15,7 +15,7 @@ import { tarif as tarifAu } from "../moteur/tarifs.js";
 import { genererConsultRT } from "../moteur/rt.js";
 import { idsParDefaut } from "../donnees/migration.js";
 import { installer as installerDocuments, docsDe, boutonDoc, oublierDocs, suivreEtablissementDocs, supprimerDocs } from "./documents.js";
-import { installer as installerChimio, htmlChimio, nouveauPatient as creerPatient, champDiag, activerDiag, listeDiag, listeMut, listeCor, enrichirListes, majMontants, encaissementsDe, construireEncaissements, ecrireEncaissements, prixParServeur, oublierEncaissements } from "./chimio.js";
+import { installer as installerChimio, htmlChimio, nouveauPatient as creerPatient, champDiag, activerDiag, listeMut, listeCor, enrichirListes, majMontants, encaissementsDe, construireEncaissements, ecrireEncaissements, prixParServeur, oublierEncaissements } from "./chimio.js";
 import { installer as installerAgenda, pageAgenda } from "./agenda.js";
 import { installer as installerConfig, pageConfiguration, horaires, dureeDe, dureeType, WA0, remplir } from "./configuration.js";
 import { installer as installerProfil, pageProfil, DROITS_ROLE, droitsEffectifs, lireImage } from "./profil.js";
@@ -268,14 +268,7 @@ async function migrations() {
       }
       await setDoc(doc(db, "espaces", ESPACE, "parametres", "migrations"), { dosimetriePeriode: D.t }, { merge: true }).catch(() => {});
     }
-    // Listes du cabinet d'origine écrites en entier dans parametres/listes (1.7, 11/10/2026) : les 167 correspondants de départ (COR0)
-    // pourront ensuite sortir du code sans rien perdre
-    if (!fait.listesCompletes && ESPACE === "cabinet-bentahila") {
-      const rl = doc(db, "espaces", ESPACE, "parametres", "listes"), sl = await getDoc(rl).catch(() => null); let L0 = {};
-      try { if (sl && sl.exists()) L0 = JSON.parse(sl.data().data || "{}"); } catch (er) { L0 = {}; }
-      const okL = L0.complet ? true : await setDoc(rl, { data: JSON.stringify({ diag: listeDiag(), mut: listeMut(), cor: listeCor(), complet: true }) }).then(() => true).catch((er) => { console.warn("listes", er); return false; });
-      if (okL) await setDoc(doc(db, "espaces", ESPACE, "parametres", "migrations"), { listesCompletes: D.t }, { merge: true }).catch(() => {});
-    }
+    // (1.7, 11-12/10/2026 : listes du cabinet d'origine écrites en entier une fois, « listesCompletes » ; COR0 retiré ensuite)
     // Chimiothérapie visible par la secrétaire (07/10/2026) : « Non visible » → « Voir » pour les secrétaires existantes
     if (!fait.secretaireChimio) {
       for (const d of sm.docs) { const m = d.data(); if (m.role === "assistante" && (m.droits || {}).traitements === "aucun") await updateDoc(d.ref, { "droits.traitements": "voir" }).catch((er) => console.warn("droits", d.id, er)); }

@@ -41,8 +41,6 @@ async def main():
         ok(str(nbProt) in pages['protocoles'] or nbProt > 0, f'protocoles copiés ({nbProt})')
         # Paramètres : lieux, correspondants vides, grille tarifaire
         await pg.evaluate("location.hash='parametres/listes'"); await pg.wait_for_timeout(900); tl = await pg.inner_text('#page')
-        cor0 = subprocess.run(['node', '--input-type=module', '-e', 'import {COR0} from "./public/js/donnees/listes.js"; console.log(JSON.stringify(COR0))'], cwd=str(ICI.parent), capture_output=True, text=True).stdout
-        ok(not any(c in tl for c in json.loads(cor0)[:15]), 'aucun correspondant de Dr Bentahila')
         ok('Mutuelles (3' in tl and 'Diagnostics (4' in tl and 'Correspondants (0)' in tl, 'diagnostics et mutuelles reçus, correspondants vides')
         await pg.evaluate("location.hash='parametres/activites'"); await pg.wait_for_timeout(900); ta = await pg.inner_text('#page')
         ok('Ajoutez d\'abord un lieu' in ta, 'tarifs : il faut d\'abord un lieu')
