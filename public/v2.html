@@ -791,7 +791,7 @@ nav a.actif{box-shadow:var(--ombre-prim)}
 .cf-sous button{border:1px solid var(--trait);background:#fff;border-radius:20px;padding:7px 14px;font-size:var(--t4);color:var(--encre);cursor:pointer}
 .cf-sous button:hover{border-color:var(--prim-cc);color:var(--prim)}
 .cf-sous button.on{background:var(--prim-c);border-color:var(--prim-cc);color:var(--prim);font-weight:bold}
-@media (max-width:640px){.cf-sous{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}.cf-sous::-webkit-scrollbar{display:none}.cf-sous button{flex:none;white-space:nowrap;min-height:40px}}
+@media (max-width:640px){.cf-sous{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;min-width:0;max-width:100%} /* Safari : défile au lieu de s'élargir (12/10/2026) */.cf-sous::-webkit-scrollbar{display:none}.cf-sous button{flex:none;white-space:nowrap;min-height:40px}}
 .cf-n{display:inline-block;min-width:22px;padding:1px 7px;border-radius:12px;background:var(--gris-c);color:var(--doux);font-size:var(--t2);font-weight:bold;text-align:center;margin-left:4px}
 /* Retrait discret : gris, rouge au survol (plus de croix rouge sur chaque ligne) */
 .sup{border:1px solid transparent;background:none;border-radius:8px;width:32px;height:32px;display:inline-grid;place-items:center;color:#8A94A6;cursor:pointer;flex:none;padding:0}
@@ -819,7 +819,7 @@ nav a.actif{box-shadow:var(--ombre-prim)}
 .ty-l .ty-s{font-size:var(--t3);color:var(--doux);display:flex;align-items:center;gap:6px;margin:0;font-weight:normal}
 .ty-l .ty-s select{width:auto;min-width:0;max-width:100%;padding:6px 8px;border:1px solid var(--bord-champ);border-radius:var(--r-s);font-size:var(--t4);background:#fff}
 .ty-l .fl{display:flex;gap:2px}.ty-l .fl button{border:1px solid var(--trait);background:#fff;border-radius:8px;padding:4px 9px;font-weight:bold;color:var(--titre);cursor:pointer}.ty-l .fl button:disabled{opacity:.4;cursor:default}
-@media (max-width:640px){.ty-l .ty-s{flex:1 1 100%;min-width:0;max-width:100%}.ty-l .ty-s select{flex:1 1 0;min-width:0}}
+@media (max-width:640px){.ty-l .ty-s{flex:1 1 100%;min-width:0;max-width:100%;overflow:hidden}.ty-l .ty-s select{flex:1 1 0;min-width:0;width:100%}} /* Safari : la liste ne s'élargit pas à son texte le plus long */
 .ty-h{display:none}
 .cf-q{margin-left:8px;vertical-align:middle;width:22px;height:22px;line-height:20px;font-size:var(--t2)}
 .ty-q{border:1px solid var(--trait);background:#fff;border-radius:50%;width:18px;height:18px;padding:0;font-size:var(--t1);font-weight:bold;color:var(--doux);cursor:help;line-height:16px}

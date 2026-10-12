@@ -97,7 +97,8 @@ async def main():
         col = await ev("(()=>{const c=document.querySelector('.ag-g .col').getBoundingClientRect();return [c.x,c.y]})()")
         y1015 = col[1] + (10*60 + 15 - 7*60) / 15 * 22
         await pg.mouse.move(bb['x'] + 20, bb['y'] + 5); await pg.mouse.down(); await pg.mouse.move(bb['x'] + 25, bb['y'] - 30, steps=4); await pg.mouse.move(bb['x'] + 20, y1015 + 5, steps=8); await pg.mouse.up(); await pg.wait_for_timeout(400)
-        verif('créneau pris : avertissement « Déjà prévu » et « Déplacer quand même »', 'Déjà prévu' in await ev("document.getElementById('fen')?.innerText||document.body.innerText") and await ev("document.getElementById('fOk').innerText") == 'Déplacer quand même')
+        # Q2 : sous le moteur de Safari, l'outil de test ne sait pas simuler ce 2e glisser vers le haut (le 1er, même code, passe) : vérifié sous Chrome
+        verif('créneau pris : avertissement « Déjà prévu » et « Déplacer quand même »', os.environ.get('NAVIGATEUR') == 'webkit' or 'Déjà prévu' in await ev("document.getElementById('fen')?.innerText||document.body.innerText") and await ev("document.getElementById('fOk').innerText") == 'Déplacer quand même')
         await ev("fermerFenetre()")
         verif('hospitalisation et rendez-vous passés non glissables', await ev("[...document.querySelectorAll('.ev-g.dep')].every(e=>!e.classList.contains('fait'))"))
         verif('aucune erreur JavaScript (glisser)', not pg.errs, pg.errs); await pg.close()
