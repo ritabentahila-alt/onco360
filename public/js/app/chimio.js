@@ -76,13 +76,6 @@ const boutonHeure = (x, i, k, j, o) => {
   if (!peutHeureChimio()) return hc && !inf ? ' <span class="mesures">🩺 ' + A.esc(hc.h) + "</span>" : "";
   return ' <button class="bt petit clair" style="margin-top:4px" title="' + (inf ? "Heure et durée de la séance (hôpital de jour)" : "Heure de la consultation de chimio") + '" onclick="chHeure(\'' + x.id + "'," + i + "," + k + "," + j + ')">' + A.esc(lib) + "</button>";
 };
-// Séance prévue qui suit la séance j de la cure k (J8… de la même cure, sinon J1 de la cure suivante) : { k, j, d, o } ou null
-function seanceSuivante(x, i, k, j) {
-  const L = x.P.lignes[i]; if (!L) return null;
-  const E = etatLigne(L, x.P, D().ctx), e = E[k];
-  if (e && e.st === "recue") { const s = seancesCure(L, e, D().ctx.bib).find((z) => z.j > j && z.st === "prevue" && z.prevue); if (s) return { k, j: s.j, d: s.prevue, o: (e.c.sea || {})[s.j] || {} }; }
-  const e2 = E[k + 1]; return e2 && e2.st === "prevue" && e2.date ? { k: k + 1, j: 1, d: e2.date, o: e2.c } : null;
-}
 // Fenêtre des heures d'une séance (s = { k, j, d, o }) : infirmière → heure et durée de la séance ; médecin, secrétaire → consultation.
 // `puis` : appelée à la fermeture (ex. fenêtre de prix après une validation)
 export function fenetreHeureSeance(x, lid, s, titre, puis) {
@@ -110,12 +103,36 @@ export function fenetreHeureSeance(x, lid, s, titre, puis) {
   ok.onclick = () => { const h = A.val("hS"); if (!h) { if (aSup) noter(retirer, ok); else fin(); return; } noter(inf ? { seance: { h, du: +A.val("hDu") || DU_SEANCE } } : { cons: h }, ok); };
   if (sup) sup.onclick = () => noter(retirer, sup);
 }
-// Après la validation d'une séance : heure de consultation de la prochaine séance (facultative), puis la suite (fenêtre de prix)
-function proposerSuivante(pid, i, k, j, puis) {
-  const x = trouver(pid), s = x && seanceSuivante(x, i, k, j);
-  if (!s || !peutHeureChimio()) { puis(); return; }
-  CM = null; fenetreHeureSeance(x, x.P.lignes[i].id, s, "Prochaine séance de chimiothérapie", puis);
-}
+// « Modifier » d'une séance depuis « Rendez-vous et tâches à venir » (12/10/2026, demande de Dr Bentahila ; plus de fenêtre après la
+// validation) : date (droit traitements ou planning) et heure de la consultation ; date changée → « cette date seulement » ou « toute la
+// suite » (comme dans la cure) ; l'infirmière : sa séance à l'hôpital de jour (heure et durée)
+window.chModifierRdvChimio = (pid, lid, n, j) => {
+  const x = trouver(pid), i = x ? x.P.lignes.findIndex((z) => z.id === lid) : -1; if (i < 0) return;
+  const L = x.P.lignes[i], k = n - 1, e = etatLigne(L, x.P, D().ctx)[k]; if (!e) return;
+  const sz = j > 1 ? seancesCure(L, e, D().ctx.bib).find((z) => z.j === j) : null, d0 = j > 1 ? sz && sz.prevue : e.date, o = j > 1 ? (e.c.sea || {})[j] || {} : e.c;
+  if (!d0) return;
+  if (estInfirmiere()) { fenetreHeureSeance(x, lid, { k, j, d: d0, o }, "Séance à l'hôpital de jour", () => A.pageDossier(pid)); return; }
+  const okD = A.traitMod() || A.peut("planningChimio"), hcm = o.hcm, hc = o.hc, rid = j > 1 ? "sS" : "dS";
+  A.fenetre("<h3>C" + n + (j > 1 || seancesDe(protocoleCure(L, k, D().ctx.bib) || protocoleDe(L, D().ctx.bib)).length > 1 ? " J" + j : "") + " – " + A.esc(x.r.nm) + '</h3><p class="sous">Consultation de la séance de chimiothérapie</p><div class="form">' +
+    '<div><label for="mD">Date</label><input id="mD" type="date" value="' + A.esc(d0) + '"' + (okD ? "" : " disabled") + "></div>" +
+    '<div><label for="mH">Heure de la consultation (facultative)</label><input id="mH" type="time" step="900" value="' + A.esc((hcm && hcm.h) || "") + '"></div>' +
+    (okD ? '<div class="large cache" id="mSz">' + choixSuite(rid, "La date change", "suite").replace('<div class="large">', "<div>") + "</div>" : "") + "</div>" +
+    (hc && hc.auto ? '<p class="mesures">Placée pour l\'instant à ' + A.esc(hc.h) + " d'après la séance notée par l'infirmière ; une heure choisie ici passe avant.</p>" : "") +
+    '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt plein" id="fOk">Enregistrer</button></div>');
+  if (okD) document.getElementById("mD").oninput = () => document.getElementById("mSz").classList.toggle("cache", A.val("mD") === d0);
+  document.getElementById("fOk").onclick = async () => {
+    const d = A.val("mD"), h = A.val("mH"); if (!d) { A.erreur("Indiquez la date."); return; }
+    A.occupe(document.getElementById("fOk"), true);
+    try {
+      if (okD && d !== d0) {
+        if (j > 1) await majSeance(x, i, k, j, d, false);
+        else { const lignes = lignesDe(x), L2 = lignes[i], E2 = etatLigne(L2, x.P, D().ctx); if (choix("dS") === "seule") figerSuivantes(L2, k, E2); else libererSuivantes(L2, k); L2.cures[k].fixe = d; await sauverLignes(x, lignes, "C" + n + " déplacée au " + A.dfrA(d)); }
+      }
+      if (h !== ((hcm && hcm.h) || "")) await heureSeance(trouver(pid), lid, n, j, { cons: h });
+      A.fermerFenetre(); A.toast("Enregistré."); A.pageDossier(pid);
+    } catch (er) { A.occupe(document.getElementById("fOk"), false); A.erreur(er.message); }
+  };
+};
 // Bouton d'heure du tableau de la cure
 window.chHeure = (id, i, k, j) => {
   const x = trouver(id), L = x && x.P.lignes[i]; if (!L) return;
@@ -560,7 +577,7 @@ window.chValiderJ1 = (id, i, k) => {
     if (g.length > 1) { c.sea = c.sea || {}; g.slice(1).forEach((s) => { if (!c.sea[s.j]) c.sea[s.j] = { st: "prevue" }; }); }
     await sauverLignes(x, lignes, "Cure C" + (k + 1) + " validée (" + A.dfrA(d) + ")");
     SEL.pid = x.id; SEL.l = i; SEL.c = k; if (CM) CM.j = null;
-  }).then((ok) => { if (ok) proposerSuivante(x.id, i, k, 1, () => proposerPrix(x.id, x.P.lignes[i].id, k + 1, 1)); });
+  }).then((ok) => { if (ok) proposerPrix(x.id, x.P.lignes[i].id, k + 1, 1); });
 };
 window.chRetablir = (id, i, k) => {
   const x = trouver(id); if (!confirm("Remettre la cure C" + (k + 1) + " en « prévue » ?")) return;
@@ -603,7 +620,7 @@ window.chFiche = (id, i, k) => {
 
 // ───── Séances J8 / J15… ─────
 window.chValiderSeance = (id, i, k, j) => window.chOuvrir(id, i, k, j);
-window.chValiderJ = (id, i, k, j) => { const x = trouver(id), L0 = lignesDe(x)[i], n0 = seancesDe(protocoleCure(L0, k, D().ctx.bib) || protocoleDe(L0, D().ctx.bib)).findIndex((g) => g.j === j), ok = verifierValidation(x, i, k, n0 > 0 ? n0 : 0); if (!ok) return; executer(x, async () => { await majSeance(x, i, k, j, A.val("sD") || D().t, true, null, ok); if (CM) CM.j = null; }).then((ok) => { if (ok) proposerSuivante(x.id, i, k, j, () => proposerPrix(x.id, x.P.lignes[i].id, k + 1, j)); }); };
+window.chValiderJ = (id, i, k, j) => { const x = trouver(id), L0 = lignesDe(x)[i], n0 = seancesDe(protocoleCure(L0, k, D().ctx.bib) || protocoleDe(L0, D().ctx.bib)).findIndex((g) => g.j === j), ok = verifierValidation(x, i, k, n0 > 0 ? n0 : 0); if (!ok) return; executer(x, async () => { await majSeance(x, i, k, j, A.val("sD") || D().t, true, null, ok); if (CM) CM.j = null; }).then((ok) => { if (ok) proposerPrix(x.id, x.P.lignes[i].id, k + 1, j); }); };
 window.chDateSeance = (id, i, k, j, v) => {
   const x = trouver(id); if (!v) return;
   A.fenetre("<h3>Nouvelle date de J" + j + " – cure C" + (k + 1) + '</h3><p class="sous">→ <b>' + A.dfrA(v) + '</b></p><div class="form">' + choixSuite("sS", "Séances et cures suivantes") + "</div>" + boutons("Enregistrer"));

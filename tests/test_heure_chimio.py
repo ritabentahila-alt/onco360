@@ -29,20 +29,25 @@ async def agenda(pg, d):
 async def main():
     async with async_playwright() as p:
         b = await p.chromium.launch()
-        print('Médecin : validation de la séance → heure de consultation de la prochaine séance')
+        print('Médecin : validation sans fenêtre en plus, puis heure depuis « Rendez-vous et tâches à venir »')
         pg = await ouvrir(b, S_INF); ev = pg.evaluate
         await pg.goto(f'http://localhost:{PORT}/v2.html#dossier/{pid}'); await pg.wait_for_timeout(2500)
         await ev(f"chOuvrir('{pid}', {i}, {k}, 1)"); await pg.wait_for_timeout(1200)
         await ev(f"chValiderJ1('{pid}', {i}, {k})"); await pg.wait_for_timeout(2500)
-        t = await pg.inner_text('#fenetreCorps')
-        ok('Prochaine séance de chimiothérapie' in t and 'Heure de la consultation' in t and 'Durée' not in t, 'fenêtre « Prochaine séance » : heure de consultation, sans durée', t[:300])
-        d = date_de(t); ok(d is not None, 'date de la prochaine séance affichée', t[:200])
-        await pg.fill('#hS', '09:30'); await pg.click('#hOk'); await pg.wait_for_timeout(2000)
+        ok(not await ev("!!document.getElementById('hNon')") and 'Prochaine séance' not in (await ev("(document.getElementById('fenetreCorps')||{}).innerText||''")), 'plus de fenêtre « Prochaine séance » après la validation')
+        await ev("fermerFenetre()"); await ev(f"ouvrirDossier('{pid}')"); await pg.wait_for_timeout(1500)
+        mod = await ev("(()=>{const b=[...document.querySelectorAll('#rdvListe button')].find(x=>/chModifierRdvChimio/.test(x.getAttribute('onclick')||''));return b?b.getAttribute('onclick'):null})()")
+        ok(mod is not None, 'bouton « Modifier » sur la prochaine séance de chimio', mod)
+        await ev(mod); await pg.wait_for_timeout(600)
+        t = await pg.inner_text('#fenetreCorps'); d = await ev("document.getElementById('mD').value")
+        ok('Heure de la consultation' in t and 'Durée' not in t and d, 'fenêtre : date et heure de la consultation, sans durée', t[:200])
+        await pg.fill('#mH', '09:30'); await pg.click('#fOk'); await pg.wait_for_timeout(2000)
         fs = await ev("window.__fs"); H = fs[E + 'patients/' + pid].get('heures') or {}
         cle = [c for c, v in H.items() if (v or {}).get('cons')]
         ok(len(cle) == 1 and H[cle[0]]['cons']['h'] == '09:30', 'consultation notée dans le dossier (champ « heures »)', H)
+        ok('09:30' in (await ev("[...document.querySelectorAll('#rdvListe .rdv')].map(e=>e.innerText).join('|')")), 'heure affichée dans « Rendez-vous et tâches à venir »')
         t = await agenda(pg, d)
-        ok('09:30' in t and 'Consultation' in t and 'Séance ·' not in t, 'planning du médecin : consultation à 09:30, pas de séance', t[t.find('09:'):t.find('09:') + 200] if '09:' in t else t[:300])
+        ok('09:30' in t and 'Consultation' in t and 'Séance ·' not in t, 'planning du médecin : consultation à 09:30, pas de séance', t[:300])
         ok(not pg.errs, 'aucune erreur JavaScript', pg.errs[:2]); await pg.close()
         S2 = json.loads(json.dumps(fs))
 

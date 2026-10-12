@@ -1,19 +1,23 @@
 // Chimio HGC v2 – rendez-vous (consultations, hospitalisations) : types, libellés, prix (règles D1, E3, E4, E6).
 import { addJ } from "./outils.js";
 export const T_RTC = "En cours de RT";
+// Consultation de fin de radiothérapie (12/10/2026, décision de Dr Bentahila) : créée d'office à la fin de la radiothérapie (réelle, sinon
+// calculée), déplaçable librement (c'est une consultation : vue parfois avant ou après la fin) ; prix proposé 0 DH, modifiable à « Venu »
+export const T_RTF = "Fin de radiothérapie";
 export const dfr = (iso) => (iso ? iso.slice(8, 10) + "/" + iso.slice(5, 7) + "/" + iso.slice(0, 4) : "");
-export function typeRdv(t) { if (t === T_RTC) return "controle"; return t === "Annonce" ? "annonce" : t === "Contrôle" ? "controle" : t === "Hospitalisation" ? "hospit" : "suivi"; }
+export function typeRdv(t) { if (t === T_RTC || t === T_RTF) return "controle"; return t === "Annonce" ? "annonce" : t === "Contrôle" ? "controle" : t === "Hospitalisation" ? "hospit" : "suivi"; }
 // Jours ouvrés d'une hospitalisation (lundi–vendredi, sans tenir compte des fériés – comme la v1)
 export function joursH(r) { if (!r.d) return 0; const f = r.f && r.f >= r.d ? r.f : r.d; let d = r.d, n = 0; for (let g = 0; g < 400 && d <= f; g++) { const w = new Date(d + "T12:00:00").getDay(); if (w !== 0 && w !== 6) n++; d = addJ(d, 1); } return n; }
 export function tarH(tarifs, h, k) { const o = (tarifs.hop && tarifs.hop[h]) || tarifs.hop.HGC; return o[k] != null ? o[k] : k === "hospit" ? 400 : 0; }
 const tjH = (P, r, tarifs) => (r.tj != null ? r.tj : tarH(tarifs, P.hop || (tarifs && tarifs.repli) || "", "hospit")); // repli du cabinet (1.7 : plus de « HGC » écrit en dur)
 export function prixRdv(P, r, tarifs) {
-  if (r && r.type === T_RTC) return 0;
+  if (r && (r.type === T_RTC || r.type === T_RTF)) return 0;
   const t = typeRdv(r.type), h = P.hop || (tarifs && tarifs.repli) || "";
   return t === "hospit" ? joursH(r) * tjH(P, r, tarifs) : t === "controle" ? tarH(tarifs, h, "controle") : t === "annonce" ? tarH(tarifs, h, "annonce") : tarH(tarifs, h, "suivi");
 }
 export function libRdv(r) {
   if (r && r.type === T_RTC) return "Consultation en cours de radiothérapie";
+  if (r && r.type === T_RTF) return "Consultation de fin de radiothérapie";
   if (r && r.act) return r.type || "Consultation"; // activité ajoutée dans les Paramètres (ex. 2nd avis)
   const t = typeRdv(r.type);
   return t === "hospit" ? "Hospitalisation" + (r.f ? " du " + dfr(r.d) + " au " + dfr(r.f) + " (" + joursH(r) + " j ouvré" + (joursH(r) > 1 ? "s" : "") + ")" : "") : t === "controle" ? "Consultation de contrôle" : "Consultation " + (r.type || "").toLowerCase();

@@ -12,7 +12,7 @@ import { finRT, statutRT, nbA, compteurRT, dosimetrie, contourage, RYTHMES, libR
 import { auj, addJ, ecart, ouvre, age, srcImage, absentMedecin } from "../moteur/outils.js";
 import { typeRdv, libRdv, joursH, T_RTC } from "../moteur/rdv.js";
 import { tarif as tarifAu } from "../moteur/tarifs.js";
-import { genererConsultRT } from "../moteur/rt.js";
+import { genererConsultRT, consultFinRT } from "../moteur/rt.js";
 import { idsParDefaut } from "../donnees/migration.js";
 import { installer as installerDocuments, docsDe, boutonDoc, oublierDocs, suivreEtablissementDocs, supprimerDocs } from "./documents.js";
 import { installer as installerVigilances } from "./vigilances.js";
@@ -264,6 +264,15 @@ async function migrations() {
       if (Object.keys(champs).length) await updateDoc(d.ref, champs).catch((er) => console.warn("droits", d.id, er));
     }
     const g = await getDoc(doc(db, "espaces", ESPACE, "parametres", "migrations")).catch(() => null), fait = g && g.exists() ? g.data() : {};
+    // Consultation de fin de radiothérapie (12/10/2026) : créée une fois pour les radiothérapies en cours ou à venir (ensuite : sauverRT)
+    if (!fait.consultFinRT && peut("rendezvous")) {
+      for (const x of D.patients) {
+        if (!(x.P.rts || []).some((r) => !r.fin && r.deb)) continue;
+        const P2 = { rts: JSON.parse(x.doc.rtsJson || "[]"), rdvs: JSON.parse(x.doc.rdvsJson || "[]") }, r0 = JSON.stringify(P2.rts);
+        if (consultFinRT(P2, Object.assign({}, D.ctx, { nouvelId: idsParDefaut() }))) await enregistrer(x, Object.assign({ rdvsJson: JSON.stringify(P2.rdvs) }, JSON.stringify(P2.rts) !== r0 ? { rtsJson: JSON.stringify(P2.rts) } : {}), "Consultation de fin de radiothérapie créée").catch((er) => console.warn("fin de RT", x.id, er));
+      }
+      await setDoc(doc(db, "espaces", ESPACE, "parametres", "migrations"), { consultFinRT: D.t }, { merge: true }).catch(() => {});
+    }
     // Dosimétrie à valider devenue une période (scanner → 1re séance) le 06/10/2026 : résumé recalculé des dossiers concernés,
     // pour que les Google Agenda reçoivent la période (le dossier lui-même ne change pas)
     if (!fait.dosimetriePeriode) {
@@ -406,11 +415,11 @@ const API = { D: () => D, get ESPACE() { return ESPACE; }, $, esc, ic, dfr, dfrA
 API.typesRdv = (e) => typesRdv(e); // Paramètres › Horaires : durée par type de consultation (AG2)
 // Heure facultative du scanner de centrage (AG5, 11/10/2026) : r.scanH = { h, du } ou retirée (droit « radiothérapie : modifier »)
 API.traitModRT = () => traitModRT();
-API.heureRT = async (pid, rid, hr) => {
+API.heureRT = async (pid, rid, hr, z) => { // z : "scan" (défaut) ou "deb" (1re séance, 12/10/2026)
   const x = D.patients.find((p) => p.id === pid); if (!x || !traitModRT()) throw new Error("Vous n'avez pas le droit de modifier la radiothérapie.");
   const l = JSON.parse(x.doc.rtsJson || "[]"), r = l.find((v) => v.id === rid); if (!r) throw new Error("Radiothérapie introuvable.");
-  if (hr) r.scanH = hr; else delete r.scanH;
-  await enregistrer(x, { rtsJson: JSON.stringify(l) }, "Scanner de centrage : " + (hr ? "heure " + hr.h + " (" + hr.du + " min)" : "heure retirée"));
+  const k = z === "deb" ? "debH" : "scanH"; if (hr) r[k] = hr; else delete r[k];
+  await enregistrer(x, { rtsJson: JSON.stringify(l) }, (z === "deb" ? "1re séance de radiothérapie" : "Scanner de centrage") + " : " + (hr ? "heure " + hr.h + " (" + hr.du + " min)" : "heure retirée"));
 };
 API.multiMed = () => multiMed(); API.medecins = () => D.medecins || []; API.medRdv = (r) => medRdv(r); API.nomMed = (u) => nomMed(u); API.medDefaut = () => medDefaut(); // AG4
 API.encaisseIci = () => encaisseIci(); API.payeCabinet = (x) => payeCabinet(x); API.htmlMode = (c) => htmlMode(c); API.libMode = (k) => libMode(k); API.imprimerRecu = (w, x, o) => imprimerRecu(w, x, o); API.sansAcc = sansAcc; API.fn = (k) => fnOn(k); API.module = (k) => module(k); API.planifierReleve = (d) => planifierReleve(d || 120000); API.attribuerNumero = (x) => attribuerNumero(x); API.numDossier = (x) => numDossier(x); API.medecinFiche = () => medecinFiche(); API.entete = () => entete(); API.voitRdv = () => voitRdv(); API.voitRT = (x) => voitRT(x); API.champsMed = (C, off) => champsMed(C, off); API.CHAMPS_MED = () => CHAMPS_MED; API.fmtMil = (n) => fmtMil(n); API.ferieLe = (d) => ferieLe(d); API.salleVenuChimio = (x, lid, n, j, oui) => apresVenuChimio(x, lid, n, j, oui); API.serveur = appelServeur; API.prixPrevu = (p, c, j) => prixPrevu(p, c, j); API.badgeSalle = (p, c) => badgeSalle(p, c); API.tarifsVus = () => tarifsVus(); API.publierTarifsC = () => publierTarifsC(); API.encaissementsDe = (x, f) => encaissementsDe(x, f); API.peutPrix = () => peut("finances") || prixParServeur();
@@ -901,14 +910,17 @@ function pageDossier(id) {
     if (v) return '<span class="badge b-ch">Venu</span><span class="badge b-ch" title="Prix validé">' + (v.m != null ? fmtMil(v.m) + " DH" : "—") + "</span>" + (peut("finances") ? b("Annuler le statut", "chAnnulerVenuChimio(" + qv + ")") : prixParServeur() ? b("Modifier le prix", "chVenuChimio(" + qv + ")") : "");
     return (peut("finances") || prixParServeur()) && d <= D.t ? b("Venu", "chVenuChimio(" + qv + ")", "v") : "";
   };
-  chimioAVenir(JSON.parse(JSON.stringify(P)), ctx).forEach((c) => { const ret = /en retard/.test(c.lib); av.push({ d: c.d, h: "", em: "💉", t: c.lib.replace(/^Chimio · /, ""), retard: ret, act: '<div class="actr">' + (ret ? "" : btnWA(x, "chimio", c.d, "")) + (c.lid ? venuChimio(c, c.d) : "") + "</div>" }); });
+  // 12/10/2026 : heure de la consultation de la séance (l'infirmière : sa séance à l'hôpital de jour) ; « Modifier » = date et heure
+  const inf = D.membre.role === "infirmiere", modCh = (c) => (traitMod() || peut("planningChimio") || peut("administrer")) && c.lid ? b("Modifier", "chModifierRdvChimio('" + x.id + "','" + c.lid + "'," + c.n + "," + c.j + ")") : "";
+  chimioAVenir(JSON.parse(JSON.stringify(P)), ctx).forEach((c) => { const ret = /en retard/.test(c.lib), hh = inf && c.hr && c.hr.h ? c.hr : c.hc; av.push({ d: c.d, h: (hh && hh.h) || "", em: "💉", t: c.lib.replace(/^Chimio · /, "") + (inf && c.hr && c.hr.h ? " · séance " + c.hr.h + (c.hc && !c.hc.auto ? " (consultation " + c.hc.h + ")" : "") : c.hc ? " · consultation" : ""), retard: ret, act: '<div class="actr">' + (ret ? "" : btnWA(x, "chimio", c.d, (hh && hh.h) || "")) + (c.lid ? venuChimio(c, c.d) : "") + modCh(c) + "</div>" }); });
   if (voitRdv()) (P.rdvs || []).forEach((v) => { if (aVenir(v)) av.push({ d: v.d, h: v.h || "", em: typeRdv(v.type) === "hospit" ? '<svg class="pi"><use href="#i-hopital"/></svg>' : "🩺", t: libRdv(v) + (v.mo ? " – " + v.mo : "") + (v.n ? " – " + v.n : ""), act: actionsRdv(v, btnWA(x, catRdv(v), v.d, v.h || "")), rep: v.rep }); });
   const qx = "'" + x.id + "'";
   // Tâches ouvertes du patient (P4, 08/10/2026), dont « Valider la dosimétrie » qui remplace ici la ligne de dosimétrie
   (module("taches") ? tachesDuPatient(x.id) : []).forEach((tk) => av.push({ d: tk.ech || "", h: tk.h || "", em: ic("taches"), t: "Tâche – " + tk.titre + " · pour " + (tk.pour === D.u.uid ? "vous" : tk.pourNom || "?") + (tk.statut === "encours" ? " · en cours" : ""), retard: !!tk.ech && tk.ech < D.t, act: '<div class="actr"><button class="mini" onclick="taVoir(\'' + tk.id + '\')">Ouvrir</button></div>' }));
   // Inscriptions en RCP non faites (09/10/2026, rcp.js) : visibles jusqu'à ce que la case « Fait » soit cochée
   (module("rcp") ? rcpDuPatient(x.id) : []).forEach((v) => av.push({ d: v.d, h: "", em: ic("rcp"), t: "RCP – " + v.q + (v.d < D.t ? " · décision à saisir" : ""), retard: v.d < D.t, act: '<div class="actr"><button class="mini" onclick="rcpHistorique(\'' + x.id + '\')">Ouvrir</button></div>' }));
-  if (voitRTdossier(x)) (r.rt || []).filter((v) => !v.dosi).forEach((v) => av.push({ d: v.d, f: v.f, h: "", em: "☢️", t: v.lib.replace(/^RT · /, ""), dosi: !!v.dosi, act: v.dosi ? (peutDosi() ? '<div class="actr"><button class="mini vert" onclick="dosiRT(\'' + x.id + "','" + v.dosi + '\')"><svg class="pi"><use href="#i-check"/></svg>Valider la dosimétrie</button></div>' : "") : /Fin de radioth/.test(v.lib) ? "" : '<div class="actr">' + btnWA(x, "rt", v.d, "") + "</div>" }));
+  // 12/10/2026 : fin de radiothérapie remplacée par sa consultation (rendez-vous « Fin de radiothérapie ») ; scanner et 1re séance : date et heure modifiables
+  if (voitRTdossier(x)) (r.rt || []).filter((v) => !v.dosi && !(v.z === "fin" && (P.rdvs || []).some((z) => z.rtfin === v.rt && (z.st || "prevu") === "prevu"))).forEach((v) => av.push({ d: v.d, f: v.f, h: v.h || "", em: "☢️", t: v.lib.replace(/^RT · /, ""), dosi: !!v.dosi, act: v.dosi ? (peutDosi() ? '<div class="actr"><button class="mini vert" onclick="dosiRT(\'' + x.id + "','" + v.dosi + '\')"><svg class="pi"><use href="#i-check"/></svg>Valider la dosimétrie</button></div>' : "") : /Fin de radioth/.test(v.lib) ? "" : '<div class="actr">' + btnWA(x, "rt", v.d, v.h || "") + ((v.z === "scan" || v.z === "deb") && traitModRT() ? b("Modifier", "modifierEtapeRT('" + x.id + "','" + v.rt + "','" + v.z + "')") : "") + "</div>" }));
   av.sort((p, q) => (p.d + (p.h || "00")).localeCompare(q.d + (q.h || "00")));
   const hRdv = '<section class="carte"><div class="entete"><h3><span class="ic">' + ic("agenda") + "</span>Rendez-vous et tâches à venir</h3><div class=\"actr\">" + (okR ? '<button class="bt clair petit" onclick="ouvrirRdv(' + qx + ')">' + ic("plus") + "Ajouter un rendez-vous</button>" : "") + '<button class="bt clair petit" data-mod="taches" onclick="taNouvelle(' + qx + ')">' + ic("plus") + "Tâche</button></div></div>" +
     // Liste dans une zone qui défile : les 5 prochains visibles (hauteur réglée après l'affichage, limiterHauteur)
@@ -1529,10 +1541,33 @@ window.ouvrirRT = (id, rid) => {
     catch (e) { occupe($("fOk"), false); erreur(e.message); }
   };
 };
+// Scanner de centrage ou 1re séance, depuis « Rendez-vous et tâches à venir » (12/10/2026) : date et heure (facultative) ; la fin et la
+// consultation de fin de radiothérapie suivent la 1re séance (sauverRT) ; droit « radiothérapie : modifier »
+window.modifierEtapeRT = (id, rid, z) => {
+  const x = D.patients.find((p) => p.id === id); if (!x || !traitModRT()) { toast("Vous n'avez pas le droit de modifier la radiothérapie."); return; }
+  const l = JSON.parse(x.doc.rtsJson || "[]"), r = l.find((v) => v.id === rid); if (!r) return;
+  const deb = z === "deb", kd = deb ? "deb" : "scan", kh = deb ? "debH" : "scanH", H = r[kh] || {}, du = +H.du || 30;
+  fenetre("<h3>" + (deb ? "1re séance de radiothérapie" : "Scanner de centrage") + " – " + esc(x.r.nm) + '</h3><p class="sous">' + esc(r.acte || "Radiothérapie") + '</p><div class="form">' +
+    '<div><label for="eD">Date</label><input id="eD" type="date" value="' + esc(r[kd] || "") + '"></div><div><label for="eH">Heure (facultative)</label><input id="eH" type="time" step="900" value="' + esc(H.h || "") + '"></div>' +
+    '<div><label for="eDu">Durée</label><select id="eDu">' + [15, 20, 30, 45, 60, 90].concat([15, 20, 30, 45, 60, 90].indexOf(du) < 0 ? [du] : []).sort((a2, z2) => a2 - z2).map((m) => '<option value="' + m + '"' + (m === du ? " selected" : "") + ">" + m + " min</option>").join("") + "</select></div></div>" +
+    (deb ? '<p class="mesures">La fin prévue est recalculée à partir de cette date (rythme et nombre de séances) ; la consultation de fin de radiothérapie la suit tant qu\'elle n\'a pas été déplacée.</p>' : "") +
+    '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt plein" id="fOk">Enregistrer</button></div>');
+  $("fOk").onclick = async () => {
+    const d = val("eD"), h = val("eH"); if (!d) { erreur("Indiquez la date."); return; }
+    if (deb && r.scan && d < r.scan) { erreur("La 1re séance est avant le scanner de centrage (" + dfrA(r.scan) + ")."); return; }
+    if (!deb && r.deb && d > r.deb) { erreur("Le scanner est après la 1re séance (" + dfrA(r.deb) + ")."); return; }
+    if (deb && r.finPrev && r.finPrev < d) { erreur("La fin prévue saisie (" + dfrA(r.finPrev) + ") est avant cette date : modifiez la prescription."); return; }
+    r[kd] = d; if (h) r[kh] = { h, du: +val("eDu") || du }; else delete r[kh];
+    occupe($("fOk"), true);
+    try { await sauverRT(x, l, (deb ? "1re séance de radiothérapie" : "Scanner de centrage") + " : " + dfrA(d) + (h ? " à " + h : "")); fermerFenetre(); toast("Enregistré."); pageDossier(x.id); }
+    catch (e) { occupe($("fOk"), false); erreur(e.message); }
+  };
+};
 // Enregistre les prescriptions et régénère les consultations hebdomadaires « en cours de radiothérapie »
 async function sauverRT(x, liste, quoi) {
   const P2 = { rts: liste, rdvs: JSON.parse(x.doc.rdvsJson || "[]") }, avant = JSON.stringify(P2.rdvs);
   if (fnOn("rt.hebdo")) genererConsultRT(P2, Object.assign({}, D.ctx, { nouvelId: idsParDefaut() })); // consultations hebdomadaires (réglage du cabinet)
+  consultFinRT(P2, Object.assign({}, D.ctx, { nouvelId: idsParDefaut() })); // consultation de fin de radiothérapie (12/10/2026)
   const changes = { rtsJson: JSON.stringify(P2.rts) };
   if (JSON.stringify(P2.rdvs) !== avant && peut("rendezvous")) changes.rdvsJson = JSON.stringify(P2.rdvs);
   await enregistrer(x, changes, quoi);

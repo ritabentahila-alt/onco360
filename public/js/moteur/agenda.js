@@ -22,7 +22,7 @@ export function evtsAgenda(P, ctx) {
   });
   (P.rts || []).forEach((r, j) => {
     if (r.fin) return; const f = finRT(r, ctx.feries), id = r.id || j, a = r.acte || "Radiothérapie", hr = r.hop ? " (" + r.hop + ")" : hop;
-    [[r.scan, "scan", "Scanner de centrage"], [r.deb, "deb", "1re séance de radiothérapie"], [f, "fin", "Fin de radiothérapie prévue"]].forEach((z) => { if (z[0] && z[0] >= t) out.push(Object.assign({ k: pid + "|rt|" + id + "|" + z[1], t: "☢️ " + nm + " – " + z[2] + " · " + a + hr, x: P.diag || "", d: z[0] }, z[1] === "scan" ? heureDe(r.scanH) : {})); });
+    [[r.scan, "scan", "Scanner de centrage"], [r.deb, "deb", "1re séance de radiothérapie"], [f, "fin", "Fin de radiothérapie prévue"]].forEach((z) => { if (z[0] && z[0] >= t) out.push(Object.assign({ k: pid + "|rt|" + id + "|" + z[1], t: "☢️ " + nm + " – " + z[2] + " · " + a + hr, x: P.diag || "", d: z[0] }, z[1] === "scan" ? heureDe(r.scanH) : z[1] === "deb" ? heureDe(r.debH) : {})); });
     // Dosimétrie à valider : plus un événement d'agenda depuis le 08/10/2026 (c'est une tâche pour le médecin, P4)
   });
   return out;
@@ -38,8 +38,9 @@ export function chimioAVenir(P, ctx) {
     E.forEach((e) => {
       if (e.st === "annulee" || !e.date) return;
       const multi = seancesDe(protocoleCure(L, e.n - 1, ctx.bib)).length > 1, lib = "Chimio · " + p.nom + " · C" + e.n;
-      if (e.st === "prevue") out.push({ d: e.date, lib: lib + (multi ? " J1" : "") + (e.date < t ? " (en retard)" : ""), lid: L.id, n: e.n, j: 1 });
-      seancesCure(L, e, ctx.bib).forEach((s) => { if (s.st === "prevue" && s.prevue && s.prevue >= t) out.push({ d: s.prevue, lib: lib + " J" + s.j, lid: L.id, n: e.n, j: s.j }); });
+      // hc / hr (12/10/2026) : consultation de la séance et séance à l'hôpital de jour (conversion.js), pour l'heure affichée dans le dossier
+      if (e.st === "prevue") out.push({ d: e.date, lib: lib + (multi ? " J1" : "") + (e.date < t ? " (en retard)" : ""), lid: L.id, n: e.n, j: 1, hc: e.c.hc || null, hr: e.c.hr || null });
+      seancesCure(L, e, ctx.bib).forEach((s) => { const z = (e.c.sea || {})[s.j] || {}; if (s.st === "prevue" && s.prevue && s.prevue >= t) out.push({ d: s.prevue, lib: lib + " J" + s.j, lid: L.id, n: e.n, j: s.j, hc: z.hc || null, hr: z.hr || null }); });
     });
   });
   return out;

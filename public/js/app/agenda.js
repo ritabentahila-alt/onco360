@@ -65,7 +65,7 @@ function evenements(du, au) {
     if (A.voitRT(x)) (P.rts || []).forEach((r) => {
       const fin = r.fin || finRT(r, ctx.feries), a = r.acte || "Radiothérapie";
       // « Dosimétrie à valider » : une tâche pour le médecin (P4, 08/10/2026), plus un rendez-vous de l'agenda
-      [[r.scan, "Scanner de centrage", "scan"], [r.dosi, "Dosimétrie validée"], [r.deb, "1re séance"], [fin, r.fin ? "Fin de radiothérapie" : "Fin de radiothérapie prévue"]].forEach((z) => { if (z[0] && z[0] >= du && z[0] <= au) out.push(Object.assign({ pid: x.id, cat: "rt", d: z[0], f: z[0], nm, t: z[1] + " · " + a, st: r.fin && z[0] <= r.fin ? "fait" : "prevu" }, z[2] ? Object.assign({ rtid: r.id, z: "scan" }, hrDe(r.scanH, DU_SCAN)) : { h: "" })); });
+      [[r.scan, "Scanner de centrage", "scan"], [r.dosi, "Dosimétrie validée"], [r.deb, "1re séance", "deb"], [fin, r.fin ? "Fin de radiothérapie" : "Fin de radiothérapie prévue"]].forEach((z) => { if (z[0] && z[0] >= du && z[0] <= au) out.push(Object.assign({ pid: x.id, cat: "rt", d: z[0], f: z[0], nm, t: z[1] + " · " + a, st: r.fin && z[0] <= r.fin ? "fait" : "prevu" }, z[2] ? Object.assign({ rtid: r.id, z: z[2] }, hrDe(z[2] === "deb" ? r.debH : r.scanH, DU_SCAN)) : { h: "" })); });
     });
   });
   return out.sort((a, b) => (a.d + (a.h || "")).localeCompare(b.d + (b.h || "")) || a.nm.localeCompare(b.nm));
@@ -182,10 +182,10 @@ function vueListe() {
 const souris = () => !window.matchMedia || matchMedia("(pointer:fine)").matches;
 const glissable = (e) => e.st === "prevu" && souris() && !(e.cat === "ch" && estInfirmiere() && e.sub === "cons") /* heure du médecin : jamais déplacée par l'infirmière */ && (e.cat === "co" ? !!e.rid && A.peut("rendezvous") && !/class="pst/.test(badge(e)) /* badge vide = pas arrivé */ : peutHeure(e));
 // Heure d'une séance de chimio (droit « planning », traitements ou « administrer » : infirmière, 12/10/2026) ou du scanner (radiothérapie : modifier) (AG5)
-const peutHeure = (e) => e.st === "prevu" && ((e.cat === "ch" && !!e.lid && peutHeureChimio()) || (e.cat === "rt" && e.z === "scan" && A.traitModRT()));
+const peutHeure = (e) => e.st === "prevu" && ((e.cat === "ch" && !!e.lid && peutHeureChimio()) || (e.cat === "rt" && (e.z === "scan" || e.z === "deb") && A.traitModRT()));
 async function noterHeure(e, hr) {
   const x = D().patients.find((p) => p.id === e.pid); if (!x) return;
-  try { if (e.cat === "ch") await heureSeance(x, e.lid, e.n, e.j, e.sub === "seance" ? { seance: hr } : { cons: hr ? hr.h : "" }); else await A.heureRT(e.pid, e.rtid, hr); A.toast(hr ? "Heure notée : " + hr.h + " (" + hr.du + " min)." : "Heure retirée."); AG.defile = true; pageAgenda(); }
+  try { if (e.cat === "ch") await heureSeance(x, e.lid, e.n, e.j, e.sub === "seance" ? { seance: hr } : { cons: hr ? hr.h : "" }); else await A.heureRT(e.pid, e.rtid, hr, e.z); A.toast(hr ? "Heure notée : " + hr.h + " (" + hr.du + " min)." : "Heure retirée."); AG.defile = true; pageAgenda(); }
   catch (er) { A.toast(er.message); }
 }
 function glisser(g) {

@@ -401,6 +401,17 @@ longs et ne dépendent pas du code.
       seule fois (le serveur limite le nombre d'expressions par écriture ; droit absent = non). Tests : test-heures 18/18,
       test_heure_chimio 20/20, test_agenda 56/56 (adapté), règles 11 suites (test-droits 20 : infirmière permise sur l'heure, refusée sur le
       planning et les lignes).
+- [x] **3.7 ter Rendez-vous et tâches à venir : heures et « Modifier »** (12/10, demande de Dr Bentahila ; en ligne : 20261012i) : **plus de
+      fenêtre « Prochaine séance » après la validation** (une fenêtre de trop) ; l'heure de consultation se règle depuis le tableau de la
+      cure (🩺) ou le bouton **« Modifier »** de « Rendez-vous et tâches à venir » (`chModifierRdvChimio`) : date (droit traitements ou
+      planning ; date changée → « cette date seulement » ou « recalculer toute la suite », comme dans la cure) et heure de la consultation ;
+      l'infirmière y note sa séance (heure, durée). Heure affichée dans la liste. **Radiothérapie** : scanner et 1re séance modifiables
+      (date + heure facultative `scanH` / `debH`, `modifierEtapeRT` ; heure aussi depuis l'Agenda et dans Google Agenda). **Consultation de
+      fin de radiothérapie** (`T_RTF` « Fin de radiothérapie », rendez-vous `rtfin` = id de la RT, moteur/rt.js `consultFinRT`) : créée à la
+      fin réelle, sinon calculée (si elle est à venir), à chaque enregistrement de la RT et une fois pour les RT en cours (migrations) ;
+      suit la fin tant qu'elle n'a pas été déplacée à la main (`d === dO`) ; déplaçable librement comme toute consultation (pas de
+      question de décalage) ; remplace « Fin de radiothérapie prévue » dans la liste ; prix proposé 0 DH, modifiable à « Venu ».
+      Tests : test_rdv_avenir 19/19, test_heure_chimio 22/22.
 - [ ] **3.8 Écran de l'infirmière** (ancienne étape 11 I1) : tablette, patients du jour, cure et molécules ; pose de chaque poche
       (heure, par qui), voie d'abord (PAC, périphérique, PICC), constantes, tolérance, effets indésirables ; visible dans l'onglet
       Chimiothérapie ; règle `administrations` déjà écrite ; droit « administrer » remis dans Accès.

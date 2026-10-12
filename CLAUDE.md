@@ -165,6 +165,10 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
   `si.xtloc` / `champPropose`, ajoutés quand `ficheSpe._onco` : v2.js, cabinet avec module chimio ou RT) ; `clinique.allergie` "" | oui | non (bandeau
   `.al-band` seulement si « oui »), `clinique.statut` traitement | surveillance | perdu | decede + `decesLe` ; logique `public/js/moteur/statut.js`
   (`dernieresNouvelles`, `allergieDans`) ; décédé : rappels, alertes et tâches automatiques (logique.js) coupés ; `reglages.impression.agePoids`.
+- **Rendez-vous à venir (3.7 ter, 12/10/2026)** : consultation de fin de radiothérapie = rendez-vous `type: "Fin de radiothérapie"` (`T_RTF`, rdv.js ; prix
+  0 modifiable) avec `rtfin` (id de la RT) et `dO` (date d'origine : suit la fin tant que `d === dO`), `consultFinRT` (moteur/rt.js, appelé par
+  `sauverRT` et une fois par `migrations()`, `parametres/migrations.consultFinRT`) ; heure de la 1re séance `rts[].debH` { h, du } (`modifierEtapeRT`,
+  `API.heureRT(pid, rid, hr, z)`) ; résumé `r.rt[]` = { d, lib, rt, z scan|deb|fin, h }.
 - **Radiothérapie (3.5, 3.6, 12/10/2026)** : `rts[].vol` [{ nom, dose, nb, ty p|seq|int }], `nb` = séances, `ryt` 1 | 2 | bid | hebdo | jours (+ `jours`
   [1…5]) ; `joursSeances` (moteur/rt.js = functions/logique.js, `tests/moteur/test-rt.mjs`) ; compte rendu de fin rempli (documents.js `prochainRdv`,
   `bilanControle`).
@@ -172,7 +176,8 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
   (consultation, médecin / secrétaire), seance: { h, du, par, parNom, le } | null (hôpital de jour, infirmière) } } ; `fusionner` → `hr` (séance,
   marquée `_h`, avant l'ancienne heure du planning AG5), `hcm` (consultation choisie), `hc` (consultation affichée : choisie, sinon 15 min
   avant la séance, `consultationDe` de moteur/heures.js) ; `separer` ne recopie jamais `_h`, `hc`, `hcm`. chimio.js `heureSeance(x, lid, n, j,
-  { cons } | { seance })`, `fenetreHeureSeance`, `proposerSuivante` (après la validation, avant la fenêtre de prix), `chHeure` ; agenda.js
+  { cons } | { seance })`, `fenetreHeureSeance`, `chHeure` (cure), `chModifierRdvChimio` (« Modifier » de « Rendez-vous et tâches à venir » : date + heure ;
+  plus de fenêtre après la validation, 3.7 ter) ; agenda.js
   `evtsChimio` (médecin : consultation ; infirmière : séance + consultation du médecin) ; résumé / Google Agenda : `hc` seulement. Règle :
   `champsDe` (planning, traitements « modifier », ou « administrer » → `heures`).
 - Numéro de dossier (étape 8, 09/10/2026) : `identite.numero` = AAAAMM + rang d'inscription dans le mois (`functions/numeros.js`),

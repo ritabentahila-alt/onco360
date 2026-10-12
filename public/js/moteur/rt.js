@@ -1,6 +1,6 @@
 // Chimio HGC v2 – radiothérapie : fin prévue, séances restantes, statut (règles C1–C4).
 import { addJ, ouvre } from "./outils.js";
-import { dfr } from "./rdv.js";
+import { dfr, T_RTF } from "./rdv.js";
 // Déroulé de la radiothérapie (09/10/2026) : scanner de centrage → contourage (r.cont = date) → dosimétrie (r.dosi = date)
 // → 1re séance. Chaque validation par le médecin ouvre l'étape suivante (et sa tâche automatique, functions/logique.js).
 // Contourage à valider : du scanner (inclus) à la 1re séance (incluse), tant qu'il n'est pas validé.
@@ -95,6 +95,21 @@ function regenRtc(P, r, ctx) {
       P.rdvs.push({ id: ctx.nouvelId("r", g), type: T_RTC_RDV, d, dO: d, h: r.ch || "", n: "", st: "prevu", prix: 0, rtc: id });
     d = addJ(d, 1);
   }
+}
+// Consultation de fin de radiothérapie (12/10/2026) : un rendez-vous par radiothérapie (rtfin = id), à la date de fin (réelle, sinon calculée),
+// créé seulement si cette date est aujourd'hui ou plus tard ; suit la fin tant qu'il n'a pas été déplacé à la main (d === dO) et reste prévu ;
+// retiré si la radiothérapie est supprimée (s'il est encore prévu). Renvoie true si le dossier a changé.
+export function consultFinRT(P, ctx) {
+  if (!P) return false; const t = ctx.aujourdhui, ids = {}; let ch = false; P.rdvs = P.rdvs || [];
+  (P.rts || []).forEach((r) => {
+    const id = idRT(r, ctx); ids[id] = 1; if (r.annule || !r.deb) return;
+    const fin = r.fin || finRT(r, ctx.feries); if (!fin) return;
+    const v = P.rdvs.find((x) => x.rtfin === id);
+    if (!v) { if (fin >= t) { P.rdvs.push({ id: ctx.nouvelId("r", "f" + id), type: T_RTF, d: fin, dO: fin, h: "", n: "", st: "prevu", rtfin: id }); ch = true; } return; }
+    if ((v.st || "prevu") === "prevu" && v.d === v.dO && v.dO !== fin && fin >= t && !(v.rep && v.rep.length)) { v.d = fin; v.dO = fin; ch = true; }
+  });
+  const n0 = P.rdvs.length; P.rdvs = P.rdvs.filter((x) => !x.rtfin || ids[x.rtfin] || (x.st && x.st !== "prevu")); if (P.rdvs.length !== n0) ch = true;
+  return ch;
 }
 export function genererConsultRT(P, ctx) {
   if (!P) return false; let ch = false; const ids = {};
