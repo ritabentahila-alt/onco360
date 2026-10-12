@@ -57,22 +57,32 @@ async def main():
         pg = await ouvrir(b, S1); ev = pg.evaluate
         if cible:
             x, i, k = cible[0]
+            # cure de plusieurs jours : les jours, chacun avec « Ouvrir » (« Valider » dans ⋯)
             await pg.goto(f'http://localhost:{PORT}/v2.html#dossier/{x}'); await pg.wait_for_timeout(2000)
             await ev(f"chOuvrir('{x}', {i}, {k})"); await pg.wait_for_timeout(800)
             t = await pg.inner_text('#fenetreCorps')
             ok('Molécules' in t and 'table' not in await ev("document.querySelector('#fenetreCorps .tsea:not(.doses)') ? 'table' : ''"), 'cure d\'un seul jour : la séance s\'ouvre directement (pas de tableau des jours)', t[:200])
-            ok(await ev("[...document.querySelectorAll('#fenetreCorps button')].some(b=>b.textContent.trim()==='Fermer')"), 'bouton « Fermer » (au lieu de « Retour à la cure »)')
+            n = await ev("[...document.querySelectorAll('#fenetreCorps button')].filter(b=>b.textContent.trim()==='Fermer').length")
+            ok(n == 1, 'un seul bouton « Fermer » (au lieu de « Retour à la cure »)', n)
+            ok(await ev("!!document.getElementById('fOk') && /Valider/.test(document.getElementById('fOk').textContent)"), 'on valide depuis la séance ouverte')
             await ev("fermerFenetre()")
         else:
             ok(True, '(pas de cure d\'un seul jour dans le jeu de test)')
         pid = [x for x, ls in L.items() if ls][0]
         await pg.goto(f'http://localhost:{PORT}/v2.html#dossier/{pid}'); await pg.wait_for_timeout(2000)
         await ev(f"ongletDossier('{pid}','ch')"); await pg.wait_for_timeout(300)
-        r = await ev("(()=>{const a=document.querySelector('#cChimio .acc.on');if(!a)return null;const tr=[...a.querySelectorAll('.tcures tr')].slice(1);return {h4:!!a.querySelector('.acc-c h4'),menuLigne:!!a.querySelector('.acc-c > .actr details.m3'),principal:tr.every(t=>t.querySelectorAll('.btns > button').length===1),menus:tr.some(t=>!!t.querySelector('details.m3')),arreter:/Arrêter la ligne/.test(a.querySelector('.acc-c > .actr details.m3 .m3-l').textContent),visible:getComputedStyle(a.querySelector('.acc-c > .actr details.m3 .m3-l')).display}})()")
+        r = await ev("(()=>{const a=document.querySelector('#cChimio .acc.on');if(!a)return null;const tr=[...a.querySelectorAll('.tcures tr')].slice(1);return {h4:!!a.querySelector('.acc-c h4'),menuLigne:!!a.querySelector('.acc-c > .actr details.m3'),principal:tr.every(t=>{const b=t.querySelectorAll('.btns > button');return b.length===1&&b[0].textContent.trim()==='Ouvrir'}),valider:tr.some(t=>/Valider/.test((t.querySelector('details.m3 .m3-l')||{}).textContent||'')),menus:tr.some(t=>!!t.querySelector('details.m3')),arreter:/Arrêter la ligne/.test(a.querySelector('.acc-c > .actr details.m3 .m3-l').textContent),visible:getComputedStyle(a.querySelector('.acc-c > .actr details.m3 .m3-l')).display}})()")
         ok(r and not r['h4'], 'plus de titre « Ligne n — protocole » en double', r)
-        ok(r and r['principal'] and r['menus'], 'un bouton principal par cure, le reste dans ⋯', r)
+        ok(r and r['principal'] and r['menus'] and r['valider'], '3.14 : « Ouvrir » en bouton principal, « Valider » dans ⋯', r)
         ok(r and r['menuLigne'] and r['arreter'], '« Arrêter la ligne » et « Supprimer » dans le menu ⋯ de la ligne', r)
         ok(await ev("[...document.querySelectorAll('#cChimio .tcures td[data-l=\"Date prévue\"] button')].some(b=>/heure|🩺/.test(b.textContent))"), 'heure de la consultation à côté de la date prévue')
+        multi = [('P1790238573180', 0, 2)] if 'P1790238573180' in L else []  # C3 J1 / J8 (même cure que test_cures)
+        if multi:
+            x, i, k = multi[0]
+            await pg.goto(f'http://localhost:{PORT}/v2.html#dossier/{x}'); await pg.wait_for_timeout(1500)
+            await ev(f"chOuvrir('{x}', {i}, {k})"); await pg.wait_for_timeout(800)
+            r = await ev("(()=>{const tr=[...document.querySelectorAll('#fenetreCorps table.tsea tr')].slice(1);return tr.map(t=>{const b=t.querySelectorAll('.btns > button');return (b[0]||{}).textContent})})()")
+            ok(len(r) >= 2 and all(t and t.strip() == 'Ouvrir' for t in r), 'cure de plusieurs jours : J1, J8… chacun avec « Ouvrir »', r)
         ok(not pg.errs, 'aucune erreur JavaScript', pg.errs[:2]); await pg.close()
         await b.close()
     print(f'\n{ok_n} réussis, {ko_n} échoués')

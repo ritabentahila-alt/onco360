@@ -278,11 +278,11 @@ function vueLigne(x, i) {
       (e.c.rep && e.c.rep.length ? '<div class="mesures">' + e.c.rep.map((r) => "reportée du " + A.dfrA(r.de) + " (" + esc(r.raison) + ")").join("<br>") + "</div>" : "") + "</td>" +
       '<td data-l="Réalisée le">' + (e.st === "recue" ? A.dfrA(e.c.reelle) : "—") + '</td><td data-l="Statut">' + badgeCure(e) + (e.st === "annulee" && e.c.ann ? '<div class="mesures">' + esc(e.c.ann.raison || "") + (e.c.ann.com ? " – " + esc(e.c.ann.com) : "") + "</div>" : "") + "</td>" +
       '<td data-l="Poids">' + (e.poids || "") + "</td>" + (auc ? '<td class="calc" data-l="Clairance">' + (e.cl ? e.cl + " ml/min" : "") + "</td>" : "") + '<td class="calc" data-l="S.C">' + (e.sc ? fr2(e.sc) : "") + "</td>" +
-      // 3.7 : un bouton principal (« Valider » pour une cure à faire, sinon « Ouvrir ») ; le reste dans ⋯
-      '<td class="act"><div class="btns">' + (okT && pend ? b('<svg class="pi"><use href="#i-check"/></svg>Valider', "chValider(" + qc + ")", "vert") : b("Ouvrir", "chOuvrir(" + qc + ")", "fonce")) +
-        menu3(okT ? (pend ? [b("Ouvrir", "chOuvrir(" + qc + ")"), b("↪ Reporter", "chReporter(" + qc + ")", "orange"), b("✖ Annuler la cure", "chAnnuler(" + qc + ")", "rouge")] : [b(e.st === "recue" ? "Annuler la validation" : "Rétablir", "chRetablir(" + qc + ")")]) : pend && okPl && !L.arret ? [b("↪ Reporter", "chReporter(" + qc + ")", "orange")] : []) + "</div></td></tr>";
+      // 3.14 (12/10/2026) : « Ouvrir » toujours en bouton principal ; « Valider », « Reporter », « Annuler » dans ⋯
+      '<td class="act"><div class="btns">' + b("Ouvrir", "chOuvrir(" + qc + ")", "fonce") +
+        menu3(okT ? (pend ? [b('<svg class="pi"><use href="#i-check"/></svg>Valider', "chValider(" + qc + ")", "vert"), b("↪ Reporter", "chReporter(" + qc + ")", "orange"), b("✖ Annuler la cure", "chAnnuler(" + qc + ")", "rouge")] : [b(e.st === "recue" ? "Annuler la validation" : "Rétablir", "chRetablir(" + qc + ")")]) : pend && okPl && !L.arret ? [b("↪ Reporter", "chReporter(" + qc + ")", "orange")] : []) + "</div></td></tr>";
   });
-  h += '</table></div><p class="mesures" style="margin-top:6px">« Valider » ou « Ouvrir » affiche la cure (fiche chimio, doses) ; ⋯ pour reporter, annuler ou rétablir. Une date prévue se modifie directement (les cures suivantes peuvent suivre) ; 🩺 = heure de la consultation.</p>';
+  h += '</table></div><p class="mesures" style="margin-top:6px">« Ouvrir » affiche la cure (fiche chimio, doses) : on vérifie, on remplit, puis on valide depuis la séance ; ⋯ pour valider, reporter, annuler ou rétablir. Une date prévue se modifie directement (les cures suivantes peuvent suivre) ; 🩺 = heure de la consultation.</p>';
   return h + "</div>";
 }
 
@@ -320,8 +320,8 @@ function vueCure(x, i, k) {
   h += "<tr>" + td("Jour", "<b>" + etiquette(g[0]) + "</b>") +
     td("Date prévue", (pend && okPl ? '<input type="date" value="' + esc(e.date || "") + '" onchange="chDate(' + qc + ',this.value)">' : A.dfrA(e.date) || "—") + (pend && e.date ? boutonHeure(x, i, k, 1, c) : "") + reps(c.rep)) +
     td("Réalisée le", e.st === "recue" ? "<b>" + A.dfrA(c.reelle) + "</b>" : "—") + td("Statut", statut(e.st, c.rep && c.rep.length, e.st === "annulee" ? Object.assign({ raison: (c.ann && c.ann.raison) || "" }, c.ann) : null)) +
-    td("", '<div class="btns">' + (okT && pend ? b('<svg class="pi"><use href="#i-check"/></svg>Valider', "chJour(1)", "vert") : b("Ouvrir", "chJour(1)", "fonce")) +
-      menu3(okT ? (pend ? [b("Ouvrir", "chJour(1)"), b("↪ Reporter", "chReporter(" + qc + ")", "orange"), b("✖ Annuler", "chAnnuler(" + qc + ")", "rouge")] : [e.st === "recue" ? b("Annuler la validation", "chRetablir(" + qc + ")") : b("Rétablir", "chRetablir(" + qc + ")")]) : pend && okPl ? [b("↪ Reporter", "chReporter(" + qc + ")", "orange")] : []) + "</div>", "act") + "</tr>";
+    td("", '<div class="btns">' + b("Ouvrir", "chJour(1)", "fonce") +
+      menu3(okT ? (pend ? [b('<svg class="pi"><use href="#i-check"/></svg>Valider', "chJour(1)", "vert"), b("↪ Reporter", "chReporter(" + qc + ")", "orange"), b("✖ Annuler", "chAnnuler(" + qc + ")", "rouge")] : [e.st === "recue" ? b("Annuler la validation", "chRetablir(" + qc + ")") : b("Rétablir", "chRetablir(" + qc + ")")]) : pend && okPl ? [b("↪ Reporter", "chReporter(" + qc + ")", "orange")] : []) + "</div>", "act") + "</tr>";
   // J8, J15… : séances de la même cure
   if (multi) seancesCure(L, e, D().ctx.bib).forEach((sz) => {
     const lab = etiquette(g.find((z) => z.j === sz.j) || { days: [sz.j] }), qj = qc + "," + sz.j, z = (c.sea || {})[sz.j] || {};
@@ -330,8 +330,8 @@ function vueCure(x, i, k) {
     h += "<tr>" + td("Jour", "<b>" + lab + "</b>") +
       td("Date prévue", (p2 && okPl ? '<input type="date" value="' + esc(sz.prevue || "") + '" onchange="chDateSeance(' + qj + ',this.value)">' : A.dfrA(sz.prevue) || "—") + (p2 && sz.prevue ? boutonHeure(x, i, k, sz.j, z) : "") + reps(z.rep)) +
       td("Réalisée le", sz.st === "recue" ? "<b>" + A.dfrA(sz.d) + "</b>" : "—") + td("Statut", statut(sz.st, z.rep && z.rep.length, sz.ann)) +
-      td("", '<div class="btns">' + (okT && p2 ? b('<svg class="pi"><use href="#i-check"/></svg>Valider', "chJour(" + sz.j + ")", "vert") : b("Ouvrir", "chJour(" + sz.j + ")", "fonce")) +
-        menu3(okT ? (p2 ? [b("Ouvrir", "chJour(" + sz.j + ")"), b("↪ Reporter", "chReporterJ(" + qj + ")", "orange"), b("✖ Annuler", "chAnnulerJ(" + qj + ")", "rouge")] : [sz.st === "recue" ? b("Annuler la validation", "chAnnulerSeance(" + qj + ")") : b("Rétablir", "chRetablirJ(" + qj + ")")]) : p2 && okPl ? [b("↪ Reporter", "chReporterJ(" + qj + ")", "orange")] : []) + "</div>", "act") + "</tr>";
+      td("", '<div class="btns">' + b("Ouvrir", "chJour(" + sz.j + ")", "fonce") +
+        menu3(okT ? (p2 ? [b('<svg class="pi"><use href="#i-check"/></svg>Valider', "chJour(" + sz.j + ")", "vert"), b("↪ Reporter", "chReporterJ(" + qj + ")", "orange"), b("✖ Annuler", "chAnnulerJ(" + qj + ")", "rouge")] : [sz.st === "recue" ? b("Annuler la validation", "chAnnulerSeance(" + qj + ")") : b("Rétablir", "chRetablirJ(" + qj + ")")]) : p2 && okPl ? [b("↪ Reporter", "chReporterJ(" + qj + ")", "orange")] : []) + "</div>", "act") + "</tr>";
   });
   h += "</table></div>";
   h += '<p class="mesures" style="margin:8px 0 0">« Ouvrir » ou « Valider » affiche le protocole du jour : poids, taille, créatinine, clairance, surface corporelle, doses, molécules à ajouter ou retirer, et la validation.</p>';
@@ -400,7 +400,7 @@ function vueJour(x, i, k, j) {
       (sea.prevue ? "<div>" + choixSuite("sS", "Si la date diffère de la date prévue (" + A.dfrA(sea.prevue) + ")") + "</div>" : "<div></div>") + "</div>" +
       '<div class="err" id="fErr"></div><div class="boutons" style="margin-top:8px">' + RET + '<button class="bt gris" style="color:#B46A00" onclick="chReporterJ(' + qc + "," + j + ')">↪ Reporter ' + etiquette(gr) + '</button><button class="bt vert" id="fOk" onclick="chValiderJ(' + qc + "," + j + ')"><svg class="pi"><use href="#i-check"/></svg>Valider ' + etiquette(gr) + "</button></div>";
   }
-  if (h.indexOf("chRetourCure()") < 0) h += '<div class="boutons" style="margin-top:10px">' + RET + "</div>"; // séance validée, annulée… : retour en bas aussi
+  if (h.indexOf(RET) < 0) h += '<div class="boutons" style="margin-top:10px">' + RET + "</div>"; // 3.14 : un seul « Fermer » (cure d'un seul jour) // séance validée, annulée… : retour en bas aussi
   return h + "</div>";
 }
 function tableDoses(x, i, k, q, e, jours, qc, dis, d0) {

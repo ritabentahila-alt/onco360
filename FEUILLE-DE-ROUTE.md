@@ -490,7 +490,7 @@ longs et ne dépendent pas du code.
       hôpital (prix vide = non facturé là, ex. pas de consultation de chimio à HCK) ; la prise de rendez-vous ne propose que les types
       « pris en rendez-vous », le journal des consultations tous ; un type ajouté apparaît partout, un type renommé est corrigé partout
       (rendez-vous existants compris). Reprise une fois des activités et des prix actuels, **bilan vérifié avant et après** (test_bilan).
-- [ ] **3.14 Chimiothérapie : « Ouvrir » d'abord, « Valider » depuis la séance** (corrections demandées le 12/10, après 3.7) : bouton
+- [x] **3.14 Chimiothérapie : « Ouvrir » d'abord, « Valider » depuis la séance** (corrections demandées le 12/10, après 3.7 ; fait, en ligne : 20261012o) : bouton
       principal **« Ouvrir »** partout (cure de la ligne, jour de la cure) ; « Valider », « Reporter », « Annuler » dans le menu ⋯. Cure
       d'un seul jour : « Ouvrir » affiche directement la séance (un seul bouton « Fermer », le doublon retiré) ; cure de plusieurs jours :
       « Ouvrir » affiche les jours (J1, J8…), chaque jour avec « Ouvrir » (⋯ : Valider, Reporter, Annuler) ; on vérifie le protocole, on
