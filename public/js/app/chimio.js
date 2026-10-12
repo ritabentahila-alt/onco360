@@ -247,9 +247,14 @@ function vueCure(x, i, k) {
 // 2) Vue d'un jour : paramètres (J1), molécules, doses du jour, validation
 function vueJour(x, i, k, j) {
   const P = x.P, L = P.lignes[i], { q, e } = etatCure(L, k, P), esc = A.esc, okT = A.traitMod(), c = e.c, qc = "'" + x.id + "'," + i + "," + k;
-  const auc = q.dr.some((d) => /AUC/.test(d.u) || /CISPLATINE/i.test(d.p || "")), g = groupes(q), multi = g.length > 1, gi = Math.max(0, g.findIndex((z) => z.j === j)), gr = g[gi], dis = okT ? "" : " disabled", u = L.crU === "mgL" ? "mg/L" : "µmol/L";
+  let dis = okT ? "" : " disabled";
+  const auc = q.dr.some((d) => /AUC/.test(d.u) || /CISPLATINE/i.test(d.p || "")), g = groupes(q), multi = g.length > 1, gi = Math.max(0, g.findIndex((z) => z.j === j)), gr = g[gi], u = L.crU === "mgL" ? "mg/L" : "µmol/L";
   const sea = j > 1 ? (seancesCure(L, e, D().ctx.bib).find((z) => z.j === j) || null) : null;
   const dJ = j === 1 ? (e.st === "recue" ? c.reelle : e.date) : sea ? (sea.st === "recue" ? sea.d : sea.prevue) : null;
+  // 12/10/2026 (demande de Dr Bentahila) : séance validée = verrouillée (rien ne se modifie, rien n'est transmis aux cures suivantes) ;
+  // pour la corriger, annuler d'abord sa validation
+  const figeJ = j === 1 ? e.st === "recue" : !!(sea && sea.st === "recue"), F = j === 1 ? c.fige : ((c.sea || {})[j] || {}).fige;
+  if (figeJ) dis = " disabled";
   let h = '<button class="lien" style="margin-bottom:8px" onclick="chRetourCure()">‹ Retour à la cure C' + e.n + "</button>" +
     '<div class="cure-ent"><div><h3 style="margin:0">C' + e.n + " · " + etiquette(gr) + " — " + esc(q.nom) + '</h3><p class="sous" style="margin:4px 0 0">' + esc(x.r.nm) + (dJ ? " · " + A.dfrA(dJ) : "") + "</p></div>" +
     (j === 1 ? '<button class="bt fonce petit" data-fn="chimio.fiche" onclick="chFiche(' + qc + ')"><svg class="pi"><use href="#i-imprimer"/></svg>FICHE CHIMIO</button>' : "") + "</div>";
@@ -264,13 +269,15 @@ function vueJour(x, i, k, j) {
     (auc ? "<div><label>Créatinine (" + u + ')</label><input inputmode="decimal" value="' + esc(G.creat || "") + '"' + (G.saisi.creat ? ' class="saisi"' : "") + dis + ' onchange="chChamp(' + qc + ',\'creat\',this.value,' + gr.j + ')"></div><div><label>Clairance (Cockcroft)</label><input disabled value="' + (G.cl ? G.cl + " ml/min" : P.sexe ? "—" : "sexe manquant") + '">' + (G.cl > REPERES.calvert && avecMolecule(e, /CARBOPLATINE/i) ? '<div class="mesures">Calvert : plafonnée à ' + REPERES.calvert + " ml/min (hyperfiltration)</div>" : "") + "</div>" : "") +
     '<div><label>Surface corporelle</label><input disabled value="' + (G.sc ? fr2(G.sc) + " m²" : "—") + '"></div>' +
     '<div><label>Dose des anticancéreux (%)</label><input inputmode="decimal" placeholder="100" value="' + esc(G.pctAll == null ? "" : G.pctAll) + '"' + (G.pctAll != null ? ' class="saisi"' : "") + dis + ' onchange="chChamp(' + qc + ',\'pctAll\',this.value,' + gr.j + ')"></div></div>' +
-    (j > 1 ? '<p class="mesures" style="margin:2px 0 6px">Valeurs reprises de la séance précédente tant que rien n\'est saisi ; une valeur saisie ici est reprise aux séances et cures suivantes.</p>' : "");
+    (j > 1 && !figeJ ? '<p class="mesures" style="margin:2px 0 6px">Valeurs reprises de la séance précédente tant que rien n\'est saisi ; une valeur saisie ici est reprise aux séances et cures suivantes.</p>' : "") +
+    (figeJ ? '<p class="mesures" style="margin:2px 0 6px">' + A.ic("check") + " Séance validée" + (F && F.parNom ? " par " + esc(F.parNom) : "") + (F && F.le ? " le " + A.dfrA(String(F.le).slice(0, 10)) : "") + " : valeurs et doses figées, plus modifiables" + (okT ? " (pour corriger, annulez d'abord la validation)" : "") + ".</p>" : "");
+  h += bilanJour(x, i, k, j, figeJ, F, okT);
   {
     // Molécules : ajout ou retrait à partir de cette séance (J1, J8…), puis pour toutes les cures suivantes
     const ms = L.mods || [], qd = qc + "," + gr.j, ici = (m) => m.k === k && (m.j || 1) === gr.j;
     h += '<div class="bloc gris"><div class="entete"><span class="mesures" style="flex:1"><b>Molécules</b> – un ajout ou un retrait s\'applique à partir de ' + (gr.j > 1 ? "C" + e.n + " J" + gr.j : "cette cure") + " et à toutes les cures suivantes.</span>" +
-      (okT ? '<span class="actr" data-fn="chimio.molecules">' + b("+ Ajouter une molécule", "chAjMol(" + qd + ")", "fonce") + b("− Retirer une molécule", "chRetMol(" + qd + ")") + "</span>" : "") + "</div>" +
-      (ms.some((m) => m.k <= k) ? '<div style="margin-top:6px">' + ms.map((m, jj) => m.k > k ? "" : '<span class="badge b-gr" style="margin:2px">' + (m.op === "add" ? '<svg class="pi"><use href="#i-plus"/></svg>' : '<svg class="pi"><use href="#i-moins"/></svg>') + esc(m.op === "add" ? m.d.p : m.nom) + " · depuis C" + (m.k + 1) + (m.j > 1 ? " J" + m.j : "") + (ici(m) && okT ? ' <a href="#" class="lienr" onclick="chAnnMod(' + qc + "," + jj + ');return false">annuler</a>' : "") + "</span>").join("") + "</div>" : "") + "</div>";
+      (okT && !figeJ ? '<span class="actr" data-fn="chimio.molecules">' + b("+ Ajouter une molécule", "chAjMol(" + qd + ")", "fonce") + b("− Retirer une molécule", "chRetMol(" + qd + ")") + "</span>" : "") + "</div>" +
+      (ms.some((m) => m.k <= k) ? '<div style="margin-top:6px">' + ms.map((m, jj) => m.k > k ? "" : '<span class="badge b-gr" style="margin:2px">' + (m.op === "add" ? '<svg class="pi"><use href="#i-plus"/></svg>' : '<svg class="pi"><use href="#i-moins"/></svg>') + esc(m.op === "add" ? m.d.p : m.nom) + " · depuis C" + (m.k + 1) + (m.j > 1 ? " J" + m.j : "") + (ici(m) && okT && !figeJ ? ' <a href="#" class="lienr" onclick="chAnnMod(' + qc + "," + jj + ');return false">annuler</a>' : "") + "</span>").join("") + "</div>" : "") + "</div>";
   }
   // Jours de la séance : chaque jour de traitement va à la séance qui a commencé avant lui
   const tous = []; q.dr.forEach((d) => joursDe(d).forEach((jj) => { if (tous.indexOf(jj) < 0) tous.push(jj); })); tous.sort((a, z) => a - z);
@@ -280,12 +287,10 @@ function vueJour(x, i, k, j) {
   // Validation du jour
   h += '<div class="valj">';
   if (j === 1) {
-    if (e.st === "recue") h += '<span class="badge b-ch"><svg class="pi"><use href="#i-check"/></svg>' + (multi ? "J1 reçue" : "C" + e.n + " terminée") + " le " + A.dfrA(c.reelle) + "</span>";
+    if (e.st === "recue") h += '<span class="badge b-ch"><svg class="pi"><use href="#i-check"/></svg>' + (multi ? "J1 reçue" : "C" + e.n + " terminée") + " le " + A.dfrA(c.reelle) + "</span>" + (okT ? ' <a href="#" class="lienr" onclick="chRetablir(' + qc + ');return false">annuler la validation</a>' : "");
     else if (e.st === "annulee") h += '<span class="badge b-al">✖ Cure annulée</span>';
     else if (okT) h += '<div class="form" style="grid-template-columns:minmax(0,220px) 1fr;align-items:end"><div><label for="vD">Date de réalisation</label>' + dateInput("vD", D().t) + "</div>" +
       (e.date ? '<div class="mesures" id="vSz">' + choixSuite("vS", "Si la date diffère de la date prévue (" + A.dfrA(e.date) + ")") + "</div>" : "<div></div>") + "</div>" +
-      '<div class="form bio-j" style="grid-template-columns:repeat(3,minmax(0,1fr));margin-top:8px"><div class="large" style="grid-column:1/-1"><span class="mesures">Bilan biologique du jour (facultatif, gardé avec la séance validée)</span></div>' +
-      '<div><label for="bPnn">PNN (G/L)</label><input id="bPnn" inputmode="decimal" placeholder="≥ 1,5"></div><div><label for="bPlq">Plaquettes (G/L)</label><input id="bPlq" inputmode="decimal" placeholder="≥ 100"></div><div><label for="bHb">Hémoglobine (g/dL)</label><input id="bHb" inputmode="decimal" placeholder="≥ 8"></div></div>' +
       '<div class="err" id="fErr"></div><div class="boutons" style="margin-top:8px"><button class="bt gris" data-fn="chimio.report" style="color:#B46A00" onclick="chReporter(' + qc + ')">↪ Reporter' + (multi ? " J1 (la cure)" : " la cure") + '</button><button class="bt vert" id="fOk" onclick="chValiderJ1(' + qc + ')"><svg class="pi"><use href="#i-check"/></svg>' + (multi ? "Valider J1" : "Valider la cure") + "</button></div>";
   } else if (sea) {
     const rp = ((c.sea || {})[j] || {}).rep || [];
@@ -295,8 +300,6 @@ function vueJour(x, i, k, j) {
     else if (sea.st === "recue") h += '<span class="badge b-ch"><svg class="pi"><use href="#i-check"/></svg>' + etiquette(gr) + " reçue le " + A.dfrA(sea.d) + "</span>" + (okT ? ' <a href="#" class="lienr" onclick="chAnnulerSeance(' + qc + "," + j + ');return false">annuler la validation</a>' : "");
     else if (okT) h += '<div class="form" style="grid-template-columns:minmax(0,220px) 1fr;align-items:end"><div><label for="sD">Date de réalisation</label>' + dateInput("sD", sea.prevue && ecart(sea.prevue, D().t) <= 0 ? sea.prevue : D().t) + "</div>" +
       (sea.prevue ? "<div>" + choixSuite("sS", "Si la date diffère de la date prévue (" + A.dfrA(sea.prevue) + ")") + "</div>" : "<div></div>") + "</div>" +
-      '<div class="form bio-j" style="grid-template-columns:repeat(3,minmax(0,1fr));margin-top:8px"><div class="large" style="grid-column:1/-1"><span class="mesures">Bilan biologique du jour (facultatif, gardé avec la séance validée)</span></div>' +
-      '<div><label for="bPnn">PNN (G/L)</label><input id="bPnn" inputmode="decimal" placeholder="≥ 1,5"></div><div><label for="bPlq">Plaquettes (G/L)</label><input id="bPlq" inputmode="decimal" placeholder="≥ 100"></div><div><label for="bHb">Hémoglobine (g/dL)</label><input id="bHb" inputmode="decimal" placeholder="≥ 8"></div></div>' +
       '<div class="err" id="fErr"></div><div class="boutons" style="margin-top:8px"><button class="bt gris" style="color:#B46A00" onclick="chReporterJ(' + qc + "," + j + ')">↪ Reporter ' + etiquette(gr) + '</button><button class="bt vert" id="fOk" onclick="chValiderJ(' + qc + "," + j + ')"><svg class="pi"><use href="#i-check"/></svg>Valider ' + etiquette(gr) + "</button></div>";
   }
   return h + "</div>";
@@ -370,6 +373,29 @@ export async function figerCuresValidees(x) {
   return n;
 }
 
+// Bilan biologique du jour (12/10/2026) : sous les paramètres de la séance ; avant la validation, cases à remplir (gardées en
+// brouillon si la fenêtre se redessine) ; après, valeurs affichées (repères en rouge) pour suivre l'évolution d'une cure à l'autre
+const BIOB = {};
+window.chBio = (cle, f, v) => { (BIOB[cle] = BIOB[cle] || {})[f] = v; };
+function bilanJour(x, i, k, j, figeJ, F, okT) {
+  const cle = x.id + "|" + i + "|" + k + "|" + j, b0 = BIOB[cle] || {}, esc = A.esc, fr = (v) => String(v).replace(".", ",");
+  const tete = '<div class="form bio-j" style="grid-template-columns:repeat(3,minmax(0,1fr));margin:6px 0 10px"><div class="large" style="grid-column:1/-1"><span class="mesures"><b>Bilan biologique du jour</b>';
+  if (figeJ) {
+    const bio = (F && F.bio) || {}, rouge = (k2, v) => (alertesBio({ [k2]: v }).length ? ' style="color:var(--rouge);font-weight:bold"' : "");
+    const val = (k2, lib, u) => "<div><label>" + lib + "</label><div" + rouge(k2, bio[k2]) + ">" + (bio[k2] != null ? fr(bio[k2]) + " " + u : "—") + "</div></div>";
+    return tete + (Object.keys(bio).length ? "" : " : non noté à la validation") + "</span></div>" + val("pnn", "PNN", "G/L") + val("plq", "Plaquettes", "G/L") + val("hb", "Hémoglobine", "g/dL") + "</div>";
+  }
+  if (!okT) return "";
+  const inp = (id, f, lib, ph) => '<div><label for="' + id + '">' + lib + '</label><input id="' + id + '" inputmode="decimal" placeholder="' + ph + '" value="' + esc(b0[f] || "") + '" oninput="chBio(\'' + cle + "','" + f + "',this.value)\"></div>";
+  return tete + " (facultatif, gardé avec la séance validée)</span></div>" + inp("bPnn", "pnn", "PNN (G/L)", "≥ 1,5") + inp("bPlq", "plq", "Plaquettes (G/L)", "≥ 100") + inp("bHb", "hb", "Hémoglobine (g/dL)", "≥ 8") + "</div>";
+}
+// Séance validée (J1 = la cure, sinon c.sea[j]) : verrouillée ; jour de traitement → sa séance
+function seanceValidee(L, k, jour) {
+  const c = L.cures[k] || {}, q = protocoleCure(L, k, D().ctx.bib) || protocoleDe(L, D().ctx.bib), g = groupes(q), gi = Math.max(0, jourVersSeance(g, jour)), js = (g[gi] || { j: 1 }).j;
+  return js === 1 ? c.st === "recue" : !!(c.sea && c.sea[js] && c.sea[js].st === "recue");
+}
+const MSG_VERROU = "Cette séance est validée : ses valeurs et ses doses sont figées. Pour la corriger, annulez d'abord sa validation.";
+
 // 2.3 et 2.6 (12/10/2026) : avant de valider la séance n (0 = J1) de la cure k : doses manquantes → refus ; valeurs hors des seuils →
 // confirmation ; bilan biologique du jour (facultatif) sous les seuils proposés (PNN < 1 500, plaquettes < 100 000 /mm³) → message,
 // jamais de blocage. Renvoie le bilan saisi (gardé avec l'instantané), ou null si la validation est arrêtée.
@@ -385,7 +411,8 @@ export const alertesBio = (b) => { const a = [], f = (v) => String(v).replace(".
 function verifierValidation(x, i, k, n) {
   const L = lignesDe(x)[i], E = etatLigne(L, x.P, D().ctx), r = controleSeance(E[k], n, L.crU, poidsAvant(E, k, n), poidsDebut(E));
   if (r.refus.length) { alert("Validation impossible :\n\n• " + r.refus.join("\n• ") + "\n\nCorrigez la dose (ou saisissez la créatinine) dans la fenêtre de la cure, puis validez."); return null; }
-  const nb = (id) => { const v = num(A.val(id)); return v == null ? null : v; }, bio = { pnn: bioGL("pnn", nb("bPnn")), plq: bioGL("plq", nb("bPlq")), hb: nb("bHb") };
+  const nb = (id) => { const v = num(A.val(id)); return v == null ? null : v; }; Object.keys(BIOB).forEach((c2) => { if (c2.indexOf(x.id + "|" + i + "|" + k + "|") === 0) delete BIOB[c2]; });
+  const bio = { pnn: bioGL("pnn", nb("bPnn")), plq: bioGL("plq", nb("bPlq")), hb: nb("bHb") };
   Object.keys(bio).forEach((key) => { if (bio[key] == null) delete bio[key]; });
   const al = r.alertes.concat(alertesBio(bio));
   if (al.length && !confirm("À vérifier avant de valider (repères, vous gardez la main) :\n\n• " + al.join("\n• ") + "\n\nValider quand même ?")) return null;
@@ -567,6 +594,7 @@ window.chHon = (id, i, k, j, v) => { const x = trouver(id), L = x.P.lignes[i]; d
 // Poids, créatinine, % des anticancéreux : à J1 dans la cure, à J8/J15… dans la séance (c.sea[j])
 window.chChamp = (id, i, k, f, v, j) => {
   const x = trouver(id); j = j || 1;
+  if (seanceValidee(lignesDe(x)[i], k, j)) { A.toast(MSG_VERROU); A.pageDossier(x.id); return; }
   // 2.3 (12/10/2026) : poids hors de 30-200 kg ou qui varie de plus de 10 % depuis la séance précédente → confirmation (médecin et
   // secrétaire) ; le médecin le revoit de toute façon au moment de valider (controleSeance)
   if (f === "poids" && String(v || "").trim()) {
@@ -604,6 +632,7 @@ async function poidsSecretaire(x, L, k, j, v) {
 function eclate(c, d) { ["pct", "ov"].forEach((t) => { if (c[t] && num(c[t][d.id]) != null) { joursDe(d).forEach((j) => { if (c[t][d.id + "@" + j] == null) c[t][d.id + "@" + j] = c[t][d.id]; }); delete c[t][d.id]; } }); }
 function majDose(id, i, k, did, j, v, type) {
   const x = trouver(id);
+  if (seanceValidee(lignesDe(x)[i], k, j)) { A.toast(MSG_VERROU); A.pageDossier(x.id); return; }
   direct(x, async () => {
     const lignes = lignesDe(x), L = lignes[i], c = L.cures[k], q = protocoleCure(L, k, D().ctx.bib) || protocoleDe(L, D().ctx.bib), d = q.dr.find((z) => z.id === did), key = did + "@" + j, w = String(v || "").replace(",", ".").trim();
     c.pct = c.pct || {}; c.ov = c.ov || {}; if (d) eclate(c, d);

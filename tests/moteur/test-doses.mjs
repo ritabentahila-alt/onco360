@@ -105,6 +105,12 @@ cas("instantané de J8 : seulement les doses de J8", Object.keys(lj.cures[0].sea
 lj.cures[0].sea[8].poids = "80";
 const Ej2 = etatLigne(lj, patient(), CTX);
 cas("séance J8 validée : poids modifié ensuite sans effet sur J8 (1740 mg)", Ej2[0].dj[0][8].dose === 1740 && Ej2[0].dj[0][8].fige === true, Ej2[0].dj[0]);
+const lv = ligne(); lv.cures[0] = { st: "recue", reelle: "2026-08-25" };
+lv.cures[0].fige = instantane(etatLigne(lv, patient({ taille: "162" }), CTX)[0], 0);
+lv.cures[0].pct = { epi: 50 }; lv.cures[0].ov = { cyc: 500 }; // modifications faites après la validation (constaté par Dr Bentahila le 12/10)
+const Ev = etatLigne(lv, patient({ taille: "162" }), CTX);
+cas("dose changée sur une cure validée : la cure garde ses doses figées", Ev[0].doses[0] === 148 && Ev[0].doses[1] === 984, Ev[0].doses);
+cas("… et la modification n'est PAS transmise aux cures suivantes (C2 : 148 et 984 mg)", Ev[1].doses[0] === 148 && Ev[1].doses[1] === 984 && Ev[3].doses[0] === 148, [Ev[1].doses, Ev[3].doses]);
 const lr = copie(lf); lr.cures[0] = {};
 cas("validation annulée (instantané retiré) : la cure suit de nouveau le dossier", etatLigne(lr, patient({ taille: "182" }), CTX)[0].doses[0] === 157);
 

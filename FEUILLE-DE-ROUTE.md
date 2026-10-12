@@ -249,6 +249,13 @@ longs et ne dépendent pas du code.
       `tests/test_figer.py` 9/9 (12 cures du jeu de test figées une fois, rien refait au 2e démarrage, validation et annulation à
       l'écran), cures, séances, démo, accueil. Non fait : valeurs avant / après dans le journal d'audit (le figeage empêche déjà tout
       changement silencieux d'une dose donnée).
+- [x] **2.2 bis Séance validée verrouillée** (12/10, demande de Dr Bentahila, testé) : une cure ou une séance validée ne se modifie plus
+      (champs désactivés, ajout / retrait de molécule masqués, refus côté code `seanceValidee` / `MSG_VERROU`) ; lien « annuler la
+      validation » aussi pour J1 ; le moteur ne reconduit aux cures suivantes que les valeurs figées (`pc` de l'instantané), jamais une
+      modification faite après la validation (défaut constaté par Dr Bentahila : une dose changée sur une cure validée passait aux
+      suivantes). Bilan biologique du jour **sous les paramètres** (poids, créatinine, clairance, surface), avant « Molécules » ; gardé en
+      brouillon si la fenêtre se redessine ; **affiché sur la cure validée** (repères en rouge) pour suivre l'évolution. Tests :
+      test-doses 65/65, test_validation 22/22, test_figer, test_accueil.
 - [x] **2.3 Bornes et prémédication** (12/10, en ligne le 12/10 : version 20261012b) : **prémédication reconnue par la DCI comme par la marque**
       (`PREMED` de moteur/doses.js : antiémétiques, corticoïdes, antihistaminiques, anti-H2 / IPP, atropine, facteurs de croissance,
       EPO, acide zolédronique, dénosumab ; même liste pour la liste des molécules des protocoles ; jours de séance inchangés) ;

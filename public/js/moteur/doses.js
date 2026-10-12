@@ -122,7 +122,7 @@ export function etatLigne(L, patient, ctx) {
         let dose = ov != null ? ov : b == null ? null : f === 1 ? b : arr(b * f, d.dec);
         const fz = G.fige && G.fige.doses && G.fige.doses[key]; // 2.2 : dose figée de la séance validée
         e.dj[x][j] = fz ? { dose: fz.dose, v: fz.v, pc: fz.pc, pi: pi != null, ov: ov != null, fige: true } : { dose, v, pc: Math.round(pc * 10) / 10, pi: pi != null, ov: ov != null };
-        if (fz) { dose = fz.dose; }
+        if (fz) { dose = fz.dose; if (fz.pc != null) { pc = fz.pc; f = 1; } } // séance figée : seules ses valeurs figées sont reconduites
         if (first) { e.calc[x] = fz ? fz.v : v; e.doses[x] = dose; e.pc[d.id] = fz ? fz.pc : Math.round(pc * 10) / 10; e.pcSet[d.id] = set; e.fac[d.id] = f; }
         S[mol] = { pc, f };
       });
