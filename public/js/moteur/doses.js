@@ -152,7 +152,7 @@ export const SEUILS = { poids: [30, 200], taille: [120, 220], sc: [1.2, 2.6], cr
 // bloque) — perte de poids > 10 % depuis le début de la ligne ; cisplatine : DFG ≥ 60 ml/min, 45-59 = zone d'adaptation (prudence,
 // réduction possible à 50-70 %), < 45 = contre-indication habituelle ; carboplatine : < 30 ml/min = contre-indiqué ou réévaluation
 // stricte du rapport bénéfice / risque avec réduction massive ; Calvert : clairance plafonnée à 125 ml/min (hyperfiltration).
-export const REPERES = { perteLigne: 10, cisplatine: [45, 60], carboplatine: 30, calvert: 125 };
+export const REPERES = { perteLigne: 10, cisplatine: [45, 60], carboplatine: 30, calvert: 125, doseMax: 110 };
 export const avecMolecule = (e, re) => (e.prod || []).some((P) => !premed(P) && re.test(P.p || ""));
 export function reperesClairance(e, G) {
   const l = [], cl = G.cl, R = REPERES;
@@ -179,6 +179,14 @@ export function controleSeance(e, n, crU, poidsAvant, poidsDebut) {
   const sc = crU === "mgL" ? S.creatMgL : S.creatUmol;
   if (hors(G.creat, sc)) alertes.push("créatinine de " + G.creat + (crU === "mgL" ? " mg/L" : " µmol/L") + " (hors de " + sc.join(" à ") + " : bonne unité ?)");
   const rc = reperesClairance(e, G); rc.forEach((a) => alertes.push(a));
+  // 12/10/2026 (demande de Dr Bentahila) : dose au-dessus de 110 % de la dose du protocole (ex. 1000 % tapé par erreur, un 0 de trop)
+  (e.dj || []).forEach((dj, x) => { const P = (e.prod || [])[x] || {}; if (premed(P)) return;
+    (G.days || [1]).concat(n === 0 ? [99] : []).forEach((j) => { const z = dj[j]; if (!z || z.dose == null || !z.v) return; const pc = Math.round((z.dose / z.v) * 100);
+      if (pc > REPERES.doseMax) alertes.push(P.p + " (J" + (j === 99 ? 1 : j) + ") : " + z.dose + " mg, soit " + pc + " % de la dose du protocole (" + z.v + " mg)"); }); });
+  // carboplatine : le DFG doit être vérifié avant chaque cure (élimination rénale, Calvert) ; créatinine reprise d'une séance précédente → rappel
+  const carboIci = (e.dj || []).some((dj, x) => /CARBOPLATINE/i.test(((e.prod || [])[x] || {}).p || "") && (G.days || [1]).concat(n === 0 ? [99] : []).some((j) => dj[j]));
+  if (carboIci && G.creat != null && !(G.saisi && G.saisi.creat) && !(e.n === 1 && n === 0))
+    alertes.push("carboplatine : créatinine du jour non saisie, la dose reprend la dernière créatinine connue (" + G.creat + (crU === "mgL" ? " mg/L" : " µmol/L") + ") ; le DFG doit être vérifié avant chaque cure");
   if (hors(G.cl, S.cl) && !(rc.length && G.cl < S.cl[0])) alertes.push("clairance de " + G.cl + " ml/min (hors de " + S.cl.join(" à ") + ")");
   if (G.poids != null && poidsDebut && (poidsDebut - G.poids) / poidsDebut * 100 > REPERES.perteLigne)
     alertes.push("perte de poids de " + Math.round((poidsDebut - G.poids) / poidsDebut * 100) + " % depuis le début de la ligne (" + poidsDebut + " → " + G.poids + " kg)");

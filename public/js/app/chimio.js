@@ -255,8 +255,9 @@ function vueJour(x, i, k, j) {
   // pour la corriger, annuler d'abord sa validation
   const figeJ = j === 1 ? e.st === "recue" : !!(sea && sea.st === "recue"), F = j === 1 ? c.fige : ((c.sea || {})[j] || {}).fige;
   if (figeJ) dis = " disabled";
-  let h = '<button class="lien" style="margin-bottom:8px" onclick="chRetourCure()">‹ Retour à la cure C' + e.n + "</button>" +
-    '<div class="cure-ent"><div><h3 style="margin:0">C' + e.n + " · " + etiquette(gr) + " — " + esc(q.nom) + '</h3><p class="sous" style="margin:4px 0 0">' + esc(x.r.nm) + (dJ ? " · " + A.dfrA(dJ) : "") + "</p></div>" +
+  // bouton « Retour à la cure » en bas, à côté de Reporter / Valider (12/10/2026, demande de Dr Bentahila)
+  const RET = '<button class="bt gris" style="margin-right:auto" onclick="chRetourCure()">‹ Retour à la cure C' + e.n + "</button>";
+  let h = '<div class="cure-ent"><div><h3 style="margin:0">C' + e.n + " · " + etiquette(gr) + " — " + esc(q.nom) + '</h3><p class="sous" style="margin:4px 0 0">' + esc(x.r.nm) + (dJ ? " · " + A.dfrA(dJ) : "") + "</p></div>" +
     (j === 1 ? '<button class="bt fonce petit" data-fn="chimio.fiche" onclick="chFiche(' + qc + ')"><svg class="pi"><use href="#i-imprimer"/></svg>FICHE CHIMIO</button>' : "") + "</div>";
   // Paramètres de la séance (J1, J8…) : saisis ici, sinon repris de la séance précédente (puis de la cure précédente)
   const G = (e.g && e.g[gi]) || { poids: e.poids, creat: e.creat, sc: e.sc, cl: e.cl, pctAll: num(c.pctAll), saisi: {} };
@@ -291,7 +292,7 @@ function vueJour(x, i, k, j) {
     else if (e.st === "annulee") h += '<span class="badge b-al">✖ Cure annulée</span>';
     else if (okT) h += '<div class="form" style="grid-template-columns:minmax(0,220px) 1fr;align-items:end"><div><label for="vD">Date de réalisation</label>' + dateInput("vD", D().t) + "</div>" +
       (e.date ? '<div class="mesures" id="vSz">' + choixSuite("vS", "Si la date diffère de la date prévue (" + A.dfrA(e.date) + ")") + "</div>" : "<div></div>") + "</div>" +
-      '<div class="err" id="fErr"></div><div class="boutons" style="margin-top:8px"><button class="bt gris" data-fn="chimio.report" style="color:#B46A00" onclick="chReporter(' + qc + ')">↪ Reporter' + (multi ? " J1 (la cure)" : " la cure") + '</button><button class="bt vert" id="fOk" onclick="chValiderJ1(' + qc + ')"><svg class="pi"><use href="#i-check"/></svg>' + (multi ? "Valider J1" : "Valider la cure") + "</button></div>";
+      '<div class="err" id="fErr"></div><div class="boutons" style="margin-top:8px">' + RET + '<button class="bt gris" data-fn="chimio.report" style="color:#B46A00" onclick="chReporter(' + qc + ')">↪ Reporter' + (multi ? " J1 (la cure)" : " la cure") + '</button><button class="bt vert" id="fOk" onclick="chValiderJ1(' + qc + ')"><svg class="pi"><use href="#i-check"/></svg>' + (multi ? "Valider J1" : "Valider la cure") + "</button></div>";
   } else if (sea) {
     const rp = ((c.sea || {})[j] || {}).rep || [];
     if (rp.length) h += '<p class="mesures" style="margin:0 0 8px">' + rp.map((r) => "↪ Reportée du " + A.dfrA(r.de) + " au " + A.dfrA(r.a) + " (" + esc(r.raison) + (r.com ? " – " + esc(r.com) : "") + ")").join("<br>") + "</p>";
@@ -300,8 +301,9 @@ function vueJour(x, i, k, j) {
     else if (sea.st === "recue") h += '<span class="badge b-ch"><svg class="pi"><use href="#i-check"/></svg>' + etiquette(gr) + " reçue le " + A.dfrA(sea.d) + "</span>" + (okT ? ' <a href="#" class="lienr" onclick="chAnnulerSeance(' + qc + "," + j + ');return false">annuler la validation</a>' : "");
     else if (okT) h += '<div class="form" style="grid-template-columns:minmax(0,220px) 1fr;align-items:end"><div><label for="sD">Date de réalisation</label>' + dateInput("sD", sea.prevue && ecart(sea.prevue, D().t) <= 0 ? sea.prevue : D().t) + "</div>" +
       (sea.prevue ? "<div>" + choixSuite("sS", "Si la date diffère de la date prévue (" + A.dfrA(sea.prevue) + ")") + "</div>" : "<div></div>") + "</div>" +
-      '<div class="err" id="fErr"></div><div class="boutons" style="margin-top:8px"><button class="bt gris" style="color:#B46A00" onclick="chReporterJ(' + qc + "," + j + ')">↪ Reporter ' + etiquette(gr) + '</button><button class="bt vert" id="fOk" onclick="chValiderJ(' + qc + "," + j + ')"><svg class="pi"><use href="#i-check"/></svg>Valider ' + etiquette(gr) + "</button></div>";
+      '<div class="err" id="fErr"></div><div class="boutons" style="margin-top:8px">' + RET + '<button class="bt gris" style="color:#B46A00" onclick="chReporterJ(' + qc + "," + j + ')">↪ Reporter ' + etiquette(gr) + '</button><button class="bt vert" id="fOk" onclick="chValiderJ(' + qc + "," + j + ')"><svg class="pi"><use href="#i-check"/></svg>Valider ' + etiquette(gr) + "</button></div>";
   }
+  if (h.indexOf("chRetourCure()") < 0) h += '<div class="boutons" style="margin-top:10px">' + RET + "</div>"; // séance validée, annulée… : retour en bas aussi
   return h + "</div>";
 }
 function tableDoses(x, i, k, q, e, jours, qc, dis, d0) {
@@ -604,6 +606,7 @@ window.chChamp = (id, i, k, f, v, j) => {
     if (w != null && av && Math.abs(w - av) / av > 0.1) msg.push("Le poids passe de " + av + " à " + w + " kg (" + (w > av ? "+" : "") + Math.round((w - av) / av * 100) + " %) depuis la séance précédente.");
     if (msg.length && !confirm(msg.join("\n") + "\n\nConfirmer ce poids ?")) { A.pageDossier(x.id); return; }
   }
+  if (f === "pctAll" && num(v) > 100 && !confirm("Dose des anticancéreux à " + num(v) + " % (au-dessus de 100 %).\n\nConfirmer ?")) { A.pageDossier(x.id); return; }
   if (f === "poids" && !A.traitMod()) { direct(x, () => poidsSecretaire(x, lignesDe(x)[i], k, j, v)); return; }
   direct(x, async () => {
     const lignes = lignesDe(x), L = lignes[i], c = L.cures[k], w = String(v || "").replace(",", ".").trim();
@@ -633,6 +636,13 @@ function eclate(c, d) { ["pct", "ov"].forEach((t) => { if (c[t] && num(c[t][d.id
 function majDose(id, i, k, did, j, v, type) {
   const x = trouver(id);
   if (seanceValidee(lignesDe(x)[i], k, j)) { A.toast(MSG_VERROU); A.pageDossier(x.id); return; }
+  // 12/10/2026 : dose qui semble trop forte (un 0 de trop…) → confirmation ; le médecin garde la main
+  const nv = num(v);
+  if (nv != null && nv > 0) {
+    const L0 = lignesDe(x)[i], E0 = etatLigne(L0, x.P, D().ctx), e0 = E0[k], xi = e0 ? e0.ids.indexOf(did) : -1, z0 = xi >= 0 ? e0.dj[xi][j] : null, nom = xi >= 0 ? e0.prod[xi].p : did;
+    if (type === "pct" && nv > 100 && !confirm(nom + " : " + nv + " % de la dose du protocole (au-dessus de 100 %).\n\nConfirmer ?")) { A.pageDossier(x.id); return; }
+    if (type === "ov" && z0 && z0.v && nv > z0.v * 1.1 && !confirm(nom + " : " + nv + " mg, soit " + Math.round((nv / z0.v) * 100) + " % de la dose calculée (" + z0.v + " mg).\n\nConfirmer cette dose ?")) { A.pageDossier(x.id); return; }
+  }
   direct(x, async () => {
     const lignes = lignesDe(x), L = lignes[i], c = L.cures[k], q = protocoleCure(L, k, D().ctx.bib) || protocoleDe(L, D().ctx.bib), d = q.dr.find((z) => z.id === did), key = did + "@" + j, w = String(v || "").replace(",", ".").trim();
     c.pct = c.pct || {}; c.ov = c.ov || {}; if (d) eclate(c, d);

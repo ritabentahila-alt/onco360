@@ -157,5 +157,19 @@ const lp = ligne(); lp.cures[3] = { poids: "53" }; lp.cures[2] = { poids: "56" }
 r = controleSeance(K[3], 0, "mgL", poidsAvant(K, 3, 0), poidsDebut(K));
 cas("perte de poids de 12 % depuis le début de la ligne (60 → 53 kg) signalée", r.alertes.some((x) => /12 % depuis le début de la ligne \(60 → 53 kg\)/.test(x)), r);
 
+console.log("9. Doses trop fortes et créatinine avant chaque carboplatine (12/10/2026)");
+const l1000 = ligne(); l1000.cures[1] = { pct: { epi: 1000 } }; K = etatLigne(l1000, patient({ taille: "162" }), CTX);
+r = controleSeance(K[1], 0, "mgL", 60, 60);
+cas("épirubicine à 1000 % : signalée (1480 mg, soit 1000 % de la dose du protocole)", r.alertes.some((x) => /EPIRUBICINE \(J1\) : 1480 mg, soit 1000 %/.test(x)) && !r.refus.length, r.alertes);
+const l0v = ligne(); l0v.cures[1] = { ov: { cyc: 9840 } }; K = etatLigne(l0v, patient({ taille: "162" }), CTX);
+cas("cyclophosphamide saisi à 9840 mg (un 0 de trop) : signalé", controleSeance(K[1], 0, "mgL", 60, 60).alertes.some((x) => /CYCLOPHOSPHAMIDE.*1000 %/.test(x)));
+K = etatLigne(ligne(), patient({ taille: "162" }), CTX);
+cas("doses normales (100 %) : rien", !controleSeance(K[1], 0, "mgL", 60, 60).alertes.length);
+const lcr = lc("10", "mgL"); K = etatLigne(lcr, patient({ sexe: "H" }), CTX);
+cas("carboplatine C1 : créatinine de la ligne, pas de rappel", !controleSeance(K[0], 0, "mgL", null, null).alertes.some((x) => /créatinine du jour/.test(x)));
+cas("carboplatine C2 sans créatinine du jour : rappel « DFG à vérifier avant chaque cure »", controleSeance(K[1], 0, "mgL", 70, 70).alertes.some((x) => /créatinine du jour non saisie.*10 mg\/L.*avant chaque cure/.test(x)));
+lcr.cures[1] = { creat: "11" }; K = etatLigne(lcr, patient({ sexe: "H" }), CTX);
+cas("carboplatine C2 avec la créatinine du jour : pas de rappel", !controleSeance(K[1], 0, "mgL", 70, 70).alertes.some((x) => /créatinine du jour/.test(x)));
+
 console.log("\n" + ok + " réussis, " + ko + " échoués");
 process.exit(ko ? 1 : 0);

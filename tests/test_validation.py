@@ -61,6 +61,17 @@ async def main():
         apres = lignes_de(await ev("window.__fs"))[pid][i]['cures'][k]
         ok(apres.get('pctAll') == avant.get('pctAll'), 'modification d\'une cure validée refusée (rien n\'est enregistré)', apres.get('pctAll'))
         ok(not pg.errs, 'aucune erreur JavaScript', pg.errs[:2]); await pg.close()
+        print('Bouton « Retour » en bas, doses trop fortes (12/10)')
+        pg = await ouvrir(b, S); ev = pg.evaluate
+        await pg.goto(f'http://localhost:{PORT}/v2.html#dossier/{pid}'); await pg.wait_for_timeout(2500)
+        await ev(f"chOuvrir('{pid}', {i}, {k}, 1)"); await pg.wait_for_timeout(1200)
+        pos = await ev("(()=>{const f=document.getElementById('fenetreCorps'),r=[...f.querySelectorAll('button')].find(x=>/Retour à la cure/.test(x.textContent));return r?{bas:r.parentElement.className==='boutons',avec:/Valider/.test(r.parentElement.textContent),haut:f.innerHTML.indexOf('Retour à la cure')>f.innerHTML.indexOf('Molécules')}:null})()")
+        ok(pos and pos['bas'] and pos['avec'] and pos['haut'], 'bouton « Retour à la cure » en bas, à côté de Reporter / Valider', pos)
+        mol = await ev("(()=>{const i=[...document.querySelectorAll('#fenetreCorps input[onchange^=\"chPct\"]')][0];return i?i.getAttribute('onchange'):null})()")
+        if mol:
+            n0 = len(pg.dlg); await ev(mol.replace('this.value', "'1000'")); await pg.wait_for_timeout(1200)
+            ok(any('1000 %' in d and 'au-dessus de 100 %' in d for d in pg.dlg[n0:]), '1000 % tapé pour une molécule : confirmation demandée', pg.dlg[n0:])
+        ok(not pg.errs, 'aucune erreur JavaScript', pg.errs[:2]); await pg.close()
         print('Cure normale, sans bilan')
         pg, c = await valider(b, S)
         ok(not pg.dlg and c.get('st') == 'recue' and 'bio' not in c.get('fige', {}), 'validée sans aucune question', pg.dlg)

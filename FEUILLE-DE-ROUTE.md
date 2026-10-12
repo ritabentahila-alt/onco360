@@ -256,6 +256,14 @@ longs et ne dépendent pas du code.
       suivantes). Bilan biologique du jour **sous les paramètres** (poids, créatinine, clairance, surface), avant « Molécules » ; gardé en
       brouillon si la fenêtre se redessine ; **affiché sur la cure validée** (repères en rouge) pour suivre l'évolution. Tests :
       test-doses 65/65, test_validation 22/22, test_figer, test_accueil.
+- [x] **2.3 bis Doses trop fortes, créatinine avant chaque carboplatine, bouton Retour** (12/10, demandes de Dr Bentahila, en ligne
+      20261012d) : % tapé au-dessus de 100 % (par molécule ou global) ou dose saisie au-dessus de 110 % de la dose calculée →
+      confirmation à la saisie ; à la validation, toute dose au-dessus de 110 % de la dose du protocole est signalée (`REPERES.doseMax`) ;
+      **carboplatine** : créatinine du jour non saisie (reprise d'une séance précédente) → rappel « le DFG doit être vérifié avant
+      chaque cure » (pas pour C1 J1, qui a la créatinine de la ligne ; sans aucune créatinine : validation refusée, déjà en place) ;
+      « ‹ Retour à la cure » en bas de la fenêtre, à côté de Reporter / Valider (et seul en bas pour une séance validée). Jeu de test :
+      5 carboplatines validés sans créatinine du jour et 2 doses de trastuzumab au-dessus de la dose calculée (dose de charge en C2)
+      seraient signalés. Tests : test-doses 71/71, test_validation 25/25.
 - [x] **2.3 Bornes et prémédication** (12/10, en ligne le 12/10 : version 20261012b) : **prémédication reconnue par la DCI comme par la marque**
       (`PREMED` de moteur/doses.js : antiémétiques, corticoïdes, antihistaminiques, anti-H2 / IPP, atropine, facteurs de croissance,
       EPO, acide zolédronique, dénosumab ; même liste pour la liste des molécules des protocoles ; jours de séance inchangés) ;
@@ -421,6 +429,9 @@ les étapes 1.7, 2.5, 3.2 et 3.7.
   secrétaire au sens de 19.6 (remplacée par l'alerte d'écart > 10 % de 2.3) ; rappels WhatsApp automatiques ; assistant IA.
 
 ## À placer
+- **CKD-EPI au choix du cabinet** (information de Dr Bentahila, 12/10) : consensus ADDIKD 2022 / ASCO / ESMO : CKD-EPI recommandé, en
+  valeur absolue (ml/min, dé-standardisée par la surface corporelle) pour Calvert ; Cockcroft-Gault reste la pratique de routine
+  (aujourd'hui seule formule d'Onco360). Cisplatine : l'une ou l'autre pour le seuil.
 - `tests/test_cabinets.py` : 2 vérifications échouent depuis le 11/10 (avant 1.7, vérifié) : « Statistiques en premier » (la carte
   « Bienvenue… pour commencer » passe devant) et « Paramètres : Listes en premier, WhatsApp retiré » (les 4 familles). À vérifier :
   l'ordre des cartes et des rubriques réglé par l'administration pour un cabinet est-il encore respecté ? (étape 22 / Paramètres)
