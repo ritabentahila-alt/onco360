@@ -21,7 +21,7 @@ async def main():
         ty = await p0.evaluate("[...document.querySelectorAll('#csType option')].map(o=>o.textContent)")
         # 3.4 (12/10/2026) : cabinet d'oncologie : formulaires proposés (champs cx_xcs…) entre le titre et la note ; 8 types (« Note du secrétariat »)
         base = [i for i in ids if not i.startswith('cx_xcs')]
-        ok(base == ['csType', 'csDate', 'csTitre', 'csNote'] and any(i.startswith('cx_xcs') for i in ids) and len(ty) == 8 and ty[2] == 'RCP' and ty[-1] == 'Note du secrétariat', 'sans réglage : Consultation, Date, Titre, formulaires proposés, Note (8 types) ' + str(base))
+        ok(base == ['csType', 'csDate', 'csTitre', 'csNote'] and any(i.startswith('cx_xcs') for i in ids) and all(x in ty for x in ['Consultation de suivi', 'RCP', 'Note du secrétariat', 'Consultation de fin de radiothérapie']), 'sans réglage : Consultation, Date, Titre, formulaires proposés, Note ; types du référentiel (3.13) ' + str((base, ty)))
         await p0.select_option('#csType', 'Consultation de suivi'); await p0.fill('#csTitre', 'J1C1'); await p0.fill('#csNote', 'RAS'); await p0.click('#csOk'); await p0.wait_for_timeout(1000)
         fs = await p0.evaluate("window.__fs"); c0 = [v for k, v in fs.items() if '/consultations/' in k and v.get('titre') == 'J1C1']
         ok(c0 and c0[0]['note'] == 'RAS' and 'extra' not in c0[0], 'sans réglage : consultation enregistrée comme avant (sans « extra »)')
@@ -33,7 +33,7 @@ async def main():
         t = await pg.inner_text('#fenetre')
         ok('Mesures et constantes' in t and 'Poids (kg)' in t and 'Conclusion' in t and 'Glycémie (g/l)' in t, 'section, unité, « Note » renommée « Conclusion »')
         ty = await pg.evaluate("[...document.querySelectorAll('#csType option')].map(o=>o.textContent)")
-        ok(ty == ['Première consultation', 'Suivi'], 'liste des types de consultation de la spécialité ' + str(ty))
+        ok('Première consultation' in ty and 'Suivi' in ty, 'types de consultation de la spécialité repris dans le référentiel (3.13) ' + str(ty))
         await pg.select_option('#csType', 'Suivi'); await pg.fill('#cx_xpds01', '72,5'); await pg.fill('#cx_xobs01', 'Bonne\nprise régulière'); await pg.fill('#cx_xgly01', '1.1'); await pg.fill('#csNote', 'Poursuite'); await pg.click('#csOk'); await pg.wait_for_timeout(1000)
         fs = await pg.evaluate("window.__fs"); c1 = [(k, v) for k, v in fs.items() if '/consultations/' in k and v.get('note') == 'Poursuite']
         ok(c1 and c1[0][1]['extra'] == {'xpds01': '72.5', 'xobs01': 'Bonne\nprise régulière', 'xgly01': '1.1'} and c1[0][1]['type'] == 'Suivi' and c1[0][1]['titre'] == '', 'valeurs enregistrées dans « extra » ' + str(c1 and c1[0][1].get('extra')))

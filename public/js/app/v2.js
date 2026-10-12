@@ -10,7 +10,8 @@ import { chimioAVenir } from "../moteur/agenda.js";
 import { etatLigne, protocoleDe, seancesCure, poidsDebut, reperesClairance } from "../moteur/doses.js";
 import { finRT, statutRT, nbA, compteurRT, dosimetrie, contourage, RYTHMES, libRythme, volumesRT, seancesVolumes, dpfVolume, texteVolume } from "../moteur/rt.js";
 import { auj, addJ, ecart, ouvre, age, srcImage, absentMedecin } from "../moteur/outils.js";
-import { typeRdv, libRdv, joursH, T_RTC } from "../moteur/rdv.js";
+import { typeRdv, libRdv, joursH, T_RTC, nommerTypes } from "../moteur/rdv.js";
+import { referentiel, nomsParCle, typesPourRdv, cleDeRdv } from "../moteur/typesconsult.js";
 import { tarif as tarifAu } from "../moteur/tarifs.js";
 import { genererConsultRT, consultFinRT } from "../moteur/rt.js";
 import { idsParDefaut } from "../donnees/migration.js";
@@ -169,6 +170,7 @@ async function charger(u) {
   // Toutes les lectures partent en même temps (au lieu de l'une après l'autre) : ouverture nettement plus rapide
   const membre = m.data(); membre.droitsStockes = membre.droits || {}; membre.droits = droitsEffectifs(membre); const col = collection(db, "espaces", ESPACE, "patients"), E = (c, i) => doc(db, "espaces", ESPACE, c, i);
   const pFO = getDoc(E("parametres", "formulaires")).catch(() => null); // fiche patient et consultation retouchées par le cabinet (Paramètres › Cabinet, 11/10/2026)
+  const pTY = getDoc(E("parametres", "typesConsult")).catch(() => null); // référentiel des types de consultation (3.13)
   const [pr, sp, sc, qs, sl, sE, sT, sA, sW, sMT, sTC, sRG, sES] = await Promise.all([
     getDoc(doc(db, "utilisateurs", u.uid)).catch(() => null),
     getDocs(collection(db, "espaces", ESPACE, "protocoles")),
@@ -192,6 +194,10 @@ async function charger(u) {
   const listes = sl && sl.exists() ? JSON.parse(sl.data().data) : { cor: [], mut: [] }, etabsTous = sE ? sE.docs.map((d) => d.data()).sort((a, b) => String(a.code).localeCompare(String(b.code))) : [], etabs = etabsTous.filter((e) => e.actif !== false);
   const tarifs = sT && sT.exists() ? JSON.parse(sT.data().data) : null;
   const t = auj(), ctx = { aujourdhui: t, bib, feries: cal.feries || [] };
+  // 3.13 : noms des types de consultation (rendez-vous, agenda, bilan) posés avant le calcul des dossiers
+  let typesEnr = null; try { const sTY = await pTY; typesEnr = sTY && sTY.exists() ? JSON.parse(sTY.data().data || "null") : null; } catch (e) { /* illisible : liste de départ */ }
+  const activites0 = sA && sA.exists() ? JSON.parse(sA.data().data || "{}") : null;
+  nommerTypes(nomsParCle(referentiel(typesEnr, { acts: actsDe(tarifs, activites0) })));
   const patients = qs.docs.map((d) => { const x = { id: d.id }; recalculer(x, d.data(), ctx); return x; });
   patients.sort((a, b) => String(a.r.nm).localeCompare(String(b.r.nm)));
   const activites = sA && sA.exists() ? JSON.parse(sA.data().data || "{}") : null;
@@ -213,8 +219,21 @@ async function charger(u) {
   // puis retouches faites par le cabinet lui-même (parametres/formulaires) ; regAdmin.fiche / .consultation = base de l'éditeur des Paramètres
   let formCab = null; try { const sFO = await pFO; formCab = sFO && sFO.exists() ? JSON.parse(sFO.data().data || "{}") : null; } catch (e) { /* illisible : réglage de l'administration */ }
   const reg = espaceDoc.bibliotheque === true ? regAdmin : formulairesCabinet(regAdmin, formCab);
-  return { u, membre, profil, cal, ctx, t, patients, listes, etabs, etabsTous, tarifs, bibDoc, bibOrdre, activites, wa, medTitulaire, tarifsC, reglages: reglagesC, abo, espaceDoc, bib: espaceDoc.bibliotheque === true, reg, regAdmin, formCab };
+  const typesC = referentiel(typesEnr, { acts: actsDe(tarifs, activites), journal: ((reg.consultation || {}).choixs || {}).type || [] });
+  return { typesC, typesEnr, u, membre, profil, cal, ctx, t, patients, listes, etabs, etabsTous, tarifs, bibDoc, bibOrdre, activites, wa, medTitulaire, tarifsC, reglages: reglagesC, abo, espaceDoc, bib: espaceDoc.bibliotheque === true, reg, regAdmin, formCab };
 }
+// Activités des établissements (tarifs, sinon copie publiée) : [[clé, nom]], source de la liste de départ des types de consultation (3.13)
+function actsDe(tarifs, activites) {
+  const l = [];
+  if (tarifs && tarifs.etablissements) Object.values(tarifs.etablissements).forEach((e) => (e.activites || []).forEach((a) => l.push([a.type, a.libelle])));
+  if (activites) Object.values(activites).forEach((L) => (L || []).forEach((a) => l.push([a.t, a.lib])));
+  return l;
+}
+// Référentiel recalculé après un enregistrement (Paramètres › Types de consultation) : noms partout, dossiers recalculés
+window.majTypesC = (enr) => {
+  D.typesEnr = enr; D.typesC = referentiel(enr, { acts: actsDe(D.tarifs, D.activites), journal: ((D.reg.consultation || {}).choixs || {}).type || [] });
+  nommerTypes(nomsParCle(D.typesC)); D.patients.forEach((x) => recalculer(x, x.doc));
+};
 // Médecins du cabinet (AG4, 11/10/2026) : médecin d'un rendez-vous et filtre de l'agenda, à partir de 2 médecins actifs.
 // Rendez-vous sans médecin noté (anciens) = le médecin titulaire.
 async function chargerMedecins() {
@@ -431,7 +450,7 @@ function fmtSaisie(el) {
 document.addEventListener("input", (ev) => { if (ev.target && ev.target.classList && ev.target.classList.contains("mt")) fmtSaisie(ev.target); });
 const ferieLe = (d) => (D.ctx.feries || []).map((f) => (typeof f === "string" ? { d: f, nom: "Jour férié" } : f)).find((f) => f.d === d);
 const API = { D: () => D, get ESPACE() { return ESPACE; }, $, esc, ic, dfr, dfrA, cap, jourLong, val, occupe, erreur, toast, fenetre, fermerFenetre: () => window.fermerFenetre(), peut, voit, traitMod, enregistrer, pageDossier: (id) => reafficher(id), recalculer, journal };
-API.typesRdv = (e) => typesRdv(e); // Paramètres › Horaires : durée par type de consultation (AG2)
+API.typesRdv = (e) => typesRdv(e); API.typesC = () => D.typesC || []; API.actsDe = () => actsDe(D.tarifs, D.activites); // Paramètres › Horaires : durée par type de consultation (AG2)
 // Heure facultative du scanner de centrage (AG5, 11/10/2026) : r.scanH = { h, du } ou retirée (droit « radiothérapie : modifier »)
 API.traitModRT = () => traitModRT();
 API.heureRT = async (pid, rid, hr, z) => { // z : "scan" (défaut) ou "deb" (1re séance, 12/10/2026)
@@ -510,7 +529,7 @@ function agenda7() {
   return l.sort((a, b) => (a.d + (a.h || "00:00") + a.nm).localeCompare(b.d + (b.h || "00:00") + b.nm));
 }
 // ───── Rappels WhatsApp : message prédéfini (Configuration › WhatsApp) envoyé en un clic depuis WhatsApp ─────
-const catRdv = (r) => (r.act ? r.act : r.type === "En cours de RT" ? "rtc" : typeRdv(r.type));
+const catRdv = (r) => cleDeRdv(r); // 3.13 : clé du type (référentiel) ; fin de radiothérapie : son propre message
 function catEvt(pid, k) {
   const p = String(k || "").split("|");
   if (p[1] === "c" || p[1] === "s") return "chimio";
@@ -1153,7 +1172,10 @@ window.afficherPatient = (id) => {
 // sauf séance de chimio, consultation de chimio (encaissée dans la cure) et radiothérapie.
 const STD_RDV = { annonce: "Annonce", suivi: "Suivi", controle: "Contrôle", hospit: "Hospitalisation" };
 const ACT_DEF = [["annonce", "Consultation d'annonce"], ["suivi", "Consultation de suivi"], ["controle", "Consultation de contrôle"], ["hospit", "Hospitalisation"]];
+// 3.13 (12/10/2026) : les types « pris en rendez-vous » du référentiel (Paramètres › Dossier patient › Types de consultation), dans tous
+// les lieux (sans prix dans un lieu = non facturé là) ; avant : les activités de l'établissement
 function typesRdv(etab) {
+  if (D.typesC && D.typesC.length) return typesPourRdv(D.typesC);
   let l = null;
   if (D.tarifs && D.tarifs.etablissements && D.tarifs.etablissements[etab]) l = D.tarifs.etablissements[etab].activites.map((a) => [a.type, a.libelle]);
   else if (D.activites && D.activites[etab]) l = D.activites[etab].map((a) => [a.t, a.lib]);

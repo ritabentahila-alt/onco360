@@ -15,7 +15,13 @@ export function prixRdv(P, r, tarifs) {
   const t = typeRdv(r.type), h = P.hop || (tarifs && tarifs.repli) || "";
   return t === "hospit" ? joursH(r) * tjH(P, r, tarifs) : t === "controle" ? tarH(tarifs, h, "controle") : t === "annonce" ? tarH(tarifs, h, "annonce") : tarH(tarifs, h, "suivi");
 }
+// 3.13 (12/10/2026) : noms des types réglés dans Paramètres › Dossier patient › Types de consultation (moteur/typesconsult.js), par clé
+// (annonce, suivi, controle, hospit, rtc, rtf, clé d'une activité ajoutée) ; posés au chargement par v2.js
+let NOMS = null;
+export const nommerTypes = (m) => { NOMS = m && typeof m === "object" ? m : null; };
 export function libRdv(r) {
+  if (NOMS && r) { const k = r.type === T_RTC ? "rtc" : r.type === T_RTF ? "rtf" : r.act || typeRdv(r.type), n = NOMS[k];
+    if (n) return k === "hospit" && r.f ? n + " du " + dfr(r.d) + " au " + dfr(r.f) + " (" + joursH(r) + " j ouvré" + (joursH(r) > 1 ? "s" : "") + ")" : n; }
   if (r && r.type === T_RTC) return "Consultation en cours de radiothérapie";
   if (r && r.type === T_RTF) return "Consultation de fin de radiothérapie";
   if (r && r.act) return r.type || "Consultation"; // activité ajoutée dans les Paramètres (ex. 2nd avis)

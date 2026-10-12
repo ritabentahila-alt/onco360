@@ -172,6 +172,13 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
 - **Lignes et modèles (12/10/2026)** : `lignes[].intent` neo | adj | meta | conc + `rang` (ligne métastatique n°) ; `libIntention` (chimio.js) ; `reglages.auto`
   { rtHebdo, rtFin } (Paramètres › Rendez-vous automatiques) ; `reglages.impression` { age, poids, allergie } ; modèles des documents RT : `donnees/modelesrt.js`
   (MODELES_RT0, CHAMPS_RT, remplirModele), modifiés dans `bibliotheques/courriers` (entrées `rt: "pli"|"cr"|"rdv"`, ids rt-…), lus par `modeleRT` (ordonnances.js).
+- **Types de consultation (3.13, 12/10/2026)** : `parametres/typesConsult` { data: JSON [{ k, nom, rdv, anciens }] } (Paramètres › Dossier patient ›
+  Types de consultation ; logique `public/js/moteur/typesconsult.js` : `referentiel` (liste de départ = types de base `STD` + activités des tarifs +
+  types du journal), `typesPourRdv`, `cleDeRdv`, `cleDuree`, `nomActuel`, `renommer`) ; `D.typesC` / `API.typesC()` / `window.majTypesC` (v2.js) ;
+  noms posés dans `libRdv` par `nommerTypes` (rdv.js) ; durée → `calendrier.durees[cleDuree(k)]`, formulaire → `consultation.typesForm[nom]`,
+  créé d'office → `reglages.auto` (`AUTO`), prix → `finances/tarifs` (lignes « non facturé ici » `_v` jamais enregistrées, parametres.js
+  `lignesGrille`) ; WhatsApp `CAT_WA` et Google Agenda `categoriesAgenda` (configuration.js) tirés du référentiel ; événements de rendez-vous
+  avec `tk` (moteur/agenda.js) lu par `categorie` / `cleFiltre` (logique.js).
 - **Rendez-vous à venir (3.7 ter, 12/10/2026)** : consultation de fin de radiothérapie = rendez-vous `type: "Fin de radiothérapie"` (`T_RTF`, rdv.js ; prix
   0 modifiable) avec `rtfin` (id de la RT) et `dO` (date d'origine : suit la fin tant que `d === dO`), `consultFinRT` (moteur/rt.js, appelé par
   `sauverRT` et une fois par `migrations()`, `parametres/migrations.consultFinRT`) ; heure de la 1re séance `rts[].debH` { h, du } (`modifierEtapeRT`,

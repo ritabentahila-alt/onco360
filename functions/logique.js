@@ -66,6 +66,8 @@ function categorie(e) {
   if (p[1] === "c" || p[1] === "s") return "chimio";
   if (p[1] === "rt") return p[p.length - 1] === "dosi" ? "dosi" : "rt";
   if (p[1] !== "r") return "";
+  // 3.13 (12/10/2026) : type noté dans l'événement (tk) : couleur juste même si le type a été renommé
+  const tk = { annonce: "annonce", suivi: "suivi", controle: "suivi", hospit: "hospit", rtc: "rtc", rtf: "rtc", act: "autre" }[e.tk]; if (tk) return tk;
   if (/ – Hospitalisation/.test(t)) return "hospit";
   if (/Consultation (en cours|de fin) de radioth/i.test(t)) return "rtc";
   if (/Consultation (d'|de )?annonce/i.test(t)) return "annonce";
@@ -85,6 +87,7 @@ function cleFiltre(e) {
   if (p[1] === "rt") return "rt:" + p[p.length - 1];
   if (p[1] !== "r") return "";
   const i = t.indexOf(" – "), lib = (i >= 0 ? t.slice(i + 3) : t).replace(/ \([A-Z0-9]{2,8}\)$/, "").trim(); // sans l'établissement « (HGC) »
+  const tk = { annonce: "rdv:annonce", suivi: "rdv:suivi", controle: "rdv:controle", hospit: "rdv:hospit", rtc: "rdv:rtc", rtf: "rdv:rtfin" }[e.tk]; if (tk) return tk; // 3.13 : type noté (renommage sans effet)
   if (/^Hospitalisation/.test(lib)) return "rdv:hospit";
   if (/^Consultation en cours de radioth/i.test(lib)) return "rdv:rtc";
   if (/^Consultation de fin de radioth/i.test(lib)) return "rdv:rtfin"; // consultation de fin de radiothérapie (12/10/2026)

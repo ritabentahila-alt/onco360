@@ -58,8 +58,8 @@ async def main():
         r = [x for x in await rdvs(pg, A3) if x.get('d') == T and x.get('h') == '10:30']
         verif('durée notée sur le rendez-vous (du = 45)', r and r[0].get('du') == 45, r)
         # Paramètres › Horaires : durée du Suivi
-        await pg.goto(U+'#parametres/horaires'); await pg.wait_for_timeout(1200)
-        verif('Paramètres › Horaires : carte « Durée par type de consultation »', await ev("document.body.innerText.includes('Durée par type de consultation')"))
+        await pg.goto(U+'#parametres/types'); await pg.wait_for_timeout(1200)  # 3.13 : durée réglée avec le type de consultation
+        verif('Paramètres › Types de consultation : durée de chaque type', await ev("document.body.innerText.includes('Types de consultation') && !!document.querySelector('select[aria-label=\"Durée : Consultation de suivi\"]')"))
         await pg.select_option('select[aria-label="Durée : Consultation de suivi"]', '20'); await pg.wait_for_timeout(200)
         await pg.click('#cfOk'); await pg.wait_for_timeout(1000)
         verif('durée enregistrée dans parametres/calendrier', json.loads(await ev(f"window.__fs['{E}parametres/calendrier'].data")).get('durees') == {"s:Annonce": 45, "s:Suivi": 20})
@@ -68,7 +68,7 @@ async def main():
         print('3. Secrétaire : règle la durée')
         pg = await ouvrir(b, S2, t=T+"T08:00:00", ); ev = pg.evaluate
         await pg.add_init_script("window.__uid='SEC'")
-        await pg.goto(U+'#parametres/horaires'); await pg.wait_for_timeout(1500)
+        await pg.goto(U+'#parametres/types'); await pg.wait_for_timeout(1500)
         verif('secrétaire : liste des durées modifiable', await ev("(()=>{const s=document.querySelector('select[aria-label=\"Durée : Consultation de suivi\"]');return !!s && !s.disabled})()"))
         verif('aucune erreur JavaScript (secrétaire)', not pg.errs, pg.errs); await pg.close()
         print('4. Glisser-déposer (AG3)')

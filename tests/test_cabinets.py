@@ -52,7 +52,7 @@ async def main():
         pg2.errs += pg.errs; pg = pg2
         await pg.click('text=Créer la grille'); await pg.wait_for_timeout(500); tg = await pg.inner_text('#page')
         vals = await pg.evaluate("[...document.querySelectorAll('#page input')].map(i=>i.value).join('|')")
-        ok('Consultation de suivi' in vals and 'Séance de chimiothérapie' in vals and 'Clinique Atlas' in tg, 'grille créée avec toutes les activités')
+        ok('Consultation de suivi' in tg and 'Séance de chimiothérapie' in vals and 'Clinique Atlas' in tg, 'grille créée avec toutes les activités (types de consultation : nom du référentiel, 3.13)')
         await pg.set_viewport_size({'width': 390, 'height': 800}); await pg.evaluate("location.hash='accueil'"); await pg.wait_for_timeout(800)
         ok(await pg.evaluate("document.documentElement.scrollWidth<=390"), 'téléphone 390 px : rien ne déborde (accueil)')
         # Formule Oncologie – Pro retouchée : salle d'attente et RCP retirées, 1 lieu : menus et onglets cachés, limites
@@ -77,10 +77,14 @@ async def main():
         ok(vis[:2] == ['bilan', 'accueil'], 'menu dans l\'ordre du réglage ' + str(vis))
         await pg.evaluate("location.hash='accueil'"); await pg.wait_for_timeout(600)
         h3 = await pg.evaluate("[...document.querySelectorAll('#page section h3')].map(h=>h.innerText.trim())")
-        ok(h3 and 'Statistiques' in h3[0] and not any('7 prochains' in x for x in h3), 'tableau de bord : Statistiques en premier, « 7 prochains jours » retirée ' + str(h3[:3]))
-        await pg.evaluate("location.hash='parametres'"); await pg.wait_for_timeout(900)
-        ong = await pg.evaluate("[...document.querySelectorAll('.ag-vues button')].map(b=>b.innerText.trim())")
-        ok(ong and 'Listes' in ong[0] and not any('WhatsApp' in o for o in ong), 'Paramètres : Listes en premier, WhatsApp retiré ' + str(ong[:3]))
+        h3b = [x for x in h3 if 'pour commencer' not in x]  # carte « Pour commencer » d'un cabinet neuf : toujours en tête (11/10/2026)
+        ok(h3b and 'Statistiques' in h3b[0] and not any('7 prochains' in x for x in h3), 'tableau de bord : Statistiques en premier (après « Pour commencer »), « 7 prochains jours » retirée ' + str(h3[:3]))
+        # Paramètres en familles (11/10/2026) : l'ordre du réglage s'applique dans chaque famille
+        await pg.evaluate("location.hash='parametres/listes'"); await pg.wait_for_timeout(900)
+        ong = await pg.evaluate("[...document.querySelectorAll('.cf-sous button')].map(b=>b.innerText.trim())")
+        await pg.evaluate("location.hash='parametres/horaires'"); await pg.wait_for_timeout(900)
+        ag = await pg.evaluate("[...document.querySelectorAll('.cf-sous button')].map(b=>b.innerText.trim())")
+        ok(ong and 'Listes' in ong[0] and ag and not any('WhatsApp' in o for o in ag), 'Paramètres : Listes en premier dans sa famille, WhatsApp retiré ' + str((ong[:3], ag)))
         await pg.evaluate("location.hash='parametres/taches'"); await pg.wait_for_timeout(900)
         ok(await pg.evaluate("![...document.querySelectorAll('[data-fn=\"taches.auto\"]')].some(e=>e.offsetParent!==null)"), 'fonction « Tâches automatiques » retirée : section cachée')
         await pg.evaluate("location.hash='parametres/bibliotheques'"); await pg.wait_for_timeout(900)

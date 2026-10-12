@@ -10,6 +10,7 @@
 import { collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { db } from "../config.js";
 import { CONSULT, consultEffective, libDe, formulairesDe, champDuType } from "../donnees/catalogue.js";
+import { nomActuel } from "../moteur/typesconsult.js";
 
 let A = null;
 export function installer(api) { A = api; }
@@ -34,7 +35,9 @@ export const FAMILLES = [
   { t: "doc", lib: "Doc.", ic: "document", titre: "Documentation (fiches à remettre au patient)" },
 ];
 // Nom affiché : type (menu) · titre (libre) ; les premières consultations n'avaient qu'un titre
-const nomCs = (c) => [c.type, c.titre].filter(Boolean).join(" · ") || "Consultation";
+// 3.13 : type affiché sous son nom actuel (renommé dans Paramètres › Types de consultation : l'ancien nom reste enregistré)
+const TL = () => (A.typesC ? A.typesC() : []);
+const nomCs = (c) => [c.type ? nomActuel(TL(), c.type) : "", c.titre].filter(Boolean).join(" · ") || "Consultation";
 const libLigne = (t) => (FAMILLES.find((f) => f.t === t) || { lib: t }).lib;
 // Formulaire de consultation réglable (16.7, 10/10/2026) : celui de la spécialité (le même pour tous les packs) + retouches du cabinet
 // (D().reg.consultation) : ordre, champs présents, nom affiché, liste des types, champs ajoutés (valeurs dans extra { id: valeur }).
@@ -173,8 +176,10 @@ function formulaire(x, c, pre, apres) {
   const visible = (k) => R.champs[k] !== false || (k !== "d" && !!v0(k));
   // 3.4 : la secrétaire écrit dans le même journal (« Note du secrétariat », proposé d'office pour elle)
   const sec = D().membre && D().membre.role === "assistante", NS = "Note du secrétariat";
-  const types = (R.choixs.type || []).concat([v0("type"), sec ? NS : ""].filter((t) => t && (R.choixs.type || []).indexOf(t) < 0));
-  const type0 = v0("type") || (sec && !c ? NS : "");
+  // 3.13 : types du référentiel (tous : pris en rendez-vous ou non) ; sans référentiel : liste du formulaire d'avant
+  const base = TL().length ? TL().map((t) => t.nom) : R.choixs.type || [], vt = v0("type") ? nomActuel(TL(), v0("type")) : "";
+  const types = base.concat([vt, sec ? NS : ""].filter((t) => t && base.indexOf(t) < 0));
+  const suivi = (TL().find((t) => t.k === "suivi") || {}).nom, type0 = vt || (sec && !c ? NS : !c && suivi ? suivi : ""); // nouvelle consultation : suivi, comme avant
   const champ = (k) => {
     const a = R.ajouts.find((z) => z.id === k);
     if (!a) {

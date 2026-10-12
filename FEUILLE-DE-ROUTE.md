@@ -500,13 +500,25 @@ longs et ne dépendent pas du code.
       dans plusieurs formulaires (ex. « Nausées » en oncologie et dans un formulaire « Toxicités ») et garde les mêmes valeurs, comparables
       d'une consultation à l'autre ; une valeur déjà saisie reste affichée même si le type change. Le choix du formulaire par type passera
       dans le référentiel des types (3.13). Même éditeur dans l'Administration (le serveur garde `formulaires` / `typesForm`).
-- [ ] **3.13 Référentiel unique des types de consultation** (idée de Dr Bentahila, complétée) : aujourd'hui trois listes séparées (types
+- [x] **3.13 Référentiel unique des types de consultation** (fait le 12/10/2026, version 20261012r) (idée de Dr Bentahila, complétée) : aujourd'hui trois listes séparées (types
       de rendez-vous, activités de chaque établissement, types du journal des consultations). Une seule liste « Types de consultation »
       (Dossier patient, 3.11) : nom, **durée** (remplace « Durée par type de consultation »), **pris en rendez-vous** oui / non (non : chimio,
       RT hebdomadaire, fin de RT, créées d'office), **formulaire** (3.12). Activités et rémunérations affiche chaque type pour chaque
       hôpital (prix vide = non facturé là, ex. pas de consultation de chimio à HCK) ; la prise de rendez-vous ne propose que les types
       « pris en rendez-vous », le journal des consultations tous ; un type ajouté apparaît partout, un type renommé est corrigé partout
       (rendez-vous existants compris). Reprise une fois des activités et des prix actuels, **bilan vérifié avant et après** (test_bilan).
+      **Fait** : Paramètres › Dossier patient › **Types de consultation** (`parametres/typesConsult`, moteur `typesconsult.js`) : nom,
+      pris en rendez-vous, durée, formulaire, créé d'office (consultations hebdomadaires et de fin de radiothérapie : l'ancienne rubrique
+      « Rendez-vous créés automatiquement » y est intégrée, l'ancienne adresse y mène). **Tout est relié** à cette liste : prise de
+      rendez-vous, journal des consultations, durée (agenda, créneaux), formulaire de chaque type (les deux écrans modifient le même
+      réglage), messages WhatsApp (un message par type, fin de radiothérapie comprise), Google Agenda (« ce qui y apparaît » : un choix
+      par type, et la couleur ne dépend plus du nom : clé `tk` dans chaque événement), Activités et rémunérations (chaque type dans chaque
+      lieu, « non facturé ici » sans prix), noms affichés partout (bilan compris). Renommer : l'ancien nom est gardé (`anciens`) et les
+      rendez-vous et consultations déjà enregistrés s'affichent sous le nouveau nom, sans réécrire les dossiers ni changer leur auteur.
+      Rien à reprendre : la liste de départ est construite depuis les activités et les types d'avant ; durées, formulaires, créés
+      d'office et prix restent à leur place (bilan inchangé). Choix fait : un type est proposé dans tous les lieux (sans prix = non
+      facturé ici) ; la secrétaire règle les durées. Limite : un type ajouté renommé change la case Google Agenda personnelle de ce type
+      (à recocher). Test : `tests/test_types_consult.py`, `node tests/moteur/test-typesconsult.mjs`.
 - [x] **3.14 Chimiothérapie : « Ouvrir » d'abord, « Valider » depuis la séance** (corrections demandées le 12/10, après 3.7 ; fait, en ligne : 20261012o) : bouton
       principal **« Ouvrir »** partout (cure de la ligne, jour de la cure) ; « Valider », « Reporter », « Annuler » dans le menu ⋯. Cure
       d'un seul jour : « Ouvrir » affiche directement la séance (un seul bouton « Fermer », le doublon retiré) ; cure de plusieurs jours :

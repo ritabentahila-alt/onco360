@@ -17,8 +17,9 @@ import { gererListe, tailleListe } from "./ordonnances.js";
 import { htmlOngletProfil, apresOngletProfil, titulaireConnecte } from "./profil.js";
 import { afficherAudit } from "./audit.js"; // onglet « Journal d'audit » (titulaire, 09/10/2026)
 import { configRcp, configChargee, chargerConfigRcp, enregistrerConfigRcp, prochainesRcp, CFG0 as RCP0, libDate } from "./rcp.js";
-import { CARTES, accueilEffectif, FICHE, CONSULT, STADES, GRADES, formEffectif, ficheEffective, consultEffective, ficheRetouches, formRetouches } from "../donnees/catalogue.js";
+import { CARTES, accueilEffectif, FICHE, CONSULT, STADES, GRADES, formEffectif, ficheEffective, consultEffective, ficheRetouches, formRetouches, formulairesDe, formDuType } from "../donnees/catalogue.js";
 import { editeurFiche } from "./editeurfiche.js";
+import { estStd, AUTO as AUTO_TY, cleDuree, renommer, nouvelleCle, aEnregistrer } from "../moteur/typesconsult.js";
 import { htmlVigilances } from "./vigilances.js"; // notes « À vérifier » par molécule (12/10/2026) // fiche patient et formulaire de consultation du cabinet (11/10/2026)
 
 let A = null;
@@ -41,16 +42,17 @@ export const WA0 = {
   suivi: "Bonjour {prenom}, nous vous rappelons votre consultation de suivi le {jour} {heure} à {lieu}.\nMerci d'apporter vos derniers examens (bilan sanguin, imagerie) et vos ordonnances en cours.\n{medecin}",
   controle: "Bonjour {prenom}, nous vous rappelons votre consultation de contrôle le {jour} {heure} à {lieu}.\nMerci d'apporter les résultats des examens demandés lors de la dernière consultation.\n{medecin}",
   rtc: "Bonjour {prenom}, nous vous rappelons votre consultation de surveillance pendant la radiothérapie le {jour} {heure} à {lieu}.\nSignalez-nous toute gêne (peau, déglutition, fatigue…).\n{medecin}",
+  rtf: "Bonjour {prenom}, nous vous rappelons votre consultation de fin de radiothérapie le {jour} {heure} à {lieu}.\nMerci d'apporter vos derniers examens et de nous signaler toute gêne depuis la fin des séances.\n{medecin}",
   hospit: "Bonjour {prenom}, nous vous rappelons votre hospitalisation à partir du {jour} à {lieu}.\nMerci d'apporter votre carte d'identité, votre prise en charge (mutuelle), vos examens et vos traitements habituels.\n{medecin}",
   rt: "Bonjour {prenom}, nous vous rappelons votre rendez-vous de radiothérapie le {jour} {heure} à {lieu}.\nMerci d'apporter vos examens et votre prise en charge.\n{medecin}",
   autre: "Bonjour {prenom}, nous vous rappelons votre rendez-vous le {jour} {heure} à {lieu}.\n{medecin}",
 };
+// 3.13 (12/10/2026) : un message par type de consultation du référentiel (Paramètres › Dossier patient › Types de consultation) : un type
+// ajouté a aussitôt son message (celui « par défaut » tant qu'il n'est pas écrit) ; types du journal seulement (RCP, note…) : pas de rappel
 export const CAT_WA = () => {
-  const l = [["confirm", "✅ Confirmation d'un rendez-vous (proposée juste après sa prise)"], ["chimio", "💉 Séance de chimiothérapie"], ["annonce", "🩺 Consultation d'annonce"], ["suivi", "🩺 Consultation de suivi"], ["controle", "🩺 Consultation de contrôle"], ["rtc", "☢️ Consultation en cours de radiothérapie"], ["hospit", "Hospitalisation"], ["rt", "☢️ Radiothérapie (scanner de centrage, 1re séance)"]];
-  const vus = {}, ajout = (t, lib) => { if (["annonce", "suivi", "controle", "cchimio", "seance", "hospit", "rt"].indexOf(t) >= 0 || vus[t]) return; vus[t] = 1; l.push([t, "🩺 " + lib]); };
-  const T = D().tarifs; if (T && T.etablissements) Object.values(T.etablissements).forEach((e) => (e.activites || []).forEach((a) => ajout(a.type, a.libelle)));
-  else if (D().activites) Object.values(D().activites).forEach((e) => e.forEach((a) => ajout(a.t, a.lib)));
-  l.push(["autre", "Autre rendez-vous (message par défaut)"]); return l;
+  const l = [["confirm", "✅ Confirmation d'un rendez-vous (proposée juste après sa prise)"], ["chimio", "💉 Séance de chimiothérapie"]];
+  (A.typesC ? A.typesC() : []).filter((t) => t.k !== "cchimio" && (t.rdv || t.k === "rtc" || t.k === "rtf")).forEach((t) => l.push([t.k, (t.k === "hospit" ? "🏥 " : t.k === "rtc" || t.k === "rtf" ? "☢️ " : "🩺 ") + t.nom]));
+  l.push(["rt", "☢️ Rendez-vous de radiothérapie (scanner, 1re séance)"], ["autre", "Autre rendez-vous (message par défaut)"]); return l;
 };
 const copie = (o) => JSON.parse(JSON.stringify(o));
 // Couleurs Google Agenda : les 11 couleurs d'événement de Google (noms et teintes de Google Agenda), "" = couleur de l'agenda
@@ -86,12 +88,12 @@ let TIT = null;
 const FAMILLES = [
   ["cabinet", "hopital", "Cabinet", ["lieux", "accueil", "impression", "audit", "export"]],
   // 3.11 (12/10/2026) : tout ce qui règle le dossier patient au même endroit (fiche, formulaire de consultation, listes de la fiche)
-  ["dossier", "profil", "Dossier patient", ["fiche", "consultation", "listes"]],
-  ["agenda", "agenda", "Agenda et rappels", ["horaires", "fermetures", "rdvauto", "couleurs", "whatsapp", "rcp", "alertes"]],
+  ["dossier", "profil", "Dossier patient", ["fiche", "consultation", "types", "listes"]],
+  ["agenda", "agenda", "Agenda et rappels", ["horaires", "fermetures", "couleurs", "whatsapp", "rcp", "alertes"]], // rendez-vous créés d'office : dans Types de consultation (3.13)
   ["listes", "pilule", "Bibliothèques", ["bibliotheques", "vigilances", "documents", "taches"]],
   ["finances", "bilan", "Finances", ["activites"]],
 ];
-const RUB = { lieux: ["hopital", "Lieux d'exercice"], accueil: ["accueil", "Tableau de bord"], fiche: ["profil", "Fiche patient"], consultation: ["stetho", "Formulaire de consultation"],
+const RUB = { lieux: ["hopital", "Lieux d'exercice"], accueil: ["accueil", "Tableau de bord"], fiche: ["profil", "Fiche patient"], consultation: ["stetho", "Formulaire de consultation"], types: ["agenda", "Types de consultation"],
   impression: ["imprimer", "Impression"], audit: ["liste", "Journal d'audit"], export: ["telecharger", "Export des données"], horaires: ["horloge", "Horaires"], fermetures: ["avion", "Congés et jours fériés"], rdvauto: ["agenda", "Rendez-vous automatiques"],
   couleurs: ["agenda", "Google Agenda"], whatsapp: ["whatsapp", "WhatsApp"], rcp: ["rcp", "RCP"], alertes: ["alerte", "Alertes"], listes: ["liste", "Listes de la fiche"],
   bibliotheques: ["pilule", "Bibliothèques"], vigilances: ["alerte", "Vigilance des molécules"], documents: ["document", "Types de documents"], taches: ["taches", "Tâches"], activites: ["bilan", "Activités et rémunérations"] };
@@ -108,12 +110,12 @@ const ONGLETS = () => FAMILLES.reduce((l, f) => l.concat(f[3]), [])
   .sort((a, b) => { const R = A.D().reg, l = R && !A.D().bib ? R.ordreSections : [], fa = FAMILLES.findIndex((f) => f[0] === famDe(a)), fb = FAMILLES.findIndex((f) => f[0] === famDe(b)); return fa - fb || (l.indexOf(a) + 1 || 999) - (l.indexOf(b) + 1 || 999); })
   .map((k) => [k, RUB[k][0], RUB[k][1]]);
 // Propres à chaque cabinet, donc absents de la bibliothèque de référence : lieux, équipe, journal d'audit, présentation
-const HORS_BIB = ["lieux", "acces", "audit", "export", "accueil", "fiche", "consultation"];
+const HORS_BIB = ["lieux", "acces", "audit", "export", "accueil", "fiche", "consultation", "types"];
 // Onglets que la secrétaire (droit « secretariat », sans « paramètres ») peut modifier, et ce qu'elle y modifie
-const ONGLETS_SEC = ["horaires", "fermetures", "whatsapp", "documents", "taches", "rcp", "listes", "impression", "alertes"];
-const MSG_SEC = { lieux: "Vous pouvez compléter l'adresse, le téléphone et la ville de votre lieu (« Compléter »).", horaires: "Vous pouvez régler les horaires de vos lieux.", taches: "Vous pouvez modifier les types de tâches ; les tâches automatiques sont réglées par le médecin." };
+const ONGLETS_SEC = ["horaires", "fermetures", "whatsapp", "documents", "taches", "rcp", "listes", "impression", "alertes", "types"];
+const MSG_SEC = { types: "Vous pouvez régler la durée de chaque type ; le reste est réglé par le médecin.", lieux: "Vous pouvez compléter l'adresse, le téléphone et la ville de votre lieu (« Compléter »).", horaires: "Vous pouvez régler les horaires de vos lieux.", taches: "Vous pouvez modifier les types de tâches ; les tâches automatiques sont réglées par le médecin." };
 const secretariat = () => A.peut("secretariat") && !A.D().bib;
-const MODULE_ONGLET = { rdvauto: "rt", vigilances: "chimio", couleurs: "gagenda", taches: "taches", rcp: "rcp", listes: "listes", bibliotheques: "prescriptions" };
+const MODULE_ONGLET = { vigilances: "chimio", couleurs: "gagenda", taches: "taches", rcp: "rcp", listes: "listes", bibliotheques: "prescriptions" };
 const DERN = {}; // dernière rubrique ouverte de chaque famille
 function entete() {
   const L = ONGLETS(), fam = famDe(ONG), sous = L.filter((o) => famDe(o[0]) === fam);
@@ -146,7 +148,7 @@ const RUBRIQUES = {
         const pl = H.jours[j] || [], ouvert = pl.length > 0;
         return '<tr><td><label style="display:flex;gap:8px;align-items:center;font-weight:bold"><input type="checkbox" style="width:auto"' + (ouvert ? " checked" : "") + disH + ' onchange="cfJour(' + j + ',this.checked)">' + nom + "</label></td><td>" +
           (ouvert ? '<div class="plages">' + pl.map((p, k) => '<span class="plage"><input type="time" step="900" value="' + p[0] + '"' + disH + ' onchange="cfPlage(' + j + "," + k + ',0,this.value)"> – <input type="time" step="900" value="' + p[1] + '"' + disH + ' onchange="cfPlage(' + j + "," + k + ',1,this.value)">' + (okH ? sup("cfSupPlage(" + j + "," + k + ")", "Retirer cette plage") : "") + "</span>").join("") + (okH ? '<button class="mini" onclick="cfAjPlage(' + j + ')">+ Plage</button>' : "") + "</div>" : '<span class="mesures">Fermé</span>') + "</td></tr>";
-      }).join("") + "</table></div>" + '<p class="mesures">Pas des créneaux : écart entre deux créneaux proposés ; c\'est aussi la durée des types de consultation non réglés ci-dessous.</p></section>' + dureesTypes(c);
+      }).join("") + "</table></div>" + '<p class="mesures">Pas des créneaux : écart entre deux créneaux proposés ; c\'est aussi la durée des types de consultation sans durée (Dossier patient › <a href="#parametres/types" onclick="event.preventDefault();cfOnglet(\'types\')">Types de consultation</a>).</p></section>';
   },
   fermetures(c) {
     const esc = A.esc, abs = ED.abs.map((a, i) => ({ a, i })).sort((p, q) => String(p.a.du).localeCompare(String(q.a.du)));
@@ -184,12 +186,25 @@ const RUBRIQUES = {
   },
   vigilances(c) { return htmlVigilances(c.ok); },
   // Rendez-vous créés d'office (12/10/2026, demande de Dr Bentahila) : le médecin décoche ceux qu'il ne veut pas ; ceux déjà créés restent
-  rdvauto(c) {
-    const R = ED.reg.auto, cas = (k, lib, sous) => '<label class="chk" style="display:block;margin:8px 0 2px"><input type="checkbox"' + (R[k] ? " checked" : "") + c.disE + ' onchange="cfRegB(\'auto\',\'' + k + '\',this.checked)"> <b>' + lib + '</b></label><p class="mesures" style="margin:0 0 6px 26px">' + sous + "</p>";
-    return '<section class="carte">' + titre("agenda", "Rendez-vous créés automatiquement") + '<p class="sous">Décochez ce que vous ne voulez pas voir créé d\'office. Les rendez-vous déjà créés restent (à supprimer un par un si besoin).</p>' +
-      cas("rtHebdo", "Consultations hebdomadaires en cours de radiothérapie", "Le jour et l\'heure choisis dans la prescription de radiothérapie, de la 1re séance à la fin.") +
-      cas("rtFin", "Consultation de fin de radiothérapie", "À la date de fin (réelle, sinon calculée) ; déplaçable comme toute consultation.") +
-      '<p class="mesures">Les séances de chimiothérapie suivent le protocole de la ligne (ce ne sont pas des rendez-vous créés ici) ; les tâches automatiques se règlent dans « Tâches ».</p></section>';
+  // 3.13 (12/10/2026) : référentiel unique des types de consultation. Tout est relié à cette liste : prise de rendez-vous (« Pris en
+  // rendez-vous »), journal des consultations (tous les types), durée (agenda, créneaux), formulaire de consultation, rendez-vous créés
+  // d'office, message WhatsApp, Google Agenda (ce que chacun y voit), Activités et rémunérations (prix de chaque type par lieu), bilan.
+  types(c) {
+    const esc = A.esc, L = ED.typesC, FO = formulairesDe(ED.consultation), du = ED.durees || {}, ok = c.ok, dis = ok ? "" : " disabled", R = ED.reg.auto;
+    const rg = (t, i) => { if (((t.k === "rtc" || t.k === "rtf") && A.module && !A.module("rt")) || (t.k === "cchimio" && A.module && !A.module("chimio"))) return ""; // module absent de la formule
+      const st = estStd(t.k), au = AUTO_TY[t.k], dk = cleDuree(t.k), f = formDuType(ED.consultation, t.nom, FO);
+      return '<div class="ty-l"><span class="fl"><button class="clair petit" aria-label="Monter" onclick="cfTyBouger(' + i + ',-1)"' + (i && ok ? "" : " disabled") + '>↑</button><button class="clair petit" aria-label="Descendre" onclick="cfTyBouger(' + i + ',1)"' + (i < L.length - 1 && ok ? "" : " disabled") + ">↓</button></span>" +
+        '<input class="ty-n" value="' + esc(t.nom) + '" aria-label="Nom du type"' + dis + ' onchange="cfTy(' + i + ',\'nom\',this.value)">' +
+        '<label class="chk ty-c"><input type="checkbox"' + (t.rdv ? " checked" : "") + (ok && t.k !== "cchimio" ? "" : " disabled") + ' onchange="cfTy(' + i + ',\'rdv\',this.checked)"> <span class="ty-lb">Pris en rendez-vous</span></label>' +
+        '<label class="ty-s"><span class="ty-lb">Durée</span> <select aria-label="Durée : ' + esc(t.nom) + '"' + c.disE + ' onchange="cfDureeT(\'' + esc(dk) + '\',this.value)"><option value="">pas du lieu</option>' + [10, 15, 20, 30, 40, 45, 60, 90, 120].map((m) => '<option value="' + m + '"' + (du[dk] === m ? " selected" : "") + ">" + m + " min</option>").join("") + "</select></label>" +
+        '<label class="ty-s"><span class="ty-lb">Formulaire</span> <select aria-label="Formulaire : ' + esc(t.nom) + '"' + dis + ' onchange="cfTy(' + i + ',\'form\',this.value)">' + FO.map((z) => '<option value="' + esc(z.id) + '"' + (z.id === f ? " selected" : "") + ">" + esc(z.nom) + "</option>").join("") + "</select></label>" +
+        (au ? '<label class="chk ty-c" title="Créé d\'office ' + au[1] + '"><input type="checkbox"' + (R[au[0]] ? " checked" : "") + dis + ' onchange="cfRegB(\'auto\',\'' + au[0] + '\',this.checked);cfTyMaj()"> Créé d\'office (' + au[1] + ")</label>" : t.k === "cchimio" ? '<span class="mesures ty-c">Avec la cure de chimiothérapie</span>' : '<span class="ty-c"></span>') +
+        (st || !ok ? "<span></span>" : sup("cfTySup(" + i + ")", "Retirer « " + esc(t.nom) + " »")) + "</div>"; };
+    return '<section class="carte">' + titre("agenda", "Types de consultation", L.length) +
+      '<p class="sous">Une seule liste pour tout Onco360 : prise de rendez-vous, journal des consultations, durée dans l\'agenda, formulaire, message WhatsApp, Google Agenda et prix (Activités et rémunérations). Un type ajouté ou renommé l\'est partout, y compris dans les rendez-vous et consultations déjà enregistrés.</p>' +
+      '<div class="ty-b"><div class="ty-l ty-h" aria-hidden="true"><span></span><span>Type</span><span>Rendez-vous</span><span>Durée</span><span>Formulaire</span><span>Créé d\'office</span><span></span></div>' + L.map(rg).join("") + "</div>" +
+      (ok ? '<button class="bt clair petit" style="margin-top:10px" onclick="cfTyAj()">' + A.ic("plus") + "Ajouter un type de consultation</button>" : "") +
+      '<p class="mesures" style="margin-top:10px">Pas pris en rendez-vous : proposé seulement dans le journal des consultations (ex. RCP, note du secrétariat). Prix de chaque type par lieu : <a href="#parametres/activites" onclick="event.preventDefault();cfOnglet(\'activites\')">Activités et rémunérations</a> (sans prix = non facturé dans ce lieu). Message de rappel : <a href="#parametres/whatsapp" onclick="event.preventDefault();cfOnglet(\'whatsapp\')">WhatsApp</a>.</p></section>';
   },
   audit() { return '<div id="cfAudit"></div>'; },
   // Export complet du cabinet (étape 1.6, 11/10/2026) : médecin titulaire ; préparé par le serveur (exporterCabinet), téléchargé ici
@@ -295,23 +310,24 @@ const RUBRIQUES = {
     return '<section class="carte edf">' + titre("profil", "Fiche patient") + '<p class="sous">Ordre et présence des champs ; ✎ = nom, type, liste, partie, impression ; « en-tête » = affiché sous le nom du patient. Un champ décoché est caché, sa valeur est gardée.</p>' + FE.html() + "</section>";
   },
   consultation() {
-    if (!CE) CE = editeurFiche(ED.consultation, "cabinet", true);
-    return '<section class="carte edf">' + titre("stetho", "Formulaire de consultation") + '<p class="sous">Un onglet par formulaire (ses champs, dans l\'ordre) ; en bas, le formulaire utilisé par chaque type de consultation. ✎ sur « Consultation » = liste des types.</p>' + CE.html() + "</section>";
+    if (!CE) CE = editeurFiche(ED.consultation, "cabinet", true, { types: () => ED.typesC.map((t) => t.nom) }); // 3.13 : types du référentiel
+    return '<section class="carte edf">' + titre("stetho", "Formulaire de consultation") + '<p class="sous">Un onglet par formulaire (ses champs, dans l\'ordre) ; en bas, le formulaire utilisé par chaque type de consultation (types : Dossier patient › Types de consultation).</p>' + CE.html() + "</section>";
   },
 };
-// Durée par type de consultation (AG2, 11/10/2026) : la même dans tous les lieux ; vide = pas des créneaux du lieu
-const typesConsult = () => {
-  const vus = {}, l = [];
-  [""].concat((D().etabsTous || D().etabs || []).map((e) => e.code)).forEach((e) => (A.typesRdv ? A.typesRdv(e) : []).forEach((o) => { if (o.v !== "s:Hospitalisation" && !vus[o.v]) { vus[o.v] = 1; l.push(o); } }));
-  if (!vus["s:En cours de RT"] && A.module && A.module("rt")) l.push({ v: "s:En cours de RT", lib: "Consultation en cours de radiothérapie" });
-  return l;
+// 3.13 : référentiel des types (nom : ancien nom gardé pour les consultations déjà enregistrées ; formulaire suivi avec le nom)
+window.cfTy = (i, f, v) => { const t = ED.typesC[i]; if (!t) return;
+  if (f === "nom") { const n = String(v || "").replace(/\s+/g, " ").trim(); if (!n) { pageConfiguration(); return; }
+    if (ED.typesC.some((z, j) => j !== i && z.nom.toLowerCase() === n.toLowerCase())) { A.toast("Un autre type porte déjà ce nom."); pageConfiguration(); return; }
+    const tf = ED.consultation.typesForm = ED.consultation.typesForm || {}, f0 = formDuType(ED.consultation, t.nom); ED.typesC[i] = renommer(t, n); tf[n] = f0; delete tf[t.nom]; modif(true); return; }
+  if (f === "rdv") { t.rdv = !!v; modif(); return; }
+  if (f === "form") { (ED.consultation.typesForm = ED.consultation.typesForm || {})[t.nom] = v; modif(); return; }
 };
-function dureesTypes(c) {
-  const esc = A.esc, L = typesConsult(), du = ED.durees || {};
-  return '<section class="carte">' + titre("horloge", "Durée par type de consultation") + '<p class="sous">La même dans tous les lieux. Elle donne la hauteur du rendez-vous dans l\'agenda, les créneaux libres et les doubles réservations ; elle est notée sur chaque rendez-vous à son enregistrement.</p>' +
-    '<div class="tableau"><table class="tcures"><tr><th>Type</th><th style="width:220px">Durée</th></tr>' + L.map((o) => '<tr><td>' + esc(o.lib) + '</td><td><select aria-label="Durée : ' + esc(o.lib) + '"' + c.disE + ' onchange="cfDureeT(\'' + esc(o.v) + '\',this.value)"><option value="">Pas des créneaux du lieu</option>' +
-      [10, 15, 20, 30, 40, 45, 60, 90, 120].map((m) => '<option value="' + m + '"' + (du[o.v] === m ? " selected" : "") + ">" + m + " min</option>").join("") + "</select></td></tr>").join("") + "</table></div></section>";
-}
+window.cfTyMaj = () => modif();
+window.cfTyBouger = (i, d) => { const L = ED.typesC, j = i + d; if (j < 0 || j >= L.length) return; [L[i], L[j]] = [L[j], L[i]]; modif(true); };
+window.cfTyAj = () => { const nom = prompt("Nom du nouveau type de consultation (ex. Deuxième avis) :"); if (!nom || !nom.trim()) return; const n = nom.replace(/\s+/g, " ").trim().slice(0, 80);
+  if (ED.typesC.some((z) => z.nom.toLowerCase() === n.toLowerCase())) { A.toast("Ce type existe déjà."); return; }
+  ED.typesC.push({ k: nouvelleCle(ED.typesC, n), nom: n, rdv: true, anciens: [] }); modif(true); };
+window.cfTySup = (i) => { const t = ED.typesC[i]; if (!t || estStd(t.k)) return; if (!confirm("Retirer le type « " + t.nom + " » ?\nIl ne sera plus proposé ; les rendez-vous et consultations déjà enregistrés gardent leur nom.")) return; ED.typesC.splice(i, 1); modif(true); };
 window.cfDureeT = (k, v) => { ED.durees = ED.durees || {}; if (+v) ED.durees[k] = +v; else delete ED.durees[k]; modif(); };
 const VARS_WA = [["prenom", "Prénom"], ["nom", "Nom complet"], ["jour", "mardi 14 octobre"], ["heure", "« à 10h00 » (vide sans heure)"], ["lieu", "Établissement"], ["adresse", "Adresse"], ["medecin", "Nom du médecin"]];
 let WAO = null; // message WhatsApp ouvert
@@ -326,6 +342,7 @@ export function pageConfiguration(arg) {
   if (arg === "acces") { location.replace("#profil/acces"); return; } // ancien lien : l'onglet Accès est dans Mon compte
   // Onglets du titulaire (Accès, Journal d'audit) connus un instant plus tard : l'onglet demandé par le lien est ouvert ensuite
   if (TIT === null) { TIT = false; titulaireConnecte().then((v) => { TIT = v; const dem = (location.hash.match(/^#parametres\/([^/?]+)/) || [])[1]; if (v && location.hash.startsWith("#parametres") && !MOD) pageConfiguration(dem); }).catch(() => {}); }
+  if (arg === "rdvauto") arg = "types"; // 3.13 : rendez-vous créés d'office réglés avec leur type
   if (arg && ONGLETS().some((o) => o[0] === arg)) ONG = arg;
   if (!ONGLETS().some((o) => o[0] === ONG)) ONG = (ONGLETS()[0] || ["horaires"])[0]; // 1re rubrique présente (réglage du cabinet)
   DERN[famDe(ONG)] = ONG;
@@ -338,7 +355,7 @@ export function pageConfiguration(arg) {
   if (TDOC === null) { TDOC = []; typesDocuments().then((L) => { TDOC = L.slice(); relire(); }).catch(() => {}); }
   if (!ED || !MOD) {
     ED = { horaires: copie(horaires()), horairesEtab: copie(D().cal.horairesEtab || {}), durees: copie(D().cal.durees || {}), abs: copie(D().cal.abs || []), feries: copie(D().cal.feries || []), wa: Object.assign({}, D().wa || {}), reg: reglages(), listes: { diag: listeDiag().slice(), stade: listeTum("stade"), grade: listeTum("grade"), mut: listeMut(), cor: listeCor() }, listesOrig: { diag: listeDiag().slice(), stade: listeTum("stade"), grade: listeTum("grade"), mut: listeMut(), cor: listeCor() }, coul: Object.assign({}, COULEURS0, COUL), tdoc: TDOC.slice(), ttache: TTA.slice(), auto: JSON.parse(JSON.stringify(AUTO)), rcp: configRcp(),
-      accueil: accueilCab(), fiche: ficheCab(), consultation: consultCab() };
+      accueil: accueilCab(), fiche: ficheCab(), consultation: consultCab(), typesC: copie(A.typesC ? A.typesC() : []) };
     FE = null; CE = null;
   }
   const ok = A.peut("parametres"), dis = ok ? "" : " disabled";
@@ -409,14 +426,13 @@ window.cfAutoAj = () => {
 // utilisateurs/{uid}.agendaFiltre = { exclus: [clés] } ; mêmes clés que cleFiltre (functions/logique.js). Les catégories suivent
 // les types de consultation (activités des Paramètres) et les types de tâches ajoutés au fur et à mesure ; nouvelles = cochées.
 function categoriesAgenda() {
-  const std = ["annonce", "suivi", "controle", "hospit", "seance", "cchimio", "rt"], acts = {};
-  const ajout = (t, lib) => { lib = String(lib || "").replace(/\s*\(par jour ouvré\)\s*$/i, "").trim(); if (lib && std.indexOf(t) < 0) acts[lib.toLowerCase()] = acts[lib.toLowerCase()] || lib; };
-  const T = D().tarifs; if (T && T.etablissements) Object.values(T.etablissements).forEach((e) => (e.activites || []).forEach((a) => ajout(a.type, a.libelle)));
-  if (D().activites) Object.values(D().activites).forEach((l) => (l || []).forEach((a) => ajout(a.t, a.lib)));
+  // 3.13 (12/10/2026) : les types de consultation du référentiel (pris en rendez-vous, ou créés d'office) ; clés d'avant (rdv:annonce…,
+  // rdv:act:<nom en minuscules> pour un type ajouté) : les choix déjà faits sont gardés
+  const STDF = { annonce: "rdv:annonce", suivi: "rdv:suivi", controle: "rdv:controle", hospit: "rdv:hospit", rtc: "rdv:rtc", rtf: "rdv:rtfin" };
+  const typesC = (A.typesC ? A.typesC() : []).filter((t) => t.k !== "cchimio" && (t.rdv || STDF[t.k]));
   const types = (TTA && TTA.length ? TTA : TYPES_TACHES0).concat([TYPE_RT]);
   return [
-    ["Consultations et hospitalisations", [["rdv:annonce", "Consultation d'annonce"], ["rdv:suivi", "Consultation de suivi"], ["rdv:controle", "Consultation de contrôle"], ["rdv:rtc", "Consultation en cours de radiothérapie"], ["rdv:rtfin", "Consultation de fin de radiothérapie"], ["rdv:hospit", "Hospitalisation"]]
-      .concat(Object.keys(acts).sort().map((k) => ["rdv:act:" + k, acts[k]]))],
+    ["Consultations et hospitalisations", typesC.map((t) => [STDF[t.k] || "rdv:act:" + t.nom.toLowerCase(), t.nom])],
     ["Chimiothérapie", [["chimio:cure", "Cures (J1)"], ["chimio:seance", "Séances J8, J15…"]]],
     ["Radiothérapie", [["rt:scan", "Scanner de centrage"], ["rt:deb", "1re séance"], ["rt:fin", "Fin de radiothérapie prévue"]]],
     ["Tâches dont vous êtes responsable (avec une échéance)", types.map((t) => ["tache:" + t, t]).concat([["tache:", "Tâches sans type"]])],
@@ -568,6 +584,10 @@ window.cfEnregistrer = async () => {
     if ((tout || secretariat()) && JSON.stringify(wa) !== JSON.stringify(D().wa || {})) { await setDoc(doc(db, "espaces", A.ESPACE, "parametres", "whatsapp"), { data: JSON.stringify(wa) }); D().wa = wa; }
     const coul = {}; Object.keys(COULEURS0).forEach((k) => { if (ED.coul[k] != null && ED.coul[k] !== COULEURS0[k]) coul[k] = ED.coul[k]; });
     if (tout && JSON.stringify(coul) !== JSON.stringify(COUL || {})) { await setDoc(doc(db, "espaces", A.ESPACE, "parametres", "couleursAgenda"), { data: JSON.stringify(coul) }); COUL = coul; }
+    // 3.13 : référentiel des types de consultation (avant le formulaire de consultation : noms à jour)
+    if (tout && !A.D().bib && JSON.stringify(aEnregistrer(ED.typesC)) !== JSON.stringify(aEnregistrer(A.typesC ? A.typesC() : []))) {
+      const enr = aEnregistrer(ED.typesC); await setDoc(doc(db, "espaces", A.ESPACE, "parametres", "typesConsult"), { data: JSON.stringify(enr), majPar: D().u.uid, maj: new Date().toISOString() });
+      if (window.majTypesC) window.majTypesC(enr); }
     if (tdoc.length && JSON.stringify(tdoc) !== JSON.stringify(TDOC || [])) { await enregistrerTypes(tdoc); TDOC = tdoc.slice(); }
     if (JSON.stringify(ED.reg) !== JSON.stringify(reglages())) await enregistrerReglages(ED.reg);
     if (JSON.stringify(listes) !== JSON.stringify({ diag: listeDiag(), mut: listeMut(), cor: listeCor() })) {

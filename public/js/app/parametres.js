@@ -13,6 +13,15 @@ const num = (v) => { const x = parseFloat(String(v == null ? "" : v).replace(/[\
 const mil = (v) => (v == null || v === "" || isNaN(v) ? "" : Number(v).toLocaleString("fr-FR", { maximumFractionDigits: 2 }).replace(/[\u202f\u00a0]/g, " "));
 const STD = ACTIVITES.map((a) => a[0]);
 
+// 3.13 (12/10/2026) : chaque type de consultation du référentiel (pris en rendez-vous, ou consultation de chimiothérapie) a sa ligne dans
+// chaque lieu, dans l'ordre du référentiel ; absent de la grille = ligne vide « non facturé ici » (gardée seulement si un prix est saisi) ;
+// puis les autres activités (séance de chimiothérapie, radiothérapie, anciennes activités)
+const typesGrille = () => (A.typesC ? A.typesC() : []).filter((t) => (t.rdv || t.k === "cchimio") && t.k !== "rtc" && t.k !== "rtf");
+function lignesGrille(E) {
+  const TC = typesGrille(); TC.forEach((t) => { if (!E.activites.some((a) => a.type === t.k)) E.activites.push({ type: t.k, libelle: t.nom, historique: [], _v: 1 }); });
+  const rang = (a) => { const j = TC.findIndex((t) => t.k === a.type); return j < 0 ? 900 + (a.type === "seance" ? 0 : a.type === "rt" ? 1 : 2) : j; };
+  return E.activites.map((a, i) => [a, i, TC.find((t) => t.k === a.type) || null]).sort((x, y) => rang(x[0]) - rang(y[0]) || x[1] - y[1]);
+}
 export function pageParametres() {
   const esc = A.esc;
   if (!A.peut("finances") || !D().tarifs) { A.$("page").innerHTML = A.enteteParametres() + '<section class="carte"><p class="sous">Les tarifs et rémunérations sont réservés au droit « finances ».</p></section>'; return; }
@@ -30,15 +39,16 @@ export function pageParametres() {
   else {
     h += '<p style="margin:4px 0 10px"><b>' + esc(nomE) + '</b></p><div class="form" style="grid-template-columns:minmax(0,240px);margin-bottom:10px"><div><label for="paEff">Date d\'effet des modifications</label><input id="paEff" type="date" value="' + esc(EFFET) + '" onchange="paEffet(this.value)"></div></div>' +
       '<div class="tableau"><table class="tcures"><tr><th>Activité</th><th>Brut (DH)</th><th>Rétrocession %</th><th>Impôt %</th><th>Net (DH)</th><th>En vigueur depuis</th></tr>' +
-      E.activites.map((a, i) => {
+      lignesGrille(E).map(([a, i, ty]) => {
         const v = valeurAu(a, EFFET) || {}, rt = a.type === "rt", n = rt ? null : net(v.brut || 0, v), hist = (a.historique || []).length;
-        return '<tr><td><div class="actnom"><input value="' + esc(a.libelle) + '" aria-label="Nom de l\'activité" onchange="paLib(' + i + ',this.value)">' + (a.type !== "rt" ? '<button class="mini rouge" title="Retirer cette activité" onclick="paSupAct(' + i + ')">✕</button>' : "") + "</div>" + (hist > 1 ? '<div class="mesures"><a href="#" onclick="paHist(' + i + ');return false">Historique (' + hist + ")</a></div>" : "") + "</td>" +
+        // 3.13 : type de consultation du référentiel = son nom (réglé dans Dossier patient › Types de consultation), sans ✕ (sans prix = non facturé ici)
+        return '<tr><td><div class="actnom">' + (ty ? "<b>" + esc(ty.nom) + "</b>" + (a._v ? ' <span class="mesures">non facturé ici</span>' : "") : '<input value="' + esc(a.libelle) + '" aria-label="Nom de l\'activité" onchange="paLib(' + i + ',this.value)">' + (a.type !== "rt" && a.type !== "seance" ? '<button class="mini rouge" title="Retirer cette activité" onclick="paSupAct(' + i + ')">✕</button>' : "")) + "</div>" + (hist > 1 ? '<div class="mesures"><a href="#" onclick="paHist(' + i + ');return false">Historique (' + hist + ")</a></div>" : "") + "</td>" +
           "<td>" + (rt ? '<span class="mesures">selon l\'acte</span>' : '<input class="mt" inputmode="decimal" style="max-width:120px" value="' + esc(mil(v.brut)) + '" onchange="paVal(' + i + ',\'brut\',this.value)">') + "</td>" +
           '<td><input inputmode="decimal" style="max-width:80px" value="' + esc(v.retro == null ? 0 : v.retro) + '" onchange="paVal(' + i + ',\'retro\',this.value)"></td><td><input inputmode="decimal" style="max-width:80px" value="' + esc(v.impot == null ? 0 : v.impot) + '" onchange="paVal(' + i + ',\'impot\',this.value)"></td>' +
           '<td class="calc">' + (rt ? "—" : fr(n)) + "</td>" +
           "<td>" + (v.depuis && v.depuis > "2000-01-01" ? A.dfrA(v.depuis) : "Origine") + "</td></tr>";
       }).join("") + "</table></div>" +
-      '<div class="actr" style="justify-content:flex-start;margin-top:8px"><button class="bt clair petit" onclick="paNouvAct()">' + A.ic("plus") + 'Ajouter une activité</button><span class="mesures">Le nom est modifiable directement dans le tableau. Chaque consultation apparaît dans la liste des rendez-vous des patients de ' + esc(ETAB) + ".</span></div>";
+      '<div class="actr" style="justify-content:flex-start;margin-top:8px"><button class="bt clair petit" onclick="cfOnglet(\'types\')">' + A.ic("plus") + 'Ajouter un type de consultation</button><span class="mesures">Les types de consultation (nom, rendez-vous, durée, formulaire) se règlent dans Dossier patient › Types de consultation ; ici, leur prix dans chaque lieu (sans prix = non facturé ici).</span></div>';
   }
   h += "</section>";
   h += '<section class="carte" data-fn="rt.tarifs"><h3><span class="ic">☢️</span>Actes de radiothérapie</h3><p class="sous">Prix proposé automatiquement à la prescription ; la part du médecin suit la rétrocession et l\'impôt de la ligne « Radiothérapie » de chaque établissement.</p>' +
@@ -54,6 +64,7 @@ window.paEffet = (v) => { EFFET = v || D().t; pageParametres(); };
 // Modifier une valeur : nouvelle entrée datée (ou mise à jour de l'entrée de même date)
 window.paVal = (i, f, v) => {
   const a = ED.etablissements[ETAB].activites[i], cur = valeurAu(a, EFFET) || { depuis: EFFET, brut: null, retro: 0, impot: 0 };
+  if (a._v) delete a._v; // ligne vide : devient une activité de ce lieu, à partir de la date d'effet
   let e = (a.historique || []).find((x) => x.depuis === EFFET);
   if (!e) { e = { depuis: EFFET, brut: cur.brut, retro: cur.retro, impot: cur.impot }; (a.historique = a.historique || []).push(e); a.historique.sort((p, q) => p.depuis.localeCompare(q.depuis)); }
   e[f] = num(v) == null ? (f === "brut" ? null : 0) : num(v); modif(true);
@@ -101,6 +112,7 @@ window.paEnregistrer = async () => {
   if (ED.actesRT.some((a) => !a.nom)) { A.toast("Un acte de radiothérapie n'a pas de nom."); return; }
   const b = A.$("paOk"); A.occupe(b, true);
   try {
+    Object.values(ED.etablissements).forEach((e) => { e.activites = (e.activites || []).filter((a) => !a._v); }); // lignes vides : non enregistrées
     await setDoc(doc(db, "espaces", A.ESPACE, "finances", "tarifs"), { data: JSON.stringify(ED) }, { merge: true });
     D().tarifs = JSON.parse(JSON.stringify(ED)); MOD = false; A.publierTarifsC(); // tarifs des consultations lisibles par la secrétaire
     // Liste des activités (noms seulement, sans montant) lisible par toute l'équipe : types de rendez-vous proposés

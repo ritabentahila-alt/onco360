@@ -10,7 +10,7 @@ export function evtsAgenda(P, ctx) {
   const t = ctx.aujourdhui, out = [], nm = P.nom || (P.nomF || "").toUpperCase() + " " + (P.prenom || ""), pid = P.id, hop = P.hop ? " (" + P.hop + ")" : "";
   (P.rdvs || []).forEach((r) => {
     if ((r.st || "prevu") !== "prevu" || !r.d) return; const hs = typeRdv(r.type) === "hospit"; if ((hs && r.f ? r.f : r.d) < t) return;
-    out.push({ k: pid + "|r|" + (r.id || r.d), t: (hs ? "" : "🩺 ") + nm + " – " + (hs ? "Hospitalisation" : libRdv(r)) + hop, x: [P.diag, P.tel ? "Tél. " + P.tel : "", r.n].filter(Boolean).join("\n"), d: r.d, h: hs ? "" : r.h || "", f: hs ? r.f || "" : "", ...(!hs && +r.du ? { dur: +r.du } : {}), ...(r.med ? { m: r.med } : {}) }); // dur : durée notée (AG2) ; m : médecin (AG4)
+    out.push({ k: pid + "|r|" + (r.id || r.d), t: (hs ? "" : "🩺 ") + nm + " – " + (hs ? "Hospitalisation" : libRdv(r)) + hop, x: [P.diag, P.tel ? "Tél. " + P.tel : "", r.n].filter(Boolean).join("\n"), d: r.d, h: hs ? "" : r.h || "", f: hs ? r.f || "" : "", ...(!hs && +r.du ? { dur: +r.du } : {}), ...(r.med ? { m: r.med } : {}), tk: r.type === "En cours de RT" ? "rtc" : r.type === "Fin de radiothérapie" ? "rtf" : r.act ? "act" : typeRdv(r.type) }); // dur : durée notée (AG2) ; m : médecin (AG4) ; tk : type (3.13, filtre et couleur sans dépendre du nom)
   });
   (P.lignes || []).forEach((L, i) => {
     if (L.arret) return; const p = protocoleDe(L, ctx.bib);

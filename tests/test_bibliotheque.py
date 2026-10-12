@@ -27,12 +27,13 @@ async def main():
         ok(not any(k.startswith(CAB + 'bibliotheques/') and k not in S for k in fs), 'rien d\'écrit dans le cabinet du Dr Bentahila')
         await pg.evaluate("location.hash='parametres/bibliotheques'"); await pg.wait_for_timeout(1000); tp = await pg.inner_text('#page')
         ok('Documentation' in tp and 'Médicaments' in tp, 'Paramètres › Bibliothèques : médicaments… et documentation')
-        ong = await pg.evaluate("[...document.querySelectorAll('.ag-vues button')].map(b=>b.innerText.trim())")
-        ok(len(ong) == 12 and not any(x in ' '.join(ong) for x in ['Lieux', 'Accès', 'Journal']) and any('Tâches' in o for o in ong) and any('RCP' in o for o in ong), 'Paramètres : tous les paramètres de base (12 onglets), sans lieux, accès ni journal ' + str(len(ong)))
+        # Paramètres en familles (11/10/2026) : toutes les rubriques, famille par famille
+        ong = await pg.evaluate("(async()=>{const r=[];for(const f of [...document.querySelectorAll('.cf-fam button')].map(b=>b.getAttribute('onclick').match(/'(\\w+)'/)[1])){cfFamille(f);await new Promise(z=>setTimeout(z,150));const s=[...document.querySelectorAll('.cf-sous button')].map(b=>b.innerText.trim());r.push(...(s.length?s:[document.querySelector('.cf-fam button.on').innerText.trim()]))}return r})()")
+        ok(len(ong) >= 13 and not any(x in ' '.join(ong) for x in ['Lieux', 'Accès', 'Journal']) and any('Tâches' in o for o in ong) and any('RCP' in o for o in ong), 'Paramètres : tous les paramètres de base, sans lieux, accès ni journal ' + str(ong))
         await pg.evaluate("location.hash='parametres/couleurs'"); await pg.wait_for_timeout(800)
         ok('Lier mon Google Agenda' not in await pg.inner_text('#page') and 'Couleurs' in await pg.inner_text('#page'), 'Google Agenda : les couleurs, sans liaison personnelle')
         await pg.evaluate("location.hash='parametres/bibliotheques'"); await pg.wait_for_timeout(800)
-        await pg.click('text=Fiches PDF à remettre'); await pg.wait_for_timeout(800); tw = await pg.inner_text('#fenetre')
+        await pg.click('text=Fiches PDF remises aux patients'); await pg.wait_for_timeout(800); tw = await pg.inner_text('#fenetre')
         ok('à remettre aux patients' in tw and 'Ajouter un PDF' in tw and 'Remettre' not in tw.replace('à remettre', ''), 'documentation gérée sans patient (ajouter, sans « Remettre »)')
         await pg.evaluate("fermerFenetre()")
         for h in ['patients', 'agenda', 'bilan', 'taches', 'dossier/x']:

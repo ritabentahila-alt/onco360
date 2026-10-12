@@ -60,7 +60,8 @@ export function editeurFiche(FI, mode, cs, o) {
       '<button class="petit" id="' + P + 'Ok">' + (nouv ? "Ajouter le champ" : "Enregistrer le champ") + "</button>" + (!nouv && LIB[k] ? '<button class="clair petit" id="' + P + 'Orig">Nom par défaut</button>' : "") + '<button class="clair petit" id="' + P + 'Ann">Annuler</button></div></div>'; };
   const ligne = (k, i) => { const c = LIB[k], a = AJ()[k]; if (!c && !a) return "";
     const nomA = c ? nomDe(k) : a.lib;
-    const info = c ? (c[4] ? "liste de " + ((FI.choixs || {})[k] || c[4]).length + " choix (✎)" : "")
+    const refT = cs && k === "type" && o.types && o.types().length; // 3.13 : types de consultation = référentiel (Paramètres › Dossier patient)
+    const info = c ? (refT ? o.types().length + " types : Dossier patient › Types de consultation" : c[4] ? "liste de " + ((FI.choixs || {})[k] || c[4]).length + " choix (✎)" : "")
       : !modifiable(a) && !cs ? (LISTES_P.indexOf(k) >= 0 ? "liste : Paramètres › Listes" : a.si ? "proposé selon la localisation" : a.type === "choix" ? "liste de " + (a.choix || []).length + " choix (✎)" : typeLib(a.type)) + (a.imprimer ? " · imprimé" : "")
       : (a.cs ? (a.cs === "rt" ? "RT hebdomadaire · " : "consultation d'oncologie · ") : "") + (mode === "cabinet" && a.cabinet ? "propre au cabinet · " : "") + typeLib(a.type) + (a.type === "nombre" && a.unite ? " (" + a.unite + ")" : "") + (a.type === "choix" && a.choix && a.choix.length ? " (" + a.choix.join(", ") + ")" : "") + (a.imprimer ? " · imprimé" : "") + (a.entete ? " · en-tête" : "");
     return '<div class="rg-l">' + fl(i) + '<span class="rg-t">' + esc(nomA) + ' <span class="m">' + esc(info) + "</span></span>" +
@@ -76,7 +77,7 @@ export function editeurFiche(FI, mode, cs, o) {
       '<div class="large" id="' + P + 'ChoixZ"' + (a.type === "choix" ? "" : ' style="display:none"') + '><label for="' + P + 'Choix">Choix possibles (un par ligne)</label><textarea id="' + P + 'Choix" rows="3">' + esc((a.choix || []).join("\n")) + "</textarea></div></div>" +
       '<div class="barre" style="margin-top:6px">' + (cs ? "" : caseC('id="' + P + 'Imp"', !!a.imprimer, "À imprimer (fiche chimio, courriers)") + caseC('id="' + P + 'Ent"', ED !== "nouveau" && FI.entetes && a.id in FI.entetes ? FI.entetes[a.id] : !!a.entete, "En tête du dossier")) + '<button class="petit" id="' + P + 'Ok">' + (ED === "nouveau" ? "Ajouter le champ" : "Enregistrer le champ") + '</button><button class="clair petit" id="' + P + 'Ann">Annuler</button></div></div>'; };
   const formLib = (k) => '<div class="ch-f"><div class="form"><div><label for="' + P + 'NomA">Nom affiché de « ' + esc(LIB[k][1]) + ' »</label><input id="' + P + 'NomA" value="' + esc(nomDe(k)) + '"></div>' +
-    (LIB[k][4] ? '<div class="large"><label for="' + P + 'Liste">Choix possibles (un par ligne)</label><textarea id="' + P + 'Liste" rows="5">' + esc(((FI.choixs || {})[k] || LIB[k][4]).join("\n")) + "</textarea></div>" : "") + "</div>" +
+    (LIB[k][4] && !(cs && k === "type" && o.types && o.types().length) ? '<div class="large"><label for="' + P + 'Liste">Choix possibles (un par ligne)</label><textarea id="' + P + 'Liste" rows="5">' + esc(((FI.choixs || {})[k] || LIB[k][4]).join("\n")) + "</textarea></div>" : "") + "</div>" +
     '<div class="barre" style="margin-top:6px"><button class="petit" id="' + P + 'LOk">Enregistrer le nom</button><button class="clair petit" id="' + P + 'LOrig">Nom par défaut</button><button class="clair petit" id="' + P + 'Ann">Annuler</button></div></div>';
   const formLibA = (k) => { const a = AJ()[k] || {}, ch = a.type === "choix" && LISTES_P.indexOf(k) < 0;
     return '<div class="ch-f"><div class="form"><div><label for="' + P + 'NomA">Nom affiché</label><input id="' + P + 'NomA" value="' + esc(a.lib || "") + '"></div>' +
@@ -91,7 +92,8 @@ export function editeurFiche(FI, mode, cs, o) {
   const barreForms = () => { const f = fSel();
     return '<div class="puces" role="tablist" aria-label="Formulaires">' + FO().map((z) => '<button type="button" role="tab" aria-selected="' + (z === f) + '" class="puce' + (z === f ? " on" : "") + '" data-cqf="' + esc(z.id) + '">' + esc(z.nom) + " (" + z.champs.length + ")</button>").join("") + '<button type="button" class="puce" id="' + P + 'NF">+ Nouveau formulaire</button></div>' +
       (f ? '<div class="barre" style="margin:8px 0"><label class="mesures" for="' + P + 'FNom">Nom</label><input id="' + P + 'FNom" value="' + esc(f.nom) + '" style="max-width:260px"><button class="clair petit" id="' + P + 'FDup">Dupliquer</button>' + (FO().length > 1 ? '<button class="clair petit" id="' + P + 'FSup" style="color:var(--rouge)">Supprimer</button>' : "") + "</div>" : ""); };
-  const typesCs = () => { const T = (FI.choixs || {}).type || CONSULT[0][4] || [], L = FO();
+  // 3.13 : types du référentiel (Paramètres › Dossier patient › Types de consultation) ; Administration : liste du formulaire
+  const typesCs = () => { const T = (o.types && o.types().length ? o.types() : (FI.choixs || {}).type || CONSULT[0][4] || []), L = FO();
     return '<h4 class="soustitre" style="margin:16px 0 4px">Formulaire de chaque type de consultation</h4><div class="rg-b">' + T.map((t) => { const v = formDuType(FI, t, L);
       return '<div class="rg-l"><span class="rg-t">' + esc(t) + '</span><select data-cqt="' + esc(t) + '" aria-label="Formulaire de « ' + esc(t) + ' »">' + L.map((f) => '<option value="' + esc(f.id) + '"' + (f.id === v ? " selected" : "") + ">" + esc(f.nom) + "</option>").join("") + "</select></div>"; }).join("") + "</div>" +
       (L.some((f) => f.id === "simple") ? '<div class="barre" style="margin-top:6px"><button class="clair petit" id="' + P + 'Simple">Tous les types : formulaire « Simple »</button></div>' : ""); };
@@ -148,7 +150,7 @@ export function editeurFiche(FI, mode, cs, o) {
       ED = null; refaire(); };
     q("[data-chs]").forEach((b) => { b.onclick = () => { const k = b.dataset.chs, a = FI.ajouts.find((z) => z.id === k); if (!confirm("Retirer le champ « " + (a && a.lib) + " » de la fiche ?\n(Les valeurs déjà saisies restent dans les dossiers.)")) return; FI.ajouts = FI.ajouts.filter((z) => z.id !== k); FI.ordre = FI.ordre.filter((z) => z !== k); delete FI.champs[k]; refaire(); }; });
     if ($(P + "Nouv")) $(P + "Nouv").onclick = () => { ED = "nouveau"; refaire(); };
-    if ($(P + "Simple")) $(P + "Simple").onclick = () => { if (cs) { FI.typesForm = FI.typesForm || {}; ((FI.choixs || {}).type || CONSULT[0][4] || []).forEach((t) => { FI.typesForm[t] = "simple"; }); refaire(); return; } FI.ajouts.forEach((a) => { FI.champs[a.id] = false; }); ["type", "d", "titre", "note"].forEach((k) => { FI.champs[k] = true; }); refaire(); };
+    if ($(P + "Simple")) $(P + "Simple").onclick = () => { if (cs) { FI.typesForm = FI.typesForm || {}; ((o.types && o.types().length ? o.types() : (FI.choixs || {}).type) || CONSULT[0][4] || []).forEach((t) => { FI.typesForm[t] = "simple"; }); refaire(); return; } FI.ajouts.forEach((a) => { FI.champs[a.id] = false; }); ["type", "d", "titre", "note"].forEach((k) => { FI.champs[k] = true; }); refaire(); };
     if ($(P + "Tout")) $(P + "Tout").onclick = () => { FI.ajouts.forEach((a) => { FI.champs[a.id] = true; }); refaire(); };
     // 3.12 : formulaires (onglets, nouveau, nom, dupliquer, supprimer), champs du formulaire, formulaire de chaque type
     if (cs) {
