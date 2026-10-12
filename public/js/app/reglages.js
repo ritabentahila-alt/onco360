@@ -13,9 +13,10 @@ export function installer(api) { A = api; }
 const D = () => A.D();
 
 export const REGLAGES0 = {
-  impression: { a5: [45, 28, 18], a4: [60, 35, 22], doc: [45, 35, 22], age: false, poids: false }, // âge, poids sous le nom sur les ordonnances (3.2 ; séparés le 12/10/2026)
+  impression: { a5: [45, 28, 18], a4: [60, 35, 22], doc: [45, 35, 22], age: false, poids: false, allergie: false }, // âge, poids sous le nom sur les ordonnances (3.2 ; séparés le 12/10/2026)
   whatsapp: { de: 1, a: 2 },
   alertes: { cure: 3, finTrait: 30 },
+  auto: { rtHebdo: true, rtFin: true }, // rendez-vous créés d'office (12/10/2026) : consultations hebdomadaires de RT, consultation de fin de RT
   salle: { orange: 20, rouge: 45, notifArrivee: true, notifRouge: true }, // + messages à l'écran (SA6, 11/10/2026) // salle d'attente : minutes d'attente avant l'orange, puis le rouge (08/10/2026)
 };
 const copie = (o) => JSON.parse(JSON.stringify(o));

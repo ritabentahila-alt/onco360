@@ -16,6 +16,7 @@ import { ORDOS_TYPES0 } from "../donnees/ordostypes.js";
 import { ANALYSES0, BILANS0 } from "../donnees/analyses.js";
 import { EXAMENS0 } from "../donnees/examens.js";
 import { COURRIERS0, CHAMPS_COURRIER } from "../donnees/courriers.js";
+import { COURRIERS_RT0, CHAMPS_RT, MODELES_RT0 } from "../donnees/modelesrt.js"; // documents de radiothérapie modifiables (12/10/2026)
 import * as ficheP from "./fichepatient.js"; // champs ajoutés de la fiche, insérables dans les courriers (10/10/2026)
 import { age, accordMedecin } from "../moteur/outils.js";
 import { installer as installerDocumentation } from "./documentation.js"; // bouton « Doc. » (08/10/2026)
@@ -52,10 +53,15 @@ const DEPART = {
 };
 const refListe = (n) => doc(db, "espaces", A.ESPACE, "bibliotheques", n);
 const CACHE = {};
+// Modèles des documents de radiothérapie (pli, compte rendu, calendrier) : ajoutés à la liste des courriers tant que le cabinet ne les a pas
+// modifiés (defaut : modèle d'origine, non enregistré) ; modeleRT(type) = celui que documents.js remplit
+const ajouterRT = (L) => { COURRIERS_RT0.forEach((m) => { if (!L.some((z) => z.id === m.id)) L.push(Object.assign({ defaut: true }, m)); }); return L; };
+export async function modeleRT(type) { const L = await lireListe("courriers"), m = L.find((z) => z.id === "rt-" + type); return m && m.html ? m.html : MODELES_RT0[type]; }
 async function lireListe(n) {
   if (CACHE[n]) return CACHE[n];
   const s = await getDoc(refListe(n)).catch(() => null);
   const L = s && s.exists() ? JSON.parse(s.data().data || "[]") : DEPART[n]().sort(alpha);
+  if (n === "courriers") ajouterRT(L);
   return (CACHE[n] = reparer(L));
 }
 const reparer = (L) => { L.forEach((o) => { if (Array.isArray(o.items) && o.items.every((i) => typeof i === "string")) o.items = recoller(o.items); }); return L; };
@@ -68,6 +74,7 @@ async function modifierListe(n, fn) {
   const s = await getDoc(refListe(n)).catch(() => null), L = s && s.exists() ? JSON.parse(s.data().data || "[]") : DEPART[n]();
   reparer(L); fn(L); L.sort(alpha);
   await setDoc(refListe(n), { data: JSON.stringify(L), maj: serverTimestamp(), majPar: D().u.uid });
+  if (n === "courriers") ajouterRT(L);
   return (CACHE[n] = L);
 }
 // Bibliothèque de référence (10/10/2026) : les listes encore « de départ » y sont enregistrées telles quelles, pour être mises de
@@ -465,12 +472,13 @@ function vueCourriers() {
 const texteModele = (html) => { const d = document.createElement("div"); d.innerHTML = nettoyer(html); d.querySelectorAll(".or-ti").forEach((p) => p.remove()); d.querySelectorAll("p, br").forEach((p) => p.after(" ")); return d.textContent.replace(/\s+/g, " ").trim(); };
 function listeCourriers() {
   const mots = sansAcc(CQ.q).split(/\s+/).filter(Boolean);
-  const L = CR.filter((m) => { const t = sansAcc(m.nom + " " + texteModele(m.html)); return mots.every((w) => t.indexOf(w) >= 0); });
+  const L = CR.filter((m) => { if (m.rt && !CQ.gestion) return false; const t = sansAcc(m.nom + " " + texteModele(m.html)); return mots.every((w) => t.indexOf(w) >= 0); }); // modèles de radiothérapie : depuis la carte RT
   $("crListe").innerHTML = L.length ? '<table class="md-t"><tr><th>Modèle</th><th>Début du texte</th><th></th></tr>' + L.map((m) => {
     const q = "'" + m.id + "'", t = texteModele(m.html);
-    return '<tr class="m" onclick="crUtiliser(' + q + ')"><td><b>' + A.esc(m.nom) + "</b></td><td>" + A.esc(t.length > 110 ? t.slice(0, 110) + "…" : t) + '</td><td class="act" onclick="event.stopPropagation()">' + etoile(m, "crFavori") +
+    return '<tr class="m" onclick="crUtiliser(' + q + ')"><td><b>' + A.esc(m.nom) + "</b>" + (m.rt ? ' <span class="badge b-rt">radiothérapie</span>' + (m.defaut ? "" : ' <span class="badge b-gr">modifié</span>') : "") + "</td><td>" + A.esc(t.length > 110 ? t.slice(0, 110) + "…" : t) + '</td><td class="act" onclick="event.stopPropagation()">' + (m.rt ? "" : etoile(m, "crFavori")) +
       gerer('<button class="ico" title="Modifier le modèle" aria-label="Modifier ' + A.esc(m.nom) + '" onclick="crFiche(' + q + ')">' + ico("crayon") + "</button>" +
-      '<button class="ico rouge" title="Supprimer le modèle" aria-label="Supprimer ' + A.esc(m.nom) + '" onclick="crSupprimer(' + q + ')">' + ico("croix") + "</button>") + "</td></tr>";
+      (m.rt ? (m.defaut ? "" : '<button class="ico" title="Remettre le modèle d\'origine" aria-label="Remettre le modèle d\'origine" onclick="crSupprimer(' + q + ')">↺</button>')
+        : '<button class="ico rouge" title="Supprimer le modèle" aria-label="Supprimer ' + A.esc(m.nom) + '" onclick="crSupprimer(' + q + ')">' + ico("croix") + "</button>")) + "</td></tr>";
   }).join("") + "</table>" : '<p class="sous" style="padding:12px">Aucun modèle ne correspond.' + gerer(" « Nouveau modèle » pour en créer un.") + "</p>";
 }
 // Modèle rempli pour le patient : champs {…} remplacés, « (e) » accordé ; un champ inconnu du dossier reste à compléter
@@ -494,23 +502,24 @@ function remplirCourrier(html, x) {
   return h.replace(/\bde le /g, "du ").replace(/\bà le /g, "au ");
 }
 window.crUtiliser = (id) => {
-  if (CQ && CQ.gestion) { window.crFiche(id); return; }
+  if (CQ && CQ.gestion || (CR.find((z) => z.id === id) || {}).rt) { window.crFiche(id); return; }
   const m = CR.find((z) => z.id === id), x = CQ && trouver(CQ.pid); if (!m || !x) return;
   ouvrirOrdonnance({ pid: CQ.pid, t: "courrier", types: [m.nom], html: remplirCourrier(m.html, x), format: "A4", taille: 0 });
 };
 // Nouveau modèle / modifier : nom + feuille modifiable, avec les champs remplis automatiquement et les zones à compléter
 window.crFiche = (id) => {
   if (!gereListes()) return;
-  const m = id ? CR.find((z) => z.id === id) : null; CRF = { id: m ? m.id : null };
+  const m = id ? CR.find((z) => z.id === id) : null; CRF = { id: m ? m.id : null, rt: m && m.rt ? m.rt : null };
   const html = m ? m.html : '<p class="or-ti">TITRE DU COURRIER</p><p>Je soussignée, {medecin}, certifie que {patient} ' + ZONE + '</p><p class="or-sig">Fait à {ville}, le {date}<br><br><b>{medecin}</b></p>';
   const b = (t, lib, fn) => '<button class="ico" title="' + t + '" aria-label="' + t + '" onmousedown="event.preventDefault()" onclick="' + fn + '">' + lib + "</button>";
   A.fenetre("<h3>" + (m ? "Modifier le modèle de courrier" : "Nouveau modèle de courrier") + "</h3>" +
-    '<div class="form"><div class="large"><label for="crNom">Nom du modèle</label><input id="crNom" value="' + A.esc(m ? m.nom : "") + '" placeholder="Ex. Certificat de non contre-indication"></div></div>' +
+    '<div class="form"><div class="large"><label for="crNom">Nom du modèle</label><input id="crNom" value="' + A.esc(m ? m.nom : "") + '" placeholder="Ex. Certificat de non contre-indication"' + (CRF.rt ? " disabled" : "") + "></div></div>" +
+    (CRF.rt ? '<p class="mesures">Modèle d\'un document de radiothérapie : ouvert depuis la carte radiothérapie du dossier, rempli pour le patient et sa radiothérapie. <a href="#" class="lienr" onclick="crOrigine();return false">Remettre le texte d\'origine</a></p>' : "") +
     '<div class="or-outils">' + b("Gras", "<b>G</b>", "orStyle('bold')") + b("Souligné", "<u>S</u>", "orStyle('underline')") + b("Centrer", "≡", "orStyle('justifyCenter')") + b("Aligner à gauche", "⇤", "orStyle('justifyLeft')") + b("Aligner à droite", "⇥", "orStyle('justifyRight')") + "</div>" +
-    '<div class="cr-champs"><span class="mesures">Insérer :</span>' + CHAMPS_COURRIER.concat(ficheP.champsAjoutes().filter((a) => a.imprimer).map((a) => ["c_" + a.id, a.lib])).map(([k, lib]) => '<button class="mini" onmousedown="event.preventDefault()" onclick="crChamp(\'' + k + '\')" title="Remplacé à chaque courrier par : ' + A.esc(lib.toLowerCase()) + '">' + A.esc(lib) + "</button>").join("") +
+    '<div class="cr-champs"><span class="mesures">Insérer :</span>' + (CRF.rt ? CHAMPS_RT[CRF.rt] : CHAMPS_COURRIER.concat(ficheP.champsAjoutes().filter((a) => a.imprimer).map((a) => ["c_" + a.id, a.lib]))).map(([k, lib]) => '<button class="mini" onmousedown="event.preventDefault()" onclick="crChamp(\'' + k + '\')" title="Remplacé à chaque courrier par : ' + A.esc(lib.toLowerCase()) + '">' + A.esc(lib) + "</button>").join("") +
     '<button class="mini cr-z" onmousedown="event.preventDefault()" onclick="crZone()" title="Zone surlignée, à compléter à chaque courrier">Zone à compléter</button></div>' +
     '<p class="mesures" style="margin:0 0 8px">Les champs entre accolades ({patient}, {date}…) sont remplis pour chaque patient ; « (e) » s\'accorde (suivi(e) → suivie pour une patiente). Les zones jaunes sont à compléter à chaque courrier.</p>' +
-    '<div class="or-zone"><div id="crPage" class="or-feuille a4" contenteditable="true" spellcheck="true" style="font-size:15px"></div></div>' +
+    '<div class="or-zone"><div id="crPage" class="or-feuille a4' + (CRF.rt ? " dc" : "") + '" contenteditable="true" spellcheck="true" style="font-size:15px"></div></div>' +
     '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="crRetour()">Annuler</button><button class="bt plein" id="crOk" onclick="crValider()">Valider</button></div>', "large");
   $("crPage").innerHTML = html;
 };
@@ -529,18 +538,19 @@ function inserer(n) {
 window.crChamp = (k) => inserer(document.createTextNode("{" + k + "}"));
 window.crZone = () => { const t = document.createElement("template"); t.innerHTML = ZONE; inserer(t.content.firstChild); };
 window.crRetour = () => { CRF = null; if (CQ) vueCourriers(); else A.fermerFenetre(); };
+window.crOrigine = () => { if (CRF && CRF.rt && confirm("Remettre le texte d'origine de ce document ? (enregistré seulement si vous validez)")) $("crPage").innerHTML = MODELES_RT0[CRF.rt]; };
 window.crValider = async () => {
   if (!CRF) return; const nom = A.val("crNom"), html = nettoyer($("crPage").innerHTML);
   if (!nom) { A.erreur("Donnez un nom au modèle."); return; }
   if (!texteModele(html)) { A.erreur("Le modèle est vide."); return; }
   if (CR.some((z) => z.id !== CRF.id && sansAcc(z.nom) === sansAcc(nom))) { A.erreur("Un modèle porte déjà ce nom."); return; }
-  const o = { id: CRF.id || "c" + Date.now().toString(36), nom, html }, modif = !!CRF.id;
+  const o = Object.assign({ id: CRF.id || "c" + Date.now().toString(36), nom, html }, CRF.rt ? { rt: CRF.rt } : {}), modif = !!CRF.id;
   A.occupe($("crOk"), true);
-  try { CR = await modifierListe("courriers", (L) => { const i = L.findIndex((z) => z.id === o.id); if (i >= 0) L[i] = Object.assign({}, L[i], o); else L.push(o); }); A.toast(modif ? "Modèle modifié." : "Modèle créé."); crRetour(); }
+  try { CR = await modifierListe("courriers", (L) => { const i = L.findIndex((z) => z.id === o.id); if (i >= 0) { L[i] = Object.assign({}, L[i], o); delete L[i].defaut; } else L.push(o); }); A.toast(modif ? "Modèle modifié." : "Modèle créé."); crRetour(); }
   catch (e) { A.occupe($("crOk"), false); A.erreur(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de modifier les modèles de courriers." : "Enregistrement impossible : " + ((e && e.message) || e)); }
 };
 window.crSupprimer = async (id) => {
-  const m = CR.find((z) => z.id === id); if (!m || !confirm("Supprimer le modèle « " + m.nom + " » ?\n\nLes courriers déjà faits ne changent pas.")) return;
+  const m = CR.find((z) => z.id === id); if (!m || !confirm(m.rt ? "Remettre le modèle d'origine de « " + m.nom + " » ?\n\nLes documents déjà enregistrés ne changent pas." : "Supprimer le modèle « " + m.nom + " » ?\n\nLes courriers déjà faits ne changent pas.")) return;
   try { CR = await modifierListe("courriers", (L) => { const i = L.findIndex((z) => z.id === id); if (i >= 0) L.splice(i, 1); }); A.toast("Modèle supprimé."); listeCourriers(); }
   catch (e) { A.toast(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de modifier les modèles de courriers." : "Suppression impossible."); }
 };
@@ -556,7 +566,7 @@ const civilite = (x) => (x.P.sexe === "F" ? "Mme " : x.P.sexe === "H" ? "M. " : 
 // Sous le nom du patient (3.2, 12/10/2026) : âge et poids (au choix du cabinet, Paramètres › Impression) ; allergie si « oui » (toujours)
 const sousPatient = (x) => { const P = x.P || {}, a = age(P.ddn, D().t), l = [];
   const I = reglages().impression; if (I.age && a != null) l.push(a + " ans"); if (I.poids && P.poids) l.push(String(P.poids).replace(".", ",") + " kg");
-  return (l.length ? '<p class="or-pat2">' + A.esc(l.join(" · ")) + "</p>" : "") + (allergique(P) ? '<p class="or-pat2"><b>Allergie : ' + A.esc(P.allergies || "oui") + "</b></p>" : ""); };
+  return (l.length ? '<p class="or-pat2">' + A.esc(l.join(" · ")) + "</p>" : "") + (I.allergie && allergique(P) ? '<p class="or-pat2"><b>Allergie : ' + A.esc(P.allergies || "oui") + "</b></p>" : ""); }; // allergie : à cocher (Paramètres › Impression, 12/10/2026)
 const medecin = () => { const n = (A.medecinFiche() || {}).nom || ""; return n || "Dr "; };
 // Ordonnance d'analyses ou d'examens : « Prière de bien vouloir faire : », une ligne par analyse, bilan ou examen (07/10/2026 :
 // sans renseignements cliniques)

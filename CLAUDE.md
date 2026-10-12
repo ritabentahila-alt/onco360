@@ -167,6 +167,9 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
   `si.diag` (`FAMILLES_DIAG`) / `champPropose`, ajoutés quand `ficheSpe._onco` : v2.js, cabinet avec module chimio ou RT) ; `clinique.allergie` "" | oui | non (bandeau
   `.al-band` seulement si « oui »), `clinique.statut` traitement | surveillance | perdu | decede + `decesLe` ; logique `public/js/moteur/statut.js`
   (`dernieresNouvelles`, `allergieDans`) ; décédé : rappels, alertes et tâches automatiques (logique.js) coupés ; `reglages.impression.agePoids`.
+- **Lignes et modèles (12/10/2026)** : `lignes[].intent` neo | adj | meta | conc + `rang` (ligne métastatique n°) ; `libIntention` (chimio.js) ; `reglages.auto`
+  { rtHebdo, rtFin } (Paramètres › Rendez-vous automatiques) ; `reglages.impression` { age, poids, allergie } ; modèles des documents RT : `donnees/modelesrt.js`
+  (MODELES_RT0, CHAMPS_RT, remplirModele), modifiés dans `bibliotheques/courriers` (entrées `rt: "pli"|"cr"|"rdv"`, ids rt-…), lus par `modeleRT` (ordonnances.js).
 - **Rendez-vous à venir (3.7 ter, 12/10/2026)** : consultation de fin de radiothérapie = rendez-vous `type: "Fin de radiothérapie"` (`T_RTF`, rdv.js ; prix
   0 modifiable) avec `rtfin` (id de la RT) et `dO` (date d'origine : suit la fin tant que `d === dO`), `consultFinRT` (moteur/rt.js, appelé par
   `sauverRT` et une fois par `migrations()`, `parametres/migrations.consultFinRT`) ; heure de la 1re séance `rts[].debH` { h, du } (`modifierEtapeRT`,

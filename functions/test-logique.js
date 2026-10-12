@@ -208,7 +208,7 @@ const infirmiere = { actif: true, etablissements: ["HGC", "CIOC"], droits: { tra
   await new Promise((ok) => setTimeout(ok, 200));
   const E = (k, t, o) => Object.assign({ k, t, d: "2026-10-20" }, o || {});
   const cas = [[E("P|r|1", "🩺 ALAMI Fatima – Consultation annonce (HGC)"), "rdv:annonce"], [E("P|r|2", "🩺 ALAMI Fatima – Consultation suivi"), "rdv:suivi"], [E("P|r|3", "🩺 ALAMI – Consultation de contrôle (HCK)"), "rdv:controle"],
-    [E("P|r|4", "🩺 ALAMI – Consultation en cours de radiothérapie (HGC)"), "rdv:rtc"], [E("P|r|5", "ALAMI – Hospitalisation du 20/10/2026 au 22/10/2026 (3 j ouvrés) (HGC)"), "rdv:hospit"],
+    [E("P|r|4", "🩺 ALAMI – Consultation en cours de radiothérapie (HGC)"), "rdv:rtc"], [E("P|r|4b", "🩺 ALAMI – Consultation de fin de radiothérapie (HGC)"), "rdv:rtfin"], [E("P|r|5", "ALAMI – Hospitalisation du 20/10/2026 au 22/10/2026 (3 j ouvrés) (HGC)"), "rdv:hospit"],
     [E("P|r|6", "🩺 ALAMI – 2nd avis (CIOC)"), "rdv:act:2nd avis"], [E("P|r|7", "🩺 ALAMI – Téléconsultation (vidéo)"), "rdv:act:téléconsultation (vidéo)"],
     [E("P|c|0|2", "💉 ALAMI – C2/6 · FOLFOX"), "chimio:cure"], [E("P|s|0|2|8", "💉 ALAMI – C2 J8 · FOLFOX"), "chimio:seance"], [E("P|rt|r1|scan", "x"), "rt:scan"], [E("P|rt|r1|deb", "x"), "rt:deb"], [E("P|rt|r1|fin", "x"), "rt:fin"], [E("P|rt|r1|dosi", "x"), "rt:dosi"],
     [E("abs|2026-10-20|2026-10-22", "Absence : Congrès"), "abs"], [E("tache-a|t", "Tâche – x", { tache: true, tt: "Rappel perso" }), "tache:Rappel perso"], [E("tache-b|t", "Tâche – y", { tache: true, tt: "" }), "tache:"]];

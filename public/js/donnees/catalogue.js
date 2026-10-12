@@ -99,12 +99,13 @@ export const TUMEUR = [
   { id: "xtoms", lib: "État général (OMS)", choix: ["0", "1", "2", "3", "4"], entete: true },
 ].map((a) => Object.assign({ partie: "clinique", type: "choix", imprimer: false, entete: false, tumeur: true }, a));
 // Ordre de la fiche tumeur : la localisation (diag) d'abord, la précision (diagP) après le stade, les biomarqueurs après l'histologie
-export const ORDRE_TUMEUR = ["diag", "xtcote", "xtstade", "diagP", "xthisto"].concat(BIO, ["xtgrade", "xtctnm", "xtptnm", "xtdiagd", "xtoms"]);
+export const ORDRE_TUMEUR = ["diag", "xtcote", "xtstade", "diagP", "xthisto"].concat(BIO, ["xtgrade", "xtctnm", "xtptnm", "xtdiagd"]);
+// État général (OMS) : dans les informations médicales, avant la taille et le poids (12/10/2026)
 // Un champ à condition (si.diag) est-il proposé, d'après le diagnostic (localisation) ? « Primitif inconnu » : tous ; diagnostic vide : aucun
 export const champPropose = (a, vals) => { if (!a.si) return true; const f = famillesDiag((vals || {}).diag); return f.indexOf("inconnu") >= 0 || (a.si.diag || []).some((k) => f.indexOf(k) >= 0); };
 // Partie de la fiche d'un champ (3.1 bis) : identité, informations médicales, fiche tumeur (cabinets d'oncologie)
 const SEC_ID = ["nom", "prenom", "ddn", "sexe", "cin", "tel", "tel2", "etab", "ald", "cor", "mut", "adresse", "email"];
-export function sectionChamp(k, R) { if (k === "diag" || k === "diagP") return R && R.onco ? "tum" : "med"; if (SEC_ID.indexOf(k) >= 0) return "id"; const a = R && (R.ajouts || []).find((z) => z.id === k); return a ? (a.tumeur ? "tum" : a.partie === "identite" ? "id" : "med") : "med"; }
+export function sectionChamp(k, R) { if (k === "diag" || k === "diagP") return R && R.onco ? "tum" : "med"; if (SEC_ID.indexOf(k) >= 0) return "id"; if (k === "xtoms") return "med"; const a = R && (R.ajouts || []).find((z) => z.id === k); return a ? (a.tumeur ? "tum" : a.partie === "identite" ? "id" : "med") : "med"; }
 // Formulaire de consultation (16.7, 10/10/2026) : champs existants [clé, libellé, -, base, choix de départ (liste modifiable)] = la
 // fenêtre « Nouvelle consultation » d'aujourd'hui (oncologie) ; champs ajoutés : mêmes types que la fiche + texte long, titre de section,
 // nombre avec unité ; valeurs dans consultations/{c}.extra.
@@ -122,7 +123,7 @@ export function formEffectif(CAT, f, spe) {
   const aC = (Array.isArray(x.ajouts) ? x.ajouts : []).filter((a) => ok(a) && ids.indexOf(a.id) < 0).map((a) => Object.assign({}, a, { cabinet: true }));
   const ajouts = aS.concat(aC), onco = CAT === FICHE && !!(s._onco || s.onco), champs = {}, libs = {}, choixs = {};
   // oncologie : la fiche tumeur dans son ordre (localisation, côté, stade, précision, histologie, biomarqueurs, grade…), à la suite
-  const ref = onco ? CAT.map((c) => c[0]).filter((k) => ORDRE_TUMEUR.indexOf(k) < 0).concat(ORDRE_TUMEUR.filter((k) => k[0] !== "x" || ajouts.some((a) => a.id === k)), ajouts.map((a) => a.id).filter((k) => ORDRE_TUMEUR.indexOf(k) < 0)) : CAT.map((c) => c[0]).concat(ajouts.map((a) => a.id));
+  const ref = onco ? CAT.map((c) => c[0]).filter((k) => ORDRE_TUMEUR.indexOf(k) < 0).reduce((l, k) => l.concat(k === "taille" && ajouts.some((a) => a.id === "xtoms") ? ["xtoms", k] : [k]), []).concat(ORDRE_TUMEUR.filter((k) => k[0] !== "x" || ajouts.some((a) => a.id === k)), ajouts.map((a) => a.id).filter((k) => ORDRE_TUMEUR.indexOf(k) < 0 && k !== "xtoms")) : CAT.map((c) => c[0]).concat(ajouts.map((a) => a.id));
   ref.forEach((k) => { const v = x.champs && typeof x.champs[k] === "boolean" ? x.champs[k] : s.champs && s.champs[k]; champs[k] = v !== false; });
   CAT.forEach(([k, , , base, ch0]) => { if (base) champs[k] = true; const l = (x.libs && x.libs[k]) || (s.libs && s.libs[k]); if (l) libs[k] = l;
     if (ch0) { const c = (x.choixs && x.choixs[k]) || (s.choixs && s.choixs[k]); choixs[k] = Array.isArray(c) && c.length ? c.slice() : ch0.slice(); } });
@@ -182,7 +183,7 @@ export function accueilEffectif(reg, cab) {
 }
 // Sections de paramétrage (page Paramètres), et si leurs valeurs viennent de la bibliothèque de la spécialité
 export const SECTIONS = [
-  ["horaires", "Créneaux & horaires", true], ["fermetures", "Fermetures, congés & jours fériés", true], ["lieux", "Lieux d'exercice", false],
+  ["horaires", "Créneaux & horaires", true], ["fermetures", "Fermetures, congés & jours fériés", true], ["rdvauto", "Rendez-vous automatiques", true], ["lieux", "Lieux d'exercice", false],
   ["accueil", "Tableau de bord (cartes)", false], ["fiche", "Fiche patient", false], ["consultation", "Formulaire de consultation", false], ["acces", "Accès (équipe)", false],
   ["audit", "Journal d'audit", false], ["whatsapp", "WhatsApp", true], ["couleurs", "Google Agenda", true], ["documents", "Documents (types)", true], ["taches", "Tâches", true],
   ["rcp", "RCP", true], ["listes", "Listes", true], ["bibliotheques", "Bibliothèques", true], ["vigilances", "Vigilance des molécules", true], ["impression", "Impression", true], ["alertes", "Alertes", true], ["activites", "Activités et rémunérations", true],

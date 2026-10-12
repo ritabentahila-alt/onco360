@@ -85,12 +85,12 @@ let TIT = null;
 // L'adresse reste #parametres/<rubrique> (anciens liens gardés). Accès : dans Mon compte depuis le 10/10/2026 (18.5).
 const FAMILLES = [
   ["cabinet", "hopital", "Cabinet", ["lieux", "accueil", "fiche", "consultation", "impression", "audit", "export"]],
-  ["agenda", "agenda", "Agenda et rappels", ["horaires", "fermetures", "couleurs", "whatsapp", "rcp", "alertes"]],
+  ["agenda", "agenda", "Agenda et rappels", ["horaires", "fermetures", "rdvauto", "couleurs", "whatsapp", "rcp", "alertes"]],
   ["listes", "liste", "Listes et bibliothèques", ["listes", "bibliotheques", "vigilances", "documents", "taches"]],
   ["finances", "bilan", "Finances", ["activites"]],
 ];
 const RUB = { lieux: ["hopital", "Lieux d'exercice"], accueil: ["accueil", "Tableau de bord"], fiche: ["profil", "Fiche patient"], consultation: ["stetho", "Formulaire de consultation"],
-  impression: ["imprimer", "Impression"], audit: ["liste", "Journal d'audit"], export: ["telecharger", "Export des données"], horaires: ["horloge", "Horaires"], fermetures: ["avion", "Congés et jours fériés"],
+  impression: ["imprimer", "Impression"], audit: ["liste", "Journal d'audit"], export: ["telecharger", "Export des données"], horaires: ["horloge", "Horaires"], fermetures: ["avion", "Congés et jours fériés"], rdvauto: ["agenda", "Rendez-vous automatiques"],
   couleurs: ["agenda", "Google Agenda"], whatsapp: ["whatsapp", "WhatsApp"], rcp: ["rcp", "RCP"], alertes: ["alerte", "Alertes"], listes: ["liste", "Listes"],
   bibliotheques: ["pilule", "Bibliothèques"], vigilances: ["alerte", "Vigilance des molécules"], documents: ["document", "Types de documents"], taches: ["taches", "Tâches"], activites: ["bilan", "Activités et rémunérations"] };
 const famDe = (k) => (FAMILLES.find((f) => f[3].indexOf(k) >= 0) || FAMILLES[0])[0];
@@ -111,7 +111,7 @@ const HORS_BIB = ["lieux", "acces", "audit", "export", "accueil", "fiche", "cons
 const ONGLETS_SEC = ["horaires", "fermetures", "whatsapp", "documents", "taches", "rcp", "listes", "impression", "alertes"];
 const MSG_SEC = { lieux: "Vous pouvez compléter l'adresse, le téléphone et la ville de votre lieu (« Compléter »).", horaires: "Vous pouvez régler les horaires de vos lieux.", taches: "Vous pouvez modifier les types de tâches ; les tâches automatiques sont réglées par le médecin." };
 const secretariat = () => A.peut("secretariat") && !A.D().bib;
-const MODULE_ONGLET = { vigilances: "chimio", couleurs: "gagenda", taches: "taches", rcp: "rcp", listes: "listes", bibliotheques: "prescriptions" };
+const MODULE_ONGLET = { rdvauto: "rt", vigilances: "chimio", couleurs: "gagenda", taches: "taches", rcp: "rcp", listes: "listes", bibliotheques: "prescriptions" };
 const DERN = {}; // dernière rubrique ouverte de chaque famille
 function entete() {
   const L = ONGLETS(), fam = famDe(ONG), sous = L.filter((o) => famDe(o[0]) === fam);
@@ -181,6 +181,14 @@ const RUBRIQUES = {
     return '<section class="carte">' + titre("document", "Types de documents") + '<p class="sous">Menu « Type » de l\'onglet Documents du dossier. Les documents déjà déposés gardent leur type.</p>' + typesListe(ED.tdoc, c.okE, c.disE, "cfTd", "Ajouter un type") + "</section>";
   },
   vigilances(c) { return htmlVigilances(c.ok); },
+  // Rendez-vous créés d'office (12/10/2026, demande de Dr Bentahila) : le médecin décoche ceux qu'il ne veut pas ; ceux déjà créés restent
+  rdvauto(c) {
+    const R = ED.reg.auto, cas = (k, lib, sous) => '<label class="chk" style="display:block;margin:8px 0 2px"><input type="checkbox"' + (R[k] ? " checked" : "") + c.disE + ' onchange="cfRegB(\'auto\',\'' + k + '\',this.checked)"> <b>' + lib + '</b></label><p class="mesures" style="margin:0 0 6px 26px">' + sous + "</p>";
+    return '<section class="carte">' + titre("agenda", "Rendez-vous créés automatiquement") + '<p class="sous">Décochez ce que vous ne voulez pas voir créé d\'office. Les rendez-vous déjà créés restent (à supprimer un par un si besoin).</p>' +
+      cas("rtHebdo", "Consultations hebdomadaires en cours de radiothérapie", "Le jour et l\'heure choisis dans la prescription de radiothérapie, de la 1re séance à la fin.") +
+      cas("rtFin", "Consultation de fin de radiothérapie", "À la date de fin (réelle, sinon calculée) ; déplaçable comme toute consultation.") +
+      '<p class="mesures">Les séances de chimiothérapie suivent le protocole de la ligne (ce ne sont pas des rendez-vous créés ici) ; les tâches automatiques se règlent dans « Tâches ».</p></section>';
+  },
   audit() { return '<div id="cfAudit"></div>'; },
   // Export complet du cabinet (étape 1.6, 11/10/2026) : médecin titulaire ; préparé par le serveur (exporterCabinet), téléchargé ici
   export() {
@@ -225,7 +233,7 @@ const RUBRIQUES = {
   },
   impression(c) {
     // Marges d'impression (mm) : la marge du haut laisse la place à l'en-tête déjà imprimé sur le papier ; âge et poids sur les ordonnances (3.2)
-    const I = ED.reg.impression, agePoids = '<section class="carte">' + titre("imprimer", "Ordonnances") + '<p class="sous">Sous le nom du patient :</p><label class="chk"><input type="checkbox"' + (I.age ? " checked" : "") + c.disE + ' onchange="cfRegB(\'impression\',\'age\',this.checked)"> Âge</label> <label class="chk"><input type="checkbox"' + (I.poids ? " checked" : "") + c.disE + ' onchange="cfRegB(\'impression\',\'poids\',this.checked)"> Poids</label><p class="mesures">L\'allergie (si « oui » dans la fiche) est toujours imprimée.</p></section>', champ = (q, n, lib) => '<div><label for="cfI' + q + n + '">' + lib + '</label><input id="cfI' + q + n + '" type="number" min="0" max="150" step="1" inputmode="numeric" value="' + I[q][n] + '"' + c.disE + ' onchange="cfImp(\'' + q + "'," + n + ',this.value)"></div>';
+    const I = ED.reg.impression, agePoids = '<section class="carte">' + titre("imprimer", "Ordonnances") + '<p class="sous">Sous le nom du patient :</p><label class="chk"><input type="checkbox"' + (I.age ? " checked" : "") + c.disE + ' onchange="cfRegB(\'impression\',\'age\',this.checked)"> Âge</label> <label class="chk"><input type="checkbox"' + (I.poids ? " checked" : "") + c.disE + ' onchange="cfRegB(\'impression\',\'poids\',this.checked)"> Poids</label> <label class="chk"><input type="checkbox"' + (I.allergie ? " checked" : "") + c.disE + ' onchange="cfRegB(\'impression\',\'allergie\',this.checked)"> Allergie (si « Oui » dans la fiche)</label></section>', champ = (q, n, lib) => '<div><label for="cfI' + q + n + '">' + lib + '</label><input id="cfI' + q + n + '" type="number" min="0" max="150" step="1" inputmode="numeric" value="' + I[q][n] + '"' + c.disE + ' onchange="cfImp(\'' + q + "'," + n + ',this.value)"></div>';
     return '<section class="carte">' + titre("imprimer", "Marges d'impression (mm)") + '<p class="sous">Haut = hauteur de l\'en-tête déjà imprimé sur votre papier, plus 5 à 10 mm.</p>' +
       [["a5", "Ordonnances A5", "Médicaments, analyses, examens, ordonnances types, courriers"], ["a4", "Ordonnances A4", "Les mêmes, en A4"], ["doc", "Documents A4", "Pli confidentiel, compte rendu, rendez-vous de radiothérapie"]].map(([q, t, sous]) =>
         '<h4 class="soustitre">' + t + '</h4><p class="mesures" style="margin:-4px 0 8px">' + sous + " · par défaut " + REGLAGES0.impression[q].slice(0, 3).join(" / ") + ' mm</p><div class="form" style="grid-template-columns:repeat(3,minmax(0,150px))">' + champ(q, 0, "Haut (en-tête)") + champ(q, 1, "Côtés") + champ(q, 2, "Bas") + "</div>").join("") + "</section>" + agePoids;
@@ -399,7 +407,7 @@ function categoriesAgenda() {
   if (D().activites) Object.values(D().activites).forEach((l) => (l || []).forEach((a) => ajout(a.t, a.lib)));
   const types = (TTA && TTA.length ? TTA : TYPES_TACHES0).concat([TYPE_RT]);
   return [
-    ["Consultations et hospitalisations", [["rdv:annonce", "Consultation d'annonce"], ["rdv:suivi", "Consultation de suivi"], ["rdv:controle", "Consultation de contrôle"], ["rdv:rtc", "Consultation en cours de radiothérapie"], ["rdv:hospit", "Hospitalisation"]]
+    ["Consultations et hospitalisations", [["rdv:annonce", "Consultation d'annonce"], ["rdv:suivi", "Consultation de suivi"], ["rdv:controle", "Consultation de contrôle"], ["rdv:rtc", "Consultation en cours de radiothérapie"], ["rdv:rtfin", "Consultation de fin de radiothérapie"], ["rdv:hospit", "Hospitalisation"]]
       .concat(Object.keys(acts).sort().map((k) => ["rdv:act:" + k, acts[k]]))],
     ["Chimiothérapie", [["chimio:cure", "Cures (J1)"], ["chimio:seance", "Séances J8, J15…"]]],
     ["Radiothérapie", [["rt:scan", "Scanner de centrage"], ["rt:deb", "1re séance"], ["rt:fin", "Fin de radiothérapie prévue"]]],

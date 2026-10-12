@@ -10,7 +10,8 @@ import { addJ, ouvre, accordMedecin } from "../moteur/outils.js";
 import { finRT, joursSeances, volumesRT, texteVolume, libRythme } from "../moteur/rt.js";
 import { assurerConsultations, consultationsDe } from "./consultations.js"; // bilan de contrôle (3.6)
 import { diagnosticComplet, tumeurDe } from "../moteur/statut.js"; // fiche tumeur (3.1 bis)
-import { nettoyer } from "./ordonnances.js";
+import { nettoyer, modeleRT } from "./ordonnances.js";
+import { MODELES_RT0, remplirModele } from "../donnees/modelesrt.js"; // modèles modifiables (12/10/2026)
 import { margesMm } from "./reglages.js"; // marges d'impression réglables (Paramètres › Impression)
 
 let A = null;
@@ -59,32 +60,10 @@ const AR = (v) => (v ? esc(v) : '<mark class="dc-ar">À REMPLIR</mark>');
 const AF = (v) => (v ? esc(v) : '<span class="dc-af">à compléter par le médecin</span>');
 const signature = (o) => '<p class="dc-sig"><b>Cachet et signature du médecin</b><br><b>' + AR(o.medecin) + "</b>" + (o.specialite ? "<br>" + esc(o.specialite) : "") + "</p>";
 const SAUT = '<div class="dc-saut"></div>';
-function htmlPli(P, r, ctx, o) {
-  const acte = (r.acte || "") + (r.acte && r.vmat && !/vmat/i.test(r.acte) ? " + VMAT" : ""), resume = (P.notes || r.note || "").trim().replace(/\s*[.;]\s*$/, "");
-  const civ = P.sexe === "F" ? "Madame" : P.sexe === "H" ? "Monsieur" : "", patient = AR(civ) + " " + AR((P.nomF || "").toUpperCase()) + " " + AR(P.prenom || "");
-  const jour = dateLongue(ctx.aujourdhui), diag = diagnosticComplet(P); // localisation, côté, histologie, stade, précision (3.1 bis)
-  return '<p class="dc-titre">PLI CONFIDENTIEL</p><p class="dc-d">' + AR(o.ville) + ", le " + jour + "</p>" +
-    "<p>Monsieur le Médecin Conseil,</p><p>Cher(e) Confrère,</p><p>Je vous prie de bien vouloir trouver ci-joint les renseignements cliniques concernant :</p>" +
-    '<p class="dc-c"><b>' + patient + "</b></p><p>ayant droit à la couverture médicale par l’organisme dont vous assurez le conseil.</p>" +
-    "<p>Je vous écris pour information et en vue des démarches administratives nécessaires à une prise en charge ou à un accord de principe.</p>" +
-    "<p>Avec mes remerciements, veuillez croire, Cher(e) Confrère, à l’expression de mes salutations distinguées.</p>" +
-    '<p class="dc-rub">RENSEIGNEMENTS CLINIQUES</p><p>' + AR(resume) + ", nécessitant une radiothérapie <b>" + AR(acte) + "</b>.</p>" +
-    '<p class="dc-rub">TRAITEMENT PROPOSÉ</p><p><b>Radiothérapie ' + AR(acte) + "</b></p>" +
-    '<p class="dc-rub">DURÉE PRÉVISIBLE DU TRAITEMENT</p><p>' + AR(dureeSemainesRT(r)) + "</p>" +
-    "<p><b>Observations : </b>Des modifications du traitement pourraient survenir en fonction des évaluations cliniques et de l’évolution de la maladie.</p>" + signature(o) +
-    SAUT + '<p class="dc-d">' + AR(String(o.ville || "").toUpperCase()) + ", le " + jour + '</p><p class="dc-titre">COMPTE RENDU MÉDICAL</p>' +
-    "<p>Je " + accordMedecin("soussigné", o.genre) + ", " + AR(o.medecin) + ", certifie que <b>" + patient + "</b> est actuellement suivi(e) au sein de l’établissement " + AR(o.etabNom) + " pour la prise en charge d’un " + AR(diag) + ", nécessitant un traitement par <b>Radiothérapie " + AR(acte) + "</b>.</p>" +
-    "<p>Vous trouverez ci-dessous le résumé médical relatif à la prise en charge du patient :</p>" +
-    '<p class="dc-rub">RÉSUMÉ CLINIQUE ET DÉROULEMENT DU TRAITEMENT</p>' + (resume ? resume.split(/\n+/).map((l) => "<p>" + esc(l) + "</p>").join("") : "<p>" + AR("") + "</p>") +
-    "<p><br></p><p>Je reste à votre disposition pour toute information complémentaire.</p><p>Veuillez agréer, Monsieur le Médecin Conseil, l’expression de mes salutations distinguées.</p>" + signature(o) +
-    SAUT + '<p class="dc-d">' + AR(String(o.ville || "").toUpperCase()) + ", le " + jour + '</p><p class="dc-titre">ORDONNANCE MÉDICALE</p><p><br></p>' +
-    "<p><b>Patient(e) : " + patient + '</b></p><p><br></p><p class="dc-c dc-g"><b>Radiothérapie ' + AR(acte) + "</b></p><p><br></p>" +
-    "<p><b>Date de début : </b>Dès que possible</p>" + signature(o);
-}
-// 3.6 (12/10/2026, décision de Dr Bentahila) : le modèle est gardé ; Onco360 remplit ce qu'il sait : volumes et doses (3.5), dates (fin
-// renseignée, sinon fin calculée), prochain rendez-vous (pris dans « + Rendez-vous »), bilan de contrôle (ordonnance d'examens ou
-// d'analyses de la dernière consultation) ; le reste (toxicités, rendez-vous et bilan absents) est complété par le médecin
-// (mentions grises jamais imprimées) ; localisation, histologie et interruptions ne sont pas remplies.
+// 3.6 (12/10/2026, décision de Dr Bentahila) : Onco360 remplit ce qu'il sait : volumes et doses (3.5), dates (fin renseignée, sinon fin
+// calculée), prochain rendez-vous (pris dans « + Rendez-vous »), bilan de contrôle (ordonnance d'examens ou d'analyses de la dernière
+// consultation), diagnostic complet et localisation (3.1 bis) ; le reste (toxicités, rendez-vous et bilan absents) est complété par le
+// médecin (mentions grises jamais imprimées).
 function prochainRdv(P, fin, ctx) {
   const apres = fin && fin > ctx.aujourdhui ? fin : ctx.aujourdhui;
   const v = (P.rdvs || []).filter((z) => (z.st || "prevu") === "prevu" && !z.rtc && z.d && z.d >= apres).sort((a, b) => (a.d + (a.h || "")).localeCompare(b.d + (b.h || "")))[0];
@@ -95,34 +74,39 @@ function bilanControle(pid, ctx) {
   const l = c ? (c.lignes || []).filter((z) => z.t === "exam" || z.t === "analyse").map((z) => String(z.lib || "").trim()).filter(Boolean) : [];
   return l.length ? l.join(" ; ") + " (prescrit le " + dfrA(c.d) + ")" : "";
 }
-function htmlCr(P, r, ctx, o) {
-  const { dates } = datesSeancesRT(r, ctx), deb = dates[0] || r.deb || "", fin = r.fin || dates[dates.length - 1] || finRT(r, ctx.feries) || "";
-  const vol = volumesRT(r);
-  const nb = parseInt(r.nb, 10) || "", dose = parseFloat(String(r.dose || "").replace(",", ".")), dpf = dose && nb ? Math.round((dose / nb) * 100) / 100 : "";
-  const sexe = P.sexe === "F" ? "Féminin" : P.sexe === "H" ? "Masculin" : "";
-  const champ = (lib, v) => "<p><b>" + lib + " : </b>" + AF(v) + "</p>", puce = (lib, v, suite) => '<p class="dc-li">•&nbsp; <b>' + lib + " : </b>" + AF(v) + (v && suite ? suite : "") + "</p>";
-  return '<p class="dc-titre dc-cr">COMPTE-RENDU DE FIN DE TRAITEMENT DE RADIOTHÉRAPIE</p>' +
-    '<p class="dc-h">1. Identification du patient</p><table class="dc-tab"><tbody><tr><th>Informations patient</th><th>Informations séjour</th></tr><tr><td>' +
-    champ("Nom et prénom", ((P.nomF || "").toUpperCase() + " " + (P.prenom || "")).trim()) + champ("Date de naissance", dfrA(P.ddn)) + champ("Sexe", sexe) + champ("Médecin référent", P.cor || "") + "</td><td>" +
-    champ("Établissement", o.etabNom || r.hop || P.hop || "") + champ("Date d'entrée", dfrA(deb)) + champ("Date de sortie", dfrA(fin)) + "</td></tr></tbody></table>" +
-    '<p class="dc-h">2. Indication clinique et objectifs</p>' + puce("Diagnostic", diagnosticComplet(P)) + (tumeurDe(P).oms ? puce("État général (OMS)", tumeurDe(P).oms) : "") + puce("Résumé clinique", r.note || P.notes || "") + puce("Visée du traitement", r.intent === "curative" ? "Curative" : r.intent === "palliative" ? "Palliative" : "") +
-    '<p class="dc-h">3. Modalités et technique de radiothérapie</p>' + puce("Technique utilisée", TECH[r.tech] || (r.vmat ? "VMAT" : "")) + puce("Localisation", r.loc || [tumeurDe(P).localisation, tumeurDe(P).cote ? "côté " + tumeurDe(P).cote.toLowerCase() : ""].filter(Boolean).join(", ")) +
-    (vol.length > 1 || (vol[0] && vol[0].nom) ? '<p class="dc-li">•&nbsp; <b>Volumes et doses : </b></p>' + vol.map((v) => '<p class="dc-li" style="margin-left:34px">– ' + esc(texteVolume(v, vol)) + "</p>").join("")
-      : puce("Dose prescrite", vGy(dose), " <b>Gy</b>") + puce("Dose par fraction", vGy(dpf), " <b>Gy</b>")) + puce("Nombre de séances", nb ? String(nb) + (r.ryt && r.ryt !== "1" ? " (" + libRythme(r) + ")" : "") : "") +
-    '<p class="dc-h">4. Calendrier du traitement</p>' + puce("Date de début", dfrA(deb)) + puce("Date de fin", dfrA(fin)) +
-    '<p class="dc-h">5. Tolérance et toxicités</p>' + puce("Toxicités observées", "") +
-    '<p class="dc-h">6. Conduite à tenir et suivi</p>' + puce("Prochain rendez-vous de consultation", prochainRdv(P, fin, ctx)) + puce("Bilan de contrôle prévu", o.bilan || "") + signature(o);
+// Valeurs des champs des modèles (donnees/modelesrt.js) : HTML prêt à placer ; vide → « À REMPLIR » (pli, calendrier) ou « à compléter
+// par le médecin » (compte rendu), jamais imprimé
+function valeursPli(P, r, ctx, o) {
+  const acte = (r.acte || "") + (r.acte && r.vmat && !/vmat/i.test(r.acte) ? " + VMAT" : ""), resume = (P.notes || r.note || "").trim().replace(/\s*[.;]\s*$/, "");
+  const civ = P.sexe === "F" ? "Madame" : P.sexe === "H" ? "Monsieur" : "", patient = AR(civ) + " " + AR((P.nomF || "").toUpperCase()) + " " + AR(P.prenom || "");
+  const diag = diagnosticComplet(P); // localisation, côté, histologie, stade, précision (3.1 bis)
+  const ARr = (v) => (v ? esc(v) : '<mark class="dc-ar">À REMPLIR : résumé du patient (dossier)</mark>');
+  return { ville: AR(o.ville), ville_maj: AR(String(o.ville || "").toUpperCase()), date_longue: dateLongue(ctx.aujourdhui), patient, acte: AR(acte), duree: AR(dureeSemainesRT(r)),
+    // 12/10/2026 : renseignements = le résumé du patient (case « Résumé du patient » du dossier), sinon le diagnostic complet
+    renseignements: resume ? esc(resume) : diag ? esc(diag) : ARr(""), soussigne: accordMedecin("soussigné", o.genre), medecin: AR(o.medecin), etablissement: AR(o.etabNom), diagnostic: AR(diag),
+    resume: resume ? resume.split(/\n+/).map((l) => "<p>" + esc(l) + "</p>").join("") : "<p>" + ARr("") + "</p>", signature: signature(o) };
 }
-function htmlRdv(P, r, ctx, o) {
+function valeursCr(P, r, ctx, o) {
+  const { dates } = datesSeancesRT(r, ctx), deb = dates[0] || r.deb || "", fin = r.fin || dates[dates.length - 1] || finRT(r, ctx.feries) || "";
+  const vol = volumesRT(r), T = tumeurDe(P);
+  const nb = parseInt(r.nb, 10) || "", dose = parseFloat(String(r.dose || "").replace(",", ".")), dpf = dose && nb ? Math.round((dose / nb) * 100) / 100 : "";
+  const puce = (lib, v, suite) => '<p class="dc-li">•&nbsp; <b>' + lib + " : </b>" + AF(v) + (v && suite ? suite : "") + "</p>";
+  return { nom_prenom: AF(((P.nomF || "").toUpperCase() + " " + (P.prenom || "")).trim()), naissance: AF(dfrA(P.ddn)), sexe: AF(P.sexe === "F" ? "Féminin" : P.sexe === "H" ? "Masculin" : ""),
+    referent: AF(P.cor || ""), etablissement: AF(o.etabNom || r.hop || P.hop || ""), debut: AF(dfrA(deb)), fin: AF(dfrA(fin)), diagnostic: AF(diagnosticComplet(P)), oms: AF(T.oms),
+    resume_clinique: AF(r.note || P.notes || ""), visee: AF(r.intent === "curative" ? "Curative" : r.intent === "palliative" ? "Palliative" : ""), technique: AF(TECH[r.tech] || (r.vmat ? "VMAT" : "")),
+    localisation: AF(r.loc || [T.localisation, T.cote ? "côté " + T.cote.toLowerCase() : ""].filter(Boolean).join(", ")),
+    doses: vol.length > 1 || (vol[0] && vol[0].nom) ? '<p class="dc-li">•&nbsp; <b>Volumes et doses : </b></p>' + vol.map((v) => '<p class="dc-li">&nbsp;&nbsp;&nbsp;&nbsp;– ' + esc(texteVolume(v, vol)) + "</p>").join("")
+      : puce("Dose prescrite", vGy(dose), " <b>Gy</b>") + puce("Dose par fraction", vGy(dpf), " <b>Gy</b>"),
+    seances: AF(nb ? String(nb) + (r.ryt && r.ryt !== "1" ? " (" + libRythme(r) + ")" : "") : ""), toxicites: AF(""), prochain_rdv: AF(prochainRdv(P, fin, ctx)), bilan: AF(o.bilan || ""), signature: signature(o) };
+}
+function valeursRdv(P, r, ctx, o) {
   // 2.5 (12/10/2026, audit) : calendrier théorique (dates calculées, séances réelles suivies dans ARIA) : état « Prévu », plus de
   // « Terminé » inventé ; l'ajustement des dates est imprimé
   const { dates, ajuste } = datesSeancesRT(r, ctx), ressource = String(o.medecin || "").replace(/^Dr\.?\s*/i, "");
-  return '<p class="dc-titre">Calendrier théorique des séances</p>' +
-    '<p class="dc-c"><b>Date de début : ' + dfrA(dates[0]) + " &nbsp;—&nbsp; Date de fin : " + dfrA(dates[dates.length - 1]) + "</b></p>" +
-    "<p><b>Patient : </b>" + esc((P.nomF || "").toUpperCase() + (P.prenom ? ", " + P.prenom : "")) + "<br><b>Médecin : </b>" + AR(o.medecin) + (r.acte ? "<br><b>Radiothérapie : </b>" + esc(r.acte) : "") + "</p>" +
-    '<table class="dc-tab dc-rdv"><tbody><tr><th>Date du rendez-vous</th><th>Durée (min)</th><th>Activité</th><th>Ressource</th><th>État du rendez-vous</th></tr>' +
-    dates.map((d, i) => "<tr><td>" + dfrA(d) + "</td><td>" + (i === 0 ? 15 : 20) + "</td><td>" + (i === 0 ? "Mise en place RA" : i === dates.length - 1 ? "Fin de Traitement RA" : "Traitement Journalier RA") + "</td><td>" + esc(ressource) + "</td><td>Prévu</td></tr>").join("") +
-    "</tbody></table>" + '<p class="dc-note">Dates calculées d\'après le calendrier (jours ouvrés, jours fériés exclus)' + (ajuste ? ", ajustées au nombre de fractions" : "") + ". Les séances réellement faites sont suivies par le service de radiothérapie.</p>";
+  return { debut: dfrA(dates[0]), fin: dfrA(dates[dates.length - 1]), patient: esc((P.nomF || "").toUpperCase() + (P.prenom ? ", " + P.prenom : "")), medecin: AR(o.medecin), radiotherapie: AR(r.acte || ""),
+    tableau_seances: '<table class="dc-tab dc-rdv"><tbody><tr><th>Date du rendez-vous</th><th>Durée (min)</th><th>Activité</th><th>Ressource</th><th>État du rendez-vous</th></tr>' +
+      dates.map((d, i) => "<tr><td>" + dfrA(d) + "</td><td>" + (i === 0 ? 15 : 20) + "</td><td>" + (i === 0 ? "Mise en place RA" : i === dates.length - 1 ? "Fin de Traitement RA" : "Traitement Journalier RA") + "</td><td>" + esc(ressource) + "</td><td>Prévu</td></tr>").join("") + "</tbody></table>",
+    note_calendrier: "Dates calculées d'après le calendrier (jours ouvrés, jours fériés exclus)" + (ajuste ? ", ajustées au nombre de fractions" : "") + ". Les séances réellement faites sont suivies par le service de radiothérapie." };
 }
 
 // ───── Documents enregistrés : une fiche par radiothérapie et par type ─────
@@ -151,9 +135,12 @@ function infos(x, r) {
   // ville du lieu (Paramètres › Lieux d'exercice) ; vide : « À REMPLIR » (1.7 : plus de « Casablanca » par défaut) ; genre du médecin (accords)
   return { medecin: M.nom || "", specialite: M.specialite || "", etabNom: et.nom || "", ville: et.ville || "", genre: M.genre || "" };
 }
+// Document neuf : le modèle du cabinet (Bibliothèques › Courriers, modèles « radiothérapie »), sinon celui d'origine, rempli pour le patient
+const MOD = {}; // modèles lus : { pli, cr, rdv }
 function contenuNeuf(x, r, type) {
-  const o = Object.assign(infos(x, r), { bilan: bilanControle(x.id, D().ctx) });
-  return type === "pli" ? htmlPli(x.P, r, D().ctx, o) : type === "cr" ? htmlCr(x.P, r, D().ctx, o) : htmlRdv(x.P, r, D().ctx, o);
+  const o = Object.assign(infos(x, r), { bilan: bilanControle(x.id, D().ctx) }), ctx = D().ctx;
+  const V = type === "pli" ? valeursPli(x.P, r, ctx, o) : type === "cr" ? valeursCr(x.P, r, ctx, o) : valeursRdv(x.P, r, ctx, o);
+  return remplirModele(MOD[type] || MODELES_RT0[type], V);
 }
 window.docRT = async (pid, rid, type) => {
   if (!A.peut("documents")) { A.toast("Vous n'avez pas le droit d'ouvrir les documents."); return; }
@@ -161,6 +148,7 @@ window.docRT = async (pid, rid, type) => {
   if (type === "rdv" && !datesSeancesRT(r, D().ctx).dates.length) { A.toast("Indiquez la date de la 1re séance et le nombre de fractions."); return; }
   A.fenetre('<p class="sous">Ouverture du document…</p>', "large");
   if (type === "cr") await assurerConsultations(x).catch(() => null); // bilan de contrôle de la dernière consultation (3.6)
+  MOD[type] = await modeleRT(type).catch(() => null); // modèle modifié par le cabinet (12/10/2026)
   const s = await getDoc(doc(col(), idDoc(pid, rid, type))).catch(() => null), e = s && s.exists() ? s.data() : null;
   F = { pid, rid, type, enreg: e };
   vue(x, r, e ? nettoyer(e.html) : contenuNeuf(x, r, type)); // version enregistrée nettoyée à l'affichage (audit du 10/10)

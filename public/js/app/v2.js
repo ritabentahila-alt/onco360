@@ -34,7 +34,7 @@ import { installer as installerTaches, pageTaches, demarrerTaches, blocAccueil a
 import { installer as installerSalle, pageSalle, demarrerSalle, apresStatutRdv, apresVenuChimio, apresPrix, bullesDossier, presenceDossier, majPresenceDossier, prixPrevu, badgeSalle } from "./salle.js";
 import { installer as installerAudit } from "./audit.js";
 import { installer as installerRcp, demarrerRcp, rcpDuPatient, bulleRcp, suivreEtablissementRcp, supprimerRcp } from "./rcp.js";
-import { ACTES_RT, DIAG_AJOUTS_1012 } from "../donnees/listes.js";
+import { ACTES_RT, DIAG_AJOUTS_1012, DIAG_RENOMS_1012 } from "../donnees/listes.js";
 import { abonnementEffectif } from "../donnees/modules.js";
 import { STATUTS, libStatut, decede, allergique, dernieresNouvelles } from "../moteur/statut.js"; // 3.2 et 3.3 (12/10/2026)
 import { reglageEffectif, styleRetraits, formulairesCabinet } from "../donnees/catalogue.js";
@@ -270,8 +270,17 @@ async function migrations() {
         if (m.length) { const L1 = Object.assign({}, L0, { diag: L0.diag.concat(m) }); await setDoc(doc(db, "espaces", ESPACE, "parametres", "listes"), { data: JSON.stringify(L1) }).then(() => { D.listes = L1; }).catch((er) => console.warn("localisations", er)); } }
       await setDoc(doc(db, "espaces", ESPACE, "parametres", "migrations"), { diag1012: D.t }, { merge: true }).catch(() => {});
     }
+    // « (sous-type à préciser) » retiré des localisations (12/10/2026) : renommées une fois dans la liste du cabinet et dans les dossiers
+    if (!fait.diag1012b) {
+      const L0 = D.listes || {}, R = DIAG_RENOMS_1012;
+      if (L0.complet && Array.isArray(L0.diag) && L0.diag.some((d) => R[d])) { const L1 = Object.assign({}, L0, { diag: [...new Set(L0.diag.map((d) => R[d] || d))] }); await setDoc(doc(db, "espaces", ESPACE, "parametres", "listes"), { data: JSON.stringify(L1) }).then(() => { D.listes = L1; }).catch((er) => console.warn("localisations", er)); }
+      const renoms = Object.keys(R).filter((de) => D.patients.some((x) => ((x.doc.clinique || {}).diag || "") === de)).map((de) => ({ k: "diag", de, vers: R[de] }));
+      let ok = true;
+      if (renoms.length) { try { await appelServeur("corrigerListes", { espace: ESPACE, renoms }); for (const x of D.patients) { if (!renoms.some((z) => z.de === ((x.doc.clinique || {}).diag || ""))) continue; const s2 = await getDoc(doc(db, "espaces", ESPACE, "patients", x.id)).catch(() => null); if (s2 && s2.exists()) recalculer(x, s2.data()); } } catch (er) { ok = false; console.warn("localisations (dossiers)", er); } }
+      if (ok) await setDoc(doc(db, "espaces", ESPACE, "parametres", "migrations"), { diag1012b: D.t }, { merge: true }).catch(() => {});
+    }
     // Consultation de fin de radiothérapie (12/10/2026) : créée une fois pour les radiothérapies en cours ou à venir (ensuite : sauverRT)
-    if (!fait.consultFinRT && peut("rendezvous")) {
+    if (!fait.consultFinRT && peut("rendezvous") && reglages().auto.rtFin) {
       for (const x of D.patients) {
         if (!(x.P.rts || []).some((r) => !r.fin && r.deb)) continue;
         const P2 = { rts: JSON.parse(x.doc.rtsJson || "[]"), rdvs: JSON.parse(x.doc.rdvsJson || "[]") }, r0 = JSON.stringify(P2.rts);
@@ -1581,8 +1590,9 @@ window.modifierEtapeRT = (id, rid, z) => {
 // Enregistre les prescriptions et régénère les consultations hebdomadaires « en cours de radiothérapie »
 async function sauverRT(x, liste, quoi) {
   const P2 = { rts: liste, rdvs: JSON.parse(x.doc.rdvsJson || "[]") }, avant = JSON.stringify(P2.rdvs);
-  if (fnOn("rt.hebdo")) genererConsultRT(P2, Object.assign({}, D.ctx, { nouvelId: idsParDefaut() })); // consultations hebdomadaires (réglage du cabinet)
-  consultFinRT(P2, Object.assign({}, D.ctx, { nouvelId: idsParDefaut() })); // consultation de fin de radiothérapie (12/10/2026)
+  const RA = reglages().auto; // rendez-vous créés d'office : décochables dans Paramètres › Rendez-vous automatiques (12/10/2026)
+  if (fnOn("rt.hebdo") && RA.rtHebdo) genererConsultRT(P2, Object.assign({}, D.ctx, { nouvelId: idsParDefaut() })); // consultations hebdomadaires (réglage du cabinet)
+  if (RA.rtFin) consultFinRT(P2, Object.assign({}, D.ctx, { nouvelId: idsParDefaut() })); // consultation de fin de radiothérapie (12/10/2026)
   const changes = { rtsJson: JSON.stringify(P2.rts) };
   if (JSON.stringify(P2.rdvs) !== avant && peut("rendezvous")) changes.rdvsJson = JSON.stringify(P2.rdvs);
   await enregistrer(x, changes, quoi);

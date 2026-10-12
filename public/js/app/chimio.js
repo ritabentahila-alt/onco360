@@ -250,9 +250,11 @@ export function htmlChimio(x) {
   let h = '<section class="carte" id="cChimio"><div class="entete"><h3><span class="ic">💉</span>Chimiothérapie</h3>' + (okT ? '<button class="bt clair petit" onclick="chNouvelleLigne(' + q1 + ')">' + A.ic("plus") + "Nouvelle ligne chimio</button>" : "") + "</div>";
   if (!(P.lignes || []).length) h += '<p class="sous">Aucune ligne de chimiothérapie.</p>';
   (P.lignes || []).forEach((L, i) => {
-    const s = statutLigne(L, P, ctx), p = protocoleDe(L, ctx.bib), ouv = SEL.l === i, tag = (L.assoc ? "Associé · ligne " : "Chimio · ligne ") + (i + 1);
-    const cur = p.c ? (s.next ? "Cure C" + s.next.n + "/" + L.cures.length : "C" + L.cures.length + "/" + L.cures.length) : "Depuis le " + A.dfrA(s.deb);
-    h += '<div class="acc' + (ouv ? " on" : "") + '"><div class="acc-t" onclick="chTog(' + q1 + "," + i + ')"><span><b class="tag">' + (ouv ? "▾" : "▸") + " [" + tag + "]</b> Protocole : <b>" + esc(p.nom) + "</b> | " + cur + (s.code === "cours" && s.next ? " | Prochaine : <b>" + A.dfrA(s.next.date) + "</b>" : "") + '</span><span class="st">' + periode(s, p) + " &nbsp; " + libStatut(s) + "</span></div>" +
+    // 3.7 (12/10/2026) : l'intention de la ligne (« Métastatique · 2e ligne »…) à la place de « Chimio · ligne n » ; en-tête raccourci (plus de
+    // « Protocole : », date de début une seule fois : dans la période à droite)
+    const s = statutLigne(L, P, ctx), p = protocoleDe(L, ctx.bib), ouv = SEL.l === i, tag = libIntention(L) || (L.assoc ? "Associé · ligne " : "Chimio · ligne ") + (i + 1);
+    const cur = p.c ? (s.next ? "C" + s.next.n + "/" + L.cures.length : "C" + L.cures.length + "/" + L.cures.length) : "";
+    h += '<div class="acc' + (ouv ? " on" : "") + '"><div class="acc-t" onclick="chTog(' + q1 + "," + i + ')"><span><b class="tag">' + (ouv ? "▾" : "▸") + " [" + esc(tag) + "]</b> <b>" + esc(p.nom) + "</b>" + (cur ? " | " + cur : "") + (s.code === "cours" && s.next ? " | Prochaine : <b>" + A.dfrA(s.next.date) + "</b>" : "") + '</span><span class="st">' + periode(s, p) + " &nbsp; " + libStatut(s) + "</span></div>" +
       (ouv ? vueLigne(x, i) : "") + "</div>";
   });
   return h + "</section>";
@@ -261,16 +263,16 @@ function vueLigne(x, i) {
   const P = x.P, ctx = D().ctx, L = P.lignes[i], s = statutLigne(L, P, ctx), p = protocoleDe(L, ctx.bib), esc = A.esc, okT = A.traitMod(), okPl = okT || A.peut("planningChimio");
   const auc = (p.dr || []).some((d) => /AUC/.test(d.u)), ql = "'" + x.id + "'," + i;
   let h = '<div class="acc-c"><div class="entete" style="margin-bottom:8px"><h4 style="flex:1;margin:0;font-size:16px;color:var(--titre)">' + (L.assoc ? "Traitement associé" : "Ligne " + (i + 1)) + " — " + esc(p.nom) + "</h4>" +
-    '<div class="actr"><span style="align-self:center;margin-right:4px">' + libStatut(s) + "</span>" + b("Voir / modifier le protocole", "chProto(" + ql + ")") +
+    '<div class="actr"><span style="align-self:center;margin-right:4px">' + libStatut(s) + "</span>" + b("Voir / modifier le protocole", "chProto(" + ql + ")") + (okT ? b(L.intent ? "Intention : " + esc(libIntention(L)) : "Intention de la ligne", "chIntention(" + ql + ")") : "") +
     (okT ? (p.c && !L.arret ? b("+ 1 cure", "chAjouterCure(" + ql + ")") : "") + (L.arret ? b("Reprendre la ligne", "chReprendre(" + ql + ")") : b("Arrêter la ligne", "chArreter(" + ql + ")", "rouge")) + b("Supprimer", "chSupprLigne(" + ql + ")", "rouge") : "") + "</div></div>" +
     (L.arret ? '<p class="st" style="color:var(--rouge);margin:0 0 6px">Arrêtée le ' + A.dfrA(L.arret.date) + " – " + esc(L.arret.raison || "") + (L.arret.com ? " (" + esc(L.arret.com) + ")" : "") + "</p>" : "") +
-    '<div class="tableau"><table class="tcures"><tr><th>Cure</th><th>Date prévue</th><th>Date réalisée</th><th>Statut</th><th>Poids</th>' + (auc ? "<th>Clairance</th>" : "") + "<th>S.C</th><th></th></tr>";
+    '<div class="tableau"><table class="tcures tsea"><tr><th>Cure</th><th>Date prévue</th><th>Date réalisée</th><th>Statut</th><th>Poids</th>' + (auc ? "<th>Clairance</th>" : "") + "<th>S.C</th><th></th></tr>";
   s.E.forEach((e, k) => {
     const pend = e.st === "prevue", qc = ql + "," + k;
-    h += "<tr" + (SEL.c === k ? ' class="sel"' : "") + "><td><b>C" + e.n + "</b></td><td>" + (pend && okPl && !L.arret ? '<input type="date" value="' + esc(e.prevue || "") + '" onchange="chDate(' + qc + ',this.value)">' : A.dfrA(e.prevue)) +
+    h += "<tr" + (SEL.c === k ? ' class="sel"' : "") + '><td data-l="Cure"><b>C' + e.n + '</b></td><td data-l="Date prévue">' + (pend && okPl && !L.arret ? '<input type="date" value="' + esc(e.prevue || "") + '" onchange="chDate(' + qc + ',this.value)">' : A.dfrA(e.prevue)) +
       (e.c.rep && e.c.rep.length ? '<div class="mesures">' + e.c.rep.map((r) => "reportée du " + A.dfrA(r.de) + " (" + esc(r.raison) + ")").join("<br>") + "</div>" : "") + "</td>" +
-      "<td>" + (e.st === "recue" ? A.dfrA(e.c.reelle) : "—") + "</td><td>" + badgeCure(e) + (e.st === "annulee" && e.c.ann ? '<div class="mesures">' + esc(e.c.ann.raison || "") + (e.c.ann.com ? " – " + esc(e.c.ann.com) : "") + "</div>" : "") + "</td>" +
-      "<td>" + (e.poids || "") + "</td>" + (auc ? '<td class="calc">' + (e.cl ? e.cl + " ml/min" : "") + "</td>" : "") + '<td class="calc">' + (e.sc ? fr2(e.sc) : "") + "</td>" +
+      '<td data-l="Réalisée le">' + (e.st === "recue" ? A.dfrA(e.c.reelle) : "—") + '</td><td data-l="Statut">' + badgeCure(e) + (e.st === "annulee" && e.c.ann ? '<div class="mesures">' + esc(e.c.ann.raison || "") + (e.c.ann.com ? " – " + esc(e.c.ann.com) : "") + "</div>" : "") + "</td>" +
+      '<td data-l="Poids">' + (e.poids || "") + "</td>" + (auc ? '<td class="calc" data-l="Clairance">' + (e.cl ? e.cl + " ml/min" : "") + "</td>" : "") + '<td class="calc" data-l="S.C">' + (e.sc ? fr2(e.sc) : "") + "</td>" +
       '<td class="act"><div class="btns">' + b("Ouvrir", "chOuvrir(" + qc + ")", "fonce") + (okT ? (pend ? b('<svg class="pi"><use href="#i-check"/></svg>Valider', "chValider(" + qc + ")", "vert") + b("Reporter", "chReporter(" + qc + ")", "orange") + b("Annuler", "chAnnuler(" + qc + ")", "rouge") : b("Rétablir", "chRetablir(" + qc + ")")) : pend && okPl && !L.arret ? b("Reporter", "chReporter(" + qc + ")", "orange") : "") + "</div></td></tr>";
   });
   h += '</table></div><p class="mesures" style="margin-top:6px">« Ouvrir » affiche la cure dans une fenêtre (J1, J8…, fiche chimio, doses). Une date prévue se modifie directement : il vous est alors demandé si les cures suivantes doivent suivre.</p>';
@@ -393,14 +395,14 @@ function vueJour(x, i, k, j) {
 }
 function tableDoses(x, i, k, q, e, jours, qc, dis, d0) {
   const esc = A.esc;
-  let h = '<div class="tableau"><table class="tcures doses"><tr><th>Jour</th><th>Produit</th><th>Posologie</th><th>Dose 100 %</th><th>% dose</th><th>Dose retenue (modifiable)</th></tr>';
+  let h = '<div class="tableau"><table class="tcures doses tsea"><tr><th>Jour</th><th>Produit</th><th>Posologie</th><th>Dose 100 %</th><th>% dose</th><th>Dose retenue (modifiable)</th></tr>'; // téléphone : cartes (3.7)
   jours.forEach((j) => {
     h += '<tr class="jr"><td colspan="6">' + (j === 99 ? "Selon prescription" : "J" + j + (d0 ? " – " + A.dfrA(addJ(d0, j - 1)) : "")) + "</td></tr>";
     q.dr.forEach((d, xx) => {
       if (joursDe(d).indexOf(j) < 0) return;
       const txt = d.u === "txt", multiJ = joursDe(d).length > 1, z = (e.dj && e.dj[xx] && e.dj[xx][j]) || { dose: e.doses[xx], pc: 100 };
-      h += "<tr><td>" + esc(multiJ ? "J" + j : d.jl || (d.j || []).filter((y) => y !== 99).map((y) => "J" + y).join(" ")) + "</td><td>" + esc(d.p) + "</td><td>" + esc(poso(d)) + "</td><td>" + esc(doseTxt(d, z.v !== undefined ? z.v : e.calc[xx])) + "</td><td>" +
-        (txt ? "" : '<input inputmode="decimal" style="max-width:80px' + (z.pc !== 100 ? ";color:var(--rouge);font-weight:bold" : "") + '"' + (z.pi ? ' class="saisi"' : "") + ' value="' + z.pc + '"' + dis + ' onchange="chPct(' + qc + ",'" + esc(d.id) + "'," + j + ',this.value)"> %') + "</td><td>" +
+      h += '<tr><td data-l="Jour">' + esc(multiJ ? "J" + j : d.jl || (d.j || []).filter((y) => y !== 99).map((y) => "J" + y).join(" ")) + '</td><td data-l="Produit" class="pr">' + esc(d.p) + '</td><td data-l="Posologie">' + esc(poso(d)) + '</td><td data-l="Dose 100 %">' + esc(doseTxt(d, z.v !== undefined ? z.v : e.calc[xx])) + '</td><td data-l="% dose">' +
+        (txt ? "" : '<input inputmode="decimal" style="max-width:80px' + (z.pc !== 100 ? ";color:var(--rouge);font-weight:bold" : "") + '"' + (z.pi ? ' class="saisi"' : "") + ' value="' + z.pc + '"' + dis + ' onchange="chPct(' + qc + ",'" + esc(d.id) + "'," + j + ',this.value)"> %') + '</td><td data-l="Dose retenue">' +
         (txt ? esc(d.dt || "") : '<input inputmode="decimal" style="max-width:130px"' + (z.ov ? ' class="saisi"' : "") + ' value="' + (z.dose == null ? "" : z.dose) + '"' + dis + ' onchange="chOv(' + qc + ",'" + esc(d.id) + "'," + j + ',this.value)">') + "</td></tr>";
     });
   });
@@ -971,7 +973,8 @@ function dessinerNL() {
   const cl = auc ? clairance(age(P.ddn, NL.j1), num(NL.po), num(NL.cr), P.sexe, "mgL") : null;
   const ch = (lib, f, v, typ) => "<div><label>" + lib + '</label><input class="req"' + (typ === "date" ? ' type="date"' : ' inputmode="decimal"') + ' value="' + esc(v == null ? "" : v) + '" onchange="nlSet(\'' + f + "',this.value)\"></div>";
   A.fenetre("<h3>Nouvelle ligne de traitement</h3>" +
-    '<div class="bloc gris"><b>' + esc(p.nom) + '</b><br><span class="mesures">' + esc(p.r || "") + '</span> <button class="mini" onclick="nlChanger()">Changer de protocole</button></div>' +
+    '<div class="bloc gris"><b>' + esc(p.nom) + '</b><br><span class="mesures">' + esc(p.r || "") + '</span> <button class="mini" onclick="nlChanger()">Changer de protocole</button>' +
+      '<br><span class="mesures">Intention : <b>' + esc(libIntention(NL) || "non précisée") + '</b></span> <button class="mini" onclick="nlIntention()">Modifier</button></div>' +
     '<div class="form grille-nl" style="margin-top:12px">' + (ED.c ? ch("Nombre de cures *", "nb", NL.nb) : "") + ch("Date J1 *", "j1", NL.j1, "date") + ch("Poids (kg) *", "po", NL.po) +
     (auc ? ch("Créatinine (mg/L) *", "cr", NL.cr) + '<div><label>Clairance (Cockcroft) – automatique</label><input disabled value="' + (cl ? cl + " ml/min" : P.sexe ? "—" : "sexe manquant") + '"></div>' : "") +
     '<div><label>Cycle (jours, 0 = continu)</label><input inputmode="numeric" value="' + esc(ED.c || 0) + '" onchange="nlSet(\'c\',this.value)"></div>' +
@@ -986,7 +989,7 @@ function dessinerNL() {
     edValide(); dedupIds(ED);
     const cures = []; for (let n = 0; n < nb; n++) cures.push({});
     if (num(NL.pct) != null && num(NL.pct) !== 100) cures[0].pctAll = String(num(NL.pct));
-    const lignes = lignesDe(x); lignes.push({ id: "L" + Date.now() + Math.floor(Math.random() * 1000), protoId: p.id, pr: ED, assoc: p.assoc ? 1 : 0, j1: NL.j1, poids: String(num(NL.po)), creat: NL.cr ? String(num(NL.cr)) : "", crU: "mgL", cures });
+    const lignes = lignesDe(x); lignes.push({ id: "L" + Date.now() + Math.floor(Math.random() * 1000), protoId: p.id, pr: ED, assoc: p.assoc ? 1 : 0, ...(NL.intent ? { intent: NL.intent } : {}), ...(NL.rang ? { rang: NL.rang } : {}), j1: NL.j1, poids: String(num(NL.po)), creat: NL.cr ? String(num(NL.cr)) : "", crU: "mgL", cures });
     await sauverLignes(x, lignes, "Nouvelle ligne : " + ED.nom, { poids: String(num(NL.po)) });
     SEL.pid = x.id; SEL.l = lignes.length - 1; SEL.c = null;
   });
@@ -995,8 +998,34 @@ window.nlChoixV = (n, v) => { CF[CLES[n]] = v || ""; for (let k = n + 1; k < 4; 
 window.nlChoix = (n, i) => { CF[CLES[n]] = i < 0 ? "" : valeurs(n)[i]; for (let k = n + 1; k < 4; k++) CF[CLES[k]] = ""; dessinerNL(); };
 window.nlFav = () => { CF.fav = CF.fav ? 0 : 1; dessinerNL(); };
 window.nlReinit = () => { CF = { c: "", o: "", s: "", g: "", q: "", fav: 0 }; dessinerNL(); };
-window.nlProto = (pid) => { const x = trouver(NL.pid); ED = JSON.parse(JSON.stringify(D().ctx.bib[pid])); delete ED.fav; NL = Object.assign(NL, { p: pid, nb: 6, j1: D().t, po: x.P.poids || "", cr: "", pct: 100 }); REDRAW = dessinerNL; dessinerNL(); };
+// 3.7 (12/10/2026, demande de Dr Bentahila) – intention de la ligne : néoadjuvante, adjuvante, métastatique (+ rang : 1re, 2e… ligne ;
+// palliative = métastatique), concomitante (avec la radiothérapie) ; L.intent / L.rang ; affichée dans l'en-tête de la ligne
+const INTENTIONS = [["neo", "Néoadjuvante"], ["adj", "Adjuvante"], ["meta", "Métastatique"], ["conc", "Concomitante"]];
+const rangLib = (n) => (+n === 1 ? "1re" : (+n || 1) + "e") + " ligne";
+export const libIntention = (L) => { const t = (INTENTIONS.find((z) => z[0] === L.intent) || [])[1]; return !t ? "" : L.intent === "meta" ? t + " · " + rangLib(L.rang) : t; };
+function fenetreIntention(titre, o, ok, passer) {
+  const esc = A.esc, cle = o.intent || "", rang = o.rang || 1;
+  A.fenetre("<h3>" + esc(titre) + '</h3><p class="sous">Intention de la ligne de chimiothérapie</p><div class="puces" id="itP">' + INTENTIONS.map(([k, l]) => '<button type="button" class="puce' + (k === cle ? " on" : "") + '" data-k="' + k + '">' + l + (k === "conc" ? " (avec la radiothérapie)" : "") + "</button>").join("") + "</div>" +
+    '<div class="form' + (cle === "meta" ? "" : " cache") + '" id="itR" style="margin-top:10px"><div><label for="itRang">Ligne métastatique n°</label><select id="itRang">' + [1, 2, 3, 4, 5, 6, 7, 8].map((n) => '<option value="' + n + '"' + (n === +rang ? " selected" : "") + ">" + rangLib(n) + "</option>").join("") + "</select></div></div>" +
+    '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" id="itNon">' + (passer ? "Passer" : "Annuler") + '</button><button class="bt plein" id="fOk">Continuer</button></div>');
+  let k0 = cle; const zone = document.getElementById("itP");
+  zone.onclick = (ev) => { const bt = ev.target.closest("[data-k]"); if (!bt) return; k0 = bt.dataset.k; zone.querySelectorAll(".puce").forEach((z) => z.classList.toggle("on", z === bt)); document.getElementById("itR").classList.toggle("cache", k0 !== "meta"); };
+  document.getElementById("itNon").onclick = () => (passer ? passer() : A.fermerFenetre());
+  document.getElementById("fOk").onclick = () => { if (!k0) { A.erreur("Choisissez l'intention (ou « Passer »)."); return; } ok({ intent: k0, rang: k0 === "meta" ? +A.val("itRang") || 1 : null }); };
+}
+const rangSuivant = (x) => (lignesDe(x).filter((L) => L.intent === "meta").reduce((m, L) => Math.max(m, +L.rang || 0), 0) || 0) + 1;
+window.chIntention = (id, i) => {
+  const x = trouver(id), L = lignesDe(x)[i]; if (!L) return;
+  fenetreIntention("Ligne " + (i + 1) + " — " + ((protocoleDe(L, D().ctx.bib) || {}).nom || ""), { intent: L.intent, rang: L.rang || rangSuivant(x) }, (o) => executer(x, async () => {
+    const lignes = lignesDe(x), L2 = lignes[i]; L2.intent = o.intent; if (o.rang) L2.rang = o.rang; else delete L2.rang;
+    await sauverLignes(x, lignes, "Intention de la ligne : " + libIntention(L2));
+  }));
+};
+window.nlProto = (pid) => { const x = trouver(NL.pid); ED = JSON.parse(JSON.stringify(D().ctx.bib[pid])); delete ED.fav; NL = Object.assign(NL, { p: pid, nb: 6, j1: D().t, po: x.P.poids || "", cr: "", pct: 100, intent: "", rang: null }); REDRAW = dessinerNL;
+  // fenêtre intermédiaire : l'intention de la ligne, puis les paramètres de la ligne
+  fenetreIntention(ED.nom, { rang: rangSuivant(x) }, (o) => { NL.intent = o.intent; NL.rang = o.rang; dessinerNL(); }, () => dessinerNL()); };
 window.nlChanger = () => { NL.p = null; dessinerNL(); };
+window.nlIntention = () => { const x = trouver(NL.pid); fenetreIntention(ED.nom, { intent: NL.intent, rang: NL.rang || rangSuivant(x) }, (o) => { NL.intent = o.intent; NL.rang = o.rang; dessinerNL(); }, () => dessinerNL()); };
 window.nlSet = (f, v) => { if (f === "c") { ED.c = parseInt(v, 10) || 0; dessinerNL(); return; } NL[f] = String(v).trim(); if (f === "po" || f === "cr" || f === "j1") dessinerNL(); };
 
 // Avant la ligne : date de naissance, sexe, taille et poids sont nécessaires au calcul des doses

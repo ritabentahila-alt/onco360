@@ -405,6 +405,22 @@ longs et ne dépendent pas du code.
       intermédiaire pour une cure d'un seul jour ; un bouton principal par cure + menu ⋯ (« Arrêter la ligne », « Supprimer »,
       « Annuler » dans le menu) ; en-tête de ligne en double retiré ; téléphone : table des cures en cartes, « % dose » et « Dose
       retenue » visibles.
+- [x] **3.7 (partie) Intention de la ligne et affichage** (12/10, demandes de Dr Bentahila ; en ligne : 20261012l) : à la création d'une ligne,
+      après le choix du protocole, **fenêtre « Intention de la ligne »** : néoadjuvante, adjuvante, métastatique (+ **n° de ligne** : 1re, 2e…,
+      proposé = la suivante ; palliative = métastatique), concomitante (avec la radiothérapie) ; « Passer » possible ; `L.intent` / `L.rang` ;
+      bouton « Intention » dans la ligne pour la changer. **En-tête de ligne** : « ▸ [Métastatique · 2e ligne] Protocole | C2/6 | Prochaine… »
+      (plus de « Protocole : », date de début une seule fois). **Téléphone** : cures de la ligne et doses de la séance en cartes (« % dose » et
+      « Dose retenue » visibles). Pas de doses dans la ligne (décision : tableau trop chargé). Restent de 3.7 : réponse au traitement, fenêtre
+      intermédiaire d'une cure d'un seul jour, bouton principal + menu ⋯.
+- [x] **Autres demandes du 12/10** (en ligne : 20261012l) : **allergie sur les ordonnances à cocher** (Paramètres › Impression, comme l'âge et
+      le poids) ; **État général (OMS) dans les informations médicales**, avant la taille et le poids ; localisations **sans « (sous-type à
+      préciser) »** (Cancer du sein, Cancer du poumon, Sarcome ; renommées une fois dans la liste du cabinet et dans les dossiers,
+      `DIAG_RENOMS_1012`, `migrations()` + `corrigerListes`) ; **Paramètres › Agenda et rappels › Rendez-vous automatiques** : consultations
+      hebdomadaires de RT et consultation de fin de RT décochables (`reglages.auto`) ; **Google Agenda** : case « Consultation de fin de
+      radiothérapie » (`rdv:rtfin`) ; **pli confidentiel** : renseignements cliniques = résumé du patient (sinon diagnostic complet), « À REMPLIR
+      : résumé du patient (dossier) » sinon ; **modèles des documents de radiothérapie modifiables** (pli, compte rendu de fin, calendrier
+      des séances) dans Bibliothèques › Courriers (badge « radiothérapie », champs {…} propres à chaque document, « ↺ » = modèle d'origine ;
+      `donnees/modelesrt.js`, `modeleRT`, ids rt-pli / rt-cr / rt-rdv).
 - [x] **3.7 bis Heures de la séance de chimio** (12/10, décision de Dr Bentahila ; en ligne : 20261012g) : **deux créneaux** par séance
       (moteur `public/js/moteur/heures.js`, champ `heures` du dossier { "ligne|cure|jour": { cons, seance } }) : **consultation de séance**
       (médecin ou secrétaire : fenêtre « Prochaine séance de chimiothérapie » ouverte à la validation d'une cure ou d'une séance, avant la
