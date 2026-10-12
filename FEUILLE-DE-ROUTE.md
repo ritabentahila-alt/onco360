@@ -67,7 +67,6 @@ l'ancienne feuille de route.
 2. **Par Dr Bentahila** : demander à GitHub de purger ses copies en cache (formulaire du support) ; regarder GitHub › Insights ›
    Traffic › « Git clones » (gardé 14 jours seulement) pour savoir si le dépôt a été copié pendant qu'il était public (10/10 au
    soir, et 11/10).
-4. Seuils des alertes cliniques du tableau de bord (2.6) : perte de poids (5 % ? 10 %), PNN, plaquettes.
 
 ---
 
@@ -283,11 +282,17 @@ longs et ne dépendent pas du code.
       ajustées » imprimée ; pli et compte rendu : **mentions « À REMPLIR » / « à compléter » signalées avant l'impression et jamais
       imprimées** ; ligne de signature gardée avec son texte. Tests : `tests/test_rt_controle.py` 13/13, test-logique 98 (2 anciens
       cas adaptés à la décision), accueil, agenda.
-- [x] **2.6 Rappel du bilan avant cure** (12/10, testé, pas encore en ligne) : dans la zone de validation de J1 et de chaque séance,
-      « Bilan biologique du jour (facultatif) » : PNN, plaquettes, hémoglobine, gardés dans l'instantané (`fige.bio`) ; PNN < 1 500 ou
-      plaquettes < 100 000 /mm³ → message avant de valider (`SEUILS_BIO`), jamais de blocage ; rien n'est demandé si les cases restent
-      vides. **Reste à décider par Dr Bentahila** : alertes cliniques du tableau de bord (perte de poids depuis le début de la ligne :
-      5 % ou 10 % ? clairance basse avant carboplatine / cisplatine : seuil ?) ; seuil d'hémoglobine éventuel.
+- [x] **2.6 Rappel du bilan et alertes cliniques** (12/10, testé) : zone de validation : « Bilan biologique du jour (facultatif) » en
+      **G/L** (une valeur en /mm³ est convertie) : PNN, plaquettes, hémoglobine, gardés dans l'instantané (`fige.bio`). **Repères de
+      Dr Bentahila (12/10), de simples notifications, le médecin garde la main** : PNN ≥ 1,5 G/L, plaquettes ≥ 100 G/L, hémoglobine
+      ≥ 8 g/dL ; perte de poids > 10 % depuis le début de la ligne ; **cisplatine** : DFG ≥ 60 ml/min, 45-59 = zone d'adaptation
+      (prudence, réduction possible à 50-70 %), < 45 = contre-indication habituelle, créatinine non saisie signalée (créatinine et
+      clairance désormais affichées aussi pour les protocoles avec cisplatine) ; **carboplatine** : < 30 ml/min = contre-indiqué ou
+      réévaluation stricte du rapport bénéfice / risque avec réduction massive ; **Calvert** plafonné à 125 ml/min (rappelé sous la
+      clairance quand elle dépasse 125). Message à la validation (`verifierValidation`) et groupe **« Alertes cliniques »** du bloc
+      « À valider par le médecin » (`alertesCliniques` de v2.js : lignes en cours, cure des 7 prochains jours, dernier bilan). Moteur :
+      `REPERES`, `reperesClairance`, `poidsDebut` (moteur/doses.js), `SEUILS_BIO`, `alertesBio` (chimio.js). Jeu de test : 4 pertes de
+      poids > 10 % réelles signalées, aucun refus. Tests : test-doses 63/63, test_validation 15/15, test_accueil 20/20.
 
 ## Phase 3 – Métier (dossier oncologique, radiothérapie, chimiothérapie, prescriptions)
 

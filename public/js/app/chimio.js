@@ -5,7 +5,7 @@ import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/fi
 import { db } from "../config.js";
 import { fusionner, separer } from "../donnees/conversion.js";
 import { statutLigne, ligneCourante } from "../moteur/resume.js";
-import { etatLigne, protocoleDe, protocoleCure, seancesCure, seancesDe, dedupIds, joursDe, clairance, jourVersSeance, instantane, controleSeance, poidsAvant, protocoleValide } from "../moteur/doses.js";
+import { etatLigne, protocoleDe, protocoleCure, seancesCure, seancesDe, dedupIds, joursDe, clairance, jourVersSeance, instantane, controleSeance, poidsAvant, poidsDebut, protocoleValide, REPERES, avecMolecule } from "../moteur/doses.js";
 import { addJ, ecart, num, age } from "../moteur/outils.js";
 import { tarif } from "../moteur/tarifs.js";
 import { typeRdv, T_RTC } from "../moteur/rdv.js";
@@ -247,7 +247,7 @@ function vueCure(x, i, k) {
 // 2) Vue d'un jour : paramètres (J1), molécules, doses du jour, validation
 function vueJour(x, i, k, j) {
   const P = x.P, L = P.lignes[i], { q, e } = etatCure(L, k, P), esc = A.esc, okT = A.traitMod(), c = e.c, qc = "'" + x.id + "'," + i + "," + k;
-  const auc = q.dr.some((d) => /AUC/.test(d.u)), g = groupes(q), multi = g.length > 1, gi = Math.max(0, g.findIndex((z) => z.j === j)), gr = g[gi], dis = okT ? "" : " disabled", u = L.crU === "mgL" ? "mg/L" : "µmol/L";
+  const auc = q.dr.some((d) => /AUC/.test(d.u) || /CISPLATINE/i.test(d.p || "")), g = groupes(q), multi = g.length > 1, gi = Math.max(0, g.findIndex((z) => z.j === j)), gr = g[gi], dis = okT ? "" : " disabled", u = L.crU === "mgL" ? "mg/L" : "µmol/L";
   const sea = j > 1 ? (seancesCure(L, e, D().ctx.bib).find((z) => z.j === j) || null) : null;
   const dJ = j === 1 ? (e.st === "recue" ? c.reelle : e.date) : sea ? (sea.st === "recue" ? sea.d : sea.prevue) : null;
   let h = '<button class="lien" style="margin-bottom:8px" onclick="chRetourCure()">‹ Retour à la cure C' + e.n + "</button>" +
@@ -261,7 +261,7 @@ function vueJour(x, i, k, j) {
   h += '<div class="form" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-top:4px"><div><label for="chPoids">Poids (kg)</label><input id="chPoids" inputmode="decimal" value="' + esc(G.poids || "") + '"' + (G.saisi.poids ? ' class="saisi"' : "") + (poidsSec ? "" : dis) + ' onchange="chChamp(' + qc + ',\'poids\',this.value,' + gr.j + ')">' +
     (poidsSec ? '<button class="bt vert petit" style="margin-top:6px" onclick="chChamp(' + qc + ',\'poids\',document.getElementById(\'chPoids\').value,' + gr.j + ')"><svg class="pi"><use href="#i-check"/></svg>Valider le poids</button>' : "") +
     (pv ? '<div class="mesures">Poids validé par ' + esc(pv.nom || "") + " le " + A.dfrA(String(pv.le || "").slice(0, 10)) + " à " + String(pv.le ? new Date(pv.le).toTimeString().slice(0, 5) : "").replace(":", " h ") + "</div>" : "") + "</div>" +
-    (auc ? "<div><label>Créatinine (" + u + ')</label><input inputmode="decimal" value="' + esc(G.creat || "") + '"' + (G.saisi.creat ? ' class="saisi"' : "") + dis + ' onchange="chChamp(' + qc + ',\'creat\',this.value,' + gr.j + ')"></div><div><label>Clairance (Cockcroft)</label><input disabled value="' + (G.cl ? G.cl + " ml/min" : P.sexe ? "—" : "sexe manquant") + '"></div>' : "") +
+    (auc ? "<div><label>Créatinine (" + u + ')</label><input inputmode="decimal" value="' + esc(G.creat || "") + '"' + (G.saisi.creat ? ' class="saisi"' : "") + dis + ' onchange="chChamp(' + qc + ',\'creat\',this.value,' + gr.j + ')"></div><div><label>Clairance (Cockcroft)</label><input disabled value="' + (G.cl ? G.cl + " ml/min" : P.sexe ? "—" : "sexe manquant") + '">' + (G.cl > REPERES.calvert && avecMolecule(e, /CARBOPLATINE/i) ? '<div class="mesures">Calvert : plafonnée à ' + REPERES.calvert + " ml/min (hyperfiltration)</div>" : "") + "</div>" : "") +
     '<div><label>Surface corporelle</label><input disabled value="' + (G.sc ? fr2(G.sc) + " m²" : "—") + '"></div>' +
     '<div><label>Dose des anticancéreux (%)</label><input inputmode="decimal" placeholder="100" value="' + esc(G.pctAll == null ? "" : G.pctAll) + '"' + (G.pctAll != null ? ' class="saisi"' : "") + dis + ' onchange="chChamp(' + qc + ',\'pctAll\',this.value,' + gr.j + ')"></div></div>' +
     (j > 1 ? '<p class="mesures" style="margin:2px 0 6px">Valeurs reprises de la séance précédente tant que rien n\'est saisi ; une valeur saisie ici est reprise aux séances et cures suivantes.</p>' : "");
@@ -285,7 +285,7 @@ function vueJour(x, i, k, j) {
     else if (okT) h += '<div class="form" style="grid-template-columns:minmax(0,220px) 1fr;align-items:end"><div><label for="vD">Date de réalisation</label>' + dateInput("vD", D().t) + "</div>" +
       (e.date ? '<div class="mesures" id="vSz">' + choixSuite("vS", "Si la date diffère de la date prévue (" + A.dfrA(e.date) + ")") + "</div>" : "<div></div>") + "</div>" +
       '<div class="form bio-j" style="grid-template-columns:repeat(3,minmax(0,1fr));margin-top:8px"><div class="large" style="grid-column:1/-1"><span class="mesures">Bilan biologique du jour (facultatif, gardé avec la séance validée)</span></div>' +
-      '<div><label for="bPnn">PNN (/mm³)</label><input id="bPnn" inputmode="numeric" placeholder="ex. 2500"></div><div><label for="bPlq">Plaquettes (/mm³)</label><input id="bPlq" inputmode="numeric" placeholder="ex. 180000"></div><div><label for="bHb">Hémoglobine (g/dL)</label><input id="bHb" inputmode="decimal" placeholder="ex. 11,5"></div></div>' +
+      '<div><label for="bPnn">PNN (G/L)</label><input id="bPnn" inputmode="decimal" placeholder="≥ 1,5"></div><div><label for="bPlq">Plaquettes (G/L)</label><input id="bPlq" inputmode="decimal" placeholder="≥ 100"></div><div><label for="bHb">Hémoglobine (g/dL)</label><input id="bHb" inputmode="decimal" placeholder="≥ 8"></div></div>' +
       '<div class="err" id="fErr"></div><div class="boutons" style="margin-top:8px"><button class="bt gris" data-fn="chimio.report" style="color:#B46A00" onclick="chReporter(' + qc + ')">↪ Reporter' + (multi ? " J1 (la cure)" : " la cure") + '</button><button class="bt vert" id="fOk" onclick="chValiderJ1(' + qc + ')"><svg class="pi"><use href="#i-check"/></svg>' + (multi ? "Valider J1" : "Valider la cure") + "</button></div>";
   } else if (sea) {
     const rp = ((c.sea || {})[j] || {}).rep || [];
@@ -296,7 +296,7 @@ function vueJour(x, i, k, j) {
     else if (okT) h += '<div class="form" style="grid-template-columns:minmax(0,220px) 1fr;align-items:end"><div><label for="sD">Date de réalisation</label>' + dateInput("sD", sea.prevue && ecart(sea.prevue, D().t) <= 0 ? sea.prevue : D().t) + "</div>" +
       (sea.prevue ? "<div>" + choixSuite("sS", "Si la date diffère de la date prévue (" + A.dfrA(sea.prevue) + ")") + "</div>" : "<div></div>") + "</div>" +
       '<div class="form bio-j" style="grid-template-columns:repeat(3,minmax(0,1fr));margin-top:8px"><div class="large" style="grid-column:1/-1"><span class="mesures">Bilan biologique du jour (facultatif, gardé avec la séance validée)</span></div>' +
-      '<div><label for="bPnn">PNN (/mm³)</label><input id="bPnn" inputmode="numeric" placeholder="ex. 2500"></div><div><label for="bPlq">Plaquettes (/mm³)</label><input id="bPlq" inputmode="numeric" placeholder="ex. 180000"></div><div><label for="bHb">Hémoglobine (g/dL)</label><input id="bHb" inputmode="decimal" placeholder="ex. 11,5"></div></div>' +
+      '<div><label for="bPnn">PNN (G/L)</label><input id="bPnn" inputmode="decimal" placeholder="≥ 1,5"></div><div><label for="bPlq">Plaquettes (G/L)</label><input id="bPlq" inputmode="decimal" placeholder="≥ 100"></div><div><label for="bHb">Hémoglobine (g/dL)</label><input id="bHb" inputmode="decimal" placeholder="≥ 8"></div></div>' +
       '<div class="err" id="fErr"></div><div class="boutons" style="margin-top:8px"><button class="bt gris" style="color:#B46A00" onclick="chReporterJ(' + qc + "," + j + ')">↪ Reporter ' + etiquette(gr) + '</button><button class="bt vert" id="fOk" onclick="chValiderJ(' + qc + "," + j + ')"><svg class="pi"><use href="#i-check"/></svg>Valider ' + etiquette(gr) + "</button></div>";
   }
   return h + "</div>";
@@ -373,16 +373,22 @@ export async function figerCuresValidees(x) {
 // 2.3 et 2.6 (12/10/2026) : avant de valider la séance n (0 = J1) de la cure k : doses manquantes → refus ; valeurs hors des seuils →
 // confirmation ; bilan biologique du jour (facultatif) sous les seuils proposés (PNN < 1 500, plaquettes < 100 000 /mm³) → message,
 // jamais de blocage. Renvoie le bilan saisi (gardé avec l'instantané), ou null si la validation est arrêtée.
-export const SEUILS_BIO = { pnn: 1500, plq: 100000 };
+// Repères biologiques de Dr Bentahila (12/10/2026) : PNN ≥ 1,5 G/L, plaquettes ≥ 100 G/L, hémoglobine ≥ 8 g/dL (saisie en G/L ; une
+// valeur tapée en /mm³ est convertie)
+export const SEUILS_BIO = { pnn: 1.5, plq: 100, hb: 8 };
+export const bioGL = (k, v) => (v == null ? null : k === "pnn" && v > 100 ? v / 1000 : k === "plq" && v > 2000 ? v / 1000 : v);
+export const alertesBio = (b) => { const a = [], f = (v) => String(v).replace(".", ","); if (!b) return a;
+  if (b.pnn != null && b.pnn < SEUILS_BIO.pnn) a.push("PNN à " + f(b.pnn) + " G/L (moins de 1,5 G/L)");
+  if (b.plq != null && b.plq < SEUILS_BIO.plq) a.push("plaquettes à " + f(b.plq) + " G/L (moins de 100 G/L)");
+  if (b.hb != null && b.hb < SEUILS_BIO.hb) a.push("hémoglobine à " + f(b.hb) + " g/dL (moins de 8 g/dL)");
+  return a; };
 function verifierValidation(x, i, k, n) {
-  const L = lignesDe(x)[i], E = etatLigne(L, x.P, D().ctx), r = controleSeance(E[k], n, L.crU, poidsAvant(E, k, n));
+  const L = lignesDe(x)[i], E = etatLigne(L, x.P, D().ctx), r = controleSeance(E[k], n, L.crU, poidsAvant(E, k, n), poidsDebut(E));
   if (r.refus.length) { alert("Validation impossible :\n\n• " + r.refus.join("\n• ") + "\n\nCorrigez la dose (ou saisissez la créatinine) dans la fenêtre de la cure, puis validez."); return null; }
-  const nb = (id) => { const v = num(A.val(id)); return v == null ? null : v; }, bio = { pnn: nb("bPnn"), plq: nb("bPlq"), hb: nb("bHb") };
+  const nb = (id) => { const v = num(A.val(id)); return v == null ? null : v; }, bio = { pnn: bioGL("pnn", nb("bPnn")), plq: bioGL("plq", nb("bPlq")), hb: nb("bHb") };
   Object.keys(bio).forEach((key) => { if (bio[key] == null) delete bio[key]; });
-  const al = r.alertes.slice();
-  if (bio.pnn != null && bio.pnn < SEUILS_BIO.pnn) al.push("PNN à " + bio.pnn + " /mm³ (moins de " + SEUILS_BIO.pnn + ")");
-  if (bio.plq != null && bio.plq < SEUILS_BIO.plq) al.push("plaquettes à " + bio.plq + " /mm³ (moins de " + SEUILS_BIO.plq + ")");
-  if (al.length && !confirm("Vérifiez avant de valider :\n\n• " + al.join("\n• ") + "\n\nValider quand même ?")) return null;
+  const al = r.alertes.concat(alertesBio(bio));
+  if (al.length && !confirm("À vérifier avant de valider (repères, vous gardez la main) :\n\n• " + al.join("\n• ") + "\n\nValider quand même ?")) return null;
   return bio;
 }
 

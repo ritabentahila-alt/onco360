@@ -2,7 +2,7 @@
 // Valeurs attendues calculées à la main (formules : Mosteller, Cockcroft-Gault mg/L et µmol/L, Calvert plafonné à 125).
 // Patients et protocoles fictifs, écrits ici. Les essais de l'audit n° 2 (taille modifiée après validation, prémédication écrite
 // en DCI…) sont repris tels quels : ils doivent rester vrais.
-import { surface, clairance, calcul, etatLigne, protocoleCure, seancesDe, seancesCure, premed, instantane, controleSeance, poidsAvant } from "../../public/js/moteur/doses.js";
+import { surface, clairance, calcul, etatLigne, protocoleCure, seancesDe, seancesCure, premed, instantane, controleSeance, poidsAvant, poidsDebut, reperesClairance } from "../../public/js/moteur/doses.js";
 
 let ok = 0, ko = 0;
 const cas = (nom, v, d) => { if (v) { ok++; console.log("  ✔ " + nom); } else { ko++; console.log("  ✘ " + nom + (d === undefined ? "" : "  " + JSON.stringify(d).slice(0, 400))); } };
@@ -136,6 +136,20 @@ cas("perte de poids de 12 % depuis la cure précédente : alerte ; 5 % : rien", 
   !controleSeance(etatLigne(Object.assign(ligne(), { cures: [{}, { poids: "57" }, {}, {}] }), patient({ taille: "162" }), CTX)[1], 0, "mgL", 60).alertes.length);
 const lgv = copie(lg); K = etatLigne(lgv, patient(), CTX);
 cas("J8 : poids comparé à J1 (70 → 64 kg, -9 % : rien)", !controleSeance(K[0], 1, "mgL", poidsAvant(K, 0, 1)).alertes.length && poidsAvant(K, 0, 1) === 70);
+
+console.log("8. Repères de Dr Bentahila (notifications, jamais bloquantes)");
+const CIS = { id: "cis", nom: "Cisplatine", c: 21, dr: [{ id: "cp", p: "CISPLATINE", d: 75, u: "mg/m²", j: [1] }, { id: "on", p: "ONDANSETRON", d: 8, u: "mg", j: [1] }] };
+const lcis = (creat) => ({ id: "L9", pr: copie(CIS), j1: "2026-09-01", poids: "70", creat, crU: "mgL", cures: [{}, {}] });
+const rep = (creat) => { const K2 = etatLigne(lcis(creat), patient({ sexe: "H" }), CTX); return reperesClairance(K2[0], K2[0].g[0]); };
+cas("cisplatine, clairance 78 (≥ 60) : rien", rep("10").length === 0, rep("10"));
+cas("cisplatine, clairance 52 : zone d'adaptation, réduction possible à 50-70 %", /zone d'adaptation.*50-70 %/.test(rep("15").join()), rep("15"));
+cas("cisplatine, clairance 39 : contre-indication habituelle", /moins de 45 ml\/min, contre-indication habituelle/.test(rep("20").join()), rep("20"));
+cas("cisplatine sans créatinine : clairance inconnue signalée", /créatinine non saisie/.test(rep("").join()), rep(""));
+K = etatLigne(lc("30", "mgL"), patient({ sexe: "H" }), CTX); r = controleSeance(K[0], 0, "mgL", null, null);
+cas("carboplatine, clairance 26 : contre-indiqué ou réévaluation stricte, sans doublon « hors seuil »", r.alertes.some((x) => /carboplatine.*moins de 30 ml\/min/.test(x)) && !r.alertes.some((x) => /^clairance de/.test(x)) && !r.refus.length, r);
+const lp = ligne(); lp.cures[3] = { poids: "53" }; lp.cures[2] = { poids: "56" }; K = etatLigne(lp, patient({ taille: "162" }), CTX);
+r = controleSeance(K[3], 0, "mgL", poidsAvant(K, 3, 0), poidsDebut(K));
+cas("perte de poids de 12 % depuis le début de la ligne (60 → 53 kg) signalée", r.alertes.some((x) => /12 % depuis le début de la ligne \(60 → 53 kg\)/.test(x)), r);
 
 console.log("\n" + ok + " réussis, " + ko + " échoués");
 process.exit(ko ? 1 : 0);

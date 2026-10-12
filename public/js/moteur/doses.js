@@ -148,7 +148,23 @@ export function instantane(e, n) {
 // 0 % décidé) reste permise ; `alertes` = valeurs hors des seuils décidés par Dr Bentahila (validation après
 // confirmation). poidsAvant : poids de la séance précédente (variation > 10 %).
 export const SEUILS = { poids: [30, 200], taille: [120, 220], sc: [1.2, 2.6], creatMgL: [3, 30], creatUmol: [25, 265], cl: [30, 200], variation: 10 };
-export function controleSeance(e, n, crU, poidsAvant) {
+// Repères de Dr Bentahila (12/10/2026) : de simples notifications, le médecin garde la main (seule une dose impossible à calculer
+// bloque) — perte de poids > 10 % depuis le début de la ligne ; cisplatine : DFG ≥ 60 ml/min, 45-59 = zone d'adaptation (prudence,
+// réduction possible à 50-70 %), < 45 = contre-indication habituelle ; carboplatine : < 30 ml/min = contre-indiqué ou réévaluation
+// stricte du rapport bénéfice / risque avec réduction massive ; Calvert : clairance plafonnée à 125 ml/min (hyperfiltration).
+export const REPERES = { perteLigne: 10, cisplatine: [45, 60], carboplatine: 30, calvert: 125 };
+export const avecMolecule = (e, re) => (e.prod || []).some((P) => !premed(P) && re.test(P.p || ""));
+export function reperesClairance(e, G) {
+  const l = [], cl = G.cl, R = REPERES;
+  if (avecMolecule(e, /CISPLATINE/i)) {
+    if (cl == null) l.push("cisplatine : créatinine non saisie, clairance inconnue (repère : DFG ≥ " + R.cisplatine[1] + " ml/min)");
+    else if (cl < R.cisplatine[0]) l.push("cisplatine avec une clairance de " + cl + " ml/min : moins de " + R.cisplatine[0] + " ml/min, contre-indication habituelle");
+    else if (cl < R.cisplatine[1]) l.push("cisplatine avec une clairance de " + cl + " ml/min : zone d'adaptation (" + R.cisplatine[0] + "-" + (R.cisplatine[1] - 1) + " ml/min), prudence, réduction possible à 50-70 %");
+  }
+  if (avecMolecule(e, /CARBOPLATINE/i) && cl != null && cl < R.carboplatine) l.push("carboplatine avec une clairance de " + cl + " ml/min : moins de " + R.carboplatine + " ml/min, contre-indiqué ou réévaluation stricte du rapport bénéfice / risque avec réduction massive de dose");
+  return l;
+}
+export function controleSeance(e, n, crU, poidsAvant, poidsDebut) {
   const G = (e.g || [])[n] || {}, refus = [], alertes = [], S = SEUILS, hors = (v, [a, b]) => v != null && (v < a || v > b);
   (e.dj || []).forEach((dj, x) => {
     const P = (e.prod || [])[x] || {}; if (premed(P)) return;
@@ -162,12 +178,17 @@ export function controleSeance(e, n, crU, poidsAvant) {
   if (hors(G.sc, S.sc)) alertes.push("surface corporelle de " + G.sc + " m² (hors de " + S.sc.join(" à ") + " m²)");
   const sc = crU === "mgL" ? S.creatMgL : S.creatUmol;
   if (hors(G.creat, sc)) alertes.push("créatinine de " + G.creat + (crU === "mgL" ? " mg/L" : " µmol/L") + " (hors de " + sc.join(" à ") + " : bonne unité ?)");
-  if (hors(G.cl, S.cl)) alertes.push("clairance de " + G.cl + " ml/min (hors de " + S.cl.join(" à ") + ")");
+  const rc = reperesClairance(e, G); rc.forEach((a) => alertes.push(a));
+  if (hors(G.cl, S.cl) && !(rc.length && G.cl < S.cl[0])) alertes.push("clairance de " + G.cl + " ml/min (hors de " + S.cl.join(" à ") + ")");
+  if (G.poids != null && poidsDebut && (poidsDebut - G.poids) / poidsDebut * 100 > REPERES.perteLigne)
+    alertes.push("perte de poids de " + Math.round((poidsDebut - G.poids) / poidsDebut * 100) + " % depuis le début de la ligne (" + poidsDebut + " → " + G.poids + " kg)");
   if (G.poids != null && poidsAvant && Math.abs(G.poids - poidsAvant) / poidsAvant * 100 > S.variation)
     alertes.push("poids passé de " + poidsAvant + " à " + G.poids + " kg (" + (G.poids > poidsAvant ? "+" : "") + Math.round((G.poids - poidsAvant) / poidsAvant * 100) + " %)");
   return { refus, alertes };
 }
 // Poids de la séance précédente (séance n de la cure k) : séance d'avant dans la cure, sinon dernière séance de la cure d'avant
+// Poids au début de la ligne (1re séance de la 1re cure)
+export const poidsDebut = (E) => (E && E[0] && E[0].g && E[0].g[0] ? E[0].g[0].poids : null);
 export const poidsAvant = (E, k, n) => (n > 0 ? E[k].g[n - 1].poids : k > 0 && E[k - 1] ? E[k - 1].g[E[k - 1].g.length - 1].poids : null);
 
 // B5 – séances J8, J15… d'une cure, avec décalage en cascade

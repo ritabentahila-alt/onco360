@@ -7,7 +7,7 @@ import { numeroRecu, cleRecuRdv, cleRecuCons, idRecu, decisionRecu, recuAEcrire 
 import { fusionner } from "../donnees/conversion.js";
 import { resume } from "../moteur/resume.js";
 import { chimioAVenir } from "../moteur/agenda.js";
-import { etatLigne, protocoleDe, seancesCure } from "../moteur/doses.js";
+import { etatLigne, protocoleDe, seancesCure, poidsDebut, reperesClairance } from "../moteur/doses.js";
 import { finRT, statutRT, nbA, compteurRT, dosimetrie, contourage } from "../moteur/rt.js";
 import { auj, addJ, ecart, ouvre, age, srcImage, absentMedecin } from "../moteur/outils.js";
 import { typeRdv, libRdv, joursH, T_RTC } from "../moteur/rdv.js";
@@ -15,7 +15,7 @@ import { tarif as tarifAu } from "../moteur/tarifs.js";
 import { genererConsultRT } from "../moteur/rt.js";
 import { idsParDefaut } from "../donnees/migration.js";
 import { installer as installerDocuments, docsDe, boutonDoc, oublierDocs, suivreEtablissementDocs, supprimerDocs } from "./documents.js";
-import { installer as installerChimio, htmlChimio, nouveauPatient as creerPatient, champDiag, activerDiag, listeMut, listeCor, figerCuresValidees, enrichirListes, majMontants, encaissementsDe, construireEncaissements, ecrireEncaissements, prixParServeur, oublierEncaissements } from "./chimio.js";
+import { installer as installerChimio, htmlChimio, nouveauPatient as creerPatient, champDiag, activerDiag, listeMut, listeCor, figerCuresValidees, alertesBio, enrichirListes, majMontants, encaissementsDe, construireEncaissements, ecrireEncaissements, prixParServeur, oublierEncaissements } from "./chimio.js";
 import { installer as installerAgenda, pageAgenda } from "./agenda.js";
 import { installer as installerConfig, pageConfiguration, horaires, dureeDe, dureeType, WA0, remplir } from "./configuration.js";
 import { installer as installerProfil, pageProfil, DROITS_ROLE, droitsEffectifs, lireImage } from "./profil.js";
@@ -648,6 +648,23 @@ window.majAccueilCab = (o) => { const av = JSON.stringify(D.accueilCab || null);
 
 // « À valider par le médecin » / « À faire par la secrétaire » / « À faire par l'infirmière » (audit externe, 11/10/2026) : ce qui
 // attend la personne connectée, réuni en un seul bloc (avant : réparti entre la carte du jour, les tâches et la cloche)
+// Alertes cliniques du médecin (12/10/2026, repères de Dr Bentahila ; de simples rappels) : lignes en cours seulement — perte de poids
+// > 10 % depuis le début de la ligne, repères de clairance (cisplatine, carboplatine) avant une cure des 7 prochains jours, dernier
+// bilan noté à la validation sous les repères (PNN, plaquettes, hémoglobine)
+function alertesCliniques() {
+  const t = D.t, l = [];
+  D.patients.forEach((x) => (x.P.lignes || []).forEach((L) => {
+    if (L.arret || !(L.cures || []).some((c) => (c.st || "prevue") === "prevue")) return;
+    let E; try { if (!protocoleDe(L, D.ctx.bib)) return; E = etatLigne(L, x.P, D.ctx); } catch (er) { return; }
+    const k = E.findIndex((e) => e.st === "prevue"), e = E[k]; if (!e) return;
+    const pd = poidsDebut(E), po = e.g[0].poids, nom = (protocoleDe(L, D.ctx.bib) || {}).nom || "";
+    if (pd && po && (pd - po) / pd > 0.1) l.push({ id: x.id, nm: x.r.nm, de: "Perte de poids de " + Math.round((pd - po) / pd * 100) + " % depuis le début de la ligne (" + pd + " → " + po + " kg) · " + nom, retard: true });
+    if (e.date && ecart(e.date, t) <= 7) reperesClairance(e, e.g[0]).forEach((a) => l.push({ id: x.id, nm: x.r.nm, de: "C" + e.n + " le " + dfr(e.date) + " : " + a, retard: /contre-indi/.test(a) }));
+    const fv = E.slice(0, k).reverse().find((z) => z.c && z.c.fige && z.c.fige.bio);
+    if (fv) alertesBio(fv.c.fige.bio).forEach((a) => l.push({ id: x.id, nm: x.r.nm, de: "Bilan de la C" + fv.n + " (" + dfr(fv.date) + ") : " + a }));
+  }));
+  return l;
+}
 function blocAFaire(pj) {
   const role = D.membre.role, t = D.t, G = [], plus = (l, n) => (l.length > n ? '<div class="af-plus">+ ' + (l.length - n) + " autre" + (l.length - n > 1 ? "s" : "") + "</div>" : "");
   const ligne = (o) => '<div class="af-l' + (o.retard ? " ret" : "") + '"' + (o.id ? ' onclick="ouvrirDossier(\'' + o.id + '\')"' : "") + '><div class="tx"><b>' + esc(o.nm) + "</b>" + (o.de ? '<span class="de">' + esc(o.de) + "</span>" : "") + "</div>" + (o.badge || "") + (o.bt || "") + "</div>";
@@ -661,6 +678,7 @@ function blocAFaire(pj) {
     D.patients.forEach((x) => (x.r.act || []).forEach((a) => { if (!a.d || a.d > t) return; const ret = a.d < t;
       cures.push({ id: x.id, nm: x.r.nm, de: "C" + a.k + (a.sj ? " J" + a.sj : "") + " · " + a.nom.replace(/ · J\d+$/, ""), retard: ret, d: a.d, badge: ret ? '<span class="badge b-al">prévue le ' + dfr(a.d) + "</span>" : badgeSalle(x.id, "chimio") + '<span class="badge b-ch">aujourd\'hui</span>' }); }));
     cures.sort((p, q) => p.d.localeCompare(q.d) || p.nm.localeCompare(q.nm)); groupe("seringue", "Cures à valider", cures, 8);
+    groupe("alerte", "Alertes cliniques", alertesCliniques(), 6);
     const cont = [], dosi = [], fin = [], okV = peutDosi();
     D.patients.forEach((x) => { if (!voitRT(x)) return; let l = []; try { l = JSON.parse(x.doc.rtsJson || "[]"); } catch (e) { /* illisible */ }
       l.forEach((r) => { const q = "'" + x.id + "','" + r.id + "'", ap = "function(){route()}", acte = r.acte || "Radiothérapie";
