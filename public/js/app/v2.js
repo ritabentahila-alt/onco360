@@ -15,7 +15,7 @@ import { tarif as tarifAu } from "../moteur/tarifs.js";
 import { genererConsultRT } from "../moteur/rt.js";
 import { idsParDefaut } from "../donnees/migration.js";
 import { installer as installerDocuments, docsDe, boutonDoc, oublierDocs, suivreEtablissementDocs, supprimerDocs } from "./documents.js";
-import { installer as installerChimio, htmlChimio, nouveauPatient as creerPatient, champDiag, activerDiag, listeMut, listeCor, enrichirListes, majMontants, encaissementsDe, construireEncaissements, ecrireEncaissements, prixParServeur, oublierEncaissements } from "./chimio.js";
+import { installer as installerChimio, htmlChimio, nouveauPatient as creerPatient, champDiag, activerDiag, listeMut, listeCor, figerCuresValidees, enrichirListes, majMontants, encaissementsDe, construireEncaissements, ecrireEncaissements, prixParServeur, oublierEncaissements } from "./chimio.js";
 import { installer as installerAgenda, pageAgenda } from "./agenda.js";
 import { installer as installerConfig, pageConfiguration, horaires, dureeDe, dureeType, WA0, remplir } from "./configuration.js";
 import { installer as installerProfil, pageProfil, DROITS_ROLE, droitsEffectifs, lireImage } from "./profil.js";
@@ -269,6 +269,12 @@ async function migrations() {
       await setDoc(doc(db, "espaces", ESPACE, "parametres", "migrations"), { dosimetriePeriode: D.t }, { merge: true }).catch(() => {});
     }
     // (1.7, 11-12/10/2026 : listes du cabinet d'origine écrites en entier une fois, « listesCompletes » ; COR0 retiré ensuite)
+    // 2.2 (12/10/2026) : cures et séances déjà validées figées une fois, telles qu'elles s'affichent (décision de Dr Bentahila)
+    if (!fait.curesFigees) {
+      let nb = 0, erreurs = 0;
+      for (const x of D.patients) { if (!(x.P.lignes || []).length) continue; try { nb += await figerCuresValidees(x); } catch (er) { erreurs++; console.warn("figer", x.id, er); } }
+      if (!erreurs) await setDoc(doc(db, "espaces", ESPACE, "parametres", "migrations"), { curesFigees: D.t, curesFigeesNb: nb }, { merge: true }).catch(() => {});
+    }
     // Chimiothérapie visible par la secrétaire (07/10/2026) : « Non visible » → « Voir » pour les secrétaires existantes
     if (!fait.secretaireChimio) {
       for (const d of sm.docs) { const m = d.data(); if (m.role === "assistante" && (m.droits || {}).traitements === "aucun") await updateDoc(d.ref, { "droits.traitements": "voir" }).catch((er) => console.warn("droits", d.id, er)); }

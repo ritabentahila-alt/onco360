@@ -5,7 +5,7 @@ import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/fi
 import { db } from "../config.js";
 import { fusionner, separer } from "../donnees/conversion.js";
 import { statutLigne, ligneCourante } from "../moteur/resume.js";
-import { etatLigne, protocoleDe, protocoleCure, seancesCure, seancesDe, dedupIds, joursDe, clairance, jourVersSeance } from "../moteur/doses.js";
+import { etatLigne, protocoleDe, protocoleCure, seancesCure, seancesDe, dedupIds, joursDe, clairance, jourVersSeance, instantane } from "../moteur/doses.js";
 import { addJ, ecart, num, age } from "../moteur/outils.js";
 import { tarif } from "../moteur/tarifs.js";
 import { typeRdv, T_RTC } from "../moteur/rdv.js";
@@ -339,6 +339,33 @@ function decalerSuivantes(L, k, delta, P) {
 function figerSuivantes(L, k, E) { for (let j = k + 1; j < L.cures.length; j++) if (L.cures[j].st !== "recue" && !L.cures[j].fixe && E[j] && E[j].date) L.cures[j].fixe = E[j].date; }
 const libererSuivantes = (L, k) => { for (let j = k + 1; j < L.cures.length; j++) if (L.cures[j].st !== "recue") delete L.cures[j].fixe; };
 
+// 2.2 (12/10/2026) : instantané d'une séance validée (n = 0 : J1), calculé avec la cure telle qu'elle vient d'être validée ;
+// l'affichage et l'impression d'une séance validée le reprennent ensuite (moteur/doses.js), quoi qu'on change dans le dossier
+function figer(L, x, k, n) {
+  const E = etatLigne(L, x.P, D().ctx);
+  return Object.assign(instantane(E[k], n), { le: new Date().toISOString(), par: D().u.uid, parNom: (D().membre && D().membre.nom) || "" });
+}
+
+// 2.2 – une fois (décision de Dr Bentahila, 11/10/2026) : les cures et séances déjà validées avant le 12/10/2026 sont figées telles
+// qu'elles s'affichent ce jour-là (« retro » : figées d'après le dossier, pas au moment même de leur validation). Appelé par migrations().
+export async function figerCuresValidees(x) {
+  if (!A.traitMod()) return 0;
+  const lignes = lignesDe(x), bib = D().ctx.bib, le = new Date().toISOString(), meta = { le, par: D().u.uid, parNom: (D().membre && D().membre.nom) || "", retro: true };
+  let n = 0;
+  for (const L of lignes) {
+    let E; try { if (!protocoleDe(L, bib)) continue; E = etatLigne(L, x.P, D().ctx); } catch (er) { console.warn("figer", x.id, L.id, er); continue; }
+    (L.cures || []).forEach((c, k) => {
+      if (!E[k]) return;
+      if (c.st === "recue" && !c.fige) { c.fige = Object.assign(instantane(E[k], 0), meta); n++; }
+      if (!c.sea) return;
+      const g = seancesDe(protocoleCure(L, k, bib) || protocoleDe(L, bib));
+      Object.keys(c.sea).forEach((j) => { const z = c.sea[j], idx = g.findIndex((s0) => s0.j === +j); if (z && z.st === "recue" && !z.fige && idx > 0) { z.fige = Object.assign(instantane(E[k], idx), meta); n++; } });
+    });
+  }
+  if (n) await sauverLignes(x, lignes, "Doses des " + n + " séance(s) déjà validée(s) figées (telles qu'affichées le " + A.dfrA(D().t) + ")");
+  return n;
+}
+
 // ───── Cures ─────
 window.chDate = (id, i, k, v) => {
   const x = trouver(id); if (!v) { A.pageDossier(id); return; }
@@ -357,6 +384,7 @@ window.chValiderJ1 = (id, i, k) => {
     const d = A.val("vD") || D().t, lignes = lignesDe(x), L = lignes[i], c = L.cures[k], E = etatLigne(L, x.P, D().ctx), g = seancesDe(protocoleCure(L, k, D().ctx.bib) || protocoleDe(L, D().ctx.bib));
     if (E[k] && E[k].date && d !== E[k].date) { if (choix("vS") === "suite") decalerSuivantes(L, k, ecart(d, E[k].date), x.P); else figerSuivantes(L, k, E); }
     c.st = "recue"; c.reelle = d; c.valLe = new Date().toISOString();
+    c.fige = figer(L, x, k, 0); // 2.2 : doses et paramètres figés à la validation
     if (g.length > 1) { c.sea = c.sea || {}; g.slice(1).forEach((s) => { if (!c.sea[s.j]) c.sea[s.j] = { st: "prevue" }; }); }
     await sauverLignes(x, lignes, "Cure C" + (k + 1) + " validée (" + A.dfrA(d) + ")");
     SEL.pid = x.id; SEL.l = i; SEL.c = k; if (CM) CM.j = null;
@@ -364,7 +392,7 @@ window.chValiderJ1 = (id, i, k) => {
 };
 window.chRetablir = (id, i, k) => {
   const x = trouver(id); if (!confirm("Remettre la cure C" + (k + 1) + " en « prévue » ?")) return;
-  direct(x, async () => { const lignes = lignesDe(x), c = lignes[i].cures[k]; c.st = "prevue"; delete c.reelle; delete c.valLe; delete c.ann; await sauverLignes(x, lignes, "C" + (k + 1) + " rétablie (prévue)"); });
+  direct(x, async () => { const lignes = lignesDe(x), c = lignes[i].cures[k]; c.st = "prevue"; delete c.reelle; delete c.valLe; delete c.ann; delete c.fige; await sauverLignes(x, lignes, "C" + (k + 1) + " rétablie (prévue)"); });
 };
 // Séance de chimio manquée (salle d'attente, 08/10/2026) : la fenêtre de report s'ouvre avec « Patient absent » ; « Absent sans
 // reporter » ne touche pas au protocole. salle = fonction appelée après (nouvelle date ou null).
@@ -433,6 +461,7 @@ async function majSeance(x, i, k, j, nd, valider, rep) {
   if (valider) { z.st = "recue"; z.d = nd; z.valLe = new Date().toISOString(); } else z.fixe = nd;
   if (rep) { z.rep = z.rep || []; z.rep.push(rep); }
   c.sea[j] = z;
+  if (valider) { const n = seancesDe(protocoleCure(L, k, D().ctx.bib) || protocoleDe(L, D().ctx.bib)).findIndex((g) => g.j === j); z.fige = figer(L, x, k, n > 0 ? n : 0); } // 2.2
   await sauverLignes(x, lignes, "Séance J" + j + " de la C" + (k + 1) + (valider ? " validée (" : rep ? " reportée au " : " déplacée au ") + A.dfrA(nd) + (valider ? ")" : rep ? " (" + rep.raison + ")" : ""));
 }
 window.chAnnulerJ = (id, i, k, j) => {
@@ -451,7 +480,7 @@ window.chRetablirJ = (id, i, k, j) => {
 };
 window.chAnnulerSeance = (id, i, k, j) => {
   const x = trouver(id); if (!confirm("Annuler la validation de J" + j + " ?")) return;
-  direct(x, async () => { const lignes = lignesDe(x), z = lignes[i].cures[k].sea[j]; z.st = "prevue"; delete z.d; delete z.valLe; await sauverLignes(x, lignes, "Validation de la séance J" + j + " de la C" + (k + 1) + " annulée"); });
+  direct(x, async () => { const lignes = lignesDe(x), z = lignes[i].cures[k].sea[j]; z.st = "prevue"; delete z.d; delete z.valLe; delete z.fige; await sauverLignes(x, lignes, "Validation de la séance J" + j + " de la C" + (k + 1) + " annulée"); });
 };
 
 // ───── Rendez-vous de chimio : « Venu » avec la fenêtre de prix, comme les autres rendez-vous (07/10/2026) ─────

@@ -78,7 +78,7 @@ export function etatLigne(L, patient, ctx) {
     e.st = c.st || "prevue";
     e.date = e.st === "recue" ? c.reelle : e.prevue;
     base = e.st === "recue" ? c.reelle : e.prevue;
-    e.taille = num(patient.taille);
+    e.taille = c.fige && c.fige.taille != null ? c.fige.taille : num(patient.taille); // 2.2 : taille figée à la validation
     e.age = age(patient.ddn, e.date || ctx.aujourdhui);
     // Paramètres de chaque séance
     const g0 = seancesDe(q), g = g0.length ? g0 : [{ j: 1, days: [1] }];
@@ -86,10 +86,13 @@ export function etatLigne(L, patient, ctx) {
       const src = n === 0 ? c : (c.sea || {})[z.j] || {}, avant = dernier || { poids: num(L.poids), creat: num(L.creat) };
       const o = { j: z.j, days: z.days, poids: num(src.poids) != null ? num(src.poids) : avant.poids, creat: num(src.creat) != null ? num(src.creat) : avant.creat, pctAll: num(src.pctAll), saisi: { poids: num(src.poids) != null, creat: num(src.creat) != null } };
       o.sc = surface(o.poids, e.taille); o.cl = clairance(e.age, o.poids, o.creat, patient.sexe, L.crU);
+      // 2.2 (12/10/2026) : séance validée = valeurs figées au moment de la validation (poids, créatinine, surface, clairance, doses)
+      const F = src.st === "recue" && src.fige ? src.fige : null;
+      if (F) { o.fige = F; ["poids", "creat", "sc", "cl"].forEach((k) => { if (F[k] !== undefined) o[k] = F[k]; }); }
       dernier = o; return o;
     });
     Object.assign(e, { poids: e.g[0].poids, creat: e.g[0].creat, sc: e.g[0].sc, cl: e.g[0].cl });
-    e.doses = []; e.calc = []; e.dj = []; e.fac = {}; e.pc = {}; e.pcSet = {};
+    e.doses = []; e.calc = []; e.dj = []; e.fac = {}; e.pc = {}; e.pcSet = {}; e.ids = q.dr.map((d) => d.id); e.prod = q.dr.map((d) => ({ p: d.p, u: d.u }));
     q.dr.forEach((d, x) => {
       e.dj[x] = {}; const mol = d.id || d.p;
       joursDe(d).forEach((j, ji) => {
@@ -104,15 +107,28 @@ export function etatLigne(L, patient, ctx) {
         const b = v == null ? null : arr((v * pc) / 100, d.dec);
         const ov = c.ov && num(c.ov[key]) != null ? num(c.ov[key]) : c.ov && num(c.ov[d.id]) != null ? num(c.ov[d.id]) : null;
         if (ov != null && v) { pc = (ov / v) * 100; f = 1; } else if (ov != null && b) f = ov / b; // A11 – dose saisie reconduite en %
-        const dose = ov != null ? ov : b == null ? null : f === 1 ? b : arr(b * f, d.dec);
-        e.dj[x][j] = { dose, v, pc: Math.round(pc * 10) / 10, pi: pi != null, ov: ov != null };
-        if (first) { e.calc[x] = v; e.doses[x] = dose; e.pc[d.id] = Math.round(pc * 10) / 10; e.pcSet[d.id] = set; e.fac[d.id] = f; }
+        let dose = ov != null ? ov : b == null ? null : f === 1 ? b : arr(b * f, d.dec);
+        const fz = G.fige && G.fige.doses && G.fige.doses[key]; // 2.2 : dose figée de la séance validée
+        e.dj[x][j] = fz ? { dose: fz.dose, v: fz.v, pc: fz.pc, pi: pi != null, ov: ov != null, fige: true } : { dose, v, pc: Math.round(pc * 10) / 10, pi: pi != null, ov: ov != null };
+        if (fz) { dose = fz.dose; }
+        if (first) { e.calc[x] = fz ? fz.v : v; e.doses[x] = dose; e.pc[d.id] = fz ? fz.pc : Math.round(pc * 10) / 10; e.pcSet[d.id] = set; e.fac[d.id] = f; }
         S[mol] = { pc, f };
       });
     });
     out.push(e); prev = e;
   });
   return out;
+}
+
+// 2.2 (12/10/2026) – instantané d'une séance au moment de sa validation (n = 0 pour J1, 1 pour la 2e séance…) : ce qui a servi au
+// calcul et les doses de chaque produit pour les jours de cette séance ; gardé dans la cure (c.fige) ou la séance (c.sea[j].fige)
+export function instantane(e, n) {
+  const G = e.g[n] || e.g[0], doses = {};
+  (e.dj || []).forEach((dj, x) => Object.keys(dj).forEach((j) => {
+    if (G.days.indexOf(+j) < 0 && !(n === 0 && +j === 99)) return;
+    const z = dj[j], P = (e.prod || [])[x] || {}; doses[e.ids[x] + "@" + j] = { p: P.p || "", u: P.u || "", dose: z.dose, v: z.v, pc: z.pc };
+  }));
+  return { taille: e.taille, age: e.age, poids: G.poids, creat: G.creat, sc: G.sc, cl: G.cl, doses };
 }
 
 // B5 – séances J8, J15… d'une cure, avec décalage en cascade

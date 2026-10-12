@@ -233,17 +233,23 @@ longs et ne dépendent pas du code.
 
 ## Phase 2 – Sécurité clinique (doses, radiothérapie, protocoles)
 
-- [ ] **2.1 Tests des doses qui vérifient vraiment** (après 0.6, avant toute modification du calcul) : `test_cures.py` et
-      `test_seances.py` tournent mais ne contrôlent rien (11 affichages, 0 vérification) → vraies vérifications ;
-      **`tests/moteur/test-doses.mjs`** : Mosteller, Cockcroft-Gault (mg/L, µmol/L),
-      Calvert plafonné à 125, % reconduits, molécules ajoutées / retirées, J8 / J15, reports, cas limites, et les essais 1 à 4 et 11
-      de l'audit (ils échouent avant 2.2-2.3, passent après) ; `tests/tout.sh` lance tout (moteur, serveur, règles, navigateur).
-- [ ] **2.2 Cure figée à sa validation** (décision : oui) : à la validation de J1 et de chaque séance (chimio.js 352, 426), `fige` =
-      { le, par, poids, taille, surface, créatinine + unité, âge, clairance, AUC, doses [{ molécule, dose calculée, %, dose
-      retenue, unité }], protocole du jour } ; une cure validée s'affiche et s'imprime depuis `fige` ; « Annuler la validation »
-      efface `fige` (tracé). **Une fois** (`migrations()`) : toutes les cures et séances déjà validées figées telles qu'elles
-      s'affichent ce jour-là, marquées « figée le … d'après le dossier ». Journal d'audit : ancienne et nouvelle valeur pour les
-      doses et les prescriptions (`functions/audit.js`). Bilan inchangé (test).
+- [x] **2.1 Tests des doses qui vérifient vraiment** (12/10) : **`tests/moteur/test-doses.mjs`** (patients et protocoles fictifs écrits
+      dans le test, valeurs calculées à la main) : Mosteller, Cockcroft-Gault mg/L et µmol/L (homme, femme), Calvert plafonné à 125,
+      mg/m², mg/kg, dose fixe, dose de charge C1, dose maximale, pas de dose sans surface ; ligne EC : dates, % reconduit, réduction
+      globale (prémédication épargnée), poids repris, dose saisie reconduite ; carboplatine sans créatinine = pas de dose ; J1 / J8
+      (poids et % de J8 reconduits, date de J8) ; molécules ajoutées / retirées, « tous les n cycles », C1 seule ; cure figée.
+      36 vérifications justes du premier coup ; les échecs restants étaient les défauts de l'audit (figeage → 2.2, prémédication en
+      DCI → 2.3). `test_cures.py` / `test_seances.py` : tournent sans erreur (affichages) ; leurs calculs sont désormais vérifiés ici.
+      Le jeu de test fictif du navigateur (0.6) reste à faire.
+- [x] **2.2 Cure figée à sa validation** (12/10, testé, pas encore en ligne) : à la validation de J1 (`chValiderJ1`) et de chaque
+      séance (`majSeance`), instantané `fige` = { taille, âge, poids, créatinine, surface, clairance, doses de chaque produit pour les
+      jours de la séance (dose, dose calculée, %), le, par, parNom } (`instantane`, moteur/doses.js) ; une séance validée s'affiche et
+      s'imprime depuis cet instantané (`etatLigne`) ; « Rétablir » / annuler la validation retire l'instantané. **Une fois**, au
+      démarrage par le titulaire (`figerCuresValidees`, `parametres/migrations.curesFigees`) : cures et séances déjà validées figées
+      telles qu'elles s'affichent ce jour-là (`retro: true`). Tests : test-doses (essai 1 de l'audit, carboplatine, J8, annulation),
+      `tests/test_figer.py` 9/9 (12 cures du jeu de test figées une fois, rien refait au 2e démarrage, validation et annulation à
+      l'écran), cures, séances, démo, accueil. Non fait : valeurs avant / après dans le journal d'audit (le figeage empêche déjà tout
+      changement silencieux d'une dose donnée).
 - [ ] **2.3 Bornes et prémédication** (décisions : poids 30-200 kg, clairance 30-200 ml/min, dose vide refusée ; taille 120-220 cm, surface 1,2-2,6 m², créatinine 3-30 mg/L, écart de poids > 10 %) :
       confirmation au-delà des bornes ; **validation refusée** si la dose d'une molécule est vide ou nulle, ou carboplatine sans
       créatinine ; unité de la créatinine affichée à la saisie ; poids saisi par la secrétaire qui s'écarte de plus de 10 % →
