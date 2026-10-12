@@ -19,7 +19,9 @@ async def main():
         await p0.evaluate(f"csNouvelle('{pid}')"); await p0.wait_for_timeout(400)
         ids = await p0.evaluate("[...document.querySelectorAll('#fenetre .form input,#fenetre .form select,#fenetre .form textarea')].map(e=>e.id)")
         ty = await p0.evaluate("[...document.querySelectorAll('#csType option')].map(o=>o.textContent)")
-        ok(ids == ['csType', 'csDate', 'csTitre', 'csNote'] and len(ty) == 7 and ty[2] == 'RCP', 'sans réglage : Consultation, Date, Titre, Note (7 types, comme aujourd\'hui) ' + str(ids))
+        # 3.4 (12/10/2026) : cabinet d'oncologie : formulaires proposés (champs cx_xcs…) entre le titre et la note ; 8 types (« Note du secrétariat »)
+        base = [i for i in ids if not i.startswith('cx_xcs')]
+        ok(base == ['csType', 'csDate', 'csTitre', 'csNote'] and any(i.startswith('cx_xcs') for i in ids) and len(ty) == 8 and ty[2] == 'RCP' and ty[-1] == 'Note du secrétariat', 'sans réglage : Consultation, Date, Titre, formulaires proposés, Note (8 types) ' + str(base))
         await p0.select_option('#csType', 'Consultation de suivi'); await p0.fill('#csTitre', 'J1C1'); await p0.fill('#csNote', 'RAS'); await p0.click('#csOk'); await p0.wait_for_timeout(1000)
         fs = await p0.evaluate("window.__fs"); c0 = [v for k, v in fs.items() if '/consultations/' in k and v.get('titre') == 'J1C1']
         ok(c0 and c0[0]['note'] == 'RAS' and 'extra' not in c0[0], 'sans réglage : consultation enregistrée comme avant (sans « extra »)')
@@ -27,7 +29,7 @@ async def main():
         pg = await ouvrir(b, S2); await pg.goto(f'http://localhost:{PORT}/v2.html#dossier/{pid}'); await pg.wait_for_timeout(2500)
         await pg.evaluate(f"csNouvelle('{pid}')"); await pg.wait_for_timeout(400)
         ids = await pg.evaluate("[...document.querySelectorAll('#fenetre .form input,#fenetre .form select,#fenetre .form textarea')].map(e=>e.id)")
-        ok(ids == ['csDate', 'csType', 'cx_xpds01', 'cx_xobs01', 'csNote', 'cx_xgly01'], 'ordre de la spécialité, Titre retiré, champ du cabinet à la fin ' + str(ids))
+        ok([i for i in ids if not i.startswith('cx_xcs')] == ['csDate', 'csType', 'cx_xpds01', 'cx_xobs01', 'csNote', 'cx_xgly01'], 'ordre de la spécialité, Titre retiré, champ du cabinet à la fin ' + str(ids))
         t = await pg.inner_text('#fenetre')
         ok('Mesures et constantes' in t and 'Poids (kg)' in t and 'Conclusion' in t and 'Glycémie (g/l)' in t, 'section, unité, « Note » renommée « Conclusion »')
         ty = await pg.evaluate("[...document.querySelectorAll('#csType option')].map(o=>o.textContent)")
@@ -54,7 +56,7 @@ async def main():
         await pa.click('#fsCorps [data-chl="type"]'); await pa.wait_for_timeout(200); await pa.fill('#cqListe', 'Première consultation\nSuivi\nUrgence'); await pa.click('#cqLOk'); await pa.wait_for_timeout(200)
         await pa.click('#cqNouv'); await pa.wait_for_timeout(200); await pa.fill('#cqLib', 'Tension artérielle'); await pa.select_option('#cqType', 'nombre'); await pa.fill('#cqUnite', 'mmHg'); await pa.click('#cqOk'); await pa.wait_for_timeout(200)
         await pa.uncheck('#fsCorps [data-rch="titre"]'); await pa.click('#fsOk'); await pa.wait_for_timeout(600)
-        F = await pa.evaluate('window.__fspe'); FI = F['fiche']
+        F = await pa.evaluate('window.__fspe'); FI = F['fiche']; FI['ajouts'] = [a for a in FI['ajouts'] if not a.get('cs')]  # formulaires proposés (3.4) mis à part
         ok(F['quoi'] == 'consultation' and FI['choixs']['type'] == ['Première consultation', 'Suivi', 'Urgence'] and FI['ajouts'][1]['unite'] == 'mmHg' and FI['ajouts'][0]['type'] == 'section' and FI['champs']['titre'] is False, 'formulaire de la spécialité enregistré : liste des types, champ avec unité, Titre retiré')
         ok('2 cabinet(s) mis à jour' in await pa.inner_text('body'), 'message : cabinets mis à jour')
         # Réglage d'un cabinet : deux éditeurs dans la même fenêtre

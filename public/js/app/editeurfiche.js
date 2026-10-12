@@ -28,7 +28,7 @@ export function editeurFiche(FI, mode, cs) {
     const nomA = c ? nomDe(k) : a.lib;
     const info = c ? (c[4] ? "liste de " + ((FI.choixs || {})[k] || c[4]).length + " choix (✎)" : "")
       : !modifiable(a) && !cs ? (LISTES_P.indexOf(k) >= 0 ? "liste : Paramètres › Listes" : a.si ? "proposé selon la localisation" : a.type === "choix" ? "liste de " + (a.choix || []).length + " choix (✎)" : typeLib(a.type)) + (a.imprimer ? " · imprimé" : "")
-      : (mode === "cabinet" && a.cabinet ? "propre au cabinet · " : "") + typeLib(a.type) + (a.type === "nombre" && a.unite ? " (" + a.unite + ")" : "") + (a.type === "choix" && a.choix && a.choix.length ? " (" + a.choix.join(", ") + ")" : "") + (a.imprimer ? " · imprimé" : "") + (a.entete ? " · en-tête" : "");
+      : (a.cs ? (a.cs === "rt" ? "RT hebdomadaire · " : "consultation d'oncologie · ") : "") + (mode === "cabinet" && a.cabinet ? "propre au cabinet · " : "") + typeLib(a.type) + (a.type === "nombre" && a.unite ? " (" + a.unite + ")" : "") + (a.type === "choix" && a.choix && a.choix.length ? " (" + a.choix.join(", ") + ")" : "") + (a.imprimer ? " · imprimé" : "") + (a.entete ? " · en-tête" : "");
     return '<div class="rg-l">' + fl(i) + '<span class="rg-t">' + esc(nomA) + ' <span class="m">' + esc(info) + "</span></span>" +
       (c ? '<button class="clair petit" data-chl="' + k + '" title="Changer le nom affiché' + (c[4] ? " et la liste" : "") + '" aria-label="Modifier le champ existant">✎</button>' : !modifiable(a) ? '<button class="clair petit" data-cha="' + k + '" title="Changer le nom affiché' + (a.type === "choix" && LISTES_P.indexOf(k) < 0 ? " et la liste" : "") + '" aria-label="Modifier le champ">✎</button>' : modifiable(a) ? '<button class="clair petit" data-chm="' + k + '" aria-label="Modifier le champ">✎</button><button class="clair petit" data-chs="' + k + '" aria-label="Supprimer le champ">✕</button>' : "") +
       // Fiche patient : case « en-tête » (affiché en tête du dossier ou seulement dans « Afficher »), pour tous les champs
@@ -50,7 +50,9 @@ export function editeurFiche(FI, mode, cs) {
       '<div class="barre" style="margin-top:6px"><button class="petit" id="' + P + 'AOk">Enregistrer</button><button class="clair petit" id="' + P + 'Ann">Annuler</button></div></div>'; };
   const PARTIES = [["id", "Identité"], ["med", "Informations médicales"], ["tum", "Fiche tumeur"]];
   const liste = () => (cs ? FI.ordre.map(ligne).join("") : PARTIES.map(([k, lib]) => { const l = FI.ordre.map((c, i) => [c, i]).filter(([c]) => sec(c) === k); return l.length ? '<h4 class="soustitre" style="margin:12px 0 4px">' + lib + "</h4>" + l.map(([c, i]) => ligne(c, i)).join("") : ""; }).join(""));
-  const html = () => '<div data-ed="' + P + '"><div class="rg-b fiche-b">' + liste() + "</div>" +
+  // 3.4 : formulaire de consultation : « formulaire simple » (type, date, titre, note) ou tous les champs proposés, en un clic
+  const simple = () => (cs && FI.ajouts.length ? '<div class="barre" style="margin-bottom:8px"><button class="clair petit" id="' + P + 'Simple">Formulaire simple (type, date, titre, note)</button><button class="clair petit" id="' + P + 'Tout">Tout proposer</button></div>' : "");
+  const html = () => '<div data-ed="' + P + '">' + simple() + '<div class="rg-b fiche-b">' + liste() + "</div>" +
     (ED && ED.indexOf("lib:") === 0 ? formLib(ED.slice(4)) : ED && ED.indexOf("aj:") === 0 ? formLibA(ED.slice(3)) : ED ? formAjout() : '<div style="margin-top:8px"><button class="clair petit" id="' + P + 'Nouv">+ Ajouter un champ' + (mode === "cabinet" ? " pour ce cabinet" : "") + "</button></div>") + "</div>";
   const brancher = (refaire) => {
     const racine = document.querySelector('[data-ed="' + P + '"]'), q = (sel) => (racine ? racine.querySelectorAll(sel) : []);
@@ -67,6 +69,8 @@ export function editeurFiche(FI, mode, cs) {
       ED = null; refaire(); };
     q("[data-chs]").forEach((b) => { b.onclick = () => { const k = b.dataset.chs, a = FI.ajouts.find((z) => z.id === k); if (!confirm("Retirer le champ « " + (a && a.lib) + " » de la fiche ?\n(Les valeurs déjà saisies restent dans les dossiers.)")) return; FI.ajouts = FI.ajouts.filter((z) => z.id !== k); FI.ordre = FI.ordre.filter((z) => z !== k); delete FI.champs[k]; refaire(); }; });
     if ($(P + "Nouv")) $(P + "Nouv").onclick = () => { ED = "nouveau"; refaire(); };
+    if ($(P + "Simple")) $(P + "Simple").onclick = () => { FI.ajouts.forEach((a) => { FI.champs[a.id] = false; }); ["type", "d", "titre", "note"].forEach((k) => { FI.champs[k] = true; }); refaire(); };
+    if ($(P + "Tout")) $(P + "Tout").onclick = () => { FI.ajouts.forEach((a) => { FI.champs[a.id] = true; }); refaire(); };
     if ($(P + "Type")) $(P + "Type").onchange = () => { $(P + "ChoixZ").style.display = $(P + "Type").value === "choix" ? "" : "none"; if ($(P + "UniteZ")) $(P + "UniteZ").style.display = $(P + "Type").value === "nombre" ? "" : "none"; };
     if ($(P + "Ann")) $(P + "Ann").onclick = () => { ED = null; refaire(); };
     const k = ED && ED.indexOf("lib:") === 0 ? ED.slice(4) : null;

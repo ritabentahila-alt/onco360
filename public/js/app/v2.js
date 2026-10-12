@@ -209,7 +209,7 @@ async function charger(u) {
   // Fiche tumeur (3.1, 12/10/2026) : cabinets d'oncologie / radiothérapie = module chimiothérapie ou radiothérapie (ou sans formule) ;
   // bibliothèque de référence : celle d'oncologie seulement
   const onco = espaceDoc.bibliotheque === true ? ESPACE === "bib-oncologie" : !espaceDoc.abonnement || abo.modules.chimio || abo.modules.rt;
-  const regAdmin = reglageEffectif(espaceDoc.bibliotheque === true ? null : espaceDoc.abonnement && espaceDoc.abonnement.reglage, Object.assign({}, espaceDoc.ficheSpe || {}, { _onco: onco }), espaceDoc.consultSpe); // fiche patient et consultation : celles de la spécialité + retouches du cabinet
+  const regAdmin = reglageEffectif(espaceDoc.bibliotheque === true ? null : espaceDoc.abonnement && espaceDoc.abonnement.reglage, Object.assign({}, espaceDoc.ficheSpe || {}, { _onco: onco }), Object.assign({}, espaceDoc.consultSpe || {}, { _onco: onco })); // formulaires de consultation proposés (3.4) // fiche patient et consultation : celles de la spécialité + retouches du cabinet
   // puis retouches faites par le cabinet lui-même (parametres/formulaires) ; regAdmin.fiche / .consultation = base de l'éditeur des Paramètres
   let formCab = null; try { const sFO = await pFO; formCab = sFO && sFO.exists() ? JSON.parse(sFO.data().data || "{}") : null; } catch (e) { /* illisible : réglage de l'administration */ }
   const reg = espaceDoc.bibliotheque === true ? regAdmin : formulairesCabinet(regAdmin, formCab);

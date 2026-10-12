@@ -378,12 +378,15 @@ longs et ne dépendent pas du code.
       automatiques (serveur, logique.js) ; rendez-vous, séances et tâches encore prévus signalés dans la carte « Rendez-vous et tâches à
       venir ». « Supprimer » reste une suppression. Boutons « + Tâche » / « + Rendez-vous » retirés de la carte d'identité (gardés dans
       la carte des rendez-vous). Téléphone : fiche et résumé repliés (bouton « Fiche et résumé »), les onglets remontent.
-- [ ] **3.4 Consultations** (décisions) : formulaires **proposés**, que chaque cabinet peut entièrement décocher (titre, date et
-      note seulement) : « Consultation d'oncologie » (poids, OMS, douleur EVA, toxicités
-      gradées CTCAE : nausées, vomissements, diarrhée, mucite, neuropathie, asthénie, neutropénie fébrile ; conduite à tenir) et
-      « RT hebdomadaire » (radiodermite, mucite, dysphagie, diarrhée, cystite, asthénie) dans la spécialité Oncologie, recopiés aux
-      cabinets actifs ; note **signée** mais toujours modifiable : « signée le … par … · modifiée le … et le … », sans anciennes
-      versions ; notes de la secrétaire dans le même journal.
+- [x] **3.4 Consultations** (12/10 ; en ligne : 20261012n) : formulaires **proposés** aux cabinets d'oncologie (`CONSULT_ONCO` du catalogue, ajoutés
+      d'office comme la fiche tumeur, réglables dans Paramètres › Cabinet › Formulaire de consultation et dans l'Administration) : **Consultation
+      d'oncologie** (`cs: onco` : poids, OMS, douleur EVA, toxicités CTCAE 0-4 : nausées, vomissements, diarrhée, mucite, neuropathie,
+      asthénie ; neutropénie fébrile ; conduite à tenir) et **RT hebdomadaire** (`cs: rt` : radiodermite, mucite, dysphagie, diarrhée,
+      cystite, asthénie) ; le formulaire suit le **type de consultation** (`formConsult` : « en cours de radiothérapie » → RT ; annonce, RCP,
+      note du secrétariat → titre, date, note ; les autres → oncologie) ; bouton **« Formulaire simple »** (type, date, titre, note) / « Tout
+      proposer ». **Note signée** sans verrou : « Signée le … par … · modifiée le … et le … » (`modifs`, une par jour et par personne, pas
+      l'auteur le jour même, sans anciennes versions). **Notes de la secrétaire** dans le même journal (type « Note du secrétariat » proposé
+      d'office). Test : test_consultations34 16/16.
 - [x] **3.5 Radiothérapie : volumes et rythmes** (12/10, en ligne : 20261012h) : `r.vol` [{ nom, dose, nb, ty p|seq|int }] : volume
       principal, « + Complément séquentiel » (à la suite, ses fractions s'ajoutent) ou « + Complément intégré » (mêmes séances) ;
       `r.nb` = séances (principal + séquentiels), `r.dose` = dose du principal ; radiothérapies d'avant = un volume (rien à ressaisir, rien

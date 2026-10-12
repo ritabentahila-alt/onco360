@@ -167,6 +167,8 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
   `si.diag` (`FAMILLES_DIAG`) / `champPropose`, ajoutés quand `ficheSpe._onco` : v2.js, cabinet avec module chimio ou RT) ; `clinique.allergie` "" | oui | non (bandeau
   `.al-band` seulement si « oui »), `clinique.statut` traitement | surveillance | perdu | decede + `decesLe` ; logique `public/js/moteur/statut.js`
   (`dernieresNouvelles`, `allergieDans`) ; décédé : rappels, alertes et tâches automatiques (logique.js) coupés ; `reglages.impression.agePoids`.
+- **Consultations (3.4, 12/10/2026)** : champs proposés `CONSULT_ONCO` (catalogue.js, `cs` onco | rt, `formConsult(type)`, `champConsultPropose`) ajoutés
+  quand `consultSpe._onco` ; `consultations/{c}.modifs` [{ le, par, parNom }] (« modifiée le … ») ; type « Note du secrétariat ».
 - **Lignes et modèles (12/10/2026)** : `lignes[].intent` neo | adj | meta | conc + `rang` (ligne métastatique n°) ; `libIntention` (chimio.js) ; `reglages.auto`
   { rtHebdo, rtFin } (Paramètres › Rendez-vous automatiques) ; `reglages.impression` { age, poids, allergie } ; modèles des documents RT : `donnees/modelesrt.js`
   (MODELES_RT0, CHAMPS_RT, remplirModele), modifiés dans `bibliotheques/courriers` (entrées `rt: "pli"|"cr"|"rdv"`, ids rt-…), lus par `modeleRT` (ordonnances.js).

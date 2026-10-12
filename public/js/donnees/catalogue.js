@@ -101,6 +101,22 @@ export const TUMEUR = [
 // Ordre de la fiche tumeur : la localisation (diag) d'abord, la précision (diagP) après le stade, les biomarqueurs après l'histologie
 export const ORDRE_TUMEUR = ["diag", "xtcote", "xtstade", "diagP", "xthisto"].concat(BIO, ["xtgrade", "xtctnm", "xtptnm", "xtdiagd"]);
 // État général (OMS) : dans les informations médicales, avant la taille et le poids (12/10/2026)
+// 3.4 (12/10/2026) – formulaires de consultation proposés aux cabinets d'oncologie (formEffectif, s._onco), retirables champ par champ
+// (Paramètres › Cabinet › Formulaire de consultation ; « formulaire simple » = type, date, titre, note) : « Consultation d'oncologie »
+// (cs: onco) et « RT hebdomadaire » (cs: rt) ; le formulaire affiché suit le type de consultation (formConsult). Valeurs dans extra.
+const GR = ["0", "1", "2", "3", "4"], tox = (id, lib, cs) => ({ id, lib, type: "choix", choix: GR, cs });
+export const CONSULT_ONCO = [
+  { id: "xcsex", lib: "Examen", type: "section", cs: "onco" }, { id: "xcspoids", lib: "Poids", type: "nombre", unite: "kg", cs: "onco" },
+  { id: "xcsoms", lib: "État général (OMS)", type: "choix", choix: GR, cs: "onco" }, { id: "xcseva", lib: "Douleur (EVA)", type: "choix", choix: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"], cs: "onco" },
+  { id: "xcstox", lib: "Toxicités (grade CTCAE 0 à 4)", type: "section", cs: "onco" },
+  tox("xcsnau", "Nausées", "onco"), tox("xcsvom", "Vomissements", "onco"), tox("xcsdia", "Diarrhée", "onco"), tox("xcsmuc", "Mucite", "onco"), tox("xcsneu", "Neuropathie", "onco"), tox("xcsast", "Asthénie", "onco"),
+  { id: "xcsnf", lib: "Neutropénie fébrile", type: "ouinon", cs: "onco" },
+  { id: "xcscat", lib: "Conduite à tenir", type: "choix", choix: ["Poursuite du traitement", "Report", "Réduction de dose", "Changement de traitement", "Arrêt du traitement", "Surveillance"], cs: "onco" },
+  { id: "xcsrt", lib: "Tolérance de la radiothérapie (grade 0 à 4)", type: "section", cs: "rt" },
+  tox("xcsrrd", "Radiodermite", "rt"), tox("xcsrmu", "Mucite", "rt"), tox("xcsrdy", "Dysphagie", "rt"), tox("xcsrdi", "Diarrhée", "rt"), tox("xcsrcy", "Cystite", "rt"), tox("xcsras", "Asthénie", "rt"),
+];
+export const formConsult = (type) => (/radioth/i.test(type || "") ? "rt" : /annonce|RCP|secr[ée]tariat|^ordonnance$/i.test(type || "") ? "" : "onco");
+export const champConsultPropose = (a, type) => !a.cs || a.cs === formConsult(type);
 // Un champ à condition (si.diag) est-il proposé, d'après le diagnostic (localisation) ? « Primitif inconnu » : tous ; diagnostic vide : aucun
 export const champPropose = (a, vals) => { if (!a.si) return true; const f = famillesDiag((vals || {}).diag); return f.indexOf("inconnu") >= 0 || (a.si.diag || []).some((k) => f.indexOf(k) >= 0); };
 // Partie de la fiche d'un champ (3.1 bis) : identité, informations médicales, fiche tumeur (cabinets d'oncologie)
@@ -111,7 +127,7 @@ export function sectionChamp(k, R) { if (k === "diag" || k === "diagP") return R
 // Formulaire de consultation (16.7, 10/10/2026) : champs existants [clé, libellé, -, base, choix de départ (liste modifiable)] = la
 // fenêtre « Nouvelle consultation » d'aujourd'hui (oncologie) ; champs ajoutés : mêmes types que la fiche + texte long, titre de section,
 // nombre avec unité ; valeurs dans consultations/{c}.extra.
-export const CONSULT_TYPES0 = ["Consultation de suivi", "Consultation d'annonce", "RCP", "Consultation de contrôle", "Consultation de chimiothérapie", "Consultation en cours de radiothérapie", "Consultation de fin de traitement"];
+export const CONSULT_TYPES0 = ["Consultation de suivi", "Consultation d'annonce", "RCP", "Consultation de contrôle", "Consultation de chimiothérapie", "Consultation en cours de radiothérapie", "Consultation de fin de traitement", "Note du secrétariat"];
 export const CONSULT = [["type", "Consultation", "", false, CONSULT_TYPES0], ["d", "Date", "", true], ["titre", "Titre de la consultation", ""], ["note", "Note", ""]];
 export const TYPES_CHAMP_CS = [["texte", "Texte"], ["textelong", "Texte long (plusieurs lignes)"], ["nombre", "Nombre"], ["date", "Date"], ["choix", "Liste de choix"], ["ouinon", "Oui / Non"], ["section", "Titre de section"]];
 // Formulaire effectif d'un cabinet (fiche patient ou consultation) = celui de la spécialité (spe : le même pour tous les packs) +
@@ -121,19 +137,21 @@ export function formEffectif(CAT, f, spe) {
   const x = f || {}, s = spe || {}, ok = (a) => a && /^x[a-z0-9]{3,20}$/.test(a.id || "") && a.lib;
   // champ de la fiche tumeur enregistré par la spécialité (Administration) : sa définition du catalogue (conditions, type) + nom, liste, en-tête
   // de la spécialité ; nom et liste retouchés par le cabinet (x.libs / x.choixs, 12/10/2026)
-  const aS0 = (Array.isArray(s.ajouts) ? s.ajouts : []).filter(ok).map((a) => { const T = CAT === FICHE && TUMEUR.find((z) => z.id === a.id);
-    return Object.assign({}, T || {}, a, T ? { si: T.si, tumeur: true, type: T.type, choix: a.choix && a.choix.length ? a.choix : T.choix } : {}, { cabinet: false }); });
+  const DEF = CAT === FICHE ? TUMEUR : CAT === CONSULT ? CONSULT_ONCO : []; // champs proposés par le catalogue (fiche tumeur, formulaires 3.4)
+  const aS0 = (Array.isArray(s.ajouts) ? s.ajouts : []).filter(ok).map((a) => { const T = DEF.find((z) => z.id === a.id);
+    return Object.assign({}, T || {}, a, T ? { si: T.si, cs: T.cs, tumeur: T.tumeur, type: T.type, choix: a.choix && a.choix.length ? a.choix : T.choix } : {}, { cabinet: false }); });
   // fiche tumeur des cabinets d'oncologie (3.1) : en tête des champs de la spécialité, sauf si la spécialité les a déjà
-  const aS = (CAT === FICHE && s._onco ? TUMEUR.filter((a) => !aS0.some((z) => z.id === a.id)).map((a) => Object.assign({}, a, { cabinet: false })) : []).concat(aS0), ids = aS.map((a) => a.id);
+  const aS = (s._onco ? DEF.filter((a) => !aS0.some((z) => z.id === a.id)).map((a) => Object.assign({}, a, { cabinet: false })) : []).concat(aS0), ids = aS.map((a) => a.id);
   const aC = (Array.isArray(x.ajouts) ? x.ajouts : []).filter((a) => ok(a) && ids.indexOf(a.id) < 0).map((a) => Object.assign({}, a, { cabinet: true }));
   aS.forEach((a) => { const l = x.libs && x.libs[a.id], c = x.choixs && x.choixs[a.id]; if (l) a.lib = l; if (Array.isArray(c) && c.length) a.choix = c.slice(); });
-  const ajouts = aS.concat(aC), onco = CAT === FICHE && !!(s._onco || s.onco), champs = {}, libs = {}, choixs = {};
+  const ajouts = aS.concat(aC), onco = (CAT === FICHE || CAT === CONSULT) && !!(s._onco || s.onco), champs = {}, libs = {}, choixs = {};
   // oncologie : la fiche tumeur dans son ordre (localisation, côté, stade, précision, histologie, biomarqueurs, grade…), à la suite
-  const ref = onco ? CAT.map((c) => c[0]).filter((k) => ORDRE_TUMEUR.indexOf(k) < 0).reduce((l, k) => l.concat(k === "taille" && ajouts.some((a) => a.id === "xtoms") ? ["xtoms", k] : [k]), []).concat(ORDRE_TUMEUR.filter((k) => k[0] !== "x" || ajouts.some((a) => a.id === k)), ajouts.map((a) => a.id).filter((k) => ORDRE_TUMEUR.indexOf(k) < 0 && k !== "xtoms")) : CAT.map((c) => c[0]).concat(ajouts.map((a) => a.id));
+  const ref = onco && CAT === CONSULT ? ["type", "d", "titre"].concat(CONSULT_ONCO.map((a) => a.id).filter((k) => ajouts.some((a) => a.id === k)), ["note"], ajouts.map((a) => a.id).filter((k) => !CONSULT_ONCO.some((z) => z.id === k))) // formulaires 3.4 avant la note
+    : onco ? CAT.map((c) => c[0]).filter((k) => ORDRE_TUMEUR.indexOf(k) < 0).reduce((l, k) => l.concat(k === "taille" && ajouts.some((a) => a.id === "xtoms") ? ["xtoms", k] : [k]), []).concat(ORDRE_TUMEUR.filter((k) => k[0] !== "x" || ajouts.some((a) => a.id === k)), ajouts.map((a) => a.id).filter((k) => ORDRE_TUMEUR.indexOf(k) < 0 && k !== "xtoms")) : CAT.map((c) => c[0]).concat(ajouts.map((a) => a.id));
   ref.forEach((k) => { const v = x.champs && typeof x.champs[k] === "boolean" ? x.champs[k] : s.champs && s.champs[k]; champs[k] = v !== false; });
   CAT.forEach(([k, , , base, ch0]) => { if (base) champs[k] = true; const l = (x.libs && x.libs[k]) || (s.libs && s.libs[k]); if (l) libs[k] = l;
     if (ch0) { const c = (x.choixs && x.choixs[k]) || (s.choixs && s.choixs[k]); choixs[k] = Array.isArray(c) && c.length ? c.slice() : ch0.slice(); } });
-  if (onco) { if (!libs.diag) libs.diag = "Localisation"; if (!libs.diagP) libs.diagP = "Précision"; } // oncologie : diagnostic = localisation (3.1 bis)
+  if (onco && CAT === FICHE) { if (!libs.diag) libs.diag = "Localisation"; if (!libs.diagP) libs.diagP = "Précision"; } // oncologie : diagnostic = localisation (3.1 bis)
   const out = { ordre: ordreAvecNouveaux(Array.isArray(x.ordre) && x.ordre.length ? x.ordre : s.ordre, ref, CAT.map((c) => c[0])), champs, libs, choixs, ajouts, onco };
   // Fiche patient : en tête du dossier ou non, champ par champ (champs existants : ENTETE0 au départ ; champs ajoutés : leur case « En tête »)
   if (CAT === FICHE) { const en = {}, v = (k) => (x.entetes && typeof x.entetes[k] === "boolean" ? x.entetes[k] : s.entetes && typeof s.entetes[k] === "boolean" ? s.entetes[k] : undefined);

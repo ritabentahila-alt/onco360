@@ -9,7 +9,7 @@
 // jour : étapes 1C à 1E. Ici : créer, modifier, supprimer, plier / déplier.
 import { collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { db } from "../config.js";
-import { CONSULT, consultEffective, libDe } from "../donnees/catalogue.js";
+import { CONSULT, consultEffective, libDe, champConsultPropose } from "../donnees/catalogue.js";
 
 let A = null;
 export function installer(api) { A = api; }
@@ -44,6 +44,20 @@ const lib = (k) => libDe(CONSULT, k, FORM());
 const champsAjoutes = () => FORM().ajouts;
 const texteDe = (a, v) => (v == null || v === "" ? "" : a.type === "date" ? A.dfrA(v) : a.type === "ouinon" ? (v === "oui" ? "Oui" : "Non") : String(v) + (a.type === "nombre" && a.unite ? " " + a.unite : ""));
 
+// 3.4 (12/10/2026, décision de Dr Bentahila) : note signée mais toujours modifiable, sans anciennes versions : « Signée le … par … ·
+// modifiée le … et le … » ; modifs [{ le, par, parNom }] : une entrée par jour et par personne, sauf l'auteur le jour même (20 au plus)
+const jourDe = (ms) => { const d = new Date(ms); return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2); };
+function modifsApres(c) {
+  const l = (c.modifs || []).slice(), maint = Date.now(), j = jourDe(maint), u = D().u.uid, der = l[l.length - 1];
+  if (c.creePar === u && c.o && jourDe(c.o) === j) return l; // l'auteur, le jour même : pas une modification
+  if (der && der.par === u && jourDe(Date.parse(der.le)) === j) return l;
+  return l.concat([{ le: new Date(maint).toISOString(), par: u, parNom: nomConnecte() }]).slice(-20);
+}
+function htmlSignature(c) {
+  const esc = A.esc, m = (c.modifs || []).map((z) => A.dfrA(jourDe(Date.parse(z.le))) + (z.parNom && z.parNom !== c.creeParNom ? " (" + z.parNom + ")" : "")), dj = [...new Set(m)];
+  const sig = c.creeParNom ? "Signée le " + A.dfrA(c.o ? jourDe(c.o) : c.d) + " par " + c.creeParNom : "";
+  return sig || dj.length ? '<p class="mesures cs-sig">' + esc([sig, dj.length ? "modifiée le " + dj.join(", le ").replace(/, le ([^,]*)$/, " et le $1") : ""].filter(Boolean).join(" · ")) + "</p>" : "";
+}
 // Lecture des consultations d'un patient (filtre d'établissement pour un membre limité à certains établissements)
 function charger(x) {
   const f = [where("patientId", "==", x.id)];
@@ -79,6 +93,7 @@ export function htmlConsultations(x) {
         : c.note ? esc(c.note) : '<span class="mesures">—</span>';
       h += '<div class="cs-c"><table class="cs-l">' + (FORM().champs.note !== false || c.note ? "<tr><th>" + esc(lib("note")) + "</th><td>" + noteH + '</td><td class="au">' + esc(c.creeParNom || "") + "</td></tr>" : "") + htmlExtra(c) +
         (c.lignes || []).map((l) => "<tr><th>" + esc(libLigne(l.t)) + "</th><td>" + (l.html ? '<button class="lien-l" title="Voir, modifier ou réimprimer l\'ordonnance" onclick="ordVoir(' + qc + ",'" + l.id + '\')">' + esc(l.lib || "Ordonnance") + "</button>" : l.t === "doc" && l.docId ? '<button class="lien-l" title="Rouvrir le document remis" onclick="docOuvrirLigne(\'' + esc(l.docId) + '\')">' + esc(l.lib || "") + "</button>" : esc(l.lib || "")) + '</td><td class="au">' + esc(l.par || "") + "</td></tr>").join("") + "</table>";
+      h += htmlSignature(c);
       if (peutEcrire()) {
         h += '<div class="actr" style="justify-content:flex-start;margin-top:10px"><button class="mini" onclick="csModifier(' + qc + ')">Modifier</button>' + (peutSupprimer(c) ? '<button class="mini r" onclick="csSupprimer(' + qc + ')">Supprimer</button>' : "") + "</div>";
       }
@@ -124,8 +139,9 @@ async function sauverNote(pid, cid) {
   const c = (CS[pid] || []).find((z) => z.id === cid), z = document.getElementById("csN-" + cid), e = document.getElementById("csE-" + cid); if (!c) return;
   const v = z ? z.value : c.note || ""; if (v === (c.noteEnr != null ? c.noteEnr : c.note || "") && c.noteEnr != null) return;
   try {
-    await updateDoc(doc(db, "espaces", A.ESPACE, "consultations", cid), { note: v, majPar: D().u.uid, majParNom: nomConnecte(), maj: serverTimestamp() });
-    c.note = v; c.noteEnr = v; const e2 = document.getElementById("csE-" + cid); if (e2) e2.textContent = "Enregistré";
+    const modifs = modifsApres(c);
+    await updateDoc(doc(db, "espaces", A.ESPACE, "consultations", cid), { note: v, modifs, majPar: D().u.uid, majParNom: nomConnecte(), maj: serverTimestamp() });
+    c.note = v; c.noteEnr = v; c.modifs = modifs; const e2 = document.getElementById("csE-" + cid); if (e2) e2.textContent = "Enregistré";
   } catch (er) { if (e) { e.textContent = "Non enregistré : " + (er && er.code === "permission-denied" ? "droit refusé" : (er && er.message) || er); e.style.color = "var(--rouge)"; } }
 }
 window.csNote = (pid, cid) => {
@@ -155,39 +171,46 @@ function formulaire(x, c, pre, apres) {
   const esc = A.esc, R = FORM(), v0 = (k) => (c ? c[k] || "" : (pre && pre[k]) || ""), ex = (c && c.extra) || (pre && pre.extra) || {};
   // Un champ existant retiré reste affiché s'il a déjà une valeur (consultation ancienne, décision de RCP)
   const visible = (k) => R.champs[k] !== false || (k !== "d" && !!v0(k));
-  const types = (R.choixs.type || []).concat([v0("type")].filter((t) => t && (R.choixs.type || []).indexOf(t) < 0));
+  // 3.4 : la secrétaire écrit dans le même journal (« Note du secrétariat », proposé d'office pour elle)
+  const sec = D().membre && D().membre.role === "assistante", NS = "Note du secrétariat";
+  const types = (R.choixs.type || []).concat([v0("type"), sec ? NS : ""].filter((t) => t && (R.choixs.type || []).indexOf(t) < 0));
+  const type0 = v0("type") || (sec && !c ? NS : "");
   const champ = (k) => {
     const a = R.ajouts.find((z) => z.id === k);
     if (!a) {
       if (!visible(k)) return "";
-      if (k === "type") return '<div><label for="csType">' + esc(lib("type")) + '</label><select id="csType">' + types.map((t) => "<option" + (v0("type") === t ? " selected" : "") + ">" + esc(t) + "</option>").join("") + "</select></div>";
+      if (k === "type") return '<div><label for="csType">' + esc(lib("type")) + '</label><select id="csType">' + types.map((t) => "<option" + (type0 === t ? " selected" : "") + ">" + esc(t) + "</option>").join("") + "</select></div>";
       if (k === "d") return '<div><label for="csDate">' + esc(lib("d")) + '</label><input id="csDate" type="date" value="' + esc(c ? c.d : (pre && pre.d) || D().t) + '"></div>';
       if (k === "titre") return '<div class="large"><label for="csTitre">' + esc(lib("titre")) + '</label><input id="csTitre" value="' + esc(v0("titre")) + '" placeholder="Ex. J1C1 FOLFOX"></div>';
       if (k === "note") return '<div class="large"><label for="csNote">' + esc(lib("note")) + '</label><textarea id="csNote" rows="' + (R.ajouts.length ? 5 : 9) + '" class="cs-note" placeholder="Examen, poids, PS, conduite à tenir…">' + esc(v0("note")) + "</textarea></div>";
       return "";
     }
     if (R.champs[k] === false && ex[k] == null) return "";
-    const v = ex[k] == null ? "" : ex[k], id = "cx_" + a.id, lab = '<label for="' + id + '">' + esc(a.lib) + (a.type === "nombre" && a.unite ? " (" + esc(a.unite) + ")" : "") + "</label>";
-    if (a.type === "section") return '<div class="large cs-sec">' + esc(a.lib) + "</div>";
-    if (a.type === "textelong") return '<div class="large">' + lab + '<textarea id="' + id + '" rows="3">' + esc(v) + "</textarea></div>";
-    if (a.type === "choix") return "<div>" + lab + '<select id="' + id + '"><option value=""></option>' + (a.choix || []).concat(v && (a.choix || []).indexOf(v) < 0 ? [v] : []).map((t) => "<option" + (t === v ? " selected" : "") + ">" + esc(t) + "</option>").join("") + "</select></div>";
-    if (a.type === "ouinon") return "<div>" + lab + '<select id="' + id + '"><option value=""></option><option value="oui"' + (v === "oui" ? " selected" : "") + '>Oui</option><option value="non"' + (v === "non" ? " selected" : "") + ">Non</option></select></div>";
-    return "<div" + (a.type === "texte" ? ' class="large"' : "") + ">" + lab + '<input id="' + id + '"' + (a.type === "date" ? ' type="date"' : a.type === "nombre" ? ' inputmode="decimal"' : "") + ' value="' + esc(v) + '"></div>';
+    // 3.4 : champ d'un formulaire proposé (oncologie, RT hebdomadaire) : selon le type de consultation, recalculé quand il change
+    const v = ex[k] == null ? "" : ex[k], id = "cx_" + a.id, cache = a.cs && !champConsultPropose(a, type0 || (types[0] || "")) && ex[k] == null, csA = a.cs ? ' data-cs="' + a.id + '"' + (cache ? ' style="display:none"' : "") : "", lab = '<label for="' + id + '">' + esc(a.lib) + (a.type === "nombre" && a.unite ? " (" + esc(a.unite) + ")" : "") + "</label>";
+    if (a.type === "section") return '<div class="large cs-sec"' + csA + ">" + esc(a.lib) + "</div>";
+    if (a.type === "textelong") return '<div class="large"' + csA + ">" + lab + '<textarea id="' + id + '" rows="3">' + esc(v) + "</textarea></div>";
+    if (a.type === "choix") return "<div" + csA + ">" + lab + '<select id="' + id + '"><option value=""></option>' + (a.choix || []).concat(v && (a.choix || []).indexOf(v) < 0 ? [v] : []).map((t) => "<option" + (t === v ? " selected" : "") + ">" + esc(t) + "</option>").join("") + "</select></div>";
+    if (a.type === "ouinon") return "<div" + csA + ">" + lab + '<select id="' + id + '"><option value=""></option><option value="oui"' + (v === "oui" ? " selected" : "") + '>Oui</option><option value="non"' + (v === "non" ? " selected" : "") + ">Non</option></select></div>";
+    return "<div" + (a.type === "texte" ? ' class="large"' : "") + csA + ">" + lab + '<input id="' + id + '"' + (a.type === "date" ? ' type="date"' : a.type === "nombre" ? ' inputmode="decimal"' : "") + ' value="' + esc(v) + '"></div>';
   };
   A.fenetre("<h3>" + (c ? "Modifier la consultation" : "Nouvelle consultation") + "</h3>" +
     '<div class="form">' + R.ordre.map(champ).join("") + "</div>" +
     '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt plein" id="csOk">Enregistrer</button></div>');
+  const selT = document.getElementById("csType");
+  if (selT) selT.onchange = () => document.querySelectorAll("#fenetre [data-cs]").forEach((z) => { const a = R.ajouts.find((y) => y.id === z.dataset.cs); z.style.display = a && champConsultPropose(a, selT.value) ? "" : "none"; });
   if (pre && pre.note) setTimeout(() => { const n = document.getElementById("csNote"); if (n) { n.focus(); n.setSelectionRange(n.value.length, n.value.length); } }, 80); // décision de RCP : curseur après « Décision : »
   document.getElementById("csOk").onclick = async () => {
-    const el = (i) => document.getElementById(i), type = el("csType") ? A.val("csType") : v0("type"), titre = el("csTitre") ? A.val("csTitre") : v0("titre"), d = A.val("csDate");
+    const el = (i) => document.getElementById(i), type = el("csType") ? A.val("csType") : type0, titre = el("csTitre") ? A.val("csTitre") : v0("titre"), d = A.val("csDate");
     const note = el("csNote") ? String(el("csNote").value || "").replace(/\s+$/, "") : v0("note");
     // Champs ajoutés : valeurs saisies (vides retirées) ; celles des champs absents du formulaire sont gardées
-    const extra = Object.assign({}, ex); R.ajouts.forEach((a) => { const e = el("cx_" + a.id); if (!e) return; const v = String(e.value || "").replace(/\s+$/, "").trim(); if (v === "") delete extra[a.id]; else extra[a.id] = a.type === "nombre" ? v.replace(",", ".") : v; });
+    const extra = Object.assign({}, ex); R.ajouts.forEach((a) => { const e = el("cx_" + a.id); if (!e) return; if (a.cs && !champConsultPropose(a, type)) return; /* formulaire d'un autre type : valeurs gardées */ const v = String(e.value || "").replace(/\s+$/, "").trim(); if (v === "") delete extra[a.id]; else extra[a.id] = a.type === "nombre" ? v.replace(",", ".") : v; });
     if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) { A.erreur("Choisissez la date de la consultation."); return; }
     A.occupe(document.getElementById("csOk"), true);
     try {
       const base = Object.assign({ type, titre, d, note, majPar: D().u.uid, majParNom: nomConnecte(), maj: serverTimestamp() }, Object.keys(extra).length || (c && c.extra) ? { extra } : {});
       if (c) {
+        base.modifs = modifsApres(c); // « modifiée le … » (3.4)
         await updateDoc(doc(db, "espaces", A.ESPACE, "consultations", c.id), base);
         Object.assign(c, base); CS[x.id].sort(tri); A.journal(x, "Consultation modifiée : " + nomCs(base));
         if (apres) await apres(c.id, base);
