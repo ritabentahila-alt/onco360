@@ -32,6 +32,8 @@ export const HORAIRES0 = () => ({ duree: 30, jours: { 1: [["08:30", "18:00"]], 2
 export const horaires = (etab) => { const c = D().cal || {}; return (etab && c.horairesEtab && c.horairesEtab[etab]) || c.horaires || HORAIRES0(); };
 // Durée d'un rendez-vous (AG2) : la sienne, sinon celle de son type (calendrier.durees, tous les lieux), sinon celle du lieu
 export const dureeDe = (r, etab) => dureeRdv(r, (D().cal || {}).durees, horaires(etab).duree);
+// 12/10/2026 : « Pas des créneaux » retiré de Horaires (demande de Dr Bentahila) : la durée se choisit dans Types de consultation ; un type
+// sans durée choisie garde l'ancien pas du lieu (30 min par défaut), affiché comme sa durée : rien ne change pour les rendez-vous existants
 export const dureeType = (cle, etab) => ((D().cal || {}).durees || {})[cle] || horaires(etab).duree || 30;
 // Messages WhatsApp prédéfinis. Variables : {prenom} {nom} {jour} {heure} {lieu} {adresse} {medecin}
 export const WA0 = {
@@ -50,9 +52,10 @@ export const WA0 = {
 // 3.13 (12/10/2026) : un message par type de consultation du référentiel (Paramètres › Dossier patient › Types de consultation) : un type
 // ajouté a aussitôt son message (celui « par défaut » tant qu'il n'est pas écrit) ; types du journal seulement (RCP, note…) : pas de rappel
 export const CAT_WA = () => {
-  const l = [["confirm", "✅ Confirmation d'un rendez-vous (proposée juste après sa prise)"], ["chimio", "💉 Séance de chimiothérapie"]];
-  (A.typesC ? A.typesC() : []).filter((t) => t.k !== "cchimio" && (t.rdv || t.k === "rtc" || t.k === "rtf")).forEach((t) => l.push([t.k, (t.k === "hospit" ? "🏥 " : t.k === "rtc" || t.k === "rtf" ? "☢️ " : "🩺 ") + t.nom]));
-  l.push(["rt", "☢️ Rendez-vous de radiothérapie (scanner, 1re séance)"], ["autre", "Autre rendez-vous (message par défaut)"]); return l;
+  // 4.3 : [clé, libellé, icône dessinée] (plus d'émojis à l'écran)
+  const l = [["confirm", "Confirmation d'un rendez-vous (proposée juste après sa prise)", "check"], ["chimio", "Séance de chimiothérapie", "seringue"]];
+  (A.typesC ? A.typesC() : []).filter((t) => t.k !== "cchimio" && (t.rdv || t.k === "rtc" || t.k === "rtf")).forEach((t) => l.push([t.k, t.nom, t.k === "hospit" ? "hopital" : t.k === "rtc" || t.k === "rtf" ? "radiation" : "stetho"]));
+  l.push(["rt", "Rendez-vous de radiothérapie (scanner, 1re séance)", "radiation"], ["autre", "Autre rendez-vous (message par défaut)", "bulle"]); return l;
 };
 const copie = (o) => JSON.parse(JSON.stringify(o));
 // Couleurs Google Agenda : les 11 couleurs d'événement de Google (noms et teintes de Google Agenda), "" = couleur de l'agenda
@@ -124,7 +127,9 @@ function entete() {
     (sous.length > 1 ? '<nav class="cf-sous" aria-label="Rubriques">' + sous.map(([k, , lib]) => '<button class="' + (ONG === k ? "on" : "") + '"' + (ONG === k ? ' aria-current="page"' : "") + ' onclick="cfOnglet(\'' + k + "')\">" + lib + "</button>").join("") + "</nav>" : "");
 }
 // Bouton de retrait discret (gris, rouge au survol) à la place de la croix rouge sur chaque ligne
-const sup = (action, lib) => '<button class="sup" type="button" title="' + lib + '" aria-label="' + lib + '" onclick="' + action + '">' + A.ic("corbeille") + "</button>";
+// 3.10 (12/10/2026, audit) : retrait dans un menu ⋯ (plus de corbeille à portée de clic) et confirmation avant de retirer
+const sup = (action, lib) => '<details class="m3 cf-sup"><summary class="sup" title="Plus d\'actions" aria-label="Plus d\'actions : ' + lib + '">⋯</summary><div class="m3-l">' +
+  '<button type="button" class="mini" data-q="' + lib + ' ?" onclick="this.closest(\'details\').removeAttribute(\'open\');if(confirm(this.dataset.q)){' + action + '}">' + A.ic("corbeille") + lib + "</button></div></details>";
 const titre = (ico, t, n) => '<h3><span class="ic">' + A.ic(ico) + "</span>" + t + (n != null ? ' <span class="cf-n">' + n + "</span>" : "") + "</h3>";
 const typesListe = (L, okE, disE, pre, aj, fixe) => '<div class="cf-td">' + L.map((t, i) => '<div class="it"><b class="n">' + (i + 1) + '</b><input value="' + A.esc(t) + '"' + disE + ' aria-label="Type ' + (i + 1) + '" onchange="' + pre + "(" + i + ',this.value)">' +
   (okE ? '<button class="ico" title="Monter" aria-label="Monter" onclick="' + pre + "Bouger(" + i + ',-1)"' + (i ? "" : " disabled") + '>↑</button><button class="ico" title="Descendre" aria-label="Descendre" onclick="' + pre + "Bouger(" + i + ',1)"' + (i < L.length - 1 ? "" : " disabled") + ">↓</button>" + sup(pre + "Sup(" + i + ")", "Retirer « " + A.esc(t) + " »") : "") + "</div>").join("") + (fixe || "") + "</div>" +
@@ -142,13 +147,12 @@ const RUBRIQUES = {
       '<div class="puces"><span class="tl">Horaires de</span>' + (limite ? "" : '<button class="puce' + (HET ? "" : " on") + '" onclick="cfEtab(\'\')">Par défaut (tous)</button>') + etabs.map((k) => '<button class="puce' + (HET === k ? " on" : "") + '" onclick="cfEtab(\'' + esc(k) + "')\">" + esc(k) + (ED.horairesEtab[k] ? " •" : "") + "</button>").join("") + "</div>" +
       (HET ? '<label class="chk" style="margin:6px 0 10px"><input type="checkbox"' + (propre ? " checked" : "") + c.disE + ' onchange="cfPropre(this.checked)"> Horaires propres à ' + esc(HET) + "</label>" + (propre ? "" : '<p class="mesures">' + esc(HET) + " suit les horaires par défaut.</p>")
         : '<p class="mesures">Pour les lieux sans horaires propres (• = horaires propres).</p>') +
-      '<div class="form" style="grid-template-columns:minmax(0,260px)"><div><label for="cfDur">Pas des créneaux (minutes)</label><select id="cfDur"' + disH + ' onchange="cfDuree(this.value)">' + [10, 15, 20, 30, 45, 60].map((m) => "<option" + (m === H.duree ? " selected" : "") + ">" + m + "</option>").join("") + "</select></div></div>" +
       '<div class="tableau" style="margin-top:12px"><table class="tcures cfh"><tr><th>Jour</th><th>Plages horaires</th></tr>' +
       JOURS.map(([j, nom]) => {
         const pl = H.jours[j] || [], ouvert = pl.length > 0;
         return '<tr><td><label style="display:flex;gap:8px;align-items:center;font-weight:bold"><input type="checkbox" style="width:auto"' + (ouvert ? " checked" : "") + disH + ' onchange="cfJour(' + j + ',this.checked)">' + nom + "</label></td><td>" +
           (ouvert ? '<div class="plages">' + pl.map((p, k) => '<span class="plage"><input type="time" step="900" value="' + p[0] + '"' + disH + ' onchange="cfPlage(' + j + "," + k + ',0,this.value)"> – <input type="time" step="900" value="' + p[1] + '"' + disH + ' onchange="cfPlage(' + j + "," + k + ',1,this.value)">' + (okH ? sup("cfSupPlage(" + j + "," + k + ")", "Retirer cette plage") : "") + "</span>").join("") + (okH ? '<button class="mini" onclick="cfAjPlage(' + j + ')">+ Plage</button>' : "") + "</div>" : '<span class="mesures">Fermé</span>') + "</td></tr>";
-      }).join("") + "</table></div>" + '<p class="mesures">Pas des créneaux : écart entre deux créneaux proposés ; c\'est aussi la durée des types de consultation sans durée (Dossier patient › <a href="#parametres/types" onclick="event.preventDefault();cfOnglet(\'types\')">Types de consultation</a>).</p></section>';
+      }).join("") + "</table></div>" + '<p class="mesures">Durée de chaque type de consultation (et donc des créneaux proposés) : Dossier patient › <a href="#parametres/types" onclick="event.preventDefault();cfOnglet(\'types\')">Types de consultation</a>.</p></section>';
   },
   fermetures(c) {
     const esc = A.esc, abs = ED.abs.map((a, i) => ({ a, i })).sort((p, q) => String(p.a.du).localeCompare(String(q.a.du)));
@@ -200,13 +204,15 @@ const RUBRIQUES = {
         '<label class="ty-s"><span class="ty-lb">Comment il est prévu</span> <select aria-label="Comment est prévu : ' + esc(t.nom) + '"' + (ok && t.k !== "cchimio" ? "" : " disabled") + ' onchange="cfTyMode(' + i + ',this.value)">' +
           (t.k === "cchimio" ? '<option>D\'office (avec la cure)</option>' : (au ? [["main", "À la main"], ["office", "D'office (" + au[1] + ")"], ["les2", "D'office et à la main"], ["sans", "Sans rendez-vous"]] : [["main", "À la main"], ["sans", "Sans rendez-vous (journal seulement)"]])
             .map(([v, l]) => '<option value="' + v + '"' + (v === modeTy(t) ? " selected" : "") + ">" + esc(l) + "</option>").join("")) + "</select></label>" +
-        '<label class="ty-s"><span class="ty-lb">Durée</span> <select aria-label="Durée : ' + esc(t.nom) + '"' + c.disE + ' onchange="cfDureeT(\'' + esc(dk) + '\',this.value)"><option value="">Créneau du lieu (' + ((ED.horaires && ED.horaires.duree) || 30) + ' min)</option>' + [10, 15, 20, 30, 40, 45, 60, 90, 120].map((m) => '<option value="' + m + '"' + (du[dk] === m ? " selected" : "") + ">" + m + " min</option>").join("") + "</select></label>" +
+        // hospitalisation : toute la journée, facturée par jour ouvré (pas un créneau de consultation)
+        (t.k === "hospit" ? '<span class="ty-s mesures">Journée entière (facturée par jour ouvré)</span>' :
+        '<label class="ty-s"><span class="ty-lb">Durée</span> <select aria-label="Durée : ' + esc(t.nom) + '"' + c.disE + ' onchange="cfDureeT(\'' + esc(dk) + '\',this.value)">' + (() => { const v = du[dk] || (ED.horaires && ED.horaires.duree) || 30; return [10, 15, 20, 30, 40, 45, 60, 90, 120].concat([10, 15, 20, 30, 40, 45, 60, 90, 120].indexOf(v) < 0 ? [v] : []).sort((a2, b2) => a2 - b2).map((m) => '<option value="' + m + '"' + (m === v ? " selected" : "") + ">" + m + " min</option>").join(""); })() + "</select></label>") +
         '<label class="ty-s"><span class="ty-lb">Formulaire</span> <select aria-label="Formulaire : ' + esc(t.nom) + '"' + dis + ' onchange="cfTy(' + i + ',\'form\',this.value)">' + FO.map((z) => '<option value="' + esc(z.id) + '"' + (z.id === f ? " selected" : "") + ">" + esc(z.nom) + "</option>").join("") + "</select></label>" +
         (st || !ok ? "<span></span>" : sup("cfTySup(" + i + ")", "Retirer « " + esc(t.nom) + " »")) + "</div>"; };
     return '<section class="carte">' + titre("agenda", "Types de consultation", L.length) +
       '<p class="sous">Une seule liste pour tout Onco360 : prise de rendez-vous, journal des consultations, durée dans l\'agenda, formulaire, message WhatsApp, Google Agenda et prix (Activités et rémunérations). Un type ajouté ou renommé l\'est partout, y compris dans les rendez-vous et consultations déjà enregistrés.</p>' +
       '<div class="ty-b"><div class="ty-l ty-h"><span></span><span>Type</span>' + aide("Comment il est prévu", "Tous sont des rendez-vous dans l\'agenda. À la main : proposé quand on prend un rendez-vous. D\'office : créé par Onco360 (consultation de chimiothérapie avec la cure ; consultations en cours et de fin de radiothérapie avec la radiothérapie). Sans rendez-vous : seulement dans le journal des consultations (RCP, note du secrétariat).") +
-        aide("Durée", "Hauteur du rendez-vous dans l\'agenda, créneaux libres et doubles réservations. « Créneau du lieu » : l\'écart entre deux créneaux réglé dans Horaires.") + aide("Formulaire", "Champs proposés dans la fenêtre « Nouvelle consultation » pour ce type (Formulaire de consultation).") + "<span></span></div>" + L.map(rg).join("") + "</div>" +
+        aide("Durée", "Hauteur du rendez-vous dans l\'agenda, créneaux proposés à la prise du rendez-vous, doubles réservations.") + aide("Formulaire", "Champs proposés dans la fenêtre « Nouvelle consultation » pour ce type (Formulaire de consultation).") + "<span></span></div>" + L.map(rg).join("") + "</div>" +
       (ok ? '<button class="bt clair petit" style="margin-top:10px" onclick="cfTyAj()">' + A.ic("plus") + "Ajouter un type de consultation</button>" : "") +
       '<p class="mesures" style="margin-top:10px">Prix de chaque type par lieu : <a href="#parametres/activites" onclick="event.preventDefault();cfOnglet(\'activites\')">Activités et rémunérations</a> (sans prix = non facturé dans ce lieu). Message de rappel : <a href="#parametres/whatsapp" onclick="event.preventDefault();cfOnglet(\'whatsapp\')">WhatsApp</a>.</p></section>';
   },
@@ -298,9 +304,9 @@ const RUBRIQUES = {
     let h = '<section class="carte">' + titre("horloge", "Bouton WhatsApp vert") + '<p class="sous">Il ouvre WhatsApp avec le message déjà rempli (tableau de bord, dossier) ; vert quand il est temps d\'envoyer le rappel.</p><div class="form" style="grid-template-columns:repeat(2,minmax(0,220px))">' +
       '<div><label for="cfWde">Vert à partir de</label><select id="cfWde"' + c.disE + ' onchange="cfReg(\'whatsapp\',\'a\',this.value)">' + [1, 2, 3, 4, 5, 7].map((n) => '<option value="' + n + '"' + (RW.a === n ? " selected" : "") + ">" + jr(n) + "</option>").join("") + "</select></div>" +
       '<div><label for="cfWa">jusqu\'à</label><select id="cfWa"' + c.disE + ' onchange="cfReg(\'whatsapp\',\'de\',this.value)">' + [0, 1, 2, 3].map((n) => '<option value="' + n + '"' + (RW.de === n ? " selected" : "") + ">" + jr(n) + "</option>").join("") + "</select></div></div></section>";
-    h += '<section class="carte">' + titre("whatsapp", "Messages") + '<div class="wa-l">' + CAT_WA().map(([k, lib]) => {
+    h += '<section class="carte">' + titre("whatsapp", "Messages") + '<div class="wa-l">' + CAT_WA().map(([k, lib, ico]) => {
       const v = ED.wa[k] != null ? ED.wa[k] : WA0[k] || WA0.autre, perso = ED.wa[k] != null && ED.wa[k] !== (WA0[k] || WA0.autre), ouvert = WAO === k;
-      return '<div class="wa-i' + (ouvert ? " on" : "") + '"><button type="button" class="wa-t" aria-expanded="' + ouvert + '" onclick="cfWaO(\'' + k + "')\"><span class=\"n\">" + esc(lib) + (perso ? ' <span class="badge b-or">personnalisé</span>' : "") + '</span><span class="ap">' + esc(remplir(v, ex).replace(/\s+/g, " ")) + '</span><span class="chev" aria-hidden="true">›</span></button>' +
+      return '<div class="wa-i' + (ouvert ? " on" : "") + '"><button type="button" class="wa-t" aria-expanded="' + ouvert + '" onclick="cfWaO(\'' + k + "')\"><span class=\"n\">" + (ico ? A.ic(ico) : "") + esc(lib) + (perso ? ' <span class="badge b-or">personnalisé</span>' : "") + '</span><span class="ap">' + esc(remplir(v, ex).replace(/\s+/g, " ")) + '</span><span class="chev" aria-hidden="true">›</span></button>' +
         (ouvert ? '<div class="wa-ed"><div><textarea id="waT_' + k + '" class="notes" rows="7"' + c.disE + ' aria-label="Message : ' + esc(lib) + '" oninput="cfWa(\'' + k + "',this.value)\">" + esc(v) + "</textarea>" +
           (c.okE ? '<div class="wa-v"><span class="mesures">Insérer :</span>' + VARS_WA.map(([n, t]) => '<button type="button" class="puce" title="' + esc(t) + '" onclick="cfWaVar(\'' + k + "','" + n + "')\">{" + n + "}</button>").join("") + (perso ? '<button type="button" class="mini" onclick="cfWaDef(\'' + k + "')\">↺ Message par défaut</button>" : "") + "</div>" : "") +
           '</div><div><span class="mesures">Aperçu</span><div class="wa-ex" id="waEx_' + k + '">' + esc(remplir(v, ex)) + "</div></div></div>" : "") + "</div>";
@@ -382,6 +388,12 @@ export function pageConfiguration(arg) {
   h += (RUBRIQUES[ONG] || RUBRIQUES.fermetures)({ ok, okE, disE, dis, sec });
   if (okE && ["bibliotheques", "vigilances", "lieux", "acces", "audit", "export"].indexOf(ONG) < 0) h += '<div class="barre-enr">' + (ok || ["horaires", "fermetures"].indexOf(ONG) < 0 ? '<button class="bt gris" onclick="cfDefaut()">↺ Valeurs par défaut</button>' : "<span></span>") + '<span id="cfMod" class="mesures' + (MOD ? "" : " cache") + '">Modifications non enregistrées</span><button class="bt plein" id="cfOk" onclick="cfEnregistrer()"><svg class="pi"><use href="#i-enregistrer"/></svg>Enregistrer</button></div>';
   A.$("page").innerHTML = h;
+  // 3.10 (12/10/2026, audit) : explication longue (plus de 140 caractères) sous un titre → bulle « ? » à côté du titre, qui l'affiche
+  document.querySelectorAll("#page section.carte > p.sous").forEach((p) => {
+    const h3 = p.parentNode.querySelector(":scope > h3"); if (!h3 || p.textContent.length <= 140) return;
+    p.classList.add("cache"); const b = document.createElement("button"); b.type = "button"; b.className = "ty-q cf-q"; b.textContent = "?"; b.title = "Explication";
+    b.setAttribute("aria-expanded", "false"); b.setAttribute("aria-label", "Afficher l'explication"); b.onclick = () => { const f = p.classList.toggle("cache"); b.setAttribute("aria-expanded", String(!f)); };
+    h3.appendChild(b); });
   if (A.$("cfProfil")) { const o = ONG === "couleurs" ? "gagenda" : ONG; htmlOngletProfil(o).then((x) => { const z = A.$("cfProfil"); if (z && ONG === (o === "gagenda" ? "couleurs" : o)) { z.innerHTML = x; apresOngletProfil(o); } }).catch((e) => { const z = A.$("cfProfil"); if (z) z.innerHTML = '<p class="sous" style="color:var(--rouge)">Lecture impossible : ' + A.esc(e.message || String(e)) + "</p>"; }); }
   if (ONG === "audit") afficherAudit(A.$("cfAudit"));
   if (ONG === "listes") { listeL(); A.$("cfLq").oninput = () => { LQ = A.$("cfLq").value; listeL(); }; }

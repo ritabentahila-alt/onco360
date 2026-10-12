@@ -27,6 +27,7 @@ async def main():
         v = B[P1].get('valide') or {}
         ok(B[P1].get('version', 0) >= 2 and v.get('par') and not v.get('retro') and v.get('version') == B[P1]['version'], 'version augmentée, validation tracée (qui, quand, version)', (B[P1].get('version'), v))
         ok(B[P1].get('src') == 'ESMO 2023' and B[P1]['dr'][0].get('max') == 2000, 'source et dose maximale enregistrées', (B[P1].get('src'), B[P1]['dr'][0].get('max')))
+        ok(B[P1].get('majPar') and B[P1].get('majLe'), 'auteur et date de la modification enregistrés (12/10/2026 : étaient avalés par un commentaire)', (B[P1].get('majPar'), B[P1].get('majLe')))
         await ev(f"prOuvrir('{P1}')"); await pg.wait_for_timeout(600)
         t = await pg.inner_text('#fenetreCorps')
         ok('Validé par' in t and 'version' in t and 'Supprimer le protocole' in t, 'fiche : trace de validation et « Supprimer le protocole »', t[:300])

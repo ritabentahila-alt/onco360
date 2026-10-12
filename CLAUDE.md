@@ -14,7 +14,7 @@ oncologue-radiothérapeute à Casablanca. **Dr Rita Bentahila est la seule autri
   dans la base (collections racine, lecture seule) ; copie privée des fichiers hors du dépôt : `Desktop/ONCO360/archives-privees-onco360/`.
 
 ## Déploiement
-Avant toute mise en ligne : `bash outils/avant-mise-en-ligne.sh` (ajouter `--regles` si les règles changent) ; mettre en ligne depuis une
+Avant toute mise en ligne : `bash outils/avant-mise-en-ligne.sh --navigateur` (parcours dans Chrome et Safari / WebKit, débordements ; ajouter `--regles` si les règles changent ; vérifie aussi les commentaires qui avalent du code, `outils/commentaires.py`) ; mettre en ligne depuis une
 copie propre du dernier enregistrement (`git worktree`), pour ne pas publier le travail en cours d'une autre session.
 ```
 firebase deploy --only hosting            # site
@@ -380,6 +380,9 @@ temporaire si le cache npm du Mac refuse) — à relancer avant chaque mise en l
 ## Méthode de travail souhaitée
 - Réponses en français, directes ; l'utilisateur n'est pas développeur : commandes Terminal prêtes à copier.
 - Toujours tester (navigateur + bilan) avant livraison ; vérifier mobile (largeur 390 px sans débordement).
+- 4.3 (12/10/2026) : 8 tailles de texte `--t1`…`--t8` (v2.html et admin.html), couleurs en variables (`:root`), icônes dessinées `ic(…)` (pas d'émoji
+  à l'écran ; `icones()` de v2.js pour un texte déjà échappé), recherche en pilule `#trQ` (`rechercheTete`). Jamais de « // commentaire » au milieu
+  d'une ligne de code (`outils/commentaires.py`).
 - Design : Arial, fond #F1F5FB (#F5F7FB avant le 11/10), couleur principale #3563B0, cartes blanches arrondies, page pleine largeur (du menu au bord droit, 11/10/2026 ; avant : 1240 px).
   Étape 20 (design, 11/10/2026, `FEUILLE-DE-ROUTE.md`) : menu repliable (`body.menu-replie`, `--menu` 76 px, bouton `btReplier`,
   `localStorage` `onco360.menuReplie`) ; barres d'onglets longues = `ag-vues defile` (une ligne qui défile, flèches ajoutées par v2.js).

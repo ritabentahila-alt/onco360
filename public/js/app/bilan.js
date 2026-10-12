@@ -171,7 +171,7 @@ function dessiner() {
   const k = (v, lib, cls) => '<div class="k' + (cls ? " " + cls : "") + '"><b>' + dh(v) + "</b><span>" + lib + "</span></div>";
   h += '<section class="carte"><div class="kpi">' + k(T.caNet, "CA NET médecin", "fort") + k(T.chimio, "Chimio – " + T.nbChimio + " séance(s)") + k(T.consultations, "Consultations – " + T.nbConsultations) + k(T.hospit, "Hospitalisations – " + T.nbHospit) + k(T.rt, "Radiothérapie – " + T.nbRt + " terminée(s)") + k(T.versements, "Autres versements – " + T.nbVersements) + "</div>" +
     '<div class="actr" style="justify-content:flex-start;gap:16px;margin-top:12px"><b style="color:var(--vert)"><svg class="pi"><use href="#i-check"/></svg>Payé : ' + dh(T.paye) + '</b><b style="color:var(--orange)"><svg class="pi"><use href="#i-sablier"/></svg>À recevoir : ' + dh(T.aRecevoir) + "</b></div>" +
-    (T.nbPrev ? '<p class="mesures" style="margin:4px 0 0">☢️ Radiothérapies en cours ou prévues (non comptées) : ' + T.nbPrev + " – NET prévisionnel " + dh(T.netPrev) + "</p>" : "") + "</section>";
+    (T.nbPrev ? '<p class="mesures" style="margin:4px 0 0">' + A.ic("radiation") + 'Radiothérapies en cours ou prévues (non comptées) : ' + T.nbPrev + " – NET prévisionnel " + dh(T.netPrev) + "</p>" : "") + "</section>";
   h += htmlEtabs(all) + htmlMois(b, R);
   h += '<section class="carte"><h3><span class="ic">' + A.ic("liste") + "</span>Journal détaillé (" + all.length + " acte" + (all.length > 1 ? "s" : "") + ')</h3><div class="tableau"><table class="tcures bilan"><tr><th>Date</th><th>Patient</th><th>Hôpital</th><th>Acte / prestation</th><th>Statut</th><th class="n">Brut</th><th class="n">Taux</th><th class="n">NET médecin</th><th>Paiement</th></tr>' +
     (all.length ? all.slice(0, LIM).map((o, i) => {
@@ -190,7 +190,7 @@ function dessiner() {
     h += '<section class="carte" data-fn="bilan.referents"><h3><span class="ic">' + A.ic("patients") + '</span>Référents</h3><p class="sous">Touchez un référent pour voir les patients qu\'il vous a adressés. Selon l\'établissement et le type d\'acte choisis en haut.</p><div class="tableau"><table class="tcures bilan"><tr><th>Référent</th><th class="n">Patients adressés</th><th class="n">Nouveaux sur la période</th><th class="n">NET sur la période</th></tr>' +
       l.map((c) => '<tr class="cl" onclick="biF(\'cor\',' + esc(JSON.stringify(c)) + ')"><td>' + esc(c || "— (sans référent)") + '</td><td class="n">' + m[c].n + '</td><td class="n">' + m[c].np + '</td><td class="n">' + dh(m[c].net) + "</td></tr>").join("") + "</table></div></section>";
   }
-  if (b.prev.length) h += '<section class="carte" data-fn="bilan.rtprev"><h3><span class="ic">☢️</span>Radiothérapies en cours ou prévues (prévisionnel, non comptées)</h3><div class="tableau"><table class="tcures bilan"><tr><th>Fin prévue</th><th>Patient</th><th>Hôpital</th><th>Acte</th><th class="n">NET prévisionnel</th></tr>' +
+  if (b.prev.length) h += '<section class="carte" data-fn="bilan.rtprev"><h3><span class="ic">' + A.ic("radiation") + '</span>Radiothérapies en cours ou prévues (prévisionnel, non comptées)</h3><div class="tableau"><table class="tcures bilan"><tr><th>Fin prévue</th><th>Patient</th><th>Hôpital</th><th>Acte</th><th class="n">NET prévisionnel</th></tr>' +
     b.prev.map((o) => "<tr" + lienDossier(o.id) + "><td>" + (o.d ? A.dfrA(o.d) : "—") + "</td><td>" + esc(o.nm) + "</td><td>" + esc(o.hop || "—") + "</td><td>" + esc(o.lib) + '</td><td class="n">' + dh(o.net) + "</td></tr>").join("") + "</table></div></section>";
   h += htmlRecus(b);
   A.$("page").innerHTML = h;

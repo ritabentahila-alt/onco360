@@ -470,8 +470,12 @@ longs et ne dépendent pas du code.
       téléphone en pied ; signature scannée), avec aperçu dans la fenêtre de l'ordonnance (non enregistré dans le texte) ; « Signée par »
       quand le cabinet a plusieurs médecins (`medUid` sur la ligne) ; carte de chaque médecin `signataires/{uid}` publiée par lui-même
       (règle + `tests/regles/test-signataires.mjs`). Test : `tests/test_ordo_entete.py`.
-- [ ] **3.10 Paramètres, fin** : onglet WhatsApp replié par message (4 001 px) ; explications longues → bulle « ? » ; croix rouges des
+- [x] **3.10 Paramètres, fin** : onglet WhatsApp replié par message (4 001 px) ; explications longues → bulle « ? » ; croix rouges des
       listes dans un menu ⋯ avec confirmation ; `pageConfiguration` (30 427 caractères) découpée par famille.
+      **Fait le 12/10/2026 (20261012t)** : WhatsApp replié (déjà le 11/10) ; explication de plus de 140 caractères → bulle « ? » à côté du
+      titre ; retrait d'un élément d'une liste : menu ⋯ puis confirmation ; « Pas des créneaux » retiré de Horaires (durée de chaque type
+      dans Types de consultation ; créneaux proposés de la durée du type). **Pas fait, volontairement** : découper `configuration.js` par
+      famille (aucun effet visible, risque de casse) : à faire quand ESLint (Q3 bis) vérifiera chaque nom après le découpage.
 
 - [x] **3.11 Dossier patient entièrement réglable** (fait le 12/10/2026, version 20261012p ; voir « Fait » ci-dessous) :
       **Organisation des Paramètres** : une famille « **Dossier patient** » réunit Fiche patient, Formulaires de consultation, Types de
@@ -534,15 +538,44 @@ longs et ne dépendent pas du code.
 ## Phase 4 – Design (corrections restantes de l'onglet Design)
 Déjà faits : 6 (salle, agenda), 8 (tableau de bord), 10 (Paramètres), 11 en partie (salle). Les corrections 1 à 5 et 7 sont dans
 les étapes 1.7, 2.5, 3.2 et 3.7.
-- [ ] **3.15 Corrections signalées le 12/10/2026 (plus tard)** :
-      a) Salle d'attente : l'heure des consultations de chimio (`hc` / heure de la consultation du médecin) ne s'affiche pas ;
-      b) Salle d'attente : la consultation de fin de radiothérapie (rendez-vous « Fin de radiothérapie », ex. le 14/10) n'y apparaît pas ;
-      c) Une consultation de contrôle réapparaît dans le dossier alors qu'elle a été supprimée (chercher la cause : rendez-vous automatique
-         recréé après suppression ? copie locale non relue ?) et la corriger ;
+- [x] **3.15 Corrections signalées le 12/10/2026** (faites le 12/10/2026, 20261012t ; test `tests/test_salle_315.py`) :
+      a) ~~Salle d'attente : l'heure des consultations de chimio ne s'affiche pas~~ : la ligne prend l'heure de la consultation (`hc`) ;
+      b) ~~la consultation de fin de radiothérapie n'apparaît pas~~ : elle y était, mais sous le nom « Contrôle » ; affichée « Fin de RT » ;
+      c) ~~une consultation de contrôle réapparaît après suppression~~ : c'était la consultation de fin de RT (créée d'office), recréée à
+         chaque modification de la radiothérapie ; une consultation créée d'office supprimée reste notée « supprimée » (`st: "supprime"`,
+         invisible partout) et n'est plus recréée (de même pour les consultations hebdomadaires de RT) ;
       d) ~~Chimio › Nouvelle ligne et Protocoles : choisir un « Type de cancer » faisait « recharger » la page~~ : corrigé le 12/10/2026
          (20261012p) : plantage de **Safari** (« un problème récurrent est survenu », Firefox sans souci) quand un menu déroulant est
          retiré pendant son propre « change » ; la mise à jour se fait maintenant juste après (menu fermé), et seuls les menus et la
          liste changent (plus toute la fenêtre / la page).
+- [ ] **3.17 WhatsApp envoyé tout seul** (demande du 12/10/2026, plus tard) : rappels (et confirmation à la prise du rendez-vous) envoyés
+      automatiquement, sans cliquer. Demande l'**API WhatsApp Business** (compte Meta vérifié au nom du cabinet, modèles de messages validés
+      par Meta, coût par message, accord du patient noté dans le dossier) et une fonction serveur programmée (comme les tâches de nuit) ;
+      garder le clic manuel en secours ; journal des envois (déjà : `patients/{id}.rappels`).
+- [ ] **3.18 Impression : format du papier choisi tout seul** (demande du 12/10/2026) : Onco360 indique déjà A5 (ordonnances) ou A4
+      (documents) à la page imprimée (`@page size`) ; **Chrome et Edge** prennent ce format tout seuls ; **Safari** et certaines
+      imprimantes gardent leur propre réglage. À faire : vérifier sur le Mac du cabinet (Safari / Chrome, imprimante réelle) ; en secours,
+      un bouton « PDF » (fichier déjà au bon format : Aperçu l'imprime au bon format) et un mode d'emploi pour enregistrer une fois deux
+      « préréglages » dans la fenêtre d'impression du Mac (« Ordonnance A5 », « Document A4 »).
+- [ ] **Q. Ne plus revenir sur des bugs** (idées du 12/10/2026, à appliquer à chaque étape) :
+      Q1 **un bug signalé = un test** qui le reproduit, écrit avant la correction et gardé pour toujours (fait aujourd'hui : test_salle_315,
+         test_fiche_donnees) ;
+      Q2 **Safari aussi** ✅ (12/10) : `bash outils/avant-mise-en-ligne.sh --navigateur` joue les parcours principaux dans Chrome ET avec le
+         moteur de Safari (`NAVIGATEUR=webkit`, base.py) ;
+      Q3 ✅ (12/10) **commentaire qui avale du code** : `outils/commentaires.py`, dans `avant-mise-en-ligne.sh` ; il a trouvé une vraie erreur
+         ancienne (protocoles : auteur de la modification jamais enregistré, réparé) ; Q3 bis **ESLint** (variable inconnue, fonction absente,
+         double déclaration) : à installer ;
+      Q4 **check-list d'impact** à chaque nouvelle notion (type, champ, rendez-vous) : où apparaît-elle ? dossier, agenda, salle d'attente,
+         Google Agenda, WhatsApp, bilan, export, impression, droits (secrétaire, infirmière), téléphone 390 px, Administration ;
+      Q5 **une seule source par notion** (comme les types de consultation, 3.13) : une liste ou un réglage n'existe qu'à un endroit ;
+      Q6 **journal des erreurs en ligne** : les erreurs JavaScript survenues chez les utilisateurs notées (sans données patient) et visibles
+         dans l'Administration, pour corriger avant qu'on les remarque ;
+      Q7 **contrôle des dossiers au chargement** (titulaire) : champs mal rangés, rendez-vous orphelins, dates impossibles → réparés ou
+         signalés (comme la réparation de `clinique._autres`) ; test « aller-retour » : un enregistrement ne perd aucun champ ;
+      Q8 ✅ (12/10) **rien ne déborde** : `tests/test_debordement.py` (28 pages × 5 largeurs, dans la vérification) ; captures avant / après
+         des pages touchées (fait pour 4.3) ;
+      Q9 **après chaque mise en ligne, 3 vérifications pour vous** (« ouvrez X, cliquez Y, vous devez voir Z ») dans le message de fin ;
+      Q10 **jeu de test rafraîchi** depuis une sauvegarde récente (anonymisée) pour retrouver les cas réels (bibliothèque, dossiers).
 - [x] **3.16 Agenda : un clic sur un rendez-vous = Fermer · Ouvrir le dossier · Modifier / décaler** (fait le 12/10/2026, 20261012s ; décisions : consultation = elle seule ; fin de RT prévue = surtout l'heure, une autre date devient la fin prévue et la consultation de fin suit ; glisser vers un autre jour = la même fenêtre) (demande du 12/10/2026, plan) :
       aujourd'hui, une séance de chimio ou un rendez-vous de radiothérapie ouvre directement la fenêtre de l'heure ; désormais la même
       fenêtre pour tout (consultation, séance de chimio, scanner, 1re séance, fin de radiothérapie prévue, consultations en cours et de fin
@@ -564,8 +597,13 @@ les étapes 1.7, 2.5, 3.2 et 3.7.
       du patient en lien Onco360 (plus de lien bleu souligné) ; champs de fichier habillés ; ~40 libellés reliés à leur champ.
 - [ ] **4.2 Fenêtres Onco360 à la place des boîtes grises** : les 123 `alert` / `confirm` / `prompt` remplacés par une fenêtre
       commune (`A.confirmer`, `A.message`), en commençant par les suppressions.
-- [ ] **4.3 Un seul langage visuel** : 8 tailles de police au lieu de 24 ; les 180 couleurs écrites en dur → variables ; un seul jeu
+- [x] **4.3 Un seul langage visuel** : 8 tailles de police au lieu de 24 ; les 180 couleurs écrites en dur → variables ; un seul jeu
       d'icônes ; page d'administration au même style qu'Onco360 ; barre du haut (recherche en pilule, cloche et avatar, ancienne 20.5).
+      **Fait le 12/10/2026 (20261012t)** : 8 tailles de texte (`--t1` 11 px … `--t8` 26 px ; 253 remplacements ; gardées : avatars, flèches,
+      grands chiffres) ; couleurs en dur 257 → 74 (variables, quasi-doublons fusionnés, fonds verts « fait » gardés) ; icônes dessinées à la
+      place des émojis à l'écran (Google Agenda garde ses émojis) ; Administration avec les variables et tailles d'Onco360 ; recherche de
+      patient en pilule dans la barre du haut (nom, n° de dossier, téléphone ; ordinateur et tablette). Tests `test_recherche_tete.py`,
+      `test_debordement.py` (28 pages × 5 largeurs).
 
 - [ ] **4.4 Dossier stable, comme GestiCab** (demande de Dr Bentahila du 12/10 ; capture de GestiCab : la page ne bouge pas, chaque zone a
       son défilement) : (1) **en-tête compact** sur une ou deux lignes sous le nom (« OMS 0 · Tél 0667… · HGC · ALD oui · Corresp. … · CNOPS ·

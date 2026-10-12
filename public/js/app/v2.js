@@ -67,7 +67,7 @@ window.nouveauPatient = () => creerPatient();
 // ───── Chargement ─────
 onAuthStateChanged(auth, async (u) => {
   if (!u) { location.replace("index.html"); return; }
-  try { D = await charger(u); appliquerImpression(); entete(); route(); menuCabinets().catch(() => {});
+  try { D = await charger(u); appliquerImpression(); entete(); rechercheTete(); route(); menuCabinets().catch(() => {});
     if (D.bib) { Promise.all([figerListes(), figerDocumentation()]).catch((e) => console.warn("bibliothèque", e)); return; } // bibliothèque de référence : rien d'autre
     lireAccueilCab();
     if (D.membre.role !== "comptable") { if (module("taches")) demarrerTaches(); if (module("salle")) demarrerSalle(); if (module("rcp")) demarrerRcp(); } publierTarifsC(); planifierReleve(3000); chargerMedecins(); chargerSignataires().then(publierCarte).catch(() => {}); nomTitulaire().then(migrations); marquerProtocoles().catch((er) => console.warn("protocoles", er)); }
@@ -906,8 +906,28 @@ function listePatients() {
     if (rtC) { tr = (tr ? tr + " · " : "") + "☢️ " + rtC.a + " jusqu'au " + dfr(rtC.fin); bd += ' <span class="badge b-rt">RT en cours</span>'; }
     else if (rtP) { tr = (tr ? tr + " · " : "") + "☢️ " + rtP.a + " à partir du " + dfr(rtP.deb); bd += ' <span class="badge b-rt">RT prévue</span>'; }
     const st0 = (xp.doc.clinique || {}).statut; if (st0 && st0 !== "traitement") bd += ' <span class="badge ' + (st0 === "decede" ? "b-dc" : st0 === "perdu" ? "b-or" : "b-gr") + '">' + esc(libStatut(st0)) + "</span>"; // 3.3
-    return '<div class="pat" onclick="ouvrirDossier(\'' + id + '\')">' + bulle(D.patients.find((z) => z.id === id)) + '<div class="tx"><b>' + esc(r.nm) + "</b><span>" + esc([numDossier(xp) ? "N° " + numDossier(xp) : "", r.ddn ? "Né(e) le " + dfrA(r.ddn) + (a != null ? " (" + a + " ans)" : "") : "", r.diag].filter(Boolean).join(" · ")) + "</span>" + (tr ? "<span>" + esc(tr) + "</span>" : "") + '</div><div class="dr">' + (r.hop ? '<span class="badge b-gr">' + esc(r.hop) + "</span>" : "") + bd + "</div></div>";
+    return '<div class="pat" onclick="ouvrirDossier(\'' + id + '\')">' + bulle(D.patients.find((z) => z.id === id)) + '<div class="tx"><b>' + esc(r.nm) + "</b><span>" + esc([numDossier(xp) ? "N° " + numDossier(xp) : "", r.ddn ? "Né(e) le " + dfrA(r.ddn) + (a != null ? " (" + a + " ans)" : "") : "", r.diag].filter(Boolean).join(" · ")) + "</span>" + (tr ? "<span>" + icones(esc(tr)) + "</span>" : "") + '</div><div class="dr">' + (r.hop ? '<span class="badge b-gr">' + esc(r.hop) + "</span>" : "") + bd + "</div></div>";
   }).join("") : '<p class="vide-c">Aucun patient ne correspond. Essayez un autre nom ou retirez le filtre.</p>';
+}
+
+// 4.3 (12/10/2026) : un seul jeu d'icônes : les émojis d'un texte déjà échappé deviennent les icônes dessinées
+const icones = (h) => String(h).replace(/💉 ?/g, ic("seringue")).replace(/☢️ ?/g, ic("radiation")).replace(/🩺 ?/g, ic("stetho"));
+// 4.3 (12/10/2026) : recherche en pilule de la barre du haut : nom, n° de dossier, téléphone ; ↑ ↓ Entrée ; clic = dossier
+function rechercheTete() {
+  const q = $("trQ"), z = $("trRes"); if (!q || !z) return; let sel = 0, L = [];
+  if (D.membre.role === "comptable") { $("trPil").classList.add("cache"); return; }
+  const dessiner = () => { const m = sansAcc(q.value).split(/\s+/).filter(Boolean); if (!m.length) { z.classList.add("cache"); return; }
+    L = D.patients.filter((x) => { const hay = sansAcc(x.r.nm + " " + (numDossier(x) || "")), tel = String((x.P.tel || "") + " " + ((x.doc.identite || {}).tel2 || "")).replace(/\D/g, "");
+      return m.every((w) => hay.indexOf(w) >= 0 || (/^\d{3,}$/.test(w) && tel.indexOf(w.replace(/^0/, "")) >= 0)); }).slice(0, 8);
+    sel = Math.min(sel, Math.max(0, L.length - 1));
+    z.innerHTML = L.length ? L.map((x, i) => '<button type="button" role="option" class="' + (i === sel ? "on" : "") + '" data-id="' + esc(x.id) + '"><b>' + esc(x.r.nm) + "</b><small>" + esc([numDossier(x) ? "N° " + numDossier(x) : "", x.r.ddn ? dfrA(x.r.ddn) : "", x.doc.etablissementId || ""].filter(Boolean).join(" · ")) + "</small></button>").join("") : "<p>Aucun patient.</p>";
+    z.classList.remove("cache"); };
+  const ouvrir = (id) => { q.value = ""; z.classList.add("cache"); q.blur(); ouvrirDossier(id); };
+  q.oninput = () => { sel = 0; dessiner(); };
+  q.onkeydown = (ev) => { if (ev.key === "ArrowDown" || ev.key === "ArrowUp") { ev.preventDefault(); sel = Math.max(0, Math.min(L.length - 1, sel + (ev.key === "ArrowDown" ? 1 : -1))); dessiner(); }
+    else if (ev.key === "Enter" && L[sel]) ouvrir(L[sel].id); else if (ev.key === "Escape") { q.value = ""; z.classList.add("cache"); } };
+  z.onmousedown = (ev) => { const b = ev.target.closest("[data-id]"); if (b) { ev.preventDefault(); ouvrir(b.dataset.id); } };
+  q.onblur = () => setTimeout(() => z.classList.add("cache"), 150); q.onfocus = () => { if (q.value) dessiner(); };
 }
 
 // ───── Dossier patient (lecture) ─────
@@ -964,8 +984,8 @@ function pageDossier(id) {
   };
   // 12/10/2026 : heure de la consultation de la séance (l'infirmière : sa séance à l'hôpital de jour) ; « Modifier » = date et heure
   const inf = D.membre.role === "infirmiere", modCh = (c) => (traitMod() || peut("planningChimio") || peut("administrer")) && c.lid ? b("Modifier", "chModifierRdvChimio('" + x.id + "','" + c.lid + "'," + c.n + "," + c.j + ")") : "";
-  chimioAVenir(JSON.parse(JSON.stringify(P)), ctx).forEach((c) => { const ret = /en retard/.test(c.lib), hh = inf && c.hr && c.hr.h ? c.hr : c.hc; av.push({ d: c.d, h: (hh && hh.h) || "", em: "💉", t: c.lib.replace(/^Chimio · /, "") + (inf && c.hr && c.hr.h ? " · séance " + c.hr.h + (c.hc && !c.hc.auto ? " (consultation " + c.hc.h + ")" : "") : c.hc ? " · consultation" : ""), retard: ret, act: '<div class="actr">' + (ret ? "" : btnWA(x, "chimio", c.d, (hh && hh.h) || "")) + (c.lid ? venuChimio(c, c.d) : "") + modCh(c) + "</div>" }); });
-  if (voitRdv()) (P.rdvs || []).forEach((v) => { if (aVenir(v)) av.push({ d: v.d, h: v.h || "", em: typeRdv(v.type) === "hospit" ? '<svg class="pi"><use href="#i-hopital"/></svg>' : "🩺", t: libRdv(v) + (v.mo ? " – " + v.mo : "") + (v.n ? " – " + v.n : ""), act: actionsRdv(v, btnWA(x, catRdv(v), v.d, v.h || "")), rep: v.rep }); });
+  chimioAVenir(JSON.parse(JSON.stringify(P)), ctx).forEach((c) => { const ret = /en retard/.test(c.lib), hh = inf && c.hr && c.hr.h ? c.hr : c.hc; av.push({ d: c.d, h: (hh && hh.h) || "", em: ic("seringue"), t: c.lib.replace(/^Chimio · /, "") + (inf && c.hr && c.hr.h ? " · séance " + c.hr.h + (c.hc && !c.hc.auto ? " (consultation " + c.hc.h + ")" : "") : c.hc ? " · consultation" : ""), retard: ret, act: '<div class="actr">' + (ret ? "" : btnWA(x, "chimio", c.d, (hh && hh.h) || "")) + (c.lid ? venuChimio(c, c.d) : "") + modCh(c) + "</div>" }); });
+  if (voitRdv()) (P.rdvs || []).forEach((v) => { if (aVenir(v)) av.push({ d: v.d, h: v.h || "", em: typeRdv(v.type) === "hospit" ? '<svg class="pi"><use href="#i-hopital"/></svg>' : ic("stetho"), t: libRdv(v) + (v.mo ? " – " + v.mo : "") + (v.n ? " – " + v.n : ""), act: actionsRdv(v, btnWA(x, catRdv(v), v.d, v.h || "")), rep: v.rep }); });
   const qx = "'" + x.id + "'";
   // Tâches ouvertes du patient (P4, 08/10/2026), dont « Valider la dosimétrie » qui remplace ici la ligne de dosimétrie
   (module("taches") ? tachesDuPatient(x.id) : []).forEach((tk) => av.push({ d: tk.ech || "", h: tk.h || "", em: ic("taches"), t: "Tâche – " + tk.titre + " · pour " + (tk.pour === D.u.uid ? "vous" : tk.pourNom || "?") + (tk.statut === "encours" ? " · en cours" : ""), retard: !!tk.ech && tk.ech < D.t, act: '<div class="actr"><button class="mini" onclick="taVoir(\'' + tk.id + '\')">Ouvrir</button></div>' }));
@@ -973,7 +993,7 @@ function pageDossier(id) {
   (module("rcp") ? rcpDuPatient(x.id) : []).forEach((v) => av.push({ d: v.d, h: "", em: ic("rcp"), t: "RCP – " + v.q + (v.d < D.t ? " · décision à saisir" : ""), retard: v.d < D.t, act: '<div class="actr"><button class="mini" onclick="rcpHistorique(\'' + x.id + '\')">Ouvrir</button></div>' }));
   // 12/10/2026 : fin de radiothérapie (prévue ou réelle) et consultation de fin affichées toutes les deux (décision de Dr Bentahila) ; scanner et
   // 1re séance : date et heure modifiables
-  if (voitRTdossier(x)) (r.rt || []).filter((v) => !v.dosi).forEach((v) => av.push({ d: v.d, f: v.f, h: v.h || "", em: "☢️", t: v.lib.replace(/^RT · /, ""), dosi: !!v.dosi, act: v.dosi ? (peutDosi() ? '<div class="actr"><button class="mini vert" onclick="dosiRT(\'' + x.id + "','" + v.dosi + '\')"><svg class="pi"><use href="#i-check"/></svg>Valider la dosimétrie</button></div>' : "") : /Fin de radioth/.test(v.lib) ? (v.z === "fin" && traitModRT() ? '<div class="actr">' + b("Modifier", "modifierEtapeRT('" + x.id + "','" + v.rt + "','fin')") + "</div>" : "") : '<div class="actr">' + btnWA(x, "rt", v.d, v.h || "") + ((v.z === "scan" || v.z === "deb") && traitModRT() ? b("Modifier", "modifierEtapeRT('" + x.id + "','" + v.rt + "','" + v.z + "')") : "") + "</div>" }));
+  if (voitRTdossier(x)) (r.rt || []).filter((v) => !v.dosi).forEach((v) => av.push({ d: v.d, f: v.f, h: v.h || "", em: ic("radiation"), t: v.lib.replace(/^RT · /, ""), dosi: !!v.dosi, act: v.dosi ? (peutDosi() ? '<div class="actr"><button class="mini vert" onclick="dosiRT(\'' + x.id + "','" + v.dosi + '\')"><svg class="pi"><use href="#i-check"/></svg>Valider la dosimétrie</button></div>' : "") : /Fin de radioth/.test(v.lib) ? (v.z === "fin" && traitModRT() ? '<div class="actr">' + b("Modifier", "modifierEtapeRT('" + x.id + "','" + v.rt + "','fin')") + "</div>" : "") : '<div class="actr">' + btnWA(x, "rt", v.d, v.h || "") + ((v.z === "scan" || v.z === "deb") && traitModRT() ? b("Modifier", "modifierEtapeRT('" + x.id + "','" + v.rt + "','" + v.z + "')") : "") + "</div>" }));
   av.sort((p, q) => (p.d + (p.h || "00")).localeCompare(q.d + (q.h || "00")));
   const hRdv = '<section class="carte"><div class="entete"><h3><span class="ic">' + ic("agenda") + "</span>Rendez-vous et tâches à venir</h3><div class=\"actr\">" + (okR ? '<button class="bt clair petit" onclick="ouvrirRdv(' + qx + ')">' + ic("plus") + "Ajouter un rendez-vous</button>" : "") + '<button class="bt clair petit" data-mod="taches" onclick="taNouvelle(' + qx + ')">' + ic("plus") + "Tâche</button></div></div>" +
     // Liste dans une zone qui défile : les 5 prochains visibles (hauteur réglée après l'affichage, limiterHauteur)
@@ -1352,7 +1372,9 @@ window.statutRdv = async (id, rid, st) => {
   const x = D.patients.find((p) => p.id === id); if (!x) return;
   const l = lireRdvs(x), r = l.find((v) => v.id === rid); if (!r) return; const ancien = r.st || "prevu";
   if (st === "prevu" && !annulable(r)) { toast("Statut posé par le médecin : lui seul peut l'annuler."); return; }
-  if (st === "supprimer") { if (!confirm("Supprimer ce rendez-vous ?")) return; l.splice(l.indexOf(r), 1); }
+  if (st === "supprimer") { if (!confirm("Supprimer ce rendez-vous ?")) return;
+    // 3.15 c : consultation créée d'office (fin de RT, hebdomadaire de RT) : gardée comme « supprimée » pour ne pas être recréée
+    if (r.rtfin || r.rtc) Object.assign(r, { st: "supprime", supLe: new Date().toISOString(), sp: D.u.uid }); else l.splice(l.indexOf(r), 1); }
   else if (st === "absent" && ancien === "prevu") { absentRdv(x, l, r); return; }
   else if (st === "fait") {
     // Médecin (« finances ») et secrétaire (« encaissements ») : prix de la consultation (réduction, gratuité) avant « venu »
@@ -1471,7 +1493,8 @@ function rdvsDuJour(d, sauf, med) { // med (AG4) : à partir de 2 médecins, seu
 // AG2 : créneaux au pas du lieu ; proposé = la durée voulue (`duV`, sinon le pas) tient avant la fin de la plage ; pris = touche
 // un autre rendez-vous (chacun avec sa propre durée)
 function creneaux(etab, d, sauf, duV, med) {
-  const H = horaires(etab), pas = H.duree || 30, du = duV || pas, pl = (H.jours[new Date(d + "T12:00:00").getDay()] || []).slice().sort((a, b) => a[0].localeCompare(b[0])), pris = rdvsDuJour(d, sauf, med);
+  // créneaux proposés toutes les 30 min au plus (moins pour un type court), quelle que soit la durée du type (12/10/2026)
+  const H = horaires(etab), du = duV || H.duree || 30, pas = Math.min(du, H.duree || 30), pl = (H.jours[new Date(d + "T12:00:00").getDay()] || []).slice().sort((a, b) => a[0].localeCompare(b[0])), pris = rdvsDuJour(d, sauf, med);
   const n = new Date(), now = d === D.t ? n.getHours() * 60 + n.getMinutes() : -1, out = [];
   pl.forEach(([a, b]) => { for (let m = mnH(a); m + du <= mnH(b); m += pas) { if (m + pas <= now) continue; out.push({ h: hhM(m), occ: pris.filter((r) => mnH(r.h) < m + du && m < mnH(r.h) + r.du) }); } });
   return { l: out, du, pris };

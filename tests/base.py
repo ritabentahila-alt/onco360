@@ -1,5 +1,9 @@
 import asyncio, json, os, subprocess, time, urllib.request
 from playwright.async_api import async_playwright
+# Q2 (12/10/2026) : NAVIGATEUR=webkit → les tests tournent avec le moteur de Safari (p.chromium renvoie WebKit), sans changer les tests
+if os.environ.get("NAVIGATEUR") == "webkit":
+    from playwright.async_api import Playwright as _PW
+    _PW.chromium = property(lambda self: self.webkit)
 import pathlib
 ICI=pathlib.Path(__file__).resolve().parent if '__file__' in dir() else pathlib.Path('tests').resolve()
 ROOT=str(ICI.parent/'public'); PORT=8767

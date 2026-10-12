@@ -77,7 +77,9 @@ export function fusionner(id, doc, montants) {
     });
     return L;
   });
-  P.rdvs = JSON.parse(doc.rdvsJson || "[]").map((r) => { const m = M && M.rdv && M.rdv[r.id]; if (m && m.v1) { if (m.prix != null) r.prix = m.prix; if (m.tj != null) r.tj = m.tj; } return r; });
+  // 3.15 c (12/10/2026) : une consultation créée d'office (fin de RT, hebdomadaire de RT) puis supprimée reste dans rdvsJson avec st « supprime »
+  // (pour ne pas être recréée) ; jamais affichée ni comptée
+  P.rdvs = JSON.parse(doc.rdvsJson || "[]").filter((r) => r && r.st !== "supprime").map((r) => { const m = M && M.rdv && M.rdv[r.id]; if (m && m.v1) { if (m.prix != null) r.prix = m.prix; if (m.tj != null) r.tj = m.tj; } return r; });
   P.rts = JSON.parse(doc.rtsJson || "[]").map((r) => { const m = M && M.rt && M.rt[r.id]; if (m) Object.assign(r, m); return r; });
   return P;
 }

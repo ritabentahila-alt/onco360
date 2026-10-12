@@ -148,7 +148,8 @@ window.prOuvrir = (id) => {
       // 2.4 : version (+1 quand le contenu change), auteur, validation tracée (qui, quand, quelle version)
       const ancien = D().ctx.bib[ED.id], cont = (p) => JSON.stringify([p.nom, p.c, p.dr, p.no || null]), change = !ancien || cont(ancien) !== cont(ED);
       const moi = { par: D().u.uid, parNom: (D().membre && D().membre.nom) || "", le: new Date().toISOString() };
-      ED.version = ancien ? (ancien.version || 1) + (change ? 1 : 0) : 1; // protocole d'origine sans numéro = version 1 Object.assign(ED, { majLe: moi.le, majPar: moi.par, majParNom: moi.parNom });
+      ED.version = ancien ? (ancien.version || 1) + (change ? 1 : 0) : 1; /* protocole d'origine sans numéro = version 1 */
+      Object.assign(ED, { majLe: moi.le, majPar: moi.par, majParNom: moi.parNom }); // auteur de la modification (12/10/2026 : était avalé par le commentaire)
       if (ED.st === "ok") { if (change || !(ancien && ancien.st === "ok" && ancien.valide)) ED.valide = Object.assign({ version: ED.version }, moi); } else delete ED.valide;
       if (!ED.src) delete ED.src;
       const neuf = !D().ctx.bib[ED.id];

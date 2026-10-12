@@ -72,7 +72,8 @@ function evenements(du, au) {
 }
 // Statut de salle d'attente du jour même (vues Jour et Liste) : « En salle · 12 min », « En consultation · 5 min »…
 const badge = (e) => (e.d === D().t && (e.cat === "co" || e.cat === "ch") && A.badgeSalle ? A.badgeSalle(e.pid, e.cat === "co" ? "r-" + e.rid : "chimio") : "");
-const EM = { co: "🩺", ho: '<svg class="pi"><use href="#i-hopital"/></svg>', ch: "💉", rt: "☢️" };
+// 4.3 (12/10/2026) : un seul jeu d'icônes (dessinées), plus d'émojis à l'écran
+const EM = { co: '<svg class="pi"><use href="#i-stetho"/></svg>', ho: '<svg class="pi"><use href="#i-hopital"/></svg>', ch: '<svg class="pi"><use href="#i-seringue"/></svg>', rt: '<svg class="pi"><use href="#i-radiation"/></svg>' };
 const chip = (e, i) => '<button class="ev-c c-' + e.cat + (e.st === "fait" ? " fait" : e.st === "absent" ? " nv" : "") + (glissable(e) && AG.vue !== "mois" ? ' dep" draggable="true" data-i="' + i : "") + '" onclick="agEv(' + i + ')" title="' + A.esc(e.nm + " – " + e.t) + '">' + EM[e.cat] + " <b>" + A.esc(e.nm) + "</b> " + A.esc(e.t) + (AG.vue === "jour" ? badge(e) : "") + "</button>";
 const absence = (d) => (fnA("absences") ? (D().cal.abs || []).find((a) => d >= a.du && d <= a.au) : null);
 const ferie = (d) => (fnA("absences") ? (D().ctx.feries || []).find((f) => f.d === d) : null);

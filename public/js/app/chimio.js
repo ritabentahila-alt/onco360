@@ -73,9 +73,10 @@ const libDuree = (m) => (m < 60 ? m + " min" : Math.floor(m / 60) + " h" + (m % 
 // Bouton d'heure d'une séance prévue (tableau de la cure) : o = la cure (J1) ou c.sea[j]
 const boutonHeure = (x, i, k, j, o) => {
   const inf = estInfirmiere(), hc = o && o.hc, hr = o && o.hr;
-  const lib = inf ? (hr && hr.h ? "💉 " + hr.h + " · " + libDuree(+hr.du || DU_SEANCE) : hc && !hc.auto ? "🩺 " + hc.h + " · + séance" : "+ heure") : hc ? "🩺 " + hc.h : "+ heure";
-  if (!peutHeureChimio()) return hc && !inf ? ' <span class="mesures">🩺 ' + A.esc(hc.h) + "</span>" : "";
-  return ' <button class="bt petit clair" style="margin-top:4px" title="' + (inf ? "Heure et durée de la séance (hôpital de jour)" : "Heure de la consultation de chimio") + '" onclick="chHeure(\'' + x.id + "'," + i + "," + k + "," + j + ')">' + A.esc(lib) + "</button>";
+  // 4.3 : icônes dessinées (seringue = séance de l'infirmière, stéthoscope = consultation du médecin)
+  const [ico, lib] = inf ? (hr && hr.h ? ["seringue", hr.h + " · " + libDuree(+hr.du || DU_SEANCE)] : hc && !hc.auto ? ["stetho", hc.h + " · + séance"] : ["", "+ heure"]) : hc ? ["stetho", hc.h] : ["", "+ heure"];
+  if (!peutHeureChimio()) return hc && !inf ? ' <span class="mesures">' + A.ic("stetho") + A.esc(hc.h) + "</span>" : "";
+  return ' <button class="bt petit clair" style="margin-top:4px" title="' + (inf ? "Heure et durée de la séance (hôpital de jour)" : "Heure de la consultation de chimio") + '" onclick="chHeure(\'' + x.id + "'," + i + "," + k + "," + j + ')">' + (ico ? A.ic(ico) : "") + A.esc(lib) + "</button>";
 };
 // Fenêtre des heures d'une séance (s = { k, j, d, o }) : infirmière → heure et durée de la séance ; médecin, secrétaire → consultation.
 // `puis` : appelée à la fermeture (ex. fenêtre de prix après une validation)
@@ -85,7 +86,7 @@ export function fenetreHeureSeance(x, lid, s, titre, puis) {
   let corps;
   if (inf) {
     const du = (hr && +hr.du) || DU_SEANCE, h0 = (hr && hr.h) || seanceProposee(hc && !hc.auto ? hc : null);
-    corps = '<p class="mesures">' + (hc && !hc.auto ? "🩺 Consultation du médecin à <b>" + esc(hc.h) + "</b>" + par(hcm) + " : la séance se place après." : "Pas d'heure de consultation choisie par le médecin : elle se placera d'elle-même juste avant votre séance.") + "</p>" +
+    corps = '<p class="mesures">' + (hc && !hc.auto ? A.ic("stetho") + "Consultation du médecin à <b>" + esc(hc.h) + "</b>" + par(hcm) + " : la séance se place après." : "Pas d'heure de consultation choisie par le médecin : elle se placera d'elle-même juste avant votre séance.") + "</p>" +
       '<div class="form"><div><label for="hS">Heure de la séance (hôpital de jour)</label><input id="hS" type="time" step="900" value="' + esc(h0 || "") + '"></div>' +
       '<div><label for="hDu">Durée prévue</label><select id="hDu">' + DUREES_H.concat(DUREES_H.indexOf(du) < 0 ? [du] : []).sort((a, z) => a - z).map((m) => '<option value="' + m + '"' + (m === du ? " selected" : "") + ">" + libDuree(m) + "</option>").join("") + "</select></div></div>" +
       (hr && hr.parNom ? '<p class="mesures">Séance notée' + par(hr) + ".</p>" : "") + '<p class="mesures">La durée n\'apparaît que dans le planning de l\'infirmière.</p>';
@@ -254,7 +255,7 @@ export function htmlChimio(x) {
   if (!(P.lignes || []).length && !okT) return "";
   // à l'ouverture du dossier : la ligne en cours, sinon la dernière ; les autres fermées (11/10/2026)
   if (SEL.pid !== x.id) { SEL.pid = x.id; const lc = ligneCourante(P, ctx); SEL.l = lc != null ? lc : (P.lignes || []).length ? P.lignes.length - 1 : null; SEL.c = null; }
-  let h = '<section class="carte" id="cChimio"><div class="entete"><h3><span class="ic">💉</span>Chimiothérapie</h3>' + (okT ? '<button class="bt clair petit" onclick="chNouvelleLigne(' + q1 + ')">' + A.ic("plus") + "Nouvelle ligne chimio</button>" : "") + "</div>";
+  let h = '<section class="carte" id="cChimio"><div class="entete"><h3><span class="ic">' + A.ic("seringue") + '</span>Chimiothérapie</h3>' + (okT ? '<button class="bt clair petit" onclick="chNouvelleLigne(' + q1 + ')">' + A.ic("plus") + "Nouvelle ligne chimio</button>" : "") + "</div>";
   if (!(P.lignes || []).length) h += '<p class="sous">Aucune ligne de chimiothérapie.</p>';
   (P.lignes || []).forEach((L, i) => {
     // 3.7 (12/10/2026) : l'intention de la ligne (« Métastatique · 2e ligne »…) à la place de « Chimio · ligne n » ; en-tête raccourci (plus de
@@ -284,7 +285,7 @@ function vueLigne(x, i) {
       '<td class="act"><div class="btns">' + b("Ouvrir", "chOuvrir(" + qc + ")", "fonce") +
         menu3(okT ? (pend ? [b('<svg class="pi"><use href="#i-check"/></svg>Valider', "chValider(" + qc + ")", "vert"), b("↪ Reporter", "chReporter(" + qc + ")", "orange"), b("✖ Annuler la cure", "chAnnuler(" + qc + ")", "rouge")] : [b(e.st === "recue" ? "Annuler la validation" : "Rétablir", "chRetablir(" + qc + ")")]) : pend && okPl && !L.arret ? [b("↪ Reporter", "chReporter(" + qc + ")", "orange")] : []) + "</div></td></tr>";
   });
-  h += '</table></div><p class="mesures" style="margin-top:6px">« Ouvrir » affiche la cure (fiche chimio, doses) : on vérifie, on remplit, puis on valide depuis la séance ; ⋯ pour valider, reporter, annuler ou rétablir. Une date prévue se modifie directement (les cures suivantes peuvent suivre) ; 🩺 = heure de la consultation.</p>';
+  h += '</table></div><p class="mesures" style="margin-top:6px">« Ouvrir » affiche la cure (fiche chimio, doses) : on vérifie, on remplit, puis on valide depuis la séance ; ⋯ pour valider, reporter, annuler ou rétablir. Une date prévue se modifie directement (les cures suivantes peuvent suivre) ; ' + A.ic("stetho") + ' = heure de la consultation.</p>';
   return h + "</div>";
 }
 

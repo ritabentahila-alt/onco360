@@ -21,7 +21,7 @@ async def main():
         ok(L[:4] == ["Consultation d'annonce", 'Consultation de suivi', 'Consultation de contrôle', 'Hospitalisation'] and 'Consultation de fin de radiothérapie' in L and 'RCP' in L and 'Note du secrétariat' in L, 'liste de départ : types de rendez-vous, RT, journal', L)
         fam = await ev("[...document.querySelectorAll('.cf-sous button')].map(b=>b.innerText.trim())")
         md = await ev("Object.fromEntries([...document.querySelectorAll('.ty-l:not(.ty-h)')].map(l=>[l.querySelector('.ty-n').value,l.querySelector('select').value]))")
-        ok(md.get('Consultation de suivi') == 'main' and md.get('Consultation en cours de radiothérapie') == 'office' and md.get('RCP') == 'sans' and 'Créneau du lieu' in await pg.inner_text('#page'), '3.13 bis : « Comment il est prévu » (à la main, d\'office, sans rendez-vous) ; « Créneau du lieu »', md)
+        ok(md.get('Consultation de suivi') == 'main' and md.get('Consultation en cours de radiothérapie') == 'office' and md.get('RCP') == 'sans' and not await ev("[...document.querySelectorAll('.ty-l select option')].some(o=>/^Créneau du lieu/.test(o.textContent))"), '3.13 bis : « Comment il est prévu » ; durée réelle de chaque type (plus de « créneau du lieu »)', md)
         ok(fam == ['Fiche patient', 'Formulaire de consultation', 'Types de consultation', 'Listes de la fiche'], 'famille Dossier patient', fam)
         i = L.index('Consultation de suivi')
         await ev(f"(()=>{{const e=document.querySelectorAll('.ty-l:not(.ty-h) .ty-n')[{i}];e.value='Consultation de surveillance';e.dispatchEvent(new Event('change'))}})()"); await pg.wait_for_timeout(300)

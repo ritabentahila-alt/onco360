@@ -11,6 +11,7 @@ export const MIDI = "13:00"; // Matinée : avant 13 h ; Après-midi : à partir 
 // Libellé court du type de consultation et couleur de son badge (chimiothérapie = chimio, hebdomadaire = hebdo, 08/10/2026)
 export function typeCourt(v) {
   if (v.type === T_RTC) return ["RT hebdo", "b-rt"];
+  if (v.type === "Fin de radiothérapie") return ["Fin de RT", "b-rt"]; // 3.15 b (12/10/2026) : avant, affichée « Contrôle »
   if (v.act) return [cap(String(v.type || "Consultation").replace(/^consultation\s+(de\s+|d')?/i, "").replace(/chimioth[ée]rapie/gi, "chimio").replace(/radioth[ée]rapie/gi, "RT").replace(/hebdomadaire/gi, "hebdo")), "b-gr"];
   const t = typeRdv(v.type);
   return t === "annonce" ? ["Annonce", "b-or"] : t === "controle" ? ["Contrôle", "b-gr"] : [cap(String(v.type || "Suivi").toLowerCase()), "b-co"];
@@ -47,7 +48,9 @@ export function lignesSalle(o) {
           let etat = sd.etat || "", derive = false;
           if (!etat && recue && d < t) { etat = "vu"; derive = true; }
           if (!etat && recue && o.consPaye && o.consPaye(x, L.id, e.n, j)) { etat = "vu"; derive = true; }
-          out.push({ jour: d, cle, pid: x.id, x, h: "", type: "Séance chimio", cls: "b-ch", motif: sd.motif || pn + " · C" + e.n + " J" + j, etat, derive, doc: sd, chimio: { lid: L.id, n: e.n, j, recue, lib: pn } });
+          // 3.15 a (12/10/2026) : heure de la consultation de la séance (choisie par le médecin ou la secrétaire, sinon juste avant la séance)
+          const hc = ((j === 1 ? e.c : (e.c.sea || {})[j]) || {}).hc;
+          out.push({ jour: d, cle, pid: x.id, x, h: (hc && hc.h) || "", type: "Séance chimio", cls: "b-ch", motif: sd.motif || pn + " · C" + e.n + " J" + j, etat, derive, doc: sd, chimio: { lid: L.id, n: e.n, j, recue, lib: pn } });
         });
       });
     });
