@@ -919,8 +919,9 @@ function pageDossier(id) {
   (module("taches") ? tachesDuPatient(x.id) : []).forEach((tk) => av.push({ d: tk.ech || "", h: tk.h || "", em: ic("taches"), t: "Tâche – " + tk.titre + " · pour " + (tk.pour === D.u.uid ? "vous" : tk.pourNom || "?") + (tk.statut === "encours" ? " · en cours" : ""), retard: !!tk.ech && tk.ech < D.t, act: '<div class="actr"><button class="mini" onclick="taVoir(\'' + tk.id + '\')">Ouvrir</button></div>' }));
   // Inscriptions en RCP non faites (09/10/2026, rcp.js) : visibles jusqu'à ce que la case « Fait » soit cochée
   (module("rcp") ? rcpDuPatient(x.id) : []).forEach((v) => av.push({ d: v.d, h: "", em: ic("rcp"), t: "RCP – " + v.q + (v.d < D.t ? " · décision à saisir" : ""), retard: v.d < D.t, act: '<div class="actr"><button class="mini" onclick="rcpHistorique(\'' + x.id + '\')">Ouvrir</button></div>' }));
-  // 12/10/2026 : fin de radiothérapie remplacée par sa consultation (rendez-vous « Fin de radiothérapie ») ; scanner et 1re séance : date et heure modifiables
-  if (voitRTdossier(x)) (r.rt || []).filter((v) => !v.dosi && !(v.z === "fin" && (P.rdvs || []).some((z) => z.rtfin === v.rt && (z.st || "prevu") === "prevu"))).forEach((v) => av.push({ d: v.d, f: v.f, h: v.h || "", em: "☢️", t: v.lib.replace(/^RT · /, ""), dosi: !!v.dosi, act: v.dosi ? (peutDosi() ? '<div class="actr"><button class="mini vert" onclick="dosiRT(\'' + x.id + "','" + v.dosi + '\')"><svg class="pi"><use href="#i-check"/></svg>Valider la dosimétrie</button></div>' : "") : /Fin de radioth/.test(v.lib) ? "" : '<div class="actr">' + btnWA(x, "rt", v.d, v.h || "") + ((v.z === "scan" || v.z === "deb") && traitModRT() ? b("Modifier", "modifierEtapeRT('" + x.id + "','" + v.rt + "','" + v.z + "')") : "") + "</div>" }));
+  // 12/10/2026 : fin de radiothérapie (prévue ou réelle) et consultation de fin affichées toutes les deux (décision de Dr Bentahila) ; scanner et
+  // 1re séance : date et heure modifiables
+  if (voitRTdossier(x)) (r.rt || []).filter((v) => !v.dosi).forEach((v) => av.push({ d: v.d, f: v.f, h: v.h || "", em: "☢️", t: v.lib.replace(/^RT · /, ""), dosi: !!v.dosi, act: v.dosi ? (peutDosi() ? '<div class="actr"><button class="mini vert" onclick="dosiRT(\'' + x.id + "','" + v.dosi + '\')"><svg class="pi"><use href="#i-check"/></svg>Valider la dosimétrie</button></div>' : "") : /Fin de radioth/.test(v.lib) ? "" : '<div class="actr">' + btnWA(x, "rt", v.d, v.h || "") + ((v.z === "scan" || v.z === "deb") && traitModRT() ? b("Modifier", "modifierEtapeRT('" + x.id + "','" + v.rt + "','" + v.z + "')") : "") + "</div>" }));
   av.sort((p, q) => (p.d + (p.h || "00")).localeCompare(q.d + (q.h || "00")));
   const hRdv = '<section class="carte"><div class="entete"><h3><span class="ic">' + ic("agenda") + "</span>Rendez-vous et tâches à venir</h3><div class=\"actr\">" + (okR ? '<button class="bt clair petit" onclick="ouvrirRdv(' + qx + ')">' + ic("plus") + "Ajouter un rendez-vous</button>" : "") + '<button class="bt clair petit" data-mod="taches" onclick="taNouvelle(' + qx + ')">' + ic("plus") + "Tâche</button></div></div>" +
     // Liste dans une zone qui défile : les 5 prochains visibles (hauteur réglée après l'affichage, limiterHauteur)
@@ -1550,13 +1551,15 @@ window.modifierEtapeRT = (id, rid, z) => {
   fenetre("<h3>" + (deb ? "1re séance de radiothérapie" : "Scanner de centrage") + " – " + esc(x.r.nm) + '</h3><p class="sous">' + esc(r.acte || "Radiothérapie") + '</p><div class="form">' +
     '<div><label for="eD">Date</label><input id="eD" type="date" value="' + esc(r[kd] || "") + '"></div><div><label for="eH">Heure (facultative)</label><input id="eH" type="time" step="900" value="' + esc(H.h || "") + '"></div>' +
     '<div><label for="eDu">Durée</label><select id="eDu">' + [15, 20, 30, 45, 60, 90].concat([15, 20, 30, 45, 60, 90].indexOf(du) < 0 ? [du] : []).sort((a2, z2) => a2 - z2).map((m) => '<option value="' + m + '"' + (m === du ? " selected" : "") + ">" + m + " min</option>").join("") + "</select></div></div>" +
-    (deb ? '<p class="mesures">La fin prévue est recalculée à partir de cette date (rythme et nombre de séances) ; la consultation de fin de radiothérapie la suit tant qu\'elle n\'a pas été déplacée.</p>' : "") +
+    (deb ? '<p class="mesures">Le début de la radiothérapie est déplacé dans la prescription : fin prévue recalculée (rythme et nombre de séances), consultations hebdomadaires et consultation de fin de radiothérapie (si elle n\'a pas été déplacée à la main) suivent. L\'heure ne change rien d\'autre.</p>' : "") +
     '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt plein" id="fOk">Enregistrer</button></div>');
   $("fOk").onclick = async () => {
     const d = val("eD"), h = val("eH"); if (!d) { erreur("Indiquez la date."); return; }
     if (deb && r.scan && d < r.scan) { erreur("La 1re séance est avant le scanner de centrage (" + dfrA(r.scan) + ")."); return; }
     if (!deb && r.deb && d > r.deb) { erreur("Le scanner est après la 1re séance (" + dfrA(r.deb) + ")."); return; }
-    if (deb && r.finPrev && r.finPrev < d) { erreur("La fin prévue saisie (" + dfrA(r.finPrev) + ") est avant cette date : modifiez la prescription."); return; }
+    // 1re séance déplacée = début de la radiothérapie déplacé dans la prescription : fin calculée, consultations hebdomadaires et consultation
+    // de fin (si elle n'a pas été déplacée à la main) suivent (sauverRT) ; une fin saisie à la main est décalée d'autant de jours
+    if (deb && r.deb && r.finPrev && d !== r.deb) r.finPrev = addJ(r.finPrev, ecart(d, r.deb));
     r[kd] = d; if (h) r[kh] = { h, du: +val("eDu") || du }; else delete r[kh];
     occupe($("fOk"), true);
     try { await sauverRT(x, l, (deb ? "1re séance de radiothérapie" : "Scanner de centrage") + " : " + dfrA(d) + (h ? " à " + h : "")); fermerFenetre(); toast("Enregistré."); pageDossier(x.id); }

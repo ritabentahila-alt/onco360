@@ -410,8 +410,11 @@ longs et ne dépendent pas du code.
       fin de radiothérapie** (`T_RTF` « Fin de radiothérapie », rendez-vous `rtfin` = id de la RT, moteur/rt.js `consultFinRT`) : créée à la
       fin réelle, sinon calculée (si elle est à venir), à chaque enregistrement de la RT et une fois pour les RT en cours (migrations) ;
       suit la fin tant qu'elle n'a pas été déplacée à la main (`d === dO`) ; déplaçable librement comme toute consultation (pas de
-      question de décalage) ; remplace « Fin de radiothérapie prévue » dans la liste ; prix proposé 0 DH, modifiable à « Venu ».
-      Tests : test_rdv_avenir 19/19, test_heure_chimio 22/22.
+      question de décalage) ; **affichée avec la fin de radiothérapie prévue (ou réelle)**, les deux (précision de Dr Bentahila : la
+      consultation n'est pas la fin) ; prix proposé 0 DH, modifiable à « Venu ». **1re séance déplacée = début de la radiothérapie déplacé
+      dans la prescription** : fin calculée, consultations hebdomadaires et consultation de fin (non déplacée à la main) suivent ; une fin
+      saisie à la main est décalée d'autant ; l'heure ne change rien d'autre (en ligne : 20261012j).
+      Tests : test_rdv_avenir 21/21, test_heure_chimio 22/22.
 - [ ] **3.8 Écran de l'infirmière** (ancienne étape 11 I1) : tablette, patients du jour, cure et molécules ; pose de chaque poche
       (heure, par qui), voie d'abord (PAC, périphérique, PICC), constantes, tolérance, effets indésirables ; visible dans l'onglet
       Chimiothérapie ; règle `administrations` déjà écrite ; droit « administrer » remis dans Accès.

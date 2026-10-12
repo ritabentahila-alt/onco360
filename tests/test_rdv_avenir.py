@@ -51,7 +51,7 @@ async def main():
         ok(len(f) == 1 and f[0]['type'] == 'Fin de radiothérapie' and f[0]['d'] == '2026-10-30' and f[0]['dO'] == '2026-10-30', 'créée une fois (titulaire) à la fin calculée : 30/10/2026', f)
         await ev("location.hash='#patients'"); await pg.wait_for_timeout(500); await ev(f"location.hash='#dossier/{pid}'"); await pg.wait_for_timeout(1500)
         t = await ev("[...document.querySelectorAll('#rdvListe .rdv')].map(e=>e.innerText.replace(/\\n/g,' ')).join(' | ')")
-        ok('Consultation de fin de radiothérapie' in t and 'Fin de radiothérapie prévue' not in t, '« Rendez-vous et tâches à venir » : la consultation remplace « Fin de radiothérapie prévue »', t[:500])
+        ok('Consultation de fin de radiothérapie' in t and 'Fin de radiothérapie prévue' in t, '« Rendez-vous et tâches à venir » : fin de radiothérapie prévue ET consultation de fin, toutes les deux', t[:500])
         print('1re séance de radiothérapie : date et heure')
         await ev(f"modifierEtapeRT('{pid}','rtF','deb')"); await pg.wait_for_timeout(500)
         await pg.fill('#eD', '2026-10-26'); await pg.fill('#eH', '08:30'); await pg.click('#fOk'); await pg.wait_for_timeout(1800)
@@ -70,6 +70,13 @@ async def main():
         await ev(f"modifierEtapeRT('{pid}','rtF','deb')"); await pg.wait_for_timeout(400); await pg.fill('#eD', '2026-10-21'); await pg.click('#fOk'); await pg.wait_for_timeout(1800)
         f = [z for z in json.loads(doc(await ev("window.__fs"))['rdvsJson']) if z.get('rtfin') == 'rtF']
         ok(len(f) == 1 and f[0]['d'] == '2026-11-20', 'reste au 20/11 (déplacée à la main)', f)
+        ok(not pg.errs, 'aucune erreur JavaScript', pg.errs[:2]); await pg.close()
+
+        print('1re séance déplacée avec une fin saisie à la main : la fin est décalée d\'autant')
+        pg, ev = await dossier(b, seed([dict(RT, finPrev='2026-11-02')], []))
+        await ev(f"modifierEtapeRT('{pid}','rtF','deb')"); await pg.wait_for_timeout(400); await pg.fill('#eD', '2026-10-26'); await pg.click('#fOk'); await pg.wait_for_timeout(1800)
+        r = json.loads(doc(await ev("window.__fs"))['rtsJson'])[0]
+        ok(r['deb'] == '2026-10-26' and r['finPrev'] == '2026-11-09', 'début 26/10, fin saisie 02/11 → 09/11', r)
         ok(not pg.errs, 'aucune erreur JavaScript', pg.errs[:2]); await pg.close()
         await b.close()
     print(f'\n{ok_n} réussis, {ko_n} échoués')
