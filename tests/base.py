@@ -25,3 +25,6 @@ serveur()
 # Après la validation d'une séance de chimio : fenêtre « Prochaine séance » (heure de consultation, 12/10/2026) → « Plus tard »
 async def plus_tard(pg):
     if await pg.evaluate("!!document.getElementById('hNon')"): await pg.click('#hNon'); await pg.wait_for_timeout(500)
+# 3.7 (12/10/2026) : actions secondaires des cures dans un menu ⋯ (details.m3) : ouvert avant de cliquer
+async def clic_menu(pg, sel):
+    await pg.locator(sel).first.evaluate("e => e.click()")

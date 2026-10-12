@@ -6,7 +6,7 @@
 import { app, auth, db } from "../config.js";
 import { onAuthStateChanged, sendPasswordResetEmail, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { MENU, FONCTIONS, FONCTIONS_RELIEES, CARTES, SECTIONS, BIBLIOTHEQUES, FICHE, TYPES_CHAMP, TOUJOURS_ENTETE, CONSULT, TYPES_CHAMP_CS, reglageEffectif, ficheEffective, ficheRetouches, consultEffective, formRetouches, libDe } from "../donnees/catalogue.js";
+import { MENU, FONCTIONS, FONCTIONS_RELIEES, CARTES, SECTIONS, BIBLIOTHEQUES, FICHE, TYPES_CHAMP, TOUJOURS_ENTETE, CONSULT, TYPES_CHAMP_CS, reglageEffectif, ficheEffective, ficheRetouches, consultEffective, formRetouches, libDe, avecOnco } from "../donnees/catalogue.js";
 import { htmlFacture, dh2 } from "../donnees/factures.js";
 import { editeurFiche } from "./editeurfiche.js";
 import { CHAMPS_EDITEUR, EDITEUR_REQUIS, editeurIncomplet, REGLAGES_ABO0, MODELES_RELANCE0, CANAUX, remplirRelance, MODES_FACT, MOYENS, PRIX0, ajouterJours, prolonger, etatFacturation, prixCabinet, attendus, impaye } from "../donnees/facturation.js";
@@ -558,7 +558,7 @@ function editeurReglage(o) {
 function ouvrirFormule(c) {
   if (!c) return;
   const A = JSON.parse(JSON.stringify(abonnementEffectif(c.abonnement))); A.formule = A.formule || "complet";
-  const speDe = () => specialiteDe((FORMULES_()[A.formule] || {}).specialite), ficheSpe = () => (SPES[speDe()] || {}).fiche || null, csSpe = () => (SPES[speDe()] || {}).consultation || null;
+  const speDe = () => specialiteDe((FORMULES_()[A.formule] || {}).specialite), ficheSpe = () => avecOnco((SPES[speDe()] || {}).fiche || null, speDe()), csSpe = () => (SPES[speDe()] || {}).consultation || null;
   editeurReglage({ titre: "Réglage de « " + c.nom + " »", avecPack: true, A, R: reglageEffectif(c.abonnement && c.abonnement.reglage, ficheSpe(), csSpe()), spe: speDe, fiche: true,
     baseFiche: () => ficheEffective(null, ficheSpe()), baseConsult: () => consultEffective(null, csSpe()),
     intro: "Le pack apporte ses modules, ses limites et son réglage ; retouchez ensuite pour ce cabinet (ordre ↑ ↓, cases). <span class=\"bdg rt\">retouché</span> = différent du pack. Ce qui est retiré est caché, les données sont gardées ; l'équipe voit le changement à sa prochaine ouverture d'Onco360.",
@@ -812,12 +812,12 @@ const FORMS = { fiche: { titre: "Fiche patient", cat: FICHE, eff: ficheEffective
   consultation: { titre: "Formulaire de consultation", cat: CONSULT, eff: consultEffective, le: "csLe", bouton: "Modifier le formulaire de consultation",
     intro: "La fenêtre « Nouvelle consultation » : ordre (↑ ↓), présence (cases), nom affiché et liste des types de consultation (✎), champs ajoutés (texte, texte long, nombre avec unité, date, liste de choix, oui / non, titre de section pour regrouper). Un champ retiré est caché, ses valeurs restent dans les consultations. La date est toujours présente." } };
 function carteFicheSpe(q) {
-  const Fm = FORMS[q], sp = SPES[SPEC] || {}, FI = Fm.eff(null, sp[q]), pres = FI.ordre.filter((k) => FI.champs[k] !== false).length, ren = Object.keys(FI.libs).length;
+  const Fm = FORMS[q], sp = SPES[SPEC] || {}, FI = Fm.eff(null, q === "fiche" ? avecOnco(sp[q], SPEC) : sp[q]), pres = FI.ordre.filter((k) => FI.champs[k] !== false).length, ren = Object.keys(FI.libs).length;
   return '<section class="carte" style="margin-top:14px"><h2>' + Fm.titre + '</h2><p class="sous">Le même pour tous les packs de « ' + esc(SPEC) + ' » et tous ses cabinets' + (q === "fiche" ? " : ordre des champs, champs présents, nom affiché des champs existants, champs ajoutés" : " : la fenêtre « Nouvelle consultation » (champs, ordre, sections, liste des types de consultation)") + ". Enregistrer met à jour aussitôt tous les cabinets de la spécialité (un cabinet peut avoir en plus ses propres retouches, dans son réglage).</p>" +
-    '<p class="m">' + pres + " champ(s) présent(s) sur " + FI.ordre.length + " · " + FI.ajouts.length + " ajouté(s) · " + ren + " renommé(s)" + (sp[Fm.le] ? " · modifié le " + esc(String(sp[Fm.le]).slice(0, 10).split("-").reverse().join("/")) : "") + '</p><div style="margin-top:10px"><button data-fsouvrir="' + q + '">' + Fm.bouton + "</button></div></section>";
+    '<p class="m">' + pres + " champ(s) présent(s) sur " + FI.ordre.length + " · " + FI.ajouts.filter((z) => !z.tumeur).length + " ajouté(s)" + (FI.onco ? " · fiche tumeur" : "") + " · " + ren + " renommé(s)" + (sp[Fm.le] ? " · modifié le " + esc(String(sp[Fm.le]).slice(0, 10).split("-").reverse().join("/")) : "") + '</p><div style="margin-top:10px"><button data-fsouvrir="' + q + '">' + Fm.bouton + "</button></div></section>";
 }
 function ouvrirFicheSpe(q) {
-  const Fm = FORMS[q], spe = SPEC, FI = Fm.eff(null, (SPES[spe] || {})[q]), FE = editeurFiche(FI, "spe", q === "consultation");
+  const Fm = FORMS[q], spe = SPEC, FI = Fm.eff(null, q === "fiche" ? avecOnco((SPES[spe] || {})[q], spe) : (SPES[spe] || {})[q]), FE = editeurFiche(FI, "spe", q === "consultation"); // oncologie : fiche tumeur (12/10/2026)
   fenetre("<h2>" + Fm.titre + " · " + esc(spe) + '</h2><p class="sous">' + Fm.intro + '</p><div id="fsCorps">' + FE.html() + '</div><div class="pied"><button id="fsOk">Enregistrer pour tous les cabinets</button><button class="clair" id="fsAnn">Fermer</button></div>');
   const refaire = () => { $("fsCorps").innerHTML = FE.html(); FE.brancher(refaire); };
   FE.brancher(refaire); $("fsAnn").onclick = fermer;

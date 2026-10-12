@@ -190,7 +190,7 @@ function ficheNettoyee(f) {
   if (f.choixs && typeof f.choixs === "object") { F.choixs = {}; Object.entries(f.choixs).slice(0, 20).forEach(([c, v]) => { const l = liste(v); if (cle(c) && l.length) F.choixs[c] = l; }); }
   if (Array.isArray(f.ajouts)) F.ajouts = f.ajouts.filter((a) => a && /^x[a-z0-9]{3,20}$/.test(a.id || "") && t(a.lib, 60)).slice(0, 80).map((a) => Object.assign({ id: a.id, lib: t(a.lib, 60),
     type: TYPES_CHAMP.indexOf(a.type) >= 0 ? a.type : "texte", choix: liste(a.choix),
-    partie: a.partie === "clinique" ? "clinique" : "identite", imprimer: a.imprimer === true, entete: a.entete === true }, t(a.unite, 15) ? { unite: t(a.unite, 15) } : {}));
+    partie: a.partie === "clinique" ? "clinique" : "identite", imprimer: a.imprimer === true, entete: a.entete === true }, t(a.unite, 15) ? { unite: t(a.unite, 15) } : {}, a.tumeur === true ? { tumeur: true } : {})); // tumeur : partie « Fiche tumeur » (12/10/2026)
   return F;
 }
 const idSpecialite = (s) => String(s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "specialite";

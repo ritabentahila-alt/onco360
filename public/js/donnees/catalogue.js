@@ -105,6 +105,8 @@ export const ORDRE_TUMEUR = ["diag", "xtcote", "xtstade", "diagP", "xthisto"].co
 export const champPropose = (a, vals) => { if (!a.si) return true; const f = famillesDiag((vals || {}).diag); return f.indexOf("inconnu") >= 0 || (a.si.diag || []).some((k) => f.indexOf(k) >= 0); };
 // Partie de la fiche d'un champ (3.1 bis) : identité, informations médicales, fiche tumeur (cabinets d'oncologie)
 const SEC_ID = ["nom", "prenom", "ddn", "sexe", "cin", "tel", "tel2", "etab", "ald", "cor", "mut", "adresse", "email"];
+// Spécialité d'oncologie / radiothérapie : fiche tumeur ajoutée (Administration : fiche de la spécialité, réglage d'un cabinet)
+export const avecOnco = (f, spe) => (/oncolog|radioth/i.test(String(spe || "")) ? Object.assign({}, f || {}, { _onco: true }) : f || null);
 export function sectionChamp(k, R) { if (k === "diag" || k === "diagP") return R && R.onco ? "tum" : "med"; if (SEC_ID.indexOf(k) >= 0) return "id"; if (k === "xtoms") return "med"; const a = R && (R.ajouts || []).find((z) => z.id === k); return a ? (a.tumeur ? "tum" : a.partie === "identite" ? "id" : "med") : "med"; }
 // Formulaire de consultation (16.7, 10/10/2026) : champs existants [clé, libellé, -, base, choix de départ (liste modifiable)] = la
 // fenêtre « Nouvelle consultation » d'aujourd'hui (oncologie) ; champs ajoutés : mêmes types que la fiche + texte long, titre de section,
@@ -117,10 +119,14 @@ export const TYPES_CHAMP_CS = [["texte", "Texte"], ["textelong", "Texte long (pl
 // marqués cabinet: true). libs = nom affiché d'un champ existant ; choixs = liste de choix d'un champ existant (absent = d'origine).
 export function formEffectif(CAT, f, spe) {
   const x = f || {}, s = spe || {}, ok = (a) => a && /^x[a-z0-9]{3,20}$/.test(a.id || "") && a.lib;
-  const aS0 = (Array.isArray(s.ajouts) ? s.ajouts : []).filter(ok).map((a) => Object.assign({}, a, { cabinet: false }));
+  // champ de la fiche tumeur enregistré par la spécialité (Administration) : sa définition du catalogue (conditions, type) + nom, liste, en-tête
+  // de la spécialité ; nom et liste retouchés par le cabinet (x.libs / x.choixs, 12/10/2026)
+  const aS0 = (Array.isArray(s.ajouts) ? s.ajouts : []).filter(ok).map((a) => { const T = CAT === FICHE && TUMEUR.find((z) => z.id === a.id);
+    return Object.assign({}, T || {}, a, T ? { si: T.si, tumeur: true, type: T.type, choix: a.choix && a.choix.length ? a.choix : T.choix } : {}, { cabinet: false }); });
   // fiche tumeur des cabinets d'oncologie (3.1) : en tête des champs de la spécialité, sauf si la spécialité les a déjà
   const aS = (CAT === FICHE && s._onco ? TUMEUR.filter((a) => !aS0.some((z) => z.id === a.id)).map((a) => Object.assign({}, a, { cabinet: false })) : []).concat(aS0), ids = aS.map((a) => a.id);
   const aC = (Array.isArray(x.ajouts) ? x.ajouts : []).filter((a) => ok(a) && ids.indexOf(a.id) < 0).map((a) => Object.assign({}, a, { cabinet: true }));
+  aS.forEach((a) => { const l = x.libs && x.libs[a.id], c = x.choixs && x.choixs[a.id]; if (l) a.lib = l; if (Array.isArray(c) && c.length) a.choix = c.slice(); });
   const ajouts = aS.concat(aC), onco = CAT === FICHE && !!(s._onco || s.onco), champs = {}, libs = {}, choixs = {};
   // oncologie : la fiche tumeur dans son ordre (localisation, côté, stade, précision, histologie, biomarqueurs, grade…), à la suite
   const ref = onco ? CAT.map((c) => c[0]).filter((k) => ORDRE_TUMEUR.indexOf(k) < 0).reduce((l, k) => l.concat(k === "taille" && ajouts.some((a) => a.id === "xtoms") ? ["xtoms", k] : [k]), []).concat(ORDRE_TUMEUR.filter((k) => k[0] !== "x" || ajouts.some((a) => a.id === k)), ajouts.map((a) => a.id).filter((k) => ORDRE_TUMEUR.indexOf(k) < 0 && k !== "xtoms")) : CAT.map((c) => c[0]).concat(ajouts.map((a) => a.id));
@@ -145,6 +151,8 @@ export function formRetouches(CAT, R, base) {
   Object.keys(R.champs).forEach((k) => { if (R.champs[k] !== (base.champs[k] !== false)) ch[k] = R.champs[k]; });
   CAT.forEach(([k, , , , ch0]) => { if (libDe(CAT, k, R) !== libDe(CAT, k, base)) lb[k] = libDe(CAT, k, R);
     if (ch0 && JSON.stringify((R.choixs || {})[k] || ch0) !== JSON.stringify((base.choixs || {})[k] || ch0)) cx[k] = (R.choixs || {})[k]; });
+  // champs de la spécialité (fiche tumeur…) renommés ou liste changée par le cabinet (12/10/2026)
+  R.ajouts.filter((a) => !a.cabinet).forEach((a) => { const b0 = (base.ajouts || []).find((z) => z.id === a.id); if (!b0) return; if (a.lib !== b0.lib) lb[a.id] = a.lib; if (a.type === "choix" && JSON.stringify(a.choix || []) !== JSON.stringify(b0.choix || [])) cx[a.id] = a.choix; });
   if (Object.keys(ch).length) out.champs = ch; if (Object.keys(lb).length) out.libs = lb; if (Object.keys(cx).length) out.choixs = cx;
   // En tête du dossier (fiche) : différences avec la spécialité ; un champ propre au cabinet garde son réglage dans le champ lui-même
   if (R.entetes) { const en = {}; Object.keys(R.entetes).forEach((k) => { const a = R.ajouts.find((z) => z.id === k); if (a && a.cabinet) { a.entete = R.entetes[k]; return; } if (R.entetes[k] !== !!(base.entetes || {})[k]) en[k] = R.entetes[k]; }); if (Object.keys(en).length) out.entetes = en; }

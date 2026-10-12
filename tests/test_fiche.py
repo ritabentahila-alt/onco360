@@ -61,21 +61,24 @@ async def main():
         ok('Fiche patient' in await pa.inner_text('#page') and '1 ajouté' in await pa.inner_text('#page'), 'Bibliothèque et paramètres : carte « Fiche patient » de la spécialité')
         await pa.click('[data-fsouvrir="fiche"]'); await pa.wait_for_timeout(300)
         await pa.click('#chNouv'); await pa.wait_for_timeout(200); await pa.fill('#chLib', 'Statut'); await pa.select_option('#chType', 'choix'); await pa.fill('#chChoix', 'Nouveau cas\nAncien cas'); await pa.check('#chImp'); await pa.click('#chOk'); await pa.wait_for_timeout(300)
-        await pa.click('#fsCorps [data-fh="23"]'); await pa.wait_for_timeout(200); await pa.uncheck('#fsCorps [data-rch="email"]')  # 22 champs au catalogue depuis le 12/10/2026 (« Précision du diagnostic »)
+        # 12/10/2026 : fiche en trois parties (fiche tumeur comprise) : « Statut » remonte d'un rang dans sa partie
+        fh = await pa.evaluate("(()=>{const r=[...document.querySelectorAll('#fsCorps .rg-l')].find(e=>/Statut/.test(e.textContent));return r?r.querySelector('[data-fh]').dataset.fh:null})()")
+        await pa.click('#fsCorps [data-fh="' + fh + '"]'); await pa.wait_for_timeout(200); await pa.uncheck('#fsCorps [data-rch="email"]')
         await pa.uncheck('#fsCorps [data-ren="mut"]'); await pa.check('#fsCorps [data-ren="atcdMed"]')
-        ok(await pa.evaluate("!document.querySelector('#fsCorps [data-ren=\"nom\"]') && document.querySelectorAll('#fsCorps [data-ren]').length == 22"), 'case « en-tête » sur chaque champ, CIN compris (sauf nom et prénom : toujours le nom du dossier)')
+        ok(await pa.evaluate("!document.querySelector('#fsCorps [data-ren=\"nom\"]') && document.querySelectorAll('#fsCorps [data-ren]').length == document.querySelectorAll('#fsCorps .rg-l').length - 2 && [...document.querySelectorAll('#fsCorps h4')].map(h=>h.textContent).join() === 'Identité,Informations médicales,Fiche tumeur'"), 'case « en-tête » sur chaque champ, CIN compris (sauf nom et prénom : toujours le nom du dossier)')
         await pa.click('#fsCorps [data-chl="atcdFam"]'); await pa.wait_for_timeout(200); await pa.fill('#chNomA', 'Antécédents familiaux et héréditaires'); await pa.click('#chLOk'); await pa.wait_for_timeout(200)
-        ok('nom d\'origine : Antécédents familiaux' in await pa.inner_text('#fsCorps'), 'champ existant renommé (nom d\'origine rappelé)')
+        tf = await pa.inner_text('#fsCorps')
+        ok('Antécédents familiaux et héréditaires' in tf and 'nom d\'origine' not in tf and 'ajouté' not in tf, 'champ existant renommé (plus de « nom d\'origine » ni « ajouté »)')
         await pa.click('#fsOk'); await pa.wait_for_timeout(600)
-        F = await pa.evaluate('window.__fspe'); FI = F['fiche']; aj = FI['ajouts']
-        ok(F['specialite'] == 'Oncologie – Radiothérapie' and len(aj) == 2 and aj[1]['lib'] == 'Statut' and aj[1]['choix'] == ['Nouveau cas', 'Ancien cas'] and aj[1]['imprimer'] and FI['ordre'][22] == aj[1]['id'] and FI['champs']['email'] is False and FI['champs']['ald'] is False and FI['libs']['atcdFam'] == 'Antécédents familiaux et héréditaires' and 'cabinet' not in aj[0] and FI['entetes']['mut'] is False and FI['entetes']['atcdMed'] is True and FI['entetes']['diag'] is True, 'fiche de la spécialité enregistrée : « Statut » ajouté et monté, E-mail retiré, ALD toujours retiré, antécédents familiaux renommés')
+        F = await pa.evaluate('window.__fspe'); FI = F['fiche']; aj = [a for a in FI['ajouts'] if not a.get('tumeur')]
+        ok(F['specialite'] == 'Oncologie – Radiothérapie' and len(aj) == 2 and aj[1]['lib'] == 'Statut' and aj[1]['choix'] == ['Nouveau cas', 'Ancien cas'] and aj[1]['imprimer'] and FI['ordre'].index(aj[1]['id']) < len(FI['ordre']) - 1 and FI['champs']['email'] is False and FI['champs']['ald'] is False and FI['libs']['atcdFam'] == 'Antécédents familiaux et héréditaires' and 'cabinet' not in aj[0] and FI['entetes']['mut'] is False and FI['entetes']['atcdMed'] is True and FI['entetes']['diag'] is True, 'fiche de la spécialité enregistrée : « Statut » ajouté et monté, E-mail retiré, ALD toujours retiré, antécédents familiaux renommés')
         ok('3 cabinet(s) mis à jour' in await pa.inner_text('body'), 'message : cabinets de la spécialité mis à jour')
         # Retouches d'un cabinet : seules les différences avec la fiche de la spécialité sont enregistrées
         await pa.evaluate("location.hash='cabinets'"); await pa.wait_for_timeout(400)
         await pa.click('[data-fiche="cab-t"]'); await pa.wait_for_timeout(300); await pa.click('[data-form="cab-t"]'); await pa.wait_for_timeout(400)
         await pa.click('[data-fo="fiche"]'); await pa.wait_for_timeout(200)
         t = await pa.inner_text('#fCorps .fiche-b')
-        ok('Statut' in t and 'Médecin traitant' in t and 'ajouté pour ce cabinet' in t and await pa.evaluate("!document.querySelector('#fCorps [data-chs=\"xgs001\"]') && !!document.querySelector('#fCorps [data-chs=\"xmt001\"]')"), 'réglage du cabinet : champs de la spécialité (non supprimables ici) + champ propre au cabinet')
+        ok('Statut' in t and 'Médecin traitant' in t and 'propre au cabinet' in t and await pa.evaluate("!document.querySelector('#fCorps [data-chs=\"xgs001\"]') && !!document.querySelector('#fCorps [data-chs=\"xmt001\"]')"), 'réglage du cabinet : champs de la spécialité (non supprimables ici) + champ propre au cabinet')
         await pa.check('#fCorps [data-rch="ald"]'); await pa.click('#fOk'); await pa.wait_for_timeout(600)
         G = (await pa.evaluate('window.__abo'))['reglage']['fiche']
         ok(G.get('champs') == {'ald': True} and [a['id'] for a in G['ajouts']] == ['xmt001'] and 'ordre' not in G and 'libs' not in G, 'retouches du cabinet = différences seulement (ALD remis, son champ) ' + str(G)[:120])

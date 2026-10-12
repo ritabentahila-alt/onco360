@@ -126,7 +126,10 @@ nav a.actif .i{color:#fff}
 .badge{display:inline-block;border-radius:20px;padding:3px 10px;font-size:12.5px;font-weight:bold;white-space:nowrap}
 .b-rt{background:var(--violet-c);color:var(--violet)}.b-co{background:var(--bleu-c);color:var(--bleu)}.b-ch{background:var(--vert-c);color:var(--vert)}.b-al{background:var(--rouge-c);color:var(--rouge)}.b-or{background:var(--orange-c);color:var(--orange)}.b-gr{background:var(--gris-c);color:#55607A}
 /* 3.2 et 3.3 (12/10/2026) : bandeau d'allergie (seulement si « oui »), patient décédé */
-.b-dc{background:#3B3F4A;color:#fff}.id-plus{display:none}
+.b-dc{background:#3B3F4A;color:#fff}
+/* 3.7 (12/10/2026) : menu ⋯ des cures et des lignes */
+details.m3{position:relative;display:inline-block}details.m3>summary{list-style:none;cursor:pointer;min-width:34px;text-align:center;font-weight:bold}details.m3>summary::-webkit-details-marker{display:none}
+.m3-l{position:absolute;right:0;top:calc(100% + 4px);z-index:30;background:#fff;border:1px solid var(--trait);border-radius:10px;box-shadow:0 6px 18px rgba(20,30,60,.14);padding:6px;display:flex;flex-direction:column;gap:4px;min-width:190px}.m3-l .mini{text-align:left;margin:0;width:100%}.id-plus{display:none}
 @media(max-width:700px){.id-c:not(.id-ouv) .champs,.id-c:not(.id-ouv) .resume{display:none}.id-plus{display:inline-flex}}.al-band{display:flex;align-items:center;gap:6px;background:#FFF1F1;border:1px solid #F3C4C4;color:#A1232B;border-radius:8px;padding:6px 10px;margin:0 0 10px;font-size:13.5px}.al-band .pi{width:16px;height:16px;flex:none}.al-band.dc{background:#EEF0F4;border-color:#C9CED8;color:#3B3F4A}
 
 /* 7 jours */
@@ -903,6 +906,6 @@ function onco360Deconnecter() {
 }
 </script>
 
-<script type="module" src="./js/app/v2.js?v=20261012l"></script>
+<script type="module" src="./js/app/v2.js?v=20261012m"></script>
 </body>
 </html>

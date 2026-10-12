@@ -399,19 +399,25 @@ longs et ne dépendent pas du code.
       histologie, interruptions non remplies (remplis depuis 3.1 bis : diagnostic complet, localisation et côté). Formulaire « RT
       hebdomadaire » : avec 3.4. Rythmes (3.5) : tous pris en compte pour la fin théorique, jamais de séance le samedi, le dimanche ni un
       jour férié (vérifié par test-rt.mjs).
-- [ ] **3.7 Chimiothérapie : suivi et ergonomie** : ~~doses cumulées~~ (fait en 2.3 quater pour les anthracyclines et l'oxaliplatine ;
-      bléomycine écrite en texte dans les protocoles, donc non calculée) ; intention de la ligne (néoadjuvante, adjuvante, métastatique, concomitante,
-      palliative) et réponse (complète, partielle, stable, progression) ; doses visibles dès la ligne de cure ; plus de fenêtre
-      intermédiaire pour une cure d'un seul jour ; un bouton principal par cure + menu ⋯ (« Arrêter la ligne », « Supprimer »,
-      « Annuler » dans le menu) ; en-tête de ligne en double retiré ; téléphone : table des cures en cartes, « % dose » et « Dose
-      retenue » visibles.
+- [x] **3.7 Chimiothérapie : suivi et ergonomie** (12/10, terminé ; en ligne : 20261012m) : doses cumulées (2.3 quater) ; intention de la ligne
+      (ci-dessous) ; **cure d'un seul jour ouverte directement** sur la séance (plus de tableau des jours ; « Fermer ») ; **heure de la
+      consultation à côté de la date prévue** (tableau des cures de la ligne et en-tête de la séance, 🩺) ; **un bouton principal par cure**
+      (« Valider » pour une cure à faire, sinon « Ouvrir ») **+ menu ⋯** (reporter, annuler, rétablir / annuler la validation ; dans la ligne :
+      « Arrêter la ligne », « Supprimer la ligne ») ; **titre « Ligne n — protocole » en double retiré** ; téléphone : cartes. **Non retenus**
+      (décision de Dr Bentahila) : doses visibles dès la ligne de cure (tableau trop chargé), réponse au traitement.
 - [x] **3.7 (partie) Intention de la ligne et affichage** (12/10, demandes de Dr Bentahila ; en ligne : 20261012l) : à la création d'une ligne,
       après le choix du protocole, **fenêtre « Intention de la ligne »** : néoadjuvante, adjuvante, métastatique (+ **n° de ligne** : 1re, 2e…,
       proposé = la suivante ; palliative = métastatique), concomitante (avec la radiothérapie) ; « Passer » possible ; `L.intent` / `L.rang` ;
       bouton « Intention » dans la ligne pour la changer. **En-tête de ligne** : « ▸ [Métastatique · 2e ligne] Protocole | C2/6 | Prochaine… »
       (plus de « Protocole : », date de début une seule fois). **Téléphone** : cures de la ligne et doses de la séance en cartes (« % dose » et
-      « Dose retenue » visibles). Pas de doses dans la ligne (décision : tableau trop chargé). Restent de 3.7 : réponse au traitement, fenêtre
-      intermédiaire d'une cure d'un seul jour, bouton principal + menu ⋯.
+      « Dose retenue » visibles). Pas de doses dans la ligne (décision : tableau trop chargé).
+- [x] **Paramétrage de la fiche à jour** (12/10, demande de Dr Bentahila ; en ligne : 20261012m) : éditeur de la fiche patient (Paramètres ›
+      Cabinet › Fiche patient, et le même dans l'Administration : fiche de la spécialité, réglage d'un cabinet) **en trois parties**
+      (Identité, Informations médicales, Fiche tumeur), dans l'ordre réel, ↑ ↓ dans la partie ; plus de « nom d'origine » ni « ajouté » ;
+      **champs de la fiche tumeur renommables et listes modifiables** (✎ ; stade et grade : Paramètres › Listes) par le cabinet
+      (`libs` / `choixs` des champs de la spécialité, `formRetouches`) ; nouveau champ : partie Identité, Informations médicales ou **Fiche
+      tumeur** (`tumeur: true`, gardé par le serveur `ficheNettoyee`) ; Administration : fiche tumeur dans la fiche de la spécialité
+      d'oncologie (`avecOnco`) ; une fiche de spécialité enregistrée garde les conditions des biomarqueurs (définition du catalogue).
 - [x] **Autres demandes du 12/10** (en ligne : 20261012l) : **allergie sur les ordonnances à cocher** (Paramètres › Impression, comme l'âge et
       le poids) ; **État général (OMS) dans les informations médicales**, avant la taille et le poids ; localisations **sans « (sous-type à
       préciser) »** (Cancer du sein, Cancer du poumon, Sarcome ; renommées une fois dans la liste du cabinet et dans les dossiers,
