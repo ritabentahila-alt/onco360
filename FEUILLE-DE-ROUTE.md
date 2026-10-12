@@ -467,6 +467,35 @@ longs et ne dépendent pas du code.
 - [ ] **3.10 Paramètres, fin** : onglet WhatsApp replié par message (4 001 px) ; explications longues → bulle « ? » ; croix rouges des
       listes dans un menu ⋯ avec confirmation ; `pageConfiguration` (30 427 caractères) découpée par famille.
 
+- [ ] **3.11 Dossier patient entièrement réglable** (demande de Dr Bentahila du 12/10, à faire en premier) :
+      **Organisation des Paramètres** : une famille « **Dossier patient** » réunit Fiche patient, Formulaires de consultation, Types de
+      consultation (3.13) et les listes qui restent (mutuelles, correspondants) ; « Cabinet » garde lieux, tableau de bord, impression,
+      journal d'audit, export. Même éditeur dans l'Administration (fiche de la spécialité, réglage d'un cabinet).
+      **Listes rangées dans leur champ** : Localisation (94 choix), Stade (8), Grade (6) deviennent des champs « liste de choix » dont la
+      liste se règle dans le champ lui-même (✎ → « x choix ») ; retirées de Paramètres › Listes (reprise une fois des listes déjà réglées
+      par le cabinet ; un nom corrigé reste corrigé dans les dossiers, comme aujourd'hui).
+      **Chaque champ dit ce qu'il est et tout se modifie** (nom, type, liste, partie, imprimé, en-tête, présent, ordre), pour les champs
+      d'origine comme pour les champs ajoutés : types texte, texte long, nombre (+ unité), date, liste de choix, oui / non, **oui / non +
+      précision** (case à remplir si « oui ») ; exemples : Précision = texte, Antécédents médicaux / familiaux, Mode de vie, Traitement en
+      cours = texte long (ou oui / non + précision au choix du cabinet), Allergie = oui / non + « laquelle ». Limites signalées pour les
+      champs dont dépendent les calculs (nom, prénom, date de naissance, sexe, taille, poids : type fixe, « utilisé pour les doses »).
+- [ ] **3.12 Formulaires de consultation par type** : l'éditeur montre **un formulaire par type de formulaire** (Consultation
+      d'oncologie, RT hebdomadaire, Simple, + « Nouveau formulaire ») et, pour chaque type de consultation, le formulaire qu'il utilise
+      (choisi dans 3.13) ; chaque champ entièrement modifiable comme la fiche patient (3.11) ; un formulaire se duplique pour en faire un
+      autre. Remplace la règle fixe `formConsult` (« en cours de radiothérapie » → RT, annonce / RCP / secrétariat → simple, sinon oncologie).
+- [ ] **3.13 Référentiel unique des types de consultation** (idée de Dr Bentahila, complétée) : aujourd'hui trois listes séparées (types
+      de rendez-vous, activités de chaque établissement, types du journal des consultations). Une seule liste « Types de consultation »
+      (Dossier patient, 3.11) : nom, **durée** (remplace « Durée par type de consultation »), **pris en rendez-vous** oui / non (non : chimio,
+      RT hebdomadaire, fin de RT, créées d'office), **formulaire** (3.12). Activités et rémunérations affiche chaque type pour chaque
+      hôpital (prix vide = non facturé là, ex. pas de consultation de chimio à HCK) ; la prise de rendez-vous ne propose que les types
+      « pris en rendez-vous », le journal des consultations tous ; un type ajouté apparaît partout, un type renommé est corrigé partout
+      (rendez-vous existants compris). Reprise une fois des activités et des prix actuels, **bilan vérifié avant et après** (test_bilan).
+- [ ] **3.14 Chimiothérapie : « Ouvrir » d'abord, « Valider » depuis la séance** (corrections demandées le 12/10, après 3.7) : bouton
+      principal **« Ouvrir »** partout (cure de la ligne, jour de la cure) ; « Valider », « Reporter », « Annuler » dans le menu ⋯. Cure
+      d'un seul jour : « Ouvrir » affiche directement la séance (un seul bouton « Fermer », le doublon retiré) ; cure de plusieurs jours :
+      « Ouvrir » affiche les jours (J1, J8…), chaque jour avec « Ouvrir » (⋯ : Valider, Reporter, Annuler) ; on vérifie le protocole, on
+      remplit le poids, la créatinine, le bilan, puis on valide depuis la séance ouverte.
+
 ## Phase 4 – Design (corrections restantes de l'onglet Design)
 Déjà faits : 6 (salle, agenda), 8 (tableau de bord), 10 (Paramètres), 11 en partie (salle). Les corrections 1 à 5 et 7 sont dans
 les étapes 1.7, 2.5, 3.2 et 3.7.
@@ -477,6 +506,14 @@ les étapes 1.7, 2.5, 3.2 et 3.7.
       commune (`A.confirmer`, `A.message`), en commençant par les suppressions.
 - [ ] **4.3 Un seul langage visuel** : 8 tailles de police au lieu de 24 ; les 180 couleurs écrites en dur → variables ; un seul jeu
       d'icônes ; page d'administration au même style qu'Onco360 ; barre du haut (recherche en pilule, cloche et avatar, ancienne 20.5).
+
+- [ ] **4.4 Dossier stable, comme GestiCab** (demande de Dr Bentahila du 12/10 ; capture de GestiCab : la page ne bouge pas, chaque zone a
+      son défilement) : (1) **en-tête compact** sur une ou deux lignes sous le nom (« OMS 0 · Tél 0667… · HGC · ALD oui · Corresp. … · CNOPS ·
+      Cancer du larynx · Localement avancé », petits libellés), résumé du patient à côté, repliable ; (2) **dossier à hauteur d'écran** sur
+      ordinateur (≥ 1280 px) : à gauche les onglets (Consultation, Chimiothérapie, Radiothérapie, Documents), à droite Rendez-vous et tâches à
+      venir puis Documents ; chaque zone défile seule, la page jamais (plus de défilement « piégé » dans la consultation) ; (3) **barre des
+      prescriptions fixe en bas** (Médic., Analyses, Examens, Courriers, + RCP) ; (4) **consultations en lignes compactes** (date · type ·
+      titre sur une ligne, dépliée sur place) ; téléphone : une colonne, comme aujourd'hui.
 
 ## Phase 5 – Code et exploitation
 - [ ] **5.1 Code mort et fonctions communes** : retirer `chValiderSeance`, `chHon`, `nlChoix`, `pfOnglet`, `prChoix`, `__v2pret`,
