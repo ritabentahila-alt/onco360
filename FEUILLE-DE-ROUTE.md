@@ -240,7 +240,7 @@ longs et ne dépendent pas du code.
       36 vérifications justes du premier coup ; les échecs restants étaient les défauts de l'audit (figeage → 2.2, prémédication en
       DCI → 2.3). `test_cures.py` / `test_seances.py` : tournent sans erreur (affichages) ; leurs calculs sont désormais vérifiés ici.
       Le jeu de test fictif du navigateur (0.6) reste à faire.
-- [x] **2.2 Cure figée à sa validation** (12/10, testé, pas encore en ligne) : à la validation de J1 (`chValiderJ1`) et de chaque
+- [x] **2.2 Cure figée à sa validation** (12/10, en ligne le 12/10 : version 20261012b) : à la validation de J1 (`chValiderJ1`) et de chaque
       séance (`majSeance`), instantané `fige` = { taille, âge, poids, créatinine, surface, clairance, doses de chaque produit pour les
       jours de la séance (dose, dose calculée, %), le, par, parNom } (`instantane`, moteur/doses.js) ; une séance validée s'affiche et
       s'imprime depuis cet instantané (`etatLigne`) ; « Rétablir » / annuler la validation retire l'instantané. **Une fois**, au
@@ -249,7 +249,7 @@ longs et ne dépendent pas du code.
       `tests/test_figer.py` 9/9 (12 cures du jeu de test figées une fois, rien refait au 2e démarrage, validation et annulation à
       l'écran), cures, séances, démo, accueil. Non fait : valeurs avant / après dans le journal d'audit (le figeage empêche déjà tout
       changement silencieux d'une dose donnée).
-- [x] **2.3 Bornes et prémédication** (12/10, testé, pas encore en ligne) : **prémédication reconnue par la DCI comme par la marque**
+- [x] **2.3 Bornes et prémédication** (12/10, en ligne le 12/10 : version 20261012b) : **prémédication reconnue par la DCI comme par la marque**
       (`PREMED` de moteur/doses.js : antiémétiques, corticoïdes, antihistaminiques, anti-H2 / IPP, atropine, facteurs de croissance,
       EPO, acide zolédronique, dénosumab ; même liste pour la liste des molécules des protocoles ; jours de séance inchangés) ;
       **contrôle avant validation** (`controleSeance`, `verifierValidation` de chimio.js) : dose d'un anticancéreux **impossible à
@@ -259,7 +259,7 @@ longs et ne dépendent pas du code.
       clairance 30-200 ml/min, poids qui varie de plus de 10 % depuis la séance précédente) → confirmation ; **poids saisi** (médecin
       ou secrétaire) hors seuils ou qui varie de plus de 10 % → confirmation à la saisie. Essai sur les 64 séances du jeu de test :
       aucune alerte, aucun refus. Tests : test-doses 57/57 (essais 2 à 4 et 11 de l'audit), `tests/test_validation.py` 13/13.
-- [x] **2.4 Protocoles tracés** (12/10, testé, pas encore en ligne) : **plus d'écrasement** : chaque enregistrement relit son bloc
+- [x] **2.4 Protocoles tracés** (12/10, en ligne le 12/10 : version 20261012b) : **plus d'écrasement** : chaque enregistrement relit son bloc
       (`lib_…`) dans une transaction et n'y remplace que son protocole (ajout, modification, suppression) — choisi à la place d'« un
       document par protocole » (même protection, sans déplacer les 316 protocoles) ; **version** (+1 quand le contenu change), auteur et
       date de modification ; **validation tracée** (`valide` { par, parNom, le, version }, affichée dans la fiche et au survol du badge),
@@ -270,7 +270,7 @@ longs et ne dépendent pas du code.
       « C1 seule », « sauf C1 »** (colonne Options, aussi pour le protocole d'une ligne) ; croix de suppression retirée de la liste,
       « Supprimer le protocole » dans la fiche. Tests : `tests/test_protocoles_trace.py` 9/9, `test_protocoles.py` sans erreur.
       Reste (hors code) : relecture de la bibliothèque à deux et sources de chaque protocole (6.3).
-- [x] **2.5 Radiothérapie contrôlée** (12/10, testé, pas encore en ligne) : fenêtre de prescription : 1re séance avant le scanner ou fin
+- [x] **2.5 Radiothérapie contrôlée** (12/10, en ligne le 12/10 : version 20261012b) : fenêtre de prescription : 1re séance avant le scanner ou fin
       avant la 1re séance → **refusé** ; dose par fraction **> 22 Gy** ou totale **> 80 Gy** → confirmation ; **dose, fractions, rythme ou
       technique changés après la dosimétrie validée** → « la dosimétrie devra être revalidée » : validation retirée, gardée dans
       `dosiHist` (qui, quand, ancienne → nouvelle prescription), `dosiN` +1 ; un changement sans effet sur la dose (note…) ne touche à
@@ -282,7 +282,7 @@ longs et ne dépendent pas du code.
       ajustées » imprimée ; pli et compte rendu : **mentions « À REMPLIR » / « à compléter » signalées avant l'impression et jamais
       imprimées** ; ligne de signature gardée avec son texte. Tests : `tests/test_rt_controle.py` 13/13, test-logique 98 (2 anciens
       cas adaptés à la décision), accueil, agenda.
-- [x] **2.6 Rappel du bilan et alertes cliniques** (12/10, testé) : zone de validation : « Bilan biologique du jour (facultatif) » en
+- [x] **2.6 Rappel du bilan et alertes cliniques** (12/10, en ligne : version 20261012b) : zone de validation : « Bilan biologique du jour (facultatif) » en
       **G/L** (une valeur en /mm³ est convertie) : PNN, plaquettes, hémoglobine, gardés dans l'instantané (`fige.bio`). **Repères de
       Dr Bentahila (12/10), de simples notifications, le médecin garde la main** : PNN ≥ 1,5 G/L, plaquettes ≥ 100 G/L, hémoglobine
       ≥ 8 g/dL ; perte de poids > 10 % depuis le début de la ligne ; **cisplatine** : DFG ≥ 60 ml/min, 45-59 = zone d'adaptation
