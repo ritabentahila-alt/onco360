@@ -55,6 +55,14 @@ await cas("refusé : documents retirés (dépôt, document de radiothérapie)", 
   await assertFails(setDoc(D("SEC", "fichiers/f1"), fichier));
   await assertFails(setDoc(D("SEC", "documentsRT/p1_rt1_pli"), { patientId: "p1", etablissementId: "HGC", rtId: "rt1", type: "pli", html: "", majPar: "SEC" })); }, sans);
 
+console.log("Protocoles : modifiés par un médecin seulement (2.4)");
+await cas("le médecin (droit paramètres) modifie la bibliothèque", async () => {
+  await env.withSecurityRulesDisabled(async (c) => { await setDoc(doc(c.firestore(), P + "/membres/MED"), Object.assign(membre("medecin"), { droits: Object.assign({}, tous, { parametres: true }) })); });
+  await assertSucceeds(setDoc(D("MED", "protocoles/lib_0"), { data: "[]", n: 0 })); });
+await cas("refusé : une secrétaire avec le droit paramètres", async () => {
+  await env.withSecurityRulesDisabled(async (c) => { await setDoc(doc(c.firestore(), P + "/membres/SEC"), Object.assign(membre("assistante"), { droits: Object.assign({}, tous, { parametres: true }) })); });
+  await assertFails(setDoc(D("SEC", "protocoles/lib_0"), { data: "[]", n: 0 })); });
+
 console.log("\n" + ok + " réussi(s), " + ko + " échec(s)");
 await env.cleanup();
 process.exit(ko ? 1 : 0);

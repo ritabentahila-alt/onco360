@@ -263,7 +263,8 @@ service cloud.firestore {
       // Comptable : pointe les paiements et saisit les versements, sans toucher aux tarifs
       match /finances/{d} { allow read: if droit('finances'); allow write: if droit('finances') && (!comptable() || d in ['paiements', 'versements']); }
       // Bibliothèque et paramètres : lecture par les membres, modification avec le droit « paramètres »
-      match /protocoles/{d} { allow read: if estMembre(); allow write: if droit('parametres'); }
+      // 2.4 (12/10/2026, audit) : modifiés par un médecin seulement (avec le droit « paramètres »)
+      match /protocoles/{d} { allow read: if estMembre(); allow write: if droit('parametres') && m().role == 'medecin'; }
       // Paramètres du secrétariat (droit « secretariat », secrétaire, 10/10/2026) : absences, jours fériés et horaires (calendrier),
       // listes, types de tâches et de documents, messages WhatsApp, dates de RCP, réglages (bouton vert, impression, alertes, salle
       // d'attente) ; restent au droit « paramètres » : couleurs Google Agenda, tâches automatiques, tarifs, etc.

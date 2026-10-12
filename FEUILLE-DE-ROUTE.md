@@ -260,12 +260,17 @@ longs et ne dépendent pas du code.
       clairance 30-200 ml/min, poids qui varie de plus de 10 % depuis la séance précédente) → confirmation ; **poids saisi** (médecin
       ou secrétaire) hors seuils ou qui varie de plus de 10 % → confirmation à la saisie. Essai sur les 64 séances du jeu de test :
       aucune alerte, aucun refus. Tests : test-doses 57/57 (essais 2 à 4 et 11 de l'audit), `tests/test_validation.py` 13/13.
-- [ ] **2.4 Protocoles tracés** : **un document par protocole** (fin des blocs `lib_0…10` qui s'écrasent quand deux protocoles du
-      même bloc sont modifiés) ; version (+1 à chaque modification), validé par, le, **source** (référentiel, article) ;
-      modification d'un protocole validé → « à valider » ; une fois : protocoles sans statut marqués « Validé (avant le
-      12/10/2026) », puis absence de statut = non validé (protocoles.js `valide`) ; modification réservée aux **médecins** (règle
-      232) ; éditeur : dose maximale, arrondi, « tous les n cycles », « C1 seule » (déjà calculés par le moteur) ; croix de
-      suppression déplacée dans l'éditeur, avec confirmation. Bibliothèques de référence par spécialité suivent le même format.
+- [x] **2.4 Protocoles tracés** (12/10, testé, pas encore en ligne) : **plus d'écrasement** : chaque enregistrement relit son bloc
+      (`lib_…`) dans une transaction et n'y remplace que son protocole (ajout, modification, suppression) — choisi à la place d'« un
+      document par protocole » (même protection, sans déplacer les 316 protocoles) ; **version** (+1 quand le contenu change), auteur et
+      date de modification ; **validation tracée** (`valide` { par, parNom, le, version }, affichée dans la fiche et au survol du badge),
+      retirée si le protocole repasse « Non validé » ; **source** (référentiel, article) ; **sans statut = non validé**
+      (`protocoleValide` de moteur/doses.js) après un marquage unique « Validé avant le 12/10/2026 » des protocoles sans statut
+      (`marquerProtocoles`, au démarrage par un médecin, aussi dans les bibliothèques de référence) ; **modification réservée aux
+      médecins** (règle `protocoles` ; tests des règles 11 suites + 2 cas) ; éditeur : **dose maximale, arrondi, « tous les n cycles »,
+      « C1 seule », « sauf C1 »** (colonne Options, aussi pour le protocole d'une ligne) ; croix de suppression retirée de la liste,
+      « Supprimer le protocole » dans la fiche. Tests : `tests/test_protocoles_trace.py` 9/9, `test_protocoles.py` sans erreur.
+      Reste (hors code) : relecture de la bibliothèque à deux et sources de chaque protocole (6.3).
 - [ ] **2.5 Radiothérapie contrôlée** (décisions du 11/10) : fenêtre de prescription : dose par fraction > 22 Gy ou totale > 80 Gy →
       confirmation ; 1re séance avant le scanner ou fin avant le début → refusé ; dose, fractions ou technique modifiées après la
       dosimétrie validée → « la dosimétrie devra être revalidée », validation retirée (gardée dans l'historique), tâche recréée ; tâches de contourage / dosimétrie maintenues après la date de 1re

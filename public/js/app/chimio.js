@@ -5,7 +5,7 @@ import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/fi
 import { db } from "../config.js";
 import { fusionner, separer } from "../donnees/conversion.js";
 import { statutLigne, ligneCourante } from "../moteur/resume.js";
-import { etatLigne, protocoleDe, protocoleCure, seancesCure, seancesDe, dedupIds, joursDe, clairance, jourVersSeance, instantane, controleSeance, poidsAvant } from "../moteur/doses.js";
+import { etatLigne, protocoleDe, protocoleCure, seancesCure, seancesDe, dedupIds, joursDe, clairance, jourVersSeance, instantane, controleSeance, poidsAvant, protocoleValide } from "../moteur/doses.js";
 import { addJ, ecart, num, age } from "../moteur/outils.js";
 import { tarif } from "../moteur/tarifs.js";
 import { typeRdv, T_RTC } from "../moteur/rdv.js";
@@ -657,22 +657,33 @@ export function editerAvec(ed, redraw) { ED = ed; REDRAW = redraw; }
 const hasAUC = (p) => (p.dr || []).some((d) => d.u === "AUC");
 export function tableMol() {
   const esc = A.esc;
-  let h = '<div class="tableau"><table class="tcures ed"><tr><th>Produit</th><th>Dose</th><th>Unité</th><th>Jours (ex. 1,8,15)</th><th>Libellé jour</th><th>Précision</th><th>Voie</th><th>Soluté + volume</th><th>Durée</th><th></th></tr>';
+  let h = '<div class="tableau"><table class="tcures ed"><tr><th>Produit</th><th>Dose</th><th>Unité</th><th>Jours (ex. 1,8,15)</th><th>Libellé jour</th><th>Précision</th><th>Voie</th><th>Soluté + volume</th><th>Durée</th><th title="Dose maximale, arrondi, rythme">Options</th><th></th></tr>';
   ED.dr.forEach((d, i) => {
     const dose = d.u === "txt" ? d.pos || "" : d.u === "mg_c1" || d.u === "mg/kg_c1" ? (d.c1 == null ? "" : d.c1 + "/" + d.cn) : d.d == null ? "" : d.d;
     const inp = (v, f, w, l) => '<td><input' + (l ? ' list="' + l + '"' : "") + ' value="' + esc(v == null ? "" : v) + '" style="min-width:' + (w || 70) + 'px" onchange="edSet(' + i + ",'" + f + "',this.value)\"></td>";
     h += "<tr>" + inp(d.p, "p", 190, "dmol") + inp(dose, "dose", 70) + '<td><select onchange="edSet(' + i + ",'u',this.value)\">" + UNITES_ED.map((u) => '<option value="' + u[0] + '"' + (u[0] === d.u ? " selected" : "") + ">" + u[1] + "</option>").join("") + "</select></td>" +
-      inp((d.j || []).filter((x) => x !== 99).join(","), "j", 80) + inp(d.jl, "jl", 90) + inp(d.n, "n", 80) + inp(d.v, "v", 60) + inp(d.s, "s", 110) + inp(d.t, "t", 60) +
+      inp((d.j || []).filter((x) => x !== 99).join(","), "j", 80) + inp(d.jl, "jl", 90) + inp(d.n, "n", 80) + inp(d.v, "v", 60) + inp(d.s, "s", 110) + inp(d.t, "t", 60) + options(d, i) +
       '<td style="white-space:nowrap"><button class="mini" title="Monter" onclick="edMonter(' + i + ')">↑</button><button class="mini rouge" title="Retirer" onclick="edRetirer(' + i + ')">−</button></td></tr>';
   });
   return h + '</table></div><datalist id="dmol">' + DICT.map((x) => '<option value="' + esc(x.split("|")[0]) + '">').join("") + "</datalist>" +
     '<div class="actr" style="justify-content:flex-start;margin-top:8px"><button class="bt vert petit" onclick="edAjout()">+ Ajouter une molécule</button><button class="bt vert petit" onclick="edAjout(\'niv\')">+ Nivestim 30 MU</button></div>';
 }
+// 2.4 (12/10/2026) : options d'une molécule, déjà calculées par le moteur (moteur/doses.js) : dose maximale (mg), arrondi (décimales),
+// « tous les n cycles », « C1 seule », « sauf C1 »
+function options(d, i) {
+  if (d.u === "txt") return "<td></td>";
+  const esc = A.esc, ch = (f, l) => '<label style="font-weight:normal;white-space:nowrap"><input type="checkbox" style="width:auto;margin:0 3px 0 6px"' + (d[f] ? " checked" : "") + ' onchange="edOpt(' + i + ",'" + f + "',this.checked)\">" + l + "</label>";
+  return '<td style="white-space:nowrap"><input title="Dose maximale (mg)" placeholder="max mg" value="' + esc(d.max == null ? "" : d.max) + '" style="width:72px" onchange="edSet(' + i + ",'max',this.value)\">" +
+    '<select title="Arrondi de la dose" onchange="edSet(' + i + ",'dec',this.value)\">" + [["", "arrondi à 1 mg"], ["1", "0,1 mg"], ["2", "0,01 mg"]].map(([v, l]) => '<option value="' + v + '"' + (String(d.dec == null ? "" : d.dec) === v ? " selected" : "") + ">" + l + "</option>").join("") + "</select>" +
+    '<input title="Tous les n cycles (vide = chaque cycle)" placeholder="tous n" value="' + esc(d.tous || "") + '" style="width:58px" onchange="edSet(' + i + ",'tous',this.value)\">" + ch("c1s", "C1 seule") + ch("nc1", "sauf C1") + "</td>";
+}
+window.edOpt = (i, f, v) => { const d = ED.dr[i]; if (v) d[f] = 1; else delete d[f]; if (f === "c1s" && v) delete d.nc1; if (f === "nc1" && v) delete d.c1s; REDRAW(); };
 window.edSet = (i, f, v) => {
   const d = ED.dr[i]; v = String(v).trim();
   if (f === "p") { d.p = v; const m = DICT.find((x) => x.split("|")[0] === v); if (m && !d.v) { d.v = m.split("|")[1]; REDRAW(); } }
   else if (f === "dose") { if (d.u === "txt") d.pos = v; else if (d.u === "mg_c1" || d.u === "mg/kg_c1") { const t = v.split("/"); d.c1 = num(t[0]); d.cn = num(t[1] != null ? t[1] : t[0]); } else d.d = num(v); }
   else if (f === "u") { const old = d.u; d.u = v; if (v === "txt") d.pos = d.pos || (d.d != null ? d.d + " " + old : ""); if ((v === "mg_c1" || v === "mg/kg_c1") && d.c1 == null) { d.c1 = d.d; d.cn = d.d; } if (v !== "txt" && v.indexOf("_c1") < 0 && d.d == null && d.c1 != null) d.d = d.c1; REDRAW(); }
+  else if (f === "max" || f === "dec" || f === "tous") { const n = f === "max" ? num(v) : parseInt(v, 10); if (n == null || isNaN(n) || n <= 0 && f !== "dec" || (f === "dec" && !(n >= 0))) delete d[f]; else d[f] = n; }
   else if (f === "j") { const js = v.split(/[^0-9]+/).filter(Boolean).map(Number); d.j = js.length ? js : [99]; if (!js.length) { d.nd = 1; d.jl = d.jl || "Selon prescription"; } else delete d.nd; }
   else if (v) d[f] = v; else delete d[f];
 };
@@ -756,7 +767,7 @@ function listeProtos() {
   const r = resultats(), esc = A.esc;
   if (!r.length) return '<p class="sous">Aucun protocole.</p>';
   return '<p class="mesures" style="margin:6px 0">' + r.length + " protocole" + (r.length > 1 ? "s" : "") + "</p>" + r.map((p) => {
-    const ok = p.st === "ok" || !p.st;
+    const ok = protocoleValide(p);
     return '<div class="proto' + (ok ? "" : " off") + '"' + (ok ? ' onclick="nlProto(\'' + esc(p.id) + "')\"" : "") + '><span class="etoile">' + (p.fav ? '<svg class="pi plein or"><use href="#i-etoile"/></svg>' : "") + '</span><div><b>' + esc(p.nom) + "</b> " + (ok ? '<span class="badge b-ch"><svg class="pi"><use href="#i-check"/></svg>Validé</span>' : '<span class="badge b-or"><i class="dot j"></i>Non validé</span>') + (p.assoc ? ' <span class="badge b-gr">associé</span>' : "") + '<div class="mesures">' + esc(molecules(p)) + (p.c ? " – cycle " + p.c + " j" : "") + "</div></div></div>";
   }).join("");
 }

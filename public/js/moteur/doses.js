@@ -40,6 +40,10 @@ export function calcul(d, e) {
 export function dedupIds(pr) { if (!pr || !pr.dr) return false; const seen = {}; let ch = false; pr.dr.forEach((d, i) => { if (!d.id || seen[d.id]) { d.id = (d.id || "d") + "_" + i; ch = true; } seen[d.id] = 1; }); return ch; }
 export function joursDe(d) { let js = (d.j || [1]).filter((j) => j !== 99); if (!js.length) js = [(d.j || [1])[0]]; return js.slice().sort((a, b) => a - b); }
 
+// 2.4 (12/10/2026, audit) : un protocole n'est prescriptible que validé explicitement (statut « ok ») ; l'absence de statut ne vaut plus
+// accord (les protocoles sans statut ont été marqués « validé avant le 12/10/2026 » une fois, marquerProtocoles de protocoles.js)
+export const protocoleValide = (p) => !!p && p.st === "ok";
+
 // Protocole d'une ligne (copie figée dans la ligne, sinon bibliothèque)
 export const protocoleDe = (L, bib) => L.pr || (bib && bib[L.protoId]);
 
