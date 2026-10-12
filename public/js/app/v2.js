@@ -4,7 +4,7 @@ import { app, auth, db } from "../config.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { doc, getDoc, getDocs, setDoc, collection, query, where, updateDoc, addDoc, serverTimestamp, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { numeroRecu, cleRecuRdv, cleRecuCons, idRecu, decisionRecu, recuAEcrire } from "../moteur/recus.js";
-import { fusionner } from "../donnees/conversion.js";
+import { fusionner, cliniqueRemise, REMIS } from "../donnees/conversion.js";
 import { resume } from "../moteur/resume.js";
 import { chimioAVenir } from "../moteur/agenda.js";
 import { etatLigne, protocoleDe, seancesCure, poidsDebut, reperesClairance } from "../moteur/doses.js";
@@ -263,6 +263,8 @@ async function migrations() {
       if (Object.keys(champs).length) await updateDoc(d.ref, champs).catch((er) => console.warn("droits", d.id, er));
     }
     const g = await getDoc(doc(db, "espaces", ESPACE, "parametres", "migrations")).catch(() => null), fait = g && g.exists() ? g.data() : {};
+    // Fiches médicales réparées (12/10/2026) : enregistrées une fois telles que relues (champs remis hors de clinique._autres)
+    for (const x of D.patients.filter((z) => z.repare)) { await enregistrer(x, { clinique: x.doc.clinique }, "Fiche médicale réparée (champs ajoutés, statut, allergie)").then(() => { x.repare = false; }).catch((er) => console.warn("réparation", x.id, er)); }
     // Localisations de cancer ajoutées le 12/10/2026 (3.1 bis) : ajoutées une fois à la liste déjà réglée du cabinet (rien n'est retiré)
     if (!fait.diag1012) {
       const L0 = D.listes || {};
@@ -360,6 +362,8 @@ async function appelServeur(nom, donnees) {
 }
 // Recalcule un dossier à partir de son document (dossier médical seul, sans montants)
 function recalculer(x, docData, ctx) {
+  // 12/10/2026 : fiche médicale réparée si des champs avaient été rangés par erreur dans clinique._autres (création d'une ligne de chimio)
+  if (docData && docData.clinique && docData.clinique._autres && REMIS.some((k) => k in docData.clinique._autres)) { docData = Object.assign({}, docData, { clinique: cliniqueRemise(docData.clinique) }); x.repare = true; }
   x.doc = docData; x.P = fusionner(x.id, docData, null);
   try { x.r = resume(JSON.parse(JSON.stringify(x.P)), ctx || D.ctx); } catch (e) { x.r = { nm: x.P.nom, act: [], rdvs: [], rt: [], rtE: [], rtS: [], ag: [] }; }
 }
@@ -437,7 +441,8 @@ API.heureRT = async (pid, rid, hr, z) => { // z : "scan" (défaut) ou "deb" (1re
   await enregistrer(x, { rtsJson: JSON.stringify(l) }, (z === "deb" ? "1re séance de radiothérapie" : "Scanner de centrage") + " : " + (hr ? "heure " + hr.h + " (" + hr.du + " min)" : "heure retirée"));
 };
 API.multiMed = () => multiMed(); API.medecins = () => D.medecins || []; API.medRdv = (r) => medRdv(r); API.nomMed = (u) => nomMed(u); API.medDefaut = () => medDefaut(); // AG4
-API.encaisseIci = () => encaisseIci(); API.payeCabinet = (x) => payeCabinet(x); API.htmlMode = (c) => htmlMode(c); API.libMode = (k) => libMode(k); API.imprimerRecu = (w, x, o) => imprimerRecu(w, x, o); API.sansAcc = sansAcc; API.fn = (k) => fnOn(k); API.module = (k) => module(k); API.planifierReleve = (d) => planifierReleve(d || 120000); API.attribuerNumero = (x) => attribuerNumero(x); API.numDossier = (x) => numDossier(x); API.medecinFiche = () => medecinFiche(); API.entete = () => entete(); API.voitRdv = () => voitRdv(); API.voitRT = (x) => voitRT(x); API.champsMed = (C, off) => champsMed(C, off); API.CHAMPS_MED = () => CHAMPS_MED; API.fmtMil = (n) => fmtMil(n); API.ferieLe = (d) => ferieLe(d); API.salleVenuChimio = (x, lid, n, j, oui) => apresVenuChimio(x, lid, n, j, oui); API.serveur = appelServeur; API.prixPrevu = (p, c, j) => prixPrevu(p, c, j); API.badgeSalle = (p, c) => badgeSalle(p, c); API.tarifsVus = () => tarifsVus(); API.publierTarifsC = () => publierTarifsC(); API.encaissementsDe = (x, f) => encaissementsDe(x, f); API.peutPrix = () => peut("finances") || prixParServeur();
+API.listeMut = () => listeMut(); API.listeCor = () => listeCor(); // fiche réglable (3.11)
+API.encaisseIci = () => encaisseIci(); API.payeCabinet = (x) => payeCabinet(x); API.htmlMode = (c) => htmlMode(c); API.libMode = (k) => libMode(k); API.imprimerRecu = (w, x, o) => imprimerRecu(w, x, o); API.sansAcc = sansAcc; API.fn = (k) => fnOn(k); API.module = (k) => module(k); API.planifierReleve = (d) => planifierReleve(d || 120000); API.attribuerNumero = (x) => attribuerNumero(x); API.numDossier = (x) => numDossier(x); API.medecinFiche = () => medecinFiche(); API.entete = () => entete(); API.voitRdv = () => voitRdv(); API.voitRT = (x) => voitRT(x); API.fmtMil = (n) => fmtMil(n); API.ferieLe = (d) => ferieLe(d); API.salleVenuChimio = (x, lid, n, j, oui) => apresVenuChimio(x, lid, n, j, oui); API.serveur = appelServeur; API.prixPrevu = (p, c, j) => prixPrevu(p, c, j); API.badgeSalle = (p, c) => badgeSalle(p, c); API.tarifsVus = () => tarifsVus(); API.publierTarifsC = () => publierTarifsC(); API.encaissementsDe = (x, f) => encaissementsDe(x, f); API.peutPrix = () => peut("finances") || prixParServeur();
 installerChimio(API); installerAudit(API); aboP.installer(API); ficheP.installer(API); installerAgenda(API); installerConfig(API); installerProfil(API); installerProtocoles(API); installerParametres(API); installerBilan(API); installerConsultations(API); installerOrdonnances(API); installerDocuments(API); installerFichiers(API); installerTaches(API); installerReglages(API); installerSalle(API); installerRcp(API); installerVigilances(API);
 
 function entete() {
@@ -899,11 +904,8 @@ function pageDossier(id) {
     esc([P.numero ? "Dossier n° " + P.numero : "", ENT("ddn") && P.ddn ? "Né(e) le " + dfrA(P.ddn) + (a != null ? " (" + a + " ans)" : "") : "", ENT("sexe") ? (P.sexe === "F" ? "Femme" : P.sexe === "H" ? "Homme" : "") : "", ENT("taille") && P.taille ? P.taille + " cm" : "", ENT("poids") && P.poids ? P.poids + " kg" : "", dn ? "Dernières nouvelles : " + dfrA(dn) : ""].filter(Boolean).join(" · ")) + "</p>" +
     '<div class="bd">' + (P.hop ? '<span class="badge b-gr">' + esc(P.hop) + "</span>" : "") + (P.statut ? '<span class="badge ' + (P.statut === "decede" ? "b-dc" : P.statut === "perdu" ? "b-or" : "b-gr") + '">' + esc(libStatut(P.statut)) + (P.statut === "decede" && P.decesLe ? " le " + dfrA(P.decesLe) : "") + "</span>" : "") + (r.t && r.t.st === "cours" ? '<span class="badge b-co">Chimiothérapie en cours</span>' : "") + ((r.rtS || []).some((s) => s.st === "cours") ? '<span class="badge b-rt">RT en cours</span>' : "") + "</div></div>" +
     '<div class="actr id-bt" style="align-self:flex-start"><button class="bt clair id-plus" onclick="this.closest(\'.id-c\').classList.toggle(\'id-ouv\');this.textContent=this.closest(\'.id-c\').classList.contains(\'id-ouv\')?\'Replier\':\'Fiche et résumé\'">Fiche et résumé</button><button class="bt gris" onclick="afficherPatient(\'' + x.id + '\')">Afficher</button>' + (D.espaceDoc && D.espaceDoc.titulaire === D.u.uid ? '<button class="bt gris" onclick="auditPatient(\'' + x.id + '\')" title="Journal d\'audit de ce dossier : qui l\'a ouvert, modifié…">Journal</button>' : "") + (peut("identite") || peut("fichePatient") || traitMod() ? '<button class="bt clair" onclick="modifierIdentite(\'' + x.id + '\')">Modifier</button>' : "") + "</div></div>" + // « + Tâche » et « + Rendez-vous » : dans la carte « Rendez-vous et tâches à venir » (doublons retirés, 3.3)
-    // Champs en tête du dossier : réglés champ par champ (Administration › fiche patient de la spécialité, case « en-tête »)
-    '<div class="champs">' + (ENT("diag") ? champ(libChamp("diag", (D.reg || {}).fiche), r.diag).replace("<div", '<div data-champ="diag"') : "") + (ENT("cin") && P.cin ? champ("CIN", P.cin).replace("<div", '<div data-champ="cin"') : "") + (ENT("tel") && P.tel ? '<div data-champ="tel"><label>Téléphone</label><b><a href="tel:' + esc(P.tel) + '">' + esc(P.tel) + "</a></b></div>" : "") + (ENT("tel2") && P.tel2 ? '<div data-champ="tel2"><label>2e téléphone</label><b><a href="tel:' + esc(P.tel2) + '">' + esc(P.tel2) + "</a></b></div>" : "") +
-      (ENT("etab") ? champ("Hôpital", P.hop).replace("<div", '<div data-champ="etab"') : "") + (ENT("ald") ? champ("ALD", P.ald).replace("<div", '<div data-champ="ald"') : "") + (ENT("cor") ? champ("Correspondant", P.cor).replace("<div", '<div data-champ="cor" data-fn="listes.cor"') : "") + (ENT("mut") ? champ("Mutuelle", P.mut).replace("<div", '<div data-champ="mut"') : "") +
-      (ENT("adresse") ? champ("Adresse", P.adresse).replace("<div", '<div data-champ="adresse"') : "") + (ENT("email") ? champ("E-mail", P.email).replace("<div", '<div data-champ="email"') : "") +
-      CHAMPS_MED.filter(([k]) => ENT(k) && P[k] && !(k === "allergies" && P.allergie)).map(([k, lib]) => champ(lib, P[k]).replace("<div", '<div data-champ="' + k + '"' + (String(P[k]).length > 60 ? ' class="large"' : ""))).join("") + ficheP.htmlLecture(x, true) + "</div>" +
+    // 3.11 : champs « en tête » de la fiche réglable (type, nom, ordre), sauf ceux déjà sous le nom ; allergie « oui » : dans le bandeau
+    '<div class="champs">' + ficheP.htmlEnteteFiche(x, ["nom", "prenom", "ddn", "sexe", "taille", "poids"].concat(P.allergie ? ["allergies"] : [])) + "</div>" +
     '<div class="resume"><div class="entete"><label for="nTxt" style="flex:1">Résumé du patient</label>' + (okN ? '<span class="mesures" id="nEtat">' + (NOTES.pid === x.id && NOTES.txt != null ? "Modifications en cours…" : "") + "</span>" : "") + "</div>" +
     (okN ? '<textarea id="nTxt" class="notes" placeholder="Quelques phrases de résumé : histoire, antécédents, points d\'attention…" oninput="notesSaisie(\'' + x.id + '\',this)" onblur="sauverNotesMaintenant()">' + esc(NOTES.pid === x.id && NOTES.txt != null ? NOTES.txt : P.notes || "") + "</textarea>"
       : (P.notes ? '<div class="notes lecture">' + esc(P.notes) + "</div>" : '<p class="sous">Aucun résumé.</p>')) + "</div></section>";
@@ -1046,7 +1048,6 @@ function pageDossier(id) {
   const posO = {}; ["ch", "rt"].forEach((k) => { const e = $("op-" + k); if (e && D.dossierDefile === x.id) posO[k] = e.scrollTop; }); D.dossierDefile = x.id; // même dossier redessiné : on reste au même endroit
   $("page").innerHTML = h;
   Object.keys(posO).forEach((k) => { const e = $("op-" + k); if (e) e.scrollTop = posO[k]; });
-  ficheP.appliquerFiche(document.querySelector("#page .champs")); // en-tête du dossier : ordre et champs du réglage
   limiterHauteur("rdvListe", 5); if ($("rdvListe")) $("rdvListe").scrollTop = pos;
   majPresenceDossier(); // collègues qui ont ce dossier ouvert
 }
@@ -1060,38 +1061,18 @@ function limiterHauteur(id, n) {
 }
 
 // ───── Modifier l'identité ─────
-// Champs médicaux facultatifs (fiche clinique) : aussi dans « Nouveau patient »
-const CHAMPS_MED = [["allergies", "Allergies", "Aucune connue, ou ex. pénicilline, iode…"], ["atcdMed", "Antécédents médicaux", "Diabète, HTA, cardiopathie…"], ["atcdFam", "Antécédents familiaux", "Cancer du sein chez la mère…"], ["modeVie", "Mode de vie", "Tabac, alcool, activité, situation familiale…"], ["traitCours", "Traitement en cours", "Médicaments pris actuellement (nom, dose)…"]];
-// 3.2 (12/10/2026) : « Allergie connue : oui / non » avant le détail ; bandeau rouge dans le dossier seulement si « oui »
-const choixAllergie = (C, off) => '<label for="f_allergie" style="display:block;margin-bottom:4px">Allergie connue <select id="f_allergie" style="width:auto;display:inline-block;margin-left:6px"' + (off ? " disabled" : "") + ">" + [["", "—"], ["non", "Non"], ["oui", "Oui"]].map(([v, l]) => '<option value="' + v + '"' + (((C && C.allergie) || "") === v ? " selected" : "") + ">" + l + "</option>").join("") + "</select></label>";
-// détail (« Laquelle ? ») seulement si « Oui » (3.1 bis, 12/10/2026 : plus de doublon « Allergie connue » / « Allergies »)
-const champsMed = (C, off) => CHAMPS_MED.map(([k, lib, ph]) => k === "allergies"
-  ? '<div class="large" data-champ="allergies">' + choixAllergie(C, off).replace('<select id="f_allergie"', '<select id="f_allergie" onchange="document.getElementById(\'zAlD\').classList.toggle(\'cache\',this.value!==\'oui\')"') +
-    '<div id="zAlD"' + ((C && C.allergie) === "oui" ? "" : ' class="cache"') + '><label for="f_allergies">Laquelle ou lesquelles ?</label><textarea id="f_allergies" rows="2" class="champ-t" placeholder="ex. pénicilline, iode"' + (off ? " disabled" : "") + ">" + esc((C && C.allergies) || "") + "</textarea></div></div>"
-  : '<div class="large" data-champ="' + k + '"><label for="f_' + k + '">' + lib + ' <span class="mesures">(facultatif)</span></label><textarea id="f_' + k + '" rows="2" class="champ-t" placeholder="' + ph + '"' + (off ? " disabled" : "") + ">" + esc((C && C[k]) || "") + "</textarea></div>").join("");
 window.modifierIdentite = (id) => {
   const x = D.patients.find((p) => p.id === id); if (!x) return;
   const I = x.doc.identite || {}, C = x.doc.clinique || {}, okI = peut("identite"), okC = traitMod() || peut("fichePatient"), okE = !!D.membre.tousEtablissements;
   if (!okI && !okC) { toast("Vous n'avez pas le droit de modifier ce dossier."); return; }
-  const champ = (id2, lib, v, opt) => '<div class="' + ((opt && opt.large) ? "large" : "") + '"><label for="' + id2 + '">' + lib + '</label><input id="' + id2 + '" value="' + esc(v || "") + '"' + (opt && opt.type ? ' type="' + opt.type + '"' : "") + (opt && opt.liste ? ' list="' + opt.liste + '"' : "") + (opt && opt.off ? " disabled" : "") + (opt && opt.mode ? ' inputmode="' + opt.mode + '"' : "") + (opt && opt.ph ? ' placeholder="' + opt.ph + '"' : "") + "></div>";
-  const sel = (id2, lib, v, opts, off) => '<div><label for="' + id2 + '">' + lib + '</label><select id="' + id2 + '"' + (off ? " disabled" : "") + ">" + opts.map((o) => '<option value="' + esc(o[0]) + '"' + (o[0] === (v || "") ? " selected" : "") + ">" + esc(o[1]) + "</option>").join("") + "</select></div>";
-  fenetre("<h3>Identité</h3><div class=\"form\">" +
-    champ("fNomF", "Nom", I.nomF, { off: !okI }).replace("<div", '<div data-champ="nom"') + champ("fPrenom", "Prénom", I.prenom, { off: !okI }).replace("<div", '<div data-champ="prenom"') +
-    champ("fDdn", "Date de naissance", I.ddn, { type: "date", off: !okI }).replace("<div", '<div data-champ="ddn"') + sel("fSexe", "Sexe", I.sexe, [["", ""], ["F", "Femme"], ["H", "Homme"]], !okI).replace("<div", '<div data-champ="sexe"') +
-    champ("fTaille", "Taille (cm)", C.taille, { mode: "numeric", off: !okC }).replace("<div", '<div data-champ="taille"') + champ("fPoids", "Poids (kg)", C.poids, { mode: "decimal", off: !okC }).replace("<div", '<div data-champ="poids"') +
-    champDiag("fDiag", "fDiagP", C.diag, C.diagP, !okC) +
-    champ("fCin", "CIN", I.cin, { off: !okI, ph: "ex. BE123456" }).replace("<div", '<div data-champ="cin"') + champ("fTel", "Téléphone", I.tel, { type: "tel", off: !okI, ph: "06…" }).replace("<div", '<div data-champ="tel"') + champ("fTel2", "2e téléphone", I.tel2, { type: "tel", off: !okI, ph: "Autre numéro (proche…)" }).replace("<div", '<div data-champ="tel2"') +
-    (okE ? '<div data-champ="etab"><label for="fEtab">Hôpital</label><select id="fEtab">' + D.etabs.map((e) => '<option value="' + esc(e.code) + '"' + (e.code === x.doc.etablissementId ? " selected" : "") + ">" + esc(e.code + " – " + e.nom) + "</option>").join("") + "</select></div>" : "") +
-    sel("fAld", "ALD", I.ald, [["", ""], ["Oui", "Oui"], ["Non", "Non"]], !okI).replace("<div", '<div data-champ="ald"') +
-    champ("fCor", "Correspondant", I.cor, { liste: "lCor", off: !okI, large: true, ph: "Taper pour chercher, ou saisir un nouveau…" }).replace("<div", '<div data-champ="cor" data-fn="listes.cor"') + champ("fMut", "Mutuelle", I.mut, { liste: "lMut", off: !okI, large: true, ph: "Taper pour chercher, ou saisir une nouvelle…" }).replace("<div", '<div data-champ="mut"') + champ("fAdr", "Adresse", I.adresse, { off: !okI, large: true }).replace("<div", '<div data-champ="adresse"') + champ("fMail", "E-mail", I.email, { type: "email", off: !okI, large: true }).replace("<div", '<div data-champ="email"') + champsMed(C, !okC) +
-    ficheP.htmlSaisie(x, (p) => (p === "clinique" ? !okC : !okI)) + "</div>" + // champs ajoutés (réglage du cabinet)
+  // 3.11 (12/10/2026) : formulaire rendu depuis la fiche réglable (parties, ordre, types, listes) ; droits par partie (identité / fiche médicale)
+  fenetre("<h3>" + esc(x.r.nm) + "</h3>" + ficheP.htmlFormulaire(x, { off: (p) => (p === "clinique" ? !okC : !okI), etabs: okE ? D.etabs : [] }) +
     // Statut du patient (3.3, 12/10/2026) : décédé → plus de rappels, de tâches automatiques ni d'alertes ; rendez-vous à venir signalés
     '<div class="form" style="margin-top:8px"><div><label for="fStatut">Statut du patient</label><select id="fStatut"' + (okC ? "" : " disabled") + ' onchange="document.getElementById(\'zDeces\').classList.toggle(\'cache\',this.value!==\'decede\')"><option value="">—</option>' +
       STATUTS.map(([k, l]) => '<option value="' + k + '"' + (C.statut === k ? " selected" : "") + ">" + l + "</option>").join("") + "</select></div>" +
       '<div id="zDeces"' + (C.statut === "decede" ? "" : ' class="cache"') + '><label for="fDeces">Date du décès</label><input id="fDeces" type="date" value="' + esc(C.decesLe || "") + '"' + (okC ? "" : " disabled") + "></div></div>" +
-    '<datalist id="lMut">' + listeMut().map((m) => '<option value="' + esc(m) + '">').join("") + '</datalist><datalist id="lCor">' + listeCor().map((m) => '<option value="' + esc(m) + '">').join("") + "</datalist>" +
     '<div class="err" id="fErr"></div><div class="boutons">' + (peut("supprimerPatient") ? '<button class="bt gris" id="fSup" style="margin-right:auto;color:var(--rouge)"><svg class="pi"><use href="#i-corbeille"/></svg>Supprimer le patient</button>' : "") + '<button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt plein" id="fOk">Enregistrer</button></div>');
-  activerDiag("fDiag", "fDiagP"); ficheP.repartirFiche(document.querySelector("#fenetre .form")); // identité, informations médicales, fiche tumeur (3.1 bis)
+  activerDiag("fDiag", "fDiagP");
   if ($("fSup")) $("fSup").onclick = async () => {
     if (!confirm("Supprimer définitivement le dossier de " + x.r.nm + " ?\n\nToutes ses lignes de traitement et ses cures seront effacées.")) return;
     if (!confirm("Confirmer la suppression de " + x.r.nm + " ? Cette action est irréversible.")) return;
@@ -1103,33 +1084,20 @@ window.modifierIdentite = (id) => {
     } catch (e) { erreur(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de supprimer ce dossier." : "Suppression impossible : " + ((e && e.message) || e)); }
   };
   $("fOk").onclick = async () => {
-    const changes = {}, nI = Object.assign({}, I), nC = Object.assign({}, C), saisie = ficheP.lireSaisie();
-    if (okC) CHAMPS_MED.forEach(([k]) => { const v = val("f_" + k); if (v) nC[k] = v; else delete nC[k]; });
-    if (okC) { // 3.2 et 3.3 : allergie oui / non, statut du patient (décès : date obligatoire)
-      if (val("f_allergie")) nC.allergie = val("f_allergie"); else delete nC.allergie;
-      if (nC.allergie === "non") delete nC.allergies; // « Non » : plus de détail
+    const changes = {}, lu = ficheP.lireFormulaire(x), nI = lu.identite, nC = lu.clinique;
+    if (lu.erreur) { erreur(lu.erreur); return; }
+    if (okC) { // 3.3 : statut du patient (décès : date obligatoire)
       const st = val("fStatut"); if (st) nC.statut = st; else delete nC.statut;
       if (st === "decede") { if (!val("fDeces")) { erreur("Indiquez la date du décès."); return; } nC.decesLe = val("fDeces"); } else delete nC.decesLe;
     }
-    if (okI) {
-      if (!val("fNomF") || !val("fPrenom")) { erreur("Le nom et le prénom sont obligatoires."); return; }
-      Object.assign(nI, { nomF: val("fNomF").toUpperCase(), prenom: val("fPrenom"), ddn: val("fDdn"), sexe: val("fSexe"), tel: val("fTel"), tel2: val("fTel2"), cin: val("fCin").toUpperCase(), adresse: val("fAdr"), email: val("fMail"), ald: val("fAld"), mut: val("fMut"), cor: val("fCor") });
-      ["tel2", "adresse", "email"].forEach((k) => { if (!nI[k]) delete nI[k]; });
-      nI.nom = (nI.nomF + " " + nI.prenom).trim();
-      const exI = ficheP.fusionnerExtra(I, "identite", saisie); if (Object.keys(exI).length) nI.extra = exI; else delete nI.extra;
-      if (JSON.stringify(nI) !== JSON.stringify(I)) changes.identite = nI;
-    }
-    if (okC) {
-      Object.assign(nC, { diag: val("fDiag"), diagP: val("fDiagP"), poids: val("fPoids").replace(",", "."), taille: val("fTaille") });
-      const exC = ficheP.fusionnerExtra(C, "clinique", saisie); if (Object.keys(exC).length) nC.extra = exC; else delete nC.extra;
-      if (JSON.stringify(nC) !== JSON.stringify(C)) changes.clinique = nC;
-    }
-    if (okE && val("fEtab") && val("fEtab") !== x.doc.etablissementId) changes.etablissementId = val("fEtab");
+    if (okI && JSON.stringify(nI) !== JSON.stringify(I)) changes.identite = nI;
+    if (okC && JSON.stringify(nC) !== JSON.stringify(C)) changes.clinique = nC;
+    if (okE && lu.etab && lu.etab !== x.doc.etablissementId) changes.etablissementId = lu.etab;
     // Changement d'hôpital (15 bis, 10/10/2026) : les actes faits avant aujourd'hui restent à l'ancien hôpital dans le bilan (moteur hopAu)
     if (changes.etablissementId && x.doc.etablissementId) changes.hopHist = (x.doc.hopHist || []).concat([{ hop: x.doc.etablissementId, avant: D.t, le: Date.now(), par: D.u.uid }]);
     if (!Object.keys(changes).length) { fermerFenetre(); return; }
     occupe($("fOk"), true);
-    try { await enregistrer(x, changes, "Identité modifiée"); if (changes.etablissementId) { await suivreEtablissement(x, changes.etablissementId); await suivreEtablissementDocs(x, changes.etablissementId); await suivreEtablissementFichiers(x, changes.etablissementId); await suivreEtablissementRcp(x, changes.etablissementId); } if (okI || okC) await enrichirListes(okI ? val("fCor") : "", okI ? val("fMut") : "", okC ? val("fDiag") : ""); fermerFenetre(); toast("Dossier enregistré."); pageDossier(x.id); }
+    try { await enregistrer(x, changes, "Identité modifiée"); if (changes.etablissementId) { await suivreEtablissement(x, changes.etablissementId); await suivreEtablissementDocs(x, changes.etablissementId); await suivreEtablissementFichiers(x, changes.etablissementId); await suivreEtablissementRcp(x, changes.etablissementId); } if (okI || okC) await enrichirListes(okI ? nI.cor || "" : "", okI ? nI.mut || "" : "", okC ? nC.diag || "" : ""); fermerFenetre(); toast("Dossier enregistré."); pageDossier(x.id); }
     catch (e) { occupe($("fOk"), false); erreur(e.message); }
   };
 };
@@ -1173,17 +1141,11 @@ window.sauverNotesMaintenant = sauverNotesMaintenant;
 // ───── Afficher : toute la fiche du patient, en lecture seule ─────
 window.afficherPatient = (id) => {
   const x = D.patients.find((p) => p.id === id); if (!x) return;
-  const P = x.P, a = age(P.ddn, D.t), et = (D.etabsTous || D.etabs).find((e) => e.code === x.doc.etablissementId) || {};
-  const l = (lib, v) => '<div class="' + (String(v || "").length > 60 || /\n/.test(v || "") ? "large" : "") + '"><label>' + lib + "</label><div>" + (v ? "<b>" + esc(v) + "</b>" : '<span class="mesures">—</span>') + "</div></div>";
-  const m = (k, h) => h.replace("<div", '<div data-champ="' + k + '"'); // champ de la fiche (réglage du cabinet)
-  fenetre("<h3>" + esc(x.r.nm) + '</h3><div class="form fiche-lecture">' +
-    m("nom", l("Nom", P.nomF)) + m("prenom", l("Prénom", P.prenom)) + m("ddn", l("Date de naissance", P.ddn ? dfrA(P.ddn) + (a != null ? " (" + a + " ans)" : "") : "")) + m("sexe", l("Sexe", P.sexe === "F" ? "Femme" : P.sexe === "H" ? "Homme" : "")) +
-    m("taille", l("Taille", P.taille ? P.taille + " cm" : "")) + m("poids", l("Poids", P.poids ? P.poids + " kg" : "")) + m("diag", l("Diagnostic", P.diag)) + m("diagP", l("Précision du diagnostic", P.diagP)) + m("cin", l("CIN", P.cin)) + m("tel", l("Téléphone", P.tel)) + m("tel2", l("2e téléphone", P.tel2)) +
-    m("etab", l("Hôpital", et.nom ? et.code + " – " + et.nom : x.doc.etablissementId)) + m("ald", l("ALD", P.ald)) + l("Correspondant", P.cor).replace("<div", '<div data-champ="cor" data-fn="listes.cor"') + m("mut", l("Mutuelle", P.mut)) + m("adresse", l("Adresse", P.adresse)) + m("email", l("E-mail", P.email)) +
-    m("allergies", l("Allergie connue", P.allergie === "oui" ? "Oui" + (P.allergies ? " : " + P.allergies : "") : P.allergie === "non" ? "Non" : P.allergies || "")) + CHAMPS_MED.filter(([k]) => k !== "allergies").map(([k, lib]) => m(k, l(lib, P[k]))).join("") + ficheP.htmlLecture(x) +
-    l("Statut", libStatut(P.statut) + (P.statut === "decede" && P.decesLe ? " le " + dfrA(P.decesLe) : "")) + "</div>" +
+  const P = x.P;
+  // 3.11 : fiche rendue depuis son réglage (parties, ordre, types) ; statut à la fin
+  fenetre("<h3>" + esc(x.r.nm) + "</h3>" + ficheP.htmlLectureFiche(x) +
+    '<div class="form fiche-lecture" style="margin-top:8px"><div><label>Statut</label><div>' + (P.statut ? "<b>" + esc(libStatut(P.statut) + (P.statut === "decede" && P.decesLe ? " le " + dfrA(P.decesLe) : "")) + "</b>" : '<span class="mesures">—</span>') + "</div></div></div>" +
     '<div class="boutons">' + (peut("identite") || peut("fichePatient") || traitMod() ? '<button class="bt clair" onclick="fermerFenetre();modifierIdentite(\'' + x.id + '\')">Modifier</button>' : "") + '<button class="bt plein" onclick="fermerFenetre()">Fermer</button></div>');
-  ficheP.repartirFiche(document.querySelector("#fenetre .fiche-lecture")); // parties, ordre et champs du réglage du cabinet (3.1 bis)
 };
 
 // ───── Rendez-vous : ajouter, modifier, venu / non venu, supprimer ─────

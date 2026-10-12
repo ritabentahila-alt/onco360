@@ -84,14 +84,16 @@ let TIT = null;
 // Quatre familles au lieu de quatorze onglets (audit externe, 11/10/2026) : barre de 4 onglets, puis les rubriques de la famille.
 // L'adresse reste #parametres/<rubrique> (anciens liens gardés). Accès : dans Mon compte depuis le 10/10/2026 (18.5).
 const FAMILLES = [
-  ["cabinet", "hopital", "Cabinet", ["lieux", "accueil", "fiche", "consultation", "impression", "audit", "export"]],
+  ["cabinet", "hopital", "Cabinet", ["lieux", "accueil", "impression", "audit", "export"]],
+  // 3.11 (12/10/2026) : tout ce qui règle le dossier patient au même endroit (fiche, formulaire de consultation, listes de la fiche)
+  ["dossier", "profil", "Dossier patient", ["fiche", "consultation", "listes"]],
   ["agenda", "agenda", "Agenda et rappels", ["horaires", "fermetures", "rdvauto", "couleurs", "whatsapp", "rcp", "alertes"]],
-  ["listes", "liste", "Listes et bibliothèques", ["listes", "bibliotheques", "vigilances", "documents", "taches"]],
+  ["listes", "pilule", "Bibliothèques", ["bibliotheques", "vigilances", "documents", "taches"]],
   ["finances", "bilan", "Finances", ["activites"]],
 ];
 const RUB = { lieux: ["hopital", "Lieux d'exercice"], accueil: ["accueil", "Tableau de bord"], fiche: ["profil", "Fiche patient"], consultation: ["stetho", "Formulaire de consultation"],
   impression: ["imprimer", "Impression"], audit: ["liste", "Journal d'audit"], export: ["telecharger", "Export des données"], horaires: ["horloge", "Horaires"], fermetures: ["avion", "Congés et jours fériés"], rdvauto: ["agenda", "Rendez-vous automatiques"],
-  couleurs: ["agenda", "Google Agenda"], whatsapp: ["whatsapp", "WhatsApp"], rcp: ["rcp", "RCP"], alertes: ["alerte", "Alertes"], listes: ["liste", "Listes"],
+  couleurs: ["agenda", "Google Agenda"], whatsapp: ["whatsapp", "WhatsApp"], rcp: ["rcp", "RCP"], alertes: ["alerte", "Alertes"], listes: ["liste", "Listes de la fiche"],
   bibliotheques: ["pilule", "Bibliothèques"], vigilances: ["alerte", "Vigilance des molécules"], documents: ["document", "Types de documents"], taches: ["taches", "Tâches"], activites: ["bilan", "Activités et rémunérations"] };
 const famDe = (k) => (FAMILLES.find((f) => f[3].indexOf(k) >= 0) || FAMILLES[0])[0];
 // Rubriques présentes, dans l'ordre des familles ; dans une famille, l'ordre du réglage du cabinet (Administration)
@@ -218,8 +220,13 @@ const RUBRIQUES = {
   listes(c) {
     // Listes proposées dans les fiches patients (P2 bis, 08/10/2026) : corriger, retirer, ajouter ; nombre de dossiers concernés
     // 3.1 bis (12/10/2026) : en oncologie, diagnostics = localisations ; stades et grades de la fiche tumeur
-    const onco = !!((D().reg || {}).fiche || {}).onco, lib = Object.assign({ diag: onco ? "Localisations (diagnostics)" : "Diagnostics" }, onco ? { stade: "Stades", grade: "Grades" } : {}, { mut: "Mutuelles", cor: "Correspondants" });
-    return '<section class="carte">' + titre("liste", "Listes de la fiche patient") + '<p class="sous">Un nom corrigé ici est corrigé aussi dans les dossiers ; un nom retiré y reste.</p>' +
+    const onco = !!((D().reg || {}).fiche || {}).onco, tout = Object.assign({ diag: onco ? "Localisations (diagnostics)" : "Diagnostics" }, onco ? { stade: "Stades", grade: "Grades" } : {}, { mut: "Mutuelles", cor: "Correspondants" });
+    // 3.11 : localisations, stades et grades se règlent depuis leur champ de la fiche (Fiche patient › ✎ › Modifier la liste) ; ici : mutuelles et
+    // correspondants, plus la liste ouverte depuis la fiche (avec « Retour ») ; bibliothèque de référence (pas de fiche) : toutes
+    const deFiche = ["diag", "stade", "grade"].indexOf(LS) >= 0, lib = Object.fromEntries(Object.entries(tout).filter(([k]) => A.D().bib || ["mut", "cor"].indexOf(k) >= 0 || k === LS));
+    if (!lib[LS]) LS = Object.keys(lib)[0];
+    return (deFiche && !A.D().bib && A.peut("parametres") ? '<a class="retour" href="#parametres/fiche" onclick="event.preventDefault();cfRetourFiche()">' + A.ic("retour") + "Retour à la fiche patient</a>" : "") +
+      '<section class="carte">' + titre("liste", "Listes de la fiche patient") + '<p class="sous">Un nom corrigé ici est corrigé aussi dans les dossiers ; un nom retiré y reste.' + (A.D().bib || !A.peut("parametres") ? "" : " Localisations, stades et grades : depuis leur champ (Fiche patient › ✎).") + "</p>" +
       '<div class="puces">' + Object.keys(lib).map((k) => "<button" + (k === "cor" ? ' data-fn="listes.cor"' : "") + ' class="puce' + (LS === k ? " on" : "") + '" onclick="cfLs(\'' + k + "')\">" + lib[k] + " (" + ED.listes[k].length + ")</button>").join("") + "</div>" +
       '<div class="recherche" style="max-width:420px;margin-bottom:8px">' + A.ic("loupe") + '<input id="cfLq" type="search" autocomplete="off" placeholder="Rechercher dans la liste…" value="' + A.esc(LQ) + '"></div>' +
       '<div class="cf-td cf-l" id="cfLl"></div>' + (diagModifiable() ? "" : '<p class="sous" style="margin-top:8px">' + (LS === "diag" ? "Les diagnostics" : "Les stades et les grades") + " sont modifiés par un médecin.</p>") + (LS === "stade" || LS === "grade" ? '<p class="mesures" style="margin-top:8px">Un nom corrigé ici n\'est pas changé dans les dossiers déjà remplis.</p>' : "") + (c.okE && diagModifiable() ? '<button class="bt clair petit" style="margin-top:10px" onclick="cfLAj()">' + A.ic("plus") + "Ajouter</button>" : "") + "</section>";
@@ -283,8 +290,9 @@ const RUBRIQUES = {
         '<select aria-label="Place de la carte « ' + esc(LIB[k] || k) + ' »"' + c.dis + ' onchange="cfAcCol(\'' + k + "',this.value)\">" + COLS.map(([v, l]) => '<option value="' + v + '"' + ((AC.col || {})[k] === v ? " selected" : "") + ">" + l + "</option>").join("") + "</select></div>").join("") + "</div></section>";
   },
   fiche() {
-    if (!FE) FE = editeurFiche(ED.fiche, "cabinet");
-    return '<section class="carte edf">' + titre("profil", "Fiche patient") + '<p class="sous">Ordre et présence des champs ; « en-tête » = affiché sous le nom du patient. Un champ décoché est caché, sa valeur est gardée.</p>' + FE.html() + "</section>";
+    // 3.11 : ✎ = tout le champ (nom, type, liste, unité, partie, impression, en-tête) ; listes du cabinet (localisations, stades…) ouvertes depuis leur champ
+    if (!FE) FE = editeurFiche(ED.fiche, "cabinet", false, { ouvrirListe: (k) => { LS = k; LQ = ""; window.cfOnglet("listes"); }, tailleListe: (k) => (ED.listes[k] || []).length });
+    return '<section class="carte edf">' + titre("profil", "Fiche patient") + '<p class="sous">Ordre et présence des champs ; ✎ = nom, type, liste, partie, impression ; « en-tête » = affiché sous le nom du patient. Un champ décoché est caché, sa valeur est gardée.</p>' + FE.html() + "</section>";
   },
   consultation() {
     if (!CE) CE = editeurFiche(ED.consultation, "cabinet", true);
@@ -434,7 +442,7 @@ window.cfAgenda = async (cb) => {
   } catch (e) { cb.checked = !cb.checked; A.toast("Enregistrement impossible : " + ((e && e.message) || e)); }
 };
 // Onglet Listes : affichage filtré (la recherche garde le curseur), nombre de dossiers qui utilisent chaque nom
-let LS = "diag", LQ = "";
+let LS = "mut", LQ = ""; // 3.11 : localisations, stades, grades ouverts depuis leur champ de la fiche
 function listeL() {
   const z = A.$("cfLl"); if (!z) return;
   const champ = { diag: "diag", mut: "mut", cor: "cor" }[LS], n = {}, ok = (A.peut("parametres") || secretariat()) && diagModifiable(), esc = A.esc;
@@ -445,6 +453,7 @@ function listeL() {
     : '<p class="sous">Rien ne correspond.</p>';
 }
 window.cfLs = (k) => { LS = k; LQ = ""; pageConfiguration(); };
+window.cfRetourFiche = () => { LS = "mut"; LQ = ""; window.cfOnglet("fiche"); };
 window.cfExporter = async () => {
   const b = A.$("cfExp"), msg = (t) => { const z = A.$("cfExpMsg"); if (z) z.textContent = t; };
   A.occupe(b, true); msg("Préparation de l'export par le serveur… (une à deux minutes)");

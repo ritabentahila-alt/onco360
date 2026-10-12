@@ -3,7 +3,14 @@ import { consultationDe } from "../moteur/heures.js";
 // Un dossier v1 est séparé en : dossier médical (patients/{id}, sans aucun montant) + montants (patientsFinances/{id}).
 // Les dates de cures et de séances déplacées vont dans « planningJson » (modifiable avec le droit planning HDJ).
 const IDENTITE = ["nomF", "prenom", "nom", "ddn", "sexe", "tel", "cin", "mut", "cor", "num", "ald", "age", "photo", "cree", "tel2", "adresse", "email", "numero"]; // numero : numéro de dossier (étape 8) // tel2, adresse, email : 08/10/2026 // photo : image réduite (data URL)
-const CLINIQUE = ["diag", "diagP", "notes", "poids", "taille", "cures", "j1", "nb", "protoId", "allergies", "atcdMed", "atcdFam", "modeVie", "traitCours"]; // + anciens champs de 1re version
+const CLINIQUE = ["diag", "diagP", "notes", "poids", "taille", "cures", "j1", "nb", "protoId", "allergies", "atcdMed", "atcdFam", "modeVie", "traitCours", "allergie", "statut", "decesLe"]; // + anciens champs de 1re version ; allergie, statut, decesLe (12/10/2026)
+// Fiche médicale lue telle qu'enregistrée : les champs rangés par erreur dans _autres (création d'une ligne avant le 12/10/2026) y sont remis
+export const REMIS = ["extra", "statut", "allergie", "decesLe"];
+export function cliniqueRemise(c) {
+  const C = Object.assign({}, c || {}), a = C._autres; if (!a || typeof a !== "object" || !REMIS.some((k) => k in a)) return C;
+  const r = Object.assign({}, a); REMIS.forEach((k) => { if (k in r) { if (C[k] == null) C[k] = r[k]; delete r[k]; } });
+  if (Object.keys(r).length) C._autres = r; else delete C._autres; return C;
+}
 const TECHNIQUES = ["dossier", "_rtcCh", "id", "hop", "hopHist", "lignes", "rdvs", "rts"]; // hopHist : champ du document (changements d'hôpital, 10/10/2026)
 const copie = (o) => JSON.parse(JSON.stringify(o));
 

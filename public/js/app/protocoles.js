@@ -46,14 +46,20 @@ export function pageProtocoles() {
   if (CF.c && !CF.o) { const o = valeurs(1); if (o.length === 1) CF.o = o[0]; }
   h += menusCascade(BIB(), CF, "prChoixV");
   h += '<div class="actr" style="justify-content:flex-start;margin-top:8px"><input id="prQ" class="champ" style="flex:1;min-width:220px" placeholder="Rechercher : molécule, protocole ou situation (ex. pertuzumab, sein adjuvant)…" value="' + esc(CF.q) + '">' +
-    '<button class="bt ' + (CF.fav ? "plein" : "clair") + ' petit" onclick="prFiltre(\'fav\')"><svg class="pi"><use href="#i-etoile"/></svg>Favoris</button><select class="champ" style="font-size:14px;padding:8px" onchange="prFiltre(\'st\',this.value)"><option value="">Tous les statuts</option><option value="ok"' + (CF.st === "ok" ? " selected" : "") + '>Validés</option><option value="todo"' + (CF.st === "todo" ? " selected" : "") + ">Non validés</option></select>" +
+    '<button class="bt ' + (CF.fav ? "plein" : "clair") + ' petit" onclick="prFiltre(\'fav\')"><svg class="pi"><use href="#i-etoile"/></svg>Favoris</button><select class="champ" style="font-size:14px;padding:8px" onchange="const v=this.value;this.blur();setTimeout(()=>prFiltre(\'st\',v),30)"><option value="">Tous les statuts</option><option value="ok"' + (CF.st === "ok" ? " selected" : "") + '>Validés</option><option value="todo"' + (CF.st === "todo" ? " selected" : "") + ">Non validés</option></select>" +
     '<button class="bt gris petit" onclick="prFiltre(\'reinit\')">Réinitialiser</button></div><div id="prL" style="margin-top:6px">' + liste() + "</div></section>";
   A.$("page").innerHTML = h;
   const q = A.$("prQ"); q.oninput = () => { CF.q = q.value; A.$("prL").innerHTML = liste(); };
   if (CF.q) { q.focus(); q.setSelectionRange(q.value.length, q.value.length); }
 }
-window.prChoixV = (n, v) => { CF[CLES[n]] = v || ""; for (let k = n + 1; k < 4; k++) CF[CLES[k]] = ""; pageProtocoles(); };
-window.prChoix = (n, i) => { CF[CLES[n]] = i < 0 ? "" : valeurs(n)[i]; for (let k = n + 1; k < 4; k++) CF[CLES[k]] = ""; pageProtocoles(); };
+// 12/10/2026 : un choix dans les menus ne redessine plus toute la page (seulement les menus et la liste ; défilement et recherche gardés)
+function majCascade() {
+  const zc = document.querySelector("#page .cascade"), zl = A.$("prL"); if (!zc || !zl) { pageProtocoles(); return; }
+  if (CF.c && !CF.o) { const o = valeurs(1); if (o.length === 1) CF.o = o[0]; }
+  zc.outerHTML = menusCascade(BIB(), CF, "prChoixV"); zl.innerHTML = liste();
+}
+window.prChoixV = (n, v) => { CF[CLES[n]] = v || ""; for (let k = n + 1; k < 4; k++) CF[CLES[k]] = ""; majCascade(); };
+window.prChoix = (n, i) => { CF[CLES[n]] = i < 0 ? "" : valeurs(n)[i]; for (let k = n + 1; k < 4; k++) CF[CLES[k]] = ""; majCascade(); };
 window.prFiltre = (f, v) => { if (f === "fav") CF.fav = CF.fav ? 0 : 1; else if (f === "st") CF.st = v; else CF = { c: "", o: "", s: "", g: "", q: "", fav: 0, st: "" }; pageProtocoles(); };
 
 // ───── Enregistrement : la bibliothèque est rangée en plusieurs documents (lib_0…lib_N) ─────

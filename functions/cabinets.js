@@ -178,7 +178,7 @@ function parametreDepart(id, v, jour) {
 // en-tête). Sert à la fiche de la spécialité (ficheSpecialite) et aux retouches d'un cabinet.
 // Sert aussi au formulaire de consultation (16.7 : types texte long et titre de section, unité d'un nombre, choixs = listes de choix
 // des champs existants).
-const TYPES_CHAMP = ["texte", "textelong", "nombre", "date", "choix", "ouinon", "section"];
+const TYPES_CHAMP = ["texte", "textelong", "nombre", "date", "choix", "ouinon", "ouinonp", "section"]; // ouinonp : oui / non + précision (3.11)
 function ficheNettoyee(f) {
   if (!f || typeof f !== "object") return null;
   const cle = (k) => typeof k === "string" && /^[a-z0-9._-]{1,40}$/i.test(k), t = (v, n) => String(v == null ? "" : v).replace(/\s+/g, " ").trim().slice(0, n), F = {};
@@ -187,7 +187,11 @@ function ficheNettoyee(f) {
   if (f.entetes && typeof f.entetes === "object") { F.entetes = {}; Object.entries(f.entetes).slice(0, 120).forEach(([c, v]) => { if (cle(c) && typeof v === "boolean") F.entetes[c] = v; }); } // en tête du dossier (fiche)
   if (f.libs && typeof f.libs === "object") { F.libs = {}; Object.entries(f.libs).slice(0, 120).forEach(([c, v]) => { if (cle(c) && t(v, 60)) F.libs[c] = t(v, 60); }); }
   const liste = (l) => (Array.isArray(l) ? l.map((c) => t(c, 60)).filter(Boolean).slice(0, 40) : []);
-  if (f.choixs && typeof f.choixs === "object") { F.choixs = {}; Object.entries(f.choixs).slice(0, 20).forEach(([c, v]) => { const l = liste(v); if (cle(c) && l.length) F.choixs[c] = l; }); }
+  if (f.choixs && typeof f.choixs === "object") { F.choixs = {}; Object.entries(f.choixs).slice(0, 60).forEach(([c, v]) => { const l = liste(v); if (cle(c) && l.length) F.choixs[c] = l; }); }
+  // 3.11 (12/10/2026) : type, partie affichée, impression et unité de chaque champ (fiche patient)
+  const tab = (n, ok) => { if (f[n] && typeof f[n] === "object") { const o = {}; Object.entries(f[n]).slice(0, 120).forEach(([c, v]) => { const w = ok(v); if (cle(c) && w !== undefined) o[c] = w; }); if (Object.keys(o).length) F[n] = o; } };
+  tab("types", (v) => (TYPES_CHAMP.indexOf(v) >= 0 && v !== "section" ? v : undefined)); tab("sections", (v) => (["id", "med", "tum"].indexOf(v) >= 0 ? v : undefined));
+  tab("imprimes", (v) => (typeof v === "boolean" ? v : undefined)); tab("unites", (v) => (typeof v === "string" ? t(v, 15) : undefined));
   if (Array.isArray(f.ajouts)) F.ajouts = f.ajouts.filter((a) => a && /^x[a-z0-9]{3,20}$/.test(a.id || "") && t(a.lib, 60)).slice(0, 80).map((a) => Object.assign({ id: a.id, lib: t(a.lib, 60),
     type: TYPES_CHAMP.indexOf(a.type) >= 0 ? a.type : "texte", choix: liste(a.choix),
     partie: a.partie === "clinique" ? "clinique" : "identite", imprimer: a.imprimer === true, entete: a.entete === true }, t(a.unite, 15) ? { unite: t(a.unite, 15) } : {}, a.tumeur === true ? { tumeur: true } : {}, a.cs === "onco" || a.cs === "rt" ? { cs: a.cs } : {})); // tumeur : partie « Fiche tumeur » ; cs : formulaire de consultation (12/10/2026)

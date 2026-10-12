@@ -49,8 +49,9 @@ async function sauverLignes(x, lignes, quoi, extra) {
   }
   if (patient.lignesJson !== x.doc.lignesJson) changes.lignesJson = patient.lignesJson;
   if (patient.planningJson !== x.doc.planningJson) changes.planningJson = patient.planningJson;
-  if (extra && JSON.stringify(patient.clinique) !== JSON.stringify(x.doc.clinique || {})) changes.clinique = patient.clinique;
-  if (extra && JSON.stringify(patient.identite) !== JSON.stringify(x.doc.identite || {})) changes.identite = patient.identite;
+  // 12/10/2026 : les valeurs passées (ex. poids d'une nouvelle ligne) sont posées sur la fiche médicale telle qu'elle est enregistrée, sans
+  // la reconstruire par `separer` (qui rangeait dans _autres les champs ajoutés, l'allergie, le statut, et perdait identite.extra)
+  if (extra) { const C = Object.assign({}, x.doc.clinique || {}, extra); if (JSON.stringify(C) !== JSON.stringify(x.doc.clinique || {})) changes.clinique = C; }
   if (!Object.keys(changes).length) return;
   await A.enregistrer(x, changes, quoi);
 }
@@ -939,7 +940,9 @@ export function menusCascade(liste, F, fn) {
   CLES.forEach((k, n) => {
     const actif = n === 0 || F[CLES[n - 1]], v = actif ? valeursCascade(liste, F, n) : [];
     if (n > 0 && actif && !v.length) return; // pas de niveau supplémentaire pour ce choix
-    h += '<div><label>' + LIB[n] + '</label><select onchange="' + fn + "(" + n + ',this.value)"' + (actif ? "" : " disabled") + '><option value="">' + (actif ? (n === 0 ? "Tous les cancers" : "Toutes") : "—") + "</option>" +
+    // Safari (12/10/2026, « un problème récurrent est survenu ») : le menu changé est remplacé APRÈS son événement (menu fermé, blur),
+    // jamais pendant : Safari plante si l'on retire un <select> pendant son « change »
+    h += '<div><label>' + LIB[n] + '</label><select onchange="const v=this.value;this.blur();setTimeout(()=>' + fn + "(" + n + ',v),30)"' + (actif ? "" : " disabled") + '><option value="">' + (actif ? (n === 0 ? "Tous les cancers" : "Toutes") : "—") + "</option>" +
       v.map((x) => '<option value="' + esc(x) + '"' + (F[k] === x ? " selected" : "") + ">" + esc(x) + "</option>").join("") + "</select></div>";
   });
   return h + "</div>";
@@ -1004,8 +1007,16 @@ function dessinerNL() {
     SEL.pid = x.id; SEL.l = lignes.length - 1; SEL.c = null;
   });
 }
-window.nlChoixV = (n, v) => { CF[CLES[n]] = v || ""; for (let k = n + 1; k < 4; k++) CF[CLES[k]] = ""; dessinerNL(); };
-window.nlChoix = (n, i) => { CF[CLES[n]] = i < 0 ? "" : valeurs(n)[i]; for (let k = n + 1; k < 4; k++) CF[CLES[k]] = ""; dessinerNL(); };
+// 12/10/2026 (signalé par Dr Bentahila : « la page se recharge, je n'arrive plus à choisir ») : un choix dans les menus ne redessine plus
+// toute la fenêtre (saisie, défilement et menu ouvert perdus, surtout sur téléphone) : seuls les menus et la liste des protocoles changent
+function majCascade() {
+  const zc = document.querySelector("#fenetre .cascade"), zl = document.getElementById("nlL");
+  if (!zc || !zl || NL.p) { dessinerNL(); return; }
+  if (CF.c && !CF.o) { const o = valeurs(1); if (o.length === 1) CF.o = o[0]; }
+  zc.outerHTML = menusCascade(BIB(), CF, "nlChoixV"); zl.innerHTML = listeProtos();
+}
+window.nlChoixV = (n, v) => { CF[CLES[n]] = v || ""; for (let k = n + 1; k < 4; k++) CF[CLES[k]] = ""; majCascade(); };
+window.nlChoix = (n, i) => { CF[CLES[n]] = i < 0 ? "" : valeurs(n)[i]; for (let k = n + 1; k < 4; k++) CF[CLES[k]] = ""; majCascade(); };
 window.nlFav = () => { CF.fav = CF.fav ? 0 : 1; dessinerNL(); };
 window.nlReinit = () => { CF = { c: "", o: "", s: "", g: "", q: "", fav: 0 }; dessinerNL(); };
 // 3.7 (12/10/2026, demande de Dr Bentahila) – intention de la ligne : néoadjuvante, adjuvante, métastatique (+ rang : 1re, 2e… ligne ;
@@ -1102,32 +1113,20 @@ export function nouveauPatient(opts) {
   if (!A.peut("creerPatient")) { A.toast("Vous n'avez pas le droit de créer un patient."); return; }
   const maxP = D().abo && D().abo.max.patients; // formule du cabinet (09/10/2026)
   if (maxP != null && D().patients.length >= maxP) { alert("Votre formule Onco360 permet " + maxP + " dossiers patients : la limite est atteinte.\nContactez l'éditeur d'Onco360 pour passer à une formule supérieure."); return; }
-  const ch = (i, lib, o) => '<div class="' + (o && o.large ? "large" : "") + '"><label for="' + i + '">' + lib + '</label><input id="' + i + '"' + (o && o.type ? ' type="' + o.type + '"' : "") + (o && o.liste ? ' list="' + o.liste + '"' : "") + (o && o.mode ? ' inputmode="' + o.mode + '"' : "") + (o && o.ph ? ' placeholder="' + o.ph + '"' : "") + "></div>";
-  A.fenetre('<h3>Nouveau patient</h3><div class="form">' + ch("pNom", "Nom").replace("<div", '<div data-champ="nom"') + ch("pPre", "Prénom").replace("<div", '<div data-champ="prenom"') + ch("pDdn", "Date de naissance", { type: "date" }).replace("<div", '<div data-champ="ddn"') +
-    '<div data-champ="sexe"><label for="pSexe">Sexe</label><select id="pSexe"><option value=""></option><option value="F">Femme</option><option value="H">Homme</option></select></div>' +
-    (okC ? ch("pTaille", "Taille (cm)", { mode: "numeric" }).replace("<div", '<div data-champ="taille"') + ch("pPoids", "Poids (kg)", { mode: "decimal" }).replace("<div", '<div data-champ="poids"') + champDiag("pDiag", "pDiagP", "", "") : "") +
-    ch("pCin", "CIN", { ph: "ex. BE123456" }).replace("<div", '<div data-champ="cin"') + ch("pTel", "Téléphone", { type: "tel", ph: "06…" }).replace("<div", '<div data-champ="tel"') + ch("pTel2", "2e téléphone", { type: "tel", ph: "Autre numéro (proche…)" }).replace("<div", '<div data-champ="tel2"') +
-    '<div data-champ="etab"><label for="pEtab">Hôpital</label><select id="pEtab">' + permis.map((e) => '<option value="' + A.esc(e.code) + '">' + A.esc(e.code + " – " + e.nom) + "</option>").join("") + "</select></div>" +
-    '<div data-champ="ald"><label for="pAld">ALD</label><select id="pAld"><option></option><option>Oui</option><option>Non</option></select></div>' +
-    ch("pCor", "Correspondant", { liste: "lCor", large: true, ph: "Taper pour chercher, ou saisir un nouveau…" }).replace("<div", '<div data-champ="cor" data-fn="listes.cor"') + ch("pMut", "Mutuelle", { liste: "lMut", large: true, ph: "Taper pour chercher, ou saisir une nouvelle…" }).replace("<div", '<div data-champ="mut"') + ch("pAdr", "Adresse", { large: true }).replace("<div", '<div data-champ="adresse"') + ch("pMail", "E-mail", { type: "email", large: true }).replace("<div", '<div data-champ="email"') + (okC ? A.champsMed({}) : "") +
-    ficheP.htmlSaisie(null, (p) => p === "clinique" && !okC) + // champs ajoutés (réglage du cabinet)
-    '<p class="large mesures" style="margin:0">Nom et prénom obligatoires. Date de naissance, sexe, taille et poids : demandés avant la première ligne de chimiothérapie.</p></div>' +
-    '<datalist id="lMut">' + listeMut().map((m) => '<option value="' + A.esc(m) + '">').join("") + '</datalist><datalist id="lCor">' + listeCor().map((m) => '<option value="' + A.esc(m) + '">').join("") + "</datalist>" + boutons("Créer le dossier"));
-  if (okC) activerDiag("pDiag", "pDiagP");
-  ficheP.repartirFiche(document.querySelector("#fenetre .form")); // identité, informations médicales, fiche tumeur (3.1 bis)
+  // 3.11 (12/10/2026) : même formulaire que « Modifier » (fiche réglable : parties, ordre, types) ; partie médicale seulement avec le droit
+  A.fenetre("<h3>Nouveau patient</h3>" + ficheP.htmlFormulaire(null, { off: (p) => p === "clinique" && !okC, etabs: permis, nouveau: true }) +
+    '<p class="mesures" style="margin:6px 0 0">Nom et prénom obligatoires. Date de naissance, sexe, taille et poids : demandés avant la première ligne de chimiothérapie.</p>' + boutons("Créer le dossier"));
+  if (okC) activerDiag("fDiag", "fDiagP");
   // nom tapé dans la recherche du rendez-vous : « NOM Prénom » → Nom, Prénom
-  if (o.nom) { const m = String(o.nom).trim().split(/\s+/); document.getElementById("pNom").value = (m.shift() || "").toUpperCase(); document.getElementById("pPre").value = m.join(" "); }
+  if (o.nom) { const m = String(o.nom).trim().split(/\s+/), n = document.getElementById("fNomF"), pr = document.getElementById("fPrenom"); if (n) n.value = (m.shift() || "").toUpperCase(); if (pr) pr.value = m.join(" "); }
   document.getElementById("fOk").onclick = async () => {
-    const nomF = A.val("pNom").toUpperCase(), prenom = A.val("pPre"); if (!nomF || !prenom) { A.erreur("Le nom et le prénom sont obligatoires."); return; }
+    const lu = ficheP.lireFormulaire(null); if (lu.erreur) { A.erreur(lu.erreur); return; }
+    const nomF = lu.identite.nomF, prenom = lu.identite.prenom;
     const deja = D().patients.find((p) => (p.P.nomF || "").toUpperCase() === nomF && String(p.P.prenom || "").toLowerCase() === prenom.toLowerCase());
     if (deja && !confirm("Un patient " + deja.r.nm + " existe déjà. Créer quand même un nouveau dossier ?")) return;
-    const id = "P" + Date.now().toString(36) + Math.floor(Math.random() * 1000), etab = A.val("pEtab");
-    const docP = { etablissementId: etab, identite: { nomF, prenom, nom: nomF + " " + prenom, ddn: A.val("pDdn"), sexe: A.val("pSexe"), tel: A.val("pTel"), ...(A.val("pTel2") ? { tel2: A.val("pTel2") } : {}), ...(A.val("pCin") ? { cin: A.val("pCin").toUpperCase() } : {}), ...(A.val("pAdr") ? { adresse: A.val("pAdr") } : {}), ...(A.val("pMail") ? { email: A.val("pMail") } : {}), mut: A.val("pMut"), cor: A.val("pCor"), ald: A.val("pAld"), cree: D().t },
-      version: 1, maj: serverTimestamp(), majPar: D().u.uid };
-    if (okC) { docP.clinique = { diag: A.val("pDiag"), diagP: A.val("pDiagP"), poids: A.val("pPoids").replace(",", "."), taille: A.val("pTaille") }; A.CHAMPS_MED().forEach(([k]) => { if (A.val("f_" + k)) docP.clinique[k] = A.val("f_" + k); }); if (A.val("f_allergie")) docP.clinique.allergie = A.val("f_allergie"); }
-    const saisie = ficheP.lireSaisie(); // champs ajoutés
-    if (Object.keys(saisie.identite).length) docP.identite.extra = saisie.identite;
-    if (okC && Object.keys(saisie.clinique).length) docP.clinique.extra = saisie.clinique;
+    const id = "P" + Date.now().toString(36) + Math.floor(Math.random() * 1000), etab = lu.etab || (permis[0] && permis[0].code) || "";
+    const docP = { etablissementId: etab, identite: lu.identite, version: 1, maj: serverTimestamp(), majPar: D().u.uid };
+    if (okC) docP.clinique = lu.clinique;
     if (A.traitMod()) Object.assign(docP, { lignesJson: "[]", planningJson: "{}" });
     if (A.peut("rendezvous")) docP.rdvsJson = "[]";
     if (mb.droits && mb.droits.radiotherapie === "modifier") docP.rtsJson = "[]";
@@ -1137,7 +1136,7 @@ export function nouveauPatient(opts) {
     try {
       await setDoc(doc(db, "espaces", A.ESPACE, "patients", id), docP);
       if (A.peut("finances")) await setDoc(doc(db, "espaces", A.ESPACE, "patientsFinances", id), { etablissementId: etab, montantsJson: JSON.stringify({ rdv: {}, rt: {}, cures: {} }) });
-      await enrichirListes(A.val("pCor"), A.val("pMut"), A.val("pDiag"));
+      await enrichirListes(lu.identite.cor || "", lu.identite.mut || "", (lu.clinique || {}).diag || "");
       A.recalculer(x, Object.assign({}, docP, { maj: null })); D().patients.push(x); D().patients.sort((a, z) => String(a.r.nm).localeCompare(String(z.r.nm)));
       A.journal(x, "Patient créé"); A.fermerFenetre(); A.toast("Dossier créé."); if (o.ensuite) o.ensuite(x); else location.hash = "dossier/" + encodeURIComponent(id);
       A.attribuerNumero(x).then((n) => { if (n) A.toast("Dossier créé : n° " + n + "."); }); // numéro de dossier (serveur, sans doublon)

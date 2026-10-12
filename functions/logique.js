@@ -166,7 +166,8 @@ const lire = (j, def) => { try { return JSON.parse(j || def); } catch (e) { retu
 // à retirer (avec son registre) pour être recréée au bon moment
 function tachesAutoPatient(pid, docData, regles, auj, feries, opts) {
   const voulues = [], resolues = [], premature = []; if (!docData) return { voulues, resolues, premature };
-  if (docData.clinique && docData.clinique.statut === "decede") return { voulues, resolues, premature }; // patient décédé (3.3) : plus de tâche automatique
+  const cl0 = Object.assign({}, (docData.clinique || {})._autres || {}, docData.clinique || {}); // statut parfois rangé dans _autres (avant le 12/10/2026)
+  if (cl0.statut === "decede") return { voulues, resolues, premature }; // patient décédé (3.3) : plus de tâche automatique
   const rts = lire(docData.rtsJson, "[]"), rdvs = lire(docData.rdvsJson, "[]"), r0 = lire(docData.resume, "{}"), act = (r0.act || []).filter((a) => !a.sj && a.d && a.k);
   (regles || []).filter((R) => R.actif !== false).forEach((R) => {
     const n = parseInt(R.n, 10) || 0, ok = (d) => !R.depuis || (d && d >= R.depuis);

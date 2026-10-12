@@ -467,7 +467,7 @@ longs et ne dépendent pas du code.
 - [ ] **3.10 Paramètres, fin** : onglet WhatsApp replié par message (4 001 px) ; explications longues → bulle « ? » ; croix rouges des
       listes dans un menu ⋯ avec confirmation ; `pageConfiguration` (30 427 caractères) découpée par famille.
 
-- [ ] **3.11 Dossier patient entièrement réglable** (demande de Dr Bentahila du 12/10, à faire en premier) :
+- [x] **3.11 Dossier patient entièrement réglable** (fait le 12/10/2026, version 20261012p ; voir « Fait » ci-dessous) :
       **Organisation des Paramètres** : une famille « **Dossier patient** » réunit Fiche patient, Formulaires de consultation, Types de
       consultation (3.13) et les listes qui restent (mutuelles, correspondants) ; « Cabinet » garde lieux, tableau de bord, impression,
       journal d'audit, export. Même éditeur dans l'Administration (fiche de la spécialité, réglage d'un cabinet).
@@ -479,6 +479,16 @@ longs et ne dépendent pas du code.
       précision** (case à remplir si « oui ») ; exemples : Précision = texte, Antécédents médicaux / familiaux, Mode de vie, Traitement en
       cours = texte long (ou oui / non + précision au choix du cabinet), Allergie = oui / non + « laquelle ». Limites signalées pour les
       champs dont dépendent les calculs (nom, prénom, date de naissance, sexe, taille, poids : type fixe, « utilisé pour les doses »).
+      **Fait (12/10/2026)** : famille « Dossier patient » (Fiche patient, Formulaire de consultation, Listes de la fiche) ; « Bibliothèques »
+      pour le reste ; ✎ sur chaque champ = nom, type (fixe : raison affichée), liste, unité, partie, imprimé, en-tête ; Localisation /
+      Stade / Grade / Mutuelle / Correspondant : « Modifier la liste (N choix) » ouvre la liste du cabinet avec « Retour à la fiche
+      patient » (gardée dans Listes, car un nom corrigé y est corrigé dans tous les dossiers) ; Nouveau patient, Modifier, Afficher et
+      l'en-tête du dossier rendus par un seul moteur (fichepatient.js) ; Administration : même éditeur, le serveur garde types / parties /
+      impression / unités. **Mieux que prévu** : un champ retiré n'est plus dans le formulaire (avant : caché) ; un ancien texte
+      d'allergie sans « oui / non » donne « oui » (« Aucune » donne « non ») ; **correction d'une perte de données** : enregistrer la
+      chimiothérapie effaçait les champs ajoutés de l'identité et rangeait allergie / statut / fiche tumeur dans `clinique._autres` ;
+      corrigé, et les fiches abîmées sont réparées au chargement (titulaire) ; les champs ajoutés de l'identité déjà effacés ne se
+      retrouvent que dans une sauvegarde (PITR 7 jours, sauvegarde quotidienne). Test : `tests/test_fiche_donnees.py`.
 - [ ] **3.12 Formulaires de consultation par type** : l'éditeur montre **un formulaire par type de formulaire** (Consultation
       d'oncologie, RT hebdomadaire, Simple, + « Nouveau formulaire ») et, pour chaque type de consultation, le formulaire qu'il utilise
       (choisi dans 3.13) ; chaque champ entièrement modifiable comme la fiche patient (3.11) ; un formulaire se duplique pour en faire un
@@ -499,6 +509,15 @@ longs et ne dépendent pas du code.
 ## Phase 4 – Design (corrections restantes de l'onglet Design)
 Déjà faits : 6 (salle, agenda), 8 (tableau de bord), 10 (Paramètres), 11 en partie (salle). Les corrections 1 à 5 et 7 sont dans
 les étapes 1.7, 2.5, 3.2 et 3.7.
+- [ ] **3.15 Corrections signalées le 12/10/2026 (plus tard)** :
+      a) Salle d'attente : l'heure des consultations de chimio (`hc` / heure de la consultation du médecin) ne s'affiche pas ;
+      b) Salle d'attente : la consultation de fin de radiothérapie (rendez-vous « Fin de radiothérapie », ex. le 14/10) n'y apparaît pas ;
+      c) Une consultation de contrôle réapparaît dans le dossier alors qu'elle a été supprimée (chercher la cause : rendez-vous automatique
+         recréé après suppression ? copie locale non relue ?) et la corriger ;
+      d) ~~Chimio › Nouvelle ligne et Protocoles : choisir un « Type de cancer » faisait « recharger » la page~~ : corrigé le 12/10/2026
+         (20261012p) : plantage de **Safari** (« un problème récurrent est survenu », Firefox sans souci) quand un menu déroulant est
+         retiré pendant son propre « change » ; la mise à jour se fait maintenant juste après (menu fermé), et seuls les menus et la
+         liste changent (plus toute la fenêtre / la page).
 - [ ] **4.1 Toucher et contraste** : zones de 44 px sur écran tactile (dossier 35 / 42 trop petites, protocoles 27 / 30) ; badges vert
       et orange contrastés (3,77 et 3,51 → 4,5) ; filtres repliés derrière un bouton sur téléphone (bilan, protocoles) ; téléphone
       du patient en lien Onco360 (plus de lien bleu souligné) ; champs de fichier habillés ; ~40 libellés reliés à leur champ.

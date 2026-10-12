@@ -58,9 +58,20 @@ export const FICHE = [
   ["atcdFam", "Antécédents familiaux", "clinique"], ["modeVie", "Mode de vie", "clinique"], ["traitCours", "Traitement en cours", "clinique"],
 ];
 // En tête du dossier (sous le nom du patient) au départ : ce qui y est aujourd'hui (10/10/2026) ; réglable champ par champ (entetes)
-export const ENTETE0 = ["ddn", "sexe", "taille", "poids", "diag", "cin", "tel", "tel2", "etab", "ald", "cor", "mut"];
+export const ENTETE0 = ["ddn", "sexe", "taille", "poids", "diag", "diagP", "cin", "tel", "tel2", "etab", "ald", "cor", "mut"]; // diagP : précision (3.11, avant affichée avec le diagnostic)
 export const TOUJOURS_ENTETE = ["nom", "prenom"]; // le nom du patient : toujours en tête
-export const TYPES_CHAMP = [["texte", "Texte"], ["nombre", "Nombre"], ["date", "Date"], ["choix", "Liste de choix"], ["ouinon", "Oui / Non"]];
+export const TYPES_CHAMP = [["texte", "Texte"], ["textelong", "Texte long (plusieurs lignes)"], ["nombre", "Nombre"], ["date", "Date"], ["choix", "Liste de choix"], ["ouinon", "Oui / Non"], ["ouinonp", "Oui / Non + précision"]];
+// 3.11 (12/10/2026) – chaque champ de la fiche a un type, affiché et modifiable par le cabinet (types), sauf ceux dont dépendent un calcul,
+// une liste du cabinet ou un format (FIXES : la raison affichée) ; « oui / non + précision » : case à remplir si « oui » (valeur : le texte
+// dans le champ, le oui / non dans champ + « Oui » ; pour l'allergie : allergie / allergies, comme avant)
+export const TYPE_FICHE0 = { nom: "texte", prenom: "texte", ddn: "date", sexe: "sexe", taille: "nombre", poids: "nombre", diag: "liste", diagP: "texte", cin: "texte", tel: "tel", tel2: "tel",
+  etab: "etab", ald: "ouinon", cor: "liste", mut: "liste", adresse: "texte", email: "email", allergies: "ouinonp", atcdMed: "textelong", atcdFam: "textelong", modeVie: "textelong", traitCours: "textelong" };
+export const FIXES = { nom: "nom du dossier", prenom: "nom du dossier", ddn: "sert à l'âge (doses)", sexe: "sert à la clairance (doses)", taille: "sert à la surface corporelle (doses)",
+  poids: "sert aux doses", etab: "hôpital du dossier", diag: "liste des localisations", cor: "liste des correspondants", mut: "liste des mutuelles", tel: "numéro de téléphone", tel2: "numéro de téléphone", email: "adresse e-mail" };
+export const LISTES_CAB = { diag: "diag", cor: "cor", mut: "mut", xtstade: "stade", xtgrade: "grade" }; // champs dont la liste est celle du cabinet (parametres/listes)
+export const UNITE0 = { taille: "cm", poids: "kg" };
+export const libType = (t) => ({ sexe: "Femme / Homme", liste: "liste du cabinet", tel: "téléphone", email: "e-mail", etab: "hôpital" }[t] || ((TYPES_CHAMP.find((z) => z[0] === t) || [])[1] || t).toLowerCase());
+export const drapeau = (k) => (k === "allergies" ? "allergie" : k + "Oui"); // « oui / non » d'un champ « oui / non + précision »
 // Fiche tumeur (3.1, 12/10/2026, décisions de Dr Bentahila) : champs de la spécialité Oncologie, ajoutés d'office à la fiche des cabinets
 // d'oncologie / radiothérapie (formEffectif, s._onco) ; chaque cabinet les affiche ou non, en tête du dossier ou non (Paramètres › Cabinet ›
 // Fiche patient). Valeurs dans clinique.extra. La localisation est le champ « Diagnostic » (diag, « Cancer du … », repris par les comptes
@@ -121,9 +132,18 @@ export const champConsultPropose = (a, type) => !a.cs || a.cs === formConsult(ty
 export const champPropose = (a, vals) => { if (!a.si) return true; const f = famillesDiag((vals || {}).diag); return f.indexOf("inconnu") >= 0 || (a.si.diag || []).some((k) => f.indexOf(k) >= 0); };
 // Partie de la fiche d'un champ (3.1 bis) : identité, informations médicales, fiche tumeur (cabinets d'oncologie)
 const SEC_ID = ["nom", "prenom", "ddn", "sexe", "cin", "tel", "tel2", "etab", "ald", "cor", "mut", "adresse", "email"];
+// 3.11 – description de chaque champ de la fiche effective R, dans l'ordre : { k, lib, type, choix, unite, partie (stockage identite | clinique),
+// section (id | med | tum), ajout (champ ajouté ou null), fixe (raison ou ""), liste (clé de liste du cabinet ou ""), present, entete, imprimer }
+export function champsDe(R) {
+  return (R.ordre || []).map((k) => { const c = FICHE.find((z) => z[0] === k), a = c ? null : (R.ajouts || []).find((z) => z.id === k); if (!c && !a) return null;
+    return { k, lib: c ? libDe(FICHE, k, R) : a.lib, type: a ? a.type || "texte" : (R.types || {})[k] || TYPE_FICHE0[k] || "texte", choix: a ? a.choix || [] : (R.choixs || {})[k] || [],
+      unite: a ? a.unite || "" : (R.unites || {})[k] || UNITE0[k] || "", partie: c ? c[2] : a.partie === "clinique" ? "clinique" : "identite", section: sectionChamp(k, R), ajout: a || null,
+      fixe: c ? FIXES[k] || "" : LISTES_CAB[k] ? "liste du cabinet" : "", liste: LISTES_CAB[k] || "", present: R.champs[k] !== false, entete: !!(R.entetes || {})[k], imprimer: a ? !!a.imprimer : !!(R.imprimes || {})[k] }; }).filter(Boolean);
+}
 // Spécialité d'oncologie / radiothérapie : fiche tumeur ajoutée (Administration : fiche de la spécialité, réglage d'un cabinet)
 export const avecOnco = (f, spe) => (/oncolog|radioth/i.test(String(spe || "")) ? Object.assign({}, f || {}, { _onco: true }) : f || null);
-export function sectionChamp(k, R) { if (k === "diag" || k === "diagP") return R && R.onco ? "tum" : "med"; if (SEC_ID.indexOf(k) >= 0) return "id"; if (k === "xtoms") return "med"; const a = R && (R.ajouts || []).find((z) => z.id === k); return a ? (a.tumeur ? "tum" : a.partie === "identite" ? "id" : "med") : "med"; }
+export function sectionChamp(k, R) { const S = R && R.sections && R.sections[k]; if (S === "id" || S === "med" || (S === "tum" && R.onco)) return S; // partie choisie par le cabinet (3.11)
+  if (k === "diag" || k === "diagP") return R && R.onco ? "tum" : "med"; if (SEC_ID.indexOf(k) >= 0) return "id"; if (k === "xtoms") return "med"; const a = R && (R.ajouts || []).find((z) => z.id === k); return a ? (a.tumeur ? "tum" : a.partie === "identite" ? "id" : "med") : "med"; }
 // Formulaire de consultation (16.7, 10/10/2026) : champs existants [clé, libellé, -, base, choix de départ (liste modifiable)] = la
 // fenêtre « Nouvelle consultation » d'aujourd'hui (oncologie) ; champs ajoutés : mêmes types que la fiche + texte long, titre de section,
 // nombre avec unité ; valeurs dans consultations/{c}.extra.
@@ -153,6 +173,14 @@ export function formEffectif(CAT, f, spe) {
     if (ch0) { const c = (x.choixs && x.choixs[k]) || (s.choixs && s.choixs[k]); choixs[k] = Array.isArray(c) && c.length ? c.slice() : ch0.slice(); } });
   if (onco && CAT === FICHE) { if (!libs.diag) libs.diag = "Localisation"; if (!libs.diagP) libs.diagP = "Précision"; } // oncologie : diagnostic = localisation (3.1 bis)
   const out = { ordre: ordreAvecNouveaux(Array.isArray(x.ordre) && x.ordre.length ? x.ordre : s.ordre, ref, CAT.map((c) => c[0])), champs, libs, choixs, ajouts, onco };
+  // 3.11 – fiche patient : type, partie, impression et unité de chaque champ (spécialité, puis retouches du cabinet)
+  if (CAT === FICHE) { const m = (n) => Object.assign({}, s[n] && typeof s[n] === "object" ? s[n] : {}, x[n] && typeof x[n] === "object" ? x[n] : {}), TV = TYPES_CHAMP.map((t) => t[0]);
+    const T = m("types"), Sx = m("sections"), Im = m("imprimes"), Un = m("unites"); out.types = {}; out.sections = {}; out.imprimes = {}; out.unites = {};
+    FICHE.forEach(([k]) => { if (!FIXES[k] && TV.indexOf(T[k]) >= 0) out.types[k] = T[k]; if (typeof Im[k] === "boolean") out.imprimes[k] = Im[k]; if (Un[k]) out.unites[k] = String(Un[k]).slice(0, 15); });
+    ajouts.forEach((a) => { if (a.cabinet) return; if (TV.indexOf(T[a.id]) >= 0 && !LISTES_CAB[a.id]) a.type = T[a.id]; if (Un[a.id] != null) a.unite = String(Un[a.id]).slice(0, 15); if (typeof Im[a.id] === "boolean") a.imprimer = Im[a.id]; });
+    out.ordre.forEach((k) => { if (Sx[k] === "id" || Sx[k] === "med" || (Sx[k] === "tum" && onco)) out.sections[k] = Sx[k]; });
+    // champ d'origine devenu « liste de choix » : sa liste (cabinet, puis spécialité)
+    FICHE.forEach(([k]) => { if (out.types[k] === "choix") { const c = (x.choixs && x.choixs[k]) || (s.choixs && s.choixs[k]); choixs[k] = Array.isArray(c) ? c.slice() : []; } }); }
   // Fiche patient : en tête du dossier ou non, champ par champ (champs existants : ENTETE0 au départ ; champs ajoutés : leur case « En tête »)
   if (CAT === FICHE) { const en = {}, v = (k) => (x.entetes && typeof x.entetes[k] === "boolean" ? x.entetes[k] : s.entetes && typeof s.entetes[k] === "boolean" ? s.entetes[k] : undefined);
     FICHE.forEach(([k]) => { const b = v(k); en[k] = TOUJOURS_ENTETE.indexOf(k) >= 0 || (b === undefined ? ENTETE0.indexOf(k) >= 0 : b); });
@@ -169,6 +197,13 @@ export function formRetouches(CAT, R, base) {
   Object.keys(R.champs).forEach((k) => { if (R.champs[k] !== (base.champs[k] !== false)) ch[k] = R.champs[k]; });
   CAT.forEach(([k, , , , ch0]) => { if (libDe(CAT, k, R) !== libDe(CAT, k, base)) lb[k] = libDe(CAT, k, R);
     if (ch0 && JSON.stringify((R.choixs || {})[k] || ch0) !== JSON.stringify((base.choixs || {})[k] || ch0)) cx[k] = (R.choixs || {})[k]; });
+  // 3.11 : type, partie, impression, unité (fiche) : différences avec la spécialité ; champs de la spécialité retouchés : dans les mêmes tables
+  if (CAT === FICHE) {
+    ["types", "sections", "imprimes", "unites"].forEach((n) => { const d = {}, r = R[n] || {}, b = base[n] || {}; Object.keys(r).forEach((k) => { if (JSON.stringify(r[k]) !== JSON.stringify(b[k])) d[k] = r[k]; }); if (Object.keys(d).length) out[n] = d; });
+    Object.keys(R.types || {}).forEach((k) => { if (R.types[k] === "choix" && JSON.stringify((R.choixs || {})[k] || []) !== JSON.stringify((base.choixs || {})[k] || [])) cx[k] = (R.choixs || {})[k] || []; });
+    R.ajouts.filter((a) => !a.cabinet).forEach((a) => { const b0 = (base.ajouts || []).find((z) => z.id === a.id); if (!b0) return; const met = (n, v) => { (out[n] = out[n] || {})[a.id] = v; };
+      if (a.type !== b0.type) met("types", a.type); if ((a.unite || "") !== (b0.unite || "")) met("unites", a.unite || ""); if (!!a.imprimer !== !!b0.imprimer) met("imprimes", !!a.imprimer); });
+  }
   // champs de la spécialité (fiche tumeur…) renommés ou liste changée par le cabinet (12/10/2026)
   R.ajouts.filter((a) => !a.cabinet).forEach((a) => { const b0 = (base.ajouts || []).find((z) => z.id === a.id); if (!b0) return; if (a.lib !== b0.lib) lb[a.id] = a.lib; if (a.type === "choix" && JSON.stringify(a.choix || []) !== JSON.stringify(b0.choix || [])) cx[a.id] = a.choix; });
   if (Object.keys(ch).length) out.champs = ch; if (Object.keys(lb).length) out.libs = lb; if (Object.keys(cx).length) out.choixs = cx;
