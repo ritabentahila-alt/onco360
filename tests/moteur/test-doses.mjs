@@ -171,5 +171,18 @@ cas("carboplatine C2 sans créatinine du jour : rappel « DFG à vérifier avant
 lcr.cures[1] = { creat: "11" }; K = etatLigne(lcr, patient({ sexe: "H" }), CTX);
 cas("carboplatine C2 avec la créatinine du jour : pas de rappel", !controleSeance(K[1], 0, "mgL", 70, 70).alertes.some((x) => /créatinine du jour/.test(x)));
 
+console.log("10. Fonction rénale : repères par molécule (12/10/2026)");
+const mono = (p, creat) => { const P0 = { id: "m", nom: p, c: 21, dr: [{ id: "a", p, d: 100, u: "mg/m²", j: [1] }] }; const K3 = etatLigne({ id: "Lm", pr: P0, j1: "2026-09-01", poids: "70", creat, crU: "mgL", cures: [{}] }, patient({ sexe: "H" }), CTX); return { e: K3[0], G: K3[0].g[0] }; };
+const msg = (p, creat) => { const o = mono(p, creat); return reperesClairance(o.e, o.G).join(" | "); };
+cas("capécitabine, clairance 39 : réduction à 75 %", /capécitabine avec une clairance de 39 ml\/min : 30-50 ml\/min : réduction de la dose à 75 %/.test(msg("CAPÉCITABINE (XELODA)", "20")), msg("CAPÉCITABINE (XELODA)", "20"));
+cas("capécitabine, clairance 26 : contre-indication stricte", /contre-indication stricte/.test(msg("CAPÉCITABINE (XELODA)", "30")));
+cas("pémétrexed, clairance 39 : contre-indiqué ou suspendu", /pémétrexed.*moins de 45/.test(msg("PÉMÉTREXED (ALIMTA)", "20")));
+cas("méthotrexate haute dose, clairance 52 : moins de 60", /méthotrexate.*moins de 60/.test(msg("MÉTHOTREXATE HAUTE DOSE", "15")));
+cas("étoposide (VP16 – VÉPÉSIDE), clairance 39 : 75 % ; 13 : 50 % ou suspension", /étoposide.*75 %/.test(msg("ÉTOPOSIDE (VP16 – VÉPÉSIDE)", "20")) && /50 % ou suspension/.test(msg("ÉTOPOSIDE (VP16 – VÉPÉSIDE)", "60")));
+cas("ifosfamide (HOLOXAN), clairance 52 : toxicité tubulaire, MESNA", /ifosfamide.*MESNA/.test(msg("IFOSFAMIDE (HOLOXAN)", "15")));
+cas("oxaliplatine, clairance 78 : rien ; 26 : réduction à envisager", msg("OXALIPLATINE", "10") === "" && /oxaliplatine.*réduction de dose à envisager/.test(msg("OXALIPLATINE", "30")));
+const g20 = mono("GEMCITABINE", "40"), rg = controleSeance(g20.e, 0, "mgL", 70, 70);
+cas("gemcitabine (non surveillée pour le rein), clairance 19 : aucune fenêtre", reperesClairance(g20.e, g20.G).length === 0 && !rg.alertes.length, rg.alertes);
+
 console.log("\n" + ok + " réussis, " + ko + " échoués");
 process.exit(ko ? 1 : 0);

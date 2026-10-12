@@ -153,15 +153,33 @@ export const SEUILS = { poids: [30, 200], taille: [120, 220], sc: [1.2, 2.6], cr
 // réduction possible à 50-70 %), < 45 = contre-indication habituelle ; carboplatine : < 30 ml/min = contre-indiqué ou réévaluation
 // stricte du rapport bénéfice / risque avec réduction massive ; Calvert : clairance plafonnée à 125 ml/min (hyperfiltration).
 export const REPERES = { perteLigne: 10, cisplatine: [45, 60], carboplatine: 30, calvert: 125, doseMax: 110 };
-export const avecMolecule = (e, re) => (e.prod || []).some((P) => !premed(P) && re.test(P.p || ""));
+export const avecMolecule = (e, re) => (e.prod || []).some((P) => !premed(P) && re.test(sansAccents(P.p)));
+// Fonction rénale (12/10/2026, repères transmis par Dr Bentahila) : molécules éliminées surtout par le rein ou néphrotoxiques, avec leurs
+// seuils de clairance (ml/min). Seuils croissants : le premier « clairance < seuil » donne le message. Une fenêtre s'affiche pour ces
+// molécules seulement (saisie de la créatinine et validation) ; pour les autres, créatinine et DFG restent facultatifs, sans fenêtre.
+export const REINS = [
+  { re: /CISPLATINE/, nom: "cisplatine", seuils: [[45, "moins de 45 ml/min, contre-indication habituelle"], [60, "zone d'adaptation (45-59 ml/min), prudence, réduction possible à 50-70 %"]] },
+  { re: /CARBOPLATINE/, nom: "carboplatine", seuils: [[30, "moins de 30 ml/min, contre-indiqué ou réévaluation stricte du rapport bénéfice / risque avec réduction massive de dose"]] },
+  { re: /METHOTREXATE/, nom: "méthotrexate", seuils: [[60, "moins de 60 ml/min : contre-indiqué à haute dose (ou réduction draconienne sous alcalinisation stricte) ; surveillance stricte du DFG et de la diurèse"]] },
+  { re: /CAPECITABINE|XELODA/, nom: "capécitabine", seuils: [[30, "moins de 30 ml/min : contre-indication stricte"], [51, "30-50 ml/min : réduction de la dose à 75 %"]] },
+  { re: /PEMETREXED|ALIMTA/, nom: "pémétrexed", seuils: [[45, "moins de 45 ml/min : contre-indiqué ou suspendu (hématotoxicité, mucite sévère)"]] },
+  { re: /FLUDARABINE|CLADRIBINE/, nom: "fludarabine / cladribine", seuils: [[30, "moins de 30 ml/min : contre-indiqué"], [70, "moins de 70 ml/min : réduction de dose de 25 à 50 %"]] },
+  { re: /IFOSFAMIDE|HOLOXAN/, nom: "ifosfamide", seuils: [[60, "moins de 60 ml/min : risque d'insuffisance rénale et de toxicité tubulaire (syndrome de Fanconi), adapter la dose ; MESNA systématique"]] },
+  { re: /CYCLOPHOSPHAMIDE|ENDOXAN/, nom: "cyclophosphamide", seuils: [[30, "moins de 30 ml/min : réduction de dose recommandée"]] },
+  { re: /OXALIPLATINE|ELOXATINE/, nom: "oxaliplatine", seuils: [[30, "moins de 30 ml/min : réduction de dose à envisager"]] },
+  { re: /ETOPOSIDE|VP ?16|VEPESIDE/, nom: "étoposide", seuils: [[15, "moins de 15 ml/min : réduction à 50 % ou suspension selon le protocole"], [51, "15-50 ml/min : réduction de la dose à 75 %"]] },
+  { re: /BLEOMYCINE/, nom: "bléomycine", seuils: [[50, "moins de 50 ml/min : réduction progressive de la dose (toxicité pulmonaire)"]] },
+  { re: /LENALIDOMIDE|REVLIMID/, nom: "lénalidomide", seuils: [[30, "moins de 30 ml/min : palier d'ajustement de dose (élimination rénale)"], [51, "30-50 ml/min : palier d'ajustement de dose"]] },
+];
+// La séance contient-elle une molécule à surveiller pour le rein (ou une dose en AUC) ?
+export const reinSensible = (e) => REINS.some((R) => avecMolecule(e, R.re)) || (e.prod || []).some((P) => P.u === "AUC");
 export function reperesClairance(e, G) {
-  const l = [], cl = G.cl, R = REPERES;
-  if (avecMolecule(e, /CISPLATINE/i)) {
-    if (cl == null) l.push("cisplatine : créatinine non saisie, clairance inconnue (repère : DFG ≥ " + R.cisplatine[1] + " ml/min)");
-    else if (cl < R.cisplatine[0]) l.push("cisplatine avec une clairance de " + cl + " ml/min : moins de " + R.cisplatine[0] + " ml/min, contre-indication habituelle");
-    else if (cl < R.cisplatine[1]) l.push("cisplatine avec une clairance de " + cl + " ml/min : zone d'adaptation (" + R.cisplatine[0] + "-" + (R.cisplatine[1] - 1) + " ml/min), prudence, réduction possible à 50-70 %");
-  }
-  if (avecMolecule(e, /CARBOPLATINE/i) && cl != null && cl < R.carboplatine) l.push("carboplatine avec une clairance de " + cl + " ml/min : moins de " + R.carboplatine + " ml/min, contre-indiqué ou réévaluation stricte du rapport bénéfice / risque avec réduction massive de dose");
+  const l = [], cl = G.cl;
+  REINS.forEach((R) => {
+    if (!avecMolecule(e, R.re)) return;
+    if (cl == null) { if (R.nom === "cisplatine") l.push("cisplatine : créatinine non saisie, clairance inconnue (repère : DFG ≥ 60 ml/min)"); return; }
+    const s0 = R.seuils.find(([m]) => cl < m); if (s0) l.push(R.nom + " avec une clairance de " + cl + " ml/min : " + s0[1]);
+  });
   return l;
 }
 export function controleSeance(e, n, crU, poidsAvant, poidsDebut) {
@@ -177,7 +195,7 @@ export function controleSeance(e, n, crU, poidsAvant, poidsDebut) {
   if (hors(e.taille, S.taille)) alertes.push("taille de " + e.taille + " cm (hors de " + S.taille.join(" à ") + " cm : saisie en mètres ?)");
   if (hors(G.sc, S.sc)) alertes.push("surface corporelle de " + G.sc + " m² (hors de " + S.sc.join(" à ") + " m²)");
   const sc = crU === "mgL" ? S.creatMgL : S.creatUmol;
-  if (hors(G.creat, sc)) alertes.push("créatinine de " + G.creat + (crU === "mgL" ? " mg/L" : " µmol/L") + " (hors de " + sc.join(" à ") + " : bonne unité ?)");
+  if (reinSensible(e) && hors(G.creat, sc)) alertes.push("créatinine de " + G.creat + (crU === "mgL" ? " mg/L" : " µmol/L") + " (hors de " + sc.join(" à ") + " : bonne unité ?)");
   const rc = reperesClairance(e, G); rc.forEach((a) => alertes.push(a));
   // 12/10/2026 (demande de Dr Bentahila) : dose au-dessus de 110 % de la dose du protocole (ex. 1000 % tapé par erreur, un 0 de trop)
   (e.dj || []).forEach((dj, x) => { const P = (e.prod || [])[x] || {}; if (premed(P)) return;
@@ -187,7 +205,8 @@ export function controleSeance(e, n, crU, poidsAvant, poidsDebut) {
   const carboIci = (e.dj || []).some((dj, x) => /CARBOPLATINE/i.test(((e.prod || [])[x] || {}).p || "") && (G.days || [1]).concat(n === 0 ? [99] : []).some((j) => dj[j]));
   if (carboIci && G.creat != null && !(G.saisi && G.saisi.creat) && !(e.n === 1 && n === 0))
     alertes.push("carboplatine : créatinine du jour non saisie, la dose reprend la dernière créatinine connue (" + G.creat + (crU === "mgL" ? " mg/L" : " µmol/L") + ") ; le DFG doit être vérifié avant chaque cure");
-  if (hors(G.cl, S.cl) && !(rc.length && G.cl < S.cl[0])) alertes.push("clairance de " + G.cl + " ml/min (hors de " + S.cl.join(" à ") + ")");
+  // créatinine et clairance hors des bornes de saisie : seulement si la séance contient une molécule à surveiller pour le rein (sinon facultatives)
+  if (reinSensible(e) && hors(G.cl, S.cl) && !(rc.length && G.cl < S.cl[0])) alertes.push("clairance de " + G.cl + " ml/min (hors de " + S.cl.join(" à ") + ")");
   if (G.poids != null && poidsDebut && (poidsDebut - G.poids) / poidsDebut * 100 > REPERES.perteLigne)
     alertes.push("perte de poids de " + Math.round((poidsDebut - G.poids) / poidsDebut * 100) + " % depuis le début de la ligne (" + poidsDebut + " → " + G.poids + " kg)");
   if (G.poids != null && poidsAvant && Math.abs(G.poids - poidsAvant) / poidsAvant * 100 > S.variation)

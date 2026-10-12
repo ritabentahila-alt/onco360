@@ -264,6 +264,16 @@ longs et ne dépendent pas du code.
       « ‹ Retour à la cure » en bas de la fenêtre, à côté de Reporter / Valider (et seul en bas pour une séance validée). Jeu de test :
       5 carboplatines validés sans créatinine du jour et 2 doses de trastuzumab au-dessus de la dose calculée (dose de charge en C2)
       seraient signalés. Tests : test-doses 71/71, test_validation 25/25.
+- [x] **2.3 ter Fonction rénale pour toutes les molécules** (12/10, repères transmis par Dr Bentahila, testé) : **créatinine et DFG
+      (Cockcroft-Gault) dans le bloc « Bilan biologique du jour »** pour tous les protocoles (facultatifs, sauf carboplatine où la
+      créatinine sert au calcul ; ils ont quitté la rangée poids / surface) ; DFG en rouge et repère écrit sous le bloc ; affichés aussi
+      sur la séance validée (instantané). Table `REINS` (moteur/doses.js) : cisplatine (< 45 / 45-59), carboplatine (< 30), méthotrexate
+      (< 60), capécitabine (< 30 / 30-50 → 75 %), pémétrexed (< 45), fludarabine et cladribine (< 30 / < 70 → 25-50 %), ifosfamide (< 60,
+      MESNA), cyclophosphamide (< 30), oxaliplatine (< 30), étoposide (< 15 / 15-50 → 75 %), bléomycine (< 50), lénalidomide (< 30 /
+      30-50) ; noms reconnus avec ou sans accents ni marque. **Fenêtre** pour ces molécules seulement : à la saisie de la créatinine
+      et à la validation ; pour les autres molécules, créatinine et DFG facultatifs, **sans fenêtre** (bornes de saisie de la créatinine
+      et de la clairance aussi limitées à ces molécules). Seuil d'ifosfamide (< 60) choisi par Claude faute de valeur dans les repères :
+      à confirmer par Dr Bentahila. Tests : test-doses 79/79, test_validation 31/31.
 - [x] **2.3 Bornes et prémédication** (12/10, en ligne le 12/10 : version 20261012b) : **prémédication reconnue par la DCI comme par la marque**
       (`PREMED` de moteur/doses.js : antiémétiques, corticoïdes, antihistaminiques, anti-H2 / IPP, atropine, facteurs de croissance,
       EPO, acide zolédronique, dénosumab ; même liste pour la liste des molécules des protocoles ; jours de séance inchangés) ;
