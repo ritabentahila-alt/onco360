@@ -1,6 +1,6 @@
 # Onco360 (ex-Chimio HGC) – notes pour Claude Code
 
-**Au début de chaque session : lire `FEUILLE-DE-ROUTE.md`** (plan unique en phases 0 à 7, décisions, questions en attente)
+**Au début de chaque session : lire `FEUILLE-DE-ROUTE.md`** (plan refait le 13/10/2026 : phase P « Protocoles de chimiothérapie » d'après l'audit n° 3, puis Q, M, D, E, C, V ; décisions, questions en attente ; tout le fait gardé en bas)
 et la mettre à jour à la fin (cocher, décisions) ; une ligne dans `JOURNAL.md`. Une étape = une session. L'ancienne feuille de
 route (jusqu'au 11/10/2026, tout le détail des étapes 1 à 23) est dans `archives/FEUILLE-DE-ROUTE-jusqu-au-2026-10-11.md`.
 
