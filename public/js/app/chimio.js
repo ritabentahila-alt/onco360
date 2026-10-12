@@ -107,12 +107,12 @@ export function fenetreHeureSeance(x, lid, s, titre, puis) {
 // « Modifier » d'une séance depuis « Rendez-vous et tâches à venir » (12/10/2026, demande de Dr Bentahila ; plus de fenêtre après la
 // validation) : date (droit traitements ou planning) et heure de la consultation ; date changée → « cette date seulement » ou « toute la
 // suite » (comme dans la cure) ; l'infirmière : sa séance à l'hôpital de jour (heure et durée)
-window.chModifierRdvChimio = (pid, lid, n, j) => {
+window.chModifierRdvChimio = (pid, lid, n, j, apres, pre) => { // apres : retour (agenda, 3.16), sinon le dossier ; pre { d, h } : glissé dans l'agenda
   const x = trouver(pid), i = x ? x.P.lignes.findIndex((z) => z.id === lid) : -1; if (i < 0) return;
   const L = x.P.lignes[i], k = n - 1, e = etatLigne(L, x.P, D().ctx)[k]; if (!e) return;
   const sz = j > 1 ? seancesCure(L, e, D().ctx.bib).find((z) => z.j === j) : null, d0 = j > 1 ? sz && sz.prevue : e.date, o = j > 1 ? (e.c.sea || {})[j] || {} : e.c;
   if (!d0) return;
-  if (estInfirmiere()) { fenetreHeureSeance(x, lid, { k, j, d: d0, o }, "Séance à l'hôpital de jour", () => A.pageDossier(pid)); return; }
+  if (estInfirmiere()) { fenetreHeureSeance(x, lid, { k, j, d: d0, o }, "Séance à l'hôpital de jour", apres || (() => A.pageDossier(pid))); return; }
   const okD = A.traitMod() || A.peut("planningChimio"), hcm = o.hcm, hc = o.hc, rid = j > 1 ? "sS" : "dS";
   A.fenetre("<h3>C" + n + (j > 1 || seancesDe(protocoleCure(L, k, D().ctx.bib) || protocoleDe(L, D().ctx.bib)).length > 1 ? " J" + j : "") + " – " + A.esc(x.r.nm) + '</h3><p class="sous">Consultation de la séance de chimiothérapie</p><div class="form">' +
     '<div><label for="mD">Date</label><input id="mD" type="date" value="' + A.esc(d0) + '"' + (okD ? "" : " disabled") + "></div>" +
@@ -121,6 +121,7 @@ window.chModifierRdvChimio = (pid, lid, n, j) => {
     (hc && hc.auto ? '<p class="mesures">Placée pour l\'instant à ' + A.esc(hc.h) + " d'après la séance notée par l'infirmière ; une heure choisie ici passe avant.</p>" : "") +
     '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt plein" id="fOk">Enregistrer</button></div>');
   if (okD) document.getElementById("mD").oninput = () => document.getElementById("mSz").classList.toggle("cache", A.val("mD") === d0);
+  if (pre && okD) { document.getElementById("mD").value = pre.d; if (pre.h) document.getElementById("mH").value = pre.h; document.getElementById("mSz").classList.toggle("cache", pre.d === d0); }
   document.getElementById("fOk").onclick = async () => {
     const d = A.val("mD"), h = A.val("mH"); if (!d) { A.erreur("Indiquez la date."); return; }
     A.occupe(document.getElementById("fOk"), true);
@@ -130,7 +131,7 @@ window.chModifierRdvChimio = (pid, lid, n, j) => {
         else { const lignes = lignesDe(x), L2 = lignes[i], E2 = etatLigne(L2, x.P, D().ctx); if (choix("dS") === "seule") figerSuivantes(L2, k, E2); else libererSuivantes(L2, k); L2.cures[k].fixe = d; await sauverLignes(x, lignes, "C" + n + " déplacée au " + A.dfrA(d)); }
       }
       if (h !== ((hcm && hcm.h) || "")) await heureSeance(trouver(pid), lid, n, j, { cons: h });
-      A.fermerFenetre(); A.toast("Enregistré."); A.pageDossier(pid);
+      A.fermerFenetre(); A.toast("Enregistré."); if (apres) apres(); else A.pageDossier(pid);
     } catch (er) { A.occupe(document.getElementById("fOk"), false); A.erreur(er.message); }
   };
 };

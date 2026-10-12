@@ -86,10 +86,10 @@ let TIT = null;
 // Quatre familles au lieu de quatorze onglets (audit externe, 11/10/2026) : barre de 4 onglets, puis les rubriques de la famille.
 // L'adresse reste #parametres/<rubrique> (anciens liens gardés). Accès : dans Mon compte depuis le 10/10/2026 (18.5).
 const FAMILLES = [
-  ["cabinet", "hopital", "Cabinet", ["lieux", "accueil", "impression", "audit", "export"]],
+  ["cabinet", "hopital", "Cabinet", ["lieux", "accueil", "rcp", "impression", "audit", "export"]], // RCP : dans Cabinet (demande du 12/10/2026)
   // 3.11 (12/10/2026) : tout ce qui règle le dossier patient au même endroit (fiche, formulaire de consultation, listes de la fiche)
   ["dossier", "profil", "Dossier patient", ["fiche", "consultation", "types", "listes"]],
-  ["agenda", "agenda", "Agenda et rappels", ["horaires", "fermetures", "couleurs", "whatsapp", "rcp", "alertes"]], // rendez-vous créés d'office : dans Types de consultation (3.13)
+  ["agenda", "agenda", "Agenda et rappels", ["horaires", "fermetures", "couleurs", "whatsapp", "alertes"]], // rendez-vous créés d'office : dans Types de consultation (3.13)
   ["listes", "pilule", "Bibliothèques", ["bibliotheques", "vigilances", "documents", "taches"]],
   ["finances", "bilan", "Finances", ["activites"]],
 ];
@@ -191,20 +191,24 @@ const RUBRIQUES = {
   // d'office, message WhatsApp, Google Agenda (ce que chacun y voit), Activités et rémunérations (prix de chaque type par lieu), bilan.
   types(c) {
     const esc = A.esc, L = ED.typesC, FO = formulairesDe(ED.consultation), du = ED.durees || {}, ok = c.ok, dis = ok ? "" : " disabled", R = ED.reg.auto;
+    const modeTy = (t) => { const au = AUTO_TY[t.k], o = au && R[au[0]]; return t.k === "cchimio" ? "office" : t.rdv && o ? "les2" : o ? "office" : t.rdv ? "main" : "sans"; };
     const rg = (t, i) => { if (((t.k === "rtc" || t.k === "rtf") && A.module && !A.module("rt")) || (t.k === "cchimio" && A.module && !A.module("chimio"))) return ""; // module absent de la formule
       const st = estStd(t.k), au = AUTO_TY[t.k], dk = cleDuree(t.k), f = formDuType(ED.consultation, t.nom, FO);
       return '<div class="ty-l"><span class="fl"><button class="clair petit" aria-label="Monter" onclick="cfTyBouger(' + i + ',-1)"' + (i && ok ? "" : " disabled") + '>↑</button><button class="clair petit" aria-label="Descendre" onclick="cfTyBouger(' + i + ',1)"' + (i < L.length - 1 && ok ? "" : " disabled") + ">↓</button></span>" +
         '<input class="ty-n" value="' + esc(t.nom) + '" aria-label="Nom du type"' + dis + ' onchange="cfTy(' + i + ',\'nom\',this.value)">' +
-        '<label class="chk ty-c"><input type="checkbox"' + (t.rdv ? " checked" : "") + (ok && t.k !== "cchimio" ? "" : " disabled") + ' onchange="cfTy(' + i + ',\'rdv\',this.checked)"> <span class="ty-lb">Pris en rendez-vous</span></label>' +
-        '<label class="ty-s"><span class="ty-lb">Durée</span> <select aria-label="Durée : ' + esc(t.nom) + '"' + c.disE + ' onchange="cfDureeT(\'' + esc(dk) + '\',this.value)"><option value="">pas du lieu</option>' + [10, 15, 20, 30, 40, 45, 60, 90, 120].map((m) => '<option value="' + m + '"' + (du[dk] === m ? " selected" : "") + ">" + m + " min</option>").join("") + "</select></label>" +
+        // 3.13 bis : « Comment il est prévu » (à la main = proposé à la prise de rendez-vous ; d'office = créé par Onco360) ; tous sont des rendez-vous
+        '<label class="ty-s"><span class="ty-lb">Comment il est prévu</span> <select aria-label="Comment est prévu : ' + esc(t.nom) + '"' + (ok && t.k !== "cchimio" ? "" : " disabled") + ' onchange="cfTyMode(' + i + ',this.value)">' +
+          (t.k === "cchimio" ? '<option>D\'office (avec la cure)</option>' : (au ? [["main", "À la main"], ["office", "D'office (" + au[1] + ")"], ["les2", "D'office et à la main"], ["sans", "Sans rendez-vous"]] : [["main", "À la main"], ["sans", "Sans rendez-vous (journal seulement)"]])
+            .map(([v, l]) => '<option value="' + v + '"' + (v === modeTy(t) ? " selected" : "") + ">" + esc(l) + "</option>").join("")) + "</select></label>" +
+        '<label class="ty-s"><span class="ty-lb">Durée</span> <select aria-label="Durée : ' + esc(t.nom) + '"' + c.disE + ' onchange="cfDureeT(\'' + esc(dk) + '\',this.value)"><option value="">Créneau du lieu (' + ((ED.horaires && ED.horaires.duree) || 30) + ' min)</option>' + [10, 15, 20, 30, 40, 45, 60, 90, 120].map((m) => '<option value="' + m + '"' + (du[dk] === m ? " selected" : "") + ">" + m + " min</option>").join("") + "</select></label>" +
         '<label class="ty-s"><span class="ty-lb">Formulaire</span> <select aria-label="Formulaire : ' + esc(t.nom) + '"' + dis + ' onchange="cfTy(' + i + ',\'form\',this.value)">' + FO.map((z) => '<option value="' + esc(z.id) + '"' + (z.id === f ? " selected" : "") + ">" + esc(z.nom) + "</option>").join("") + "</select></label>" +
-        (au ? '<label class="chk ty-c" title="Créé d\'office ' + au[1] + '"><input type="checkbox"' + (R[au[0]] ? " checked" : "") + dis + ' onchange="cfRegB(\'auto\',\'' + au[0] + '\',this.checked);cfTyMaj()"> Créé d\'office (' + au[1] + ")</label>" : t.k === "cchimio" ? '<span class="mesures ty-c">Avec la cure de chimiothérapie</span>' : '<span class="ty-c"></span>') +
         (st || !ok ? "<span></span>" : sup("cfTySup(" + i + ")", "Retirer « " + esc(t.nom) + " »")) + "</div>"; };
     return '<section class="carte">' + titre("agenda", "Types de consultation", L.length) +
       '<p class="sous">Une seule liste pour tout Onco360 : prise de rendez-vous, journal des consultations, durée dans l\'agenda, formulaire, message WhatsApp, Google Agenda et prix (Activités et rémunérations). Un type ajouté ou renommé l\'est partout, y compris dans les rendez-vous et consultations déjà enregistrés.</p>' +
-      '<div class="ty-b"><div class="ty-l ty-h" aria-hidden="true"><span></span><span>Type</span><span>Rendez-vous</span><span>Durée</span><span>Formulaire</span><span>Créé d\'office</span><span></span></div>' + L.map(rg).join("") + "</div>" +
+      '<div class="ty-b"><div class="ty-l ty-h"><span></span><span>Type</span>' + aide("Comment il est prévu", "Tous sont des rendez-vous dans l\'agenda. À la main : proposé quand on prend un rendez-vous. D\'office : créé par Onco360 (consultation de chimiothérapie avec la cure ; consultations en cours et de fin de radiothérapie avec la radiothérapie). Sans rendez-vous : seulement dans le journal des consultations (RCP, note du secrétariat).") +
+        aide("Durée", "Hauteur du rendez-vous dans l\'agenda, créneaux libres et doubles réservations. « Créneau du lieu » : l\'écart entre deux créneaux réglé dans Horaires.") + aide("Formulaire", "Champs proposés dans la fenêtre « Nouvelle consultation » pour ce type (Formulaire de consultation).") + "<span></span></div>" + L.map(rg).join("") + "</div>" +
       (ok ? '<button class="bt clair petit" style="margin-top:10px" onclick="cfTyAj()">' + A.ic("plus") + "Ajouter un type de consultation</button>" : "") +
-      '<p class="mesures" style="margin-top:10px">Pas pris en rendez-vous : proposé seulement dans le journal des consultations (ex. RCP, note du secrétariat). Prix de chaque type par lieu : <a href="#parametres/activites" onclick="event.preventDefault();cfOnglet(\'activites\')">Activités et rémunérations</a> (sans prix = non facturé dans ce lieu). Message de rappel : <a href="#parametres/whatsapp" onclick="event.preventDefault();cfOnglet(\'whatsapp\')">WhatsApp</a>.</p></section>';
+      '<p class="mesures" style="margin-top:10px">Prix de chaque type par lieu : <a href="#parametres/activites" onclick="event.preventDefault();cfOnglet(\'activites\')">Activités et rémunérations</a> (sans prix = non facturé dans ce lieu). Message de rappel : <a href="#parametres/whatsapp" onclick="event.preventDefault();cfOnglet(\'whatsapp\')">WhatsApp</a>.</p></section>';
   },
   audit() { return '<div id="cfAudit"></div>'; },
   // Export complet du cabinet (étape 1.6, 11/10/2026) : médecin titulaire ; préparé par le serveur (exporterCabinet), téléchargé ici
@@ -256,9 +260,16 @@ const RUBRIQUES = {
   impression(c) {
     // Marges d'impression (mm) : la marge du haut laisse la place à l'en-tête déjà imprimé sur le papier ; âge et poids sur les ordonnances (3.2)
     const I = ED.reg.impression, agePoids = '<section class="carte">' + titre("imprimer", "Ordonnances") + '<p class="sous">Sous le nom du patient :</p><label class="chk"><input type="checkbox"' + (I.age ? " checked" : "") + c.disE + ' onchange="cfRegB(\'impression\',\'age\',this.checked)"> Âge</label> <label class="chk"><input type="checkbox"' + (I.poids ? " checked" : "") + c.disE + ' onchange="cfRegB(\'impression\',\'poids\',this.checked)"> Poids</label> <label class="chk"><input type="checkbox"' + (I.allergie ? " checked" : "") + c.disE + ' onchange="cfRegB(\'impression\',\'allergie\',this.checked)"> Allergie (si « Oui » dans la fiche)</label></section>', champ = (q, n, lib) => '<div><label for="cfI' + q + n + '">' + lib + '</label><input id="cfI' + q + n + '" type="number" min="0" max="150" step="1" inputmode="numeric" value="' + I[q][n] + '"' + c.disE + ' onchange="cfImp(\'' + q + "'," + n + ',this.value)"></div>';
+    // 3.9 (12/10/2026) : en-tête et pied des ordonnances et courriers : papier à en-tête, ou imprimés par Onco360 (au choix du cabinet)
+    const g = I.entete === "genere", cb = (k, lib) => '<label class="chk" style="display:block;margin:4px 0"><input type="checkbox"' + (I[k] ? " checked" : "") + c.disE + (g ? "" : " disabled") + ' onchange="cfRegB(\'impression\',\'' + k + '\',this.checked)"> ' + lib + "</label>";
+    const enT = '<section class="carte">' + titre("imprimer", "En-tête des ordonnances et courriers") +
+      '<label class="chk" style="display:block;margin:6px 0"><input type="radio" name="cfEnt"' + (g ? "" : " checked") + c.disE + ' onchange="cfRegT(\'impression\',\'entete\',\'papier\')"> <b>Papier à en-tête</b> <span class="mesures">(rien n\'est imprimé en haut ; marge du haut ci-dessous)</span></label>' +
+      '<label class="chk" style="display:block;margin:6px 0"><input type="radio" name="cfEnt"' + (g ? " checked" : "") + c.disE + ' onchange="cfRegT(\'impression\',\'entete\',\'genere\')"> <b>En-tête et pied imprimés par Onco360</b> <span class="mesures">(papier blanc)</span></label>' +
+      '<div style="margin:4px 0 0 26px">' + cb("eLogo", "Logo du lieu d\'exercice du patient (Lieux d\'exercice)") + cb("eNom", "Nom du médecin signataire") + cb("eSpe", "Spécialité") + cb("eInpe", "INPE") + cb("eLieu", "En pied de page : nom, adresse et téléphone du lieu") + cb("eSig", "Signature scannée du médecin (Mon compte › Informations)") + "</div>" +
+      '<p class="mesures">Chaque médecin publie son nom, sa spécialité, son INPE et sa signature depuis Mon compte ; quand le cabinet a plusieurs médecins, on choisit le signataire dans l\'ordonnance.</p></section>';
     return '<section class="carte">' + titre("imprimer", "Marges d'impression (mm)") + '<p class="sous">Haut = hauteur de l\'en-tête déjà imprimé sur votre papier, plus 5 à 10 mm.</p>' +
       [["a5", "Ordonnances A5", "Médicaments, analyses, examens, ordonnances types, courriers"], ["a4", "Ordonnances A4", "Les mêmes, en A4"], ["doc", "Documents A4", "Pli confidentiel, compte rendu, rendez-vous de radiothérapie"]].map(([q, t, sous]) =>
-        '<h4 class="soustitre">' + t + '</h4><p class="mesures" style="margin:-4px 0 8px">' + sous + " · par défaut " + REGLAGES0.impression[q].slice(0, 3).join(" / ") + ' mm</p><div class="form" style="grid-template-columns:repeat(3,minmax(0,150px))">' + champ(q, 0, "Haut (en-tête)") + champ(q, 1, "Côtés") + champ(q, 2, "Bas") + "</div>").join("") + "</section>" + agePoids;
+        '<h4 class="soustitre">' + t + '</h4><p class="mesures" style="margin:-4px 0 8px">' + sous + " · par défaut " + REGLAGES0.impression[q].slice(0, 3).join(" / ") + ' mm</p><div class="form" style="grid-template-columns:repeat(3,minmax(0,150px))">' + champ(q, 0, "Haut (en-tête)") + champ(q, 1, "Côtés") + champ(q, 2, "Bas") + "</div>").join("") + "</section>" + agePoids + enT;
   },
   alertes(c) {
     let h = "";
@@ -311,7 +322,7 @@ const RUBRIQUES = {
   },
   consultation() {
     if (!CE) CE = editeurFiche(ED.consultation, "cabinet", true, { types: () => ED.typesC.map((t) => t.nom) }); // 3.13 : types du référentiel
-    return '<section class="carte edf">' + titre("stetho", "Formulaire de consultation") + '<p class="sous">Un onglet par formulaire (ses champs, dans l\'ordre) ; en bas, le formulaire utilisé par chaque type de consultation (types : Dossier patient › Types de consultation).</p>' + CE.html() + "</section>";
+    return '<section class="carte edf">' + titre("stetho", "Formulaire de consultation") + '<p class="sous">Un onglet par formulaire (ses champs, dans l\'ordre) ; le formulaire de chaque type se choisit dans Types de consultation.</p>' + CE.html() + "</section>";
   },
 };
 // 3.13 : référentiel des types (nom : ancien nom gardé pour les consultations déjà enregistrées ; formulaire suivi avec le nom)
@@ -323,6 +334,10 @@ window.cfTy = (i, f, v) => { const t = ED.typesC[i]; if (!t) return;
   if (f === "form") { (ED.consultation.typesForm = ED.consultation.typesForm || {})[t.nom] = v; modif(); return; }
 };
 window.cfTyMaj = () => modif();
+// 3.13 bis : « Comment il est prévu » = pris à la main (t.rdv) et / ou créé d'office (reglages.auto)
+window.cfTyMode = (i, v) => { const t = ED.typesC[i], au = t && AUTO_TY[t.k]; if (!t) return; t.rdv = v === "main" || v === "les2"; if (au) ED.reg.auto[au[0]] = v === "office" || v === "les2"; modif(); };
+const aide = (lib, txt) => '<span>' + lib + ' <button type="button" class="ty-q" title="' + txt + '" aria-label="' + lib + " : " + txt + '" onclick="A_aide(this)">?</button></span>';
+window.A_aide = (b) => A.toast(b.title);
 window.cfTyBouger = (i, d) => { const L = ED.typesC, j = i + d; if (j < 0 || j >= L.length) return; [L[i], L[j]] = [L[j], L[i]]; modif(true); };
 window.cfTyAj = () => { const nom = prompt("Nom du nouveau type de consultation (ex. Deuxième avis) :"); if (!nom || !nom.trim()) return; const n = nom.replace(/\s+/g, " ").trim().slice(0, 80);
   if (ED.typesC.some((z) => z.nom.toLowerCase() === n.toLowerCase())) { A.toast("Ce type existe déjà."); return; }
@@ -493,6 +508,7 @@ window.cfLSup = (i) => { ED.listes[LS].splice(i, 1); ED.listesOrig[LS].splice(i,
 window.cfLAj = () => { LQ = ""; ED.listes[LS].push(""); ED.listesOrig[LS].push(""); modif(true); setTimeout(() => { const l = document.querySelectorAll("#cfLl input"); if (l.length) { l[l.length - 1].scrollIntoView({ block: "center" }); l[l.length - 1].focus(); } }, 30); };
 window.cfBib = (n) => gererListe(n);
 window.cfRegB = (g, k, v) => { ED.reg[g][k] = !!v; modif(); };
+window.cfRegT = (g, k, v) => { ED.reg[g][k] = String(v); modif(true); }; // réglage texte (3.9 : en-tête des ordonnances)
 window.cfReg = (g, k, v) => { ED.reg[g][k] = parseInt(v, 10) || 0; modif(g === "salle"); };
 window.cfImp = (q, n, v) => { const x = parseInt(v, 10); ED.reg.impression[q][n] = isNaN(x) ? REGLAGES0.impression[q][n] : Math.max(0, Math.min(150, x)); modif(); };
 window.cfCoul = (k, c) => { ED.coul[k] = c; modif(true); };

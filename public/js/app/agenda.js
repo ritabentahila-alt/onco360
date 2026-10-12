@@ -65,7 +65,7 @@ function evenements(du, au) {
     if (A.voitRT(x)) (P.rts || []).forEach((r) => {
       const fin = r.fin || finRT(r, ctx.feries), a = r.acte || "Radiothérapie";
       // « Dosimétrie à valider » : une tâche pour le médecin (P4, 08/10/2026), plus un rendez-vous de l'agenda
-      [[r.scan, "Scanner de centrage", "scan"], [r.dosi, "Dosimétrie validée"], [r.deb, "1re séance", "deb"], [fin, r.fin ? "Fin de radiothérapie" : "Fin de radiothérapie prévue"]].forEach((z) => { if (z[0] && z[0] >= du && z[0] <= au) out.push(Object.assign({ pid: x.id, cat: "rt", d: z[0], f: z[0], nm, t: z[1] + " · " + a, st: r.fin && z[0] <= r.fin ? "fait" : "prevu" }, z[2] ? Object.assign({ rtid: r.id, z: z[2] }, hrDe(z[2] === "deb" ? r.debH : r.scanH, DU_SCAN)) : { h: "" })); });
+      [[r.scan, "Scanner de centrage", "scan"], [r.dosi, "Dosimétrie validée"], [r.deb, "1re séance", "deb"], [fin, r.fin ? "Fin de radiothérapie" : "Fin de radiothérapie prévue"].concat(r.fin ? [] : ["fin"])].forEach((z) => { if (z[0] && z[0] >= du && z[0] <= au) out.push(Object.assign({ pid: x.id, cat: "rt", d: z[0], f: z[0], nm, t: z[1] + " · " + a, st: r.fin && z[0] <= r.fin ? "fait" : "prevu" }, z[2] ? Object.assign({ rtid: r.id, z: z[2] }, hrDe(z[2] === "deb" ? r.debH : z[2] === "fin" ? r.finH : r.scanH, DU_SCAN)) : { h: "" })); });
     });
   });
   return out.sort((a, b) => (a.d + (a.h || "")).localeCompare(b.d + (b.h || "")) || a.nm.localeCompare(b.nm));
@@ -208,7 +208,10 @@ function glisser(g) {
     const o = ou(ev); effacer(); if (!o) return; ev.preventDefault(); const e = EVS[G.i]; G = null; if (!e) return;
     if (e.cat === "co") { if (A.deplacerRdv) A.deplacerRdv(e.pid, e.rid, o.d, hh(o.m)); return; }
     // séance de chimio ou scanner : seulement l'heure, le même jour (changer de jour = reporter, depuis le dossier)
-    if (o.d !== e.d) { A.toast(e.cat === "ch" ? "Pour changer de jour, reportez la séance depuis le dossier." : "Pour changer de jour, modifiez la radiothérapie dans le dossier."); return; }
+    // 3.16 : autre jour → la fenêtre « Modifier / décaler » avec la nouvelle date (question sur la suite : cures suivantes, radiothérapie)
+    if (o.d !== e.d) { if (e.cat === "ch" && e.lid && !estInfirmiere() && (A.traitMod() || A.peut("planningChimio"))) window.chModifierRdvChimio(e.pid, e.lid, e.n, e.j || 1, retourAgenda, { d: o.d, h: hh(o.m) });
+      else if (e.cat === "rt" && e.z && A.traitModRT()) window.modifierEtapeRT(e.pid, e.rtid, e.z, retourAgenda, { d: o.d, h: hh(o.m) });
+      else A.toast("Vous ne pouvez pas changer le jour de ce rendez-vous."); return; }
     if (e.h !== hh(o.m)) noterHeure(e, { h: hh(o.m), du: e.du });
   });
   g.addEventListener("dragend", () => { effacer(); G = null; g.querySelectorAll(".glisse").forEach((b) => b.classList.remove("glisse")); });
@@ -219,19 +222,6 @@ function glisser(g) {
 function fenetreChimio(e) {
   const x = D().patients.find((p) => p.id === e.pid), L = x && (x.P.lignes || []).find((z) => z.id === e.lid), c = L && L.cures[e.n - 1]; if (!c) { window.ouvrirDossier(e.pid); return; }
   fenetreHeureSeance(x, e.lid, { k: e.n - 1, j: e.j, d: e.d, o: e.j > 1 ? (c.sea || {})[e.j] || {} : c }, estInfirmiere() ? "Séance à l'hôpital de jour" : "Consultation de la séance de chimio", () => { AG.defile = true; pageAgenda(); });
-}
-// Fenêtre d'un scanner de centrage : heure et durée facultatives (AG5)
-function fenetreHeure(e) {
-  const esc = A.esc, du = e.du || (e.cat === "ch" ? DU_CH : DU_SCAN);
-  A.fenetre("<h3>" + EM[e.cat] + " " + esc(e.nm) + '</h3><p class="sous">' + esc(e.t) + " · " + A.cap(A.jourLong(e.d)) + "</p>" +
-    '<div class="form"><div><label for="hS">Heure</label><input id="hS" type="time" step="900" value="' + esc(e.h || "") + '"></div>' +
-    '<div><label for="hDu">Durée</label><select id="hDu">' + DUREES_H.concat(DUREES_H.indexOf(du) < 0 ? [du] : []).sort((a, z) => a - z).map((m) => '<option value="' + m + '"' + (m === du ? " selected" : "") + ">" + (m < 60 ? m + " min" : Math.floor(m / 60) + " h" + (m % 60 ? " " + (m % 60) : "")) + "</option>").join("") + "</select></div></div>" +
-    '<p class="mesures">Facultatif. Avec une heure, la séance a sa case dans la grille de l\'agenda (et dans Google Agenda) ; sans heure, elle reste dans la ligne « Journée ». Pour changer de jour : depuis le dossier.</p>' +
-    '<div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Fermer</button><button class="bt clair" onclick="fermerFenetre();ouvrirDossier(\'' + e.pid + "')\">Ouvrir le dossier</button>" +
-    (e.hr ? '<button class="bt clair" id="hSup">Retirer l\'heure</button>' : "") + '<button class="bt plein" id="hOk">Enregistrer</button></div>');
-  const ok = A.$("hOk"), sup = A.$("hSup");
-  ok.onclick = async () => { const h = A.val("hS"); if (!h) { A.toast("Indiquez l'heure (ou « Retirer l'heure »)."); return; } A.occupe(ok, true); await noterHeure(e, { h, du: +A.val("hDu") || du }); A.fermerFenetre(); };
-  if (sup) sup.onclick = async () => { A.occupe(sup, true); await noterHeure(e, null); A.fermerFenetre(); };
 }
 
 // ───── Actions ─────
@@ -247,10 +237,20 @@ window.agCreneau = (ev, d) => {
   const col = ev.currentTarget, y = ev.clientY - col.getBoundingClientRect().top, m = H0 * 60 + Math.floor(y / PAS) * 15;
   window.nouveauRdv(d, hh(Math.max(H0 * 60, Math.min(m, H1 * 60 - 15))), AG.etab || "", AG.med || "");
 };
+// 3.16 (12/10/2026) : un clic sur n'importe quel rendez-vous = Fermer · Ouvrir le dossier · Modifier / décaler. Modifier : la fenêtre du
+// dossier (consultation : elle seule ; séance de chimio : date → « cette cure seulement » ou « toute la suite », heure ; scanner, 1re séance :
+// toute la radiothérapie suit la 1re séance ; fin prévue : heure, et une autre date = fin prévue) ; retour à l'agenda
+const retourAgenda = () => { AG.defile = true; pageAgenda(); };
+const modifiable = (e) => e.st === "prevu" && (e.rid ? A.peut("rendezvous") : e.cat === "ch" ? !!e.lid && (peutHeureChimio() || A.traitMod() || A.peut("planningChimio")) : e.cat === "rt" && !!e.z && A.traitModRT());
 window.agEv = (i) => {
   const e = EVS[i]; if (!e) return;
-  if (!e.rid) { if (peutHeure(e)) (e.cat === "ch" ? fenetreChimio(e) : fenetreHeure(e)); else window.ouvrirDossier(e.pid); return; }
-  const st = { prevu: "Prévu", fait: "Venu", absent: "Non venu" }[e.st] || e.st;
+  const st = { prevu: "Prévu", fait: e.cat === "co" ? "Venu" : "Fait", absent: "Non venu" }[e.st] || e.st;
   A.fenetre("<h3>" + EM[e.cat] + " " + A.esc(e.nm) + '</h3><p class="sous">' + A.esc(e.t) + " · " + A.cap(A.jourLong(e.d)) + (e.h ? " à " + e.h : "") + (e.f && e.f !== e.d ? " → " + A.dfrA(e.f) : "") + " · " + st + (e.n ? "<br>" + A.esc(e.n) : "") + "</p>" +
-    '<div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Fermer</button><button class="bt clair" onclick="fermerFenetre();ouvrirDossier(\'' + e.pid + "')\">Ouvrir le dossier</button>" + (A.peut("rendezvous") ? '<button class="bt plein" onclick="ouvrirRdv(\'' + e.pid + "','" + e.rid + "')\">Modifier / décaler</button>" : "") + "</div>");
+    '<div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Fermer</button><button class="bt clair" onclick="fermerFenetre();ouvrirDossier(\'' + e.pid + "')\">Ouvrir le dossier</button>" + (modifiable(e) ? '<button class="bt plein" onclick="agModifier(' + i + ')">Modifier / décaler</button>' : "") + "</div>");
+};
+window.agModifier = (i) => {
+  const e = EVS[i]; if (!e) return; A.fermerFenetre();
+  if (e.rid) { window.ouvrirRdv(e.pid, e.rid); return; } // consultation : elle seule (retour à l'agenda : apresRdv)
+  if (e.cat === "ch") { if (estInfirmiere() || !(A.traitMod() || A.peut("planningChimio"))) fenetreChimio(e); else window.chModifierRdvChimio(e.pid, e.lid, e.n, e.j || 1, retourAgenda); return; }
+  if (e.cat === "rt" && e.z) window.modifierEtapeRT(e.pid, e.rtid, e.z, retourAgenda);
 };

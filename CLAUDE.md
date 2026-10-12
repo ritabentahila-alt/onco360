@@ -172,6 +172,12 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
 - **Lignes et modèles (12/10/2026)** : `lignes[].intent` neo | adj | meta | conc + `rang` (ligne métastatique n°) ; `libIntention` (chimio.js) ; `reglages.auto`
   { rtHebdo, rtFin } (Paramètres › Rendez-vous automatiques) ; `reglages.impression` { age, poids, allergie } ; modèles des documents RT : `donnees/modelesrt.js`
   (MODELES_RT0, CHAMPS_RT, remplirModele), modifiés dans `bibliotheques/courriers` (entrées `rt: "pli"|"cr"|"rdv"`, ids rt-…), lus par `modeleRT` (ordonnances.js).
+- **Ordonnances : en-tête et signataire (3.9, 12/10/2026)** : `reglages.impression.entete` papier | genere (+ eLogo, eNom, eSpe, eInpe, eLieu, eSig ;
+  marge du haut réduite `margesMm`) ; ordonnances.js `cadre(pid, uid)` (aperçu `.or-apercu`, impression `imprimer(w, html, format, taille, { pid, uid })`),
+  « Signée par » (`orSignataire`, `O.medUid`, ligne `medUid`) ; carte de chaque médecin `signataires/{uid}` { nom, titre, specialite, inpe, genre,
+  signature } (v2.js `publierCarte` / `chargerSignataires`, `API.signataires()` ; règle : lue par l'équipe sauf comptable, écrite par le médecin lui-même).
+- **Agenda (3.16)** : `agEv` = Fermer · Ouvrir le dossier · Modifier / décaler (`agModifier` → `ouvrirRdv`, `chModifierRdvChimio(…, apres, pre)`,
+  `modifierEtapeRT(id, rid, z scan|deb|fin, apres, pre)`) ; fin prévue : `rts[].finPrev` + `finH` { h, du } ; glisser vers un autre jour = même fenêtre.
 - **Types de consultation (3.13, 12/10/2026)** : `parametres/typesConsult` { data: JSON [{ k, nom, rdv, anciens }] } (Paramètres › Dossier patient ›
   Types de consultation ; logique `public/js/moteur/typesconsult.js` : `referentiel` (liste de départ = types de base `STD` + activités des tarifs +
   types du journal), `typesPourRdv`, `cleDeRdv`, `cleDuree`, `nomActuel`, `renommer`) ; `D.typesC` / `API.typesC()` / `window.majTypesC` (v2.js) ;

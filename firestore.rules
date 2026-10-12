@@ -222,6 +222,12 @@ service cloud.firestore {
       }
       // « Dossier ouvert par » (salle d'attente, 08/10/2026) : chacun écrit seulement son propre document (patient ouvert, nom,
       // heure), lu par les membres du cabinet
+      // Carte des médecins (3.9, 12/10/2026) : nom, titre, spécialité, INPE, signature scannée, publiés par chaque médecin lui-même
+      // pour l'en-tête et la signature des ordonnances (choix du médecin signataire) ; lue par l'équipe (pas le comptable)
+      match /signataires/{uid} {
+        allow read: if estMembre() && !comptable();
+        allow write: if estMembre() && uid == request.auth.uid && m().role == 'medecin';
+      }
       match /presence/{uid} {
         allow read: if estMembre() && !comptable();
         allow write: if estMembre() && uid == request.auth.uid;

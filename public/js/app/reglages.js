@@ -13,7 +13,9 @@ export function installer(api) { A = api; }
 const D = () => A.D();
 
 export const REGLAGES0 = {
-  impression: { a5: [45, 28, 18], a4: [60, 35, 22], doc: [45, 35, 22], age: false, poids: false, allergie: false }, // âge, poids sous le nom sur les ordonnances (3.2 ; séparés le 12/10/2026)
+  // entete (3.9, 12/10/2026) : « papier » = papier à en-tête (rien n'est imprimé en haut, marge du haut) ; « genere » = en-tête et pied imprimés
+  // par Onco360 (eLogo : logo du lieu, eNom, eSpe, eInpe : médecin signataire ; eLieu : adresse et téléphone du lieu en pied ; eSig : signature scannée)
+  impression: { a5: [45, 28, 18], a4: [60, 35, 22], doc: [45, 35, 22], age: false, poids: false, allergie: false, entete: "papier", eLogo: true, eNom: true, eSpe: true, eInpe: true, eLieu: true, eSig: true }, // âge, poids sous le nom sur les ordonnances (3.2 ; séparés le 12/10/2026)
   whatsapp: { de: 1, a: 2 },
   alertes: { cure: 3, finTrait: 30 },
   auto: { rtHebdo: true, rtFin: true }, // rendez-vous créés d'office (12/10/2026) : consultations hebdomadaires de RT, consultation de fin de RT
@@ -28,10 +30,10 @@ export function reglages() {
   return r;
 }
 // Marges d'impression : « 45mm 28mm 18mm » pour @page ; variables CSS de l'aperçu à l'écran (feuille modifiable)
-export const margesMm = (q) => reglages().impression[q].map((v) => v + "mm").join(" ");
+export const margesMm = (q) => { const I = reglages().impression, m = I[q].slice(); if (I.entete === "genere" && q !== "doc") m[0] = Math.min(m[1], 20); return m.map((v) => v + "mm").join(" "); }; // en-tête imprimé (3.9) : marge du haut réduite
 export function appliquerImpression() {
   const I = reglages().impression, st = document.documentElement.style;
-  [["a5", I.a5], ["a4", I.a4], ["dc", I.doc]].forEach(([k, m]) => { st.setProperty("--" + k + "-h", m[0]); st.setProperty("--" + k + "-c", m[1]); st.setProperty("--" + k + "-b", m[2]); });
+  [["a5", I.a5], ["a4", I.a4], ["dc", I.doc]].forEach(([k, m]) => { st.setProperty("--" + k + "-h", I.entete === "genere" && k !== "dc" ? Math.min(m[1], 20) : m[0]); /* en-tête imprimé (3.9) : pas de place pour le papier */ st.setProperty("--" + k + "-c", m[1]); st.setProperty("--" + k + "-b", m[2]); });
 }
 // Enregistre seulement ce qui diffère des valeurs par défaut
 export async function enregistrerReglages(r) {

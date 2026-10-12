@@ -71,7 +71,7 @@ async def main():
         ok(not any(z.get('rtfin') or z.get('rtc') for z in rd), 'ni consultation de fin, ni consultations hebdomadaires', rd)
         await pg.goto(f'http://localhost:{PORT}/v2.html#parametres/rdvauto'); await pg.wait_for_timeout(1200)
         t = await pg.inner_text('#page')
-        ok('Types de consultation' in t and "Créé d'office" in t and await ev("[...document.querySelectorAll('.ty-n')].some(i=>i.value==='Consultation de fin de radiothérapie')"), 'Paramètres › Types de consultation : rendez-vous créés d\'office (ancienne adresse rdvauto)', t[:300])
+        ok('Types de consultation' in t and 'Comment il est prévu' in t and await ev("[...document.querySelectorAll('.ty-n')].some(i=>i.value==='Consultation de fin de radiothérapie')"), 'Paramètres › Types de consultation : rendez-vous créés d\'office (ancienne adresse rdvauto)', t[:300])
         await pg.goto(f'http://localhost:{PORT}/v2.html#parametres/impression'); await pg.wait_for_timeout(1000)
         ok(await ev("[...document.querySelectorAll('#page label.chk')].some(l=>/Allergie/.test(l.textContent))"), 'Paramètres › Impression : allergie à cocher')
         ok(not pg.errs, 'aucune erreur JavaScript', pg.errs[:2]); await pg.close()

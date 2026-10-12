@@ -59,7 +59,7 @@ async def main():
         n = clic
         ok(clic is not None, 'séance sans heure dans la ligne « Journée »', n)
         if clic:
-            await ev(clic); await pg.wait_for_timeout(800)
+            await ev(clic); await pg.wait_for_timeout(500); await pg.click('#fenetre button:has-text("Modifier / décaler")'); await pg.wait_for_timeout(600)  # 3.16
             t = await pg.inner_text('#fenetreCorps')
             ok('hôpital de jour' in t and 'Durée prévue' in t and await ev("document.getElementById('hS').value") == '09:45', 'fenêtre de l\'infirmière : heure proposée 09:45 (après la consultation), durée', t[:300])
             await pg.select_option('#hDu', '180'); await pg.click('#hOk'); await pg.wait_for_timeout(2000)

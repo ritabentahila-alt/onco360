@@ -78,6 +78,28 @@ async def main():
         r = json.loads(doc(await ev("window.__fs"))['rtsJson'])[0]
         ok(r['deb'] == '2026-10-26' and r['finPrev'] == '2026-11-09', 'début 26/10, fin saisie 02/11 → 09/11', r)
         ok(not pg.errs, 'aucune erreur JavaScript', pg.errs[:2]); await pg.close()
+
+        print('3.16 : fin de radiothérapie prévue (heure ; autre date = fin prévue, la consultation de fin suit) ; agenda')
+        pg, ev = await dossier(b, seed([RT], []))
+        await pg.wait_for_timeout(1500)
+        t = await ev("[...document.querySelectorAll('#rdvListe .rdv')].filter(e=>/Fin de radiothérapie prévue/.test(e.innerText)).map(e=>e.innerText).join()")
+        ok('Modifier' in t, '« Modifier » sur la fin de radiothérapie prévue', t[:200])
+        await ev(f"modifierEtapeRT('{pid}','rtF','fin')"); await pg.wait_for_timeout(400)
+        ok(await ev("document.getElementById('eD').value") == '2026-10-30', 'date proposée : la fin calculée (30/10)')
+        await pg.fill('#eH', '16:00'); await pg.click('#fOk'); await pg.wait_for_timeout(1800)
+        r = json.loads(doc(await ev("window.__fs"))['rtsJson'])[0]
+        ok(r.get('finH', {}).get('h') == '16:00' and not r.get('finPrev'), 'heure seule : notée, fin inchangée (pas de fin saisie)', r)
+        await ev(f"modifierEtapeRT('{pid}','rtF','fin')"); await pg.wait_for_timeout(400); await pg.fill('#eD', '2026-11-03'); await pg.click('#fOk'); await pg.wait_for_timeout(1800)
+        fs = await ev("window.__fs"); r = json.loads(doc(fs)['rtsJson'])[0]; f = [z for z in json.loads(doc(fs)['rdvsJson']) if z.get('rtfin') == 'rtF']
+        ok(r.get('finPrev') == '2026-11-03' and f and f[0]['d'] == '2026-11-03', 'autre date : fin prévue 03/11, la consultation de fin suit', (r.get('finPrev'), f))
+        await ev("location.hash='#agenda'"); await pg.wait_for_timeout(1200); await ev("agJour('2026-11-03',1)"); await pg.wait_for_timeout(500)
+        cl = await ev("(()=>{const b=[...document.querySelectorAll('[onclick*=\"agEv(\"]')].find(x=>/Fin de radioth/.test(x.innerText+x.title));if(b)b.click();return !!b})()")
+        await pg.wait_for_timeout(300)
+        t = await pg.inner_text('#fenetre') if cl else ''
+        ok(cl and 'Modifier / décaler' in t and 'Ouvrir le dossier' in t, 'agenda : fin prévue → Fermer · Ouvrir le dossier · Modifier / décaler', t[:200])
+        if cl: await pg.click('#fenetre button:has-text("Modifier / décaler")'); await pg.wait_for_timeout(300)
+        ok(await ev("!!document.getElementById('eH') && document.getElementById('eH').value === '16:00'"), 'Modifier depuis l\'agenda : la fenêtre de la fin (heure 16:00)')
+        ok(not pg.errs, 'aucune erreur JavaScript', pg.errs[:2]); await pg.close()
         await b.close()
     print(f'\n{ok_n} réussis, {ko_n} échoués')
 asyncio.run(main())

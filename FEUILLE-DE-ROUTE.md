@@ -460,10 +460,16 @@ longs et ne dépendent pas du code.
 - [ ] **3.8 Écran de l'infirmière** (ancienne étape 11 I1) : tablette, patients du jour, cure et molécules ; pose de chaque poche
       (heure, par qui), voie d'abord (PAC, périphérique, PICC), constantes, tolérance, effets indésirables ; visible dans l'onglet
       Chimiothérapie ; règle `administrations` déjà écrite ; droit « administrer » remis dans Accès.
-- [ ] **3.9 Prescriptions et documents** (décisions ; documents déposés : tout en PDF, inchangé) : confirmation avant de retirer une ligne de l'ordonnance en
+- [x] **3.9 Prescriptions et documents** (décisions ; documents déposés : tout en PDF, inchangé) : confirmation avant de retirer une ligne de l'ordonnance en
       préparation ; ⭐ ✎ ✕ seulement en mode « Gérer la liste » ; doublon refusé dans toutes les familles ; **en-tête et pied
       générés** au choix du cabinet (logo du lieu, nom, INPE, signature scannée ; ou papier à en-tête) ; choix du médecin signataire
       quand le cabinet a plusieurs médecins.
+      **Fait le 12/10/2026 (20261012s), selon les choix de Dr Bentahila** : pas de confirmation pour retirer une ligne, pas de refus des
+      doublons ; ⭐ ✎ ✕ : déjà réservés au médecin (rien à changer) ; Paramètres › Impression › « En-tête des ordonnances et courriers » :
+      papier à en-tête (comme avant) ou en-tête et pied imprimés (logo du lieu, nom, spécialité, INPE du signataire ; lieu, adresse,
+      téléphone en pied ; signature scannée), avec aperçu dans la fenêtre de l'ordonnance (non enregistré dans le texte) ; « Signée par »
+      quand le cabinet a plusieurs médecins (`medUid` sur la ligne) ; carte de chaque médecin `signataires/{uid}` publiée par lui-même
+      (règle + `tests/regles/test-signataires.mjs`). Test : `tests/test_ordo_entete.py`.
 - [ ] **3.10 Paramètres, fin** : onglet WhatsApp replié par message (4 001 px) ; explications longues → bulle « ? » ; croix rouges des
       listes dans un menu ⋯ avec confirmation ; `pageConfiguration` (30 427 caractères) découpée par famille.
 
@@ -537,7 +543,7 @@ les étapes 1.7, 2.5, 3.2 et 3.7.
          (20261012p) : plantage de **Safari** (« un problème récurrent est survenu », Firefox sans souci) quand un menu déroulant est
          retiré pendant son propre « change » ; la mise à jour se fait maintenant juste après (menu fermé), et seuls les menus et la
          liste changent (plus toute la fenêtre / la page).
-- [ ] **3.16 Agenda : un clic sur un rendez-vous = Fermer · Ouvrir le dossier · Modifier / décaler** (demande du 12/10/2026, plan) :
+- [x] **3.16 Agenda : un clic sur un rendez-vous = Fermer · Ouvrir le dossier · Modifier / décaler** (fait le 12/10/2026, 20261012s ; décisions : consultation = elle seule ; fin de RT prévue = surtout l'heure, une autre date devient la fin prévue et la consultation de fin suit ; glisser vers un autre jour = la même fenêtre) (demande du 12/10/2026, plan) :
       aujourd'hui, une séance de chimio ou un rendez-vous de radiothérapie ouvre directement la fenêtre de l'heure ; désormais la même
       fenêtre pour tout (consultation, séance de chimio, scanner, 1re séance, fin de radiothérapie prévue, consultations en cours et de fin
       de radiothérapie). « Modifier / décaler » : heure seule → enregistrée sans question ; **date changée → question** sur ce qui suit :
@@ -545,7 +551,7 @@ les étapes 1.7, 2.5, 3.2 et 3.7.
       1re séance de RT = toute la radiothérapie suit (fin prévue, consultations hebdomadaires, consultation de fin) ; fin de RT prévue =
       la consultation de fin suit (si elle n'a pas été déplacée à la main) ; consultation prévue = « elle seule » ou « aussi les
       consultations prévues après » (même écart). Glisser-déposer (21) : même question quand le jour change.
-- [ ] **3.13 bis Types de consultation : colonnes plus claires** (questions de Dr Bentahila du 12/10/2026, plan) :
+- [x] **3.13 bis Types de consultation : colonnes plus claires** (fait le 12/10/2026, 20261012s : « Comment il est prévu », « Créneau du lieu (30 min) », « Utilisé par » dans Formulaire de consultation, bulles « ? ») (questions de Dr Bentahila du 12/10/2026, plan) :
       a) « Rendez-vous » → **« Comment il est prévu »** : *À la main* (proposé à la prise de rendez-vous), *D'office* (consultation de
       chimiothérapie avec la cure, consultations en cours / fin de radiothérapie avec la RT), *À la main et d'office*, *Sans rendez-vous*
       (journal seulement : RCP, note du secrétariat) ; tous sont des rendez-vous dans l'agenda, la colonne dit seulement d'où ils viennent ;

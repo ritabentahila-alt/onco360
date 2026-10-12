@@ -22,7 +22,7 @@ export function evtsAgenda(P, ctx) {
   });
   (P.rts || []).forEach((r, j) => {
     if (r.fin) return; const f = finRT(r, ctx.feries), id = r.id || j, a = r.acte || "Radiothérapie", hr = r.hop ? " (" + r.hop + ")" : hop;
-    [[r.scan, "scan", "Scanner de centrage"], [r.deb, "deb", "1re séance de radiothérapie"], [f, "fin", "Fin de radiothérapie prévue"]].forEach((z) => { if (z[0] && z[0] >= t) out.push(Object.assign({ k: pid + "|rt|" + id + "|" + z[1], t: "☢️ " + nm + " – " + z[2] + " · " + a + hr, x: P.diag || "", d: z[0] }, z[1] === "scan" ? heureDe(r.scanH) : z[1] === "deb" ? heureDe(r.debH) : {})); });
+    [[r.scan, "scan", "Scanner de centrage"], [r.deb, "deb", "1re séance de radiothérapie"], [f, "fin", "Fin de radiothérapie prévue"]].forEach((z) => { if (z[0] && z[0] >= t) out.push(Object.assign({ k: pid + "|rt|" + id + "|" + z[1], t: "☢️ " + nm + " – " + z[2] + " · " + a + hr, x: P.diag || "", d: z[0] }, z[1] === "scan" ? heureDe(r.scanH) : z[1] === "deb" ? heureDe(r.debH) : z[1] === "fin" ? heureDe(r.finH) : {})); });
     // Dosimétrie à valider : plus un événement d'agenda depuis le 08/10/2026 (c'est une tâche pour le médecin, P4)
   });
   return out;

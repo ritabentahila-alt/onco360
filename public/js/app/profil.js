@@ -103,6 +103,7 @@ window.pfEnregistrer = async () => {
     const sig = A.$("pfSig") ? await lireImage(A.$("pfSig"), 500) : null; if (sig) maj.signature = sig; else if (A.$("pfSigSup") && A.$("pfSigSup").checked) maj.signature = "";
     const ph = await lireImage(A.$("pfPhoto"), 256, true); if (ph) maj.photo = ph; else if (A.$("pfPhotoSup") && A.$("pfPhotoSup").checked) maj.photo = "";
     await setDoc(doc(db, "utilisateurs", D().u.uid), maj, { merge: true });
+    Object.assign(D().profil, maj); if (A.publierCarte) A.publierCarte().catch(() => {}); // 3.9 : carte du médecin (ordonnances) à jour
     if (n1) {
       try { await reauthenticateWithCredential(auth.currentUser, EmailAuthProvider.credential(D().u.email, old)); }
       catch (e) { throw new Error("Mot de passe actuel incorrect : le mot de passe n'a pas été changé (le reste est enregistré)."); }

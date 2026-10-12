@@ -18,7 +18,7 @@ import { EXAMENS0 } from "../donnees/examens.js";
 import { COURRIERS0, CHAMPS_COURRIER } from "../donnees/courriers.js";
 import { COURRIERS_RT0, CHAMPS_RT, MODELES_RT0 } from "../donnees/modelesrt.js"; // documents de radiothérapie modifiables (12/10/2026)
 import * as ficheP from "./fichepatient.js"; // champs ajoutés de la fiche, insérables dans les courriers (10/10/2026)
-import { age, accordMedecin } from "../moteur/outils.js";
+import { age, accordMedecin, srcImage } from "../moteur/outils.js";
 import { installer as installerDocumentation } from "./documentation.js"; // bouton « Doc. » (08/10/2026)
 import { enregistrerPrescription, trouverLigne, assurerConsultations, prescriptionsDe, supprimerPrescription, FAMILLES } from "./consultations.js";
 import { margesMm, reglages } from "./reglages.js";
@@ -674,7 +674,7 @@ function vueAntecedents() {
 const choisie = () => { const o = H && prescriptionsDe(H.pid, H.t).find((z) => z.l.id === H.sel); return o && o.l; };
 window.anChoisir = (id) => { H.sel = id; vueAntecedents(); };
 window.anFermer = () => { const pid = H && H.pid; H = null; A.fermerFenetre(); if (pid) A.pageDossier(pid); };
-window.anImprimer = () => { const l = choisie(); if (!l) return; let w = null; try { w = window.open("", "_blank"); } catch (e) { w = null; } if (w) imprimer(w, nettoyer(l.html), l.format || "A5", l.taille || 0); else A.toast("Impression bloquée par le navigateur : autorisez les fenêtres pour Onco360."); };
+window.anImprimer = () => { const l = choisie(); if (!l) return; let w = null; try { w = window.open("", "_blank"); } catch (e) { w = null; } if (w) imprimer(w, nettoyer(l.html), l.format || "A5", l.taille || 0, { pid: H.pid, uid: l.medUid || uidDeNom(l.med) }); else A.toast("Impression bloquée par le navigateur : autorisez les fenêtres pour Onco360."); };
 window.anSupprimer = async () => {
   const l = choisie(), x = H && trouver(H.pid); if (!l || !x || !peutSupprimer()) return;
   if (!confirm("Supprimer l'ordonnance du " + A.dfrA(l.d) + " ?\n\n« " + (l.lib || "") + " »\n\nElle disparaît aussi de sa consultation.")) return;
@@ -695,19 +695,22 @@ window.anModifier = async () => {
 window.anRenouveler = () => { const l = choisie(); if (!l || !peutEcrire()) return; const pid = H.pid; H = null; ouvrirOrdonnance({ pid, t: l.t, renouv: l, types: l.types, html: auJour(l.html, true), format: l.format || "A5", taille: l.taille || 0 }); };
 function ouvrirOrdonnance(o) {
   O = o; const x = trouver(o.pid), l = o.ligne;
+  // 3.9 : signataire (cabinet de plusieurs médecins) : celui de l'ordonnance modifiée, sinon le médecin connecté, sinon le titulaire
+  O.medUid = (l && (l.medUid || uidDeNom(l.med))) || (A.medDefaut ? A.medDefaut() : "");
+  const cd = cadre(o.pid, O.medUid), sigSel = plusieursMedecins() && !o.lecture ? '<label class="or-sg">Signée par <select id="orSig" onchange="orSignataire(this.value)">' + A.medecins().map((m) => '<option value="' + A.esc(m.uid) + '"' + (m.uid === O.medUid ? " selected" : "") + ">" + A.esc(m.nom) + "</option>").join("") + "</select></label>" : "";
   A.fenetre("<h3>" + (o.t === "courrier" ? "Courrier" : "Ordonnance") + " — " + A.esc(x.r.nm) + (l ? ' <span class="mesures">(du ' + A.dfrA(l.d) + ", modification)</span>" : o.renouv ? ' <span class="mesures">(renouvellement de celle du ' + A.dfrA(o.renouv.d) + ")</span>" : "") + "</h3>" +
     '<div class="or-outils"><div class="ag-vues" data-fn="prescriptions.format" role="radiogroup" aria-label="Format">' + ["A5", "A4"].map((f) => '<button role="radio" aria-checked="' + (o.format === f) + '" class="' + (o.format === f ? "on" : "") + '" onclick="orFormat(\'' + f + '\')">Édition ' + f + "</button>").join("") + "</div>" +
     (o.lecture ? "" : '<span class="sep"></span><button class="ico" title="Gras" aria-label="Gras" onmousedown="event.preventDefault()" onclick="orStyle(\'bold\')"><b>G</b></button><button class="ico" title="Souligné" aria-label="Souligné" onmousedown="event.preventDefault()" onclick="orStyle(\'underline\')"><u>S</u></button>' +
       '<button class="ico" title="Texte plus petit" aria-label="Texte plus petit" onclick="orTaille(-1)">A−</button><button class="ico" title="Texte plus grand" aria-label="Texte plus grand" onclick="orTaille(1)">A+</button>') + "</div>" +
     (o.lecture ? "" : '<p class="mesures" style="margin:0 0 8px">' + (o.t === "courrier" ? "Le courrier reste modifiable : cliquez dans la feuille pour écrire ; complétez les zones surlignées en jaune (le surlignage ne s'imprime pas)." : "L'ordonnance reste modifiable : cliquez dans la feuille pour corriger le texte.") + " Le haut de la feuille est laissé libre pour l'en-tête du papier.</p>") +
-    '<div class="or-zone"><div id="orPage" class="or-feuille" ' + (o.lecture ? "" : 'contenteditable="true" spellcheck="true"') + "></div></div>" +
+    sigSel + '<div class="or-zone"><div class="or-feuille-c" id="orCadre">' + (cd.haut ? '<div class="or-apercu">' + cd.haut + "</div>" : "") + '<div id="orPage" class="or-feuille" ' + (o.lecture ? "" : 'contenteditable="true" spellcheck="true"') + "></div>" + (cd.bas ? '<div class="or-apercu">' + cd.bas + "</div>" : "") + "</div></div>" +
     '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="orFermer()">Fermer</button>' +
     (o.lecture ? "" : '<button class="bt clair" id="orOk" onclick="orValider(false)">Valider</button><button class="bt plein" id="orImp" onclick="orValider(true)">' + A.ic("imprimer") + "Valider + Imprimer</button>") + "</div>", "large");
   $("orPage").innerHTML = nettoyer(o.html); miseEnPage(); // nettoyé aussi à l'affichage (audit du 10/10 : un HTML écrit directement dans la base ne doit rien exécuter)
   // un clic dans une zone « À compléter » la sélectionne : ce qu'on tape la remplace
   $("orPage").onclick = (ev) => { const m = ev.target.closest && ev.target.closest("mark.or-ac"); if (!m || !/^À compléter/.test(m.textContent)) return; const r = document.createRange(), s = window.getSelection(); r.selectNodeContents(m); s.removeAllRanges(); s.addRange(r); };
 }
-function miseEnPage() { const p = $("orPage"); if (!p) return; p.className = "or-feuille " + O.format.toLowerCase(); p.style.fontSize = (O.format === "A4" ? 15 : 14) + O.taille + "px"; }
+function miseEnPage() { const p = $("orPage"); if (!p) return; const cdr = $("orCadre"); if (cdr) cdr.className = "or-feuille-c " + O.format.toLowerCase(); p.className = "or-feuille " + O.format.toLowerCase(); p.style.fontSize = (O.format === "A4" ? 15 : 14) + O.taille + "px"; }
 window.orFormat = (f) => {
   if (!O) return; O.format = f; if (O.t !== "courrier") try { localStorage.setItem("onco360.formatOrdo", f); } catch (e) {}
   document.querySelectorAll(".or-outils [role=radio]").forEach((b) => { const on = b.textContent.indexOf(f) >= 0; b.classList.toggle("on", on); b.setAttribute("aria-checked", on); });
@@ -716,15 +719,38 @@ window.orFormat = (f) => {
 window.orStyle = (c) => { try { document.execCommand(c, false, null); } catch (e) {} };
 window.orTaille = (s) => { if (!O) return; O.taille = Math.max(-4, Math.min(6, O.taille + s)); miseEnPage(); };
 window.orFermer = () => { O = null; A.fermerFenetre(); };
+// 3.9 : autre médecin signataire : nom sous « Cachet et signature » et en-tête imprimé
+window.orSignataire = (uid) => { if (!O) return; O.medUid = uid; const n = nomSignataire(uid), p = $("orPage");
+  p.querySelectorAll(".or-med").forEach((z) => { z.textContent = n; }); const g = p.querySelector(".or-sig b"); if (g) g.textContent = n;
+  const cd = cadre(O.pid, uid), ap = document.querySelectorAll("#orCadre .or-apercu"); if (ap[0] && cd.haut) ap[0].innerHTML = cd.haut; };
 
-// Impression : feuille seule, sans en-tête (papier à en-tête), au format choisi
-function imprimer(w, html, format, taille) {
+// ───── 3.9 (12/10/2026) : médecin signataire (cabinet de plusieurs médecins) ; en-tête et pied imprimés (Paramètres › Impression) ─────
+const carte = (uid) => { const c = (A.signataires ? A.signataires() : {})[uid]; if (c) return c; const m = (A.medecins ? A.medecins() : []).find((z) => z.uid === uid); return m ? { nom: m.nom } : null; };
+const nomSignataire = (uid) => (carte(uid) || {}).nom || medecin();
+const plusieursMedecins = () => (A.medecins ? A.medecins() : []).length > 1;
+const uidDeNom = (nom) => { const m = (A.medecins ? A.medecins() : []).find((z) => z.nom === nom) || Object.entries(A.signataires ? A.signataires() : {}).map(([uid, c]) => ({ uid, nom: c.nom })).find((z) => z.nom === nom); return m ? m.uid : ""; };
+// En-tête (logo du lieu, médecin, spécialité, INPE) et pied (lieu, adresse, téléphone) ; rien avec le papier à en-tête
+function cadre(pid, uid) {
+  const I = reglages().impression; if (I.entete !== "genere") return { haut: "", bas: "", sig: "" };
+  const e = A.esc, x = trouver(pid), et = (x && A.etabDe && A.etabDe(x.doc.etablissementId)) || {}, c = carte(uid) || { nom: medecin() };
+  const lg = I.eLogo && srcImage(et.logo) ? '<img class="or-elogo" src="' + srcImage(et.logo) + '" alt="">' : "";
+  const id = [I.eNom && c.nom ? "<b>" + e(c.nom) + "</b>" : "", I.eSpe && c.specialite ? e(c.specialite) : "", I.eInpe && c.inpe ? "INPE : " + e(c.inpe) : ""].filter(Boolean).join("<br>");
+  const pied = I.eLieu ? [et.nom, et.adresse, et.ville, et.tel ? "Tél. " + et.tel : ""].filter(Boolean).map(e).join(" · ") : "";
+  return { haut: lg || id ? '<div class="or-ent">' + lg + '<div class="or-eid">' + id + "</div></div>" : "", bas: pied ? '<div class="or-pied">' + pied + "</div>" : "", sig: I.eSig && srcImage(c.signature) ? '<img class="or-esig" src="' + srcImage(c.signature) + '" alt="Signature">' : "" };
+}
+const CSS_CADRE = ".or-ent{display:flex;align-items:center;gap:6mm;border-bottom:0.3mm solid #000;padding-bottom:3mm;margin-bottom:6mm}.or-elogo{max-height:18mm;max-width:45mm}.or-eid{margin-left:auto;text-align:right;line-height:1.35}" +
+  ".or-pied{border-top:0.3mm solid #999;margin-top:10mm;padding-top:2mm;font-size:0.8em;color:#444;text-align:center}.or-esig{display:block;max-height:22mm;max-width:55mm;margin:2mm 0 0 auto}";
+// Impression au format choisi : feuille seule (papier à en-tête), ou avec l'en-tête et le pied imprimés (3.9) ; signature scannée sous « Cachet et signature »
+function imprimer(w, html, format, taille, ctx) {
+  const cd = ctx ? cadre(ctx.pid, ctx.uid) : { haut: "", bas: "", sig: "" };
+  if (cd.sig) { const d = document.createElement("div"); d.innerHTML = html; const g = d.querySelector(".or-sig"); if (g) g.insertAdjacentHTML("beforeend", cd.sig); html = d.innerHTML; }
+  html = cd.haut + html + cd.bas;
   const a4 = format === "A4", pt = (a4 ? 12 : 11) + taille * 0.75;
   // Marges sur chaque page (07/10/2026 : côtés élargis deux fois, haut agrandi pour l'en-tête du papier, à régler quand
   // Dr Bentahila aura mesuré ses en-têtes)
   const css = "@page{size:" + (a4 ? "A4" : "A5") + " portrait;margin:" + margesMm(a4 ? "a4" : "a5") + "}html,body{margin:0}body{font-family:Arial,Helvetica,sans-serif;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact}" +
     ".pg{font-size:" + pt + "pt;line-height:1.45}.or-date{text-align:right;margin:0 0 6mm}.or-pat{margin:0 0 7mm}.or-pat2{margin:-5mm 0 6mm}.or-m{margin:4mm 0 1mm}.or-p{margin:0 0 0 6mm}.or-sig{margin-top:10mm;text-align:right}p{margin:0 0 1.5mm}" +
-    ".or-t{margin:0 0 3mm}p.or-a{margin:0 0 1.5mm 4mm}.or-rc{margin-top:6mm}mark.or-ac{background:none;color:inherit}" +
+    ".or-t{margin:0 0 3mm}p.or-a{margin:0 0 1.5mm 4mm}.or-rc{margin-top:6mm}mark.or-ac{background:none;color:inherit}" + CSS_CADRE +
     (html.indexOf("or-ti") >= 0 ? "p{margin:0 0 4mm;text-align:justify}.or-ti{text-align:center;font-weight:bold;font-size:1.1em;margin:0 0 9mm}.or-sig{text-align:right}.or-date{text-align:right}" : ""); // courriers
   w.document.open(); w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>&#8203;</title><style>' + css + '</style></head><body><div class="pg">' + html + "</div></body></html>"); w.document.close();
   setTimeout(() => { try { w.focus(); w.print(); } catch (e) {} }, 400);
@@ -738,8 +764,9 @@ window.orValider = async (imp) => {
   ["orOk", "orImp"].forEach((i) => A.occupe($(i), true));
   try {
     const l = O.ligne;
-    await enregistrerPrescription(x, Object.assign(l ? { id: l.id, d: l.d, dm: D().t, med: l.med, par: l.par } : { t: O.t, d: D().t, med: medecin(), par: document.getElementById("nomMenu").textContent }, { t: O.t, lib: O.t === "courrier" ? (O.types || []).join(" + ") || libelle(html) : ((O.types || []).length ? O.types.join(" + ") + " : " : "") + libelle(html), types: O.types || [], html, format: O.format, taille: O.taille }));
-    if (imp) { if (w) imprimer(w, html, O.format, O.taille); else A.toast("Impression bloquée par le navigateur : autorisez les fenêtres pour Onco360, puis réimprimez depuis la consultation."); }
+    const sg = O.medUid ? { med: nomSignataire(O.medUid), medUid: O.medUid } : null; // 3.9 : médecin signataire choisi
+    await enregistrerPrescription(x, Object.assign(l ? { id: l.id, d: l.d, dm: D().t, med: l.med, par: l.par } : { t: O.t, d: D().t, med: medecin(), par: document.getElementById("nomMenu").textContent }, sg || {}, { t: O.t, lib: O.t === "courrier" ? (O.types || []).join(" + ") || libelle(html) : ((O.types || []).length ? O.types.join(" + ") + " : " : "") + libelle(html), types: O.types || [], html, format: O.format, taille: O.taille }));
+    if (imp) { if (w) imprimer(w, html, O.format, O.taille, { pid: x.id, uid: O.medUid || (l && (l.medUid || uidDeNom(l.med))) || (A.medDefaut ? A.medDefaut() : "") }); else A.toast("Impression bloquée par le navigateur : autorisez les fenêtres pour Onco360, puis réimprimez depuis la consultation."); }
     const pid = O.pid, renouv = !!O.renouv, cr = O.t === "courrier"; O = null; S = null; CQ = null; A.fermerFenetre();
     A.toast(cr ? (l ? "Courrier modifié (et dans sa consultation)." : renouv ? "Courrier refait à la date du jour, dans la consultation du jour." : "Courrier enregistré dans la consultation du jour.") : l ? "Ordonnance modifiée (et dans sa consultation)." : renouv ? "Ordonnance renouvelée dans la consultation du jour." : "Ordonnance enregistrée dans la consultation du jour."); A.pageDossier(pid);
   } catch (e) {

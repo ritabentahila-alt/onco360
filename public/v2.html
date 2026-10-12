@@ -306,7 +306,12 @@ body.role-comptable nav a[data-p]:not([data-p="bilan"]):not([data-p="profil"]){d
 .cf-td{display:flex;flex-direction:column;gap:6px;max-width:640px}.cf-td .it{display:flex;gap:8px;align-items:center}.cf-td .n{width:22px;color:var(--doux);text-align:right}.cf-td input{flex:1;min-width:0;padding:8px 10px;border:1px solid #CCD3E0;border-radius:8px;font-size:15px}
 @media (max-width:640px){.fi{flex-wrap:wrap}.fi .actr{width:100%;justify-content:flex-start;padding-left:54px}}
 .cr-fiches{display:flex;gap:8px;flex-wrap:wrap}.cr-fiches .bt{text-decoration:none}.cr-champs{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:0 0 8px}.cr-champs .cr-z{background:#FFF1B8}
-.or-outils{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px}.or-outils .sep{width:1px;height:24px;background:var(--trait);margin:0 4px}.or-outils .ag-vues button{padding:7px 12px}
+.or-outils{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+/* 3.9 : en-tête et pied imprimés (aperçu, non modifiable) ; médecin signataire */
+.or-apercu{background:#fff;margin:0 auto;padding:10px 26px;width:min(100%,520px);font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#111;box-shadow:0 2px 12px rgba(30,42,68,.15)}.or-feuille-c.a4 .or-apercu{width:min(100%,720px)}
+.or-apercu .or-ent{display:flex;align-items:center;gap:16px;border-bottom:1px solid #000;padding-bottom:8px}.or-apercu .or-elogo{max-height:56px;max-width:150px}.or-apercu .or-eid{margin-left:auto;text-align:right;line-height:1.35}
+.or-apercu .or-pied{border-top:1px solid #999;padding-top:6px;font-size:11px;color:#444;text-align:center}
+.or-sg{display:flex;align-items:center;gap:8px;margin:0 0 8px;font-size:13.5px;font-weight:bold;color:var(--doux)}.or-sg select{width:auto;padding:6px 8px;border:1px solid #CCD3E0;border-radius:var(--r-s);font-size:14px}.or-outils .sep{width:1px;height:24px;background:var(--trait);margin:0 4px}.or-outils .ag-vues button{padding:7px 12px}
 .or-zone{background:#E6EAF1;border-radius:var(--r-m);padding:16px;overflow:auto;max-height:60vh}
 .or-feuille{position:relative;background:#fff;margin:0 auto;box-shadow:0 2px 12px rgba(30,42,68,.15);font-family:Arial,Helvetica,sans-serif;color:#111;line-height:1.45;outline:none}
 /* Marges réglables (Paramètres › Impression, 08/10/2026) : mm × échelle de l'aperçu (A5 520 px = 148 mm, A4 720 px = 210 mm) */
@@ -803,7 +808,8 @@ nav a.actif{box-shadow:var(--ombre-prim)}
 .ty-l .fl{display:flex;gap:2px}.ty-l .fl button{border:1px solid var(--trait);background:#fff;border-radius:8px;padding:4px 9px;font-weight:bold;color:var(--titre);cursor:pointer}.ty-l .fl button:disabled{opacity:.4;cursor:default}
 @media (max-width:640px){.ty-l .ty-s{flex:1 1 100%}.ty-l .ty-s select{flex:1}}
 .ty-h{display:none}
-@media (min-width:1200px){.ty-l{display:grid;grid-template-columns:76px minmax(220px,1fr) 100px 140px 210px minmax(150px,220px) 32px;gap:8px 12px}.ty-l input.ty-n{flex:none;width:100%}.ty-l .ty-lb{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}.ty-l .ty-s select{width:100%}.ty-h{display:grid;font-size:12px;font-weight:bold;color:var(--doux);padding:8px 0 4px}.ty-l .ty-c{font-size:12.5px}}
+.ty-q{border:1px solid var(--trait);background:#fff;border-radius:50%;width:18px;height:18px;padding:0;font-size:11px;font-weight:bold;color:var(--doux);cursor:help;line-height:16px}
+@media (min-width:1200px){.ty-l{display:grid;grid-template-columns:76px minmax(220px,1fr) 240px 170px 220px 32px;gap:8px 12px}.ty-l input.ty-n{flex:none;width:100%}.ty-l .ty-lb{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}.ty-l .ty-s select{width:100%}.ty-h{display:grid;font-size:12px;font-weight:bold;color:var(--doux);padding:8px 0 4px}.ty-l .ty-c{font-size:12.5px}}
 /* Éditeur de la fiche patient et du formulaire de consultation (editeurfiche.js, commun avec l'Administration) */
 .edf .rg-b{border:1px solid var(--trait);border-radius:var(--r-m);padding:4px 12px;max-width:900px}
 .edf .rg-l{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--trait)}.edf .rg-l:last-child{border-bottom:0}
@@ -917,6 +923,6 @@ function onco360Deconnecter() {
 }
 </script>
 
-<script type="module" src="./js/app/v2.js?v=20261012r"></script>
+<script type="module" src="./js/app/v2.js?v=20261012s"></script>
 </body>
 </html>

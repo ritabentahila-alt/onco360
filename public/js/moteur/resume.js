@@ -45,7 +45,7 @@ export function resume(P, ctx) {
   // 4. étapes de radiothérapie à venir
   r.rt = [];
   // rt / z / h (12/10/2026) : radiothérapie, étape (scan, deb, fin) et heure notée (scanner, 1re séance) : modifiables depuis le dossier
-  (P.rts || []).forEach((x) => { if (x.fin) return; const f = finRT(x, feries); [[x.scan, "Scanner de centrage", "scan", x.scanH], [x.deb, "1re séance", "deb", x.debH], [f, "Fin de radiothérapie prévue", "fin"]].forEach((e) => { if (e[0] && e[0] >= t) r.rt.push({ d: e[0], lib: "RT · " + (x.acte || "Radiothérapie") + " · " + e[1], rt: x.id, z: e[2], h: (e[3] && e[3].h) || "" }); }); const dz = dosimetrie(x, t); if (dz) r.rt.push({ d: dz.du, f: dz.au, lib: "RT · " + (x.acte || "Radiothérapie") + " · Dosimétrie à valider", dosi: x.id, deb: x.deb || "" }); });
+  (P.rts || []).forEach((x) => { if (x.fin) return; const f = finRT(x, feries); [[x.scan, "Scanner de centrage", "scan", x.scanH], [x.deb, "1re séance", "deb", x.debH], [f, "Fin de radiothérapie prévue", "fin", x.finH]].forEach((e) => { if (e[0] && e[0] >= t) r.rt.push({ d: e[0], lib: "RT · " + (x.acte || "Radiothérapie") + " · " + e[1], rt: x.id, z: e[2], h: (e[3] && e[3].h) || "" }); }); const dz = dosimetrie(x, t); if (dz) r.rt.push({ d: dz.du, f: dz.au, lib: "RT · " + (x.acte || "Radiothérapie") + " · Dosimétrie à valider", dosi: x.id, deb: x.deb || "" }); });
   r.rt.sort((a, z) => a.d.localeCompare(z.d));
   // 5. radiothérapies en cours (alertes)
   r.rtE = [];
