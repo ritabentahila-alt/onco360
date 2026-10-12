@@ -161,8 +161,10 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
   `D.medecins` chargé par `chargerMedecins`, `multiMed` / `medRdv`) ; créneaux et doubles réservations par médecin à partir de 2 médecins ;
   heure facultative d'une séance de chimio `planning[ligne][n].hr` (J1) / `.shr[j]` = { h, du } (avec les dates : droit « planning »,
   `separer` / `fusionner` ↔ `c.hr`, `c.sea[j].hr`) et du scanner de centrage `rts[].scanH` { h, du } (droit RT « modifier »).
-- **Fiche tumeur, allergie, statut (3.1 à 3.3, 12/10/2026)** : champs `TUMEUR` (catalogue.js, ids `xt…`, `clinique.extra`, biomarqueurs à condition
-  `si.xtloc` / `champPropose`, ajoutés quand `ficheSpe._onco` : v2.js, cabinet avec module chimio ou RT) ; `clinique.allergie` "" | oui | non (bandeau
+- **Fiche tumeur, allergie, statut (3.1 à 3.3, 3.1 bis, 12/10/2026)** : localisation = `clinique.diag` (« Localisation » en oncologie, `DIAG` 94 types),
+  précision `diagP` (champ du catalogue, après le stade) ; parties de la fiche `sectionChamp` / `repartirFiche` (id, med, tum) ; listes `parametres/listes`
+  { diag, stade, grade, mut, cor } ; `diagnosticComplet` / `tumeurDe` (moteur/statut.js) pour les documents ; champs `TUMEUR` (catalogue.js, ids `xt…`, `clinique.extra`, biomarqueurs à condition
+  `si.diag` (`FAMILLES_DIAG`) / `champPropose`, ajoutés quand `ficheSpe._onco` : v2.js, cabinet avec module chimio ou RT) ; `clinique.allergie` "" | oui | non (bandeau
   `.al-band` seulement si « oui »), `clinique.statut` traitement | surveillance | perdu | decede + `decesLe` ; logique `public/js/moteur/statut.js`
   (`dernieresNouvelles`, `allergieDans`) ; décédé : rappels, alertes et tâches automatiques (logique.js) coupés ; `reglages.impression.agePoids`.
 - **Rendez-vous à venir (3.7 ter, 12/10/2026)** : consultation de fin de radiothérapie = rendez-vous `type: "Fin de radiothérapie"` (`T_RTF`, rdv.js ; prix

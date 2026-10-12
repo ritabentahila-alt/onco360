@@ -41,7 +41,7 @@ async def main():
         ok(str(nbProt) in pages['protocoles'] or nbProt > 0, f'protocoles copiés ({nbProt})')
         # Paramètres : lieux, correspondants vides, grille tarifaire
         await pg.evaluate("location.hash='parametres/listes'"); await pg.wait_for_timeout(900); tl = await pg.inner_text('#page')
-        ok('Mutuelles (3' in tl and 'Diagnostics (4' in tl and 'Correspondants (0)' in tl, 'diagnostics et mutuelles reçus, correspondants vides')
+        ok('Mutuelles (3' in tl and 'Localisations (diagnostics) (94)' in tl and 'Correspondants (0)' in tl, 'diagnostics et mutuelles reçus, correspondants vides')
         await pg.evaluate("location.hash='parametres/activites'"); await pg.wait_for_timeout(900); ta = await pg.inner_text('#page')
         ok('Ajoutez d\'abord un lieu' in ta, 'tarifs : il faut d\'abord un lieu')
         ok('HGC' not in ta and 'HCK' not in ta, 'aucun établissement de Dr Bentahila dans les tarifs')

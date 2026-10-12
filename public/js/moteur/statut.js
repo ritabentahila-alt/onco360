@@ -29,3 +29,15 @@ export function allergieDans(P, nomMedicament) {
   const n = sa(nomMedicament), m = motsAllergie(P.allergies).find((w) => n.indexOf(w) >= 0 || (w.length >= 6 && n.indexOf(w.slice(0, 6)) >= 0));
   return m || null;
 }
+
+// 3.1 bis (12/10/2026) : diagnostic complet pour les comptes rendus, courriers et la fiche de chimiothérapie : localisation (diagnostic),
+// côté, histologie, stade et précision de la fiche tumeur, quand ils sont remplis (« Cancer de l’ovaire, adénocarcinome séreux,
+// métastatique (péritoine) ») ; P = dossier lu (fusionner : clinique.extra dans P.extra)
+export function diagnosticComplet(P) {
+  const ex = (P && P.extra) || {}, d = String((P && P.diag) || "").trim(), c = ex.xtcote || "", st = String(ex.xtstade || "").trim();
+  if (!d) return String((P && P.diagP) || "");
+  return d + (c === "Bilatéral" ? ", bilatéral" : c === "Droit" || c === "Gauche" ? ", côté " + c.toLowerCase() : "") + (ex.xthisto ? ", " + ex.xthisto : "") +
+    (st ? ", " + (/^[IV0]/.test(st) ? "stade " + st : st.toLowerCase()) : "") + (P.diagP ? " (" + P.diagP + ")" : "");
+}
+// Champs de la fiche tumeur pour les courriers et comptes rendus : { localisation, cote, histologie, stade, precision, oms }
+export const tumeurDe = (P) => { const ex = (P && P.extra) || {}; return { localisation: (P && P.diag) || "", cote: ex.xtcote && ex.xtcote !== "Sans objet" ? ex.xtcote : "", histologie: ex.xthisto || "", stade: ex.xtstade || "", precision: (P && P.diagP) || "", oms: ex.xtoms || "" }; };

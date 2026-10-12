@@ -349,6 +349,21 @@ longs et ne dépendent pas du code.
       chaque cabinet les retire ou les met en tête (Paramètres › Cabinet › Fiche patient) ; en tête par défaut : localisation, stade, OMS.
       Page Patients : filtres par localisation et par stade (proposés s'il y a des valeurs). Écart avec le plan : listes dans le code
       (catalogue) plutôt que dans `plateforme/specialites` (rien à faire par l'administration ; pas de copie vers les cabinets).
+- [x] **3.1 bis Fiche patient sans doublon, en trois parties** (12/10, demandes de Dr Bentahila ; en ligne : 20261012k) : **Diagnostic =
+      Localisation** (le champ « Localisation » de la fiche tumeur est retiré ; `diag` s'appelle « Localisation » en oncologie, valeurs
+      « Cancer du … » reprises par les comptes rendus) ; liste des localisations complétée : **94 types de cancer** (larynx, oropharynx,
+      hypopharynx, cavité buccale, glandes salivaires, thymome, GIST, sarcomes, SNC, hématologie…, anciennes gardées ; `DIAG_AJOUTS_1012`
+      ajoutées une fois aux listes déjà réglées, `migrations()`) ; **Précision du diagnostic** (`diagP`, champ à part du catalogue) placée
+      après le stade (ex. « métastases ovariennes et péritonéales ») ; **stades** : in situ, localisé, localement avancé, oligométastatique,
+      métastatique, récidives (plus de I à IV) ; ordre de la fiche tumeur : localisation, côté, stade, précision, histologie, biomarqueurs,
+      grade, cTNM, pTNM, date du diagnostic, OMS ; biomarqueurs selon les familles reconnues dans le diagnostic (`FAMILLES_DIAG`) ;
+      **Paramètres › Listes** : « Localisations (diagnostics) », « Stades », « Grades » (médecin). **Allergie** : « Allergie connue » puis
+      « Laquelle ? » seulement si « Oui » (« Non » efface le détail). **Fiche en trois parties** : Identité (nom → e-mail), Informations
+      médicales (taille, poids, allergie → traitement en cours, champs ajoutés), Fiche tumeur (`repartirFiche` : Modifier, Nouveau patient,
+      Afficher ; ordre et champs réglables par cabinet). **Comptes rendus remplis** : diagnostic complet (`diagnosticComplet` : localisation,
+      côté, histologie, stade, précision) dans le pli confidentiel, la fiche de chimiothérapie et les courriers ({diagnostic}, et nouveaux
+      champs {localisation} {histologie} {stade} {precision} {oms}) ; compte rendu de fin : diagnostic, OMS, localisation (+ côté).
+      Ordonnances : **âge et poids réglés séparément** (Paramètres › Impression).
 - [x] **3.2 Allergies** (12/10, en ligne : 20261012h) : « Allergie connue : — / Non / Oui » (`clinique.allergie`) avant le détail
       (`clinique.allergies`) ; **seulement si « oui »** : bandeau rouge discret et permanent en tête du dossier (`.al-band`, visible même
       identité repliée sur téléphone), « ALLERGIE : … » sur la fiche de chimiothérapie et sous le nom du patient sur les ordonnances ;
@@ -381,7 +396,9 @@ longs et ne dépendent pas du code.
       nombre de séances et rythme, dates (fin renseignée, sinon calculée), **prochain rendez-vous** (premier rendez-vous prévu après la fin,
       hors consultations hebdomadaires de RT), **bilan de contrôle** (analyses et examens de la dernière consultation, « prescrit le … ») ;
       toxicités, rendez-vous et bilan absents : « à compléter par le médecin » (jamais imprimé, avertissement avant) ; localisation,
-      histologie, interruptions non remplies. Formulaire « RT hebdomadaire » : avec 3.4.
+      histologie, interruptions non remplies (remplis depuis 3.1 bis : diagnostic complet, localisation et côté). Formulaire « RT
+      hebdomadaire » : avec 3.4. Rythmes (3.5) : tous pris en compte pour la fin théorique, jamais de séance le samedi, le dimanche ni un
+      jour férié (vérifié par test-rt.mjs).
 - [ ] **3.7 Chimiothérapie : suivi et ergonomie** : ~~doses cumulées~~ (fait en 2.3 quater pour les anthracyclines et l'oxaliplatine ;
       bléomycine écrite en texte dans les protocoles, donc non calculée) ; intention de la ligne (néoadjuvante, adjuvante, métastatique, concomitante,
       palliative) et réponse (complète, partielle, stable, progression) ; doses visibles dès la ligne de cure ; plus de fenêtre

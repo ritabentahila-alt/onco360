@@ -19,6 +19,11 @@ cas("fin saisie à la main prioritaire", finRT({ deb: "2026-10-12", nb: 10, finP
 cas("compteur : 2 par jour, au 14/10 → 6 fractions sur 10", compteurRT({ deb: "2026-10-12", nb: 10, ryt: "bid" }, { aujourdhui: "2026-10-14", feries: [] }).faites === 6);
 cas("séances restantes : quotidien au 19/10 → 5 jours", joursOuvresRest({ deb: "2026-10-12", nb: 10, ryt: "1" }, { aujourdhui: "2026-10-19", feries: [] }) === 5);
 cas("libellé du rythme : jours choisis", libRythme({ ryt: "jours", jours: [1, 3] }) === "les lundis, mercredis");
+let we = [];
+for (const ryt of ["1", "2", "bid", "hebdo", "jours"]) for (const deb of ["2026-10-10", "2026-10-11", "2026-10-12", "2026-10-16", "2026-12-26"]) for (const nb of [1, 7, 20, 33]) {
+  joursSeances({ deb, nb, ryt, jours: [1, 2, 3, 4, 5] }, F).forEach((z) => { const w = new Date(z.d + "T12:00:00").getDay(); if (w === 0 || w === 6 || F.some((f) => f.d === z.d)) we.push([ryt, deb, z.d]); }); }
+cas("aucune séance un samedi, un dimanche ni un jour férié (5 rythmes, début un samedi ou un dimanche compris)", !we.length, we.slice(0, 3));
+cas("début un samedi (10/10) : 1re séance le lundi 12/10", joursSeances({ deb: "2026-10-10", nb: 3, ryt: "1" }, [])[0].d === "2026-10-12");
 console.log("2. Navigateur et serveur : même date de fin");
 let diff = [];
 for (const ryt of ["1", "2", "bid", "hebdo", "jours"]) for (let nb = 1; nb <= 40; nb += 3) for (const deb of ["2026-10-12", "2026-10-31", "2026-11-04", "2026-12-24"]) {

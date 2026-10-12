@@ -9,6 +9,7 @@ import { db } from "../config.js";
 import { addJ, ouvre, accordMedecin } from "../moteur/outils.js";
 import { finRT, joursSeances, volumesRT, texteVolume, libRythme } from "../moteur/rt.js";
 import { assurerConsultations, consultationsDe } from "./consultations.js"; // bilan de contrôle (3.6)
+import { diagnosticComplet, tumeurDe } from "../moteur/statut.js"; // fiche tumeur (3.1 bis)
 import { nettoyer } from "./ordonnances.js";
 import { margesMm } from "./reglages.js"; // marges d'impression réglables (Paramètres › Impression)
 
@@ -61,7 +62,7 @@ const SAUT = '<div class="dc-saut"></div>';
 function htmlPli(P, r, ctx, o) {
   const acte = (r.acte || "") + (r.acte && r.vmat && !/vmat/i.test(r.acte) ? " + VMAT" : ""), resume = (P.notes || r.note || "").trim().replace(/\s*[.;]\s*$/, "");
   const civ = P.sexe === "F" ? "Madame" : P.sexe === "H" ? "Monsieur" : "", patient = AR(civ) + " " + AR((P.nomF || "").toUpperCase()) + " " + AR(P.prenom || "");
-  const jour = dateLongue(ctx.aujourdhui), diag = [P.diag, P.diagP].filter(Boolean).join(" – ");
+  const jour = dateLongue(ctx.aujourdhui), diag = diagnosticComplet(P); // localisation, côté, histologie, stade, précision (3.1 bis)
   return '<p class="dc-titre">PLI CONFIDENTIEL</p><p class="dc-d">' + AR(o.ville) + ", le " + jour + "</p>" +
     "<p>Monsieur le Médecin Conseil,</p><p>Cher(e) Confrère,</p><p>Je vous prie de bien vouloir trouver ci-joint les renseignements cliniques concernant :</p>" +
     '<p class="dc-c"><b>' + patient + "</b></p><p>ayant droit à la couverture médicale par l’organisme dont vous assurez le conseil.</p>" +
@@ -104,8 +105,8 @@ function htmlCr(P, r, ctx, o) {
     '<p class="dc-h">1. Identification du patient</p><table class="dc-tab"><tbody><tr><th>Informations patient</th><th>Informations séjour</th></tr><tr><td>' +
     champ("Nom et prénom", ((P.nomF || "").toUpperCase() + " " + (P.prenom || "")).trim()) + champ("Date de naissance", dfrA(P.ddn)) + champ("Sexe", sexe) + champ("Médecin référent", P.cor || "") + "</td><td>" +
     champ("Établissement", o.etabNom || r.hop || P.hop || "") + champ("Date d'entrée", dfrA(deb)) + champ("Date de sortie", dfrA(fin)) + "</td></tr></tbody></table>" +
-    '<p class="dc-h">2. Indication clinique et objectifs</p>' + puce("Résumé clinique", r.note || P.notes || "") + puce("Visée du traitement", r.intent === "curative" ? "Curative" : r.intent === "palliative" ? "Palliative" : "") +
-    '<p class="dc-h">3. Modalités et technique de radiothérapie</p>' + puce("Technique utilisée", TECH[r.tech] || (r.vmat ? "VMAT" : "")) + puce("Localisation", r.loc || "") +
+    '<p class="dc-h">2. Indication clinique et objectifs</p>' + puce("Diagnostic", diagnosticComplet(P)) + (tumeurDe(P).oms ? puce("État général (OMS)", tumeurDe(P).oms) : "") + puce("Résumé clinique", r.note || P.notes || "") + puce("Visée du traitement", r.intent === "curative" ? "Curative" : r.intent === "palliative" ? "Palliative" : "") +
+    '<p class="dc-h">3. Modalités et technique de radiothérapie</p>' + puce("Technique utilisée", TECH[r.tech] || (r.vmat ? "VMAT" : "")) + puce("Localisation", r.loc || [tumeurDe(P).localisation, tumeurDe(P).cote ? "côté " + tumeurDe(P).cote.toLowerCase() : ""].filter(Boolean).join(", ")) +
     (vol.length > 1 || (vol[0] && vol[0].nom) ? '<p class="dc-li">•&nbsp; <b>Volumes et doses : </b></p>' + vol.map((v) => '<p class="dc-li" style="margin-left:34px">– ' + esc(texteVolume(v, vol)) + "</p>").join("")
       : puce("Dose prescrite", vGy(dose), " <b>Gy</b>") + puce("Dose par fraction", vGy(dpf), " <b>Gy</b>")) + puce("Nombre de séances", nb ? String(nb) + (r.ryt && r.ryt !== "1" ? " (" + libRythme(r) + ")" : "") : "") +
     '<p class="dc-h">4. Calendrier du traitement</p>' + puce("Date de début", dfrA(deb)) + puce("Date de fin", dfrA(fin)) +

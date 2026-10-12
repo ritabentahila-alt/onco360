@@ -21,7 +21,7 @@ import { age, accordMedecin } from "../moteur/outils.js";
 import { installer as installerDocumentation } from "./documentation.js"; // bouton « Doc. » (08/10/2026)
 import { enregistrerPrescription, trouverLigne, assurerConsultations, prescriptionsDe, supprimerPrescription, FAMILLES } from "./consultations.js";
 import { margesMm, reglages } from "./reglages.js";
-import { allergique, allergieDans } from "../moteur/statut.js"; // 3.2 (12/10/2026) // marges d'impression réglables (Paramètres › Impression)
+import { allergique, allergieDans, diagnosticComplet, tumeurDe } from "../moteur/statut.js"; // 3.2 (12/10/2026) // marges d'impression réglables (Paramètres › Impression)
 
 let A = null;
 export function installer(api) { A = api; installerDocumentation(api); }
@@ -479,7 +479,7 @@ function remplirCourrier(html, x) {
   const a = age(P.ddn, D().t), nomEt = et.nom || x.doc.etablissementId || "";
   const art = /^[aeiouyhéèêâîôûàAEIOUYHÉÈÊÂÎÔÛÀ]/.test(nomEt) ? "l'" : /^(centre|cabinet|service|pôle|institut)\b/i.test(nomEt) ? "le " : /^(clinique|polyclinique|fondation|maison)\b/i.test(nomEt) ? "la " : "";
   const nom = P.nomF ? String(P.nomF).toUpperCase() + (P.prenom ? " " + String(P.prenom).toLowerCase().replace(/(^|[\s-])\S/g, (c) => c.toUpperCase()) : "") : x.r.nm;
-  const V = { patient: civilite(x) + nom, age: a != null ? a + " ans" : "", naissance: P.ddn ? dateFr(P.ddn) : "", diagnostic: x.r.diag || "", mutuelle: P.mut || "", cin: P.cin || "",
+  const V = { patient: civilite(x) + nom, age: a != null ? a + " ans" : "", naissance: P.ddn ? dateFr(P.ddn) : "", diagnostic: diagnosticComplet(P) || x.r.diag || "", ...tumeurDe(P), mutuelle: P.mut || "", cin: P.cin || "",
     etablissement: nomEt ? art + nomEt : "", lieu: nomEt, ville: et.ville || "", date: dateFr(D().t), medecin: medecin() }; // ville vide : « À compléter » (1.7)
   ficheP.aImprimer(x).forEach((c) => { V["c_" + c.id] = c.texte; }); // champs ajoutés de la fiche (10/10/2026) : {c_identifiant}
   let h = accordMedecin(html, (A.medecinFiche() || {}).genre); // « soussignée » / « soussigné » selon le médecin (1.7)
@@ -555,7 +555,7 @@ const dateFr = (d) => d.slice(8, 10) + "/" + d.slice(5, 7) + "/" + d.slice(0, 4)
 const civilite = (x) => (x.P.sexe === "F" ? "Mme " : x.P.sexe === "H" ? "M. " : "");
 // Sous le nom du patient (3.2, 12/10/2026) : âge et poids (au choix du cabinet, Paramètres › Impression) ; allergie si « oui » (toujours)
 const sousPatient = (x) => { const P = x.P || {}, a = age(P.ddn, D().t), l = [];
-  if (reglages().impression.agePoids) { if (a != null) l.push(a + " ans"); if (P.poids) l.push(String(P.poids).replace(".", ",") + " kg"); }
+  const I = reglages().impression; if (I.age && a != null) l.push(a + " ans"); if (I.poids && P.poids) l.push(String(P.poids).replace(".", ",") + " kg");
   return (l.length ? '<p class="or-pat2">' + A.esc(l.join(" · ")) + "</p>" : "") + (allergique(P) ? '<p class="or-pat2"><b>Allergie : ' + A.esc(P.allergies || "oui") + "</b></p>" : ""); };
 const medecin = () => { const n = (A.medecinFiche() || {}).nom || ""; return n || "Dr "; };
 // Ordonnance d'analyses ou d'examens : « Prière de bien vouloir faire : », une ligne par analyse, bilan ou examen (07/10/2026 :

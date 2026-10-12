@@ -8,6 +8,7 @@ export const CHAMPS_COURRIER = [
   ["naissance", "Date de naissance", "12/03/1964"],
   ["cin", "CIN", "BE123456"],
   ["diagnostic", "Diagnostic", ""],
+  ["localisation", "Localisation", "Cancer du sein"], ["histologie", "Histologie", ""], ["stade", "Stade", "Métastatique"], ["precision", "Précision du diagnostic", ""], ["oms", "État général (OMS)", "1"], // fiche tumeur (3.1 bis)
   ["mutuelle", "Mutuelle", ""],
   ["etablissement", "Établissement", "l'Hôpital…"],
   ["lieu", "Nom de l'établissement", "Hôpital…"],

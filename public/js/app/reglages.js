@@ -13,7 +13,7 @@ export function installer(api) { A = api; }
 const D = () => A.D();
 
 export const REGLAGES0 = {
-  impression: { a5: [45, 28, 18], a4: [60, 35, 22], doc: [45, 35, 22], agePoids: false }, // agePoids : âge et poids sur les ordonnances (3.2)
+  impression: { a5: [45, 28, 18], a4: [60, 35, 22], doc: [45, 35, 22], age: false, poids: false }, // âge, poids sous le nom sur les ordonnances (3.2 ; séparés le 12/10/2026)
   whatsapp: { de: 1, a: 2 },
   alertes: { cure: 3, finTrait: 30 },
   salle: { orange: 20, rouge: 45, notifArrivee: true, notifRouge: true }, // + messages à l'écran (SA6, 11/10/2026) // salle d'attente : minutes d'attente avant l'orange, puis le rouge (08/10/2026)
@@ -23,6 +23,7 @@ const copie = (o) => JSON.parse(JSON.stringify(o));
 export function reglages() {
   const r = copie(REGLAGES0), c = (D() && D().reglages) || {};
   Object.keys(r).forEach((k) => { if (c[k] && typeof c[k] === "object") Object.assign(r[k], c[k]); });
+  if (r.impression.agePoids) { const ci = c.impression || {}; if (!("age" in ci)) r.impression.age = true; if (!("poids" in ci)) r.impression.poids = true; } delete r.impression.agePoids; // ancien réglage commun
   return r;
 }
 // Marges d'impression : « 45mm 28mm 18mm » pour @page ; variables CSS de l'aperçu à l'écran (feuille modifiable)

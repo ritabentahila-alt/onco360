@@ -1022,14 +1022,14 @@ window.chNouvelleLigne = (id) => {
 // ───── Diagnostic : recherche dans la liste + précision libre (comme l'application actuelle) ─────
 export function champDiag(idD, idP, v, vp, dis) {
   return '<div class="large" data-champ="diag" style="position:relative"><label for="' + idD + '">Diagnostic</label><input id="' + idD + '" autocomplete="off" value="' + A.esc(v || "") + '" placeholder="Tapez pour chercher : prostate, sein, neuro…"' + (dis ? " disabled" : "") + '><div id="' + idD + 'S" class="sug cache"></div></div>' +
-    '<div class="large" data-champ="diag"><label for="' + idP + '">Précision du diagnostic (facultatif)</label><input id="' + idP + '" value="' + A.esc(vp || "") + '" placeholder="ex. métastatique, localisé, grade 2, N+…"' + (dis ? " disabled" : "") + "></div>";
+    '<div class="large" data-champ="diagP"><label for="' + idP + '">Précision du diagnostic (facultatif)</label><input id="' + idP + '" value="' + A.esc(vp || "") + '" placeholder="ex. métastases ovariennes et péritonéales"' + (dis ? " disabled" : "") + "></div>";
 }
 export function activerDiag(idD, idP) {
   const i = document.getElementById(idD), s = document.getElementById(idD + "S"); if (!i || i.disabled) return;
   const sansAcc = (z) => String(z || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   const maj = () => { const m = sansAcc(i.value).split(/\s+/).filter(Boolean), l = listeDiag().filter((d) => m.every((w) => sansAcc(d).indexOf(w) >= 0)); s.innerHTML = l.length ? l.map((d) => '<div data-v="' + A.esc(d) + '">' + A.esc(d) + "</div>").join("") : '<div class="mesures" style="cursor:default">Pas dans la liste : le texte tapé sera gardé tel quel</div>'; s.classList.remove("cache"); };
   i.oninput = maj; i.onfocus = maj; i.onblur = () => setTimeout(() => s.classList.add("cache"), 200);
-  s.onmousedown = (ev) => { const t = ev.target.closest("[data-v]"); if (!t) return; i.value = t.dataset.v; s.classList.add("cache"); const p = document.getElementById(idP); if (p) setTimeout(() => p.focus(), 10); };
+  s.onmousedown = (ev) => { const t = ev.target.closest("[data-v]"); if (!t) return; i.value = t.dataset.v; s.classList.add("cache"); i.dispatchEvent(new Event("change", { bubbles: true })); /* biomarqueurs (3.1) */ const p = document.getElementById(idP); if (p) setTimeout(() => p.focus(), 10); };
 }
 // Listes du cabinet : parametres/listes = { cor, mut } (ajouts aux listes de départ de donnees/listes.js) ; depuis le 08/10/2026
 // (Paramètres › Listes) { diag, mut, cor, complet: true } = listes entières, corrigées et triées par le médecin
@@ -1075,7 +1075,7 @@ export function nouveauPatient(opts) {
     '<p class="large mesures" style="margin:0">Nom et prénom obligatoires. Date de naissance, sexe, taille et poids : demandés avant la première ligne de chimiothérapie.</p></div>' +
     '<datalist id="lMut">' + listeMut().map((m) => '<option value="' + A.esc(m) + '">').join("") + '</datalist><datalist id="lCor">' + listeCor().map((m) => '<option value="' + A.esc(m) + '">').join("") + "</datalist>" + boutons("Créer le dossier"));
   if (okC) activerDiag("pDiag", "pDiagP");
-  ficheP.appliquerFiche(document.querySelector("#fenetre .form"));
+  ficheP.repartirFiche(document.querySelector("#fenetre .form")); // identité, informations médicales, fiche tumeur (3.1 bis)
   // nom tapé dans la recherche du rendez-vous : « NOM Prénom » → Nom, Prénom
   if (o.nom) { const m = String(o.nom).trim().split(/\s+/); document.getElementById("pNom").value = (m.shift() || "").toUpperCase(); document.getElementById("pPre").value = m.join(" "); }
   document.getElementById("fOk").onclick = async () => {

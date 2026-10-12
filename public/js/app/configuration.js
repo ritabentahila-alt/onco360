@@ -17,7 +17,7 @@ import { gererListe, tailleListe } from "./ordonnances.js";
 import { htmlOngletProfil, apresOngletProfil, titulaireConnecte } from "./profil.js";
 import { afficherAudit } from "./audit.js"; // onglet « Journal d'audit » (titulaire, 09/10/2026)
 import { configRcp, configChargee, chargerConfigRcp, enregistrerConfigRcp, prochainesRcp, CFG0 as RCP0, libDate } from "./rcp.js";
-import { CARTES, accueilEffectif, FICHE, CONSULT, formEffectif, ficheEffective, consultEffective, ficheRetouches, formRetouches } from "../donnees/catalogue.js";
+import { CARTES, accueilEffectif, FICHE, CONSULT, STADES, GRADES, formEffectif, ficheEffective, consultEffective, ficheRetouches, formRetouches } from "../donnees/catalogue.js";
 import { editeurFiche } from "./editeurfiche.js";
 import { htmlVigilances } from "./vigilances.js"; // notes « À vérifier » par molécule (12/10/2026) // fiche patient et formulaire de consultation du cabinet (11/10/2026)
 
@@ -209,11 +209,12 @@ const RUBRIQUES = {
   },
   listes(c) {
     // Listes proposées dans les fiches patients (P2 bis, 08/10/2026) : corriger, retirer, ajouter ; nombre de dossiers concernés
-    const lib = { diag: "Diagnostics", mut: "Mutuelles", cor: "Correspondants" };
+    // 3.1 bis (12/10/2026) : en oncologie, diagnostics = localisations ; stades et grades de la fiche tumeur
+    const onco = !!((D().reg || {}).fiche || {}).onco, lib = Object.assign({ diag: onco ? "Localisations (diagnostics)" : "Diagnostics" }, onco ? { stade: "Stades", grade: "Grades" } : {}, { mut: "Mutuelles", cor: "Correspondants" });
     return '<section class="carte">' + titre("liste", "Listes de la fiche patient") + '<p class="sous">Un nom corrigé ici est corrigé aussi dans les dossiers ; un nom retiré y reste.</p>' +
       '<div class="puces">' + Object.keys(lib).map((k) => "<button" + (k === "cor" ? ' data-fn="listes.cor"' : "") + ' class="puce' + (LS === k ? " on" : "") + '" onclick="cfLs(\'' + k + "')\">" + lib[k] + " (" + ED.listes[k].length + ")</button>").join("") + "</div>" +
       '<div class="recherche" style="max-width:420px;margin-bottom:8px">' + A.ic("loupe") + '<input id="cfLq" type="search" autocomplete="off" placeholder="Rechercher dans la liste…" value="' + A.esc(LQ) + '"></div>' +
-      '<div class="cf-td cf-l" id="cfLl"></div>' + (diagModifiable() ? "" : '<p class="sous" style="margin-top:8px">Les diagnostics sont modifiés par un médecin.</p>') + (c.okE && diagModifiable() ? '<button class="bt clair petit" style="margin-top:10px" onclick="cfLAj()">' + A.ic("plus") + "Ajouter</button>" : "") + "</section>";
+      '<div class="cf-td cf-l" id="cfLl"></div>' + (diagModifiable() ? "" : '<p class="sous" style="margin-top:8px">' + (LS === "diag" ? "Les diagnostics" : "Les stades et les grades") + " sont modifiés par un médecin.</p>") + (LS === "stade" || LS === "grade" ? '<p class="mesures" style="margin-top:8px">Un nom corrigé ici n\'est pas changé dans les dossiers déjà remplis.</p>' : "") + (c.okE && diagModifiable() ? '<button class="bt clair petit" style="margin-top:10px" onclick="cfLAj()">' + A.ic("plus") + "Ajouter</button>" : "") + "</section>";
   },
   bibliotheques() {
     // Bibliothèques des prescriptions : les mêmes fenêtres que dans le dossier, en gestion de la liste (sans patient)
@@ -224,7 +225,7 @@ const RUBRIQUES = {
   },
   impression(c) {
     // Marges d'impression (mm) : la marge du haut laisse la place à l'en-tête déjà imprimé sur le papier ; âge et poids sur les ordonnances (3.2)
-    const I = ED.reg.impression, agePoids = '<section class="carte">' + titre("imprimer", "Ordonnances") + '<label class="chk"><input type="checkbox"' + (I.agePoids ? " checked" : "") + c.disE + ' onchange="cfRegB(\'impression\',\'agePoids\',this.checked)"> Âge et poids du patient sous son nom</label><p class="mesures">L\'allergie (si « oui » dans la fiche) est toujours imprimée.</p></section>', champ = (q, n, lib) => '<div><label for="cfI' + q + n + '">' + lib + '</label><input id="cfI' + q + n + '" type="number" min="0" max="150" step="1" inputmode="numeric" value="' + I[q][n] + '"' + c.disE + ' onchange="cfImp(\'' + q + "'," + n + ',this.value)"></div>';
+    const I = ED.reg.impression, agePoids = '<section class="carte">' + titre("imprimer", "Ordonnances") + '<p class="sous">Sous le nom du patient :</p><label class="chk"><input type="checkbox"' + (I.age ? " checked" : "") + c.disE + ' onchange="cfRegB(\'impression\',\'age\',this.checked)"> Âge</label> <label class="chk"><input type="checkbox"' + (I.poids ? " checked" : "") + c.disE + ' onchange="cfRegB(\'impression\',\'poids\',this.checked)"> Poids</label><p class="mesures">L\'allergie (si « oui » dans la fiche) est toujours imprimée.</p></section>', champ = (q, n, lib) => '<div><label for="cfI' + q + n + '">' + lib + '</label><input id="cfI' + q + n + '" type="number" min="0" max="150" step="1" inputmode="numeric" value="' + I[q][n] + '"' + c.disE + ' onchange="cfImp(\'' + q + "'," + n + ',this.value)"></div>';
     return '<section class="carte">' + titre("imprimer", "Marges d'impression (mm)") + '<p class="sous">Haut = hauteur de l\'en-tête déjà imprimé sur votre papier, plus 5 à 10 mm.</p>' +
       [["a5", "Ordonnances A5", "Médicaments, analyses, examens, ordonnances types, courriers"], ["a4", "Ordonnances A4", "Les mêmes, en A4"], ["doc", "Documents A4", "Pli confidentiel, compte rendu, rendez-vous de radiothérapie"]].map(([q, t, sous]) =>
         '<h4 class="soustitre">' + t + '</h4><p class="mesures" style="margin:-4px 0 8px">' + sous + " · par défaut " + REGLAGES0.impression[q].slice(0, 3).join(" / ") + ' mm</p><div class="form" style="grid-template-columns:repeat(3,minmax(0,150px))">' + champ(q, 0, "Haut (en-tête)") + champ(q, 1, "Côtés") + champ(q, 2, "Bas") + "</div>").join("") + "</section>" + agePoids;
@@ -320,7 +321,7 @@ export function pageConfiguration(arg) {
   if (!configChargee()) chargerConfigRcp().then(relire).catch(() => {});
   if (TDOC === null) { TDOC = []; typesDocuments().then((L) => { TDOC = L.slice(); relire(); }).catch(() => {}); }
   if (!ED || !MOD) {
-    ED = { horaires: copie(horaires()), horairesEtab: copie(D().cal.horairesEtab || {}), durees: copie(D().cal.durees || {}), abs: copie(D().cal.abs || []), feries: copie(D().cal.feries || []), wa: Object.assign({}, D().wa || {}), reg: reglages(), listes: { diag: listeDiag().slice(), mut: listeMut(), cor: listeCor() }, listesOrig: { diag: listeDiag().slice(), mut: listeMut(), cor: listeCor() }, coul: Object.assign({}, COULEURS0, COUL), tdoc: TDOC.slice(), ttache: TTA.slice(), auto: JSON.parse(JSON.stringify(AUTO)), rcp: configRcp(),
+    ED = { horaires: copie(horaires()), horairesEtab: copie(D().cal.horairesEtab || {}), durees: copie(D().cal.durees || {}), abs: copie(D().cal.abs || []), feries: copie(D().cal.feries || []), wa: Object.assign({}, D().wa || {}), reg: reglages(), listes: { diag: listeDiag().slice(), stade: listeTum("stade"), grade: listeTum("grade"), mut: listeMut(), cor: listeCor() }, listesOrig: { diag: listeDiag().slice(), stade: listeTum("stade"), grade: listeTum("grade"), mut: listeMut(), cor: listeCor() }, coul: Object.assign({}, COULEURS0, COUL), tdoc: TDOC.slice(), ttache: TTA.slice(), auto: JSON.parse(JSON.stringify(AUTO)), rcp: configRcp(),
       accueil: accueilCab(), fiche: ficheCab(), consultation: consultCab() };
     FE = null; CE = null;
   }
@@ -429,7 +430,7 @@ let LS = "diag", LQ = "";
 function listeL() {
   const z = A.$("cfLl"); if (!z) return;
   const champ = { diag: "diag", mut: "mut", cor: "cor" }[LS], n = {}, ok = (A.peut("parametres") || secretariat()) && diagModifiable(), esc = A.esc;
-  D().patients.forEach((x) => { const v = String((x.P && x.P[champ]) || "").trim().toLowerCase(); if (v) n[v] = (n[v] || 0) + 1; });
+  D().patients.forEach((x) => { const v = String((champ ? x.P && x.P[champ] : (((x.doc.clinique || {}).extra) || {})["xt" + LS]) || "").trim().toLowerCase(); if (v) n[v] = (n[v] || 0) + 1; });
   const mots = A.sansAcc(LQ).split(/\s+/).filter(Boolean), L = ED.listes[LS].map((t, i) => ({ t, i })).filter(({ t }) => !t || mots.every((w) => A.sansAcc(t).indexOf(w) >= 0));
   z.innerHTML = L.length ? L.map(({ t, i }) => { const c = n[String(t).trim().toLowerCase()] || 0;
     return '<div class="it"><input value="' + esc(t) + '"' + (ok ? "" : " disabled") + ' aria-label="Nom" onchange="cfL(' + i + ',this.value)"><span class="mesures nb">' + (c ? c + " dossier" + (c > 1 ? "s" : "") : "") + "</span>" + (ok ? sup("cfLSup(" + i + ")", "Retirer « " + esc(t) + " »") : "") + "</div>"; }).join("")
@@ -451,7 +452,9 @@ window.cfExporter = async () => {
   A.occupe(b, false);
 };
 // Diagnostics : modifiés par un médecin seulement (1.3, 11/10/2026 ; le serveur ne corrige un diagnostic dans les dossiers que pour un médecin)
-const diagModifiable = () => LS !== "diag" || !!A.D().bib || (A.D().membre && A.D().membre.role === "medecin");
+const diagModifiable = () => ["diag", "stade", "grade"].indexOf(LS) < 0 || !!A.D().bib || (A.D().membre && A.D().membre.role === "medecin");
+// Stades et grades de la fiche tumeur (3.1 bis) : liste du cabinet (parametres/listes), sinon celle du catalogue
+const listeTum = (k) => { const L = D().listes || {}; return (Array.isArray(L[k]) && L[k].length ? L[k] : k === "stade" ? STADES : GRADES).slice(); };
 window.cfL = (i, v) => { ED.listes[LS][i] = String(v || "").trim(); modif(); };
 window.cfLSup = (i) => { ED.listes[LS].splice(i, 1); ED.listesOrig[LS].splice(i, 1); modif(); listeL(); };
 window.cfLAj = () => { LQ = ""; ED.listes[LS].push(""); ED.listesOrig[LS].push(""); modif(true); setTimeout(() => { const l = document.querySelectorAll("#cfLl input"); if (l.length) { l[l.length - 1].scrollIntoView({ block: "center" }); l[l.length - 1].focus(); } }, 30); };
@@ -494,7 +497,7 @@ window.cfDefaut = () => {
   if (ONG === "consultation") { if (!confirm("Revenir au formulaire de consultation de départ ?\nLes champs ajoutés par le cabinet sont retirés (les valeurs déjà saisies restent dans les consultations).")) return; ED.consultation = baseConsult(); CE = null; modif(true); return; }
   if (ONG === "rcp") { if (!confirm("Effacer les dates de RCP (jours, heure, lieu, dates ajoutées et annulées) ?\nLes patients déjà inscrits gardent leur date.")) return; ED.rcp = RCP0(); modif(true); return; }
   if (ONG === "whatsapp") { if (!confirm("Rétablir tous les messages WhatsApp et le délai du bouton vert par défaut ?")) return; ED.wa = {}; ED.reg.whatsapp = copie(REGLAGES0.whatsapp); modif(true); return; }
-  if (ONG === "listes") { if (!confirm("Rétablir les listes de départ (diagnostics, mutuelles, correspondants) ?\nLes ajouts et corrections du cabinet seront perdus.")) return; ED.listes = { diag: LISTES0.diag.slice(), mut: LISTES0.mut.slice().sort((a, z) => a.localeCompare(z, "fr")), cor: LISTES0.cor.slice().sort((a, z) => a.localeCompare(z, "fr")) }; ED.listesOrig = JSON.parse(JSON.stringify(ED.listes)); modif(true); return; }
+  if (ONG === "listes") { if (!confirm("Rétablir les listes de départ (diagnostics, mutuelles, correspondants) ?\nLes ajouts et corrections du cabinet seront perdus.")) return; ED.listes = { diag: LISTES0.diag.slice(), stade: STADES.slice(), grade: GRADES.slice(), mut: LISTES0.mut.slice().sort((a, z) => a.localeCompare(z, "fr")), cor: LISTES0.cor.slice().sort((a, z) => a.localeCompare(z, "fr")) }; ED.listesOrig = JSON.parse(JSON.stringify(ED.listes)); modif(true); return; }
   if (ONG === "impression") { if (!confirm("Rétablir les marges d'impression par défaut ?")) return; ED.reg.impression = copie(REGLAGES0.impression); modif(true); return; }
   if (ONG === "alertes") { if (!confirm("Rétablir les délais " + (A.D().membre.role === "assistante" ? "de la salle d'attente" : "des alertes et de la salle d'attente") + " par défaut ?")) return; if (A.D().membre.role !== "assistante") ED.reg.alertes = copie(REGLAGES0.alertes); ED.reg.salle = copie(REGLAGES0.salle); modif(true); return; }
   if (ONG === "couleurs") { if (!confirm("Rétablir les couleurs Google Agenda par défaut ?")) return; ED.coul = Object.assign({}, COULEURS0); modif(true); return; }
@@ -523,10 +526,10 @@ window.cfEnregistrer = async () => {
     if (qu.length) aMaj.push({ x, ch, quoi: "Liste corrigée (Paramètres) : " + qu.join(" ; ") });
   });
   if (aMaj.length && !confirm(renoms.length + " nom" + (renoms.length > 1 ? "s corrigés" : " corrigé") + " dans les listes :\n" + renoms.slice(0, 8).map((r) => "• " + r.de + " → " + r.vers).join("\n") + (renoms.length > 8 ? "\n…" : "") + "\n\n" + aMaj.length + " dossier" + (aMaj.length > 1 ? "s" : "") + " de vos patients" + (D().membre.tousEtablissements ? "" : " (et ceux des autres lieux du cabinet)") + " seront corrigés aussi. Continuer ?")) return;
-  const listes = {}; for (const k of ["diag", "mut", "cor"]) {
+  const listes = {}; for (const k of ["diag", "stade", "grade", "mut", "cor"]) {
     const l = ED.listes[k].map((t) => String(t || "").trim()).filter(Boolean);
     const dbl = l.find((t, i) => l.findIndex((u) => u.toLowerCase() === t.toLowerCase()) !== i); if (dbl) { A.toast("Listes : « " + dbl + " » figure deux fois."); return; }
-    listes[k] = k === "diag" ? l : l.sort((a, z) => a.localeCompare(z, "fr"));
+    listes[k] = k === "diag" || k === "stade" || k === "grade" ? l : l.sort((a, z) => a.localeCompare(z, "fr"));
   }
   if (ED.reg.whatsapp.de > ED.reg.whatsapp.a) { A.toast("Bouton WhatsApp vert : « jusqu'à » doit être plus proche du rendez-vous que « à partir de »."); return; }
   for (const a of ED.abs) { if (!a.du) { A.toast("Une absence n'a pas de date de début."); return; } if (!a.au || a.au < a.du) a.au = a.du; }
