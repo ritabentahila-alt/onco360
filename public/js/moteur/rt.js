@@ -18,22 +18,57 @@ export function dosimetrie(r, t) {
   return periodeRT(r.cont, r, t);
 }
 export function nbA(r) { const n = parseInt(r.nbA, 10); return n > 0 ? n : 1; }
-// C1/C2 – date de la Nième séance (jours ouvrés, rythme quotidien ou 1 jour sur 2)
-export function finRTcalc(r, feries) {
-  const nb = parseInt(r.nb, 10); if (!r.deb || !nb || nb < 1) return null;
-  const pas = r.ryt === "2" ? 2 : 1; let d = r.deb, c = 0, w = 0;
-  for (let g = 0; g < 800; g++) { if (ouvre(d, feries)) { if (w % pas === 0) { c++; if (c === nb) return d; } w++; } d = addJ(d, 1); }
-  return null;
+// 3.5 (12/10/2026) – rythmes : quotidien (1), un jour ouvré sur deux (2), deux séances par jour (bid), une par semaine (hebdo : le jour
+// de la semaine de la 1re séance, ou le jour ouvré suivant s'il est férié), jours choisis (jours : r.jours = [1…5], lundi = 1).
+// Même calcul côté serveur (functions/logique.js joursSeances) : test de cohérence tests/moteur/test-rt.mjs.
+export const RYTHMES = [["1", "Quotidien (lundi–vendredi)"], ["2", "1 jour sur 2"], ["bid", "2 séances par jour"], ["hebdo", "1 par semaine"], ["jours", "Jours choisis"]];
+export const libRythme = (r) => (r.ryt === "jours" ? "les " + (r.jours || []).map((k) => ["", "lundis", "mardis", "mercredis", "jeudis", "vendredis"][k]).filter(Boolean).join(", ") : ((RYTHMES.find((x) => x[0] === (r.ryt || "1")) || [])[1] || "").toLowerCase());
+const jourSem = (d) => new Date(d + "T12:00:00").getDay();
+// Jours de séance (avec le nombre de fractions ce jour-là), de la 1re séance jusqu'à `max` fractions, ou jusqu'à la date `jusqua`
+export function joursSeances(r, feries, o) {
+  const opt = o || {}, max = opt.jusqua ? Infinity : parseInt(r.nb, 10), out = []; if (!r.deb || !(max > 0)) return out;
+  const ryt = r.ryt || "1", jours = (r.jours || []).map(Number), w0 = jourSem(r.deb); let d = r.deb, w = 0, c = 0, sem = -1;
+  for (let g = 0; g < 2000 && c < max; g++) {
+    if (opt.jusqua && d > opt.jusqua) break;
+    if (ouvre(d, feries)) {
+      let n = 0;
+      if (ryt === "2") n = w % 2 === 0 ? 1 : 0;
+      else if (ryt === "bid") n = Math.min(2, max - c);
+      else if (ryt === "hebdo") { const k = Math.floor((Date.parse(d) - Date.parse(r.deb)) / 864e5 / 7), dec = (jourSem(d) - w0 + 7) % 7; if (k !== sem && (dec === 0 || k > sem)) { n = 1; sem = k; } }
+      else if (ryt === "jours") n = jours.indexOf(jourSem(d)) >= 0 ? 1 : 0;
+      else n = 1;
+      if (n) { out.push({ d, n }); c += n; }
+      w++;
+    }
+    d = addJ(d, 1);
+  }
+  return out;
 }
+// C1/C2 – date de la dernière séance (Nième fraction)
+export function finRTcalc(r, feries) { const l = joursSeances(r, feries); return l.length && l.reduce((t, z) => t + z.n, 0) >= parseInt(r.nb, 10) ? l[l.length - 1].d : null; }
 // C3 – fin saisie à la main prioritaire
 export const finRT = (r, feries) => (r && r.finPrev ? r.finPrev : finRTcalc(r, feries));
-// Séances restant à faire à partir d'aujourd'hui
+// Jours de séance restant à partir d'aujourd'hui
 export function joursOuvresRest(r, ctx) {
   const f = finRT(r, ctx.feries), t = ctx.aujourdhui; if (!f || f < t) return 0;
-  const pas = r.ryt === "2" ? 2 : 1; let d = r.deb > t ? r.deb : t, n = 0, w = 0;
-  if (pas === 2) { let d0 = r.deb; for (let g = 0; g < 800 && d0 <= f; g++) { if (ouvre(d0, ctx.feries)) { if (w % 2 === 0 && d0 >= t) n++; w++; } d0 = addJ(d0, 1); } return n; }
-  for (let g2 = 0; g2 < 800 && d <= f; g2++) { if (ouvre(d, ctx.feries)) n++; d = addJ(d, 1); }
-  return n;
+  if (r.finPrev && r.finPrev !== finRTcalc(r, ctx.feries)) { let n = 0, d = r.deb > t ? r.deb : t; for (let g = 0; g < 800 && d <= f; g++) { if (ouvre(d, ctx.feries)) n++; d = addJ(d, 1); } return n; }
+  return joursSeances(r, ctx.feries).filter((z) => z.d >= t).length;
+}
+// 3.5 – volumes : [{ nom, dose, nb, ty: "p" (principal) | "seq" (complément séquentiel, à la suite) | "int" (intégré, mêmes séances) }].
+// Radiothérapie d'avant (dose, nb) = un seul volume, rien à ressaisir. Séances = principal + compléments séquentiels.
+const num = (v) => { const n = parseFloat(String(v == null ? "" : v).replace(",", ".")); return isNaN(n) ? null : n; };
+export function volumesRT(r) {
+  if (Array.isArray(r.vol) && r.vol.length) return r.vol.map((v, i) => Object.assign({}, v, { ty: i === 0 ? "p" : v.ty === "int" ? "int" : "seq" }));
+  return r.dose || r.nb ? [{ nom: r.loc || "", dose: r.dose || "", nb: r.nb || "", ty: "p" }] : [];
+}
+export const seancesVolumes = (vol) => (vol || []).reduce((t, v, i) => t + (i === 0 || v.ty === "seq" ? parseInt(v.nb, 10) || 0 : 0), 0);
+export const dpfVolume = (v, vol) => { const d = num(v.dose), n = v.ty === "int" ? parseInt((vol[0] || {}).nb, 10) : parseInt(v.nb, 10); return d && n ? Math.round((d / n) * 100) / 100 : null; };
+// Texte d'un volume : « Sein gauche : 50 Gy en 25 fractions (2 Gy par fraction) » ; complément : « Complément séquentiel – lit : … »
+const gy = (n) => String(Math.round(n * 100) / 100).replace(".", ",");
+export function texteVolume(v, vol) {
+  const d = num(v.dose), n = v.ty === "int" ? parseInt((vol[0] || {}).nb, 10) : parseInt(v.nb, 10), f = dpfVolume(v, vol);
+  const tete = (v.ty === "seq" ? "Complément séquentiel" : v.ty === "int" ? "Complément intégré" : "") + (v.nom ? (v.ty === "p" ? "" : " – ") + v.nom : "");
+  return (tete ? tete + " : " : "") + [d ? gy(d) + " Gy" : "", n ? "en " + n + " fraction" + (n > 1 ? "s" : "") : "", f ? "(" + gy(f) + " Gy par fraction)" : ""].filter(Boolean).join(" ");
 }
 // C4 – statut
 export function statutRT(r, ctx) {
@@ -48,7 +83,7 @@ export function statutRT(r, ctx) {
 // ctx.nouvelId(prefixe) fournit les identifiants. Renvoie true si le dossier a changé.
 export const T_RTC_RDV = "En cours de RT";
 const idRT = (r, ctx) => { if (!r.id) r.id = ctx.nouvelId("rt"); return r.id; };
-const sigRtc = (r) => ["v2", r.cj || "", r.ch || "", r.deb || "", r.nb || "", r.ryt || "", r.finPrev || "", r.fin || "", r.annule ? 1 : 0].join("|");
+const sigRtc = (r) => ["v2", r.cj || "", r.ch || "", r.deb || "", r.nb || "", r.ryt || "", r.finPrev || "", r.fin || "", r.annule ? 1 : 0].join("|") + (r.ryt === "jours" ? "|" + (r.jours || []).join(",") : ""); // jours choisis (3.5) : seulement pour ce rythme (signature des autres inchangée)
 function regenRtc(P, r, ctx) {
   const id = idRT(r, ctx), t = ctx.aujourdhui; P.rdvs = P.rdvs || [];
   P.rdvs = P.rdvs.filter((x) => x.rtc !== id || (x.st && x.st !== "prevu") || (x.rep && x.rep.length) || x.d < t);
@@ -75,7 +110,6 @@ export function compteurRT(r, ctx) {
   const nb = parseInt(r.nb, 10); if (!r.deb || !nb) return null;
   if (r.fin) return { faites: nb, nb, pct: 100 };
   const t = ctx.aujourdhui; if (r.deb > t) return { faites: 0, nb, pct: 0 };
-  const pas = r.ryt === "2" ? 2 : 1; let d = r.deb, c = 0, w = 0;
-  for (let g = 0; g < 800 && d <= t && c < nb; g++) { if (ouvre(d, ctx.feries)) { if (w % pas === 0) c++; w++; } d = addJ(d, 1); }
+  const c = Math.min(nb, joursSeances(r, ctx.feries).filter((z) => z.d <= t).reduce((s0, z) => s0 + z.n, 0));
   return { faites: c, nb, pct: Math.round((c * 100) / nb) };
 }

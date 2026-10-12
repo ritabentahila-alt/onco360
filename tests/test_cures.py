@@ -13,8 +13,9 @@ async def main():
         await pg.goto('http://localhost:8767/v2.html#dossier/'+ESS); await pg.wait_for_timeout(2500)
         await pg.click('#og-ch'); await pg.wait_for_timeout(400)  # le dossier s'ouvre sur Consultation : onglet Chimiothérapie
         async def venu():  # fenêtre du prix après une validation : « Valider : venu », retour au dossier
+            await plus_tard(pg)
             print('  prix :', await ev("document.querySelector('#fenetreCorps').innerText.split('\\n')[0]"), '=', await ev("document.getElementById('pvM').value"), 'DH')
-            await pg.click('#fenetreCorps >> text=Valider : venu'); await pg.wait_for_timeout(800)
+            await plus_tard(pg); await pg.click('#fenetreCorps >> text=Valider : venu'); await pg.wait_for_timeout(800)
         await pg.click(CURE('C3')); await pg.wait_for_timeout(500)
         await pg.click(JOUR(0)+' >> text=Ouvrir'); await pg.wait_for_timeout(300)
         await pg.fill('#vD','2026-10-06'); await pg.click('#fOk'); await pg.wait_for_timeout(700)

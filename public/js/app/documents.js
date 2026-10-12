@@ -7,7 +7,8 @@
 import { collection, doc, getDoc, getDocs, setDoc, deleteDoc, updateDoc, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { db } from "../config.js";
 import { addJ, ouvre, accordMedecin } from "../moteur/outils.js";
-import { finRT } from "../moteur/rt.js";
+import { finRT, joursSeances, volumesRT, texteVolume, libRythme } from "../moteur/rt.js";
+import { assurerConsultations, consultationsDe } from "./consultations.js"; // bilan de contrôle (3.6)
 import { nettoyer } from "./ordonnances.js";
 import { margesMm } from "./reglages.js"; // marges d'impression réglables (Paramètres › Impression)
 
@@ -27,14 +28,10 @@ export const TITRES_DOC = { pli: "Pli confidentiel", cr: "Compte rendu de fin de
 // Traitement terminé (date de fin réelle) : jours de traitement entre la 1re séance et la fin réelle ; s'il y en a trop
 // (interruptions), on retire des jours au milieu, répartis régulièrement, en gardant la 1re et la dernière séance.
 export function datesSeancesRT(r, ctx) {
-  const nb = parseInt(r.nb, 10), pas = r.ryt === "2" ? 2 : 1, F = ctx.feries || [];
+  const nb = parseInt(r.nb, 10), F = ctx.feries || [];
   if (!r.deb || !nb) return { dates: [], ajuste: false };
-  const fin = r.fin || null, l = []; let d = r.deb, w = 0;
-  for (let g = 0; g < 1000; g++) {
-    if (fin ? d > fin : l.length >= nb) break;
-    if (ouvre(d, F)) { if (w % pas === 0) l.push(d); w++; }
-    d = addJ(d, 1);
-  }
+  // 3.5 : jours de séance selon le rythme (moteur/rt.js), une date par fraction (deux le même jour en « 2 par jour »)
+  const fin = r.fin || null, l = joursSeances(r, F, fin ? { jusqua: fin } : null).reduce((t, z) => t.concat(Array(z.n).fill(z.d)), []);
   if (fin && l[l.length - 1] !== fin && ouvre(fin, F)) l.push(fin);
   let ajuste = false;
   if (l.length > nb && nb >= 2) {
@@ -47,10 +44,12 @@ export function datesSeancesRT(r, ctx) {
   return { dates: l, ajuste, manquantes: Math.max(0, nb - l.length) };
 }
 // Durée : nombre de jours ouvrés nécessaires (1 jour sur 2 en stéréotaxie) ramené en semaines de 5 jours
+// (3.5 : séances par semaine selon le rythme : 5, 2,5, 10 en « 2 par jour », 1 par semaine, ou le nombre de jours choisis)
 export function dureeSemainesRT(r) {
   const nb = parseInt(r.nb, 10); if (!(nb > 0)) return "";
-  const jours = r.ryt === "2" ? nb * 2 - 1 : nb, sem = Math.ceil(jours / 5);
-  return sem + " semaine" + (sem > 1 ? "s" : "") + " (" + nb + " séance" + (nb > 1 ? "s" : "") + (r.ryt === "2" ? ", 1 jour sur 2" : "") + ")";
+  const ryt = r.ryt || "1", parSem = ryt === "2" ? 2.5 : ryt === "bid" ? 10 : ryt === "hebdo" ? 1 : ryt === "jours" ? (r.jours || []).length || 5 : 5;
+  const sem = Math.max(1, ryt === "2" ? Math.ceil((nb * 2 - 1) / 5) : Math.ceil(nb / parSem));
+  return sem + " semaine" + (sem > 1 ? "s" : "") + " (" + nb + " séance" + (nb > 1 ? "s" : "") + (ryt !== "1" ? ", " + libRythme(r) : "") + ")";
 }
 
 // ───── Contenu des documents (modèles Word du médecin, en HTML) ─────
@@ -81,8 +80,23 @@ function htmlPli(P, r, ctx, o) {
     "<p><b>Patient(e) : " + patient + '</b></p><p><br></p><p class="dc-c dc-g"><b>Radiothérapie ' + AR(acte) + "</b></p><p><br></p>" +
     "<p><b>Date de début : </b>Dès que possible</p>" + signature(o);
 }
+// 3.6 (12/10/2026, décision de Dr Bentahila) : le modèle est gardé ; Onco360 remplit ce qu'il sait : volumes et doses (3.5), dates (fin
+// renseignée, sinon fin calculée), prochain rendez-vous (pris dans « + Rendez-vous »), bilan de contrôle (ordonnance d'examens ou
+// d'analyses de la dernière consultation) ; le reste (toxicités, rendez-vous et bilan absents) est complété par le médecin
+// (mentions grises jamais imprimées) ; localisation, histologie et interruptions ne sont pas remplies.
+function prochainRdv(P, fin, ctx) {
+  const apres = fin && fin > ctx.aujourdhui ? fin : ctx.aujourdhui;
+  const v = (P.rdvs || []).filter((z) => (z.st || "prevu") === "prevu" && !z.rtc && z.d && z.d >= apres).sort((a, b) => (a.d + (a.h || "")).localeCompare(b.d + (b.h || "")))[0];
+  return v ? dfrA(v.d) + (v.h ? " à " + v.h : "") + (v.type ? " – " + v.type : "") : "";
+}
+function bilanControle(pid, ctx) {
+  const c = consultationsDe(pid).filter((z) => z.d && z.d <= ctx.aujourdhui).sort((a, b) => (b.d || "").localeCompare(a.d || "") || (b.o || 0) - (a.o || 0))[0];
+  const l = c ? (c.lignes || []).filter((z) => z.t === "exam" || z.t === "analyse").map((z) => String(z.lib || "").trim()).filter(Boolean) : [];
+  return l.length ? l.join(" ; ") + " (prescrit le " + dfrA(c.d) + ")" : "";
+}
 function htmlCr(P, r, ctx, o) {
   const { dates } = datesSeancesRT(r, ctx), deb = dates[0] || r.deb || "", fin = r.fin || dates[dates.length - 1] || finRT(r, ctx.feries) || "";
+  const vol = volumesRT(r);
   const nb = parseInt(r.nb, 10) || "", dose = parseFloat(String(r.dose || "").replace(",", ".")), dpf = dose && nb ? Math.round((dose / nb) * 100) / 100 : "";
   const sexe = P.sexe === "F" ? "Féminin" : P.sexe === "H" ? "Masculin" : "";
   const champ = (lib, v) => "<p><b>" + lib + " : </b>" + AF(v) + "</p>", puce = (lib, v, suite) => '<p class="dc-li">•&nbsp; <b>' + lib + " : </b>" + AF(v) + (v && suite ? suite : "") + "</p>";
@@ -92,10 +106,11 @@ function htmlCr(P, r, ctx, o) {
     champ("Établissement", o.etabNom || r.hop || P.hop || "") + champ("Date d'entrée", dfrA(deb)) + champ("Date de sortie", dfrA(fin)) + "</td></tr></tbody></table>" +
     '<p class="dc-h">2. Indication clinique et objectifs</p>' + puce("Résumé clinique", r.note || P.notes || "") + puce("Visée du traitement", r.intent === "curative" ? "Curative" : r.intent === "palliative" ? "Palliative" : "") +
     '<p class="dc-h">3. Modalités et technique de radiothérapie</p>' + puce("Technique utilisée", TECH[r.tech] || (r.vmat ? "VMAT" : "")) + puce("Localisation", r.loc || "") +
-    puce("Dose prescrite", vGy(dose), " <b>Gy</b> sur le volume ……………") + puce("Dose par fraction", vGy(dpf), " <b>Gy</b>") + puce("Nombre de fractions", nb ? String(nb) : "") +
+    (vol.length > 1 || (vol[0] && vol[0].nom) ? '<p class="dc-li">•&nbsp; <b>Volumes et doses : </b></p>' + vol.map((v) => '<p class="dc-li" style="margin-left:34px">– ' + esc(texteVolume(v, vol)) + "</p>").join("")
+      : puce("Dose prescrite", vGy(dose), " <b>Gy</b>") + puce("Dose par fraction", vGy(dpf), " <b>Gy</b>")) + puce("Nombre de séances", nb ? String(nb) + (r.ryt && r.ryt !== "1" ? " (" + libRythme(r) + ")" : "") : "") +
     '<p class="dc-h">4. Calendrier du traitement</p>' + puce("Date de début", dfrA(deb)) + puce("Date de fin", dfrA(fin)) +
     '<p class="dc-h">5. Tolérance et toxicités</p>' + puce("Toxicités observées", "") +
-    '<p class="dc-h">6. Conduite à tenir et suivi</p>' + puce("Prochain rendez-vous de consultation", "") + puce("Bilan de contrôle prévu", "") + signature(o);
+    '<p class="dc-h">6. Conduite à tenir et suivi</p>' + puce("Prochain rendez-vous de consultation", prochainRdv(P, fin, ctx)) + puce("Bilan de contrôle prévu", o.bilan || "") + signature(o);
 }
 function htmlRdv(P, r, ctx, o) {
   // 2.5 (12/10/2026, audit) : calendrier théorique (dates calculées, séances réelles suivies dans ARIA) : état « Prévu », plus de
@@ -136,7 +151,7 @@ function infos(x, r) {
   return { medecin: M.nom || "", specialite: M.specialite || "", etabNom: et.nom || "", ville: et.ville || "", genre: M.genre || "" };
 }
 function contenuNeuf(x, r, type) {
-  const o = infos(x, r);
+  const o = Object.assign(infos(x, r), { bilan: bilanControle(x.id, D().ctx) });
   return type === "pli" ? htmlPli(x.P, r, D().ctx, o) : type === "cr" ? htmlCr(x.P, r, D().ctx, o) : htmlRdv(x.P, r, D().ctx, o);
 }
 window.docRT = async (pid, rid, type) => {
@@ -144,6 +159,7 @@ window.docRT = async (pid, rid, type) => {
   const x = D().patients.find((p) => p.id === pid), r = x && (x.P.rts || []).find((v) => v.id === rid); if (!r) return;
   if (type === "rdv" && !datesSeancesRT(r, D().ctx).dates.length) { A.toast("Indiquez la date de la 1re séance et le nombre de fractions."); return; }
   A.fenetre('<p class="sous">Ouverture du document…</p>', "large");
+  if (type === "cr") await assurerConsultations(x).catch(() => null); // bilan de contrôle de la dernière consultation (3.6)
   const s = await getDoc(doc(col(), idDoc(pid, rid, type))).catch(() => null), e = s && s.exists() ? s.data() : null;
   F = { pid, rid, type, enreg: e };
   vue(x, r, e ? nettoyer(e.html) : contenuNeuf(x, r, type)); // version enregistrée nettoyée à l'affichage (audit du 10/10)

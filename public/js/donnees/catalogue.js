@@ -61,6 +61,39 @@ export const FICHE = [
 export const ENTETE0 = ["ddn", "sexe", "taille", "poids", "diag", "cin", "tel", "tel2", "etab", "ald", "cor", "mut"];
 export const TOUJOURS_ENTETE = ["nom", "prenom"]; // le nom du patient : toujours en tête
 export const TYPES_CHAMP = [["texte", "Texte"], ["nombre", "Nombre"], ["date", "Date"], ["choix", "Liste de choix"], ["ouinon", "Oui / Non"]];
+// Fiche tumeur (3.1, 12/10/2026, décision de Dr Bentahila) : champs de la spécialité Oncologie, ajoutés d'office à la fiche des
+// cabinets d'oncologie / radiothérapie (formEffectif, s._onco) ; chaque cabinet les affiche ou non, en tête du dossier ou non
+// (Paramètres › Cabinet › Fiche patient). Valeurs dans clinique.extra. Biomarqueurs proposés selon la localisation (si.xtloc) :
+// ceux qui se recherchent pour ce type de tumeur ; « Autre » et « Primitif inconnu » : tous.
+export const LOCALISATIONS = ["Sein", "Poumon", "Côlon-rectum", "Canal anal", "Estomac", "Œsophage", "Pancréas", "Foie", "Voies biliaires", "Prostate", "Vessie", "Rein",
+  "Testicule", "Col de l'utérus", "Endomètre", "Ovaire", "Vulve / vagin", "ORL", "Nasopharynx", "Thyroïde", "Cerveau", "Mélanome", "Peau (autre)", "Sarcome",
+  "Lymphome", "Myélome", "Primitif inconnu", "Autre"];
+export const STADES = ["0", "I", "IA", "IB", "II", "IIA", "IIB", "IIC", "III", "IIIA", "IIIB", "IIIC", "IV", "IVA", "IVB", "IVC", "Localisé", "Localement avancé", "Métastatique"];
+const pour = (...l) => ({ xtloc: l.concat(["Autre", "Primitif inconnu"]) });
+const NF = "Non fait";
+export const TUMEUR = [
+  { id: "xtloc", lib: "Localisation", choix: LOCALISATIONS, entete: true },
+  { id: "xtcote", lib: "Côté", choix: ["Droit", "Gauche", "Bilatéral", "Sans objet"] },
+  { id: "xthisto", lib: "Histologie", type: "texte" },
+  { id: "xtgrade", lib: "Grade", choix: ["1", "2", "3", "4", "Bas grade", "Haut grade"] },
+  { id: "xtctnm", lib: "cTNM", type: "texte" },
+  { id: "xtptnm", lib: "pTNM", type: "texte" },
+  { id: "xtstade", lib: "Stade", choix: STADES, entete: true },
+  { id: "xtdiagd", lib: "Date du diagnostic", type: "date" },
+  { id: "xtre", lib: "RE", choix: ["Positif", "Négatif", NF], si: pour("Sein", "Endomètre") },
+  { id: "xtrp", lib: "RP", choix: ["Positif", "Négatif", NF], si: pour("Sein", "Endomètre") },
+  { id: "xther2", lib: "HER2", choix: ["0", "1+", "2+ (ISH négative)", "2+ (ISH positive)", "3+", NF], si: pour("Sein", "Estomac", "Œsophage", "Côlon-rectum", "Voies biliaires") },
+  { id: "xtki67", lib: "Ki-67 (%)", type: "nombre", si: pour("Sein") },
+  { id: "xtpdl1", lib: "PD-L1", type: "texte", si: pour("Poumon", "Sein", "Estomac", "Œsophage", "ORL", "Nasopharynx", "Col de l'utérus", "Vessie", "Mélanome") },
+  { id: "xtegfr", lib: "EGFR", choix: ["Muté", "Non muté", NF], si: pour("Poumon") },
+  { id: "xtalk", lib: "ALK", choix: ["Réarrangé", "Non réarrangé", NF], si: pour("Poumon") },
+  { id: "xtkras", lib: "KRAS", choix: ["Muté", "Non muté", NF], si: pour("Poumon", "Côlon-rectum", "Pancréas") },
+  { id: "xtbraf", lib: "BRAF", choix: ["Muté (V600E)", "Muté (autre)", "Non muté", NF], si: pour("Poumon", "Côlon-rectum", "Mélanome", "Thyroïde") },
+  { id: "xtmsi", lib: "MSI", choix: ["MSI (instable)", "MSS (stable)", NF], si: pour("Côlon-rectum", "Endomètre", "Estomac", "Pancréas", "Voies biliaires", "Ovaire", "Prostate") },
+  { id: "xtoms", lib: "État général (OMS)", choix: ["0", "1", "2", "3", "4"], entete: true },
+].map((a) => Object.assign({ partie: "clinique", type: "choix", imprimer: false, entete: false, tumeur: true }, a));
+// Un champ à condition (si) est-il proposé, d'après les valeurs déjà saisies (extra) ?
+export const champPropose = (a, extra) => !a.si || Object.keys(a.si).every((k) => a.si[k].indexOf((extra || {})[k]) >= 0);
 // Formulaire de consultation (16.7, 10/10/2026) : champs existants [clé, libellé, -, base, choix de départ (liste modifiable)] = la
 // fenêtre « Nouvelle consultation » d'aujourd'hui (oncologie) ; champs ajoutés : mêmes types que la fiche + texte long, titre de section,
 // nombre avec unité ; valeurs dans consultations/{c}.extra.
@@ -72,7 +105,9 @@ export const TYPES_CHAMP_CS = [["texte", "Texte"], ["textelong", "Texte long (pl
 // marqués cabinet: true). libs = nom affiché d'un champ existant ; choixs = liste de choix d'un champ existant (absent = d'origine).
 export function formEffectif(CAT, f, spe) {
   const x = f || {}, s = spe || {}, ok = (a) => a && /^x[a-z0-9]{3,20}$/.test(a.id || "") && a.lib;
-  const aS = (Array.isArray(s.ajouts) ? s.ajouts : []).filter(ok).map((a) => Object.assign({}, a, { cabinet: false })), ids = aS.map((a) => a.id);
+  const aS0 = (Array.isArray(s.ajouts) ? s.ajouts : []).filter(ok).map((a) => Object.assign({}, a, { cabinet: false }));
+  // fiche tumeur des cabinets d'oncologie (3.1) : en tête des champs de la spécialité, sauf si la spécialité les a déjà
+  const aS = (CAT === FICHE && s._onco ? TUMEUR.filter((a) => !aS0.some((z) => z.id === a.id)).map((a) => Object.assign({}, a, { cabinet: false })) : []).concat(aS0), ids = aS.map((a) => a.id);
   const aC = (Array.isArray(x.ajouts) ? x.ajouts : []).filter((a) => ok(a) && ids.indexOf(a.id) < 0).map((a) => Object.assign({}, a, { cabinet: true }));
   const ajouts = aS.concat(aC), ref = CAT.map((c) => c[0]).concat(ajouts.map((a) => a.id)), champs = {}, libs = {}, choixs = {};
   ref.forEach((k) => { const v = x.champs && typeof x.champs[k] === "boolean" ? x.champs[k] : s.champs && s.champs[k]; champs[k] = v !== false; });

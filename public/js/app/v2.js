@@ -8,7 +8,7 @@ import { fusionner } from "../donnees/conversion.js";
 import { resume } from "../moteur/resume.js";
 import { chimioAVenir } from "../moteur/agenda.js";
 import { etatLigne, protocoleDe, seancesCure, poidsDebut, reperesClairance } from "../moteur/doses.js";
-import { finRT, statutRT, nbA, compteurRT, dosimetrie, contourage } from "../moteur/rt.js";
+import { finRT, statutRT, nbA, compteurRT, dosimetrie, contourage, RYTHMES, libRythme, volumesRT, seancesVolumes, dpfVolume, texteVolume } from "../moteur/rt.js";
 import { auj, addJ, ecart, ouvre, age, srcImage, absentMedecin } from "../moteur/outils.js";
 import { typeRdv, libRdv, joursH, T_RTC } from "../moteur/rdv.js";
 import { tarif as tarifAu } from "../moteur/tarifs.js";
@@ -27,7 +27,7 @@ import { installer as installerOrdonnances, remplacerOrdosTypes, figerListes } f
 import { figerDocumentation } from "./documentation.js";
 import * as ficheP from "./fichepatient.js";
 import { installer as installerFichiers, htmlFichiers, nbFichiers, oublierFichiers, suivreEtablissementFichiers, supprimerFichiers } from "./fichiers.js";
-import { installer as installerConsultations, htmlConsultations, nbConsultations, oublierConsultations, suivreEtablissement, supprimerConsultations } from "./consultations.js";
+import { installer as installerConsultations, datesConsultations, htmlConsultations, nbConsultations, oublierConsultations, suivreEtablissement, supprimerConsultations } from "./consultations.js";
 import { installer as installerReglages, reglages, appliquerImpression, margesMm } from "./reglages.js";
 import { montantEnLettres } from "../donnees/factures.js";
 import { installer as installerTaches, pageTaches, demarrerTaches, blocAccueil as blocTaches, tachesDuPatient } from "./taches.js";
@@ -36,6 +36,8 @@ import { installer as installerAudit } from "./audit.js";
 import { installer as installerRcp, demarrerRcp, rcpDuPatient, bulleRcp, suivreEtablissementRcp, supprimerRcp } from "./rcp.js";
 import { ACTES_RT } from "../donnees/listes.js";
 import { abonnementEffectif } from "../donnees/modules.js";
+import { STATUTS, libStatut, decede, allergique, dernieresNouvelles } from "../moteur/statut.js"; // 3.2 et 3.3 (12/10/2026)
+import { LOCALISATIONS, STADES } from "../donnees/catalogue.js";
 import { reglageEffectif, styleRetraits, formulairesCabinet } from "../donnees/catalogue.js";
 import * as aboP from "./abonnement.js";
 import { accueilEffectif } from "../donnees/catalogue.js";
@@ -205,7 +207,10 @@ async function charger(u) {
   if (!abo.modules.rt) membre.droits.radiotherapie = "aucun";
   if (!abo.modules.documents) membre.droits.documents = false;
   // Réglage du cabinet (10/10/2026) : ordre du menu, cartes du tableau de bord, onglets des Paramètres, bibliothèques, fonctions
-  const regAdmin = reglageEffectif(espaceDoc.bibliotheque === true ? null : espaceDoc.abonnement && espaceDoc.abonnement.reglage, espaceDoc.ficheSpe, espaceDoc.consultSpe); // fiche patient et consultation : celles de la spécialité + retouches du cabinet
+  // Fiche tumeur (3.1, 12/10/2026) : cabinets d'oncologie / radiothérapie = module chimiothérapie ou radiothérapie (ou sans formule) ;
+  // bibliothèque de référence : celle d'oncologie seulement
+  const onco = espaceDoc.bibliotheque === true ? ESPACE === "bib-oncologie" : !espaceDoc.abonnement || abo.modules.chimio || abo.modules.rt;
+  const regAdmin = reglageEffectif(espaceDoc.bibliotheque === true ? null : espaceDoc.abonnement && espaceDoc.abonnement.reglage, Object.assign({}, espaceDoc.ficheSpe || {}, { _onco: onco }), espaceDoc.consultSpe); // fiche patient et consultation : celles de la spécialité + retouches du cabinet
   // puis retouches faites par le cabinet lui-même (parametres/formulaires) ; regAdmin.fiche / .consultation = base de l'éditeur des Paramètres
   let formCab = null; try { const sFO = await pFO; formCab = sFO && sFO.exists() ? JSON.parse(sFO.data().data || "{}") : null; } catch (e) { /* illisible : réglage de l'administration */ }
   const reg = espaceDoc.bibliotheque === true ? regAdmin : formulairesCabinet(regAdmin, formCab);
@@ -521,7 +526,7 @@ async function noterRappel(x, d, cat) {
 // Rappels à envoyer (19.4) : rendez-vous, cures, séances dans la fenêtre du bouton vert (Paramètres › WhatsApp), envoyés ou non
 function rappelsAEnvoyer() {
   const t = D.t, RW = reglages().whatsapp, l = [], vus = {};
-  D.patients.forEach((pt) => (pt.r.ag || []).forEach((e) => {
+  D.patients.forEach((pt) => (decede(pt.P) ? [] : pt.r.ag || []).forEach((e) => { // patient décédé : plus de rappel (3.3)
     const g = ecart(e.d, t); if (g < RW.de || g > RW.a || !evtVisible(pt, e.k)) return; const cat = catEvt(pt.id, e.k); if (!cat) return;
     const k = pt.id + "|" + e.d + "|" + cat; if (vus[k]) return; vus[k] = 1;
     const titre = sansEmoji(e.t), m = titre.match(/^(.*?) – (.*)$/);
@@ -654,7 +659,7 @@ window.majAccueilCab = (o) => { const av = JSON.stringify(D.accueilCab || null);
 // bilan noté à la validation sous les repères (PNN, plaquettes, hémoglobine)
 function alertesCliniques() {
   const t = D.t, l = [];
-  D.patients.forEach((x) => (x.P.lignes || []).forEach((L) => {
+  D.patients.forEach((x) => (decede(x.P) ? [] : x.P.lignes || []).forEach((L) => { // patient décédé : plus d'alerte (3.3)
     if (L.arret || !(L.cures || []).some((c) => (c.st || "prevue") === "prevue")) return;
     let E; try { if (!protocoleDe(L, D.ctx.bib)) return; E = etatLigne(L, x.P, D.ctx); } catch (er) { return; }
     const k = E.findIndex((e) => e.st === "prevue"), e = E[k]; if (!e) return;
@@ -805,13 +810,25 @@ function pagePatients(filtre) {
   $("page").innerHTML = '<section class="accueil"><div><h2>Patients</h2><p>Retrouvez et gérez vos dossiers patients.</p></div><div class="actions"><button class="bt plein" onclick="nouveauPatient()">' + ic("plus") + "Nouveau patient</button></div></section>" +
     '<div class="filtres"><div class="recherche">' + ic("loupe") + '<input id="q" type="search" placeholder="Rechercher un patient…" title="Nom, prénom, date de naissance, numéro de dossier, diagnostic, protocole" autocomplete="off"></div><select id="flt">' + opts + "</select>" + (hopsVus().length > 1 ? '<select id="fhop" aria-label="Hôpital"><option value="">Tous les hôpitaux</option>' + hopsVus().map((e) => '<option value="' + esc(e.code) + '">' + esc(e.code + " – " + e.nom) + "</option>").join("") + "</select>" : "") + "</div>" +
     '<section class="carte"><div class="sous" id="nbRes" style="margin:0 0 6px"></div><div id="lst"></div></section>';
+  // 3.1 et 3.3 (12/10/2026) : filtres par statut, localisation et stade (fiche tumeur), proposés s'il y a des valeurs
+  const ex = (x, k) => (((x.doc.clinique || {}).extra) || {})[k] || "", vus = (k, ref) => ref.filter((v) => D.patients.some((x) => ex(x, k) === v));
+  const sel = (id, lib, l) => (l.length ? '<select id="' + id + '" aria-label="' + lib + '"><option value="">' + lib + "</option>" + l.map(([v, t]) => '<option value="' + esc(v) + '">' + esc(t) + "</option>").join("") + "</select>" : "");
+  const fx = sel("fst", "Tous les statuts", STATUTS.filter(([k]) => D.patients.some((x) => (x.doc.clinique || {}).statut === k)).concat(D.patients.some((x) => (x.doc.clinique || {}).statut === "decede") ? [["vivant", "Sauf décédés"]] : [])) +
+    sel("floc", "Toutes les localisations", vus("xtloc", LOCALISATIONS).map((v) => [v, v])) + sel("fstade", "Tous les stades", vus("xtstade", STADES).map((v) => [v, "Stade " + v]));
+  if (fx) document.querySelector("#page .filtres").insertAdjacentHTML("beforeend", fx);
+  ["fst", "floc", "fstade"].forEach((id) => { if ($(id)) $(id).onchange = listePatients; });
   if (filtre && $("flt").querySelector('option[value="' + CSS.escape(filtre) + '"]')) $("flt").value = filtre;
   $("q").oninput = $("flt").onchange = listePatients; if ($("fhop")) $("fhop").onchange = listePatients; listePatients();
 }
 function listePatients() {
   const mots = sansAcc($("q").value).split(/\s+/).filter(Boolean), f = $("flt").value, t = D.t, hop = $("fhop") ? $("fhop").value : "";
+  const fst = $("fst") ? $("fst").value : "", floc = $("floc") ? $("floc").value : "", fstade = $("fstade") ? $("fstade").value : "";
   const l = D.patients.filter((x) => {
     if (hop && x.doc.etablissementId !== hop) return false;
+    const cl = x.doc.clinique || {}, ext = cl.extra || {};
+    if (fst && (fst === "vivant" ? cl.statut === "decede" : cl.statut !== fst)) return false;
+    if (floc && ext.xtloc !== floc) return false;
+    if (fstade && ext.xtstade !== fstade) return false;
     const r = x.r, hay = sansAcc([r.nm, dfrA(r.ddn), numDossier(x), r.diag, (r.pr || []).join(" "), r.t ? r.t.nom : "", r.hop].join(" "));
     if (!mots.every((w) => hay.indexOf(w) >= 0)) return false;
     if (f.indexOf("p:") === 0) return (r.act || []).some((a) => a.nom.replace(/ · J\d+$/, "") === f.slice(2)) || (r.t && r.t.st === "cours" && r.t.nom === f.slice(2));
@@ -824,6 +841,7 @@ function listePatients() {
     if (r.t) { if (r.t.st === "cours") { tr = "💉 " + r.t.nom + (r.t.c && r.t.k ? " · C" + r.t.k + "/" + r.t.nb : "") + (r.t.next ? " · prochaine cure le " + dfr(r.t.next) : ""); bd = '<span class="badge b-co">En cours</span>'; } else { tr = "💉 " + r.t.nom; bd = r.t.st === "fin" ? '<span class="badge b-ch">Terminé</span>' : '<span class="badge b-gr">Arrêté</span>'; } }
     if (rtC) { tr = (tr ? tr + " · " : "") + "☢️ " + rtC.a + " jusqu'au " + dfr(rtC.fin); bd += ' <span class="badge b-rt">RT en cours</span>'; }
     else if (rtP) { tr = (tr ? tr + " · " : "") + "☢️ " + rtP.a + " à partir du " + dfr(rtP.deb); bd += ' <span class="badge b-rt">RT prévue</span>'; }
+    const st0 = (xp.doc.clinique || {}).statut; if (st0 && st0 !== "traitement") bd += ' <span class="badge ' + (st0 === "decede" ? "b-dc" : st0 === "perdu" ? "b-or" : "b-gr") + '">' + esc(libStatut(st0)) + "</span>"; // 3.3
     return '<div class="pat" onclick="ouvrirDossier(\'' + id + '\')">' + bulle(D.patients.find((z) => z.id === id)) + '<div class="tx"><b>' + esc(r.nm) + "</b><span>" + esc([numDossier(xp) ? "N° " + numDossier(xp) : "", r.ddn ? "Né(e) le " + dfrA(r.ddn) + (a != null ? " (" + a + " ans)" : "") : "", r.diag].filter(Boolean).join(" · ")) + "</span>" + (tr ? "<span>" + esc(tr) + "</span>" : "") + '</div><div class="dr">' + (r.hop ? '<span class="badge b-gr">' + esc(r.hop) + "</span>" : "") + bd + "</div></div>";
   }).join("") : '<p class="vide-c">Aucun patient ne correspond. Essayez un autre nom ou retirez le filtre.</p>';
 }
@@ -848,10 +866,14 @@ function pageDossier(id) {
   const champ = (lib, v) => v ? "<div><label>" + lib + "</label><b>" + esc(v) + "</b></div>" : "";
   const ENT = ficheP.enTete; // champ en tête du dossier (réglage de la fiche patient)
   const okN = traitMod();
-  h += '<section class="carte"><div class="ident">' + (peut("identite") ? '<button class="bulle-photo" onclick="photoPatient(\'' + x.id + '\')" title="' + (P.photo ? "Changer ou retirer la photo" : "Ajouter une photo du patient") + '" aria-label="Photo du patient">' + bulle(x, "ph-dos") + "</button>" : bulle(x, "ph-dos")) + '<div style="flex:1;min-width:200px"><h2>' + esc(r.nm) + "</h2><p>" +
-    esc([P.numero ? "Dossier n° " + P.numero : "", ENT("ddn") && P.ddn ? "Né(e) le " + dfrA(P.ddn) + (a != null ? " (" + a + " ans)" : "") : "", ENT("sexe") ? (P.sexe === "F" ? "Femme" : P.sexe === "H" ? "Homme" : "") : "", ENT("taille") && P.taille ? P.taille + " cm" : "", ENT("poids") && P.poids ? P.poids + " kg" : ""].filter(Boolean).join(" · ")) + "</p>" +
-    '<div class="bd">' + (P.hop ? '<span class="badge b-gr">' + esc(P.hop) + "</span>" : "") + (r.t && r.t.st === "cours" ? '<span class="badge b-co">Chimiothérapie en cours</span>' : "") + ((r.rtS || []).some((s) => s.st === "cours") ? '<span class="badge b-rt">RT en cours</span>' : "") + "</div></div>" +
-    '<div class="actr id-bt" style="align-self:flex-start"><button class="bt gris" onclick="afficherPatient(\'' + x.id + '\')">Afficher</button>' + (D.espaceDoc && D.espaceDoc.titulaire === D.u.uid ? '<button class="bt gris" onclick="auditPatient(\'' + x.id + '\')" title="Journal d\'audit de ce dossier : qui l\'a ouvert, modifié…">Journal</button>' : "") + (peut("identite") || peut("fichePatient") || traitMod() ? '<button class="bt clair" onclick="modifierIdentite(\'' + x.id + '\')">Modifier</button>' : "") + '<button class="bt clair" data-mod="taches" onclick="taNouvelle(\'' + x.id + '\')" title="Nouvelle tâche pour ce patient">' + ic("plus") + "Tâche</button>" + (peut("rendezvous") ? '<button class="bt clair" onclick="ouvrirRdv(\'' + x.id + '\')" title="Ajouter un rendez-vous pour ce patient">' + ic("plus") + '<span class="lg">Rendez-vous</span><span class="sm">RDV</span></button>' : "") + "</div></div>" +
+  // 3.2 et 3.3 (12/10/2026) : bandeau rouge d'allergie (seulement si « oui »), statut, dernières nouvelles
+  const dn = dernieresNouvelles(P, datesConsultations(x.id), t), alTxt = String(P.allergies || "").trim();
+  h += '<section class="carte id-c">' + (allergique(P) ? '<div class="al-band" role="alert">' + ic("alerte") + "<b>Allergie</b>" + (alTxt ? " : " + esc(alTxt) : " (détail non précisé)") + "</div>" :
+      !P.allergie && alTxt && !/^aucune?\b/i.test(alTxt) ? '<p class="mesures" style="color:var(--orange);margin:0 0 8px">Allergies notées (« ' + esc(alTxt.slice(0, 60)) + ' ») : précisez « Allergie connue : oui / non » dans la fiche (Modifier) pour le bandeau.</p>' : "") +
+    '<div class="ident">' + (peut("identite") ? '<button class="bulle-photo" onclick="photoPatient(\'' + x.id + '\')" title="' + (P.photo ? "Changer ou retirer la photo" : "Ajouter une photo du patient") + '" aria-label="Photo du patient">' + bulle(x, "ph-dos") + "</button>" : bulle(x, "ph-dos")) + '<div style="flex:1;min-width:200px"><h2>' + esc(r.nm) + "</h2><p>" +
+    esc([P.numero ? "Dossier n° " + P.numero : "", ENT("ddn") && P.ddn ? "Né(e) le " + dfrA(P.ddn) + (a != null ? " (" + a + " ans)" : "") : "", ENT("sexe") ? (P.sexe === "F" ? "Femme" : P.sexe === "H" ? "Homme" : "") : "", ENT("taille") && P.taille ? P.taille + " cm" : "", ENT("poids") && P.poids ? P.poids + " kg" : "", dn ? "Dernières nouvelles : " + dfrA(dn) : ""].filter(Boolean).join(" · ")) + "</p>" +
+    '<div class="bd">' + (P.hop ? '<span class="badge b-gr">' + esc(P.hop) + "</span>" : "") + (P.statut ? '<span class="badge ' + (P.statut === "decede" ? "b-dc" : P.statut === "perdu" ? "b-or" : "b-gr") + '">' + esc(libStatut(P.statut)) + (P.statut === "decede" && P.decesLe ? " le " + dfrA(P.decesLe) : "") + "</span>" : "") + (r.t && r.t.st === "cours" ? '<span class="badge b-co">Chimiothérapie en cours</span>' : "") + ((r.rtS || []).some((s) => s.st === "cours") ? '<span class="badge b-rt">RT en cours</span>' : "") + "</div></div>" +
+    '<div class="actr id-bt" style="align-self:flex-start"><button class="bt clair id-plus" onclick="this.closest(\'.id-c\').classList.toggle(\'id-ouv\');this.textContent=this.closest(\'.id-c\').classList.contains(\'id-ouv\')?\'Replier\':\'Fiche et résumé\'">Fiche et résumé</button><button class="bt gris" onclick="afficherPatient(\'' + x.id + '\')">Afficher</button>' + (D.espaceDoc && D.espaceDoc.titulaire === D.u.uid ? '<button class="bt gris" onclick="auditPatient(\'' + x.id + '\')" title="Journal d\'audit de ce dossier : qui l\'a ouvert, modifié…">Journal</button>' : "") + (peut("identite") || peut("fichePatient") || traitMod() ? '<button class="bt clair" onclick="modifierIdentite(\'' + x.id + '\')">Modifier</button>' : "") + "</div></div>" + // « + Tâche » et « + Rendez-vous » : dans la carte « Rendez-vous et tâches à venir » (doublons retirés, 3.3)
     // Champs en tête du dossier : réglés champ par champ (Administration › fiche patient de la spécialité, case « en-tête »)
     '<div class="champs">' + (ENT("diag") ? champ("Diagnostic", r.diag).replace("<div", '<div data-champ="diag"') : "") + (ENT("cin") && P.cin ? champ("CIN", P.cin).replace("<div", '<div data-champ="cin"') : "") + (ENT("tel") && P.tel ? '<div data-champ="tel"><label>Téléphone</label><b><a href="tel:' + esc(P.tel) + '">' + esc(P.tel) + "</a></b></div>" : "") + (ENT("tel2") && P.tel2 ? '<div data-champ="tel2"><label>2e téléphone</label><b><a href="tel:' + esc(P.tel2) + '">' + esc(P.tel2) + "</a></b></div>" : "") +
       (ENT("etab") ? champ("Hôpital", P.hop).replace("<div", '<div data-champ="etab"') : "") + (ENT("ald") ? champ("ALD", P.ald).replace("<div", '<div data-champ="ald"') : "") + (ENT("cor") ? champ("Correspondant", P.cor).replace("<div", '<div data-champ="cor" data-fn="listes.cor"') : "") + (ENT("mut") ? champ("Mutuelle", P.mut).replace("<div", '<div data-champ="mut"') : "") +
@@ -891,6 +913,7 @@ function pageDossier(id) {
   const hRdv = '<section class="carte"><div class="entete"><h3><span class="ic">' + ic("agenda") + "</span>Rendez-vous et tâches à venir</h3><div class=\"actr\">" + (okR ? '<button class="bt clair petit" onclick="ouvrirRdv(' + qx + ')">' + ic("plus") + "Ajouter un rendez-vous</button>" : "") + '<button class="bt clair petit" data-mod="taches" onclick="taNouvelle(' + qx + ')">' + ic("plus") + "Tâche</button></div></div>" +
     // Liste dans une zone qui défile : les 5 prochains visibles (hauteur réglée après l'affichage, limiterHauteur)
     (av.length > 5 ? '<p class="mesures" style="margin:4px 0 0">' + av.length + " rendez-vous : faites défiler la liste pour voir les suivants.</p>" : "") +
+    (decede(P) && av.some((v) => v.d >= t) ? '<p class="al-band dc">Patient décédé' + (P.decesLe ? " le " + dfrA(P.decesLe) : "") + " : " + av.filter((v) => v.d >= t).length + " rendez-vous, séance(s) ou tâche(s) encore prévus, à annuler.</p>" : "") +
     '<div class="rdv-liste" id="rdvListe">' + (av.length ? av.map((v) => '<div class="rdv">' + (absenceLe(v.d) ? '<span class="badge b-al"><svg class="pi"><use href="#i-stop"/></svg>' + absentMedecin(medecinFiche().genre) + "</span>" : ferieLe(v.d) ? '<span class="badge b-al">Férié</span>' : "") + '<span class="badge ' + (v.retard ? "b-al" : "b-co") + '">' + (v.d ? dfr(v.d) : "—") + (v.f && v.f !== v.d ? " → " + dfr(v.f) : "") + (v.h ? " " + v.h : "") + "</span><span>" + v.em + '</span><div class="tx">' + esc(v.t) + (v.rep && v.rep.length ? '<div class="mesures">Reporté (initialement le ' + dfrA(v.rep[0].d) + ")</div>" : "") + "</div>" + (v.act || "") + "</div>").join("") : '<p class="sous">Aucun rendez-vous ni tâche à venir.</p>') + '</div><p class="mesures" style="margin:8px 0 0">Prochaine étape de chimiothérapie et de radiothérapie (automatique) et consultations programmées. Les consultations passées sont listées juste en dessous.</p></section>';
 
   // Un seul cadre à onglets (07/10/2026) : Consultation · Chimiothérapie · Radiothérapie · Documents, selon les droits
@@ -920,7 +943,9 @@ function pageDossier(id) {
       const finFaite = !!v.fin || (f && f < t);
       const dz = dosimetrie(v, t), cz = contourage(v, t); // périodes à valider : contourage (scanner → 1re séance), puis dosimétrie (contourage → 1re séance)
       hr += '<div class="rt' + (ouv ? " on" : "") + '"><div class="tl" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;cursor:pointer" onclick="rtTog(' + q + ')" title="' + (ouv ? "Refermer" : "Voir les étapes") + '"><b style="font-size:16px;color:var(--titre)">' + (ouv ? "▾ " : "▸ ") + esc(v.acte || "Radiothérapie") + (nbA(v) > 1 ? " × " + nbA(v) : "") + '</b><span class="badge ' + cls + '">' + ({ fin: '<svg class="pi"><use href="#i-check"/></svg>', cours: '<i class="dot v"></i>', dep: '<i class="dot o"></i>', prev: '<svg class="pi"><use href="#i-horloge"/></svg>' }[s.c] || "") + esc(s.lib) + "</span>" + (v.hop ? '<span class="badge b-gr">' + esc(v.hop) + "</span>" : "") + (v.intent ? '<span class="badge b-gr">' + (v.intent === "curative" ? "Curative" : "Palliative") + "</span>" : "") + "</div>" +
-        '<p class="st" style="color:var(--doux);font-size:13.5px;margin:6px 0 0">' + esc([dose ? String(dose).replace(".", ",") + " Gy" : "", nb ? nb + " fractions" : "", dpf ? String(dpf).replace(".", ",") + " Gy/fraction" : "", TECH[v.tech] || (v.vmat ? "VMAT" : ""), v.ryt === "2" ? "1 jour sur 2" : "quotidien"].filter(Boolean).join(" · ")) + "</p>" +
+        // 3.5 (12/10/2026) : volumes (principal et compléments) et rythme
+        (Array.isArray(v.vol) && v.vol.length ? '<p class="st" style="color:var(--doux);font-size:13.5px;margin:6px 0 0">' + volumesRT(v).map((z, n, l) => esc(texteVolume(z, l))).join("<br>") + "<br>" + esc([nb ? nb + " séances" : "", TECH[v.tech] || (v.vmat ? "VMAT" : ""), libRythme(v)].filter(Boolean).join(" · ")) + "</p>"
+          : '<p class="st" style="color:var(--doux);font-size:13.5px;margin:6px 0 0">' + esc([dose ? String(dose).replace(".", ",") + " Gy" : "", nb ? nb + " fractions" : "", dpf ? String(dpf).replace(".", ",") + " Gy/fraction" : "", TECH[v.tech] || (v.vmat ? "VMAT" : ""), libRythme(v)].filter(Boolean).join(" · ")) + "</p>") +
         (ouv ? '<div class="etapes">' + (v.scan ? etape("Scanner de centrage", v.scan, v.scan <= t) : "") +
         // Contourage (09/10/2026) : validé par le médecin entre le scanner et la dosimétrie
         (v.cont ? etape("Contourage validé", v.cont, true, okRT && peutDosi() && !v.dosi && !v.fin ? ' <a href="#" class="lienr" onclick="contRT(' + q + ',1);return false">annuler</a>' : "")
@@ -1008,7 +1033,9 @@ function limiterHauteur(id, n) {
 // ───── Modifier l'identité ─────
 // Champs médicaux facultatifs (fiche clinique) : aussi dans « Nouveau patient »
 const CHAMPS_MED = [["allergies", "Allergies", "Aucune connue, ou ex. pénicilline, iode…"], ["atcdMed", "Antécédents médicaux", "Diabète, HTA, cardiopathie…"], ["atcdFam", "Antécédents familiaux", "Cancer du sein chez la mère…"], ["modeVie", "Mode de vie", "Tabac, alcool, activité, situation familiale…"], ["traitCours", "Traitement en cours", "Médicaments pris actuellement (nom, dose)…"]];
-const champsMed = (C, off) => CHAMPS_MED.map(([k, lib, ph]) => '<div class="large" data-champ="' + k + '"><label for="f_' + k + '">' + lib + ' <span class="mesures">(facultatif)</span></label><textarea id="f_' + k + '" rows="2" class="champ-t" placeholder="' + ph + '"' + (off ? " disabled" : "") + ">" + esc((C && C[k]) || "") + "</textarea></div>").join("");
+// 3.2 (12/10/2026) : « Allergie connue : oui / non » avant le détail ; bandeau rouge dans le dossier seulement si « oui »
+const choixAllergie = (C, off) => '<label for="f_allergie" style="display:block;margin-bottom:4px">Allergie connue <select id="f_allergie" style="width:auto;display:inline-block;margin-left:6px"' + (off ? " disabled" : "") + ">" + [["", "—"], ["non", "Non"], ["oui", "Oui"]].map(([v, l]) => '<option value="' + v + '"' + (((C && C.allergie) || "") === v ? " selected" : "") + ">" + l + "</option>").join("") + "</select></label>";
+const champsMed = (C, off) => CHAMPS_MED.map(([k, lib, ph]) => '<div class="large" data-champ="' + k + '">' + (k === "allergies" ? choixAllergie(C, off) : "") + '<label for="f_' + k + '">' + (k === "allergies" ? "Allergies (détail)" : lib) + ' <span class="mesures">(facultatif)</span></label><textarea id="f_' + k + '" rows="2" class="champ-t" placeholder="' + ph + '"' + (off ? " disabled" : "") + ">" + esc((C && C[k]) || "") + "</textarea></div>").join("");
 window.modifierIdentite = (id) => {
   const x = D.patients.find((p) => p.id === id); if (!x) return;
   const I = x.doc.identite || {}, C = x.doc.clinique || {}, okI = peut("identite"), okC = traitMod() || peut("fichePatient"), okE = !!D.membre.tousEtablissements;
@@ -1025,6 +1052,10 @@ window.modifierIdentite = (id) => {
     sel("fAld", "ALD", I.ald, [["", ""], ["Oui", "Oui"], ["Non", "Non"]], !okI).replace("<div", '<div data-champ="ald"') +
     champ("fCor", "Correspondant", I.cor, { liste: "lCor", off: !okI, large: true, ph: "Taper pour chercher, ou saisir un nouveau…" }).replace("<div", '<div data-champ="cor" data-fn="listes.cor"') + champ("fMut", "Mutuelle", I.mut, { liste: "lMut", off: !okI, large: true, ph: "Taper pour chercher, ou saisir une nouvelle…" }).replace("<div", '<div data-champ="mut"') + champ("fAdr", "Adresse", I.adresse, { off: !okI, large: true }).replace("<div", '<div data-champ="adresse"') + champ("fMail", "E-mail", I.email, { type: "email", off: !okI, large: true }).replace("<div", '<div data-champ="email"') + champsMed(C, !okC) +
     ficheP.htmlSaisie(x, (p) => (p === "clinique" ? !okC : !okI)) + "</div>" + // champs ajoutés (réglage du cabinet)
+    // Statut du patient (3.3, 12/10/2026) : décédé → plus de rappels, de tâches automatiques ni d'alertes ; rendez-vous à venir signalés
+    '<div class="form" style="margin-top:8px"><div><label for="fStatut">Statut du patient</label><select id="fStatut"' + (okC ? "" : " disabled") + ' onchange="document.getElementById(\'zDeces\').classList.toggle(\'cache\',this.value!==\'decede\')"><option value="">—</option>' +
+      STATUTS.map(([k, l]) => '<option value="' + k + '"' + (C.statut === k ? " selected" : "") + ">" + l + "</option>").join("") + "</select></div>" +
+      '<div id="zDeces"' + (C.statut === "decede" ? "" : ' class="cache"') + '><label for="fDeces">Date du décès</label><input id="fDeces" type="date" value="' + esc(C.decesLe || "") + '"' + (okC ? "" : " disabled") + "></div></div>" +
     '<datalist id="lMut">' + listeMut().map((m) => '<option value="' + esc(m) + '">').join("") + '</datalist><datalist id="lCor">' + listeCor().map((m) => '<option value="' + esc(m) + '">').join("") + "</datalist>" +
     '<div class="err" id="fErr"></div><div class="boutons">' + (peut("supprimerPatient") ? '<button class="bt gris" id="fSup" style="margin-right:auto;color:var(--rouge)"><svg class="pi"><use href="#i-corbeille"/></svg>Supprimer le patient</button>' : "") + '<button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt plein" id="fOk">Enregistrer</button></div>');
   activerDiag("fDiag", "fDiagP"); ficheP.appliquerFiche(document.querySelector("#fenetre .form"));
@@ -1041,6 +1072,11 @@ window.modifierIdentite = (id) => {
   $("fOk").onclick = async () => {
     const changes = {}, nI = Object.assign({}, I), nC = Object.assign({}, C), saisie = ficheP.lireSaisie();
     if (okC) CHAMPS_MED.forEach(([k]) => { const v = val("f_" + k); if (v) nC[k] = v; else delete nC[k]; });
+    if (okC) { // 3.2 et 3.3 : allergie oui / non, statut du patient (décès : date obligatoire)
+      if (val("f_allergie")) nC.allergie = val("f_allergie"); else delete nC.allergie;
+      const st = val("fStatut"); if (st) nC.statut = st; else delete nC.statut;
+      if (st === "decede") { if (!val("fDeces")) { erreur("Indiquez la date du décès."); return; } nC.decesLe = val("fDeces"); } else delete nC.decesLe;
+    }
     if (okI) {
       if (!val("fNomF") || !val("fPrenom")) { erreur("Le nom et le prénom sont obligatoires."); return; }
       Object.assign(nI, { nomF: val("fNomF").toUpperCase(), prenom: val("fPrenom"), ddn: val("fDdn"), sexe: val("fSexe"), tel: val("fTel"), tel2: val("fTel2"), cin: val("fCin").toUpperCase(), adresse: val("fAdr"), email: val("fMail"), ald: val("fAld"), mut: val("fMut"), cor: val("fCor") });
@@ -1110,7 +1146,8 @@ window.afficherPatient = (id) => {
     m("nom", l("Nom", P.nomF)) + m("prenom", l("Prénom", P.prenom)) + m("ddn", l("Date de naissance", P.ddn ? dfrA(P.ddn) + (a != null ? " (" + a + " ans)" : "") : "")) + m("sexe", l("Sexe", P.sexe === "F" ? "Femme" : P.sexe === "H" ? "Homme" : "")) +
     m("taille", l("Taille", P.taille ? P.taille + " cm" : "")) + m("poids", l("Poids", P.poids ? P.poids + " kg" : "")) + m("diag", l("Diagnostic", [P.diag, P.diagP].filter(Boolean).join(" – "))) + m("cin", l("CIN", P.cin)) + m("tel", l("Téléphone", P.tel)) + m("tel2", l("2e téléphone", P.tel2)) +
     m("etab", l("Hôpital", et.nom ? et.code + " – " + et.nom : x.doc.etablissementId)) + m("ald", l("ALD", P.ald)) + l("Correspondant", P.cor).replace("<div", '<div data-champ="cor" data-fn="listes.cor"') + m("mut", l("Mutuelle", P.mut)) + m("adresse", l("Adresse", P.adresse)) + m("email", l("E-mail", P.email)) +
-    CHAMPS_MED.map(([k, lib]) => m(k, l(lib, P[k]))).join("") + ficheP.htmlLecture(x) + "</div>" +
+    m("allergies", l("Allergie connue", P.allergie === "oui" ? "Oui" : P.allergie === "non" ? "Non" : "")) + CHAMPS_MED.map(([k, lib]) => m(k, l(lib, P[k]))).join("") + ficheP.htmlLecture(x) +
+    l("Statut", libStatut(P.statut) + (P.statut === "decede" && P.decesLe ? " le " + dfrA(P.decesLe) : "")) + "</div>" +
     '<div class="boutons">' + (peut("identite") || peut("fichePatient") || traitMod() ? '<button class="bt clair" onclick="fermerFenetre();modifierIdentite(\'' + x.id + '\')">Modifier</button>' : "") + '<button class="bt plein" onclick="fermerFenetre()">Fermer</button></div>');
   ficheP.appliquerFiche(document.querySelector("#fenetre .fiche-lecture")); // ordre et champs du réglage du cabinet
 };
@@ -1420,9 +1457,12 @@ window.ouvrirRT = (id, rid) => {
     '<div class="large"><label for="rActe">Acte</label><select id="rActe"><option value="">— Choisir l\'acte —</option>' + listeActes(R.acte).map((a) => '<option' + (a === R.acte ? " selected" : "") + ">" + esc(a) + "</option>").join("") + "</select></div>" +
     sel("rHop", "Établissement", R.hop || "", [["", "—"]].concat(D.etabs.map((e) => [e.code, e.code + " – " + e.nom])), {}) + "<div></div>" +
     sel("rTech", "Technique", R.tech || "", [["", "—"], ["stereo", "Stéréotaxie"], ["vmat", "VMAT"], ["imrt", "IMRT"], ["3d", "3D"]], {}) + sel("rInt", "Intention", R.intent || "", [["", "—"], ["curative", "Curative"], ["palliative", "Palliative"]], {}) +
-    ch("rDose", "Dose totale (Gy)", R.dose, { mode: "decimal" }) + ch("rNb", "Fractions (nombre de séances)", R.nb, { mode: "numeric" }) +
-    '<div class="large"><label>Dose par fraction</label><div id="rDpf" class="mesures" style="font-size:15px;font-weight:bold;color:var(--titre)">—</div></div>' +
-    sel("rRyt", "Rythme", R.ryt || "1", [["1", "Quotidien (lundi–vendredi)"], ["2", "1 jour sur 2"]], {}) + ch("rNbA", "Nombre d'actes", R.nbA || 1, { mode: "numeric" }) +
+    // 3.5 (12/10/2026) : volumes [{ nom, dose, nb, ty }] : le principal (rDose / rNb), puis des compléments séquentiels (à la suite) ou
+    // intégrés (mêmes séances) ; pas d'organes à risque (Onco360 n'est pas ARIA)
+    '<div class="large"><label>Volumes</label><div id="rVol"></div><div class="actr" style="justify-content:flex-start;margin-top:6px"><button type="button" class="bt clair petit" onclick="rtVolAj(\'seq\')">' + ic("plus") + 'Complément séquentiel</button><button type="button" class="bt clair petit" onclick="rtVolAj(\'int\')">' + ic("plus") + "Complément intégré</button></div>" +
+      '<div id="rDpf" class="mesures" style="font-size:14px;color:var(--titre);margin-top:6px">—</div></div>' +
+    sel("rRyt", "Rythme", R.ryt || "1", RYTHMES, {}) + ch("rNbA", "Nombre d'actes", R.nbA || 1, { mode: "numeric" }) +
+    '<div class="large' + (R.ryt === "jours" ? "" : " cache") + '" id="rJoursZ"><label>Jours de séance</label><div class="actr" style="justify-content:flex-start">' + [[1, "Lundi"], [2, "Mardi"], [3, "Mercredi"], [4, "Jeudi"], [5, "Vendredi"]].map(([k, l]) => '<label class="chk" style="font-weight:normal"><input type="checkbox" id="rJ' + k + '"' + ((R.jours || [1, 3, 5]).indexOf(k) >= 0 ? " checked" : "") + "> " + l + "</label>").join("") + "</div></div>" +
     ch("rScan", "Scanner de centrage", R.scan, { type: "date" }) + ch("rDeb", "1re séance", R.deb, { type: "date" }) +
     '<div class="large"><label>Fin prévue (calculée)</label><div id="rFinCalc" class="mesures" style="font-size:15px;font-weight:bold;color:var(--titre)">—</div></div>' +
     ch("rFinPrev", "Fin prévue (si différente)", R.finPrev, { type: "date" }) + "<div></div>" +
@@ -1431,13 +1471,26 @@ window.ouvrirRT = (id, rid) => {
     (peut("finances") && D.tarifs ? '<div class="large cache" id="rVmatM" style="background:#FFF7D6;border-radius:10px;padding:10px"><label for="rVmatP">Montant VMAT (DH)</label><input id="rVmatP" inputmode="decimal" value="' + esc(R.vmatPrix != null ? R.vmatPrix : D.tarifs.vmat != null ? D.tarifs.vmat : "") + '"></div>' : "") +
     '<div class="large"><label for="rNote">Résumé clinique / notes</label><textarea id="rNote">' + esc(R.note || "") + "</textarea></div></div>" +
     '<div class="err" id="fErr"></div><div class="boutons">' + (r0 ? '<button class="bt gris" id="rSup" style="margin-right:auto;color:var(--rouge)">Supprimer</button>' : "") + '<button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt plein" id="fOk">Enregistrer</button></div>');
+  const VOL = volumesRT(R).length ? volumesRT(R) : [{ nom: "", dose: "", nb: "", ty: "p" }];
+  const joursCoches = () => [1, 2, 3, 4, 5].filter((k) => $("rJ" + k) && $("rJ" + k).checked);
+  const lireVol = () => { VOL[0].dose = val("rDose"); VOL[0].nb = val("rNb"); VOL[0].nom = val("rvM0"); VOL.forEach((v, i) => { if (!i) return; v.nom = val("rvM" + i); v.dose = val("rvD" + i); if (v.ty === "seq") v.nb = val("rvN" + i); }); };
+  const dessinerVol = () => {
+    $("rVol").innerHTML = VOL.map((v, i) => '<div class="form rt-vol" style="grid-template-columns:2fr 1fr 1fr auto;margin:0 0 6px;align-items:end"><div><label for="rvM' + i + '">' + (i ? (v.ty === "int" ? "Complément intégré" : "Complément séquentiel") : "Volume principal") + '</label><input id="rvM' + i + '" value="' + esc(v.nom || "") + '" placeholder="' + (i ? "ex. lit tumoral" : "ex. sein gauche") + '"></div>' +
+      '<div><label for="' + (i ? "rvD" + i : "rDose") + '">Dose (Gy)</label><input id="' + (i ? "rvD" + i : "rDose") + '" inputmode="decimal" value="' + esc(v.dose || "") + '"></div>' +
+      '<div><label for="' + (i ? "rvN" + i : "rNb") + '">' + (i && v.ty === "int" ? "Fractions (mêmes)" : "Fractions") + '</label><input id="' + (i ? "rvN" + i : "rNb") + '" inputmode="numeric" value="' + esc(i && v.ty === "int" ? "" : v.nb || "") + '"' + (i && v.ty === "int" ? ' disabled placeholder="= principal"' : "") + "></div>" +
+      "<div>" + (i ? '<button type="button" class="sup" title="Retirer ce complément" aria-label="Retirer ce complément" onclick="rtVolSup(' + i + ')">' + ic("corbeille") + "</button>" : "") + "</div></div>").join("");
+    $("rVol").querySelectorAll("input").forEach((e) => { e.oninput = calc; });
+  };
+  window.rtVolAj = (ty) => { lireVol(); VOL.push({ nom: "", dose: "", nb: "", ty }); dessinerVol(); calc(); };
+  window.rtVolSup = (i) => { lireVol(); VOL.splice(i, 1); dessinerVol(); calc(); };
   const calc = () => {
-    const d = parseFloat(val("rDose").replace(",", ".")), n = parseInt(val("rNb"), 10);
-    $("rDpf").textContent = d && n ? String(Math.round((d / n) * 100) / 100).replace(".", ",") + " Gy par fraction" : "—";
-    const f = val("rDeb") && n ? finRT({ deb: val("rDeb"), nb: n, ryt: val("rRyt") }, D.ctx.feries) : null;
+    lireVol(); const n = seancesVolumes(VOL);
+    $("rDpf").innerHTML = VOL.some((v) => v.dose) ? VOL.map((v) => esc(texteVolume(v, VOL))).join("<br>") + (VOL.length > 1 && n ? "<br><b>" + n + " séances</b>" : "") : "—";
+    $("rJoursZ").classList.toggle("cache", val("rRyt") !== "jours");
+    const f = val("rDeb") && n ? finRT({ deb: val("rDeb"), nb: n, ryt: val("rRyt"), jours: joursCoches() }, D.ctx.feries) : null;
     $("rFinCalc").textContent = f ? cap(jourLong(f)) + " " + f.slice(0, 4) : "—";
   };
-  ["rDose", "rNb", "rDeb", "rRyt"].forEach((i) => { $(i).oninput = calc; $(i).onchange = calc; }); calc();
+  dessinerVol(); ["rDeb", "rRyt"].forEach((i) => { $(i).oninput = calc; $(i).onchange = calc; }); [1, 2, 3, 4, 5].forEach((k) => { $("rJ" + k).onchange = calc; }); calc();
   // Comme l'application actuelle : stéréotaxie = 1 jour sur 2 ; curiethérapie = au moins 2 actes ; montant VMAT pour le droit « finances »
   $("rActe").onchange = () => { const a = val("rActe"); $("rRyt").value = /st[ée]r[ée]otax/i.test(a) ? "2" : "1"; if (/curieth/i.test(a) && !(parseInt(val("rNbA"), 10) >= 2)) $("rNbA").value = "2"; calc(); };
   const zV = $("rVmatM"); if (zV) { const majV = () => zV.classList.toggle("cache", !$("rVmat").checked); $("rVmat").onchange = majV; majV(); }
@@ -1445,20 +1498,27 @@ window.ouvrirRT = (id, rid) => {
   if (r0) $("rSup").onclick = async () => { if (!confirm("Supprimer cette prescription de radiothérapie ?")) return; try { await sauver(l.filter((v) => v.id !== rid), "Prescription de radiothérapie supprimée"); fermerFenetre(); toast("Prescription supprimée."); pageDossier(x.id); } catch (e) { erreur(e.message); } };
   $("fOk").onclick = async () => {
     if (!val("rActe")) { erreur("Indiquez l'acte."); return; }
-    const n = val("rNb"); if (n && !(parseInt(n, 10) > 0)) { erreur("Le nombre de fractions doit être un nombre."); return; }
+    lireVol(); const n0 = val("rNb"); if (n0 && !(parseInt(n0, 10) > 0)) { erreur("Le nombre de fractions doit être un nombre."); return; }
+    if (VOL.slice(1).some((v) => v.ty === "seq" && v.dose && !(parseInt(v.nb, 10) > 0))) { erreur("Indiquez le nombre de fractions de chaque complément séquentiel."); return; }
+    if (val("rRyt") === "jours" && !joursCoches().length) { erreur("Cochez au moins un jour de séance."); return; }
+    const n = String(seancesVolumes(VOL) || n0 || ""); // séances = principal + compléments séquentiels
     // 2.5 (12/10/2026, audit) : dates dans l'ordre ; dose par fraction > 22 Gy ou dose totale > 80 Gy → confirmation
     if (val("rScan") && val("rDeb") && val("rDeb") < val("rScan")) { erreur("La 1re séance est avant le scanner de centrage (" + dfrA(val("rScan")) + ")."); return; }
     if (val("rDeb") && val("rFinPrev") && val("rFinPrev") < val("rDeb")) { erreur("La fin prévue est avant la 1re séance."); return; }
-    const dT = parseFloat(String(val("rDose")).replace(",", ".")), nF = parseInt(n, 10), dF = dT && nF ? Math.round((dT / nF) * 100) / 100 : null;
-    if ((dF && dF > 22) || dT > 80) { if (!confirm("Vérifiez la prescription : " + String(dT).replace(".", ",") + " Gy" + (nF ? " en " + nF + " fraction(s), soit " + String(dF).replace(".", ",") + " Gy par fraction" : "") + ".\n" + (dF > 22 ? "Plus de 22 Gy par fraction. " : "") + (dT > 80 ? "Plus de 80 Gy au total." : "") + "\n\nEnregistrer quand même ?")) return; }
+    // 3.5 : chaque volume (dose par fraction) ; dose totale du volume principal + compléments séquentiels, et de chaque complément intégré
+    const nb0 = (z) => parseFloat(String(z || "").replace(",", ".")) || 0, dT = nb0(VOL[0].dose) + VOL.filter((v, i) => i && v.ty === "seq").reduce((t0, v) => t0 + nb0(v.dose), 0);
+    const trop = VOL.filter((v) => (dpfVolume(v, VOL) || 0) > 22).map((v) => texteVolume(v, VOL)), tropT = dT > 80 || VOL.some((v) => v.ty === "int" && nb0(v.dose) > 80);
+    if (trop.length || tropT) { if (!confirm("Vérifiez la prescription :\n" + VOL.map((v) => "• " + texteVolume(v, VOL)).join("\n") + "\n\n" + (trop.length ? "Plus de 22 Gy par fraction. " : "") + (tropT ? "Plus de 80 Gy au total (" + String(dT).replace(".", ",") + " Gy)." : "") + "\n\nEnregistrer quand même ?")) return; }
     // dose, fractions, rythme ou technique changés après la dosimétrie validée → la dosimétrie est à revalider (gardée dans l'historique)
-    const cle = (o) => [String(o.dose || "").replace(",", "."), String(o.nb || ""), o.ryt || "1", o.tech || ""].join("|");
-    const revalider = r0 && r0.dosi && !r0.fin && cle(r0) !== cle({ dose: val("rDose"), nb: val("rNb"), ryt: val("rRyt"), tech: val("rTech") });
+    const volP = VOL.length > 1 || VOL[0].nom ? VOL.map((v) => { const o = { nom: v.nom || "", dose: String(v.dose || "").replace(",", "."), ty: v.ty }; if (v.ty !== "int") o.nb = String(v.nb || ""); return o; }) : null;
+    const cle = (o) => [String(o.dose || "").replace(",", "."), String(o.nb || ""), o.ryt || "1", o.tech || "", JSON.stringify(o.vol || null), o.ryt === "jours" ? (o.jours || []).join(",") : ""].join("|");
+    const neuf = { dose: val("rDose"), nb: n, ryt: val("rRyt"), tech: val("rTech"), vol: volP, jours: joursCoches() };
+    const revalider = r0 && r0.dosi && !r0.fin && cle(r0) !== cle(neuf);
     if (revalider && !confirm("La prescription change alors que la dosimétrie a été validée le " + dfrA(r0.dosi) + ".\nLa dosimétrie devra être revalidée (la validation actuelle est gardée dans l'historique et une tâche « Valider la dosimétrie » est recréée).\n\nEnregistrer ?")) return;
     const r = r0 || { id: "rt" + Date.now().toString(36), cree: D.t };
-    if (revalider) { r.dosiHist = (r.dosiHist || []).concat([{ dosi: r.dosi, dosiPar: r.dosiPar || "", dosiLe: r.dosiLe || "", retireLe: new Date().toISOString(), raison: "prescription modifiée : " + cle(r0) + " → " + cle({ dose: val("rDose"), nb: val("rNb"), ryt: val("rRyt"), tech: val("rTech") }) }]); r.dosiN = (r.dosiN || 0) + 1; delete r.dosi; delete r.dosiPar; delete r.dosiLe; }
-    Object.assign(r, { acte: val("rActe"), hop: val("rHop"), tech: val("rTech"), intent: val("rInt"), dose: val("rDose").replace(",", "."), nb: val("rNb"), ryt: val("rRyt"), nbA: val("rNbA") || "1", scan: val("rScan"), deb: val("rDeb"), finPrev: val("rFinPrev"), cj: val("rCj"), ch: val("rCh"), vmat: $("rVmat").checked, note: $("rNote").value.trim() });
-    ["finPrev", "scan", "deb", "cj", "ch", "tech", "intent", "dose", "note"].forEach((k) => { if (!r[k]) delete r[k]; });
+    if (revalider) { r.dosiHist = (r.dosiHist || []).concat([{ dosi: r.dosi, dosiPar: r.dosiPar || "", dosiLe: r.dosiLe || "", retireLe: new Date().toISOString(), raison: "prescription modifiée : " + cle(r0) + " → " + cle(neuf) }]); r.dosiN = (r.dosiN || 0) + 1; delete r.dosi; delete r.dosiPar; delete r.dosiLe; }
+    Object.assign(r, { acte: val("rActe"), hop: val("rHop"), tech: val("rTech"), intent: val("rInt"), dose: val("rDose").replace(",", "."), nb: n, ryt: val("rRyt"), vol: volP, jours: val("rRyt") === "jours" ? joursCoches() : null, nbA: val("rNbA") || "1", scan: val("rScan"), deb: val("rDeb"), finPrev: val("rFinPrev"), cj: val("rCj"), ch: val("rCh"), vmat: $("rVmat").checked, note: $("rNote").value.trim() });
+    ["finPrev", "scan", "deb", "cj", "ch", "tech", "intent", "dose", "note", "vol", "jours"].forEach((k) => { if (!r[k]) delete r[k]; });
     const liste = r0 ? l : l.concat([r]), acteAvant = r0 ? (x.P.rts || []).find((v) => v.id === rid) : null;
     occupe($("fOk"), true);
     try {

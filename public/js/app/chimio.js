@@ -498,7 +498,7 @@ function encartVigilance(o) {
 function ctxVigilance(x, L, e, k, n, bio, d) {
   const G = e.g[n] || e.g[0], P = x.P;
   return { prods: Object.values(instantane(e, n).doses), n, k, sc: G.sc, cl: G.cl, creatSaisie: !!(G.saisi && G.saisi.creat), crU: L.crU, bio, date: d,
-    histo: historique(lignesDe(x), L.id + "|" + k + "|" + (G.j || 1)), patient: { sexe: P.sexe, age: age(P.ddn, d), texte: [P.traitCours, P.atcdMed].filter(Boolean).join(" ") },
+    histo: historique(lignesDe(x), L.id + "|" + k + "|" + (G.j || 1)), patient: { sexe: P.sexe, age: age(P.ddn, d), texte: [P.traitCours, P.atcdMed].filter(Boolean).join(" "), allergie: P.allergie === "oui" ? P.allergies || "" : "" },
     rts: (P.rts || []).map((r) => ({ deb: r.deb, fin: r.fin || finRT(r, D().ctx.feries) })) };
 }
 // Séance validée (J1 = la cure, sinon c.sea[j]) : verrouillée ; jour de traitement → sa séance
@@ -1068,7 +1068,7 @@ export function nouveauPatient(opts) {
     const id = "P" + Date.now().toString(36) + Math.floor(Math.random() * 1000), etab = A.val("pEtab");
     const docP = { etablissementId: etab, identite: { nomF, prenom, nom: nomF + " " + prenom, ddn: A.val("pDdn"), sexe: A.val("pSexe"), tel: A.val("pTel"), ...(A.val("pTel2") ? { tel2: A.val("pTel2") } : {}), ...(A.val("pCin") ? { cin: A.val("pCin").toUpperCase() } : {}), ...(A.val("pAdr") ? { adresse: A.val("pAdr") } : {}), ...(A.val("pMail") ? { email: A.val("pMail") } : {}), mut: A.val("pMut"), cor: A.val("pCor"), ald: A.val("pAld"), cree: D().t },
       version: 1, maj: serverTimestamp(), majPar: D().u.uid };
-    if (okC) { docP.clinique = { diag: A.val("pDiag"), diagP: A.val("pDiagP"), poids: A.val("pPoids").replace(",", "."), taille: A.val("pTaille") }; A.CHAMPS_MED().forEach(([k]) => { if (A.val("f_" + k)) docP.clinique[k] = A.val("f_" + k); }); }
+    if (okC) { docP.clinique = { diag: A.val("pDiag"), diagP: A.val("pDiagP"), poids: A.val("pPoids").replace(",", "."), taille: A.val("pTaille") }; A.CHAMPS_MED().forEach(([k]) => { if (A.val("f_" + k)) docP.clinique[k] = A.val("f_" + k); }); if (A.val("f_allergie")) docP.clinique.allergie = A.val("f_allergie"); }
     const saisie = ficheP.lireSaisie(); // champs ajoutés
     if (Object.keys(saisie.identite).length) docP.identite.extra = saisie.identite;
     if (okC && Object.keys(saisie.clinique).length) docP.clinique.extra = saisie.clinique;

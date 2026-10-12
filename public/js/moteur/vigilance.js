@@ -6,6 +6,7 @@
 // du patient (toutes ses lignes : instantanés `fige`, 2.2) : dose cumulée, 1re dose d'une molécule, dernière FEVG ou TSH notée.
 import { premed } from "./doses.js";
 import { ecart } from "./outils.js";
+import { motsAllergie } from "./statut.js";
 
 const sa = (t) => String(t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toUpperCase();
 
@@ -134,6 +135,9 @@ export function vigilances(o) {
   const dfr = (x) => (x ? x.slice(8, 10) + "/" + x.slice(5, 7) + "/" + x.slice(0, 4) : "");
   const lsnB = LSN.bili(o.crU), uB = o.crU === "mgL" ? " mg/L" : " µmol/L";
 
+  // Allergie connue (« oui », 3.2) dont un mot est dans le nom d'un produit de la séance (prémédications comprises)
+  if (o.patient && o.patient.allergie) { const mots = motsAllergie(o.patient.allergie);
+    P.forEach((z) => { const w = z && mots.find((x) => sa(z.p).indexOf(x) >= 0); if (w && !m.some((t) => t.indexOf(z.p) >= 0)) m.push("allergie connue (" + o.patient.allergie + ") : " + z.p + " contient « " + w.toLowerCase() + " »."); }); }
   // 1er traitement du patient (aucune séance validée)
   if (!H.length) m.push("1er traitement : sérologie de l'hépatite B faite ? Pas de vaccin vivant pendant le traitement" +
     (o.patient && o.patient.sexe === "F" && o.patient.age >= 12 && o.patient.age <= 50 ? " ; test de grossesse ou contraception" : "") + ".");

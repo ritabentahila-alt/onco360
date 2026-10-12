@@ -23,7 +23,7 @@ echo "3. Tests sans navigateur"
 for t in test-logique test-cabinets test-audit test-numeros test-exportation test-sauvegarde; do
   if (cd functions && node $t.js > /tmp/onco360-$t.txt 2>&1) && ! grep -q '❌\|✘' /tmp/onco360-$t.txt; then ok "serveur : $t"; else ko "serveur : $t (voir /tmp/onco360-$t.txt)"; fi
 done
-for t in tests/moteur/test-recus.mjs tests/moteur/test-doses.mjs tests/moteur/test-vigilance.mjs tests/moteur/test-heures.mjs; do node $t > /tmp/onco360-moteur.txt 2>&1 && ok "moteur : $(basename $t)" || ko "moteur : $(basename $t) (voir /tmp/onco360-moteur.txt)"; done
+for t in tests/moteur/test-recus.mjs tests/moteur/test-doses.mjs tests/moteur/test-vigilance.mjs tests/moteur/test-heures.mjs tests/moteur/test-rt.mjs tests/moteur/test-statut.mjs; do node $t > /tmp/onco360-moteur.txt 2>&1 && ok "moteur : $(basename $t)" || ko "moteur : $(basename $t) (voir /tmp/onco360-moteur.txt)"; done
 if [ -f tests/seed.json ]; then
   for t in tests/moteur/test-salle.mjs tests/moteur/test-bilan.mjs; do node $t > /tmp/onco360-moteur2.txt 2>&1 && ok "moteur : $(basename $t)" || ko "moteur : $(basename $t)"; done
 else echo "  (tests/seed.json absent : test-salle et test-bilan ignorés)"; fi

@@ -22,3 +22,6 @@ async def ouvrir(b, seed=None, w=1440, h=900, t="2026-10-06T10:00:00", tz=None):
     await pg.clock.set_fixed_time(t)
     return pg
 serveur()
+# Après la validation d'une séance de chimio : fenêtre « Prochaine séance » (heure de consultation, 12/10/2026) → « Plus tard »
+async def plus_tard(pg):
+    if await pg.evaluate("!!document.getElementById('hNon')"): await pg.click('#hNon'); await pg.wait_for_timeout(500)

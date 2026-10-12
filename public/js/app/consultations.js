@@ -55,6 +55,7 @@ function charger(x) {
 // À l'ouverture du dossier : relire (une consultation a pu être ajoutée depuis un autre poste)
 export function oublierConsultations(pid) { delete CS[pid]; delete OUV[pid]; }
 export const nbConsultations = (x) => (CS[x.id] || []).length;
+export const datesConsultations = (pid) => (CS[pid] || []).map((c) => c.d).filter(Boolean); // dernières nouvelles (3.3)
 
 // ───── Onglet « Consultation » ─────
 export function htmlConsultations(x) {
@@ -226,6 +227,7 @@ window.csPrescrire = (pid, t) => {
 };
 // Consultations du patient lues (pour les antécédents des prescriptions)
 export async function assurerConsultations(x) { if (CS[x.id] === undefined) await charger(x); return CS[x.id]; }
+export const consultationsDe = (pid) => CS[pid] || []; // compte rendu de fin de radiothérapie (3.6) : bilan de la dernière consultation
 // Antécédents d'une famille (médicaments, examens…) : toutes les ordonnances du patient, la plus récente d'abord
 export function prescriptionsDe(pid, t) {
   const r = [];

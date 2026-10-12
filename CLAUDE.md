@@ -161,6 +161,13 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
   `D.medecins` chargé par `chargerMedecins`, `multiMed` / `medRdv`) ; créneaux et doubles réservations par médecin à partir de 2 médecins ;
   heure facultative d'une séance de chimio `planning[ligne][n].hr` (J1) / `.shr[j]` = { h, du } (avec les dates : droit « planning »,
   `separer` / `fusionner` ↔ `c.hr`, `c.sea[j].hr`) et du scanner de centrage `rts[].scanH` { h, du } (droit RT « modifier »).
+- **Fiche tumeur, allergie, statut (3.1 à 3.3, 12/10/2026)** : champs `TUMEUR` (catalogue.js, ids `xt…`, `clinique.extra`, biomarqueurs à condition
+  `si.xtloc` / `champPropose`, ajoutés quand `ficheSpe._onco` : v2.js, cabinet avec module chimio ou RT) ; `clinique.allergie` "" | oui | non (bandeau
+  `.al-band` seulement si « oui »), `clinique.statut` traitement | surveillance | perdu | decede + `decesLe` ; logique `public/js/moteur/statut.js`
+  (`dernieresNouvelles`, `allergieDans`) ; décédé : rappels, alertes et tâches automatiques (logique.js) coupés ; `reglages.impression.agePoids`.
+- **Radiothérapie (3.5, 3.6, 12/10/2026)** : `rts[].vol` [{ nom, dose, nb, ty p|seq|int }], `nb` = séances, `ryt` 1 | 2 | bid | hebdo | jours (+ `jours`
+  [1…5]) ; `joursSeances` (moteur/rt.js = functions/logique.js, `tests/moteur/test-rt.mjs`) ; compte rendu de fin rempli (documents.js `prochainRdv`,
+  `bilanControle`).
 - **Heures de la séance de chimio (3.7 bis, 12/10/2026)** : `patients/{id}.heures` { "ligne|cure|jour": { cons: { h, du 15, par, parNom, le } | null
   (consultation, médecin / secrétaire), seance: { h, du, par, parNom, le } | null (hôpital de jour, infirmière) } } ; `fusionner` → `hr` (séance,
   marquée `_h`, avant l'ancienne heure du planning AG5), `hcm` (consultation choisie), `hc` (consultation affichée : choisie, sinon 15 min

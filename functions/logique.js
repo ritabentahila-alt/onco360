@@ -131,13 +131,30 @@ function reglesAuto(cfg) {
   return REGLES_FIXES.map((f) => Object.assign({}, f, l.find((r) => r.id === f.id) || {}, { fixe: true, ev: f.ev })).concat(l.filter((r) => !REGLES_FIXES.some((f) => f.id === r.id)));
 }
 const ouvreJ = (d, feries) => { const w = new Date(d + "T12:00:00Z").getUTCDay(); return w !== 0 && w !== 6 && !(feries || []).some((f) => (typeof f === "string" ? f : f && f.d) === d); };
-// Fin prévue d'une radiothérapie (même calcul que public/js/moteur/rt.js finRT : saisie, sinon Nième séance en jours ouvrés)
+// Fin prévue d'une radiothérapie (même calcul que public/js/moteur/rt.js finRT / joursSeances : saisie, sinon dernière séance selon
+// le rythme : quotidien, 1 jour sur 2, 2 par jour, 1 par semaine, jours choisis ; test de cohérence tests/moteur/test-rt.mjs, 3.5)
+function joursSeances(r, feries) {
+  const max = parseInt(r.nb, 10), out = []; if (!r.deb || !(max > 0)) return out;
+  const jourSem = (d) => new Date(d + "T12:00:00Z").getUTCDay(), ryt = r.ryt || "1", jours = (r.jours || []).map(Number), w0 = jourSem(r.deb);
+  let d = r.deb, w = 0, c = 0, sem = -1;
+  for (let g = 0; g < 2000 && c < max; g++) {
+    if (ouvreJ(d, feries)) {
+      let n = 0;
+      if (ryt === "2") n = w % 2 === 0 ? 1 : 0;
+      else if (ryt === "bid") n = Math.min(2, max - c);
+      else if (ryt === "hebdo") { const k = Math.floor((Date.parse(d) - Date.parse(r.deb)) / 864e5 / 7), dec = (jourSem(d) - w0 + 7) % 7; if (k !== sem && (dec === 0 || k > sem)) { n = 1; sem = k; } }
+      else if (ryt === "jours") n = jours.indexOf(jourSem(d)) >= 0 ? 1 : 0;
+      else n = 1;
+      if (n) { out.push({ d, n }); c += n; }
+      w++;
+    }
+    d = addJ(d, 1);
+  }
+  return out;
+}
 function finRT(r, feries) {
   if (r.finPrev) return r.finPrev;
-  const nb = parseInt(r.nb, 10); if (!r.deb || !nb || nb < 1) return null;
-  const pas = r.ryt === "2" ? 2 : 1; let d = r.deb, c = 0, w = 0;
-  for (let g = 0; g < 800; g++) { if (ouvreJ(d, feries)) { if (w % pas === 0) { c++; if (c === nb) return d; } w++; } d = addJ(d, 1); }
-  return null;
+  const l = joursSeances(r, feries); return l.length && l.reduce((t, z) => t + z.n, 0) >= parseInt(r.nb, 10) ? l[l.length - 1].d : null;
 }
 const addMois = (d, n) => { const x = new Date(d + "T12:00:00Z"), j = x.getUTCDate(); x.setUTCDate(1); x.setUTCMonth(x.getUTCMonth() + n); const fin = new Date(Date.UTC(x.getUTCFullYear(), x.getUTCMonth() + 1, 0)).getUTCDate(); x.setUTCDate(Math.min(j, fin)); return x.toISOString().slice(0, 10); };
 const idAuto = (regle, pid, cle) => "auto-" + crypto.createHash("sha1").update(regle + "|" + pid + "|" + cle).digest("hex").slice(0, 24);
@@ -148,6 +165,7 @@ const lire = (j, def) => { try { return JSON.parse(j || def); } catch (e) { retu
 // à retirer (avec son registre) pour être recréée au bon moment
 function tachesAutoPatient(pid, docData, regles, auj, feries, opts) {
   const voulues = [], resolues = [], premature = []; if (!docData) return { voulues, resolues, premature };
+  if (docData.clinique && docData.clinique.statut === "decede") return { voulues, resolues, premature }; // patient décédé (3.3) : plus de tâche automatique
   const rts = lire(docData.rtsJson, "[]"), rdvs = lire(docData.rdvsJson, "[]"), r0 = lire(docData.resume, "{}"), act = (r0.act || []).filter((a) => !a.sj && a.d && a.k);
   (regles || []).filter((R) => R.actif !== false).forEach((R) => {
     const n = parseInt(R.n, 10) || 0, ok = (d) => !R.depuis || (d && d >= R.depuis);

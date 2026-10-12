@@ -339,34 +339,49 @@ longs et ne dépendent pas du code.
 
 ## Phase 3 – Métier (dossier oncologique, radiothérapie, chimiothérapie, prescriptions)
 
-- [ ] **3.1 Fiche tumeur** (décision) : champs « choix » ajoutés au catalogue `FICHE` (localisation, côté, histologie, grade,
-      cTNM / pTNM, stade, date du diagnostic, biomarqueurs RE, RP, HER2, Ki-67, PD-L1, EGFR, ALK, KRAS, BRAF, MSI, état général
-      OMS 0-4) ; listes types dans la fiche de la spécialité Oncologie (`plateforme/specialites`) recopiées aux cabinets actifs
-      (`ficheSpecialite`) ; chaque cabinet les affiche ou non, en tête du dossier ou non ; filtres de la page Patients par
-      localisation et stade.
-- [ ] **3.2 Allergies** (décision) : champ « Allergie connue : oui / non » + détail ; **seulement si « oui »** : bandeau rouge
-      discret et permanent en tête du dossier (style `.allergie` existant), sur la fiche de
-      chimiothérapie (avec le % de réduction) et sur les ordonnances ; alerte simple dans la fenêtre de prescription si le
-      médicament contient le mot de l'allergie. Ordonnance : âge et poids du patient (au choix du cabinet).
-- [ ] **3.3 Statut du patient** : en traitement, en surveillance, perdu de vue, décédé (+ date) ; date des dernières nouvelles
-      (calculée) ; filtre ; décédé → plus de rappels, tâches automatiques ni alertes, rendez-vous futurs signalés ; « Supprimer »
-      reste une suppression (décision) ; boutons « + Tâche » / « + Rendez-vous » en double retirés ; téléphone : identité
-      repliée, onglets cliniques plus haut.
+- [x] **3.1 Fiche tumeur** (12/10, en ligne : 20261012h) : `TUMEUR` (public/js/donnees/catalogue.js, 19 champs, valeurs dans
+      `clinique.extra`) : localisation (28 choix), côté, histologie, grade, cTNM, pTNM, stade (0 à IVC, localisé, localement avancé,
+      métastatique), date du diagnostic, biomarqueurs, état général OMS 0-4. **Biomarqueurs proposés selon la localisation** (demande de
+      Dr Bentahila, `si.xtloc`, `champPropose`) : sein → RE, RP, HER2, Ki-67, PD-L1 ; poumon → PD-L1, EGFR, ALK, KRAS, BRAF ; côlon-rectum →
+      HER2, KRAS, BRAF, MSI ; estomac / œsophage → HER2, MSI, PD-L1 ; endomètre → RE, RP, MSI ; mélanome → BRAF, PD-L1 ; etc. ; « Autre » et
+      « Primitif inconnu » : tous ; recalculés au choix de la localisation (`ficheSi`). Ajoutés d'office aux cabinets d'oncologie /
+      radiothérapie (module chimio ou RT, ou sans formule ; `_onco` de v2.js → `formEffectif`), titre « Fiche tumeur » dans le formulaire ;
+      chaque cabinet les retire ou les met en tête (Paramètres › Cabinet › Fiche patient) ; en tête par défaut : localisation, stade, OMS.
+      Page Patients : filtres par localisation et par stade (proposés s'il y a des valeurs). Écart avec le plan : listes dans le code
+      (catalogue) plutôt que dans `plateforme/specialites` (rien à faire par l'administration ; pas de copie vers les cabinets).
+- [x] **3.2 Allergies** (12/10, en ligne : 20261012h) : « Allergie connue : — / Non / Oui » (`clinique.allergie`) avant le détail
+      (`clinique.allergies`) ; **seulement si « oui »** : bandeau rouge discret et permanent en tête du dossier (`.al-band`, visible même
+      identité repliée sur téléphone), « ALLERGIE : … » sur la fiche de chimiothérapie et sous le nom du patient sur les ordonnances ;
+      détail noté sans oui / non : rappel orange discret. Alerte simple (confirmation) dans la fenêtre de prescription si un mot de
+      l'allergie (4 lettres et plus) est dans le nom du médicament ou de l'ordonnance type (`allergieDans`, moteur/statut.js), et dans la
+      fenêtre de validation d'une chimio (vigilance.js). Ordonnances : âge et poids sous le nom, au choix du cabinet (Paramètres ›
+      Impression › Ordonnances, `reglages.impression.agePoids`).
+- [x] **3.3 Statut du patient** (12/10, en ligne : 20261012h) : `clinique.statut` (en traitement, en surveillance, perdu de vue, décédé)
+      + `clinique.decesLe` (obligatoire pour « décédé ») dans la fiche (Modifier) ; badge dans le dossier et la liste ; **dernières
+      nouvelles** calculées (consultations, rendez-vous venus, cures et séances reçues, radiothérapie, décès ; `dernieresNouvelles`) ;
+      page Patients : filtre par statut, dont « Sauf décédés ». Décédé : plus de rappels WhatsApp ni d'alertes cliniques, plus de tâches
+      automatiques (serveur, logique.js) ; rendez-vous, séances et tâches encore prévus signalés dans la carte « Rendez-vous et tâches à
+      venir ». « Supprimer » reste une suppression. Boutons « + Tâche » / « + Rendez-vous » retirés de la carte d'identité (gardés dans
+      la carte des rendez-vous). Téléphone : fiche et résumé repliés (bouton « Fiche et résumé »), les onglets remontent.
 - [ ] **3.4 Consultations** (décisions) : formulaires **proposés**, que chaque cabinet peut entièrement décocher (titre, date et
       note seulement) : « Consultation d'oncologie » (poids, OMS, douleur EVA, toxicités
       gradées CTCAE : nausées, vomissements, diarrhée, mucite, neuropathie, asthénie, neutropénie fébrile ; conduite à tenir) et
       « RT hebdomadaire » (radiodermite, mucite, dysphagie, diarrhée, cystite, asthénie) dans la spécialité Oncologie, recopiés aux
       cabinets actifs ; note **signée** mais toujours modifiable : « signée le … par … · modifiée le … et le … », sans anciennes
       versions ; notes de la secrétaire dans le même journal.
-- [ ] **3.5 Radiothérapie : volumes et rythmes** (rappel : Onco360 n'est pas ARIA) : volumes [{ nom, dose, fractions, dose par
-      fraction }] ; petit « + » pour ajouter un complément séquentiel ou intégré ; pas d'organes à risque ; radiothérapies existantes = un volume (rien à ressaisir) ; rythmes : quotidien, un jour sur
-      deux, deux par jour, un par semaine, jours choisis ; `finRT` en double (moteur/rt.js, functions/logique.js) : test de cohérence.
-- [ ] **3.6 Radiothérapie : compte rendu de fin rempli** (décision) : le modèle actuel est gardé ; Onco360 remplit ce qu'il sait :
-      **volumes et doses** (3.5) ; **dates** (fin renseignée, sinon fin calculée) ; **prochain rendez-vous** (s'il est pris dans
-      « + Rendez-vous ») ; **bilan de contrôle** (s'il y a une ordonnance d'examens ou d'analyses à la dernière consultation) ; le
-      reste (toxicité maximale, rendez-vous et bilan absents) **est rempli par le médecin** ; localisation, histologie et
-      interruptions ne sont pas remplies. À l'impression : aucune mention « à compléter » imprimée (avertissement avant, comme les
-      courriers). Formulaire « RT hebdomadaire » proposé (3.4), sans tableau des toxicités.
+- [x] **3.5 Radiothérapie : volumes et rythmes** (12/10, en ligne : 20261012h) : `r.vol` [{ nom, dose, nb, ty p|seq|int }] : volume
+      principal, « + Complément séquentiel » (à la suite, ses fractions s'ajoutent) ou « + Complément intégré » (mêmes séances) ;
+      `r.nb` = séances (principal + séquentiels), `r.dose` = dose du principal ; radiothérapies d'avant = un volume (rien à ressaisir, rien
+      réécrit) ; pas d'organes à risque. Confirmation > 22 Gy par fraction (chaque volume) ou > 80 Gy (principal + séquentiels, ou
+      intégré). **Rythmes** : quotidien, 1 jour sur 2, 2 séances par jour, 1 par semaine (jour de la 1re séance, ou jour ouvré suivant
+      s'il est férié), jours choisis (`r.jours`) ; un seul calcul `joursSeances` (moteur/rt.js : fin, séances faites et restantes, calendrier,
+      durée du pli) et sa copie serveur (functions/logique.js) ; **test de cohérence** `tests/moteur/test-rt.mjs` (280 prescriptions). Carte
+      RT : volumes, séances, rythme. Dosimétrie à revalider si volumes, rythme ou jours changent.
+- [x] **3.6 Radiothérapie : compte rendu de fin rempli** (12/10, en ligne : 20261012h) : modèle gardé ; rempli : volumes et doses (3.5),
+      nombre de séances et rythme, dates (fin renseignée, sinon calculée), **prochain rendez-vous** (premier rendez-vous prévu après la fin,
+      hors consultations hebdomadaires de RT), **bilan de contrôle** (analyses et examens de la dernière consultation, « prescrit le … ») ;
+      toxicités, rendez-vous et bilan absents : « à compléter par le médecin » (jamais imprimé, avertissement avant) ; localisation,
+      histologie, interruptions non remplies. Formulaire « RT hebdomadaire » : avec 3.4.
 - [ ] **3.7 Chimiothérapie : suivi et ergonomie** : ~~doses cumulées~~ (fait en 2.3 quater pour les anthracyclines et l'oxaliplatine ;
       bléomycine écrite en texte dans les protocoles, donc non calculée) ; intention de la ligne (néoadjuvante, adjuvante, métastatique, concomitante,
       palliative) et réponse (complète, partielle, stable, progression) ; doses visibles dès la ligne de cure ; plus de fenêtre

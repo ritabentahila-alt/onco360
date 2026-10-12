@@ -125,6 +125,9 @@ nav a.actif .i{color:#fff}
 .vide{padding:2px 14px 12px;color:var(--doux);font-size:14px}
 .badge{display:inline-block;border-radius:20px;padding:3px 10px;font-size:12.5px;font-weight:bold;white-space:nowrap}
 .b-rt{background:var(--violet-c);color:var(--violet)}.b-co{background:var(--bleu-c);color:var(--bleu)}.b-ch{background:var(--vert-c);color:var(--vert)}.b-al{background:var(--rouge-c);color:var(--rouge)}.b-or{background:var(--orange-c);color:var(--orange)}.b-gr{background:var(--gris-c);color:#55607A}
+/* 3.2 et 3.3 (12/10/2026) : bandeau d'allergie (seulement si « oui »), patient décédé */
+.b-dc{background:#3B3F4A;color:#fff}.id-plus{display:none}
+@media(max-width:700px){.id-c:not(.id-ouv) .champs,.id-c:not(.id-ouv) .resume{display:none}.id-plus{display:inline-flex}}.al-band{display:flex;align-items:center;gap:6px;background:#FFF1F1;border:1px solid #F3C4C4;color:#A1232B;border-radius:8px;padding:6px 10px;margin:0 0 10px;font-size:13.5px}.al-band .pi{width:16px;height:16px;flex:none}.al-band.dc{background:#EEF0F4;border-color:#C9CED8;color:#3B3F4A}
 
 /* 7 jours */
 .jour7{margin-top:14px}.jour7:first-of-type{margin-top:4px}
@@ -309,7 +312,7 @@ body.role-comptable nav a[data-p]:not([data-p="bilan"]):not([data-p="profil"]){d
 .or-feuille.a4.dc{--zh:calc(var(--dc-h,45)*var(--k));padding:var(--zh) calc(var(--dc-c,35)*var(--k)) calc(var(--dc-b,22)*var(--k))}
 .or-feuille::before{content:"En-tête du papier";position:absolute;top:0;left:0;right:0;height:max(40px,calc(var(--zh,158px) - 30px));border-bottom:1px dashed #C9D2E2;color:#A6AEBE;font-size:11px;display:flex;align-items:center;justify-content:center;pointer-events:none}.or-feuille.a4::before{height:176px}.or-feuille.a4.dc::before{height:124px}
 .or-feuille:focus{box-shadow:0 0 0 3px #9DB6E8,0 2px 12px rgba(30,42,68,.15)}
-.or-feuille p{margin:0 0 6px}.or-feuille .or-date{text-align:right;margin-bottom:20px}.or-feuille .or-pat{margin-bottom:22px}.or-feuille .or-m{margin:14px 0 3px}.or-feuille .or-p{margin:0 0 0 22px}.or-feuille .or-sig{margin-top:34px;text-align:right}.or-feuille .or-t{margin-bottom:12px}.or-feuille .or-a{margin:0 0 6px 14px}.or-feuille .or-rc{margin-top:22px}
+.or-feuille p{margin:0 0 6px}.or-feuille .or-date{text-align:right;margin-bottom:20px}.or-feuille .or-pat{margin-bottom:22px}.or-feuille .or-pat2{margin:-16px 0 18px}.or-feuille .or-m{margin:14px 0 3px}.or-feuille .or-p{margin:0 0 0 22px}.or-feuille .or-sig{margin-top:34px;text-align:right}.or-feuille .or-t{margin-bottom:12px}.or-feuille .or-a{margin:0 0 6px 14px}.or-feuille .or-rc{margin-top:22px}
 /* Antécédents des prescriptions : dates à gauche, ordonnance au centre, boutons à droite */
 .an{display:grid;grid-template-columns:230px minmax(0,1fr) 150px;gap:14px;align-items:start}
 .an-l{display:flex;flex-direction:column;gap:4px;max-height:62vh;overflow:auto;border:1px solid var(--trait);border-radius:var(--r-m);padding:6px}
@@ -900,6 +903,6 @@ function onco360Deconnecter() {
 }
 </script>
 
-<script type="module" src="./js/app/v2.js?v=20261012g"></script>
+<script type="module" src="./js/app/v2.js?v=20261012h"></script>
 </body>
 </html>

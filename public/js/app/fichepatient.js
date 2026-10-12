@@ -4,6 +4,7 @@
 // Les formulaires (Nouveau patient, Modifier, Afficher, en-tête du dossier) marquent chaque champ existant (data-champ="clé") ;
 // appliquerFiche() les remet dans l'ordre, cache ceux qui sont retirés (leur valeur est gardée) et place les champs ajoutés.
 // Valeurs des champs ajoutés : identite.extra { id: valeur } ou clinique.extra (selon la partie du champ).
+import { champPropose } from "../donnees/catalogue.js";
 let A = null;
 export function installer(api) { A = api; }
 const D = () => A.D();
@@ -15,15 +16,24 @@ export const enTete = (k) => { const R = F(), a = R.ajouts.find((z) => z.id === 
 const valeurDe = (x, a) => { const d = (x && x.doc) || {}, src = a.partie === "clinique" ? d.clinique : d.identite; return ((src && src.extra) || {})[a.id]; };
 const texteDe = (a, v) => (v == null || v === "" ? "" : a.type === "date" ? A.dfrA(v) : a.type === "ouinon" ? (v === true || v === "oui" ? "Oui" : "Non") : String(v));
 
+// Fiche tumeur (3.1) : titre avant le premier de ses champs (même data-champ : suit le champ et se cache avec lui) ; champ à condition
+// (si : biomarqueurs selon la localisation) caché tant que la condition n'est pas remplie, recalculé à chaque choix (ficheSi)
+const titreTumeur = (a, i, l) => (a.tumeur && !(l.slice(0, i).some((z) => z.tumeur)) ? '<div class="large" data-champ="' + a.id + '"><h4 class="soustitre" style="margin:8px 0 0">Fiche tumeur</h4></div>' : "");
+const extraDe = (x) => Object.assign({}, ((x && x.doc && x.doc.identite) || {}).extra || {}, ((x && x.doc && x.doc.clinique) || {}).extra || {});
+window.ficheSi = (el) => {
+  const f = el.closest(".form") || document, val = {}; f.querySelectorAll('[id^="fx_"]').forEach((e) => { val[e.id.slice(3)] = e.value; });
+  f.querySelectorAll("[data-si]").forEach((d) => { const a = champsAjoutes().find((z) => z.id === d.dataset.champ); d.classList.toggle("cache", !!a && !champPropose(a, val)); });
+};
 // Champs ajoutés d'un formulaire de saisie : off(partie) = vrai si la personne ne peut pas modifier cette partie
 export function htmlSaisie(x, off) {
-  const esc = A.esc;
-  return champsAjoutes().map((a) => {
+  const esc = A.esc, ex = extraDe(x), conds = {}; champsAjoutes().forEach((a) => Object.keys(a.si || {}).forEach((k) => { conds[k] = 1; }));
+  return champsAjoutes().map((a, i, l) => {
     const v = x ? valeurDe(x, a) : "", dis = off && off(a.partie) ? " disabled" : "", id = "fx_" + a.id, lab = '<label for="' + id + '">' + esc(a.lib) + "</label>";
     const champ = a.type === "choix" ? '<select id="' + id + '"' + dis + '><option value=""></option>' + (a.choix || []).map((c) => "<option" + (c === v ? " selected" : "") + ">" + esc(c) + "</option>").join("") + "</select>"
       : a.type === "ouinon" ? '<select id="' + id + '"' + dis + '><option value=""></option><option value="oui"' + (v === "oui" || v === true ? " selected" : "") + '>Oui</option><option value="non"' + (v === "non" || v === false ? " selected" : "") + ">Non</option></select>"
       : '<input id="' + id + '"' + (a.type === "date" ? ' type="date"' : a.type === "nombre" ? ' inputmode="decimal"' : "") + ' value="' + esc(v == null ? "" : v) + '"' + dis + ">";
-    return '<div data-champ="' + a.id + '"' + (a.type === "texte" ? ' class="large"' : "") + ">" + lab + champ + "</div>";
+    const si = a.si ? ' data-si="1"' + (champPropose(a, ex) ? "" : ' class="cache"') : a.type === "texte" ? ' class="large"' : "";
+    return titreTumeur(a, i, l) + '<div data-champ="' + a.id + '"' + si + ">" + lab + (conds[a.id] ? champ.replace(/^<select /, '<select onchange="ficheSi(this)" ') : champ) + "</div>";
   }).join("");
 }
 // Lecture des champs ajoutés saisis : { identite: {…}, clinique: {…} } (valeurs vides retirées)
@@ -40,10 +50,10 @@ export function fusionnerExtra(partieDoc, partie, saisie) {
 }
 // Champs ajoutés en lecture (Afficher, en-tête du dossier)
 export function htmlLecture(x, seulementEntete) {
-  const esc = A.esc;
-  return champsAjoutes().filter((a) => !seulementEntete || enTete(a.id)).map((a) => { const t = texteDe(a, valeurDe(x, a));
+  const esc = A.esc, ex = extraDe(x);
+  return champsAjoutes().filter((a) => (!seulementEntete || enTete(a.id)) && champPropose(a, ex)).map((a, i, l) => { const t = texteDe(a, valeurDe(x, a));
     return seulementEntete ? (t ? '<div data-champ="' + a.id + '"><label>' + esc(a.lib) + "</label><b>" + esc(t) + "</b></div>" : "")
-      : '<div data-champ="' + a.id + '"' + (t.length > 60 ? ' class="large"' : "") + "><label>" + esc(a.lib) + "</label><div>" + (t ? "<b>" + esc(t) + "</b>" : '<span class="mesures">—</span>') + "</div></div>"; }).join("");
+      : titreTumeur(a, i, l) + '<div data-champ="' + a.id + '"' + (t.length > 60 ? ' class="large"' : "") + "><label>" + esc(a.lib) + "</label><div>" + (t ? "<b>" + esc(t) + "</b>" : '<span class="mesures">—</span>') + "</div></div>"; }).join("");
 }
 // Champs ajoutés à imprimer (fiche chimio, courriers) : [{ id, lib, texte }]
 export const aImprimer = (x) => champsAjoutes().filter((a) => a.imprimer).map((a) => ({ id: a.id, lib: a.lib, texte: texteDe(a, valeurDe(x, a)) }));

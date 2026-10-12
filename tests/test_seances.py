@@ -14,7 +14,7 @@ async def main():
         await pg.screenshot(path='/tmp/t7_table.png', clip={'x':280,'y':0,'width':1160,'height':900}, full_page=True)
         await pg.click(CURE('C3')); await pg.wait_for_timeout(400)
         await pg.click(JOUR(0)+' >> text=Ouvrir'); await pg.fill('#vD','2026-10-06'); await pg.click('#fOk'); await pg.wait_for_timeout(700)
-        await pg.click('#fenetreCorps >> text=Valider : venu'); await pg.wait_for_timeout(800)  # prix de la consultation
+        await plus_tard(pg); await pg.click('#fenetreCorps >> text=Valider : venu'); await pg.wait_for_timeout(800)  # prix de la consultation
         await pg.click(CURE('C3')); await pg.wait_for_timeout(400)
         # Report de J8
         await pg.click(JOUR(1)+' >> text=↪ Reporter'); await pg.wait_for_timeout(300)

@@ -20,7 +20,8 @@ async def main():
         p0 = await ouvrir(b); await p0.goto(f'http://localhost:{PORT}/v2.html#patients'); await p0.wait_for_timeout(2000)
         await p0.evaluate("nouveauPatient()"); await p0.wait_for_timeout(400)
         k0 = await p0.evaluate("[...document.querySelectorAll('#fenetre .form > [data-champ]')].filter(e=>e.style.display!=='none').map(e=>e.dataset.champ)")
-        ok(k0[:4] == ['nom', 'prenom', 'ddn', 'sexe'] and 'ald' in k0 and not any(k.startswith('x') for k in k0), 'sans réglage : fiche inchangée (ordre d\'aujourd\'hui, ALD présent, aucun champ ajouté)')
+        # 3.1 (12/10/2026) : la fiche tumeur (champs xt…) est ajoutée d'office aux cabinets d'oncologie ; aucun autre champ ajouté
+        ok(k0[:4] == ['nom', 'prenom', 'ddn', 'sexe'] and 'ald' in k0 and not any(k.startswith('x') and not k.startswith('xt') for k in k0) and 'xtloc' in k0, 'sans réglage : fiche d\'oncologie (ordre d\'aujourd\'hui, ALD présent, fiche tumeur, aucun autre champ ajouté)', k0)
         # Avec réglage
         pg = await ouvrir(b, S2); await pg.goto(f'http://localhost:{PORT}/v2.html#patients'); await pg.wait_for_timeout(2000)
         await pg.evaluate("nouveauPatient()"); await pg.wait_for_timeout(400)

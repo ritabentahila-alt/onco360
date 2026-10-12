@@ -271,6 +271,8 @@ const infirmiere = { actif: true, etablissements: ["HGC", "CIOC"], droits: { tra
   ok(!par("r3").length && L.tachesAutoPatient("P1", dossier, regles, J, feries, { nouveau: true }).voulues.filter((v) => v.regle === "r3").length === 1, "nouveau patient : seulement à la création du dossier");
   ok(par("r4").length === 1 && par("r4")[0].ech === "2026-06-09", "3 mois après la fin de la RT (09/03) : tâche le 09/06");
   ok(par("r5").length === 1 && par("r5")[0].ech === "2026-10-08" && L.tachesAutoPatient("P1", dossier, regles, "2026-10-06", feries).voulues.filter((v) => v.regle === "r5").length === 0, "veille d'une cure J1 : tâche la veille (pas avant)");
+  // 3.3 (12/10/2026) : patient décédé → plus aucune tâche automatique
+  ok(L.tachesAutoPatient("P1", Object.assign({}, dossier, { clinique: { statut: "decede", decesLe: "2026-10-01" } }), regles, J, feries, { nouveau: true }).voulues.length === 0 && voulues.length > 0, "patient décédé : aucune tâche automatique");
   ok(L.idAuto("dosi", "P1", "rA") === L.idAuto("dosi", "P1", "rA") && L.idAuto("dosi", "P1", "rA") !== L.idAuto("dosi", "P2", "rA"), "identifiant fixe par règle, patient et occurrence (jamais deux fois la même tâche)");
   ok(L.addMois("2026-01-31", 1) === "2026-02-28", "ajout de mois : fin de mois respectée");
 })();

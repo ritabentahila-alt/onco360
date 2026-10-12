@@ -100,6 +100,9 @@ cas("une seule fois par radiothérapie", !contient(vigilances(base({ prods: gem,
 cas("radiothérapie terminée : rien", !contient(vigilances(base({ prods: gem, rts: [{ deb: "2026-08-01", fin: "2026-09-10" }] })), "radiothérapie"));
 cas("témozolomide → pneumocystose", contient(vigilances(base({ prods: [P("TÉMOZOLOMIDE (Temodal)", 150)], rts })), "pneumocystose"));
 
+console.log("8 bis. Allergie (3.2)");
+cas("allergie au platine : carboplatine signalé", contient(vigilances(base({ prods: [P("CARBOPLATINE", 500, "AUC")], patient: { sexe: "H", age: 60, texte: "", allergie: "Sels de platine (carboplatine)" } })), "allergie connue"));
+cas("sans allergie cochée : rien", vigilances(base({ prods: [P("CARBOPLATINE", 500, "AUC")], patient: { sexe: "H", age: 60, texte: "", allergie: "" } })).length === 0);
 console.log("9. Outils");
 cas("examens proposés : docétaxel + trastuzumab", JSON.stringify(examensProposes([P("DOCÉTAXEL", 1), P("HERCEPTIN (trastuzumab)", 1)])) === JSON.stringify(["bili", "asat", "alat", "fevg"]), examensProposes([P("DOCÉTAXEL", 1), P("HERCEPTIN (trastuzumab)", 1)]));
 cas("hors norme : TA 165/90, FEVG 45, TSH 2 normale", horsNorme("ta", "165/90") && horsNorme("fevg", 45) && !horsNorme("tsh", 2));

@@ -20,7 +20,8 @@ import * as ficheP from "./fichepatient.js"; // champs ajoutés de la fiche, ins
 import { age, accordMedecin } from "../moteur/outils.js";
 import { installer as installerDocumentation } from "./documentation.js"; // bouton « Doc. » (08/10/2026)
 import { enregistrerPrescription, trouverLigne, assurerConsultations, prescriptionsDe, supprimerPrescription, FAMILLES } from "./consultations.js";
-import { margesMm } from "./reglages.js"; // marges d'impression réglables (Paramètres › Impression)
+import { margesMm, reglages } from "./reglages.js";
+import { allergique, allergieDans } from "../moteur/statut.js"; // 3.2 (12/10/2026) // marges d'impression réglables (Paramètres › Impression)
 
 let A = null;
 export function installer(api) { A = api; installerDocumentation(api); }
@@ -181,7 +182,9 @@ window.edChoisir = (k) => {
   } else { const m = (BIB || []).find((z) => z.id === k); if (!m) return; h.items[i] = { nom: m.nom, poso: m.poso || "" }; }
   ordo(); const e = $("edPoso"); if (e) e.focus();
 };
-window.mdAjouter = (id) => { if (GEST() && !T) { window.mdFiche(id); return; } const m = BIB.find((z) => z.id === id), h = CUR(); if (!m || !h) return; h.items.push({ nom: m.nom, poso: m.poso }); ordo(); A.toast(m.nom + " ajouté."); };
+// Allergie connue (« oui ») dont un mot est dans le nom du médicament : alerte simple (3.2), le médecin garde la main
+const okAllergie = (noms) => { const x = S && trouver(S.pid), w = x && noms.map((n) => [n, allergieDans(x.P, n)]).find((z) => z[1]); return !w || confirm("Allergie connue : " + (x.P.allergies || "") + "\n\n« " + w[0] + " » contient « " + w[1].toLowerCase() + " ».\n\nAjouter quand même ?"); };
+window.mdAjouter = (id) => { if (GEST() && !T) { window.mdFiche(id); return; } const m = BIB.find((z) => z.id === id), h = CUR(); if (!m || !h) return; if (!okAllergie([m.nom])) return; h.items.push({ nom: m.nom, poso: m.poso }); ordo(); A.toast(m.nom + " ajouté."); };
 window.mdRetirer = (i) => { const h = CUR(); h.items.splice(i, 1); h.ed = null; ordo(); };
 window.mdBouger = (i, s) => { const L = CUR().items, j = i + s; if (j < 0 || j >= L.length) return; const t = L[i]; L[i] = L[j]; L[j] = t; CUR().ed = null; ordo(); };
 window.mdEdit = (i) => { CUR().ed = i; ordo(); };
@@ -244,6 +247,7 @@ function listeTypes() {
 window.otAjouter = (id) => {
   if (GEST()) { window.otFiche(id); return; }
   const o = TYPES.find((z) => z.id === id); if (!o || !S) return;
+  if (!okAllergie(o.items.map((i) => i.nom))) return;
   o.items.forEach((i) => S.items.push({ nom: i.nom, poso: i.poso })); if (S.types.indexOf(o.nom) < 0) S.types.push(o.nom);
   S.ed = null; ordo(); A.toast("« " + o.nom + " » : " + o.items.length + " médicament" + (o.items.length > 1 ? "s ajoutés." : " ajouté."));
 };
@@ -549,12 +553,16 @@ window.crFavori = async (id) => {
 const fmtStock = () => { try { return localStorage.getItem("onco360.formatOrdo") === "A4" ? "A4" : "A5"; } catch (e) { return "A5"; } };
 const dateFr = (d) => d.slice(8, 10) + "/" + d.slice(5, 7) + "/" + d.slice(0, 4);
 const civilite = (x) => (x.P.sexe === "F" ? "Mme " : x.P.sexe === "H" ? "M. " : "");
+// Sous le nom du patient (3.2, 12/10/2026) : âge et poids (au choix du cabinet, Paramètres › Impression) ; allergie si « oui » (toujours)
+const sousPatient = (x) => { const P = x.P || {}, a = age(P.ddn, D().t), l = [];
+  if (reglages().impression.agePoids) { if (a != null) l.push(a + " ans"); if (P.poids) l.push(String(P.poids).replace(".", ",") + " kg"); }
+  return (l.length ? '<p class="or-pat2">' + A.esc(l.join(" · ")) + "</p>" : "") + (allergique(P) ? '<p class="or-pat2"><b>Allergie : ' + A.esc(P.allergies || "oui") + "</b></p>" : ""); };
 const medecin = () => { const n = (A.medecinFiche() || {}).nom || ""; return n || "Dr "; };
 // Ordonnance d'analyses ou d'examens : « Prière de bien vouloir faire : », une ligne par analyse, bilan ou examen (07/10/2026 :
 // sans renseignements cliniques)
 function contenuAnalyses(x, items, d, med) {
   const e = A.esc;
-  return '<p class="or-date">Le ' + dateFr(d) + "</p>" + '<p class="or-pat"><b>' + e(civilite(x) + x.r.nm) + "</b></p>" +
+  return '<p class="or-date">Le ' + dateFr(d) + "</p>" + '<p class="or-pat"><b>' + e(civilite(x) + x.r.nm) + "</b></p>" + sousPatient(x) +
     '<p class="or-t"><b><u>Prière de bien vouloir faire :</u></b></p>' +
     (items.length ? items.map((it) => '<p class="or-a">• ' + e(it.nom) + (it.poso ? " (" + e(it.poso) + ")" : "") + "</p>").join("") : "<p><br></p>".repeat(6)) +
     '<p class="or-sig">Cachet et signature du médecin :<br><b>' + e(med) + "</b></p>";
@@ -564,7 +572,7 @@ function contenu(x, items, d, med) {
   if ((S && estAnaT(S.t)) || (O && estAnaT(O.t))) return contenuAnalyses(x, items, d, med);
   const e = A.esc;
   return '<p class="or-date">Le ' + dateFr(d) + "</p>" +
-    '<p class="or-pat"><b>' + e(civilite(x) + x.r.nm) + "</b></p>" +
+    '<p class="or-pat"><b>' + e(civilite(x) + x.r.nm) + "</b></p>" + sousPatient(x) +
     (items.length ? items.map((it, i) => '<p class="or-m"><b><u>' + (i + 1) + "/ " + e(it.nom) + "</u></b></p>" + '<p class="or-p">' + e(it.poso).replace(/\n/g, "<br>") + "</p>").join("") : "<p><br></p>".repeat(8)) +
     '<p class="or-sig">Cachet et signature du médecin :<br><b>' + e(med) + "</b></p>";
 }
@@ -590,7 +598,7 @@ function libelle(html) {
   const d = document.createElement("div"); d.innerHTML = nettoyer(html);
   const noms = [...d.querySelectorAll(".or-m, .or-a")].map((p) => p.textContent.replace(/^\s*\d+\s*\/\s*/, "").replace(/^\s*•\s*/, "").trim()).filter(Boolean);
   if (noms.length) return noms.join(" ; ");
-  [".or-date", ".or-pat", ".or-sig", ".or-t", ".or-rc", ".or-ti"].forEach((s) => d.querySelectorAll(s).forEach((p) => p.remove()));
+  [".or-date", ".or-pat", ".or-pat2", ".or-sig", ".or-t", ".or-rc", ".or-ti"].forEach((s) => d.querySelectorAll(s).forEach((p) => p.remove()));
   const t = d.textContent.replace(/\s+/g, " ").trim();
   return t ? (t.length > 140 ? t.slice(0, 140) + "…" : t) : "Ordonnance vierge";
 }
@@ -705,7 +713,7 @@ function imprimer(w, html, format, taille) {
   // Marges sur chaque page (07/10/2026 : côtés élargis deux fois, haut agrandi pour l'en-tête du papier, à régler quand
   // Dr Bentahila aura mesuré ses en-têtes)
   const css = "@page{size:" + (a4 ? "A4" : "A5") + " portrait;margin:" + margesMm(a4 ? "a4" : "a5") + "}html,body{margin:0}body{font-family:Arial,Helvetica,sans-serif;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact}" +
-    ".pg{font-size:" + pt + "pt;line-height:1.45}.or-date{text-align:right;margin:0 0 6mm}.or-pat{margin:0 0 7mm}.or-m{margin:4mm 0 1mm}.or-p{margin:0 0 0 6mm}.or-sig{margin-top:10mm;text-align:right}p{margin:0 0 1.5mm}" +
+    ".pg{font-size:" + pt + "pt;line-height:1.45}.or-date{text-align:right;margin:0 0 6mm}.or-pat{margin:0 0 7mm}.or-pat2{margin:-5mm 0 6mm}.or-m{margin:4mm 0 1mm}.or-p{margin:0 0 0 6mm}.or-sig{margin-top:10mm;text-align:right}p{margin:0 0 1.5mm}" +
     ".or-t{margin:0 0 3mm}p.or-a{margin:0 0 1.5mm 4mm}.or-rc{margin-top:6mm}mark.or-ac{background:none;color:inherit}" +
     (html.indexOf("or-ti") >= 0 ? "p{margin:0 0 4mm;text-align:justify}.or-ti{text-align:center;font-weight:bold;font-size:1.1em;margin:0 0 9mm}.or-sig{text-align:right}.or-date{text-align:right}" : ""); // courriers
   w.document.open(); w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>&#8203;</title><style>' + css + '</style></head><body><div class="pg">' + html + "</div></body></html>"); w.document.close();

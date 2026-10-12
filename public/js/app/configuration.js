@@ -223,11 +223,11 @@ const RUBRIQUES = {
       (A.D().membre.role === "medecin" ? '<button class="cf-b" data-bib="documentation" onclick="ordDocumentationGestion()"><span class="ic">' + A.ic("document") + '</span><span><b>Documentation</b><span class="mesures">Fiches PDF remises aux patients</span></span></button>' : "") + "</div></section>";
   },
   impression(c) {
-    // Marges d'impression (mm) : la marge du haut laisse la place à l'en-tête déjà imprimé sur le papier
-    const I = ED.reg.impression, champ = (q, n, lib) => '<div><label for="cfI' + q + n + '">' + lib + '</label><input id="cfI' + q + n + '" type="number" min="0" max="150" step="1" inputmode="numeric" value="' + I[q][n] + '"' + c.disE + ' onchange="cfImp(\'' + q + "'," + n + ',this.value)"></div>';
+    // Marges d'impression (mm) : la marge du haut laisse la place à l'en-tête déjà imprimé sur le papier ; âge et poids sur les ordonnances (3.2)
+    const I = ED.reg.impression, agePoids = '<section class="carte">' + titre("imprimer", "Ordonnances") + '<label class="chk"><input type="checkbox"' + (I.agePoids ? " checked" : "") + c.disE + ' onchange="cfRegB(\'impression\',\'agePoids\',this.checked)"> Âge et poids du patient sous son nom</label><p class="mesures">L\'allergie (si « oui » dans la fiche) est toujours imprimée.</p></section>', champ = (q, n, lib) => '<div><label for="cfI' + q + n + '">' + lib + '</label><input id="cfI' + q + n + '" type="number" min="0" max="150" step="1" inputmode="numeric" value="' + I[q][n] + '"' + c.disE + ' onchange="cfImp(\'' + q + "'," + n + ',this.value)"></div>';
     return '<section class="carte">' + titre("imprimer", "Marges d'impression (mm)") + '<p class="sous">Haut = hauteur de l\'en-tête déjà imprimé sur votre papier, plus 5 à 10 mm.</p>' +
       [["a5", "Ordonnances A5", "Médicaments, analyses, examens, ordonnances types, courriers"], ["a4", "Ordonnances A4", "Les mêmes, en A4"], ["doc", "Documents A4", "Pli confidentiel, compte rendu, rendez-vous de radiothérapie"]].map(([q, t, sous]) =>
-        '<h4 class="soustitre">' + t + '</h4><p class="mesures" style="margin:-4px 0 8px">' + sous + " · par défaut " + REGLAGES0.impression[q].join(" / ") + ' mm</p><div class="form" style="grid-template-columns:repeat(3,minmax(0,150px))">' + champ(q, 0, "Haut (en-tête)") + champ(q, 1, "Côtés") + champ(q, 2, "Bas") + "</div>").join("") + "</section>";
+        '<h4 class="soustitre">' + t + '</h4><p class="mesures" style="margin:-4px 0 8px">' + sous + " · par défaut " + REGLAGES0.impression[q].slice(0, 3).join(" / ") + ' mm</p><div class="form" style="grid-template-columns:repeat(3,minmax(0,150px))">' + champ(q, 0, "Haut (en-tête)") + champ(q, 1, "Côtés") + champ(q, 2, "Bas") + "</div>").join("") + "</section>" + agePoids;
   },
   alertes(c) {
     let h = "";
