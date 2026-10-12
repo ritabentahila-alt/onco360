@@ -296,7 +296,7 @@ const RUBRIQUES = {
   },
   consultation() {
     if (!CE) CE = editeurFiche(ED.consultation, "cabinet", true);
-    return '<section class="carte edf">' + titre("stetho", "Formulaire de consultation") + '<p class="sous">Champs de la fenêtre « Nouvelle consultation », dans l\'ordre. ✎ sur « Consultation » = liste des types.</p>' + CE.html() + "</section>";
+    return '<section class="carte edf">' + titre("stetho", "Formulaire de consultation") + '<p class="sous">Un onglet par formulaire (ses champs, dans l\'ordre) ; en bas, le formulaire utilisé par chaque type de consultation. ✎ sur « Consultation » = liste des types.</p>' + CE.html() + "</section>";
   },
 };
 // Durée par type de consultation (AG2, 11/10/2026) : la même dans tous les lieux ; vide = pas des créneaux du lieu

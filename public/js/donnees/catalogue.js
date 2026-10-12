@@ -128,6 +128,28 @@ export const CONSULT_ONCO = [
 ];
 export const formConsult = (type) => (/radioth/i.test(type || "") ? "rt" : /annonce|RCP|secr[ée]tariat|^ordonnance$/i.test(type || "") ? "" : "onco");
 export const champConsultPropose = (a, type) => !a.cs || a.cs === formConsult(type);
+// 3.12 (12/10/2026) – formulaires de consultation nommés : R.formulaires = [{ id, nom, champs: [ids des champs ajoutés] }] (un champ peut être
+// dans plusieurs formulaires : mêmes valeurs d'une consultation à l'autre) ; R.typesForm = { type de consultation: id du formulaire }.
+// Sans réglage : oncologie = « Consultation d'oncologie » (champs cs onco + champs du cabinet), « RT hebdomadaire » (cs rt + champs du
+// cabinet), « Simple » (champs du cabinet) avec la règle d'avant (formConsult) ; autre spécialité : un formulaire « Consultation ».
+// Un champ retiré (champs[id] === false) n'est dans aucun formulaire.
+export const FORMS0 = [["onco", "Consultation d'oncologie"], ["rt", "RT hebdomadaire"], ["simple", "Simple"]];
+const idForm = (v) => typeof v === "string" && /^[a-z0-9_-]{1,30}$/i.test(v);
+export function formulairesDe(R) {
+  const aj = (R.ajouts || []).filter((a) => (R.champs || {})[a.id] !== false), ids = aj.map((a) => a.id);
+  if (Array.isArray(R.formulaires) && R.formulaires.some((f) => f && idForm(f.id))) {
+    const vus = {}; return R.formulaires.filter((f) => f && idForm(f.id) && !vus[f.id] && (vus[f.id] = 1)).map((f) => ({ id: f.id, nom: String(f.nom || "Formulaire").slice(0, 60), champs: (f.champs || []).filter((k, i, l) => ids.indexOf(k) >= 0 && l.indexOf(k) === i) }));
+  }
+  if (!R.onco && !aj.some((a) => a.cs)) return [{ id: "std", nom: "Consultation", champs: ids }];
+  return FORMS0.map(([id, nom]) => ({ id, nom, champs: aj.filter((a) => (id === "simple" ? !a.cs : !a.cs || a.cs === id)).map((a) => a.id) }));
+}
+export function formDuType(R, type, F) {
+  const L = F || formulairesDe(R), t = (R.typesForm || {})[type];
+  if (t && L.some((f) => f.id === t)) return t;
+  const d = { rt: "rt", "": "simple", onco: "onco" }[formConsult(type)];
+  return L.some((f) => f.id === d) ? d : (L[0] || {}).id || "";
+}
+export const champDuType = (R, a, type, F) => { const L = F || formulairesDe(R), f = L.find((z) => z.id === formDuType(R, type, L)); return !!f && f.champs.indexOf(a.id) >= 0; };
 // Un champ à condition (si.diag) est-il proposé, d'après le diagnostic (localisation) ? « Primitif inconnu » : tous ; diagnostic vide : aucun
 export const champPropose = (a, vals) => { if (!a.si) return true; const f = famillesDiag((vals || {}).diag); return f.indexOf("inconnu") >= 0 || (a.si.diag || []).some((k) => f.indexOf(k) >= 0); };
 // Partie de la fiche d'un champ (3.1 bis) : identité, informations médicales, fiche tumeur (cabinets d'oncologie)
@@ -173,6 +195,11 @@ export function formEffectif(CAT, f, spe) {
     if (ch0) { const c = (x.choixs && x.choixs[k]) || (s.choixs && s.choixs[k]); choixs[k] = Array.isArray(c) && c.length ? c.slice() : ch0.slice(); } });
   if (onco && CAT === FICHE) { if (!libs.diag) libs.diag = "Localisation"; if (!libs.diagP) libs.diagP = "Précision"; } // oncologie : diagnostic = localisation (3.1 bis)
   const out = { ordre: ordreAvecNouveaux(Array.isArray(x.ordre) && x.ordre.length ? x.ordre : s.ordre, ref, CAT.map((c) => c[0])), champs, libs, choixs, ajouts, onco };
+  if (CAT === CONSULT) { // 3.12 : formulaires nommés et formulaire de chaque type (cabinet, sinon spécialité)
+    const fo = Array.isArray(x.formulaires) && x.formulaires.length ? x.formulaires : Array.isArray(s.formulaires) && s.formulaires.length ? s.formulaires : null;
+    if (fo) out.formulaires = JSON.parse(JSON.stringify(fo));
+    const tf = Object.assign({}, s.typesForm && typeof s.typesForm === "object" ? s.typesForm : {}, x.typesForm && typeof x.typesForm === "object" ? x.typesForm : {});
+    if (Object.keys(tf).length) out.typesForm = tf; }
   // 3.11 – fiche patient : type, partie, impression et unité de chaque champ (spécialité, puis retouches du cabinet)
   if (CAT === FICHE) { const m = (n) => Object.assign({}, s[n] && typeof s[n] === "object" ? s[n] : {}, x[n] && typeof x[n] === "object" ? x[n] : {}), TV = TYPES_CHAMP.map((t) => t[0]);
     const T = m("types"), Sx = m("sections"), Im = m("imprimes"), Un = m("unites"); out.types = {}; out.sections = {}; out.imprimes = {}; out.unites = {};
@@ -204,6 +231,12 @@ export function formRetouches(CAT, R, base) {
     R.ajouts.filter((a) => !a.cabinet).forEach((a) => { const b0 = (base.ajouts || []).find((z) => z.id === a.id); if (!b0) return; const met = (n, v) => { (out[n] = out[n] || {})[a.id] = v; };
       if (a.type !== b0.type) met("types", a.type); if ((a.unite || "") !== (b0.unite || "")) met("unites", a.unite || ""); if (!!a.imprimer !== !!b0.imprimer) met("imprimes", !!a.imprimer); });
   }
+  // 3.12 : formulaires de consultation et formulaire de chaque type : différences avec la spécialité
+  if (CAT === CONSULT) {
+    const fR = formulairesDe(R), fB = formulairesDe(base); if (JSON.stringify(fR) !== JSON.stringify(fB)) out.formulaires = fR;
+    const types = ((R.choixs || {}).type || []).concat(Object.keys(R.typesForm || {})), tf = {};
+    types.forEach((t) => { const a = formDuType(R, t, fR), b = formDuType(base, t, fB); if (a !== b || (out.formulaires && (R.typesForm || {})[t])) tf[t] = a; });
+    if (Object.keys(tf).length) out.typesForm = tf; }
   // champs de la spécialité (fiche tumeur…) renommés ou liste changée par le cabinet (12/10/2026)
   R.ajouts.filter((a) => !a.cabinet).forEach((a) => { const b0 = (base.ajouts || []).find((z) => z.id === a.id); if (!b0) return; if (a.lib !== b0.lib) lb[a.id] = a.lib; if (a.type === "choix" && JSON.stringify(a.choix || []) !== JSON.stringify(b0.choix || [])) cx[a.id] = a.choix; });
   if (Object.keys(ch).length) out.champs = ch; if (Object.keys(lb).length) out.libs = lb; if (Object.keys(cx).length) out.choixs = cx;

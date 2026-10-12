@@ -192,6 +192,9 @@ function ficheNettoyee(f) {
   const tab = (n, ok) => { if (f[n] && typeof f[n] === "object") { const o = {}; Object.entries(f[n]).slice(0, 120).forEach(([c, v]) => { const w = ok(v); if (cle(c) && w !== undefined) o[c] = w; }); if (Object.keys(o).length) F[n] = o; } };
   tab("types", (v) => (TYPES_CHAMP.indexOf(v) >= 0 && v !== "section" ? v : undefined)); tab("sections", (v) => (["id", "med", "tum"].indexOf(v) >= 0 ? v : undefined));
   tab("imprimes", (v) => (typeof v === "boolean" ? v : undefined)); tab("unites", (v) => (typeof v === "string" ? t(v, 15) : undefined));
+  // 3.12 (12/10/2026) : formulaires de consultation nommés et formulaire de chaque type de consultation
+  if (Array.isArray(f.formulaires)) { const fo = f.formulaires.filter((x) => x && /^[a-z0-9_-]{1,30}$/i.test(x.id || "")).slice(0, 20).map((x) => ({ id: x.id, nom: t(x.nom, 60) || "Formulaire", champs: (Array.isArray(x.champs) ? x.champs : []).filter(cle).slice(0, 120) })); if (fo.length) F.formulaires = fo; }
+  if (f.typesForm && typeof f.typesForm === "object") { const o = {}; Object.entries(f.typesForm).slice(0, 60).forEach(([c, v]) => { if (t(c, 60) && /^[a-z0-9_-]{1,30}$/i.test(v || "")) o[t(c, 60)] = v; }); if (Object.keys(o).length) F.typesForm = o; }
   if (Array.isArray(f.ajouts)) F.ajouts = f.ajouts.filter((a) => a && /^x[a-z0-9]{3,20}$/.test(a.id || "") && t(a.lib, 60)).slice(0, 80).map((a) => Object.assign({ id: a.id, lib: t(a.lib, 60),
     type: TYPES_CHAMP.indexOf(a.type) >= 0 ? a.type : "texte", choix: liste(a.choix),
     partie: a.partie === "clinique" ? "clinique" : "identite", imprimer: a.imprimer === true, entete: a.entete === true }, t(a.unite, 15) ? { unite: t(a.unite, 15) } : {}, a.tumeur === true ? { tumeur: true } : {}, a.cs === "onco" || a.cs === "rt" ? { cs: a.cs } : {})); // tumeur : partie « Fiche tumeur » ; cs : formulaire de consultation (12/10/2026)

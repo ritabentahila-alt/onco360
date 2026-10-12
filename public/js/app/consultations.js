@@ -9,7 +9,7 @@
 // jour : étapes 1C à 1E. Ici : créer, modifier, supprimer, plier / déplier.
 import { collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { db } from "../config.js";
-import { CONSULT, consultEffective, libDe, champConsultPropose } from "../donnees/catalogue.js";
+import { CONSULT, consultEffective, libDe, formulairesDe, champDuType } from "../donnees/catalogue.js";
 
 let A = null;
 export function installer(api) { A = api; }
@@ -168,7 +168,7 @@ window.csTog = (pid, cid) => {
 // (décision de RCP, rcp.js 09/10/2026)
 function formulaire(x, c, pre, apres) {
   pre = c ? null : pre || null;
-  const esc = A.esc, R = FORM(), v0 = (k) => (c ? c[k] || "" : (pre && pre[k]) || ""), ex = (c && c.extra) || (pre && pre.extra) || {};
+  const esc = A.esc, R = FORM(), FO = formulairesDe(R), v0 = (k) => (c ? c[k] || "" : (pre && pre[k]) || ""), ex = (c && c.extra) || (pre && pre.extra) || {};
   // Un champ existant retiré reste affiché s'il a déjà une valeur (consultation ancienne, décision de RCP)
   const visible = (k) => R.champs[k] !== false || (k !== "d" && !!v0(k));
   // 3.4 : la secrétaire écrit dans le même journal (« Note du secrétariat », proposé d'office pour elle)
@@ -186,8 +186,9 @@ function formulaire(x, c, pre, apres) {
       return "";
     }
     if (R.champs[k] === false && ex[k] == null) return "";
-    // 3.4 : champ d'un formulaire proposé (oncologie, RT hebdomadaire) : selon le type de consultation, recalculé quand il change
-    const v = ex[k] == null ? "" : ex[k], id = "cx_" + a.id, cache = a.cs && !champConsultPropose(a, type0 || (types[0] || "")) && ex[k] == null, csA = a.cs ? ' data-cs="' + a.id + '"' + (cache ? ' style="display:none"' : "") : "", lab = '<label for="' + id + '">' + esc(a.lib) + (a.type === "nombre" && a.unite ? " (" + esc(a.unite) + ")" : "") + "</label>";
+    // 3.12 : champ du formulaire du type de consultation (Paramètres › Dossier patient › Formulaire de consultation), recalculé quand le type
+    // change ; une valeur déjà saisie reste visible
+    const v = ex[k] == null ? "" : ex[k], id = "cx_" + a.id, cache = !champDuType(R, a, type0 || (types[0] || ""), FO) && ex[k] == null, csA = ' data-cs="' + a.id + '"' + (cache ? ' style="display:none"' : ""), lab = '<label for="' + id + '">' + esc(a.lib) + (a.type === "nombre" && a.unite ? " (" + esc(a.unite) + ")" : "") + "</label>";
     if (a.type === "section") return '<div class="large cs-sec"' + csA + ">" + esc(a.lib) + "</div>";
     if (a.type === "textelong") return '<div class="large"' + csA + ">" + lab + '<textarea id="' + id + '" rows="3">' + esc(v) + "</textarea></div>";
     if (a.type === "choix") return "<div" + csA + ">" + lab + '<select id="' + id + '"><option value=""></option>' + (a.choix || []).concat(v && (a.choix || []).indexOf(v) < 0 ? [v] : []).map((t) => "<option" + (t === v ? " selected" : "") + ">" + esc(t) + "</option>").join("") + "</select></div>";
@@ -198,13 +199,13 @@ function formulaire(x, c, pre, apres) {
     '<div class="form">' + R.ordre.map(champ).join("") + "</div>" +
     '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt plein" id="csOk">Enregistrer</button></div>');
   const selT = document.getElementById("csType");
-  if (selT) selT.onchange = () => document.querySelectorAll("#fenetre [data-cs]").forEach((z) => { const a = R.ajouts.find((y) => y.id === z.dataset.cs); z.style.display = a && champConsultPropose(a, selT.value) ? "" : "none"; });
+  if (selT) selT.onchange = () => document.querySelectorAll("#fenetre [data-cs]").forEach((z) => { const a = R.ajouts.find((y) => y.id === z.dataset.cs), e = document.getElementById("cx_" + z.dataset.cs); z.style.display = a && (champDuType(R, a, selT.value, FO) || (e && e.value && ex[a.id] != null)) ? "" : "none"; });
   if (pre && pre.note) setTimeout(() => { const n = document.getElementById("csNote"); if (n) { n.focus(); n.setSelectionRange(n.value.length, n.value.length); } }, 80); // décision de RCP : curseur après « Décision : »
   document.getElementById("csOk").onclick = async () => {
     const el = (i) => document.getElementById(i), type = el("csType") ? A.val("csType") : type0, titre = el("csTitre") ? A.val("csTitre") : v0("titre"), d = A.val("csDate");
     const note = el("csNote") ? String(el("csNote").value || "").replace(/\s+$/, "") : v0("note");
     // Champs ajoutés : valeurs saisies (vides retirées) ; celles des champs absents du formulaire sont gardées
-    const extra = Object.assign({}, ex); R.ajouts.forEach((a) => { const e = el("cx_" + a.id); if (!e) return; if (a.cs && !champConsultPropose(a, type)) return; /* formulaire d'un autre type : valeurs gardées */ const v = String(e.value || "").replace(/\s+$/, "").trim(); if (v === "") delete extra[a.id]; else extra[a.id] = a.type === "nombre" ? v.replace(",", ".") : v; });
+    const extra = Object.assign({}, ex); R.ajouts.forEach((a) => { const e = el("cx_" + a.id); if (!e) return; if (!champDuType(R, a, type, FO) && ex[a.id] == null) return; /* formulaire d'un autre type : valeurs gardées */ const v = String(e.value || "").replace(/\s+$/, "").trim(); if (v === "") delete extra[a.id]; else extra[a.id] = a.type === "nombre" ? v.replace(",", ".") : v; });
     if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) { A.erreur("Choisissez la date de la consultation."); return; }
     A.occupe(document.getElementById("csOk"), true);
     try {

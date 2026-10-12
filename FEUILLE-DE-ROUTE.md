@@ -489,10 +489,17 @@ longs et ne dépendent pas du code.
       chimiothérapie effaçait les champs ajoutés de l'identité et rangeait allergie / statut / fiche tumeur dans `clinique._autres` ;
       corrigé, et les fiches abîmées sont réparées au chargement (titulaire) ; les champs ajoutés de l'identité déjà effacés ne se
       retrouvent que dans une sauvegarde (PITR 7 jours, sauvegarde quotidienne). Test : `tests/test_fiche_donnees.py`.
-- [ ] **3.12 Formulaires de consultation par type** : l'éditeur montre **un formulaire par type de formulaire** (Consultation
+- [x] **3.12 Formulaires de consultation par type** (fait le 12/10/2026, version 20261012q) : l'éditeur montre **un formulaire par type de formulaire** (Consultation
       d'oncologie, RT hebdomadaire, Simple, + « Nouveau formulaire ») et, pour chaque type de consultation, le formulaire qu'il utilise
       (choisi dans 3.13) ; chaque champ entièrement modifiable comme la fiche patient (3.11) ; un formulaire se duplique pour en faire un
       autre. Remplace la règle fixe `formConsult` (« en cours de radiothérapie » → RT, annonce / RCP / secrétariat → simple, sinon oncologie).
+      **Fait** : Paramètres › Dossier patient › Formulaire de consultation = un onglet par formulaire (Consultation d'oncologie, RT
+      hebdomadaire, Simple, « + Nouveau formulaire ») avec nom, Dupliquer, Supprimer ; champs communs (type, date, titre, note) puis ceux du
+      formulaire (Retirer = de ce formulaire seulement ; « + Ajouter un champ d'un autre formulaire ») ; en bas, le formulaire de chaque type
+      de consultation (règle d'avant = valeurs de départ ; « Tous les types : formulaire Simple »). **Mieux que prévu** : un champ peut être
+      dans plusieurs formulaires (ex. « Nausées » en oncologie et dans un formulaire « Toxicités ») et garde les mêmes valeurs, comparables
+      d'une consultation à l'autre ; une valeur déjà saisie reste affichée même si le type change. Le choix du formulaire par type passera
+      dans le référentiel des types (3.13). Même éditeur dans l'Administration (le serveur garde `formulaires` / `typesForm`).
 - [ ] **3.13 Référentiel unique des types de consultation** (idée de Dr Bentahila, complétée) : aujourd'hui trois listes séparées (types
       de rendez-vous, activités de chaque établissement, types du journal des consultations). Une seule liste « Types de consultation »
       (Dossier patient, 3.11) : nom, **durée** (remplace « Durée par type de consultation »), **pris en rendez-vous** oui / non (non : chimio,

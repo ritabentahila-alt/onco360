@@ -254,7 +254,8 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
   (fonction `ficheSpecialite`, aussi à la création) ; fiche = { ordre, champs, libs (nom affiché d'un champ existant), entetes (en tête du dossier, champ par champ ; départ `ENTETE0`), ajouts [{ id x…, lib, type,
   choix, partie, imprimer, entete }] } ; retouches du cabinet `reglage.fiche` (différences seulement, `ficheRetouches`) ; pas de fiche dans un pack ;
   catalogue `FICHE` / `ficheEffective(retouches, ficheSpe)` / `libChamp` (catalogue.js, fonctions communes `formEffectif` / `formRetouches` / `libDe`) ;
-  **Formulaire de consultation (16.7)** : même système (`CONSULT`, `consultEffective`, `TYPES_CHAMP_CS` : + texte long, section, unité ;
+  **Formulaire de consultation (16.7)** : même système ; 3.12 (12/10/2026) : `formulaires` [{ id, nom, champs }] et `typesForm` { type: id }
+  (`formulairesDe`, `formDuType`, `champDuType` de catalogue.js ; sans réglage : onco / rt / simple d'après `cs` et `formConsult`) ; (`CONSULT`, `consultEffective`, `TYPES_CHAMP_CS` : + texte long, section, unité ;
   `choixs.type` = liste des types de consultation), spécialité `plateforme/specialites[id].consultation` → `espaces/{e}.consultSpe`,
   retouches `reglage.consultation`, valeurs `consultations/{c}.extra` (consultations.js `formulaire`, `htmlExtra`) ; `js/app/fichepatient.js` (3.11 : formulaires rendus depuis `champsDe`) ; valeurs `identite.extra` / `clinique.extra` ; réglage 3.11 :
   `types` (TYPES_CHAMP + `ouinonp` = oui / non + précision : texte dans la clé, oui / non dans `drapeau(clé)`, allergie : `allergie`), `sections`

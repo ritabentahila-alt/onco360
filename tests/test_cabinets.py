@@ -40,7 +40,7 @@ async def main():
         ok(not any(n and n in tout for n in noms), 'aucun nom de patient du cabinet de Dr Bentahila à l\'écran')
         ok(str(nbProt) in pages['protocoles'] or nbProt > 0, f'protocoles copiés ({nbProt})')
         # Paramètres : lieux, correspondants vides, grille tarifaire
-        await pg.evaluate("location.hash='parametres/listes'"); await pg.wait_for_timeout(900); tl = await pg.inner_text('#page')
+        await pg.evaluate("location.hash='parametres/listes'"); await pg.wait_for_timeout(900); await pg.evaluate("cfLs('diag')"); await pg.wait_for_timeout(300); tl = await pg.inner_text('#page')  # 3.11 : localisations ouvertes depuis la fiche
         ok('Mutuelles (3' in tl and 'Localisations (diagnostics) (94)' in tl and 'Correspondants (0)' in tl, 'diagnostics et mutuelles reçus, correspondants vides')
         await pg.evaluate("location.hash='parametres/activites'"); await pg.wait_for_timeout(900); ta = await pg.inner_text('#page')
         ok('Ajoutez d\'abord un lieu' in ta, 'tarifs : il faut d\'abord un lieu')

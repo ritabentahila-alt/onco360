@@ -33,7 +33,7 @@ async def main():
         await pg.evaluate("location.hash='parametres/couleurs'"); await pg.wait_for_timeout(1000)
         ok('Couleurs dans Google Agenda' not in await pg.inner_text('#page'), 'Paramètres › Google Agenda : couleurs retirées')
         await pg.evaluate("location.hash='parametres/listes'"); await pg.wait_for_timeout(1000)
-        ok(await vis(pg, '[data-fn="listes.cor"]') == 0 and 'iagnostics' in await pg.inner_text('#page'), 'Paramètres › Listes : Correspondants retirés, Diagnostics (localisations) présents')
+        ok(await vis(pg, '[data-fn="listes.cor"]') == 0 and 'Mutuelles' in await pg.inner_text('#page'), 'Paramètres › Listes : Correspondants retirés, Mutuelles présentes (3.11 : localisations depuis la fiche)')
         await pg.evaluate("location.hash='parametres/activites'"); await pg.wait_for_timeout(1000)
         ok('Actes de radiothérapie' not in await pg.inner_text('#page'), 'Paramètres › Activités : tarifs RT retirés')
         await pg.set_viewport_size({'width': 390, 'height': 800}); await pg.evaluate("location.hash='accueil'"); await pg.wait_for_timeout(600)
