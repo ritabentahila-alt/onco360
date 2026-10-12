@@ -537,6 +537,22 @@ les étapes 1.7, 2.5, 3.2 et 3.7.
          (20261012p) : plantage de **Safari** (« un problème récurrent est survenu », Firefox sans souci) quand un menu déroulant est
          retiré pendant son propre « change » ; la mise à jour se fait maintenant juste après (menu fermé), et seuls les menus et la
          liste changent (plus toute la fenêtre / la page).
+- [ ] **3.16 Agenda : un clic sur un rendez-vous = Fermer · Ouvrir le dossier · Modifier / décaler** (demande du 12/10/2026, plan) :
+      aujourd'hui, une séance de chimio ou un rendez-vous de radiothérapie ouvre directement la fenêtre de l'heure ; désormais la même
+      fenêtre pour tout (consultation, séance de chimio, scanner, 1re séance, fin de radiothérapie prévue, consultations en cours et de fin
+      de radiothérapie). « Modifier / décaler » : heure seule → enregistrée sans question ; **date changée → question** sur ce qui suit :
+      chimio = « cette cure seulement » ou « décaler aussi les cures suivantes » (même règle que « Modifier » du dossier, 3.7 ter) ;
+      1re séance de RT = toute la radiothérapie suit (fin prévue, consultations hebdomadaires, consultation de fin) ; fin de RT prévue =
+      la consultation de fin suit (si elle n'a pas été déplacée à la main) ; consultation prévue = « elle seule » ou « aussi les
+      consultations prévues après » (même écart). Glisser-déposer (21) : même question quand le jour change.
+- [ ] **3.13 bis Types de consultation : colonnes plus claires** (questions de Dr Bentahila du 12/10/2026, plan) :
+      a) « Rendez-vous » → **« Comment il est prévu »** : *À la main* (proposé à la prise de rendez-vous), *D'office* (consultation de
+      chimiothérapie avec la cure, consultations en cours / fin de radiothérapie avec la RT), *À la main et d'office*, *Sans rendez-vous*
+      (journal seulement : RCP, note du secrétariat) ; tous sont des rendez-vous dans l'agenda, la colonne dit seulement d'où ils viennent ;
+      b) Durée « pas du lieu » → **« Créneau du lieu (30 min) »** avec la valeur réelle (pas des créneaux réglé dans Horaires) ;
+      c) Formulaire : retirer « Formulaire de chaque type » du bas de Formulaire de consultation (doublon) ; à la place, sur chaque onglet de
+      formulaire, « Utilisé par : … » avec un lien vers Types de consultation ;
+      d) « Créé d'office » fusionné dans a) ; une infobulle (?) sur chaque en-tête de colonne.
 - [ ] **4.1 Toucher et contraste** : zones de 44 px sur écran tactile (dossier 35 / 42 trop petites, protocoles 27 / 30) ; badges vert
       et orange contrastés (3,77 et 3,51 → 4,5) ; filtres repliés derrière un bouton sur téléphone (bilan, protocoles) ; téléphone
       du patient en lien Onco360 (plus de lien bleu souligné) ; champs de fichier habillés ; ~40 libellés reliés à leur champ.
