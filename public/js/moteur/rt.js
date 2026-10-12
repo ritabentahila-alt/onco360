@@ -5,9 +5,10 @@ import { dfr } from "./rdv.js";
 // → 1re séance. Chaque validation par le médecin ouvre l'étape suivante (et sa tâche automatique, functions/logique.js).
 // Contourage à valider : du scanner (inclus) à la 1re séance (incluse), tant qu'il n'est pas validé.
 // Dosimétrie à valider : de la validation du contourage à la 1re séance, tant qu'elle n'est pas validée.
-// Sans 1re séance prévue : jusqu'à aujourd'hui (la période se prolonge chaque jour). Rien pour un traitement clos, ni une
-// fois la 1re séance passée. Renvoient { du, au } ou null.
-const periodeRT = (du, r, t) => { const au = r.deb ? (r.deb > du ? r.deb : du) : (t > du ? t : du); return au < t ? null : { du, au }; };
+// Sans 1re séance prévue : jusqu'à aujourd'hui (la période se prolonge chaque jour). Rien pour un traitement clos. 2.5 (12/10/2026,
+// audit) : une fois la 1re séance passée sans validation, l'étape reste à valider, « en retard » (radiothérapie commencée sans
+// contourage ou dosimétrie validés) au lieu de disparaître. Renvoient { du, au, retard } ou null.
+const periodeRT = (du, r, t) => { const au = r.deb ? (r.deb > du ? r.deb : du) : (t > du ? t : du); return au < t ? { du, au, retard: true } : { du, au }; };
 export function contourage(r, t) {
   if (!r.scan || r.cont || r.dosi || r.fin) return null;
   return periodeRT(r.scan, r, t);

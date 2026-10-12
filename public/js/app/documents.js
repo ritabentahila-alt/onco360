@@ -98,13 +98,15 @@ function htmlCr(P, r, ctx, o) {
     '<p class="dc-h">6. Conduite à tenir et suivi</p>' + puce("Prochain rendez-vous de consultation", "") + puce("Bilan de contrôle prévu", "") + signature(o);
 }
 function htmlRdv(P, r, ctx, o) {
-  const { dates } = datesSeancesRT(r, ctx), t = ctx.aujourdhui, ressource = String(o.medecin || "").replace(/^Dr\.?\s*/i, "");
-  return '<p class="dc-titre">Rendez-vous du patient</p>' +
+  // 2.5 (12/10/2026, audit) : calendrier théorique (dates calculées, séances réelles suivies dans ARIA) : état « Prévu », plus de
+  // « Terminé » inventé ; l'ajustement des dates est imprimé
+  const { dates, ajuste } = datesSeancesRT(r, ctx), ressource = String(o.medecin || "").replace(/^Dr\.?\s*/i, "");
+  return '<p class="dc-titre">Calendrier théorique des séances</p>' +
     '<p class="dc-c"><b>Date de début : ' + dfrA(dates[0]) + " &nbsp;—&nbsp; Date de fin : " + dfrA(dates[dates.length - 1]) + "</b></p>" +
     "<p><b>Patient : </b>" + esc((P.nomF || "").toUpperCase() + (P.prenom ? ", " + P.prenom : "")) + "<br><b>Médecin : </b>" + AR(o.medecin) + (r.acte ? "<br><b>Radiothérapie : </b>" + esc(r.acte) : "") + "</p>" +
     '<table class="dc-tab dc-rdv"><tbody><tr><th>Date du rendez-vous</th><th>Durée (min)</th><th>Activité</th><th>Ressource</th><th>État du rendez-vous</th></tr>' +
-    dates.map((d, i) => "<tr><td>" + dfrA(d) + "</td><td>" + (i === 0 ? 15 : 20) + "</td><td>" + (i === 0 ? "Mise en place RA" : i === dates.length - 1 ? "Fin de Traitement RA" : "Traitement Journalier RA") + "</td><td>" + esc(ressource) + "</td><td>" + (d <= t || r.fin ? "Terminé" : "Planifié") + "</td></tr>").join("") +
-    "</tbody></table>";
+    dates.map((d, i) => "<tr><td>" + dfrA(d) + "</td><td>" + (i === 0 ? 15 : 20) + "</td><td>" + (i === 0 ? "Mise en place RA" : i === dates.length - 1 ? "Fin de Traitement RA" : "Traitement Journalier RA") + "</td><td>" + esc(ressource) + "</td><td>Prévu</td></tr>").join("") +
+    "</tbody></table>" + '<p class="dc-note">Dates calculées d\'après le calendrier (jours ouvrés, jours fériés exclus)' + (ajuste ? ", ajustées au nombre de fractions" : "") + ". Les séances réellement faites sont suivies par le service de radiothérapie.</p>";
 }
 
 // ───── Documents enregistrés : une fiche par radiothérapie et par type ─────
@@ -167,19 +169,23 @@ window.dcRepartir = () => {
 };
 // Impression A4, sur papier à en-tête : marges de la page (haut laissé libre), saut de page entre les parties du pli
 function imprimer(w, html) {
-  const css = "@page{size:A4 portrait;margin:" + margesMm("doc") + "}html,body{margin:0}body{font-family:Arial,Helvetica,sans-serif;font-size:11pt;line-height:1.4;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact}" + CSS_DOC;
+  // 2.5 : les mentions « À REMPLIR » / « à compléter par le médecin » ne s'impriment pas (avertissement avant, dcEnregistrer)
+  const css = ".dc .dc-ar,.dc .dc-af{display:none}@page{size:A4 portrait;margin:" + margesMm("doc") + "}html,body{margin:0}body{font-family:Arial,Helvetica,sans-serif;font-size:11pt;line-height:1.4;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact}" + CSS_DOC;
   w.document.open(); w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>&#8203;</title><style>' + css + '</style></head><body><div class="dc">' + html + "</div></body></html>"); w.document.close();
   setTimeout(() => { try { w.focus(); w.print(); } catch (e) {} }, 400);
 }
 // Mise en page commune (fenêtre et impression)
 const CSS_DOC = ".dc p{margin:0 0 7px}.dc .dc-titre{text-align:center;font-weight:bold;font-size:15pt;margin:4px 0 16px}.dc .dc-cr{font-size:14pt}.dc .dc-d{text-align:right;margin-bottom:14px}.dc .dc-c{text-align:center}.dc .dc-g{font-size:13pt}" +
-  ".dc .dc-rub{font-weight:bold;border-bottom:1px solid #9AA3B5;padding-bottom:3px;margin:14px 0 6px}.dc .dc-h{font-weight:bold;font-size:12pt;margin:14px 0 6px}.dc .dc-li{margin-left:14px}.dc .dc-sig{text-align:right;margin-top:22px;margin-bottom:60px}" +
+  ".dc .dc-rub{font-weight:bold;border-bottom:1px solid #9AA3B5;padding-bottom:3px;margin:14px 0 6px}.dc .dc-h{font-weight:bold;font-size:12pt;margin:14px 0 6px}.dc .dc-li{margin-left:14px}.dc .dc-sig{text-align:right;margin-top:22px;margin-bottom:60px;break-inside:avoid;page-break-inside:avoid;break-before:avoid;page-break-before:avoid}.dc .dc-note{font-size:9pt;color:#555;margin-top:6px}" +
   ".dc .dc-ar{background:#FFF200;font-weight:bold}.dc .dc-af{color:#8A8A8A;font-style:italic}.dc .dc-saut{page-break-before:always;break-before:page;height:0}" +
   ".dc .dc-tab{width:100%;border-collapse:collapse;margin:4px 0 8px}.dc .dc-tab th,.dc .dc-tab td{border:1px solid #8C8C8C;padding:5px 7px;vertical-align:top;text-align:left}.dc .dc-tab th{background:#DCE6F2}.dc .dc-tab td p{margin:0 0 3px}" +
   ".dc .dc-rdv th{background:#2B2D5C;color:#fff;font-size:10pt}.dc .dc-rdv td{font-size:10pt;padding:3px 7px}";
 window.dcEnregistrer = async (imp) => {
   if (!F) return; const x = D().patients.find((p) => p.id === F.pid), r = x && (x.P.rts || []).find((v) => v.id === F.rid); if (!r) return;
   const html = nettoyer($("dcPage").innerHTML);
+  // 2.5 : mentions encore à compléter → avertissement avant d'imprimer (elles ne s'impriment pas)
+  const reste = $("dcPage").querySelectorAll(".dc-ar, .dc-af").length;
+  if (imp && reste && !confirm("Il reste " + reste + " mention" + (reste > 1 ? "s" : "") + " à compléter (« À REMPLIR » ou « à compléter par le médecin »).\nElle" + (reste > 1 ? "s" : "") + " ne s'imprimeront pas : la ligne restera vide.\n\nEnregistrer et imprimer quand même ?")) return;
   let w = null; if (imp) { try { w = window.open("", "_blank"); } catch (e) { w = null; } }
   ["dcOk", "dcImp"].forEach((i) => A.occupe($(i), true));
   try {

@@ -271,14 +271,18 @@ longs et ne dépendent pas du code.
       « C1 seule », « sauf C1 »** (colonne Options, aussi pour le protocole d'une ligne) ; croix de suppression retirée de la liste,
       « Supprimer le protocole » dans la fiche. Tests : `tests/test_protocoles_trace.py` 9/9, `test_protocoles.py` sans erreur.
       Reste (hors code) : relecture de la bibliothèque à deux et sources de chaque protocole (6.3).
-- [ ] **2.5 Radiothérapie contrôlée** (décisions du 11/10) : fenêtre de prescription : dose par fraction > 22 Gy ou totale > 80 Gy →
-      confirmation ; 1re séance avant le scanner ou fin avant le début → refusé ; dose, fractions ou technique modifiées après la
-      dosimétrie validée → « la dosimétrie devra être revalidée », validation retirée (gardée dans l'historique), tâche recréée ; tâches de contourage / dosimétrie maintenues après la date de 1re
-      séance, « EN RETARD » (`functions/logique.js` 155-156) ;
-      radiothérapie commencée sans contourage ou dosimétrie validés : étapes toujours affichées, en rouge, dans « À valider » ;
-      libellé « Séances prévues à ce jour » partout ; document Rendez-vous « Calendrier théorique » ; plus d'impression des
-      mentions « à compléter » / « À REMPLIR » : avertissement avant d'imprimer, comme les courriers ; ligne de signature du
-      compte rendu gardée avec son texte (pas seule en page 2).
+- [x] **2.5 Radiothérapie contrôlée** (12/10, testé, pas encore en ligne) : fenêtre de prescription : 1re séance avant le scanner ou fin
+      avant la 1re séance → **refusé** ; dose par fraction **> 22 Gy** ou totale **> 80 Gy** → confirmation ; **dose, fractions, rythme ou
+      technique changés après la dosimétrie validée** → « la dosimétrie devra être revalidée » : validation retirée, gardée dans
+      `dosiHist` (qui, quand, ancienne → nouvelle prescription), `dosiN` +1 ; un changement sans effet sur la dose (note…) ne touche à
+      rien ; **tâches « Valider le contourage / la dosimétrie » maintenues après la 1re séance** (échéance passée : « EN RETARD ») et
+      **nouvelle tâche** de dosimétrie après un changement de prescription (`cleDosi`, functions/logique.js) ; **étapes non validées
+      gardées en rouge** après la 1re séance (« radiothérapie commencée sans validation », moteur/rt.js `periodeRT` → `retard`) et
+      signalées dans « À valider » du tableau de bord ; **« Séances prévues à ce jour »** (calcul de calendrier, bulle : séances
+      réelles dans ARIA) ; document Rendez-vous = **« Calendrier théorique des séances »**, état « Prévu », mention « dates calculées /
+      ajustées » imprimée ; pli et compte rendu : **mentions « À REMPLIR » / « à compléter » signalées avant l'impression et jamais
+      imprimées** ; ligne de signature gardée avec son texte. Tests : `tests/test_rt_controle.py` 13/13, test-logique 98 (2 anciens
+      cas adaptés à la décision), accueil, agenda.
 - [x] **2.6 Rappel du bilan avant cure** (12/10, testé, pas encore en ligne) : dans la zone de validation de J1 et de chaque séance,
       « Bilan biologique du jour (facultatif) » : PNN, plaquettes, hémoglobine, gardés dans l'instantané (`fige.bio`) ; PNN < 1 500 ou
       plaquettes < 100 000 /mm³ → message avant de valider (`SEUILS_BIO`), jamais de blocage ; rien n'est demandé si les cases restent

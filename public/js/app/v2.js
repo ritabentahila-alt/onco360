@@ -664,8 +664,9 @@ function blocAFaire(pj) {
     const cont = [], dosi = [], fin = [], okV = peutDosi();
     D.patients.forEach((x) => { if (!voitRT(x)) return; let l = []; try { l = JSON.parse(x.doc.rtsJson || "[]"); } catch (e) { /* illisible */ }
       l.forEach((r) => { const q = "'" + x.id + "','" + r.id + "'", ap = "function(){route()}", acte = r.acte || "Radiothérapie";
-        if (contourage(r, t) && r.scan <= t) cont.push({ id: x.id, nm: x.r.nm, de: acte + " · scanner le " + dfr(r.scan) + (r.deb ? " · 1re séance le " + dfr(r.deb) : ""), retard: !!(r.deb && ecart(t, r.deb) <= 2), bt: okV ? btn("Valider", "contRT(" + q + ",false," + ap + ")") : "" });
-        if (dosimetrie(r, t)) dosi.push({ id: x.id, nm: x.r.nm, de: acte + (r.deb ? " · 1re séance le " + dfr(r.deb) : ""), retard: !!(r.deb && ecart(t, r.deb) <= 2), bt: okV ? btn("Valider", "dosiRT(" + q + ",false," + ap + ")") : "" });
+        const cz0 = contourage(r, t), dz0 = dosimetrie(r, t), sans = (z) => (z && z.retard && r.deb && r.deb <= t ? " · COMMENCÉE SANS VALIDATION" : z && z.retard ? " · EN RETARD" : "");
+        if (cz0 && r.scan <= t) cont.push({ id: x.id, nm: x.r.nm, de: acte + " · scanner le " + dfr(r.scan) + (r.deb ? " · 1re séance le " + dfr(r.deb) : "") + sans(cz0), retard: !!(cz0.retard || (r.deb && ecart(t, r.deb) <= 2)), bt: okV ? btn("Valider", "contRT(" + q + ",false," + ap + ")") : "" });
+        if (dz0) dosi.push({ id: x.id, nm: x.r.nm, de: acte + (r.deb ? " · 1re séance le " + dfr(r.deb) : "") + sans(dz0), retard: !!(dz0.retard || (r.deb && ecart(t, r.deb) <= 2)), bt: okV ? btn("Valider", "dosiRT(" + q + ",false," + ap + ")") : "" });
         const f = !r.fin && r.deb && finRT(r, D.ctx.feries); if (f && f <= t) fin.push({ id: x.id, nm: x.r.nm, de: acte + " · fin prévue le " + dfr(f), retard: f < t, bt: okV ? btn("Valider", "terminerRT(" + q + ",false," + ap + ")") : "" });
       }); });
     groupe("radiation", "Contourages à valider", cont); groupe("radiation", "Dosimétries à valider", dosi); groupe("drapeau", "Fins de radiothérapie à valider", fin);
@@ -904,12 +905,12 @@ function pageDossier(id) {
         (ouv ? '<div class="etapes">' + (v.scan ? etape("Scanner de centrage", v.scan, v.scan <= t) : "") +
         // Contourage (09/10/2026) : validé par le médecin entre le scanner et la dosimétrie
         (v.cont ? etape("Contourage validé", v.cont, true, okRT && peutDosi() && !v.dosi && !v.fin ? ' <a href="#" class="lienr" onclick="contRT(' + q + ',1);return false">annuler</a>' : "")
-          : cz ? etape("Contourage à valider", "", false, (cz.au !== cz.du ? " — du " + dfrA(cz.du) + " au " + dfrA(cz.au) : "") + (v.scan <= t && peutDosi() ? ' <button class="mini vert" style="margin-left:8px" onclick="contRT(' + q + ')"><svg class="pi"><use href="#i-check"/></svg>Valider le contourage</button>' : v.scan > t ? ' <span class="mesures">(à partir du scanner)</span>' : "")) : "") +
-        (v.dosi ? etape("Dosimétrie validée", v.dosi, true, okRT && peutDosi() && !v.fin ? ' <a href="#" class="lienr" onclick="dosiRT(' + q + ',1);return false">annuler</a>' : "") : (dz ? etape("Dosimétrie à valider", "", false, (dz.au !== dz.du ? " — du " + dfrA(dz.du) + " au " + dfrA(dz.au) : "") + (peutDosi() ? ' <button class="mini vert" style="margin-left:8px" onclick="dosiRT(' + q + ')"><svg class="pi"><use href="#i-check"/></svg>Valider la dosimétrie</button>' : "")) : cz ? etape("Dosimétrie", "", false, ' <span class="mesures">(après le contourage)</span>') : "")) +
+          : cz ? etape(cz.retard ? '<span style="color:var(--rouge);font-weight:bold">Contourage à valider' + (v.deb && v.deb <= t ? " — radiothérapie commencée sans validation" : " — en retard") + "</span>" : "Contourage à valider", "", false, (cz.au !== cz.du ? " — du " + dfrA(cz.du) + " au " + dfrA(cz.au) : "") + (v.scan <= t && peutDosi() ? ' <button class="mini vert" style="margin-left:8px" onclick="contRT(' + q + ')"><svg class="pi"><use href="#i-check"/></svg>Valider le contourage</button>' : v.scan > t ? ' <span class="mesures">(à partir du scanner)</span>' : "")) : "") +
+        (v.dosi ? etape("Dosimétrie validée", v.dosi, true, okRT && peutDosi() && !v.fin ? ' <a href="#" class="lienr" onclick="dosiRT(' + q + ',1);return false">annuler</a>' : "") : (dz ? etape(dz.retard ? '<span style="color:var(--rouge);font-weight:bold">Dosimétrie à valider' + (v.deb && v.deb <= t ? " — radiothérapie commencée sans validation" : " — en retard") + "</span>" : "Dosimétrie à valider", "", false, (dz.au !== dz.du ? " — du " + dfrA(dz.du) + " au " + dfrA(dz.au) : "") + (peutDosi() ? ' <button class="mini vert" style="margin-left:8px" onclick="dosiRT(' + q + ')"><svg class="pi"><use href="#i-check"/></svg>Valider la dosimétrie</button>' : "")) : cz ? etape("Dosimétrie", "", false, ' <span class="mesures">(après le contourage)</span>') : "")) +
         (v.deb ? etape("1re séance", v.deb, v.deb <= t) : "") +
         (v.fin || f ? etape(v.fin ? "Fin de traitement" : "Fin de traitement prévue", v.fin || f, finFaite) : "") + "</div>" : "") + // étapes : seulement ouverte
         (v.cj && ouv ? '<p class="st" style="color:var(--doux);font-size:13.5px;margin:2px 0 0">Consultation hebdomadaire le ' + JS[+v.cj] + (v.ch ? " à " + esc(v.ch) : "") + "</p>" : "") +
-        (c ? '<div style="margin-top:10px"><b>Séances réalisées : ' + c.faites + " / " + c.nb + "</b> (" + c.pct + ' %)<div class="barre"><i style="width:' + c.pct + '%"></i></div></div>' : "") +
+        (c ? '<div style="margin-top:10px" title="Calcul d\'après le calendrier (les séances réelles sont suivies dans ARIA)"><b>Séances prévues à ce jour : ' + c.faites + " / " + c.nb + "</b> (" + c.pct + ' %)<div class="barre"><i style="width:' + c.pct + '%"></i></div></div>' : "") +
         (v.note && ouv ? '<p class="sous" style="margin:8px 0 0">' + esc(v.note) + "</p>" : "") +
         '<div class="actr" style="justify-content:flex-start;margin-top:12px">' + (okRT ? '<button class="mini" onclick="ouvrirRT(' + q + ')">Modifier</button>' + (v.deb ? (v.fin ? '<button class="mini" onclick="terminerRT(' + q + ',1)">Rouvrir</button>' : '<button class="mini v" onclick="terminerRT(' + q + ')">Terminé</button>') : "") : "") +
         (v.acte && peut("documents") ? boutonDoc(x, v, "pli", "Pli confidentiel") : "") +
@@ -1426,7 +1427,17 @@ window.ouvrirRT = (id, rid) => {
   $("fOk").onclick = async () => {
     if (!val("rActe")) { erreur("Indiquez l'acte."); return; }
     const n = val("rNb"); if (n && !(parseInt(n, 10) > 0)) { erreur("Le nombre de fractions doit être un nombre."); return; }
+    // 2.5 (12/10/2026, audit) : dates dans l'ordre ; dose par fraction > 22 Gy ou dose totale > 80 Gy → confirmation
+    if (val("rScan") && val("rDeb") && val("rDeb") < val("rScan")) { erreur("La 1re séance est avant le scanner de centrage (" + dfrA(val("rScan")) + ")."); return; }
+    if (val("rDeb") && val("rFinPrev") && val("rFinPrev") < val("rDeb")) { erreur("La fin prévue est avant la 1re séance."); return; }
+    const dT = parseFloat(String(val("rDose")).replace(",", ".")), nF = parseInt(n, 10), dF = dT && nF ? Math.round((dT / nF) * 100) / 100 : null;
+    if ((dF && dF > 22) || dT > 80) { if (!confirm("Vérifiez la prescription : " + String(dT).replace(".", ",") + " Gy" + (nF ? " en " + nF + " fraction(s), soit " + String(dF).replace(".", ",") + " Gy par fraction" : "") + ".\n" + (dF > 22 ? "Plus de 22 Gy par fraction. " : "") + (dT > 80 ? "Plus de 80 Gy au total." : "") + "\n\nEnregistrer quand même ?")) return; }
+    // dose, fractions, rythme ou technique changés après la dosimétrie validée → la dosimétrie est à revalider (gardée dans l'historique)
+    const cle = (o) => [String(o.dose || "").replace(",", "."), String(o.nb || ""), o.ryt || "1", o.tech || ""].join("|");
+    const revalider = r0 && r0.dosi && !r0.fin && cle(r0) !== cle({ dose: val("rDose"), nb: val("rNb"), ryt: val("rRyt"), tech: val("rTech") });
+    if (revalider && !confirm("La prescription change alors que la dosimétrie a été validée le " + dfrA(r0.dosi) + ".\nLa dosimétrie devra être revalidée (la validation actuelle est gardée dans l'historique et une tâche « Valider la dosimétrie » est recréée).\n\nEnregistrer ?")) return;
     const r = r0 || { id: "rt" + Date.now().toString(36), cree: D.t };
+    if (revalider) { r.dosiHist = (r.dosiHist || []).concat([{ dosi: r.dosi, dosiPar: r.dosiPar || "", dosiLe: r.dosiLe || "", retireLe: new Date().toISOString(), raison: "prescription modifiée : " + cle(r0) + " → " + cle({ dose: val("rDose"), nb: val("rNb"), ryt: val("rRyt"), tech: val("rTech") }) }]); r.dosiN = (r.dosiN || 0) + 1; delete r.dosi; delete r.dosiPar; delete r.dosiLe; }
     Object.assign(r, { acte: val("rActe"), hop: val("rHop"), tech: val("rTech"), intent: val("rInt"), dose: val("rDose").replace(",", "."), nb: val("rNb"), ryt: val("rRyt"), nbA: val("rNbA") || "1", scan: val("rScan"), deb: val("rDeb"), finPrev: val("rFinPrev"), cj: val("rCj"), ch: val("rCh"), vmat: $("rVmat").checked, note: $("rNote").value.trim() });
     ["finPrev", "scan", "deb", "cj", "ch", "tech", "intent", "dose", "note"].forEach((k) => { if (!r[k]) delete r[k]; });
     const liste = r0 ? l : l.concat([r]), acteAvant = r0 ? (x.P.rts || []).find((v) => v.id === rid) : null;
@@ -1435,7 +1446,7 @@ window.ouvrirRT = (id, rid) => {
       if (peut("finances") && D.tarifs) await majMontants(x, (M) => { const m = M.rt[r.id] = M.rt[r.id] || {}, t = (D.tarifs.actesRT || []).find((a) => a.nom === r.acte);
         if (t && (m.prix == null || !acteAvant || acteAvant.acte !== r.acte)) m.prix = t.prix;
         if (r.vmat) { const v = parseFloat(String(val("rVmatP")).replace(",", ".")); m.vmatPrix = isNaN(v) ? (D.tarifs.vmat != null ? D.tarifs.vmat : null) : v; } });
-      await sauver(liste, r0 ? "Prescription de radiothérapie modifiée" : "Prescription de radiothérapie ajoutée"); fermerFenetre(); toast("Prescription enregistrée."); pageDossier(x.id); }
+      await sauver(liste, r0 ? "Prescription de radiothérapie modifiée" + (revalider ? " (dosimétrie à revalider)" : "") : "Prescription de radiothérapie ajoutée"); fermerFenetre(); toast("Prescription enregistrée."); pageDossier(x.id); }
     catch (e) { occupe($("fOk"), false); erreur(e.message); }
   };
 };

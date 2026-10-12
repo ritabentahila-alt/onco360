@@ -288,12 +288,17 @@ const infirmiere = { actif: true, etablissements: ["HGC", "CIOC"], droits: { tra
   await new Promise((ok) => setTimeout(ok, 600));
   const d = { rtsJson: JSON.stringify([{ id: "vieux", scan: "2026-05-01", deb: "2026-05-10", nb: "20" }, { id: "sansdeb", scan: "2026-10-01" }, { id: "encours", scan: "2026-10-05", deb: "2026-10-08" }]), rdvsJson: "[]", resume: "{}" };
   const v = L.tachesAutoPatient("P", d, L.reglesAuto({}), "2026-10-08", []).voulues.filter((x) => x.regle === "cont").map((x) => x.cle).sort().join(",");
-  ok(v === "encours,sansdeb", "contourage : tâche pendant la période scanner → 1re séance (ou sans 1re séance), pas pour une RT déjà commencée");
+  // 2.5 (12/10/2026) : la tâche reste due après la 1re séance tant que le contourage n'est pas validé (« EN RETARD », échéance passée)
+  ok(v === "encours,sansdeb,vieux", "contourage : tâche dès le scanner, maintenue après la 1re séance tant que non validé (" + v + ")");
   // Déroulé : contourage validé → sa tâche se termine, celle de la dosimétrie est créée (jusqu'à la 1re séance)
   const d2 = { rtsJson: JSON.stringify([{ id: "x", acte: "Sein", scan: "2026-10-05", cont: "2026-10-07", deb: "2026-10-12" }, { id: "y", scan: "2026-09-01", cont: "2026-09-02", deb: "2026-09-10" }]), rdvsJson: "[]", resume: "{}" };
   const r2 = L.tachesAutoPatient("P", d2, L.reglesAuto({}), "2026-10-08", []);
   ok(r2.resolues.indexOf(L.idAuto("cont", "P", "x")) >= 0 && r2.voulues.some((z) => z.regle === "dosi" && z.cle === "x" && z.ech === "2026-10-12") && !r2.voulues.some((z) => z.regle === "cont"), "contourage validé : sa tâche se termine, « Valider la dosimétrie » est créée (échéance 1re séance)");
-  ok(!r2.voulues.some((z) => z.cle === "y"), "RT déjà commencée (1re séance passée) : pas de tâche de dosimétrie");
+  ok(r2.voulues.some((z) => z.cle === "y" && z.ech === "2026-09-10"), "RT commencée sans dosimétrie validée : la tâche reste due, en retard (échéance 1re séance passée)");
+  // dosimétrie retirée après un changement de prescription : nouvelle tâche (autre identifiant), l'ancienne reste terminée
+  const d3 = { rtsJson: JSON.stringify([{ id: "z", acte: "Sein", scan: "2026-10-01", cont: "2026-10-02", deb: "2026-10-20", dosiN: 1, dosiHist: [{ dosi: "2026-10-05" }] }]), rdvsJson: "[]", resume: "{}" };
+  const r3b = L.tachesAutoPatient("P", d3, L.reglesAuto({}), "2026-10-08", []), t3 = r3b.voulues.find((z) => z.regle === "dosi");
+  ok(t3 && t3.cle === "z#1" && t3.id !== L.idAuto("dosi", "P", "z") && /prescription modifiée/.test(t3.titre), "dosimétrie à revalider (prescription modifiée) : nouvelle tâche « Valider la dosimétrie »", t3);
   const r3 = L.tachesAutoPatient("P", { rtsJson: JSON.stringify([{ id: "x", scan: "2026-10-05", cont: "2026-10-07", dosi: "2026-10-08", deb: "2026-10-12" }]), rdvsJson: "[]", resume: "{}" }, L.reglesAuto({}), "2026-10-08", []);
   ok(r3.resolues.indexOf(L.idAuto("cont", "P", "x")) >= 0 && r3.resolues.indexOf(L.idAuto("dosi", "P", "x")) >= 0 && !r3.voulues.length, "dosimétrie validée : les tâches contourage et dosimétrie se terminent, plus rien à créer");
 })();

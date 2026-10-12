@@ -153,10 +153,12 @@ function tachesAutoPatient(pid, docData, regles, auj, feries, opts) {
     const n = parseInt(R.n, 10) || 0, ok = (d) => !R.depuis || (d && d >= R.depuis);
     // debut (09/10/2026) : début de la période à valider (contourage : scanner ; dosimétrie : validation du contourage)
     const v = (cle, ech, suffixe, rt, debut) => voulues.push({ id: idAuto(R.id, pid, cle), regle: R.id, ev: R.ev, cle, titre: R.titre + (suffixe ? " – " + suffixe : ""), type: R.type || "", pour: R.pour || "titulaire", ech: ech || "", rt: rt || "", debut: debut || "" });
-    // mêmes périodes que l'écran (rt.js contourage / dosimetrie) : contourage du scanner à la 1re séance ; dosimétrie de la
-    // validation du contourage à la 1re séance (pas avant le contourage, pas pour une RT déjà commencée)
-    if (R.ev === "cont") rts.forEach((r) => { if (!r.id || !r.scan || r.annule) return; if (r.cont || r.dosi || r.fin) resolues.push(idAuto(R.id, pid, r.id)); else if (auj >= r.scan && (!r.deb || auj <= r.deb)) v(r.id, r.deb || "", r.acte || "", r.id, r.scan); });
-    if (R.ev === "dosi") rts.forEach((r) => { if (!r.id || !r.scan || r.annule) return; if (r.dosi || r.fin) resolues.push(idAuto(R.id, pid, r.id)); else if (!r.cont) premature.push(idAuto(R.id, pid, r.id)); else if (!r.deb || auj <= r.deb) v(r.id, r.deb || "", r.acte || "", r.id, r.cont); });
+    // mêmes périodes que l'écran (rt.js contourage / dosimetrie) : contourage dès le scanner ; dosimétrie dès la validation du
+    // contourage (pas avant). 2.5 (12/10/2026) : la tâche reste due après la 1re séance tant que ce n'est pas validé (échéance =
+    // 1re séance : « EN RETARD ») ; dosimétrie à revalider après un changement de prescription (r.dosiN) = nouvelle tâche
+    const cleDosi = (r) => r.id + (r.dosiN ? "#" + r.dosiN : "");
+    if (R.ev === "cont") rts.forEach((r) => { if (!r.id || !r.scan || r.annule) return; if (r.cont || r.dosi || r.fin) resolues.push(idAuto(R.id, pid, r.id)); else if (auj >= r.scan) v(r.id, r.deb || "", r.acte || "", r.id, r.scan); });
+    if (R.ev === "dosi") rts.forEach((r) => { if (!r.id || !r.scan || r.annule) return; const k = cleDosi(r); if (r.dosi || r.fin) resolues.push(idAuto(R.id, pid, k)); else if (!r.cont) premature.push(idAuto(R.id, pid, k)); else v(k, r.deb || "", (r.acte || "") + (r.dosiN ? " (prescription modifiée)" : ""), r.id, r.cont); });
     if (R.ev === "finrt") rts.forEach((r) => { if (!r.id || !r.deb || r.annule) return; if (r.fin) { resolues.push(idAuto(R.id, pid, r.id)); return; } const fp = finRT(r, feries); if (fp && auj > fp) v(r.id, addJ(fp, 1), (r.acte || "radiothérapie") + " (fin prévue le " + jfr(fp) + ")", r.id); });
     if (R.ev === "derniereCure") act.forEach((a) => { if (a.k === a.nb && ok(a.d)) v(a.nom + "|" + a.k, addJ(a.d, n), "C" + a.k + "/" + a.nb + " " + a.nom + " le " + jfr(a.d)); });
     if (R.ev === "veilleJ1") act.forEach((a) => { const dv = addJ(a.d, -1); if (auj >= dv && auj <= a.d && ok(dv)) v(a.nom + "|" + a.k + "|" + a.d, dv, "C" + a.k + " " + a.nom + " le " + jfr(a.d)); });
