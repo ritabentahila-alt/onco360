@@ -17,7 +17,7 @@ import { ANALYSES0, BILANS0 } from "../donnees/analyses.js";
 import { EXAMENS0 } from "../donnees/examens.js";
 import { COURRIERS0, CHAMPS_COURRIER } from "../donnees/courriers.js";
 import * as ficheP from "./fichepatient.js"; // champs ajoutés de la fiche, insérables dans les courriers (10/10/2026)
-import { age } from "../moteur/outils.js";
+import { age, accordMedecin } from "../moteur/outils.js";
 import { installer as installerDocumentation } from "./documentation.js"; // bouton « Doc. » (08/10/2026)
 import { enregistrerPrescription, trouverLigne, assurerConsultations, prescriptionsDe, supprimerPrescription, FAMILLES } from "./consultations.js";
 import { margesMm } from "./reglages.js"; // marges d'impression réglables (Paramètres › Impression)
@@ -154,7 +154,7 @@ function ordo() {
     '<button class="ico" title="Descendre" aria-label="Descendre" onclick="mdBouger(' + i + ',1)"' + (i < L.length - 1 ? "" : " disabled") + ">↓</button>" +
     '<button class="ico" title="Modifier le nom ou la posologie" aria-label="Modifier" onclick="mdEdit(' + i + ')">' + ico("crayon") + "</button>" +
     '<button class="ico rouge" title="Retirer" aria-label="Retirer" onclick="mdRetirer(' + i + ')">' + ico("croix") + "</button></div></div>").join("")
-    : '<p class="sous" style="margin:0">' + (T ? "Aucun médicament : ajoutez-en avec la recherche ci-dessous." : "Aucun médicament choisi : « Afficher l'ordonnance » donnera une ordonnance vierge, à remplir à la main.") + "</p>";
+    : '<p class="sous" style="margin:0">' + (T ? "Aucun médicament : ajoutez-en avec la recherche ci-dessous." : (S && S.t === "exam" ? "Aucun examen choisi" : modeAna() ? "Aucune analyse choisie" : "Aucun médicament choisi") + " : « Afficher l'ordonnance » donnera une ordonnance vierge, à remplir à la main.") + "</p>";
   if (h.ed != null) { brancherSug(); setTimeout(() => { const e = $("edNom"); if (e && !e.value) e.focus(); else if ($("edPoso")) $("edPoso").focus(); }, 30); }
 }
 // Ligne libre / modification : en tapant le nom, la liste propose ce qui correspond (« NF » → NFS – plaquettes ;
@@ -476,9 +476,10 @@ function remplirCourrier(html, x) {
   const art = /^[aeiouyhéèêâîôûàAEIOUYHÉÈÊÂÎÔÛÀ]/.test(nomEt) ? "l'" : /^(centre|cabinet|service|pôle|institut)\b/i.test(nomEt) ? "le " : /^(clinique|polyclinique|fondation|maison)\b/i.test(nomEt) ? "la " : "";
   const nom = P.nomF ? String(P.nomF).toUpperCase() + (P.prenom ? " " + String(P.prenom).toLowerCase().replace(/(^|[\s-])\S/g, (c) => c.toUpperCase()) : "") : x.r.nm;
   const V = { patient: civilite(x) + nom, age: a != null ? a + " ans" : "", naissance: P.ddn ? dateFr(P.ddn) : "", diagnostic: x.r.diag || "", mutuelle: P.mut || "", cin: P.cin || "",
-    etablissement: nomEt ? art + nomEt : "", lieu: nomEt, ville: et.ville || "Casablanca", date: dateFr(D().t), medecin: medecin() };
+    etablissement: nomEt ? art + nomEt : "", lieu: nomEt, ville: et.ville || "", date: dateFr(D().t), medecin: medecin() }; // ville vide : « À compléter » (1.7)
   ficheP.aImprimer(x).forEach((c) => { V["c_" + c.id] = c.texte; }); // champs ajoutés de la fiche (10/10/2026) : {c_identifiant}
-  let h = P.sexe === "F" ? html.replace(/\(e\)/g, "e") : P.sexe === "H" ? html.replace(/\(e\)/g, "") : html;
+  let h = accordMedecin(html, (A.medecinFiche() || {}).genre); // « soussignée » / « soussigné » selon le médecin (1.7)
+  h = P.sexe === "F" ? h.replace(/\(e\)/g, "e") : P.sexe === "H" ? h.replace(/\(e\)/g, "") : h;
   h = h.replace(/\{([a-z0-9_]+)\}/g, (m, k) => {
     if (!(k in V)) return m;
     if (k === "date") return '<span class="or-jour">' + e(V.date) + "</span>";

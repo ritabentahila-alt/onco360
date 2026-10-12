@@ -84,7 +84,8 @@ function vueInfos() {
   return '<section class="carte"><h3><span class="ic">' + A.ic("profil") + '</span>Mes informations</h3><p class="sous">' + (med ? "Le nom, l\'INPE et la signature apparaissent sur la fiche de chimiothérapie et les comptes rendus." : "Votre nom apparaît dans les consultations, les tâches et les ordonnances que vous préparez.") + "</p>" +
     '<div class="photo-pf"><div class="av grand">' + (srcImage(p.photo) ? '<img src="' + srcImage(p.photo) + '" alt="Photo">' : esc(((p.prenom || "")[0] || "") + ((String(p.nom || "").replace(/^Dr\.?\s*/i, ""))[0] || "")).toUpperCase() || "?") + '</div><div><label for="pfPhoto">Photo (facultatif)</label><input id="pfPhoto" type="file" accept="image/*"><div class="mesures">Elle remplace vos initiales dans la bulle du profil.</div>' + (p.photo ? '<label style="font-weight:normal;margin-top:6px"><input id="pfPhotoSup" type="checkbox" style="width:auto;margin-right:6px">Retirer la photo</label>' : "") + "</div></div><div class=\"form\">" +
     '<div><label for="pfTitre">Titre</label><select id="pfTitre">' + (med ? ["", "Dr", "Pr", "M.", "Mme"] : ["", "M.", "Mme"]).map((t) => "<option" + ((p.titre || "") === t ? " selected" : "") + ">" + t + "</option>").join("") + "</select></div>" +
-    (med ? ch("pfSpe", "Spécialité", p.specialite, { ph: "Oncologue-radiothérapeute, oncologue médical…" }) : "") + ch("pfPre", "Prénom", p.prenom) + ch("pfNom", "Nom", p.nom) +
+    (med ? ch("pfSpe", "Spécialité", p.specialite, { ph: "Oncologue-radiothérapeute, oncologue médical…" }) +
+      '<div><label for="pfGenre">Accord dans les documents</label><select id="pfGenre">' + [["", "—"], ["f", "« Je soussignée », « Absente »"], ["m", "« Je soussigné », « Absent »"]].map(([k, l]) => '<option value="' + k + '"' + ((p.genre || "") === k ? " selected" : "") + ">" + l + "</option>").join("") + "</select></div>" : "") + ch("pfPre", "Prénom", p.prenom) + ch("pfNom", "Nom", p.nom) +
     ch("pfMail", "E-mail (identifiant de connexion)", D().u.email, { off: true }) + ch("pfTel", "Téléphone", p.telephone, { type: "tel", ph: "06…" }) +
     ch("pfRole", "Rôle dans l'espace", ROLES[mb.role] || mb.role, { off: true }) + (med ? ch("pfInpe", "INPE", inpe, { ph: "N° INPE" }) +
     '<div class="large"><label>Signature (image scannée, facultatif)</label><div class="sig">' + (srcImage(p.signature) ? '<img src="' + srcImage(p.signature) + '" alt="Signature">' : '<span class="mesures">Aucune signature enregistrée.</span>') + '<input id="pfSig" type="file" accept="image/*">' + (p.signature ? '<label style="font-weight:normal"><input id="pfSigSup" type="checkbox" style="width:auto;margin-right:6px">Retirer la signature</label>' : "") + "</div></div>" : "") +
@@ -98,7 +99,7 @@ window.pfEnregistrer = async () => {
   A.occupe(b, true); err("");
   try {
     const maj = { email: D().u.email, titre: v("pfTitre"), prenom: v("pfPre"), nom: v("pfNom").toUpperCase(), telephone: v("pfTel") };
-    if (A.$("pfInpe")) Object.assign(maj, { specialite: v("pfSpe"), inpe: v("pfInpe") }); // médecins
+    if (A.$("pfInpe")) Object.assign(maj, { specialite: v("pfSpe"), inpe: v("pfInpe"), genre: v("pfGenre") }); // médecins (genre : accords des documents, 1.7)
     const sig = A.$("pfSig") ? await lireImage(A.$("pfSig"), 500) : null; if (sig) maj.signature = sig; else if (A.$("pfSigSup") && A.$("pfSigSup").checked) maj.signature = "";
     const ph = await lireImage(A.$("pfPhoto"), 256, true); if (ph) maj.photo = ph; else if (A.$("pfPhotoSup") && A.$("pfPhotoSup").checked) maj.photo = "";
     await setDoc(doc(db, "utilisateurs", D().u.uid), maj, { merge: true });

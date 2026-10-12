@@ -11,3 +11,6 @@ export function ouvre(d, feries) { const w = new Date(d + "T12:00:00").getDay();
 // Source d'image sûre (11/10/2026, audit) : photo, signature, logo = image en base64 (data:image/…) ou fichier Firebase Storage ;
 // toute autre valeur (javascript:, guillemets, HTML…) est écartée avant d'être placée dans un src="…".
 export const srcImage = (u) => (typeof u === "string" && (/^data:image\/(png|jpe?g|gif|webp);base64,[A-Za-z0-9+/=]+$/.test(u) || /^https:\/\/firebasestorage\.googleapis\.com\/[^"'<>\s]+$/.test(u)) ? u : "");
+// Accord selon le médecin (1.7, 11/10/2026) : genre "f" / "m" du profil ; sans genre, le texte reste tel quel
+export const accordMedecin = (t, g) => (g === "m" ? String(t).replace(/soussignée/g, "soussigné") : g === "f" ? String(t).replace(/soussigné(?!e)/g, "soussignée") : String(t));
+export const absentMedecin = (g) => (g === "m" ? "Absent" : g === "f" ? "Absente" : "Absent(e)");

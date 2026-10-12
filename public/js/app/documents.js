@@ -6,7 +6,7 @@
 // majPar, majParNom }. Mise en page reprise des modèles Word du médecin (modeles/*.docx, gardés comme référence).
 import { collection, doc, getDoc, getDocs, setDoc, deleteDoc, updateDoc, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { db } from "../config.js";
-import { addJ, ouvre } from "../moteur/outils.js";
+import { addJ, ouvre, accordMedecin } from "../moteur/outils.js";
 import { finRT } from "../moteur/rt.js";
 import { nettoyer } from "./ordonnances.js";
 import { margesMm } from "./reglages.js"; // marges d'impression réglables (Paramètres › Impression)
@@ -63,7 +63,7 @@ function htmlPli(P, r, ctx, o) {
   const acte = (r.acte || "") + (r.acte && r.vmat && !/vmat/i.test(r.acte) ? " + VMAT" : ""), resume = (P.notes || r.note || "").trim().replace(/\s*[.;]\s*$/, "");
   const civ = P.sexe === "F" ? "Madame" : P.sexe === "H" ? "Monsieur" : "", patient = AR(civ) + " " + AR((P.nomF || "").toUpperCase()) + " " + AR(P.prenom || "");
   const jour = dateLongue(ctx.aujourdhui), diag = [P.diag, P.diagP].filter(Boolean).join(" – ");
-  return '<p class="dc-titre">PLI CONFIDENTIEL</p><p class="dc-d">' + esc(o.ville || "Casablanca") + ", le " + jour + "</p>" +
+  return '<p class="dc-titre">PLI CONFIDENTIEL</p><p class="dc-d">' + AR(o.ville) + ", le " + jour + "</p>" +
     "<p>Monsieur le Médecin Conseil,</p><p>Cher(e) Confrère,</p><p>Je vous prie de bien vouloir trouver ci-joint les renseignements cliniques concernant :</p>" +
     '<p class="dc-c"><b>' + patient + "</b></p><p>ayant droit à la couverture médicale par l’organisme dont vous assurez le conseil.</p>" +
     "<p>Je vous écris pour information et en vue des démarches administratives nécessaires à une prise en charge ou à un accord de principe.</p>" +
@@ -72,12 +72,12 @@ function htmlPli(P, r, ctx, o) {
     '<p class="dc-rub">TRAITEMENT PROPOSÉ</p><p><b>Radiothérapie ' + AR(acte) + "</b></p>" +
     '<p class="dc-rub">DURÉE PRÉVISIBLE DU TRAITEMENT</p><p>' + AR(dureeSemainesRT(r)) + "</p>" +
     "<p><b>Observations : </b>Des modifications du traitement pourraient survenir en fonction des évaluations cliniques et de l’évolution de la maladie.</p>" + signature(o) +
-    SAUT + '<p class="dc-d">CASABLANCA, le ' + jour + '</p><p class="dc-titre">COMPTE RENDU MÉDICAL</p>' +
-    "<p>Je soussigné, " + AR(o.medecin) + ", certifie que <b>" + patient + "</b> est actuellement suivi(e) au sein de l’établissement " + AR(o.etabNom) + " pour la prise en charge d’un " + AR(diag) + ", nécessitant un traitement par <b>Radiothérapie " + AR(acte) + "</b>.</p>" +
+    SAUT + '<p class="dc-d">' + AR(String(o.ville || "").toUpperCase()) + ", le " + jour + '</p><p class="dc-titre">COMPTE RENDU MÉDICAL</p>' +
+    "<p>Je " + accordMedecin("soussigné", o.genre) + ", " + AR(o.medecin) + ", certifie que <b>" + patient + "</b> est actuellement suivi(e) au sein de l’établissement " + AR(o.etabNom) + " pour la prise en charge d’un " + AR(diag) + ", nécessitant un traitement par <b>Radiothérapie " + AR(acte) + "</b>.</p>" +
     "<p>Vous trouverez ci-dessous le résumé médical relatif à la prise en charge du patient :</p>" +
     '<p class="dc-rub">RÉSUMÉ CLINIQUE ET DÉROULEMENT DU TRAITEMENT</p>' + (resume ? resume.split(/\n+/).map((l) => "<p>" + esc(l) + "</p>").join("") : "<p>" + AR("") + "</p>") +
     "<p><br></p><p>Je reste à votre disposition pour toute information complémentaire.</p><p>Veuillez agréer, Monsieur le Médecin Conseil, l’expression de mes salutations distinguées.</p>" + signature(o) +
-    SAUT + '<p class="dc-d">CASABLANCA, le ' + jour + '</p><p class="dc-titre">ORDONNANCE MÉDICALE</p><p><br></p>' +
+    SAUT + '<p class="dc-d">' + AR(String(o.ville || "").toUpperCase()) + ", le " + jour + '</p><p class="dc-titre">ORDONNANCE MÉDICALE</p><p><br></p>' +
     "<p><b>Patient(e) : " + patient + '</b></p><p><br></p><p class="dc-c dc-g"><b>Radiothérapie ' + AR(acte) + "</b></p><p><br></p>" +
     "<p><b>Date de début : </b>Dès que possible</p>" + signature(o);
 }
@@ -130,7 +130,8 @@ export function boutonDoc(x, r, type, lib) {
 let F = null; // { pid, rid, type }
 function infos(x, r) {
   const et = (D().etabsTous || D().etabs).find((e) => e.code === (r.hop || x.doc.etablissementId)) || {}, M = A.medecinFiche() || {};
-  return { medecin: M.nom || "", specialite: M.specialite || "", etabNom: et.nom || "", ville: et.ville || "Casablanca" }; // ville du lieu (Paramètres › Lieux d'exercice)
+  // ville du lieu (Paramètres › Lieux d'exercice) ; vide : « À REMPLIR » (1.7 : plus de « Casablanca » par défaut) ; genre du médecin (accords)
+  return { medecin: M.nom || "", specialite: M.specialite || "", etabNom: et.nom || "", ville: et.ville || "", genre: M.genre || "" };
 }
 function contenuNeuf(x, r, type) {
   const o = infos(x, r);

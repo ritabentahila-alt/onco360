@@ -209,7 +209,7 @@ longs et ne dépendent pas du code.
       fonctions → **5.5** (recette) ; CSP appliquée pour de bon (aujourd'hui en observation) : à la mise en ligne suivante, si
       Dr Bentahila n'a rien remarqué d'anormal ; typage JSDoc du moteur → **7.2** (avec la mise en forme) ; espace d'essai « test-b1 »
       supprimé par Dr Bentahila le 11/10 (aucun compte « test-b1 » dans Authentication ; `+medecintest` inutilisé depuis le 04/10, à elle de voir).
-- [x] **1.6 Export complet et sauvegarde des fichiers** (11/10, testé, pas encore en ligne) : **Paramètres › Cabinet › Export des
+- [x] **1.6 Export complet et sauvegarde des fichiers** (11/10, en ligne : version 20261011x, fonctions exporterCabinet, fichiersNuit, fichiersSauvegarder) : **Paramètres › Cabinet › Export des
       données** (médecin titulaire seul ; l'administration n'y a pas accès, aucun accès aux patients) → fonction `exporterCabinet` :
       ZIP = tableau des patients (Excel), toutes les données (JSON), PDF déposés, documentation, journal d'audit, notice ; noté au
       journal. **Restauration** `outils/restaurer-export.mjs` (dates et chemins remis exactement) ; **copie de secours des fichiers**
@@ -219,13 +219,17 @@ longs et ne dépendent pas du code.
       identiques**, copie des fichiers). Tests : test-exportation (10), test-sauvegarde (5), test_export.py (7) ; contrôle complet
       `avant-mise-en-ligne.sh --regles` au vert. À vérifier après la 1re nuit en ligne : création du second emplacement (journal de
       `fichiersNuit`).
-- [ ] **1.7 Données propres au premier cabinet** (audit n° 2, Fichiers et code) : `COR0` (167 correspondants) écrit une fois dans
-      `parametres/listes.cor` du cabinet Bentahila par `migrations()`, puis retiré du code ; « CASABLANCA » → ville du lieu
-      (documents.js 75, 80) ; ville par défaut « Casablanca » → « À REMPLIR » surligné (documents.js 66, 133 ; ordonnances.js 479) ;
-      **civilité du médecin** dans le profil (Dr homme / femme) → « soussigné(e) » (courriers.js 24, 30, 34 ; ordonnances.js 500),
-      « Absent(e) » (v2.js) ; repli « HGC » des tarifs retiré (moteur/tarifs.js 18, parametres.js 89, v2.js 277 : acte « sans
-      tarif » signalé ; bilan revérifié) ; « CNSS (AMO) » ajoutée aux mutuelles de départ (loi 54-23) ; fenêtres Analyses / Examens :
-      « Aucune analyse choisie » au lieu de « Aucun médicament choisi » ; démonstration avec créatinine (`functions/demo.js` 26).
+- [x] **1.7 Données propres au premier cabinet** (11/10, testé, pas encore en ligne) : « CASABLANCA » du pli → **ville du lieu**
+      (3 pages ; vide = « À REMPLIR ») ; plus de « Casablanca » par défaut (pli, courriers : « À compléter ») ; **accord selon le médecin**
+      (Mon compte › « Accord dans les documents » : soussignée / soussigné, Absente / Absent ; sans choix : le texte reste tel quel,
+      « Absent(e) ») : pli, courriers, badge d'absence (`accordMedecin`, `absentMedecin` de moteur/outils.js) ; **repli « HGC »** gardé
+      pour le cabinet d'origine seulement (son bilan ne bouge pas : test du bilan figé réussi), plus jamais pour un autre cabinet
+      (tarifs, rendez-vous, grille d'un nouveau lieu) ; **« CNSS — AMO »** dans les mutuelles de départ (site et serveur) ; fenêtres
+      « Aucune analyse choisie » / « Aucun examen choisi » ; démonstration avec créatinine. Tests : `tests/test_cabinet_neutre.py` 18/18,
+      fiche, profil, démo, cabinets (adapté aux 4 familles). **Reste (phase 2 de 1.7)** : la liste des 167 correspondants (`COR0`) est
+      d'abord écrite en entier dans les listes du cabinet d'origine (mise à jour automatique `listesCompletes`, à l'ouverture
+      d'Onco360 par Dr Bentahila après la mise en ligne) ; ensuite seulement, `COR0` est retiré du code (et `test_cabinets.py` ligne 44).
+      **À faire par Dr Bentahila** : Mon compte › « Accord dans les documents » › « Je soussignée ».
 
 ## Phase 2 – Sécurité clinique (doses, radiothérapie, protocoles)
 
@@ -385,7 +389,9 @@ les étapes 1.7, 2.5, 3.2 et 3.7.
   secrétaire au sens de 19.6 (remplacée par l'alerte d'écart > 10 % de 2.3) ; rappels WhatsApp automatiques ; assistant IA.
 
 ## À placer
-- (rien pour l'instant)
+- `tests/test_cabinets.py` : 2 vérifications échouent depuis le 11/10 (avant 1.7, vérifié) : « Statistiques en premier » (la carte
+  « Bienvenue… pour commencer » passe devant) et « Paramètres : Listes en premier, WhatsApp retiré » (les 4 familles). À vérifier :
+  l'ordre des cartes et des rubriques réglé par l'administration pour un cabinet est-il encore respecté ? (étape 22 / Paramètres)
 
 ---
 

@@ -23,7 +23,7 @@ function patientsDemo(protos, actes, jour) {
   const ligne = (p, nb, recues, poids) => {
     const c = p.c || 0, j1 = c ? addJ(jour, -c * recues) : addJ(jour, -7), cures = [];
     for (let k = 0; k < (c ? nb : 1); k++) cures.push(k < recues ? { st: "recue", reelle: addJ(j1, k * c), valLe: now } : {});
-    return { id: id("L"), protoId: p.id, pr: JSON.parse(JSON.stringify(p)), assoc: 0, j1, poids: String(poids), creat: "", crU: "mgL", cures };
+    return { id: id("L"), protoId: p.id, pr: JSON.parse(JSON.stringify(p)), assoc: 0, j1, poids: String(poids), creat: "8", crU: "mgL", cures }; // créatinine normale (1.7 : sinon aucune dose de carboplatine)
   };
   const rdv = (type, d, h, st) => Object.assign({ id: id("r"), type, d, h, n: "", st }, st === "fait" ? { dv: d } : {});
   const rt = (a, o) => Object.assign({ id: id("RT"), acte: a, hop: "DEMO", nb: "25", ryt: "1", nbA: 1, vmat: true, note: "", cree: addJ(jour, -40) }, o);

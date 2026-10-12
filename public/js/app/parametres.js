@@ -86,7 +86,7 @@ window.paSupAct = (i) => {
   ED.etablissements[ETAB].activites.splice(i, 1); modif(true);
 };
 // Grille copiée pour un nouveau lieu : celle de l'établissement de repli, sinon la première ; cabinet neuf : toutes les activités à 0
-const sourceGrille = () => { const c = ED.etablissements[ED.repli || "HGC"] ? (ED.repli || "HGC") : Object.keys(ED.etablissements)[0]; return c ? [c, ED.etablissements[c]] : null; };
+const sourceGrille = () => { const c = ED.repli && ED.etablissements[ED.repli] ? ED.repli : Object.keys(ED.etablissements)[0]; return c ? [c, ED.etablissements[c]] : null; };
 window.paCreer = () => {
   const src = sourceGrille();
   ED.etablissements[ETAB] = src ? JSON.parse(JSON.stringify(src[1])) : { activites: ACTIVITES.map(([type, libelle]) => ({ type, libelle, historique: [{ depuis: "2000-01-01", brut: type === "rt" ? null : 0, retro: 0, impot: 0 }] })) };

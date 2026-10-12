@@ -15,7 +15,7 @@ export function valeurAu(act, date) {
 export function activite(table, etab, type) {
   const e = table.etablissements[etab]; const a = e && e.activites.find((x) => x.type === type);
   if (a) return a;
-  const repli = table.etablissements[table.repli || "HGC"]; return (repli && repli.activites.find((x) => x.type === type)) || null;
+  const repli = table.repli && table.etablissements[table.repli]; return (repli && repli.activites.find((x) => x.type === type)) || null; // repli du cabinet seulement (1.7)
 }
 export function tarif(table, etab, type, date) { return valeurAu(activite(table, etab, type), date); }
 export const net = (brut, v) => brut * (1 - (v ? v.retro : 0) / 100) * (1 - (v ? v.impot : 0) / 100);

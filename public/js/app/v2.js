@@ -9,13 +9,13 @@ import { resume } from "../moteur/resume.js";
 import { chimioAVenir } from "../moteur/agenda.js";
 import { etatLigne, protocoleDe, seancesCure } from "../moteur/doses.js";
 import { finRT, statutRT, nbA, compteurRT, dosimetrie, contourage } from "../moteur/rt.js";
-import { auj, addJ, ecart, ouvre, age, srcImage } from "../moteur/outils.js";
+import { auj, addJ, ecart, ouvre, age, srcImage, absentMedecin } from "../moteur/outils.js";
 import { typeRdv, libRdv, joursH, T_RTC } from "../moteur/rdv.js";
 import { tarif as tarifAu } from "../moteur/tarifs.js";
 import { genererConsultRT } from "../moteur/rt.js";
 import { idsParDefaut } from "../donnees/migration.js";
 import { installer as installerDocuments, docsDe, boutonDoc, oublierDocs, suivreEtablissementDocs, supprimerDocs } from "./documents.js";
-import { installer as installerChimio, htmlChimio, nouveauPatient as creerPatient, champDiag, activerDiag, listeMut, listeCor, enrichirListes, majMontants, encaissementsDe, construireEncaissements, ecrireEncaissements, prixParServeur, oublierEncaissements } from "./chimio.js";
+import { installer as installerChimio, htmlChimio, nouveauPatient as creerPatient, champDiag, activerDiag, listeDiag, listeMut, listeCor, enrichirListes, majMontants, encaissementsDe, construireEncaissements, ecrireEncaissements, prixParServeur, oublierEncaissements } from "./chimio.js";
 import { installer as installerAgenda, pageAgenda } from "./agenda.js";
 import { installer as installerConfig, pageConfiguration, horaires, dureeDe, dureeType, WA0, remplir } from "./configuration.js";
 import { installer as installerProfil, pageProfil, DROITS_ROLE, droitsEffectifs, lireImage } from "./profil.js";
@@ -248,7 +248,7 @@ async function migrations() {
       } catch (er) { console.warn("numéros de dossier", er); }
     }
     // Nom et INPE du médecin titulaire, pour les fiches chimio imprimées par l'équipe
-    const mt = Object.assign(medecinFiche(), { signature: signatureWA() }); if (!D.medTitulaire || D.medTitulaire.nom !== mt.nom || D.medTitulaire.inpe !== mt.inpe || D.medTitulaire.signature !== mt.signature || (D.medTitulaire.specialite || "") !== mt.specialite) await setDoc(doc(db, "espaces", ESPACE, "parametres", "medecinTitulaire"), mt).then(() => { D.medTitulaire = mt; }).catch(() => {});
+    const mt = Object.assign(medecinFiche(), { signature: signatureWA() }); if (!D.medTitulaire || D.medTitulaire.nom !== mt.nom || D.medTitulaire.inpe !== mt.inpe || D.medTitulaire.signature !== mt.signature || (D.medTitulaire.specialite || "") !== mt.specialite || (D.medTitulaire.genre || "") !== mt.genre) await setDoc(doc(db, "espaces", ESPACE, "parametres", "medecinTitulaire"), mt).then(() => { D.medTitulaire = mt; }).catch(() => {});
     const sm = await getDocs(collection(db, "espaces", ESPACE, "membres"));
     for (const d of sm.docs) {
       const m = d.data(), dr = m.droits || {}, def = DROITS_ROLE[m.role] || {}, ajout = {};
@@ -267,6 +267,14 @@ async function migrations() {
         await updateDoc(doc(db, "espaces", ESPACE, "patients", x.id), { resume: JSON.stringify(x.r), version: v + 1, maj: serverTimestamp(), majPar: D.u.uid }).then(() => { x.doc.version = v + 1; }).catch((er) => console.warn("résumé", x.id, er));
       }
       await setDoc(doc(db, "espaces", ESPACE, "parametres", "migrations"), { dosimetriePeriode: D.t }, { merge: true }).catch(() => {});
+    }
+    // Listes du cabinet d'origine écrites en entier dans parametres/listes (1.7, 11/10/2026) : les 167 correspondants de départ (COR0)
+    // pourront ensuite sortir du code sans rien perdre
+    if (!fait.listesCompletes && ESPACE === "cabinet-bentahila") {
+      const rl = doc(db, "espaces", ESPACE, "parametres", "listes"), sl = await getDoc(rl).catch(() => null); let L0 = {};
+      try { if (sl && sl.exists()) L0 = JSON.parse(sl.data().data || "{}"); } catch (er) { L0 = {}; }
+      const okL = L0.complet ? true : await setDoc(rl, { data: JSON.stringify({ diag: listeDiag(), mut: listeMut(), cor: listeCor(), complet: true }) }).then(() => true).catch((er) => { console.warn("listes", er); return false; });
+      if (okL) await setDoc(doc(db, "espaces", ESPACE, "parametres", "migrations"), { listesCompletes: D.t }, { merge: true }).catch(() => {});
     }
     // Chimiothérapie visible par la secrétaire (07/10/2026) : « Non visible » → « Voir » pour les secrétaires existantes
     if (!fait.secretaireChimio) {
@@ -294,7 +302,7 @@ async function migrations() {
 // Publiés par le médecin (droits « finances » et « paramètres ») à l'ouverture et après l'enregistrement des Paramètres.
 function tarifsPublics(T) {
   if (!T || !T.etablissements) return null;
-  const out = { repli: T.repli || "HGC", etablissements: {} };
+  const out = { repli: T.repli || (ESPACE === "cabinet-bentahila" ? "HGC" : ""), etablissements: {} }; // repli « HGC » : cabinet d'origine seulement (1.7)
   Object.entries(T.etablissements).forEach(([code, e]) => { out.etablissements[code] = { activites: (e.activites || []).filter((a) => ["seance", "rt"].indexOf(a.type) < 0).map((a) => ({ type: a.type, libelle: a.libelle, historique: (a.historique || []).map((h) => ({ depuis: h.depuis, brut: h.brut })) })) }; });
   return out;
 }
@@ -342,7 +350,7 @@ const traitModRT = () => !!(D.membre.droits && D.membre.droits.radiotherapie ===
 // « Dr NOM Prénom » (fiche chimio, modèles Word) à partir d'un profil
 const nomDrNP = (p, nomMembre) => [p.titre || "Dr", String(p.nom || nomMembre || "").replace(/^(Dr|Pr)\.?\s*/i, "").toUpperCase(), p.prenom].filter(Boolean).join(" ");
 // Médecin de la fiche chimio : la personne connectée si elle est médecin, sinon le médecin titulaire (parametres/medecinTitulaire)
-const medecinFiche = () => D.membre.role === "medecin" ? { nom: nomDrNP(D.profil, D.membre.nom), inpe: D.profil.inpe || "", specialite: D.profil.specialite || "" } : { nom: (D.medTitulaire && D.medTitulaire.nom) || D.nomTitulaire || "", inpe: (D.medTitulaire && D.medTitulaire.inpe) || "", specialite: (D.medTitulaire && D.medTitulaire.specialite) || "" };
+const medecinFiche = () => D.membre.role === "medecin" ? { nom: nomDrNP(D.profil, D.membre.nom), inpe: D.profil.inpe || "", specialite: D.profil.specialite || "", genre: D.profil.genre || "" } : { nom: (D.medTitulaire && D.medTitulaire.nom) || D.nomTitulaire || "", inpe: (D.medTitulaire && D.medTitulaire.inpe) || "", specialite: (D.medTitulaire && D.medTitulaire.specialite) || "", genre: (D.medTitulaire && D.medTitulaire.genre) || "" };
 // Signature des messages WhatsApp : « Dr NOM » du médecin connecté, sinon du médecin titulaire
 const signatureWA = () => { if (D.membre.role === "medecin") return (D.profil.titre || "Dr") + " " + String(D.profil.nom || D.membre.nom || "").replace(/^(Dr|Pr)\.?\s*/i, "").toUpperCase(); const t = D.medTitulaire || {}; return t.signature || String(t.nom || D.nomTitulaire || "").split(/\s+/).slice(0, 2).join(" "); };
 const nomMedecin = () => ["Dr", D.profil.prenom, (D.profil.nom || D.membre.nom || "").replace(/^Dr\.?\s*/i, "").toUpperCase()].filter(Boolean).join(" ");
@@ -864,7 +872,7 @@ function pageDossier(id) {
   const hRdv = '<section class="carte"><div class="entete"><h3><span class="ic">' + ic("agenda") + "</span>Rendez-vous et tâches à venir</h3><div class=\"actr\">" + (okR ? '<button class="bt clair petit" onclick="ouvrirRdv(' + qx + ')">' + ic("plus") + "Ajouter un rendez-vous</button>" : "") + '<button class="bt clair petit" data-mod="taches" onclick="taNouvelle(' + qx + ')">' + ic("plus") + "Tâche</button></div></div>" +
     // Liste dans une zone qui défile : les 5 prochains visibles (hauteur réglée après l'affichage, limiterHauteur)
     (av.length > 5 ? '<p class="mesures" style="margin:4px 0 0">' + av.length + " rendez-vous : faites défiler la liste pour voir les suivants.</p>" : "") +
-    '<div class="rdv-liste" id="rdvListe">' + (av.length ? av.map((v) => '<div class="rdv">' + (absenceLe(v.d) ? '<span class="badge b-al"><svg class="pi"><use href="#i-stop"/></svg>Absente</span>' : ferieLe(v.d) ? '<span class="badge b-al">Férié</span>' : "") + '<span class="badge ' + (v.retard ? "b-al" : "b-co") + '">' + (v.d ? dfr(v.d) : "—") + (v.f && v.f !== v.d ? " → " + dfr(v.f) : "") + (v.h ? " " + v.h : "") + "</span><span>" + v.em + '</span><div class="tx">' + esc(v.t) + (v.rep && v.rep.length ? '<div class="mesures">Reporté (initialement le ' + dfrA(v.rep[0].d) + ")</div>" : "") + "</div>" + (v.act || "") + "</div>").join("") : '<p class="sous">Aucun rendez-vous ni tâche à venir.</p>') + '</div><p class="mesures" style="margin:8px 0 0">Prochaine étape de chimiothérapie et de radiothérapie (automatique) et consultations programmées. Les consultations passées sont listées juste en dessous.</p></section>';
+    '<div class="rdv-liste" id="rdvListe">' + (av.length ? av.map((v) => '<div class="rdv">' + (absenceLe(v.d) ? '<span class="badge b-al"><svg class="pi"><use href="#i-stop"/></svg>' + absentMedecin(medecinFiche().genre) + "</span>" : ferieLe(v.d) ? '<span class="badge b-al">Férié</span>' : "") + '<span class="badge ' + (v.retard ? "b-al" : "b-co") + '">' + (v.d ? dfr(v.d) : "—") + (v.f && v.f !== v.d ? " → " + dfr(v.f) : "") + (v.h ? " " + v.h : "") + "</span><span>" + v.em + '</span><div class="tx">' + esc(v.t) + (v.rep && v.rep.length ? '<div class="mesures">Reporté (initialement le ' + dfrA(v.rep[0].d) + ")</div>" : "") + "</div>" + (v.act || "") + "</div>").join("") : '<p class="sous">Aucun rendez-vous ni tâche à venir.</p>') + '</div><p class="mesures" style="margin:8px 0 0">Prochaine étape de chimiothérapie et de radiothérapie (automatique) et consultations programmées. Les consultations passées sont listées juste en dessous.</p></section>';
 
   // Un seul cadre à onglets (07/10/2026) : Consultation · Chimiothérapie · Radiothérapie · Documents, selon les droits
   const ong = [];

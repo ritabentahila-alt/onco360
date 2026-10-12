@@ -6,10 +6,10 @@ export function typeRdv(t) { if (t === T_RTC) return "controle"; return t === "A
 // Jours ouvrés d'une hospitalisation (lundi–vendredi, sans tenir compte des fériés – comme la v1)
 export function joursH(r) { if (!r.d) return 0; const f = r.f && r.f >= r.d ? r.f : r.d; let d = r.d, n = 0; for (let g = 0; g < 400 && d <= f; g++) { const w = new Date(d + "T12:00:00").getDay(); if (w !== 0 && w !== 6) n++; d = addJ(d, 1); } return n; }
 export function tarH(tarifs, h, k) { const o = (tarifs.hop && tarifs.hop[h]) || tarifs.hop.HGC; return o[k] != null ? o[k] : k === "hospit" ? 400 : 0; }
-const tjH = (P, r, tarifs) => (r.tj != null ? r.tj : tarH(tarifs, P.hop || "HGC", "hospit"));
+const tjH = (P, r, tarifs) => (r.tj != null ? r.tj : tarH(tarifs, P.hop || (tarifs && tarifs.repli) || "", "hospit")); // repli du cabinet (1.7 : plus de « HGC » écrit en dur)
 export function prixRdv(P, r, tarifs) {
   if (r && r.type === T_RTC) return 0;
-  const t = typeRdv(r.type), h = P.hop || "HGC";
+  const t = typeRdv(r.type), h = P.hop || (tarifs && tarifs.repli) || "";
   return t === "hospit" ? joursH(r) * tjH(P, r, tarifs) : t === "controle" ? tarH(tarifs, h, "controle") : t === "annonce" ? tarH(tarifs, h, "annonce") : tarH(tarifs, h, "suivi");
 }
 export function libRdv(r) {
