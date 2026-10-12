@@ -3,6 +3,8 @@ import { etatLigne, protocoleDe, protocoleCure, seancesDe, seancesCure } from ".
 import { typeRdv, libRdv } from "./rdv.js";
 import { finRT } from "./rt.js";
 // Heure facultative d'une séance de chimio ou du scanner de centrage (AG5, 11/10/2026) : { h, dur } pour Google Agenda
+// Séance de chimio : heure de la CONSULTATION (hc : choisie par le médecin, sinon juste avant la séance de l'infirmière, conversion.js) ;
+// la durée de la séance à l'hôpital de jour n'est jamais envoyée (Google Agenda des médecins) — décision du 12/10/2026
 const heureDe = (hr) => (hr && hr.h ? { h: hr.h, dur: +hr.du || 0 } : {});
 export function evtsAgenda(P, ctx) {
   const t = ctx.aujourdhui, out = [], nm = P.nom || (P.nomF || "").toUpperCase() + " " + (P.prenom || ""), pid = P.id, hop = P.hop ? " (" + P.hop + ")" : "";
@@ -14,8 +16,8 @@ export function evtsAgenda(P, ctx) {
     if (L.arret) return; const p = protocoleDe(L, ctx.bib);
     etatLigne(L, P, ctx).forEach((e) => {
       const multi = seancesDe(protocoleCure(L, e.n - 1, ctx.bib)).length > 1;
-      if (e.st === "prevue" && e.date && e.date >= t) out.push(Object.assign({ k: pid + "|c|" + i + "|" + e.n, t: "💉 " + nm + " – C" + e.n + "/" + L.cures.length + (multi ? " J1" : "") + " · " + p.nom + hop, x: P.diag || "", d: e.date }, heureDe(e.c.hr)));
-      if (e.st !== "annulee" && e.date) seancesCure(L, e, ctx.bib).forEach((s) => { if (s.st === "prevue" && s.prevue && s.prevue >= t) out.push(Object.assign({ k: pid + "|s|" + i + "|" + e.n + "|" + s.j, t: "💉 " + nm + " – C" + e.n + " J" + s.j + " · " + p.nom + hop, x: P.diag || "", d: s.prevue }, heureDe(((e.c.sea || {})[s.j] || {}).hr))); });
+      if (e.st === "prevue" && e.date && e.date >= t) out.push(Object.assign({ k: pid + "|c|" + i + "|" + e.n, t: "💉 " + nm + " – C" + e.n + "/" + L.cures.length + (multi ? " J1" : "") + " · " + p.nom + hop, x: P.diag || "", d: e.date }, heureDe(e.c.hc)));
+      if (e.st !== "annulee" && e.date) seancesCure(L, e, ctx.bib).forEach((s) => { if (s.st === "prevue" && s.prevue && s.prevue >= t) out.push(Object.assign({ k: pid + "|s|" + i + "|" + e.n + "|" + s.j, t: "💉 " + nm + " – C" + e.n + " J" + s.j + " · " + p.nom + hop, x: P.diag || "", d: s.prevue }, heureDe(((e.c.sea || {})[s.j] || {}).hc))); });
     });
   });
   (P.rts || []).forEach((r, j) => {

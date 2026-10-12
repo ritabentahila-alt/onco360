@@ -14,6 +14,7 @@ import { poso, doseTxt, ficheHTML, imprimerFiche } from "./fiche.js";
 import * as ficheP from "./fichepatient.js"; // fiche patient réglable (10/10/2026)
 import { vigilances, historique, cumuls, examensProposes, EXAMENS, horsNorme, vesicant, notesPour } from "../moteur/vigilance.js"; // 12/10/2026
 import { finRT } from "../moteur/rt.js";
+import { noterHeures, seanceProposee, DU_SEANCE } from "../moteur/heures.js"; // heures de la séance (12/10/2026)
 import { notesVigilance } from "./vigilances.js";
 
 let A = null; // outils fournis par l'application (v2.js)
@@ -53,13 +54,75 @@ async function sauverLignes(x, lignes, quoi, extra) {
   if (!Object.keys(changes).length) return;
   await A.enregistrer(x, changes, quoi);
 }
-// Heure facultative d'une séance (AG5, 11/10/2026), notée depuis l'agenda : hr = { h, du } ou null (retirée) ; j = 1 pour la cure (J1)
-export async function heureSeance(x, lid, n, j, hr) {
-  const lignes = lignesDe(x), L = lignes.find((z) => z.id === lid), c = L && L.cures[n - 1]; if (!c) throw new Error("Séance introuvable.");
-  if (+j === 1) { if (hr) c.hr = hr; else delete c.hr; }
-  else { c.sea = c.sea || {}; c.sea[j] = c.sea[j] || { st: "prevue" }; if (hr) c.sea[j].hr = hr; else delete c.sea[j].hr; }
-  await sauverLignes(x, lignes, "C" + n + " J" + j + (hr ? " : heure " + hr.h + " (" + hr.du + " min)" : " : heure retirée"));
+// Heures d'une séance (12/10/2026, décision de Dr Bentahila, moteur/heures.js) : o = { cons: "HH:MM" | "" } (consultation, médecin ou
+// secrétaire) ou { seance: { h, du } | null } (séance à l'hôpital de jour, infirmière) ; j = 1 pour la cure (J1). Champ « heures » du
+// dossier : chacun note sa partie sans toucher aux dates ni à la partie de l'autre (l'infirmière n'écrase jamais l'heure du médecin)
+export async function heureSeance(x, lid, n, j, o) {
+  const L = lignesDe(x).find((z) => z.id === lid); if (!L || !L.cures[n - 1]) throw new Error("Séance introuvable.");
+  const H = Object.assign({}, x.doc.heures || {}), cle = lid + "|" + n + "|" + j;
+  H[cle] = noterHeures(H[cle], o, { par: D().u.uid, parNom: (D().membre && D().membre.nom) || "", le: new Date().toISOString() });
+  const quoi = o.cons !== undefined ? (o.cons ? "consultation à " + o.cons : "heure de consultation retirée") : o.seance ? "séance à " + o.seance.h + " (" + o.seance.du + " min)" : "heure de séance retirée";
+  await A.enregistrer(x, { heures: H }, "C" + n + " J" + j + " : " + quoi);
 }
+export const peutHeureChimio = () => A.traitMod() || A.peut("planningChimio") || A.peut("administrer");
+// L'infirmière note la séance (heure et durée) ; le médecin et la secrétaire, la consultation (sans voir la durée de la chimio)
+export const estInfirmiere = () => !!(D().membre && D().membre.role === "infirmiere");
+const DUREES_H = [30, 45, 60, 90, 120, 150, 180, 240, 300, 360, 480];
+const libDuree = (m) => (m < 60 ? m + " min" : Math.floor(m / 60) + " h" + (m % 60 ? " " + (m % 60) : ""));
+// Bouton d'heure d'une séance prévue (tableau de la cure) : o = la cure (J1) ou c.sea[j]
+const boutonHeure = (x, i, k, j, o) => {
+  const inf = estInfirmiere(), hc = o && o.hc, hr = o && o.hr;
+  const lib = inf ? (hr && hr.h ? "💉 " + hr.h + " · " + libDuree(+hr.du || DU_SEANCE) : hc && !hc.auto ? "🩺 " + hc.h + " · + séance" : "+ heure") : hc ? "🩺 " + hc.h : "+ heure";
+  if (!peutHeureChimio()) return hc && !inf ? ' <span class="mesures">🩺 ' + A.esc(hc.h) + "</span>" : "";
+  return ' <button class="bt petit clair" style="margin-top:4px" title="' + (inf ? "Heure et durée de la séance (hôpital de jour)" : "Heure de la consultation de chimio") + '" onclick="chHeure(\'' + x.id + "'," + i + "," + k + "," + j + ')">' + A.esc(lib) + "</button>";
+};
+// Séance prévue qui suit la séance j de la cure k (J8… de la même cure, sinon J1 de la cure suivante) : { k, j, d, o } ou null
+function seanceSuivante(x, i, k, j) {
+  const L = x.P.lignes[i]; if (!L) return null;
+  const E = etatLigne(L, x.P, D().ctx), e = E[k];
+  if (e && e.st === "recue") { const s = seancesCure(L, e, D().ctx.bib).find((z) => z.j > j && z.st === "prevue" && z.prevue); if (s) return { k, j: s.j, d: s.prevue, o: (e.c.sea || {})[s.j] || {} }; }
+  const e2 = E[k + 1]; return e2 && e2.st === "prevue" && e2.date ? { k: k + 1, j: 1, d: e2.date, o: e2.c } : null;
+}
+// Fenêtre des heures d'une séance (s = { k, j, d, o }) : infirmière → heure et durée de la séance ; médecin, secrétaire → consultation.
+// `puis` : appelée à la fermeture (ex. fenêtre de prix après une validation)
+export function fenetreHeureSeance(x, lid, s, titre, puis) {
+  const esc = A.esc, inf = estInfirmiere(), o = s.o || {}, hc = o.hc, hcm = o.hcm, hr = o.hr, fin = () => { A.fermerFenetre(); if (puis) puis(); else A.pageDossier(x.id); };
+  const par = (z) => (z && z.parNom ? " (" + esc(z.parNom) + (z.le ? ", le " + A.dfrA(String(z.le).slice(0, 10)) : "") + ")" : "");
+  let corps;
+  if (inf) {
+    const du = (hr && +hr.du) || DU_SEANCE, h0 = (hr && hr.h) || seanceProposee(hc && !hc.auto ? hc : null);
+    corps = '<p class="mesures">' + (hc && !hc.auto ? "🩺 Consultation du médecin à <b>" + esc(hc.h) + "</b>" + par(hcm) + " : la séance se place après." : "Pas d'heure de consultation choisie par le médecin : elle se placera d'elle-même juste avant votre séance.") + "</p>" +
+      '<div class="form"><div><label for="hS">Heure de la séance (hôpital de jour)</label><input id="hS" type="time" step="900" value="' + esc(h0 || "") + '"></div>' +
+      '<div><label for="hDu">Durée prévue</label><select id="hDu">' + DUREES_H.concat(DUREES_H.indexOf(du) < 0 ? [du] : []).sort((a, z) => a - z).map((m) => '<option value="' + m + '"' + (m === du ? " selected" : "") + ">" + libDuree(m) + "</option>").join("") + "</select></div></div>" +
+      (hr && hr.parNom ? '<p class="mesures">Séance notée' + par(hr) + ".</p>" : "") + '<p class="mesures">La durée n\'apparaît que dans le planning de l\'infirmière.</p>';
+  } else {
+    corps = '<div class="form"><div><label for="hS">Heure de la consultation (facultative)</label><input id="hS" type="time" step="900" value="' + esc((hcm && hcm.h) || "") + '"></div></div>' +
+      (hcm ? '<p class="mesures">Notée' + par(hcm) + ".</p>" : hc && hc.auto ? '<p class="mesures">Placée pour l\'instant à ' + esc(hc.h) + " d'après l'heure de la séance notée par l'infirmière ; une heure choisie ici passe avant.</p>" : "") +
+      '<p class="mesures">Affichée dans votre planning (et Google Agenda). L\'infirmière ajoute ensuite l\'heure et la durée de la séance, après la consultation, sans changer votre heure. Pour changer le jour : « Reporter ».</p>';
+  }
+  const aSup = inf ? hr && hr.h : hcm && hcm.h;
+  A.fenetre("<h3>" + titre + '</h3><p class="sous">' + esc(x.r.nm) + " · C" + (s.k + 1) + (s.j > 1 ? " J" + s.j : "") + " · <b>" + A.cap(A.jourLong(s.d)) + " " + s.d.slice(0, 4) + "</b></p>" + corps +
+    '<div class="boutons"><button class="bt gris" id="hNon">' + (puis ? "Plus tard" : "Fermer") + "</button>" + (aSup ? '<button class="bt clair" id="hSup">Retirer l\'heure</button>' : "") + '<button class="bt plein" id="hOk">Enregistrer</button></div>');
+  const ok = document.getElementById("hOk"), sup = document.getElementById("hSup");
+  document.getElementById("hNon").onclick = fin;
+  const noter = async (q, bt) => { A.occupe(bt, true); try { await heureSeance(trouver(x.id), lid, s.k + 1, s.j, q); A.toast("Enregistré."); fin(); } catch (e) { A.occupe(bt, false); A.toast(e.message); } };
+  const retirer = inf ? { seance: null } : { cons: "" };
+  ok.onclick = () => { const h = A.val("hS"); if (!h) { if (aSup) noter(retirer, ok); else fin(); return; } noter(inf ? { seance: { h, du: +A.val("hDu") || DU_SEANCE } } : { cons: h }, ok); };
+  if (sup) sup.onclick = () => noter(retirer, sup);
+}
+// Après la validation d'une séance : heure de consultation de la prochaine séance (facultative), puis la suite (fenêtre de prix)
+function proposerSuivante(pid, i, k, j, puis) {
+  const x = trouver(pid), s = x && seanceSuivante(x, i, k, j);
+  if (!s || !peutHeureChimio()) { puis(); return; }
+  CM = null; fenetreHeureSeance(x, x.P.lignes[i].id, s, "Prochaine séance de chimiothérapie", puis);
+}
+// Bouton d'heure du tableau de la cure
+window.chHeure = (id, i, k, j) => {
+  const x = trouver(id), L = x && x.P.lignes[i]; if (!L) return;
+  const e = etatLigne(L, x.P, D().ctx)[k], s = j === 1 ? { k, j: 1, d: e.date, o: e.c } : (() => { const z = seancesCure(L, e, D().ctx.bib).find((o) => o.j === j); return z ? { k, j, d: z.prevue, o: (e.c.sea || {})[j] || {} } : null; })();
+  if (!s || !s.d) { A.toast("Date de la séance inconnue."); return; }
+  const cm = CM; fenetreHeureSeance(x, L.id, s, estInfirmiere() ? "Séance à l'hôpital de jour" : "Consultation de la séance de chimio", () => { const y = trouver(id); if (cm && y) { CM = cm; A.pageDossier(id); ouvrirCure(); } else A.pageDossier(id); });
+};
 async function chargerMontants(x) {
   if (!A.peut("finances")) return null;
   if (MC[x.id]) return MC[x.id];
@@ -229,7 +292,7 @@ function vueCure(x, i, k) {
   // J1 = la cure elle-même
   const pend = e.st === "prevue";
   h += "<tr>" + td("Jour", "<b>" + etiquette(g[0]) + "</b>") +
-    td("Date prévue", (pend && okPl ? '<input type="date" value="' + esc(e.date || "") + '" onchange="chDate(' + qc + ',this.value)">' : A.dfrA(e.date) || "—") + reps(c.rep)) +
+    td("Date prévue", (pend && okPl ? '<input type="date" value="' + esc(e.date || "") + '" onchange="chDate(' + qc + ',this.value)">' : A.dfrA(e.date) || "—") + (pend && e.date ? boutonHeure(x, i, k, 1, c) : "") + reps(c.rep)) +
     td("Réalisée le", e.st === "recue" ? "<b>" + A.dfrA(c.reelle) + "</b>" : "—") + td("Statut", statut(e.st, c.rep && c.rep.length, e.st === "annulee" ? Object.assign({ raison: (c.ann && c.ann.raison) || "" }, c.ann) : null)) +
     td("", '<div class="btns">' + b("Ouvrir", "chJour(1)", "fonce") + (okT ? (pend ? b('<svg class="pi"><use href="#i-check"/></svg>Valider', "chJour(1)", "vert") + b("↪ Reporter", "chReporter(" + qc + ")", "orange") + b("✖ Annuler", "chAnnuler(" + qc + ")", "rouge") : e.st === "recue" ? b("Annuler la validation", "chRetablir(" + qc + ")") : b("Rétablir", "chRetablir(" + qc + ")")) : pend && okPl ? b("↪ Reporter", "chReporter(" + qc + ")", "orange") : "") + "</div>", "act") + "</tr>";
   // J8, J15… : séances de la même cure
@@ -238,7 +301,7 @@ function vueCure(x, i, k) {
     if (e.st !== "recue") { h += "<tr>" + td("Jour", "<b>" + lab + "</b>") + td("Date prévue", '<span class="mesures">' + (e.st === "annulee" ? "—" : "fixée après validation de J1") + "</span>") + td("Réalisée le", "—") + td("Statut", e.st === "annulee" ? '<span class="badge b-al">✖ Cure annulée</span>' : '<span class="badge b-gr">En attente de J1</span>') + td("", e.st === "annulee" ? "" : '<div class="btns">' + b("Ouvrir", "chJour(" + sz.j + ")", "fonce") + "</div>", "act") + "</tr>"; return; }
     const p2 = sz.st === "prevue";
     h += "<tr>" + td("Jour", "<b>" + lab + "</b>") +
-      td("Date prévue", (p2 && okPl ? '<input type="date" value="' + esc(sz.prevue || "") + '" onchange="chDateSeance(' + qj + ',this.value)">' : A.dfrA(sz.prevue) || "—") + reps(z.rep)) +
+      td("Date prévue", (p2 && okPl ? '<input type="date" value="' + esc(sz.prevue || "") + '" onchange="chDateSeance(' + qj + ',this.value)">' : A.dfrA(sz.prevue) || "—") + (p2 && sz.prevue ? boutonHeure(x, i, k, sz.j, z) : "") + reps(z.rep)) +
       td("Réalisée le", sz.st === "recue" ? "<b>" + A.dfrA(sz.d) + "</b>" : "—") + td("Statut", statut(sz.st, z.rep && z.rep.length, sz.ann)) +
       td("", '<div class="btns">' + b("Ouvrir", "chJour(" + sz.j + ")", "fonce") + (okT ? (p2 ? b('<svg class="pi"><use href="#i-check"/></svg>Valider', "chJour(" + sz.j + ")", "vert") + b("↪ Reporter", "chReporterJ(" + qj + ")", "orange") + b("✖ Annuler", "chAnnulerJ(" + qj + ")", "rouge") : sz.st === "recue" ? b("Annuler la validation", "chAnnulerSeance(" + qj + ")") : b("Rétablir", "chRetablirJ(" + qj + ")")) : p2 && okPl ? b("↪ Reporter", "chReporterJ(" + qj + ")", "orange") : "") + "</div>", "act") + "</tr>";
   });
@@ -497,7 +560,7 @@ window.chValiderJ1 = (id, i, k) => {
     if (g.length > 1) { c.sea = c.sea || {}; g.slice(1).forEach((s) => { if (!c.sea[s.j]) c.sea[s.j] = { st: "prevue" }; }); }
     await sauverLignes(x, lignes, "Cure C" + (k + 1) + " validée (" + A.dfrA(d) + ")");
     SEL.pid = x.id; SEL.l = i; SEL.c = k; if (CM) CM.j = null;
-  }).then((ok) => { if (ok) proposerPrix(x.id, x.P.lignes[i].id, k + 1, 1); });
+  }).then((ok) => { if (ok) proposerSuivante(x.id, i, k, 1, () => proposerPrix(x.id, x.P.lignes[i].id, k + 1, 1)); });
 };
 window.chRetablir = (id, i, k) => {
   const x = trouver(id); if (!confirm("Remettre la cure C" + (k + 1) + " en « prévue » ?")) return;
@@ -540,7 +603,7 @@ window.chFiche = (id, i, k) => {
 
 // ───── Séances J8 / J15… ─────
 window.chValiderSeance = (id, i, k, j) => window.chOuvrir(id, i, k, j);
-window.chValiderJ = (id, i, k, j) => { const x = trouver(id), L0 = lignesDe(x)[i], n0 = seancesDe(protocoleCure(L0, k, D().ctx.bib) || protocoleDe(L0, D().ctx.bib)).findIndex((g) => g.j === j), ok = verifierValidation(x, i, k, n0 > 0 ? n0 : 0); if (!ok) return; executer(x, async () => { await majSeance(x, i, k, j, A.val("sD") || D().t, true, null, ok); if (CM) CM.j = null; }).then((ok) => { if (ok) proposerPrix(x.id, x.P.lignes[i].id, k + 1, j); }); };
+window.chValiderJ = (id, i, k, j) => { const x = trouver(id), L0 = lignesDe(x)[i], n0 = seancesDe(protocoleCure(L0, k, D().ctx.bib) || protocoleDe(L0, D().ctx.bib)).findIndex((g) => g.j === j), ok = verifierValidation(x, i, k, n0 > 0 ? n0 : 0); if (!ok) return; executer(x, async () => { await majSeance(x, i, k, j, A.val("sD") || D().t, true, null, ok); if (CM) CM.j = null; }).then((ok) => { if (ok) proposerSuivante(x.id, i, k, j, () => proposerPrix(x.id, x.P.lignes[i].id, k + 1, j)); }); };
 window.chDateSeance = (id, i, k, j, v) => {
   const x = trouver(id); if (!v) return;
   A.fenetre("<h3>Nouvelle date de J" + j + " – cure C" + (k + 1) + '</h3><p class="sous">→ <b>' + A.dfrA(v) + '</b></p><div class="form">' + choixSuite("sS", "Séances et cures suivantes") + "</div>" + boutons("Enregistrer"));

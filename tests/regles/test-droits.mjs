@@ -63,6 +63,24 @@ await cas("refusé : une secrétaire avec le droit paramètres", async () => {
   await env.withSecurityRulesDisabled(async (c) => { await setDoc(doc(c.firestore(), P + "/membres/SEC"), Object.assign(membre("assistante"), { droits: Object.assign({}, tous, { parametres: true }) })); });
   await assertFails(setDoc(D("SEC", "protocoles/lib_0"), { data: "[]", n: 0 })); });
 
+console.log("Heure des séances de chimio (12/10/2026) : champ « heures » du dossier");
+async function avecInfirmiere() {
+  await env.withSecurityRulesDisabled(async (c) => { const f = c.firestore();
+    await setDoc(doc(f, P + "/membres/INF"), { role: "infirmiere", actif: true, nom: "INF", tousEtablissements: true, etablissements: [], droits: { administrer: true, traitements: "voir", planningChimio: false } });
+    await setDoc(doc(f, P + "/patients/p1"), { etablissementId: "HGC", identite: { nom: "PATIENT Test" }, planningJson: "{}", lignesJson: "[]", version: 1 }); });
+}
+const maj = (u, o) => Object.assign({ version: 2, maj: serverTimestamp(), majPar: u }, o);
+const hr = { "L1|2|1": { h: "09:30", du: 180, par: "INF", parNom: "INF", le: "2026-10-12T08:00:00Z" } };
+await cas("l'infirmière note l'heure d'une séance", async () => { await avecInfirmiere(); await assertSucceeds(updateDoc(D("INF", "patients/p1"), maj("INF", { heures: hr }))); });
+await cas("refusé : l'infirmière change le planning (les dates)", async () => { await avecInfirmiere(); await assertFails(updateDoc(D("INF", "patients/p1"), maj("INF", { planningJson: "{\"L1\":{}}" }))); });
+await cas("refusé : l'infirmière modifie les lignes de chimio", async () => { await avecInfirmiere(); await assertFails(updateDoc(D("INF", "patients/p1"), maj("INF", { lignesJson: "[{}]" }))); });
+await cas("la secrétaire (planning) note l'heure", async () => { await avecInfirmiere();
+  await env.withSecurityRulesDisabled(async (c) => { await setDoc(doc(c.firestore(), P + "/membres/SEC"), Object.assign(membre("assistante"), { droits: Object.assign({}, tous, { planningChimio: true }) })); });
+  await assertSucceeds(updateDoc(D("SEC", "patients/p1"), maj("SEC", { heures: hr }))); });
+await cas("refusé : un membre sans droit (ni planning, ni traitements, ni administrer)", async () => { await avecInfirmiere();
+  await env.withSecurityRulesDisabled(async (c) => { await setDoc(doc(c.firestore(), P + "/membres/SEC"), Object.assign(membre("assistante"), { droits: Object.assign({}, tous, { planningChimio: false, traitements: "voir" }) })); });
+  await assertFails(updateDoc(D("SEC", "patients/p1"), maj("SEC", { heures: hr }))); });
+
 console.log("\n" + ok + " réussi(s), " + ko + " échec(s)");
 await env.cleanup();
 process.exit(ko ? 1 : 0);

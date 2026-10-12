@@ -256,6 +256,16 @@ longs et ne dépendent pas du code.
       suivantes). Bilan biologique du jour **sous les paramètres** (poids, créatinine, clairance, surface), avant « Molécules » ; gardé en
       brouillon si la fenêtre se redessine ; **affiché sur la cure validée** (repères en rouge) pour suivre l'évolution. Tests :
       test-doses 65/65, test_validation 22/22, test_figer, test_accueil.
+- [x] **2.3 Bornes et prémédication** (12/10, en ligne le 12/10 : version 20261012b) : **prémédication reconnue par la DCI comme par la marque**
+      (`PREMED` de moteur/doses.js : antiémétiques, corticoïdes, antihistaminiques, anti-H2 / IPP, atropine, facteurs de croissance,
+      EPO, acide zolédronique, dénosumab ; même liste pour la liste des molécules des protocoles ; jours de séance inchangés) ;
+      **contrôle avant validation** (`controleSeance`, `verifierValidation` de chimio.js) : dose d'un anticancéreux **impossible à
+      calculer** (vide : sans surface, sans poids, carboplatine sans créatinine) → **validation refusée** avec la raison ; une dose à 0
+      **voulue** (0 mg/m² au protocole, 0 % décidé) reste permise (constaté sur le jeu de test : FOLFOX sans bolus, trastuzumab à 0 % en
+      C1) ; valeurs hors des seuils (poids 30-200 kg, taille 120-220 cm, surface 1,2-2,6 m², créatinine 3-30 mg/L ou 25-265 µmol/L,
+      clairance 30-200 ml/min, poids qui varie de plus de 10 % depuis la séance précédente) → confirmation ; **poids saisi** (médecin
+      ou secrétaire) hors seuils ou qui varie de plus de 10 % → confirmation à la saisie. Essai sur les 64 séances du jeu de test :
+      aucune alerte, aucun refus. Tests : test-doses 57/57 (essais 2 à 4 et 11 de l'audit), `tests/test_validation.py` 13/13.
 - [x] **2.3 bis Doses trop fortes, créatinine avant chaque carboplatine, bouton Retour** (12/10, demandes de Dr Bentahila, en ligne
       20261012d) : % tapé au-dessus de 100 % (par molécule ou global) ou dose saisie au-dessus de 110 % de la dose calculée →
       confirmation à la saisie ; à la validation, toute dose au-dessus de 110 % de la dose du protocole est signalée (`REPERES.doseMax`) ;
@@ -264,6 +274,15 @@ longs et ne dépendent pas du code.
       « ‹ Retour à la cure » en bas de la fenêtre, à côté de Reporter / Valider (et seul en bas pour une séance validée). Jeu de test :
       5 carboplatines validés sans créatinine du jour et 2 doses de trastuzumab au-dessus de la dose calculée (dose de charge en C2)
       seraient signalés. Tests : test-doses 71/71, test_validation 25/25.
+- [x] **2.3 ter Fonction rénale pour toutes les molécules** (12/10, repères transmis par Dr Bentahila, en ligne : 20261012e) : **créatinine et DFG
+      (Cockcroft-Gault) dans le bloc « Bilan biologique du jour »** pour tous les protocoles (facultatifs, sauf carboplatine où la
+      créatinine sert au calcul ; ils ont quitté la rangée poids / surface) ; DFG en rouge et repère écrit sous le bloc ; affichés aussi
+      sur la séance validée (instantané). Table `REINS` (moteur/doses.js) : cisplatine (< 45 / 45-59), carboplatine (< 30), méthotrexate
+      (< 60), capécitabine (< 30 / 30-50 → 75 %), pémétrexed (< 45), fludarabine et cladribine (< 30 / < 70 → 25-50 %), ifosfamide (< 60,
+      MESNA), cyclophosphamide (< 30), oxaliplatine (< 30), étoposide (< 15 / 15-50 → 75 %), bléomycine (< 50), lénalidomide (< 30 /
+      30-50) ; noms reconnus avec ou sans accents ni marque. **Fenêtre** pour ces molécules seulement : à la saisie de la créatinine
+      et à la validation ; pour les autres molécules, créatinine et DFG facultatifs, **sans fenêtre** (bornes de saisie de la créatinine
+      et de la clairance aussi limitées à ces molécules). Seuil d'ifosfamide (< 60) confirmé par Dr Bentahila le 12/10. Tests : test-doses 79/79, test_validation 31/31.
 - [x] **2.3 quater Vigilance par molécule** (12/10, demande de Dr Bentahila : « tout d'un coup », fenêtre de confirmation si quelque chose
       cloche ; en ligne : 20261012f) : moteur `public/js/moteur/vigilance.js` (test-vigilance 58/58, test_vigilance 21/21). **Fenêtre à la
       validation** (même fenêtre que les repères, partie « Vigilance par molécule » ; liste gardée dans `fige.vig`) : 1er traitement
@@ -283,25 +302,6 @@ longs et ne dépendent pas du code.
       de 21 familles, modifiable par le médecin), vigilances confirmées. Vincristine plafonnée à 2 mg quand le protocole n'a pas de
       plafond (calcul). Fiche de chimiothérapie : mention « vésicant ». Essai sur le jeu de test : 12 fenêtres sur 18 séances (9 = FEVG
       non notée sous Herceptin, s'arrête dès qu'une FEVG est notée).
-- [x] **2.3 ter Fonction rénale pour toutes les molécules** (12/10, repères transmis par Dr Bentahila, en ligne : 20261012e) : **créatinine et DFG
-      (Cockcroft-Gault) dans le bloc « Bilan biologique du jour »** pour tous les protocoles (facultatifs, sauf carboplatine où la
-      créatinine sert au calcul ; ils ont quitté la rangée poids / surface) ; DFG en rouge et repère écrit sous le bloc ; affichés aussi
-      sur la séance validée (instantané). Table `REINS` (moteur/doses.js) : cisplatine (< 45 / 45-59), carboplatine (< 30), méthotrexate
-      (< 60), capécitabine (< 30 / 30-50 → 75 %), pémétrexed (< 45), fludarabine et cladribine (< 30 / < 70 → 25-50 %), ifosfamide (< 60,
-      MESNA), cyclophosphamide (< 30), oxaliplatine (< 30), étoposide (< 15 / 15-50 → 75 %), bléomycine (< 50), lénalidomide (< 30 /
-      30-50) ; noms reconnus avec ou sans accents ni marque. **Fenêtre** pour ces molécules seulement : à la saisie de la créatinine
-      et à la validation ; pour les autres molécules, créatinine et DFG facultatifs, **sans fenêtre** (bornes de saisie de la créatinine
-      et de la clairance aussi limitées à ces molécules). Seuil d'ifosfamide (< 60) confirmé par Dr Bentahila le 12/10. Tests : test-doses 79/79, test_validation 31/31.
-- [x] **2.3 Bornes et prémédication** (12/10, en ligne le 12/10 : version 20261012b) : **prémédication reconnue par la DCI comme par la marque**
-      (`PREMED` de moteur/doses.js : antiémétiques, corticoïdes, antihistaminiques, anti-H2 / IPP, atropine, facteurs de croissance,
-      EPO, acide zolédronique, dénosumab ; même liste pour la liste des molécules des protocoles ; jours de séance inchangés) ;
-      **contrôle avant validation** (`controleSeance`, `verifierValidation` de chimio.js) : dose d'un anticancéreux **impossible à
-      calculer** (vide : sans surface, sans poids, carboplatine sans créatinine) → **validation refusée** avec la raison ; une dose à 0
-      **voulue** (0 mg/m² au protocole, 0 % décidé) reste permise (constaté sur le jeu de test : FOLFOX sans bolus, trastuzumab à 0 % en
-      C1) ; valeurs hors des seuils (poids 30-200 kg, taille 120-220 cm, surface 1,2-2,6 m², créatinine 3-30 mg/L ou 25-265 µmol/L,
-      clairance 30-200 ml/min, poids qui varie de plus de 10 % depuis la séance précédente) → confirmation ; **poids saisi** (médecin
-      ou secrétaire) hors seuils ou qui varie de plus de 10 % → confirmation à la saisie. Essai sur les 64 séances du jeu de test :
-      aucune alerte, aucun refus. Tests : test-doses 57/57 (essais 2 à 4 et 11 de l'audit), `tests/test_validation.py` 13/13.
 - [x] **2.4 Protocoles tracés** (12/10, en ligne le 12/10 : version 20261012b) : **plus d'écrasement** : chaque enregistrement relit son bloc
       (`lib_…`) dans une transaction et n'y remplace que son protocole (ajout, modification, suppression) — choisi à la place d'« un
       document par protocole » (même protection, sans déplacer les 316 protocoles) ; **version** (+1 quand le contenu change), auteur et
@@ -367,12 +367,25 @@ longs et ne dépendent pas du code.
       reste (toxicité maximale, rendez-vous et bilan absents) **est rempli par le médecin** ; localisation, histologie et
       interruptions ne sont pas remplies. À l'impression : aucune mention « à compléter » imprimée (avertissement avant, comme les
       courriers). Formulaire « RT hebdomadaire » proposé (3.4), sans tableau des toxicités.
-- [ ] **3.7 Chimiothérapie : suivi et ergonomie** : doses cumulées par molécule (mg/m², plafonds : doxorubicine 450-550,
-      épirubicine 900, bléomycine 400 UI ; alerte) ; intention de la ligne (néoadjuvante, adjuvante, métastatique, concomitante,
+- [ ] **3.7 Chimiothérapie : suivi et ergonomie** : ~~doses cumulées~~ (fait en 2.3 quater pour les anthracyclines et l'oxaliplatine ;
+      bléomycine écrite en texte dans les protocoles, donc non calculée) ; intention de la ligne (néoadjuvante, adjuvante, métastatique, concomitante,
       palliative) et réponse (complète, partielle, stable, progression) ; doses visibles dès la ligne de cure ; plus de fenêtre
       intermédiaire pour une cure d'un seul jour ; un bouton principal par cure + menu ⋯ (« Arrêter la ligne », « Supprimer »,
       « Annuler » dans le menu) ; en-tête de ligne en double retiré ; téléphone : table des cures en cartes, « % dose » et « Dose
       retenue » visibles.
+- [x] **3.7 bis Heures de la séance de chimio** (12/10, décision de Dr Bentahila ; en ligne : 20261012g) : **deux créneaux** par séance
+      (moteur `public/js/moteur/heures.js`, champ `heures` du dossier { "ligne|cure|jour": { cons, seance } }) : **consultation de séance**
+      (médecin ou secrétaire : fenêtre « Prochaine séance de chimiothérapie » ouverte à la validation d'une cure ou d'une séance, avant la
+      fenêtre de prix ; bouton 🩺 du tableau de la cure ; clic dans l'Agenda) et **séance à l'hôpital de jour** (infirmière : heure et
+      durée, depuis son planning ou la cure ; heure proposée = juste après la consultation). **Planning du médecin** (et Google Agenda) :
+      la consultation seulement (15 min), **jamais la durée de la chimio** ; **planning de l'infirmière** : sa séance (heure et durée) et la
+      consultation choisie par le médecin (non déplaçable par elle). Sans heure du médecin, la consultation se place d'elle-même 15 min
+      avant la séance de l'infirmière et la suit (calculée à la lecture, `consultationDe`) ; l'infirmière n'écrase jamais l'heure du
+      médecin. Les anciennes heures du planning (AG5) valent séance. Règle : champ `heures` écrit avec le droit planning, traitements
+      « modifier » ou « administrer » (infirmière), sans toucher aux dates ; `champsAutorises` réécrit pour lire la fiche du membre une
+      seule fois (le serveur limite le nombre d'expressions par écriture ; droit absent = non). Tests : test-heures 18/18,
+      test_heure_chimio 20/20, test_agenda 56/56 (adapté), règles 11 suites (test-droits 20 : infirmière permise sur l'heure, refusée sur le
+      planning et les lignes).
 - [ ] **3.8 Écran de l'infirmière** (ancienne étape 11 I1) : tablette, patients du jour, cure et molécules ; pose de chaque poche
       (heure, par qui), voie d'abord (PAC, périphérique, PICC), constantes, tolérance, effets indésirables ; visible dans l'onglet
       Chimiothérapie ; règle `administrations` déjà écrite ; droit « administrer » remis dans Accès.

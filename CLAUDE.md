@@ -161,6 +161,13 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
   `D.medecins` chargé par `chargerMedecins`, `multiMed` / `medRdv`) ; créneaux et doubles réservations par médecin à partir de 2 médecins ;
   heure facultative d'une séance de chimio `planning[ligne][n].hr` (J1) / `.shr[j]` = { h, du } (avec les dates : droit « planning »,
   `separer` / `fusionner` ↔ `c.hr`, `c.sea[j].hr`) et du scanner de centrage `rts[].scanH` { h, du } (droit RT « modifier »).
+- **Heures de la séance de chimio (3.7 bis, 12/10/2026)** : `patients/{id}.heures` { "ligne|cure|jour": { cons: { h, du 15, par, parNom, le } | null
+  (consultation, médecin / secrétaire), seance: { h, du, par, parNom, le } | null (hôpital de jour, infirmière) } } ; `fusionner` → `hr` (séance,
+  marquée `_h`, avant l'ancienne heure du planning AG5), `hcm` (consultation choisie), `hc` (consultation affichée : choisie, sinon 15 min
+  avant la séance, `consultationDe` de moteur/heures.js) ; `separer` ne recopie jamais `_h`, `hc`, `hcm`. chimio.js `heureSeance(x, lid, n, j,
+  { cons } | { seance })`, `fenetreHeureSeance`, `proposerSuivante` (après la validation, avant la fenêtre de prix), `chHeure` ; agenda.js
+  `evtsChimio` (médecin : consultation ; infirmière : séance + consultation du médecin) ; résumé / Google Agenda : `hc` seulement. Règle :
+  `champsDe` (planning, traitements « modifier », ou « administrer » → `heures`).
 - Numéro de dossier (étape 8, 09/10/2026) : `identite.numero` = AAAAMM + rang d'inscription dans le mois (`functions/numeros.js`),
   attribué par les fonctions serveur `numeroDossier` (à la création, appelée par `attribuerNumero` de v2.js) et `numerosManquants`
   (dossiers sans numéro, une fois, par le titulaire dans `migrations()`), transaction sur `compteurs/dossiers` { "AAAAMM": n }

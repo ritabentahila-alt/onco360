@@ -8,7 +8,8 @@ import { finRT } from "../moteur/rt.js";
 import { typeRdv, libRdv } from "../moteur/rdv.js";
 import { addJ, ouvre } from "../moteur/outils.js";
 import { horaires, dureeDe } from "./configuration.js";
-import { heureSeance } from "./chimio.js";
+import { heureSeance, fenetreHeureSeance, peutHeureChimio, estInfirmiere } from "./chimio.js";
+import { DU_CONS } from "../moteur/heures.js";
 
 let A = null;
 export function installer(api) { A = api; }
@@ -33,6 +34,16 @@ const hh = (m) => ("0" + Math.floor(m / 60)).slice(-2) + ":" + ("0" + (m % 60)).
 // Heure facultative (AG5, 11/10/2026) : séances de chimio (J1, J8…) et scanner de centrage ; sans heure : ligne « Journée »
 const DU_CH = 120, DU_SCAN = 30, DUREES_H = [15, 30, 45, 60, 90, 120, 150, 180, 240, 300, 360];
 const hrDe = (hr, def) => (hr && hr.h ? { h: hr.h, du: +hr.du || def, hr: true } : { h: "", du: def });
+// Séance de chimio dans le planning (12/10/2026, décision de Dr Bentahila) : médecin et secrétaire → la consultation de la séance (hc :
+// choisie par le médecin, sinon juste avant la séance de l'infirmière), sans la durée de la chimio ; infirmière → la séance à l'hôpital
+// de jour (hr : heure et durée) et la consultation choisie par le médecin. o = la cure (J1) ou c.sea[j]
+function evtsChimio(base, o) {
+  o = o || {};
+  if (!estInfirmiere()) return [Object.assign({}, base, { sub: "cons" }, hrDe(o.hc, DU_CONS), o.hc ? { t: "Consultation · " + base.t } : {})];
+  const l = [Object.assign({}, base, { sub: "seance" }, hrDe(o.hr, DU_CH), o.hr && o.hr.h ? { t: "Séance · " + base.t } : {})];
+  if (o.hc && !o.hc.auto && base.st === "prevu") l.push(Object.assign({}, base, { sub: "cons", t: "Consultation du médecin · " + base.t }, hrDe(o.hc, DU_CONS)));
+  return l;
+}
 function evenements(du, au) {
   const out = [], ctx = D().ctx;
   D().patients.forEach((x) => {
@@ -47,8 +58,8 @@ function evenements(du, au) {
       if (L.arret) return; let p; try { p = protocoleDe(L, ctx.bib); } catch (e) { return; } if (!p) return;
       etatLigne(L, P, ctx).forEach((e) => {
         if (e.st === "annulee" || !e.date) return;
-        if (e.date >= du && e.date <= au) out.push(Object.assign({ pid: x.id, cat: "ch", d: e.date, f: e.date, nm, t: "C" + e.n + "/" + L.cures.length + " · " + p.nom, st: e.st === "recue" ? "fait" : "prevu", lid: L.id, n: e.n, j: 1 }, hrDe(e.c.hr, DU_CH)));
-        seancesCure(L, e, ctx.bib).forEach((s) => { if (s.st === "annulee") return; const d = s.st === "recue" && s.d ? s.d : s.prevue; if (d && d >= du && d <= au) out.push(Object.assign({ pid: x.id, cat: "ch", d, f: d, nm, t: "C" + e.n + " J" + s.j + " · " + p.nom, st: s.st === "recue" ? "fait" : "prevu", lid: L.id, n: e.n, j: s.j }, hrDe(((e.c.sea || {})[s.j] || {}).hr, DU_CH))); });
+        if (e.date >= du && e.date <= au) evtsChimio({ pid: x.id, cat: "ch", d: e.date, f: e.date, nm, t: "C" + e.n + "/" + L.cures.length + " · " + p.nom, st: e.st === "recue" ? "fait" : "prevu", lid: L.id, n: e.n, j: 1 }, e.c).forEach((z) => out.push(z));
+        seancesCure(L, e, ctx.bib).forEach((s) => { if (s.st === "annulee") return; const d = s.st === "recue" && s.d ? s.d : s.prevue; if (d && d >= du && d <= au) evtsChimio({ pid: x.id, cat: "ch", d, f: d, nm, t: "C" + e.n + " J" + s.j + " · " + p.nom, st: s.st === "recue" ? "fait" : "prevu", lid: L.id, n: e.n, j: s.j }, (e.c.sea || {})[s.j]).forEach((z) => out.push(z)); });
       });
     });
     if (A.voitRT(x)) (P.rts || []).forEach((r) => {
@@ -169,12 +180,12 @@ function vueListe() {
 // Glissable : consultation prévue, droit « rendez-vous », pas déjà dans la salle d'attente. Lâché sur un créneau (pas de 15 min)
 // → fenêtre de confirmation (v2.js deplacerRdv : vérifications, historique, WhatsApp).
 const souris = () => !window.matchMedia || matchMedia("(pointer:fine)").matches;
-const glissable = (e) => e.st === "prevu" && souris() && (e.cat === "co" ? !!e.rid && A.peut("rendezvous") && !/class="pst/.test(badge(e)) /* badge vide = pas arrivé */ : peutHeure(e));
-// Heure d'une séance de chimio (droit « planning » ou traitements) ou du scanner (radiothérapie : modifier) (AG5)
-const peutHeure = (e) => e.st === "prevu" && ((e.cat === "ch" && !!e.lid && (A.traitMod() || A.peut("planningChimio"))) || (e.cat === "rt" && e.z === "scan" && A.traitModRT()));
+const glissable = (e) => e.st === "prevu" && souris() && !(e.cat === "ch" && estInfirmiere() && e.sub === "cons") /* heure du médecin : jamais déplacée par l'infirmière */ && (e.cat === "co" ? !!e.rid && A.peut("rendezvous") && !/class="pst/.test(badge(e)) /* badge vide = pas arrivé */ : peutHeure(e));
+// Heure d'une séance de chimio (droit « planning », traitements ou « administrer » : infirmière, 12/10/2026) ou du scanner (radiothérapie : modifier) (AG5)
+const peutHeure = (e) => e.st === "prevu" && ((e.cat === "ch" && !!e.lid && peutHeureChimio()) || (e.cat === "rt" && e.z === "scan" && A.traitModRT()));
 async function noterHeure(e, hr) {
   const x = D().patients.find((p) => p.id === e.pid); if (!x) return;
-  try { if (e.cat === "ch") await heureSeance(x, e.lid, e.n, e.j, hr); else await A.heureRT(e.pid, e.rtid, hr); A.toast(hr ? "Heure notée : " + hr.h + " (" + hr.du + " min)." : "Heure retirée."); AG.defile = true; pageAgenda(); }
+  try { if (e.cat === "ch") await heureSeance(x, e.lid, e.n, e.j, e.sub === "seance" ? { seance: hr } : { cons: hr ? hr.h : "" }); else await A.heureRT(e.pid, e.rtid, hr); A.toast(hr ? "Heure notée : " + hr.h + " (" + hr.du + " min)." : "Heure retirée."); AG.defile = true; pageAgenda(); }
   catch (er) { A.toast(er.message); }
 }
 function glisser(g) {
@@ -203,7 +214,13 @@ function glisser(g) {
   g.addEventListener("dragend", () => { effacer(); G = null; g.querySelectorAll(".glisse").forEach((b) => b.classList.remove("glisse")); });
 }
 
-// Fenêtre d'une séance de chimio ou d'un scanner : heure et durée facultatives (AG5)
+// Séance de chimio (12/10/2026) : fenêtre commune avec le dossier (chimio.js) ; infirmière → heure et durée de la séance, médecin et
+// secrétaire → heure de la consultation
+function fenetreChimio(e) {
+  const x = D().patients.find((p) => p.id === e.pid), L = x && (x.P.lignes || []).find((z) => z.id === e.lid), c = L && L.cures[e.n - 1]; if (!c) { window.ouvrirDossier(e.pid); return; }
+  fenetreHeureSeance(x, e.lid, { k: e.n - 1, j: e.j, d: e.d, o: e.j > 1 ? (c.sea || {})[e.j] || {} : c }, estInfirmiere() ? "Séance à l'hôpital de jour" : "Consultation de la séance de chimio", () => { AG.defile = true; pageAgenda(); });
+}
+// Fenêtre d'un scanner de centrage : heure et durée facultatives (AG5)
 function fenetreHeure(e) {
   const esc = A.esc, du = e.du || (e.cat === "ch" ? DU_CH : DU_SCAN);
   A.fenetre("<h3>" + EM[e.cat] + " " + esc(e.nm) + '</h3><p class="sous">' + esc(e.t) + " · " + A.cap(A.jourLong(e.d)) + "</p>" +
@@ -232,7 +249,7 @@ window.agCreneau = (ev, d) => {
 };
 window.agEv = (i) => {
   const e = EVS[i]; if (!e) return;
-  if (!e.rid) { if (peutHeure(e)) fenetreHeure(e); else window.ouvrirDossier(e.pid); return; }
+  if (!e.rid) { if (peutHeure(e)) (e.cat === "ch" ? fenetreChimio(e) : fenetreHeure(e)); else window.ouvrirDossier(e.pid); return; }
   const st = { prevu: "Prévu", fait: "Venu", absent: "Non venu" }[e.st] || e.st;
   A.fenetre("<h3>" + EM[e.cat] + " " + A.esc(e.nm) + '</h3><p class="sous">' + A.esc(e.t) + " · " + A.cap(A.jourLong(e.d)) + (e.h ? " à " + e.h : "") + (e.f && e.f !== e.d ? " → " + A.dfrA(e.f) : "") + " · " + st + (e.n ? "<br>" + A.esc(e.n) : "") + "</p>" +
     '<div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Fermer</button><button class="bt clair" onclick="fermerFenetre();ouvrirDossier(\'' + e.pid + "')\">Ouvrir le dossier</button>" + (A.peut("rendezvous") ? '<button class="bt plein" onclick="ouvrirRdv(\'' + e.pid + "','" + e.rid + "')\">Modifier / décaler</button>" : "") + "</div>");

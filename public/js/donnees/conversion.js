@@ -1,3 +1,4 @@
+import { consultationDe } from "../moteur/heures.js";
 // Chimio HGC v2 – conversion d'un dossier v1 vers la v2, et l'inverse (fusion).
 // Un dossier v1 est séparé en : dossier médical (patients/{id}, sans aucun montant) + montants (patientsFinances/{id}).
 // Les dates de cures et de séances déplacées vont dans « planningJson » (modifiable avec le droit planning HDJ).
@@ -16,8 +17,10 @@ export function separer(P0) {
       if (c.fixe != null) { ((planning[L.id] = planning[L.id] || {})[n] = planning[L.id][n] || {}).fixe = c.fixe; delete c.fixe; }
       if (c.sea) Object.keys(c.sea).forEach((j) => { const s = c.sea[j]; if (s && s.fixe != null) { const pl = ((planning[L.id] = planning[L.id] || {})[n] = planning[L.id][n] || {}); (pl.sea = pl.sea || {})[j] = s.fixe; delete s.fixe; } });
       // Heure d'une séance (AG5, 11/10/2026) : { h, du } de J1 (hr) et des séances J8… (shr[j]), avec les dates (droit « planning »)
-      if (c.hr) { ((planning[L.id] = planning[L.id] || {})[n] = planning[L.id][n] || {}).hr = c.hr; delete c.hr; }
-      if (c.sea) Object.keys(c.sea).forEach((j) => { const s = c.sea[j]; if (s && s.hr) { const pl = ((planning[L.id] = planning[L.id] || {})[n] = planning[L.id][n] || {}); (pl.shr = pl.shr || {})[j] = s.hr; delete s.hr; } });
+      // (heures notées depuis le 12/10/2026 : champ « heures » du dossier, marquées _h, jamais recopiées ici ; hc / hcm : calculées à la lecture)
+      if (c.hr && !c.hr._h) ((planning[L.id] = planning[L.id] || {})[n] = planning[L.id][n] || {}).hr = c.hr;
+      if (c.sea) Object.keys(c.sea).forEach((j) => { const s = c.sea[j]; if (s && s.hr && !s.hr._h) { const pl = ((planning[L.id] = planning[L.id] || {})[n] = planning[L.id][n] || {}); (pl.shr = pl.shr || {})[j] = s.hr; } });
+      [c].concat(Object.values(c.sea || {})).forEach((o) => { if (o) { delete o.hr; delete o.hc; delete o.hcm; } });
       if (c.hon != null || c.cons != null) { const m = ((montants.cures[L.id] = montants.cures[L.id] || {})[n] = {}); if (c.hon != null) { m.hon = c.hon; delete c.hon; } if (c.cons != null) { m.cons = c.cons; delete c.cons; } }
     });
     return L;
@@ -52,6 +55,17 @@ export function fusionner(id, doc, montants) {
       if (pl && pl.pv) c.pv = Object.assign({}, c.pv || {}, pl.pv);
       if (pl && pl.hr) c.hr = pl.hr; // heure de J1 (AG5)
       if (pl && pl.shr) Object.keys(pl.shr).forEach((j) => { c.sea = c.sea || {}; c.sea[j] = c.sea[j] || { st: "prevue" }; c.sea[j].hr = pl.shr[j]; });
+      // Heures de la séance (12/10/2026, moteur/heures.js) : doc.heures { "ligne|cure|jour": { cons, seance } } ; seance = heure et durée à
+      // l'hôpital de jour (infirmière ; passe avant l'ancienne heure du planning, null = retirée) → hr ; cons = consultation choisie par le
+      // médecin → hcm ; hc = consultation affichée (choisie, sinon juste avant la séance). Marquées _h : jamais recopiées dans le planning.
+      Object.keys(doc.heures || {}).forEach((cle) => {
+        const t = cle.split("|"), v = doc.heures[cle] || {}, j = t[2]; if (t[0] !== L.id || +t[1] !== n) return;
+        if (+j > 1 && !((v.seance && v.seance.h) || (v.cons && v.cons.h) || (c.sea && c.sea[j]))) return;
+        const o = +j === 1 ? c : ((c.sea = c.sea || {})[j] = c.sea[j] || { st: "prevue" });
+        if ("seance" in v) { if (v.seance && v.seance.h) o.hr = Object.assign({}, v.seance, { _h: 1 }); else delete o.hr; }
+        if (v.cons && v.cons.h) o.hcm = v.cons;
+      });
+      [c].concat(Object.values(c.sea || {})).forEach((o) => { if (!o) return; const k0 = consultationDe(o.hcm, o.hr); if (k0) o.hc = k0; else delete o.hc; });
       const m = M && M.cures && M.cures[L.id] && M.cures[L.id][n]; if (m) { if (m.hon != null) c.hon = m.hon; if (m.cons != null) c.cons = m.cons; }
     });
     return L;

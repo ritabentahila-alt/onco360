@@ -53,15 +53,18 @@ service cloud.firestore {
       function comptable() { return estMembre() && m().role == 'comptable'; }
       function dansPerimetre(etab) { return estMembre() && m().role != 'comptable' && (m().tousEtablissements == true || etab in m().etablissements); }
       // Champs d'un dossier patient que ce membre a le droit de modifier
-      function champsAutorises() {
+      // 12/10/2026 : fiche du membre lue une seule fois (limite du nombre d'expressions évaluées par écriture) ; droit absent = non
+      function champsAutorises() { return estMembre() ? champsDe(m().droits, m().tousEtablissements == true) : ['resume', 'version', 'maj', 'majPar']; }
+      function champsDe(d, tous) {
         return ['resume', 'version', 'maj', 'majPar']
-          .concat(droit('identite') ? ['identite'] : [])
-          .concat(droit('fichePatient') ? ['clinique'] : [])
-          .concat(droit('rendezvous') ? ['rdvsJson', 'rappels'] : []) // rappels : rappels WhatsApp envoyés (19.4)
-          .concat(droit('planningChimio') || traitementsModif() ? ['planningJson'] : [])
-          .concat(traitementsModif() ? ['lignesJson', 'clinique'] : [])
-          .concat(rtModif() ? ['rtsJson'] : [])
-          .concat(tousEtab() ? ['etablissementId', 'hopHist'] : []); // hopHist : hôpital des actes faits avant un changement (15 bis)
+          .concat(d.get('identite', false) == true ? ['identite'] : [])
+          .concat(d.get('fichePatient', false) == true ? ['clinique'] : [])
+          .concat(d.get('rendezvous', false) == true ? ['rdvsJson', 'rappels'] : []) // rappels : rappels WhatsApp envoyés (19.4)
+          // heures des séances de chimio et de leur consultation (12/10/2026, champ « heures ») : médecin, secrétaire (planning), infirmière
+          .concat(d.get('planningChimio', false) == true || d.get('traitements', '') == 'modifier' ? ['planningJson', 'heures'] : d.get('administrer', false) == true ? ['heures'] : [])
+          .concat(d.get('traitements', '') == 'modifier' ? ['lignesJson', 'clinique'] : [])
+          .concat(d.get('radiotherapie', '') == 'modifier' ? ['rtsJson'] : [])
+          .concat(tous ? ['etablissementId', 'hopHist'] : []); // hopHist : hôpital des actes faits avant un changement (15 bis)
       }
       // Fiche du patient (droit « fichePatient », secrétaire) : poids, taille, allergies… mais pas le résumé médical (clinique.notes)
       function notesInchangees() {
