@@ -264,7 +264,7 @@ longs et ne dépendent pas du code.
       « ‹ Retour à la cure » en bas de la fenêtre, à côté de Reporter / Valider (et seul en bas pour une séance validée). Jeu de test :
       5 carboplatines validés sans créatinine du jour et 2 doses de trastuzumab au-dessus de la dose calculée (dose de charge en C2)
       seraient signalés. Tests : test-doses 71/71, test_validation 25/25.
-- [x] **2.3 ter Fonction rénale pour toutes les molécules** (12/10, repères transmis par Dr Bentahila, testé) : **créatinine et DFG
+- [x] **2.3 ter Fonction rénale pour toutes les molécules** (12/10, repères transmis par Dr Bentahila, en ligne : 20261012e) : **créatinine et DFG
       (Cockcroft-Gault) dans le bloc « Bilan biologique du jour »** pour tous les protocoles (facultatifs, sauf carboplatine où la
       créatinine sert au calcul ; ils ont quitté la rangée poids / surface) ; DFG en rouge et repère écrit sous le bloc ; affichés aussi
       sur la séance validée (instantané). Table `REINS` (moteur/doses.js) : cisplatine (< 45 / 45-59), carboplatine (< 30), méthotrexate
