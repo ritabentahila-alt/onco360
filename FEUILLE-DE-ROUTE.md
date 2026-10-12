@@ -219,7 +219,7 @@ longs et ne dépendent pas du code.
       identiques**, copie des fichiers). Tests : test-exportation (10), test-sauvegarde (5), test_export.py (7) ; contrôle complet
       `avant-mise-en-ligne.sh --regles` au vert. À vérifier après la 1re nuit en ligne : création du second emplacement (journal de
       `fichiersNuit`).
-- [x] **1.7 Données propres au premier cabinet** (11/10, testé, pas encore en ligne) : « CASABLANCA » du pli → **ville du lieu**
+- [x] **1.7 Données propres au premier cabinet** (11/10, en ligne le 12/10 : version 20261012a et toutes les fonctions) : « CASABLANCA » du pli → **ville du lieu**
       (3 pages ; vide = « À REMPLIR ») ; plus de « Casablanca » par défaut (pli, courriers : « À compléter ») ; **accord selon le médecin**
       (Mon compte › « Accord dans les documents » : soussignée / soussigné, Absente / Absent ; sans choix : le texte reste tel quel,
       « Absent(e) ») : pli, courriers, badge d'absence (`accordMedecin`, `absentMedecin` de moteur/outils.js) ; **repli « HGC »** gardé
