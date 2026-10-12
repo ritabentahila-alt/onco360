@@ -264,6 +264,25 @@ longs et ne dépendent pas du code.
       « ‹ Retour à la cure » en bas de la fenêtre, à côté de Reporter / Valider (et seul en bas pour une séance validée). Jeu de test :
       5 carboplatines validés sans créatinine du jour et 2 doses de trastuzumab au-dessus de la dose calculée (dose de charge en C2)
       seraient signalés. Tests : test-doses 71/71, test_validation 25/25.
+- [x] **2.3 quater Vigilance par molécule** (12/10, demande de Dr Bentahila : « tout d'un coup », fenêtre de confirmation si quelque chose
+      cloche ; en ligne : 20261012f) : moteur `public/js/moteur/vigilance.js` (test-vigilance 58/58, test_vigilance 21/21). **Fenêtre à la
+      validation** (même fenêtre que les repères, partie « Vigilance par molécule » ; liste gardée dans `fige.vig`) : 1er traitement
+      (hépatite B, vaccins vivants, grossesse 12-50 ans) ; **dose cumulée** anthracyclines en équivalent doxorubicine (épirubicine × 0,5,
+      Caelyx non compté ; alerte à 80 % puis 100 % de 450 mg/m²) et oxaliplatine (850 mg/m²) ; FEVG (1re anthracycline, anti-HER2 :
+      non notée ou > 3 mois, < 50 %, baisse ≥ 10 points) ; 5-FU / capécitabine (uracilémie à la 1re dose, AVK → INR) ; foie (docétaxel,
+      paclitaxel, anthracyclines, irinotécan, immunothérapie) ; TSH (immunothérapie, iTK anti-angiogéniques : hors 0,3-5, non notée ou
+      > 6 semaines) ; **iTK : DFG à contrôler** si la créatinine du jour n'est pas saisie ; TA ≥ 160/100 et protéinurie (anti-VEGF :
+      non notées, ≥ 2 g/24 h ou ++, chirurgie à la 1re dose) ; magnésium (anti-EGFR, cisplatine), RAS (1re dose d'anti-EGFR) ; calcémie
+      et bilan dentaire (acide zolédronique, dénosumab) ; pémétrexed (vitamines à la 1re dose, B12 toutes les 3 cures, AINS si
+      clairance < 80) ; CDK4/6 (NFS J15 en C1-C2, ECG ribociclib) ; irinotécan (lopéramide) ; bléomycine (EFR) ; vincristine > 2 mg ;
+      **radiothérapie en cours** (gemcitabine, 5-FU / capécitabine, cisplatine, cétuximab, témozolomide, mitomycine : une fois par
+      radiothérapie). **Bilan du jour élargi** (facultatif) : bilirubine (unité de la créatinine), ASAT, ALAT, magnésium, calcémie
+      (mmol/L ou mg/L), TSH, FEVG, TA, protéinurie ; proposés selon les molécules, les autres derrière « + autres examens » ; en
+      rouge hors normes sur la séance validée. **Encart « Vigilance »** de la séance : dose cumulée, produits vésicants, notes « À
+      vérifier » (Paramètres › Listes et bibliothèques › **Vigilance des molécules**, `parametres/vigilances`, liste de départ `VIG0`
+      de 21 familles, modifiable par le médecin), vigilances confirmées. Vincristine plafonnée à 2 mg quand le protocole n'a pas de
+      plafond (calcul). Fiche de chimiothérapie : mention « vésicant ». Essai sur le jeu de test : 12 fenêtres sur 18 séances (9 = FEVG
+      non notée sous Herceptin, s'arrête dès qu'une FEVG est notée).
 - [x] **2.3 ter Fonction rénale pour toutes les molécules** (12/10, repères transmis par Dr Bentahila, en ligne : 20261012e) : **créatinine et DFG
       (Cockcroft-Gault) dans le bloc « Bilan biologique du jour »** pour tous les protocoles (facultatifs, sauf carboplatine où la
       créatinine sert au calcul ; ils ont quitté la rangée poids / surface) ; DFG en rouge et repère écrit sous le bloc ; affichés aussi
@@ -272,8 +291,7 @@ longs et ne dépendent pas du code.
       MESNA), cyclophosphamide (< 30), oxaliplatine (< 30), étoposide (< 15 / 15-50 → 75 %), bléomycine (< 50), lénalidomide (< 30 /
       30-50) ; noms reconnus avec ou sans accents ni marque. **Fenêtre** pour ces molécules seulement : à la saisie de la créatinine
       et à la validation ; pour les autres molécules, créatinine et DFG facultatifs, **sans fenêtre** (bornes de saisie de la créatinine
-      et de la clairance aussi limitées à ces molécules). Seuil d'ifosfamide (< 60) choisi par Claude faute de valeur dans les repères :
-      à confirmer par Dr Bentahila. Tests : test-doses 79/79, test_validation 31/31.
+      et de la clairance aussi limitées à ces molécules). Seuil d'ifosfamide (< 60) confirmé par Dr Bentahila le 12/10. Tests : test-doses 79/79, test_validation 31/31.
 - [x] **2.3 Bornes et prémédication** (12/10, en ligne le 12/10 : version 20261012b) : **prémédication reconnue par la DCI comme par la marque**
       (`PREMED` de moteur/doses.js : antiémétiques, corticoïdes, antihistaminiques, anti-H2 / IPP, atropine, facteurs de croissance,
       EPO, acide zolédronique, dénosumab ; même liste pour la liste des molécules des protocoles ; jours de séance inchangés) ;
@@ -439,9 +457,6 @@ les étapes 1.7, 2.5, 3.2 et 3.7.
   secrétaire au sens de 19.6 (remplacée par l'alerte d'écart > 10 % de 2.3) ; rappels WhatsApp automatiques ; assistant IA.
 
 ## À placer
-- **CKD-EPI au choix du cabinet** (information de Dr Bentahila, 12/10) : consensus ADDIKD 2022 / ASCO / ESMO : CKD-EPI recommandé, en
-  valeur absolue (ml/min, dé-standardisée par la surface corporelle) pour Calvert ; Cockcroft-Gault reste la pratique de routine
-  (aujourd'hui seule formule d'Onco360). Cisplatine : l'une ou l'autre pour le seuil.
 - `tests/test_cabinets.py` : 2 vérifications échouent depuis le 11/10 (avant 1.7, vérifié) : « Statistiques en premier » (la carte
   « Bienvenue… pour commencer » passe devant) et « Paramètres : Listes en premier, WhatsApp retiré » (les 4 familles). À vérifier :
   l'ordre des cartes et des rubriques réglé par l'administration pour un cabinet est-il encore respecté ? (étape 22 / Paramètres)

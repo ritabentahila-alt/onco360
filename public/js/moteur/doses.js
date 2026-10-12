@@ -33,7 +33,9 @@ export function calcul(d, e) {
   else if (d.u === "AUC") r = e.cl ? arr(d.d * (Math.min(e.cl, 125) + 25)) : null;
   else if (d.u === "mg_c1") r = e.n === 1 ? d.c1 : d.cn;
   else if (d.u === "mg/kg_c1") r = e.poids ? arr((e.n === 1 ? d.c1 : d.cn) * e.poids) : null;
-  if (r != null && d.max && r > d.max) r = d.max;
+  // vigilance (12/10/2026) : vincristine plafonnée à 2 mg par injection quand le protocole ne donne pas de plafond
+  const mx = d.max || (/VINCRISTINE|ONCOVIN/.test(sansAccents(d.p)) && /mg\/(m²|kg)/.test(d.u) ? 2 : null);
+  if (r != null && mx && r > mx) r = mx;
   return r;
 }
 

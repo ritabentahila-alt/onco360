@@ -18,7 +18,8 @@ import { htmlOngletProfil, apresOngletProfil, titulaireConnecte } from "./profil
 import { afficherAudit } from "./audit.js"; // onglet « Journal d'audit » (titulaire, 09/10/2026)
 import { configRcp, configChargee, chargerConfigRcp, enregistrerConfigRcp, prochainesRcp, CFG0 as RCP0, libDate } from "./rcp.js";
 import { CARTES, accueilEffectif, FICHE, CONSULT, formEffectif, ficheEffective, consultEffective, ficheRetouches, formRetouches } from "../donnees/catalogue.js";
-import { editeurFiche } from "./editeurfiche.js"; // fiche patient et formulaire de consultation du cabinet (11/10/2026)
+import { editeurFiche } from "./editeurfiche.js";
+import { htmlVigilances } from "./vigilances.js"; // notes « À vérifier » par molécule (12/10/2026) // fiche patient et formulaire de consultation du cabinet (11/10/2026)
 
 let A = null;
 export function installer(api) { A = api; A.enteteParametres = () => entete(); A.pageParametres = () => pageConfiguration(); }
@@ -85,13 +86,13 @@ let TIT = null;
 const FAMILLES = [
   ["cabinet", "hopital", "Cabinet", ["lieux", "accueil", "fiche", "consultation", "impression", "audit", "export"]],
   ["agenda", "agenda", "Agenda et rappels", ["horaires", "fermetures", "couleurs", "whatsapp", "rcp", "alertes"]],
-  ["listes", "liste", "Listes et bibliothèques", ["listes", "bibliotheques", "documents", "taches"]],
+  ["listes", "liste", "Listes et bibliothèques", ["listes", "bibliotheques", "vigilances", "documents", "taches"]],
   ["finances", "bilan", "Finances", ["activites"]],
 ];
 const RUB = { lieux: ["hopital", "Lieux d'exercice"], accueil: ["accueil", "Tableau de bord"], fiche: ["profil", "Fiche patient"], consultation: ["stetho", "Formulaire de consultation"],
   impression: ["imprimer", "Impression"], audit: ["liste", "Journal d'audit"], export: ["telecharger", "Export des données"], horaires: ["horloge", "Horaires"], fermetures: ["avion", "Congés et jours fériés"],
   couleurs: ["agenda", "Google Agenda"], whatsapp: ["whatsapp", "WhatsApp"], rcp: ["rcp", "RCP"], alertes: ["alerte", "Alertes"], listes: ["liste", "Listes"],
-  bibliotheques: ["pilule", "Bibliothèques"], documents: ["document", "Types de documents"], taches: ["taches", "Tâches"], activites: ["bilan", "Activités et rémunérations"] };
+  bibliotheques: ["pilule", "Bibliothèques"], vigilances: ["alerte", "Vigilance des molécules"], documents: ["document", "Types de documents"], taches: ["taches", "Tâches"], activites: ["bilan", "Activités et rémunérations"] };
 const famDe = (k) => (FAMILLES.find((f) => f[3].indexOf(k) >= 0) || FAMILLES[0])[0];
 // Rubriques présentes, dans l'ordre des familles ; dans une famille, l'ordre du réglage du cabinet (Administration)
 const ONGLETS = () => FAMILLES.reduce((l, f) => l.concat(f[3]), [])
@@ -110,7 +111,7 @@ const HORS_BIB = ["lieux", "acces", "audit", "export", "accueil", "fiche", "cons
 const ONGLETS_SEC = ["horaires", "fermetures", "whatsapp", "documents", "taches", "rcp", "listes", "impression", "alertes"];
 const MSG_SEC = { lieux: "Vous pouvez compléter l'adresse, le téléphone et la ville de votre lieu (« Compléter »).", horaires: "Vous pouvez régler les horaires de vos lieux.", taches: "Vous pouvez modifier les types de tâches ; les tâches automatiques sont réglées par le médecin." };
 const secretariat = () => A.peut("secretariat") && !A.D().bib;
-const MODULE_ONGLET = { couleurs: "gagenda", taches: "taches", rcp: "rcp", listes: "listes", bibliotheques: "prescriptions" };
+const MODULE_ONGLET = { vigilances: "chimio", couleurs: "gagenda", taches: "taches", rcp: "rcp", listes: "listes", bibliotheques: "prescriptions" };
 const DERN = {}; // dernière rubrique ouverte de chaque famille
 function entete() {
   const L = ONGLETS(), fam = famDe(ONG), sous = L.filter((o) => famDe(o[0]) === fam);
@@ -179,6 +180,7 @@ const RUBRIQUES = {
   documents(c) {
     return '<section class="carte">' + titre("document", "Types de documents") + '<p class="sous">Menu « Type » de l\'onglet Documents du dossier. Les documents déjà déposés gardent leur type.</p>' + typesListe(ED.tdoc, c.okE, c.disE, "cfTd", "Ajouter un type") + "</section>";
   },
+  vigilances(c) { return htmlVigilances(c.ok); },
   audit() { return '<div id="cfAudit"></div>'; },
   // Export complet du cabinet (étape 1.6, 11/10/2026) : médecin titulaire ; préparé par le serveur (exporterCabinet), téléchargé ici
   export() {
@@ -329,7 +331,7 @@ export function pageConfiguration(arg) {
   let h = entete();
   if (!ok && !(ONG === "bibliotheques" && A.peut("ecrireConsultations")) && !(okE && !MSG_SEC[ONG])) h += '<p class="mesures">' + (ONG === "couleurs" ? "Votre Google Agenda et ses couleurs : réglages personnels." : sec && MSG_SEC[ONG] ? MSG_SEC[ONG] : "Lecture seule : la modification demande le droit « paramètres ».") + "</p>";
   h += (RUBRIQUES[ONG] || RUBRIQUES.fermetures)({ ok, okE, disE, dis, sec });
-  if (okE && ["bibliotheques", "lieux", "acces", "audit", "export"].indexOf(ONG) < 0) h += '<div class="barre-enr">' + (ok || ["horaires", "fermetures"].indexOf(ONG) < 0 ? '<button class="bt gris" onclick="cfDefaut()">↺ Valeurs par défaut</button>' : "<span></span>") + '<span id="cfMod" class="mesures' + (MOD ? "" : " cache") + '">Modifications non enregistrées</span><button class="bt plein" id="cfOk" onclick="cfEnregistrer()"><svg class="pi"><use href="#i-enregistrer"/></svg>Enregistrer</button></div>';
+  if (okE && ["bibliotheques", "vigilances", "lieux", "acces", "audit", "export"].indexOf(ONG) < 0) h += '<div class="barre-enr">' + (ok || ["horaires", "fermetures"].indexOf(ONG) < 0 ? '<button class="bt gris" onclick="cfDefaut()">↺ Valeurs par défaut</button>' : "<span></span>") + '<span id="cfMod" class="mesures' + (MOD ? "" : " cache") + '">Modifications non enregistrées</span><button class="bt plein" id="cfOk" onclick="cfEnregistrer()"><svg class="pi"><use href="#i-enregistrer"/></svg>Enregistrer</button></div>';
   A.$("page").innerHTML = h;
   if (A.$("cfProfil")) { const o = ONG === "couleurs" ? "gagenda" : ONG; htmlOngletProfil(o).then((x) => { const z = A.$("cfProfil"); if (z && ONG === (o === "gagenda" ? "couleurs" : o)) { z.innerHTML = x; apresOngletProfil(o); } }).catch((e) => { const z = A.$("cfProfil"); if (z) z.innerHTML = '<p class="sous" style="color:var(--rouge)">Lecture impossible : ' + A.esc(e.message || String(e)) + "</p>"; }); }
   if (ONG === "audit") afficherAudit(A.$("cfAudit"));
