@@ -250,12 +250,16 @@ longs et ne dépendent pas du code.
       `tests/test_figer.py` 9/9 (12 cures du jeu de test figées une fois, rien refait au 2e démarrage, validation et annulation à
       l'écran), cures, séances, démo, accueil. Non fait : valeurs avant / après dans le journal d'audit (le figeage empêche déjà tout
       changement silencieux d'une dose donnée).
-- [ ] **2.3 Bornes et prémédication** (décisions : poids 30-200 kg, clairance 30-200 ml/min, dose vide refusée ; taille 120-220 cm, surface 1,2-2,6 m², créatinine 3-30 mg/L, écart de poids > 10 %) :
-      confirmation au-delà des bornes ; **validation refusée** si la dose d'une molécule est vide ou nulle, ou carboplatine sans
-      créatinine ; unité de la créatinine affichée à la saisie ; poids saisi par la secrétaire qui s'écarte de plus de 10 % →
-      alerte au médecin (cloche, bloc « À valider »). Prémédication reconnue par **classe** dans le dictionnaire des molécules
-      (`DICT`, 83 entrées : antiémétiques, corticoïdes, antihistaminiques, atropine, facteurs de croissance, EPO, acide
-      zolédronique, dénosumab ; DCI et marques) à la place de `RE_PREMED` (moteur/doses.js 5) et de la liste de protocoles.js.
+- [x] **2.3 Bornes et prémédication** (12/10, testé, pas encore en ligne) : **prémédication reconnue par la DCI comme par la marque**
+      (`PREMED` de moteur/doses.js : antiémétiques, corticoïdes, antihistaminiques, anti-H2 / IPP, atropine, facteurs de croissance,
+      EPO, acide zolédronique, dénosumab ; même liste pour la liste des molécules des protocoles ; jours de séance inchangés) ;
+      **contrôle avant validation** (`controleSeance`, `verifierValidation` de chimio.js) : dose d'un anticancéreux **impossible à
+      calculer** (vide : sans surface, sans poids, carboplatine sans créatinine) → **validation refusée** avec la raison ; une dose à 0
+      **voulue** (0 mg/m² au protocole, 0 % décidé) reste permise (constaté sur le jeu de test : FOLFOX sans bolus, trastuzumab à 0 % en
+      C1) ; valeurs hors des seuils (poids 30-200 kg, taille 120-220 cm, surface 1,2-2,6 m², créatinine 3-30 mg/L ou 25-265 µmol/L,
+      clairance 30-200 ml/min, poids qui varie de plus de 10 % depuis la séance précédente) → confirmation ; **poids saisi** (médecin
+      ou secrétaire) hors seuils ou qui varie de plus de 10 % → confirmation à la saisie. Essai sur les 64 séances du jeu de test :
+      aucune alerte, aucun refus. Tests : test-doses 57/57 (essais 2 à 4 et 11 de l'audit), `tests/test_validation.py` 13/13.
 - [ ] **2.4 Protocoles tracés** : **un document par protocole** (fin des blocs `lib_0…10` qui s'écrasent quand deux protocoles du
       même bloc sont modifiés) ; version (+1 à chaque modification), validé par, le, **source** (référentiel, article) ;
       modification d'un protocole validé → « à valider » ; une fois : protocoles sans statut marqués « Validé (avant le
@@ -270,10 +274,11 @@ longs et ne dépendent pas du code.
       libellé « Séances prévues à ce jour » partout ; document Rendez-vous « Calendrier théorique » ; plus d'impression des
       mentions « à compléter » / « À REMPLIR » : avertissement avant d'imprimer, comme les courriers ; ligne de signature du
       compte rendu gardée avec son texte (pas seule en page 2).
-- [ ] **2.6 Rappel du bilan avant cure** (décision : simple rappel) : à la validation d'une cure, « Bilan biologique vu ? » avec
-      saisie facultative (PNN, plaquettes, hémoglobine, créatinine) gardée dans `fige` ; sous des seuils (proposés : PNN < 1 500,
-      plaquettes < 100 000) → message, jamais de blocage. Avec les **alertes cliniques** du tableau de bord (perte de poids > 5 %
-      / 10 % depuis le début de la ligne, clairance basse avant carboplatine / cisplatine) : seuils à choisir par Dr Bentahila.
+- [x] **2.6 Rappel du bilan avant cure** (12/10, testé, pas encore en ligne) : dans la zone de validation de J1 et de chaque séance,
+      « Bilan biologique du jour (facultatif) » : PNN, plaquettes, hémoglobine, gardés dans l'instantané (`fige.bio`) ; PNN < 1 500 ou
+      plaquettes < 100 000 /mm³ → message avant de valider (`SEUILS_BIO`), jamais de blocage ; rien n'est demandé si les cases restent
+      vides. **Reste à décider par Dr Bentahila** : alertes cliniques du tableau de bord (perte de poids depuis le début de la ligne :
+      5 % ou 10 % ? clairance basse avant carboplatine / cisplatine : seuil ?) ; seuil d'hémoglobine éventuel.
 
 ## Phase 3 – Métier (dossier oncologique, radiothérapie, chimiothérapie, prescriptions)
 

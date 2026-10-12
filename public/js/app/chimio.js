@@ -5,7 +5,7 @@ import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/fi
 import { db } from "../config.js";
 import { fusionner, separer } from "../donnees/conversion.js";
 import { statutLigne, ligneCourante } from "../moteur/resume.js";
-import { etatLigne, protocoleDe, protocoleCure, seancesCure, seancesDe, dedupIds, joursDe, clairance, jourVersSeance, instantane } from "../moteur/doses.js";
+import { etatLigne, protocoleDe, protocoleCure, seancesCure, seancesDe, dedupIds, joursDe, clairance, jourVersSeance, instantane, controleSeance, poidsAvant } from "../moteur/doses.js";
 import { addJ, ecart, num, age } from "../moteur/outils.js";
 import { tarif } from "../moteur/tarifs.js";
 import { typeRdv, T_RTC } from "../moteur/rdv.js";
@@ -284,6 +284,8 @@ function vueJour(x, i, k, j) {
     else if (e.st === "annulee") h += '<span class="badge b-al">✖ Cure annulée</span>';
     else if (okT) h += '<div class="form" style="grid-template-columns:minmax(0,220px) 1fr;align-items:end"><div><label for="vD">Date de réalisation</label>' + dateInput("vD", D().t) + "</div>" +
       (e.date ? '<div class="mesures" id="vSz">' + choixSuite("vS", "Si la date diffère de la date prévue (" + A.dfrA(e.date) + ")") + "</div>" : "<div></div>") + "</div>" +
+      '<div class="form bio-j" style="grid-template-columns:repeat(3,minmax(0,1fr));margin-top:8px"><div class="large" style="grid-column:1/-1"><span class="mesures">Bilan biologique du jour (facultatif, gardé avec la séance validée)</span></div>' +
+      '<div><label for="bPnn">PNN (/mm³)</label><input id="bPnn" inputmode="numeric" placeholder="ex. 2500"></div><div><label for="bPlq">Plaquettes (/mm³)</label><input id="bPlq" inputmode="numeric" placeholder="ex. 180000"></div><div><label for="bHb">Hémoglobine (g/dL)</label><input id="bHb" inputmode="decimal" placeholder="ex. 11,5"></div></div>' +
       '<div class="err" id="fErr"></div><div class="boutons" style="margin-top:8px"><button class="bt gris" data-fn="chimio.report" style="color:#B46A00" onclick="chReporter(' + qc + ')">↪ Reporter' + (multi ? " J1 (la cure)" : " la cure") + '</button><button class="bt vert" id="fOk" onclick="chValiderJ1(' + qc + ')"><svg class="pi"><use href="#i-check"/></svg>' + (multi ? "Valider J1" : "Valider la cure") + "</button></div>";
   } else if (sea) {
     const rp = ((c.sea || {})[j] || {}).rep || [];
@@ -293,6 +295,8 @@ function vueJour(x, i, k, j) {
     else if (sea.st === "recue") h += '<span class="badge b-ch"><svg class="pi"><use href="#i-check"/></svg>' + etiquette(gr) + " reçue le " + A.dfrA(sea.d) + "</span>" + (okT ? ' <a href="#" class="lienr" onclick="chAnnulerSeance(' + qc + "," + j + ');return false">annuler la validation</a>' : "");
     else if (okT) h += '<div class="form" style="grid-template-columns:minmax(0,220px) 1fr;align-items:end"><div><label for="sD">Date de réalisation</label>' + dateInput("sD", sea.prevue && ecart(sea.prevue, D().t) <= 0 ? sea.prevue : D().t) + "</div>" +
       (sea.prevue ? "<div>" + choixSuite("sS", "Si la date diffère de la date prévue (" + A.dfrA(sea.prevue) + ")") + "</div>" : "<div></div>") + "</div>" +
+      '<div class="form bio-j" style="grid-template-columns:repeat(3,minmax(0,1fr));margin-top:8px"><div class="large" style="grid-column:1/-1"><span class="mesures">Bilan biologique du jour (facultatif, gardé avec la séance validée)</span></div>' +
+      '<div><label for="bPnn">PNN (/mm³)</label><input id="bPnn" inputmode="numeric" placeholder="ex. 2500"></div><div><label for="bPlq">Plaquettes (/mm³)</label><input id="bPlq" inputmode="numeric" placeholder="ex. 180000"></div><div><label for="bHb">Hémoglobine (g/dL)</label><input id="bHb" inputmode="decimal" placeholder="ex. 11,5"></div></div>' +
       '<div class="err" id="fErr"></div><div class="boutons" style="margin-top:8px"><button class="bt gris" style="color:#B46A00" onclick="chReporterJ(' + qc + "," + j + ')">↪ Reporter ' + etiquette(gr) + '</button><button class="bt vert" id="fOk" onclick="chValiderJ(' + qc + "," + j + ')"><svg class="pi"><use href="#i-check"/></svg>Valider ' + etiquette(gr) + "</button></div>";
   }
   return h + "</div>";
@@ -366,6 +370,22 @@ export async function figerCuresValidees(x) {
   return n;
 }
 
+// 2.3 et 2.6 (12/10/2026) : avant de valider la séance n (0 = J1) de la cure k : doses manquantes → refus ; valeurs hors des seuils →
+// confirmation ; bilan biologique du jour (facultatif) sous les seuils proposés (PNN < 1 500, plaquettes < 100 000 /mm³) → message,
+// jamais de blocage. Renvoie le bilan saisi (gardé avec l'instantané), ou null si la validation est arrêtée.
+export const SEUILS_BIO = { pnn: 1500, plq: 100000 };
+function verifierValidation(x, i, k, n) {
+  const L = lignesDe(x)[i], E = etatLigne(L, x.P, D().ctx), r = controleSeance(E[k], n, L.crU, poidsAvant(E, k, n));
+  if (r.refus.length) { alert("Validation impossible :\n\n• " + r.refus.join("\n• ") + "\n\nCorrigez la dose (ou saisissez la créatinine) dans la fenêtre de la cure, puis validez."); return null; }
+  const nb = (id) => { const v = num(A.val(id)); return v == null ? null : v; }, bio = { pnn: nb("bPnn"), plq: nb("bPlq"), hb: nb("bHb") };
+  Object.keys(bio).forEach((key) => { if (bio[key] == null) delete bio[key]; });
+  const al = r.alertes.slice();
+  if (bio.pnn != null && bio.pnn < SEUILS_BIO.pnn) al.push("PNN à " + bio.pnn + " /mm³ (moins de " + SEUILS_BIO.pnn + ")");
+  if (bio.plq != null && bio.plq < SEUILS_BIO.plq) al.push("plaquettes à " + bio.plq + " /mm³ (moins de " + SEUILS_BIO.plq + ")");
+  if (al.length && !confirm("Vérifiez avant de valider :\n\n• " + al.join("\n• ") + "\n\nValider quand même ?")) return null;
+  return bio;
+}
+
 // ───── Cures ─────
 window.chDate = (id, i, k, v) => {
   const x = trouver(id); if (!v) { A.pageDossier(id); return; }
@@ -379,12 +399,13 @@ window.chDate = (id, i, k, v) => {
 };
 window.chValider = (id, i, k) => window.chOuvrir(id, i, k, 1);
 window.chValiderJ1 = (id, i, k) => {
-  const x = trouver(id);
+  const x = trouver(id), bio = verifierValidation(x, i, k, 0); if (!bio) return;
   executer(x, async () => {
     const d = A.val("vD") || D().t, lignes = lignesDe(x), L = lignes[i], c = L.cures[k], E = etatLigne(L, x.P, D().ctx), g = seancesDe(protocoleCure(L, k, D().ctx.bib) || protocoleDe(L, D().ctx.bib));
     if (E[k] && E[k].date && d !== E[k].date) { if (choix("vS") === "suite") decalerSuivantes(L, k, ecart(d, E[k].date), x.P); else figerSuivantes(L, k, E); }
     c.st = "recue"; c.reelle = d; c.valLe = new Date().toISOString();
     c.fige = figer(L, x, k, 0); // 2.2 : doses et paramètres figés à la validation
+    if (Object.keys(bio).length) c.fige.bio = bio; // 2.6 : bilan du jour
     if (g.length > 1) { c.sea = c.sea || {}; g.slice(1).forEach((s) => { if (!c.sea[s.j]) c.sea[s.j] = { st: "prevue" }; }); }
     await sauverLignes(x, lignes, "Cure C" + (k + 1) + " validée (" + A.dfrA(d) + ")");
     SEL.pid = x.id; SEL.l = i; SEL.c = k; if (CM) CM.j = null;
@@ -431,7 +452,7 @@ window.chFiche = (id, i, k) => {
 
 // ───── Séances J8 / J15… ─────
 window.chValiderSeance = (id, i, k, j) => window.chOuvrir(id, i, k, j);
-window.chValiderJ = (id, i, k, j) => { const x = trouver(id); executer(x, async () => { await majSeance(x, i, k, j, A.val("sD") || D().t, true); if (CM) CM.j = null; }).then((ok) => { if (ok) proposerPrix(x.id, x.P.lignes[i].id, k + 1, j); }); };
+window.chValiderJ = (id, i, k, j) => { const x = trouver(id), L0 = lignesDe(x)[i], n0 = seancesDe(protocoleCure(L0, k, D().ctx.bib) || protocoleDe(L0, D().ctx.bib)).findIndex((g) => g.j === j), bio = verifierValidation(x, i, k, n0 > 0 ? n0 : 0); if (!bio) return; executer(x, async () => { await majSeance(x, i, k, j, A.val("sD") || D().t, true, null, bio); if (CM) CM.j = null; }).then((ok) => { if (ok) proposerPrix(x.id, x.P.lignes[i].id, k + 1, j); }); };
 window.chDateSeance = (id, i, k, j, v) => {
   const x = trouver(id); if (!v) return;
   A.fenetre("<h3>Nouvelle date de J" + j + " – cure C" + (k + 1) + '</h3><p class="sous">→ <b>' + A.dfrA(v) + '</b></p><div class="form">' + choixSuite("sS", "Séances et cures suivantes") + "</div>" + boutons("Enregistrer"));
@@ -451,7 +472,7 @@ window.chReporterJ = (id, i, k, j, salle) => {
     if (CM) CM.j = null;
   });
 };
-async function majSeance(x, i, k, j, nd, valider, rep) {
+async function majSeance(x, i, k, j, nd, valider, rep, bio) {
   const lignes = lignesDe(x), L = lignes[i], c = L.cures[k], Ek = etatLigne(L, x.P, D().ctx), sea = seancesCure(L, Ek[k], D().ctx.bib), s0 = sea.find((z) => z.j === j), old = s0 && s0.prevue;
   c.sea = c.sea || {}; const z = c.sea[j] || { st: "prevue" };
   if (old && nd !== old) {
@@ -461,7 +482,7 @@ async function majSeance(x, i, k, j, nd, valider, rep) {
   if (valider) { z.st = "recue"; z.d = nd; z.valLe = new Date().toISOString(); } else z.fixe = nd;
   if (rep) { z.rep = z.rep || []; z.rep.push(rep); }
   c.sea[j] = z;
-  if (valider) { const n = seancesDe(protocoleCure(L, k, D().ctx.bib) || protocoleDe(L, D().ctx.bib)).findIndex((g) => g.j === j); z.fige = figer(L, x, k, n > 0 ? n : 0); } // 2.2
+  if (valider) { const n = seancesDe(protocoleCure(L, k, D().ctx.bib) || protocoleDe(L, D().ctx.bib)).findIndex((g) => g.j === j); z.fige = figer(L, x, k, n > 0 ? n : 0); if (bio && Object.keys(bio).length) z.fige.bio = bio; } // 2.2 (et bilan du jour, 2.6)
   await sauverLignes(x, lignes, "Séance J" + j + " de la C" + (k + 1) + (valider ? " validée (" : rep ? " reportée au " : " déplacée au ") + A.dfrA(nd) + (valider ? ")" : rep ? " (" + rep.raison + ")" : ""));
 }
 window.chAnnulerJ = (id, i, k, j) => {
@@ -540,6 +561,15 @@ window.chHon = (id, i, k, j, v) => { const x = trouver(id), L = x.P.lignes[i]; d
 // Poids, créatinine, % des anticancéreux : à J1 dans la cure, à J8/J15… dans la séance (c.sea[j])
 window.chChamp = (id, i, k, f, v, j) => {
   const x = trouver(id); j = j || 1;
+  // 2.3 (12/10/2026) : poids hors de 30-200 kg ou qui varie de plus de 10 % depuis la séance précédente → confirmation (médecin et
+  // secrétaire) ; le médecin le revoit de toute façon au moment de valider (controleSeance)
+  if (f === "poids" && String(v || "").trim()) {
+    const w = num(v), L0 = lignesDe(x)[i], E0 = etatLigne(L0, x.P, D().ctx), g0 = seancesDe(protocoleCure(L0, k, D().ctx.bib) || protocoleDe(L0, D().ctx.bib));
+    const n0 = Math.max(0, g0.findIndex((z) => z.j === j)), av = E0[k] ? poidsAvant(E0, k, n0) : null, msg = [];
+    if (w != null && (w < 30 || w > 200)) msg.push("Poids de " + w + " kg : hors de 30 à 200 kg.");
+    if (w != null && av && Math.abs(w - av) / av > 0.1) msg.push("Le poids passe de " + av + " à " + w + " kg (" + (w > av ? "+" : "") + Math.round((w - av) / av * 100) + " %) depuis la séance précédente.");
+    if (msg.length && !confirm(msg.join("\n") + "\n\nConfirmer ce poids ?")) { A.pageDossier(x.id); return; }
+  }
   if (f === "poids" && !A.traitMod()) { direct(x, () => poidsSecretaire(x, lignesDe(x)[i], k, j, v)); return; }
   direct(x, async () => {
     const lignes = lignesDe(x), L = lignes[i], c = L.cures[k], w = String(v || "").replace(",", ".").trim();

@@ -2,7 +2,7 @@
 // Valeurs attendues calculées à la main (formules : Mosteller, Cockcroft-Gault mg/L et µmol/L, Calvert plafonné à 125).
 // Patients et protocoles fictifs, écrits ici. Les essais de l'audit n° 2 (taille modifiée après validation, prémédication écrite
 // en DCI…) sont repris tels quels : ils doivent rester vrais.
-import { surface, clairance, calcul, etatLigne, protocoleCure, seancesDe, seancesCure, premed, instantane } from "../../public/js/moteur/doses.js";
+import { surface, clairance, calcul, etatLigne, protocoleCure, seancesDe, seancesCure, premed, instantane, controleSeance, poidsAvant } from "../../public/js/moteur/doses.js";
 
 let ok = 0, ko = 0;
 const cas = (nom, v, d) => { if (v) { ok++; console.log("  ✔ " + nom); } else { ko++; console.log("  ✘ " + nom + (d === undefined ? "" : "  " + JSON.stringify(d).slice(0, 400))); } };
@@ -107,6 +107,35 @@ const Ej2 = etatLigne(lj, patient(), CTX);
 cas("séance J8 validée : poids modifié ensuite sans effet sur J8 (1740 mg)", Ej2[0].dj[0][8].dose === 1740 && Ej2[0].dj[0][8].fige === true, Ej2[0].dj[0]);
 const lr = copie(lf); lr.cures[0] = {};
 cas("validation annulée (instantané retiré) : la cure suit de nouveau le dossier", etatLigne(lr, patient({ taille: "182" }), CTX)[0].doses[0] === 157);
+
+console.log("7. Contrôle avant validation (2.3, audit n° 2 essais 2 à 4)");
+let K = etatLigne(ligne(), patient({ taille: "162" }), CTX);
+let r = controleSeance(K[0], 0, "mgL", null);
+cas("cure normale : ni refus ni alerte", !r.refus.length && !r.alertes.length, r);
+const l640 = ligne(); l640.cures[2] = { poids: "640" }; K = etatLigne(l640, patient({ taille: "182" }), CTX);
+r = controleSeance(K[2], 0, "mgL", poidsAvant(K, 2, 0));
+cas("640 kg : alerte poids, surface et variation (+967 %)", r.alertes.some((a) => /poids de 640/.test(a)) && r.alertes.some((a) => /surface/.test(a)) && r.alertes.some((a) => /\+967 %/.test(a)) && !r.refus.length, r);
+const l6 = ligne(); l6.cures[2] = { poids: "6.4" }; K = etatLigne(l6, patient({ taille: "182" }), CTX);
+cas("6,4 kg : alerte", controleSeance(K[2], 0, "mgL", 60).alertes.some((a) => /poids de 6.4/.test(a)));
+K = etatLigne(ligne(), patient({ taille: "1.62" }), CTX);
+cas("taille saisie en mètres (1,62) : alerte « saisie en mètres ? »", controleSeance(K[0], 0, "mgL", null).alertes.some((a) => /mètres/.test(a)));
+K = etatLigne(lc("0.7", "mgL"), patient({ sexe: "H" }), CTX); r = controleSeance(K[0], 0, "mgL", null);
+cas("créatinine 0,7 mg/L (clairance 1111) : alertes créatinine et clairance", r.alertes.some((a) => /créatinine de 0.7 mg\/L/.test(a)) && r.alertes.some((a) => /clairance de/.test(a)), r);
+K = etatLigne(lc("70", "mgL"), patient({ sexe: "H" }), CTX); r = controleSeance(K[0], 0, "mgL", null);
+cas("créatinine 70 mg/L (clairance 11) : alertes", r.alertes.some((a) => /créatinine de 70/.test(a)) && r.alertes.some((a) => /clairance de 11/.test(a)), r);
+K = etatLigne(lc("88", "umol"), patient({ sexe: "H" }), CTX);
+cas("88 µmol/L : pas d'alerte (bonne unité)", !controleSeance(K[0], 0, "umol", null).alertes.length);
+K = etatLigne(lc("", "mgL"), patient({ sexe: "H" }), CTX); r = controleSeance(K[0], 0, "mgL", null);
+cas("carboplatine sans créatinine : validation refusée", r.refus.length === 1 && /CARBOPLATINE.*créatinine manquante/.test(r.refus[0]), r);
+K = etatLigne(ligne(), patient({ taille: "" }), CTX); r = controleSeance(K[0], 0, "mgL", null);
+cas("sans taille (pas de surface) : doses impossibles → refus ; prémédication non concernée", r.refus.some((x) => /EPIRUBICINE/.test(x)) && r.refus.some((x) => /CYCLOPHOSPHAMIDE/.test(x)) && !r.refus.some((x) => /ONDANSETRON|SOLUMEDROL/.test(x)), r);
+const l0 = ligne(); l0.cures[0] = { pct: { epi: 0 } }; K = etatLigne(l0, patient({ taille: "162" }), CTX);
+cas("0 % décidé pour une molécule (non donnée cette cure) : permis", !controleSeance(K[0], 0, "mgL", null).refus.length);
+const l11 = ligne(); l11.cures[1] = { poids: "53" }; K = etatLigne(l11, patient({ taille: "162" }), CTX);
+cas("perte de poids de 12 % depuis la cure précédente : alerte ; 5 % : rien", controleSeance(K[1], 0, "mgL", poidsAvant(K, 1, 0)).alertes.some((a) => /60 à 53 kg \(-12 %\)/.test(a)) &&
+  !controleSeance(etatLigne(Object.assign(ligne(), { cures: [{}, { poids: "57" }, {}, {}] }), patient({ taille: "162" }), CTX)[1], 0, "mgL", 60).alertes.length);
+const lgv = copie(lg); K = etatLigne(lgv, patient(), CTX);
+cas("J8 : poids comparé à J1 (70 → 64 kg, -9 % : rien)", !controleSeance(K[0], 1, "mgL", poidsAvant(K, 0, 1)).alertes.length && poidsAvant(K, 0, 1) === 70);
 
 console.log("\n" + ok + " réussis, " + ko + " échoués");
 process.exit(ko ? 1 : 0);

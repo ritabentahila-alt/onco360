@@ -2,7 +2,7 @@
 // (cancer › localisation › situation › sous-groupe), recherche, favoris, statut Validé / Non validé, création et modification.
 import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { db } from "../config.js";
-import { dedupIds } from "../moteur/doses.js";
+import { dedupIds, premed } from "../moteur/doses.js";
 import { tableMol, edValide, editerAvec, menusCascade, valeursCascade } from "./chimio.js";
 
 let A = null;
@@ -12,7 +12,7 @@ const CLES = ["c", "o", "s", "g"];
 let CF = { c: "", o: "", s: "", g: "", q: "", fav: 0, st: "" }, ED = null, REDESSINER = null;
 const sa = (s) => String(s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 const BIB = () => Object.values(D().ctx.bib).filter((p) => p && p.nom);
-const molecules = (p) => (p.dr || []).map((d) => d.p).filter((n) => !/SOLUMEDROL|ONSET|ATARAX|ATROPINE|Retrait|Fin du diffuseur/.test(n)).join(", ");
+const molecules = (p) => (p.dr || []).filter((d) => !premed(d) && !/Retrait|Fin du diffuseur/.test(d.p)).map((d) => d.p).join(", "); // 2.3 : même liste que le calcul
 const valide = (p) => p.st === "ok" || !p.st;
 const badgeSt = (p) => (valide(p) ? '<span class="badge b-ch"><svg class="pi"><use href="#i-check"/></svg>Validé</span>' : '<span class="badge b-or"><i class="dot j"></i>Non validé</span>');
 

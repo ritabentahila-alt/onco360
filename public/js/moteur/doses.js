@@ -2,9 +2,17 @@
 // Reprise à l'identique de l'application v1 (fonctions etat, calcul, clairance, seancesDe, seaInfo_), sans variable globale.
 import { num, arr, addJ, ecart, age } from "./outils.js";
 
-const RE_PREMED = /SOLUMEDROL|ONSET|ATARAX|ATROPINE|NIVESTIM|RECORMON|ZOMETA|ACIDE ZOL/i;
-// A12 – prémédication / texte libre : pas de réduction de dose globale
-export const premed = (d) => d.u === "txt" || RE_PREMED.test(d.p);
+// A12 – prémédication et traitements de support : pas de réduction de dose globale. 2.3 (12/10/2026, audit) : reconnus par la DCI
+// comme par la marque (« ONDANSETRON » était réduit, « ONSET » non) : antiémétiques, corticoïdes, antihistaminiques, anti-H2 et IPP,
+// atropine, facteurs de croissance, érythropoïétines, acide zolédronique et dénosumab.
+export const PREMED = ["SOLUMEDROL", "METHYLPREDNISOLONE", "DEXAMETHASONE", "BETAMETHASONE", "CELESTENE", "PREDNISOLONE", "SOLUPRED", "HYDROCORTISONE",
+  "ONSET", "ONDANSETRON", "ZOPHREN", "GRANISETRON", "KYTRIL", "PALONOSETRON", "ALOXI", "APREPITANT", "FOSAPREPITANT", "EMEND", "NETUPITANT", "AKYNZEO",
+  "METOCLOPRAMIDE", "PRIMPERAN", "DOMPERIDONE", "ATARAX", "HYDROXYZINE", "POLARAMINE", "DEXCHLORPHENIRAMINE", "ATROPINE",
+  "RANITIDINE", "FAMOTIDINE", "OMEPRAZOLE", "ESOMEPRAZOLE", "MOPRAL", "INEXIUM",
+  "NIVESTIM", "FILGRASTIM", "ZARZIO", "GRANOCYTE", "LENOGRASTIM", "NEULASTA", "PEGFILGRASTIM",
+  "RECORMON", "EPREX", "EPOETINE", "ARANESP", "DARBEPOETINE", "ZOMETA", "ACIDE ZOL", "XGEVA", "PROLIA", "DENOSUMAB"];
+const sansAccents = (t) => String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
+export const premed = (d) => d.u === "txt" || PREMED.some((m) => sansAccents(d.p).indexOf(m) >= 0);
 
 // A1 – surface corporelle (Mosteller), 2 décimales
 export const surface = (poids, taille) => (poids && taille ? Math.round(Math.sqrt((poids * taille) / 3600) * 100) / 100 : null);
@@ -130,6 +138,33 @@ export function instantane(e, n) {
   }));
   return { taille: e.taille, age: e.age, poids: G.poids, creat: G.creat, sc: G.sc, cl: G.cl, doses };
 }
+
+// 2.3 (12/10/2026, audit) – contrôle d'une séance avant sa validation (n = 0 pour J1) : `refus` = dose d'un anticancéreux impossible à
+// calculer (vide : sans surface, sans poids, sans créatinine…) → validation impossible ; une dose à 0 voulue (0 mg/m² au protocole,
+// 0 % décidé) reste permise ; `alertes` = valeurs hors des seuils décidés par Dr Bentahila (validation après
+// confirmation). poidsAvant : poids de la séance précédente (variation > 10 %).
+export const SEUILS = { poids: [30, 200], taille: [120, 220], sc: [1.2, 2.6], creatMgL: [3, 30], creatUmol: [25, 265], cl: [30, 200], variation: 10 };
+export function controleSeance(e, n, crU, poidsAvant) {
+  const G = (e.g || [])[n] || {}, refus = [], alertes = [], S = SEUILS, hors = (v, [a, b]) => v != null && (v < a || v > b);
+  (e.dj || []).forEach((dj, x) => {
+    const P = (e.prod || [])[x] || {}; if (premed(P)) return;
+    (G.days || [1]).concat(n === 0 ? [99] : []).forEach((j) => {
+      const z = dj[j]; if (!z) return;
+      if (z.dose == null) refus.push(P.p + " (J" + (j === 99 ? 1 : j) + ") : " + (P.u === "AUC" && G.creat == null ? "créatinine manquante, dose impossible à calculer" : "dose manquante"));
+    });
+  });
+  if (hors(G.poids, S.poids)) alertes.push("poids de " + G.poids + " kg (hors de " + S.poids.join(" à ") + " kg)");
+  if (hors(e.taille, S.taille)) alertes.push("taille de " + e.taille + " cm (hors de " + S.taille.join(" à ") + " cm : saisie en mètres ?)");
+  if (hors(G.sc, S.sc)) alertes.push("surface corporelle de " + G.sc + " m² (hors de " + S.sc.join(" à ") + " m²)");
+  const sc = crU === "mgL" ? S.creatMgL : S.creatUmol;
+  if (hors(G.creat, sc)) alertes.push("créatinine de " + G.creat + (crU === "mgL" ? " mg/L" : " µmol/L") + " (hors de " + sc.join(" à ") + " : bonne unité ?)");
+  if (hors(G.cl, S.cl)) alertes.push("clairance de " + G.cl + " ml/min (hors de " + S.cl.join(" à ") + ")");
+  if (G.poids != null && poidsAvant && Math.abs(G.poids - poidsAvant) / poidsAvant * 100 > S.variation)
+    alertes.push("poids passé de " + poidsAvant + " à " + G.poids + " kg (" + (G.poids > poidsAvant ? "+" : "") + Math.round((G.poids - poidsAvant) / poidsAvant * 100) + " %)");
+  return { refus, alertes };
+}
+// Poids de la séance précédente (séance n de la cure k) : séance d'avant dans la cure, sinon dernière séance de la cure d'avant
+export const poidsAvant = (E, k, n) => (n > 0 ? E[k].g[n - 1].poids : k > 0 && E[k - 1] ? E[k - 1].g[E[k - 1].g.length - 1].poids : null);
 
 // B5 – séances J8, J15… d'une cure, avec décalage en cascade
 export function seancesCure(L, e, bib) {
