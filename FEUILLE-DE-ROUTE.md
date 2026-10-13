@@ -130,7 +130,7 @@ démarrage par un médecin (comme `marquerProtocoles`), avec une fenêtre récap
       contrôle automatique : aucune dose de chimio changée hors des 9 « À modifier » ; (3) **deux défauts restants de l'audit 2** :
       fenêtre « carboplatine contre-indiqué » affichée deux fois (créatinine 70 mg/L) ; créatinine aberrante (0,7 mg/L) signalée à la
       validation mais pas à la saisie. Tests d'abord (Q1).
-- [x] **P1a Ordre 1 appliqué sans l'écran** (13/10/2026, testé ; **pas encore en ligne**) : `public/js/moteur/audit3.js` (calcul pur, d'après la
+- [x] **P1a Ordre 1 appliqué sans l'écran** (13/10/2026, testé, **en ligne : 20261013a** ; accord de Dr Bentahila sur les favoris retirés et le Solumedrol 80 mg du paclitaxel-carboplatine hebdo) : `public/js/moteur/audit3.js` (calcul pur, d'après la
       **vraie bibliothèque** du 13/10, qui diffère de celle de l'audit : BEP déjà à 30 000 UI en texte, MAP déjà avec un sauvetage chiffré,
       « HGC » déjà retiré des noms) + `appliquerAudit3` (protocoles.js), une fois par bibliothèque à l'ouverture par un médecin
       (`parametres/migrations.audit3a` ; son cabinet, puis la bibliothèque de référence quand l'Administration l'ouvre), fenêtre récapitulative.
