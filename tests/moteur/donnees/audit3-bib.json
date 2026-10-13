@@ -1,0 +1,1333 @@
+{
+ "poumon|Pemetrexed - cisplatine keytruda": {
+  "id": "poumon|Pemetrexed - cisplatine keytruda",
+  "dos": "Poumon",
+  "nom": "Pémétrexed + Cisplatine 25 J1-J3 + Pembrolizumab – fractionné",
+  "loc": "Poumon",
+  "c": 21,
+  "r": "J1 → J3, tous les 21 jours – cisplatine 75 mg/m²/cycle",
+  "dr": [
+   {
+    "p": "ONSET (ondansétron)",
+    "u": "mg",
+    "j": [
+     1,
+     2,
+     3
+    ],
+    "d": 8,
+    "id": "d0"
+   },
+   {
+    "p": "PÉMÉTREXED (Alimta)",
+    "u": "mg/m²",
+    "j": [
+     1
+    ],
+    "d": 500,
+    "v": "IV",
+    "t": "10 min",
+    "id": "d1"
+   },
+   {
+    "p": "CISPLATINE",
+    "u": "mg/m²",
+    "j": [
+     1,
+     2,
+     3
+    ],
+    "d": 25,
+    "v": "IV",
+    "id": "d2"
+   },
+   {
+    "p": "KEYTRUDA (pembrolizumab)",
+    "u": "mg",
+    "j": [
+     1
+    ],
+    "d": 200,
+    "n": "(2 fl. de 100 mg)",
+    "v": "IV",
+    "t": "30 min",
+    "id": "d3"
+   }
+  ],
+  "no": [
+   "Pémétrexed : vitamine B12 + acide folique à débuter 7 j avant"
+  ],
+  "st": "ok",
+  "ind": [
+   [
+    "Poumon / thorax",
+    "CBNPC",
+    "Métastatique",
+    "Sans altération moléculaire"
+   ]
+  ]
+ },
+ "poumon|Paclitaxel - Carboplatine hebdomdaire": {
+  "id": "poumon|Paclitaxel - Carboplatine hebdomdaire",
+  "dos": "Poumon / thorax",
+  "nom": "Paclitaxel + Carboplatine hebdomadaire – fractionné",
+  "loc": "CBNPC",
+  "c": 21,
+  "r": "J1, J8, J15 – tous les 21 jours",
+  "dr": [
+   {
+    "p": "SOLUMEDROL",
+    "u": "mg",
+    "j": [
+     1,
+     8,
+     15
+    ],
+    "d": 80,
+    "id": "d0"
+   },
+   {
+    "p": "ONSET (ondansétron)",
+    "u": "mg",
+    "j": [
+     1,
+     8,
+     15
+    ],
+    "d": 8,
+    "id": "d1"
+   },
+   {
+    "p": "PACLITAXEL",
+    "u": "mg/m²",
+    "j": [
+     1,
+     8,
+     15
+    ],
+    "d": 80,
+    "v": "IV",
+    "t": "1 h",
+    "id": "d2"
+   },
+   {
+    "p": "CARBOPLATINE",
+    "u": "AUC",
+    "j": [
+     1,
+     8,
+     15
+    ],
+    "d": 2,
+    "v": "IV",
+    "id": "d3"
+   }
+  ],
+  "no": [
+   "Carboplatine hebdo AUC 2"
+  ],
+  "st": "ok",
+  "ind": [
+   [
+    "Poumon / thorax",
+    "CBNPC",
+    "Métastatique",
+    "Sans altération moléculaire"
+   ],
+   [
+    "Gynécologie",
+    "Ovaire / trompe / péritoine",
+    "Néoadjuvant / adjuvant",
+    ""
+   ],
+   [
+    "Gynécologie",
+    "Endomètre",
+    "Récidivant / métastatique",
+    ""
+   ]
+  ],
+  "fav": 1,
+  "assoc": 1
+ },
+ "sein|carboplatine pacltiaxel hebdo J1 J8 J 15": {
+  "id": "sein|carboplatine pacltiaxel hebdo J1 J8 J 15",
+  "dos": "Sein",
+  "nom": "Paclitaxel + Carboplatine hebdo – fractionné",
+  "loc": "Sein",
+  "c": 21,
+  "r": "J1, J8, J15 – tous les 21 jours",
+  "dr": [
+   {
+    "p": "SOLUMEDROL",
+    "u": "mg",
+    "j": [
+     1,
+     8,
+     15
+    ],
+    "d": 120,
+    "id": "d0"
+   },
+   {
+    "p": "ONSET (ondansétron)",
+    "u": "mg",
+    "j": [
+     1,
+     8,
+     15
+    ],
+    "d": 8,
+    "id": "d1"
+   },
+   {
+    "p": "PACLITAXEL",
+    "u": "mg/m²",
+    "j": [
+     1,
+     8,
+     15
+    ],
+    "d": 80,
+    "v": "IV",
+    "t": "1 h",
+    "id": "d2"
+   },
+   {
+    "p": "CARBOPLATINE",
+    "u": "AUC",
+    "j": [
+     1,
+     8,
+     15
+    ],
+    "d": 2,
+    "v": "IV",
+    "id": "d3"
+   }
+  ],
+  "no": [
+   "Carboplatine hebdo AUC 2 (paramétrage : 150 mg fixe)"
+  ],
+  "st": "ok",
+  "ind": [
+   [
+    "Sein",
+    "Sein",
+    "Localisé – néoadjuvant",
+    "Triple négatif"
+   ],
+   [
+    "Sein",
+    "Sein",
+    "Métastatique",
+    "RH+ / HER2− – chimiothérapie"
+   ]
+  ],
+  "fav": 1
+ },
+ "sein|carboplatine hebdomadaire bevacizumab": {
+  "id": "sein|carboplatine hebdomadaire bevacizumab",
+  "dos": "Sein",
+  "nom": "Carboplatine hebdo + Bévacizumab – fractionné",
+  "loc": "Sein",
+  "c": 21,
+  "r": "Carboplatine J1, J8, J15 ; bévacizumab J1 – tous les 21 jours",
+  "dr": [
+   {
+    "p": "SOLUMEDROL",
+    "u": "mg",
+    "j": [
+     1,
+     8,
+     15
+    ],
+    "d": 120,
+    "id": "d0"
+   },
+   {
+    "p": "ONSET (ondansétron)",
+    "u": "mg",
+    "j": [
+     1,
+     8,
+     15
+    ],
+    "d": 8,
+    "id": "d1"
+   },
+   {
+    "p": "CARBOPLATINE",
+    "u": "AUC",
+    "j": [
+     1,
+     8,
+     15
+    ],
+    "d": 2,
+    "v": "IV",
+    "id": "d2"
+   },
+   {
+    "p": "BÉVACIZUMAB (Ypeva)",
+    "u": "mg/kg",
+    "j": [
+     1
+    ],
+    "d": 15,
+    "v": "IV",
+    "id": "d3"
+   }
+  ],
+  "no": [
+   "Carboplatine hebdo AUC 2 (paramétrage : 150 mg fixe)"
+  ],
+  "st": "ok",
+  "ind": [
+   [
+    "Sein",
+    "Sein",
+    "Métastatique",
+    "RH+ / HER2− – chimiothérapie"
+   ]
+  ],
+  "fav": 1
+ },
+ "sein|hormono - Lefftara (letrozole)": {
+  "id": "sein|hormono - Lefftara (letrozole)",
+  "dos": "Sein",
+  "nom": "Létrozole (Lefftara) 2,5 mg",
+  "loc": "Sein RH+",
+  "c": 0,
+  "r": "1 cp par jour en continu",
+  "dr": [
+   {
+    "p": "LEFFTARA 2,5 mg (létrozole)",
+    "u": "mg",
+    "j": [
+     1
+    ],
+    "d": 2.5,
+    "jl": "J1 → continu",
+    "n": "/j",
+    "v": "Per os",
+    "t": "3 mois",
+    "id": "d0"
+   }
+  ],
+  "no": [
+   "Prise quotidienne en continu – renouvellement tous les 3 mois"
+  ],
+  "st": "ok",
+  "ind": [
+   [
+    "Sein",
+    "Sein",
+    "Localisé – adjuvant",
+    "RH+ / HER2− – hormonothérapie"
+   ]
+  ]
+ },
+ "sein|hormono - letrozole": {
+  "id": "sein|hormono - letrozole",
+  "dos": "Sein",
+  "nom": "Létrozole 2,5 mg",
+  "loc": "Sein RH+",
+  "c": 0,
+  "r": "1 cp par jour en continu",
+  "dr": [
+   {
+    "p": "LÉTROZOLE 2,5 mg",
+    "u": "mg",
+    "j": [
+     1
+    ],
+    "d": 2.5,
+    "jl": "J1 → continu",
+    "n": "/j",
+    "v": "Per os",
+    "t": "3 mois",
+    "id": "d0"
+   }
+  ],
+  "no": [
+   "Prise quotidienne en continu – renouvellement tous les 3 mois",
+   "Conforme aux doses eviQ"
+  ],
+  "st": "ok",
+  "ind": [
+   [
+    "Sein",
+    "Sein",
+    "Localisé – adjuvant",
+    "RH+ / HER2− – hormonothérapie"
+   ],
+   [
+    "Sein",
+    "Sein",
+    "Métastatique",
+    "RH+ / HER2− – hormonothérapie"
+   ],
+   [
+    "Gynécologie",
+    "Endomètre",
+    "Récidivant / métastatique",
+    ""
+   ]
+  ]
+ },
+ "sein|hormono - kisqali (ribociclib)": {
+  "id": "sein|hormono - kisqali (ribociclib)",
+  "dos": "Sein",
+  "nom": "Ribociclib (Kisqali) 600 mg",
+  "loc": "Sein RH+ / HER2−",
+  "c": 28,
+  "r": "3 cp de 200 mg en 1 prise par jour, J1 → J21, puis 7 jours d’arrêt",
+  "dr": [
+   {
+    "p": "KISQALI 200 mg (ribociclib)",
+    "u": "mg",
+    "j": [
+     1
+    ],
+    "d": 600,
+    "jl": "J1 → J21",
+    "n": "/j (3 cp)",
+    "v": "Per os",
+    "t": "21 jours",
+    "id": "d0"
+   }
+  ],
+  "no": [
+   "À associer à une hormonothérapie",
+   "Conforme aux doses eviQ"
+  ],
+  "st": "ok",
+  "ind": [
+   [
+    "Sein",
+    "Sein",
+    "Métastatique",
+    "RH+ / HER2− – hormonothérapie + CDK4/6"
+   ]
+  ],
+  "fav": 1
+ },
+ "sein|hormono - ibrance 75 mg": {
+  "id": "sein|hormono - ibrance 75 mg",
+  "dos": "Sein",
+  "nom": "Palbociclib (Ibrance) 75 mg",
+  "loc": "Sein RH+ / HER2−",
+  "c": 28,
+  "r": "1×/j de J1 à J21, puis 7 jours sans traitement (2e palier de réduction)",
+  "dr": [
+   {
+    "p": "IBRANCE (palbociclib) 75 mg",
+    "u": "mg",
+    "j": [
+     1
+    ],
+    "d": 75,
+    "jl": "J1 → J21",
+    "n": "/j",
+    "v": "Per os",
+    "t": "21 jours",
+    "id": "d0"
+   }
+  ],
+  "no": [
+   "À heure fixe ; en cas de vomissement ou d’oubli, ne pas reprendre de dose ce jour-là"
+  ],
+  "st": "ok",
+  "ind": [
+   [
+    "Sein",
+    "Sein",
+    "Métastatique",
+    "RH+ / HER2− – hormonothérapie + CDK4/6"
+   ]
+  ]
+ },
+ "sein|palbociclib (papillo)": {
+  "id": "sein|palbociclib (papillo)",
+  "dos": "Sein",
+  "nom": "Palbociclib 125 mg (Ibrance)",
+  "loc": "Sein",
+  "c": 28,
+  "r": "1×/j de J1 à J21, puis 7 jours sans traitement",
+  "dr": [
+   {
+    "p": "PALBOCICLIB 125 mg",
+    "u": "mg",
+    "j": [
+     1
+    ],
+    "d": 125,
+    "jl": "J1 → J21",
+    "n": "/j",
+    "v": "Per os",
+    "t": "21 jours",
+    "id": "d0"
+   }
+  ],
+  "no": [
+   "À heure fixe ; en cas de vomissement ou d’oubli, ne pas reprendre de dose ce jour-là",
+   "Conforme aux doses eviQ"
+  ],
+  "st": "ok",
+  "ind": [
+   [
+    "Sein",
+    "Sein",
+    "Métastatique",
+    "RH+ / HER2− – hormonothérapie + CDK4/6"
+   ]
+  ],
+  "fav": 1
+ },
+ "sein|ibrance": {
+  "id": "sein|ibrance",
+  "dos": "Sein",
+  "nom": "Palbociclib 100mg  (Ibrance)",
+  "loc": "Sein",
+  "c": 28,
+  "r": "1×/j de J1 à J21, puis 7 jours sans traitement",
+  "dr": [
+   {
+    "p": "IBRANCE (palbociclib) 100 mg",
+    "u": "mg",
+    "j": [
+     1
+    ],
+    "d": 100,
+    "jl": "J1 → J21",
+    "n": "/j",
+    "v": "Per os",
+    "t": "21 jours",
+    "id": "d0"
+   }
+  ],
+  "no": [
+   "À heure fixe ; en cas de vomissement ou d’oubli, ne pas reprendre de dose ce jour-là"
+  ],
+  "st": "ok",
+  "ind": [
+   [
+    "Sein",
+    "Sein",
+    "Métastatique",
+    "RH+ / HER2− – hormonothérapie + CDK4/6"
+   ]
+  ],
+  "fav": 1
+ },
+ "todo|carboplatine-gemcitabine": {
+  "nom": "Carboplatine AUC 5 + Gemcitabine 1000 J1-J8 / 21 j (voies biliaires)",
+  "c": 21,
+  "st": "ok",
+  "r": "Carboplatine J1, gemcitabine J1 et J8 – tous les 21 jours",
+  "dr": [
+   {
+    "p": "SOLUMEDROL",
+    "u": "mg",
+    "j": [
+     1,
+     8
+    ],
+    "d": 60,
+    "id": "d0"
+   },
+   {
+    "p": "ONSET (ondansétron)",
+    "u": "mg",
+    "j": [
+     1,
+     8
+    ],
+    "d": 8,
+    "id": "d1"
+   },
+   {
+    "p": "GEMCITABINE",
+    "u": "mg/m²",
+    "j": [
+     1,
+     8
+    ],
+    "d": 1000,
+    "v": "IV",
+    "t": "30 min",
+    "id": "d2"
+   },
+   {
+    "p": "CARBOPLATINE",
+    "u": "AUC",
+    "j": [
+     1
+    ],
+    "d": 5,
+    "v": "IV",
+    "t": "30–60 min",
+    "id": "d3"
+   }
+  ],
+  "no": [
+   "Si cisplatine contre-indiqué"
+  ],
+  "id": "todo|carboplatine-gemcitabine",
+  "ind": [
+   [
+    "Digestif",
+    "Voies biliaires / vésicule",
+    "Avancé / métastatique",
+    ""
+   ]
+  ],
+  "dos": "Digestif",
+  "loc": "Voies biliaires / vésicule"
+ },
+ "todo|paclitaxel-pembrolizumab": {
+  "nom": "Paclitaxel 90 hebdo + Pembrolizumab 200 / 21 j (KEYNOTE-355)",
+  "c": 21,
+  "st": "ok",
+  "r": "Paclitaxel J1, J8, J15 ; pembrolizumab J1 – tous les 21 jours",
+  "dr": [
+   {
+    "p": "SOLUMEDROL",
+    "u": "mg",
+    "j": [
+     1,
+     8,
+     15
+    ],
+    "d": 80,
+    "id": "d0"
+   },
+   {
+    "p": "ONSET (ondansétron)",
+    "u": "mg",
+    "j": [
+     1,
+     8,
+     15
+    ],
+    "d": 8,
+    "id": "d1"
+   },
+   {
+    "p": "KEYTRUDA / PEMORIAL (pembrolizumab)",
+    "u": "mg",
+    "j": [
+     1
+    ],
+    "d": 200,
+    "v": "IV",
+    "t": "30 min",
+    "id": "d0_2"
+   },
+   {
+    "p": "PACLITAXEL",
+    "u": "mg/m²",
+    "j": [
+     1,
+     8,
+     15
+    ],
+    "d": 90,
+    "v": "IV",
+    "t": "1 h",
+    "id": "d3"
+   }
+  ],
+  "no": [
+   "Triple négatif PD-L1 CPS ≥ 10",
+   "Dans l’essai : paclitaxel 90 mg/m² J1-J8-J15 / 28 j avec pembrolizumab toutes les 3 semaines – adapté ici en cycle de 21 jours",
+   "Surveillance des effets immunologiques : TSH, bilan hépatique, créatinine, glycémie"
+  ],
+  "id": "todo|paclitaxel-pembrolizumab",
+  "ind": [
+   [
+    "Sein",
+    "Sein",
+    "Métastatique",
+    "Triple négatif"
+   ]
+  ],
+  "dos": "Sein",
+  "loc": "Sein"
+ },
+ "todo|nivolumab-ipilimumab": {
+  "nom": "Nivolumab 3 mg/kg + Ipilimumab 1 mg/kg / 21 j × 4",
+  "c": 21,
+  "st": "ok",
+  "r": "J1, tous les 21 jours × 4, puis nivolumab 480 mg toutes les 4 semaines",
+  "dr": [
+   {
+    "p": "OPDIVO (nivolumab)",
+    "u": "mg/kg",
+    "j": [
+     1
+    ],
+    "d": 3,
+    "v": "IV",
+    "t": "30 min",
+    "id": "d0"
+   },
+   {
+    "p": "YERVOY (ipilimumab)",
+    "u": "mg/kg",
+    "j": [
+     1
+    ],
+    "d": 1,
+    "v": "IV",
+    "t": "30 min",
+    "id": "d1"
+   }
+  ],
+  "no": [
+   "Sarcome (Alliance A091401)",
+   "Entretien : fiche « Nivolumab 480 mg / 28 j »",
+   "Surveillance des effets immunologiques : TSH, bilan hépatique, créatinine, glycémie"
+  ],
+  "id": "todo|nivolumab-ipilimumab",
+  "ind": [
+   [
+    "Sarcomes",
+    "Tissus mous",
+    "Avancé / métastatique / récidive",
+    ""
+   ]
+  ],
+  "dos": "Sarcomes",
+  "loc": "Tissus mous"
+ },
+ "todo|nivolumab-adjuvant": {
+  "nom": "Nivolumab 480 mg / 28 j (adjuvant)",
+  "c": 28,
+  "st": "ok",
+  "r": "J1, toutes les 4 semaines – jusqu’à 1 an",
+  "dr": [
+   {
+    "p": "OPDIVO (nivolumab)",
+    "u": "mg",
+    "j": [
+     1
+    ],
+    "d": 480,
+    "v": "IV",
+    "t": "30 min",
+    "id": "d0"
+   }
+  ],
+  "no": [
+   "Alternative : 240 mg toutes les 2 semaines",
+   "Œsophage / jonction (CheckMate 577) : 240 mg / 2 semaines pendant 16 semaines puis 480 mg / 4 semaines",
+   "Surveillance des effets immunologiques : TSH, bilan hépatique, créatinine, glycémie"
+  ],
+  "id": "todo|nivolumab-adjuvant",
+  "ind": [
+   [
+    "Digestif",
+    "Œsophage / jonction – adénocarcinome",
+    "Adjuvant",
+    ""
+   ],
+   [
+    "Digestif",
+    "Œsophage – épidermoïde",
+    "Adjuvant",
+    ""
+   ],
+   [
+    "Urologie",
+    "Vessie / urothélium",
+    "Adjuvant",
+    ""
+   ]
+  ],
+  "dos": "Digestif",
+  "loc": "Œsophage / jonction – adénocarcinome"
+ },
+ "todo|cisplatine-trastuzumab-pertuzumab": {
+  "nom": "Cisplatine 80 + Capécitabine + Trastuzumab + Pertuzumab / 21 j (JACOB)",
+  "c": 21,
+  "st": "ok",
+  "r": "J1, tous les 21 jours × 6, puis trastuzumab + pertuzumab",
+  "dr": [
+   {
+    "p": "SOLUMEDROL",
+    "u": "mg",
+    "j": [
+     1
+    ],
+    "d": 60,
+    "id": "d0"
+   },
+   {
+    "p": "ONSET (ondansétron)",
+    "u": "mg",
+    "j": [
+     1
+    ],
+    "d": 8,
+    "id": "d1"
+   },
+   {
+    "p": "PERJETA (pertuzumab)",
+    "u": "mg",
+    "j": [
+     1
+    ],
+    "d": 840,
+    "v": "IV",
+    "id": "d2"
+   },
+   {
+    "p": "HERCEPTIN (trastuzumab)",
+    "u": "mg/kg_c1",
+    "j": [
+     1
+    ],
+    "v": "IV",
+    "c1": 8,
+    "cn": 6,
+    "t": "90 min (C1) puis 30 min",
+    "id": "d3"
+   },
+   {
+    "p": "CISPLATINE",
+    "u": "mg/m²",
+    "j": [
+     1
+    ],
+    "d": 80,
+    "v": "IV",
+    "t": "1–2 h",
+    "id": "d2_4"
+   },
+   {
+    "p": "CAPÉCITABINE (Xeloda)",
+    "u": "mg/m²",
+    "j": [
+     1
+    ],
+    "d": 1000,
+    "jl": "J1 → J14",
+    "n": "matin + soir",
+    "v": "Per os",
+    "t": "14 jours",
+    "per": 1,
+    "id": "d3_5"
+   }
+  ],
+  "no": [
+   "Essai JACOB négatif sur la survie globale : pas de standard, à discuter en RCP",
+   "Pertuzumab 840 mg à chaque cycle dans JACOB",
+   "FEVG tous les 3 mois",
+   "Cisplatine : hydratation et surveillance de la fonction rénale, de la magnésémie et de l’audition"
+  ],
+  "id": "todo|cisplatine-trastuzumab-pertuzumab",
+  "ind": [
+   [
+    "Digestif",
+    "Œsophage / jonction – adénocarcinome",
+    "Métastatique HER2+",
+    ""
+   ]
+  ],
+  "dos": "Digestif",
+  "loc": "Œsophage / jonction – adénocarcinome"
+ },
+ "todo|cisplatine-radiotherapie-puis-carboplatine-paclitaxel": {
+  "nom": "Cisplatine 50 J1-J22 + Radiothérapie (PORTEC-3), puis Carboplatine + Paclitaxel × 4",
+  "c": 0,
+  "st": "ok",
+  "r": "Cisplatine aux semaines 1 et 4 de la radiothérapie, puis 4 cycles carboplatine AUC 5 + paclitaxel 175 / 21 j",
+  "dr": [
+   {
+    "p": "SOLUMEDROL",
+    "u": "mg",
+    "j": [
+     1,
+     22
+    ],
+    "d": 60,
+    "id": "d0"
+   },
+   {
+    "p": "ONSET (ondansétron)",
+    "u": "mg",
+    "j": [
+     1,
+     22
+    ],
+    "d": 8,
+    "id": "d1"
+   },
+   {
+    "p": "CISPLATINE",
+    "u": "mg/m²",
+    "j": [
+     1,
+     22
+    ],
+    "d": 50,
+    "v": "IV",
+    "id": "d2"
+   }
+  ],
+  "no": [
+   "Après la radiothérapie : nouvelle ligne « Paclitaxel + Carboplatine J1-J21 » × 4",
+   "Cisplatine : hydratation et surveillance de la fonction rénale, de la magnésémie et de l’audition"
+  ],
+  "id": "todo|cisplatine-radiotherapie-puis-carboplatine-paclitaxel",
+  "ind": [
+   [
+    "Gynécologie",
+    "Endomètre",
+    "Adjuvant",
+    ""
+   ],
+   [
+    "Gynécologie",
+    "Endomètre",
+    "Radiochimiothérapie",
+    ""
+   ]
+  ],
+  "fav": 1,
+  "dos": "Gynécologie",
+  "loc": "Endomètre"
+ },
+ "todo|map-cisplatine-doxorubicine-methotrexate-": {
+  "nom": "MAP (EURAMOS) : Cisplatine + Doxorubicine J1-J2, Méthotrexate HD J22 et J29 / 35 j",
+  "c": 35,
+  "st": "ok",
+  "r": "Cisplatine 60 et doxorubicine 37,5 mg/m²/j J1-J2 ; méthotrexate 12 g/m² J22 et J29 – cycle de 5 semaines",
+  "dr": [
+   {
+    "p": "SOLUMEDROL",
+    "u": "mg",
+    "j": [
+     1,
+     2
+    ],
+    "d": 60,
+    "id": "d0"
+   },
+   {
+    "p": "ONSET (ondansétron)",
+    "u": "mg",
+    "j": [
+     1,
+     2
+    ],
+    "d": 8,
+    "id": "d1"
+   },
+   {
+    "p": "CISPLATINE",
+    "u": "mg/m²",
+    "j": [
+     1,
+     2
+    ],
+    "d": 60,
+    "v": "IV",
+    "t": "4 h",
+    "id": "d2"
+   },
+   {
+    "p": "DOXORUBICINE",
+    "u": "mg/m²",
+    "j": [
+     1,
+     2
+    ],
+    "d": 37.5,
+    "dec": 1,
+    "v": "IV",
+    "t": "4 h",
+    "id": "d3"
+   },
+   {
+    "p": "MÉTHOTREXATE haute dose",
+    "u": "mg/m²",
+    "j": [
+     22,
+     29
+    ],
+    "d": 12000,
+    "v": "IV",
+    "t": "4 h",
+    "id": "d4"
+   },
+   {
+    "p": "ACIDE FOLINIQUE (sauvetage)",
+    "u": "txt",
+    "j": [
+     99
+    ],
+    "jl": "À partir de H24 après chaque méthotrexate",
+    "v": "IV / Per os",
+    "pos": "15 mg/m² toutes les 6 h",
+    "dt": "jusqu’à méthotrexatémie < 0,1 µmol/L",
+    "nd": 1,
+    "id": "d5"
+   },
+   {
+    "p": "NIVESTIM 30 MU (filgrastim)",
+    "u": "txt",
+    "j": [
+     99
+    ],
+    "jl": "Selon prescription",
+    "v": "SC",
+    "pos": "30 MU / injection SC",
+    "dt": "× ____ injection(s)",
+    "inp": 1,
+    "nd": 1,
+    "id": "d6"
+   }
+  ],
+  "no": [
+   "2 cycles avant chirurgie, 4 après (EURAMOS-1)",
+   "Méthotrexate haute dose : hyperhydratation, alcalinisation urinaire (pH > 7), dosages de méthotrexatémie à H24, H48, H72",
+   "Cisplatine : hydratation et surveillance de la fonction rénale, de la magnésémie et de l’audition",
+   "FEVG, audiogramme"
+  ],
+  "id": "todo|map-cisplatine-doxorubicine-methotrexate-",
+  "ind": [
+   [
+    "Sarcomes",
+    "Ostéosarcome",
+    "Néoadjuvant / adjuvant",
+    ""
+   ],
+   [
+    "Sarcomes",
+    "Ostéosarcome",
+    "Récidive / métastatique",
+    ""
+   ]
+  ],
+  "dos": "Sarcomes",
+  "loc": "Ostéosarcome"
+ },
+ "todo|bep": {
+  "nom": "BEP / 21 j",
+  "c": 21,
+  "st": "ok",
+  "r": "Cisplatine et étoposide J1-J5 ; bléomycine J1, J8, J15 – tous les 21 jours (3 ou 4 cycles selon le pronostic IGCCCG)",
+  "dr": [
+   {
+    "p": "SOLUMEDROL",
+    "u": "mg",
+    "j": [
+     1,
+     2,
+     3,
+     4,
+     5
+    ],
+    "d": 60,
+    "id": "d0"
+   },
+   {
+    "p": "ONSET (ondansétron)",
+    "u": "mg",
+    "j": [
+     1,
+     2,
+     3,
+     4,
+     5
+    ],
+    "d": 8,
+    "id": "d1"
+   },
+   {
+    "p": "BLÉOMYCINE",
+    "u": "txt",
+    "j": [
+     1,
+     8,
+     15
+    ],
+    "v": "IV",
+    "pos": "30 000 UI",
+    "dt": "30 000 UI",
+    "t": "30 min",
+    "id": "d2"
+   },
+   {
+    "p": "ÉTOPOSIDE (VP16 – Vépéside)",
+    "u": "mg/m²",
+    "j": [
+     1,
+     2,
+     3,
+     4,
+     5
+    ],
+    "d": 100,
+    "v": "IV",
+    "t": "1 h",
+    "id": "d3"
+   },
+   {
+    "p": "CISPLATINE",
+    "u": "mg/m²",
+    "j": [
+     1,
+     2,
+     3,
+     4,
+     5
+    ],
+    "d": 20,
+    "v": "IV",
+    "t": "1 h",
+    "id": "d5"
+   },
+   {
+    "p": "NIVESTIM 30 MU (filgrastim)",
+    "u": "txt",
+    "j": [
+     99
+    ],
+    "jl": "Selon prescription",
+    "v": "SC",
+    "pos": "30 MU / injection SC",
+    "dt": "× ____ injection(s)",
+    "inp": 1,
+    "nd": 1,
+    "id": "dniv"
+   }
+  ],
+  "no": [
+   "Bléomycine : épreuves fonctionnelles respiratoires (DLCO) initiales, arrêt si toxicité pulmonaire ; dose cumulée maximale 360 000 UI",
+   "Marqueurs (AFP, hCG, LDH) avant chaque cycle ; ne pas réduire les doses ni retarder pour une neutropénie isolée sans fièvre",
+   "Cisplatine : hydratation et surveillance de la fonction rénale, de la magnésémie et de l’audition"
+  ],
+  "id": "todo|bep",
+  "ind": [
+   [
+    "Urologie",
+    "Testicule",
+    "Séminome – métastatique",
+    ""
+   ],
+   [
+    "Urologie",
+    "Testicule",
+    "Non-séminome – adjuvant",
+    ""
+   ],
+   [
+    "Urologie",
+    "Testicule",
+    "Non-séminome – métastatique",
+    ""
+   ]
+  ],
+  "dos": "Urologie",
+  "loc": "Testicule"
+ },
+ "todo|nivolumab": {
+  "nom": "Nivolumab 480 mg / 28 j",
+  "c": 28,
+  "st": "ok",
+  "r": "J1, toutes les 4 semaines – 1 an en adjuvant ; jusqu’à progression en métastatique",
+  "dr": [
+   {
+    "p": "OPDIVO (nivolumab)",
+    "u": "mg",
+    "j": [
+     1
+    ],
+    "d": 480,
+    "v": "IV",
+    "t": "30 min",
+    "id": "d0"
+   }
+  ],
+  "no": [
+   "Alternative : 240 mg toutes les 2 semaines",
+   "Surveillance des effets immunologiques : TSH, bilan hépatique, créatinine, glycémie"
+  ],
+  "id": "todo|nivolumab",
+  "ind": [
+   [
+    "Mélanome",
+    "Mélanome",
+    "Adjuvant",
+    ""
+   ],
+   [
+    "Mélanome",
+    "Mélanome",
+    "Métastatique",
+    ""
+   ]
+  ],
+  "dos": "Mélanome",
+  "loc": "Mélanome"
+ },
+ "maj|ep-21-jours-cisplatine-75-etoposide-100-j1-j3-": {
+  "nom": "EP 21 jours (Cisplatine 75 + Étoposide 100 J1-J3)",
+  "dos": "Urologie",
+  "loc": "Prostate",
+  "c": 21,
+  "st": "ok",
+  "r": "J1 à J3, tous les 21 jours – 4 à 6 cycles selon indication et tolérance",
+  "dr": [
+   {
+    "p": "CISPLATINE",
+    "u": "mg/m²",
+    "j": [
+     1
+    ],
+    "d": 75,
+    "v": "IV",
+    "id": "d0"
+   },
+   {
+    "p": "ÉTOPOSIDE (VP16 – Vépéside)",
+    "u": "mg/m²",
+    "j": [
+     1,
+     2,
+     3
+    ],
+    "d": 100,
+    "v": "IV",
+    "id": "d1"
+   }
+  ],
+  "no": [
+   "Prémédication, antiémétiques et hydratation du cisplatine : non précisés dans le protocole transmis – à ajouter selon protocole local"
+  ],
+  "id": "maj|ep-21-jours-cisplatine-75-etoposide-100-j1-j3-",
+  "ind": [
+   [
+    "Urologie",
+    "Prostate",
+    "Neuroendocrine",
+    ""
+   ]
+  ]
+ },
+ "maj|carboplatine-auc-5-gemcitabine-1000-j1-j8-21-j-poumon-": {
+  "nom": "Carboplatine AUC 5 + Gemcitabine 1000 J1-J8 / 21 j (poumon)",
+  "dos": "Poumon / thorax",
+  "loc": "CBNPC",
+  "c": 21,
+  "st": "ok",
+  "r": "Carboplatine J1, gemcitabine J1 et J8 – tous les 21 jours × 4",
+  "dr": [
+   {
+    "p": "SOLUMEDROL",
+    "u": "mg",
+    "j": [
+     1
+    ],
+    "d": 60,
+    "id": "d0"
+   },
+   {
+    "p": "ONSET (ondansétron)",
+    "u": "mg",
+    "j": [
+     1,
+     8
+    ],
+    "d": 8,
+    "id": "d1"
+   },
+   {
+    "p": "GEMCITABINE",
+    "u": "mg/m²",
+    "j": [
+     1,
+     8
+    ],
+    "d": 1000,
+    "v": "IV",
+    "t": "30 min",
+    "id": "d2"
+   },
+   {
+    "p": "CARBOPLATINE",
+    "u": "AUC",
+    "j": [
+     1
+    ],
+    "d": 5,
+    "v": "IV",
+    "t": "30–60 min",
+    "id": "d3"
+   }
+  ],
+  "no": [
+   "Référence eviQ"
+  ],
+  "id": "maj|carboplatine-auc-5-gemcitabine-1000-j1-j8-21-j-poumon-",
+  "ind": [
+   [
+    "Poumon / thorax",
+    "CBNPC",
+    "Métastatique",
+    "Sans altération moléculaire"
+   ]
+  ],
+  "fav": 1
+ },
+ "maj|nivolumab-3-mg-kg-ipilimumab-1-mg-kg-21-j-4-checkmate-214-": {
+  "nom": "Nivolumab 3 mg/kg + Ipilimumab 1 mg/kg / 21 j × 4 (CheckMate 214)",
+  "dos": "Rein",
+  "loc": "Rein",
+  "c": 21,
+  "st": "ok",
+  "r": "J1, tous les 21 jours × 4, puis nivolumab 480 mg toutes les 4 semaines",
+  "dr": [
+   {
+    "p": "OPDIVO (nivolumab)",
+    "u": "mg/kg",
+    "j": [
+     1
+    ],
+    "d": 3,
+    "v": "IV",
+    "t": "30 min",
+    "id": "d0"
+   },
+   {
+    "p": "YERVOY (ipilimumab)",
+    "u": "mg/kg",
+    "j": [
+     1
+    ],
+    "d": 1,
+    "v": "IV",
+    "t": "30 min",
+    "id": "d1"
+   }
+  ],
+  "no": [
+   "Risque intermédiaire ou défavorable (IMDC)",
+   "Entretien : nivolumab 480 mg toutes les 4 semaines (fiche « Nivolumab 480 mg / 28 j »)",
+   "Surveillance des effets immunologiques : TSH, bilan hépatique, créatinine, glycémie"
+  ],
+  "id": "maj|nivolumab-3-mg-kg-ipilimumab-1-mg-kg-21-j-4-checkmate-214-",
+  "ind": [
+   [
+    "Rein",
+    "Rein",
+    "Métastatique",
+    ""
+   ]
+  ]
+ }
+}

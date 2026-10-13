@@ -14,6 +14,8 @@ def serveur():
 M={n:open(ICI/'mockfb'/n).read() for n in ['firebase-app.js','firebase-auth.js','firebase-firestore.js','firebase-functions.js','firebase-storage.js']}
 JSZ=open(ICI/'mockfb'/'jszip.min.js').read()
 S=json.load(open(ICI/'seed.json')); E='espaces/cabinet-bentahila/'
+# audit n° 3 (13/10/2026) : corrections de la bibliothèque déjà faites dans le jeu commun (sa fenêtre cacherait les boutons) ; test_audit3 les rejoue
+S.setdefault(E + 'parametres/migrations', {})['audit3a'] = '2026-10-13'
 async def ouvrir(b, seed=None, w=1440, h=900, t="2026-10-06T10:00:00", tz=None):
     pg=await b.new_page(viewport={'width':w,'height':h},**({'timezone_id':tz} if tz else {})); pg.errs=[]; pg.dlg=[]; pg.dl=[]
     pg.on('pageerror',lambda e: pg.errs.append(str(e)))

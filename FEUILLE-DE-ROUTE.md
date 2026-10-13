@@ -130,10 +130,24 @@ démarrage par un médecin (comme `marquerProtocoles`), avec une fenêtre récap
       contrôle automatique : aucune dose de chimio changée hors des 9 « À modifier » ; (3) **deux défauts restants de l'audit 2** :
       fenêtre « carboplatine contre-indiqué » affichée deux fois (créatinine 70 mg/L) ; créatinine aberrante (0,7 mg/L) signalée à la
       validation mais pas à la saisie. Tests d'abord (Q1).
-- [ ] **P1 Écran « Corrections proposées » + ordre 1** : Protocoles › « Corrections proposées » (médecin) : liste des protocoles touchés,
+- [x] **P1a Ordre 1 appliqué sans l'écran** (13/10/2026, testé ; **pas encore en ligne**) : `public/js/moteur/audit3.js` (calcul pur, d'après la
+      **vraie bibliothèque** du 13/10, qui diffère de celle de l'audit : BEP déjà à 30 000 UI en texte, MAP déjà avec un sauvetage chiffré,
+      « HGC » déjà retiré des noms) + `appliquerAudit3` (protocoles.js), une fois par bibliothèque à l'ouverture par un médecin
+      (`parametres/migrations.audit3a` ; son cabinet, puis la bibliothèque de référence quand l'Administration l'ouvre), fenêtre récapitulative.
+      **Corrigés** : [89] renommé « Paclitaxel 90 J1-J8-J15 / 28 j + Pembrolizumab 200 / 21 j », cycle 84 j, POLARAMINE ; [197] hydratation +
+      protocole lié **« PORTEC-3 – phase 2 : Carboplatine AUC 5 + Paclitaxel 175 / 21 j × 4 »** créé (Solumedrol 80 mg) ; [253] bléomycine
+      30 mg (30 000 UI) en dose fixe, Solumedrol 50 mg/j, hydratation 500 ml, NIVESTIM J7 → J11 ; [273] ONSET + Solumedrol 60 mg, hydratation,
+      rangé aussi en CBPC ; [14] Solumedrol 50 mg J1-J3, hydratation 500 ml ; [217] Solumedrol 50 mg/j, hydratation, hyperhydratation
+      alcaline J22 / J29 (seuil 0,1 µmol/L, celui du sauvetage déjà écrit), NIVESTIM J4 → J8. **Supprimés** (indications, remarques et
+      étoile reprises par le protocole gardé) : les 7 doublons et paliers + JACOB, carboplatine-bévacizumab (sein), ribociclib seul.
+      Chaque correction n'est faite que si le protocole est encore tel qu'avant (rien deux fois). Lignes NIVESTIM : jamais un jour de
+      séance (`nd`) ; le choix 30 / 48 MU d'après le poids viendra en P3. Aucun patient n'avait de ligne sur ces 16 protocoles (et chaque
+      ligne garde sa copie). Tests : `tests/moteur/test-audit3.mjs` 42/42 (dans `avant-mise-en-ligne.sh`), `tests/test_audit3.py` 13/13,
+      `test_protocoles_trace` 10/10.
+- [ ] **P1 Écran « Corrections proposées »** (l'ordre 1 est fait en P1a) : Protocoles › « Corrections proposées » (médecin) : liste des protocoles touchés,
       ligne par ligne (ajouté en vert, retiré en rouge, changé en orange), Appliquer / Ignorer / Garder les deux, « tout appliquer » par
       ordre ; chaque application dans la transaction de 2.4 (version +1, auteur, « audit n° 3 »), version précédente gardée (annuler).
-      Puis **ordre 1** : les **6 critiques** — [89] KEYNOTE-355 (cycle 84 j, paclitaxel J1-J8-J15 / 28 j, pembrolizumab / 21 j),
+      (Fait en P1a :) **ordre 1** : les **6 critiques** — [89] KEYNOTE-355 (cycle 84 j, paclitaxel J1-J8-J15 / 28 j, pembrolizumab / 21 j),
       [197] PORTEC-3 (+ protocole lié « phase 2 » carboplatine AUC 5 + paclitaxel 175 × 4), [253] BEP (bléomycine 30 000 UI J1-J8-J15
       chiffrée), [273] EP (antiémétiques, hydratation, rangé aussi en CBPC), [14] pémétrexed-cisplatine (corticoïde, hydratation), [217]
       MAP (sauvetage folinique chiffré, hyperhydratation alcaline) — et les **10 suppressions** (indications d'abord reportées dans le

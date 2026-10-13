@@ -4,6 +4,7 @@ import { doc, getDoc, setDoc, runTransaction } from "https://www.gstatic.com/fir
 import { db } from "../config.js";
 import { dedupIds, premed, protocoleValide } from "../moteur/doses.js";
 import { tableMol, edValide, editerAvec, menusCascade, valeursCascade } from "./chimio.js";
+import { correctionsAudit3 } from "../moteur/audit3.js";
 
 let A = null;
 export function installer(api) { A = api; }
@@ -88,6 +89,40 @@ export async function marquerProtocoles() {
   await sauverDocs(ids);
   A.journal({ id: "", r: { nm: "" } }, ids.length + " protocole(s) sans statut marqués « Validé avant le 12/10/2026 »");
   return ids.length;
+}
+// Audit n° 3 (13/10/2026), ordre 1 – une fois par bibliothèque (médecin ; son cabinet, puis la bibliothèque de référence) : 6 protocoles
+// critiques corrigés, protocole lié PORTEC-3 phase 2 créé, 10 protocoles supprimés (indications reprises par le protocole gardé) ;
+// calcul dans moteur/audit3.js ; les lignes déjà prescrites gardent leur copie ; fenêtre récapitulative pour le médecin.
+export async function appliquerAudit3() {
+  if (!A.peut("parametres") || !D().membre || D().membre.role !== "medecin" || !BIB().length) return null;
+  const rm = doc(db, "espaces", A.ESPACE, "parametres", "migrations"), g = await getDoc(rm).catch(() => null);
+  if (!g || (g.exists() && g.data().audit3a)) return null;
+  const r = correctionsAudit3(D().ctx.bib);
+  const moi = { par: D().u.uid, parNom: (D().membre && D().membre.nom) || "", le: new Date().toISOString() };
+  const signer = (p, neuf) => { p.version = neuf ? 1 : (p.version || 1) + 1; Object.assign(p, { majLe: moi.le, majPar: moi.par, majParNom: moi.parNom, st: "ok" }); p.valide = Object.assign({ version: p.version }, moi); };
+  r.modifies.forEach((m) => { signer(m.p); D().ctx.bib[m.id] = m.p; });
+  r.crees.forEach((p) => { signer(p, true); D().ctx.bib[p.id] = p; rangerNouveau(p.id); });
+  const ecrits = r.modifies.map((m) => m.id).concat(r.crees.map((p) => p.id));
+  if (ecrits.length) await sauverDocs(ecrits);
+  if (r.supprimes.length) {
+    const ids = r.supprimes.map((s) => s.id);
+    await sauverDocs(ids, true);
+    ids.forEach((id) => { const d = D().bibDoc[id]; delete D().ctx.bib[id]; if (d) D().bibOrdre[d] = (D().bibOrdre[d] || []).filter((x) => x !== id); });
+    const rs = doc(db, "espaces", A.ESPACE, "parametres", "protocolesSupprimes"), sv = await getDoc(rs).catch(() => null), l = sv && sv.exists() ? JSON.parse(sv.data().data || "[]") : [];
+    ids.forEach((id) => { if (l.indexOf(id) < 0) l.push(id); }); await setDoc(rs, { data: JSON.stringify(l) }).catch(() => {});
+  }
+  await setDoc(rm, { audit3a: moi.le.slice(0, 10) }, { merge: true });
+  if (!ecrits.length && !r.supprimes.length) return r;
+  A.journal({ id: "", r: { nm: "" } }, "Audit n° 3 : " + r.modifies.length + " protocole(s) corrigé(s), " + r.crees.length + " créé(s), " + r.supprimes.length + " supprimé(s)");
+  const esc = A.esc, nom = (id) => esc((D().ctx.bib[id] || {}).nom || id);
+  A.fenetre("<h3>Bibliothèque de protocoles corrigée (audit n° 3)</h3><p class=\"mesures\">Les patients déjà traités gardent leur copie du protocole : aucune cure en cours ne change.</p>" +
+    (r.modifies.length ? "<h4 class=\"soustitre\">Corrigés (" + r.modifies.length + ")</h4><ul>" + r.modifies.map((m) => "<li><b>" + nom(m.id) + "</b> : " + esc(m.quoi) + "</li>").join("") + "</ul>" : "") +
+    (r.crees.length ? "<h4 class=\"soustitre\">Créé</h4><ul>" + r.crees.map((p) => "<li><b>" + esc(p.nom) + "</b></li>").join("") + "</ul>" : "") +
+    (r.supprimes.length ? "<h4 class=\"soustitre\">Supprimés (" + r.supprimes.length + ")</h4><ul>" + r.supprimes.map((s) => "<li><b>" + esc(s.nom) + "</b> : " + esc(s.pourquoi) + (s.vers ? " → remplacé par « " + esc(s.versNom) + " »" : "") + (s.fav ? " (étoile reportée)" : "") + "</li>").join("") + "</ul>" : "") +
+    (r.ignores.length ? '<p class="mesures">Non touchés : ' + r.ignores.map((x) => esc(x.nom || x.id) + " (" + esc(x.raison) + ")").join(" ; ") + "</p>" : "") +
+    '<div class="boutons"><button class="bt plein" onclick="fermerFenetre()">Fermer</button></div>', "large");
+  if (D().page === "protocoles") pageProtocoles();
+  return r;
 }
 function rangerNouveau(id) {
   const docs = Object.keys(D().bibOrdre).filter((d) => /^lib_perso/.test(d)), taille = (d) => JSON.stringify((D().bibOrdre[d] || []).map((i) => D().ctx.bib[i])).length;
