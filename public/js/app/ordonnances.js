@@ -12,7 +12,7 @@
 import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { db } from "../config.js";
 import { MEDICAMENTS0 } from "../donnees/medicaments.js";
-import { ORDOS_TYPES0 } from "../donnees/ordostypes.js";
+import { ORDOS_TYPES0, appliquerOrdosAudit3 } from "../donnees/ordostypes.js";
 import { ANALYSES0, BILANS0 } from "../donnees/analyses.js";
 import { EXAMENS0 } from "../donnees/examens.js";
 import { COURRIERS0, CHAMPS_COURRIER } from "../donnees/courriers.js";
@@ -45,7 +45,7 @@ const ico = (n) => '<svg class="pi"><use href="#i-' + n + '"/></svg>';
 // ───── Listes du cabinet : médicaments, ordonnances types (liste de départ tant que le cabinet ne l'a pas modifiée) ─────
 const DEPART = {
   medicaments: () => MEDICAMENTS0.map((m, i) => ({ id: "m" + (i + 1), nom: m[0], poso: m[1], classe: m[2] || "" })),
-  ordostypes: () => ORDOS_TYPES0.map((o, i) => ({ id: "t" + (i + 1), nom: o.nom, items: o.items.map(([nom, poso]) => ({ nom, poso })) })),
+  ordostypes: () => { const L = ORDOS_TYPES0.map((o, i) => ({ id: "t" + (i + 1), nom: o.nom, items: o.items.map(([nom, poso]) => ({ nom, poso })) })); appliquerOrdosAudit3(L); return L; },
   analyses: () => ANALYSES0.map(([nom, cat], i) => ({ id: "a" + (i + 1), nom, cat })),
   bilans: () => BILANS0.map((b, i) => ({ id: "b" + (i + 1), nom: b.nom, items: b.items.slice() })),
   examens: () => EXAMENS0.map(([nom, cat, note], i) => ({ id: "e" + (i + 1), nom, cat, note: note || "" })),
@@ -92,6 +92,16 @@ export async function remplacerOrdosTypes() {
   const L = DEPART.ordostypes().sort(alpha);
   await setDoc(refListe("ordostypes"), { data: JSON.stringify(L), maj: serverTimestamp(), majPar: D().u.uid });
   CACHE.ordostypes = TYPES = L;
+}
+// Audit n° 3 (13/10/2026) : les 14 ordonnances de chimiothérapie, une fois dans la liste du cabinet (médecin ; parametres/migrations.audit3b)
+export async function ordosAudit3() {
+  if (!A.peut("parametres") || !D().membre || D().membre.role !== "medecin") return null;
+  const rm = doc(db, "espaces", A.ESPACE, "parametres", "migrations"), g = await getDoc(rm).catch(() => null);
+  if (!g || (g.exists() && g.data().audit3b)) return null;
+  let r = null; const L = await modifierListe("ordostypes", (l) => { r = appliquerOrdosAudit3(l); }); TYPES = L;
+  await setDoc(rm, { audit3b: new Date().toISOString().slice(0, 10) }, { merge: true });
+  if (r.renommees || r.ajoutees) A.journal({ id: "", r: { nm: "" } }, "Audit n° 3 : ordonnances types de chimiothérapie (" + r.renommees + " renommée(s), " + r.ajoutees + " ajoutée(s))");
+  return r;
 }
 let BIB = null, TYPES = null;
 async function chargerBib() { return (BIB = await lireListe("medicaments")); }

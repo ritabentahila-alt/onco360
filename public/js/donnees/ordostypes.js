@@ -120,3 +120,70 @@ export const ORDOS_TYPES0 = [
     ["FONTACTIV poudre", "4 cuillères-mesures dans 200 ml de liquide (2 cuillères-mesures si lait), 1 à 2 fois par jour (ne remplace pas un repas)"],
     ["FORTIMEL Protein", "1 à 2 bouteilles par jour, à boire fraîches entre les repas (ne remplace pas un repas)"]] },
 ];
+
+// Audit n° 3 (13/10/2026) : les 14 ordonnances de chimiothérapie, texte de l'audit revu par Dr Bentahila (CHEMOSET à la place d'EMEND
+// dans « carboplatine, Enhertu, Trodelvy » et « cisplatine sur plusieurs jours » ; jamais « Sortie » dans le titre). `ancien` = nom
+// d'origine d'une ordonnance renommée (son contenu est remplacé, sauf `garder` : renommée seulement). Appliquées une fois à la liste du
+// cabinet (ordonnances.js `ordosAudit3`) et à la liste de départ (ordonnances.js DEPART).
+export const ORDOS_AUDIT3 = [
+  { nom: "Chimio : risque émétique élevé (cisplatine, dacarbazine)", ancien: "Chimiothérapie très émétisante (cisplatine, AC…)", items: [
+    ["EMEND (aprépitant) 125 mg / 80 mg, boîte de 3 gélules", "1 gélule de 125 mg 1 heure avant la chimiothérapie (J1), puis 1 gélule de 80 mg le matin à J2 et à J3"],
+    ["SOLUPRED (prednisolone) 20 mg", "3 comprimés le matin (soit 60 mg par jour) à J2, J3 et J4"],
+    ["OLANZAPINE (ZYPREXA) 5 mg", "1 comprimé le soir, de J1 à J4 (somnolence : ne pas conduire)"],
+    ["CLOPRAME (métoclopramide) 10 mg", "1 comprimé en cas de nausées, maximum 3 comprimés par jour, pendant 5 jours au maximum"],
+    ["FORLAX (macrogol) 10 g", "1 sachet le matin de J1 à J5 (prévention de la constipation due aux antiémétiques)"]] },
+  { nom: "Chimio : AC (anthracycline + cyclophosphamide)", items: [
+    ["EMEND (aprépitant) 125 mg / 80 mg, boîte de 3 gélules", "1 gélule de 125 mg 1 heure avant la chimiothérapie (J1), puis 1 gélule de 80 mg le matin à J2 et à J3"],
+    ["OLANZAPINE (ZYPREXA) 5 mg", "1 comprimé le soir, de J1 à J4 (somnolence : ne pas conduire)"],
+    ["CLOPRAME (métoclopramide) 10 mg", "1 comprimé en cas de nausées, maximum 3 comprimés par jour, pendant 5 jours au maximum"]] },
+  { nom: "Chimio : carboplatine, Enhertu, Trodelvy", items: [
+    ["CHEMOSET (ondansétron) 8 mg", "1 comprimé matin et soir en cas de nausées, à J2 et J3 (maximum 2 comprimés par jour)"],
+    ["CLOPRAME (métoclopramide) 10 mg", "1 comprimé en cas de nausées, maximum 3 comprimés par jour, pendant 5 jours au maximum"]] },
+  { nom: "Chimio : cisplatine sur plusieurs jours (BEP, EP, VIP…)", items: [
+    ["CHEMOSET (ondansétron) 8 mg", "1 comprimé matin et soir en cas de nausées, à J2 et J3 (maximum 2 comprimés par jour)"],
+    ["SOLUPRED (prednisolone) 20 mg", "3 comprimés le matin les 2 jours qui suivent le dernier jour de cisplatine"],
+    ["OLANZAPINE (ZYPREXA) 5 mg", "1 comprimé le soir, de J1 jusqu'à 2 jours après le dernier jour de cisplatine"],
+    ["CLOPRAME (métoclopramide) 10 mg", "1 comprimé en cas de nausées, maximum 3 comprimés par jour"]] },
+  { nom: "Chimio : risque émétique modéré (oxaliplatine, irinotécan…)", ancien: "Pré-chimiothérapie antiémétique", items: [
+    ["CHEMOSET (ondansétron) 8 mg", "1 comprimé matin et soir en cas de nausées, à J2 et J3 (maximum 2 comprimés par jour)"],
+    ["NAUSELIUM (dompéridone) sirop", "1 cuillère-mesure 3 fois par jour, 15 minutes avant les repas, en cas de nausées"]] },
+  { nom: "Chimio – Prémédication docétaxel (à prendre à domicile)", items: [
+    ["SOLUPRED (prednisolone) 20 mg", "3 comprimés matin et soir la veille, le jour (le soir seulement si corticoïde IV le matin) et le lendemain de la perfusion"]] },
+  { nom: "Chimio – Prémédication pémétrexed (ALIMTA)", ancien: "Prémédication pémétrexed (ALIMTA)", items: [
+    ["YOFOLVIT (acide folique)", "1 comprimé par jour, à commencer 7 jours avant la 1re cure et à poursuivre jusqu'à 3 semaines après la dernière cure"],
+    ["VITAMINE B12 1 000 µg, solution injectable", "1 injection intramusculaire 1 semaine avant la 1re cure, puis toutes les 9 semaines"],
+    ["SOLUPRED (prednisolone) 20 mg", "1 comprimé matin et soir la veille, le jour et le lendemain de chaque cure"]] },
+  { nom: "Chimio – Irinotécan : diarrhée retardée", items: [
+    ["LOPERIUM (lopéramide) 2 mg", "2 gélules dès la 1re selle liquide, puis 1 gélule toutes les 2 heures (toutes les 4 heures la nuit), jusqu'à 12 heures sans selle liquide ; ne pas dépasser 48 heures : au-delà, appeler le service"],
+    ["SMECTA (diosmectite) 3 g", "1 sachet 3 fois par jour en cas de diarrhée, à 2 heures d'écart des autres médicaments"],
+    ["Solution de réhydratation orale", "Boire au moins 2 litres par jour pendant la diarrhée ; appeler si fièvre ≥ 38,3 °C ou diarrhée avec vomissements"]] },
+  { nom: "Chimio – Sous Nivestim : douleurs osseuses et NFS", items: [
+    ["DOLIPRANE (paracétamol) 1 g", "1 comprimé en cas de douleurs osseuses, jusqu'à 3 fois par jour (au moins 6 heures entre deux prises)"],
+    ["NFS + plaquettes", "À faire avant la cure suivante et à apporter (ou envoyer à la secrétaire)"]] },
+  { nom: "Chimio – Capécitabine : mains-pieds et diarrhée", ancien: "Syndrome pieds-mains", items: [
+    ["CRÈME À L'URÉE 10 %", "1 application matin et soir sur la paume des mains et la plante des pieds, dès J1 et pendant tout le traitement"],
+    ["DEXERYL", "1 application matin et soir en couche fine"],
+    ["LOPERIUM (lopéramide) 2 mg", "2 gélules à la 1re selle liquide puis 1 après chaque selle liquide, maximum 8 par jour ; arrêter la capécitabine et appeler si plus de 4 selles par jour"]] },
+  { nom: "Chimio – Anti-EGFR : peau (cétuximab, panitumumab)", ancien: "Éruption acnéiforme (anti-EGFR)", garder: true },
+  { nom: "Chimio – Fièvre sous chimiothérapie : conduite à tenir", items: [
+    ["Température", "Prendre la température en cas de frissons ou de malaise ; si ≥ 38,3 °C une fois ou ≥ 38 °C pendant 1 heure : NFS en urgence et appeler la secrétaire ou le médecin"],
+    ["NFS + CRP", "En urgence si fièvre, à apporter ou à envoyer à la secrétaire ou le médecin"]] },
+  { nom: "Chimio – Prémédication docétaxel prostate (à prendre à domicile)", items: [
+    ["SOLUPRED (prednisolone) 20 mg", "3 comprimés la veille au soir (12 heures avant la chimiothérapie) et 3 comprimés le matin de la chimiothérapie (3 heures avant)"]] },
+  { nom: "Chimio – Antiémétique avant une chimiothérapie orale", items: [
+    ["CHEMOSET (ondansétron) 8 mg", "1 comprimé 1 heure avant chaque prise de la chimiothérapie orale, les jours de traitement"],
+    ["CLOPRAME (métoclopramide) 10 mg", "1 comprimé en cas de nausées, maximum 3 comprimés par jour, pendant 5 jours au maximum"]] },
+];
+// Applique les 14 ordonnances à une liste [{ id, nom, items: [{ nom, poso }], fav }] (modifiée sur place) : renommée et remplie si
+// l'ancien nom est là, ajoutée si le nouveau nom manque ; rien si le nouveau nom existe déjà (une seule fois). Rend { renommees, ajoutees }.
+export function appliquerOrdosAudit3(L) {
+  const r = { renommees: 0, ajoutees: 0 }, it = (o) => o.items.map(([nom, poso]) => ({ nom, poso }));
+  ORDOS_AUDIT3.forEach((o, i) => {
+    if (L.some((x) => x.nom === o.nom)) return;
+    const v = o.ancien ? L.find((x) => x.nom === o.ancien) : null;
+    if (v) { v.nom = o.nom; if (!o.garder) v.items = it(o); r.renommees++; return; }
+    if (o.garder) return;
+    L.push({ id: "a3o" + (i + 1), nom: o.nom, items: it(o) }); r.ajoutees++;
+  });
+  return r;
+}

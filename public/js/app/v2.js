@@ -24,7 +24,7 @@ import { installer as installerProfil, pageProfil, DROITS_ROLE, droitsEffectifs,
 import { installer as installerProtocoles, pageProtocoles, marquerProtocoles, appliquerAudit3 } from "./protocoles.js";
 import { installer as installerParametres, pageParametres } from "./parametres.js";
 import { installer as installerBilan, pagePageBilan, publierReleve } from "./bilan.js";
-import { installer as installerOrdonnances, remplacerOrdosTypes, figerListes } from "./ordonnances.js";
+import { installer as installerOrdonnances, remplacerOrdosTypes, figerListes, ordosAudit3 } from "./ordonnances.js";
 import { figerDocumentation } from "./documentation.js";
 import * as ficheP from "./fichepatient.js";
 import { installer as installerFichiers, htmlFichiers, nbFichiers, oublierFichiers, suivreEtablissementFichiers, supprimerFichiers } from "./fichiers.js";
@@ -70,7 +70,7 @@ onAuthStateChanged(auth, async (u) => {
   try { D = await charger(u); appliquerImpression(); entete(); rechercheTete(); route(); menuCabinets().catch(() => {});
     if (D.bib) { Promise.all([figerListes(), figerDocumentation()]).catch((e) => console.warn("bibliothèque", e)); return; } // bibliothèque de référence : rien d'autre
     lireAccueilCab();
-    if (D.membre.role !== "comptable") { if (module("taches")) demarrerTaches(); if (module("salle")) demarrerSalle(); if (module("rcp")) demarrerRcp(); } publierTarifsC(); planifierReleve(3000); chargerMedecins(); chargerSignataires().then(publierCarte).catch(() => {}); nomTitulaire().then(migrations); marquerProtocoles().then(() => appliquerAudit3()).catch((er) => console.warn("protocoles", er)); }
+    if (D.membre.role !== "comptable") { if (module("taches")) demarrerTaches(); if (module("salle")) demarrerSalle(); if (module("rcp")) demarrerRcp(); } publierTarifsC(); planifierReleve(3000); chargerMedecins(); chargerSignataires().then(publierCarte).catch(() => {}); nomTitulaire().then(migrations); marquerProtocoles().then(() => appliquerAudit3()).then(() => ordosAudit3()).catch((er) => console.warn("protocoles", er)); }
   catch (e) { $("page").innerHTML = '<div class="carte"><h3>Impossible d\'ouvrir Onco360</h3><p class="sous">' + esc(e && e.code === "permission-denied" ? "Accès refusé : votre accès a peut-être été désactivé. Contactez le médecin titulaire." : e.message) + '</p><button class="bt clair" onclick="document.getElementById(\'btSortie\').click()">Se déconnecter</button></div>'; }
 });
 // Cabinets de la personne (19.2, 10/10/2026 : secrétaire de plusieurs médecins) : comptes/{uid}.espaces, le cabinet choisi dans le

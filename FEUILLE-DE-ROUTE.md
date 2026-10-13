@@ -61,6 +61,11 @@ Dr Bentahila).
 - Radiothérapie : Onco360 ne remplace pas ARIA ; confirmation > 22 Gy par fraction ou > 80 Gy ; pas d'organes à risque ni de journal des séances.
 - Formulaires de consultation proposés, décochables ; note signée sans verrou (« modifiée le … »).
 
+## Décisions de Dr Bentahila du 13/10/2026 (après la mise en ligne de P1a)
+- **Pas de fenêtre** pour les corrections de l'audit : elle fait confiance, les modifications sont faites directement (notées au journal).
+- **La bibliothèque de son cabinet est la référence** (aucun autre médecin n'a de compte). À faire plus tard (avec P9) : qu'un cabinet neuf
+  reçoive la copie de la bibliothèque du cabinet Bentahila plutôt que celle de `bib-oncologie` (copie du 09/10, pas corrigée).
+
 ## Réponses de Dr Bentahila du 13/10/2026 (questions de l'audit n° 3)
 1. **Solumedrol de J1** : **80 mg** pour carboplatine / Enhertu / Trodelvy et le cisplatine hebdomadaire + RT (pas d'EMEND, pas de baisse) ;
    **50 mg par jour** pour le cisplatine sur plusieurs jours ; **60 mg** seulement pour le cisplatine sur 1 jour et l'AC (EMEND gardé).
@@ -153,7 +158,15 @@ démarrage par un médecin (comme `marquerProtocoles`), avec une fenêtre récap
       MAP (sauvetage folinique chiffré, hyperhydratation alcaline) — et les **10 suppressions** (indications d'abord reportées dans le
       protocole gardé : [117]→[260], [300]→[82], [306]→[101], [34]→[35], [27]→[24], [41] et [39]→[40] ; [125] JACOB négatif ; [28] sans
       référence ; [38] ribociclib seul).
-- [ ] **P2 Ordonnances types de chimiothérapie** : les 14 de l'audit (titres « Chimio : … » sans « Sortie »), texte exact de l'audit,
+- [x] **P2 Ordonnances types de chimiothérapie** (13/10/2026, testé, en ligne : 20261013b) : `ORDOS_AUDIT3` / `appliquerOrdosAudit3`
+      (donnees/ordostypes.js), une fois dans la liste du cabinet (`ordosAudit3` d'ordonnances.js, `parametres/migrations.audit3b`) et dans la
+      liste de départ : 5 renommées (« Chimiothérapie très émétisante » → « Chimio : risque émétique élevé (cisplatine, dacarbazine) »,
+      « Pré-chimiothérapie antiémétique » → « … modéré (oxaliplatine, irinotécan…) », pémétrexed, capécitabine, anti-EGFR (contenu gardé))
+      et 9 ajoutées ; texte de l'audit revu par Dr Bentahila (CHEMOSET dans carboplatine / Enhertu / Trodelvy et cisplatine sur plusieurs
+      jours). « Sous Nivestim : douleurs osseuses et NFS » : texte non donné par l'audit, écrit par Claude (paracétamol 1 g ; NFS avant la
+      cure suivante) → à relire par Dr Bentahila. OEDES = oméprazole : rien à changer dans « Dysphagie et reflux ». Plus de fenêtre
+      récapitulative pour l'audit n° 3 (décision du 13/10). Test : `tests/test_audit3.py` 17/17.
+- [ ] ~~P2 (plan)~~ **Ordonnances types de chimiothérapie** : les 14 de l'audit (titres « Chimio : … » sans « Sortie »), texte exact de l'audit,
       CHEMOSET à la place d'EMEND dans les deux ordonnances décidées ; 5 existantes modifiées / renommées, 9 nouvelles
       (dont « Fièvre sous chimiothérapie : conduite à tenir », « Prémédication docétaxel prostate », « Antiémétique avant une
       chimiothérapie orale ») ; dans son cabinet, la bibliothèque de référence et la liste de départ (`donnees/ordostypes.js`) ; OEDES

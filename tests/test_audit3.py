@@ -6,7 +6,7 @@ def ok(c, m, d=None):
     global ok_n, ko_n
     if c: ok_n += 1; print('  ✔ ' + m)
     else: ko_n += 1; print('  ✘ ' + m + ('' if d is None else ' ' + str(d)[:300]))
-S = json.loads(json.dumps(S)); S[E + 'parametres/migrations'].pop('audit3a', None)
+S = json.loads(json.dumps(S)); S[E + 'parametres/migrations'].pop('audit3a', None); S[E + 'parametres/migrations'].pop('audit3b', None)
 bib = lambda fs: {p['id']: p for k in fs if k.startswith(E + 'protocoles/') for p in json.loads(fs[k]['data'] or '[]')}
 async def main():
     async with async_playwright() as p:
@@ -24,7 +24,13 @@ async def main():
         ok('sein|ibrance' in sup and len([x for x in sup if x in ('todo|nivolumab-adjuvant', 'todo|bep')]) == 1, 'supprimés notés dans protocolesSupprimes', sup[-10:])
         ok((fs.get(E + 'parametres/migrations') or {}).get('audit3a'), 'fait une fois (parametres/migrations.audit3a)')
         t = await ev("(document.getElementById('fenetreCorps')||{}).innerText||''")
-        ok('Bibliothèque de protocoles corrigée' in t and 'Supprimés (10)' in t and 'PORTEC-3 – phase 2' in t, 'fenêtre récapitulative', t[:300])
+        ok('corrigée' not in t, 'aucune fenêtre (décision de Dr Bentahila : modifications faites sans fenêtre)', t[:200])
+        O = json.loads((fs.get(E + 'bibliotheques/ordostypes') or {}).get('data') or '[]'); noms = [o['nom'] for o in O]
+        ok(len([n for n in noms if n.startswith('Chimio')]) == 14 and not any('Sortie' in n for n in noms), '14 ordonnances « Chimio … », jamais « Sortie »', [n for n in noms if n.startswith('Chimio')])
+        ok('Chimiothérapie très émétisante (cisplatine, AC…)' not in noms and 'Syndrome pieds-mains' not in noms and 'Diarrhée' in noms, 'anciennes renommées, les autres gardées', len(noms))
+        c = next(o for o in O if o['nom'] == 'Chimio : carboplatine, Enhertu, Trodelvy')
+        ok('CHEMOSET' in c['items'][0]['nom'] and not any('EMEND' in i['nom'] for i in c['items']), 'carboplatine, Enhertu, Trodelvy : CHEMOSET, pas d\'EMEND')
+        ok((fs.get(E + 'parametres/migrations') or {}).get('audit3b'), 'ordonnances : fait une fois (audit3b)')
         n = await ev("document.querySelectorAll('#prL .proto').length")
         ok(n == 307, 'page Protocoles à jour (307)', n)
         ok(not pg.errs, 'aucune erreur JavaScript', pg.errs[:2]); await pg.close()
@@ -32,7 +38,7 @@ async def main():
         pg = await ouvrir(b, fs); ev = pg.evaluate
         await pg.goto(f'http://localhost:{PORT}/v2.html#protocoles'); await pg.wait_for_timeout(3500)
         fs2 = await ev("window.__fs")
-        ok(len(bib(fs2)) == 307 and bib(fs2)['todo|bep']['version'] == B['todo|bep']['version'], 'deuxième ouverture : rien refait')
+        ok(len(bib(fs2)) == 307 and bib(fs2)['todo|bep']['version'] == B['todo|bep']['version'] and fs2[E + 'bibliotheques/ordostypes']['data'] == fs[E + 'bibliotheques/ordostypes']['data'], 'deuxième ouverture : rien refait (protocoles, ordonnances)')
         t = await ev("(document.getElementById('fenetreCorps')||{}).innerText||''")
         ok('corrigée' not in t, 'pas de fenêtre la deuxième fois')
         ok(not pg.errs, 'aucune erreur JavaScript', pg.errs[:2]); await pg.close(); await b.close()

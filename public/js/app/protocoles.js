@@ -92,7 +92,7 @@ export async function marquerProtocoles() {
 }
 // Audit n° 3 (13/10/2026), ordre 1 – une fois par bibliothèque (médecin ; son cabinet, puis la bibliothèque de référence) : 6 protocoles
 // critiques corrigés, protocole lié PORTEC-3 phase 2 créé, 10 protocoles supprimés (indications reprises par le protocole gardé) ;
-// calcul dans moteur/audit3.js ; les lignes déjà prescrites gardent leur copie ; fenêtre récapitulative pour le médecin.
+// calcul dans moteur/audit3.js ; les lignes déjà prescrites gardent leur copie ; sans fenêtre (décision de Dr Bentahila), noté au journal.
 export async function appliquerAudit3() {
   if (!A.peut("parametres") || !D().membre || D().membre.role !== "medecin" || !BIB().length) return null;
   const rm = doc(db, "espaces", A.ESPACE, "parametres", "migrations"), g = await getDoc(rm).catch(() => null);
@@ -114,13 +114,6 @@ export async function appliquerAudit3() {
   await setDoc(rm, { audit3a: moi.le.slice(0, 10) }, { merge: true });
   if (!ecrits.length && !r.supprimes.length) return r;
   A.journal({ id: "", r: { nm: "" } }, "Audit n° 3 : " + r.modifies.length + " protocole(s) corrigé(s), " + r.crees.length + " créé(s), " + r.supprimes.length + " supprimé(s)");
-  const esc = A.esc, nom = (id) => esc((D().ctx.bib[id] || {}).nom || id);
-  A.fenetre("<h3>Bibliothèque de protocoles corrigée (audit n° 3)</h3><p class=\"mesures\">Les patients déjà traités gardent leur copie du protocole : aucune cure en cours ne change.</p>" +
-    (r.modifies.length ? "<h4 class=\"soustitre\">Corrigés (" + r.modifies.length + ")</h4><ul>" + r.modifies.map((m) => "<li><b>" + nom(m.id) + "</b> : " + esc(m.quoi) + "</li>").join("") + "</ul>" : "") +
-    (r.crees.length ? "<h4 class=\"soustitre\">Créé</h4><ul>" + r.crees.map((p) => "<li><b>" + esc(p.nom) + "</b></li>").join("") + "</ul>" : "") +
-    (r.supprimes.length ? "<h4 class=\"soustitre\">Supprimés (" + r.supprimes.length + ")</h4><ul>" + r.supprimes.map((s) => "<li><b>" + esc(s.nom) + "</b> : " + esc(s.pourquoi) + (s.vers ? " → remplacé par « " + esc(s.versNom) + " »" : "") + (s.fav ? " (étoile reportée)" : "") + "</li>").join("") + "</ul>" : "") +
-    (r.ignores.length ? '<p class="mesures">Non touchés : ' + r.ignores.map((x) => esc(x.nom || x.id) + " (" + esc(x.raison) + ")").join(" ; ") + "</p>" : "") +
-    '<div class="boutons"><button class="bt plein" onclick="fermerFenetre()">Fermer</button></div>', "large");
   if (D().page === "protocoles") pageProtocoles();
   return r;
 }
