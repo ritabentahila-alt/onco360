@@ -34,7 +34,7 @@ Dr Bentahila).
 ## Décisions de Dr Bentahila du 13/10/2026 (annotations de l'audit n° 3)
 - **EMEND trop cher pour les patients** : remplacé par **CHEMOSET (ondansétron)** dans les ordonnances « Chimio : carboplatine, Enhertu,
   Trodelvy » et « Chimio : cisplatine sur plusieurs jours » ; EMEND gardé surtout pour le très émétisant (cisplatine sur 1 jour, AC).
-  Conséquence sur le Solumedrol de J1 (baissé de 25 % par l'audit « à cause de l'EMEND ») : **question 1**.
+  Conséquence sur le Solumedrol de J1 : voir les réponses du 13/10 (1).
 - **Titres des ordonnances types** : jamais « Sortie » dans le titre (« Chimio : … ») ; les vrais titres sont ceux du détail de l'audit.
 - **Fiche de prescription (le protocole)** = ce qui est fait au service les jours de chimio (chimio, prémédication injectable,
   hydratation), le retrait du diffuseur et le **NIVESTIM** (pris en charge seulement s'il y figure) ; ce que le patient prend chez lui
@@ -47,7 +47,7 @@ Dr Bentahila).
   existe, sinon comme aujourd'hui) : rien d'autre ne change.
 - **Seuils particuliers du jour** : valeurs facultatives saisies par le médecin ; hors seuil → la fenêtre d'avertissement qui existe déjà.
   Tant que l'éditeur n'a pas de case « Seuils », ils vont dans les remarques / vigilances.
-- **Pas de relecture par un deuxième oncologue avant de valider** (pas le temps) : voir question 2 pour le statut des protocoles.
+- **Pas de relecture par un deuxième oncologue avant de valider** (pas le temps) : protocoles « Validé » sans mention (réponses, 2).
 - **Retirer toute mention d'eviQ et de « HGC »** ; source d'origine (essai, publication) à la place.
 
 ## Décisions de Dr Bentahila du 11/10/2026 (réponses aux audits 1 et 2, toujours valables)
@@ -61,39 +61,30 @@ Dr Bentahila).
 - Radiothérapie : Onco360 ne remplace pas ARIA ; confirmation > 22 Gy par fraction ou > 80 Gy ; pas d'organes à risque ni de journal des séances.
 - Formulaires de consultation proposés, décochables ; note signée sans verrou (« modifiée le … »).
 
-## Questions en attente (Claude les rappelle en début de session)
-**Nouvelles (audit n° 3, à trancher avant P1 / P4)** :
-1. **Solumedrol de J1 sans EMEND.** Le classeur baisse le Solumedrol de J1 de 80 à 60 mg « les jours de l'aprépitant » (RCP Emend : −25 %)
-   sur **12 protocoles existants** ([108], [150], [152], [160], [183], [187], [193], [198], [199], [288], [303], [310]) et met 60 mg dans
-   **12 protocoles à créer** avec carboplatine (TCH, TCHP…) ; or leurs ordonnances ont
-   maintenant CHEMOSET, pas d'EMEND. Proposition : **pas de baisse quand il n'y a pas d'EMEND** → 80 mg pour « carboplatine, Enhertu,
-   Trodelvy » et le cisplatine hebdomadaire + RT ; cisplatine sur plusieurs jours : 40 mg/j (avec EMEND) → **50 mg/j** sans EMEND ;
-   60 mg seulement pour le cisplatine sur 1 jour et l'AC (EMEND gardé). **Mieux** : une case « EMEND prescrit » à la prescription de la
-   ligne, qui choisit toute seule le Solumedrol (−25 %) et l'ordonnance (avec EMEND / avec CHEMOSET) : le même protocole sert aux deux
-   patients. Valeurs et case à confirmer.
-2. **Statut des protocoles corrigés et créés.** Un protocole « Non validé » ne peut pas être choisi dans « Nouvelle ligne ».
-   Proposition : protocoles **corrigés** = restent « Validé » (version +1, trace « corrigé d'après l'audit n° 3 le … ») ; protocoles
-   **créés** = « Validé », trace « créé d'après l'audit n° 3, non relu » (affichée au survol du badge), pour qu'ils soient utilisables
-   tout de suite sans faire croire à une relecture. Ou bien : créés « Non validé », validés d'un clic au premier usage.
-3. **Combien de protocoles créer** sur les 123 : priorités 2 et 3 (11 + 48, dont les versions hebdomadaires) maintenant, et les 64 de
-   priorité 4 (lymphomes, maladie trophoblastique, peau…) plus tard ou jamais ? Proposition : 2 et 3 maintenant.
-4. **Où appliquer** : son cabinet **et** la bibliothèque de référence d'oncologie (ce que reçoivent les nouveaux cabinets) ? Proposition :
-   les deux (son cabinet d'abord ; la référence ensuite, par la même fonction).
-5. **NIVESTIM** : seuil de poids 70 kg (≤ 70 kg → 30 MU, > 70 kg → 48 MU, proposé d'après le poids de la séance, modifiable) : d'accord ?
-6. **« HGC » dans les noms** (ex. « Paclitaxel + Carboplatine hebdo – fractionné (HGC) ») : simplement retiré, et la source devient
-   « variante locale, dérivée de [essai] » ? Et les protocoles « sans essai de référence » marqués « Important » ([4], [124], [59], [251],
-   indication de [238]) : **supprimés** ou gardés avec la mention **« hors référentiel »** ? Proposition : « hors référentiel ».
-7. **Hebdomadaire : consultation de J8 / J15** aujourd'hui à 0 DH. Faut-il un prix ? Si oui : un type « Consultation de chimio
-   hebdomadaire » dans Types de consultation, avec son prix par lieu (Activités et rémunérations), comme les autres. Quel montant à HGC / HCK ?
-8. **À vérifier par Dr Bentahila** : OEDES = oméprazole (ordonnance « Dysphagie et reflux ») ou furosémide (protocole [211]) ? Et dans [211],
-   « Bicarbonate 14 ‰ 500 mg » = 500 **ml** ?
-9. **Double contrôle avant préparation** (audit : 2e vérification des doses, du poids et de la surface) : dans votre pratique, qui le
-   ferait (infirmière de l'hôpital de jour, pharmacien de la clinique, personne) ? Sinon, on ne le fait pas.
+## Réponses de Dr Bentahila du 13/10/2026 (questions de l'audit n° 3)
+1. **Solumedrol de J1** : **80 mg** pour carboplatine / Enhertu / Trodelvy et le cisplatine hebdomadaire + RT (pas d'EMEND, pas de baisse) ;
+   **50 mg par jour** pour le cisplatine sur plusieurs jours ; **60 mg** seulement pour le cisplatine sur 1 jour et l'AC (EMEND gardé).
+   S'applique aux 12 protocoles existants que le classeur baissait à 60 mg ([108], [150], [152], [160], [183], [187], [193], [198], [199],
+   [288], [303], [310] : ils gardent 80 mg) et aux 12 protocoles à créer avec carboplatine (80 mg au lieu de 60). Pas de case « EMEND
+   prescrit » (non demandée).
+2. **Statut** : les protocoles corrigés restent « Validé », **sans aucune mention** (trace habituelle seulement : version, auteur, date).
+   Protocoles créés : « Validé » eux aussi, sans mention (compris ainsi ; à corriger si Dr Bentahila voulait autre chose).
+3. **Créer** les priorités 2 et 3 maintenant (59 protocoles, dont les versions hebdomadaires) ; priorité 4 (64) plus tard.
+4. **Appliquer** à son cabinet d'abord, puis à la bibliothèque de référence d'oncologie.
+5. **NIVESTIM** : 30 MU jusqu'à 70 kg, 48 MU au-dessus, proposé d'après le poids de la séance, modifiable.
+6. **« HGC »** retiré des noms, « variante locale, dérivée de … » dans la source. Protocoles sans essai de référence ([4], [124], [59], [251],
+   indication de [238]) : **gardés tels quels, sans aucune mention** (surtout pas « hors référentiel »).
+7. **Consultation de J8 / J15** : pas de prix ; la fenêtre de prix reste pré-remplie à 0 DH (comme aujourd'hui).
+8. **OEDES = oméprazole** : c'est donc le protocole [211] qui se trompe (furosémide) → nom du furosémide corrigé dans [211]. « Bicarbonate
+   14 ‰ 500 mg » de [211] = **500 ml**.
+9. **Double contrôle avant préparation** : personne ne le ferait → **non retenu**.
+10. « Je soussignée » : réglé (Mon compte › « Accord dans les documents », un choix par médecin ; sans choix, le texte des modèles reste
+    tel quel, « Je soussignée » pour Dr Bentahila).
+11. **3.17 WhatsApp envoyé tout seul** et **3.18 impression au bon format** : **annulés**.
 
-**Toujours ouvertes** :
-10. Mesurer la hauteur des en-têtes du papier (ordonnance A5, A4, documents) pour régler les marges (Paramètres › Impression).
-11. GitHub : demander la purge des copies en cache ; regarder Insights › Traffic › « Git clones » (copies du dépôt quand il était public).
-12. Mon compte › « Accord dans les documents » › « Je soussignée » (1.7).
+## Questions en attente (Claude les rappelle en début de session)
+1. Mesurer la hauteur des en-têtes du papier (ordonnance A5, A4, documents) pour régler les marges (Paramètres › Impression).
+2. GitHub : demander la purge des copies en cache ; regarder Insights › Traffic › « Git clones » (copies du dépôt quand il était public).
 
 ---
 
@@ -103,7 +94,7 @@ Dr Bentahila).
 |---|---|---|
 | **P** Protocoles de chimiothérapie | Bibliothèque juste et complète, ordonnances liées, hebdomadaire, bibliothèque commune (audit n° 3) | P0 à P10 |
 | **Q** Qualité | Jeu de test fictif, contrôles automatiques, erreurs en ligne | Q-a à Q-f |
-| **M** Métier restant | Infirmière, dossier stable, impression, WhatsApp | 3.8, 4.4, 3.18, 3.17 |
+| **M** Métier restant | Infirmière, dossier stable | 3.8, 4.4 |
 | **D** Design | Toucher, contraste, fenêtres Onco360 | 4.1, 4.2 |
 | **E** Code et exploitation | Code propre, montée en charge, recette, hors ligne | 5.1 à 5.6 |
 | **C** Conformité et vente | Juriste, dispositif médical, société, test d'intrusion | 0.5, 6.1 à 6.6 |
@@ -126,6 +117,12 @@ Les 4 essais de l'audit 2 passent ; deux défauts restent (P0).
 et Onco360 les montre **protocole par protocole, avant / après**, à appliquer d'un clic. Le même écran servira ensuite à envoyer les mises
 à jour de la bibliothèque aux autres cabinets (P9).
 
+**Cette semaine (forfait presque épuisé, décidé le 13/10)** : on fait **seulement ce qui est dangereux ou attendu à chaque cure**, sans
+l'écran P1 (repoussé à la semaine suivante) : (1) **P0 réduit** : correspondance classeur ↔ vraie bibliothèque pour les 16 protocoles
+concernés + les 2 défauts de l'audit 2 ; (2) **les 6 protocoles critiques corrigés et les 10 suppressions**, appliqués une seule fois au
+démarrage par un médecin (comme `marquerProtocoles`), avec une fenêtre récapitulative ; (3) **P2 : les 14 ordonnances types**. Le reste de P
+(écran, ordres 2-3, création, bouton Ordonnances) reprend ensuite dans l'ordre.
+
 - [ ] **P0 Préparer, sans rien changer en ligne** : (1) lire la **vraie bibliothèque** du cabinet et la bibliothèque de référence
       (lecture seule) et faire correspondre les 316 lignes du classeur aux protocoles réels (l'audit a travaillé sur une bibliothèque
       reconstituée) : rapport « trouvés / introuvables / modifiés par Dr Bentahila depuis » ; (2) **classeur → fichier de corrections**
@@ -143,29 +140,29 @@ et Onco360 les montre **protocole par protocole, avant / après**, à appliquer 
       protocole gardé : [117]→[260], [300]→[82], [306]→[101], [34]→[35], [27]→[24], [41] et [39]→[40] ; [125] JACOB négatif ; [28] sans
       référence ; [38] ribociclib seul).
 - [ ] **P2 Ordonnances types de chimiothérapie** : les 14 de l'audit (titres « Chimio : … » sans « Sortie »), texte exact de l'audit,
-      CHEMOSET à la place d'EMEND dans les deux ordonnances décidées (question 1) ; 5 existantes modifiées / renommées, 9 nouvelles
+      CHEMOSET à la place d'EMEND dans les deux ordonnances décidées ; 5 existantes modifiées / renommées, 9 nouvelles
       (dont « Fièvre sous chimiothérapie : conduite à tenir », « Prémédication docétaxel prostate », « Antiémétique avant une
       chimiothérapie orale ») ; dans son cabinet, la bibliothèque de référence et la liste de départ (`donnees/ordostypes.js`) ; OEDES
-      corrigé (question 8).
+      (oméprazole) : bon dans l'ordonnance « Dysphagie et reflux ».
 - [ ] **P3 Éditeur de protocole et calculs** (avant d'appliquer le reste, pour que tout aille dans les bonnes cases) : champs
       **Risque émétique** (proposé d'après la molécule la plus émétisante, AC = élevé, MASCC/ESMO 2023 ; modifiable), **Ordonnances liées**
       (choisies dans la bibliothèque, proposées d'après le risque et les molécules), **Seuils du jour** (valeurs par protocole reprises dans
       la fenêtre de validation existante), **option « cycles 1 à n »** (en plus de « C1 seule » / « sauf C1 » : CheckMate 9LA, POSEIDON),
       **protocole lié** (phase suivante, ex. PORTEC-3, KEYNOTE-A18), **ligne NIVESTIM structurée** (30 / 48 MU proposé d'après le poids
       de la séance, J début → J fin, nombre d'injections ; imprimée sur la fiche de chimio pour la prise en charge), case **« EMEND
-      prescrit »** si retenue (question 1). Moteur : **cumuls bléomycine** (400 000 UI) et cisplatine visibles à chaque cure (vigilance.js,
+      prescrit »** : non retenue ; Solumedrol selon les réponses du 13/10 (1). Moteur : **cumuls bléomycine** (400 000 UI) et cisplatine visibles à chaque cure (vigilance.js,
       à côté des anthracyclines et de l'oxaliplatine) ; **PAL et CPK** dans le bilan du jour (docétaxel, trabectédine) ; seuils
       **hebdomadaires** (J8, J15… : PNN ≥ 1,0 G/L, plaquettes ≥ 75 G/L) et **gemcitabine J8 / J15** (100 % / 75 % / non faite) ;
       trabectédine, méthotrexate (DFG ≥ 60, 3e secteur), pémétrexed (DFG ≥ 45). Tests du moteur.
 - [ ] **P4 Ordres 2 et 3 appliqués** (114 + 70 « À ajuster », 3 « À modifier » : [105] mFOLFIRINOX rectum 180 mg/m², [192] KEYNOTE-A18
-      + protocole lié, [251]) par l'écran P1, dans les nouveaux champs : sétron + Solumedrol de J1 (doses selon question 1), POLARAMINE
+      + protocole lié, [251]) par l'écran P1, dans les nouveaux champs : sétron + Solumedrol de J1 (80 / 60 / 50 mg selon les réponses du 13/10), POLARAMINE
       (paclitaxel, cétuximab, cabazitaxel), **hydratation du cisplatine en lignes** (NaCl, KCl, MgSO4 ± mannitol), **NIVESTIM structuré**
       (54 protocoles) et retiré des 11 FOLFOX / FOLFIRI, atropine (irinotécan), surprophylaxie allégée (21 schémas à risque faible : un seul
       antiémétique), médicaments pris à domicile sortis du protocole vers l'ordonnance, seuils du jour, ordonnances liées.
 - [ ] **P5 Bibliothèque propre** : **DCI à côté de la marque** (191 « SOLUMEDROL » seuls ; acide folinique : racémique ou lévofolinate ;
-      Solumedrol en mg/kg harmonisé) ; **eviQ retiré** (noms, 73 remarques) ; **« HGC » retiré** (question 6) ; **Source remplie** pour les
-      316 (colonne du classeur ; variantes locales : « variante locale, dérivée de … ») ; « **hors référentiel** » là où il n'y a pas
-      d'essai (question 6) ; **classement à un seul niveau** (Poumon / Poumon-thorax, Digestif / Côlon-rectum / Estomac fusionnés ; [310]
+      Solumedrol en mg/kg harmonisé) ; **eviQ retiré** (noms, 73 remarques) ; **« HGC » retiré** des noms ; **Source remplie** pour les
+      316 (colonne du classeur ; variantes locales : « variante locale, dérivée de … ») ; protocoles sans essai gardés **sans mention** ;
+      [211] : furosémide nommé correctement (OEDES = oméprazole), bicarbonate en ml ; **classement à un seul niveau** (Poumon / Poumon-thorax, Digestif / Côlon-rectum / Estomac fusionnés ; [310]
       rangé en endomètre et col ; [7], [123], [273] rangés aussi là où ils servent) ; indications complétées (colonne « Aussi rangé dans »).
 - [ ] **P6 Bouton « Ordonnances »** : à côté de « Valider » / « Reporter » dans la séance, les ordonnances liées au protocole **cochées**
       (risque émétique, molécules) ; le médecin décoche, modifie le texte, ajoute, imprime (A5 / A4, en-tête et signataire de 3.9) ;
@@ -173,14 +170,13 @@ et Onco360 les montre **protocole par protocole, avant / après**, à appliquer 
       la prise en charge ; « Fièvre sous chimiothérapie » proposée à la 1re cure IV ; à chaque cure : ordonnance de la cure + prémédication
       de la veille de la cure suivante (docétaxel, pémétrexed). Gardées dans l'historique (`enregistrerPrescription` : consultation du
       jour, créée « Ordonnance » si besoin, comme aujourd'hui).
-- [ ] **P7 Protocoles à créer** (statut : question 2 ; nombre : question 3) : les **11 de priorité 1** (AC, AC dose dense, TC, TCH, TCHP,
+- [ ] **P7 Protocoles à créer** (« Validé », sans mention ; priorités 2 et 3 = 59 maintenant) : les **11 de priorité 1** (AC, AC dose dense, TC, TCH, TCHP,
       cisplatine 100 mg/m² J1-J22-J43 + RT en ORL et en nasopharynx, géfitinib, afatinib, cabazitaxel + prednisone + G-CSF, bicalutamide
       autour de l'agoniste), puis les **48 de priorité 3** (dont les **versions hebdomadaires** : MITO-7, JGOG 3016 / ICON8, AURELIA,
       INTERLACE, Belani, KEYNOTE-407, docétaxel 35 hebdo, APT, nab-paclitaxel hebdo, anthracyclines hebdo, ERBITAX, irinotécan 125 ;
-      poumon, sein, côlon, prostate, sarcomes, peau) ; les 64 de priorité 4 selon la question 3. Écrits en entier dans le classeur
+      poumon, sein, côlon, prostate, sarcomes, peau) ; les 64 de priorité 4 plus tard. Écrits en entier dans le classeur
       (lignes, seuils, ordonnances, source) : importés par l'écran P1.
-- [ ] **P8 Hebdomadaire de bout en bout** : prix de la consultation de J8 / J15 (question 7 : type de consultation + prix par lieu, bilan
-      vérifié avant / après) ; vérifier sur un protocole hebdomadaire : seuils du jour à chaque injection (P3), report d'une seule séance
+- [ ] **P8 Hebdomadaire de bout en bout** : pas de prix pour la consultation de J8 / J15 (fenêtre pré-remplie à 0 DH, inchangée) ; vérifier sur un protocole hebdomadaire : seuils du jour à chaque injection (P3), report d'une seule séance
       (« cette date seulement », existe), rendez-vous et heure chaque semaine (3.7 bis), ordonnance par séance (P6).
 - [ ] **P9 Bibliothèque commune à tous les cabinets** : l'Administration **publie une version** de la référence (numéro, date, journal des
       changements lisible : « v4 : anti-NK1 ajouté ») ; le serveur compare cabinet par cabinet (nouveaux, modifiés dans la référence,
@@ -193,8 +189,8 @@ et Onco360 les montre **protocole par protocole, avant / après**, à appliquer 
       zolédronate, grossesse, fertilité avant 40 ans, G8 après 70 ans, consentement) ; b) **biomarqueurs de la fiche tumeur** qui filtrent
       les protocoles et signalent une incohérence sans bloquer (anti-EGFR chez un RAS muté) ; c) **RCP reliée à la ligne** prescrite ;
       d) **toxicités par cure et par molécule** (CTCAE), réduction proposée selon les paliers du protocole ; e) **suivi des accords de prise
-      en charge** (organisme, cures couvertes, échéance, alerte avant la cure) ; f) **double contrôle** et **plan de soins ordonné** (avec
-      3.8, question 9) ; g) capacité de l'hôpital de jour (fauteuils, durée de séance d'après le protocole) ; h) fiche d'information patient
+      en charge** (organisme, cures couvertes, échéance, alerte avant la cure) ; f) **plan de soins ordonné** (avec 3.8 ; double contrôle non
+      retenu) ; g) capacité de l'hôpital de jour (fauteuils, durée de séance d'après le protocole) ; h) fiche d'information patient
       par protocole (français, arabe) ; i) interactions (aprépitant-corticoïdes / AVK, TKI-IPP, méthotrexate-AINS / IPP / cotrimoxazole,
       QT) ; j) adaptation hépatique par molécule ; k) arrondi au flacon ; l) fin de ligne (RECIST, dose-intensité, compte rendu, courrier au
       médecin traitant) ; m) statistiques (cures par mois et par protocole, reports, neutropénies fébriles) ; n) liste du lendemain pour la
@@ -217,16 +213,11 @@ et Onco360 les montre **protocole par protocole, avant / après**, à appliquer 
 ## Phase M – Métier restant
 - [ ] **3.8 Écran de l'infirmière** (tablette) : patients du jour, cure et molécules ; **plan de soins ordonné** tiré du protocole
       (prémédication 30 min avant, ordre des poches, débits, rinçages) ; pose de chaque poche (heure, par qui), voie d'abord (PAC,
-      périphérique, PICC), constantes, tolérance, effets indésirables ; double contrôle si retenu (question 9) ; visible dans l'onglet
+      périphérique, PICC), constantes, tolérance, effets indésirables ; visible dans l'onglet
       Chimiothérapie ; règle `administrations` déjà écrite ; droit « administrer » remis dans Accès.
 - [ ] **4.4 Dossier stable, comme GestiCab** : en-tête compact (1-2 lignes), dossier à hauteur d'écran sur ordinateur (≥ 1280 px : onglets à
       gauche, Rendez-vous / tâches et Documents à droite, chaque zone défile seule), barre des prescriptions fixe en bas, consultations en
       lignes compactes ; téléphone inchangé.
-- [ ] **3.18 Impression au bon format** : vérifier sur le Mac du cabinet (Safari / Chrome, imprimante réelle) ; en secours, bouton « PDF »
-      et mode d'emploi des deux préréglages (« Ordonnance A5 », « Document A4 »).
-- [ ] **3.17 WhatsApp envoyé tout seul** (plus tard) : API WhatsApp Business (compte Meta vérifié, modèles validés, coût par message,
-      accord du patient), fonction serveur programmée, clic manuel gardé en secours.
-
 ## Phase D – Design
 - [ ] **4.1 Toucher et contraste** : zones de 44 px (dossier, protocoles), badges vert et orange contrastés (→ 4,5), filtres repliés sur
       téléphone (bilan, protocoles), téléphone du patient en lien Onco360, champs de fichier habillés, ~40 libellés reliés à leur champ.
@@ -250,7 +241,7 @@ et Onco360 les montre **protocole par protocole, avant / après**, à appliquer 
 
 ## Phase C – Conformité et vente (avec un juriste ; en parallèle)
 - [ ] **0.5 Fiche d'incident et gel** : fiche pour le juriste (ancienne application en ligne sans connexion jusqu'au 11/10, 57 patients ;
-      dépôt GitHub public le 10/10 et le 11/10 ; copies d'après GitHub › Traffic, question 11). **Plus de création de cabinet réel** avant
+      dépôt GitHub public le 10/10 et le 11/10 ; copies d'après GitHub › Traffic, question 2). **Plus de création de cabinet réel** avant
       l'avis juridique (le cabinet de démonstration reste permis).
 - [ ] **6.1 Juriste** : CNDP (F-113 données de santé, F-118 transfert), contrat de sous-traitance, conditions d'utilisation, politique de
       confidentialité (aussi pour Google), durées de conservation, incident (0.5).
@@ -279,6 +270,8 @@ et Onco360 les montre **protocole par protocole, avant / après**, à appliquer 
 - **Plus tard, si un client le demande** : circuit de la pharmacie (PUI), fiche de fabrication et rôle Pharmacien ; alertes sur le
   téléphone Onco360 fermé ; « Mode démo » sur un vrai cabinet ; HL7 / FHIR, laboratoire, imagerie, import du relevé de l'accélérateur ;
   codes d'activation ; renommer un menu depuis l'administration ; « + Arrivée sans rendez-vous » et filtre Praticien de la salle d'attente.
+- **Annulé** (13/10) : 3.17 WhatsApp envoyé tout seul ; 3.18 format du papier choisi tout seul ; double contrôle avant préparation ;
+  case « EMEND prescrit » ; mention « hors référentiel ».
 - **Non retenu** (11/10) : déconnexion automatique, double authentification, Google Agenda anonymisé, archivage des patients, original
   Word / Excel gardé, organes à risque, tableau des toxicités de radiothérapie. (Avant) : pointer en lot dans le Bilan ; journal des séances
   de radiothérapie ; alerte de poids de la secrétaire (19.6) ; assistant IA. (13/10) : relecture de la bibliothèque par un 2e oncologue ;
