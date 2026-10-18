@@ -171,7 +171,7 @@ démarrage par un médecin (comme `marquerProtocoles`), avec une fenêtre récap
       (dont « Fièvre sous chimiothérapie : conduite à tenir », « Prémédication docétaxel prostate », « Antiémétique avant une
       chimiothérapie orale ») ; dans son cabinet, la bibliothèque de référence et la liste de départ (`donnees/ordostypes.js`) ; OEDES
       (oméprazole) : bon dans l'ordonnance « Dysphagie et reflux ».
-- [x] **Palier 3** (18/10/2026, testé ; version 20261018a) : [211] « AI 3 jours » : « OEDES (furosémide) » → « FUROSÉMIDE (Lasilix) »
+- [x] **Palier 3** (18/10/2026, testé, en ligne : 20261018a) : [211] « AI 3 jours » : « OEDES (furosémide) » → « FUROSÉMIDE (Lasilix) »
       (OEDES = oméprazole), « BICARBONATE 14 ‰ 500 mg » → « BICARBONATE DE SODIUM 14 ‰ », 500 ml (texte) ; **« HGC » retiré des remarques**
       des 16 protocoles qui en avaient (« protocole HGC conservé » → « protocole local conservé », « Protocole HGC (fractionné) » →
       « Variante locale (fractionnée) », « votre fiche HGC » → « votre fiche ») ; ordonnance **« Chimiothérapie antiémétique »** (ancienne
