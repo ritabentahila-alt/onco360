@@ -273,7 +273,7 @@ démarrage par un médecin (comme `marquerProtocoles`), avec une fenêtre récap
       marge (ex. ± 5 %), affichée à côté de la dose calculée, le médecin choisit ;
       n) **liste du lendemain pour la pharmacie de la clinique** : séances prévues le lendemain par établissement (patient, protocole,
       molécules, doses, flacons), imprimable / à envoyer, depuis la salle d'attente ou l'agenda.
-- [x] **P11 (18/10/2026, testé ; fonction `referenceDepuisCabinet` + Administration, version 20261018c)** : Administration › Bibliothèques ›
+- [x] **P11 (18/10/2026, testé ; fonction `referenceDepuisCabinet` + Administration, en ligne : 20261018c)** : Administration › Bibliothèques ›
       carte « Oncologie – Radiothérapie » › **« Recopier depuis le cabinet Bentahila »** (confirmation) : protocoles, médicaments, ordonnances
       types, analyses, bilans, examens, courriers (étoiles retirées, trace « Copié de la bibliothèque de référence le … »), paramètres de base
       nettoyés (`parametreDepart`), tarifs de radiothérapie → `espaces/bib-oncologie` ; jamais patients, correspondants, prix, lieux, équipe,
