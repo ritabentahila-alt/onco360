@@ -1,0 +1,23 @@
+// P9 (18/10/2026) : différences entre la bibliothèque de référence et celle d'un cabinet : node functions/test-reference.js
+const R = require("./reference.js");
+let ok = 0, ko = 0;
+const cas = (nom, v, d) => { if (v) { ok++; console.log("✅ " + nom); } else { ko++; console.log("❌ " + nom + (d === undefined ? "" : " " + JSON.stringify(d).slice(0, 300))); } };
+const P = (id, o) => Object.assign({ id, nom: "Protocole " + id, c: 21, st: "ok", dr: [{ id: "d0", p: "CISPLATINE", u: "mg/m²", d: 75, j: [1] }] }, o || {});
+const ref = [P("a"), P("b", { dr: [{ id: "d0", p: "CISPLATINE", u: "mg/m²", d: 75, j: [1] }, { id: "d1", p: "POLARAMINE", u: "mg", d: 5, j: [1] }] }), P("c"), P("d")];
+const cab = [Object.assign(P("a"), { fav: 1, version: 7, valide: { par: "x" } }), P("b"), P("d", { nom: "Mon protocole d" })];
+const D = R.differences(ref, cab, {}, []);
+cas("identique (étoile, version, validation à part) : rien", !D.some((x) => x.id === "a"));
+cas("ligne ajoutée dans la référence : « différent », avec les deux versions", D.some((x) => x.id === "b" && x.type === "different" && x.cab && x.ref));
+cas("absent du cabinet : « nouveau »", D.some((x) => x.id === "c" && x.type === "nouveau"));
+cas("renommé par le cabinet : « différent » (le cabinet choisit, jamais écrasé)", D.some((x) => x.id === "d" && x.type === "different"));
+const e = D.find((x) => x.id === "b").e;
+cas("« garder le mien » noté : plus reproposé", !R.differences(ref, cab, { b: e }, []).some((x) => x.id === "b"));
+const ref2 = ref.map((p) => (p.id === "b" ? Object.assign({}, p, { c: 28 }) : p));
+cas("la référence change encore : reproposé", R.differences(ref2, cab, { b: e }, []).some((x) => x.id === "b"));
+cas("supprimé par le cabinet : jamais reproposé comme nouveau", !R.differences(ref, cab, {}, ["c"]).some((x) => x.id === "c"));
+const r = R.resume(cab[1], ref[1]);
+cas("résumé : ligne POLARAMINE ajoutée", r.ajoutees.length === 1 && /POLARAMINE — 5 mg — J1/.test(r.ajoutees[0]) && !r.retirees.length, r);
+const O = R.differencesOrdos([{ nom: "Chimio : AC", items: [{ nom: "EMEND", poso: "x" }] }, { nom: "Diarrhée", items: [{ nom: "SMECTA", poso: "1" }] }], [{ id: "t1", nom: "Diarrhée", items: [{ nom: "SMECTA", poso: "2" }] }], {});
+cas("ordonnances types : nouvelle (par le nom) et différente", O.some((x) => x.type === "nouveau" && x.ref.nom === "Chimio : AC") && O.some((x) => x.type === "different" && x.ref.nom === "Diarrhée"));
+console.log("\n" + ok + " réussis, " + ko + " échoués");
+if (ko) process.exit(1);

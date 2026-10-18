@@ -6,6 +6,8 @@ import { dedupIds, premed, protocoleValide } from "../moteur/doses.js";
 import { tableMol, edValide, editerAvec, menusCascade, valeursCascade } from "./chimio.js";
 import { correctionsAudit3 } from "../moteur/audit3.js";
 import { RISQUES, risqueEmetique, libRisque } from "../moteur/seuils.js";
+// P9 : fonctions serveur (europe-west1), chargées seulement quand on s'en sert
+const serveur = async (nom, d) => { const { getFunctions, httpsCallable } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js"); const { app } = await import("../config.js"); return (await httpsCallable(getFunctions(app, "europe-west1"), nom, { timeout: 120000 })(d || {})).data; };
 
 let A = null;
 export function installer(api) { A = api; }
@@ -43,7 +45,9 @@ function liste() {
 }
 export function pageProtocoles() {
   const esc = A.esc, b = BIB(), nOk = b.filter(valide).length, ok = A.peut("parametres");
-  let h = '<section class="accueil"><div><h2>Protocoles</h2><p>' + b.length + " protocoles · " + nOk + " validés · " + (b.length - nOk) + " non validés</p></div>" + (ok ? '<div class="actions"><button class="bt plein" onclick="prOuvrir()">' + A.ic("plus") + "Créer un protocole</button></div>" : "") + '</section><section class="carte">';
+  let h = '<section class="accueil"><div><h2>Protocoles</h2><p>' + b.length + " protocoles · " + nOk + " validés · " + (b.length - nOk) + " non validés</p></div>" +
+    '<div class="actions"><button class="bt clair" onclick="prExporter(\'xlsx\')" title="Toute la bibliothèque dans un tableau Excel">' + A.ic("telecharger") + 'Excel</button><button class="bt clair" onclick="prExporter(\'pdf\')" title="Livret imprimable, par localisation">' + A.ic("imprimer") + "Livret PDF</button>" +
+    (ok ? '<button class="bt plein" onclick="prOuvrir()">' + A.ic("plus") + "Créer un protocole</button>" : "") + "</div>" + '</section><div id="prMaj"></div><section class="carte">';
   // Menus déroulants en cascade : Type de cancer › Localisation › Situation › Sous-groupe
   if (CF.c && !CF.o) { const o = valeurs(1); if (o.length === 1) CF.o = o[0]; }
   h += menusCascade(BIB(), CF, "prChoixV");
@@ -52,6 +56,7 @@ export function pageProtocoles() {
     '<button class="bt gris petit" onclick="prFiltre(\'reinit\')">Réinitialiser</button></div><div id="prL" style="margin-top:6px">' + liste() + "</div></section>";
   A.$("page").innerHTML = h;
   const q = A.$("prQ"); q.oninput = () => { CF.q = q.value; A.$("prL").innerHTML = liste(); };
+  bandeauMaj();
   if (CF.q) { q.focus(); q.setSelectionRange(q.value.length, q.value.length); }
 }
 // 12/10/2026 : un choix dans les menus ne redessine plus toute la page (seulement les menus et la liste ; défilement et recherche gardés)
@@ -149,6 +154,79 @@ export async function appliquerP5b() {
   if (r.modifies.length) A.journal({ id: "", r: { nm: "" } }, "Protocoles : acide folinique racémique nommé, Solumedrol en dose fixe (" + r.modifies.length + " protocole(s))");
   return r;
 }
+// ───── P9 (18/10/2026) : mises à jour de la bibliothèque de référence (médecin, cabinets autres que celui du Dr Bentahila) ─────
+let MAJ = null, MAJ_ESP = null;
+async function bandeauMaj() {
+  if (!A.peut("parametres") || !D().membre || D().membre.role !== "medecin" || D().bib || A.ESPACE === "cabinet-bentahila") return;
+  if (MAJ_ESP !== A.ESPACE) { MAJ = null; MAJ_ESP = A.ESPACE; try { MAJ = await serveur("referenceDiff", { espace: A.ESPACE }); } catch (e) { MAJ = { items: [], ordos: [] }; } }
+  const z = A.$("prMaj"); if (!z || !MAJ) return;
+  const n = MAJ.items.length + MAJ.ordos.length; if (!n) { z.innerHTML = ""; return; }
+  const nv = MAJ.items.filter((x) => x.type === "nouveau").length, df = MAJ.items.length - nv;
+  z.innerHTML = '<section class="carte" style="border-left:4px solid var(--bleu,#3563B0)"><b>Bibliothèque de référence (version ' + MAJ.version + ")</b> : " + (nv ? nv + " protocole" + (nv > 1 ? "s" : "") + " nouveau" + (nv > 1 ? "x" : "") : "") + (nv && df ? ", " : "") + (df ? df + " différent" + (df > 1 ? "s" : "") + " du vôtre" : "") +
+    (MAJ.ordos.length ? (nv || df ? ", " : "") + MAJ.ordos.length + " ordonnance" + (MAJ.ordos.length > 1 ? "s" : "") + " type" : "") + ' <button class="bt plein petit" onclick="prMaj()">Voir et choisir</button>' +
+    ((MAJ.versions || []).length ? '<div class="mesures" style="margin-top:6px">' + MAJ.versions.map((v) => "v" + v.n + " (" + A.dfrA(String(v.le).slice(0, 10)) + ") : " + A.esc(v.notes)).join("<br>") + "</div>" : "") + "</section>";
+}
+async function noterRefus(id, e) {
+  const r = doc(db, "espaces", A.ESPACE, "parametres", "reference"), s = await getDoc(r).catch(() => null), v = s && s.exists() ? s.data() : {};
+  await setDoc(r, { refus: Object.assign({}, v.refus || {}, { [id]: e }), vue: MAJ.version }, { merge: true });
+}
+window.prMaj = () => {
+  const esc = A.esc, R = (x) => x.resume ? [x.resume.nom ? "nom : « " + x.resume.nom[0] + " » → « " + x.resume.nom[1] + " »" : "", x.resume.cycle ? "cycle : " + x.resume.cycle[0] + " → " + x.resume.cycle[1] + " j" : ""].filter(Boolean).concat(x.resume.ajoutees.map((l) => "+ " + l), x.resume.retirees.map((l) => "− " + l)) : [];
+  const ligne = (x, i, o) => '<div class="cf-auto" id="pm' + i + '"><b>' + esc(x.ref.nom) + "</b> " + (x.type === "nouveau" ? '<span class="badge b-ch">nouveau</span>' : '<span class="badge b-or">différent du vôtre</span>') +
+    (x.type === "different" ? '<div class="mesures" style="margin:4px 0">' + (R(x).length ? R(x).map(esc).join("<br>") : o ? "posologies modifiées" : "remarques, indications, seuils ou ordonnances liées modifiés") + "</div>" : "") +
+    '<div class="actr" style="justify-content:flex-start">' + (x.type === "nouveau" ? '<button class="bt plein petit" onclick="prMajChoix(' + i + ",'prendre'," + !!o + ')">Ajouter</button>' : '<button class="bt plein petit" onclick="prMajChoix(' + i + ",'prendre'," + !!o + ')">Prendre la version de la référence</button>' + (o ? "" : '<button class="bt clair petit" onclick="prMajChoix(' + i + ",'deux',false)\">Garder les deux</button>")) +
+    '<button class="bt gris petit" onclick="prMajChoix(' + i + ",'garder'," + !!o + ')">' + (x.type === "nouveau" ? "Ne pas ajouter" : "Garder le mien") + "</button></div></div>";
+  A.fenetre("<h3>Mises à jour de la bibliothèque de référence (version " + MAJ.version + ')</h3><p class="sous">Rien n\'est changé sans votre accord. Un protocole pris ou ajouté est enregistré dans votre bibliothèque ; « Garder le mien » ne sera plus proposé tant que la référence ne change pas.</p>' +
+    (MAJ.items.length ? '<h4 class="soustitre">Protocoles</h4>' + MAJ.items.map((x, i) => ligne(x, i, false)).join("") : "") +
+    (MAJ.ordos.length ? '<h4 class="soustitre">Ordonnances types</h4>' + MAJ.ordos.map((x, i) => ligne(x, "o" + i, true)).join("") : "") +
+    '<div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Fermer</button></div>', "large");
+};
+window.prMajChoix = async (i, quoi, o) => {
+  const x = o ? MAJ.ordos[+String(i).slice(1)] : MAJ.items[i]; if (!x) return;
+  const moi = { par: D().u.uid, parNom: (D().membre && D().membre.nom) || "", le: new Date().toISOString() };
+  try {
+    if (quoi === "garder") await noterRefus(x.id, x.e);
+    else if (o) { await window.orMajTypes((L) => { const k = L.findIndex((z) => z.nom === x.ref.nom); const n = { id: (k >= 0 ? L[k].id : "ref" + Date.now()), nom: x.ref.nom, items: x.ref.items }; if (k >= 0) { if (L[k].fav) n.fav = L[k].fav; L[k] = n; } else L.push(n); }); }
+    else {
+      const p = JSON.parse(JSON.stringify(x.ref)), ancien = D().ctx.bib[x.id];
+      if (quoi === "deux") { p.id = x.id + "|ref" + MAJ.version; p.nom = p.nom + " (référence v" + MAJ.version + ")"; }
+      if (ancien && quoi !== "deux" && ancien.fav) p.fav = ancien.fav; else delete p.fav;
+      p.version = quoi !== "deux" && ancien ? (ancien.version || 1) + 1 : 1; Object.assign(p, { majLe: moi.le, majPar: moi.par, majParNom: moi.parNom });
+      if (p.st === "ok") p.valide = { reference: moi.le.slice(0, 10), version: p.version };
+      const neuf = !D().ctx.bib[p.id]; D().ctx.bib[p.id] = p; if (neuf) rangerNouveau(p.id);
+      await sauverDocs([p.id]);
+      A.journal({ id: "", r: { nm: "" } }, "Bibliothèque de référence v" + MAJ.version + " : « " + p.nom + " » " + (quoi === "deux" ? "ajouté à côté du vôtre" : ancien ? "remplacé par la version de la référence" : "ajouté"));
+    }
+    (o ? MAJ.ordos : MAJ.items).splice(o ? +String(i).slice(1) : i, 1);
+    if (!MAJ.items.length && !MAJ.ordos.length) await setDoc(doc(db, "espaces", A.ESPACE, "parametres", "reference"), { vue: MAJ.version }, { merge: true });
+    A.toast(quoi === "garder" ? "Noté : le vôtre est gardé." : "Enregistré."); window.prMaj(); if (!MAJ.items.length && !MAJ.ordos.length) A.fermerFenetre(); bandeauMaj(); if (D().page === "protocoles") A.$("prL").innerHTML = liste();
+  } catch (e) { A.erreur(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de modifier la bibliothèque." : (e.message || String(e))); }
+};
+// ───── P9 : export de la bibliothèque (Excel, livret PDF par localisation) et « Signaler une erreur » ─────
+const ligneP = (d) => d.p + " — " + (d.u === "txt" ? d.pos || "" : d.c1 != null ? d.c1 + "/" + d.cn + " " + d.u.replace("_c1", " (charge C1 / suite)") : (d.d != null ? String(d.d).replace(".", ",") : "") + " " + d.u) + " — " + (d.jl || (d.j || []).filter((y) => y !== 99).map((y) => "J" + y).join(" ")) + (d.v ? " — " + d.v : "");
+let XLSX_P = null; // SheetJS chargé à la demande (copie du site, vendor/)
+const chargerXlsx = () => window.XLSX ? Promise.resolve() : (XLSX_P = XLSX_P || new Promise((ok, ko) => { const e = document.createElement("script"); e.src = "vendor/xlsx.full.min.js"; e.onload = ok; e.onerror = () => { XLSX_P = null; ko(new Error("Export Excel indisponible.")); }; document.head.appendChild(e); }));
+window.prExporter = async (f) => {
+  const L = BIB().slice().sort((a, b) => a.nom.localeCompare(b.nom, "fr")), loc = (p) => ((p.ind || [])[0] || []).filter(Boolean).slice(0, 2).join(" › ") || "Autres";
+  if (f === "xlsx") {
+    try { await chargerXlsx(); } catch (e) { A.toast(e.message); return; }
+    const rows = [["Protocole", "Localisation", "Indications", "Cycle (j)", "Rythme", "Molécules (produit — dose — jours — voie)", "Risque émétique", "Seuils du jour", "Ordonnances liées", "Remarques", "Source", "Statut", "Version"]].concat(L.map((p) => [p.nom, loc(p), (p.ind || []).map((x) => x.filter(Boolean).join(" › ")).join("\n"), p.c || 0, p.r || "", (p.dr || []).map(ligneP).join("\n"), libRisque(p.re || risqueEmetique(p, premed)), (p.seuils || []).join("\n"), (p.ordos || []).join("\n"), (p.no || []).join("\n"), p.src || "", valide(p) ? "Validé" : "Non validé", p.version || 1]));
+    const wb = window.XLSX.utils.book_new(), ws = window.XLSX.utils.aoa_to_sheet(rows); ws["!cols"] = [50, 25, 40, 8, 40, 70, 16, 50, 40, 50, 25, 10, 8].map((w) => ({ wch: w }));
+    window.XLSX.utils.book_append_sheet(wb, ws, "Protocoles"); window.XLSX.writeFile(wb, "Onco360_protocoles_" + D().t + ".xlsx"); return;
+  }
+  let w = null; try { w = window.open("", "_blank"); } catch (er) { w = null; } if (!w || !w.document) { A.toast("Autorisez l'ouverture des fenêtres pour imprimer."); return; }
+  const g = {}; L.forEach((p) => { (g[loc(p)] = g[loc(p)] || []).push(p); }); const esc = A.esc;
+  w.document.open(); w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Livret des protocoles</title><style>@page{size:A4;margin:12mm}body{font-family:Arial,sans-serif;font-size:10.5px;color:#1E2A44}h1{font-size:18px}h2{font-size:14px;border-bottom:2px solid #3563B0;margin:16px 0 6px;page-break-after:avoid}.p{page-break-inside:avoid;margin:0 0 10px}.p b{font-size:11.5px}.m{margin:2px 0 0 10px}.g{color:#5A6478}</style></head><body><h1>Livret des protocoles – ' + esc(A.dfrA(D().t)) + " (" + L.length + ")</h1>" +
+    Object.keys(g).sort().map((k) => "<h2>" + esc(k) + "</h2>" + g[k].map((p) => '<div class="p"><b>' + esc(p.nom) + "</b>" + (p.c ? " – cycle " + p.c + " j" : " – continu") + (p.r ? '<div class="g">' + esc(p.r) + "</div>" : "") + (p.dr || []).map((d) => '<div class="m">' + esc(ligneP(d)) + "</div>").join("") + (p.src ? '<div class="g">Source : ' + esc(p.src) + "</div>" : "") + "</div>").join("")).join("") + "</body></html>");
+  w.document.close(); setTimeout(() => { w.focus(); w.print(); }, 400);
+};
+window.prSignaler = (id) => {
+  const p = D().ctx.bib[id] || ED || {};
+  A.fenetre("<h3>Signaler une erreur</h3><p class=\"sous\">« " + A.esc(p.nom || "") + " » — le message part à l'administration d'Onco360 (aucune donnée de patient).</p><div class=\"form\"><div class=\"large\"><label for=\"sgT\">Ce qui ne va pas</label><textarea id=\"sgT\" rows=\"4\"></textarea></div></div><div class=\"err\" id=\"fErr\"></div><div class=\"boutons\"><button class=\"bt gris\" onclick=\"fermerFenetre()\">Annuler</button><button class=\"bt plein\" id=\"sgOk\">Envoyer</button></div>");
+  A.$("sgOk").onclick = async () => { const t = A.$("sgT").value.trim(); if (!t) { A.$("fErr").textContent = "Décrivez l'erreur."; return; } A.occupe(A.$("sgOk"), true);
+    try { await serveur("signalerErreur", { espace: A.ESPACE, protocole: { id: p.id, nom: p.nom }, texte: t }); A.fermerFenetre(); A.toast("Merci : l'erreur est signalée à l'administration."); }
+    catch (e) { A.occupe(A.$("sgOk"), false); A.$("fErr").textContent = e.message || String(e); } };
+};
 function rangerNouveau(id) {
   const docs = Object.keys(D().bibOrdre).filter((d) => /^lib_perso/.test(d)), taille = (d) => JSON.stringify((D().bibOrdre[d] || []).map((i) => D().ctx.bib[i])).length;
   let d = docs.find((x) => taille(x) < 600000) || "lib_perso" + (docs.length ? "_" + docs.length : "");
@@ -197,7 +275,7 @@ window.prOuvrir = (id) => {
       '<h4 class="soustitre">Molécules</h4>' + tableMol() +
       '<div class="form" style="margin-top:12px"><div class="large"><label>Remarques (une par ligne)</label><textarea rows="3" onchange="prProp(\'no\',this.value)">' + esc((ED.no || []).join("\n")) + "</textarea></div></div>" +
       '<p class="mesures">Unités : mg/m² × surface corporelle ; mg/kg × poids ; mg = dose fixe ; AUC = carboplatine (Calvert) ; « charge C1 / suite » : saisir par ex. 840/420 ; texte libre : affiché tel quel. Seuls les protocoles « Validé » peuvent être prescrits.</p>' +
-      '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button>' + (nouv ? "" : '<button class="bt gris" style="color:#C0392B;margin-right:auto" onclick="prSuppr(\'' + esc(ED.id) + '\')">Supprimer le protocole</button><button class="bt clair" id="prDup">Dupliquer</button>') + '<button class="bt plein" id="fOk">Enregistrer</button></div>', "large");
+      '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button>' + (nouv ? "" : '<button class="bt gris" style="color:#C0392B;margin-right:auto" onclick="prSuppr(\'' + esc(ED.id) + '\')">Supprimer le protocole</button><button class="bt gris" onclick="prSignaler(\'' + esc(ED.id) + '\')">Signaler une erreur</button><button class="bt clair" id="prDup">Dupliquer</button>') + '<button class="bt plein" id="fOk">Enregistrer</button></div>', "large");
     A.$("fOk").onclick = enregistrer;
     if (A.$("prDup")) A.$("prDup").onclick = () => { const c = JSON.parse(JSON.stringify(ED)); c.id = "perso_" + Date.now(); c.nom = ED.nom + " (copie)"; c.st = "todo"; delete c.fav; ED = c; enregistrer(true); };
   }
@@ -238,5 +316,5 @@ function voir() {
     ED.dr.map((d) => "<tr><td>" + esc(d.p) + "</td><td>" + esc(d.u === "txt" ? d.pos || "" : d.d != null ? d.d : (d.c1 != null ? d.c1 + "/" + d.cn : "")) + "</td><td>" + esc(d.u) + "</td><td>" + esc(d.jl || (d.j || []).filter((y) => y !== 99).map((y) => "J" + y).join(" ")) + "</td><td>" + esc(d.v || "") + "</td><td>" + esc(d.t || "") + "</td></tr>").join("") + "</table></div>" +
     (ED.no ? '<p style="color:#8A1C2B;font-size:13px">' + ED.no.map(esc).join("<br>") + "</p>" : "") +
     '<p class="mesures">Risque émétique : ' + esc(libRisque(ED.re || risqueEmetique(ED, premed))) + ((ED.ordos || []).length ? " · Ordonnances liées : " + ED.ordos.map(esc).join(" ; ") : "") + "</p>" +
-    ((ED.seuils || []).length ? '<p class="mesures">Seuils du jour : ' + ED.seuils.map(esc).join(" · ") + "</p>" : "") + (traceVal(ED) ? '<p class="mesures">' + esc(traceVal(ED)) + "</p>" : "") + '<div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Fermer</button></div>', "large");
+    ((ED.seuils || []).length ? '<p class="mesures">Seuils du jour : ' + ED.seuils.map(esc).join(" · ") + "</p>" : "") + (traceVal(ED) ? '<p class="mesures">' + esc(traceVal(ED)) + "</p>" : "") + '<div class="boutons"><button class="bt gris" onclick="prSignaler(\'' + esc(ED.id) + '\')">Signaler une erreur</button><button class="bt gris" onclick="fermerFenetre()">Fermer</button></div>', "large");
 }

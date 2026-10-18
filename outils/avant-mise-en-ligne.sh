@@ -23,7 +23,7 @@ R=$(grep -rIoE '\b0[5-7][0-9]{8}\b' public functions tests "${EXCL[@]}" 2>/dev/n
 [ -f public/ancienne-app.html ] && ko "public/ancienne-app.html est revenu" || ok "ancienne application absente du site"
 
 echo "3. Tests sans navigateur"
-for t in test-logique test-cabinets test-audit test-numeros test-exportation test-sauvegarde; do
+for t in test-logique test-cabinets test-audit test-numeros test-exportation test-sauvegarde test-reference; do
   if (cd functions && node $t.js > /tmp/onco360-$t.txt 2>&1) && ! grep -q '❌\|✘' /tmp/onco360-$t.txt; then ok "serveur : $t"; else ko "serveur : $t (voir /tmp/onco360-$t.txt)"; fi
 done
 for t in tests/moteur/test-recus.mjs tests/moteur/test-doses.mjs tests/moteur/test-vigilance.mjs tests/moteur/test-heures.mjs tests/moteur/test-rt.mjs tests/moteur/test-statut.mjs tests/moteur/test-typesconsult.mjs tests/moteur/test-audit3.mjs tests/moteur/test-audit3p4.mjs tests/moteur/test-seuils.mjs tests/moteur/test-p10.mjs; do node $t > /tmp/onco360-moteur.txt 2>&1 && ok "moteur : $(basename $t)" || ko "moteur : $(basename $t) (voir /tmp/onco360-moteur.txt)"; done
@@ -34,7 +34,7 @@ else echo "  (tests/seed.json absent : test-salle et test-bilan ignorés)"; fi
 # Q2 (12/10/2026) : parcours dans le navigateur, avec Chrome puis avec le moteur de Safari (des bugs n'existent que sur Safari)
 if [[ " $* " == *" --navigateur "* ]] && [ -f tests/seed.json ]; then
   echo "5. Parcours dans le navigateur (Chrome, puis Safari / WebKit)"
-  NAV_TESTS="test_debordement test_fiche test_fiche_donnees test_types_consult test_consultations34 test_salle_315 test_rdv_avenir test_ordo_entete test_protocoles test_agenda test_salle test_intention test_audit3 test_ordonnances_protocole test_p10"
+  NAV_TESTS="test_debordement test_fiche test_fiche_donnees test_types_consult test_consultations34 test_salle_315 test_rdv_avenir test_ordo_entete test_protocoles test_agenda test_salle test_intention test_audit3 test_ordonnances_protocole test_p10 test_p9"
   for nav in chromium webkit; do for t in $NAV_TESTS; do
     if (cd tests && NAVIGATEUR=$nav .venv/bin/python $t.py > /tmp/onco360-nav-$t-$nav.txt 2>&1) && ! grep -qE '✘|❌|Traceback' /tmp/onco360-nav-$t-$nav.txt; then ok "$nav : $t"; else ko "$nav : $t (voir /tmp/onco360-nav-$t-$nav.txt)"; fi
   done; done

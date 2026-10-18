@@ -198,7 +198,7 @@ démarrage par un médecin (comme `marquerProtocoles`), avec une fenêtre récap
       aucune dose ni aucun jour de séance d'anticancéreux changé ; consignes laissées de côté = déjà faites (indications reprises en P1a,
       Solumedrol J2 / J16 absent du TPF modifié). PRODIGE 5 (FOLFOX + RT) garde son NIVESTIM (le classeur n'en parle pas). Tests :
       `test-audit3p4.mjs` 24/24 (vraie bibliothèque, `tests/moteur/donnees/bibliotheque-2026-10-18.json`), `test_audit3.py` 22/22.
-- [x] **Demandes du 18/10/2026 (testé ; version 20261018d)** : **fiche de chimiothérapie** (va à l'administration et aux mutuelles) :
+- [x] **Demandes du 18/10/2026 (testé, en ligne : 20261018e)** : **fiche de chimiothérapie** (va à l'administration et aux mutuelles) :
       plus de « Remarques » (le rythme reste dans « Observations »), plus de n° de dossier (celui de l'hôpital est différent), NIVESTIM
       « 30 MU » ou « 48 MU » sans le détail du poids (`texteNiv(…, true)`, colonnes Posologie et Dose) ; **acide folinique** : vérifié sur
       les sources (400 mg/m² FOLFOX / FOLFIRI, 200 mg/m² FLOT / FOLFOXIRI / FOLFOX4, 50 mg eviQ = folinate de calcium racémique ;
@@ -266,13 +266,24 @@ démarrage par un médecin (comme `marquerProtocoles`), avec une fenêtre récap
       séance chaque semaine (3.7 bis), bouton « Ordonnances » dans chaque séance (P6), consultation de J8 / J15 pré-remplie à 0 DH (décision).
 - [ ] ~~P8 (plan)~~ **Hebdomadaire de bout en bout** : pas de prix pour la consultation de J8 / J15 (fenêtre pré-remplie à 0 DH, inchangée) ; vérifier sur un protocole hebdomadaire : seuils du jour à chaque injection (P3), report d'une seule séance
       (« cette date seulement », existe), rendez-vous et heure chaque semaine (3.7 bis), ordonnance par séance (P6).
-- [ ] **P9 Bibliothèque commune à tous les cabinets** : l'Administration **publie une version** de la référence (numéro, date, journal des
+- [x] **P9 Bibliothèque commune (18/10/2026, testé ; version 20261018f + fonctions referencePublier, referenceDiff, signalerErreur)** :
+      Administration › Bibliothèques › carte Oncologie › **« Publier une version »** (journal des changements écrit par l'administration,
+      numéro de version ; historique affiché) ; dans chaque **cabinet déjà créé** (jamais celui du Dr Bentahila, qui est la source), page
+      Protocoles : bandeau « Bibliothèque de référence (version N) : X nouveaux, Y différents du vôtre, Z ordonnances types » + journal ;
+      « Voir et choisir » : différences ligne par ligne (lignes ajoutées / retirées, nom, cycle), pour chaque protocole **Prendre la version
+      de la référence / Garder les deux / Garder le mien** (nouveau : Ajouter / Ne pas ajouter) ; jamais d'écrasement sans accord ; « Garder
+      le mien » noté avec l'empreinte de la version refusée (`parametres/reference.refus`), reproposé seulement si la référence change encore ;
+      protocole pris = « Copié de la bibliothèque de référence le … ». Différences calculées par le serveur (`functions/reference.js`,
+      test-reference 9/9 ; rien n'est écrit dans un cabinet par le serveur). **Export** de la bibliothèque : Excel (toutes les colonnes) et
+      livret PDF par localisation (page Protocoles). **« Signaler une erreur »** dans la fiche d'un protocole → journal de l'Administration.
+      Test : `tests/test_p9.py` 13/13 (cabinet fictif cab-test).
+- [ ] ~~P9 (plan)~~ **Bibliothèque commune à tous les cabinets** : l'Administration **publie une version** de la référence (numéro, date, journal des
       changements lisible : « v4 : anti-NK1 ajouté ») ; le serveur compare cabinet par cabinet (nouveaux, modifiés dans la référence,
       modifiés par le cabinet, supprimés) ; chaque cabinet voit « 14 protocoles mis à jour » et **le même écran que P1** (accepter, refuser,
       garder les deux) ; un protocole modifié par le cabinet n'est jamais écrasé sans son accord ; même chose pour les ordonnances types et
       les listes ; chaque diffusion tracée (qui, quand, quelle version, acceptée par qui) ; **export PDF** (livret par localisation) et
       **Excel** de la bibliothèque ; bouton « Signaler une erreur » qui remonte à l'Administration.
-- [x] **P10 (18/10/2026, testé ; version 20261018e)** : moteur `public/js/moteur/p10.js` (test-p10 19/19). **i) Interactions** (fenêtre de
+- [x] **P10 (18/10/2026, testé, en ligne : 20261018e)** : moteur `public/js/moteur/p10.js` (test-p10 19/19). **i) Interactions** (fenêtre de
       validation et encart Vigilance, d'après les traitements en cours / antécédents de la fiche et les ordonnances liées) : aprépitant (EMEND)
       + AVK ou contraception hormonale ; TKI (erlotinib, géfitinib, pazopanib, capécitabine…) + IPP / anti-H2 (dont OEDES) ; TKI + inducteurs
       (rifampicine, carbamazépine, phénytoïne, millepertuis) ou inhibiteurs du CYP3A4 ; méthotrexate + AINS / IPP / cotrimoxazole ; QT (ribociclib,

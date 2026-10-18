@@ -48,6 +48,7 @@ async def main():
         ok(pa.url.endswith('#reference') and await pa.evaluate("document.querySelectorAll('nav#onglets a').length") == 6 and await pa.evaluate("!!document.querySelector('[data-spec]')"), 'ancien lien « Bibliothèques » → Par spécialité (6 onglets)')
         await pa.click('[data-sous="biblio"]'); await pa.wait_for_timeout(300); ta = await pa.inner_text('main')
         ok('Oncologie – Radiothérapie' in ta and '316' in ta and 'En place' in ta and await pa.evaluate("document.querySelectorAll('[data-sous]').length") == 2, 'Par spécialité › Bibliothèque et paramètres : la bibliothèque, compteurs ; plus de « Modules et menus »')
+        ok(await pa.evaluate("!!document.querySelector('[data-publier]')") and 'Publier une version' in await pa.inner_text('main'), 'P9 : bouton « Publier une version » sur la carte Oncologie – Radiothérapie')
         ok(await pa.evaluate("!!document.querySelector('[data-copie]')") and 'Recopier depuis le cabinet Bentahila' in await pa.inner_text('main'), 'P11 : bouton « Recopier depuis le cabinet Bentahila » sur la carte Oncologie – Radiothérapie')
         await pa.click('[data-bib="bib-oncologie"]'); await pa.wait_for_timeout(1200)
         ok((await pa.evaluate('window.__bo && window.__bo.bib')) == 'bib-oncologie' or 'espace=bib-oncologie' in pa.url, '« Ouvrir et modifier » ouvre la bibliothèque dans Onco360')

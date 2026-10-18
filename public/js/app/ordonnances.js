@@ -128,6 +128,8 @@ window.orProtocole = async (pid, noms, opts) => {
     S = null; ouvrirOrdonnance({ pid, t: "ordo", types: ch.map((o) => o.nom), html: contenu(x, items, D().t, medecin()), format: items.length > 5 ? "A4" : "A5", taille: 0 });
   };
 };
+// P9 (18/10/2026) : liste des ordonnances types modifiée depuis la page Protocoles (mise à jour de la bibliothèque de référence)
+window.orMajTypes = async (fn) => { TYPES = await modifierListe("ordostypes", fn); return TYPES; };
 let BIB = null, TYPES = null;
 async function chargerBib() { return (BIB = await lireListe("medicaments")); }
 async function modifierBib(fn) { BIB = await modifierListe("medicaments", fn); }

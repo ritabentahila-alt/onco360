@@ -373,9 +373,19 @@ function carteBib(B) {
       (B.existe ? '<div class="chiffres" style="grid-template-columns:repeat(4,minmax(0,1fr))">' + LIBS.map(([k, lib]) => (B.nb && B.nb[k] != null ? "<div><b>" + B.nb[k] + "</b><span>" + esc(lib) + "</span></div>" : '<div title="La liste fournie par Onco360, pas encore modifiée"><b class="dep">liste Onco360</b><span>' + esc(lib) + "</span></div>")).join("") + "</div>" : '<p class="m">' + (B.id === "bib-oncologie" ? "Sera créée à partir de la copie mise de côté le 09/10 (bibliothèque du Dr Bentahila)." : "Sera créée vide : vous la remplirez (les modules de cette spécialité restent à construire).") + "</p>") +
       '<div class="act"><button data-bib="' + esc(B.id) + '">' + (B.existe ? "Ouvrir et modifier" : "Créer et ouvrir") + "</button>" +
       // P11 (18/10/2026) : la bibliothèque du cabinet Bentahila recopiée dans la référence d'oncologie
-      (B.id === "bib-oncologie" && B.existe ? '<button class="clair" data-copie="1" title="Remplace la bibliothèque de référence par celle du cabinet du Dr Bentahila">Recopier depuis le cabinet Bentahila</button>' : "") + "</div></article>");
+      (B.id === "bib-oncologie" && B.existe ? '<button class="clair" data-copie="1" title="Remplace la bibliothèque de référence par celle du cabinet du Dr Bentahila">Recopier depuis le cabinet Bentahila</button>' +
+        // P9 (18/10/2026) : version publiée = proposée aux cabinets déjà créés (chacun choisit protocole par protocole)
+        '<button class="clair" data-publier="1" title="Les cabinets déjà créés verront les protocoles nouveaux ou différents et choisiront">Publier une version' + (B.version ? " (actuelle : v" + B.version + ")" : "") + "</button>" : "") + "</div>" +
+      (B.id === "bib-oncologie" && (B.versions || []).length ? '<div class="m" style="margin-top:6px">' + B.versions.slice().reverse().map((v) => "v" + v.n + " (" + esc(dfr(String(v.le).slice(0, 10))) + ") : " + esc(v.notes)).join("<br>") + "</div>" : "") + "</article>");
 }
 function brancherReference() {
+  document.querySelectorAll("[data-publier]").forEach((b) => { b.onclick = async () => {
+    const notes = prompt("Publier une nouvelle version de la bibliothèque de référence.\n\nCe qui a changé (journal des changements, lu par les cabinets) :", "");
+    if (!notes || !notes.trim()) return;
+    b.disabled = true; b.textContent = "Publication…";
+    try { const o = await serveur("referencePublier", { notes }); b.textContent = "Version " + o.version + " publiée"; RES = "Bibliothèque de référence : version " + o.version + " publiée ; les cabinets la verront dans Protocoles."; CABINETS = null; }
+    catch (e) { b.disabled = false; b.textContent = "Publier une version"; alert("Impossible : " + e.message); }
+  }; });
   document.querySelectorAll("[data-copie]").forEach((b) => { b.onclick = async () => {
     if (!confirm("Recopier la bibliothèque du cabinet du Dr Bentahila dans la bibliothèque de référence d'Oncologie – Radiothérapie ?\n\nProtocoles, médicaments, ordonnances types, analyses, bilans, examens, courriers et paramètres de base remplacent ceux de la référence (étoiles retirées). Jamais : patients, correspondants, prix, lieux, équipe, documentation.\nLes cabinets déjà créés ne changent pas ; les prochains reçoivent cette copie.")) return;
     b.disabled = true; b.textContent = "Copie…";

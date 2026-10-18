@@ -471,6 +471,47 @@ exports.referenceDepuisCabinet = onCall({ timeoutSeconds: 300, memory: "512MiB" 
   console.log("référence recopiée depuis", C.MODELE, "par", par, JSON.stringify(nb));
   return { nb, le: jour };
 });
+// P9 (18/10/2026) : bibliothèque commune. L'administration publie une version de la référence (numéro, notes = journal des changements) ;
+// chaque cabinet demande ses différences (protocoles et ordonnances types nouveaux ou différents, functions/reference.js) et choisit dans
+// Onco360 (protocoles.js) ; rien n'est écrit ici dans un cabinet. « Signaler une erreur » arrive dans le journal de l'administration.
+const REF_E = "espaces/bib-oncologie";
+exports.referencePublier = onCall({ timeoutSeconds: 60, memory: "256MiB" }, async (req) => {
+  const par = req.auth && req.auth.uid;
+  if (!(await estAdministrateur(par))) throw new HttpsError("permission-denied", "Réservé à l'administration d'Onco360.");
+  const notes = String((req.data || {}).notes || "").trim().slice(0, 2000); if (!notes) throw new HttpsError("invalid-argument", "Écrivez ce qui a changé (journal des changements).");
+  const ref = db.doc(REF_E), s = await ref.get(); if (!s.exists) throw new HttpsError("failed-precondition", "Bibliothèque de référence absente.");
+  const n = (s.data().version || 0) + 1, v = { n, le: new Date().toISOString(), par, notes };
+  await ref.set({ version: n, versions: FieldValue.arrayUnion(v) }, { merge: true });
+  await jAdmin(par, "bibliotheque", "bib-oncologie", "Bibliothèque Oncologie – Radiothérapie", "Version " + n + " publiée : " + notes.slice(0, 200));
+  return { version: n };
+});
+exports.referenceDiff = onCall({ timeoutSeconds: 120, memory: "512MiB" }, async (req) => {
+  const par = req.auth && req.auth.uid, { espace } = req.data || {};
+  if (!par) throw new HttpsError("unauthenticated", "Connectez-vous à Onco360.");
+  if (!espace || espace === C.MODELE || C.estBib(espace)) return { version: 0, items: [], ordos: [] };
+  const es = await db.doc("espaces/" + espace).get(), m = es.exists ? await membre(espace, par) : null;
+  if (!m || m.actif === false || es.data().actif === false || m.role !== "medecin" || !(m.droits && m.droits.parametres === true)) throw new HttpsError("permission-denied", "Réservé au médecin (droit « paramètres »).");
+  const rs = await db.doc(REF_E).get(); if (!rs.exists || !rs.data().version) return { version: 0, items: [], ordos: [] };
+  const RF = require("./reference.js"), lire = (snap) => { const L = []; snap.forEach((d) => { try { JSON.parse(d.data().data || "[]").forEach((p) => L.push(p)); } catch (er) { /* bloc illisible */ } }); return L; };
+  const jsonDe = (x, def) => { try { return x.exists ? JSON.parse(x.data().data || "null") || def : def; } catch (er) { return def; } };
+  const E = "espaces/" + espace + "/";
+  const [pr, pc, cfg, sup, orr, orc] = await Promise.all([db.collection(REF_E + "/protocoles").get(), db.collection(E + "protocoles").get(), db.doc(E + "parametres/reference").get(),
+    db.doc(E + "parametres/protocolesSupprimes").get(), db.doc(REF_E + "/bibliotheques/ordostypes").get(), db.doc(E + "bibliotheques/ordostypes").get()]);
+  const conf = cfg.exists ? cfg.data() : {}, refus = conf.refus || {}, vue = conf.vue || 0;
+  const items = RF.differences(lire(pr), lire(pc), refus, jsonDe(sup, [])).map((x) => Object.assign(x, { resume: x.cab ? RF.resume(x.cab, x.ref) : null }));
+  const ordos = orr.exists && orc.exists ? RF.differencesOrdos(jsonDe(orr, []), jsonDe(orc, []), refus) : [];
+  const versions = (rs.data().versions || []).filter((v) => v.n > vue).map((v) => ({ n: v.n, le: v.le, notes: v.notes }));
+  return { version: rs.data().version, vue, versions, items, ordos };
+});
+exports.signalerErreur = onCall({ timeoutSeconds: 30, memory: "256MiB" }, async (req) => {
+  const par = req.auth && req.auth.uid, { espace, protocole, texte } = req.data || {};
+  if (!par) throw new HttpsError("unauthenticated", "Connectez-vous à Onco360.");
+  const es = espace ? await db.doc("espaces/" + espace).get() : null, m = es && es.exists ? await membre(espace, par) : null;
+  if (!m || m.actif === false) throw new HttpsError("permission-denied", "Réservé aux membres du cabinet.");
+  const t = String(texte || "").trim().slice(0, 1500); if (!t) throw new HttpsError("invalid-argument", "Décrivez l'erreur.");
+  await jAdmin(par, "signalement", espace, es.data().nom || espace, "Erreur signalée par " + (m.nom || "") + " sur « " + String((protocole || {}).nom || "").slice(0, 200) + " » (" + String((protocole || {}).id || "") + ") : " + t);
+  return { ok: true };
+});
 exports.bibliothequeOuvrir = onCall({ timeoutSeconds: 120, memory: "256MiB" }, async (req) => {
   const par = req.auth && req.auth.uid;
   if (!(await estAdministrateur(par))) throw new HttpsError("permission-denied", "Réservé à l'administration d'Onco360.");
@@ -634,7 +675,7 @@ exports.listeCabinets = onCall({ timeoutSeconds: 60, memory: "256MiB" }, async (
     const [p, l] = await Promise.all([db.collection("espaces/" + B.id + "/protocoles").get(), db.collection("espaces/" + B.id + "/bibliotheques").get()]), nb = {};
     nb.protocoles = p.docs.reduce((n, d) => { try { return n + JSON.parse(d.data().data || "[]").length; } catch (er) { return n; } }, 0);
     l.forEach((d) => { try { nb[d.id] = JSON.parse(d.data().data || "[]").length; } catch (er) { /* illisible */ } });
-    return Object.assign({}, B, { existe: true, nb, cree: s.data().cree || "" });
+    return Object.assign({}, B, { existe: true, nb, cree: s.data().cree || "", version: s.data().version || 0, versions: (s.data().versions || []).slice(-5), copieDuCabinet: s.data().copieDuCabinet || null });
   }));
   const sp = await db.doc("plateforme/specialites").get().catch(() => null), specialites = {};
   if (sp && sp.exists) Object.values(sp.data()).forEach((o) => { if (o && o.nom) specialites[o.nom] = { fiche: o.fiche || {}, le: o.ficheLe || o.le || "", consultation: o.consultation || {}, csLe: o.consultationLe || "" }; });
