@@ -43,12 +43,20 @@ const nomsOrdo = (s) => String(s).split("\n").map((l) => l.trim().replace(/^Chim
 const sansAcc = (s) => String(s).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\(hgc\)/g, "").replace(/[^a-z0-9]/g, "");
 const REELS = process.argv[2] ? JSON.parse(readFileSync(process.argv[2])) : [], parNom = {};
 REELS.forEach((p) => { (parNom[sansAcc(p.nom)] = parNom[sansAcc(p.nom)] || []).push(p.id); });
-const idDe = (n, nom) => ID_FORCE[n] || ((parNom[sansAcc(nom)] || []).length === 1 ? parNom[sansAcc(nom)][0] : null) || "@" + nom;
+// 2e essai : sans les parenthèses (« Létrozole + Palbociclib 125 mg (Ibrance) / 28 j » = « Létrozole + Palbociclib 125 mg / 28 j »)
+const sansPar = (s) => sansAcc(String(s).replace(/\([^)]*\)/g, "")), parNom2 = {};
+REELS.forEach((p) => { (parNom2[sansPar(p.nom)] = parNom2[sansPar(p.nom)] || []).push(p.id); });
+const un = (l) => (l && l.length === 1 ? l[0] : null);
+const idDe = (n, nom) => ID_FORCE[n] || un(parNom[sansAcc(nom)]) || un(parNom2[sansPar(nom)]) || "@" + nom;
 // Renommés en P1a : leur ancien nom ne se retrouve plus
 Object.assign(ID_FORCE, { 89: "todo|paclitaxel-pembrolizumab", 48: "sein|ibrance zometa" });
+// Consignes ajoutées par Dr Bentahila (18/10/2026) : PRODIGE 5 (FOLFOX + radiothérapie) perd aussi son NIVESTIM systématique
+const PLUS = { 116: [{ t: "suppr", p: "NIVESTIM 30 MU (filgrastim)", j: null }, { t: "remA", txt: "G-CSF en prophylaxie secondaire seulement (après une neutropénie fébrile ou un report pour neutropénie)" }] };
 const out = {}, ignores = [];
+const SUPPRIMES = new Set([117, 125, 300, 306, 34, 27, 28, 41, 39, 38]); // supprimés en P1a : rien à leur appliquer
 rows.forEach((x) => {
-  const n = x[0], e = { n, nom: x[5], ordre: x[7] || 0, seuils: String(x[12]).split("\n").map((l) => l.trim()).filter(Boolean), ordos: [...new Set(nomsOrdo(x[13]))], ops: [] };
+  if (SUPPRIMES.has(x[0])) return;
+  const n = x[0], e = { n, nom: x[5], ordre: x[7] || 0, src: String(x[14] || "").trim(), seuils: String(x[12]).split("\n").map((l) => l.trim()).filter(Boolean), ordos: [...new Set(nomsOrdo(x[13]))], ops: [] };
   const emend = /risque émétique élevé|AC \(/.test(x[13]);
   if (/ajuster|modifier/.test(x[6]) && !DEJA.has(n)) String(x[11]).split("\n").forEach((l) => {
     l = l.replace(/^•\s*/, "").trim(); if (!l) return;
@@ -76,7 +84,9 @@ rows.forEach((x) => {
     if (/^(À FAIRE|À VÉRIFIER|MODIFIER : BICARBONATE)/.test(l)) return; // fusions faites en P1a, AI 3 jours fait au palier 3, [251] gardé
     ignores.push(n + " : " + l.slice(0, 120));
   });
-  if (e.seuils.length || e.ordos.length || e.ops.length) out[idDe(n, x[5])] = e;
+  (PLUS[n] || []).forEach((o) => e.ops.push(o));
+  const k = idDe(n, x[5]); if (out[k]) throw new Error("deux lignes du classeur pour " + k + " : " + out[k].n + " et " + n);
+  if (e.src || e.seuils.length || e.ordos.length || e.ops.length) out[k] = e;
 });
 writeFileSync(new URL("public/js/donnees/audit3p4.js", R), "// Généré par outils/audit3/convertir-p4.mjs depuis le classeur de l'audit n° 3 (ne pas modifier à la main).\n// Clé : identifiant du protocole, ou « @nom » (retrouvé par son nom). n = numéro du classeur.\nexport const P4 = " + JSON.stringify(out) + ";\n");
 console.log(Object.keys(out).length + " protocoles (" + Object.keys(out).filter((k) => k[0] === "@").length + " retrouvés par le nom à l'ouverture) ; " + Object.values(out).reduce((t, e) => t + e.ops.length, 0) + " consignes ; non lues : " + ignores.length);

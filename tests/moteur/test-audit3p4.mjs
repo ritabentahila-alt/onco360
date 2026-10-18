@@ -41,7 +41,7 @@ console.log("2. NIVESTIM et G-CSF");
 const niv = r.modifies.filter((m) => m.faites.some((f) => /^NIVESTIM/.test(f)));
 cas("NIVESTIM structuré (30 / 48 MU, de quel J à quel J), jamais un jour de séance", niv.length >= 45 && niv.every((m) => { const d = lig(m.p, /NIVESTIM/); return /48 MU si poids > 70 kg/.test(d.pos) && d.nd === 1 && String(d.j) === "99" && /→/.test(d.jl); }), niv.length);
 const folfox = r.modifies.filter((m) => /FOLFOX|FOLFIRI/.test(m.p.nom) && !/FOLFIRINOX|FOLFOXIRI/.test(m.p.nom) && m.faites.some((f) => /retiré : NIVESTIM/.test(f)));
-cas("NIVESTIM systématique retiré des FOLFOX / FOLFIRI (11)", folfox.length === 11, folfox.map((m) => m.p.nom));
+cas("NIVESTIM systématique retiré des FOLFOX / FOLFIRI (11 du classeur + PRODIGE 5, demandé le 18/10)", folfox.length === 12, folfox.map((m) => m.p.nom));
 
 console.log("3. Remarques, noms, indications");
 const ev = r.modifies.filter((m) => (m.p.no || []).some((x) => /eviq/i.test(x)));
@@ -62,6 +62,14 @@ const p23 = r.crees.find((p) => /PRODIGE 23/.test(p.nom)), mf = r.modifies.find(
 cas("PRODIGE 23 : irinotécan 180 mg/m², rangé en rectum ; l'original n'est plus rangé en rectum", lig(p23, /IRINOTECAN/).d === 180 && p23.ind.every((x) => /Rectum/i.test(x[1])) && mf && !mf.p.ind.some((x) => /rectum/i.test(x.join(" "))), [p23.ind, mf && mf.p.ind]);
 const a18 = r.crees.find((p) => /KEYNOTE-A18/.test(p.nom));
 cas("KEYNOTE-A18 phase 2 : pembrolizumab 400 mg toutes les 6 semaines", a18.c === 42 && a18.dr[0].d === 400);
+
+console.log("5 bis. P5 : sources, DCI, localisation");
+const tous = Object.values(BIB).map((p) => (r.modifies.find((m) => m.id === p.id) || { p }).p).concat(r.crees);
+cas("chaque protocole a sa source (essai de référence)", tous.filter((p) => !p.src).length === 0, tous.filter((p) => !p.src).map((p) => p.nom));
+cas("plus aucun « SOLUMEDROL » sans DCI", !tous.some((p) => p.dr.some((d) => /^SOLUMEDROL\s*$/.test(d.p))));
+cas("localisation de la fiche = 1re indication", tous.every((p) => !(p.ind || []).length || (p.dos === p.ind[0][0] && p.loc === (p.ind[0][1] || p.ind[0][0]))));
+cas("PRODIGE 5 : NIVESTIM retiré, remarque « prophylaxie secondaire »", (() => { const p = tous.find((z) => /PRODIGE 5/.test(z.nom)); return p && !p.dr.some((d) => /NIVESTIM/.test(d.p)) && p.no.some((x) => /prophylaxie secondaire/.test(x)); })());
+cas("variantes locales : source « Variante locale… »", tous.filter((p) => /^Variante locale/.test(p.src || "")).length >= 5);
 
 console.log("6. Une seule fois");
 const bib2 = Object.assign({}, BIB); r.modifies.forEach((m) => { bib2[m.id] = m.p; }); r.crees.forEach((p) => { bib2[p.id] = p; });

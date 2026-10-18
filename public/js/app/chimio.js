@@ -355,8 +355,9 @@ function vueJour(x, i, k, j) {
   const figeJ = j === 1 ? e.st === "recue" : !!(sea && sea.st === "recue"), F = j === 1 ? c.fige : ((c.sea || {})[j] || {}).fige;
   if (figeJ) dis = " disabled";
   // bouton « Retour à la cure » en bas, à côté de Reporter / Valider (12/10/2026, demande de Dr Bentahila)
-  const RET = unSeulJour(L, k) ? '<button class="bt gris" style="margin-right:auto" onclick="chFermerCure()">Fermer</button>' // cure d'un seul jour : pas de tableau des jours (3.7)
-    : '<button class="bt gris" style="margin-right:auto" onclick="chRetourCure()">‹ Retour à la cure C' + e.n + "</button>";
+  const RET = (unSeulJour(L, k) ? '<button class="bt gris" style="margin-right:auto" onclick="chFermerCure()">Fermer</button>' // cure d'un seul jour : pas de tableau des jours (3.7)
+    : '<button class="bt gris" style="margin-right:auto" onclick="chRetourCure()">‹ Retour à la cure C' + e.n + "</button>") +
+    (A.peut("ecrireConsultations") ? '<button class="bt clair" data-fn="prescriptions" onclick="chOrdos(' + qc + "," + j + ')">' + A.ic("imprimer") + "Ordonnances</button>" : ""); // P6 (18/10/2026)
   let h = '<div class="cure-ent"><div><h3 style="margin:0">C' + e.n + " · " + etiquette(gr) + " — " + esc(q.nom) + '</h3><p class="sous" style="margin:4px 0 0">' + esc(x.r.nm) + (dJ ? " · " + A.dfrA(dJ) : "") + (dJ && !figeJ && (j === 1 ? e.st === "prevue" : sea && sea.st === "prevue") ? boutonHeure(x, i, k, gr.j, j === 1 ? c : (c.sea || {})[j] || {}) : "") + "</p></div>" + // heure de la consultation, à côté de la date (3.7)
     (j === 1 ? '<button class="bt fonce petit" data-fn="chimio.fiche" onclick="chFiche(' + qc + ')"><svg class="pi"><use href="#i-imprimer"/></svg>FICHE CHIMIO</button>' : "") + "</div>";
   // Paramètres de la séance (J1, J8…) : saisis ici, sinon repris de la séance précédente (puis de la cure précédente)
@@ -524,7 +525,7 @@ function encartVigilance(o) {
   if (ves.length) l.push("<div>Produit vésicant : <b>" + ves.map(esc).join(", ") + "</b> (voie veineuse sûre, surveiller le point de ponction)</div>");
   if (figeJ && F && F.vig && F.vig.length) l.push('<div>Vigilances confirmées à la validation :<ul style="margin:4px 0 0 18px;padding:0">' + F.vig.map((v) => "<li>" + esc(v) + "</li>").join("") + "</ul></div>");
   // P3 (18/10/2026) : risque émétique, seuils du jour et ordonnances liées du protocole
-  const pc = protocoleCure(L, k, D().ctx.bib);
+  const pc = champsBib(protocoleCure(L, k, D().ctx.bib), L);
   if (pc) {
     l.push("<div>Risque émétique : <b>" + esc(libRisque(risqueDe(pc, premedP))) + "</b>" + ((pc.ordos || []).length ? " · Ordonnances liées : " + pc.ordos.map(esc).join(" ; ") : "") + "</div>");
     if ((pc.seuils || []).length) l.push('<details' + (figeJ ? "" : " open") + '><summary style="cursor:pointer">Seuils du jour (protocole)</summary><ul style="margin:4px 0 0 18px;padding:0">' + pc.seuils.map((s) => "<li>" + esc(s) + "</li>").join("") + "</ul></details>");
@@ -579,6 +580,16 @@ function verifierValidation(x, i, k, n) {
   return { bio, vig: vg };
 }
 
+// P6 (18/10/2026) : une ligne prescrite avant le 18/10 garde sa copie du protocole, sans ordonnances liées ni seuils : ceux de la bibliothèque
+function champsBib(pc, L) {
+  const b = L && D().ctx.bib[L.protoId]; if (!pc || !b) return pc;
+  return Object.assign({}, pc, { ordos: (pc.ordos || []).length ? pc.ordos : b.ordos, seuils: (pc.seuils || []).length ? pc.seuils : b.seuils, re: pc.re || b.re });
+}
+window.chOrdos = (id, i, k, j) => {
+  const x = trouver(id), L = lignesDe(x)[i], pc = champsBib(protocoleCure(L, k, D().ctx.bib), L) || {};
+  const iv = (pc.dr || []).some((d) => !premedP(d) && !/PER OS|ORAL/i.test(d.v || ""));
+  window.orProtocole(id, pc.ordos || [], { fievre: k === 0 && j === 1 && iv, proto: "C" + (k + 1) + " — " + (pc.nom || "") });
+};
 // ───── Cures ─────
 window.chDate = (id, i, k, v) => {
   const x = trouver(id); if (!v) { A.pageDossier(id); return; }

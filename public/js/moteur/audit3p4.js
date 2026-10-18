@@ -61,9 +61,11 @@ export function appliquerEntree(p0, e) {
     } else if (o.t === "indR") {
       const i = (p.ind || []).findIndex((x) => JSON.stringify(x.slice(0, 3)) === JSON.stringify(o.ind.slice(0, 3)));
       if (i >= 0) { p.ind.splice(i, 1); faites.push("indication retirée"); } else ignores.push("indication à retirer introuvable");
-    } else if (o.t === "loc") { if (p.loc === o.loc) return; p.loc = o.loc; if (o.dos) p.dos = o.dos; faites.push("localisation : " + o.loc); }
+    } else if (o.t === "loc") { /* P5 : la localisation de la fiche suit la 1re indication (nettoyerP5) */ }
     else if (o.t === "prodige23" || o.t === "keynoteA18") { /* protocoles créés par creesP4 */ }
   });
+  // P5 : source (essai de référence du classeur) si elle manque
+  if (e.src && !p.src) { p.src = e.src; faites.push("source"); }
   // Seuils du jour et ordonnances liées (champs du protocole, P3)
   if (e.seuils && e.seuils.length && JSON.stringify(p.seuils || []) !== JSON.stringify(e.seuils) && !(p.seuils && p.seuils.length)) { p.seuils = e.seuils.slice(); faites.push("seuils du jour"); }
   if (e.ordos && e.ordos.length && !(p.ordos && p.ordos.length)) { p.ordos = e.ordos.slice(); faites.push("ordonnances liées"); }
@@ -93,6 +95,15 @@ export function creesP4(bib, P4) {
   return out;
 }
 
+// P5 (18/10/2026) : sur tous les protocoles : DCI à côté de la marque (« SOLUMEDROL » → « SOLUMEDROL (méthylprednisolone) ») ;
+// localisation de la fiche (`dos` / `loc`, ancien rangement à deux niveaux) = la 1re indication de l'arborescence. Rend les libellés.
+export function nettoyerP5(p) {
+  const f = [];
+  (p.dr || []).forEach((d) => { if (/^SOLUMEDROL\s*$/i.test(d.p)) { d.p = "SOLUMEDROL (méthylprednisolone)"; if (!f.length || f[f.length - 1] !== "DCI") f.push("DCI"); } });
+  const i = (p.ind || [])[0];
+  if (i && i[0] && (p.dos !== i[0] || p.loc !== (i[1] || i[0]))) { p.dos = i[0]; p.loc = i[1] || i[0]; f.push("localisation"); }
+  return f;
+}
 // Toute la bibliothèque. Rend { modifies: [{ id, p, faites, ignores }], crees: [p], ignores: [{ id, nom, raisons }] }
 export function correctionsP4(bib, P4) {
   const r = { modifies: [], crees: [], ignores: [] }, parNom = {};
@@ -101,16 +112,18 @@ export function correctionsP4(bib, P4) {
   Object.entries(P4).forEach(([k, e]) => {
     const p0 = k[0] === "@" ? parNom[k.slice(1)] : bib[k];
     if (!p0) { if ((e.ops || []).length) r.ignores.push({ id: k, nom: e.nom, raisons: ["protocole introuvable"] }); return; }
-    const x = appliquerEntree(p0, e);
+    const x = appliquerEntree(p0, e); if (x.p) x.faites.push(...nettoyerP5(x.p));
     if (x.p) { mod[p0.id] = x; r.modifies.push(Object.assign({ id: p0.id }, x)); }
     if (x.ignores.length) r.ignores.push({ id: p0.id, nom: p0.nom, raisons: x.ignores });
   });
+  // P5 sur les protocoles sans consigne du classeur
+  Object.values(bib).forEach((p0) => { if (!p0 || !p0.nom || mod[p0.id]) return; const p = copie(p0), f = nettoyerP5(p); if (f.length) { mod[p0.id] = { p, faites: f, ignores: [] }; r.modifies.push(Object.assign({ id: p0.id }, mod[p0.id])); } });
   const vue = Object.assign({}, bib); Object.entries(mod).forEach(([id, x]) => { vue[id] = x.p; });
   creesP4(vue, P4).forEach((c) => {
-    r.crees.push(c.p);
+    nettoyerP5(c.p); r.crees.push(c.p);
     if (c.retirerRectum) {
       const m = mod[c.origine] || (mod[c.origine] = { p: copie(bib[c.origine]), faites: [], ignores: [] }); c.p.ind = c.p.ind.length ? c.p.ind : [];
-      const av = (m.p.ind || []).length; m.p.ind = (m.p.ind || []).filter((x) => !/rectum/i.test(x.join(" ")));
+      const av = (m.p.ind || []).length; m.p.ind = (m.p.ind || []).filter((x) => !/rectum/i.test(x.join(" "))); nettoyerP5(m.p);
       if (m.p.ind.length !== av) { m.faites.push("indication rectum retirée (version PRODIGE 23 créée)"); if (!r.modifies.some((z) => z.id === c.origine)) r.modifies.push(Object.assign({ id: c.origine }, m)); }
     }
   });

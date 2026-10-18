@@ -213,12 +213,26 @@ démarrage par un médecin (comme `marquerProtocoles`), avec une fenêtre récap
       (paclitaxel, cétuximab, cabazitaxel), **hydratation du cisplatine en lignes** (NaCl, KCl, MgSO4 ± mannitol), **NIVESTIM structuré**
       (54 protocoles) et retiré des 11 FOLFOX / FOLFIRI, atropine (irinotécan), surprophylaxie allégée (21 schémas à risque faible : un seul
       antiémétique), médicaments pris à domicile sortis du protocole vers l'ordonnance, seuils du jour, ordonnances liées.
-- [ ] **P5 Bibliothèque propre** : **DCI à côté de la marque** (191 « SOLUMEDROL » seuls ; acide folinique : racémique ou lévofolinate ;
+- [x] **P5 Bibliothèque propre (18/10/2026, testé ; avec P4, même passage unique `audit3e` ; version 20261018b)** : **source** de chaque
+      protocole = essai de référence du classeur (306 ; variantes locales : « Variante locale de … ») ; **« SOLUMEDROL » →
+      « SOLUMEDROL (méthylprednisolone) »** (186 lignes ; les autres produits étaient déjà écrits par leur DCI) ; **localisation de la fiche**
+      (`dos` / `loc`, ancien rangement à deux niveaux, imprimé en bas de la fiche de chimio) = 1re indication de l'arborescence (qui était
+      déjà à un seul niveau) ; eviQ : plus aucune mention après P4 ; « HGC » : retiré au palier 3. PRODIGE 5 : NIVESTIM retiré (demande du
+      18/10). **Pas fait (à décider par Dr Bentahila)** : acide folinique racémique ou lévofolinate (« ACIDE FOLINIQUE (LV) » 400 / 200 /
+      50 mg) ; Solumedrol en mg/kg (EC, CAP fractionné). Tests : test-audit3p4 29/29.
+- [x] **P6 Bouton « Ordonnances » (18/10/2026, testé ; version 20261018b)** : dans la séance, à côté de Reporter / Valider (droit
+      d'écrire les consultations) : fenêtre « Ordonnances du protocole » (`orProtocole`, ordonnances.js) avec les ordonnances liées cochées,
+      « Chimio – Fièvre sous chimiothérapie » cochée à la 1re cure d'une chimiothérapie IV, les autres ordonnances « Chimio » à cocher ;
+      « Préparer l'ordonnance » réunit leurs médicaments dans la fenêtre d'ordonnance habituelle (modifiable, A5 / A4, Valider / Valider +
+      Imprimer, consultation du jour). Une ligne prescrite avant le 18/10 garde sa copie du protocole : ordonnances liées et seuils pris dans
+      la bibliothèque (`champsBib`). Pas de bouton à la création de la ligne : la C1 se prépare depuis sa séance. Test :
+      `tests/test_ordonnances_protocole.py` 7/7.
+- [ ] ~~P5 (plan)~~ **Bibliothèque propre** : **DCI à côté de la marque** (191 « SOLUMEDROL » seuls ; acide folinique : racémique ou lévofolinate ;
       Solumedrol en mg/kg harmonisé) ; **eviQ retiré** (noms, 73 remarques) ; **« HGC » retiré** des noms ; **Source remplie** pour les
       316 (colonne du classeur ; variantes locales : « variante locale, dérivée de … ») ; protocoles sans essai gardés **sans mention** ;
       [211] : furosémide nommé correctement (OEDES = oméprazole), bicarbonate en ml ; **classement à un seul niveau** (Poumon / Poumon-thorax, Digestif / Côlon-rectum / Estomac fusionnés ; [310]
       rangé en endomètre et col ; [7], [123], [273] rangés aussi là où ils servent) ; indications complétées (colonne « Aussi rangé dans »).
-- [ ] **P6 Bouton « Ordonnances »** : à côté de « Valider » / « Reporter » dans la séance, les ordonnances liées au protocole **cochées**
+- [ ] ~~P6 (plan)~~ **Bouton « Ordonnances »** : à côté de « Valider » / « Reporter » dans la séance, les ordonnances liées au protocole **cochées**
       (risque émétique, molécules) ; le médecin décoche, modifie le texte, ajoute, imprime (A5 / A4, en-tête et signataire de 3.9) ;
       valider sans imprimer reste possible. **À la création de la ligne** : ordonnance de C1 imprimée avec la fiche de prescription envoyée à
       la prise en charge ; « Fièvre sous chimiothérapie » proposée à la 1re cure IV ; à chaque cure : ordonnance de la cure + prémédication

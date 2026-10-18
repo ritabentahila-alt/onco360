@@ -104,6 +104,30 @@ export async function ordosAudit3() {
   if (r.renommees || r.ajoutees || r.retirees) A.journal({ id: "", r: { nm: "" } }, "Audit n° 3 : ordonnances types de chimiothérapie (" + r.renommees + " renommée(s), " + r.ajoutees + " ajoutée(s), " + r.retirees + " doublon(s) retiré(s))");
   return r;
 }
+// P6 (18/10/2026, audit n° 3) : bouton « Ordonnances » de la séance de chimiothérapie : les ordonnances types liées au protocole
+// cochées (et « Fièvre sous chimiothérapie » à la 1re cure), les autres ordonnances « Chimio » à cocher ; « Préparer l'ordonnance »
+// réunit leurs médicaments dans une ordonnance modifiable (la fenêtre habituelle : Valider / Valider + Imprimer, consultation du jour).
+const FIEVRE = "Chimio – Fièvre sous chimiothérapie : conduite à tenir";
+window.orProtocole = async (pid, noms, opts) => {
+  opts = opts || {}; A.fenetre('<p class="sous">Chargement…</p>', "large");
+  await chargerTypes(); const x = trouver(pid), cle = (s) => sansAcc(s).replace(/[^a-z0-9]/g, "");
+  const lies = (noms || []).map((n) => TYPES.find((o) => cle(o.nom) === cle(n))).filter(Boolean);
+  if (opts.fievre) { const f = TYPES.find((o) => o.nom === FIEVRE); if (f && lies.indexOf(f) < 0) lies.push(f); }
+  const autres = TYPES.filter((o) => /^Chimio/.test(o.nom) && lies.indexOf(o) < 0).sort(alpha), manque = (noms || []).filter((n) => !TYPES.some((o) => cle(o.nom) === cle(n)));
+  const ligne = (o, c) => '<label class="or-pc" style="display:block;margin:6px 0;font-weight:normal"><input type="checkbox" data-ot="' + A.esc(o.id) + '"' + (c ? " checked" : "") + '> <b>' + A.esc(o.nom) + '</b> <span class="mesures">' + A.esc(o.items.map((i) => i.nom).join(" ; ")) + "</span></label>";
+  A.fenetre("<h3>Ordonnances du protocole — " + A.esc(x.r.nm) + "</h3>" + (opts.proto ? '<p class="sous">' + A.esc(opts.proto) + "</p>" : "") +
+    (lies.length ? "<h4 class=\"soustitre\">Liées au protocole</h4>" + lies.map((o) => ligne(o, true)).join("") : '<p class="mesures">Aucune ordonnance liée à ce protocole (Protocoles › fiche du protocole › « Ordonnances liées »).</p>') +
+    (manque.length ? '<p class="mesures">Introuvables dans la liste du cabinet : ' + manque.map(A.esc).join(" ; ") + "</p>" : "") +
+    (autres.length ? '<details><summary style="cursor:pointer;margin-top:8px">Autres ordonnances de chimiothérapie</summary>' + autres.map((o) => ligne(o, false)).join("") + "</details>" : "") +
+    '<p class="mesures" style="margin-top:8px">Les médicaments des ordonnances cochées passent dans une seule ordonnance, modifiable avant de l\'imprimer. Rien n\'est obligatoire.</p>' +
+    '<div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Fermer</button><button class="bt plein" id="orPcOk">Préparer l\'ordonnance</button></div>', "large");
+  $("orPcOk").onclick = () => {
+    const ch = [...document.querySelectorAll("[data-ot]:checked")].map((i) => TYPES.find((o) => o.id === i.dataset.ot)).filter(Boolean);
+    if (!ch.length) { A.toast("Cochez au moins une ordonnance."); return; }
+    const items = []; ch.forEach((o) => o.items.forEach((it) => { if (!items.some((z) => z.nom === it.nom && z.poso === it.poso)) items.push({ nom: it.nom, poso: it.poso }); }));
+    S = null; ouvrirOrdonnance({ pid, t: "ordo", types: ch.map((o) => o.nom), html: contenu(x, items, D().t, medecin()), format: items.length > 5 ? "A4" : "A5", taille: 0 });
+  };
+};
 let BIB = null, TYPES = null;
 async function chargerBib() { return (BIB = await lireListe("medicaments")); }
 async function modifierBib(fn) { BIB = await modifierListe("medicaments", fn); }
