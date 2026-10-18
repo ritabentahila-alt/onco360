@@ -49,5 +49,11 @@ const sansCab = (v) => JSON.parse(JSON.stringify(v, (k, x) => (k === "cabinet" ?
   // Cabinet existant qui avait l'ancienne copie de la spécialité et ses retouches : ses retouches restent par-dessus
   const E3 = M.effectifs(cat, { ficheSpe: M.modelePrioritaire(mf, ficheSpe), consultSpe: mc, abonnement: { modules: { chimio: true }, reglage: {} } }, { fiche: { libs: { mut: "Assurance" } } }, null);
   cas("cabinet existant : ses propres retouches gardées (nom « Assurance »), champs du modèle reçus", E3.fiche.libs.mut === "Assurance" && E3.fiche.ajouts.some((a) => a.id === "xgeuit"));
+  console.log("Écart d'un cabinet au modèle (lecture seule)");
+  const ec = M.ecart(cat, "fiche", { libs: { mut: "Organisme" }, champs: { tel2: false }, ajouts: [{ id: "xscore", lib: "Score" }] }, { libs: { mut: "Assurance" }, ajouts: [{ id: "xscore", lib: "Score" }, { id: "xpropre", lib: "Champ propre au cabinet" }] });
+  cas("fiche : champ ajouté par le cabinet (son nom), présence remise, nom affiché changé, en clair", ec.plus.indexOf("Champ propre au cabinet") >= 0 && ec.moins.some((x) => /\(présence\)$/.test(x)) && ec.change.some((x) => /\(nom affiché\)$/.test(x)) && ec.n === 3, ec);
+  const eb = M.ecart(cat, "bibliotheques", { medicaments: [{ id: "m1", nom: "A" }] }, { medicaments: [{ id: "m1", nom: "A", poso: "x" }, { id: "m2", nom: "B" }] });
+  cas("bibliothèques : médicament ajouté (B), médicament modifié (A)", eb.plus.join() === "B" && eb.change.join() === "A" && eb.n === 2, eb);
+  cas("aucun écart : n = 0, « aucune différence »", M.ecart(cat, "reglage", { menu: ["a"] }, { menu: ["a"] }).n === 0 && M.ecart(cat, "reglage", { menu: ["a"] }, { menu: ["a"] }).resume === "aucune différence");
   console.log("\n" + ok + " réussis, " + ko + " échoués");
 })().catch((e) => { console.log("  ✘ erreur : " + e.stack); process.exitCode = 1; });

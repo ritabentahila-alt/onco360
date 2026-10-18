@@ -14,6 +14,8 @@ MOCK = """window.__uid='ADM';window.__appels=[];window.__fonctions={
  listeCabinets:async()=>({cabinets:[{id:'cabinet-bentahila',nom:'Cabinet modèle (test)',modele:true,actif:true,cree:'2026-10-01',abonnement:{formule:'complet',modules:{}},titulaire:{nom:'Dr Modèle',email:'m@test.ma'},membres:1,patients:0},
    {id:'cab-test',nom:'Cabinet Test',cree:'2026-10-09',actif:true,abonnement:{formule:'complet',modules:{}},titulaire:{nom:'Dr Test',email:'t@test.ma'},membres:1,patients:0}],archives:[]}),
  modeleReprendre:async(d)=>{window.__appels.push(['reprendre',d]);return {specialite:'Oncologie – Radiothérapie',repris:{le:'2026-10-18T10:00:00Z'},diffs:%s,n:3}},
+ modeleEcart:async(d)=>{window.__appels.push(['ecart',d]);return {espace:d.espace,nom:d.espace==='cab-test'?'Cabinet Test':'Cabinet modèle (test)',specialite:'Oncologie – Radiothérapie',modele:d.espace==='cabinet-bentahila',repris:{le:'2026-10-18T10:00:00Z'},n:d.espace==='cab-test'?3:0,
+   parties:[{k:'fiche',lib:'Fiche patient',n:2,le:'2026-10-15T09:00:00Z',plus:['Champ propre au cabinet'],moins:[],change:['Mutuelle (nom affiché)']},{k:'bibliotheques',lib:'Bibliothèques de prescription et modèles de documents de radiothérapie',n:1,le:'',plus:['PROPRE AU CABINET X'],moins:[],change:[]},{k:'reglage',lib:'Réglage du cabinet',n:0,le:'',plus:[],moins:[],change:[]}]}},
  modeleAppliquer:async(d)=>{window.__appels.push(['appliquer',d]);return {espace:d.espace,diffs:%s.filter(x=>d.parties.indexOf(x.k)>=0),n:3,ecrit:!!d.confirmer}}};""" % (json.dumps(DIFFS), json.dumps(DIFFS))
 async def main():
     async with async_playwright() as p:
@@ -35,9 +37,21 @@ async def main():
         await pa.goto(f'http://localhost:{PORT}/admin.html#cabinets'); await pa.wait_for_timeout(1200)
         await ev("document.querySelector('tr.lc-l[data-fiche=\"cabinet-bentahila\"]').click()"); await pa.wait_for_timeout(500)
         ok(not await ev("!!document.querySelector('#modal [data-modele]')"), 'cabinet modèle : pas de bouton « Appliquer le modèle »')
+        ok(await ev("!!document.querySelector('#modal [data-ecart=\"cabinet-bentahila\"]')"), 'cabinet modèle : bouton « Écart au modèle » (ce qu\'il a changé depuis la reprise)')
+        await ev("document.querySelector('#modal [data-ecart]').click()"); await pa.wait_for_timeout(700)
+        ok('Aucun écart' in await pa.inner_text('#modal') and 'depuis la dernière reprise' in await pa.inner_text('#modal'), 'cabinet modèle sans écart : « Aucun écart », « depuis la dernière reprise »')
         await ev("document.getElementById('mX').click()"); await pa.wait_for_timeout(300)
         await ev("document.querySelector('tr.lc-l[data-fiche=\"cab-test\"]').click()"); await pa.wait_for_timeout(500)
         ok(await ev("!!document.querySelector('#modal [data-modele=\"cab-test\"]')"), 'autre cabinet : bouton « Appliquer le modèle »')
+        # Écart au modèle (lecture seule)
+        ok(await ev("!!document.querySelector('#modal [data-ecart=\"cab-test\"]')"), 'bouton « Écart au modèle » dans la fiche du cabinet')
+        await ev("document.querySelector('#modal [data-ecart]').click()"); await pa.wait_for_timeout(700)
+        m = await pa.inner_text('#modal')
+        ok('Écart au modèle – Cabinet Test' in m and 'Ajouté par le cabinet : Champ propre au cabinet' in m and 'Modifié : Mutuelle (nom affiché)' in m and 'modifié le 15/10/2026' in m, 'écart : partie par partie, ajouté / modifié, date de modification', m[:400])
+        ok('comme le modèle' in m and 'aucune donnée patient' in m, '« comme le modèle » pour une partie sans écart ; « aucune donnée patient » rappelé')
+        ok((await ev("window.__appels"))[-1] == ['ecart', {'espace': 'cab-test'}], 'appel modeleEcart pour cab-test, sans rien écrire (aucun « confirmer »)')
+        await ev("document.getElementById('ecNon').click()"); await pa.wait_for_timeout(300)
+        await ev("document.querySelector('tr.lc-l[data-fiche=\"cab-test\"]').click()"); await pa.wait_for_timeout(500)
         await ev("document.querySelector('#modal [data-modele]').click()"); await pa.wait_for_timeout(500)
         cases = await ev("[...document.querySelectorAll('[data-mp]')].map(i => [i.dataset.mp, i.checked])")
         ok(len(cases) == 6 and all(c for _, c in cases), '6 parties, toutes cochées', cases)

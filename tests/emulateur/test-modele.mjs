@@ -93,6 +93,24 @@ cas("appliquer une 2e fois : plus rien à ajouter", p3.n === 0, p3.diffs.filter(
 const p4 = (await appliquer({ espace: "cab-x", parties: ["fiche"] })).data;
 cas("parties cochées seulement : une seule partie lue", p4.diffs.length === 1 && p4.diffs[0].k === "fiche", p4.diffs.map((d) => d.k));
 
+console.log("Écart au modèle (lecture seule)");
+const ecart = httpsCallable(fn, "modeleEcart", { timeout: 120000 });
+const avantEcart = JSON.stringify((await db.collection("espaces/cab-x/bibliotheques").get()).docs.map((d) => d.data().data));
+const e1 = (await ecart({ espace: "cab-x" })).data, pb = e1.parties.find((p) => p.k === "bibliotheques"), pf = e1.parties.find((p) => p.k === "fiche"), pp = e1.parties.find((p) => p.k === "parametres");
+cas("cab-x : médicament propre (ajouté) et FICTIVOL (modifié par X) dans l'écart", pb.plus.indexOf("PROPRE AU CABINET X") >= 0 && pb.change.indexOf("FICTIVOL 5 mg") >= 0, pb);
+cas("cab-x : l'ancien champ gardé dans sa fiche apparaît comme ajouté par le cabinet", pf.plus.indexOf("Ancien champ") >= 0, pf);
+cas("aucun correspondant dans l'écart (ni du cabinet ni du modèle)", !JSON.stringify(e1).includes("Correspondant"), pp);
+cas("lecture seule : rien d'écrit dans le cabinet", JSON.stringify((await db.collection("espaces/cab-x/bibliotheques").get()).docs.map((d) => d.data().data)) === avantEcart);
+const e2 = (await ecart({ espace: "cabinet-bentahila" })).data;
+cas("cabinet modèle juste après la reprise : aucun écart", e2.modele === true && e2.n === 0, e2.parties.filter((p) => p.n));
+await db.doc(MOD + "/parametres/whatsapp").set(J({ rappel: "Bonjour {patient}, rappel changé." }));
+const e3 = (await ecart({ espace: "cabinet-bentahila" })).data;
+cas("cabinet modèle : un message WhatsApp changé depuis la reprise apparaît", e3.n === 1 && e3.parties.find((p) => p.k === "parametres").change.indexOf("whatsapp.rappel") >= 0, e3.parties.filter((p) => p.n));
+await signInWithEmailAndPassword(auth, "med@test.ma", "motdepasse-test");
+refus = null; try { await ecart({ espace: "cab-x" }); } catch (e) { refus = e.code; }
+cas("un médecin (pas l'administration) ne voit pas l'écart d'un autre cabinet", refus === "functions/permission-denied", refus);
+await signInWithEmailAndPassword(auth, "adm@test.ma", "motdepasse-test");
+
 console.log("Cabinet neuf : reçoit le modèle repris");
 const c1 = (await creer({ cabinet: "Cabinet neuf test", prenom: "Test", nom: "Neuf", email: "neuf@test.ma", telephone: "0600000000", formule: "complet" })).data, N = "espaces/" + c1.espace;
 const Nd = (await db.doc(N).get()).data();

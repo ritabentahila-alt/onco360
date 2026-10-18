@@ -233,7 +233,7 @@ function carteCabinet(c) {
     blocAbonnement(c) +
     '<div class="m">Créé le ' + esc(dfr(c.cree) || "—") + (c.activite ? " · dernière activité : " + esc(ilYa(c.activite.derniere)) + (c.activite.par ? " (" + esc(c.activite.par) + ")" : "") + " · " + (c.activite.n30 || 0) + " action" + ((c.activite.n30 || 0) > 1 ? "s" : "") + " en 30 jours" : "") + "</div>" +
     // Actions regroupées (17.3) : gérer · accès · zone sensible
-    '<div class="act-g"><div><span class="m">Gérer</span>' + (c.demo ? '<button class="clair petit" data-reinit="' + esc(c.id) + '">Réinitialiser la démo</button>' : "") + '<button class="clair petit" data-info="' + esc(c.id) + '">Modifier</button><button class="clair petit" data-form="' + esc(c.id) + '">Réglage du cabinet</button>' + (c.modele || c.bibliotheque ? "" : '<button class="clair petit" data-modele="' + esc(c.id) + '" title="Ajouter à ce cabinet ce qui lui manque du modèle de sa spécialité (rien de ce qu\'il a modifié n\'est écrasé)">Appliquer le modèle</button>') + '<button class="clair petit" data-jcab="' + esc(c.id) + '" title="Actions de l\'administration sur ce cabinet">Journal</button></div>' +
+    '<div class="act-g"><div><span class="m">Gérer</span>' + (c.demo ? '<button class="clair petit" data-reinit="' + esc(c.id) + '">Réinitialiser la démo</button>' : "") + '<button class="clair petit" data-info="' + esc(c.id) + '">Modifier</button><button class="clair petit" data-form="' + esc(c.id) + '">Réglage du cabinet</button>' + (c.bibliotheque ? "" : '<button class="clair petit" data-ecart="' + esc(c.id) + '" title="Ce que ce cabinet a changé dans ses paramètres par rapport au modèle de sa spécialité (lecture seule, aucune donnée patient)">Écart au modèle</button>') + (c.modele || c.bibliotheque ? "" : '<button class="clair petit" data-modele="' + esc(c.id) + '" title="Ajouter à ce cabinet ce qui lui manque du modèle de sa spécialité (rien de ce qu\'il a modifié n\'est écrasé)">Appliquer le modèle</button>') + '<button class="clair petit" data-jcab="' + esc(c.id) + '" title="Actions de l\'administration sur ce cabinet">Journal</button></div>' +
     (c.modele || !c.titulaire.email ? "" : '<div><span class="m">Accès du médecin</span><button class="clair petit" data-lien="' + esc(c.id) + '">Lien du mot de passe</button><button class="clair petit" data-mail="' + esc(c.titulaire.email) + '">Renvoyer l\'e-mail</button></div>') +
     (c.modele ? "" : '<div class="sensible"><span class="m">Zone sensible</span>' + (c.actif ? '<button class="clair petit rouge-t" data-susp="' + esc(c.id) + '">Suspendre</button>' : '<button class="clair petit" data-react="' + esc(c.id) + '">Réactiver</button><button class="rouge petit" data-suppr="' + esc(c.id) + '">Supprimer</button>') + "</div>") +
     "</div></article>";
@@ -332,6 +332,7 @@ function brancherActions(R) {
   on("[data-info]", (b) => ouvrirInfos(cab(b.dataset.info)));
   on("[data-form]", (b) => ouvrirFormule(cab(b.dataset.form)));
   on("[data-modele]", (b) => ouvrirAppliquerModele(cab(b.dataset.modele)));
+  on("[data-ecart]", (b) => ouvrirEcartModele(cab(b.dataset.ecart)));
   on("[data-lien]", (b) => lien(b, cab(b.dataset.lien)));
   on("[data-mail]", (b) => renvoyer(b, b.dataset.mail));
   on("[data-susp]", (b) => etat(b, cab(b.dataset.susp), false));
@@ -431,6 +432,19 @@ async function ouvrirReprendreModele() {
   $("modOk").onclick = async () => { const b = $("modOk"); b.disabled = true; b.textContent = "Reprise…";
     try { const r = await serveur("modeleReprendre", { confirmer: true }); fermer(true); RES = "Modèle de « " + r.specialite + " » repris du cabinet modèle (" + r.n + " différence" + (r.n > 1 ? "s" : "") + ")."; dessiner(); }
     catch (er) { b.disabled = false; b.textContent = "Reprendre comme modèle"; alert("Impossible : " + er.message); } };
+}
+// Écart au modèle (18/10/2026) : ce que le cabinet a changé dans ses paramètres, partie par partie ; lecture seule (fonction modeleEcart)
+async function ouvrirEcartModele(c) {
+  if (!c) return;
+  fenetre("<h2>Écart au modèle – " + esc(c.nom) + '</h2><p class="sous">Lecture…</p>');
+  let o; try { o = await serveur("modeleEcart", { espace: c.id }); } catch (er) { fenetre("<h2>Écart au modèle – " + esc(c.nom) + '</h2><p class="err">' + esc(er.message) + "</p>"); return; }
+  const liste = (t, l) => (l.length ? '<div class="m"><b>' + t + " :</b> " + l.map(esc).join(", ") + "</div>" : "");
+  fenetre("<h2>Écart au modèle – " + esc(o.nom) + '</h2><p class="sous">' + (o.modele ? "Ce que le cabinet modèle a changé depuis la dernière reprise" + (o.repris ? " (" + esc(dfr(String(o.repris.le).slice(0, 10))) + ")" : "") : "Ce que ce cabinet a changé par rapport au modèle de « " + esc(o.specialite) + " »") +
+    ". Lecture seule : aucune donnée patient, ni correspondant, ni tarif.</p>" +
+    (o.n ? o.parties.map((p) => '<section class="carte"><h3>' + esc(p.lib.split(" (")[0]) + ' <span class="m">' + (p.n ? p.n + " différence" + (p.n > 1 ? "s" : "") : "comme le modèle") + (p.le ? " · modifié le " + esc(dfr(p.le.slice(0, 10))) : "") + "</span></h3>" +
+      liste("Ajouté par le cabinet", p.plus) + liste("Absent du cabinet", p.moins) + liste("Modifié", p.change) + "</section>").join("") : '<p class="m">Aucun écart : le cabinet a les réglages du modèle.</p>') +
+    '<div class="barre"><button class="clair" id="ecNon">Fermer</button></div>');
+  $("ecNon").onclick = () => fermer(true);
 }
 function ouvrirAppliquerModele(c) {
   if (!c) return;

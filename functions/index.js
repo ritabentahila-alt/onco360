@@ -961,10 +961,11 @@ async function etatModele(spe) {
   const bibliotheques = {}; MOD.BIBLIOTHEQUES.forEach((k, i) => { const v = jsonDoc(bb[i], null); if (v != null) bibliotheques[k] = v; });
   return { id, bib, nom: o.nom || spe, repris: o.repris || null, modele: { fiche: o.fiche || null, consultation: o.consultation || null, reglage: o.reglage || null, typesConsult: jsonDoc(tc, null), parametres, bibliotheques } };
 }
-exports.modeleReprendre = onCall({ timeoutSeconds: 120, memory: "512MiB" }, async (req) => {
-  const par = req.auth && req.auth.uid, confirmer = !!(req.data || {}).confirmer;
-  if (!(await estAdministrateur(par))) throw new HttpsError("permission-denied", "Réservé à l'administration d'Onco360.");
-  const S = "espaces/" + C.MODELE + "/", es = await db.doc("espaces/" + C.MODELE).get(); if (!es.exists) throw new HttpsError("not-found", "Cabinet modèle introuvable.");
+// Réglages d'un cabinet, sous la forme du modèle (fiche et formulaires effectifs, types, paramètres de départ nettoyés : sans correspondants,
+// absences, horaires des lieux ; bibliothèques sans étoiles ; réglage) : ce que la reprise écrit dans le modèle, et ce que l'écart compare.
+// Aucune donnée patient, ni tarif. `le` : dernière modification connue de chaque partie (documents qui portent une date « maj »).
+async function reglagesDe(e) {
+  const S = "espaces/" + e + "/", es = await db.doc("espaces/" + e).get(); if (!es.exists) throw new HttpsError("not-found", "Cabinet introuvable.");
   const FS = await formules(), ed = es.data(), spe = (ed.abonnement && FS[ed.abonnement.formule] && FS[ed.abonnement.formule].specialite) || "Oncologie – Radiothérapie", jour = new Date().toISOString().slice(0, 10);
   const [fo, ac, pa, tc, ...bb] = await Promise.all([db.doc(S + "parametres/formulaires").get(), db.doc(S + "parametres/accueil").get(), Promise.all(PARAMS_MODELE.map((k) => db.doc(S + "parametres/" + k).get())), db.doc(S + "parametres/typesConsult").get()].concat(MOD.BIBLIOTHEQUES.map((k) => db.doc(S + "bibliotheques/" + k).get())));
   const cat = await import("./site/catalogue.js"), E = MOD.effectifs(cat, ed, jsonDoc(fo, null), jsonDoc(ac, null));
@@ -972,6 +973,14 @@ exports.modeleReprendre = onCall({ timeoutSeconds: 120, memory: "512MiB" }, asyn
   const bibliotheques = {}; MOD.BIBLIOTHEQUES.forEach((k, i) => { if (!bb[i].exists) return; let v = null; try { v = JSON.parse(C.sansEtoiles(bb[i].data().data, jour) || "null"); } catch (er) { v = null; } if (Array.isArray(v)) bibliotheques[k] = v; }); // étoiles retirées
   const nouveau = { fiche: C.ficheNettoyee(MOD.modeleForm(cat, cat.FICHE, E.fiche, E.onco)), consultation: C.ficheNettoyee(MOD.modeleForm(cat, cat.CONSULT, E.consultation, E.onco)),
     typesConsult: jsonDoc(tc, null), parametres, bibliotheques, reglage: C.reglageNettoye(E.reglage) };
+  const t = (x) => (x && x.exists && x.data().maj && typeof x.data().maj.toDate === "function" ? x.data().maj.toDate().toISOString() : ""), max = (l) => l.map(t).filter(Boolean).sort().pop() || "";
+  const le = { fiche: max([fo]), consultation: max([fo]), typesConsult: max([tc]), parametres: max(pa), bibliotheques: max(bb), reglage: max([ac]) };
+  return { ed, spe, nouveau, le, cat };
+}
+exports.modeleReprendre = onCall({ timeoutSeconds: 120, memory: "512MiB" }, async (req) => {
+  const par = req.auth && req.auth.uid, confirmer = !!(req.data || {}).confirmer;
+  if (!(await estAdministrateur(par))) throw new HttpsError("permission-denied", "Réservé à l'administration d'Onco360.");
+  const { spe, nouveau } = await reglagesDe(C.MODELE), { parametres, bibliotheques } = nouveau;
   const avant = await etatModele(spe), diffs = MOD.PARTIES.map(([k, lib]) => { const d = MOD.difference(avant.modele[k], nouveau[k]); return { k, lib, n: MOD.total(d), resume: MOD.resume(d) }; });
   const n = diffs.reduce((t, d) => t + d.n, 0);
   if (!confirmer) return { specialite: spe, repris: avant.repris, diffs, n };
@@ -987,6 +996,17 @@ exports.modeleReprendre = onCall({ timeoutSeconds: 120, memory: "512MiB" }, asyn
   await b.commit();
   await jAdmin(par, "specialite", avant.bib, spe, "Modèle repris du cabinet du Dr Bentahila : " + diffs.filter((d) => d.n).map((d) => d.lib.split(" (")[0] + " (" + d.n + ")").join(", ") + " · état précédent : " + copieDe);
   return { specialite: spe, repris: tout[avant.id].repris, diffs, n };
+});
+// Écart d'un cabinet au modèle de sa spécialité (demande du 18/10/2026) : ce que le cabinet a changé, partie par partie (ajouté par le cabinet,
+// absent du cabinet, modifié), en lecture seule ; aucune donnée patient, ni correspondant, ni tarif ; pas noté au journal (rien n'est changé).
+// Cabinet modèle : ce qu'il a changé depuis la dernière reprise.
+exports.modeleEcart = onCall({ timeoutSeconds: 120, memory: "512MiB" }, async (req) => {
+  const par = req.auth && req.auth.uid, e = String((req.data || {}).espace || "");
+  if (!(await estAdministrateur(par))) throw new HttpsError("permission-denied", "Réservé à l'administration d'Onco360.");
+  if (!e || C.estBib(e)) throw new HttpsError("invalid-argument", "Choisissez un cabinet.");
+  const { ed, spe, nouveau, le, cat } = await reglagesDe(e), M = await etatModele(spe);
+  const parties = MOD.PARTIES.map(([k, lib]) => Object.assign({ k, lib, le: le[k] || "" }, MOD.ecart(cat, k, M.modele[k], nouveau[k])));
+  return { espace: e, nom: ed.nom || e, specialite: spe, repris: M.repris, modele: e === C.MODELE, parties, n: parties.reduce((t, x) => t + x.n, 0) };
 });
 // Ce que le modèle ajouterait dans un cabinet, partie par partie (et l'écrit si confirmer)
 exports.modeleAppliquer = onCall({ timeoutSeconds: 120, memory: "512MiB" }, async (req) => {

@@ -54,8 +54,10 @@ function difference(a, b, chemin, out) {
   out = out || { plus: [], moins: [], change: [] }; chemin = chemin || "";
   const lab = (c, v) => (objet(v) && nomDe(v) ? nomDe(v) : c || "valeur");
   if (JSON.stringify(a) === JSON.stringify(b)) return out;
-  if (a === undefined || a === null) { if (Array.isArray(b)) b.forEach((v) => out.plus.push(lab(chemin, v))); else out.plus.push(lab(chemin, b)); return out; }
-  if (b === undefined || b === null) { if (Array.isArray(a)) a.forEach((v) => out.moins.push(lab(chemin, v))); else out.moins.push(lab(chemin, a)); return out; }
+  // un côté absent : chaque élément nommé (objet sans nom : clé par clé, « champs.tel2 » plutôt que « champs »)
+  const seul = (v, l) => { if (Array.isArray(v)) v.forEach((x) => l.push(lab(chemin, x))); else if (objet(v) && !nomDe(v)) Object.keys(v).forEach((k) => (l === out.plus ? difference(undefined, v[k], chemin ? chemin + "." + k : k, out) : difference(v[k], undefined, chemin ? chemin + "." + k : k, out))); else l.push(lab(chemin, v)); };
+  if (a === undefined || a === null) { seul(b, out.plus); return out; }
+  if (b === undefined || b === null) { seul(a, out.moins); return out; }
   if (Array.isArray(a) && Array.isArray(b)) {
     if (a.every((v) => !objet(v)) && b.every((v) => !objet(v))) { // liste de noms ou de clés (ordre, jours…)
       const A = a.map(String), B = b.map(String), p = B.filter((v) => A.indexOf(v) < 0), m = A.filter((v) => B.indexOf(v) < 0);
@@ -108,4 +110,13 @@ function typesPourCabinet(cab, modele, acts) {
   return l;
 }
 
-module.exports = { PARTIES, JAMAIS, BIBLIOTHEQUES, fusionManquant, modelePrioritaire, difference, total, resume, modeleForm, effectifs, reglageNeuf, typesPourCabinet, norm, ident };
+// Écart d'une partie : { n, plus (ajouté par le cabinet), moins (absent du cabinet), change (modifié) } ; fiche et formulaire : noms des champs
+// (« Téléphone 2 (présence) ») ; listes : 40 noms au plus chacune
+const QUOI = { champs: "présence", libs: "nom affiché", entetes: "en-tête", types: "type", imprimes: "impression", sections: "partie", unites: "unité", choixs: "liste de choix", ordre: "ordre", typesForm: "formulaire du type", formulaires: "formulaire" };
+function ecart(cat, k, modele, cab) {
+  const d = difference(modele, cab), CAT = k === "fiche" ? cat.FICHE : k === "consultation" ? cat.CONSULT : null, M = 40;
+  const nom = (c) => { if (!CAT) return c; const p = String(c).split("."); return p.length === 2 && QUOI[p[0]] ? cat.libDe(CAT, p[1], null) + " (" + QUOI[p[0]] + ")" : QUOI[c] ? QUOI[c] : c; };
+  const l = (x) => x.map(nom).slice(0, M);
+  return { n: total(d), plus: l(d.plus), moins: l(d.moins), change: l(d.change), resume: resume({ plus: d.plus.map(nom), moins: d.moins.map(nom), change: d.change.map(nom) }) };
+}
+module.exports = { ecart, PARTIES, JAMAIS, BIBLIOTHEQUES, fusionManquant, modelePrioritaire, difference, total, resume, modeleForm, effectifs, reglageNeuf, typesPourCabinet, norm, ident };
