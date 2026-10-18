@@ -14,7 +14,7 @@ async def main():
         pg = await ouvrir(b, S); ev = pg.evaluate
         await pg.goto(f'http://localhost:{PORT}/v2.html#protocoles'); await pg.wait_for_timeout(4000)
         fs = await ev("window.__fs"); B = bib(fs)
-        ok(len(B) == 309, '316 − 10 supprimés + 1 créé (PORTEC-3) + 2 créés en P4 (PRODIGE 23, KEYNOTE-A18) = 309 protocoles', len(B))
+        ok(len(B) == 368, '316 − 10 supprimés + 1 créé (PORTEC-3) + 2 créés en P4 (PRODIGE 23, KEYNOTE-A18) + 59 en P7 = 368 protocoles', len(B))
         ok(B['todo|paclitaxel-pembrolizumab']['c'] == 84 and B['todo|paclitaxel-pembrolizumab'].get('st') == 'ok', 'KEYNOTE-355 : cycle de 84 jours, toujours « Validé »')
         v = B['todo|bep'].get('valide') or {}
         ok(v.get('par') and not v.get('retro') and v.get('version') == B['todo|bep'].get('version') and B['todo|bep'].get('version', 0) >= 2, 'BEP : version +1, validé (trace habituelle, sans mention)', (B['todo|bep'].get('version'), v))
@@ -44,13 +44,13 @@ async def main():
         ok('Risque émétique' in tf and 'Ordonnances liées' in tf and 'Seuils du jour' in tf and 'Calculé : Modéré haut' in tf, 'fiche du protocole : risque émétique (calculé), ordonnances liées, seuils du jour', tf[:200])
         await ev("fermerFenetre()")
         n = await ev("document.querySelectorAll('#prL .proto').length")
-        ok(n == 309, 'page Protocoles à jour (309)', n)
+        ok(n == 368, 'page Protocoles à jour (368)', n)
         ok(not pg.errs, 'aucune erreur JavaScript', pg.errs[:2]); await pg.close()
         # deuxième ouverture : rien refait, pas de fenêtre
         pg = await ouvrir(b, fs); ev = pg.evaluate
         await pg.goto(f'http://localhost:{PORT}/v2.html#protocoles'); await pg.wait_for_timeout(3500)
         fs2 = await ev("window.__fs")
-        ok(len(bib(fs2)) == 309 and bib(fs2)['todo|bep']['version'] == B['todo|bep']['version'] and fs2[E + 'bibliotheques/ordostypes']['data'] == fs[E + 'bibliotheques/ordostypes']['data'], 'deuxième ouverture : rien refait (protocoles, ordonnances)')
+        ok(len(bib(fs2)) == 368 and bib(fs2)['todo|bep']['version'] == B['todo|bep']['version'] and fs2[E + 'bibliotheques/ordostypes']['data'] == fs[E + 'bibliotheques/ordostypes']['data'], 'deuxième ouverture : rien refait (protocoles, ordonnances)')
         t = await ev("(document.getElementById('fenetreCorps')||{}).innerText||''")
         ok('corrigée' not in t, 'pas de fenêtre la deuxième fois')
         ok(not pg.errs, 'aucune erreur JavaScript', pg.errs[:2]); await pg.close(); await b.close()

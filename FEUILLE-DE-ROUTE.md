@@ -238,7 +238,15 @@ démarrage par un médecin (comme `marquerProtocoles`), avec une fenêtre récap
       la prise en charge ; « Fièvre sous chimiothérapie » proposée à la 1re cure IV ; à chaque cure : ordonnance de la cure + prémédication
       de la veille de la cure suivante (docétaxel, pémétrexed). Gardées dans l'historique (`enregistrerPrescription` : consultation du
       jour, créée « Ordonnance » si besoin, comme aujourd'hui).
-- [ ] **P7 Protocoles à créer** (« Validé », sans mention ; priorités 2 et 3 = 59 maintenant) : les **11 de priorité 1** (AC, AC dose dense, TC, TCH, TCHP,
+- [x] **P7 Protocoles à créer (18/10/2026, testé ; même passage unique `audit3e` ; version 20261018b)** : les **59 protocoles** des
+      priorités 2 et 3 du classeur (les 11 « priorité 1 » de l'audit : AC, AC dose dense, TC, TCH, TCHP, cisplatine 100 J1-J22-J43 + RT ORL et
+      nasopharynx, géfitinib, afatinib, cabazitaxel + prednisone + G-CSF, bicalutamide ; puis 48 dont les versions hebdomadaires) lus par
+      `outils/audit3/convertir-p4.mjs` (`P7` de `donnees/audit3p4.js` : lignes, rythme, remarques, branches + « Aussi rangé dans », seuils,
+      ordonnances liées, source), créés « Validé » sans mention, jamais en double d'un protocole du même nom (`creesP7`). Solumedrol :
+      80 mg pour carboplatine / Enhertu / Trodelvy, 50 mg/j cisplatine sur plusieurs jours, 60 mg avec EMEND. Pegfilgrastim : 6 mg à J2
+      (le classeur y avait la posologie du Nivestim). Priorité 4 (64 : lymphomes, trophoblastique…) : plus tard. Tests : test-audit3p4
+      37/37 (59 créés, AC, TCH, cisplatine ORL, AC dose dense, pegfilgrastim), test_audit3 22/22 (368 protocoles sur le jeu de test).
+- [ ] ~~P7 (plan)~~ **Protocoles à créer** (« Validé », sans mention ; priorités 2 et 3 = 59 maintenant) : les **11 de priorité 1** (AC, AC dose dense, TC, TCH, TCHP,
       cisplatine 100 mg/m² J1-J22-J43 + RT en ORL et en nasopharynx, géfitinib, afatinib, cabazitaxel + prednisone + G-CSF, bicalutamide
       autour de l'agoniste), puis les **48 de priorité 3** (dont les **versions hebdomadaires** : MITO-7, JGOG 3016 / ICON8, AURELIA,
       INTERLACE, Belani, KEYNOTE-407, docétaxel 35 hebdo, APT, nab-paclitaxel hebdo, anthracyclines hebdo, ERBITAX, irinotécan 125 ;

@@ -9,11 +9,11 @@ import { createRequire } from "node:module";
 const require = createRequire(import.meta.url), XLSX = require("../../public/vendor/xlsx.full.min.js");
 const R = new URL("../../", import.meta.url);
 const wb = XLSX.read(readFileSync(new URL("archives/audit-3/Protocoles-chimio-Onco360-a-faire.xlsx", R)));
-const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: "" }).slice(5).filter((x) => typeof x[0] === "number");
+const TOUS = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: "" }).slice(5), rows = TOUS.filter((x) => typeof x[0] === "number");
 const ID_FORCE = { 40: "sein|palbociclib (papillo)", 288: "maj|cisplatine-25-j1-j3-5-fu-3000-sur-5-j-acide-folinique-28-j-orl-hgc-" };
 const DEJA = new Set([89, 197, 253, 273, 14, 217, 211, 117, 125, 300, 306, 34, 27, 28, 41, 39, 38]); // faits en P1a / palier 3
 
-const VOIE = /^(IV|IV lente|IVD|SC|IM|Per os|PO|IV \/ per os|Perfusion IV|Intrathécal)$/i;
+const VOIE = /^(IV(?: \([^)]*\))?|IV lente|IV bolus|IV continu|IVD|SC|IM|Per os|PO|IV \/ per os|Perfusion IV|Intrathécal|Intravésical|IM ou per os)$/i;
 const fr = (s) => parseFloat(String(s).replace(",", "."));
 function dose(spec) {
   const t = spec.match(/^(.*) \(unité : texte libre\)$/); if (t) return { u: "txt", pos: t[1], dt: t[1] };
@@ -30,7 +30,8 @@ function ligne(txt) {
   parts.slice(3).forEach((x) => {
     x = x.replace(/\s*\(remplace .*$/, "").trim(); if (!x) return;
     if (VOIE.test(x)) { d.v = x; apresVoie = true; return; }
-    if (apresVoie && /^\d[\d,.\- ]*(min|h)\b/.test(x)) { d.t = x; return; }
+    const vc = x.match(/^(IV \([^)]*\))\s*;\s*(.+)$/); if (vc) { d.v = vc[1]; d.s = vc[2]; apresVoie = true; return; }
+    if (apresVoie && /^\d[\d,.\- ]*(min|h|jours?)\b/.test(x)) { d.t = x; return; }
     if (apresVoie && /(NaCl|G5|ml|filtre)/i.test(x)) { d.s = x; return; }
     if (/^\d[\d,.\- ]*(min|h)$/.test(x)) { d.t = x; return; }
     d.n = d.n ? d.n + " ; " + x : x;
@@ -88,6 +89,35 @@ rows.forEach((x) => {
   const k = idDe(n, x[5]); if (out[k]) throw new Error("deux lignes du classeur pour " + k + " : " + out[k].n + " et " + n);
   if (e.src || e.seuils.length || e.ordos.length || e.ops.length) out[k] = e;
 });
-writeFileSync(new URL("public/js/donnees/audit3p4.js", R), "// Généré par outils/audit3/convertir-p4.mjs depuis le classeur de l'audit n° 3 (ne pas modifier à la main).\n// Clé : identifiant du protocole, ou « @nom » (retrouvé par son nom). n = numéro du classeur.\nexport const P4 = " + JSON.stringify(out) + ";\n");
+// P7 (18/10/2026) : protocoles « À créer » des priorités 2 et 3 du classeur (ordre 2 = les 11 « priorité 1 » de l'audit, ordre 3 = 48),
+// écrits en entier ; Solumedrol selon la décision du 13/10 (80 mg sans EMEND, 50 mg/j pour le cisplatine sur plusieurs jours, 60 mg avec EMEND)
+const P7 = [];
+TOUS.filter((x) => x[6] === "À créer" && (x[7] === 2 || x[7] === 3)).forEach((x) => {
+  const L = String(x[11]).split("\n").map((l) => l.trim()), ordos = [...new Set(nomsOrdo(x[13]))];
+  const emend = /risque émétique élevé|AC \(/.test(x[13]), multi = /plusieurs jours/.test(x[13]);
+  const p = { id: "audit3|" + String(x[0]).toLowerCase(), nom: String(x[5]).trim(), c: Number(x[9]) || 0, st: "ok", dr: [], no: [],
+    ind: [[x[1], x[2], x[3], x[4]].map((z) => String(z || "").trim())], src: String(x[14] || "").trim() };
+  String(x[15] || "").split("\n").map((l) => l.trim()).filter(Boolean).forEach((l) => { const c = chemin(l); if (!p.ind.some((y) => String(y) === String(c))) p.ind.push(c); });
+  let rem = false;
+  L.forEach((l) => {
+    let m;
+    if ((m = l.match(/^Rythme : (.+)$/))) { p.r = m[1]; return; }
+    if (/^Remarques :/.test(l)) { rem = true; return; }
+    if (/^Pas dans le protocole/.test(l)) { rem = false; return; }
+    if ((m = l.match(/^\d+\. (.+)$/))) {
+      const d = ligne(m[1]);
+      if (/^NIVESTIM/i.test(d.p) && !/^PEGFILGRASTIM/i.test(d.p)) { const jl = d.jl || ((d.n || "").match(/J\d+ → J\d+[^;]*/) || [""])[0]; const pos = "1 injection SC par jour : 30 MU (48 MU si poids > 70 kg) — " + jl; Object.assign(d, { u: "txt", pos, dt: pos, j: [99], nd: 1, jl: jl.split(" :")[0] }); d.n = (d.n || "").replace(/^J\d+ → J\d+[^;]*;?\s*/, ""); }
+      if (/SOLUMEDROL/.test(d.p) && /avant la chimioth/.test(d.n || "")) { if (/carboplatine, Enhertu/.test(x[13]) && !emend && d.d === 60) d.d = 80; if (multi && d.d === 40) d.d = 50; }
+      if (/^PEGFILGRASTIM/i.test(d.p)) Object.assign(d, { u: "mg", d: 6, j: [2], jl: "J2 (24 h après la chimiothérapie)", n: "1 injection SC unique, à domicile (infirmière)" }, { pos: undefined, dt: undefined });
+      d.id = "d" + p.dr.length; p.dr.push(d); return;
+    }
+    if (rem && /^- /.test(l)) p.no.push(l.slice(2));
+  });
+  if (!p.no.length) delete p.no; if (!p.r) delete p.r;
+  const seuils = String(x[12]).split("\n").map((l) => l.trim()).filter(Boolean); if (seuils.length) p.seuils = seuils; if (ordos.length) p.ordos = ordos;
+  P7.push(p);
+});
+writeFileSync(new URL(process.env.SORTIE || "public/js/donnees/audit3p4.js", R), "// Généré par outils/audit3/convertir-p4.mjs depuis le classeur de l'audit n° 3 (ne pas modifier à la main).\n// Clé : identifiant du protocole, ou « @nom » (retrouvé par son nom). n = numéro du classeur.\nexport const P4 = " + JSON.stringify(out) + ";\n// P7 : protocoles à créer (priorités 2 et 3 du classeur)\nexport const P7 = " + JSON.stringify(P7) + ";\n");
+console.log("P7 : " + P7.length + " protocoles à créer ; lignes : " + P7.reduce((t, p) => t + p.dr.length, 0));
 console.log(Object.keys(out).length + " protocoles (" + Object.keys(out).filter((k) => k[0] === "@").length + " retrouvés par le nom à l'ouverture) ; " + Object.values(out).reduce((t, e) => t + e.ops.length, 0) + " consignes ; non lues : " + ignores.length);
 ignores.forEach((l) => console.log("  ? " + l));

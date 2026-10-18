@@ -125,8 +125,8 @@ export async function appliquerP4() {
   if (!A.peut("parametres") || !D().membre || D().membre.role !== "medecin" || !BIB().length) return null;
   const rm = doc(db, "espaces", A.ESPACE, "parametres", "migrations"), g = await getDoc(rm).catch(() => null);
   if (!g || (g.exists() && g.data().audit3e)) return null;
-  const [{ correctionsP4 }, { P4 }] = await Promise.all([import("../moteur/audit3p4.js"), import("../donnees/audit3p4.js")]);
-  const r = correctionsP4(D().ctx.bib, P4), moi = { par: D().u.uid, parNom: (D().membre && D().membre.nom) || "", le: new Date().toISOString() };
+  const [{ correctionsP4 }, { P4, P7 }] = await Promise.all([import("../moteur/audit3p4.js"), import("../donnees/audit3p4.js")]);
+  const r = correctionsP4(D().ctx.bib, P4, P7), moi = { par: D().u.uid, parNom: (D().membre && D().membre.nom) || "", le: new Date().toISOString() };
   const signer = (p, neuf) => { p.version = neuf ? 1 : (p.version || 1) + 1; Object.assign(p, { majLe: moi.le, majPar: moi.par, majParNom: moi.parNom }); if (neuf) p.st = "ok"; if (p.st === "ok") p.valide = Object.assign({ version: p.version }, moi); };
   r.modifies.forEach((m) => { signer(m.p); D().ctx.bib[m.id] = m.p; });
   r.crees.forEach((p) => { signer(p, true); D().ctx.bib[p.id] = p; rangerNouveau(p.id); });

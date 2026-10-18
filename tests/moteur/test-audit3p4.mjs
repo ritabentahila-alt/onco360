@@ -3,7 +3,7 @@
 import { readFileSync } from "node:fs";
 import { correctionsP4 } from "../../public/js/moteur/audit3p4.js";
 import { correctionsAudit3 } from "../../public/js/moteur/audit3.js";
-import { P4 } from "../../public/js/donnees/audit3p4.js";
+import { P4, P7 } from "../../public/js/donnees/audit3p4.js";
 import { seancesDe, premed } from "../../public/js/moteur/doses.js";
 let ok = 0, ko = 0;
 const cas = (nom, v, d) => { if (v) { ok++; console.log("  ✔ " + nom); } else { ko++; console.log("  ✘ " + nom + (d === undefined ? "" : "  " + JSON.stringify(d).slice(0, 400))); } };
@@ -11,7 +11,7 @@ const L = JSON.parse(readFileSync(new URL("./donnees/bibliotheque-2026-10-18.jso
 L.forEach((p) => { BIB[p.id] = p; });
 // comme à l'ouverture : d'abord l'audit n° 3 (ordre 1, palier 3 : déjà fait ici sauf « HGC » des remarques et AI 3 jours), puis P4
 const r3 = correctionsAudit3(BIB); r3.modifies.forEach((m) => { BIB[m.id] = m.p; }); r3.crees.forEach((p) => { BIB[p.id] = p; }); r3.supprimes.forEach((s) => delete BIB[s.id]);
-const avant = JSON.stringify(BIB), r = correctionsP4(BIB, P4);
+const avant = JSON.stringify(BIB), r = correctionsP4(BIB, P4, P7);
 const M = (re) => (r.modifies.find((m) => re.test(m.p.nom)) || {}).p, S = (t) => t.normalize("NFD").replace(/[̀-ͯ]/g, "").toUpperCase();
 const lig = (p, re) => p.dr.find((d) => re.test(S(d.p)));
 
@@ -19,7 +19,7 @@ console.log("0. Ensemble");
 cas("la bibliothèque reçue n'est pas modifiée", JSON.stringify(BIB) === avant);
 cas("tous les protocoles du classeur retrouvés (aucun introuvable)", !r.ignores.some((x) => x.raisons.includes("protocole introuvable")), r.ignores.filter((x) => x.raisons.includes("protocole introuvable")));
 cas("consignes laissées de côté : seulement ce qui est déjà fait (indications reprises en P1a, Solumedrol J2 / J16 absent du TPF modifié)", r.ignores.every((x) => x.raisons.every((z) => /déjà/.test(z))), r.ignores);
-cas("au moins 240 protocoles complétés, 2 créés (PRODIGE 23, KEYNOTE-A18 phase 2)", r.modifies.length >= 240 && r.crees.length === 2, [r.modifies.length, r.crees.map((p) => p.nom)]);
+cas("au moins 240 protocoles complétés, 2 créés par P4 (PRODIGE 23, KEYNOTE-A18 phase 2) + 59 par P7", r.modifies.length >= 240 && r.crees.length === 61, [r.modifies.length, r.crees.length]);
 const anti = (p) => JSON.stringify(p.dr.filter((d) => !premed(d)).map((d) => [d.p, d.u, d.d, d.c1, d.cn, String(d.j)]));
 const chg = r.modifies.filter((m) => anti(BIB[m.id]) !== anti(m.p)).map((m) => m.p.nom);
 cas("aucune dose ni aucun jour d'anticancéreux changé", !chg.length, chg);
@@ -58,7 +58,7 @@ cas("seuils du jour notés dans 200 protocoles et plus, ordonnances liées dans 
 cas("noms des ordonnances liées = ceux de la liste (jamais « Sortie »)", !r.modifies.some((m) => (m.p.ordos || []).some((o) => /Sortie|\(si |\(pour /.test(o))), r.modifies.flatMap((m) => m.p.ordos || []).filter((o) => /Sortie|\(/.test(o)).slice(0, 3));
 
 console.log("5. Créés");
-const p23 = r.crees.find((p) => /PRODIGE 23/.test(p.nom)), mf = r.modifies.find((m) => /^mFOLFIRINOX J1-J15/.test(m.p.nom));
+const p23 = r.crees.find((p) => /PRODIGE 23/.test(p.nom) && /mFOLFIRINOX/.test(p.nom)), mf = r.modifies.find((m) => /^mFOLFIRINOX J1-J15/.test(m.p.nom));
 cas("PRODIGE 23 : irinotécan 180 mg/m², rangé en rectum ; l'original n'est plus rangé en rectum", lig(p23, /IRINOTECAN/).d === 180 && p23.ind.every((x) => /Rectum/i.test(x[1])) && mf && !mf.p.ind.some((x) => /rectum/i.test(x.join(" "))), [p23.ind, mf && mf.p.ind]);
 const a18 = r.crees.find((p) => /KEYNOTE-A18/.test(p.nom));
 cas("KEYNOTE-A18 phase 2 : pembrolizumab 400 mg toutes les 6 semaines", a18.c === 42 && a18.dr[0].d === 400);
@@ -71,9 +71,21 @@ cas("localisation de la fiche = 1re indication", tous.every((p) => !(p.ind || []
 cas("PRODIGE 5 : NIVESTIM retiré, remarque « prophylaxie secondaire »", (() => { const p = tous.find((z) => /PRODIGE 5/.test(z.nom)); return p && !p.dr.some((d) => /NIVESTIM/.test(d.p)) && p.no.some((x) => /prophylaxie secondaire/.test(x)); })());
 cas("variantes locales : source « Variante locale… »", tous.filter((p) => /^Variante locale/.test(p.src || "")).length >= 5);
 
+console.log("5 ter. P7 : protocoles créés");
+const C7 = r.crees.filter((p) => /^audit3\|n\d/.test(p.id));
+cas("59 protocoles créés, validés, rangés, avec source, seuils ou ordonnances", C7.length === 59 && C7.every((p) => p.st === "ok" && (p.ind || []).length && p.src && p.dr.length), C7.filter((p) => !(p.st === "ok" && (p.ind || []).length && p.src && p.dr.length)).map((p) => p.nom));
+const tc = (re) => C7.find((p) => re.test(p.nom));
+cas("AC 60/600 : doxorubicine 60 + cyclophosphamide 600 mg/m², Solumedrol 60 mg (EMEND)", (() => { const p = tc(/^AC 60\/600 \/ 21 j/); return p && lig(p, /DOXORUBICINE/).d === 60 && lig(p, /CYCLOPHOSPHAMIDE/).d === 600 && lig(p, /SOLUMEDROL/).d === 60; })());
+cas("TCH : carboplatine AUC 6, trastuzumab 8 puis 6 mg/kg, Solumedrol 80 mg (sans EMEND)", (() => { const p = tc(/^TCH :/); return p && lig(p, /CARBOPLATINE/).u === "AUC" && lig(p, /CARBOPLATINE/).d === 6 && lig(p, /TRASTUZUMAB|HERCEPTIN/).u === "mg/kg_c1" && lig(p, /TRASTUZUMAB|HERCEPTIN/).c1 === 8 && lig(p, /SOLUMEDROL/).d === 80; })(), tc(/^TCH :/) && tc(/^TCH :/).dr);
+cas("cisplatine 100 J1-J22-J43 + RT (ORL) : séances J1, J22, J43 ; hydratation ; mannitol", (() => { const p = tc(/^Cisplatine 100 mg\/m² J1-J22-J43 \+ Radiothérapie$/); return p && JSON.stringify(seancesDe(p).map((g) => g.j)) === "[1,22,43]" && lig(p, /HYDRATATION AVANT/) && lig(p, /MANNITOL/); })());
+cas("AC dose dense : NIVESTIM J3 → J9, jamais un jour de séance", (() => { const p = tc(/^AC dose dense/); const d = p && lig(p, /NIVESTIM/); return d && d.nd === 1 && /J3 → J9/.test(d.pos) && JSON.stringify(seancesDe(p).map((g) => g.j)) === "[1]"; })());
+cas("pegfilgrastim : 6 mg en une injection à J2", (() => { const p = tc(/^Pegfilgrastim/); return p && lig(p, /PEGFILGRASTIM/).d === 6 && lig(p, /PEGFILGRASTIM/).u === "mg"; })());
+cas("aucun « HGC », aucun « Sortie », jamais en double d'un protocole existant", !C7.some((p) => /\bHGC\b/.test(JSON.stringify(p)) || (p.ordos || []).some((o) => /Sortie/.test(o))) && !C7.some((p) => Object.values(BIB).some((q) => q.nom === p.nom)));
+cas("toutes les lignes ont un produit et une dose (ou un texte)", C7.every((p) => p.dr.every((d) => d.p && (d.u === "txt" ? d.pos : d.d != null || d.c1 != null))), C7.flatMap((p) => p.dr.filter((d) => !(d.u === "txt" ? d.pos : d.d != null || d.c1 != null)).map((d) => p.nom + " : " + d.p)));
+
 console.log("6. Une seule fois");
 const bib2 = Object.assign({}, BIB); r.modifies.forEach((m) => { bib2[m.id] = m.p; }); r.crees.forEach((p) => { bib2[p.id] = p; });
-const r2 = correctionsP4(bib2, P4);
+const r2 = correctionsP4(bib2, P4, P7);
 cas("relancé sur la bibliothèque complétée : rien modifié, rien créé", !r2.modifies.length && !r2.crees.length, r2.modifies.slice(0, 3).map((m) => [m.p.nom, m.faites]));
 
 console.log("\n" + ok + " / " + (ok + ko) + " vérifications justes");

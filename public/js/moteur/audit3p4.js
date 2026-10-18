@@ -104,8 +104,13 @@ export function nettoyerP5(p) {
   if (i && i[0] && (p.dos !== i[0] || p.loc !== (i[1] || i[0]))) { p.dos = i[0]; p.loc = i[1] || i[0]; f.push("localisation"); }
   return f;
 }
+// P7 (18/10/2026) : protocoles à créer (priorités 2 et 3 du classeur), jamais en double (même identifiant ou même nom)
+export function creesP7(bib, P7) {
+  const noms = new Set(Object.values(bib).filter((p) => p && p.nom).map((p) => cle(p.nom)));
+  return (P7 || []).filter((p) => !bib[p.id] && !noms.has(cle(p.nom))).map((p) => { const c = copie(p); nettoyerP5(c); return c; });
+}
 // Toute la bibliothèque. Rend { modifies: [{ id, p, faites, ignores }], crees: [p], ignores: [{ id, nom, raisons }] }
-export function correctionsP4(bib, P4) {
+export function correctionsP4(bib, P4, P7) {
   const r = { modifies: [], crees: [], ignores: [] }, parNom = {};
   Object.values(bib).forEach((p) => { if (p && p.nom) parNom[p.nom] = p; });
   const mod = {};
@@ -127,5 +132,6 @@ export function correctionsP4(bib, P4) {
       if (m.p.ind.length !== av) { m.faites.push("indication rectum retirée (version PRODIGE 23 créée)"); if (!r.modifies.some((z) => z.id === c.origine)) r.modifies.push(Object.assign({ id: c.origine }, m)); }
     }
   });
+  creesP7(vue, P7).forEach((p) => r.crees.push(p));
   return r;
 }
