@@ -245,7 +245,13 @@ types**, refus gardés) : R-A6 et R-E4 partent de là, sans les refaire.
       réessayez », **aucune écriture**) ; modification dans une **transaction** ; les six bibliothèques. Vérifier que les mises à jour
       `appliquerOrdosAudit3` (P2), `ordosAudit3`, palier 3 (`audit3d`), `remplacerOrdosTypes` (migration `ordostypesExcel1`) et
       `vigilancesAudit3` n'ont pas pu remplacer une liste de cabinet après une lecture en échec. Test qui simule la panne d'abord.
-- [ ] **R-A2 Google Agenda : séances de chimio et étapes de RT déplacées qui ne bougent pas** (DEMANDÉ, § 3.1). Cause probable : un
+- [x] **(18/10/2026, testé ; à publier avec les fonctions)** Cause confirmée : modification par PATCH, que Google fusionne (ancienne « date » +
+      nouvelle « dateTime » → 400 refusé en silence) ; **modification = remplacement entier (PUT)**, aussi pour un identifiant repris (409) ;
+      faux Google de `test-logique.js` rendu fidèle (fusion, null, refus d'un début mixte, PUT) : 104 vérifications ; refus notés par personne
+      (`agendaGoogle.refus` { groupe: { n, motif, d, le } }, `refusDe` d'index.js) et affichés dans Paramètres › Google Agenda ; tous les chemins
+      vérifiés sur patients fictifs (`tests/test_agenda_google.py` 20/20 : cure avec / sans heure, seule / la suite, report, glisser, J8, 1re
+      séance et fin de RT, consultation, Absent + report, secrétaire « planning ») ; jeu fictif réutilisable `tests/demo_seed.py`.
+      **R-A2 Google Agenda : séances de chimio et étapes de RT déplacées qui ne bougent pas** (DEMANDÉ, § 3.1). Cause probable : un
       déplacement fait passer l'événement de « journée entière » (`start.date`) à « avec heure » (`start.dateTime`) ou l'inverse ; le PATCH
       garde les deux, Google refuse (400) et `appliquer` (functions/logique.js) le met de côté **en silence**. (1) Test d'abord
       (`functions/test-logique.js`, faux Google) : journée entière déplacée avec une heure, et l'inverse — il doit échouer avant la

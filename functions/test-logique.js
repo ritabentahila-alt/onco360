@@ -19,7 +19,12 @@ const faux = async (url, o) => {
   }
   if ((r = p.match(/^\/calendars\/([^/]+)\/events\/([^/]+)$/))) {
     const c = CAL[r[1]], e = c[r[2]];
-    if (m === "PATCH") { if (!e) return rep(404, {}); c[r[2]] = Object.assign(e, b); return rep(200, c[r[2]]); }
+    // R-A2 (18/10/2026) : comme le vrai Google, PATCH fusionne les objets imbriqués (start, end) et null retire un champ ; un début à la
+    // fois « journée » (date) et « heure » (dateTime) est refusé (400). PUT remplace l'événement entier.
+    const fusion = (a, x) => { Object.keys(x).forEach((k) => { if (x[k] === null) delete a[k]; else if (x[k] && typeof x[k] === "object" && !Array.isArray(x[k]) && a[k] && typeof a[k] === "object") fusion(a[k], x[k]); else a[k] = x[k]; }); return a; };
+    const mixte = (v) => ["start", "end"].some((z) => v[z] && v[z].date && v[z].dateTime);
+    if (m === "PATCH") { if (!e) return rep(404, {}); const n = fusion(JSON.parse(JSON.stringify(e)), b); if (mixte(n)) return rep(400, { error: { message: "Invalid start time." } }); c[r[2]] = n; return rep(200, n); }
+    if (m === "PUT") { if (!e) return rep(404, {}); if (mixte(b)) return rep(400, { error: { message: "Invalid start time." } }); c[r[2]] = JSON.parse(JSON.stringify(b)); return rep(200, c[r[2]]); }
     if (m === "DELETE") { if (!e || e.status === "cancelled") return rep(410, {}); e.status = "cancelled"; return rep(204); }
   }
   return rep(400, { p, m });
@@ -151,7 +156,7 @@ const infirmiere = { actif: true, etablissements: ["HGC", "CIOC"], droits: { tra
   x = await L.appliquer(api, cal, L.colorer(ev1(), { annonce: "11" }), await api.lister(cal, "g=P", L.timeMin("2026-10-08")), "2026-10-08");
   ok(x.modifies === 1 && CAL[cal][id].colorId === "11", "couleur changée dans la Configuration : événement repeint");
   x = await L.appliquer(api, cal, L.colorer(ev1(), { annonce: "" }), await api.lister(cal, "g=P", L.timeMin("2026-10-08")), "2026-10-08");
-  ok(x.modifies === 1 && CAL[cal][id].colorId === null, "« couleur de l'agenda » : couleur retirée");
+  ok(x.modifies === 1 && CAL[cal][id].colorId == null, "« couleur de l'agenda » : couleur retirée");
 })();
 
 // ───── Prix fixé par la secrétaire (salle d'attente, 08/10/2026) ─────
@@ -233,6 +238,28 @@ const infirmiere = { actif: true, etablissements: ["HGC", "CIOC"], droits: { tra
   const api2 = Object.assign({}, api, { creer: async (c, bb) => { if (bb.id === L.idEv("P|r|bad")) { const e = new Error("Google Agenda 400 : Invalid start time."); e.statut = 400; throw e; } return api.creer(c, bb); } });
   const r = await L.appliquer(api2, cal, [faux, bon], [], "2026-10-08");
   ok(r.crees === 1 && r.refuses.length === 1 && r.refuses[0] === "P|r|bad", "un événement refusé (400) est mis de côté, le reste de l'agenda est mis à jour");
+  ok(r.motifs && /Invalid start time/.test(r.motifs[0] || ""), "le motif du refus est rendu (noté pour la personne, plus de refus en silence)");
+  // R-A2 (18/10/2026) : séance de chimio ou étape de RT en journée entière, déplacée avec une heure (glisser-déposer, « Modifier »), et l'inverse
+  const cal3 = (await api.creerAgenda()).id, K = "P|s|0|3|8", jour = { k: K, t: "C3 J8", d: "2026-10-27" };
+  await L.appliquer(api, cal3, [jour], [], "2026-10-08");
+  const avecH = { k: K, t: "C3 J8", d: "2026-10-29", h: "09:30" };
+  const r3 = await L.appliquer(api, cal3, [avecH], await api.lister(cal3, "onco360=1", L.timeMin("2026-10-08")), "2026-10-08");
+  const ev3 = CAL[cal3][L.idEv(K)];
+  ok(r3.modifies === 1 && !r3.refuses.length && ev3.start.dateTime === "2026-10-29T09:30:00" && !ev3.start.date && !ev3.end.date, "journée entière → avec heure : l'événement est déplacé au 29/10 à 9 h 30 (plus de refus de Google)");
+  const sansH = { k: K, t: "C3 J8", d: "2026-11-03" };
+  const r4 = await L.appliquer(api, cal3, [sansH], await api.lister(cal3, "onco360=1", L.timeMin("2026-10-08")), "2026-10-08");
+  const ev4 = CAL[cal3][L.idEv(K)];
+  ok(r4.modifies === 1 && !r4.refuses.length && ev4.start.date === "2026-11-03" && ev4.end.date === "2026-11-04" && !ev4.start.dateTime && !ev4.start.timeZone, "avec heure → journée entière : l'événement est déplacé au 03/11, sans heure");
+  const avecH2 = { k: K, t: "C3 J8", d: "2026-11-04", h: "14:00", dur: 30 };
+  await L.appliquer(api, cal3, [avecH2], await api.lister(cal3, "onco360=1", L.timeMin("2026-10-08")), "2026-10-08");
+  const avecH3 = { k: K, t: "C3 J8", d: "2026-11-05", h: "15:00", dur: 30 };
+  const r5 = await L.appliquer(api, cal3, [avecH3], await api.lister(cal3, "onco360=1", L.timeMin("2026-10-08")), "2026-10-08");
+  ok(r5.modifies === 1 && CAL[cal3][L.idEv(K)].start.dateTime === "2026-11-05T15:00:00", "avec heure → avec heure (consultation déplacée) : toujours suivi");
+  const cal4 = (await api.creerAgenda()).id, ancien = { k: "P|rt|x|deb", t: "1re séance", d: "2026-10-20" };
+  await L.appliquer(api, cal4, [ancien], [], "2026-10-08"); await L.appliquer(api, cal4, [], await api.lister(cal4, "onco360=1", L.timeMin("2026-10-08")), "2026-10-08");
+  const r6 = await L.appliquer(api, cal4, [{ k: "P|rt|x|deb", t: "1re séance", d: "2026-10-22", h: "08:00" }], await api.lister(cal4, "onco360=1", L.timeMin("2026-10-08")), "2026-10-08");
+  const ev6 = CAL[cal4][L.idEv("P|rt|x|deb")];
+  ok(r6.crees === 1 && !r6.refuses.length && ev6.status === "confirmed" && ev6.start.dateTime === "2026-10-22T08:00:00" && !ev6.start.date, "étape retirée puis revenue avec une heure (identifiant déjà pris, 409) : remise en place à la bonne date");
 })();
 
 // ───── Tâches automatiques (P4, 08/10/2026) ─────

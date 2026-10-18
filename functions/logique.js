@@ -209,7 +209,7 @@ function corps(e) {
 const dernierJour = (x) => (x.start && x.start.date ? addJ(x.end.date, -1) : String((x.start && x.start.dateTime) || "").slice(0, 10));
 // Un événement refusé par Google (400 : données invalides) est mis de côté, sans bloquer les autres (08/10/2026)
 async function appliquer(api, calId, voulus, existants, auj) {
-  const parId = new Map(existants.map((x) => [x.id, x])), vus = new Set(), refuses = [];
+  const parId = new Map(existants.map((x) => [x.id, x])), vus = new Set(), refuses = [], motifs = [];
   let crees = 0, modifies = 0, supprimes = 0;
   for (const e of voulus) {
     const b = corps(e); if (vus.has(b.id)) continue; vus.add(b.id);
@@ -217,12 +217,16 @@ async function appliquer(api, calId, voulus, existants, auj) {
     const sig = x && x.extendedProperties && x.extendedProperties.private && x.extendedProperties.private.sig;
     if (x && sig === b.extendedProperties.private.sig && x.status !== "cancelled") continue;
     try { if (x) { await api.modifier(calId, b.id, b); modifies++; } else { await api.creer(calId, b); crees++; } }
-    catch (er) { if (er.statut !== 400) throw er; refuses.push(e.k); console.error("événement refusé par Google", e.k, e.d, e.h || "", String(er.message).slice(0, 160)); }
+    catch (er) { if (er.statut !== 400) throw er; refuses.push(e.k); motifs.push(motifRefus(er)); console.error("événement refusé par Google", e.k, e.d, e.h || "", String(er.message).slice(0, 160)); }
   }
   for (const x of parId.values()) { if (auj && dernierJour(x) < auj) continue; await api.supprimer(calId, x.id); supprimes++; } // le passé reste (historique)
-  return { crees, modifies, supprimes, refuses };
+  return { crees, modifies, supprimes, refuses, motifs };
 }
+// Motif lisible d'un refus de Google (« Invalid start time. »), sans rien du dossier
+const motifRefus = (er) => { const t = String((er && er.message) || ""); const m = t.match(/"message"\s*:\s*"([^"]{1,160})"/); return (m ? m[1] : t.replace(/^Google Agenda \d+ : /, "")).slice(0, 160); };
 
+// Corps envoyé en entier (création, remplacement) : colorId null retiré (= couleur de l'agenda)
+const entier = (b) => { const n = Object.assign({}, b); if (n.colorId == null) delete n.colorId; return n; };
 // Accès à l'API Google Agenda (REST) avec un jeton d'accès ; nouvel essai sur 429 / 5xx
 function creerApi(jeton, fetchFn) {
   const F = fetchFn || fetch, BASE = "https://www.googleapis.com/calendar/v3";
@@ -246,8 +250,11 @@ function creerApi(jeton, fetchFn) {
       return out;
     },
     // Un identifiant déjà utilisé (événement supprimé puis revenu) : on le remet en place
-    async creer(calId, b) { const n = Object.assign({}, b); if (n.colorId == null) delete n.colorId; try { return await req("POST", c(calId) + "/events", n); } catch (e) { if (e.statut === 409) return req("PATCH", c(calId) + "/events/" + b.id, b); throw e; } },
-    modifier: (calId, id, b) => req("PATCH", c(calId) + "/events/" + id, b),
+    async creer(calId, b) { const n = entier(b); try { return await req("POST", c(calId) + "/events", n); } catch (e) { if (e.statut === 409) return req("PUT", c(calId) + "/events/" + b.id, n); throw e; } },
+    // R-A2 (18/10/2026) : modification = remplacement entier (PUT). Avec PATCH, Google fusionnait l'ancien début et le nouveau : une séance
+    // en journée entière déplacée avec une heure (ou l'inverse) avait à la fois « date » et « dateTime », Google refusait (400) et
+    // l'événement restait à l'ancienne date. Couleur de l'agenda (colorId null) = pas de colorId.
+    modifier: (calId, id, b) => req("PUT", c(calId) + "/events/" + id, entier(b)),
     async supprimer(calId, id) { try { await req("DELETE", c(calId) + "/events/" + id); } catch (e) { if (e.statut !== 404 && e.statut !== 410) throw e; } },
     async agendaExiste(calId) { try { await req("GET", c(calId)); return true; } catch (e) { if (e.statut === 404 || e.statut === 403) return false; throw e; } },
     creerAgenda: () => req("POST", "/calendars", { summary: "Onco360", description: "Rendez-vous, cures et radiothérapie d'Onco360. Mise à jour automatique dans un seul sens : modifiez dans Onco360, pas ici.", timeZone: TZ }),

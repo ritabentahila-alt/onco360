@@ -43,6 +43,9 @@ async function apiPour(J) {
   catch (e) { if (e.code === "invalid_grant") { const er = new Error("L'accès à votre Google Agenda a été retiré : reliez-le à nouveau (Profil › Google Agenda)."); er.revoque = true; throw er; } throw e; }
 }
 const etat = (uid, o) => db.doc("utilisateurs/" + uid).set({ agendaGoogle: o }, { merge: true });
+// R-A2 (18/10/2026) : événements refusés par Google, plus en silence : agendaGoogle.refus { groupe (patient, abs, tache-…) : { n, motif, d, le } },
+// affiché dans Paramètres › Google Agenda ; refait en entier par la remise à plat, groupe par groupe à chaque écriture d'un dossier
+const refusDe = (voulus, r, le) => { const o = {}; (r.refuses || []).forEach((k, i) => { const g = L.groupe(k), v = voulus.find((x) => x.k === k) || {}; const z = (o[g] = o[g] || { n: 0, motif: "", d: "", le }); z.n++; z.motif = (r.motifs || [])[i] || z.motif; z.d = v.d || z.d; }); return o; };
 async function echec(uid, e) {
   console.error("agenda", uid, e);
   await etat(uid, { erreur: String((e && e.message) || e).slice(0, 300), le: new Date().toISOString() }).catch(() => {});
@@ -102,9 +105,10 @@ async function syncComplet(uid, J, extra) {
     voulus = voulus.concat(etiqueter(v, nom, plus));
   }
   const existants = await api.lister(J.calendrier, "onco360=1", L.timeMin(auj));
-  const r = await L.appliquer(api, J.calendrier, voulus, existants, auj);
+  const r = await L.appliquer(api, J.calendrier, voulus, existants, auj), le = new Date().toISOString();
   await db.doc("agendaJetons/" + uid).set({ espaces: cabs.map((x) => x.e) }, { merge: true }).catch(() => {});
-  await etat(uid, { email: J.email || "", calendrier: "Onco360", le: new Date().toISOString(), nb: voulus.length, erreur: "" });
+  await etat(uid, { email: J.email || "", calendrier: "Onco360", le, nb: voulus.length, erreur: "" });
+  await db.doc("utilisateurs/" + uid).update({ "agendaGoogle.refus": refusDe(voulus, r, le) }).catch((er) => console.warn("refus", uid, er));
   return Object.assign({ nb: voulus.length }, r);
 }
 // Un seul groupe (un patient, les absences, une tâche) du cabinet e pour une personne
@@ -112,8 +116,9 @@ async function syncGroupe(uid, J, e, g, voulus) {
   const api = await apiPour(J), auj = L.jourCasa(), P = await profilAgenda(uid), plus = (J.espaces || []).length > 1;
   const existants = await api.lister(J.calendrier, "g=" + g, L.timeMin(auj));
   const v = L.colorer(L.filtrer(voulus.filter((x) => L.groupe(x.k) === g), filtreCabinet(P.agendaFiltre, e)), await couleurs(e, P.agendaCouleurs));
-  await L.appliquer(api, J.calendrier, etiqueter(v, plus ? await nomCab(e) : "", plus), existants, auj);
-  await etat(uid, { le: new Date().toISOString(), erreur: "" });
+  const r = await L.appliquer(api, J.calendrier, etiqueter(v, plus ? await nomCab(e) : "", plus), existants, auj), le = new Date().toISOString();
+  const z = refusDe(v, r, le)[g];
+  await db.doc("utilisateurs/" + uid).set({ agendaGoogle: { le, erreur: "", refus: { [g]: z || FieldValue.delete() } } }, { merge: true });
 }
 // Comptes reliés à Google Agenda qui reçoivent le cabinet e (liaison faite dans ce cabinet, ou cabinet dans leur liste)
 const liesA = async (e) => {
