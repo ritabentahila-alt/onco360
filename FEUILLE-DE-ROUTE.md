@@ -245,7 +245,7 @@ types**, refus gardés) : R-A6 et R-E4 partent de là, sans les refaire.
       réessayez », **aucune écriture**) ; modification dans une **transaction** ; les six bibliothèques. Vérifier que les mises à jour
       `appliquerOrdosAudit3` (P2), `ordosAudit3`, palier 3 (`audit3d`), `remplacerOrdosTypes` (migration `ordostypesExcel1`) et
       `vigilancesAudit3` n'ont pas pu remplacer une liste de cabinet après une lecture en échec. Test qui simule la panne d'abord.
-- [x] **(18/10/2026, testé ; à publier avec les fonctions)** Cause confirmée : modification par PATCH, que Google fusionne (ancienne « date » +
+- [x] **(18/10/2026, testé ; en ligne : 20261018h, site et fonctions)** Cause confirmée : modification par PATCH, que Google fusionne (ancienne « date » +
       nouvelle « dateTime » → 400 refusé en silence) ; **modification = remplacement entier (PUT)**, aussi pour un identifiant repris (409) ;
       faux Google de `test-logique.js` rendu fidèle (fusion, null, refus d'un début mixte, PUT) : 104 vérifications ; refus notés par personne
       (`agendaGoogle.refus` { groupe: { n, motif, d, le } }, `refusDe` d'index.js) et affichés dans Paramètres › Google Agenda ; tous les chemins
@@ -264,7 +264,7 @@ types**, refus gardés) : R-A6 et R-E4 partent de là, sans les refaire.
       reproduit pas : `firebase functions:log --only agendaPatient` le jour d'un déplacement et `utilisateurs/{uid}.agendaGoogle.erreur`,
       **sans rien écrire dans la base en ligne**. Vérifier aussi : couleurs, filtre de chacun, `permis` (agenda d'un médecin), passé jamais
       effacé, plusieurs cabinets ; tous les autres types de rendez-vous.
-- [x] **(18/10/2026, testé ; à publier)** `public/js/moteur/creneaux.js` (`occupations`, `chevauche`, `texteConflit` ; test-creneaux 12/12) :
+- [x] **(18/10/2026, testé ; en ligne : 20261018h)** `public/js/moteur/creneaux.js` (`occupations`, `chevauche`, `texteConflit` ; test-creneaux 12/12) :
       rendez-vous, consultations des séances de chimio (événements « c » / « s » du résumé, heure choisie ou placée d'après la séance, 15 min),
       étapes de RT avec heure ; sans heure : « Déjà ce jour-là, sans heure : … » ; v2.js `occupDuJour` / `accepterConflit` (« Créneau déjà pris
       le … par : … Garder quand même ? », un clic, `API.conflitAccepte`) dans Nouveau rendez-vous / Modifier (créneau pris cliquable, un seul
@@ -279,7 +279,7 @@ types**, refus gardés) : R-A6 et R-E4 partent de là, sans les refaire.
       rendez-vous, Modifier, report après « Non venu », glisser-déposer, heure de la consultation d'une séance de chimio, déplacement d'une
       consultation de RT. **« Maintenant » = heure du Maroc corrigée** (`maintenant()`, constat C10). Vérifier : vues Jour et Semaine,
       salle d'attente, WhatsApp de confirmation, `tests/test_agenda.py`.
-- [x] **(18/10/2026, testé ; à publier avec l'index)** v2.js `ecouterDossiers` / `appliquerDossiers` / `rafraichirPage` : dossiers dont `maj` est
+- [x] **(18/10/2026, testé ; en ligne : 20261018h, site et index)** v2.js `ecouterDossiers` / `appliquerDossiers` / `rafraichirPage` : dossiers dont `maj` est
       postérieur à l'ouverture (5 min de marge), dans le périmètre (index `etablissementId` + `maj`, `firestore.indexes.json` ; aucun index en
       ligne avant) ; rien d'appliqué pendant une fenêtre, une saisie ou le résumé en cours (fait juste après ; la protection « Ce dossier vient
       d'être modifié » reste) ; nos écritures en attente ignorées ; salle (`dossiersChanges` : prix relus), tableau de bord, agenda, Patients,
@@ -295,7 +295,7 @@ types**, refus gardés) : R-A6 et R-E4 partent de là, sans les refaire.
       changé relu (doc, P, r) ; l'agenda, le tableau de bord et le dossier ouvert en profitent. Index composite (`firestore.indexes.json`) ;
       lecture de la liste vérifiée par un test de règles. Coût : une lecture par dossier modifié, jamais tout relire. Vérifier : dossier
       ouvert par deux personnes (« Ce dossier vient d'être modifié »), bulles, pastille, tableau de bord, agenda, `nouveauJour`, téléphone.
-- [x] **(18/10/2026, testé ; à publier)** `public/js/moteur/poids.js` (`poidsActuel`, `textePoids` ; test-poids 13/13) : le plus récent entre la fiche
+- [x] **(18/10/2026, testé ; en ligne : 20261018h)** `public/js/moteur/poids.js` (`poidsActuel`, `textePoids` ; test-poids 13/13) : le plus récent entre la fiche
       (`clinique.poids` / `clinique.poidsLe`, nouveau champ de `CLINIQUE`) et les séances saisies ou validées (jamais à venir ni annulées ; même
       jour : l'heure de validation ou de la saisie à la main départage) ; `recalculer` pose le poids actuel dans `x.P` (bandeau, impressions,
       nouveau champ {poids} des courriers « 64 kg (29/09/2026) ») ; fiche (Afficher, Modifier, en-tête) : « 75 kg (C4 J1 du 06/10/2026) » ;
@@ -309,7 +309,7 @@ types**, refus gardés) : R-A6 et R-E4 partent de là, sans les refaire.
       enregistrement de quelqu'un qui l'a ; **n'écrire que ces champs** (sans reconstruire `clinique`). Fiche, bandeau, impressions (âge,
       poids, allergie), `{poids}` des courriers : poids actuel avec sa date. **Ne change pas (test)** : doses des lignes en cours,
       avertissement d'écart > 10 % (séance précédente), alerte de perte de poids depuis le début de la ligne, bilan.
-- [x] **(18/10/2026, testé ; à publier avec les fonctions)** Fonctions `modeleReprendre` (aperçu partie par partie, puis reprise : copie de
+- [x] **(18/10/2026, testé ; en ligne : 20261018h, site et fonctions)** Fonctions `modeleReprendre` (aperçu partie par partie, puis reprise : copie de
       l'état précédent dans le stockage `plateforme/sauvegardes/…`, `plateforme/specialites[id]` { fiche, consultation, reglage, repris },
       `espaces/bib-…/parametres/*` et `bibliotheques/*`, journal) et `modeleAppliquer` (parties cochées, aperçu, copie `espaces/{e}/sauvegardes/…`,
       fiche et formulaire : modèle prioritaire sans rien retirer, retouches du cabinet par-dessus ; le reste : `fusionManquant`, rien d'écrasé) ;
