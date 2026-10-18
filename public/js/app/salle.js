@@ -80,7 +80,31 @@ export function demarrerSalle() {
   }, (e) => { console.warn("salle d'attente (écoute)", e); ECOUTE = null; PRET = true; });
   ECRIT = Date.now(); ecrirePresence(); // première mesure de l'écart d'horloge (écho de la présence)
   setInterval(nouveauJour, 60000);
+  setInterval(() => { if (location.hash.startsWith("#salle") && $("saL") && maintenant() - AJOUR >= 60000 && !occupe()) actualiser(false); }, 10000); // R-A4 : chaque minute
 }
+// ───── « Actualiser » (R-A4, 18/10/2026, demande du 17/10) ─────
+// Relit les fiches de la salle du jour affiché, les dossiers qui ont quelque chose ce jour-là, leurs prix et encaissements, puis redessine
+// ligne par ligne (onglet, tri, défilement et ligne ouverte gardés). Toute seule chaque minute, sauf pendant une fenêtre ou une saisie (faite
+// juste après) ; elle ne relit alors les dossiers que si leur écoute en direct ne marche pas (sinon ils sont déjà à jour : une lecture par
+// dossier modifié). Le bouton relit tout.
+let AJOUR = 0, RELECTURE = false;
+const occupe = () => { const a = document.activeElement; return !$("fenetre").classList.contains("cache") || !!(a && (/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) || a.isContentEditable)); };
+async function actualiser(manuel) {
+  if (RELECTURE) return; RELECTURE = true; const bt = $("saAct"), j = jourVu(); if (bt && manuel) A.occupe(bt, true);
+  try {
+    const s = await getDocs(query(col(), where("jour", "==", j), ...filtresEtab())), vus = new Set();
+    s.docs.forEach((d) => { vus.add(d.id); SA.set(d.id, d.data()); });
+    [...SA.keys()].forEach((k) => { if (k.indexOf(j + "_") === 0 && !vus.has(k)) SA.delete(k); });
+    const pids = [...new Set(lignes([j]).map((l) => l.pid))];
+    if (manuel || !A.ecouteDossiers()) await Promise.all(pids.map(relire));
+    pids.forEach((pid) => { oublierEncaissements(pid); delete CHARGE[pid]; });
+    GEN++; AJOUR = maintenant(); apresChangement(); majAJour();
+    if (manuel) A.toast("Salle d'attente à jour (" + hm(AJOUR) + ").");
+  } catch (e) { console.warn("salle d'attente (actualiser)", e); if (manuel) A.toast("Actualisation impossible : vérifiez la connexion, puis réessayez."); }
+  finally { RELECTURE = false; if (bt && manuel) A.occupe(bt, false); }
+}
+const majAJour = () => { const e = $("saAjour"); if (e) e.textContent = AJOUR ? "à jour à " + hm(AJOUR).replace(":", " h ") : ""; };
+window.saActualiser = () => actualiser(true);
 // Écran resté ouvert après minuit : Onco360 se recharge sur le nouveau jour (sauf fenêtre ou saisie en cours : message)
 function nouveauJour() {
   const d = new Date(maintenant()), j = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
@@ -135,6 +159,8 @@ function alerteRouge() {
   if (D().membre.role !== "assistante" || reglages().salle.notifRouge === false) return;
   lignes([D().t]).forEach((l) => { if (l.etat !== "salle" || !l.doc.arr || ROUGES.has(l.cle + l.doc.arr)) return; if (minutes(l.doc.arr) >= seuils()[1]) { ROUGES.add(l.cle + l.doc.arr); message(l.x.r.nm + " attend depuis " + duree(minutes(l.doc.arr)) + "."); } });
 }
+// R-A4 : dossiers changés sur un autre poste (écoute de v2.js) : leurs prix et encaissements relus, salle et pastilles mises à jour
+export function dossiersChanges(ids) { (ids || []).forEach((pid) => { oublierEncaissements(pid); delete CHARGE[pid]; }); GEN++; apresChangement(); }
 function apresChangement() {
   majBadges();
   const n = lignes([D().t]).filter((l) => l.etat === "salle").length, e = $("nbSalle");
@@ -411,7 +437,8 @@ export function pageSalle(j) {
     // téléphone (SA9b) : établissement, colonnes, période, recherche, tri, impression et calendrier repliés derrière « Filtres »
     '<button class="bt gris sa-ftr" id="saFtr" onclick="saFiltres()" aria-expanded="' + FILTRES + '" aria-controls="saOutils"><svg class="i"><use href="#i-loupe"/></svg>Filtres<span class="n" id="saFtrN"></span></button>' +
     '<button class="bt vert cache" id="saSuiv" onclick="saSuivant()"><svg class="i"><use href="#i-check"/></svg>Patient suivant</button>' +
-    '<button class="bt gris" data-fn="salle.colonnes" onclick="saColonnes()" title="Choisir les colonnes affichées"><svg class="i"><use href="#i-liste"/></svg>Colonnes</button></div></section>' +
+    '<button class="bt gris" data-fn="salle.colonnes" onclick="saColonnes()" title="Choisir les colonnes affichées"><svg class="i"><use href="#i-liste"/></svg>Colonnes</button>' +
+    '<button class="bt gris" id="saAct" onclick="saActualiser()" title="Relire la salle d\'attente, les dossiers du jour et les prix (fait aussi tout seul chaque minute)"><svg class="i"><use href="#i-actualiser"/></svg>Actualiser</button><span class="mesures sa-ajour" id="saAjour"></span></div></section>' +
     '<div class="sa-jours' + (semaineOuverte() ? "" : " repli") + '" id="saJours"><button class="sa-fl" onclick="saJour(-1)" aria-label="Jour précédent" title="Jour précédent">‹</button><button class="sa-jtxt" id="saJtxt" onclick="saSemaine()" title="Afficher ou replier la semaine"></button><div class="sa-sem" id="saSem"></div><button class="sa-fl" onclick="saJour(1)" aria-label="Jour suivant" title="Jour suivant">›</button>' +
     '<label class="sa-cal" title="Choisir un jour dans le calendrier"><svg class="i"><use href="#i-agenda"/></svg><span>Calendrier</span><input type="date" id="saD" aria-label="Choisir un jour"></label>' +
     '<button class="bt clair petit" id="saAuj" onclick="saAller(\'' + D().t + '\')">Aujourd\'hui</button></div>' +
@@ -429,8 +456,9 @@ export function pageSalle(j) {
   $("saD").onchange = () => { if ($("saD").value) window.saAller($("saD").value); };
   $("saQ").value = RECH; $("saQ").oninput = () => { RECH = $("saQ").value; dessiner(); };
   $("saTri").value = triPerso(); $("saTri").onchange = () => { const v = $("saTri").value; D().profil.salleTri = v; dessiner(); setDoc(doc(db, "utilisateurs", D().u.uid), { salleTri: v }, { merge: true }).catch(() => {}); };
-  dessiner();
+  dessiner(); majAJour();
   if (JOUR !== D().t && !LU[JOUR]) lireJour(JOUR).then(() => { if ($("saL")) dessiner(); });
+  if (!AJOUR || maintenant() - AJOUR >= 60000) actualiser(false); // à l'arrivée sur la page
   clearInterval(MINUT); MINUT = setInterval(() => { if (location.hash.startsWith("#salle") && $("saL")) majMinutes(); else clearInterval(MINUT); }, 30000);
 }
 window.saAller = (j) => {

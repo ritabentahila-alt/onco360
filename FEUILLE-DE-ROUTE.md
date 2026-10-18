@@ -279,7 +279,15 @@ types**, refus gardés) : R-A6 et R-E4 partent de là, sans les refaire.
       rendez-vous, Modifier, report après « Non venu », glisser-déposer, heure de la consultation d'une séance de chimio, déplacement d'une
       consultation de RT. **« Maintenant » = heure du Maroc corrigée** (`maintenant()`, constat C10). Vérifier : vues Jour et Semaine,
       salle d'attente, WhatsApp de confirmation, `tests/test_agenda.py`.
-- [ ] **R-A4 Salle d'attente à jour sur tous les postes** (DEMANDÉ, § 3.3 ; remplace la « priorité basse » de l'audit 4, d. 1 / C1). Bouton
+- [x] **(18/10/2026, testé ; à publier avec l'index)** v2.js `ecouterDossiers` / `appliquerDossiers` / `rafraichirPage` : dossiers dont `maj` est
+      postérieur à l'ouverture (5 min de marge), dans le périmètre (index `etablissementId` + `maj`, `firestore.indexes.json` ; aucun index en
+      ligne avant) ; rien d'appliqué pendant une fenêtre, une saisie ou le résumé en cours (fait juste après ; la protection « Ce dossier vient
+      d'être modifié » reste) ; nos écritures en attente ignorées ; salle (`dossiersChanges` : prix relus), tableau de bord, agenda, Patients,
+      dossier ouvert (message « Dossier mis à jour ») redessinés, défilement gardé. Salle : bouton **« Actualiser »** + « à jour à 10 h 42 »
+      (`actualiser` : fiches du jour, dossiers du jour, prix) et la même relecture chaque minute, suspendue pendant une fenêtre ou une saisie
+      (dossiers relus seulement si l'écoute ne marche pas). Un dossier supprimé ailleurs reste visible jusqu'au rechargement. Tests :
+      `tests/test_salle_direct.py` 17/17, `tests/regles/test-ecoute.mjs` 7/7 (règles inchangées), test_salle 51, test_agenda 57.
+      **R-A4 Salle d'attente à jour sur tous les postes** (DEMANDÉ, § 3.3 ; remplace la « priorité basse » de l'audit 4, d. 1 / C1). Bouton
       **« Actualiser »** (icône, « à jour à 10 h 42 ») dans l'en-tête de la salle : relit les fiches du jour, les dossiers qui ont quelque
       chose aujourd'hui, leurs prix et encaissements, et redessine **sans perdre** l'onglet, le tri, le défilement ni la ligne ouverte. La
       même relecture **toute seule chaque minute**, suspendue pendant une fenêtre ouverte ou une saisie (faite juste après). **Écoute en

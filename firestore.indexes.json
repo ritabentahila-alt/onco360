@@ -1,4 +1,13 @@
 {
-  "indexes": [],
+  "indexes": [
+    {
+      "collectionGroup": "patients",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "etablissementId", "order": "ASCENDING" },
+        { "fieldPath": "maj", "order": "ASCENDING" }
+      ]
+    }
+  ],
   "fieldOverrides": []
 }

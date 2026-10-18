@@ -2,7 +2,7 @@
 window.__v2pret = true;
 import { app, auth, db } from "../config.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { doc, getDoc, getDocs, setDoc, collection, query, where, updateDoc, addDoc, serverTimestamp, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { doc, getDoc, getDocs, setDoc, collection, query, where, updateDoc, addDoc, serverTimestamp, runTransaction, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { numeroRecu, cleRecuRdv, cleRecuCons, idRecu, decisionRecu, recuAEcrire } from "../moteur/recus.js";
 import { fusionner, cliniqueRemise, REMIS } from "../donnees/conversion.js";
 import { resume } from "../moteur/resume.js";
@@ -33,7 +33,7 @@ import { installer as installerConsultations, datesConsultations, htmlConsultati
 import { installer as installerReglages, reglages, appliquerImpression, margesMm } from "./reglages.js";
 import { montantEnLettres } from "../donnees/factures.js";
 import { installer as installerTaches, pageTaches, demarrerTaches, blocAccueil as blocTaches, tachesDuPatient } from "./taches.js";
-import { installer as installerSalle, heureMaroc, pageSalle, demarrerSalle, apresStatutRdv, apresVenuChimio, apresPrix, bullesDossier, presenceDossier, majPresenceDossier, prixPrevu, badgeSalle } from "./salle.js";
+import { installer as installerSalle, heureMaroc, dossiersChanges, pageSalle, demarrerSalle, apresStatutRdv, apresVenuChimio, apresPrix, bullesDossier, presenceDossier, majPresenceDossier, prixPrevu, badgeSalle } from "./salle.js";
 import { installer as installerAudit } from "./audit.js";
 import { installer as installerRcp, demarrerRcp, rcpDuPatient, bulleRcp, suivreEtablissementRcp, supprimerRcp } from "./rcp.js";
 import { ACTES_RT, DIAG_AJOUTS_1012, DIAG_RENOMS_1012 } from "../donnees/listes.js";
@@ -71,7 +71,7 @@ onAuthStateChanged(auth, async (u) => {
   try { D = await charger(u); appliquerImpression(); entete(); rechercheTete(); route(); menuCabinets().catch(() => {});
     if (D.bib) { Promise.all([figerListes(), figerDocumentation()]).catch((e) => console.warn("bibliothèque", e)); return; } // bibliothèque de référence : rien d'autre
     lireAccueilCab();
-    if (D.membre.role !== "comptable") { if (module("taches")) demarrerTaches(); if (module("salle")) demarrerSalle(); if (module("rcp")) demarrerRcp(); } publierTarifsC(); planifierReleve(3000); chargerMedecins(); chargerSignataires().then(publierCarte).catch(() => {}); nomTitulaire().then(migrations); marquerProtocoles().then(() => appliquerAudit3()).then(() => appliquerP4()).then(() => appliquerP5b()).then(() => ordosAudit3()).then(() => vigilancesAudit3()).catch((er) => console.warn("protocoles", er)); }
+    if (D.membre.role !== "comptable") { ecouterDossiers(); if (module("taches")) demarrerTaches(); if (module("salle")) demarrerSalle(); if (module("rcp")) demarrerRcp(); } publierTarifsC(); planifierReleve(3000); chargerMedecins(); chargerSignataires().then(publierCarte).catch(() => {}); nomTitulaire().then(migrations); marquerProtocoles().then(() => appliquerAudit3()).then(() => appliquerP4()).then(() => appliquerP5b()).then(() => ordosAudit3()).then(() => vigilancesAudit3()).catch((er) => console.warn("protocoles", er)); }
   catch (e) { $("page").innerHTML = '<div class="carte"><h3>Impossible d\'ouvrir Onco360</h3><p class="sous">' + esc(e && e.code === "permission-denied" ? "Accès refusé : votre accès a peut-être été désactivé. Contactez le médecin titulaire." : e.message) + '</p><button class="bt clair" onclick="document.getElementById(\'btSortie\').click()">Se déconnecter</button></div>'; }
 });
 // Cabinets de la personne (19.2, 10/10/2026 : secrétaire de plusieurs médecins) : comptes/{uid}.espaces, le cabinet choisi dans le
@@ -468,7 +468,7 @@ function fmtSaisie(el) {
 }
 document.addEventListener("input", (ev) => { if (ev.target && ev.target.classList && ev.target.classList.contains("mt")) fmtSaisie(ev.target); });
 const ferieLe = (d) => (D.ctx.feries || []).map((f) => (typeof f === "string" ? { d: f, nom: "Jour férié" } : f)).find((f) => f.d === d);
-const API = { D: () => D, get ESPACE() { return ESPACE; }, $, esc, ic, dfr, dfrA, cap, jourLong, val, occupe, erreur, toast, fenetre, fermerFenetre: () => window.fermerFenetre(), peut, voit, traitMod, enregistrer, pageDossier: (id) => reafficher(id), recalculer, journal };
+const API = { D: () => D, get ESPACE() { return ESPACE; }, ecouteDossiers: () => !!ECOUTE_D, $, esc, ic, dfr, dfrA, cap, jourLong, val, occupe, erreur, toast, fenetre, fermerFenetre: () => window.fermerFenetre(), peut, voit, traitMod, enregistrer, pageDossier: (id) => reafficher(id), recalculer, journal };
 API.typesRdv = (e) => typesRdv(e); API.typesC = () => D.typesC || []; API.actsDe = () => actsDe(D.tarifs, D.activites); // Paramètres › Horaires : durée par type de consultation (AG2)
 // Heure facultative du scanner de centrage (AG5, 11/10/2026) : r.scanH = { h, du } ou retirée (droit « radiothérapie : modifier »)
 API.traitModRT = () => traitModRT();
@@ -671,6 +671,45 @@ const PAGES_BIB = ["protocoles", "parametres", "configuration"];
 const estComptable = () => !!(D && D.membre && D.membre.role === "comptable");
 const PAGE_MODULE = { agenda: "agenda", salle: "salle", taches: "taches", protocoles: "chimio", bilan: "bilan" };
 const module = (k) => !D || !D.abo || D.abo.modules[k] !== false;
+// ───── Dossiers modifiés sur un autre poste, écoutés en direct (R-A4, 18/10/2026, demande du 17/10) ─────
+// Dossiers dont `maj` est postérieur à l'ouverture d'Onco360 (5 min de marge pour une horloge fausse), dans le périmètre de la personne (mêmes
+// filtres d'établissement que la salle d'attente ; index etablissementId + maj) : une lecture par dossier modifié, jamais une relecture
+// complète. Rendez-vous pris, « Venu », séance validée, nouveau patient : visibles partout sans recharger (salle, agenda, tableau de bord,
+// dossier ouvert). Pendant une fenêtre ou une saisie, rien n'est appliqué : fait juste après (un enregistrement fait depuis une fenêtre restée
+// ouverte sur l'ancienne version est refusé comme avant : « Ce dossier vient d'être modifié par quelqu'un d'autre »). Nos propres écritures
+// (en attente) sont ignorées ; un dossier sorti de la liste n'est pas retiré (suppression : rechargement).
+let ECOUTE_D = null; const ATTENTE_D = new Map();
+const occupeEcran = () => { const a = document.activeElement; return !$("fenetre").classList.contains("cache") || !!(a && (/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) || a.isContentEditable)) || NOTES.txt != null || !!NOTES.encours; };
+function ecouterDossiers() {
+  if (ECOUTE_D || estComptable() || D.bib) return;
+  const m = D.membre, depuis = new Date(Date.now() - 5 * 60000), c = collection(db, "espaces", ESPACE, "patients");
+  const q = m.tousEtablissements ? query(c, where("maj", ">", depuis)) : query(c, where("etablissementId", "in", (m.etablissements || []).length ? m.etablissements.slice(0, 30) : ["—"]), where("maj", ">", depuis));
+  ECOUTE_D = onSnapshot(q, (s) => {
+    s.docChanges().forEach((ch) => { if (ch.type !== "removed" && !(ch.doc.metadata || {}).hasPendingWrites) ATTENTE_D.set(ch.doc.id, ch.doc.data()); });
+    appliquerDossiers();
+  }, (e) => { console.warn("dossiers (écoute en direct)", e); ECOUTE_D = null; });
+  setInterval(appliquerDossiers, 2000);
+}
+function appliquerDossiers() {
+  if (!ATTENTE_D.size || occupeEcran()) return;
+  const ids = [];
+  ATTENTE_D.forEach((d, id) => {
+    const x = D.patients.find((p) => p.id === id);
+    if (x && (d.version || 1) <= ((x.doc && x.doc.version) || 1)) return; // déjà à jour (notre écriture, ou relue par la salle)
+    if (x) recalculer(x, d); else { const y = { id }; recalculer(y, d); D.patients.push(y); }
+    ids.push(id);
+  });
+  ATTENTE_D.clear(); if (!ids.length) return;
+  D.patients.sort((a, b) => String(a.r.nm).localeCompare(String(b.r.nm)));
+  dossiersChanges(ids); rafraichirPage(ids);
+}
+// Page ouverte redessinée après un changement venu d'ailleurs, défilement gardé (la salle d'attente se redessine elle-même)
+function rafraichirPage(ids) {
+  const p = String(D.page || ""), i = p.indexOf("/"), nom = i < 0 ? p : p.slice(0, i), arg = i < 0 ? null : decodeURIComponent(p.slice(i + 1)), y = window.scrollY;
+  if (nom === "dossier" ? ids.indexOf(arg) < 0 : ["accueil", "agenda", "patients"].indexOf(nom) < 0) return;
+  try { PAGES[nom][1](arg); window.scrollTo(0, y); if (nom === "dossier") toast("Dossier mis à jour (modifié sur un autre poste)."); } catch (e) { console.warn("réaffichage", e); }
+}
+window.__majDossiers = () => appliquerDossiers(); // tests
 const PAGES_TOUS = () => ({ tous: ["Mes cabinets aujourd'hui", () => pageTous()] });
 const PAGES = { accueil: ["Tableau de bord", pageAccueil], agenda: ["Agenda / Rendez-vous", () => pageAgenda()], configuration: ["Paramètres", () => { location.replace("#parametres"); }], profil: ["Mon compte", (a) => pageProfil(a)], protocoles: ["Protocoles", () => pageProtocoles()], parametres: ["Paramètres", (a) => pageConfiguration(a)], bilan: ["Bilan", () => pagePageBilan()], salle: ["Salle d'attente", () => pageSalle()], patients: ["Patients", pagePatients], taches: ["Tâches", (a) => pageTaches(a)], dossier: ["Dossier patient", pageDossier] };
 function route() {
