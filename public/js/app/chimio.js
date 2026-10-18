@@ -14,7 +14,7 @@ import { poso, doseTxt, ficheHTML, imprimerFiche } from "./fiche.js";
 import * as ficheP from "./fichepatient.js"; // fiche patient réglable (10/10/2026)
 import { vigilances, historique, cumuls, examensProposes, EXAMENS, horsNorme, vesicant, notesPour } from "../moteur/vigilance.js"; // 12/10/2026
 import { finRT } from "../moteur/rt.js";
-import { noterHeures, seanceProposee, DU_SEANCE } from "../moteur/heures.js"; // heures de la séance (12/10/2026)
+import { noterHeures, seanceProposee, DU_SEANCE, DU_CONS } from "../moteur/heures.js"; // heures de la séance (12/10/2026)
 import { notesVigilance, flaconsCabinet } from "./vigilances.js";
 import { interactions, foie, arrondiFlacon, flaconsPour } from "../moteur/p10.js";
 import { seuilsJour, hebdomadaire, SEUILS_HEBDO, risqueDe, libRisque } from "../moteur/seuils.js";
@@ -82,6 +82,8 @@ const boutonHeure = (x, i, k, j, o) => {
 };
 // Fenêtre des heures d'une séance (s = { k, j, d, o }) : infirmière → heure et durée de la séance ; médecin, secrétaire → consultation.
 // `puis` : appelée à la fermeture (ex. fenêtre de prix après une validation)
+// Clé de la consultation d'une séance dans le résumé (moteur/agenda.js) : J1 = « pid|c|ligne|cure », J8… = « pid|s|ligne|cure|jour »
+const cleSeance = (x, lid, n, j) => { const i = x.P.lignes.findIndex((z) => z.id === lid); return x.id + (j > 1 ? "|s|" + i + "|" + n + "|" + j : "|c|" + i + "|" + n); };
 export function fenetreHeureSeance(x, lid, s, titre, puis) {
   const esc = A.esc, inf = estInfirmiere(), o = s.o || {}, hc = o.hc, hcm = o.hcm, hr = o.hr, fin = () => { A.fermerFenetre(); if (puis) puis(); else A.pageDossier(x.id); };
   const par = (z) => (z && z.parNom ? " (" + esc(z.parNom) + (z.le ? ", le " + A.dfrA(String(z.le).slice(0, 10)) : "") + ")" : "");
@@ -104,7 +106,9 @@ export function fenetreHeureSeance(x, lid, s, titre, puis) {
   document.getElementById("hNon").onclick = fin;
   const noter = async (q, bt) => { A.occupe(bt, true); try { await heureSeance(trouver(x.id), lid, s.k + 1, s.j, q); A.toast("Enregistré."); fin(); } catch (e) { A.occupe(bt, false); A.toast(e.message); } };
   const retirer = inf ? { seance: null } : { cons: "" };
-  ok.onclick = () => { const h = A.val("hS"); if (!h) { if (aSup) noter(retirer, ok); else fin(); return; } noter(inf ? { seance: { h, du: +A.val("hDu") || DU_SEANCE } } : { cons: h }, ok); };
+  ok.onclick = () => { const h = A.val("hS"); if (!h) { if (aSup) noter(retirer, ok); else fin(); return; }
+    if (!inf && h !== ((hcm && hcm.h) || "") && !A.conflitAccepte(s.d, h, (hcm && +hcm.du) || DU_CONS, { pid: x.id, k: cleSeance(x, lid, s.k + 1, s.j) })) return; // R-A3 : créneau déjà pris
+    noter(inf ? { seance: { h, du: +A.val("hDu") || DU_SEANCE } } : { cons: h }, ok); };
   if (sup) sup.onclick = () => noter(retirer, sup);
 }
 // « Modifier » d'une séance depuis « Rendez-vous et tâches à venir » (12/10/2026, demande de Dr Bentahila ; plus de fenêtre après la
@@ -127,6 +131,7 @@ window.chModifierRdvChimio = (pid, lid, n, j, apres, pre) => { // apres : retour
   if (pre && okD) { document.getElementById("mD").value = pre.d; if (pre.h) document.getElementById("mH").value = pre.h; document.getElementById("mSz").classList.toggle("cache", pre.d === d0); }
   document.getElementById("fOk").onclick = async () => {
     const d = A.val("mD"), h = A.val("mH"); if (!d) { A.erreur("Indiquez la date."); return; }
+    if (h && (d !== d0 || h !== ((hcm && hcm.h) || "")) && !A.conflitAccepte(d, h, (hcm && +hcm.du) || DU_CONS, { pid, k: cleSeance(x, lid, n, j) })) return; // R-A3 : créneau déjà pris
     A.occupe(document.getElementById("fOk"), true);
     try {
       if (okD && d !== d0) {

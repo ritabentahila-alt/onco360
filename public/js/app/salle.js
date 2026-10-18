@@ -49,6 +49,9 @@ const maintenant = () => Date.now() + ECART;
 function noterEcart(ts) { const v = ts && typeof ts.toMillis === "function" ? ts.toMillis() : null; if (v && Date.now() - ECRIT < 15000) ECART = v - Date.now(); }
 const HM = new Intl.DateTimeFormat("fr-FR", { timeZone: "Africa/Casablanca", hour: "2-digit", minute: "2-digit", hour12: false });
 const hm = (ms) => (ms ? HM.format(new Date(ms)).replace(/\s/g, "") : "");
+// Heure du Maroc, horloge corrigée (R-A3, 18/10/2026 : créneaux du jour) : { d: "AAAA-MM-JJ", m: minutes depuis minuit }
+const JM = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Casablanca", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
+export function heureMaroc() { const p = {}; JM.formatToParts(new Date(maintenant())).forEach((x) => { p[x.type] = x.value; }); return { d: p.year + "-" + p.month + "-" + p.day, m: (+p.hour % 24) * 60 + +p.minute }; }
 const minutes = (ms) => Math.max(0, Math.floor((maintenant() - ms) / 60000));
 const duree = (m) => (m < 60 ? m + " min" : Math.floor(m / 60) + " h " + String(m % 60).padStart(2, "0"));
 const peutRdv = () => A.peut("rendezvous");

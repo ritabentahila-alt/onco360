@@ -7,6 +7,7 @@ import { numeroRecu, cleRecuRdv, cleRecuCons, idRecu, decisionRecu, recuAEcrire 
 import { fusionner, cliniqueRemise, REMIS } from "../donnees/conversion.js";
 import { resume } from "../moteur/resume.js";
 import { chimioAVenir } from "../moteur/agenda.js";
+import { occupations, chevauche, texteConflit } from "../moteur/creneaux.js"; // R-A3 (18/10/2026) : créneaux pris par les consultations de chimio et de RT
 import { etatLigne, protocoleDe, seancesCure, poidsDebut, reperesClairance } from "../moteur/doses.js";
 import { finRT, finRTcalc, statutRT, nbA, compteurRT, dosimetrie, contourage, RYTHMES, libRythme, volumesRT, seancesVolumes, dpfVolume, texteVolume } from "../moteur/rt.js";
 import { auj, addJ, ecart, ouvre, age, srcImage, absentMedecin } from "../moteur/outils.js";
@@ -32,7 +33,7 @@ import { installer as installerConsultations, datesConsultations, htmlConsultati
 import { installer as installerReglages, reglages, appliquerImpression, margesMm } from "./reglages.js";
 import { montantEnLettres } from "../donnees/factures.js";
 import { installer as installerTaches, pageTaches, demarrerTaches, blocAccueil as blocTaches, tachesDuPatient } from "./taches.js";
-import { installer as installerSalle, pageSalle, demarrerSalle, apresStatutRdv, apresVenuChimio, apresPrix, bullesDossier, presenceDossier, majPresenceDossier, prixPrevu, badgeSalle } from "./salle.js";
+import { installer as installerSalle, heureMaroc, pageSalle, demarrerSalle, apresStatutRdv, apresVenuChimio, apresPrix, bullesDossier, presenceDossier, majPresenceDossier, prixPrevu, badgeSalle } from "./salle.js";
 import { installer as installerAudit } from "./audit.js";
 import { installer as installerRcp, demarrerRcp, rcpDuPatient, bulleRcp, suivreEtablissementRcp, supprimerRcp } from "./rcp.js";
 import { ACTES_RT, DIAG_AJOUTS_1012, DIAG_RENOMS_1012 } from "../donnees/listes.js";
@@ -1252,11 +1253,16 @@ window.ouvrirRdv = (id, rid, pre) => {
     const z = $("fCr"), d = val("fD"); if (!z) return;
     if (!d || val("fType") === "s:Hospitalisation") { z.innerHTML = ""; return; }
     const C = creneaux(x.doc.etablissementId, d, sauf, +val("fDu"), medChoisi()), libres = C.l.filter((c) => !c.occ.length).length, hc = val("fH");
-    z.innerHTML = C.l.length ? '<label>Créneaux du ' + esc(dfrA(d)) + ' <span class="mesures">(' + libres + " libre" + (libres > 1 ? "s" : "") + " pour " + C.du + " min)</span></label><div class=\"crx\">" + C.l.map((c) => c.occ.length
-      ? '<span class="cr pris" title="' + esc(c.occ.map((o) => o.h + " " + o.nm).join(", ")) + '">' + c.h + "<i>" + esc(c.occ[0].nm.split(" ")[0]) + "</i></span>"
-      : '<button type="button" class="cr' + (hc === c.h ? " on" : "") + '" data-h="' + c.h + '">' + c.h + "</button>").join("") + "</div>" : "";
+    const sh = occupDuJour(d, sauf, medChoisi()).sans;
+    z.innerHTML = (C.l.length ? '<label>Créneaux du ' + esc(dfrA(d)) + ' <span class="mesures">(' + libres + " libre" + (libres > 1 ? "s" : "") + " pour " + C.du + " min)</span></label><div class=\"crx\">" + C.l.map((c) => c.occ.length
+      ? '<button type="button" class="cr pris' + (hc === c.h ? " on" : "") + '" data-h="' + c.h + '" data-pris="1" title="Pris : ' + esc(texteConflit(c.occ)) + '" aria-label="' + c.h + ", pris : " + esc(texteConflit(c.occ)) + '">' + c.h + "<i>" + esc(c.occ[0].nm.split(" ")[0]) + "</i></button>"
+      : '<button type="button" class="cr' + (hc === c.h ? " on" : "") + '" data-h="' + c.h + '">' + c.h + "</button>").join("") + "</div>" : "") +
+      (sh.length ? '<p class="mesures" style="margin:6px 0 0">Déjà ce jour-là, sans heure : ' + sh.map((o) => esc(o.lib + " de " + o.nm)).join(" ; ") + ".</p>" : "");
   };
-  $("fCr").onclick = (ev) => { const b = ev.target.closest("[data-h]"); if (b) { $("fH").value = b.dataset.h; majC(); } };
+  let accepte = ""; // heure déjà acceptée malgré un créneau pris (un seul clic d'avertissement)
+  $("fCr").onclick = (ev) => { const b = ev.target.closest("[data-h]"); if (!b) return; const h = b.dataset.h;
+    if (b.dataset.pris) { if (!accepterConflit(val("fD"), h, +val("fDu") || 30, sauf, medChoisi())) return; accepte = val("fD") + " " + h; }
+    $("fH").value = h; majC(); };
   $("fType").onchange = () => { if (!duMain) $("fDu").value = String(dureeType(val("fType"), x.doc.etablissementId)); maj(); majC(); };
   $("fDu").onchange = () => { duMain = true; majC(); }; if ($("fMed")) $("fMed").onchange = majC; maj(); $("fD").addEventListener("change", () => { majH(); majC(); }); $("fH").addEventListener("change", majC); majH(); majC();
   $("fOk").onclick = async () => {
@@ -1269,8 +1275,7 @@ window.ouvrirRdv = (id, rid, pre) => {
     if (ab && !confirm("Absence prévue ce jour-là (" + (ab.m || "absence") + ", du " + dfrA(ab.du) + " au " + dfrA(ab.au) + "). Enregistrer quand même ?")) return;
     // double réservation (19.4) : un autre rendez-vous de consultation qui chevauche cette heure
     const du = hs ? 0 : +val("fDu") || dureeType(val("fType"), x.doc.etablissementId);
-    if (h) { const cf = rdvsDuJour(d, sauf, medChoisi()).filter((o) => mnH(o.h) < mnH(h) + du && mnH(h) < mnH(o.h) + o.du);
-      if (cf.length && !confirm("Le " + dfrA(d) + " à " + h + ", il y a déjà : " + cf.map((o) => o.nm + " (" + o.h + ")").join(", ") + ".\n\nEnregistrer quand même ?")) return; }
+    if (h && accepte !== d + " " + h && !accepterConflit(d, h, du, sauf, medChoisi())) return;
     const l = lireRdvs(x);
     if (r0) {
       const r = l.find((v) => v.id === rid);
@@ -1298,9 +1303,9 @@ API.deplacerRdv = (pid, rid, d, h) => {
   const r0 = lireRdvs(x).find((v) => v.id === rid); if (!r0 || (r0.st || "prevu") !== "prevu") return;
   if (r0.d === d && (r0.h || "") === h) return;
   const et = x.doc.etablissementId, du = dureeDe(r0, et), ab = absenceLe(d), fe = !ab && ferieLe(d), hz = !ab && !fe && horsHoraires(et, d, h);
-  const cf = rdvsDuJour(d, { pid, rid }, medRdv(r0)).filter((o) => mnH(o.h) < mnH(h) + du && mnH(h) < mnH(o.h) + o.du);
+  const cf = chevauche(rdvsDuJour(d, { pid, rid }, medRdv(r0)), h, du);
   const alertes = [ab ? "Absence prévue ce jour-là (" + (ab.m || "absence") + ", du " + dfrA(ab.du) + " au " + dfrA(ab.au) + ")." : "", fe ? "Le " + dfrA(d) + " est un jour férié (" + (fe.nom || "") + ")." : "", hz || "",
-    cf.length ? "Déjà prévu à ce moment : " + cf.map((o) => o.nm + " (" + o.h + ")").join(", ") + "." : ""].filter(Boolean);
+    cf.length ? "Créneau déjà pris par : " + texteConflit(cf) + "." : ""].filter(Boolean);
   fenetre("<h3>Déplacer le rendez-vous ?</h3><p class=\"sous\"><b>" + esc(x.r.nm) + "</b> – " + esc(libRdv(r0)) + " (" + du + " min)</p>" +
     '<p class="dep-de">Du <s>' + esc(cap(jourLong(r0.d))) + (r0.h ? " à " + esc(r0.h) : "") + "</s><br>au <b>" + esc(cap(jourLong(d))) + " à " + esc(h) + "</b></p>" +
     (alertes.length ? '<div class="per" style="color:var(--orange);background:var(--orange-c);display:block">' + alertes.map((t) => "<div>⚠️ " + esc(t) + "</div>").join("") + "</div>" : "") +
@@ -1465,6 +1470,7 @@ function absentRdv(x, l, r) {
       if (!ab && !fe && hz && !confirm(hz + "\n\nReporter quand même ?")) return;
       if (fe && !confirm("Le " + dfrA(d) + " est un jour férié (" + (fe.nom || "") + "). Reporter quand même ?")) return;
       if (ab && !confirm("Absence prévue ce jour-là (" + (ab.m || "absence") + "). Reporter quand même ?")) return;
+      if (h && !accepterConflit(d, h, dureeDe(r, etab), { pid: x.id, rid: r.id }, medRdv(r))) return; // R-A3 : créneau déjà pris
     }
     r.st = "absent"; delete r.dv; r.sp = D.u.uid;
     if (rep) { const n = { id: "r" + Date.now().toString(36), type: r.type, d, h, n: r.n || "", st: "prevu", rep: [{ d: r.d, h: r.h || "", le: D.t, abs: true }] }; if (r.act) n.act = r.act; if (r.mo) n.mo = r.mo; l.push(n); }
@@ -1488,17 +1494,26 @@ window.nouveauRdv = (d, h, etab, med) => { // med : médecin choisi dans le filt
 const DUREES_RDV = [10, 15, 20, 30, 40, 45, 60, 90, 120]; // durées proposées pour un rendez-vous (AG2)
 const mnH = (h) => { const p = String(h || "").split(":"); return +p[0] * 60 + (+p[1] || 0); };
 const hhM = (m) => ("0" + Math.floor(m / 60)).slice(-2) + ":" + ("0" + (m % 60)).slice(-2);
-function rdvsDuJour(d, sauf, med) { // med (AG4) : à partir de 2 médecins, seulement les rendez-vous de ce médecin
-  const l = [];
-  D.patients.forEach((x) => { if (!voitRdv()) return; (x.P.rdvs || []).forEach((r) => { if (r.d === d && r.h && typeRdv(r.type) !== "hospit" && r.st !== "absent" && !(sauf && x.id === sauf.pid && r.id === sauf.rid) && !(med && multiMed() && medRdv(r) !== med)) l.push({ h: r.h, nm: x.r.nm, du: dureeDe(r, x.doc.etablissementId) }); }); });
-  return l.sort((a, b) => a.h.localeCompare(b.h));
+function rdvsDuJour(d, sauf, med) { return occupDuJour(d, sauf, med).avec; }
+// R-A3 (18/10/2026) : tout ce qui occupe le médecin ce jour-là (moteur/creneaux.js) : rendez-vous, consultations des séances de chimio (heure
+// choisie, sinon placée d'après la séance), étapes de RT avec heure ; « sans » = consultations du jour sans heure (listées, pas de créneau)
+function occupDuJour(d, sauf, med) {
+  if (!voitRdv()) return { avec: [], sans: [] };
+  const pats = D.patients.map((x) => ({ id: x.id, nm: x.r.nm, etab: x.doc.etablissementId, rdvs: x.P.rdvs || [], ag: x.r.ag || [] }));
+  return occupations(pats, d, { sauf, med, multi: multiMed(), titulaire: titulaireUid(), dureeDe: (r, etab) => dureeDe(r, etab) });
 }
+// Avertissement d'un clic quand l'heure choisie touche autre chose (« garder quand même ? ») ; vrai = on continue
+function accepterConflit(d, h, du, sauf, med) { // med absent : celui du titulaire (consultation de chimio, étape de RT : pas encore de médecin noté)
+  const cf = chevauche(rdvsDuJour(d, sauf, med === undefined ? titulaireUid() : med), h, du);
+  return !cf.length || confirm("Créneau déjà pris le " + dfrA(d) + " par : " + texteConflit(cf) + ".\n\nGarder quand même ?");
+}
+API.conflitAccepte = accepterConflit; // chimio.js (heure de la consultation d'une séance)
 // AG2 : créneaux au pas du lieu ; proposé = la durée voulue (`duV`, sinon le pas) tient avant la fin de la plage ; pris = touche
 // un autre rendez-vous (chacun avec sa propre durée)
 function creneaux(etab, d, sauf, duV, med) {
   // créneaux proposés toutes les 30 min au plus (moins pour un type court), quelle que soit la durée du type (12/10/2026)
   const H = horaires(etab), du = duV || H.duree || 30, pas = Math.min(du, H.duree || 30), pl = (H.jours[new Date(d + "T12:00:00").getDay()] || []).slice().sort((a, b) => a[0].localeCompare(b[0])), pris = rdvsDuJour(d, sauf, med);
-  const n = new Date(), now = d === D.t ? n.getHours() * 60 + n.getMinutes() : -1, out = [];
+  const n = heureMaroc(), now = d === D.t ? n.m : -1, out = []; // « maintenant » à l'heure du Maroc, horloge corrigée (C10)
   pl.forEach(([a, b]) => { for (let m = mnH(a); m + du <= mnH(b); m += pas) { if (m + pas <= now) continue; out.push({ h: hhM(m), occ: pris.filter((r) => mnH(r.h) < m + du && m < mnH(r.h) + r.du) }); } });
   return { l: out, du, pris };
 }
@@ -1609,6 +1624,7 @@ window.modifierEtapeRT = (id, rid, z, apres, pre) => { // pre { d, h } : glissé
     if (deb && r.scan && d < r.scan) { erreur("La 1re séance est avant le scanner de centrage (" + dfrA(r.scan) + ")."); return; }
     if (fin && r.deb && d < r.deb) { erreur("La fin est avant la 1re séance (" + dfrA(r.deb) + ")."); return; }
     if (!deb && !fin && r.deb && d > r.deb) { erreur("Le scanner est après la 1re séance (" + dfrA(r.deb) + ")."); return; }
+    if (h && (d !== d0 || h !== (H.h || "")) && !accepterConflit(d, h, +val("eDu") || du, { pid: x.id, k: x.id + "|rt|" + (r.id || l.indexOf(r)) + "|" + (deb ? "deb" : fin ? "fin" : "scan") })) return; // R-A3
     // 1re séance déplacée = début de la radiothérapie déplacé dans la prescription : fin calculée, consultations hebdomadaires et consultation
     // de fin (si elle n'a pas été déplacée à la main) suivent (sauverRT) ; une fin saisie à la main est décalée d'autant de jours
     if (deb && r.deb && r.finPrev && d !== r.deb) r.finPrev = addJ(r.finPrev, ecart(d, r.deb));

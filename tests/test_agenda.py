@@ -54,7 +54,7 @@ async def main():
         verif('fin de journée : dernier créneau d\'Annonce à 17:00 (45 min avant 18:00)', await ev("[...document.querySelectorAll('#fCr .cr')].map(e=>e.dataset.h||e.firstChild.textContent).pop()") == '17:00')
         await ev("document.getElementById('fH').value='10:30'; document.getElementById('fH').dispatchEvent(new Event('change'))")
         pg.dlg.clear(); await pg.click('#fOk'); await pg.wait_for_timeout(800)
-        verif('double réservation signalée (10:30 touche l\'Annonce de 10:00, 45 min)', any('il y a déjà' in m for m in pg.dlg), pg.dlg)
+        verif('double réservation signalée (10:30 touche l\'Annonce de 10:00, 45 min)', any('Créneau déjà pris' in m for m in pg.dlg), pg.dlg)
         r = [x for x in await rdvs(pg, A3) if x.get('d') == T and x.get('h') == '10:30']
         verif('durée notée sur le rendez-vous (du = 45)', r and r[0].get('du') == 45, r)
         # Paramètres › Horaires : durée du Suivi
@@ -98,7 +98,7 @@ async def main():
         y1015 = col[1] + (10*60 + 15 - 7*60) / 15 * 22
         await pg.mouse.move(bb['x'] + 20, bb['y'] + 5); await pg.mouse.down(); await pg.mouse.move(bb['x'] + 25, bb['y'] - 30, steps=4); await pg.mouse.move(bb['x'] + 20, y1015 + 5, steps=8); await pg.mouse.up(); await pg.wait_for_timeout(400)
         # Q2 : sous le moteur de Safari, l'outil de test ne sait pas simuler ce 2e glisser vers le haut (le 1er, même code, passe) : vérifié sous Chrome
-        verif('créneau pris : avertissement « Déjà prévu » et « Déplacer quand même »', os.environ.get('NAVIGATEUR') == 'webkit' or 'Déjà prévu' in await ev("document.getElementById('fen')?.innerText||document.body.innerText") and await ev("document.getElementById('fOk').innerText") == 'Déplacer quand même')
+        verif('créneau pris : avertissement « Créneau déjà pris » et « Déplacer quand même »', os.environ.get('NAVIGATEUR') == 'webkit' or 'Créneau déjà pris' in await ev("document.getElementById('fen')?.innerText||document.body.innerText") and await ev("document.getElementById('fOk').innerText") == 'Déplacer quand même')
         await ev("fermerFenetre()")
         verif('hospitalisation et rendez-vous passés non glissables', await ev("[...document.querySelectorAll('.ev-g.dep')].every(e=>!e.classList.contains('fait'))"))
         verif('aucune erreur JavaScript (glisser)', not pg.errs, pg.errs); await pg.close()

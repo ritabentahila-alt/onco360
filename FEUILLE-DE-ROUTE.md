@@ -264,7 +264,13 @@ types**, refus gardés) : R-A6 et R-E4 partent de là, sans les refaire.
       reproduit pas : `firebase functions:log --only agendaPatient` le jour d'un déplacement et `utilisateurs/{uid}.agendaGoogle.erreur`,
       **sans rien écrire dans la base en ligne**. Vérifier aussi : couleurs, filtre de chacun, `permis` (agenda d'un médecin), passé jamais
       effacé, plusieurs cabinets ; tous les autres types de rendez-vous.
-- [ ] **R-A3 Double rendez-vous : créneaux pris par les consultations de chimio et de RT** (DEMANDÉ, § 3.2 ; reprend et élargit l'audit 4,
+- [x] **(18/10/2026, testé ; à publier)** `public/js/moteur/creneaux.js` (`occupations`, `chevauche`, `texteConflit` ; test-creneaux 12/12) :
+      rendez-vous, consultations des séances de chimio (événements « c » / « s » du résumé, heure choisie ou placée d'après la séance, 15 min),
+      étapes de RT avec heure ; sans heure : « Déjà ce jour-là, sans heure : … » ; v2.js `occupDuJour` / `accepterConflit` (« Créneau déjà pris
+      le … par : … Garder quand même ? », un clic, `API.conflitAccepte`) dans Nouveau rendez-vous / Modifier (créneau pris cliquable, un seul
+      avertissement), glisser-déposer, report après « Non venu », heure de la consultation d'une séance (chimio.js), étape de RT ; « maintenant »
+      = `heureMaroc()` (salle.js) ; `tests/test_creneaux.py` 13/13, test_agenda 57/57 (messages mis à jour).
+      **R-A3 Double rendez-vous : créneaux pris par les consultations de chimio et de RT** (DEMANDÉ, § 3.2 ; reprend et élargit l'audit 4,
       d. 3 / C3, VALIDÉ). `rdvsDuJour` compte aussi la consultation de chaque séance de chimio du jour **qui a une heure** (choisie `hcm`,
       sinon placée d'après la séance `hc`) avec sa durée (`heures.cons.du`, 15 min), et les consultations de RT avec heure ; même filtre par
       médecin à partir de 2 médecins. Consultations du jour **sans heure** : pas de créneau, mais listées dans la fenêtre (« Déjà ce
