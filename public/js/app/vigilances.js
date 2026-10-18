@@ -6,6 +6,7 @@
 import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { db } from "../config.js";
 import { VIG0, vigAudit3 } from "../moteur/vigilance.js";
+import { FLACONS0, lireFlacons, ecrireFlacons } from "../moteur/p10.js";
 
 let A = null;
 export function installer(api) { A = api; }
@@ -22,6 +23,20 @@ export function notesVigilance(apres) {
   return NOTES;
 }
 
+// P10 k (18/10/2026) : tailles des flacons du cabinet (parametres/flacons { data: JSON { "MOLÉCULE": [mg] } }) ; absent = FLACONS0
+let FLAC = null, FESP = null;
+export function flaconsCabinet(apres) {
+  if (FLAC === null || FESP !== A.ESPACE) {
+    FLAC = FLACONS0; FESP = A.ESPACE;
+    getDoc(doc(db, "espaces", A.ESPACE, "parametres", "flacons")).then((s) => { if (s.exists()) { try { FLAC = JSON.parse(s.data().data || "{}"); } catch (e) { FLAC = FLACONS0; } if (apres) apres(); } }).catch(() => {});
+  }
+  return FLAC;
+}
+window.vgFlacons = async () => {
+  const T = lireFlacons(document.getElementById("vgFl").value);
+  try { await setDoc(doc(db, "espaces", A.ESPACE, "parametres", "flacons"), { data: JSON.stringify(T), maj: serverTimestamp(), majPar: A.D().u.uid }); FLAC = T; A.toast("Flacons enregistrés."); }
+  catch (e) { A.erreur(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de modifier les paramètres." : (e.message || String(e))); }
+};
 // Audit n° 3 (18/10/2026) : seuils du jour ajoutés à la liste déjà enregistrée par le cabinet, une fois (médecin ; audit3f)
 export async function vigilancesAudit3() {
   if (!A.peut("parametres") || !A.D().membre || A.D().membre.role !== "medecin") return null;
@@ -50,7 +65,11 @@ export function htmlVigilances(ok) {
       (ok ? '<div class="actr">' + '<button class="sup" type="button" title="Retirer" aria-label="Retirer « ' + esc(N.nom) + ' »" onclick="vgSup(' + i + ')">' + A.ic("corbeille") + "</button></div>" : "") + "</div>").join("") +
     (ok ? '<button class="bt clair petit" style="margin-top:10px" onclick="vgAj()">' + A.ic("plus") + "Ajouter une molécule</button>" +
       '<div class="barre-enr"><button class="bt gris" onclick="vgDefaut()">↺ Liste de départ</button><span id="vgMod" class="mesures' + (VMOD ? "" : " cache") + '">Modifications non enregistrées</span>' +
-      '<button class="bt plein" id="vgOk" onclick="vgEnregistrer()"><svg class="pi"><use href="#i-enregistrer"/></svg>Enregistrer</button></div>' : "") + "</section>";
+      '<button class="bt plein" id="vgOk" onclick="vgEnregistrer()"><svg class="pi"><use href="#i-enregistrer"/></svg>Enregistrer</button></div>' : "") + "</section>" +
+    // P10 k (18/10/2026) : flacons du cabinet pour l'arrondi de la dose proposé dans la séance
+    '<section class="carte"><h3><span class="ic">' + A.ic("pilule") + '</span>Flacons (arrondi de la dose)</h3><p class="sous">Une ligne par molécule : nom, deux-points, tailles des flacons en mg. Dans la séance, une dose arrondie au plus petit flacon est proposée à côté de la dose calculée quand l\'écart reste sous 5 % ; le médecin choisit de l\'appliquer ou non.</p>' +
+    '<textarea id="vgFl" rows="10" style="width:100%;font-family:inherit"' + dis + ">" + esc(ecrireFlacons(flaconsCabinet(() => { if (location.hash.indexOf("vigilances") >= 0 && !VMOD) window.cfOnglet("vigilances"); }))) + "</textarea>" +
+    (ok ? '<div class="barre-enr"><button class="bt gris" onclick="document.getElementById(\'vgFl\').value=' + esc(JSON.stringify(ecrireFlacons(FLACONS0))) + '">↺ Liste de départ</button><button class="bt plein" onclick="vgFlacons()"><svg class="pi"><use href="#i-enregistrer"/></svg>Enregistrer les flacons</button></div>' : "") + "</section>";
 }
 const marquer = (redessiner) => { VMOD = true; if (redessiner) window.cfOnglet("vigilances"); else { const m = document.getElementById("vgMod"); if (m) m.classList.remove("cache"); } };
 window.vgCh = (i, k, v) => { VE[i][k] = String(v || "").trim(); marquer(); };

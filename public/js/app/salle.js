@@ -416,6 +416,7 @@ export function pageSalle(j) {
     '<div class="recherche"><svg class="i"><use href="#i-loupe"/></svg><input id="saQ" type="search" placeholder="Nom, n° de dossier, téléphone…" autocomplete="off" aria-label="Rechercher un patient"></div>' +
     '<select id="saTri" aria-label="Tri"><option value="rdv">Tri : heure du rendez-vous</option><option value="arrivee">Tri : heure d\'arrivée</option><option value="alpha">Tri : alphabétique</option></select>' +
     '<button class="bt gris" onclick="saImprimer()" title="Imprimer la liste du jour"><svg class="i"><use href="#i-imprimer"/></svg>Imprimer</button>' +
+    (A.voit("traitements") ? '<button class="bt gris" data-mod="chimio" onclick="saPharmacie()" title="Séances de chimiothérapie du lendemain, doses et flacons, pour la pharmacie de la clinique"><svg class="i"><use href="#i-pilule"/></svg>Pharmacie</button>' : "") +
     '<button class="bt gris cache" id="saClo" onclick="saCloturer()" title="Patients restés en salle, en consultation ou jamais arrivés"><svg class="i"><use href="#i-check"/></svg>Clôturer la journée</button></div>' +
     // Onglets, indicateurs et titres des colonnes restent en haut pendant le défilement (SA6, 11/10/2026)
     '<section class="carte onglets sa-carte" id="saCarte"><div class="sa-haut"><div class="o-barre sa-o" role="tablist" aria-label="Salle d\'attente" id="saO"></div><div class="sa-ent-z" id="saEZ"><div id="saE"></div></div></div>' +
@@ -642,6 +643,25 @@ function majBulles() {
 }
 
 // ───── Imprimer la liste du jour (08/10/2026) : jour, établissement, période et recherche choisis ; colonnes affichées ─────
+// P10 n (audit n° 3, 18/10/2026) : liste pour la pharmacie de la clinique : séances de chimiothérapie prévues un jour (le lendemain par
+// défaut), par établissement : patient, protocole, cure et jour, anticancéreux, dose, flacons ; imprimable
+window.saPharmacie = (jour) => {
+  const j = jour || addJ(D().t, 1), etabs = D().etabsTous || D().etabs || [], nomE = (c) => (etabs.find((z) => z.code === c) || {}).nom || c || "Sans établissement";
+  const L = lignes([j]).filter((l) => l.chimio && l.etat !== "absent" && !l.orphelin && (!ETAB || (l.x.doc.etablissementId || "") === ETAB));
+  const par = {}; L.forEach((l) => { const c = l.x.doc.etablissementId || ""; (par[c] = par[c] || []).push(l); });
+  const esc = A.esc, corps = Object.keys(par).sort().map((c) => "<h2>" + esc(nomE(c)) + " (" + par[c].length + ")</h2><table><tr><th>Patient</th><th>Protocole · cure</th><th>Anticancéreux</th><th>Dose</th><th>Flacons</th></tr>" +
+    par[c].sort((a, b) => a.x.r.nm.localeCompare(b.x.r.nm)).map((l) => { const d = window.chDosesSeance ? window.chDosesSeance(l.pid, l.chimio.lid, l.chimio.n, l.chimio.j) : [], n = Math.max(1, d.length);
+      return d.length ? d.map((z, i) => "<tr>" + (i === 0 ? '<td rowspan="' + n + '"><b>' + esc(l.x.r.nm) + "</b>" + (l.h ? "<br>" + esc(l.h) : "") + '</td><td rowspan="' + n + '">' + esc((l.chimio.lib || "") + " · C" + l.chimio.n + " J" + l.chimio.j) + "</td>" : "") + "<td>" + esc(z.p) + "</td><td>" + (z.dose != null ? esc(String(z.dose).replace(".", ",")) + " mg" : "à calculer") + "</td><td>" + esc(z.fl) + "</td></tr>").join("")
+        : "<tr><td><b>" + esc(l.x.r.nm) + "</b></td><td>" + esc(l.motif) + '</td><td colspan="3">—</td></tr>'; }).join("") + "</table>").join("");
+  A.fenetre("<h3>Pharmacie – séances du " + esc(A.dfrA(j)) + "</h3>" + '<div class="form" style="grid-template-columns:minmax(0,220px) 1fr;align-items:end"><div><label for="phJ">Jour</label><input type="date" id="phJ" value="' + j + '" onchange="saPharmacie(this.value)"></div><div class="mesures">' + L.length + " séance" + (L.length > 1 ? "s" : "") + (ETAB ? " · " + esc(nomE(ETAB)) : "") + " · doses calculées avec le dernier poids connu ; elles peuvent changer à la validation.</div></div>" +
+    '<div id="phL" class="tableau">' + (corps || '<p class="mesures">Aucune séance de chimiothérapie prévue ce jour-là.</p>') + "</div>" +
+    '<div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Fermer</button><button class="bt plein" id="phImp"' + (L.length ? "" : " disabled") + '><svg class="pi"><use href="#i-imprimer"/></svg>Imprimer</button></div>', "large");
+  const b = $("phImp"); if (b) b.onclick = () => {
+    let w = null; try { w = window.open("", "_blank"); } catch (er) { w = null; } if (!w || !w.document) { A.toast("Autorisez l'ouverture des fenêtres pour imprimer."); return; }
+    w.document.open(); w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Pharmacie – ' + esc(A.dfrA(j)) + '</title><style>@page{size:A4;margin:12mm}body{font-family:Arial,sans-serif;font-size:11px;color:#1E2A44}h1{font-size:16px}h2{font-size:13px;margin:14px 0 4px}table{border-collapse:collapse;width:100%}td,th{border:1px solid #9AA3B5;padding:4px 5px;text-align:left;vertical-align:top}th{background:#EEF2F8}</style></head><body><h1>Pharmacie – séances de chimiothérapie du ' + esc(A.cap(A.jourLong(j))) + " " + j.slice(0, 4) + "</h1>" + corps + "</body></html>");
+    w.document.close(); setTimeout(() => { w.focus(); w.print(); }, 400);
+  };
+};
 window.saImprimer = async () => {
   // fenêtre ouverte tout de suite (sinon le navigateur la bloque), remplie quand les prix des patients vus sont chargés
   let w = null; try { w = window.open("", "_blank"); } catch (er) { w = null; }

@@ -15,7 +15,8 @@ import * as ficheP from "./fichepatient.js"; // fiche patient réglable (10/10/2
 import { vigilances, historique, cumuls, examensProposes, EXAMENS, horsNorme, vesicant, notesPour } from "../moteur/vigilance.js"; // 12/10/2026
 import { finRT } from "../moteur/rt.js";
 import { noterHeures, seanceProposee, DU_SEANCE } from "../moteur/heures.js"; // heures de la séance (12/10/2026)
-import { notesVigilance } from "./vigilances.js";
+import { notesVigilance, flaconsCabinet } from "./vigilances.js";
+import { interactions, foie, arrondiFlacon, flaconsPour } from "../moteur/p10.js";
 import { seuilsJour, hebdomadaire, SEUILS_HEBDO, risqueDe, libRisque } from "../moteur/seuils.js";
 
 let A = null; // outils fournis par l'application (v2.js)
@@ -416,7 +417,10 @@ function tableDoses(x, i, k, q, e, jours, qc, dis, d0) {
     q.dr.forEach((d, xx) => {
       if (joursDe(d).indexOf(j) < 0) return;
       const txt = d.u === "txt", multiJ = joursDe(d).length > 1, z = (e.dj && e.dj[xx] && e.dj[xx][j]) || { dose: e.doses[xx], pc: 100 };
-      h += '<tr><td data-l="Jour">' + esc(multiJ ? "J" + j : d.jl || (d.j || []).filter((y) => y !== 99).map((y) => "J" + y).join(" ")) + '</td><td data-l="Produit" class="pr">' + esc(d.p) + '</td><td data-l="Posologie">' + esc(poso(d)) + '</td><td data-l="Dose 100 %">' + esc(doseTxt(d, z.v !== undefined ? z.v : e.calc[xx])) + '</td><td data-l="% dose">' +
+      // P10 k (18/10/2026) : dose arrondie au flacon proposée (lien qui l'applique comme une dose saisie), séance non validée seulement
+      const arf = !txt && !dis && !premedP(d) && z.dose != null ? arrondiFlacon(d.p, z.dose, flaconsCabinet()) : null;
+      h += '<tr><td data-l="Jour">' + esc(multiJ ? "J" + j : d.jl || (d.j || []).filter((y) => y !== 99).map((y) => "J" + y).join(" ")) + '</td><td data-l="Produit" class="pr">' + esc(d.p) + '</td><td data-l="Posologie">' + esc(poso(d)) + '</td><td data-l="Dose 100 %">' + esc(doseTxt(d, z.v !== undefined ? z.v : e.calc[xx])) +
+        (arf ? '<br><a href="#" class="lien" style="font-size:12px" title="Appliquer cette dose arrondie" onclick="chOv(' + qc + ",'" + esc(d.id) + "'," + j + "," + arf.dose + ');return false">' + esc(arf.lib) + "</a>" : "") + '</td><td data-l="% dose">' +
         (txt ? "" : '<input inputmode="decimal" style="max-width:80px' + (z.pc !== 100 ? ";color:var(--rouge);font-weight:bold" : "") + '"' + (z.pi ? ' class="saisi"' : "") + ' value="' + z.pc + '"' + dis + ' onchange="chPct(' + qc + ",'" + esc(d.id) + "'," + j + ',this.value)"> %') + '</td><td data-l="Dose retenue">' +
         (txt ? esc(texteNiv(d.dt || "", e.poids)) : '<input inputmode="decimal" style="max-width:130px"' + (z.ov ? ' class="saisi"' : "") + ' value="' + (z.dose == null ? "" : z.dose) + '"' + dis + ' onchange="chOv(' + qc + ",'" + esc(d.id) + "'," + j + ',this.value)">') + "</td></tr>";
     });
@@ -530,6 +534,7 @@ function encartVigilance(o) {
     l.push("<div>Risque émétique : <b>" + esc(libRisque(risqueDe(pc, premedP))) + "</b>" + ((pc.ordos || []).length ? " · Ordonnances liées : " + pc.ordos.map(esc).join(" ; ") : "") + "</div>");
     if ((pc.seuils || []).length) l.push('<details' + (figeJ ? "" : " open") + '><summary style="cursor:pointer">Seuils du jour (protocole)</summary><ul style="margin:4px 0 0 18px;padding:0">' + pc.seuils.map((s) => "<li>" + esc(s) + "</li>").join("") + "</ul></details>");
   }
+  if (pc) { const it = interactions({ prods: pc.dr.map((d) => d.p), texte: [x.P.traitCours, x.P.atcdMed].filter(Boolean).join(" "), ordos: pc.ordos }); if (it.length) l.push('<div style="color:var(--orange,#B46A00)">' + it.map(esc).join("<br>") + "</div>"); }
   const N = notesPour(prods, notesVigilance());
   if (N.length) l.push("<details><summary style=\"cursor:pointer\">À vérifier pour " + N.map((n) => esc(n.nom)).join(", ") + "</summary>" + N.map((n) => "<div style=\"margin:4px 0 0 4px\"><b>" + esc(n.nom) + "</b> : " + esc(n.txt) + "</div>").join("") + "</details>");
   return l.length ? '<div class="bloc gris" style="font-size:13px"><span class="mesures"><b>Vigilance</b></span>' + l.join("") + "</div>" : "";
@@ -573,6 +578,9 @@ function verifierValidation(x, i, k, n) {
   // P3 (18/10/2026) : seuils particuliers du jour (séance hebdomadaire, gemcitabine J8 / J15, trabectédine, docétaxel, cabazitaxel)
   const pc = protocoleCure(L, k, D().ctx.bib) || {}, hebdo = hebdomadaire({ n, cycle: pc.c });
   seuilsJour({ prods: cv.prods.filter((z) => z && z.u !== "txt"), n, cycle: pc.c, bio, crU: L.crU }).forEach((s) => vg.push(s));
+  // P10 (18/10/2026) : interactions (traitements en cours de la fiche, ordonnances liées) et adaptation hépatique
+  interactions({ prods: cv.prods.filter((z) => z && !premedP(z)).concat(cv.prods.filter((z) => z && /ONDANSETRON|ONSET/i.test(z.p))), texte: cv.patient.texte, ordos: (champsBib(pc, L) || {}).ordos }).forEach((s) => vg.push(s));
+  foie({ prods: cv.prods.filter((z) => z && z.u !== "txt"), bio, crU: L.crU }).forEach((s) => vg.push(s));
   const al = r.alertes.concat(alertesBio(bio, { hebdo }));
   if ((al.length || vg.length) && !confirm("À vérifier avant de valider (repères, vous gardez la main) :\n\n" + (al.length ? "• " + al.join("\n• ") : "") +
     (vg.length ? (al.length ? "\n\n" : "") + "Vigilance par molécule :\n• " + vg.join("\n• ") : "") + "\n\nValider quand même ?")) return null;
@@ -589,6 +597,14 @@ window.chOrdos = (id, i, k, j) => {
   const x = trouver(id), L = lignesDe(x)[i], pc = champsBib(protocoleCure(L, k, D().ctx.bib), L) || {};
   const iv = (pc.dr || []).some((d) => !premedP(d) && !/PER OS|ORAL/i.test(d.v || ""));
   window.orProtocole(id, pc.ordos || [], { fievre: k === 0 && j === 1 && iv, proto: "C" + (k + 1) + " — " + (pc.nom || "") });
+};
+// P10 n (18/10/2026) : anticancéreux d'une séance (cure n, jour j) avec leur dose et les flacons, pour la liste de la pharmacie
+window.chDosesSeance = (pid, lid, n, j) => {
+  const x = trouver(pid); if (!x) return [];
+  const L = lignesDe(x).find((z) => z.id === lid); if (!L) return [];
+  const E = etatLigne(L, x.P, D().ctx), e = E[n - 1]; if (!e) return [];
+  const pc = protocoleCure(L, n - 1, D().ctx.bib), g = seancesDe(pc), s = jourVersSeance(g, j), ins = instantane(e, s);
+  return Object.values(ins.doses).filter((z) => z && !premedP(z) && z.u !== "txt").map((z) => ({ p: z.p, dose: z.dose, fl: z.dose != null ? flaconsPour(z.p, z.dose, flaconsCabinet()) : "" }));
 };
 // ───── Cures ─────
 window.chDate = (id, i, k, v) => {
