@@ -1,6 +1,6 @@
 # Onco360 (ex-Chimio HGC) – notes pour Claude Code
 
-**Au début de chaque session : lire `FEUILLE-DE-ROUTE.md`** (plan refait le 13/10/2026 : phase P « Protocoles de chimiothérapie » d'après l'audit n° 3, puis Q, M, D, E, C, V ; décisions, questions en attente ; tout le fait gardé en bas)
+**Au début de chaque session : lire `FEUILLE-DE-ROUTE.md`** (plan refait le 13/10/2026 ; **phase R** ajoutée le 18/10/2026 = retours du cabinet du 17/10 et audits n° 4 à 8, lots R-A1 → R-G, détail dans `archives/audits-4-a-8/` ; phase P « Protocoles de chimiothérapie » d'après l'audit n° 3 (reste P0, P1), puis Q, M, D, E, C, V ; décisions, questions en attente ; tout le fait gardé en bas)
 et la mettre à jour à la fin (cocher, décisions) ; une ligne dans `JOURNAL.md`. Une étape = une session. L'ancienne feuille de
 route (jusqu'au 11/10/2026, tout le détail des étapes 1 à 23) est dans `archives/FEUILLE-DE-ROUTE-jusqu-au-2026-10-11.md`.
 
@@ -380,6 +380,11 @@ temporaire si le cache npm du Mac refuse) — à relancer avant chaque mise en l
 ## Méthode de travail souhaitée
 - Réponses en français, directes ; l'utilisateur n'est pas développeur : commandes Terminal prêtes à copier.
 - Toujours tester (navigateur + bilan) avant livraison ; vérifier mobile (largeur 390 px sans débordement).
+- **Vérifier tout ce qu'un changement touche (consigne du 17/10/2026)** : avant de livrer, vérifier que le changement ne touche que ce qui est visé. S'il
+  touche autre chose (paramétrage, agenda, salle d'attente, Google Agenda, tableau de bord, bilan, droits, impression, tâches automatiques, Administration…),
+  vérifier que tout cela marche encore, **avec un test**. Toujours sur ordinateur et sur téléphone (390 px). Les modules s'imbriquent : un même fait (un
+  rendez-vous déplacé, une séance validée, un poids saisi) doit être juste partout où il apparaît. Liste de contrôle (carte des liens) : `FEUILLE-DE-ROUTE.md`,
+  « Comment on travaille ». Ne jamais bloquer un médecin (un clic, aucun motif) ; rien ne disparaît quand une disposition change.
 - 4.3 (12/10/2026) : 8 tailles de texte `--t1`…`--t8` (v2.html et admin.html), couleurs en variables (`:root`), icônes dessinées `ic(…)` (pas d'émoji
   à l'écran ; `icones()` de v2.js pour un texte déjà échappé), recherche en pilule `#trQ` (`rechercheTete`). Jamais de « // commentaire » au milieu
   d'une ligne de code (`outils/commentaires.py`).

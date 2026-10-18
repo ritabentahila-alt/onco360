@@ -1,4 +1,4 @@
-# Onco360 – feuille de route (plan refait le 13/10/2026)
+# Onco360 – feuille de route (plan refait le 13/10/2026 ; phase R ajoutée le 18/10/2026)
 
 **Un seul plan** : ce fichier. En haut, **ce qui reste à faire** (nouveau plan, d'après l'audit n° 3 et tout ce qui restait
 ouvert) ; en bas, **tout ce qui est fait**, gardé tel quel. Version précédente entière : `archives/FEUILLE-DE-ROUTE-jusqu-au-2026-10-13.md`
@@ -8,8 +8,30 @@ Sources : les trois audits du dossier Drive « Audit » : « Audit pour vendre �
 **« Audit n° 3 – Chimiothérapie et bibliothèque de protocoles » (12/10)** avec son classeur **« Protocoles-chimio-Onco360-a-faire.xlsx »**
 (un protocole par ligne : 316 existants + 123 à créer ; copie dans `archives/audit-3/`, avec le texte de l'audit et les annotations de
 Dr Bentahila).
+**Audits n° 4 à 8 et demandes du cabinet du 17/10/2026** (document unique « Onco360 – Tout ce qu'il reste à faire … pour Claude », fait avec
+un autre compte Claude, reçu le 18/10) : **phase R** ci-dessous. Copie entière (aucune donnée réelle) : `archives/audits-4-a-8/`
+(`audits-4-a-8-et-demandes-du-17-10.md` = texte lisible avec ses tableaux, à relire au début de chaque lot R ; `.docx` = original). Les
+« § » de la phase R renvoient aux parties de ce document.
 
 ## Comment on travaille
+- **Vérifier tout ce qu'un changement touche (consigne du 17/10/2026)** : avant de livrer, vérifier que le changement ne touche que ce qui
+  est visé. S'il touche autre chose (paramétrage, agenda, salle d'attente, Google Agenda, tableau de bord, bilan, droits, impression, tâches
+  automatiques, Administration…), vérifier que tout cela marche encore, **avec un test**. Toujours sur ordinateur **et** sur téléphone
+  (390 px). Les modules doivent s'imbriquer : un même fait (rendez-vous déplacé, séance validée, poids saisi) est juste **partout** où il
+  apparaît. Liste de contrôle (carte des liens, § 1) :
+  - *Un rendez-vous* (créé, déplacé, reporté, annulé, Venu, Non venu) → dossier (à venir, passé), agenda (toutes les vues, glisser-déposer),
+    salle d'attente, tableau de bord, créneaux et chevauchements, Google Agenda de chaque personne concernée, WhatsApp (confirmation,
+    rappels), prix et bilan, tâches automatiques.
+  - *Une séance ou une cure de chimio* (date, heure, report, validation, poids) → cure et jour, fiche chimio, agenda, salle, Google Agenda,
+    consultations de chimio et créneaux, honoraires et bilan, alertes cliniques, poids de la fiche, planning de l'infirmière.
+  - *Une radiothérapie* (prescription, étapes, fin) → consultations hebdomadaires et de fin, tâches fixes, agenda, Google Agenda, documents
+    de RT, bilan (lieu de la RT), droit « radiothérapie : chimio ».
+  - *La fiche patient* → bandeau et colonne Patient du dossier, Modifier, Afficher, Nouveau patient, impressions (âge, poids, allergie),
+    champs des courriers, export, fiche de la spécialité dans l'Administration.
+  - *Un paramètre ou une bibliothèque du cabinet* → les écrans qui le lisent, la secrétaire (droit « secrétariat »), le modèle de la
+    spécialité dans l'Administration, les cabinets neufs, l'export.
+  - *Les droits ou une règle Firestore* → `tests/regles` (`npm test`), chaque rôle (médecin, secrétaire, infirmière, comptable), Google
+    Agenda (fonction `permis`).
 - **Une étape = une session**, dans l'ordre. Au début : lire ce fichier ; à la fin : cocher, noter les décisions, une ligne dans `JOURNAL.md`.
 - Plusieurs sessions en parallèle : chacune annonce son étape ici (« en cours : session X ») et n'écrit que ses fichiers.
 - Avant toute mise en ligne : `bash outils/avant-mise-en-ligne.sh --navigateur` (+ `--regles` si les règles changent), téléphone
@@ -28,6 +50,14 @@ Dr Bentahila).
   change aucune cure en cours ni passée.
 - **Rien n'est bloquant en chimiothérapie** (sauf une dose impossible à calculer) : seuils, vigilances, ordonnances = fenêtre « Valider
   quand même ? », sans motif à saisir ; pas de contrôle automatique des prémédications.
+- (17/10) **Ne jamais bloquer un médecin** : avertissements d'un clic, aucun motif obligatoire, partout (pas seulement en chimio).
+- (17/10) **Rien ne disparaît** : quand une disposition change, chaque bouton, onglet, champ et fenêtre d'aujourd'hui reste accessible ;
+  seule sa place change. Thème Onco360 actuel (variables de v2.html, Arial, composants existants) : aucune nouvelle couleur, aucun nouveau
+  style de bouton.
+- (17/10) Bilan : une correction voulue est **chiffrée avant et après sur le jeu de référence (352 317 DH)** et annoncée avant la mise en ligne.
+- (17/10) Les photos envoyées par le cabinet (ticket d'encaissement, calendrier de radiothérapie ARIA) montrent de vrais patients : **seule
+  leur mise en page est reprise**, jamais dans le dépôt.
+- (17/10) Les particularités marocaines (CNSS, mutuelles, Solumedrol, Nivestim, arabe classique…) **ne sont pas des erreurs**.
 
 ---
 
@@ -87,9 +117,78 @@ Dr Bentahila).
     tel quel, « Je soussignée » pour Dr Bentahila).
 11. **3.17 WhatsApp envoyé tout seul** et **3.18 impression au bon format** : **annulés**.
 
+## Décisions de Dr Bentahila du 17/10/2026 (audits n° 4 à 8 et demandes du 17/10 ; détail : `archives/audits-4-a-8/`)
+Statuts du document : DEMANDÉ / VALIDÉ / DÉCIDÉ = à coder comme écrit ; MODIFIÉ = coder la version modifiée ; **REFUSÉ = ne pas faire et ne
+pas le reproposer** ; NON CONTESTÉ = à faire, **en le signalant dans le compte rendu de la session** ; PRIORITÉ BASSE = sans urgence ;
+À CONFIRMER / OUVERT = poser la question avant de coder (questions ci-dessous) ; DÉJÀ FAIT / INCHANGÉ = rien à coder.
+- **Médecin du patient** (audit 4, réponse 1, DÉCIDÉ) : chaque patient a **un seul médecin** (champ « Médecin » de la fiche ; « médecin du
+  patient » = « médecin référent », un seul champ). Médecin qui crée le dossier = lui par défaut ; secrétaire = elle choisit (pré-rempli dans
+  un cabinet d'un seul médecin) ; modifiable. Il devient le médecin par défaut des rendez-vous, lignes de chimio, radiothérapies et
+  consultations automatiques, **à la place du titulaire** (`medRdv` : `r.med || titulaireUid()`). Anciens rendez-vous et dossiers sans
+  médecin : restent au titulaire. (Le titulaire = propriétaire du cabinet, qui porte l'abonnement : export, journal d'audit, accès.)
+- **Lieu de chaque événement** (audit 4, d. 4, MODIFIÉ) : lieu de la RT pré-rempli avec celui du patient, modifiable dans la prescription
+  (vu au cabinet et traité en clinique, ou d'une clinique à l'autre) ; il sert aux étapes, consultations automatiques, filtre de l'agenda,
+  `{lieu}` du WhatsApp ; le bilan compte la RT là où elle a eu lieu (`moteur/finances.js` lit déjà `r.hop`). Lieu facultatif sur un
+  rendez-vous (défaut : celui du patient).
+- Consultation hebdomadaire de RT un jour férié (audit 4, d. 6, MODIFIÉ) : **pas de déplacement automatique** ; créée quand même, badge
+  « Férié », listée dans « Rendez-vous à décaler » ; déplacée ou annulée à la main.
+- **WhatsApp** (audit 4, d. 14, MODIFIÉ) : chaque message = **français puis arabe classique** (pas de darija), à la suite ; pas de choix de
+  langue par patient ; messages de départ écrits dans les deux langues. Pas de WhatsApp envoyé tout seul (annulé le 13/10).
+- Calendrier de RT : remplacé par le **calendrier de fin de radiothérapie** (17/10, R-B4). Calendrier imprimable de chimio : **refusé**.
+- Agenda pas à jour en direct entre deux postes (audit 4, d. 1, MODIFIÉ le 17/10) : remplacé par R-A4 (ne plus attendre 5.3).
+- Jours d'hospitalisation : **les fériés comptent** (inchangé, ne pas toucher `moteur/rdv.js`). « 1 jour sur 2 » : calcul inchangé, l'aide dit
+  que « Jours choisis » donne un rythme fixe. RT arrondie au dirham, autres actes au centime : inchangé. Délai par défaut de la consultation
+  de suivi après une RT ou une ligne de chimio (audit 4, d. 18) : déjà prévu dans le paramétrage. Toujours valables : pas de journal des
+  séances de RT (ARIA fait foi), **pas de séance le samedi**, fenêtres d'avertissement sans motif, un seul clic.
+- **Paiement** (audit 6) : le patient paie au moment de la consultation, presque toujours en espèces, ou ne paie pas (**0 DH**) ; aucun
+  paiement différé ; la secrétaire encaisse **après** le « Venu » du médecin, jamais en même temps ; consultation de chimio : seul le J1 est
+  payé, J8 / J15 à 0 DH par défaut, modifiable, et un montant saisi compte dans le bilan **à sa date**.
+- **Identifiants du reçu** (audit 6, réponses 3 et 4, DÉCIDÉ) : mentions d'après l'article 145 du CGI (à faire valider par le comptable du
+  cabinet ; réserve écrite dans le code et l'aide) : déjà imprimés (n° continu, date, patient, acte, montant en chiffres et en lettres, mode,
+  médecin, ville) + **spécialité, adresse professionnelle, IF, TP, ICE, INPE**, « Acte exonéré de TVA » si le comptable confirme ; pas de
+  registre du commerce. IF, TP, ICE saisis **dans le profil de chaque médecin** (à côté de l'INPE, publiés dans `signataires/{uid}`) ; adresse
+  et téléphone = lieu d'exercice ; Paramètres › Impression = seulement les cases « imprimer sur le reçu » ; identifiant vide non imprimé,
+  rien ne bloque. Pas de code-barres. Pas de reçu pour une hospitalisation ni dans un lieu payé par l'établissement.
+- **Bibliothèques** (audit 7) : une mise à jour envoyée par l'Administration **n'écrase jamais** ce qu'un médecin a modifié ; elle ajoute ce
+  qui manque (et que le médecin n'a pas créé entre-temps) ; un élément supprimé par le médecin n'est pas reproposé (liste des refus) ;
+  identifiant stable par élément. Même mécanisme, construit une fois, pour la reprise des réglages (R-A6).
+- **Secrétaire** (audit 7, d. 17, MODIFIÉ) : voit et prescrit, **ne modifie ni ne supprime rien dans aucune bibliothèque** (ajout de
+  médicament : question 1) ; elle fait, modifie, supprime les ordonnances au nom du médecin (d. 26 : droits actuels gardés).
+- **Signature scannée** (audit 7, d. 25) : retirée complètement (impression et case `eSig`). Stupéfiants : ni marque ni avertissement
+  (l'ordonnance d'Onco360 est un double lisible ; l'ordonnance sécurisée est faite à la main) ; « Douleurs – palier 3 » gardée.
+  COTIPRED gardé (+ SOLUPRED 20 mg). Perfusions (IMFINZI, KEYTRUDA, PEMORIAL, ZOMETA) gardées dans la liste (prise en charge). A5 : **jamais de
+  passage automatique en A4**.
+- **Sauvegardes** (audit 8) : récupérer un dossier effacé **en une heure**, par quelqu'un qui n'est pas développeur ; export automatique
+  **hebdomadaire dans le Drive du titulaire**, proposé aux cabinets clients sur le support de leur choix (réglé par cabinet) ; mode d'emploi
+  écrit ; **pas de double vérification à la connexion**.
+- Réglages repris par l'Administration (R-A6, DÉCIDÉ par Claude, choix laissé) : **à la demande, par un bouton**, jamais en continu (un essai
+  dans le cabinet Bentahila ne part pas aussitôt dans le modèle) ; « Modèle repris le JJ/MM ; N différences depuis ».
+- Calendrier de fin de RT (R-B4, DÉCIDÉ par Claude) : ligne en bas en petit « Dates des séances intermédiaires établies d'après le
+  calendrier ; début, fin et nombre de séances conformes au dossier. » (les dates intermédiaires sont reconstituées : protège le médecin).
+- Disposition du dossier (audit 5, revue sur maquettes les 13 et 17/10) : même disposition pour tous les rôles (seuls les droits changent ce
+  qu'on voit) ; **aucune consultation créée d'office** ; déroulé de la chimio inchangé ; Afficher, Journal, Modifier restent visibles (pas de
+  menu « … ») ; **téléphone : disposition d'aujourd'hui gardée** (seuls changent bandeau réduit, barre du bas, parties dépliables, loupe).
+- **Refusés le 17/10 (ne pas reproposer)** : déplacement automatique des consultations de RT un jour férié ; calendrier imprimable de
+  chimio ; fauteuils / hôpital de jour (Onco360 = aide au médecin) ; toute la « caisse » : caisse du jour par mode / lieu / personne, clôture
+  du jour avec écart, date et auteur de l'encaissement, registre des reçus, liste des impayés, total du jour par mode en salle ; avertissement
+  « stupéfiant » ; remplacement de COTIPRED ; NIVESTIM / NEUPOGEN alignés ; bilans intercure enrichis (chaque analyse est payée par le
+  patient) ; double vérification à la connexion ; code-barres sur le reçu ; passage automatique en A4.
+
 ## Questions en attente (Claude les rappelle en début de session)
 1. Mesurer la hauteur des en-têtes du papier (ordonnance A5, A4, documents) pour régler les marges (Paramètres › Impression).
 2. GitHub : demander la purge des copies en cache ; regarder Insights › Traffic › « Git clones » (copies du dépôt quand il était public).
+
+**Questions des audits 4 à 8 (§ 10) : à poser au début de la session du lot qu'elles bloquent, pas avant.** En attendant : ce qui suit.
+| N° | Lot | Question | En attendant |
+|---|---|---|---|
+| 1 | R-E (audit 7) | La secrétaire peut-elle **ajouter** un médicament à la liste du cabinet ? | Aucune modification, ajout compris ; elle garde la ligne libre |
+| 2 | R-E (audit 7) | Signature scannée : effacer aussi les images des profils (`utilisateurs/{uid}.signature`, `signataires/{uid}`) ? | Ne plus les imprimer ; ne rien effacer |
+| 3 | R-F (audit 8) | Une alerte au titulaire à chaque export complet ? | Ne pas la coder |
+| 4 | R-F (audit 8) | Durées de conservation (fichier effacé 30 j, base 14 semaines, copies Drive du 1er du mois **sans limite**, patients sortis compris) : voulues et conformes à la déclaration loi 09-08 ? | Ne rien changer |
+| 5 | R-F (audit 8) | Qui restaure le jour d'un incident ? | Mode d'emploi pour quelqu'un qui n'est pas développeur |
+| 6 | R-A6 | Pour chaque autre cabinet, quelles parties du modèle reprendre ? | Correspondants et tarifs des consultations décochés ; le reste coché par l'Administration, cabinet par cabinet |
+| 7 | R-D (audit 6, d. 3) | Un taux de RT commun réglé dans Paramètres, modifiable par lieu, à la place des 60 % / 10 % cachés ? | Ne rien changer |
+| 8 | R-D / R-B5 (audit 6, d. 18) | Reçu imprimé sans numéro (enregistrement du numéro en échec) : une ligne au journal du cabinet suffit-elle ? | Faire la ligne au journal |
 
 ---
 
@@ -97,6 +196,7 @@ Dr Bentahila).
 
 | Phase | But | Étapes |
 |---|---|---|
+| **R** Retours du 17/10 et audits 4 à 8 | Corrections et ajouts demandés le 17/10 ; rendez-vous, dossier, finances, ordonnances, sauvegardes | R-A1 à R-G |
 | **P** Protocoles de chimiothérapie | Bibliothèque juste et complète, ordonnances liées, hebdomadaire, bibliothèque commune (audit n° 3) | P0 à P11 |
 | **Q** Qualité | Jeu de test fictif, contrôles automatiques, erreurs en ligne | Q-a à Q-f |
 | **M** Métier restant | Infirmière, dossier stable | 3.8, 4.4 |
@@ -107,6 +207,9 @@ Dr Bentahila).
 
 La phase P passe avant tout le reste (6 protocoles peuvent produire une prescription fausse aujourd'hui). La phase C (juriste) se lance
 en parallèle : ses délais ne dépendent pas du code.
+**18/10/2026** : les 6 protocoles dangereux sont corrigés depuis P1a et P2 à P11 sont faits ; il reste de P seulement **P0** (dont 2 défauts
+de l'audit 2) et **P1** (écran « Corrections proposées »). L'audit du 17/10 propose de faire **la phase R d'abord, dans l'ordre A1 → G** ; P0
+et P1 se placent quand Dr Bentahila le décide (P0 est court : à proposer juste après R-A1).
 
 **Ce que dit l'audit n° 3, en bref** : les doses des molécules sont justes dans l'immense majorité des 316 protocoles ; ce qui est en
 retard, c'est autour : antiémétiques, prémédications, hydratation, G-CSF. Classeur : **113 à garder, 184 à ajuster** (la chimio est juste,
@@ -115,6 +218,289 @@ Problèmes qui se répètent (à corriger par blocs, pas 316 fois à la main) : 
 hydratation du cisplatine en remarque seulement (57), G-CSF en texte sans dose ni durée (65), phase retardée du cisplatine non couverte
 (50), paclitaxel sans anti-H1 (27), surprophylaxie d'un schéma à faible risque (21), « SOLUMEDROL » sans DCI (191), source vide (316).
 Les 4 essais de l'audit 2 passent ; deux défauts restent (P0).
+
+## Phase R – Retours du 17/10 et audits n° 4 à 8 (inscrite le 18/10/2026)
+
+**Source** : `archives/audits-4-a-8/audits-4-a-8-et-demandes-du-17-10.md` (relire le § du lot au début de sa session : tout le détail, les
+numéros de ligne et les constats y sont). Numéros de ligne de l'audit : § 3-4 au commit 645df32, § 5-9 au commit 1ad3bde (13/10) ; le code a
+changé depuis (P3 à P11, 18/10) : **chercher par nom de fonction**. Une étape = une session, mise en ligne seule. **Test écrit avant chaque
+correction** (Q1) ; `bash outils/avant-mise-en-ligne.sh --navigateur` (+ `--regles`) ; la liste de contrôle « Vérifier tout ce qu'un
+changement touche » (en haut) à chaque lot ; dans le compte rendu, signaler ce qui était « NON CONTESTÉ ».
+**État vérifié le 18/10** : rien des audits 4 à 8 n'est fait (`lireListe` avale toujours l'erreur de lecture, case `eSig` et règle
+`|| b == 'medicaments'` toujours là, pas de `poidsActuel`). **Déjà fait en partie depuis l'audit** : P11 (`referenceDepuisCabinet` : recopie
+des protocoles, bibliothèques de prescription, courriers dont modèles RT, paramètres de base, tarifs RT du cabinet Bentahila vers
+`bib-oncologie`, sans aperçu ni copie de l'état précédent) et P9 (mises à jour proposées aux cabinets pour les **protocoles et ordonnances
+types**, refus gardés) : R-A6 et R-E4 partent de là, sans les refaire.
+
+**Lot A – Corrections urgentes**
+- [ ] **R-A1 Bibliothèques du cabinet qui peuvent être écrasées** (audit 7, point 1, NON CONTESTÉ : **le défaut le plus grave des
+      audits**, à faire en premier ; § 8) : `lireListe` / `modifierListe` (ordonnances.js) prennent la liste de départ quand la lecture
+      échoue, puis l'enregistrent à la place de celle du cabinet (essai : 2 médicaments du cabinet remplacés par 165 après un clic sur
+      l'étoile). Distinguer **document absent** (liste de départ, normal) et **lecture en échec** (message « Liste du cabinet illisible,
+      réessayez », **aucune écriture**) ; modification dans une **transaction** ; les six bibliothèques. Vérifier que les mises à jour
+      `appliquerOrdosAudit3` (P2), `ordosAudit3`, palier 3 (`audit3d`), `remplacerOrdosTypes` (migration `ordostypesExcel1`) et
+      `vigilancesAudit3` n'ont pas pu remplacer une liste de cabinet après une lecture en échec. Test qui simule la panne d'abord.
+- [ ] **R-A2 Google Agenda : séances de chimio et étapes de RT déplacées qui ne bougent pas** (DEMANDÉ, § 3.1). Cause probable : un
+      déplacement fait passer l'événement de « journée entière » (`start.date`) à « avec heure » (`start.dateTime`) ou l'inverse ; le PATCH
+      garde les deux, Google refuse (400) et `appliquer` (functions/logique.js) le met de côté **en silence**. (1) Test d'abord
+      (`functions/test-logique.js`, faux Google) : journée entière déplacée avec une heure, et l'inverse — il doit échouer avant la
+      correction. (2) Corriger dans `corps` : champs de l'autre forme à `null` (`start.date` / `end.date`, ou `dateTime` / `timeZone`), ou
+      PUT au lieu de PATCH. (3) Ne plus avaler un refus : nombre de refus et dernier motif dans `utilisateurs/{uid}.agendaGoogle`, affichés
+      dans Paramètres › Google Agenda (« 2 événements refusés par Google »). (4) **Un test par chemin de déplacement** : `chModifierRdvChimio`
+      (J1, J8 / J15, « cette séance seulement » et « décaler la suite », `majSeance`), report de cure, glisser-déposer de l'agenda,
+      `modifierEtapeRT` (scanner, 1re séance, fin prévue) et les consultations hebdomadaires / de fin qui suivent, `deplacerRdv`, report
+      après « Non venu », hospitalisation, échéance d'une tâche, absences, secrétaire avec le seul droit « planning ». (5) Si le test ne
+      reproduit pas : `firebase functions:log --only agendaPatient` le jour d'un déplacement et `utilisateurs/{uid}.agendaGoogle.erreur`,
+      **sans rien écrire dans la base en ligne**. Vérifier aussi : couleurs, filtre de chacun, `permis` (agenda d'un médecin), passé jamais
+      effacé, plusieurs cabinets ; tous les autres types de rendez-vous.
+- [ ] **R-A3 Double rendez-vous : créneaux pris par les consultations de chimio et de RT** (DEMANDÉ, § 3.2 ; reprend et élargit l'audit 4,
+      d. 3 / C3, VALIDÉ). `rdvsDuJour` compte aussi la consultation de chaque séance de chimio du jour **qui a une heure** (choisie `hcm`,
+      sinon placée d'après la séance `hc`) avec sa durée (`heures.cons.du`, 15 min), et les consultations de RT avec heure ; même filtre par
+      médecin à partir de 2 médecins. Consultations du jour **sans heure** : pas de créneau, mais listées dans la fenêtre (« Déjà ce
+      jour-là, sans heure : C3 J1 de … (consultation de chimio) »). Créneau pris affiché pris, avec ce qui le prend ; le choisir reste
+      possible après **un clic** (« Créneau déjà pris par … : garder quand même ? »). Partout où l'on place une consultation : Nouveau
+      rendez-vous, Modifier, report après « Non venu », glisser-déposer, heure de la consultation d'une séance de chimio, déplacement d'une
+      consultation de RT. **« Maintenant » = heure du Maroc corrigée** (`maintenant()`, constat C10). Vérifier : vues Jour et Semaine,
+      salle d'attente, WhatsApp de confirmation, `tests/test_agenda.py`.
+- [ ] **R-A4 Salle d'attente à jour sur tous les postes** (DEMANDÉ, § 3.3 ; remplace la « priorité basse » de l'audit 4, d. 1 / C1). Bouton
+      **« Actualiser »** (icône, « à jour à 10 h 42 ») dans l'en-tête de la salle : relit les fiches du jour, les dossiers qui ont quelque
+      chose aujourd'hui, leurs prix et encaissements, et redessine **sans perdre** l'onglet, le tri, le défilement ni la ligne ouverte. La
+      même relecture **toute seule chaque minute**, suspendue pendant une fenêtre ouverte ou une saisie (faite juste après). **Écoute en
+      direct des dossiers modifiés** (`maj` postérieur à l'ouverture, dans le périmètre : mêmes filtres d'établissement) : chaque dossier
+      changé relu (doc, P, r) ; l'agenda, le tableau de bord et le dossier ouvert en profitent. Index composite (`firestore.indexes.json`) ;
+      lecture de la liste vérifiée par un test de règles. Coût : une lecture par dossier modifié, jamais tout relire. Vérifier : dossier
+      ouvert par deux personnes (« Ce dossier vient d'être modifié »), bulles, pastille, tableau de bord, agenda, `nouveauJour`, téléphone.
+- [ ] **R-A5 Poids de la fiche = poids de la dernière chimio** (DEMANDÉ, § 3.4). Une seule fonction **`poidsActuel(P)`** dans le moteur (Q5) :
+      le plus récent entre la fiche (avec sa date) et les séances saisies ou validées (`c.poids`, `c.sea[j].poids`, planning `poids` /
+      `spoids`) ; renvoie poids, date, source (« C3 J1 du 29/09 »). À la validation d'une séance qui porte un poids et au poids du jour de la
+      secrétaire : écrire `clinique.poids` et `clinique.poidsLe` si la personne a le droit « fiche patient », sinon au prochain
+      enregistrement de quelqu'un qui l'a ; **n'écrire que ces champs** (sans reconstruire `clinique`). Fiche, bandeau, impressions (âge,
+      poids, allergie), `{poids}` des courriers : poids actuel avec sa date. **Ne change pas (test)** : doses des lignes en cours,
+      avertissement d'écart > 10 % (séance précédente), alerte de perte de poids depuis le début de la ligne, bilan.
+- [ ] **R-A6 Réglages du cabinet Bentahila repris par l'Administration** (DEMANDÉ, § 3.5 ; part de P11). Aujourd'hui rien ne remonte : fiche
+      patient et formulaires de consultation vivent à trois niveaux (modèle `plateforme/specialites[id].fiche` / `.consultation`, copie
+      `espaces/{e}.ficheSpe` / `.consultSpe`, retouches `reglage.fiche` / `.consultation`) ; `parametres/typesConsult` n'est même pas dans
+      `PARAMS_SPE`. (1) Fonction serveur réservée à l'Administration **« Reprendre les réglages d'un cabinet comme modèle »** (source
+      cabinet-bentahila) : réglages **effectifs** (modèle + retouches) → modèle de la spécialité d'oncologie : fiche patient, formulaires de
+      consultation et types reliés, types de consultation, paramètres de départ, bibliothèques de prescription, modèles de documents de RT,
+      réglage du cabinet (menu, cartes, fonctions). Avant d'écrire : **aperçu des différences partie par partie**, **copie de l'état
+      précédent** du modèle, ligne dans `journalAdmin`. À la demande (bouton), « Modèle repris le JJ/MM ; N différences depuis ». (2)
+      **Jamais copiés** : patients et ce qui en dépend, équipe et comptes, lieux, correspondants, tarifs, identité et en-tête du cabinet,
+      profils et signatures, abonnement, Google Agenda, horaires et absences. (3) Fonction **« Appliquer le modèle à un cabinet »** : cases
+      par partie (correspondants et tarifs des consultations **décochés** par défaut ; question 6), aperçu, copie de l'état précédent du
+      cabinet ; **rien de ce que le cabinet a modifié n'est écrasé, ce qui manque est ajouté** (même mécanisme que R-E4, construit une fois).
+      (4) Les cabinets neufs reçoivent le modèle repris (plus la copie du 09/10). Droits inchangés : l'Administration n'ouvre aucun cabinet,
+      tout passe par le serveur (comme `ficheSpecialite`). Vérifier : Administration › Par spécialité, `functions/test-cabinets.js`, cabinet
+      de démonstration, retouches gardées, export.
+
+**Lot B – Ajouts demandés le 17/10**
+- [ ] **R-B1 RCP dans le menu principal, sous Tâches** (§ 4.1) : entrée « RCP » dans `MENU` (catalogue.js) juste après « Tâches », module
+      `rcp`, route `#rcp`, même contenu que l'onglet (calendrier des semaines, période, Tous / À faire / Faits, case Fait, impression) ;
+      l'onglet quitte la page Tâches ; `#taches/rcp` renvoie vers `#rcp` (anciens liens, `retourListe` de rcp.js). Menus déjà réordonnés
+      (Administration ou cabinet) : RCP inséré juste après Tâches (comme `ordreAvecNouveaux`). Module retiré : caché (`body.sans-rcp`) ;
+      `MODULE_MENU`, menu replié, téléphone ; droits inchangés. Vérifier : `tests/test_cabinets.py`, « + RCP », dossier ouvert depuis la
+      liste (Décision RCP · Valider · Fermer), RCP dans « Rendez-vous et tâches à venir ».
+- [ ] **R-B2 Alertes cliniques du tableau de bord qu'on peut valider** (§ 4.2) : bouton **« Vu »** (coche) sur chaque ligne du groupe
+      « Alertes cliniques » (`blocAFaire`, `alertesCliniques`) ; clé = patient, ligne, cure, type et valeur (perte de poids, clairance,
+      bilan) : une alerte vue ne revient pas, une nouvelle valeur / cure / bilan = nouvelle alerte ; rangé par médecin dans
+      `utilisateurs/{uid}.alertesVues` { clé: date } (aucune règle à changer), entrées de plus de 90 jours effacées ; lien « Alertes vues
+      (n) » pour les revoir et les remettre. Vérifier : compteur du groupe, cloche, patient décédé (toujours sans alerte), téléphone.
+- [ ] **R-B3 Recherche de patient sur téléphone** (§ 4.3) : sous 768 px, **loupe ronde juste à gauche de la cloche**, même taille (zone
+      ≥ 44 px) ; au toucher, champ sur toute la largeur sous la barre, clavier ouvert, même recherche (`rechercheTete` : nom, n° de dossier,
+      téléphone) ; × ou Échap ferme ; cachée pour le comptable (comme la pilule `#trPil`). Vérifier : 390 px, Safari iPhone, résultats
+      au-dessus du contenu.
+- [ ] **R-B4 Calendrier de fin de radiothérapie** (§ 4.4 ; remplace l'audit 4, d. 10) : à la place du « Calendrier théorique », mise en page
+      de l'export ARIA envoyé (rien d'autre n'en est repris) ; sert seulement à faire valider la fin de prise en charge par les mutuelles.
+      **Garder le calcul `datesSeancesRT`** (jours selon le rythme entre la 1re séance et la fin, fériés exclus, surplus retiré à intervalles
+      réguliers en gardant la première et la dernière). Titre « Rendez-vous du patient » ; bande « Date de début : … – Date de fin : … »
+      (fin validée, sinon prévue) ; ligne « Patient : NOM, Prénom » · « ID patient : n° de dossier » · « Oncologue : Dr NOM Prénom » ;
+      tableau 6 colonnes (Date · Heure · Durée de l'activité (min) · Activité · Ressource · État du rendez-vous) : 1re ligne « Mise en place
+      RA » 15 min, dernière « Fin de traitement RA », autres « Traitement journalier RA » 20 min ; heure = `debH` sur chaque ligne (vide sinon) ;
+      Ressource = NOM Prénom du médecin (**pas de « HAL1 »**, pas d'appareil) ; État « Terminé » une fois la fin validée, avant « Prévu »
+      (jamais « Terminé » pour une date à venir). **Une seule page A4** : 9 pt, jusqu'à 7 pt interligne serré au-delà de 40 lignes ; essais
+      à 5, 25, 33, 39 séances et en 2 séances par jour. Nom « Calendrier de fin de radiothérapie » ; modèle modifiable (`bibliotheques/
+      courriers`, id `rt-rdv`) ; un modèle déjà modifié par le cabinet n'est pas écrasé (le nouveau proposé à côté) ; ligne du bas décidée
+      (voir Décisions). Vérifier : `documentsRT/{…}_rdv`, aperçu écran et téléphone, marges, RT en 2 séances / jour, RT sans fin validée.
+- [ ] **R-B5 Reçu : nouvelle mise en page + lot F1 de l'audit 6** (§ 4.5 et § 7 ; d. 9, 10, 11 ; question 8). **A5 portrait, une page**,
+      même cadre que les ordonnances (en-tête généré et pied, C6) : en haut à gauche le nom du lieu ou du cabinet, à droite « Date :
+      JJ/MM/AAAA » ; au centre, encadré, « REÇU » ; tableau encadré libellé / valeur : N° de reçu (R-AAAA-NNNN, « DUPLICATA » ou « remplace
+      le n° … » comme aujourd'hui), Patient (NOM Prénom, n° de dossier), Médecin (Dr NOM Prénom, spécialité dessous en italique), Prestation
+      (l'acte, ex. « Consultation d'oncologie médicale », et sa date), Encaissement (« 400,00 DH », en lettres, mode « Espèces ») ; en bas à
+      droite, petit cadre « Visa accueil » (qui a encaissé, heure) ; sous le tableau les mentions obligatoires (voir Décisions) puis
+      « Cachet et signature ». **IF, TP, ICE dans le profil du médecin** (Profil › Informations, publiés dans `signataires/{uid}`), cases
+      « imprimer sur le reçu » dans Paramètres › Impression (spécialité, INPE, IF, TP, ICE, exonération de TVA). **Prix changé après un
+      reçu** (A4, d. 11) : avertissement « Un reçu n° … a été remis pour 400 DH », sans blocage, et **historique des montants** (avant,
+      après, par qui, quand). Reçu imprimé sans numéro : ligne au journal du cabinet (question 8). Bilan inchangé. Vérifier : numérotation
+      (`recus/`, transaction), duplicata, reçu annulé, `recuRdv` / `recuCons`, Encaisser de la salle, téléphone, marges A5.
+
+**Lot C – Audit n° 4 : rendez-vous de chimiothérapie et de radiothérapie** (§ 5 ; C1 → R-A4, C3 → R-A3, d. 10 → R-B4)
+- [ ] **R-C1 Report après « Non venu » et RT un jour férié** : le rendez-vous de report recopie **le médecin et la durée** du rendez-vous
+      d'origine, avec les mêmes contrôles (chevauchement) et la même proposition de confirmation WhatsApp que « Nouveau rendez-vous » (C2,
+      d. 2) ; **consultation hebdomadaire de RT un jour férié** créée quand même avec le badge « Férié » et listée dans « Rendez-vous à
+      décaler » (d. 6 ; aujourd'hui `moteur/rt.js` ne la crée pas : test) ; **« Patients à reprogrammer »** pour la secrétaire :
+      consultations non venues sans nouveau rendez-vous, séances « absent, sans reporter » (d. 22) ; aide : « Jours choisis » donne un
+      rythme fixe, « 1 jour sur 2 » alterne sur les jours ouvrés (d. 20, calcul inchangé).
+- [ ] **R-C2 Agenda protégé et passé gardé** : un `try / catch` par dossier dans le calcul des cures de la page Agenda (comme la salle), ligne
+      fautive notée dans la console (C5, d. 8) ; **J8 / J15 passé sans validation** gardé dans « Rendez-vous et tâches à venir » avec « en
+      retard », comme le J1 (d. 12, `moteur/agenda.js`) ; **ligne arrêtée** : n'écarter que les cures à venir, garder les passées ; ligne
+      supprimée : tout disparaît, passé compris (d. 13) ; émoji de la fenêtre « Déplacer le rendez-vous ? » remplacé (règle 4.3) ; `prixRdv`
+      et `tarH` (moteur/rdv.js, « HGC » en dur, plus appelés) supprimés (C8, avec 5.1).
+- [ ] **R-C3 Médecin du patient, puis médecin et lieu de chaque événement** (réponse 1, d. 4, d. 5 ; voir Décisions) : champ « Médecin » de la
+      fiche (création par un médecin / par la secrétaire, modifiable ; anciens dossiers au titulaire) ; un médecin par événement (ligne de
+      chimio, RT, consultations automatiques), utilisé par le filtre « Médecin » et Google Agenda, défaut = médecin du patient, sinon le
+      médecin connecté ; **lieu de la RT** pré-rempli et modifiable dans la prescription (étapes, consultations automatiques, filtre de
+      l'agenda, `{lieu}` WhatsApp, bilan par `r.hop`) ; lieu facultatif sur un rendez-vous. Constats : filtre de l'agenda et lieu du WhatsApp
+      pris sur le patient (agenda.js, v2.js), ligne sans médecin (`functions/logique.js`). Bilan : chiffré avant / après (identique tant
+      qu'aucun lieu n'est changé).
+- [ ] **R-C4 RT sans droit « rendez-vous » et rappels à part** : n'enregistrer la signature de la RT que si ses rendez-vous ont été écrits, et
+      afficher « consultations non mises à jour » (C4, d. 7, `moteur/rt.js`) ; **rappels WhatsApp dans une petite collection à part**
+      (comme `salle/`), avec sa règle et son test (C7, d. 16 : aujourd'hui chaque rappel réécrit le dossier, version + 1).
+- [ ] **R-C5 WhatsApp français + arabe classique et confirmations après report** : chaque message = français puis arabe classique, messages
+      de départ (Paramètres › WhatsApp) dans les deux langues (d. 14) ; confirmation d'un clic, avec « Plus tard », après un report ou un
+      changement de date (cure, séance, étape de RT) (d. 15).
+- [ ] **R-C6 Lisibilité de l'agenda** (d. 9, VALIDÉ) : contrastes ≥ 4,5:1 — heures de la grille `#9AA3B5` → `--doux #64708A` ; séance de
+      chimio `#1F8A4C` sur `#DFF3E6` → `#17693A` ; jour férié `#B86E00` sur `#FDEFD6` → `#8F5600` ; rendez-vous fait (opacité 0,6) →
+      couleur pleine et une coche ; hauteur de la grille à la taille de l'écran ; « 5 consult. · 8 chimio » dans l'en-tête des jours ; séances
+      sans heure : une puce « 8 séances de chimio » qui ouvre la vue Jour ; dès que l'heure de la séance (infirmière) ou de la consultation de
+      chimio (médecin, secrétaire) est notée, la consultation se place dans la grille.
+- [ ] **R-C7 Calcul de l'agenda gardé en mémoire** (C6 : toutes les lignes recalculées deux fois à chaque affichage), avec l'étape 5.3.
+
+**Lot D – Audit n° 6 : finances** (§ 7 ; lot F1 → R-B5 ; l'ancien lot « Caisse » est supprimé)
+- [ ] **R-D1 (F2) Consultation de chimio jour par jour** (C1, d. 1, VALIDÉ) : un acte par jour, à sa date, avec son mode (aujourd'hui un seul
+      acte daté du J1, un seul mode : `moteur/finances.js`) ; J8 / J15 à 0 DH par défaut, modifiable, un montant saisi compte à sa date ;
+      cases « Payé » déjà cochées reprises sur le J1. **Le bilan change** : chiffre avant / après sur le jeu de référence, annoncé avant la
+      mise en ligne.
+- [ ] **R-D2 (F3) Rapprochement** : règlements par clinique et par mois (A5, d. 14) = indicateur en lecture seule : reçu, coché « Payé », dû,
+      écart (pas de pointage en lot) ; relevé du comptable préparé la nuit par le serveur (A7, d. 15, plus tard). Bilan inchangé.
+- [ ] **R-D3 (F4) Robustesse** : transactions pour montants, cases « Payé », versements et règlements (C2, C3, C4 : `majMontants`, bilan.js ;
+      d. 2, **PRIORITÉ BASSE**, avec 5.2) ; règles : montants lisibles **avec** la limite d'établissement, reçu annulé vérifié (C8, d. 17),
+      avec leurs tests ; taux de RT sans valeur cachée (C5 : 60 % / 10 % pris en silence quand un lieu n'a pas de taux de RT ; question 7, ne
+      rien changer avant la réponse ; le bilan ne change que pour un lieu sans taux) ; impôt de 10 % par défaut pour la v1 (C9, avec 5.4).
+- [ ] **R-D4 (F5) Montée en charge** : cases « Payé » découpées par année (limite de 1 Mo d'un document, alerte à 70 %), bilan lu depuis
+      l'index (d. 16, avec 5.3). Bilan inchangé.
+
+**Lot E – Audit n° 7 : ordonnances et bibliothèques de prescription** (§ 8 ; point 1 → R-A1 ; questions 1 et 2 au début du lot)
+- [ ] **R-E1 Zones « À compléter », durées, doublons, vérification unique** : chaque « … » des 8 fiches (ALER-Z, CAPÉCITABINE ×2, COTIPRED,
+      DEXAMÉTHASONE œdème, LOVENOX, NAVELBINE, TEMODAL adjuvant) devient une **zone jaune « À compléter »** (mécanisme `mark.or-ac` des
+      courriers) (d. 2) ; durées par défaut (d. 3) : **stupéfiants 28 jours, TRAMAL LP 1 mois, OEDES 3 mois, BACTRIM FORTE 3 mois, MAGMINE
+      3 mois** ; toutes les autres lignes sans durée (9 fiches, 12 lignes d'ordonnances types) : zone « durée à compléter » ; **doublons** à
+      l'ajout d'une 2e ordonnance type (CHEMOSET, COTIPRED, PARACÉTAMOL : « … est déjà dans l'ordonnance : garder les deux / une seule
+      ligne », avertissement) (d. 16) ; **une seule fenêtre « Corriger / Imprimer quand même »** avant l'impression qui regroupe zones
+      restantes, doublons, allergie, ordonnance sur 2 pages (pas de contrôle des stupéfiants) (d. 28 ; aujourd'hui `orValider` ne vérifie que
+      les courriers).
+- [ ] **R-E2 Impression sur plusieurs pages** (d. 24, DÉCIDÉ ; jamais de passage automatique en A4) : dans l'aperçu, trait pointillé « fin de la
+      page 1 » à la hauteur exacte ; à la validation, si > 1 page : « L'ordonnance tient sur 2 pages : réduire le texte / imprimer quand
+      même » (dans la fenêtre unique) ; à l'impression : nom du patient et date en haut de chaque page, « page 1 / 2 » en bas, signature
+      toujours avec le dernier médicament, médicament jamais coupé. Cas d'essai (A5, marges par défaut) : Rectite radique et proctologie,
+      Syndrome pieds-mains, Soins de bouche, Radiodermite et soins cutanés, Bilan chimiothérapie – bilan initial, Bilan immunothérapie –
+      bilan initial.
+- [ ] **R-E3 Corrections de la liste de départ**, appliquées aux cabinets par la mise à jour sans écrasement (R-E4) : une fiche par dosage
+      (MOSCONTIN LP 10/30/60/100, DUROGESIC 12/25/50, LEVOTHYROX 25/50/100 ; d. 4) ; + SOLUPRED (prednisolone) 20 mg, COTIPRED gardé (d. 6) ;
+      TAVANIC 500 mg une fois par jour, OFLOCET 200 mg matin et soir, durées gardées (d. 8) ; EFFIPRED en deux fiches (prostate
+      hormonosensible 5 mg / j ; résistant à la castration 5 mg matin et soir) (d. 9) ; PRIMPERAN, CLOPRAME : 5 jours au plus, 3 × 10 mg / j
+      au plus (EMA 2013) (d. 10) ; fiche LOPERIUM « diarrhée retardée de l'irinotécan » (2 gélules dès la 1re selle liquide, puis 1 toutes
+      les 2 h, la nuit 2 toutes les 4 h, jusqu'à 12 h après la dernière selle liquide, 48 h au plus, au-delà urgence), fiche ordinaire
+      gardée (d. 11) ; XGEVA et PROLIA : « bilan dentaire avant la 1re injection » + « calcium 500 mg et vitamine D 400 UI / j, sauf
+      hypercalcémie » ; ARANESP : « si Hb < 10 g/dl sous chimiothérapie ; réduire ou suspendre au-dessus de 12 g/dl » (d. 12) ; ajouter
+      NAUSELIUM (dompéridone) sirop, VITAMINE B12 1 000 µg injectable, SYSMETIX, lavements de sucralfate, crème à l'urée 10 à 30 % (d. 14) ;
+      NOCAND 50 mg complété (DCI, classe), titre « Douleurs – palier 1 » (d. 15) ; « Bilan lipidique » remplacé par ses 4 analyses dans les
+      deux bilans initiaux (chimio, immunothérapie) (d. 19) ; 14 éléments de bilans harmonisés sur les noms de la liste des analyses (TSH /
+      TSH us, ionogramme…) (d. 21) ; « Protéinurie des 24 h » en Biochimie (d. 22) ; précaution sur les 5 scanners injectés : « créatininémie
+      récente ; signaler une allergie à l'iode ou un traitement par metformine » (d. 23).
+- [ ] **R-E4 Mises à jour des bibliothèques par l'Administration** (d. 18, VALIDÉ ; part de P9, qui le fait déjà pour protocoles et
+      ordonnances types) : étendre à médicaments, analyses, bilans, examens, courriers ; chaque élément de départ reconnu par un
+      **identifiant stable** (pas sa position) ; éléments supprimés par le médecin gardés comme refusés (jamais reproposés) ; **remplacer
+      `remplacerOrdosTypes`** (écrase tout : ordonnances et étoiles du cabinet perdues) par cette fusion ; lecture corrigée de R-A1 ; même
+      mécanisme que R-A6.
+- [ ] **R-E5 Signature scannée retirée et droits de la secrétaire** : plus d'impression de la signature scannée ni de case `eSig`
+      (configuration.js, `cadre` / `imprimer` d'ordonnances.js, reglages.js) (d. 25 ; question 2) ; secrétaire : aucune modification de
+      bibliothèque (règle `bibliotheques` : retirer `|| b == 'medicaments'`, bouton `ajouteMedic`), tests de règles (d. 17 ; question 1).
+- [ ] **R-E6 Allergie vérifiée sur toutes les lignes** (d. 27, MODIFIÉ) : à l'affichage de l'ordonnance (liste, ordonnance type, ligne libre,
+      suggestion, modification, renouvellement, nouveau médicament), avec la **table des familles** (§ 8 « Familles d'allergie », à
+      compléter avec les noms de la bibliothèque) : pénicillines ; céphalosporines (croisée possible : « à vérifier ») ; sulfamides ;
+      quinolones ; AINS ; aspirine ; produits de contraste iodés (examens « injectée ») ; morphiniques. Avertissement d'un clic, jamais
+      bloquant (aujourd'hui `allergieDans` compare des mots, ligne libre et nouveau médicament non vérifiés).
+- [ ] **R-E7 Traçabilité, petits correctifs, ajouts** : ancienne version gardée à chaque modification, ordonnance « annulée » au lieu
+      d'effacée, comme les reçus (d. 29 : `enregistrerPrescription`, `supprimerPrescription`) ; « Renouveler » refait la ligne âge, poids,
+      allergie depuis le dossier (d. 30, `auJour`) ; liste des médicaments enregistrée avec la page, auteur pris du compte et non de l'écran
+      (`par` = texte du menu), format A5 / A4 retenu par navigateur (d. 31) ; puis ajouts (d. 32) : chimio orale calculée, ordonnances du
+      protocole (en grande partie fait par P6), recherche par médicament, duplicata.
+
+**Lot F – Audit n° 8 : sauvegarde et restauration** (§ 9 ; questions 3, 4, 5 au début du lot)
+- [ ] **R-F1 Exercice chronométré** (rien à coder, d. 8) : `firebase firestore:backups:list --project chimio-hgc`, restaurer la base de la
+      veille dans une base à côté, noter le temps.
+- [ ] **R-F2 Récupérer un seul dossier ou document en moins d'une heure** (d. 1, priorité du lot) : patient, consultations, montants, reçus,
+      fiches de fichiers, ou un document de bibliothèque, depuis un export ou une base restaurée ; utilisable par quelqu'un qui n'est pas
+      développeur (commande prête à copier, mieux : bouton dans l'Administration).
+- [ ] **R-F3 Restauration sûre et mode d'emploi** : cabinet cible non vide **refusé par défaut** (option explicite pour le vider ; essai :
+      restaurer par-dessus fait revenir en arrière ce qui a été modifié) ; comptes recréés **avec leurs identifiants** (`firebase
+      auth:export` / `auth:import`, ou recréer chaque compte manquant avec le même uid et écrire `comptes/{uid}`) (d. 9) ; mode d'emploi
+      (d. 4) : `outils/RESTAURER.md` + version lisible pour le cabinet : page « En cas de problème » (noter l'heure exacte de l'erreur, ne
+      rien réparer à la main, quel cas renvoie à quelle partie, qui appeler), cas d'un seul dossier, registre des exercices, `npm install`
+      dans `functions/`, retirer « tous ont été essayés » (seule la restauration de l'export l'a été).
+- [ ] **R-F4 Export automatique hebdomadaire hors du projet Firebase** (d. 2, 3) : dans le Drive du titulaire, chaque semaine ; pour les
+      cabinets clients, support au choix (leur Drive ou autre), réglé par cabinet. (Les sauvegardes Firebase et la copie des fichiers sont
+      dans le même projet : une suppression du projet les emporte au bout de 30 jours.)
+- [ ] **R-F5 Copie des fichiers surveillée** (d. 10) : résultat de chaque nuit (date, copiés, erreurs) dans un document lu par
+      l'Administration ; alerte en cas d'erreurs ou sans passage depuis 48 h ; garde-fou : ne rien retirer de la copie si une grande part
+      disparaît d'un coup (`sauvegarderFichiers`, `planCopie`).
+- [ ] **R-F6 Export au fil de l'eau et copie Drive v11** (d. 11, 12) : ZIP écrit au fil de l'eau (aujourd'hui tout en mémoire, 2 Go : échec
+      estimé vers 1 Go de documents) ; enregistrer le nouvel export **avant** d'effacer l'ancien ; vraies extensions (pas tout en « .pdf » :
+      `cheminFichier`, `restaurer-export.mjs`) ; téléphone en texte (Excel retire le 0 initial : colonne texte ou .xlsx) ; copie Drive
+      **v11** au format de l'export (types des dates gardés, références, journal d'audit inclus, limite de 6 min surveillée), réimportable
+      par le même script de restauration.
+- [ ] **R-F7 « Recopier un cabinet » depuis une base restaurée** (d. 13 ; erreur qui abîme beaucoup de dossiers), après R-F2, même code.
+
+**Lot G – Audit n° 5 : disposition du dossier patient** (§ 6 ; **remplace l'étape 4.4** de la phase M ; maquettes revues les 13 et 17/10)
+Cible sur ordinateur : un écran qui ne bouge pas (aujourd'hui à 1440 × 900 : 2 240 px de haut, 545 px d'en-tête avant les onglets, barre
+des prescriptions à 1 385 px) — **bandeau** collé en haut (2 lignes, ~90 px), **colonne Patient** à gauche (300 px), **centre Travail**
+(onglets d'aujourd'hui), **colonne Documents** à droite (visionneuse), **barre d'actions** collée en bas ; chaque colonne défile seule.
+Selon la largeur de la zone de contenu (requêtes de conteneur ; ouvrir / replier le menu la change) : ≥ 1 280 px 3 colonnes (Travail
+≥ 520 px, Documents ~40 % du reste entre 420 et 760 px) ; 940 à 1 279 px 2 colonnes (Travail · droite à onglets « Patient » / « Documents ») ;
+< 940 px une colonne comme aujourd'hui ; hauteur < 640 px : page qui défile, bandeau collé. Détail des zones, des notes, des paramètres
+et du code : § 6 de l'audit.
+- [ ] **R-G a (4.4 a) Bandeau et barre d'actions**, à toutes les largeurs. Bandeau ligne 1 : flèche qui replie le menu pour le dossier
+      seulement (localStorage), photo 40 px agrandie au clic, NOM Prénom, âge, sexe, n° de dossier, allergie en rouge si « oui », statut
+      décédé / perdu de vue, « Chimio C3/6 », « RT en cours », « Dossier ouvert par … » ; à droite Afficher, Journal, Modifier. Ligne 2 en
+      petit : seulement les champs cochés « Dans le bandeau » (`fiche.entetes`, `ENTETE0`), poids = poids actuel daté (R-A5). Barre : Prescrire
+      chimio, Prescrire RT, Médic., Ordo. type, Analyses, Examens compl., Courriers, Doc. (avec sous chacun le nombre d'ordonnances faites),
+      + RCP, + Rendez-vous, + Tâche ; à droite « Valider : venu » / « Fermer » (depuis la salle) ou Décision RCP · Valider · Fermer (depuis
+      les RCP) : **les bulles flottantes passent dans la barre** (`bullesDossier`, `bulleRcp`). Téléphone : bandeau réduit (nom, âge,
+      allergie), barre collée en bas qui défile de côté (icône + libellé court, aucun bouton derrière « Plus »). Réglage de la fiche : « en
+      tête du dossier » → **« Dans le bandeau »** (aperçu, avertissement au-delà d'une ligne, libellé court facultatif « Corresp. »,
+      « Mut. », valeurs calculées à cocher : poids actuel, SC, « localisation et stade » ; ligne 1 : « Chimio en cours », « RT en cours »
+      cochés par défaut), aussi dans Administration › Par spécialité.
+- [ ] **R-G b (4.4 b) Grille à colonnes** : `.dos` à cinq enfants dans l'ordre du téléphone (bandeau, patient, travail, documents, barre),
+      `grid-template-areas` au-delà de 940 puis 1 280 px (`container-type: inline-size` sur `#page`, `@container`) ; hauteur `100dvh`,
+      colonnes `overflow-y: auto`, `min-height: 0`, `overscroll-behavior: contain` ; barre = case de la grille (pas `position: fixed` ;
+      `sticky` en bas sur téléphone) ; hauteurs internes retirées (`.cs-liste` 545 px, `limiterHauteur('rdvListe', 5)`, `.o-pan.defile`) ;
+      sous 940 px : 10 dernières consultations puis « Afficher les plus anciennes ». **Redessin d'abord** : `pageDossier` (appelé 52 fois)
+      note et remet le défilement de chaque zone `[data-zone]` et le curseur (second temps, avec 7.2 : zones redessinées seules dans
+      `app/dossier.js`). Accessibilité : sections avec `aria-label`, zones qui défilent atteignables au clavier (`tabindex="0"`).
+- [ ] **R-G c (4.4 c) Contenu des colonnes** : colonne Patient = résumé (modifiable sur place, hauteur qui suit le texte) et prochain
+      rendez-vous toujours visibles, puis parties dépliables avec compteur (Rendez-vous et tâches à venir ; Consultations et hospitalisations ;
+      Identité et administratif ; Informations médicales ; Fiche tumeur ; une partie dépliée montre tous ses champs, même éditeur), « Tout
+      déplier », parties ouvertes gardées pour chacun ; **notes de consultation** : fermée = une ligne de 28 px (date · type court · début
+      de la note en gris · nombre d'ordonnances · initiales), ouverte = pleine largeur sans colonne de libellés, auteur une fois sur le titre,
+      « Signée le … », Modifier, Supprimer ; à l'ouverture seule la dernière consultation est dépliée ; « + Nouvelle consultation » en tête,
+      « Notes seulement », « Tout déplier », Imprimer, « Agrandir ».
+- [ ] **R-G e (4.4 e) Panneau de chimio et de RT, visionneuse** (après R-G b) : nouvelle ligne, cure, jour, protocole, prescription de RT
+      s'ouvrent dans un **panneau** à la place du centre et de la colonne de droite (~1 000 px), bandeau, colonne Patient et barre visibles ;
+      contenu et étapes inchangés (cure → jour → valider) ; `panneau(html)` jumeau de `fenetre(html, "large")`, identifiants propres à chaque
+      conteneur (`fOk`, `fErr`…) ; écrans déplacés un par un ; ordonnances et courriers restent une fenêtre par-dessus (on retrouve la cure
+      telle quelle) ; petites actions en petite fenêtre comme aujourd'hui ; « Quitter sans enregistrer ? » sans blocage. Visionneuse
+      (`afficherVue` de fichiers.js) à droite, ouverte sur le document le plus récent, menu « Documents (n) » (liste par date, type en
+      étiquette, recherche, menu « Type »), Agrandir (deux tiers), Plein écran / Nouvelle fenêtre / Télécharger ; sans document « Déposer un
+      document » ; l'onglet Documents du centre reste. Case de Paramètres › Impression : allergie et poids rappelés dans l'en-tête de la
+      fenêtre d'ordonnance.
+- [ ] **R-G d (4.4 d) Réglages et finitions** : onglet **Paramètres › Dossier patient › Affichage du dossier** (pour le cabinet : parties
+      dépliées par défaut, titulaire ou secrétaire ; pour moi : taille de la visionneuse, « Rétablir » les largeurs) — rangé dans
+      `parametres/reglages` (clé `dossier`, `REGLAGES0`) et `utilisateurs/{uid}.dossier`, aucune règle à changer ; Administration › fonctions :
+      les fonctions « prescriptions » cachent les boutons de la barre, compteur sous les boutons = fonction facultative ; Agrandir, flèche du
+      menu, tablette, Safari. **Tests écrits d'abord** (pour tout le lot) : à 1440 × 900 la page ne défile pas, la barre est visible, chaque
+      colonne défile ; enregistrer une note ou un rendez-vous ne déplace pas les autres colonnes ; à 390 px rien ne change ; débordements
+      (28 pages × 5 largeurs) ; `NAVIGATEUR=webkit` ; **liste des boutons du dossier comparée avant / après, rôle par rôle (aucun absent)** ;
+      bilan inchangé.
 
 ## Phase P – Protocoles de chimiothérapie (audit n° 3)
 
@@ -331,10 +717,12 @@ démarrage par un médecin (comme `marquerProtocoles`), avec une fenêtre récap
       Chimiothérapie ; règle `administrations` déjà écrite ; droit « administrer » remis dans Accès.
 - [ ] **4.4 Dossier stable, comme GestiCab** : en-tête compact (1-2 lignes), dossier à hauteur d'écran sur ordinateur (≥ 1280 px : onglets à
       gauche, Rendez-vous / tâches et Documents à droite, chaque zone défile seule), barre des prescriptions fixe en bas, consultations en
-      lignes compactes ; téléphone inchangé.
+      lignes compactes ; téléphone inchangé. **→ Remplacée par le lot R-G** (audit n° 5, maquettes revues les 13 et 17/10 : bandeau,
+      colonnes Patient / Travail / Documents, barre d'actions, panneau de chimio et de RT).
 ## Phase D – Design
 - [ ] **4.1 Toucher et contraste** : zones de 44 px (dossier, protocoles), badges vert et orange contrastés (→ 4,5), filtres repliés sur
       téléphone (bilan, protocoles), téléphone du patient en lien Onco360, champs de fichier habillés, ~40 libellés reliés à leur champ.
+      (Contrastes de l'agenda : R-C6 ; loupe de recherche sur téléphone : R-B3.)
 - [ ] **4.2 Fenêtres Onco360 à la place des boîtes grises** : les `alert` / `confirm` / `prompt` (123 au 11/10) remplacés par une fenêtre
       commune, en commençant par les suppressions et les fenêtres de validation de la chimio.
 
@@ -342,10 +730,12 @@ démarrage par un médecin (comme `marquerProtocoles`), avec une fenêtre récap
 - [ ] **5.1 Code mort et fonctions communes** : `chValiderSeance`, `chHon`, `nlChoix`, `pfOnglet`, `prChoix`, `__v2pret`, variables et
       exports inutiles, styles inutilisés ; `esc`, `sansAcc`, `dfr`, ajout de jours, impression regroupés dans `moteur/outils.js` ; tests de
       cohérence site / serveur (`consJours`, `finRT`, `COULEURS0`, `REGLES_FIXES`) ; `configuration.js` découpé par famille (avec ESLint) ;
-      `archives/` et `listes/` rangés hors du code.
-- [ ] **5.2 Écritures qui s'écrasent** : les écritures d'un bloc sans relecture (réglages, listes, pointages…) en transaction.
+      `archives/` et `listes/` rangés hors du code. (+ `prixRdv` et `tarH` de moteur/rdv.js : R-C2.)
+- [ ] **5.2 Écritures qui s'écrasent** : les écritures d'un bloc sans relecture (réglages, listes, pointages…) en transaction. (Bibliothèques :
+      R-A1, à faire en premier ; montants, cases « Payé », versements, règlements : R-D3.)
 - [ ] **5.3 Montée en charge** (avant un groupe) : photo du patient dans Cloud Storage, index léger des patients, liste par pages, dossier
       complet chargé à l'ouverture, agenda et alertes depuis l'index, traitements de nuit par cabinet. Objectif : 5 000 dossiers.
+      (Avec R-C7 calcul de l'agenda gardé en mémoire et R-D4 cases « Payé » par année ; l'écoute des dossiers modifiés est faite en R-A4.)
 - [ ] **5.4 Restes de l'ancienne application** : « Payé auto. » d'avant le 12/10/2026 converti en pointages (bilan identique), puis
       `FIN_PAYE_AUTO`, `rdvMigre`, `brutV1`, branches v1, `migrerV1`, `tableDepuisV1`, `texteTotaux` retirés ; `migrations()` allégé.
 - [ ] **5.5 Recette et mise en ligne** : projet Firebase de recette ; script unique (tests puis site, règles et fonctions ensemble) ;
@@ -389,7 +779,9 @@ démarrage par un médecin (comme `marquerProtocoles`), avec une fenêtre récap
 - **Non retenu** (11/10) : déconnexion automatique, double authentification, Google Agenda anonymisé, archivage des patients, original
   Word / Excel gardé, organes à risque, tableau des toxicités de radiothérapie. (Avant) : pointer en lot dans le Bilan ; journal des séances
   de radiothérapie ; alerte de poids de la secrétaire (19.6) ; assistant IA. (13/10) : relecture de la bibliothèque par un 2e oncologue ;
-  motif à saisir pour « Valider quand même » ; contrôle automatique des prémédications.
+  motif à saisir pour « Valider quand même » ; contrôle automatique des prémédications. (17/10, audits 4 à 8) : voir « Refusés le 17/10 »
+  dans les décisions du 17/10 (caisse, hôpital de jour, calendrier de chimio, stupéfiant, COTIPRED remplacé, filgrastims, bilans intercure,
+  double vérification, code-barres, A4 automatique, RT déplacée un jour férié).
 
 ## À placer
 - (vide)
