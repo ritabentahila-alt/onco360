@@ -1,7 +1,7 @@
 // Audit n° 3, P4 (18/10/2026) : consignes des ordres 2 et 3 appliquées à la vraie bibliothèque du 18/10/2026 (protocoles seulement,
 // aucune donnée patient) : node tests/moteur/test-audit3p4.mjs
 import { readFileSync } from "node:fs";
-import { correctionsP4 } from "../../public/js/moteur/audit3p4.js";
+import { correctionsP4, correctionsP5b, NOM_FOLINIQUE } from "../../public/js/moteur/audit3p4.js";
 import { correctionsAudit3 } from "../../public/js/moteur/audit3.js";
 import { P4, P7 } from "../../public/js/donnees/audit3p4.js";
 import { seancesDe, premed } from "../../public/js/moteur/doses.js";
@@ -82,6 +82,14 @@ cas("AC dose dense : NIVESTIM J3 → J9, jamais un jour de séance", (() => { co
 cas("pegfilgrastim : 6 mg en une injection à J2", (() => { const p = tc(/^Pegfilgrastim/); return p && lig(p, /PEGFILGRASTIM/).d === 6 && lig(p, /PEGFILGRASTIM/).u === "mg"; })());
 cas("aucun « HGC », aucun « Sortie », jamais en double d'un protocole existant", !C7.some((p) => /\bHGC\b/.test(JSON.stringify(p)) || (p.ordos || []).some((o) => /Sortie/.test(o))) && !C7.some((p) => Object.values(BIB).some((q) => q.nom === p.nom)));
 cas("toutes les lignes ont un produit et une dose (ou un texte)", C7.every((p) => p.dr.every((d) => d.p && (d.u === "txt" ? d.pos : d.d != null || d.c1 != null))), C7.flatMap((p) => p.dr.filter((d) => !(d.u === "txt" ? d.pos : d.d != null || d.c1 != null)).map((d) => p.nom + " : " + d.p)));
+
+console.log("5 quater. Acide folinique racémique, Solumedrol en dose fixe (18/10/2026)");
+const vue = Object.assign({}, BIB); r.modifies.forEach((m) => { vue[m.id] = m.p; }); r.crees.forEach((p) => { vue[p.id] = p; });
+const r5 = correctionsP5b(vue), F = (re) => (r5.modifies.find((m) => re.test(m.p.nom)) || {}).p;
+cas("acide folinique : « racémique (folinate de calcium) » partout, doses inchangées (400, 200, 50)", r5.modifies.filter((m) => m.faites.includes("acide folinique racémique")).length >= 25 && !Object.values(vue).some((p) => { const q = (r5.modifies.find((m) => m.id === p.id) || { p }).p; return q.dr.some((d) => /ACIDE FOLINIQUE \(LV\)|^FOLINATE DE CALCIUM$/.test(d.p)); }) && F(/^FLOT \(/).dr.find((d) => d.p === NOM_FOLINIQUE).d === 200);
+cas("EC : Solumedrol 60 mg (dose fixe) ; CAP fractionné : 50 mg J1-J3", (() => { const ec = F(/^EC \(/), cap = F(/^CAP fractionné/); const s = (p) => p.dr.find((d) => /SOLUMEDROL/.test(d.p)); return ec && cap && s(ec).u === "mg" && s(ec).d === 60 && s(cap).u === "mg" && s(cap).d === 50 && String(s(cap).j) === "1,2,3"; })());
+const vue2 = Object.assign({}, vue); r5.modifies.forEach((m) => { vue2[m.id] = m.p; });
+cas("relancé : rien", !correctionsP5b(vue2).modifies.length);
 
 console.log("6. Une seule fois");
 const bib2 = Object.assign({}, BIB); r.modifies.forEach((m) => { bib2[m.id] = m.p; }); r.crees.forEach((p) => { bib2[p.id] = p; });

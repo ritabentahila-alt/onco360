@@ -198,6 +198,15 @@ démarrage par un médecin (comme `marquerProtocoles`), avec une fenêtre récap
       aucune dose ni aucun jour de séance d'anticancéreux changé ; consignes laissées de côté = déjà faites (indications reprises en P1a,
       Solumedrol J2 / J16 absent du TPF modifié). PRODIGE 5 (FOLFOX + RT) garde son NIVESTIM (le classeur n'en parle pas). Tests :
       `test-audit3p4.mjs` 24/24 (vraie bibliothèque, `tests/moteur/donnees/bibliotheque-2026-10-18.json`), `test_audit3.py` 22/22.
+- [x] **Demandes du 18/10/2026 (testé ; version 20261018d)** : **fiche de chimiothérapie** (va à l'administration et aux mutuelles) :
+      plus de « Remarques » (le rythme reste dans « Observations »), plus de n° de dossier (celui de l'hôpital est différent), NIVESTIM
+      « 30 MU » ou « 48 MU » sans le détail du poids (`texteNiv(…, true)`, colonnes Posologie et Dose) ; **acide folinique** : vérifié sur
+      les sources (400 mg/m² FOLFOX / FOLFIRI, 200 mg/m² FLOT / FOLFOXIRI / FOLFOX4, 50 mg eviQ = folinate de calcium racémique ;
+      lévofolinate à moitié dose) → nommé « ACIDE FOLINIQUE racémique (folinate de calcium) » ; **Solumedrol en mg/kg** → dose fixe selon
+      la règle du 13/10 : EC 60 mg, CAP fractionné 50 mg/j (`correctionsP5b`, une fois, `audit3g`) ; **Vigilance des molécules**
+      (Paramètres) : seuils de l'audit ajoutés à 12 familles et 4 familles nouvelles (trabectédine, topotécan, trastuzumab déruxtécan,
+      enfortumab), dans la liste de départ et une fois dans la liste du cabinet, ses notes gardées (`vigilancesAudit3`, `audit3f`).
+      Tests : test-audit3p4 40/40, test-seuils 24/24, test_cures, test_vigilance, test_audit3.
 - [ ] ~~P3 (plan)~~ **Éditeur de protocole et calculs** (avant d'appliquer le reste, pour que tout aille dans les bonnes cases) : champs
       **Risque émétique** (proposé d'après la molécule la plus émétisante, AC = élevé, MASCC/ESMO 2023 ; modifiable), **Ordonnances liées**
       (choisies dans la bibliothèque, proposées d'après le risque et les molécules), **Seuils du jour** (valeurs par protocole reprises dans

@@ -137,6 +137,18 @@ export async function appliquerP4() {
   if (D().page === "protocoles") pageProtocoles();
   return r;
 }
+// 18/10/2026 : acide folinique racémique nommé, Solumedrol en mg/kg passé en dose fixe (moteur/audit3p4.js correctionsP5b) ; une fois (audit3g)
+export async function appliquerP5b() {
+  if (!A.peut("parametres") || !D().membre || D().membre.role !== "medecin" || !BIB().length) return null;
+  const rm = doc(db, "espaces", A.ESPACE, "parametres", "migrations"), g = await getDoc(rm).catch(() => null);
+  if (!g || (g.exists() && g.data().audit3g)) return null;
+  const { correctionsP5b } = await import("../moteur/audit3p4.js"), r = correctionsP5b(D().ctx.bib), moi = { par: D().u.uid, parNom: (D().membre && D().membre.nom) || "", le: new Date().toISOString() };
+  r.modifies.forEach((m) => { m.p.version = (m.p.version || 1) + 1; Object.assign(m.p, { majLe: moi.le, majPar: moi.par, majParNom: moi.parNom }); if (m.p.st === "ok") m.p.valide = Object.assign({ version: m.p.version }, moi); D().ctx.bib[m.id] = m.p; });
+  if (r.modifies.length) await sauverDocs(r.modifies.map((m) => m.id));
+  await setDoc(rm, { audit3g: moi.le.slice(0, 10) }, { merge: true });
+  if (r.modifies.length) A.journal({ id: "", r: { nm: "" } }, "Protocoles : acide folinique racémique nommé, Solumedrol en dose fixe (" + r.modifies.length + " protocole(s))");
+  return r;
+}
 function rangerNouveau(id) {
   const docs = Object.keys(D().bibOrdre).filter((d) => /^lib_perso/.test(d)), taille = (d) => JSON.stringify((D().bibOrdre[d] || []).map((i) => D().ctx.bib[i])).length;
   let d = docs.find((x) => taille(x) < 600000) || "lib_perso" + (docs.length ? "_" + docs.length : "");

@@ -16,12 +16,12 @@ import { tarif as tarifAu } from "../moteur/tarifs.js";
 import { genererConsultRT, consultFinRT } from "../moteur/rt.js";
 import { idsParDefaut } from "../donnees/migration.js";
 import { installer as installerDocuments, docsDe, boutonDoc, oublierDocs, suivreEtablissementDocs, supprimerDocs } from "./documents.js";
-import { installer as installerVigilances } from "./vigilances.js";
+import { installer as installerVigilances, vigilancesAudit3 } from "./vigilances.js";
 import { installer as installerChimio, htmlChimio, nouveauPatient as creerPatient, champDiag, activerDiag, listeMut, listeCor, figerCuresValidees, alertesBio, enrichirListes, majMontants, encaissementsDe, construireEncaissements, ecrireEncaissements, prixParServeur, oublierEncaissements } from "./chimio.js";
 import { installer as installerAgenda, pageAgenda } from "./agenda.js";
 import { installer as installerConfig, pageConfiguration, horaires, dureeDe, dureeType, WA0, remplir } from "./configuration.js";
 import { installer as installerProfil, pageProfil, DROITS_ROLE, droitsEffectifs, lireImage } from "./profil.js";
-import { installer as installerProtocoles, pageProtocoles, marquerProtocoles, appliquerAudit3, appliquerP4 } from "./protocoles.js";
+import { installer as installerProtocoles, pageProtocoles, marquerProtocoles, appliquerAudit3, appliquerP4, appliquerP5b } from "./protocoles.js";
 import { installer as installerParametres, pageParametres } from "./parametres.js";
 import { installer as installerBilan, pagePageBilan, publierReleve } from "./bilan.js";
 import { installer as installerOrdonnances, remplacerOrdosTypes, figerListes, ordosAudit3 } from "./ordonnances.js";
@@ -70,7 +70,7 @@ onAuthStateChanged(auth, async (u) => {
   try { D = await charger(u); appliquerImpression(); entete(); rechercheTete(); route(); menuCabinets().catch(() => {});
     if (D.bib) { Promise.all([figerListes(), figerDocumentation()]).catch((e) => console.warn("bibliothèque", e)); return; } // bibliothèque de référence : rien d'autre
     lireAccueilCab();
-    if (D.membre.role !== "comptable") { if (module("taches")) demarrerTaches(); if (module("salle")) demarrerSalle(); if (module("rcp")) demarrerRcp(); } publierTarifsC(); planifierReleve(3000); chargerMedecins(); chargerSignataires().then(publierCarte).catch(() => {}); nomTitulaire().then(migrations); marquerProtocoles().then(() => appliquerAudit3()).then(() => appliquerP4()).then(() => ordosAudit3()).catch((er) => console.warn("protocoles", er)); }
+    if (D.membre.role !== "comptable") { if (module("taches")) demarrerTaches(); if (module("salle")) demarrerSalle(); if (module("rcp")) demarrerRcp(); } publierTarifsC(); planifierReleve(3000); chargerMedecins(); chargerSignataires().then(publierCarte).catch(() => {}); nomTitulaire().then(migrations); marquerProtocoles().then(() => appliquerAudit3()).then(() => appliquerP4()).then(() => appliquerP5b()).then(() => ordosAudit3()).then(() => vigilancesAudit3()).catch((er) => console.warn("protocoles", er)); }
   catch (e) { $("page").innerHTML = '<div class="carte"><h3>Impossible d\'ouvrir Onco360</h3><p class="sous">' + esc(e && e.code === "permission-denied" ? "Accès refusé : votre accès a peut-être été désactivé. Contactez le médecin titulaire." : e.message) + '</p><button class="bt clair" onclick="document.getElementById(\'btSortie\').click()">Se déconnecter</button></div>'; }
 });
 // Cabinets de la personne (19.2, 10/10/2026 : secrétaire de plusieurs médecins) : comptes/{uid}.espaces, le cabinet choisi dans le

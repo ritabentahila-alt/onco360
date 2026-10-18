@@ -16,7 +16,8 @@ const sansAccents = (t) => String(t || "").normalize("NFD").replace(/[\u0300-\u0
 export const premed = (d) => d.u === "txt" || PREMED.some((m) => sansAccents(d.p).indexOf(m) >= 0);
 
 // P3 (18/10/2026) : NIVESTIM « 30 MU (48 MU si poids > 70 kg) » → la dose du patient d'après le poids de la séance (modifiable à la main)
-export const texteNiv = (t, poids) => (poids > 0 && /30 MU \(48 MU si poids > 70 kg\)/.test(String(t || "")) ? String(t).replace(/30 MU \(48 MU si poids > 70 kg\)/, poids > 70 ? "48 MU (poids " + poids + " kg > 70 kg)" : "30 MU (poids " + poids + " kg ≤ 70 kg)") : t);
+// court (fiche de chimiothérapie, 18/10/2026) : « 30 MU » ou « 48 MU » seulement, sans le poids
+export const texteNiv = (t, poids, court) => (poids > 0 && /30 MU \(48 MU si poids > 70 kg\)/.test(String(t || "")) ? String(t).replace(/30 MU \(48 MU si poids > 70 kg\)/, court ? (poids > 70 ? "48 MU" : "30 MU") : poids > 70 ? "48 MU (poids " + poids + " kg > 70 kg)" : "30 MU (poids " + poids + " kg ≤ 70 kg)") : t);
 
 // A1 – surface corporelle (Mosteller), 2 décimales
 export const surface = (poids, taille) => (poids && taille ? Math.round(Math.sqrt((poids * taille) / 3600) * 100) / 100 : null);

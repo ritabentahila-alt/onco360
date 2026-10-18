@@ -37,7 +37,7 @@ async def main():
         await pg.screenshot(path='/tmp/t2_c4j1.png')
         await pg.click('#fenetreCorps >> text=FICHE CHIMIO'); await pg.wait_for_timeout(800)
         h=await ev("window.__win[window.__win.length-1].w.document._h")
-        print('fiche : sans logo (papier à en-tête)', '<img' not in h, '| N° dossier', 'Dossier n° 202609003' in h, '| entêtes :', re.findall(r'<th[^>]*>(.*?)</th>',h)[8:])
+        print('fiche : sans logo (papier à en-tête)', '<img' not in h, '| sans n° de dossier (18/10)', 'Dossier n°' not in h, '| sans remarques', 'Remarques :' not in h, '| entêtes :', re.findall(r'<th[^>]*>(.*?)</th>',h)[8:])
         print('prescripteur :', re.search(r'Médecin prescripteur</div>(.*?)</td>',h).group(1))
         open('/tmp/fiche.html','w').write(h)
         print('err', pg.errs); await b.close()

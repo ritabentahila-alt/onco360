@@ -3,7 +3,7 @@
 import { readFileSync } from "node:fs";
 import { risqueEmetique, risqueDe, seuilsJour, hebdomadaire } from "../../public/js/moteur/seuils.js";
 import { premed, texteNiv, protocoleCure } from "../../public/js/moteur/doses.js";
-import { cumuls, EXAMENS, horsNorme } from "../../public/js/moteur/vigilance.js";
+import { cumuls, EXAMENS, horsNorme, VIG0, vigAudit3 } from "../../public/js/moteur/vigilance.js";
 let ok = 0, ko = 0;
 const cas = (nom, v, d) => { if (v) { ok++; console.log("  ✔ " + nom); } else { ko++; console.log("  ✘ " + nom + (d === undefined ? "" : "  " + JSON.stringify(d).slice(0, 300))); } };
 const P = (...dr) => ({ dr: dr.map(([p, u, d, v]) => ({ p, u, d, v: v || "IV", j: [1] })) });
@@ -50,6 +50,11 @@ console.log("5. Dose cumulée de bléomycine");
 const c = cumuls({ prods: [{ p: "BLÉOMYCINE", u: "mg", dose: 30 }], sc: 1.8, histo: [{ d: "2026-01-01", sc: 1.8, doses: [{ p: "BLÉOMYCINE", u: "mg", dose: 30 }] }, { d: "2026-01-08", sc: 1.9, doses: [{ p: "BLÉOMYCINE", u: "mg", dose: 30 }] }], date: "2026-01-15" });
 const bl = c.find((z) => z.id === "bleo");
 cas("bléomycine comptée en mg (pas par m²) : 3 × 30 = 90 mg sur 400", bl && bl.total === 90 && bl.seuil === 400 && bl.u === "mg", bl);
+
+console.log("6. Vigilance des molécules (Paramètres) complétée");
+cas("liste de départ : seuils de l'audit ajoutés (gemcitabine J8, pémétrexed DFG ≥ 45) et 4 familles nouvelles (trabectédine, topotécan, Enhertu, enfortumab)", /J8 \/ J15/.test(VIG0.find((v) => v.id === "v7").txt) && /DFG ≥ 45/.test(VIG0.find((v) => v.id === "v12").txt) && ["v22", "v23", "v24", "v25"].every((k) => VIG0.some((v) => v.id === k)));
+const perso = [{ id: "v7", nom: "Gemcitabine", mots: "GEMCITABINE", txt: "Ma note." }, { id: "v99", nom: "Note à moi", mots: "X", txt: "y" }], m1 = vigAudit3(perso), m2 = vigAudit3(m1.liste);
+cas("liste déjà réglée par le cabinet : ses notes gardées, seuils ajoutés à la suite, une seule fois", m1.liste[0].txt.indexOf("Ma note. J8") === 0 && m1.liste.some((v) => v.id === "v99") && m1.liste.some((v) => v.id === "v22") && m2.n === 0);
 
 console.log("\n" + ok + " / " + (ok + ko) + " vérifications justes");
 if (ko) process.exit(1);

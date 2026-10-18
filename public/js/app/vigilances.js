@@ -5,7 +5,7 @@
 // validation) sont dans moteur/vigilance.js et ne dépendent pas de ces notes.
 import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { db } from "../config.js";
-import { VIG0 } from "../moteur/vigilance.js";
+import { VIG0, vigAudit3 } from "../moteur/vigilance.js";
 
 let A = null;
 export function installer(api) { A = api; }
@@ -22,6 +22,21 @@ export function notesVigilance(apres) {
   return NOTES;
 }
 
+// Audit n° 3 (18/10/2026) : seuils du jour ajoutés à la liste déjà enregistrée par le cabinet, une fois (médecin ; audit3f)
+export async function vigilancesAudit3() {
+  if (!A.peut("parametres") || !A.D().membre || A.D().membre.role !== "medecin") return null;
+  const rm = doc(db, "espaces", A.ESPACE, "parametres", "migrations"), g = await getDoc(rm).catch(() => null);
+  if (!g || (g.exists() && g.data().audit3f)) return null;
+  const s = await getDoc(doc(db, "espaces", A.ESPACE, "parametres", "vigilances")).catch(() => null);
+  let n = 0;
+  if (s && s.exists()) {
+    let L = []; try { L = JSON.parse(s.data().data || "[]"); } catch (e) { L = []; }
+    const r = vigAudit3(L); n = r.n;
+    if (n) { await setDoc(doc(db, "espaces", A.ESPACE, "parametres", "vigilances"), { data: JSON.stringify(r.liste), maj: serverTimestamp(), majPar: A.D().u.uid }); NOTES = r.liste; }
+  }
+  await setDoc(rm, { audit3f: new Date().toISOString().slice(0, 10) }, { merge: true });
+  return n;
+}
 // ───── Paramètres › Listes et bibliothèques › Vigilance des molécules ─────
 export function htmlVigilances(ok) {
   if (!VE || !VMOD) VE = JSON.parse(JSON.stringify(notesVigilance(() => { if (!VMOD && location.hash.indexOf("vigilances") >= 0) window.cfOnglet("vigilances"); })));

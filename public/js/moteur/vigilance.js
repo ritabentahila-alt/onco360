@@ -257,6 +257,34 @@ export const VIG0 = [
   { id: "v21", nom: "Ifosfamide / cyclophosphamide", mots: "IFOSFAMIDE, HOLOXAN, CYCLOPHOSPHAMIDE, ENDOXAN", txt: "MESNA (ifosfamide, cyclophosphamide à forte dose). Hydratation. Ifosfamide : encéphalopathie (bleu de méthylène)." },
 ];
 // Notes qui concernent les produits de la séance (prémédications comprises pour l'acide zolédronique et le dénosumab)
+// Audit n° 3 (18/10/2026) : seuils du jour ajoutés aux notes (AJOUTS_VIG3 : texte ajouté à une famille existante) et familles nouvelles
+// (NOUVELLES_VIG3) ; appliqués à VIG0 ci-dessous et, une fois, à la liste déjà enregistrée par un cabinet (vigilances.js vigilancesAudit3)
+export const AJOUTS_VIG3 = {
+  v3: "Mucite ou diarrhée de grade ≥ 2 → report. Capécitabine : DFG 30-50 ml/min → 75 % ; < 30 contre-indiquée. Acide folinique : doses de la bibliothèque en folinate de calcium racémique ; lévofolinate (Elvorine) = moitié de la dose.",
+  v4: "Docétaxel : bilirubine ≤ normale ; ne pas faire si ASAT/ALAT > 1,5 × N avec PAL > 2,5 × N. Paclitaxel : bilirubine ≤ 1,5 × N ; neuropathie de grade ≥ 2 → réduire. Cabazitaxel : bilirubine ≤ normale, PNN ≥ 1,5 G/L.",
+  v5: "TSH, transaminases, créatinine, glycémie avant chaque cure ; toxicité immunologique de grade ≥ 2 → suspendre. Ipilimumab : cortisol ; colite de grade ≥ 2 → arrêt.",
+  v6: "TA < 160/100 ; protéinurie < 2 g/24 h (bandelette < 2+) ; pas de chirurgie < 28 jours.",
+  v7: "J8 / J15 : PNN ≥ 1,0 et plaquettes ≥ 100 → 100 % ; PNN 0,5-1,0 ou plaquettes 50-100 → 75 % ; en dessous, séance non faite.",
+  v9: "DFG ≥ 60 ml/min (45-59 : réduire ou carboplatine) ; magnésémie et audition avant chaque cure.",
+  v10: "Bilirubine ≤ 1,5 × N ; pas de diarrhée en cours ; génotype UGT1A1*28 si toxicité. Irinotécan liposomal : bilirubine ≤ normale, PNN ≥ 1,5 G/L.",
+  v11: "Vinorelbine : PNN ≥ 1,5 G/L (J8 : ≥ 1,0).",
+  v12: "DFG ≥ 45 ml/min.",
+  v13: "Éruption de grade 3 → report.",
+  v20: "DFG ≥ 60 ml/min ; pas d'épanchement (3e secteur).",
+  v21: "Ifosfamide : DFG ≥ 60 ml/min, pas d'hématurie ; encéphalopathie → arrêt.",
+};
+export const NOUVELLES_VIG3 = [
+  { id: "v22", nom: "Trabectédine", mots: "TRABECTEDINE, YONDELIS", txt: "PNN ≥ 1,5, plaquettes ≥ 100, bilirubine ≤ normale, PAL ≤ 2,5 × N, ASAT/ALAT ≤ 2,5 × N, CPK ≤ 2,5 × N. Voie centrale. Prémédication : Solumedrol 100 mg." },
+  { id: "v23", nom: "Topotécan", mots: "TOPOTECAN, HYCAMTIN", txt: "PNN ≥ 1,5 G/L, plaquettes ≥ 100 G/L, hémoglobine ≥ 9 g/dL." },
+  { id: "v24", nom: "Trastuzumab déruxtécan", mots: "DERUXTECAN, ENHERTU", txt: "PNN ≥ 1,5, plaquettes ≥ 100 ; toute pneumopathie interstitielle → arrêt et scanner ; FEVG. Risque émétique modéré haut." },
+  { id: "v25", nom: "Enfortumab védotin", mots: "ENFORTUMAB, PADCEV", txt: "Glycémie < 2,5 g/L ; éruption ou neuropathie de grade ≥ 2 → suspendre." },
+];
+export function vigAudit3(L) {
+  let n = 0; const out = L.map((v) => { const a = AJOUTS_VIG3[v.id]; if (a && String(v.txt || "").indexOf(a) < 0) { n++; return Object.assign({}, v, { txt: (v.txt ? v.txt + " " : "") + a }); } return v; });
+  NOUVELLES_VIG3.forEach((v) => { if (!out.some((x) => x.id === v.id || x.nom === v.nom)) { out.push(Object.assign({}, v)); n++; } });
+  return { liste: out, n };
+}
+VIG0.splice(0, VIG0.length, ...vigAudit3(VIG0).liste);
 export function notesPour(prods, notes) {
   const noms = (prods || []).filter((z) => z && z.u !== "txt").map((z) => sa(z.p));
   return (notes || []).filter((N) => N && N.txt && String(N.mots || "").split(",").map((w) => sa(w).trim()).filter(Boolean).some((w) => noms.some((n) => n.indexOf(w) >= 0)));

@@ -12,7 +12,7 @@ const DROITS_MEDECIN = { identite: true, fichePatient: true, rendezvous: true, c
 // Mises à niveau de migrations() (v2.js) propres aux dossiers venus de l'ancienne application : déjà « faites » dans un cabinet neuf
 // (sinon la liste d'ordonnances types copiée serait remplacée par celle de départ)
 const MIGRATIONS = ["dosimetriePeriode", "secretaireChimio", "secretairePlanning", "ordostypesExcel1", "encaissements", "encaissementsJours", "encaissementsBrutV1", "encaissementsBrutV1b",
-  "audit3a", "audit3b", "audit3c", "audit3d", "audit3e"]; // audit n° 3 : déjà dans la bibliothèque de référence recopiée (P11, 18/10/2026)
+  "audit3a", "audit3b", "audit3c", "audit3d", "audit3e", "audit3f", "audit3g"]; // audit n° 3 : déjà dans la bibliothèque de référence recopiée (P11, 18/10/2026)
 
 const net = (s) => String(s == null ? "" : s).replace(/\s+/g, " ").trim();
 // Vérifie la demande faite depuis la page Administration ; renvoie les champs nettoyés ou lève une erreur lisible

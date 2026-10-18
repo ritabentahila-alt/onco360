@@ -109,6 +109,26 @@ export function creesP7(bib, P7) {
   const noms = new Set(Object.values(bib).filter((p) => p && p.nom).map((p) => cle(p.nom)));
   return (P7 || []).filter((p) => !bib[p.id] && !noms.has(cle(p.nom))).map((p) => { const c = copie(p); nettoyerP5(c); return c; });
 }
+// 18/10/2026 (questions de l'audit, vérifiées sur les sources) : acide folinique de la bibliothèque = folinate de calcium RACÉMIQUE
+// (400 mg/m² FOLFOX / FOLFIRI, 200 mg/m² FLOT / FOLFOXIRI / FOLFOX4, 50 mg dose fixe eviQ ; le lévofolinate se donne à moitié dose) ;
+// Solumedrol en mg/kg passé en dose fixe selon la règle du 13/10 : EC (anthracycline + cyclophosphamide, EMEND) 60 mg, CAP fractionné
+// (cisplatine sur plusieurs jours) 50 mg par jour. Rend { modifies: [{ id, p, faites }] } ; relancer ne refait rien.
+export const NOM_FOLINIQUE = "ACIDE FOLINIQUE racémique (folinate de calcium)";
+export function correctionsP5b(bib) {
+  const r = { modifies: [] };
+  Object.values(bib).forEach((p0) => {
+    if (!p0 || !p0.dr) return; const p = copie(p0), f = [];
+    p.dr.forEach((d) => {
+      if (/^(ACIDE FOLINIQUE \(LV\)|FOLINATE DE CALCIUM|ACIDE FOLINIQUE)$/i.test(d.p.trim()) && d.u !== "txt") { d.p = NOM_FOLINIQUE; f.push("acide folinique racémique"); }
+      if (/SOLUMEDROL/.test(sa(d.p)) && d.u === "mg/kg") {
+        const multi = (d.j || []).filter((y) => y !== 99).length > 1 && p.dr.some((x) => /^CISPLATINE/.test(sa(x.p)) && (x.j || []).length > 1);
+        Object.assign(d, { u: "mg", d: multi ? 50 : 60 }); f.push("Solumedrol " + (multi ? "50 mg/j" : "60 mg") + " (au lieu de mg/kg)");
+      }
+    });
+    if (f.length) r.modifies.push({ id: p0.id, p, faites: f });
+  });
+  return r;
+}
 // Toute la bibliothèque. Rend { modifies: [{ id, p, faites, ignores }], crees: [p], ignores: [{ id, nom, raisons }] }
 export function correctionsP4(bib, P4, P7) {
   const r = { modifies: [], crees: [], ignores: [] }, parNom = {};

@@ -6,7 +6,7 @@ def ok(c, m, d=None):
     global ok_n, ko_n
     if c: ok_n += 1; print('  ✔ ' + m)
     else: ko_n += 1; print('  ✘ ' + m + ('' if d is None else ' ' + str(d)[:300]))
-S = json.loads(json.dumps(S)); [S[E + 'parametres/migrations'].pop(k, None) for k in ('audit3a', 'audit3b', 'audit3c', 'audit3d', 'audit3e')]
+S = json.loads(json.dumps(S)); [S[E + 'parametres/migrations'].pop(k, None) for k in ('audit3a', 'audit3b', 'audit3c', 'audit3d', 'audit3e', 'audit3f', 'audit3g')]
 bib = lambda fs: {p['id']: p for k in fs if k.startswith(E + 'protocoles/') for p in json.loads(fs[k]['data'] or '[]')}
 async def main():
     async with async_playwright() as p:
