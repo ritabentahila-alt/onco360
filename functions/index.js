@@ -440,6 +440,37 @@ async function source(par, specialite) {
 // Ouvrir une bibliothèque de référence pour la modifier (page Administration) : créée la 1re fois (Oncologie – Radiothérapie : à
 // partir de la copie mise de côté le 09/10 ; autres spécialités : listes vides, à remplir), avec le compte d'administration comme
 // membre (aucun droit sur les patients ; il n'y a aucun patient). Renvoie l'identifiant à ouvrir dans Onco360 (v2.html?espace=…).
+// P11 (18/10/2026, décision de Dr Bentahila) : la bibliothèque d'Oncologie – Radiothérapie (bib-oncologie, ce que reçoit chaque cabinet
+// neuf) devient une copie de celle du cabinet Bentahila, faite quand l'administration le décide (bouton de l'onglet Bibliothèques) :
+// protocoles, médicaments, ordonnances types, analyses, bilans, examens, courriers (étoiles retirées), paramètres de base nettoyés
+// (parametreDepart), tarifs de radiothérapie. Jamais : patients, correspondants, prix, lieux, équipe, documentation (PDF du cabinet).
+// Ensuite la bibliothèque du cabinet Bentahila est la sienne : ses modifications ne changent plus la référence.
+exports.referenceDepuisCabinet = onCall({ timeoutSeconds: 300, memory: "512MiB" }, async (req) => {
+  const par = req.auth && req.auth.uid;
+  if (!(await estAdministrateur(par))) throw new HttpsError("permission-denied", "Réservé à l'administration d'Onco360.");
+  const M = "espaces/" + C.MODELE + "/", E = "espaces/bib-oncologie/", jour = new Date().toISOString().slice(0, 10);
+  if (!(await db.doc("espaces/bib-oncologie").get()).exists) throw new HttpsError("failed-precondition", "Ouvrez d'abord une fois la bibliothèque d'Oncologie – Radiothérapie (« Créer et ouvrir »).");
+  const json = (x) => { try { return x.exists ? JSON.parse(x.data().data || "null") : null; } catch (er) { return null; } };
+  const [prot, ancienne, st, ...rest] = await Promise.all([db.collection(M + "protocoles").get(), db.collection(E + "protocoles").get(), db.doc(M + "finances/tarifs").get()]
+    .concat(C.BIBLIOTHEQUES.map((k) => db.doc(M + "bibliotheques/" + k).get())).concat(C.PARAMS_SPE.map((k) => db.doc(M + "parametres/" + k).get())));
+  const sb = rest.slice(0, C.BIBLIOTHEQUES.length), sp = rest.slice(C.BIBLIOTHEQUES.length);
+  const ecr = [], nb = { protocoles: 0 };
+  ancienne.docs.forEach((d) => ecr.push(["del", d.ref]));
+  prot.docs.forEach((d) => { const v = d.data(), data = C.sansEtoiles(v.data, jour); try { nb.protocoles += JSON.parse(data).length; } catch (er) { /* illisible */ } ecr.push(["set", db.doc(E + "protocoles/" + d.id), Object.assign({}, v, { data })]); });
+  sb.forEach((x, i) => { if (x.exists) { const v = x.data(); ecr.push(["set", db.doc(E + "bibliotheques/" + C.BIBLIOTHEQUES[i]), Object.assign({}, v, { data: C.sansEtoiles(v.data, jour) })]); } });
+  sp.forEach((x, i) => { const v = C.parametreDepart(C.PARAMS_SPE[i], json(x), jour); if (v) ecr.push(["set", db.doc(E + "parametres/" + C.PARAMS_SPE[i]), { data: JSON.stringify(v) }]); });
+  ecr.push(["set", db.doc(E + "finances/tarifs"), { data: JSON.stringify(C.tarifsDepart(json(st))) }]);
+  ecr.push(["merge", db.doc(E + "parametres/migrations"), C.migrationsFaites(jour)]);
+  ecr.push(["merge", db.doc("espaces/bib-oncologie"), { copieDuCabinet: { le: new Date().toISOString(), par, nb } }]);
+  for (let i = 0; i < ecr.length; i += 400) {
+    const b = db.batch();
+    ecr.slice(i, i + 400).forEach(([op, ref, v]) => { if (op === "del") b.delete(ref); else if (op === "merge") b.set(ref, v, { merge: true }); else b.set(ref, v); });
+    await b.commit();
+  }
+  await jAdmin(par, "bibliotheque", "bib-oncologie", "Bibliothèque Oncologie – Radiothérapie", "Recopiée depuis le cabinet du Dr Bentahila (" + nb.protocoles + " protocoles)");
+  console.log("référence recopiée depuis", C.MODELE, "par", par, JSON.stringify(nb));
+  return { nb, le: jour };
+});
 exports.bibliothequeOuvrir = onCall({ timeoutSeconds: 120, memory: "256MiB" }, async (req) => {
   const par = req.auth && req.auth.uid;
   if (!(await estAdministrateur(par))) throw new HttpsError("permission-denied", "Réservé à l'administration d'Onco360.");

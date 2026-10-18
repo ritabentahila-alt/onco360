@@ -17,7 +17,7 @@ const BIB = () => Object.values(D().ctx.bib).filter((p) => p && p.nom);
 const molecules = (p) => (p.dr || []).filter((d) => !premed(d) && !/Retrait|Fin du diffuseur/.test(d.p)).map((d) => d.p).join(", "); // 2.3 : même liste que le calcul
 const valide = protocoleValide;
 // Validation tracée (2.4) : qui, quand, quelle version, quelle source
-const traceVal = (p) => { const v = p.valide; if (!v) return ""; return (v.retro ? "Validé avant le 12/10/2026" : "Validé par " + (v.parNom || "un médecin") + " le " + A.dfrA(String(v.le || "").slice(0, 10))) + " (version " + (v.version || p.version || 1) + ")" + (p.src ? " – source : " + p.src : ""); };
+const traceVal = (p) => { const v = p.valide; if (!v) return ""; return (v.retro ? "Validé avant le 12/10/2026" : v.reference ? "Copié de la bibliothèque de référence le " + A.dfrA(v.reference) : "Validé par " + (v.parNom || "un médecin") + " le " + A.dfrA(String(v.le || "").slice(0, 10))) + " (version " + (v.version || p.version || 1) + ")" + (p.src ? " – source : " + p.src : ""); };
 const badgeSt = (p) => (valide(p) ? '<span class="badge b-ch" title="' + A.esc(traceVal(p)) + '"><svg class="pi"><use href="#i-check"/></svg>Validé</span>' : '<span class="badge b-or"><i class="dot j"></i>Non validé</span>');
 
 const valeurs = (n) => valeursCascade(BIB(), CF, n);

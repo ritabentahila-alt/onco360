@@ -178,7 +178,7 @@ démarrage par un médecin (comme `marquerProtocoles`), avec une fenêtre récap
       « Pré-chimiothérapie antiémétique » renommée par Dr Bentahila, restée à côté de la nouvelle) **retirée**, son étoile reportée sur
       « Chimio : risque émétique modéré ». Drapeaux `audit3c` (protocoles) et `audit3d` (ordonnances) : le calcul de l'audit est relancé
       une fois, ce qui est déjà fait n'est pas refait. Tests : test-audit3 48/48, test_audit3 17/17.
-- [x] **P3 Éditeur de protocole et calculs (partie faite le 18/10/2026, testé ; version 20261018b)** : moteur `public/js/moteur/seuils.js` :
+- [x] **P3 Éditeur de protocole et calculs (partie faite le 18/10/2026, testé, en ligne : 20261018b)** : moteur `public/js/moteur/seuils.js` :
       **risque émétique** calculé (MASCC/ESMO 2023 : molécule la plus émétisante, AC = élevé, carboplatine AUC ≥ 5 / Enhertu / Trodelvy =
       modéré haut, tout per os = oral) ou choisi par le médecin (`re`) ; **seuils du jour** : séances hebdomadaires (J8, J15… ou cycle de
       7 jours) PNN ≥ 1,0 et plaquettes ≥ 75 G/L (`alertesBio(b, { hebdo })`), gemcitabine J8 / J15 (75 % / non faite), trabectédine, docétaxel
@@ -188,7 +188,7 @@ démarrage par un médecin (comme `marquerProtocoles`), avec une fenêtre récap
       **seuils du jour** (champs `re`, `ordos`, `seuils`) ; encart « Vigilance » de la séance : risque, ordonnances liées, seuils du
       protocole. **Pas fait** : protocole lié comme champ (les phases suivantes sont des protocoles à part, cités dans les remarques) ;
       case « EMEND prescrit » (non retenue). Tests : `test-seuils.mjs` 22/22, test-vigilance 60/60, test-doses 79/79.
-- [x] **P4 Ordres 2 et 3 appliqués (18/10/2026, testé ; version 20261018b)** : `outils/audit3/convertir-p4.mjs` lit le classeur
+- [x] **P4 Ordres 2 et 3 appliqués (18/10/2026, testé ; en ligne : 20261018b)** : `outils/audit3/convertir-p4.mjs` lit le classeur
       (`archives/audit-3/`) → `public/js/donnees/audit3p4.js` (248 protocoles, 398 consignes : ajouter / retirer une ligne, NIVESTIM,
       Solumedrol, remarques, noms, indications, localisation) ; `moteur/audit3p4.js` les vérifie sur chaque protocole réel et les applique
       une fois à l'ouverture par un médecin (`appliquerP4`, drapeau `audit3e`, sans fenêtre). Solumedrol baissé seulement avec une
@@ -213,14 +213,14 @@ démarrage par un médecin (comme `marquerProtocoles`), avec une fenêtre récap
       (paclitaxel, cétuximab, cabazitaxel), **hydratation du cisplatine en lignes** (NaCl, KCl, MgSO4 ± mannitol), **NIVESTIM structuré**
       (54 protocoles) et retiré des 11 FOLFOX / FOLFIRI, atropine (irinotécan), surprophylaxie allégée (21 schémas à risque faible : un seul
       antiémétique), médicaments pris à domicile sortis du protocole vers l'ordonnance, seuils du jour, ordonnances liées.
-- [x] **P5 Bibliothèque propre (18/10/2026, testé ; avec P4, même passage unique `audit3e` ; version 20261018b)** : **source** de chaque
+- [x] **P5 Bibliothèque propre (18/10/2026, testé ; avec P4, même passage unique `audit3e` ; en ligne : 20261018b)** : **source** de chaque
       protocole = essai de référence du classeur (306 ; variantes locales : « Variante locale de … ») ; **« SOLUMEDROL » →
       « SOLUMEDROL (méthylprednisolone) »** (186 lignes ; les autres produits étaient déjà écrits par leur DCI) ; **localisation de la fiche**
       (`dos` / `loc`, ancien rangement à deux niveaux, imprimé en bas de la fiche de chimio) = 1re indication de l'arborescence (qui était
       déjà à un seul niveau) ; eviQ : plus aucune mention après P4 ; « HGC » : retiré au palier 3. PRODIGE 5 : NIVESTIM retiré (demande du
       18/10). **Pas fait (à décider par Dr Bentahila)** : acide folinique racémique ou lévofolinate (« ACIDE FOLINIQUE (LV) » 400 / 200 /
       50 mg) ; Solumedrol en mg/kg (EC, CAP fractionné). Tests : test-audit3p4 29/29.
-- [x] **P6 Bouton « Ordonnances » (18/10/2026, testé ; version 20261018b)** : dans la séance, à côté de Reporter / Valider (droit
+- [x] **P6 Bouton « Ordonnances » (18/10/2026, testé ; en ligne : 20261018b)** : dans la séance, à côté de Reporter / Valider (droit
       d'écrire les consultations) : fenêtre « Ordonnances du protocole » (`orProtocole`, ordonnances.js) avec les ordonnances liées cochées,
       « Chimio – Fièvre sous chimiothérapie » cochée à la 1re cure d'une chimiothérapie IV, les autres ordonnances « Chimio » à cocher ;
       « Préparer l'ordonnance » réunit leurs médicaments dans la fenêtre d'ordonnance habituelle (modifiable, A5 / A4, Valider / Valider +
@@ -238,7 +238,7 @@ démarrage par un médecin (comme `marquerProtocoles`), avec une fenêtre récap
       la prise en charge ; « Fièvre sous chimiothérapie » proposée à la 1re cure IV ; à chaque cure : ordonnance de la cure + prémédication
       de la veille de la cure suivante (docétaxel, pémétrexed). Gardées dans l'historique (`enregistrerPrescription` : consultation du
       jour, créée « Ordonnance » si besoin, comme aujourd'hui).
-- [x] **P7 Protocoles à créer (18/10/2026, testé ; même passage unique `audit3e` ; version 20261018b)** : les **59 protocoles** des
+- [x] **P7 Protocoles à créer (18/10/2026, testé ; même passage unique `audit3e` ; en ligne : 20261018b)** : les **59 protocoles** des
       priorités 2 et 3 du classeur (les 11 « priorité 1 » de l'audit : AC, AC dose dense, TC, TCH, TCHP, cisplatine 100 J1-J22-J43 + RT ORL et
       nasopharynx, géfitinib, afatinib, cabazitaxel + prednisone + G-CSF, bicalutamide ; puis 48 dont les versions hebdomadaires) lus par
       `outils/audit3/convertir-p4.mjs` (`P7` de `donnees/audit3p4.js` : lignes, rythme, remarques, branches + « Aussi rangé dans », seuils,
@@ -252,7 +252,10 @@ démarrage par un médecin (comme `marquerProtocoles`), avec une fenêtre récap
       INTERLACE, Belani, KEYNOTE-407, docétaxel 35 hebdo, APT, nab-paclitaxel hebdo, anthracyclines hebdo, ERBITAX, irinotécan 125 ;
       poumon, sein, côlon, prostate, sarcomes, peau) ; les 64 de priorité 4 plus tard. Écrits en entier dans le classeur
       (lignes, seuils, ordonnances, source) : importés par l'écran P1.
-- [ ] **P8 Hebdomadaire de bout en bout** : pas de prix pour la consultation de J8 / J15 (fenêtre pré-remplie à 0 DH, inchangée) ; vérifier sur un protocole hebdomadaire : seuils du jour à chaque injection (P3), report d'une seule séance
+- [x] **P8 Hebdomadaire de bout en bout (18/10/2026)** : vérifié sans code nouveau : seuils des séances hebdomadaires (P3 : PNN ≥ 1,0,
+      plaquettes ≥ 75, gemcitabine J8 / J15), report d'une seule séance (« cette date seulement », déjà là), heure de consultation et de
+      séance chaque semaine (3.7 bis), bouton « Ordonnances » dans chaque séance (P6), consultation de J8 / J15 pré-remplie à 0 DH (décision).
+- [ ] ~~P8 (plan)~~ **Hebdomadaire de bout en bout** : pas de prix pour la consultation de J8 / J15 (fenêtre pré-remplie à 0 DH, inchangée) ; vérifier sur un protocole hebdomadaire : seuils du jour à chaque injection (P3), report d'une seule séance
       (« cette date seulement », existe), rendez-vous et heure chaque semaine (3.7 bis), ordonnance par séance (P6).
 - [ ] **P9 Bibliothèque commune à tous les cabinets** : l'Administration **publie une version** de la référence (numéro, date, journal des
       changements lisible : « v4 : anti-NK1 ajouté ») ; le serveur compare cabinet par cabinet (nouveaux, modifiés dans la référence,
@@ -270,7 +273,14 @@ démarrage par un médecin (comme `marquerProtocoles`), avec une fenêtre récap
       marge (ex. ± 5 %), affichée à côté de la dose calculée, le médecin choisit ;
       n) **liste du lendemain pour la pharmacie de la clinique** : séances prévues le lendemain par établissement (patient, protocole,
       molécules, doses, flacons), imprimable / à envoyer, depuis la salle d'attente ou l'agenda.
-- [ ] **P11 La bibliothèque du cabinet Bentahila devient la référence** (décision du 18/10/2026) : quand les étapes P4 à P7 sont finies,
+- [x] **P11 (18/10/2026, testé ; fonction `referenceDepuisCabinet` + Administration, version 20261018c)** : Administration › Bibliothèques ›
+      carte « Oncologie – Radiothérapie » › **« Recopier depuis le cabinet Bentahila »** (confirmation) : protocoles, médicaments, ordonnances
+      types, analyses, bilans, examens, courriers (étoiles retirées, trace « Copié de la bibliothèque de référence le … »), paramètres de base
+      nettoyés (`parametreDepart`), tarifs de radiothérapie → `espaces/bib-oncologie` ; jamais patients, correspondants, prix, lieux, équipe,
+      documentation ; noté au journal de l'Administration ; les cabinets neufs reçoivent cette copie (déjà en place : `sourceBib`), avec les
+      migrations de l'audit n° 3 notées comme faites (`MIGRATIONS` de cabinets.js). **À faire par Dr Bentahila** : ouvrir une fois Onco360
+      (sa bibliothèque se corrige), puis cliquer le bouton dans l'Administration.
+- [ ] ~~P11 (plan)~~ **La bibliothèque du cabinet Bentahila devient la référence** (décision du 18/10/2026) : quand les étapes P4 à P7 sont finies,
       une fonction de l'Administration **recopie une fois** la bibliothèque du cabinet Bentahila (protocoles, ordonnances types,
       médicaments, analyses, examens, courriers, documentation, paramètres de base ; jamais patients, correspondants, prix, lieux, équipe ;
       étoiles retirées) dans la bibliothèque de référence `bib-oncologie`, que reçoit chaque nouveau cabinet (déjà en place : `creerEspace`

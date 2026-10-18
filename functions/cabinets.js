@@ -11,7 +11,8 @@ const BIBLIOTHEQUES = ["medicaments", "ordostypes", "analyses", "bilans", "exame
 const DROITS_MEDECIN = { identite: true, fichePatient: true, rendezvous: true, consultations: true, ecrireConsultations: true, planningChimio: true, traitements: "modifier", radiotherapie: "modifier", documents: true, administrer: true, encaissements: true, creerPatient: true, supprimerPatient: true, finances: true, parametres: true, secretariat: true };
 // Mises à niveau de migrations() (v2.js) propres aux dossiers venus de l'ancienne application : déjà « faites » dans un cabinet neuf
 // (sinon la liste d'ordonnances types copiée serait remplacée par celle de départ)
-const MIGRATIONS = ["dosimetriePeriode", "secretaireChimio", "secretairePlanning", "ordostypesExcel1", "encaissements", "encaissementsJours", "encaissementsBrutV1", "encaissementsBrutV1b"];
+const MIGRATIONS = ["dosimetriePeriode", "secretaireChimio", "secretairePlanning", "ordostypesExcel1", "encaissements", "encaissementsJours", "encaissementsBrutV1", "encaissementsBrutV1b",
+  "audit3a", "audit3b", "audit3c", "audit3d", "audit3e"]; // audit n° 3 : déjà dans la bibliothèque de référence recopiée (P11, 18/10/2026)
 
 const net = (s) => String(s == null ? "" : s).replace(/\s+/g, " ").trim();
 // Vérifie la demande faite depuis la page Administration ; renvoie les champs nettoyés ou lève une erreur lisible
@@ -213,4 +214,14 @@ function reglageNettoye(r) {
   const Cs = ficheNettoyee(r.consultation); if (Cs) out.consultation = Cs; // formulaire de consultation : retouches du cabinet (16.7)
   return out;
 }
-module.exports = { renomsValides, corrigerDossier, espacesCompte, compteModifie, ficheNettoyee, idSpecialite, reglageNettoye, PARAMS_SPE, parametreDepart, BIBS, bibDe, estBib, DROITS_BIB, MODULES_BIB, infos, ROLES, membreDemande, MODULES, MAX, FORMULES, formulesValides, abonnement, horsQuota, MODELE, BIBLIOTHEQUES, DROITS_MEDECIN, MIGRATIONS, verifier, idCabinet, listesDepart, calendrierDepart, tarifsDepart, migrationsFaites, membreTitulaire };
+// P11 (18/10/2026) : la bibliothèque du cabinet Bentahila recopiée dans la référence : sans les étoiles (favoris personnels) ni les
+// traces de validation de son cabinet (un protocole reste « Validé », la trace dit « copié de la référence le … »)
+function sansEtoiles(data, jour) {
+  let L; try { L = JSON.parse(data || "[]"); } catch (e) { return data; }
+  if (!Array.isArray(L)) return data;
+  return JSON.stringify(L.map((o) => {
+    if (!o || typeof o !== "object") return o; const c = Object.assign({}, o); delete c.fav;
+    if (c.valide) c.valide = { reference: jour, version: c.version || 1 }; delete c.majPar; delete c.majParNom; return c;
+  }));
+}
+module.exports = { sansEtoiles, renomsValides, corrigerDossier, espacesCompte, compteModifie, ficheNettoyee, idSpecialite, reglageNettoye, PARAMS_SPE, parametreDepart, BIBS, bibDe, estBib, DROITS_BIB, MODULES_BIB, infos, ROLES, membreDemande, MODULES, MAX, FORMULES, formulesValides, abonnement, horsQuota, MODELE, BIBLIOTHEQUES, DROITS_MEDECIN, MIGRATIONS, verifier, idCabinet, listesDepart, calendrierDepart, tarifsDepart, migrationsFaites, membreTitulaire };
