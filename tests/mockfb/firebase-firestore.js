@@ -8,7 +8,9 @@ export function query(c, ...f) { return { col: c.col, f }; }
 export function where(k, op, v) { return { k, op, v }; }
 export function orderBy() { return null; }
 export function limit() { return null; }
-export async function getDoc(r) { const v = window.__fs[r.path]; return { exists: () => !!v, data: () => (v ? cl(v) : undefined), id: r.id, ref: r }; }
+// Panne de lecture simulée (R-A1, 18/10/2026) : window.__panne = [morceaux de chemin] → la lecture de ces documents échoue (réseau coupé)
+const panne = (r) => { if ((window.__panne || []).some((m) => r.path.indexOf(m) >= 0)) throw Object.assign(new Error("panne de lecture simulée (test)"), { code: "unavailable" }); };
+export async function getDoc(r) { panne(r); const v = window.__fs[r.path]; return { exists: () => !!v, data: () => (v ? cl(v) : undefined), id: r.id, ref: r }; }
 export async function setDoc(r, v, o) { window.__fs[r.path] = o && o.merge ? Object.assign(window.__fs[r.path] || {}, cl(v)) : cl(v); }
 export function arrayUnion(...v) { return { __au: v }; }
 export async function updateDoc(r, v) {

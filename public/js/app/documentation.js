@@ -5,7 +5,7 @@
 // et met en favori ; tous ceux qui prescrivent ouvrent et remettent. « Remettre au patient » ouvre le PDF (pour l'imprimer) et
 // note une ligne « Doc. » dans la consultation du jour ({ t: "doc", lib: titre, docId }) ; la petite flèche liste ce qui a
 // déjà été remis à ce patient.
-import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { doc, getDoc, setDoc, serverTimestamp, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getStorage, ref, uploadBytesResumable, getBlob, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 import { app, db } from "../config.js";
 import { DOCUMENTATION0, CATEGORIES_DOC0 } from "../donnees/documentation.js";
@@ -28,10 +28,24 @@ const taille = (o) => (o >= 1048576 ? (o / 1048576).toFixed(1).replace(".", ",")
 const refListe = () => doc(db, "espaces", A.ESPACE, "bibliotheques", "documentation");
 const DEPART = () => DOCUMENTATION0.map((d, i) => ({ id: "d" + (i + 1), titre: d.titre, cat: d.cat, url: d.url, nom: d.url.split("/").pop(), taille: d.taille || 0, le: "2026-10-07" }));
 let DOCS = null;
+// R-A1 (18/10/2026, audit n° 7) : document absent = liste de départ ; lecture en échec ou liste abîmée = erreur (jamais la liste de départ,
+// qui serait enregistrée à la place de celle du cabinet au premier clic)
+const ILLISIBLE = "Liste du cabinet illisible, réessayez.";
+const illisible = (er) => { if (er && er.code === "permission-denied") return er; console.warn("documentation illisible", er); return Object.assign(new Error(ILLISIBLE), { code: "liste-illisible", cause: er }); };
+function listeDe(s) {
+  if (!s.exists()) return DEPART();
+  let L; try { L = JSON.parse(s.data().data || "[]"); } catch (er) { throw illisible(er); }
+  if (!Array.isArray(L)) throw illisible(new Error("pas une liste"));
+  return L;
+}
 async function lire() {
   if (DOCS) return DOCS;
-  const s = await getDoc(refListe()).catch(() => null);
-  return (DOCS = s && s.exists() ? JSON.parse(s.data().data || "[]") : DEPART());
+  const s = await getDoc(refListe()).catch((er) => { throw illisible(er); });
+  return (DOCS = listeDe(s));
+}
+async function charge(p) {
+  try { await p; return true; }
+  catch (e) { A.fenetre('<h3>Documentation</h3><p class="sous">' + A.esc(e && e.code === "liste-illisible" ? ILLISIBLE : "Lecture impossible : " + ((e && e.message) || e)) + '</p><div class="boutons"><button class="bt plein" onclick="fermerFenetre()">Fermer</button></div>'); return false; }
 }
 // Bibliothèque de référence (10/10/2026) : la liste de départ enregistrée telle quelle (mise de côté)
 export async function figerDocumentation() {
@@ -40,11 +54,14 @@ export async function figerDocumentation() {
   return 0;
 }
 async function modifier(fn) {
-  const s = await getDoc(refListe()).catch(() => null), L = s && s.exists() ? JSON.parse(s.data().data || "[]") : DEPART();
-  fn(L); await setDoc(refListe(), { data: JSON.stringify(L), maj: serverTimestamp(), majPar: D().u.uid });
+  const L = await runTransaction(db, async (t) => {
+    const s = await t.get(refListe()).catch((er) => { throw illisible(er); }), L = listeDe(s);
+    fn(L); t.set(refListe(), { data: JSON.stringify(L), maj: serverTimestamp(), majPar: D().u.uid });
+    return L;
+  });
   return (DOCS = L);
 }
-const erreurDroit = (e, quoi) => (e && /permission|unauthorized/.test(e.code || "") ? "Vous n'avez pas le droit de " + quoi + "." : null);
+const erreurDroit = (e, quoi) => (e && /permission|unauthorized/.test(e.code || "") ? "Vous n'avez pas le droit de " + quoi + "." : e && e.code === "liste-illisible" ? ILLISIBLE : null);
 
 // ───── Fenêtre « Documentation » : recherche, catégorie, tri, liste ─────
 let V = null; // { pid, q, cat, tri }
@@ -54,13 +71,13 @@ window.ordDocumentationGestion = async () => {
   if (!gere()) { A.toast("Réservé au médecin."); return; }
   V = { q: "", cat: "", tri: "fav", pid: null };
   A.fenetre('<p class="sous">Chargement de la documentation…</p>', "large");
-  await lire(); vue();
+  if (await charge(lire())) vue();
 };
 window.ordDocumentation = async (pid) => {
   const x = trouver(pid); if (!x || !peutRemettre()) return;
   V = Object.assign({ q: "", cat: "", tri: "fav" }, V && V.pid === pid ? V : {}, { pid });
   A.fenetre('<p class="sous">Chargement de la documentation…</p>', "large");
-  await Promise.all([lire(), assurerConsultations(x)]); vue();
+  if (await charge(Promise.all([lire(), assurerConsultations(x)]))) vue();
 };
 function vue() {
   const x = V.pid ? trouver(V.pid) : null, esc = A.esc, cats = [...new Set(DOCS.map((d) => d.cat).filter(Boolean))].sort((a, b) => sansAcc(a).localeCompare(sansAcc(b)));
@@ -112,7 +129,7 @@ window.dcRemettre = async (id) => {
   catch (e) { A.toast("Le document est ouvert, mais n'a pas pu être noté dans la consultation : " + ((e && e.message) || e)); }
 };
 // Ligne « Doc. » d'une consultation : rouvrir le document
-window.docOuvrirLigne = async (docId) => { await lire(); const d = DOCS.find((z) => z.id === docId); if (!d) { A.toast("Ce document a été retiré de la documentation."); return; } ouvrir(d, fenetreVide(d)); };
+window.docOuvrirLigne = async (docId) => { try { await lire(); } catch (e) { A.toast(erreurDroit(e, "lire la documentation") || "Lecture impossible."); return; } const d = DOCS.find((z) => z.id === docId); if (!d) { A.toast("Ce document a été retiré de la documentation."); return; } ouvrir(d, fenetreVide(d)); };
 
 // ───── Ajouter (PDF), modifier, supprimer, favori : le médecin ─────
 let NV = null;

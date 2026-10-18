@@ -233,7 +233,12 @@ des protocoles, bibliothèques de prescription, courriers dont modèles RT, para
 types**, refus gardés) : R-A6 et R-E4 partent de là, sans les refaire.
 
 **Lot A – Corrections urgentes**
-- [ ] **R-A1 Bibliothèques du cabinet qui peuvent être écrasées** (audit 7, point 1, NON CONTESTÉ : **le défaut le plus grave des
+- [x] **(18/10/2026, testé ; contrôle complet bon, Chrome et Safari ; PAS ENCORE EN LIGNE, accord de Dr Bentahila à demander)** `listeDe` / `erreurListe` / `charge` (ordonnances.js,
+      documentation.js : lecture en échec ou liste abîmée = « Liste du cabinet illisible, réessayez », modification en transaction) ; registre des
+      migrations illisible = rien refait (v2.js, sinon `remplacerOrdosTypes` écrasait les ordonnances types) ; vigilances et protocoles supprimés
+      protégés ; modèle RT illisible signalé (documents.js) ; test `tests/test_bibliotheques_panne.py` 18/18 (ajouté à `avant-mise-en-ligne.sh`),
+      panne simulée `window.__panne` (mockfb). 13/10 : rien d'écrasé (renommage de Dr Bentahila retrouvé le 18/10) ; 18/10 : à vérifier par elle.
+      **R-A1 Bibliothèques du cabinet qui peuvent être écrasées** (audit 7, point 1, NON CONTESTÉ : **le défaut le plus grave des
       audits**, à faire en premier ; § 8) : `lireListe` / `modifierListe` (ordonnances.js) prennent la liste de départ quand la lecture
       échoue, puis l'enregistrent à la place de celle du cabinet (essai : 2 médicaments du cabinet remplacés par 165 après un clic sur
       l'étoile). Distinguer **document absent** (liste de départ, normal) et **lecture en échec** (message « Liste du cabinet illisible,

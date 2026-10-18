@@ -44,8 +44,10 @@ export async function vigilancesAudit3() {
   if (!g || (g.exists() && g.data().audit3f)) return null;
   const s = await getDoc(doc(db, "espaces", A.ESPACE, "parametres", "vigilances")).catch(() => null);
   let n = 0;
-  if (s && s.exists()) {
-    let L = []; try { L = JSON.parse(s.data().data || "[]"); } catch (e) { L = []; }
+  if (!s) return null; // lecture en échec (R-A1) : rien d'écrit, nouvel essai à la prochaine ouverture
+  if (s.exists()) {
+    let L; try { L = JSON.parse(s.data().data || "[]"); } catch (e) { L = null; }
+    if (!Array.isArray(L)) { console.warn("vigilances : liste du cabinet illisible, rien n'est écrit"); return null; } // jamais remplacée par les seuls ajouts
     const r = vigAudit3(L); n = r.n;
     if (n) { await setDoc(doc(db, "espaces", A.ESPACE, "parametres", "vigilances"), { data: JSON.stringify(r.liste), maj: serverTimestamp(), majPar: A.D().u.uid }); NOTES = r.liste; }
   }

@@ -297,6 +297,9 @@ async function migrations() {
       if (Object.keys(champs).length) await updateDoc(d.ref, champs).catch((er) => console.warn("droits", d.id, er));
     }
     const g = await getDoc(doc(db, "espaces", ESPACE, "parametres", "migrations")).catch(() => null), fait = g && g.exists() ? g.data() : {};
+    // R-A1 (18/10/2026) : registre illisible = on ne sait pas ce qui est déjà fait ; rien n'est refait (sinon la mise à niveau des ordonnances
+    // types remplaçait la liste du cabinet par la liste de départ) ; nouvel essai à la prochaine ouverture
+    if (!g) { console.warn("migrations : registre illisible, rien n'est refait"); return; }
     // Fiches médicales réparées (12/10/2026) : enregistrées une fois telles que relues (champs remis hors de clinique._autres)
     for (const x of D.patients.filter((z) => z.repare)) { await enregistrer(x, { clinique: x.doc.clinique }, "Fiche médicale réparée (champs ajoutés, statut, allergie)").then(() => { x.repare = false; }).catch((er) => console.warn("réparation", x.id, er)); }
     // Localisations de cancer ajoutées le 12/10/2026 (3.1 bis) : ajoutées une fois à la liste déjà réglée du cabinet (rien n'est retiré)

@@ -9,7 +9,7 @@
 // Ordonnances types (bouton « Ordo. type », 07/10/2026) : espaces/{e}/bibliotheques/ordostypes = { data: JSON [{ id, nom,
 // items: [{ nom, poso }] }] } (départ : donnees/ordostypes.js) ; un clic sur une ordonnance type met tous ses médicaments
 // dans l'ordonnance en préparation (modifiables ✎, à retirer ✕), puis « Afficher l'ordonnance » comme pour Médic.
-import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { doc, getDoc, setDoc, serverTimestamp, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { db } from "../config.js";
 import { MEDICAMENTS0 } from "../donnees/medicaments.js";
 import { ORDOS_TYPES0, appliquerOrdosAudit3 } from "../donnees/ordostypes.js";
@@ -57,10 +57,27 @@ const CACHE = {};
 // modifiés (defaut : modèle d'origine, non enregistré) ; modeleRT(type) = celui que documents.js remplit
 const ajouterRT = (L) => { COURRIERS_RT0.forEach((m) => { if (!L.some((z) => z.id === m.id)) L.push(Object.assign({ defaut: true }, m)); }); return L; };
 export async function modeleRT(type) { const L = await lireListe("courriers"), m = L.find((z) => z.id === "rt-" + type); return m && m.html ? m.html : MODELES_RT0[type]; }
+// R-A1 (18/10/2026, audit n° 7, point 1) : « document absent » (le cabinet n'a jamais modifié la liste) = liste de départ, normal ;
+// « lecture en échec » ou liste abîmée = erreur, jamais la liste de départ (avant : elle était affichée, puis enregistrée à la place de
+// celle du cabinet au premier clic : 2 médicaments du cabinet remplacés par 165)
+export const ILLISIBLE = "Liste du cabinet illisible, réessayez.";
+const erreurListe = (n, er) => { if (er && er.code === "permission-denied") return er; console.warn("bibliothèque illisible", n, er); return Object.assign(new Error(ILLISIBLE), { code: "liste-illisible", cause: er }); };
+function listeDe(n, s) {
+  if (!s.exists()) return DEPART[n]();
+  let L; try { L = JSON.parse(s.data().data || "[]"); } catch (er) { throw erreurListe(n, er); }
+  if (!Array.isArray(L)) throw erreurListe(n, new Error("pas une liste"));
+  return L;
+}
+export const messageListe = (e, m) => (e && e.code === "liste-illisible" ? ILLISIBLE : m);
+// Fenêtre ouverte sur une liste : si la lecture échoue, le message seul (rien d'autre n'est affiché ni enregistré)
+async function charge(p) {
+  try { await p; return true; }
+  catch (e) { A.fenetre('<h3>Liste du cabinet</h3><p class="sous">' + A.esc(messageListe(e, "Lecture impossible : " + ((e && e.message) || e))) + '</p><div class="boutons"><button class="bt plein" onclick="fermerFenetre()">Fermer</button></div>'); return false; }
+}
 async function lireListe(n) {
   if (CACHE[n]) return CACHE[n];
-  const s = await getDoc(refListe(n)).catch(() => null);
-  const L = s && s.exists() ? JSON.parse(s.data().data || "[]") : DEPART[n]().sort(alpha);
+  const s = await getDoc(refListe(n)).catch((er) => { throw erreurListe(n, er); });
+  const L = s.exists() ? listeDe(n, s) : DEPART[n]().sort(alpha);
   if (n === "courriers") ajouterRT(L);
   return (CACHE[n] = reparer(L));
 }
@@ -69,11 +86,15 @@ const reparer = (L) => { L.forEach((o) => { if (Array.isArray(o.items) && o.item
 function recoller(items) {
   const R = []; items.forEach((i) => { const p = R[R.length - 1]; if (p != null && (p.match(/\(/g) || []).length > (p.match(/\)/g) || []).length) R[R.length - 1] = p + ", " + i; else R.push(i); }); return R;
 }
-// Modification : relue juste avant (un autre poste a pu modifier la liste), puis enregistrée en entier
+// Modification : relue et enregistrée en entier dans une transaction (un autre poste a pu modifier la liste entre-temps) ; une lecture
+// en échec arrête tout, rien n'est écrit (R-A1)
 async function modifierListe(n, fn) {
-  const s = await getDoc(refListe(n)).catch(() => null), L = s && s.exists() ? JSON.parse(s.data().data || "[]") : DEPART[n]();
-  reparer(L); fn(L); L.sort(alpha);
-  await setDoc(refListe(n), { data: JSON.stringify(L), maj: serverTimestamp(), majPar: D().u.uid });
+  const L = await runTransaction(db, async (t) => {
+    const s = await t.get(refListe(n)).catch((er) => { throw erreurListe(n, er); }), L = listeDe(n, s);
+    reparer(L); fn(L); L.sort(alpha);
+    t.set(refListe(n), { data: JSON.stringify(L), maj: serverTimestamp(), majPar: D().u.uid });
+    return L;
+  });
   if (n === "courriers") ajouterRT(L);
   return (CACHE[n] = L);
 }
@@ -110,7 +131,7 @@ export async function ordosAudit3() {
 const FIEVRE = "Chimio – Fièvre sous chimiothérapie : conduite à tenir";
 window.orProtocole = async (pid, noms, opts) => {
   opts = opts || {}; A.fenetre('<p class="sous">Chargement…</p>', "large");
-  await chargerTypes(); const x = trouver(pid), cle = (s) => sansAcc(s).replace(/[^a-z0-9]/g, "");
+  if (!(await charge(chargerTypes()))) return; const x = trouver(pid), cle = (s) => sansAcc(s).replace(/[^a-z0-9]/g, "");
   const lies = (noms || []).map((n) => TYPES.find((o) => cle(o.nom) === cle(n))).filter(Boolean);
   if (opts.fievre) { const f = TYPES.find((o) => o.nom === FIEVRE); if (f && lies.indexOf(f) < 0) lies.push(f); }
   const autres = TYPES.filter((o) => /^Chimio/.test(o.nom) && lies.indexOf(o) < 0).sort(alpha), manque = (noms || []).filter((n) => !TYPES.some((o) => cle(o.nom) === cle(n)));
@@ -144,11 +165,11 @@ const titrePat = (x) => (x ? " — " + A.esc(x.r.nm) : " — liste du cabinet");
 const basGestion = '<div class="boutons"><button class="bt plein" onclick="fermerFenetre()">Fermer</button></div>';
 export async function gererListe(n) {
   T = null; A.fenetre('<p class="sous">Chargement…</p>', "large");
-  if (n === "courriers") { S = null; CQ = { pid: null, q: "", gestion: true }; CR = await lireListe("courriers"); vueCourriers(); return; }
+  if (n === "courriers") { S = null; CQ = { pid: null, q: "", gestion: true }; if (await charge(lireListe("courriers").then((L) => { CR = L; }))) vueCourriers(); return; }
   CQ = null; S = { pid: null, gestion: true, t: n === "medicaments" ? "medic" : n === "ordostypes" ? "ordo" : n === "examens" ? "exam" : "analyse", q: "", items: [], types: [] };
-  if (n === "medicaments") { await chargerBib(); vueListe(); }
-  else if (n === "ordostypes") { await Promise.all([chargerBib(), chargerTypes()]); vueTypes(); }
-  else { await chargerAnalyses(S.t); vueAnalyses(); }
+  if (n === "medicaments") { if (await charge(chargerBib())) vueListe(); }
+  else if (n === "ordostypes") { if (await charge(Promise.all([chargerBib(), chargerTypes()]))) vueTypes(); }
+  else if (await charge(chargerAnalyses(S.t))) vueAnalyses();
 }
 // Nombre d'éléments de chaque liste (Paramètres › Bibliothèques)
 export async function tailleListe(n) { return (await lireListe(n)).length; }
@@ -161,7 +182,7 @@ window.ordMedicaments = async (pid) => {
   const x = trouver(pid); if (!x || !peutEcrire()) return;
   S = { pid, t: "medic", q: "", items: [], types: [] }; T = null;
   A.fenetre('<p class="sous">Chargement des médicaments…</p>', "large");
-  await chargerBib(); vueListe();
+  if (await charge(chargerBib())) vueListe();
 };
 function vueListe() {
   const x = trouver(S.pid);
@@ -264,7 +285,7 @@ window.ordTypes = async (pid) => {
   const x = trouver(pid); if (!x || !peutEcrire()) return;
   S = { pid, t: "ordo", q: "", items: [], types: [] }; T = null;
   A.fenetre('<p class="sous">Chargement des ordonnances types…</p>', "large");
-  await Promise.all([chargerBib(), chargerTypes()]); vueTypes();
+  if (await charge(Promise.all([chargerBib(), chargerTypes()]))) vueTypes();
 };
 function vueTypes() {
   const x = trouver(S.pid); T = null;
@@ -322,7 +343,7 @@ window.otSupprimer = async (id) => {
   if (!gereListes()) return;
   const o = TYPES.find((z) => z.id === id); if (!o || !confirm("Supprimer l'ordonnance type « " + o.nom + " » ?\n\nLes ordonnances déjà faites ne changent pas.")) return;
   try { await modifierTypes((L) => { const i = L.findIndex((z) => z.id === id); if (i >= 0) L.splice(i, 1); }); A.toast("Ordonnance type supprimée."); listeTypes(); }
-  catch (e) { A.toast(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de modifier les ordonnances types." : "Suppression impossible."); }
+  catch (e) { A.toast(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de modifier les ordonnances types." : messageListe(e, "Suppression impossible.")); }
 };
 
 // Nouveau médicament / modifier : nom, posologie, classe thérapeutique
@@ -376,7 +397,7 @@ window.ordAnalyses = async (pid, f) => {
   const x = trouver(pid); if (!x || !peutEcrire()) return;
   S = { pid, t: f || "analyse", q: "", items: [], types: [] }; T = null;
   A.fenetre('<p class="sous">Chargement…</p>', "large");
-  await chargerAnalyses(S.t); vueAnalyses();
+  if (await charge(chargerAnalyses(S.t))) vueAnalyses();
 };
 window.ordExamens = (pid) => window.ordAnalyses(pid, "exam");
 function vueAnalyses() {
@@ -456,13 +477,13 @@ window.bilValider = async () => {
 };
 async function retirerDe(n, id) {
   try { const L = await modifierListe(n, (X) => { const i = X.findIndex((z) => z.id === id); if (i >= 0) X.splice(i, 1); }); if (n === FAM.la) ANA = L; else BIL = L; A.toast("Supprimé de la liste."); listeAnalyses(); }
-  catch (e) { A.toast(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de modifier cette liste." : "Suppression impossible."); }
+  catch (e) { A.toast(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de modifier cette liste." : messageListe(e, "Suppression impossible.")); }
 }
 window.anaSupprimer = (id) => { const a = ANA.find((z) => z.id === id); if (a && confirm("Supprimer « " + a.nom + " » de la liste ?")) retirerDe(FAM.la, id); };
 window.bilSupprimer = (id) => { const b = BIL.find((z) => z.id === id); if (b && confirm("Supprimer « " + b.nom + " » ?\n\nLes ordonnances déjà faites ne changent pas.")) retirerDe(FAM.lb, id); };
 async function basculerFavori(n, id) {
   try { const L = await modifierListe(n, (X) => { const z = X.find((y) => y.id === id); if (z) z.fav = !z.fav; }); if (n === FAM.la) ANA = L; else BIL = L; listeAnalyses(); }
-  catch (e) { A.toast(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de modifier cette liste." : "Modification impossible."); }
+  catch (e) { A.toast(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de modifier cette liste." : messageListe(e, "Modification impossible.")); }
 }
 window.anaFavori = (id) => basculerFavori(FAM.la, id);
 window.bilFavori = (id) => basculerFavori(FAM.lb, id);
@@ -470,18 +491,18 @@ window.bilFavori = (id) => basculerFavori(FAM.lb, id);
 // Favori ⭐ : en tête de liste, pour tout le cabinet
 window.mdFavori = async (id) => {
   try { await modifierBib((L) => { const z = L.find((y) => y.id === id); if (z) z.fav = !z.fav; }); liste(); }
-  catch (e) { A.toast(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de modifier la liste des médicaments." : "Modification impossible."); }
+  catch (e) { A.toast(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de modifier la liste des médicaments." : messageListe(e, "Modification impossible.")); }
 };
 window.otFavori = async (id) => {
   try { await modifierTypes((L) => { const z = L.find((y) => y.id === id); if (z) z.fav = !z.fav; }); listeTypes(); }
-  catch (e) { A.toast(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de modifier les ordonnances types." : "Modification impossible."); }
+  catch (e) { A.toast(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de modifier les ordonnances types." : messageListe(e, "Modification impossible.")); }
 };
 window.mdRetour = () => { if (S) (S.t === "ordo" ? vueTypes : vueListe)(); else A.fermerFenetre(); };
 window.mdSupprimer = async (id) => {
   if (!gereListes()) return;
   const m = BIB.find((z) => z.id === id); if (!m || !confirm("Retirer « " + m.nom + " » de la liste des médicaments ?\n\nLes ordonnances déjà faites ne changent pas.")) return;
   try { await modifierBib((L) => { const i = L.findIndex((y) => y.id === id); if (i >= 0) L.splice(i, 1); }); A.toast("Médicament retiré de la liste."); liste(); }
-  catch (e) { A.toast(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de modifier la liste des médicaments." : "Suppression impossible."); }
+  catch (e) { A.toast(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de modifier la liste des médicaments." : messageListe(e, "Suppression impossible.")); }
 };
 
 // ───── Fenêtre « Courriers » (07/10/2026) : modèles du cabinet (bibliotheques/courriers = [{ id, nom, html, fav }], départ :
@@ -494,7 +515,7 @@ window.ordCourriers = async (pid) => {
   const x = trouver(pid); if (!x || !peutEcrire()) return;
   S = null; T = null; CQ = { pid, q: "" };
   A.fenetre('<p class="sous">Chargement des courriers…</p>', "large");
-  CR = await lireListe("courriers"); vueCourriers();
+  if (await charge(lireListe("courriers").then((L) => { CR = L; }))) vueCourriers();
 };
 function vueCourriers() {
   const x = trouver(CQ.pid);
@@ -589,11 +610,11 @@ window.crValider = async () => {
 window.crSupprimer = async (id) => {
   const m = CR.find((z) => z.id === id); if (!m || !confirm(m.rt ? "Remettre le modèle d'origine de « " + m.nom + " » ?\n\nLes documents déjà enregistrés ne changent pas." : "Supprimer le modèle « " + m.nom + " » ?\n\nLes courriers déjà faits ne changent pas.")) return;
   try { CR = await modifierListe("courriers", (L) => { const i = L.findIndex((z) => z.id === id); if (i >= 0) L.splice(i, 1); }); A.toast("Modèle supprimé."); listeCourriers(); }
-  catch (e) { A.toast(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de modifier les modèles de courriers." : "Suppression impossible."); }
+  catch (e) { A.toast(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de modifier les modèles de courriers." : messageListe(e, "Suppression impossible.")); }
 };
 window.crFavori = async (id) => {
   try { CR = await modifierListe("courriers", (L) => { const z = L.find((y) => y.id === id); if (z) z.fav = !z.fav; }); listeCourriers(); }
-  catch (e) { A.toast(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de modifier les modèles de courriers." : "Modification impossible."); }
+  catch (e) { A.toast(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de modifier les modèles de courriers." : messageListe(e, "Modification impossible.")); }
 };
 
 // ───── L'ordonnance : feuille A5 / A4 modifiable, Valider / Valider + Imprimer / Fermer ─────
@@ -725,7 +746,7 @@ window.anModifier = async () => {
   // ordonnance écrite à la main (sans médicament de la liste) : elle s'ouvre telle quelle, pour ne rien perdre
   if (["medic", "ordo", "analyse", "exam"].indexOf(l.t) < 0 || !medicamentsDe(l.html).length) { ouvrirOrdonnance({ pid, t: l.t, ligne: l, types: l.types, html: l.html, format: l.format || "A5", taille: l.taille || 0 }); return; }
   S = { pid, t: l.t, q: "", items: medicamentsDe(l.html), modif: l, types: (l.types || []).slice() }; T = null;
-  A.fenetre('<p class="sous">Chargement…</p>', "large"); await Promise.all([chargerBib(), l.t === "ordo" ? chargerTypes() : null, estAnaT(l.t) ? chargerAnalyses(l.t) : null]);
+  A.fenetre('<p class="sous">Chargement…</p>', "large"); if (!(await charge(Promise.all([chargerBib(), l.t === "ordo" ? chargerTypes() : null, estAnaT(l.t) ? chargerAnalyses(l.t) : null])))) return;
   (l.t === "ordo" ? vueTypes : estAnaT(l.t) ? vueAnalyses : vueListe)();
 };
 // Renouveler : une nouvelle ordonnance du jour, même contenu, signée par le médecin du jour

@@ -148,7 +148,7 @@ window.docRT = async (pid, rid, type) => {
   if (type === "rdv" && !datesSeancesRT(r, D().ctx).dates.length) { A.toast("Indiquez la date de la 1re séance et le nombre de fractions."); return; }
   A.fenetre('<p class="sous">Ouverture du document…</p>', "large");
   if (type === "cr") await assurerConsultations(x).catch(() => null); // bilan de contrôle de la dernière consultation (3.6)
-  MOD[type] = await modeleRT(type).catch(() => null); // modèle modifié par le cabinet (12/10/2026)
+  MOD[type] = await modeleRT(type).catch(() => { A.toast("Modèle du cabinet illisible : modèle d'origine affiché. Fermez et rouvrez pour reprendre le vôtre."); return null; }); // modèle modifié par le cabinet (12/10/2026) ; liste illisible signalée (R-A1)
   const s = await getDoc(doc(col(), idDoc(pid, rid, type))).catch(() => null), e = s && s.exists() ? s.data() : null;
   F = { pid, rid, type, enreg: e };
   vue(x, r, e ? nettoyer(e.html) : contenuNeuf(x, r, type)); // version enregistrée nettoyée à l'affichage (audit du 10/10)

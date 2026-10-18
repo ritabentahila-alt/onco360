@@ -115,8 +115,7 @@ export async function appliquerAudit3() {
     const ids = r.supprimes.map((s) => s.id);
     await sauverDocs(ids, true);
     ids.forEach((id) => { const d = D().bibDoc[id]; delete D().ctx.bib[id]; if (d) D().bibOrdre[d] = (D().bibOrdre[d] || []).filter((x) => x !== id); });
-    const rs = doc(db, "espaces", A.ESPACE, "parametres", "protocolesSupprimes"), sv = await getDoc(rs).catch(() => null), l = sv && sv.exists() ? JSON.parse(sv.data().data || "[]") : [];
-    ids.forEach((id) => { if (l.indexOf(id) < 0) l.push(id); }); await setDoc(rs, { data: JSON.stringify(l) }).catch(() => {});
+    await noterSupprimes(ids);
   }
   await setDoc(rm, { audit3c: moi.le.slice(0, 10) }, { merge: true });
   if (!ecrits.length && !r.supprimes.length) return r;
@@ -236,14 +235,24 @@ window.prFav = async (id) => {
   const p = D().ctx.bib[id]; p.fav = p.fav ? 0 : 1;
   try { await sauverDocs([id]); A.$("prL").innerHTML = liste(); } catch (e) { p.fav = p.fav ? 0 : 1; A.toast(e.code === "permission-denied" ? "Vous n'avez pas le droit de modifier la bibliothèque." : e.message); }
 };
+// Liste des protocoles supprimés (parametres/protocolesSupprimes) : ajout dans une transaction ; une lecture en échec ou une liste abîmée
+// n'est jamais remplacée par les seuls nouveaux identifiants (R-A1, 18/10/2026) : rien n'est écrit, noté dans la console
+async function noterSupprimes(ids) {
+  const rs = doc(db, "espaces", A.ESPACE, "parametres", "protocolesSupprimes");
+  await runTransaction(db, async (t) => {
+    const sv = await t.get(rs); let l = [];
+    if (sv.exists()) { l = JSON.parse(sv.data().data || "[]"); if (!Array.isArray(l)) throw new Error("liste abîmée"); }
+    if (!ids.some((id) => l.indexOf(id) < 0)) return;
+    ids.forEach((id) => { if (l.indexOf(id) < 0) l.push(id); }); t.set(rs, { data: JSON.stringify(l) });
+  }).catch((er) => console.warn("protocoles supprimés : liste non mise à jour", ids, er));
+}
 window.prSuppr = async (id) => {
   const p = D().ctx.bib[id]; if (!confirm("Supprimer définitivement le protocole « " + p.nom + " » ?\nLes patients déjà traités gardent leur copie.")) return;
   const d = D().bibDoc[id];
   try {
     await sauverDocs([id], true); delete D().ctx.bib[id]; D().bibOrdre[d] = (D().bibOrdre[d] || []).filter((x) => x !== id); A.fermerFenetre();
     // Liste des protocoles supprimés : la conversion finale ne les recopie pas depuis l'application actuelle
-    const rs = doc(db, "espaces", A.ESPACE, "parametres", "protocolesSupprimes"), sv = await getDoc(rs).catch(() => null), l = sv && sv.exists() ? JSON.parse(sv.data().data || "[]") : [];
-    if (l.indexOf(id) < 0) { l.push(id); await setDoc(rs, { data: JSON.stringify(l) }).catch(() => {}); }
+    await noterSupprimes([id]);
     A.journal({ id: "", r: { nm: "" } }, "Protocole supprimé : " + p.nom); A.toast("Protocole supprimé."); pageProtocoles(); }
   catch (e) { A.toast(e.code === "permission-denied" ? "Vous n'avez pas le droit de modifier la bibliothèque." : e.message); }
 };
