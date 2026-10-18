@@ -338,6 +338,14 @@ types**, refus gardés) : R-A6 et R-E4 partent de là, sans les refaire.
       tout passe par le serveur (comme `ficheSpecialite`). Vérifier : Administration › Par spécialité, `functions/test-cabinets.js`, cabinet
       de démonstration, retouches gardées, export.
 
+- [x] **R-A6 bis Écart au modèle (demande du 18/10/2026 : « l'Administration voit-elle ce que chaque cabinet change ? » — non jusque-là ; testé, en ligne :
+      20261019a)** : fonction `modeleEcart` (Administration seulement, lecture seule, pas notée au journal) : réglages du cabinet sous la forme du
+      modèle (`reglagesDe`, même calcul que la reprise : sans patients, correspondants, tarifs) comparés au modèle de sa spécialité, partie par
+      partie : « Ajouté par le cabinet », « Absent du cabinet », « Modifié », date de dernière modification connue ; libellés en clair (`ecart`
+      de modele.js : « Mutuelle (nom affiché) », « 2e téléphone (présence) ») ; cabinet modèle : ce qu'il a changé depuis la dernière reprise.
+      Bouton « Écart au modèle » dans la fiche de chaque cabinet. Choix faits par Claude (à revoir si besoin) : écart du cabinet Bentahila aussi ;
+      consultation non notée au journal. Tests : test-modele 23/23, émulateurs 36/36, test_modele_admin 21/21.
+
 **Lot B – Ajouts demandés le 17/10**
 - [ ] **R-B1 RCP dans le menu principal, sous Tâches** (§ 4.1) : entrée « RCP » dans `MENU` (catalogue.js) juste après « Tâches », module
       `rcp`, route `#rcp`, même contenu que l'onglet (calendrier des semaines, période, Tous / À faire / Faits, case Fait, impression) ;
