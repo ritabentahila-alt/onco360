@@ -573,8 +573,10 @@ async function creerEspace(d, par, opts) {
   const ids = (await db.collection("espaces").listDocuments()).map((x) => x.id), e = opts.id && ids.indexOf(opts.id) < 0 ? opts.id : C.idCabinet(d.cabinet, ids), jour = new Date().toISOString().slice(0, 10), E = "espaces/" + e + "/";
   const FS = await formules(), spe = ((FS[opts.formule || "complet"] || FS.complet || {}).specialite) || "Oncologie médicale";
   const src = await source(par, spe), b = db.batch();
-  const sp = await ficheDe(spe); // fiche patient et consultation de la spécialité
-  b.set(db.doc("espaces/" + e), Object.assign({ nom: d.cabinet, titulaire: u.uid, cree: jour, creePar: par, actif: true, abonnement: C.abonnement({ formule: opts.formule || "complet" }, await formules()) }, sp.fiche ? { ficheSpe: sp.fiche } : {}, sp.consultation ? { consultSpe: sp.consultation } : {}, opts.espace || {}));
+  const sp = await ficheDe(spe); // fiche patient et consultation de la spécialité ; réglage du modèle (R-A6) sous celui du pack
+  const abonNeuf = C.abonnement({ formule: opts.formule || "complet" }, await formules());
+  if (sp.reglage) abonNeuf.reglage = C.reglageNettoye(MOD.reglageNeuf(abonNeuf.reglage || null, sp.reglage));
+  b.set(db.doc("espaces/" + e), Object.assign({ nom: d.cabinet, titulaire: u.uid, cree: jour, creePar: par, actif: true, abonnement: abonNeuf }, sp.fiche ? { ficheSpe: sp.fiche } : {}, sp.consultation ? { consultSpe: sp.consultation } : {}, opts.espace || {}));
   b.set(db.doc(E + "membres/" + u.uid), C.membreTitulaire(d, jour, par));
   src.protocoles.forEach((p) => b.set(db.doc(E + "protocoles/" + p.id), p.data));
   // Documentation : les PDF déposés dans la bibliothèque sont recopiés dans le cabinet (chemin réécrit)
@@ -937,6 +939,97 @@ exports.ficheSpecialite = onCall({ timeoutSeconds: 120, memory: "256MiB" }, asyn
   await jAdmin(par, "specialite", "", "", (quoi === "consultation" ? "Formulaire de consultation" : "Fiche patient") + " de « " + spe + " » enregistré · " + n + " cabinet(s) mis à jour");
   console.log(quoi, "de la spécialité", spe, "par", par, n, "cabinet(s)");
   return { cabinets: n, fiche };
+});
+// ───── Modèle de la spécialité (R-A6, 18/10/2026, demande du cabinet du 17/10) ─────
+// Le cabinet du Dr Bentahila (C.MODELE) est le modèle. « Reprendre » (à la demande, jamais en continu : un essai fait dans son cabinet ne
+// part pas aussitôt dans le modèle) : ses réglages effectifs (fiche patient et formulaires de consultation, avec les retouches de
+// l'administration et les siennes ; types de consultation ; paramètres de départ ; bibliothèques de prescription et modèles de documents de
+// RT ; réglage du cabinet : menu, cartes, onglets, fonctions) remplacent le modèle de la spécialité : plateforme/specialites[id] (fiche,
+// consultation, reglage, repris) et la bibliothèque de référence espaces/bib-… (parametres/*, bibliotheques/*). Jamais : patients, équipe,
+// lieux, correspondants, tarifs, identité et en-tête, profils et signatures, abonnement, Google Agenda, horaires des lieux et absences.
+// Avant d'écrire : différences partie par partie (confirmer = false), copie de l'état précédent dans le stockage
+// (plateforme/sauvegardes/…, serveur seulement), ligne au journal de l'administration. Les cabinets neufs reçoivent ce modèle.
+// « Appliquer » : le modèle dans un cabinet, parties cochées : rien de ce que le cabinet a modifié n'est écrasé, ce qui manque est ajouté
+// (fiche et formulaire de la spécialité : le modèle, sans rien retirer ; les retouches du cabinet restent par-dessus).
+const MOD = require("./modele.js"), PARAMS_MODELE = C.PARAMS_SPE.filter((k) => k !== "typesConsult");
+const jsonDoc = (x, def) => { try { return x && x.exists ? JSON.parse(x.data().data || "null") : def; } catch (e) { return def; } };
+const sauverCopie = async (chemin, v) => { await getStorage().bucket().file(chemin).save(JSON.stringify(v), { contentType: "application/json", resumable: false }); return chemin; };
+async function etatModele(spe) {
+  const id = C.idSpecialite(spe), bib = C.bibDe(spe), B = "espaces/" + bib + "/", sp = await db.doc("plateforme/specialites").get(), o = (sp.exists && sp.data()[id]) || {};
+  const [pa, tc, ...bb] = await Promise.all([Promise.all(PARAMS_MODELE.map((k) => db.doc(B + "parametres/" + k).get())), db.doc(B + "parametres/typesConsult").get()].concat(MOD.BIBLIOTHEQUES.map((k) => db.doc(B + "bibliotheques/" + k).get())));
+  const parametres = {}; PARAMS_MODELE.forEach((k, i) => { const v = jsonDoc(pa[i], null); if (v != null) parametres[k] = v; });
+  const bibliotheques = {}; MOD.BIBLIOTHEQUES.forEach((k, i) => { const v = jsonDoc(bb[i], null); if (v != null) bibliotheques[k] = v; });
+  return { id, bib, nom: o.nom || spe, repris: o.repris || null, modele: { fiche: o.fiche || null, consultation: o.consultation || null, reglage: o.reglage || null, typesConsult: jsonDoc(tc, null), parametres, bibliotheques } };
+}
+exports.modeleReprendre = onCall({ timeoutSeconds: 120, memory: "512MiB" }, async (req) => {
+  const par = req.auth && req.auth.uid, confirmer = !!(req.data || {}).confirmer;
+  if (!(await estAdministrateur(par))) throw new HttpsError("permission-denied", "Réservé à l'administration d'Onco360.");
+  const S = "espaces/" + C.MODELE + "/", es = await db.doc("espaces/" + C.MODELE).get(); if (!es.exists) throw new HttpsError("not-found", "Cabinet modèle introuvable.");
+  const FS = await formules(), ed = es.data(), spe = (ed.abonnement && FS[ed.abonnement.formule] && FS[ed.abonnement.formule].specialite) || "Oncologie – Radiothérapie", jour = new Date().toISOString().slice(0, 10);
+  const [fo, ac, pa, tc, ...bb] = await Promise.all([db.doc(S + "parametres/formulaires").get(), db.doc(S + "parametres/accueil").get(), Promise.all(PARAMS_MODELE.map((k) => db.doc(S + "parametres/" + k).get())), db.doc(S + "parametres/typesConsult").get()].concat(MOD.BIBLIOTHEQUES.map((k) => db.doc(S + "bibliotheques/" + k).get())));
+  const cat = await import("./site/catalogue.js"), E = MOD.effectifs(cat, ed, jsonDoc(fo, null), jsonDoc(ac, null));
+  const parametres = {}; PARAMS_MODELE.forEach((k, i) => { const v = C.parametreDepart(k, jsonDoc(pa[i], null), jour); if (v != null) parametres[k] = v; });
+  const bibliotheques = {}; MOD.BIBLIOTHEQUES.forEach((k, i) => { if (!bb[i].exists) return; let v = null; try { v = JSON.parse(C.sansEtoiles(bb[i].data().data, jour) || "null"); } catch (er) { v = null; } if (Array.isArray(v)) bibliotheques[k] = v; }); // étoiles retirées
+  const nouveau = { fiche: C.ficheNettoyee(MOD.modeleForm(cat, cat.FICHE, E.fiche, E.onco)), consultation: C.ficheNettoyee(MOD.modeleForm(cat, cat.CONSULT, E.consultation, E.onco)),
+    typesConsult: jsonDoc(tc, null), parametres, bibliotheques, reglage: C.reglageNettoye(E.reglage) };
+  const avant = await etatModele(spe), diffs = MOD.PARTIES.map(([k, lib]) => { const d = MOD.difference(avant.modele[k], nouveau[k]); return { k, lib, n: MOD.total(d), resume: MOD.resume(d) }; });
+  const n = diffs.reduce((t, d) => t + d.n, 0);
+  if (!confirmer) return { specialite: spe, repris: avant.repris, diffs, n };
+  const le = new Date().toISOString(), copieDe = await sauverCopie("plateforme/sauvegardes/modele-" + avant.id + "-" + Date.now() + ".json", { specialite: spe, le, par, modele: avant.modele });
+  const ref = db.doc("plateforme/specialites"), s0 = await ref.get(), tout = s0.exists ? s0.data() : {};
+  tout[avant.id] = Object.assign({}, tout[avant.id] || {}, { nom: spe, fiche: nouveau.fiche, consultation: nouveau.consultation, reglage: nouveau.reglage, ficheLe: le, fichePar: par, consultationLe: le, consultationPar: par, repris: { le, par, source: C.MODELE, n, copie: copieDe } });
+  await ref.set(tout);
+  const B = "espaces/" + avant.bib + "/", b = db.batch();
+  if (!(await db.doc("espaces/" + avant.bib).get()).exists) throw new HttpsError("failed-precondition", "Ouvrez d'abord une fois la bibliothèque de la spécialité (Administration › Bibliothèques, « Créer et ouvrir »).");
+  Object.entries(parametres).forEach(([k, v]) => b.set(db.doc(B + "parametres/" + k), { data: JSON.stringify(v) }));
+  if (nouveau.typesConsult) b.set(db.doc(B + "parametres/typesConsult"), { data: JSON.stringify(nouveau.typesConsult) });
+  Object.entries(bibliotheques).forEach(([k, v]) => b.set(db.doc(B + "bibliotheques/" + k), { data: JSON.stringify(v), maj: FieldValue.serverTimestamp(), majPar: par }));
+  await b.commit();
+  await jAdmin(par, "specialite", avant.bib, spe, "Modèle repris du cabinet du Dr Bentahila : " + diffs.filter((d) => d.n).map((d) => d.lib.split(" (")[0] + " (" + d.n + ")").join(", ") + " · état précédent : " + copieDe);
+  return { specialite: spe, repris: tout[avant.id].repris, diffs, n };
+});
+// Ce que le modèle ajouterait dans un cabinet, partie par partie (et l'écrit si confirmer)
+exports.modeleAppliquer = onCall({ timeoutSeconds: 120, memory: "512MiB" }, async (req) => {
+  const par = req.auth && req.auth.uid, d = req.data || {}, e = String(d.espace || ""), confirmer = !!d.confirmer;
+  if (!(await estAdministrateur(par))) throw new HttpsError("permission-denied", "Réservé à l'administration d'Onco360.");
+  if (!e || e === C.MODELE || C.estBib(e)) throw new HttpsError("invalid-argument", "Choisissez un autre cabinet que le cabinet modèle.");
+  const es = await db.doc("espaces/" + e).get(); if (!es.exists) throw new HttpsError("not-found", "Cabinet introuvable.");
+  const FS = await formules(), ed = es.data(), spe = (ed.abonnement && FS[ed.abonnement.formule] && FS[ed.abonnement.formule].specialite) || "Oncologie – Radiothérapie";
+  const M = (await etatModele(spe)).modele, parties = (Array.isArray(d.parties) ? d.parties : MOD.PARTIES.map((p) => p[0])).filter((k) => MOD.PARTIES.some((p) => p[0] === k));
+  const E = "espaces/" + e + "/", [pa, tc, ta, act, ...bb] = await Promise.all([Promise.all(PARAMS_MODELE.map((k) => db.doc(E + "parametres/" + k).get())), db.doc(E + "parametres/typesConsult").get(), db.doc(E + "finances/tarifs").get(), db.doc(E + "parametres/activites").get()].concat(MOD.BIBLIOTHEQUES.map((k) => db.doc(E + "bibliotheques/" + k).get())));
+  const ecr = [], avant = {}, diffs = [], ajouts = () => { const l = []; return { note: (c, v) => l.push(v && typeof v === "object" ? (Array.isArray(v) ? c : v.nom || v.lib || v.titre || v.k || v.id || c) : c + " : " + (v === true ? "oui" : v === false ? "non" : String(v).slice(0, 40))), l }; };
+  const partie = (k, lib, n, details) => diffs.push({ k, lib, n, resume: n ? details : "rien à ajouter" });
+  if (parties.indexOf("fiche") >= 0 || parties.indexOf("consultation") >= 0) {
+    [["fiche", "ficheSpe"], ["consultation", "consultSpe"]].forEach(([k, champ]) => { if (parties.indexOf(k) < 0 || !M[k]) return;
+      const v = MOD.modelePrioritaire(M[k], ed[champ] || {}), df = MOD.difference(ed[champ] || {}, v);
+      if (MOD.total(df)) { avant[champ] = ed[champ] || null; ecr.push(["update", db.doc("espaces/" + e), { [champ]: v }]); }
+      partie(k, (MOD.PARTIES.find((p) => p[0] === k) || [])[1], MOD.total(df), MOD.resume(df)); });
+  }
+  if (parties.indexOf("typesConsult") >= 0 && M.typesConsult) {
+    const cab = jsonDoc(tc, null), acts = []; const t = jsonDoc(ta, {}) || {}; Object.values(t.etablissements || {}).forEach((x) => (x.activites || []).forEach((a) => acts.push([a.type, a.libelle]))); Object.values(jsonDoc(act, {}) || {}).forEach((L) => (L || []).forEach((a) => acts.push([a.t, a.lib])));
+    const v = MOD.typesPourCabinet(cab, M.typesConsult, acts), df = MOD.difference(cab || [], v);
+    if (MOD.total(df)) { avant.typesConsult = cab; ecr.push(["set", db.doc(E + "parametres/typesConsult"), { data: JSON.stringify(v) }]); }
+    partie("typesConsult", "Types de consultation", MOD.total(df), MOD.resume(df));
+  }
+  if (parties.indexOf("parametres") >= 0) { let n = 0; const det = [];
+    PARAMS_MODELE.forEach((k, i) => { if (M.parametres[k] == null) return; const cab = jsonDoc(pa[i], null), a = ajouts(); const v = MOD.fusionManquant(cab, M.parametres[k], a.note);
+      if (a.l.length) { n += a.l.length; det.push(k + " : " + a.l.slice(0, 4).join(", ") + (a.l.length > 4 ? "…" : "")); avant["parametres/" + k] = cab; ecr.push(["set", db.doc(E + "parametres/" + k), { data: JSON.stringify(v) }]); } });
+    partie("parametres", "Paramètres de départ", n, det.join(" ; ")); }
+  if (parties.indexOf("bibliotheques") >= 0) { let n = 0; const det = [];
+    MOD.BIBLIOTHEQUES.forEach((k, i) => { if (!Array.isArray(M.bibliotheques[k])) return; const cab = jsonDoc(bb[i], null), a = ajouts(); const v = MOD.fusionManquant(Array.isArray(cab) ? cab : null, M.bibliotheques[k], a.note);
+      const nb = Array.isArray(cab) ? a.l.length : 0; // liste jamais enregistrée : elle devient celle du modèle (c'était la liste de départ)
+      if (!Array.isArray(cab) || nb) { n += Array.isArray(cab) ? nb : v.length; det.push(k + " : " + (Array.isArray(cab) ? nb + " ajouté(s)" + (nb ? " (" + a.l.slice(0, 3).join(", ") + (nb > 3 ? "…" : "") + ")" : "") : "liste du modèle (" + v.length + ")"));
+        avant["bibliotheques/" + k] = cab; ecr.push(["set", db.doc(E + "bibliotheques/" + k), { data: JSON.stringify(v), maj: FieldValue.serverTimestamp(), majPar: par }]); } });
+    partie("bibliotheques", "Bibliothèques de prescription et modèles de documents de RT", n, det.join(" ; ")); }
+  if (parties.indexOf("reglage") >= 0 && M.reglage) { const cab = (ed.abonnement && ed.abonnement.reglage) || null, a = ajouts(), v = C.reglageNettoye(MOD.fusionManquant(cab, M.reglage, a.note));
+    if (a.l.length) { avant.reglage = cab; ecr.push(["update", db.doc("espaces/" + e), { "abonnement.reglage": v }]); }
+    partie("reglage", "Réglage du cabinet", a.l.length, a.l.length + " élément(s) ajouté(s) : " + a.l.slice(0, 8).join(", ") + (a.l.length > 8 ? "…" : "")); }
+  const n = diffs.reduce((t, x) => t + x.n, 0);
+  if (!confirmer || !ecr.length) return { espace: e, specialite: spe, diffs, n, ecrit: false };
+  const copieDe = await sauverCopie(E + "sauvegardes/modele-" + Date.now() + ".json", { espace: e, le: new Date().toISOString(), par, avant });
+  for (let i = 0; i < ecr.length; i += 400) { const b = db.batch(); ecr.slice(i, i + 400).forEach(([op, ref, v]) => (op === "update" ? b.update(ref, v) : b.set(ref, v))); await b.commit(); }
+  await jAdmin(par, "modele", e, ed.nom || e, "Modèle de « " + spe + " » appliqué : " + diffs.filter((x) => x.n).map((x) => x.lib.split(" (")[0] + " (" + x.n + ")").join(", ") + " · état précédent : " + copieDe);
+  return { espace: e, specialite: spe, diffs, n, ecrit: true };
 });
 async function ficheDe(specialite) { try { const s = await db.doc("plateforme/specialites").get(), o = s.exists ? s.data()[C.idSpecialite(specialite)] : null; return o || {}; } catch (e) { return {}; } }
 // ───── Abonnements (17.4, 10/10/2026) ─────

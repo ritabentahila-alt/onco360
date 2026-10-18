@@ -233,7 +233,7 @@ function carteCabinet(c) {
     blocAbonnement(c) +
     '<div class="m">Créé le ' + esc(dfr(c.cree) || "—") + (c.activite ? " · dernière activité : " + esc(ilYa(c.activite.derniere)) + (c.activite.par ? " (" + esc(c.activite.par) + ")" : "") + " · " + (c.activite.n30 || 0) + " action" + ((c.activite.n30 || 0) > 1 ? "s" : "") + " en 30 jours" : "") + "</div>" +
     // Actions regroupées (17.3) : gérer · accès · zone sensible
-    '<div class="act-g"><div><span class="m">Gérer</span>' + (c.demo ? '<button class="clair petit" data-reinit="' + esc(c.id) + '">Réinitialiser la démo</button>' : "") + '<button class="clair petit" data-info="' + esc(c.id) + '">Modifier</button><button class="clair petit" data-form="' + esc(c.id) + '">Réglage du cabinet</button><button class="clair petit" data-jcab="' + esc(c.id) + '" title="Actions de l\'administration sur ce cabinet">Journal</button></div>' +
+    '<div class="act-g"><div><span class="m">Gérer</span>' + (c.demo ? '<button class="clair petit" data-reinit="' + esc(c.id) + '">Réinitialiser la démo</button>' : "") + '<button class="clair petit" data-info="' + esc(c.id) + '">Modifier</button><button class="clair petit" data-form="' + esc(c.id) + '">Réglage du cabinet</button>' + (c.modele || c.bibliotheque ? "" : '<button class="clair petit" data-modele="' + esc(c.id) + '" title="Ajouter à ce cabinet ce qui lui manque du modèle de sa spécialité (rien de ce qu\'il a modifié n\'est écrasé)">Appliquer le modèle</button>') + '<button class="clair petit" data-jcab="' + esc(c.id) + '" title="Actions de l\'administration sur ce cabinet">Journal</button></div>' +
     (c.modele || !c.titulaire.email ? "" : '<div><span class="m">Accès du médecin</span><button class="clair petit" data-lien="' + esc(c.id) + '">Lien du mot de passe</button><button class="clair petit" data-mail="' + esc(c.titulaire.email) + '">Renvoyer l\'e-mail</button></div>') +
     (c.modele ? "" : '<div class="sensible"><span class="m">Zone sensible</span>' + (c.actif ? '<button class="clair petit rouge-t" data-susp="' + esc(c.id) + '">Suspendre</button>' : '<button class="clair petit" data-react="' + esc(c.id) + '">Réactiver</button><button class="rouge petit" data-suppr="' + esc(c.id) + '">Supprimer</button>') + "</div>") +
     "</div></article>";
@@ -331,6 +331,7 @@ function brancherActions(R) {
   const on = (sel, f) => R.querySelectorAll(sel).forEach((b) => { b.onclick = () => f(b); });
   on("[data-info]", (b) => ouvrirInfos(cab(b.dataset.info)));
   on("[data-form]", (b) => ouvrirFormule(cab(b.dataset.form)));
+  on("[data-modele]", (b) => ouvrirAppliquerModele(cab(b.dataset.modele)));
   on("[data-lien]", (b) => lien(b, cab(b.dataset.lien)));
   on("[data-mail]", (b) => renvoyer(b, b.dataset.mail));
   on("[data-susp]", (b) => etat(b, cab(b.dataset.susp), false));
@@ -400,6 +401,54 @@ function brancherReference() {
   }; });
 }
 
+// ───── Modèle de la spécialité (R-A6, 18/10/2026, demande du cabinet du 17/10) ─────
+// Le cabinet du Dr Bentahila est le modèle. « Reprendre » : ses réglages effectifs remplacent le modèle de la spécialité (à la demande,
+// jamais en continu ; aperçu des différences partie par partie, copie de l'état précédent, journal) ; les cabinets neufs reçoivent ce modèle.
+// « Appliquer le modèle » (fiche d'un cabinet) : parties cochées, aperçu, rien de ce que le cabinet a modifié n'est écrasé, ce qui manque est
+// ajouté. Fonctions serveur modeleReprendre / modeleAppliquer (functions/index.js, logique functions/modele.js).
+const PARTIES_MODELE = [["fiche", "Fiche patient"], ["consultation", "Formulaires de consultation (et formulaire de chaque type)"], ["typesConsult", "Types de consultation"],
+  ["parametres", "Paramètres de départ (horaires, fériés, WhatsApp, couleurs, types de documents et de tâches, tâches automatiques, RCP, listes, impression, alertes)"],
+  ["bibliotheques", "Bibliothèques de prescription et modèles de documents de radiothérapie"], ["reglage", "Réglage du cabinet (menu, cartes, onglets des Paramètres, fonctions)"]];
+const cabModele = () => (CABINETS || []).find((c) => c.modele);
+function carteModele() {
+  const m = cabModele(); if (!m || speDuCab(m) !== SPEC) return "";
+  return '<section class="carte"><h3>Modèle de la spécialité</h3><p class="sous">Le cabinet « ' + esc(m.nom) + ' » est le modèle : ses réglages (fiche patient, formulaires et types de consultation, paramètres de départ, bibliothèques de prescription et modèles de documents de RT, menu, cartes et fonctions) sont repris ici <b>quand vous le décidez</b>, pas en continu. Jamais repris : patients, équipe, lieux, correspondants, tarifs, en-tête, profils et signatures, abonnement, Google Agenda, horaires et absences.</p>' +
+    '<p class="m" id="modEtat">État du modèle : lecture…</p><div class="barre"><button id="modVoir">Voir les différences et reprendre</button></div></section>';
+}
+const ligneDiff = (d) => "<tr><td>" + esc(d.lib.split(" (")[0]) + '</td><td class="n">' + (d.n || "—") + "</td><td>" + esc(d.resume) + "</td></tr>";
+const tableDiffs = (diffs) => '<div class="tableau"><table class="lc"><thead><tr><th>Partie</th><th class="n">Différences</th><th>Détail</th></tr></thead><tbody>' + diffs.map(ligneDiff).join("") + "</tbody></table></div>";
+async function etatModele() {
+  try { const o = await serveur("modeleReprendre", {}); const e = $("modEtat"); if (!e) return;
+    e.textContent = (o.repris ? "Modèle repris le " + dfr(String(o.repris.le).slice(0, 10)) : "Modèle jamais repris du cabinet") + " ; " + (o.n ? o.n + " différence" + (o.n > 1 ? "s" : "") + " depuis." : "aucune différence depuis."); }
+  catch (er) { const e = $("modEtat"); if (e) e.textContent = "État du modèle illisible : " + er.message; }
+}
+async function ouvrirReprendreModele() {
+  fenetre('<h2>Reprendre le modèle</h2><p class="sous">Lecture des réglages du cabinet modèle…</p>');
+  let o; try { o = await serveur("modeleReprendre", {}); } catch (er) { fenetre('<h2>Reprendre le modèle</h2><p class="err">' + esc(er.message) + "</p>"); return; }
+  fenetre("<h2>Reprendre le modèle de « " + esc(o.specialite) + ' »</h2><p class="sous">' + (o.repris ? "Dernière reprise : " + esc(dfr(String(o.repris.le).slice(0, 10))) + ". " : "") + "Ce qui changerait dans le modèle (ce que reçoivent les cabinets neufs ; les cabinets déjà créés ne changent pas tant que vous n'y appliquez pas le modèle) :</p>" +
+    tableDiffs(o.diffs) + '<p class="m">L\'état actuel du modèle est d\'abord mis de côté (copie), et la reprise est notée au journal.</p><div class="barre"><button id="modOk"' + (o.n ? "" : " disabled") + ">Reprendre comme modèle</button><button class=\"clair\" id=\"modNon\">Fermer</button></div>");
+  $("modNon").onclick = () => fermer(true);
+  $("modOk").onclick = async () => { const b = $("modOk"); b.disabled = true; b.textContent = "Reprise…";
+    try { const r = await serveur("modeleReprendre", { confirmer: true }); fermer(true); RES = "Modèle de « " + r.specialite + " » repris du cabinet modèle (" + r.n + " différence" + (r.n > 1 ? "s" : "") + ")."; dessiner(); }
+    catch (er) { b.disabled = false; b.textContent = "Reprendre comme modèle"; alert("Impossible : " + er.message); } };
+}
+function ouvrirAppliquerModele(c) {
+  if (!c) return;
+  fenetre("<h2>Appliquer le modèle à « " + esc(c.nom) + ' »</h2><p class="sous">Ce qui manque au cabinet est ajouté depuis le modèle de sa spécialité ; <b>rien de ce que le cabinet a modifié n\'est écrasé</b>. Fiche patient et formulaires : ceux du modèle, sans rien retirer, les retouches du cabinet restent par-dessus.</p>' +
+    '<div class="form" style="grid-template-columns:1fr">' + PARTIES_MODELE.map(([k, l]) => '<label style="font-weight:normal"><input type="checkbox" data-mp="' + k + '" checked style="width:auto;margin-right:6px">' + esc(l) + "</label>").join("") +
+    '<label style="font-weight:normal" class="m"><input type="checkbox" disabled style="width:auto;margin-right:6px">Correspondants · Tarifs des consultations : jamais dans le modèle (propres à chaque cabinet)</label></div>' +
+    '<div id="mpRes"></div><div class="barre"><button id="mpVoir">Voir ce qui serait ajouté</button><button class="clair" id="mpNon">Fermer</button></div>');
+  $("mpNon").onclick = () => fermer(true);
+  const parties = () => [...document.querySelectorAll("[data-mp]:checked")].map((i) => i.dataset.mp);
+  $("mpVoir").onclick = async () => { const b = $("mpVoir"); if (!parties().length) { $("mpRes").innerHTML = '<p class="err">Cochez au moins une partie.</p>'; return; } b.disabled = true; b.textContent = "Lecture…";
+    try { const o = await serveur("modeleAppliquer", { espace: c.id, parties: parties() });
+      $("mpRes").innerHTML = tableDiffs(o.diffs) + (o.n ? '<p class="m">L\'état actuel du cabinet est d\'abord mis de côté (copie), et l\'application est notée au journal.</p><div class="barre"><button id="mpOk">Appliquer</button></div>' : '<p class="m">Rien à ajouter : le cabinet a déjà tout le modèle.</p>');
+      if ($("mpOk")) $("mpOk").onclick = async () => { const k = $("mpOk"); k.disabled = true; k.textContent = "Application…";
+        try { const r = await serveur("modeleAppliquer", { espace: c.id, parties: parties(), confirmer: true }); fermer(true); RES = "Modèle appliqué à « " + c.nom + " » (" + r.n + " ajout" + (r.n > 1 ? "s" : "") + ")."; dessiner(); }
+        catch (er) { k.disabled = false; k.textContent = "Appliquer"; alert("Impossible : " + er.message); } }; }
+    catch (er) { $("mpRes").innerHTML = '<p class="err">' + esc(er.message) + "</p>"; }
+    finally { b.disabled = false; b.textContent = "Voir ce qui serait ajouté"; } };
+}
 // ───── Fenêtre (réglages d'un cabinet, lien du mot de passe) ─────
 function fenetre(html) {
   $("modal").innerHTML = '<div class="boite" role="dialog" aria-modal="true"><button class="x" id="mX" aria-label="Fermer">✕</button>' + html + "</div>";
@@ -813,7 +862,7 @@ function htmlSpecialites() {
     '<p class="m" style="margin:8px 4px">Nouvelle spécialité : étape 16.5.</p></div>';
   const sous = [["packs", "Packs"], ["biblio", "Bibliothèque et paramètres"]]; // « Modules et menus » retiré (10/10/2026 : déjà dans l'écran d'un pack)
   let droite = '<div class="puces">' + sous.map(([k, l]) => '<button class="puce' + (k === SOUS ? " on" : "") + '" data-sous="' + k + '">' + esc(l) + "</button>").join("") + "</div>";
-  if (SOUS === "biblio") { const B = (BIBS || []).find((b) => b.specialites.indexOf(SPEC) >= 0) || BIBLIOTHEQUES_SPE.find((b) => b.specialites.indexOf(SPEC) >= 0); droite += '<section class="carte"><p class="sous">Ce que reçoit chaque nouveau cabinet de cette spécialité : bibliothèques (protocoles, médicaments, ordonnances types, analyses et bilans, examens, courriers, documentation) et paramètres de base (horaires, fériés, WhatsApp, couleurs, types, tâches automatiques, RCP, listes, impression, alertes, tarifs RT). Jamais : correspondants, prix des consultations, lieux, équipe, patients.</p></section>' + (B ? '<div class="cabs">' + carteBib(B) + "</div>" : "") + carteFicheSpe("fiche") + carteFicheSpe("consultation"); }
+  if (SOUS === "biblio") { const B = (BIBS || []).find((b) => b.specialites.indexOf(SPEC) >= 0) || BIBLIOTHEQUES_SPE.find((b) => b.specialites.indexOf(SPEC) >= 0); droite += '<section class="carte"><p class="sous">Ce que reçoit chaque nouveau cabinet de cette spécialité : bibliothèques (protocoles, médicaments, ordonnances types, analyses et bilans, examens, courriers, documentation) et paramètres de base (horaires, fériés, WhatsApp, couleurs, types, tâches automatiques, RCP, listes, impression, alertes, tarifs RT). Jamais : correspondants, prix des consultations, lieux, équipe, patients.</p></section>' + carteModele() + (B ? '<div class="cabs">' + carteBib(B) + "</div>" : "") + carteFicheSpe("fiche") + carteFicheSpe("consultation"); }
   else {
     const L = packsDe(SPEC);
     droite += '<section class="carte"><p class="sous">Les packs de départ de « ' + esc(SPEC) + ' ». Chacun a son réglage complet (modules et fonctions, menu, cartes du tableau de bord, onglets des Paramètres, bibliothèques, limites). Un cabinet reçoit le réglage de son pack, puis peut être retouché. Modifier un pack met à jour les cabinets qui le suivent sans retouche.</p>' +
@@ -870,6 +919,7 @@ function brancherSpecialites() {
   document.querySelectorAll("[data-spec]").forEach((b) => { b.onclick = () => { SPEC = b.dataset.spec; dessiner(); }; });
   document.querySelectorAll("[data-sous]").forEach((b) => { b.onclick = () => { SOUS = b.dataset.sous; dessiner(); }; });
   document.querySelectorAll("[data-fsouvrir]").forEach((b) => { b.onclick = () => ouvrirFicheSpe(b.dataset.fsouvrir); });
+  if ($("modVoir")) { $("modVoir").onclick = () => ouvrirReprendreModele(); etatModele(); }
   document.querySelectorAll("[data-pm]").forEach((b) => { b.onclick = () => ouvrirPack(b.dataset.pm); });
   document.querySelectorAll("[data-pd]").forEach((b) => { b.onclick = () => { const F = JSON.parse(JSON.stringify(FORMULES_()[b.dataset.pd])); F.lib = (F.lib + " (copie)").slice(0, 40); ouvrirPack("", F); }; });
   document.querySelectorAll("[data-ps]").forEach((b) => { b.onclick = async () => { const L = JSON.parse(JSON.stringify(FORMULES_())), f = L[b.dataset.ps]; if (!confirm("Supprimer le pack « " + f.lib + " » ? (aucun cabinet ne l'utilise)")) return; delete L[b.dataset.ps]; try { await enregistrerPacks(L, "Pack « " + esc(f.lib) + " » supprimé"); } catch (e) { alert("Impossible : " + e.message); } }; });

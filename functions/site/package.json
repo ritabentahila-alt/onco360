@@ -1,0 +1,4 @@
+{
+  "type": "module",
+  "description": "Copie exacte de public/js/donnees/{catalogue,modules,facturation}.js (même calcul que le site), faite à chaque mise en ligne des fonctions (firebase.json, predeploy) ; vérifiée par node functions/test-modele.js"
+}

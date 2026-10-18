@@ -166,7 +166,7 @@ const MODULES_BIB = { chimio: true, rt: true, agenda: false, salle: false, tache
 // Paramètres de base d'une spécialité (10/10/2026) : gardés dans la bibliothèque de référence, modifiés par l'administration, copiés
 // dans chaque cabinet neuf, nettoyés : ni correspondants, ni prix des consultations (tarifs : actes RT seulement, à part), ni
 // absences, ni horaires par établissement, ni lieu et dates exceptionnelles de la RCP ; tâches automatiques confiées au titulaire.
-const PARAMS_SPE = ["listes", "calendrier", "whatsapp", "couleursAgenda", "typesDocuments", "typesTaches", "tachesAuto", "rcp", "reglages"];
+const PARAMS_SPE = ["listes", "calendrier", "whatsapp", "couleursAgenda", "typesDocuments", "typesTaches", "tachesAuto", "rcp", "reglages", "typesConsult"]; // typesConsult : R-A6 (18/10/2026)
 function parametreDepart(id, v, jour) {
   if (PARAMS_SPE.indexOf(id) < 0 || v == null) return null;
   if (id === "listes") return listesDepart(v);

@@ -309,7 +309,20 @@ types**, refus gardés) : R-A6 et R-E4 partent de là, sans les refaire.
       enregistrement de quelqu'un qui l'a ; **n'écrire que ces champs** (sans reconstruire `clinique`). Fiche, bandeau, impressions (âge,
       poids, allergie), `{poids}` des courriers : poids actuel avec sa date. **Ne change pas (test)** : doses des lignes en cours,
       avertissement d'écart > 10 % (séance précédente), alerte de perte de poids depuis le début de la ligne, bilan.
-- [ ] **R-A6 Réglages du cabinet Bentahila repris par l'Administration** (DEMANDÉ, § 3.5 ; part de P11). Aujourd'hui rien ne remonte : fiche
+- [x] **(18/10/2026, testé ; à publier avec les fonctions)** Fonctions `modeleReprendre` (aperçu partie par partie, puis reprise : copie de
+      l'état précédent dans le stockage `plateforme/sauvegardes/…`, `plateforme/specialites[id]` { fiche, consultation, reglage, repris },
+      `espaces/bib-…/parametres/*` et `bibliotheques/*`, journal) et `modeleAppliquer` (parties cochées, aperçu, copie `espaces/{e}/sauvegardes/…`,
+      fiche et formulaire : modèle prioritaire sans rien retirer, retouches du cabinet par-dessus ; le reste : `fusionManquant`, rien d'écrasé) ;
+      logique `functions/modele.js` (test-modele 20/20) ; réglages effectifs calculés avec le **même code que le site** (`functions/site/` = copie
+      exacte de catalogue.js, modules.js, facturation.js, faite au `predeploy` des fonctions, vérifiée par test-modele) ; `typesConsult` ajouté à
+      `PARAMS_SPE` ; cabinets neufs : réglage du pack complété par celui du modèle (`reglageNeuf`). Administration : carte « Modèle de la
+      spécialité » (Par spécialité › Bibliothèque et paramètres : « Modèle repris le … ; N différences depuis », aperçu, « Reprendre comme
+      modèle »), bouton « Appliquer le modèle » dans la fiche d'un cabinet (correspondants et tarifs : jamais dans le modèle). Question 6 : en
+      attendant, tout coché par l'Administration. **Copie ponctuelle** (réponse à Dr Bentahila le 18/10) : rien ne part tout seul, ni de son
+      cabinet vers le modèle, ni du modèle vers les cabinets. Tests : `tests/emulateur/test-modele.mjs` 29/29 (`npm run modele`, dans
+      `--regles`), `tests/test_modele_admin.py` 15/15. **À faire par Dr Bentahila après la mise en ligne** : Administration › Par spécialité ›
+      Bibliothèque et paramètres › « Voir les différences et reprendre ».
+      **R-A6 Réglages du cabinet Bentahila repris par l'Administration** (DEMANDÉ, § 3.5 ; part de P11). Aujourd'hui rien ne remonte : fiche
       patient et formulaires de consultation vivent à trois niveaux (modèle `plateforme/specialites[id].fiche` / `.consultation`, copie
       `espaces/{e}.ficheSpe` / `.consultSpe`, retouches `reglage.fiche` / `.consultation`) ; `parametres/typesConsult` n'est même pas dans
       `PARAMS_SPE`. (1) Fonction serveur réservée à l'Administration **« Reprendre les réglages d'un cabinet comme modèle »** (source

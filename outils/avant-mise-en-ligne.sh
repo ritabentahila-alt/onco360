@@ -23,7 +23,7 @@ R=$(grep -rIoE '\b0[5-7][0-9]{8}\b' public functions tests "${EXCL[@]}" 2>/dev/n
 [ -f public/ancienne-app.html ] && ko "public/ancienne-app.html est revenu" || ok "ancienne application absente du site"
 
 echo "3. Tests sans navigateur"
-for t in test-logique test-cabinets test-audit test-numeros test-exportation test-sauvegarde test-reference; do
+for t in test-logique test-cabinets test-audit test-numeros test-exportation test-sauvegarde test-reference test-modele; do
   if (cd functions && node $t.js > /tmp/onco360-$t.txt 2>&1) && ! grep -q '❌\|✘' /tmp/onco360-$t.txt; then ok "serveur : $t"; else ko "serveur : $t (voir /tmp/onco360-$t.txt)"; fi
 done
 for t in tests/moteur/test-recus.mjs tests/moteur/test-doses.mjs tests/moteur/test-vigilance.mjs tests/moteur/test-heures.mjs tests/moteur/test-rt.mjs tests/moteur/test-statut.mjs tests/moteur/test-typesconsult.mjs tests/moteur/test-audit3.mjs tests/moteur/test-audit3p4.mjs tests/moteur/test-seuils.mjs tests/moteur/test-p10.mjs tests/moteur/test-creneaux.mjs tests/moteur/test-poids.mjs; do node $t > /tmp/onco360-moteur.txt 2>&1 && ok "moteur : $(basename $t)" || ko "moteur : $(basename $t) (voir /tmp/onco360-moteur.txt)"; done
@@ -34,7 +34,7 @@ else echo "  (tests/seed.json absent : test-salle et test-bilan ignorés)"; fi
 # Q2 (12/10/2026) : parcours dans le navigateur, avec Chrome puis avec le moteur de Safari (des bugs n'existent que sur Safari)
 if [[ " $* " == *" --navigateur "* ]] && [ -f tests/seed.json ]; then
   echo "5. Parcours dans le navigateur (Chrome, puis Safari / WebKit)"
-  NAV_TESTS="test_debordement test_fiche test_fiche_donnees test_types_consult test_consultations34 test_salle_315 test_rdv_avenir test_ordo_entete test_protocoles test_agenda test_salle test_intention test_audit3 test_ordonnances_protocole test_p10 test_p9 test_bibliotheques_panne test_agenda_google test_creneaux test_salle_direct test_poids"
+  NAV_TESTS="test_debordement test_fiche test_fiche_donnees test_types_consult test_consultations34 test_salle_315 test_rdv_avenir test_ordo_entete test_protocoles test_agenda test_salle test_intention test_audit3 test_ordonnances_protocole test_p10 test_p9 test_bibliotheques_panne test_agenda_google test_creneaux test_salle_direct test_poids test_modele_admin"
   for nav in chromium webkit; do for t in $NAV_TESTS; do
     if (cd tests && NAVIGATEUR=$nav .venv/bin/python $t.py > /tmp/onco360-nav-$t-$nav.txt 2>&1) && ! grep -qE '✘|❌|Traceback' /tmp/onco360-nav-$t-$nav.txt; then ok "$nav : $t"; else ko "$nav : $t (voir /tmp/onco360-nav-$t-$nav.txt)"; fi
   done; done
@@ -43,6 +43,7 @@ if [[ " $* " == *" --regles "* ]]; then
   echo "4. Règles de sécurité (émulateur)"
   (cd tests/regles && npm test > /tmp/onco360-regles.txt 2>&1) && ! grep -q '✘' /tmp/onco360-regles.txt && ok "règles : $(grep -cE 'réussi' /tmp/onco360-regles.txt) suites" || ko "règles (voir /tmp/onco360-regles.txt)"
   (cd tests/regles && npm run export > /tmp/onco360-export.txt 2>&1) && ! grep -q '  ✘' /tmp/onco360-export.txt && ok "export, restauration et copie des fichiers (émulateurs)" || ko "export (voir /tmp/onco360-export.txt)"
+  (cd tests/regles && npm run modele > /tmp/onco360-modele.txt 2>&1) && ! grep -q '  ✘' /tmp/onco360-modele.txt && ok "modèle de la spécialité : reprendre, appliquer, cabinet neuf (émulateurs)" || ko "modèle (voir /tmp/onco360-modele.txt)"
 fi
 
 echo; if [ $KO = 0 ]; then echo "✅ Tout est bon : mise en ligne possible."; else echo "❌ $KO problème(s) : ne pas mettre en ligne."; exit 1; fi

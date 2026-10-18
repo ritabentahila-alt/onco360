@@ -76,6 +76,9 @@
     {
       "source": "functions",
       "codebase": "default",
+      "predeploy": [
+        "cp \"$PROJECT_DIR/public/js/donnees/catalogue.js\" \"$PROJECT_DIR/public/js/donnees/modules.js\" \"$PROJECT_DIR/public/js/donnees/facturation.js\" \"$RESOURCE_DIR/site/\""
+      ],
       "ignore": [
         "node_modules",
         ".git",
