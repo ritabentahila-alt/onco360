@@ -272,16 +272,17 @@ démarrage par un médecin (comme `marquerProtocoles`), avec une fenêtre récap
       garder les deux) ; un protocole modifié par le cabinet n'est jamais écrasé sans son accord ; même chose pour les ordonnances types et
       les listes ; chaque diffusion tracée (qui, quand, quelle version, acceptée par qui) ; **export PDF** (livret par localisation) et
       **Excel** de la bibliothèque ; bouton « Signaler une erreur » qui remonte à l'Administration.
-- [ ] **P10 Parcours de chimiothérapie : 4 fonctions retenues** (décision du 18/10/2026 ; le reste de P10 est abandonné) :
-      i) **interactions** signalées à la prescription et à la validation, sans bloquer (aprépitant + corticoïdes / AVK / contraceptifs ;
-      TKI + IPP ou inducteurs (rifampicine, carbamazépine) ; méthotrexate + AINS / IPP / cotrimoxazole ; allongement du QT : sétrons + TKI) ;
-      d'après les traitements en cours de la fiche patient et les molécules du protocole ;
-      j) **adaptation hépatique par molécule** (bilirubine, ASAT / ALAT, PAL du bilan du jour : docétaxel, paclitaxel, irinotécan,
-      anthracyclines, TKI) : réduction proposée, fenêtre d'avertissement comme pour le rein ;
-      k) **arrondi au flacon** (dose banding) : taille des flacons par molécule (réglable par le cabinet), dose arrondie proposée dans une
-      marge (ex. ± 5 %), affichée à côté de la dose calculée, le médecin choisit ;
-      n) **liste du lendemain pour la pharmacie de la clinique** : séances prévues le lendemain par établissement (patient, protocole,
-      molécules, doses, flacons), imprimable / à envoyer, depuis la salle d'attente ou l'agenda.
+- [x] **P10 (18/10/2026, testé ; version 20261018e)** : moteur `public/js/moteur/p10.js` (test-p10 19/19). **i) Interactions** (fenêtre de
+      validation et encart Vigilance, d'après les traitements en cours / antécédents de la fiche et les ordonnances liées) : aprépitant (EMEND)
+      + AVK ou contraception hormonale ; TKI (erlotinib, géfitinib, pazopanib, capécitabine…) + IPP / anti-H2 (dont OEDES) ; TKI + inducteurs
+      (rifampicine, carbamazépine, phénytoïne, millepertuis) ou inhibiteurs du CYP3A4 ; méthotrexate + AINS / IPP / cotrimoxazole ; QT (ribociclib,
+      vandétanib, nilotinib… + sétron ou autre médicament du QT) ; 5-FU + phénytoïne. **j) Foie** (bilirubine, ASAT / ALAT du bilan du jour) :
+      vinca-alcaloïdes, étoposide, gemcitabine, capécitabine, TKI, cyclophosphamide / ifosfamide (en plus des règles déjà en place).
+      **k) Arrondi au flacon** : dose arrondie au plus petit flacon proposée sous la dose calculée si l'écart reste < 5 % (lien qui l'applique ;
+      séance non validée) ; tailles des flacons réglables (Paramètres › Bibliothèques › Vigilance des molécules › « Flacons », `parametres/flacons`,
+      départ `FLACONS0`). **n) Pharmacie** : bouton « Pharmacie » de la salle d'attente : séances de chimiothérapie d'un jour (lendemain par
+      défaut), par établissement : patient, protocole, cure, anticancéreux, dose, flacons ; imprimable (`saPharmacie`, `chDosesSeance`).
+      Test : `tests/test_p10.py` 7/7.
 - [x] **P11 (18/10/2026, testé ; fonction `referenceDepuisCabinet` + Administration, en ligne : 20261018c)** : Administration › Bibliothèques ›
       carte « Oncologie – Radiothérapie » › **« Recopier depuis le cabinet Bentahila »** (confirmation) : protocoles, médicaments, ordonnances
       types, analyses, bilans, examens, courriers (étoiles retirées, trace « Copié de la bibliothèque de référence le … »), paramètres de base
