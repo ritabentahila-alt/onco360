@@ -233,7 +233,7 @@ des protocoles, bibliothèques de prescription, courriers dont modèles RT, para
 types**, refus gardés) : R-A6 et R-E4 partent de là, sans les refaire.
 
 **Lot A – Corrections urgentes**
-- [x] **(18/10/2026, testé ; contrôle complet bon, Chrome et Safari ; PAS ENCORE EN LIGNE, accord de Dr Bentahila à demander)** `listeDe` / `erreurListe` / `charge` (ordonnances.js,
+- [x] **(18/10/2026, testé ; contrôle complet bon, Chrome et Safari ; en ligne : 20261018g, accord de Dr Bentahila)** `listeDe` / `erreurListe` / `charge` (ordonnances.js,
       documentation.js : lecture en échec ou liste abîmée = « Liste du cabinet illisible, réessayez », modification en transaction) ; registre des
       migrations illisible = rien refait (v2.js, sinon `remplacerOrdosTypes` écrasait les ordonnances types) ; vigilances et protocoles supprimés
       protégés ; modèle RT illisible signalé (documents.js) ; test `tests/test_bibliotheques_panne.py` 18/18 (ajouté à `avant-mise-en-ligne.sh`),
