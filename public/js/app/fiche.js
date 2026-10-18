@@ -2,6 +2,7 @@
 import { addJ, srcImage } from "../moteur/outils.js";
 import { vesicant } from "../moteur/vigilance.js"; // mention « vésicant » (12/10/2026)
 import { diagnosticComplet } from "../moteur/statut.js";
+import { texteNiv } from "../moteur/doses.js";
 const CSSF = '@page{size:A4 landscape;margin:0}html,body{margin:0}body{padding:8mm 9mm;font-family:Arial,Helvetica,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}.fi{font-size:10.5px;color:#262838;width:100%}.fi table{border-collapse:collapse;width:100%}.fi td,.fi th{border:1px solid #2B2D5C;padding:4px 5px}.fi .ht td{height:26px}.fi .hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}.fi .hd img{max-height:70px;max-width:260px;image-rendering:auto}.fi .tb th i{font-size:8.5px;opacity:.85}.fi .ti{font-size:24px;font-weight:bold;color:#2B2D5C}.fi .ti span{font-size:18px;color:#555}.fi .lb{font-size:9.5px;color:#555}.fi .v{font-weight:bold;color:#2B2D5C;text-align:center;font-size:11.5px}.fi .tb{margin-top:10px}.fi .tb th{background:#2B2D5C;color:#fff;font-weight:normal;text-align:center;border-color:#b8bad0;font-size:10px;padding:6px 3px}.fi .tb td{border-top:1px dotted #9fa0b0;border-bottom:1px dotted #9fa0b0;text-align:center;height:19px}.fi .tb tr.vd td{height:9px}.fi .tb td.p{text-align:left;font-weight:bold}.fi .tb td.d{background:#E8F0FB;font-weight:bold;color:#2B2D5C;font-size:11.5px}.fi .tb td.m{border:1px solid #2B2D5C}.fi .bx{font-size:16px;line-height:10px}.fi .rem{color:#8A1C2B;font-weight:bold;font-size:9.5px;margin-top:5px}.fi .ft{color:#6B6D80;font-style:italic;font-size:8px;margin:4px 0}.fi .ca{display:flex;justify-content:space-between;margin-top:5px}.fi .ca div{border:1px solid #2B2D5C;height:64px;width:38%;padding:5px;font-size:10px}';
 const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const dfr = (d) => (d ? d.slice(8, 10) + "/" + d.slice(5, 7) + "/" + d.slice(0, 4) : "");
@@ -13,8 +14,8 @@ export function poso(d) {
   const s = d.u === "AUC" ? "AUC " + fr(d.d, d.d % 1 ? 1 : 0) : fr(d.d, d.d % 1 ? d.dec || 1 : 0) + " " + d.u;
   return s + (d.n ? " " + d.n : "");
 }
-export function doseTxt(d, v) {
-  if (d.u === "txt") return d.dt || "À compléter";
+export function doseTxt(d, v, poids) {
+  if (d.u === "txt") return texteNiv(d.dt, poids) || "À compléter"; // NIVESTIM : 30 ou 48 MU selon le poids (P3)
   if (v == null) return "";
   return fr(v, d.dec || (v % 1 ? 1 : 0)) + " mg" + (d.per ? " / prise" : "");
 }
@@ -39,7 +40,7 @@ export function ficheHTML(P, L, p, e, med) {
     if (di > 0) { h += vide; n++; }
     ds.forEach((o, r) => {
       const d = o.d, dt = d.nd || !e.date ? "" : dfr(addJ(e.date, j - 1)).slice(0, 10), z = e.dj && e.dj[o.x] && e.dj[o.x][j];
-      h += "<tr><td>" + dt + "</td><td>" + esc(d.jl || "J" + j) + '</td><td class="p">' + esc(d.p) + (d.u !== "txt" && vesicant(d.p) ? "<br><b>vésicant</b>" : "") + "</td><td>" + esc(poso(d)) + '</td><td class="d">' + esc(doseTxt(d, z ? z.dose : e.doses[o.x])) + "</td><td>" + esc(d.v || "") + "</td><td>" + esc(d.s || "") + "</td><td>" + esc(d.t || "") + '</td><td class="bx">☐</td>' + (r === 0 ? '<td class="m" rowspan="' + ds.length + '"></td><td class="m" rowspan="' + ds.length + '"></td><td class="m" rowspan="' + ds.length + '"></td>' : "") + "</tr>"; n++;
+      h += "<tr><td>" + dt + "</td><td>" + esc(d.jl || "J" + j) + '</td><td class="p">' + esc(d.p) + (d.u !== "txt" && vesicant(d.p) ? "<br><b>vésicant</b>" : "") + "</td><td>" + esc(poso(d)) + '</td><td class="d">' + esc(doseTxt(d, z ? z.dose : e.doses[o.x], e.poids)) + "</td><td>" + esc(d.v || "") + "</td><td>" + esc(d.s || "") + "</td><td>" + esc(d.t || "") + '</td><td class="bx">☐</td>' + (r === 0 ? '<td class="m" rowspan="' + ds.length + '"></td><td class="m" rowspan="' + ds.length + '"></td><td class="m" rowspan="' + ds.length + '"></td>' : "") + "</tr>"; n++;
     });
   });
   for (; n < 12; n++) h += vide;

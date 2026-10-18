@@ -34,6 +34,7 @@ export const MOL = {
   temozo: /TEMOZOLOMIDE|TEMODAL/,
   mito: /MITOMYCINE/,
   bleo: /BLEOMYCINE/,
+  trabect: /TRABECTEDINE|YONDELIS/,
 };
 // Produits vésicants (mention sur la fiche de chimiothérapie et dans la séance)
 export const VESICANTS = /DOXORUBICINE|ADRIAMYCINE|EPIRUBICINE|FARMORUBICINE|DAUNORUBICINE|IDARUBICINE|MITOXANTRONE|VINCRISTINE|VINBLASTINE|VINORELBINE|NAVELBINE|VINDESINE|MITOMYCINE|DACTINOMYCINE|TRABECTEDINE|YONDELIS/;
@@ -64,17 +65,21 @@ export const CUMULS = [
   { id: "anthra", nom: "anthracyclines (équivalent doxorubicine)", seuil: 450, alerte: 0.8, mols: [[/DOXORUBICINE|ADRIAMYCINE/, 1], [/EPIRUBICINE|FARMORUBICINE/, 0.5]], sauf: /LIPOSOM|PEGYL|CAELYX/,
     msg: "risque d'insuffisance cardiaque : FEVG à contrôler, poursuite à discuter (seuils habituels : doxorubicine 450 à 550 mg/m², épirubicine 900 mg/m²)" },
   { id: "oxali", nom: "oxaliplatine", seuil: 850, alerte: 1, mols: [[MOL.oxali, 1]], msg: "neuropathie fréquente au-delà : vérifier le grade de la neuropathie avant de poursuivre" },
+  // P3 (18/10/2026, audit n° 3) : bléomycine en mg (30 mg = 30 000 UI), pas par m² ; cisplatine (oreille, rein)
+  { id: "bleo", nom: "bléomycine", seuil: 400, alerte: 0.8, u: "mg", mols: [[MOL.bleo, 1]], msg: "toxicité pulmonaire : DLCO, auscultation ; 400 mg = 400 000 UI" },
+  { id: "cispla", nom: "cisplatine", seuil: 300, alerte: 1, mols: [[/^CISPLATINE/, 1]], msg: "ototoxicité et néphrotoxicité cumulatives : audiogramme, créatinine, magnésémie" },
 ];
 const parM2 = (doses, sc, C) => (doses || []).reduce((t, z) => {
   if (!z || z.dose == null || !(sc > 0) || (C.sauf && C.sauf.test(sa(z.p)))) return t;
-  const m = C.mols.find(([re]) => re.test(sa(z.p))); return m ? t + (z.dose / sc) * m[1] : t;
+  const m = C.mols.find(([re]) => re.test(sa(z.p))); return m ? t + (C.u === "mg" ? z.dose : z.dose / sc) * m[1] : t;
 }, 0);
+export const de = (nom) => (/^[aeiouyhéèê]/i.test(nom) ? "d'" : "de ") + nom;
 // o : { prods (doses de la séance), sc, histo, date } → [{ id, nom, avant, total, seuil, pct, C }] pour les familles de la séance
 export function cumuls(o) {
   return CUMULS.filter((C) => parM2(o.prods, 1, C) > 0).map((C) => {
     const avant = (o.histo || []).filter((s) => !o.date || !s.d || s.d <= o.date).reduce((t, s) => t + parM2(s.doses, s.sc, C), 0);
     const total = Math.round(avant + parM2(o.prods, o.sc, C));
-    return { id: C.id, nom: C.nom, avant: Math.round(avant), total, seuil: C.seuil, pct: Math.round((total / C.seuil) * 100), C };
+    return { id: C.id, nom: C.nom, avant: Math.round(avant), total, seuil: C.seuil, pct: Math.round((total / C.seuil) * 100), u: C.u || "mg/m²", C };
   });
 }
 
@@ -90,6 +95,8 @@ export const EXAMENS = [
   ["fevg", "FEVG", () => "%", "", ["her2", "anthra"]],
   ["ta", "Tension artérielle", () => "mmHg", "ex. 130/80", ["antiVegf", "itkAngio"]],
   ["prot", "Protéinurie", () => "g/24 h", "ou ++", ["antiVegf"]],
+  ["pal", "PAL", () => "UI/L", "", ["taxDoc", "trabect"]],
+  ["cpk", "CPK", () => "UI/L", "", ["trabect"]],
 ];
 export const examensProposes = (prods) => EXAMENS.filter((x) => x[4].some((f) => avec(prods, f))).map((x) => x[0]);
 
@@ -111,6 +118,8 @@ export function horsNorme(k, v, crU) {
   if (k === "fevg") return v < 50;
   if (k === "ta") { const t = lireTA(v); return !!t && (t.s >= 160 || t.d >= 100); }
   if (k === "prot") { const p = lireProt(v); return !!p && (p.croix >= 2 || p.g >= 2); }
+  if (k === "pal") return v > 130;
+  if (k === "cpk") return v > 200;
   return false;
 }
 
@@ -143,8 +152,8 @@ export function vigilances(o) {
     (o.patient && o.patient.sexe === "F" && o.patient.age >= 12 && o.patient.age <= 50 ? " ; test de grossesse ou contraception" : "") + ".");
   // Doses cumulées
   cumuls({ prods: P, sc: o.sc, histo: H, date: d }).forEach((c) => {
-    if (c.total >= c.seuil) m.push("dose cumulée d'" + c.nom + " : " + c.total + " mg/m² avec cette séance, seuil de " + c.seuil + " mg/m² atteint ou dépassé ; " + c.C.msg + ".");
-    else if (c.total >= c.seuil * c.C.alerte) m.push("dose cumulée d'" + c.nom + " : " + c.total + " mg/m² avec cette séance (" + c.pct + " % du seuil de " + c.seuil + " mg/m²) ; " + c.C.msg + ".");
+    if (c.total >= c.seuil) m.push("dose cumulée " + de(c.nom) + " : " + c.total + " " + c.u + " avec cette séance, seuil de " + c.seuil + " " + c.u + " atteint ou dépassé ; " + c.C.msg + ".");
+    else if (c.total >= c.seuil * c.C.alerte) m.push("dose cumulée " + de(c.nom) + " : " + c.total + " " + c.u + " avec cette séance (" + c.pct + " % du seuil de " + c.seuil + " " + c.u + ") ; " + c.C.msg + ".");
   });
   // Cœur : FEVG (anti-HER2, anthracyclines)
   const fevg = dernier("fevg"), fevgAv = avant("fevg");

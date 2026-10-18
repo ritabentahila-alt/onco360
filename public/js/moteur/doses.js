@@ -10,9 +10,13 @@ export const PREMED = ["SOLUMEDROL", "METHYLPREDNISOLONE", "DEXAMETHASONE", "BET
   "METOCLOPRAMIDE", "PRIMPERAN", "DOMPERIDONE", "ATARAX", "HYDROXYZINE", "POLARAMINE", "DEXCHLORPHENIRAMINE", "ATROPINE",
   "RANITIDINE", "FAMOTIDINE", "OMEPRAZOLE", "ESOMEPRAZOLE", "MOPRAL", "INEXIUM",
   "NIVESTIM", "FILGRASTIM", "ZARZIO", "GRANOCYTE", "LENOGRASTIM", "NEULASTA", "PEGFILGRASTIM",
-  "RECORMON", "EPREX", "EPOETINE", "ARANESP", "DARBEPOETINE", "ZOMETA", "ACIDE ZOL", "XGEVA", "PROLIA", "DENOSUMAB"];
+  "RECORMON", "EPREX", "EPOETINE", "ARANESP", "DARBEPOETINE", "ZOMETA", "ACIDE ZOL", "XGEVA", "PROLIA", "DENOSUMAB",
+  "PARACETAMOL", "DOLIPRANE", "PERFALGAN", "MANNITOL"]; // P4 (18/10/2026) : paracétamol et mannitol des prémédications
 const sansAccents = (t) => String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
 export const premed = (d) => d.u === "txt" || PREMED.some((m) => sansAccents(d.p).indexOf(m) >= 0);
+
+// P3 (18/10/2026) : NIVESTIM « 30 MU (48 MU si poids > 70 kg) » → la dose du patient d'après le poids de la séance (modifiable à la main)
+export const texteNiv = (t, poids) => (poids > 0 && /30 MU \(48 MU si poids > 70 kg\)/.test(String(t || "")) ? String(t).replace(/30 MU \(48 MU si poids > 70 kg\)/, poids > 70 ? "48 MU (poids " + poids + " kg > 70 kg)" : "30 MU (poids " + poids + " kg ≤ 70 kg)") : t);
 
 // A1 – surface corporelle (Mosteller), 2 décimales
 export const surface = (poids, taille) => (poids && taille ? Math.round(Math.sqrt((poids * taille) / 3600) * 100) / 100 : null);
@@ -53,7 +57,7 @@ export const protocoleDe = (L, bib) => L.pr || (bib && bib[L.protoId]);
 export function protocoleCure(L, k, bib) {
   const p = protocoleDe(L, bib); if (!p) return null;
   const mods = (L.mods || []).filter((m) => m.k <= k);
-  if (!mods.length && !p.dr.some((d) => d.tous || d.c1s || d.nc1)) return p;
+  if (!mods.length && !p.dr.some((d) => d.tous || d.c1s || d.nc1 || d.cmax)) return p;
   const q = Object.assign({}, p); let dr = p.dr.slice();
   // Modification décidée à une séance (m.j = J8, J15…) : dans SA cure, ne vaut qu'à partir de ce jour ; pleinement aux cures suivantes
   const jours = (d, f) => { const l = (d.j || [1]).filter(f); return l.length ? Object.assign({}, d, { j: l }) : null; };
@@ -62,7 +66,7 @@ export function protocoleCure(L, k, bib) {
     if (m.op === "add") { const d = partiel ? jours(m.d, (y) => y === 99 || y >= m.j) : m.d; if (d) dr.push(d); }
     else dr = dr.map((d) => (d.id !== m.id ? d : partiel ? jours(d, (y) => y !== 99 && y < m.j) : null)).filter(Boolean);
   });
-  q.dr = dr.filter((d) => (!d.tous || k % d.tous === 0) && (!d.c1s || k === 0) && (!d.nc1 || k > 0));
+  q.dr = dr.filter((d) => (!d.tous || k % d.tous === 0) && (!d.c1s || k === 0) && (!d.nc1 || k > 0) && (!d.cmax || k < d.cmax)); // cmax : cures 1 à n (P3)
   return q;
 }
 

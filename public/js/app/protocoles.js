@@ -5,6 +5,7 @@ import { db } from "../config.js";
 import { dedupIds, premed, protocoleValide } from "../moteur/doses.js";
 import { tableMol, edValide, editerAvec, menusCascade, valeursCascade } from "./chimio.js";
 import { correctionsAudit3 } from "../moteur/audit3.js";
+import { RISQUES, risqueEmetique, libRisque } from "../moteur/seuils.js";
 
 let A = null;
 export function installer(api) { A = api; }
@@ -118,6 +119,24 @@ export async function appliquerAudit3() {
   if (D().page === "protocoles") pageProtocoles();
   return r;
 }
+// Audit n° 3, P4 (18/10/2026) – une fois par bibliothèque (médecin ; drapeau audit3e), après appliquerAudit3 : consignes des ordres 2 et 3
+// du classeur, seuils du jour et ordonnances liées (moteur/audit3p4.js ; données chargées seulement ici). Sans fenêtre, noté au journal.
+export async function appliquerP4() {
+  if (!A.peut("parametres") || !D().membre || D().membre.role !== "medecin" || !BIB().length) return null;
+  const rm = doc(db, "espaces", A.ESPACE, "parametres", "migrations"), g = await getDoc(rm).catch(() => null);
+  if (!g || (g.exists() && g.data().audit3e)) return null;
+  const [{ correctionsP4 }, { P4 }] = await Promise.all([import("../moteur/audit3p4.js"), import("../donnees/audit3p4.js")]);
+  const r = correctionsP4(D().ctx.bib, P4), moi = { par: D().u.uid, parNom: (D().membre && D().membre.nom) || "", le: new Date().toISOString() };
+  const signer = (p, neuf) => { p.version = neuf ? 1 : (p.version || 1) + 1; Object.assign(p, { majLe: moi.le, majPar: moi.par, majParNom: moi.parNom }); if (neuf) p.st = "ok"; if (p.st === "ok") p.valide = Object.assign({ version: p.version }, moi); };
+  r.modifies.forEach((m) => { signer(m.p); D().ctx.bib[m.id] = m.p; });
+  r.crees.forEach((p) => { signer(p, true); D().ctx.bib[p.id] = p; rangerNouveau(p.id); });
+  const ecrits = r.modifies.map((m) => m.id).concat(r.crees.map((p) => p.id));
+  if (ecrits.length) await sauverDocs(ecrits);
+  await setDoc(rm, { audit3e: moi.le.slice(0, 10) }, { merge: true });
+  if (ecrits.length) A.journal({ id: "", r: { nm: "" } }, "Audit n° 3 (ordres 2 et 3) : " + r.modifies.length + " protocole(s) complété(s), " + r.crees.length + " créé(s)" + (r.ignores.length ? " ; " + r.ignores.length + " consigne(s) déjà faite(s)" : ""));
+  if (D().page === "protocoles") pageProtocoles();
+  return r;
+}
 function rangerNouveau(id) {
   const docs = Object.keys(D().bibOrdre).filter((d) => /^lib_perso/.test(d)), taille = (d) => JSON.stringify((D().bibOrdre[d] || []).map((i) => D().ctx.bib[i])).length;
   let d = docs.find((x) => taille(x) < 600000) || "lib_perso" + (docs.length ? "_" + docs.length : "");
@@ -153,7 +172,11 @@ window.prOuvrir = (id) => {
       '<div><label>Nom du protocole (schéma compris)</label><input value="' + esc(ED.nom) + '" onchange="prProp(\'nom\',this.value)"></div><div><label>Cycle (jours, 0 = continu)</label><input inputmode="numeric" value="' + esc(ED.c || 0) + '" onchange="prProp(\'c\',this.value)"></div>' +
       '<div><label>Statut</label><select onchange="prProp(\'st\',this.value)"><option value="ok"' + (valide(ED) ? " selected" : "") + '>Validé (utilisable)</option><option value="todo"' + (!valide(ED) ? " selected" : "") + ">Non validé</option></select></div>" +
       '<div class="large" style="grid-column:1/-1"><label>Rythme / observations</label><input value="' + esc(ED.r || "") + '" onchange="prProp(\'r\',this.value)"></div>' +
-      '<div class="large" style="grid-column:1/-1"><label>Source (référentiel, article, recommandation)</label><input value="' + esc(ED.src || "") + '" placeholder="ex. ESMO 2023, eviQ 1234, NCCN…" onchange="prProp(\'src\',this.value)"></div></div>' +
+      '<div class="large" style="grid-column:1/-1"><label>Source (référentiel, article, recommandation)</label><input value="' + esc(ED.src || "") + '" placeholder="ex. ESMO 2023, KEYNOTE-189…" onchange="prProp(\'src\',this.value)"></div>' +
+      // P3 (18/10/2026, audit n° 3) : risque émétique (calculé, modifiable), ordonnances liées, seuils particuliers du jour
+      '<div><label>Risque émétique</label><select onchange="prProp(\'re\',this.value)"><option value="">Calculé : ' + esc(libRisque(risqueEmetique(ED, premed))) + "</option>" + RISQUES.map(([k, l]) => '<option value="' + k + '"' + (ED.re === k ? " selected" : "") + ">" + esc(l) + "</option>").join("") + "</select></div>" +
+      '<div class="large" style="grid-column:2/-1"><label>Ordonnances liées (une par ligne, nom de l\'ordonnance type)</label><textarea rows="2" onchange="prProp(\'ordos\',this.value)">' + esc((ED.ordos || []).join("\n")) + "</textarea></div>" +
+      '<div class="large" style="grid-column:1/-1"><label>Seuils du jour (une par ligne ; rappelés dans la séance)</label><textarea rows="2" onchange="prProp(\'seuils\',this.value)">' + esc((ED.seuils || []).join("\n")) + "</textarea></div></div>" +
       (traceVal(ED) || ED.version ? '<p class="mesures" style="margin:4px 0 0">' + esc(traceVal(ED) || "Version " + ED.version) + (ED.majParNom ? " · modifié par " + esc(ED.majParNom) + " le " + A.dfrA(String(ED.majLe || "").slice(0, 10)) : "") + "</p>" : "") +
       '<h4 class="soustitre">Indications (branches de l\'arborescence)</h4><div class="tableau"><table class="tcures ed"><tr><th>Cancer</th><th>Localisation</th><th>Situation</th><th>Sous-groupe</th><th></th></tr>' +
       ED.ind.map((x, i) => "<tr>" + [0, 1, 2, 3].map((k) => '<td><input list="dl' + k + '" value="' + esc(x[k] || "") + '" style="min-width:130px" onchange="prInd(' + i + "," + k + ',this.value)"></td>').join("") + '<td><button class="mini rouge" onclick="prIndSup(' + i + ')">−</button></td></tr>').join("") + "</table></div>" +
@@ -175,7 +198,7 @@ window.prOuvrir = (id) => {
       if (!ED.ind.length) delete ED.ind;
       dedupIds(ED); delete ED.nouv;
       // 2.4 : version (+1 quand le contenu change), auteur, validation tracée (qui, quand, quelle version)
-      const ancien = D().ctx.bib[ED.id], cont = (p) => JSON.stringify([p.nom, p.c, p.dr, p.no || null]), change = !ancien || cont(ancien) !== cont(ED);
+      const ancien = D().ctx.bib[ED.id], cont = (p) => JSON.stringify([p.nom, p.c, p.dr, p.no || null, p.seuils || null, p.ordos || null, p.re || null]), change = !ancien || cont(ancien) !== cont(ED);
       const moi = { par: D().u.uid, parNom: (D().membre && D().membre.nom) || "", le: new Date().toISOString() };
       ED.version = ancien ? (ancien.version || 1) + (change ? 1 : 0) : 1; /* protocole d'origine sans numéro = version 1 */
       Object.assign(ED, { majLe: moi.le, majPar: moi.par, majParNom: moi.parNom }); // auteur de la modification (12/10/2026 : était avalé par le commentaire)
@@ -191,7 +214,9 @@ window.prOuvrir = (id) => {
     } catch (e) { A.occupe(A.$("fOk"), false); A.erreur(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de modifier la bibliothèque." : (e.message || String(e))); }
   }
 };
-window.prProp = (f, v) => { if (f === "src") { ED.src = String(v).trim(); return; } if (f === "c") ED.c = parseInt(v, 10) || 0; else if (f === "no") ED.no = String(v).split("\n").map((z) => z.trim()).filter(Boolean); else if (f === "assoc") ED.assoc = v ? 1 : 0; else ED[f] = String(v).trim(); };
+window.prProp = (f, v) => { if (f === "src") { ED.src = String(v).trim(); return; }
+  if (f === "ordos" || f === "seuils") { const l = String(v).split("\n").map((z) => z.trim()).filter(Boolean); if (l.length) ED[f] = l; else delete ED[f]; return; }
+  if (f === "re") { if (v) ED.re = v; else delete ED.re; return; } if (f === "c") ED.c = parseInt(v, 10) || 0; else if (f === "no") ED.no = String(v).split("\n").map((z) => z.trim()).filter(Boolean); else if (f === "assoc") ED.assoc = v ? 1 : 0; else ED[f] = String(v).trim(); };
 window.prInd = (i, k, v) => { ED.ind[i][k] = String(v).trim(); };
 window.prIndAj = () => { ED.ind.push(["", "", "", ""]); REDESSINER(); };
 window.prIndSup = (i) => { ED.ind.splice(i, 1); REDESSINER(); };
@@ -199,5 +224,7 @@ function voir() {
   const esc = A.esc;
   A.fenetre("<h3>" + esc(ED.nom) + " " + badgeSt(ED) + '</h3><p class="mesures">' + esc(ED.r || "") + (ED.c ? " – cycle " + ED.c + " j" : " – continu") + '</p><div class="tableau"><table class="tcures"><tr><th>Produit</th><th>Dose</th><th>Unité</th><th>Jours</th><th>Voie</th><th>Durée</th></tr>' +
     ED.dr.map((d) => "<tr><td>" + esc(d.p) + "</td><td>" + esc(d.u === "txt" ? d.pos || "" : d.d != null ? d.d : (d.c1 != null ? d.c1 + "/" + d.cn : "")) + "</td><td>" + esc(d.u) + "</td><td>" + esc(d.jl || (d.j || []).filter((y) => y !== 99).map((y) => "J" + y).join(" ")) + "</td><td>" + esc(d.v || "") + "</td><td>" + esc(d.t || "") + "</td></tr>").join("") + "</table></div>" +
-    (ED.no ? '<p style="color:#8A1C2B;font-size:13px">' + ED.no.map(esc).join("<br>") + "</p>" : "") + (traceVal(ED) ? '<p class="mesures">' + esc(traceVal(ED)) + "</p>" : "") + '<div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Fermer</button></div>', "large");
+    (ED.no ? '<p style="color:#8A1C2B;font-size:13px">' + ED.no.map(esc).join("<br>") + "</p>" : "") +
+    '<p class="mesures">Risque émétique : ' + esc(libRisque(ED.re || risqueEmetique(ED, premed))) + ((ED.ordos || []).length ? " · Ordonnances liées : " + ED.ordos.map(esc).join(" ; ") : "") + "</p>" +
+    ((ED.seuils || []).length ? '<p class="mesures">Seuils du jour : ' + ED.seuils.map(esc).join(" · ") + "</p>" : "") + (traceVal(ED) ? '<p class="mesures">' + esc(traceVal(ED)) + "</p>" : "") + '<div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Fermer</button></div>', "large");
 }

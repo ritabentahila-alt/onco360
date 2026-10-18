@@ -104,7 +104,7 @@ console.log("8 bis. Allergie (3.2)");
 cas("allergie au platine : carboplatine signalé", contient(vigilances(base({ prods: [P("CARBOPLATINE", 500, "AUC")], patient: { sexe: "H", age: 60, texte: "", allergie: "Sels de platine (carboplatine)" } })), "allergie connue"));
 cas("sans allergie cochée : rien", vigilances(base({ prods: [P("CARBOPLATINE", 500, "AUC")], patient: { sexe: "H", age: 60, texte: "", allergie: "" } })).length === 0);
 console.log("9. Outils");
-cas("examens proposés : docétaxel + trastuzumab", JSON.stringify(examensProposes([P("DOCÉTAXEL", 1), P("HERCEPTIN (trastuzumab)", 1)])) === JSON.stringify(["bili", "asat", "alat", "fevg"]), examensProposes([P("DOCÉTAXEL", 1), P("HERCEPTIN (trastuzumab)", 1)]));
+cas("examens proposés : docétaxel + trastuzumab (PAL ajoutée le 18/10 : seuil du docétaxel)", JSON.stringify(examensProposes([P("DOCÉTAXEL", 1), P("HERCEPTIN (trastuzumab)", 1)])) === JSON.stringify(["bili", "asat", "alat", "fevg", "pal"]), examensProposes([P("DOCÉTAXEL", 1), P("HERCEPTIN (trastuzumab)", 1)]));
 cas("hors norme : TA 165/90, FEVG 45, TSH 2 normale", horsNorme("ta", "165/90") && horsNorme("fevg", 45) && !horsNorme("tsh", 2));
 cas("vésicants : épirubicine oui, Caelyx et paclitaxel non", vesicant("ÉPIRUBICINE") && !vesicant("DOXORUBICINE LIPOSOMALE PÉGYLÉE (Caelyx)") && !vesicant("PACLITAXEL"));
 cas("notes : Herceptin → Anti-HER2", notesPour([P("HERCEPTIN (trastuzumab)", 1)], VIG0).map((n) => n.nom).join() === "Anti-HER2", notesPour([P("HERCEPTIN (trastuzumab)", 1)], VIG0).map((n) => n.nom));

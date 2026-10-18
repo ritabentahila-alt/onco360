@@ -178,7 +178,27 @@ démarrage par un médecin (comme `marquerProtocoles`), avec une fenêtre récap
       « Pré-chimiothérapie antiémétique » renommée par Dr Bentahila, restée à côté de la nouvelle) **retirée**, son étoile reportée sur
       « Chimio : risque émétique modéré ». Drapeaux `audit3c` (protocoles) et `audit3d` (ordonnances) : le calcul de l'audit est relancé
       une fois, ce qui est déjà fait n'est pas refait. Tests : test-audit3 48/48, test_audit3 17/17.
-- [ ] **P3 Éditeur de protocole et calculs** (avant d'appliquer le reste, pour que tout aille dans les bonnes cases) : champs
+- [x] **P3 Éditeur de protocole et calculs (partie faite le 18/10/2026, testé ; version 20261018b)** : moteur `public/js/moteur/seuils.js` :
+      **risque émétique** calculé (MASCC/ESMO 2023 : molécule la plus émétisante, AC = élevé, carboplatine AUC ≥ 5 / Enhertu / Trodelvy =
+      modéré haut, tout per os = oral) ou choisi par le médecin (`re`) ; **seuils du jour** : séances hebdomadaires (J8, J15… ou cycle de
+      7 jours) PNN ≥ 1,0 et plaquettes ≥ 75 G/L (`alertesBio(b, { hebdo })`), gemcitabine J8 / J15 (75 % / non faite), trabectédine, docétaxel
+      (transaminases + PAL), cabazitaxel ; **PAL et CPK** dans le bilan du jour ; **cumuls** bléomycine (en mg, seuil 400 mg = 400 000 UI)
+      et cisplatine (300 mg/m²) ; **NIVESTIM 30 / 48 MU** proposé d'après le poids (`texteNiv`, séance et fiche) ; option **« C1→n »**
+      (`cmax`, cures 1 à n) ; paracétamol et mannitol comptés comme prémédication. Éditeur : risque émétique, **ordonnances liées**,
+      **seuils du jour** (champs `re`, `ordos`, `seuils`) ; encart « Vigilance » de la séance : risque, ordonnances liées, seuils du
+      protocole. **Pas fait** : protocole lié comme champ (les phases suivantes sont des protocoles à part, cités dans les remarques) ;
+      case « EMEND prescrit » (non retenue). Tests : `test-seuils.mjs` 22/22, test-vigilance 60/60, test-doses 79/79.
+- [x] **P4 Ordres 2 et 3 appliqués (18/10/2026, testé ; version 20261018b)** : `outils/audit3/convertir-p4.mjs` lit le classeur
+      (`archives/audit-3/`) → `public/js/donnees/audit3p4.js` (248 protocoles, 398 consignes : ajouter / retirer une ligne, NIVESTIM,
+      Solumedrol, remarques, noms, indications, localisation) ; `moteur/audit3p4.js` les vérifie sur chaque protocole réel et les applique
+      une fois à l'ouverture par un médecin (`appliquerP4`, drapeau `audit3e`, sans fenêtre). Solumedrol baissé seulement avec une
+      ordonnance EMEND (élevé, AC) ; jamais « Hors référentiel » ; remarques « Ordonnance de sortie … » remplacées par le champ
+      « Ordonnances liées » ; créés : **« mFOLFIRINOX rectum J1-J15 / 28 j × 6 (PRODIGE 23) »** (irinotécan 180, l'original n'est plus
+      rangé en rectum) et **« KEYNOTE-A18 – phase 2 : Pembrolizumab 400 mg / 6 semaines × 15 »**. Essai sur la vraie bibliothèque du 18/10 :
+      aucune dose ni aucun jour de séance d'anticancéreux changé ; consignes laissées de côté = déjà faites (indications reprises en P1a,
+      Solumedrol J2 / J16 absent du TPF modifié). PRODIGE 5 (FOLFOX + RT) garde son NIVESTIM (le classeur n'en parle pas). Tests :
+      `test-audit3p4.mjs` 24/24 (vraie bibliothèque, `tests/moteur/donnees/bibliotheque-2026-10-18.json`), `test_audit3.py` 22/22.
+- [ ] ~~P3 (plan)~~ **Éditeur de protocole et calculs** (avant d'appliquer le reste, pour que tout aille dans les bonnes cases) : champs
       **Risque émétique** (proposé d'après la molécule la plus émétisante, AC = élevé, MASCC/ESMO 2023 ; modifiable), **Ordonnances liées**
       (choisies dans la bibliothèque, proposées d'après le risque et les molécules), **Seuils du jour** (valeurs par protocole reprises dans
       la fenêtre de validation existante), **option « cycles 1 à n »** (en plus de « C1 seule » / « sauf C1 » : CheckMate 9LA, POSEIDON),
@@ -188,7 +208,7 @@ démarrage par un médecin (comme `marquerProtocoles`), avec une fenêtre récap
       à côté des anthracyclines et de l'oxaliplatine) ; **PAL et CPK** dans le bilan du jour (docétaxel, trabectédine) ; seuils
       **hebdomadaires** (J8, J15… : PNN ≥ 1,0 G/L, plaquettes ≥ 75 G/L) et **gemcitabine J8 / J15** (100 % / 75 % / non faite) ;
       trabectédine, méthotrexate (DFG ≥ 60, 3e secteur), pémétrexed (DFG ≥ 45). Tests du moteur.
-- [ ] **P4 Ordres 2 et 3 appliqués** (114 + 70 « À ajuster », 3 « À modifier » : [105] mFOLFIRINOX rectum 180 mg/m², [192] KEYNOTE-A18
+- [ ] ~~P4 (plan)~~ **Ordres 2 et 3 appliqués** (114 + 70 « À ajuster », 3 « À modifier » : [105] mFOLFIRINOX rectum 180 mg/m², [192] KEYNOTE-A18
       + protocole lié, [251]) par l'écran P1, dans les nouveaux champs : sétron + Solumedrol de J1 (80 / 60 / 50 mg selon les réponses du 13/10), POLARAMINE
       (paclitaxel, cétuximab, cabazitaxel), **hydratation du cisplatine en lignes** (NaCl, KCl, MgSO4 ± mannitol), **NIVESTIM structuré**
       (54 protocoles) et retiré des 11 FOLFOX / FOLFIRI, atropine (irinotécan), surprophylaxie allégée (21 schémas à risque faible : un seul
