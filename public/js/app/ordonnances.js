@@ -540,12 +540,13 @@ function listeCourriers() {
   }).join("") + "</table>" : '<p class="sous" style="padding:12px">Aucun modèle ne correspond.' + gerer(" « Nouveau modèle » pour en créer un.") + "</p>";
 }
 // Modèle rempli pour le patient : champs {…} remplacés, « (e) » accordé ; un champ inconnu du dossier reste à compléter
+// R-A5 (18/10/2026) : {poids} = poids actuel (fiche ou dernière séance de chimio) et sa date
 function remplirCourrier(html, x) {
   const P = x.P || {}, e = A.esc, et = (D().etabsTous || D().etabs || []).find((z) => z.code === x.doc.etablissementId) || {};
   const a = age(P.ddn, D().t), nomEt = et.nom || x.doc.etablissementId || "";
   const art = /^[aeiouyhéèêâîôûàAEIOUYHÉÈÊÂÎÔÛÀ]/.test(nomEt) ? "l'" : /^(centre|cabinet|service|pôle|institut)\b/i.test(nomEt) ? "le " : /^(clinique|polyclinique|fondation|maison)\b/i.test(nomEt) ? "la " : "";
   const nom = P.nomF ? String(P.nomF).toUpperCase() + (P.prenom ? " " + String(P.prenom).toLowerCase().replace(/(^|[\s-])\S/g, (c) => c.toUpperCase()) : "") : x.r.nm;
-  const V = { patient: civilite(x) + nom, age: a != null ? a + " ans" : "", poids: P.poids ? String(P.poids).replace(".", ",") + " kg" + (P.poidsLe ? " (" + dateFr(P.poidsLe) + ")" : "") : "", // R-A5 naissance: P.ddn ? dateFr(P.ddn) : "", diagnostic: diagnosticComplet(P) || x.r.diag || "", ...tumeurDe(P), mutuelle: P.mut || "", cin: P.cin || "",
+  const V = { patient: civilite(x) + nom, age: a != null ? a + " ans" : "", poids: P.poids ? String(P.poids).replace(".", ",") + " kg" + (P.poidsLe ? " (" + dateFr(P.poidsLe) + ")" : "") : "", naissance: P.ddn ? dateFr(P.ddn) : "", diagnostic: diagnosticComplet(P) || x.r.diag || "", ...tumeurDe(P), mutuelle: P.mut || "", cin: P.cin || "",
     etablissement: nomEt ? art + nomEt : "", lieu: nomEt, ville: et.ville || "", date: dateFr(D().t), medecin: medecin() }; // ville vide : « À compléter » (1.7)
   ficheP.aImprimer(x).forEach((c) => { V["c_" + c.id] = c.texte; }); // champs ajoutés de la fiche (10/10/2026) : {c_identifiant}
   let h = accordMedecin(html, (A.medecinFiche() || {}).genre); // « soussignée » / « soussigné » selon le médecin (1.7)

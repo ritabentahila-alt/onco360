@@ -300,7 +300,7 @@ types**, refus gardés) : R-A6 et R-E4 partent de là, sans les refaire.
       jour : l'heure de validation ou de la saisie à la main départage) ; `recalculer` pose le poids actuel dans `x.P` (bandeau, impressions,
       nouveau champ {poids} des courriers « 64 kg (29/09/2026) ») ; fiche (Afficher, Modifier, en-tête) : « 75 kg (C4 J1 du 06/10/2026) » ;
       `cliniquePoids` (chimio.js) écrit `clinique.poids` et `poidsLe` sur la fiche telle qu'enregistrée, dans la même écriture que la séance
-      (`sauverLignes`, poids validé par la secrétaire), seulement avec le droit d'écrire la fiche ; doses inchangées (testé). Tests : `tests/test_poids.py`
+      (`sauverLignes`, poids validé par la secrétaire), seulement avec le droit d’écrire la fiche ; doses inchangées (testé). Tests : `tests/test_poids.py` (19 avec le courrier)
       17/17 ; test_fiche_tumeur corrigé (phrase d'aide derrière « ? », échec déjà là avant le 18/10).
       **R-A5 Poids de la fiche = poids de la dernière chimio** (DEMANDÉ, § 3.4). Une seule fonction **`poidsActuel(P)`** dans le moteur (Q5) :
       le plus récent entre la fiche (avec sa date) et les séances saisies ou validées (`c.poids`, `c.sea[j].poids`, planning `poids` /

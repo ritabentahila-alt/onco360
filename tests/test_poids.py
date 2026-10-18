@@ -11,6 +11,7 @@ def ok(c, m, d=None):
 S2, PIDS = avec_demo(S, E)
 S2[E + 'parametres/reglages'] = {'data': json.dumps({'impression': {'poids': True, 'age': True}})}
 P2 = PIDS[1]
+S2[E + 'bibliotheques/courriers'] = {'data': json.dumps([{'id': 'cT', 'nom': 'Courrier de test', 'html': '<p>Patient {patient} ; poids {poids} ; diagnostic {diagnostic} ; mutuelle {mutuelle} ; CIN {cin} ; lieu {lieu}</p>'}])}
 S2[E + 'patients/' + P2]['clinique'] = dict(S2[E + 'patients/' + P2]['clinique'], poids='78', poidsLe='2026-07-01')
 S2[E + 'patients/' + P2]['identite'] = dict(S2[E + 'patients/' + P2]['identite'], prenom='Deux', nom='PATIENT TEST 2 Deux')  # « Modifier » exige un prénom
 async def main():
@@ -46,6 +47,12 @@ async def main():
         await ev("(document.querySelector('[data-ot]')||{click(){}}).click()"); await ev("(document.getElementById('orPcOk')||{click(){}}).click()"); await pg.wait_for_timeout(1500)
         o = await ev("(document.getElementById('orPage')||{}).innerText||''")
         ok('75 kg (06/10/2026)' in o, 'ordonnance : « 75 kg (06/10/2026) » sous le nom du patient', o[:300])
+        await ev("fermerFenetre()")
+        # Courrier : {poids} rempli avec la date, et les champs voisins toujours remplis
+        await ev(f"ordCourriers('{P2}')"); await pg.wait_for_timeout(1000); await ev("crUtiliser('cT')"); await pg.wait_for_timeout(1200)
+        o = await ev("(document.getElementById('orPage')||{}).innerText||''")
+        ok('poids 75 kg (06/10/2026)' in o, 'courrier : {poids} = « 75 kg (06/10/2026) »', o[:300])
+        ok('Cancer du côlon' in o and 'CIN DEMO2' in o and 'mutuelle ' in o and 'À compléter : mutuelle' not in o and 'Clinique de démonstration' in o, 'courrier : {diagnostic}, {mutuelle}, {cin}, {lieu} toujours remplis', o[:300])
         await ev("fermerFenetre()")
         # Plus tard, poids saisi à la main dans la fiche (le 06/10 aussi) : la fiche passe devant
         await pg.clock.set_fixed_time("2026-10-06T10:30:00")  # une demi-heure après la validation
