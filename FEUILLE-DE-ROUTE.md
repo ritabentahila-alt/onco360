@@ -295,7 +295,14 @@ types**, refus gardés) : R-A6 et R-E4 partent de là, sans les refaire.
       changé relu (doc, P, r) ; l'agenda, le tableau de bord et le dossier ouvert en profitent. Index composite (`firestore.indexes.json`) ;
       lecture de la liste vérifiée par un test de règles. Coût : une lecture par dossier modifié, jamais tout relire. Vérifier : dossier
       ouvert par deux personnes (« Ce dossier vient d'être modifié »), bulles, pastille, tableau de bord, agenda, `nouveauJour`, téléphone.
-- [ ] **R-A5 Poids de la fiche = poids de la dernière chimio** (DEMANDÉ, § 3.4). Une seule fonction **`poidsActuel(P)`** dans le moteur (Q5) :
+- [x] **(18/10/2026, testé ; à publier)** `public/js/moteur/poids.js` (`poidsActuel`, `textePoids` ; test-poids 13/13) : le plus récent entre la fiche
+      (`clinique.poids` / `clinique.poidsLe`, nouveau champ de `CLINIQUE`) et les séances saisies ou validées (jamais à venir ni annulées ; même
+      jour : l'heure de validation ou de la saisie à la main départage) ; `recalculer` pose le poids actuel dans `x.P` (bandeau, impressions,
+      nouveau champ {poids} des courriers « 64 kg (29/09/2026) ») ; fiche (Afficher, Modifier, en-tête) : « 75 kg (C4 J1 du 06/10/2026) » ;
+      `cliniquePoids` (chimio.js) écrit `clinique.poids` et `poidsLe` sur la fiche telle qu'enregistrée, dans la même écriture que la séance
+      (`sauverLignes`, poids validé par la secrétaire), seulement avec le droit d'écrire la fiche ; doses inchangées (testé). Tests : `tests/test_poids.py`
+      17/17 ; test_fiche_tumeur corrigé (phrase d'aide derrière « ? », échec déjà là avant le 18/10).
+      **R-A5 Poids de la fiche = poids de la dernière chimio** (DEMANDÉ, § 3.4). Une seule fonction **`poidsActuel(P)`** dans le moteur (Q5) :
       le plus récent entre la fiche (avec sa date) et les séances saisies ou validées (`c.poids`, `c.sea[j].poids`, planning `poids` /
       `spoids`) ; renvoie poids, date, source (« C3 J1 du 29/09 »). À la validation d'une séance qui porte un poids et au poids du jour de la
       secrétaire : écrire `clinique.poids` et `clinique.poidsLe` si la personne a le droit « fiche patient », sinon au prochain

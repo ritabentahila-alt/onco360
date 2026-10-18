@@ -545,7 +545,7 @@ function remplirCourrier(html, x) {
   const a = age(P.ddn, D().t), nomEt = et.nom || x.doc.etablissementId || "";
   const art = /^[aeiouyhéèêâîôûàAEIOUYHÉÈÊÂÎÔÛÀ]/.test(nomEt) ? "l'" : /^(centre|cabinet|service|pôle|institut)\b/i.test(nomEt) ? "le " : /^(clinique|polyclinique|fondation|maison)\b/i.test(nomEt) ? "la " : "";
   const nom = P.nomF ? String(P.nomF).toUpperCase() + (P.prenom ? " " + String(P.prenom).toLowerCase().replace(/(^|[\s-])\S/g, (c) => c.toUpperCase()) : "") : x.r.nm;
-  const V = { patient: civilite(x) + nom, age: a != null ? a + " ans" : "", naissance: P.ddn ? dateFr(P.ddn) : "", diagnostic: diagnosticComplet(P) || x.r.diag || "", ...tumeurDe(P), mutuelle: P.mut || "", cin: P.cin || "",
+  const V = { patient: civilite(x) + nom, age: a != null ? a + " ans" : "", poids: P.poids ? String(P.poids).replace(".", ",") + " kg" + (P.poidsLe ? " (" + dateFr(P.poidsLe) + ")" : "") : "", // R-A5 naissance: P.ddn ? dateFr(P.ddn) : "", diagnostic: diagnosticComplet(P) || x.r.diag || "", ...tumeurDe(P), mutuelle: P.mut || "", cin: P.cin || "",
     etablissement: nomEt ? art + nomEt : "", lieu: nomEt, ville: et.ville || "", date: dateFr(D().t), medecin: medecin() }; // ville vide : « À compléter » (1.7)
   ficheP.aImprimer(x).forEach((c) => { V["c_" + c.id] = c.texte; }); // champs ajoutés de la fiche (10/10/2026) : {c_identifiant}
   let h = accordMedecin(html, (A.medecinFiche() || {}).genre); // « soussignée » / « soussigné » selon le médecin (1.7)
@@ -623,7 +623,7 @@ const dateFr = (d) => d.slice(8, 10) + "/" + d.slice(5, 7) + "/" + d.slice(0, 4)
 const civilite = (x) => (x.P.sexe === "F" ? "Mme " : x.P.sexe === "H" ? "M. " : "");
 // Sous le nom du patient (3.2, 12/10/2026) : âge et poids (au choix du cabinet, Paramètres › Impression) ; allergie si « oui » (toujours)
 const sousPatient = (x) => { const P = x.P || {}, a = age(P.ddn, D().t), l = [];
-  const I = reglages().impression; if (I.age && a != null) l.push(a + " ans"); if (I.poids && P.poids) l.push(String(P.poids).replace(".", ",") + " kg");
+  const I = reglages().impression; if (I.age && a != null) l.push(a + " ans"); if (I.poids && P.poids) l.push(String(P.poids).replace(".", ",") + " kg" + (P.poidsLe ? " (" + dateFr(P.poidsLe) + ")" : "")); // R-A5 : poids actuel et sa date
   return (l.length ? '<p class="or-pat2">' + A.esc(l.join(" · ")) + "</p>" : "") + (I.allergie && allergique(P) ? '<p class="or-pat2"><b>Allergie : ' + A.esc(P.allergies || "oui") + "</b></p>" : ""); }; // allergie : à cocher (Paramètres › Impression, 12/10/2026)
 const medecin = () => { const n = (A.medecinFiche() || {}).nom || ""; return n || "Dr "; };
 // Ordonnance d'analyses ou d'examens : « Prière de bien vouloir faire : », une ligne par analyse, bilan ou examen (07/10/2026 :

@@ -4,6 +4,7 @@
 import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { db } from "../config.js";
 import { fusionner, separer } from "../donnees/conversion.js";
+import { poidsActuel } from "../moteur/poids.js"; // R-A5 (18/10/2026)
 import { statutLigne, ligneCourante } from "../moteur/resume.js";
 import { etatLigne, protocoleDe, protocoleCure, seancesCure, seancesDe, dedupIds, joursDe, clairance, jourVersSeance, instantane, controleSeance, poidsAvant, poidsDebut, protocoleValide, REPERES, avecMolecule, reinSensible, reperesClairance, texteNiv, premed as premedP } from "../moteur/doses.js";
 import { addJ, ecart, num, age } from "../moteur/outils.js";
@@ -31,6 +32,16 @@ const fr2 = (v) => (v == null ? "" : Number(v).toLocaleString("fr-FR", { minimum
 const SEL = { pid: null, l: null, c: null }; // ligne et cure ouvertes (comme l'application actuelle)
 const MC = {}; // montants chargés par patient (droit « finances » uniquement)
 
+// R-A5 (18/10/2026, demande du 17/10) : le poids de la fiche suit celui de la dernière séance : à chaque enregistrement de la chimio par
+// quelqu'un qui a le droit d'écrire la fiche médicale, clinique.poids et clinique.poidsLe sont posés sur la fiche telle qu'elle est
+// enregistrée (rien d'autre n'est touché) ; sans ce droit : au prochain enregistrement par quelqu'un qui l'a. Rien si la fiche est déjà à jour.
+function cliniquePoids(x, apres, C0) {
+  if (!(A.traitMod() || A.peut("fichePatient"))) return null;
+  let pa = null; try { pa = poidsActuel(fusionner(x.id, Object.assign({}, x.doc, apres), null), D().ctx); } catch (e) { return null; }
+  const C = Object.assign({}, C0 || x.doc.clinique || {}), n = (v) => parseFloat(String(v == null ? "" : v).replace(",", "."));
+  if (!pa || pa.src !== "seance" || (n(C.poids) === pa.poids && C.poidsLe === pa.d)) return null;
+  C.poids = String(pa.poids); C.poidsLe = pa.d; return C;
+}
 // ───── Enregistrement (dossier médical + planning séparés, comme les droits l'exigent) ─────
 async function sauverLignes(x, lignes, quoi, extra) {
   const P = fusionner(x.id, x.doc, null); P.lignes = lignes; if (extra) Object.assign(P, extra);
@@ -47,13 +58,15 @@ async function sauverLignes(x, lignes, quoi, extra) {
     const ancien = JSON.parse(x.doc.planningJson || "{}");
     Object.keys(ancien).forEach((lid) => Object.keys(ancien[lid] || {}).forEach((n) => { const a = ancien[lid][n] || {}; ["poids", "spoids", "pv"].forEach((f) => { if (a[f] != null) ((pl[lid] = pl[lid] || {})[n] = pl[lid][n] || {})[f] = a[f]; }); }));
     const pj = JSON.stringify(pl); if (pj === (x.doc.planningJson || "{}")) return;
-    await A.enregistrer(x, { planningJson: pj }, quoi); return;
+    const cp = cliniquePoids(x, { planningJson: pj });
+    await A.enregistrer(x, Object.assign({ planningJson: pj }, cp ? { clinique: cp } : {}), quoi); return;
   }
   if (patient.lignesJson !== x.doc.lignesJson) changes.lignesJson = patient.lignesJson;
   if (patient.planningJson !== x.doc.planningJson) changes.planningJson = patient.planningJson;
   // 12/10/2026 : les valeurs passées (ex. poids d'une nouvelle ligne) sont posées sur la fiche médicale telle qu'elle est enregistrée, sans
   // la reconstruire par `separer` (qui rangeait dans _autres les champs ajoutés, l'allergie, le statut, et perdait identite.extra)
   if (extra) { const C = Object.assign({}, x.doc.clinique || {}, extra); if (JSON.stringify(C) !== JSON.stringify(x.doc.clinique || {})) changes.clinique = C; }
+  const cp = cliniquePoids(x, changes, changes.clinique); if (cp) changes.clinique = cp; // R-A5
   if (!Object.keys(changes).length) return;
   await A.enregistrer(x, changes, quoi);
 }
@@ -825,7 +838,8 @@ async function poidsSecretaire(x, L, k, j, v) {
   const pl = JSON.parse(x.doc.planningJson || "{}"), o = ((pl[L.id] = pl[L.id] || {})[n] = pl[L.id][n] || {});
   if (j > 1) (o.spoids = o.spoids || {})[j] = w; else o.poids = w;
   (o.pv = o.pv || {})[j] = { nom: document.getElementById("nomMenu").textContent, par: D().u.uid, le: new Date().toISOString() };
-  await A.enregistrer(x, { planningJson: JSON.stringify(pl) }, "Poids de la C" + n + (j > 1 ? " J" + j : "") + " validé : " + w + " kg");
+  const pj = JSON.stringify(pl), cp = cliniquePoids(x, { planningJson: pj }); // R-A5 : la fiche suit (droit « fiche patient »)
+  await A.enregistrer(x, Object.assign({ planningJson: pj }, cp ? { clinique: cp } : {}), "Poids de la C" + n + (j > 1 ? " J" + j : "") + " validé : " + w + " kg");
   A.toast("Poids validé : " + w + " kg.");
 }
 function eclate(c, d) { ["pct", "ov"].forEach((t) => { if (c[t] && num(c[t][d.id]) != null) { joursDe(d).forEach((j) => { if (c[t][d.id + "@" + j] == null) c[t][d.id + "@" + j] = c[t][d.id]; }); delete c[t][d.id]; } }); }

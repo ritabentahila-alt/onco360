@@ -1,0 +1,40 @@
+// R-A5 (18/10/2026) : poids actuel du patient (fiche ou dernière séance de chimio), sans navigateur : node tests/moteur/test-poids.mjs
+// Patients et protocoles fictifs, écrits ici. Vérifie aussi que les doses ne changent pas (elles ne lisent pas le poids de la fiche).
+import { poidsActuel, textePoids } from "../../public/js/moteur/poids.js";
+import { etatLigne } from "../../public/js/moteur/doses.js";
+let ok = 0, ko = 0;
+const cas = (nom, v, d) => { if (v) { ok++; console.log("  ✔ " + nom); } else { ko++; console.log("  ✘ " + nom + (d === undefined ? "" : "  " + JSON.stringify(d).slice(0, 300))); } };
+const CTX = { aujourdhui: "2026-10-12", bib: {} };
+const GEM = { id: "gem", nom: "Gemcitabine", c: 21, dr: [{ id: "g", p: "GEMCITABINE", d: 1000, u: "mg/m²", j: [1, 8] }] };
+const ligne = (cures) => ({ id: "L1", protoId: "gem", pr: JSON.parse(JSON.stringify(GEM)), j1: "2026-09-01", poids: "70", creat: "", crU: "mgL", cures });
+const P = (o) => Object.assign({ id: "p", taille: "170", ddn: "1966-05-01", sexe: "F", poids: "72", poidsLe: "2026-08-20" }, o);
+let r = poidsActuel(P({ lignes: [] }), CTX);
+cas("sans chimio : le poids de la fiche, avec sa date", r && r.v === "72" && r.src === "fiche" && r.d === "2026-08-20" && textePoids(r) === "72 kg (le 20/08/2026)", r);
+r = poidsActuel(P({ lignes: [ligne([{ st: "recue", reelle: "2026-09-01", poids: "68" }, { st: "recue", reelle: "2026-09-22", poids: "66,5" }, {}])] }), CTX);
+cas("dernière séance validée (C2 J1 du 22/09) : 66,5 kg", r && r.v === "66,5" && r.poids === 66.5 && r.src === "seance" && r.lib === "C2 J1 du 22/09/2026" && textePoids(r) === "66,5 kg (C2 J1 du 22/09/2026)", r);
+r = poidsActuel(P({ lignes: [ligne([{ st: "recue", reelle: "2026-09-01", poids: "68", sea: { 8: { st: "recue", d: "2026-09-08", poids: "67" } } }, {}])] }), CTX);
+cas("J8 validé plus récent que le J1 : poids du J8", r && r.v === "67" && r.lib === "C1 J8 du 08/09/2026", r);
+r = poidsActuel(P({ poids: "75", poidsLe: "2026-10-01", lignes: [ligne([{ st: "recue", reelle: "2026-09-01", poids: "68" }, {}])] }), CTX);
+cas("poids de la fiche plus récent (01/10) que la dernière séance : celui de la fiche", r && r.v === "75" && r.src === "fiche", r);
+r = poidsActuel(P({ poidsLe: "", lignes: [ligne([{ st: "recue", reelle: "2026-09-01", poids: "68" }, {}])] }), CTX);
+cas("fiche sans date : la séance passe avant", r && r.v === "68" && r.src === "seance", r);
+r = poidsActuel(P({ lignes: [ligne([{ st: "recue", reelle: "2026-09-01", poids: "68" }, { fixe: "2026-10-20", poids: "64" }])] }), CTX);
+cas("séance à venir (20/10) : ignorée", r && r.v === "68", r);
+r = poidsActuel(P({ lignes: [ligne([{ st: "recue", reelle: "2026-09-01", poids: "68" }, { st: "annulee", reelle: "2026-09-22", poids: "60" }])] }), CTX);
+cas("cure annulée : ignorée", r && r.v === "68", r);
+r = poidsActuel(P({ lignes: [ligne([{ st: "recue", reelle: "2026-09-01", poids: "68" }, { fixe: "2026-10-12", poids: "65" }])] }), CTX);
+cas("poids saisi aujourd'hui (séance du jour, pas encore validée) : pris", r && r.v === "65" && r.lib === "C2 J1 du 12/10/2026", r);
+r = poidsActuel(P({ poids: "", poidsLe: "", lignes: [ligne([{}])] }), CTX);
+cas("rien de saisi : aucun poids", r === null, r);
+r = poidsActuel(P({ lignes: [ligne([{ st: "recue", reelle: "2026-10-01", poids: "abc" }])] }), CTX);
+cas("poids illisible : ignoré (la fiche reste)", r && r.v === "72" && r.src === "fiche", r);
+r = poidsActuel(P({ poids: "70", poidsLe: "2026-10-01T09:00:00.000Z", lignes: [ligne([{ st: "recue", reelle: "2026-10-01", valLe: "2026-10-01T10:30:00.000Z", poids: "68" }])] }), CTX);
+cas("même jour : séance validée à 10 h 30 après le poids noté à la main à 9 h : la séance", r && r.v === "68" && r.src === "seance" && r.lib === "C1 J1 du 01/10/2026", r);
+r = poidsActuel(P({ poids: "70", poidsLe: "2026-10-01T11:00:00.000Z", lignes: [ligne([{ st: "recue", reelle: "2026-10-01", valLe: "2026-10-01T10:30:00.000Z", poids: "68" }])] }), CTX);
+cas("même jour : poids corrigé à la main à 11 h après la validation : la fiche", r && r.v === "70" && r.src === "fiche" && textePoids(r) === "70 kg (le 01/10/2026)", r);
+// Les doses ne dépendent pas du poids de la fiche
+const L = ligne([{ st: "recue", reelle: "2026-09-01", poids: "68" }, {}]);
+const d1 = JSON.stringify(etatLigne(JSON.parse(JSON.stringify(L)), P({ poids: "72" }), CTX).map((e) => e.g.map((g) => [g.poids, g.sc, g.doses])));
+const d2 = JSON.stringify(etatLigne(JSON.parse(JSON.stringify(L)), P({ poids: "50" }), CTX).map((e) => e.g.map((g) => [g.poids, g.sc, g.doses])));
+cas("doses identiques quel que soit le poids de la fiche (72 ou 50 kg)", d1 === d2);
+console.log("\n" + ok + " réussis, " + ko + " échoués"); process.exit(ko ? 1 : 0);

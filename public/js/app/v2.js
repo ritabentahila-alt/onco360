@@ -7,7 +7,8 @@ import { numeroRecu, cleRecuRdv, cleRecuCons, idRecu, decisionRecu, recuAEcrire 
 import { fusionner, cliniqueRemise, REMIS } from "../donnees/conversion.js";
 import { resume } from "../moteur/resume.js";
 import { chimioAVenir } from "../moteur/agenda.js";
-import { occupations, chevauche, texteConflit } from "../moteur/creneaux.js"; // R-A3 (18/10/2026) : créneaux pris par les consultations de chimio et de RT
+import { occupations, chevauche, texteConflit } from "../moteur/creneaux.js";
+import { poidsActuel, textePoids } from "../moteur/poids.js"; // R-A5 (18/10/2026) : poids actuel (fiche ou dernière séance) // R-A3 (18/10/2026) : créneaux pris par les consultations de chimio et de RT
 import { etatLigne, protocoleDe, seancesCure, poidsDebut, reperesClairance } from "../moteur/doses.js";
 import { finRT, finRTcalc, statutRT, nbA, compteurRT, dosimetrie, contourage, RYTHMES, libRythme, volumesRT, seancesVolumes, dpfVolume, texteVolume } from "../moteur/rt.js";
 import { auj, addJ, ecart, ouvre, age, srcImage, absentMedecin } from "../moteur/outils.js";
@@ -403,6 +404,8 @@ function recalculer(x, docData, ctx) {
   // 12/10/2026 : fiche médicale réparée si des champs avaient été rangés par erreur dans clinique._autres (création d'une ligne de chimio)
   if (docData && docData.clinique && docData.clinique._autres && REMIS.some((k) => k in docData.clinique._autres)) { docData = Object.assign({}, docData, { clinique: cliniqueRemise(docData.clinique) }); x.repare = true; }
   x.doc = docData; x.P = fusionner(x.id, docData, null);
+  // R-A5 : poids affiché partout = poids actuel (le plus récent entre la fiche et les séances) ; celui de la fiche gardé dans poidsFiche
+  try { const pa = poidsActuel(x.P, ctx || D.ctx); x.P.poidsFiche = x.P.poids; x.P.poidsAct = pa; if (pa) { x.P.poids = pa.v.replace(",", "."); x.P.poidsLe = pa.d; } } catch (e) { x.P.poidsAct = null; }
   try { x.r = resume(JSON.parse(JSON.stringify(x.P)), ctx || D.ctx); } catch (e) { x.r = { nm: x.P.nom, act: [], rdvs: [], rt: [], rtE: [], rtS: [], ag: [] }; }
 }
 const fnOn = (k) => !D || !D.reg || D.reg.fonctions[k] !== false; // fonction du réglage du cabinet (10/10/2026)
@@ -998,7 +1001,7 @@ function pageDossier(id) {
   h += '<section class="carte id-c">' + (allergique(P) ? '<div class="al-band" role="alert">' + ic("alerte") + "<b>Allergie</b>" + (alTxt ? " : " + esc(alTxt) : " (détail non précisé)") + "</div>" :
       !P.allergie && alTxt && !/^aucune?\b/i.test(alTxt) ? '<p class="mesures" style="color:var(--orange);margin:0 0 8px">Allergies notées (« ' + esc(alTxt.slice(0, 60)) + ' ») : précisez « Allergie connue : oui / non » dans la fiche (Modifier) pour le bandeau.</p>' : "") +
     '<div class="ident">' + (peut("identite") ? '<button class="bulle-photo" onclick="photoPatient(\'' + x.id + '\')" title="' + (P.photo ? "Changer ou retirer la photo" : "Ajouter une photo du patient") + '" aria-label="Photo du patient">' + bulle(x, "ph-dos") + "</button>" : bulle(x, "ph-dos")) + '<div style="flex:1;min-width:200px"><h2>' + esc(r.nm) + "</h2><p>" +
-    esc([P.numero ? "Dossier n° " + P.numero : "", ENT("ddn") && P.ddn ? "Né(e) le " + dfrA(P.ddn) + (a != null ? " (" + a + " ans)" : "") : "", ENT("sexe") ? (P.sexe === "F" ? "Femme" : P.sexe === "H" ? "Homme" : "") : "", ENT("taille") && P.taille ? P.taille + " cm" : "", ENT("poids") && P.poids ? P.poids + " kg" : "", dn ? "Dernières nouvelles : " + dfrA(dn) : ""].filter(Boolean).join(" · ")) + "</p>" +
+    esc([P.numero ? "Dossier n° " + P.numero : "", ENT("ddn") && P.ddn ? "Né(e) le " + dfrA(P.ddn) + (a != null ? " (" + a + " ans)" : "") : "", ENT("sexe") ? (P.sexe === "F" ? "Femme" : P.sexe === "H" ? "Homme" : "") : "", ENT("taille") && P.taille ? P.taille + " cm" : "", ENT("poids") && P.poidsAct ? textePoids(P.poidsAct) : "", dn ? "Dernières nouvelles : " + dfrA(dn) : ""].filter(Boolean).join(" · ")) + "</p>" +
     '<div class="bd">' + (P.hop ? '<span class="badge b-gr">' + esc(P.hop) + "</span>" : "") + (P.statut ? '<span class="badge ' + (P.statut === "decede" ? "b-dc" : P.statut === "perdu" ? "b-or" : "b-gr") + '">' + esc(libStatut(P.statut)) + (P.statut === "decede" && P.decesLe ? " le " + dfrA(P.decesLe) : "") + "</span>" : "") + (r.t && r.t.st === "cours" ? '<span class="badge b-co">Chimiothérapie en cours</span>' : "") + ((r.rtS || []).some((s) => s.st === "cours") ? '<span class="badge b-rt">RT en cours</span>' : "") + "</div></div>" +
     '<div class="actr id-bt" style="align-self:flex-start"><button class="bt clair id-plus" onclick="this.closest(\'.id-c\').classList.toggle(\'id-ouv\');this.textContent=this.closest(\'.id-c\').classList.contains(\'id-ouv\')?\'Replier\':\'Fiche et résumé\'">Fiche et résumé</button><button class="bt gris" onclick="afficherPatient(\'' + x.id + '\')">Afficher</button>' + (D.espaceDoc && D.espaceDoc.titulaire === D.u.uid ? '<button class="bt gris" onclick="auditPatient(\'' + x.id + '\')" title="Journal d\'audit de ce dossier : qui l\'a ouvert, modifié…">Journal</button>' : "") + (peut("identite") || peut("fichePatient") || traitMod() ? '<button class="bt clair" onclick="modifierIdentite(\'' + x.id + '\')">Modifier</button>' : "") + "</div></div>" + // « + Tâche » et « + Rendez-vous » : dans la carte « Rendez-vous et tâches à venir » (doublons retirés, 3.3)
     // 3.11 : champs « en tête » de la fiche réglable (type, nom, ordre), sauf ceux déjà sous le nom ; allergie « oui » : dans le bandeau

@@ -5,6 +5,7 @@
 export const CHAMPS_COURRIER = [
   ["patient", "Patient", "Mme NOM Prénom"],
   ["age", "Âge", "62 ans"],
+  ["poids", "Poids", "64 kg (29/09/2026)"], // R-A5 (18/10/2026) : poids actuel (fiche ou dernière séance de chimio) et sa date
   ["naissance", "Date de naissance", "12/03/1964"],
   ["cin", "CIN", "BE123456"],
   ["diagnostic", "Diagnostic", ""],

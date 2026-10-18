@@ -79,7 +79,7 @@ async def main():
         n = int((await pg.inner_text('#nbRes')).split()[0]); tot = len([1 for kk in S2 if kk.startswith(E + 'patients/') and kk.count('/') == 3])
         ok(n == tot - 1, '« Sauf décédés » : un de moins', (n, tot))
         await pg.goto(f'http://localhost:{PORT}/v2.html#parametres/listes'); await pg.wait_for_timeout(1500)
-        t = await pg.inner_text('#page')
+        t = await ev("document.getElementById('page').textContent")  # 18/10 : la phrase d'explication est rangée derrière l'aide « ? » du titre
         pu = await ev("[...document.querySelectorAll('.puces .puce')].map(b=>b.textContent.split(' (')[0])")
         ok(pu == ['Mutuelles', 'Correspondants'] and 'depuis leur champ' in t, 'Paramètres › Listes : mutuelles, correspondants (localisations, stades, grades : depuis la fiche, 3.11)', pu)
         await pg.goto(f'http://localhost:{PORT}/v2.html#parametres/impression'); await pg.wait_for_timeout(1200)

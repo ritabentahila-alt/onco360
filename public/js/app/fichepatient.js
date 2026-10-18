@@ -6,6 +6,7 @@
 // Valeurs des champs ajoutés : identite.extra { id: valeur } ou clinique.extra (selon la partie du champ).
 import { champPropose, champsDe, drapeau, ENTETE0 } from "../donnees/catalogue.js";
 import { age as ageDe } from "../moteur/outils.js";
+import { textePoids } from "../moteur/poids.js";
 let A = null;
 export function installer(api) { A = api; }
 const D = () => A.D();
@@ -24,7 +25,7 @@ window.ficheSi = (el) => {
 };
 ["input", "change"].forEach((t) => document.addEventListener(t, (ev) => { const id = ev.target && ev.target.id; if (id === "fDiag" || id === "pDiag") window.ficheSi(ev.target); }));
 // Champs ajoutés à imprimer (fiche chimio, courriers) : [{ id, lib, texte }]
-export const aImprimer = (x) => champsFiche().filter((c) => c.imprimer && c.present).map((c) => ({ id: c.k, lib: c.lib, texte: texteChamp((x && x.doc) || {}, c) })); // 3.11 : champs d'origine aussi
+export const aImprimer = (x) => champsFiche().filter((c) => c.imprimer && c.present).map((c) => ({ id: c.k, lib: c.lib, texte: c.k === "poids" && poidsVu(x) ? textePoids(poidsVu(x)) : texteChamp(docVu(x), c) })); // 3.11 : champs d'origine aussi
 // ───── 3.11 (12/10/2026) : fiche entièrement réglable, rendue depuis la fiche effective (champsDe) ─────
 // Un seul code pour Modifier, Nouveau patient, Afficher et l'en-tête du dossier : chaque champ selon son type (réglé par le cabinet),
 // dans sa partie (Identité, Informations médicales, Fiche tumeur), dans l'ordre réglé ; champs retirés : non affichés, valeurs gardées.
@@ -35,6 +36,9 @@ const ID = { nom: "fNomF", prenom: "fPrenom", ddn: "fDdn", sexe: "fSexe", taille
 const idDe = (c) => ID[c.k] || (c.ajout ? "fx_" : "f_") + c.k;
 const idDrap = (c) => (c.k === "allergies" ? "f_allergie" : idDe(c) + "Oui"), idZone = (c) => (c.k === "allergies" ? "zAlD" : "z_" + idDe(c));
 const STO = { nom: "nomF" };
+// R-A5 (18/10/2026) : le poids affiché est le poids actuel (fiche ou dernière séance de chimio, moteur/poids.js, calculé par recalculer)
+const poidsVu = (x) => (x && x.P && x.P.poidsAct) || null;
+const docVu = (x) => { const doc = (x && x.doc) || {}, pa = poidsVu(x); return pa ? Object.assign({}, doc, { clinique: Object.assign({}, doc.clinique || {}, { poids: pa.v.replace(",", ".") }) }) : doc; };
 const objDe = (doc, c) => ((doc || {})[c.partie === "clinique" ? "clinique" : "identite"]) || {};
 export const champsFiche = () => champsDe(F());
 const brut = (doc, c) => { if (c.k === "etab") return (doc || {}).etablissementId || ""; const o = objDe(doc, c); return c.ajout ? (o.extra || {})[c.k] : o[STO[c.k] || c.k]; };
@@ -55,7 +59,7 @@ export function texteChamp(doc, c) {
 const PARTIES_F = [["id", "Identité"], ["med", "Informations médicales"], ["tum", "Fiche tumeur"]];
 // Formulaire de saisie : o = { off(partie) → vrai si non modifiable, etabs (hôpitaux proposés), nouveau }
 export function htmlFormulaire(x, o) {
-  const esc = A.esc, doc = (x && x.doc) || {}, dg = diagDe(x), L = champsFiche().filter((c) => c.present);
+  const esc = A.esc, doc = docVu(x), dg = diagDe(x), L = champsFiche().filter((c) => c.present), pa = poidsVu(x);
   const champ = (c) => {
     if (o.nouveau && o.off && o.off(c.partie)) return ""; // nouveau patient : partie non autorisée = non proposée
     const id = idDe(c), v = brut(doc, c), V = v == null ? "" : v, dis = o.off && o.off(c.partie) ? " disabled" : "", lab = '<label for="' + id + '">' + esc(c.lib) + (c.type === "nombre" && c.unite ? " (" + esc(c.unite) + ")" : "") + "</label>";
@@ -73,7 +77,8 @@ export function htmlFormulaire(x, o) {
           '<div id="' + z + '"' + (d === "oui" ? "" : ' class="cache"') + ' style="margin-top:6px"><label for="' + id + '">' + (c.k === "allergies" ? "Laquelle ou lesquelles ?" : "Précisez") + '</label><textarea id="' + id + '" rows="2" class="champ-t"' + dis + ">" + esc(V) + "</textarea></div>"); }
       case "choix": { const ch = choixDeC(c), l = ch.concat(V && ch.indexOf(V) < 0 ? [V] : []); return enve(lab + '<select id="' + id + '"' + dis + '><option value=""></option>' + l.map((t) => "<option" + (t === V ? " selected" : "") + ">" + esc(t) + "</option>").join("") + "</select>", " "); }
       case "textelong": return enve(lab + '<textarea id="' + id + '" rows="2" class="champ-t"' + dis + ">" + esc(V) + "</textarea>");
-      default: return enve(lab + '<input id="' + id + '"' + (c.type === "date" ? ' type="date"' : c.type === "nombre" ? ' inputmode="decimal"' : c.type === "tel" ? ' type="tel"' : c.type === "email" ? ' type="email"' : "") + ' value="' + esc(V) + '"' + dis + ">");
+      default: if (c.k === "poids" && pa && pa.src === "seance") return enve(lab + '<input id="' + id + '" inputmode="decimal" value="' + esc(V) + '"' + dis + '><span class="mesures">' + esc(pa.lib) + "</span>"); // R-A5
+        return enve(lab + '<input id="' + id + '"' + (c.type === "date" ? ' type="date"' : c.type === "nombre" ? ' inputmode="decimal"' : c.type === "tel" ? ' type="tel"' : c.type === "email" ? ' type="email"' : "") + ' value="' + esc(V) + '"' + dis + ">");
     }
   };
   return PARTIES_F.map(([k, lib]) => { const h = L.filter((c) => c.section === k).map(champ).join(""); return h ? '<h4 class="soustitre fp-sec">' + lib + '</h4><div class="form" data-sec="' + k + '">' + h + "</div>" : ""; }).join("") +
@@ -97,19 +102,24 @@ export function lireFormulaire(x, o) {
   });
   if (el("fNomF") && !el("fNomF").disabled) { if (!I.nomF || !I.prenom) out.erreur = "Le nom et le prénom sont obligatoires."; I.nom = ((I.nomF || "") + " " + (I.prenom || "")).trim(); }
   ["identite", "clinique"].forEach((p) => { const ob = out[p]; if (ob.extra && !Object.keys(ob.extra).length) delete ob.extra; });
+  // R-A5 : date du poids : celle de la séance si c'est le poids proposé (dernière chimio), maintenant s'il a été changé à la main
+  const pa = poidsVu(x), num = (v) => parseFloat(String(v == null ? "" : v).replace(",", ".")), p0 = (doc.clinique || {}).poids;
+  if (C.poids != null && C.poids !== "") { if (pa && num(C.poids) === pa.poids) C.poidsLe = pa.d || C.poidsLe; else if (num(C.poids) !== num(p0)) C.poidsLe = new Date().toISOString(); } // date et heure : passe devant une séance du même jour
+  else delete C.poidsLe;
   return out;
 }
 // Lecture complète (Afficher) : les trois parties
 export function htmlLectureFiche(x) {
-  const esc = A.esc, doc = (x && x.doc) || {}, dg = diagDe(x), L = champsFiche().filter((c) => c.present && (!c.ajout || !c.ajout.si || champPropose(c.ajout, dg)));
+  const esc = A.esc, doc = docVu(x), dg = diagDe(x), L = champsFiche().filter((c) => c.present && (!c.ajout || !c.ajout.si || champPropose(c.ajout, dg)));
   return PARTIES_F.map(([k, lib]) => { const l = L.filter((c) => c.section === k); if (!l.length) return "";
     return '<h4 class="soustitre fp-sec">' + lib + '</h4><div class="form fiche-lecture" data-sec="' + k + '">' + l.map((c) => { const t = texteChamp(doc, c);
-      return '<div data-champ="' + c.k + '"' + (t.length > 60 || /\n/.test(t) ? ' class="large"' : "") + "><label>" + esc(c.lib) + "</label><div>" + (t ? "<b>" + esc(t) + "</b>" : '<span class="mesures">—</span>') + "</div></div>"; }).join("") + "</div>"; }).join("");
+      const tp = c.k === "poids" && poidsVu(x) ? textePoids(poidsVu(x)) : t;
+      return '<div data-champ="' + c.k + '"' + (tp.length > 60 || /\n/.test(tp) ? ' class="large"' : "") + "><label>" + esc(c.lib) + "</label><div>" + (tp ? "<b>" + esc(tp) + "</b>" : '<span class="mesures">—</span>') + "</div></div>"; }).join("") + "</div>"; }).join("");
 }
 // En-tête du dossier : champs « en tête » qui ont une valeur (sauf ceux déjà sous le nom : sauf)
 export function htmlEnteteFiche(x, sauf) {
-  const esc = A.esc, doc = (x && x.doc) || {}, dg = diagDe(x);
-  return champsFiche().filter((c) => c.present && c.entete && (sauf || []).indexOf(c.k) < 0 && (!c.ajout || !c.ajout.si || champPropose(c.ajout, dg))).map((c) => { const t = texteChamp(doc, c); if (!t) return "";
+  const esc = A.esc, doc = docVu(x), dg = diagDe(x);
+  return champsFiche().filter((c) => c.present && c.entete && (sauf || []).indexOf(c.k) < 0 && (!c.ajout || !c.ajout.si || champPropose(c.ajout, dg))).map((c) => { const t = c.k === "poids" && poidsVu(x) ? textePoids(poidsVu(x)) : texteChamp(doc, c); if (!t) return "";
     const v = c.type === "tel" ? '<a href="tel:' + esc(brut(doc, c)) + '">' + esc(t) + "</a>" : esc(t);
     return '<div data-champ="' + c.k + '"' + (c.k === "cor" ? ' data-fn="listes.cor"' : "") + (t.length > 60 ? ' class="large"' : "") + "><label>" + esc(c.lib) + "</label><b>" + v + "</b></div>"; }).join("");
 }
