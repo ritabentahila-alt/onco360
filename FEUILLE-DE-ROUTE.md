@@ -652,7 +652,7 @@ démarrage par un médecin (comme `marquerProtocoles`), avec une fenêtre récap
       séance chaque semaine (3.7 bis), bouton « Ordonnances » dans chaque séance (P6), consultation de J8 / J15 pré-remplie à 0 DH (décision).
 - [ ] ~~P8 (plan)~~ **Hebdomadaire de bout en bout** : pas de prix pour la consultation de J8 / J15 (fenêtre pré-remplie à 0 DH, inchangée) ; vérifier sur un protocole hebdomadaire : seuils du jour à chaque injection (P3), report d'une seule séance
       (« cette date seulement », existe), rendez-vous et heure chaque semaine (3.7 bis), ordonnance par séance (P6).
-- [x] **P9 Bibliothèque commune (18/10/2026, testé ; version 20261018f + fonctions referencePublier, referenceDiff, signalerErreur)** :
+- [x] **P9 Bibliothèque commune (18/10/2026, testé, en ligne : 20261018f + fonctions referencePublier, referenceDiff, signalerErreur)** :
       Administration › Bibliothèques › carte Oncologie › **« Publier une version »** (journal des changements écrit par l'administration,
       numéro de version ; historique affiché) ; dans chaque **cabinet déjà créé** (jamais celui du Dr Bentahila, qui est la source), page
       Protocoles : bandeau « Bibliothèque de référence (version N) : X nouveaux, Y différents du vôtre, Z ordonnances types » + journal ;
