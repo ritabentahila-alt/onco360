@@ -1,5 +1,5 @@
 // Audit n° 3, ordre 1 (13/10/2026) : 6 protocoles critiques corrigés, PORTEC-3 phase 2 créé, 10 suppressions : node tests/moteur/test-audit3.mjs.
-// Bibliothèque : les 22 protocoles concernés, tels qu'enregistrés le 13/10/2026 (protocoles seulement, aucune donnée patient).
+// Bibliothèque : les 25 protocoles concernés, tels qu'enregistrés le 13/10/2026 (protocoles seulement, aucune donnée patient).
 import { readFileSync } from "node:fs";
 import { correctionsAudit3, PORTEC3_2, SUPPRESSIONS } from "../../public/js/moteur/audit3.js";
 import { seancesDe, premed, calcul, protocoleValide } from "../../public/js/moteur/doses.js";
@@ -14,7 +14,7 @@ const jours = (p) => seancesDe(p).map((g) => g.j).join(",");
 
 console.log("0. Ensemble");
 cas("la bibliothèque reçue n'est pas modifiée", JSON.stringify(BIB) === avant);
-cas("6 critiques + 6 protocoles gardés qui reprennent les doublons = 12 modifiés", r.modifies.length === 12, r.modifies.map((m) => m.id));
+cas("6 critiques + 6 protocoles gardés + AI 3 jours + 2 remarques « HGC » = 15 modifiés", r.modifies.length === 15, r.modifies.map((m) => m.id));
 cas("1 créé (PORTEC-3 phase 2), 10 supprimés, rien d'ignoré", r.crees.length === 1 && r.crees[0].id === PORTEC3_2 && r.supprimes.length === 10 && !r.ignores.length, r.ignores);
 cas("aucune dose de chimiothérapie changée hors des corrections voulues (anticancéreux des protocoles gardés identiques)", ["todo|nivolumab", "todo|carboplatine-gemcitabine", "todo|nivolumab-ipilimumab", "sein|hormono - letrozole", "poumon|Paclitaxel - Carboplatine hebdomdaire", "sein|palbociclib (papillo)"].every((id) => JSON.stringify(M(id).dr) === JSON.stringify(BIB[id].dr)));
 
@@ -75,6 +75,15 @@ cas("carboplatine-gemcitabine poumon → voies biliaires : indication poumon et 
 cas("palbociclib 100 et 75 → 125 : étoile reprise, paliers notés", M("sein|palbociclib (papillo)").fav === 1 && M("sein|palbociclib (papillo)").no.some((x) => /Paliers/.test(x)));
 cas("paclitaxel-carboplatine hebdo (sein) → poumon : indications sein reprises", M("poumon|Paclitaxel - Carboplatine hebdomdaire").ind.filter((x) => x[0] === "Sein").length === 2);
 cas("JACOB, carboplatine-bévacizumab, ribociclib seul : supprimés sans protocole de remplacement", ["todo|cisplatine-trastuzumab-pertuzumab", "sein|carboplatine hebdomadaire bevacizumab", "sein|hormono - kisqali (ribociclib)"].every((id) => S(id) && !S(id).vers));
+
+console.log("7 bis. Palier 3 (18/10/2026) : [211] AI 3 jours, « HGC » retiré des remarques");
+const ai = M("todo|doxorubicine-ifosfamide-fractionne");
+cas("furosémide bien nommé (OEDES = oméprazole), 40 mg inchangé", !ai.dr.some((d) => /OEDES/.test(d.p)) && L(ai, /FUROSEMIDE/).d === 40 && L(ai, /FUROSEMIDE/).u === "mg");
+cas("bicarbonate 14 ‰ : 500 ml (plus 500 mg), jamais compté comme anticancéreux", L(ai, /BICARBONATE/).u === "txt" && L(ai, /BICARBONATE/).pos === "500 ml" && premed(L(ai, /BICARBONATE/)));
+cas("doses d'ifosfamide, doxorubicine, mesna inchangées ; séances J1-J3", L(ai, /IFOSFAMIDE/).d === 2500 && L(ai, /DOXORUBICINE/).d === 60 && jours(ai) === "1", jours(ai));
+cas("AI 3 jours : « HGC » retiré de la remarque (« Variante locale »)", !/HGC/.test(JSON.stringify(ai.no)) && ai.no.some((x) => /^Variante locale/.test(x)), ai.no);
+cas("« HGC » retiré de toutes les remarques, le reste de la phrase gardé", ["maj|carboplatine-j1-j15", "todo|vdc-ie"].every((id) => M(id) && !/HGC/.test(JSON.stringify(M(id).no))) && M("todo|vdc-ie").no.some((x) => /^Votre fiche, conforme/.test(x)), M("todo|vdc-ie") && M("todo|vdc-ie").no);
+cas("aucune remarque « HGC » ne reste dans la bibliothèque corrigée", r.modifies.every((m) => !/\bHGC\b/.test(JSON.stringify(m.p.no || []))));
 
 console.log("8. Une seule fois");
 const bib2 = Object.assign({}, BIB); r.modifies.forEach((m) => { bib2[m.id] = m.p; }); r.crees.forEach((p) => { bib2[p.id] = p; }); r.supprimes.forEach((s) => delete bib2[s.id]);

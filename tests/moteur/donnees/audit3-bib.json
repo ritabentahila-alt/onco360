@@ -1329,5 +1329,349 @@
     ""
    ]
   ]
+ },
+ "todo|doxorubicine-ifosfamide-fractionne": {
+  "nom": "AI 3 jours : Doxorubicine 60 + Ifosfamide 2500 J1-J3 / 21 j",
+  "c": 21,
+  "st": "ok",
+  "r": "J1 à J3, tous les 21 jours",
+  "dr": [
+   {
+    "p": "SOLUMEDROL",
+    "u": "mg",
+    "j": [
+     1,
+     2,
+     3
+    ],
+    "d": 120,
+    "id": "d0"
+   },
+   {
+    "p": "ONSET (ondansétron)",
+    "u": "mg",
+    "j": [
+     1,
+     2,
+     3
+    ],
+    "d": 8,
+    "id": "d1"
+   },
+   {
+    "p": "BICARBONATE 14 ‰",
+    "u": "mg",
+    "j": [
+     1,
+     2,
+     3
+    ],
+    "d": 500,
+    "v": "IV",
+    "id": "d2"
+   },
+   {
+    "p": "DOXORUBICINE",
+    "u": "mg/m²",
+    "j": [
+     1
+    ],
+    "d": 60,
+    "v": "IV",
+    "id": "d3"
+   },
+   {
+    "p": "IFOSFAMIDE (Holoxan)",
+    "u": "mg/m²",
+    "j": [
+     1,
+     2,
+     3
+    ],
+    "d": 2500,
+    "v": "IV",
+    "t": "1–3 h",
+    "id": "d4"
+   },
+   {
+    "p": "MESNA bolus",
+    "u": "mg",
+    "j": [
+     1,
+     2,
+     3
+    ],
+    "d": 500,
+    "v": "IV",
+    "id": "d5"
+   },
+   {
+    "p": "MESNA (Uromitexan)",
+    "u": "mg/m²",
+    "j": [
+     1,
+     2,
+     3
+    ],
+    "d": 1000,
+    "n": "× 3 (H0-H8, H8-H16, H16-H24)",
+    "v": "IV",
+    "id": "d6"
+   },
+   {
+    "p": "OEDES (furosémide)",
+    "u": "mg",
+    "j": [
+     1,
+     2,
+     3
+    ],
+    "d": 40,
+    "v": "IV",
+    "id": "d7"
+   },
+   {
+    "p": "NIVESTIM 30 MU (filgrastim)",
+    "u": "txt",
+    "j": [
+     99
+    ],
+    "jl": "Selon prescription",
+    "v": "SC",
+    "pos": "30 MU / injection SC",
+    "dt": "× ____ injection(s)",
+    "inp": 1,
+    "nd": 1,
+    "id": "d6_8"
+   }
+  ],
+  "no": [
+   "Protocole HGC (votre fiche « AI 3j »)",
+   "Hyperhydratation, surveillance diurèse, hématurie (bandelette), fonction rénale, encéphalopathie à l’ifosfamide"
+  ],
+  "id": "todo|doxorubicine-ifosfamide-fractionne",
+  "ind": [
+   [
+    "Sarcomes",
+    "Tissus mous",
+    "Avancé / métastatique / récidive",
+    ""
+   ]
+  ],
+  "dos": "Sarcomes",
+  "loc": "Tissus mous",
+  "fav": 1
+ },
+ "maj|carboplatine-j1-j15": {
+  "nom": "Carboplatine AUC 2 J1-J15 / 28 j – fractionné",
+  "dos": "Urologie",
+  "loc": "Prostate",
+  "c": 28,
+  "st": "ok",
+  "r": "J1 et J15, tous les 28 jours",
+  "dr": [
+   {
+    "p": "SOLUMEDROL",
+    "u": "mg",
+    "j": [
+     1,
+     15
+    ],
+    "d": 120,
+    "id": "d0"
+   },
+   {
+    "p": "ONSET (ondansétron)",
+    "u": "mg",
+    "j": [
+     1,
+     15
+    ],
+    "d": 8,
+    "id": "d1"
+   },
+   {
+    "p": "CARBOPLATINE",
+    "u": "AUC",
+    "j": [
+     1,
+     15
+    ],
+    "d": 2,
+    "v": "IV",
+    "id": "d2"
+   }
+  ],
+  "no": [
+   "Protocole HGC (fractionné) ; votre fiche : carboplatine 150 mg fixe – AUC 2 retenu, à ajuster selon votre pratique"
+  ],
+  "id": "maj|carboplatine-j1-j15",
+  "ind": [
+   [
+    "Urologie",
+    "Prostate",
+    "Neuroendocrine",
+    ""
+   ]
+  ],
+  "fav": 1
+ },
+ "todo|vdc-ie": {
+  "nom": "VDC / IE alternés (Ewing)",
+  "c": 42,
+  "st": "ok",
+  "r": "VDC J1-J2, IE J22-J26 – soit une alternance toutes les 3 semaines (cycle de 42 jours)",
+  "dr": [
+   {
+    "p": "SOLUMEDROL",
+    "u": "mg",
+    "j": [
+     1,
+     2,
+     22,
+     23,
+     24,
+     25,
+     26
+    ],
+    "d": 60,
+    "id": "d0"
+   },
+   {
+    "p": "ONSET (ondansétron)",
+    "u": "mg",
+    "j": [
+     1,
+     2,
+     22,
+     23,
+     24,
+     25,
+     26
+    ],
+    "d": 8,
+    "id": "d1"
+   },
+   {
+    "p": "VINCRISTINE",
+    "u": "mg/m²",
+    "j": [
+     1
+    ],
+    "d": 1.5,
+    "dec": 1,
+    "max": 2,
+    "v": "IV",
+    "id": "d2"
+   },
+   {
+    "p": "DOXORUBICINE",
+    "u": "mg/m²",
+    "j": [
+     1,
+     2
+    ],
+    "d": 37.5,
+    "dec": 1,
+    "v": "IV",
+    "id": "d3"
+   },
+   {
+    "p": "CYCLOPHOSPHAMIDE",
+    "u": "mg/m²",
+    "j": [
+     1
+    ],
+    "d": 1200,
+    "v": "IV",
+    "id": "d4"
+   },
+   {
+    "p": "MESNA (Uromitexan)",
+    "u": "mg/m²",
+    "j": [
+     1
+    ],
+    "d": 240,
+    "n": "× 3 (H0, H4, H8)",
+    "v": "IV",
+    "id": "d5"
+   },
+   {
+    "p": "IFOSFAMIDE (Holoxan)",
+    "u": "mg/m²",
+    "j": [
+     22,
+     23,
+     24,
+     25,
+     26
+    ],
+    "d": 1800,
+    "v": "IV",
+    "t": "1–3 h",
+    "id": "d6"
+   },
+   {
+    "p": "MESNA (Uromitexan)",
+    "u": "mg/m²",
+    "j": [
+     22,
+     23,
+     24,
+     25,
+     26
+    ],
+    "d": 360,
+    "n": "× 3 (H0, H4, H8)",
+    "v": "IV",
+    "id": "d7"
+   },
+   {
+    "p": "ÉTOPOSIDE (VP16 – Vépéside)",
+    "u": "mg/m²",
+    "j": [
+     22,
+     23,
+     24,
+     25,
+     26
+    ],
+    "d": 100,
+    "v": "IV",
+    "id": "d8"
+   },
+   {
+    "p": "NIVESTIM 30 MU (filgrastim)",
+    "u": "txt",
+    "j": [
+     99
+    ],
+    "jl": "Selon prescription",
+    "v": "SC",
+    "pos": "30 MU / injection SC",
+    "dt": "× ____ injection(s)",
+    "inp": 1,
+    "nd": 1,
+    "id": "d6_9"
+   }
+  ],
+  "no": [
+   "Votre fiche HGC, conforme au schéma de référence (vincristine plafonnée à 2 mg)",
+   "Compression à 14 jours possible (AEWS0031)",
+   "Hospitalisation, hyperhydratation obligatoire ; surveillance TA, diurèse, pH urinaire, hématurie",
+   "Hyperhydratation, surveillance diurèse, hématurie (bandelette), fonction rénale, encéphalopathie à l’ifosfamide"
+  ],
+  "id": "todo|vdc-ie",
+  "ind": [
+   [
+    "Sarcomes",
+    "Sarcome d'Ewing",
+    "Première ligne",
+    ""
+   ]
+  ],
+  "dos": "Sarcomes",
+  "loc": "Sarcome d'Ewing"
  }
 }

@@ -63,8 +63,8 @@ Dr Bentahila).
 
 ## Décisions de Dr Bentahila du 13/10/2026 (après la mise en ligne de P1a)
 - **Pas de fenêtre** pour les corrections de l'audit : elle fait confiance, les modifications sont faites directement (notées au journal).
-- **La bibliothèque de son cabinet est la référence** (aucun autre médecin n'a de compte). À faire plus tard (avec P9) : qu'un cabinet neuf
-  reçoive la copie de la bibliothèque du cabinet Bentahila plutôt que celle de `bib-oncologie` (copie du 09/10, pas corrigée).
+- **La bibliothèque de son cabinet est la référence** (aucun autre médecin n'a de compte). Le 18/10 : on corrige tout dans son
+  cabinet, puis on recopie une fois sa bibliothèque dans la référence que reçoivent les nouveaux cabinets (étape P11).
 
 ## Réponses de Dr Bentahila du 13/10/2026 (questions de l'audit n° 3)
 1. **Solumedrol de J1** : **80 mg** pour carboplatine / Enhertu / Trodelvy et le cisplatine hebdomadaire + RT (pas d'EMEND, pas de baisse) ;
@@ -97,7 +97,7 @@ Dr Bentahila).
 
 | Phase | But | Étapes |
 |---|---|---|
-| **P** Protocoles de chimiothérapie | Bibliothèque juste et complète, ordonnances liées, hebdomadaire, bibliothèque commune (audit n° 3) | P0 à P10 |
+| **P** Protocoles de chimiothérapie | Bibliothèque juste et complète, ordonnances liées, hebdomadaire, bibliothèque commune (audit n° 3) | P0 à P11 |
 | **Q** Qualité | Jeu de test fictif, contrôles automatiques, erreurs en ligne | Q-a à Q-f |
 | **M** Métier restant | Infirmière, dossier stable | 3.8, 4.4 |
 | **D** Design | Toucher, contraste, fenêtres Onco360 | 4.1, 4.2 |
@@ -171,6 +171,13 @@ démarrage par un médecin (comme `marquerProtocoles`), avec une fenêtre récap
       (dont « Fièvre sous chimiothérapie : conduite à tenir », « Prémédication docétaxel prostate », « Antiémétique avant une
       chimiothérapie orale ») ; dans son cabinet, la bibliothèque de référence et la liste de départ (`donnees/ordostypes.js`) ; OEDES
       (oméprazole) : bon dans l'ordonnance « Dysphagie et reflux ».
+- [x] **Palier 3** (18/10/2026, testé ; version 20261018a) : [211] « AI 3 jours » : « OEDES (furosémide) » → « FUROSÉMIDE (Lasilix) »
+      (OEDES = oméprazole), « BICARBONATE 14 ‰ 500 mg » → « BICARBONATE DE SODIUM 14 ‰ », 500 ml (texte) ; **« HGC » retiré des remarques**
+      des 16 protocoles qui en avaient (« protocole HGC conservé » → « protocole local conservé », « Protocole HGC (fractionné) » →
+      « Variante locale (fractionnée) », « votre fiche HGC » → « votre fiche ») ; ordonnance **« Chimiothérapie antiémétique »** (ancienne
+      « Pré-chimiothérapie antiémétique » renommée par Dr Bentahila, restée à côté de la nouvelle) **retirée**, son étoile reportée sur
+      « Chimio : risque émétique modéré ». Drapeaux `audit3c` (protocoles) et `audit3d` (ordonnances) : le calcul de l'audit est relancé
+      une fois, ce qui est déjà fait n'est pas refait. Tests : test-audit3 48/48, test_audit3 17/17.
 - [ ] **P3 Éditeur de protocole et calculs** (avant d'appliquer le reste, pour que tout aille dans les bonnes cases) : champs
       **Risque émétique** (proposé d'après la molécule la plus émétisante, AC = élevé, MASCC/ESMO 2023 ; modifiable), **Ordonnances liées**
       (choisies dans la bibliothèque, proposées d'après le risque et les molécules), **Seuils du jour** (valeurs par protocole reprises dans
@@ -211,17 +218,24 @@ démarrage par un médecin (comme `marquerProtocoles`), avec une fenêtre récap
       garder les deux) ; un protocole modifié par le cabinet n'est jamais écrasé sans son accord ; même chose pour les ordonnances types et
       les listes ; chaque diffusion tracée (qui, quand, quelle version, acceptée par qui) ; **export PDF** (livret par localisation) et
       **Excel** de la bibliothèque ; bouton « Signaler une erreur » qui remonte à l'Administration.
-- [ ] **P10 Parcours de chimiothérapie** (plus tard, à choisir par Dr Bentahila ; l'audit les classe « ce qui ferait d'Onco360 le meilleur
-      logiciel ») : a) **liste « avant la 1re cure »** à cocher (sérologies, uracilémie, FEVG, audiogramme, dentaire avant dénosumab /
-      zolédronate, grossesse, fertilité avant 40 ans, G8 après 70 ans, consentement) ; b) **biomarqueurs de la fiche tumeur** qui filtrent
-      les protocoles et signalent une incohérence sans bloquer (anti-EGFR chez un RAS muté) ; c) **RCP reliée à la ligne** prescrite ;
-      d) **toxicités par cure et par molécule** (CTCAE), réduction proposée selon les paliers du protocole ; e) **suivi des accords de prise
-      en charge** (organisme, cures couvertes, échéance, alerte avant la cure) ; f) **plan de soins ordonné** (avec 3.8 ; double contrôle non
-      retenu) ; g) capacité de l'hôpital de jour (fauteuils, durée de séance d'après le protocole) ; h) fiche d'information patient
-      par protocole (français, arabe) ; i) interactions (aprépitant-corticoïdes / AVK, TKI-IPP, méthotrexate-AINS / IPP / cotrimoxazole,
-      QT) ; j) adaptation hépatique par molécule ; k) arrondi au flacon ; l) fin de ligne (RECIST, dose-intensité, compte rendu, courrier au
-      médecin traitant) ; m) statistiques (cures par mois et par protocole, reports, neutropénies fébriles) ; n) liste du lendemain pour la
-      pharmacie de la clinique. Proposition de Claude pour commencer : e, a, d.
+- [ ] **P10 Parcours de chimiothérapie : 4 fonctions retenues** (décision du 18/10/2026 ; le reste de P10 est abandonné) :
+      i) **interactions** signalées à la prescription et à la validation, sans bloquer (aprépitant + corticoïdes / AVK / contraceptifs ;
+      TKI + IPP ou inducteurs (rifampicine, carbamazépine) ; méthotrexate + AINS / IPP / cotrimoxazole ; allongement du QT : sétrons + TKI) ;
+      d'après les traitements en cours de la fiche patient et les molécules du protocole ;
+      j) **adaptation hépatique par molécule** (bilirubine, ASAT / ALAT, PAL du bilan du jour : docétaxel, paclitaxel, irinotécan,
+      anthracyclines, TKI) : réduction proposée, fenêtre d'avertissement comme pour le rein ;
+      k) **arrondi au flacon** (dose banding) : taille des flacons par molécule (réglable par le cabinet), dose arrondie proposée dans une
+      marge (ex. ± 5 %), affichée à côté de la dose calculée, le médecin choisit ;
+      n) **liste du lendemain pour la pharmacie de la clinique** : séances prévues le lendemain par établissement (patient, protocole,
+      molécules, doses, flacons), imprimable / à envoyer, depuis la salle d'attente ou l'agenda.
+- [ ] **P11 La bibliothèque du cabinet Bentahila devient la référence** (décision du 18/10/2026) : quand les étapes P4 à P7 sont finies,
+      une fonction de l'Administration **recopie une fois** la bibliothèque du cabinet Bentahila (protocoles, ordonnances types,
+      médicaments, analyses, examens, courriers, documentation, paramètres de base ; jamais patients, correspondants, prix, lieux, équipe ;
+      étoiles retirées) dans la bibliothèque de référence `bib-oncologie`, que reçoit chaque nouveau cabinet (déjà en place : `creerEspace`
+      → `sourceBib`). Ensuite la bibliothèque du cabinet Bentahila est la sienne (ses modifications ne changent plus la référence) ; la
+      référence se modifie depuis l'Administration (« Ouvrir et modifier »), et P9 enverra ses mises à jour aux cabinets déjà créés.
+      Bouton « Recopier depuis le cabinet Bentahila » gardé pour le refaire si elle le demande. Aucun autre médecin n'a de compte : rien
+      ne presse avant la création du premier cabinet.
 
 ## Phase Q – Qualité (en continu, et ces étapes)
 - [ ] **Q-a Jeu de test fictif** (ancienne 0.6, à faire tôt : chaque test écrit sur la sauvegarde réelle risque d'y laisser un nom) :

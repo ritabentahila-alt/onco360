@@ -88,6 +88,20 @@ export const CRITIQUES = [
     } },
 ];
 
+// Palier 3 (13/10/2026) : [211] AI 3 jours (OEDES = oméprazole : le furosémide est nommé ; « bicarbonate 500 mg » = 500 ml)
+CRITIQUES.push({ id: "todo|doxorubicine-ifosfamide-fractionne", quoi: "furosémide bien nommé (OEDES est l'oméprazole) ; bicarbonate 14 ‰ en ml (500 ml)",
+  garde: (p) => a(p, /OEDES/) && a(p, /BICARBONATE/) && a(p, /BICARBONATE/).u === "mg",
+  corriger: (p) => {
+    const f = a(p, /OEDES/); f.p = "FUROSÉMIDE (Lasilix)";
+    const b = a(p, /BICARBONATE/); remplacer(p, /BICARBONATE/, txt("BICARBONATE DE SODIUM 14 ‰", "500 ml", b.j, b.n, b.v || "IV"));
+  } });
+// « HGC » retiré des remarques (décision du 13/10/2026 : plus aucune mention de HGC ; les noms n'en ont déjà plus)
+export function sansHGC(x) {
+  return String(x).replace(/protocole HGC conserv[ée]/gi, "protocole local conservé").replace(/Votre protocole HGC/g, "Votre protocole").replace(/votre protocole HGC/g, "votre protocole")
+    .replace(/Protocole HGC \(fractionn[ée]\)/g, "Variante locale (fractionnée)").replace(/Protocole HGC/g, "Variante locale").replace(/protocole HGC/g, "variante locale")
+    .replace(/(V|v)otre fiche HGC/g, "$1otre fiche").replace(/\s*\bHGC\b/g, "");
+}
+
 // Protocole lié de PORTEC-3 (phase 2), créé avec la correction de [197]
 export function portec3Phase2() {
   return {
@@ -143,6 +157,11 @@ export function correctionsAudit3(bib) {
       if (!out.modifies.some((m) => m.id === s.vers)) out.modifies.push({ id: s.vers, quoi: "indications et remarques des doublons reprises" });
     }
     out.supprimes.push({ id: s.id, nom: p0.nom, vers: s.vers || "", versNom: s.vers ? mod[s.vers].nom : "", pourquoi: s.pourquoi, fav: p0.fav ? 1 : 0 });
+  });
+  Object.keys(bib).forEach((id) => {
+    if (!(bib[id].no || []).some((x) => /\bHGC\b/.test(x)) || out.supprimes.some((s) => s.id === id)) return;
+    const p = prendre(id); p.no = p.no.map(sansHGC);
+    const m = out.modifies.find((z) => z.id === id); if (m) m.quoi += " ; « HGC » retiré des remarques"; else out.modifies.push({ id, quoi: "« HGC » retiré des remarques" });
   });
   out.modifies.forEach((m) => { m.p = mod[m.id]; });
   return out;

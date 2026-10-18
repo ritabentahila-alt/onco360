@@ -93,14 +93,15 @@ export async function remplacerOrdosTypes() {
   await setDoc(refListe("ordostypes"), { data: JSON.stringify(L), maj: serverTimestamp(), majPar: D().u.uid });
   CACHE.ordostypes = TYPES = L;
 }
-// Audit n° 3 (13/10/2026) : les 14 ordonnances de chimiothérapie, une fois dans la liste du cabinet (médecin ; parametres/migrations.audit3b)
+// Audit n° 3 (13/10/2026) : les 14 ordonnances de chimiothérapie, une fois dans la liste du cabinet (médecin ; parametres/migrations.audit3b,
+// puis audit3d le 18/10 : doublon « Chimiothérapie antiémétique » retiré ; relancer ne refait rien)
 export async function ordosAudit3() {
   if (!A.peut("parametres") || !D().membre || D().membre.role !== "medecin") return null;
   const rm = doc(db, "espaces", A.ESPACE, "parametres", "migrations"), g = await getDoc(rm).catch(() => null);
-  if (!g || (g.exists() && g.data().audit3b)) return null;
+  if (!g || (g.exists() && g.data().audit3d)) return null;
   let r = null; const L = await modifierListe("ordostypes", (l) => { r = appliquerOrdosAudit3(l); }); TYPES = L;
-  await setDoc(rm, { audit3b: new Date().toISOString().slice(0, 10) }, { merge: true });
-  if (r.renommees || r.ajoutees) A.journal({ id: "", r: { nm: "" } }, "Audit n° 3 : ordonnances types de chimiothérapie (" + r.renommees + " renommée(s), " + r.ajoutees + " ajoutée(s))");
+  await setDoc(rm, { audit3d: new Date().toISOString().slice(0, 10) }, { merge: true });
+  if (r.renommees || r.ajoutees || r.retirees) A.journal({ id: "", r: { nm: "" } }, "Audit n° 3 : ordonnances types de chimiothérapie (" + r.renommees + " renommée(s), " + r.ajoutees + " ajoutée(s), " + r.retirees + " doublon(s) retiré(s))");
   return r;
 }
 let BIB = null, TYPES = null;

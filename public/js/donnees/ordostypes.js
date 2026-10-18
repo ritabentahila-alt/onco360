@@ -144,7 +144,7 @@ export const ORDOS_AUDIT3 = [
     ["SOLUPRED (prednisolone) 20 mg", "3 comprimés le matin les 2 jours qui suivent le dernier jour de cisplatine"],
     ["OLANZAPINE (ZYPREXA) 5 mg", "1 comprimé le soir, de J1 jusqu'à 2 jours après le dernier jour de cisplatine"],
     ["CLOPRAME (métoclopramide) 10 mg", "1 comprimé en cas de nausées, maximum 3 comprimés par jour"]] },
-  { nom: "Chimio : risque émétique modéré (oxaliplatine, irinotécan…)", ancien: "Pré-chimiothérapie antiémétique", items: [
+  { nom: "Chimio : risque émétique modéré (oxaliplatine, irinotécan…)", ancien: "Pré-chimiothérapie antiémétique", doublons: ["Chimiothérapie antiémétique"], items: [
     ["CHEMOSET (ondansétron) 8 mg", "1 comprimé matin et soir en cas de nausées, à J2 et J3 (maximum 2 comprimés par jour)"],
     ["NAUSELIUM (dompéridone) sirop", "1 cuillère-mesure 3 fois par jour, 15 minutes avant les repas, en cas de nausées"]] },
   { nom: "Chimio – Prémédication docétaxel (à prendre à domicile)", items: [
@@ -175,15 +175,20 @@ export const ORDOS_AUDIT3 = [
     ["CLOPRAME (métoclopramide) 10 mg", "1 comprimé en cas de nausées, maximum 3 comprimés par jour, pendant 5 jours au maximum"]] },
 ];
 // Applique les 14 ordonnances à une liste [{ id, nom, items: [{ nom, poso }], fav }] (modifiée sur place) : renommée et remplie si
-// l'ancien nom est là, ajoutée si le nouveau nom manque ; rien si le nouveau nom existe déjà (une seule fois). Rend { renommees, ajoutees }.
+// l'ancien nom est là, ajoutée si le nouveau nom manque ; rien si le nouveau nom existe déjà (une seule fois). `doublons` : ancienne
+// version renommée par le cabinet (ex. « Chimiothérapie antiémétique ») retirée, son étoile reportée. Rend { renommees, ajoutees, retirees }.
 export function appliquerOrdosAudit3(L) {
-  const r = { renommees: 0, ajoutees: 0 }, it = (o) => o.items.map(([nom, poso]) => ({ nom, poso }));
+  const r = { renommees: 0, ajoutees: 0, retirees: 0 }, it = (o) => o.items.map(([nom, poso]) => ({ nom, poso }));
+  const retirer = (o) => (o.doublons || []).forEach((n) => {
+    const i = L.findIndex((x) => x.nom === n), v = L.find((x) => x.nom === o.nom); if (i < 0 || !v) return;
+    if (L[i].fav) v.fav = L[i].fav; L.splice(i, 1); r.retirees++;
+  });
   ORDOS_AUDIT3.forEach((o, i) => {
-    if (L.some((x) => x.nom === o.nom)) return;
+    if (L.some((x) => x.nom === o.nom)) { retirer(o); return; }
     const v = o.ancien ? L.find((x) => x.nom === o.ancien) : null;
-    if (v) { v.nom = o.nom; if (!o.garder) v.items = it(o); r.renommees++; return; }
+    if (v) { v.nom = o.nom; if (!o.garder) v.items = it(o); r.renommees++; retirer(o); return; }
     if (o.garder) return;
-    L.push({ id: "a3o" + (i + 1), nom: o.nom, items: it(o) }); r.ajoutees++;
+    L.push({ id: "a3o" + (i + 1), nom: o.nom, items: it(o) }); r.ajoutees++; retirer(o);
   });
   return r;
 }

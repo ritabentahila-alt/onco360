@@ -92,11 +92,12 @@ export async function marquerProtocoles() {
 }
 // Audit n° 3 (13/10/2026), ordre 1 – une fois par bibliothèque (médecin ; son cabinet, puis la bibliothèque de référence) : 6 protocoles
 // critiques corrigés, protocole lié PORTEC-3 phase 2 créé, 10 protocoles supprimés (indications reprises par le protocole gardé) ;
+// 18/10 (palier 3, drapeau audit3c ; relancer ne refait rien) : [211] AI 3 jours, « HGC » retiré des remarques ;
 // calcul dans moteur/audit3.js ; les lignes déjà prescrites gardent leur copie ; sans fenêtre (décision de Dr Bentahila), noté au journal.
 export async function appliquerAudit3() {
   if (!A.peut("parametres") || !D().membre || D().membre.role !== "medecin" || !BIB().length) return null;
   const rm = doc(db, "espaces", A.ESPACE, "parametres", "migrations"), g = await getDoc(rm).catch(() => null);
-  if (!g || (g.exists() && g.data().audit3a)) return null;
+  if (!g || (g.exists() && g.data().audit3c)) return null;
   const r = correctionsAudit3(D().ctx.bib);
   const moi = { par: D().u.uid, parNom: (D().membre && D().membre.nom) || "", le: new Date().toISOString() };
   const signer = (p, neuf) => { p.version = neuf ? 1 : (p.version || 1) + 1; Object.assign(p, { majLe: moi.le, majPar: moi.par, majParNom: moi.parNom, st: "ok" }); p.valide = Object.assign({ version: p.version }, moi); };
@@ -111,7 +112,7 @@ export async function appliquerAudit3() {
     const rs = doc(db, "espaces", A.ESPACE, "parametres", "protocolesSupprimes"), sv = await getDoc(rs).catch(() => null), l = sv && sv.exists() ? JSON.parse(sv.data().data || "[]") : [];
     ids.forEach((id) => { if (l.indexOf(id) < 0) l.push(id); }); await setDoc(rs, { data: JSON.stringify(l) }).catch(() => {});
   }
-  await setDoc(rm, { audit3a: moi.le.slice(0, 10) }, { merge: true });
+  await setDoc(rm, { audit3c: moi.le.slice(0, 10) }, { merge: true });
   if (!ecrits.length && !r.supprimes.length) return r;
   A.journal({ id: "", r: { nm: "" } }, "Audit n° 3 : " + r.modifies.length + " protocole(s) corrigé(s), " + r.crees.length + " créé(s), " + r.supprimes.length + " supprimé(s)");
   if (D().page === "protocoles") pageProtocoles();
