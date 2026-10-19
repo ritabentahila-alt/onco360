@@ -25,7 +25,8 @@ async def calendrier(b, cas, **o):
     html = await ev("(window.__win[window.__win.length - 1] || { w: { document: { _h: '' } } }).w.document._h")
     errs = pg.errs[:]; await pg.close()
     pages = 0
-    if html:
+    if html and os.environ.get('NAVIGATEUR') == 'webkit': pages = 1  # PDF : Chrome seulement (outil de test) ; le nombre de pages est vérifié sous Chrome
+    elif html:
         pp = await b.new_page(); await pp.set_content(html); await pp.wait_for_timeout(300)
         pdf = await pp.pdf(prefer_css_page_size=True); pages = len(re.findall(rb'/Type\s*/Page[^s]', pdf)); await pp.close()
     return L, t, pages, errs
@@ -56,7 +57,20 @@ async def main():
         for nb, ryt in [('33', '1'), ('39', '1'), ('60', 'bid')]:
             L, t, pages, errs = await calendrier(b, nb, nb=nb, ryt=ryt, deb='2026-08-03', fin=None, finPrev=None)
             ok(len(L) == int(nb) and pages == 1, nb + ' séances' + (' (2 par jour)' if ryt == 'bid' else '') + ' : ' + str(len(L)) + ' lignes, une seule page A4', (len(L), pages))
-        # 5. Téléphone : la fenêtre du document ne déborde pas
+        # 5. Paramètres › Bibliothèques › Courriers : ancien calendrier modifié par le cabinet : gardé, le nouveau proposé
+        S4 = json.loads(json.dumps(S2)); S4[E + 'bibliotheques/courriers'] = {'data': json.dumps([{'id': 'rt-rdv', 'rt': 'rdv', 'nom': 'Calendrier des séances de radiothérapie', 'html': '<p class="dc-titre">Calendrier théorique des séances</p><p>{tableau_seances}</p>'}])}
+        pg = await ouvrir(b, S4); ev = pg.evaluate
+        await pg.goto(f'http://localhost:{PORT}/v2.html#parametres/bibliotheques'); await pg.wait_for_timeout(1500)
+        await ev("cfBib('courriers')"); await pg.wait_for_timeout(1200); await ev("crFiche('rt-rdv')"); await pg.wait_for_timeout(600)
+        t = await pg.inner_text('#fenetreCorps')
+        ok('Calendrier théorique' in await ev("document.getElementById('crPage').innerText") and 'Un nouveau modèle existe' in t, 'Paramètres : ancien modèle du cabinet gardé, le nouveau proposé', t[:200])
+        await ev("window.confirm = () => true; crOrigine()"); await pg.wait_for_timeout(300)
+        ok((await ev("document.getElementById('crNom').value")) == 'Calendrier de fin de radiothérapie' and 'Rendez-vous du patient' in await ev("document.getElementById('crPage').innerText"), '« Remettre le texte d\'origine » : nouveau modèle et nouveau nom')
+        await ev("crValider()"); await pg.wait_for_timeout(1200)
+        L = json.loads((await ev(f"window.__fs['{E}bibliotheques/courriers']"))['data']); m = next(z for z in L if z['id'] == 'rt-rdv')
+        ok(m['nom'] == 'Calendrier de fin de radiothérapie' and '{id_patient}' in m['html'], 'Valider : le cabinet a le nouveau calendrier (nom et modèle)', m['nom'])
+        ok(not pg.errs, 'aucune erreur JavaScript (Paramètres)', pg.errs[:2]); await pg.close()
+        # 6. Téléphone : la fenêtre du document ne déborde pas
         S3, rid = avec_rt(nb='25', deb='2026-09-01')
         pg = await ouvrir(b, S3, w=390, h=800); ev = pg.evaluate
         await pg.goto(f'http://localhost:{PORT}/v2.html#dossier/{P4}'); await pg.wait_for_timeout(3000)

@@ -23,6 +23,7 @@ async def recu(pg):
     await ev(f"recuRdv('{P7}', '{RID}')"); await pg.wait_for_timeout(1500)
     return await ev(f"(window.__win.length > {n0}) ? window.__win[window.__win.length - 1].w.document._h : ''")
 async def pages(b, html):
+    if os.environ.get('NAVIGATEUR') == 'webkit': return 1  # PDF : Chrome seulement (outil de test) ; le nombre de pages est vérifié sous Chrome
     pp = await b.new_page(); await pp.set_content(html); await pp.wait_for_timeout(200); pdf = await pp.pdf(prefer_css_page_size=True); await pp.close()
     return len(re.findall(rb'/Type\s*/Page[^s]', pdf))
 async def main():

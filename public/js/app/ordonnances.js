@@ -16,7 +16,7 @@ import { ORDOS_TYPES0, appliquerOrdosAudit3 } from "../donnees/ordostypes.js";
 import { ANALYSES0, BILANS0 } from "../donnees/analyses.js";
 import { EXAMENS0 } from "../donnees/examens.js";
 import { COURRIERS0, CHAMPS_COURRIER } from "../donnees/courriers.js";
-import { COURRIERS_RT0, CHAMPS_RT, MODELES_RT0 } from "../donnees/modelesrt.js"; // documents de radiothérapie modifiables (12/10/2026)
+import { COURRIERS_RT0, CHAMPS_RT, MODELES_RT0, NOMS_RT } from "../donnees/modelesrt.js"; // documents de radiothérapie modifiables (12/10/2026)
 import * as ficheP from "./fichepatient.js"; // champs ajoutés de la fiche, insérables dans les courriers (10/10/2026)
 import { age, accordMedecin, srcImage } from "../moteur/outils.js";
 import { installer as installerDocumentation } from "./documentation.js"; // bouton « Doc. » (08/10/2026)
@@ -574,6 +574,8 @@ window.crFiche = (id) => {
   A.fenetre("<h3>" + (m ? "Modifier le modèle de courrier" : "Nouveau modèle de courrier") + "</h3>" +
     '<div class="form"><div class="large"><label for="crNom">Nom du modèle</label><input id="crNom" value="' + A.esc(m ? m.nom : "") + '" placeholder="Ex. Certificat de non contre-indication"' + (CRF.rt ? " disabled" : "") + "></div></div>" +
     (CRF.rt ? '<p class="mesures">Modèle d\'un document de radiothérapie : ouvert depuis la carte radiothérapie du dossier, rempli pour le patient et sa radiothérapie. <a href="#" class="lienr" onclick="crOrigine();return false">Remettre le texte d\'origine</a></p>' : "") +
+    // R-B4 (19/10/2026) : calendrier modifié par le cabinet avant la nouvelle présentation : gardé ; le nouveau est proposé ici
+    (CRF.rt === "rdv" && m && !m.defaut && String(m.html || "").indexOf("{id_patient}") < 0 ? '<p class="mesures" style="color:var(--orange)">Un nouveau modèle existe : « Calendrier de fin de radiothérapie » (présentation de l\'export de l\'accélérateur, une page A4, pour les mutuelles). Votre modèle est gardé ; pour prendre le nouveau : « Remettre le texte d\'origine », puis Valider.</p>' : "") +
     '<div class="or-outils">' + b("Gras", "<b>G</b>", "orStyle('bold')") + b("Souligné", "<u>S</u>", "orStyle('underline')") + b("Centrer", "≡", "orStyle('justifyCenter')") + b("Aligner à gauche", "⇤", "orStyle('justifyLeft')") + b("Aligner à droite", "⇥", "orStyle('justifyRight')") + "</div>" +
     '<div class="cr-champs"><span class="mesures">Insérer :</span>' + (CRF.rt ? CHAMPS_RT[CRF.rt] : CHAMPS_COURRIER.concat(ficheP.champsAjoutes().filter((a) => a.imprimer).map((a) => ["c_" + a.id, a.lib]))).map(([k, lib]) => '<button class="mini" onmousedown="event.preventDefault()" onclick="crChamp(\'' + k + '\')" title="Remplacé à chaque courrier par : ' + A.esc(lib.toLowerCase()) + '">' + A.esc(lib) + "</button>").join("") +
     '<button class="mini cr-z" onmousedown="event.preventDefault()" onclick="crZone()" title="Zone surlignée, à compléter à chaque courrier">Zone à compléter</button></div>' +
@@ -597,7 +599,7 @@ function inserer(n) {
 window.crChamp = (k) => inserer(document.createTextNode("{" + k + "}"));
 window.crZone = () => { const t = document.createElement("template"); t.innerHTML = ZONE; inserer(t.content.firstChild); };
 window.crRetour = () => { CRF = null; if (CQ) vueCourriers(); else A.fermerFenetre(); };
-window.crOrigine = () => { if (CRF && CRF.rt && confirm("Remettre le texte d'origine de ce document ? (enregistré seulement si vous validez)")) $("crPage").innerHTML = MODELES_RT0[CRF.rt]; };
+window.crOrigine = () => { if (CRF && CRF.rt && confirm("Remettre le texte d'origine de ce document ? (enregistré seulement si vous validez)")) { $("crPage").innerHTML = MODELES_RT0[CRF.rt]; if ($("crNom") && NOMS_RT[CRF.rt]) $("crNom").value = NOMS_RT[CRF.rt]; } }; // nom d'origine aussi (R-B4)
 window.crValider = async () => {
   if (!CRF) return; const nom = A.val("crNom"), html = nettoyer($("crPage").innerHTML);
   if (!nom) { A.erreur("Donnez un nom au modèle."); return; }

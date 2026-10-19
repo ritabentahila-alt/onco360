@@ -258,3 +258,4 @@ Jusqu'au 11/10/2026 les étapes portaient les numéros de l'ancienne feuille de 
 | 19/10/2026 | R-B4 | Calendrier de fin de radiothérapie (mise en page de l'export de l'accélérateur, sans appareil, une page A4 jusqu'à 60 séances) ; test_calendrier_rt 18/18 |
 | 19/10/2026 | R-B5 | Nouveau reçu A5 (tableau, médecin de l'acte, Visa accueil, mentions IF / TP / ICE / INPE / adresse, TVA à cocher), IF / TP / ICE dans Mon compte, prix changé après un reçu (avertissement, historique, règle), reçu sans numéro au journal ; test_recu 23/23 |
 | 19/10/2026 | Feuille de route | R-C8 ajoutée (demande de Dr Bentahila) : agenda avec bouton « Actualiser » et relecture chaque minute, comme la salle d'attente |
+| 19/10/2026 | R-B1 à R-B5 en ligne | Version 20261019b : site, règle des reçus (historique des prix), fonctions du modèle (menu avec RCP) ; calendrier : nouveau modèle proposé aussi dans Paramètres › Courriers ; contrôle complet (Chrome, Safari, règles, émulateurs) |
