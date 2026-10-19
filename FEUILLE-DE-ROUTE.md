@@ -353,7 +353,11 @@ types**, refus gardés) : R-A6 et R-E4 partent de là, sans les refaire.
       (Administration ou cabinet) : RCP inséré juste après Tâches (comme `ordreAvecNouveaux`). Module retiré : caché (`body.sans-rcp`) ;
       `MODULE_MENU`, menu replié, téléphone ; droits inchangés. Vérifier : `tests/test_cabinets.py`, « + RCP », dossier ouvert depuis la
       liste (Décision RCP · Valider · Fermer), RCP dans « Rendez-vous et tâches à venir ».
-- [ ] **R-B2 Alertes cliniques du tableau de bord qu'on peut valider** (§ 4.2) : bouton **« Vu »** (coche) sur chaque ligne du groupe
+- [x] **(19/10/2026, testé)** `public/js/moteur/alertes.js` (`cleAlerte` patient + ligne + cure + type + valeur, `vuesNettoyees` 90 jours,
+      `partagerAlertes` ; test-alertes 6/6) ; bouton « Vu » (coche, 44 px sur téléphone, n'ouvre pas le dossier) sur chaque alerte clinique ;
+      `utilisateurs/{uid}.alertesVues` (règle inchangée) ; « Alertes vues (n) » → fenêtre avec « Remettre » ; nouvelle valeur = nouvelle alerte
+      (une cure validée reste figée : son poids changé après coup ne fait pas d'alerte). `tests/test_alertes_vues.py` 13/13 (patients fictifs).
+      **R-B2 Alertes cliniques du tableau de bord qu'on peut valider** (§ 4.2) : bouton **« Vu »** (coche) sur chaque ligne du groupe
       « Alertes cliniques » (`blocAFaire`, `alertesCliniques`) ; clé = patient, ligne, cure, type et valeur (perte de poids, clairance,
       bilan) : une alerte vue ne revient pas, une nouvelle valeur / cure / bilan = nouvelle alerte ; rangé par médecin dans
       `utilisateurs/{uid}.alertesVues` { clé: date } (aucune règle à changer), entrées de plus de 90 jours effacées ; lien « Alertes vues

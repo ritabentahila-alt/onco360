@@ -252,3 +252,4 @@ Jusqu'au 11/10/2026 les étapes portaient les numéros de l'ancienne feuille de 
 | 18/10/2026 | R-A2 à R-A6 en ligne | Version 20261018h : site, toutes les fonctions (modeleReprendre, modeleAppliquer créées ; 4 fonctions de nuit republiées après une coupure de Google) et index etablissementId + maj ; règles inchangées ; contrôle complet 76/76 (Chrome, Safari, règles, émulateurs) |
 | 18/10/2026 | R-A6 bis | Écart au modèle de chaque cabinet (Administration, lecture seule, sans données patient), libellés des champs en clair ; test-modele 23/23, émulateurs 36/36, test_modele_admin 21/21 |
 | 19/10/2026 | R-A6 bis en ligne | Version 20261019a : fonction modeleEcart créée, modeleReprendre et modeleAppliquer mises à jour, site ; contrôle complet 76/76 |
+| 19/10/2026 | R-B2 | Alertes cliniques : « Vu », « Alertes vues (n) », « Remettre » ; rangées par médecin, 90 jours ; test-alertes 6/6, test_alertes_vues 13/13 |

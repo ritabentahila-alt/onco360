@@ -8,7 +8,8 @@ import { fusionner, cliniqueRemise, REMIS } from "../donnees/conversion.js";
 import { resume } from "../moteur/resume.js";
 import { chimioAVenir } from "../moteur/agenda.js";
 import { occupations, chevauche, texteConflit } from "../moteur/creneaux.js";
-import { poidsActuel, textePoids } from "../moteur/poids.js"; // R-A5 (18/10/2026) : poids actuel (fiche ou dernière séance) // R-A3 (18/10/2026) : créneaux pris par les consultations de chimio et de RT
+import { poidsActuel, textePoids } from "../moteur/poids.js";
+import { cleAlerte, vuesNettoyees, partagerAlertes } from "../moteur/alertes.js"; // R-B2 (19/10/2026) : alertes cliniques vues // R-A5 (18/10/2026) : poids actuel (fiche ou dernière séance) // R-A3 (18/10/2026) : créneaux pris par les consultations de chimio et de RT
 import { etatLigne, protocoleDe, seancesCure, poidsDebut, reperesClairance } from "../moteur/doses.js";
 import { finRT, finRTcalc, statutRT, nbA, compteurRT, dosimetrie, contourage, RYTHMES, libRythme, volumesRT, seancesVolumes, dpfVolume, texteVolume } from "../moteur/rt.js";
 import { auj, addJ, ecart, ouvre, age, srcImage, absentMedecin } from "../moteur/outils.js";
@@ -773,13 +774,36 @@ function alertesCliniques() {
     let E; try { if (!protocoleDe(L, D.ctx.bib)) return; E = etatLigne(L, x.P, D.ctx); } catch (er) { return; }
     const k = E.findIndex((e) => e.st === "prevue"), e = E[k]; if (!e) return;
     const pd = poidsDebut(E), po = e.g[0].poids, nom = (protocoleDe(L, D.ctx.bib) || {}).nom || "";
-    if (pd && po && (pd - po) / pd > 0.1) l.push({ id: x.id, nm: x.r.nm, de: "Perte de poids de " + Math.round((pd - po) / pd * 100) + " % depuis le début de la ligne (" + pd + " → " + po + " kg) · " + nom, retard: true });
-    if (e.date && ecart(e.date, t) <= 7) reperesClairance(e, e.g[0]).forEach((a) => l.push({ id: x.id, nm: x.r.nm, de: "C" + e.n + " le " + dfr(e.date) + " : " + a, retard: /contre-indi/.test(a) }));
+    // R-B2 : clé de chaque alerte (patient, ligne, cure, type, valeur) pour « Vu »
+    const cle = (n, type, v) => cleAlerte({ pid: x.id, lid: L.id || "", n, type, v });
+    if (pd && po && (pd - po) / pd > 0.1) l.push({ id: x.id, nm: x.r.nm, de: "Perte de poids de " + Math.round((pd - po) / pd * 100) + " % depuis le début de la ligne (" + pd + " → " + po + " kg) · " + nom, retard: true, cle: cle(e.n, "poids", pd + ">" + po) });
+    if (e.date && ecart(e.date, t) <= 7) reperesClairance(e, e.g[0]).forEach((a) => l.push({ id: x.id, nm: x.r.nm, de: "C" + e.n + " le " + dfr(e.date) + " : " + a, retard: /contre-indi/.test(a), cle: cle(e.n, "cl", a) }));
     const fv = E.slice(0, k).reverse().find((z) => z.c && z.c.fige && z.c.fige.bio);
-    if (fv) alertesBio(fv.c.fige.bio).forEach((a) => l.push({ id: x.id, nm: x.r.nm, de: "Bilan de la C" + fv.n + " (" + dfr(fv.date) + ") : " + a }));
+    if (fv) alertesBio(fv.c.fige.bio).forEach((a) => l.push({ id: x.id, nm: x.r.nm, de: "Bilan de la C" + fv.n + " (" + dfr(fv.date) + ") : " + a, cle: cle(fv.n, "bio", a) }));
   }));
   return l;
 }
+// R-B2 : alerte clinique vue / remise (utilisateurs/{uid}.alertesVues { clé: date }, entrées de plus de 90 jours effacées à chaque écriture)
+async function ecrireAlertesVues(v) {
+  D.profil.alertesVues = v; const ref = doc(db, "utilisateurs", D.u.uid);
+  await updateDoc(ref, { alertesVues: v }).catch((e) => (e && e.code === "not-found" ? setDoc(ref, { alertesVues: v }, { merge: true }) : Promise.reject(e)));
+}
+window.alerteVue = async (cle) => {
+  const v = vuesNettoyees(D.profil.alertesVues, D.t); v[cle] = D.t;
+  try { await ecrireAlertesVues(v); toast("Alerte vue : elle ne reviendra pas (sauf nouvelle valeur)."); } catch (e) { toast("Enregistrement impossible : " + (e.message || e)); }
+  if (String(D.page || "") === "accueil") pageAccueil();
+};
+window.alertesVuesVoir = () => {
+  const A = partagerAlertes(alertesCliniques(), vuesNettoyees(D.profil.alertesVues, D.t)).vues;
+  fenetre('<h3>Alertes vues</h3><p class="sous">Alertes cliniques que vous avez validées « Vu » (toujours d\'actualité). « Remettre » les fait revenir dans le tableau de bord.</p>' +
+    (A.length ? A.map((o) => '<div class="af-l"><div class="tx"><b>' + esc(o.nm) + '</b><span class="de">' + esc(o.de) + '</span></div><button class="bt petit gris" onclick="alerteRemise(\'' + o.cle + '\')">Remettre</button></div>').join("") : '<p class="mesures">Aucune.</p>') +
+    '<div class="boutons"><button class="bt plein" onclick="fermerFenetre()">Fermer</button></div>');
+};
+window.alerteRemise = async (cle) => {
+  const v = vuesNettoyees(D.profil.alertesVues, D.t); delete v[cle];
+  try { await ecrireAlertesVues(v); } catch (e) { toast("Enregistrement impossible : " + (e.message || e)); return; }
+  fermerFenetre(); if (String(D.page || "") === "accueil") pageAccueil(); toast("Alerte remise dans le tableau de bord.");
+};
 function blocAFaire(pj) {
   const role = D.membre.role, t = D.t, G = [], plus = (l, n) => (l.length > n ? '<div class="af-plus">+ ' + (l.length - n) + " autre" + (l.length - n > 1 ? "s" : "") + "</div>" : "");
   const ligne = (o) => '<div class="af-l' + (o.retard ? " ret" : "") + '"' + (o.id ? ' onclick="ouvrirDossier(\'' + o.id + '\')"' : "") + '><div class="tx"><b>' + esc(o.nm) + "</b>" + (o.de ? '<span class="de">' + esc(o.de) + "</span>" : "") + "</div>" + (o.badge || "") + (o.bt || "") + "</div>";
@@ -793,7 +817,9 @@ function blocAFaire(pj) {
     D.patients.forEach((x) => (x.r.act || []).forEach((a) => { if (!a.d || a.d > t) return; const ret = a.d < t;
       cures.push({ id: x.id, nm: x.r.nm, de: "C" + a.k + (a.sj ? " J" + a.sj : "") + " · " + a.nom.replace(/ · J\d+$/, ""), retard: ret, d: a.d, badge: ret ? '<span class="badge b-al">prévue le ' + dfr(a.d) + "</span>" : badgeSalle(x.id, "chimio") + '<span class="badge b-ch">aujourd\'hui</span>' }); }));
     cures.sort((p, q) => p.d.localeCompare(q.d) || p.nm.localeCompare(q.nm)); groupe("seringue", "Cures à valider", cures, 8);
-    groupe("alerte", "Alertes cliniques", alertesCliniques(), 6);
+    { const A = partagerAlertes(alertesCliniques(), vuesNettoyees(D.profil.alertesVues, D.t)); // R-B2 : « Vu » (coche) sur chaque alerte ; celles déjà vues à part
+      groupe("alerte", "Alertes cliniques", A.aVoir.map((o) => Object.assign({}, o, { bt: '<button class="ico af-vu" title="Vu : ne plus afficher cette alerte" aria-label="Vu : ne plus afficher cette alerte" onclick="event.stopPropagation();alerteVue(\'' + o.cle + '\')">' + ic("check") + "</button>" })), 6);
+      if (A.vues.length) G.push('<div class="af-g"><button class="lien" onclick="alertesVuesVoir()">Alertes vues (' + A.vues.length + ")</button></div>"); }
     const cont = [], dosi = [], fin = [], okV = peutDosi();
     D.patients.forEach((x) => { if (!voitRT(x)) return; let l = []; try { l = JSON.parse(x.doc.rtsJson || "[]"); } catch (e) { /* illisible */ }
       l.forEach((r) => { const q = "'" + x.id + "','" + r.id + "'", ap = "function(){route()}", acte = r.acte || "Radiothérapie";
