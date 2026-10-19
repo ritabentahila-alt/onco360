@@ -7,7 +7,7 @@ def ok(c, m, d=None):
     if c: ok_n += 1; print('  ✔ ' + m)
     else: ko_n += 1; print('  ✘ ' + m + ('' if d is None else ' ' + str(d)[:400]))
 pid = [k.split('/')[-1] for k, v in S.items() if k.startswith(E + 'patients/') and k.count('/') == 3 and json.loads(v.get('lignesJson') or '[]')][0]
-PAGES = ['accueil', 'agenda', 'salle', 'patients', 'dossier/' + pid, 'taches', 'taches/rcp', 'protocoles', 'bilan', 'profil'] + ['parametres/' + r for r in
+PAGES = ['accueil', 'agenda', 'salle', 'patients', 'dossier/' + pid, 'taches', 'rcp', 'protocoles', 'bilan', 'profil'] + ['parametres/' + r for r in
   ['lieux', 'accueil', 'rcp', 'impression', 'fiche', 'consultation', 'types', 'listes', 'horaires', 'fermetures', 'couleurs', 'whatsapp', 'alertes', 'bibliotheques', 'vigilances', 'documents', 'taches', 'activites']]
 QUI = "(()=>{const W=document.documentElement.clientWidth;const clip=(e)=>{for(let p=e.parentElement;p;p=p.parentElement){const o=getComputedStyle(p).overflowX;if(o==='auto'||o==='scroll'||o==='hidden')return true}return false};return [...document.querySelectorAll('body *')].filter(e=>e.getBoundingClientRect().right>W+1&&!clip(e)).slice(0,2).map(e=>e.tagName+'.'+e.className)})()"
 async def main():

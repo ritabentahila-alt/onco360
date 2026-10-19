@@ -347,7 +347,12 @@ types**, refus gardés) : R-A6 et R-E4 partent de là, sans les refaire.
       consultation non notée au journal. Tests : test-modele 23/23, émulateurs 36/36, test_modele_admin 21/21.
 
 **Lot B – Ajouts demandés le 17/10**
-- [ ] **R-B1 RCP dans le menu principal, sous Tâches** (§ 4.1) : entrée « RCP » dans `MENU` (catalogue.js) juste après « Tâches », module
+- [x] **(19/10/2026, testé)** `MENU` : « RCP » (module `rcp`, route `#rcp`) juste après « Tâches », pastille `nbRcp` (inscriptions sans décision) ;
+      page `pageRcpMenu` (rcp.js, même contenu que l'ancien onglet) ; l'onglet quitte la page Tâches ; `#taches/rcp` et `taVue('rcp')` renvoient
+      vers `#rcp`, retour du dossier (`retourListe`) aussi ; menu déjà réglé : `menuAvecNouveaux` (catalogue.js) place RCP juste après Tâches,
+      le reste dans l'ordre d'avant ; module retiré : caché (`data-mod`), page → tableau de bord ; `MODULE_MENU` mis à jour ; copie du serveur
+      (`functions/site/`) recopiée. `tests/test_rcp_menu.py` 14/14 ; test_cabinets et test_debordement adaptés (une entrée de menu de plus).
+      **R-B1 RCP dans le menu principal, sous Tâches** (§ 4.1) : entrée « RCP » dans `MENU` (catalogue.js) juste après « Tâches », module
       `rcp`, route `#rcp`, même contenu que l'onglet (calendrier des semaines, période, Tous / À faire / Faits, case Fait, impression) ;
       l'onglet quitte la page Tâches ; `#taches/rcp` renvoie vers `#rcp` (anciens liens, `retourListe` de rcp.js). Menus déjà réordonnés
       (Administration ou cabinet) : RCP inséré juste après Tâches (comme `ordreAvecNouveaux`). Module retiré : caché (`body.sans-rcp`) ;

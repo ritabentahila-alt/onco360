@@ -71,7 +71,7 @@ export function demarrerRcp() {
 export const rcpDuPatient = (pid) => (R || []).filter((r) => r.patientId === pid && !r.fait);
 export const nbRcpAFaire = () => (R || []).filter((r) => !r.fait).length;
 function apresChangement() {
-  const n = $("taNb-rcp"); if (n) n.textContent = nbRcpAFaire();
+  majBadgeRcp(); // pastille du menu « RCP »
   if ($("rcpZone") && R && CFG) { if (!DU) periodeDefaut(); dessinerListe(); }
 }
 
@@ -168,6 +168,13 @@ function periodeDefaut() {
   const p = prochainesRcp(1)[0] || (R || []).filter((r) => r.d >= D().t).map((r) => r.d)[0] || D().t;
   DU = lundi(p); AU = ajouterJours(DU, 6); MOIS = p.slice(0, 7);
 }
+// R-B1 (19/10/2026, demande du 17/10) : page « RCP » du menu principal, juste sous Tâches (avant : onglet de la page Tâches, #taches/rcp
+// y renvoie) ; même contenu : calendrier des semaines, période, Tous / À faire / Faits, case Fait, impression
+export function pageRcpMenu() {
+  $("page").innerHTML = '<section class="accueil"><div><h2>RCP</h2><p>Réunions de concertation pluridisciplinaire : dossiers inscrits, décisions.</p></div></section>' + htmlOngletRcp();
+  pageRcp(); majBadgeRcp();
+}
+const majBadgeRcp = () => { const e = $("nbRcp"), n = nbRcpAFaire(); if (e) { e.textContent = n; e.classList.toggle("cache", !n); e.title = n + " inscription" + (n > 1 ? "s" : "") + " en RCP sans décision"; } };
 export function htmlOngletRcp() { return '<div id="rcpZone"><p class="sous">Chargement des RCP…</p></div>'; }
 export function pageRcp() { if (R && CFG) { if (!DU) periodeDefaut(); dessinerListe(); } } // sinon : dessinée à la fin de la lecture
 function dessinerListe() {
@@ -260,7 +267,7 @@ export function bulleRcp(x) {
       '<button class="bt vert" onclick="rcpValider()"><svg class="i"><use href="#i-check"/></svg>Valider</button>' : "") +
     '<button class="bt fonce" onclick="rcpFermer()"><svg class="i"><use href="#i-retour"/></svg>Fermer</button></div></div><div class="rcp-espace"></div>';
 }
-const retourListe = () => { COURANT = null; location.hash = "taches/rcp"; };
+const retourListe = () => { COURANT = null; location.hash = "rcp"; };
 window.rcpFermer = () => retourListe();
 // Décision : nouvelle consultation « RCP » (question reprise dans la note), ou la consultation déjà écrite
 window.rcpDecision = async () => {

@@ -10,7 +10,7 @@ import { MODULES, FORMULES } from "./modules.js";
 // Menu : clé, libellé, module dont il dépend (null = toujours possible)
 export const MENU = [
   ["accueil", "Tableau de bord", null], ["agenda", "Agenda / Rendez-vous", "agenda"], ["salle", "Salle d'attente", "salle"],
-  ["patients", "Patients", null], ["taches", "Tâches", "taches"], ["protocoles", "Protocoles", "chimio"],
+  ["patients", "Patients", null], ["taches", "Tâches", "taches"], ["rcp", "RCP", "rcp"], ["protocoles", "Protocoles", "chimio"], // RCP : menu (R-B1, 19/10/2026)
   ["parametres", "Paramètres", null], ["bilan", "Bilan", "bilan"], ["profil", "Mon compte", null],
 ];
 // Fonctions de chaque module (partie 1.2 du plan, validée le 10/10/2026) ; 3e élément true = fonction de base, toujours présente avec
@@ -47,6 +47,14 @@ function ordreAvecNouveaux(l, ref, cat) {
   const r = l.filter((k, i) => ref.indexOf(k) >= 0 && l.indexOf(k) === i);
   cat.forEach((k, i) => { if (r.indexOf(k) >= 0) return; let j = -1; for (let p = i - 1; p >= 0 && j < 0; p--) j = r.indexOf(cat[p]); r.splice(j + 1, 0, k); });
   ref.forEach((k) => { if (r.indexOf(k) < 0) r.push(k); });
+  return r;
+}
+// Entrées ajoutées au menu après que des cabinets ont réglé le leur (R-B1, 19/10/2026) : placées juste après l'entrée qui les précède dans le
+// catalogue (« RCP » sous « Tâches ») ; toute autre entrée absente : à la fin, comme avant
+const MENU_NOUVEAUX = ["rcp"];
+function menuAvecNouveaux(l) {
+  const ref = MENU.map((m) => m[0]), r = ordre(Array.isArray(l) ? l.filter((k) => MENU_NOUVEAUX.indexOf(k) < 0 || l.indexOf(k) >= 0) : l, ref.filter((k) => MENU_NOUVEAUX.indexOf(k) < 0 || (Array.isArray(l) && l.indexOf(k) >= 0)));
+  ref.forEach((k, i) => { if (r.indexOf(k) >= 0) return; const j = r.indexOf(ref[i - 1]); r.splice(j >= 0 ? j + 1 : r.length, 0, k); });
   return r;
 }
 const ordre = (l, ref) => (Array.isArray(l) ? l.filter((k, i) => ref.indexOf(k) >= 0 && l.indexOf(k) === i) : []).concat(ref.filter((k) => !(Array.isArray(l) && l.indexOf(k) >= 0)));
@@ -295,7 +303,8 @@ export const toutesFonctions = () => { const o = {}; Object.entries(FONCTIONS).f
 export const fonctionsDeBase = () => { const o = {}; Object.entries(FONCTIONS).forEach(([m, l]) => l.forEach(([k, , base]) => { if (base) o[m + "." + k] = true; })); return o; };
 export function reglageEffectif(r, spe, speCs) {
   const x = r || {}, b = (o, d) => Object.assign(d, Object.fromEntries(Object.entries(o || {}).filter(([k, v]) => k in d && typeof v === "boolean")));
-  return { menu: ordre(x.menu, MENU.map((m) => m[0])), accueil: ordreAvecNouveaux(x.accueil, CARTES.map((c) => c[0]), CARTES.map((c) => c[0])), cartes: b(x.cartes, vrais(CARTES)),
+  // menu réglé avant le 19/10 : « RCP » placé juste après « Tâches », le reste comme avant (menuAvecNouveaux)
+  return { menu: menuAvecNouveaux(x.menu), accueil: ordreAvecNouveaux(x.accueil, CARTES.map((c) => c[0]), CARTES.map((c) => c[0])), cartes: b(x.cartes, vrais(CARTES)),
     ordreSections: ordre(x.ordreSections, SECTIONS.map((c) => c[0])), sections: b(x.sections, vrais(SECTIONS)), bibliotheques: b(x.bibliotheques, vrais(BIBLIOTHEQUES)), fonctions: Object.assign(b(x.fonctions, toutesFonctions()), fonctionsDeBase()), fiche: ficheEffective(x.fiche, spe), consultation: consultEffective(x.consultation, speCs) };
 }
 // Éléments de l'écran liés à une bibliothèque (bouton du dossier, carte de Paramètres › Bibliothèques) : data-bib

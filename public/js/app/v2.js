@@ -37,7 +37,7 @@ import { montantEnLettres } from "../donnees/factures.js";
 import { installer as installerTaches, pageTaches, demarrerTaches, blocAccueil as blocTaches, tachesDuPatient } from "./taches.js";
 import { installer as installerSalle, heureMaroc, dossiersChanges, pageSalle, demarrerSalle, apresStatutRdv, apresVenuChimio, apresPrix, bullesDossier, presenceDossier, majPresenceDossier, prixPrevu, badgeSalle } from "./salle.js";
 import { installer as installerAudit } from "./audit.js";
-import { installer as installerRcp, demarrerRcp, rcpDuPatient, bulleRcp, suivreEtablissementRcp, supprimerRcp } from "./rcp.js";
+import { installer as installerRcp, demarrerRcp, rcpDuPatient, bulleRcp, suivreEtablissementRcp, supprimerRcp, pageRcpMenu } from "./rcp.js";
 import { ACTES_RT, DIAG_AJOUTS_1012, DIAG_RENOMS_1012 } from "../donnees/listes.js";
 import { abonnementEffectif } from "../donnees/modules.js";
 import { STATUTS, libStatut, decede, allergique, dernieresNouvelles } from "../moteur/statut.js"; // 3.2 et 3.3 (12/10/2026)
@@ -673,7 +673,7 @@ const PAGES_COMPTABLE = ["bilan", "profil"];
 // Bibliothèque de référence (10/10/2026) : protocoles et paramètres (bibliothèques, listes, fériés, tarifs RT) seulement
 const PAGES_BIB = ["protocoles", "parametres", "configuration"];
 const estComptable = () => !!(D && D.membre && D.membre.role === "comptable");
-const PAGE_MODULE = { agenda: "agenda", salle: "salle", taches: "taches", protocoles: "chimio", bilan: "bilan" };
+const PAGE_MODULE = { agenda: "agenda", salle: "salle", taches: "taches", rcp: "rcp", protocoles: "chimio", bilan: "bilan" };
 const module = (k) => !D || !D.abo || D.abo.modules[k] !== false;
 // ───── Dossiers modifiés sur un autre poste, écoutés en direct (R-A4, 18/10/2026, demande du 17/10) ─────
 // Dossiers dont `maj` est postérieur à l'ouverture d'Onco360 (5 min de marge pour une horloge fausse), dans le périmètre de la personne (mêmes
@@ -715,7 +715,7 @@ function rafraichirPage(ids) {
 }
 window.__majDossiers = () => appliquerDossiers(); // tests
 const PAGES_TOUS = () => ({ tous: ["Mes cabinets aujourd'hui", () => pageTous()] });
-const PAGES = { accueil: ["Tableau de bord", pageAccueil], agenda: ["Agenda / Rendez-vous", () => pageAgenda()], configuration: ["Paramètres", () => { location.replace("#parametres"); }], profil: ["Mon compte", (a) => pageProfil(a)], protocoles: ["Protocoles", () => pageProtocoles()], parametres: ["Paramètres", (a) => pageConfiguration(a)], bilan: ["Bilan", () => pagePageBilan()], salle: ["Salle d'attente", () => pageSalle()], patients: ["Patients", pagePatients], taches: ["Tâches", (a) => pageTaches(a)], dossier: ["Dossier patient", pageDossier] };
+const PAGES = { accueil: ["Tableau de bord", pageAccueil], rcp: ["RCP", () => pageRcpMenu()], agenda: ["Agenda / Rendez-vous", () => pageAgenda()], configuration: ["Paramètres", () => { location.replace("#parametres"); }], profil: ["Mon compte", (a) => pageProfil(a)], protocoles: ["Protocoles", () => pageProtocoles()], parametres: ["Paramètres", (a) => pageConfiguration(a)], bilan: ["Bilan", () => pagePageBilan()], salle: ["Salle d'attente", () => pageSalle()], patients: ["Patients", pagePatients], taches: ["Tâches", (a) => pageTaches(a)], dossier: ["Dossier patient", pageDossier] };
 function route() {
   if (CABINETS.length > 1 && !PAGES.tous) Object.assign(PAGES, PAGES_TOUS()); // secrétaire de plusieurs cabinets (19.7)
   const h = location.hash.replace("#", ""), i = h.indexOf("/"), p = i < 0 ? h : h.slice(0, i), arg = i < 0 ? null : decodeURIComponent(h.slice(i + 1)), nom = PAGES[p] && module(PAGE_MODULE[p] || "") && !(p === "protocoles" && D.reg && D.reg.fonctions["chimio.protocoles"] === false) && (!estComptable() || PAGES_COMPTABLE.indexOf(p) >= 0) && (!D.bib || PAGES_BIB.indexOf(p) >= 0) ? p : estComptable() ? "bilan" : D.bib ? "protocoles" : "accueil";
