@@ -987,17 +987,21 @@ const icones = (h) => String(h).replace(/💉 ?/g, ic("seringue")).replace(/☢�
 // 4.3 (12/10/2026) : recherche en pilule de la barre du haut : nom, n° de dossier, téléphone ; ↑ ↓ Entrée ; clic = dossier
 function rechercheTete() {
   const q = $("trQ"), z = $("trRes"); if (!q || !z) return; let sel = 0, L = [];
-  if (D.membre.role === "comptable") { $("trPil").classList.add("cache"); return; }
+  if (D.membre.role === "comptable") { $("trPil").classList.add("cache"); if ($("trLoupe")) $("trLoupe").classList.add("cache"); return; }
+  // R-B3 (19/10/2026) : téléphone : la loupe ouvre la recherche sur toute la largeur, clavier ouvert ; × ou Échap la ferment
+  const ouvrirRech = (oui) => { $("tete").classList.toggle("rech-ouv", oui); if ($("trLoupe")) $("trLoupe").setAttribute("aria-expanded", oui ? "true" : "false"); if (oui) q.focus(); else { q.value = ""; z.classList.add("cache"); } };
+  if ($("trLoupe")) $("trLoupe").onclick = () => ouvrirRech(!$("tete").classList.contains("rech-ouv"));
+  if ($("trX")) $("trX").onclick = () => ouvrirRech(false);
   const dessiner = () => { const m = sansAcc(q.value).split(/\s+/).filter(Boolean); if (!m.length) { z.classList.add("cache"); return; }
     L = D.patients.filter((x) => { const hay = sansAcc(x.r.nm + " " + (numDossier(x) || "")), tel = String((x.P.tel || "") + " " + ((x.doc.identite || {}).tel2 || "")).replace(/\D/g, "");
       return m.every((w) => hay.indexOf(w) >= 0 || (/^\d{3,}$/.test(w) && tel.indexOf(w.replace(/^0/, "")) >= 0)); }).slice(0, 8);
     sel = Math.min(sel, Math.max(0, L.length - 1));
     z.innerHTML = L.length ? L.map((x, i) => '<button type="button" role="option" class="' + (i === sel ? "on" : "") + '" data-id="' + esc(x.id) + '"><b>' + esc(x.r.nm) + "</b><small>" + esc([numDossier(x) ? "N° " + numDossier(x) : "", x.r.ddn ? dfrA(x.r.ddn) : "", x.doc.etablissementId || ""].filter(Boolean).join(" · ")) + "</small></button>").join("") : "<p>Aucun patient.</p>";
     z.classList.remove("cache"); };
-  const ouvrir = (id) => { q.value = ""; z.classList.add("cache"); q.blur(); ouvrirDossier(id); };
+  const ouvrir = (id) => { q.value = ""; z.classList.add("cache"); q.blur(); $("tete").classList.remove("rech-ouv"); ouvrirDossier(id); };
   q.oninput = () => { sel = 0; dessiner(); };
   q.onkeydown = (ev) => { if (ev.key === "ArrowDown" || ev.key === "ArrowUp") { ev.preventDefault(); sel = Math.max(0, Math.min(L.length - 1, sel + (ev.key === "ArrowDown" ? 1 : -1))); dessiner(); }
-    else if (ev.key === "Enter" && L[sel]) ouvrir(L[sel].id); else if (ev.key === "Escape") { q.value = ""; z.classList.add("cache"); } };
+    else if (ev.key === "Enter" && L[sel]) ouvrir(L[sel].id); else if (ev.key === "Escape") { q.value = ""; z.classList.add("cache"); $("tete").classList.remove("rech-ouv"); } };
   z.onmousedown = (ev) => { const b = ev.target.closest("[data-id]"); if (b) { ev.preventDefault(); ouvrir(b.dataset.id); } };
   q.onblur = () => setTimeout(() => z.classList.add("cache"), 150); q.onfocus = () => { if (q.value) dessiner(); };
 }

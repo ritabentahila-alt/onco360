@@ -367,7 +367,10 @@ types**, refus gardés) : R-A6 et R-E4 partent de là, sans les refaire.
       bilan) : une alerte vue ne revient pas, une nouvelle valeur / cure / bilan = nouvelle alerte ; rangé par médecin dans
       `utilisateurs/{uid}.alertesVues` { clé: date } (aucune règle à changer), entrées de plus de 90 jours effacées ; lien « Alertes vues
       (n) » pour les revoir et les remettre. Vérifier : compteur du groupe, cloche, patient décédé (toujours sans alerte), téléphone.
-- [ ] **R-B3 Recherche de patient sur téléphone** (§ 4.3) : sous 768 px, **loupe ronde juste à gauche de la cloche**, même taille (zone
+- [x] **(19/10/2026, testé, Chrome et Safari)** sous 768 px : loupe ronde `#trLoupe` juste à gauche de la cloche (44 px, la cloche aussi) ; au
+      toucher `#tete.rech-ouv` : la pilule `#trPil` s'ouvre sur toute la largeur sous la barre, clavier ouvert, même recherche (`rechercheTete`) ;
+      × (`#trX`), Échap ou un résultat la ferment ; cachée pour le comptable ; ordinateur inchangé. `tests/test_recherche_tel.py` 15/15.
+      **R-B3 Recherche de patient sur téléphone** (§ 4.3) : sous 768 px, **loupe ronde juste à gauche de la cloche**, même taille (zone
       ≥ 44 px) ; au toucher, champ sur toute la largeur sous la barre, clavier ouvert, même recherche (`rechercheTete` : nom, n° de dossier,
       téléphone) ; × ou Échap ferme ; cachée pour le comptable (comme la pilule `#trPil`). Vérifier : 390 px, Safari iPhone, résultats
       au-dessus du contenu.

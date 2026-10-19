@@ -90,6 +90,15 @@ nav a.actif .i{color:#fff}
 .tr-res button:hover,.tr-res button.on{background:var(--prim-c)}.tr-res small{color:var(--doux);font-size:var(--t2)}.tr-res p{margin:6px 10px;color:var(--doux);font-size:var(--t3)}
 @media (max-width:767px){.tr-pil{display:none}}
 body.role-comptable .tr-pil{display:none}
+/* R-B3 (19/10/2026) : téléphone : loupe ronde à gauche de la cloche ; au toucher, la recherche s'ouvre sur toute la largeur sous la barre */
+#tete .tr-loupe,#tete .tr-x{display:none}
+@media (max-width:767px){
+  #tete .tr-loupe{display:grid;width:44px;height:44px}#tete #cloche{width:44px;height:44px}
+  #tete.rech-ouv .tr-pil{display:flex;position:absolute;left:12px;right:12px;top:calc(100% + 6px);width:auto;height:48px;background:#fff;border-color:var(--prim-cc);box-shadow:var(--ombre-h);z-index:41}
+  #tete.rech-ouv .tr-x{display:grid;place-items:center;width:44px;height:44px;margin-right:-10px;border:0;background:none;color:var(--doux);cursor:pointer}
+  #tete.rech-ouv .tr-loupe{background:var(--prim-c);border-color:var(--prim-cc);color:var(--prim)}
+}
+body.role-comptable .tr-loupe{display:none!important}
 #tete h1{font-size:var(--t7);margin:0;flex:1;color:var(--titre)}
 .rond{width:42px;height:42px;border-radius:50%;border:1px solid var(--trait);background:#fff;display:grid;place-items:center;position:relative;color:var(--encre)}
 .pastille{position:absolute;top:-4px;right:-4px;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:var(--orange-v);color:#fff;font-size:var(--t1);font-weight:bold;display:grid;place-items:center}
@@ -919,7 +928,8 @@ nav a.actif{box-shadow:var(--ombre-prim)}
   <header id="tete">
     <button class="rond" id="burger" aria-label="Ouvrir le menu"><svg class="i"><use href="#i-menu"/></svg><span class="pastille cache" id="nbTachesB"></span></button>
     <h1 id="titrePage">Tableau de bord</h1>
-    <div class="tr-pil" id="trPil" role="search"><svg class="i"><use href="#i-loupe"/></svg><input id="trQ" type="search" autocomplete="off" placeholder="Rechercher un patient" aria-label="Rechercher un patient (nom, n° de dossier, téléphone)"><div id="trRes" class="tr-res cache" role="listbox"></div></div>
+    <div class="tr-pil" id="trPil" role="search"><svg class="i"><use href="#i-loupe"/></svg><input id="trQ" type="search" autocomplete="off" placeholder="Rechercher un patient" aria-label="Rechercher un patient (nom, n° de dossier, téléphone)"><div id="trRes" class="tr-res cache" role="listbox"></div><button type="button" class="tr-x" id="trX" aria-label="Fermer la recherche"><svg class="i"><use href="#i-croix"/></svg></button></div>
+    <button class="rond tr-loupe" id="trLoupe" aria-label="Rechercher un patient" aria-expanded="false" aria-controls="trPil"><svg class="i"><use href="#i-loupe"/></svg></button>
     <button class="rond" id="cloche" aria-label="Alertes"><svg class="i"><use href="#i-cloche"/></svg><span class="pastille cache" id="nbAl"></span></button>
     <div class="av" id="avTete">··</div>
     <div id="panneauAlertes" class="cache" role="dialog" aria-label="Alertes"></div>
