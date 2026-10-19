@@ -2,7 +2,7 @@
 window.__v2pret = true;
 import { app, auth, db } from "../config.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { doc, getDoc, getDocs, setDoc, collection, query, where, updateDoc, addDoc, serverTimestamp, runTransaction, onSnapshot, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { doc, getDoc, getDocs, setDoc, collection, query, where, updateDoc, addDoc, serverTimestamp, runTransaction, onSnapshot, arrayUnion, deleteField } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { numeroRecu, cleRecuRdv, cleRecuCons, idRecu, decisionRecu, recuAEcrire } from "../moteur/recus.js";
 import { fusionner, cliniqueRemise, REMIS } from "../donnees/conversion.js";
 import { resume } from "../moteur/resume.js";
@@ -27,7 +27,7 @@ import { installer as installerProfil, pageProfil, DROITS_ROLE, droitsEffectifs,
 import { installer as installerProtocoles, pageProtocoles, marquerProtocoles, appliquerAudit3, appliquerP4, appliquerP5b } from "./protocoles.js";
 import { installer as installerParametres, pageParametres } from "./parametres.js";
 import { installer as installerBilan, pagePageBilan, publierReleve } from "./bilan.js";
-import { installer as installerOrdonnances, remplacerOrdosTypes, figerListes, ordosAudit3 } from "./ordonnances.js";
+import { installer as installerOrdonnances, ajouterOrdosManquants, figerListes, ordosAudit3, majBibliotheques } from "./ordonnances.js";
 import { figerDocumentation } from "./documentation.js";
 import * as ficheP from "./fichepatient.js";
 import { installer as installerFichiers, htmlFichiers, nbFichiers, oublierFichiers, suivreEtablissementFichiers, supprimerFichiers, htmlVisionneuse, sigVisionneuse, apresVisionneuse, rafraichirVisionneuse, visionneuseGrande } from "./fichiers.js";
@@ -73,7 +73,7 @@ onAuthStateChanged(auth, async (u) => {
   try { D = await charger(u); appliquerImpression(); entete(); rechercheTete(); route(); menuCabinets().catch(() => {});
     if (D.bib) { Promise.all([figerListes(), figerDocumentation()]).catch((e) => console.warn("bibliothèque", e)); return; } // bibliothèque de référence : rien d'autre
     lireAccueilCab();
-    if (D.membre.role !== "comptable") { ecouterDossiers(); if (module("taches")) demarrerTaches(); if (module("salle")) demarrerSalle(); if (module("rcp")) demarrerRcp(); } publierTarifsC(); planifierReleve(3000); chargerMedecins(); chargerSignataires().then(publierCarte).catch(() => {}); nomTitulaire().then(migrations); marquerProtocoles().then(() => appliquerAudit3()).then(() => appliquerP4()).then(() => appliquerP5b()).then(() => ordosAudit3()).then(() => vigilancesAudit3()).catch((er) => console.warn("protocoles", er)); }
+    if (D.membre.role !== "comptable") { ecouterDossiers(); if (module("taches")) demarrerTaches(); if (module("salle")) demarrerSalle(); if (module("rcp")) demarrerRcp(); } publierTarifsC(); planifierReleve(3000); chargerMedecins(); chargerSignataires().then(publierCarte).catch(() => {}); effacerSignature().catch((e) => console.warn("signature", e)); nomTitulaire().then(migrations); marquerProtocoles().then(() => appliquerAudit3()).then(() => appliquerP4()).then(() => appliquerP5b()).then(() => ordosAudit3()).then(() => majBibliotheques().catch((er) => console.warn("bibliothèques (R-E3)", er))).then(() => vigilancesAudit3()).catch((er) => console.warn("protocoles", er)); }
   catch (e) { $("page").innerHTML = '<div class="carte"><h3>Impossible d\'ouvrir Onco360</h3><p class="sous">' + esc(e && e.code === "permission-denied" ? "Accès refusé : votre accès a peut-être été désactivé. Contactez le médecin titulaire." : e.message) + '</p><button class="bt clair" onclick="document.getElementById(\'btSortie\').click()">Se déconnecter</button></div>'; }
 });
 // Cabinets de la personne (19.2, 10/10/2026 : secrétaire de plusieurs médecins) : comptes/{uid}.espaces, le cabinet choisi dans le
@@ -239,9 +239,10 @@ window.majTypesC = (enr) => {
 };
 // Médecins du cabinet (AG4, 11/10/2026) : médecin d'un rendez-vous et filtre de l'agenda, à partir de 2 médecins actifs.
 // Rendez-vous sans médecin noté (anciens) = le médecin titulaire.
-// 3.9 (12/10/2026) : carte de chaque médecin (nom, titre, spécialité, INPE, signature scannée) publiée par lui-même dans
-// signataires/{uid}, lue par l'équipe pour l'en-tête et la signature des ordonnances (médecin signataire au choix)
-const carteDe = () => ({ nom: nomDrNP(D.profil, D.membre.nom), titre: D.profil.titre || "Dr", specialite: D.profil.specialite || "", inpe: D.profil.inpe || "", genre: D.profil.genre || "", signature: D.profil.signature || "",
+// 3.9 (12/10/2026) : carte de chaque médecin (nom, titre, spécialité, INPE) publiée par lui-même dans signataires/{uid}, lue par
+// l'équipe pour l'en-tête et le nom sous la signature des ordonnances (médecin signataire au choix). R-E5 (19/10/2026, audit n° 7, d. 25 et
+// réponse de Dr Bentahila) : plus de signature scannée ; la carte réécrite sans elle, l'image effacée du profil (effacerSignature)
+const carteDe = () => ({ nom: nomDrNP(D.profil, D.membre.nom), titre: D.profil.titre || "Dr", specialite: D.profil.specialite || "", inpe: D.profil.inpe || "", genre: D.profil.genre || "",
   idFiscal: D.profil.idFiscal || "", tp: D.profil.tp || "", ice: D.profil.ice || "" }); // IF, TP, ICE : reçus (R-B5, 19/10/2026)
 async function publierCarte() {
   if (D.membre.role !== "medecin" || D.bib) return;
@@ -249,6 +250,10 @@ async function publierCarte() {
   if (a && JSON.stringify(Object.assign({}, a, { maj: 0 })) === JSON.stringify(Object.assign({}, c, { maj: 0 }))) return;
   await setDoc(doc(db, "espaces", ESPACE, "signataires", D.u.uid), Object.assign({}, c, { maj: new Date().toISOString() }));
   D.signataires = Object.assign({}, D.signataires || {}, { [D.u.uid]: c });
+}
+async function effacerSignature() {
+  if (!D.profil || !("signature" in D.profil)) return;
+  await updateDoc(doc(db, "utilisateurs", D.u.uid), { signature: deleteField() }); delete D.profil.signature;
 }
 async function chargerSignataires() {
   if (D.membre.role === "comptable") return;
@@ -361,7 +366,7 @@ async function migrations() {
     }
     // Ordonnances types : la version Excel corrigée par le médecin (07/10/2026) remplace une fois la liste du cabinet
     if (!fait.ordostypesExcel1) {
-      await remplacerOrdosTypes().then(() => setDoc(doc(db, "espaces", ESPACE, "parametres", "migrations"), { ordostypesExcel1: D.t }, { merge: true })).catch((er) => console.warn("ordonnances types", er));
+      await ajouterOrdosManquants().then(() => setDoc(doc(db, "espaces", ESPACE, "parametres", "migrations"), { ordostypesExcel1: D.t }, { merge: true })).catch((er) => console.warn("ordonnances types", er));
     }
     if (!peut("finances") || (fait.encaissementsJours && fait.encaissementsBrutV1b)) return;
     const sf = await getDocs(collection(db, "espaces", ESPACE, "patientsFinances"));
@@ -454,7 +459,7 @@ function planifierReleve(delai) {
   if (!D || !peut("finances") || estComptable()) return;
   clearTimeout(RELEVE_T); RELEVE_T = setTimeout(() => publierReleve().catch((e) => console.warn("relevé du comptable", e)), delai);
 }
-function journal(x, quoi) { addDoc(collection(db, "espaces", ESPACE, "historique"), { parUid: D.u.uid, parNom: $("nomMenu").textContent, le: serverTimestamp(), patientId: x.id, patient: (x.r && x.r.nm) || "", quoi }).catch(() => {}); }
+function journal(x, quoi) { addDoc(collection(db, "espaces", ESPACE, "historique"), { parUid: D.u.uid, parNom: nomCompte(), le: serverTimestamp(), patientId: x.id, patient: (x.r && x.r.nm) || "", quoi }).catch(() => {}); }
 
 // Fenêtre (formulaires)
 function fenetre(html, taille) { $("fenetreCorps").innerHTML = html; $("fenetreCorps").classList.toggle("large", taille === "large"); $("fenetre").classList.remove("cache"); const f = $("fenetreCorps").querySelector("input,select,textarea"); if (f) setTimeout(() => f.focus(), 50); }
@@ -487,13 +492,18 @@ API.heureRT = async (pid, rid, hr, z) => { // z : "scan" (défaut) ou "deb" (1re
 };
 API.multiMed = () => multiMed(); API.medecins = () => D.medecins || []; API.medRdv = (r) => medRdv(r); API.nomMed = (u) => nomMed(u); API.medDefaut = () => medDefaut(); // AG4
 API.listeMut = () => listeMut(); API.listeCor = () => listeCor(); // fiche réglable (3.11)
-API.encaisseIci = () => encaisseIci(); API.payeCabinet = (x) => payeCabinet(x); API.htmlMode = (c) => htmlMode(c); API.libMode = (k) => libMode(k); API.imprimerRecu = (w, x, o) => imprimerRecu(w, x, o); API.sansAcc = sansAcc; API.fn = (k) => fnOn(k); API.module = (k) => module(k); API.planifierReleve = (d) => planifierReleve(d || 120000); API.attribuerNumero = (x) => attribuerNumero(x); API.numDossier = (x) => numDossier(x); API.medecinFiche = () => medecinFiche(); API.publierCarte = () => publierCarte(); API.signataires = () => D.signataires || {}; API.medecins = () => D.medecins || []; API.medDefaut = () => medDefaut(); API.etabDe = (code) => (D.etabsTous || D.etabs || []).find((e) => e.code === code) || null; API.entete = () => entete(); API.voitRdv = () => voitRdv(); API.voitRT = (x) => voitRT(x); API.fmtMil = (n) => fmtMil(n); API.ferieLe = (d) => ferieLe(d); API.salleVenuChimio = (x, lid, n, j, oui) => apresVenuChimio(x, lid, n, j, oui); API.serveur = appelServeur; API.prixPrevu = (p, c, j) => prixPrevu(p, c, j); API.badgeSalle = (p, c) => badgeSalle(p, c); API.tarifsVus = () => tarifsVus(); API.publierTarifsC = () => publierTarifsC(); API.encaissementsDe = (x, f) => encaissementsDe(x, f); API.peutPrix = () => peut("finances") || prixParServeur();
+API.encaisseIci = () => encaisseIci(); API.payeCabinet = (x) => payeCabinet(x); API.htmlMode = (c) => htmlMode(c); API.libMode = (k) => libMode(k); API.imprimerRecu = (w, x, o) => imprimerRecu(w, x, o); API.sansAcc = sansAcc; API.fn = (k) => fnOn(k); API.module = (k) => module(k); API.planifierReleve = (d) => planifierReleve(d || 120000); API.attribuerNumero = (x) => attribuerNumero(x); API.numDossier = (x) => numDossier(x); API.medecinFiche = () => medecinFiche(); API.nomCompte = () => nomCompte(); API.publierCarte = () => publierCarte(); API.signataires = () => D.signataires || {}; API.medecins = () => D.medecins || []; API.medDefaut = () => medDefaut(); API.etabDe = (code) => (D.etabsTous || D.etabs || []).find((e) => e.code === code) || null; API.entete = () => entete(); API.voitRdv = () => voitRdv(); API.voitRT = (x) => voitRT(x); API.fmtMil = (n) => fmtMil(n); API.ferieLe = (d) => ferieLe(d); API.salleVenuChimio = (x, lid, n, j, oui) => apresVenuChimio(x, lid, n, j, oui); API.serveur = appelServeur; API.prixPrevu = (p, c, j) => prixPrevu(p, c, j); API.badgeSalle = (p, c) => badgeSalle(p, c); API.tarifsVus = () => tarifsVus(); API.publierTarifsC = () => publierTarifsC(); API.encaissementsDe = (x, f) => encaissementsDe(x, f); API.peutPrix = () => peut("finances") || prixParServeur();
 installerChimio(API); installerAudit(API); aboP.installer(API); ficheP.installer(API); installerAgenda(API); installerConfig(API); installerProfil(API); installerProtocoles(API); installerParametres(API); installerBilan(API); installerConsultations(API); installerOrdonnances(API); installerDocuments(API); installerFichiers(API); installerTaches(API); installerReglages(API); installerSalle(API); installerRcp(API); installerVigilances(API);
 
+// Nom de la personne connectée, pris de son compte (profil, fiche de membre ; R-E7 : pas du texte affiché à l'écran)
+function nomCompte() {
+  const p = D.profil || {}, mb = D.membre || {}, nom = (p.nom || mb.nom || "").replace(/^Dr\.?\s*/i, ""), titre = p.titre || (mb.role === "medecin" ? "Dr" : "");
+  return [titre, p.prenom, cap(nom.toLowerCase())].filter(Boolean).join(" ") || (D.u && D.u.email) || "";
+}
 function entete() {
   const p = D.profil, mb = D.membre, nom = (p.nom || mb.nom || "").replace(/^Dr\.?\s*/i, "");
   D.titre = p.titre || (mb.role === "medecin" ? "Dr" : ""); D.nomAff = cap(nom.toLowerCase());
-  $("nomMenu").textContent = [D.titre, p.prenom, D.nomAff].filter(Boolean).join(" ") || D.u.email;
+  $("nomMenu").textContent = nomCompte();
   $("specMenu").textContent = p.specialite || { medecin: "Médecin", infirmiere: "Infirmière", assistante: "Assistante" }[mb.role] || "";
   if (D.espaceDoc && D.espaceDoc.demo) $("specMenu").textContent = "Cabinet de démonstration (patients fictifs)"; // étape 9 S3
   const ini = initiales((p.prenom || "") + " " + nom);
@@ -747,7 +757,7 @@ function premiersPas() {
   if (D.bib) return "";
   if (D.membre.role !== "medecin" || !peut("parametres")) return "";
   const T = D.tarifs, et = [
-    ["profil", "Votre profil", "Nom, INPE et signature (fiche de chimiothérapie, comptes rendus, ordonnances).", !!(D.profil && D.profil.inpe)],
+    ["profil", "Votre profil", "Nom et INPE (fiche de chimiothérapie, comptes rendus, ordonnances).", !!(D.profil && D.profil.inpe)],
     ["parametres/lieux", "Votre lieu d'exercice", "Clinique ou hôpital : nom, adresse, logo. Il faut au moins un lieu pour créer un patient.", D.etabs.length > 0],
     ["parametres/activites", "Vos tarifs", "Consultations et séances de chimiothérapie, par lieu (les tarifs de radiothérapie sont déjà remplis).", !!(T && T.etablissements && Object.keys(T.etablissements).length), !peut("finances")],
     ["parametres/acces", "Votre équipe (facultatif)", "Secrétaire, infirmière : chacun reçoit un e-mail pour choisir son mot de passe.", null],

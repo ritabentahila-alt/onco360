@@ -157,12 +157,13 @@ export async function appliquerP5b() {
 let MAJ = null, MAJ_ESP = null;
 async function bandeauMaj() {
   if (!A.peut("parametres") || !D().membre || D().membre.role !== "medecin" || D().bib || A.ESPACE === "cabinet-bentahila") return;
-  if (MAJ_ESP !== A.ESPACE) { MAJ = null; MAJ_ESP = A.ESPACE; try { MAJ = await serveur("referenceDiff", { espace: A.ESPACE }); } catch (e) { MAJ = { items: [], ordos: [] }; } }
+  if (MAJ_ESP !== A.ESPACE) { MAJ = null; MAJ_ESP = A.ESPACE; try { MAJ = await serveur("referenceDiff", { espace: A.ESPACE }); } catch (e) { MAJ = { items: [], ordos: [] }; } MAJ.listes = MAJ.listes || []; }
   const z = A.$("prMaj"); if (!z || !MAJ) return;
-  const n = MAJ.items.length + MAJ.ordos.length; if (!n) { z.innerHTML = ""; return; }
+  const n = MAJ.items.length + MAJ.ordos.length + MAJ.listes.length; if (!n) { z.innerHTML = ""; return; }
   const nv = MAJ.items.filter((x) => x.type === "nouveau").length, df = MAJ.items.length - nv;
   z.innerHTML = '<section class="carte" style="border-left:4px solid var(--bleu,#3563B0)"><b>Bibliothèque de référence (version ' + MAJ.version + ")</b> : " + (nv ? nv + " protocole" + (nv > 1 ? "s" : "") + " nouveau" + (nv > 1 ? "x" : "") : "") + (nv && df ? ", " : "") + (df ? df + " différent" + (df > 1 ? "s" : "") + " du vôtre" : "") +
-    (MAJ.ordos.length ? (nv || df ? ", " : "") + MAJ.ordos.length + " ordonnance" + (MAJ.ordos.length > 1 ? "s" : "") + " type" : "") + ' <button class="bt plein petit" onclick="prMaj()">Voir et choisir</button>' +
+    (MAJ.ordos.length ? (nv || df ? ", " : "") + MAJ.ordos.length + " ordonnance" + (MAJ.ordos.length > 1 ? "s" : "") + " type" : "") +
+    (MAJ.listes.length ? (nv || df || MAJ.ordos.length ? ", " : "") + MAJ.listes.length + " élément" + (MAJ.listes.length > 1 ? "s" : "") + " des autres bibliothèques (médicaments, analyses, examens, courriers)" : "") + ' <button class="bt plein petit" onclick="prMaj()">Voir et choisir</button>' +
     ((MAJ.versions || []).length ? '<div class="mesures" style="margin-top:6px">' + MAJ.versions.map((v) => "v" + v.n + " (" + A.dfrA(String(v.le).slice(0, 10)) + ") : " + A.esc(v.notes)).join("<br>") + "</div>" : "") + "</section>";
 }
 async function noterRefus(id, e) {
@@ -177,8 +178,52 @@ window.prMaj = () => {
     '<button class="bt gris petit" onclick="prMajChoix(' + i + ",'garder'," + !!o + ')">' + (x.type === "nouveau" ? "Ne pas ajouter" : "Garder le mien") + "</button></div></div>";
   A.fenetre("<h3>Mises à jour de la bibliothèque de référence (version " + MAJ.version + ')</h3><p class="sous">Rien n\'est changé sans votre accord. Un protocole pris ou ajouté est enregistré dans votre bibliothèque ; « Garder le mien » ne sera plus proposé tant que la référence ne change pas.</p>' +
     (MAJ.items.length ? '<h4 class="soustitre">Protocoles</h4>' + MAJ.items.map((x, i) => ligne(x, i, false)).join("") : "") +
-    (MAJ.ordos.length ? '<h4 class="soustitre">Ordonnances types</h4>' + MAJ.ordos.map((x, i) => ligne(x, "o" + i, true)).join("") : "") +
+    (MAJ.ordos.length ? '<h4 class="soustitre">Ordonnances types</h4>' + MAJ.ordos.map((x, i) => ligne(x, "o" + i, true)).join("") : "") + htmlMajListes() +
     '<div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Fermer</button></div>', "large");
+};
+// R-E4 (19/10/2026, audit n° 7) : médicaments, analyses, bilans, examens, courriers de la référence nouveaux ou différents ; jamais d'écrasement
+// sans accord ; un élément retiré par le cabinet n'est pas proposé (serveur) ; « Tout ajouter » pour les nouveaux d'une liste
+const LIB_LISTE = { medicaments: "Médicaments", analyses: "Analyses", bilans: "Bilans", examens: "Examens complémentaires", courriers: "Modèles de courriers" };
+const detailElt = (x) => { const a = x.cab || {}, b = x.ref, l = [];
+  if (a.nom !== b.nom) l.push("nom : « " + a.nom + " » → « " + b.nom + " »");
+  if (x.liste === "medicaments") { if ((a.poso || "") !== (b.poso || "")) l.push("posologie : « " + (a.poso || "") + " » → « " + (b.poso || "") + " »"); if ((a.classe || "") !== (b.classe || "")) l.push("classe : « " + (b.classe || "") + " »"); }
+  else if (x.liste === "bilans") { const A0 = a.items || [], B0 = b.items || []; B0.filter((v) => A0.indexOf(v) < 0).forEach((v) => l.push("+ " + v)); A0.filter((v) => B0.indexOf(v) < 0).forEach((v) => l.push("− " + v)); }
+  else if (x.liste === "courriers") l.push("texte du modèle modifié");
+  else { if ((a.cat || "") !== (b.cat || "")) l.push("catégorie : « " + (a.cat || "") + " » → « " + (b.cat || "") + " »"); if ((a.note || "") !== (b.note || "")) l.push("précautions : « " + (b.note || "") + " »"); }
+  return l; };
+function htmlMajListes() {
+  if (!MAJ.listes.length) return ""; const esc = A.esc; let h = "";
+  Object.keys(LIB_LISTE).forEach((n) => {
+    const L = MAJ.listes.map((x, i) => [x, i]).filter(([x]) => x.liste === n); if (!L.length) return;
+    const nv = L.filter(([x]) => x.type === "nouveau").length;
+    h += '<h4 class="soustitre">' + LIB_LISTE[n] + (nv > 1 ? ' <button class="bt clair petit" onclick="prMajTout(\'' + n + '\')">Tout ajouter (' + nv + ")</button>" : "") + "</h4>" +
+      L.map(([x, i]) => '<div class="cf-auto"><b>' + esc(x.ref.nom) + "</b> " + (x.type === "nouveau" ? '<span class="badge b-ch">nouveau</span>' : '<span class="badge b-or">différent du vôtre</span>') +
+        (x.type === "different" ? '<div class="mesures" style="margin:4px 0">' + detailElt(x).map(esc).join("<br>") + "</div>" : x.ref.poso ? '<div class="mesures" style="margin:4px 0">' + esc(x.ref.poso) + "</div>" : "") +
+        '<div class="actr" style="justify-content:flex-start"><button class="bt plein petit" onclick="prMajListe(' + i + ",'prendre')\">" + (x.type === "nouveau" ? "Ajouter" : "Prendre la version de la référence") + "</button>" +
+        '<button class="bt gris petit" onclick="prMajListe(' + i + ",'garder')\">" + (x.type === "nouveau" ? "Ne pas ajouter" : "Garder le mien") + "</button></div></div>").join("");
+  });
+  return h;
+}
+async function finMaj(msg) {
+  if (!MAJ.items.length && !MAJ.ordos.length && !MAJ.listes.length) await setDoc(doc(db, "espaces", A.ESPACE, "parametres", "reference"), { vue: MAJ.version }, { merge: true });
+  A.toast(msg); window.prMaj(); if (!MAJ.items.length && !MAJ.ordos.length && !MAJ.listes.length) A.fermerFenetre(); bandeauMaj();
+}
+const prendreElt = (L, x) => { const k = L.findIndex((z) => z.id === x.ref.id || (x.cab && z.id === x.cab.id)); const n = JSON.parse(JSON.stringify(x.ref)); delete n.fav; delete n.defaut; if (k >= 0) { n.id = L[k].id; if (L[k].fav) n.fav = L[k].fav; L[k] = n; } else L.push(n); };
+window.prMajListe = async (i, quoi) => {
+  const x = MAJ.listes[i]; if (!x) return;
+  try {
+    if (quoi === "garder") await noterRefus(x.id, x.e);
+    else { await window.orMajListe(x.liste, (L) => prendreElt(L, x)); A.journal({ id: "", r: { nm: "" } }, "Bibliothèque de référence v" + MAJ.version + " : « " + x.ref.nom + " » (" + LIB_LISTE[x.liste].toLowerCase() + ") " + (x.type === "nouveau" ? "ajouté" : "remplacé par la version de la référence")); }
+    MAJ.listes.splice(i, 1); await finMaj(quoi === "garder" ? "Noté : le vôtre est gardé." : "Enregistré.");
+  } catch (e) { A.erreur(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de modifier la bibliothèque." : (e.message || String(e))); }
+};
+window.prMajTout = async (n) => {
+  const L0 = MAJ.listes.filter((x) => x.liste === n && x.type === "nouveau"); if (!L0.length) return;
+  try {
+    await window.orMajListe(n, (L) => L0.forEach((x) => prendreElt(L, x)));
+    A.journal({ id: "", r: { nm: "" } }, "Bibliothèque de référence v" + MAJ.version + " : " + L0.length + " élément(s) ajouté(s) (" + LIB_LISTE[n].toLowerCase() + ")");
+    MAJ.listes = MAJ.listes.filter((x) => L0.indexOf(x) < 0); await finMaj(L0.length + " ajouté(s).");
+  } catch (e) { A.erreur(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de modifier la bibliothèque." : (e.message || String(e))); }
 };
 window.prMajChoix = async (i, quoi, o) => {
   const x = o ? MAJ.ordos[+String(i).slice(1)] : MAJ.items[i]; if (!x) return;
@@ -197,8 +242,7 @@ window.prMajChoix = async (i, quoi, o) => {
       A.journal({ id: "", r: { nm: "" } }, "Bibliothèque de référence v" + MAJ.version + " : « " + p.nom + " » " + (quoi === "deux" ? "ajouté à côté du vôtre" : ancien ? "remplacé par la version de la référence" : "ajouté"));
     }
     (o ? MAJ.ordos : MAJ.items).splice(o ? +String(i).slice(1) : i, 1);
-    if (!MAJ.items.length && !MAJ.ordos.length) await setDoc(doc(db, "espaces", A.ESPACE, "parametres", "reference"), { vue: MAJ.version }, { merge: true });
-    A.toast(quoi === "garder" ? "Noté : le vôtre est gardé." : "Enregistré."); window.prMaj(); if (!MAJ.items.length && !MAJ.ordos.length) A.fermerFenetre(); bandeauMaj(); if (D().page === "protocoles") A.$("prL").innerHTML = liste();
+    await finMaj(quoi === "garder" ? "Noté : le vôtre est gardé." : "Enregistré."); if (D().page === "protocoles") A.$("prL").innerHTML = liste();
   } catch (e) { A.erreur(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de modifier la bibliothèque." : (e.message || String(e))); }
 };
 // ───── P9 : export de la bibliothèque (Excel, livret PDF par localisation) et « Signaler une erreur » ─────

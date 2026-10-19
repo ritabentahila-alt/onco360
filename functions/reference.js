@@ -37,10 +37,28 @@ function differencesOrdos(ref, cab, refus) {
   });
   return out;
 }
+// R-E4 (19/10/2026, audit n° 7) : médicaments, analyses, bilans, examens, courriers. Élément reconnu par son identifiant (le même d'un
+// cabinet à l'autre : listes copiées de la référence), sinon par son nom ; un élément retiré par le cabinet (« retires ») n'est jamais
+// reproposé ; « Garder le mien » / « Ne pas ajouter » noté dans refus (clé « l:liste:id ») avec l'empreinte de la version refusée.
+const LISTES = ["medicaments", "analyses", "bilans", "examens", "courriers"];
+const contenuElt = (n, o) => JSON.stringify(n === "medicaments" ? [o.nom, o.poso || "", o.classe || ""] : n === "bilans" ? [o.nom, o.items || []] : n === "courriers" ? [o.nom, o.html || ""] : [o.nom, o.cat || "", o.note || ""]);
+const empreinteElt = (n, o) => crypto.createHash("sha1").update(contenuElt(n, o)).digest("hex").slice(0, 16);
+const normNom = (t) => String(t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ").trim();
+function differencesListe(n, ref, cab, refus, retires) {
+  const out = [], R = refus || {}, X = new Set(retires || []), C = cab || [];
+  (ref || []).forEach((o) => {
+    if (!o || !o.id || !o.nom || o.defaut) return; const k = "l:" + n + ":" + o.id, e = empreinteElt(n, o);
+    if (R[k] === e) return;
+    const c = C.find((z) => z && z.id === o.id) || C.find((z) => z && normNom(z.nom) === normNom(o.nom));
+    if (!c) { if (!X.has(o.id)) out.push({ id: k, liste: n, type: "nouveau", ref: o, e }); return; }
+    if (contenuElt(n, c) !== contenuElt(n, o)) out.push({ id: k, liste: n, type: "different", ref: o, cab: c, e });
+  });
+  return out;
+}
 // Lignes de protocole décrites en une phrase (écran de comparaison)
 const ligneTxt = (d) => d.p + " — " + (d.u === "txt" ? d.pos || "" : d.c1 != null ? d.c1 + "/" + d.cn + " " + d.u : (d.d != null ? d.d : "") + " " + d.u) + (d.j && String(d.j) !== "99" ? " — J" + d.j.join(", J") : d.jl ? " — " + d.jl : "");
 function resume(a, b) {
   const A = (a && a.dr || []).map(ligneTxt), B = (b && b.dr || []).map(ligneTxt);
   return { ajoutees: B.filter((l) => A.indexOf(l) < 0), retirees: A.filter((l) => B.indexOf(l) < 0), nom: a && b && a.nom !== b.nom ? [a.nom, b.nom] : null, cycle: a && b && (a.c || 0) !== (b.c || 0) ? [a.c || 0, b.c || 0] : null };
 }
-module.exports = { contenu, empreinte, empreinteOrdo, differences, differencesOrdos, resume, ligneTxt };
+module.exports = { contenu, empreinte, empreinteOrdo, differences, differencesOrdos, differencesListe, LISTES, resume, ligneTxt };

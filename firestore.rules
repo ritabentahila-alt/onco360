@@ -140,10 +140,11 @@ service cloud.firestore {
       }
       // Bibliothèques des prescriptions (médicaments, examens, ordonnances types, analyses, courriers) : lues par les
       // membres, modifiées par le médecin seulement (07/10/2026 : la secrétaire s'en sert sans les changer)
-      // 10/10/2026 : la secrétaire peut ajouter un médicament à la liste (« Nouveau médicament ») ; le reste reste au médecin
+      // R-E5 (19/10/2026, audit n° 7, d. 17 et question 1) : la secrétaire voit et prescrit, ne modifie rien, ajout de médicament compris
+      // (du 10/10 au 19/10, elle pouvait ajouter un médicament) ; elle garde la ligne libre sur l'ordonnance
       match /bibliotheques/{b} {
         allow read: if estMembre();
-        allow write: if droit('ecrireConsultations') && (m().role == 'medecin' || b == 'medicaments');
+        allow write: if droit('ecrireConsultations') && m().role == 'medecin';
       }
       // Documents de radiothérapie (pli confidentiel, compte rendu de fin, rendez-vous) enregistrés depuis leur fenêtre :
       // lus, modifiés et supprimés avec le droit « documents » (médecin, secrétaire), dans le périmètre du membre

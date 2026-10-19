@@ -13,7 +13,7 @@ async function preparer() {
   await env.withSecurityRulesDisabled(async (c) => {
     const db = c.firestore();
     await setDoc(doc(db, P), { titulaire: "MED" });
-    await setDoc(doc(db, P + "/membres/MED"), membre("medecin", { parametres: true, identite: true, fichePatient: true, creerPatient: true }));
+    await setDoc(doc(db, P + "/membres/MED"), membre("medecin", { parametres: true, identite: true, fichePatient: true, creerPatient: true, ecrireConsultations: true }));
     await setDoc(doc(db, P + "/membres/SEC"), membre("assistante", { identite: true, fichePatient: true, creerPatient: true }));
     await setDoc(doc(db, P + "/membres/SECP"), membre("assistante", { identite: true, fichePatient: true, creerPatient: true, ecrireConsultations: true, secretariat: true }));
     await setDoc(doc(db, P + "/membres/INF"), membre("infirmiere", { administrer: true }));
@@ -53,9 +53,10 @@ await cas("la secrétaire complète l'adresse et le téléphone", async () => { 
 await cas("refusé : la secrétaire change le nom du lieu", async () => { await lieu(); await assertFails(setDoc(L("SECP"), { code: "HCK", nom: "Autre nom", actif: true })); });
 await cas("refusé : la secrétaire crée un lieu", () => assertFails(setDoc(doc(db("SECP"), P + "/etablissements/NOUV"), { code: "NOUV", nom: "X" })));
 await cas("refusé : la secrétaire sans le droit secrétariat", async () => { await lieu(); await assertFails(setDoc(L("SEC"), { code: "HCK", nom: "Hôpital Cheikh Khalifa", actif: true, tel: "1" })); });
-console.log("Bibliothèques : la secrétaire ajoute un médicament (10/10/2026)");
+console.log("Bibliothèques : la secrétaire ne modifie rien (R-E5, 19/10/2026 ; elle ajoutait un médicament depuis le 10/10)");
 const B = (u, n) => doc(db(u), P + "/bibliotheques/" + n);
-await cas("la secrétaire (journal des consultations) modifie la liste des médicaments", () => assertSucceeds(setDoc(B("SECP", "medicaments"), { data: "[]" })));
+await cas("refusé (R-E5) : la secrétaire modifie ou complète la liste des médicaments", () => assertFails(setDoc(B("SECP", "medicaments"), { data: "[]" })));
+await cas("le médecin modifie la liste des médicaments (avec les éléments retirés, R-E4)", () => assertSucceeds(setDoc(B("MED", "medicaments"), { data: "[]", retires: ["m1"], depart: 2 })));
 await cas("refusé : la secrétaire modifie les ordonnances types", () => assertFails(setDoc(B("SECP", "ordostypes"), { data: "[]" })));
 await cas("refusé : la secrétaire modifie les modèles de courriers", () => assertFails(setDoc(B("SECP", "courriers"), { data: "[]" })));
 await cas("refusé : l'infirmière modifie la liste des médicaments", () => assertFails(setDoc(B("INF", "medicaments"), { data: "[]" })));

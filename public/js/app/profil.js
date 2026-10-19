@@ -36,7 +36,7 @@ const NIVEAUX = [["aucun", "Non visible"], ["voir", "Voir"], ["modifier", "Modif
 const NIVEAUX_RT = [["aucun", "Non visible"], ["chimio", "Voir : patients sous chimio"], ["voir", "Voir : tous"], ["modifier", "Modifier"]];
 const estTitulaire = () => !!(ESPACE_DOC && ESPACE_DOC.titulaire === D().u.uid);
 
-// Image (signature, logo) réduite et enregistrée directement dans le document
+// Image (photo, logo) réduite et enregistrée directement dans le document
 export function lireImage(input, max, jpeg) {
   return new Promise((ok, ko) => {
     const f = input.files && input.files[0]; if (!f) { ok(null); return; }
@@ -79,9 +79,9 @@ window.pfOnglet = (o) => { location.hash = "parametres/" + (o === "gagenda" ? "c
 // ───── Informations ─────
 function vueInfos() {
   const p = D().profil || {}, mb = D().membre, esc = A.esc;
-  const inpe = p.inpe || "", med = mb.role === "medecin"; // titre Dr / Pr, spécialité, INPE, signature : médecins seulement (10/10/2026)
+  const inpe = p.inpe || "", med = mb.role === "medecin"; // titre Dr / Pr, spécialité, INPE : médecins seulement (10/10/2026)
   const ch = (id, lib, v, o) => '<div class="' + (o && o.large ? "large" : "") + '"><label for="' + id + '">' + lib + '</label><input id="' + id + '" value="' + esc(v || "") + '"' + (o && o.type ? ' type="' + o.type + '"' : "") + (o && o.off ? " disabled" : "") + (o && o.ph ? ' placeholder="' + o.ph + '"' : "") + (o && o.ac ? ' autocomplete="' + o.ac + '"' : "") + "></div>";
-  return '<section class="carte"><h3><span class="ic">' + A.ic("profil") + '</span>Mes informations</h3><p class="sous">' + (med ? "Le nom, l\'INPE et la signature apparaissent sur la fiche de chimiothérapie et les comptes rendus." : "Votre nom apparaît dans les consultations, les tâches et les ordonnances que vous préparez.") + "</p>" +
+  return '<section class="carte"><h3><span class="ic">' + A.ic("profil") + '</span>Mes informations</h3><p class="sous">' + (med ? "Le nom et l\'INPE apparaissent sur la fiche de chimiothérapie, les comptes rendus et les ordonnances." : "Votre nom apparaît dans les consultations, les tâches et les ordonnances que vous préparez.") + "</p>" +
     '<div class="photo-pf"><div class="av grand">' + (srcImage(p.photo) ? '<img src="' + srcImage(p.photo) + '" alt="Photo">' : esc(((p.prenom || "")[0] || "") + ((String(p.nom || "").replace(/^Dr\.?\s*/i, ""))[0] || "")).toUpperCase() || "?") + '</div><div><label for="pfPhoto">Photo (facultatif)</label><input id="pfPhoto" type="file" accept="image/*"><div class="mesures">Elle remplace vos initiales dans la bulle du profil.</div>' + (p.photo ? '<label style="font-weight:normal;margin-top:6px"><input id="pfPhotoSup" type="checkbox" style="width:auto;margin-right:6px">Retirer la photo</label>' : "") + "</div></div><div class=\"form\">" +
     '<div><label for="pfTitre">Titre</label><select id="pfTitre">' + (med ? ["", "Dr", "Pr", "M.", "Mme"] : ["", "M.", "Mme"]).map((t) => "<option" + ((p.titre || "") === t ? " selected" : "") + ">" + t + "</option>").join("") + "</select></div>" +
     (med ? ch("pfSpe", "Spécialité", p.specialite, { ph: "Oncologue-radiothérapeute, oncologue médical…" }) +
@@ -89,8 +89,8 @@ function vueInfos() {
     ch("pfMail", "E-mail (identifiant de connexion)", D().u.email, { off: true }) + ch("pfTel", "Téléphone", p.telephone, { type: "tel", ph: "06…" }) +
     ch("pfRole", "Rôle dans l'espace", ROLES[mb.role] || mb.role, { off: true }) + (med ? ch("pfInpe", "INPE", inpe, { ph: "N° INPE" }) +
       // R-B5 (19/10/2026) : identifiants imprimés sur les reçus de ce médecin (Paramètres › Impression : « imprimer sur le reçu »)
-      ch("pfIf", "IF (identifiant fiscal)", p.idFiscal || "", { ph: "Reçus" }) + ch("pfTp", "TP (taxe professionnelle)", p.tp || "", { ph: "Reçus" }) + ch("pfIce", "ICE", p.ice || "", { ph: "Reçus" }) +
-    '<div class="large"><label>Signature (image scannée, facultatif)</label><div class="sig">' + (srcImage(p.signature) ? '<img src="' + srcImage(p.signature) + '" alt="Signature">' : '<span class="mesures">Aucune signature enregistrée.</span>') + '<input id="pfSig" type="file" accept="image/*">' + (p.signature ? '<label style="font-weight:normal"><input id="pfSigSup" type="checkbox" style="width:auto;margin-right:6px">Retirer la signature</label>' : "") + "</div></div>" : "") +
+      ch("pfIf", "IF (identifiant fiscal)", p.idFiscal || "", { ph: "Reçus" }) + ch("pfTp", "TP (taxe professionnelle)", p.tp || "", { ph: "Reçus" }) + ch("pfIce", "ICE", p.ice || "", { ph: "Reçus" }) : "") +
+    // R-E5 (19/10/2026) : plus de signature scannée (retirée du profil et effacée, réponse de Dr Bentahila)
     '</div><h4 class="soustitre">Mot de passe</h4><p class="mesures">Laissez vide pour ne pas le changer.</p><div class="form">' + ch("pfMdpA", "Mot de passe actuel", "", { type: "password", ac: "current-password" }) + ch("pfMdp", "Nouveau mot de passe (8 caractères minimum)", "", { type: "password", ac: "new-password" }) + ch("pfMdp2", "Confirmer le nouveau mot de passe", "", { type: "password", ac: "new-password" }) + "</div>" +
     '<div class="err" id="fErr"></div><div class="boutons"><button class="bt plein" id="pfOk" onclick="pfEnregistrer()"><svg class="pi"><use href="#i-enregistrer"/></svg>Enregistrer</button></div></section>';
 }
@@ -102,7 +102,6 @@ window.pfEnregistrer = async () => {
   try {
     const maj = { email: D().u.email, titre: v("pfTitre"), prenom: v("pfPre"), nom: v("pfNom").toUpperCase(), telephone: v("pfTel") };
     if (A.$("pfInpe")) Object.assign(maj, { specialite: v("pfSpe"), inpe: v("pfInpe"), genre: v("pfGenre"), idFiscal: v("pfIf"), tp: v("pfTp"), ice: v("pfIce") }); // médecins (genre : accords des documents, 1.7 ; IF, TP, ICE : reçus, R-B5)
-    const sig = A.$("pfSig") ? await lireImage(A.$("pfSig"), 500) : null; if (sig) maj.signature = sig; else if (A.$("pfSigSup") && A.$("pfSigSup").checked) maj.signature = "";
     const ph = await lireImage(A.$("pfPhoto"), 256, true); if (ph) maj.photo = ph; else if (A.$("pfPhotoSup") && A.$("pfPhotoSup").checked) maj.photo = "";
     await setDoc(doc(db, "utilisateurs", D().u.uid), maj, { merge: true });
     Object.assign(D().profil, maj); if (A.publierCarte) A.publierCarte().catch(() => {}); // 3.9 : carte du médecin (ordonnances) à jour

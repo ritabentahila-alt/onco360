@@ -11,12 +11,13 @@ export function limit() { return null; }
 // Panne de lecture simulée (R-A1, 18/10/2026) : window.__panne = [morceaux de chemin] → la lecture de ces documents échoue (réseau coupé)
 const panne = (r) => { if ((window.__panne || []).some((m) => r.path.indexOf(m) >= 0)) throw Object.assign(new Error("panne de lecture simulée (test)"), { code: "unavailable" }); };
 export async function getDoc(r) { panne(r); const v = window.__fs[r.path]; return { exists: () => !!v, data: () => (v ? cl(v) : undefined), id: r.id, ref: r }; }
-export async function setDoc(r, v, o) { window.__fs[r.path] = o && o.merge ? Object.assign(window.__fs[r.path] || {}, cl(v)) : cl(v); }
+export async function setDoc(r, v, o) { window.__fs[r.path] = o && o.merge ? Object.assign(window.__fs[r.path] || {}, cl(v)) : cl(v); const a = window.__fs[r.path]; Object.keys(a).forEach((k) => { if (a[k] && a[k].__del) delete a[k]; }); }
 export function arrayUnion(...v) { return { __au: v }; }
+export function deleteField() { return { __del: 1 }; } // R-E5 (19/10/2026) : champ retiré (updateDoc, setDoc avec merge)
 export async function updateDoc(r, v) {
   const a = window.__fs[r.path]; if (!a) throw Object.assign(new Error("absent"), { code: "not-found" });
   const c = cl(v); Object.keys(c).forEach((k) => { if (c[k] && c[k].__au) c[k] = (a[k] || []).concat(c[k].__au.filter((x) => !(a[k] || []).some((y) => JSON.stringify(y) === JSON.stringify(x)))); });
-  window.__fs[r.path] = Object.assign(a, c);
+  window.__fs[r.path] = Object.assign(a, c); Object.keys(a).forEach((k) => { if (a[k] && a[k].__del) delete a[k]; });
 }
 export async function deleteDoc(r) { delete window.__fs[r.path]; }
 export async function addDoc(c, v) { const id = "a" + Math.random().toString(36).slice(2, 9); window.__fs[c.col + "/" + id] = cl(v); return { id }; }

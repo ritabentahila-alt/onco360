@@ -493,10 +493,10 @@ exports.referencePublier = onCall({ timeoutSeconds: 60, memory: "256MiB" }, asyn
 exports.referenceDiff = onCall({ timeoutSeconds: 120, memory: "512MiB" }, async (req) => {
   const par = req.auth && req.auth.uid, { espace } = req.data || {};
   if (!par) throw new HttpsError("unauthenticated", "Connectez-vous à Onco360.");
-  if (!espace || espace === C.MODELE || C.estBib(espace)) return { version: 0, items: [], ordos: [] };
+  if (!espace || espace === C.MODELE || C.estBib(espace)) return { version: 0, items: [], ordos: [], listes: [] };
   const es = await db.doc("espaces/" + espace).get(), m = es.exists ? await membre(espace, par) : null;
   if (!m || m.actif === false || es.data().actif === false || m.role !== "medecin" || !(m.droits && m.droits.parametres === true)) throw new HttpsError("permission-denied", "Réservé au médecin (droit « paramètres »).");
-  const rs = await db.doc(REF_E).get(); if (!rs.exists || !rs.data().version) return { version: 0, items: [], ordos: [] };
+  const rs = await db.doc(REF_E).get(); if (!rs.exists || !rs.data().version) return { version: 0, items: [], ordos: [], listes: [] };
   const RF = require("./reference.js"), lire = (snap) => { const L = []; snap.forEach((d) => { try { JSON.parse(d.data().data || "[]").forEach((p) => L.push(p)); } catch (er) { /* bloc illisible */ } }); return L; };
   const jsonDe = (x, def) => { try { return x.exists ? JSON.parse(x.data().data || "null") || def : def; } catch (er) { return def; } };
   const E = "espaces/" + espace + "/";
@@ -505,8 +505,15 @@ exports.referenceDiff = onCall({ timeoutSeconds: 120, memory: "512MiB" }, async 
   const conf = cfg.exists ? cfg.data() : {}, refus = conf.refus || {}, vue = conf.vue || 0;
   const items = RF.differences(lire(pr), lire(pc), refus, jsonDe(sup, [])).map((x) => Object.assign(x, { resume: x.cab ? RF.resume(x.cab, x.ref) : null }));
   const ordos = orr.exists && orc.exists ? RF.differencesOrdos(jsonDe(orr, []), jsonDe(orc, []), refus) : [];
+  // R-E4 (19/10/2026) : autres bibliothèques ; liste jamais enregistrée par le cabinet = liste de départ d'Onco360 (rien à proposer ici :
+  // le cabinet la reçoit telle quelle à sa première modification)
+  const listes = [];
+  for (const n of RF.LISTES) {
+    const [lr, lc] = await Promise.all([db.doc(REF_E + "/bibliotheques/" + n).get(), db.doc(E + "bibliotheques/" + n).get()]);
+    if (lr.exists && lc.exists) listes.push(...RF.differencesListe(n, jsonDe(lr, []), jsonDe(lc, []), refus, lc.data().retires || []));
+  }
   const versions = (rs.data().versions || []).filter((v) => v.n > vue).map((v) => ({ n: v.n, le: v.le, notes: v.notes }));
-  return { version: rs.data().version, vue, versions, items, ordos };
+  return { version: rs.data().version, vue, versions, items, ordos, listes };
 });
 exports.signalerErreur = onCall({ timeoutSeconds: 30, memory: "256MiB" }, async (req) => {
   const par = req.auth && req.auth.uid, { espace, protocole, texte } = req.data || {};
@@ -1036,10 +1043,12 @@ exports.modeleAppliquer = onCall({ timeoutSeconds: 120, memory: "512MiB" }, asyn
       if (a.l.length) { n += a.l.length; det.push(k + " : " + a.l.slice(0, 4).join(", ") + (a.l.length > 4 ? "…" : "")); avant["parametres/" + k] = cab; ecr.push(["set", db.doc(E + "parametres/" + k), { data: JSON.stringify(v) }]); } });
     partie("parametres", "Paramètres de départ", n, det.join(" ; ")); }
   if (parties.indexOf("bibliotheques") >= 0) { let n = 0; const det = [];
-    MOD.BIBLIOTHEQUES.forEach((k, i) => { if (!Array.isArray(M.bibliotheques[k])) return; const cab = jsonDoc(bb[i], null), a = ajouts(); const v = MOD.fusionManquant(Array.isArray(cab) ? cab : null, M.bibliotheques[k], a.note);
+    // R-E4 (19/10/2026) : un élément retiré par le cabinet (liste « retires » de sa bibliothèque) n'est jamais remis
+    MOD.BIBLIOTHEQUES.forEach((k, i) => { if (!Array.isArray(M.bibliotheques[k])) return; const cab = jsonDoc(bb[i], null), a = ajouts(), ret = (bb[i].exists && Array.isArray(bb[i].data().retires)) ? bb[i].data().retires : [];
+      const v = MOD.fusionManquant(Array.isArray(cab) ? cab : null, M.bibliotheques[k].filter((o) => !(o && o.id && ret.indexOf(o.id) >= 0)), a.note);
       const nb = Array.isArray(cab) ? a.l.length : 0; // liste jamais enregistrée : elle devient celle du modèle (c'était la liste de départ)
       if (!Array.isArray(cab) || nb) { n += Array.isArray(cab) ? nb : v.length; det.push(k + " : " + (Array.isArray(cab) ? nb + " ajouté(s)" + (nb ? " (" + a.l.slice(0, 3).join(", ") + (nb > 3 ? "…" : "") + ")" : "") : "liste du modèle (" + v.length + ")"));
-        avant["bibliotheques/" + k] = cab; ecr.push(["set", db.doc(E + "bibliotheques/" + k), { data: JSON.stringify(v), maj: FieldValue.serverTimestamp(), majPar: par }]); } });
+        avant["bibliotheques/" + k] = cab; ecr.push(["set", db.doc(E + "bibliotheques/" + k), Object.assign({ data: JSON.stringify(v), maj: FieldValue.serverTimestamp(), majPar: par }, ret.length ? { retires: ret } : {})]); } });
     partie("bibliotheques", "Bibliothèques de prescription et modèles de documents de RT", n, det.join(" ; ")); }
   if (parties.indexOf("reglage") >= 0 && M.reglage) { const cab = (ed.abonnement && ed.abonnement.reglage) || null, a = ajouts(), v = C.reglageNettoye(MOD.fusionManquant(cab, M.reglage, a.note));
     if (a.l.length) { avant.reglage = cab; ecr.push(["update", db.doc("espaces/" + e), { "abonnement.reglage": v }]); }

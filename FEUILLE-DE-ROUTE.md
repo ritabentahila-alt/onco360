@@ -181,8 +181,8 @@ pas le reproposer** ; NON CONTESTÉ = à faire, **en le signalant dans le compte
 **Questions des audits 4 à 8 (§ 10) : à poser au début de la session du lot qu'elles bloquent, pas avant.** En attendant : ce qui suit.
 | N° | Lot | Question | En attendant |
 |---|---|---|---|
-| 1 | R-E (audit 7) | La secrétaire peut-elle **ajouter** un médicament à la liste du cabinet ? | Aucune modification, ajout compris ; elle garde la ligne libre |
-| 2 | R-E (audit 7) | Signature scannée : effacer aussi les images des profils (`utilisateurs/{uid}.signature`, `signataires/{uid}`) ? | Ne plus les imprimer ; ne rien effacer |
+| ~~1~~ | R-E (audit 7) | **Répondu le 19/10** : la secrétaire n'ajoute rien non plus (aucune modification, ajout compris ; elle garde la ligne libre) | fait (R-E5) |
+| ~~2~~ | R-E (audit 7) | **Répondu le 19/10** : effacer les images de signature et retirer le champ « Signature (image scannée) » du profil | fait (R-E5) |
 | 3 | R-F (audit 8) | Une alerte au titulaire à chaque export complet ? | Ne pas la coder |
 | 4 | R-F (audit 8) | Durées de conservation (fichier effacé 30 j, base 14 semaines, copies Drive du 1er du mois **sans limite**, patients sortis compris) : voulues et conformes à la déclaration loi 09-08 ? | Ne rien changer |
 | 5 | R-F (audit 8) | Qui restaure le jour d'un incident ? | Mode d'emploi pour quelqu'un qui n'est pas développeur |
@@ -472,7 +472,19 @@ types**, refus gardés) : R-A6 et R-E4 partent de là, sans les refaire.
       l'index (d. 16, avec 5.3). Bilan inchangé.
 
 **Lot E – Audit n° 7 : ordonnances et bibliothèques de prescription** (§ 8 ; point 1 → R-A1 ; questions 1 et 2 au début du lot)
-- [ ] **R-E1 Zones « À compléter », durées, doublons, vérification unique** : chaque « … » des 8 fiches (ALER-Z, CAPÉCITABINE ×2, COTIPRED,
+**Fait le 19/10/2026 (R-E1 à R-E7 en une session, demande de Dr Bentahila ; testé, pas encore en ligne)** : moteur `public/js/moteur/ordonnance.js` (zones
+`marquerZones`, doublons, familles d'allergie `FAMILLES_ALLERGIE` / `alertesAllergie`, pages `paginer`, chimio orale `doseOrale` ; test-ordonnance 28/28) et
+`public/js/moteur/bibmaj.js` (`fusionnerListe`, `fusionnerOrdos`, `ajouterManquantes`, `retiresEntre` ; test-bibmaj 21/21) ; corrections de départ décrites
+dans `public/js/donnees/majbib.js` (écrit d'après la liste d'avant : « avant » → fiche de départ) ; `tests/test_ordonnances_e.py` 46/46 (médecin, secrétaire,
+390 px) ; guide `guide/ordonnances.md` ; contrôle complet bon (Chrome et Safari, règles). Réponses aux questions 1 et 2 (19/10) : secrétaire sans aucun ajout ; images de signature effacées et champ retiré.
+- [x] **(19/10/2026, testé)** `contenu` / `contenuAnalyses` : « … » et « [durée à compléter] » = `mark.or-ac` (un clic sélectionne la zone) ;
+      durées dans `medicaments.js` / `ordostypes.js` (stupéfiants 28 jours, TRAMAL LP 1 mois, OEDES, MAGMINE, BACTRIM FORTE 3 mois ; durée à compléter
+      sur 23 fiches et 4 lignes d'ordonnances types : traitements pris chaque jour sans fin écrite — choix de Claude, l'audit en comptait 9 / 12 sans
+      les nommer) ; doublons à l'ajout (`sansDoublons` : « Garder une seule ligne » / « Garder les deux ») ; `question()` = petite fenêtre par-dessus
+      l'ordonnance ; `verifications` + `orValider` : une fenêtre « Avant d'imprimer » (zones, doublons, allergie, plusieurs pages) Corriger / Réduire le
+      texte / … quand même (fenêtre d'impression ouverte pendant le clic). Défaut ancien corrigé : la classe `or-pat2` (âge, poids, allergie) était
+      retirée par `nettoyer`.
+      **R-E1 Zones « À compléter », durées, doublons, vérification unique** : chaque « … » des 8 fiches (ALER-Z, CAPÉCITABINE ×2, COTIPRED,
       DEXAMÉTHASONE œdème, LOVENOX, NAVELBINE, TEMODAL adjuvant) devient une **zone jaune « À compléter »** (mécanisme `mark.or-ac` des
       courriers) (d. 2) ; durées par défaut (d. 3) : **stupéfiants 28 jours, TRAMAL LP 1 mois, OEDES 3 mois, BACTRIM FORTE 3 mois, MAGMINE
       3 mois** ; toutes les autres lignes sans durée (9 fiches, 12 lignes d'ordonnances types) : zone « durée à compléter » ; **doublons** à
@@ -480,13 +492,19 @@ types**, refus gardés) : R-A6 et R-E4 partent de là, sans les refaire.
       ligne », avertissement) (d. 16) ; **une seule fenêtre « Corriger / Imprimer quand même »** avant l'impression qui regroupe zones
       restantes, doublons, allergie, ordonnance sur 2 pages (pas de contrôle des stupéfiants) (d. 28 ; aujourd'hui `orValider` ne vérifie que
       les courriers).
-- [ ] **R-E2 Impression sur plusieurs pages** (d. 24, DÉCIDÉ ; jamais de passage automatique en A4) : dans l'aperçu, trait pointillé « fin de la
+- [x] **(19/10/2026, testé)** `mesurer` (cadre caché à la taille réelle, mm, mêmes styles `cssImpression`), `paginer` ; aperçu : `data-coupe`
+      « fin de la page 1 » (trait pointillé, jamais enregistré) ; impression > 1 page : `.pgp` par page, patient et date en haut des suivantes, « page 1 / 2 »,
+      un médicament jamais coupé, signature avec le dernier ; une page : comme avant ; courriers : inchangés.
+      **R-E2 Impression sur plusieurs pages** (d. 24, DÉCIDÉ ; jamais de passage automatique en A4) : dans l'aperçu, trait pointillé « fin de la
       page 1 » à la hauteur exacte ; à la validation, si > 1 page : « L'ordonnance tient sur 2 pages : réduire le texte / imprimer quand
       même » (dans la fenêtre unique) ; à l'impression : nom du patient et date en haut de chaque page, « page 1 / 2 » en bas, signature
       toujours avec le dernier médicament, médicament jamais coupé. Cas d'essai (A5, marges par défaut) : Rectite radique et proctologie,
       Syndrome pieds-mains, Soins de bouche, Radiodermite et soins cutanés, Bilan chimiothérapie – bilan initial, Bilan immunothérapie –
       bilan initial.
-- [ ] **R-E3 Corrections de la liste de départ**, appliquées aux cabinets par la mise à jour sans écrasement (R-E4) : une fiche par dosage
+- [x] **(19/10/2026, testé)** tout le d. 4 à 23 (180 médicaments ; 5 sérologies ajoutées à la liste des analyses pour harmoniser les 14
+      éléments de bilans ; précaution sur les **7** scanners iodés : les 5 « injectée », l'angio-TDM et l'uro-TDM) ; NOCAND = **fluconazole** (antifongique azolé :
+      déduit de la posologie 50 mg / 7 jours, **à vérifier par Dr Bentahila**) ; MOSCONTIN 10 mg dans l'ordonnance type palier 3.
+      **R-E3 Corrections de la liste de départ**, appliquées aux cabinets par la mise à jour sans écrasement (R-E4) : une fiche par dosage
       (MOSCONTIN LP 10/30/60/100, DUROGESIC 12/25/50, LEVOTHYROX 25/50/100 ; d. 4) ; + SOLUPRED (prednisolone) 20 mg, COTIPRED gardé (d. 6) ;
       TAVANIC 500 mg une fois par jour, OFLOCET 200 mg matin et soir, durées gardées (d. 8) ; EFFIPRED en deux fiches (prostate
       hormonosensible 5 mg / j ; résistant à la castration 5 mg matin et soir) (d. 9) ; PRIMPERAN, CLOPRAME : 5 jours au plus, 3 × 10 mg / j
@@ -499,20 +517,38 @@ types**, refus gardés) : R-A6 et R-E4 partent de là, sans les refaire.
       deux bilans initiaux (chimio, immunothérapie) (d. 19) ; 14 éléments de bilans harmonisés sur les noms de la liste des analyses (TSH /
       TSH us, ionogramme…) (d. 21) ; « Protéinurie des 24 h » en Biochimie (d. 22) ; précaution sur les 5 scanners injectés : « créatininémie
       récente ; signaler une allergie à l'iode ou un traitement par metformine » (d. 23).
-- [ ] **R-E4 Mises à jour des bibliothèques par l'Administration** (d. 18, VALIDÉ ; part de P9, qui le fait déjà pour protocoles et
+- [x] **(19/10/2026, testé ; fonctions `referenceDiff`, `modeleAppliquer` à mettre en ligne)** identifiants fixes des fiches ajoutées
+      (4e élément de `MEDICAMENTS0`, 3e de `ANALYSES0` ; rien retiré ni déplacé) ; `modifierListe` note les éléments retirés dans `retires` (doc de la
+      bibliothèque) ; `majBibliotheques` (une fois, `parametres/migrations.bibE3`, médecin) porte `majbib.js` dans le cabinet sans écraser ; `ajouterOrdosManquants`
+      remplace `remplacerOrdosTypes` ; P9 : `differencesListe` (functions/reference.js, test-reference 16/16), page Protocoles « Voir et choisir » avec
+      Médicaments, Analyses, Bilans, Examens, Courriers (Ajouter / Ne pas ajouter, Prendre / Garder le mien, « Tout ajouter ») ; `modeleAppliquer` (R-A6)
+      respecte `retires`.
+      **R-E4 Mises à jour des bibliothèques par l'Administration** (d. 18, VALIDÉ ; part de P9, qui le fait déjà pour protocoles et
       ordonnances types) : étendre à médicaments, analyses, bilans, examens, courriers ; chaque élément de départ reconnu par un
       **identifiant stable** (pas sa position) ; éléments supprimés par le médecin gardés comme refusés (jamais reproposés) ; **remplacer
       `remplacerOrdosTypes`** (écrase tout : ordonnances et étoiles du cabinet perdues) par cette fusion ; lecture corrigée de R-A1 ; même
       mécanisme que R-A6.
-- [ ] **R-E5 Signature scannée retirée et droits de la secrétaire** : plus d'impression de la signature scannée ni de case `eSig`
+- [x] **(19/10/2026, testé ; règle changée)** case `eSig`, impression et champ du profil retirés ; `effacerSignature` (v2.js : `signature` retirée de
+      `utilisateurs/{uid}` à la connexion) et carte `signataires/{uid}` réécrite sans elle ; règle `bibliotheques` : médecin seulement (test-parametres) ;
+      `ajouteMedic` = médecin.
+      **R-E5 Signature scannée retirée et droits de la secrétaire** : plus d'impression de la signature scannée ni de case `eSig`
       (configuration.js, `cadre` / `imprimer` d'ordonnances.js, reglages.js) (d. 25 ; question 2) ; secrétaire : aucune modification de
       bibliothèque (règle `bibliotheques` : retirer `|| b == 'medicaments'`, bouton `ajouteMedic`), tests de règles (d. 17 ; question 1).
-- [ ] **R-E6 Allergie vérifiée sur toutes les lignes** (d. 27, MODIFIÉ) : à l'affichage de l'ordonnance (liste, ordonnance type, ligne libre,
+- [x] **(19/10/2026, testé)** `okAllergie` (ajout de la liste, ordonnance type, suggestion, ligne libre, modification, nouveau médicament) +
+      bandeau `#orAl` au-dessus de l'ordonnance affichée (renouvellement, modification compris) + fenêtre avant l'impression ; familles complétées
+      (pristinamycine, sulfadiazine, BETADINE pour l'iode, CEDOL / CETRA…), allergie croisée « à vérifier » (pénicillines ↔ céphalosporines, AINS ↔
+      aspirine), classe de la bibliothèque lue (ARCOXIA) ; mots de l'allergie gardés pour le reste.
+      **R-E6 Allergie vérifiée sur toutes les lignes** (d. 27, MODIFIÉ) : à l'affichage de l'ordonnance (liste, ordonnance type, ligne libre,
       suggestion, modification, renouvellement, nouveau médicament), avec la **table des familles** (§ 8 « Familles d'allergie », à
       compléter avec les noms de la bibliothèque) : pénicillines ; céphalosporines (croisée possible : « à vérifier ») ; sulfamides ;
       quinolones ; AINS ; aspirine ; produits de contraste iodés (examens « injectée ») ; morphiniques. Avertissement d'un clic, jamais
       bloquant (aujourd'hui `allergieDans` compare des mots, ligne libre et nouveau médicament non vérifiés).
-- [ ] **R-E7 Traçabilité, petits correctifs, ajouts** : ancienne version gardée à chaque modification, ordonnance « annulée » au lieu
+- [x] **(19/10/2026, testé)** `versions` (20 dernières) dans la ligne modifiée, menu « Version » des antécédents ; « Annuler l'ordonnance » =
+      `annulee` { le, par, parNom } (barrée, plus comptée ni réimprimable ; la consultation « Ordonnance » n'est plus supprimée) ; `auJour(html, signer, x)`
+      refait `.or-pat2` ; `items` enregistrés, `par` / `parUid` / `modifPar` pris du compte (`nomCompte`, v2.js, aussi pour le journal), format A5 / A4
+      dans `utilisateurs/{uid}.formatOrdo` ; ajouts : chimio orale calculée (bouton « mg/m² » : capécitabine, vinorelbine, témozolomide), ordonnances du
+      protocole (P6, déjà là), recherche par médicament (antécédents, plus de 3 ordonnances), Duplicata ; identifiant de ligne avec une part aléatoire.
+      **R-E7 Traçabilité, petits correctifs, ajouts** : ancienne version gardée à chaque modification, ordonnance « annulée » au lieu
       d'effacée, comme les reçus (d. 29 : `enregistrerPrescription`, `supprimerPrescription`) ; « Renouveler » refait la ligne âge, poids,
       allergie depuis le dossier (d. 30, `auJour`) ; liste des médicaments enregistrée avec la page, auteur pris du compte et non de l'écran
       (`par` = texte du menu), format A5 / A4 retenu par navigateur (d. 31) ; puis ajouts (d. 32) : chimio orale calculée, ordonnances du

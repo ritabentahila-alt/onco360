@@ -3,6 +3,10 @@
 // (bibliotheques/analyses et bibliotheques/bilans) ; ensuite ce sont les listes du cabinet.
 // ANALYSES0 : [nom, catégorie] ; BILANS0 : { nom, items: [analyse ou nom d'un autre bilan, …] } — un bilan qui contient
 // d'autres bilans est un « bilan général » : un clic ajoute chacun de ses bilans (une ligne par bilan).
+// Identifiants : « a » / « b » + rang (comme les listes déjà enregistrées par les cabinets), ou le 3e élément d'une analyse ajoutée plus tard ;
+// ne jamais retirer ni déplacer une ligne (R-E4). R-E3 (19/10/2026, audit n° 7) : « Protéinurie des 24 h » en Biochimie ; « Bilan lipidique »
+// remplacé par ses 4 analyses dans les deux bilans initiaux ; 14 éléments de bilans aux noms de la liste des analyses (5 sérologies ajoutées) ;
+// porté dans les cabinets par donnees/majbib.js.
 export const ANALYSES0 = [
   ["NFS – plaquettes", "Hématologie"],
   ["Plaquettes", "Hématologie"],
@@ -86,7 +90,7 @@ export const ANALYSES0 = [
   ["Recherche de Clostridioides difficile (toxines A/B + GDH)", "Microbiologie"],
   ["Prélèvement de cathéter / chambre implantable", "Microbiologie"],
   ["PCR grippe / COVID-19", "Microbiologie"],
-  ["Protéinurie des 24 h", "Microbiologie"],
+  ["Protéinurie des 24 h", "Biochimie"],
   ["Uracilémie (dépistage du déficit en DPD)", "Oncogénétique et moléculaire"],
   ["Recherche de mutations BRCA1 / BRCA2 (constitutionnelle, sur sang)", "Oncogénétique et moléculaire"],
   ["Syndrome de Lynch : séquençage MLH1, MSH2, MSH6, PMS2, EPCAM (constitutionnel)", "Oncogénétique et moléculaire"],
@@ -98,26 +102,32 @@ export const ANALYSES0 = [
   ["Biopsie liquide : ADN tumoral circulant (NGS / ddPCR)", "Oncogénétique et moléculaire"],
   ["Immunohistochimie – panel diagnostique (CK7, CK20, TTF1, P40, GATA3, CDX2…)", "Oncogénétique et moléculaire"],
   ["Immunohistochimie – biomarqueurs sein : RE, RP, HER2 (± FISH/CISH), Ki67", "Oncogénétique et moléculaire"],
+  // ───── Ajoutées le 19/10/2026 (R-E3) : identifiants fixes ─────
+  ["Sérologie CMV (IgG, IgM ± PCR)", "Sérologies", "a-cmv"],
+  ["Sérologie EBV", "Sérologies", "a-ebv"],
+  ["Sérologie VZV", "Sérologies", "a-vzv"],
+  ["Sérologie toxoplasmose", "Sérologies", "a-toxo"],
+  ["Sérologie HTLV-1", "Sérologies", "a-htlv"],
 ];
 
 export const BILANS0 = [
   { nom: "Bilan rénal", items: ["Urée", "Créatininémie", "DFG (clairance de la créatinine, CKD-EPI)"] },
-  { nom: "Bilan hépatique complet", items: ["ASAT", "ALAT", "GGT", "PAL", "Bilirubine totale et conjuguée"] },
+  { nom: "Bilan hépatique complet", items: ["ASAT", "ALAT", "GGT", "PAL", "Bilirubine totale", "Bilirubine conjuguée"] },
   { nom: "Bilan thyroïdien", items: ["TSH us", "T3 libre", "T4 libre"] },
   { nom: "Bilan lipidique", items: ["Cholestérol total", "HDL-cholestérol", "LDL-cholestérol", "Triglycérides"] },
   { nom: "Bilan glycémique", items: ["Glycémie à jeun", "HbA1c"] },
   { nom: "Bilan de coagulation", items: ["TP / INR", "TCA", "Fibrinogène"] },
-  { nom: "Sérologies virales", items: ["VIH 1/2", "VHB (Ag HBs, Ac anti-HBs, Ac anti-HBc)", "VHC"] },
-  { nom: "Sérologies opportunistes", items: ["CMV (IgG, IgM ± PCR)", "EBV", "VZV", "Toxoplasmose", "HTLV-1"] },
+  { nom: "Sérologies virales", items: ["Sérologie VIH 1/2", "Sérologie VHB (Ag HBs, Ac anti-HBs, Ac anti-HBc)", "Sérologie VHC"] },
+  { nom: "Sérologies opportunistes", items: ["Sérologie CMV (IgG, IgM ± PCR)", "Sérologie EBV", "Sérologie VZV", "Sérologie toxoplasmose", "Sérologie HTLV-1"] },
   { nom: "Bilan fièvre", items: ["NFS – plaquettes", "CRP"] },
   { nom: "Bilan anémie", items: ["NFS – plaquettes", "Ferritinémie", "Coefficient de saturation de la transferrine (CST)", "Vitamine B12", "Folates (vitamine B9)", "CRP"] },
   { nom: "Bilan vitamines et oligo-éléments", items: ["Vitamine B12", "Folates (vitamine B9)", "25-OH vitamine D", "Zinc", "Sélénium"] },
-  { nom: "Bilan nutritionnel", items: ["Albuminémie", "Préalbuminémie (transthyrétine)", "CRP", "Ferritinémie", "CST", "Vitamine B12", "Folates (vitamine B9)", "Ionogramme sanguin", "Phosphatémie", "Magnésémie"] },
-  { nom: "Bilan hypercalcémie", items: ["Calcémie", "Albuminémie", "Calcémie corrigée", "Phosphatémie", "Magnésémie", "PTH (1-84)", "25-OH vitamine D", "PAL", "Ionogramme sanguin", "Créatininémie"] },
+  { nom: "Bilan nutritionnel", items: ["Albuminémie", "Préalbuminémie (transthyrétine)", "CRP", "Ferritinémie", "Coefficient de saturation de la transferrine (CST)", "Vitamine B12", "Folates (vitamine B9)", "Ionogramme sanguin (Na, K, Cl)", "Phosphatémie", "Magnésémie"] },
+  { nom: "Bilan hypercalcémie", items: ["Calcémie", "Albuminémie", "Calcémie corrigée", "Phosphatémie", "Magnésémie", "PTH (1-84)", "25-OH vitamine D", "PAL", "Ionogramme sanguin (Na, K, Cl)", "Créatininémie"] },
   { nom: "Bilan corticotrope et hypophysaire", items: ["Cortisolémie à 8 h", "ACTH", "LH", "FSH"] },
   { nom: "Bilan dysthyroïdie (immunothérapie)", items: ["TSH us", "T3 libre", "T4 libre", "Anticorps anti-TPO", "Anticorps anti-thyroglobuline", "Anticorps anti-récepteurs de la TSH (TRAK)", "Cortisolémie à 8 h", "ACTH", "Glycémie à jeun"] },
-  { nom: "Bilan diarrhée", items: ["Ionogramme sanguin (Na, K, Cl, Mg, Ca)", "Créatininémie", "Urée", "CRP", "Coproculture", "Examen parasitologique des selles", "Recherche de Clostridioides difficile (toxines A/B + GDH)"] },
-  { nom: "Bilan avant scanner injecté", items: ["Créatininémie", "DFG (clairance de la créatinine, CKD-EPI)", "Ionogramme sanguin"] },
+  { nom: "Bilan diarrhée", items: ["Ionogramme sanguin (Na, K, Cl)", "Magnésémie", "Calcémie", "Créatininémie", "Urée", "CRP", "Coproculture", "Examen parasitologique des selles", "Recherche de Clostridioides difficile (toxines A/B + GDH)"] },
+  { nom: "Bilan avant scanner injecté", items: ["Créatininémie", "DFG (clairance de la créatinine, CKD-EPI)", "Ionogramme sanguin (Na, K, Cl)"] },
   { nom: "Bilan avant 5-FU / capécitabine", items: ["Uracilémie (dépistage du déficit en DPD)"] },
   { nom: "Marqueurs tumoraux – sein", items: ["ACE", "CA 15-3"] },
   { nom: "Marqueurs tumoraux – côlon / rectum", items: ["ACE", "CA 19-9"] },
@@ -128,11 +138,11 @@ export const BILANS0 = [
   { nom: "Marqueurs tumoraux – thyroïde différenciée", items: ["Thyroglobuline", "Anticorps anti-thyroglobuline"] },
   { nom: "Marqueurs tumoraux – thyroïde médullaire", items: ["Calcitonine", "ACE"] },
   { nom: "Bilan chimiothérapie – intercure", items: ["NFS – plaquettes", "Urée", "Créatininémie", "DFG (clairance de la créatinine, CKD-EPI)"] },
-  { nom: "Bilan chimiothérapie – bilan initial", items: ["NFS – plaquettes", "Ionogramme sanguin", "Urée", "Créatininémie", "DFG (clairance de la créatinine, CKD-EPI)", "ASAT", "ALAT", "GGT", "PAL", "Bilirubine totale et conjuguée", "TSH", "Glycémie à jeun", "Bilan lipidique", "VIH 1/2", "VHB (Ag HBs, Ac anti-HBs, Ac anti-HBc)", "VHC"] },
+  { nom: "Bilan chimiothérapie – bilan initial", items: ["NFS – plaquettes", "Ionogramme sanguin (Na, K, Cl)", "Urée", "Créatininémie", "DFG (clairance de la créatinine, CKD-EPI)", "ASAT", "ALAT", "GGT", "PAL", "Bilirubine totale", "Bilirubine conjuguée", "TSH us", "Glycémie à jeun", "Cholestérol total", "HDL-cholestérol", "LDL-cholestérol", "Triglycérides", "Sérologie VIH 1/2", "Sérologie VHB (Ag HBs, Ac anti-HBs, Ac anti-HBc)", "Sérologie VHC"] },
   { nom: "Bilan immunothérapie – intercure", items: ["NFS – plaquettes"] },
-  { nom: "Bilan immunothérapie – bilan initial", items: ["NFS – plaquettes", "Ionogramme sanguin", "Urée", "Créatininémie", "DFG (clairance de la créatinine, CKD-EPI)", "ASAT", "ALAT", "GGT", "PAL", "Bilirubine totale et conjuguée", "Cortisolémie à 8h", "TSH", "Lipase", "Glycémie à jeun", "Bilan lipidique", "VIH 1/2", "VHB (Ag HBs, Ac anti-HBs, Ac anti-HBc)", "VHC"] },
-  { nom: "Bilan abiratérone", items: ["Ionogramme sanguin (Na, K, Cl, Mg, Ca)", "Urée", "Créatininémie", "DFG (clairance de la créatinine, CKD-EPI)", "ASAT", "ALAT", "GGT", "PAL", "Bilirubine totale et conjuguée"] },
-  { nom: "Bilan curiethérapie", items: ["NFS – plaquettes", "Créatininémie", "Ionogramme sanguin", "TP / INR", "TCA", "Fibrinogène", "ECBU avec antibiogramme"] },
+  { nom: "Bilan immunothérapie – bilan initial", items: ["NFS – plaquettes", "Ionogramme sanguin (Na, K, Cl)", "Urée", "Créatininémie", "DFG (clairance de la créatinine, CKD-EPI)", "ASAT", "ALAT", "GGT", "PAL", "Bilirubine totale", "Bilirubine conjuguée", "Cortisolémie à 8 h", "TSH us", "Lipase", "Glycémie à jeun", "Cholestérol total", "HDL-cholestérol", "LDL-cholestérol", "Triglycérides", "Sérologie VIH 1/2", "Sérologie VHB (Ag HBs, Ac anti-HBs, Ac anti-HBc)", "Sérologie VHC"] },
+  { nom: "Bilan abiratérone", items: ["Ionogramme sanguin (Na, K, Cl)", "Magnésémie", "Calcémie", "Urée", "Créatininémie", "DFG (clairance de la créatinine, CKD-EPI)", "ASAT", "ALAT", "GGT", "PAL", "Bilirubine totale", "Bilirubine conjuguée"] },
+  { nom: "Bilan curiethérapie", items: ["NFS – plaquettes", "Créatininémie", "Ionogramme sanguin (Na, K, Cl)", "TP / INR", "TCA", "Fibrinogène", "ECBU avec antibiogramme"] },
   { nom: "Bilan pose de chambre implantable (PAC)", items: ["TP / INR", "TCA", "Fibrinogène", "NFS – plaquettes"] },
   { nom: "Bilan infectieux complet", items: ["NFS – plaquettes", "CRP", "Procalcitonine (PCT)", "Hémocultures (aérobie et anaérobie)", "ECBU avec antibiogramme", "Coproculture", "Prélèvement de cathéter / chambre implantable", "PCR grippe / COVID-19"] },
 ];

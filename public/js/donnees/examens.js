@@ -1,15 +1,16 @@
 // Onco360 – examens complémentaires de départ (fichier de Dr Bentahila « Examens_Complementaires_Oncologie.xlsx », 07/10/2026),
 // rangés, complétés et relus par le Dr (07/10/2026, sans bilans d'imagerie). Utilisés tant que le cabinet n'a pas modifié
 // sa liste (bibliotheques/examens) ; ensuite c'est la liste du cabinet.
-// EXAMENS0 : [nom, catégorie, précautions (ajoutées entre parenthèses sur l'ordonnance, facultatif)].
+// EXAMENS0 : [nom, catégorie, précautions (ajoutées entre parenthèses sur l'ordonnance, facultatif)] ; identifiant « e » + rang (ne jamais
+// retirer ni déplacer une ligne). R-E3 (19/10/2026, audit n° 7) : précaution sur les scanners injectés (porté dans les cabinets par donnees/majbib.js).
 export const EXAMENS0 = [
-  ["TDM thoraco-abdomino-pelvienne (TAP) injectée", "Scanner (TDM)", ""],
-  ["TDM thoracique injectée", "Scanner (TDM)", ""],
-  ["TDM abdomino-pelvienne injectée", "Scanner (TDM)", ""],
-  ["TDM cérébrale injectée", "Scanner (TDM)", ""],
-  ["TDM cervico-faciale (ORL) injectée", "Scanner (TDM)", ""],
-  ["Angio-TDM thoracique (recherche d'embolie pulmonaire)", "Scanner (TDM)", ""],
-  ["Uro-TDM", "Scanner (TDM)", ""],
+  ["TDM thoraco-abdomino-pelvienne (TAP) injectée", "Scanner (TDM)", "créatininémie récente ; signaler une allergie à l'iode ou un traitement par metformine"],
+  ["TDM thoracique injectée", "Scanner (TDM)", "créatininémie récente ; signaler une allergie à l'iode ou un traitement par metformine"],
+  ["TDM abdomino-pelvienne injectée", "Scanner (TDM)", "créatininémie récente ; signaler une allergie à l'iode ou un traitement par metformine"],
+  ["TDM cérébrale injectée", "Scanner (TDM)", "créatininémie récente ; signaler une allergie à l'iode ou un traitement par metformine"],
+  ["TDM cervico-faciale (ORL) injectée", "Scanner (TDM)", "créatininémie récente ; signaler une allergie à l'iode ou un traitement par metformine"],
+  ["Angio-TDM thoracique (recherche d'embolie pulmonaire)", "Scanner (TDM)", "créatininémie récente ; signaler une allergie à l'iode ou un traitement par metformine"],
+  ["Uro-TDM", "Scanner (TDM)", "créatininémie récente ; signaler une allergie à l'iode ou un traitement par metformine"],
   ["TEP-TDM au 18F-FDG", "TEP-TDM", "à jeun 6 heures"],
   ["TEP-TDM au PSMA (68Ga ou 18F)", "TEP-TDM", ""],
   ["TEP-TDM aux analogues de la somatostatine (68Ga-DOTATOC / DOTATATE)", "TEP-TDM", ""],

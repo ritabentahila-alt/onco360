@@ -38,7 +38,11 @@ async def main():
         await ev("document.querySelector('[data-ot]:checked').click()"); await ev("document.getElementById('orPcOk').click()"); await pg.wait_for_timeout(1200)
         page = await ev("(document.getElementById('orPage')||{}).innerText||''")
         ok('CRÈME À L\'URÉE' in page and 'NFS + CRP' in page and 'CHEMOSET' not in page, 'une ordonnance décochée n\'y est pas ; les autres médicaments réunis, modifiables', page[:300])
-        await ev("document.getElementById('orOk').click()"); await pg.wait_for_timeout(1800)
+        await ev("document.getElementById('orOk').click()"); await pg.wait_for_timeout(600)
+        # R-E1 (19/10/2026) : vérification avant d'enregistrer (doublons, zones…) : « Enregistrer quand même »
+        dlg = await ev("(document.querySelector('.or-dlg')||{}).innerText||''")
+        print('    (vérification : ' + dlg.replace('\n', ' ')[:160] + ')')
+        if dlg: await ev("document.querySelector('.or-dlg [data-k=ok]').click()"); await pg.wait_for_timeout(1500)
         fs = await ev("window.__fs")
         cs = [v for k, v in fs.items() if k.startswith(E + 'consultations/') and v.get('patientId') == pid and any(l.get('t') == 'ordo' and 'Capécitabine' in (l.get('lib') or '') for l in v.get('lignes', []))]
         ok(cs, 'ordonnance enregistrée dans la consultation du jour', [k for k in fs if k.startswith(E + 'consultations/')][-3:])

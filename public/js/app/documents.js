@@ -71,7 +71,7 @@ function prochainRdv(P, fin, ctx) {
 }
 function bilanControle(pid, ctx) {
   const c = consultationsDe(pid).filter((z) => z.d && z.d <= ctx.aujourdhui).sort((a, b) => (b.d || "").localeCompare(a.d || "") || (b.o || 0) - (a.o || 0))[0];
-  const l = c ? (c.lignes || []).filter((z) => z.t === "exam" || z.t === "analyse").map((z) => String(z.lib || "").trim()).filter(Boolean) : [];
+  const l = c ? (c.lignes || []).filter((z) => (z.t === "exam" || z.t === "analyse") && !z.annulee).map((z) => String(z.lib || "").trim()).filter(Boolean) : [];
   return l.length ? l.join(" ; ") + " (prescrit le " + dfrA(c.d) + ")" : "";
 }
 // Valeurs des champs des modèles (donnees/modelesrt.js) : HTML prêt à placer ; vide → « À REMPLIR » (pli, calendrier) ou « à compléter

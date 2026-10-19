@@ -2,6 +2,9 @@
 // 07/10/2026). Utilisées tant que le cabinet n'a pas modifié sa liste (bibliotheques/ordostypes) ; ensuite c'est la liste du
 // cabinet. Cette version a aussi été écrite une fois dans la liste du cabinet (migrations() de v2.js, « ordostypesExcel1 »).
 // { nom, items: [[médicament, posologie], …] }
+// R-E3 (19/10/2026, audit n° 7) : « Douleurs – palier 1 », MOSCONTIN LP 10 mg (une fiche par dosage), durées par défaut du cabinet
+// (stupéfiants 28 jours, TRAMAL LP 1 mois, MAGMINE et BACTRIM FORTE 3 mois, métoclopramide 5 jours au plus), durée à compléter ailleurs ;
+// porté dans les cabinets par donnees/majbib.js (une ligne modifiée par le cabinet n'est jamais remplacée).
 export const ORDOS_TYPES0 = [
   { nom: "Diarrhée", items: [
     ["SPASFON LYOC (phloroglucinol)", "1 à 2 comprimés en cas de douleurs abdominales, maximum 6 comprimés par jour"],
@@ -22,7 +25,7 @@ export const ORDOS_TYPES0 = [
     ["COTIPRED (prednisolone) 20 mg", "3 comprimés le matin (soit 60 mg par jour) à J1, J2 et J3 après la chimiothérapie (pendant 3 jours)"],
     ["OLANZAPINE (ZYPREXA) 5 mg", "1 comprimé le soir, de J1 à J4 de la chimiothérapie"]] },
   { nom: "Nausées et vomissements", items: [
-    ["CLOPRAME (métoclopramide) 10 mg", "1 comprimé 3 fois par jour (matin, midi et soir), 30 minutes avant les repas, en cas de nausées"],
+    ["CLOPRAME (métoclopramide) 10 mg", "1 comprimé 3 fois par jour (matin, midi et soir), 30 minutes avant les repas, en cas de nausées, pendant 5 jours au plus"],
     ["CHEMOSET (ondansétron) 8 mg", "1 comprimé matin et soir, espacés de 12 heures (maximum 2 comprimés par jour), si les nausées persistent"],
     ["NAUSELIUM (dompéridone) sirop", "1 cuillère-mesure 3 fois par jour, 15 minutes avant les repas, en cas de nausées"]] },
   { nom: "Radiodermite et soins cutanés", items: [
@@ -40,29 +43,29 @@ export const ORDOS_TYPES0 = [
     ["FLUOCARIL gel bifluoré 250 mg", "Appliquer dans les gouttières fluorées 1 fois par jour, pendant 5 minutes, après le brossage"],
     ["GUM HYDRAL gel humectant", "4 applications par jour sur les gencives et la langue en cas de sécheresse"],
     ["XYLITOL chewing-gum", "À mâcher selon les besoins, jusqu'à 4 fois par jour, pour stimuler la salivation"]] },
-  { nom: "Douleurs – paliers 1", items: [
+  { nom: "Douleurs – palier 1", items: [
     ["PARACÉTAMOL 1 g", "1 comprimé en cas de douleur, maximum 4 comprimés par jour (au moins 4 heures entre 2 prises)"],
     ["CETRA (tramadol 37,5 mg + paracétamol 325 mg)", "1 comprimé en cas de pic de douleur, maximum 4 comprimés par jour"]] },
   { nom: "Douleurs – palier 1 et 2", items: [
-    ["TRAMAL LP (tramadol) 100 mg", "1 comprimé le matin et 1 comprimé le soir (toutes les 12 heures)"],
+    ["TRAMAL LP (tramadol) 100 mg", "1 comprimé le matin et 1 comprimé le soir (toutes les 12 heures), pendant 1 mois"],
     ["TRAMAL (tramadol) 50 mg", "1 comprimé en cas de pic de douleur, maximum 6 comprimés par jour"],
     ["PARACÉTAMOL 1 g", "1 comprimé en cas de douleur, maximum 4 comprimés par jour (au moins 4 heures entre 2 prises)"]] },
   { nom: "Douleurs – palier 3 (morphine)", items: [
-    ["MOSCONTIN LP (sulfate de morphine) 10 / 30 / 60 / 100 mg", "1 comprimé le matin et 1 le soir (toutes les 12 heures)"],
-    ["SEVREDOL (sulfate de morphine) 10 mg", "1 comprimé en cas d'accès douloureux, maximum 6 comprimés par jour (au moins 1 heure entre 2 prises)"],
+    ["MOSCONTIN LP (sulfate de morphine) 10 mg", "1 comprimé le matin et 1 le soir (toutes les 12 heures), pendant 28 jours"],
+    ["SEVREDOL (sulfate de morphine) 10 mg", "1 comprimé en cas d'accès douloureux, maximum 6 comprimés par jour (au moins 1 heure entre 2 prises), pendant 28 jours"],
     ["FORLAX (macrogol) 10 g", "1 sachet par jour, le matin, pendant toute la durée du traitement par morphine (prévention de la constipation)"]] },
   { nom: "Douleurs neuropathiques", items: [
     ["ALYSE (prégabaline) 75 mg", "Au début : 75 mg le soir, puis augmenter progressivement après 3 jours si bonne tolérance à 75 mg matin et soir (soit 150 mg par jour), pendant 1 mois"],
     ["PARACÉTAMOL 1 g", "1 comprimé en cas de douleur, maximum 4 comprimés par jour (au moins 4 heures entre 2 prises)"],
     ["VITANEVRIL FORTE", "1 comprimé matin et soir (soit 2 comprimés par jour) pendant 3 mois"],
-    ["MAGMINE (magnésium + vitamine B6)", "1 comprimé le matin, au cours du repas"]] },
+    ["MAGMINE (magnésium + vitamine B6)", "1 comprimé le matin, au cours du repas, pendant 3 mois"]] },
   { nom: "Rectite radique et proctologie", items: [
     ["COTIPRED (prednisolone) 20 mg", "3 comprimés le matin (soit 60 mg par jour) pendant 5 jours, en poussée inflammatoire aiguë"],
     ["MORIDIL pommade", "1 application 2 fois par jour (matin et soir) sur la zone anale"],
     ["MORIDIL suppositoire", "1 suppositoire enduit de pommade, 2 fois par jour"],
     ["TITANORÉINE à la lidocaïne 2 % crème", "1 application avant et après chaque selle, maximum 4 applications par jour"],
-    ["SYSMETIX, gélule (probiotique)", "1 gélule par jour pour restaurer le microbiote"],
-    ["LAVEMENTS DE SUCRALFATE (ou BETNESOL / ENTOCORT)", "1 lavement le soir au coucher, pour tapisser et cicatriser la muqueuse irritée"]] },
+    ["SYSMETIX, gélule (probiotique)", "1 gélule par jour pour restaurer le microbiote, pendant [durée à compléter]"],
+    ["LAVEMENTS DE SUCRALFATE (ou BETNESOL / ENTOCORT)", "1 lavement le soir au coucher, pour tapisser et cicatriser la muqueuse irritée, pendant [durée à compléter]"]] },
   { nom: "Syndrome pieds-mains", items: [
     ["DEXERYL", "1 application matin et soir (soit 2 applications par jour), en couche fine"],
     ["CRÈME À L'URÉE 10 à 30 %", "1 application matin et soir sur la paume des mains et la plante des pieds"],
@@ -92,8 +95,8 @@ export const ORDOS_TYPES0 = [
   { nom: "Corticothérapie et prophylaxie", items: [
     ["COTIPRED (prednisolone) 20 mg", "3 comprimés le matin (soit 60 mg par jour), puis diminution progressive selon la prescription"],
     ["OEDES (oméprazole) 20 mg", "1 gélule le matin à jeun, à arrêter en même temps que le corticoïde"],
-    ["BACTRIM FORTE (sulfaméthoxazole + triméthoprime)", "1 comprimé le matin le lundi, le mercredi et le vendredi (prévention de la pneumocystose)"],
-    ["YOFOLVIT (acide folique)", "1 comprimé par jour, le matin"]] },
+    ["BACTRIM FORTE (sulfaméthoxazole + triméthoprime)", "1 comprimé le matin le lundi, le mercredi et le vendredi (prévention de la pneumocystose), pendant 3 mois"],
+    ["YOFOLVIT (acide folique)", "1 comprimé par jour, le matin, pendant [durée à compléter]"]] },
   { nom: "Prémédication pémétrexed (ALIMTA)", items: [
     ["YOFOLVIT (acide folique)", "1 comprimé par jour, à commencer 7 jours avant la 1re cure et à poursuivre jusqu'à 3 semaines après la dernière cure"],
     ["VITAMINE B12 1 000 µg, solution injectable", "1 injection intramusculaire 1 semaine avant la 1re cure, puis toutes les 9 semaines"],
@@ -115,7 +118,7 @@ export const ORDOS_TYPES0 = [
   { nom: "Préparation digestive avant radiothérapie", items: [
     ["ZETALAX, microlavement", "1 lavement le matin, la veille et le jour du traitement"],
     ["EUCARBON, comprimé", "1 comprimé matin, midi et soir (soit 3 comprimés par jour), les 2 jours précédant le traitement"],
-    ["LIXIFOR, gélule", "1 gélule le soir au coucher avec un grand verre d'eau"]] },
+    ["LIXIFOR, gélule", "1 gélule le soir au coucher avec un grand verre d'eau, pendant [durée à compléter]"]] },
   { nom: "Nutrition", items: [
     ["FONTACTIV poudre", "4 cuillères-mesures dans 200 ml de liquide (2 cuillères-mesures si lait), 1 à 2 fois par jour (ne remplace pas un repas)"],
     ["FORTIMEL Protein", "1 à 2 bouteilles par jour, à boire fraîches entre les repas (ne remplace pas un repas)"]] },
@@ -143,7 +146,7 @@ export const ORDOS_AUDIT3 = [
     ["CHEMOSET (ondansétron) 8 mg", "1 comprimé matin et soir en cas de nausées, à J2 et J3 (maximum 2 comprimés par jour)"],
     ["SOLUPRED (prednisolone) 20 mg", "3 comprimés le matin les 2 jours qui suivent le dernier jour de cisplatine"],
     ["OLANZAPINE (ZYPREXA) 5 mg", "1 comprimé le soir, de J1 jusqu'à 2 jours après le dernier jour de cisplatine"],
-    ["CLOPRAME (métoclopramide) 10 mg", "1 comprimé en cas de nausées, maximum 3 comprimés par jour"]] },
+    ["CLOPRAME (métoclopramide) 10 mg", "1 comprimé en cas de nausées, maximum 3 comprimés par jour, pendant 5 jours au maximum"]] },
   { nom: "Chimio : risque émétique modéré (oxaliplatine, irinotécan…)", ancien: "Pré-chimiothérapie antiémétique", doublons: ["Chimiothérapie antiémétique"], items: [
     ["CHEMOSET (ondansétron) 8 mg", "1 comprimé matin et soir en cas de nausées, à J2 et J3 (maximum 2 comprimés par jour)"],
     ["NAUSELIUM (dompéridone) sirop", "1 cuillère-mesure 3 fois par jour, 15 minutes avant les repas, en cas de nausées"]] },

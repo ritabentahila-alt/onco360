@@ -14,9 +14,9 @@ const D = () => A.D();
 
 export const REGLAGES0 = {
   // entete (3.9, 12/10/2026) : « papier » = papier à en-tête (rien n'est imprimé en haut, marge du haut) ; « genere » = en-tête et pied imprimés
-  // par Onco360 (eLogo : logo du lieu, eNom, eSpe, eInpe : médecin signataire ; eLieu : adresse et téléphone du lieu en pied ; eSig : signature scannée)
+  // par Onco360 (eLogo : logo du lieu, eNom, eSpe, eInpe : médecin signataire ; eLieu : adresse et téléphone du lieu en pied ; R-E5, 19/10/2026 : plus de signature scannée, ancienne case eSig ignorée)
   // rSpe … rTva (R-B5, 19/10/2026) : mentions imprimées sur le reçu (identifiants du médecin de l'acte ; exonération de TVA à confirmer par le comptable)
-  impression: { rSpe: true, rInpe: true, rIf: true, rTp: true, rIce: true, rTva: false, a5: [45, 28, 18], a4: [60, 35, 22], doc: [45, 35, 22], age: false, poids: false, allergie: false, entete: "papier", eLogo: true, eNom: true, eSpe: true, eInpe: true, eLieu: true, eSig: true, fenRappel: false }, // fenRappel (R-G e, 19/10/2026) : allergie et poids rappelés en haut de la fenêtre d'ordonnance // âge, poids sous le nom sur les ordonnances (3.2 ; séparés le 12/10/2026)
+  impression: { rSpe: true, rInpe: true, rIf: true, rTp: true, rIce: true, rTva: false, a5: [45, 28, 18], a4: [60, 35, 22], doc: [45, 35, 22], age: false, poids: false, allergie: false, entete: "papier", eLogo: true, eNom: true, eSpe: true, eInpe: true, eLieu: true, fenRappel: false }, // fenRappel (R-G e, 19/10/2026) : allergie et poids rappelés en haut de la fenêtre d'ordonnance // âge, poids sous le nom sur les ordonnances (3.2 ; séparés le 12/10/2026)
   whatsapp: { de: 1, a: 2 },
   alertes: { cure: 3, finTrait: 30 },
   auto: { rtHebdo: true, rtFin: true }, // rendez-vous créés d'office (12/10/2026) : consultations hebdomadaires de RT, consultation de fin de RT

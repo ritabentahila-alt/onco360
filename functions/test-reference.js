@@ -19,5 +19,17 @@ const r = R.resume(cab[1], ref[1]);
 cas("résumé : ligne POLARAMINE ajoutée", r.ajoutees.length === 1 && /POLARAMINE — 5 mg — J1/.test(r.ajoutees[0]) && !r.retirees.length, r);
 const O = R.differencesOrdos([{ nom: "Chimio : AC", items: [{ nom: "EMEND", poso: "x" }] }, { nom: "Diarrhée", items: [{ nom: "SMECTA", poso: "1" }] }], [{ id: "t1", nom: "Diarrhée", items: [{ nom: "SMECTA", poso: "2" }] }], {});
 cas("ordonnances types : nouvelle (par le nom) et différente", O.some((x) => x.type === "nouveau" && x.ref.nom === "Chimio : AC") && O.some((x) => x.type === "different" && x.ref.nom === "Diarrhée"));
+// R-E4 (19/10/2026) : autres bibliothèques (médicaments, analyses, bilans, examens, courriers)
+const mr = [{ id: "m1", nom: "TAVANIC 500 mg", poso: "1 par jour", classe: "x" }, { id: "m-solupred20", nom: "SOLUPRED 20 mg", poso: "3 cp", classe: "" }, { id: "m-vitb12", nom: "VITAMINE B12", poso: "1 inj", classe: "" }, { id: "m9", nom: "PARACÉTAMOL 1 g", poso: "1 cp", classe: "" }];
+const mc = [{ id: "m1", nom: "TAVANIC 500 mg", poso: "½ cp", classe: "x", fav: true }, { id: "mperso", nom: "PARACÉTAMOL 1 g", poso: "1 cp", classe: "" }];
+const LM = R.differencesListe("medicaments", mr, mc, {}, ["m-vitb12"]);
+cas("liste : posologie différente proposée (le cabinet choisit)", LM.some((x) => x.id === "l:medicaments:m1" && x.type === "different" && x.cab.poso === "½ cp"));
+cas("liste : fiche absente proposée comme nouvelle", LM.some((x) => x.id === "l:medicaments:m-solupred20" && x.type === "nouveau"));
+cas("liste : fiche retirée par le cabinet jamais reproposée", !LM.some((x) => x.id === "l:medicaments:m-vitb12"));
+cas("liste : même nom créé par le cabinet (autre identifiant) = déjà là", !LM.some((x) => x.id === "l:medicaments:m9"));
+const e1 = LM.find((x) => x.id === "l:medicaments:m1").e;
+cas("liste : « garder le mien » noté, plus reproposé", !R.differencesListe("medicaments", mr, mc, { "l:medicaments:m1": e1 }, []).some((x) => x.id === "l:medicaments:m1"));
+cas("bilans : contenu comparé", R.differencesListe("bilans", [{ id: "b1", nom: "Bilan", items: ["A", "B"] }], [{ id: "b1", nom: "Bilan", items: ["A"] }], {}, []).length === 1);
+cas("modèles de RT d'origine (non enregistrés) ignorés", !R.differencesListe("courriers", [{ id: "rt-pli", nom: "Pli", html: "x", defaut: true }], [], {}, []).length);
 console.log("\n" + ok + " réussis, " + ko + " échoués");
 if (ko) process.exit(1);

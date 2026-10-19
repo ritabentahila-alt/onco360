@@ -24,6 +24,7 @@ const peutEcrire = () => A.peut("ecrireConsultations");
 // Suppression d'une consultation : le médecin toutes, les autres (secrétaire) seulement celles qu'ils ont créées (07/10/2026)
 const peutSupprimer = (c) => peutEcrire() && (D().membre.role === "medecin" || (!!c && c.creePar === D().u.uid));
 const nomConnecte = () => document.getElementById("nomMenu").textContent;
+const nomCompte = () => (A.nomCompte ? A.nomCompte() : nomConnecte()); // R-E7 : nom pris du compte
 
 // Les 5 familles de prescriptions (barre en bas de l'onglet), libellé de leur ligne dans la consultation
 export const FAMILLES = [
@@ -103,7 +104,7 @@ export function htmlConsultations(x) {
   const ouv = ouvertes(x.id);
   h += '<div class="cs-liste' + (PLUS[x.id] ? " tous" : "") + (ns ? " ns" : "") + '" id="csListe" data-defile="cs">';
   L.forEach((c) => {
-    const on = ns || ouv.has(c.id), qc = q + ",'" + c.id + "'", nl = (c.lignes || []).length;
+    const on = ns || ouv.has(c.id), qc = q + ",'" + c.id + "'", nl = (c.lignes || []).filter((l) => !l.annulee).length;
     // 19/10/2026 (demande de Dr Bentahila : plus compact) : consultation ouverte = auteur, « signée le … », Modifier et Supprimer sur la ligne de titre
     const sig = on && !ns ? '<span class="cs-act"><span class="cs-sg" title="' + esc(htmlSignature(c).replace(/<[^>]+>/g, "")) + '">' + (c.creeParNom ? "signée le " + A.dfrA(c.o ? jourDe(c.o) : c.d) : "") + ((c.modifs || []).length ? " · modifiée" : "") + "</span>" +
       (peutEcrire() ? '<button class="mini" onclick="csModifier(' + qc + ')">Modifier</button>' + (peutSupprimer(c) ? '<button class="mini r" onclick="csSupprimer(' + qc + ')">Supprimer</button>' : "") : "") + "</span>" : "";
@@ -119,7 +120,7 @@ export function htmlConsultations(x) {
       const ex = htmlExtra(c), libN = (ex || (FORM().libs || {}).note) && (FORM().champs.note !== false || c.note) ? '<div class="cs-xs">' + esc(lib("note")) + "</div>" : "";
       h += '<div class="cs-c">' + (FORM().champs.note !== false || c.note ? libN + noteH : "") + ex +
         // ordonnances sur une ligne courte : « Médic. : ondansétron 8 mg · Analyses : NFS… » (auteur seulement s'il n'est pas celui de la consultation)
-        ((c.lignes || []).length ? '<div class="cs-o">' + [...new Set(c.lignes.map((l) => l.t))].map((t) => '<span class="cs-ol2"><span class="ck">' + esc(libLigne(t)) + " :</span> " + c.lignes.filter((l) => l.t === t).map((l) => '<span class="cs-ol">' + (l.html ? '<button class="lien-l" title="Voir, modifier ou réimprimer l\'ordonnance" onclick="ordVoir(' + qc + ",'" + l.id + '\')">' + esc(String(l.lib || "Ordonnance").replace(/^(Ordonnance|Analyses|Examens|Courrier)\s*:\s*/i, "")) + "</button>" : l.t === "doc" && l.docId ? '<button class="lien-l" title="Rouvrir le document remis" onclick="docOuvrirLigne(\'' + esc(l.docId) + '\')">' + esc(l.lib || "") + "</button>" : esc(l.lib || "")) + (l.par && l.par !== c.creeParNom ? ' <span class="au">(' + esc(l.par) + ")</span>" : "") + "</span>").join('<span class="sep"> · </span>') + "</span>").join("") + "</div>" : "") + "</div>";
+        ((c.lignes || []).length ? '<div class="cs-o">' + [...new Set(c.lignes.map((l) => l.t))].map((t) => '<span class="cs-ol2"><span class="ck">' + esc(libLigne(t)) + " :</span> " + c.lignes.filter((l) => l.t === t).map((l) => '<span class="cs-ol' + (l.annulee ? " annulee" : "") + '"' + (l.annulee ? ' title="Annulée le ' + esc(A.dfrA(String(l.annulee.le || "").slice(0, 10)) + " par " + (l.annulee.parNom || "")) + '"' : "") + ">" + (l.html ? '<button class="lien-l" title="Voir, modifier ou réimprimer l\'ordonnance" onclick="ordVoir(' + qc + ",'" + l.id + '\')">' + esc(String(l.lib || "Ordonnance").replace(/^(Ordonnance|Analyses|Examens|Courrier)\s*:\s*/i, "")) + "</button>" : l.t === "doc" && l.docId ? '<button class="lien-l" title="Rouvrir le document remis" onclick="docOuvrirLigne(\'' + esc(l.docId) + '\')">' + esc(l.lib || "") + "</button>" : esc(l.lib || "")) + (l.par && l.par !== c.creeParNom ? ' <span class="au">(' + esc(l.par) + ")</span>" : "") + (l.annulee ? ' <span class="au">(annulée)</span>' : "") + "</span>").join('<span class="sep"> · </span>') + "</span>").join("") + "</div>" : "") + "</div>";
     }
     h += "</div>";
   });
@@ -144,7 +145,7 @@ const BIB_DE = { medic: "medicaments", ordo: "ordostypes", analyse: "analyses", 
 export function boutonsPrescription(x) {
   if (!peutEcrire()) return "";
   const q = "'" + x.id + "'", n = {};
-  (CS[x.id] || []).forEach((c) => (c.lignes || []).forEach((l) => { n[l.t] = (n[l.t] || 0) + 1; }));
+  (CS[x.id] || []).forEach((c) => (c.lignes || []).forEach((l) => { if (!l.annulee) n[l.t] = (n[l.t] || 0) + 1; })); // ordonnance annulée : pas comptée (R-E7)
   return ["medic", "ordo", "analyse", "exam", "courrier", "doc"].map((t) => FAMILLES.find((f) => f.t === t)).map((f) => '<div class="pr" data-mod="prescriptions" data-fn="prescriptions.' + f.t + '" data-bib="' + (BIB_DE[f.t] || "") + '"><button type="button" onclick="csPrescrire(' + q + ",'" + f.t + '\')" title="' + f.titre + ' : nouvelle prescription"><svg class="pi"><use href="#i-' + f.ic + '"/></svg><span class="lb">' + (f.t === "exam" ? '<span class="lg">Examens compl.</span><span class="sm">Examens</span>' : f.lib) + "</span>" + (n[f.t] ? '<small class="br-n" data-fn="prescriptions.compteur" title="' + n[f.t] + " déjà faite" + (n[f.t] > 1 ? "s" : "") + ' pour ce patient">' + n[f.t] + "</small>" : "") + '</button><button type="button" class="fl" data-fn="prescriptions.antecedents" onclick="csAntecedents(' + q + ",'" + f.t + '\')" title="' + f.titre + ' : antécédents des prescriptions" aria-label="' + f.titre + ' : antécédents des prescriptions">▾</button></div>').join("") +
     // « + RCP » (09/10/2026, rcp.js) : inscription à la prochaine RCP ; flèche = inscriptions du patient
     '<div class="pr" data-mod="rcp"><button type="button" onclick="rcpInscrire(' + q + ')" title="Inscrire le patient à la prochaine RCP"><svg class="pi"><use href="#i-rcp"/></svg><span class="lb">+ RCP</span></button><button type="button" class="fl" onclick="rcpHistorique(' + q + ')" title="RCP du patient" aria-label="RCP du patient">▾</button></div>';
@@ -185,7 +186,7 @@ window.csImprimer = (pid) => {
   const x = trouver(pid), L = CS[pid] || [], esc = A.esc; if (!x) return;
   let w = null; try { w = window.open("", "_blank"); } catch (er) { w = null; } if (!w || !w.document) { A.toast("Autorisez l'ouverture des fenêtres pour imprimer."); return; }
   const corps = L.map((c) => "<h2>" + esc(A.dfrA(c.d) + " · " + nomCs(c)) + (c.creeParNom ? ' <span class="au">' + esc(c.creeParNom) + "</span>" : "") + "</h2>" + (c.note ? '<p class="n">' + esc(c.note) + "</p>" : "") +
-    ((c.lignes || []).length ? "<ul>" + c.lignes.map((l) => "<li>" + esc(libLigne(l.t) + " : " + (l.lib || "")) + "</li>").join("") + "</ul>" : "")).join("");
+    ((c.lignes || []).length ? "<ul>" + c.lignes.map((l) => "<li>" + esc(libLigne(l.t) + " : " + (l.lib || "") + (l.annulee ? " (annulée)" : "")) + "</li>").join("") + "</ul>" : "")).join("");
   w.document.open(); w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Consultations – ' + esc(x.r.nm) + '</title><style>@page{size:A4;margin:14mm}body{font-family:Arial,sans-serif;font-size:11.5px;color:#1E2A44}h1{font-size:17px;margin:0 0 10px}h2{font-size:13px;margin:14px 0 4px;border-bottom:1px solid #CCD3E0;padding-bottom:3px}.au{font-weight:normal;color:#64708A;font-size:11px}.n{white-space:pre-wrap;margin:4px 0}ul{margin:4px 0 0 18px;padding:0}</style></head><body><h1>Consultations – ' + esc(x.r.nm) + "</h1>" + (corps || "<p>Aucune consultation.</p>") + "</body></html>");
   w.document.close(); setTimeout(() => { w.focus(); w.print(); }, 400);
 };
@@ -291,18 +292,15 @@ export function prescriptionsDe(pid, t) {
 export function lignesType(pid, t) {
   const r = []; (CS[pid] || []).forEach((c) => (c.lignes || []).forEach((l) => { if (l.t === t) r.push({ cid: c.id, l }); })); return r;
 }
-// Ordonnance supprimée : retirée de sa consultation ; la consultation créée automatiquement pour elle seule disparaît aussi
+// R-E7 (19/10/2026, audit n° 7, d. 29) : une ordonnance n'est plus effacée : elle est marquée « annulée » (date, auteur), comme un reçu
+// annulé ; elle reste lisible dans sa consultation (barrée) et dans les antécédents, n'est plus comptée ni réimprimée
 export async function supprimerPrescription(x, lid) {
   const c = (CS[x.id] || []).find((z) => (z.lignes || []).some((l) => l.id === lid)); if (!c) return;
   const ref = doc(db, "espaces", A.ESPACE, "consultations", c.id), s = await getDoc(ref);
-  const avant = (s.exists() && s.data().lignes) || c.lignes || [], l = avant.find((z) => z.id === lid), lignes = avant.filter((z) => z.id !== lid);
-  if (!lignes.length && c.titre === "Ordonnance" && !c.type && !c.note) {
-    // vidée d'abord : la secrétaire peut supprimer une consultation « Ordonnance » vide (règles), le médecin toute consultation
-    await updateDoc(ref, { lignes: [], majPar: D().u.uid, majParNom: nomConnecte(), maj: serverTimestamp() });
-    await deleteDoc(ref); CS[x.id] = CS[x.id].filter((z) => z.id !== c.id);
-  }
-  else { const maj = { lignes, majPar: D().u.uid, majParNom: nomConnecte(), maj: serverTimestamp() }; await updateDoc(ref, maj); Object.assign(c, maj); }
-  A.journal(x, "Ordonnance supprimée (" + libLigne((l || {}).t) + ") : " + ((l || {}).lib || ""));
+  const lignes = ((s.exists() && s.data().lignes) || c.lignes || []).map((z) => (z.id === lid ? Object.assign({}, z, { annulee: { le: new Date().toISOString(), par: D().u.uid, parNom: nomCompte() } }) : z));
+  const l = lignes.find((z) => z.id === lid), maj = { lignes, majPar: D().u.uid, majParNom: nomConnecte(), maj: serverTimestamp() };
+  await updateDoc(ref, maj); Object.assign(c, maj);
+  A.journal(x, "Ordonnance annulée (" + libLigne((l || {}).t) + ") : " + ((l || {}).lib || ""));
 }
 // Une ordonnance (ligne) retrouvée par sa consultation
 export function trouverLigne(pid, cid, lid) { const c = (CS[pid] || []).find((z) => z.id === cid); return c && (c.lignes || []).find((l) => l.id === lid); }
@@ -315,7 +313,7 @@ export async function enregistrerPrescription(x, ligne) {
   const maj = { majPar: D().u.uid, majParNom: nomConnecte(), maj: serverTimestamp() };
   let c = ligne.id ? CS[x.id].find((z) => (z.lignes || []).some((l) => l.id === ligne.id)) : null;
   if (!c) {
-    ligne = Object.assign({ id: "l" + Date.now().toString(36) }, ligne);
+    ligne = Object.assign({ id: "l" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6) }, ligne); // part aléatoire : deux ordonnances de la même milliseconde ne se confondent pas
     c = CS[x.id].filter((z) => z.d === D().t).sort((a, b) => (b.o || 0) - (a.o || 0))[0];
     if (!c) {
       const n = Object.assign({ patientId: x.id, etablissementId: x.doc.etablissementId || "", type: "", titre: "Ordonnance", d: D().t, note: "", lignes: [ligne], o: Date.now(), creePar: D().u.uid, creeParNom: nomConnecte(), cree: serverTimestamp() }, maj);
@@ -326,7 +324,10 @@ export async function enregistrerPrescription(x, ligne) {
   }
   const ref = doc(db, "espaces", A.ESPACE, "consultations", c.id), s = await getDoc(ref);
   const lignes = ((s.exists() && s.data().lignes) || c.lignes || []).slice(), i = lignes.findIndex((l) => l.id === ligne.id);
-  if (i >= 0) lignes[i] = Object.assign({}, lignes[i], ligne); else lignes.push(ligne);
+  // R-E7 (d. 29) : modification = la version d'avant gardée (feuille, libellé, format, auteur, date ; 20 dernières)
+  if (i >= 0) { const a = lignes[i], v = { le: new Date().toISOString(), par: a.modifPar || a.par || "", d: a.dm || a.d || "", lib: a.lib || "", html: a.html || "", format: a.format || "", taille: a.taille || 0, med: a.med || "" };
+    lignes[i] = Object.assign({}, a, ligne, { versions: (a.versions || []).concat([v]).slice(-20) }); }
+  else lignes.push(ligne);
   await updateDoc(ref, Object.assign({ lignes }, maj));
   Object.assign(c, s.exists() ? s.data() : {}, { lignes }, maj); OUV[x.id] = c.id;
   A.journal(x, (i >= 0 ? "Ordonnance modifiée (" : "Ordonnance (") + libLigne(ligne.t) + ") : " + ligne.lib);

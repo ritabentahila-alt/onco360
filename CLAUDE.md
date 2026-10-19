@@ -37,7 +37,7 @@ Après déploiement : recharger sans cache (Cmd + Maj + R). Les `.js` sont servi
 | `js/app/fiche.js` | fiche chimio A4 paysage (logo de l'établissement) |
 | `js/app/documents.js` | documents RT dans une fenêtre (07/10/2026, plus de Word ni d'Excel) : pli confidentiel (3 pages), CR de fin, rendez-vous ; feuille A4 modifiable, imprimée, enregistrée dans `documentsRT` ; mise en page reprise des modèles Word (`modeles/`, référence) |
 | `js/app/consultations.js` | onglet Consultation du dossier : journal des consultations, barre des prescriptions |
-| `js/app/ordonnances.js` | boutons Médic., Ordo. type, Analyses, Examens compl. et Courriers (modèles remplis pour le patient, fiches PDF `documents/`) : bibliothèques du cabinet (médicaments, ordonnances types ; recherche, + / ✎ / ✕), ordonnance en préparation (✎ / ↑ ↓ / ✕, ajout, ligne libre), ordonnance A5/A4 modifiable, impression, antécédents ; listes de départ : `js/donnees/medicaments.js`, `js/donnees/ordostypes.js`, `js/donnees/analyses.js`, `js/donnees/examens.js` |
+| `js/app/ordonnances.js` | boutons Médic., Ordo. type, Analyses, Examens compl. et Courriers (modèles remplis pour le patient, fiches PDF `documents/`) : bibliothèques du cabinet (médicaments, ordonnances types ; recherche, + / ✎ / ✕), ordonnance en préparation (✎ / ↑ ↓ / ✕, ajout, ligne libre), ordonnance A5/A4 modifiable, impression, antécédents ; listes de départ : `js/donnees/medicaments.js`, `js/donnees/ordostypes.js`, `js/donnees/analyses.js`, `js/donnees/examens.js` ; **lot R-E (19/10/2026)** : zones « À compléter » (« … », « [durée à compléter] »), doublons, allergie par familles, `question()` (petite fenêtre par-dessus), vérification unique `verifications` avant l'impression, `mesurer` / plusieurs pages, chimio orale « mg/m² », antécédents (versions, Annuler l'ordonnance, Duplicata, recherche) ; calculs `js/moteur/ordonnance.js` ; mise à jour sans écrasement `js/moteur/bibmaj.js` + `js/donnees/majbib.js` (`majBibliotheques`, `parametres/migrations.bibE3`) ; fiches de départ ajoutées = identifiant fixe, ne jamais retirer ni déplacer une ligne d'une liste de départ ; guide `guide/ordonnances.md` |
 | `js/app/taches.js` | page Tâches (menu, entre Patients et Protocoles) : Mes tâches / Toutes les tâches, filtres (recherche, responsable, statut, échéance, type), nouvelle tâche (aussi « + Tâche » du dossier), description visible, types du cabinet (`parametres/typesTaches`, Configuration › Tâches ; « Radiothérapie » fixe), statuts, fiche avec fil (historique + commentaires), réattribuer, modifier / supprimer ; temps réel (`demarrerTaches`, écoute `onSnapshot` lancée au démarrage), messages à l'écran, non lues, pastilles `nbTaches` / `nbTachesB`, carte « Mes tâches » du tableau de bord (`blocAccueil`) |
 | `js/app/salle.js` | page Salle d'attente (menu, entre Agenda et Patients, SA1 08/10/2026) : rendez-vous de consultation et séances de chimio du jour, onglets À venir / En salle / Vus / Absents, Mettre en salle, Démarrer, Valider (= « Venu » : `statutRdv` / `chVenuChimio`), Absent, Annuler, motif ; temps réel (`demarrerSalle`, écoute lancée au démarrage, dossier relu après l'écriture d'un collègue), pastille `nbSalle`, bulles Valider / Retour en salle dans le dossier (`bullesDossier`), bandeau de la semaine (jour affiché `JOUR`), colonne prix et total, colonnes au choix (`utilisateurs/{uid}.salleCachees`), commentaire du jour (`com`) ; Absent → fenêtre de report (`absentRdv`, v2.js) ; guide `guide/salle-attente.md` |
 | `js/app/fichepatient.js` | Fiche patient réglable (3.11, 12/10/2026) : un seul moteur pour Nouveau patient, Modifier, Afficher et l'en-tête du dossier (`htmlFormulaire` / `lireFormulaire` / `htmlLectureFiche` / `htmlEnteteFiche`, d'après `champsDe` de catalogue.js : type, nom, partie, ordre, liste, unité, imprimé, en-tête de chaque champ) ; éditeur commun `editeurfiche.js` (✎ = tout le champ ; `ouvrirListe` → Paramètres › Dossier patient › Listes) |
@@ -66,15 +66,17 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
   `d`, `titre`, `note`, `lignes` [{t, lib, par}], `o`, `creePar(Nom)`, `majPar(Nom)` ; lu par tous les membres, écrit avec
   le droit `ecrireConsultations`, supprimé par le médecin (toutes) ou par son auteur (secrétaire)
   ; une ligne = une ordonnance { id, t: medic|exam|ordo|analyse|courrier, d, lib, par, med (signataire), html, format A5|A4,
-  taille }, ajoutée à la consultation du jour (créée « Ordonnance » si besoin) par `enregistrerPrescription`
+  taille }, ajoutée à la consultation du jour (créée « Ordonnance » si besoin) par `enregistrerPrescription` ; R-E7 (19/10/2026) : `items`
+  [{ nom, poso }], `parUid`, `modifPar(Uid)`, `versions` [{ le, par, d, lib, html, format, taille, med }] (20 dernières), `annulee` { le, par, parNom }
+  (plus jamais effacée)
 - `bibliotheques/medicaments` : `data` = JSON [{ id, nom, poso, classe }] (absent = liste de départ `donnees/medicaments.js`) ;
   `bibliotheques/ordostypes` : `data` = JSON [{ id, nom, items: [{ nom, poso }] }] (absent = `donnees/ordostypes.js`) ;
   `bibliotheques/analyses` [{ id, nom, cat, fav }] et `bibliotheques/bilans` [{ id, nom, items: [noms d'analyses ou de bilans], fav }]
   (absents = `donnees/analyses.js`) ; `bibliotheques/examens` [{ id, nom, cat, note }]
   (absent = `donnees/examens.js` ; pas de bilans d'imagerie) ; `bibliotheques/courriers` [{ id, nom, html, fav }] (absent = `donnees/courriers.js` :
   modèles avec champs {patient} {age} {date}… et zones `<mark class="or-ac">` à compléter) ; `fav` = favori ⭐ (en tête de liste) sur toutes ces listes ;
-  lu par les membres, écrit par le **médecin** seulement (07/10/2026 : la secrétaire s'en sert sans les modifier ; 10/10/2026 :
-  sauf `medicaments`, où elle ajoute un médicament, droit `ecrireConsultations`)
+  lu par les membres, écrit par le **médecin** seulement (07/10/2026 : la secrétaire s'en sert sans les modifier ; du 10/10 au 19/10/2026 elle
+  ajoutait un médicament : retiré par R-E5) ; `retires` = identifiants retirés par le cabinet (R-E4 : jamais remis par une mise à jour)
 - `documentsRT/{patient}_{rt}_{pli|cr|rdv}` : `html` du document enregistré (une version par radiothérapie et par type),
   `patientId`, `etablissementId`, `rtId`, `type`, `majLe`, `majPar(Nom)` ; droit `documents` (médecin, secrétaire)
 - `fichiers/{id}` : documents déposés (onglet Documents, `js/app/fichiers.js`, 08/10/2026) = `patientId`, `etablissementId`,
@@ -172,10 +174,11 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
 - **Lignes et modèles (12/10/2026)** : `lignes[].intent` neo | adj | meta | conc + `rang` (ligne métastatique n°) ; `libIntention` (chimio.js) ; `reglages.auto`
   { rtHebdo, rtFin } (Paramètres › Rendez-vous automatiques) ; `reglages.impression` { age, poids, allergie } ; modèles des documents RT : `donnees/modelesrt.js`
   (MODELES_RT0, CHAMPS_RT, remplirModele), modifiés dans `bibliotheques/courriers` (entrées `rt: "pli"|"cr"|"rdv"`, ids rt-…), lus par `modeleRT` (ordonnances.js).
-- **Ordonnances : en-tête et signataire (3.9, 12/10/2026)** : `reglages.impression.entete` papier | genere (+ eLogo, eNom, eSpe, eInpe, eLieu, eSig ;
+- **Ordonnances : en-tête et signataire (3.9, 12/10/2026)** : `reglages.impression.entete` papier | genere (+ eLogo, eNom, eSpe, eInpe, eLieu ; plus de
+  signature scannée depuis R-E5 (19/10/2026) : case eSig, champ du profil et images retirés, `effacerSignature` de v2.js ;
   marge du haut réduite `margesMm`) ; ordonnances.js `cadre(pid, uid)` (aperçu `.or-apercu`, impression `imprimer(w, html, format, taille, { pid, uid })`),
   « Signée par » (`orSignataire`, `O.medUid`, ligne `medUid`) ; carte de chaque médecin `signataires/{uid}` { nom, titre, specialite, inpe, genre,
-  signature } (v2.js `publierCarte` / `chargerSignataires`, `API.signataires()` ; règle : lue par l'équipe sauf comptable, écrite par le médecin lui-même).
+  idFiscal, tp, ice } (v2.js `publierCarte` / `chargerSignataires`, `API.signataires()` ; règle : lue par l'équipe sauf comptable, écrite par le médecin lui-même).
 - **Agenda (3.16)** : `agEv` = Fermer · Ouvrir le dossier · Modifier / décaler (`agModifier` → `ouvrirRdv`, `chModifierRdvChimio(…, apres, pre)`,
   `modifierEtapeRT(id, rid, z scan|deb|fin, apres, pre)`) ; fin prévue : `rts[].finPrev` + `finH` { h, du } ; glisser vers un autre jour = même fenêtre.
 - **Types de consultation (3.13, 12/10/2026)** : `parametres/typesConsult` { data: JSON [{ k, nom, rdv, anciens }] } (Paramètres › Dossier patient ›
@@ -209,7 +212,7 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
   `lireAccueilCab` / `window.majAccueilCab` dans v2.js) ; deux colonnes à partir de 1280 px (`.tb-grille`, ordre gardé sur téléphone
   par `order`) ; carte `afaire` = `blocAFaire` (À valider par le médecin / À faire par la secrétaire / par l'infirmière) ;
   abonnement : bandeau (`.abo-band`), carte dans `#accAbo` les 7 derniers jours et en retard. Test : `tests/test_accueil.py`.
-- `utilisateurs/{uid}` : profil (nom, INPE, signature, photo)
+- `utilisateurs/{uid}` : profil (nom, INPE, photo ; `formatOrdo` A5 | A4 retenu pour les ordonnances, R-E7)
 - Rappels WhatsApp envoyés (19.4) : `patients/{id}.rappels` { "AAAA-MM-JJ|catégorie": { le, par, nom } } (catégorie `confirm` = confirmation
   après la prise du rendez-vous), écrit avec le droit `rendezvous` (règle), plus de 7 jours retirés ; v2.js `noterRappel`, `rappelsAEnvoyer`,
   carte « rappels » du tableau de bord ; créneaux du jour `creneaux` / `rdvsDuJour` (fenêtre du rendez-vous).
