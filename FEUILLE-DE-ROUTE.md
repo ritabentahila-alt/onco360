@@ -446,6 +446,14 @@ types**, refus gardés) : R-A6 et R-E4 partent de là, sans les refaire.
       couleur pleine et une coche ; hauteur de la grille à la taille de l'écran ; « 5 consult. · 8 chimio » dans l'en-tête des jours ; séances
       sans heure : une puce « 8 séances de chimio » qui ouvre la vue Jour ; dès que l'heure de la séance (infirmière) ou de la consultation de
       chimio (médecin, secrétaire) est notée, la consultation se place dans la grille.
+- [ ] **R-C8 Agenda à jour sur tous les postes, comme la salle d'attente** (DEMANDÉ le 19/10/2026 par Dr Bentahila) : bouton **« Actualiser »**
+      (icône, « à jour à 10 h 42 ») dans l'en-tête de l'agenda, qui relit les rendez-vous, les séances de chimio et les étapes de RT de la
+      période affichée et redessine **sans perdre** la vue (Liste / Jour / Semaine / Mois), la date, les filtres (établissement, médecin) ni le
+      défilement ; la même relecture **toute seule chaque minute**, suspendue pendant une fenêtre, une saisie ou un glisser-déposer (faite juste
+      après). Part de R-A4 : l'écoute des dossiers modifiés (`ecouterDossiers`) redessine déjà l'agenda ouvert ; ajouter le bouton, « à jour à »,
+      la relecture chaque minute (filet si l'écoute s'arrête) et l'ordre gardé ; mêmes règles (coût : relire seulement si l'écoute ne marche pas,
+      le bouton relit tout). Vérifier : vues Jour et Semaine, glisser-déposer pendant une actualisation, salle d'attente, tableau de bord,
+      téléphone (390 px), Safari ; `tests/test_agenda.py`.
 - [ ] **R-C7 Calcul de l'agenda gardé en mémoire** (C6 : toutes les lignes recalculées deux fois à chaque affichage), avec l'étape 5.3.
 
 **Lot D – Audit n° 6 : finances** (§ 7 ; lot F1 → R-B5 ; l'ancien lot « Caisse » est supprimé)

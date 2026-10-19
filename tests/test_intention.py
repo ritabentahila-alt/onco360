@@ -84,7 +84,7 @@ async def main():
         await pg.goto(f'http://localhost:{PORT}/v2.html#parametres/bibliotheques'); await pg.wait_for_timeout(1200)
         await ev("cfBib('courriers')"); await pg.wait_for_timeout(1200)
         t = await pg.inner_text('#fenetreCorps')
-        ok('Pli confidentiel (radiothérapie)' in t and 'Compte rendu de fin de radiothérapie' in t and 'Calendrier des séances de radiothérapie' in t, 'les trois documents dans la liste des modèles', t[:400])
+        ok('Pli confidentiel (radiothérapie)' in t and 'Compte rendu de fin de radiothérapie' in t and 'Calendrier de fin de radiothérapie' in t, 'les trois documents dans la liste des modèles', t[:400])
         await ev("crFiche('rt-pli')"); await pg.wait_for_timeout(500)
         ok('{renseignements}' in await pg.inner_text('#crPage') and 'Renseignements cliniques' in await pg.inner_text('#fenetreCorps'), 'éditeur : champs du pli ({renseignements}…)')
         await ev("document.getElementById('crPage').insertAdjacentHTML('afterbegin','<p>MENTION DU CABINET</p>')"); await pg.click('#crOk'); await pg.wait_for_timeout(1500)
