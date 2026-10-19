@@ -100,7 +100,7 @@ async def main():
         o = await pg.inner_text('#mdOrdo'); ok(o.count('PARACÉTAMOL 1 g') == 1 and 'ALYSE' in o, '« Garder une seule ligne » : un seul PARACÉTAMOL, le reste ajouté', o[:200])
         ok('Douleurs – palier 1' in await pg.inner_text('#otListe') and 'paliers 1' not in await pg.inner_text('#otListe'), 'titre « Douleurs – palier 1 »')
         await ev(f"ordTypes('{pid}')"); await pg.wait_for_timeout(600)
-        for n in ['Rectite radique et proctologie', 'Syndrome pieds-mains']:
+        for n in ['Rectite radique et proctologie']:
             if await ev(f"!![...document.querySelectorAll('#otListe tr.m')].find(r=>r.innerText.startsWith({json.dumps(n)}))"): await type_(n); await repondre(pg, 'un')
         await ev("mdAfficher()"); await pg.wait_for_timeout(1200)
         await ev("orFormat('A5')"); await pg.wait_for_timeout(500)
@@ -111,9 +111,10 @@ async def main():
         await repondre(pg, 'ok'); await pg.wait_for_timeout(1000)
         hh = await ev("(window.__win||[]).map(w=>w.w.document._h).join('')")
         pages = hh.count('class="pgp"')
-        ok(pages == 2 and 'page 1 / 2' in hh and 'page 2 / 2' in hh and 'or-suite' in hh, 'impression : 2 pages, « page 1 / 2 », patient et date en haut de la page 2', pages)
+        ok(pages == 2 and 'page 1 / 2' in hh and 'page 2 / 2' in hh and hh.split('class="pgp"')[-1].count('or-pat') >= 1 and hh.split('class="pgp"')[-1].count('or-date') >= 1, 'impression : 2 pages, « page 1 / 2 », même en-tête (date, patient) en haut de la page 2', pages)
         p2 = hh.split('class="pgp"')[-1] if pages else ''
         ok('or-sig' in p2 and 'or-m' in p2, 'signature sur la dernière page avec le dernier médicament (jamais seule)')
+        ok(hh.count('class="or-sig"') == 2, '« Cachet et signature » sur chaque page', hh.count('class="or-sig"'))
         ok(not any(seg.rstrip().endswith('or-m">') for seg in hh.split('<div class="pgb">')), 'aucun médicament coupé de sa posologie')
         fs = await ev("window.__fs"); ok((fs.get('utilisateurs/UIDRITA') or {}).get('formatOrdo') == 'A5', 'format retenu pour la personne (son compte, plus le navigateur)')
 

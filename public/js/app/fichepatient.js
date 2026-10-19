@@ -106,6 +106,7 @@ export function lireFormulaire(x, o) {
   const pa = poidsVu(x), num = (v) => parseFloat(String(v == null ? "" : v).replace(",", ".")), p0 = (doc.clinique || {}).poids;
   if (C.poids != null && C.poids !== "") { if (pa && num(C.poids) === pa.poids) C.poidsLe = pa.d || C.poidsLe; else if (num(C.poids) !== num(p0)) C.poidsLe = new Date().toISOString(); } // date et heure : passe devant une séance du même jour
   else delete C.poidsLe;
+  if (C.poidsLe == null || C.poidsLe === "") delete C.poidsLe; // 20/10/2026 : poids sans date connue (fiche ancienne) : jamais « undefined » (Firestore refusait l'enregistrement)
   return out;
 }
 // Lecture complète (Afficher) : les trois parties
