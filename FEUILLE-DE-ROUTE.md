@@ -374,7 +374,15 @@ types**, refus gardés) : R-A6 et R-E4 partent de là, sans les refaire.
       ≥ 44 px) ; au toucher, champ sur toute la largeur sous la barre, clavier ouvert, même recherche (`rechercheTete` : nom, n° de dossier,
       téléphone) ; × ou Échap ferme ; cachée pour le comptable (comme la pilule `#trPil`). Vérifier : 390 px, Safari iPhone, résultats
       au-dessus du contenu.
-- [ ] **R-B4 Calendrier de fin de radiothérapie** (§ 4.4 ; remplace l'audit 4, d. 10) : à la place du « Calendrier théorique », mise en page
+- [x] **(19/10/2026, testé)** modèle `rdv` (modelesrt.js) refait d'après l'export de l'accélérateur envoyé par le cabinet (photo jamais
+      dans le dépôt) : « Rendez-vous du patient », bande des dates (1re séance ; fin validée, sinon fin prévue), Patient · ID patient (n° de
+      dossier, champ {id_patient}) · Oncologue, tableau à 6 colonnes ; `lignesCalendrierRT` (documents.js, répartition `datesSeancesRT`
+      inchangée, jusqu'à la fin validée ou prévue) : Mise en place 15 min, Traitement journalier 20 min, Fin de traitement, heure `debH`,
+      ressource = médecin (pas de HAL1), « Terminé » seulement fin validée et date passée ; une page A4 (9 pt, 8 pt au-delà de 25 lignes,
+      7 pt au-delà de 40, cellules sur une ligne) ; nom « Calendrier de fin de radiothérapie » ; modèle déjà modifié par le cabinet : gardé,
+      message dans la fenêtre (le nouveau : « Remettre le texte d'origine ») ; ligne du bas décidée le 18/10. `tests/test_calendrier_rt.py`
+      18/18 (5, 25, 33, 39 séances, 2 par jour : une page, PDF compté) ; test_rt_controle adapté.
+      **R-B4 Calendrier de fin de radiothérapie** (§ 4.4 ; remplace l'audit 4, d. 10) : à la place du « Calendrier théorique », mise en page
       de l'export ARIA envoyé (rien d'autre n'en est repris) ; sert seulement à faire valider la fin de prise en charge par les mutuelles.
       **Garder le calcul `datesSeancesRT`** (jours selon le rythme entre la 1re séance et la fin, fériés exclus, surplus retiré à intervalles
       réguliers en gardant la première et la dernière). Titre « Rendez-vous du patient » ; bande « Date de début : … – Date de fin : … »

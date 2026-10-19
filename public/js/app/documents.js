@@ -24,7 +24,7 @@ const MOIS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", 
 const dateLongue = (d) => { const x = new Date(d + "T12:00:00"); return x.getDate() + (x.getDate() === 1 ? "er" : "") + " " + MOIS[x.getMonth()] + " " + x.getFullYear(); };
 const vGy = (n) => (n || n === 0 ? String(Math.round(n * 100) / 100).replace(".", ",") : "");
 const TECH = { stereo: "Stéréotaxie", vmat: "VMAT", imrt: "IMRT", "3d": "3D conformationnelle" };
-export const TITRES_DOC = { pli: "Pli confidentiel", cr: "Compte rendu de fin de traitement", rdv: "Rendez-vous de radiothérapie" };
+export const TITRES_DOC = { pli: "Pli confidentiel", cr: "Compte rendu de fin de traitement", rdv: "Calendrier de fin de radiothérapie" };
 
 // Dates des séances : exactement autant de dates que de fractions.
 // Traitement terminé (date de fin réelle) : jours de traitement entre la 1re séance et la fin réelle ; s'il y en a trop
@@ -99,14 +99,23 @@ function valeursCr(P, r, ctx, o) {
       : puce("Dose prescrite", vGy(dose), " <b>Gy</b>") + puce("Dose par fraction", vGy(dpf), " <b>Gy</b>"),
     seances: AF(nb ? String(nb) + (r.ryt && r.ryt !== "1" ? " (" + libRythme(r) + ")" : "") : ""), toxicites: AF(""), prochain_rdv: AF(prochainRdv(P, fin, ctx)), bilan: AF(o.bilan || ""), signature: signature(o) };
 }
+// R-B4 (19/10/2026) : calendrier de fin de radiothérapie (demande du 17/10, mise en page de l'export de l'accélérateur) : les séances réparties
+// entre la 1re séance et la fin (fin validée, sinon fin prévue) par datesSeancesRT (inchangé) ; 1re ligne « Mise en place RA » 15 min, dernière
+// « Fin de traitement RA », autres « Traitement journalier RA » 20 min ; heure de la 1re séance sur chaque ligne ; ressource = le médecin (pas
+// d'appareil) ; « Terminé » seulement une fois la fin validée et jamais pour une date à venir, sinon « Prévu » ; une page A4 (texte réduit
+// au-delà de 25 puis de 40 lignes)
+export function lignesCalendrierRT(r, ctx) {
+  const rr = Object.assign({}, r, { fin: r.fin || r.finPrev || undefined }), { dates, ajuste, manquantes } = datesSeancesRT(rr, ctx), n = dates.length, h = (r.debH && r.debH.h) || "";
+  return { ajuste, manquantes, lignes: dates.map((d, i) => ({ d, h, du: i === 0 ? 15 : 20, act: i === 0 ? "Mise en place RA" : i === n - 1 ? "Fin de traitement RA" : "Traitement journalier RA",
+    etat: r.fin && d <= ctx.aujourdhui ? "Terminé" : "Prévu" })) };
+}
 function valeursRdv(P, r, ctx, o) {
-  // 2.5 (12/10/2026, audit) : calendrier théorique (dates calculées, séances réelles suivies dans ARIA) : état « Prévu », plus de
-  // « Terminé » inventé ; l'ajustement des dates est imprimé
-  const { dates, ajuste } = datesSeancesRT(r, ctx), ressource = String(o.medecin || "").replace(/^Dr\.?\s*/i, "");
-  return { debut: dfrA(dates[0]), fin: dfrA(dates[dates.length - 1]), patient: esc((P.nomF || "").toUpperCase() + (P.prenom ? ", " + P.prenom : "")), medecin: AR(o.medecin), radiotherapie: AR(r.acte || ""),
-    tableau_seances: '<table class="dc-tab dc-rdv"><tbody><tr><th>Date du rendez-vous</th><th>Durée (min)</th><th>Activité</th><th>Ressource</th><th>État du rendez-vous</th></tr>' +
-      dates.map((d, i) => "<tr><td>" + dfrA(d) + "</td><td>" + (i === 0 ? 15 : 20) + "</td><td>" + (i === 0 ? "Mise en place RA" : i === dates.length - 1 ? "Fin de Traitement RA" : "Traitement Journalier RA") + "</td><td>" + esc(ressource) + "</td><td>Prévu</td></tr>").join("") + "</tbody></table>",
-    note_calendrier: "Dates calculées d'après le calendrier (jours ouvrés, jours fériés exclus)" + (ajuste ? ", ajustées au nombre de fractions" : "") + ". Les séances réellement faites sont suivies par le service de radiothérapie." };
+  const C = lignesCalendrierRT(r, ctx), L = C.lignes, ressource = String(o.medecin || "").replace(/^(Dr|Pr)\.?\s*/i, ""), n = L.length;
+  const fin = r.fin || r.finPrev || (L[n - 1] && L[n - 1].d) || "", taille = n > 40 ? " dc-serre" : n > 25 ? " dc-moyen" : "";
+  return { debut: AR(dfrA((L[0] && L[0].d) || r.deb)), fin: AR(dfrA(fin)), patient: esc((P.nomF || "").toUpperCase() + (P.prenom ? ", " + P.prenom : "")), id_patient: AR(P.numero || ""), medecin: AR(o.medecin), radiotherapie: AR(r.acte || ""),
+    tableau_seances: '<table class="dc-tab dc-rdv' + taille + '"><tbody><tr><th>Date du rendez-vous</th><th>Heure du rendez-vous</th><th>Durée de l\'activité (min)</th><th>Activité</th><th>Ressource</th><th>État du rendez-vous</th></tr>' +
+      L.map((z) => "<tr><td>" + dfrA(z.d) + "</td><td>" + esc(z.h) + '</td><td class="dc-n">' + z.du + "</td><td>" + z.act + "</td><td>" + esc(ressource) + "</td><td>" + z.etat + "</td></tr>").join("") + "</tbody></table>",
+    note_calendrier: "Dates des séances intermédiaires établies d'après le calendrier ; début, fin et nombre de séances conformes au dossier." }; // décision du 18/10 (R-B4)
 }
 
 // ───── Documents enregistrés : une fiche par radiothérapie et par type ─────
@@ -154,11 +163,14 @@ window.docRT = async (pid, rid, type) => {
   vue(x, r, e ? nettoyer(e.html) : contenuNeuf(x, r, type)); // version enregistrée nettoyée à l'affichage (audit du 10/10)
 };
 function vue(x, r, html) {
-  const e = F.enreg, d = F.type === "rdv" ? datesSeancesRT(r, D().ctx) : null;
+  const e = F.enreg, d = F.type === "rdv" ? lignesCalendrierRT(r, D().ctx) : null;
+  // R-B4 : modèle de calendrier déjà modifié par le cabinet : gardé ; le nouveau se prend par « Remettre le texte d'origine » (Courriers)
+  const ancienModele = F.type === "rdv" && !e && MOD.rdv && MOD.rdv.indexOf("{id_patient}") < 0;
   A.fenetre("<h3>" + TITRES_DOC[F.type] + " — " + esc(x.r.nm) + "</h3>" +
     '<p class="mesures" style="margin:0 0 8px">' + esc(r.acte || "Radiothérapie") + " · " +
     (e ? "version enregistrée le " + dfrA(e.majLe) + (e.majParNom ? " par " + esc(e.majParNom) : "") : "nouveau document rempli depuis le dossier : complétez les mentions surlignées, puis enregistrez") +
     (d && d.ajuste ? " · dates ajustées au nombre de fractions" : "") + (d && d.manquantes ? " · attention : " + d.manquantes + " séance(s) manquent avant la fin réelle" : "") + "</p>" +
+    (ancienModele ? '<p class="mesures" style="margin:0 0 8px">Votre cabinet a son propre modèle de calendrier : il est gardé. Pour le nouveau « Calendrier de fin de radiothérapie » : Paramètres › Bibliothèques › Courriers › ce modèle › « Remettre le texte d\'origine ».</p>' : "") +
     '<div class="or-outils"><button class="ico" title="Gras" aria-label="Gras" onmousedown="event.preventDefault()" onclick="orStyle(\'bold\')"><b>G</b></button><button class="ico" title="Souligné" aria-label="Souligné" onmousedown="event.preventDefault()" onclick="orStyle(\'underline\')"><u>S</u></button>' +
     (e ? '<span class="sep"></span><button class="bt gris petit" onclick="dcRepartir()" title="Remplacer le texte par un document neuf, rempli avec les informations actuelles du dossier">Repartir du dossier</button>' : "") + "</div>" +
     '<div class="or-zone"><div id="dcPage" class="or-feuille a4 dc" contenteditable="true" spellcheck="true"></div></div>' +
@@ -184,7 +196,11 @@ const CSS_DOC = ".dc p{margin:0 0 7px}.dc .dc-titre{text-align:center;font-weigh
   ".dc .dc-rub{font-weight:bold;border-bottom:1px solid #9AA3B5;padding-bottom:3px;margin:14px 0 6px}.dc .dc-h{font-weight:bold;font-size:12pt;margin:14px 0 6px}.dc .dc-li{margin-left:14px}.dc .dc-sig{text-align:right;margin-top:22px;margin-bottom:60px;break-inside:avoid;page-break-inside:avoid;break-before:avoid;page-break-before:avoid}.dc .dc-note{font-size:9pt;color:#555;margin-top:6px}" +
   ".dc .dc-ar{background:#FFF200;font-weight:bold}.dc .dc-af{color:#8A8A8A;font-style:italic}.dc .dc-saut{page-break-before:always;break-before:page;height:0}" +
   ".dc .dc-tab{width:100%;border-collapse:collapse;margin:4px 0 8px}.dc .dc-tab th,.dc .dc-tab td{border:1px solid #8C8C8C;padding:5px 7px;vertical-align:top;text-align:left}.dc .dc-tab th{background:#DCE6F2}.dc .dc-tab td p{margin:0 0 3px}" +
-  ".dc .dc-rdv th{background:#2B2D5C;color:#fff;font-size:10pt}.dc .dc-rdv td{font-size:10pt;padding:3px 7px}";
+  ".dc .dc-rdv th{background:#2B4A7E;color:#fff;font-size:9pt;line-height:1.15;padding:2px 4px}.dc .dc-rdv td{font-size:9pt;line-height:1.2;padding:1px 4px;white-space:nowrap}.dc .dc-rdv .dc-n{text-align:right}" +
+  // R-B4 : une seule page A4 : texte réduit au-delà de 25 lignes (8 pt), puis de 40 (7 pt, interligne serré)
+  ".dc .dc-rdv.dc-moyen th,.dc .dc-rdv.dc-moyen td{font-size:8pt;line-height:1.15;padding:1px 4px}.dc .dc-rdv.dc-serre th,.dc .dc-rdv.dc-serre td{font-size:7pt;line-height:1.05;padding:0 3px}" +
+  ".dc .dc-rdvt{color:#3B4A6B;font-size:13pt;margin:0 0 10px}.dc .dc-bande{background:#E3E3E3;border-top:6px solid #4A4A4A;padding:3px 6px;margin:0;font-size:9pt}" +
+  ".dc .dc-ident{width:100%;border-collapse:collapse;background:#EDEDED;margin:0 0 6px}.dc .dc-ident td{padding:4px 6px;font-size:9pt}";
 window.dcEnregistrer = async (imp) => {
   if (!F) return; const x = D().patients.find((p) => p.id === F.pid), r = x && (x.P.rts || []).find((v) => v.id === F.rid); if (!r) return;
   const html = nettoyer($("dcPage").innerHTML);

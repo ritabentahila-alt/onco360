@@ -255,3 +255,4 @@ Jusqu'au 11/10/2026 les étapes portaient les numéros de l'ancienne feuille de 
 | 19/10/2026 | R-B2 | Alertes cliniques : « Vu », « Alertes vues (n) », « Remettre » ; rangées par médecin, 90 jours ; test-alertes 6/6, test_alertes_vues 13/13 |
 | 19/10/2026 | R-B1 | RCP dans le menu principal sous Tâches (page, pastille, anciens liens renvoyés, menu déjà réglé respecté) ; test_rcp_menu 14/14 |
 | 19/10/2026 | R-B3 | Téléphone : loupe à gauche de la cloche, recherche sur toute la largeur ; test_recherche_tel 15/15 (Chrome et Safari) |
+| 19/10/2026 | R-B4 | Calendrier de fin de radiothérapie (mise en page de l'export de l'accélérateur, sans appareil, une page A4 jusqu'à 60 séances) ; test_calendrier_rt 18/18 |

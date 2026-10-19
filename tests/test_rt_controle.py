@@ -49,7 +49,7 @@ async def main():
         pg, ev = await ouvrir_rt(b, RT)
         await ev("docRT('%s','rtT','rdv')" % pid); await pg.wait_for_timeout(1500)
         t = await ev("document.getElementById('dcPage').innerText")
-        ok('Calendrier théorique' in t and 'Terminé' not in t and 'Prévu' in t and 'Dates calculées' in t, 'rendez-vous : « Calendrier théorique », état « Prévu », dates calculées', t[:200])
+        ok('Rendez-vous du patient' in t and 'Terminé' not in t and 'Prévu' in t and 'Dates des séances intermédiaires' in t, 'rendez-vous (R-B4 : calendrier de fin de RT, ancien « Calendrier théorique ») : état « Prévu » tant que la fin n\'est pas validée, dates calculées', t[:200])
         await ev("dcFermer()"); await pg.wait_for_timeout(600)
         await ev("docRT('%s','rtT','cr')" % pid); await pg.wait_for_timeout(1500); n0 = len(pg.dlg)
         await ev("dcEnregistrer(true)"); await pg.wait_for_timeout(1500)

@@ -33,12 +33,14 @@ export const MODELES_RT0 = {
     '<p class="dc-h">4. Calendrier du traitement</p>' + puce("Date de début", "debut") + puce("Date de fin", "fin") +
     '<p class="dc-h">5. Tolérance et toxicités</p>' + puce("Toxicités observées", "toxicites") +
     '<p class="dc-h">6. Conduite à tenir et suivi</p>' + puce("Prochain rendez-vous de consultation", "prochain_rdv") + puce("Bilan de contrôle prévu", "bilan") + "{signature}",
-  rdv: '<p class="dc-titre">Calendrier théorique des séances</p>' +
-    '<p class="dc-c"><b>Date de début : {debut} &nbsp;—&nbsp; Date de fin : {fin}</b></p>' +
-    "<p><b>Patient : </b>{patient}<br><b>Médecin : </b>{medecin}<br><b>Radiothérapie : </b>{radiotherapie}</p>" +
+  // R-B4 (19/10/2026, demande du 17/10) : calendrier de fin de radiothérapie, mise en page de l'export du logiciel de l'accélérateur (sans le
+  // nom de l'appareil ; le médecin à la place du radiothérapeute) ; sert à faire valider la fin de prise en charge par les mutuelles ; une page A4
+  rdv: '<p class="dc-titre dc-rdvt">Rendez-vous du patient</p>' +
+    '<p class="dc-bande">Date de début : {debut} &nbsp;–&nbsp; Date de fin : {fin}</p>' +
+    '<table class="dc-ident"><tbody><tr><td><b>Patient : </b>{patient}</td><td><b>ID patient : </b>{id_patient}</td><td><b>Oncologue : </b>{medecin}</td></tr></tbody></table>' +
     "{tableau_seances}" + '<p class="dc-note">{note_calendrier}</p>',
 };
-export const NOMS_RT = { pli: "Pli confidentiel (radiothérapie)", cr: "Compte rendu de fin de radiothérapie", rdv: "Calendrier des séances de radiothérapie" };
+export const NOMS_RT = { pli: "Pli confidentiel (radiothérapie)", cr: "Compte rendu de fin de radiothérapie", rdv: "Calendrier de fin de radiothérapie" };
 // Champs à insérer, par document : [clé, libellé]
 export const CHAMPS_RT = {
   pli: [["ville", "Ville"], ["ville_maj", "VILLE"], ["date_longue", "Date du jour"], ["patient", "Patient (civilité, nom, prénom)"], ["renseignements", "Renseignements cliniques (résumé du patient)"],
@@ -48,7 +50,7 @@ export const CHAMPS_RT = {
     ["fin", "Date de fin"], ["diagnostic", "Diagnostic complet"], ["oms", "État général (OMS)"], ["resume_clinique", "Résumé clinique"], ["visee", "Visée du traitement"], ["technique", "Technique"],
     ["localisation", "Localisation"], ["doses", "Volumes et doses"], ["seances", "Nombre de séances"], ["toxicites", "Toxicités (à compléter)"], ["prochain_rdv", "Prochain rendez-vous"],
     ["bilan", "Bilan de contrôle"], ["signature", "Cachet et signature"]],
-  rdv: [["debut", "Date de début"], ["fin", "Date de fin"], ["patient", "Patient"], ["medecin", "Médecin"], ["radiotherapie", "Radiothérapie (acte)"], ["tableau_seances", "Tableau des séances"],
+  rdv: [["debut", "Date de début"], ["fin", "Date de fin"], ["patient", "Patient"], ["id_patient", "ID patient (n° de dossier)"], ["medecin", "Oncologue (Dr NOM Prénom)"], ["radiotherapie", "Radiothérapie (acte)"], ["tableau_seances", "Tableau des séances"],
     ["note_calendrier", "Note sur le calcul des dates"]],
 };
 // Modèles de la bibliothèque des courriers (ajoutés à la liste du cabinet s'il ne les a pas encore modifiés)
