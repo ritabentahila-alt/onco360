@@ -91,14 +91,14 @@ let TIT = null;
 const FAMILLES = [
   ["cabinet", "hopital", "Cabinet", ["lieux", "accueil", "rcp", "impression", "audit", "export"]], // RCP : dans Cabinet (demande du 12/10/2026)
   // 3.11 (12/10/2026) : tout ce qui règle le dossier patient au même endroit (fiche, formulaire de consultation, listes de la fiche)
-  ["dossier", "profil", "Dossier patient", ["fiche", "consultation", "types", "listes"]],
+  ["dossier", "profil", "Dossier patient", ["fiche", "consultation", "types", "listes", "affichage"]], // affichage : R-G d (19/10/2026)
   ["agenda", "agenda", "Agenda et rappels", ["horaires", "fermetures", "couleurs", "whatsapp", "alertes"]], // rendez-vous créés d'office : dans Types de consultation (3.13)
   ["listes", "pilule", "Bibliothèques", ["bibliotheques", "vigilances", "documents", "taches"]],
   ["finances", "bilan", "Finances", ["activites"]],
 ];
 const RUB = { lieux: ["hopital", "Lieux d'exercice"], accueil: ["accueil", "Tableau de bord"], fiche: ["profil", "Fiche patient"], consultation: ["stetho", "Formulaire de consultation"], types: ["agenda", "Types de consultation"],
   impression: ["imprimer", "Impression"], audit: ["liste", "Journal d'audit"], export: ["telecharger", "Export des données"], horaires: ["horloge", "Horaires"], fermetures: ["avion", "Congés et jours fériés"], rdvauto: ["agenda", "Rendez-vous automatiques"],
-  couleurs: ["agenda", "Google Agenda"], whatsapp: ["whatsapp", "WhatsApp"], rcp: ["rcp", "RCP"], alertes: ["alerte", "Alertes"], listes: ["liste", "Listes de la fiche"],
+  couleurs: ["agenda", "Google Agenda"], whatsapp: ["whatsapp", "WhatsApp"], rcp: ["rcp", "RCP"], alertes: ["alerte", "Alertes"], listes: ["liste", "Listes de la fiche"], affichage: ["colonnes", "Affichage du dossier"],
   bibliotheques: ["pilule", "Bibliothèques"], vigilances: ["alerte", "Vigilance des molécules"], documents: ["document", "Types de documents"], taches: ["taches", "Tâches"], activites: ["bilan", "Activités et rémunérations"] };
 const famDe = (k) => (FAMILLES.find((f) => f[3].indexOf(k) >= 0) || FAMILLES[0])[0];
 // Rubriques présentes, dans l'ordre des familles ; dans une famille, l'ordre du réglage du cabinet (Administration)
@@ -113,9 +113,9 @@ const ONGLETS = () => FAMILLES.reduce((l, f) => l.concat(f[3]), [])
   .sort((a, b) => { const R = A.D().reg, l = R && !A.D().bib ? R.ordreSections : [], fa = FAMILLES.findIndex((f) => f[0] === famDe(a)), fb = FAMILLES.findIndex((f) => f[0] === famDe(b)); return fa - fb || (l.indexOf(a) + 1 || 999) - (l.indexOf(b) + 1 || 999); })
   .map((k) => [k, RUB[k][0], RUB[k][1]]);
 // Propres à chaque cabinet, donc absents de la bibliothèque de référence : lieux, équipe, journal d'audit, présentation
-const HORS_BIB = ["lieux", "acces", "audit", "export", "accueil", "fiche", "consultation", "types"];
+const HORS_BIB = ["lieux", "acces", "audit", "export", "accueil", "fiche", "consultation", "types", "affichage"];
 // Onglets que la secrétaire (droit « secretariat », sans « paramètres ») peut modifier, et ce qu'elle y modifie
-const ONGLETS_SEC = ["horaires", "fermetures", "whatsapp", "documents", "taches", "rcp", "listes", "impression", "alertes", "types"];
+const ONGLETS_SEC = ["horaires", "fermetures", "whatsapp", "documents", "taches", "rcp", "listes", "impression", "alertes", "types", "affichage"];
 const MSG_SEC = { types: "Vous pouvez régler la durée de chaque type ; le reste est réglé par le médecin.", lieux: "Vous pouvez compléter l'adresse, le téléphone et la ville de votre lieu (« Compléter »).", horaires: "Vous pouvez régler les horaires de vos lieux.", taches: "Vous pouvez modifier les types de tâches ; les tâches automatiques sont réglées par le médecin." };
 const secretariat = () => A.peut("secretariat") && !A.D().bib;
 const MODULE_ONGLET = { vigilances: "chimio", couleurs: "gagenda", taches: "taches", rcp: "rcp", listes: "listes", bibliotheques: "prescriptions" };
@@ -263,9 +263,19 @@ const RUBRIQUES = {
       '<div class="cf-bib">' + B.map(([k, ico, t, sous]) => '<button class="cf-b" data-bib="' + k + '" onclick="cfBib(\'' + k + "')\"><span class=\"ic\">" + A.ic(ico) + "</span><span><b>" + t + '</b><span class="mesures">' + sous + '</span><span class="mesures" id="cfBn-' + k + '"></span></span></button>').join("") +
       (A.D().membre.role === "medecin" ? '<button class="cf-b" data-bib="documentation" onclick="ordDocumentationGestion()"><span class="ic">' + A.ic("document") + '</span><span><b>Documentation</b><span class="mesures">Fiches PDF remises aux patients</span></span></button>' : "") + "</div></section>";
   },
+  // R-G d (audit n° 5, 19/10/2026) : affichage du dossier patient. Pour le cabinet (titulaire ou secrétaire) : parties de la colonne Patient
+  // dépliées à l'ouverture (parametres/reglages, clé dossier). Pour moi : taille de la visionneuse (utilisateurs/{uid}.dossier), « Rétablir ».
+  affichage(c) {
+    const Pa = ED.reg.dossier.parties, L = [["avenir", "Rendez-vous et tâches à venir"], ["passe", "Consultations et hospitalisations"], ["id", "Identité et administratif"], ["med", "Informations médicales"], ["tum", "Fiche tumeur"]];
+    const moi = (D().profil && D().profil.dossier) || {}, v = moi.visionneuse === "deuxTiers" ? "deuxTiers" : "colonne";
+    return '<section class="carte">' + titre("colonnes", "Pour le cabinet : colonne Patient") + '<p class="sous">Parties dépliées à l\'ouverture du dossier. Chacun peut ensuite déplier ou replier : son choix est gardé sur son appareil.</p>' +
+      L.map(([k, lib]) => '<label class="chk" style="display:block;margin:6px 0"><input type="checkbox" data-part="' + k + '"' + (Pa[k] ? " checked" : "") + c.disE + ' onchange="cfPartie(\'' + k + '\',this.checked)"> ' + lib + "</label>").join("") + "</section>" +
+      '<section class="carte">' + titre("profil", "Pour moi") + '<p class="sous">Réglages personnels, enregistrés tout de suite.</p><div class="form" style="grid-template-columns:minmax(0,320px)"><div><label for="cfVis">Visionneuse des documents à l\'ouverture</label><select id="cfVis" onchange="cfVisionneuse(this.value)"><option value="colonne"' + (v === "colonne" ? " selected" : "") + '>Une colonne</option><option value="deuxTiers"' + (v === "deuxTiers" ? " selected" : "") + ">Deux tiers de la largeur</option></select></div></div>" +
+      '<div class="actr" style="justify-content:flex-start;margin-top:10px"><button class="bt clair petit" onclick="cfRetablirDossier()">Rétablir</button></div><p class="mesures">« Rétablir » : largeurs (Agrandir, visionneuse), parties dépliées et menu replié dans le dossier reviennent comme au départ, sur cet appareil.</p></section>';
+  },
   impression(c) {
     // Marges d'impression (mm) : la marge du haut laisse la place à l'en-tête déjà imprimé sur le papier ; âge et poids sur les ordonnances (3.2)
-    const I = ED.reg.impression, agePoids = '<section class="carte">' + titre("imprimer", "Ordonnances") + '<p class="sous">Sous le nom du patient :</p><label class="chk"><input type="checkbox"' + (I.age ? " checked" : "") + c.disE + ' onchange="cfRegB(\'impression\',\'age\',this.checked)"> Âge</label> <label class="chk"><input type="checkbox"' + (I.poids ? " checked" : "") + c.disE + ' onchange="cfRegB(\'impression\',\'poids\',this.checked)"> Poids</label> <label class="chk"><input type="checkbox"' + (I.allergie ? " checked" : "") + c.disE + ' onchange="cfRegB(\'impression\',\'allergie\',this.checked)"> Allergie (si « Oui » dans la fiche)</label></section>', champ = (q, n, lib) => '<div><label for="cfI' + q + n + '">' + lib + '</label><input id="cfI' + q + n + '" type="number" min="0" max="150" step="1" inputmode="numeric" value="' + I[q][n] + '"' + c.disE + ' onchange="cfImp(\'' + q + "'," + n + ',this.value)"></div>';
+    const I = ED.reg.impression, agePoids = '<section class="carte">' + titre("imprimer", "Ordonnances") + '<p class="sous">Sous le nom du patient :</p><label class="chk"><input type="checkbox"' + (I.age ? " checked" : "") + c.disE + ' onchange="cfRegB(\'impression\',\'age\',this.checked)"> Âge</label> <label class="chk"><input type="checkbox"' + (I.poids ? " checked" : "") + c.disE + ' onchange="cfRegB(\'impression\',\'poids\',this.checked)"> Poids</label> <label class="chk"><input type="checkbox"' + (I.allergie ? " checked" : "") + c.disE + ' onchange="cfRegB(\'impression\',\'allergie\',this.checked)"> Allergie (si « Oui » dans la fiche)</label><p class="sous" style="margin-top:10px">À l\'écran, pendant qu\'on prépare l\'ordonnance :</p><label class="chk"><input type="checkbox"' + (I.fenRappel ? " checked" : "") + c.disE + ' onchange="cfRegB(\'impression\',\'fenRappel\',this.checked)"> Rappeler l\'allergie et le poids en haut de la fenêtre d\'ordonnance</label></section>', champ = (q, n, lib) => '<div><label for="cfI' + q + n + '">' + lib + '</label><input id="cfI' + q + n + '" type="number" min="0" max="150" step="1" inputmode="numeric" value="' + I[q][n] + '"' + c.disE + ' onchange="cfImp(\'' + q + "'," + n + ',this.value)"></div>';
     // 3.9 (12/10/2026) : en-tête et pied des ordonnances et courriers : papier à en-tête, ou imprimés par Onco360 (au choix du cabinet)
     const g = I.entete === "genere", cb = (k, lib) => '<label class="chk" style="display:block;margin:4px 0"><input type="checkbox"' + (I[k] ? " checked" : "") + c.disE + (g ? "" : " disabled") + ' onchange="cfRegB(\'impression\',\'' + k + '\',this.checked)"> ' + lib + "</label>";
     const enT = '<section class="carte">' + titre("imprimer", "En-tête des ordonnances et courriers") +
@@ -524,6 +534,10 @@ window.cfLSup = (i) => { ED.listes[LS].splice(i, 1); ED.listesOrig[LS].splice(i,
 window.cfLAj = () => { LQ = ""; ED.listes[LS].push(""); ED.listesOrig[LS].push(""); modif(true); setTimeout(() => { const l = document.querySelectorAll("#cfLl input"); if (l.length) { l[l.length - 1].scrollIntoView({ block: "center" }); l[l.length - 1].focus(); } }, 30); };
 window.cfBib = (n) => gererListe(n);
 window.cfRegB = (g, k, v) => { ED.reg[g][k] = !!v; modif(); };
+window.cfPartie = (k, v) => { ED.reg.dossier.parties = Object.assign({}, ED.reg.dossier.parties, { [k]: !!v }); modif(); };
+window.cfVisionneuse = (v) => { const p = D().profil = D().profil || {}; p.dossier = Object.assign({}, p.dossier || {}, { visionneuse: v }); try { localStorage.removeItem("onco360.visionneuseGrande"); } catch (e) { /* stockage indisponible */ }
+  setDoc(doc(db, "utilisateurs", D().u.uid), { dossier: p.dossier }, { merge: true }).then(() => A.toast("Réglage enregistré.")).catch((e) => A.toast("Réglage non enregistré : " + e.message)); };
+window.cfRetablirDossier = () => { ["onco360.visionneuseGrande", "onco360.dossierAgrandi", "onco360.dossierParties", "onco360.menuReplieDossier"].forEach((k) => { try { localStorage.removeItem(k); } catch (e) { /* stockage indisponible */ } }); A.toast("Affichage du dossier rétabli (sur cet appareil)."); };
 window.cfRegT = (g, k, v) => { ED.reg[g][k] = String(v); modif(true); }; // réglage texte (3.9 : en-tête des ordonnances)
 window.cfReg = (g, k, v) => { ED.reg[g][k] = parseInt(v, 10) || 0; modif(g === "salle"); };
 window.cfImp = (q, n, v) => { const x = parseInt(v, 10); ED.reg.impression[q][n] = isNaN(x) ? REGLAGES0.impression[q][n] : Math.max(0, Math.min(150, x)); modif(); };

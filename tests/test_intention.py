@@ -1,4 +1,5 @@
 import pathlib; __file__=str(pathlib.Path(__file__).resolve()); exec(open(pathlib.Path(__file__).parent/'base.py').read())
+# Lot G (19/10/2026) : sur ordinateur, la cure s'ouvre dans le panneau (#panneauCorps) ; une petite fenêtre (#fenetreCorps) passe devant
 # 12/10/2026 : intention de la ligne (fenêtre après le choix du protocole ; en-tête « [Métastatique · 1re ligne] ») ; en-tête sans date en
 # double ; téléphone : cures et doses en cartes ; OMS dans les informations médicales ; allergie à cocher pour les ordonnances ; rendez-vous
 # automatiques décochables ; modèles des documents de radiothérapie modifiables (Bibliothèques › Courriers).
@@ -22,14 +23,14 @@ async def main():
         proto = await ev("(()=>{const e=document.querySelector('#nlL [onclick^=\"nlProto\"]');return e?e.getAttribute('onclick'):null})()")
         ok(proto is not None, 'liste des protocoles', proto)
         await ev(proto); await pg.wait_for_timeout(400)
-        t = await pg.inner_text('#fenetreCorps')
+        t = await pg.inner_text(':is(#fenetreCorps,#panneauCorps):not(:empty)')
         ok('Intention de la ligne' in t and 'Néoadjuvante' in t and 'Adjuvante' in t and 'Métastatique' in t and 'Concomitante' in t and 'Palliative' not in t, 'fenêtre intermédiaire : néoadjuvante, adjuvante, métastatique, concomitante', t[:300])
         await pg.click('#itP [data-k=meta]'); await pg.wait_for_timeout(100)
         ok(await ev("!document.getElementById('itR').classList.contains('cache')"), 'métastatique : numéro de la ligne demandé')
         await pg.select_option('#itRang', '2'); await pg.click('#fOk'); await pg.wait_for_timeout(400)
-        ok('Intention : Métastatique · 2e ligne' in await pg.inner_text('#fenetreCorps'), 'paramètres de la ligne : intention rappelée', (await pg.inner_text('#fenetreCorps'))[:300])
-        await ev("document.querySelectorAll('#fenetreCorps input.req').forEach(i=>{if(!i.value){i.value=i.type==='date'?'2026-10-12':'10';i.dispatchEvent(new Event('change'))}})"); await pg.wait_for_timeout(300)
-        await ev("document.querySelectorAll('#fenetreCorps input.req').forEach(i=>{if(!i.value){i.value=i.type==='date'?'2026-10-12':'10';i.dispatchEvent(new Event('change'))}})"); await pg.wait_for_timeout(300)
+        ok('Intention : Métastatique · 2e ligne' in await pg.inner_text(':is(#fenetreCorps,#panneauCorps):not(:empty)'), 'paramètres de la ligne : intention rappelée', (await pg.inner_text(':is(#fenetreCorps,#panneauCorps):not(:empty)'))[:300])
+        await ev("document.querySelectorAll(':is(#fenetreCorps,#panneauCorps):not(:empty) input.req').forEach(i=>{if(!i.value){i.value=i.type==='date'?'2026-10-12':'10';i.dispatchEvent(new Event('change'))}})"); await pg.wait_for_timeout(300)
+        await ev("document.querySelectorAll(':is(#fenetreCorps,#panneauCorps):not(:empty) input.req').forEach(i=>{if(!i.value){i.value=i.type==='date'?'2026-10-12':'10';i.dispatchEvent(new Event('change'))}})"); await pg.wait_for_timeout(300)
         await pg.click('#fOk'); await pg.wait_for_timeout(2000)
         L = lignes_de(await ev("window.__fs"))[pid]
         ok(len(L) == n0 + 1 and L[-1].get('intent') == 'meta' and L[-1].get('rang') == 2, 'ligne créée avec son intention (métastatique, 2e ligne)', [l.get('intent') for l in L])
@@ -49,7 +50,7 @@ async def main():
         r = await ev("(()=>{const t=document.querySelector('#cChimio .tcures.tsea');if(!t)return null;const tr=t.querySelectorAll('tr')[1];return {carte:getComputedStyle(tr).display,lbl:getComputedStyle(tr.querySelector('td'),'::before').content,sw:document.documentElement.scrollWidth,cw:document.documentElement.clientWidth}})()")
         ok(r and r['carte'] == 'block' and 'Cure' in r['lbl'], 'tableau des cures : une carte par cure, libellés', r)
         await ev(f"chOuvrir('{pid}', 0, 0, 1)"); await pg.wait_for_timeout(1000)
-        r2 = await ev("(()=>{const t=document.querySelector('#fenetreCorps .doses.tsea');if(!t)return null;const l=[...t.querySelectorAll('td[data-l]')].map(td=>td.dataset.l);const v=(k)=>{const td=t.querySelector('td[data-l=\"'+k+'\"]');return !!td&&td.offsetWidth>0};return {pct:v('% dose'),ret:v('Dose retenue'),sw:document.documentElement.scrollWidth,cw:document.documentElement.clientWidth}})()")
+        r2 = await ev("(()=>{const t=document.querySelector(':is(#fenetreCorps,#panneauCorps):not(:empty) .doses.tsea');if(!t)return null;const l=[...t.querySelectorAll('td[data-l]')].map(td=>td.dataset.l);const v=(k)=>{const td=t.querySelector('td[data-l=\"'+k+'\"]');return !!td&&td.offsetWidth>0};return {pct:v('% dose'),ret:v('Dose retenue'),sw:document.documentElement.scrollWidth,cw:document.documentElement.clientWidth}})()")
         ok(r2 and r2['pct'] and r2['ret'] and r2['sw'] <= r2['cw'] + 1, 'doses en cartes : « % dose » et « Dose retenue » visibles, sans débordement', r2)
         ok(not pg.errs, 'aucune erreur JavaScript', pg.errs[:2]); await pg.close()
 
@@ -83,10 +84,10 @@ async def main():
         await ev("ordCourriersGestion ? 0 : 0") if False else None
         await pg.goto(f'http://localhost:{PORT}/v2.html#parametres/bibliotheques'); await pg.wait_for_timeout(1200)
         await ev("cfBib('courriers')"); await pg.wait_for_timeout(1200)
-        t = await pg.inner_text('#fenetreCorps')
+        t = await pg.inner_text(':is(#fenetreCorps,#panneauCorps):not(:empty)')
         ok('Pli confidentiel (radiothérapie)' in t and 'Compte rendu de fin de radiothérapie' in t and 'Calendrier de fin de radiothérapie' in t, 'les trois documents dans la liste des modèles', t[:400])
         await ev("crFiche('rt-pli')"); await pg.wait_for_timeout(500)
-        ok('{renseignements}' in await pg.inner_text('#crPage') and 'Renseignements cliniques' in await pg.inner_text('#fenetreCorps'), 'éditeur : champs du pli ({renseignements}…)')
+        ok('{renseignements}' in await pg.inner_text('#crPage') and 'Renseignements cliniques' in await pg.inner_text(':is(#fenetreCorps,#panneauCorps):not(:empty)'), 'éditeur : champs du pli ({renseignements}…)')
         await ev("document.getElementById('crPage').insertAdjacentHTML('afterbegin','<p>MENTION DU CABINET</p>')"); await pg.click('#crOk'); await pg.wait_for_timeout(1500)
         L = json.loads((await ev("window.__fs")).get(E + 'bibliotheques/courriers', {}).get('data') or '[]')
         ok(any(m.get('id') == 'rt-pli' and 'MENTION DU CABINET' in m.get('html', '') for m in L), 'modèle du pli enregistré dans la bibliothèque du cabinet')

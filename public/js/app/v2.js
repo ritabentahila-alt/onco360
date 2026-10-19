@@ -30,8 +30,8 @@ import { installer as installerBilan, pagePageBilan, publierReleve } from "./bil
 import { installer as installerOrdonnances, remplacerOrdosTypes, figerListes, ordosAudit3 } from "./ordonnances.js";
 import { figerDocumentation } from "./documentation.js";
 import * as ficheP from "./fichepatient.js";
-import { installer as installerFichiers, htmlFichiers, nbFichiers, oublierFichiers, suivreEtablissementFichiers, supprimerFichiers } from "./fichiers.js";
-import { installer as installerConsultations, datesConsultations, htmlConsultations, nbConsultations, oublierConsultations, suivreEtablissement, supprimerConsultations } from "./consultations.js";
+import { installer as installerFichiers, htmlFichiers, nbFichiers, oublierFichiers, suivreEtablissementFichiers, supprimerFichiers, htmlVisionneuse, sigVisionneuse, apresVisionneuse, rafraichirVisionneuse, visionneuseGrande } from "./fichiers.js";
+import { installer as installerConsultations, datesConsultations, htmlConsultations, nbConsultations, oublierConsultations, suivreEtablissement, supprimerConsultations, boutonsPrescription } from "./consultations.js";
 import { installer as installerReglages, reglages, appliquerImpression, margesMm } from "./reglages.js";
 import { montantEnLettres } from "../donnees/factures.js";
 import { installer as installerTaches, pageTaches, demarrerTaches, blocAccueil as blocTaches, tachesDuPatient } from "./taches.js";
@@ -458,7 +458,8 @@ function journal(x, quoi) { addDoc(collection(db, "espaces", ESPACE, "historique
 
 // Fenêtre (formulaires)
 function fenetre(html, taille) { $("fenetreCorps").innerHTML = html; $("fenetreCorps").classList.toggle("large", taille === "large"); $("fenetre").classList.remove("cache"); const f = $("fenetreCorps").querySelector("input,select,textarea"); if (f) setTimeout(() => f.focus(), 50); }
-window.fermerFenetre = () => { $("fenetre").classList.add("cache"); $("fenetreCorps").innerHTML = ""; };
+// R-G e : la petite fenêtre se ferme d'abord ; sans petite fenêtre, c'est le panneau de chimio / RT qui se ferme
+window.fermerFenetre = () => { if (!$("fenetre").classList.contains("cache")) { $("fenetre").classList.add("cache"); $("fenetreCorps").innerHTML = ""; return; } fermerPanneau(); };
 const val = (i) => { const e = $(i); return e ? String(e.value || "").trim() : ""; };
 const occupe = (b, oui) => { if (!b) return; b.disabled = oui; b.dataset.t = b.dataset.t || b.textContent; b.textContent = oui ? "Enregistrement…" : b.dataset.t; };
 const erreur = (t) => { const e = $("fErr"); if (e) e.textContent = t; };
@@ -473,7 +474,8 @@ function fmtSaisie(el) {
 }
 document.addEventListener("input", (ev) => { if (ev.target && ev.target.classList && ev.target.classList.contains("mt")) fmtSaisie(ev.target); });
 const ferieLe = (d) => (D.ctx.feries || []).map((f) => (typeof f === "string" ? { d: f, nom: "Jour férié" } : f)).find((f) => f.d === d);
-const API = { D: () => D, get ESPACE() { return ESPACE; }, ecouteDossiers: () => !!ECOUTE_D, $, esc, ic, dfr, dfrA, cap, jourLong, val, occupe, erreur, toast, fenetre, fermerFenetre: () => window.fermerFenetre(), peut, voit, traitMod, enregistrer, pageDossier: (id) => reafficher(id), recalculer, journal };
+const PN = { sale: false, apres: [] }; // panneau de chimio / RT (R-G e) : changements non enregistrés, fonctions appelées à sa fermeture
+const API = { D: () => D, get ESPACE() { return ESPACE; }, ecouteDossiers: () => !!ECOUTE_D, $, esc, ic, dfr, dfrA, cap, jourLong, val, occupe, erreur, toast, fenetre, fermerFenetre: () => window.fermerFenetre(), panneau: (h) => panneau(h), fermerPanneau: (f) => fermerPanneau(f), panneauOuvert: () => panneauOuvert(), petiteSurPanneau: () => panneauOuvert() && petiteOuverte(), surFermerPanneau: (f) => PN.apres.push(f), fermerPetite: () => fermerPetite(), corpsLarge: () => (grilleDossier() && $("panneauCorps") ? $("panneauCorps") : $("fenetreCorps")), peut, voit, traitMod, enregistrer, pageDossier: (id) => reafficher(id), recalculer, journal };
 API.typesRdv = (e) => typesRdv(e); API.typesC = () => D.typesC || []; API.actsDe = () => actsDe(D.tarifs, D.activites); // Paramètres › Horaires : durée par type de consultation (AG2)
 // Heure facultative du scanner de centrage (AG5, 11/10/2026) : r.scanH = { h, du } ou retirée (droit « radiothérapie : modifier »)
 API.traitModRT = () => traitModRT();
@@ -721,6 +723,7 @@ function route() {
   if (CABINETS.length > 1 && !PAGES.tous) Object.assign(PAGES, PAGES_TOUS()); // secrétaire de plusieurs cabinets (19.7)
   const h = location.hash.replace("#", ""), i = h.indexOf("/"), p = i < 0 ? h : h.slice(0, i), arg = i < 0 ? null : decodeURIComponent(h.slice(i + 1)), nom = PAGES[p] && module(PAGE_MODULE[p] || "") && !(p === "protocoles" && D.reg && D.reg.fonctions["chimio.protocoles"] === false) && (!estComptable() || PAGES_COMPTABLE.indexOf(p) >= 0) && (!D.bib || PAGES_BIB.indexOf(p) >= 0) ? p : estComptable() ? "bilan" : D.bib ? "protocoles" : "accueil";
   if (!$("fenetre").classList.contains("cache")) window.fermerFenetre();
+  fermerPanneau(true); $("page").classList.toggle("p-dos", nom === "dossier"); menuDossier(nom === "dossier"); // R-G : panneau fermé, menu replié dans le dossier seulement
   D.page = nom + (arg ? "/" + encodeURIComponent(arg) : ""); $("titrePage").textContent = PAGES[nom][0]; $("page").classList.toggle("large", nom === "agenda");
   document.querySelectorAll("nav a").forEach((a) => a.classList.toggle("actif", a.dataset.p === (nom === "dossier" ? "patients" : nom)));
   if (nom === "dossier" && arg) { delete ONGLET[arg]; oublierConsultations(arg); oublierDocs(arg); oublierFichiers(arg); } // dossier ouvert : onglet Consultation, consultations relues
@@ -1016,32 +1019,61 @@ window.ongletDossier = (pid, k) => {
   document.querySelectorAll(".o-barre [role=tab]").forEach((b) => { const on = b.id === "og-" + k; b.classList.toggle("on", on); b.setAttribute("aria-selected", on); });
   document.querySelectorAll(".o-pan").forEach((p) => p.classList.toggle("cache", p.id !== "op-" + k));
 };
+// Lot R-G (audit n° 5, 19/10/2026) : disposition du dossier. Cinq zones dans l'ordre du téléphone (bandeau, colonne Patient, centre Travail,
+// colonne Documents, barre d'actions), plus le panneau de chimio / RT (R-G e) hors des zones redessinées. Ordinateur (zone de contenu ≥ 940 px,
+// écran ≥ 640 px de haut) : grille qui tient dans l'écran, chaque colonne défile seule (CSS @container dos de v2.html) ; dessous : une colonne
+// comme avant. Redessin : chaque zone remplacée seule, défilement de chaque zone, de la page et curseur gardés.
+const DOS = { agrandi: false, droite: "pat" }; // Agrandir (le centre prend la colonne Documents) ; onglet de la colonne de droite (2 colonnes)
+const lsLire = (k, d) => { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } };
+const lsEcrire = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* stockage indisponible : choix non gardé */ } };
+// Parties de la colonne Patient : ouvertes ou non (choix de chacun, gardé sur l'appareil) ; départ = réglage du cabinet (Paramètres › Dossier
+// patient › Affichage du dossier, R-G d)
+const PARTIES_D = [["avenir", "Rendez-vous et tâches à venir"], ["passe", "Consultations et hospitalisations"], ["id", "Identité et administratif"], ["med", "Informations médicales"], ["tum", "Fiche tumeur"]];
+const partieOuverte = (k) => { const m = lsLire("onco360.dossierParties", {}); return k in m ? !!m[k] : !!(reglages().dossier.parties || {})[k]; };
+window.dosPartie = (el) => { const m = lsLire("onco360.dossierParties", {}); if (!!m[el.dataset.p] === el.open && el.dataset.p in m) return; m[el.dataset.p] = el.open; lsEcrire("onco360.dossierParties", m); majToutDeplier(); };
+const majToutDeplier = () => { const b = $("dpTout"), L = [...document.querySelectorAll(".dos-pat details.dp")]; if (b && L.length) b.textContent = L.every((d) => d.open) ? "Tout replier" : "Tout déplier"; };
+window.dosTout = () => { const L = [...document.querySelectorAll(".dos-pat details.dp")], o = !L.every((d) => d.open), m = lsLire("onco360.dossierParties", {}); L.forEach((d) => { d.open = o; m[d.dataset.p] = o; }); lsEcrire("onco360.dossierParties", m); majToutDeplier(); };
+// Colonne de droite à deux onglets (Patient / Documents) entre 940 et 1 279 px de zone de contenu
+window.dosDroite = (k) => { DOS.droite = k; const d = $("dos"); if (!d) return; d.classList.toggle("d-docs", k === "docs"); d.querySelectorAll(".dos-sw button").forEach((b) => { const on = b.dataset.k === k; b.classList.toggle("on", on); b.setAttribute("aria-selected", on); }); if (k === "docs") rafraichirVisionneuse(d.dataset.pid); };
+// Agrandir : le centre prend la place de la colonne Documents (gardé pour chacun)
+window.dosAgrandir = () => { DOS.agrandi = !DOS.agrandi; lsEcrire("onco360.dossierAgrandi", DOS.agrandi); const d = $("dos"); if (d) d.classList.toggle("agrandi", DOS.agrandi); document.querySelectorAll(".dos-agr").forEach((b) => { b.title = DOS.agrandi ? "Réduire : rendre sa place à la colonne Documents" : "Agrandir : le centre prend la place de la colonne Documents"; b.setAttribute("aria-pressed", DOS.agrandi); }); if (!DOS.agrandi && d) rafraichirVisionneuse(d.dataset.pid); };
+DOS.agrandi = !!lsLire("onco360.dossierAgrandi", false);
+// Flèche du bandeau : replie le menu pour le dossier seulement (le choix d'ailleurs est gardé et remis en quittant le dossier)
+const menuDossier = (dans) => { if (window.innerWidth < 1024) return; const g = lsLire("onco360.menuReplie", 0) === 1, m = lsLire("onco360.menuReplieDossier", null); document.body.classList.toggle("menu-replie", dans && m != null ? m === 1 : g); };
+window.dosMenu = () => { const oui = !document.body.classList.contains("menu-replie"); lsEcrire("onco360.menuReplieDossier", oui ? 1 : 0); document.body.classList.toggle("menu-replie", oui); { const r = $("btReplier"), t = oui ? "Déplier le menu" : "Replier le menu"; r.title = t; r.setAttribute("aria-label", t); } const b = document.querySelector(".bn-menu"); if (b) { const t = oui ? "Déplier le menu (dans le dossier)" : "Replier le menu (dans le dossier)"; b.title = t; b.setAttribute("aria-label", t); } };
+// Photo du bandeau (40 px) : agrandie au clic ; « Changer ou retirer la photo » (droit « identité ») comme avant
+window.dosPhoto = (id) => {
+  const x = D.patients.find((p) => p.id === id); if (!x) return;
+  if (!(x.doc.identite || {}).photo) { if (peut("identite")) window.photoPatient(id); return; }
+  fenetre("<h3>" + esc(x.r.nm) + '</h3><div class="photo-pf">' + bulle(x, "ph-grand") + '</div><div class="boutons">' + (peut("identite") ? '<button class="bt clair" style="margin-right:auto" onclick="photoPatient(\'' + x.id + '\')">Changer ou retirer la photo</button>' : "") + '<button class="bt gris" onclick="fermerFenetre()">Fermer</button></div>');
+};
+// Mode grille (ordinateur) : décidé par le CSS (requêtes de conteneur)
+const grilleDossier = () => { const d = $("dos"); return !!d && getComputedStyle(d).display === "grid"; };
+
 function pageDossier(id) {
   const x = D.patients.find((p) => p.id === id);
-  if (!x) { $("page").innerHTML = '<a class="retour" href="#patients">' + ic("retour") + "Patients</a><div class=\"carte\"><h3>Dossier introuvable</h3><p class=\"sous\">Ce patient n'existe pas ou n'est pas dans vos établissements.</p></div>"; return; }
-  const { P, r } = x, ctx = D.ctx, t = D.t, a = age(P.ddn, t);
-  $("titrePage").textContent = r.nm;
-  let h = '<a class="retour" href="#patients">' + ic("retour") + "Patients</a>";
-
-  // Identité + résumé du patient (une seule carte, comme l'application actuelle)
-  const champ = (lib, v) => v ? "<div><label>" + lib + "</label><b>" + esc(v) + "</b></div>" : "";
-  const ENT = ficheP.enTete; // champ en tête du dossier (réglage de la fiche patient)
+  $("page").classList.add("p-dos");
+  if (!x) { $("page").classList.remove("p-dos"); $("page").innerHTML = '<a class="retour" href="#patients">' + ic("retour") + "Patients</a><div class=\"carte\"><h3>Dossier introuvable</h3><p class=\"sous\">Ce patient n'existe pas ou n'est pas dans vos établissements.</p></div>"; return; }
+  const { P, r } = x, ctx = D.ctx, t = D.t, a = age(P.ddn, t), qx = "'" + x.id + "'";
+  // Bandeau réduit du téléphone : nom, âge, allergie dans la barre du haut (collée)
+  $("titrePage").innerHTML = '<span class="tp-n">' + esc(r.nm) + "</span>" + (a != null ? '<span class="tp-age">' + a + " ans</span>" : "") + (allergique(P) ? '<span class="tp-al" title="Allergie">' + ic("alerte") + "Allergie</span>" : "");
   const okN = traitMod();
-  // 3.2 et 3.3 (12/10/2026) : bandeau rouge d'allergie (seulement si « oui »), statut, dernières nouvelles
   const dn = dernieresNouvelles(P, datesConsultations(x.id), t), alTxt = String(P.allergies || "").trim();
-  h += '<section class="carte id-c">' + (allergique(P) ? '<div class="al-band" role="alert">' + ic("alerte") + "<b>Allergie</b>" + (alTxt ? " : " + esc(alTxt) : " (détail non précisé)") + "</div>" :
-      !P.allergie && alTxt && !/^aucune?\b/i.test(alTxt) ? '<p class="mesures" style="color:var(--orange);margin:0 0 8px">Allergies notées (« ' + esc(alTxt.slice(0, 60)) + ' ») : précisez « Allergie connue : oui / non » dans la fiche (Modifier) pour le bandeau.</p>' : "") +
-    '<div class="ident">' + (peut("identite") ? '<button class="bulle-photo" onclick="photoPatient(\'' + x.id + '\')" title="' + (P.photo ? "Changer ou retirer la photo" : "Ajouter une photo du patient") + '" aria-label="Photo du patient">' + bulle(x, "ph-dos") + "</button>" : bulle(x, "ph-dos")) + '<div style="flex:1;min-width:200px"><h2>' + esc(r.nm) + "</h2><p>" +
-    esc([P.numero ? "Dossier n° " + P.numero : "", ENT("ddn") && P.ddn ? "Né(e) le " + dfrA(P.ddn) + (a != null ? " (" + a + " ans)" : "") : "", ENT("sexe") ? (P.sexe === "F" ? "Femme" : P.sexe === "H" ? "Homme" : "") : "", ENT("taille") && P.taille ? P.taille + " cm" : "", ENT("poids") && P.poidsAct ? textePoids(P.poidsAct) : "", dn ? "Dernières nouvelles : " + dfrA(dn) : ""].filter(Boolean).join(" · ")) + "</p>" +
-    '<div class="bd">' + (P.hop ? '<span class="badge b-gr">' + esc(P.hop) + "</span>" : "") + (P.statut ? '<span class="badge ' + (P.statut === "decede" ? "b-dc" : P.statut === "perdu" ? "b-or" : "b-gr") + '">' + esc(libStatut(P.statut)) + (P.statut === "decede" && P.decesLe ? " le " + dfrA(P.decesLe) : "") + "</span>" : "") + (r.t && r.t.st === "cours" ? '<span class="badge b-co">Chimiothérapie en cours</span>' : "") + ((r.rtS || []).some((s) => s.st === "cours") ? '<span class="badge b-rt">RT en cours</span>' : "") + "</div></div>" +
-    '<div class="actr id-bt" style="align-self:flex-start"><button class="bt clair id-plus" onclick="this.closest(\'.id-c\').classList.toggle(\'id-ouv\');this.textContent=this.closest(\'.id-c\').classList.contains(\'id-ouv\')?\'Replier\':\'Fiche et résumé\'">Fiche et résumé</button><button class="bt gris" onclick="afficherPatient(\'' + x.id + '\')">Afficher</button>' + (D.espaceDoc && D.espaceDoc.titulaire === D.u.uid ? '<button class="bt gris" onclick="auditPatient(\'' + x.id + '\')" title="Journal d\'audit de ce dossier : qui l\'a ouvert, modifié…">Journal</button>' : "") + (peut("identite") || peut("fichePatient") || traitMod() ? '<button class="bt clair" onclick="modifierIdentite(\'' + x.id + '\')">Modifier</button>' : "") + "</div></div>" + // « + Tâche » et « + Rendez-vous » : dans la carte « Rendez-vous et tâches à venir » (doublons retirés, 3.3)
-    // 3.11 : champs « en tête » de la fiche réglable (type, nom, ordre), sauf ceux déjà sous le nom ; allergie « oui » : dans le bandeau
-    '<div class="champs">' + ficheP.htmlEnteteFiche(x, ["nom", "prenom", "ddn", "sexe", "taille", "poids"].concat(P.allergie ? ["allergies"] : [])) + "</div>" +
-    '<div class="resume"><div class="entete"><label for="nTxt" style="flex:1">Résumé du patient</label>' + (okN ? '<span class="mesures" id="nEtat">' + (NOTES.pid === x.id && NOTES.txt != null ? "Modifications en cours…" : "") + "</span>" : "") + "</div>" +
-    (okN ? '<textarea id="nTxt" class="notes" placeholder="Quelques phrases de résumé : histoire, antécédents, points d\'attention…" oninput="notesSaisie(\'' + x.id + '\',this)" onblur="sauverNotesMaintenant()">' + esc(NOTES.pid === x.id && NOTES.txt != null ? NOTES.txt : P.notes || "") + "</textarea>"
-      : (P.notes ? '<div class="notes lecture">' + esc(P.notes) + "</div>" : '<p class="sous">Aucun résumé.</p>')) + "</div></section>";
 
-  // Rendez-vous à venir : chimio, radiothérapie et rendez-vous prévus à partir d'aujourd'hui (actions directement ici)
+  // ───── Bandeau (ligne 1 : identité, badges, Afficher · Journal · Modifier ; ligne 2 : champs « Dans le bandeau ») ─────
+  const L1 = ficheP.ligne1(), enCh = r.t && r.t.st === "cours", enRT = (r.rtS || []).some((s) => s.st === "cours");
+  const ban = '<div class="bn1"><a class="retour bn-ret" href="#patients" title="Liste des patients">' + ic("retour") + '<span>Patients</span></a>' +
+    '<button type="button" class="bn-menu" onclick="dosMenu()" title="' + (document.body.classList.contains("menu-replie") ? "Déplier" : "Replier") + ' le menu (dans le dossier)" aria-label="Replier ou déplier le menu (dans le dossier)">' + ic("colonnes") + "</button>" +
+    '<button type="button" class="bn-ph" onclick="' + (!P.photo && peut("identite") ? "photoPatient" : "dosPhoto") + "(" + qx + ')" title="' + (P.photo ? "Agrandir la photo" : peut("identite") ? "Ajouter une photo du patient" : "Photo du patient") + '" aria-label="Photo du patient">' + bulle(x, "ph-ban") + "</button>" +
+    '<div class="bn-id"><h2>' + esc(r.nm) + '</h2><span class="bn-m">' + esc([a != null ? a + " ans" : "", P.sexe === "F" ? "Femme" : P.sexe === "H" ? "Homme" : "", P.numero ? "Dossier n° " + P.numero : ""].filter(Boolean).join(" · ")) + "</span></div>" +
+    '<div class="bn-bd">' + (allergique(P) ? '<span class="badge b-al bn-al" title="' + esc("Allergie" + (alTxt ? " : " + alTxt : " (détail non précisé)")) + '">' + ic("alerte") + "Allergie" + (alTxt ? " : " + esc(alTxt.length > 40 ? alTxt.slice(0, 38) + "…" : alTxt) : "") + "</span>" : "") +
+      (P.statut ? '<span class="badge ' + (P.statut === "decede" ? "b-dc" : P.statut === "perdu" ? "b-or" : "b-gr") + '">' + esc(libStatut(P.statut)) + (P.statut === "decede" && P.decesLe ? " le " + dfrA(P.decesLe) : "") + "</span>" : "") +
+      (L1._chimio && enCh ? '<span class="badge b-co" title="Chimiothérapie en cours : ' + esc(r.t.nom || "") + '">Chimio C' + (r.t.k || r.t.nb) + "/" + r.t.nb + "</span>" : "") +
+      (L1._rt && enRT ? '<span class="badge b-rt">RT en cours</span>' : "") + '<span id="presSlot"></span></div>' +
+    '<div class="bn-bt"><button class="bt gris petit" onclick="afficherPatient(' + qx + ')">Afficher</button>' + (D.espaceDoc && D.espaceDoc.titulaire === D.u.uid ? '<button class="bt gris petit" onclick="auditPatient(' + qx + ')" title="Journal d\'audit de ce dossier : qui l\'a ouvert, modifié…">Journal</button>' : "") + (peut("identite") || peut("fichePatient") || traitMod() ? '<button class="bt clair petit" onclick="modifierIdentite(' + qx + ')">Modifier</button>' : "") + "</div></div>" +
+    '<div class="bn2">' + ficheP.htmlBandeau(x, dn) + "</div>";
+
+  // ───── Colonne Patient : résumé, prochain rendez-vous, parties dépliables ─────
   const okR = peut("rendezvous"), b = (lib, fn, cls) => '<button class="mini ' + (cls || "") + '" onclick="' + fn + '">' + lib + "</button>";
   const actionsRdv = (v, wa) => {
     if (!okR) return wa ? '<div class="actr">' + wa + "</div>" : ""; const q = "'" + x.id + "','" + v.id + "'";
@@ -1061,86 +1093,24 @@ function pageDossier(id) {
   };
   // 12/10/2026 : heure de la consultation de la séance (l'infirmière : sa séance à l'hôpital de jour) ; « Modifier » = date et heure
   const inf = D.membre.role === "infirmiere", modCh = (c) => (traitMod() || peut("planningChimio") || peut("administrer")) && c.lid ? b("Modifier", "chModifierRdvChimio('" + x.id + "','" + c.lid + "'," + c.n + "," + c.j + ")") : "";
-  chimioAVenir(JSON.parse(JSON.stringify(P)), ctx).forEach((c) => { const ret = /en retard/.test(c.lib), hh = inf && c.hr && c.hr.h ? c.hr : c.hc; av.push({ d: c.d, h: (hh && hh.h) || "", em: ic("seringue"), t: c.lib.replace(/^Chimio · /, "") + (inf && c.hr && c.hr.h ? " · séance " + c.hr.h + (c.hc && !c.hc.auto ? " (consultation " + c.hc.h + ")" : "") : c.hc ? " · consultation" : ""), retard: ret, act: '<div class="actr">' + (ret ? "" : btnWA(x, "chimio", c.d, (hh && hh.h) || "")) + (c.lid ? venuChimio(c, c.d) : "") + modCh(c) + "</div>" }); });
-  if (voitRdv()) (P.rdvs || []).forEach((v) => { if (aVenir(v)) av.push({ d: v.d, h: v.h || "", em: typeRdv(v.type) === "hospit" ? '<svg class="pi"><use href="#i-hopital"/></svg>' : ic("stetho"), t: libRdv(v) + (v.mo ? " – " + v.mo : "") + (v.n ? " – " + v.n : ""), act: actionsRdv(v, btnWA(x, catRdv(v), v.d, v.h || "")), rep: v.rep }); });
-  const qx = "'" + x.id + "'";
+  chimioAVenir(JSON.parse(JSON.stringify(P)), ctx).forEach((c) => { const ret = /en retard/.test(c.lib), hh = inf && c.hr && c.hr.h ? c.hr : c.hc; av.push({ d: c.d, h: (hh && hh.h) || "", em: ic("seringue"), rdv: 1, t: c.lib.replace(/^Chimio · /, "") + (inf && c.hr && c.hr.h ? " · séance " + c.hr.h + (c.hc && !c.hc.auto ? " (consultation " + c.hc.h + ")" : "") : c.hc ? " · consultation" : ""), retard: ret, act: '<div class="actr">' + (ret ? "" : btnWA(x, "chimio", c.d, (hh && hh.h) || "")) + (c.lid ? venuChimio(c, c.d) : "") + modCh(c) + "</div>" }); });
+  if (voitRdv()) (P.rdvs || []).forEach((v) => { if (aVenir(v)) av.push({ d: v.d, h: v.h || "", rdv: 1, em: typeRdv(v.type) === "hospit" ? '<svg class="pi"><use href="#i-hopital"/></svg>' : ic("stetho"), t: libRdv(v) + (v.mo ? " – " + v.mo : "") + (v.n ? " – " + v.n : ""), act: actionsRdv(v, btnWA(x, catRdv(v), v.d, v.h || "")), rep: v.rep }); });
   // Tâches ouvertes du patient (P4, 08/10/2026), dont « Valider la dosimétrie » qui remplace ici la ligne de dosimétrie
   (module("taches") ? tachesDuPatient(x.id) : []).forEach((tk) => av.push({ d: tk.ech || "", h: tk.h || "", em: ic("taches"), t: "Tâche – " + tk.titre + " · pour " + (tk.pour === D.u.uid ? "vous" : tk.pourNom || "?") + (tk.statut === "encours" ? " · en cours" : ""), retard: !!tk.ech && tk.ech < D.t, act: '<div class="actr"><button class="mini" onclick="taVoir(\'' + tk.id + '\')">Ouvrir</button></div>' }));
   // Inscriptions en RCP non faites (09/10/2026, rcp.js) : visibles jusqu'à ce que la case « Fait » soit cochée
   (module("rcp") ? rcpDuPatient(x.id) : []).forEach((v) => av.push({ d: v.d, h: "", em: ic("rcp"), t: "RCP – " + v.q + (v.d < D.t ? " · décision à saisir" : ""), retard: v.d < D.t, act: '<div class="actr"><button class="mini" onclick="rcpHistorique(\'' + x.id + '\')">Ouvrir</button></div>' }));
   // 12/10/2026 : fin de radiothérapie (prévue ou réelle) et consultation de fin affichées toutes les deux (décision de Dr Bentahila) ; scanner et
   // 1re séance : date et heure modifiables
-  if (voitRTdossier(x)) (r.rt || []).filter((v) => !v.dosi).forEach((v) => av.push({ d: v.d, f: v.f, h: v.h || "", em: ic("radiation"), t: v.lib.replace(/^RT · /, ""), dosi: !!v.dosi, act: v.dosi ? (peutDosi() ? '<div class="actr"><button class="mini vert" onclick="dosiRT(\'' + x.id + "','" + v.dosi + '\')"><svg class="pi"><use href="#i-check"/></svg>Valider la dosimétrie</button></div>' : "") : /Fin de radioth/.test(v.lib) ? (v.z === "fin" && traitModRT() ? '<div class="actr">' + b("Modifier", "modifierEtapeRT('" + x.id + "','" + v.rt + "','fin')") + "</div>" : "") : '<div class="actr">' + btnWA(x, "rt", v.d, v.h || "") + ((v.z === "scan" || v.z === "deb") && traitModRT() ? b("Modifier", "modifierEtapeRT('" + x.id + "','" + v.rt + "','" + v.z + "')") : "") + "</div>" }));
+  if (voitRTdossier(x)) (r.rt || []).filter((v) => !v.dosi).forEach((v) => av.push({ d: v.d, f: v.f, h: v.h || "", rdv: 1, em: ic("radiation"), t: v.lib.replace(/^RT · /, ""), dosi: !!v.dosi, act: v.dosi ? (peutDosi() ? '<div class="actr"><button class="mini vert" onclick="dosiRT(\'' + x.id + "','" + v.dosi + '\')"><svg class="pi"><use href="#i-check"/></svg>Valider la dosimétrie</button></div>' : "") : /Fin de radioth/.test(v.lib) ? (v.z === "fin" && traitModRT() ? '<div class="actr">' + b("Modifier", "modifierEtapeRT('" + x.id + "','" + v.rt + "','fin')") + "</div>" : "") : '<div class="actr">' + btnWA(x, "rt", v.d, v.h || "") + ((v.z === "scan" || v.z === "deb") && traitModRT() ? b("Modifier", "modifierEtapeRT('" + x.id + "','" + v.rt + "','" + v.z + "')") : "") + "</div>" }));
   av.sort((p, q) => (p.d + (p.h || "00")).localeCompare(q.d + (q.h || "00")));
-  const hRdv = '<section class="carte"><div class="entete"><h3><span class="ic">' + ic("agenda") + "</span>Rendez-vous et tâches à venir</h3><div class=\"actr\">" + (okR ? '<button class="bt clair petit" onclick="ouvrirRdv(' + qx + ')">' + ic("plus") + "Ajouter un rendez-vous</button>" : "") + '<button class="bt clair petit" data-mod="taches" onclick="taNouvelle(' + qx + ')">' + ic("plus") + "Tâche</button></div></div>" +
-    // Liste dans une zone qui défile : les 5 prochains visibles (hauteur réglée après l'affichage, limiterHauteur)
-    (av.length > 5 ? '<p class="mesures" style="margin:4px 0 0">' + av.length + " rendez-vous : faites défiler la liste pour voir les suivants.</p>" : "") +
-    (decede(P) && av.some((v) => v.d >= t) ? '<p class="al-band dc">Patient décédé' + (P.decesLe ? " le " + dfrA(P.decesLe) : "") + " : " + av.filter((v) => v.d >= t).length + " rendez-vous, séance(s) ou tâche(s) encore prévus, à annuler.</p>" : "") +
-    '<div class="rdv-liste" id="rdvListe">' + (av.length ? av.map((v) => '<div class="rdv">' + (absenceLe(v.d) ? '<span class="badge b-al"><svg class="pi"><use href="#i-stop"/></svg>' + absentMedecin(medecinFiche().genre) + "</span>" : ferieLe(v.d) ? '<span class="badge b-al">Férié</span>' : "") + '<span class="badge ' + (v.retard ? "b-al" : "b-co") + '">' + (v.d ? dfr(v.d) : "—") + (v.f && v.f !== v.d ? " → " + dfr(v.f) : "") + (v.h ? " " + v.h : "") + "</span><span>" + v.em + '</span><div class="tx">' + esc(v.t) + (v.rep && v.rep.length ? '<div class="mesures">Reporté (initialement le ' + dfrA(v.rep[0].d) + ")</div>" : "") + "</div>" + (v.act || "") + "</div>").join("") : '<p class="sous">Aucun rendez-vous ni tâche à venir.</p>') + '</div><p class="mesures" style="margin:8px 0 0">Prochaine étape de chimiothérapie et de radiothérapie (automatique) et consultations programmées. Les consultations passées sont listées juste en dessous.</p></section>';
-
-  // Un seul cadre à onglets (07/10/2026) : Consultation · Chimiothérapie · Radiothérapie · Documents, selon les droits
-  const ong = [];
-  // Consultation : tout le monde (l'infirmière en lecture seule, décision du 07/10/2026)
-  { const hc = htmlConsultations(x); ong.push({ k: "co", ic: "stetho", lib: "Consultation", n: nbConsultations(x), h: hc }); }
-
-  // Chimiothérapie
-  if (voit("traitements")) ong.push({ k: "ch", ic: "seringue", lib: "Chimiothérapie", n: (P.lignes || []).length, h: htmlChimio(x) || '<p class="vide-c">Aucune ligne de chimiothérapie.</p>' });
-
-  // Radiothérapie
-  // (l'infirmière, radiothérapie « patients sous chimio » ailleurs, voit l'onglet en lecture pour tous ses patients : 07/10/2026)
-  const okRT = traitModRT();
-  if (peut("documents")) docsDe(x, () => { if (D.page === "dossier/" + encodeURIComponent(x.id)) pageDossier(x.id); }); // documents RT enregistrés (boutons cochés)
-  if (voitRTdossier(x) || D.membre.droits.radiotherapie === "chimio") {
-    const JS = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"], TECH = { stereo: "Stéréotaxie", vmat: "VMAT", imrt: "IMRT", "3d": "3D" };
-    let hr = okRT ? '<div class="entete"><button class="bt clair petit" onclick="ouvrirRT(\'' + x.id + '\')">' + ic("plus") + "Prescription</button></div>" : "";
-    if (!(P.rts || []).length) hr += '<p class="vide-c">Aucune prescription de radiothérapie.</p>';
-    // Une seule radiothérapie ouverte (11/10/2026) : la plus récente à l'ouverture du dossier ; les autres fermées (titre, dose, séances,
-    // boutons ; sans les étapes)
-    if (RTO.pid !== x.id) { RTO.pid = x.id; RTO.id = (P.rts || []).length ? P.rts[P.rts.length - 1].id : null; }
-    (P.rts || []).slice().reverse().forEach((v) => {
-      const ouv = RTO.id === v.id;
-      const s = statutRT(v, ctx), f = finRT(v, ctx.feries), c = compteurRT(v, ctx), cls = s.c === "fin" ? "b-ch" : s.c === "cours" ? "b-rt" : s.c === "dep" ? "b-or" : "b-co";
-      const nb = parseInt(v.nb, 10), dose = parseFloat(String(v.dose || "").replace(",", ".")), dpf = dose && nb ? Math.round((dose / nb) * 100) / 100 : null, q = "'" + x.id + "','" + v.id + "'";
-      const etape = (lib, d, fait, plus) => '<div class="etape' + (fait ? " fait" : "") + '"><span class="ck">' + (fait ? ic("check") : "") + "</span>" + lib + (d ? " — " + dfrA(d) : "") + (plus || "") + "</div>";
-      const finFaite = !!v.fin || (f && f < t);
-      const dz = dosimetrie(v, t), cz = contourage(v, t); // périodes à valider : contourage (scanner → 1re séance), puis dosimétrie (contourage → 1re séance)
-      hr += '<div class="rt' + (ouv ? " on" : "") + '"><div class="tl" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;cursor:pointer" onclick="rtTog(' + q + ')" title="' + (ouv ? "Refermer" : "Voir les étapes") + '"><b style="font-size:16px;color:var(--titre)">' + (ouv ? "▾ " : "▸ ") + esc(v.acte || "Radiothérapie") + (nbA(v) > 1 ? " × " + nbA(v) : "") + '</b><span class="badge ' + cls + '">' + ({ fin: '<svg class="pi"><use href="#i-check"/></svg>', cours: '<i class="dot v"></i>', dep: '<i class="dot o"></i>', prev: '<svg class="pi"><use href="#i-horloge"/></svg>' }[s.c] || "") + esc(s.lib) + "</span>" + (v.hop ? '<span class="badge b-gr">' + esc(v.hop) + "</span>" : "") + (v.intent ? '<span class="badge b-gr">' + (v.intent === "curative" ? "Curative" : "Palliative") + "</span>" : "") + "</div>" +
-        // 3.5 (12/10/2026) : volumes (principal et compléments) et rythme
-        (Array.isArray(v.vol) && v.vol.length ? '<p class="st" style="color:var(--doux);font-size:13.5px;margin:6px 0 0">' + volumesRT(v).map((z, n, l) => esc(texteVolume(z, l))).join("<br>") + "<br>" + esc([nb ? nb + " séances" : "", TECH[v.tech] || (v.vmat ? "VMAT" : ""), libRythme(v)].filter(Boolean).join(" · ")) + "</p>"
-          : '<p class="st" style="color:var(--doux);font-size:13.5px;margin:6px 0 0">' + esc([dose ? String(dose).replace(".", ",") + " Gy" : "", nb ? nb + " fractions" : "", dpf ? String(dpf).replace(".", ",") + " Gy/fraction" : "", TECH[v.tech] || (v.vmat ? "VMAT" : ""), libRythme(v)].filter(Boolean).join(" · ")) + "</p>") +
-        (ouv ? '<div class="etapes">' + (v.scan ? etape("Scanner de centrage", v.scan, v.scan <= t) : "") +
-        // Contourage (09/10/2026) : validé par le médecin entre le scanner et la dosimétrie
-        (v.cont ? etape("Contourage validé", v.cont, true, okRT && peutDosi() && !v.dosi && !v.fin ? ' <a href="#" class="lienr" onclick="contRT(' + q + ',1);return false">annuler</a>' : "")
-          : cz ? etape(cz.retard ? '<span style="color:var(--rouge);font-weight:bold">Contourage à valider' + (v.deb && v.deb <= t ? " — radiothérapie commencée sans validation" : " — en retard") + "</span>" : "Contourage à valider", "", false, (cz.au !== cz.du ? " — du " + dfrA(cz.du) + " au " + dfrA(cz.au) : "") + (v.scan <= t && peutDosi() ? ' <button class="mini vert" style="margin-left:8px" onclick="contRT(' + q + ')"><svg class="pi"><use href="#i-check"/></svg>Valider le contourage</button>' : v.scan > t ? ' <span class="mesures">(à partir du scanner)</span>' : "")) : "") +
-        (v.dosi ? etape("Dosimétrie validée", v.dosi, true, okRT && peutDosi() && !v.fin ? ' <a href="#" class="lienr" onclick="dosiRT(' + q + ',1);return false">annuler</a>' : "") : (dz ? etape(dz.retard ? '<span style="color:var(--rouge);font-weight:bold">Dosimétrie à valider' + (v.deb && v.deb <= t ? " — radiothérapie commencée sans validation" : " — en retard") + "</span>" : "Dosimétrie à valider", "", false, (dz.au !== dz.du ? " — du " + dfrA(dz.du) + " au " + dfrA(dz.au) : "") + (peutDosi() ? ' <button class="mini vert" style="margin-left:8px" onclick="dosiRT(' + q + ')"><svg class="pi"><use href="#i-check"/></svg>Valider la dosimétrie</button>' : "")) : cz ? etape("Dosimétrie", "", false, ' <span class="mesures">(après le contourage)</span>') : "")) +
-        (v.deb ? etape("1re séance", v.deb, v.deb <= t) : "") +
-        (v.fin || f ? etape(v.fin ? "Fin de traitement" : "Fin de traitement prévue", v.fin || f, finFaite) : "") + "</div>" : "") + // étapes : seulement ouverte
-        (v.cj && ouv ? '<p class="st" style="color:var(--doux);font-size:13.5px;margin:2px 0 0">Consultation hebdomadaire le ' + JS[+v.cj] + (v.ch ? " à " + esc(v.ch) : "") + "</p>" : "") +
-        (c ? '<div style="margin-top:10px" title="Calcul d\'après le calendrier (les séances réelles sont suivies dans ARIA)"><b>Séances prévues à ce jour : ' + c.faites + " / " + c.nb + "</b> (" + c.pct + ' %)<div class="barre"><i style="width:' + c.pct + '%"></i></div></div>' : "") +
-        (v.note && ouv ? '<p class="sous" style="margin:8px 0 0">' + esc(v.note) + "</p>" : "") +
-        '<div class="actr" style="justify-content:flex-start;margin-top:12px">' + (okRT ? '<button class="mini" onclick="ouvrirRT(' + q + ')">Modifier</button>' + (v.deb ? (v.fin ? '<button class="mini" onclick="terminerRT(' + q + ',1)">Rouvrir</button>' : '<button class="mini v" onclick="terminerRT(' + q + ')">Terminé</button>') : "") : "") +
-        (v.acte && peut("documents") ? boutonDoc(x, v, "pli", "Pli confidentiel") : "") +
-        (v.deb && nb && peut("documents") ? boutonDoc(x, v, "cr", "Compte rendu de fin") + boutonDoc(x, v, "rdv", "Rendez-vous") : "") + "</div></div>";
-    });
-    ong.push({ k: "rt", ic: "radiation", lib: "Radiothérapie", n: (P.rts || []).length, h: hr });
-  }
-
-  // Documents (droit « documents », 08/10/2026) : fichiers déposés (PDF, Word, photos…), voir fichiers.js
-  if (peut("documents") && fnOn("documents.depot")) { const hf = htmlFichiers(x); ong.push({ k: "doc", ic: "document", lib: "Documents", n: nbFichiers(x), h: hf }); }
-
-  // Le dossier s'ouvre sur Consultation (sur Chimiothérapie pour l'infirmière) ; l'onglet choisi reste affiché quand le
-  // dossier se réaffiche après un enregistrement
-  if (ong.length) {
-    const act = [ONGLET[x.id], D.membre.role === "infirmiere" ? "ch" : "co"].find((k) => ong.some((o) => o.k === k)) || ong[0].k;
-    h += '<section class="carte onglets"><div class="o-barre" role="tablist" aria-label="Dossier">' + ong.map((o) => '<button role="tab" id="og-' + o.k + '" aria-controls="op-' + o.k + '" aria-selected="' + (o.k === act) + '"' + (o.k === act ? ' class="on"' : "") + ' onclick="ongletDossier(\'' + x.id + "','" + o.k + '\')"><svg class="pi" aria-hidden="true"><use href="#i-' + o.ic + '"/></svg>' + o.lib + (o.n ? '<span class="n">' + o.n + "</span>" : "") + "</button>").join("") + "</div>" +
-      // Chimiothérapie et radiothérapie : défilement intérieur à la hauteur de l'écran, pour que le dossier ne s'allonge pas (11/10/2026)
-      ong.map((o) => '<div class="o-pan' + (o.k === "ch" || o.k === "rt" ? " defile" : "") + (o.k === act ? "" : " cache") + '" id="op-' + o.k + '" role="tabpanel" aria-labelledby="og-' + o.k + '">' + o.h + "</div>").join("") + "</section>";
-  }
-
-  // Rendez-vous à venir, juste au-dessus des consultations passées (décision du 08/10/2026)
-  h += hRdv;
+  const ligneAv = (v) => '<div class="rdv">' + (absenceLe(v.d) ? '<span class="badge b-al"><svg class="pi"><use href="#i-stop"/></svg>' + absentMedecin(medecinFiche().genre) + "</span>" : ferieLe(v.d) ? '<span class="badge b-al">Férié</span>' : "") + '<span class="badge ' + (v.retard ? "b-al" : "b-co") + '">' + (v.d ? dfr(v.d) : "—") + (v.f && v.f !== v.d ? " → " + dfr(v.f) : "") + (v.h ? " " + v.h : "") + "</span><span>" + v.em + '</span><div class="tx">' + esc(v.t) + (v.rep && v.rep.length ? '<div class="mesures">Reporté (initialement le ' + dfrA(v.rep[0].d) + ")</div>" : "") + "</div>" + (v.act || "") + "</div>";
+  const hAvenir = (decede(P) && av.some((v) => v.d >= t) ? '<p class="al-band dc">Patient décédé' + (P.decesLe ? " le " + dfrA(P.decesLe) : "") + " : " + av.filter((v) => v.d >= t).length + " rendez-vous, séance(s) ou tâche(s) encore prévus, à annuler.</p>" : "") +
+    '<div class="rdv-liste" id="rdvListe">' + (av.length ? av.map(ligneAv).join("") : '<p class="sous">Aucun rendez-vous ni tâche à venir.</p>') + '</div><p class="mesures" style="margin:8px 0 0">Prochaine étape de chimiothérapie et de radiothérapie (automatique) et consultations programmées.</p>';
+  // Prochain rendez-vous (toujours visible) : rendez-vous, séance de chimio ou étape de RT, à partir d'aujourd'hui
+  const proch = av.find((v) => v.rdv && v.d >= t);
 
   // Consultations et hospitalisations : passées ou déjà validées (venu / non venu), avec le prix à encaisser (droit « encaissements »)
+  let hPasse = "", nPasse = 0, nAValider = 0;
   if (voitRdv()) {
     const prix = (v) => {
       if (EN && v.st === "absent") return '<span class="badge b-gr" title="Non venu : rien à encaisser">0 DH</span>';
@@ -1163,33 +1133,163 @@ function pageDossier(id) {
           const k = L.id + "|" + e.n + "|" + z.j, val = EN && EN.cons && EN.cons[k]; vus[k] = 1;
           if (val || z.d >= "2026-10-07") lignes.push({ d: z.d || "", h: "", c: { lid: L.id, n: e.n, j: z.j, lib: pn, v: val } }); }); }); });
     if (EN) Object.entries(EN.cons || {}).forEach(([k, val]) => { if (vus[k]) return; const p3 = k.split("|"); lignes.push({ d: val.d || "", h: "", c: { lid: p3[0], n: +p3[1], j: +p3[2], lib: val.lib, v: val } }); });
-    lignes.sort((p, q) => (q.d + q.h).localeCompare(p.d + p.h));
-    h += '<section class="carte"><h3><span class="ic">' + ic("agenda") + '</span>Consultations et hospitalisations</h3>' + (EN === undefined ? '<p class="mesures">Chargement des prix…</p>' : "") +
+    lignes.sort((p, q) => (q.d + q.h).localeCompare(p.d + p.h)); nPasse = lignes.length;
+    nAValider = lignes.filter((z) => (z.v && (z.v.st || "prevu") === "prevu") || (z.c && !z.c.v)).length; // repère orange sur la partie repliée
+    hPasse = (EN === undefined ? '<p class="mesures">Chargement des prix…</p>' : "") +
       (lignes.length ? lignes.map(({ v, c, d }) => {
         if (c) return '<div class="rdv"><span class="badge b-gr">' + (d ? dfrA(d) : "—") + '</span><div class="tx"><b>Chimiothérapie</b><div class="mesures">' + esc((c.lib || "") + " · C" + c.n + " J" + c.j) + "</div></div>" +
           (c.v ? '<span class="badge b-ch">Venu</span><span class="badge ' + (aEncaisser(c.v.mode) ? "b-or" : "b-ch") + '" title="Prix validé">' + (c.v.m != null ? fmtMil(c.v.m) + " DH" : "—") + (aEncaisser(c.v.mode) ? " · à encaisser" : "") + "</span>" + (aEncaisser(c.v.mode) && payeCabinet(x) && (peut("finances") || prixParServeur()) ? b("Encaisser", "chVenuChimio('" + x.id + "','" + c.lid + "'," + c.n + "," + c.j + ",true)", "v") : "") + (c.v.mode && !aEncaisser(c.v.mode) && c.v.m > 0 ? b("Reçu", "recuCons('" + x.id + "','" + c.lid + "|" + c.n + "|" + c.j + "')") : "") + (peut("finances") ? '<div class="actr">' + b("Annuler le statut", "chAnnulerVenuChimio('" + x.id + "','" + c.lid + "'," + c.n + "," + c.j + ")") + "</div>" : prixParServeur() ? '<div class="actr">' + b("Modifier le prix", "chVenuChimio('" + x.id + "','" + c.lid + "'," + c.n + "," + c.j + ")") + "</div>" : "")
             : '<span class="badge b-or">À valider</span>' + (peut("finances") || prixParServeur() ? '<div class="actr">' + b("Venu", "chVenuChimio('" + x.id + "','" + c.lid + "'," + c.n + "," + c.j + ")", "v") + "</div>" : "")) + "</div>";
         const s = (v.st || "prevu") === "prevu" ? ["À valider", "b-or"] : ST_RDV[v.st] || [v.st, "b-gr"];
         return '<div class="rdv"><span class="badge b-gr">' + dfrA(v.d) + (v.h ? " " + v.h : "") + '</span><div class="tx"><b>' + esc(libRdv(v)) + "</b>" + (v.mo ? '<div class="mesures">Motif : ' + esc(v.mo) + "</div>" : "") + (v.n ? '<div class="mesures">' + esc(v.n) + "</div>" : "") + (v.rep && v.rep.length ? '<div class="mesures">Reporté (initialement le ' + dfrA(v.rep[0].d) + ")</div>" : "") + '</div><span class="badge ' + s[1] + '">' + s[0] + "</span>" + prix(v) + actionsRdv(v) + "</div>";
-      }).join("") : '<p class="vide-c">Aucune consultation passée.</p>') + "</section>";
+      }).join("") : '<p class="vide-c">Aucune consultation passée.</p>');
   }
-  h += bullesDossier(x); // patient en consultation (salle d'attente) : bulles Valider / Retour en salle
-  h += bulleRcp(x); // dossier ouvert depuis la liste des RCP : Décision RCP · Valider · Fermer
-  const pos = $("rdvListe") ? $("rdvListe").scrollTop : 0;
-  const posO = {}; ["ch", "rt"].forEach((k) => { const e = $("op-" + k); if (e && D.dossierDefile === x.id) posO[k] = e.scrollTop; }); D.dossierDefile = x.id; // même dossier redessiné : on reste au même endroit
-  $("page").innerHTML = h;
-  Object.keys(posO).forEach((k) => { const e = $("op-" + k); if (e) e.scrollTop = posO[k]; });
-  limiterHauteur("rdvListe", 5); if ($("rdvListe")) $("rdvListe").scrollTop = pos;
+  // Fiche : chaque partie montre tous ses champs (lecture), « Modifier » ouvre le même éditeur qu'avant
+  const okMod = peut("identite") || peut("fichePatient") || traitMod(), fiche = ficheP.partiesLecture(x);
+  const partie = (k, lib, n, corps, av) => '<details class="dp" data-p="' + k + '"' + (partieOuverte(k) ? " open" : "") + ' ontoggle="dosPartie(this)"><summary><span class="dp-t">' + lib + "</span>" + (av ? '<span class="badge b-or dp-av">' + av + " à valider</span>" : "") + (n != null ? '<span class="n">' + n + "</span>" : "") + '</summary><div class="dp-c">' + corps + "</div></details>";
+  const pat = (allergique(P) ? "" : !P.allergie && alTxt && !/^aucune?\b/i.test(alTxt) ? '<p class="mesures dp-al">Allergies notées (« ' + esc(alTxt.slice(0, 60)) + ' ») : précisez « Allergie connue : oui / non » dans la fiche (Modifier) pour le bandeau.</p>' : "") +
+    '<div class="resume"><div class="entete"><label for="nTxt" style="flex:1">Résumé du patient</label>' + (okN ? '<span class="mesures" id="nEtat">' + (NOTES.pid === x.id && NOTES.txt != null ? "Modifications en cours…" : "") + "</span>" : "") + "</div>" +
+    (okN ? '<textarea id="nTxt" class="notes" placeholder="Quelques phrases de résumé : histoire, antécédents, points d\'attention…" oninput="notesSaisie(\'' + x.id + '\',this);hauteurResume(this)" onblur="sauverNotesMaintenant()">' + esc(NOTES.pid === x.id && NOTES.txt != null ? NOTES.txt : P.notes || "") + "</textarea>"
+      : (P.notes ? '<div class="notes lecture">' + esc(P.notes) + "</div>" : '<p class="sous">Aucun résumé.</p>')) + "</div>" +
+    '<div class="dp-proch"><span class="lbl">Prochain rendez-vous</span>' + (proch ? '<span class="badge ' + (proch.retard ? "b-al" : "b-co") + '">' + dfr(proch.d) + (proch.h ? " " + proch.h : "") + "</span><span class=\"tx\">" + esc(proch.t) + "</span>" : '<span class="mesures">Aucun</span>') + "</div>" +
+    '<div class="dp-outils"><button type="button" class="mini" id="dpTout" onclick="dosTout()">Tout déplier</button></div>' +
+    partie("avenir", "Rendez-vous et tâches à venir", av.length, hAvenir) +
+    (voitRdv() ? partie("passe", "Consultations et hospitalisations", nPasse, hPasse, nAValider) : "") +
+    PARTIES_D.slice(2).map(([k, lib]) => (fiche[k] ? partie(k, lib === "Identité et administratif" ? lib : fiche.libs[k] || lib, fiche.n[k], fiche[k] + (okMod ? '<div class="actr" style="justify-content:flex-start;margin-top:8px"><button class="mini" onclick="modifierIdentite(' + qx + ')">Modifier</button></div>' : "")) : "")).join("");
+
+  // ───── Centre Travail : Consultation · Chimiothérapie · Radiothérapie · Documents, selon les droits ─────
+  const ong = [];
+  // Consultation : tout le monde (l'infirmière en lecture seule, décision du 07/10/2026)
+  { const hc = htmlConsultations(x); ong.push({ k: "co", ic: "stetho", lib: "Consultation", court: "Consult.", n: nbConsultations(x), h: hc }); }
+  // Chimiothérapie
+  if (voit("traitements")) ong.push({ k: "ch", ic: "seringue", lib: "Chimiothérapie", court: "Chimio", n: (P.lignes || []).length, h: htmlChimio(x) || '<p class="vide-c">Aucune ligne de chimiothérapie.</p>' });
+  // Radiothérapie
+  // (l'infirmière, radiothérapie « patients sous chimio » ailleurs, voit l'onglet en lecture pour tous ses patients : 07/10/2026)
+  const okRT = traitModRT(), voitRT = voitRTdossier(x) || D.membre.droits.radiotherapie === "chimio";
+  if (peut("documents")) docsDe(x, () => { if (D.page === "dossier/" + encodeURIComponent(x.id)) pageDossier(x.id); }); // documents RT enregistrés (boutons cochés)
+  if (voitRT) ong.push({ k: "rt", ic: "radiation", lib: "Radiothérapie", court: "RT", n: (P.rts || []).length, h: htmlRT(x, okRT) });
+  // Documents (droit « documents », 08/10/2026) : fichiers déposés (PDF, Word, photos…), voir fichiers.js
+  const okDoc = peut("documents") && fnOn("documents.depot");
+  if (okDoc) { const hf = htmlFichiers(x); ong.push({ k: "doc", ic: "document", lib: "Documents", court: "Docs", n: nbFichiers(x), h: hf }); }
+  // Le dossier s'ouvre sur Consultation (sur Chimiothérapie pour l'infirmière) ; l'onglet choisi reste affiché quand le
+  // dossier se réaffiche après un enregistrement
+  let trav = "";
+  if (ong.length) {
+    const act = [ONGLET[x.id], D.membre.role === "infirmiere" ? "ch" : "co"].find((k) => ong.some((o) => o.k === k)) || ong[0].k;
+    trav = '<section class="carte onglets"><div class="o-barre" role="tablist" aria-label="Dossier">' + ong.map((o) => '<button role="tab" id="og-' + o.k + '" aria-controls="op-' + o.k + '" aria-selected="' + (o.k === act) + '"' + (o.k === act ? ' class="on"' : "") + ' onclick="ongletDossier(\'' + x.id + "','" + o.k + '\')"><svg class="pi" aria-hidden="true"><use href="#i-' + o.ic + '"/></svg>' + '<span class="lg">' + o.lib + '</span><span class="sm">' + o.court + "</span>" + (o.n ? '<span class="n">' + o.n + "</span>" : "") + "</button>").join("") +
+      (okDoc ? '<button type="button" class="dos-agr" onclick="dosAgrandir()" aria-pressed="' + DOS.agrandi + '" title="' + (DOS.agrandi ? "Réduire : rendre sa place à la colonne Documents" : "Agrandir : le centre prend la place de la colonne Documents") + '" aria-label="Agrandir le centre">' + ic("colonnes") + "</button>" : "") + "</div>" +
+      ong.map((o) => '<div class="o-pan' + (o.k === act ? "" : " cache") + '" id="op-' + o.k + '" role="tabpanel" aria-labelledby="og-' + o.k + '">' + o.h + "</div>").join("") + "</section>";
+  }
+
+  // ───── Colonne Documents : visionneuse (le document le plus récent) ─────
+  const sw = okDoc ? '<div class="dos-sw" role="tablist" aria-label="Colonne de droite"><button type="button" role="tab" data-k="pat" onclick="dosDroite(\'pat\')">Patient</button><button type="button" role="tab" data-k="docs" onclick="dosDroite(\'docs\')">Documents' + (nbFichiers(x) ? '<span class="n">' + nbFichiers(x) + "</span>" : "") + "</button></div>" : "";
+  const docs = okDoc ? sw + htmlVisionneuse(x) : "";
+
+  // ───── Barre d'actions : ordonnances (nombre déjà faites dessous), RCP, rendez-vous, tâche ; à droite : salle d'attente, RCP ─────
+  const bb = (ico, lg, sm, fn, attr) => '<div class="pr"' + (attr || "") + '><button type="button" onclick="' + fn + '" title="' + esc(lg) + '"><svg class="pi"><use href="#i-' + ico + '"/></svg><span class="lg">' + lg + '</span><span class="sm">' + sm + "</span></button></div>";
+  const barre = '<div class="br-g">' +
+    // 19/10/2026 (demande de Dr Bentahila) : « Nouvelle ligne » (chimio) et « + Prescription » (RT) restent dans leurs onglets, comme
+    // « Nouvelle consultation » : la barre tient sur une ligne
+    boutonsPrescription(x) + '<span class="br-sep"></span>' +
+    (okR ? bb("agenda", "+ Rendez-vous", "+ RDV", "ouvrirRdv(" + qx + ")") : "") + bb("taches", "+ Tâche", "+ Tâche", "taNouvelle(" + qx + ")", ' data-mod="taches"') +
+    '</div><div class="br-d" id="barreDroite">' + bullesDossier(x) + bulleRcp(x) + "</div>";
+
+  const Z = { bandeau: ban, patient: (okDoc ? sw : "") + pat, travail: trav, documents: docs, barre };
+  const cls = "dos" + (okDoc ? "" : " sans-docs") + (DOS.agrandi ? " agrandi" : "") + (DOS.droite === "docs" && okDoc ? " d-docs" : "") + (visionneuseGrande() ? " docs-grand" : "");
+  const d0 = $("dos");
+  if (d0 && d0.dataset.pid === x.id && $("page").contains(d0)) {
+    // Même dossier redessiné : chaque zone remplacée seule ; défilement de chaque zone, de la page et curseur gardés ; la visionneuse n'est
+    // rechargée que si la liste des documents a changé
+    const act = document.activeElement, aid = act && act.id && d0.contains(act) ? act.id : null, sel = aid && act.selectionStart != null ? [act.selectionStart, act.selectionEnd] : null, y = window.scrollY;
+    d0.className = cls + (panneauOuvert() ? " pn-ouv" : "");
+    d0.querySelectorAll(":scope > [data-zone]").forEach((z) => {
+      const k = z.dataset.zone; if (!(k in Z)) return;
+      if (k === "documents" && z.dataset.sig === sigVisionneuse(x) && z.innerHTML) { const s = z.querySelector(".dos-sw"); if (s && sw) s.outerHTML = sw; return; }
+      const pos = z.scrollTop, inner = {}; z.querySelectorAll("[data-defile]").forEach((e) => { inner[e.dataset.defile] = e.scrollTop; });
+      z.innerHTML = Z[k]; if (k === "documents") z.dataset.sig = sigVisionneuse(x);
+      z.scrollTop = pos; z.querySelectorAll("[data-defile]").forEach((e) => { if (e.dataset.defile in inner) e.scrollTop = inner[e.dataset.defile]; });
+    });
+    window.scrollTo(0, y);
+    if (aid) { const e = $(aid); if (e && document.activeElement !== e) { e.focus({ preventScroll: true }); if (sel) try { e.setSelectionRange(sel[0], sel[1]); } catch (er) { /* champ sans curseur */ } } }
+  } else {
+    $("page").innerHTML = '<div class="dos-cq"><div class="' + cls + '" id="dos" data-pid="' + esc(x.id) + '">' +
+      '<section class="dos-ban carte" data-zone="bandeau" aria-label="Patient : ' + esc(r.nm) + '">' + ban + "</section>" +
+      '<section class="dos-pat" data-zone="patient" aria-label="Fiche du patient" tabindex="0">' + Z.patient + "</section>" +
+      '<section class="dos-trav" data-zone="travail" aria-label="Travail" tabindex="0">' + trav + "</section>" +
+      '<section class="dos-docs" data-zone="documents" aria-label="Documents du patient" tabindex="0" data-sig="' + esc(sigVisionneuse(x)) + '">' + docs + "</section>" +
+      '<nav class="dos-barre" data-zone="barre" aria-label="Actions du dossier">' + barre + "</nav>" +
+      '<div class="dos-pn" id="panneau" role="region" aria-label="Chimiothérapie ou radiothérapie" hidden><div class="pn-corps" id="panneauCorps"></div></div></div></div>';
+  }
+  const dd = $("dos"); dd.querySelectorAll(".dos-sw button").forEach((bt) => { const on = bt.dataset.k === (DOS.droite === "docs" && okDoc ? "docs" : "pat"); bt.classList.toggle("on", on); bt.setAttribute("aria-selected", on); });
+  majToutDeplier(); const nt = $("nTxt"); if (nt) window.hauteurResume(nt);
+  if (okDoc) apresVisionneuse(x);
   majPresenceDossier(); // collègues qui ont ce dossier ouvert
+}
+// Résumé : la hauteur suit le texte
+window.hauteurResume = (z) => { z.style.height = "auto"; z.style.height = Math.max(z.scrollHeight + 2, 90) + "px"; };
+// Onglet Radiothérapie du centre
+function htmlRT(x, okRT) {
+  const { P } = x, ctx = D.ctx, t = D.t;
+  const JS = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"], TECH = { stereo: "Stéréotaxie", vmat: "VMAT", imrt: "IMRT", "3d": "3D" };
+  let hr = okRT ? '<div class="entete"><button class="bt clair petit" onclick="ouvrirRT(\'' + x.id + '\')">' + ic("plus") + "Prescription</button></div>" : "";
+  if (!(P.rts || []).length) hr += '<p class="vide-c">Aucune prescription de radiothérapie.</p>';
+  // Une seule radiothérapie ouverte (11/10/2026) : la plus récente à l'ouverture du dossier ; les autres fermées (titre, dose, séances,
+  // boutons ; sans les étapes)
+  if (RTO.pid !== x.id) { RTO.pid = x.id; RTO.id = (P.rts || []).length ? P.rts[P.rts.length - 1].id : null; }
+  (P.rts || []).slice().reverse().forEach((v) => {
+    const ouv = RTO.id === v.id;
+    const s = statutRT(v, ctx), f = finRT(v, ctx.feries), c = compteurRT(v, ctx), cls = s.c === "fin" ? "b-ch" : s.c === "cours" ? "b-rt" : s.c === "dep" ? "b-or" : "b-co";
+    const nb = parseInt(v.nb, 10), dose = parseFloat(String(v.dose || "").replace(",", ".")), dpf = dose && nb ? Math.round((dose / nb) * 100) / 100 : null, q = "'" + x.id + "','" + v.id + "'";
+    const etape = (lib, d, fait, plus) => '<div class="etape' + (fait ? " fait" : "") + '"><span class="ck">' + (fait ? ic("check") : "") + "</span>" + lib + (d ? " — " + dfrA(d) : "") + (plus || "") + "</div>";
+    const finFaite = !!v.fin || (f && f < t);
+    const dz = dosimetrie(v, t), cz = contourage(v, t); // périodes à valider : contourage (scanner → 1re séance), puis dosimétrie (contourage → 1re séance)
+    hr += '<div class="rt' + (ouv ? " on" : "") + '"><div class="tl" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;cursor:pointer" onclick="rtTog(' + q + ')" title="' + (ouv ? "Refermer" : "Voir les étapes") + '"><b style="font-size:16px;color:var(--titre)">' + (ouv ? "▾ " : "▸ ") + esc(v.acte || "Radiothérapie") + (nbA(v) > 1 ? " × " + nbA(v) : "") + '</b><span class="badge ' + cls + '">' + ({ fin: '<svg class="pi"><use href="#i-check"/></svg>', cours: '<i class="dot v"></i>', dep: '<i class="dot o"></i>', prev: '<svg class="pi"><use href="#i-horloge"/></svg>' }[s.c] || "") + esc(s.lib) + "</span>" + (v.hop ? '<span class="badge b-gr">' + esc(v.hop) + "</span>" : "") + (v.intent ? '<span class="badge b-gr">' + (v.intent === "curative" ? "Curative" : "Palliative") + "</span>" : "") + "</div>" +
+      // 3.5 (12/10/2026) : volumes (principal et compléments) et rythme
+      (Array.isArray(v.vol) && v.vol.length ? '<p class="st" style="color:var(--doux);font-size:13.5px;margin:6px 0 0">' + volumesRT(v).map((z, n, l) => esc(texteVolume(z, l))).join("<br>") + "<br>" + esc([nb ? nb + " séances" : "", TECH[v.tech] || (v.vmat ? "VMAT" : ""), libRythme(v)].filter(Boolean).join(" · ")) + "</p>"
+        : '<p class="st" style="color:var(--doux);font-size:13.5px;margin:6px 0 0">' + esc([dose ? String(dose).replace(".", ",") + " Gy" : "", nb ? nb + " fractions" : "", dpf ? String(dpf).replace(".", ",") + " Gy/fraction" : "", TECH[v.tech] || (v.vmat ? "VMAT" : ""), libRythme(v)].filter(Boolean).join(" · ")) + "</p>") +
+      (ouv ? '<div class="etapes">' + (v.scan ? etape("Scanner de centrage", v.scan, v.scan <= t) : "") +
+      // Contourage (09/10/2026) : validé par le médecin entre le scanner et la dosimétrie
+      (v.cont ? etape("Contourage validé", v.cont, true, okRT && peutDosi() && !v.dosi && !v.fin ? ' <a href="#" class="lienr" onclick="contRT(' + q + ',1);return false">annuler</a>' : "")
+        : cz ? etape(cz.retard ? '<span style="color:var(--rouge);font-weight:bold">Contourage à valider' + (v.deb && v.deb <= t ? " — radiothérapie commencée sans validation" : " — en retard") + "</span>" : "Contourage à valider", "", false, (cz.au !== cz.du ? " — du " + dfrA(cz.du) + " au " + dfrA(cz.au) : "") + (v.scan <= t && peutDosi() ? ' <button class="mini vert" style="margin-left:8px" onclick="contRT(' + q + ')"><svg class="pi"><use href="#i-check"/></svg>Valider le contourage</button>' : v.scan > t ? ' <span class="mesures">(à partir du scanner)</span>' : "")) : "") +
+      (v.dosi ? etape("Dosimétrie validée", v.dosi, true, okRT && peutDosi() && !v.fin ? ' <a href="#" class="lienr" onclick="dosiRT(' + q + ',1);return false">annuler</a>' : "") : (dz ? etape(dz.retard ? '<span style="color:var(--rouge);font-weight:bold">Dosimétrie à valider' + (v.deb && v.deb <= t ? " — radiothérapie commencée sans validation" : " — en retard") + "</span>" : "Dosimétrie à valider", "", false, (dz.au !== dz.du ? " — du " + dfrA(dz.du) + " au " + dfrA(dz.au) : "") + (peutDosi() ? ' <button class="mini vert" style="margin-left:8px" onclick="dosiRT(' + q + ')"><svg class="pi"><use href="#i-check"/></svg>Valider la dosimétrie</button>' : "")) : cz ? etape("Dosimétrie", "", false, ' <span class="mesures">(après le contourage)</span>') : "")) +
+      (v.deb ? etape("1re séance", v.deb, v.deb <= t) : "") +
+      (v.fin || f ? etape(v.fin ? "Fin de traitement" : "Fin de traitement prévue", v.fin || f, finFaite) : "") + "</div>" : "") + // étapes : seulement ouverte
+      (v.cj && ouv ? '<p class="st" style="color:var(--doux);font-size:13.5px;margin:2px 0 0">Consultation hebdomadaire le ' + JS[+v.cj] + (v.ch ? " à " + esc(v.ch) : "") + "</p>" : "") +
+      (c ? '<div style="margin-top:10px" title="Calcul d\'après le calendrier (les séances réelles sont suivies dans ARIA)"><b>Séances prévues à ce jour : ' + c.faites + " / " + c.nb + "</b> (" + c.pct + ' %)<div class="barre"><i style="width:' + c.pct + '%"></i></div></div>' : "") +
+      (v.note && ouv ? '<p class="sous" style="margin:8px 0 0">' + esc(v.note) + "</p>" : "") +
+      '<div class="actr" style="justify-content:flex-start;margin-top:12px">' + (okRT ? '<button class="mini" onclick="ouvrirRT(' + q + ')">Modifier</button>' + (v.deb ? (v.fin ? '<button class="mini" onclick="terminerRT(' + q + ',1)">Rouvrir</button>' : '<button class="mini v" onclick="terminerRT(' + q + ')">Terminé</button>') : "") : "") +
+      (v.acte && peut("documents") ? boutonDoc(x, v, "pli", "Pli confidentiel") : "") +
+      (v.deb && nb && peut("documents") ? boutonDoc(x, v, "cr", "Compte rendu de fin") + boutonDoc(x, v, "rdv", "Rendez-vous") : "") + "</div></div>";
+  });
+  return hr;
 }
 // Après un enregistrement : la page en cours est réaffichée (salle d'attente ou dossier)
 function reafficher(id) { if (String(D.page || "").indexOf("salle") === 0) pageSalle(); else pageDossier(id); }
-// Zone qui défile : hauteur exacte des n premières lignes (elles n'ont pas toutes la même hauteur, surtout sur téléphone)
-function limiterHauteur(id, n) {
-  const z = $(id); if (!z) return; const L = z.children;
-  if (L.length <= n) { z.style.maxHeight = ""; z.classList.remove("defile"); return; }
-  z.style.maxHeight = (L[n - 1].offsetTop + L[n - 1].offsetHeight - L[0].offsetTop + 2) + "px"; z.classList.add("defile");
+
+// ───── Panneau de chimiothérapie et de radiothérapie (R-G e) : à la place du centre et de la colonne Documents, le bandeau, la colonne
+// Patient et la barre restent visibles ; jumeau de fenetre(html, "large") (mêmes boutons, mêmes champs) ; sans grille (téléphone, tablette) :
+// la fenêtre large d'avant. Ordonnances, courriers et petites questions : la fenêtre au-dessus ; en la fermant, on retrouve le panneau tel quel.
+const panneauOuvert = () => { const p = $("panneau"); return !!p && !p.hidden; };
+const petiteOuverte = () => !$("fenetre").classList.contains("cache");
+function panneau(html) {
+  if (!grilleDossier() || !$("panneauCorps")) { fenetre(html, "large"); return; }
+  if (petiteOuverte()) fermerPetite();
+  const p = $("panneau"), deja = panneauOuvert();
+  $("panneauCorps").innerHTML = html; p.hidden = false; $("dos").classList.add("pn-ouv"); PN.sale = false; // le corps reste le même élément : défilement gardé
+  if (!deja) { const f = p.querySelector("input:not([type=date]),select,textarea"); if (f) setTimeout(() => f.focus({ preventScroll: true }), 50); }
 }
+// Fermer le panneau ; changements non enregistrés : « Quitter sans enregistrer ? » (rien n'est bloqué)
+function fermerPanneau(force) {
+  const p = $("panneau"); if (!p || p.hidden) return true;
+  if (PN.sale && !force && !confirm("Quitter sans enregistrer ?")) return false;
+  p.hidden = true; $("panneauCorps").innerHTML = ""; PN.sale = false; const d = $("dos"); if (d) d.classList.remove("pn-ouv");
+  PN.apres.forEach((f) => { try { f(); } catch (e) { console.warn("panneau", e); } });
+  return true;
+}
+document.addEventListener("input", (ev) => { if (ev.target && ev.target.closest && ev.target.closest("#panneau")) PN.sale = true; });
+// Bouton d'enregistrement du panneau : ce qui suit n'est plus « non enregistré » (en cas d'échec, l'erreur reste affichée dans le panneau)
+document.addEventListener("click", (ev) => { if (ev.target && ev.target.closest && ev.target.closest("#panneau #fOk, #panneau #rSup")) PN.sale = false; }, true);
+function fermerPetite() { $("fenetre").classList.add("cache"); $("fenetreCorps").innerHTML = ""; }
 
 // ───── Modifier l'identité ─────
 window.modifierIdentite = (id) => {
@@ -1641,7 +1741,7 @@ window.ouvrirRT = (id, rid) => {
   const l = JSON.parse(x.doc.rtsJson || "[]"), r0 = rid ? l.find((v) => v.id === rid) : null, R = r0 || { hop: x.doc.etablissementId, ryt: "1", nbA: 1 };
   const ch = (i, lib, v, o) => '<div class="' + ((o && o.large) ? "large" : "") + '"><label for="' + i + '">' + lib + '</label><input id="' + i + '" value="' + esc(v == null ? "" : v) + '"' + (o && o.type ? ' type="' + o.type + '"' : "") + (o && o.liste ? ' list="' + o.liste + '"' : "") + (o && o.mode ? ' inputmode="' + o.mode + '"' : "") + "></div>";
   const sel = (i, lib, v, opts, o) => '<div class="' + ((o && o.large) ? "large" : "") + '"><label for="' + i + '">' + lib + '</label><select id="' + i + '">' + opts.map((p) => '<option value="' + esc(p[0]) + '"' + (String(p[0]) === String(v == null ? "" : v) ? " selected" : "") + ">" + esc(p[1]) + "</option>").join("") + "</select></div>";
-  fenetre("<h3>" + (r0 ? "Modifier la prescription" : "Nouvelle prescription de radiothérapie") + " – " + esc(x.r.nm) + '</h3><div class="form">' +
+  panneau("<h3>" + (r0 ? "Modifier la prescription" : "Nouvelle prescription de radiothérapie") + " – " + esc(x.r.nm) + '</h3><div class="form">' +
     '<div class="large"><label for="rActe">Acte</label><select id="rActe"><option value="">— Choisir l\'acte —</option>' + listeActes(R.acte).map((a) => '<option' + (a === R.acte ? " selected" : "") + ">" + esc(a) + "</option>").join("") + "</select></div>" +
     sel("rHop", "Établissement", R.hop || "", [["", "—"]].concat(D.etabs.map((e) => [e.code, e.code + " – " + e.nom])), {}) + "<div></div>" +
     sel("rTech", "Technique", R.tech || "", [["", "—"], ["stereo", "Stéréotaxie"], ["vmat", "VMAT"], ["imrt", "IMRT"], ["3d", "3D"]], {}) + sel("rInt", "Intention", R.intent || "", [["", "—"], ["curative", "Curative"], ["palliative", "Palliative"]], {}) +
@@ -1832,8 +1932,11 @@ const menuReplie = (oui) => {
   const b = $("btReplier"), t = oui ? "Déplier le menu" : "Replier le menu"; b.title = t; b.setAttribute("aria-label", t);
   try { localStorage.setItem("onco360.menuReplie", oui ? "1" : "0"); } catch (e) { /* stockage indisponible : choix non gardé */ }
 };
-$("btReplier").onclick = () => menuReplie(!document.body.classList.contains("menu-replie"));
+$("btReplier").onclick = () => { if (D && String(D.page || "").indexOf("dossier/") === 0) window.dosMenu(); else menuReplie(!document.body.classList.contains("menu-replie")); }; // dans le dossier : choix du dossier seulement (R-G a)
 menuReplie(document.body.classList.contains("menu-replie"));
+// R-G b : hauteur de la barre du haut (la grille du dossier tient dans l'écran, sous cette barre)
+const majTete = () => document.documentElement.style.setProperty("--tete-h", $("tete").offsetHeight + "px");
+if (window.ResizeObserver) new ResizeObserver(majTete).observe($("tete")); majTete();
 $("menu").addEventListener("mouseover", (e) => {
   const a = e.target.closest("nav a, .sortie, .qui"); if (!a) return;
   const r = document.body.classList.contains("menu-replie");

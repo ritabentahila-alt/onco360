@@ -849,6 +849,173 @@ nav a.actif{box-shadow:var(--ombre-prim)}
 .edf .ch-f{border:1px dashed var(--prim);border-radius:var(--r-m);padding:12px;margin-top:10px;max-width:900px}
 .edf .barre{height:auto;background:none;overflow:visible;border-radius:0;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 @media (max-width:640px){.edf .rg-l{flex-wrap:wrap;gap:6px 10px}.edf .rg-t{flex-basis:calc(100% - 90px)}}
+/* ── Lot R-G (audit n° 5, 19/10/2026) : disposition du dossier patient ──
+   Cinq zones dans l'ordre du téléphone (bandeau, Patient, Travail, Documents, barre) + panneau de chimio / RT. Selon la largeur de la zone de
+   contenu (requêtes de conteneur : replier le menu la change) : ≥ 1 280 px trois colonnes, 940 à 1 279 px deux colonnes (droite : Patient /
+   Documents), dessous une colonne comme avant ; écran de moins de 640 px de haut : page qui défile. Thème inchangé. */
+#page.p-dos{padding:0;gap:0}
+.dos-cq{container:dos/inline-size}
+.dos{--dpx:36px;display:flex;flex-direction:column;gap:14px;padding:18px var(--dpx) 0}
+@media (max-width:1023px){.dos{--dpx:12px;padding-top:12px}}
+.dos>section{min-width:0}
+.dos-ban{padding:12px 16px}
+.bn1{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.bn-ret{font-size:var(--t3);gap:2px}.bn-ret .i{width:16px;height:16px}
+.bn-menu{width:32px;height:32px;flex:none;border:1px solid var(--trait);background:#fff;border-radius:var(--r-s);display:grid;place-items:center;color:var(--doux);padding:0}
+.bn-menu:hover{background:var(--prim-c);color:var(--prim)}.bn-menu .i{width:18px;height:18px}
+@media (max-width:1023px){.bn-menu{display:none}}
+.bn-ph{border:0;background:none;padding:0;border-radius:50%;cursor:pointer;flex:none}
+.av.ph-ban{width:40px;height:40px;font-size:14px}
+.av.ph-grand{width:min(320px,70vw);height:min(320px,70vw);border-radius:16px;font-size:60px}.av.ph-grand img{border-radius:16px}
+.bn-id{display:flex;align-items:baseline;gap:4px 10px;flex-wrap:wrap;min-width:0}
+.bn-id h2{margin:0;font-size:var(--t7);color:var(--titre);overflow-wrap:anywhere}
+.bn-m{color:var(--doux);font-size:var(--t4)}
+.bn-bd{display:flex;gap:6px;flex-wrap:wrap;align-items:center;min-width:0}
+.bn-al{display:inline-flex;align-items:center;gap:4px;max-width:100%;overflow:hidden;text-overflow:ellipsis}.bn-al .i{width:14px;height:14px;flex:none}
+.bn-bd .pres-dossier{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;font-size:var(--t3);border-radius:20px}.bn-bd .pres-dossier .pi{width:14px;height:14px}
+.bn-bt{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
+.bn2{display:flex;flex-wrap:wrap;row-gap:2px;margin-top:8px;padding-left:2px;font-size:var(--t3);color:var(--encre)}
+.bn2:empty{display:none}
+.bn-c{white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}.bn-c i{font-style:normal;color:var(--doux);margin-right:2px}.bn-c a{color:inherit}
+.bn-c+.bn-c::before{content:"·";color:var(--gris-m);margin:0 9px}
+.tp-age{font-size:var(--t4);color:var(--doux);font-weight:normal;margin-left:8px;white-space:nowrap}
+.tp-al{display:inline-flex;align-items:center;gap:3px;margin-left:8px;background:var(--rouge-c);color:var(--rouge);border-radius:20px;padding:2px 8px;font-size:var(--t2);vertical-align:middle;white-space:nowrap}.tp-al .i{width:12px;height:12px}
+@media (min-width:768px){.tp-age,.tp-al{display:none}}
+@media (max-width:767px){#tete h1{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#tete h1:has(.tp-n){display:flex;align-items:center}.tp-n{min-width:0;overflow:hidden;text-overflow:ellipsis}.tp-age,.tp-al{flex:none}}
+/* Colonne Patient */
+.dos-pat{display:flex;flex-direction:column;gap:10px;background:#fff;border:1px solid var(--gris-c);border-radius:var(--r-l);box-shadow:var(--ombre);padding:14px}
+.dos-pat .resume{margin:0;padding:0;border:0}
+.dos-pat .notes{min-height:90px;resize:none;overflow:hidden;font-size:var(--t4);margin-top:6px}
+.dp-al{margin:0;color:var(--orange)}
+.dp-proch{background:var(--prim-c);border-radius:var(--r-m);padding:10px 12px;display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;font-size:var(--t4)}
+.dp-proch .lbl{width:100%;font-size:var(--t2);font-weight:bold;color:var(--prim);text-transform:uppercase;letter-spacing:.04em}.dp-proch .tx{flex:1 1 140px;min-width:0;font-weight:bold;color:var(--titre)}
+.dp-outils{display:flex;justify-content:flex-end;margin-bottom:-4px}
+details.dp{border-top:1px solid var(--trait)}
+details.dp>summary{display:flex;align-items:center;gap:8px;padding:10px 2px;cursor:pointer;font-weight:bold;color:var(--titre);list-style:none;font-size:var(--t4)}
+details.dp>summary::-webkit-details-marker{display:none}
+details.dp>summary::before{content:"▸";color:var(--doux);font-size:var(--t2);width:10px}details.dp[open]>summary::before{content:"▾"}
+details.dp>summary .dp-av{margin-left:auto;font-size:var(--t1);padding:2px 8px}details.dp>summary .dp-av+.n{margin-left:6px}details.dp[open]>summary .dp-av{display:none}details.dp>summary .n{margin-left:auto;color:var(--doux);font-weight:normal;font-size:var(--t3)}
+.dp-c{padding:0 0 10px}
+.dos-pat .rdv{flex-wrap:wrap;font-size:var(--t3);gap:6px 8px}.dos-pat .rdv .tx{flex:1 1 140px}.dos-pat .rdv .actr{width:100%;justify-content:flex-start}
+.dp-f{display:grid;grid-template-columns:1fr;gap:8px}.dp-f label{display:block;font-size:var(--t2);color:var(--doux)}.dp-f b{font-weight:bold;white-space:pre-wrap;overflow-wrap:anywhere}
+.dp-f .allergie{background:#FFF1F1;border:1px solid #F3C4C4;border-radius:8px;padding:6px 10px}.dp-f .allergie b{color:#A1232B}
+@container dos (min-width:600px) and (max-width:939px){.dp-f{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* Colonne de droite à deux onglets (2 colonnes) */
+.dos-sw{display:none;gap:2px;border-bottom:1px solid var(--trait);margin:-4px 0 4px}
+.dos-sw button{border:0;border-bottom:3px solid transparent;background:none;padding:8px 12px;font-weight:bold;font-size:var(--t4);color:var(--doux);display:inline-flex;align-items:center;gap:6px}
+.dos-sw button.on{color:var(--prim);border-bottom-color:var(--prim)}.dos-sw .n{background:var(--gris-c);border-radius:20px;padding:0 7px;font-size:var(--t2)}
+/* Centre Travail : plus de hauteurs internes (c'est la colonne qui défile) */
+.dos .o-pan.defile{max-height:none;min-height:0;overflow:visible}
+.dos .cs-liste{max-height:none;overflow:visible;margin-top:8px}
+.o-barre .dos-agr{display:none;margin:auto 4px auto auto;border:1px solid var(--trait);border-radius:8px;padding:5px 10px;font-size:var(--t3);color:var(--encre);background:#fff}
+.o-barre .dos-agr:hover{background:var(--prim-c)}
+/* Consultations : lignes serrées, la dernière dépliée */
+.cs-outils{gap:8px;justify-content:flex-start!important}.cs-esp{flex:1}.cs-outils .mini{display:inline-flex;align-items:center;gap:5px}.cs-outils .mini .i,.cs-outils .mini .pi{width:14px;height:14px}
+.cs-ns{font-weight:normal;font-size:var(--t3);color:var(--doux)}.cs-ns input{width:16px;height:16px}
+.dos .cs{border:0;border-bottom:1px solid var(--gris-c);border-radius:0;margin:0;overflow:visible}
+.dos .cs.on{border:1px solid var(--prim-cc);border-radius:var(--r-m);margin:6px 0;overflow:hidden}
+.dos .cs-t{min-height:28px;padding:4px 8px;gap:10px;background:none;font-size:var(--t3);flex-wrap:nowrap}
+.dos .cs-t:hover{background:var(--fond-doux)}.dos .cs.on .cs-t{background:var(--prim-c);padding:7px 10px;font-size:var(--t4)}
+.dos .cs-t .dt{flex:none}
+.dos .cs-t .ti{flex:0 1 auto;max-width:34%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:normal;order:0;margin:0}
+.dos .cs.on .cs-t .ti{flex:1;max-width:none;font-weight:bold;white-space:normal}
+.dos .cs-t .ex{flex:1;min-width:0;color:var(--doux);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dos .cs-t .no{flex:none;display:inline-flex;align-items:center;gap:3px;background:var(--prim-c);color:var(--prim);border-radius:20px;padding:0 7px;font-size:var(--t1);font-weight:bold}.dos .cs-t .no .i{width:11px;height:11px}
+.dos .cs-t .in{flex:none;min-width:24px;text-align:right;color:var(--doux);font-size:var(--t2)}
+.dos .cs-c{padding:8px 12px 10px}
+.cs-nl{white-space:pre-wrap;font-size:var(--t4);line-height:1.5}
+.dos .cs-note{min-height:70px;resize:none;overflow:hidden}
+.cs-ex{margin-top:6px}.cs-x{font-size:var(--t4);margin-top:3px;white-space:pre-wrap}.cs-x .ck{color:var(--doux)}.cs-xs{font-weight:bold;color:var(--prim);font-size:var(--t3);margin-top:8px}
+.cs-o{list-style:none;margin:8px 0 0;padding:2px 0;background:var(--fond-doux);border-radius:8px}
+.cs-o li{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:5px 10px;font-size:var(--t3)}.cs-o .ck{color:var(--doux);min-width:70px}.cs-o .au{margin-left:auto;color:var(--doux)}
+.cs-pied{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px}.cs-pied .cs-sig{margin:0;flex:1 1 200px}.cs-pied .actr{margin-left:auto}
+.cs-plus{display:none}
+@container dos (max-width:939px){.cs-liste:not(.tous) .cs:nth-child(n+11){display:none}.cs-plus{display:inline-flex;margin-top:10px}}
+/* Colonne Documents : visionneuse */
+.dos-docs{display:none}
+.dv{display:flex;flex-direction:column;flex:1;min-height:0;background:#fff;border:1px solid var(--gris-c);border-radius:var(--r-l);box-shadow:var(--ombre);overflow:hidden}
+.dv-t{display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--trait)}
+.dv-nom{flex:1;min-width:0;display:flex;flex-direction:column}.dv-nom b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--titre);font-size:var(--t4)}.dv-nom .mesures{font-size:var(--t2)}
+.dv-bt{display:flex;gap:6px;position:relative;flex:none}.dv-mm{position:absolute;right:0;top:calc(100% + 6px);z-index:6}
+.dv-liste{border-bottom:1px solid var(--trait);padding:8px 10px;display:flex;flex-direction:column;max-height:50%;min-height:0}
+.dv-liste .recherche{min-width:0}.dv-l{overflow:auto;margin-top:8px;overscroll-behavior:contain}
+.dv-l .fi{width:100%;display:flex;align-items:center;gap:8px;text-align:left;background:#fff;border:1px solid var(--trait);border-radius:8px;margin:0 0 4px;padding:6px 9px;cursor:pointer;font-family:inherit;color:inherit;font-size:var(--t3)}
+.dv-l .fi:hover{border-color:#B7C8EA}.dv-l .fi.on{border-color:var(--prim);background:var(--prim-c)}.dv-l .fi b{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.dv-l .fi .d{flex:none;color:var(--doux)}
+.dv .dv-c{height:auto;flex:1;min-height:260px}
+.dv-vide{text-align:center;padding:36px 16px;color:var(--doux);display:flex;flex-direction:column;align-items:center;gap:8px}.dv-vide .i{width:34px;height:34px}
+/* Barre d'actions (collée en bas ; sur téléphone : défile de côté, rien caché derrière « Plus ») */
+.dos-barre{position:sticky;bottom:0;z-index:20;display:flex;align-items:center;gap:10px;background:#fff;border-top:1px solid var(--trait);margin:0 calc(-1 * var(--dpx));padding:8px var(--dpx) calc(8px + env(safe-area-inset-bottom));box-shadow:0 -4px 14px rgba(30,42,68,.05)}
+.br-g{display:flex;gap:6px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:thin;align-items:center;padding:2px 0}
+.br-g .pr{flex:none}.br-g .pr button{white-space:nowrap;padding:7px 8px;gap:5px}.br-g .pr .fl{padding:7px 5px}.br-sep{flex:none;width:1px;height:26px;background:var(--trait);margin:0 2px}
+.br-n{display:inline-block;background:var(--prim-c);color:var(--prim);border-radius:20px;padding:0 6px;font-size:var(--t1);font-weight:bold;margin-left:2px}
+.br-g .sm{display:none}.br-g .pi{display:none}.br-g .pr .fl{padding:7px 4px}.dos-barre .rcp-bulle .lbl .sm{display:none}
+.dos-trav .o-barre button{padding:11px 10px 9px;font-size:var(--t4)}
+.br-d{display:flex;gap:8px;align-items:center;flex:none}.br-d:empty{display:none}
+.dos-barre .sa-bulles{position:static;flex-direction:row;gap:8px;z-index:auto}
+.dos-barre .sa-b{flex-direction:row;align-items:center;gap:8px}
+.dos-barre .sa-b .lbl{box-shadow:none;font-size:var(--t2);padding:3px 10px}
+.dos-barre .sa-b .bt,.dos-barre .rcp-bulle .bt{border-radius:var(--r-m);padding:9px 14px;box-shadow:none}
+.dos-barre .rcp-bulle{position:static;width:auto;max-width:none;box-shadow:none;border:0;padding:0;flex-direction:row;align-items:center;gap:8px;background:none;z-index:auto}
+.dos-barre .rcp-bulle .lbl{display:flex;flex-direction:column;align-items:flex-start;gap:0;max-width:260px;font-size:var(--t3)}
+.dos-barre .rcp-bulle .lbl>.i{display:none}
+.dos-barre .rcp-bulle .q{max-height:none;max-width:250px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;font-size:var(--t2);color:var(--doux);background:none;padding:0}
+.dos-barre .rcp-bulle .bts{flex-wrap:nowrap}.dos-barre .rcp-bulle .bt .sm{display:none}.dos-barre .rcp-bulle .lbl>span:first-of-type{white-space:nowrap}
+@media (max-width:640px){
+  .br-g .lg{display:none}.br-g .sm{display:inline}.br-g .pr button{padding:10px 9px}.br-g .pi{display:inline-block}
+  .dos-barre{flex-wrap:wrap;gap:6px}.br-d{order:-1;width:100%;flex-wrap:wrap}.dos-barre .sa-bulles,.dos-barre .sa-b,.dos-barre .rcp-bulle{width:100%;flex-wrap:wrap}
+  .dos-barre .sa-b .lbl{width:auto}.dos-barre .sa-b .bt,.dos-barre .rcp-bulle .bt{flex:1;justify-content:center;min-height:44px}.dos-barre .rcp-bulle .lbl{max-width:none;width:100%}.dos-barre .rcp-bulle .bts{width:100%;flex-wrap:wrap}
+  .dos .cs-t .ti{max-width:40%}.dos .cs-t .ex{display:none}
+  .bn-bt{width:100%;display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr))}.bn-bt .bt{justify-content:center;min-height:40px}
+}
+/* 19/10/2026 (demande de Dr Bentahila) : onglets du centre et barre d'actions tiennent sur une ligne, sans défiler : libellés courts quand la
+   place manque (Consult., Chimio, RT, Docs ; Examens, + RDV), « Agrandir » en icône ; téléphone : la barre passe sur deux lignes */
+.dos-trav{container:trav/inline-size}
+.o-barre .sm{display:none}
+.dos-trav .o-barre{overflow:visible}.dos-trav .o-barre button[role=tab]{flex:0 1 auto;min-width:0}
+.o-barre .dos-agr{padding:5px 7px}.o-barre .dos-agr .i{width:17px;height:17px;margin:0}
+@container trav (max-width:640px){.dos-trav .o-barre .lg{display:none}.dos-trav .o-barre .sm{display:inline}.dos-trav .o-barre button[role=tab]{padding:11px 8px 9px;gap:5px}}
+@container trav (max-width:380px){.dos-trav .o-barre button[role=tab] .pi{display:none}}
+.br-g{overflow:visible;flex-wrap:wrap;row-gap:6px}.dos-barre{flex-wrap:wrap;row-gap:6px}.br-d{margin-left:auto}
+.dos-barre .sa-b .lbl .lg{display:inline}
+@container dos (max-width:1599px){.dos-barre .rcp-bulle .lbl .lg{display:none}.dos-barre .rcp-bulle .lbl .sm{display:inline}.dos-barre .rcp-bulle .q{display:none}.dos-barre .rcp-bulle .bt .lg{display:none}.dos-barre .rcp-bulle .bt .sm{display:inline}.dos-barre .rcp-bulle .bt{padding:8px 10px}.dos-barre .rcp-bulle .bt .i{display:none}}
+@container dos (max-width:1279px){.br-g .lg{display:none}.br-g .sm{display:inline}.dos-barre .sa-b .lbl .lg{display:none}.dos-barre .rcp-bulle .q{display:none}.br-g .pr button{padding:7px 6px}.br-g .pr .fl{padding:7px 3px}}
+@media (max-width:640px){.br-sep{display:none}.br-g .pr{flex:1 1 auto}.br-g .pr button:first-child{flex:1;justify-content:center}.br-d{margin-left:0}.o-barre .dos-agr{display:none}}
+/* Panneau de chimio et de RT (à la place du centre et de la colonne Documents) */
+.dos-pn{display:none}
+/* Ordinateur : grille qui tient dans l'écran, chaque colonne défile seule */
+@media (min-height:640px){
+  @container dos (min-width:940px){
+    .dos{--dpx:12px;display:grid;height:calc(100dvh - var(--tete-h,64px));padding:10px 12px 0;gap:10px 12px;grid-template-columns:minmax(0,1fr) minmax(340px,38%);grid-template-rows:auto minmax(0,1fr) auto;grid-template-areas:"ban ban" "trav droite" "barre barre"}
+    .dos-ban{grid-area:ban;padding:10px 14px}
+    .dos-trav{grid-area:trav}.dos-pat,.dos-docs{grid-area:droite}
+    .dos-barre{grid-area:barre;position:static}
+    .dos-pat,.dos-trav,.dos-docs{overflow-y:auto;min-height:0;overscroll-behavior:contain}
+    .dos-trav>.carte.onglets{min-height:100%}
+    .dos-trav .o-barre{position:sticky;top:-4px;background:#fff;z-index:4}
+    .dos-sw{display:flex}
+    .dos.d-docs .dos-pat{display:none}.dos.d-docs .dos-docs{display:flex;flex-direction:column}
+    .dos.sans-docs .dos-pat{display:flex}
+    .dos-trav .fi-split{grid-template-columns:1fr}.dos-trav .fi-v{display:none}.dos-trav .fi-g .fi-liste{height:auto}
+    .dos-pn{grid-column:1/-1;grid-row:2;min-height:0;display:flex;flex-direction:column;background:#fff;border:1px solid var(--prim-cc);border-radius:var(--r-l);box-shadow:var(--ombre);overflow:hidden;z-index:5}
+    .dos-pn[hidden]{display:none}
+    .pn-corps{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;padding:18px 20px}
+    .dos.pn-ouv .dos-trav,.dos.pn-ouv .dos-docs,.dos.pn-ouv .dos-pat{visibility:hidden}
+  }
+  @container dos (min-width:1280px){
+    .dos{grid-template-columns:300px minmax(500px,1fr) clamp(400px,calc((100cqw - 330px) * .4),760px);grid-template-areas:"ban ban ban" "pat trav docs" "barre barre barre"}
+    .dos .dos-pat,.dos.d-docs .dos-pat{grid-area:pat;display:flex}
+    .dos .dos-docs,.dos.d-docs .dos-docs{grid-area:docs;display:flex;flex-direction:column}
+    .dos .dos-sw{display:none}
+    .dos.docs-grand{grid-template-columns:300px minmax(320px,1fr) minmax(0,2fr)}
+    .dos.sans-docs{grid-template-columns:300px minmax(0,1fr);grid-template-areas:"ban ban" "pat trav" "barre barre"}
+    .dos.agrandi{grid-template-columns:300px minmax(0,1fr);grid-template-areas:"ban ban" "pat trav" "barre barre"}
+    .dos.agrandi .dos-docs{display:none}
+    .dos.agrandi .dos-trav .fi-split{grid-template-columns:minmax(200px,25%) minmax(0,1fr)}.dos.agrandi .dos-trav .fi-v{display:block}.dos.agrandi .dos-trav .fi-g .fi-liste{height:72vh}
+    .o-barre .dos-agr{display:inline-flex}
+    .dos-pn{grid-column:2/-1}
+    .dos.pn-ouv .dos-pat{visibility:visible}
+  }
+}
 </style>
 </head>
 <body>
@@ -900,6 +1067,7 @@ nav a.actif{box-shadow:var(--ombre-prim)}
   <symbol id="i-salle" viewBox="0 0 24 24"><path d="M6 3.5v9.5h11M6 13v7.5M17 13v7.5M6 17h11M17 8.5h-7.5a1.5 1.5 0 0 0-1.5 1.5v3"/><circle cx="15" cy="4.8" r="1.8"/></symbol>
   <symbol id="i-bulle" viewBox="0 0 24 24"><path d="M5 4h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-8l-5 4v-4H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"/></symbol>
   <symbol id="i-document" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7ZM14 2v4a2 2 0 0 0 2 2h4M10 9H8M16 13H8M16 17H8"/></symbol>
+  <symbol id="i-colonnes" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16M15.5 9.5 13 12l2.5 2.5"/></symbol>
   <symbol id="i-rcp" viewBox="0 0 24 24"><circle cx="12" cy="5.5" r="2.3"/><circle cx="4.8" cy="9" r="2"/><circle cx="19.2" cy="9" r="2"/><path d="M8 13.5a4 4 0 0 1 8 0M2.5 15.5a3 3 0 0 1 4.4-2.6M21.5 15.5a3 3 0 0 0-4.4-2.6M3 18.5h18M6 18.5V21M18 18.5V21"/></symbol>
 </svg>
 <aside id="menu" aria-label="Menu principal">
@@ -923,6 +1091,8 @@ nav a.actif{box-shadow:var(--ombre-prim)}
   </div>
 </aside>
 <div class="voile cache" id="voile"></div>
+<!-- R-G e : avant #zone, pour que les identifiants de la fenêtre (fOk, fErr…) passent avant ceux du panneau de chimio / RT -->
+<div id="fenetre" class="cache" role="dialog" aria-modal="true"><div class="boite" id="fenetreCorps"></div></div>
 
 <div id="zone">
   <header id="tete">
@@ -937,7 +1107,6 @@ nav a.actif{box-shadow:var(--ombre-prim)}
   <main id="page"><div class="chargement">Chargement de vos données…</div></main>
 </div>
 <div id="toast" class="cache" role="status"></div>
-<div id="fenetre" class="cache" role="dialog" aria-modal="true"><div class="boite" id="fenetreCorps"></div></div>
 <script>
 // Sécurité : si l'application ne démarre pas, on le dit clairement et on propose de se déconnecter
 setTimeout(function () { if (document.querySelector("#page .chargement")) document.getElementById("page").innerHTML = '<div id="secours"><h3>Onco360 n\'a pas pu démarrer</h3><p>Vérifiez la connexion Internet, puis rechargez la page. Si le problème continue, déconnectez-vous puis reconnectez-vous, ou prévenez l\'administrateur.</p><p style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap"><button class="bt plein" onclick="location.reload()">Recharger</button><button class="bt clair" id="btSecours" onclick="onco360Deconnecter()">Se déconnecter</button></p></div>'; var bs = document.getElementById("btSortie"); if (bs && document.getElementById("secours")) bs.onclick = onco360Deconnecter; }, 25000);
@@ -952,6 +1121,6 @@ function onco360Deconnecter() {
 }
 </script>
 
-<script type="module" src="./js/app/v2.js?v=20261019b"></script>
+<script type="module" src="./js/app/v2.js?v=20261019c"></script>
 </body>
 </html>

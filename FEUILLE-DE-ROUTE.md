@@ -544,6 +544,32 @@ types**, refus gardés) : R-A6 et R-E4 partent de là, sans les refaire.
 - [ ] **R-F7 « Recopier un cabinet » depuis une base restaurée** (d. 13 ; erreur qui abîme beaucoup de dossiers), après R-F2, même code.
 
 **Lot G – Audit n° 5 : disposition du dossier patient** (§ 6 ; **remplace l'étape 4.4** de la phase M ; maquettes revues les 13 et 17/10)
+**Fait le 19/10/2026 (R-G a à e en une session, demande de Dr Bentahila ; testé, pas encore en ligne)** : `pageDossier` (v2.js) = `.dos` à cinq
+zones `[data-zone]` (bandeau, patient, travail, documents, barre) + panneau `#panneau` ; CSS « Lot R-G » de v2.html (`@container dos`, `100dvh`,
+`--tete-h`) ; redessin zone par zone (défilement de chaque zone, de la page et curseur gardés ; visionneuse rechargée seulement si `sigVisionneuse`
+change). Bandeau : `ficheP.htmlBandeau` / `ligne1` (fichepatient.js), `ENTETE_CALC` / `ENTETE_CALC0` (catalogue.js : `_chimio`, `_rt`, `_sc`,
+`_locst` dans `entetes`), libellés courts `courts` (fiche ; serveur `ficheNettoyee`), départ `COURTS0` (Tél., Mut., Lieu…) ; **la case garde le nom
+« en-tête »** (demande du 19/10 : « personnalisable via la case en-tête »), bloc « En-tête du dossier (bandeau) » avec aperçu et avertissement dans
+l'éditeur ; flèche `dosMenu` (localStorage `onco360.menuReplieDossier`, `menuDossier` dans `route`) ; photo `dosPhoto` ; nom, âge, allergie dans
+la barre du haut (téléphone). Barre : `boutonsPrescription` (consultations.js, compteur `prescriptions.compteur`, fonction facultative),
+`bullesDossier` (salle.js : « Valider : venu » / « Fermer ») et `bulleRcp` (rcp.js) posés dans `#barreDroite` ; présence dans `#presSlot`.
+Colonne Patient : résumé (hauteur qui suit le texte), prochain rendez-vous, `<details class="dp">` (avenir, passe, id, med, tum ; `partiesLecture`),
+« Tout déplier », état gardé (localStorage `onco360.dossierParties`), départ `reglages().dossier.parties`. Consultations : lignes de 28 px
+(`ouvertes`, `OUVS`), dernière dépliée, **note dépliée en entier** (demande du 19/10 : plus de limite de 420 px), « Tout déplier », « Notes
+seulement », Imprimer (`csImprimer`), 10 dernières puis « Afficher les plus anciennes » sous 940 px. Panneau : `panneau(html)` / `fermerPanneau`
+(v2.js ; « Quitter sans enregistrer ? »), `fermerFenetre` ferme d'abord la petite fenêtre ; `#fenetre` placé avant `#zone` (identifiants `fOk`,
+`fErr` de la petite fenêtre trouvés d'abord) ; chimio.js (`ouvrirCure`, `dessinerNL`, `chProto`, `rafraichir`, `chFermerCure`) et `ouvrirRT` ;
+sans grille : fenêtre large d'avant. Visionneuse : `htmlVisionneuse` (fichiers.js : Documents (n), Agrandir deux tiers `visionneuseGrande`,
+menu ⋯ avec plein écran, nouvelle fenêtre, télécharger, modifier, supprimer). Paramètres › Dossier patient › **Affichage du dossier**
+(`affichage` de configuration.js ; secrétaire aussi) ; Paramètres › Impression : `fenRappel` (allergie et poids en haut de la fenêtre
+d'ordonnance). Guide : `guide/dossier-patient.md`. Tests : `tests/test_dossier_disposition.py` (59), `tests/test_dossier_boutons.py`
+(référence `dossier_boutons_ref.json` prise **avant** le lot : aucune action perdue, rôle par rôle) ; test_fiche, test_fiche_tumeur, test_salle
+adaptés. Choix faits par Claude : statut « En traitement » / « En surveillance » gardé dans la ligne 1 (gris ; décédé, perdu de vue en couleur) car il
+n'est pas un champ de la fiche (sinon il disparaissait) ; **19/10, demande de Dr Bentahila** : « Prescrire chimio / RT » retirés de la barre (« Nouvelle ligne » et « + Prescription » restent dans leurs
+onglets, comme « Nouvelle consultation ») ; barre et onglets du centre **sur une ligne, sans défiler** (libellés courts par requêtes de conteneur
+`dos` / `trav` ; « Agrandir » en icône ; mesuré de 1 366 à 1 920 px, RCP comprise ; 1 280 menu ouvert avec une RCP : 2 lignes ; téléphone : 2 à
+3 lignes, tout visible) ; pas de menu « … » ni de
+« Plus » (décisions du 17/10), malgré les maquettes.
 Cible sur ordinateur : un écran qui ne bouge pas (aujourd'hui à 1440 × 900 : 2 240 px de haut, 545 px d'en-tête avant les onglets, barre
 des prescriptions à 1 385 px) — **bandeau** collé en haut (2 lignes, ~90 px), **colonne Patient** à gauche (300 px), **centre Travail**
 (onglets d'aujourd'hui), **colonne Documents** à droite (visionneuse), **barre d'actions** collée en bas ; chaque colonne défile seule.
@@ -551,7 +577,7 @@ Selon la largeur de la zone de contenu (requêtes de conteneur ; ouvrir / replie
 ≥ 520 px, Documents ~40 % du reste entre 420 et 760 px) ; 940 à 1 279 px 2 colonnes (Travail · droite à onglets « Patient » / « Documents ») ;
 < 940 px une colonne comme aujourd'hui ; hauteur < 640 px : page qui défile, bandeau collé. Détail des zones, des notes, des paramètres
 et du code : § 6 de l'audit.
-- [ ] **R-G a (4.4 a) Bandeau et barre d'actions**, à toutes les largeurs. Bandeau ligne 1 : flèche qui replie le menu pour le dossier
+- [x] **R-G a (4.4 a) Bandeau et barre d'actions**, à toutes les largeurs. Bandeau ligne 1 : flèche qui replie le menu pour le dossier
       seulement (localStorage), photo 40 px agrandie au clic, NOM Prénom, âge, sexe, n° de dossier, allergie en rouge si « oui », statut
       décédé / perdu de vue, « Chimio C3/6 », « RT en cours », « Dossier ouvert par … » ; à droite Afficher, Journal, Modifier. Ligne 2 en
       petit : seulement les champs cochés « Dans le bandeau » (`fiche.entetes`, `ENTETE0`), poids = poids actuel daté (R-A5). Barre : Prescrire
@@ -562,21 +588,21 @@ et du code : § 6 de l'audit.
       tête du dossier » → **« Dans le bandeau »** (aperçu, avertissement au-delà d'une ligne, libellé court facultatif « Corresp. »,
       « Mut. », valeurs calculées à cocher : poids actuel, SC, « localisation et stade » ; ligne 1 : « Chimio en cours », « RT en cours »
       cochés par défaut), aussi dans Administration › Par spécialité.
-- [ ] **R-G b (4.4 b) Grille à colonnes** : `.dos` à cinq enfants dans l'ordre du téléphone (bandeau, patient, travail, documents, barre),
+- [x] **R-G b (4.4 b) Grille à colonnes** : `.dos` à cinq enfants dans l'ordre du téléphone (bandeau, patient, travail, documents, barre),
       `grid-template-areas` au-delà de 940 puis 1 280 px (`container-type: inline-size` sur `#page`, `@container`) ; hauteur `100dvh`,
       colonnes `overflow-y: auto`, `min-height: 0`, `overscroll-behavior: contain` ; barre = case de la grille (pas `position: fixed` ;
       `sticky` en bas sur téléphone) ; hauteurs internes retirées (`.cs-liste` 545 px, `limiterHauteur('rdvListe', 5)`, `.o-pan.defile`) ;
       sous 940 px : 10 dernières consultations puis « Afficher les plus anciennes ». **Redessin d'abord** : `pageDossier` (appelé 52 fois)
       note et remet le défilement de chaque zone `[data-zone]` et le curseur (second temps, avec 7.2 : zones redessinées seules dans
       `app/dossier.js`). Accessibilité : sections avec `aria-label`, zones qui défilent atteignables au clavier (`tabindex="0"`).
-- [ ] **R-G c (4.4 c) Contenu des colonnes** : colonne Patient = résumé (modifiable sur place, hauteur qui suit le texte) et prochain
+- [x] **R-G c (4.4 c) Contenu des colonnes** : colonne Patient = résumé (modifiable sur place, hauteur qui suit le texte) et prochain
       rendez-vous toujours visibles, puis parties dépliables avec compteur (Rendez-vous et tâches à venir ; Consultations et hospitalisations ;
       Identité et administratif ; Informations médicales ; Fiche tumeur ; une partie dépliée montre tous ses champs, même éditeur), « Tout
       déplier », parties ouvertes gardées pour chacun ; **notes de consultation** : fermée = une ligne de 28 px (date · type court · début
       de la note en gris · nombre d'ordonnances · initiales), ouverte = pleine largeur sans colonne de libellés, auteur une fois sur le titre,
       « Signée le … », Modifier, Supprimer ; à l'ouverture seule la dernière consultation est dépliée ; « + Nouvelle consultation » en tête,
       « Notes seulement », « Tout déplier », Imprimer, « Agrandir ».
-- [ ] **R-G e (4.4 e) Panneau de chimio et de RT, visionneuse** (après R-G b) : nouvelle ligne, cure, jour, protocole, prescription de RT
+- [x] **R-G e (4.4 e) Panneau de chimio et de RT, visionneuse** (après R-G b) : nouvelle ligne, cure, jour, protocole, prescription de RT
       s'ouvrent dans un **panneau** à la place du centre et de la colonne de droite (~1 000 px), bandeau, colonne Patient et barre visibles ;
       contenu et étapes inchangés (cure → jour → valider) ; `panneau(html)` jumeau de `fenetre(html, "large")`, identifiants propres à chaque
       conteneur (`fOk`, `fErr`…) ; écrans déplacés un par un ; ordonnances et courriers restent une fenêtre par-dessus (on retrouve la cure
@@ -585,7 +611,7 @@ et du code : § 6 de l'audit.
       étiquette, recherche, menu « Type »), Agrandir (deux tiers), Plein écran / Nouvelle fenêtre / Télécharger ; sans document « Déposer un
       document » ; l'onglet Documents du centre reste. Case de Paramètres › Impression : allergie et poids rappelés dans l'en-tête de la
       fenêtre d'ordonnance.
-- [ ] **R-G d (4.4 d) Réglages et finitions** : onglet **Paramètres › Dossier patient › Affichage du dossier** (pour le cabinet : parties
+- [x] **R-G d (4.4 d) Réglages et finitions** : onglet **Paramètres › Dossier patient › Affichage du dossier** (pour le cabinet : parties
       dépliées par défaut, titulaire ou secrétaire ; pour moi : taille de la visionneuse, « Rétablir » les largeurs) — rangé dans
       `parametres/reglages` (clé `dossier`, `REGLAGES0`) et `utilisateurs/{uid}.dossier`, aucune règle à changer ; Administration › fonctions :
       les fonctions « prescriptions » cachent les boutons de la barre, compteur sous les boutons = fonction facultative ; Agrandir, flèche du

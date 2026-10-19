@@ -254,18 +254,19 @@ window.rcpImprimer = () => {
   w.document.open(); w.document.write(html); w.document.close(); setTimeout(() => { w.focus(); w.print(); }, 400);
 };
 
-// ───── Dossier ouvert depuis la liste RCP : bulles Décision RCP · Valider · Fermer ─────
+// ───── Dossier ouvert depuis la liste RCP : Décision RCP · Valider · Fermer (barre d'actions du dossier) ─────
 let COURANT = null;
 window.rcpOuvrir = (id) => { const r = trouver(id); if (!r) return; if (!patient(r.patientId)) { A.toast("Ce dossier n'existe plus ou n'est pas dans vos établissements."); return; } COURANT = id; window.ouvrirDossier(r.patientId); };
 window.addEventListener("hashchange", () => { const r = COURANT && trouver(COURANT); if (r && location.hash !== "#dossier/" + encodeURIComponent(r.patientId)) COURANT = null; });
+// R-G a (audit n° 5, 19/10/2026) : plus de bulle flottante, la RCP (date, question, décision) et ses boutons sont à droite de la barre d'actions
 export function bulleRcp(x) {
   const r = COURANT && trouver(COURANT); if (!r || r.patientId !== x.id) return "";
   const esc = A.esc;
-  return '<div class="rcp-bulle" role="region" aria-label="RCP"><div class="lbl">' + A.ic("rcp") + "<span><b>RCP du " + A.dfrA(r.d) + "</b>" + (r.fait ? " · faite" : "") + '</span></div><div class="q">' + esc(r.q || "") + "</div>" +
-    (r.decisionTxt ? '<div class="q dec"><b>Décision :</b> ' + esc(r.decisionTxt) + "</div>" : "") +
-    '<div class="bts">' + (peutEcrire() ? '<button class="bt clair" onclick="rcpDecision()">' + A.ic(r.decision ? "crayon" : "plus") + (r.decision ? "Modifier la décision" : "Décision RCP") + "</button>" +
+  return '<div class="rcp-bulle" role="region" aria-label="RCP"><div class="lbl" title="' + esc((r.q || "") + (r.decisionTxt ? "\nDécision : " + r.decisionTxt : "")) + '">' + A.ic("rcp") + "<span><b><span class=\"lg\">RCP du " + A.dfrA(r.d) + '</span><span class="sm">RCP ' + A.dfrA(r.d).slice(0, 5) + "</span></b>" + (r.fait ? " · faite" : "") + '</span><span class="q">' + esc(r.q || "") + "</span>" +
+    (r.decisionTxt ? '<span class="q dec"><b>Décision :</b> ' + esc(r.decisionTxt) + "</span>" : "") + "</div>" +
+    '<div class="bts">' + (peutEcrire() ? '<button class="bt clair" onclick="rcpDecision()">' + A.ic(r.decision ? "crayon" : "plus") + (r.decision ? '<span class="lg">Modifier la décision</span><span class="sm">Décision</span>' : '<span class="lg">Décision RCP</span><span class="sm">Décision</span>') + "</button>" +
       '<button class="bt vert" onclick="rcpValider()"><svg class="i"><use href="#i-check"/></svg>Valider</button>' : "") +
-    '<button class="bt fonce" onclick="rcpFermer()"><svg class="i"><use href="#i-retour"/></svg>Fermer</button></div></div><div class="rcp-espace"></div>';
+    '<button class="bt fonce" onclick="rcpFermer()"><svg class="i"><use href="#i-retour"/></svg>Fermer</button></div></div>';
 }
 const retourListe = () => { COURANT = null; location.hash = "rcp"; };
 window.rcpFermer = () => retourListe();

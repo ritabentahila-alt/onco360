@@ -1,4 +1,5 @@
 import pathlib; __file__=str(pathlib.Path(__file__).resolve()); exec(open(pathlib.Path(__file__).parent/'base.py').read())
+# Lot G (19/10/2026) : sur ordinateur, la cure s'ouvre dans le panneau (#panneauCorps) ; une petite fenêtre (#fenetreCorps) passe devant
 # P6 (audit n° 3, 18/10/2026) : bouton « Ordonnances » de la séance de chimiothérapie : ordonnances liées au protocole cochées,
 # « Fièvre sous chimiothérapie » à la 1re cure, ordonnance réunie, modifiable, enregistrée dans la consultation du jour.
 ok_n = ko_n = 0
@@ -24,10 +25,10 @@ async def main():
         pg = await ouvrir(b, S2); ev = pg.evaluate
         await pg.goto(f'http://localhost:{PORT}/v2.html#dossier/{pid}'); await pg.wait_for_timeout(3500)
         await ev(f"chOuvrir('{pid}', {i}, 0, 1)"); await pg.wait_for_timeout(1200)
-        t = await pg.inner_text('#fenetreCorps')
+        t = await pg.inner_text(':is(#fenetreCorps,#panneauCorps):not(:empty)')
         ok('Ordonnances' in t and 'Ordonnances liées' in t and 'Seuils du jour' in t, 'séance : bouton « Ordonnances », ordonnances liées et seuils du protocole (repris de la bibliothèque)', t[-400:])
         await ev(f"chOrdos('{pid}', {i}, 0, 1)"); await pg.wait_for_timeout(1500)
-        t = await pg.inner_text('#fenetreCorps')
+        t = await pg.inner_text(':is(#fenetreCorps,#panneauCorps):not(:empty)')
         coche = await ev("[...document.querySelectorAll('[data-ot]:checked')].map(i=>i.parentNode.querySelector('b').textContent)")
         ok('Ordonnances du protocole' in t and 'Chimio : risque émétique modéré (oxaliplatine, irinotécan…)' in coche and 'Chimio – Capécitabine : mains-pieds et diarrhée' in coche, 'les deux ordonnances liées sont cochées', coche)
         ok('Chimio – Fièvre sous chimiothérapie : conduite à tenir' in coche, '1re cure : « Fièvre sous chimiothérapie » cochée aussi', coche)

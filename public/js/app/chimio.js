@@ -21,7 +21,7 @@ import { interactions, foie, arrondiFlacon, flaconsPour } from "../moteur/p10.js
 import { seuilsJour, hebdomadaire, SEUILS_HEBDO, risqueDe, libRisque } from "../moteur/seuils.js";
 
 let A = null; // outils fournis par l'application (v2.js)
-export function installer(api) { A = api; const f0 = window.fermerFenetre; window.fermerFenetre = () => { CM = null; f0(); }; }
+export function installer(api) { A = api; const f0 = window.fermerFenetre; window.fermerFenetre = () => { if (!A.petiteSurPanneau()) CM = null; f0(); }; A.surFermerPanneau(() => { CM = null; }); } // R-G e : une petite fenêtre fermée au-dessus du panneau garde la cure
 
 const RAISONS = ["Patient absent", "Neutropénie", "Thrombopénie", "Infection", "Toxicité", "Décision médicale", "Autre"];
 const D = () => A.D();
@@ -316,14 +316,14 @@ const groupes = (q) => { const g = seancesDe(q); return g.length ? g : [{ j: 1, 
 function ouvrirCure() {
   const x = CM && trouver(CM.pid); if (!x) return;
   if (A.peut("finances") && !MC[x.id]) { chargerMontants(x).then(() => { if (CM && CM.pid === x.id) ouvrirCure(); }); }
-  const corps = document.getElementById("fenetreCorps"), memeVue = CM.vue === CM.j + "|" + CM.k, sc = memeVue && corps ? corps.scrollTop : 0;
+  const corps = A.corpsLarge(), memeVue = CM.vue === CM.j + "|" + CM.k, sc = memeVue && corps ? corps.scrollTop : 0; // R-G e : panneau (ordinateur) ou fenêtre large
   CM.vue = CM.j + "|" + CM.k;
-  A.fenetre(CM.j == null ? vueCure(x, CM.i, CM.k) : vueJour(x, CM.i, CM.k, CM.j), "large");
+  A.panneau(CM.j == null ? vueCure(x, CM.i, CM.k) : vueJour(x, CM.i, CM.k, CM.j));
   setTimeout(() => { if (document.activeElement && corps.contains(document.activeElement)) document.activeElement.blur(); corps.scrollTop = sc; }, 70);
 }
 window.chJour = (j) => { if (!CM) return; CM.j = j; ouvrirCure(); };
 window.chRetourCure = () => { if (!CM) return; CM.j = null; ouvrirCure(); };
-window.chFermerCure = () => { const id = CM && CM.pid; CM = null; A.fermerFenetre(); if (id) A.pageDossier(id); };
+window.chFermerCure = () => { const id = CM && CM.pid; if (A.panneauOuvert()) { if (A.petiteSurPanneau()) A.fermerPetite(); if (!A.fermerPanneau()) return; } else A.fermerFenetre(); CM = null; if (id) A.pageDossier(id); }; // panneau : « Quitter sans enregistrer ? »
 window.chSousAnnuler = () => { if (CM) ouvrirCure(); else A.fermerFenetre(); };
 
 // 1) Vue de la cure : tableau des séances (J1, J8, J15…) avec leurs actions, fiche chimio, consultation encaissée.
@@ -447,7 +447,10 @@ function tableDoses(x, i, k, q, e, jours, qc, dis, d0) {
 }
 
 // ───── Navigation et exécution ─────
-const rafraichir = (x) => { const cm = CM; A.fermerFenetre(); A.pageDossier(x.id); if (cm && cm.pid === x.id) { CM = cm; ouvrirCure(); } };
+// R-G e : cure dans le panneau = le panneau reste (seule la petite fenêtre se ferme) ; autre écran du panneau enregistré = panneau fermé
+const rafraichir = (x) => { const cm = CM;
+  if (cm && cm.pid === x.id && A.panneauOuvert()) { if (A.petiteSurPanneau()) A.fermerPetite(); A.pageDossier(x.id); CM = cm; ouvrirCure(); return; }
+  A.fermerFenetre(); A.fermerPanneau(true); A.pageDossier(x.id); if (cm && cm.pid === x.id) { CM = cm; ouvrirCure(); } };
 window.chTog = (id, i) => { SEL.pid = id; SEL.l = SEL.l === i ? null : i; SEL.c = null; A.pageDossier(id); };
 window.chOuvrir = (id, i, k, j) => { const x = trouver(id), L = x && x.P.lignes[i]; if (!j && L && unSeulJour(L, k)) j = 1; SEL.pid = id; SEL.l = i; SEL.c = k; CM = { pid: id, i, k, j: j || null }; A.pageDossier(id); ouvrirCure(); };
 const boutons = (lib, cls) => '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="chSousAnnuler()">Annuler</button><button class="bt ' + (cls || "plein") + '" id="fOk">' + lib + "</button></div>";
@@ -969,16 +972,16 @@ window.chProto = (id, i) => {
   const x = trouver(id), L = x.P.lignes[i], okT = A.traitMod(), esc = A.esc;
   ED = JSON.parse(JSON.stringify(protocoleDe(L, D().ctx.bib)));
   if (!okT) {
-    A.fenetre("<h3>Protocole de la ligne " + (i + 1) + "</h3><p><b>" + esc(ED.nom) + '</b><br><span class="mesures">' + esc(ED.r || "") + '</span></p><div class="tableau"><table class="tcures"><tr><th>Produit</th><th>Posologie</th><th>Jours</th><th>Voie</th><th>Durée</th></tr>' + ED.dr.map((d) => "<tr><td>" + esc(d.p) + "</td><td>" + esc(poso(d)) + "</td><td>" + esc(d.jl || (d.j || []).filter((y) => y !== 99).map((y) => "J" + y).join(" ")) + "</td><td>" + esc(d.v || "") + "</td><td>" + esc(d.t || "") + "</td></tr>").join("") + '</table></div><div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Fermer</button></div>', "large");
+    A.panneau("<h3>Protocole de la ligne " + (i + 1) + "</h3><p><b>" + esc(ED.nom) + '</b><br><span class="mesures">' + esc(ED.r || "") + '</span></p><div class="tableau"><table class="tcures"><tr><th>Produit</th><th>Posologie</th><th>Jours</th><th>Voie</th><th>Durée</th></tr>' + ED.dr.map((d) => "<tr><td>" + esc(d.p) + "</td><td>" + esc(poso(d)) + "</td><td>" + esc(d.jl || (d.j || []).filter((y) => y !== 99).map((y) => "J" + y).join(" ")) + "</td><td>" + esc(d.v || "") + "</td><td>" + esc(d.t || "") + "</td></tr>").join("") + '</table></div><div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Fermer</button></div>');
     return;
   }
   REDRAW = () => {
-    A.fenetre("<h3>Protocole de la ligne " + (i + 1) + " — modifié pour ce patient uniquement</h3>" +
+    A.panneau("<h3>Protocole de la ligne " + (i + 1) + " — modifié pour ce patient uniquement</h3>" +
       '<div class="form" style="grid-template-columns:2fr 1fr"><div><label>Nom du protocole (schéma compris)</label><input value="' + esc(ED.nom) + '" onchange="edProp(\'nom\',this.value)"></div><div><label>Cycle (jours, 0 = continu)</label><input inputmode="numeric" value="' + esc(ED.c || 0) + '" onchange="edProp(\'c\',this.value)"></div>' +
       '<div class="large"><label>Rythme / observations</label><input value="' + esc(ED.r || "") + '" onchange="edProp(\'r\',this.value)"></div></div>' +
       '<h4 class="soustitre">Molécules</h4>' + tableMol() +
       '<div class="form" style="margin-top:12px"><div class="large"><label>Remarques (une par ligne)</label><textarea rows="3" onchange="edProp(\'no\',this.value)">' + esc((ED.no || []).join("\n")) + "</textarea></div></div>" +
-      '<p class="mesures">Unités : mg/m² × surface corporelle ; mg/kg × poids ; mg = dose fixe ; AUC = carboplatine (Calvert) ; « charge C1 / suite » : saisir par ex. 840/420 ; texte libre : affiché tel quel.</p>' + boutons("Enregistrer pour ce patient", "vert"), "large");
+      '<p class="mesures">Unités : mg/m² × surface corporelle ; mg/kg × poids ; mg = dose fixe ; AUC = carboplatine (Calvert) ; « charge C1 / suite » : saisir par ex. 840/420 ; texte libre : affiché tel quel.</p>' + boutons("Enregistrer pour ce patient", "vert"));
     document.getElementById("fOk").onclick = () => executer(x, async () => {
       edValide(); const lignes = lignesDe(x), L2 = lignes[i]; dedupIds(ED); L2.pr = ED;
       const ids = ED.dr.map((d) => d.id);
@@ -1040,7 +1043,7 @@ function dessinerNL() {
     h += '<div class="actr" style="justify-content:flex-start;margin-top:8px;flex-wrap:nowrap"><input id="nlQ" class="champ" style="flex:1;min-width:0" placeholder="Rechercher : molécule, protocole ou situation (ex. pertuzumab, sein adjuvant)…" value="' + esc(CF.q) + '">' +
       '<button class="bt ' + (CF.fav ? "plein" : "clair") + ' petit" onclick="nlFav()"><svg class="pi"><use href="#i-etoile"/></svg>Favoris</button><button class="bt gris petit" onclick="nlReinit()">Réinitialiser</button></div>' +
       '<div id="nlL" class="liste-protos">' + listeProtos() + '</div><div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button></div>';
-    A.fenetre(h, "large");
+    A.panneau(h);
     const q = document.getElementById("nlQ"); q.oninput = () => { CF.q = q.value; document.getElementById("nlL").innerHTML = listeProtos(); };
     if (CF.q) { q.focus(); q.setSelectionRange(q.value.length, q.value.length); }
     return;
@@ -1048,7 +1051,7 @@ function dessinerNL() {
   const p = D().ctx.bib[NL.p], auc = hasAUC(ED), P = x.P;
   const cl = auc ? clairance(age(P.ddn, NL.j1), num(NL.po), num(NL.cr), P.sexe, "mgL") : null;
   const ch = (lib, f, v, typ) => "<div><label>" + lib + '</label><input class="req"' + (typ === "date" ? ' type="date"' : ' inputmode="decimal"') + ' value="' + esc(v == null ? "" : v) + '" onchange="nlSet(\'' + f + "',this.value)\"></div>";
-  A.fenetre("<h3>Nouvelle ligne de traitement</h3>" +
+  A.panneau("<h3>Nouvelle ligne de traitement</h3>" +
     '<div class="bloc gris"><b>' + esc(p.nom) + '</b><br><span class="mesures">' + esc(p.r || "") + '</span> <button class="mini" onclick="nlChanger()">Changer de protocole</button>' +
       '<br><span class="mesures">Intention : <b>' + esc(libIntention(NL) || "non précisée") + '</b></span> <button class="mini" onclick="nlIntention()">Modifier</button></div>' +
     '<div class="form grille-nl" style="margin-top:12px">' + (ED.c ? ch("Nombre de cures *", "nb", NL.nb) : "") + ch("Date J1 *", "j1", NL.j1, "date") + ch("Poids (kg) *", "po", NL.po) +
@@ -1057,7 +1060,7 @@ function dessinerNL() {
     '<div><label>Dose des anticancéreux (%)</label><input inputmode="decimal" value="' + esc(NL.pct) + '" onchange="nlSet(\'pct\',this.value)"></div></div>' +
     (auc && !P.sexe ? '<p style="color:var(--rouge);font-size:13px"><svg class="pi"><use href="#i-alerte"/></svg>Renseigner le sexe du patient (Modifier l\'identité) pour calculer la clairance.</p>' : "") +
     '<h4 class="soustitre">Molécules <span class="mesures">(modifiables pour ce patient : + pour ajouter, − pour retirer)</span></h4>' + tableMol() +
-    boutons("Créer la ligne", "vert"), "large");
+    boutons("Créer la ligne", "vert"));
   document.getElementById("fOk").onclick = () => executer(x, async () => {
     const nb = ED.c ? parseInt(NL.nb, 10) : 1;
     if (!nb || !NL.j1 || !num(NL.po) || (auc && !num(NL.cr))) throw new Error("Merci de remplir les champs obligatoires (*).");
@@ -1073,7 +1076,7 @@ function dessinerNL() {
 // 12/10/2026 (signalé par Dr Bentahila : « la page se recharge, je n'arrive plus à choisir ») : un choix dans les menus ne redessine plus
 // toute la fenêtre (saisie, défilement et menu ouvert perdus, surtout sur téléphone) : seuls les menus et la liste des protocoles changent
 function majCascade() {
-  const zc = document.querySelector("#fenetre .cascade"), zl = document.getElementById("nlL");
+  const zc = document.querySelector("#panneau .cascade, #fenetre .cascade"), zl = document.getElementById("nlL");
   if (!zc || !zl || NL.p) { dessinerNL(); return; }
   if (CF.c && !CF.o) { const o = valeurs(1); if (o.length === 1) CF.o = o[0]; }
   zc.outerHTML = menusCascade(BIB(), CF, "nlChoixV"); zl.innerHTML = listeProtos();
@@ -1114,6 +1117,7 @@ window.nlSet = (f, v) => { if (f === "c") { ED.c = parseInt(v, 10) || 0; dessine
 
 // Avant la ligne : date de naissance, sexe, taille et poids sont nécessaires au calcul des doses
 window.chNouvelleLigne = (id) => {
+  CM = null; // R-G e : depuis la barre d'actions, une cure ouverte dans le panneau est remplacée
   const x = trouver(id), P = x.P, m = [];
   if (!P.ddn) m.push("ddn"); if (!P.sexe) m.push("sexe"); if (!num(P.taille)) m.push("taille"); if (!num(P.poids)) m.push("poids");
   const ouvrir = () => { NL = { pid: id, p: null }; CF = { c: "", o: "", s: "", g: "", q: "", fav: 0 }; dessinerNL(); };

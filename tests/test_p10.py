@@ -1,4 +1,5 @@
 import pathlib; __file__=str(pathlib.Path(__file__).resolve()); exec(open(pathlib.Path(__file__).parent/'base.py').read())
+# Lot G (19/10/2026) : sur ordinateur, la cure s'ouvre dans le panneau (#panneauCorps) ; une petite fenêtre (#fenetreCorps) passe devant
 # P10 (audit n° 3, 18/10/2026) : interactions, arrondi au flacon dans la séance, flacons dans Paramètres, liste de la pharmacie.
 import re
 ok_n = ko_n = 0
@@ -22,13 +23,13 @@ async def main():
         pg = await ouvrir(b, S2); ev = pg.evaluate
         await pg.goto(f'http://localhost:{PORT}/v2.html#dossier/{pid}'); await pg.wait_for_timeout(3500)
         await ev(f"chOuvrir('{pid}', {i}, {k}, 1)"); await pg.wait_for_timeout(1500)
-        t = await pg.inner_text('#fenetreCorps')
+        t = await pg.inner_text(':is(#fenetreCorps,#panneauCorps):not(:empty)')
         ok('INR' in t, 'encart Vigilance : interaction aprépitant (EMEND) + AVK signalée', t[-500:])
-        lien = await ev("[...document.querySelectorAll('#fenetreCorps a.lien')].map(a=>a.textContent).find(s=>/flacons de 3 mg/.test(s))||''")
+        lien = await ev("[...document.querySelectorAll(':is(#fenetreCorps,#panneauCorps):not(:empty) a.lien')].map(a=>a.textContent).find(s=>/flacons de 3 mg/.test(s))||''")
         ok(lien.startswith('≈ '), 'dose arrondie au flacon proposée à côté de la dose calculée', lien)
         dj = re.search(r'(\d{2})/(\d{2})/(\d{4})', t)
-        await ev("[...document.querySelectorAll('#fenetreCorps a.lien')].find(a=>/flacons de 3 mg/.test(a.textContent)).click()"); await pg.wait_for_timeout(1200)
-        v = await ev("[...document.querySelectorAll('#fenetreCorps input.saisi')].map(i=>i.value)")
+        await ev("[...document.querySelectorAll(':is(#fenetreCorps,#panneauCorps):not(:empty) a.lien')].find(a=>/flacons de 3 mg/.test(a.textContent)).click()"); await pg.wait_for_timeout(1200)
+        v = await ev("[...document.querySelectorAll(':is(#fenetreCorps,#panneauCorps):not(:empty) input.saisi')].map(i=>i.value)")
         ok(v and v[0] == lien.split(' ')[1], 'un clic applique la dose arrondie (case jaune = dose saisie)', (v, lien))
         ok(not pg.errs, 'aucune erreur JavaScript (séance)', pg.errs[:2])
         # Paramètres › Vigilance des molécules : carte des flacons
@@ -39,7 +40,7 @@ async def main():
         await ev("location.hash='salle'"); await pg.wait_for_timeout(1800)
         jour = f"{dj.group(3)}-{dj.group(2)}-{dj.group(1)}" if dj else ''
         await ev(f"saPharmacie('{jour}')"); await pg.wait_for_timeout(1500)
-        tf = await pg.inner_text('#fenetreCorps')
+        tf = await pg.inner_text(':is(#fenetreCorps,#panneauCorps):not(:empty)')
         ok('Pharmacie – séances du' in tf and ' mg' in tf and 'Flacons' in tf, 'Pharmacie : séances du jour, anticancéreux, doses et flacons', tf[:400])
         ok(not pg.errs, 'aucune erreur JavaScript', pg.errs[:2]); await pg.close(); await b.close()
     print(f'\n{ok_n} réussis, {ko_n} échoués')

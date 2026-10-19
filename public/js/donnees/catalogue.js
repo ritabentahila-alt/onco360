@@ -20,7 +20,7 @@ export const FONCTIONS = {
   salle: [["etats", "À venir, En salle, Vus, Absents", true], ["prix", "Prix payé d'avance"], ["passage", "Numéro de passage"], ["commentaire", "Commentaire du jour"], ["attente", "Temps d'attente (orange, rouge)"], ["colonnes", "Colonnes au choix"], ["bulles", "Bulles dans le dossier"]],
   taches: [["toutes", "Toutes les tâches de l'équipe"], ["types", "Types de tâches"], ["urgent", "Urgent, échéance"], ["fil", "Fil : historique et commentaires", true], ["reattribuer", "Réattribuer"], ["auto", "Tâches automatiques"], ["gagenda", "Échéances dans Google Agenda"]],
   rcp: [["inscription", "Inscription (question, date)", true], ["calendrier", "Calendrier des semaines", true], ["decision", "Décision, case Fait", true], ["impression", "Impression de la liste"]],
-  prescriptions: [["medic", "Médic."], ["exam", "Examens compl."], ["ordo", "Ordo. type"], ["analyse", "Analyses et bilans"], ["courrier", "Courriers"], ["doc", "Doc. (documentation remise)"], ["format", "Ordonnance A5 / A4 modifiable"], ["antecedents", "Antécédents (▾)"]],
+  prescriptions: [["medic", "Médic."], ["exam", "Examens compl."], ["ordo", "Ordo. type"], ["analyse", "Analyses et bilans"], ["courrier", "Courriers"], ["doc", "Doc. (documentation remise)"], ["format", "Ordonnance A5 / A4 modifiable"], ["antecedents", "Antécédents (▾)"], ["compteur", "Nombre d'ordonnances faites (barre du dossier)"]],
   documents: [["depot", "Dépôt de fichiers"], ["types", "Types de documents"], ["rt", "Pli, compte rendu, rendez-vous RT"]],
   gagenda: [["liaison", "Lier mon Google Agenda", true], ["filtre", "Ce que chacun y voit"], ["couleurs", "Couleurs par catégorie"]],
   listes: [["diag", "Diagnostics", true], ["mut", "Mutuelles", true], ["cor", "Correspondants"]],
@@ -30,7 +30,7 @@ export const FONCTIONS = {
 };
 // Fonctions déjà reliées à l'écran (ou au serveur) le 10/10/2026 ; les autres sont enregistrées mais pas encore appliquées (« bientôt »)
 export const FONCTIONS_RELIEES = ["prescriptions.medic", "prescriptions.exam", "prescriptions.ordo", "prescriptions.analyse", "prescriptions.courrier", "prescriptions.doc",
-  "prescriptions.format", "prescriptions.antecedents", "taches.auto", "taches.toutes", "taches.types", "taches.urgent", "taches.reattribuer", "taches.gagenda",
+  "prescriptions.format", "prescriptions.antecedents", "prescriptions.compteur", "taches.auto", "taches.toutes", "taches.types", "taches.urgent", "taches.reattribuer", "taches.gagenda",
   "rcp.impression", "bilan.exports", "bilan.filtres", "bilan.versements", "bilan.referents", "bilan.rtprev", "bilan.comptable",
   "agenda.whatsapp", "agenda.vues", "agenda.filtre", "agenda.horaires", "agenda.absences",
   "salle.prix", "salle.passage", "salle.commentaire", "salle.attente", "salle.colonnes", "salle.bulles",
@@ -68,6 +68,10 @@ export const FICHE = [
 // En tête du dossier (sous le nom du patient) au départ : ce qui y est aujourd'hui (10/10/2026) ; réglable champ par champ (entetes)
 export const ENTETE0 = ["ddn", "sexe", "taille", "poids", "diag", "diagP", "cin", "tel", "tel2", "etab", "ald", "cor", "mut"]; // diagP : précision (3.11, avant affichée avec le diagnostic)
 export const TOUJOURS_ENTETE = ["nom", "prenom"]; // le nom du patient : toujours en tête
+// R-G a (audit n° 5, 19/10/2026) : bandeau du dossier. Ligne 1 : « Chimio en cours », « RT en cours » ; ligne 2 : valeurs calculées proposées à
+// cocher (surface corporelle, localisation et stade). Rangées avec les champs dans entetes (clés commençant par « _ ») ; [clé, libellé, ligne]
+export const ENTETE_CALC = [["_chimio", "Chimio en cours (C3/6)", 1], ["_rt", "RT en cours", 1], ["_sc", "Surface corporelle", 2], ["_locst", "Localisation et stade", 2]];
+export const ENTETE_CALC0 = { _chimio: true, _rt: true, _sc: false, _locst: false };
 export const TYPES_CHAMP = [["texte", "Texte"], ["textelong", "Texte long (plusieurs lignes)"], ["nombre", "Nombre"], ["date", "Date"], ["choix", "Liste de choix"], ["ouinon", "Oui / Non"], ["ouinonp", "Oui / Non + précision"]];
 // 3.11 (12/10/2026) – chaque champ de la fiche a un type, affiché et modifiable par le cabinet (types), sauf ceux dont dépendent un calcul,
 // une liste du cabinet ou un format (FIXES : la raison affichée) ; « oui / non + précision » : case à remplir si « oui » (valeur : le texte
@@ -220,7 +224,9 @@ export function formEffectif(CAT, f, spe) {
   if (CAT === FICHE) { const en = {}, v = (k) => (x.entetes && typeof x.entetes[k] === "boolean" ? x.entetes[k] : s.entetes && typeof s.entetes[k] === "boolean" ? s.entetes[k] : undefined);
     FICHE.forEach(([k]) => { const b = v(k); en[k] = TOUJOURS_ENTETE.indexOf(k) >= 0 || (b === undefined ? ENTETE0.indexOf(k) >= 0 : b); });
     ajouts.forEach((a) => { const b = v(a.id); en[a.id] = b === undefined ? a.entete === true : b; });
-    out.entetes = en; }
+    ENTETE_CALC.forEach(([k]) => { const b = v(k); en[k] = b === undefined ? !!ENTETE_CALC0[k] : b; }); // R-G a : ligne 1 et valeurs calculées du bandeau
+    out.entetes = en;
+    const co = Object.assign({}, s.courts && typeof s.courts === "object" ? s.courts : {}, x.courts && typeof x.courts === "object" ? x.courts : {}); out.courts = {}; Object.keys(co).forEach((k) => { const t = String(co[k] || "").trim().slice(0, 14); if (t) out.courts[k] = t; }); } // R-G a : libellés courts du bandeau
   return out;
 }
 export const libDe = (CAT, k, R) => (R && R.libs && R.libs[k]) || ((CAT.find((c) => c[0] === k) || [])[1]) || k;
@@ -234,7 +240,7 @@ export function formRetouches(CAT, R, base) {
     if (ch0 && JSON.stringify((R.choixs || {})[k] || ch0) !== JSON.stringify((base.choixs || {})[k] || ch0)) cx[k] = (R.choixs || {})[k]; });
   // 3.11 : type, partie, impression, unité (fiche) : différences avec la spécialité ; champs de la spécialité retouchés : dans les mêmes tables
   if (CAT === FICHE) {
-    ["types", "sections", "imprimes", "unites"].forEach((n) => { const d = {}, r = R[n] || {}, b = base[n] || {}; Object.keys(r).forEach((k) => { if (JSON.stringify(r[k]) !== JSON.stringify(b[k])) d[k] = r[k]; }); if (Object.keys(d).length) out[n] = d; });
+    ["types", "sections", "imprimes", "unites", "courts"].forEach((n) => { const d = {}, r = R[n] || {}, b = base[n] || {}; Object.keys(r).forEach((k) => { if (JSON.stringify(r[k]) !== JSON.stringify(b[k])) d[k] = r[k]; }); if (Object.keys(d).length) out[n] = d; });
     Object.keys(R.types || {}).forEach((k) => { if (R.types[k] === "choix" && JSON.stringify((R.choixs || {})[k] || []) !== JSON.stringify((base.choixs || {})[k] || [])) cx[k] = (R.choixs || {})[k] || []; });
     R.ajouts.filter((a) => !a.cabinet).forEach((a) => { const b0 = (base.ajouts || []).find((z) => z.id === a.id); if (!b0) return; const met = (n, v) => { (out[n] = out[n] || {})[a.id] = v; };
       if (a.type !== b0.type) met("types", a.type); if ((a.unite || "") !== (b0.unite || "")) met("unites", a.unite || ""); if (!!a.imprimer !== !!b0.imprimer) met("imprimes", !!a.imprimer); });

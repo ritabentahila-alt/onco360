@@ -5,7 +5,7 @@
 // ordonnance : html = la feuille, med = médecin signataire), o (ordre de création), creePar, creeParNom, cree,
 // majPar, maj }. Lecture : tous les membres (périmètre) ; écriture : droit « ecrireConsultations » ; suppression : médecin (toutes), secrétaire
 // (celles qu'elle a créées).
-// Les prescriptions (barre en bas de l'onglet, indépendante des consultations) s'ajoutent en ligne dans la consultation du
+// Les prescriptions (barre d'actions du dossier depuis le lot R-G, indépendante des consultations) s'ajoutent en ligne dans la consultation du
 // jour : étapes 1C à 1E. Ici : créer, modifier, supprimer, plier / déplier.
 import { collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { db } from "../config.js";
@@ -70,74 +70,86 @@ function charger(x) {
     .catch((e) => { console.warn("consultations", e); CS[x.id] = null; });
 }
 // À l'ouverture du dossier : relire (une consultation a pu être ajoutée depuis un autre poste)
-export function oublierConsultations(pid) { delete CS[pid]; delete OUV[pid]; }
+export function oublierConsultations(pid) { delete CS[pid]; delete OUV[pid]; delete OUVS[pid]; delete NSEUL[pid]; delete PLUS[pid]; }
 export const nbConsultations = (x) => (CS[x.id] || []).length;
 export const datesConsultations = (pid) => (CS[pid] || []).map((c) => c.d).filter(Boolean); // dernières nouvelles (3.3)
 
 // ───── Onglet « Consultation » ─────
+// R-G c (audit n° 5, 19/10/2026) : « + Nouvelle consultation » en tête ; consultation fermée = une ligne serrée (date · type · début de la note ·
+// nombre d'ordonnances · initiales) ; ouverte = la note en pleine largeur, l'auteur une seule fois sur la ligne de titre ; à l'ouverture du
+// dossier, seule la dernière est dépliée ; « Tout déplier », « Notes seulement », Imprimer ; sur téléphone et tablette : les 10 dernières, puis
+// « Afficher les plus anciennes ». La barre des prescriptions est dans la barre d'actions du dossier (boutonsPrescription).
+const OUVS = {}, NSEUL = {}, PLUS = {}; // consultations dépliées (pid → Set), « Notes seulement », plus anciennes affichées (téléphone)
+const initiales = (n) => String(n || "").replace(/^(Dr|Pr|Mme|M)\.?\s+/i, "").split(/[\s-]+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
+const typeCourt = (c) => { const t = c.type ? nomActuel(TL(), c.type) : ""; return t.replace(/^Consultation (d'|de |en cours de )?/i, "").replace(/^\w/, (m) => m.toUpperCase()) || c.titre || "Consultation"; };
+function ouvertes(pid) {
+  const L = CS[pid] || [];
+  if (!OUVS[pid]) { if (!L.length) return new Set(); OUVS[pid] = new Set([L[0].id]); } // la plus récente (liste triée)
+  if (OUV[pid] && OUV[pid] !== "—") { OUVS[pid].add(OUV[pid]); delete OUV[pid]; } // celle qu'on vient d'ajouter ou de compléter
+  return OUVS[pid];
+}
 export function htmlConsultations(x) {
   const esc = A.esc, q = "'" + x.id + "'";
   if (!(x.id in CS)) { CS[x.id] = undefined; charger(x).then(() => { if (D().page === "dossier/" + encodeURIComponent(x.id)) A.pageDossier(x.id); }); }
-  const L = CS[x.id];
-  let h = peutEcrire() ? '<div class="entete"><button class="bt clair petit" onclick="csNouvelle(' + q + ')">' + A.ic("plus") + "Nouvelle consultation</button></div>" : "";
+  const L = CS[x.id], ns = !!NSEUL[x.id];
+  let h = '<div class="entete cs-outils">' + (peutEcrire() ? '<button class="bt clair petit" onclick="csNouvelle(' + q + ')">' + A.ic("plus") + "Nouvelle consultation</button>" : "") +
+    (L && L.length ? '<span class="cs-esp"></span><label class="chk cs-ns"><input type="checkbox" onchange="csNotesSeules(' + q + ')"' + (ns ? " checked" : "") + ">Notes seulement</label>" +
+      (ns ? "" : '<button type="button" class="mini" onclick="csTout(' + q + ')">' + (L.every((c) => ouvertes(x.id).has(c.id)) ? "Tout replier" : "Tout déplier") + "</button>") +
+      '<button type="button" class="mini" onclick="csImprimer(' + q + ')">' + A.ic("imprimer") + "Imprimer</button>" : "") + "</div>";
   if (L === undefined) return h + '<p class="sous" style="margin:2px 0 0">Chargement des consultations…</p>';
   if (L === null) return h + '<p class="sous" style="margin:2px 0 0;color:var(--rouge)">Les consultations n\'ont pas pu être lues. Rechargez la page.</p>';
-  if (!L.length) return h + '<p class="vide-c">Aucune consultation.' + (peutEcrire() ? " « Nouvelle consultation » pour en ajouter une." : "") + "</p>" + barre(x);
+  if (!L.length) return h + '<p class="vide-c">Aucune consultation.' + (peutEcrire() ? " « Nouvelle consultation » pour en ajouter une." : "") + "</p>";
   setTimeout(apresAffichage, 0);
-  const ouv = ouverte(x.id);
-  // Liste dans une zone qui défile (environ 10 consultations fermées visibles), la plus récente en haut
-  h += (L.length > 10 ? '<p class="mesures" style="margin:6px 0 0">' + L.length + " consultations : faites défiler la liste pour voir les plus anciennes.</p>" : "") + '<div class="cs-liste" id="csListe">';
+  const ouv = ouvertes(x.id);
+  h += '<div class="cs-liste' + (PLUS[x.id] ? " tous" : "") + (ns ? " ns" : "") + '" id="csListe" data-defile="cs">';
   L.forEach((c) => {
-    const on = c.id === ouv, qc = q + ",'" + c.id + "'";
-    h += '<div class="cs' + (on ? " on" : "") + '"><button class="cs-t" aria-expanded="' + on + '" onclick="csTog(' + qc + ')"><span class="fl">' + (on ? "▾" : "▸") + '</span><span class="dt">' + A.dfrA(c.d) + '</span><span class="ti">' + esc(nomCs(c)) + '</span><span class="au">' + esc(c.creeParNom || "") + "</span></button>";
-    if (on) {
+    const on = ns || ouv.has(c.id), qc = q + ",'" + c.id + "'", nl = (c.lignes || []).length, debut = String(c.note || "").replace(/\s+/g, " ").trim();
+    h += '<div class="cs' + (on ? " on" : "") + '"><button class="cs-t" aria-expanded="' + on + '" onclick="csTog(' + qc + ')" title="' + esc(A.dfrA(c.d) + " · " + nomCs(c) + (c.creeParNom ? " · " + c.creeParNom : "")) + '"><span class="fl">' + (on ? "▾" : "▸") + '</span><span class="dt">' + A.dfrA(c.d) + '</span><span class="ti">' + esc(on ? nomCs(c) : typeCourt(c)) + "</span>" +
+      (on ? '<span class="au">' + esc(c.creeParNom || "") + "</span>" : '<span class="ex">' + esc(debut) + "</span>" + (nl ? '<span class="no" title="' + nl + " ordonnance" + (nl > 1 ? "s" : "") + '">' + A.ic("document") + nl + "</span>" : "") + '<span class="in" title="' + esc(c.creeParNom || "") + '">' + esc(initiales(c.creeParNom)) + "</span>") + "</button>";
+    if (on && ns) h += '<div class="cs-c">' + (c.note ? '<div class="cs-nl">' + esc(c.note) + "</div>" : '<span class="mesures">Pas de note.</span>') + "</div>";
+    else if (on) {
       // Note : écrite directement dans la consultation ouverte, enregistrée toute seule (11/10/2026) ; « Modifier » pour le reste
       const noteH = peutEcrire() ? '<textarea class="cs-note" id="csN-' + c.id + '" rows="3" placeholder="Écrire la note de consultation…" aria-label="' + esc(lib("note")) + '" oninput="csNote(' + qc + ')" onblur="csNoteFin(' + qc + ')">' + esc(c.note || "") + '</textarea><span class="mesures cs-etat" id="csE-' + c.id + '"></span>'
-        : c.note ? esc(c.note) : '<span class="mesures">—</span>';
-      h += '<div class="cs-c"><table class="cs-l">' + (FORM().champs.note !== false || c.note ? "<tr><th>" + esc(lib("note")) + "</th><td>" + noteH + '</td><td class="au">' + esc(c.creeParNom || "") + "</td></tr>" : "") + htmlExtra(c) +
-        (c.lignes || []).map((l) => "<tr><th>" + esc(libLigne(l.t)) + "</th><td>" + (l.html ? '<button class="lien-l" title="Voir, modifier ou réimprimer l\'ordonnance" onclick="ordVoir(' + qc + ",'" + l.id + '\')">' + esc(l.lib || "Ordonnance") + "</button>" : l.t === "doc" && l.docId ? '<button class="lien-l" title="Rouvrir le document remis" onclick="docOuvrirLigne(\'' + esc(l.docId) + '\')">' + esc(l.lib || "") + "</button>" : esc(l.lib || "")) + '</td><td class="au">' + esc(l.par || "") + "</td></tr>").join("") + "</table>";
-      h += htmlSignature(c);
-      if (peutEcrire()) {
-        h += '<div class="actr" style="justify-content:flex-start;margin-top:10px"><button class="mini" onclick="csModifier(' + qc + ')">Modifier</button>' + (peutSupprimer(c) ? '<button class="mini r" onclick="csSupprimer(' + qc + ')">Supprimer</button>' : "") + "</div>";
-      }
-      h += "</div>";
+        : c.note ? '<div class="cs-nl">' + esc(c.note) + "</div>" : "";
+      // nom de la note (« Conclusion »…) : au-dessus quand le formulaire a d'autres champs ou que la note a été renommée
+      const ex = htmlExtra(c), libN = (ex || (FORM().libs || {}).note) && (FORM().champs.note !== false || c.note) ? '<div class="cs-xs">' + esc(lib("note")) + "</div>" : "";
+      h += '<div class="cs-c">' + (FORM().champs.note !== false || c.note ? libN + noteH : "") + ex +
+        ((c.lignes || []).length ? '<ul class="cs-o">' + c.lignes.map((l) => "<li><span class=\"ck\">" + esc(libLigne(l.t)) + "</span>" + (l.html ? '<button class="lien-l" title="Voir, modifier ou réimprimer l\'ordonnance" onclick="ordVoir(' + qc + ",'" + l.id + '\')">' + esc(l.lib || "Ordonnance") + "</button>" : l.t === "doc" && l.docId ? '<button class="lien-l" title="Rouvrir le document remis" onclick="docOuvrirLigne(\'' + esc(l.docId) + '\')">' + esc(l.lib || "") + "</button>" : esc(l.lib || "")) + (l.par && l.par !== c.creeParNom ? '<span class="au">' + esc(l.par) + "</span>" : "") + "</li>").join("") + "</ul>" : "") +
+        '<div class="cs-pied">' + htmlSignature(c) + (peutEcrire() ? '<div class="actr"><button class="mini" onclick="csModifier(' + qc + ')">Modifier</button>' + (peutSupprimer(c) ? '<button class="mini r" onclick="csSupprimer(' + qc + ')">Supprimer</button>' : "") + "</div>" : "") + "</div></div>";
     }
     h += "</div>";
   });
-  return h + "</div>" + barre(x);
+  return h + "</div>" + (L.length > 10 && !PLUS[x.id] ? '<button type="button" class="mini cs-plus" onclick="csPlusAnciennes(' + q + ')">Afficher les plus anciennes (' + (L.length - 10) + ")</button>" : "");
 }
-// Champs ajoutés d'une consultation (lecture) : un titre de section n'apparaît que s'il est suivi d'une valeur
+// Champs ajoutés d'une consultation (lecture) : « Libellé : valeur », sans colonne de libellés ; un titre de section n'apparaît que s'il est
+// suivi d'une valeur
 function htmlExtra(c) {
   const ex = c.extra || {}, R = FORM(), esc = A.esc; let h = "", sec = null;
   R.ordre.forEach((k) => { const a = R.ajouts.find((z) => z.id === k); if (!a || R.champs[k] === false && ex[k] == null) return;
     if (a.type === "section") { sec = a; return; }
     const t = texteDe(a, ex[k]); if (!t) return;
-    if (sec) { h += '<tr class="cs-sec"><th colspan="3">' + esc(sec.lib) + "</th></tr>"; sec = null; }
-    h += "<tr><th>" + esc(a.lib) + "</th><td>" + esc(t).replace(/\n/g, "<br>") + "</td><td></td></tr>"; });
-  return h;
+    if (sec) { h += '<div class="cs-xs">' + esc(sec.lib) + "</div>"; sec = null; }
+    h += '<div class="cs-x"><span class="ck">' + esc(a.lib) + " :</span> " + esc(t).replace(/\n/g, "<br>") + "</div>"; });
+  return h ? '<div class="cs-ex">' + h + "</div>" : "";
 }
 // Bibliothèque de chaque bouton (réglage du cabinet, 10/10/2026 : une bibliothèque retirée cache son bouton)
 const BIB_DE = { medic: "medicaments", ordo: "ordostypes", analyse: "analyses", exam: "examens", courrier: "courriers", doc: "documentation" };
-// Barre des prescriptions, en bas de l'onglet, indépendante des consultations : une ordonnance faite ici s'ajoute en ligne
-// dans la consultation du jour
-function barre(x) {
+// Boutons de prescription de la barre d'actions du dossier (R-G a) : Médic., Ordo. type, Analyses, Examens compl., Courriers, Doc. (avec,
+// dessous, le nombre d'ordonnances déjà faites pour ce patient : fonction facultative « prescriptions.compteur »), puis « + RCP ». Une ordonnance
+// faite ici s'ajoute en ligne dans la consultation du jour ; ▾ = antécédents des prescriptions.
+export function boutonsPrescription(x) {
   if (!peutEcrire()) return "";
-  const q = "'" + x.id + "'";
-  return '<div class="presc-bas"><div class="lbl">Prescriptions</div><div class="presc">' + FAMILLES.map((f) => '<div class="pr" data-mod="prescriptions" data-fn="prescriptions.' + f.t + '" data-bib="' + (BIB_DE[f.t] || "") + '"><button onclick="csPrescrire(' + q + ",'" + f.t + '\')" title="' + f.titre + ' : nouvelle prescription"><svg class="pi"><use href="#i-' + f.ic + '"/></svg>' + f.lib + '</button><button class="fl" data-fn="prescriptions.antecedents" onclick="csAntecedents(' + q + ",'" + f.t + '\')" title="' + f.titre + ' : antécédents des prescriptions" aria-label="' + f.titre + ' : antécédents des prescriptions">▾</button></div>').join("") +
+  const q = "'" + x.id + "'", n = {};
+  (CS[x.id] || []).forEach((c) => (c.lignes || []).forEach((l) => { n[l.t] = (n[l.t] || 0) + 1; }));
+  return ["medic", "ordo", "analyse", "exam", "courrier", "doc"].map((t) => FAMILLES.find((f) => f.t === t)).map((f) => '<div class="pr" data-mod="prescriptions" data-fn="prescriptions.' + f.t + '" data-bib="' + (BIB_DE[f.t] || "") + '"><button type="button" onclick="csPrescrire(' + q + ",'" + f.t + '\')" title="' + f.titre + ' : nouvelle prescription"><svg class="pi"><use href="#i-' + f.ic + '"/></svg><span class="lb">' + (f.t === "exam" ? '<span class="lg">Examens compl.</span><span class="sm">Examens</span>' : f.lib) + "</span>" + (n[f.t] ? '<small class="br-n" data-fn="prescriptions.compteur" title="' + n[f.t] + " déjà faite" + (n[f.t] > 1 ? "s" : "") + ' pour ce patient">' + n[f.t] + "</small>" : "") + '</button><button type="button" class="fl" data-fn="prescriptions.antecedents" onclick="csAntecedents(' + q + ",'" + f.t + '\')" title="' + f.titre + ' : antécédents des prescriptions" aria-label="' + f.titre + ' : antécédents des prescriptions">▾</button></div>').join("") +
     // « + RCP » (09/10/2026, rcp.js) : inscription à la prochaine RCP ; flèche = inscriptions du patient
-    '<div class="pr" data-mod="rcp"><button onclick="rcpInscrire(' + q + ')" title="Inscrire le patient à la prochaine RCP"><svg class="pi"><use href="#i-rcp"/></svg>+ RCP</button><button class="fl" onclick="rcpHistorique(' + q + ')" title="RCP du patient" aria-label="RCP du patient">▾</button></div>' + "</div></div>";
-}
-// Consultation dépliée : celle qu'on vient d'ouvrir, d'ajouter ou de compléter ; à l'ouverture du dossier, la plus récente (11/10/2026) ;
-// une seule à la fois
-function ouverte(pid) {
-  const L = CS[pid] || [];
-  if (OUV[pid] === undefined && L.length) return L[0].id; // liste triée : la plus récente en tête
-  return L.some((c) => c.id === OUV[pid]) ? OUV[pid] : null;
+    '<div class="pr" data-mod="rcp"><button type="button" onclick="rcpInscrire(' + q + ')" title="Inscrire le patient à la prochaine RCP"><svg class="pi"><use href="#i-rcp"/></svg><span class="lb">+ RCP</span></button><button type="button" class="fl" onclick="rcpHistorique(' + q + ')" title="RCP du patient" aria-label="RCP du patient">▾</button></div>';
 }
 // Note écrite directement : enregistrée 1,5 s après la dernière frappe, et en quittant la zone ; le texte est gardé en mémoire à
 // chaque frappe (un dossier redessiné entre-temps le réaffiche, curseur remis à sa place)
 const NOTE = { t: null, cid: null, pid: null, pos: null };
-const hauteurNote = (z) => { z.style.height = "auto"; z.style.height = Math.min(Math.max(z.scrollHeight + 2, 70), 420) + "px"; };
+// R-G c (demande du 19/10/2026) : la note dépliée s'affiche en entier, même très longue (pas de défilement dans la note)
+const hauteurNote = (z) => { z.style.height = "auto"; z.style.height = Math.max(z.scrollHeight + 2, 70) + "px"; };
 async function sauverNote(pid, cid) {
   const c = (CS[pid] || []).find((z) => z.id === cid), z = document.getElementById("csN-" + cid), e = document.getElementById("csE-" + cid); if (!c) return;
   const v = z ? z.value : c.note || ""; if (v === (c.noteEnr != null ? c.noteEnr : c.note || "") && c.noteEnr != null) return;
@@ -157,13 +169,21 @@ window.csNoteFin = (pid, cid) => { clearTimeout(NOTE.t); NOTE.cid = null; sauver
 // Après chaque affichage de l'onglet : hauteur des notes, et curseur remis dans la note en cours d'écriture
 function apresAffichage() {
   document.querySelectorAll("textarea.cs-note").forEach(hauteurNote);
-  if (NOTE.cid) { const z = document.getElementById("csN-" + NOTE.cid); if (z && document.activeElement !== z) { z.focus(); try { z.setSelectionRange(NOTE.pos, NOTE.pos); } catch (e) { /* zone changée */ } } }
+  if (NOTE.cid) { const z = document.getElementById("csN-" + NOTE.cid); if (z && document.activeElement !== z) { z.focus({ preventScroll: true }); try { z.setSelectionRange(NOTE.pos, NOTE.pos); } catch (e) { /* zone changée */ } } }
 }
-// Plier / déplier : la zone qui défile garde sa position
-window.csTog = (pid, cid) => {
-  const z = document.getElementById("csListe"), pos = z ? z.scrollTop : 0;
-  OUV[pid] = ouverte(pid) === cid ? "—" : cid; A.pageDossier(pid);
-  const z2 = document.getElementById("csListe"); if (z2) z2.scrollTop = pos;
+// Plier / déplier une consultation ; tout déplier / replier ; notes seulement ; plus anciennes (téléphone) : le dossier garde ses positions
+window.csTog = (pid, cid) => { if (NSEUL[pid]) return; const s = ouvertes(pid); if (s.has(cid)) s.delete(cid); else s.add(cid); A.pageDossier(pid); };
+window.csTout = (pid) => { const L = CS[pid] || [], s = ouvertes(pid), tout = L.every((c) => s.has(c.id)); OUVS[pid] = new Set(tout ? [] : L.map((c) => c.id)); A.pageDossier(pid); };
+window.csNotesSeules = (pid) => { NSEUL[pid] = !NSEUL[pid]; A.pageDossier(pid); };
+window.csPlusAnciennes = (pid) => { PLUS[pid] = true; A.pageDossier(pid); };
+// Imprimer le journal des consultations (date, type, auteur, note, ordonnances)
+window.csImprimer = (pid) => {
+  const x = trouver(pid), L = CS[pid] || [], esc = A.esc; if (!x) return;
+  let w = null; try { w = window.open("", "_blank"); } catch (er) { w = null; } if (!w || !w.document) { A.toast("Autorisez l'ouverture des fenêtres pour imprimer."); return; }
+  const corps = L.map((c) => "<h2>" + esc(A.dfrA(c.d) + " · " + nomCs(c)) + (c.creeParNom ? ' <span class="au">' + esc(c.creeParNom) + "</span>" : "") + "</h2>" + (c.note ? '<p class="n">' + esc(c.note) + "</p>" : "") +
+    ((c.lignes || []).length ? "<ul>" + c.lignes.map((l) => "<li>" + esc(libLigne(l.t) + " : " + (l.lib || "")) + "</li>").join("") + "</ul>" : "")).join("");
+  w.document.open(); w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Consultations – ' + esc(x.r.nm) + '</title><style>@page{size:A4;margin:14mm}body{font-family:Arial,sans-serif;font-size:11.5px;color:#1E2A44}h1{font-size:17px;margin:0 0 10px}h2{font-size:13px;margin:14px 0 4px;border-bottom:1px solid #CCD3E0;padding-bottom:3px}.au{font-weight:normal;color:#64708A;font-size:11px}.n{white-space:pre-wrap;margin:4px 0}ul{margin:4px 0 0 18px;padding:0}</style></head><body><h1>Consultations – ' + esc(x.r.nm) + "</h1>" + (corps || "<p>Aucune consultation.</p>") + "</body></html>");
+  w.document.close(); setTimeout(() => { w.focus(); w.print(); }, 400);
 };
 
 // ───── Nouvelle consultation / modifier : titre, date (du jour par défaut), note ─────

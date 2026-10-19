@@ -16,17 +16,21 @@ export const REGLAGES0 = {
   // entete (3.9, 12/10/2026) : « papier » = papier à en-tête (rien n'est imprimé en haut, marge du haut) ; « genere » = en-tête et pied imprimés
   // par Onco360 (eLogo : logo du lieu, eNom, eSpe, eInpe : médecin signataire ; eLieu : adresse et téléphone du lieu en pied ; eSig : signature scannée)
   // rSpe … rTva (R-B5, 19/10/2026) : mentions imprimées sur le reçu (identifiants du médecin de l'acte ; exonération de TVA à confirmer par le comptable)
-  impression: { rSpe: true, rInpe: true, rIf: true, rTp: true, rIce: true, rTva: false, a5: [45, 28, 18], a4: [60, 35, 22], doc: [45, 35, 22], age: false, poids: false, allergie: false, entete: "papier", eLogo: true, eNom: true, eSpe: true, eInpe: true, eLieu: true, eSig: true }, // âge, poids sous le nom sur les ordonnances (3.2 ; séparés le 12/10/2026)
+  impression: { rSpe: true, rInpe: true, rIf: true, rTp: true, rIce: true, rTva: false, a5: [45, 28, 18], a4: [60, 35, 22], doc: [45, 35, 22], age: false, poids: false, allergie: false, entete: "papier", eLogo: true, eNom: true, eSpe: true, eInpe: true, eLieu: true, eSig: true, fenRappel: false }, // fenRappel (R-G e, 19/10/2026) : allergie et poids rappelés en haut de la fenêtre d'ordonnance // âge, poids sous le nom sur les ordonnances (3.2 ; séparés le 12/10/2026)
   whatsapp: { de: 1, a: 2 },
   alertes: { cure: 3, finTrait: 30 },
   auto: { rtHebdo: true, rtFin: true }, // rendez-vous créés d'office (12/10/2026) : consultations hebdomadaires de RT, consultation de fin de RT
-  salle: { orange: 20, rouge: 45, notifArrivee: true, notifRouge: true }, // + messages à l'écran (SA6, 11/10/2026) // salle d'attente : minutes d'attente avant l'orange, puis le rouge (08/10/2026)
+  salle: { orange: 20, rouge: 45, notifArrivee: true, notifRouge: true },
+  // R-G d (audit n° 5, 19/10/2026) : dossier patient, parties de la colonne Patient dépliées par défaut (chacun peut ensuite déplier / replier :
+  // gardé sur son appareil)
+  dossier: { parties: { avenir: true, passe: false, id: false, med: false, tum: false } }, // + messages à l'écran (SA6, 11/10/2026) // salle d'attente : minutes d'attente avant l'orange, puis le rouge (08/10/2026)
 };
 const copie = (o) => JSON.parse(JSON.stringify(o));
 // Réglages en vigueur : ceux du cabinet, complétés par les valeurs par défaut
 export function reglages() {
   const r = copie(REGLAGES0), c = (D() && D().reglages) || {};
   Object.keys(r).forEach((k) => { if (c[k] && typeof c[k] === "object") Object.assign(r[k], c[k]); });
+  if (c.dossier && c.dossier.parties) r.dossier.parties = Object.assign({}, REGLAGES0.dossier.parties, c.dossier.parties);
   if (r.impression.agePoids) { const ci = c.impression || {}; if (!("age" in ci)) r.impression.age = true; if (!("poids" in ci)) r.impression.poids = true; } delete r.impression.agePoids; // ancien réglage commun
   return r;
 }

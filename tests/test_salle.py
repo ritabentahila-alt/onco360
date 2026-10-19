@@ -68,7 +68,7 @@ async def main():
         await ev(f"window.__fs['{sid(A1,'r-rS1')}'].etat='salle'"); await pg.wait_for_timeout(900); await onglet(pg, 'salle')
         await ligne(pg, '09:30').locator('.actr >> text=Démarrer').click(); await pg.wait_for_timeout(1000)
         verif('Démarrer : dossier ouvert, bulles Valider / Retour', (await ev("location.hash")).startswith('#dossier/') and await ev("!!document.getElementById('saBulles')"))
-        await pg.click('#saBulles >> text=Retour en salle'); await pg.wait_for_timeout(800)
+        await pg.click('#saBulles >> text=Fermer')  # lot G : « Fermer » = retour en salle sans valider; await pg.wait_for_timeout(800)
         verif('Retour en salle', await ev("location.hash") == '#salle' and (await doc(pg, sid(A1, 'r-rS1'))).get('etat') == 'salle')
         await ligne(pg, '09:30').locator('.actr >> text=Démarrer').click(); await pg.wait_for_timeout(1000)
         await pg.click('#saBulles >> text=Valider'); await pg.wait_for_timeout(700)

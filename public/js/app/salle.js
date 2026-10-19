@@ -649,28 +649,29 @@ function ligneHtml(l, cv) {
   return '<div class="sa-l ' + (l.etat || "prevu") + '" data-k="' + A.esc(l.pid + "|" + l.cle) + '" ondblclick="if(!event.target.closest(\'button,a\'))ouvrirDossier(\'' + l.pid + '\')" oncontextmenu="saMenu(event,' + q + ')">' + cv.map((c) => cel[c[0]]).join("") + "</div>";
 }
 
-// ───── Dossier ouvert pendant la consultation : bulles Valider / Retour en salle (en bas à gauche) ─────
+// ───── Dossier ouvert pendant la consultation : « Valider : venu » et « Fermer » (retour en salle sans valider) ─────
+// R-G a (audit n° 5, 19/10/2026) : plus de bulles flottantes, les boutons sont à droite de la barre d'actions du dossier (mêmes fonctions)
 export function bullesDossier(x) {
   if (!peutRdv() || !fnS("bulles")) return "";
   const l = lignes([D().t]).filter((z) => z.pid === x.id && z.etat === "consult");
   if (!l.length) return "";
   return '<div class="sa-bulles" id="saBulles" data-pid="' + A.esc(x.id) + '">' + l.map((z) => {
     const q = "'" + z.pid + "','" + z.cle + "'", okV = z.rdv || A.peutPrix();
-    return '<div class="sa-b"><span class="lbl" data-k="' + A.esc(z.cle) + '"><i></i>En consultation depuis ' + duree(minutes(z.doc.deb || maintenant())) + (l.length > 1 ? " · " + A.esc(z.type) : "") + "</span>" +
-      (okV ? '<button class="bt vert" onclick="saValider(' + q + ',1)"><svg class="i"><use href="#i-check"/></svg>Valider</button>' : "") +
-      '<button class="bt fonce" onclick="saRetour(' + q + ')"><svg class="i"><use href="#i-retour"/></svg>Retour en salle</button></div>';
-  }).join("") + '</div><div class="sa-espace"></div>';
+    return '<div class="sa-b"><span class="lbl" data-k="' + A.esc(z.cle) + '"><i></i><span class="lg">En consultation depuis </span>' + duree(minutes(z.doc.deb || maintenant())) + (l.length > 1 ? " · " + A.esc(z.type) : "") + "</span>" +
+      (okV ? '<button class="bt vert" onclick="saValider(' + q + ',1)" title="Valider la consultation : patient venu"><svg class="i"><use href="#i-check"/></svg><span class="lg">Valider : venu</span><span class="sm">Venu</span></button>' : "") +
+      '<button class="bt fonce" onclick="saRetour(' + q + ')" title="Fermer : retour en salle d\'attente sans valider"><svg class="i"><use href="#i-retour"/></svg>Fermer</button></div>';
+  }).join("") + "</div>";
 }
 function majBulles() {
   const z = $("saBulles"), m = /^#dossier\/(.+)$/.exec(location.hash), pid = m ? decodeURIComponent(m[1]) : null;
   if (!pid) return;
   const x = D().patients.find((p) => p.id === pid); if (!x) return;
   const h = bullesDossier(x);
-  // mêmes bulles : seules les minutes changent (les boutons ne sont pas remplacés : aucun clic perdu)
+  // mêmes boutons : seules les minutes changent (les boutons ne sont pas remplacés : aucun clic perdu)
   if (z && h) { const t = document.createElement("div"); t.innerHTML = h; const nv = t.querySelectorAll(".lbl"), an = z.querySelectorAll(".lbl");
     if (nv.length === an.length && [...nv].every((e, i) => e.dataset.k === an[i].dataset.k) && t.querySelectorAll("button").length === z.querySelectorAll("button").length) { nv.forEach((e, i) => { if (an[i].innerHTML !== e.innerHTML) an[i].innerHTML = e.innerHTML; }); return; } }
-  if (z) { if (!h) { z.nextElementSibling && z.nextElementSibling.classList.contains("sa-espace") && z.nextElementSibling.remove(); z.remove(); } else z.outerHTML = h.replace(/<div class="sa-espace"><\/div>$/, ""); }
-  else if (h && $("page")) $("page").insertAdjacentHTML("beforeend", h);
+  if (z) { if (!h) z.remove(); else z.outerHTML = h; }
+  else if (h && $("barreDroite")) $("barreDroite").insertAdjacentHTML("afterbegin", h);
 }
 
 // ───── Imprimer la liste du jour (08/10/2026) : jour, établissement, période et recherche choisis ; colonnes affichées ─────
@@ -742,9 +743,9 @@ function presenceHtml(pid) { const l = qui0uvre(pid); return l.length ? '<div cl
 function majPresence() {
   document.querySelectorAll("#saL .sa-pz[data-p]").forEach((e) => { const h = presenceHtml(e.dataset.p); if (e.innerHTML !== h) e.innerHTML = h; });
   const m = /^#dossier\/(.+)$/.exec(location.hash), pid = m ? decodeURIComponent(m[1]) : null; if (!pid) return;
-  const l = qui0uvre(pid), z = $("presDossier");
-  const h = l.length ? '<div class="pres-dossier" id="presDossier"><svg class="pi"><use href="#i-document"/></svg>Dossier ouvert aussi par <b>' + A.esc(l.join(", ")) + "</b></div>" : "";
-  if (z) { if (h) z.outerHTML = h; else z.remove(); }
-  else if (h && $("page")) { const r = $("page").querySelector(".retour"); if (r) r.insertAdjacentHTML("afterend", h); else $("page").insertAdjacentHTML("afterbegin", h); }
+  // R-G a : dans le bandeau du dossier (place « presSlot »)
+  const l = qui0uvre(pid), z = $("presSlot");
+  const h = l.length ? '<span class="pres-dossier" id="presDossier" title="Dossier ouvert en ce moment par ' + A.esc(l.join(", ")) + '"><svg class="pi"><use href="#i-document"/></svg>Ouvert aussi par <b>' + A.esc(l.join(", ")) + "</b></span>" : "";
+  if (z && z.innerHTML !== h) z.innerHTML = h;
 }
 export const majPresenceDossier = () => majPresence();

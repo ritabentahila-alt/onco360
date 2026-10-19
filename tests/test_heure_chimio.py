@@ -35,7 +35,7 @@ async def main():
         await ev(f"chOuvrir('{pid}', {i}, {k}, 1)"); await pg.wait_for_timeout(1200)
         await ev(f"chValiderJ1('{pid}', {i}, {k})"); await pg.wait_for_timeout(2500)
         ok(not await ev("!!document.getElementById('hNon')") and 'Prochaine séance' not in (await ev("(document.getElementById('fenetreCorps')||{}).innerText||''")), 'plus de fenêtre « Prochaine séance » après la validation')
-        await ev("fermerFenetre()"); await ev(f"ouvrirDossier('{pid}')"); await pg.wait_for_timeout(1500)
+        await ev("fermerFenetre(); fermerFenetre()"); await ev(f"ouvrirDossier('{pid}')"); await pg.wait_for_timeout(1500)  # lot G : la petite fenêtre, puis le panneau de la cure
         mod = await ev("(()=>{const b=[...document.querySelectorAll('#rdvListe button')].find(x=>/chModifierRdvChimio/.test(x.getAttribute('onclick')||''));return b?b.getAttribute('onclick'):null})()")
         ok(mod is not None, 'bouton « Modifier » sur la prochaine séance de chimio', mod)
         await ev(mod); await pg.wait_for_timeout(600)

@@ -76,7 +76,7 @@ const visibles = (x) => { const L = FI[x.id] || [], F = FQ[x.id] || { q: "", t: 
 const choisi = (x) => { const V = visibles(x); return V.find((f) => f.id === SEL[x.id]) || V[0] || null; };
 const genre = (f) => { const i = icone(f); return i === "PDF" ? "pdf" : i === "IMG" ? "img" : ""; };
 async function afficherVue(x) {
-  const z = $("fiVue"); if (!z) return; const f = choisi(x), esc = A.esc;
+  const z = $("fiVue"); if (!z || !z.getClientRects().length) return; const f = choisi(x), esc = A.esc; // R-G e : aperçu caché (visionneuse à droite) : rien à charger
   if (!f) { z.innerHTML = '<p class="sous" style="margin:12px">Aucun document à afficher.</p>'; return; }
   // Aperçu seul (sans en-tête, qui doublait la liste) ; actions dans le menu « ⋯ » flottant, en bas à droite de l'aperçu
   SEL[x.id] = f.id; const qf = "'" + x.id + "','" + f.id + "'", it = (lib, fn, cls) => '<button class="' + (cls || "") + '" onclick="fiMenu(false);' + fn + "(" + qf + ')">' + lib + "</button>";
@@ -91,11 +91,63 @@ async function afficherVue(x) {
     c.innerHTML = g === "pdf" ? '<iframe src="' + URLS[f.id] + '" title="' + esc(f.titre || f.nom) + '"></iframe>' : '<img src="' + URLS[f.id] + '" alt="' + esc(f.titre || f.nom) + '">';
   } catch (e) { const c = $("fiVueC"); if (c) c.innerHTML = '<p class="err" style="margin:12px">' + esc(e && /unauthorized|permission/.test(e.code || "") ? "Vous n'avez pas accès à ce document." : "Aperçu impossible : " + ((e && e.message) || e)) + "</p>"; }
 }
+// ───── R-G e (audit n° 5, 19/10/2026) : visionneuse de la colonne Documents du dossier ─────
+// Ouverte d'office sur le document le plus récent ; en tête : nom et date ; « Documents (n) » = liste par date (la plus récente en haut, type en
+// étiquette, recherche et menu « Type » de l'onglet) ; Agrandir (deux tiers de la largeur) ; menu ⋯ (Plein écran, Nouvelle fenêtre, Télécharger) ;
+// sans document : « Déposer un document ». Le PDF garde le lecteur du navigateur.
+const DV = { liste: false };
+export const visionneuseGrande = () => { try { const v = localStorage.getItem("onco360.visionneuseGrande"); if (v != null) return v === "1"; } catch (e) { /* stockage indisponible */ } return ((D().profil || {}).dossier || {}).visionneuse === "deuxTiers"; };
+export const sigVisionneuse = (x) => (x.id in FI ? (FI[x.id] === undefined ? "charge" : FI[x.id] === null ? "erreur" : FI[x.id].map((f) => f.id + ":" + (f.titre || "") + ":" + (f.d || "") + ":" + (f.type || "")).join("|")) : "") + "#" + (SEL[x.id] || "") + "#" + DV.liste + "#" + JSON.stringify(FQ[x.id] || {});
+export function htmlVisionneuse(x) {
+  const esc = A.esc, L = FI[x.id], q = "'" + x.id + "'";
+  if (L === undefined || !(x.id in FI)) return '<div class="dv"><p class="sous" style="margin:12px">Chargement des documents…</p></div>';
+  if (L === null) return '<div class="dv"><p class="sous" style="margin:12px;color:var(--rouge)">Les documents n\'ont pas pu être lus. Rechargez la page.</p></div>';
+  if (!L.length) return '<div class="dv"><div class="dv-vide">' + A.ic("document") + "<p>Aucun document dans ce dossier.</p>" + (peutDeposer() ? '<button class="bt clair petit" onclick="fiAjouter(' + q + ')">' + A.ic("plus") + "Déposer un document</button>" : "") + "</div></div>";
+  const f = choisi(x) || L[0], F = FQ[x.id] || { q: "", t: "" }, types = [...new Set(L.map((z) => z.type).filter(Boolean))];
+  const qf = f ? "'" + x.id + "','" + f.id + "'" : "";
+  return '<div class="dv"><div class="dv-t"><div class="dv-nom" title="' + esc(f ? (f.titre || f.nom) + " · " + f.nom : "") + '"><b>' + esc(f ? f.titre || f.nom : "") + '</b><span class="mesures">' + esc(f ? [A.dfrA(f.d), f.type].filter(Boolean).join(" · ") : "") + "</span></div>" +
+    '<div class="dv-bt"><button type="button" class="mini" onclick="dvListe(' + q + ')" aria-expanded="' + DV.liste + '">Documents (' + L.length + ") ▾</button>" +
+    '<button type="button" class="mini dv-gr" onclick="dvGrand()" aria-pressed="' + visionneuseGrande() + '" title="Visionneuse sur les deux tiers de la largeur">' + (visionneuseGrande() ? "Réduire" : "Agrandir") + "</button>" +
+    '<button type="button" class="mini" onclick="dvMenu()" aria-label="Plein écran, nouvelle fenêtre, télécharger, modifier, supprimer" aria-haspopup="menu">⋯</button>' +
+    '<div class="fi-mm dv-mm cache" id="dvMm" role="menu"><button onclick="dvMenu(false);dvPleinEcran()">Plein écran</button><button onclick="dvMenu(false);fiOuvrir(' + qf + ')">Nouvelle fenêtre</button><button onclick="dvMenu(false);fiTelecharger(' + qf + ')">Télécharger</button>' + (f && peutDeposer() ? '<button onclick="dvMenu(false);fiModifier(' + qf + ')">Modifier (nom, date, type)</button>' : "") + (f && peutSupprimer(f) ? '<button class="r" onclick="dvMenu(false);fiSupprimer(' + qf + ')">Supprimer</button>' : "") + "</div></div></div>" +
+    (DV.liste ? '<div class="dv-liste"><div class="fi-barre"><div class="recherche">' + A.ic("loupe") + '<input id="dvQ" type="search" autocomplete="off" placeholder="Rechercher un document…" value="' + esc(F.q) + '" oninput="dvFiltre(' + q + ')" aria-label="Rechercher un document"></div>' +
+      '<select id="dvT" data-fn="documents.types" onchange="dvFiltre(' + q + ')" aria-label="Type de document"><option value="">Tous les types</option>' + types.map((t) => "<option" + (F.t === t ? " selected" : "") + ">" + esc(t) + "</option>").join("") + "</select></div>" +
+      '<div id="dvL" class="dv-l" data-defile="dvl">' + listeDv(x) + "</div></div>" : "") +
+    '<div class="dv-c fi-vc" id="dvC" data-id=""><p class="sous" style="margin:12px">Chargement du document…</p></div></div>';
+}
+function listeDv(x) {
+  const V = visibles(x), esc = A.esc, sel = choisi(x);
+  if (!V.length) return '<p class="mesures" style="margin:8px">Aucun document ne correspond.</p>';
+  return V.map((f) => '<button type="button" class="fi' + (sel && sel.id === f.id ? " on" : "") + '" onclick="dvChoisir(\'' + x.id + "','" + f.id + '\')"><b>' + esc(f.titre || f.nom) + '</b><span class="d">' + esc(A.dfrA(f.d)) + "</span>" + (f.type ? '<span class="badge b-gr">' + esc(f.type) + "</span>" : "") + "</button>").join("");
+}
+// Après l'affichage du dossier : le document choisi chargé dans la visionneuse (si elle est visible)
+export function apresVisionneuse(x) { setTimeout(() => majVisionneuse(x), 0); }
+export function rafraichirVisionneuse(pid) { const x = trouver(pid); if (x) majVisionneuse(x); }
+async function majVisionneuse(x) {
+  const c = $("dvC"); if (!c || !c.getClientRects().length) return; const f = choisi(x); if (!f || c.dataset.id === f.id) return;
+  const esc = A.esc, g = genre(f); c.dataset.id = f.id;
+  if (!g) { c.innerHTML = '<div class="fi-sans"><span class="fi-ic fi-' + icone(f).toLowerCase() + '">' + icone(f) + "</span><p>Aperçu impossible pour ce type de fichier (" + esc(f.nom) + ').</p><p class="mesures">Utilisez « Télécharger » ou « Nouvelle fenêtre » (menu ⋯).</p></div>'; return; }
+  c.innerHTML = '<p class="sous" style="margin:12px">Chargement du document…</p>';
+  try {
+    if (!URLS[f.id]) { const b = await lireFichier(f); URLS[f.id] = URL.createObjectURL(b.type ? b : new Blob([b], { type: f.mime || (g === "pdf" ? "application/pdf" : "image/jpeg") })); }
+    const c2 = $("dvC"); if (!c2 || c2.dataset.id !== f.id) return;
+    c2.innerHTML = g === "pdf" ? '<iframe src="' + URLS[f.id] + '" title="' + esc(f.titre || f.nom) + '"></iframe>' : '<img src="' + URLS[f.id] + '" alt="' + esc(f.titre || f.nom) + '">';
+  } catch (e) { const c2 = $("dvC"); if (c2 && c2.dataset.id === f.id) c2.innerHTML = '<p class="err" style="margin:12px">' + esc(e && /unauthorized|permission/.test(e.code || "") ? "Vous n'avez pas accès à ce document." : "Aperçu impossible : " + ((e && e.message) || e)) + "</p>"; }
+}
+window.dvChoisir = (pid, id) => { const x = trouver(pid); if (!x) return; SEL[pid] = id; DV.liste = false; redessiner(pid); document.querySelectorAll("#fiListe .fi").forEach((e) => e.classList.toggle("on", e.dataset.id === id)); };
+window.dvListe = (pid) => { DV.liste = !DV.liste; redessiner(pid); const q = $("dvQ"); if (q && DV.liste) q.focus({ preventScroll: true }); };
+window.dvFiltre = (pid) => { const x = trouver(pid); if (!x) return; FQ[pid] = { q: $("dvQ") ? $("dvQ").value : "", t: $("dvT") ? $("dvT").value : "" }; const l = $("dvL"); if (l) l.innerHTML = listeDv(x); };
+window.dvMenu = (ouvrir) => { const m = $("dvMm"); if (m) m.classList.toggle("cache", ouvrir === false ? true : !m.classList.contains("cache")); };
+window.dvGrand = () => { const g = !visionneuseGrande(); try { localStorage.setItem("onco360.visionneuseGrande", g ? "1" : "0"); } catch (e) { /* stockage indisponible */ } const d = $("dos"); if (d) d.classList.toggle("docs-grand", g); document.querySelectorAll(".dv-gr").forEach((b) => { b.textContent = g ? "Réduire" : "Agrandir"; b.setAttribute("aria-pressed", g); }); };
+window.dvPleinEcran = () => { const v = $("dvC"); if (!v) return; if (document.fullscreenElement) document.exitFullscreen(); else if (v.requestFullscreen) v.requestFullscreen().catch(() => A.toast("Plein écran refusé par le navigateur : utilisez « Nouvelle fenêtre »."));
+  else if (v.webkitRequestFullscreen) v.webkitRequestFullscreen(); else A.toast("Plein écran non disponible : utilisez « Nouvelle fenêtre »."); };
 // Plein écran (19.7 ter) : l'aperçu prend tout l'écran (la barre d'outils du lecteur PDF a toute la place) ; Échap pour revenir
 window.fiPleinEcran = () => { const v = $("fiVue"); if (!v) return; if (document.fullscreenElement) document.exitFullscreen(); else if (v.requestFullscreen) v.requestFullscreen().catch(() => A.toast("Plein écran refusé par le navigateur : utilisez « Nouvelle fenêtre »."));
   else if (v.webkitRequestFullscreen) v.webkitRequestFullscreen(); else A.toast("Plein écran non disponible : utilisez « Nouvelle fenêtre »."); };
 window.fiMenu = (ouvrir) => { const m = $("fiMm"); if (m) m.classList.toggle("cache", ouvrir === false ? true : !m.classList.contains("cache")); };
-window.fiChoisir = (pid, id) => { const x = trouver(pid); if (!x) return; SEL[pid] = id; document.querySelectorAll("#fiListe .fi").forEach((e) => e.classList.toggle("on", e.dataset.id === id)); afficherVue(x); };
+window.fiChoisir = (pid, id) => { const x = trouver(pid); if (!x) return; SEL[pid] = id; document.querySelectorAll("#fiListe .fi").forEach((e) => e.classList.toggle("on", e.dataset.id === id)); afficherVue(x);
+  // R-G e : aperçu de l'onglet caché (ordinateur) : le document s'ouvre dans la colonne de droite (entre 940 et 1 279 px : onglet « Documents »)
+  const v = $("fiVue"), sw = document.querySelector("#dos .dos-sw"); if ($("dos") && (!v || !v.getClientRects().length)) { if (sw && sw.getClientRects().length && window.dosDroite) window.dosDroite("docs"); redessiner(pid); } };
 const icone = (f) => { const m = String(f.mime || ""), n = sansAcc(f.nom); return /pdf/.test(m) || /\.pdf$/.test(n) ? "PDF" : /^image\//.test(m) ? "IMG" : /word|officedocument\.wordprocessing|msword/.test(m) || /\.docx?$/.test(n) ? "DOC" : /sheet|excel/.test(m) || /\.xlsx?$/.test(n) ? "XLS" : "FIC"; };
 const taille = (o) => (o >= 1048576 ? (o / 1048576).toFixed(1).replace(".", ",") + " Mo" : Math.max(1, Math.round(o / 1024)) + " Ko");
 function listeHtml(x) {

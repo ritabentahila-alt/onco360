@@ -4,7 +4,7 @@
 // 3.11 (12/10/2026) : les formulaires (Nouveau patient, Modifier, Afficher, en-tête du dossier) sont rendus ici depuis la fiche effective
 // (champsDe : type, nom, partie, ordre, liste, unité, imprimé, en-tête de chaque champ) ; un champ retiré n'est pas affiché, sa valeur est gardée.
 // Valeurs des champs ajoutés : identite.extra { id: valeur } ou clinique.extra (selon la partie du champ).
-import { champPropose, champsDe, drapeau, ENTETE0 } from "../donnees/catalogue.js";
+import { champPropose, champsDe, drapeau, ENTETE0, ENTETE_CALC, ENTETE_CALC0 } from "../donnees/catalogue.js";
 import { age as ageDe } from "../moteur/outils.js";
 import { textePoids } from "../moteur/poids.js";
 let A = null;
@@ -124,3 +124,39 @@ export function htmlEnteteFiche(x, sauf) {
     return '<div data-champ="' + c.k + '"' + (c.k === "cor" ? ' data-fn="listes.cor"' : "") + (t.length > 60 ? ' class="large"' : "") + "><label>" + esc(c.lib) + "</label><b>" + v + "</b></div>"; }).join("");
 }
 
+
+// ───── R-G a (audit n° 5, 19/10/2026) : bandeau du dossier ─────
+// Ligne 1 : « Chimio en cours » et « RT en cours » (cochés par défaut, réglables comme les champs : entetes._chimio / ._rt)
+export const ligne1 = () => { const en = F().entetes || {}, o = {}; ENTETE_CALC.forEach(([k]) => { o[k] = typeof en[k] === "boolean" ? en[k] : !!ENTETE_CALC0[k]; }); return o; };
+// Valeurs calculées proposées à cocher (ligne 2) : surface corporelle (Mosteller, poids actuel et taille), localisation et stade
+function valeurCalc(x, k) {
+  const doc = docVu(x), C = doc.clinique || {}, pa = poidsVu(x), num = (v) => parseFloat(String(v == null ? "" : v).replace(",", "."));
+  if (k === "_sc") { const po = pa ? pa.poids : num(C.poids), ta = num(C.taille); return po > 0 && ta > 0 ? String(Math.round(Math.sqrt((po * ta) / 3600) * 100) / 100).replace(".", ",") + " m²" : ""; }
+  if (k === "_locst") { const st = ((C.extra || {}).xtstade) || ""; return [C.diag || "", st ? "stade " + st : ""].filter(Boolean).join(", "); }
+  return "";
+}
+// Libellés courts de départ (maquette du 17/10) quand le cabinet n'en a pas donné ; le nom complet reste au survol
+const COURTS0 = { ddn: "Né(e) le", tel: "Tél.", tel2: "Tél. 2", etab: "Lieu", mut: "Mut.", cor: "Corresp.", diag: "Tumeur", diagP: "Précision", adresse: "Adr.", email: "E-mail" };
+// Ligne 2 : seulement les champs cochés « Dans le bandeau » (libellé court s'il y en a un), puis les valeurs calculées cochées ; les dernières
+// nouvelles (3.3) à la fin. Nom, sexe (ligne 1) et allergie « oui » (badge rouge de la ligne 1) n'y sont pas repris.
+export function htmlBandeau(x, dn) {
+  const esc = A.esc, doc = docVu(x), dg = diagDe(x), R = F(), courts = R.courts || {}, en = R.entetes || {}, P = (x && x.P) || {};
+  const sauf = ["nom", "prenom", "sexe"].concat(P.allergie ? ["allergies"] : []);
+  const item = (k, lib, t, v) => '<span class="bn-c" data-champ="' + k + '"' + (k === "cor" ? ' data-fn="listes.cor"' : "") + ' title="' + esc(lib + " : " + t) + '"><i>' + esc(courts[k] || (!(R.libs || {})[k] && COURTS0[k]) || lib) + "</i> " + (v || esc(t)) + "</span>";
+  const L = champsFiche().filter((c) => c.present && c.entete && sauf.indexOf(c.k) < 0 && (!c.ajout || !c.ajout.si || champPropose(c.ajout, dg))).map((c) => {
+    const t = c.k === "poids" && poidsVu(x) ? textePoids(poidsVu(x)) : c.k === "ddn" ? A.dfrA(brut(doc, c) || "") : texteChamp(doc, c); if (!t) return "";
+    return item(c.k, c.lib, t, c.type === "tel" ? '<a href="tel:' + esc(brut(doc, c)) + '">' + esc(t) + "</a>" : ""); });
+  ENTETE_CALC.filter(([k, , l]) => l === 2 && (typeof en[k] === "boolean" ? en[k] : !!ENTETE_CALC0[k])).forEach(([k, lib]) => { const t = valeurCalc(x, k); if (t) L.push(item(k, lib, t)); });
+  if (dn) L.push(item("_dn", "Dernières nouvelles", A.dfrA(dn)));
+  return L.join("");
+}
+// Colonne Patient : chaque partie de la fiche en lecture (tous ses champs, pas seulement ceux du bandeau) et le nombre de champs remplis
+export function partiesLecture(x) {
+  const esc = A.esc, doc = docVu(x), dg = diagDe(x), out = { n: {}, libs: {} }, L = champsFiche().filter((c) => c.present && (!c.ajout || !c.ajout.si || champPropose(c.ajout, dg)));
+  PARTIES_F.forEach(([k, lib]) => { const l = L.filter((c) => c.section === k); if (!l.length) return; let n = 0;
+    out[k] = '<div class="fiche-lecture dp-f" data-sec="' + k + '">' + l.map((c) => { const t = c.k === "poids" && poidsVu(x) ? textePoids(poidsVu(x)) : texteChamp(doc, c); if (t) n++;
+      const al = c.k === "allergies" && /^Oui/.test(t);
+      return '<div data-champ="' + c.k + '"' + (al ? ' class="allergie"' : "") + (c.k === "cor" ? ' data-fn="listes.cor"' : "") + "><label>" + esc(c.lib) + "</label>" + (t ? c.type === "tel" ? '<a href="tel:' + esc(brut(doc, c)) + '"><b>' + esc(t) + "</b></a>" : "<b>" + esc(t) + "</b>" : '<span class="mesures">—</span>') + "</div>"; }).join("") + "</div>";
+    out.n[k] = n; out.libs[k] = lib; });
+  return out;
+}

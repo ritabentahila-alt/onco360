@@ -161,7 +161,12 @@ let ANA = null, BIL = null; // famille ouverte (FAM) : analyses ou examens [{ id
 // ───── Gestion des listes depuis Paramètres › Bibliothèques (P2 bis, 08/10/2026) : les mêmes fenêtres, sans patient ni
 // ordonnance (titre « liste du cabinet ») ; un clic sur une ligne ouvre sa fiche (médecin) ; lecture seule pour les autres.
 const GEST = () => !!(S && S.gestion); // fenêtres Médicaments, Ordo. type, Analyses, Examens (Courriers : CQ.gestion)
-const titrePat = (x) => (x ? " — " + A.esc(x.r.nm) : " — liste du cabinet");
+// R-G e (19/10/2026) : allergie et poids rappelés en haut de la fenêtre d'ordonnance (case de Paramètres › Impression)
+const rappelPat = (x) => { if (!x || !reglages().impression.fenRappel) return ""; const P = x.P || {}, pa = P.poidsAct, l = [];
+  if (allergique(P)) l.push('<span class="badge b-al">Allergie : ' + A.esc(P.allergies || "oui") + "</span>");
+  if (pa) l.push('<span class="badge b-gr">Poids ' + A.esc(pa.v + " kg" + (pa.d ? " (" + A.dfrA(String(pa.d).slice(0, 10)) + ")" : "")) + "</span>");
+  return l.length ? ' <span class="or-rappel">' + l.join(" ") + "</span>" : ""; };
+const titrePat = (x) => (x ? " — " + A.esc(x.r.nm) + rappelPat(x) : " — liste du cabinet");
 const basGestion = '<div class="boutons"><button class="bt plein" onclick="fermerFenetre()">Fermer</button></div>';
 export async function gererListe(n) {
   T = null; A.fenetre('<p class="sous">Chargement…</p>', "large");

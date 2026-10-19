@@ -14,6 +14,7 @@ async def main():
         await pg.set_viewport_size({'width':390,'height':844}); await pg.wait_for_timeout(200); print('mobile largeur :', await ev("document.documentElement.scrollWidth")); await pg.screenshot(path='/tmp/t6_mob.png')
         await pg.set_viewport_size({'width':1440,'height':900})
         await pg.goto('http://localhost:8767/v2.html#dossier/'+pid); await pg.wait_for_timeout(800)
+        await ev("document.querySelectorAll('details.dp').forEach(d => d.open = true)")  # lot G : parties de la colonne Patient dépliées
         await pg.click('.rdv:has-text("10:00") >> text=Venu'); await pg.wait_for_timeout(500)
         print('venu – champs :', await ev("[...document.querySelectorAll('#fenetreCorps label')].map(l=>l.textContent)"), '| NET affiché :', await ev("document.getElementById('fenetreCorps').innerText.includes('NET')"))
         await pg.fill('#pvM','200'); await pg.click('#fOk'); await pg.wait_for_timeout(600)

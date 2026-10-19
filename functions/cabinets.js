@@ -193,6 +193,7 @@ function ficheNettoyee(f) {
   const tab = (n, ok) => { if (f[n] && typeof f[n] === "object") { const o = {}; Object.entries(f[n]).slice(0, 120).forEach(([c, v]) => { const w = ok(v); if (cle(c) && w !== undefined) o[c] = w; }); if (Object.keys(o).length) F[n] = o; } };
   tab("types", (v) => (TYPES_CHAMP.indexOf(v) >= 0 && v !== "section" ? v : undefined)); tab("sections", (v) => (["id", "med", "tum"].indexOf(v) >= 0 ? v : undefined));
   tab("imprimes", (v) => (typeof v === "boolean" ? v : undefined)); tab("unites", (v) => (typeof v === "string" ? t(v, 15) : undefined));
+  tab("courts", (v) => (typeof v === "string" && t(v, 14) ? t(v, 14) : undefined)); // R-G a (19/10/2026) : libellé court d'un champ dans le bandeau du dossier
   // 3.12 (12/10/2026) : formulaires de consultation nommés et formulaire de chaque type de consultation
   if (Array.isArray(f.formulaires)) { const fo = f.formulaires.filter((x) => x && /^[a-z0-9_-]{1,30}$/i.test(x.id || "")).slice(0, 20).map((x) => ({ id: x.id, nom: t(x.nom, 60) || "Formulaire", champs: (Array.isArray(x.champs) ? x.champs : []).filter(cle).slice(0, 120) })); if (fo.length) F.formulaires = fo; }
   if (f.typesForm && typeof f.typesForm === "object") { const o = {}; Object.entries(f.typesForm).slice(0, 60).forEach(([c, v]) => { if (t(c, 60) && /^[a-z0-9_-]{1,30}$/i.test(v || "")) o[t(c, 60)] = v; }); if (Object.keys(o).length) F.typesForm = o; }

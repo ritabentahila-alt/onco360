@@ -906,7 +906,7 @@ function ouvrirFicheSpe(q) {
     if (FE.enCours() && !confirm("Un champ est en cours de modification et ne sera pas enregistré. Continuer ?")) return;
     const b = $("fsOk"); b.disabled = true; b.textContent = "Enregistrement…";
     const fiche = { ordre: FI.ordre, champs: FI.champs, libs: FI.libs, ajouts: FI.ajouts.map((a) => { const c = Object.assign({}, a); delete c.cabinet; if (FI.entetes && a.id in FI.entetes) c.entete = FI.entetes[a.id]; return c; }) };
-    if (q === "fiche") fiche.entetes = FI.entetes;
+    if (q === "fiche") { fiche.entetes = FI.entetes; if (FI.courts && Object.keys(FI.courts).length) fiche.courts = FI.courts; } // R-G a : libellés courts du bandeau
     if (q === "consultation") fiche.choixs = FI.choixs;
     try { const o = await serveur("ficheSpecialite", { specialite: spe, quoi: q, fiche }); SPES[spe] = Object.assign({}, SPES[spe] || {}, { [q]: o.fiche, [Fm.le]: new Date().toISOString() }); fermer(); RES = Fm.titre + " de « " + esc(spe) + " » enregistré" + (q === "fiche" ? "e" : "") + " : " + o.cabinets + " cabinet(s) mis à jour (à la prochaine ouverture d'Onco360)."; dessiner(); }
     catch (e) { b.disabled = false; b.textContent = "Enregistrer pour tous les cabinets"; alert("Enregistrement impossible : " + e.message); }
