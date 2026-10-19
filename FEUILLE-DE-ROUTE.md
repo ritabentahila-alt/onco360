@@ -589,7 +589,7 @@ une ligne ; RT : 4 colonnes (`rt-f`). Mesuré à 1440 : séance 990 → 640 px, 
 prescription ouverte, les autres pliées sur leur ligne de titre (+ Modifier, Terminé / Rouvrir), prescription enregistrée ouverte (`RTO`), champ
 « Résumé clinique / notes » retiré (note existante gardée : `note: $("rNote") ? … : R.note`) ; notes : bande bleu clair date · type · titre ·
 ordonnances · initiales (plus le début de la note), dépliée = texte dessous sans cadre, sans ligne vide, ordonnances une ligne par sorte ; visionneuse :
-`#view=Fit` / `#view=FitH` / `#zoom=N` (Chrome ; Safari : son zoom) ; défilement gardé quand une note longue se déplie. Tests : test_dossier_disposition 76 ;
+`#view=Fit` / `#view=FitH` / `#zoom=N` (Chrome ; Safari : son zoom) ; défilement gardé quand une note longue se déplie. Puis : note dépliée sur toute la largeur ; tableau de bord : explications des cartes dans un rond « ? » (`aidesCartes`, v2.js) ; en ligne 20261019g (avec les retours (2)). Tests : test_dossier_disposition 76 ;
 test_cures, test_seances, test_validation, test_vigilance (panneau), test_consultations34 ajoutés au contrôle avant mise en ligne.
 - [x] **R-G a (4.4 a) Bandeau et barre d'actions**, à toutes les largeurs. Bandeau ligne 1 : flèche qui replie le menu pour le dossier
       seulement (localStorage), photo 40 px agrandie au clic, NOM Prénom, âge, sexe, n° de dossier, allergie en rouge si « oui », statut

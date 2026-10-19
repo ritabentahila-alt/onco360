@@ -855,6 +855,18 @@ function blocAFaire(pj) {
   return '<section class="carte afaire"><h3><span class="ic">' + ic("check") + "</span>" + titre + "</h3>" + (G.length ? '<p class="sous">' + sous + "</p>" + G.join("") : '<p class="sous" style="margin:0">Rien à faire pour le moment.</p>') + "</section>";
 }
 
+// 19/10/2026 (demande de Dr Bentahila) : tableau de bord, chaque explication sous un titre de carte va dans un petit rond « ? » à côté du titre
+// (comme dans Paramètres) ; un clic l'affiche ou la cache. Aussi pour les cartes redessinées ensuite (observateur sur la page).
+function aidesCartes() {
+  $("page").querySelectorAll("section.carte > h3 + p.sous:not([data-q])").forEach((p) => {
+    const h3 = p.previousElementSibling; p.dataset.q = "1"; p.classList.add("cache");
+    const b = document.createElement("button"); b.type = "button"; b.className = "ty-q cf-q"; b.textContent = "?"; b.title = p.textContent;
+    b.setAttribute("aria-expanded", "false"); b.setAttribute("aria-label", "Afficher l'explication");
+    b.onclick = (ev) => { ev.stopPropagation(); const f = p.classList.toggle("cache"); b.setAttribute("aria-expanded", String(!f)); };
+    h3.appendChild(b);
+  });
+}
+new MutationObserver(() => { if (D && D.page === "accueil") aidesCartes(); }).observe($("page"), { childList: true, subtree: true });
 function pageAccueil() {
   const pj = programmeDuJour(), ag = agenda7(), ab = absences(), tot = pj.rt.length + pj.co.length + pj.ch.length;
   const ligne = (o, cat) => '<div class="li" onclick="ouvrirDossier(\'' + o.id + '\')">' + (cat === "co" ? '<span class="h">' + esc(o.h) + "</span>" : "") +

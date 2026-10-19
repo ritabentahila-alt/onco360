@@ -833,7 +833,7 @@ nav a.actif{box-shadow:var(--ombre-prim)}
 .ty-l .fl{display:flex;gap:2px}.ty-l .fl button{border:1px solid var(--trait);background:#fff;border-radius:8px;padding:4px 9px;font-weight:bold;color:var(--titre);cursor:pointer}.ty-l .fl button:disabled{opacity:.4;cursor:default}
 @media (max-width:640px){.ty-l .ty-s{flex:1 1 100%;min-width:0;max-width:100%;overflow:hidden}.ty-l .ty-s select{flex:1 1 0;min-width:0;width:100%}} /* Safari : la liste ne s'élargit pas à son texte le plus long */
 .ty-h{display:none}
-.cf-q{margin-left:8px;vertical-align:middle;width:22px;height:22px;line-height:20px;font-size:var(--t2)}
+.cf-q{margin-left:8px;vertical-align:middle;width:22px;height:22px;line-height:20px;font-size:var(--t2)}.carte h3 .cf-q{flex:none}
 .ty-q{border:1px solid var(--trait);background:#fff;border-radius:50%;width:18px;height:18px;padding:0;font-size:var(--t1);font-weight:bold;color:var(--doux);cursor:help;line-height:16px}
 @media (min-width:1200px){.ty-l{display:grid;grid-template-columns:76px minmax(150px,1fr) minmax(150px,210px) 110px minmax(150px,200px) 32px;gap:8px 12px}.ty-l input.ty-n{flex:none;width:100%}.ty-l .ty-lb{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}.ty-l .ty-s select{width:100%}.ty-h{display:grid;font-size:var(--t2);font-weight:bold;color:var(--doux);padding:8px 0 4px}.ty-l .ty-c{font-size:var(--t3)}}
 /* Éditeur de la fiche patient et du formulaire de consultation (editeurfiche.js, commun avec l'Administration) */
@@ -1027,7 +1027,7 @@ details.vig-b>summary::-webkit-details-marker{display:none}.vig-d{font-size:var(
 .dos .cs-h,.dos .cs.on .cs-h{background:var(--prim-c);border-radius:6px;padding-right:6px}.dos .cs-t,.dos .cs.on .cs-t{background:none;padding:4px 8px;font-size:var(--t3);min-height:28px}
 .dos .cs-h:hover{background:#DCE6F6}.dos .cs.on .cs-t .ti{font-weight:bold}
 .dos .cs-t .ti{max-width:none;flex:0 1 auto;font-weight:bold;color:var(--titre)}.dos .cs-t .tt{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--encre)}
-.dos .cs.on .cs-c{padding:4px 10px 8px 26px;border:0;background:none}
+.dos .cs.on .cs-c{padding:4px 8px 8px;border:0;background:none}.dos .cs-note,.dos .cs-nl{display:block;width:100%;box-sizing:border-box} /* la note prend toute la largeur de la bande (19/10/2026) */
 .dos .cs-o{background:none;padding:2px 0;margin:4px 0 0}.cs-ol2{display:block;line-height:1.6}
 .rt-pl{display:inline-flex;margin-left:auto;flex-wrap:nowrap}.rt:not(.on){display:flex;align-items:center;flex-wrap:wrap;gap:6px 8px;padding-top:10px;padding-bottom:10px}.rt:not(.on) .tl{flex:1 1 260px;margin:0}
 .dos .cs .cs-note{min-height:0}.dos .cs.on .cs-c{position:relative}.dos .cs-etat{position:absolute;right:10px;top:2px;min-height:0;margin:0;font-size:var(--t1)}
@@ -1173,6 +1173,6 @@ function onco360Deconnecter() {
 }
 </script>
 
-<script type="module" src="./js/app/v2.js?v=20261019f"></script>
+<script type="module" src="./js/app/v2.js?v=20261019g"></script>
 </body>
 </html>
