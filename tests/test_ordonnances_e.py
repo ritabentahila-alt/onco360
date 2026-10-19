@@ -3,6 +3,7 @@ import pathlib; __file__=str(pathlib.Path(__file__).resolve()); exec(open(pathli
 # familles (toutes les lignes), vérification unique avant l'impression, impression sur plusieurs pages, mise à jour des bibliothèques sans
 # écrasement, secrétaire sans modification de bibliothèque, ordonnance annulée (pas effacée), version précédente gardée, renouvellement (âge,
 # poids, allergie refaits), duplicata, recherche par médicament, format retenu par compte, chimiothérapie orale calculée ; téléphone 390 px.
+import re
 ok_n = ko_n = 0
 def ok(c, m, d=None):
     global ok_n, ko_n
@@ -107,14 +108,14 @@ async def main():
         coupe = await ev("[...document.querySelectorAll('#orPage [data-coupe]')].map(e=>e.getAttribute('data-coupe'))")
         ok(coupe and coupe[0] == 'fin de la page 1', 'aperçu : trait « fin de la page 1 » à l\'endroit de la coupure', coupe)
         await ev("window.__win=[]"); await pg.click('#orImp'); await pg.wait_for_timeout(400)
-        t = await ev(dlg); ok('tient sur 2 pages' in t and 'Réduire le texte' in t, 'vérification : « L\'ordonnance tient sur 2 pages : réduire le texte / imprimer quand même »', t)
+        t = await ev(dlg); ok(re.search('tient sur [23] pages', t) and 'Réduire le texte' in t, 'vérification : « L\'ordonnance tient sur 2 pages : réduire le texte / imprimer quand même »', t)
         await repondre(pg, 'ok'); await pg.wait_for_timeout(1000)
         hh = await ev("(window.__win||[]).map(w=>w.w.document._h).join('')")
         pages = hh.count('class="pgp"')
-        ok(pages == 2 and 'page 1 / 2' in hh and 'page 2 / 2' in hh and hh.split('class="pgp"')[-1].count('or-pat') >= 1 and hh.split('class="pgp"')[-1].count('or-date') >= 1, 'impression : 2 pages, « page 1 / 2 », même en-tête (date, patient) en haut de la page 2', pages)
+        ok(pages in (2, 3) and f'page 1 / {pages}' in hh and f'page {pages} / {pages}' in hh and hh.split('class="pgp"')[-1].count('or-pat') >= 1 and hh.split('class="pgp"')[-1].count('or-date') >= 1, 'impression : chaque page numérotée (« page 1 / N »), même en-tête (date, patient) en haut de chaque page (Safari : marge plus grande, parfois 3 pages)', pages)
         p2 = hh.split('class="pgp"')[-1] if pages else ''
         ok('or-sig' in p2 and 'or-m' in p2, 'signature sur la dernière page avec le dernier médicament (jamais seule)')
-        ok(hh.count('class="or-sig"') == 2, '« Cachet et signature » sur chaque page', hh.count('class="or-sig"'))
+        ok(hh.count('class="or-sig"') == pages, '« Cachet et signature » sur chaque page', hh.count('class="or-sig"'))
         ok(not any(seg.rstrip().endswith('or-m">') for seg in hh.split('<div class="pgb">')), 'aucun médicament coupé de sa posologie')
         fs = await ev("window.__fs"); ok((fs.get('utilisateurs/UIDRITA') or {}).get('formatOrdo') == 'A5', 'format retenu pour la personne (son compte, plus le navigateur)')
 

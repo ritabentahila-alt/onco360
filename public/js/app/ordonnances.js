@@ -921,13 +921,16 @@ function cssImpression(format, taille, courrier) {
     ".pg{font-size:" + pt + "pt;line-height:1.45;display:flow-root}.or-date{text-align:right;margin:0 0 6mm}.or-pat{margin:0 0 7mm}.or-pat2{margin:-5mm 0 6mm}.or-m{margin:4mm 0 1mm}.or-p{margin:0 0 0 6mm}.or-sig{margin-top:10mm;text-align:right}p{margin:0 0 1.5mm}" +
     ".or-t{margin:0 0 3mm}p.or-a{margin:0 0 1.5mm 4mm}.or-rc{margin-top:6mm}mark.or-ac{background:none;color:inherit}.or-dup{text-align:center;font-weight:bold;letter-spacing:0.5mm;margin:0 0 4mm}" + CSS_CADRE +
     // R-E2 : plusieurs pages (nom du patient et date en haut des pages suivantes, « page 1 / 2 » en bas)
-    ".pgp{break-after:page;page-break-after:always;display:flow-root}.pgp:last-child{break-after:auto;page-break-after:auto}.pgb{margin-top:3mm}.pgb .or-pied{margin-top:2mm}" +
+    ".or-gr{break-inside:avoid;page-break-inside:avoid;display:flow-root}.pgp{break-after:page;page-break-after:always;display:flow-root}.pgp:last-child{break-after:auto;page-break-after:auto}.pgb{margin-top:3mm}.pgb .or-pied{margin-top:2mm}" +
     ".or-num{text-align:right;font-size:8pt;margin:1mm 0 0}" +
     (courrier ? "p{margin:0 0 4mm;text-align:justify}.or-ti{text-align:center;font-weight:bold;font-size:1.1em;margin:0 0 9mm}.or-sig{text-align:right}.or-date{text-align:right}" : ""); // courriers
 }
 // R-E2 (19/10/2026, audit n° 7, d. 24) : la feuille mesurée à sa taille réelle (cadre caché, en mm) : hauteur de chaque paragraphe, pages
 // (un médicament jamais coupé, la signature avec le dernier médicament ; moteur/ordonnance.js paginer). Rend { pages, lh (mm) }.
 const PAPIER = { A5: [148, 210], A4: [210, 297] };
+// Safari (Mac, iPhone, iPad) imprime un peu plus haut qu'il ne mesure (essais de Dr Bentahila du 19/10 : environ 7 à 10 %) : marge plus grande
+const SAFARI = typeof navigator !== "undefined" && /Apple/.test(navigator.vendor || "") && !/CriOS|FxiOS|EdgiOS/.test(navigator.userAgent || "");
+const MARGE_L = SAFARI ? 0.94 : 0.96, MARGE_H = SAFARI ? 0.89 : 0.97;
 function lieAuPrecedent(el, prec) {
   if (!prec) return false;
   if (prec.classList.contains("or-t") || prec.classList.contains("or-date")) return true; // titre gardé avec la ligne qui suit ; date avec le patient
@@ -938,7 +941,7 @@ function mesurer(html, format, taille, ctx) {
   const a4 = format === "A4", m = margesMm(a4 ? "a4" : "a5").split(" ").map(parseFloat), P = PAPIER[a4 ? "A4" : "A5"], lw = P[0] - 2 * m[1], lh = P[1] - m[0] - m[2] - 0.6;
   const cd = ctx ? cadre(ctx.pid, ctx.uid) : { haut: "", bas: "" };
   const f = document.createElement("iframe"); f.setAttribute("aria-hidden", "true"); f.tabIndex = -1;
-  f.style.cssText = "position:absolute;left:-10000px;top:0;width:" + (lw * 0.96).toFixed(1) + "mm;height:" + lh + "mm;border:0;visibility:hidden"; // un peu plus étroit : lignes coupées au plus tôt
+  f.style.cssText = "position:absolute;left:-10000px;top:0;width:" + (lw * MARGE_L).toFixed(1) + "mm;height:" + lh + "mm;border:0;visibility:hidden"; // un peu plus étroit : lignes coupées au plus tôt
   document.body.appendChild(f);
   try {
     const d = f.contentDocument; d.open();
@@ -947,9 +950,9 @@ function mesurer(html, format, taille, ctx) {
     const px = d.getElementById("mm").offsetHeight / 100, c = d.getElementById("c"), els = [...c.children];
     if (!px || !els.length) return { pages: [els.map((e, i) => i)], lh };
     // 20/10/2026 (impression de Dr Bentahila, Safari) : le navigateur coupe les lignes un peu autrement à l'impression qu'ici : mesure sur une
-    // largeur réduite de 4 % et marge de 3 % en hauteur (sinon la fin d'une page déborde sur une feuille à part) ; en-tête de la 1re page (date,
+    // largeur réduite de 4 % et marge de 3 % en hauteur (Safari : 6 % et 11 %, MARGE_L / MARGE_H) (sinon la fin d'une page déborde sur une feuille à part) ; en-tête de la 1re page (date,
     // patient, âge, poids, allergie) repris en haut de chaque page suivante
-    const tops = els.map((e) => e.offsetTop - c.offsetTop), haut = (lh * px - d.getElementById("h").offsetHeight - d.getElementById("b").offsetHeight) * 0.97;
+    const tops = els.map((e) => e.offsetTop - c.offsetTop), haut = (lh * px - d.getElementById("h").offsetHeight - d.getElementById("b").offsetHeight) * MARGE_H;
     const hn = d.getElementById("n").offsetHeight;
     const blocs = els.map((e, i) => ({ h: (i < els.length - 1 ? tops[i + 1] : c.offsetHeight) - tops[i], lie: i > 0 && lieAuPrecedent(e, els[i - 1]) }));
     const tete = []; for (let i = 0; i < els.length && /\bor-(date|pat|pat2)\b/.test(els[i].className); i++) tete.push(i);
@@ -989,8 +992,12 @@ function imprimer(w, html, format, taille, ctx, t) {
     const d = document.createElement("div"); d.innerHTML = html; const els = [...d.children], n = r.pages.length;
     const tete = (r.tete || []).map((k) => els[k].outerHTML).join("");
     const sg = r.sig >= 0 && els[r.sig] ? els[r.sig].outerHTML : "";
-    corps = r.pages.map((pg, i) => '<div class="pgp">' + cd.haut + (i ? tete : "") + pg.map((k) => els[k].outerHTML).join("") + (pg.indexOf(r.sig) < 0 ? sg : "") +
-      '<div class="pgb"><p class="or-num">page ' + (i + 1) + " / " + n + "</p>" + cd.bas + "</div></div>").join("");
+    // chaque médicament (nom + posologie) d'un bloc ; le dernier de la page collé à « Cachet et signature » et au numéro de page : si le
+    // navigateur manque de place, ils passent ensemble sur la feuille suivante (jamais une signature ou un numéro seuls)
+    const groupes = (pg) => { const G = []; pg.filter((k) => k !== r.sig).forEach((k) => { const e = els[k]; if (!G.length || /\bor-(m|a)\b/.test(e.className) && !(r.tete || []).includes(k)) G.push([]); G[G.length - 1].push(e.outerHTML); }); return G; };
+    corps = r.pages.map((pg, i) => { const G = groupes(pg), fin = G.length ? G.pop().join("") : "";
+      return '<div class="pgp">' + cd.haut + (i ? tete : "") + G.map((g) => '<div class="or-gr">' + g.join("") + "</div>").join("") +
+        '<div class="or-gr">' + fin + sg + '<div class="pgb"><p class="or-num">page ' + (i + 1) + " / " + n + "</p>" + cd.bas + "</div></div></div>"; }).join("");
   }
   w.document.open(); w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>&#8203;</title><style>' + cssImpression(format, taille, courrier) + '</style></head><body><div class="pg">' + corps + "</div></body></html>"); w.document.close();
   setTimeout(() => { try { w.focus(); w.print(); } catch (e) {} }, 400);
