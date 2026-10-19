@@ -472,7 +472,7 @@ types**, refus gardés) : R-A6 et R-E4 partent de là, sans les refaire.
       l'index (d. 16, avec 5.3). Bilan inchangé.
 
 **Lot E – Audit n° 7 : ordonnances et bibliothèques de prescription** (§ 8 ; point 1 → R-A1 ; questions 1 et 2 au début du lot)
-**Fait le 19/10/2026 (R-E1 à R-E7 en une session, demande de Dr Bentahila ; testé, pas encore en ligne)** : moteur `public/js/moteur/ordonnance.js` (zones
+**Fait le 19/10/2026 (R-E1 à R-E7 en une session, demande de Dr Bentahila ; testé ; en ligne : 20261019h, site, règles, fonctions referenceDiff et modeleAppliquer, accord de Dr Bentahila)** : moteur `public/js/moteur/ordonnance.js` (zones
 `marquerZones`, doublons, familles d'allergie `FAMILLES_ALLERGIE` / `alertesAllergie`, pages `paginer`, chimio orale `doseOrale` ; test-ordonnance 28/28) et
 `public/js/moteur/bibmaj.js` (`fusionnerListe`, `fusionnerOrdos`, `ajouterManquantes`, `retiresEntre` ; test-bibmaj 21/21) ; corrections de départ décrites
 dans `public/js/donnees/majbib.js` (écrit d'après la liste d'avant : « avant » → fiche de départ) ; `tests/test_ordonnances_e.py` 46/46 (médecin, secrétaire,
