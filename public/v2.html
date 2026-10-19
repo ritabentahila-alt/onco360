@@ -1017,7 +1017,10 @@ details.vig-b>summary::-webkit-details-marker{display:none}.vig-d{font-size:var(
 .pn-corps .rt-f{grid-template-columns:repeat(4,minmax(0,1fr))}.pn-corps .rt-f>div:empty{display:none}.pn-corps .rt-f>.large:has(#rActe){grid-column:span 2}.pn-corps .rt-f>.large:has(#rFinCalc){grid-column:auto}
 .pn-corps .rt-f #rFinCalc{font-size:var(--t4)!important;padding-top:7px}.pn-corps .rt-f .rt-vol{margin:0 0 4px!important}.pn-corps .rt-f #rNote{height:56px}.pn-corps .rt-f>.large:has(#rVmat),.pn-corps .rt-f>#rVmatM{grid-column:span 2}.pn-corps .rt-f>#rVmatM{padding:4px 8px!important}.pn-corps .rt-f>.large:has(#rVmat){align-self:end}.pn-corps .par-j label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* Onglet Chimiothérapie : une ligne par cure */
-.dos-trav .t-lig th{white-space:nowrap;padding:6px 6px;font-size:var(--t1)}.dos-trav .t-lig td{padding:5px 6px}.dos-trav .t-lig td.pcs{white-space:nowrap;color:var(--doux);font-size:var(--t3)}
+.dos-trav .t-lig th{white-space:nowrap;padding:6px 6px;font-size:var(--t1)}.dos-trav .t-lig td{padding:5px 6px}.dos-trav .t-lig td.pcs{color:var(--doux);font-size:var(--t3)}
+/* 19/10/2026 (Dr Bentahila) : une ligne hebdomadaire (paclitaxel, paclitaxel-carboplatine) ne demande plus de défiler de côté : « J1 J8 » et
+   « J15 à valider » l'un sous l'autre, poids · Cl · SC qui passe à la ligne, date prévue plus étroite */
+.t-lig td[data-l="Statut"] .badge{margin:1px 0}.t-lig td.pcs .nw{white-space:nowrap}.tcures input[type=date]{width:auto;max-width:150px;min-width:0}
 .dos-trav .t-lig .badge{padding:2px 7px;font-size:var(--t2)}.dos-trav .t-lig td .mini{padding:3px 8px}.dos-trav .acc-c>.actr{margin-bottom:4px!important}
 /* Note de consultation ouverte : titre avec signature et boutons, note sans cadre, ordonnances sur une ligne */
 .cs-h{display:flex;align-items:center;gap:2px 6px;flex-wrap:wrap}.cs-h .cs-t{flex:1 1 300px;min-width:0}.dos .cs.on .cs-t .ti{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}.dos .cs.on .cs-t .au{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:0 1 auto}.cs-act{display:inline-flex;align-items:center;gap:6px;margin-left:auto;white-space:nowrap;padding:2px 0}.dos .cs.on .cs-t .au{flex:0 3 auto}
