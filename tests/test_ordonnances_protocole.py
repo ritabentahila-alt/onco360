@@ -25,9 +25,11 @@ async def main():
         pg = await ouvrir(b, S2); ev = pg.evaluate
         await pg.goto(f'http://localhost:{PORT}/v2.html#dossier/{pid}'); await pg.wait_for_timeout(3500)
         await ev(f"chOuvrir('{pid}', {i}, 0, 1)"); await pg.wait_for_timeout(1200)
+        await ev("document.querySelectorAll('details.vig-b').forEach(d => d.open = true)")  # 19/10 : vigilance repliée en une ligne
         t = await pg.inner_text(':is(#fenetreCorps,#panneauCorps):not(:empty)')
         ok('Ordonnances' in t and 'Ordonnances liées' in t and 'Seuils du jour' in t, 'séance : bouton « Ordonnances », ordonnances liées et seuils du protocole (repris de la bibliothèque)', t[-400:])
         await ev(f"chOrdos('{pid}', {i}, 0, 1)"); await pg.wait_for_timeout(1500)
+        await ev("document.querySelectorAll('details.vig-b').forEach(d => d.open = true)")  # 19/10 : vigilance repliée en une ligne
         t = await pg.inner_text(':is(#fenetreCorps,#panneauCorps):not(:empty)')
         coche = await ev("[...document.querySelectorAll('[data-ot]:checked')].map(i=>i.parentNode.querySelector('b').textContent)")
         ok('Ordonnances du protocole' in t and 'Chimio : risque émétique modéré (oxaliplatine, irinotécan…)' in coche and 'Chimio – Capécitabine : mains-pieds et diarrhée' in coche, 'les deux ordonnances liées sont cochées', coche)

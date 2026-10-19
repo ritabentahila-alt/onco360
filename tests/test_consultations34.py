@@ -31,7 +31,7 @@ async def main():
         c = cs_de(await ev("window.__fs"))[-1]
         ok(c.get('type') == 'Consultation de suivi' and c.get('extra', {}).get('xcsnau') == '2' and c['extra'].get('xcsoms') == '1' and not c.get('modifs'), 'enregistrée : nausées grade 2, OMS 1 ; pas de « modifiée » (auteur, le jour même)', c)
         t = await pg.inner_text('#op-co')
-        ok('Nausées' in t and 'Signée le' in t and 'modifiée' not in t, 'journal : valeurs du formulaire et « Signée le … par … »', t[:400])
+        ok('Nausées' in t and 'signée le' in t.lower() and 'modifiée' not in t, 'journal : valeurs du formulaire et « Signée le … par … »', t[:400])
         ok(not pg.errs, 'aucune erreur JavaScript', pg.errs[:2]); S2 = json.loads(json.dumps(await ev("window.__fs"))); await pg.close()
 
         print('Modification un autre jour : « modifiée le … »')
@@ -43,7 +43,7 @@ async def main():
         await ev(f"csModifier('{pid}','{cid}')"); await pg.wait_for_timeout(500); await pg.fill('#csNote', 'Bonne tolérance. Poursuite.'); await pg.click('#csOk'); await pg.wait_for_timeout(1500)
         c = (await ev("window.__fs"))[k]
         ok(len(c.get('modifs', [])) == 1, 'une modification notée (date, auteur), sans ancienne version', c.get('modifs'))
-        ok('modifiée le' in await pg.inner_text('#op-co'), '« Signée le … · modifiée le … » affiché')
+        ok('modifiée' in await pg.inner_text('#op-co') and 'modifiée le' in await ev("document.querySelector('#op-co .cs-sg').title"), '« signée le … · modifiée » affiché (détail « modifiée le … » au survol)')
         ok(not pg.errs, 'aucune erreur JavaScript', pg.errs[:2]); await pg.close()
 
         print('Secrétaire : note du secrétariat dans le même journal')

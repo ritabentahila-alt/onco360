@@ -95,7 +95,24 @@ async function afficherVue(x) {
 // Ouverte d'office sur le document le plus récent ; en tête : nom et date ; « Documents (n) » = liste par date (la plus récente en haut, type en
 // étiquette, recherche et menu « Type » de l'onglet) ; Agrandir (deux tiers de la largeur) ; menu ⋯ (Plein écran, Nouvelle fenêtre, Télécharger) ;
 // sans document : « Déposer un document ». Le PDF garde le lecteur du navigateur.
-const DV = { liste: false };
+const DV = { liste: false, zoom: "largeur" }; // zoom (19/10/2026, demande de Dr Bentahila) : "page" (page entière), "largeur", ou un pourcentage
+// Zoom de la visionneuse : PDF = lecteur du navigateur ouvert au zoom demandé (#zoom=…) ; image = taille calculée, la zone défile
+const ZOOMS = [25, 50, 75, 100, 125, 150, 200, 300];
+function apercuHtml(f, url, g) {
+  const esc = A.esc, z = DV.zoom;
+  if (g === "pdf") return '<iframe src="' + url + "#zoom=" + (z === "page" ? "page-fit" : z === "largeur" ? "page-width" : z) + '" title="' + esc(f.titre || f.nom) + '"></iframe>';
+  return '<div class="dv-img z-' + (typeof z === "number" ? "n" : z) + '"><img src="' + url + '" alt="' + esc(f.titre || f.nom) + '"' + (typeof z === "number" ? ' onload="this.style.width=(this.naturalWidth*' + z + '/100)+\'px\'"' : "") + "></div>";
+}
+const barreZoom = () => { const z = DV.zoom, b = (k, lib, t) => '<button type="button" class="mini' + (z === k ? " on" : "") + '" onclick="dvZoom(' + (typeof k === "number" ? k : "'" + k + "'") + ')" title="' + t + '">' + lib + "</button>";
+  return '<div class="dv-z" role="toolbar" aria-label="Zoom du document">' + b("page", "Page entière", "Toute la page dans la fenêtre") + b("largeur", "Largeur", "Ajuster à la largeur (on fait défiler)") + b(100, "100 %", "Taille réelle") +
+    '<button type="button" class="mini" onclick="dvZoom(-1)" aria-label="Zoom arrière" title="Zoom arrière">−</button><span class="dv-zp">' + (typeof z === "number" ? z + " %" : "") + '</span><button type="button" class="mini" onclick="dvZoom(1)" aria-label="Zoom avant" title="Zoom avant">+</button></div>'; };
+window.dvZoom = (k) => {
+  const z = DV.zoom, n = typeof z === "number" ? z : 100;
+  DV.zoom = k === -1 ? ZOOMS.slice().reverse().find((v) => v < n) || ZOOMS[0] : k === 1 ? ZOOMS.find((v) => v > n) || ZOOMS[ZOOMS.length - 1] : k;
+  const zb = document.querySelector(".dv-z"); if (zb) zb.outerHTML = barreZoom();
+  const c = $("dvC"), f = c && c.dataset.id && Object.values(FI).flat().find((y) => y && y.id === c.dataset.id);
+  if (f && URLS[f.id] && genre(f)) c.innerHTML = apercuHtml(f, URLS[f.id], genre(f));
+};
 export const visionneuseGrande = () => { try { const v = localStorage.getItem("onco360.visionneuseGrande"); if (v != null) return v === "1"; } catch (e) { /* stockage indisponible */ } return ((D().profil || {}).dossier || {}).visionneuse === "deuxTiers"; };
 export const sigVisionneuse = (x) => (x.id in FI ? (FI[x.id] === undefined ? "charge" : FI[x.id] === null ? "erreur" : FI[x.id].map((f) => f.id + ":" + (f.titre || "") + ":" + (f.d || "") + ":" + (f.type || "")).join("|")) : "") + "#" + (SEL[x.id] || "") + "#" + DV.liste + "#" + JSON.stringify(FQ[x.id] || {});
 export function htmlVisionneuse(x) {
@@ -113,7 +130,7 @@ export function htmlVisionneuse(x) {
     (DV.liste ? '<div class="dv-liste"><div class="fi-barre"><div class="recherche">' + A.ic("loupe") + '<input id="dvQ" type="search" autocomplete="off" placeholder="Rechercher un document…" value="' + esc(F.q) + '" oninput="dvFiltre(' + q + ')" aria-label="Rechercher un document"></div>' +
       '<select id="dvT" data-fn="documents.types" onchange="dvFiltre(' + q + ')" aria-label="Type de document"><option value="">Tous les types</option>' + types.map((t) => "<option" + (F.t === t ? " selected" : "") + ">" + esc(t) + "</option>").join("") + "</select></div>" +
       '<div id="dvL" class="dv-l" data-defile="dvl">' + listeDv(x) + "</div></div>" : "") +
-    '<div class="dv-c fi-vc" id="dvC" data-id=""><p class="sous" style="margin:12px">Chargement du document…</p></div></div>';
+    barreZoom() + '<div class="dv-c fi-vc" id="dvC" data-id=""><p class="sous" style="margin:12px">Chargement du document…</p></div></div>';
 }
 function listeDv(x) {
   const V = visibles(x), esc = A.esc, sel = choisi(x);
@@ -131,7 +148,7 @@ async function majVisionneuse(x) {
   try {
     if (!URLS[f.id]) { const b = await lireFichier(f); URLS[f.id] = URL.createObjectURL(b.type ? b : new Blob([b], { type: f.mime || (g === "pdf" ? "application/pdf" : "image/jpeg") })); }
     const c2 = $("dvC"); if (!c2 || c2.dataset.id !== f.id) return;
-    c2.innerHTML = g === "pdf" ? '<iframe src="' + URLS[f.id] + '" title="' + esc(f.titre || f.nom) + '"></iframe>' : '<img src="' + URLS[f.id] + '" alt="' + esc(f.titre || f.nom) + '">';
+    c2.innerHTML = apercuHtml(f, URLS[f.id], g);
   } catch (e) { const c2 = $("dvC"); if (c2 && c2.dataset.id === f.id) c2.innerHTML = '<p class="err" style="margin:12px">' + esc(e && /unauthorized|permission/.test(e.code || "") ? "Vous n'avez pas accès à ce document." : "Aperçu impossible : " + ((e && e.message) || e)) + "</p>"; }
 }
 window.dvChoisir = (pid, id) => { const x = trouver(pid); if (!x) return; SEL[pid] = id; DV.liste = false; redessiner(pid); document.querySelectorAll("#fiListe .fi").forEach((e) => e.classList.toggle("on", e.dataset.id === id)); };

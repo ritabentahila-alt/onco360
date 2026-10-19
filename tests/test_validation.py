@@ -1,4 +1,5 @@
 import pathlib; __file__=str(pathlib.Path(__file__).resolve()); exec(open(pathlib.Path(__file__).parent/'base.py').read())
+# Lot G (19/10/2026) : sur ordinateur, la cure s'ouvre dans le panneau (#panneauCorps) ; une petite fenêtre (#fenetreCorps) passe devant
 # Étapes 2.3 et 2.6 (12/10/2026) : contrôle avant validation d'une cure (doses manquantes refusées, valeurs hors seuils confirmées)
 # et bilan biologique du jour (facultatif, gardé avec la cure figée).
 ok_n = ko_n = 0
@@ -44,7 +45,7 @@ async def main():
         pg = await ouvrir(b, S); ev = pg.evaluate
         await pg.goto(f'http://localhost:{PORT}/v2.html#dossier/{pid}'); await pg.wait_for_timeout(2500)
         await ev(f"chOuvrir('{pid}', {i}, {k}, 1)"); await pg.wait_for_timeout(1200)
-        ordre = await ev("(()=>{const t=document.getElementById('fenetreCorps').innerHTML;return [t.indexOf('chPoids'),t.indexOf('bio-j'),t.indexOf('<b>Molécules</b>')]})()")
+        ordre = await ev("(()=>{const t=document.querySelector(':is(:is(#fenetreCorps,#panneauCorps):not(:empty),#panneauCorps):not(:empty)').innerHTML;return [t.indexOf('chPoids'),t.indexOf('bPnn'),t.indexOf('<b>Molécules</b>')]})()")
         ok(0 < ordre[0] < ordre[1] < ordre[2], 'bilan biologique entre les paramètres (poids…) et « Molécules »', ordre)
         await pg.fill('#bPnn', '2,1'); await pg.fill('#bHb', '7,5')
         await ev(f"chChamp('{pid}', {i}, {k}, 'creat', '9', 1)"); await pg.wait_for_timeout(1500)
@@ -52,9 +53,9 @@ async def main():
         await ev(f"chValiderJ1('{pid}', {i}, {k})"); await pg.wait_for_timeout(2000)
         ok(any('hémoglobine à 7,5 g/dL' in d for d in pg.dlg), 'repère hémoglobine < 8 g/dL signalé', pg.dlg[-1:])
         await ev(f"chOuvrir('{pid}', {i}, {k}, 1)"); await pg.wait_for_timeout(1200)
-        t = await pg.inner_text('#fenetreCorps')
+        t = await pg.inner_text(':is(#fenetreCorps,#panneauCorps):not(:empty)')
         ok('2,1 G/L' in t and '7,5 g/dL' in t and 'Séance validée' in t, 'cure validée rouverte : bilan affiché (suivi de l\'évolution)', t[t.find('Bilan'):t.find('Bilan') + 160])
-        dis = await ev("(()=>{const f=document.getElementById('fenetreCorps');return {poids:f.querySelector('#chPoids').disabled, actifs:[...f.querySelectorAll('input:not([disabled]):not([type=date]):not([type=radio])')].length, ajout:/Ajouter une molécule/.test(f.innerText), annuler:/annuler la validation/.test(f.innerText)}})()")
+        dis = await ev("(()=>{const f=document.querySelector(':is(:is(#fenetreCorps,#panneauCorps):not(:empty),#panneauCorps):not(:empty)');return {poids:f.querySelector('#chPoids').disabled, actifs:[...f.querySelectorAll('input:not([disabled]):not([type=date]):not([type=radio])')].length, ajout:/Ajouter une molécule/.test(f.innerText), annuler:/annuler la validation/.test(f.innerText)}})()")
         ok(dis['poids'] and dis['actifs'] == 0 and not dis['ajout'] and dis['annuler'], 'cure validée verrouillée : aucun champ modifiable, pas d\'ajout de molécule, lien « annuler la validation »', dis)
         avant = lignes_de(await ev("window.__fs"))[pid][i]['cures'][k]
         await ev(f"chChamp('{pid}', {i}, {k}, 'pctAll', '50', 1)"); await pg.wait_for_timeout(1000)
@@ -65,9 +66,9 @@ async def main():
         pg = await ouvrir(b, S); ev = pg.evaluate
         await pg.goto(f'http://localhost:{PORT}/v2.html#dossier/{pid}'); await pg.wait_for_timeout(2500)
         await ev(f"chOuvrir('{pid}', {i}, {k}, 1)"); await pg.wait_for_timeout(1200)
-        pos = await ev("(()=>{const f=document.getElementById('fenetreCorps'),r=[...f.querySelectorAll('button')].find(x=>/Retour à la cure/.test(x.textContent));return r?{bas:r.parentElement.className==='boutons',avec:/Valider/.test(r.parentElement.textContent),haut:f.innerHTML.indexOf('Retour à la cure')>f.innerHTML.indexOf('Molécules')}:null})()")
+        pos = await ev("(()=>{const f=document.querySelector(':is(:is(#fenetreCorps,#panneauCorps):not(:empty),#panneauCorps):not(:empty)'),r=[...f.querySelectorAll('button')].find(x=>/Retour à la cure/.test(x.textContent));return r?{bas:r.parentElement.className==='boutons',avec:/Valider/.test(r.parentElement.textContent),haut:f.innerHTML.indexOf('Retour à la cure')>f.innerHTML.indexOf('Molécules')}:null})()")
         ok(pos and pos['bas'] and pos['avec'] and pos['haut'], 'bouton « Retour à la cure » en bas, à côté de Reporter / Valider', pos)
-        mol = await ev("(()=>{const i=[...document.querySelectorAll('#fenetreCorps input[onchange^=\"chPct\"]')][0];return i?i.getAttribute('onchange'):null})()")
+        mol = await ev("(()=>{const i=[...document.querySelectorAll(':is(#fenetreCorps,#panneauCorps):not(:empty) input[onchange^=\"chPct\"]')][0];return i?i.getAttribute('onchange'):null})()")
         if mol:
             n0 = len(pg.dlg); await ev(mol.replace('this.value', "'1000'")); await pg.wait_for_timeout(1200)
             ok(any('1000 %' in d and 'au-dessus de 100 %' in d for d in pg.dlg[n0:]), '1000 % tapé pour une molécule : confirmation demandée', pg.dlg[n0:])
@@ -77,17 +78,17 @@ async def main():
         pg = await ouvrir(b, seed(cis)); ev = pg.evaluate
         await pg.goto(f'http://localhost:{PORT}/v2.html#dossier/{pid}'); await pg.wait_for_timeout(2500)
         await ev(f"chOuvrir('{pid}', {i}, {k}, 1)"); await pg.wait_for_timeout(1200)
-        ok(await ev("!!document.querySelector('.bio-j #bCr') && /DFG \\(Cockcroft\\)/.test(document.querySelector('.bio-j').innerText)"), 'créatinine et DFG dans le bloc « Bilan biologique du jour »')
+        ok(await ev("!!document.querySelector(':is(.bio-j,.par-j) #bCr') && /DFG \\(Cockcroft\\)/.test(document.querySelector('#bCr').closest(':is(.bio-j,.par-j)').innerText)"), 'créatinine et DFG avec le bilan du jour (une seule grille avec le poids, 19/10)')
         n0 = len(pg.dlg); await ev(f"chChamp('{pid}', {i}, {k}, 'creat', '25', 1)"); await pg.wait_for_timeout(2000)
         ok(any('cisplatine avec une clairance' in d for d in pg.dlg[n0:]), 'cisplatine + créatinine élevée : fenêtre de la fonction rénale', pg.dlg[n0:])
-        ok('cisplatine avec une clairance' in await pg.inner_text('#fenetreCorps'), 'repère rappelé en rouge sous le DFG')
+        ok('cisplatine avec une clairance' in await pg.inner_text(':is(#fenetreCorps,#panneauCorps):not(:empty)'), 'repère rappelé en rouge sous le DFG')
         ok(not pg.errs, 'aucune erreur JavaScript', pg.errs[:2]); await pg.close()
         pg = await ouvrir(b, S); ev = pg.evaluate
         await pg.goto(f'http://localhost:{PORT}/v2.html#dossier/{pid}'); await pg.wait_for_timeout(2500)
         renal = await ev(f"(async()=>{{const m=await import('/js/moteur/doses.js');return null}})()")
         await ev(f"chOuvrir('{pid}', {i}, {k}, 1)"); await pg.wait_for_timeout(1200)
         n0 = len(pg.dlg); await ev(f"chChamp('{pid}', {i}, {k}, 'creat', '40', 1)"); await pg.wait_for_timeout(2000)
-        noms = await ev("[...document.querySelectorAll('#fenetreCorps td')].map(t=>t.innerText).join(' ')")
+        noms = await ev("[...document.querySelectorAll(':is(#fenetreCorps,#panneauCorps):not(:empty) td')].map(t=>t.innerText).join(' ')")
         if not any(m in noms.upper() for m in ['CISPLAT', 'CARBOPLAT', 'CAPÉCIT', 'PÉMÉTREX', 'MÉTHOTREX', 'IFOSFAM', 'CYCLOPHOS', 'OXALIPLAT', 'ÉTOPOS', 'BLÉOMY']):
             ok(not pg.dlg[n0:], 'protocole sans molécule à surveiller : créatinine facultative, aucune fenêtre', pg.dlg[n0:])
         ok(not pg.errs, 'aucune erreur JavaScript', pg.errs[:2]); await pg.close()

@@ -1,4 +1,5 @@
 import pathlib; __file__=str(pathlib.Path(__file__).resolve()); exec(open(pathlib.Path(__file__).parent/'base.py').read())
+# Lot G (19/10/2026) : sur ordinateur, la cure s'ouvre dans le panneau (#panneauCorps) ; une petite fenêtre (#fenetreCorps) passe devant
 # Vigilance par molécule (12/10/2026) : examens du bilan du jour proposés selon les molécules, encart « Vigilance » de la séance,
 # fenêtre de confirmation à la validation, vigilances gardées avec la séance figée, rubrique Paramètres › Vigilance des molécules.
 ok_n = ko_n = 0
@@ -26,11 +27,12 @@ async def main():
         pg, ev = await ouvrir_cure(b, S2)
         vis = await ev("(()=>{const v=(id)=>{const e=document.getElementById(id);return !!e&&!e.closest('.cache')};return {fevg:v('bx_fevg'),bili:v('bx_bili'),asat:v('bx_asat'),tsh:v('bx_tsh'),tshExiste:!!document.getElementById('bx_tsh')}})()")
         ok(vis['fevg'] and vis['bili'] and vis['asat'] and not vis['tsh'] and vis['tshExiste'], 'examens proposés (FEVG, bilirubine, ASAT) ; TSH derrière « + autres examens »', vis)
-        t = await pg.inner_text('#fenetreCorps')
+        await ev("document.querySelectorAll('details.vig-b').forEach(d => d.open = true)")  # 19/10 : vigilance repliée en une ligne
+        t = await pg.inner_text(':is(#fenetreCorps,#panneauCorps):not(:empty)')
         ok('Vigilance' in t and 'vésicant' in t and 'ÉPIRUBICINE' in t, 'encart « Vigilance » : produit vésicant', t[t.find('Vigilance'):t.find('Vigilance') + 300])
         ok("Dose cumulée d'anthracyclines" in t, 'dose cumulée d\'anthracyclines affichée', t[t.find('Vigilance'):t.find('Vigilance') + 300])
         ok('À vérifier pour' in t and 'Anti-HER2' in t and 'Taxanes' in t, 'notes « À vérifier » des molécules du jour', t[t.find('À vérifier'):t.find('À vérifier') + 120])
-        ordre = await ev("(()=>{const t=document.getElementById('fenetreCorps').innerHTML;return [t.indexOf('bio-j'),t.indexOf('<b>Vigilance</b>'),t.indexOf('<b>Molécules</b>')]})()")
+        ordre = await ev("(()=>{const t=document.querySelector(':is(#fenetreCorps,#panneauCorps):not(:empty)').innerHTML;return [t.indexOf('bPnn'),t.indexOf('<b>Vigilance</b>'),t.indexOf('<b>Molécules</b>')]})()")
         ok(0 < ordre[0] < ordre[1] < ordre[2], 'encart entre le bilan du jour et « Molécules »', ordre)
         await pg.fill('#bx_fevg', '45'); await pg.fill('#bx_bili', '15')
         await ev(f"chValiderJ1('{pid}', {i}, {k})"); await pg.wait_for_timeout(2000)
@@ -41,9 +43,10 @@ async def main():
         ok(c.get('st') == 'recue' and f.get('bio', {}).get('fevg') == 45 and f.get('bio', {}).get('bili') == 15, 'après confirmation : séance validée, FEVG et bilirubine gardées', f.get('bio'))
         ok(any('moins de 50' in v for v in f.get('vig', [])), 'vigilances confirmées gardées avec la séance figée', f.get('vig'))
         await ev(f"chOuvrir('{pid}', {i}, {k}, 1)"); await pg.wait_for_timeout(1200)
-        t = await pg.inner_text('#fenetreCorps')
+        await ev("document.querySelectorAll('details.vig-b').forEach(d => d.open = true)")  # 19/10 : vigilance repliée en une ligne
+        t = await pg.inner_text(':is(#fenetreCorps,#panneauCorps):not(:empty)')
         ok('45 %' in t and 'Vigilances confirmées à la validation' in t, 'séance validée rouverte : FEVG affichée et vigilances confirmées', t[t.find('Bilan'):t.find('Bilan') + 400])
-        rouge = await ev("[...document.querySelectorAll('#fenetreCorps .bio-j div')].some(e=>e.textContent.trim()==='45 %'&&/rouge/.test(e.getAttribute('style')||''))")
+        rouge = await ev("[...document.querySelectorAll(':is(#fenetreCorps,#panneauCorps):not(:empty) .bio-j div')].some(e=>e.textContent.trim()==='45 %'&&/rouge/.test(e.getAttribute('style')||''))")
         ok(rouge, 'FEVG à 45 % en rouge')
         ok(not pg.errs, 'aucune erreur JavaScript', pg.errs[:2]); await pg.close()
 
@@ -61,7 +64,7 @@ async def main():
 
         print('Téléphone (390 px)')
         pg, ev = await ouvrir_cure(b, S2, w=390)
-        lg = await ev("(()=>{const f=document.getElementById('fenetreCorps');return {sw:document.documentElement.scrollWidth,cw:document.documentElement.clientWidth,f:f.scrollWidth-f.clientWidth}})()")
+        lg = await ev("(()=>{const f=document.querySelector(':is(#fenetreCorps,#panneauCorps):not(:empty)');return {sw:document.documentElement.scrollWidth,cw:document.documentElement.clientWidth,f:f.scrollWidth-f.clientWidth}})()")
         ok(lg['sw'] <= lg['cw'] + 1 and lg['f'] <= 1, 'pas de débordement horizontal', lg)
         ok(not pg.errs, 'aucune erreur JavaScript', pg.errs[:2]); await pg.close()
 

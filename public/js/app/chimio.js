@@ -292,20 +292,20 @@ function vueLigne(x, i) {
   const auc = (p.dr || []).some((d) => /AUC/.test(d.u)), ql = "'" + x.id + "'," + i;
   // 3.7 : plus de titre « Ligne 1 — protocole » (déjà dans l'en-tête de la ligne) ; « Arrêter la ligne » et « Supprimer » dans le menu ⋯
   let h = '<div class="acc-c"><div class="actr" style="justify-content:flex-start;margin-bottom:8px">' + b("Voir / modifier le protocole", "chProto(" + ql + ")") + (okT ? b(L.intent ? "Intention : " + esc(libIntention(L)) : "Intention de la ligne", "chIntention(" + ql + ")") : "") +
-    (okT ? (p.c && !L.arret ? b("+ 1 cure", "chAjouterCure(" + ql + ")") : "") + menu3([L.arret ? b("Reprendre la ligne", "chReprendre(" + ql + ")") : b("Arrêter la ligne", "chArreter(" + ql + ")", "rouge"), b("Supprimer la ligne", "chSupprLigne(" + ql + ")", "rouge")]) : "") + "</div>" +
+    (okT ? (p.c && !L.arret ? b("+ 1 cure", "chAjouterCure(" + ql + ")") : "") + menu3([L.arret ? b("Reprendre la ligne", "chReprendre(" + ql + ")") : b("Arrêter la ligne", "chArreter(" + ql + ")", "rouge"), b("Supprimer la ligne", "chSupprLigne(" + ql + ")", "rouge")]) : "") + '<button class="mini aide-b" type="button" onclick="voirAides()" title="Afficher ou cacher les explications" aria-label="Explications">?</button></div>' +
     (L.arret ? '<p class="st" style="color:var(--rouge);margin:0 0 6px">Arrêtée le ' + A.dfrA(L.arret.date) + " – " + esc(L.arret.raison || "") + (L.arret.com ? " (" + esc(L.arret.com) + ")" : "") + "</p>" : "") +
-    '<div class="tableau"><table class="tcures tsea"><tr><th>Cure</th><th>Date prévue</th><th>Date réalisée</th><th>Statut</th><th>Poids</th>' + (auc ? "<th>Clairance</th>" : "") + "<th>S.C</th><th></th></tr>";
+    '<div class="tableau"><table class="tcures tsea t-lig"><tr><th>Cure</th><th>Prévue</th><th>Réalisée</th><th>Statut</th><th>Poids · ' + (auc ? "Cl · " : "") + "SC</th><th></th></tr>";
   s.E.forEach((e, k) => {
     const pend = e.st === "prevue", qc = ql + "," + k;
     h += "<tr" + (SEL.c === k ? ' class="sel"' : "") + '><td data-l="Cure"><b>C' + e.n + '</b></td><td data-l="Date prévue">' + (pend && okPl && !L.arret ? '<input type="date" value="' + esc(e.prevue || "") + '" onchange="chDate(' + qc + ',this.value)">' : A.dfrA(e.prevue)) + (pend && e.prevue && !L.arret ? boutonHeure(x, i, k, 1, e.c) : "") + // heure de la consultation (3.7)
       (e.c.rep && e.c.rep.length ? '<div class="mesures">' + e.c.rep.map((r) => "reportée du " + A.dfrA(r.de) + " (" + esc(r.raison) + ")").join("<br>") + "</div>" : "") + "</td>" +
       '<td data-l="Réalisée le">' + (e.st === "recue" ? A.dfrA(e.c.reelle) : "—") + '</td><td data-l="Statut">' + badgeCure(e) + (e.st === "annulee" && e.c.ann ? '<div class="mesures">' + esc(e.c.ann.raison || "") + (e.c.ann.com ? " – " + esc(e.c.ann.com) : "") + "</div>" : "") + "</td>" +
-      '<td data-l="Poids">' + (e.poids || "") + "</td>" + (auc ? '<td class="calc" data-l="Clairance">' + (e.cl ? e.cl + " ml/min" : "") + "</td>" : "") + '<td class="calc" data-l="S.C">' + (e.sc ? fr2(e.sc) : "") + "</td>" +
+      '<td class="pcs" data-l="Poids · ' + (auc ? "Cl · " : "") + 'SC">' + [e.poids ? e.poids + " kg" : "", auc && e.cl ? e.cl + " ml/min" : "", e.sc ? fr2(e.sc) + " m²" : ""].filter(Boolean).join(" · ") + "</td>" +
       // 3.14 (12/10/2026) : « Ouvrir » toujours en bouton principal ; « Valider », « Reporter », « Annuler » dans ⋯
       '<td class="act"><div class="btns">' + b("Ouvrir", "chOuvrir(" + qc + ")", "fonce") +
         menu3(okT ? (pend ? [b('<svg class="pi"><use href="#i-check"/></svg>Valider', "chValider(" + qc + ")", "vert"), b("↪ Reporter", "chReporter(" + qc + ")", "orange"), b("✖ Annuler la cure", "chAnnuler(" + qc + ")", "rouge")] : [b(e.st === "recue" ? "Annuler la validation" : "Rétablir", "chRetablir(" + qc + ")")]) : pend && okPl && !L.arret ? [b("↪ Reporter", "chReporter(" + qc + ")", "orange")] : []) + "</div></td></tr>";
   });
-  h += '</table></div><p class="mesures" style="margin-top:6px">« Ouvrir » affiche la cure (fiche chimio, doses) : on vérifie, on remplit, puis on valide depuis la séance ; ⋯ pour valider, reporter, annuler ou rétablir. Une date prévue se modifie directement (les cures suivantes peuvent suivre) ; ' + A.ic("stetho") + ' = heure de la consultation.</p>';
+  h += '</table></div><p class="mesures aide" style="margin-top:6px">« Ouvrir » affiche la cure (fiche chimio, doses) : on vérifie, on remplit, puis on valide depuis la séance ; ⋯ pour valider, reporter, annuler ou rétablir. Une date prévue se modifie directement (les cures suivantes peuvent suivre) ; ' + A.ic("stetho") + ' = heure de la consultation.</p>';
   return h + "</div>";
 }
 
@@ -357,7 +357,7 @@ function vueCure(x, i, k) {
         menu3(okT ? (p2 ? [b('<svg class="pi"><use href="#i-check"/></svg>Valider', "chJour(" + sz.j + ")", "vert"), b("↪ Reporter", "chReporterJ(" + qj + ")", "orange"), b("✖ Annuler", "chAnnulerJ(" + qj + ")", "rouge")] : [sz.st === "recue" ? b("Annuler la validation", "chAnnulerSeance(" + qj + ")") : b("Rétablir", "chRetablirJ(" + qj + ")")]) : p2 && okPl ? [b("↪ Reporter", "chReporterJ(" + qj + ")", "orange")] : []) + "</div>", "act") + "</tr>";
   });
   h += "</table></div>";
-  h += '<p class="mesures" style="margin:8px 0 0">« Ouvrir » ou « Valider » affiche le protocole du jour : poids, taille, créatinine, clairance, surface corporelle, doses, molécules à ajouter ou retirer, et la validation.</p>';
+  h += '<p class="mesures aide" style="margin:8px 0 0">« Ouvrir » ou « Valider » affiche le protocole du jour : poids, taille, créatinine, clairance, surface corporelle, doses, molécules à ajouter ou retirer, et la validation.</p>';
   h += '<div class="boutons"><button class="bt plein" onclick="chFermerCure()">Fermer</button></div>';
   return h;
 }
@@ -384,20 +384,22 @@ function vueJour(x, i, k, j) {
   // Poids validé par la secrétaire (10/10/2026) : séance prévue aujourd'hui (ou en retard), droit « planning » sans « traitements »
   const enAttente = j === 1 ? e.st === "prevue" : e.st === "recue" && !!sea && sea.st === "prevue";
   const poidsSec = !okT && A.peut("planningChimio") && enAttente && !!dJ && dJ <= D().t, pv = (c.pv || {})[gr.j];
-  h += '<div class="form" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-top:4px"><div><label for="chPoids">Poids (kg)</label><input id="chPoids" inputmode="decimal" value="' + esc(G.poids || "") + '"' + (G.saisi.poids ? ' class="saisi"' : "") + (poidsSec ? "" : dis) + ' onchange="chChamp(' + qc + ',\'poids\',this.value,' + gr.j + ')">' +
+  // 19/10/2026 (demande de Dr Bentahila : tout voir sans défiler) : poids, surface, %, créatinine, DFG et bilan du jour dans une seule grille serrée
+  const bioIn = !figeJ && okT ? bilanJour({ x, i, k, j, figeJ, F, okT, G, e, qc, gr, dis, u, auc: q.dr.some((d) => /AUC/.test(d.u)), prods: figeJ && F && F.doses ? Object.values(F.doses) : Object.values(instantane(e, gi).doses), crU: L.crU, inline: true }) : "";
+  h += '<div class="form par-j" style="grid-template-columns:repeat(auto-fill,minmax(118px,1fr));margin-top:4px"><div><label for="chPoids">Poids (kg)</label><input id="chPoids" inputmode="decimal" value="' + esc(G.poids || "") + '"' + (G.saisi.poids ? ' class="saisi"' : "") + (poidsSec ? "" : dis) + ' onchange="chChamp(' + qc + ',\'poids\',this.value,' + gr.j + ')">' +
     (poidsSec ? '<button class="bt vert petit" style="margin-top:6px" onclick="chChamp(' + qc + ',\'poids\',document.getElementById(\'chPoids\').value,' + gr.j + ')"><svg class="pi"><use href="#i-check"/></svg>Valider le poids</button>' : "") +
     (pv ? '<div class="mesures">Poids validé par ' + esc(pv.nom || "") + " le " + A.dfrA(String(pv.le || "").slice(0, 10)) + " à " + String(pv.le ? new Date(pv.le).toTimeString().slice(0, 5) : "").replace(":", " h ") + "</div>" : "") + "</div>" +
     '<div><label>Surface corporelle</label><input disabled value="' + (G.sc ? fr2(G.sc) + " m²" : "—") + '"></div>' +
-    '<div><label>Dose des anticancéreux (%)</label><input inputmode="decimal" placeholder="100" value="' + esc(G.pctAll == null ? "" : G.pctAll) + '"' + (G.pctAll != null ? ' class="saisi"' : "") + dis + ' onchange="chChamp(' + qc + ',\'pctAll\',this.value,' + gr.j + ')"></div></div>' +
-    (j > 1 && !figeJ ? '<p class="mesures" style="margin:2px 0 6px">Valeurs reprises de la séance précédente tant que rien n\'est saisi ; une valeur saisie ici est reprise aux séances et cures suivantes.</p>' : "") +
+    '<div><label title="Dose des anticancéreux (%)">Dose anticancéreux %</label><input inputmode="decimal" placeholder="100" aria-label="Dose des anticancéreux (%)" value="' + esc(G.pctAll == null ? "" : G.pctAll) + '"' + (G.pctAll != null ? ' class="saisi"' : "") + dis + ' onchange="chChamp(' + qc + ',\'pctAll\',this.value,' + gr.j + ')"></div>' + bioIn + "</div>" +
+    (j > 1 && !figeJ ? '<p class="mesures aide" style="margin:2px 0 6px">Valeurs reprises de la séance précédente tant que rien n\'est saisi ; une valeur saisie ici est reprise aux séances et cures suivantes.</p>' : "") +
     (figeJ ? '<p class="mesures" style="margin:2px 0 6px">' + A.ic("check") + " Séance validée" + (F && F.parNom ? " par " + esc(F.parNom) : "") + (F && F.le ? " le " + A.dfrA(String(F.le).slice(0, 10)) : "") + " : valeurs et doses figées, plus modifiables" + (okT ? " (pour corriger, annulez d'abord la validation)" : "") + ".</p>" : "");
   const prodsJ = figeJ && F && F.doses ? Object.values(F.doses) : Object.values(instantane(e, gi).doses); // molécules et doses de la séance
-  h += bilanJour({ x, i, k, j, figeJ, F, okT, G, e, qc, gr, dis, u, auc: q.dr.some((d) => /AUC/.test(d.u)), prods: prodsJ, crU: L.crU });
+  if (!bioIn) h += bilanJour({ x, i, k, j, figeJ, F, okT, G, e, qc, gr, dis, u, auc: q.dr.some((d) => /AUC/.test(d.u)), prods: prodsJ, crU: L.crU });
   h += encartVigilance({ x, L, k, j: gr.j, figeJ, F, G, prods: prodsJ, date: dJ || D().t });
   {
     // Molécules : ajout ou retrait à partir de cette séance (J1, J8…), puis pour toutes les cures suivantes
     const ms = L.mods || [], qd = qc + "," + gr.j, ici = (m) => m.k === k && (m.j || 1) === gr.j;
-    h += '<div class="bloc gris"><div class="entete"><span class="mesures" style="flex:1"><b>Molécules</b> – un ajout ou un retrait s\'applique à partir de ' + (gr.j > 1 ? "C" + e.n + " J" + gr.j : "cette cure") + " et à toutes les cures suivantes.</span>" +
+    h += '<div class="bloc gris mol-b"><div class="entete"><span class="mesures" style="flex:1"><b>Molécules</b><span class="aide"> – un ajout ou un retrait s\'applique à partir de ' + (gr.j > 1 ? "C" + e.n + " J" + gr.j : "cette cure") + " et à toutes les cures suivantes.</span></span>" +
       (okT && !figeJ ? '<span class="actr" data-fn="chimio.molecules">' + b("+ Ajouter une molécule", "chAjMol(" + qd + ")", "fonce") + b("− Retirer une molécule", "chRetMol(" + qd + ")") + "</span>" : "") + "</div>" +
       (ms.some((m) => m.k <= k) ? '<div style="margin-top:6px">' + ms.map((m, jj) => m.k > k ? "" : '<span class="badge b-gr" style="margin:2px">' + (m.op === "add" ? '<svg class="pi"><use href="#i-plus"/></svg>' : '<svg class="pi"><use href="#i-moins"/></svg>') + esc(m.op === "add" ? m.d.p : m.nom) + " · depuis C" + (m.k + 1) + (m.j > 1 ? " J" + m.j : "") + (ici(m) && okT && !figeJ ? ' <a href="#" class="lienr" onclick="chAnnMod(' + qc + "," + jj + ');return false">annuler</a>' : "") + "</span>").join("") + "</div>" : "") + "</div>";
   }
@@ -443,7 +445,7 @@ function tableDoses(x, i, k, q, e, jours, qc, dis, d0) {
         (txt ? esc(texteNiv(d.dt || "", e.poids)) : '<input inputmode="decimal" style="max-width:130px"' + (z.ov ? ' class="saisi"' : "") + ' value="' + (z.dose == null ? "" : z.dose) + '"' + dis + ' onchange="chOv(' + qc + ",'" + esc(d.id) + "'," + j + ',this.value)">') + "</td></tr>";
     });
   });
-  return h + '</table></div><p class="mesures" style="margin-top:6px">Une dose ou un % modifié s\'applique à cette molécule à partir de ce jour : aux jours suivants de cette cure et à tous les jours des cures suivantes. La modification reste tracée dans le dossier. Cases jaunes = valeurs saisies.</p>';
+  return h + '</table></div><p class="mesures aide" style="margin-top:6px">Une dose ou un % modifié s\'applique à cette molécule à partir de ce jour : aux jours suivants de cette cure et à tous les jours des cures suivantes. La modification reste tracée dans le dossier. Cases jaunes = valeurs saisies.</p>';
 }
 
 // ───── Navigation et exécution ─────
@@ -526,6 +528,8 @@ function bilanJour(o) {
   const creat = '<div><label for="bCr">Créatinine (' + u + ")" + (auc ? " *" : "") + '</label><input id="bCr" inputmode="decimal" value="' + esc(G.creat == null ? "" : G.creat) + '"' + (G.saisi && G.saisi.creat ? ' class="saisi"' : "") + dis + ' onchange="chChamp(' + qc + ",'creat',this.value," + gr.j + ')"></div>' +
     '<div><label>DFG (Cockcroft)</label><input disabled value="' + (G.cl ? G.cl + " ml/min" : x.P.sexe ? "—" : "sexe manquant") + '"' + (rep.length ? ' style="color:var(--rouge);font-weight:bold"' : "") + ">" +
     (G.cl > REPERES.calvert && avecMolecule(e, /CARBOPLATINE/) ? '<div class="mesures">Calvert : plafonnée à ' + REPERES.calvert + " ml/min (hyperfiltration)</div>" : "") + "</div>";
+  const champsB = inp("bPnn", "pnn", "PNN (G/L)", "≥ 1,5") + inp("bPlq", "plq", "Plaquettes (G/L)", "≥ 100") + inp("bHb", "hb", "Hémoglobine (g/dL)", "≥ 8") + repH + examensJour(cle, b0, prods, crU);
+  if (o.inline) return creat + '<div class="large aide" style="grid-column:1/-1"><span class="mesures"><b>Bilan biologique du jour</b> (facultatif, gardé avec la séance validée' + (auc ? " ; créatinine nécessaire au carboplatine, à vérifier avant chaque cure" : "") + ")</span></div>" + champsB; // 19/10/2026 : dans la grille de la séance
   return tete + " (facultatif, gardé avec la séance validée" + (auc ? " ; créatinine nécessaire au carboplatine, à vérifier avant chaque cure" : "") + ")</span></div>" +
     inp("bPnn", "pnn", "PNN (G/L)", "≥ 1,5") + inp("bPlq", "plq", "Plaquettes (G/L)", "≥ 100") + inp("bHb", "hb", "Hémoglobine (g/dL)", "≥ 8") + creat + repH + examensJour(cle, b0, prods, crU) + "</div>";
 }
@@ -558,7 +562,10 @@ function encartVigilance(o) {
   if (pc) { const it = interactions({ prods: pc.dr.map((d) => d.p), texte: [x.P.traitCours, x.P.atcdMed].filter(Boolean).join(" "), ordos: pc.ordos }); if (it.length) l.push('<div style="color:var(--orange,#B46A00)">' + it.map(esc).join("<br>") + "</div>"); }
   const N = notesPour(prods, notesVigilance());
   if (N.length) l.push("<details><summary style=\"cursor:pointer\">À vérifier pour " + N.map((n) => esc(n.nom)).join(", ") + "</summary>" + N.map((n) => "<div style=\"margin:4px 0 0 4px\"><b>" + esc(n.nom) + "</b> : " + esc(n.txt) + "</div>").join("") + "</details>");
-  return l.length ? '<div class="bloc gris" style="font-size:13px"><span class="mesures"><b>Vigilance</b></span>' + l.join("") + "</div>" : "";
+  // 19/10/2026 : une ligne de résumé (cumuls en %, risque émétique, vésicant), le détail derrière ▸ ; ouvert d'office si une alerte est forte
+  const cu = cumuls({ prods, sc: figeJ && F ? F.sc : G.sc, histo: historique(lignesDe(x), L.id + "|" + k + "|" + j), date }), fort = cu.some((c) => c.total >= c.seuil * c.C.alerte) || l.some((z) => /var\(--orange/.test(z));
+  const res = cu.map((c) => c.nom + " " + c.pct + " % du seuil").concat(pc ? ["risque émétique " + libRisque(risqueDe(pc, premedP)).toLowerCase()] : [], ves.length ? ["vésicant"] : []);
+  return l.length ? '<details class="bloc gris vig-b"' + (fort ? " open" : "") + '><summary><b>Vigilance</b>' + (res.length ? " · " + esc(res.join(" · ")) : "") + '</summary><div class="vig-d">' + l.join("") + "</div></details>" : "";
 }
 // Contexte des vigilances d'une séance (n = 0 pour J1) à la date d (moteur/vigilance.js)
 function ctxVigilance(x, L, e, k, n, bio, d) {

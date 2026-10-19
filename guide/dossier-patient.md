@@ -4,8 +4,8 @@ Sur ordinateur, le dossier tient dans l'écran : rien ne bouge en haut ni en bas
 Aucun bouton n'a disparu : certains ont seulement changé de place (voir la fin de ce guide).
 
 ## En haut : le bandeau
-- **Ligne 1** : flèche de retour à la liste des patients ; bouton qui replie le menu de gauche **pour le dossier seulement** (ailleurs, le
-  menu garde votre choix habituel) ; photo (un clic l'agrandit ; « Changer ou retirer la photo » dans la fenêtre) ; nom, âge, sexe, n° de
+Le bouton du menu de gauche (« Replier le menu ») replie le menu **pour le dossier seulement** : ailleurs, le menu garde votre choix habituel.
+- **Ligne 1** : flèche de retour à la liste des patients ; photo (un clic l'agrandit ; « Changer ou retirer la photo » dans la fenêtre) ; nom, âge, sexe, n° de
   dossier ; **allergie en rouge** si « oui » ; « Décédé » ou « Perdu de vue » ; « Chimio C3/6 » ; « RT en cours » ; « Ouvert aussi par … » quand
   un collègue a le dossier ouvert. À droite : **Afficher**, **Journal** (titulaire), **Modifier**.
 - **Ligne 2**, en petit : les champs de la fiche cochés **« en-tête »** dans Paramètres › Dossier patient › Fiche patient. Chaque champ peut

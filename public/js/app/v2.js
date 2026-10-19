@@ -1040,7 +1040,7 @@ window.dosAgrandir = () => { DOS.agrandi = !DOS.agrandi; lsEcrire("onco360.dossi
 DOS.agrandi = !!lsLire("onco360.dossierAgrandi", false);
 // Flèche du bandeau : replie le menu pour le dossier seulement (le choix d'ailleurs est gardé et remis en quittant le dossier)
 const menuDossier = (dans) => { if (window.innerWidth < 1024) return; const g = lsLire("onco360.menuReplie", 0) === 1, m = lsLire("onco360.menuReplieDossier", null); document.body.classList.toggle("menu-replie", dans && m != null ? m === 1 : g); };
-window.dosMenu = () => { const oui = !document.body.classList.contains("menu-replie"); lsEcrire("onco360.menuReplieDossier", oui ? 1 : 0); document.body.classList.toggle("menu-replie", oui); { const r = $("btReplier"), t = oui ? "Déplier le menu" : "Replier le menu"; r.title = t; r.setAttribute("aria-label", t); } const b = document.querySelector(".bn-menu"); if (b) { const t = oui ? "Déplier le menu (dans le dossier)" : "Replier le menu (dans le dossier)"; b.title = t; b.setAttribute("aria-label", t); } };
+window.dosMenu = () => { const oui = !document.body.classList.contains("menu-replie"); lsEcrire("onco360.menuReplieDossier", oui ? 1 : 0); document.body.classList.toggle("menu-replie", oui); { const r = $("btReplier"), t = oui ? "Déplier le menu" : "Replier le menu"; r.title = t; r.setAttribute("aria-label", t); }  };
 // Photo du bandeau (40 px) : agrandie au clic ; « Changer ou retirer la photo » (droit « identité ») comme avant
 window.dosPhoto = (id) => {
   const x = D.patients.find((p) => p.id === id); if (!x) return;
@@ -1048,6 +1048,8 @@ window.dosPhoto = (id) => {
   fenetre("<h3>" + esc(x.r.nm) + '</h3><div class="photo-pf">' + bulle(x, "ph-grand") + '</div><div class="boutons">' + (peut("identite") ? '<button class="bt clair" style="margin-right:auto" onclick="photoPatient(\'' + x.id + '\')">Changer ou retirer la photo</button>' : "") + '<button class="bt gris" onclick="fermerFenetre()">Fermer</button></div>');
 };
 // Mode grille (ordinateur) : décidé par le CSS (requêtes de conteneur)
+// 19/10/2026 : textes d'explication (classe « aide ») cachés dans le dossier et le panneau ; « ? » les affiche ou les cache
+window.voirAides = () => document.body.classList.toggle("voir-aides");
 const grilleDossier = () => { const d = $("dos"); return !!d && getComputedStyle(d).display === "grid"; };
 
 function pageDossier(id) {
@@ -1063,7 +1065,7 @@ function pageDossier(id) {
   // ───── Bandeau (ligne 1 : identité, badges, Afficher · Journal · Modifier ; ligne 2 : champs « Dans le bandeau ») ─────
   const L1 = ficheP.ligne1(), enCh = r.t && r.t.st === "cours", enRT = (r.rtS || []).some((s) => s.st === "cours");
   const ban = '<div class="bn1"><a class="retour bn-ret" href="#patients" title="Liste des patients">' + ic("retour") + '<span>Patients</span></a>' +
-    '<button type="button" class="bn-menu" onclick="dosMenu()" title="' + (document.body.classList.contains("menu-replie") ? "Déplier" : "Replier") + ' le menu (dans le dossier)" aria-label="Replier ou déplier le menu (dans le dossier)">' + ic("colonnes") + "</button>" +
+    // 19/10/2026 (demande de Dr Bentahila) : plus de bouton du menu dans le bandeau ; celui du menu replie le menu pour le dossier seulement
     '<button type="button" class="bn-ph" onclick="' + (!P.photo && peut("identite") ? "photoPatient" : "dosPhoto") + "(" + qx + ')" title="' + (P.photo ? "Agrandir la photo" : peut("identite") ? "Ajouter une photo du patient" : "Photo du patient") + '" aria-label="Photo du patient">' + bulle(x, "ph-ban") + "</button>" +
     '<div class="bn-id"><h2>' + esc(r.nm) + '</h2><span class="bn-m">' + esc([a != null ? a + " ans" : "", P.sexe === "F" ? "Femme" : P.sexe === "H" ? "Homme" : "", P.numero ? "Dossier n° " + P.numero : ""].filter(Boolean).join(" · ")) + "</span></div>" +
     '<div class="bn-bd">' + (allergique(P) ? '<span class="badge b-al bn-al" title="' + esc("Allergie" + (alTxt ? " : " + alTxt : " (détail non précisé)")) + '">' + ic("alerte") + "Allergie" + (alTxt ? " : " + esc(alTxt.length > 40 ? alTxt.slice(0, 38) + "…" : alTxt) : "") + "</span>" : "") +
@@ -1177,7 +1179,7 @@ function pageDossier(id) {
   if (ong.length) {
     const act = [ONGLET[x.id], D.membre.role === "infirmiere" ? "ch" : "co"].find((k) => ong.some((o) => o.k === k)) || ong[0].k;
     trav = '<section class="carte onglets"><div class="o-barre" role="tablist" aria-label="Dossier">' + ong.map((o) => '<button role="tab" id="og-' + o.k + '" aria-controls="op-' + o.k + '" aria-selected="' + (o.k === act) + '"' + (o.k === act ? ' class="on"' : "") + ' onclick="ongletDossier(\'' + x.id + "','" + o.k + '\')"><svg class="pi" aria-hidden="true"><use href="#i-' + o.ic + '"/></svg>' + '<span class="lg">' + o.lib + '</span><span class="sm">' + o.court + "</span>" + (o.n ? '<span class="n">' + o.n + "</span>" : "") + "</button>").join("") +
-      (okDoc ? '<button type="button" class="dos-agr" onclick="dosAgrandir()" aria-pressed="' + DOS.agrandi + '" title="' + (DOS.agrandi ? "Réduire : rendre sa place à la colonne Documents" : "Agrandir : le centre prend la place de la colonne Documents") + '" aria-label="Agrandir le centre">' + ic("colonnes") + "</button>" : "") + "</div>" +
+      (okDoc ? '<button type="button" class="dos-agr" onclick="dosAgrandir()" aria-pressed="' + DOS.agrandi + '" title="' + (DOS.agrandi ? "Réduire : rendre sa place à la colonne Documents" : "Agrandir : le centre prend la place de la colonne Documents") + '" aria-label="Agrandir le centre">' + ic("agrandir") + "</button>" : "") + "</div>" +
       ong.map((o) => '<div class="o-pan' + (o.k === act ? "" : " cache") + '" id="op-' + o.k + '" role="tabpanel" aria-labelledby="og-' + o.k + '">' + o.h + "</div>").join("") + "</section>";
   }
 
@@ -1218,7 +1220,7 @@ function pageDossier(id) {
       '<section class="dos-trav" data-zone="travail" aria-label="Travail" tabindex="0">' + trav + "</section>" +
       '<section class="dos-docs" data-zone="documents" aria-label="Documents du patient" tabindex="0" data-sig="' + esc(sigVisionneuse(x)) + '">' + docs + "</section>" +
       '<nav class="dos-barre" data-zone="barre" aria-label="Actions du dossier">' + barre + "</nav>" +
-      '<div class="dos-pn" id="panneau" role="region" aria-label="Chimiothérapie ou radiothérapie" hidden><div class="pn-corps" id="panneauCorps"></div></div></div></div>';
+      '<div class="dos-pn" id="panneau" role="region" aria-label="Chimiothérapie ou radiothérapie" hidden><button type="button" class="pn-aide" onclick="voirAides()" title="Afficher ou cacher les explications" aria-label="Explications">?</button><div class="pn-corps" id="panneauCorps"></div></div></div></div>';
   }
   const dd = $("dos"); dd.querySelectorAll(".dos-sw button").forEach((bt) => { const on = bt.dataset.k === (DOS.droite === "docs" && okDoc ? "docs" : "pat"); bt.classList.toggle("on", on); bt.setAttribute("aria-selected", on); });
   majToutDeplier(); const nt = $("nTxt"); if (nt) window.hauteurResume(nt);
@@ -1741,7 +1743,7 @@ window.ouvrirRT = (id, rid) => {
   const l = JSON.parse(x.doc.rtsJson || "[]"), r0 = rid ? l.find((v) => v.id === rid) : null, R = r0 || { hop: x.doc.etablissementId, ryt: "1", nbA: 1 };
   const ch = (i, lib, v, o) => '<div class="' + ((o && o.large) ? "large" : "") + '"><label for="' + i + '">' + lib + '</label><input id="' + i + '" value="' + esc(v == null ? "" : v) + '"' + (o && o.type ? ' type="' + o.type + '"' : "") + (o && o.liste ? ' list="' + o.liste + '"' : "") + (o && o.mode ? ' inputmode="' + o.mode + '"' : "") + "></div>";
   const sel = (i, lib, v, opts, o) => '<div class="' + ((o && o.large) ? "large" : "") + '"><label for="' + i + '">' + lib + '</label><select id="' + i + '">' + opts.map((p) => '<option value="' + esc(p[0]) + '"' + (String(p[0]) === String(v == null ? "" : v) ? " selected" : "") + ">" + esc(p[1]) + "</option>").join("") + "</select></div>";
-  panneau("<h3>" + (r0 ? "Modifier la prescription" : "Nouvelle prescription de radiothérapie") + " – " + esc(x.r.nm) + '</h3><div class="form">' +
+  panneau("<h3>" + (r0 ? "Modifier la prescription" : "Nouvelle prescription de radiothérapie") + " – " + esc(x.r.nm) + '</h3><div class="form rt-f">' +
     '<div class="large"><label for="rActe">Acte</label><select id="rActe"><option value="">— Choisir l\'acte —</option>' + listeActes(R.acte).map((a) => '<option' + (a === R.acte ? " selected" : "") + ">" + esc(a) + "</option>").join("") + "</select></div>" +
     sel("rHop", "Établissement", R.hop || "", [["", "—"]].concat(D.etabs.map((e) => [e.code, e.code + " – " + e.nom])), {}) + "<div></div>" +
     sel("rTech", "Technique", R.tech || "", [["", "—"], ["stereo", "Stéréotaxie"], ["vmat", "VMAT"], ["imrt", "IMRT"], ["3d", "3D"]], {}) + sel("rInt", "Intention", R.intent || "", [["", "—"], ["curative", "Curative"], ["palliative", "Palliative"]], {}) +

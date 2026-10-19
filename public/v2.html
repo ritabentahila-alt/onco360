@@ -942,6 +942,9 @@ details.dp>summary .dp-av{margin-left:auto;font-size:var(--t1);padding:2px 8px}d
 .dv-l .fi{width:100%;display:flex;align-items:center;gap:8px;text-align:left;background:#fff;border:1px solid var(--trait);border-radius:8px;margin:0 0 4px;padding:6px 9px;cursor:pointer;font-family:inherit;color:inherit;font-size:var(--t3)}
 .dv-l .fi:hover{border-color:#B7C8EA}.dv-l .fi.on{border-color:var(--prim);background:var(--prim-c)}.dv-l .fi b{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.dv-l .fi .d{flex:none;color:var(--doux)}
 .dv .dv-c{height:auto;flex:1;min-height:260px}
+.dv-z{display:flex;align-items:center;gap:4px;padding:5px 10px;border-bottom:1px solid var(--trait);flex-wrap:wrap}.dv-z .mini{padding:3px 8px}.dv-z .mini.on{background:var(--prim-c);border-color:var(--prim-cc);color:var(--prim)}.dv-zp{min-width:42px;text-align:center;font-size:var(--t2);color:var(--doux)}
+.dv .dv-c:has(.dv-img){display:block;overflow:auto}.dv-img{min-height:100%;display:flex;justify-content:center;align-items:flex-start}.dv-img.z-page{height:100%;align-items:center}.dv-img.z-page img{max-width:100%;max-height:100%;object-fit:contain}
+.dv-img.z-largeur img{width:100%;max-width:none;max-height:none}.dv-img.z-n{display:block}.dv-img.z-n img{display:block;margin:0 auto;max-width:none;max-height:none}
 .dv-vide{text-align:center;padding:36px 16px;color:var(--doux);display:flex;flex-direction:column;align-items:center;gap:8px}.dv-vide .i{width:34px;height:34px}
 /* Barre d'actions (collée en bas ; sur téléphone : défile de côté, rien caché derrière « Plus ») */
 .dos-barre{position:sticky;bottom:0;z-index:20;display:flex;align-items:center;gap:10px;background:#fff;border-top:1px solid var(--trait);margin:0 calc(-1 * var(--dpx));padding:8px var(--dpx) calc(8px + env(safe-area-inset-bottom));box-shadow:0 -4px 14px rgba(30,42,68,.05)}
@@ -980,6 +983,40 @@ details.dp>summary .dp-av{margin-left:auto;font-size:var(--t1);padding:2px 8px}d
 @container dos (max-width:1599px){.dos-barre .rcp-bulle .lbl .lg{display:none}.dos-barre .rcp-bulle .lbl .sm{display:inline}.dos-barre .rcp-bulle .q{display:none}.dos-barre .rcp-bulle .bt .lg{display:none}.dos-barre .rcp-bulle .bt .sm{display:inline}.dos-barre .rcp-bulle .bt{padding:8px 10px}.dos-barre .rcp-bulle .bt .i{display:none}}
 @container dos (max-width:1279px){.br-g .lg{display:none}.br-g .sm{display:inline}.dos-barre .sa-b .lbl .lg{display:none}.dos-barre .rcp-bulle .q{display:none}.br-g .pr button{padding:7px 6px}.br-g .pr .fl{padding:7px 3px}}
 @media (max-width:640px){.br-sep{display:none}.br-g .pr{flex:1 1 auto}.br-g .pr button:first-child{flex:1;justify-content:center}.br-d{margin-left:0}.o-barre .dos-agr{display:none}}
+/* 19/10/2026 (demande de Dr Bentahila, « regarde GestiCab : tout est compact ») : tout voir sans défiler. Explications (classe « aide ») cachées
+   dans le dossier et le panneau, « ? » les affiche ; panneau : champs serrés, plusieurs par ligne, boutons de validation fixés en bas ;
+   séance : une grille (poids, surface, %, créatinine, DFG, bilan) ; vigilance en une ligne ; note ouverte sans cadre ; RT sur 4 colonnes */
+.dos .aide,.dos-pn .aide{display:none}body.voir-aides .dos .aide,body.voir-aides .dos-pn .aide{display:block}body.voir-aides .dos span.aide{display:inline}
+.pn-aide{display:none}
+.mini.aide-b{min-width:28px;font-weight:bold;color:var(--prim)}body.voir-aides .mini.aide-b,body.voir-aides .pn-aide{background:var(--prim-c)}
+.pn-corps h3{font-size:var(--t6);margin:0}.pn-corps .cure-ent{margin-bottom:2px;gap:8px}.pn-corps .cure-ent .sous{margin:2px 0 0!important}
+.pn-corps .form{gap:6px 10px}.pn-corps .form label{font-size:var(--t2);margin:0 0 2px;color:var(--doux)}
+.pn-corps input:not([type=checkbox]):not([type=radio]),.pn-corps select{padding:5px 8px;font-size:var(--t4);height:32px;min-height:0}
+.pn-corps textarea{padding:6px 8px;font-size:var(--t4);min-height:52px}
+.pn-corps .bloc{padding:6px 10px;margin:6px 0}.pn-corps .mesures{font-size:var(--t2)}
+.pn-corps .tcures th{padding:6px 6px;font-size:var(--t1)}.pn-corps .tcures td{padding:4px 6px;font-size:var(--t3)}.pn-corps .tcures td input{height:28px}
+.pn-corps .tcures tr.jr td{padding:3px 6px}
+.pn-corps .boutons{position:sticky;bottom:-18px;z-index:4;background:#fff;margin:8px -20px -18px;padding:8px 20px 10px;border-top:1px solid var(--trait)}
+.pn-corps .valj{position:sticky;bottom:-18px;z-index:4;background:#fff;margin:8px -20px -18px;padding:8px 20px 10px;border-top:1px solid var(--trait);box-shadow:0 -6px 12px rgba(30,42,68,.05)}
+.pn-corps .valj .boutons{position:static;margin:6px 0 0;padding:0;border:0}
+.pn-corps .valj .form{grid-template-columns:minmax(0,170px) 1fr!important}.pn-corps .valj .form .large{display:flex;flex-wrap:wrap;gap:2px 14px;align-items:center}.pn-corps .valj .form .large>label:first-child{width:100%}
+.pn-corps .par-j{margin-bottom:4px}
+details.vig-b{padding:6px 10px}details.vig-b>summary{cursor:pointer;font-size:var(--t3);list-style:none}details.vig-b>summary::before{content:"▸ ";color:var(--doux)}details.vig-b[open]>summary::before{content:"▾ "}
+details.vig-b>summary::-webkit-details-marker{display:none}.vig-d{font-size:var(--t3);margin-top:4px}
+.pn-corps .mol-b .entete{display:flex;align-items:center;flex-wrap:nowrap;gap:8px}.pn-corps .mol-b .entete .actr{flex:none;flex-wrap:nowrap}.pn-corps .mol-b .actr .mini{padding:3px 8px}
+@container dos (min-width:940px){.dos-pn .pn-aide{display:grid;place-items:center;position:absolute;top:10px;right:12px;z-index:6;width:28px;height:28px;border-radius:50%;border:1px solid var(--trait);background:#fff;color:var(--prim);font-weight:bold;cursor:pointer}.dos-pn{position:relative}.pn-corps .cure-ent{padding-right:36px}.pn-corps>h3{padding-right:36px}}
+/* RT : 4 colonnes */
+.pn-corps .rt-f{grid-template-columns:repeat(4,minmax(0,1fr))}.pn-corps .rt-f>div:empty{display:none}.pn-corps .rt-f>.large:has(#rActe){grid-column:span 2}.pn-corps .rt-f>.large:has(#rFinCalc){grid-column:auto}
+.pn-corps .rt-f #rFinCalc{font-size:var(--t4)!important;padding-top:7px}.pn-corps .rt-f .rt-vol{margin:0 0 4px!important}.pn-corps .rt-f #rNote{height:56px}.pn-corps .rt-f>.large:has(#rVmat),.pn-corps .rt-f>#rVmatM{grid-column:span 2}.pn-corps .rt-f>#rVmatM{padding:4px 8px!important}.pn-corps .rt-f>.large:has(#rVmat){align-self:end}.pn-corps .par-j label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* Onglet Chimiothérapie : une ligne par cure */
+.dos-trav .t-lig th{white-space:nowrap;padding:6px 6px;font-size:var(--t1)}.dos-trav .t-lig td{padding:5px 6px}.dos-trav .t-lig td.pcs{white-space:nowrap;color:var(--doux);font-size:var(--t3)}
+.dos-trav .t-lig .badge{padding:2px 7px;font-size:var(--t2)}.dos-trav .t-lig td .mini{padding:3px 8px}.dos-trav .acc-c>.actr{margin-bottom:4px!important}
+/* Note de consultation ouverte : titre avec signature et boutons, note sans cadre, ordonnances sur une ligne */
+.cs-h{display:flex;align-items:center;gap:2px 6px;flex-wrap:wrap}.cs-h .cs-t{flex:1 1 300px;min-width:0}.dos .cs.on .cs-t .ti{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}.dos .cs.on .cs-t .au{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:0 1 auto}.cs-act{display:inline-flex;align-items:center;gap:6px;margin-left:auto;white-space:nowrap;padding:2px 0}.dos .cs.on .cs-t .au{flex:0 3 auto}
+.dos .cs.on .cs-h{background:var(--prim-c);padding-right:8px}.cs-sg{font-size:var(--t2);color:var(--doux);white-space:nowrap}.cs-h .mini{padding:2px 8px;font-size:var(--t2)}
+.dos .cs.on .cs-c{padding:4px 12px 8px}.dos .cs-note{border:0;background:transparent;padding:4px 0;min-height:24px}.dos .cs-note:focus{outline:2px solid #C9D6EE;background:#fff;padding:4px 6px}
+.cs-o{margin:6px 0 0;padding:4px 8px;background:var(--fond-doux);border-radius:8px;font-size:var(--t3);line-height:1.6}.cs-o .ck{color:var(--doux)}.cs-o .sep{color:var(--gris-m)}.cs-o .au{color:var(--doux)}.cs-o .lien-l{font-size:inherit}
+@media (max-width:640px){.cs-h{flex-wrap:wrap}.cs-h .cs-t{flex-basis:100%}.cs-sg{margin-left:8px}}
 /* Panneau de chimio et de RT (à la place du centre et de la colonne Documents) */
 .dos-pn{display:none}
 /* Ordinateur : grille qui tient dans l'écran, chaque colonne défile seule */
@@ -1067,6 +1104,7 @@ details.dp>summary .dp-av{margin-left:auto;font-size:var(--t1);padding:2px 8px}d
   <symbol id="i-salle" viewBox="0 0 24 24"><path d="M6 3.5v9.5h11M6 13v7.5M17 13v7.5M6 17h11M17 8.5h-7.5a1.5 1.5 0 0 0-1.5 1.5v3"/><circle cx="15" cy="4.8" r="1.8"/></symbol>
   <symbol id="i-bulle" viewBox="0 0 24 24"><path d="M5 4h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-8l-5 4v-4H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"/></symbol>
   <symbol id="i-document" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7ZM14 2v4a2 2 0 0 0 2 2h4M10 9H8M16 13H8M16 17H8"/></symbol>
+  <symbol id="i-agrandir" viewBox="0 0 24 24"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/></symbol>
   <symbol id="i-colonnes" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16M15.5 9.5 13 12l2.5 2.5"/></symbol>
   <symbol id="i-rcp" viewBox="0 0 24 24"><circle cx="12" cy="5.5" r="2.3"/><circle cx="4.8" cy="9" r="2"/><circle cx="19.2" cy="9" r="2"/><path d="M8 13.5a4 4 0 0 1 8 0M2.5 15.5a3 3 0 0 1 4.4-2.6M21.5 15.5a3 3 0 0 0-4.4-2.6M3 18.5h18M6 18.5V21M18 18.5V21"/></symbol>
 </svg>
@@ -1121,6 +1159,6 @@ function onco360Deconnecter() {
 }
 </script>
 
-<script type="module" src="./js/app/v2.js?v=20261019d"></script>
+<script type="module" src="./js/app/v2.js?v=20261019e"></script>
 </body>
 </html>
