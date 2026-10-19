@@ -544,7 +544,7 @@ types**, refus gardés) : R-A6 et R-E4 partent de là, sans les refaire.
 - [ ] **R-F7 « Recopier un cabinet » depuis une base restaurée** (d. 13 ; erreur qui abîme beaucoup de dossiers), après R-F2, même code.
 
 **Lot G – Audit n° 5 : disposition du dossier patient** (§ 6 ; **remplace l'étape 4.4** de la phase M ; maquettes revues les 13 et 17/10)
-**Fait le 19/10/2026 (R-G a à e en une session, demande de Dr Bentahila ; testé, pas encore en ligne)** : `pageDossier` (v2.js) = `.dos` à cinq
+**Fait le 19/10/2026 (R-G a à e en une session, demande de Dr Bentahila ; testé, contrôle complet bon (Chrome et Safari) ; en ligne : 20261019c, site et fonctions, accord de Dr Bentahila)** : `pageDossier` (v2.js) = `.dos` à cinq
 zones `[data-zone]` (bandeau, patient, travail, documents, barre) + panneau `#panneau` ; CSS « Lot R-G » de v2.html (`@container dos`, `100dvh`,
 `--tete-h`) ; redessin zone par zone (défilement de chaque zone, de la page et curseur gardés ; visionneuse rechargée seulement si `sigVisionneuse`
 change). Bandeau : `ficheP.htmlBandeau` / `ligne1` (fichepatient.js), `ENTETE_CALC` / `ENTETE_CALC0` (catalogue.js : `_chimio`, `_rt`, `_sc`,
