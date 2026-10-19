@@ -11,6 +11,7 @@ pid = [k.split('/')[-1] for k, v in S.items() if k.startswith(E + 'patients/') a
 def seed(rt):
     S2 = json.loads(json.dumps(S)); S2[E + 'patients/' + pid]['rtsJson'] = json.dumps([rt]); return S2
 RT = {"id": "rtT", "acte": "Sein", "hop": S[E + 'patients/' + pid].get('etablissementId') or 'HGC', "scan": "2026-09-01", "cont": "2026-09-03", "dosi": "2026-09-08", "dosiPar": "Dr Test", "deb": "2026-09-15", "nb": "25", "dose": "50", "ryt": "1", "nbA": 1, "cree": "2026-09-01"}
+RT["note"] = "Note ancienne"  # 19/10/2026 : le champ « notes » n'est plus dans la prescription ; une note déjà écrite doit être gardée
 rts = lambda fs: json.loads(fs[E + 'patients/' + pid].get('rtsJson') or '[]')
 async def ouvrir_rt(b, rt):
     pg = await ouvrir(b, seed(rt)); ev = pg.evaluate
@@ -31,8 +32,10 @@ async def main():
         ok(not pg.errs, 'aucune erreur JavaScript', pg.errs[:2]); await pg.close()
         print('Changement sans effet sur la dose (note seulement) : dosimétrie gardée')
         pg, ev = await ouvrir_rt(b, RT)
-        await ev("ouvrirRT('%s','rtT')" % pid); await pg.wait_for_timeout(500); await pg.fill('#rNote', 'note'); await pg.click('#fOk'); await pg.wait_for_timeout(1500)
-        ok(rts(await ev("window.__fs"))[0].get('dosi') == '2026-09-08' and not pg.dlg, 'dosimétrie toujours validée, aucune question', pg.dlg); await pg.close()
+        await ev("ouvrirRT('%s','rtT')" % pid); await pg.wait_for_timeout(500); await pg.select_option('#rInt', 'palliative'); await pg.click('#fOk'); await pg.wait_for_timeout(1500)  # 19/10 : plus de champ « notes »
+        r = rts(await ev("window.__fs"))[0]
+        ok(r.get('dosi') == '2026-09-08' and not pg.dlg, 'dosimétrie toujours validée, aucune question', pg.dlg)
+        ok(r.get('note') == RT.get('note', '') or (not RT.get('note') and not r.get('note')), 'note déjà écrite gardée (champ « Résumé clinique / notes » retiré)', r.get('note')); await pg.close()
         print('Radiothérapie commencée sans validation')
         rt2 = dict(RT); [rt2.pop(k) for k in ('cont', 'dosi', 'dosiPar')]
         pg, ev = await ouvrir_rt(b, rt2)

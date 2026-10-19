@@ -1017,6 +1017,20 @@ details.vig-b>summary::-webkit-details-marker{display:none}.vig-d{font-size:var(
 .dos .cs.on .cs-c{padding:4px 12px 8px}.dos .cs-note{border:0;background:transparent;padding:4px 0;min-height:24px}.dos .cs-note:focus{outline:2px solid #C9D6EE;background:#fff;padding:4px 6px}
 .cs-o{margin:6px 0 0;padding:4px 8px;background:var(--fond-doux);border-radius:8px;font-size:var(--t3);line-height:1.6}.cs-o .ck{color:var(--doux)}.cs-o .sep{color:var(--gris-m)}.cs-o .au{color:var(--doux)}.cs-o .lien-l{font-size:inherit}
 @media (max-width:640px){.cs-h{flex-wrap:wrap}.cs-h .cs-t{flex-basis:100%}.cs-sg{margin-left:8px}}
+/* 19/10/2026 (demande de Dr Bentahila) : onglets du centre centrés (téléphone et ordinateur), « Agrandir » au bout à droite ; notes « comme
+   GestiCab » : chaque consultation = une bande bleu clair (date · type · titre · ordonnances · initiales), dépliée = le texte juste dessous, sans
+   cadre ; note sans ligne vide sous la dernière phrase ; ordonnances : une ligne par sorte (Médic., Analyses…) ; RT pliée = sa ligne de titre */
+.dos-trav .o-barre{justify-content:center;position:relative}
+@media (max-width:640px){.dos-trav .o-barre button[role=tab]{flex-direction:row;gap:4px;padding:11px 6px 9px;font-size:var(--t3)}.dos-trav .o-barre .n{position:static;margin:0;padding:0 5px}} /* téléphone : le nombre à côté du nom (pas dessus) */
+@container dos (min-width:1280px){.dos-trav .o-barre:has(.dos-agr){padding:0 44px}.dos-trav .o-barre .dos-agr{position:absolute;right:6px;top:50%;transform:translateY(-50%);margin:0}}
+.dos .cs,.dos .cs.on{border:0;border-radius:0;margin:0 0 2px;overflow:visible}
+.dos .cs-h,.dos .cs.on .cs-h{background:var(--prim-c);border-radius:6px;padding-right:6px}.dos .cs-t,.dos .cs.on .cs-t{background:none;padding:4px 8px;font-size:var(--t3);min-height:28px}
+.dos .cs-h:hover{background:#DCE6F6}.dos .cs.on .cs-t .ti{font-weight:bold}
+.dos .cs-t .ti{max-width:none;flex:0 1 auto;font-weight:bold;color:var(--titre)}.dos .cs-t .tt{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--encre)}
+.dos .cs.on .cs-c{padding:4px 10px 8px 26px;border:0;background:none}
+.dos .cs-o{background:none;padding:2px 0;margin:4px 0 0}.cs-ol2{display:block;line-height:1.6}
+.rt-pl{display:inline-flex;margin-left:auto;flex-wrap:nowrap}.rt:not(.on){display:flex;align-items:center;flex-wrap:wrap;gap:6px 8px;padding-top:10px;padding-bottom:10px}.rt:not(.on) .tl{flex:1 1 260px;margin:0}
+.dos .cs .cs-note{min-height:0}.dos .cs.on .cs-c{position:relative}.dos .cs-etat{position:absolute;right:10px;top:2px;min-height:0;margin:0;font-size:var(--t1)}
 /* Panneau de chimio et de RT (à la place du centre et de la colonne Documents) */
 .dos-pn{display:none}
 /* Ordinateur : grille qui tient dans l'écran, chaque colonne défile seule */
@@ -1159,6 +1173,6 @@ function onco360Deconnecter() {
 }
 </script>
 
-<script type="module" src="./js/app/v2.js?v=20261019e"></script>
+<script type="module" src="./js/app/v2.js?v=20261019f"></script>
 </body>
 </html>

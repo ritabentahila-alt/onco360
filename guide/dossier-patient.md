@@ -21,13 +21,21 @@ hospitalisations** (venu, non venu, prix, reçu, Encaisser), **Identité et admi
 appareil). Les parties dépliées au départ se règlent pour tout le cabinet dans **Paramètres › Dossier patient › Affichage du dossier**.
 
 ## Au centre : le travail
-Les onglets d'avant : **Consultation · Chimiothérapie · Radiothérapie · Documents** (selon les droits).
-Consultation : « Nouvelle consultation » en tête ; la dernière consultation est dépliée et sa note s'affiche **en entier** ; les autres tiennent
-sur une ligne (date · type · début de la note · nombre d'ordonnances · initiales de l'auteur) : un clic les déplie. « Tout déplier »,
-**« Notes seulement »** (toutes les notes à la suite, sans les ordonnances), **Imprimer** (le journal des consultations). « Agrandir » donne au
-centre la place de la colonne Documents.
+Les onglets d'avant, centrés : **Consultation · Chimiothérapie · Radiothérapie · Documents** (selon les droits ; libellés courts quand la place
+manque). « Agrandir » (icône au bout à droite) donne au centre la place de la colonne Documents.
+- **Consultation** : « Nouvelle consultation » en tête. Chaque consultation est une bande bleu clair : date · type (annonce, suivi, chimio…) ·
+  titre · petit symbole s'il y a des ordonnances · initiales de l'auteur. Un clic la déplie : la note s'affiche juste dessous, en entier, sans ligne
+  vide après la dernière phrase, puis les ordonnances, une ligne par sorte (« Médic. : … », « Analyses : … »). « signée le … », Modifier et
+  Supprimer sont sur la bande. À l'ouverture du dossier, seule la dernière est dépliée. « Tout déplier », « Notes seulement », Imprimer.
+- **Chimiothérapie** : une ligne par cure (date prévue, réalisée, statut, poids · clairance · surface, Ouvrir, ⋯). « Nouvelle ligne chimio » en tête.
+- **Radiothérapie** : la dernière prescription est ouverte (volumes, étapes, séances prévues à ce jour, Pli confidentiel, Compte rendu de fin,
+  Rendez-vous) ; les autres sont pliées sur une ligne (acte, statut, lieu, intention, Modifier, Terminé ou Rouvrir) : un clic sur le titre les ouvre.
+  « + Prescription » en tête. La prescription n'a plus de champ « Résumé clinique / notes » (une note déjà écrite est gardée).
+- Les phrases d'explication sont cachées : le petit **?** les affiche.
 
 ## À droite : les documents
+Zoom : **Page entière** (toute la page dans la colonne), **Largeur** (la page à la largeur de la colonne, on fait défiler), **100 %**, **−** et **+**
+(dans Chrome ; sur Safari, le lecteur garde son propre zoom : pincer ou ⌘ +).
 Le document le plus récent s'ouvre tout seul. « Documents (n) » : la liste, par date, avec la recherche et le type. « Agrandir » : la visionneuse
 prend les deux tiers de la largeur (taille de départ réglable pour vous dans Paramètres › Affichage du dossier). Menu ⋯ : plein écran, nouvelle
 fenêtre, télécharger, modifier (nom, date, type), supprimer. Un clic sur un document de l'onglet Documents l'ouvre ici.

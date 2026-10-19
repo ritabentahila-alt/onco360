@@ -585,7 +585,11 @@ le panneau, « ? » (`voirAides`, `body.voir-aides`) ; panneau : champs de 32 px
 séance : poids, surface, %, créatinine, DFG et bilan dans une grille (`.par-j`, `bilanJour({ inline })`), vigilance en une ligne (`details.vig-b`,
 ouverte d'office si alerte forte ou interaction), « Molécules » sur une ligne ; onglet Chimiothérapie : une ligne par cure (`t-lig`, poids · Cl · SC
 dans une colonne) ; note ouverte : « signée le … », Modifier, Supprimer sur la ligne de titre (`cs-h`, `cs-act`), note sans cadre, ordonnances sur
-une ligne ; RT : 4 colonnes (`rt-f`). Mesuré à 1440 : séance 990 → 640 px, RT 1 190 → 640 px (écran : 638). Tests : test_dossier_disposition 76 ;
+une ligne ; RT : 4 colonnes (`rt-f`). Mesuré à 1440 : séance 990 → 640 px, RT 1 190 → 640 px (écran : 638). **Puis (19/10, autres retours, testé)** : onglets du centre centrés (téléphone et ordinateur ; téléphone : nombre à côté du nom) ; RT : la dernière
+prescription ouverte, les autres pliées sur leur ligne de titre (+ Modifier, Terminé / Rouvrir), prescription enregistrée ouverte (`RTO`), champ
+« Résumé clinique / notes » retiré (note existante gardée : `note: $("rNote") ? … : R.note`) ; notes : bande bleu clair date · type · titre ·
+ordonnances · initiales (plus le début de la note), dépliée = texte dessous sans cadre, sans ligne vide, ordonnances une ligne par sorte ; visionneuse :
+`#view=Fit` / `#view=FitH` / `#zoom=N` (Chrome ; Safari : son zoom) ; défilement gardé quand une note longue se déplie. Tests : test_dossier_disposition 76 ;
 test_cures, test_seances, test_validation, test_vigilance (panneau), test_consultations34 ajoutés au contrôle avant mise en ligne.
 - [x] **R-G a (4.4 a) Bandeau et barre d'actions**, à toutes les largeurs. Bandeau ligne 1 : flèche qui replie le menu pour le dossier
       seulement (localStorage), photo 40 px agrandie au clic, NOM Prénom, âge, sexe, n° de dossier, allergie en rouge si « oui », statut

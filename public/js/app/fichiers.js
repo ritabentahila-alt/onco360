@@ -100,7 +100,8 @@ const DV = { liste: false, zoom: "largeur" }; // zoom (19/10/2026, demande de Dr
 const ZOOMS = [25, 50, 75, 100, 125, 150, 200, 300];
 function apercuHtml(f, url, g) {
   const esc = A.esc, z = DV.zoom;
-  if (g === "pdf") return '<iframe src="' + url + "#zoom=" + (z === "page" ? "page-fit" : z === "largeur" ? "page-width" : z) + '" title="' + esc(f.titre || f.nom) + '"></iframe>';
+  // lecteur PDF de Chrome : view=Fit (page entière), view=FitH (largeur), zoom=N (%) ; Safari garde son propre zoom (pincer, ⌘ +)
+  if (g === "pdf") return '<iframe src="' + url + "#" + (z === "page" ? "view=Fit" : z === "largeur" ? "view=FitH" : "zoom=" + z) + '" title="' + esc(f.titre || f.nom) + '"></iframe>';
   return '<div class="dv-img z-' + (typeof z === "number" ? "n" : z) + '"><img src="' + url + '" alt="' + esc(f.titre || f.nom) + '"' + (typeof z === "number" ? ' onload="this.style.width=(this.naturalWidth*' + z + '/100)+\'px\'"' : "") + "></div>";
 }
 const barreZoom = () => { const z = DV.zoom, b = (k, lib, t) => '<button type="button" class="mini' + (z === k ? " on" : "") + '" onclick="dvZoom(' + (typeof k === "number" ? k : "'" + k + "'") + ')" title="' + t + '">' + lib + "</button>";

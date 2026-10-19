@@ -1210,6 +1210,7 @@ function pageDossier(id) {
       const pos = z.scrollTop, inner = {}; z.querySelectorAll("[data-defile]").forEach((e) => { inner[e.dataset.defile] = e.scrollTop; });
       z.innerHTML = Z[k]; if (k === "documents") z.dataset.sig = sigVisionneuse(x);
       z.scrollTop = pos; z.querySelectorAll("[data-defile]").forEach((e) => { if (e.dataset.defile in inner) e.scrollTop = inner[e.dataset.defile]; });
+      setTimeout(() => { if (z.isConnected && z.scrollTop !== pos) z.scrollTop = pos; }, 0); // encore une fois, quand les notes ont pris leur hauteur
     });
     window.scrollTo(0, y);
     if (aid) { const e = $(aid); if (e && document.activeElement !== e) { e.focus({ preventScroll: true }); if (sel) try { e.setSelectionRange(sel[0], sel[1]); } catch (er) { /* champ sans curseur */ } } }
@@ -1245,6 +1246,9 @@ function htmlRT(x, okRT) {
     const etape = (lib, d, fait, plus) => '<div class="etape' + (fait ? " fait" : "") + '"><span class="ck">' + (fait ? ic("check") : "") + "</span>" + lib + (d ? " — " + dfrA(d) : "") + (plus || "") + "</div>";
     const finFaite = !!v.fin || (f && f < t);
     const dz = dosimetrie(v, t), cz = contourage(v, t); // périodes à valider : contourage (scanner → 1re séance), puis dosimétrie (contourage → 1re séance)
+    // 19/10/2026 (demande de Dr Bentahila) : prescription pliée = la ligne de titre et Modifier / Terminé (Rouvrir) ; le reste seulement ouverte
+    if (!ouv) { hr += '<div class="rt' + (ouv ? " on" : "") + '"><div class="tl" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;cursor:pointer" onclick="rtTog(' + q + ')" title="' + (ouv ? "Refermer" : "Voir les étapes") + '"><b style="font-size:16px;color:var(--titre)">' + (ouv ? "▾ " : "▸ ") + esc(v.acte || "Radiothérapie") + (nbA(v) > 1 ? " × " + nbA(v) : "") + '</b><span class="badge ' + cls + '">' + ({ fin: '<svg class="pi"><use href="#i-check"/></svg>', cours: '<i class="dot v"></i>', dep: '<i class="dot o"></i>', prev: '<svg class="pi"><use href="#i-horloge"/></svg>' }[s.c] || "") + esc(s.lib) + "</span>" + (v.hop ? '<span class="badge b-gr">' + esc(v.hop) + "</span>" : "") + (v.intent ? '<span class="badge b-gr">' + (v.intent === "curative" ? "Curative" : "Palliative") + "</span>" : "") + "</div>" +
+      (okRT ? '<div class="actr rt-pl"><button class="mini" onclick="ouvrirRT(' + q + ')">Modifier</button>' + (v.deb ? (v.fin ? '<button class="mini" onclick="terminerRT(' + q + ',1)">Rouvrir</button>' : '<button class="mini v" onclick="terminerRT(' + q + ')">Terminé</button>') : "") + "</div>" : "") + "</div>"; return; }
     hr += '<div class="rt' + (ouv ? " on" : "") + '"><div class="tl" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;cursor:pointer" onclick="rtTog(' + q + ')" title="' + (ouv ? "Refermer" : "Voir les étapes") + '"><b style="font-size:16px;color:var(--titre)">' + (ouv ? "▾ " : "▸ ") + esc(v.acte || "Radiothérapie") + (nbA(v) > 1 ? " × " + nbA(v) : "") + '</b><span class="badge ' + cls + '">' + ({ fin: '<svg class="pi"><use href="#i-check"/></svg>', cours: '<i class="dot v"></i>', dep: '<i class="dot o"></i>', prev: '<svg class="pi"><use href="#i-horloge"/></svg>' }[s.c] || "") + esc(s.lib) + "</span>" + (v.hop ? '<span class="badge b-gr">' + esc(v.hop) + "</span>" : "") + (v.intent ? '<span class="badge b-gr">' + (v.intent === "curative" ? "Curative" : "Palliative") + "</span>" : "") + "</div>" +
       // 3.5 (12/10/2026) : volumes (principal et compléments) et rythme
       (Array.isArray(v.vol) && v.vol.length ? '<p class="st" style="color:var(--doux);font-size:13.5px;margin:6px 0 0">' + volumesRT(v).map((z, n, l) => esc(texteVolume(z, l))).join("<br>") + "<br>" + esc([nb ? nb + " séances" : "", TECH[v.tech] || (v.vmat ? "VMAT" : ""), libRythme(v)].filter(Boolean).join(" · ")) + "</p>"
@@ -1759,7 +1763,7 @@ window.ouvrirRT = (id, rid) => {
     sel("rCj", "Consultation hebdomadaire", R.cj || "", [["", "Aucune"], ["1", "Lundi"], ["2", "Mardi"], ["3", "Mercredi"], ["4", "Jeudi"], ["5", "Vendredi"]], {}) + ch("rCh", "Heure de la consultation", R.ch, { type: "time" }) +
     '<div class="large"><label><input id="rVmat" type="checkbox" style="width:auto;margin-right:8px"' + (R.vmat ? " checked" : "") + ">Supplément VMAT (facturation)</label></div>" +
     (peut("finances") && D.tarifs ? '<div class="large cache" id="rVmatM" style="background:#FFF7D6;border-radius:10px;padding:10px"><label for="rVmatP">Montant VMAT (DH)</label><input id="rVmatP" inputmode="decimal" value="' + esc(R.vmatPrix != null ? R.vmatPrix : D.tarifs.vmat != null ? D.tarifs.vmat : "") + '"></div>' : "") +
-    '<div class="large"><label for="rNote">Résumé clinique / notes</label><textarea id="rNote">' + esc(R.note || "") + "</textarea></div></div>" +
+    "</div>" + // 19/10/2026 (demande de Dr Bentahila) : « Résumé clinique / notes » retiré ; une note déjà écrite est gardée (onglet Radiothérapie)
     '<div class="err" id="fErr"></div><div class="boutons">' + (r0 ? '<button class="bt gris" id="rSup" style="margin-right:auto;color:var(--rouge)">Supprimer</button>' : "") + '<button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt plein" id="fOk">Enregistrer</button></div>');
   const VOL = volumesRT(R).length ? volumesRT(R) : [{ nom: "", dose: "", nb: "", ty: "p" }];
   const joursCoches = () => [1, 2, 3, 4, 5].filter((k) => $("rJ" + k) && $("rJ" + k).checked);
@@ -1807,7 +1811,7 @@ window.ouvrirRT = (id, rid) => {
     if (revalider && !confirm("La prescription change alors que la dosimétrie a été validée le " + dfrA(r0.dosi) + ".\nLa dosimétrie devra être revalidée (la validation actuelle est gardée dans l'historique et une tâche « Valider la dosimétrie » est recréée).\n\nEnregistrer ?")) return;
     const r = r0 || { id: "rt" + Date.now().toString(36), cree: D.t };
     if (revalider) { r.dosiHist = (r.dosiHist || []).concat([{ dosi: r.dosi, dosiPar: r.dosiPar || "", dosiLe: r.dosiLe || "", retireLe: new Date().toISOString(), raison: "prescription modifiée : " + cle(r0) + " → " + cle(neuf) }]); r.dosiN = (r.dosiN || 0) + 1; delete r.dosi; delete r.dosiPar; delete r.dosiLe; }
-    Object.assign(r, { acte: val("rActe"), hop: val("rHop"), tech: val("rTech"), intent: val("rInt"), dose: val("rDose").replace(",", "."), nb: n, ryt: val("rRyt"), vol: volP, jours: val("rRyt") === "jours" ? joursCoches() : null, nbA: val("rNbA") || "1", scan: val("rScan"), deb: val("rDeb"), finPrev: val("rFinPrev"), cj: val("rCj"), ch: val("rCh"), vmat: $("rVmat").checked, note: $("rNote").value.trim() });
+    Object.assign(r, { acte: val("rActe"), hop: val("rHop"), tech: val("rTech"), intent: val("rInt"), dose: val("rDose").replace(",", "."), nb: n, ryt: val("rRyt"), vol: volP, jours: val("rRyt") === "jours" ? joursCoches() : null, nbA: val("rNbA") || "1", scan: val("rScan"), deb: val("rDeb"), finPrev: val("rFinPrev"), cj: val("rCj"), ch: val("rCh"), vmat: $("rVmat").checked, note: $("rNote") ? $("rNote").value.trim() : R.note || "" });
     ["finPrev", "scan", "deb", "cj", "ch", "tech", "intent", "dose", "note", "vol", "jours"].forEach((k) => { if (!r[k]) delete r[k]; });
     const liste = r0 ? l : l.concat([r]), acteAvant = r0 ? (x.P.rts || []).find((v) => v.id === rid) : null;
     occupe($("fOk"), true);
@@ -1815,7 +1819,7 @@ window.ouvrirRT = (id, rid) => {
       if (peut("finances") && D.tarifs) await majMontants(x, (M) => { const m = M.rt[r.id] = M.rt[r.id] || {}, t = (D.tarifs.actesRT || []).find((a) => a.nom === r.acte);
         if (t && (m.prix == null || !acteAvant || acteAvant.acte !== r.acte)) m.prix = t.prix;
         if (r.vmat) { const v = parseFloat(String(val("rVmatP")).replace(",", ".")); m.vmatPrix = isNaN(v) ? (D.tarifs.vmat != null ? D.tarifs.vmat : null) : v; } });
-      await sauver(liste, r0 ? "Prescription de radiothérapie modifiée" + (revalider ? " (dosimétrie à revalider)" : "") : "Prescription de radiothérapie ajoutée"); fermerFenetre(); toast("Prescription enregistrée."); pageDossier(x.id); }
+      RTO.pid = x.id; RTO.id = r.id; /* la prescription enregistrée est celle qu'on voit ouverte (19/10/2026) */ await sauver(liste, r0 ? "Prescription de radiothérapie modifiée" + (revalider ? " (dosimétrie à revalider)" : "") : "Prescription de radiothérapie ajoutée"); fermerFenetre(); toast("Prescription enregistrée."); pageDossier(x.id); }
     catch (e) { occupe($("fOk"), false); erreur(e.message); }
   };
 };

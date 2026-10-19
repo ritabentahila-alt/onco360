@@ -103,22 +103,23 @@ export function htmlConsultations(x) {
   const ouv = ouvertes(x.id);
   h += '<div class="cs-liste' + (PLUS[x.id] ? " tous" : "") + (ns ? " ns" : "") + '" id="csListe" data-defile="cs">';
   L.forEach((c) => {
-    const on = ns || ouv.has(c.id), qc = q + ",'" + c.id + "'", nl = (c.lignes || []).length, debut = String(c.note || "").replace(/\s+/g, " ").trim();
+    const on = ns || ouv.has(c.id), qc = q + ",'" + c.id + "'", nl = (c.lignes || []).length;
     // 19/10/2026 (demande de Dr Bentahila : plus compact) : consultation ouverte = auteur, « signée le … », Modifier et Supprimer sur la ligne de titre
     const sig = on && !ns ? '<span class="cs-act"><span class="cs-sg" title="' + esc(htmlSignature(c).replace(/<[^>]+>/g, "")) + '">' + (c.creeParNom ? "signée le " + A.dfrA(c.o ? jourDe(c.o) : c.d) : "") + ((c.modifs || []).length ? " · modifiée" : "") + "</span>" +
       (peutEcrire() ? '<button class="mini" onclick="csModifier(' + qc + ')">Modifier</button>' + (peutSupprimer(c) ? '<button class="mini r" onclick="csSupprimer(' + qc + ')">Supprimer</button>' : "") : "") + "</span>" : "";
-    h += '<div class="cs' + (on ? " on" : "") + '"><div class="cs-h"><button class="cs-t" aria-expanded="' + on + '" onclick="csTog(' + qc + ')" title="' + esc(A.dfrA(c.d) + " · " + nomCs(c) + (c.creeParNom ? " · " + c.creeParNom : "")) + '"><span class="fl">' + (on ? "▾" : "▸") + '</span><span class="dt">' + A.dfrA(c.d) + '</span><span class="ti">' + esc(on ? nomCs(c) : typeCourt(c)) + "</span>" +
-      (on ? '<span class="au">' + esc(c.creeParNom || "") + "</span>" : '<span class="ex">' + esc(debut) + "</span>" + (nl ? '<span class="no" title="' + nl + " ordonnance" + (nl > 1 ? "s" : "") + '">' + A.ic("document") + nl + "</span>" : "") + '<span class="in" title="' + esc(c.creeParNom || "") + '">' + esc(initiales(c.creeParNom)) + "</span>") + "</button>" + sig + "</div>";
+    h += '<div class="cs' + (on ? " on" : "") + '"><div class="cs-h"><button class="cs-t" aria-expanded="' + on + '" onclick="csTog(' + qc + ')" title="' + esc(A.dfrA(c.d) + " · " + nomCs(c) + (c.creeParNom ? " · " + c.creeParNom : "")) + '"><span class="fl">' + (on ? "▾" : "▸") + '</span><span class="dt">' + A.dfrA(c.d) + '</span><span class="ti">' + esc(typeCourt(c)) + '</span><span class="tt">' + esc(c.titre && typeCourt(c) !== c.titre ? c.titre : "") + "</span>" +
+      // 19/10/2026 (demande de Dr Bentahila) : pliée ou dépliée, la même ligne : date · type · titre · ordonnances · initiales (plus le début de la note)
+      (nl ? '<span class="no" title="' + nl + " ordonnance" + (nl > 1 ? "s" : "") + '">' + A.ic("document") + nl + "</span>" : "") + '<span class="in" title="' + esc(c.creeParNom || "") + '">' + esc(initiales(c.creeParNom)) + "</span></button>" + sig + "</div>";
     if (on && ns) h += '<div class="cs-c">' + (c.note ? '<div class="cs-nl">' + esc(c.note) + "</div>" : '<span class="mesures">Pas de note.</span>') + "</div>";
     else if (on) {
       // Note : écrite directement dans la consultation ouverte, enregistrée toute seule (11/10/2026) ; « Modifier » pour le reste
-      const noteH = peutEcrire() ? '<textarea class="cs-note" id="csN-' + c.id + '" rows="3" placeholder="Écrire la note de consultation…" aria-label="' + esc(lib("note")) + '" oninput="csNote(' + qc + ')" onblur="csNoteFin(' + qc + ')">' + esc(c.note || "") + '</textarea><span class="mesures cs-etat" id="csE-' + c.id + '"></span>'
+      const noteH = peutEcrire() ? '<textarea class="cs-note" id="csN-' + c.id + '" rows="1" placeholder="Écrire la note de consultation…" aria-label="' + esc(lib("note")) + '" oninput="csNote(' + qc + ')" onblur="csNoteFin(' + qc + ')">' + esc(c.note || "") + '</textarea><span class="mesures cs-etat" id="csE-' + c.id + '"></span>'
         : c.note ? '<div class="cs-nl">' + esc(c.note) + "</div>" : "";
       // nom de la note (« Conclusion »…) : au-dessus quand le formulaire a d'autres champs ou que la note a été renommée
       const ex = htmlExtra(c), libN = (ex || (FORM().libs || {}).note) && (FORM().champs.note !== false || c.note) ? '<div class="cs-xs">' + esc(lib("note")) + "</div>" : "";
       h += '<div class="cs-c">' + (FORM().champs.note !== false || c.note ? libN + noteH : "") + ex +
         // ordonnances sur une ligne courte : « Médic. : ondansétron 8 mg · Analyses : NFS… » (auteur seulement s'il n'est pas celui de la consultation)
-        ((c.lignes || []).length ? '<div class="cs-o">' + c.lignes.map((l) => '<span class="cs-ol"><span class="ck">' + esc(libLigne(l.t)) + " :</span> " + (l.html ? '<button class="lien-l" title="Voir, modifier ou réimprimer l\'ordonnance" onclick="ordVoir(' + qc + ",'" + l.id + '\')">' + esc(String(l.lib || "Ordonnance").replace(/^(Ordonnance|Analyses|Examens|Courrier)\s*:\s*/i, "")) + "</button>" : l.t === "doc" && l.docId ? '<button class="lien-l" title="Rouvrir le document remis" onclick="docOuvrirLigne(\'' + esc(l.docId) + '\')">' + esc(l.lib || "") + "</button>" : esc(l.lib || "")) + (l.par && l.par !== c.creeParNom ? ' <span class="au">(' + esc(l.par) + ")</span>" : "") + "</span>").join('<span class="sep"> · </span>') + "</div>" : "") + "</div>";
+        ((c.lignes || []).length ? '<div class="cs-o">' + [...new Set(c.lignes.map((l) => l.t))].map((t) => '<span class="cs-ol2"><span class="ck">' + esc(libLigne(t)) + " :</span> " + c.lignes.filter((l) => l.t === t).map((l) => '<span class="cs-ol">' + (l.html ? '<button class="lien-l" title="Voir, modifier ou réimprimer l\'ordonnance" onclick="ordVoir(' + qc + ",'" + l.id + '\')">' + esc(String(l.lib || "Ordonnance").replace(/^(Ordonnance|Analyses|Examens|Courrier)\s*:\s*/i, "")) + "</button>" : l.t === "doc" && l.docId ? '<button class="lien-l" title="Rouvrir le document remis" onclick="docOuvrirLigne(\'' + esc(l.docId) + '\')">' + esc(l.lib || "") + "</button>" : esc(l.lib || "")) + (l.par && l.par !== c.creeParNom ? ' <span class="au">(' + esc(l.par) + ")</span>" : "") + "</span>").join('<span class="sep"> · </span>') + "</span>").join("") + "</div>" : "") + "</div>";
     }
     h += "</div>";
   });
@@ -152,7 +153,7 @@ export function boutonsPrescription(x) {
 // chaque frappe (un dossier redessiné entre-temps le réaffiche, curseur remis à sa place)
 const NOTE = { t: null, cid: null, pid: null, pos: null };
 // R-G c (demande du 19/10/2026) : la note dépliée s'affiche en entier, même très longue (pas de défilement dans la note)
-const hauteurNote = (z) => { z.style.height = "auto"; z.style.height = Math.max(z.scrollHeight + 2, 40) + "px"; };
+const hauteurNote = (z) => { z.style.height = "auto"; z.style.height = Math.max(z.scrollHeight + 2, 24) + "px"; }; // la note s'arrête à sa dernière ligne
 async function sauverNote(pid, cid) {
   const c = (CS[pid] || []).find((z) => z.id === cid), z = document.getElementById("csN-" + cid), e = document.getElementById("csE-" + cid); if (!c) return;
   const v = z ? z.value : c.note || ""; if (v === (c.noteEnr != null ? c.noteEnr : c.note || "") && c.noteEnr != null) return;
