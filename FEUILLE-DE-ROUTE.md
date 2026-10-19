@@ -577,7 +577,7 @@ Selon la largeur de la zone de contenu (requêtes de conteneur ; ouvrir / replie
 ≥ 520 px, Documents ~40 % du reste entre 420 et 760 px) ; 940 à 1 279 px 2 colonnes (Travail · droite à onglets « Patient » / « Documents ») ;
 < 940 px une colonne comme aujourd'hui ; hauteur < 640 px : page qui défile, bandeau collé. Détail des zones, des notes, des paramètres
 et du code : § 6 de l'audit.
-**19/10/2026, retours de Dr Bentahila après la mise en ligne (testé, pas encore en ligne)** : barre centrée ; en consultation (salle) : seulement
+**19/10/2026, retours de Dr Bentahila après la mise en ligne (testé, contrôle complet bon : 98, Chrome et Safari ; en ligne : 20261019e, site seul, accord de Dr Bentahila)** : barre centrée ; en consultation (salle) : seulement
 le temps (« 12 min », détail au survol), « Valider », « Fermer », tout sur une ligne ; bouton du menu retiré du bandeau (celui du menu replie
 pour le dossier seulement) ; « Agrandir » avec sa propre icône ; visionneuse : zoom Page entière / Largeur / 100 % / − / + (PDF : `#zoom=` du
 lecteur du navigateur ; image : taille calculée) ; **compactage « comme GestiCab »** : explications (classe `aide`) cachées dans le dossier et
