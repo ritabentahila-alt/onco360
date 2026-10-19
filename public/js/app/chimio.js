@@ -767,18 +767,21 @@ window.chVenuChimio = async (pid, lid, n, j, encaisser) => {
   A.fenetre("<h3>" + A.esc(x.r.nm) + " – Chimiothérapie C" + n + " J" + j + '</h3><p class="sous">' + A.esc(q.nom) + (date ? " · " + A.cap(A.jourLong(date)) : "") + "</p>" +
     '<div class="form"><div><label for="pvM">Montant de la consultation (DH)</label><input id="pvM" class="mt" inputmode="decimal" value="' + A.esc(fmt(def)) + '"></div>' + (cab ? A.htmlMode(mode0) : medCab ? '<div id="pvEncZ"' + (dejaPaye ? "" : ' class="cache"') + ">" + A.htmlMode(mode0).replace(/^<div>|<\/div>$/g, "") + "</div>" : "") + "</div>" +
     (medCab ? '<label class="chk" style="margin:4px 0 6px"><input type="checkbox" id="pvEncK"' + (dejaPaye ? " checked" : "") + '> Encaisser maintenant (pas de secrétaire : le patient me paie)</label>' : "") +
-    '<p class="mesures">J1 : tarif de la consultation de chimiothérapie' + (tC != null ? " (" + fmt(tC) + " DH)" : "") + ". J8, J15… : 0 par défaut. Modifiez le montant en cas de réduction, de gratuité (0) ou de consultation facturée.</p>" +
+    '<p class="mesures">J1 : tarif de la consultation de chimiothérapie' + (tC != null ? " (" + fmt(tC) + " DH)" : "") + ". J8, J15… : 0 par défaut. Modifiez le montant en cas de réduction, de gratuité (0) ou de consultation facturée.</p>" + '<p class="mesures" id="pvRecu"></p>' +
     '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button>' + (cab || medCab ? '<button class="bt clair' + (medCab && !dejaPaye ? " cache" : "") + '" id="fOkR">' + A.ic("imprimer") + (encT ? "Encaisser et imprimer le reçu" : "Valider et imprimer le reçu") + "</button>" : "") + '<button class="bt vert" id="fOk">' + A.ic("check") + (encT ? "Encaisser" : "Valider : venu") + "</button></div>");
+  const cleR = "c-" + lid + "-" + n + "-" + j; let rcV = null; A.recuRemis(x, cleR).then((rc) => { rcV = rc; if (rc && document.getElementById("pvRecu")) document.getElementById("pvRecu").textContent = A.noteRecu(rc); }); // R-B5
   const valider = async (recu) => {
     const m = parseFloat(A.val("pvM").replace(/[\s\u202f\u00a0]/g, "").replace(",", ".")), mode = cab || (medCab && document.getElementById("pvEncK").checked) ? A.val("pvMode") : lieuCab ? "ae" : "";
     if (isNaN(m) || m < 0) { A.erreur("Indiquez le montant (0 si rien à payer)."); return; }
+    if (!A.avertirPrixRecu(rcV, m)) return; // R-B5 : un reçu a déjà été remis pour un autre montant
     const w = recu && mode !== "np" && m > 0 ? window.open("", "_blank") : null; // fenêtre d'impression ouverte tout de suite (bloqueur)
     A.occupe(document.getElementById("fOk"), true);
     try {
       if (sec) await prixChimioServeur(x, lid, n, j, m, date, q.nom, mode);
       else await majMontants(x, (M2) => { const a = M2.cures[lid] = M2.cures[lid] || {}, cc = a[n] = a[n] || {}; cc.consJ = Object.assign({}, consJours(cc), { [j]: m }); majCons(cc); const MJ = Object.assign({}, cc.consModeJ || {}); if (mode) MJ[j] = mode; else delete MJ[j]; if (Object.keys(MJ).length) cc.consModeJ = MJ; else delete cc.consModeJ; });
       A.journal(x, "Chimiothérapie C" + n + " J" + j + " : venu (" + fmt(m) + " DH" + (mode === "ae" ? ", à encaisser" : mode ? ", " + A.libMode(mode) : "") + ")"); A.fermerFenetre(); A.toast("Enregistré."); A.salleVenuChimio(x, lid, n, j, true); A.pageDossier(x.id);
-      if (w) A.imprimerRecu(w, x, { d: date || D().t, lib: "Consultation de chimiothérapie", m, mode, cle: "c-" + lid + "-" + n + "-" + j }); // sans le protocole (donnée médicale) ; clé = cleRecuCons (moteur/recus.js)
+      await A.noterPrixRecu(x, cleR, rcV, m);
+      if (w) A.imprimerRecu(w, x, { d: date || D().t, lib: "Consultation de chimiothérapie", m, mode, cle: cleR }); // sans le protocole (donnée médicale) ; clé = cleRecuCons (moteur/recus.js)
     } catch (er) { if (w) w.close(); A.occupe(document.getElementById("fOk"), false); A.erreur(er.message || String(er)); }
   };
   document.getElementById("fOk").onclick = () => valider(false);

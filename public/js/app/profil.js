@@ -88,6 +88,8 @@ function vueInfos() {
       '<div><label for="pfGenre">Accord dans les documents</label><select id="pfGenre">' + [["", "—"], ["f", "« Je soussignée », « Absente »"], ["m", "« Je soussigné », « Absent »"]].map(([k, l]) => '<option value="' + k + '"' + ((p.genre || "") === k ? " selected" : "") + ">" + l + "</option>").join("") + "</select></div>" : "") + ch("pfPre", "Prénom", p.prenom) + ch("pfNom", "Nom", p.nom) +
     ch("pfMail", "E-mail (identifiant de connexion)", D().u.email, { off: true }) + ch("pfTel", "Téléphone", p.telephone, { type: "tel", ph: "06…" }) +
     ch("pfRole", "Rôle dans l'espace", ROLES[mb.role] || mb.role, { off: true }) + (med ? ch("pfInpe", "INPE", inpe, { ph: "N° INPE" }) +
+      // R-B5 (19/10/2026) : identifiants imprimés sur les reçus de ce médecin (Paramètres › Impression : « imprimer sur le reçu »)
+      ch("pfIf", "IF (identifiant fiscal)", p.idFiscal || "", { ph: "Reçus" }) + ch("pfTp", "TP (taxe professionnelle)", p.tp || "", { ph: "Reçus" }) + ch("pfIce", "ICE", p.ice || "", { ph: "Reçus" }) +
     '<div class="large"><label>Signature (image scannée, facultatif)</label><div class="sig">' + (srcImage(p.signature) ? '<img src="' + srcImage(p.signature) + '" alt="Signature">' : '<span class="mesures">Aucune signature enregistrée.</span>') + '<input id="pfSig" type="file" accept="image/*">' + (p.signature ? '<label style="font-weight:normal"><input id="pfSigSup" type="checkbox" style="width:auto;margin-right:6px">Retirer la signature</label>' : "") + "</div></div>" : "") +
     '</div><h4 class="soustitre">Mot de passe</h4><p class="mesures">Laissez vide pour ne pas le changer.</p><div class="form">' + ch("pfMdpA", "Mot de passe actuel", "", { type: "password", ac: "current-password" }) + ch("pfMdp", "Nouveau mot de passe (8 caractères minimum)", "", { type: "password", ac: "new-password" }) + ch("pfMdp2", "Confirmer le nouveau mot de passe", "", { type: "password", ac: "new-password" }) + "</div>" +
     '<div class="err" id="fErr"></div><div class="boutons"><button class="bt plein" id="pfOk" onclick="pfEnregistrer()"><svg class="pi"><use href="#i-enregistrer"/></svg>Enregistrer</button></div></section>';
@@ -99,7 +101,7 @@ window.pfEnregistrer = async () => {
   A.occupe(b, true); err("");
   try {
     const maj = { email: D().u.email, titre: v("pfTitre"), prenom: v("pfPre"), nom: v("pfNom").toUpperCase(), telephone: v("pfTel") };
-    if (A.$("pfInpe")) Object.assign(maj, { specialite: v("pfSpe"), inpe: v("pfInpe"), genre: v("pfGenre") }); // médecins (genre : accords des documents, 1.7)
+    if (A.$("pfInpe")) Object.assign(maj, { specialite: v("pfSpe"), inpe: v("pfInpe"), genre: v("pfGenre"), idFiscal: v("pfIf"), tp: v("pfTp"), ice: v("pfIce") }); // médecins (genre : accords des documents, 1.7 ; IF, TP, ICE : reçus, R-B5)
     const sig = A.$("pfSig") ? await lireImage(A.$("pfSig"), 500) : null; if (sig) maj.signature = sig; else if (A.$("pfSigSup") && A.$("pfSigSup").checked) maj.signature = "";
     const ph = await lireImage(A.$("pfPhoto"), 256, true); if (ph) maj.photo = ph; else if (A.$("pfPhotoSup") && A.$("pfPhotoSup").checked) maj.photo = "";
     await setDoc(doc(db, "utilisateurs", D().u.uid), maj, { merge: true });

@@ -256,3 +256,4 @@ Jusqu'au 11/10/2026 les étapes portaient les numéros de l'ancienne feuille de 
 | 19/10/2026 | R-B1 | RCP dans le menu principal sous Tâches (page, pastille, anciens liens renvoyés, menu déjà réglé respecté) ; test_rcp_menu 14/14 |
 | 19/10/2026 | R-B3 | Téléphone : loupe à gauche de la cloche, recherche sur toute la largeur ; test_recherche_tel 15/15 (Chrome et Safari) |
 | 19/10/2026 | R-B4 | Calendrier de fin de radiothérapie (mise en page de l'export de l'accélérateur, sans appareil, une page A4 jusqu'à 60 séances) ; test_calendrier_rt 18/18 |
+| 19/10/2026 | R-B5 | Nouveau reçu A5 (tableau, médecin de l'acte, Visa accueil, mentions IF / TP / ICE / INPE / adresse, TVA à cocher), IF / TP / ICE dans Mon compte, prix changé après un reçu (avertissement, historique, règle), reçu sans numéro au journal ; test_recu 23/23 |

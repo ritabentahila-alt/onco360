@@ -77,6 +77,15 @@ await cas("refusé : supprimer un reçu", () => assertFails(deleteDoc(R("MED")))
 await cas("refusé : remettre le compteur à zéro", () => assertFails(setDoc(C("MED"), { n: 0, majPar: "MED" })), true);
 await cas("refusé : supprimer le compteur", () => assertFails(deleteDoc(C("MED"))), true);
 
+console.log("Prix changé après la remise du reçu (R-B5)");
+const ent = (par, avant, apres) => ({ le: "2026-10-19T10:00:00.000Z", par, parNom: par, avant, apres });
+await cas("le médecin note le prix changé (300 → 250 DH)", () => assertSucceeds(updateDoc(R("MED"), { prix: [ent("MED", 300, 250)] })), true);
+await cas("la secrétaire HGC note une 2e modification (une entrée de plus)", async () => { await env.withSecurityRulesDisabled(async (c) => updateDoc(doc(c.firestore(), P + "/recus/p1_r-a"), { prix: [ent("MED", 300, 250)] })); await assertSucceeds(updateDoc(R("SEC"), { prix: [ent("MED", 300, 250), ent("SEC", 250, 200)] })); }, true);
+await cas("refusé : entrée signée au nom d'un autre", () => assertFails(updateDoc(R("SEC"), { prix: [ent("MED", 300, 250)] })), true);
+await cas("refusé : effacer l'historique", async () => { await env.withSecurityRulesDisabled(async (c) => updateDoc(doc(c.firestore(), P + "/recus/p1_r-a"), { prix: [ent("MED", 300, 250)] })); await assertFails(updateDoc(R("MED"), { prix: [] })); }, true);
+await cas("refusé : changer le montant du reçu en même temps", () => assertFails(updateDoc(R("MED"), { prix: [ent("MED", 300, 250)], m: 250 })), true);
+await cas("refusé : l'infirmière (sans droit de prix)", () => assertFails(updateDoc(R("INF"), { prix: [ent("INF", 300, 250)] })), true);
+
 console.log("Lecture");
 await cas("la secrétaire HGC lit le reçu", () => assertSucceeds(getDoc(R("SEC"))), true);
 await cas("refusé : la secrétaire HCK lit un reçu HGC", () => assertFails(getDoc(R("SECK"))), true);

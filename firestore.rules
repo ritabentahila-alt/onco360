@@ -260,6 +260,9 @@ service cloud.firestore {
         allow update: if recuDroit() && dansPerimetre(resource.data.etablissementId) && dansPerimetre(request.resource.data.etablissementId)
           && request.resource.data.patientId == resource.data.patientId && request.resource.data.cle == resource.data.cle
           && ((request.resource.data.diff(resource.data).affectedKeys().hasOnly(['imp', 'dernier', 'dernierPar', 'dernierNom']) && request.resource.data.dernierPar == request.auth.uid)
+            // R-B5 (19/10/2026) : historique du prix changé après la remise du reçu : une entrée de plus, signée par la personne connectée
+            || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['prix']) && request.resource.data.prix is list
+              && request.resource.data.prix.size() == resource.data.get('prix', []).size() + 1 && request.resource.data.prix[request.resource.data.prix.size() - 1].par == request.auth.uid)
             || (recuValide(request.resource.data) && numeroTire(request.resource.data) && request.resource.data.annules.size() == resource.data.annules.size() + 1));
         allow delete: if false;
       }

@@ -394,7 +394,17 @@ types**, refus gardés) : R-A6 et R-E4 partent de là, sans les refaire.
       à 5, 25, 33, 39 séances et en 2 séances par jour. Nom « Calendrier de fin de radiothérapie » ; modèle modifiable (`bibliotheques/
       courriers`, id `rt-rdv`) ; un modèle déjà modifié par le cabinet n'est pas écrasé (le nouveau proposé à côté) ; ligne du bas décidée
       (voir Décisions). Vérifier : `documentsRT/{…}_rdv`, aperçu écran et téléphone, marges, RT en 2 séances / jour, RT sans fin validée.
-- [ ] **R-B5 Reçu : nouvelle mise en page + lot F1 de l'audit 6** (§ 4.5 et § 7 ; d. 9, 10, 11 ; question 8). **A5 portrait, une page**,
+- [x] **(19/10/2026, testé ; règle des reçus changée)** `htmlRecu` / `imprimerRecu` (v2.js) d'après le ticket d'encaissement envoyé (photo
+      jamais dans le dépôt) : A5, une page ; lieu (en-tête imprimé) et « Date : » ; « REÇU » encadré ; tableau N° de reçu (duplicata, remplace),
+      Patient (n° de dossier), Médecin de l'acte (`o.med` = médecin du rendez-vous, sinon titulaire ; sa carte `signataires/{uid}`, spécialité en
+      italique), Prestation et date, Encaissement (« 400,00 DH », en lettres, mode) ; « Visa accueil » (qui imprime, heure du Maroc) ; mentions
+      (spécialité, adresse du lieu, IF, TP, ICE, INPE ; « Acte exonéré de TVA » décoché par défaut ; réserve du CGI écrite) ; « Cachet et
+      signature » ; pas de code-barres. **IF, TP, ICE** dans Mon compte (`idFiscal`, `tp`, `ice`, publiés sur la carte) ; Paramètres › Impression :
+      « Reçus : mentions imprimées » (`rSpe` … `rTva`). **Prix changé après un reçu** : note dans la fenêtre de prix, avertissement d'un clic,
+      historique `recus/{…}.prix` [{ le, par, parNom, avant, apres }] (règle : une entrée de plus, signée ; 6 cas dans test-recus.mjs).
+      **Reçu sans numéro** : « sans numéro » imprimé et ligne « Reçu imprimé SANS NUMÉRO » au journal (question 8, en attendant). Tests :
+      `tests/test_recu.py` 23/23, test_salle adapté (51/51), règles 0 échec.
+      **R-B5 Reçu : nouvelle mise en page + lot F1 de l'audit 6** (§ 4.5 et § 7 ; d. 9, 10, 11 ; question 8). **A5 portrait, une page**,
       même cadre que les ordonnances (en-tête généré et pied, C6) : en haut à gauche le nom du lieu ou du cabinet, à droite « Date :
       JJ/MM/AAAA » ; au centre, encadré, « REÇU » ; tableau encadré libellé / valeur : N° de reçu (R-AAAA-NNNN, « DUPLICATA » ou « remplace
       le n° … » comme aujourd'hui), Patient (NOM Prénom, n° de dossier), Médecin (Dr NOM Prénom, spécialité dessous en italique), Prestation
@@ -857,7 +867,9 @@ démarrage par un médecin (comme `marquerProtocoles`), avec une fenêtre récap
   double vérification, code-barres, A4 automatique, RT déplacée un jour férié).
 
 ## À placer
-- (vide)
+- `tests/test_comptable.py` : 6 vérifications en échec, déjà avant le 18/10 (vérifié le 19/10 sur les versions 20261018g et 20261019a) : le relevé
+  du comptable n'est préparé que si la fonction « bilan.comptable » est active, et le réglage du pack du jeu de test la retire ; revoir le test
+  (ou le réglage du jeu de test), pas l'application.
 
 ---
 

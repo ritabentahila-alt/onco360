@@ -2,7 +2,7 @@
 window.__v2pret = true;
 import { app, auth, db } from "../config.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { doc, getDoc, getDocs, setDoc, collection, query, where, updateDoc, addDoc, serverTimestamp, runTransaction, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { doc, getDoc, getDocs, setDoc, collection, query, where, updateDoc, addDoc, serverTimestamp, runTransaction, onSnapshot, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { numeroRecu, cleRecuRdv, cleRecuCons, idRecu, decisionRecu, recuAEcrire } from "../moteur/recus.js";
 import { fusionner, cliniqueRemise, REMIS } from "../donnees/conversion.js";
 import { resume } from "../moteur/resume.js";
@@ -241,7 +241,8 @@ window.majTypesC = (enr) => {
 // Rendez-vous sans médecin noté (anciens) = le médecin titulaire.
 // 3.9 (12/10/2026) : carte de chaque médecin (nom, titre, spécialité, INPE, signature scannée) publiée par lui-même dans
 // signataires/{uid}, lue par l'équipe pour l'en-tête et la signature des ordonnances (médecin signataire au choix)
-const carteDe = () => ({ nom: nomDrNP(D.profil, D.membre.nom), titre: D.profil.titre || "Dr", specialite: D.profil.specialite || "", inpe: D.profil.inpe || "", genre: D.profil.genre || "", signature: D.profil.signature || "" });
+const carteDe = () => ({ nom: nomDrNP(D.profil, D.membre.nom), titre: D.profil.titre || "Dr", specialite: D.profil.specialite || "", inpe: D.profil.inpe || "", genre: D.profil.genre || "", signature: D.profil.signature || "",
+  idFiscal: D.profil.idFiscal || "", tp: D.profil.tp || "", ice: D.profil.ice || "" }); // IF, TP, ICE : reçus (R-B5, 19/10/2026)
 async function publierCarte() {
   if (D.membre.role !== "medecin" || D.bib) return;
   const c = carteDe(), a = (D.signataires || {})[D.u.uid];
@@ -1417,23 +1418,61 @@ async function numeroterRecu(x, o) {
     return { numero: numeroRecu(annee, n), duplicata: false, annule: ancien && ancien.numero };
   });
 }
+// R-B5 (19/10/2026, demande du 17/10, mise en page du ticket d'encaissement envoyé par le cabinet ; audit n° 6, C6 et décisions 9, 10) :
+// A5 portrait, une page : en haut le lieu (en-tête imprimé par Onco360) et la date ; « REÇU » encadré ; tableau N° de reçu, Patient, Médecin
+// (celui de l'acte : o.med, sinon le titulaire ; sa carte signataires/{uid}), Prestation, Encaissement (chiffres, lettres, mode) ; « Visa accueil »
+// (qui imprime, heure du Maroc) ; mentions obligatoires (Paramètres › Impression, identifiants vides non imprimés) ; « Cachet et signature ».
+// Numéro impossible à enregistrer : imprimé sans numéro, noté au journal du cabinet (question 8 de l'audit, en attendant la réponse).
+// R-B5 (audit n° 6, décision 11) : prix changé après la remise d'un reçu : avertissement d'un clic (jamais bloquant) et historique des
+// montants dans le reçu (recus/{patient}_{clé}.prix [{ le, par, parNom, avant, apres }], règle : une entrée de plus, signée)
+async function recuRemis(x, cle) {
+  if (!cle || estComptable() || !(peut("finances") || peut("encaissements"))) return null;
+  const s = await getDoc(doc(db, "espaces", ESPACE, "recus", idRecu(x.id, cle))).catch(() => null); return s && s.exists() ? s.data() : null;
+}
+const avertirPrixRecu = (rc, m) => !rc || Number(rc.m) === Number(m) || confirm("Un reçu n° " + rc.numero + " a été remis pour " + fmtMil(rc.m) + " DH.\n\nChanger le prix quand même ? Le prochain reçu imprimé portera un nouveau numéro, l'ancien sera noté annulé.");
+async function noterPrixRecu(x, cle, rc, m) {
+  if (!rc || Number(rc.m) === Number(m)) return;
+  await updateDoc(doc(db, "espaces", ESPACE, "recus", idRecu(x.id, cle)), { prix: arrayUnion({ le: new Date().toISOString(), par: D.u.uid, parNom: $("nomMenu").textContent, avant: rc.m, apres: m }) }).catch((e) => console.warn("historique du prix", e));
+}
+const noteRecu = (rc) => (!rc ? "" : "Reçu n° " + rc.numero + " remis pour " + fmtMil(rc.m) + " DH." + (rc.prix || []).map((z) => " Prix changé le " + dfrA(String(z.le).slice(0, 10)) + " par " + (z.parNom || "—") + " : " + fmtMil(z.avant) + " → " + fmtMil(z.apres) + " DH.").join(""));
+API.recuRemis = recuRemis; API.avertirPrixRecu = avertirPrixRecu; API.noterPrixRecu = noterPrixRecu; API.noteRecu = noteRecu; // chimio.js (consultation de chimio)
+const HM_MAROC = new Intl.DateTimeFormat("fr-FR", { timeZone: "Africa/Casablanca", hour: "2-digit", minute: "2-digit", hour12: false });
+const dh2 = (m) => Number(m || 0).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).replace(/[\u202f\u00a0]/g, " ") + " DH";
+const carteMedecin = (uid) => { const c = (D.signataires || {})[uid]; if (c && c.nom) return c; return uid === D.u.uid && D.membre.role === "medecin" ? carteDe() : Object.assign({}, medecinFiche()); };
+function htmlRecu(x, o, num, ctx) {
+  const P = x.P, et = (D.etabsTous || D.etabs).find((e) => e.code === x.doc.etablissementId) || {}, I = reglages().impression, c = carteMedecin(o.med || titulaireUid()) || {};
+  const nomP = String(P.nomF || x.r.nm || "").toUpperCase() + (P.prenom ? " " + cap(String(P.prenom).toLowerCase()) : ""), dos = numDossier(x), genere = I.entete === "genere";
+  const logo = genere && I.eLogo && srcImage(et.logo) ? '<img class="rc-logo" src="' + srcImage(et.logo) + '" alt="">' : "";
+  const lieu = genere ? logo + "<b>" + esc(et.nom || (D.espaceDoc && D.espaceDoc.nom) || "") + "</b>" : "";
+  const lib = String(o.lib || "Consultation"), mode = libMode(o.mode), L = (t, v) => "<tr><th>" + t + "</th><td>" + v + "</td></tr>";
+  const numero = num ? "<b>" + esc(num.numero) + "</b>" + (num.duplicata ? " · DUPLICATA" : "") + (num.annule ? '<br><small>remplace le n° ' + esc(num.annule) + ", annulé</small>" : "") : '<span class="rc-sans">sans numéro</span>';
+  const mentions = [I.rSpe && c.specialite ? "Spécialité : " + c.specialite : "", [et.adresse, et.ville].filter(Boolean).length ? "Adresse : " + [et.nom, et.adresse, et.ville].filter(Boolean).join(", ") + (et.tel ? " · Tél. " + et.tel : "") : "",
+    I.rIf && c.idFiscal ? "IF : " + c.idFiscal : "", I.rTp && c.tp ? "TP : " + c.tp : "", I.rIce && c.ice ? "ICE : " + c.ice : "", I.rInpe && c.inpe ? "INPE : " + c.inpe : ""].filter(Boolean);
+  return '<div class="rc-haut"><div class="rc-lieu">' + lieu + '</div><div class="rc-date">Date : ' + dfrA(ctx.jour) + "</div></div>" + '<div class="rc-titre">REÇU</div>' +
+    '<table class="rc-tab"><tbody>' + L("N° de reçu", numero) + L("Patient", esc(nomP) + (dos ? "<br><small>Dossier n° " + esc(dos) + "</small>" : "")) +
+    L("Médecin", esc(c.nom || "") + (c.specialite ? "<br><i>" + esc(c.specialite) + "</i>" : "")) + L("Prestation", esc(lib.charAt(0).toUpperCase() + lib.slice(1)) + "<br><small>du " + dfrA(o.d) + "</small>") +
+    L("Encaissement", "<b>" + dh2(o.m) + "</b><br><small>" + esc(montantEnLettres(o.m)) + "</small>" + (mode && !aEncaisser(o.mode) ? "<br>" + esc(mode) : "")) + "</tbody></table>" +
+    '<div class="rc-visa"><span>Visa accueil</span><b>' + esc(ctx.par) + "</b><small>" + esc(ctx.heure) + "</small></div>" +
+    (mentions.length || I.rTva ? '<p class="rc-ment">' + mentions.map(esc).join(" · ") + (I.rTva ? (mentions.length ? "<br>" : "") + "Acte exonéré de TVA" : "") + "</p>" : "") +
+    '<p class="rc-sig">Cachet et signature</p>' + (genere && I.eLieu && et.nom ? '<div class="rc-pied">' + esc([et.nom, et.adresse, et.ville, et.tel ? "Tél. " + et.tel : ""].filter(Boolean).join(" · ")) + "</div>" : "");
+}
+const CSS_RECU = "html,body{margin:0}body{font-family:Arial,Helvetica,sans-serif;color:#000;font-size:10.5pt;line-height:1.35}.rc-haut{display:flex;justify-content:space-between;align-items:center;gap:4mm;margin-bottom:5mm}" +
+  ".rc-lieu{display:flex;align-items:center;gap:3mm}.rc-logo{max-height:14mm;max-width:35mm}.rc-date{white-space:nowrap}.rc-titre{border:0.4mm solid #000;text-align:center;font-weight:bold;font-size:15pt;letter-spacing:3px;padding:2mm;margin:0 auto 5mm;width:45mm}" +
+  ".rc-tab{width:100%;border-collapse:collapse;margin-bottom:4mm}.rc-tab th,.rc-tab td{border:0.3mm solid #000;padding:2mm 3mm;text-align:left;vertical-align:top}.rc-tab th{width:32%;background:#EEE;font-weight:bold}.rc-tab small{font-size:8.5pt}" +
+  ".rc-sans{color:#777;font-style:italic}.rc-visa{border:0.3mm solid #000;width:45mm;margin:0 0 4mm auto;padding:1.5mm 2mm;display:flex;flex-direction:column;font-size:9pt}.rc-visa span{font-size:8pt;color:#444}" +
+  ".rc-ment{font-size:8.5pt;color:#222;margin:0 0 4mm}.rc-sig{text-align:right;margin:6mm 0 14mm;font-weight:bold}.rc-pied{border-top:0.3mm solid #999;padding-top:2mm;font-size:8pt;color:#444;text-align:center}";
 async function imprimerRecu(w, x, o) {
   if (!w) return;
-  let num = null; try { num = await numeroterRecu(x, o); } catch (e) { console.warn("numéro du reçu", e); toast("Reçu imprimé sans numéro (" + (e.message || e) + ")."); }
-  const P = x.P, et = (D.etabsTous || D.etabs).find((e) => e.code === x.doc.etablissementId) || {}, med = medecinFiche().nom || "";
-  const civ = P.sexe === "F" ? "Mme " : P.sexe === "H" ? "M. " : "", nom = civ + String(P.nomF || x.r.nm || "").toUpperCase() + (P.prenom ? " " + cap(String(P.prenom).toLowerCase()) : "");
-  const mode = (MODES.find((z) => z[0] === o.mode) || [])[2] || "", jr = (d) => { const z = new Date(d + "T12:00:00"); return z.getDate() + " " + ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"][z.getMonth()] + " " + z.getFullYear(); };
-  const html = '<p class="d">' + esc(et.ville ? et.ville + ", le " : "Le ") + jr(D.t) + '</p><p class="t">REÇU</p>' + (num ? '<p class="num">N° ' + esc(num.numero) + (num.duplicata ? " · DUPLICATA" : "") + (num.annule ? " (remplace le n° " + esc(num.annule) + ", annulé)" : "") + "</p>" : "") +
-    "<p>Reçu de <b>" + esc(nom) + "</b> la somme de <b>" + fmtMil(o.m) + " DH</b> (" + esc(montantEnLettres(o.m)) + ")" + (mode ? ", réglée " + mode : "") + ".</p>" +
-    "<p>Objet : " + esc(String(o.lib || "consultation").charAt(0).toLowerCase() + String(o.lib || "consultation").slice(1)) + " du " + dfrA(o.d) + ".</p>" +
-    '<p class="s">Cachet et signature<br><b>' + esc(med) + "</b></p>";
-  const css = "@page{size:A5 portrait;margin:" + margesMm("a5") + "}html,body{margin:0}body{font-family:Arial,Helvetica,sans-serif;color:#000;font-size:12pt;line-height:1.5}p{margin:0 0 4mm}.d{text-align:right;margin-bottom:8mm}.t{text-align:center;font-weight:bold;font-size:15pt;letter-spacing:2px;margin-bottom:2mm}.num{text-align:center;font-size:10.5pt;margin-bottom:8mm}.s{text-align:right;margin-top:14mm}";
+  let num = null, echec = ""; try { num = await numeroterRecu(x, o); } catch (e) { echec = (e && e.message) || String(e); console.warn("numéro du reçu", e); toast("Reçu imprimé sans numéro (" + echec + ")."); }
+  const html = htmlRecu(x, o, num, { jour: D.t, par: $("nomMenu").textContent, heure: HM_MAROC.format(new Date()).replace(/\s/g, "").replace(":", " h ") });
+  const css = "@page{size:A5 portrait;margin:" + margesMm("a5") + "}" + CSS_RECU;
   w.document.open(); w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>&#8203;</title><style>' + css + "</style></head><body>" + html + "</body></html>"); w.document.close();
   setTimeout(() => { try { w.focus(); w.print(); } catch (e) { /* fenêtre fermée */ } }, 400);
-  journal(x, "Reçu " + (num ? num.numero + (num.duplicata ? " (duplicata)" : "") + " " : "") + "imprimé (" + fmtMil(o.m) + " DH, " + dfrA(o.d) + ")");
+  if (!num && o.cle) journal(x, "Reçu imprimé SANS NUMÉRO (" + fmtMil(o.m) + " DH, " + dfrA(o.d) + ") : le numéro n'a pas pu être enregistré (" + String(echec).slice(0, 120) + ")");
+  else journal(x, "Reçu " + (num ? num.numero + (num.duplicata ? " (duplicata)" : "") + " " : "") + "imprimé (" + fmtMil(o.m) + " DH, " + dfrA(o.d) + ")");
 }
 // Reçu réimprimé depuis « Consultations et hospitalisations » (prix à encaisser du dossier)
-window.recuRdv = (pid, rid) => { const x = D.patients.find((p) => p.id === pid), E = x && encaissementsDe(x), o = E && (E.rdv || {})[rid], r = x && lireRdvs(x).find((v) => v.id === rid); if (!o || !r) return; imprimerRecu(window.open("", "_blank"), x, { d: r.dv || r.d, lib: libRdv(r), m: o.m, mode: o.mode, cle: cleRecuRdv(rid) }); };
+window.recuRdv = (pid, rid) => { const x = D.patients.find((p) => p.id === pid), E = x && encaissementsDe(x), o = E && (E.rdv || {})[rid], r = x && lireRdvs(x).find((v) => v.id === rid); if (!o || !r) return; imprimerRecu(window.open("", "_blank"), x, { d: r.dv || r.d, lib: libRdv(r), m: o.m, mode: o.mode, cle: cleRecuRdv(rid), med: medRdv(r) }); };
 window.recuCons = (pid, k) => { const x = D.patients.find((p) => p.id === pid), E = x && encaissementsDe(x), o = E && (E.cons || {})[k]; if (!o) return; imprimerRecu(window.open("", "_blank"), x, { d: o.d, lib: "Consultation de chimiothérapie", m: o.m, mode: o.mode, cle: cleRecuCons(...String(k).split("|")) }); };
 const RTO = { pid: null, id: null }; // radiothérapie ouverte dans le dossier
 window.rtTog = (pid, id) => { RTO.pid = pid; RTO.id = RTO.id === id ? null : id; pageDossier(pid); };
@@ -1486,12 +1525,14 @@ async function prixVenu(x, l, r, opts) {
   fenetre("<h3>" + esc(x.r.nm) + " – " + esc(libRdv(r)) + '</h3><p class="sous">' + cap(jourLong(r.d)) + (r.h ? " à " + r.h : "") + (hs && nj ? " · " + nj + " jour" + (nj > 1 ? "s" : "") + " d'hospitalisation" : "") + "</p>" +
     '<div class="form"><div><label for="pvM">' + (hs && !o0.v1 ? "Tarif journalier (DH)" : "Montant de la consultation (DH)") + '</label><input id="pvM" class="mt" inputmode="decimal" value="' + esc(fmt(def)) + '"></div>' + (cab ? htmlMode(o0.mode) : medCab ? '<div id="pvEncZ"' + (dejaPaye ? "" : ' class="cache"') + ">" + htmlMode(o0.mode).replace(/^<div>|<\/div>$/g, "") + "</div>" : "") + "</div>" +
     (medCab ? '<label class="chk" style="margin:4px 0 6px"><input type="checkbox" id="pvEncK"' + (dejaPaye ? " checked" : "") + '> Encaisser maintenant (pas de secrétaire : le patient me paie)</label>' : "") +
-    '<p class="mesures">Tarif ' + esc(etab || "de l'établissement") + " : " + fmt(v.brut) + " DH" + (hs ? " par jour" : "") + ". Modifiez le montant en cas de réduction ou de gratuité (0).</p>" +
+    '<p class="mesures">Tarif ' + esc(etab || "de l'établissement") + " : " + fmt(v.brut) + " DH" + (hs ? " par jour" : "") + ". Modifiez le montant en cas de réduction ou de gratuité (0).</p>" + '<p class="mesures" id="pvRecu"></p>' +
     '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button>' + (cab || medCab ? '<button class="bt clair' + (medCab && !dejaPaye ? " cache" : "") + '" id="fOkR">' + ic("imprimer") + (encT ? "Encaisser et imprimer le reçu" : deja ? "Enregistrer et imprimer le reçu" : "Valider et imprimer le reçu") + "</button>" : "") + '<button class="bt vert" id="fOk"><svg class="pi"><use href="#i-check"/></svg>' + (encT ? "Encaisser" : deja ? "Enregistrer le prix" : "Valider : venu") + "</button></div>");
+  let rcV = null; recuRemis(x, cleRecuRdv(r.id)).then((rc) => { rcV = rc; if (rc && $("pvRecu")) $("pvRecu").textContent = noteRecu(rc); }); // R-B5
   const valider = async (recu) => {
     // médecin dans un lieu « au cabinet » : le paiement déjà reçu est gardé, sinon « à encaisser » (la secrétaire encaissera)
     const m = parseFloat(val("pvM").replace(/[\s\u202f\u00a0]/g, "").replace(",", ".")), mode = cab || (medCab && $("pvEncK").checked) ? val("pvMode") : lieuCab ? "ae" : "";
     if (isNaN(m) || m < 0) { erreur("Indiquez le montant (0 si gratuit)."); return; }
+    if (!avertirPrixRecu(rcV, m)) return; // R-B5 : un reçu a déjà été remis pour un autre montant
     const w = recu && mode !== "np" && m > 0 ? window.open("", "_blank") : null; // fenêtre d'impression ouverte au clic
     occupe($("fOk"), true);
     try {
@@ -1504,7 +1545,8 @@ async function prixVenu(x, l, r, opts) {
       } else await majMontants(x, (M) => { M.rdv = M.rdv || {}; const o = M.rdv[r.id] = M.rdv[r.id] || {}; if (o.v1) o.prix = m; else if (hs) { o.tj = m; delete o.brut; } else o.brut = m; if (mode) o.mode = mode; else delete o.mode; });
       if (deja) journal(x, "Prix de la consultation du " + dfrA(r.d) + " : " + lib);
       fermerFenetre(); toast("Enregistré."); if (deja) apresPrix(x, "r-" + r.id, r.d); else apresStatutRdv(x, r, "fait", "prevu"); reafficher(x.id);
-      if (w) imprimerRecu(w, x, { d: r.dv || r.d, lib: libRdv(r), m, mode, cle: cleRecuRdv(r.id) });
+      await noterPrixRecu(x, cleRecuRdv(r.id), rcV, m);
+      if (w) imprimerRecu(w, x, { d: r.dv || r.d, lib: libRdv(r), m, mode, cle: cleRecuRdv(r.id), med: medRdv(r) });
     } catch (e) { if (w) w.close(); occupe($("fOk"), false); erreur(e.message || String(e)); }
   };
   $("fOk").onclick = () => valider(false);
