@@ -35,7 +35,7 @@ fenêtre, télécharger, modifier (nom, date, type), supprimer. Un clic sur un d
 ## En bas : la barre d'actions (dans tous les onglets)
 **Médic.**, **Ordo. type**, **Analyses**, **Examens compl.**, **Courriers**, **Doc.** (le petit
 nombre = ordonnances déjà faites pour ce patient ; ▾ = antécédents), **+ RCP**, **+ Rendez-vous**, **+ Tâche**.
-À droite : patient ouvert depuis la salle d'attente → **Valider : venu** et **Fermer** (retour en salle sans valider) ; dossier ouvert depuis la
+À droite : patient ouvert depuis la salle d'attente → le temps passé en consultation, **Valider** et **Fermer** (retour en salle sans valider) ; dossier ouvert depuis la
 liste des RCP → **Décision RCP · Valider · Fermer**. Il n'y a plus de bulles flottantes.
 La barre et les onglets du centre tiennent sur une ligne, sans défiler : quand la place manque, les libellés raccourcissent (« Examens »,
 « + RDV », « Chimio », « RT »…). Sur téléphone, la barre passe sur deux ou trois lignes, tout reste visible.
@@ -62,7 +62,7 @@ Option (Paramètres › Impression) : rappeler l'allergie et le poids en haut de
 | « Fiche et résumé » (téléphone) | résumé toujours visible, fiche dans les parties dépliables |
 | Barre des prescriptions en bas de l'onglet Consultation | barre d'actions en bas du dossier, dans tous les onglets |
 | « Ajouter un rendez-vous », « Tâche » (carte « à venir ») | « + Rendez-vous », « + Tâche » dans la barre |
-| Bulles « Valider » / « Retour en salle » | « Valider : venu » / « Fermer » dans la barre |
+| Bulles « Valider » / « Retour en salle » | « Valider » / « Fermer » dans la barre |
 | Bulle de la RCP | à droite de la barre |
 | Photo (changer) | clic sur la photo du bandeau, puis « Changer ou retirer la photo » |
 | Cure, nouvelle ligne, protocole, prescription de RT en grande fenêtre | panneau (sur ordinateur) |

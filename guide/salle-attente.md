@@ -97,7 +97,7 @@ vous-même dans le bilan quand la clinique a payé.
 ## Dans le dossier, pendant la consultation
 Quand un patient est « En consultation », deux boutons sont à droite de la barre d'actions, en bas de son dossier (toujours
 visible ; depuis le 19/10/2026, à la place des bulles) :
-- **Valider : venu** : valide la consultation (fenêtre de prix) et revient à la salle d'attente ;
+- **Valider** : valide la consultation (patient venu, fenêtre de prix) et revient à la salle d'attente ;
 - **Fermer** : renvoie le patient en salle d'attente sans valider (l'ancien « Retour en salle »).
 
 Séance de chimiothérapie manquée : **Absent** ouvre la fenêtre **Reporter** (raison « Patient absent ») : nouvelle date, puis

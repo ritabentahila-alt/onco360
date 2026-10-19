@@ -649,7 +649,7 @@ function ligneHtml(l, cv) {
   return '<div class="sa-l ' + (l.etat || "prevu") + '" data-k="' + A.esc(l.pid + "|" + l.cle) + '" ondblclick="if(!event.target.closest(\'button,a\'))ouvrirDossier(\'' + l.pid + '\')" oncontextmenu="saMenu(event,' + q + ')">' + cv.map((c) => cel[c[0]]).join("") + "</div>";
 }
 
-// ───── Dossier ouvert pendant la consultation : « Valider : venu » et « Fermer » (retour en salle sans valider) ─────
+// ───── Dossier ouvert pendant la consultation : « Valider » (venu) et « Fermer » (retour en salle sans valider) ─────
 // R-G a (audit n° 5, 19/10/2026) : plus de bulles flottantes, les boutons sont à droite de la barre d'actions du dossier (mêmes fonctions)
 export function bullesDossier(x) {
   if (!peutRdv() || !fnS("bulles")) return "";
@@ -657,8 +657,10 @@ export function bullesDossier(x) {
   if (!l.length) return "";
   return '<div class="sa-bulles" id="saBulles" data-pid="' + A.esc(x.id) + '">' + l.map((z) => {
     const q = "'" + z.pid + "','" + z.cle + "'", okV = z.rdv || A.peutPrix();
-    return '<div class="sa-b"><span class="lbl" data-k="' + A.esc(z.cle) + '"><i></i><span class="lg">En consultation depuis </span>' + duree(minutes(z.doc.deb || maintenant())) + (l.length > 1 ? " · " + A.esc(z.type) : "") + "</span>" +
-      (okV ? '<button class="bt vert" onclick="saValider(' + q + ',1)" title="Valider la consultation : patient venu"><svg class="i"><use href="#i-check"/></svg><span class="lg">Valider : venu</span><span class="sm">Venu</span></button>' : "") +
+    // 19/10/2026 (demande de Dr Bentahila) : seulement le temps passé (« 12 min », détail au survol) et « Valider », pour tenir sur une ligne
+    const dd = duree(minutes(z.doc.deb || maintenant()));
+    return '<div class="sa-b"><span class="lbl" data-k="' + A.esc(z.cle) + '" title="En consultation depuis ' + A.esc(dd) + (l.length > 1 ? " · " + A.esc(z.type) : "") + '"><i></i>' + dd + (l.length > 1 ? " · " + A.esc(z.type) : "") + "</span>" +
+      (okV ? '<button class="bt vert" onclick="saValider(' + q + ',1)" title="Valider la consultation : patient venu"><svg class="i"><use href="#i-check"/></svg>Valider</button>' : "") +
       '<button class="bt fonce" onclick="saRetour(' + q + ')" title="Fermer : retour en salle d\'attente sans valider"><svg class="i"><use href="#i-retour"/></svg>Fermer</button></div>';
   }).join("") + "</div>";
 }

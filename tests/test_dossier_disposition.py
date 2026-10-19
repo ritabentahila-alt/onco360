@@ -19,6 +19,9 @@ for i in range(14):
         'lignes': [{'id': 'L%d' % i, 't': 'medic', 'd': '2026-09-01', 'lib': 'Ordonnance', 'par': 'Dr Bentahila', 'html': '<p>x</p>', 'format': 'A5'}] if i % 2 == 0 else [], 'o': 1759000000000 - i, 'creePar': 'UIDRITA', 'creeParNom': 'Dr Bentahila'}
 S2[E + 'fichiers/F1'] = {'patientId': P8, 'etablissementId': 'DEMO', 'titre': 'Scanner TAP', 'd': '2026-09-22', 'type': 'Imagerie', 'nom': 'cr.pdf', 'taille': 1000, 'mime': 'application/pdf', 'chemin': 'x/cr.pdf', 'creePar': 'UIDRITA', 'creeParNom': 'Dr Bentahila', 'o': 1}
 S2[E + 'rcp/R1'] = {'patientId': P8, 'patientNom': 'PATIENT TEST 8', 'etablissementId': 'DEMO', 'd': '2026-10-06', 'q': 'Radiochimiothérapie ou chirurgie ?', 'ins': '2026-10-01', 'fait': False, 'o': 1, 'creePar': 'UIDRITA', 'creeParNom': 'Dr Bentahila'}
+# Patient en consultation (salle d'attente) : rendez-vous du jour et fiche de salle « consult »
+_d = S2[E + 'patients/' + P8]; _r = json.loads(_d.get('rdvsJson') or '[]'); _r.append({'id': 'RX', 'd': '2026-10-06', 'h': '10:00', 'type': 'Consultation de suivi', 'st': 'prevu'}); _d['rdvsJson'] = json.dumps(_r)
+S2[E + 'salle/2026-10-06_' + P8 + '_r-RX'] = {'jour': '2026-10-06', 'patientId': P8, 'etablissementId': 'DEMO', 'cle': 'r-RX', 'etat': 'consult', 'deb': 1791270000000, 'majPar': 'UIDRITA'}
 U = f'http://localhost:{PORT}/v2.html#dossier/{P8}'
 R = lambda sel: f"(() => {{ const e = document.querySelector('{sel}'); if (!e) return null; const r = e.getBoundingClientRect(); return [Math.round(r.left), Math.round(r.top), Math.round(r.width), Math.round(r.height), getComputedStyle(e).display, getComputedStyle(e).visibility]; }})()"
 async def page(b, w, h, replie=False, init=''):
@@ -107,8 +110,16 @@ async def main():
         await ev("location.hash='#dossier/" + P8 + "'"); await pg.wait_for_timeout(1200)
         ok(not await ev("document.body.classList.contains('menu-replie')"), 'retour au dossier : son propre choix')
         ok(not pg.errs, 'aucune erreur JavaScript (1440)', pg.errs[:2]); await pg.close()
-        # ── RCP : Décision RCP · Valider · Fermer dans la barre ──
-        pg = await page(b, 1440, 900, True); ev = pg.evaluate
+        # en consultation depuis la salle d'attente (19/10 : temps seul, « Valider », une ligne, barre centrée) : 1440 menu ouvert et replié
+        for rep in (False, True):
+            pg = await page(b, 1440, 900, rep); ev = pg.evaluate
+            t = await ev("document.getElementById('barreDroite').innerText.replace(/\\s+/g,' ')")
+            ok('Valider' in t and 'Fermer' in t and 'venu' not in t and 'En consultation' not in t and await ev("document.querySelector('.dos-barre').getBoundingClientRect().height < 70"), 'en consultation : temps passé, « Valider », « Fermer », sur une ligne (menu ' + ('replié' if rep else 'ouvert') + ')', t)
+            g = await ev("(() => { const z = document.querySelector('.br-g'), p = [...z.querySelectorAll('.pr')]; const a = p[0].getBoundingClientRect().left - z.getBoundingClientRect().left, c = z.getBoundingClientRect().right - p[p.length - 1].getBoundingClientRect().right; return [Math.round(a), Math.round(c)]; })()")
+            ok(abs(g[0] - g[1]) <= 4, 'boutons de la barre centrés', g)
+            await pg.close()
+        # ── RCP : Décision RCP · Valider · Fermer dans la barre (patient pas en consultation) ──
+        pg = await page(b, 1440, 900, True, "delete window.__fs['" + E + "salle/2026-10-06_" + P8 + "_r-RX'];"); ev = pg.evaluate
         await ev("location.hash='#rcp'"); await pg.wait_for_timeout(1200)
         await ev("rcpOuvrir('R1')"); await pg.wait_for_timeout(1500)
         t = await ev("(document.getElementById('barreDroite')||{}).innerText||''")
