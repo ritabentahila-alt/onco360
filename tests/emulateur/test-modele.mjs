@@ -23,7 +23,7 @@ await db.doc(MOD).set({ nom: "Cabinet modèle (test)", titulaire: "MED", actif: 
   abonnement: { formule: "complet", modules: { chimio: true, rt: true, agenda: true, salle: true, taches: true, rcp: true }, reglage: { menu: ["salle", "agenda"], cartes: { stats: false }, fonctions: { "agenda.whatsapp": false }, fiche: { champs: { tel2: false } } } } });
 await db.doc(MOD + "/membres/MED").set({ role: "medecin", actif: true, nom: "Dr Modèle", tousEtablissements: true, etablissements: [], droits: {} });
 await db.doc(MOD + "/parametres/formulaires").set(J({ fiche: { libs: { mut: "Organisme" }, ajouts: [{ id: "xgeuit", lib: "Score G8", type: "nombre", partie: "clinique" }] } }));
-await db.doc(MOD + "/parametres/accueil").set(J({ ordre: ["jour", "afaire"], cartes: { rappels: false } }));
+await db.doc(MOD + "/parametres/accueil").set(J({ ordre: ["jour", "afaire"], cartes: { rappels: false, afaire: true } }));
 await db.doc(MOD + "/parametres/listes").set(J({ diag: ["Cancer test A"], mut: ["MUTUELLE TEST"], cor: ["Dr Correspondant Privé"] }));
 await db.doc(MOD + "/parametres/whatsapp").set(J({ rappel: "Bonjour {patient}, rappel." }));
 await db.doc(MOD + "/parametres/typesConsult").set(J([{ k: "suivi", nom: "Consultation de suivi" }, { k: "telecs", nom: "Téléconsultation de test", rdv: true }]));
@@ -68,6 +68,9 @@ cas("copie de l'état précédent dans le stockage (ancien modèle : FICTIVOL se
 const Lb = await lire(BIB + "/parametres/listes"), Mb = await lire(BIB + "/bibliotheques/medicaments");
 cas("bibliothèque de référence : listes sans les correspondants du cabinet modèle", Lb && Lb.diag.indexOf("Cancer test A") >= 0 && !(Lb.cor || []).length, Lb && Lb.cor);
 cas("bibliothèque de référence : médicaments du cabinet modèle, sans étoiles", Mb.length === 2 && !Mb.some((x) => x.fav));
+const Ab = await lire(BIB + "/parametres/accueil");
+cas("tableau de bord repris (20/10/2026) : ordre et cartes retirées seulement", Ab && Ab.ordre[0] === "jour" && Ab.cartes.rappels === false && !("afaire" in Ab.cartes), Ab);
+cas("fiche et formulaire du modèle aussi dans la fiche de la bibliothèque (lus par Onco360)", JSON.stringify((await db.doc(BIB).get()).data().ficheSpe) === JSON.stringify(m.fiche) && (await db.doc(BIB).get()).data().consultSpe.typesForm.RCP === "frcp");
 cas("types de consultation et WhatsApp repris", ((await lire(BIB + "/parametres/typesConsult")) || []).some((t) => t.k === "telecs") && (await lire(BIB + "/parametres/whatsapp")).rappel);
 const Pb = await lire(BIB + "/protocoles/lib_0");
 cas("protocoles copiés dans le modèle, sans étoiles", Pb.map((x) => x.id).join() === "p1,p2" && !Pb.some((x) => x.fav), Pb);
@@ -83,6 +86,11 @@ console.log("Fiche de la spécialité enregistrée dans l'Administration : plus 
 const ficheSpe = httpsCallable(fn, "ficheSpecialite", { timeout: 120000 }), avantMod = JSON.stringify((await db.doc(MOD).get()).data().ficheSpe);
 const fs1 = (await ficheSpe({ specialite: "Oncologie – Radiothérapie", quoi: "fiche", fiche: Object.assign({}, m.fiche, { libs: Object.assign({}, m.fiche.libs, { cin: "Pièce d'identité" }) }) })).data;
 cas("cabinet du Dr Bentahila pas touché ; autre cabinet de la spécialité mis à jour", JSON.stringify((await db.doc(MOD).get()).data().ficheSpe) === avantMod && (await db.doc(X).get()).data().ficheSpe.libs.cin === "Pièce d'identité" && fs1.cabinets === 1, fs1);
+// depuis le modèle ouvert dans Onco360 (espace = bibliothèque) : même enregistrement, fiche de la bibliothèque mise à jour aussi
+const fs2 = (await ficheSpe({ espace: "bib-oncologie", quoi: "fiche", fiche: Object.assign({}, m.fiche, { libs: Object.assign({}, m.fiche.libs, { cin: "CIN (modèle)" }) }) })).data;
+cas("depuis le modèle ouvert dans Onco360 : modèle, bibliothèque et autre cabinet mis à jour ; jamais le cabinet du Dr Bentahila", fs2.cabinets === 1 && (await db.doc(BIB).get()).data().ficheSpe.libs.cin === "CIN (modèle)" && Object.values((await db.doc("plateforme/specialites").get()).data())[0].fiche.libs.cin === "CIN (modèle)" && JSON.stringify((await db.doc(MOD).get()).data().ficheSpe) === avantMod, fs2);
+refus = null; try { await ficheSpe({ espace: "cab-x", quoi: "fiche", fiche: {} }); } catch (e) { refus = e.code; }
+cas("espace qui n'est pas un modèle : refusé", refus === "functions/invalid-argument", refus);
 await ficheSpe({ specialite: "Oncologie – Radiothérapie", quoi: "fiche", fiche: m.fiche }); await db.doc(X).update({ ficheSpe: { ajouts: [{ id: "xvieux", lib: "Ancien champ", type: "texte", partie: "clinique" }] } }); // remis comme avant
 console.log("Appliquer à un autre cabinet : rien d'écrasé, ce qui manque est ajouté");
 refus = null; try { await appliquer({ espace: "cabinet-bentahila" }); } catch (e) { refus = e.code; }
@@ -130,6 +138,10 @@ const c1 = (await creer({ cabinet: "Cabinet neuf test", prenom: "Test", nom: "Ne
 const Nd = (await db.doc(N).get()).data();
 cas("fiche et formulaire de consultation du modèle", (Nd.ficheSpe.ajouts || []).map((x) => x.id).sort().join() === "xgeuit,xscore" && Nd.consultSpe.typesForm.RCP === "frcp", Nd.ficheSpe);
 cas("réglage du pack complété par le modèle (menu de départ du modèle, salle en tête)", Nd.abonnement.reglage && Nd.abonnement.reglage.menu && Nd.abonnement.reglage.menu.indexOf("salle") >= 0, Nd.abonnement.reglage);
+cas("tableau de bord du modèle copié dans le cabinet neuf", ((await lire(N + "/parametres/accueil")) || {}).ordre[0] === "jour");
+const ouvrir = httpsCallable(fn, "bibliothequeOuvrir", { timeout: 120000 });
+await db.doc(BIB).update({ ficheSpe: {} }); await ouvrir({ bib: "bib-oncologie" });
+cas("ouvrir le modèle : sa fiche et son formulaire recopiés depuis le modèle de la spécialité", JSON.stringify((await db.doc(BIB).get()).data().ficheSpe) === JSON.stringify(Object.values((await db.doc("plateforme/specialites").get()).data())[0].fiche));
 cas("types de consultation, médicaments et listes (sans correspondants) du modèle", ((await lire(N + "/parametres/typesConsult")) || []).some((t) => t.k === "telecs") && (await lire(N + "/bibliotheques/medicaments")).length === 2 && !((await lire(N + "/parametres/listes")).cor || []).length);
 
 console.log("\n" + ok + " réussis, " + ko + " échoués"); process.exit(ko ? 1 : 0);

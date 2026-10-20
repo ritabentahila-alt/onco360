@@ -50,15 +50,7 @@ async def main():
         # Administration
         pa = await ouvrir(b, S2); await pa.add_init_script("""window.__uid='ADM';window.__fs['administrateurs/ADM']={email:'a@b.ma'};window.__fonctions={listeCabinets:async()=>({cabinets:[{id:'cab-t',nom:'Cabinet T',cree:'2026-10-09',actif:true,titulaire:{nom:'Dr T',email:'t@t.ma'},membres:1,patients:0,abonnement:{formule:'essentiel'}}],specialites:{'Oncologie – Radiothérapie':{consultation:{ajouts:[{id:'xsec01',lib:'Mesures',type:'section'}]}}}}),ficheSpecialite:async(d)=>{window.__fspe=d;return {fiche:d.fiche,cabinets:2}},abonnementCabinet:async(d)=>{window.__abo=d;return {abonnement:d}}};""")
         await pa.goto(f'http://localhost:{PORT}/admin.html#specialites'); await pa.wait_for_timeout(1500)
-        await pa.click('[data-sous="biblio"]'); await pa.wait_for_timeout(300)
-        ok('Formulaire de consultation' in await pa.inner_text('#page'), 'Bibliothèque et paramètres : carte « Formulaire de consultation »')
-        await pa.click('[data-fsouvrir="consultation"]'); await pa.wait_for_timeout(300)
-        await pa.click('#fsCorps [data-chl="type"]'); await pa.wait_for_timeout(200); await pa.fill('#cqListe', 'Première consultation\nSuivi\nUrgence'); await pa.click('#cqLOk'); await pa.wait_for_timeout(200)
-        await pa.click('#cqNouv'); await pa.wait_for_timeout(200); await pa.fill('#cqLib', 'Tension artérielle'); await pa.select_option('#cqType', 'nombre'); await pa.fill('#cqUnite', 'mmHg'); await pa.click('#cqOk'); await pa.wait_for_timeout(200)
-        await pa.uncheck('#fsCorps [data-rch="titre"]'); await pa.click('#fsOk'); await pa.wait_for_timeout(600)
-        F = await pa.evaluate('window.__fspe'); FI = F['fiche']; FI['ajouts'] = [a for a in FI['ajouts'] if not a.get('cs')]  # formulaires proposés (3.4) mis à part
-        ok(F['quoi'] == 'consultation' and FI['choixs']['type'] == ['Première consultation', 'Suivi', 'Urgence'] and FI['ajouts'][1]['unite'] == 'mmHg' and FI['ajouts'][0]['type'] == 'section' and FI['champs']['titre'] is False, 'formulaire de la spécialité enregistré : liste des types, champ avec unité, Titre retiré')
-        ok('2 cabinet(s) mis à jour' in await pa.inner_text('body'), 'message : cabinets mis à jour')
+        # 20/10/2026 : le formulaire de la spécialité se règle dans le modèle ouvert dans Onco360 (test_modele_parametres.py)
         # Réglage d'un cabinet : deux éditeurs dans la même fenêtre
         await pa.evaluate("location.hash='cabinets'"); await pa.wait_for_timeout(400)
         await pa.click('[data-fiche="cab-t"]'); await pa.wait_for_timeout(300); await pa.click('[data-form="cab-t"]'); await pa.wait_for_timeout(400)

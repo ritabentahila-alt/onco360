@@ -36,11 +36,12 @@ async def main():
         for h in ['patients', 'agenda', 'parametres', 'taches']:
             await pc.evaluate(f"location.hash='{h}'"); await pc.wait_for_timeout(300)
         ok('Bilan' in await pc.inner_text('#page'), 'patients, agenda, paramètres, tâches → Bilan')
-        av = (fs.get(E + 'finances/paiements') or {}).get('data')
+        cases = "JSON.stringify(Object.keys(window.__fs).filter(k=>/finances\\/paiements/.test(k)).sort().map(k=>[k,window.__fs[k].data]))"  # R-D4 : un document par année
+        av = await pc.evaluate(cases)
         await pc.evaluate("location.hash='bilan'"); await pc.wait_for_timeout(600); await pc.select_option('#biPer', 'annee'); await pc.wait_for_timeout(300)
         bt = await pc.query_selector('[onclick^="biPaye"]')
         if bt: await bt.click(); await pc.wait_for_timeout(500)
-        ap = (await pc.evaluate("window.__fs['" + E + "finances/paiements']") or {}).get('data')
+        ap = await pc.evaluate(cases)
         ok(bt is not None and ap != av, 'le comptable pointe un paiement')
         await pc.set_viewport_size({'width': 390, 'height': 800}); await pc.wait_for_timeout(300)
         ok(await pc.evaluate("document.documentElement.scrollWidth<=390"), '390 px : rien ne déborde')

@@ -176,6 +176,15 @@ exports.agendaDelier = onCall(OPTS, async (req) => {
 exports.agendaPatient = onDocumentWritten(Object.assign({ document: "espaces/{e}/patients/{p}" }, OPTS), async (ev) => {
   const avant = ev.data.before.exists ? ev.data.before.data() : null, apres = ev.data.after.exists ? ev.data.after.data() : null;
   if (avant && apres && avant.resume === apres.resume && avant.etablissementId === apres.etablissementId) return;
+  // R-D3 (20/10/2026, audit n° 6, C8) : montants et prix à encaisser lus dans la limite des établissements du membre : ils suivent le patient
+  // qui change d'établissement (avant : gardaient l'ancien, quel que soit l'auteur du changement)
+  if (avant && apres && (apres.etablissementId || "") !== (avant.etablissementId || "")) {
+    for (const c of ["patientsFinances", "encaissements"]) {
+      const r = db.doc("espaces/" + ev.params.e + "/" + c + "/" + ev.params.p);
+      try { const s = await r.get(); if (s.exists && s.data().etablissementId !== (apres.etablissementId || "")) await r.update({ etablissementId: apres.etablissementId || "" }); }
+      catch (e) { console.warn("lieu des montants", c, ev.params.p, e.message); }
+    }
+  }
   const auj = L.jourCasa(), tit = await titulaire(ev.params.e);
   for (const d of await liesA(ev.params.e)) {
     try { const m = await membre(ev.params.e, d.id); await syncGroupe(d.id, d.data(), ev.params.e, ev.params.p, L.evtsPatient(apres, m, auj, { uid: d.id, titulaire: tit })); }
@@ -570,6 +579,10 @@ exports.bibliothequeOuvrir = onCall({ timeoutSeconds: 120, memory: "256MiB" }, a
     }
   }
   if (importe) b.set(ref, { parametresImportes: jour }, { merge: true }); // après la création de la fiche
+  // 20/10/2026 : fiche patient et formulaire de consultation du modèle (plateforme/specialites) dans la fiche de la bibliothèque, pour
+  // que Paramètres › Dossier patient les montre et les modifie comme chez un médecin
+  { const sp = await db.doc("plateforme/specialites").get(), o = (sp.exists && sp.data()[C.idSpecialite(B.lib)]) || {};
+    b.set(ref, { ficheSpe: o.fiche || {}, consultSpe: o.consultation || {} }, { merge: true }); }
   await b.commit();
   console.log("bibliothèque ouverte", B.id, "par", par, s.exists ? "" : "(créée)");
   return { espace: B.id, cree: !s.exists };
@@ -944,7 +957,9 @@ const CHAMP_ESPACE = { fiche: "ficheSpe", consultation: "consultSpe" };
 exports.ficheSpecialite = onCall({ timeoutSeconds: 120, memory: "256MiB" }, async (req) => {
   const par = req.auth && req.auth.uid, d = req.data || {}, quoi = d.quoi === "consultation" ? "consultation" : "fiche";
   if (!(await estAdministrateur(par))) throw new HttpsError("permission-denied", "Réservé à l'administration d'Onco360.");
-  const spe = String(d.specialite || "").trim().slice(0, 40), fiche = C.ficheNettoyee(d.fiche) || {};
+  // 20/10/2026 : appelée depuis le modèle ouvert dans Onco360 (Paramètres › Dossier patient) : espace = bibliothèque de la spécialité
+  const Bd = d.espace ? C.BIBS.find((x) => x.id === d.espace) : null; if (d.espace && !Bd) throw new HttpsError("invalid-argument", "Modèle inconnu.");
+  const spe = (Bd ? Bd.lib : String(d.specialite || "").trim()).slice(0, 40), fiche = C.ficheNettoyee(d.fiche) || {};
   if (!spe) throw new HttpsError("invalid-argument", "Spécialité manquante.");
   // Document relu puis réécrit en entier : une clé retirée (nom affiché, case) disparaît vraiment
   const ref = db.doc("plateforme/specialites"), s0 = await ref.get(), tout = s0.exists ? s0.data() : {}, id = C.idSpecialite(spe);
@@ -952,7 +967,8 @@ exports.ficheSpecialite = onCall({ timeoutSeconds: 120, memory: "256MiB" }, asyn
   await ref.set(tout);
   const FS = await formules(), bib = C.bibDe(spe), es = await db.collection("espaces").get(); let n = 0;
   // 20/10/2026 : jamais le cabinet du Dr Bentahila (le modèle en est une copie, faite à la demande ; il n'y est plus relié)
-  for (const e of es.docs) { if (C.estBib(e.id) || e.id === C.MODELE || bibDuCabinet(e.data(), FS) !== bib) continue; await e.ref.update({ [CHAMP_ESPACE[quoi]]: fiche }); n++; }
+  for (const e of es.docs) { if (e.id === bib) { await e.ref.update({ [CHAMP_ESPACE[quoi]]: fiche }); continue; } // le modèle lui-même (ouvert dans Onco360)
+    if (C.estBib(e.id) || e.id === C.MODELE || bibDuCabinet(e.data(), FS) !== bib) continue; await e.ref.update({ [CHAMP_ESPACE[quoi]]: fiche }); n++; }
   await jAdmin(par, "specialite", "", "", (quoi === "consultation" ? "Formulaire de consultation" : "Fiche patient") + " de « " + spe + " » enregistré · " + n + " cabinet(s) mis à jour");
   console.log(quoi, "de la spécialité", spe, "par", par, n, "cabinet(s)");
   return { cabinets: n, fiche };
@@ -1011,6 +1027,7 @@ exports.modeleReprendre = onCall({ timeoutSeconds: 120, memory: "512MiB" }, asyn
   tout[avant.id] = Object.assign({}, tout[avant.id] || {}, { nom: spe, fiche: nouveau.fiche, consultation: nouveau.consultation, reglage: nouveau.reglage, ficheLe: le, fichePar: par, consultationLe: le, consultationPar: par, repris: { le, par, source: C.MODELE, n, copie: copieDe } });
   if (avecProt) await copierBibliothequeBentahila(par);
   await ref.set(tout);
+  await db.doc("espaces/" + avant.bib).update({ ficheSpe: nouveau.fiche || {}, consultSpe: nouveau.consultation || {} }).catch(() => {}); // modèle ouvert dans Onco360 (20/10/2026)
   const B = "espaces/" + avant.bib + "/", b = db.batch();
   if (!(await db.doc("espaces/" + avant.bib).get()).exists) throw new HttpsError("failed-precondition", "Ouvrez d'abord une fois la bibliothèque de la spécialité (Administration › Bibliothèques, « Créer et ouvrir »).");
   Object.entries(parametres).forEach(([k, v]) => b.set(db.doc(B + "parametres/" + k), { data: JSON.stringify(v) }));

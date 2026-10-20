@@ -42,10 +42,12 @@ function listesDepart(L) {
 }
 // Calendrier : jours fériés seulement (ni absences, ni horaires)
 const calendrierDepart = (C) => ({ feries: ((C && C.feries) || []).slice(), abs: [] });
-// Tarifs : actes de radiothérapie et VMAT seulement ; aucun établissement (le médecin crée ses grilles dans Paramètres)
+// Tarifs : actes de radiothérapie, VMAT et taux commun de la radiothérapie (R-D3, 20/10/2026 : celui de la référence, sinon 60 % de
+// rétrocession et 10 % d'impôt, visibles et modifiables dans Paramètres) ; aucun établissement (le médecin crée ses grilles dans Paramètres)
 function tarifsDepart(T) {
   T = T || {};
-  return { repli: "", etablissements: {}, actesRT: (T.actesRT || []).map((a) => ({ nom: a.nom, prix: a.prix })), vmat: T.vmat != null ? T.vmat : 10000 };
+  const t = T.tauxRT && T.tauxRT.retro != null && T.tauxRT.impot != null ? { retro: T.tauxRT.retro, impot: T.tauxRT.impot } : { retro: 60, impot: 10 };
+  return { repli: "", etablissements: {}, actesRT: (T.actesRT || []).map((a) => ({ nom: a.nom, prix: a.prix })), vmat: T.vmat != null ? T.vmat : 10000, tauxRT: t };
 }
 const migrationsFaites = (jour) => MIGRATIONS.reduce((o, k) => { o[k] = jour; return o; }, { cabinetNeuf: jour });
 // Fiche de membre du médecin titulaire
@@ -166,13 +168,15 @@ const MODULES_BIB = { chimio: true, rt: true, agenda: false, salle: false, tache
 // Paramètres de base d'une spécialité (10/10/2026) : gardés dans la bibliothèque de référence, modifiés par l'administration, copiés
 // dans chaque cabinet neuf, nettoyés : ni correspondants, ni prix des consultations (tarifs : actes RT seulement, à part), ni
 // absences, ni horaires par établissement, ni lieu et dates exceptionnelles de la RCP ; tâches automatiques confiées au titulaire.
-const PARAMS_SPE = ["listes", "calendrier", "whatsapp", "couleursAgenda", "typesDocuments", "typesTaches", "tachesAuto", "rcp", "reglages", "typesConsult"]; // typesConsult : R-A6 (18/10/2026)
+const PARAMS_SPE = ["listes", "calendrier", "whatsapp", "couleursAgenda", "typesDocuments", "typesTaches", "tachesAuto", "rcp", "reglages", "typesConsult", "accueil"]; // typesConsult : R-A6 (18/10/2026) ; accueil (tableau de bord) : 20/10/2026
 function parametreDepart(id, v, jour) {
   if (PARAMS_SPE.indexOf(id) < 0 || v == null) return null;
   if (id === "listes") return listesDepart(v);
   if (id === "calendrier") return Object.assign(v.horaires ? { horaires: v.horaires } : {}, { feries: (v.feries || []).slice(), abs: [], horairesEtab: {} });
   if (id === "tachesAuto") return { regles: (v.regles || []).map((r) => Object.assign({}, r, { pour: "titulaire", depuis: jour || r.depuis || "" })) };
   if (id === "rcp") return { jours: v.jours || [], heure: v.heure || "", lieu: "", plus: [], annulees: [] };
+  // tableau de bord : ordre, place et cartes retirées seulement (une carte retirée par le pack d'un cabinet n'est jamais remise par le modèle)
+  if (id === "accueil") { const c = {}; Object.entries(v.cartes || {}).forEach(([k, x]) => { if (x === false) c[k] = false; }); return Object.assign({}, Array.isArray(v.ordre) ? { ordre: v.ordre.slice() } : {}, v.col ? { col: Object.assign({}, v.col) } : {}, Object.keys(c).length ? { cartes: c } : {}); }
   return JSON.parse(JSON.stringify(v));
 }
 // Fiche patient (10/10/2026) : ordre, présence, nom affiché des champs (libs), champs ajoutés (libellé, type, choix, partie, imprimer,

@@ -34,6 +34,7 @@ const echoue = (f) => { try { f(); return false; } catch (e) { return true; } };
 
   const T = C.tarifsDepart({ repli: "HGC", etablissements: { HGC: { activites: [{ type: "suivi" }] } }, actesRT: [{ nom: "Stéréotaxie", prix: 15000, x: 1 }], vmat: 12000 });
   ok(Object.keys(T.etablissements).length === 0 && T.repli === "" && T.vmat === 12000 && JSON.stringify(T.actesRT) === '[{"nom":"Stéréotaxie","prix":15000}]', "tarifs : actes RT et VMAT seulement, aucun établissement");
+  ok(T.tauxRT.retro === 60 && T.tauxRT.impot === 10 && C.tarifsDepart({ tauxRT: { retro: 50, impot: 0 } }).tauxRT.retro === 50, "tarifs : taux commun de la radiothérapie (référence, sinon 60 % / 10 %)");
 
   const M = C.migrationsFaites("2026-10-09");
   ok(C.MIGRATIONS.every((k) => M[k] === "2026-10-09") && M.cabinetNeuf === "2026-10-09", "mises à niveau des anciens dossiers marquées faites");

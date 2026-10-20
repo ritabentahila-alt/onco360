@@ -6,7 +6,7 @@
 import { app, auth, db } from "../config.js";
 import { onAuthStateChanged, sendPasswordResetEmail, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { MENU, FONCTIONS, FONCTIONS_RELIEES, CARTES, SECTIONS, BIBLIOTHEQUES, FICHE, TYPES_CHAMP, TOUJOURS_ENTETE, CONSULT, TYPES_CHAMP_CS, reglageEffectif, ficheEffective, ficheRetouches, consultEffective, formRetouches, formSpecialite, libDe, avecOnco } from "../donnees/catalogue.js";
+import { MENU, FONCTIONS, FONCTIONS_RELIEES, CARTES, SECTIONS, BIBLIOTHEQUES, FICHE, TYPES_CHAMP, TOUJOURS_ENTETE, CONSULT, TYPES_CHAMP_CS, reglageEffectif, ficheEffective, ficheRetouches, consultEffective, formRetouches, libDe, avecOnco } from "../donnees/catalogue.js";
 import { htmlFacture, dh2 } from "../donnees/factures.js";
 import { editeurFiche } from "./editeurfiche.js";
 import { CHAMPS_EDITEUR, EDITEUR_REQUIS, editeurIncomplet, REGLAGES_ABO0, MODELES_RELANCE0, CANAUX, remplirRelance, MODES_FACT, MOYENS, PRIX0, ajouterJours, prolonger, etatFacturation, prixCabinet, attendus, impaye } from "../donnees/facturation.js";
@@ -411,15 +411,14 @@ function htmlModeleSpe() {
       '<p class="sous">Une copie faite au moment où vous cliquez, comme une photo : ses protocoles, ses bibliothèques (médicaments, ordonnances types, analyses, examens, courriers), ses paramètres de départ, sa fiche patient, son formulaire et ses types de consultation, son menu et ses cartes. <b>Ensuite le modèle et son cabinet sont indépendants</b> : ce qu\'elle change dans son cabinet n\'arrive pas dans le modèle (sauf nouvelle copie), ce que vous changez dans le modèle ne touche jamais son cabinet.</p>' +
       '<p class="mod-etat" id="modEtat">Lecture…</p><details class="m"><summary>Jamais copié</summary>Patients, équipe, lieux d\'exercice, correspondants, prix des consultations, en-tête et signatures, abonnement, Google Agenda, horaires des lieux et absences, documentation (PDF).</details>' +
       '<div class="barre" style="margin-top:12px"><button id="modVoir">Voir ce qui serait copié</button></div></section>' : "") +
-    '<section class="carte">' + etape(copie ? 2 : 1, "Ajuster le modèle" + (copie ? " (facultatif)" : "")) + '<p class="sous">Vos changements restent dans le modèle' + (copie ? " ; une nouvelle copie depuis le cabinet du Dr Bentahila les remplacerait" : "") + ".</p>" +
-      ligne("Protocoles, bibliothèques et paramètres de départ", B && B.existe ? (compte || "listes fournies par Onco360") + " · horaires, fériés, WhatsApp, RCP, tâches automatiques, impression, alertes" : "À créer (" + (B && B.id === "bib-oncologie" ? "à partir de la bibliothèque du Dr Bentahila" : "vide") + ")",
+    // 20/10/2026 : tout au même endroit, comme chez un médecin : le modèle s'ouvre dans Onco360 (Protocoles et Paramètres)
+    '<section class="carte">' + etape(copie ? 2 : 1, "Ajuster le modèle" + (copie ? " (facultatif)" : "")) + '<p class="sous">Le modèle s\'ouvre dans Onco360, avec <b>la même page Paramètres qu\'un médecin</b> : Cabinet (tableau de bord, RCP, impression), Dossier patient (fiche patient, formulaire et types de consultation, listes de la fiche, affichage du dossier), Agenda et rappels, Bibliothèques, et la page Protocoles. Vos changements restent dans le modèle' + (copie ? " ; une nouvelle copie depuis le cabinet du Dr Bentahila les remplacerait" : "") + ".</p>" +
+      ligne("Le modèle", B && B.existe ? (compte || "listes fournies par Onco360") : "À créer (" + (B && B.id === "bib-oncologie" ? "à partir de la bibliothèque du Dr Bentahila" : "vide") + ")",
         B ? '<button data-bib="' + esc(B.id) + '">' + (B.existe ? "Ouvrir le modèle" : "Créer et ouvrir") + "</button>" : "") +
-      ligne("Fiche patient", resumeFicheSpe("fiche"), '<button data-fsouvrir="fiche">Modifier</button>') +
-      ligne("Formulaire de consultation", resumeFicheSpe("consultation"), '<button data-fsouvrir="consultation">Modifier</button>') +
-      ligne("Modules, menu et cartes du tableau de bord", "Réglés dans chaque pack", '<button class="clair" data-sous="packs">Voir les packs</button>') + "</section>" +
+      ligne("Modules et menu", "Réglés dans chaque pack", '<button class="clair" data-sous="packs">Voir les packs</button>') + "</section>" +
     '<section class="carte">' + etape(copie ? 3 : 2, "Ce que reçoivent les cabinets") + '<div class="mod-u">' +
       "<p><b>Cabinet neuf</b> : tout le modèle, automatiquement, à sa création.</p>" +
-      "<p><b>Cabinet déjà créé</b> : rien ne change tout seul, sauf la fiche patient et le formulaire de consultation, mis à jour dès que vous les enregistrez ici (les retouches propres à chaque cabinet restent par-dessus" + (copie ? " ; jamais le cabinet du Dr Bentahila" : "") + ").</p>" +
+      "<p><b>Cabinet déjà créé</b> : rien ne change tout seul, sauf la fiche patient et le formulaire de consultation, mis à jour dès que vous les enregistrez dans le modèle (les retouches propres à chaque cabinet restent par-dessus" + (copie ? " ; jamais le cabinet du Dr Bentahila" : "") + ").</p>" +
       (ref ? '<p><b>Protocoles</b> pour les cabinets déjà créés : publiez une version ; chaque cabinet voit les nouveautés dans sa page Protocoles et choisit lesquelles prendre.</p><div class="barre"><button class="clair" data-publier="1">Publier une version' + (B.version ? " (actuelle : v" + B.version + ")" : "") + "</button></div>" +
         ((B.versions || []).length ? '<div class="m" style="margin:-4px 0 12px">' + B.versions.slice().reverse().slice(0, 5).map((v) => "v" + v.n + " (" + esc(dfr(String(v.le).slice(0, 10))) + ") : " + esc(v.notes)).join("<br>") + "</div>" : "") : "") +
       "<p><b>Le reste</b> (paramètres, bibliothèques de prescription, types de consultation) : bouton « Appliquer le modèle » dans la fiche du cabinet (onglet Cabinets) : ajoute ce qui lui manque, n'écrase rien de ce qu'il a modifié.</p></div></section>";
@@ -608,8 +607,8 @@ function editeurReglage(o) {
         '<div class="rg-b">' + titre("accueil", "Tableau de bord", "(cartes)", E) + R.accueil.map((k, i) => '<div class="rg-l">' + fleches("accueil", i) + '<span class="rg-t">' + esc(LIB_CARTE[k] || k) + "</span>" + caseC('data-rcarte="' + k + '"', R.cartes[k] !== false, "") + "</div>").join("") + "</div></div>") +
       panneau("param", '<div class="rg"><div class="rg-b">' + titre("sections", "Paramètres", "(onglets)", E) + R.ordreSections.map((k, i) => '<div class="rg-l">' + fleches("ordreSections", i) + '<span class="rg-t">' + esc(LIB_SEC[k] || k) + "</span>" + caseC('data-rsec="' + k + '"', R.sections[k] !== false, "") + "</div>").join("") + "</div>" +
         '<div class="rg-b">' + titre("bibliotheques", "Bibliothèques", "", E) + BIBLIOTHEQUES.map(([k, lib]) => '<div class="rg-l"><span class="rg-t">' + esc(lib) + "</span>" + caseC('data-rbib="' + k + '"', R.bibliotheques[k] !== false, "") + "</div>").join("") + "</div></div>") +
-      (o.fiche ? panneau("fiche", titre("fiche", "Fiche patient", "(retouches de ce cabinet ; la fiche commune se règle dans Par spécialité › Bibliothèque et paramètres)", E) + FE.html() +
-        titre("consultation", "Formulaire de consultation", "(retouches de ce cabinet ; le formulaire commun se règle dans Par spécialité › Bibliothèque et paramètres)", E) + '<div class="cs-ed">' + CE.html() + "</div>") : "");
+      (o.fiche ? panneau("fiche", titre("fiche", "Fiche patient", "(retouches de ce cabinet ; la fiche commune se règle dans le modèle : Par spécialité › Modèle des cabinets neufs › Ouvrir le modèle)", E) + FE.html() +
+        titre("consultation", "Formulaire de consultation", "(retouches de ce cabinet ; le formulaire commun se règle dans le modèle : Par spécialité › Modèle des cabinets neufs › Ouvrir le modèle)", E) + '<div class="cs-ed">' + CE.html() + "</div>") : "");
   };
   fenetre("<h2>" + esc(o.titre) + '</h2><p class="sous">' + o.intro + '</p><div id="fCorps">' + corps() + '</div><div class="pied colle"><button id="fOk">Enregistrer</button><button class="clair" id="fAnn">Fermer</button><span class="m" id="fEtat"></span></div>');
   const lire = () => { document.querySelectorAll("#fCorps [data-x]").forEach((x) => { A.max[x.dataset.x] = x.value === "" ? null : Number(x.value); }); document.querySelectorAll("#fCorps [data-px]").forEach((x) => { A.prix = A.prix || {}; A.prix[x.dataset.px] = x.value === "" ? null : Number(x.value); }); if ($("fNom")) nom = $("fNom").value.trim(); };
@@ -1009,30 +1008,6 @@ function htmlSpecialites() {
   }
   return '<div class="spe-g">' + gauche + '<div class="spe-d">' + droite + "</div></div>";
 }
-// Fiche patient et formulaire de consultation de la spécialité : les mêmes pour tous ses packs et tous ses cabinets (retouches d'un
-// cabinet en plus). q = "fiche" | "consultation".
-const FORMS = { fiche: { titre: "Fiche patient", cat: FICHE, eff: ficheEffective, le: "le", bouton: "Modifier la fiche patient",
-    intro: "Ordre (↑ ↓), nom affiché (✎), champs ajoutés (texte, nombre, date, liste de choix, oui / non). <b>présent</b> : le champ est dans la fiche (décoché : caché, sa valeur reste dans les dossiers). <b>en-tête</b> : il s'affiche aussi en haut du dossier, sous le nom du patient (sinon seulement dans « Afficher »). Nom, prénom et hôpital sont toujours présents." },
-  consultation: { titre: "Formulaire de consultation", cat: CONSULT, eff: consultEffective, le: "csLe", bouton: "Modifier le formulaire de consultation",
-    intro: "La fenêtre « Nouvelle consultation » : ordre (↑ ↓), présence (cases), nom affiché et liste des types de consultation (✎), champs ajoutés (texte, texte long, nombre avec unité, date, liste de choix, oui / non, titre de section pour regrouper). Un champ retiré est caché, ses valeurs restent dans les consultations. La date est toujours présente." } };
-function resumeFicheSpe(q) {
-  const Fm = FORMS[q], sp = SPES[SPEC] || {}, FI = Fm.eff(null, avecOnco(sp[q], SPEC)), pres = FI.ordre.filter((k) => FI.champs[k] !== false).length, ren = Object.keys(FI.libs).length;
-  return pres + " champ(s) présent(s) sur " + FI.ordre.length + " · " + FI.ajouts.filter((z) => !z.tumeur && !z.cs).length + " ajouté(s)" + (FI.onco ? (q === "fiche" ? " · fiche tumeur" : " · formulaires d'oncologie et de RT hebdomadaire") : "") + " · " + ren + " renommé(s)" + (sp[Fm.le] ? " · modifié le " + esc(String(sp[Fm.le]).slice(0, 10).split("-").reverse().join("/")) : "");
-}
-function ouvrirFicheSpe(q) {
-  const Fm = FORMS[q], spe = SPEC, FI = Fm.eff(null, avecOnco((SPES[spe] || {})[q], spe)), FE = editeurFiche(FI, "spe", q === "consultation"); // oncologie : fiche tumeur, formulaires de consultation (12/10/2026)
-  fenetre("<h2>" + Fm.titre + " · " + esc(spe) + '</h2><p class="sous">' + Fm.intro + '</p><div id="fsCorps">' + FE.html() + '</div><div class="pied"><button id="fsOk">Enregistrer dans le modèle</button><button class="clair" id="fsAnn">Fermer</button></div>');
-  const refaire = () => { $("fsCorps").innerHTML = FE.html(); FE.brancher(refaire); };
-  FE.brancher(refaire); $("fsAnn").onclick = fermer;
-  $("fsOk").onclick = async () => {
-    if (FE.enCours() && !confirm("Un champ est en cours de modification et ne sera pas enregistré. Continuer ?")) return;
-    const b = $("fsOk"); b.disabled = true; b.textContent = "Enregistrement…";
-    // tout le formulaire (20/10/2026 : types, parties, impression, unités, formulaires nommés et formulaire de chaque type n'étaient pas enregistrés)
-    const fiche = formSpecialite(Fm.cat, FI, FI.onco);
-    try { const o = await serveur("ficheSpecialite", { specialite: spe, quoi: q, fiche }); SPES[spe] = Object.assign({}, SPES[spe] || {}, { [q]: o.fiche, [Fm.le]: new Date().toISOString() }); fermer(); RES = Fm.titre + " du modèle « " + esc(spe) + " » enregistré" + (q === "fiche" ? "e" : "") + " dans le modèle : " + o.cabinets + " cabinet(s) mis à jour (cabinets déjà créés, à la prochaine ouverture d'Onco360)."; dessiner(); }
-    catch (e) { b.disabled = false; b.textContent = "Enregistrer dans le modèle"; alert("Enregistrement impossible : " + e.message); }
-  };
-}
 async function enregistrerPacks(L, message) {
   const o = await serveur("formulesEnregistrer", { formules: L }); FS = o.formules; Object.values(FS).forEach((f) => { f.specialite = specialiteDe(f.specialite); });
   RES = message + (o.cabinets ? " ; " + o.cabinets + " cabinet(s) mis à jour" : "") + "."; CABINETS = null; dessiner(); charger();
@@ -1041,7 +1016,7 @@ function ouvrirPack(k, modele) {
   const F0 = modele || FORMULES_()[k] || { lib: "", specialite: SPEC, modules: MODULES.filter(([m]) => modulePour(m, SPEC)).map((m) => m[0]), max: {} };
   const A = { formule: k, prix: Object.assign({}, F0.prix || PRIX0[k] || {}), modules: Object.fromEntries(MODULES.map(([m]) => [m, (F0.modules || []).indexOf(m) >= 0])), max: Object.fromEntries(ROLES_MAX.map(([r]) => [r, F0.max && F0.max[r] != null ? F0.max[r] : null])) };
   editeurReglage({ titre: (FORMULES_()[k] ? "Pack « " + F0.lib + " »" : "Nouveau pack") + " · " + SPEC, avecPack: false, nom: F0.lib, A, R: reglageEffectif(F0.reglage), spe: () => SPEC,
-    intro: "Le réglage de départ des cabinets qui reçoivent ce pack. Les cabinets qui le suivent sans retouche reçoivent aussitôt les modifications ; un cabinet retouché garde les siennes. Fiche patient et consultation : communes à la spécialité (Bibliothèque et paramètres).",
+    intro: "Le réglage de départ des cabinets qui reçoivent ce pack. Les cabinets qui le suivent sans retouche reçoivent aussitôt les modifications ; un cabinet retouché garde les siennes. Fiche patient et consultation : celles du modèle de la spécialité (Modèle des cabinets neufs).",
     enregistrer: async (A2, R2, nom) => {
       const L = JSON.parse(JSON.stringify(FORMULES_())); let cle = k;
       if (!L[cle]) { let base = sansAcc(nom).replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 26); if (base.length < 2) base = "pack"; cle = base; let n = 2; while (L[cle]) cle = base + "-" + n++; }
@@ -1053,7 +1028,6 @@ function ouvrirPack(k, modele) {
 function brancherSpecialites() {
   document.querySelectorAll("[data-spec]").forEach((b) => { b.onclick = () => { SPEC = b.dataset.spec; dessiner(); }; });
   document.querySelectorAll("[data-sous]").forEach((b) => { b.onclick = () => { SOUS = b.dataset.sous; dessiner(); }; });
-  document.querySelectorAll("[data-fsouvrir]").forEach((b) => { b.onclick = () => ouvrirFicheSpe(b.dataset.fsouvrir); });
   if ($("modVoir")) { $("modVoir").onclick = () => ouvrirReprendreModele(); etatModele(); }
   document.querySelectorAll("[data-pm]").forEach((b) => { b.onclick = () => ouvrirPack(b.dataset.pm); });
   document.querySelectorAll("[data-pd]").forEach((b) => { b.onclick = () => { const F = JSON.parse(JSON.stringify(FORMULES_()[b.dataset.pd])); F.lib = (F.lib + " (copie)").slice(0, 40); ouvrirPack("", F); }; });

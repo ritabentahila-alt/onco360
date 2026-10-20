@@ -187,7 +187,7 @@ pas le reproposer** ; NON CONTESTÉ = à faire, **en le signalant dans le compte
 | ~~4~~ | R-F (audit 8) | **Répondu le 20/10** : durées de conservation inchangées (à revoir avec le juriste, loi 09-08 ; nouvel export de la semaine : 14 semaines dans Onco360, 12 par défaut dans le Drive) | rien changé |
 | ~~5~~ | R-F (audit 8) | **Répondu le 20/10** : n'importe qui, depuis son compte (titulaire : bouton) et l'Administration ; deux modes d'emploi | fait |
 | 6 | R-A6 | Pour chaque autre cabinet, quelles parties du modèle reprendre ? | Correspondants et tarifs des consultations décochés ; le reste coché par l'Administration, cabinet par cabinet |
-| 7 | R-D (audit 6, d. 3) | Un taux de RT commun réglé dans Paramètres, modifiable par lieu, à la place des 60 % / 10 % cachés ? | Ne rien changer |
+| ~~7~~ | R-D (audit 6, d. 3) | **Répondu le 20/10** : taux commun réglable dans Paramètres (pré-rempli 60 % / 10 %), la ligne « Radiothérapie » du lieu passe avant | fait (R-D3) |
 | 8 | R-D / R-B5 (audit 6, d. 18) | Reçu imprimé sans numéro (enregistrement du numéro en échec) : une ligne au journal du cabinet suffit-elle ? | Faire la ligne au journal |
 
 ---
@@ -332,6 +332,14 @@ types**, refus gardés) : R-A6 et R-E4 partent de là, sans les refaire.
       impression, unités, formulaires nommés et formulaire de chaque type (`formSpecialite` de catalogue.js, même calcul que la copie).
       Tests : `test-modele.mjs` 41/41, `test_modele_admin.py` 29/29, `test-modele.js` 26/26, test_bibliotheque, test_fiche, test_cabinets,
       test_consultation_form, test_modules.
+      **Suite du 20/10/2026 (« tout au même endroit, comme un paramétrage de médecin »)** : le modèle ouvert dans Onco360 a la **même page
+      Paramètres qu'un médecin** (Cabinet › Tableau de bord ; Dossier patient › Fiche patient, Formulaire et Types de consultation, Listes de
+      la fiche (mutuelles), Affichage du dossier), sauf lieux, journal, export, correspondants (`HORS_BIB`). Fiche et formulaire : éditeur en
+      mode « spe », enregistrés par `ficheSpecialite({ espace: bib })` (modèle + fiche de la bibliothèque + cabinets déjà créés, jamais
+      cabinet-bentahila) ; copiés dans `espaces/{bib}.ficheSpe / consultSpe` à chaque ouverture (`bibliothequeOuvrir`) et à chaque copie.
+      Tableau de bord : `parametres/accueil` ajouté à `PARAMS_SPE` (ordre, places, cartes retirées seulement : une carte retirée par un pack
+      n'est jamais remise). Administration : étape 2 = un seul bouton « Ouvrir le modèle » ; éditeurs à part retirés. Tests :
+      `test_modele_parametres.py` 18/18 (nouveau, dans le contrôle), `test-modele.mjs` 47/47.
       **R-A6 Réglages du cabinet Bentahila repris par l'Administration** (DEMANDÉ, § 3.5 ; part de P11). Aujourd'hui rien ne remonte : fiche
       patient et formulaires de consultation vivent à trois niveaux (modèle `plateforme/specialites[id].fiche` / `.consultation`, copie
       `espaces/{e}.ficheSpe` / `.consultSpe`, retouches `reglage.fiche` / `.consultation`) ; `parametres/typesConsult` n'est même pas dans
@@ -515,17 +523,41 @@ types**, refus gardés) : R-A6 et R-E4 partent de là, sans les refaire.
       d'oncologie de l'Administration (`bib-oncologie`, copie du 09/10) : à reprendre depuis son cabinet (bouton « Reprendre », R-A6).
 
 **Lot D – Audit n° 6 : finances** (§ 7 ; lot F1 → R-B5 ; l'ancien lot « Caisse » est supprimé)
-- [ ] **R-D1 (F2) Consultation de chimio jour par jour** (C1, d. 1, VALIDÉ) : un acte par jour, à sa date, avec son mode (aujourd'hui un seul
+**Fait le 20/10/2026 (R-D1 à R-D4 en une session, demande de Dr Bentahila ; testé ; pas encore en ligne : site, règles, fonction agendaPatient)** ;
+réponse à la question 7 (20/10) : taux commun réglable, pré-rempli 60 % / 10 %. Bilan de référence **inchangé : 352 317 DH avant et après** (ses
+consultations de chimio sont toutes au J1) ; en ligne, seules changent de date (et de mode) les consultations payées un J8 / J15. Tests :
+test-bilan 42/42 (moteur), test_finances_d 16/16, test_comptable 13/13, règles (reçus 32, bilan 15, comptable 21), test-cabinets ; guide `guide/bilan.md`.
+- [x] **(20/10/2026, testé)** `evtsFin` (moteur/finances.js) : un acte « cchimio » par jour payé (montant > 0, ou ancien format au tarif), à sa date
+      (J1 = séance, J8… = séance validée sinon prévue ; ancien « jour : autre » = sa date), avec son mode ; identifiant « cc|ligne|cure » pour le
+      1er jour payé (case « Payé » reprise), « cc|ligne|cure|jour » ensuite ; libellé « Consultation chimio J8 – … » ; `consJours` = une seule source
+      (moteur/finances.js, reprise par chimio.js).
+      **R-D1 (F2) Consultation de chimio jour par jour** (C1, d. 1, VALIDÉ) : un acte par jour, à sa date, avec son mode (aujourd'hui un seul
       acte daté du J1, un seul mode : `moteur/finances.js`) ; J8 / J15 à 0 DH par défaut, modifiable, un montant saisi compte à sa date ;
       cases « Payé » déjà cochées reprises sur le J1. **Le bilan change** : chiffre avant / après sur le jeu de référence, annoncé avant la
       mise en ligne.
-- [ ] **R-D2 (F3) Rapprochement** : règlements par clinique et par mois (A5, d. 14) = indicateur en lecture seule : reçu, coché « Payé », dû,
+- [x] **(20/10/2026, testé)** bilan.js `rapprochement` / `htmlRappro` (cadre « Rapprochement des règlements », `#biRap`, après les versements et
+      règlements ; feuille « Rapprochement » de l'export Excel) : par clinique (lieux non « payé au cabinet ») et par mois de la période : actes du
+      mois (NET, dont à recevoir), cochés « Payé » ce mois-là (date du clic), reçus ce mois-là, écart = reçu − coché ; lecture seule. **Relevé du
+      comptable préparé la nuit par le serveur (A7) : reste à faire** (« plus tard » dans l'audit ; demande de porter `evtsFin` dans functions/).
+      Corrigé en passant : relevé du comptable repoussé de 3 s à 2 min quand un dossier était réparé au démarrage (minuteur de l'ouverture à part).
+      **R-D2 (F3) Rapprochement** : règlements par clinique et par mois (A5, d. 14) = indicateur en lecture seule : reçu, coché « Payé », dû,
       écart (pas de pointage en lot) ; relevé du comptable préparé la nuit par le serveur (A7, d. 15, plus tard). Bilan inchangé.
-- [ ] **R-D3 (F4) Robustesse** : transactions pour montants, cases « Payé », versements et règlements (C2, C3, C4 : `majMontants`, bilan.js ;
+- [x] **(20/10/2026, testé)** `majMontants` (chimio.js) = transaction qui écrit montants **et** prix à encaisser ; cases « Payé » (`majCase`),
+      versements et règlements (`sauverListe`) en transaction ; règles : `patientsFinances` lus dans le périmètre (bilan et `migrations()` demandent la
+      liste par établissement ; comptable : aucun), montants et prix à encaisser suivent le patient qui change d'établissement (fonction
+      `agendaPatient`) ; reçu : nouveau numéro = anciens annulés gardés (`hasAll`) + le numéro remplacé, son montant, signé (`annuleVerifie`) ; taux de
+      RT : `tauxRT` (finances/tarifs.tauxRT, Paramètres › Activités › Actes de radiothérapie), écrit une fois à 60 % / 10 % (`migrations.tauxRT`),
+      cabinets neufs : celui de la référence (`tarifsDepart`) ; sans ligne du lieu ni taux commun = « sans tarif » ; `tauxTxt` sans 10 % caché.
+      **Non fait : impôt de 10 % par défaut des hospitalisations reprises de la v1 (C9), laissé à l'étape 5.4** comme prévu.
+      **R-D3 (F4) Robustesse** : transactions pour montants, cases « Payé », versements et règlements (C2, C3, C4 : `majMontants`, bilan.js ;
       d. 2, **PRIORITÉ BASSE**, avec 5.2) ; règles : montants lisibles **avec** la limite d'établissement, reçu annulé vérifié (C8, d. 17),
       avec leurs tests ; taux de RT sans valeur cachée (C5 : 60 % / 10 % pris en silence quand un lieu n'a pas de taux de RT ; question 7, ne
       rien changer avant la réponse ; le bilan ne change que pour un lieu sans taux) ; impôt de 10 % par défaut pour la v1 (C9, avec 5.4).
-- [ ] **R-D4 (F5) Montée en charge** : cases « Payé » découpées par année (limite de 1 Mo d'un document, alerte à 70 %), bilan lu depuis
+- [x] **(20/10/2026, testé)** `finances/paiements_AAAA` (année de l'acte) + ancien `finances/paiements` (cases dont l'acte est introuvable, encore
+      lues) : moteur/bilan.js `docPaiements`, `fusionnerPaiements`, `repartirPaiements` (rangement à l'ouverture du bilan par le médecin, transaction ;
+      rien de perdu ni de dédoublé), `placePaiements` (alerte en haut du bilan à 70 % de 1 Mo) ; finances/ lu en une fois (`lireFinances`) ; règle : le
+      comptable écrit aussi `paiements_AAAA`. **Bilan lu depuis l'index : avec l'étape 5.3** (l'index des patients n'existe pas encore).
+      **R-D4 (F5) Montée en charge** : cases « Payé » découpées par année (limite de 1 Mo d'un document, alerte à 70 %), bilan lu depuis
       l'index (d. 16, avec 5.3). Bilan inchangé.
 
 **Lot E – Audit n° 7 : ordonnances et bibliothèques de prescription** (§ 8 ; point 1 → R-A1 ; questions 1 et 2 au début du lot)

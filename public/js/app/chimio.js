@@ -1,7 +1,7 @@
 // Onco360 – chimiothérapie dans le dossier, présentée comme dans l'application actuelle :
 // « Traitement en cours », lignes en accordéon, tableau des cures, détail d'une cure (séances, honoraires, doses, molécules),
 // protocole de la ligne, fiche HGC. Création d'un patient. Les calculs viennent du moteur v2 (inchangé).
-import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { doc, getDoc, setDoc, serverTimestamp, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { db } from "../config.js";
 import { fusionner, separer } from "../donnees/conversion.js";
 import { poidsActuel } from "../moteur/poids.js"; // R-A5 (18/10/2026)
@@ -9,6 +9,7 @@ import { statutLigne, ligneCourante } from "../moteur/resume.js";
 import { etatLigne, protocoleDe, protocoleCure, seancesCure, seancesDe, dedupIds, joursDe, clairance, jourVersSeance, instantane, controleSeance, poidsAvant, poidsDebut, protocoleValide, REPERES, avecMolecule, reinSensible, reperesClairance, texteNiv, premed as premedP } from "../moteur/doses.js";
 import { addJ, ecart, num, age } from "../moteur/outils.js";
 import { tarif } from "../moteur/tarifs.js";
+import { consJours } from "../moteur/finances.js";
 import { typeRdv, T_RTC } from "../moteur/rdv.js";
 import { DIAG, MUT0, DICT } from "../donnees/listes.js";
 import { poso, doseTxt, ficheHTML, imprimerFiche } from "./fiche.js";
@@ -177,25 +178,31 @@ async function chargerMontants(x) {
   MC[x.id].cures = MC[x.id].cures || {}; MC[x.id].rt = MC[x.id].rt || {};
   return MC[x.id];
 }
+// R-D3 (20/10/2026, audit n° 6, C2 et C4) : montants relus et réécrits dans une transaction, avec les prix à encaisser (avant : relus puis
+// écrits en deux temps, et les prix à encaisser à part) : un prix fixé au même moment par la secrétaire (prixConsultation, transaction
+// du serveur) fait recommencer la modification au lieu d'être écrasé. fn peut donc être appelée plusieurs fois, toujours sur les montants relus.
 export async function majMontants(x, fn) {
   if (!A.peut("finances")) return;
-  delete MC[x.id]; // relus juste avant d'écrire : un prix changé entre-temps par la secrétaire (prixConsultation) n'est pas écrasé
-  const M = await chargerMontants(x); fn(M);
-  await setDoc(doc(db, "espaces", A.ESPACE, "patientsFinances", x.id), { etablissementId: x.doc.etablissementId || "", montantsJson: JSON.stringify(M) }, { merge: true });
-  await ecrireEncaissements(x, M).catch((e) => console.warn("encaissements", e));
+  delete MC[x.id];
+  const E = (c) => doc(db, "espaces", A.ESPACE, c, x.id), etab = x.doc.etablissementId || "";
+  const M = await runTransaction(db, async (t) => {
+    const s = await t.get(E("patientsFinances")), M = s.exists() && s.data().montantsJson ? JSON.parse(s.data().montantsJson) : { rdv: {}, rt: {}, cures: {} };
+    M.cures = M.cures || {}; M.rt = M.rt || {};
+    fn(M);
+    t.set(E("patientsFinances"), { etablissementId: etab, montantsJson: JSON.stringify(M) }, { merge: true });
+    t.set(E("encaissements"), { etablissementId: etab, data: JSON.stringify(construireEncaissements(x, M)) });
+    return M;
+  });
+  MC[x.id] = M; EC[x.id] = construireEncaissements(x, M);
   if (A.planifierReleve) A.planifierReleve(); // relevé du comptable mis à jour (étape 9 S2)
 }
 // ───── Prix à encaisser (droit « encaissements », secrétaire) : extrait des montants, sans les honoraires ni la radiothérapie ─────
 // encaissements/{patient} = { etablissementId, data: { rdv: { idRdv: { m } | { tj } }, cons: { "ligne|n": { m, d, lib, n } } } }
 // Consultation des jours de chimio validés « Venu » (fenêtre de prix des rendez-vous de chimio, 07/10/2026) : { "1": 250, "8": 0 }.
-// Ancien fonctionnement (case « Consultation encaissée », cons.enc) = une validation au jour cons.jour (J1 par défaut).
-export function consJours(c) {
-  if (!c) return {};
-  if (c.consJ) return c.consJ;
-  if (c.cons && c.cons.enc) { const j = c.cons.jour && c.cons.jour !== "autre" ? String(c.cons.jour) : "1"; return { [j]: c.cons.m == null ? null : num(c.cons.m) }; }
-  return {};
-}
-// Total pour le bilan (inchangé : une « consultation chimio » par cure, comptée si payée)
+// Ancien fonctionnement (case « Consultation encaissée », cons.enc) = une validation au jour cons.jour (J1 par défaut) : consJours
+// (moteur/finances.js, une seule source depuis R-D1).
+export { consJours };
+// Total de la cure (cons), gardé pour l'ancien format ; le bilan compte chaque jour à sa date depuis R-D1 (moteur/finances.js)
 function majCons(cc) {
   const v = Object.entries(cc.consJ || {}), tot = v.reduce((s2, [, m]) => s2 + (num(m) || 0), 0), j0 = (v.find(([, m]) => (num(m) || 0) > 0) || v[0] || ["1"])[0];
   cc.cons = tot > 0 ? { enc: true, m: tot, jour: j0 } : { enc: false, m: 0 };

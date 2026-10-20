@@ -19,6 +19,31 @@ export function migrerPaiements(resumes, paiements) {
   return { p, change: n > 0 || vieilles.size > 0 };
 }
 
+// ───── Cases « Payé » rangées par année (R-D4, 20/10/2026, audit n° 6, d. 16) ─────
+// finances/paiements_AAAA = cases des actes datés de l'année AAAA ; finances/paiements = ancien document unique (cases d'avant le
+// rangement, ou d'un acte introuvable). Un document Firestore tient au plus 1 Mo : alerte à 70 %.
+export const RE_DOC_PAYE = /^paiements(_\d{4})?$/;
+export const docPaiements = (d) => (/^\d{4}/.test(d || "") ? "paiements_" + String(d).slice(0, 4) : "paiements");
+// Toutes les cases, quel que soit leur document (l'ancien d'abord, les années ensuite)
+export const fusionnerPaiements = (docs) => Object.assign({}, ...Object.keys(docs || {}).sort().map((k) => docs[k] || {}));
+const tri = (o) => JSON.stringify(Object.keys(o || {}).sort().map((k) => [k, o[k]]));
+// Rangement : anciennes clés reprises (migrerPaiements), puis chaque case dans le document de l'année de son acte ; une case dont l'acte
+// est introuvable (dossier supprimé, hors des établissements du membre) reste là où elle est. Rien de perdu, rien de dédoublé.
+export function repartirPaiements(resumes, docs) {
+  docs = docs || {}; const tout = fusionnerPaiements(docs), m = migrerPaiements(resumes, tout).p, an = {}, ou = {};
+  resumes.forEach((x) => (x.fin || []).forEach((e) => { if (!e[9] || e[1] === "rtprev") return; const k = clePaye({ id: x.id, a: e[9] }); if (m[k] != null) an[k] = docPaiements(e[0]); }));
+  Object.keys(docs).sort().forEach((id) => Object.keys(docs[id] || {}).forEach((k) => { ou[k] = id; }));
+  const out = {}; Object.keys(docs).forEach((id) => { out[id] = {}; });
+  Object.keys(m).forEach((k) => { const id = an[k] || ou[k] || "paiements"; (out[id] = out[id] || {})[k] = m[k]; });
+  return { docs: out, change: Object.keys(out).some((id) => tri(out[id]) !== tri(docs[id])) };
+}
+// Place prise par chaque document de cases (octets du texte enregistré) : ceux qui dépassent 70 % de 1 Mo
+export const LIMITE_DOC = 1048576;
+export function placePaiements(docs, seuil = 70) {
+  const oct = (t) => (typeof TextEncoder !== "undefined" ? new TextEncoder().encode(t).length : t.length);
+  return Object.keys(docs || {}).sort().map((id) => ({ id, pct: Math.round((oct(JSON.stringify(docs[id] || {})) + 200) / LIMITE_DOC * 1000) / 10 })).filter((x) => x.pct >= seuil);
+}
+
 // Bornes de la période : semaine, mois, moisprec, annee, ou dates libres
 export function periode(f, aujourdhui) {
   const t = aujourdhui, d = new Date(t + "T12:00:00"), y = d.getFullYear(), m = d.getMonth(), p = (n) => (n < 10 ? "0" : "") + n;

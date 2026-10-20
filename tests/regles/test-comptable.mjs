@@ -34,6 +34,8 @@ async function cas(nom, f) { await preparer(); try { await f(); ok++; console.lo
 console.log("Volet financier");
 await cas("le comptable lit le relevé, les tarifs, les paiements", async () => { await assertSucceeds(getDoc(D("COMP", "comptabilite/meta"))); await assertSucceeds(getDoc(D("COMP", "finances/tarifs"))); await assertSucceeds(getDoc(D("COMP", "finances/paiements"))); });
 await cas("le comptable pointe un paiement et saisit un versement", async () => { await assertSucceeds(setDoc(D("COMP", "finances/paiements"), { data: "{}" })); await assertSucceeds(setDoc(D("COMP", "finances/versements"), { data: "[]" })); });
+await cas("le comptable pointe un paiement rangé par année (R-D4) et lit toute la liste des finances", async () => { await assertSucceeds(setDoc(D("COMP", "finances/paiements_2026"), { data: "{}" })); await assertSucceeds(getDocs(collection(env.authenticatedContext("COMP").firestore(), P + "/finances"))); });
+await cas("refusé : le comptable écrit un autre document qui ressemble (paiements_x)", () => assertFails(setDoc(D("COMP", "finances/paiements_x"), { data: "{}" })));
 await cas("refusé : le comptable modifie les tarifs", () => assertFails(setDoc(D("COMP", "finances/tarifs"), { data: "{}" })));
 await cas("refusé : le comptable écrit le relevé, les montants, les encaissements", async () => { await assertFails(setDoc(D("COMP", "comptabilite/meta"), { n: 2 })); await assertFails(setDoc(D("COMP", "patientsFinances/p1"), { montantsJson: "{}" })); await assertFails(setDoc(D("COMP", "encaissements/p1"), { etablissementId: "HGC" })); });
 console.log("Règlements reçus des cliniques (étape 15)");

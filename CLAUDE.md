@@ -27,7 +27,7 @@ Après déploiement : recharger sans cache (Cmd + Maj + R). Les `.js` sont servi
 | Fichier | Rôle |
 |---|---|
 | `index.html` | connexion Firebase Auth → `v2.html` (compte d'administration → `admin.html`) |
-| `admin.html` + `js/app/admin.js` | Administration : onglets Cabinets (liste, fiche, réglage du cabinet, équipe, démo, suspendre…), Nouveau cabinet, Par spécialité (packs avec réglage complet `editeurReglage` ; **Modèle des cabinets neufs** (20/10/2026, `htmlModeleSpe`) : 1. copier le cabinet du Dr Bentahila = protocoles + réglages en une action (`modeleReprendre`), ensuite plus aucun lien ; 2. ajuster (bibliothèque, fiche patient, formulaire : `formSpecialite`) ; 3. ce que reçoivent les cabinets), Modules (tous les modules, `MODULES_BASE` / MODULES / MODULES_PREVUS, lecture seule), Journal (actions de l'administration) ; **Sauvegardes** (lot R-F, 20/10/2026 : copie des fichiers, export de la semaine des cabinets, « Récupérer des données d'un cabinet » par n° de dossier, sans nom, source « base restaurée à côté » ; alerte en haut de Cabinets ; bouton « Récupérer des données » de la fiche) |
+| `admin.html` + `js/app/admin.js` | Administration : onglets Cabinets (liste, fiche, réglage du cabinet, équipe, démo, suspendre…), Nouveau cabinet, Par spécialité (packs avec réglage complet `editeurReglage` ; **Modèle des cabinets neufs** (20/10/2026, `htmlModeleSpe`) : 1. copier le cabinet du Dr Bentahila = protocoles + réglages en une action (`modeleReprendre`), ensuite plus aucun lien ; 2. ajuster = « Ouvrir le modèle » : Onco360 avec la même page Paramètres qu'un médecin (fiche et formulaire enregistrés par `ficheSpecialite({ espace })`, `formSpecialite` ; `HORS_BIB` = lieux, accès, journal, export) ; 3. ce que reçoivent les cabinets), Modules (tous les modules, `MODULES_BASE` / MODULES / MODULES_PREVUS, lecture seule), Journal (actions de l'administration) ; **Sauvegardes** (lot R-F, 20/10/2026 : copie des fichiers, export de la semaine des cabinets, « Récupérer des données d'un cabinet » par n° de dossier, sans nom, source « base restaurée à côté » ; alerte en haut de Cabinets ; bouton « Récupérer des données » de la fiche) |
 | `v2.html` | Onco360 : structure, CSS complet, symboles SVG, logo |
 | `js/config.js` | initialisation Firebase (clé web publique, normal) |
 | `vendor/` | bibliothèques externes copiées dans le site (jszip, html2canvas, mammoth, SheetJS 0.20.3 ; `vendor/LISEZMOI.md`) |
@@ -126,6 +126,11 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
   `versements` (avec `id`) relus avant chaque écriture ; page recalculée à chaque ouverture ; `patients/{id}.hopHist` [{ hop, avant }] noté à
   chaque changement d'hôpital (`hopAu` : acte daté avant = ancien hôpital ; règle : droit « tous les établissements »).
   Tests sans navigateur : `node tests/moteur/test-bilan.mjs` (référence `tests/bilan_ref.txt`).
+- **Lot D (audit n° 6, 20/10/2026)** : consultation de chimio = un acte par jour payé (`evtsFin`, identifiant `cc|ligne|cure` pour le 1er jour payé,
+  `cc|ligne|cure|jour` ensuite ; `consJours` dans moteur/finances.js) ; cases « Payé » rangées par année `finances/paiements_AAAA` (+ ancien
+  `finances/paiements` encore lu ; moteur/bilan.js `repartirPaiements`, `placePaiements` alerte à 70 %) ; taux commun de la RT `finances/tarifs.tauxRT`
+  { retro, impot } (sans ligne « Radiothérapie » du lieu ; absent = « sans tarif ») ; rapprochement des règlements (bilan.js `rapprochement`) ;
+  `majMontants`, cases, versements, règlements en transaction ; `patientsFinances` lus dans le périmètre (règle). Guide `guide/bilan.md`.
 - Bilan « payé » : `finances/paiements` (coché à la main) + « Payé auto. » des Paramètres (`payeAuto` = date de l'activité dans
   `finances/tarifs` : actes de ce type et de cet établissement à partir de cette date comptés payés ; bilan.js `paiementsEffectifs`).
 - `presence/{uid}` (« Dossier ouvert par », salle.js `presenceDossier`) : { patientId, nom, role, le }, écrit par la personne

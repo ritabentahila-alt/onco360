@@ -37,7 +37,9 @@ async function imprimer(u, o = {}, triche = {}) {
     const id = (o.pid || "p1") + "_" + (o.cle || "r-a"), a = await tr.get(doc(d, P + "/recus/" + id)), ancien = a.exists() ? a.data() : null;
     const c = await tr.get(doc(d, P + "/recusCompteur/" + AN)), n = (c.exists() ? c.data().n : 0) + 1 + (triche.saut || 0);
     if (!triche.sansCompteur) tr.set(doc(d, P + "/recusCompteur/" + AN), { n, majPar: u });
-    tr.set(doc(d, P + "/recus/" + id), Object.assign(recuAEcrire(ancien, base(u, o), n + (triche.decale || 0)), { le: serverTimestamp() }));
+    const w = Object.assign(recuAEcrire(ancien, base(u, o), n + (triche.decale || 0)), { le: serverTimestamp() });
+    if (triche.annules) w.annules = triche.annules(w.annules); // R-D3 (C8) : numéros annulés trafiqués
+    tr.set(doc(d, P + "/recus/" + id), w);
   });
 }
 
@@ -73,6 +75,18 @@ await cas("montant changé : nouveau numéro, l'ancien annulé", async () => {
 await cas("refusé : nouveau numéro qui efface les numéros annulés", () => { const d = db("SEC"); return assertFails(runTransaction(d, async (tr) => {
   tr.set(doc(d, P + "/recusCompteur/" + AN), { n: 2, majPar: "SEC" }); tr.set(doc(d, P + "/recus/p1_r-a"), recuAEcrire(null, base("SEC", { m: 250 }), 2));
 })); }, true);
+// R-D3 (20/10/2026, audit n° 6, C8) : le numéro annulé est bien l'ancien (numéro, montant), signé, et les anciens annulés restent
+await cas("refusé : nouveau numéro qui annule un autre numéro que l'ancien", () => assertFails(imprimer("SEC", { m: 250 }, { annules: (l) => l.map((a) => Object.assign({}, a, { numero: "R-2026-0999" })) })), true);
+await cas("refusé : nouveau numéro qui note un autre montant annulé", () => assertFails(imprimer("SEC", { m: 250 }, { annules: (l) => l.map((a) => Object.assign({}, a, { m: 10 })) })), true);
+await cas("refusé : numéro annulé signé au nom d'un autre", () => assertFails(imprimer("SEC", { m: 250 }, { annules: (l) => l.map((a) => Object.assign({}, a, { par: "MED" })) })), true);
+await cas("deux changements de prix : les deux numéros annulés gardés", async () => {
+  await assertSucceeds(imprimer("SEC", { m: 250 })); await assertSucceeds(imprimer("SEC", { m: 200 }));
+  const s = (await getDoc(R("MED"))).data(); if (s.annules.length !== 2 || s.annules[0].m !== 300 || s.annules[1].m !== 250) throw new Error(JSON.stringify(s.annules));
+}, true);
+await cas("refusé : 3e numéro qui réécrit le 1er numéro annulé", async () => {
+  await assertSucceeds(imprimer("SEC", { m: 250 }));
+  await assertFails(imprimer("SEC", { m: 200 }, { annules: (l) => l.map((a, i) => (i === 0 ? Object.assign({}, a, { m: 1 }) : a)) }));
+}, true);
 await cas("refusé : supprimer un reçu", () => assertFails(deleteDoc(R("MED"))), true);
 await cas("refusé : remettre le compteur à zéro", () => assertFails(setDoc(C("MED"), { n: 0, majPar: "MED" })), true);
 await cas("refusé : supprimer le compteur", () => assertFails(deleteDoc(C("MED"))), true);

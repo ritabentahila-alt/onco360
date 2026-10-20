@@ -72,7 +72,7 @@ window.nouveauPatient = () => creerPatient();
 onAuthStateChanged(auth, async (u) => {
   if (!u) { location.replace("index.html"); return; }
   try { D = await charger(u); appliquerImpression(); entete(); rechercheTete(); route(); menuCabinets().catch(() => {});
-    if (D.bib) { Promise.all([figerListes(), figerDocumentation()]).catch((e) => console.warn("bibliothèque", e)); return; } // bibliothèque de référence : rien d'autre
+    if (D.bib) { lireAccueilCab(); Promise.all([figerListes(), figerDocumentation()]).catch((e) => console.warn("bibliothèque", e)); return; } // bibliothèque de référence (modèle) : rien d'autre que son tableau de bord
     lireAccueilCab();
     if (D.membre.role !== "comptable") { ecouterDossiers(); ecouterRappels(); if (module("taches")) demarrerTaches(); if (module("salle")) demarrerSalle(); if (module("rcp")) demarrerRcp(); } publierTarifsC(); planifierReleve(3000); chargerMedecins(); chargerSignataires().then(publierCarte).catch(() => {}); effacerSignature().catch((e) => console.warn("signature", e)); nomTitulaire().then(migrations); marquerProtocoles().then(() => appliquerAudit3()).then(() => appliquerP4()).then(() => appliquerP5b()).then(() => ordosAudit3()).then(() => majBibliotheques().catch((er) => console.warn("bibliothèques (R-E3)", er))).then(() => vigilancesAudit3()).catch((er) => console.warn("protocoles", er)); }
   catch (e) { $("page").innerHTML = '<div class="carte"><h3>Impossible d\'ouvrir Onco360</h3><p class="sous">' + esc(e && e.code === "permission-denied" ? "Accès refusé : votre accès a peut-être été désactivé. Contactez le médecin titulaire." : e.message) + '</p><button class="bt clair" onclick="document.getElementById(\'btSortie\').click()">Se déconnecter</button></div>'; }
@@ -395,8 +395,15 @@ async function migrations() {
     if (!fait.ordostypesExcel1) {
       await ajouterOrdosManquants().then(() => setDoc(doc(db, "espaces", ESPACE, "parametres", "migrations"), { ordostypesExcel1: D.t }, { merge: true })).catch((er) => console.warn("ordonnances types", er));
     }
+    // R-D3 (20/10/2026, audit n° 6, C5) : taux commun de la radiothérapie écrit une fois dans les tarifs = 60 % / 10 %, ce que le bilan
+    // prenait jusqu'ici sans le dire pour un lieu sans ligne « Radiothérapie » (bilan inchangé), désormais visible dans Paramètres
+    if (!fait.tauxRT && peut("finances") && D.tarifs) {
+      const R = doc(db, "espaces", ESPACE, "finances", "tarifs");
+      await runTransaction(db, async (t) => { const s = await t.get(R); if (!s.exists()) return null; const T = JSON.parse(s.data().data || "{}"); if (T.tauxRT == null) { T.tauxRT = { retro: 60, impot: 10 }; t.set(R, { data: JSON.stringify(T) }, { merge: true }); } return T.tauxRT; })
+        .then((tx) => { if (tx) D.tarifs.tauxRT = tx; return setDoc(doc(db, "espaces", ESPACE, "parametres", "migrations"), { tauxRT: D.t }, { merge: true }); }).catch((er) => console.warn("taux commun de la radiothérapie", er));
+    }
     if (!peut("finances") || (fait.encaissementsJours && fait.encaissementsBrutV1b)) return;
-    const sf = await getDocs(collection(db, "espaces", ESPACE, "patientsFinances"));
+    const sf = await getDocs(query(collection(db, "espaces", ESPACE, "patientsFinances"), ...filtreLieux(D.membre))); // R-D3 (C8) : dans la limite des établissements
     for (const d of sf.docs) { const x = D.patients.find((p) => p.id === d.id); if (!x) continue; let M = {}; try { M = JSON.parse(d.data().montantsJson || "{}"); } catch (er) {} await ecrireEncaissements(x, M); }
     await setDoc(doc(db, "espaces", ESPACE, "parametres", "migrations"), { encaissements: D.t, encaissementsJours: D.t, encaissementsBrutV1: D.t, encaissementsBrutV1b: D.t }, { merge: true });
   } catch (er) { console.warn("migrations", er); }
@@ -482,10 +489,13 @@ async function enregistrer(x, changes, quoi) {
 }
 // Relevé financier du comptable (étape 9 S2) : préparé par un médecin qui a le droit « finances », peu après l'ouverture
 // d'Onco360 et 2 min après le dernier enregistrement d'un dossier ou de ses montants (une seule fois pour plusieurs enregistrements)
-let RELEVE_T = null;
+// 20/10/2026 : celui de l'ouverture (délai court) a son propre minuteur : un dossier réparé au démarrage (migrations) ne le repousse plus de 2 min
+let RELEVE_T = null, RELEVE_O = null;
 function planifierReleve(delai) {
   if (!D || !peut("finances") || estComptable()) return;
-  clearTimeout(RELEVE_T); RELEVE_T = setTimeout(() => publierReleve().catch((e) => console.warn("relevé du comptable", e)), delai);
+  const f = () => publierReleve().catch((e) => console.warn("relevé du comptable", e));
+  if (delai < 10000) { if (!RELEVE_O) RELEVE_O = setTimeout(f, delai); return; }
+  clearTimeout(RELEVE_T); RELEVE_T = setTimeout(f, delai);
 }
 function journal(x, quoi) { addDoc(collection(db, "espaces", ESPACE, "historique"), { parUid: D.u.uid, parNom: nomCompte(), le: serverTimestamp(), patientId: x.id, patient: (x.r && x.r.nm) || "", quoi }).catch(() => {}); }
 

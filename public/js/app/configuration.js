@@ -18,7 +18,7 @@ import { installer as installerRecuperation, htmlRecuperation, afficherRecuperat
 import { htmlOngletProfil, apresOngletProfil, titulaireConnecte } from "./profil.js";
 import { afficherAudit } from "./audit.js"; // onglet « Journal d'audit » (titulaire, 09/10/2026)
 import { configRcp, configChargee, chargerConfigRcp, enregistrerConfigRcp, prochainesRcp, CFG0 as RCP0, libDate } from "./rcp.js";
-import { CARTES, accueilEffectif, FICHE, CONSULT, STADES, GRADES, formEffectif, ficheEffective, consultEffective, ficheRetouches, formRetouches, formulairesDe, formDuType } from "../donnees/catalogue.js";
+import { CARTES, accueilEffectif, FICHE, CONSULT, STADES, GRADES, formEffectif, ficheEffective, consultEffective, ficheRetouches, formRetouches, formSpecialite, formulairesDe, formDuType } from "../donnees/catalogue.js";
 import { editeurFiche } from "./editeurfiche.js";
 import { estStd, AUTO as AUTO_TY, cleDuree, renommer, nouvelleCle, aEnregistrer } from "../moteur/typesconsult.js";
 import { htmlVigilances } from "./vigilances.js"; // notes « À vérifier » par molécule (12/10/2026) // fiche patient et formulaire de consultation du cabinet (11/10/2026)
@@ -142,8 +142,10 @@ const ONGLETS = () => FAMILLES.reduce((l, f) => l.concat(f[3]), [])
   .filter((k) => A.D().bib || !A.D().reg || A.D().reg.sections[k] !== false)
   .sort((a, b) => { const R = A.D().reg, l = R && !A.D().bib ? R.ordreSections : [], fa = FAMILLES.findIndex((f) => f[0] === famDe(a)), fb = FAMILLES.findIndex((f) => f[0] === famDe(b)); return fa - fb || (l.indexOf(a) + 1 || 999) - (l.indexOf(b) + 1 || 999); })
   .map((k) => [k, RUB[k][0], RUB[k][1]]);
-// Propres à chaque cabinet, donc absents de la bibliothèque de référence : lieux, équipe, journal d'audit, présentation
-const HORS_BIB = ["lieux", "acces", "audit", "export", "accueil", "fiche", "consultation", "types", "affichage"];
+// Propres à chaque cabinet, donc absents de la bibliothèque de référence (le modèle) : lieux, équipe, journal d'audit, export. Depuis le
+// 20/10/2026, le modèle a les mêmes rubriques qu'un médecin (tableau de bord, fiche patient, formulaire et types de consultation, affichage
+// du dossier) : fiche et formulaire enregistrés dans le modèle de la spécialité (fonction ficheSpecialite), le reste dans ses paramètres.
+const HORS_BIB = ["lieux", "acces", "audit", "export"];
 // Onglets que la secrétaire (droit « secretariat », sans « paramètres ») peut modifier, et ce qu'elle y modifie
 const ONGLETS_SEC = ["horaires", "fermetures", "whatsapp", "documents", "taches", "rcp", "listes", "impression", "alertes", "types", "affichage"];
 const MSG_SEC = { types: "Vous pouvez régler la durée de chaque type ; le reste est réglé par le médecin.", lieux: "Vous pouvez compléter l'adresse, le téléphone et la ville de votre lieu (« Compléter »).", horaires: "Vous pouvez régler les horaires de vos lieux.", taches: "Vous pouvez modifier les types de tâches ; les tâches automatiques sont réglées par le médecin." };
@@ -152,7 +154,7 @@ const MODULE_ONGLET = { vigilances: "chimio", couleurs: "gagenda", taches: "tach
 const DERN = {}; // dernière rubrique ouverte de chaque famille
 function entete() {
   const L = ONGLETS(), fam = famDe(ONG), sous = L.filter((o) => famDe(o[0]) === fam);
-  return '<section class="accueil"><div><h2>Paramètres</h2><p>Réglages du cabinet, de l\'agenda, des listes' + (A.peut("finances") ? " et des finances" : "") + ".</p></div></section>" +
+  return '<section class="accueil"><div><h2>' + (A.D().bib ? "Paramètres du modèle" : "Paramètres") + "</h2><p>" + (A.D().bib ? "Ce que reçoit chaque cabinet neuf de la spécialité, réglé comme chez un médecin. Rien ne touche le cabinet du Dr Bentahila ; les cabinets déjà créés ne reçoivent que la fiche patient et le formulaire de consultation (leurs retouches restent par-dessus)." : "Réglages du cabinet, de l\'agenda, des listes" + (A.peut("finances") ? " et des finances" : "") + ".") + "</p></div></section>" +
     '<div class="ag-vues defile cf-fam" role="tablist" style="align-self:flex-start">' + FAMILLES.filter((f) => L.some((o) => famDe(o[0]) === f[0])).map(([k, ico, lib]) => '<button role="tab" aria-selected="' + (fam === k) + '" class="' + (fam === k ? "on" : "") + '" onclick="cfFamille(\'' + k + "')\">" + A.ic(ico) + lib + "</button>").join("") + "</div>" +
     (sous.length > 1 ? '<nav class="cf-sous" aria-label="Rubriques">' + sous.map(([k, , lib]) => '<button class="' + (ONG === k ? "on" : "") + '"' + (ONG === k ? ' aria-current="page"' : "") + ' onclick="cfOnglet(\'' + k + "')\">" + lib + "</button>").join("") + "</nav>" : "");
 }
@@ -278,10 +280,10 @@ const RUBRIQUES = {
     const onco = !!((D().reg || {}).fiche || {}).onco, tout = Object.assign({ diag: onco ? "Localisations (diagnostics)" : "Diagnostics" }, onco ? { stade: "Stades", grade: "Grades" } : {}, { mut: "Mutuelles", cor: "Correspondants" });
     // 3.11 : localisations, stades et grades se règlent depuis leur champ de la fiche (Fiche patient › ✎ › Modifier la liste) ; ici : mutuelles et
     // correspondants, plus la liste ouverte depuis la fiche (avec « Retour ») ; bibliothèque de référence (pas de fiche) : toutes
-    const deFiche = ["diag", "stade", "grade"].indexOf(LS) >= 0, lib = Object.fromEntries(Object.entries(tout).filter(([k]) => A.D().bib || ["mut", "cor"].indexOf(k) >= 0 || k === LS));
+    const deFiche = ["diag", "stade", "grade"].indexOf(LS) >= 0, lib = Object.fromEntries(Object.entries(tout).filter(([k]) => (["mut", "cor"].indexOf(k) >= 0 || k === LS) && !(k === "cor" && A.D().bib))); // modèle : pas de correspondants (20/10/2026)
     if (!lib[LS]) LS = Object.keys(lib)[0];
-    return (deFiche && !A.D().bib && A.peut("parametres") ? '<a class="retour" href="#parametres/fiche" onclick="event.preventDefault();cfRetourFiche()">' + A.ic("retour") + "Retour à la fiche patient</a>" : "") +
-      '<section class="carte">' + titre("liste", "Listes de la fiche patient") + '<p class="sous">Un nom corrigé ici est corrigé aussi dans les dossiers ; un nom retiré y reste.' + (A.D().bib || !A.peut("parametres") ? "" : " Localisations, stades et grades : depuis leur champ (Fiche patient › ✎).") + "</p>" +
+    return (deFiche && A.peut("parametres") ? '<a class="retour" href="#parametres/fiche" onclick="event.preventDefault();cfRetourFiche()">' + A.ic("retour") + "Retour à la fiche patient</a>" : "") +
+      '<section class="carte">' + titre("liste", "Listes de la fiche patient") + '<p class="sous">Un nom corrigé ici est corrigé aussi dans les dossiers ; un nom retiré y reste.' + (!A.peut("parametres") ? "" : " Localisations, stades et grades : depuis leur champ (Fiche patient › ✎).") + "</p>" +
       '<div class="puces">' + Object.keys(lib).map((k) => "<button" + (k === "cor" ? ' data-fn="listes.cor"' : "") + ' class="puce' + (LS === k ? " on" : "") + '" onclick="cfLs(\'' + k + "')\">" + lib[k] + " (" + ED.listes[k].length + ")</button>").join("") + "</div>" +
       '<div class="recherche" style="max-width:420px;margin-bottom:8px">' + A.ic("loupe") + '<input id="cfLq" type="search" autocomplete="off" placeholder="Rechercher dans la liste…" value="' + A.esc(LQ) + '"></div>' +
       '<div class="cf-td cf-l" id="cfLl"></div>' + (diagModifiable() ? "" : '<p class="sous" style="margin-top:8px">' + (LS === "diag" ? "Les diagnostics" : "Les stades et les grades") + " sont modifiés par un médecin.</p>") + (LS === "stade" || LS === "grade" ? '<p class="mesures" style="margin-top:8px">Un nom corrigé ici n\'est pas changé dans les dossiers déjà remplis.</p>' : "") + (c.okE && diagModifiable() ? '<button class="bt clair petit" style="margin-top:10px" onclick="cfLAj()">' + A.ic("plus") + "Ajouter</button>" : "") + "</section>";
@@ -367,11 +369,11 @@ const RUBRIQUES = {
   },
   fiche() {
     // 3.11 : ✎ = tout le champ (nom, type, liste, unité, partie, impression, en-tête) ; listes du cabinet (localisations, stades…) ouvertes depuis leur champ
-    if (!FE) FE = editeurFiche(ED.fiche, "cabinet", false, { ouvrirListe: (k) => { LS = k; LQ = ""; window.cfOnglet("listes"); }, tailleListe: (k) => (ED.listes[k] || []).length });
+    if (!FE) FE = editeurFiche(ED.fiche, A.D().bib ? "spe" : "cabinet", false, { ouvrirListe: (k) => { LS = k; LQ = ""; window.cfOnglet("listes"); }, tailleListe: (k) => (ED.listes[k] || []).length });
     return '<section class="carte edf">' + titre("profil", "Fiche patient") + '<p class="sous">Ordre et présence des champs ; ✎ = nom, type, liste, partie, impression ; « en-tête » = affiché sous le nom du patient. Un champ décoché est caché, sa valeur est gardée.</p>' + FE.html() + "</section>";
   },
   consultation() {
-    if (!CE) CE = editeurFiche(ED.consultation, "cabinet", true, { types: () => ED.typesC.map((t) => t.nom) }); // 3.13 : types du référentiel
+    if (!CE) CE = editeurFiche(ED.consultation, A.D().bib ? "spe" : "cabinet", true, { types: () => ED.typesC.map((t) => t.nom) }); // 3.13 : types du référentiel
     return '<section class="carte edf">' + titre("stetho", "Formulaire de consultation") + '<p class="sous">Un onglet par formulaire (ses champs, dans l\'ordre) ; le formulaire de chaque type se choisit dans Types de consultation.</p>' + CE.html() + "</section>";
   },
 };
@@ -662,7 +664,7 @@ window.cfEnregistrer = async () => {
     const coul = {}; Object.keys(COULEURS0).forEach((k) => { if (ED.coul[k] != null && ED.coul[k] !== COULEURS0[k]) coul[k] = ED.coul[k]; });
     if (tout && JSON.stringify(coul) !== JSON.stringify(COUL || {})) { await setDoc(doc(db, "espaces", A.ESPACE, "parametres", "couleursAgenda"), { data: JSON.stringify(coul) }); COUL = coul; }
     // 3.13 : référentiel des types de consultation (avant le formulaire de consultation : noms à jour)
-    if (tout && !A.D().bib && JSON.stringify(aEnregistrer(ED.typesC)) !== JSON.stringify(aEnregistrer(A.typesC ? A.typesC() : []))) {
+    if (tout && JSON.stringify(aEnregistrer(ED.typesC)) !== JSON.stringify(aEnregistrer(A.typesC ? A.typesC() : []))) {
       const enr = aEnregistrer(ED.typesC); await setDoc(doc(db, "espaces", A.ESPACE, "parametres", "typesConsult"), { data: JSON.stringify(enr), majPar: D().u.uid, maj: new Date().toISOString() });
       if (window.majTypesC) window.majTypesC(enr); }
     if (tdoc.length && JSON.stringify(tdoc) !== JSON.stringify(TDOC || [])) { await enregistrerTypes(tdoc); TDOC = tdoc.slice(); }
@@ -682,16 +684,25 @@ window.cfEnregistrer = async () => {
     if (JSON.stringify(ttache) !== JSON.stringify(TTA || [])) { await enregistrerTypesTaches(ttache.length ? ttache : TYPES_TACHES0.slice()); TTA = ttache.length ? ttache : TYPES_TACHES0.slice(); }
     // Présentation du cabinet (11/10/2026) : tableau de bord (parametres/accueil, lu par pageAccueil : accueilEffectif) ; fiche patient
     // et formulaire de consultation (parametres/formulaires : retouches par rapport au réglage de l'administration)
-    if (tout && !A.D().bib) {
+    if (tout) {
       const qui = { majPar: D().u.uid, maj: new Date().toISOString() };
       if (JSON.stringify(ED.accueil) !== JSON.stringify(accueilCab())) {
         const ac = JSON.stringify(ED.accueil) === JSON.stringify(accueilEffectif(D().reg, null)) ? {} : { ordre: ED.accueil.ordre, cartes: ED.accueil.cartes, col: ED.accueil.col };
         await setDoc(doc(db, "espaces", A.ESPACE, "parametres", "accueil"), Object.assign({ data: JSON.stringify(ac) }, qui));
         D().accueilCab = Object.keys(ac).length ? ac : null; if (window.majAccueilCab) window.majAccueilCab(D().accueilCab);
       }
+      // modèle (20/10/2026) : fiche et formulaire = ceux de la spécialité (plateforme/specialites, copiés dans chaque cabinet de la spécialité,
+      // sauf celui du Dr Bentahila), enregistrés en entier par le serveur
+      if (A.D().bib) for (const [q, cat, F, base] of [["fiche", FICHE, ED.fiche, baseFiche()], ["consultation", CONSULT, ED.consultation, baseConsult()]]) {
+        if (JSON.stringify(formRetouches(cat, F, base)) === "{}") continue;
+        const enr = formSpecialite(cat, F, !!F.onco), o = await A.serveur("ficheSpecialite", { espace: A.ESPACE, quoi: q, fiche: enr });
+        const sp = Object.assign({}, o.fiche, { _onco: !!F.onco }), ef = q === "fiche" ? ficheEffective(null, sp) : consultEffective(null, sp);
+        D().regAdmin[q] = ef; D().reg[q] = JSON.parse(JSON.stringify(ef)); D().espaceDoc[q === "fiche" ? "ficheSpe" : "consultSpe"] = o.fiche;
+        A.toast((q === "fiche" ? "Fiche patient" : "Formulaire de consultation") + " du modèle enregistré" + (q === "fiche" ? "e" : "") + " : " + o.cabinets + " cabinet(s) mis à jour.");
+      }
       const fo = {}, rf = ficheRetouches(ED.fiche, baseFiche()), rc = formRetouches(CONSULT, ED.consultation, baseConsult());
       if (Object.keys(rf).length) fo.fiche = rf; if (Object.keys(rc).length) fo.consultation = rc;
-      if (JSON.stringify(fo) !== JSON.stringify(D().formCab || {})) {
+      if (!A.D().bib && JSON.stringify(fo) !== JSON.stringify(D().formCab || {})) {
         await setDoc(doc(db, "espaces", A.ESPACE, "parametres", "formulaires"), Object.assign({ data: JSON.stringify(fo) }, qui));
         D().formCab = fo; const base = D().regAdmin || D().reg;
         D().reg.fiche = formEffectif(FICHE, fo.fiche || null, base.fiche); D().reg.consultation = formEffectif(CONSULT, fo.consultation || null, base.consultation);
