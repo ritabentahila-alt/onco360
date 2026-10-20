@@ -29,9 +29,9 @@ async def main():
                 await ev("fermerFenetre()")
             # Enregistrer l'identité seule ne touche pas aux informations médicales
             c0 = (await ev("window.__fs"))[E + 'patients/' + pid].get('clinique')
-            await ev(f"modifierIdentite('{pid}')"); await pg.wait_for_timeout(400); await pg.fill('#fTel', '0611223344'); await pg.click('#fOk'); await pg.wait_for_timeout(1500)
+            await ev(f"modifierIdentite('{pid}')"); await pg.wait_for_timeout(400); await pg.fill('#fTel', '0661000000'); await pg.click('#fOk'); await pg.wait_for_timeout(1500)
             d = (await ev("window.__fs"))[E + 'patients/' + pid]
-            ok(d['identite'].get('tel') == '0611223344' and d.get('clinique') == c0, 'identité enregistrée, informations médicales inchangées (poids et sa date compris)')
+            ok(d['identite'].get('tel') == '0661000000' and d.get('clinique') == c0, 'identité enregistrée, informations médicales inchangées (poids et sa date compris)')
             # Informations médicales seules : poids enregistré, identité inchangée
             i0 = d['identite']
             await ev(f"modifierIdentite('{pid}','med')"); await pg.wait_for_timeout(400); await pg.fill('#fPoids', '71'); await pg.click('#fOk'); await pg.wait_for_timeout(1500)
