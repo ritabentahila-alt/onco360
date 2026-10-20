@@ -343,6 +343,15 @@ async function migrations() {
       }
       await setDoc(doc(db, "espaces", ESPACE, "parametres", "migrations"), { consultFinRT: D.t }, { merge: true }).catch(() => {});
     }
+    // R-C5 (20/10/2026) : messages WhatsApp du cabinet écrits en français seulement : l'arabe de leur type ajouté une fois avant la signature
+    // (visible et modifiable dans Paramètres › WhatsApp ; rien d'autre ne change dans le texte)
+    if (!fait.waBilingue) {
+      const W0 = D.wa || {}, W1 = {}; let n = 0;
+      Object.keys(W0).forEach((k) => { const v = W0[k]; W1[k] = typeof v === "string" && v.trim() ? messageAvecArabe(v, k) : v; if (W1[k] !== v) n++; });
+      let ok = true;
+      if (n) await setDoc(doc(db, "espaces", ESPACE, "parametres", "whatsapp"), { data: JSON.stringify(W1) }).then(() => { D.wa = W1; }).catch((er) => { ok = false; console.warn("messages WhatsApp (arabe)", er); });
+      if (ok) await setDoc(doc(db, "espaces", ESPACE, "parametres", "migrations"), { waBilingue: D.t }, { merge: true }).catch(() => {});
+    }
     // R-C1 (19/10/2026) : consultations hebdomadaires de RT refaites une fois (jour férié compris, identifiants gardés, médecin et lieu de la RT)
     if (!fait.rtcFeries && peut("rendezvous") && fnOn("rt.hebdo") && reglages().auto.rtHebdo) {
       let ok = true;

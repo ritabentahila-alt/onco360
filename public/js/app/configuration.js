@@ -38,38 +38,43 @@ export const dureeDe = (r, etab) => dureeRdv(r, (D().cal || {}).durees, horaires
 export const dureeType = (cle, etab) => ((D().cal || {}).durees || {})[cle] || horaires(etab).duree || 30;
 // Messages WhatsApp prédéfinis. Variables : {prenom} {nom} {jour} {heure} {lieu} {adresse} {medecin} ; en arabe : {jour_ar} {heure_ar}.
 // R-C5 (19/10/2026, audit 4 d. 14, décision du 17/10) : chaque message = français, puis arabe classique (pas de darija), à la suite ; pas de choix de
-// langue par patient. Un message déjà modifié par le cabinet n'est pas réécrit : s'il n'a pas de texte en arabe, celui de départ est ajouté à
-// la suite à l'envoi (messageAvecArabe).
+// langue par patient. 20/10/2026 : les messages en français de départ sont ceux réglés par Dr Bentahila dans son cabinet (la référence, reprise
+// pour les cabinets neufs) ; l'arabe en est la traduction fidèle. Un message modifié par un cabinet sans texte en arabe : l'arabe de son type
+// est ajouté à l'envoi, avant la signature (messageAvecArabe).
 const WA_FR = {
   // Confirmation proposée juste après la prise d'un rendez-vous (19.4, 10/10/2026), et après un report ou un changement de date (R-C5)
-  confirm: "Bonjour {prenom}, votre rendez-vous est confirmé le {jour} {heure} à {lieu}.\nEn cas d'empêchement, merci de nous prévenir.",
-  chimio: "Bonjour {prenom}, nous vous rappelons votre séance de chimiothérapie le {jour} {heure} à {lieu}.\nMerci d'apporter votre bilan sanguin récent (NFS, plaquettes, créatinine), vos ordonnances et vos derniers comptes rendus. Pensez à prendre votre prémédication si elle vous a été prescrite.\nEn cas de fièvre ou de problème, appelez-nous avant de vous déplacer.",
-  annonce: "Bonjour {prenom}, nous vous rappelons votre consultation d'annonce le {jour} {heure} à {lieu}.\nMerci d'apporter tous vos examens (biopsie, compte rendu anatomopathologique, imagerie, bilans sanguins) et, si vous le souhaitez, d'être accompagné(e) d'un proche.",
-  suivi: "Bonjour {prenom}, nous vous rappelons votre consultation de suivi le {jour} {heure} à {lieu}.\nMerci d'apporter vos derniers examens (bilan sanguin, imagerie) et vos ordonnances en cours.",
-  controle: "Bonjour {prenom}, nous vous rappelons votre consultation de contrôle le {jour} {heure} à {lieu}.\nMerci d'apporter les résultats des examens demandés lors de la dernière consultation.",
-  rtc: "Bonjour {prenom}, nous vous rappelons votre consultation de surveillance pendant la radiothérapie le {jour} {heure} à {lieu}.\nSignalez-nous toute gêne (peau, déglutition, fatigue…).",
-  rtf: "Bonjour {prenom}, nous vous rappelons votre consultation de fin de radiothérapie le {jour} {heure} à {lieu}.\nMerci d'apporter vos derniers examens et de nous signaler toute gêne depuis la fin des séances.",
-  hospit: "Bonjour {prenom}, nous vous rappelons votre hospitalisation à partir du {jour} à {lieu}.\nMerci d'apporter votre carte d'identité, votre prise en charge (mutuelle), vos examens et vos traitements habituels.",
-  rt: "Bonjour {prenom}, nous vous rappelons votre rendez-vous de radiothérapie le {jour} {heure} à {lieu}.\nMerci d'apporter vos examens et votre prise en charge.",
-  autre: "Bonjour {prenom}, nous vous rappelons votre rendez-vous le {jour} {heure} à {lieu}.",
+  confirm: "Bonjour {nom}, votre rendez-vous est confirmé le {jour} {heure} à {lieu}.\nEn cas d'empêchement, merci de nous prévenir.",
+  chimio: "Bonjour {nom}, nous vous rappelons votre séance de chimiothérapie le {jour} {heure} à : {lieu}.\nMerci d'apporter votre bilan sanguin récent. Pensez à prendre votre prémédication si elle vous a été prescrite.\nEn cas de fièvre ou de problème, appelez-nous avant de vous déplacer.",
+  annonce: "Bonjour {nom}, nous vous rappelons votre consultation le {jour} {heure} à : {lieu}.\nMerci d'apporter tous vos examens (biopsie, compte rendu anatomopathologique, imagerie, bilans sanguins) et, si vous le souhaitez, d'être accompagné(e) d'un proche.",
+  suivi: "Bonjour {nom}, nous vous rappelons votre consultation le {jour} {heure} à : {lieu}.\nMerci d'apporter vos derniers examens (bilan sanguin, imagerie) et vos ordonnances en cours.",
+  controle: "Bonjour {nom}, nous vous rappelons votre consultation le {jour} {heure} à : {lieu}.\nMerci d'apporter vos derniers examens (bilan sanguin, imagerie) et vos ordonnances en cours.",
+  rtc: "Bonjour {nom}, nous vous rappelons votre consultation de surveillance pendant la radiothérapie le {jour} {heure} à : {lieu}.",
+  rtf: "Bonjour {nom}, nous vous rappelons votre consultation de fin de radiothérapie le {jour} {heure} à {lieu}.",
+  hospit: "Bonjour {nom}, nous vous rappelons votre hospitalisation à partir du {jour} à {lieu}.\nMerci d'apporter votre carte d'identité, votre prise en charge (mutuelle), vos examens et vos traitements habituels.",
+  rt: "Bonjour {nom}, nous vous rappelons votre rendez-vous de radiothérapie le {jour} {heure} à {lieu}.",
+  autre: "Bonjour {nom}, nous vous rappelons votre rendez-vous le {jour} {heure} à {lieu}.",
 };
-// Noms propres en lettres latines (prénom, lieu) isolés (U+2068 … U+2069) : la ponctuation arabe reste à sa place, à l'écran comme dans WhatsApp
+// Noms propres en lettres latines (nom, lieu) isolés (U+2068 … U+2069) : la ponctuation arabe reste à sa place, à l'écran comme dans WhatsApp
 export const WA_AR = {
-  confirm: "مرحبا \u2068{prenom}\u2069، نؤكد موعدكم يوم {jour_ar} {heure_ar} في \u2068{lieu}\u2069.\nفي حال تعذر حضوركم، نرجو إخبارنا.",
-  chimio: "مرحبا \u2068{prenom}\u2069، نذكركم بحصة العلاج الكيميائي يوم {jour_ar} {heure_ar} في \u2068{lieu}\u2069.\nيرجى إحضار آخر تحليل للدم (تعداد الدم الكامل، الصفائح الدموية، الكرياتينين)، ووصفاتكم الطبية وآخر التقارير الطبية. لا تنسوا تناول الأدوية الوقائية إذا وُصفت لكم.\nفي حال الإصابة بالحمى أو حدوث أي مشكل، اتصلوا بنا قبل التنقل.",
-  annonce: "مرحبا \u2068{prenom}\u2069، نذكركم بموعد استشارة الإعلان عن التشخيص يوم {jour_ar} {heure_ar} في \u2068{lieu}\u2069.\nيرجى إحضار جميع فحوصاتكم (الخزعة، تقرير التشريح المرضي، الصور الإشعاعية، تحاليل الدم)، ويمكنكم إن شئتم أن يرافقكم أحد أقاربكم.",
-  suivi: "مرحبا \u2068{prenom}\u2069، نذكركم بموعد استشارة المتابعة يوم {jour_ar} {heure_ar} في \u2068{lieu}\u2069.\nيرجى إحضار آخر فحوصاتكم (تحاليل الدم، الصور الإشعاعية) ووصفاتكم الطبية الحالية.",
-  controle: "مرحبا \u2068{prenom}\u2069، نذكركم بموعد استشارة المراقبة يوم {jour_ar} {heure_ar} في \u2068{lieu}\u2069.\nيرجى إحضار نتائج الفحوصات المطلوبة في الاستشارة الأخيرة.",
-  rtc: "مرحبا \u2068{prenom}\u2069، نذكركم بموعد استشارة المراقبة خلال العلاج الإشعاعي يوم {jour_ar} {heure_ar} في \u2068{lieu}\u2069.\nأخبرونا بأي إزعاج (الجلد، البلع، التعب...).",
-  rtf: "مرحبا \u2068{prenom}\u2069، نذكركم بموعد استشارة نهاية العلاج الإشعاعي يوم {jour_ar} {heure_ar} في \u2068{lieu}\u2069.\nيرجى إحضار آخر فحوصاتكم وإخبارنا بأي إزعاج منذ نهاية الحصص.",
-  hospit: "مرحبا \u2068{prenom}\u2069، نذكركم بدخولكم إلى المستشفى ابتداءً من يوم {jour_ar} في \u2068{lieu}\u2069.\nيرجى إحضار بطاقة التعريف الوطنية، ووثيقة التكفل (التعاضدية)، وفحوصاتكم وأدويتكم المعتادة.",
-  rt: "مرحبا \u2068{prenom}\u2069، نذكركم بموعد العلاج الإشعاعي يوم {jour_ar} {heure_ar} في \u2068{lieu}\u2069.\nيرجى إحضار فحوصاتكم ووثيقة التكفل.",
-  autre: "مرحبا \u2068{prenom}\u2069، نذكركم بموعدكم يوم {jour_ar} {heure_ar} في \u2068{lieu}\u2069.",
+  confirm: "مرحبا \u2068{nom}\u2069، نؤكد موعدكم يوم {jour_ar} {heure_ar} في \u2068{lieu}\u2069.\nفي حال تعذر حضوركم، نرجو إخبارنا.",
+  chimio: "مرحبا \u2068{nom}\u2069، نذكركم بحصة العلاج الكيميائي يوم {jour_ar} {heure_ar} في \u2068{lieu}\u2069.\nيرجى إحضار آخر تحليل للدم. لا تنسوا تناول الأدوية الوقائية إذا وُصفت لكم.\nفي حال الإصابة بالحمى أو حدوث أي مشكل، اتصلوا بنا قبل التنقل.",
+  annonce: "مرحبا \u2068{nom}\u2069، نذكركم بموعد استشارتكم يوم {jour_ar} {heure_ar} في \u2068{lieu}\u2069.\nيرجى إحضار جميع فحوصاتكم (الخزعة، تقرير التشريح المرضي، الصور الإشعاعية، تحاليل الدم)، ويمكنكم إن شئتم أن يرافقكم أحد أقاربكم.",
+  suivi: "مرحبا \u2068{nom}\u2069، نذكركم بموعد استشارتكم يوم {jour_ar} {heure_ar} في \u2068{lieu}\u2069.\nيرجى إحضار آخر فحوصاتكم (تحاليل الدم، الصور الإشعاعية) ووصفاتكم الطبية الحالية.",
+  controle: "مرحبا \u2068{nom}\u2069، نذكركم بموعد استشارتكم يوم {jour_ar} {heure_ar} في \u2068{lieu}\u2069.\nيرجى إحضار آخر فحوصاتكم (تحاليل الدم، الصور الإشعاعية) ووصفاتكم الطبية الحالية.",
+  rtc: "مرحبا \u2068{nom}\u2069، نذكركم بموعد استشارة المراقبة خلال العلاج الإشعاعي يوم {jour_ar} {heure_ar} في \u2068{lieu}\u2069.",
+  rtf: "مرحبا \u2068{nom}\u2069، نذكركم بموعد استشارة نهاية العلاج الإشعاعي يوم {jour_ar} {heure_ar} في \u2068{lieu}\u2069.",
+  hospit: "مرحبا \u2068{nom}\u2069، نذكركم بدخولكم إلى المستشفى ابتداءً من يوم {jour_ar} في \u2068{lieu}\u2069.\nيرجى إحضار بطاقة التعريف الوطنية، ووثيقة التكفل (التعاضدية)، وفحوصاتكم وأدويتكم المعتادة.",
+  rt: "مرحبا \u2068{nom}\u2069، نذكركم بموعد العلاج الإشعاعي يوم {jour_ar} {heure_ar} في \u2068{lieu}\u2069.",
+  autre: "مرحبا \u2068{nom}\u2069، نذكركم بموعدكم يوم {jour_ar} {heure_ar} في \u2068{lieu}\u2069.",
 };
-export const WA0 = Object.fromEntries(Object.keys(WA_FR).map((k) => [k, WA_FR[k] + "\n\n" + WA_AR[k] + "\n{medecin}"]));
-// Message envoyé : celui du cabinet ; sans texte en arabe (message modifié avant le 19/10/2026), l'arabe de départ est ajouté à la suite
 export const aDeLArabe = (m) => /[\u0600-\u06FF]/.test(String(m || ""));
-export const messageAvecArabe = (m, cat) => (aDeLArabe(m) ? m : String(m || "").replace(/\s+$/, "") + "\n\n" + (WA_AR[cat] || WA_AR.autre));
+// Arabe ajouté avant la signature ({medecin} en dernière ligne), sinon à la fin
+export const messageAvecArabe = (m, cat) => {
+  const s = String(m || ""); if (aDeLArabe(s)) return s;
+  const ar = WA_AR[cat] || WA_AR.autre, f = /\n?[ \t]*\{medecin\}\s*$/.exec(s);
+  return f ? s.slice(0, f.index).replace(/\s+$/, "") + "\n\n" + ar + "\n{medecin}" : s.replace(/\s+$/, "") + "\n\n" + ar;
+};
+export const WA0 = Object.fromEntries(Object.keys(WA_FR).map((k) => [k, messageAvecArabe(WA_FR[k] + "\n{medecin}", k)]));
 // Jour et heure en arabe (mois en usage au Maroc) : « الاثنين 20 أكتوبر », « على الساعة 10:00 »
 const JOURS_AR = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"], MOIS_AR = ["يناير", "فبراير", "مارس", "أبريل", "ماي", "يونيو", "يوليوز", "غشت", "شتنبر", "أكتوبر", "نونبر", "دجنبر"];
 export const jourAr = (d) => { const j = new Date(d + "T12:00:00"); return JOURS_AR[j.getDay()] + " " + j.getDate() + " " + MOIS_AR[j.getMonth()]; };

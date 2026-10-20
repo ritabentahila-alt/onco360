@@ -16,6 +16,10 @@ S2[E+'membres/SEC'] = {"role":"assistante","nom":"SEC","email":"sec@test.ma","ac
 S2['utilisateurs/SEC'] = {"nom":"SEC","prenom":"Test"}
 S2[E+'membres/INF'] = {"role":"infirmiere","nom":"INF","email":"inf@test.ma","actif":True,"tousEtablissements":True,"etablissements":[],"droits":{"radiotherapie":"modifier","rendezvous":False}}
 S2['utilisateurs/INF'] = {"nom":"INF","prenom":"Test"}
+# Messages WhatsApp réglés par Dr Bentahila (20/10/2026, français seul : la référence) ; l'arabe est ajouté une fois avant la signature
+WA_CAB = {"chimio": "Bonjour {nom}, nous vous rappelons votre séance de chimiothérapie le {jour} {heure} à : {lieu}.\nMerci d'apporter votre bilan sanguin récent. Pensez à prendre votre prémédication si elle vous a été prescrite.\nEn cas de fièvre ou de problème, appelez-nous avant de vous déplacer.\n{medecin}", "annonce": "Bonjour {nom}, nous vous rappelons votre consultation le {jour} {heure} à : {lieu}.\nMerci d'apporter tous vos examens (biopsie, compte rendu anatomopathologique, imagerie, bilans sanguins) et, si vous le souhaitez, d'être accompagné(e) d'un proche.\n{medecin}", "suivi": "Bonjour {nom}, nous vous rappelons votre consultation le {jour} {heure} à : {lieu}.\nMerci d'apporter vos derniers examens (bilan sanguin, imagerie) et vos ordonnances en cours.\n{medecin}", "controle": "Bonjour {nom}, nous vous rappelons votre consultation le {jour} {heure} à : {lieu}.\nMerci d'apporter vos derniers examens (bilan sanguin, imagerie) et vos ordonnances en cours.\n{medecin}", "rtc": "Bonjour {nom}, nous vous rappelons votre consultation de surveillance pendant la radiothérapie le {jour} {heure} à : {lieu}.\n{medecin}", "rt": "Bonjour {nom}, nous vous rappelons votre rendez-vous de radiothérapie le {jour} {heure} à {lieu}.\n{medecin}", "hospit": "Bonjour {nom}, nous vous rappelons votre hospitalisation à partir du {jour} à {lieu}.\nMerci d'apporter votre carte d'identité, votre prise en charge (mutuelle), vos examens et vos traitements habituels.\n{medecin}", "xmux3yr1z": "Bonjour {nom}, nous vous rappelons votre rendez-vous le {jour} {heure} à {lieu}.\n{medecin}", "autre": "Bonjour {nom}, nous vous rappelons votre rendez-vous le {jour} {heure} à {lieu}.\n{medecin}", "confirm": "Bonjour {nom}, votre rendez-vous est confirmé le {jour} {heure} à {lieu}.\nEn cas d'empêchement, merci de nous prévenir.\n{medecin}", "rtf": "Bonjour {nom}, nous vous rappelons votre consultation de fin de radiothérapie le {jour} {heure} à {lieu}.\n{medecin}"}
+S2[E+'parametres/whatsapp'] = {"data": json.dumps(WA_CAB)}
+S2[E+'parametres/migrations'] = {k: v for k, v in S2.get(E+'parametres/migrations', {}).items() if k != 'waBilingue'}
 GEM = {"id": "gem", "nom": "Gemcitabine fictive", "c": 21, "dr": [{"id": "g", "p": "GEMCITABINE", "d": 1000, "u": "mg/m²", "j": [1, 8]}]}
 def patient(pid, nom, rdvs=None, lignes=None, rts=None, etab='HGC', tel='0661000000', med=None):
     I = {"nomF": nom, "prenom": "Fictif", "nom": nom + " Fictif", "tel": tel, "ddn": "1960-01-01", "sexe": "F"}
@@ -106,7 +110,14 @@ async def main():
         await ev("envoyerWA('PC1','suivi','2026-10-08','15:00')"); await pg.wait_for_timeout(800)
         url = await ev("window.__win.length ? window.__win[window.__win.length-1].u : ''")
         import urllib.parse as up; msg = up.unquote(url.split('text=')[-1]) if url else ''
-        verif('rappel : français puis arabe (jour et heure en arabe)', 'consultation de suivi' in msg and 'نذكركم بموعد استشارة المتابعة' in msg and 'الخميس 8 أكتوبر' in msg and msg.index('Bonjour') < msg.index('مرحبا'), msg[:300])
+        verif('rappel : son message en français puis l\'arabe (jour et heure en arabe)', 'Bonjour TESTC UN Fictif, nous vous rappelons votre consultation le' in msg and 'مرحبا \u2068TESTC UN Fictif\u2069، نذكركم بموعد استشارتكم يوم الخميس 8 أكتوبر' in msg and msg.index('Bonjour') < msg.index('مرحبا'), msg[:300])
+        verif('signature à la fin, après l\'arabe', msg.rstrip().split('\n')[-1].startswith('Dr ') and msg.count('Dr ') == 1, msg[-80:])
+        W = json.loads((await ev(f"window.__fs['{E}parametres/whatsapp']"))['data'])
+        verif('messages du cabinet : arabe ajouté une fois avant la signature, français inchangé', all(W[k].startswith(WA_CAB[k].rsplit('{medecin}', 1)[0].rstrip()) and W[k].rstrip().endswith('{medecin}') and 'مرحبا' in W[k] for k in WA_CAB), {k: W[k][-60:] for k in list(W)[:2]})
+        verif('conversion notée une fois (migrations.waBilingue)', bool((await ev(f"window.__fs['{E}parametres/migrations']") or {}).get('waBilingue')))
+        await ev("location.hash='#parametres/whatsapp'"); await pg.wait_for_timeout(1200)
+        pw = await ev("document.getElementById('page').innerText")
+        verif('Paramètres › WhatsApp : messages non « personnalisé » (= messages de départ)', 'personnalisé' not in pw, pw[:200])
         rap = await ev(f"window.__fs['{E}rappels/PC1']")
         verif('rappel noté dans rappels/PC1 (patient, lieu, signé)', rap and rap.get('patientId') == 'PC1' and rap.get('majPar') == 'UIDRITA' and '2026-10-08|suivi' in rap.get('l', {}), rap)
         verif('le dossier n\'est pas réécrit (version inchangée)', await ev(f"window.__fs['{E}patients/PC1'].version") == v0)

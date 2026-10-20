@@ -498,6 +498,12 @@ types**, refus gardés) : R-A6 et R-E4 partent de là, sans les refaire.
       médecin voit d'abord ses patients et peut choisir un confrère ou « Tous les médecins » pour l'aider ; secrétaire et infirmière : tous par défaut.
       Rappel des réponses : patient créé par un médecin = à lui ; par la secrétaire d'un cabinet de plusieurs médecins = elle choisit. test_lot_c 63/63.
 
+- [x] **(20/10/2026, testé ; demande de Dr Bentahila)** Messages WhatsApp : **les messages réglés par Dr Bentahila dans son cabinet sont la
+      référence** (« Bonjour {nom} », « votre consultation », bilan sanguin récent…) : messages de départ `WA_FR` = ses textes, `WA_AR` = leur
+      traduction fidèle en arabe classique (« مرحبا {nom}، … »), arabe placé **avant la signature** ; ses messages enregistrés (français seul)
+      reçoivent une fois leur arabe (`migrations.waBilingue`, modifiable dans Paramètres › WhatsApp). Cabinets neufs : ces messages. Modèle
+      d'oncologie de l'Administration (`bib-oncologie`, copie du 09/10) : à reprendre depuis son cabinet (bouton « Reprendre », R-A6).
+
 **Lot D – Audit n° 6 : finances** (§ 7 ; lot F1 → R-B5 ; l'ancien lot « Caisse » est supprimé)
 - [ ] **R-D1 (F2) Consultation de chimio jour par jour** (C1, d. 1, VALIDÉ) : un acte par jour, à sa date, avec son mode (aujourd'hui un seul
       acte daté du J1, un seul mode : `moteur/finances.js`) ; J8 / J15 à 0 DH par défaut, modifiable, un montant saisi compte à sa date ;
