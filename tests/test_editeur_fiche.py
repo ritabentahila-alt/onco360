@@ -60,11 +60,14 @@ async def main():
         ok(any(a.get('lib') == 'Score de Gleason' and a.get('tumeur') for a in fo.get('ajouts', [])), 'champ propre au cabinet dans la fiche tumeur', fo.get('ajouts'))
         pid = [x for x, ls in lignes_de(S).items() if ls][0]
         await pg.goto(f'http://localhost:{PORT}/v2.html#dossier/{pid}'); await pg.wait_for_timeout(1500)
-        await ev(f"modifierIdentite('{pid}')"); await pg.wait_for_timeout(600)
+        await ev(f"modifierIdentite('{pid}','tum')"); await pg.wait_for_timeout(600)
         lab = await ev("(()=>{const l=(k)=>{const e=document.querySelector('#fenetre [data-champ=\"'+k+'\"] label');return e?e.textContent:''};const g=[...document.querySelectorAll('#fenetre [data-sec=tum] label')].some(x=>/Gleason/.test(x.textContent));return {histo:l('xthisto'),gleason:g,re:[...document.getElementById('fx_xtre').options].map(o=>o.value).join()}})()")
         ok(lab['histo'].startswith('Type histologique') and lab['gleason'] and 'Faiblement positif' in lab['re'], 'fiche du patient : nom, liste et nouveau champ appliqués', lab)
+        await ev(f"fermerFenetre();modifierIdentite('{pid}','id')"); await pg.wait_for_timeout(500)
+        f1 = await ev("(()=>{const c=document.getElementById('fCin');return {cin:c&&c.tagName,opts:c?[...c.options].map(o=>o.value).join():''}})()")
+        await ev(f"fermerFenetre();modifierIdentite('{pid}','med')"); await pg.wait_for_timeout(500)
         f2 = await ev("(()=>{const c=document.getElementById('fCin');return {cin:c&&c.tagName,opts:c?[...c.options].map(o=>o.value).join():'',atcd:!!document.getElementById('f_atcdMedOui'),adr:!!document.querySelector('#fenetre [data-sec=med] [data-champ=adresse]')}})()")
-        ok(f2['cin'] == 'SELECT' and 'Étrangère' in f2['opts'] and f2['atcd'] and f2['adr'], 'formulaire du patient : CIN en liste, antécédents oui / non + précision, adresse dans les informations médicales', f2)
+        f2.update(f1); ok(f2['cin'] == 'SELECT' and 'Étrangère' in f2['opts'] and f2['atcd'] and f2['adr'], 'formulaire du patient : CIN en liste, antécédents oui / non + précision, adresse dans les informations médicales', f2)
         await pg.select_option('#f_atcdMedOui', 'oui'); await pg.fill('#f_atcdMed', 'HTA'); await pg.click('#fOk'); await pg.wait_for_timeout(1200)
         d = (await ev("window.__fs"))[E + 'patients/' + pid]
         ok(d['clinique'].get('atcdMedOui') == 'oui' and d['clinique'].get('atcdMed') == 'HTA', 'enregistré : antécédents « oui » + « HTA »', d['clinique'])

@@ -21,21 +21,26 @@ async def main():
         await p0.evaluate("nouveauPatient()"); await p0.wait_for_timeout(400)
         k0 = await p0.evaluate("[...document.querySelectorAll('#fenetre .form[data-sec] > [data-champ]')].filter(e=>e.style.display!=='none').map(e=>e.dataset.champ)") # 3.1 bis : fiche en parties
         # 3.1 (12/10/2026) : la fiche tumeur (champs xt…) est ajoutée d'office aux cabinets d'oncologie ; aucun autre champ ajouté
-        ok(k0[:4] == ['nom', 'prenom', 'ddn', 'sexe'] and 'ald' in k0 and not any(k.startswith('x') and not k.startswith('xt') for k in k0) and 'xtstade' in k0, 'sans réglage : fiche d\'oncologie (ordre d\'aujourd\'hui, ALD présent, fiche tumeur, aucun autre champ ajouté)')
+        # 20/10/2026 : Nouveau patient = Identité et administratif seulement (informations médicales et fiche tumeur : dans le dossier)
+        ok(k0[:4] == ['nom', 'prenom', 'ddn', 'sexe'] and 'ald' in k0 and not any(k.startswith('x') for k in k0) and not any(k in k0 for k in ('taille', 'poids', 'diag', 'allergies')), 'sans réglage : Nouveau patient = Identité et administratif seulement (ordre d\'aujourd\'hui, ALD présent, aucun champ médical ni de la fiche tumeur) ' + str(k0))
+        ok(await p0.evaluate("[...document.querySelectorAll('#fenetre .fp-sec')].map(h=>h.textContent).join()") == 'Identité et administratif', 'Nouveau patient : une seule partie, « Identité et administratif »')
         # Avec réglage
         pg = await ouvrir(b, S2); await pg.goto(f'http://localhost:{PORT}/v2.html#patients'); await pg.wait_for_timeout(2000)
         await pg.evaluate("nouveauPatient()"); await pg.wait_for_timeout(400)
         k1 = await pg.evaluate("[...document.querySelectorAll('#fenetre .form > [data-champ]')].filter(e=>e.style.display!=='none').map(e=>e.dataset.champ)")
-        ok(k1[0] == 'mut' and 'ald' not in k1 and 'xgs001' in k1 and 'xmt001' in k1, 'Nouveau patient : Mutuelle en premier, ALD retiré, champ de la spécialité + champ du cabinet ' + str(k1[:4]))
+        ok(k1[0] == 'mut' and 'ald' not in k1 and 'xgs001' not in k1 and 'xmt001' in k1, 'Nouveau patient : Mutuelle en premier, ALD retiré, champ du cabinet (identité) ; Groupe sanguin (informations médicales) non demandé ' + str(k1[:4]))
         ok(await pg.evaluate("document.querySelector('#fenetre [data-champ=\"tel\"] label').textContent") == 'Téléphone portable', 'nom affiché réglé par la spécialité : « Téléphone portable »')
-        await pg.fill('#fNomF', 'Fiche'); await pg.fill('#fPrenom', 'Essai'); await pg.select_option('#fx_xgs001', 'O+'); await pg.fill('#fx_xmt001', 'Dr Alami')
+        await pg.fill('#fNomF', 'Fiche'); await pg.fill('#fPrenom', 'Essai'); await pg.fill('#fx_xmt001', 'Dr Alami')
         await pg.click('#fOk'); await pg.wait_for_timeout(1200)
         fs = await pg.evaluate("window.__fs"); np = [v for k, v in fs.items() if k.startswith(E + 'patients/') and (v.get('identite') or {}).get('nomF') == 'FICHE']
-        ok(np and np[0]['identite'].get('extra', {}).get('xmt001') == 'Dr Alami' and np[0]['clinique'].get('extra', {}).get('xgs001') == 'O+', 'création : champs ajoutés enregistrés (identité et fiche clinique)')
+        ok(np and np[0]['identite'].get('extra', {}).get('xmt001') == 'Dr Alami' and not (np[0].get('clinique') or {}).get('extra'), 'création : champ ajouté de l\'identité enregistré')
         # Modifier un patient existant : ALD caché mais gardé
         await pg.evaluate(f"location.hash='dossier/{pid}'"); await pg.wait_for_timeout(1500)
         await pg.evaluate(f"modifierIdentite('{pid}')"); await pg.wait_for_timeout(400)
         ok(await pg.evaluate("!document.querySelector('#fenetre [data-champ=\"ald\"]')"), 'Modifier : ALD retiré (non affiché)')
+        ok(await pg.evaluate("!document.getElementById('fx_xgs001') && !document.getElementById('fPoids') && !!document.getElementById('fx_xmt001')"), 'Modifier (bandeau) : identité seulement, pas le Groupe sanguin ni le poids')
+        await pg.evaluate("fermerFenetre()"); await pg.evaluate(f"modifierIdentite('{pid}','med')"); await pg.wait_for_timeout(400)
+        ok(await pg.evaluate("!!document.getElementById('fx_xgs001') && !document.getElementById('fNomF') && !document.getElementById('fx_xmt001')"), 'Modifier des Informations médicales : cette partie seulement')
         await pg.select_option('#fx_xgs001', 'A+'); await pg.click('#fOk'); await pg.wait_for_timeout(1200)
         d = await pg.evaluate(f"window.__fs['{E}patients/{pid}']")
         ok(d['clinique'].get('extra', {}).get('xgs001') == 'A+' and d['identite'].get('ald') == 'Oui', 'Modifier : Groupe sanguin enregistré, ALD caché mais gardé (Oui)')

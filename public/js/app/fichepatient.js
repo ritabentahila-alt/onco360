@@ -56,7 +56,7 @@ export function texteChamp(doc, c) {
   if (c.type === "etab") { const e = (D().etabsTous || D().etabs || []).find((z) => z.code === v); return e && e.nom ? e.code + " – " + e.nom : String(v); }
   return String(v) + (c.type === "nombre" && c.unite ? " " + c.unite : "");
 }
-const PARTIES_F = [["id", "Identité"], ["med", "Informations médicales"], ["tum", "Fiche tumeur"]];
+const PARTIES_F = [["id", "Identité et administratif"], ["med", "Informations médicales"], ["tum", "Fiche tumeur"]];
 // R-C3 (19/10/2026, audit 4 réponse 1) : médecin du patient (= médecin référent, un seul champ) : identite.med (uid). Champ fixe, montré à partir
 // de 2 médecins (avec un seul, il est posé d'office à la création). Médecin qui crée le dossier = lui ; secrétaire = elle choisit ; modifiable.
 // Il devient le médecin par défaut des rendez-vous, lignes de chimio, radiothérapies et consultations automatiques (sinon : le titulaire).
@@ -67,7 +67,11 @@ function htmlMedecin(x, o) {
   const opts = (v ? [] : [["", "— Choisir —"]]).concat(l.map((m) => [m.uid, m.nom])).concat(v && !l.some((m) => m.uid === v) ? [[v, "Médecin retiré de l'équipe"]] : []);
   return '<div data-champ="medecin"><label for="fMedP">Médecin du patient</label><select id="fMedP"' + dis + ">" + opts.map(([u, n]) => '<option value="' + A.esc(u) + '"' + (u === v ? " selected" : "") + ">" + A.esc(n) + "</option>").join("") + "</select></div>";
 }
-// Formulaire de saisie : o = { off(partie) → vrai si non modifiable, etabs (hôpitaux proposés), nouveau }
+// Formulaire de saisie : o = { off(partie) → vrai si non modifiable, etabs (hôpitaux proposés), nouveau, sec (parties montrées : "id" | "med" | "tum"
+// ou liste ; sans : les trois) }. 20/10/2026 (demande de Dr Bentahila) : Nouveau patient et « Modifier » du bandeau = Identité et administratif
+// seulement ; Informations médicales et Fiche tumeur : chacune par son « Modifier » dans la colonne Patient. Une partie non montrée n'est pas lue.
+const secsDe = (o) => { const s = o && o.sec; return s ? [].concat(s) : PARTIES_F.map((z) => z[0]); };
+export const partiesPresentes = () => { const L = champsFiche().filter((c) => c.present); return PARTIES_F.map((z) => z[0]).filter((k) => L.some((c) => c.section === k)); };
 export function htmlFormulaire(x, o) {
   const esc = A.esc, doc = docVu(x), dg = diagDe(x), L = champsFiche().filter((c) => c.present), pa = poidsVu(x);
   const champ = (c) => {
@@ -91,7 +95,8 @@ export function htmlFormulaire(x, o) {
         return enve(lab + '<input id="' + id + '"' + (c.type === "date" ? ' type="date"' : c.type === "nombre" ? ' inputmode="decimal"' : c.type === "tel" ? ' type="tel"' : c.type === "email" ? ' type="email"' : "") + ' value="' + esc(V) + '"' + dis + ">");
     }
   };
-  return PARTIES_F.map(([k, lib]) => { const h = L.filter((c) => c.section === k).map(champ).join("") + (k === "id" && !(o.nouveau && o.off && o.off("identite")) ? htmlMedecin(x, o) : ""); return h ? '<h4 class="soustitre fp-sec">' + lib + '</h4><div class="form" data-sec="' + k + '">' + h + "</div>" : ""; }).join("") +
+  const S = secsDe(o);
+  return PARTIES_F.filter(([k]) => S.indexOf(k) >= 0).map(([k, lib]) => { const h = L.filter((c) => c.section === k).map(champ).join("") + (k === "id" && !(o.nouveau && o.off && o.off("identite")) ? htmlMedecin(x, o) : ""); return h ? '<h4 class="soustitre fp-sec">' + lib + '</h4><div class="form" data-sec="' + k + '">' + h + "</div>" : ""; }).join("") +
     '<datalist id="lMut">' + (A.listeMut ? A.listeMut() : []).map((m) => '<option value="' + esc(m) + '">').join("") + '</datalist><datalist id="lCor">' + (A.listeCor ? A.listeCor() : []).map((m) => '<option value="' + esc(m) + '">').join("") + "</datalist>";
 }
 // Lecture du formulaire : { identite, clinique, etab, erreur } (copies des parties du dossier, champs modifiables seulement)
@@ -115,7 +120,8 @@ export function lireFormulaire(x, o) {
   ["identite", "clinique"].forEach((p) => { const ob = out[p]; if (ob.extra && !Object.keys(ob.extra).length) delete ob.extra; });
   // R-A5 : date du poids : celle de la séance si c'est le poids proposé (dernière chimio), maintenant s'il a été changé à la main
   const pa = poidsVu(x), num = (v) => parseFloat(String(v == null ? "" : v).replace(",", ".")), p0 = (doc.clinique || {}).poids;
-  if (C.poids != null && C.poids !== "") { if (pa && num(C.poids) === pa.poids) C.poidsLe = pa.d || C.poidsLe; else if (num(C.poids) !== num(p0)) C.poidsLe = new Date().toISOString(); } // date et heure : passe devant une séance du même jour
+  if (!el("fPoids")) { /* poids absent du formulaire (autre partie) : rien à changer */ }
+  else if (C.poids != null && C.poids !== "") { if (pa && num(C.poids) === pa.poids) C.poidsLe = pa.d || C.poidsLe; else if (num(C.poids) !== num(p0)) C.poidsLe = new Date().toISOString(); } // date et heure : passe devant une séance du même jour
   else delete C.poidsLe;
   if (C.poidsLe == null || C.poidsLe === "") delete C.poidsLe; // 20/10/2026 : poids sans date connue (fiche ancienne) : jamais « undefined » (Firestore refusait l'enregistrement)
   return out;

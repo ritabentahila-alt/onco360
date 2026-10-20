@@ -39,7 +39,7 @@ async def main():
         ok('75 kg (C4 J1 du 06/10/2026)' in page, 'dossier : « 75 kg (C4 J1 du 06/10/2026) »', page[:400])
         # Fiche (Afficher) et Modifier : poids actuel
         await ev(f"afficherIdentite && afficherIdentite('{P2}')") if await ev("typeof afficherIdentite === 'function'") else None
-        await ev(f"modifierIdentite('{P2}')"); await pg.wait_for_timeout(800)
+        await ev(f"modifierIdentite('{P2}','med')"); await pg.wait_for_timeout(800)
         ok(await ev("(document.getElementById('fPoids')||{}).value") == '75', '« Modifier » : poids proposé = 75 (dernière séance)', await ev("(document.getElementById('fPoids')||{}).value"))
         await ev("fermerFenetre()")
         # Ordonnance : âge et poids (réglage Impression) avec la date
@@ -56,7 +56,7 @@ async def main():
         await ev("fermerFenetre()")
         # Plus tard, poids saisi à la main dans la fiche (le 06/10 aussi) : la fiche passe devant
         await pg.clock.set_fixed_time("2026-10-06T10:30:00")  # une demi-heure après la validation
-        await ev(f"modifierIdentite('{P2}')"); await pg.wait_for_timeout(800); await pg.fill('#fPoids', '76'); await ev("document.getElementById('fOk').click()"); await pg.wait_for_timeout(1500)
+        await ev(f"modifierIdentite('{P2}','med')"); await pg.wait_for_timeout(800); await pg.fill('#fPoids', '76'); await ev("document.getElementById('fOk').click()"); await pg.wait_for_timeout(1500)
         c2 = await fiche()
         ok(c2.get('poids') == '76' and str(c2.get('poidsLe')).startswith('2026-10-06') and str(c2.get('poidsLe')) > str(c1.get('poidsLe')), 'poids changé à la main dans la fiche : 76 kg, daté d\'aujourd\'hui', {k: c2.get(k) for k in ('poids', 'poidsLe')})
         page = await ev("document.getElementById('page').innerText")

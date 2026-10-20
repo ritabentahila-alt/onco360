@@ -56,7 +56,7 @@ async def main():
 
         print('Fiche : OMS dans les informations médicales')
         pg, ev = await dossier(b, S2)
-        await ev(f"modifierIdentite('{pid}')"); await pg.wait_for_timeout(600)
+        await ev(f"modifierIdentite('{pid}','med')"); await pg.wait_for_timeout(600)
         o = await ev("[...document.querySelectorAll('#fenetre [data-sec=med] > [data-champ]')].map(e=>e.dataset.champ).slice(0,3)")
         ok(o == ['xtoms', 'taille', 'poids'], 'État général (OMS) avant la taille et le poids', o)
         ok(not pg.errs, 'aucune erreur JavaScript', pg.errs[:2]); await pg.close()

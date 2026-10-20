@@ -820,6 +820,14 @@ test_cures, test_seances, test_validation, test_vigilance (panneau), test_consul
       colonne défile ; enregistrer une note ou un rendez-vous ne déplace pas les autres colonnes ; à 390 px rien ne change ; débordements
       (28 pages × 5 largeurs) ; `NAVIGATEUR=webkit` ; **liste des boutons du dossier comparée avant / après, rôle par rôle (aucun absent)** ;
       bilan inchangé.
+- [x] **(20/10/2026, demande de Dr Bentahila, testé ; pas encore en ligne)** Fiche du patient **modifiée une partie à la fois** : Nouveau patient
+      (Patients, tableau de bord, nouveau rendez-vous de l'agenda ou de la salle d'attente : même fenêtre) et « Modifier » du bandeau (aussi celui
+      d'« Afficher ») = **Identité et administratif** seulement ; **Informations médicales** et **Fiche tumeur** : chacune par le « Modifier » de sa
+      partie dans la colonne Patient (fenêtre de cette partie seule). Statut du patient (décès) avec les Informations médicales ; « Supprimer le
+      patient » avec l'identité ; une partie non montrée n'est ni lue ni réécrite (poids et sa date compris). `htmlFormulaire(x, { sec })`,
+      `partiesPresentes` (fichepatient.js), `modifierIdentite(id, sec)` (v2.js). Bouton « Modifier » d'une partie selon le droit (identité ; fiche
+      médicale ou traitements). Test `tests/test_fiche_parties.py` (30/30, 1440 et 390 px) ; test_fiche, test_fiche_tumeur, test_poids,
+      test_editeur_fiche, test_intention adaptés (une partie à la fois).
 
 ## Phase P – Protocoles de chimiothérapie (audit n° 3)
 

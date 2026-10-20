@@ -1254,7 +1254,7 @@ function pageDossier(id) {
       }).join("") : '<p class="vide-c">Aucune consultation passée.</p>');
   }
   // Fiche : chaque partie montre tous ses champs (lecture), « Modifier » ouvre le même éditeur qu'avant
-  const okMod = peut("identite") || peut("fichePatient") || traitMod(), fiche = ficheP.partiesLecture(x);
+  const fiche = ficheP.partiesLecture(x);
   const partie = (k, lib, n, corps, av) => '<details class="dp" data-p="' + k + '"' + (partieOuverte(k) ? " open" : "") + ' ontoggle="dosPartie(this)"><summary><span class="dp-t">' + lib + "</span>" + (av ? '<span class="badge b-or dp-av">' + av + " à valider</span>" : "") + (n != null ? '<span class="n">' + n + "</span>" : "") + '</summary><div class="dp-c">' + corps + "</div></details>";
   const pat = (allergique(P) ? "" : !P.allergie && alTxt && !/^aucune?\b/i.test(alTxt) ? '<p class="mesures dp-al">Allergies notées (« ' + esc(alTxt.slice(0, 60)) + ' ») : précisez « Allergie connue : oui / non » dans la fiche (Modifier) pour le bandeau.</p>' : "") +
     '<div class="resume"><div class="entete"><label for="nTxt" style="flex:1">Résumé du patient</label>' + (okN ? '<span class="mesures" id="nEtat">' + (NOTES.pid === x.id && NOTES.txt != null ? "Modifications en cours…" : "") + "</span>" : "") + "</div>" +
@@ -1264,7 +1264,7 @@ function pageDossier(id) {
     '<div class="dp-outils"><button type="button" class="mini" id="dpTout" onclick="dosTout()">Tout déplier</button></div>' +
     partie("avenir", "Rendez-vous et tâches à venir", av.length, hAvenir) +
     (voitRdv() ? partie("passe", "Consultations et hospitalisations", nPasse, hPasse, nAValider) : "") +
-    PARTIES_D.slice(2).map(([k, lib]) => (fiche[k] ? partie(k, lib === "Identité et administratif" ? lib : fiche.libs[k] || lib, fiche.n[k], fiche[k] + (okMod ? '<div class="actr" style="justify-content:flex-start;margin-top:8px"><button class="mini" onclick="modifierIdentite(' + qx + ')">Modifier</button></div>' : "")) : "")).join("");
+    PARTIES_D.slice(2).map(([k, lib]) => (fiche[k] ? partie(k, lib === "Identité et administratif" ? lib : fiche.libs[k] || lib, fiche.n[k], fiche[k] + ((k === "id" ? peut("identite") : traitMod() || peut("fichePatient")) ? '<div class="actr" style="justify-content:flex-start;margin-top:8px"><button class="mini" onclick="modifierIdentite(' + qx + ",'" + k + "')\">Modifier</button></div>" : "")) : "")).join("");
 
   // ───── Centre Travail : Consultation · Chimiothérapie · Radiothérapie · Documents, selon les droits ─────
   const ong = [];
@@ -1405,17 +1405,22 @@ document.addEventListener("click", (ev) => { if (ev.target && ev.target.closest 
 function fermerPetite() { $("fenetre").classList.add("cache"); $("fenetreCorps").innerHTML = ""; }
 
 // ───── Modifier l'identité ─────
-window.modifierIdentite = (id) => {
+// 20/10/2026 (demande de Dr Bentahila) : une partie de la fiche à la fois. sec = "id" (bandeau, Afficher : Identité et administratif ; sans le droit
+// « identité » : Informations médicales), "med" ou "tum" (« Modifier » de la partie dans la colonne Patient). Statut du patient : avec les
+// Informations médicales (avec l'identité si le cabinet n'a pas de partie médicale) ; « Supprimer le patient » : avec l'identité.
+window.modifierIdentite = (id, sec) => {
   const x = D.patients.find((p) => p.id === id); if (!x) return;
   const I = x.doc.identite || {}, C = x.doc.clinique || {}, okI = peut("identite"), okC = traitMod() || peut("fichePatient"), okE = !!D.membre.tousEtablissements;
   if (!okI && !okC) { toast("Vous n'avez pas le droit de modifier ce dossier."); return; }
+  const parts = ficheP.partiesPresentes(); sec = sec || (okI || parts.indexOf("med") < 0 ? "id" : "med");
+  const avecStatut = sec === "med" || (sec === "id" && parts.indexOf("med") < 0);
   // 3.11 (12/10/2026) : formulaire rendu depuis la fiche réglable (parties, ordre, types, listes) ; droits par partie (identité / fiche médicale)
-  fenetre("<h3>" + esc(x.r.nm) + "</h3>" + ficheP.htmlFormulaire(x, { off: (p) => (p === "clinique" ? !okC : !okI), etabs: okE ? D.etabs : [] }) +
+  fenetre("<h3>" + esc(x.r.nm) + "</h3>" + ficheP.htmlFormulaire(x, { off: (p) => (p === "clinique" ? !okC : !okI), etabs: okE ? D.etabs : [], sec }) +
     // Statut du patient (3.3, 12/10/2026) : décédé → plus de rappels, de tâches automatiques ni d'alertes ; rendez-vous à venir signalés
-    '<div class="form" style="margin-top:8px"><div><label for="fStatut">Statut du patient</label><select id="fStatut"' + (okC ? "" : " disabled") + ' onchange="document.getElementById(\'zDeces\').classList.toggle(\'cache\',this.value!==\'decede\')"><option value="">—</option>' +
+    (!avecStatut ? "" : '<div class="form" style="margin-top:8px"><div><label for="fStatut">Statut du patient</label><select id="fStatut"' + (okC ? "" : " disabled") + ' onchange="document.getElementById(\'zDeces\').classList.toggle(\'cache\',this.value!==\'decede\')"><option value="">—</option>' +
       STATUTS.map(([k, l]) => '<option value="' + k + '"' + (C.statut === k ? " selected" : "") + ">" + l + "</option>").join("") + "</select></div>" +
-      '<div id="zDeces"' + (C.statut === "decede" ? "" : ' class="cache"') + '><label for="fDeces">Date du décès</label><input id="fDeces" type="date" value="' + esc(C.decesLe || "") + '"' + (okC ? "" : " disabled") + "></div></div>" +
-    '<div class="err" id="fErr"></div><div class="boutons">' + (peut("supprimerPatient") ? '<button class="bt gris" id="fSup" style="margin-right:auto;color:var(--rouge)"><svg class="pi"><use href="#i-corbeille"/></svg>Supprimer le patient</button>' : "") + '<button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt plein" id="fOk">Enregistrer</button></div>');
+      '<div id="zDeces"' + (C.statut === "decede" ? "" : ' class="cache"') + '><label for="fDeces">Date du décès</label><input id="fDeces" type="date" value="' + esc(C.decesLe || "") + '"' + (okC ? "" : " disabled") + "></div></div>") +
+    '<div class="err" id="fErr"></div><div class="boutons">' + (peut("supprimerPatient") && sec === "id" ? '<button class="bt gris" id="fSup" style="margin-right:auto;color:var(--rouge)"><svg class="pi"><use href="#i-corbeille"/></svg>Supprimer le patient</button>' : "") + '<button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt plein" id="fOk">Enregistrer</button></div>');
   activerDiag("fDiag", "fDiagP");
   if ($("fSup")) $("fSup").onclick = async () => {
     if (!confirm("Supprimer définitivement le dossier de " + x.r.nm + " ?\n\nToutes ses lignes de traitement et ses cures seront effacées.")) return;
@@ -1431,7 +1436,7 @@ window.modifierIdentite = (id) => {
   $("fOk").onclick = async () => {
     const changes = {}, lu = ficheP.lireFormulaire(x), nI = lu.identite, nC = lu.clinique;
     if (lu.erreur) { erreur(lu.erreur); return; }
-    if (okC) { // 3.3 : statut du patient (décès : date obligatoire)
+    if (okC && $("fStatut")) { // 3.3 : statut du patient (décès : date obligatoire)
       const st = val("fStatut"); if (st) nC.statut = st; else delete nC.statut;
       if (st === "decede") { if (!val("fDeces")) { erreur("Indiquez la date du décès."); return; } nC.decesLe = val("fDeces"); } else delete nC.decesLe;
     }
@@ -1442,7 +1447,7 @@ window.modifierIdentite = (id) => {
     if (changes.etablissementId && x.doc.etablissementId) changes.hopHist = (x.doc.hopHist || []).concat([{ hop: x.doc.etablissementId, avant: D.t, le: Date.now(), par: D.u.uid }]);
     if (!Object.keys(changes).length) { fermerFenetre(); return; }
     occupe($("fOk"), true);
-    try { await enregistrer(x, changes, "Identité modifiée"); if (changes.etablissementId) { await suivreEtablissement(x, changes.etablissementId); await suivreEtablissementDocs(x, changes.etablissementId); await suivreEtablissementFichiers(x, changes.etablissementId); await suivreEtablissementRcp(x, changes.etablissementId); } if (okI || okC) await enrichirListes(okI ? nI.cor || "" : "", okI ? nI.mut || "" : "", okC ? nC.diag || "" : ""); fermerFenetre(); toast("Dossier enregistré."); pageDossier(x.id); }
+    try { await enregistrer(x, changes, { med: "Informations médicales modifiées", tum: "Fiche tumeur modifiée" }[sec] || "Identité modifiée"); if (changes.etablissementId) { await suivreEtablissement(x, changes.etablissementId); await suivreEtablissementDocs(x, changes.etablissementId); await suivreEtablissementFichiers(x, changes.etablissementId); await suivreEtablissementRcp(x, changes.etablissementId); } if (okI || okC) await enrichirListes(okI ? nI.cor || "" : "", okI ? nI.mut || "" : "", okC ? nC.diag || "" : ""); fermerFenetre(); toast("Dossier enregistré."); pageDossier(x.id); }
     catch (e) { occupe($("fOk"), false); erreur(e.message); }
   };
 };

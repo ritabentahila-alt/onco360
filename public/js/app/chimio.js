@@ -1231,8 +1231,9 @@ export function nouveauPatient(opts) {
   const maxP = D().abo && D().abo.max.patients; // formule du cabinet (09/10/2026)
   if (maxP != null && D().patients.length >= maxP) { alert("Votre formule Onco360 permet " + maxP + " dossiers patients : la limite est atteinte.\nContactez l'éditeur d'Onco360 pour passer à une formule supérieure."); return; }
   // 3.11 (12/10/2026) : même formulaire que « Modifier » (fiche réglable : parties, ordre, types) ; partie médicale seulement avec le droit
-  A.fenetre("<h3>Nouveau patient</h3>" + ficheP.htmlFormulaire(null, { off: (p) => p === "clinique" && !okC, etabs: permis, nouveau: true }) +
-    '<p class="mesures" style="margin:6px 0 0">Nom et prénom obligatoires. Date de naissance, sexe, taille et poids : demandés avant la première ligne de chimiothérapie.</p>' + boutons("Créer le dossier"));
+  // 20/10/2026 (demande de Dr Bentahila) : Identité et administratif seulement ; informations médicales et fiche tumeur : dans le dossier
+  A.fenetre("<h3>Nouveau patient</h3>" + ficheP.htmlFormulaire(null, { off: (p) => p === "clinique" && !okC, etabs: permis, nouveau: true, sec: "id" }) +
+    '<p class="mesures" style="margin:6px 0 0">Nom et prénom obligatoires. Informations médicales et fiche tumeur : à remplir ensuite dans le dossier (colonne Patient, « Modifier » de chaque partie).</p>' + boutons("Créer le dossier"));
   if (okC) activerDiag("fDiag", "fDiagP");
   // nom tapé dans la recherche du rendez-vous : « NOM Prénom » → Nom, Prénom
   if (o.nom) { const m = String(o.nom).trim().split(/\s+/), n = document.getElementById("fNomF"), pr = document.getElementById("fPrenom"); if (n) n.value = (m.shift() || "").toUpperCase(); if (pr) pr.value = m.join(" "); }
