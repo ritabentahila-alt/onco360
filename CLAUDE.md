@@ -27,7 +27,7 @@ Après déploiement : recharger sans cache (Cmd + Maj + R). Les `.js` sont servi
 | Fichier | Rôle |
 |---|---|
 | `index.html` | connexion Firebase Auth → `v2.html` (compte d'administration → `admin.html`) |
-| `admin.html` + `js/app/admin.js` | Administration : onglets Cabinets (liste, fiche, réglage du cabinet, équipe, démo, suspendre…), Nouveau cabinet, Par spécialité (packs avec réglage complet `editeurReglage`, bibliothèque et paramètres : fiche patient, formulaire de consultation), Modules (tous les modules, `MODULES_BASE` / MODULES / MODULES_PREVUS, lecture seule), Journal (actions de l'administration) |
+| `admin.html` + `js/app/admin.js` | Administration : onglets Cabinets (liste, fiche, réglage du cabinet, équipe, démo, suspendre…), Nouveau cabinet, Par spécialité (packs avec réglage complet `editeurReglage`, bibliothèque et paramètres : fiche patient, formulaire de consultation), Modules (tous les modules, `MODULES_BASE` / MODULES / MODULES_PREVUS, lecture seule), Journal (actions de l'administration) ; **Sauvegardes** (lot R-F, 20/10/2026 : copie des fichiers, export de la semaine des cabinets, « Récupérer des données d'un cabinet » par n° de dossier, sans nom, source « base restaurée à côté » ; alerte en haut de Cabinets ; bouton « Récupérer des données » de la fiche) |
 | `v2.html` | Onco360 : structure, CSS complet, symboles SVG, logo |
 | `js/config.js` | initialisation Firebase (clé web publique, normal) |
 | `vendor/` | bibliothèques externes copiées dans le site (jszip, html2canvas, mammoth, SheetJS 0.20.3 ; `vendor/LISEZMOI.md`) |
@@ -45,6 +45,7 @@ Après déploiement : recharger sans cache (Cmd + Maj + R). Les `.js` sont servi
 | `js/app/rcp.js` | RCP (étape 7, 09/10/2026) : dates (`parametres/rcp`, Paramètres › RCP : jours de la semaine, heure, lieu, dates ajoutées / annulées, pas de RCP un jour férié), bouton « + RCP » de la barre des prescriptions (inscription à la prochaine date, question, date d'inscription ; ▾ = RCP du patient), onglet « RCP » de la page Tâches (`#taches/rcp` : calendrier des semaines, période, Tous / À faire / Faits, case Fait, impression), dossier ouvert depuis la liste = bulles Décision RCP (consultation type « RCP » pré-remplie, `nouvelleConsultation` de consultations.js) · Valider (case Fait, retour à la liste) · Fermer ; inscriptions non faites dans « Rendez-vous et tâches à venir » ; écoute en direct (`demarrerRcp`) |
 | `js/app/agenda.js` | agenda Liste/Jour/Semaine/Mois, filtre par établissement ; étape 21 (11/10/2026) : vue Jour à l'ouverture sur téléphone, hauteur = durée (`dureeDe`), glisser-déposer d'un rendez-vous (`glisser` → v2.js `deplacerRdv` : confirmation, `rep`), filtre « Médecin » (≥ 2 médecins, `AG.med`), heure facultative des séances de chimio et du scanner (`fenetreHeure`, `heureSeance` de chimio.js, `heureRT` de v2.js) ; test `tests/test_agenda.py` |
 | `js/app/configuration.js` | page **Paramètres** (menu ; `#configuration` y renvoie, 08/10/2026 ; familles `FAMILLES` : Cabinet, Dossier patient (3.11 : fiche, consultation, listes), Agenda et rappels, Bibliothèques, Finances) : onglets `ONGLETS()` = horaires (par établissement), absences, fériés, WhatsApp, couleurs Google Agenda (`parametres/couleursAgenda`), types de documents, types de tâches, listes (diagnostics, mutuelles, correspondants : `parametres/listes` { diag, mut, cor, complet } ; nom corrigé → corrigé dans les dossiers ; nom nouveau d'une fiche patient → ajouté, `enrichirListes`, règle ouverte aux droits identité / fiche / créer), Google Agenda personnel (`utilisateurs/{uid}.agendaFiltre`, cases par catégorie) + couleurs, bibliothèques (fenêtres de prescription en gestion : `gererListe` d'ordonnances.js), impression, alertes, Activités et rémunérations (parametres.js, droit finances) |
+| `js/app/recuperation.js` | Paramètres › Cabinet › Export des données, suite (lot R-F, 20/10/2026, titulaire) : « Export automatique de la semaine » (fonction `exportAuto` : réglage, Google Drive relié par GIS `drive.file`, maintenant, télécharger), « Récupérer des données » (fonction `recuperation` : base à une heure donnée, exports, copie d'avant une récupération, fichier d'export ouvert dans le navigateur ; dossier, document du cabinet, tout le cabinet ; aperçu puis récupérer), « En cas de problème » ; `appelLong` (délai 30 min, aussi pour `cfExporter`) ; CSS « Lot R-F » de v2.html ; test `tests/test_recuperation.py` |
 | `js/app/reglages.js` | réglages simples `parametres/reglages` (marges d'impression A5 / A4 / documents, délai du bouton WhatsApp vert, délais des alertes) : `reglages()`, `margesMm()`, variables CSS de l'aperçu |
 | `js/app/profil.js` | page **Profil & Paramètres** (18.5) : onglets Informations (photo, INPE, signature, mot de passe), Accès (droits de l'équipe, titulaire), Abonnement et Factures (titulaire, `js/app/abonnement.js` : fonctions `monAbonnement` / `demandeAbonnement`, carte du tableau de bord) ; fournit à Paramètres (`htmlOngletProfil`) les onglets Lieux d'exercice et Google Agenda |
 | `js/app/protocoles.js` | bibliothèque de 316+ protocoles |
@@ -316,8 +317,20 @@ Ancienne application : collections racine `patients`, `protocoles`, `finances`, 
   (`functions/logique.js` `permis`), pas par les règles (le dossier patient reste lisible en entier par le serveur).
 
 ## Sauvegardes
-**Mode d'emploi pour récupérer ses données : `outils/RESTAURER.md`** (export complet, copie lisible du Drive, copie des fichiers,
-sauvegarde Firebase).
+**Mode d'emploi pour récupérer ses données : `outils/RESTAURER.md`** (Administration, dernier recours) et **`guide/en-cas-de-probleme.md`**
+(cabinet, aussi dans Onco360 : Paramètres › Cabinet › Export des données › « En cas de problème »).
+- **Lot R-F (audit n° 8, 20/10/2026)** : fonctions serveur dans `functions/sauvegardes.js` (branchées en fin d'index.js) ; logique pure `restauration.js`,
+  `drive.js`, `sauvegarde.js`, `exportation.js`. **Récupérer** (`recuperation`, titulaire ou Administration sans nom) un dossier (patient + patientsFinances,
+  encaissements, rappels, et consultations, documentsRT, fichiers, rcp, taches, salle, recus, administrations par patientId), un document du cabinet
+  (`COLS_DOCUMENT`) ou tout le cabinet, depuis la base à une heure donnée (PITR, `readTime`, 7 jours), un export (`exports/…/donnees.json.gz`), la copie
+  d'avant une récupération (`espaces/{e}/recuperations/{ms}.json.gz`), un fichier de l'ordinateur ou une base restaurée à côté (Administration) ;
+  créé depuis = gardé ; reçus / administrations existants, membres, compteurs, journal jamais remplacés ; PDF repris de la copie de secours ;
+  commande `outils/recuperer.mjs` (même code). **Export de la semaine** `exportsHebdo` (dimanche 1 h 30) : `exports/auto-{ms}/` (dernier ZIP, données 14
+  semaines) + Google Drive du cabinet (`driveJetons/{e}`, réglage `exportsAuto/{e}`, serveur seul ; prérequis : API Drive activée, `drive.file` à l'écran
+  de consentement). Export au fil de l'eau, ancien retiré après, vraies extensions, `comptes` (emails) dans l'export. Copie des fichiers : résultat
+  `plateforme/sauvegardeFichiers`, garde-fou (> 20 et > 10 % disparus : rien retiré), alerte (`sauvegardesEtat`, Administration › Sauvegardes).
+  `restaurer-export.mjs` : cible non vide refusée (`--vider`), `--comptes` (même uid). Copie Drive Apps Script **v11** au format de l'export.
+  Tests : `cd tests/regles && npm run export` (73), `node functions/test-restauration.js`, `test-drive.js`, `tests/moteur/test-copie-drive.mjs`.
 - **Export complet d'un cabinet (1.6, 11/10/2026)** : Paramètres › Cabinet › Export des données (médecin titulaire) → fonction
   `exporterCabinet` (2 Go, 9 min) : ZIP dans `espaces/{e}/exports/{ms}/Onco360_export_AAAA-MM-JJ.zip` (lu par le titulaire seul :
   storage.rules ; l'export précédent est effacé) = `LISEZMOI.txt`, `patients.csv` (BOM, « ; »), `donnees/onco360.json` { application,
@@ -336,7 +349,7 @@ sauvegarde Firebase).
   Restauration à la minute près (PITR) : activée le 06/10/2026, 7 jours glissants.
 - Copies lisibles dans le Drive (Google Apps Script du compte de Dr Bentahila, projet « Chimio HGC », Drive > Sauvegardes) :
 - Ancienne application : sauvegarde arrêtée et supprimée le 11/10/2026 (ancienne application effacée).
-- Onco360 : `apps-script/onco360-sauvegarde.gs` **v10 autonome**, seul fichier du projet Apps Script « Chimio HGC » (rangé dans
+- Onco360 : `apps-script/onco360-sauvegarde.gs` **v11 au format de l'export (20/10/2026, à coller ; v10 autonome avant)**, seul fichier du projet Apps Script « Chimio HGC » (rangé dans
   Drive › Application Chimio HGC), installé le 11/10/2026, vers 3 h → `Application Chimio HGC/Sauvegardes/Onco360/Onco360_AAAA-MM-JJ.json`
   = `{ compte, documents: { "chemin/complet": champs } }` (cabinet Bentahila entier, collections trouvées automatiquement, + profils des
   membres). 30 derniers + le 1er du mois. E-mail en cas d'échec.

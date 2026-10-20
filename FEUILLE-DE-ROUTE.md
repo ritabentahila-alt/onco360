@@ -183,9 +183,9 @@ pas le reproposer** ; NON CONTESTÉ = à faire, **en le signalant dans le compte
 |---|---|---|---|
 | ~~1~~ | R-E (audit 7) | **Répondu le 19/10** : la secrétaire n'ajoute rien non plus (aucune modification, ajout compris ; elle garde la ligne libre) | fait (R-E5) |
 | ~~2~~ | R-E (audit 7) | **Répondu le 19/10** : effacer les images de signature et retirer le champ « Signature (image scannée) » du profil | fait (R-E5) |
-| 3 | R-F (audit 8) | Une alerte au titulaire à chaque export complet ? | Ne pas la coder |
-| 4 | R-F (audit 8) | Durées de conservation (fichier effacé 30 j, base 14 semaines, copies Drive du 1er du mois **sans limite**, patients sortis compris) : voulues et conformes à la déclaration loi 09-08 ? | Ne rien changer |
-| 5 | R-F (audit 8) | Qui restaure le jour d'un incident ? | Mode d'emploi pour quelqu'un qui n'est pas développeur |
+| ~~3~~ | R-F (audit 8) | **Répondu le 20/10** : pas d'alerte à chaque export complet | rien codé |
+| ~~4~~ | R-F (audit 8) | **Répondu le 20/10** : durées de conservation inchangées (à revoir avec le juriste, loi 09-08 ; nouvel export de la semaine : 14 semaines dans Onco360, 12 par défaut dans le Drive) | rien changé |
+| ~~5~~ | R-F (audit 8) | **Répondu le 20/10** : n'importe qui, depuis son compte (titulaire : bouton) et l'Administration ; deux modes d'emploi | fait |
 | 6 | R-A6 | Pour chaque autre cabinet, quelles parties du modèle reprendre ? | Correspondants et tarifs des consultations décochés ; le reste coché par l'Administration, cabinet par cabinet |
 | 7 | R-D (audit 6, d. 3) | Un taux de RT commun réglé dans Paramètres, modifiable par lieu, à la place des 60 % / 10 % cachés ? | Ne rien changer |
 | 8 | R-D / R-B5 (audit 6, d. 18) | Reçu imprimé sans numéro (enregistrement du numéro en échec) : une ligne au journal du cabinet suffit-elle ? | Faire la ligne au journal |
@@ -595,30 +595,79 @@ dans `public/js/donnees/majbib.js` (écrit d'après la liste d'avant : « avant 
       (`par` = texte du menu), format A5 / A4 retenu par navigateur (d. 31) ; puis ajouts (d. 32) : chimio orale calculée, ordonnances du
       protocole (en grande partie fait par P6), recherche par médicament, duplicata.
 
-**Lot F – Audit n° 8 : sauvegarde et restauration** (§ 9 ; questions 3, 4, 5 au début du lot)
+**Lot F – Audit n° 8 : sauvegarde et restauration** (§ 9 ; questions 3, 4, 5 répondues le 20/10/2026)
+**Fait le 20/10/2026 (R-F2 à R-F7 en une session, demande de Dr Bentahila ; testé ; pas encore en ligne)**. Réponses du 20/10 : (3) **pas d'alerte**
+à chaque export complet ; (4) durées de conservation **inchangées** ; (5) **n'importe qui peut restaurer, depuis son compte** (médecin titulaire :
+bouton dans Paramètres) **et l'Administration** (onglet Sauvegardes) → deux modes d'emploi : `guide/en-cas-de-probleme.md` (cabinet, aussi dans
+Onco360) et `outils/RESTAURER.md` (Administration et dernier recours). Exercice R-F1 : **reporté** (« pas maintenant »).
+Logique pure : `functions/restauration.js` (test-restauration 27), `drive.js` (test-drive 11), `sauvegarde.js` (garde-fou, alerte : test-sauvegarde 14),
+`exportation.js` (extensions, téléphone : test-exportation 15) ; fonctions serveur `functions/sauvegardes.js` (branchées en fin d'index.js : exporterCabinet,
+exportsHebdo, exportAuto, recuperation, fichiersNuit, fichiersSauvegarder, sauvegardesEtat) ; écran du cabinet `public/js/app/recuperation.js` (onglet
+« Export des données » de configuration.js, CSS « Lot R-F » de v2.html) ; Administration : onglet **Sauvegardes** d'admin.js. Tests : émulateurs
+`cd tests/regles && npm run export` **73/73** (dont le retour à une heure donnée), `tests/test_recuperation.py` 41/41, `tests/moteur/test-copie-drive.mjs` 9/9 ;
+test_export corrigé (explications derrière « ? » depuis le 19/10 : il échouait déjà, il n'était pas dans le contrôle complet ; il y est, avec test_recuperation).
+**À faire avant la mise en ligne (une fois)** : activer l'API Google Drive dans le projet et ajouter l'autorisation `drive.file` à l'écran de consentement
+« Onco360 » (`outils/RESTAURER.md` § 7) ; après : coller la copie Drive v11 dans Apps Script et lancer `installerSauvegardeOnco360` ; Dr Bentahila relie
+son Google Drive (Paramètres › Cabinet › Export des données).
 - [ ] **R-F1 Exercice chronométré** (rien à coder, d. 8) : `firebase firestore:backups:list --project chimio-hgc`, restaurer la base de la
-      veille dans une base à côté, noter le temps.
-- [ ] **R-F2 Récupérer un seul dossier ou document en moins d'une heure** (d. 1, priorité du lot) : patient, consultations, montants, reçus,
+      veille dans une base à côté, noter le temps. **Reporté le 20/10/2026** (Dr Bentahila : « pas maintenant ») ; marche à suivre et registre des
+      exercices : `outils/RESTAURER.md` § 3 et § 8 (la récupération depuis la base à côté se fait maintenant par l'onglet Sauvegardes).
+- [x] **(20/10/2026, testé)** Bouton « Récupérer des données » : Paramètres › Cabinet › Export des données (titulaire) et Administration › Sauvegardes
+      (numéros de dossier et nombres seulement, jamais un nom ni un contenu ; source en plus : base restaurée à côté) ; fonction `recuperation`
+      (sources, liste, aperçu, appliquer). Sources : **la base à une heure donnée** (retour à la minute près de Firestore, 7 jours : lecture
+      `readTime`), exports gardés dans Onco360 (`donnees.json.gz` à côté de chaque ZIP ; exports de la semaine 14 semaines), copie faite avant une
+      récupération (= annuler), fichier d'export de l'ordinateur (ouvert dans le navigateur, seul le dossier choisi est envoyé). Quoi : un dossier
+      (patient, montants, encaissements, rappels, consultations, documents de RT, documents déposés, RCP, tâches, salle, reçus, administrations),
+      un document du cabinet (bibliothèques, paramètres, protocoles, finances, lieux, relevés, cartes des médecins), tout le cabinet (R-F7). Règles :
+      effacé → remis, modifié → remis comme avant, **créé depuis → gardé**, reçu existant et administration notée jamais remplacés, jamais l'équipe, les
+      compteurs, le journal, le registre des tâches automatiques ; état d'avant copié (`espaces/{e}/recuperations/{ms}.json.gz`) ; version du dossier
+      au-dessus de l'actuelle ; PDF repris de la copie de secours des fichiers ; journal du cabinet (+ journal de l'Administration). Commande de
+      secours `outils/recuperer.mjs` (même code). Délai mesuré sur les émulateurs : moins d'une minute.
+      **R-F2 Récupérer un seul dossier ou document en moins d'une heure** (d. 1, priorité du lot) : patient, consultations, montants, reçus,
       fiches de fichiers, ou un document de bibliothèque, depuis un export ou une base restaurée ; utilisable par quelqu'un qui n'est pas
       développeur (commande prête à copier, mieux : bouton dans l'Administration).
-- [ ] **R-F3 Restauration sûre et mode d'emploi** : cabinet cible non vide **refusé par défaut** (option explicite pour le vider ; essai :
+- [x] **(20/10/2026, testé)** `outils/restaurer-export.mjs` : cabinet cible non vide **refusé** (rien écrit ; message vers recuperer.mjs) ; `--vider`
+      (copie du cabinet dans `avant-restauration-<cabinet>-<date>.json`, puis vidé, exports et copies de récupération gardés) ; `--comptes` (compte
+      absent recréé avec **le même uid** et la même adresse, `comptes/{uid}`, lien de mot de passe affiché ; l'export contient maintenant `comptes`
+      { uid: { email, espaces } }) ; accepte ZIP, `donnees.json(.gz)` et copie Drive v11 ; vrais types des fichiers. Modes d'emploi : `outils/RESTAURER.md`
+      refait (cas → partie, base à côté, commandes, prérequis `npm install` dans functions et `gcloud auth application-default login`, filets, mise en
+      place, **registre des exercices**, ce qui a vraiment été essayé : « tous ont été essayés » retiré) ; `guide/en-cas-de-probleme.md` + même texte
+      dans Onco360 (« En cas de problème »).
+      **R-F3 Restauration sûre et mode d'emploi** : cabinet cible non vide **refusé par défaut** (option explicite pour le vider ; essai :
       restaurer par-dessus fait revenir en arrière ce qui a été modifié) ; comptes recréés **avec leurs identifiants** (`firebase
       auth:export` / `auth:import`, ou recréer chaque compte manquant avec le même uid et écrire `comptes/{uid}`) (d. 9) ; mode d'emploi
       (d. 4) : `outils/RESTAURER.md` + version lisible pour le cabinet : page « En cas de problème » (noter l'heure exacte de l'erreur, ne
       rien réparer à la main, quel cas renvoie à quelle partie, qui appeler), cas d'un seul dossier, registre des exercices, `npm install`
       dans `functions/`, retirer « tous ont été essayés » (seule la restauration de l'export l'a été).
-- [ ] **R-F4 Export automatique hebdomadaire hors du projet Firebase** (d. 2, 3) : dans le Drive du titulaire, chaque semaine ; pour les
+- [x] **(20/10/2026, testé ; Drive à essayer en vrai à la mise en ligne)** `exportsHebdo` (dimanche 1 h 30, tous les cabinets sauf bibliothèques,
+      démonstration, suspendus, arrêtés) : export complet `espaces/{e}/exports/auto-{ms}/` (le dernier ZIP gardé ; données 14 semaines) puis dépôt dans le
+      **Google Drive du cabinet** s'il est relié (autorisation `drive.file`, envoi par morceaux de 8 Mo, dossier « Onco360 – exports du cabinet », les plus
+      anciens retirés au-delà de 4 à 52 semaines, 12 par défaut) ; réglage par cabinet `exportsAuto/{e}` { actif, garder, dernier, historique } et jetons
+      `driveJetons/{e}` (serveur seul) ; fonction `exportAuto` (état, régler, relier / délier le Drive, maintenant) ; écran « Export automatique de la
+      semaine » (titulaire). Autres supports (OneDrive, Dropbox) : à la demande d'un cabinet (À placer).
+      **R-F4 Export automatique hebdomadaire hors du projet Firebase** (d. 2, 3) : dans le Drive du titulaire, chaque semaine ; pour les
       cabinets clients, support au choix (leur Drive ou autre), réglé par cabinet. (Les sauvegardes Firebase et la copie des fichiers sont
       dans le même projet : une suppression du projet les emporte au bout de 30 jours.)
-- [ ] **R-F5 Copie des fichiers surveillée** (d. 10) : résultat de chaque nuit (date, copiés, erreurs) dans un document lu par
+- [x] **(20/10/2026, testé)** Résultat de chaque nuit dans `plateforme/sauvegardeFichiers` { dernier, nuits (30) } (date, copiés, retirés, erreurs et
+      motifs, durée, total, échec) ; garde-fou `planCopie` : plus de 20 fichiers et plus de 10 % de la copie disparus d'un coup → rien retiré ; garde-fou,
+      erreurs et échec au journal de l'Administration ; alerte (`alerteCopie` : erreurs, garde-fou, aucun passage depuis 48 h) en rouge dans l'onglet
+      Sauvegardes et en haut de l'onglet Cabinets (avec les exports de la semaine en échec ou absents depuis 8 jours) ; fonction `sauvegardesEtat`.
+      **R-F5 Copie des fichiers surveillée** (d. 10) : résultat de chaque nuit (date, copiés, erreurs) dans un document lu par
       l'Administration ; alerte en cas d'erreurs ou sans passage depuis 48 h ; garde-fou : ne rien retirer de la copie si une grande part
       disparaît d'un coup (`sauvegarderFichiers`, `planCopie`).
-- [ ] **R-F6 Export au fil de l'eau et copie Drive v11** (d. 11, 12) : ZIP écrit au fil de l'eau (aujourd'hui tout en mémoire, 2 Go : échec
+- [x] **(20/10/2026, testé)** ZIP écrit au fil de l'eau (`generateNodeStream`, fichiers lus un par un à leur tour : 800 Mo écrits avec 109 Mo de mémoire) ;
+      nouvel export enregistré **avant** de retirer l'ancien ; vraies extensions (`extension`, `typeDe` ; restauration avec le vrai type) ; téléphone
+      `="06…"` dans patients.csv ; délai du navigateur porté à 30 min (`appelLong` ; avant : 60 s). Copie Drive **v11** (`apps-script/onco360-sauvegarde.gs`) :
+      format de l'export (dates gardées, références et données binaires notées, journal d'audit inclus), limite de 6 min surveillée (journal d'audit coupé
+      et signalé, ou sauvegarde annulée), relue par `restaurer-export.mjs` / `recuperer.mjs` (test-copie-drive 9/9). **À coller dans Apps Script.**
+      **R-F6 Export au fil de l'eau et copie Drive v11** (d. 11, 12) : ZIP écrit au fil de l'eau (aujourd'hui tout en mémoire, 2 Go : échec
       estimé vers 1 Go de documents) ; enregistrer le nouvel export **avant** d'effacer l'ancien ; vraies extensions (pas tout en « .pdf » :
       `cheminFichier`, `restaurer-export.mjs`) ; téléphone en texte (Excel retire le 0 initial : colonne texte ou .xlsx) ; copie Drive
       **v11** au format de l'export (types des dates gardés, références, journal d'audit inclus, limite de 6 min surveillée), réimportable
       par le même script de restauration.
-- [ ] **R-F7 « Recopier un cabinet » depuis une base restaurée** (d. 13 ; erreur qui abîme beaucoup de dossiers), après R-F2, même code.
+- [x] **(20/10/2026, testé)** « Tout le cabinet » du même bouton (titulaire ou Administration), depuis la base à une heure donnée, un export ou une
+      base restaurée à côté ; même code que R-F2 ; `recuperer.mjs --tout`.
+      **R-F7 « Recopier un cabinet » depuis une base restaurée** (d. 13 ; erreur qui abîme beaucoup de dossiers), après R-F2, même code.
 
 **Lot G – Audit n° 5 : disposition du dossier patient** (§ 6 ; **remplace l'étape 4.4** de la phase M ; maquettes revues les 13 et 17/10)
 **Fait le 19/10/2026 (R-G a à e en une session, demande de Dr Bentahila ; testé, contrôle complet bon (Chrome et Safari) ; en ligne : 20261019c, site et fonctions, accord de Dr Bentahila)** : `pageDossier` (v2.js) = `.dos` à cinq
@@ -996,6 +1045,10 @@ démarrage par un médecin (comme `marquerProtocoles`), avec une fenêtre récap
 - `tests/test_comptable.py` : 6 vérifications en échec, déjà avant le 18/10 (vérifié le 19/10 sur les versions 20261018g et 20261019a) : le relevé
   du comptable n'est préparé que si la fonction « bilan.comptable » est active, et le réglage du pack du jeu de test la retire ; revoir le test
   (ou le réglage du jeu de test), pas l'application.
+- (20/10, R-F4) Export de la semaine sur un autre support que Google Drive (OneDrive, Dropbox, disque réseau) : à faire quand un cabinet client le
+  demande (chaque service demande sa propre autorisation et son propre envoi ; aujourd'hui : Google Drive, ou gardé dans Onco360 à télécharger).
+- (20/10, R-F) Heure du Maroc : Node 24 (ICU 78.3, tzdata 2026c) donne `Africa/Casablanca` = UTC+0 en octobre 2026 ; Chrome, Safari et le Mac donnent UTC+1. À vérifier (changement d’heure légal ou erreur de tzdata) avant
+  de se fier à une heure calculée côté serveur (`heureMaroc` du serveur, affichage des heures d'export dans l'historique).
 
 ---
 

@@ -31,6 +31,19 @@ cas("rangé par patient (n° + nom), date + titre, sans caractère interdit", c1
 cas("deux documents de même nom : le second numéroté", c2 === "fichiers/202610002 TEST Zoé/2026-10-01 CR anapath IHC (2).pdf", c2);
 cas("patient inconnu : rangé sous son identifiant", X.cheminFichier({ patientId: "PX", titre: "a" }, pats).startsWith("fichiers/PX/"));
 
+console.log("Vraies extensions (R-F6)");
+cas("photo d'avant le 11/10 : .jpg (nom), Word : .docx (type), sans indice : .pdf",
+  X.cheminFichier({ patientId: "P2", d: "2026-09-01", titre: "Photo", nom: "IMG_01.JPG" }, pats).endsWith("Photo.jpg") &&
+  X.cheminFichier({ patientId: "P2", titre: "Courrier", nom: "courrier", mime: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" }, pats).endsWith("Courrier.docx") &&
+  X.cheminFichier({ patientId: "P2", titre: "Sans" }, pats).endsWith("Sans.pdf"));
+const dj2 = new Set(), j1 = X.cheminFichier({ patientId: "P2", titre: "X", nom: "a.png" }, pats, dj2), j2 = X.cheminFichier({ patientId: "P2", titre: "X", nom: "b.png" }, pats, dj2);
+cas("doublon numéroté avant l'extension", j2 === j1.replace(".png", " (2).png"), [j1, j2]);
+cas("type remis à la restauration d'après le nom", X.typeDe("fichiers/a/b.jpg") === "image/jpeg" && X.typeDe("x.pdf") === "application/pdf" && X.typeDe("sans") === "application/pdf");
+
+console.log("Téléphone en texte pour Excel (R-F6)");
+cas("le 0 du début gardé (cellule =\"0600000000\")", L[2].split(";").indexOf('"=""0600000000"""') === 6, L[2]);
+cas("téléphone vide : cellule vide", L[1].split(";")[6] === "", L[1]);
+
 console.log("Notice");
 const t = X.lisezmoi({ cabinet: "Cabinet Test", date: "11/10/2026", patients: 2, fichiers: 3, documentation: 1, manquants: 1 });
 cas("nombre de patients, fichiers, manquants, mise en garde", /2 patient/.test(t) && /3 document/.test(t) && /1 fichier\(s\) introuvable/.test(t) && /données de santé/.test(t));

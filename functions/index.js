@@ -20,7 +20,7 @@ const { onDocumentWritten } = require("firebase-functions/v2/firestore");
 const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { defineSecret, defineString } = require("firebase-functions/params");
 const { initializeApp } = require("firebase-admin/app");
-const { getFirestore, FieldValue } = require("firebase-admin/firestore");
+const { getFirestore, FieldValue, Timestamp } = require("firebase-admin/firestore");
 const L = require("./logique");
 
 initializeApp();
@@ -1216,75 +1216,9 @@ exports.demandeAbonnement = onCall({ timeoutSeconds: 30, memory: "256MiB" }, asy
   return { ok: true };
 });
 
-// ───── Export complet du cabinet (étape 1.6, 11/10/2026) ─────
-// Médecin titulaire seulement (l'administration n'a aucun accès aux patients) : un fichier ZIP avec toutes les données du cabinet
-// (JSON), le tableau des patients (CSV pour Excel), les documents déposés et la documentation (PDF). Rangé dans le stockage du
-// cabinet (espaces/{e}/exports/…, lisible par le titulaire seul : storage.rules), l'export précédent est effacé ; noté au journal.
-const X = require("./exportation");
-exports.exporterCabinet = onCall({ timeoutSeconds: 540, memory: "2GiB" }, async (req) => {
-  const par = req.auth && req.auth.uid, { espace } = req.data || {};
-  if (!par) throw new HttpsError("unauthenticated", "Connectez-vous à Onco360.");
-  const es = espace ? await db.doc("espaces/" + espace).get() : null;
-  if (!es || !es.exists) throw new HttpsError("not-found", "Cabinet introuvable.");
-  if (es.data().titulaire !== par) throw new HttpsError("permission-denied", "L'export complet est réservé au médecin titulaire du cabinet.");
-  const JSZip = require("jszip"), zip = new JSZip(), bucket = getStorage().bucket();
-  const donnees = { application: "Onco360", format: 1, espace, date: new Date().toISOString(), cabinet: null, collections: {}, utilisateurs: {}, journalAudit: {}, dates: {}, zip: {} };
-  // dates : { "collection/document": [chemins des champs qui étaient des dates Firestore] } (restauration exacte, outils/restaurer-export.mjs)
-  const noter = (cle, data) => { const l = []; const o = X.plat(data, l); if (l.length) donnees.dates[cle] = l; return o; };
-  donnees.cabinet = noter("@cabinet", es.data());
-  for (const c of await es.ref.listCollections()) {
-    const s = await c.get(); donnees.collections[c.id] = {};
-    s.forEach((d) => { donnees.collections[c.id][d.id] = noter(c.id + "/" + d.id, d.data()); });
-  }
-  for (const uid of Object.keys(donnees.collections.membres || {})) {
-    const u = await db.doc("utilisateurs/" + uid).get(); if (u.exists) donnees.utilisateurs[uid] = noter("utilisateurs/" + uid, u.data());
-  }
-  (await db.collection("audit/" + espace + "/lignes").get()).forEach((d) => { donnees.journalAudit[d.id] = noter("@audit/" + d.id, d.data()); });
-  const patients = donnees.collections.patients || {}, deja = new Set(), manquants = [];
-  let nf = 0, nd = 0;
-  for (const f of Object.values(donnees.collections.fichiers || {})) {
-    if (!f.chemin) continue;
-    try { const [b] = await bucket.file(f.chemin).download(), cz = X.cheminFichier(f, patients, deja); zip.file(cz, b); donnees.zip[f.chemin] = cz; nf++; } catch (e) { manquants.push(f.chemin); }
-  }
-  let docs = []; try { docs = JSON.parse(((donnees.collections.bibliotheques || {}).documentation || {}).data || "[]"); } catch (e) { docs = []; }
-  for (const d of docs) {
-    if (!d || !d.chemin) continue;
-    try { const [b] = await bucket.file(d.chemin).download(), cz = "documentation/" + String(d.titre || d.nom || d.id).replace(/[\/\\:*?"<>|#]+/g, " ").slice(0, 100) + ".pdf"; zip.file(cz, b); donnees.zip[d.chemin] = cz; nd++; } catch (e) { manquants.push(d.chemin); }
-  }
-  const np = Object.keys(patients).length, jour = new Date().toISOString().slice(0, 10);
-  const m = await membre(espace, par);
-  zip.file("LISEZMOI.txt", X.lisezmoi({ cabinet: es.data().nom, espace, date: new Date().toLocaleString("fr-FR", { timeZone: "Africa/Casablanca" }), par: m && m.nom, patients: np, fichiers: nf, documentation: nd, manquants: manquants.length }));
-  zip.file("patients.csv", "﻿" + X.csvPatients(patients, donnees.collections.etablissements || {}));
-  zip.file("donnees/onco360.json", JSON.stringify(donnees, null, 1));
-  const contenu = await zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE", compressionOptions: { level: 6 } });
-  await bucket.deleteFiles({ prefix: "espaces/" + espace + "/exports/" }).catch((e) => console.warn("anciens exports", e.message));
-  const chemin = "espaces/" + espace + "/exports/" + Date.now() + "/Onco360_export_" + jour + ".zip";
-  await bucket.file(chemin).save(contenu, { contentType: "application/zip", metadata: { metadata: { creePar: par } } });
-  await db.collection("espaces/" + espace + "/historique").add({ parUid: par, parNom: (m && m.nom) || "", le: FieldValue.serverTimestamp(), patientId: "", patient: "",
-    quoi: "Export complet du cabinet : " + np + " dossier(s), " + nf + " document(s) déposé(s)" + (manquants.length ? ", " + manquants.length + " introuvable(s)" : "") });
-  console.log("export", espace, np, "patients", nf, "fichiers", nd, "documentation", manquants.length, "manquants", contenu.length, "octets");
-  return { chemin, taille: contenu.length, patients: np, fichiers: nf, documentation: nd, manquants: manquants.length };
-});
-
-// ───── Copie de secours des fichiers déposés (étape 1.6, 11/10/2026) ─────
-// Chaque nuit (2 h 15), tout le stockage des cabinets est recopié dans <projet>-sauvegarde-fichiers (Pays-Bas, versions 30 jours,
-// créé la première fois) ; logique sauvegarde.js. Aussi lançable par l'administration (fichiersSauvegarder), sans voir les fichiers.
-const Sv = require("./sauvegarde");
-async function sauvegarderFichiers() {
-  const src = getStorage().bucket(), projet = JSON.parse(process.env.FIREBASE_CONFIG || "{}").projectId || process.env.GCLOUD_PROJECT;
-  const dst = getStorage().bucket(Sv.nomCopie(projet));
-  const [existe] = await dst.exists().catch(() => [false]);
-  if (!existe) await dst.create(Sv.REGLAGES_COPIE).catch((e) => console.warn("création du second emplacement", e.message));
-  const liste = async (b) => (await b.getFiles({ prefix: "espaces/" }))[0].map((f) => ({ nom: f.name, md5: f.metadata && f.metadata.md5Hash }));
-  const plan = Sv.planCopie(await liste(src), await liste(dst));
-  let copies = 0, erreurs = 0;
-  for (const nom of plan.copier) { try { await src.file(nom).copy(dst.file(nom)); copies++; } catch (e) { erreurs++; console.warn("copie", nom, e.message); } }
-  for (const nom of plan.retirer) await dst.file(nom).delete().catch((e) => console.warn("retrait", nom, e.message));
-  console.log("copie des fichiers :", copies, "copiés,", plan.retirer.length, "retirés,", erreurs, "erreur(s)");
-  return { copies, retires: plan.retirer.length, erreurs, emplacement: dst.name };
-}
-exports.fichiersNuit = onSchedule({ schedule: "15 2 * * *", timeZone: "Africa/Casablanca", timeoutSeconds: 540, memory: "512MiB" }, async () => { await sauvegarderFichiers(); });
-exports.fichiersSauvegarder = onCall({ timeoutSeconds: 540, memory: "512MiB" }, async (req) => {
-  if (!(await estAdministrateur(req.auth && req.auth.uid))) throw new HttpsError("permission-denied", "Réservé à l'administration d'Onco360.");
-  return sauvegarderFichiers();
-});
+// ───── Sauvegardes et récupération (étape 1.6 du 11/10/2026 ; lot R-F de l'audit n° 8, 20/10/2026) : functions/sauvegardes.js ─────
+// exporterCabinet (export complet, titulaire), exportsHebdo / exportAuto (export de la semaine, Google Drive du cabinet), recuperation
+// (un dossier, un document ou tout le cabinet tel qu'il était : titulaire ou Administration), fichiersNuit / fichiersSauvegarder (copie de
+// secours des fichiers), sauvegardesEtat (Administration).
+const SV = require("./sauvegardes")({ db, getStorage, getFirestore, getAuth, onCall, onSchedule, HttpsError, FieldValue, Timestamp, estAdministrateur, membre, jAdmin, oauth, SECRET, C });
+["exporterCabinet", "exportsHebdo", "exportAuto", "recuperation", "fichiersNuit", "fichiersSauvegarder", "sauvegardesEtat"].forEach((k) => { exports[k] = SV[k]; });

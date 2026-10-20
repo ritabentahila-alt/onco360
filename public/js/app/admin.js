@@ -16,7 +16,7 @@ const $ = (i) => document.getElementById(i);
 const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const dfr = (d) => (typeof d === "string" && d.length >= 10 ? d.slice(8, 10) + "/" + d.slice(5, 7) + "/" + d.slice(0, 4) : "");
 const sansAcc = (x) => String(x || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
-const ONGLETS = [["cabinets", "Cabinets"], ["nouveau", "Nouveau cabinet"], ["compta", "Comptabilité"], ["specialites", "Par spécialité"], ["modules", "Modules"], ["journal", "Journal"]];
+const ONGLETS = [["cabinets", "Cabinets"], ["nouveau", "Nouveau cabinet"], ["compta", "Comptabilité"], ["specialites", "Par spécialité"], ["modules", "Modules"], ["sauvegardes", "Sauvegardes"], ["journal", "Journal"]];
 // CABINETS : liste (null = chargement) ; FS : packs (formules) enregistrés (sinon ceux de départ)
 let RA = Object.assign({}, REGLAGES_ABO0); // réglages des abonnements (suspension, délais ; 18.3)
 let EDITEUR = null, FACT = []; // Mon entreprise (mentions des factures) ; factures et avoirs (18.4)
@@ -50,6 +50,7 @@ async function charger() {
     CABINETS = (o.cabinets || []).map((c) => Object.assign({}, c, { cree: typeof c.cree === "string" ? c.cree : "", suspenduLe: typeof c.suspenduLe === "string" ? c.suspenduLe : "", titulaire: c.titulaire || {} }));
   } catch (e) { CABINETS = []; MSG = '<p class="err">Liste des cabinets indisponible : ' + esc(e.message) + ' <button class="clair petit" onclick="location.reload()">Réessayer</button></p>'; }
   dessiner();
+  if (!SV) chargerSauvegardes();
 }
 const cab = (id) => (CABINETS || []).find((c) => c.id === id);
 const formuleDe = (ab) => (ab && FORMULES_()[ab.formule]) || null;
@@ -169,9 +170,9 @@ function dessiner() {
   const o = ONG();
   $("onglets").innerHTML = ONGLETS.map(([k, lib]) => '<a href="#' + k + '" class="' + (k === o ? "on" : "") + '">' + esc(lib) + (k === "cabinets" && CABINETS ? ' <span class="nb">' + CABINETS.length + "</span>" : "") + "</a>").join("");
   const bandeau = RES ? '<div class="ok bandeau">' + RES + '<button class="x" id="resX" aria-label="Fermer">✕</button></div>' : "";
-  $("page").innerHTML = bandeau + (o === "nouveau" ? htmlNouveau() : o === "specialites" ? htmlSpecialites() : o === "modules" ? htmlModules() : o === "journal" ? htmlJournal() : o === "compta" ? htmlCompta() : htmlCabinets());
+  $("page").innerHTML = bandeau + (o === "nouveau" ? htmlNouveau() : o === "specialites" ? htmlSpecialites() : o === "modules" ? htmlModules() : o === "journal" ? htmlJournal() : o === "compta" ? htmlCompta() : o === "sauvegardes" ? htmlSauvegardes() : alerteSauvegardes() + htmlCabinets());
   if ($("resX")) $("resX").onclick = () => { RES = ""; dessiner(); };
-  if (o === "nouveau") brancherNouveau(); else if (o === "specialites") brancherSpecialites(); else if (o === "modules") brancherModules(); else if (o === "journal") brancherJournal(); else if (o === "compta") brancherCompta(); else brancherCabinets();
+  if (o === "nouveau") brancherNouveau(); else if (o === "specialites") brancherSpecialites(); else if (o === "modules") brancherModules(); else if (o === "journal") brancherJournal(); else if (o === "compta") brancherCompta(); else if (o === "sauvegardes") brancherSauvegardes(); else brancherCabinets();
 }
 
 // ───── Onglet Cabinets : chiffres, recherche, filtres, cartes ─────
@@ -233,7 +234,7 @@ function carteCabinet(c) {
     blocAbonnement(c) +
     '<div class="m">Créé le ' + esc(dfr(c.cree) || "—") + (c.activite ? " · dernière activité : " + esc(ilYa(c.activite.derniere)) + (c.activite.par ? " (" + esc(c.activite.par) + ")" : "") + " · " + (c.activite.n30 || 0) + " action" + ((c.activite.n30 || 0) > 1 ? "s" : "") + " en 30 jours" : "") + "</div>" +
     // Actions regroupées (17.3) : gérer · accès · zone sensible
-    '<div class="act-g"><div><span class="m">Gérer</span>' + (c.demo ? '<button class="clair petit" data-reinit="' + esc(c.id) + '">Réinitialiser la démo</button>' : "") + '<button class="clair petit" data-info="' + esc(c.id) + '">Modifier</button><button class="clair petit" data-form="' + esc(c.id) + '">Réglage du cabinet</button>' + (c.bibliotheque ? "" : '<button class="clair petit" data-ecart="' + esc(c.id) + '" title="Ce que ce cabinet a changé dans ses paramètres par rapport au modèle de sa spécialité (lecture seule, aucune donnée patient)">Écart au modèle</button>') + (c.modele || c.bibliotheque ? "" : '<button class="clair petit" data-modele="' + esc(c.id) + '" title="Ajouter à ce cabinet ce qui lui manque du modèle de sa spécialité (rien de ce qu\'il a modifié n\'est écrasé)">Appliquer le modèle</button>') + '<button class="clair petit" data-jcab="' + esc(c.id) + '" title="Actions de l\'administration sur ce cabinet">Journal</button></div>' +
+    '<div class="act-g"><div><span class="m">Gérer</span>' + (c.demo ? '<button class="clair petit" data-reinit="' + esc(c.id) + '">Réinitialiser la démo</button>' : "") + '<button class="clair petit" data-info="' + esc(c.id) + '">Modifier</button><button class="clair petit" data-form="' + esc(c.id) + '">Réglage du cabinet</button>' + (c.bibliotheque ? "" : '<button class="clair petit" data-ecart="' + esc(c.id) + '" title="Ce que ce cabinet a changé dans ses paramètres par rapport au modèle de sa spécialité (lecture seule, aucune donnée patient)">Écart au modèle</button>') + (c.modele || c.bibliotheque ? "" : '<button class="clair petit" data-modele="' + esc(c.id) + '" title="Ajouter à ce cabinet ce qui lui manque du modèle de sa spécialité (rien de ce qu\'il a modifié n\'est écrasé)">Appliquer le modèle</button>') + '<button class="clair petit" data-jcab="' + esc(c.id) + '" title="Actions de l\'administration sur ce cabinet">Journal</button>' + (c.bibliotheque ? "" : '<button class="clair petit" data-recup="' + esc(c.id) + '" title="Remettre un dossier (par son numéro), un document ou tout le cabinet tel qu\'il était (sans voir les noms)">Récupérer des données</button>') + "</div>" +
     (c.modele || !c.titulaire.email ? "" : '<div><span class="m">Accès du médecin</span><button class="clair petit" data-lien="' + esc(c.id) + '">Lien du mot de passe</button><button class="clair petit" data-mail="' + esc(c.titulaire.email) + '">Renvoyer l\'e-mail</button></div>') +
     (c.modele ? "" : '<div class="sensible"><span class="m">Zone sensible</span>' + (c.actif ? '<button class="clair petit rouge-t" data-susp="' + esc(c.id) + '">Suspendre</button>' : '<button class="clair petit" data-react="' + esc(c.id) + '">Réactiver</button><button class="rouge petit" data-suppr="' + esc(c.id) + '">Supprimer</button>') + "</div>") +
     "</div></article>";
@@ -341,6 +342,7 @@ function brancherActions(R) {
   on("[data-reinit]", (b) => reinitDemo(b));
   on("[data-paye]", (b) => ouvrirPaiement(cab(b.dataset.paye)));
   on("[data-jcab]", (b) => { JF = Object.assign(JF, { cab: b.dataset.jcab, periode: "tout" }); JL = null; fermer(true); location.hash = "journal"; });
+  on("[data-recup]", (b) => { RC = Object.assign(RC, { cab: b.dataset.recup, sources: null, liste: null, apercu: null, res: "", err: "", le: RC.le || localA(new Date(Date.now() - 3600000)) }); fermer(true); location.hash = "sauvegardes"; serveurLong("recuperation", { espace: RC.cab, action: "sources" }).then((x) => { RC.sources = x; dessiner(); }, (e) => { RC.err = e.message; dessiner(); }); });
   on("[data-abo]", (b) => ouvrirAbonnement(cab(b.dataset.abo)));
   on("[data-client]", (b) => ouvrirClient(cab(b.dataset.client)));
   on("[data-dt]", async (b) => { const [id, qid] = b.dataset.dt.split(":"), c = cab(id); b.disabled = true; try { await envoyerFacturation(c, { action: "demandeTraitee", id: qid }, "Demande marquée traitée."); } catch (e) { b.disabled = false; alert("Impossible : " + e.message); } });
@@ -785,9 +787,122 @@ function brancherCompta() {
     const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" })); a.download = "Onco360-encaissements-" + (CP.per === "tout" ? "tout" : du + "_" + au) + ".csv"; document.body.appendChild(a); a.click(); a.remove();
   };
 }
+// ───── Onglet Sauvegardes (lot R-F, audit n° 8, 20/10/2026) ─────
+// Copie de secours des fichiers (résultat de chaque nuit, alerte, garde-fou ; fichiersSauvegarder), export de la semaine de chaque cabinet,
+// « Récupérer des données » d'un cabinet (fonction recuperation : l'Administration ne voit ni nom ni contenu, seulement les numéros de
+// dossier et des nombres ; source en plus : une base restaurée à côté depuis une sauvegarde Firebase), mode d'emploi de l'administration.
+let SV = null, SVERR = "", RC = { cab: "", src: "instant", le: "", chemin: "", base: "onco360-restauree", sources: null, liste: null, quoi: "patient", num: "", doc: "", apercu: null, res: "", err: "" };
+async function serveurLong(nom, donnees) {
+  const { getFunctions, httpsCallable } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js");
+  try { return (await httpsCallable(getFunctions(app, "europe-west1"), nom, { timeout: 1800000 })(donnees || {})).data; }
+  catch (e) { throw new Error(String((e && e.message) || e).replace(/^(FirebaseError: )?/, "")); }
+}
+async function chargerSauvegardes() {
+  try { SV = await serveur("sauvegardesEtat"); SVERR = ""; } catch (e) { SV = { fichiers: {}, cabinets: [] }; SVERR = e.message; }
+  dessiner();
+}
+const quandA = (iso) => (iso ? new Date(iso).toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }).replace(" ", " à ") : "—");
+const tailleA = (n) => (n > 1e9 ? (n / 1e9).toFixed(1) + " Go" : n > 1e6 ? Math.round(n / 1e6) + " Mo" : Math.max(1, Math.round((n || 0) / 1e3)) + " Ko");
+const localA = (d) => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+// Alerte des sauvegardes, en haut de l'onglet Cabinets (lue une fois au chargement)
+const alerteSauvegardes = () => { if (!SV) return ""; const n = (SV.cabinets || []).filter((c) => c.alerte).length, f = (SV.fichiers || {}).alerte;
+  return f || n ? '<div class="avert rouge-a"><b>Sauvegardes :</b> ' + esc([f, n ? n + " cabinet" + (n > 1 ? "s" : "") + " avec un export de la semaine à vérifier" : ""].filter(Boolean).join(" ; ")) + ' <a href="#sauvegardes">Voir l\'onglet Sauvegardes</a></div>' : ""; };
+function htmlSauvegardes() {
+  if (!SV) { chargerSauvegardes(); return '<section class="carte"><p class="sous">Lecture de l\'état des sauvegardes…</p></section>'; }
+  const F = SV.fichiers || {}, d = F.dernier;
+  let h = SVERR ? '<p class="err">' + esc(SVERR) + "</p>" : "";
+  h += '<section class="carte"><div class="barre" style="justify-content:space-between"><h2 style="margin:0">Copie de secours des fichiers</h2><button class="clair petit" id="svCopier">Lancer la copie maintenant</button></div>' +
+    '<p class="sous">Chaque nuit vers 2 h 15, tous les documents déposés et la documentation des cabinets sont recopiés dans un second emplacement (Pays-Bas ; un fichier supprimé y reste 30 jours). Garde-fou : si plus de 10 % des fichiers disparaissent d\'un coup, rien n\'est retiré de la copie.</p>' +
+    (F.alerte ? '<div class="avert rouge-a">' + esc(F.alerte) + "</div>" : d ? '<p class="ok" style="position:static">Dernière copie : ' + esc(quandA(d.le)) + " · " + (d.copies || 0) + " copié(s), " + (d.retires || 0) + " retiré(s), aucune erreur · " + (d.total != null ? d.total + " fichier(s) dans la copie" : "") + "</p>" : "") +
+    ((F.nuits || []).length ? '<details><summary class="m">Dernières nuits (' + F.nuits.length + ')</summary><div class="tableau"><table class="lc"><thead><tr><th>Nuit</th><th class="n">Copiés</th><th class="n">Retirés</th><th class="n">Erreurs</th><th>Remarque</th></tr></thead><tbody>' +
+      F.nuits.map((x) => "<tr><td>" + esc(quandA(x.le)) + '</td><td class="n">' + (x.copies || 0) + '</td><td class="n">' + (x.retires || 0) + '</td><td class="n">' + (x.erreurs || 0) + "</td><td>" + esc(x.echec ? "échec : " + x.echec : x.garde ? "garde-fou : " + x.garde.n + " disparus sur " + x.garde.total : (x.motifs || []).join(" ; ")) + "</td></tr>").join("") + "</tbody></table></div></details>" : "") + '<p class="m" id="svMsg"></p></section>';
+  const C = (SV.cabinets || []).slice().sort((a, b) => (b.alerte ? 1 : 0) - (a.alerte ? 1 : 0) || String(a.nom).localeCompare(String(b.nom)));
+  h += '<section class="carte"><h2>Export de la semaine des cabinets</h2><p class="sous">Chaque dimanche vers 1 h 30 : un export complet par cabinet, gardé dans Onco360 et déposé dans le Google Drive du cabinet s\'il l\'a relié (Paramètres › Cabinet › Export des données, réglé par le médecin titulaire). Aucune donnée patient ici.</p>' +
+    '<div class="tableau"><table class="lc"><thead><tr><th>Cabinet</th><th>Export de la semaine</th><th>Dernier</th><th>Google Drive</th><th>À vérifier</th></tr></thead><tbody>' +
+    C.map((c) => { const x = c.dernier; return "<tr><td>" + esc(c.nom) + (c.demo ? ' <span class="m">(démo)</span>' : "") + "</td><td>" + (c.suspendu ? "cabinet suspendu" : c.demo ? "—" : c.actif ? "activé" : "arrêté par le cabinet") + "</td><td>" +
+      (x ? (x.ok ? esc(quandA(x.le)) + " · " + x.patients + " dossier(s) · " + esc(tailleA(x.taille)) : "échec le " + esc(quandA(x.le))) : "—") + "</td><td>" + (c.drive ? "relié" + (x && x.drive ? (x.drive.ok ? ", déposé" : ", échec") : "") : "non relié") + "</td><td>" + (c.alerte ? '<span class="err">' + esc(c.alerte) + "</span>" : "") + "</td></tr>"; }).join("") + "</tbody></table></div></section>";
+  h += htmlRecupAdmin();
+  h += '<section class="carte"><details><summary><b>Mode d\'emploi de l\'administration : restaurer, récupérer</b></summary>' + AIDE_ADMIN + "</details></section>";
+  return h;
+}
+const AIDE_ADMIN = '<ol class="liste-m" style="color:inherit">' +
+  "<li><b>Un cabinet appelle</b> (dossier effacé, liste abîmée, beaucoup de dossiers abîmés) : demandez l'<b>heure exacte</b> de l'erreur et le <b>numéro de dossier</b> (jamais le nom : vous n'y avez pas accès). Le médecin titulaire peut aussi le faire lui-même : Paramètres › Cabinet › Export des données › Récupérer des données.</li>" +
+  "<li><b>Moins de 7 jours</b> : ci-dessus, choisissez le cabinet, source « La base à une heure donnée », une heure <b>juste avant</b> l'erreur, puis le numéro de dossier (ou un document, ou tout le cabinet), « Voir ce qui serait remis », « Récupérer ». Ce qui a été créé depuis est gardé ; l'état d'avant est copié (source « Copie faite avant la récupération » pour annuler).</li>" +
+  "<li><b>Plus de 7 jours</b> : source « Un export » (export de la semaine, 14 semaines ; ou un export complet). Au-delà : restaurez la sauvegarde Firebase (14 semaines) dans une base <b>à côté</b> (Terminal, dossier du projet) :<br><code>firebase firestore:backups:list --project chimio-hgc</code><br><code>firebase firestore:databases:restore --project chimio-hgc --backup &lt;nom-de-la-sauvegarde&gt; --database onco360-restauree</code><br>puis source « Une base restaurée à côté » (nom : onco360-restauree). La base en service n'est jamais touchée. Une fois fini : <code>firebase firestore:databases:delete onco360-restauree --project chimio-hgc</code>.</li>" +
+  "<li><b>Onco360 en panne</b> : même chose depuis le Mac, avec la commande prête à copier de <code>outils/RESTAURER.md</code> (<code>node outils/recuperer.mjs …</code>, même code que ce bouton).</li>" +
+  "<li><b>Tout un cabinet perdu</b> (ou projet Firebase perdu) : l'export de la semaine est dans le Google Drive du cabinet ; <code>node outils/restaurer-export.mjs &lt;export.zip&gt; &lt;cabinet&gt; --comptes</code> (cabinet cible vide ; les comptes sont recréés avec le même identifiant, un lien de mot de passe est affiché pour chacun). Détail : <code>outils/RESTAURER.md</code>.</li>" +
+  "<li><b>Copie des fichiers en alerte</b> (rouge ci-dessus) : « Lancer la copie maintenant » ; si le garde-fou s'est déclenché, vérifiez qu'aucun cabinet n'a perdu ses documents avant de relancer (Console Google Cloud › Cloud Storage).</li></ol>";
+function htmlRecupAdmin() {
+  const cabs = (CABINETS || []).filter((c) => !c.bibliotheque).sort((a, b) => String(a.nom).localeCompare(String(b.nom))), S = RC.sources;
+  let h = '<section class="carte" id="rcA"><h2>Récupérer des données d\'un cabinet</h2><p class="sous">Un dossier (par son numéro), un document du cabinet ou tout le cabinet, tel qu\'il était. Vous ne voyez ni nom ni contenu : seulement des numéros de dossier et des nombres. Chaque récupération est notée au journal (le vôtre et celui du cabinet).</p>' +
+    '<div class="form"><label>Cabinet<select id="rcCab"><option value="">Choisir…</option>' + cabs.map((c) => '<option value="' + esc(c.id) + '"' + (RC.cab === c.id ? " selected" : "") + ">" + esc(c.nom) + "</option>").join("") + "</select></label></div>";
+  if (RC.cab && S) {
+    const ex = S.exports || [], r = (k, t) => '<label style="font-weight:normal;display:block;margin:4px 0"><input type="radio" name="rcS" value="' + k + '"' + (RC.src === k ? " checked" : "") + ' style="width:auto;margin-right:6px">' + t + "</label>";
+    h += '<h3>1. D\'où ?</h3>' + r("instant", "La base à une heure donnée (moins de 7 jours)") + (RC.src === "instant" ? '<input type="datetime-local" id="rcLe" value="' + esc(RC.le) + '" style="max-width:260px">' : "") +
+      r("export", "Un export (" + ex.length + ")") + (RC.src === "export" ? '<select id="rcEx" style="max-width:520px"><option value="">Choisir…</option>' + ex.map((x) => '<option value="' + esc(x.chemin) + '"' + (RC.chemin === x.chemin ? " selected" : "") + ">" + esc({ manuel: "Export complet", auto: "Export de la semaine", copie: "Copie faite avant la récupération" }[x.sorte] || x.sorte) + " du " + esc(quandA(x.le)) + "</option>").join("") + "</select>" : "") +
+      r("base", "Une base restaurée à côté (sauvegarde Firebase)") + (RC.src === "base" ? '<input id="rcBase" value="' + esc(RC.base) + '" style="max-width:260px" aria-label="Nom de la base">' : "") +
+      '<div class="barre" style="margin-top:8px"><button class="clair" id="rcLire">Lire cette source</button></div>';
+  }
+  if (RC.liste) {
+    const L = RC.liste, eff = L.patients.filter((p) => !p.existe);
+    h += "<h3>2. Quoi ?</h3>" + '<div class="puces">' + [["patient", "Un dossier (n°)"], ["doc", "Un document du cabinet"], ["cabinet", "Tout le cabinet"]].map(([k, t]) => '<button class="puce' + (RC.quoi === k ? " on" : "") + '" data-rq="' + k + '">' + t + "</button>").join("") + "</div>" +
+      (RC.quoi === "patient" ? '<div class="form" style="margin-top:8px"><label>N° de dossier<input id="rcNum" list="rcNums" value="' + esc(RC.num) + '" placeholder="Ex. 202610003"></label><datalist id="rcNums">' + L.patients.map((p) => '<option value="' + esc(p.numero || p.id) + '">' + (p.existe ? "" : "effacé") + "</option>").join("") + "</datalist></div>" +
+        '<p class="m">' + L.patients.length + " dossier(s) dans la source" + (eff.length ? ", dont " + eff.length + " effacé(s) depuis : " + eff.slice(0, 20).map((p) => esc(p.numero || p.id)).join(", ") + (eff.length > 20 ? "…" : "") : "") + ".</p>" : "") +
+      (RC.quoi === "doc" ? '<div class="form" style="margin-top:8px"><label>Document<select id="rcDoc"><option value="">Choisir…</option>' + L.documents.map((d) => '<option value="' + esc(d.col + "/" + d.id) + '"' + (RC.doc === d.col + "/" + d.id ? " selected" : "") + ">" + esc(d.lib) + "</option>").join("") + "</select></label></div>" : "") +
+      (RC.quoi === "cabinet" ? '<div class="avert">Tout le cabinet revient comme dans la source (chaque dossier modifié depuis reprend sa valeur d\'alors) : à réserver à une erreur qui a abîmé beaucoup de dossiers, avec l\'accord du médecin titulaire. Ce qui a été créé depuis est gardé ; l\'équipe et ses droits ne changent pas.</div>' : "") +
+      '<div class="barre" style="margin-top:8px"><button class="clair" id="rcVoir">3. Voir ce qui serait remis</button></div>';
+  }
+  if (RC.apercu) {
+    const P = RC.apercu, l = Object.values(P.parCol || {}).filter((c) => c.remettre || c.crees || c.gardes || c.identiques);
+    h += "<h3>Aperçu : " + esc(P.cible) + '</h3><p class="m">Depuis ' + esc(P.source) + ".</p>" + (P.absent ? '<p class="err">Rien de cela dans cette source.</p>' :
+      '<div class="tableau"><table class="lc"><thead><tr><th>Partie</th><th class="n">Effacé : remis</th><th class="n">Modifié : remis</th><th class="n">Créé depuis : gardé</th><th class="n">Inchangé</th></tr></thead><tbody>' +
+      l.map((c) => "<tr><td>" + esc(c.lib) + '</td><td class="n">' + (c.effaces || "") + '</td><td class="n">' + (c.modifies || "") + '</td><td class="n">' + ((c.crees || 0) + (c.gardes || 0) || "") + '</td><td class="n">' + (c.identiques || "") + "</td></tr>").join("") + "</tbody></table></div>") +
+      (P.n ? '<div class="barre" style="margin-top:8px"><button id="rcOk">Récupérer (' + P.n + " élément" + (P.n > 1 ? "s" : "") + ")</button></div>" : P.absent ? "" : '<p class="m">Rien à récupérer : tout est déjà comme dans cette source.</p>');
+  }
+  if (RC.res) h += '<p class="ok" style="position:static">' + esc(RC.res) + "</p>";
+  return h + '<p class="err" id="rcErr">' + esc(RC.err) + "</p></section>";
+}
+function sourceA() {
+  if (RC.src === "instant") return RC.le ? { type: "instant", le: new Date(RC.le).toISOString() } : null;
+  if (RC.src === "base") return RC.base ? { type: "base", nom: RC.base.trim() } : null;
+  const x = ((RC.sources || {}).exports || []).find((e) => e.chemin === RC.chemin); return x ? { type: "stockage", chemin: x.chemin, le: x.le } : null;
+}
+function quoiA() {
+  if (RC.quoi === "cabinet") return { cabinet: true };
+  if (RC.quoi === "doc") return RC.doc ? { doc: RC.doc.split("/") } : null;
+  const p = (RC.liste.patients || []).find((x) => x.numero === RC.num.trim() || x.id === RC.num.trim()); return p ? { patient: p.id } : null;
+}
+function brancherSauvegardes() {
+  if ($("svCopier")) $("svCopier").onclick = async () => { const b = $("svCopier"); b.disabled = true; b.textContent = "Copie en cours…";
+    try { const r = await serveurLong("fichiersSauvegarder"); $("svMsg").textContent = "Copie faite : " + r.copies + " copié(s), " + r.retires + " retiré(s), " + r.erreurs + " erreur(s)" + (r.garde ? " ; garde-fou : rien retiré" : "") + "."; } catch (e) { $("svMsg").textContent = "Impossible : " + e.message; }
+    SV = null; chargerSauvegardes(); };
+  const rerender = () => { const y = window.scrollY; dessiner(); window.scrollTo(0, y); };
+  const lireSources = async () => { RC.sources = null; RC.liste = null; RC.apercu = null; RC.res = ""; RC.err = "";
+    try { RC.sources = await serveurLong("recuperation", { espace: RC.cab, action: "sources" }); } catch (e) { RC.err = e.message; } rerender(); };
+  if ($("rcCab")) $("rcCab").onchange = (e) => { RC.cab = e.target.value; if (!RC.le) RC.le = localA(new Date(Date.now() - 3600000)); if (RC.cab) lireSources(); else { RC.sources = null; rerender(); } };
+  document.querySelectorAll('[name="rcS"]').forEach((i) => { i.onchange = () => { RC.src = i.value; RC.liste = null; RC.apercu = null; rerender(); }; });
+  if ($("rcLe")) $("rcLe").onchange = (e) => { RC.le = e.target.value; RC.liste = null; RC.apercu = null; };
+  if ($("rcEx")) $("rcEx").onchange = (e) => { RC.chemin = e.target.value; RC.liste = null; RC.apercu = null; };
+  if ($("rcBase")) $("rcBase").onchange = (e) => { RC.base = e.target.value; RC.liste = null; RC.apercu = null; };
+  if ($("rcLire")) $("rcLire").onclick = async () => { const s = sourceA(); if (!s) { RC.err = "Choisissez la source."; rerender(); return; } const b = $("rcLire"); b.disabled = true; b.textContent = "Lecture…"; RC.err = ""; RC.apercu = null; RC.res = "";
+    try { RC.liste = await serveurLong("recuperation", { espace: RC.cab, action: "liste", source: s }); } catch (e) { RC.err = e.message; } rerender(); };
+  document.querySelectorAll("[data-rq]").forEach((b) => { b.onclick = () => { RC.quoi = b.dataset.rq; RC.apercu = null; rerender(); }; });
+  if ($("rcNum")) $("rcNum").onchange = (e) => { RC.num = e.target.value; RC.apercu = null; };
+  if ($("rcDoc")) $("rcDoc").onchange = (e) => { RC.doc = e.target.value; RC.apercu = null; };
+  if ($("rcVoir")) $("rcVoir").onclick = async () => { if ($("rcNum")) RC.num = $("rcNum").value; const q = quoiA(); if (!q) { RC.err = RC.quoi === "patient" ? "Numéro de dossier absent de cette source." : "Choisissez le document."; rerender(); return; }
+    const b = $("rcVoir"); b.disabled = true; b.textContent = "Comparaison…"; RC.err = ""; RC.res = "";
+    try { RC.apercu = await serveurLong("recuperation", { espace: RC.cab, action: "apercu", source: sourceA(), quoi: q }); } catch (e) { RC.err = e.message; } rerender(); };
+  if ($("rcOk")) $("rcOk").onclick = async () => { const P = RC.apercu, c = cab(RC.cab);
+    if (!confirm("Récupérer " + P.cible + " dans « " + (c ? c.nom : RC.cab) + " » depuis " + P.source + " ?\n\n" + P.n + " élément(s) remis ; ce qui a été créé depuis est gardé ; l'état actuel est d'abord copié.")) return;
+    const b = $("rcOk"); b.disabled = true; b.textContent = "Récupération…";
+    try { const r = await serveurLong("recuperation", { espace: RC.cab, action: "appliquer", source: sourceA(), quoi: quoiA(), confirmer: true });
+      RC.res = "Fait : " + r.cible + " — " + r.n + " élément(s) remis" + (r.pdf && (r.pdf.remis || r.pdf.introuvables) ? " ; PDF remis : " + r.pdf.remis + (r.pdf.introuvables ? ", introuvables : " + r.pdf.introuvables : "") : "") + ". Prévenez le cabinet de recharger Onco360.";
+      RC.apercu = null; RC.sources = await serveurLong("recuperation", { espace: RC.cab, action: "sources" }).catch(() => RC.sources); }
+    catch (e) { RC.err = e.message; } rerender(); };
+}
 // ───── Onglet Journal (17.5, 10/10/2026) : actions du compte d'administration et d'Onco360 (suspension automatique) ─────
 // Lu par la fonction journalAdmin (période) ; filtres cabinet, type, recherche ; export pour Excel.
-const TYPES_J = [["creation", "Création"], ["reglage", "Réglage"], ["infos", "Informations"], ["abonnement", "Abonnement"], ["suspension", "Suspension"], ["reactivation", "Réactivation"], ["suppression", "Suppression"], ["acces", "Accès du médecin"], ["packs", "Packs"], ["specialite", "Spécialité"], ["bibliotheque", "Bibliothèque"], ["demo", "Démonstration"]];
+const TYPES_J = [["creation", "Création"], ["reglage", "Réglage"], ["infos", "Informations"], ["abonnement", "Abonnement"], ["suspension", "Suspension"], ["reactivation", "Réactivation"], ["suppression", "Suppression"], ["acces", "Accès du médecin"], ["packs", "Packs"], ["specialite", "Spécialité"], ["bibliotheque", "Bibliothèque"], ["demo", "Démonstration"], ["recuperation", "Récupération"], ["sauvegarde", "Sauvegarde"]];
 const BADGE_J = { creation: "ok", reactivation: "ok", suspension: "al", suppression: "al", abonnement: "", reglage: "", packs: "demo", specialite: "demo", bibliotheque: "demo" };
 let JL = null, JERR = "", JF = { periode: "30", cab: "", type: "", q: "" };
 const periodeJ = () => { const n = { "7": 7, "30": 30, "90": 90, "365": 365 }[JF.periode]; return n ? { du: new Date(Date.now() - (n - 1) * 86400000).toISOString().slice(0, 10) } : {}; };

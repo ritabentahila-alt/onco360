@@ -17,7 +17,7 @@ async def main():
         print('Médecin titulaire')
         pg = await ouvrir(b, S2); ev = pg.evaluate; await pg.add_init_script(FONC)
         await pg.goto(f'http://localhost:{PORT}/v2.html#parametres/export'); await pg.wait_for_timeout(2500)
-        t = await pg.inner_text('#page')
+        t = await pg.text_content('#page')  # explications derrière « ? » depuis le 19/10 (texte présent, caché)
         ok('Exporter tout le cabinet' in t and 'données de santé' in t, 'rubrique « Export des données » dans Paramètres › Cabinet', t[:200])
         await pg.click('#cfExp'); await pg.wait_for_timeout(1500)
         ok((await ev('window.__appel')) == {'espace': 'cabinet-bentahila'}, 'fonction serveur appelée pour ce cabinet', await ev('window.__appel'))

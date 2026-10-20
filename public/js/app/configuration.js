@@ -14,6 +14,7 @@ import { reglages, enregistrerReglages, REGLAGES0 } from "./reglages.js";
 import { pageParametres } from "./parametres.js";
 import { listeDiag, listeMut, listeCor, LISTES0 } from "./chimio.js";
 import { gererListe, tailleListe } from "./ordonnances.js";
+import { installer as installerRecuperation, htmlRecuperation, afficherRecuperation, appelLong } from "./recuperation.js";
 import { htmlOngletProfil, apresOngletProfil, titulaireConnecte } from "./profil.js";
 import { afficherAudit } from "./audit.js"; // onglet « Journal d'audit » (titulaire, 09/10/2026)
 import { configRcp, configChargee, chargerConfigRcp, enregistrerConfigRcp, prochainesRcp, CFG0 as RCP0, libDate } from "./rcp.js";
@@ -23,7 +24,7 @@ import { estStd, AUTO as AUTO_TY, cleDuree, renommer, nouvelleCle, aEnregistrer 
 import { htmlVigilances } from "./vigilances.js"; // notes « À vérifier » par molécule (12/10/2026) // fiche patient et formulaire de consultation du cabinet (11/10/2026)
 
 let A = null;
-export function installer(api) { A = api; A.enteteParametres = () => entete(); A.pageParametres = () => pageConfiguration(); }
+export function installer(api) { A = api; A.enteteParametres = () => entete(); A.pageParametres = () => pageConfiguration(); installerRecuperation(api); }
 const D = () => A.D();
 const JOURS = [[1, "Lundi"], [2, "Mardi"], [3, "Mercredi"], [4, "Jeudi"], [5, "Vendredi"], [6, "Samedi"], [0, "Dimanche"]];
 const TYPES = ["Congé", "Congrès", "Voyage", "Formation", "Fermeture du cabinet", "Autre"];
@@ -250,7 +251,7 @@ const RUBRIQUES = {
       '<p class="sous">À garder en lieu sûr : ce fichier contient des données de santé (ne pas l\'envoyer par e-mail ni WhatsApp). La préparation ' +
       "peut prendre une à deux minutes. L'export est noté dans le journal.</p>" +
       '<button class="bt plein" id="cfExp" onclick="cfExporter()">' + A.ic("telecharger") + "Exporter tout le cabinet</button>" +
-      '<p class="sous" id="cfExpMsg" style="margin-top:10px"></p></section>';
+      '<p class="sous" id="cfExpMsg" style="margin-top:10px"></p></section>' + htmlRecuperation(); // R-F (20/10/2026) : export de la semaine, récupérer des données
   },
   lieux() { return '<div id="cfProfil"><p class="sous">Chargement…</p></div>'; },
   couleurs(c) {
@@ -434,6 +435,7 @@ export function pageConfiguration(arg) {
     h3.appendChild(b); });
   if (A.$("cfProfil")) { const o = ONG === "couleurs" ? "gagenda" : ONG; htmlOngletProfil(o).then((x) => { const z = A.$("cfProfil"); if (z && ONG === (o === "gagenda" ? "couleurs" : o)) { z.innerHTML = x; apresOngletProfil(o); } }).catch((e) => { const z = A.$("cfProfil"); if (z) z.innerHTML = '<p class="sous" style="color:var(--rouge)">Lecture impossible : ' + A.esc(e.message || String(e)) + "</p>"; }); }
   if (ONG === "audit") afficherAudit(A.$("cfAudit"));
+  if (ONG === "export") afficherRecuperation();
   if (ONG === "listes") { listeL(); A.$("cfLq").oninput = () => { LQ = A.$("cfLq").value; listeL(); }; }
   // Fiche patient, formulaire de consultation : l'éditeur commun avec l'Administration (editeurfiche.js) ; toute action = modification
   if (ONG === "fiche" || ONG === "consultation") { const E = ONG === "fiche" ? FE : CE, z = document.querySelector(".edf"); E.brancher(() => modif(true)); if (z) z.addEventListener("change", () => modif()); }
@@ -539,7 +541,7 @@ window.cfExporter = async () => {
   const b = A.$("cfExp"), msg = (t) => { const z = A.$("cfExpMsg"); if (z) z.textContent = t; };
   A.occupe(b, true); msg("Préparation de l'export par le serveur… (une à deux minutes)");
   try {
-    const r = await A.serveur("exporterCabinet", { espace: A.ESPACE });
+    const r = await appelLong("exporterCabinet", { espace: A.ESPACE }); // délai long (R-F6) : un gros cabinet prend plusieurs minutes
     msg("Téléchargement (" + Math.round(r.taille / 1024) + " Ko)…");
     const { getStorage, ref, getBlob } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js");
     const blob = await getBlob(ref(getStorage(app), r.chemin)), u = URL.createObjectURL(blob), a = document.createElement("a");
