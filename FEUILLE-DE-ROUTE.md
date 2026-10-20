@@ -492,6 +492,12 @@ types**, refus gardés) : R-A6 et R-E4 partent de là, sans les refaire.
       qu'il est + période + filtres) : la page et « RDV à venir » ne recalculent plus toutes les cures.
       **R-C7 Calcul de l'agenda gardé en mémoire** (C6 : toutes les lignes recalculées deux fois à chaque affichage), avec l'étape 5.3.
 
+- [x] **(20/10/2026, testé ; pas encore en ligne ; demande de Dr Bentahila)** Médecin du patient dans la **ligne 1 du bandeau** du dossier (« 72 ans ·
+      Homme · Dossier n° … · Dr NOM », à partir de 2 médecins ; case « Médecin du patient » de Paramètres › Dossier patient › bandeau, `ENTETE_CALC._med`,
+      cochée par défaut) ; **filtre « Médecin » dans la salle d'attente** (à côté des établissements, à partir de 2 médecins, comme l'agenda) : un
+      médecin voit d'abord ses patients et peut choisir un confrère ou « Tous les médecins » pour l'aider ; secrétaire et infirmière : tous par défaut.
+      Rappel des réponses : patient créé par un médecin = à lui ; par la secrétaire d'un cabinet de plusieurs médecins = elle choisit. test_lot_c 63/63.
+
 **Lot D – Audit n° 6 : finances** (§ 7 ; lot F1 → R-B5 ; l'ancien lot « Caisse » est supprimé)
 - [ ] **R-D1 (F2) Consultation de chimio jour par jour** (C1, d. 1, VALIDÉ) : un acte par jour, à sa date, avec son mode (aujourd'hui un seul
       acte daté du J1, un seul mode : `moteur/finances.js`) ; J8 / J15 à 0 DH par défaut, modifiable, un montant saisi compte à sa date ;

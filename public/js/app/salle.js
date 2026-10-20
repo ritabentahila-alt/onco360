@@ -39,6 +39,7 @@ const seuils = () => { const s = (reglages().salle) || {}; return [s.orange || 2
 let GEN = 0;
 class Memoire extends Map { set(k, v) { GEN++; return super.set(k, v); } delete(k) { GEN++; return super.delete(k); } }
 const SA = new Memoire();
+let MED = null; // 20/10/2026 (demande de Dr Bentahila) : filtre « Médecin » à partir de 2 médecins (null = pas encore choisi : le médecin connecté voit les siens)
 let ECOUTE = null, VUE = "salle", AUTO = true, GARDE = false, PRET = false, FILTRES = false, ETAB = "", RETOUR = null, MINUT = null, JOUR = null, LU = {}, PER = "jour", RECH = "";
 const triPerso = () => (D().profil && D().profil.salleTri) || "rdv"; // rdv | arrivee | alpha (réglage personnel)
 
@@ -191,7 +192,9 @@ function calculerLignes(jours) {
   return lignesSalle({ patients: D().patients, jours, ctx: D().ctx, doc: (id) => SA.get(id), docs: SA.values(), voitChimio: A.voit("traitements"),
     consPaye: voitPrix() ? (x, lid, n, j) => { const E = encDe(x); return !!(E && E.cons && E.cons[lid + "|" + n + "|" + j]); } : null });
 }
-const dansFiltre = (l) => !ETAB || (l.x.doc.etablissementId || "") === ETAB;
+// Médecin d'une ligne : rendez-vous = son médecin (sinon le titulaire) ; séance de chimio = médecin de la ligne, sinon du patient, sinon le titulaire
+const medLigneSalle = (l) => { if (l.rdv) return A.medRdv(l.rdv); const L = l.chimio && (l.x.P.lignes || []).find((z) => z.id === l.chimio.lid); return (L && L.med) || ((l.x.doc.identite || {}).med) || A.medRdv({}); };
+const dansFiltre = (l) => (!ETAB || (l.x.doc.etablissementId || "") === ETAB) && !(MED && A.multiMed() && medLigneSalle(l) !== MED);
 
 // ───── Prix : validé (consultation vue) ou prévu (tarif de l'établissement à cette date) ─────
 const CHARGE = {}; // prix à encaisser demandés (une lecture par patient)
@@ -437,8 +440,11 @@ export function pageSalle(j) {
   if (!$("saL")) { AUTO = !GARDE && !/^#dossier\//.test(PREC); GARDE = false; }
   const m = D().membre, etabs = m.tousEtablissements ? D().etabs.map((e) => e.code) : (m.etablissements || []);
   if (ETAB && etabs.indexOf(ETAB) < 0) ETAB = "";
+  // Médecin (comme l'agenda) : un médecin voit d'abord ses patients, la secrétaire et l'infirmière ceux de tous ; « Tous les médecins » pour aider un confrère
+  if (!A.multiMed()) MED = null; else if (MED == null || (MED && !A.medecins().some((z) => z.uid === MED))) MED = m.role === "medecin" && A.medecins().some((z) => z.uid === D().u.uid) ? D().u.uid : "";
   $("page").innerHTML = '<div class="sa-pg' + (FILTRES ? " ouv" : "") + '" id="saPg"><section class="accueil"><div><h2>Salle d\'attente</h2><p id="saTitre"></p></div>' +
     '<div class="actions sa-etab">' + (etabs.length > 1 ? '<select id="saEtab" aria-label="Établissement"><option value="">Tous les établissements</option>' + etabs.map((c) => '<option value="' + A.esc(c) + '"' + (c === ETAB ? " selected" : "") + ">" + A.esc(c) + "</option>").join("") + "</select>" : "") +
+    (A.multiMed() ? '<select id="saMed" aria-label="Médecin"><option value="">Tous les médecins</option>' + A.medecins().map((z) => '<option value="' + A.esc(z.uid) + '"' + (z.uid === MED ? " selected" : "") + ">" + A.esc(z.nom) + "</option>").join("") + "</select>" : "") +
     // téléphone (SA9b) : établissement, colonnes, période, recherche, tri, impression et calendrier repliés derrière « Filtres »
     '<button class="bt gris sa-ftr" id="saFtr" onclick="saFiltres()" aria-expanded="' + FILTRES + '" aria-controls="saOutils"><svg class="i"><use href="#i-loupe"/></svg>Filtres<span class="n" id="saFtrN"></span></button>' +
     '<button class="bt vert cache" id="saSuiv" onclick="saSuivant()"><svg class="i"><use href="#i-check"/></svg>Patient suivant</button>' +
@@ -458,6 +464,7 @@ export function pageSalle(j) {
     '<div class="sa-defile" id="saDef"><div id="saL"></div></div><div id="saTot"></div></section></div>';
   $("saDef").onscroll = () => { $("saEZ").scrollLeft = $("saDef").scrollLeft; };
   if ($("saEtab")) $("saEtab").onchange = () => { ETAB = $("saEtab").value; dessiner(); };
+  if ($("saMed")) $("saMed").onchange = () => { MED = $("saMed").value; dessiner(); };
   $("saD").onchange = () => { if ($("saD").value) window.saAller($("saD").value); };
   $("saQ").value = RECH; $("saQ").oninput = () => { RECH = $("saQ").value; dessiner(); };
   $("saTri").value = triPerso(); $("saTri").onchange = () => { const v = $("saTri").value; D().profil.salleTri = v; dessiner(); setDoc(doc(db, "utilisateurs", D().u.uid), { salleTri: v }, { merge: true }).catch(() => {}); };
@@ -488,7 +495,7 @@ function dessiner() {
   remplir($("saSem"), sem.map((d) => '<button class="sa-j' + (d === JOUR ? " on" : "") + (d === t ? " auj" : "") + '" onclick="saAller(\'' + d + '\')" aria-pressed="' + (d === JOUR) + '" title="' + A.esc(A.cap(A.jourLong(d))) + '"><span>' + JC[new Date(d + "T12:00:00").getDay()] + "</span><b>" + +d.slice(8, 10) + "</b><i>" + (nb[d] || "") + "</i></button>").join(""));
   $("saD").value = JOUR; $("saAuj").classList.toggle("cache", JOUR === t);
   document.querySelectorAll(".sa-per button").forEach((b) => b.classList.toggle("on", b.dataset.per === PER));
-  const nf = (ETAB ? 1 : 0) + (PER !== "jour" ? 1 : 0) + (RECH.trim() ? 1 : 0); remplir($("saFtrN"), nf ? String(nf) : ""); // filtres actifs
+  const nf = (ETAB ? 1 : 0) + (MED ? 1 : 0) + (PER !== "jour" ? 1 : 0) + (RECH.trim() ? 1 : 0); remplir($("saFtrN"), nf ? String(nf) : ""); // filtres actifs
   const L = tout.filter((l) => l.jour === JOUR && dansPeriode(l) && dansRecherche(l)), n = {}; ONGLETS.forEach(([k]) => { n[k] = 0; }); L.forEach((l) => { n[ongletDe(l)]++; });
   // Onglet d'ouverture (SA9a) : choisi une fois les documents du jour reçus, puis laissé tel quel (clics, arrivées)
   if (AUTO) { VUE = ongletOuverture(n); if (JOUR === t ? PRET : LU[JOUR]) AUTO = false; }

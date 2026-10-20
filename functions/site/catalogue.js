@@ -70,8 +70,8 @@ export const ENTETE0 = ["ddn", "sexe", "taille", "poids", "diag", "diagP", "cin"
 export const TOUJOURS_ENTETE = ["nom", "prenom"]; // le nom du patient : toujours en tête
 // R-G a (audit n° 5, 19/10/2026) : bandeau du dossier. Ligne 1 : « Chimio en cours », « RT en cours » ; ligne 2 : valeurs calculées proposées à
 // cocher (surface corporelle, localisation et stade). Rangées avec les champs dans entetes (clés commençant par « _ ») ; [clé, libellé, ligne]
-export const ENTETE_CALC = [["_chimio", "Chimio en cours (C3/6)", 1], ["_rt", "RT en cours", 1], ["_sc", "Surface corporelle", 2], ["_locst", "Localisation et stade", 2]];
-export const ENTETE_CALC0 = { _chimio: true, _rt: true, _sc: false, _locst: false };
+export const ENTETE_CALC = [["_med", "Médecin du patient (plusieurs médecins)", 1], ["_chimio", "Chimio en cours (C3/6)", 1], ["_rt", "RT en cours", 1], ["_sc", "Surface corporelle", 2], ["_locst", "Localisation et stade", 2]];
+export const ENTETE_CALC0 = { _med: true, _chimio: true, _rt: true, _sc: false, _locst: false };
 export const TYPES_CHAMP = [["texte", "Texte"], ["textelong", "Texte long (plusieurs lignes)"], ["nombre", "Nombre"], ["date", "Date"], ["choix", "Liste de choix"], ["ouinon", "Oui / Non"], ["ouinonp", "Oui / Non + précision"]];
 // 3.11 (12/10/2026) – chaque champ de la fiche a un type, affiché et modifiable par le cabinet (types), sauf ceux dont dépendent un calcul,
 // une liste du cabinet ou un format (FIXES : la raison affichée) ; « oui / non + précision » : case à remplir si « oui » (valeur : le texte

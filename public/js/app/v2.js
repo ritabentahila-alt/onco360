@@ -267,6 +267,9 @@ async function chargerMedecins() {
     D.medecins = s.docs.map((d) => Object.assign({ uid: d.id }, d.data())).filter((m) => m.role === "medecin" && m.actif !== false)
       .map((m) => ({ uid: m.uid, nom: /^(Dr|Pr)\b/i.test(m.nom || "") ? m.nom : "Dr " + (m.nom || m.email || "") })).sort((a, b) => a.nom.localeCompare(b.nom));
     if (D.medecins.length > 1 && location.hash.indexOf("#agenda") === 0) pageAgenda();
+    // 20/10/2026 : salle d'attente (filtre « Médecin ») et bandeau du dossier (médecin du patient) refaits une fois la liste connue
+    else if (D.medecins.length > 1 && location.hash.indexOf("#salle") === 0 && !occupeEcran()) pageSalle();
+    else if (D.medecins.length > 1 && /^dossier\//.test(D.page || "") && !occupeEcran()) { const y = window.scrollY; pageDossier(decodeURIComponent(D.page.slice(8))); window.scrollTo(0, y); }
   } catch (er) { D.medecins = null; }
 }
 const titulaireUid = () => (D.espaceDoc && D.espaceDoc.titulaire) || "";
@@ -1151,7 +1154,7 @@ function pageDossier(id) {
   const ban = '<div class="bn1"><a class="retour bn-ret" href="#patients" title="Liste des patients">' + ic("retour") + '<span>Patients</span></a>' +
     // 19/10/2026 (demande de Dr Bentahila) : plus de bouton du menu dans le bandeau ; celui du menu replie le menu pour le dossier seulement
     '<button type="button" class="bn-ph" onclick="' + (!P.photo && peut("identite") ? "photoPatient" : "dosPhoto") + "(" + qx + ')" title="' + (P.photo ? "Agrandir la photo" : peut("identite") ? "Ajouter une photo du patient" : "Photo du patient") + '" aria-label="Photo du patient">' + bulle(x, "ph-ban") + "</button>" +
-    '<div class="bn-id"><h2>' + esc(r.nm) + '</h2><span class="bn-m">' + esc([a != null ? a + " ans" : "", P.sexe === "F" ? "Femme" : P.sexe === "H" ? "Homme" : "", P.numero ? "Dossier n° " + P.numero : ""].filter(Boolean).join(" · ")) + "</span></div>" +
+    '<div class="bn-id"><h2>' + esc(r.nm) + '</h2><span class="bn-m">' + esc([a != null ? a + " ans" : "", P.sexe === "F" ? "Femme" : P.sexe === "H" ? "Homme" : "", P.numero ? "Dossier n° " + P.numero : "", L1._med && multiMed() ? nomMed(medPatient(x) || titulaireUid()) || "" : ""].filter(Boolean).join(" · ")) + "</span></div>" +
     '<div class="bn-bd">' + (allergique(P) ? '<span class="badge b-al bn-al" title="' + esc("Allergie" + (alTxt ? " : " + alTxt : " (détail non précisé)")) + '">' + ic("alerte") + "Allergie" + (alTxt ? " : " + esc(alTxt.length > 40 ? alTxt.slice(0, 38) + "…" : alTxt) : "") + "</span>" : "") +
       (P.statut ? '<span class="badge ' + (P.statut === "decede" ? "b-dc" : P.statut === "perdu" ? "b-or" : "b-gr") + '">' + esc(libStatut(P.statut)) + (P.statut === "decede" && P.decesLe ? " le " + dfrA(P.decesLe) : "") + "</span>" : "") +
       (L1._chimio && enCh ? '<span class="badge b-co" title="Chimiothérapie en cours : ' + esc(r.t.nom || "") + '">Chimio C' + (r.t.k || r.t.nb) + "/" + r.t.nb + "</span>" : "") +
