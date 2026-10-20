@@ -91,7 +91,13 @@ table.lc td{padding:9px 8px;border-bottom:1px solid var(--gris-cc);vertical-alig
 #mQ{flex:1;min-width:180px}
 .spe-g{display:grid;grid-template-columns:260px minmax(0,1fr);gap:14px;align-items:start}.spe-l{display:flex;flex-direction:column;gap:6px}
 .spe{background:#fff;color:inherit;border:1px solid var(--trait);border-radius:12px;padding:10px 12px;text-align:left;display:flex;flex-direction:column;gap:2px;white-space:normal}.spe.on{border-color:var(--prim);background:var(--prim-c)}
-.spe-d{display:grid;gap:12px;min-width:0}.lc .fl{display:flex;gap:2px}.lc .fl button{padding:2px 7px}.lc td.act{display:flex;gap:6px;flex-wrap:wrap}
+.spe-d{display:grid;gap:12px;min-width:0}
+/* Modèle des cabinets neufs (20/10/2026) : trois étapes */
+.etp{display:flex;align-items:center;gap:10px;margin:0 0 8px}.etp span{flex:none;width:28px;height:28px;border-radius:50%;background:var(--bleu);color:#fff;display:grid;place-items:center;font-size:var(--t3)}
+.mod-etat{background:var(--fond-doux);border-radius:12px;padding:10px 12px;margin:0 0 10px;font-size:var(--t3)}
+.mod-r{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--gris-c)}.mod-r>div:first-child{min-width:0}.mod-r>div:last-child{flex:none}
+.mod-u p{margin:0 0 10px;font-size:var(--t4);line-height:1.5}.mod-u .barre{margin:-4px 0 12px}
+@media (max-width:760px){.mod-r{flex-direction:column;align-items:stretch}.mod-r>div:last-child button{width:100%}}.lc .fl{display:flex;gap:2px}.lc .fl button{padding:2px 7px}.lc td.act{display:flex;gap:6px;flex-wrap:wrap}
 @media (max-width:760px){.spe-g{grid-template-columns:minmax(0,1fr)}.spe-l{flex-direction:row;overflow-x:auto}.spe{min-width:180px}}
 .bdg.al{background:var(--rouge-c);color:var(--rouge)}
 /* Formules */
@@ -146,5 +152,5 @@ textarea{font-size:var(--t3);margin-top:4px}
 <nav id="onglets"></nav></header>
 <main id="page"><div class="carte"><p class="sous">Chargement…</p></div></main>
 <div id="modal" class="cache"></div>
-<script type="module" src="./js/app/admin.js?v=20261020d"></script>
+<script type="module" src="./js/app/admin.js?v=20261020f"></script>
 </body></html>

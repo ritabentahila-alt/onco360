@@ -259,6 +259,15 @@ export function formRetouches(CAT, R, base) {
   const aj = R.ajouts.filter((a) => a.cabinet).map((a) => { const c = Object.assign({}, a); delete c.cabinet; return c; }); if (aj.length) out.ajouts = aj;
   return out;
 }
+// Fiche ou formulaire d'une spécialité, à enregistrer (plateforme/specialites) : les différences entre le formulaire R (effectif) et celui
+// d'une spécialité vide, tous les champs ajoutés comptés comme les siens ; formEffectif(CAT, null, résultat) redonne R. Tout est gardé : ordre,
+// présence, noms, en-têtes, types, parties, impression, unités, libellés courts, formulaires nommés et formulaire de chaque type (20/10/2026 :
+// l'enregistrement de Par spécialité perdait types, parties, formulaires et formulaire de chaque type). Même calcul que la reprise du modèle.
+export function formSpecialite(CAT, R, onco) {
+  const base = formEffectif(CAT, null, onco ? { _onco: true } : {}), R2 = JSON.parse(JSON.stringify(R));
+  (R2.ajouts || []).forEach((a) => { if (!(base.ajouts || []).some((z) => z.id === a.id)) a.cabinet = true; });
+  return formRetouches(CAT, R2, base);
+}
 // Fiche patient (espaces/{e}.ficheSpe + reglage.fiche) et consultation (espaces/{e}.consultSpe + reglage.consultation)
 export const ficheEffective = (f, spe) => formEffectif(FICHE, f, spe);
 export const ficheRetouches = (R, base) => formRetouches(FICHE, R, base);

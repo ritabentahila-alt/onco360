@@ -322,6 +322,16 @@ types**, refus gardés) : R-A6 et R-E4 partent de là, sans les refaire.
       cabinet vers le modèle, ni du modèle vers les cabinets. Tests : `tests/emulateur/test-modele.mjs` 29/29 (`npm run modele`, dans
       `--regles`), `tests/test_modele_admin.py` 15/15. **À faire par Dr Bentahila après la mise en ligne** : Administration › Par spécialité ›
       Bibliothèque et paramètres › « Voir les différences et reprendre ».
+      **Écran refait le 20/10/2026 (« incompréhensible », Dr Bentahila)** : Par spécialité › **Modèle des cabinets neufs**, en trois étapes :
+      1. « Copier le cabinet du Dr Bentahila dans le modèle » = **une seule action** (protocoles + réglages ; l'ancien bouton « Recopier depuis le
+      cabinet Bentahila » à part est retiré, `referenceDepuisCabinet` reste appelable) ; une photo : ensuite **plus aucun lien** (l'enregistrement
+      de la fiche / du formulaire de la spécialité ne touche plus `cabinet-bentahila`) ; anciens protocoles du modèle gardés dans la copie de
+      secours ; 2. Ajuster le modèle (Ouvrir le modèle, Fiche patient, Formulaire, packs) ; 3. Ce que reçoivent les cabinets (neufs : tout ;
+      déjà créés : fiche et formulaire aussitôt, protocoles par version publiée, le reste par « Appliquer le modèle »). Défauts corrigés :
+      cartes Fiche / Formulaire pas relues après la copie (ancien modèle affiché) ; « Enregistrer » de Par spécialité perdait types, parties,
+      impression, unités, formulaires nommés et formulaire de chaque type (`formSpecialite` de catalogue.js, même calcul que la copie).
+      Tests : `test-modele.mjs` 41/41, `test_modele_admin.py` 29/29, `test-modele.js` 26/26, test_bibliotheque, test_fiche, test_cabinets,
+      test_consultation_form, test_modules.
       **R-A6 Réglages du cabinet Bentahila repris par l'Administration** (DEMANDÉ, § 3.5 ; part de P11). Aujourd'hui rien ne remonte : fiche
       patient et formulaires de consultation vivent à trois niveaux (modèle `plateforme/specialites[id].fiche` / `.consultation`, copie
       `espaces/{e}.ficheSpe` / `.consultSpe`, retouches `reglage.fiche` / `.consultation`) ; `parametres/typesConsult` n'est même pas dans

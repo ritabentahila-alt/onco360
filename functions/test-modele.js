@@ -49,6 +49,15 @@ const sansCab = (v) => JSON.parse(JSON.stringify(v, (k, x) => (k === "cabinet" ?
   // Cabinet existant qui avait l'ancienne copie de la spécialité et ses retouches : ses retouches restent par-dessus
   const E3 = M.effectifs(cat, { ficheSpe: M.modelePrioritaire(mf, ficheSpe), consultSpe: mc, abonnement: { modules: { chimio: true }, reglage: {} } }, { fiche: { libs: { mut: "Assurance" } } }, null);
   cas("cabinet existant : ses propres retouches gardées (nom « Assurance »), champs du modèle reçus", E3.fiche.libs.mut === "Assurance" && E3.fiche.ajouts.some((a) => a.id === "xgeuit"));
+  console.log("Enregistrer la fiche et le formulaire dans Par spécialité (20/10/2026) : rien de perdu");
+  // le modèle repris (mf, mc) ouvert dans l'éditeur de la spécialité puis enregistré sans rien toucher : même fiche, mêmes formulaires
+  const spF = Object.assign({}, mf, { types: { ald: "textelong" }, sections: { cin: "med" }, unites: { taille: "m" }, imprimes: { cin: true }, courts: { mut: "Org." } });
+  const FIf = cat.ficheEffective(null, cat.avecOnco(spF, "Oncologie – Radiothérapie")), FIc = cat.consultEffective(null, cat.avecOnco(mc, "Oncologie – Radiothérapie"));
+  const reF = C.ficheNettoyee(cat.formSpecialite(cat.FICHE, FIf, FIf.onco)), reC = C.ficheNettoyee(cat.formSpecialite(cat.CONSULT, FIc, FIc.onco));
+  const FIf2 = cat.ficheEffective(null, cat.avecOnco(reF, "Oncologie – Radiothérapie")), FIc2 = cat.consultEffective(null, cat.avecOnco(reC, "Oncologie – Radiothérapie"));
+  cas("fiche patient : ordre, présence, noms, en-têtes, types, parties, unités, impression, libellés courts gardés", vue(FIf2) === vue(FIf) && FIf2.types.ald === "textelong" && FIf2.unites.taille === "m" && FIf2.sections.cin === "med" && FIf2.courts.mut === "Org.", reF);
+  cas("formulaire de consultation : formulaires nommés et formulaire de chaque type gardés (« RCP »)", formsVus(FIc2) === formsVus(FIc) && cat.formDuType(FIc2, "RCP") === "frcp", reC);
+  cas("même calcul que la reprise du modèle", JSON.stringify(reF.ajouts) === JSON.stringify(C.ficheNettoyee(M.modeleForm(cat, cat.FICHE, FIf, true)).ajouts));
   console.log("Écart d'un cabinet au modèle (lecture seule)");
   const ec = M.ecart(cat, "fiche", { libs: { mut: "Organisme" }, champs: { tel2: false }, ajouts: [{ id: "xscore", lib: "Score" }] }, { libs: { mut: "Assurance" }, ajouts: [{ id: "xscore", lib: "Score" }, { id: "xpropre", lib: "Champ propre au cabinet" }] });
   cas("fiche : champ ajouté par le cabinet (son nom), présence remise, nom affiché changé, en clair", ec.plus.indexOf("Champ propre au cabinet") >= 0 && ec.moins.some((x) => /\(présence\)$/.test(x)) && ec.change.some((x) => /\(nom affiché\)$/.test(x)) && ec.n === 3, ec);

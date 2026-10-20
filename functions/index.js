@@ -450,9 +450,18 @@ async function source(par, specialite) {
 // protocoles, médicaments, ordonnances types, analyses, bilans, examens, courriers (étoiles retirées), paramètres de base nettoyés
 // (parametreDepart), tarifs de radiothérapie. Jamais : patients, correspondants, prix, lieux, équipe, documentation (PDF du cabinet).
 // Ensuite la bibliothèque du cabinet Bentahila est la sienne : ses modifications ne changent plus la référence.
+// 20/10/2026 : appelée aussi par « Copier depuis le cabinet du Dr Bentahila » (modeleReprendre, une seule action : protocoles et réglages).
 exports.referenceDepuisCabinet = onCall({ timeoutSeconds: 300, memory: "512MiB" }, async (req) => {
   const par = req.auth && req.auth.uid;
   if (!(await estAdministrateur(par))) throw new HttpsError("permission-denied", "Réservé à l'administration d'Onco360.");
+  return copierBibliothequeBentahila(par);
+});
+// Protocoles d'un espace, à plat, sans ce qui est propre au cabinet (étoiles, trace de validation) : pour compter les différences
+async function protocolesDe(e) {
+  const l = []; (await db.collection("espaces/" + e + "/protocoles").get()).docs.forEach((d) => { try { (JSON.parse(d.data().data || "[]") || []).forEach((o) => { if (!o || typeof o !== "object") return; const c = Object.assign({}, o); ["fav", "valide", "majPar", "majParNom"].forEach((k) => delete c[k]); l.push(c); }); } catch (er) { /* illisible */ } });
+  return l;
+}
+async function copierBibliothequeBentahila(par) {
   const M = "espaces/" + C.MODELE + "/", E = "espaces/bib-oncologie/", jour = new Date().toISOString().slice(0, 10);
   if (!(await db.doc("espaces/bib-oncologie").get()).exists) throw new HttpsError("failed-precondition", "Ouvrez d'abord une fois la bibliothèque d'Oncologie – Radiothérapie (« Créer et ouvrir »).");
   const json = (x) => { try { return x.exists ? JSON.parse(x.data().data || "null") : null; } catch (er) { return null; } };
@@ -475,7 +484,7 @@ exports.referenceDepuisCabinet = onCall({ timeoutSeconds: 300, memory: "512MiB" 
   await jAdmin(par, "bibliotheque", "bib-oncologie", "Bibliothèque Oncologie – Radiothérapie", "Recopiée depuis le cabinet du Dr Bentahila (" + nb.protocoles + " protocoles)");
   console.log("référence recopiée depuis", C.MODELE, "par", par, JSON.stringify(nb));
   return { nb, le: jour };
-});
+}
 // P9 (18/10/2026) : bibliothèque commune. L'administration publie une version de la référence (numéro, notes = journal des changements) ;
 // chaque cabinet demande ses différences (protocoles et ordonnances types nouveaux ou différents, functions/reference.js) et choisit dans
 // Onco360 (protocoles.js) ; rien n'est écrit ici dans un cabinet. « Signaler une erreur » arrive dans le journal de l'administration.
@@ -942,7 +951,8 @@ exports.ficheSpecialite = onCall({ timeoutSeconds: 120, memory: "256MiB" }, asyn
   tout[id] = Object.assign({}, tout[id] || {}, { nom: spe, [quoi]: fiche, [quoi + "Le"]: new Date().toISOString(), [quoi + "Par"]: par });
   await ref.set(tout);
   const FS = await formules(), bib = C.bibDe(spe), es = await db.collection("espaces").get(); let n = 0;
-  for (const e of es.docs) { if (C.estBib(e.id) || bibDuCabinet(e.data(), FS) !== bib) continue; await e.ref.update({ [CHAMP_ESPACE[quoi]]: fiche }); n++; }
+  // 20/10/2026 : jamais le cabinet du Dr Bentahila (le modèle en est une copie, faite à la demande ; il n'y est plus relié)
+  for (const e of es.docs) { if (C.estBib(e.id) || e.id === C.MODELE || bibDuCabinet(e.data(), FS) !== bib) continue; await e.ref.update({ [CHAMP_ESPACE[quoi]]: fiche }); n++; }
   await jAdmin(par, "specialite", "", "", (quoi === "consultation" ? "Formulaire de consultation" : "Fiche patient") + " de « " + spe + " » enregistré · " + n + " cabinet(s) mis à jour");
   console.log(quoi, "de la spécialité", spe, "par", par, n, "cabinet(s)");
   return { cabinets: n, fiche };
@@ -989,11 +999,17 @@ exports.modeleReprendre = onCall({ timeoutSeconds: 120, memory: "512MiB" }, asyn
   if (!(await estAdministrateur(par))) throw new HttpsError("permission-denied", "Réservé à l'administration d'Onco360.");
   const { spe, nouveau } = await reglagesDe(C.MODELE), { parametres, bibliotheques } = nouveau;
   const avant = await etatModele(spe), diffs = MOD.PARTIES.map(([k, lib]) => { const d = MOD.difference(avant.modele[k], nouveau[k]); return { k, lib, n: MOD.total(d), resume: MOD.resume(d) }; });
+  // 20/10/2026 : les protocoles font partie de la même copie (bibliothèque d'oncologie seulement)
+  const avecProt = avant.bib === "bib-oncologie";
+  if (avecProt) { const [pc, pr] = await Promise.all([protocolesDe(C.MODELE), protocolesDe(avant.bib)]), d = MOD.difference(pr, pc); diffs.unshift({ k: "protocoles", lib: "Protocoles de chimiothérapie", n: MOD.total(d), resume: MOD.resume(d), nb: pc.length }); }
   const n = diffs.reduce((t, d) => t + d.n, 0);
   if (!confirmer) return { specialite: spe, repris: avant.repris, diffs, n };
-  const le = new Date().toISOString(), copieDe = await sauverCopie("plateforme/sauvegardes/modele-" + avant.id + "-" + Date.now() + ".json", { specialite: spe, le, par, modele: avant.modele });
+  // protocoles du modèle gardés dans la même copie (20/10/2026 : ils sont remplacés par ceux du cabinet)
+  const protAvant = avecProt ? (await db.collection("espaces/" + avant.bib + "/protocoles").get()).docs.map((d) => ({ id: d.id, v: d.data() })) : null;
+  const le = new Date().toISOString(), copieDe = await sauverCopie("plateforme/sauvegardes/modele-" + avant.id + "-" + Date.now() + ".json", { specialite: spe, le, par, modele: avant.modele, protocoles: protAvant });
   const ref = db.doc("plateforme/specialites"), s0 = await ref.get(), tout = s0.exists ? s0.data() : {};
   tout[avant.id] = Object.assign({}, tout[avant.id] || {}, { nom: spe, fiche: nouveau.fiche, consultation: nouveau.consultation, reglage: nouveau.reglage, ficheLe: le, fichePar: par, consultationLe: le, consultationPar: par, repris: { le, par, source: C.MODELE, n, copie: copieDe } });
+  if (avecProt) await copierBibliothequeBentahila(par);
   await ref.set(tout);
   const B = "espaces/" + avant.bib + "/", b = db.batch();
   if (!(await db.doc("espaces/" + avant.bib).get()).exists) throw new HttpsError("failed-precondition", "Ouvrez d'abord une fois la bibliothèque de la spécialité (Administration › Bibliothèques, « Créer et ouvrir »).");

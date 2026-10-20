@@ -32,6 +32,9 @@ await db.doc(MOD + "/bibliotheques/courriers").set(J([{ id: "rt-rdv", rt: "rdv",
 // Bibliothèque de référence (ancien modèle) et autre cabinet fictif (ancienne copie de la spécialité, ses propres modifications)
 await db.doc(BIB).set({ bibliotheque: true, nom: "Oncologie – Radiothérapie" });
 await db.doc(BIB + "/bibliotheques/medicaments").set(J([{ id: "m1", nom: "FICTIVOL 5 mg", poso: "1 cp" }]));
+// Protocoles (20/10/2026 : copiés dans la même action que les réglages)
+await db.doc(MOD + "/protocoles/lib_0").set(J([{ id: "p1", nom: "PROTOCOLE TEST A", fav: true, valide: { le: "2026-10-01", par: "MED" } }, { id: "p2", nom: "PROTOCOLE TEST B" }]));
+await db.doc(BIB + "/protocoles/lib_0").set(J([{ id: "p0", nom: "ANCIEN PROTOCOLE DU MODÈLE" }]));
 await db.doc(X).set({ nom: "Cabinet X (test)", titulaire: "MX", actif: true, ficheSpe: { ajouts: [{ id: "xvieux", lib: "Ancien champ", type: "texte", partie: "clinique" }] },
   abonnement: { formule: "complet", modules: { chimio: true }, reglage: { menu: ["agenda"], cartes: { stats: true } } } });
 await db.doc(X + "/parametres/listes").set(J({ diag: ["Cancer X"], mut: [], cor: ["Dr Correspondant de X"] }));
@@ -54,6 +57,9 @@ await signInWithEmailAndPassword(auth, "adm@test.ma", "motdepasse-test");
 const a1 = (await reprendre({})).data;
 cas("aperçu : différences partie par partie (fiche, consultation, types, paramètres, bibliothèques, réglage)", a1.n > 0 && ["fiche", "consultation", "typesConsult", "parametres", "bibliotheques", "reglage"].every((k) => a1.diffs.some((d) => d.k === k && d.n > 0)), a1.diffs.map((d) => d.k + ":" + d.n));
 cas("aperçu : rien n'est écrit", !(await db.doc("plateforme/specialites").get()).exists);
+const dp = a1.diffs.find((d) => d.k === "protocoles");
+cas("aperçu : les protocoles dans la même copie (2 ajoutés, 1 retiré)", dp && dp.n === 3 && dp.nb === 2, dp);
+cas("aperçu : protocoles du modèle pas encore remplacés", (await lire(BIB + "/protocoles/lib_0"))[0].id === "p0");
 const a2 = (await reprendre({ confirmer: true })).data, SP = (await db.doc("plateforme/specialites").get()).data(), m = Object.values(SP)[0];
 cas("modèle écrit : fiche avec les champs ajoutés (spécialité et cabinet), le nom « Organisme », le champ caché", m && (m.fiche.ajouts || []).map((x) => x.id).sort().join() === "xgeuit,xscore" && m.fiche.libs.mut === "Organisme" && m.fiche.champs.tel2 === false, m && m.fiche);
 cas("modèle écrit : formulaire de consultation (formulaire nommé « RCP »), réglage (menu, cartes, fonctions)", m.consultation.typesForm && m.consultation.typesForm.RCP === "frcp" && m.reglage.menu[0] === "salle" && m.reglage.cartes.stats === false && m.reglage.cartes.rappels === false && m.reglage.fonctions["agenda.whatsapp"] === false);
@@ -63,6 +69,9 @@ const Lb = await lire(BIB + "/parametres/listes"), Mb = await lire(BIB + "/bibli
 cas("bibliothèque de référence : listes sans les correspondants du cabinet modèle", Lb && Lb.diag.indexOf("Cancer test A") >= 0 && !(Lb.cor || []).length, Lb && Lb.cor);
 cas("bibliothèque de référence : médicaments du cabinet modèle, sans étoiles", Mb.length === 2 && !Mb.some((x) => x.fav));
 cas("types de consultation et WhatsApp repris", ((await lire(BIB + "/parametres/typesConsult")) || []).some((t) => t.k === "telecs") && (await lire(BIB + "/parametres/whatsapp")).rappel);
+const Pb = await lire(BIB + "/protocoles/lib_0");
+cas("protocoles copiés dans le modèle, sans étoiles", Pb.map((x) => x.id).join() === "p1,p2" && !Pb.some((x) => x.fav), Pb);
+cas("anciens protocoles du modèle gardés dans la copie de secours", JSON.stringify(JSON.parse((await bucket.file(m.repris.copie).download())[0]).protocoles).includes("ANCIEN PROTOCOLE DU MODÈLE"));
 cas("le cabinet modèle n'est pas touché (ses étoiles, ses correspondants)", (await lire(MOD + "/bibliotheques/medicaments"))[0].fav === true && (await lire(MOD + "/parametres/listes")).cor[0] === "Dr Correspondant Privé");
 cas("cabinet déjà créé : pas encore changé (il faut « Appliquer »)", ((await db.doc(X).get()).data().ficheSpe.ajouts || []).length === 1);
 const a3 = (await reprendre({})).data;
@@ -70,6 +79,11 @@ cas("après la reprise : aucune différence depuis", a3.n === 0 && a3.repris, a3
 const j1 = await db.collection("journalAdmin").get();
 cas("reprise notée au journal de l'administration", j1.docs.some((d) => /Modèle repris du cabinet du Dr Bentahila/.test(d.data().txt)));
 
+console.log("Fiche de la spécialité enregistrée dans l'Administration : plus liée au cabinet du Dr Bentahila");
+const ficheSpe = httpsCallable(fn, "ficheSpecialite", { timeout: 120000 }), avantMod = JSON.stringify((await db.doc(MOD).get()).data().ficheSpe);
+const fs1 = (await ficheSpe({ specialite: "Oncologie – Radiothérapie", quoi: "fiche", fiche: Object.assign({}, m.fiche, { libs: Object.assign({}, m.fiche.libs, { cin: "Pièce d'identité" }) }) })).data;
+cas("cabinet du Dr Bentahila pas touché ; autre cabinet de la spécialité mis à jour", JSON.stringify((await db.doc(MOD).get()).data().ficheSpe) === avantMod && (await db.doc(X).get()).data().ficheSpe.libs.cin === "Pièce d'identité" && fs1.cabinets === 1, fs1);
+await ficheSpe({ specialite: "Oncologie – Radiothérapie", quoi: "fiche", fiche: m.fiche }); await db.doc(X).update({ ficheSpe: { ajouts: [{ id: "xvieux", lib: "Ancien champ", type: "texte", partie: "clinique" }] } }); // remis comme avant
 console.log("Appliquer à un autre cabinet : rien d'écrasé, ce qui manque est ajouté");
 refus = null; try { await appliquer({ espace: "cabinet-bentahila" }); } catch (e) { refus = e.code; }
 cas("refusé sur le cabinet modèle lui-même", refus === "functions/invalid-argument", refus);

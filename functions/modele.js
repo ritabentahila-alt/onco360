@@ -83,11 +83,8 @@ function resume(d, max) {
 // Modèle d'une fiche ou d'un formulaire (catalogue du site, même code : functions/site/catalogue.js) : différences entre le formulaire
 // effectif du cabinet (R) et celui d'une spécialité vide, tous les champs ajoutés comptés comme les siens. Vérifié : le formulaire effectif
 // d'un cabinet qui reçoit ce modèle sans retouche = R (test-modele.js).
-function modeleForm(cat, CAT, R, onco) {
-  const base = cat.formEffectif(CAT, null, onco ? { _onco: true } : {}), R2 = copie(R);
-  (R2.ajouts || []).forEach((a) => { if (!(base.ajouts || []).some((z) => z.id === a.id)) a.cabinet = true; });
-  return cat.formRetouches(CAT, R2, base);
-}
+// Calcul commun avec l'enregistrement de Par spécialité (catalogue.js `formSpecialite`, 20/10/2026).
+const modeleForm = (cat, CAT, R, onco) => cat.formSpecialite(CAT, R, onco);
 // Réglages effectifs d'un cabinet (comme v2.js `charger`) : regAdmin (pack + retouches de l'administration, fiche et consultation de la
 // spécialité) puis retouches du cabinet lui-même (parametres/formulaires) ; tableau de bord du cabinet (parametres/accueil) par-dessus
 function effectifs(cat, espaceDoc, formCab, accueilCab) {
