@@ -596,7 +596,7 @@ dans `public/js/donnees/majbib.js` (écrit d'après la liste d'avant : « avant 
       protocole (en grande partie fait par P6), recherche par médicament, duplicata.
 
 **Lot F – Audit n° 8 : sauvegarde et restauration** (§ 9 ; questions 3, 4, 5 répondues le 20/10/2026)
-**Fait le 20/10/2026 (R-F2 à R-F7 en une session, demande de Dr Bentahila ; testé ; pas encore en ligne)**. Réponses du 20/10 : (3) **pas d'alerte**
+**Fait le 20/10/2026 (R-F2 à R-F7 en une session, demande de Dr Bentahila ; testé, contrôle complet bon (120, Chrome et Safari, règles, émulateurs) ; en ligne : 20261020d, site et fonctions, accord de Dr Bentahila ; API Google Drive activée et copie de nuit v11 collée par elle)**. Réponses du 20/10 : (3) **pas d'alerte**
 à chaque export complet ; (4) durées de conservation **inchangées** ; (5) **n'importe qui peut restaurer, depuis son compte** (médecin titulaire :
 bouton dans Paramètres) **et l'Administration** (onglet Sauvegardes) → deux modes d'emploi : `guide/en-cas-de-probleme.md` (cabinet, aussi dans
 Onco360) et `outils/RESTAURER.md` (Administration et dernier recours). Exercice R-F1 : **reporté** (« pas maintenant »).
