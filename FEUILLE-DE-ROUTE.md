@@ -78,18 +78,21 @@ Sources plus anciennes : audits n° 1 à 3 (Drive › Audit, `archives/audit-3/`
 - [ ] Lundi 26/10 : le premier export de la semaine (dimanche 25/10, 1 h 30) est-il dans Paramètres › Export des données et dans son Drive ?
 
 **Questions** :
-1. (11/10, toujours ouverte ; **bloque T6**) Mesurer la hauteur des en-têtes du papier (ordonnance A5, A4, documents) pour régler les marges
-   (Paramètres › Impression).
-2. (11/10, toujours ouverte) GitHub : demander la purge des copies en cache ; regarder Insights › Traffic › « Git clones ».
-3. (20/10, d. 36 : **réponse de Dr Bentahila à confirmer**) Elle pensait que seul Firebase nomme l'administrateur. **Vérifié dans les règles le
-   20/10** : son compte de tous les jours (ritabentahila@gmail.com) peut écrire la liste des administrateurs depuis le navigateur
-   (`firestore.rules`, `match /administrateurs/{uid}` : `allow write: if proprietaire()`, et `proprietaire()` = cette adresse). Le compte
-   d'administration a bien son autre adresse et son autre mot de passe, mais quelqu'un qui volerait le mot de passe de tous les jours (session
-   restée ouverte sur un poste de clinique) pourrait **se nommer administrateur lui-même**. La correction (L6 a) ne change rien pour elle :
-   elle continue de nommer l'administrateur dans la console Firebase. **Conseil : oui.** À confirmer d'un mot au début de L6.
-4. (20/10, d. 15) Le reçu : Dr Bentahila demande de retirer la phrase, absente du reçu de Cheikh Khalifa qu'elle a envoyé (d'après son souvenir ;
-   la photo n'est jamais dans le dépôt). Compris ainsi : retirer la mention « Acte exonéré de TVA » et la phrase « à valider par le comptable du
-   cabinet » (étape T6). **À confirmer avec la photo au début de T6** (elle la remontre ; on compare mention par mention).
+1. ~~(11/10) Hauteur des en-têtes du papier~~ **Répondu le 20/10** : marge du haut de l'ordonnance sur papier à en-tête **réglée à 55 mm**
+   (Paramètres › Impression) : « ça rentre bien ». T6 n'est plus bloquée.
+2. ~~(11/10) GitHub : purge des copies en cache, « Git clones »~~ **Abandonné le 20/10** (Dr Bentahila : « oublie ça »).
+3. ~~(20/10, d. 36)~~ **Répondu le 20/10 : oui**, à condition de pouvoir encore nommer l'administrateur dans Firebase (c'est le cas : la console
+   Firebase ne passe pas par les règles). Explication donnée : aucun écran d'Onco360 ne permet de nommer un administrateur, mais les règles
+   (`firestore.rules`, `match /administrateurs/{uid}` : `allow write: if proprietaire()`, `proprietaire()` = l'adresse ritabentahila@gmail.com)
+   laissent ce compte écrire cette liste. Quelqu'un qui aurait la session ouverte (poste de clinique) ou le mot de passe pourrait, avec la
+   console de développement du navigateur ou un petit programme, ajouter son propre compte à la liste. C'est la règle qui protège, pas l'écran
+   (étape L6 a).
+4. ~~(20/10, d. 15)~~ **Répondu le 20/10 avec la photo du reçu de l'hôpital Cheikh Khalifa** (photo montrée dans la conversation, d'un vrai patient :
+   **jamais dans le dépôt**, seule la mise en page est notée) : « BILLET D'ADMISSION » ; en haut le nom de l'établissement et « Date » ; tableau
+   N° d'admission (code-barres et numéro, compteur à droite), Nom patient, Médecin (spécialité dessous en italique), Prestations, Encaissement
+   (montant, « PAYANT ») ; cadre « Visa accueil » (identifiant de l'agent, heure). **Aucune mention de TVA, ni IF, TP, ICE, INPE, ni montant en
+   lettres.** → T6 : « Acte exonéré de TVA » et la phrase « à valider par le comptable » retirées. Les autres mentions du reçu d'Onco360 (IF, TP,
+   ICE, INPE, montant en lettres), décidées le 17/10, restent ; chacune se décoche déjà dans Paramètres › Impression.
 5. (20/10, O4) Prix des packs : « mettre plutôt les mêmes prix que GestiCab ou DabaDoc, prix marocains » (étape L10 : relevé des prix, puis
    proposition).
 
@@ -114,9 +117,9 @@ semaines de sessions, puis une recopie des données (l'export complet sert déj�
 1. **Préparer sans rien déménager** : rassembler tous les appels à Firebase dans un seul fichier « accès aux données » (étape 5.8). Le jour où
    l'on change, on ne réécrit que ce fichier et le serveur, pas les 15 000 lignes des écrans. Cela sert aussi la cession (un acheteur peut
    vouloir son propre hébergement).
-2. **Vérifier avant que ce soit obligatoire** : la loi 09-08 permet en principe un hébergement à l'étranger avec une autorisation de la CNDP ;
-   la loi 05-20 et les groupes de cliniques peuvent pousser vers le Maroc. Une seule question à un juriste (question 2 de sa fiche, audit 10)
-   évite peut-être des semaines de travail. (Ce n'est pas un avis juridique : Claude n'est pas juriste.)
+2. ~~Vérifier avant que ce soit obligatoire~~ **Réponse de Dr Bentahila (20/10) : c'est obligatoire. Plus tard, pas d'actualité, mais à garder
+   en tête** : un hébergement au Maroc se fera avant les cabinets clients (et avant la demande d'autorisation à la CNDP, O1). L'étape 5.8
+   (accès aux données en un seul endroit) reste proposée dans la phase E, à faire quand Dr Bentahila le décide.
 
 ---
 
@@ -133,7 +136,7 @@ semaines de sessions, puis une recopie des données (l'export complet sert déj�
 
 **Premier cabinet** (d. 16, 17, 20, O1) : le gel 0.5 est **levé pour des confrères amis qui testent** (pilote gratuit d'un mois, peut-être gratuit
 pour toujours, un point chaque semaine) ; juriste **après** l'essai chez 2 ou 3 médecins. **Date pas fixée** : Dr Bentahila pense devoir d'abord
-passer à un hébergeur marocain et demander l'autorisation de la CNDP (O1 ; voir la réponse ci-dessus : à faire confirmer avant de déménager).
+passer à un hébergeur marocain (**obligatoire**, réponse du 20/10) et demander l'autorisation de la CNDP (O1) : plus tard, pas d'actualité.
 Avant le **premier client payant** : société éditrice, projet Firebase et nom de domaine à son nom (d. 18).
 
 ### Correspondance avec l'ancien plan (13/10 et 18/10, gardé en bas)
@@ -161,7 +164,9 @@ Avant le **premier client payant** : société éditrice, projet Firebase et nom
       n° 2.26.530) ; les navigateurs et Node pas à jour (données horaires 2025b) donnent encore GMT+1 pour `Africa/Casablanca` : arrivée et attente en
       salle, « à jour à », Visa accueil du reçu, créneau « maintenant », changement de jour (`nouveauJour` à 23 h au lieu de minuit) faux d'une heure.
       Rendez-vous et Google Agenda non touchés. **Réponse de Dr Bentahila : oui, mais suivre les changements d'heure marocains (plusieurs dans
-      l'année).** Solution : Onco360 ne demande plus l'heure du Maroc à l'ordinateur ; il la calcule **lui-même** depuis l'heure universelle
+      l'année).** **À vérifier en premier** : le 20/10, Dr Bentahila a écrit « il est 22 h 37 au Maroc » alors que l'horloge du Mac donnait 20 h 07
+      UTC (21 h 07 « Casablanca » pour le Mac) : écart qui n'est pas une heure ronde (message écrit plus tôt, ou horloge du Mac déréglée ?).
+      Établir l'heure légale du Maroc avec l'heure de son téléphone et une source d'heure sur internet, pas avec l'horloge de l'ordinateur. Solution : Onco360 ne demande plus l'heure du Maroc à l'ordinateur ; il la calcule **lui-même** depuis l'heure universelle
       corrigée (`maintenant()`, écart serveur) et une **table des changements d'heure du Maroc** : liste de périodes { du, au, décalage } (GMT par
       défaut ; GMT+1 ou autre pendant une période décidée par le gouvernement), **une seule source** dans le moteur (`public/js/moteur/heure.js`,
       recopiée dans `functions/site/` comme les autres, vérifiée par test), complétée sans programmer par l'Administration (petit écran « Heure
@@ -257,14 +262,14 @@ dans ⋯ ; Afficher, Journal, Modifier restent visibles ; aucune consultation cr
 - [ ] **T5 Salle d'attente et tableau de bord** (U23, U24). (1) Salle : le **nom du patient n'est jamais coupé** (sur deux lignes s'il le faut) ; la
       mutuelle et le motif cèdent la place. (2) Tableau de bord, carte « Aujourd'hui » : **consultations et chimio d'abord, puis la radiothérapie**,
       **sans la plier** (réponse de Dr Bentahila : « sans plier la radiothérapie »).
-- [ ] **T6 Impressions** (d. 14, 15, 49, 50, 51, 52 ; audit 10, « Tout ce qui s'imprime » ; **question 1 avant**). (1) **Fiche de chimio** (A4
+- [ ] **T6 Impressions** (d. 14, 15, 49, 50, 51, 52 ; audit 10, « Tout ce qui s'imprime » ). (1) **Fiche de chimio** (A4
       paysage, `fiche.js`) : nom du patient et titres des colonnes **répétés en haut de chaque page**. (2) **Reçu toujours sur une seule feuille A5**
       même avec toutes les mentions (« réduire la police ou autre ») : taille du texte et espacements réduits jusqu'à tenir, mesuré comme les
       ordonnances (`mesurer`), jamais de passage en A4. (3) **Jamais « À compléter » imprimé** (certificats, courriers après « Imprimer quand
       même ») : la zone imprimée vide, comme les documents de RT ; téléphone du pied sur une ligne. (4) **Ordonnance A5** : marges latérales à
-      **15 mm** avec l'en-tête généré (aujourd'hui 28 mm), après la mesure du papier à en-tête (question 1). (5) **Calendrier de fin de RT** : la
+      **15 mm** avec l'en-tête généré (aujourd'hui 28 mm) ; papier à en-tête : marge du haut de 55 mm, déjà réglée par Dr Bentahila (question 1). (5) **Calendrier de fin de RT** : la
       ligne du bas « Dates des séances intermédiaires établies d'après le calendrier… » **retirée** (d. 14 : « juste pour envoyer à la CNSS pour
-      fermer le dossier » ; `documents.js`, `note_calendrier`). (6) **Reçu** (d. 15, question 4) : mention « Acte exonéré de TVA » et phrase « à valider
+      fermer le dossier » ; `documents.js`, `note_calendrier`). (6) **Reçu** (d. 15, question 4, d'après le reçu de l'hôpital Cheikh Khalifa) : mention « Acte exonéré de TVA » et phrase « à valider
       par le comptable du cabinet » retirées (case `rTva` de Paramètres › Impression, `htmlRecu` de v2.js) ; plus d'étape « faire valider par le
       comptable ». Tests : PDF comptés (pages), test_recu, test_calendrier_rt, test_ordonnances_e.
 - [ ] **T7 Messages en arabe** (d. 56 ; audit 10, « Messages en arabe ») : les 3 retouches de la séance de chimio (« آخر تحاليل الدم », « الأدوية التي
@@ -290,8 +295,8 @@ dans ⋯ ; Afficher, Journal, Modifier restent visibles ; aucune consultation cr
 - [ ] **L5 Contrôle des dossiers au chargement** (ancien Q-d) : champs mal rangés, rendez-vous orphelins, dates impossibles → réparés ou signalés ;
       test « aller-retour » : un dossier enregistré puis relu ne perd aucun champ.
 - [ ] **L6 Administration et sécurité entre cabinets** (d. 36, 38, 39, 40, 42 ; audit 10, « Administration » et « Sécurité entre cabinets »).
-      (a) **Si d. 36 confirmé** (question 3) : la liste des administrateurs n'est plus écrite depuis le navigateur (console seulement) ; le compte
-      de tous les jours ne lit plus que les profils **de son équipe** (aujourd'hui : profil de tout utilisateur, de tout cabinet : INPE, IF, TP,
+      (a) **d. 36, confirmé le 20/10** (question 3) : la liste des administrateurs n'est plus écrite depuis le navigateur (console seulement) ; l'administrateur se nomme seulement dans la
+      console Firebase (comme aujourd'hui) ; le compte de tous les jours ne lit plus que les profils **de son équipe** (aujourd'hui : profil de tout utilisateur, de tout cabinet : INPE, IF, TP,
       ICE) ; identité reconnue par l'**identifiant du compte**, plus par l'adresse e-mail (`proprietaire()`). Tests de règles. (b) Le titulaire est
       **prévenu** (tableau de bord et journal de son cabinet) chaque fois que l'Administration écrit chez lui (d. 38). (c) **Cabinet suspendu =
       lecture seule et export permis** (d. 39). (d) **Suppression d'un cabinet** : export final remis au médecin, puis **30 jours** avant
@@ -349,10 +354,10 @@ dans ⋯ ; Afficher, Journal, Modifier restent visibles ; aucune consultation cr
       Maroc (réponse ci-dessus) et la cession ; sous les tests, par morceaux (un module à la fois), aucun changement visible.
 
 ## Phase C – Conformité (plus tard, décidé le 20/10/2026)
-- [ ] **0.5 Fiche d'incident** (ancienne application lisible sans connexion jusqu'au 11/10, 57 patients ; dépôt public les 10 et 11/10 ; question 2) :
+- [ ] **0.5 Fiche d'incident** (ancienne application lisible sans connexion jusqu'au 11/10, 57 patients ; dépôt public les 10 et 11/10 ; purge GitHub abandonnée le 20/10) :
       à rédiger avec le juriste. **Gel levé pour des confrères amis qui testent** (d. 16) ; cabinet de démonstration toujours permis.
 - [ ] **6.1 Juriste** : **après l'essai chez 2 ou 3 médecins** (d. 17), avec la fiche prête de l'audit 10 (« Fiche pour le juriste », 11 questions) ;
-      la question 2 (hébergement en Belgique, ou au Maroc ?) **à poser avant de décider un déménagement** (O1). Autorisation CNDP de son propre
+      hébergement au Maroc **obligatoire** d'après Dr Bentahila (20/10) : à préparer avec lui (O1). Autorisation CNDP de son propre
       cabinet (d. 62) : plus tard.
 - [ ] **6.2 Qualification** (dispositif médical, loi 84-12 ; question 7 de la fiche).
 - [ ] **6.3 Contenus** (voir l'ancienne 6.3).
@@ -360,7 +365,7 @@ dans ⋯ ; Afficher, Journal, Modifier restent visibles ; aucune consultation cr
       preuve de date) **n'est pas préparée avec le juriste** (V7 : non).
 - [ ] **6.5 Projet neutre** (d. 18) : projet Firebase et nom de domaine au nom de la société (l'adresse chimio-hgc.web.app porte le nom de l'hôpital ;
       le lien du premier mot de passe y renvoie) ; vérification de l'application par Google (Agenda, Drive) avec la politique de confidentialité ;
-      hébergement au Maroc si le juriste le demande (5.8 d'abord).
+      **hébergement au Maroc** (obligatoire, décision du 20/10 ; plus tard ; 5.8 d'abord).
 - [ ] **6.6 Test d'intrusion** par un prestataire externe.
 
 ## Phase V – Vente et cession (préparées en avance, d. 61 : « pour l'instant pas de projet de vendre »)
@@ -446,7 +451,7 @@ dans ⋯ ; Afficher, Journal, Modifier restent visibles ; aucune consultation cr
 | d. 33 | Durée maximale des immunothérapies | oui, **selon l'indication** | S4 |
 | d. 34 | ZOMETA, NAUSELIUM | oui, **selon les recommandations** | S4 |
 | d. 35 | Contrôle automatique de la bibliothèque | oui | S6 |
-| d. 36 | Liste des administrateurs : console seulement | **question** (voir question 3) | L6 a |
+| d. 36 | Liste des administrateurs : console seulement | **oui** (si l'administrateur se nomme encore dans Firebase : oui) | L6 a |
 | d. 37 | Double vérification du compte d'administration | non | refusé |
 | d. 38 | Titulaire prévenu des écritures de l'Administration | oui | L6 b |
 | d. 39 | Cabinet suspendu en lecture seule | oui | L6 c |
@@ -462,7 +467,7 @@ dans ⋯ ; Afficher, Journal, Modifier restent visibles ; aucune consultation cr
 | d. 49 | Fiche de chimio : en-tête répété | oui | T6 |
 | d. 50 | Reçu sur une seule feuille A5 | oui, **réduire la police si besoin** | T6 |
 | d. 51 | Jamais « À compléter » imprimé | oui | T6 |
-| d. 52 | Marges A5 à 15 mm | oui (après la mesure du papier) | T6 |
+| d. 52 | Marges A5 à 15 mm | oui (papier à en-tête : marge du haut 55 mm, réglée) | T6 |
 | d. 53 | « Cures à valider » ouvre la cure | oui | T2 |
 | d. 54 | Étape 4.1 maintenant | oui | 4.1 |
 | d. 55 | Code en un seul fichier en cache | oui | 5.7 |
@@ -470,7 +475,7 @@ dans ⋯ ; Afficher, Journal, Modifier restent visibles ; aucune consultation cr
 | d. 57 | Case « poste partagé » | oui (rare) | L7 |
 | d. 58 | Mots de passe 10 caractères | non | refusé |
 | d. 59 | mammoth 1.11, clé web limitée | oui | L7 |
-| d. 60 | Alerte de budget, export du nouveau seulement | oui (+ question sur le coût, réponse ci-dessus) | L8 |
+| d. 60 | Alerte de budget, export du nouveau seulement | oui (+ question sur le coût : export gardé, seulement le nouveau, d'accord) | L8 |
 | d. 61 | Préparer la cession dans l'ordre | oui, **en avance, pas de projet de vente pour l'instant** | phase V |
 | d. 62 | Autorisation CNDP de son cabinet maintenant | **plus tard** | 6.1 |
 | U1 | Liste filtrée par localisation | non (localisation pas toujours remplie) | refusé |
@@ -504,7 +509,7 @@ dans ⋯ ; Afficher, Journal, Modifier restent visibles ; aucune consultation cr
 | V5 | Registre d'usage mensuel | oui | L9 |
 | V6 | Qui vend et répond au support | oui | V-d |
 | V7 | Chaîne des droits avec le juriste | non | refusé |
-| O1 | Cabinets amis : combien, quand | plus tard : hébergeur marocain puis CNDP d'abord (d'après elle) | phase C |
+| O1 | Cabinets amis : combien, quand | plus tard : hébergeur marocain (obligatoire) puis CNDP d'abord | phase C, 5.8 |
 | O2 | Ordinateur, téléphone ou tablette | **ordinateur** | téléphone après |
 | O3 | Geste qui fait perdre le plus de temps | « je ne vois pas » | — |
 | O4 | Prix des packs | **prix marocains** (GestiCab, DabaDoc) | L10 |
