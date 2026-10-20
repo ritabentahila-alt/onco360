@@ -529,7 +529,8 @@ types**, refus gardés) : R-A6 et R-E4 partent de là, sans les refaire.
       d'oncologie de l'Administration (`bib-oncologie`, copie du 09/10) : à reprendre depuis son cabinet (bouton « Reprendre », R-A6).
 
 **Lot D – Audit n° 6 : finances** (§ 7 ; lot F1 → R-B5 ; l'ancien lot « Caisse » est supprimé)
-**Fait le 20/10/2026 (R-D1 à R-D4 en une session, demande de Dr Bentahila ; testé ; pas encore en ligne : site, règles, fonction agendaPatient)** ;
+**Fait le 20/10/2026 (R-D1 à R-D4 en une session, demande de Dr Bentahila ; testé ; en ligne : 20261020h, site, règles et toutes les fonctions dont
+la nouvelle `releveNuit`, depuis une copie propre de ee513c3, contrôle complet bon avant, accord de Dr Bentahila)** ;
 réponse à la question 7 (20/10) : taux commun réglable, pré-rempli 60 % / 10 %. Bilan de référence **inchangé : 352 317 DH avant et après** (ses
 consultations de chimio sont toutes au J1) ; en ligne, seules changent de date (et de mode) les consultations payées un J8 / J15. Tests :
 test-bilan 42/42 (moteur), test_finances_d 16/16, test_comptable 13/13, règles (reçus 32, bilan 15, comptable 21), test-cabinets ; guide `guide/bilan.md`.
