@@ -340,6 +340,12 @@ types**, refus gardés) : R-A6 et R-E4 partent de là, sans les refaire.
       Tableau de bord : `parametres/accueil` ajouté à `PARAMS_SPE` (ordre, places, cartes retirées seulement : une carte retirée par un pack
       n'est jamais remise). Administration : étape 2 = un seul bouton « Ouvrir le modèle » ; éditeurs à part retirés. Tests :
       `test_modele_parametres.py` 18/18 (nouveau, dans le contrôle), `test-modele.mjs` 47/47.
+      **Réglage du cabinet en miroir (20/10/2026)** : Administration › fiche d'un cabinet › « Réglage du cabinet » montre ce que l'équipe voit (fonction
+      `reglageCabinetLire` : `ficheSpe` / `consultSpe` du cabinet, `parametres/accueil`, `parametres/formulaires`) ; le tableau de bord, la fiche et le
+      formulaire sont écrits au même endroit que le médecin (`abonnementCabinet` + `cab`, `accueilNettoye`) ; les champs ajoutés par l'administration
+      avant (réglage `fiche`) restent, non modifiables ici. Cas signalé : « Consultation de fin de traitement » = « RT hebdomadaire ». Onglets des
+      Paramètres à jour et par famille (`FAMILLES_SECTIONS` de catalogue.js, aussi pour configuration.js). Tests : `test_reglage_miroir.py` 16/16
+      (dans le contrôle), `test-modele.mjs` 53/53. En ligne (4af175e).
       **R-A6 Réglages du cabinet Bentahila repris par l'Administration** (DEMANDÉ, § 3.5 ; part de P11). Aujourd'hui rien ne remonte : fiche
       patient et formulaires de consultation vivent à trois niveaux (modèle `plateforme/specialites[id].fiche` / `.consultation`, copie
       `espaces/{e}.ficheSpe` / `.consultSpe`, retouches `reglage.fiche` / `.consultation`) ; `parametres/typesConsult` n'est même pas dans
