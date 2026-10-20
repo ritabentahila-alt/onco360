@@ -7,6 +7,7 @@ import { numeroRecu, cleRecuRdv, cleRecuCons, idRecu, decisionRecu, recuAEcrire 
 import { fusionner, cliniqueRemise, REMIS } from "../donnees/conversion.js";
 import { resume } from "../moteur/resume.js";
 import { chimioAVenir } from "../moteur/agenda.js";
+import { aReprogrammer } from "../moteur/reprogrammer.js";
 import { occupations, chevauche, texteConflit } from "../moteur/creneaux.js";
 import { poidsActuel, textePoids } from "../moteur/poids.js";
 import { cleAlerte, vuesNettoyees, partagerAlertes } from "../moteur/alertes.js"; // R-B2 (19/10/2026) : alertes cliniques vues // R-A5 (18/10/2026) : poids actuel (fiche ou dernière séance) // R-A3 (18/10/2026) : créneaux pris par les consultations de chimio et de RT
@@ -22,7 +23,7 @@ import { installer as installerDocuments, docsDe, boutonDoc, oublierDocs, suivre
 import { installer as installerVigilances, vigilancesAudit3 } from "./vigilances.js";
 import { installer as installerChimio, htmlChimio, nouveauPatient as creerPatient, champDiag, activerDiag, listeMut, listeCor, figerCuresValidees, alertesBio, enrichirListes, majMontants, encaissementsDe, construireEncaissements, ecrireEncaissements, prixParServeur, oublierEncaissements } from "./chimio.js";
 import { installer as installerAgenda, pageAgenda } from "./agenda.js";
-import { installer as installerConfig, pageConfiguration, horaires, dureeDe, dureeType, WA0, remplir } from "./configuration.js";
+import { installer as installerConfig, pageConfiguration, horaires, dureeDe, dureeType, WA0, remplir, messageAvecArabe, jourAr, heureAr } from "./configuration.js";
 import { installer as installerProfil, pageProfil, DROITS_ROLE, droitsEffectifs, lireImage } from "./profil.js";
 import { installer as installerProtocoles, pageProtocoles, marquerProtocoles, appliquerAudit3, appliquerP4, appliquerP5b } from "./protocoles.js";
 import { installer as installerParametres, pageParametres } from "./parametres.js";
@@ -35,7 +36,7 @@ import { installer as installerConsultations, datesConsultations, htmlConsultati
 import { installer as installerReglages, reglages, appliquerImpression, margesMm } from "./reglages.js";
 import { montantEnLettres } from "../donnees/factures.js";
 import { installer as installerTaches, pageTaches, demarrerTaches, blocAccueil as blocTaches, tachesDuPatient } from "./taches.js";
-import { installer as installerSalle, heureMaroc, dossiersChanges, pageSalle, demarrerSalle, apresStatutRdv, apresVenuChimio, apresPrix, bullesDossier, presenceDossier, majPresenceDossier, prixPrevu, badgeSalle } from "./salle.js";
+import { installer as installerSalle, heureMaroc, dossiersChanges, pageSalle, demarrerSalle, apresStatutRdv, apresVenuChimio, apresPrix, bullesDossier, presenceDossier, majPresenceDossier, prixPrevu, badgeSalle, chargerJoursPasses, fichesAbsentes } from "./salle.js";
 import { installer as installerAudit } from "./audit.js";
 import { installer as installerRcp, demarrerRcp, rcpDuPatient, bulleRcp, suivreEtablissementRcp, supprimerRcp, pageRcpMenu } from "./rcp.js";
 import { ACTES_RT, DIAG_AJOUTS_1012, DIAG_RENOMS_1012 } from "../donnees/listes.js";
@@ -73,7 +74,7 @@ onAuthStateChanged(auth, async (u) => {
   try { D = await charger(u); appliquerImpression(); entete(); rechercheTete(); route(); menuCabinets().catch(() => {});
     if (D.bib) { Promise.all([figerListes(), figerDocumentation()]).catch((e) => console.warn("bibliothèque", e)); return; } // bibliothèque de référence : rien d'autre
     lireAccueilCab();
-    if (D.membre.role !== "comptable") { ecouterDossiers(); if (module("taches")) demarrerTaches(); if (module("salle")) demarrerSalle(); if (module("rcp")) demarrerRcp(); } publierTarifsC(); planifierReleve(3000); chargerMedecins(); chargerSignataires().then(publierCarte).catch(() => {}); effacerSignature().catch((e) => console.warn("signature", e)); nomTitulaire().then(migrations); marquerProtocoles().then(() => appliquerAudit3()).then(() => appliquerP4()).then(() => appliquerP5b()).then(() => ordosAudit3()).then(() => majBibliotheques().catch((er) => console.warn("bibliothèques (R-E3)", er))).then(() => vigilancesAudit3()).catch((er) => console.warn("protocoles", er)); }
+    if (D.membre.role !== "comptable") { ecouterDossiers(); ecouterRappels(); if (module("taches")) demarrerTaches(); if (module("salle")) demarrerSalle(); if (module("rcp")) demarrerRcp(); } publierTarifsC(); planifierReleve(3000); chargerMedecins(); chargerSignataires().then(publierCarte).catch(() => {}); effacerSignature().catch((e) => console.warn("signature", e)); nomTitulaire().then(migrations); marquerProtocoles().then(() => appliquerAudit3()).then(() => appliquerP4()).then(() => appliquerP5b()).then(() => ordosAudit3()).then(() => majBibliotheques().catch((er) => console.warn("bibliothèques (R-E3)", er))).then(() => vigilancesAudit3()).catch((er) => console.warn("protocoles", er)); }
   catch (e) { $("page").innerHTML = '<div class="carte"><h3>Impossible d\'ouvrir Onco360</h3><p class="sous">' + esc(e && e.code === "permission-denied" ? "Accès refusé : votre accès a peut-être été désactivé. Contactez le médecin titulaire." : e.message) + '</p><button class="bt clair" onclick="document.getElementById(\'btSortie\').click()">Se déconnecter</button></div>'; }
 });
 // Cabinets de la personne (19.2, 10/10/2026 : secrétaire de plusieurs médecins) : comptes/{uid}.espaces, le cabinet choisi dans le
@@ -272,6 +273,9 @@ const titulaireUid = () => (D.espaceDoc && D.espaceDoc.titulaire) || "";
 const multiMed = () => (D.medecins || []).length > 1;
 const medRdv = (r) => (r && r.med) || titulaireUid();
 const medDefaut = () => (D.membre.role === "medecin" ? D.u.uid : titulaireUid());
+// R-C3 (19/10/2026) : médecin du patient (fiche, identite.med) : médecin par défaut de ses rendez-vous, lignes de chimio et radiothérapies
+const medPatient = (x) => ((x && x.doc && x.doc.identite) || {}).med || "";
+const medPourPatient = (x) => medPatient(x) || medDefaut();
 const nomMed = (uid) => ((D.medecins || []).find((m) => m.uid === uid) || {}).nom || "";
 // Nom du médecin titulaire (signature des messages WhatsApp envoyés par la secrétaire ou l'infirmière)
 async function nomTitulaire() {
@@ -335,6 +339,17 @@ async function migrations() {
         if (consultFinRT(P2, Object.assign({}, D.ctx, { nouvelId: idsParDefaut() }))) await enregistrer(x, Object.assign({ rdvsJson: JSON.stringify(P2.rdvs) }, JSON.stringify(P2.rts) !== r0 ? { rtsJson: JSON.stringify(P2.rts) } : {}), "Consultation de fin de radiothérapie créée").catch((er) => console.warn("fin de RT", x.id, er));
       }
       await setDoc(doc(db, "espaces", ESPACE, "parametres", "migrations"), { consultFinRT: D.t }, { merge: true }).catch(() => {});
+    }
+    // R-C1 (19/10/2026) : consultations hebdomadaires de RT refaites une fois (jour férié compris, identifiants gardés, médecin et lieu de la RT)
+    if (!fait.rtcFeries && peut("rendezvous") && fnOn("rt.hebdo") && reglages().auto.rtHebdo) {
+      let ok = true;
+      for (const x of D.patients) {
+        if (!(x.P.rts || []).some((r) => !r.fin && r.deb && r.cj)) continue;
+        const P2 = { rts: JSON.parse(x.doc.rtsJson || "[]"), rdvs: JSON.parse(x.doc.rdvsJson || "[]") }, r0 = JSON.stringify(P2.rts), v0 = JSON.stringify(P2.rdvs);
+        genererConsultRT(P2, Object.assign({}, D.ctx, { nouvelId: idsParDefaut() }));
+        if (JSON.stringify(P2.rdvs) !== v0) await enregistrer(x, Object.assign({ rdvsJson: JSON.stringify(P2.rdvs) }, JSON.stringify(P2.rts) !== r0 ? { rtsJson: JSON.stringify(P2.rts) } : {}), "Consultations hebdomadaires de radiothérapie (jour férié compris)").catch((er) => { ok = false; console.warn("consultations de RT", x.id, er); });
+      }
+      if (ok) await setDoc(doc(db, "espaces", ESPACE, "parametres", "migrations"), { rtcFeries: D.t }, { merge: true }).catch(() => {});
     }
     // Dosimétrie à valider devenue une période (scanner → 1re séance) le 06/10/2026 : résumé recalculé des dossiers concernés,
     // pour que les Google Agenda reçoivent la période (le dossier lui-même ne change pas)
@@ -410,7 +425,8 @@ async function appelServeur(nom, donnees) {
 function recalculer(x, docData, ctx) {
   // 12/10/2026 : fiche médicale réparée si des champs avaient été rangés par erreur dans clinique._autres (création d'une ligne de chimio)
   if (docData && docData.clinique && docData.clinique._autres && REMIS.some((k) => k in docData.clinique._autres)) { docData = Object.assign({}, docData, { clinique: cliniqueRemise(docData.clinique) }); x.repare = true; }
-  x.doc = docData; x.P = fusionner(x.id, docData, null);
+  // R-C2 (19/10/2026, audit 4 C5) : un dossier mal formé n'empêche plus Onco360 de s'ouvrir : il est affiché sans ses traitements (console)
+  x.doc = docData; try { x.P = fusionner(x.id, docData, null); x.illisible = false; } catch (e) { console.warn("dossier " + x.id + " illisible (données mal formées) : affiché sans ses traitements", e); x.P = Object.assign({ id: x.id }, docData.identite || {}, { hop: docData.etablissementId || "", lignes: [], rdvs: [], rts: [] }); x.illisible = true; }
   // R-A5 : poids affiché partout = poids actuel (le plus récent entre la fiche et les séances) ; celui de la fiche gardé dans poidsFiche
   try { const pa = poidsActuel(x.P, ctx || D.ctx); x.P.poidsFiche = x.P.poids; x.P.poidsAct = pa; if (pa) { x.P.poids = pa.v.replace(",", "."); x.P.poidsLe = pa.d; } } catch (e) { x.P.poidsAct = null; }
   try { x.r = resume(JSON.parse(JSON.stringify(x.P)), ctx || D.ctx); } catch (e) { x.r = { nm: x.P.nom, act: [], rdvs: [], rt: [], rtE: [], rtS: [], ag: [] }; }
@@ -490,7 +506,7 @@ API.heureRT = async (pid, rid, hr, z) => { // z : "scan" (défaut) ou "deb" (1re
   const k = z === "deb" ? "debH" : "scanH"; if (hr) r[k] = hr; else delete r[k];
   await enregistrer(x, { rtsJson: JSON.stringify(l) }, (z === "deb" ? "1re séance de radiothérapie" : "Scanner de centrage") + " : " + (hr ? "heure " + hr.h + " (" + hr.du + " min)" : "heure retirée"));
 };
-API.multiMed = () => multiMed(); API.medecins = () => D.medecins || []; API.medRdv = (r) => medRdv(r); API.nomMed = (u) => nomMed(u); API.medDefaut = () => medDefaut(); // AG4
+API.multiMed = () => multiMed(); API.medecins = () => D.medecins || []; API.medRdv = (r) => medRdv(r); API.nomMed = (u) => nomMed(u); API.medDefaut = () => medDefaut(); API.medPourPatient = (x) => medPourPatient(x); // AG4, R-C3
 API.listeMut = () => listeMut(); API.listeCor = () => listeCor(); // fiche réglable (3.11)
 API.encaisseIci = () => encaisseIci(); API.payeCabinet = (x) => payeCabinet(x); API.htmlMode = (c) => htmlMode(c); API.libMode = (k) => libMode(k); API.imprimerRecu = (w, x, o) => imprimerRecu(w, x, o); API.sansAcc = sansAcc; API.fn = (k) => fnOn(k); API.module = (k) => module(k); API.planifierReleve = (d) => planifierReleve(d || 120000); API.attribuerNumero = (x) => attribuerNumero(x); API.numDossier = (x) => numDossier(x); API.medecinFiche = () => medecinFiche(); API.nomCompte = () => nomCompte(); API.publierCarte = () => publierCarte(); API.signataires = () => D.signataires || {}; API.medecins = () => D.medecins || []; API.medDefaut = () => medDefaut(); API.etabDe = (code) => (D.etabsTous || D.etabs || []).find((e) => e.code === code) || null; API.entete = () => entete(); API.voitRdv = () => voitRdv(); API.voitRT = (x) => voitRT(x); API.fmtMil = (n) => fmtMil(n); API.ferieLe = (d) => ferieLe(d); API.salleVenuChimio = (x, lid, n, j, oui) => apresVenuChimio(x, lid, n, j, oui); API.serveur = appelServeur; API.prixPrevu = (p, c, j) => prixPrevu(p, c, j); API.badgeSalle = (p, c) => badgeSalle(p, c); API.tarifsVus = () => tarifsVus(); API.publierTarifsC = () => publierTarifsC(); API.encaissementsDe = (x, f) => encaissementsDe(x, f); API.peutPrix = () => peut("finances") || prixParServeur();
 installerChimio(API); installerAudit(API); aboP.installer(API); ficheP.installer(API); installerAgenda(API); installerConfig(API); installerProfil(API); installerProtocoles(API); installerParametres(API); installerBilan(API); installerConsultations(API); installerOrdonnances(API); installerDocuments(API); installerFichiers(API); installerTaches(API); installerReglages(API); installerSalle(API); installerRcp(API); installerVigilances(API);
@@ -580,13 +596,33 @@ function numeroWA(tel) {
   return n.length >= 11 ? n : "";
 }
 const JOURS_L = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"], MOIS_L = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
-function messageWA(x, cat, d, h) {
-  const P = x.P, e = (D.etabsTous || D.etabs).find((z) => z.code === x.doc.etablissementId) || {}, j = new Date(d + "T12:00:00");
-  const m = D.wa && D.wa[cat] != null ? D.wa[cat] : WA0[cat] || WA0.autre;
-  return remplir(m, { prenom: P.prenom ? cap(String(P.prenom).toLowerCase()) : x.r.nm, nom: x.r.nm, jour: JOURS_L[j.getDay()] + " " + j.getDate() + " " + MOIS_L[j.getMonth()], heure: h ? "à " + h.replace(":", "h") : "", lieu: e.nom || x.doc.etablissementId || "", adresse: e.adresse || "", medecin: signatureWA() });
+// R-C3 (19/10/2026) : {lieu} = lieu de l'événement : radiothérapie (scanner, 1re séance) à son lieu, rendez-vous à son lieu s'il en a un ; sinon
+// le lieu du patient
+function lieuWA(x, cat, d) {
+  const P = x.P || {};
+  if (cat === "rt") { const r = (P.rts || []).find((v) => v.hop && (v.scan === d || v.deb === d)); if (r) return r.hop; }
+  else if (cat !== "chimio") { const r = (P.rdvs || []).find((v) => v.d === d && v.lieu && (cat === "confirm" || catRdv(v) === cat)); if (r) return r.lieu; }
+  return x.doc.etablissementId;
 }
-// Rappels envoyés (19.4, 10/10/2026) : dans le dossier, champ rappels { "AAAA-MM-JJ|catégorie": { le, par, nom } } (droit « rendezvous »)
-const rappelDe = (x, d, cat) => ((x.doc && x.doc.rappels) || {})[d + "|" + cat] || null;
+function messageWA(x, cat, d, h) {
+  const P = x.P, code = lieuWA(x, cat, d), e = (D.etabsTous || D.etabs).find((z) => z.code === code) || {}, j = new Date(d + "T12:00:00");
+  const m = messageAvecArabe(D.wa && D.wa[cat] != null ? D.wa[cat] : WA0[cat] || WA0.autre, cat); // R-C5 : français puis arabe classique
+  return remplir(m, { prenom: P.prenom ? cap(String(P.prenom).toLowerCase()) : x.r.nm, nom: x.r.nm, jour: JOURS_L[j.getDay()] + " " + j.getDate() + " " + MOIS_L[j.getMonth()], heure: h ? "à " + h.replace(":", "h") : "", jour_ar: jourAr(d), heure_ar: heureAr(h), lieu: e.nom || code || "", adresse: e.adresse || "", medecin: signatureWA() });
+}
+// Rappels envoyés (19.4, 10/10/2026) : { "AAAA-MM-JJ|catégorie": { le, par, nom } } (droit « rendezvous »).
+// R-C4 (19/10/2026, audit 4 C7) : rangés dans une petite collection à part, rappels/{patient} = { patientId, etablissementId, l: { … }, majPar,
+// maj } (comme la salle d'attente) : un rappel ne réécrit plus le dossier (version + 1, Google Agenda, écoute des autres postes). Écoute en
+// direct dans le périmètre (RAP) ; les rappels notés avant dans le dossier (`rappels`) sont encore lus.
+const RAP = {}; let ECOUTE_RAP = null;
+function ecouterRappels() {
+  if (ECOUTE_RAP || D.membre.role === "comptable") return; const m = D.membre;
+  const q = m.tousEtablissements ? collection(db, "espaces", ESPACE, "rappels") : query(collection(db, "espaces", ESPACE, "rappels"), where("etablissementId", "in", (m.etablissements || []).length ? m.etablissements : ["—"]));
+  let premier = true;
+  ECOUTE_RAP = onSnapshot(q, (sn) => { sn.docChanges().forEach((c) => { if (c.type === "removed") delete RAP[c.doc.id]; else RAP[c.doc.id] = (c.doc.data() || {}).l || {}; });
+    if (!premier && D.page === "accueil" && !occupeEcran()) rafraichirPage([]); premier = false; }, // bouton vert « déjà envoyé » d'un collègue
+  (e) => { console.warn("rappels WhatsApp (écoute)", e); ECOUTE_RAP = null; });
+}
+const rappelDe = (x, d, cat) => (RAP[x.id] || {})[d + "|" + cat] || ((x.doc && x.doc.rappels) || {})[d + "|" + cat] || null;
 const libEnvoi = (s) => "envoyé par " + (s.nom || "") + " le " + dfrA(String(s.le).slice(0, 10)) + " à " + new Date(s.le).toTimeString().slice(0, 5).replace(":", " h ");
 const btnWA = (x, cat, d, h) => {
   if (!cat) return ""; const g = ecart(d, D.t), RW = reglages().whatsapp, env = rappelDe(x, d, cat), proche = !env && g >= RW.de && g <= RW.a, ok = !!numeroWA(x.P.tel);
@@ -603,9 +639,11 @@ window.envoyerWA = (pid, cat, d, h) => {
 // Rappel (ou confirmation) noté envoyé dans le dossier ; les rappels de plus de 7 jours sont retirés au passage
 async function noterRappel(x, d, cat) {
   if (!peut("rendezvous")) return;
-  const l = {}, lim = addJ(D.t, -7); Object.entries(x.doc.rappels || {}).forEach(([k, v]) => { if (k.slice(0, 10) >= lim) l[k] = v; });
-  l[d + "|" + cat] = { le: new Date().toISOString(), par: D.u.uid, nom: $("nomMenu").textContent };
-  try { await enregistrer(x, { rappels: l }, (cat === "confirm" ? "Confirmation" : "Rappel") + " WhatsApp envoyé (rendez-vous du " + dfrA(d) + ")"); entete(); route(); } catch (e) { console.warn("rappel noté", e); }
+  const k = d + "|" + cat, v = { le: new Date().toISOString(), par: D.u.uid, nom: $("nomMenu").textContent }, lim = addJ(D.t, -7), l = { [k]: v };
+  Object.keys(RAP[x.id] || {}).forEach((z) => { if (z.slice(0, 10) < lim) l[z] = deleteField(); }); // plus de 7 jours : retirés au passage
+  RAP[x.id] = Object.assign({}, RAP[x.id] || {}, { [k]: v }); entete(); route();
+  try { await setDoc(doc(db, "espaces", ESPACE, "rappels", x.id), { patientId: x.id, etablissementId: x.doc.etablissementId || "", l, majPar: D.u.uid, maj: serverTimestamp() }, { merge: true }); }
+  catch (e) { console.warn("rappel noté", e); toast("Rappel envoyé, mais pas noté (" + (e.code || e.message) + ") : il restera proposé."); delete RAP[x.id][k]; entete(); route(); }
 }
 // Rappels à envoyer (19.4) : rendez-vous, cures, séances dans la fenêtre du bouton vert (Paramètres › WhatsApp), envoyés ou non
 function rappelsAEnvoyer() {
@@ -644,6 +682,14 @@ function alertesSecretariat() {
     else if (g >= RW.de && g <= RW.a && !rappelDe(x, e.d, e.cat)) al.push({ o: 2, c: V, h: "<b>" + esc(e.nm) + "</b> – rappel WhatsApp à envoyer (" + esc(quand) + ")", id: e.id });
   });
   return al.sort((a, b) => a.o - b.o);
+}
+// R-C1 : liste « Patients à reprogrammer » (moteur/reprogrammer.js), dans le périmètre de la personne (dossiers chargés)
+function patientsAReprogrammer() {
+  const pats = D.patients.map((x) => ({ id: x.id, nm: x.r.nm, rdvs: voitRdv() ? x.P.rdvs || [] : [], deces: decede(x.P), seance: (lid, n, j) => {
+    const L = (x.P.lignes || []).find((z) => z.id === lid); if (!L) return null; let e; try { e = etatLigne(L, x.P, D.ctx)[n - 1]; } catch (er) { return null; } if (!e) return null;
+    if (j === 1) return { date: e.date, st: e.st };
+    const s = seancesCure(L, e, D.ctx.bib).find((z) => z.j === j); return s ? { date: s.prevue, st: s.st } : null; } }));
+  return aReprogrammer(pats, module("salle") ? fichesAbsentes() : [], { t: D.t, jours: 30 });
 }
 // Consultations des 7 derniers jours ni « Venu » ni « Non venu » (journée pas clôturée dans la salle d'attente, SA6 11/10/2026)
 function nonCloturees() {
@@ -720,6 +766,16 @@ function appliquerDossiers() {
   D.patients.sort((a, b) => String(a.r.nm).localeCompare(String(b.r.nm)));
   dossiersChanges(ids); rafraichirPage(ids);
 }
+// R-C8 (19/10/2026) : « Actualiser » de l'agenda : dossiers modifiés depuis l'ouverture d'Onco360 (ou la dernière relecture), même requête que
+// l'écoute en direct (une lecture par dossier modifié) ; utile si l'écoute s'est arrêtée (réseau coupé, veille)
+const OUVERT = Date.now();
+API.relireModifies = async (depuisMs) => {
+  if (estComptable() || D.bib) return 0;
+  const m = D.membre, depuis = new Date((depuisMs || OUVERT) - 5 * 60000), c = collection(db, "espaces", ESPACE, "patients");
+  const q = m.tousEtablissements ? query(c, where("maj", ">", depuis)) : query(c, where("etablissementId", "in", (m.etablissements || []).length ? m.etablissements.slice(0, 30) : ["—"]), where("maj", ">", depuis));
+  const s = await getDocs(q); s.docs.forEach((d) => ATTENTE_D.set(d.id, d.data()));
+  const n = ATTENTE_D.size; appliquerDossiers(); return n;
+};
 // Page ouverte redessinée après un changement venu d'ailleurs, défilement gardé (la salle d'attente se redessine elle-même)
 function rafraichirPage(ids) {
   const p = String(D.page || ""), i = p.indexOf("/"), nom = i < 0 ? p : p.slice(0, i), arg = i < 0 ? null : decodeURIComponent(p.slice(i + 1)), y = window.scrollY;
@@ -844,7 +900,7 @@ function blocAFaire(pj) {
       }); });
     groupe("radiation", "Contourages à valider", cont); groupe("radiation", "Dosimétries à valider", dosi); groupe("drapeau", "Fins de radiothérapie à valider", fin);
   } else if (role === "assistante") {
-    titre = "À faire par la secrétaire"; sous = "Rappels WhatsApp, numéros manquants, rendez-vous à décaler, journées à clôturer.";
+    titre = "À faire par la secrétaire"; sous = "Rappels WhatsApp, numéros manquants, rendez-vous à décaler, patients à reprogrammer, journées à clôturer.";
     if (fnOn("agenda.whatsapp") && peut("rendezvous")) {
       const L = rappelsAEnvoyer(), a = L.filter((o) => !o.env && o.tel), env = L.length - L.filter((o) => !o.env).length;
       groupe("whatsapp", "Rappels WhatsApp à envoyer", a.map((o) => ({ id: o.id, nm: o.nm, de: dfr(o.d) + (o.h ? " " + o.h : "") + (o.de ? " · " + o.de : ""), bt: btnWA(o.x, o.cat, o.d, o.h) })), 8);
@@ -856,6 +912,12 @@ function blocAFaire(pj) {
     const n = absences().reduce((s, o) => s + o.l.length, 0);
     if (n && D.accueilCartes && D.accueilCartes.conflits) resume("avion", "<b>" + n + "</b> rendez-vous à décaler (absence ou jour férié)", "document.getElementById('carteConflits').scrollIntoView({behavior:'smooth'})", "Voir");
     else if (n) groupe("avion", "Rendez-vous à décaler", absences().flatMap(({ a, l }) => l.map((o) => ({ id: o.id, nm: sansEmoji(o.t), de: dfr(o.d) + (o.h ? " " + o.h : "") + " · " + (a.m || "Absence") }))));
+    // R-C1 (19/10/2026, audit 4 d. 22) : patients à reprogrammer (consultation non venue sans nouveau rendez-vous, séance de chimio « absent, sans
+    // reporter ») ; fiches de la salle des 30 derniers jours lues une fois, puis la carte se redessine
+    if (peut("rendezvous")) {
+      if (module("salle")) chargerJoursPasses(30).then((neuf) => { if (neuf && D.page === "accueil" && !occupeEcran()) rafraichirPage([]); }).catch((e) => console.warn("patients à reprogrammer", e));
+      groupe("agenda", "Patients à reprogrammer", patientsAReprogrammer().map((o) => ({ id: o.id, nm: o.nm, de: dfr(o.d) + " · " + o.lib, retard: true, bt: o.quoi === "rdv" ? '<button class="bt petit clair" onclick="event.stopPropagation();ouvrirRdv(\'' + o.id + '\')">' + ic("plus") + "Rendez-vous</button>" : "" })), 6);
+    }
     const nc = nonCloturees().length;
     if (nc) resume("salle", "<b>" + nc + "</b> consultation" + (nc > 1 ? "s" : "") + " des 7 derniers jours ni « Venu » ni « Non venu »", module("salle") ? "location.hash='salle'" : "", "Salle d'attente");
   } else if (role === "infirmiere") {
@@ -1338,6 +1400,7 @@ window.modifierIdentite = (id) => {
     try {
       await supprimerConsultations(x); await supprimerDocs(x); await supprimerFichiers(x); await supprimerRcp(x);
       await deleteDoc(doc(db, "espaces", ESPACE, "patients", x.id));
+      await deleteDoc(doc(db, "espaces", ESPACE, "rappels", x.id)).catch(() => {}); // R-C4
       if (peut("finances")) { await deleteDoc(doc(db, "espaces", ESPACE, "patientsFinances", x.id)).catch(() => {}); await deleteDoc(doc(db, "espaces", ESPACE, "encaissements", x.id)).catch(() => {}); }
       journal(x, "Patient supprimé"); D.patients.splice(D.patients.indexOf(x), 1); fermerFenetre(); toast("Dossier supprimé."); location.hash = "patients";
     } catch (e) { erreur(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de supprimer ce dossier." : "Suppression impossible : " + ((e && e.message) || e)); }
@@ -1433,14 +1496,18 @@ window.ouvrirRdv = (id, rid, pre) => {
   const r0 = rid ? lireRdvs(x).find((v) => v.id === rid) : null, R = r0 || Object.assign({ type: "Suivi", d: D.t, h: "", n: "" }, pre || {});
   const types = typesRdv(x.doc.etablissementId), cle = R.act ? "a:" + R.act : "s:" + R.type;
   // durée (AG2) : celle du rendez-vous, sinon celle de son type ; suit le type tant qu'on ne l'a pas changée à la main
-  const med0 = R.med || (r0 ? medRdv(r0) : (pre && pre.med) || medDefaut()); // médecin (AG4)
-  const du0 = +R.du || dureeType(cle, x.doc.etablissementId); let duMain = !!R.du && +R.du !== dureeType(cle, x.doc.etablissementId);
+  const med0 = R.med || (r0 ? medRdv(r0) : (pre && pre.med) || medPourPatient(x)); // médecin (AG4) ; nouveau : celui du patient (R-C3)
+  // Lieu du rendez-vous (R-C3, facultatif) : celui du patient par défaut ; proposé quand la personne voit plusieurs lieux
+  const lieux = (D.etabs || []).filter((e) => D.membre.tousEtablissements || (D.membre.etablissements || []).indexOf(e.code) >= 0), lieu0 = R.lieu || (pre && pre.lieu) || x.doc.etablissementId || "";
+  const etabR = () => ($("fLieu") ? val("fLieu") : lieu0) || x.doc.etablissementId;
+  const du0 = +R.du || dureeType(cle, lieu0 || x.doc.etablissementId); let duMain = !!R.du && +R.du !== dureeType(cle, lieu0 || x.doc.etablissementId);
   if (!types.some((o) => o.v === cle)) types.push({ v: cle, lib: libRdv(R), act: R.act || null, type: R.type });
   fenetre("<h3>" + (r0 ? "Modifier le rendez-vous" : "Nouveau rendez-vous") + " – " + esc(x.r.nm) + '</h3><div class="form">' +
     '<div class="large"><label for="fType">Type</label><select id="fType">' + types.map((o) => '<option value="' + esc(o.v) + '"' + (o.v === cle ? " selected" : "") + ">" + esc(o.lib) + "</option>").join("") + "</select></div>" +
     '<div class="large"><label for="fMo">Motif de consultation</label><input id="fMo" value="' + esc(R.mo || "") + '" placeholder="Ex. nouveau patient, résultats du scanner, douleur…"></div>' +
     '<div><label for="fD">Date</label><input id="fD" type="date" value="' + esc(R.d || "") + '"></div>' +
     '<div id="zH"><label for="fH">Heure</label><input id="fH" type="time" step="900" value="' + esc(R.h || "") + '"></div>' +
+    (lieux.length > 1 ? '<div class="large"><label for="fLieu">Lieu</label><select id="fLieu">' + lieux.concat(lieux.some((e) => e.code === lieu0) || !lieu0 ? [] : [{ code: lieu0, nom: "" }]).map((e) => '<option value="' + esc(e.code) + '"' + (e.code === lieu0 ? " selected" : "") + ">" + esc(e.code + (e.nom ? " – " + e.nom : "")) + (e.code === x.doc.etablissementId ? " (lieu du patient)" : "") + "</option>").join("") + "</select></div>" : "") +
     (multiMed() ? '<div class="large"><label for="fMed">Médecin</label><select id="fMed">' + D.medecins.concat(D.medecins.some((m) => m.uid === med0) ? [] : [{ uid: med0, nom: "Médecin retiré de l'équipe" }]).map((m) => '<option value="' + esc(m.uid) + '"' + (m.uid === med0 ? " selected" : "") + ">" + esc(m.nom) + "</option>").join("") + "</select></div>" : "") +
     '<div id="zDu"><label for="fDu">Durée</label><select id="fDu">' + DUREES_RDV.concat(DUREES_RDV.indexOf(du0) < 0 ? [du0] : []).sort((a, b) => a - b).map((m) => '<option value="' + m + '"' + (m === du0 ? " selected" : "") + ">" + m + " min</option>").join("") + "</select></div>" +
     '<div id="zF" class="cache"><label for="fF">Date de sortie</label><input id="fF" type="date" value="' + esc(R.f || "") + '"></div>' +
@@ -1448,12 +1515,12 @@ window.ouvrirRdv = (id, rid, pre) => {
     '<div class="large"><label for="fN">Note</label><input id="fN" value="' + esc(R.n || "") + '"></div><p class="large mesures" id="fHor" style="margin:0"></p></div>' +
     '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt plein" id="fOk">Enregistrer</button></div>');
   const maj = () => { const hs = val("fType") === "s:Hospitalisation"; $("zH").classList.toggle("cache", hs); $("zDu").classList.toggle("cache", hs); $("zF").classList.toggle("cache", !hs); };
-  const majH = () => { const d = val("fD"); if (!d) { $("fHor").textContent = ""; return; } const pl = horaires(x.doc.etablissementId).jours[new Date(d + "T12:00:00").getDay()] || []; $("fHor").textContent = "Horaires " + (x.doc.etablissementId || "du cabinet") + " le " + JNOM[new Date(d + "T12:00:00").getDay()] + " : " + (pl.length ? pl.map((p) => p[0] + "–" + p[1]).join(", ") : "fermé") + "."; };
+  const majH = () => { const d = val("fD"); if (!d) { $("fHor").textContent = ""; return; } const pl = horaires(etabR()).jours[new Date(d + "T12:00:00").getDay()] || []; $("fHor").textContent = "Horaires " + (etabR() || "du cabinet") + " le " + JNOM[new Date(d + "T12:00:00").getDay()] + " : " + (pl.length ? pl.map((p) => p[0] + "–" + p[1]).join(", ") : "fermé") + "."; };
   const sauf = r0 ? { pid: x.id, rid } : null, medChoisi = () => ($("fMed") ? val("fMed") : med0);
   const majC = () => {
     const z = $("fCr"), d = val("fD"); if (!z) return;
     if (!d || val("fType") === "s:Hospitalisation") { z.innerHTML = ""; return; }
-    const C = creneaux(x.doc.etablissementId, d, sauf, +val("fDu"), medChoisi()), libres = C.l.filter((c) => !c.occ.length).length, hc = val("fH");
+    const C = creneaux(etabR(), d, sauf, +val("fDu"), medChoisi()), libres = C.l.filter((c) => !c.occ.length).length, hc = val("fH");
     const sh = occupDuJour(d, sauf, medChoisi()).sans;
     z.innerHTML = (C.l.length ? '<label>Créneaux du ' + esc(dfrA(d)) + ' <span class="mesures">(' + libres + " libre" + (libres > 1 ? "s" : "") + " pour " + C.du + " min)</span></label><div class=\"crx\">" + C.l.map((c) => c.occ.length
       ? '<button type="button" class="cr pris' + (hc === c.h ? " on" : "") + '" data-h="' + c.h + '" data-pris="1" title="Pris : ' + esc(texteConflit(c.occ)) + '" aria-label="' + c.h + ", pris : " + esc(texteConflit(c.occ)) + '">' + c.h + "<i>" + esc(c.occ[0].nm.split(" ")[0]) + "</i></button>"
@@ -1464,52 +1531,56 @@ window.ouvrirRdv = (id, rid, pre) => {
   $("fCr").onclick = (ev) => { const b = ev.target.closest("[data-h]"); if (!b) return; const h = b.dataset.h;
     if (b.dataset.pris) { if (!accepterConflit(val("fD"), h, +val("fDu") || 30, sauf, medChoisi())) return; accepte = val("fD") + " " + h; }
     $("fH").value = h; majC(); };
-  $("fType").onchange = () => { if (!duMain) $("fDu").value = String(dureeType(val("fType"), x.doc.etablissementId)); maj(); majC(); };
-  $("fDu").onchange = () => { duMain = true; majC(); }; if ($("fMed")) $("fMed").onchange = majC; maj(); $("fD").addEventListener("change", () => { majH(); majC(); }); $("fH").addEventListener("change", majC); majH(); majC();
+  $("fType").onchange = () => { if (!duMain) $("fDu").value = String(dureeType(val("fType"), etabR())); maj(); majC(); };
+  $("fDu").onchange = () => { duMain = true; majC(); }; if ($("fMed")) $("fMed").onchange = majC; if ($("fLieu")) $("fLieu").onchange = () => { majH(); majC(); }; maj(); $("fD").addEventListener("change", () => { majH(); majC(); }); $("fH").addEventListener("change", majC); majH(); majC();
   $("fOk").onclick = async () => {
     const o = types.find((z) => z.v === val("fType")) || types[0], type = o.type, act = o.act, d = val("fD"), hs = type === "Hospitalisation", h = hs ? "" : val("fH"), f = hs ? val("fF") : "";
     if (!d) { erreur("Indiquez la date."); return; }
     if (hs && f && f < d) { erreur("La date de sortie est avant la date d'entrée."); return; }
-    const ab = absenceLe(d), fe = !ab && ferieLe(d), hz = horsHoraires(x.doc.etablissementId, d, h);
+    const ab = absenceLe(d), fe = !ab && ferieLe(d), hz = horsHoraires(etabR(), d, h);
     if (!ab && !fe && hz && !confirm(hz + "\n\nEnregistrer quand même (urgence, rendez-vous exceptionnel) ?")) return;
     if (fe && !confirm("Le " + dfrA(d) + " est un jour férié (" + (fe.nom || "") + "). Enregistrer quand même ?")) return;
     if (ab && !confirm("Absence prévue ce jour-là (" + (ab.m || "absence") + ", du " + dfrA(ab.du) + " au " + dfrA(ab.au) + "). Enregistrer quand même ?")) return;
     // double réservation (19.4) : un autre rendez-vous de consultation qui chevauche cette heure
-    const du = hs ? 0 : +val("fDu") || dureeType(val("fType"), x.doc.etablissementId);
+    const du = hs ? 0 : +val("fDu") || dureeType(val("fType"), etabR());
     if (h && accepte !== d + " " + h && !accepterConflit(d, h, du, sauf, medChoisi())) return;
-    const l = lireRdvs(x);
+    const l = lireRdvs(x), r0d = r0 ? r0.d : "", r0h = r0 ? r0.h || "" : "";
     if (r0) {
       const r = l.find((v) => v.id === rid);
       if ((r.st || "prevu") === "prevu" && (r.d !== d || (r.h || "") !== h)) r.rep = (r.rep || []).concat([{ d: r.d, h: r.h || "", le: D.t }]);
-      Object.assign(r, { type, d, h, n: val("fN") }); if (hs) { r.f = f; delete r.du; } else { delete r.f; r.du = du; } if (medChoisi()) r.med = medChoisi(); if (act) r.act = act; else delete r.act; if (val("fMo")) r.mo = val("fMo"); else delete r.mo;
+      Object.assign(r, { type, d, h, n: val("fN") }); if (hs) { r.f = f; delete r.du; } else { delete r.f; r.du = du; } if (medChoisi()) r.med = medChoisi(); if (act) r.act = act; else delete r.act; if (val("fMo")) r.mo = val("fMo"); else delete r.mo; if (etabR() && etabR() !== x.doc.etablissementId) r.lieu = etabR(); else delete r.lieu;
     } else {
-      const r = { id: "r" + Date.now().toString(36), type, d, h, n: val("fN"), st: "prevu" }; if (hs) r.f = f; else r.du = du; if (medChoisi()) r.med = medChoisi(); if (act) r.act = act; if (val("fMo")) r.mo = val("fMo"); l.push(r);
+      const r = { id: "r" + Date.now().toString(36), type, d, h, n: val("fN"), st: "prevu" }; if (hs) r.f = f; else r.du = du; if (medChoisi()) r.med = medChoisi(); if (act) r.act = act; if (val("fMo")) r.mo = val("fMo"); if (etabR() && etabR() !== x.doc.etablissementId) r.lieu = etabR(); l.push(r);
     }
     occupe($("fOk"), true);
     try { await enregistrer(x, { rdvsJson: JSON.stringify(l) }, r0 ? "Rendez-vous modifié" : "Rendez-vous ajouté"); fermerFenetre(); toast("Rendez-vous enregistré."); apresRdv(x);
-      if (!r0 && !hs && d >= D.t && numeroWA(x.P.tel) && fnOn("agenda.whatsapp")) proposerConfirmation(x, d, h); }
+      if (!r0 && !hs && d >= D.t && numeroWA(x.P.tel) && fnOn("agenda.whatsapp")) proposerConfirmation(x, d, h);
+      else if (r0 && !hs && (r0d !== d || r0h !== h)) confirmerApres(x, d, h, "Rendez-vous modifié"); }
     catch (e) { occupe($("fOk"), false); erreur(e.message); }
   };
 };
 // Juste après un nouveau rendez-vous (19.4) : confirmation par WhatsApp (message « Confirmation d'un rendez-vous » des Paramètres)
-function proposerConfirmation(x, d, h) {
-  fenetre("<h3>Rendez-vous enregistré</h3><p class=\"sous\">" + esc(x.r.nm) + " – " + cap(jourLong(d)) + (h ? " à " + h : "") + ". Envoyer la confirmation par WhatsApp ?</p>" +
+function proposerConfirmation(x, d, h, titre) {
+  fenetre("<h3>" + esc(titre || "Rendez-vous enregistré") + "</h3><p class=\"sous\">" + esc(x.r.nm) + " – " + cap(jourLong(d)) + (h ? " à " + h : "") + ". Envoyer la confirmation par WhatsApp ?</p>" +
     '<div class="wa-ex">' + esc(messageWA(x, "confirm", d, h)) + "</div>" +
     '<div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Plus tard</button><button class="bt plein" style="background:#1FA855" onclick="fermerFenetre();envoyerWA(\'' + x.id + "','confirm','" + d + "','" + (h || "") + '\')">' + LOGO_WA + " Envoyer la confirmation</button></div>");
 }
+// R-C5 (19/10/2026) : même confirmation après un report ou un changement de date (rendez-vous, cure, séance, étape de RT)
+const confirmerApres = (x, d, h, titre) => { if (x && d && d >= D.t && numeroWA(x.P.tel) && fnOn("agenda.whatsapp")) proposerConfirmation(x, d, h, titre); };
+API.confirmerApres = confirmerApres;
 // Rendez-vous déplacé dans l'agenda par glisser-déposer (AG3, 11/10/2026) : confirmation avec les mêmes vérifications que la
 // fenêtre du rendez-vous (absence, férié, horaires, double réservation), ancien horaire gardé dans `rep`, WhatsApp proposé
 API.deplacerRdv = (pid, rid, d, h) => {
   const x = D.patients.find((p) => p.id === pid); if (!x || !peut("rendezvous")) return;
   const r0 = lireRdvs(x).find((v) => v.id === rid); if (!r0 || (r0.st || "prevu") !== "prevu") return;
   if (r0.d === d && (r0.h || "") === h) return;
-  const et = x.doc.etablissementId, du = dureeDe(r0, et), ab = absenceLe(d), fe = !ab && ferieLe(d), hz = !ab && !fe && horsHoraires(et, d, h);
+  const et = r0.lieu || x.doc.etablissementId, du = dureeDe(r0, et), ab = absenceLe(d), fe = !ab && ferieLe(d), hz = !ab && !fe && horsHoraires(et, d, h);
   const cf = chevauche(rdvsDuJour(d, { pid, rid }, medRdv(r0)), h, du);
   const alertes = [ab ? "Absence prévue ce jour-là (" + (ab.m || "absence") + ", du " + dfrA(ab.du) + " au " + dfrA(ab.au) + ")." : "", fe ? "Le " + dfrA(d) + " est un jour férié (" + (fe.nom || "") + ")." : "", hz || "",
     cf.length ? "Créneau déjà pris par : " + texteConflit(cf) + "." : ""].filter(Boolean);
   fenetre("<h3>Déplacer le rendez-vous ?</h3><p class=\"sous\"><b>" + esc(x.r.nm) + "</b> – " + esc(libRdv(r0)) + " (" + du + " min)</p>" +
     '<p class="dep-de">Du <s>' + esc(cap(jourLong(r0.d))) + (r0.h ? " à " + esc(r0.h) : "") + "</s><br>au <b>" + esc(cap(jourLong(d))) + " à " + esc(h) + "</b></p>" +
-    (alertes.length ? '<div class="per" style="color:var(--orange);background:var(--orange-c);display:block">' + alertes.map((t) => "<div>⚠️ " + esc(t) + "</div>").join("") + "</div>" : "") +
+    (alertes.length ? '<div class="per" style="color:var(--orange);background:var(--orange-c);display:block">' + alertes.map((t) => "<div>" + ic("alerte") + " " + esc(t) + "</div>").join("") + "</div>" : "") +
     '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt plein" id="fOk">' + (alertes.length ? "Déplacer quand même" : "Déplacer") + "</button></div>");
   $("fOk").onclick = async () => {
     const l = lireRdvs(x), r = l.find((v) => v.id === rid);
@@ -1696,7 +1767,7 @@ window.rdvAbsentDirect = async (pid, rid) => {
   await enregistrer(x, { rdvsJson: JSON.stringify(l) }, "Rendez-vous : non venu (journée clôturée)"); apresStatutRdv(x, r, "absent", "prevu"); return true;
 };
 function absentRdv(x, l, r) {
-  const etab = x.doc.etablissementId, d0 = prochainJour(etab, r.d > D.t ? r.d : D.t);
+  const etab = r.lieu || x.doc.etablissementId, d0 = prochainJour(etab, r.d > D.t ? r.d : D.t);
   fenetre("<h3>Absent – " + esc(x.r.nm) + '</h3><p class="sous">' + esc(libRdv(r)) + " · " + cap(jourLong(r.d)) + (r.h ? " à " + r.h : "") + "</p>" +
     '<div class="form"><div class="large"><label style="font-weight:normal"><input type="radio" name="abR" value="oui" checked style="width:auto;margin-right:6px">Reporter le rendez-vous</label>' +
     '<label style="font-weight:normal"><input type="radio" name="abR" value="non" style="width:auto;margin-right:6px">Ne pas reporter</label></div>' +
@@ -1715,9 +1786,11 @@ function absentRdv(x, l, r) {
       if (h && !accepterConflit(d, h, dureeDe(r, etab), { pid: x.id, rid: r.id }, medRdv(r))) return; // R-A3 : créneau déjà pris
     }
     r.st = "absent"; delete r.dv; r.sp = D.u.uid;
-    if (rep) { const n = { id: "r" + Date.now().toString(36), type: r.type, d, h, n: r.n || "", st: "prevu", rep: [{ d: r.d, h: r.h || "", le: D.t, abs: true }] }; if (r.act) n.act = r.act; if (r.mo) n.mo = r.mo; l.push(n); }
+    // R-C1 (19/10/2026, audit 4 C2) : le report garde le médecin, la durée et le lieu du rendez-vous manqué ; confirmation WhatsApp proposée
+    if (rep) { const n = { id: "r" + Date.now().toString(36), type: r.type, d, h, n: r.n || "", st: "prevu", du: dureeDe(r, etab), med: medRdv(r), rep: [{ d: r.d, h: r.h || "", le: D.t, abs: true }] }; if (!n.med) delete n.med; if (r.act) n.act = r.act; if (r.mo) n.mo = r.mo; if (r.lieu) n.lieu = r.lieu; l.push(n); }
     occupe($("fOk"), true);
-    try { await enregistrer(x, { rdvsJson: JSON.stringify(l) }, "Rendez-vous : non venu" + (rep ? " (reporté au " + dfrA(d) + (h ? " à " + h : "") + ")" : "")); fermerFenetre(); toast(rep ? "Absent ; rendez-vous reporté au " + dfrA(d) + (h ? " à " + h : "") + "." : "Enregistré."); apresStatutRdv(x, r, "absent", "prevu"); reafficher(x.id); }
+    try { await enregistrer(x, { rdvsJson: JSON.stringify(l) }, "Rendez-vous : non venu" + (rep ? " (reporté au " + dfrA(d) + (h ? " à " + h : "") + ")" : "")); fermerFenetre(); toast(rep ? "Absent ; rendez-vous reporté au " + dfrA(d) + (h ? " à " + h : "") + "." : "Enregistré."); apresStatutRdv(x, r, "absent", "prevu"); reafficher(x.id);
+      if (rep && d >= D.t && numeroWA(x.P.tel) && fnOn("agenda.whatsapp")) proposerConfirmation(x, d, h, "Rendez-vous reporté"); }
     catch (e) { occupe($("fOk"), false); erreur(e.message); }
   };
 }
@@ -1771,13 +1844,18 @@ window.ouvrirRT = (id, rid) => {
   const sel = (i, lib, v, opts, o) => '<div class="' + ((o && o.large) ? "large" : "") + '"><label for="' + i + '">' + lib + '</label><select id="' + i + '">' + opts.map((p) => '<option value="' + esc(p[0]) + '"' + (String(p[0]) === String(v == null ? "" : v) ? " selected" : "") + ">" + esc(p[1]) + "</option>").join("") + "</select></div>";
   panneau("<h3>" + (r0 ? "Modifier la prescription" : "Nouvelle prescription de radiothérapie") + " – " + esc(x.r.nm) + '</h3><div class="form rt-f">' +
     '<div class="large"><label for="rActe">Acte</label><select id="rActe"><option value="">— Choisir l\'acte —</option>' + listeActes(R.acte).map((a) => '<option' + (a === R.acte ? " selected" : "") + ">" + esc(a) + "</option>").join("") + "</select></div>" +
-    sel("rHop", "Établissement", R.hop || "", [["", "—"]].concat(D.etabs.map((e) => [e.code, e.code + " – " + e.nom])), {}) + "<div></div>" +
+    // R-C3 (19/10/2026) : lieu de la RT (pré-rempli avec celui du patient, modifiable : vu au cabinet, traité en clinique) et médecin (à partir de
+    // 2 médecins ; défaut : celui du patient, sinon le médecin connecté) : étapes, consultations automatiques, agenda, WhatsApp, bilan (r.hop)
+    sel("rHop", "Lieu de la radiothérapie", R.hop || "", [["", "—"]].concat(D.etabs.map((e) => [e.code, e.code + " – " + e.nom + (e.code === x.doc.etablissementId ? " (lieu du patient)" : "")])), {}) +
+    (multiMed() ? sel("rMed", "Médecin", R.med || medPourPatient(x), D.medecins.map((m) => [m.uid, m.nom]).concat(R.med && !D.medecins.some((m) => m.uid === R.med) ? [[R.med, "Médecin retiré de l'équipe"]] : []), {}) : "<div></div>") +
     sel("rTech", "Technique", R.tech || "", [["", "—"], ["stereo", "Stéréotaxie"], ["vmat", "VMAT"], ["imrt", "IMRT"], ["3d", "3D"]], {}) + sel("rInt", "Intention", R.intent || "", [["", "—"], ["curative", "Curative"], ["palliative", "Palliative"]], {}) +
     // 3.5 (12/10/2026) : volumes [{ nom, dose, nb, ty }] : le principal (rDose / rNb), puis des compléments séquentiels (à la suite) ou
     // intégrés (mêmes séances) ; pas d'organes à risque (Onco360 n'est pas ARIA)
     '<div class="large"><label>Volumes</label><div id="rVol"></div><div class="actr" style="justify-content:flex-start;margin-top:6px"><button type="button" class="bt clair petit" onclick="rtVolAj(\'seq\')">' + ic("plus") + 'Complément séquentiel</button><button type="button" class="bt clair petit" onclick="rtVolAj(\'int\')">' + ic("plus") + "Complément intégré</button></div>" +
       '<div id="rDpf" class="mesures" style="font-size:14px;color:var(--titre);margin-top:6px">—</div></div>' +
     sel("rRyt", "Rythme", R.ryt || "1", RYTHMES, {}) + ch("rNbA", "Nombre d'actes", R.nbA || 1, { mode: "numeric" }) +
+    // R-C1 (audit 4 d. 20) : le calcul ne change pas ; l'aide dit la différence entre les deux rythmes
+    '<p class="large mesures" style="margin:-4px 0 0">« Jours choisis » donne un rythme fixe (par exemple lundi, mercredi, vendredi). « 1 jour sur 2 » alterne sur les jours ouvrés : après un week-end ou un jour férié, le jour de la semaine change.</p>' +
     '<div class="large' + (R.ryt === "jours" ? "" : " cache") + '" id="rJoursZ"><label>Jours de séance</label><div class="actr" style="justify-content:flex-start">' + [[1, "Lundi"], [2, "Mardi"], [3, "Mercredi"], [4, "Jeudi"], [5, "Vendredi"]].map(([k, l]) => '<label class="chk" style="font-weight:normal"><input type="checkbox" id="rJ' + k + '"' + ((R.jours || [1, 3, 5]).indexOf(k) >= 0 ? " checked" : "") + "> " + l + "</label>").join("") + "</div></div>" +
     ch("rScan", "Scanner de centrage", R.scan, { type: "date" }) + ch("rDeb", "1re séance", R.deb, { type: "date" }) +
     '<div class="large"><label>Fin prévue (calculée)</label><div id="rFinCalc" class="mesures" style="font-size:15px;font-weight:bold;color:var(--titre)">—</div></div>' +
@@ -1833,6 +1911,7 @@ window.ouvrirRT = (id, rid) => {
     if (revalider && !confirm("La prescription change alors que la dosimétrie a été validée le " + dfrA(r0.dosi) + ".\nLa dosimétrie devra être revalidée (la validation actuelle est gardée dans l'historique et une tâche « Valider la dosimétrie » est recréée).\n\nEnregistrer ?")) return;
     const r = r0 || { id: "rt" + Date.now().toString(36), cree: D.t };
     if (revalider) { r.dosiHist = (r.dosiHist || []).concat([{ dosi: r.dosi, dosiPar: r.dosiPar || "", dosiLe: r.dosiLe || "", retireLe: new Date().toISOString(), raison: "prescription modifiée : " + cle(r0) + " → " + cle(neuf) }]); r.dosiN = (r.dosiN || 0) + 1; delete r.dosi; delete r.dosiPar; delete r.dosiLe; }
+    const medR = $("rMed") ? val("rMed") : r.med || medPourPatient(x); if (medR) r.med = medR; // R-C3
     Object.assign(r, { acte: val("rActe"), hop: val("rHop"), tech: val("rTech"), intent: val("rInt"), dose: val("rDose").replace(",", "."), nb: n, ryt: val("rRyt"), vol: volP, jours: val("rRyt") === "jours" ? joursCoches() : null, nbA: val("rNbA") || "1", scan: val("rScan"), deb: val("rDeb"), finPrev: val("rFinPrev"), cj: val("rCj"), ch: val("rCh"), vmat: $("rVmat").checked, note: $("rNote") ? $("rNote").value.trim() : R.note || "" });
     ["finPrev", "scan", "deb", "cj", "ch", "tech", "intent", "dose", "note", "vol", "jours"].forEach((k) => { if (!r[k]) delete r[k]; });
     const liste = r0 ? l : l.concat([r]), acteAvant = r0 ? (x.P.rts || []).find((v) => v.id === rid) : null;
@@ -1866,14 +1945,15 @@ window.modifierEtapeRT = (id, rid, z, apres, pre) => { // pre { d, h } : glissé
     if (deb && r.scan && d < r.scan) { erreur("La 1re séance est avant le scanner de centrage (" + dfrA(r.scan) + ")."); return; }
     if (fin && r.deb && d < r.deb) { erreur("La fin est avant la 1re séance (" + dfrA(r.deb) + ")."); return; }
     if (!deb && !fin && r.deb && d > r.deb) { erreur("Le scanner est après la 1re séance (" + dfrA(r.deb) + ")."); return; }
-    if (h && (d !== d0 || h !== (H.h || "")) && !accepterConflit(d, h, +val("eDu") || du, { pid: x.id, k: x.id + "|rt|" + (r.id || l.indexOf(r)) + "|" + (deb ? "deb" : fin ? "fin" : "scan") })) return; // R-A3
+    if (h && (d !== d0 || h !== (H.h || "")) && !accepterConflit(d, h, +val("eDu") || du, { pid: x.id, k: x.id + "|rt|" + (r.id || l.indexOf(r)) + "|" + (deb ? "deb" : fin ? "fin" : "scan") }, r.med || medPatient(x) || undefined)) return; // R-A3 ; R-C3 : médecin de la RT
     // 1re séance déplacée = début de la radiothérapie déplacé dans la prescription : fin calculée, consultations hebdomadaires et consultation
     // de fin (si elle n'a pas été déplacée à la main) suivent (sauverRT) ; une fin saisie à la main est décalée d'autant de jours
     if (deb && r.deb && r.finPrev && d !== r.deb) r.finPrev = addJ(r.finPrev, ecart(d, r.deb));
     if (fin) { if (d === finCalc) delete r.finPrev; else if (d !== d0 || r.finPrev) r.finPrev = d; } else r[kd] = d;
     if (h) r[kh] = { h, du: +val("eDu") || du }; else delete r[kh];
     occupe($("fOk"), true);
-    try { await sauverRT(x, l, (deb ? "1re séance de radiothérapie" : fin ? "Fin de radiothérapie prévue" : "Scanner de centrage") + " : " + dfrA(d) + (h ? " à " + h : "")); fermerFenetre(); toast("Enregistré."); if (apres) apres(); else pageDossier(x.id); }
+    try { await sauverRT(x, l, (deb ? "1re séance de radiothérapie" : fin ? "Fin de radiothérapie prévue" : "Scanner de centrage") + " : " + dfrA(d) + (h ? " à " + h : "")); fermerFenetre(); toast("Enregistré."); if (apres) apres(); else pageDossier(x.id);
+      if (!fin && (d !== d0 || h !== (H.h || ""))) confirmerApres(x, d, h, deb ? "1re séance de radiothérapie déplacée" : "Scanner de centrage déplacé"); } // R-C5
     catch (e) { occupe($("fOk"), false); erreur(e.message); }
   };
 };
@@ -1883,9 +1963,15 @@ async function sauverRT(x, liste, quoi) {
   const RA = reglages().auto; // rendez-vous créés d'office : décochables dans Paramètres › Rendez-vous automatiques (12/10/2026)
   if (fnOn("rt.hebdo") && RA.rtHebdo) genererConsultRT(P2, Object.assign({}, D.ctx, { nouvelId: idsParDefaut() })); // consultations hebdomadaires (réglage du cabinet)
   if (RA.rtFin) consultFinRT(P2, Object.assign({}, D.ctx, { nouvelId: idsParDefaut() })); // consultation de fin de radiothérapie (12/10/2026)
+  // R-C4 (19/10/2026, audit 4 C4) : sans le droit « rendez-vous », les consultations de la RT ne peuvent pas être écrites ; la signature
+  // (`_sc`) n'est alors pas enregistrée, pour qu'elles soient refaites au prochain enregistrement par quelqu'un qui a ce droit
+  const nonMaj = JSON.stringify(P2.rdvs) !== avant && !peut("rendezvous");
+  if (nonMaj) { const sc0 = {}; JSON.parse(x.doc.rtsJson || "[]").forEach((r) => { if (r && r.id) sc0[r.id] = r._sc; }); P2.rts.forEach((r) => { if (sc0[r.id]) r._sc = sc0[r.id]; else delete r._sc; }); }
   const changes = { rtsJson: JSON.stringify(P2.rts) };
   if (JSON.stringify(P2.rdvs) !== avant && peut("rendezvous")) changes.rdvsJson = JSON.stringify(P2.rdvs);
   await enregistrer(x, changes, quoi);
+  if (nonMaj) setTimeout(() => toast("Consultations de radiothérapie non mises à jour (droit « rendez-vous ») : elles le seront au prochain enregistrement par le médecin ou la secrétaire."), 2600);
+  return { nonMaj };
 }
 // Dosimétrie : validée par un médecin (contourage et plan de traitement vérifiés) ; « annuler » la remet à valider
 const peutDosi = () => traitModRT() && D.membre.role === "medecin";

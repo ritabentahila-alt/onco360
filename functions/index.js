@@ -625,7 +625,7 @@ const Fa = require("./facturation");
 const DEMO = "cab-demonstration";
 async function remplirDemo(e, uid) {
   const E = "espaces/" + e + "/";
-  for (const c of ["patients", "patientsFinances", "encaissements", "consultations", "taches", "salle", "rcp", "fichiers", "documentsRT", "presence"]) await db.recursiveDelete(db.collection(E + c)).catch(() => {});
+  for (const c of ["patients", "patientsFinances", "encaissements", "consultations", "taches", "salle", "rcp", "fichiers", "documentsRT", "presence", "rappels"]) await db.recursiveDelete(db.collection(E + c)).catch(() => {});
   const jour = new Date().toISOString().slice(0, 10), [sp, st] = await Promise.all([db.collection(E + "protocoles").get(), db.doc(E + "finances/tarifs").get()]);
   const protos = [].concat(...sp.docs.map((d) => { try { return JSON.parse(d.data().data || "[]"); } catch (er) { return []; } }));
   let T = {}; try { T = JSON.parse((st.exists && st.data().data) || "{}"); } catch (er) { T = {}; }

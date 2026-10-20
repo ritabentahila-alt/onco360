@@ -11,7 +11,10 @@ export function limit() { return null; }
 // Panne de lecture simulée (R-A1, 18/10/2026) : window.__panne = [morceaux de chemin] → la lecture de ces documents échoue (réseau coupé)
 const panne = (r) => { if ((window.__panne || []).some((m) => r.path.indexOf(m) >= 0)) throw Object.assign(new Error("panne de lecture simulée (test)"), { code: "unavailable" }); };
 export async function getDoc(r) { panne(r); const v = window.__fs[r.path]; return { exists: () => !!v, data: () => (v ? cl(v) : undefined), id: r.id, ref: r }; }
-export async function setDoc(r, v, o) { window.__fs[r.path] = o && o.merge ? Object.assign(window.__fs[r.path] || {}, cl(v)) : cl(v); const a = window.__fs[r.path]; Object.keys(a).forEach((k) => { if (a[k] && a[k].__del) delete a[k]; }); }
+// setDoc avec merge : fusion en profondeur des objets, comme Firestore (R-C4, 19/10/2026 : rappels { l: { clé: … } } ; deleteField() à tout niveau)
+const estObj = (x) => x && typeof x === "object" && !Array.isArray(x) && !x.__del;
+const fusion = (a, b) => { Object.keys(b).forEach((k) => { if (b[k] && b[k].__del) delete a[k]; else if (estObj(b[k]) && estObj(a[k])) fusion(a[k], b[k]); else a[k] = estObj(b[k]) ? fusion({}, b[k]) : b[k]; }); return a; };
+export async function setDoc(r, v, o) { window.__fs[r.path] = o && o.merge ? fusion(window.__fs[r.path] || {}, cl(v)) : cl(v); const a = window.__fs[r.path]; Object.keys(a).forEach((k) => { if (a[k] && a[k].__del) delete a[k]; }); }
 export function arrayUnion(...v) { return { __au: v }; }
 export function deleteField() { return { __del: 1 }; } // R-E5 (19/10/2026) : champ retiré (updateDoc, setDoc avec merge)
 export async function updateDoc(r, v) {

@@ -1,7 +1,7 @@
 // Radiothérapie (3.5, 12/10/2026) : rythmes, volumes, et cohérence du calcul de la fin entre le navigateur (public/js/moteur/rt.js)
 // et le serveur (functions/logique.js). node tests/moteur/test-rt.mjs
 import { createRequire } from "node:module";
-import { finRT, joursSeances, compteurRT, joursOuvresRest, volumesRT, seancesVolumes, dpfVolume, texteVolume, libRythme } from "../../public/js/moteur/rt.js";
+import { genererConsultRT, consultFinRT, datesRtc, finRT, joursSeances, compteurRT, joursOuvresRest, volumesRT, seancesVolumes, dpfVolume, texteVolume, libRythme } from "../../public/js/moteur/rt.js";
 const L = createRequire(import.meta.url)("../../functions/logique.js");
 let ok = 0, ko = 0;
 const cas = (nom, v, d) => { if (v) { ok++; console.log("  ✔ " + nom); } else { ko++; console.log("  ✘ " + nom + (d === undefined ? "" : "  " + JSON.stringify(d).slice(0, 300))); } };
@@ -36,5 +36,20 @@ const vol = volumesRT({ vol: [{ nom: "Sein gauche", dose: "50", nb: "25" }, { no
 cas("séances = principal + séquentiel (33) ; l'intégré partage les séances", seancesVolumes(vol) === 33);
 cas("dose par fraction : 2 Gy ; intégré 2,2 Gy (sur 25)", dpfVolume(vol[0], vol) === 2 && dpfVolume(vol[2], vol) === 2.2);
 cas("texte d'un complément", texteVolume(vol[1], vol) === "Complément séquentiel – Lit tumoral : 16 Gy en 8 fractions (2 Gy par fraction)", texteVolume(vol[1], vol));
+console.log("4. Consultations hebdomadaires (R-C1, 19/10/2026) : jour férié compris, identifiants gardés, médecin et lieu");
+{
+  let n = 0; const ctx = { aujourdhui: "2026-10-19", feries: [{ d: "2026-11-18", nom: "Fête fictive" }], nouvelId: (p) => p + "x" + n++ };
+  const P = { rdvs: [], rts: [{ id: "rt1", deb: "2026-10-20", nb: 25, ryt: "1", cj: "3", ch: "10:00", med: "m2", hop: "CLIN" }] };
+  genererConsultRT(P, ctx); const l = P.rdvs.filter((x) => x.rtc === "rt1");
+  cas("le mercredi 18/11 (férié) a sa consultation", l.some((x) => x.d === "2026-11-18"), l.map((x) => x.d));
+  cas("les dates = datesRtc (mercredis du 21/10 à la fin)", l.map((x) => x.d).join() === datesRtc(P.rts[0], ctx).join() && l[0].d === "2026-10-21");
+  cas("médecin et lieu de la RT recopiés, heure choisie", l.every((x) => x.med === "m2" && x.lieu === "CLIN" && x.h === "10:00"));
+  const ids = l.map((x) => x.id).join(); P.rts[0].ch = "11:00"; genererConsultRT(P, ctx); const l2 = P.rdvs.filter((x) => x.rtc === "rt1");
+  cas("heure changée : mêmes identifiants, nouvelle heure", l2.map((x) => x.id).join() === ids && l2.every((x) => x.h === "11:00"));
+  l2[1].st = "fait"; l2[2].rep = [{ d: l2[2].d }]; l2[2].d = "2026-11-05"; P.rts[0].nb = 10; genererConsultRT(P, ctx); const l3 = P.rdvs.filter((x) => x.rtc === "rt1");
+  cas("RT raccourcie : venue et reportée gardées, les autres retirées après la fin", l3.some((x) => x.st === "fait") && l3.some((x) => x.d === "2026-11-05") && !l3.some((x) => (x.st || "prevu") === "prevu" && !x.rep && x.d > finRT(P.rts[0], ctx.feries)));
+  const Q = { rdvs: [], rts: [{ id: "rt2", deb: "2026-10-20", nb: 5, med: "m3", hop: "HCK" }] }; consultFinRT(Q, ctx);
+  cas("consultation de fin : médecin et lieu de la RT", Q.rdvs[0] && Q.rdvs[0].med === "m3" && Q.rdvs[0].lieu === "HCK");
+}
 console.log("\n" + ok + " réussis, " + ko + " échoués");
 process.exit(ko ? 1 : 0);

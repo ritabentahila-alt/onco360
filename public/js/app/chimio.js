@@ -120,10 +120,15 @@ export function fenetreHeureSeance(x, lid, s, titre, puis) {
   const noter = async (q, bt) => { A.occupe(bt, true); try { await heureSeance(trouver(x.id), lid, s.k + 1, s.j, q); A.toast("Enregistré."); fin(); } catch (e) { A.occupe(bt, false); A.toast(e.message); } };
   const retirer = inf ? { seance: null } : { cons: "" };
   ok.onclick = () => { const h = A.val("hS"); if (!h) { if (aSup) noter(retirer, ok); else fin(); return; }
-    if (!inf && h !== ((hcm && hcm.h) || "") && !A.conflitAccepte(s.d, h, (hcm && +hcm.du) || DU_CONS, { pid: x.id, k: cleSeance(x, lid, s.k + 1, s.j) })) return; // R-A3 : créneau déjà pris
+    if (!inf && h !== ((hcm && hcm.h) || "") && !A.conflitAccepte(s.d, h, (hcm && +hcm.du) || DU_CONS, { pid: x.id, k: cleSeance(x, lid, s.k + 1, s.j) }, medLigne(x, lid))) return; // R-A3 : créneau déjà pris
     noter(inf ? { seance: { h, du: +A.val("hDu") || DU_SEANCE } } : { cons: h }, ok); };
   if (sup) sup.onclick = () => noter(retirer, sup);
 }
+// R-C5 (19/10/2026, audit 4 d. 15) : après un report ou un changement de date d'une cure ou d'une séance, la confirmation WhatsApp est proposée
+// (un clic, « Plus tard ») comme après un nouveau rendez-vous ; ouverte une fois la fenêtre refermée
+const confirmerApres = (pid, d, titre) => setTimeout(() => { if (A.confirmerApres) A.confirmerApres(trouver(pid), d, "", titre); }, 0);
+// R-C3 : médecin d'une ligne (sinon celui du patient, sinon le titulaire) : créneaux pris par ce médecin seulement
+const medLigne = (x, lid) => { const L = ((x && x.P && x.P.lignes) || []).find((z) => z.id === lid); return (L && L.med) || ((x && x.doc && x.doc.identite) || {}).med || undefined; };
 // « Modifier » d'une séance depuis « Rendez-vous et tâches à venir » (12/10/2026, demande de Dr Bentahila ; plus de fenêtre après la
 // validation) : date (droit traitements ou planning) et heure de la consultation ; date changée → « cette date seulement » ou « toute la
 // suite » (comme dans la cure) ; l'infirmière : sa séance à l'hôpital de jour (heure et durée)
@@ -144,7 +149,7 @@ window.chModifierRdvChimio = (pid, lid, n, j, apres, pre) => { // apres : retour
   if (pre && okD) { document.getElementById("mD").value = pre.d; if (pre.h) document.getElementById("mH").value = pre.h; document.getElementById("mSz").classList.toggle("cache", pre.d === d0); }
   document.getElementById("fOk").onclick = async () => {
     const d = A.val("mD"), h = A.val("mH"); if (!d) { A.erreur("Indiquez la date."); return; }
-    if (h && (d !== d0 || h !== ((hcm && hcm.h) || "")) && !A.conflitAccepte(d, h, (hcm && +hcm.du) || DU_CONS, { pid, k: cleSeance(x, lid, n, j) })) return; // R-A3 : créneau déjà pris
+    if (h && (d !== d0 || h !== ((hcm && hcm.h) || "")) && !A.conflitAccepte(d, h, (hcm && +hcm.du) || DU_CONS, { pid, k: cleSeance(x, lid, n, j) }, medLigne(x, lid))) return; // R-A3 : créneau déjà pris
     A.occupe(document.getElementById("fOk"), true);
     try {
       if (okD && d !== d0) {
@@ -153,6 +158,7 @@ window.chModifierRdvChimio = (pid, lid, n, j, apres, pre) => { // apres : retour
       }
       if (h !== ((hcm && hcm.h) || "")) await heureSeance(trouver(pid), lid, n, j, { cons: h });
       A.fermerFenetre(); A.toast("Enregistré."); if (apres) apres(); else A.pageDossier(pid);
+      if (okD && d !== d0) confirmerApres(pid, d, "Séance de chimiothérapie déplacée");
     } catch (er) { A.occupe(document.getElementById("fOk"), false); A.erreur(er.message); }
   };
 };
@@ -655,7 +661,7 @@ window.chDate = (id, i, k, v) => {
     const lignes = lignesDe(x), L = lignes[i], E2 = etatLigne(L, x.P, D().ctx);
     if (choix("dS") === "seule") figerSuivantes(L, k, E2); else libererSuivantes(L, k);
     L.cures[k].fixe = v; await sauverLignes(x, lignes, "C" + (k + 1) + " déplacée au " + A.dfrA(v));
-  });
+  }).then((ok) => { if (ok) confirmerApres(id, v, "Cure déplacée"); });
 };
 window.chValider = (id, i, k) => window.chOuvrir(id, i, k, 1);
 window.chValiderJ1 = (id, i, k) => {
@@ -693,6 +699,7 @@ window.chReporter = (id, i, k, salle) => {
     c.rep = c.rep || []; c.rep.push({ de: E[k].date || d0, a: nd, raison: A.val("rR"), com: A.val("rC"), le: D().t }); c.fixe = nd;
     await sauverLignes(x, lignes, "C" + (k + 1) + " reportée au " + A.dfrA(nd) + " (" + A.val("rR") + ")");
     if (salle) salle(nd);
+    confirmerApres(id, nd, "Cure reportée");
   });
 };
 window.chAnnuler = (id, i, k) => {
@@ -717,7 +724,7 @@ window.chValiderJ = (id, i, k, j) => { const x = trouver(id), L0 = lignesDe(x)[i
 window.chDateSeance = (id, i, k, j, v) => {
   const x = trouver(id); if (!v) return;
   A.fenetre("<h3>Nouvelle date de J" + j + " – cure C" + (k + 1) + '</h3><p class="sous">→ <b>' + A.dfrA(v) + '</b></p><div class="form">' + choixSuite("sS", "Séances et cures suivantes") + "</div>" + boutons("Enregistrer"));
-  document.getElementById("fOk").onclick = () => executer(x, () => majSeance(x, i, k, j, v, false));
+  document.getElementById("fOk").onclick = () => executer(x, () => majSeance(x, i, k, j, v, false)).then((ok) => { if (ok) confirmerApres(id, v, "Séance déplacée"); });
 };
 // Report d'une séance (J8, J15…) avec motif : la date et l'historique sont gardés dans la séance
 window.chReporterJ = (id, i, k, j, salle) => {
@@ -731,6 +738,7 @@ window.chReporterJ = (id, i, k, j, salle) => {
     await majSeance(x, i, k, j, nd, false, { de: d0, a: nd, raison: A.val("rR"), com: A.val("rC"), le: D().t });
     if (salle) salle(nd);
     if (CM) CM.j = null;
+    confirmerApres(id, nd, "Séance reportée");
   });
 };
 async function majSeance(x, i, k, j, nd, valider, rep, ok) {
@@ -1103,7 +1111,7 @@ function dessinerNL() {
     edValide(); dedupIds(ED);
     const cures = []; for (let n = 0; n < nb; n++) cures.push({});
     if (num(NL.pct) != null && num(NL.pct) !== 100) cures[0].pctAll = String(num(NL.pct));
-    const lignes = lignesDe(x); lignes.push({ id: "L" + Date.now() + Math.floor(Math.random() * 1000), protoId: p.id, pr: ED, assoc: p.assoc ? 1 : 0, ...(NL.intent ? { intent: NL.intent } : {}), ...(NL.rang ? { rang: NL.rang } : {}), j1: NL.j1, poids: String(num(NL.po)), creat: NL.cr ? String(num(NL.cr)) : "", crU: "mgL", cures });
+    const lignes = lignesDe(x); lignes.push({ id: "L" + Date.now() + Math.floor(Math.random() * 1000), protoId: p.id, pr: ED, assoc: p.assoc ? 1 : 0, ...(NL.intent ? { intent: NL.intent } : {}), ...(NL.rang ? { rang: NL.rang } : {}), ...(A.medPourPatient(x) ? { med: A.medPourPatient(x) } : {}) /* R-C3 : médecin de la ligne */, j1: NL.j1, poids: String(num(NL.po)), creat: NL.cr ? String(num(NL.cr)) : "", crU: "mgL", cures });
     await sauverLignes(x, lignes, "Nouvelle ligne : " + ED.nom, { poids: String(num(NL.po)) });
     SEL.pid = x.id; SEL.l = lignes.length - 1; SEL.c = null;
   });
@@ -1223,6 +1231,8 @@ export function nouveauPatient(opts) {
   if (o.nom) { const m = String(o.nom).trim().split(/\s+/), n = document.getElementById("fNomF"), pr = document.getElementById("fPrenom"); if (n) n.value = (m.shift() || "").toUpperCase(); if (pr) pr.value = m.join(" "); }
   document.getElementById("fOk").onclick = async () => {
     const lu = ficheP.lireFormulaire(null); if (lu.erreur) { A.erreur(lu.erreur); return; }
+    // R-C3 : médecin du patient (fiche) ; un seul médecin ou médecin qui crée : posé d'office ; secrétaire d'un cabinet de plusieurs médecins : à choisir
+    if (!lu.identite.med) { const m0 = ficheP.medecinParDefaut(); if (m0) lu.identite.med = m0; else if (A.multiMed()) { A.erreur("Choisissez le médecin du patient."); return; } }
     const nomF = lu.identite.nomF, prenom = lu.identite.prenom;
     const deja = D().patients.find((p) => (p.P.nomF || "").toUpperCase() === nomF && String(p.P.prenom || "").toLowerCase() === prenom.toLowerCase());
     if (deja && !confirm("Un patient " + deja.r.nm + " existe déjà. Créer quand même un nouveau dossier ?")) return;

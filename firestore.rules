@@ -212,6 +212,17 @@ service cloud.firestore {
           && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['prix', 'prixPar', 'prixNom']) || prixPermis());
         allow delete: if dansPerimetre(resource.data.etablissementId) && etapeLibre(resource.data);
       }
+      // Rappels WhatsApp envoyés (R-C4, 19/10/2026, audit 4 C7) : un document par patient, { patientId, etablissementId, l: { "AAAA-MM-JJ|catégorie":
+      // { le, par, nom } }, majPar, maj }, à la place du champ `rappels` du dossier (qui réécrivait tout le dossier). Lu dans le périmètre ;
+      // écrit avec le droit « rendezvous », signé par la personne connectée ; retiré avec le dossier.
+      match /rappels/{p} {
+        function valideRappel(d) { return d.patientId == p && d.etablissementId is string && d.l is map && d.majPar == request.auth.uid; }
+        allow read: if resource == null ? estMembre() : dansPerimetre(resource.data.etablissementId);
+        allow create: if droit('rendezvous') && dansPerimetre(request.resource.data.etablissementId) && valideRappel(request.resource.data);
+        allow update: if droit('rendezvous') && dansPerimetre(resource.data.etablissementId) && dansPerimetre(request.resource.data.etablissementId)
+          && valideRappel(request.resource.data);
+        allow delete: if droit('rendezvous') && dansPerimetre(resource.data.etablissementId);
+      }
       // N° d'ordre de passage (SA4, 10/10/2026) : un compteur par jour et par établissement, qui ne fait que monter
       match /salleOrdre/{c} {
         function compteurValide(d) { return d.n is int && d.majPar == request.auth.uid && d.jour is string && c == d.jour + '_' + d.etablissementId; }

@@ -212,6 +212,12 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
   `lireAccueilCab` / `window.majAccueilCab` dans v2.js) ; deux colonnes à partir de 1280 px (`.tb-grille`, ordre gardé sur téléphone
   par `order`) ; carte `afaire` = `blocAFaire` (À valider par le médecin / À faire par la secrétaire / par l'infirmière) ;
   abonnement : bandeau (`.abo-band`), carte dans `#accAbo` les 7 derniers jours et en retard. Test : `tests/test_accueil.py`.
+- **Lot C (19/10/2026, audit n° 4)** : médecin du patient `identite.med` (fichepatient.js `htmlMedecin`, v2.js `medPatient` / `medPourPatient`) ;
+  médecin d'une ligne `lignes[].med`, d'une RT `rts[].med` ; lieu facultatif d'un rendez-vous `rdvs[].lieu` (RT : `hop`) ; événements du résumé `m`
+  (ligne / RT, sinon patient) ; `permis` (logique.js) filtre aussi séances et RT par médecin. Rappels WhatsApp envoyés : `rappels/{patient}`
+  { patientId, etablissementId, l: { "AAAA-MM-JJ|cat": { le, par, nom } }, majPar, maj } (règle, `tests/regles/test-rappels.mjs`), plus dans le dossier.
+  Messages WhatsApp `WA_FR` + `WA_AR` (configuration.js, `{jour_ar}` `{heure_ar}`, `messageAvecArabe`). Patients à reprogrammer : `moteur/reprogrammer.js`.
+  Agenda : `Actualiser` (`API.relireModifies`), chaque minute, `CACHE` des événements. Consultations hebdomadaires de RT aussi un jour férié (`datesRtc`).
 - `utilisateurs/{uid}` : profil (nom, INPE, photo ; `formatOrdo` A5 | A4 retenu pour les ordonnances, R-E7)
 - Rappels WhatsApp envoyés (19.4) : `patients/{id}.rappels` { "AAAA-MM-JJ|catégorie": { le, par, nom } } (catégorie `confirm` = confirmation
   après la prise du rendez-vous), écrit avec le droit `rendezvous` (règle), plus de 7 jours retirés ; v2.js `noterRappel`, `rappelsAEnvoyer`,

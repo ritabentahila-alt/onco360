@@ -418,36 +418,69 @@ types**, refus gardés) : R-A6 et R-E4 partent de là, sans les refaire.
       (`recus/`, transaction), duplicata, reçu annulé, `recuRdv` / `recuCons`, Encaisser de la salle, téléphone, marges A5.
 
 **Lot C – Audit n° 4 : rendez-vous de chimiothérapie et de radiothérapie** (§ 5 ; C1 → R-A4, C3 → R-A3, d. 10 → R-B4)
-- [ ] **R-C1 Report après « Non venu » et RT un jour férié** : le rendez-vous de report recopie **le médecin et la durée** du rendez-vous
+- [x] **(19/10/2026, testé ; pas encore en ligne)** v2.js `absentRdv` : le report recopie médecin (`medRdv`), durée (`dureeDe`) et lieu, puis
+      `proposerConfirmation(…, "Rendez-vous reporté")` ; moteur/rt.js `regenRtc` refait (signature « v3 ») : consultation hebdomadaire créée **aussi
+      un jour férié** (badge « Férié » du dossier, « Rendez-vous à décaler »), identifiants gardés (`datesRtc`), médecin et lieu de la RT ; reprise
+      unique des RT en cours (`migrations`, `parametres/migrations.rtcFeries`) ; « Patients à reprogrammer » (`moteur/reprogrammer.js` +
+      `patientsAReprogrammer` de v2.js, carte « À faire par la secrétaire » ; fiches de la salle des 30 derniers jours lues une fois :
+      `chargerJoursPasses` de salle.js) ; aide des rythmes sous « Rythme » (prescription de RT). Tests : test-rt 25, test-reprogrammer 11, test_lot_c.
+      **R-C1 Report après « Non venu » et RT un jour férié** : le rendez-vous de report recopie **le médecin et la durée** du rendez-vous
       d'origine, avec les mêmes contrôles (chevauchement) et la même proposition de confirmation WhatsApp que « Nouveau rendez-vous » (C2,
       d. 2) ; **consultation hebdomadaire de RT un jour férié** créée quand même avec le badge « Férié » et listée dans « Rendez-vous à
       décaler » (d. 6 ; aujourd'hui `moteur/rt.js` ne la crée pas : test) ; **« Patients à reprogrammer »** pour la secrétaire :
       consultations non venues sans nouveau rendez-vous, séances « absent, sans reporter » (d. 22) ; aide : « Jours choisis » donne un
       rythme fixe, « 1 jour sur 2 » alterne sur les jours ouvrés (d. 20, calcul inchangé).
-- [ ] **R-C2 Agenda protégé et passé gardé** : un `try / catch` par dossier dans le calcul des cures de la page Agenda (comme la salle), ligne
+- [x] **(19/10/2026, testé ; pas encore en ligne)** agenda.js `evtsDossier` dans un `try / catch` par dossier ; un dossier mal formé n'empêche plus Onco360
+      de s'ouvrir (`recalculer` : affiché sans ses traitements, `x.illisible`) ; moteur/agenda.js `chimioAVenir` : J8 / J15 passé « en retard » tant
+      que la cure a commencé et que le traitement n'est pas allé plus loin ; ligne arrêtée : cures faites et passées gardées (`garde`), à venir
+      écartées ; icône à la place de l'émoji (fenêtre « Déplacer ») ; `prixRdv` / `tarH` retirés de moteur/rdv.js. Tests : test-agenda-c 11, test_lot_c.
+      **R-C2 Agenda protégé et passé gardé** : un `try / catch` par dossier dans le calcul des cures de la page Agenda (comme la salle), ligne
       fautive notée dans la console (C5, d. 8) ; **J8 / J15 passé sans validation** gardé dans « Rendez-vous et tâches à venir » avec « en
       retard », comme le J1 (d. 12, `moteur/agenda.js`) ; **ligne arrêtée** : n'écarter que les cures à venir, garder les passées ; ligne
       supprimée : tout disparaît, passé compris (d. 13) ; émoji de la fenêtre « Déplacer le rendez-vous ? » remplacé (règle 4.3) ; `prixRdv`
       et `tarH` (moteur/rdv.js, « HGC » en dur, plus appelés) supprimés (C8, avec 5.1).
-- [ ] **R-C3 Médecin du patient, puis médecin et lieu de chaque événement** (réponse 1, d. 4, d. 5 ; voir Décisions) : champ « Médecin » de la
+- [x] **(19/10/2026, testé ; pas encore en ligne)** médecin du patient `identite.med` (fichepatient.js `htmlMedecin`, champ fixe montré à partir de 2
+      médecins ; création : le médecin qui crée, un seul médecin d'office, la secrétaire choisit ; Afficher) ; v2.js `medPatient` / `medPourPatient` :
+      médecin proposé des nouveaux rendez-vous, des lignes de chimio (`L.med`, chimio.js) et des RT (`r.med`, champ « Médecin » de la prescription) ;
+      consultations hebdomadaires et de fin : médecin et lieu de la RT ; événements `m` (moteur/agenda.js : ligne ou RT, sinon patient) ; Google
+      Agenda : `permis` (functions/logique.js) applique le médecin aux séances et aux RT aussi (**fonctions à mettre en ligne**) ; créneaux par
+      médecin de la ligne / de la RT ; lieu facultatif d'un rendez-vous `r.lieu` (fenêtre du rendez-vous, horaires et créneaux du lieu) ; filtres
+      « Établissement » et « Médecin » de l'agenda par événement ; `{lieu}` du WhatsApp = lieu de la RT ou du rendez-vous (`lieuWA`). Salle d'attente,
+      prix et bilan des rendez-vous : lieu du patient (inchangé) ; bilan de la RT : `r.hop` (déjà). Bilan inchangé (test-bilan 22/22).
+      **R-C3 Médecin du patient, puis médecin et lieu de chaque événement** (réponse 1, d. 4, d. 5 ; voir Décisions) : champ « Médecin » de la
       fiche (création par un médecin / par la secrétaire, modifiable ; anciens dossiers au titulaire) ; un médecin par événement (ligne de
       chimio, RT, consultations automatiques), utilisé par le filtre « Médecin » et Google Agenda, défaut = médecin du patient, sinon le
       médecin connecté ; **lieu de la RT** pré-rempli et modifiable dans la prescription (étapes, consultations automatiques, filtre de
       l'agenda, `{lieu}` WhatsApp, bilan par `r.hop`) ; lieu facultatif sur un rendez-vous. Constats : filtre de l'agenda et lieu du WhatsApp
       pris sur le patient (agenda.js, v2.js), ligne sans médecin (`functions/logique.js`). Bilan : chiffré avant / après (identique tant
       qu'aucun lieu n'est changé).
-- [ ] **R-C4 RT sans droit « rendez-vous » et rappels à part** : n'enregistrer la signature de la RT que si ses rendez-vous ont été écrits, et
+- [x] **(19/10/2026, testé ; pas encore en ligne)** `sauverRT` : sans le droit « rendez-vous », la signature `_sc` n'est pas enregistrée et un message
+      dit « Consultations de radiothérapie non mises à jour » ; rappels WhatsApp dans `rappels/{patient}` { patientId, etablissementId, l, majPar,
+      maj } (écoute `ecouterRappels`, `RAP`, anciens `rappels` du dossier encore lus), règle (lecture dans le périmètre, écriture « rendezvous »
+      signée) et `tests/regles/test-rappels.mjs` 18/18 ; faux Firebase : `setDoc` avec fusion en profondeur (comme Firestore). **Règles à mettre en ligne.**
+      **R-C4 RT sans droit « rendez-vous » et rappels à part** : n'enregistrer la signature de la RT que si ses rendez-vous ont été écrits, et
       afficher « consultations non mises à jour » (C4, d. 7, `moteur/rt.js`) ; **rappels WhatsApp dans une petite collection à part**
       (comme `salle/`), avec sa règle et son test (C7, d. 16 : aujourd'hui chaque rappel réécrit le dossier, version + 1).
-- [ ] **R-C5 WhatsApp français + arabe classique et confirmations après report** : chaque message = français puis arabe classique, messages
+- [x] **(19/10/2026, testé ; pas encore en ligne)** configuration.js `WA_FR` + `WA_AR` (arabe classique, mois en usage au Maroc, noms propres isolés)
+      → `WA0` ; `{jour_ar}` `{heure_ar}` ; message modifié par le cabinet sans arabe : l'arabe de départ ajouté à l'envoi (`messageAvecArabe`, dit
+      dans Paramètres › WhatsApp) ; confirmation d'un clic avec « Plus tard » après un report ou un changement de date : rendez-vous modifié,
+      cure (date, report), séance (date, report, « Modifier »), scanner et 1re séance (`confirmerApres`).
+      **R-C5 WhatsApp français + arabe classique et confirmations après report** : chaque message = français puis arabe classique, messages
       de départ (Paramètres › WhatsApp) dans les deux langues (d. 14) ; confirmation d'un clic, avec « Plus tard », après un report ou un
       changement de date (cure, séance, étape de RT) (d. 15).
-- [ ] **R-C6 Lisibilité de l'agenda** (d. 9, VALIDÉ) : contrastes ≥ 4,5:1 — heures de la grille `#9AA3B5` → `--doux #64708A` ; séance de
+- [x] **(19/10/2026, testé ; pas encore en ligne)** `--vert-t` #17693A, `--orange-t` #8F5600, heures `--doux` ; fait = couleur pleine + coche ;
+      grille `max(380px, 100vh − 300px)` ; en-tête « 1 consult. · 3 chimio » ; vues Semaine et Mois : puce « N séances de chimio » → vue Jour ; une
+      séance ou consultation avec heure est déjà placée dans la grille (AG5).
+      **R-C6 Lisibilité de l'agenda** (d. 9, VALIDÉ) : contrastes ≥ 4,5:1 — heures de la grille `#9AA3B5` → `--doux #64708A` ; séance de
       chimio `#1F8A4C` sur `#DFF3E6` → `#17693A` ; jour férié `#B86E00` sur `#FDEFD6` → `#8F5600` ; rendez-vous fait (opacité 0,6) →
       couleur pleine et une coche ; hauteur de la grille à la taille de l'écran ; « 5 consult. · 8 chimio » dans l'en-tête des jours ; séances
       sans heure : une puce « 8 séances de chimio » qui ouvre la vue Jour ; dès que l'heure de la séance (infirmière) ou de la consultation de
       chimio (médecin, secrétaire) est notée, la consultation se place dans la grille.
-- [ ] **R-C8 Agenda à jour sur tous les postes, comme la salle d'attente** (DEMANDÉ le 19/10/2026 par Dr Bentahila) : bouton **« Actualiser »**
+- [x] **(19/10/2026, testé ; pas encore en ligne)** bouton « Actualiser » + « à jour à 8 h 00 » (agenda.js `actualiser`) : relit les dossiers modifiés depuis
+      la dernière relecture (`API.relireModifies`, même requête que l'écoute) ; chaque minute toute seule (relecture seulement si l'écoute ne marche
+      pas), suspendue pendant une fenêtre, une saisie, le panneau ou un glisser-déposer ; vue, date, filtres et défilement de la grille gardés (aussi
+      après l'écoute et après une modification).
+      **R-C8 Agenda à jour sur tous les postes, comme la salle d'attente** (DEMANDÉ le 19/10/2026 par Dr Bentahila) : bouton **« Actualiser »**
       (icône, « à jour à 10 h 42 ») dans l'en-tête de l'agenda, qui relit les rendez-vous, les séances de chimio et les étapes de RT de la
       période affichée et redessine **sans perdre** la vue (Liste / Jour / Semaine / Mois), la date, les filtres (établissement, médecin) ni le
       défilement ; la même relecture **toute seule chaque minute**, suspendue pendant une fenêtre, une saisie ou un glisser-déposer (faite juste
@@ -455,7 +488,9 @@ types**, refus gardés) : R-A6 et R-E4 partent de là, sans les refaire.
       la relecture chaque minute (filet si l'écoute s'arrête) et l'ordre gardé ; mêmes règles (coût : relire seulement si l'écoute ne marche pas,
       le bouton relit tout). Vérifier : vues Jour et Semaine, glisser-déposer pendant une actualisation, salle d'attente, tableau de bord,
       téléphone (390 px), Safari ; `tests/test_agenda.py`.
-- [ ] **R-C7 Calcul de l'agenda gardé en mémoire** (C6 : toutes les lignes recalculées deux fois à chaque affichage), avec l'étape 5.3.
+- [x] **(19/10/2026, testé ; pas encore en ligne)** (fait avec le lot, sans attendre 5.3) événements de chaque dossier gardés en mémoire (`CACHE`, clé = dossier tel
+      qu'il est + période + filtres) : la page et « RDV à venir » ne recalculent plus toutes les cures.
+      **R-C7 Calcul de l'agenda gardé en mémoire** (C6 : toutes les lignes recalculées deux fois à chaque affichage), avec l'étape 5.3.
 
 **Lot D – Audit n° 6 : finances** (§ 7 ; lot F1 → R-B5 ; l'ancien lot « Caisse » est supprimé)
 - [ ] **R-D1 (F2) Consultation de chimio jour par jour** (C1, d. 1, VALIDÉ) : un acte par jour, à sa date, avec son mode (aujourd'hui un seul

@@ -79,22 +79,30 @@ export function statutRT(r, ctx) {
 }
 
 // C5 – consultations hebdomadaires « en cours de radiothérapie » (gratuites) : générées le jour choisi, du lendemain de la 1re séance
-// à la fin prévue, hors fériés, à partir d'aujourd'hui ; jamais modifiées si passées, validées, non venues ou reportées.
+// à la fin prévue, à partir d'aujourd'hui ; jamais modifiées si passées, validées, non venues ou reportées.
+// R-C1 (19/10/2026, audit 4 d. 6, décision du 17/10) : un jour férié, la consultation est créée QUAND MÊME (badge « Férié » du dossier,
+// listée dans « Rendez-vous à décaler ») ; jamais déplacée toute seule. Une consultation déjà créée à la bonne date garde son identifiant
+// (Google Agenda, salle d'attente) ; médecin (`med`) et lieu (`lieu`) de la radiothérapie recopiés (R-C3).
 // ctx.nouvelId(prefixe) fournit les identifiants. Renvoie true si le dossier a changé.
 export const T_RTC_RDV = "En cours de RT";
 const idRT = (r, ctx) => { if (!r.id) r.id = ctx.nouvelId("rt"); return r.id; };
-const sigRtc = (r) => ["v2", r.cj || "", r.ch || "", r.deb || "", r.nb || "", r.ryt || "", r.finPrev || "", r.fin || "", r.annule ? 1 : 0].join("|") + (r.ryt === "jours" ? "|" + (r.jours || []).join(",") : ""); // jours choisis (3.5) : seulement pour ce rythme (signature des autres inchangée)
+const sigRtc = (r) => ["v3", r.cj || "", r.ch || "", r.deb || "", r.nb || "", r.ryt || "", r.finPrev || "", r.fin || "", r.annule ? 1 : 0, r.med || "", r.hop || ""].join("|") + (r.ryt === "jours" ? "|" + (r.jours || []).join(",") : ""); // v3 (R-C1) : fériés compris, médecin et lieu
+// Dates voulues des consultations hebdomadaires d'une radiothérapie (à partir de t), fériés compris
+export function datesRtc(r, ctx) {
+  const t = ctx.aujourdhui, out = []; if (!r.cj || !r.deb) return out; const fin = r.fin || finRT(r, ctx.feries); if (!fin) return out;
+  const d1 = addJ(r.deb, 1); let d = d1 > t ? d1 : t;
+  for (let g = 0; g < 400 && d <= fin; g++) { if (String(new Date(d + "T12:00:00").getDay()) === String(r.cj)) out.push(d); d = addJ(d, 1); }
+  return out;
+}
 function regenRtc(P, r, ctx) {
   const id = idRT(r, ctx), t = ctx.aujourdhui; P.rdvs = P.rdvs || [];
-  P.rdvs = P.rdvs.filter((x) => x.rtc !== id || (x.st && x.st !== "prevu") || (x.rep && x.rep.length) || x.d < t);
-  if (!r.cj || !r.deb) return; const fin = r.fin || finRT(r, ctx.feries); if (!fin) return;
+  const libre = (x) => x.rtc === id && (x.st || "prevu") === "prevu" && !(x.rep && x.rep.length) && x.d >= t; // encore modifiable par le calcul
+  const voulu = {}; datesRtc(r, ctx).forEach((d) => { voulu[d] = 1; });
+  P.rdvs = P.rdvs.filter((x) => !libre(x) || voulu[x.dO || x.d]);
   const deja = {}; P.rdvs.forEach((x) => { if (x.rtc === id) deja[x.dO || x.d] = 1; });
-  const d1 = addJ(r.deb, 1); let d = d1 > t ? d1 : t;
-  for (let g = 0; g < 400 && d <= fin; g++) {
-    if (String(new Date(d + "T12:00:00").getDay()) === String(r.cj) && !(ctx.feries || []).some((f) => f.d === d) && !deja[d])
-      P.rdvs.push({ id: ctx.nouvelId("r", g), type: T_RTC_RDV, d, dO: d, h: r.ch || "", n: "", st: "prevu", prix: 0, rtc: id });
-    d = addJ(d, 1);
-  }
+  const suivre = (x) => { x.h = r.ch || ""; if (r.med) x.med = r.med; else delete x.med; if (r.hop) x.lieu = r.hop; else delete x.lieu; };
+  P.rdvs.forEach((x) => { if (libre(x)) suivre(x); });
+  Object.keys(voulu).sort().forEach((d, g) => { if (deja[d]) return; const x = { id: ctx.nouvelId("r", g), type: T_RTC_RDV, d, dO: d, h: "", n: "", st: "prevu", prix: 0, rtc: id }; suivre(x); P.rdvs.push(x); });
 }
 // Consultation de fin de radiothérapie (12/10/2026) : un rendez-vous par radiothérapie (rtfin = id), à la date de fin (réelle, sinon calculée),
 // créé seulement si cette date est aujourd'hui ou plus tard ; suit la fin tant qu'il n'a pas été déplacé à la main (d === dO) et reste prévu ;
@@ -105,8 +113,10 @@ export function consultFinRT(P, ctx) {
     const id = idRT(r, ctx); ids[id] = 1; if (r.annule || !r.deb) return;
     const fin = r.fin || finRT(r, ctx.feries); if (!fin) return;
     const v = P.rdvs.find((x) => x.rtfin === id);
-    if (!v) { if (fin >= t) { P.rdvs.push({ id: ctx.nouvelId("r", "f" + id), type: T_RTF, d: fin, dO: fin, h: "", n: "", st: "prevu", rtfin: id }); ch = true; } return; }
+    if (!v) { if (fin >= t) { P.rdvs.push(Object.assign({ id: ctx.nouvelId("r", "f" + id), type: T_RTF, d: fin, dO: fin, h: "", n: "", st: "prevu", rtfin: id }, r.med ? { med: r.med } : {}, r.hop ? { lieu: r.hop } : {})); ch = true; } return; }
     if ((v.st || "prevu") === "prevu" && v.d === v.dO && v.dO !== fin && fin >= t && !(v.rep && v.rep.length)) { v.d = fin; v.dO = fin; ch = true; }
+    // R-C3 : médecin et lieu de la radiothérapie, tant que la consultation est encore prévue (sans médecin ni lieu notés à part)
+    if ((v.st || "prevu") === "prevu" && v.d >= t) { if (r.med && !v.med) { v.med = r.med; ch = true; } if (r.hop && !v.lieu) { v.lieu = r.hop; ch = true; } }
   });
   const n0 = P.rdvs.length; P.rdvs = P.rdvs.filter((x) => !x.rtfin || ids[x.rtfin] || (x.st && x.st !== "prevu")); if (P.rdvs.length !== n0) ch = true;
   return ch;

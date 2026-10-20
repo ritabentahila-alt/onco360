@@ -35,20 +35,44 @@ export const dureeDe = (r, etab) => dureeRdv(r, (D().cal || {}).durees, horaires
 // 12/10/2026 : « Pas des créneaux » retiré de Horaires (demande de Dr Bentahila) : la durée se choisit dans Types de consultation ; un type
 // sans durée choisie garde l'ancien pas du lieu (30 min par défaut), affiché comme sa durée : rien ne change pour les rendez-vous existants
 export const dureeType = (cle, etab) => ((D().cal || {}).durees || {})[cle] || horaires(etab).duree || 30;
-// Messages WhatsApp prédéfinis. Variables : {prenom} {nom} {jour} {heure} {lieu} {adresse} {medecin}
-export const WA0 = {
-  // Confirmation proposée juste après la prise d'un rendez-vous (19.4, 10/10/2026)
-  confirm: "Bonjour {prenom}, votre rendez-vous est confirmé le {jour} {heure} à {lieu}.\nEn cas d'empêchement, merci de nous prévenir.\n{medecin}",
-  chimio: "Bonjour {prenom}, nous vous rappelons votre séance de chimiothérapie le {jour} {heure} à {lieu}.\nMerci d'apporter votre bilan sanguin récent (NFS, plaquettes, créatinine), vos ordonnances et vos derniers comptes rendus. Pensez à prendre votre prémédication si elle vous a été prescrite.\nEn cas de fièvre ou de problème, appelez-nous avant de vous déplacer.\n{medecin}",
-  annonce: "Bonjour {prenom}, nous vous rappelons votre consultation d'annonce le {jour} {heure} à {lieu}.\nMerci d'apporter tous vos examens (biopsie, compte rendu anatomopathologique, imagerie, bilans sanguins) et, si vous le souhaitez, d'être accompagné(e) d'un proche.\n{medecin}",
-  suivi: "Bonjour {prenom}, nous vous rappelons votre consultation de suivi le {jour} {heure} à {lieu}.\nMerci d'apporter vos derniers examens (bilan sanguin, imagerie) et vos ordonnances en cours.\n{medecin}",
-  controle: "Bonjour {prenom}, nous vous rappelons votre consultation de contrôle le {jour} {heure} à {lieu}.\nMerci d'apporter les résultats des examens demandés lors de la dernière consultation.\n{medecin}",
-  rtc: "Bonjour {prenom}, nous vous rappelons votre consultation de surveillance pendant la radiothérapie le {jour} {heure} à {lieu}.\nSignalez-nous toute gêne (peau, déglutition, fatigue…).\n{medecin}",
-  rtf: "Bonjour {prenom}, nous vous rappelons votre consultation de fin de radiothérapie le {jour} {heure} à {lieu}.\nMerci d'apporter vos derniers examens et de nous signaler toute gêne depuis la fin des séances.\n{medecin}",
-  hospit: "Bonjour {prenom}, nous vous rappelons votre hospitalisation à partir du {jour} à {lieu}.\nMerci d'apporter votre carte d'identité, votre prise en charge (mutuelle), vos examens et vos traitements habituels.\n{medecin}",
-  rt: "Bonjour {prenom}, nous vous rappelons votre rendez-vous de radiothérapie le {jour} {heure} à {lieu}.\nMerci d'apporter vos examens et votre prise en charge.\n{medecin}",
-  autre: "Bonjour {prenom}, nous vous rappelons votre rendez-vous le {jour} {heure} à {lieu}.\n{medecin}",
+// Messages WhatsApp prédéfinis. Variables : {prenom} {nom} {jour} {heure} {lieu} {adresse} {medecin} ; en arabe : {jour_ar} {heure_ar}.
+// R-C5 (19/10/2026, audit 4 d. 14, décision du 17/10) : chaque message = français, puis arabe classique (pas de darija), à la suite ; pas de choix de
+// langue par patient. Un message déjà modifié par le cabinet n'est pas réécrit : s'il n'a pas de texte en arabe, celui de départ est ajouté à
+// la suite à l'envoi (messageAvecArabe).
+const WA_FR = {
+  // Confirmation proposée juste après la prise d'un rendez-vous (19.4, 10/10/2026), et après un report ou un changement de date (R-C5)
+  confirm: "Bonjour {prenom}, votre rendez-vous est confirmé le {jour} {heure} à {lieu}.\nEn cas d'empêchement, merci de nous prévenir.",
+  chimio: "Bonjour {prenom}, nous vous rappelons votre séance de chimiothérapie le {jour} {heure} à {lieu}.\nMerci d'apporter votre bilan sanguin récent (NFS, plaquettes, créatinine), vos ordonnances et vos derniers comptes rendus. Pensez à prendre votre prémédication si elle vous a été prescrite.\nEn cas de fièvre ou de problème, appelez-nous avant de vous déplacer.",
+  annonce: "Bonjour {prenom}, nous vous rappelons votre consultation d'annonce le {jour} {heure} à {lieu}.\nMerci d'apporter tous vos examens (biopsie, compte rendu anatomopathologique, imagerie, bilans sanguins) et, si vous le souhaitez, d'être accompagné(e) d'un proche.",
+  suivi: "Bonjour {prenom}, nous vous rappelons votre consultation de suivi le {jour} {heure} à {lieu}.\nMerci d'apporter vos derniers examens (bilan sanguin, imagerie) et vos ordonnances en cours.",
+  controle: "Bonjour {prenom}, nous vous rappelons votre consultation de contrôle le {jour} {heure} à {lieu}.\nMerci d'apporter les résultats des examens demandés lors de la dernière consultation.",
+  rtc: "Bonjour {prenom}, nous vous rappelons votre consultation de surveillance pendant la radiothérapie le {jour} {heure} à {lieu}.\nSignalez-nous toute gêne (peau, déglutition, fatigue…).",
+  rtf: "Bonjour {prenom}, nous vous rappelons votre consultation de fin de radiothérapie le {jour} {heure} à {lieu}.\nMerci d'apporter vos derniers examens et de nous signaler toute gêne depuis la fin des séances.",
+  hospit: "Bonjour {prenom}, nous vous rappelons votre hospitalisation à partir du {jour} à {lieu}.\nMerci d'apporter votre carte d'identité, votre prise en charge (mutuelle), vos examens et vos traitements habituels.",
+  rt: "Bonjour {prenom}, nous vous rappelons votre rendez-vous de radiothérapie le {jour} {heure} à {lieu}.\nMerci d'apporter vos examens et votre prise en charge.",
+  autre: "Bonjour {prenom}, nous vous rappelons votre rendez-vous le {jour} {heure} à {lieu}.",
 };
+// Noms propres en lettres latines (prénom, lieu) isolés (U+2068 … U+2069) : la ponctuation arabe reste à sa place, à l'écran comme dans WhatsApp
+export const WA_AR = {
+  confirm: "مرحبا \u2068{prenom}\u2069، نؤكد موعدكم يوم {jour_ar} {heure_ar} في \u2068{lieu}\u2069.\nفي حال تعذر حضوركم، نرجو إخبارنا.",
+  chimio: "مرحبا \u2068{prenom}\u2069، نذكركم بحصة العلاج الكيميائي يوم {jour_ar} {heure_ar} في \u2068{lieu}\u2069.\nيرجى إحضار آخر تحليل للدم (تعداد الدم الكامل، الصفائح الدموية، الكرياتينين)، ووصفاتكم الطبية وآخر التقارير الطبية. لا تنسوا تناول الأدوية الوقائية إذا وُصفت لكم.\nفي حال الإصابة بالحمى أو حدوث أي مشكل، اتصلوا بنا قبل التنقل.",
+  annonce: "مرحبا \u2068{prenom}\u2069، نذكركم بموعد استشارة الإعلان عن التشخيص يوم {jour_ar} {heure_ar} في \u2068{lieu}\u2069.\nيرجى إحضار جميع فحوصاتكم (الخزعة، تقرير التشريح المرضي، الصور الإشعاعية، تحاليل الدم)، ويمكنكم إن شئتم أن يرافقكم أحد أقاربكم.",
+  suivi: "مرحبا \u2068{prenom}\u2069، نذكركم بموعد استشارة المتابعة يوم {jour_ar} {heure_ar} في \u2068{lieu}\u2069.\nيرجى إحضار آخر فحوصاتكم (تحاليل الدم، الصور الإشعاعية) ووصفاتكم الطبية الحالية.",
+  controle: "مرحبا \u2068{prenom}\u2069، نذكركم بموعد استشارة المراقبة يوم {jour_ar} {heure_ar} في \u2068{lieu}\u2069.\nيرجى إحضار نتائج الفحوصات المطلوبة في الاستشارة الأخيرة.",
+  rtc: "مرحبا \u2068{prenom}\u2069، نذكركم بموعد استشارة المراقبة خلال العلاج الإشعاعي يوم {jour_ar} {heure_ar} في \u2068{lieu}\u2069.\nأخبرونا بأي إزعاج (الجلد، البلع، التعب...).",
+  rtf: "مرحبا \u2068{prenom}\u2069، نذكركم بموعد استشارة نهاية العلاج الإشعاعي يوم {jour_ar} {heure_ar} في \u2068{lieu}\u2069.\nيرجى إحضار آخر فحوصاتكم وإخبارنا بأي إزعاج منذ نهاية الحصص.",
+  hospit: "مرحبا \u2068{prenom}\u2069، نذكركم بدخولكم إلى المستشفى ابتداءً من يوم {jour_ar} في \u2068{lieu}\u2069.\nيرجى إحضار بطاقة التعريف الوطنية، ووثيقة التكفل (التعاضدية)، وفحوصاتكم وأدويتكم المعتادة.",
+  rt: "مرحبا \u2068{prenom}\u2069، نذكركم بموعد العلاج الإشعاعي يوم {jour_ar} {heure_ar} في \u2068{lieu}\u2069.\nيرجى إحضار فحوصاتكم ووثيقة التكفل.",
+  autre: "مرحبا \u2068{prenom}\u2069، نذكركم بموعدكم يوم {jour_ar} {heure_ar} في \u2068{lieu}\u2069.",
+};
+export const WA0 = Object.fromEntries(Object.keys(WA_FR).map((k) => [k, WA_FR[k] + "\n\n" + WA_AR[k] + "\n{medecin}"]));
+// Message envoyé : celui du cabinet ; sans texte en arabe (message modifié avant le 19/10/2026), l'arabe de départ est ajouté à la suite
+export const aDeLArabe = (m) => /[\u0600-\u06FF]/.test(String(m || ""));
+export const messageAvecArabe = (m, cat) => (aDeLArabe(m) ? m : String(m || "").replace(/\s+$/, "") + "\n\n" + (WA_AR[cat] || WA_AR.autre));
+// Jour et heure en arabe (mois en usage au Maroc) : « الاثنين 20 أكتوبر », « على الساعة 10:00 »
+const JOURS_AR = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"], MOIS_AR = ["يناير", "فبراير", "مارس", "أبريل", "ماي", "يونيو", "يوليوز", "غشت", "شتنبر", "أكتوبر", "نونبر", "دجنبر"];
+export const jourAr = (d) => { const j = new Date(d + "T12:00:00"); return JOURS_AR[j.getDay()] + " " + j.getDate() + " " + MOIS_AR[j.getMonth()]; };
+export const heureAr = (h) => (h ? "على الساعة " + h : "");
 // 3.13 (12/10/2026) : un message par type de consultation du référentiel (Paramètres › Dossier patient › Types de consultation) : un type
 // ajouté a aussitôt son message (celui « par défaut » tant qu'il n'est pas écrit) ; types du journal seulement (RCP, note…) : pas de rappel
 export const CAT_WA = () => {
@@ -320,10 +344,10 @@ const RUBRIQUES = {
       '<div><label for="cfWa">jusqu\'à</label><select id="cfWa"' + c.disE + ' onchange="cfReg(\'whatsapp\',\'de\',this.value)">' + [0, 1, 2, 3].map((n) => '<option value="' + n + '"' + (RW.de === n ? " selected" : "") + ">" + jr(n) + "</option>").join("") + "</select></div></div></section>";
     h += '<section class="carte">' + titre("whatsapp", "Messages") + '<div class="wa-l">' + CAT_WA().map(([k, lib, ico]) => {
       const v = ED.wa[k] != null ? ED.wa[k] : WA0[k] || WA0.autre, perso = ED.wa[k] != null && ED.wa[k] !== (WA0[k] || WA0.autre), ouvert = WAO === k;
-      return '<div class="wa-i' + (ouvert ? " on" : "") + '"><button type="button" class="wa-t" aria-expanded="' + ouvert + '" onclick="cfWaO(\'' + k + "')\"><span class=\"n\">" + (ico ? A.ic(ico) : "") + esc(lib) + (perso ? ' <span class="badge b-or">personnalisé</span>' : "") + '</span><span class="ap">' + esc(remplir(v, ex).replace(/\s+/g, " ")) + '</span><span class="chev" aria-hidden="true">›</span></button>' +
+      return '<div class="wa-i' + (ouvert ? " on" : "") + '"><button type="button" class="wa-t" aria-expanded="' + ouvert + '" onclick="cfWaO(\'' + k + "')\"><span class=\"n\">" + (ico ? A.ic(ico) : "") + esc(lib) + (perso ? ' <span class="badge b-or">personnalisé</span>' : "") + '</span><span class="ap">' + esc(remplir(messageAvecArabe(v, k), ex).replace(/\s+/g, " ")) + '</span><span class="chev" aria-hidden="true">›</span></button>' +
         (ouvert ? '<div class="wa-ed"><div><textarea id="waT_' + k + '" class="notes" rows="7"' + c.disE + ' aria-label="Message : ' + esc(lib) + '" oninput="cfWa(\'' + k + "',this.value)\">" + esc(v) + "</textarea>" +
           (c.okE ? '<div class="wa-v"><span class="mesures">Insérer :</span>' + VARS_WA.map(([n, t]) => '<button type="button" class="puce" title="' + esc(t) + '" onclick="cfWaVar(\'' + k + "','" + n + "')\">{" + n + "}</button>").join("") + (perso ? '<button type="button" class="mini" onclick="cfWaDef(\'' + k + "')\">↺ Message par défaut</button>" : "") + "</div>" : "") +
-          '</div><div><span class="mesures">Aperçu</span><div class="wa-ex" id="waEx_' + k + '">' + esc(remplir(v, ex)) + "</div></div></div>" : "") + "</div>";
+          '</div><div><span class="mesures">Aperçu</span><div class="wa-ex" id="waEx_' + k + '">' + esc(remplir(messageAvecArabe(v, k), ex)) + "</div>" + (aDeLArabe(v) ? "" : '<p class="mesures" style="margin:4px 0 0">Sans texte en arabe dans ce message : celui de départ est ajouté à la suite à l\'envoi.</p>') + "</div></div>" : "") + "</div>";
     }).join("") + "</div></section>";
     return h;
   },
@@ -364,7 +388,7 @@ window.cfTyAj = () => { const nom = prompt("Nom du nouveau type de consultation 
   ED.typesC.push({ k: nouvelleCle(ED.typesC, n), nom: n, rdv: true, anciens: [] }); modif(true); };
 window.cfTySup = (i) => { const t = ED.typesC[i]; if (!t || estStd(t.k)) return; if (!confirm("Retirer le type « " + t.nom + " » ?\nIl ne sera plus proposé ; les rendez-vous et consultations déjà enregistrés gardent leur nom.")) return; ED.typesC.splice(i, 1); modif(true); };
 window.cfDureeT = (k, v) => { ED.durees = ED.durees || {}; if (+v) ED.durees[k] = +v; else delete ED.durees[k]; modif(); };
-const VARS_WA = [["prenom", "Prénom"], ["nom", "Nom complet"], ["jour", "mardi 14 octobre"], ["heure", "« à 10h00 » (vide sans heure)"], ["lieu", "Établissement"], ["adresse", "Adresse"], ["medecin", "Nom du médecin"]];
+const VARS_WA = [["prenom", "Prénom"], ["nom", "Nom complet"], ["jour", "mardi 14 octobre"], ["heure", "« à 10h00 » (vide sans heure)"], ["jour_ar", "le jour en arabe"], ["heure_ar", "l'heure en arabe (vide sans heure)"], ["lieu", "Établissement"], ["adresse", "Adresse"], ["medecin", "Nom du médecin"]];
 let WAO = null; // message WhatsApp ouvert
 let FE = null, CE = null; // éditeurs de la fiche patient et du formulaire de consultation (gardés tant que la saisie dure)
 // Base des retouches du cabinet : fiche et formulaire réglés par l'administration (spécialité + retouches de l'administration)
@@ -432,8 +456,8 @@ window.cfSupPlage = (j, k) => { HC().jours[j].splice(k, 1); modif(true); };
 // Exemple de message : le premier lieu d'exercice et le nom du médecin connecté (ou du titulaire)
 // Lieux du membre connecté (secrétaire d'un centre : les siens seulement)
 const lieuxMembre = () => { const m = D().membre, l = D().etabs || []; return m.tousEtablissements ? l : l.filter((e) => (m.etablissements || []).indexOf(e.code) >= 0); };
-const exempleWa = () => { const p = D().profil || {}, nomDr = D().membre.role === "medecin" ? (p.nom || D().membre.nom || "") : ((D().medTitulaire && D().medTitulaire.nom) || D().nomTitulaire || ""); return { prenom: "Fatima", nom: "ALAOUI Fatima", jour: "mardi 14 octobre", heure: "à 10h00", lieu: (lieuxMembre()[0] || {}).nom || "Clinique", adresse: "", medecin: "Dr " + String(nomDr).replace(/^(Dr|Pr)\.?\s*/i, "").toUpperCase() }; };
-window.cfWa = (k, v) => { ED.wa[k] = v; const e = A.$("waEx_" + k); if (e) e.textContent = remplir(v, exempleWa()); modif(); };
+const exempleWa = () => { const p = D().profil || {}, nomDr = D().membre.role === "medecin" ? (p.nom || D().membre.nom || "") : ((D().medTitulaire && D().medTitulaire.nom) || D().nomTitulaire || ""); return { prenom: "Fatima", nom: "ALAOUI Fatima", jour: "mardi 14 octobre", heure: "à 10h00", jour_ar: "الثلاثاء 14 أكتوبر", heure_ar: heureAr("10:00"), lieu: (lieuxMembre()[0] || {}).nom || "Clinique", adresse: "", medecin: "Dr " + String(nomDr).replace(/^(Dr|Pr)\.?\s*/i, "").toUpperCase() }; };
+window.cfWa = (k, v) => { ED.wa[k] = v; const e = A.$("waEx_" + k); if (e) e.textContent = remplir(messageAvecArabe(v, k), exempleWa()); modif(); };
 window.cfWaDef = (k) => { delete ED.wa[k]; modif(true); };
 window.cfWaO = (k) => { WAO = WAO === k ? null : k; pageConfiguration(); const t = A.$("waT_" + k); if (t) t.focus(); };
 // Variable insérée à la place du curseur

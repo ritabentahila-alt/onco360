@@ -10,6 +10,7 @@ import { addJ, ouvre } from "../moteur/outils.js";
 import { horaires, dureeDe } from "./configuration.js";
 import { heureSeance, fenetreHeureSeance, peutHeureChimio, estInfirmiere } from "./chimio.js";
 import { DU_CONS } from "../moteur/heures.js";
+import { heureMaroc } from "./salle.js";
 
 let A = null;
 export function installer(api) { A = api; }
@@ -44,29 +45,49 @@ function evtsChimio(base, o) {
   if (o.hc && !o.hc.auto && base.st === "prevu") l.push(Object.assign({}, base, { sub: "cons", t: "Consultation du médecin · " + base.t }, hrDe(o.hc, DU_CONS)));
   return l;
 }
+// R-C2 (19/10/2026, audit 4 C5) : un dossier illisible n'arrête plus la page (try / catch par dossier, comme la salle d'attente ; noté dans la
+// console). Ligne arrêtée (d. 13) : ses cures à venir sont écartées, les passées et les séances faites restent ; ligne supprimée : plus rien.
+// R-C3 : lieu et médecin de CHAQUE événement (filtres « Établissement » et « Médecin ») : rendez-vous = son lieu (`lieu`, sinon celui du
+// patient) et son médecin (sinon le titulaire) ; chimio = médecin de la ligne, sinon du patient ; radiothérapie = son lieu (`hop`) et son médecin.
+const lieuDe = (o, x) => (o && (o.lieu || o.hop)) || x.doc.etablissementId || "";
+const medDe = (o, x) => (o && o.med) || x.P.med || A.medRdv({});
+const filtre = (etab, med) => (!AG.etab || etab === AG.etab) && !(AG.med && A.multiMed() && med !== AG.med);
+function evtsDossier(x, du, au, out) {
+  const P = x.P, nm = x.r.nm, ctx = D().ctx;
+  if (A.voitRdv()) (P.rdvs || []).forEach((r) => {
+    if (!r.d || !filtre(lieuDe(r, x), A.medRdv(r))) return; const hs = typeRdv(r.type) === "hospit", f = hs && r.f && r.f >= r.d ? r.f : r.d;
+    if (f < du || r.d > au) return;
+    out.push({ pid: x.id, rid: r.id, cat: hs ? "ho" : "co", d: r.d, f, h: hs ? "" : r.h || "", du: hs ? 0 : dureeDe(r, lieuDe(r, x)), nm, t: (hs ? "Hospitalisation" : libRdv(r)) + (A.multiMed() && !AG.med ? " · " + A.nomMed(A.medRdv(r)) : ""), st: r.st || "prevu", n: r.n || "" });
+  });
+  (P.lignes || []).forEach((L) => {
+    if (!filtre(x.doc.etablissementId || "", medDe(L, x))) return;
+    let p; try { p = protocoleDe(L, ctx.bib); } catch (e) { return; } if (!p) return;
+    const stop = L.arret ? L.arret.date || D().t : null, garde = (d, st) => !stop || st === "fait" || d < stop; // ligne arrêtée : passé seulement
+    etatLigne(L, P, ctx).forEach((e) => {
+      if (e.st === "annulee" || !e.date) return;
+      const st1 = e.st === "recue" ? "fait" : "prevu";
+      if (e.date >= du && e.date <= au && garde(e.date, st1)) evtsChimio({ pid: x.id, cat: "ch", d: e.date, f: e.date, nm, t: "C" + e.n + "/" + L.cures.length + " · " + p.nom, st: st1, lid: L.id, n: e.n, j: 1 }, e.c).forEach((z) => out.push(z));
+      seancesCure(L, e, ctx.bib).forEach((s) => { if (s.st === "annulee") return; const d = s.st === "recue" && s.d ? s.d : s.prevue, st = s.st === "recue" ? "fait" : "prevu"; if (d && d >= du && d <= au && garde(d, st)) evtsChimio({ pid: x.id, cat: "ch", d, f: d, nm, t: "C" + e.n + " J" + s.j + " · " + p.nom, st, lid: L.id, n: e.n, j: s.j }, (e.c.sea || {})[s.j]).forEach((z) => out.push(z)); });
+    });
+  });
+  if (A.voitRT(x)) (P.rts || []).forEach((r) => {
+    if (!filtre(lieuDe(r, x), medDe(r, x))) return;
+    const fin = r.fin || finRT(r, ctx.feries), a = r.acte || "Radiothérapie";
+    // « Dosimétrie à valider » : une tâche pour le médecin (P4, 08/10/2026), plus un rendez-vous de l'agenda
+    [[r.scan, "Scanner de centrage", "scan"], [r.dosi, "Dosimétrie validée"], [r.deb, "1re séance", "deb"], [fin, r.fin ? "Fin de radiothérapie" : "Fin de radiothérapie prévue"].concat(r.fin ? [] : ["fin"])].forEach((z) => { if (z[0] && z[0] >= du && z[0] <= au) out.push(Object.assign({ pid: x.id, cat: "rt", d: z[0], f: z[0], nm, t: z[1] + " · " + a + (r.hop && r.hop !== x.doc.etablissementId ? " (" + r.hop + ")" : ""), st: r.fin && z[0] <= r.fin ? "fait" : "prevu" }, z[2] ? Object.assign({ rtid: r.id, z: z[2] }, hrDe(z[2] === "deb" ? r.debH : z[2] === "fin" ? r.finH : r.scanH, DU_SCAN)) : { h: "" })); });
+  });
+}
+// R-C7 (19/10/2026, audit 4 C6) : événements d'un dossier gardés en mémoire (une entrée par dossier tel qu'il est : x.P change à chaque relecture
+// ou enregistrement) pour la période, les filtres et les réglages du moment ; la page et « RDV à venir » ne recalculent plus toutes les cures
+let CACHE = new WeakMap(), CTX0 = null;
 function evenements(du, au) {
-  const out = [], ctx = D().ctx;
+  const out = [], ctx = D().ctx; if (ctx !== CTX0) { CACHE = new WeakMap(); CTX0 = ctx; }
+  const cle = [du, au, AG.etab || "", AG.med || "", A.multiMed() ? (A.medecins() || []).map((m) => m.uid + m.nom).join() : "", estInfirmiere() ? 1 : 0].join("|");
   D().patients.forEach((x) => {
-    const P = x.P, nm = x.r.nm;
-    if (AG.etab && x.doc.etablissementId !== AG.etab) return;
-    if (A.voitRdv()) (P.rdvs || []).forEach((r) => {
-      if (!r.d || (AG.med && A.multiMed() && A.medRdv(r) !== AG.med)) return; const hs = typeRdv(r.type) === "hospit", f = hs && r.f && r.f >= r.d ? r.f : r.d;
-      if (f < du || r.d > au) return;
-      out.push({ pid: x.id, rid: r.id, cat: hs ? "ho" : "co", d: r.d, f, h: hs ? "" : r.h || "", du: hs ? 0 : dureeDe(r, x.doc.etablissementId), nm, t: (hs ? "Hospitalisation" : libRdv(r)) + (A.multiMed() && !AG.med ? " · " + A.nomMed(A.medRdv(r)) : ""), st: r.st || "prevu", n: r.n || "" });
-    });
-    (P.lignes || []).forEach((L) => {
-      if (L.arret) return; let p; try { p = protocoleDe(L, ctx.bib); } catch (e) { return; } if (!p) return;
-      etatLigne(L, P, ctx).forEach((e) => {
-        if (e.st === "annulee" || !e.date) return;
-        if (e.date >= du && e.date <= au) evtsChimio({ pid: x.id, cat: "ch", d: e.date, f: e.date, nm, t: "C" + e.n + "/" + L.cures.length + " · " + p.nom, st: e.st === "recue" ? "fait" : "prevu", lid: L.id, n: e.n, j: 1 }, e.c).forEach((z) => out.push(z));
-        seancesCure(L, e, ctx.bib).forEach((s) => { if (s.st === "annulee") return; const d = s.st === "recue" && s.d ? s.d : s.prevue; if (d && d >= du && d <= au) evtsChimio({ pid: x.id, cat: "ch", d, f: d, nm, t: "C" + e.n + " J" + s.j + " · " + p.nom, st: s.st === "recue" ? "fait" : "prevu", lid: L.id, n: e.n, j: s.j }, (e.c.sea || {})[s.j]).forEach((z) => out.push(z)); });
-      });
-    });
-    if (A.voitRT(x)) (P.rts || []).forEach((r) => {
-      const fin = r.fin || finRT(r, ctx.feries), a = r.acte || "Radiothérapie";
-      // « Dosimétrie à valider » : une tâche pour le médecin (P4, 08/10/2026), plus un rendez-vous de l'agenda
-      [[r.scan, "Scanner de centrage", "scan"], [r.dosi, "Dosimétrie validée"], [r.deb, "1re séance", "deb"], [fin, r.fin ? "Fin de radiothérapie" : "Fin de radiothérapie prévue"].concat(r.fin ? [] : ["fin"])].forEach((z) => { if (z[0] && z[0] >= du && z[0] <= au) out.push(Object.assign({ pid: x.id, cat: "rt", d: z[0], f: z[0], nm, t: z[1] + " · " + a, st: r.fin && z[0] <= r.fin ? "fait" : "prevu" }, z[2] ? Object.assign({ rtid: r.id, z: z[2] }, hrDe(z[2] === "deb" ? r.debH : z[2] === "fin" ? r.finH : r.scanH, DU_SCAN)) : { h: "" })); });
-    });
+    let m = CACHE.get(x.P); if (!m) { m = new Map(); CACHE.set(x.P, m); }
+    let l = m.get(cle);
+    if (!l) { l = []; try { evtsDossier(x, du, au, l); } catch (e) { l = []; console.warn("agenda : dossier " + x.id + " illisible, ignoré", e); } m.set(cle, l); }
+    l.forEach((z) => out.push(z));
   });
   return out.sort((a, b) => (a.d + (a.h || "")).localeCompare(b.d + (b.h || "")) || a.nm.localeCompare(b.nm));
 }
@@ -74,7 +95,12 @@ function evenements(du, au) {
 const badge = (e) => (e.d === D().t && (e.cat === "co" || e.cat === "ch") && A.badgeSalle ? A.badgeSalle(e.pid, e.cat === "co" ? "r-" + e.rid : "chimio") : "");
 // 4.3 (12/10/2026) : un seul jeu d'icônes (dessinées), plus d'émojis à l'écran
 const EM = { co: '<svg class="pi"><use href="#i-stetho"/></svg>', ho: '<svg class="pi"><use href="#i-hopital"/></svg>', ch: '<svg class="pi"><use href="#i-seringue"/></svg>', rt: '<svg class="pi"><use href="#i-radiation"/></svg>' };
-const chip = (e, i) => '<button class="ev-c c-' + e.cat + (e.st === "fait" ? " fait" : e.st === "absent" ? " nv" : "") + (glissable(e) && AG.vue !== "mois" ? ' dep" draggable="true" data-i="' + i : "") + '" onclick="agEv(' + i + ')" title="' + A.esc(e.nm + " – " + e.t) + '">' + EM[e.cat] + " <b>" + A.esc(e.nm) + "</b> " + A.esc(e.t) + (AG.vue === "jour" ? badge(e) : "") + "</button>";
+// R-C6 (audit 4 d. 9) : contrastes ≥ 4,5:1 ; fait = couleur pleine et une coche (plus de transparence)
+const coche = (e) => (e.st === "fait" ? '<svg class="pi ck" aria-label="fait"><use href="#i-check"/></svg>' : "");
+const nbChimio = (l) => new Set(l.filter((e) => e.cat === "ch").map((e) => e.pid + "|" + e.lid + "|" + e.n + "|" + e.j)).size;
+const comptes = (l) => { const co = l.filter((e) => e.cat === "co").length, ch = nbChimio(l); return [co ? co + " consult." : "", ch ? ch + " chimio" : ""].filter(Boolean).join(" · "); };
+const puceChimio = (d, l) => { const k = nbChimio(l); return k ? '<button class="ev-c c-ch puce-ch" onclick="agJour(\'' + d + '\',1)" title="Voir ces séances dans la vue Jour">' + EM.ch + " " + k + " séance" + (k > 1 ? "s" : "") + " de chimio</button>" : ""; };
+const chip = (e, i) => '<button class="ev-c c-' + e.cat + (e.st === "fait" ? " fait" : e.st === "absent" ? " nv" : "") + (glissable(e) && AG.vue !== "mois" ? ' dep" draggable="true" data-i="' + i : "") + '" onclick="agEv(' + i + ')" title="' + A.esc(e.nm + " – " + e.t) + '">' + EM[e.cat] + coche(e) + " <b>" + A.esc(e.nm) + "</b> " + A.esc(e.t) + (AG.vue === "jour" ? badge(e) : "") + "</button>";
 const absence = (d) => (fnA("absences") ? (D().cal.abs || []).find((a) => d >= a.du && d <= a.au) : null);
 const ferie = (d) => (fnA("absences") ? (D().ctx.feries || []).find((f) => f.d === d) : null);
 let EVS = [];
@@ -102,12 +128,16 @@ export function pageAgenda() {
     '<div class="ag-barre"><div class="ag-vues">' + onglet("liste", "liste", "Liste") + onglet("jour", "agenda", "Jour") + onglet("semaine", "agenda", "Semaine") + onglet("mois", "accueil", "Mois") + "</div>" +
     '<div class="ag-nav"><button class="rond" onclick="agNav(-1)" aria-label="Précédent">' + A.ic("retour") + '</button><button class="bt clair petit" onclick="agAuj()">Aujourd\'hui</button><b>' + esc(lib) + '</b><button class="rond" onclick="agNav(1)" aria-label="Suivant" style="transform:scaleX(-1)">' + A.ic("retour") + "</button></div>" +
     (EV.length > 1 ? '<select class="ag-etab" data-fn="agenda.filtre" aria-label="Établissement" onchange="agEtab(this.value)"><option value="">Tous les établissements</option>' + EV.map((c) => '<option value="' + esc(c) + '"' + (AG.etab === c ? " selected" : "") + ">" + esc(c) + "</option>").join("") + "</select>" : EV.length === 1 ? '<span class="badge b-gr">' + esc(EV[0]) + "</span>" : "") +
-    (A.multiMed() ? '<select class="ag-etab" id="agMed" aria-label="Médecin" onchange="agMed(this.value)"><option value="">Tous les médecins</option>' + A.medecins().map((m) => '<option value="' + esc(m.uid) + '"' + (AG.med === m.uid ? " selected" : "") + ">" + esc(m.nom) + "</option>").join("") + "</select>" : "") + "</div>" +
+    (A.multiMed() ? '<select class="ag-etab" id="agMed" aria-label="Médecin" onchange="agMed(this.value)"><option value="">Tous les médecins</option>' + A.medecins().map((m) => '<option value="' + esc(m.uid) + '"' + (AG.med === m.uid ? " selected" : "") + ">" + esc(m.nom) + "</option>").join("") + "</select>" : "") +
+    '<span class="ag-act"><button class="bt clair petit" id="agAct" onclick="agActualiser()" title="Relire les rendez-vous, séances et radiothérapies (aussi chaque minute)">' + A.ic("actualiser") + 'Actualiser</button><span class="mesures" id="agAjour"></span></span></div>' +
     '<div class="ag-corps"><aside class="ag-cote">' + cote + '</aside><div class="ag-main carte">' + main + "</div></div>" +
     ((D().profil.agendaGoogle || {}).email ? '<p class="mesures">Vos rendez-vous apparaissent aussi dans votre Google Agenda (agenda « Onco360 »), dans un seul sens. <a href="#parametres/couleurs">État</a></p>'
       : '<p class="mesures">Voir ces rendez-vous dans votre Google Agenda : <a href="#parametres/couleurs">Paramètres › Google Agenda</a>.</p>');
-  A.$("page").innerHTML = h;
-  const g = document.querySelector(".ag-grille"), deb = tout.length ? Math.min(...tout.map((p) => mn(p[0]))) : 8 * 60; if (g && !AG.defile) { g.scrollTop = (deb - H0 * 60) / 15 * PAS - 10; }
+  // R-C8 : même vue et même période redessinées (Actualiser, écoute des dossiers, après une modification) : le défilement de la grille est gardé
+  const g0 = document.querySelector(".ag-grille"), cleVue = v + "|" + du, garde = g0 && AG.cleVue === cleVue ? g0.scrollTop : null;
+  A.$("page").innerHTML = h; AG.cleVue = cleVue; majAJour(); demarrerMinute();
+  const g = document.querySelector(".ag-grille"), deb = tout.length ? Math.min(...tout.map((p) => mn(p[0]))) : 8 * 60;
+  if (g && garde != null) g.scrollTop = garde; else if (g && !AG.defile) { g.scrollTop = (deb - H0 * 60) / 15 * PAS - 10; }
   AG.defile = false;
   if (g) glisser(document.querySelector(".ag-main"));
 }
@@ -127,12 +157,15 @@ function vueGrille(du, n) {
   const t = D().t, now = new Date(), nowM = now.getHours() * 60 + now.getMinutes(), haut = (H1 - H0) * 4 * PAS;
   const parJour = jours.map((d) => EVS.map((e, i) => [e, i]).filter(([e]) => d >= e.d && d <= e.f));
   let h = '<div class="ag-tete" style="grid-template-columns:56px repeat(' + n + ',minmax(0,1fr))"><span></span>' + jours.map((d, k) => {
-    const nb = parJour[k].filter(([e]) => e.cat === "co").length, x = new Date(d + "T12:00:00");
-    return '<button class="' + (d === t ? "auj" : "") + '" onclick="agJour(\'' + d + '\',1)">' + JC[x.getDay()] + " " + x.getDate() + ' <span class="nb">' + nb + "</span></button>";
+    const x = new Date(d + "T12:00:00"), c = comptes(parJour[k].map(([e]) => e)); // R-C6 : « 5 consult. · 8 chimio »
+    return '<button class="' + (d === t ? "auj" : "") + '" onclick="agJour(\'' + d + '\',1)">' + JC[x.getDay()] + " " + x.getDate() + (c ? '<span class="nb">' + c + "</span>" : "") + "</button>";
   }).join("") + "</div>";
   h += '<div class="ag-journee" style="grid-template-columns:56px repeat(' + n + ',minmax(0,1fr))"><span class="hlib">Journée</span>' + jours.map((d, k) => {
-    const l = parJour[k].filter(([e]) => !e.h), ab = absence(d), fe = ferie(d), max = n === 1 ? 50 : 3;
-    return "<div>" + (ab ? '<span class="ev-c c-abs"><svg class="pi"><use href="#i-avion"/></svg>' + A.esc(ab.m || "Absence") + "</span>" : "") + (fe ? '<span class="ev-c c-fer">' + A.esc(fe.nom || "Férié") + "</span>" : "") + l.slice(0, max).map(([e, i]) => chip(e, i)).join("") + (l.length > max ? '<button class="plus" onclick="agJour(\'' + d + "',1)\">+ " + (l.length - max) + " autre" + (l.length - max > 1 ? "s" : "") + "</button>" : "") + "</div>";
+    const l0 = parJour[k].filter(([e]) => !e.h), ab = absence(d), fe = ferie(d), max = n === 1 ? 50 : 3;
+    // R-C6 : vue Semaine, séances de chimio sans heure regroupées en une puce « 8 séances de chimio » qui ouvre la vue Jour (une séance qui a
+    // une heure — consultation du médecin ou séance de l'infirmière — est placée dans la grille)
+    const sc = n > 1 ? l0.filter(([e]) => e.cat === "ch") : [], l = n > 1 ? l0.filter(([e]) => e.cat !== "ch") : l0;
+    return "<div>" + (ab ? '<span class="ev-c c-abs"><svg class="pi"><use href="#i-avion"/></svg>' + A.esc(ab.m || "Absence") + "</span>" : "") + (fe ? '<span class="ev-c c-fer">' + A.esc(fe.nom || "Férié") + "</span>" : "") + puceChimio(d, sc.map(([e]) => e)) + l.slice(0, max).map(([e, i]) => chip(e, i)).join("") + (l.length > max ? '<button class="plus" onclick="agJour(\'' + d + "',1)\">+ " + (l.length - max) + " autre" + (l.length - max > 1 ? "s" : "") + "</button>" : "") + "</div>";
   }).join("") + "</div>";
   h += '<div class="ag-grille"><div class="ag-g" style="grid-template-columns:56px repeat(' + n + ',minmax(0,1fr));height:' + haut + 'px"><div class="heures">';
   for (let q = 0; q < (H1 - H0) * 4; q++) { const m = H0 * 60 + q * 15; h += '<span style="top:' + q * PAS + 'px" class="' + (m % 60 ? "" : "pl") + '">' + hh(m) + "</span>"; }
@@ -151,7 +184,7 @@ function vueGrille(du, n) {
       o.col = k; grp.push(o); fin = Math.max(fin, o.b);
     });
     if (grp.length) fermer();
-    tim.forEach(({ e, i, a, b, col, nc }) => { const top = (a - H0 * 60) / 15 * PAS; if (top < 0 || top > haut) return; const g = glissable(e); c += '<button class="ev-g c-' + e.cat + (e.st === "fait" ? " fait" : e.st === "absent" ? " nv" : "") + (nc > 1 ? " part" : "") + (g ? " dep" : "") + '"' + (g ? ' draggable="true" data-i="' + i + '"' : "") + ' style="top:' + top + "px;height:" + ((b - a) / 15 * PAS - 2) + "px;left:calc(" + (col * 100 / nc).toFixed(3) + "% + 2px);width:calc(" + (100 / nc).toFixed(3) + '% - 4px);right:auto" title="' + A.esc(e.h + " " + e.nm + " – " + e.t + " (" + (b - a) + " min)") + '" onclick="event.stopPropagation();agEv(' + i + ')"><b>' + e.h + " " + A.esc(e.nm) + "</b><span>" + A.esc(e.t) + "</span>" + (n === 1 ? badge(e) : "") + "</button>"; });
+    tim.forEach(({ e, i, a, b, col, nc }) => { const top = (a - H0 * 60) / 15 * PAS; if (top < 0 || top > haut) return; const g = glissable(e); c += '<button class="ev-g c-' + e.cat + (e.st === "fait" ? " fait" : e.st === "absent" ? " nv" : "") + (nc > 1 ? " part" : "") + (g ? " dep" : "") + '"' + (g ? ' draggable="true" data-i="' + i + '"' : "") + ' style="top:' + top + "px;height:" + ((b - a) / 15 * PAS - 2) + "px;left:calc(" + (col * 100 / nc).toFixed(3) + "% + 2px);width:calc(" + (100 / nc).toFixed(3) + '% - 4px);right:auto" title="' + A.esc(e.h + " " + e.nm + " – " + e.t + " (" + (b - a) + " min)") + '" onclick="event.stopPropagation();agEv(' + i + ')"><b>' + coche(e) + e.h + " " + A.esc(e.nm) + "</b><span>" + A.esc(e.t) + "</span>" + (n === 1 ? badge(e) : "") + "</button>"; });
     if (d === t && nowM >= H0 * 60 && nowM <= H1 * 60) c += '<i class="maint" style="top:' + (nowM - H0 * 60) / 15 * PAS + 'px"></i>';
     return c + "</div>";
   }).join("") + "</div></div>";
@@ -161,9 +194,9 @@ function vueMois(du) {
   const m = AG.d.slice(0, 7), t = D().t;
   let h = '<div class="ag-mois">' + ["Lun.", "Mar.", "Mer.", "Jeu.", "Ven.", "Sam.", "Dim."].map((j) => '<div class="mt">' + j + "</div>").join("");
   for (let n = 0; n < 42; n++) {
-    const d = addJ(du, n), l = EVS.map((e, i) => [e, i]).filter(([e]) => d >= e.d && d <= e.f), ab = absence(d);
+    const d = addJ(du, n), l0 = EVS.map((e, i) => [e, i]).filter(([e]) => d >= e.d && d <= e.f), ab = absence(d), sc = l0.filter(([e]) => e.cat === "ch"), l = l0.filter(([e]) => e.cat !== "ch"); // R-C6 : chimio en une puce
     h += '<div class="mc' + (d.slice(0, 7) !== m ? " hors" : "") + (d === t ? " auj" : "") + (ab || ferie(d) || !plagesDe(d).length ? " ferme" : "") + '"><button class="mj" onclick="agJour(\'' + d + "',1)\">" + +d.slice(8) + "</button>" +
-      l.slice(0, 3).map(([e, i]) => chip(e, i)).join("") + (l.length > 3 ? '<button class="plus" onclick="agJour(\'' + d + "',1)\">+ " + (l.length - 3) + "</button>" : "") + "</div>";
+      puceChimio(d, sc.map(([e]) => e)) + l.slice(0, 3).map(([e, i]) => chip(e, i)).join("") + (l.length > 3 ? '<button class="plus" onclick="agJour(\'' + d + "',1)\">+ " + (l.length - 3) + "</button>" : "") + "</div>";
   }
   return h + "</div>";
 }
@@ -186,7 +219,7 @@ const glissable = (e) => e.st === "prevu" && souris() && !(e.cat === "ch" && est
 const peutHeure = (e) => e.st === "prevu" && ((e.cat === "ch" && !!e.lid && peutHeureChimio()) || (e.cat === "rt" && (e.z === "scan" || e.z === "deb") && A.traitModRT()));
 async function noterHeure(e, hr) {
   const x = D().patients.find((p) => p.id === e.pid); if (!x) return;
-  try { if (e.cat === "ch") await heureSeance(x, e.lid, e.n, e.j, e.sub === "seance" ? { seance: hr } : { cons: hr ? hr.h : "" }); else await A.heureRT(e.pid, e.rtid, hr, e.z); A.toast(hr ? "Heure notée : " + hr.h + " (" + hr.du + " min)." : "Heure retirée."); AG.defile = true; pageAgenda(); }
+  try { if (e.cat === "ch") await heureSeance(x, e.lid, e.n, e.j, e.sub === "seance" ? { seance: hr } : { cons: hr ? hr.h : "" }); else await A.heureRT(e.pid, e.rtid, hr, e.z); A.toast(hr ? "Heure notée : " + hr.h + " (" + hr.du + " min)." : "Heure retirée."); redessiner(); }
   catch (er) { A.toast(er.message); }
 }
 function glisser(g) {
@@ -197,7 +230,7 @@ function glisser(g) {
   g.addEventListener("dragstart", (ev) => {
     const b = ev.target.closest && ev.target.closest("[draggable][data-i]"); if (!b) return;
     const e = EVS[+b.dataset.i]; G = { i: +b.dataset.i, dy: Math.floor((ev.clientY - b.getBoundingClientRect().top) / PAS) * 15, du: e.du || DUREE };
-    ev.dataTransfer.effectAllowed = "move"; ev.dataTransfer.setData("text/plain", String(G.i)); setTimeout(() => b.classList.add("glisse"), 0);
+    ev.dataTransfer.effectAllowed = "move"; ev.dataTransfer.setData("text/plain", String(G.i)); setTimeout(() => b.classList.add("glisse"), 0); GLISSE = true;
   });
   g.addEventListener("dragover", (ev) => {
     const o = ou(ev); if (!o) return; ev.preventDefault(); ev.dataTransfer.dropEffect = "move";
@@ -215,15 +248,40 @@ function glisser(g) {
       else A.toast("Vous ne pouvez pas changer le jour de ce rendez-vous."); return; }
     if (e.h !== hh(o.m)) noterHeure(e, { h: hh(o.m), du: e.du });
   });
-  g.addEventListener("dragend", () => { effacer(); G = null; g.querySelectorAll(".glisse").forEach((b) => b.classList.remove("glisse")); });
+  g.addEventListener("dragend", () => { effacer(); G = null; GLISSE = false; g.querySelectorAll(".glisse").forEach((b) => b.classList.remove("glisse")); });
 }
 
 // Séance de chimio (12/10/2026) : fenêtre commune avec le dossier (chimio.js) ; infirmière → heure et durée de la séance, médecin et
 // secrétaire → heure de la consultation
 function fenetreChimio(e) {
   const x = D().patients.find((p) => p.id === e.pid), L = x && (x.P.lignes || []).find((z) => z.id === e.lid), c = L && L.cures[e.n - 1]; if (!c) { window.ouvrirDossier(e.pid); return; }
-  fenetreHeureSeance(x, e.lid, { k: e.n - 1, j: e.j, d: e.d, o: e.j > 1 ? (c.sea || {})[e.j] || {} : c }, estInfirmiere() ? "Séance à l'hôpital de jour" : "Consultation de la séance de chimio", () => { AG.defile = true; pageAgenda(); });
+  fenetreHeureSeance(x, e.lid, { k: e.n - 1, j: e.j, d: e.d, o: e.j > 1 ? (c.sea || {})[e.j] || {} : c }, estInfirmiere() ? "Séance à l'hôpital de jour" : "Consultation de la séance de chimio", () => { redessiner(); });
 }
+
+// ───── R-C8 (19/10/2026, demande de Dr Bentahila) : agenda à jour sur tous les postes, comme la salle d'attente ─────
+// « Actualiser » relit les dossiers qui ont quelque chose dans la période affichée (rendez-vous, séances de chimio, étapes de RT) et redessine sans
+// perdre la vue, la date, les filtres ni le défilement. Toute seule chaque minute, sauf pendant une fenêtre, une saisie ou un glisser-déposer (faite
+// juste après) ; elle ne relit alors les dossiers que si leur écoute en direct (R-A4) ne marche pas — sinon ils sont déjà à jour : on redessine.
+let AJOUR = 0, RELECTURE = false, MINUTE = null, GLISSE = false, LU = 0; // LU : dernière relecture (ms)
+const redessiner = () => { AG.defile = true; pageAgenda(); };
+const occupe = () => { const a = document.activeElement; return GLISSE || !A.$("fenetre").classList.contains("cache") || !!(a && (/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) || a.isContentEditable)) || A.panneauOuvert(); };
+const hmA = () => { const m = heureMaroc().m; return Math.floor(m / 60) + " h " + String(m % 60).padStart(2, "0"); };
+function majAJour() { if (!AJOUR) AJOUR = hmA(); const e = A.$("agAjour"); if (e) e.textContent = AJOUR ? "à jour à " + AJOUR : ""; }
+function demarrerMinute() {
+  if (MINUTE) return; let dernier = Date.now();
+  MINUTE = setInterval(() => { if (!location.hash.startsWith("#agenda") || !A.$("agAct") || Date.now() - dernier < 60000 || occupe()) return; dernier = Date.now(); actualiser(false); }, 10000);
+}
+async function actualiser(manuel) {
+  if (RELECTURE) return; RELECTURE = true; const bt = A.$("agAct"); if (bt && manuel) A.occupe(bt, true);
+  try {
+    const t0 = Date.now();
+    if (manuel || !A.ecouteDossiers()) { await A.relireModifies(LU); LU = t0; } // dossiers modifiés depuis la dernière relecture (une lecture chacun)
+    AJOUR = hmA(); if (location.hash.startsWith("#agenda") && !occupe()) redessiner(); else majAJour();
+    if (manuel) A.toast("Agenda à jour (" + AJOUR + ").");
+  } catch (e) { console.warn("agenda (actualiser)", e); if (manuel) A.toast("Actualisation impossible : vérifiez la connexion, puis réessayez."); }
+  finally { RELECTURE = false; const b2 = A.$("agAct"); if (b2 && manuel) A.occupe(b2, false); }
+}
+window.agActualiser = () => actualiser(true);
 
 // ───── Actions ─────
 window.agVue = (v) => { AG.vue = v; pageAgenda(); };
@@ -232,7 +290,7 @@ window.agMed = (u) => { AG.med = u; pageAgenda(); };
 window.agAuj = () => { AG.d = D().t; AG.mois = null; pageAgenda(); };
 window.agNav = (s) => { const v = AG.vue; if (v === "mois") { const x = new Date(AG.d.slice(0, 8) + "01T12:00:00"); x.setMonth(x.getMonth() + s); AG.d = x.getFullYear() + "-" + ("0" + (x.getMonth() + 1)).slice(-2) + "-01"; } else AG.d = addJ(AG.d, s * (v === "jour" ? 1 : v === "semaine" ? 7 : 30)); AG.mois = null; pageAgenda(); };
 window.agJour = (d, versJour) => { AG.d = d; AG.mois = null; if (versJour) AG.vue = "jour"; pageAgenda(); };
-window.agMois = (s) => { const x = new Date((AG.mois || AG.d).slice(0, 8) + "01T12:00:00"); x.setMonth(x.getMonth() + s); AG.mois = x.getFullYear() + "-" + ("0" + (x.getMonth() + 1)).slice(-2) + "-01"; AG.defile = true; pageAgenda(); };
+window.agMois = (s) => { const x = new Date((AG.mois || AG.d).slice(0, 8) + "01T12:00:00"); x.setMonth(x.getMonth() + s); AG.mois = x.getFullYear() + "-" + ("0" + (x.getMonth() + 1)).slice(-2) + "-01"; redessiner(); };
 window.agCreneau = (ev, d) => {
   if (ev.target.closest(".ev-g")) return;
   const col = ev.currentTarget, y = ev.clientY - col.getBoundingClientRect().top, m = H0 * 60 + Math.floor(y / PAS) * 15;
@@ -241,7 +299,7 @@ window.agCreneau = (ev, d) => {
 // 3.16 (12/10/2026) : un clic sur n'importe quel rendez-vous = Fermer · Ouvrir le dossier · Modifier / décaler. Modifier : la fenêtre du
 // dossier (consultation : elle seule ; séance de chimio : date → « cette cure seulement » ou « toute la suite », heure ; scanner, 1re séance :
 // toute la radiothérapie suit la 1re séance ; fin prévue : heure, et une autre date = fin prévue) ; retour à l'agenda
-const retourAgenda = () => { AG.defile = true; pageAgenda(); };
+const retourAgenda = () => { redessiner(); };
 const modifiable = (e) => e.st === "prevu" && (e.rid ? A.peut("rendezvous") : e.cat === "ch" ? !!e.lid && (peutHeureChimio() || A.traitMod() || A.peut("planningChimio")) : e.cat === "rt" && !!e.z && A.traitModRT());
 window.agEv = (i) => {
   const e = EVS[i]; if (!e) return;

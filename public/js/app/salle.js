@@ -121,6 +121,11 @@ async function relire(pid) {
   if (x) { if ((s.data().version || 1) !== (x.doc.version || 1)) A.recalculer(x, s.data()); return; }
   x = { id: pid }; A.recalculer(x, s.data()); D().patients.push(x); D().patients.sort((a, b) => String(a.r.nm).localeCompare(String(b.r.nm)));
 }
+// R-C1 (19/10/2026) : « Patients à reprogrammer » : fiches des N derniers jours lues une fois (jours pas encore lus), puis les séances
+// « Absent, sans reporter » (moteur/reprogrammer.js fait le tri)
+let ABS_N = 0;
+export async function chargerJoursPasses(n) { if (ABS_N >= n) return false; ABS_N = n; const t = D().t; for (let g = 1; g <= n; g++) { const j = addJ(t, -g); if (!LU[j]) await lireJour(j); } return true; }
+export const fichesAbsentes = () => [...SA.values()].filter((d) => d && d.etat === "absent");
 // Jour affiché autre qu'aujourd'hui : ses documents sont lus une fois (pas d'écoute)
 async function lireJour(j) {
   if (j === D().t) return;

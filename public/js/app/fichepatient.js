@@ -57,6 +57,16 @@ export function texteChamp(doc, c) {
   return String(v) + (c.type === "nombre" && c.unite ? " " + c.unite : "");
 }
 const PARTIES_F = [["id", "Identité"], ["med", "Informations médicales"], ["tum", "Fiche tumeur"]];
+// R-C3 (19/10/2026, audit 4 réponse 1) : médecin du patient (= médecin référent, un seul champ) : identite.med (uid). Champ fixe, montré à partir
+// de 2 médecins (avec un seul, il est posé d'office à la création). Médecin qui crée le dossier = lui ; secrétaire = elle choisit ; modifiable.
+// Il devient le médecin par défaut des rendez-vous, lignes de chimio, radiothérapies et consultations automatiques (sinon : le titulaire).
+const medsP = () => (A.multiMed && A.multiMed() ? A.medecins() : []);
+export function medecinParDefaut() { const m = D().membre, l = (A.medecins && A.medecins()) || []; return m.role === "medecin" ? D().u.uid : l.length === 1 ? l[0].uid : ""; }
+function htmlMedecin(x, o) {
+  const l = medsP(); if (!l.length) return ""; const I = ((x && x.doc) || {}).identite || {}, v = I.med || (o.nouveau ? medecinParDefaut() : ""), dis = o.off && o.off("identite") ? " disabled" : "";
+  const opts = (v ? [] : [["", "— Choisir —"]]).concat(l.map((m) => [m.uid, m.nom])).concat(v && !l.some((m) => m.uid === v) ? [[v, "Médecin retiré de l'équipe"]] : []);
+  return '<div data-champ="medecin"><label for="fMedP">Médecin du patient</label><select id="fMedP"' + dis + ">" + opts.map(([u, n]) => '<option value="' + A.esc(u) + '"' + (u === v ? " selected" : "") + ">" + A.esc(n) + "</option>").join("") + "</select></div>";
+}
 // Formulaire de saisie : o = { off(partie) → vrai si non modifiable, etabs (hôpitaux proposés), nouveau }
 export function htmlFormulaire(x, o) {
   const esc = A.esc, doc = docVu(x), dg = diagDe(x), L = champsFiche().filter((c) => c.present), pa = poidsVu(x);
@@ -81,7 +91,7 @@ export function htmlFormulaire(x, o) {
         return enve(lab + '<input id="' + id + '"' + (c.type === "date" ? ' type="date"' : c.type === "nombre" ? ' inputmode="decimal"' : c.type === "tel" ? ' type="tel"' : c.type === "email" ? ' type="email"' : "") + ' value="' + esc(V) + '"' + dis + ">");
     }
   };
-  return PARTIES_F.map(([k, lib]) => { const h = L.filter((c) => c.section === k).map(champ).join(""); return h ? '<h4 class="soustitre fp-sec">' + lib + '</h4><div class="form" data-sec="' + k + '">' + h + "</div>" : ""; }).join("") +
+  return PARTIES_F.map(([k, lib]) => { const h = L.filter((c) => c.section === k).map(champ).join("") + (k === "id" && !(o.nouveau && o.off && o.off("identite")) ? htmlMedecin(x, o) : ""); return h ? '<h4 class="soustitre fp-sec">' + lib + '</h4><div class="form" data-sec="' + k + '">' + h + "</div>" : ""; }).join("") +
     '<datalist id="lMut">' + (A.listeMut ? A.listeMut() : []).map((m) => '<option value="' + esc(m) + '">').join("") + '</datalist><datalist id="lCor">' + (A.listeCor ? A.listeCor() : []).map((m) => '<option value="' + esc(m) + '">').join("") + "</datalist>";
 }
 // Lecture du formulaire : { identite, clinique, etab, erreur } (copies des parties du dossier, champs modifiables seulement)
@@ -100,6 +110,7 @@ export function lireFormulaire(x, o) {
     pose(cle, v);
     if (c.ajout && !Object.keys(cible).length) delete obj.extra;
   });
+  if (el("fMedP") && !el("fMedP").disabled) { const m = val("fMedP"); if (m) I.med = m; else delete I.med; } // R-C3
   if (el("fNomF") && !el("fNomF").disabled) { if (!I.nomF || !I.prenom) out.erreur = "Le nom et le prénom sont obligatoires."; I.nom = ((I.nomF || "") + " " + (I.prenom || "")).trim(); }
   ["identite", "clinique"].forEach((p) => { const ob = out[p]; if (ob.extra && !Object.keys(ob.extra).length) delete ob.extra; });
   // R-A5 : date du poids : celle de la séance si c'est le poids proposé (dernière chimio), maintenant s'il a été changé à la main
@@ -113,7 +124,8 @@ export function lireFormulaire(x, o) {
 export function htmlLectureFiche(x) {
   const esc = A.esc, doc = docVu(x), dg = diagDe(x), L = champsFiche().filter((c) => c.present && (!c.ajout || !c.ajout.si || champPropose(c.ajout, dg)));
   return PARTIES_F.map(([k, lib]) => { const l = L.filter((c) => c.section === k); if (!l.length) return "";
-    return '<h4 class="soustitre fp-sec">' + lib + '</h4><div class="form fiche-lecture" data-sec="' + k + '">' + l.map((c) => { const t = texteChamp(doc, c);
+    const md = k === "id" && medsP().length ? '<div data-champ="medecin"><label>Médecin du patient</label><div>' + (((doc.identite || {}).med) ? "<b>" + esc(A.nomMed(doc.identite.med) || "Médecin retiré de l'équipe") + "</b>" : '<span class="mesures">— (titulaire)</span>') + "</div></div>" : ""; // R-C3
+    return '<h4 class="soustitre fp-sec">' + lib + '</h4><div class="form fiche-lecture" data-sec="' + k + '">' + md + l.map((c) => { const t = texteChamp(doc, c);
       const tp = c.k === "poids" && poidsVu(x) ? textePoids(poidsVu(x)) : t;
       return '<div data-champ="' + c.k + '"' + (tp.length > 60 || /\n/.test(tp) ? ' class="large"' : "") + "><label>" + esc(c.lib) + "</label><div>" + (tp ? "<b>" + esc(tp) + "</b>" : '<span class="mesures">—</span>') + "</div></div>"; }).join("") + "</div>"; }).join("");
 }

@@ -25,7 +25,9 @@ function permis(m, ev, r, qui) {
   const dr = (m && m.droits) || {}, k = String(ev.k || "");
   // Médecin du rendez-vous (AG4, 11/10/2026) : l'agenda d'un médecin ne reçoit que ses rendez-vous de consultation ; sans médecin
   // noté (`m`, anciens rendez-vous) = le médecin titulaire. Secrétaire, infirmière : tous les rendez-vous (selon leurs droits).
-  if (/^[^|]+\|r\|/.test(k) && m && m.role === "medecin" && qui && qui.uid && (ev.m || qui.titulaire) && (ev.m || qui.titulaire) !== qui.uid) return false;
+  // R-C3 (19/10/2026, audit 4) : de même pour les séances de chimio et les étapes de radiothérapie (`m` = médecin de la ligne ou de la RT, sinon
+  // du patient ; sans médecin : le titulaire)
+  if (/^[^|]+\|(r|c|s|rt)\|/.test(k) && m && m.role === "medecin" && qui && qui.uid && (ev.m || qui.titulaire) && (ev.m || qui.titulaire) !== qui.uid) return false;
   if (/^[^|]+\|[cs]\|/.test(k) && ["voir", "modifier"].indexOf(dr.traitements) < 0) return false;
   if (/^[^|]+\|rt\|/.test(k) && !(["voir", "modifier"].indexOf(dr.radiotherapie) >= 0 || (dr.radiotherapie === "chimio" && radiochimio(r)))) return false;
   if (/^[^|]+\|r\|/.test(k) && dr.consultations === false) return false;
