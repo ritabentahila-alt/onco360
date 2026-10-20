@@ -1,24 +1,23 @@
-# Onco360 – feuille de route (plan refait le 13/10/2026 ; phase R ajoutée le 18/10/2026)
+# Onco360 – feuille de route (plan refait le 20/10/2026 d'après les audits n° 10 et 11)
 
-**Un seul plan** : ce fichier. En haut, **ce qui reste à faire** (nouveau plan, d'après l'audit n° 3 et tout ce qui restait
-ouvert) ; en bas, **tout ce qui est fait**, gardé tel quel. Version précédente entière : `archives/FEUILLE-DE-ROUTE-jusqu-au-2026-10-13.md`
-(avant : `archives/FEUILLE-DE-ROUTE-jusqu-au-2026-10-11.md`). Journal des sessions : `JOURNAL.md`.
+**Un seul plan** : ce fichier. En haut, **le plan du 20/10/2026** (ce qui reste, dans l'ordre) avec les réponses de Dr Bentahila aux audits
+n° 10 et 11 ; en bas, **l'ancien plan (13/10 et 18/10) et tout ce qui est fait**, gardés tels quels (rien n'est retiré : chaque étape non
+faite de l'ancien plan a sa place dans le nouveau, voir « Correspondance »). Copie entière d'avant ce changement :
+`archives/FEUILLE-DE-ROUTE-jusqu-au-2026-10-20.md` (avant : `…-jusqu-au-2026-10-13.md`, `…-jusqu-au-2026-10-11.md`). Journal : `JOURNAL.md`.
 
-Sources : les trois audits du dossier Drive « Audit » : « Audit pour vendre » (10/10), « Audit numéro 2 » (11/10) et
-**« Audit n° 3 – Chimiothérapie et bibliothèque de protocoles » (12/10)** avec son classeur **« Protocoles-chimio-Onco360-a-faire.xlsx »**
-(un protocole par ligne : 316 existants + 123 à créer ; copie dans `archives/audit-3/`, avec le texte de l'audit et les annotations de
-Dr Bentahila).
-**Audits n° 4 à 8 et demandes du cabinet du 17/10/2026** (document unique « Onco360 – Tout ce qu'il reste à faire … pour Claude », fait avec
-un autre compte Claude, reçu le 18/10) : **phase R** ci-dessous. Copie entière (aucune donnée réelle) : `archives/audits-4-a-8/`
-(`audits-4-a-8-et-demandes-du-17-10.md` = texte lisible avec ses tableaux, à relire au début de chaque lot R ; `.docx` = original). Les
-« § » de la phase R renvoient aux parties de ce document.
+Sources du 20/10 : **« Audit n° 10 – Bilan d'Onco360 et décisions à prendre »** (62 décisions numérotées « d. 1 » à « d. 62 ») et **« Audit n° 11 –
+facilité d'utilisation »** (questions U1 à U24, V1 à V7, O1 à O6), avec les réponses de Dr Bentahila. Copie dans `archives/audits-10-11/` (`.docx`
+d'origine et texte lisible `audit-10-avec-reponses.md`, `audit-11-avec-reponses.md` : **relire la partie de l'audit au début de chaque étape**,
+le détail, les chiffres et les noms de protocoles y sont). Aucune donnée réelle (jeu fictif).
+Sources plus anciennes : audits n° 1 à 3 (Drive › Audit, `archives/audit-3/`), audits n° 4 à 8 (`archives/audits-4-a-8/`).
+**Audit n° 9 (radiothérapie, 19/10) : pas fait, décision du 20/10** (« on ne fait pas l'audit n° 9 » ; lots RT-1 à RT-6 refusés, d. 4 et 5).
 
 ## Comment on travaille
 - **Vérifier tout ce qu'un changement touche (consigne du 17/10/2026)** : avant de livrer, vérifier que le changement ne touche que ce qui
   est visé. S'il touche autre chose (paramétrage, agenda, salle d'attente, Google Agenda, tableau de bord, bilan, droits, impression, tâches
   automatiques, Administration…), vérifier que tout cela marche encore, **avec un test**. Toujours sur ordinateur **et** sur téléphone
   (390 px). Les modules doivent s'imbriquer : un même fait (rendez-vous déplacé, séance validée, poids saisi) est juste **partout** où il
-  apparaît. Liste de contrôle (carte des liens, § 1) :
+  apparaît. Liste de contrôle (carte des liens, § 1 de l'audit du 17/10) :
   - *Un rendez-vous* (créé, déplacé, reporté, annulé, Venu, Non venu) → dossier (à venir, passé), agenda (toutes les vues, glisser-déposer),
     salle d'attente, tableau de bord, créneaux et chevauchements, Google Agenda de chaque personne concernée, WhatsApp (confirmation,
     rappels), prix et bilan, tâches automatiques.
@@ -30,15 +29,24 @@ un autre compte Claude, reçu le 18/10) : **phase R** ci-dessous. Copie entière
     champs des courriers, export, fiche de la spécialité dans l'Administration.
   - *Un paramètre ou une bibliothèque du cabinet* → les écrans qui le lisent, la secrétaire (droit « secrétariat »), le modèle de la
     spécialité dans l'Administration, les cabinets neufs, l'export.
+  - *Un protocole de la bibliothèque* (20/10) → fiche de chimio, séances créées (agenda, salle, créneaux), vigilance, ordonnances liées, modèle
+    des cabinets neufs, **patients déjà sous ce protocole** (leur ligne garde sa copie : à vérifier à la main et à signaler).
   - *Les droits ou une règle Firestore* → `tests/regles` (`npm test`), chaque rôle (médecin, secrétaire, infirmière, comptable), Google
     Agenda (fonction `permis`).
-- **Une étape = une session**, dans l'ordre. Au début : lire ce fichier ; à la fin : cocher, noter les décisions, une ligne dans `JOURNAL.md`.
+- **Une étape = une session**, dans l'ordre. Au début : lire ce fichier (et la partie de l'audit de l'étape) ; à la fin : cocher, noter les
+  décisions, une ligne dans `JOURNAL.md`.
 - Plusieurs sessions en parallèle : chacune annonce son étape ici (« en cours : session X ») et n'écrit que ses fichiers.
 - Avant toute mise en ligne : `bash outils/avant-mise-en-ligne.sh --navigateur` (+ `--regles` si les règles changent), téléphone
   390 px sans débordement, accord de Dr Bentahila ; mise en ligne depuis une copie propre du dernier enregistrement.
+  **(20/10, d. 6) Contrôle complet à chaque mise en ligne, même quand c'est pressé** : trois mises en ligne du 20/10 (20261020e WhatsApp,
+  20261020i rapprochement retiré, réglage en miroir) sont parties sans lui. Si Dr Bentahila demande d'aller vite : le dire, lancer le contrôle
+  en arrière-plan, et ne mettre en ligne qu'une fois bon. Un contrôle arrêté = pas de mise en ligne.
+- **(20/10, d. 8) Aucun test laissé rouge** : un test qui échoue est réparé dans la session, ou retiré avec la raison écrite ici. Un test
+  toujours rouge n'alerte plus personne.
 - Un bug signalé = un test qui le reproduit (Q1) ; check-list d'impact à chaque nouvelle notion (Q4) ; une seule source par notion (Q5) ;
   après chaque mise en ligne, 3 vérifications pour Dr Bentahila (« ouvrez X, cliquez Y, vous devez voir Z ») (Q9).
 - Code enregistré et poussé sur GitHub à la fin de chaque étape testée. Ce qui arrive en cours de route va dans « À placer ».
+- **Ce qui est refusé n'est jamais reproposé** (liste cumulée en bas du plan, « Refusé – ne pas reproposer »).
 
 ## Règles à ne pas changer
 - Honoraires de séance de chimio : tarif des Paramètres, 500 DH brut par jour validé (J1 et J8 = 2 × 500 DH), sans saisie manuelle.
@@ -55,9 +63,473 @@ un autre compte Claude, reçu le 18/10) : **phase R** ci-dessous. Copie entière
   seule sa place change. Thème Onco360 actuel (variables de v2.html, Arial, composants existants) : aucune nouvelle couleur, aucun nouveau
   style de bouton.
 - (17/10) Bilan : une correction voulue est **chiffrée avant et après sur le jeu de référence (352 317 DH)** et annoncée avant la mise en ligne.
+  (20/10, d. 7 : le jeu de référence devient un **jeu fictif figé** ; le chiffre de référence sera celui de ce jeu, étape S7.)
 - (17/10) Les photos envoyées par le cabinet (ticket d'encaissement, calendrier de radiothérapie ARIA) montrent de vrais patients : **seule
   leur mise en page est reprise**, jamais dans le dépôt.
 - (17/10) Les particularités marocaines (CNSS, mutuelles, Solumedrol, Nivestim, arabe classique…) **ne sont pas des erreurs**.
+- (20/10) **La bibliothèque du cabinet Bentahila est la référence** : chaque défaut part dans chaque cabinet neuf ; on corrige d'abord chez
+  elle, puis on recopie le modèle (Administration › Par spécialité › Modèle des cabinets neufs, étape 1).
+- (20/10) Le poste de travail principal est **l'ordinateur** (O2 : Dr Bentahila et sa secrétaire) : les étapes « téléphone » passent après.
+
+## Questions et vérifications en attente (Claude les rappelle en début de session)
+**À vérifier par Dr Bentahila, sans rien coder** (audit 10, « À reprendre ») :
+- [ ] Comparer l'heure d'arrivée affichée en salle d'attente avec l'heure de son téléphone (heure du Maroc, étape S1).
+- [ ] Mercredi 21/10 au matin : le premier relevé du comptable préparé la nuit (2 h 45) est-il là ?
+- [ ] Lundi 26/10 : le premier export de la semaine (dimanche 25/10, 1 h 30) est-il dans Paramètres › Export des données et dans son Drive ?
+
+**Questions** :
+1. (11/10, toujours ouverte ; **bloque T6**) Mesurer la hauteur des en-têtes du papier (ordonnance A5, A4, documents) pour régler les marges
+   (Paramètres › Impression).
+2. (11/10, toujours ouverte) GitHub : demander la purge des copies en cache ; regarder Insights › Traffic › « Git clones ».
+3. (20/10, d. 36 : **réponse de Dr Bentahila à confirmer**) Elle pensait que seul Firebase nomme l'administrateur. **Vérifié dans les règles le
+   20/10** : son compte de tous les jours (ritabentahila@gmail.com) peut écrire la liste des administrateurs depuis le navigateur
+   (`firestore.rules`, `match /administrateurs/{uid}` : `allow write: if proprietaire()`, et `proprietaire()` = cette adresse). Le compte
+   d'administration a bien son autre adresse et son autre mot de passe, mais quelqu'un qui volerait le mot de passe de tous les jours (session
+   restée ouverte sur un poste de clinique) pourrait **se nommer administrateur lui-même**. La correction (L6 a) ne change rien pour elle :
+   elle continue de nommer l'administrateur dans la console Firebase. **Conseil : oui.** À confirmer d'un mot au début de L6.
+4. (20/10, d. 15) Le reçu : Dr Bentahila demande de retirer la phrase, absente du reçu de Cheikh Khalifa qu'elle a envoyé (d'après son souvenir ;
+   la photo n'est jamais dans le dépôt). Compris ainsi : retirer la mention « Acte exonéré de TVA » et la phrase « à valider par le comptable du
+   cabinet » (étape T6). **À confirmer avec la photo au début de T6** (elle la remontre ; on compare mention par mention).
+5. (20/10, O4) Prix des packs : « mettre plutôt les mêmes prix que GestiCab ou DabaDoc, prix marocains » (étape L10 : relevé des prix, puis
+   proposition).
+
+Questions répondues le 20/10 : question 6 du 17/10 (d. 12 : chaque autre cabinet reçoit **tout le modèle, sauf les correspondants et les tarifs
+des consultations** — c'est déjà le réglage par défaut d'« Appliquer le modèle », rien à coder) ; question 8 du 17/10 (d. 13 : reçu imprimé sans
+numéro = une ligne au journal du cabinet, **déjà fait** en R-B5) ; NOCAND = fluconazole (d. 3 : **juste**, confirmé par Dr Bentahila).
+
+## Réponses à deux questions de Dr Bentahila (20/10)
+**« L'export est trop cher : comment baisser le coût ? l'enlever ? le proposer seulement au cabinet du Dr Bentahila ? »**
+Le chiffre de l'audit est un maximum : environ **1,6 dollar par mois pour un cabinet de 1 000 dossiers** (environ 16 DH, à comparer aux packs
+de 690 à 2 990 DH), parce que chaque ZIP de la semaine renvoie **tous** les PDF déjà envoyés. Conseil : **ne pas l'enlever** (c'est la seule
+copie hors du projet Firebase : si le projet était perdu, sauvegardes et copie des fichiers partiraient avec lui), mais **n'envoyer chaque
+semaine que les données et les PDF nouveaux** (étape L8) : le coût tombe à quelques centimes par cabinet. Il reste réglable par cabinet
+(case « actif », déjà là) : un cabinet client peut l'arrêter s'il fait ses propres copies. Le garder pour son seul cabinet ferait perdre aux
+cabinets clients la protection décidée le 17/10.
+
+**« Si je change un jour pour un hébergement au Maroc (Maroc Telecom…), comment ça se passe, il faut tout changer ? »**
+Pas tout. Ce qui reste : les calculs (`public/js/moteur/` : doses, cures, bilan, RT…), les écrans, l'impression, les bibliothèques, le contenu.
+Ce qui change : tout ce que Google fournit aujourd'hui : la connexion (Firebase Auth), la base (Firestore), les fichiers (Cloud Storage), les
+fonctions du serveur et leurs horaires de nuit, et surtout **les règles de sécurité**, qui deviennent du code sur le serveur. Ce sont des
+semaines de sessions, puis une recopie des données (l'export complet sert déjà à cela). Deux conseils :
+1. **Préparer sans rien déménager** : rassembler tous les appels à Firebase dans un seul fichier « accès aux données » (étape 5.8). Le jour où
+   l'on change, on ne réécrit que ce fichier et le serveur, pas les 15 000 lignes des écrans. Cela sert aussi la cession (un acheteur peut
+   vouloir son propre hébergement).
+2. **Vérifier avant que ce soit obligatoire** : la loi 09-08 permet en principe un hébergement à l'étranger avec une autorisation de la CNDP ;
+   la loi 05-20 et les groupes de cliniques peuvent pousser vers le Maroc. Une seule question à un juriste (question 2 de sa fiche, audit 10)
+   évite peut-être des semaines de travail. (Ce n'est pas un avis juridique : Claude n'est pas juriste.)
+
+---
+
+# LE PLAN DU 20/10/2026 (ce qui reste, dans l'ordre)
+
+| Phase | But | Étapes | Quand |
+|---|---|---|---|
+| **S** Soins et sécurité | Doses, bibliothèque, heure, tests, exercice de récupération | S1 à S8 | cette semaine (court, avant tout le reste) |
+| **T** Tous les jours | Facilité d'utilisation (audit 11) et impressions (audit 10) | T1 à T7 | ensuite (ordinateur d'abord) |
+| **L** Lancement | Ce qu'il faut avant le premier cabinet ami : erreurs, import, guide, Administration, sécurité, coûts | L1 à L11 | avant le 1er cabinet ami |
+| **D / E** Design, code, charge | Accessibilité, fenêtres Onco360, vitesse, 5 000 dossiers, code | 4.1, 4.2, 5.1 à 5.8 | ensuite |
+| **C** Conformité | Juriste, société, projet et domaine, hébergement | 0.5, 6.1 à 6.6 | plus tard (décidé le 20/10) ; société, projet et domaine avant le 1er client **payant** |
+| **V** Vente et cession | Abonnement d'abord, preuves d'usage, dossier de cession préparé en avance | V-a à V-d, 7.1 à 7.4 | en avance, sans projet de vente immédiat |
+
+**Premier cabinet** (d. 16, 17, 20, O1) : le gel 0.5 est **levé pour des confrères amis qui testent** (pilote gratuit d'un mois, peut-être gratuit
+pour toujours, un point chaque semaine) ; juriste **après** l'essai chez 2 ou 3 médecins. **Date pas fixée** : Dr Bentahila pense devoir d'abord
+passer à un hébergeur marocain et demander l'autorisation de la CNDP (O1 ; voir la réponse ci-dessus : à faire confirmer avant de déménager).
+Avant le **premier client payant** : société éditrice, projet Firebase et nom de domaine à son nom (d. 18).
+
+### Correspondance avec l'ancien plan (13/10 et 18/10, gardé en bas)
+| Ancienne étape | Devient |
+|---|---|
+| R-A1 à R-G (sauf R-F1) | faites (détail en bas) |
+| R-F1 exercice chronométré | **S8** (d. 9) |
+| P0 (2 défauts de l'audit 2) | **S3** (d. 1) ; correspondance classeur ↔ bibliothèque : faite en pratique par P1a et P4 (vraie bibliothèque du 13 et du 18/10) |
+| P1 écran « Corrections proposées » | **abandonné** (d. 10 : appliqué sans fenêtre le 13/10, ordres 1 à 3 faits) |
+| Q-a jeu fictif, Q-b ESLint, Q-f test_cabinets | **S7** (d. 7, 8) |
+| Q-c journal des erreurs | **L1** (d. 21) |
+| Q-d contrôle des dossiers au chargement | **L5** |
+| Q-e CSP appliquée | **L7** (d. 43) |
+| 3.8 écran de l'infirmière | **abandonné** (d. 11 ; « Marquer administrée » reste) |
+| 4.4 dossier stable | **fait** : remplacé par le lot R-G (19/10) |
+| 4.1 toucher et contraste | **4.1** (d. 54, contenu de l'audit 10) |
+| 4.2 fenêtres Onco360 | **4.2** (152 fenêtres grises au 20/10) |
+| 5.1, 5.2, 5.4, 5.5, 5.6 | inchangées (phase E) ; 5.3 complétée (d. 23 à 25 : photos et nuit passent en L4) |
+| 0.5, 6.1 à 6.6 | phase C, **plus tard** (d. 16, 17, 62, O1) |
+| 7.1 à 7.4 | phase V, **préparées en avance** (d. 61) |
+| À placer : test_comptable | **S7** ; heure du Maroc : **S1** (la note de l'ancien « À placer » croyait l'inverse : c'est le serveur à jour qui a raison) |
+
+## Phase S – Soins et sécurité (cette semaine)
+- [ ] **S1 Heure du Maroc** (d. 2 ; audit 10, « À reprendre » et « Méthode › Heure »). Le Maroc est à **GMT depuis le 20/09/2026** (décret
+      n° 2.26.530) ; les navigateurs et Node pas à jour (données horaires 2025b) donnent encore GMT+1 pour `Africa/Casablanca` : arrivée et attente en
+      salle, « à jour à », Visa accueil du reçu, créneau « maintenant », changement de jour (`nouveauJour` à 23 h au lieu de minuit) faux d'une heure.
+      Rendez-vous et Google Agenda non touchés. **Réponse de Dr Bentahila : oui, mais suivre les changements d'heure marocains (plusieurs dans
+      l'année).** Solution : Onco360 ne demande plus l'heure du Maroc à l'ordinateur ; il la calcule **lui-même** depuis l'heure universelle
+      corrigée (`maintenant()`, écart serveur) et une **table des changements d'heure du Maroc** : liste de périodes { du, au, décalage } (GMT par
+      défaut ; GMT+1 ou autre pendant une période décidée par le gouvernement), **une seule source** dans le moteur (`public/js/moteur/heure.js`,
+      recopiée dans `functions/site/` comme les autres, vérifiée par test), complétée sans programmer par l'Administration (petit écran « Heure
+      du Maroc » : ajouter une période ; `plateforme/heureMaroc`, lu au démarrage, la table du code sert si la lecture échoue). Remplacer
+      partout `timeZone: "Africa/Casablanca"` / `heureMaroc` / `hm` (salle.js, v2.js, recus, documents, serveur : exports, relevé, tâches de nuit).
+      Tests : heure d'arrivée, attente, Visa accueil, « maintenant » des créneaux, passage à minuit, une période GMT+1 ajoutée (ex. Ramadan),
+      serveur (`functions/test-*.js`). Corriger la note « Heure du Maroc » de l'ancien « À placer ».
+- [ ] **S2 Bibliothèque : le danger** (d. 26, 27, 29 ; audit 10, « Bibliothèque › À corriger tout de suite »). (1) Les **5 protocoles où un anticorps
+      est prescrit deux fois le même jour** : mFOLFOX6 + Herceptin, FOLFIRI + Trastuzumab 6 puis 4 mg/kg, Paclitaxel 80 + Trastuzumab hebdomadaires,
+      Paclitaxel 80 + Cétuximab hebdomadaires (ERBITAX), TPEx : dose de charge à **C1 J1 seulement** (6 mg/kg trastuzumab, 4 mg/kg trastuzumab
+      hebdo, 400 mg/m² cétuximab), puis la dose d'entretien à chaque injection ; plus de ligne à J29 hors du cycle ; « C1 seule » / « sauf C1 » mis
+      dans les champs que le calcul lit (option `cmax` / C1, P3), pas en remarque ; retrait du diffuseur une seule fois. Vérifier sur la **vraie
+      bibliothèque** du cabinet (lecture seule d'abord : elle a pu changer depuis le 18/10). (2) **Patients déjà sous ces 5 protocoles** : leur
+      ligne garde sa copie → liste (numéro de dossier, ligne, cures à venir) montrée à Dr Bentahila, qui corrige à la main ; rien n'est changé
+      tout seul dans une ligne prescrite. (3) « KEYNOTE-A18 – phase 2 » passé « Validé » (d. 27). (4) « Letrozole 2,5mg ou Fulvesteant +
+      Palbociclib 125mg (Ibrance) + Zometa » séparé en deux protocoles (létrozole ; fulvestrant), « Fulvestrant » bien écrit (d. 29). Une fois,
+      à l'ouverture par un médecin (comme `appliquerP4`, drapeau dans `parametres/migrations`), chez elle puis dans le modèle. Vérifier : fiche de
+      chimio (page 2 de mFOLFOX6 + Herceptin), séances créées (plus de « C3 J29 » dans l'agenda, la salle, les créneaux), test-audit3p4.
+- [ ] **S3 P0 et doses** (d. 1, 44, 45). (1) Fenêtre « carboplatine contre-indiqué » affichée **deux fois** (créatinine 70 mg/L) : une seule. (2)
+      Créatinine aberrante (0,7 mg/L) signalée **dès la saisie**, pas seulement à la validation (confirmation « bonne unité ? » existante). (3)
+      **Décimales** (d. 44) : 0,1 mg pour vincristine d'EMA-CO, trabectédine, dactinomycine, lurbinectédine, vinblastine (VeIP) ; le moteur applique
+      les décimales réglées sur la ligne **aussi aux doses en mg/kg** (aujourd'hui seulement mg/m² : défaut du moteur). (4) **Créatinine sous
+      7 mg/L avant un carboplatine** (d. 45) : avertissement d'un clic (« clairance sans doute surestimée ; avec 7 mg/L : … mg »), **sans changer le
+      calcul**. Tests d'abord : test-doses (79), test-vigilance ; cas de l'audit (femme de 80 ans, 45 kg, créatinine 4 mg/L).
+- [ ] **S4 Bibliothèque : harmonisation** (d. 28, 30 à 34 ; audit 10, « À harmoniser » et « Médicaments »). Chaque changement vérifié sur la
+      source du protocole (**recherche en ligne dans la session**, source notée dans le journal de la session) :
+      (1) **5-FU en diffuseur** : partout la **dose totale du diffuseur** dans la ligne, la dose par jour en remarque (11 protocoles : TPF, EXTREME,
+      KEYNOTE-048…). (2) **Solumedrol de J1 avec le carboplatine : 80 mg** (règle du 13/10), sauf les protocoles hebdomadaires (21 protocoles, dont
+      MITO-7 et KEYNOTE-355). (3) **Acide folinique** (« oui si c'est la référence, vérifie ») : la dose de **l'essai de référence** de chaque
+      protocole — 400 mg/m² pour mFOLFOX6, FOLFIRI, LV5FU2 simplifié ; 200 mg/m² là où l'essai le dit (FOLFOX4, FLOT, FOLFOXIRI) ; les 14 protocoles
+      à 50 mg fixe (pratique eviQ) passent à la dose de leur référence. (4) **Vinorelbine** de « Cisplatine 20 + Vinorelbine 15 hebdomadaire + RT » :
+      la dose de l'essai cité (15 ou 10 mg/m², vérifiée en ligne, le nom corrigé si c'est 10). (5) **Immunothérapies** : durée maximale **selon
+      l'indication** écrite en remarque (ex. pembrolizumab 2 ans en métastatique, 1 an en adjuvant), rien de bloqué (36 protocoles sur 58).
+      (6) **ZOMETA** : créatinine avant chaque perfusion, dose selon la clairance, bilan dentaire, calcium et vitamine D (comme XGEVA) ;
+      **NAUSELIUM** : durée maximale de la dompéridone (7 jours, EMA 2014) ; selon les recommandations. Même passage unique qu'en S2 ; puis
+      modèle recopié (étape 1 de l'Administration, à faire par Dr Bentahila). Tests : test-audit3p4, test_audit3.
+- [ ] **S5 Vigilance et interactions** (d. 47, 48 ; audit 10, « Seuils, vigilances et interactions »). (1) Interactions ajoutées : vinca-alcaloïdes +
+      azolés ; taxanes et irinotécan + inhibiteurs ou inducteurs du CYP3A4 ; tamoxifène + paroxétine, fluoxétine, bupropion ; pémétrexed + AINS si
+      clairance < 80 ml/min ; 5-FU ou capécitabine + brivudine (contre-indication absolue). (2) Rein : topotécan (dose réduite sous 40 ml/min) et
+      acide zolédronique (sorti des prémédications). (3) Trabectédine : albumine ≥ 25 g/L et clairance ≥ 30 ml/min. (4) **« Aussi dans le
+      paramétrage »** (réponse de Dr Bentahila) : les interactions deviennent une liste du cabinet modifiable dans Paramètres › Bibliothèques ›
+      Vigilance des molécules (« Interactions » : médicament A, médicament B, message, gravité), liste de départ dans le code (`moteur/p10.js` lit la
+      liste du cabinet, sinon celle de départ ; `parametres/interactions`, médecin seulement, règle et test), mise à jour sans écrasement (comme
+      `bibmaj.js`). (5) **Épirubicine à 0,8 doxorubicine** (« oui selon la recommandation internationale » : Feijen 2019, repris par les
+      recommandations de cardio-oncologie de l'ESC 2022 — à vérifier dans la session) et ajout des autres anthracyclines du même tableau
+      (daunorubicine, idarubicine, mitoxantrone) à la dose cumulée. Les interactions restent lues dans le texte libre de la fiche (d. 46 : **pas**
+      de liste à choisir). Tests : test-p10, test-vigilance, test_p10.
+- [ ] **S6 Contrôle automatique de la bibliothèque** (d. 35) : le contrôle de l'audit 10 (même molécule deux fois le même jour, dose hors des bornes
+      usuelles, ligne au-delà du cycle, protocole sans statut « Validé », source vide, doublon de nom, hormonothérapies incompatibles ensemble)
+      écrit une fois dans le moteur (`moteur/controleProto.js`, test) et lancé **à chaque enregistrement d'un protocole** et **avant chaque copie
+      vers le modèle** (Administration, étape 1) : avertissement d'un clic (« 2 points à vérifier : … — Enregistrer quand même »), jamais bloquant.
+- [ ] **S7 Tests fiables** (d. 7, 8 ; ancien Q-a, Q-b, Q-f ; audit 10, « Code et tests pour la cession »). (1) **Jeu fictif pour tous les tests**
+      (`functions/demo.js` étendu : patients, cures, RT, rendez-vous, montants, sur 3 ans ; `tests/base.py`, `tests/mkseed.mjs`) : plus aucun test ne
+      lit `tests/seed.json` ; test-bilan, test-salle, test-releve et les 71 tests du navigateur passent sur une copie propre du dépôt. **Nouveau
+      chiffre de référence du bilan** = celui du jeu fictif figé (noté ici et dans CLAUDE.md ; l'ancien 352 317 DH gardé pour mémoire). Contrôle
+      automatique : aucun nom du jeu réel dans `tests/`, `functions/`, `public/`. (2) **Tests rouges** : test_comptable (6 échecs : le réglage du
+      pack du jeu de test retire `bilan.comptable` ; revoir le test, pas l'application), test_cabinets (2 depuis le 11/10 : « Statistiques en
+      premier », « Listes en premier »), test-demo (plante quand la bibliothèque n'a pas un protocole attendu, `functions/demo.js` ligne 24 : le
+      cabinet de démonstration plante de la même façon → le corriger aussi). (3) **ESLint** (variables inconnues, doubles déclarations ; il passe
+      déjà) dans `avant-mise-en-ligne.sh`. (4) Le contrôle complet tourne sur une copie propre sans `seed.json`.
+- [ ] **S8 Exercice de récupération chronométré** (d. 9 ; ancien R-F1) : dans le **cabinet de démonstration**, un dossier effacé exprès, que
+      **Dr Bentahila récupère seule** (Paramètres › Cabinet › Export des données › Récupérer des données, ou mode d'emploi
+      `guide/en-cas-de-probleme.md`), en moins d'une heure ; Claude ne fait que chronométrer et noter ce qui bloque. Résultat dans le registre des
+      exercices (`outils/RESTAURER.md` § 8) ; ce qui a gêné corrigé dans le mode d'emploi.
+
+## Phase T – Tous les jours (audit 11, facilité d'utilisation ; impressions de l'audit 10)
+Ce qui ne change pas (décisions du 12/10 et du 17/10) : « Ouvrir » reste le bouton principal de chaque cure ; Valider, Reporter, Annuler restent
+dans ⋯ ; Afficher, Journal, Modifier restent visibles ; aucune consultation créée d'office ; rien n'est créé tout seul.
+- [ ] **T1 Prescrire une ligne de chimio** (U2, U3, U4, U7 ; audit 11, « Prescrire »). (1) **Recherche** : les protocoles dont le nom **commence**
+      par le mot cherché passent en premier (« EC » : EC d'abord, puis le reste ; même tri dans la page Protocoles et dans « Nouvelle ligne »).
+      (2) **Intention** (néoadjuvante, adjuvante…) choisie **dans le même écran** que le nombre de cures et la date (plus de fenêtre à part ; la
+      fenêtre « Avant la ligne » pour les mesures manquantes reste). (3) **Nombre de cures propre à chaque protocole** (« selon les
+      recommandations ») : champ du protocole (éditeur), pré-rempli d'après le nom (« × 4 ») ou la référence, rempli pour la bibliothèque par
+      Claude d'après les sources (S4 en même temps si possible) ; sans valeur : 6 comme aujourd'hui ; toujours modifiable. (4) **Après « Créer la
+      ligne »** : une petite fenêtre propose la suite (fiche de chimio pour la prise en charge, ordonnances du protocole `orProtocole`, heure de C1
+      `fenetreHeureSeance`), chaque bouton facultatif, « Plus tard » ferme. **Pas** de liste filtrée par localisation (U1 : non, la localisation
+      n'est pas toujours remplie) ; **pas** de dose en mg avant la création (U5 : non) ; **tableau d'édition gardé tel quel** (U6 : non).
+- [ ] **T2 Valider une cure, reporter** (U8, U13, d. 53, U10). (1) **« Ouvrir » va directement au jour à faire** (aujourd'hui ou en retard) pour une
+      cure en plusieurs jours (J1, J15) ; le tableau des jours reste à un clic. (2) **« Cures à valider »** du tableau de bord ouvre **directement
+      la cure à valider** (2 gestes au lieu de 4 ; d. 53). (3) **Report** (U13) : nouvelle date comparée aux fériés, au week-end et aux absences du
+      médecin → avertissement d'un clic, rien de bloqué (`chReporter`, même contrôle que les rendez-vous). (4) Téléphone (U10, après le reste,
+      O2 = ordinateur) : la même barre fixée en bas que sur ordinateur (date, Ordonnances, Reporter, Valider). **Pas** de rappel des doses à côté
+      de Valider (U9 : non) ; **pas** de cures reçues repliées (U11 : non) ; **pas** de deux groupes aujourd'hui / en retard (U12 : non).
+- [ ] **T3 Rendez-vous** (U14, U17). (1) Sous la date : boutons **« dans 1 sem. · 2 sem. · 1 mois · 3 mois · 6 mois »** (date calculée, puis
+      contrôles habituels : férié, absence, horaires). (2) Avant toute recherche, la liste des patients montre **les patients vus aujourd'hui en
+      tête** (à 5 000 dossiers : seulement eux et les résultats de la recherche, avec 5.3). **Pas** de « Prochains créneaux libres » (U15 : non),
+      « Déjà ce jour-là, sans heure » gardé tel quel (U16 : non), **pas** de bouton « Prochain RDV » dans la salle (U18 : non).
+- [ ] **T4 Dossier patient** (U20, U21, U22). (1) « Rendez-vous et tâches à venir » : **les 5 prochains**, puis « Voir tout » (rien ne disparaît).
+      (2) Sur un élément de chimio de la colonne Patient : **« Consultation : venu »** à la place de « Venu », et à côté un bouton **« Séance »** qui
+      ouvre la cure. (3) Téléphone (après le reste) : **ce qui était décidé le 17/10** et ne se voit pas : bandeau réduit (nom, âge, allergie), barre
+      d'actions **d'une ligne qui défile de côté** (aujourd'hui 3 lignes, 138 px) ; rien de plus. Le dossier s'ouvre toujours comme aujourd'hui
+      (U19 : non).
+- [ ] **T5 Salle d'attente et tableau de bord** (U23, U24). (1) Salle : le **nom du patient n'est jamais coupé** (sur deux lignes s'il le faut) ; la
+      mutuelle et le motif cèdent la place. (2) Tableau de bord, carte « Aujourd'hui » : **consultations et chimio d'abord, puis la radiothérapie**,
+      **sans la plier** (réponse de Dr Bentahila : « sans plier la radiothérapie »).
+- [ ] **T6 Impressions** (d. 14, 15, 49, 50, 51, 52 ; audit 10, « Tout ce qui s'imprime » ; **question 1 avant**). (1) **Fiche de chimio** (A4
+      paysage, `fiche.js`) : nom du patient et titres des colonnes **répétés en haut de chaque page**. (2) **Reçu toujours sur une seule feuille A5**
+      même avec toutes les mentions (« réduire la police ou autre ») : taille du texte et espacements réduits jusqu'à tenir, mesuré comme les
+      ordonnances (`mesurer`), jamais de passage en A4. (3) **Jamais « À compléter » imprimé** (certificats, courriers après « Imprimer quand
+      même ») : la zone imprimée vide, comme les documents de RT ; téléphone du pied sur une ligne. (4) **Ordonnance A5** : marges latérales à
+      **15 mm** avec l'en-tête généré (aujourd'hui 28 mm), après la mesure du papier à en-tête (question 1). (5) **Calendrier de fin de RT** : la
+      ligne du bas « Dates des séances intermédiaires établies d'après le calendrier… » **retirée** (d. 14 : « juste pour envoyer à la CNSS pour
+      fermer le dossier » ; `documents.js`, `note_calendrier`). (6) **Reçu** (d. 15, question 4) : mention « Acte exonéré de TVA » et phrase « à valider
+      par le comptable du cabinet » retirées (case `rTva` de Paramètres › Impression, `htmlRecu` de v2.js) ; plus d'étape « faire valider par le
+      comptable ». Tests : PDF comptés (pages), test_recu, test_calendrier_rt, test_ordonnances_e.
+- [ ] **T7 Messages en arabe** (d. 56 ; audit 10, « Messages en arabe ») : les 3 retouches de la séance de chimio (« آخر تحاليل الدم », « الأدوية التي
+      وُصفت لكم قبل الحصة », « مشكلة … قبل الحضور ») dans `WA_AR` et, une fois, dans les messages du cabinet qui ont encore le texte de départ ;
+      **avertissement dans Paramètres › WhatsApp** quand le français d'un message a changé sans l'arabe (« le français a changé, l'arabe n'est
+      plus sa traduction »).
+
+## Phase L – Lancement : avant le premier cabinet ami
+- [ ] **L1 Journal des erreurs en ligne** (d. 21 ; ancien Q-c) + **page « État de la plateforme »** (d. 41). Erreurs JavaScript des utilisateurs
+      notées **sans donnée patient** (message, fichier, ligne, page, version, rôle, cabinet ; jamais un nom ni un contenu), regroupées, limitées par
+      jour ; Administration › État de la plateforme : dernière nuit de chaque traitement (tâches automatiques, Google Agenda, relevé du comptable,
+      copie des fichiers, exports), échecs, dernier export de chaque cabinet, refus de Google Agenda, erreurs du jour.
+- [ ] **L2 Import des patients par fichier Excel** (d. 19) : Paramètres › Cabinet › « Importer des patients » (titulaire) : modèle Excel à
+      télécharger (identité, CIN, téléphone, mutuelle, diagnostic, n° de dossier d'origine), aperçu ligne par ligne (erreurs, doublons de nom +
+      naissance), import, compte rendu ; n° de dossier Onco360 attribué comme d'habitude, ancien numéro gardé dans la fiche. SheetJS déjà dans
+      `vendor/`. Test sur un fichier fictif.
+- [ ] **L3 Guide de démarrage** (d. 22) : 2 pages pour le médecin, 2 pour la secrétaire, illustrées avec le **cabinet de démonstration** (jamais un
+      vrai patient) ; dans `guide/` et dans Onco360 (aide).
+- [ ] **L4 Photos à part et nuit par cabinet** (d. 23, 24 ; partie de 5.3). (1) **Photos des patients dans Cloud Storage** (environ 50 Ko chacune,
+      chargées aujourd'hui à chaque ouverture) : lues seulement à l'ouverture du dossier ; reprise des photos existantes une fois ; export et
+      récupération à jour. (2) **Traitements de nuit un cabinet à la fois** (tâches automatiques, Google Agenda, relevé, exports), dossiers lus par
+      paquets de quelques centaines ; un cabinet en échec n'arrête pas les autres (noté dans L1).
+- [ ] **L5 Contrôle des dossiers au chargement** (ancien Q-d) : champs mal rangés, rendez-vous orphelins, dates impossibles → réparés ou signalés ;
+      test « aller-retour » : un dossier enregistré puis relu ne perd aucun champ.
+- [ ] **L6 Administration et sécurité entre cabinets** (d. 36, 38, 39, 40, 42 ; audit 10, « Administration » et « Sécurité entre cabinets »).
+      (a) **Si d. 36 confirmé** (question 3) : la liste des administrateurs n'est plus écrite depuis le navigateur (console seulement) ; le compte
+      de tous les jours ne lit plus que les profils **de son équipe** (aujourd'hui : profil de tout utilisateur, de tout cabinet : INPE, IF, TP,
+      ICE) ; identité reconnue par l'**identifiant du compte**, plus par l'adresse e-mail (`proprietaire()`). Tests de règles. (b) Le titulaire est
+      **prévenu** (tableau de bord et journal de son cabinet) chaque fois que l'Administration écrit chez lui (d. 38). (c) **Cabinet suspendu =
+      lecture seule et export permis** (d. 39). (d) **Suppression d'un cabinet** : export final remis au médecin, puis **30 jours** avant
+      l'effacement (annulable pendant ce temps) (d. 40). (e) **Ajout d'un membre** : messages neutres (ne plus dire qu'une adresse est celle d'un
+      administrateur, d'un titulaire ou d'un membre d'un autre cabinet) ; la personne déjà inscrite ailleurs **accepte l'invitation** avant d'entrer
+      (d. 42). (f) Fiche de chaque cabinet : **état du démarrage** (profil, lieu, tarifs, équipe, Google Agenda, export), sans donnée médicale.
+      **Pas** de double vérification sur le compte d'administration (d. 37 : non).
+- [ ] **L7 Sécurité du site** (d. 43, 57, 59 ; ancien Q-e). (1) **CSP appliquée** (en observation depuis le 11/10 ; code écrit dans les pages
+      retiré ou permis par empreinte) + **politique des permissions** (caméra, micro… refusés). (2) **mammoth 1.11.0** (faille CVE-2025-11849
+      corrigée) dans `vendor/`. (3) Clé web de Firebase **limitée à l'adresse du site** dans la console Google (fait par Dr Bentahila, Claude donne
+      les clics). (4) Case **« Poste partagé »** à la connexion (d. 57 : oui, rare) : session fermée avec le navigateur, sur ce poste seulement ;
+      sans la case, rien ne change (jamais de déconnexion automatique). **Pas** de mots de passe de 10 caractères ni de protection contre la
+      recherche des adresses (d. 58 : non).
+- [ ] **L8 Coûts** (d. 60 ; réponse ci-dessus). (1) **Export de la semaine qui n'envoie que le nouveau** : données (petites) chaque semaine, PDF
+      seulement ceux ajoutés depuis le dernier export réussi (le Drive garde les anciens ; liste des fichiers déjà envoyés dans `exportsAuto/{e}`) ;
+      récupération et restauration toujours possibles depuis le Drive (test). (2) **Alerte de budget Google** (par exemple 20 dollars par mois,
+      console Google Cloud : Claude donne les clics). (3) Regarder dans la console : images des fonctions (Artifact Registry), journaux.
+- [ ] **L9 Registre d'usage** (V5) : chaque mois, par cabinet, **sans aucune donnée de patient** : cabinet actif, nombre de dossiers, de cures
+      validées, de consultations, de membres ; écrit par le serveur (`plateforme/usage/{AAAA-MM}`), lu par l'Administration ; dès le 1er cabinet ami.
+- [ ] **L10 Prix des packs au prix marocain** (O4). Relevé des prix publics de GestiCab, DabaDoc et autres logiciels médicaux marocains (recherche
+      en ligne, sources notées), proposition de nouveaux prix à Dr Bentahila, puis `PRIX0` (`functions/facturation.js` = `public/js/donnees/
+      facturation.js`) et fiches des packs. Pilote gratuit (d. 20) : mode « gratuit » de la facturation (déjà là).
+- [ ] **L11 Répétition générale chronométrée** (audit 10, « Plan d'action ») dans le cabinet de démonstration : création du cabinet, import d'un
+      fichier fictif (L2), premier patient, cure validée, reçu, export, récupération (S8) ; puis le « jour J » écrit pas à pas pour le pilote
+      (1 h en visio : modèle recopié juste avant, carte « Bienvenue », export vers son Drive, messages WhatsApp, marges, patient d'essai créé puis
+      supprimé) et la première semaine (journal des erreurs lu chaque jour, « Écart au modèle », premier export vérifié, un point).
+
+## Phase D / E – Design, code, montée en charge (ensuite)
+- [ ] **4.1 Accessibilité** (d. 54 ; audit 10, « Accessibilité et confort »), sans changer la disposition : **contrastes** (pastille orange de la
+      cloche, badges verts des protocoles et de la salle comme R-C6, gris clair des cartes, dates passées de la RCP → 4,5 pour 1) ; **étiquettes**
+      des champs (horaires des Paramètres, filtres du Bilan, menus en cascade des Protocoles, filtre de Patients) ; **zones de 44 px** sur téléphone
+      (dossier, RCP) ; **lignes cliquables utilisables au clavier** (tableau de bord, agenda, Protocoles) ; contour visible au clavier dans la salle.
+      Test axe-core dans le contrôle. (Ancienne 4.1 : téléphone du patient en lien, champs de fichier habillés, filtres repliés sur téléphone.)
+- [ ] **4.2 Fenêtres Onco360 à la place des boîtes grises** : 152 au 20/10 (45 alertes, 103 confirmations, 4 saisies ; 47 dans l'Administration,
+      dont la suppression d'un cabinet par une saisie grise) ; par lots : chimio et vigilance d'abord (« Valider quand même ? »), rendez-vous (hors
+      horaires, férié, absence), Administration, le reste. Une fenêtre commune (déjà : `question()` d'ordonnances.js) ; plus aucune nouvelle boîte
+      grise (vérifié par le contrôle : compte qui ne doit pas monter).
+- [ ] **5.7 Code en un seul fichier gardé en cache** (d. 55 ; audit 10, « Vitesse de chargement ») : 65 fichiers revérifiés à chaque ouverture
+      (« no-cache ») → un fichier construit à la mise en ligne, dont le nom change à chaque version, gardé en cache jusqu'à la suivante ; ouverture
+      suivante sous la seconde même en 4G lente ; **plus de numéro de version `v2.js?v=…` à changer à la main**. Le code source reste en fichiers
+      séparés (tests inchangés).
+- [ ] **5.3 Montée en charge** (d. 25, avant qu'un cabinet dépasse 1 500 dossiers ; photos et nuit : L4) : index léger des patients (nom, n° de
+      dossier, statut, diagnostic, prochain rendez-vous) dans des documents à part ; liste des patients par pages, recherche dans l'index ; dossier
+      complet chargé à son ouverture ; salle, agenda, tableau de bord : seulement les résumés de la période affichée ; liste de « Nouveau
+      rendez-vous » sur recherche ; cases « Payé » par mois au-delà de 70 % ; bilan lu depuis l'index (R-D4) ; **test de charge** dans le contrôle
+      (5 000 dossiers fictifs dans l'émulateur, ouverture en moins de 5 s).
+- [ ] **5.1 Code mort et fonctions communes** (14 fonctions globales et 10 exports jamais appelés, dont `chHon`, `chValiderSeance`, `migrerV1`) :
+      voir l'ancienne 5.1 en bas.
+- [ ] **5.2 Écritures qui s'écrasent** : réglages et listes encore écrits sans relecture → transaction (voir l'ancienne 5.2).
+- [ ] **5.4 Restes de l'ancienne application** (dont l'impôt de 10 % des hospitalisations v1 laissé par R-D3) : voir l'ancienne 5.4.
+- [ ] **5.5 Recette et mise en ligne** : projet Firebase de recette ; script unique ; SDK Firebase du site 10.12.2 → version actuelle ; App Check.
+- [ ] **5.6 Application installable et hors ligne** (voir l'ancienne 5.6).
+- [ ] **5.8 (nouveau, proposé par Claude le 20/10) Accès aux données en un seul endroit** : tous les appels à Firebase (lectures, écritures,
+      écoutes, fichiers, fonctions) rassemblés dans un fichier (`js/app/acces.js`), les écrans ne parlent plus qu'à lui. Prépare un hébergement au
+      Maroc (réponse ci-dessus) et la cession ; sous les tests, par morceaux (un module à la fois), aucun changement visible.
+
+## Phase C – Conformité (plus tard, décidé le 20/10/2026)
+- [ ] **0.5 Fiche d'incident** (ancienne application lisible sans connexion jusqu'au 11/10, 57 patients ; dépôt public les 10 et 11/10 ; question 2) :
+      à rédiger avec le juriste. **Gel levé pour des confrères amis qui testent** (d. 16) ; cabinet de démonstration toujours permis.
+- [ ] **6.1 Juriste** : **après l'essai chez 2 ou 3 médecins** (d. 17), avec la fiche prête de l'audit 10 (« Fiche pour le juriste », 11 questions) ;
+      la question 2 (hébergement en Belgique, ou au Maroc ?) **à poser avant de décider un déménagement** (O1). Autorisation CNDP de son propre
+      cabinet (d. 62) : plus tard.
+- [ ] **6.2 Qualification** (dispositif médical, loi 84-12 ; question 7 de la fiche).
+- [ ] **6.3 Contenus** (voir l'ancienne 6.3).
+- [ ] **6.4 Société** (d. 18 : avant le 1er client payant) ; la chaîne des droits (autrice, compte Claude prêté au début, code écrit avec une IA,
+      preuve de date) **n'est pas préparée avec le juriste** (V7 : non).
+- [ ] **6.5 Projet neutre** (d. 18) : projet Firebase et nom de domaine au nom de la société (l'adresse chimio-hgc.web.app porte le nom de l'hôpital ;
+      le lien du premier mot de passe y renvoie) ; vérification de l'application par Google (Agenda, Drive) avec la politique de confidentialité ;
+      hébergement au Maroc si le juriste le demande (5.8 d'abord).
+- [ ] **6.6 Test d'intrusion** par un prestataire externe.
+
+## Phase V – Vente et cession (préparées en avance, d. 61 : « pour l'instant pas de projet de vendre »)
+- [x] **V-a Cible** (V1, V2, 20/10) : d'abord les oncologues et radiothérapeutes en cabinet, **en abonnement** ; les groupes de cliniques (Akdital,
+      Oncorad…) seulement après quelques cabinets payants, cadre légal en place. Rien à coder.
+- [x] **V-b Indépendance** (V3, 20/10) : **aucun financement ni parrainage d'un laboratoire pharmaceutique**. Rien à coder.
+- [x] **V-c Éditeur marocain** (V4, 20/10) : Dr Bentahila préfère **une vente** à une licence avec pourcentage. Rien à coder.
+- [ ] **V-d Qui vend et répond au support** (V6 : oui ; O5 : « il faudrait que j'embauche quelqu'un ») : avant le 1er client payant, contrat écrit
+      avec la société, sans droit sur le logiciel sauf accord écrit.
+- Ordre de préparation de la cession (d. 61) : jeu fictif (S7) → **7.1** README et installation sur un projet vierge en moins de 30 min → **7.2**
+  mise en forme automatique en une fois (697 lignes de plus de 300 caractères) puis découpage de `v2.js` et `configuration.js` → **7.4** rapport de
+  couverture joint au dossier ; **7.3** guides (le guide de démarrage L3 en est le début). Licences : jszip choisi en MIT par écrit. Détail des
+  anciennes 7.1 à 7.4 en bas.
+
+## Plus tard, sur demande
+- Export de la semaine vers un autre support que Google Drive (OneDrive, Dropbox) : à la demande d'un cabinet client.
+- Audits d'autres écrans (Paramètres, Bilan, ordonnances, radiothérapie, poste de l'infirmière) et d'autres appareils (Safari, tablette) : « oui,
+  plus tard » (O6).
+- Priorité 4 des protocoles (64 : lymphomes, trophoblastique…) : plus tard (13/10).
+- Gelé, plus tard si un client le demande : voir « Gelé, plus tard, annulé » de l'ancien plan en bas (Gynécologie, pharmacie, HL7 / FHIR…).
+
+## Refusé – ne pas reproposer (liste cumulée)
+- **20/10/2026 (audits 10 et 11)** : tout l'**audit n° 9** (radiothérapie : lot RT-1 « séances reçues, motif d'arrêt, compteur, 1re séance un jour
+  férié » (d. 4), lots RT-2 à RT-6, bibliothèque de contraintes de dose (d. 5)) ; écran « Corrections proposées » P1 (d. 10) ; écran de
+  l'infirmière 3.8 (d. 11) ; ligne de protection du calendrier de fin de RT (d. 14 : retirée) ; validation du reçu par le comptable (d. 15) ;
+  juriste cette semaine (d. 17 : après les essais) ; double vérification du compte d'administration (d. 37) ; traitements en cours choisis dans
+  une liste (d. 46) ; mots de passe de 10 caractères et protection contre la recherche des adresses (d. 58) ; autorisation CNDP vérifiée
+  maintenant (d. 62 : plus tard) ; liste de protocoles filtrée par la localisation (U1) ; dose en mg avant de créer la ligne (U5) ; résumé à la
+  place du tableau d'édition des molécules (U6) ; rappel des doses à côté de Valider (U9) ; cures reçues repliées (U11) ; « Cures à valider » en
+  deux groupes (U12) ; « Prochains créneaux libres » (U15) ; nombre au lieu de la liste « Déjà ce jour-là, sans heure » (U16) ; bouton « Prochain
+  RDV » de la salle (U18) ; onglet d'ouverture du dossier selon le jour (U19) ; radiothérapie repliée sur le tableau de bord (U24) ; licence avec
+  pourcentage plutôt que vente (V4) ; chaîne des droits préparée avec le juriste (V7).
+- **19/10** : « Prescrire chimio / RT » dans la barre du bas du dossier (rendus à leurs onglets).
+- **18 au 20/10** : rapprochement des règlements (les cliniques paient des mois après l'acte) ; alerte à chaque export.
+- **17/10** : déplacement automatique des consultations de RT un jour férié ; calendrier imprimable de chimio ; fauteuils / hôpital de jour ;
+  toute la « caisse » (caisse du jour, clôture, registre, impayés, total du jour) ; avertissement « stupéfiant » ; remplacement de COTIPRED ;
+  NIVESTIM / NEUPOGEN alignés ; bilans intercure enrichis ; double vérification à la connexion ; code-barres sur le reçu ; passage automatique
+  en A4 ; menu « … » pour Afficher, Journal, Modifier ; consultation créée d'office.
+- **13/10** : relecture par un deuxième oncologue ; double contrôle avant préparation ; WhatsApp envoyé tout seul (3.17) ; format du papier
+  choisi tout seul (3.18) ; case « EMEND prescrit » ; mention « hors référentiel » ; fenêtre pour les corrections de l'audit ; motif pour
+  « Valider quand même » ; contrôle automatique des prémédications.
+- **12/10** : « Valider » sorti du menu ⋯ de la cure (« Ouvrir » reste le bouton principal).
+- **11/10** : déconnexion automatique ; double authentification ; Google Agenda sans nom ; archivage des patients ; original Word ou Excel
+  gardé ; organes à risque ; tableau des toxicités de RT ; journal des séances de RT (ARIA fait foi). (Avant) : pointer en lot dans le Bilan ;
+  alerte de poids de la secrétaire (19.6) ; assistant IA ; rappels WhatsApp automatiques ; commande pharmacie J−1 ; relevé mensuel ;
+  téléconsultation.
+
+## Décisions de Dr Bentahila du 20/10/2026 (audits n° 10 et 11), une par ligne
+| N° | Proposition (résumé) | Réponse | Étape |
+|---|---|---|---|
+| d. 1 | P0 : deux défauts de l'audit 2 | oui | S3 |
+| d. 2 | Heure du Maroc calculée par Onco360 | oui, **en suivant les changements d'heure marocains** | S1 |
+| d. 3 | NOCAND = fluconazole | oui (juste) | — |
+| d. 4 | Audit 9, lot RT-1 | **non** (audit 9 pas fait) | refusé |
+| d. 5 | Contraintes de dose (audit 9) | non | refusé |
+| d. 6 | Contrôle complet avant chaque mise en ligne | oui | Comment on travaille |
+| d. 7 | Tests sur jeu fictif seulement | oui | S7 |
+| d. 8 | Réparer les tests rouges | oui | S7 |
+| d. 9 | Exercice R-F1 | oui | S8 |
+| d. 10 | Abandonner P1 | oui | abandonné |
+| d. 11 | Abandonner 3.8 | oui | abandonné |
+| d. 12 | Question 6 : tout le modèle sauf correspondants et tarifs | oui | déjà le réglage |
+| d. 13 | Question 8 : ligne au journal | oui | déjà fait |
+| d. 14 | Garder la ligne du calendrier de fin de RT | **non, l'enlever** (c'est pour la CNSS) | T6 |
+| d. 15 | Faire valider le reçu par le comptable | **enlever la phrase** (absente du reçu de Cheikh Khalifa) | T6, question 4 |
+| d. 16 | Aucun cabinet réel avant le juriste | **non** (des amis pour tester) | phase C |
+| d. 17 | Juriste cette semaine | **non, après l'essai chez 2 ou 3 médecins** | 6.1 |
+| d. 18 | Société, projet, domaine avant le 1er client | oui | 6.4, 6.5 |
+| d. 19 | Import Excel | oui | L2 |
+| d. 20 | Pilote gratuit d'un mois | oui, **voire gratuit tout le temps** | L10, L11 |
+| d. 21 | Journal des erreurs | oui | L1 |
+| d. 22 | Guide de démarrage | oui | L3 |
+| d. 23 | Photos à part | oui | L4 |
+| d. 24 | Nuit cabinet par cabinet | oui | L4 |
+| d. 25 | 5.3 avant 1 500 dossiers | oui | 5.3 |
+| d. 26 | 5 protocoles à anticorps en double | oui | S2 |
+| d. 27 | KEYNOTE-A18 phase 2 validé | oui | S2 |
+| d. 28 | 5-FU : dose totale du diffuseur | oui | S4 |
+| d. 29 | Létrozole / fulvestrant séparés | oui | S2 |
+| d. 30 | Solumedrol 80 mg avec le carboplatine | oui | S4 |
+| d. 31 | Acide folinique 400 mg/m² | **oui si c'est la référence (vérifier en ligne)** | S4 |
+| d. 32 | Vinorelbine 15 ou 10 | **vérifier en ligne** | S4 |
+| d. 33 | Durée maximale des immunothérapies | oui, **selon l'indication** | S4 |
+| d. 34 | ZOMETA, NAUSELIUM | oui, **selon les recommandations** | S4 |
+| d. 35 | Contrôle automatique de la bibliothèque | oui | S6 |
+| d. 36 | Liste des administrateurs : console seulement | **question** (voir question 3) | L6 a |
+| d. 37 | Double vérification du compte d'administration | non | refusé |
+| d. 38 | Titulaire prévenu des écritures de l'Administration | oui | L6 b |
+| d. 39 | Cabinet suspendu en lecture seule | oui | L6 c |
+| d. 40 | Suppression : export + 30 jours | oui | L6 d |
+| d. 41 | État de la plateforme | oui | L1 |
+| d. 42 | Ajout d'un membre neutre + invitation | oui | L6 e |
+| d. 43 | CSP appliquée + permissions | oui | L7 |
+| d. 44 | Décimales (5 lignes, mg/kg) | oui | S3 |
+| d. 45 | Créatinine < 7 mg/L avant carboplatine | oui | S3 |
+| d. 46 | Traitements en cours choisis dans une liste | non | refusé |
+| d. 47 | Interactions manquantes | oui, **aussi dans le paramétrage** | S5 |
+| d. 48 | Épirubicine 0,8 | oui, **selon la recommandation internationale** | S5 |
+| d. 49 | Fiche de chimio : en-tête répété | oui | T6 |
+| d. 50 | Reçu sur une seule feuille A5 | oui, **réduire la police si besoin** | T6 |
+| d. 51 | Jamais « À compléter » imprimé | oui | T6 |
+| d. 52 | Marges A5 à 15 mm | oui (après la mesure du papier) | T6 |
+| d. 53 | « Cures à valider » ouvre la cure | oui | T2 |
+| d. 54 | Étape 4.1 maintenant | oui | 4.1 |
+| d. 55 | Code en un seul fichier en cache | oui | 5.7 |
+| d. 56 | Arabe : 3 retouches + avertissement | oui | T7 |
+| d. 57 | Case « poste partagé » | oui (rare) | L7 |
+| d. 58 | Mots de passe 10 caractères | non | refusé |
+| d. 59 | mammoth 1.11, clé web limitée | oui | L7 |
+| d. 60 | Alerte de budget, export du nouveau seulement | oui (+ question sur le coût, réponse ci-dessus) | L8 |
+| d. 61 | Préparer la cession dans l'ordre | oui, **en avance, pas de projet de vente pour l'instant** | phase V |
+| d. 62 | Autorisation CNDP de son cabinet maintenant | **plus tard** | 6.1 |
+| U1 | Liste filtrée par localisation | non (localisation pas toujours remplie) | refusé |
+| U2 | Nom qui commence par le mot cherché en premier | oui | T1 |
+| U3 | Intention dans le même écran | oui | T1 |
+| U4 | Nombre de cures par protocole | oui, **selon les recommandations** | T1 |
+| U5 | Dose en mg avant de créer la ligne | non | refusé |
+| U6 | Résumé à la place du tableau d'édition | non | refusé |
+| U7 | Suite proposée après « Créer la ligne » | oui | T1 |
+| U8 | « Ouvrir » va au jour à faire | oui | T2 |
+| U9 | Doses rappelées à côté de Valider | non | refusé |
+| U10 | Barre fixée en bas sur téléphone | oui (après, O2) | T2 |
+| U11 | Cures reçues repliées | non | refusé |
+| U12 | « Cures à valider » en deux groupes | non | refusé |
+| U13 | Report : férié, week-end, absences | oui | T2 |
+| U14 | Boutons « dans 1 sem. … 6 mois » | oui | T3 |
+| U15 | Prochains créneaux libres | non | refusé |
+| U16 | Nombre au lieu de la liste sans heure | non | refusé |
+| U17 | Patients vus aujourd'hui en tête | oui | T3 |
+| U18 | « Prochain RDV » dans la salle | non | refusé |
+| U19 | Onglet d'ouverture selon le jour | non | refusé |
+| U20 | 5 prochains puis « Voir tout » | oui | T4 |
+| U21 | « Consultation : venu » + « Séance » | oui | T4 |
+| U22 | Téléphone : ce qui était décidé le 17/10 | oui (après, O2) | T4 |
+| U23 | Nom jamais coupé en salle | oui | T5 |
+| U24 | Consultations et chimio d'abord | oui, **sans plier la radiothérapie** | T5 |
+| V1 | Cabinets en abonnement d'abord | oui | V-a |
+| V2 | Groupes de cliniques après | oui | V-a |
+| V3 | Aucun laboratoire | oui | V-b |
+| V4 | Licence ou vente avec un éditeur | **vente** | V-c |
+| V5 | Registre d'usage mensuel | oui | L9 |
+| V6 | Qui vend et répond au support | oui | V-d |
+| V7 | Chaîne des droits avec le juriste | non | refusé |
+| O1 | Cabinets amis : combien, quand | plus tard : hébergeur marocain puis CNDP d'abord (d'après elle) | phase C |
+| O2 | Ordinateur, téléphone ou tablette | **ordinateur** | téléphone après |
+| O3 | Geste qui fait perdre le plus de temps | « je ne vois pas » | — |
+| O4 | Prix des packs | **prix marocains** (GestiCab, DabaDoc) | L10 |
+| O5 | Qui vend, qui répond | il faudrait embaucher | V-d |
+| O6 | Autres audits | oui, plus tard | Plus tard |
+
+---
+
+# ANCIEN PLAN ET TOUT CE QUI EST FAIT (gardé tel quel)
+
+Tout ce qui suit est la feuille de route d'avant le 20/10/2026, sans rien retirer (les parties « Comment on travaille » et « Règles à ne pas
+changer » sont remontées en haut, complétées). Introduction d'origine :
+
+**Un seul plan** : ce fichier. En haut, **ce qui reste à faire** (nouveau plan, d'après l'audit n° 3 et tout ce qui restait
+ouvert) ; en bas, **tout ce qui est fait**, gardé tel quel. Version précédente entière : `archives/FEUILLE-DE-ROUTE-jusqu-au-2026-10-13.md`
+(avant : `archives/FEUILLE-DE-ROUTE-jusqu-au-2026-10-11.md`). Journal des sessions : `JOURNAL.md`.
+
+Sources : les trois audits du dossier Drive « Audit » : « Audit pour vendre » (10/10), « Audit numéro 2 » (11/10) et
+**« Audit n° 3 – Chimiothérapie et bibliothèque de protocoles » (12/10)** avec son classeur **« Protocoles-chimio-Onco360-a-faire.xlsx »**
+(un protocole par ligne : 316 existants + 123 à créer ; copie dans `archives/audit-3/`, avec le texte de l'audit et les annotations de
+Dr Bentahila).
+**Audits n° 4 à 8 et demandes du cabinet du 17/10/2026** (document unique « Onco360 – Tout ce qu'il reste à faire … pour Claude », fait avec
+un autre compte Claude, reçu le 18/10) : **phase R** ci-dessous. Copie entière (aucune donnée réelle) : `archives/audits-4-a-8/`
+(`audits-4-a-8-et-demandes-du-17-10.md` = texte lisible avec ses tableaux, à relire au début de chaque lot R ; `.docx` = original). Les
+« § » de la phase R renvoient aux parties de ce document.
 
 ---
 
@@ -174,7 +646,7 @@ pas le reproposer** ; NON CONTESTÉ = à faire, **en le signalant dans le compte
   « stupéfiant » ; remplacement de COTIPRED ; NIVESTIM / NEUPOGEN alignés ; bilans intercure enrichis (chaque analyse est payée par le
   patient) ; double vérification à la connexion ; code-barres sur le reçu ; passage automatique en A4.
 
-## Questions en attente (Claude les rappelle en début de session)
+## Anciennes questions en attente (reprises en haut le 20/10/2026 ; 6 et 8 répondues le 20/10 : d. 12, d. 13)
 1. Mesurer la hauteur des en-têtes du papier (ordonnance A5, A4, documents) pour régler les marges (Paramètres › Impression).
 2. GitHub : demander la purge des copies en cache ; regarder Insights › Traffic › « Git clones » (copies du dépôt quand il était public).
 
@@ -192,7 +664,7 @@ pas le reproposer** ; NON CONTESTÉ = à faire, **en le signalant dans le compte
 
 ---
 
-# LE PLAN (ce qui reste, dans l'ordre)
+# ANCIEN PLAN du 13/10 et du 18/10/2026 (remplacé le 20/10/2026 par le plan du haut ; gardé tel quel, voir « Correspondance »)
 
 | Phase | But | Étapes |
 |---|---|---|

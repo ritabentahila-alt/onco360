@@ -1,6 +1,6 @@
 # Onco360 (ex-Chimio HGC) – notes pour Claude Code
 
-**Au début de chaque session : lire `FEUILLE-DE-ROUTE.md`** (plan refait le 13/10/2026 ; **phase R** ajoutée le 18/10/2026 = retours du cabinet du 17/10 et audits n° 4 à 8, lots R-A1 → R-G, détail dans `archives/audits-4-a-8/` ; phase P « Protocoles de chimiothérapie » d'après l'audit n° 3 (reste P0, P1), puis Q, M, D, E, C, V ; décisions, questions en attente ; tout le fait gardé en bas)
+**Au début de chaque session : lire `FEUILLE-DE-ROUTE.md`** (plan **refait le 20/10/2026** d'après les audits n° 10 et 11 et les réponses de Dr Bentahila, copie dans `archives/audits-10-11/` : phases S (soins et sécurité, cette semaine), T (tous les jours, audit 11), L (avant le 1er cabinet ami), D / E (design, code, charge), C (conformité, plus tard), V (vente et cession, en avance) ; questions en attente, décisions du 20/10 une par ligne, liste cumulée des refus ; **audit n° 9 non fait** (décision du 20/10) ; en bas, l'ancien plan du 13/10 et du 18/10 (phase R faite, sauf R-F1 → S8) et tout le fait, gardés tels quels)
 et la mettre à jour à la fin (cocher, décisions) ; une ligne dans `JOURNAL.md`. Une étape = une session. L'ancienne feuille de
 route (jusqu'au 11/10/2026, tout le détail des étapes 1 à 23) est dans `archives/FEUILLE-DE-ROUTE-jusqu-au-2026-10-11.md`.
 
