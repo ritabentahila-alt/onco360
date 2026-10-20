@@ -1221,18 +1221,26 @@ function pageDossier(id) {
   // Consultations et hospitalisations : passées ou déjà validées (venu / non venu), avec le prix à encaisser (droit « encaissements »)
   let hPasse = "", nPasse = 0, nAValider = 0;
   if (voitRdv()) {
-    const prix = (v) => {
+    // 20/10/2026 (demande de Dr Bentahila) : seules les actions à faire restent visibles (Venu, Non venu, Encaisser, Fixer le prix) ; Annuler le
+    // statut, Reçu, Modifier le prix, Modifier, Supprimer : sous « ⋯ » (menuPts). vis / m : boutons visibles / du menu de la ligne
+    const prix = (v, vis, mn) => {
       if (EN && v.st === "absent") return '<span class="badge b-gr" title="Non venu : rien à encaisser">0 DH</span>';
       if (!EN || v.st !== "fait") return "";
       if (v.type === T_RTC) return '<span class="badge b-gr" title="Consultation en cours de radiothérapie : comprise dans l\'acte">0 DH</span>';
       const o = (EN.rdv || {})[v.id], hs = typeRdv(v.type) === "hospit";
-      if (!o) return '<span class="badge b-gr" title="Le prix est fixé quand on valide « Venu »">Prix non validé</span>' + ((peut("finances") || prixParServeur()) && v.type !== T_RTC ? b("Fixer le prix", "prixRdv('" + x.id + "','" + v.id + "')") : "");
+      if (!o) { if ((peut("finances") || prixParServeur()) && v.type !== T_RTC) vis.push(b("Fixer le prix", "prixRdv('" + x.id + "','" + v.id + "')")); return '<span class="badge b-gr" title="Le prix est fixé quand on valide « Venu »">Prix non validé</span>'; }
       const nj = hs ? joursH(v) : 0, m = o.tj != null ? o.tj * (nj || 1) : o.b != null ? o.b : o.m; // b : brut d'un prix repris de l'ancienne application
       const np = aEncaisser(o.mode), q2 = "'" + x.id + "','" + v.id + "'";
-      return '<span class="badge ' + (np ? "b-or" : "b-ch") + '" title="' + (np ? "À encaisser" : o.mode ? "Payé " + esc(((MODES.find((z) => z[0] === o.mode) || [])[2]) || "") : "Prix validé") + '">' + fmtMil(m) + " DH" + (o.tj != null && nj > 1 ? " (" + nj + " j × " + fmtMil(o.tj) + ")" : "") + (np ? (o.mode === "np" ? " · non payé" : " · à encaisser") : "") + "</span>" +
-        (np && (peut("finances") || prixParServeur()) ? b("Encaisser", "prixRdv(" + q2 + ",true)", "v") : (peut("finances") || (prixParServeur() && !o.v1)) && v.type !== T_RTC ? b("Modifier le prix", "prixRdv(" + q2 + ")") : "") +
-        (o.mode && !np && o.m > 0 ? b("Reçu", "recuRdv(" + q2 + ")") : "");
+      if (np && (peut("finances") || prixParServeur())) vis.push(b("Encaisser", "prixRdv(" + q2 + ",true)", "v")); else if ((peut("finances") || (prixParServeur() && !o.v1)) && v.type !== T_RTC) mn.push(b("Modifier le prix", "prixRdv(" + q2 + ")"));
+      if (o.mode && !np && o.m > 0) mn.push(b("Reçu", "recuRdv(" + q2 + ")"));
+      return '<span class="badge ' + (np ? "b-or" : "b-ch") + '" title="' + (np ? "À encaisser" : o.mode ? "Payé " + esc(((MODES.find((z) => z[0] === o.mode) || [])[2]) || "") : "Prix validé") + '">' + fmtMil(m) + " DH" + (o.tj != null && nj > 1 ? " (" + nj + " j × " + fmtMil(o.tj) + ")" : "") + (np ? (o.mode === "np" ? " · non payé" : " · à encaisser") : "") + "</span>";
     };
+    // Rendez-vous passé : à valider = Venu / Non venu (visibles), Modifier / Supprimer (menu) ; déjà validé = Annuler le statut (menu)
+    const actionsPasse = (v, vis, m) => { if (!okR) return; const q = "'" + x.id + "','" + v.id + "'";
+      if ((v.st || "prevu") !== "prevu") { if (annulable(v)) m.push(b("Annuler le statut", "statutRdv(" + q + ",'prevu')")); return; }
+      if (v.d <= D.t) vis.push(b("Venu", "statutRdv(" + q + ",'fait')", "v"), b("Non venu", "statutRdv(" + q + ",'absent')", "r"));
+      m.push(b("Modifier", "ouvrirRdv(" + q + ")"), b("Supprimer", "statutRdv(" + q + ",'supprimer')")); };
+    const actr = (vis, m) => (vis.length || m.length ? '<div class="actr">' + vis.join("") + menuPts(m) + "</div>" : "");
     const lignes = (P.rdvs || []).filter((v) => !aVenir(v)).map((v) => ({ d: v.d, h: v.h || "", v }));
     // Jours de chimio reçus (J1, J8…) depuis le 07/10/2026, et tous ceux validés « Venu » (avec leur prix)
     const vus = {};
@@ -1246,11 +1254,16 @@ function pageDossier(id) {
     nAValider = lignes.filter((z) => (z.v && (z.v.st || "prevu") === "prevu") || (z.c && !z.c.v)).length; // repère orange sur la partie repliée
     hPasse = (EN === undefined ? '<p class="mesures">Chargement des prix…</p>' : "") +
       (lignes.length ? lignes.map(({ v, c, d }) => {
-        if (c) return '<div class="rdv"><span class="badge b-gr">' + (d ? dfrA(d) : "—") + '</span><div class="tx"><b>Chimiothérapie</b><div class="mesures">' + esc((c.lib || "") + " · C" + c.n + " J" + c.j) + "</div></div>" +
-          (c.v ? '<span class="badge b-ch">Venu</span><span class="badge ' + (aEncaisser(c.v.mode) ? "b-or" : "b-ch") + '" title="Prix validé">' + (c.v.m != null ? fmtMil(c.v.m) + " DH" : "—") + (aEncaisser(c.v.mode) ? " · à encaisser" : "") + "</span>" + (aEncaisser(c.v.mode) && payeCabinet(x) && (peut("finances") || prixParServeur()) ? b("Encaisser", "chVenuChimio('" + x.id + "','" + c.lid + "'," + c.n + "," + c.j + ",true)", "v") : "") + (c.v.mode && !aEncaisser(c.v.mode) && c.v.m > 0 ? b("Reçu", "recuCons('" + x.id + "','" + c.lid + "|" + c.n + "|" + c.j + "')") : "") + (peut("finances") ? '<div class="actr">' + b("Annuler le statut", "chAnnulerVenuChimio('" + x.id + "','" + c.lid + "'," + c.n + "," + c.j + ")") + "</div>" : prixParServeur() ? '<div class="actr">' + b("Modifier le prix", "chVenuChimio('" + x.id + "','" + c.lid + "'," + c.n + "," + c.j + ")") + "</div>" : "")
-            : '<span class="badge b-or">À valider</span>' + (peut("finances") || prixParServeur() ? '<div class="actr">' + b("Venu", "chVenuChimio('" + x.id + "','" + c.lid + "'," + c.n + "," + c.j + ")", "v") + "</div>" : "")) + "</div>";
+        const vis = [], m = [];
+        if (c) { const qc = "'" + x.id + "','" + c.lid + "'," + c.n + "," + c.j;
+          if (c.v) { if (aEncaisser(c.v.mode) && payeCabinet(x) && (peut("finances") || prixParServeur())) vis.push(b("Encaisser", "chVenuChimio(" + qc + ",true)", "v"));
+            if (c.v.mode && !aEncaisser(c.v.mode) && c.v.m > 0) m.push(b("Reçu", "recuCons('" + x.id + "','" + c.lid + "|" + c.n + "|" + c.j + "')"));
+            if (peut("finances")) m.push(b("Annuler le statut", "chAnnulerVenuChimio(" + qc + ")")); else if (prixParServeur()) m.push(b("Modifier le prix", "chVenuChimio(" + qc + ")")); }
+          else if (peut("finances") || prixParServeur()) vis.push(b("Venu", "chVenuChimio(" + qc + ")", "v"));
+          return '<div class="rdv"><span class="badge b-gr">' + (d ? dfrA(d) : "—") + '</span><div class="tx"><b>Chimiothérapie</b><div class="mesures">' + esc((c.lib || "") + " · C" + c.n + " J" + c.j) + "</div></div>" +
+            (c.v ? '<span class="badge b-ch">Venu</span><span class="badge ' + (aEncaisser(c.v.mode) ? "b-or" : "b-ch") + '" title="Prix validé">' + (c.v.m != null ? fmtMil(c.v.m) + " DH" : "—") + (aEncaisser(c.v.mode) ? " · à encaisser" : "") + "</span>" : '<span class="badge b-or">À valider</span>') + actr(vis, m) + "</div>"; }
         const s = (v.st || "prevu") === "prevu" ? ["À valider", "b-or"] : ST_RDV[v.st] || [v.st, "b-gr"];
-        return '<div class="rdv"><span class="badge b-gr">' + dfrA(v.d) + (v.h ? " " + v.h : "") + '</span><div class="tx"><b>' + esc(libRdv(v)) + "</b>" + (v.mo ? '<div class="mesures">Motif : ' + esc(v.mo) + "</div>" : "") + (v.n ? '<div class="mesures">' + esc(v.n) + "</div>" : "") + (v.rep && v.rep.length ? '<div class="mesures">Reporté (initialement le ' + dfrA(v.rep[0].d) + ")</div>" : "") + '</div><span class="badge ' + s[1] + '">' + s[0] + "</span>" + prix(v) + actionsRdv(v) + "</div>";
+        return '<div class="rdv"><span class="badge b-gr">' + dfrA(v.d) + (v.h ? " " + v.h : "") + '</span><div class="tx"><b>' + esc(libRdv(v)) + "</b>" + (v.mo ? '<div class="mesures">Motif : ' + esc(v.mo) + "</div>" : "") + (v.n ? '<div class="mesures">' + esc(v.n) + "</div>" : "") + (v.rep && v.rep.length ? '<div class="mesures">Reporté (initialement le ' + dfrA(v.rep[0].d) + ")</div>" : "") + '</div><span class="badge ' + s[1] + '">' + s[0] + "</span>" + prix(v, vis, m) + (actionsPasse(v, vis, m), actr(vis, m)) + "</div>";
       }).join("") : '<p class="vide-c">Aucune consultation passée.</p>');
   }
   // Fiche : chaque partie montre tous ses champs (lecture), « Modifier » ouvre le même éditeur qu'avant
@@ -1403,6 +1416,22 @@ document.addEventListener("input", (ev) => { if (ev.target && ev.target.closest 
 // Bouton d'enregistrement du panneau : ce qui suit n'est plus « non enregistré » (en cas d'échec, l'erreur reste affichée dans le panneau)
 document.addEventListener("click", (ev) => { if (ev.target && ev.target.closest && ev.target.closest("#panneau #fOk, #panneau #rSup")) PN.sale = false; }, true);
 function fermerPetite() { $("fenetre").classList.add("cache"); $("fenetreCorps").innerHTML = ""; }
+
+// ───── Menu « ⋯ » d'une ligne (20/10/2026) : boutons gardés dans la ligne (cachés), recopiés dans une fenêtre flottante au clic ─────
+function menuPts(m) { return m.length ? '<span class="mpts"><button type="button" class="mini sa-plus" onclick="ouvrirPts(event,this)" aria-label="Autres actions" title="Autres actions">⋯</button><span class="cache">' + m.join("") + "</span></span>" : ""; }
+const fermerPts = () => { const f = $("ptsMenuF"); if (f) f.remove(); };
+window.ouvrirPts = (ev, bt) => {
+  ev.stopPropagation(); const deja = $("ptsMenuF") && $("ptsMenuF")._bt === bt; fermerPts(); if (deja) return;
+  const f = document.createElement("div"); f.id = "ptsMenuF"; f.className = "sa-menu"; f.setAttribute("role", "menu"); f._bt = bt;
+  f.innerHTML = bt.nextElementSibling.innerHTML; f.querySelectorAll("button").forEach((z) => { z.className = ""; z.setAttribute("role", "menuitem"); });
+  f.addEventListener("click", () => setTimeout(fermerPts)); document.body.appendChild(f);
+  const r = bt.getBoundingClientRect(), w = f.offsetWidth, h = f.offsetHeight;
+  f.style.left = Math.max(8, Math.min(r.right - w, innerWidth - w - 8)) + "px"; f.style.top = (r.bottom + h + 8 > innerHeight ? Math.max(8, r.top - h - 4) : r.bottom + 4) + "px";
+  const p = f.querySelector("button"); if (p) p.focus();
+};
+document.addEventListener("click", (e) => { if ($("ptsMenuF") && !e.target.closest("#ptsMenuF")) fermerPts(); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") fermerPts(); });
+document.addEventListener("scroll", (e) => { if (!(e.target && e.target.closest && e.target.closest("#ptsMenuF"))) fermerPts(); }, true);
 
 // ───── Modifier l'identité ─────
 // 20/10/2026 (demande de Dr Bentahila) : une partie de la fiche à la fois. sec = "id" (bandeau, Afficher : Identité et administratif ; sans le droit

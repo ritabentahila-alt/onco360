@@ -828,6 +828,10 @@ test_cures, test_seances, test_validation, test_vigilance (panneau), test_consul
       `partiesPresentes` (fichepatient.js), `modifierIdentite(id, sec)` (v2.js). Bouton « Modifier » d'une partie selon le droit (identité ; fiche
       médicale ou traitements). Test `tests/test_fiche_parties.py` (30/30, 1440 et 390 px) ; test_fiche, test_fiche_tumeur, test_poids,
       test_editeur_fiche, test_intention adaptés (une partie à la fois).
+- [x] **(20/10/2026, demande de Dr Bentahila, testé ; pas encore en ligne)** Dossier › **Consultations et hospitalisations** : Annuler le statut, Reçu,
+      Modifier le prix, Modifier, Supprimer rangés sous un bouton **« ⋯ »** par ligne (`menuPts` / `ouvrirPts` de v2.js, même fenêtre flottante que
+      la salle d'attente `.sa-menu` ; boutons gardés cachés dans la ligne, rien ne disparaît) ; restent visibles les actions à faire : Venu, Non venu,
+      Encaisser, Fixer le prix. « Rendez-vous et tâches à venir » inchangé. Test `tests/test_dossier_menu_pts.py` (12/12, 1440 et 390 px).
 
 ## Phase P – Protocoles de chimiothérapie (audit n° 3)
 
