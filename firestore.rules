@@ -245,7 +245,12 @@ service cloud.firestore {
         allow write: if estMembre() && uid == request.auth.uid;
       }
       // Montants des dossiers, tarifs, paiements, versements : uniquement avec le droit « finances »
-      match /patientsFinances/{p} { allow read: if droit('finances'); allow write: if droit('finances') && !comptable(); }
+      // R-D3 (20/10/2026, audit n° 6, C8) : lus dans la limite des établissements du membre, comme les prix à encaisser (le comptable
+      // n'en lit aucun : il lit le relevé) ; liste complète pour un membre de tous les établissements, sinon demandée par établissement
+      match /patientsFinances/{p} {
+        allow read: if droit('finances') && (resource == null || dansPerimetre(resource.data.etablissementId));
+        allow write: if droit('finances') && !comptable();
+      }
       // Relevé financier du comptable (date, acte facturé, montant ; nom et n° de dossier, sans diagnostic) : préparé par un médecin
       // qui a le droit « finances » (bilan.js publierReleve), lu avec ce droit (comptable compris)
       match /comptabilite/{d} { allow read: if droit('finances'); allow write: if droit('finances') && !comptable(); }
@@ -265,6 +270,12 @@ service cloud.firestore {
             && getAfter(cheminCompteurRecus(d.annee)).data.n == d.n
             && d.n == (exists(cheminCompteurRecus(d.annee)) ? get(cheminCompteurRecus(d.annee)).data.n : 0) + 1;
         }
+        // R-D3 (20/10/2026, audit n° 6, C8) : nouveau numéro = anciens numéros annulés gardés tels quels, plus le numéro remplacé (son numéro et
+        // son montant), signé par la personne connectée
+        function annuleVerifie(l, a) {
+          return l.size() == a.annules.size() + 1 && l.hasAll(a.annules)
+            && l[a.annules.size()].numero == a.numero && l[a.annules.size()].m == a.m && l[a.annules.size()].par == request.auth.uid;
+        }
         function recuValide(d) { return d.patientId is string && d.cle is string && r == d.patientId + '_' + d.cle && d.m is number && d.par == request.auth.uid && d.annules is list; }
         allow read: if recuDroit() && (resource == null || dansPerimetre(resource.data.etablissementId));
         allow create: if recuDroit() && dansPerimetre(request.resource.data.etablissementId) && recuValide(request.resource.data) && numeroTire(request.resource.data)
@@ -275,7 +286,7 @@ service cloud.firestore {
             // R-B5 (19/10/2026) : historique du prix changé après la remise du reçu : une entrée de plus, signée par la personne connectée
             || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['prix']) && request.resource.data.prix is list
               && request.resource.data.prix.size() == resource.data.get('prix', []).size() + 1 && request.resource.data.prix[request.resource.data.prix.size() - 1].par == request.auth.uid)
-            || (recuValide(request.resource.data) && numeroTire(request.resource.data) && request.resource.data.annules.size() == resource.data.annules.size() + 1));
+            || (recuValide(request.resource.data) && numeroTire(request.resource.data) && annuleVerifie(request.resource.data.annules, resource.data)));
         allow delete: if false;
       }
       match /recusCompteur/{a} {
@@ -285,7 +296,8 @@ service cloud.firestore {
         allow delete: if false;
       }
       // Comptable : pointe les paiements et saisit les versements, sans toucher aux tarifs
-      match /finances/{d} { allow read: if droit('finances'); allow write: if droit('finances') && (!comptable() || d in ['paiements', 'versements']); }
+      // R-D4 (20/10/2026) : cases « Payé » rangées par année (paiements_AAAA), pointées aussi par le comptable
+      match /finances/{d} { allow read: if droit('finances'); allow write: if droit('finances') && (!comptable() || d in ['paiements', 'versements'] || d.matches('paiements_[0-9]{4}')); }
       // Bibliothèque et paramètres : lecture par les membres, modification avec le droit « paramètres »
       // 2.4 (12/10/2026, audit) : modifiés par un médecin seulement (avec le droit « paramètres »)
       match /protocoles/{d} { allow read: if estMembre(); allow write: if droit('parametres') && m().role == 'medecin'; }
