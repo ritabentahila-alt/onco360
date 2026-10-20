@@ -51,22 +51,23 @@ async def main():
         ok(bt is not None and 'Groupe sanguin : A+' in hh, 'fiche chimio imprimée : « Groupe sanguin : A+ » sous l\'identité')
         ok(not pg.errs and not p0.errs, 'aucune erreur JavaScript ' + str((pg.errs + p0.errs)[:2]))
         # Administration : fiche de la spécialité (Par spécialité › Bibliothèque et paramètres)
-        pa = await ouvrir(b, S2); await pa.add_init_script("""window.__uid='ADM';window.__fs['administrateurs/ADM']={email:'a@b.ma'};window.__fonctions={listeCabinets:async()=>({cabinets:[{id:'cab-t',nom:'Cabinet T',cree:'2026-10-09',actif:true,titulaire:{nom:'Dr T',email:'t@t.ma'},membres:1,patients:0,abonnement:{formule:'essentiel',reglage:{fiche:{ajouts:[{id:'xmt001',lib:'Médecin traitant',type:'texte'}]}}}}],specialites:{'Oncologie – Radiothérapie':{fiche:{ajouts:[{id:'xgs001',lib:'Groupe sanguin',type:'choix',choix:['A+']}],champs:{ald:false}}}}}),formulesEnregistrer:async(d)=>{window.__fml=d;return {formules:d.formules,cabinets:0}},ficheSpecialite:async(d)=>{window.__fspe=d;return {fiche:d.fiche,cabinets:3}},abonnementCabinet:async(d)=>{window.__abo=d;return {abonnement:d}}};""")
+        pa = await ouvrir(b, S2); await pa.add_init_script("""window.__uid='ADM';window.__fs['administrateurs/ADM']={email:'a@b.ma'};window.__fonctions={listeCabinets:async()=>({cabinets:[{id:'cab-t',nom:'Cabinet T',cree:'2026-10-09',actif:true,titulaire:{nom:'Dr T',email:'t@t.ma'},membres:1,patients:0,abonnement:{formule:'essentiel'}}],specialites:{'Oncologie – Radiothérapie':{fiche:{ajouts:[{id:'xgs001',lib:'Groupe sanguin',type:'choix',choix:['A+']}],champs:{ald:false}}}}}),formulesEnregistrer:async(d)=>{window.__fml=d;return {formules:d.formules,cabinets:0}},ficheSpecialite:async(d)=>{window.__fspe=d;return {fiche:d.fiche,cabinets:3}},abonnementCabinet:async(d)=>{window.__abo=d;return {abonnement:d}},reglageCabinetLire:async()=>({ficheSpe:{ajouts:[{id:'xgs001',lib:'Groupe sanguin',type:'choix',choix:['A+']}],champs:{ald:false}},consultSpe:{},accueil:null,formulaires:{fiche:{ajouts:[{id:'xmt001',lib:'Médecin traitant',type:'texte'}]}}})};""")
         await pa.goto(f'http://localhost:{PORT}/admin.html#specialites'); await pa.wait_for_timeout(1500)
         await pa.click('[data-pm="essentiel"]'); await pa.wait_for_timeout(400)
         ok(await pa.evaluate("!document.querySelector('#fCorps .fiche-b')"), 'un pack n\'a plus de fiche patient (elle est commune à la spécialité)')
         await pa.click('#fOk'); await pa.wait_for_timeout(600)
         ok('fiche' not in ((await pa.evaluate('window.__fml'))['formules']['essentiel'].get('reglage') or {}), 'pack enregistré sans fiche')
         # 20/10/2026 : la fiche de la spécialité se règle dans le modèle ouvert dans Onco360 (test_modele_parametres.py)
-        # Retouches d'un cabinet : seules les différences avec la fiche de la spécialité sont enregistrées
+        # Réglage d'un cabinet en miroir (20/10/2026) : la fiche telle que l'équipe la voit (champ ajouté par le médecin) ; seules les différences
+        # avec la fiche de la spécialité copiée chez lui, écrites dans ses Paramètres (parametres/formulaires)
         await pa.evaluate("location.hash='cabinets'"); await pa.wait_for_timeout(400)
-        await pa.click('[data-fiche="cab-t"]'); await pa.wait_for_timeout(300); await pa.click('[data-form="cab-t"]'); await pa.wait_for_timeout(400)
+        await pa.click('[data-fiche="cab-t"]'); await pa.wait_for_timeout(300); await pa.click('[data-form="cab-t"]'); await pa.wait_for_timeout(900)
         await pa.click('[data-fo="fiche"]'); await pa.wait_for_timeout(200)
         t = await pa.inner_text('#fCorps .fiche-b')
         ok('Médecin traitant' in t and 'propre au cabinet' in t and await pa.evaluate("!document.querySelector('#fCorps [data-chs=\"xgs001\"]') && !!document.querySelector('#fCorps [data-chs=\"xmt001\"]')"), 'réglage du cabinet : champs de la spécialité (non supprimables ici) + champ propre au cabinet')
         await pa.check('#fCorps [data-rch="ald"]'); await pa.click('#fOk'); await pa.wait_for_timeout(600)
-        G = (await pa.evaluate('window.__abo'))['reglage']['fiche']
-        ok(G.get('champs') == {'ald': True} and [a['id'] for a in G['ajouts']] == ['xmt001'] and 'ordre' not in G and 'libs' not in G, 'retouches du cabinet = différences seulement (ALD remis, son champ) ' + str(G)[:120])
+        W = await pa.evaluate('window.__abo'); G = ((W.get('cab') or {}).get('formulaires') or {}).get('fiche') or {}
+        ok(G.get('champs') == {'ald': True} and [a['id'] for a in G['ajouts']] == ['xmt001'] and 'ordre' not in G and 'libs' not in G and 'fiche' not in W['reglage'], 'retouches du cabinet = différences seulement (ALD remis, son champ), dans ses Paramètres ' + str(G)[:120])
         ok(not pa.errs, 'aucune erreur JavaScript (Administration) ' + str(pa.errs[:2]))
         await b.close()
 asyncio.run(main())

@@ -48,18 +48,18 @@ async def main():
         ok(await pg.evaluate("document.documentElement.scrollWidth<=390"), 'fenêtre à 390 px : rien ne déborde')
         ok(not pg.errs and not p0.errs, 'aucune erreur JavaScript ' + str((pg.errs + p0.errs)[:2]))
         # Administration
-        pa = await ouvrir(b, S2); await pa.add_init_script("""window.__uid='ADM';window.__fs['administrateurs/ADM']={email:'a@b.ma'};window.__fonctions={listeCabinets:async()=>({cabinets:[{id:'cab-t',nom:'Cabinet T',cree:'2026-10-09',actif:true,titulaire:{nom:'Dr T',email:'t@t.ma'},membres:1,patients:0,abonnement:{formule:'essentiel'}}],specialites:{'Oncologie – Radiothérapie':{consultation:{ajouts:[{id:'xsec01',lib:'Mesures',type:'section'}]}}}}),ficheSpecialite:async(d)=>{window.__fspe=d;return {fiche:d.fiche,cabinets:2}},abonnementCabinet:async(d)=>{window.__abo=d;return {abonnement:d}}};""")
+        pa = await ouvrir(b, S2); await pa.add_init_script("""window.__uid='ADM';window.__fs['administrateurs/ADM']={email:'a@b.ma'};window.__fonctions={listeCabinets:async()=>({cabinets:[{id:'cab-t',nom:'Cabinet T',cree:'2026-10-09',actif:true,titulaire:{nom:'Dr T',email:'t@t.ma'},membres:1,patients:0,abonnement:{formule:'essentiel'}}],specialites:{'Oncologie – Radiothérapie':{consultation:{ajouts:[{id:'xsec01',lib:'Mesures',type:'section'}]}}}}),ficheSpecialite:async(d)=>{window.__fspe=d;return {fiche:d.fiche,cabinets:2}},abonnementCabinet:async(d)=>{window.__abo=d;return {abonnement:d}},reglageCabinetLire:async()=>({ficheSpe:{},consultSpe:{ajouts:[{id:'xsec01',lib:'Mesures',type:'section'}]},accueil:null,formulaires:null})};""")
         await pa.goto(f'http://localhost:{PORT}/admin.html#specialites'); await pa.wait_for_timeout(1500)
         # 20/10/2026 : le formulaire de la spécialité se règle dans le modèle ouvert dans Onco360 (test_modele_parametres.py)
         # Réglage d'un cabinet : deux éditeurs dans la même fenêtre
         await pa.evaluate("location.hash='cabinets'"); await pa.wait_for_timeout(400)
-        await pa.click('[data-fiche="cab-t"]'); await pa.wait_for_timeout(300); await pa.click('[data-form="cab-t"]'); await pa.wait_for_timeout(400)
+        await pa.click('[data-fiche="cab-t"]'); await pa.wait_for_timeout(300); await pa.click('[data-form="cab-t"]'); await pa.wait_for_timeout(900)
         await pa.click('[data-fo="fiche"]'); await pa.wait_for_timeout(200)
         await pa.click('#cqNouv'); await pa.wait_for_timeout(200); await pa.fill('#cqLib', 'Pieds'); await pa.select_option('#cqType', 'textelong'); await pa.click('#cqOk'); await pa.wait_for_timeout(200)
         await pa.click('#chNouv'); await pa.wait_for_timeout(200); await pa.fill('#chLib', 'Groupe sanguin'); await pa.click('#chOk'); await pa.wait_for_timeout(200)
         await pa.click('#fOk'); await pa.wait_for_timeout(600)
-        G = (await pa.evaluate('window.__abo'))['reglage']
-        ok([a['lib'] for a in G['consultation']['ajouts']] == ['Pieds'] and G['consultation']['ajouts'][0]['type'] == 'textelong' and [a['lib'] for a in G['fiche']['ajouts']] == ['Groupe sanguin'] and 'choixs' not in G['consultation'], 'cabinet : retouches de la consultation et de la fiche, chacune à sa place ' + str(G.get('consultation'))[:100])
+        W = await pa.evaluate('window.__abo'); G = (W.get('cab') or {}).get('formulaires') or {} # 20/10/2026 : en miroir, dans les Paramètres du cabinet
+        ok([a['lib'] for a in G['consultation']['ajouts']] == ['Pieds'] and G['consultation']['ajouts'][0]['type'] == 'textelong' and [a['lib'] for a in G['fiche']['ajouts']] == ['Groupe sanguin'] and 'choixs' not in G['consultation'] and 'consultation' not in W['reglage'], 'cabinet : retouches de la consultation et de la fiche, chacune à sa place, dans ses Paramètres ' + str(G.get('consultation'))[:100])
         ok(not pa.errs, 'aucune erreur JavaScript (Administration) ' + str(pa.errs[:2]))
         await b.close()
 asyncio.run(main())

@@ -144,4 +144,16 @@ await db.doc(BIB).update({ ficheSpe: {} }); await ouvrir({ bib: "bib-oncologie" 
 cas("ouvrir le modèle : sa fiche et son formulaire recopiés depuis le modèle de la spécialité", JSON.stringify((await db.doc(BIB).get()).data().ficheSpe) === JSON.stringify(Object.values((await db.doc("plateforme/specialites").get()).data())[0].fiche));
 cas("types de consultation, médicaments et listes (sans correspondants) du modèle", ((await lire(N + "/parametres/typesConsult")) || []).some((t) => t.k === "telecs") && (await lire(N + "/bibliotheques/medicaments")).length === 2 && !((await lire(N + "/parametres/listes")).cor || []).length);
 
+console.log("Réglage du cabinet en miroir (20/10/2026)");
+const lireR = httpsCallable(fn, "reglageCabinetLire", { timeout: 60000 }), abo = httpsCallable(fn, "abonnementCabinet", { timeout: 60000 });
+const r1 = (await lireR({ espace: "cabinet-bentahila" })).data;
+cas("lecture : tableau de bord et retouches du médecin, fiche de la spécialité copiée chez lui", r1.accueil.ordre[0] === "jour" && r1.formulaires.fiche.libs.mut === "Organisme" && (r1.ficheSpe.ajouts || []).some((x) => x.id === "xscore"), r1);
+refus = null; try { await lireR({ espace: "bib-oncologie" }); } catch (e) { refus = e.code; } cas("lecture : pas d'une bibliothèque", refus === "functions/not-found", refus);
+await abo({ espace: "cab-x", formule: "complet", modules: { chimio: true }, max: {}, reglage: { menu: ["agenda"] }, cab: { accueil: { ordre: ["afaire", "jour"], cartes: { stats: false, "x y": true }, col: { jour: "l", afaire: "z" } }, formulaires: { fiche: { champs: { email: false } }, consultation: { typesForm: { "Consultation de fin de traitement": "rt" } } } } });
+const ax = await lire(X + "/parametres/accueil"), fx = await lire(X + "/parametres/formulaires");
+cas("écriture en miroir : tableau de bord dans ses Paramètres (nettoyé : clé et colonne invalides retirées)", JSON.stringify(ax) === JSON.stringify({ ordre: ["afaire", "jour"], cartes: { stats: false }, col: { jour: "l" } }), ax);
+cas("écriture en miroir : fiche et formulaire dans ses Paramètres (formulaire du type gardé)", fx.fiche.champs.email === false && fx.consultation.typesForm["Consultation de fin de traitement"] === "rt", fx);
+cas("écriture signée par l'administration", (await db.doc(X + "/parametres/accueil").get()).data().majPar === "ADM");
+await abo({ espace: "cab-x", formule: "complet", modules: { chimio: true }, max: {}, reglage: { menu: ["agenda"] } });
+cas("sans « cab » : ses Paramètres ne sont pas touchés", JSON.stringify(await lire(X + "/parametres/accueil")) === JSON.stringify(ax));
 console.log("\n" + ok + " réussis, " + ko + " échoués"); process.exit(ko ? 1 : 0);

@@ -207,6 +207,14 @@ function ficheNettoyee(f) {
   return F;
 }
 const idSpecialite = (s) => String(s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "specialite";
+// Tableau de bord d'un cabinet (parametres/accueil) écrit par l'administration en miroir (20/10/2026) : ordre, cartes, colonnes
+function accueilNettoye(a) {
+  const cle = (k) => typeof k === "string" && /^[a-z0-9_-]{1,30}$/i.test(k), x = a && typeof a === "object" ? a : {}, out = {};
+  if (Array.isArray(x.ordre)) out.ordre = x.ordre.filter(cle).slice(0, 40);
+  if (x.cartes && typeof x.cartes === "object") { out.cartes = {}; Object.entries(x.cartes).slice(0, 40).forEach(([k, v]) => { if (cle(k) && typeof v === "boolean") out.cartes[k] = v; }); }
+  if (x.col && typeof x.col === "object") { out.col = {}; Object.entries(x.col).slice(0, 40).forEach(([k, v]) => { if (cle(k) && ["g", "d", "l"].indexOf(v) >= 0) out.col[k] = v; }); }
+  return out;
+}
 // Retouches d'un cabinet (10/10/2026) : listes ordonnées et cases oui / non, clés courtes seulement (le catalogue est sur le site :
 // public/js/donnees/catalogue.js ; une clé inconnue est ignorée à l'affichage)
 function reglageNettoye(r) {
@@ -229,4 +237,4 @@ function sansEtoiles(data, jour) {
     if (c.valide) c.valide = { reference: jour, version: c.version || 1 }; delete c.majPar; delete c.majParNom; return c;
   }));
 }
-module.exports = { sansEtoiles, renomsValides, corrigerDossier, espacesCompte, compteModifie, ficheNettoyee, idSpecialite, reglageNettoye, PARAMS_SPE, parametreDepart, BIBS, bibDe, estBib, DROITS_BIB, MODULES_BIB, infos, ROLES, membreDemande, MODULES, MAX, FORMULES, formulesValides, abonnement, horsQuota, MODELE, BIBLIOTHEQUES, DROITS_MEDECIN, MIGRATIONS, verifier, idCabinet, listesDepart, calendrierDepart, tarifsDepart, migrationsFaites, membreTitulaire };
+module.exports = { accueilNettoye, sansEtoiles, renomsValides, corrigerDossier, espacesCompte, compteModifie, ficheNettoyee, idSpecialite, reglageNettoye, PARAMS_SPE, parametreDepart, BIBS, bibDe, estBib, DROITS_BIB, MODULES_BIB, infos, ROLES, membreDemande, MODULES, MAX, FORMULES, formulesValides, abonnement, horsQuota, MODELE, BIBLIOTHEQUES, DROITS_MEDECIN, MIGRATIONS, verifier, idCabinet, listesDepart, calendrierDepart, tarifsDepart, migrationsFaites, membreTitulaire };

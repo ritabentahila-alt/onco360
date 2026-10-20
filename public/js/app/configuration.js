@@ -18,7 +18,7 @@ import { installer as installerRecuperation, htmlRecuperation, afficherRecuperat
 import { htmlOngletProfil, apresOngletProfil, titulaireConnecte } from "./profil.js";
 import { afficherAudit } from "./audit.js"; // onglet « Journal d'audit » (titulaire, 09/10/2026)
 import { configRcp, configChargee, chargerConfigRcp, enregistrerConfigRcp, prochainesRcp, CFG0 as RCP0, libDate } from "./rcp.js";
-import { CARTES, accueilEffectif, FICHE, CONSULT, STADES, GRADES, formEffectif, ficheEffective, consultEffective, ficheRetouches, formRetouches, formSpecialite, formulairesDe, formDuType } from "../donnees/catalogue.js";
+import { CARTES, accueilEffectif, FICHE, CONSULT, STADES, GRADES, formEffectif, ficheEffective, consultEffective, ficheRetouches, formRetouches, formSpecialite, formulairesDe, formDuType, FAMILLES_SECTIONS } from "../donnees/catalogue.js";
 import { editeurFiche } from "./editeurfiche.js";
 import { estStd, AUTO as AUTO_TY, cleDuree, renommer, nouvelleCle, aEnregistrer } from "../moteur/typesconsult.js";
 import { htmlVigilances } from "./vigilances.js"; // notes « À vérifier » par molécule (12/10/2026) // fiche patient et formulaire de consultation du cabinet (11/10/2026)
@@ -118,14 +118,11 @@ let ED = null, ONG = "horaires", MOD = false, HET = ""; // HET : établissement 
 let TIT = null;
 // Quatre familles au lieu de quatorze onglets (audit externe, 11/10/2026) : barre de 4 onglets, puis les rubriques de la famille.
 // L'adresse reste #parametres/<rubrique> (anciens liens gardés). Accès : dans Mon compte depuis le 10/10/2026 (18.5).
-const FAMILLES = [
-  ["cabinet", "hopital", "Cabinet", ["lieux", "accueil", "rcp", "impression", "audit", "export"]], // RCP : dans Cabinet (demande du 12/10/2026)
-  // 3.11 (12/10/2026) : tout ce qui règle le dossier patient au même endroit (fiche, formulaire de consultation, listes de la fiche)
-  ["dossier", "profil", "Dossier patient", ["fiche", "consultation", "types", "listes", "affichage"]], // affichage : R-G d (19/10/2026)
-  ["agenda", "agenda", "Agenda et rappels", ["horaires", "fermetures", "couleurs", "whatsapp", "alertes"]], // rendez-vous créés d'office : dans Types de consultation (3.13)
-  ["listes", "pilule", "Bibliothèques", ["bibliotheques", "vigilances", "documents", "taches"]],
-  ["finances", "bilan", "Finances", ["activites"]],
-];
+// RCP : dans Cabinet (demande du 12/10/2026) ; 3.11 (12/10/2026) : tout ce qui règle le dossier patient au même endroit ; affichage : R-G d
+// (19/10/2026) ; rendez-vous créés d'office : dans Types de consultation (3.13). Liste : catalogue.js FAMILLES_SECTIONS (20/10/2026 : la même
+// dans l'Administration, Réglage du cabinet › Paramètres et bibliothèques)
+const ICO_FAM = { cabinet: "hopital", dossier: "profil", agenda: "agenda", listes: "pilule", finances: "bilan" };
+const FAMILLES = FAMILLES_SECTIONS.map(([k, lib, l]) => [k, ICO_FAM[k] || "liste", lib, l]);
 const RUB = { lieux: ["hopital", "Lieux d'exercice"], accueil: ["accueil", "Tableau de bord"], fiche: ["profil", "Fiche patient"], consultation: ["stetho", "Formulaire de consultation"], types: ["agenda", "Types de consultation"],
   impression: ["imprimer", "Impression"], audit: ["liste", "Journal d'audit"], export: ["telecharger", "Export des données"], horaires: ["horloge", "Horaires"], fermetures: ["avion", "Congés et jours fériés"], rdvauto: ["agenda", "Rendez-vous automatiques"],
   couleurs: ["agenda", "Google Agenda"], whatsapp: ["whatsapp", "WhatsApp"], rcp: ["rcp", "RCP"], alertes: ["alerte", "Alertes"], listes: ["liste", "Listes de la fiche"], affichage: ["colonnes", "Affichage du dossier"],

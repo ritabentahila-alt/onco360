@@ -131,8 +131,8 @@ async def main():
         ok(await pa.evaluate("document.documentElement.scrollWidth<=390"), 'Administration à 390 px : rien ne déborde (cabinets)')
         await pa.set_viewport_size({'width': 1300, 'height': 900})
         # Formule et modules d'un cabinet (fenêtre)
-        await pa.evaluate("window.__fonctions.abonnementCabinet=async(d)=>{window.__abo=d;return {abonnement:Object.assign({surMesure:true},d)}};0")
-        await pa.click('[data-fiche="cab-test"]'); await pa.wait_for_timeout(300); await pa.click('[data-form="cab-test"]'); await pa.wait_for_timeout(400)
+        await pa.evaluate("window.__fonctions.abonnementCabinet=async(d)=>{window.__abo=d;return {abonnement:Object.assign({surMesure:true},d)}};window.__fonctions.reglageCabinetLire=async()=>({ficheSpe:null,consultSpe:null,accueil:null,formulaires:null});0") # 20/10/2026 : réglage lu en miroir
+        await pa.click('[data-fiche="cab-test"]'); await pa.wait_for_timeout(300); await pa.click('[data-form="cab-test"]'); await pa.wait_for_timeout(900)
         ok('Réglage de « Cabinet Test »' in await pa.inner_text('#modal'), 'réglage du cabinet ouvert')
         await pa.select_option('#fFor', 'essentiel'); await pa.wait_for_timeout(300)
         await pa.uncheck('#fCorps .mods [data-rmod="taches"]'); await pa.wait_for_timeout(300)
@@ -155,7 +155,8 @@ async def main():
         A = await pa.evaluate('window.__abo')
         ok(A['espace'] == 'cab-test' and A['formule'] == 'essentiel' and A['modules']['taches'] is False and A['modules']['rt'] is False and A['max']['assistante'] == 2 and A['max']['patients'] == 300, 'formule enregistrée (Oncologie – Essentiel, Tâches retiré, 2 secrétaires)')
         G = A['reglage']
-        ok(G['accueil'][:2] == ['jour', 'ppas'] and G['cartes']['stats'] is False and G['menu'][7] == 'bilan' and G['fonctions']['agenda.whatsapp'] is False and G['sections']['alertes'] is False and G['bibliotheques']['examens'] is False, 'retouches enregistrées : ordre des cartes et du menu, carte, fonction, onglet, bibliothèque')
+        AC = (A.get('cab') or {}).get('accueil') or {} # 20/10/2026 : tableau de bord en miroir, dans les Paramètres du cabinet
+        ok(AC.get('ordre', [])[:2] == ['jour', 'ppas'] and AC.get('cartes', {}).get('stats') is False and G['menu'][7] == 'bilan' and G['fonctions']['agenda.whatsapp'] is False and G['sections']['alertes'] is False and G['bibliotheques']['examens'] is False, 'retouches enregistrées : ordre des cartes et carte (dans ses Paramètres), menu, fonction, onglet, bibliothèque')
         # Modifier un cabinet (fenêtre)
         await pa.evaluate("window.__fonctions.infosCabinet=async(d)=>{window.__info=d;return {ok:true}};window.__fonctions.formulesEnregistrer=async(d)=>{window.__fml=d;return {formules:d.formules,cabinets:1}};0")
         await pa.click('[data-fiche="cab-test"]'); await pa.wait_for_timeout(300); await pa.click('[data-info="cab-test"]'); await pa.wait_for_timeout(300)

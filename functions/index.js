@@ -799,9 +799,29 @@ exports.abonnementCabinet = onCall({ timeoutSeconds: 30, memory: "256MiB" }, asy
   // Pack + retouches du cabinet (ordre, cartes, onglets, fonctions… ; identiqueAuPack : réglage égal à celui du pack)
   const ab = Object.assign(C.abonnement(req.data || {}, await formules()), { le: new Date().toISOString(), par });
   await ref.update({ abonnement: ab });
+  // En miroir (20/10/2026) : ce que le médecin règle lui-même (Paramètres › Tableau de bord, Fiche patient, Formulaire de consultation),
+  // modifié par l'administration à sa place, au même endroit que lui : parametres/accueil et parametres/formulaires du cabinet
+  const cab = (req.data || {}).cab;
+  if (cab && typeof cab === "object") {
+    const P = "espaces/" + espace + "/parametres/", qui = { majPar: par, maj: new Date().toISOString() }, b = db.batch();
+    if (cab.accueil !== undefined) b.set(db.doc(P + "accueil"), Object.assign({ data: JSON.stringify(C.accueilNettoye(cab.accueil)) }, qui));
+    if (cab.formulaires !== undefined) { const f = cab.formulaires || {}, o = {}, F = C.ficheNettoyee(f.fiche), Cs = C.ficheNettoyee(f.consultation);
+      if (F && Object.keys(F).length) o.fiche = F; if (Cs && Object.keys(Cs).length) o.consultation = Cs; b.set(db.doc(P + "formulaires"), Object.assign({ data: JSON.stringify(o) }, qui)); }
+    await b.commit();
+  }
   await jAdmin(par, "reglage", espace, await nomCab(espace), "Réglage du cabinet : pack " + (((await formules())[ab.formule] || {}).lib || ab.formule) + (ab.retouche ? " avec retouches" : "") + " · " + C.MODULES.filter((k) => ab.modules[k]).length + " module(s)");
   console.log("abonnement", espace, ab.formule, ab.surMesure ? "(sur mesure)" : "", "par", par);
   return { abonnement: ab };
+});
+// Réglage du cabinet tel que l'équipe le voit (20/10/2026) : fiche et formulaire de la spécialité copiés dans le cabinet, tableau de bord et
+// retouches de la fiche et du formulaire faits par le médecin lui-même ; lecture seule, aucune donnée patient
+exports.reglageCabinetLire = onCall({ timeoutSeconds: 30, memory: "256MiB" }, async (req) => {
+  const par = req.auth && req.auth.uid;
+  if (!(await estAdministrateur(par))) throw new HttpsError("permission-denied", "Réservé à l'administration d'Onco360.");
+  const e = String((req.data || {}).espace || ""), es = e && !C.estBib(e) ? await db.doc("espaces/" + e).get() : null;
+  if (!es || !es.exists) throw new HttpsError("not-found", "Cabinet introuvable.");
+  const P = "espaces/" + e + "/parametres/", [ac, fo] = await Promise.all([db.doc(P + "accueil").get(), db.doc(P + "formulaires").get()]);
+  return { ficheSpe: es.data().ficheSpe || null, consultSpe: es.data().consultSpe || null, accueil: jsonDoc(ac, null), formulaires: jsonDoc(fo, null) };
 });
 // Formules modifiées par l'administration (nom, modules, maximums ; ajout, suppression si aucun cabinet ne l'utilise). Les cabinets
 // qui suivent une formule sans retouche (« sur mesure ») reçoivent ses nouvelles valeurs.

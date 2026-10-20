@@ -6,7 +6,7 @@
 import { app, auth, db } from "../config.js";
 import { onAuthStateChanged, sendPasswordResetEmail, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { MENU, FONCTIONS, FONCTIONS_RELIEES, CARTES, SECTIONS, BIBLIOTHEQUES, FICHE, TYPES_CHAMP, TOUJOURS_ENTETE, CONSULT, TYPES_CHAMP_CS, reglageEffectif, ficheEffective, ficheRetouches, consultEffective, formRetouches, libDe, avecOnco } from "../donnees/catalogue.js";
+import { MENU, FONCTIONS, FONCTIONS_RELIEES, CARTES, SECTIONS, BIBLIOTHEQUES, FICHE, TYPES_CHAMP, TOUJOURS_ENTETE, CONSULT, TYPES_CHAMP_CS, reglageEffectif, ficheEffective, ficheRetouches, consultEffective, formRetouches, libDe, avecOnco, formulairesCabinet, accueilEffectif, FAMILLES_SECTIONS } from "../donnees/catalogue.js";
 import { htmlFacture, dh2 } from "../donnees/factures.js";
 import { editeurFiche } from "./editeurfiche.js";
 import { CHAMPS_EDITEUR, EDITEUR_REQUIS, editeurIncomplet, REGLAGES_ABO0, MODELES_RELANCE0, CANAUX, remplirRelance, MODES_FACT, MOYENS, PRIX0, ajouterJours, prolonger, etatFacturation, prixCabinet, attendus, impaye } from "../donnees/facturation.js";
@@ -569,6 +569,7 @@ function editeurReglage(o) {
   let nom = o.nom || "";
   const FE = o.fiche ? editeurFiche(R.fiche, "cabinet") : null; // fiche patient : retouches du cabinet (pas dans un pack)
   const CE = o.fiche ? editeurFiche(R.consultation, "cabinet", true) : null; // formulaire de consultation : retouches du cabinet (16.7)
+  if (o.fiche) o.fiche0 = JSON.stringify([R.fiche, R.consultation]); // fiche et formulaire à l'ouverture, une fois les éditeurs prêts (miroir : réécrits seulement si modifiés)
   const SOUS_REG = [["modules", "Modules et limites", ["modules", "max"]], ["menu", "Menu et tableau de bord", ["menu", "accueil"]], ["param", "Paramètres et bibliothèques", ["sections", "bibliotheques"]]].concat(o.fiche ? [["fiche", "Fiche et consultation", ["fiche", "consultation"]]] : []);
   ONGLET_REG = "modules"; // chaque fenêtre s'ouvre sur Modules et limites
   const J = (x) => JSON.stringify(x), num = (v) => (v == null || v === "" || isNaN(v) ? null : Number(v));
@@ -579,7 +580,8 @@ function editeurReglage(o) {
     return { modules: MODULES.some(([k]) => !!A.modules[k] !== (F.modules.indexOf(k) >= 0)) || J(R.fonctions) !== J(P.fonctions),
       max: ROLES_MAX.some(([k]) => num(A.max[k]) !== num((F.max || {})[k])), menu: J(R.menu) !== J(P.menu), accueil: J([R.accueil, R.cartes]) !== J([P.accueil, P.cartes]),
       sections: J([R.ordreSections, R.sections]) !== J([P.ordreSections, P.sections]), bibliotheques: J(R.bibliotheques) !== J(P.bibliotheques),
-      fiche: !!(o.baseFiche && Object.keys(ficheRetouches(R.fiche, o.baseFiche())).length), consultation: !!(o.baseConsult && Object.keys(formRetouches(CONSULT, R.consultation, o.baseConsult())).length) };
+      // sur une copie : le calcul des retouches complète les champs du cabinet (en-tête), la fiche affichée ne doit pas changer
+      fiche: !!(o.baseFiche && Object.keys(ficheRetouches(JSON.parse(J(R.fiche)), o.baseFiche())).length), consultation: !!(o.baseConsult && Object.keys(formRetouches(CONSULT, JSON.parse(J(R.consultation)), o.baseConsult())).length) };
   };
   const revenir = (part) => {
     const F = FORMULES_()[A.formule] || { modules: [], max: {} }, P = reglageEffectif(F.reglage), cl = (x) => JSON.parse(J(x));
@@ -592,7 +594,7 @@ function editeurReglage(o) {
     else if (part === "fiche") Object.assign(R.fiche, cl(o.baseFiche()));
     else if (part === "consultation") Object.assign(R.consultation, cl(o.baseConsult()));
   };
-  const titre = (part, txt, aide, E) => '<h3 class="st">' + txt + (aide ? ' <span class="m">' + aide + "</span>" : "") + (E[part] ? ' <span class="bdg rt">retouché</span> <button class="lien petit" data-rev="' + part + '">' + (part === "fiche" || part === "consultation" ? "Revenir à la spécialité" : "Revenir au pack") + "</button>" : "") + "</h3>";
+  const titre = (part, txt, aide, E) => '<h3 class="st">' + txt + (aide ? ' <span class="m">' + aide + "</span>" : "") + (E[part] ? ' <span class="bdg rt">retouché</span> <button class="lien petit" data-rev="' + part + '">' + (part === "fiche" || part === "consultation" ? (o.miroir ? "Retirer les retouches du cabinet" : "Revenir à la spécialité") : "Revenir au pack") + "</button>" : "") + "</h3>";
   const corps = () => {
     const E = ecarts(), mods = MODULES.filter(([k]) => modulePour(k, o.spe()));
     const panneau = (k, h) => '<div class="ong-p" data-op="' + k + '"' + (k === ONGLET_REG ? "" : " hidden") + ">" + h + "</div>";
@@ -605,7 +607,9 @@ function editeurReglage(o) {
         titre("max", "Nombre maximum", "(vide = sans limite, 0 = aucun)", E) + '<div class="form">' + ROLES_MAX.map(([k, lib]) => { const c = o.compte ? o.compte(k) : undefined; return '<div><label for="fMx' + k + '">' + esc(lib) + (c === undefined ? "" : ' <span class="m">(actuellement ' + (c == null ? "?" : c) + ")</span>") + '</label><input id="fMx' + k + '" type="number" min="0" data-x="' + k + '" placeholder="sans limite" value="' + (A.max[k] == null ? "" : A.max[k]) + '"></div>'; }).join("") + "</div>") +
       panneau("menu", '<div class="rg"><div class="rg-b">' + titre("menu", "Menu", "(ordre ; case = module présent)", E) + R.menu.map((k, i) => { const m = LIB_MENU[k]; if (!m) return ""; return '<div class="rg-l">' + fleches("menu", i) + '<span class="rg-t">' + esc(m[1]) + "</span>" + (m[2] ? caseC('data-rmod="' + m[2] + '"', A.modules[m[2]], "") : '<span class="m">toujours</span>') + "</div>"; }).join("") + "</div>" +
         '<div class="rg-b">' + titre("accueil", "Tableau de bord", "(cartes)", E) + R.accueil.map((k, i) => '<div class="rg-l">' + fleches("accueil", i) + '<span class="rg-t">' + esc(LIB_CARTE[k] || k) + "</span>" + caseC('data-rcarte="' + k + '"', R.cartes[k] !== false, "") + "</div>").join("") + "</div></div>") +
-      panneau("param", '<div class="rg"><div class="rg-b">' + titre("sections", "Paramètres", "(onglets)", E) + R.ordreSections.map((k, i) => '<div class="rg-l">' + fleches("ordreSections", i) + '<span class="rg-t">' + esc(LIB_SEC[k] || k) + "</span>" + caseC('data-rsec="' + k + '"', R.sections[k] !== false, "") + "</div>").join("") + "</div>" +
+      // 20/10/2026 : onglets rangés par famille, comme dans la page Paramètres ; ↑ ↓ dans la famille
+      panneau("param", '<div class="rg"><div class="rg-b">' + titre("sections", "Paramètres", "(onglets, par famille comme dans Onco360)", E) + FAMILLES_SECTIONS.map(([, flib, cles]) => { const l = R.ordreSections.filter((k) => cles.indexOf(k) >= 0); return l.length ? '<div class="rg-fam">' + esc(flib) + "</div>" +
+        l.map((k, j) => '<div class="rg-l"><span class="fl"><button class="clair petit" data-sh="' + k + '"' + (j ? "" : " disabled") + ' aria-label="Monter">↑</button><button class="clair petit" data-sb="' + k + '"' + (j < l.length - 1 ? "" : " disabled") + ' aria-label="Descendre">↓</button></span><span class="rg-t">' + esc(LIB_SEC[k] || k) + "</span>" + caseC('data-rsec="' + k + '"', R.sections[k] !== false, "") + "</div>").join("") : ""; }).join("") + "</div>" +
         '<div class="rg-b">' + titre("bibliotheques", "Bibliothèques", "", E) + BIBLIOTHEQUES.map(([k, lib]) => '<div class="rg-l"><span class="rg-t">' + esc(lib) + "</span>" + caseC('data-rbib="' + k + '"', R.bibliotheques[k] !== false, "") + "</div>").join("") + "</div></div>") +
       (o.fiche ? panneau("fiche", titre("fiche", "Fiche patient", "(retouches de ce cabinet ; la fiche commune se règle dans le modèle : Par spécialité › Modèle des cabinets neufs › Ouvrir le modèle)", E) + FE.html() +
         titre("consultation", "Formulaire de consultation", "(retouches de ce cabinet ; le formulaire commun se règle dans le modèle : Par spécialité › Modèle des cabinets neufs › Ouvrir le modèle)", E) + '<div class="cs-ed">' + CE.html() + "</div>") : "");
@@ -627,6 +631,11 @@ function editeurReglage(o) {
     if ($("fDepart")) $("fDepart").onclick = () => { const fi = R.fiche, cs = R.consultation; Object.assign(R, reglageEffectif((FORMULES_()[A.formule] || {}).reglage)); R.fiche = fi; R.consultation = cs; refaire(); };
     document.querySelectorAll("#fCorps [data-haut]").forEach((b) => { b.onclick = () => bouger(b.dataset.haut, -1); });
     document.querySelectorAll("#fCorps [data-bas]").forEach((b) => { b.onclick = () => bouger(b.dataset.bas, 1); });
+    // onglets des Paramètres : échangé avec le voisin de la même famille
+    const bougerSec = (k, sens) => { const L = R.ordreSections, f = (FAMILLES_SECTIONS.find((x) => x[2].indexOf(k) >= 0) || [, , []])[2], m = L.filter((z) => f.indexOf(z) >= 0), j = m.indexOf(k) + sens; if (j < 0 || j >= m.length) return;
+      const a = L.indexOf(k), b2 = L.indexOf(m[j]); [L[a], L[b2]] = [L[b2], L[a]]; refaire(); };
+    document.querySelectorAll("#fCorps [data-sh]").forEach((b) => { b.onclick = () => bougerSec(b.dataset.sh, -1); });
+    document.querySelectorAll("#fCorps [data-sb]").forEach((b) => { b.onclick = () => bougerSec(b.dataset.sb, 1); });
     document.querySelectorAll("#fCorps [data-rmod]").forEach((x) => { x.onchange = () => { const k = x.dataset.rmod; A.modules[k] = x.checked; if (k === "rcp" && x.checked) A.modules.taches = true; if (k === "taches" && !x.checked) A.modules.rcp = false; refaire(); }; });
     document.querySelectorAll("#fCorps [data-rcarte]").forEach((x) => { x.onchange = () => { R.cartes[x.dataset.rcarte] = x.checked; }; });
     document.querySelectorAll("#fCorps [data-rsec]").forEach((x) => { x.onchange = () => { R.sections[x.dataset.rsec] = x.checked; }; });
@@ -644,22 +653,38 @@ function editeurReglage(o) {
     try { await o.enregistrer(A, R, nom); } catch (e) { GARDE = g; b.disabled = false; b.textContent = "Enregistrer"; alert("Enregistrement impossible : " + e.message); }
   };
 }
-// Réglage d'un cabinet : pack de départ, puis retouches dans le cabinet
-function ouvrirFormule(c) {
+// Réglage d'un cabinet : pack de départ, puis retouches dans le cabinet. En miroir (20/10/2026, demande de Dr Bentahila : « je veux voir
+// tous les changements qu'il a faits, tels quels, et agir en miroir ») : l'écran montre ce que l'équipe voit (comme v2.js `charger`) : fiche
+// et formulaire de la spécialité copiés dans le cabinet (ficheSpe / consultSpe), réglage de l'administration, puis ce que le médecin a réglé
+// lui-même (parametres/accueil : tableau de bord ; parametres/formulaires : fiche et formulaire) ; enregistrer écrit le tableau de bord, la
+// fiche et le formulaire au même endroit que le médecin (fonction abonnementCabinet, cab), le reste dans le réglage de l'administration.
+async function ouvrirFormule(c) {
   if (!c) return;
+  fenetre("<h2>Réglage de « " + esc(c.nom) + ' »</h2><p class="sous">Lecture du réglage du cabinet…</p>');
+  let X; try { X = await serveur("reglageCabinetLire", { espace: c.id }); } catch (er) { fenetre("<h2>Réglage de « " + esc(c.nom) + ' »</h2><p class="err">' + esc(er.message) + "</p>"); return; }
   const A = JSON.parse(JSON.stringify(abonnementEffectif(c.abonnement))); A.formule = A.formule || "complet";
-  const speDe = () => specialiteDe((FORMULES_()[A.formule] || {}).specialite), ficheSpe = () => avecOnco((SPES[speDe()] || {}).fiche || null, speDe()), csSpe = () => avecOnco((SPES[speDe()] || {}).consultation || null, speDe());
-  editeurReglage({ titre: "Réglage de « " + c.nom + " »", avecPack: true, A, R: reglageEffectif(c.abonnement && c.abonnement.reglage, ficheSpe(), csSpe()), spe: speDe, fiche: true,
-    baseFiche: () => ficheEffective(null, ficheSpe()), baseConsult: () => consultEffective(null, csSpe()),
-    intro: "Le pack apporte ses modules, ses limites et son réglage ; retouchez ensuite pour ce cabinet (ordre ↑ ↓, cases). <span class=\"bdg rt\">retouché</span> = différent du pack. Ce qui est retiré est caché, les données sont gardées ; l'équipe voit le changement à sa prochaine ouverture d'Onco360.",
+  const speDe = () => specialiteDe((FORMULES_()[A.formule] || {}).specialite), onco = !c.abonnement || !!(A.modules.chimio || A.modules.rt);
+  const reg0 = (c.abonnement && c.abonnement.reglage) || {}, regAdmin = reglageEffectif(reg0, Object.assign({}, X.ficheSpe || {}, { _onco: onco }), Object.assign({}, X.consultSpe || {}, { _onco: onco }));
+  const R = formulairesCabinet(regAdmin, X.formulaires), AC0 = accueilEffectif(regAdmin, X.accueil); Object.assign(R, { accueil: AC0.ordre.slice(), cartes: Object.assign({}, AC0.cartes), col: Object.assign({}, AC0.col) });
+  const baseFiche = () => ficheEffective(null, regAdmin.fiche), baseConsult = () => consultEffective(null, regAdmin.consultation), J = (x) => JSON.stringify(x);
+  const opts = { titre: "Réglage de « " + c.nom + " »", avecPack: true, A, R, spe: speDe, fiche: true, miroir: true, baseFiche, baseConsult,
+    intro: "<b>Tel que l'équipe le voit aujourd'hui</b>, avec ce que le médecin a changé lui-même dans ses Paramètres (tableau de bord, fiche patient, formulaire de consultation). Vos changements arrivent dans son cabinet comme s'il les avait faits ; il peut encore les modifier. <span class=\"bdg rt\">retouché</span> = différent du pack. Ce qui est retiré est caché, les données sont gardées ; l'équipe voit le changement à sa prochaine ouverture d'Onco360.",
     compte: (k) => (k === "patients" ? c.patients : k === "etablissements" ? c.etablissements : (c.roles || {})[k] || 0),
     enregistrer: async (A2, R2) => {
-      // Fiche patient : seulement les différences avec celle de la spécialité ; « identique au pack » se juge sans elle
-      const F = FORMULES_()[A2.formule] || {}, fiche = ficheRetouches(R2.fiche, ficheEffective(null, ficheSpe())), consultation = formRetouches(CONSULT, R2.consultation, consultEffective(null, csSpe())), sans = Object.assign({}, R2), P = reglageEffectif(F.reglage);
-      ["fiche", "consultation"].forEach((q) => { delete sans[q]; delete P[q]; }); const identique = JSON.stringify(sans) === JSON.stringify(P);
-      const o = await serveur("abonnementCabinet", { espace: c.id, formule: A2.formule, modules: A2.modules, max: A2.max, reglage: Object.assign(sans, Object.keys(fiche).length ? { fiche } : {}, Object.keys(consultation).length ? { consultation } : {}), identiqueAuPack: identique });
-      c.abonnement = o.abonnement; fermer(); RES = "Réglage enregistré pour « " + esc(c.nom) + " » : " + esc(nomFormule(o.abonnement)) + ". Il s'applique à la prochaine ouverture d'Onco360 par l'équipe."; dessiner();
-    } });
+      // réglage de l'administration : tout sauf le tableau de bord, la fiche et le formulaire (gardés comme ils étaient) ; « identique au pack » se juge sans eux
+      const F = FORMULES_()[A2.formule] || {}, sans = Object.assign({}, R2, { accueil: regAdmin.accueil, cartes: regAdmin.cartes }), P = reglageEffectif(F.reglage);
+      ["fiche", "consultation", "col"].forEach((q) => { delete sans[q]; delete P[q]; }); const identique = J(sans) === J(P);
+      // ce que le médecin règle lui-même : écrit seulement si changé
+      const cab = {}, ac = { ordre: R2.accueil, cartes: R2.cartes, col: R2.col || {} };
+      if (J(ac) !== J({ ordre: AC0.ordre, cartes: AC0.cartes, col: AC0.col })) cab.accueil = ac;
+      const changeF = J([R2.fiche, R2.consultation]) !== opts.fiche0; // avant le calcul des retouches (il complète les champs du cabinet)
+      const fo = {}, rf = ficheRetouches(R2.fiche, baseFiche()), rc = formRetouches(CONSULT, R2.consultation, baseConsult());
+      if (Object.keys(rf).length) fo.fiche = rf; if (Object.keys(rc).length) fo.consultation = rc;
+      if (changeF) cab.formulaires = fo; // réécrits seulement si modifiés ici
+      const o = await serveur("abonnementCabinet", { espace: c.id, formule: A2.formule, modules: A2.modules, max: A2.max, reglage: Object.assign(sans, reg0.fiche ? { fiche: reg0.fiche } : {}, reg0.consultation ? { consultation: reg0.consultation } : {}), identiqueAuPack: identique, cab });
+      c.abonnement = o.abonnement; fermer(); RES = "Réglage enregistré pour « " + esc(c.nom) + " » : " + esc(nomFormule(o.abonnement)) + (Object.keys(cab).length ? " ; " + [cab.accueil ? "tableau de bord" : "", cab.formulaires ? "fiche et formulaire" : ""].filter(Boolean).join(", ") + " changés dans ses Paramètres" : "") + ". Il s'applique à la prochaine ouverture d'Onco360 par l'équipe."; dessiner();
+    } };
+  editeurReglage(opts);
 }
 // ───── Mot de passe, suspension, suppression ─────
 async function renvoyer(b, email) {

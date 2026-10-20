@@ -298,13 +298,18 @@ export function accueilEffectif(reg, cab) {
   const base = ordreAvecNouveaux(R.accueil, cles, cles);
   return { ordre: Array.isArray(C.ordre) && C.ordre.length ? ordreAvecNouveaux(C.ordre, cles, cles) : base, cartes: Object.assign(vrais(CARTES), bo(R.cartes), bo(C.cartes)), col: Object.assign({}, COLONNES0, co(R.col), co(C.col)) };
 }
-// Sections de paramétrage (page Paramètres), et si leurs valeurs viennent de la bibliothèque de la spécialité
+// Sections de paramétrage (page Paramètres), et si leurs valeurs viennent de la bibliothèque de la spécialité ; noms de la page Paramètres
+// (20/10/2026 : « Affichage du dossier » et « Export des données » ajoutés, « Accès » retiré : il est dans Mon compte depuis le 10/10)
 export const SECTIONS = [
-  ["horaires", "Créneaux & horaires", true], ["fermetures", "Fermetures, congés & jours fériés", true], ["lieux", "Lieux d'exercice", false],
-  ["accueil", "Tableau de bord (cartes)", false], ["fiche", "Fiche patient", false], ["consultation", "Formulaire de consultation", false], ["types", "Types de consultation", false], ["acces", "Accès (équipe)", false],
-  ["audit", "Journal d'audit", false], ["whatsapp", "WhatsApp", true], ["couleurs", "Google Agenda", true], ["documents", "Documents (types)", true], ["taches", "Tâches", true],
-  ["rcp", "RCP", true], ["listes", "Listes", true], ["bibliotheques", "Bibliothèques", true], ["vigilances", "Vigilance des molécules", true], ["impression", "Impression", true], ["alertes", "Alertes", true], ["activites", "Activités et rémunérations", true],
+  ["horaires", "Horaires", true], ["fermetures", "Congés et jours fériés", true], ["lieux", "Lieux d'exercice", false],
+  ["accueil", "Tableau de bord", false], ["fiche", "Fiche patient", false], ["consultation", "Formulaire de consultation", false], ["types", "Types de consultation", false],
+  ["audit", "Journal d'audit", false], ["whatsapp", "WhatsApp", true], ["couleurs", "Google Agenda", true], ["documents", "Types de documents", true], ["taches", "Tâches", true],
+  ["rcp", "RCP", true], ["listes", "Listes de la fiche", true], ["bibliotheques", "Bibliothèques", true], ["vigilances", "Vigilance des molécules", true], ["impression", "Impression", true], ["alertes", "Alertes", true], ["activites", "Activités et rémunérations", true],
+  ["affichage", "Affichage du dossier", true], ["export", "Export des données", false],
 ];
+// Familles de la page Paramètres (même découpage que configuration.js FAMILLES) : l'Administration montre les onglets famille par famille
+export const FAMILLES_SECTIONS = [["cabinet", "Cabinet", ["lieux", "accueil", "rcp", "impression", "audit", "export"]], ["dossier", "Dossier patient", ["fiche", "consultation", "types", "listes", "affichage"]],
+  ["agenda", "Agenda et rappels", ["horaires", "fermetures", "couleurs", "whatsapp", "alertes"]], ["listes", "Bibliothèques", ["bibliotheques", "vigilances", "documents", "taches"]], ["finances", "Finances", ["activites"]]];
 // Bibliothèques (copiées de la bibliothèque de la spécialité dans chaque cabinet neuf)
 export const BIBLIOTHEQUES = [["protocoles", "Protocoles de chimiothérapie"], ["medicaments", "Médicaments"], ["ordostypes", "Ordonnances types"], ["analyses", "Analyses"], ["bilans", "Bilans biologiques"], ["examens", "Examens complémentaires"], ["courriers", "Courriers"], ["documentation", "Documentation (Doc.)"], ["diag", "Diagnostics"], ["mut", "Mutuelles"]];
 
