@@ -11,7 +11,9 @@ def ok(c, m, d=None):
 S2 = json.loads(json.dumps(S)); S2['administrateurs/ADM'] = {'email': 'adm@test.ma'}
 LIRE = {'ficheSpe': {'libs': {'mut': 'Organisme'}}, 'consultSpe': {}, 'accueil': {'ordre': ['afaire', 'jour'], 'cartes': {'stats': False}},
         'formulaires': {'fiche': {'ajouts': [{'id': 'xpropre1', 'lib': 'Champ du médecin', 'type': 'texte', 'partie': 'clinique'}]},
-                        'consultation': {'typesForm': {'Consultation de fin de traitement': 'rt'}}}} # cas signalé le 20/10 : formulaire choisi par le médecin
+                        'consultation': {'typesForm': {'Fin de RT': 'rt'}}},
+        # cas signalé le 20/10 : la liste des types du cabinet (Paramètres › Types de consultation), un type renommé par le médecin, son formulaire
+        'typesConsult': [{'k': 'suivi', 'nom': 'Consultation de suivi'}, {'k': 'rtf', 'nom': 'Fin de RT', 'anciens': ['Consultation de fin de radiothérapie']}], 'acts': [['echo', 'Échographie']]}
 MOCK = """window.__uid='ADM';window.__appels=[];window.__fonctions={
  listeCabinets:async()=>({cabinets:[{id:'cab-t',nom:'Cabinet T',cree:'2026-10-09',actif:true,titulaire:{nom:'Dr T',email:'t@t.ma'},membres:1,patients:0,abonnement:{formule:'complet',modules:{chimio:true,rt:true,agenda:true,salle:true,taches:true,rcp:true,prescriptions:true,documents:true,gagenda:true,listes:true,bilan:true},max:{}}}],archives:[]}),
  reglageCabinetLire:async(d)=>{window.__appels.push(['lire',d]);return %s},
@@ -46,8 +48,10 @@ async def main():
         await ev("document.querySelector('#fCorps [data-fo=\"fiche\"]').click()"); await pa.wait_for_timeout(300)
         tf = await pa.inner_text('#fCorps [data-op="fiche"]')
         ok('Organisme' in tf and 'Champ du médecin' in tf, 'fiche patient du cabinet : « Organisme », « Champ du médecin » (ajouté par lui)')
-        v = await ev("(()=>{const s=document.querySelector('#fCorps [data-cqt=\"Consultation de fin de traitement\"]');return s?s.options[s.selectedIndex].textContent:null})()")
-        ok(v == 'RT hebdomadaire', '« Consultation de fin de traitement » : formulaire « RT hebdomadaire », comme dans son cabinet (cas signalé le 20/10)', v)
+        v = await ev("(()=>{const s=document.querySelector('#fCorps [data-cqt=\"Fin de RT\"]');return s?s.options[s.selectedIndex].textContent:null})()")
+        ty = await ev("[...document.querySelectorAll('#fCorps [data-cqt]')].map(s=>s.dataset.cqt)")
+        ok(v == 'RT hebdomadaire', '« Fin de RT » (renommé par le médecin) : formulaire « RT hebdomadaire », comme dans son cabinet (cas signalé le 20/10)', v)
+        ok('Consultation de fin de traitement' not in ty and 'Consultation de fin de radiothérapie' not in ty and 'Consultation de suivi' in ty, 'types = ceux de ses Paramètres (pas l\'ancienne liste fixe, pas l\'ancien nom)', ty)
         # Enregistrer sans rien changer : rien n'est écrit dans ses Paramètres
         await ev("document.getElementById('fOk').click()"); await pa.wait_for_timeout(800)
         w = [a for a in await ev("window.__appels") if a[0] == 'ecrire'][-1][1]

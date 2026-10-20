@@ -9,6 +9,7 @@ import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase
 import { MENU, FONCTIONS, FONCTIONS_RELIEES, CARTES, SECTIONS, BIBLIOTHEQUES, FICHE, TYPES_CHAMP, TOUJOURS_ENTETE, CONSULT, TYPES_CHAMP_CS, reglageEffectif, ficheEffective, ficheRetouches, consultEffective, formRetouches, libDe, avecOnco, formulairesCabinet, accueilEffectif, FAMILLES_SECTIONS } from "../donnees/catalogue.js";
 import { htmlFacture, dh2 } from "../donnees/factures.js";
 import { editeurFiche } from "./editeurfiche.js";
+import { referentiel } from "../moteur/typesconsult.js";
 import { CHAMPS_EDITEUR, EDITEUR_REQUIS, editeurIncomplet, REGLAGES_ABO0, MODELES_RELANCE0, CANAUX, remplirRelance, MODES_FACT, MOYENS, PRIX0, ajouterJours, prolonger, etatFacturation, prixCabinet, attendus, impaye } from "../donnees/facturation.js";
 import { MODULES, ROLES_MAX, SPECIALITES, specialiteDe, FORMULES as FORMULES0, abonnementEffectif, BIBLIOTHEQUES_SPE, MODULE_FAMILLE, MODULE_MENU, MODULES_BASE, MODULES_PREVUS } from "../donnees/modules.js";
 
@@ -568,7 +569,8 @@ function editeurReglage(o) {
   const A = o.A, R = o.R, LIB_MENU = Object.fromEntries(MENU.map((m) => [m[0], m])), LIB_CARTE = Object.fromEntries(CARTES), LIB_SEC = Object.fromEntries(SECTIONS.map((x) => [x[0], x[1]]));
   let nom = o.nom || "";
   const FE = o.fiche ? editeurFiche(R.fiche, "cabinet") : null; // fiche patient : retouches du cabinet (pas dans un pack)
-  const CE = o.fiche ? editeurFiche(R.consultation, "cabinet", true) : null; // formulaire de consultation : retouches du cabinet (16.7)
+  // formulaire de consultation : retouches du cabinet (16.7) ; miroir : types de consultation du cabinet (noms actuels, 20/10/2026)
+  const CE = o.fiche ? editeurFiche(R.consultation, "cabinet", true, o.typesCs ? { types: () => o.typesCs, choixTypes: true } : undefined) : null;
   if (o.fiche) o.fiche0 = JSON.stringify([R.fiche, R.consultation]); // fiche et formulaire à l'ouverture, une fois les éditeurs prêts (miroir : réécrits seulement si modifiés)
   const SOUS_REG = [["modules", "Modules et limites", ["modules", "max"]], ["menu", "Menu et tableau de bord", ["menu", "accueil"]], ["param", "Paramètres et bibliothèques", ["sections", "bibliotheques"]]].concat(o.fiche ? [["fiche", "Fiche et consultation", ["fiche", "consultation"]]] : []);
   ONGLET_REG = "modules"; // chaque fenêtre s'ouvre sur Modules et limites
@@ -666,8 +668,10 @@ async function ouvrirFormule(c) {
   const speDe = () => specialiteDe((FORMULES_()[A.formule] || {}).specialite), onco = !c.abonnement || !!(A.modules.chimio || A.modules.rt);
   const reg0 = (c.abonnement && c.abonnement.reglage) || {}, regAdmin = reglageEffectif(reg0, Object.assign({}, X.ficheSpe || {}, { _onco: onco }), Object.assign({}, X.consultSpe || {}, { _onco: onco }));
   const R = formulairesCabinet(regAdmin, X.formulaires), AC0 = accueilEffectif(regAdmin, X.accueil); Object.assign(R, { accueil: AC0.ordre.slice(), cartes: Object.assign({}, AC0.cartes), col: Object.assign({}, AC0.col) });
+  // types de consultation tels que dans ses Paramètres (un type renommé garde son formulaire sous son nouveau nom)
+  const typesCs = referentiel(X.typesConsult, { acts: X.acts || [], journal: ((R.consultation || {}).choixs || {}).type || [] }).map((t) => t.nom);
   const baseFiche = () => ficheEffective(null, regAdmin.fiche), baseConsult = () => consultEffective(null, regAdmin.consultation), J = (x) => JSON.stringify(x);
-  const opts = { titre: "Réglage de « " + c.nom + " »", avecPack: true, A, R, spe: speDe, fiche: true, miroir: true, baseFiche, baseConsult,
+  const opts = { titre: "Réglage de « " + c.nom + " »", avecPack: true, A, R, spe: speDe, fiche: true, miroir: true, typesCs, baseFiche, baseConsult,
     intro: "<b>Tel que l'équipe le voit aujourd'hui</b>, avec ce que le médecin a changé lui-même dans ses Paramètres (tableau de bord, fiche patient, formulaire de consultation). Vos changements arrivent dans son cabinet comme s'il les avait faits ; il peut encore les modifier. <span class=\"bdg rt\">retouché</span> = différent du pack. Ce qui est retiré est caché, les données sont gardées ; l'équipe voit le changement à sa prochaine ouverture d'Onco360.",
     compte: (k) => (k === "patients" ? c.patients : k === "etablissements" ? c.etablissements : (c.roles || {})[k] || 0),
     enregistrer: async (A2, R2) => {

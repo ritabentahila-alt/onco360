@@ -820,8 +820,12 @@ exports.reglageCabinetLire = onCall({ timeoutSeconds: 30, memory: "256MiB" }, as
   if (!(await estAdministrateur(par))) throw new HttpsError("permission-denied", "Réservé à l'administration d'Onco360.");
   const e = String((req.data || {}).espace || ""), es = e && !C.estBib(e) ? await db.doc("espaces/" + e).get() : null;
   if (!es || !es.exists) throw new HttpsError("not-found", "Cabinet introuvable.");
-  const P = "espaces/" + e + "/parametres/", [ac, fo] = await Promise.all([db.doc(P + "accueil").get(), db.doc(P + "formulaires").get()]);
-  return { ficheSpe: es.data().ficheSpe || null, consultSpe: es.data().consultSpe || null, accueil: jsonDoc(ac, null), formulaires: jsonDoc(fo, null) };
+  const P = "espaces/" + e + "/parametres/", [ac, fo, tc, ta, act] = await Promise.all([db.doc(P + "accueil").get(), db.doc(P + "formulaires").get(), db.doc(P + "typesConsult").get(), db.doc("espaces/" + e + "/finances/tarifs").get(), db.doc(P + "activites").get()]);
+  // types de consultation du cabinet (noms changés par le médecin : le formulaire de chaque type est gardé sous son nom actuel) ; activités des
+  // tarifs (noms seulement, aucun prix) : même liste que Paramètres › Types de consultation (v2.js referentiel / actsDe)
+  const acts = []; Object.values((jsonDoc(ta, {}) || {}).etablissements || {}).forEach((x) => (x.activites || []).forEach((a) => acts.push([a.type, a.libelle])));
+  Object.values(jsonDoc(act, {}) || {}).forEach((L) => (Array.isArray(L) ? L : []).forEach((a) => acts.push([a.t, a.lib])));
+  return { ficheSpe: es.data().ficheSpe || null, consultSpe: es.data().consultSpe || null, accueil: jsonDoc(ac, null), formulaires: jsonDoc(fo, null), typesConsult: jsonDoc(tc, null), acts };
 });
 // Formules modifiées par l'administration (nom, modules, maximums ; ajout, suppression si aucun cabinet ne l'utilise). Les cabinets
 // qui suivent une formule sans retouche (« sur mesure ») reçoivent ses nouvelles valeurs.

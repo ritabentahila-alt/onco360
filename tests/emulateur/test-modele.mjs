@@ -148,6 +148,7 @@ console.log("Réglage du cabinet en miroir (20/10/2026)");
 const lireR = httpsCallable(fn, "reglageCabinetLire", { timeout: 60000 }), abo = httpsCallable(fn, "abonnementCabinet", { timeout: 60000 });
 const r1 = (await lireR({ espace: "cabinet-bentahila" })).data;
 cas("lecture : tableau de bord et retouches du médecin, fiche de la spécialité copiée chez lui", r1.accueil.ordre[0] === "jour" && r1.formulaires.fiche.libs.mut === "Organisme" && (r1.ficheSpe.ajouts || []).some((x) => x.id === "xscore"), r1);
+cas("lecture : types de consultation du cabinet (noms actuels) et activités sans prix", (r1.typesConsult || []).some((t) => t.k === "telecs") && Array.isArray(r1.acts) && !JSON.stringify(r1.acts).match(/prix|"m":/), r1.typesConsult);
 refus = null; try { await lireR({ espace: "bib-oncologie" }); } catch (e) { refus = e.code; } cas("lecture : pas d'une bibliothèque", refus === "functions/not-found", refus);
 await abo({ espace: "cab-x", formule: "complet", modules: { chimio: true }, max: {}, reglage: { menu: ["agenda"] }, cab: { accueil: { ordre: ["afaire", "jour"], cartes: { stats: false, "x y": true }, col: { jour: "l", afaire: "z" } }, formulaires: { fiche: { champs: { email: false } }, consultation: { typesForm: { "Consultation de fin de traitement": "rt" } } } } });
 const ax = await lire(X + "/parametres/accueil"), fx = await lire(X + "/parametres/formulaires");
