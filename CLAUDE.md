@@ -129,7 +129,7 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
 - **Lot D (audit n° 6, 20/10/2026)** : consultation de chimio = un acte par jour payé (`evtsFin`, identifiant `cc|ligne|cure` pour le 1er jour payé,
   `cc|ligne|cure|jour` ensuite ; `consJours` dans moteur/finances.js) ; cases « Payé » rangées par année `finances/paiements_AAAA` (+ ancien
   `finances/paiements` encore lu ; moteur/bilan.js `repartirPaiements`, `placePaiements` alerte à 70 %) ; taux commun de la RT `finances/tarifs.tauxRT`
-  { retro, impot } (sans ligne « Radiothérapie » du lieu ; absent = « sans tarif ») ; rapprochement des règlements (bilan.js `rapprochement`) ;
+  { retro, impot } (sans ligne « Radiothérapie » du lieu ; absent = « sans tarif ») ; explications du Bilan derrière un « ? » (`aidesCartes`) ;
   `majMontants`, cases, versements, règlements en transaction ; `patientsFinances` lus dans le périmètre (règle). Guide `guide/bilan.md`.
   Relevé du comptable aussi préparé la nuit par le serveur (`releveNuit`, functions/releve.js ; calcul du site recopié dans functions/site/moteur
   et site/donnees au déploiement, vérifié par `node functions/test-releve.js`).

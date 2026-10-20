@@ -960,7 +960,8 @@ function aidesCartes() {
     h3.appendChild(b);
   });
 }
-new MutationObserver(() => { if (D && D.page === "accueil") aidesCartes(); }).observe($("page"), { childList: true, subtree: true });
+// 20/10/2026 (demande de Dr Bentahila) : aussi dans la page Bilan (versements et règlements, par établissement, mois par mois, référents)
+new MutationObserver(() => { if (D && (D.page === "accueil" || D.page === "bilan")) aidesCartes(); }).observe($("page"), { childList: true, subtree: true });
 function pageAccueil() {
   const pj = programmeDuJour(), ag = agenda7(), ab = absences(), tot = pj.rt.length + pj.co.length + pj.ch.length;
   const ligne = (o, cat) => '<div class="li" onclick="ouvrirDossier(\'' + o.id + '\')">' + (cat === "co" ? '<span class="h">' + esc(o.h) + "</span>" : "") +

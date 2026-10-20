@@ -542,7 +542,10 @@ test-bilan 42/42 (moteur), test_finances_d 16/16, test_comptable 13/13, règles 
       acte daté du J1, un seul mode : `moteur/finances.js`) ; J8 / J15 à 0 DH par défaut, modifiable, un montant saisi compte à sa date ;
       cases « Payé » déjà cochées reprises sur le J1. **Le bilan change** : chiffre avant / après sur le jeu de référence, annoncé avant la
       mise en ligne.
-- [x] **(20/10/2026, testé)** bilan.js `rapprochement` / `htmlRappro` (cadre « Rapprochement des règlements », `#biRap`, après les versements et
+- [x] **Retiré le 20/10/2026 à la demande de Dr Bentahila** (les cliniques paient des mois après l'acte, le temps que la sécurité sociale les
+      règle : un rapprochement mois par mois n'a pas de sens ; et « payé au cabinet » ne concerne que les consultations, pas les séances, RT ni
+      hospitalisations). Explications du Bilan derrière un « ? » à côté du titre (v2.js `aidesCartes`, aussi page Bilan). Avant :
+      bilan.js `rapprochement` / `htmlRappro` (cadre « Rapprochement des règlements », `#biRap`, après les versements et
       règlements ; feuille « Rapprochement » de l'export Excel) : par clinique (lieux non « payé au cabinet ») et par mois de la période : actes du
       mois (NET, dont à recevoir), cochés « Payé » ce mois-là (date du clic), reçus ce mois-là, écart = reçu − coché ; lecture seule. **Relevé du
       comptable préparé la nuit par le serveur (A7)** : fait le même jour (demande de Dr Bentahila) : fonction `releveNuit` (2 h 45, heure du Maroc ;

@@ -227,7 +227,7 @@ function dessiner() {
   }
   if (b.prev.length) h += '<section class="carte" data-fn="bilan.rtprev"><h3><span class="ic">' + A.ic("radiation") + '</span>Radiothérapies en cours ou prévues (prévisionnel, non comptées)</h3><div class="tableau"><table class="tcures bilan"><tr><th>Fin prévue</th><th>Patient</th><th>Hôpital</th><th>Acte</th><th class="n">NET prévisionnel</th></tr>' +
     b.prev.map((o) => "<tr" + lienDossier(o.id) + "><td>" + (o.d ? A.dfrA(o.d) : "—") + "</td><td>" + esc(o.nm) + "</td><td>" + esc(o.hop || "—") + "</td><td>" + esc(o.lib) + '</td><td class="n">' + dh(o.net) + "</td></tr>").join("") + "</table></div></section>";
-  h += htmlRecus(b) + htmlRappro(b, R);
+  h += htmlRecus(b);
   A.$("page").innerHTML = h;
   const q = A.$("biQ"); q.oninput = () => { clearTimeout(q.t); q.t = setTimeout(() => { F.q = q.value; dessiner(); const i = A.$("biQ"); i.focus(); i.setSelectionRange(i.value.length, i.value.length); }, 300); };
 }
@@ -392,38 +392,6 @@ window.biKlSup = async (n) => {
   catch (er) { A.toast("Suppression impossible : " + er.message); }
 };
 
-// ───── Rapprochement des règlements (R-D2, 20/10/2026, audit n° 6, A5) ─────
-// Par clinique (lieux payés par l'établissement, pas « payé au cabinet ») et par mois, en lecture seule (pas de pointage en lot) :
-// actes du mois (NET, dont encore à recevoir), actes cochés « Payé » ce mois-là (date du clic), règlements reçus ce mois-là, écart
-// = reçu − coché. Période et établissement : ceux choisis en haut de la page ; type d'acte, recherche et paiement n'y changent rien.
-function rapprochement(b, R) {
-  const cli = (h) => h && h !== "—" && h !== "kl" && !lieuCabinet(h) && (F.hop === "tous" || h === F.hop), dansP = (d) => !!d && d >= b.pr[0] && d <= b.pr[1];
-  const g = {}, cel = (h, m) => { const x = (g[h] = g[h] || {}); return (x[m] = x[m] || { du: 0, reste: 0, coche: 0, recu: 0, nRg: 0 }); };
-  R.forEach((x) => (x.fin || []).forEach((e) => {
-    const h = e[2] || "—"; if (e[1] === "rtprev" || !cli(h)) return;
-    const o = { id: x.id, t: e[1], d: e[0], lib: e[3], a: e[9] || "" }, v = num(e[6]) || 0, pd = String(PE[clePaye(o)] || PE[cleAncienne(o)] || "").slice(0, 10);
-    if (dansP(o.d)) { const c = cel(h, o.d.slice(0, 7)); c.du += v; if (!pd) c.reste += v; }
-    if (/^\d{4}-\d\d-\d\d$/.test(pd) && dansP(pd)) cel(h, pd.slice(0, 7)).coche += v;
-  }));
-  (B.reglements || []).forEach((r) => { const h = r.hop || "—"; if (!cli(h) || !dansP(r.d)) return; const c = cel(h, r.d.slice(0, 7)); c.recu += num(r.m) || 0; c.nRg++; });
-  const L = []; Object.keys(g).sort().forEach((h) => Object.keys(g[h]).sort().forEach((m) => { const c = g[h][m]; if (c.recu || c.coche || c.reste) L.push(Object.assign({ h, m }, c)); })); // mois tout réglé, sans clic ni règlement : rien à rapprocher
-  return L.some((x) => x.recu || x.coche) ? L : []; // rien à rapprocher sans règlement saisi ni case cochée
-}
-function htmlRappro(b, R) {
-  const L = rapprochement(b, R); DATA.rappro = L; if (!L.length) return "";
-  const esc = A.esc, z = (v) => (Math.abs(v) < 1 ? "—" : dh(v)), ec = (x) => x.recu - x.coche, ecTxt = (v) => (Math.abs(v) < 1 ? '<span style="color:var(--vert)">0 DH</span>' : '<b style="color:var(--orange)">' + (v > 0 ? "+" : "−") + dh(Math.abs(v)) + "</b>");
-  const somme2 = (l, k) => l.reduce((a, x) => a + x[k], 0);
-  let h = '<section class="carte" data-fn="bilan.versements" id="biRap"><h3><span class="ic">' + A.ic("bilan") + "</span>Rapprochement des règlements</h3>" +
-    '<p class="sous">Par clinique et par mois, en lecture seule : <b>actes du mois</b> (NET, dont ce qui est encore à recevoir), actes <b>cochés « Payé »</b> ce mois-là, <b>règlements reçus</b> ce mois-là (cadre ci-dessus) et l\'<b>écart</b> (reçu − coché). Un écart positif : un règlement reçu dont les actes ne sont pas encore cochés ; négatif : des actes cochés sans règlement saisi. Mois tout réglé, sans case cochée ni règlement : non affiché. Lieux payés au cabinet : non concernés.</p>' +
-    '<div class="tableau"><table class="tcures bilan"><tr><th>Clinique / hôpital</th><th>Mois</th><th class="n">Actes du mois</th><th class="n">dont à recevoir</th><th class="n">Coché « Payé »</th><th class="n">Reçu</th><th class="n">Écart</th></tr>';
-  [...new Set(L.map((x) => x.h))].forEach((c) => {
-    const l = L.filter((x) => x.h === c);
-    h += l.map((x, i) => "<tr>" + (i ? "<td></td>" : "<td>" + etabNom(c) + "</td>") + "<td>" + moisTxt(x.m) + '</td><td class="n">' + z(x.du) + '</td><td class="n">' + z(x.reste) + '</td><td class="n">' + z(x.coche) + '</td><td class="n">' + z(x.recu) + (x.nRg > 1 ? '<div class="mesures">' + x.nRg + " règlements</div>" : "") + '</td><td class="n">' + ecTxt(ec(x)) + "</td></tr>").join("");
-    if (l.length > 1) h += '<tr class="tot"><td colspan="2"><b>Total ' + esc(c) + '</b></td><td class="n">' + dh(somme2(l, "du")) + '</td><td class="n">' + dh(somme2(l, "reste")) + '</td><td class="n">' + dh(somme2(l, "coche")) + '</td><td class="n">' + dh(somme2(l, "recu")) + '</td><td class="n">' + ecTxt(somme2(l, "recu") - somme2(l, "coche")) + "</td></tr>";
-  });
-  return h + "</table></div></section>";
-}
-
 // ───── Par établissement, mois par mois, relevé pour une clinique (15 bis B3, 10/10/2026) ─────
 // Par établissement : actes affichés (filtres du haut), NET, payé, à recevoir et son ancienneté (jours depuis la date de l'acte) ;
 // les autres versements ont leur propre ligne (« kl », en bas). Un clic sur une ligne choisit l'établissement (ou le type « Autres
@@ -481,7 +449,7 @@ function htmlMois(b, R) {
   svg += '<line x1="' + g + '" x2="' + (W - d) + '" y1="' + (top + ph) + '" y2="' + (top + ph) + '" stroke="#C9D1DE" stroke-width="1"/></svg>';
   const pastille = (c, t) => '<span style="display:inline-flex;align-items:center;gap:6px;margin-right:16px"><span style="width:12px;height:12px;border-radius:3px;background:' + c + '"></span>' + t + "</span>";
   return '<section class="carte"><h3><span class="ic">' + A.ic("bilan") + "</span>Mois par mois – " + y + " comparé à " + (y - 1) + "</h3>" +
-    '<p class="sous">NET de chaque mois, avec les filtres choisis (sauf période et paiement). Touchez un mois pour l\'afficher. ' +
+    '<p class="sous">NET de chaque mois, avec les filtres choisis (sauf période et paiement). Touchez un mois pour l\'afficher.</p><p class="mesures" style="margin:0 0 4px">' +
     (enCours ? "Janvier à " + MOIS_L[nM - 1].toLowerCase() + " " : "Année ") + y + " : <b>" + dh(s1) + "</b> · même période " + (y - 1) + " : <b>" + dh(s0) + "</b>" +
     (ev != null ? ' (<b style="color:' + (ev >= 0 ? "var(--vert)" : "var(--rouge)") + '">' + (ev >= 0 ? "+" : "") + ev + " %</b>)" : "") + ".</p>" +
     '<div class="mesures" style="margin:4px 0 6px">' + pastille(COUL_AN, String(y)) + pastille(COUL_AVANT, String(y - 1)) + "</div>" + svg +
@@ -539,7 +507,6 @@ window.biExport = async (fmt) => {
     const feuilles = [["Synthèse", syn, [48, 18, 10]], ["Journal", jr, [11, 28, 22, 9, 52, 11, 12, 16, 16, 18]]];
     if (DATA.etabs && DATA.etabs.length) feuilles.push(["Par établissement", [["Établissement", "Actes", "NET (DH)", "Payé (DH)", "À recevoir (DH)", "dont 31 à 60 j", "dont 61 à 90 j", "dont + de 90 j"]].concat(DATA.etabs.map((x) => [x.h === "kl" ? "Autres versements" : x.h === "—" ? "Établissement non renseigné" : x.h, x.n].concat(["net", "paye", "rec", "r30", "r60", "r90"].map((k) => Math.round(x[k] * 100) / 100)))), [24, 8, 14, 14, 14, 14, 14, 14]]);
     if (DATA.prev.length) feuilles.push(["RT prévisionnel", [["Fin prévue", "Patient", "Hôpital", "Acte", "NET prévisionnel (DH)"]].concat(DATA.prev.map((o) => [o.d ? A.dfrA(o.d) : "—", o.nm, o.hop || "—", o.lib, num(o.net) || 0])), [11, 28, 9, 45, 18]]);
-    if (DATA.rappro && DATA.rappro.length) feuilles.push(["Rapprochement", [["Clinique / hôpital", "Mois", "Actes du mois (NET, DH)", "dont à recevoir (DH)", "Coché « Payé » (DH)", "Reçu (DH)", "Écart reçu − coché (DH)"]].concat(DATA.rappro.map((x) => [x.h, moisTxt(x.m), Math.round(x.du * 100) / 100, Math.round(x.reste * 100) / 100, Math.round(x.coche * 100) / 100, Math.round(x.recu * 100) / 100, Math.round((x.recu - x.coche) * 100) / 100])), [22, 16, 18, 16, 16, 14, 18]]); // R-D2
     if (DATA.rg && DATA.rg.length) feuilles.push(["Versements et règlements", [["Reçu le", "Type", "Clinique / hôpital", "Mode", "Référence", "Banque", "Libellé / période concernée", "Montant (DH)", "Chèque encaissé le", "Note"]].concat(DATA.rg.map((r) => [A.dfrA(r.d), typeTxt(r), r.hop || "—", MODES[r.mode] || "", r.ref || "", r.banque || "", r.per || "", num(r.m) || 0, encTxt(r), r.note || ""])).concat([["", "", "", "", "", "", "TOTAL REÇU", Math.round(somme(DATA.rg) * 100) / 100, "", ""]]), [11, 28, 10, 10, 18, 14, 30, 14, 12, 30]]);
     await excel(feuilles, nom + ".xlsx");
   } catch (e) { A.toast("Export Excel impossible : " + e.message); }

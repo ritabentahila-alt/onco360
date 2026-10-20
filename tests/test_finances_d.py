@@ -1,6 +1,6 @@
 import pathlib; __file__=str(pathlib.Path(__file__).resolve()); exec(open(pathlib.Path(__file__).parent/'base.py').read())
 # Lot D (audit n° 6 : finances, 20/10/2026) dans le navigateur : R-D1 consultation de chimio jour par jour (J8 payé = acte à sa date),
-# R-D2 rapprochement des règlements par clinique et par mois, R-D3 transactions (montants + prix à encaisser ensemble) et taux commun
+# R-D3 transactions (montants + prix à encaisser ensemble) et taux commun
 # de la radiothérapie (écrit une fois : 60 % / 10 %, bilan inchangé), R-D4 cases « Payé » rangées par année ; ordinateur et 390 px.
 ok = lambda c, m: print(('✅ ' if c else '❌ ') + m)
 PID, LID = 'P1790238573180', 'L1790456543575938'  # cure C1 validée avec une séance J8 le 10/09/2026 (jeu de test)
@@ -39,11 +39,13 @@ async def main():
         await pg.select_option('#biPay', 'paye'); await pg.wait_for_timeout(400)
         ok(k1 != k0, 'bilan « à recevoir » mis à jour après le clic')
         await pg.select_option('#biPay', 'tous'); await pg.wait_for_timeout(400)
-        # R-D2 : rapprochement
-        rap = sp(await pg.evaluate("document.getElementById('biRap') ? document.getElementById('biRap').innerText : ''"))
-        ok('Rapprochement des règlements' in rap and 'HCK' in rap and 'Septembre 2026' in rap, 'rapprochement par clinique et par mois affiché')
-        ok('6 000' in rap and '2 règlements' in rap, 'reçu en septembre à HCK : 6 000 DH (2 règlements)')
-        ok(await pg.evaluate("!document.querySelector('#biRap input, #biRap [onclick^=biPaye]')"), 'lecture seule (aucune case, aucun pointage)')
+        # 20/10/2026 : rapprochement retiré (les cliniques paient des mois après l'acte) ; explications derrière un « ? » à côté du titre
+        ok(await pg.evaluate("!document.getElementById('biRap') && !/Rapprochement/.test(document.getElementById('page').innerText)"), 'plus de cadre « Rapprochement des règlements »')
+        q = await pg.evaluate("(()=>{const h=[...document.querySelectorAll('#page section.carte > h3')].filter(h=>/Versements et règlements|Par établissement|Mois par mois|Référents/.test(h.textContent));return [h.length, h.filter(x=>x.querySelector('.cf-q')).length, h.filter(x=>!x.nextElementSibling.classList.contains('cache')).length]})()")
+        ok(q[0] == 4 and q[1] == 4 and q[2] == 0, 'explications cachées derrière un « ? » (4 titres) ' + str(q))
+        await pg.evaluate("[...document.querySelectorAll('#page section.carte > h3 .cf-q')][0].click()"); await pg.wait_for_timeout(200)
+        ok(await pg.evaluate("!document.querySelector('#page section.carte > h3 + p.sous').classList.contains('cache')"), '« ? » : un clic affiche l\'explication')
+        ok('Janvier à' in sp(await pg.inner_text('#page')), 'mois par mois : chiffres de l\'année toujours visibles')
         # R-D1 : consultation de chimio payée au J8 (200 DH) : un acte à sa date
         await pg.evaluate(f"location.hash='dossier/{PID}'"); await pg.wait_for_timeout(1200)
         await pg.evaluate(f"chVenuChimio('{PID}','{LID}',1,8)"); await pg.wait_for_timeout(700)

@@ -7,15 +7,9 @@
   date de ce jour, sous le nom « Consultation chimio J8 – … ».
 - Les cases « Payé » déjà cochées restent sur la consultation du J1.
 
-## Rapprochement des règlements
-Page Bilan, sous « Versements et règlements reçus » : pour chaque clinique et chaque mois de la période choisie en haut :
-- **Actes du mois** : NET des actes faits ce mois-là dans cette clinique (et ce qui en reste à recevoir) ;
-- **Coché « Payé »** : NET des actes que vous avez cochés « Payé » ce mois-là ;
-- **Reçu** : règlements (virements, chèques) reçus ce mois-là de cette clinique ;
-- **Écart** = reçu − coché. Positif : un règlement reçu dont les actes ne sont pas encore cochés. Négatif : des actes cochés sans
-  règlement saisi.
-
-C'est une lecture seule : on coche toujours les actes un par un dans le journal détaillé. Les lieux payés au cabinet n'y figurent pas.
+## Explications
+Les textes d'explication des cadres (versements et règlements, par établissement, mois par mois, référents) sont derrière le petit
+rond « ? » à côté du titre : un clic les affiche ou les cache.
 
 ## Radiothérapie : taux commun
 Paramètres › Activités et rémunérations › Actes de radiothérapie : **taux commun** (rétrocession %, impôt %), réglé à 60 % / 10 %, ce
