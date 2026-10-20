@@ -23,7 +23,7 @@ R=$(grep -rIoE '\b0[5-7][0-9]{8}\b' public functions tests "${EXCL[@]}" 2>/dev/n
 [ -f public/ancienne-app.html ] && ko "public/ancienne-app.html est revenu" || ok "ancienne application absente du site"
 
 echo "3. Tests sans navigateur"
-for t in test-logique test-cabinets test-audit test-numeros test-exportation test-sauvegarde test-reference test-modele test-restauration test-drive; do
+for t in test-logique test-cabinets test-audit test-numeros test-exportation test-sauvegarde test-reference test-modele test-restauration test-drive test-releve; do
   if (cd functions && node $t.js > /tmp/onco360-$t.txt 2>&1) && ! grep -q '❌\|✘' /tmp/onco360-$t.txt; then ok "serveur : $t"; else ko "serveur : $t (voir /tmp/onco360-$t.txt)"; fi
 done
 for t in tests/moteur/test-recus.mjs tests/moteur/test-doses.mjs tests/moteur/test-vigilance.mjs tests/moteur/test-heures.mjs tests/moteur/test-rt.mjs tests/moteur/test-statut.mjs tests/moteur/test-typesconsult.mjs tests/moteur/test-audit3.mjs tests/moteur/test-audit3p4.mjs tests/moteur/test-seuils.mjs tests/moteur/test-p10.mjs tests/moteur/test-creneaux.mjs tests/moteur/test-poids.mjs tests/moteur/test-alertes.mjs tests/moteur/test-ordonnance.mjs tests/moteur/test-bibmaj.mjs tests/moteur/test-reprogrammer.mjs tests/moteur/test-agenda-c.mjs tests/moteur/test-copie-drive.mjs; do node $t > /tmp/onco360-moteur.txt 2>&1 && ok "moteur : $(basename $t)" || ko "moteur : $(basename $t) (voir /tmp/onco360-moteur.txt)"; done

@@ -1275,3 +1275,34 @@ exports.demandeAbonnement = onCall({ timeoutSeconds: 30, memory: "256MiB" }, asy
 // secours des fichiers), sauvegardesEtat (Administration).
 const SV = require("./sauvegardes")({ db, getStorage, getFirestore, getAuth, onCall, onSchedule, HttpsError, FieldValue, Timestamp, estAdministrateur, membre, jAdmin, oauth, SECRET, C });
 ["exporterCabinet", "exportsHebdo", "exportAuto", "recuperation", "fichiersNuit", "fichiersSauvegarder", "sauvegardesEtat"].forEach((k) => { exports[k] = SV[k]; });
+
+// ───── Relevé financier du comptable préparé la nuit (R-D2, audit n° 6, A7, 20/10/2026) ─────
+// Avant : préparé seulement par le navigateur d'un médecin (droit « finances ») quand il ouvre Onco360 ou enregistre un dossier ; un comptable
+// pouvait lire un relevé de plusieurs jours. Chaque nuit à 2 h 45 (heure du Maroc), pour chaque cabinet qui a un comptable (functions/releve.js
+// concerne) : même calcul, même format, même signature (rien de réécrit si rien n'a changé).
+const RL = require("./releve");
+async function releveCabinet(e) {
+  const E = "espaces/" + e + "/", jd = (s, d) => { try { return s.exists ? JSON.parse(s.data().data || "null") || d : d; } catch (er) { return d; } };
+  const [cab, sm, st] = await Promise.all([db.doc("espaces/" + e).get(), db.collection(E + "membres").get(), db.doc(E + "finances/tarifs").get()]);
+  const tarifs = jd(st, null);
+  if (!RL.concerne(cab.exists ? cab.data() : null, sm.docs.map((d) => d.data()), tarifs)) return { fait: false };
+  const [sp, sf, spr, sc, meta] = await Promise.all([db.collection(E + "patients").get(), db.collection(E + "patientsFinances").get(), db.collection(E + "protocoles").get(), db.doc(E + "parametres/calendrier").get(), db.doc(E + "comptabilite/meta").get()]);
+  const bib = {}; spr.docs.forEach((d) => { try { JSON.parse(d.data().data || "[]").forEach((p) => { bib[p.id] = p; }); } catch (er) { /* liste illisible */ } });
+  const montants = {}; sf.docs.forEach((d) => { try { montants[d.id] = JSON.parse(d.data().montantsJson || "{}"); } catch (er) { montants[d.id] = {}; } });
+  const patients = sp.docs.map((d) => ({ id: d.id, data: d.data() })).sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+  const R = RL.lignes(await RL.moteur(), { patients, montants, bib, feries: (jd(sc, {}) || {}).feries || [], tarifs, aujourdhui: L.jourCasa() });
+  const sig = RL.signature(JSON.stringify(R)), avant = meta.exists ? meta.data() : {};
+  if (avant.sig === sig) return { fait: false, inchange: true };
+  const P = RL.parties(R), b = db.batch();
+  P.forEach((p, i) => b.set(db.doc(E + "comptabilite/releve_" + i), { data: JSON.stringify(p) }));
+  for (let i = P.length; i < (avant.n || 0); i++) b.delete(db.doc(E + "comptabilite/releve_" + i)); // anciennes parties en trop
+  b.set(db.doc(E + "comptabilite/meta"), { n: P.length, le: FieldValue.serverTimestamp(), par: "onco360", parNom: "Onco360 (relevé de la nuit)", sig, nb: R.length });
+  await b.commit();
+  return { fait: true, n: R.length };
+}
+exports.releveNuit = onSchedule({ schedule: "45 2 * * *", timeZone: L.TZ, timeoutSeconds: 540, memory: "512MiB" }, async () => {
+  for (const es of (await db.collection("espaces").get()).docs) {
+    if (C.estBib(es.id)) continue;
+    try { const r = await releveCabinet(es.id); if (r.fait) console.log("relevé du comptable", es.id, r.n); } catch (er) { console.error("relevé du comptable", es.id, er); }
+  }
+});

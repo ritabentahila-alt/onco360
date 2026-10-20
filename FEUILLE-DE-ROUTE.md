@@ -538,7 +538,10 @@ test-bilan 42/42 (moteur), test_finances_d 16/16, test_comptable 13/13, règles 
 - [x] **(20/10/2026, testé)** bilan.js `rapprochement` / `htmlRappro` (cadre « Rapprochement des règlements », `#biRap`, après les versements et
       règlements ; feuille « Rapprochement » de l'export Excel) : par clinique (lieux non « payé au cabinet ») et par mois de la période : actes du
       mois (NET, dont à recevoir), cochés « Payé » ce mois-là (date du clic), reçus ce mois-là, écart = reçu − coché ; lecture seule. **Relevé du
-      comptable préparé la nuit par le serveur (A7) : reste à faire** (« plus tard » dans l'audit ; demande de porter `evtsFin` dans functions/).
+      comptable préparé la nuit par le serveur (A7)** : fait le même jour (demande de Dr Bentahila) : fonction `releveNuit` (2 h 45, heure du Maroc ;
+      functions/releve.js, `concerne` = cabinet actif avec un comptable actif, des tarifs et la fonction `bilan.comptable`, ni bibliothèque ni démonstration),
+      même calcul (copie du site dans functions/site/moteur et site/donnees, firebase.json predeploy), même format et même signature que le navigateur
+      (rien de réécrit si rien n'a changé) ; test-releve 24/24 (bilan du comptable = 352 317 DH).
       Corrigé en passant : relevé du comptable repoussé de 3 s à 2 min quand un dossier était réparé au démarrage (minuteur de l'ouverture à part).
       **R-D2 (F3) Rapprochement** : règlements par clinique et par mois (A5, d. 14) = indicateur en lecture seule : reçu, coché « Payé », dû,
       écart (pas de pointage en lot) ; relevé du comptable préparé la nuit par le serveur (A7, d. 15, plus tard). Bilan inchangé.

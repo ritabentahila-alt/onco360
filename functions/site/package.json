@@ -1,4 +1,4 @@
 {
   "type": "module",
-  "description": "Copie exacte de public/js/donnees/{catalogue,modules,facturation}.js (même calcul que le site), faite à chaque mise en ligne des fonctions (firebase.json, predeploy) ; vérifiée par node functions/test-modele.js"
+  "description": "Copie exacte de public/js/donnees/{catalogue,modules,facturation}.js et (R-D2, 20/10/2026) du calcul du bilan : moteur/{finances,outils,doses,rdv,tarifs,rt,heures,poids}.js, donnees/conversion.js (même calcul que le site), faite à chaque mise en ligne des fonctions (firebase.json, predeploy) ; vérifiée par node functions/test-modele.js et node functions/test-releve.js"
 }

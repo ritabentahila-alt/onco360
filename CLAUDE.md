@@ -131,6 +131,8 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
   `finances/paiements` encore lu ; moteur/bilan.js `repartirPaiements`, `placePaiements` alerte à 70 %) ; taux commun de la RT `finances/tarifs.tauxRT`
   { retro, impot } (sans ligne « Radiothérapie » du lieu ; absent = « sans tarif ») ; rapprochement des règlements (bilan.js `rapprochement`) ;
   `majMontants`, cases, versements, règlements en transaction ; `patientsFinances` lus dans le périmètre (règle). Guide `guide/bilan.md`.
+  Relevé du comptable aussi préparé la nuit par le serveur (`releveNuit`, functions/releve.js ; calcul du site recopié dans functions/site/moteur
+  et site/donnees au déploiement, vérifié par `node functions/test-releve.js`).
 - Bilan « payé » : `finances/paiements` (coché à la main) + « Payé auto. » des Paramètres (`payeAuto` = date de l'activité dans
   `finances/tarifs` : actes de ce type et de cet établissement à partir de cette date comptés payés ; bilan.js `paiementsEffectifs`).
 - `presence/{uid}` (« Dossier ouvert par », salle.js `presenceDossier`) : { patientId, nom, role, le }, écrit par la personne
