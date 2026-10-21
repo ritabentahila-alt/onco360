@@ -33,11 +33,11 @@ export function clairance(ag, po, cr, sx, u) {
 export function calcul(d, e) {
   let r = null;
   if (d.u === "mg/m²") r = e.sc ? arr(d.d * e.sc, d.dec) : null;
-  else if (d.u === "mg/kg") r = e.poids ? arr(d.d * e.poids) : null;
+  else if (d.u === "mg/kg") r = e.poids ? arr(d.d * e.poids, d.dec) : null; // S3 (21/10/2026, audit 10 d. 44) : décimales aussi en mg/kg
   else if (d.u === "mg") r = d.d;
   else if (d.u === "AUC") r = e.cl ? arr(d.d * (Math.min(e.cl, 125) + 25)) : null;
   else if (d.u === "mg_c1") r = e.n === 1 ? d.c1 : d.cn;
-  else if (d.u === "mg/kg_c1") r = e.poids ? arr((e.n === 1 ? d.c1 : d.cn) * e.poids) : null;
+  else if (d.u === "mg/kg_c1") r = e.poids ? arr((e.n === 1 ? d.c1 : d.cn) * e.poids, d.dec) : null;
   // vigilance (12/10/2026) : vincristine plafonnée à 2 mg par injection quand le protocole ne donne pas de plafond
   const mx = d.max || (/VINCRISTINE|ONCOVIN/.test(sansAccents(d.p)) && /mg\/(m²|kg)/.test(d.u) ? 2 : null);
   if (r != null && mx && r > mx) r = mx;
@@ -98,7 +98,7 @@ export function etatLigne(L, patient, ctx) {
     e.date = e.st === "recue" ? c.reelle : e.prevue;
     base = e.st === "recue" ? c.reelle : e.prevue;
     e.taille = c.fige && c.fige.taille != null ? c.fige.taille : num(patient.taille); // 2.2 : taille figée à la validation
-    e.age = age(patient.ddn, e.date || ctx.aujourdhui);
+    e.age = age(patient.ddn, e.date || ctx.aujourdhui); e.sexe = patient.sexe; // sexe : créatinine plancher du carboplatine (S3)
     // Paramètres de chaque séance
     const g0 = seancesDe(q), g = g0.length ? g0 : [{ j: 1, days: [1] }];
     e.g = g.map((z, n) => {
@@ -159,7 +159,7 @@ export const SEUILS = { poids: [30, 200], taille: [120, 220], sc: [1.2, 2.6], cr
 // bloque) — perte de poids > 10 % depuis le début de la ligne ; cisplatine : DFG ≥ 60 ml/min, 45-59 = zone d'adaptation (prudence,
 // réduction possible à 50-70 %), < 45 = contre-indication habituelle ; carboplatine : < 30 ml/min = contre-indiqué ou réévaluation
 // stricte du rapport bénéfice / risque avec réduction massive ; Calvert : clairance plafonnée à 125 ml/min (hyperfiltration).
-export const REPERES = { perteLigne: 10, cisplatine: [45, 60], carboplatine: 30, calvert: 125, doseMax: 110 };
+export const REPERES = { perteLigne: 10, cisplatine: [45, 60], carboplatine: 30, calvert: 125, doseMax: 110, creatCarbo: 7 }; // creatCarbo : mg/L (S3, 21/10/2026)
 export const avecMolecule = (e, re) => (e.prod || []).some((P) => !premed(P) && re.test(sansAccents(P.p)));
 // Fonction rénale (12/10/2026, repères transmis par Dr Bentahila) : molécules éliminées surtout par le rein ou néphrotoxiques, avec leurs
 // seuils de clairance (ml/min). Seuils croissants : le premier « clairance < seuil » donne le message. Une fenêtre s'affiche pour ces
@@ -176,14 +176,19 @@ export const REINS = [
   { re: /OXALIPLATINE|ELOXATINE/, nom: "oxaliplatine", seuils: [[30, "moins de 30 ml/min : réduction de dose à envisager"]] },
   { re: /ETOPOSIDE|VP ?16|VEPESIDE/, nom: "étoposide", seuils: [[15, "moins de 15 ml/min : réduction à 50 % ou suspension selon le protocole"], [51, "15-50 ml/min : réduction de la dose à 75 %"]] },
   { re: /BLEOMYCINE/, nom: "bléomycine", seuils: [[50, "moins de 50 ml/min : réduction progressive de la dose (toxicité pulmonaire)"]] },
+  // S5 (21/10/2026, audit n° 10 d. 47) : topotécan, acide zolédronique (rangé parmi les prémédications : premed vrai), trabectédine (RCP)
+  { re: /TOPOTECAN|HYCAMTIN/, nom: "topotécan", seuils: [[20, "moins de 20 ml/min : non recommandé (données insuffisantes)"], [40, "20-39 ml/min : dose réduite (IV : 0,75 mg/m²/j ; RCP)"]] },
+  { re: /ZOLEDRON|ZOMETA/, nom: "acide zolédronique", premed: true, seuils: [[30, "moins de 30 ml/min : non recommandé"], [40, "30-39 ml/min : 3 mg"], [50, "40-49 ml/min : 3,3 mg"], [61, "50-60 ml/min : 3,5 mg (RCP)"]] },
+  { re: /TRABECTEDINE|YONDELIS/, nom: "trabectédine", seuils: [[30, "moins de 30 ml/min : contre-indiquée (RCP)"]] },
   { re: /LENALIDOMIDE|REVLIMID/, nom: "lénalidomide", seuils: [[30, "moins de 30 ml/min : palier d'ajustement de dose (élimination rénale)"], [51, "30-50 ml/min : palier d'ajustement de dose"]] },
 ];
 // La séance contient-elle une molécule à surveiller pour le rein (ou une dose en AUC) ?
-export const reinSensible = (e) => REINS.some((R) => avecMolecule(e, R.re)) || (e.prod || []).some((P) => P.u === "AUC");
+const avecRein = (e, R) => (R.premed ? (e.prod || []).some((P) => R.re.test(sansAccents(P.p))) : avecMolecule(e, R.re));
+export const reinSensible = (e) => REINS.some((R) => avecRein(e, R)) || (e.prod || []).some((P) => P.u === "AUC");
 export function reperesClairance(e, G) {
   const l = [], cl = G.cl;
   REINS.forEach((R) => {
-    if (!avecMolecule(e, R.re)) return;
+    if (!avecRein(e, R)) return;
     if (cl == null) { if (R.nom === "cisplatine") l.push("cisplatine : créatinine non saisie, clairance inconnue (repère : DFG ≥ 60 ml/min)"); return; }
     const s0 = R.seuils.find(([m]) => cl < m); if (s0) l.push(R.nom + " avec une clairance de " + cl + " ml/min : " + s0[1]);
   });
@@ -212,6 +217,15 @@ export function controleSeance(e, n, crU, poidsAvant, poidsDebut) {
   const carboIci = (e.dj || []).some((dj, x) => /CARBOPLATINE/i.test(((e.prod || [])[x] || {}).p || "") && (G.days || [1]).concat(n === 0 ? [99] : []).some((j) => dj[j]));
   if (carboIci && G.creat != null && !(G.saisi && G.saisi.creat) && !(e.n === 1 && n === 0))
     alertes.push("carboplatine : créatinine du jour non saisie, la dose reprend la dernière créatinine connue (" + G.creat + (crU === "mgL" ? " mg/L" : " µmol/L") + ") ; le DFG doit être vérifié avant chaque cure");
+  // S3 (21/10/2026, audit 10 d. 45) : créatinine très basse (sujet âgé, dénutri) avant un carboplatine : clairance sans doute surestimée et le plafond
+  // de 125 ml/min ne protège pas en dessous ; avertissement d'un clic avec la dose qu'on aurait avec une créatinine plancher de 7 mg/L (62 µmol/L),
+  // sans rien changer au calcul
+  const plancher = crU === "mgL" ? REPERES.creatCarbo : Math.round(REPERES.creatCarbo * 8.84);
+  if (carboIci && G.creat != null && G.creat > 0 && G.creat < plancher && e.age && G.poids) {
+    const cl7 = clairance(e.age, G.poids, plancher, e.sexe, crU), f = cl7 != null && G.cl != null ? (Math.min(cl7, 125) + 25) / (Math.min(G.cl, 125) + 25) : null;
+    const ds = (e.dj || []).map((dj, x) => { const P = (e.prod || [])[x] || {}, z = dj[(G.days || [1])[0]] || dj[99]; return P.u === "AUC" && z && z.v ? Math.round(z.v * f) + " mg au lieu de " + z.v + " mg" : ""; }).filter(Boolean);
+    alertes.push("carboplatine : créatinine de " + G.creat + (crU === "mgL" ? " mg/L" : " µmol/L") + " (sous " + plancher + (crU === "mgL" ? " mg/L" : " µmol/L") + ") : clairance sans doute surestimée (" + G.cl + " ml/min)" + (f && ds.length ? " ; avec une créatinine plancher de " + plancher + (crU === "mgL" ? " mg/L" : " µmol/L") + " (" + cl7 + " ml/min) : " + ds.join(", ") : "") + " ; le calcul n'est pas changé");
+  }
   // créatinine et clairance hors des bornes de saisie : seulement si la séance contient une molécule à surveiller pour le rein (sinon facultatives)
   if (reinSensible(e) && hors(G.cl, S.cl) && !(rc.length && G.cl < S.cl[0])) alertes.push("clairance de " + G.cl + " ml/min (hors de " + S.cl.join(" à ") + ")");
   if (G.poids != null && poidsDebut && (poidsDebut - G.poids) / poidsDebut * 100 > REPERES.perteLigne)

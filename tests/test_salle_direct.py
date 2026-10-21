@@ -9,7 +9,7 @@ def ok(c, m, d=None):
     if c: ok_n += 1; print('  ✔ ' + m)
     else: ko_n += 1; print('  ✘ ' + m + ('' if d is None else ' ' + str(d)[:300]))
 S2, PIDS = avec_demo(S, E)
-T0 = "2026-10-06T10:00:00"
+T0 = "2026-10-06T10:00:00Z"  # S1 (21/10/2026) : heure universelle ; le Maroc est à GMT, Onco360 affiche donc 10 h 00 quel que soit le fuseau de l'ordinateur
 P3, P7 = PIDS[2], PIDS[6]
 async def main():
     async with async_playwright() as p:
@@ -52,11 +52,11 @@ async def main():
         onglet2 = await ev("([...document.querySelectorAll('#saO [aria-selected=true], #saO .on, #saO .actif')].map(b => b.textContent)[0]) || ''")
         ok(onglet and onglet == onglet2 and 'Vus' in onglet2, 'onglet « Vus » gardé après l\'actualisation', (onglet, onglet2))
         # Toute seule chaque minute : l'heure avance de 70 s → nouvelle relecture
-        await pg.clock.set_fixed_time("2026-10-06T10:01:10"); await pg.wait_for_timeout(11500)
+        await pg.clock.set_fixed_time("2026-10-06T10:01:10Z"); await pg.wait_for_timeout(11500)
         aj2 = await ev("document.getElementById('saAjour').textContent")
         ok(aj2 != aj and '10 h 01' in aj2, 'relecture toute seule après une minute (« à jour à 10 h 01 »)', (aj, aj2))
         # … mais pas pendant une saisie (recherche en cours) : faite après
-        await pg.focus('#saQ'); await pg.clock.set_fixed_time("2026-10-06T10:02:20"); await pg.wait_for_timeout(11500)
+        await pg.focus('#saQ'); await pg.clock.set_fixed_time("2026-10-06T10:02:20Z"); await pg.wait_for_timeout(11500)
         aj3 = await ev("document.getElementById('saAjour').textContent")
         ok(aj3 == aj2, 'pendant une saisie : pas de relecture', (aj2, aj3))
         await ev("document.activeElement.blur()"); await pg.wait_for_timeout(11500)
