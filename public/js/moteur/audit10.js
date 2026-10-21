@@ -3,6 +3,7 @@
 // S2 (21/10/2026, d. 26, 27, 29) : le danger. Chaque correction n'est faite que si le protocole est encore tel que l'audit l'a vu (rien deux
 // fois, rien d'écrasé de ce que le médecin a changé depuis) ; ce qui ne correspond plus est rendu dans « ignores » (journal : à vérifier).
 // Les lignes déjà prescrites gardent leur copie du protocole : lignesAVerifier les retrouve pour que le médecin les corrige à la main.
+import { premed } from "./doses.js";
 const S = (t) => String(t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toUpperCase();
 const copie = (p) => JSON.parse(JSON.stringify(p));
 const TRASTU = /TRASTUZUMAB|HERCEPTIN/;
@@ -102,4 +103,29 @@ export function lignesAVerifier(patients, ids) {
     if (reste) out.push({ patientId: x.id, nom: x.nom, etablissementId: x.etablissementId || "", ligne: L.id, protoId: L.protoId, protocole: (L.pr && L.pr.nom) || "" });
   }));
   return out;
+}
+
+// S3 (21/10/2026, d. 44) : arrondi au mg entier qui fausse la dose de plus de 5 % pour une surface de 1,30 à 2,30 m² (ou 40 à 120 kg) :
+// une décimale (0,1 mg) ; « max N mg » écrit en remarque devient le plafond lu par le calcul. Sur la bibliothèque du 18/10 : vincristine
+// d'EMA-CO, trabectédine (Doxorubicine 60 + Trabectédine), dactinomycine, lurbinectédine (la vinblastine de VeIP avait déjà sa décimale, que le
+// calcul n'appliquait pas en mg/kg : corrigé dans moteur/doses.js).
+function ecartArrondi(d) {
+  const [a, b] = d.u === "mg/m²" ? [1.3, 2.3] : d.u === "mg/kg" ? [40, 120] : [0, 0]; if (!a || !(+d.d > 0)) return 0;
+  let w = 0; for (let i = 0; i <= 200; i++) { const x = +d.d * (a + ((b - a) * i) / 200); w = Math.max(w, Math.abs(Math.round(x) - x) / x); }
+  return w;
+}
+function decimales(p) {
+  const faits = [];
+  const dr = p.dr.map((d) => {
+    if (d.dec != null || premed(d) || ecartArrondi(d) <= 0.05) return d;
+    const x = Object.assign({}, d, { dec: 1 }), mx = String(d.n || "").match(/max\.?\s*(\d+(?:[,.]\d+)?)\s*mg/i);
+    if (mx && x.max == null) x.max = +mx[1].replace(",", ".");
+    faits.push(d.p + " : 1 décimale" + (x.max != null && d.max == null ? ", plafond " + x.max + " mg" : "")); return x;
+  });
+  return faits.length ? { dr, quoi: faits.join(" ; ") } : null;
+}
+export function correctionsS3(bib) {
+  const modifies = [];
+  Object.keys(bib).forEach((id) => { const p = bib[id]; if (!p || !Array.isArray(p.dr)) return; const r = decimales(p); if (r) modifies.push({ id, p: Object.assign(copie(p), { dr: r.dr }), quoi: [r.quoi], nom: p.nom }); });
+  return { modifies, crees: [], ignores: [] };
 }

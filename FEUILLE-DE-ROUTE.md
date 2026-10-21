@@ -210,7 +210,17 @@ Avant le **premier client payant** : société éditrice, projet Firebase et nom
       Palbociclib 125mg (Ibrance) + Zometa » séparé en deux protocoles (létrozole ; fulvestrant), « Fulvestrant » bien écrit (d. 29). Une fois,
       à l'ouverture par un médecin (comme `appliquerP4`, drapeau dans `parametres/migrations`), chez elle puis dans le modèle. Vérifier : fiche de
       chimio (page 2 de mFOLFOX6 + Herceptin), séances créées (plus de « C3 J29 » dans l'agenda, la salle, les créneaux), test-audit3p4.
-- [ ] **S3 P0 et doses** (d. 1, 44, 45). (1) Fenêtre « carboplatine contre-indiqué » affichée **deux fois** (créatinine 70 mg/L) : une seule. (2)
+- [x] **(21/10/2026, testé ; pas encore en ligne)** (1) « carboplatine contre-indiqué » deux fois = fenêtre à la saisie de la créatinine puis la même
+      dans la fenêtre de validation : ce qui a été montré à la saisie n'est plus remontré à la validation pour la même créatinine (`REIN_VU`,
+      `alertesRein` de chimio.js) ; (2) créatinine ou clairance hors des bornes (« bonne unité ? ») **dès la saisie** (même texte que
+      `controleSeance`) ; créatinine reprise sans saisie : toujours à la validation ; (3) décimales : `calcul` (moteur/doses.js) applique `dec` aussi en
+      mg/kg et mg/kg_c1 (VeIP : 5,5 mg au lieu de 6) ; `correctionsS3` (audit10.js, drapeau `audit10b`, même passage que S2, tâches pour les lignes
+      en cours) : 1 décimale là où l'arrondi au mg fausse de plus de 5 % entre 1,30 et 2,30 m² — trouvé seul, exactement les lignes de l'audit
+      (vincristine d'EMA-CO, trabectédine de Doxorubicine + Trabectédine, dactinomycine (+ plafond 2 mg de sa remarque), lurbinectédine) ;
+      (4) créatinine sous 7 mg/L (62 µmol/L) avec un carboplatine : avertissement d'un clic « avec une créatinine plancher de 7 mg/L : 355 mg au lieu
+      de 525 mg », calcul inchangé (`controleSeance`, `REPERES.creatCarbo`). Tests : `tests/moteur/test-s3.mjs` 18/18, `tests/test_s3.py` 8/8 (patients
+      fictifs), test-doses 79, test-vigilance 60, test_validation 31, test_vigilance 21, test_seances, test_cures, test_audit10 ; ajoutés au contrôle.
+      **S3 P0 et doses** (d. 1, 44, 45). (1) Fenêtre « carboplatine contre-indiqué » affichée **deux fois** (créatinine 70 mg/L) : une seule. (2)
       Créatinine aberrante (0,7 mg/L) signalée **dès la saisie**, pas seulement à la validation (confirmation « bonne unité ? » existante). (3)
       **Décimales** (d. 44) : 0,1 mg pour vincristine d'EMA-CO, trabectédine, dactinomycine, lurbinectédine, vinblastine (VeIP) ; le moteur applique
       les décimales réglées sur la ligne **aussi aux doses en mg/kg** (aujourd'hui seulement mg/m² : défaut du moteur). (4) **Créatinine sous

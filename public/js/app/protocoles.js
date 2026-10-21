@@ -157,28 +157,34 @@ export async function appliquerP5b() {
 // (trastuzumab, cétuximab : « C1 seule » / « sauf C1 » enfin lus par le calcul), lignes en double, KEYNOTE-A18 phase 2 validé, létrozole et
 // fulvestrant séparés (moteur/audit10.js). Sans fenêtre, noté au journal. Lignes de chimio en cours sous un protocole corrigé : elles gardent
 // leur copie → une tâche « à vérifier » pour le médecin, par patient (rien n'est changé dans une ligne prescrite).
+// Étapes de l'audit n° 10, chacune une fois (drapeau) : S2 (audit10a), S3 décimales (audit10b) ; S4 viendra en audit10c
+const ETAPES_A10 = [["audit10a", "correctionsS2", "Audit n° 10 (anticorps en double, KEYNOTE-A18, létrozole / fulvestrant)"], ["audit10b", "correctionsS3", "Audit n° 10 (décimales des petites doses)"]];
 export async function appliquerAudit10() {
   if (!A.peut("parametres") || !D().membre || D().membre.role !== "medecin" || !BIB().length) return null;
   const rm = doc(db, "espaces", A.ESPACE, "parametres", "migrations"), g = await getDoc(rm).catch(() => null);
-  if (!g || (g.exists() && g.data().audit10a)) return null;
-  const { correctionsS2, lignesAVerifier } = await import("../moteur/audit10.js");
-  const r = correctionsS2(D().ctx.bib), moi = { par: D().u.uid, parNom: (D().membre && D().membre.nom) || "", le: new Date().toISOString() };
-  const signer = (p, neuf) => { p.version = neuf ? 1 : (p.version || 1) + 1; Object.assign(p, { majLe: moi.le, majPar: moi.par, majParNom: moi.parNom }); if (neuf) p.st = "ok"; if (p.st === "ok") p.valide = Object.assign({ version: p.version }, moi); };
-  r.modifies.forEach((m) => { signer(m.p); D().ctx.bib[m.id] = m.p; });
-  r.crees.forEach((p) => { signer(p, true); D().ctx.bib[p.id] = p; rangerNouveau(p.id); });
-  const ecrits = r.modifies.map((m) => m.id).concat(r.crees.map((p) => p.id));
-  if (ecrits.length) await sauverDocs(ecrits);
-  const ids = r.modifies.filter((m) => m.quoi.some((q) => !/statut/.test(q))).map((m) => m.id);
-  const av = D().bib ? [] : lignesAVerifier((D().patients || []).map((x) => ({ id: x.id, nom: (x.r && x.r.nm) || "", etablissementId: (x.doc && x.doc.etablissementId) || "", lignes: (x.P && x.P.lignes) || [] })), ids);
-  if (av.length && A.tacheSysteme) for (const l of av) {
-    const m = r.modifies.find((z) => z.id === l.protoId);
-    await A.tacheSysteme({ titre: "Vérifier la ligne de chimio : protocole corrigé le " + A.dfrA(moi.le.slice(0, 10)), patientId: l.patientId, patientNom: l.nom, etablissementId: l.etablissementId,
-      desc: "La ligne « " + (l.protocole || (m && m.nom) || "") + " » garde sa copie du protocole d'avant la correction (audit n° 10). Correction de la bibliothèque : " + ((m && m.quoi.join(" ; ")) || "") + ". Vérifiez les cures à venir de cette ligne (molécules et jours) et corrigez-la si besoin." }).catch((e) => console.warn("tâche audit 10", e));
+  if (!g) return null;
+  const fait = g.exists() ? g.data() : {}, M = await import("../moteur/audit10.js"), res = [];
+  for (const [drapeau, fn, titre] of ETAPES_A10) {
+    if (fait[drapeau]) continue;
+    const r = M[fn](D().ctx.bib), moi = { par: D().u.uid, parNom: (D().membre && D().membre.nom) || "", le: new Date().toISOString() };
+    const signer = (p, neuf) => { p.version = neuf ? 1 : (p.version || 1) + 1; Object.assign(p, { majLe: moi.le, majPar: moi.par, majParNom: moi.parNom }); if (neuf) p.st = "ok"; if (p.st === "ok") p.valide = Object.assign({ version: p.version }, moi); };
+    r.modifies.forEach((m) => { signer(m.p); D().ctx.bib[m.id] = m.p; });
+    r.crees.forEach((p) => { signer(p, true); D().ctx.bib[p.id] = p; rangerNouveau(p.id); });
+    const ecrits = r.modifies.map((m) => m.id).concat(r.crees.map((p) => p.id));
+    if (ecrits.length) await sauverDocs(ecrits);
+    const ids = r.modifies.filter((m) => m.quoi.some((q) => !/statut/.test(q))).map((m) => m.id);
+    const av = D().bib ? [] : M.lignesAVerifier((D().patients || []).map((x) => ({ id: x.id, nom: (x.r && x.r.nm) || "", etablissementId: (x.doc && x.doc.etablissementId) || "", lignes: (x.P && x.P.lignes) || [] })), ids);
+    if (av.length && A.tacheSysteme) for (const l of av) {
+      const m = r.modifies.find((z) => z.id === l.protoId);
+      await A.tacheSysteme({ titre: "Vérifier la ligne de chimio : protocole corrigé le " + A.dfrA(moi.le.slice(0, 10)), patientId: l.patientId, patientNom: l.nom, etablissementId: l.etablissementId,
+        desc: "La ligne « " + (l.protocole || (m && m.nom) || "") + " » garde sa copie du protocole d'avant la correction (audit n° 10). Correction de la bibliothèque : " + ((m && m.quoi.join(" ; ")) || "") + ". Vérifiez les cures à venir de cette ligne (molécules, jours, doses) et corrigez-la si besoin." }).catch((e) => console.warn("tâche audit 10", e));
+    }
+    await setDoc(rm, { [drapeau]: moi.le.slice(0, 10) }, { merge: true });
+    if (ecrits.length || r.ignores.length) A.journal({ id: "", r: { nm: "" } }, titre + " : " + r.modifies.length + " protocole(s) corrigé(s), " + r.crees.length + " créé(s)" + (r.modifies.length ? " (" + r.modifies.map((m) => m.nom).join(" ; ") + ")" : "") + (r.ignores.length ? " ; à vérifier : " + r.ignores.map((x) => x.id + " " + x.raison).join(" ; ") : "") + (av.length ? " ; " + av.length + " ligne(s) en cours à vérifier (tâches créées)" : ""));
+    res.push(Object.assign(r, { aVerifier: av, drapeau }));
   }
-  await setDoc(rm, { audit10a: moi.le.slice(0, 10) }, { merge: true });
-  if (ecrits.length || r.ignores.length) A.journal({ id: "", r: { nm: "" } }, "Audit n° 10 : " + r.modifies.length + " protocole(s) corrigé(s), " + r.crees.length + " créé(s)" + (r.modifies.length ? " (" + r.modifies.map((m) => m.nom).join(" ; ") + ")" : "") + (r.ignores.length ? " ; à vérifier : " + r.ignores.map((x) => x.id + " " + x.raison).join(" ; ") : "") + (av.length ? " ; " + av.length + " ligne(s) en cours à vérifier (tâches créées)" : ""));
-  if (D().page === "protocoles") pageProtocoles();
-  return Object.assign(r, { aVerifier: av });
+  if (res.length && D().page === "protocoles") pageProtocoles();
+  return res;
 }
 // ───── P9 (18/10/2026) : mises à jour de la bibliothèque de référence (médecin, cabinets autres que celui du Dr Bentahila) ─────
 let MAJ = null, MAJ_ESP = null;

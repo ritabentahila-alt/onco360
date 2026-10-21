@@ -15,7 +15,7 @@ M={n:open(ICI/'mockfb'/n).read() for n in ['firebase-app.js','firebase-auth.js',
 JSZ=open(ICI/'mockfb'/'jszip.min.js').read()
 S=json.load(open(ICI/'seed.json')); E='espaces/cabinet-bentahila/'
 # audit n° 3 (13/10/2026) : corrections de la bibliothèque déjà faites dans le jeu commun (sa fenêtre cacherait les boutons) ; test_audit3 les rejoue
-S.setdefault(E + 'parametres/migrations', {}).update({'audit3a': '2026-10-13', 'audit3b': '2026-10-13', 'audit3c': '2026-10-18', 'audit3d': '2026-10-18', 'audit3e': '2026-10-18', 'audit3f': '2026-10-18', 'audit3g': '2026-10-18', 'bibE3': 1, 'audit10a': '2026-10-21'})  # audit10a : corrections de l'audit n° 10 (S2), rejouées par test_audit10  # bibE3 : mise à jour des bibliothèques (R-E3, 19/10/2026), rejouée par test_ordonnances_e
+S.setdefault(E + 'parametres/migrations', {}).update({'audit3a': '2026-10-13', 'audit3b': '2026-10-13', 'audit3c': '2026-10-18', 'audit3d': '2026-10-18', 'audit3e': '2026-10-18', 'audit3f': '2026-10-18', 'audit3g': '2026-10-18', 'bibE3': 1, 'audit10a': '2026-10-21', 'audit10b': '2026-10-21'})  # audit10a : corrections de l'audit n° 10 (S2), rejouées par test_audit10  # bibE3 : mise à jour des bibliothèques (R-E3, 19/10/2026), rejouée par test_ordonnances_e
 async def ouvrir(b, seed=None, w=1440, h=900, t="2026-10-06T10:00:00", tz=None):
     pg=await b.new_page(viewport={'width':w,'height':h},**({'timezone_id':tz} if tz else {})); pg.errs=[]; pg.dlg=[]; pg.dl=[]
     pg.on('pageerror',lambda e: pg.errs.append(str(e)))

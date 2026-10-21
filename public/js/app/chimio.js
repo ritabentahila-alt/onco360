@@ -620,8 +620,13 @@ export const alertesBio = (b, o) => { const a = [], f = (v) => String(v).replace
   if (b.plq != null && b.plq < S.plq) a.push("plaquettes à " + f(b.plq) + " G/L (moins de " + S.plq + " G/L" + h + ")");
   if (b.hb != null && b.hb < SEUILS_BIO.hb) a.push("hémoglobine à " + f(b.hb) + " g/dL (moins de 8 g/dL)");
   return a; };
+// Repères rénaux d'une séance : clairance par molécule, créatinine ou clairance hors des bornes, créatinine plancher du carboplatine
+const REIN_VU = {};
+function alertesRein(e, G, alertes) { const rc = reperesClairance(e, G); return rc.concat((alertes || []).filter((m) => rc.indexOf(m) < 0 && /^(créatinine de|clairance de|carboplatine : créatinine de)/.test(m))); }
 function verifierValidation(x, i, k, n) {
   const L = lignesDe(x)[i], E = etatLigne(L, x.P, D().ctx), r = controleSeance(E[k], n, L.crU, poidsAvant(E, k, n), poidsDebut(E));
+  const vu = REIN_VU[x.id + "|" + L.id + "|" + k + "|" + n], Gv = E[k] && E[k].g[n]; // S3 : déjà montré à la saisie de cette créatinine
+  if (vu && Gv && Gv.creat === vu.creat) r.alertes = r.alertes.filter((m) => vu.m.indexOf(m) < 0);
   if (r.refus.length) { alert("Validation impossible :\n\n• " + r.refus.join("\n• ") + "\n\nCorrigez la dose (ou saisissez la créatinine) dans la fenêtre de la cure, puis validez."); return null; }
   const nb = (id) => { const v = num(A.val(id)); return v == null ? null : v; };
   const bio = { pnn: bioGL("pnn", nb("bPnn")), plq: bioGL("plq", nb("bPlq")), hb: nb("bHb") };
@@ -865,9 +870,11 @@ window.chChamp = (id, i, k, f, v, j) => {
     }
     await sauverLignes(x, lignes, { poids: "Poids", creat: "Créatinine", pctAll: "Dose des anticancéreux" }[f] + " de la C" + (k + 1) + (j > 1 ? " J" + j : "") + " modifié(e)");
     if (f === "creat" && w !== "") { // 12/10/2026 : repères rénaux des molécules de la séance → fenêtre pour le médecin (sans bloquer)
-      const E2 = etatLigne(L, x.P, D().ctx), g2 = groupes(protocoleCure(L, k, D().ctx.bib) || protocoleDe(L, D().ctx.bib)), G2 = E2[k] && E2[k].g[Math.max(0, g2.findIndex((z) => z.j === j))];
-      const m2 = E2[k] && G2 ? reperesClairance(E2[k], G2) : [];
-      if (m2.length) setTimeout(() => alert("Fonction rénale (DFG " + G2.cl + " ml/min, Cockcroft-Gault) :\n\n• " + m2.join("\n• ")), 300);
+      // S3 (21/10/2026, audit 2 et 10) : dès la saisie aussi la créatinine hors des bornes (« bonne unité ? ») et la créatinine plancher du
+      // carboplatine ; ce qui a été montré ici n'est pas remontré à la validation pour la même créatinine (une seule fenêtre)
+      const E2 = etatLigne(L, x.P, D().ctx), g2 = groupes(protocoleCure(L, k, D().ctx.bib) || protocoleDe(L, D().ctx.bib)), n2 = Math.max(0, g2.findIndex((z) => z.j === j)), G2 = E2[k] && E2[k].g[n2];
+      const m2 = E2[k] && G2 ? alertesRein(E2[k], G2, controleSeance(E2[k], n2, L.crU).alertes) : [];
+      if (m2.length) { REIN_VU[x.id + "|" + L.id + "|" + k + "|" + n2] = { creat: G2.creat, m: m2 }; setTimeout(() => alert("Fonction rénale (DFG " + G2.cl + " ml/min, Cockcroft-Gault) :\n\n• " + m2.join("\n• ")), 300); }
     }
   });
 };

@@ -9,7 +9,7 @@ def ok(c, m, d=None):
     else: ko_n += 1; print('  ✘ ' + m + ('' if d is None else ' ' + str(d)[:300]))
 S2, PIDS = avec_demo(S, E)
 for k in [k for k in S2 if k.startswith(E + 'patients/') and k.split('/')[-1] not in PIDS]: del S2[k]
-[S2[E + 'parametres/migrations'].pop(k, None) for k in ('audit3a', 'audit3b', 'audit3c', 'audit3d', 'audit3e', 'audit3f', 'audit3g', 'audit10a')]
+[S2[E + 'parametres/migrations'].pop(k, None) for k in ('audit3a', 'audit3b', 'audit3c', 'audit3d', 'audit3e', 'audit3f', 'audit3g', 'audit10a', 'audit10b')]
 bib = lambda fs: {p['id']: p for k in fs if k.startswith(E + 'protocoles/') for p in json.loads(fs[k]['data'] or '[]')}
 B0 = bib(S2); FH = B0['colon|FOLFOX herceptine']
 # PATIENT TEST 1 : une ligne mFOLFOX6 + Herceptin en cours (C1 reçue, C2 prévue), avec sa copie du protocole d'avant
