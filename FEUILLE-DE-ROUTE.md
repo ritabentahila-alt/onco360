@@ -163,7 +163,7 @@ Avant le **premier client payant** : société éditrice, projet Firebase et nom
 | À placer : test_comptable | **S7** ; heure du Maroc : **S1** (la note de l'ancien « À placer » croyait l'inverse : c'est le serveur à jour qui a raison) |
 
 ## Phase S – Soins et sécurité (cette semaine)
-- [x] **(21/10/2026, testé ; pas encore en ligne)** Vérifié en ligne : retour à GMT le 20/09/2026, définitif (décret n° 2.26.530, BO n° 7521 du
+- [x] **(21/10/2026, testé ; en ligne : 20261021a, site, règles et fonctions)** Vérifié en ligne : retour à GMT le 20/09/2026, définitif (décret n° 2.26.530, BO n° 7521 du
       29/06/2026 ; TelQuel, Hespress, FNH) ; l'horloge de la session de Claude ne suivait pas l'heure d'internet (07 h 34 UTC sur internet quand elle donnait
       22 h 48 UTC la veille) : l'écart noté le 20/10 venait de là, pas d'Onco360. `public/js/moteur/heure.js` (table `CHANGEMENTS0` tirée des données horaires 2026c,
       2018 → 2026 ; `tableAvec`, `changerTable`, `decalage`, `jourMaroc`, `hmMaroc`, `minutesMaroc`, `dateHeureMaroc`, `instantMaroc`) = `functions/heure.js`
@@ -174,7 +174,7 @@ Avant le **premier client payant** : société éditrice, projet Firebase et nom
       **Plateforme** › Heure du Maroc (fonction `heureMaroc`, `plateforme/heureMaroc` lu par tout compte connecté à l'ouverture, écrit par la fonction
       seule : règle + `tests/regles/test-heure.mjs` 6/6 ; serveur : relu avant chaque traitement de nuit, `heureAJour`). Tests : `tests/test_heure.py`
       13/13 (ordinateur à Bruxelles, « Casablanca » du navigateur, table de l'Administration, écran de l'Administration, 390 px), test_salle 51 (attendu
-      fixe 09:00), test_recu 23, test_agenda 57, tests serveur et moteur ; ajoutés au contrôle complet. **À mettre en ligne : site, règles, fonctions.**
+      fixe 09:00), test_recu 23, test_agenda 57, tests serveur et moteur ; ajoutés au contrôle complet. **En ligne le 21/10/2026 (20261021a).**
       **S1 Heure du Maroc** (d. 2 ; audit 10, « À reprendre » et « Méthode › Heure »). Le Maroc est à **GMT depuis le 20/09/2026** (décret
       n° 2.26.530) ; les navigateurs et Node pas à jour (données horaires 2025b) donnent encore GMT+1 pour `Africa/Casablanca` : arrivée et attente en
       salle, « à jour à », Visa accueil du reçu, créneau « maintenant », changement de jour (`nouveauJour` à 23 h au lieu de minuit) faux d'une heure.
@@ -189,7 +189,7 @@ Avant le **premier client payant** : société éditrice, projet Firebase et nom
       partout `timeZone: "Africa/Casablanca"` / `heureMaroc` / `hm` (salle.js, v2.js, recus, documents, serveur : exports, relevé, tâches de nuit).
       Tests : heure d'arrivée, attente, Visa accueil, « maintenant » des créneaux, passage à minuit, une période GMT+1 ajoutée (ex. Ramadan),
       serveur (`functions/test-*.js`). Corriger la note « Heure du Maroc » de l'ancien « À placer ».
-- [x] **(21/10/2026, testé ; pas encore en ligne)** `public/js/moteur/audit10.js` `correctionsS2` (sur la bibliothèque reconstruite du 18/10 :
+- [x] **(21/10/2026, testé ; en ligne : 20261021a, site, règles et fonctions)** `public/js/moteur/audit10.js` `correctionsS2` (sur la bibliothèque reconstruite du 18/10 :
       9 protocoles corrigés, 1 créé) : trastuzumab toutes les 2 semaines (mFOLFOX6 + Herceptin, FOLFIRI + Trastuzumab) = charge 6 mg/kg à C1 J1
       seulement (`c1s`), 4 mg/kg à J1 sauf C1 (`nc1`) et à J15, plus de ligne J29 (C1 : 420 / 280 mg au lieu de 420 / 420 + 280 ; plus de séance
       « C3 J29 ») ; « C1 seule » / « sauf C1 » / « cycle 1 uniquement » lus par le calcul (Paclitaxel 80 + Trastuzumab, ERBITAX, TPEx : J1 = charge
@@ -213,7 +213,7 @@ Avant le **premier client payant** : société éditrice, projet Firebase et nom
       Palbociclib 125mg (Ibrance) + Zometa » séparé en deux protocoles (létrozole ; fulvestrant), « Fulvestrant » bien écrit (d. 29). Une fois,
       à l'ouverture par un médecin (comme `appliquerP4`, drapeau dans `parametres/migrations`), chez elle puis dans le modèle. Vérifier : fiche de
       chimio (page 2 de mFOLFOX6 + Herceptin), séances créées (plus de « C3 J29 » dans l'agenda, la salle, les créneaux), test-audit3p4.
-- [x] **(21/10/2026, testé ; pas encore en ligne)** (1) « carboplatine contre-indiqué » deux fois = fenêtre à la saisie de la créatinine puis la même
+- [x] **(21/10/2026, testé ; en ligne : 20261021a, site, règles et fonctions)** (1) « carboplatine contre-indiqué » deux fois = fenêtre à la saisie de la créatinine puis la même
       dans la fenêtre de validation : ce qui a été montré à la saisie n'est plus remontré à la validation pour la même créatinine (`REIN_VU`,
       `alertesRein` de chimio.js) ; (2) créatinine ou clairance hors des bornes (« bonne unité ? ») **dès la saisie** (même texte que
       `controleSeance`) ; créatinine reprise sans saisie : toujours à la validation ; (3) décimales : `calcul` (moteur/doses.js) applique `dec` aussi en
@@ -229,7 +229,7 @@ Avant le **premier client payant** : société éditrice, projet Firebase et nom
       les décimales réglées sur la ligne **aussi aux doses en mg/kg** (aujourd'hui seulement mg/m² : défaut du moteur). (4) **Créatinine sous
       7 mg/L avant un carboplatine** (d. 45) : avertissement d'un clic (« clairance sans doute surestimée ; avec 7 mg/L : … mg »), **sans changer le
       calcul**. Tests d'abord : test-doses (79), test-vigilance ; cas de l'audit (femme de 80 ans, 45 kg, créatinine 4 mg/L).
-- [x] **(21/10/2026, testé ; pas encore en ligne)** `correctionsS4` (audit10.js, drapeau `audit10c`, même passage, tâches pour les lignes en cours ;
+- [x] **(21/10/2026, testé ; en ligne : 20261021a, site, règles et fonctions)** `correctionsS4` (audit10.js, drapeau `audit10c`, même passage, tâches pour les lignes en cours ;
       58 protocoles sur la bibliothèque reconstruite) : (1) **5-FU en diffuseur de 96 h / 120 h** = dose totale du diffuseur (TPF, EXTREME, KEYNOTE-048,
       ACT II, GORTEC 94-01, CheckMate 648, KEYNOTE-590… : 1 000 × 4 = 4 000 mg/m², 800 × 5 = 4 000), la dose par jour en remarque ; 5-FU 225 mg/m²/j
       pendant toute la RT laissé par jour ; (2) **Solumedrol de J1 avec le carboplatine (sans cisplatine, non hebdomadaire) : 60 ou 40 → 80 mg**
@@ -258,7 +258,7 @@ Avant le **premier client payant** : société éditrice, projet Firebase et nom
       (6) **ZOMETA** : créatinine avant chaque perfusion, dose selon la clairance, bilan dentaire, calcium et vitamine D (comme XGEVA) ;
       **NAUSELIUM** : durée maximale de la dompéridone (7 jours, EMA 2014) ; selon les recommandations. Même passage unique qu'en S2 ; puis
       modèle recopié (étape 1 de l'Administration, à faire par Dr Bentahila). Tests : test-audit3p4, test_audit3.
-- [x] **(21/10/2026, testé ; pas encore en ligne)** `moteur/p10.js` : `INTERACTIONS0` (vinca-alcaloïdes + azolés dont fluconazole / NOCAND ; taxanes et
+- [x] **(21/10/2026, testé ; en ligne : 20261021a, site, règles et fonctions)** `moteur/p10.js` : `INTERACTIONS0` (vinca-alcaloïdes + azolés dont fluconazole / NOCAND ; taxanes et
       irinotécan + inhibiteurs ou inducteurs du CYP3A4 ; tamoxifène + paroxétine, fluoxétine, bupropion ; pémétrexed + AINS **sous 80 ml/min** ; 5-FU /
       capécitabine + brivudine : contre-indication absolue), mots cherchés dans les traitements en cours et antécédents (mot de moins de 5 lettres = mot
       entier), en plus des interactions déjà écrites ; **réglables** : Paramètres › Bibliothèques › Vigilance des molécules › « Interactions » (ajouter,
