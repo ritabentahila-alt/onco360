@@ -93,6 +93,9 @@ Sources plus anciennes : audits n° 1 à 3 (Drive › Audit, `archives/audit-3/`
    (montant, « PAYANT ») ; cadre « Visa accueil » (identifiant de l'agent, heure). **Aucune mention de TVA, ni IF, TP, ICE, INPE, ni montant en
    lettres.** → T6 : « Acte exonéré de TVA » et la phrase « à valider par le comptable » retirées. Les autres mentions du reçu d'Onco360 (IF, TP,
    ICE, INPE, montant en lettres), décidées le 17/10, restent ; chacune se décoche déjà dans Paramètres › Impression.
+6. (21/10, S4) **Solumedrol à 120 mg** dans 3 de vos protocoles d'origine avec le carboplatine (Paclitaxel 175 + Carboplatine J1-J21 ; Paclitaxel 200 +
+   Carboplatine + Bévacizumab ; Pémétrexed + Carboplatine J1-J21) : la règle du 13/10 dit 80 mg ; je ne baisse pas une prémédication sans votre accord.
+   Passer à 80 mg ? (Conseil : oui pour le pémétrexed ; pour le paclitaxel, 80 mg comme vos autres paclitaxel-carboplatine, ou garder 120.)
 5. (20/10, O4) Prix des packs : « mettre plutôt les mêmes prix que GestiCab ou DabaDoc, prix marocains » (étape L10 : relevé des prix, puis
    proposition).
 
@@ -226,7 +229,24 @@ Avant le **premier client payant** : société éditrice, projet Firebase et nom
       les décimales réglées sur la ligne **aussi aux doses en mg/kg** (aujourd'hui seulement mg/m² : défaut du moteur). (4) **Créatinine sous
       7 mg/L avant un carboplatine** (d. 45) : avertissement d'un clic (« clairance sans doute surestimée ; avec 7 mg/L : … mg »), **sans changer le
       calcul**. Tests d'abord : test-doses (79), test-vigilance ; cas de l'audit (femme de 80 ans, 45 kg, créatinine 4 mg/L).
-- [ ] **S4 Bibliothèque : harmonisation** (d. 28, 30 à 34 ; audit 10, « À harmoniser » et « Médicaments »). Chaque changement vérifié sur la
+- [x] **(21/10/2026, testé ; pas encore en ligne)** `correctionsS4` (audit10.js, drapeau `audit10c`, même passage, tâches pour les lignes en cours ;
+      58 protocoles sur la bibliothèque reconstruite) : (1) **5-FU en diffuseur de 96 h / 120 h** = dose totale du diffuseur (TPF, EXTREME, KEYNOTE-048,
+      ACT II, GORTEC 94-01, CheckMate 648, KEYNOTE-590… : 1 000 × 4 = 4 000 mg/m², 800 × 5 = 4 000), la dose par jour en remarque ; 5-FU 225 mg/m²/j
+      pendant toute la RT laissé par jour ; (2) **Solumedrol de J1 avec le carboplatine (sans cisplatine, non hebdomadaire) : 60 ou 40 → 80 mg**
+      (17 + Carboplatine + Vinorelbine ; ligne coupée si elle couvrait aussi J2, J3 ou J8, ces jours inchangés) ; **jamais baissé : 3 protocoles d'origine
+      de Dr Bentahila à 120 mg** (Paclitaxel 175 + Carboplatine J1-J21, Paclitaxel 200 + Carboplatine + Bévacizumab, Pémétrexed + Carboplatine) **laissés,
+      question 6 ci-dessus** ; (3) **acide folinique** : vérifié en ligne (protocole KEYNOTE-177, monographie FOLFIRI de Cancer Care Ontario : 400 mg/m²,
+      lévofolinate 200) → les 14 mFOLFOX6 / FOLFIRI / LV5FU2 à 50 mg fixe passent à 400 mg/m² ; FLOT, FOLFOXIRI, FOLFOX + RT (200 mg/m²) inchangés ;
+      (4) **vinorelbine** : vérifié en ligne, Michael 2005 (Br J Cancer, phase I) : cisplatine 20 + vinorelbine **15** mg/m² hebdomadaires avec la RT →
+      15 (le nom disait 15, la ligne 10) ; (5) **durée maximale des immunothérapies selon l'indication** en remarque, 14 protocoles sans durée (KEYNOTE-189 :
+      35 cures ; KEYNOTE-522 : 8 + 9 cures ; IMpower010 : 1 an ; CheckMate 649 / 648 : 2 ans ; IMbrave150, JAVELIN Merkel, cémiplimab : jusqu'à progression) ;
+      rien bloqué ; (6) **ZOMETA** (créatinine avant chaque perfusion, dose selon la clairance du RCP 4 / 3,5 / 3,3 / 3 mg, < 30 non recommandé, bilan
+      dentaire, calcium et vitamine D) et **NAUSELIUM** (7 jours au plus, 30 mg par jour, EMA 2014) : `medicaments.js` + `majbib.js` **VERSION_BIB 2**
+      (porté dans le cabinet sans écraser une fiche modifiée). NOCAND = fluconazole confirmé (d. 3). Tests : test-audit10 48/48, test-bibmaj 23/23,
+      test_audit10 16/16, test_ordonnances_e 47, test_audit3, test_protocoles, test_cures, test_p10, test_ordonnances_protocole, test_modele_admin bons ;
+      tous les tests du moteur bons. **Après la mise en ligne, à faire par Dr Bentahila** : ouvrir Onco360 (sa bibliothèque se corrige, tâches « Vérifier
+      la ligne » s'il a des patients sous ces protocoles), puis Administration › Par spécialité › Modèle des cabinets neufs › étape 1 « Copier ».
+      **S4 Bibliothèque : harmonisation** (d. 28, 30 à 34 ; audit 10, « À harmoniser » et « Médicaments »). Chaque changement vérifié sur la
       source du protocole (**recherche en ligne dans la session**, source notée dans le journal de la session) :
       (1) **5-FU en diffuseur** : partout la **dose totale du diffuseur** dans la ligne, la dose par jour en remarque (11 protocoles : TPF, EXTREME,
       KEYNOTE-048…). (2) **Solumedrol de J1 avec le carboplatine : 80 mg** (règle du 13/10), sauf les protocoles hebdomadaires (21 protocoles, dont

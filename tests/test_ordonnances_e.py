@@ -16,7 +16,7 @@ P = E + 'patients/' + pid
 ancien = json.loads(subprocess.run(['node', '--input-type=module', '-e', '''
 import { MEDICAMENTS0 } from "./public/js/donnees/medicaments.js"; import { MAJ_BIB } from "./public/js/donnees/majbib.js";
 const L = MEDICAMENTS0.slice(0, 165).map((m, i) => ({ id: "m" + (i + 1), nom: m[0], poso: m[1], classe: m[2] || "" }));
-MAJ_BIB.medicaments.corrections.forEach((c) => { const o = L.find((z) => z.id === c.apres[0]); o.nom = c.avant[0]; o.poso = c.avant[1]; });
+MAJ_BIB.medicaments.corrections.forEach((c) => { const o = L.find((z) => z.id === c.apres[0]); if (o) { o.nom = c.avant[0]; o.poso = c.avant[1]; } }); // S4 : NAUSELIUM (version 2) absent d'avant
 console.log(JSON.stringify(L));'''], cwd=str(ICI.parent), capture_output=True, text=True).stdout)
 ancien[[i for i, m in enumerate(ancien) if m['nom'].startswith('TAVANIC')][0]]['poso'] = 'Posologie du cabinet'
 ancien = [m for m in ancien if not m['nom'].startswith('MOSCONTIN')]
@@ -46,7 +46,7 @@ async def main():
         ok(not any(n.startswith('MOSCONTIN') for n in noms), 'MOSCONTIN retiré par le cabinet : ni remis, ni ses autres dosages')
         ok('SOLUPRED (prednisolone) 20 mg' in noms and 'NAUSELIUM (dompéridone) sirop' in noms and 'LOPERIUM (lopéramide) 2 mg – diarrhée retardée de l\'irinotécan' in noms, 'fiches nouvelles ajoutées (SOLUPRED, NAUSELIUM, LOPERIUM de l\'irinotécan)')
         ok('DUROGESIC (fentanyl) 25 µg/h, patch' in noms and 'LEVOTHYROX (lévothyroxine) 100 µg' in noms, 'une fiche par dosage (DUROGESIC, LEVOTHYROX)')
-        ok((fs.get(E + 'parametres/migrations') or {}).get('bibE3') == 1, 'mise à jour notée faite (une seule fois)')
+        ok((fs.get(E + 'parametres/migrations') or {}).get('bibE3') == 2, 'mise à jour notée faite (une seule fois, version 2 : S4)')
         ok(any('Bibliothèques mises à jour' in (v.get('quoi') or '') for k, v in fs.items() if k.startswith(E + 'historique/')), 'notée au journal du cabinet')
         await pg.close()
 

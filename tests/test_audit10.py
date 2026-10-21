@@ -9,7 +9,7 @@ def ok(c, m, d=None):
     else: ko_n += 1; print('  ✘ ' + m + ('' if d is None else ' ' + str(d)[:300]))
 S2, PIDS = avec_demo(S, E)
 for k in [k for k in S2 if k.startswith(E + 'patients/') and k.split('/')[-1] not in PIDS]: del S2[k]
-[S2[E + 'parametres/migrations'].pop(k, None) for k in ('audit3a', 'audit3b', 'audit3c', 'audit3d', 'audit3e', 'audit3f', 'audit3g', 'audit10a', 'audit10b')]
+[S2[E + 'parametres/migrations'].pop(k, None) for k in ('audit3a', 'audit3b', 'audit3c', 'audit3d', 'audit3e', 'audit3f', 'audit3g', 'audit10a', 'audit10b', 'audit10c')]
 bib = lambda fs: {p['id']: p for k in fs if k.startswith(E + 'protocoles/') for p in json.loads(fs[k]['data'] or '[]')}
 B0 = bib(S2); FH = B0['colon|FOLFOX herceptine']
 # PATIENT TEST 1 : une ligne mFOLFOX6 + Herceptin en cours (C1 reçue, C2 prévue), avec sa copie du protocole d'avant
@@ -29,11 +29,17 @@ async def main():
         ok(B['audit3|keynote-a18-phase2'].get('st') == 'ok', 'KEYNOTE-A18 – phase 2 « Validé »')
         ok(B['sein|ibrance zometa']['nom'].startswith('Létrozole') and 'audit10|fulvestrant-palbociclib-zometa' in B, 'létrozole et fulvestrant séparés')
         ok(len(B) == 369, '368 + 1 protocole créé = 369', len(B))
+        mig = fs.get(E + 'parametres/migrations') or {}
+        ok(mig.get('audit10b') and mig.get('audit10c'), 'S3 et S4 faits aussi, une fois (audit10b, audit10c)')
+        tpf = [d for d in B['todo|tpf']['dr'] if 'FLUORO' in d['p'].upper()][0]; lvf = [d for d in B['maj|mfolfox6-eviq-']['dr'] if 'FOLINIQUE' in d['p'].upper()][0]
+        ok(tpf['d'] == 4000 and lvf['d'] == 400 and lvf['u'] == 'mg/m²', 'S4 : TPF 5-FU 4 000 mg/m² par diffuseur, mFOLFOX6 acide folinique 400 mg/m²', [tpf, lvf])
+        ok([d for d in B['audit3|n027']['dr'] if 'VINCRISTINE' in d['p'].upper()][0].get('dec') == 1, 'S3 : vincristine d\'EMA-CO à 1 décimale')
         T = [v for k, v in fs.items() if k.startswith(E + 'taches/')]
         t = [x for x in T if x.get('patientId') == P1]
         ok(len(t) == 1 and 'Vérifier la ligne de chimio' in t[0]['titre'] and 'mFOLFOX6' in t[0]['desc'] and t[0]['pour'] == t[0]['de'], 'tâche « Vérifier la ligne de chimio » pour le médecin, sur PATIENT TEST 1', t)
         autres = [x for x in T if x.get('patientId') != P1 and 'Vérifier la ligne' in x.get('titre', '')]
-        ok(all(json.loads(fs[E + 'patients/' + x['patientId']]['lignesJson']) and any(l['protoId'] in ('colon|FOLFOX herceptine', 'todo|folfiri-trastuzumab', 'audit3|n042', 'audit3|n057', 'audit3|n056', 'audit3|n022', 'audit3|n036', 'sein|ibrance zometa') for l in json.loads(fs[E + 'patients/' + x['patientId']]['lignesJson'])) for x in autres), 'autres tâches : seulement des patients sous un protocole corrigé', [(x['patientNom'], x['desc'][:80]) for x in autres])
+        noms_lignes = lambda pid: [ (l.get('pr') or {}).get('nom', '') for l in json.loads(fs[E + 'patients/' + pid]['lignesJson']) ]
+        ok(all(any(n and ('« ' + n + ' »') in x['desc'] for n in noms_lignes(x['patientId'])) for x in autres), 'autres tâches : chacune sur une ligne du patient sous un protocole corrigé', [(x['patientNom'], x['desc'][:80]) for x in autres])
         pat = json.loads(fs[E + 'patients/' + P1]['lignesJson'])
         ok(any(d.get('u') == 'mg/kg_c1' for d in pat[0]['pr']['dr']), 'la ligne prescrite garde sa copie du protocole (rien changé tout seul)')
         H = [v for k, v in fs.items() if k.startswith(E + 'historique/')]

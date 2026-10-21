@@ -12,12 +12,14 @@ const t = (c, m, d) => { if (c) { ok++; console.log("  ✔ " + m); } else { ko++
 const src = (f) => readFileSync(new URL("../../public/js/donnees/" + f, import.meta.url), "utf8");
 const depart = MEDICAMENTS0.map((m, i) => ({ id: m[3] || "m" + (i + 1), nom: m[0], poso: m[1], classe: m[2] || "" }));
 const ancien = depart.slice(0, 165).map((m) => Object.assign({}, m));
-MAJ_BIB.medicaments.corrections.forEach((c) => { const o = ancien.find((z) => z.id === c.apres[0]); o.nom = c.avant[0]; o.poso = c.avant[1]; });
+// VERSION_BIB 2 (S4, 21/10/2026) : une correction peut viser une fiche ajoutée par la version 1 (NAUSELIUM), absente de la liste d'avant
+const CORR_ANCIEN = MAJ_BIB.medicaments.corrections.filter((c) => ancien.some((z) => z.id === c.apres[0]));
+CORR_ANCIEN.forEach((c) => { const o = ancien.find((z) => z.id === c.apres[0]); o.nom = c.avant[0]; o.poso = c.avant[1]; });
 
 console.log("Médicaments : cabinet qui n'a rien modifié");
 let L = JSON.parse(JSON.stringify(ancien)); L.find((z) => z.nom.startsWith("TAVANIC")).fav = true;
 let r = fusionnerListe("medicaments", L, MAJ_BIB.medicaments, depart, []);
-t(r.corriges === MAJ_BIB.medicaments.corrections.length, "toutes les fiches d'avant corrigées (" + r.corriges + ")", r);
+t(r.corriges === CORR_ANCIEN.length, "toutes les fiches d'avant corrigées (" + r.corriges + ")", r);
 t(L.length === 180 && JSON.stringify(L.map((z) => z.nom).sort()) === JSON.stringify(depart.map((z) => z.nom).sort()), "la liste devient la liste de départ d'aujourd'hui (180 fiches)", L.length);
 const tav = L.find((z) => z.nom.startsWith("TAVANIC"));
 t(tav.poso.indexOf("une fois par jour") >= 0 && tav.fav === true && tav.id === "m134", "TAVANIC corrigé, son étoile et son identifiant gardés", tav);
@@ -72,4 +74,11 @@ t(ajouterManquantes(ord2, ordD, ["t1"]) === 0 && ajouterManquantes(ord2, ordD, [
 t(JSON.stringify(retiresEntre([{ id: "a" }, { id: "b" }], [{ id: "b" }])) === '["a"]', "identifiants retirés notés");
 t(!ordD.some((o) => o.items.some((i) => /…/.test(i.nom + i.poso))), "ordonnances types : aucun « … » dans les lignes (zones « [… à compléter] » seulement)");
 
+console.log("S4 (version 2) : cabinet déjà passé par la version 1");
+{ const v1 = depart.map((m) => Object.assign({}, m)); v1.find((z) => z.id === "m162").poso = "1 perfusion intraveineuse de 15 minutes toutes les 4 semaines (ou toutes les 12 semaines)"; v1.find((z) => z.id === "m-nauselium").poso = "1 cuillère-mesure 3 fois par jour, 15 minutes avant les repas, en cas de nausées";
+  fusionnerListe("medicaments", v1, MAJ_BIB.medicaments, depart, []); const Z = v1.find((z) => z.id === "m162"), N = v1.find((z) => z.id === "m-nauselium");
+  t(/clairance/.test(Z.poso) && /bilan dentaire/.test(Z.poso) && /7 jours au plus/.test(N.poso), "ZOMETA et NAUSELIUM complétés", [Z.poso, N.poso]);
+  const v1m = v1.map((m) => Object.assign({}, m)); v1m.find((z) => z.id === "m162").poso = "ma posologie";
+  fusionnerListe("medicaments", v1m, MAJ_BIB.medicaments, depart, []); t(v1m.find((z) => z.id === "m162").poso === "ma posologie", "ZOMETA modifié par le cabinet : gardé"); }
 console.log(`\n${ok} réussis, ${ko} échoués`); if (ko) process.exit(1);
+

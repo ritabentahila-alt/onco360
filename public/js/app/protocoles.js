@@ -157,8 +157,8 @@ export async function appliquerP5b() {
 // (trastuzumab, cétuximab : « C1 seule » / « sauf C1 » enfin lus par le calcul), lignes en double, KEYNOTE-A18 phase 2 validé, létrozole et
 // fulvestrant séparés (moteur/audit10.js). Sans fenêtre, noté au journal. Lignes de chimio en cours sous un protocole corrigé : elles gardent
 // leur copie → une tâche « à vérifier » pour le médecin, par patient (rien n'est changé dans une ligne prescrite).
-// Étapes de l'audit n° 10, chacune une fois (drapeau) : S2 (audit10a), S3 décimales (audit10b) ; S4 viendra en audit10c
-const ETAPES_A10 = [["audit10a", "correctionsS2", "Audit n° 10 (anticorps en double, KEYNOTE-A18, létrozole / fulvestrant)"], ["audit10b", "correctionsS3", "Audit n° 10 (décimales des petites doses)"]];
+// Étapes de l'audit n° 10, chacune une fois (drapeau) : S2 (audit10a), S3 décimales (audit10b), S4 harmonisation (audit10c)
+const ETAPES_A10 = [["audit10a", "correctionsS2", "Audit n° 10 (anticorps en double, KEYNOTE-A18, létrozole / fulvestrant)"], ["audit10b", "correctionsS3", "Audit n° 10 (décimales des petites doses)"], ["audit10c", "correctionsS4", "Audit n° 10 (5-FU en dose totale du diffuseur, Solumedrol 80 mg avec le carboplatine, acide folinique 400 mg/m², vinorelbine, durée des immunothérapies)"]];
 export async function appliquerAudit10() {
   if (!A.peut("parametres") || !D().membre || D().membre.role !== "medecin" || !BIB().length) return null;
   const rm = doc(db, "espaces", A.ESPACE, "parametres", "migrations"), g = await getDoc(rm).catch(() => null);

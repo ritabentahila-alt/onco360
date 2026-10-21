@@ -129,3 +129,87 @@ export function correctionsS3(bib) {
   Object.keys(bib).forEach((id) => { const p = bib[id]; if (!p || !Array.isArray(p.dr)) return; const r = decimales(p); if (r) modifies.push({ id, p: Object.assign(copie(p), { dr: r.dr }), quoi: [r.quoi], nom: p.nom }); });
   return { modifies, crees: [], ignores: [] };
 }
+
+// S4 (21/10/2026, d. 28, 30 à 33) : harmonisation de la bibliothèque (vérifiée sur les sources le 21/10/2026 : protocole KEYNOTE-177 et
+// monographie FOLFIRI de Cancer Care Ontario pour l'acide folinique ; Michael 2005, Br J Cancer, pour la vinorelbine 15 mg/m² hebdomadaire
+// avec le cisplatine 20 et la radiothérapie ; essais cités dans chaque protocole pour la durée des immunothérapies).
+const fr = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, " ").replace(".", ",");
+// (1) 5-FU en diffuseur de 96 h ou 120 h écrit « 1 000 mg/m² /j » : la ligne porte la dose totale du diffuseur, la dose par jour en remarque
+function diffuseurTotal(p) {
+  const faits = [];
+  const dr = p.dr.map((d) => {
+    const m = String(d.n || "").match(/^\/j en continu \(diffuseur (\d+) h\)$/);
+    if (!m || d.u !== "mg/m²" || !/FLUORO|5-FU/.test(S(d.p)) || +m[1] % 24) return d;
+    const jours = +m[1] / 24, tot = Math.round(+d.d * jours);
+    faits.push("5-FU : " + fr(tot) + " mg/m² par diffuseur de " + m[1] + " h (" + fr(d.d) + " mg/m²/j × " + jours + " j)");
+    return Object.assign({}, d, { d: tot, n: "dose totale du diffuseur de " + m[1] + " h (" + fr(d.d) + " mg/m²/j × " + jours + " j)" });
+  });
+  return faits.length ? { dr, quoi: faits.join(" ; ") } : null;
+}
+// (2) Solumedrol de J1 avec le carboplatine (sans cisplatine) : 80 mg (règle du 13/10), sauf les protocoles hebdomadaires (carboplatine
+// donné plusieurs jours de la cure, cycle de 7 jours ou « hebdo » dans le nom) ; une ligne qui couvre aussi d'autres jours est coupée (J1 à
+// 80 mg, les autres jours inchangés). Seulement vers le haut (40, 60 → 80) : les 3 protocoles d'origine à 120 mg (paclitaxel 175 / 200, pémétrexed)
+// sont laissés tels quels, question posée à Dr Bentahila le 21/10 (on ne baisse pas une prémédication sans son accord)
+function solumedrolCarbo(p) {
+  const carbo = p.dr.find((d) => /CARBOPLATINE/.test(S(d.p)));
+  if (!carbo || p.dr.some((d) => /CISPLATINE/.test(S(d.p))) || (carbo.j || []).filter((j) => j !== 99).length > 1 || p.c === 7 || /HEBDO/.test(S(p.nom))) return null;
+  const faits = [], dr = [];
+  p.dr.forEach((d) => {
+    if (!/SOLUMEDROL|METHYLPREDNISOLONE/.test(S(d.p)) || d.u !== "mg" || (d.j || []).indexOf(1) < 0 || !(+d.d < 80) || d.c1s || d.nc1 || d.cmax) { dr.push(d); return; }
+    faits.push("Solumedrol de J1 : " + d.d + " → 80 mg");
+    const autres = (d.j || []).filter((j) => j !== 1);
+    dr.push(Object.assign({}, d, { d: 80, j: [1] }));
+    if (autres.length) dr.push(Object.assign({}, d, { j: autres, id: d.id + "s" }));
+  });
+  return faits.length ? { dr, quoi: faits.join(" ; ") } : null;
+}
+// (3) Acide folinique en dose fixe de 50 mg (pratique d'eviQ) dans les mFOLFOX6, FOLFIRI, LV5FU2 : 400 mg/m² (racémique), la dose des essais
+function foliniqueReference(p) {
+  if (!p.dr.some((d) => /5-FU DIFFUSEUR/.test(S(d.p)) && /46 H|48 H/.test(S(d.n) + S(d.t)))) return null;
+  let n = 0;
+  const dr = p.dr.map((d) => {
+    if (!/FOLINIQUE/.test(S(d.p)) || d.u !== "mg" || +d.d !== 50) return d; n++;
+    return Object.assign({}, d, { u: "mg/m²", d: 400, v: "IV", t: "2 h", n: "folinate de calcium racémique (lévofolinate : 200 mg/m²)" });
+  });
+  return n ? { dr, quoi: "acide folinique : 50 mg fixe → 400 mg/m² (dose des essais)" } : null;
+}
+// (4) « Cisplatine 20 + Vinorelbine 15 hebdomadaire + RT » prescrivait 10 mg/m²
+const ID_VINO = "poumon|Cisplatine - Navelbine Avec Radiotherapie";
+// (5) Immunothérapies : durée maximale selon l'indication, en remarque (rien n'est bloqué)
+const DUREES_IO = {
+  "poumon|keytruda alimta": "Pembrolizumab : 35 cures au plus en tout (environ 2 ans), cures d'induction comprises (KEYNOTE-189)",
+  "poumon|Pemetrexed - cisplatine keytruda": "Pembrolizumab : 35 cures au plus (environ 2 ans), entretien compris (KEYNOTE-189)",
+  "poumon|pemetrexed keytruda carbo hebdo": "Pembrolizumab : 35 cures au plus (environ 2 ans), entretien compris (KEYNOTE-189)",
+  "sein|carboplatine paclitaxel hebdomadaire pembrolizumab": "Pembrolizumab : 8 cures néoadjuvantes puis 9 cures adjuvantes, soit environ 1 an en tout (KEYNOTE-522)",
+  "sein|tcentriq": "Adjuvant : 1 an au plus (16 cures de 1 200 mg, IMpower010) ; métastatique : jusqu'à progression ou toxicité (OAK)",
+  "todo|capox-pembrolizumab": "Pembrolizumab : 35 cures au plus (environ 2 ans) (KEYNOTE-859)",
+  "todo|folfox-nivolumab": "Nivolumab : 2 ans au plus (CheckMate 649)",
+  "todo|capox-nivolumab": "Nivolumab : 2 ans au plus (CheckMate 649)",
+  "todo|enfortumab-vedotin-pembrolizumab": "Pembrolizumab : 35 cures au plus (environ 2 ans) ; enfortumab védotin jusqu'à progression ou toxicité (EV-302)",
+  "maj|atezolizumab-1200-bevacizumab-15-mg-kg-21-j-imbrave150-": "Pas de durée maximale dans l'essai : jusqu'à progression ou toxicité (IMbrave150)",
+  "audit3|n019": "Nivolumab : 2 ans au plus (CheckMate 648)",
+  "audit3|n030": "Pas de durée maximale dans l'essai : jusqu'à progression ou toxicité (JAVELIN Merkel 200)",
+  "audit3|n031": "Pas de durée maximale fixée par le RCP : jusqu'à progression ou toxicité",
+  "audit3|n049": "Pembrolizumab : 35 cures au plus (environ 2 ans) (KEYNOTE-355)",
+};
+export function correctionsS4(bib) {
+  const modifies = [], ignores = [];
+  const changer = (id, p, quoi) => { const m = modifies.find((x) => x.id === id); if (m) { m.p = p; m.nom = p.nom; m.quoi.push(quoi); } else modifies.push({ id, p, quoi: [quoi], nom: p.nom }); };
+  const courant = (id) => { const m = modifies.find((x) => x.id === id); return m ? m.p : bib[id]; };
+  Object.keys(bib).forEach((id) => {
+    if (!bib[id] || !Array.isArray(bib[id].dr)) return;
+    for (const f of [diffuseurTotal, solumedrolCarbo, foliniqueReference]) { const p = courant(id), r = f(p); if (r) changer(id, Object.assign(copie(p), { dr: r.dr }), r.quoi); }
+  });
+  const v = courant(ID_VINO), lv = v && v.dr.find((d) => /VINORELBINE|NAVELBINE/.test(S(d.p)) && d.u === "mg/m²");
+  if (lv && +lv.d === 10 && /VINORELBINE 15/.test(S(v.nom))) {
+    const p = copie(v); p.dr.find((d) => d.id === lv.id).d = 15;
+    p.src = "Michael 2005 (Br J Cancer, phase I) : cisplatine 20 + vinorelbine 15 mg/m² hebdomadaires avec la radiothérapie" + (v.src ? " ; " + v.src : "");
+    changer(ID_VINO, p, "vinorelbine : 10 → 15 mg/m² (dose du nom et de l'essai)");
+  } else if (!lv || +lv.d !== 15) ignores.push({ id: ID_VINO, raison: "vinorelbine plus telle que l'audit l'a vue : à vérifier" });
+  Object.keys(DUREES_IO).forEach((id) => {
+    const p = courant(id); if (!p) { ignores.push({ id, raison: "protocole introuvable : durée de l'immunothérapie à écrire à la main" }); return; }
+    if ((p.no || []).some((t) => t === DUREES_IO[id])) return;
+    changer(id, Object.assign(copie(p), { no: (p.no || []).concat([DUREES_IO[id]]) }), "durée de l'immunothérapie en remarque");
+  });
+  return { modifies, crees: [], ignores };
+}

@@ -4,7 +4,9 @@
 //   « apres[0] » (son identifiant et son étoile gardés) ; « apres[1…] » (autres dosages) ajoutés à côté ; modifié par le cabinet : rien ne change
 // - ajouts : fiches de départ ajoutées si le cabinet ne les a pas (même identifiant ou même nom) et ne les a pas retirées (liste « retires »)
 // - ordonnances types : renommée si le cabinet a encore l'ancien nom ; une ligne remplacée seulement si elle est encore celle d'avant
-export const VERSION_BIB = 1;
+// VERSION_BIB 2 (S4, 21/10/2026, audit n° 10 d. 34) : ZOMETA (créatinine, dose selon la clairance, bilan dentaire, calcium et vitamine D, RCP)
+// et NAUSELIUM (dompéridone : 7 jours au plus, 30 mg par jour, EMA 2014) complétés
+export const VERSION_BIB = 2;
 export const MAJ_BIB = {
   medicaments: {
     corrections: [
@@ -38,6 +40,8 @@ export const MAJ_BIB = {
       {"avant":["TRAMAL LP (tramadol) 100 mg","1 comprimé le matin et 1 comprimé le soir (toutes les 12 heures)"],"apres":["m143"]},
       {"avant":["XATRAL LP (alfuzosine) 10 mg","1 comprimé par jour, après le repas du soir"],"apres":["m153"]},
       {"avant":["XGEVA (dénosumab) 120 mg","1 injection sous-cutanée toutes les 4 semaines, avec calcium et vitamine D"],"apres":["m154"]},
+      {"avant":["ZOMETA (acide zolédronique) 4 mg","1 perfusion intraveineuse de 15 minutes toutes les 4 semaines (ou toutes les 12 semaines)"],"apres":["m162"]},
+      {"avant":["NAUSELIUM (dompéridone) sirop","1 cuillère-mesure 3 fois par jour, 15 minutes avant les repas, en cas de nausées"],"apres":["m-nauselium"]},
       {"avant":["XTANDI (enzalutamide) 40 mg","4 comprimés par jour en une seule prise le matin (soit 160 mg par jour)"],"apres":["m155"]},
       {"avant":["ZYTIGA (abiratérone) 250 mg","4 comprimés le matin en une seule prise, à jeun (au moins 2 heures après un repas et 1 heure avant le suivant), avec un grand verre d'eau (soit 1 000 mg par jour)"],"apres":["m165"]},
     ],
