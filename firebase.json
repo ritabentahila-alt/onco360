@@ -78,7 +78,7 @@
       "codebase": "default",
       "predeploy": [
         "cp \"$PROJECT_DIR/public/js/donnees/catalogue.js\" \"$PROJECT_DIR/public/js/donnees/modules.js\" \"$PROJECT_DIR/public/js/donnees/facturation.js\" \"$RESOURCE_DIR/site/\"",
-        "mkdir -p \"$RESOURCE_DIR/site/moteur\" \"$RESOURCE_DIR/site/donnees\" && cd \"$PROJECT_DIR/public/js\" && cp moteur/finances.js moteur/outils.js moteur/doses.js moteur/rdv.js moteur/tarifs.js moteur/rt.js moteur/heures.js moteur/poids.js \"$RESOURCE_DIR/site/moteur/\" && cp donnees/conversion.js \"$RESOURCE_DIR/site/donnees/\""
+        "mkdir -p \"$RESOURCE_DIR/site/moteur\" \"$RESOURCE_DIR/site/donnees\" && cd \"$PROJECT_DIR/public/js\" && cp moteur/finances.js moteur/outils.js moteur/doses.js moteur/rdv.js moteur/tarifs.js moteur/rt.js moteur/heures.js moteur/poids.js moteur/heure.js \"$RESOURCE_DIR/site/moteur/\" && cp donnees/conversion.js \"$RESOURCE_DIR/site/donnees/\""
       ],
       "ignore": [
         "node_modules",

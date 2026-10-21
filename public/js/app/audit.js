@@ -4,6 +4,7 @@
 // l'écran : personne, action, partie, patient. Export pour Excel. « Journal » du dossier : auditPatient(id).
 import { collection, query, where, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { db } from "../config.js";
+import { dateHeureMaroc } from "../moteur/heure.js";
 
 let A = null;
 export function installer(api) { A = api; }
@@ -13,7 +14,7 @@ const ACTIONS = { creation: "Création", modification: "Modification", suppressi
 const ROLES = { medecin: "Médecin", assistante: "Secrétaire", infirmiere: "Infirmière", comptable: "Comptable" };
 const jour = (d) => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
 const dateDe = (v) => (v && typeof v.toDate === "function" ? v.toDate() : v ? new Date(v) : null);
-const heure = (d) => (d ? d.toLocaleDateString("fr-FR") + " " + d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) : "");
+const heure = (d) => (d && !isNaN(d) ? dateHeureMaroc(d.getTime()) : ""); // heure du Maroc d'Onco360 (S1)
 // État de l'onglet : période, filtres, lignes lues
 const F = { du: "", au: "", qui: "", act: "", lib: "", pat: "", patId: "", lignes: null, cle: "", err: "" };
 

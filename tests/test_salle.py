@@ -148,7 +148,7 @@ async def main():
         S7 = json.loads(json.dumps(S3)); S7[sid(A1,'r-rS1')] = {"jour":T,"patientId":A1,"etablissementId":"HGC","cle":"r-rS1","etat":"salle","arr":1791277200000,"majPar":"SEC"}  # 06/10/2026 09:00 UTC
         pb = await ouvrir(b, S7, t="2026-10-06T11:00:00+02:00", tz="Europe/Brussels")
         await pb.goto(U+'#salle'); await pb.wait_for_timeout(2500); await onglet(pb, 'salle')
-        attendu = await pb.evaluate("new Intl.DateTimeFormat('fr-FR',{timeZone:'Africa/Casablanca',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(1791277200000))")
+        attendu = '09:00'  # S1 (21/10/2026) : le Maroc est à GMT depuis le 20/09/2026 ; Onco360 le calcule lui-même (moteur/heure.js)
         verif('ordinateur à l\'heure belge : arrivée affichée à l\'heure du Maroc (' + attendu + ')', await pb.evaluate("document.querySelector('#saL .ar').innerText") == attendu)
 
         print('7. Téléphone')

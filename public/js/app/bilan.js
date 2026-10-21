@@ -6,6 +6,7 @@ import { db } from "../config.js";
 import { evtsFin, tauxRT } from "../moteur/finances.js";
 import { calculerBilan, dh, clePaye, cleAncienne, estPaye, RE_DOC_PAYE, docPaiements, fusionnerPaiements, repartirPaiements, placePaiements } from "../moteur/bilan.js";
 import { num } from "../moteur/outils.js";
+import { dateHeureMaroc } from "../moteur/heure.js";
 import { activite, tarif } from "../moteur/tarifs.js";
 
 let A = null;
@@ -192,7 +193,7 @@ function dessiner() {
   const refs = [...new Set(R.map((x) => x.cor || ""))].sort((a, z) => a.localeCompare(z, "fr"));
   const etabs = (D().etabsTous || D().etabs).map((e) => [e.code, e.code]);
   let h = '<section class="accueil"><div><h2>Bilan</h2><p>Du ' + A.dfrA(b.pr[0] > "0001" ? b.pr[0] : "") + " au " + A.dfrA(b.pr[1] < "9999" ? b.pr[1] : "") +
-    (estComptable() ? " · " + (RELEVE_LE ? "relevé à jour au " + RELEVE_LE.toLocaleDateString("fr-FR") + " " + RELEVE_LE.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) : "aucun relevé : il est préparé quand un médecin ouvre Onco360") : "") + "</p></div>" +
+    (estComptable() ? " · " + (RELEVE_LE ? "relevé à jour au " + dateHeureMaroc(RELEVE_LE.getTime()) : "aucun relevé : il est préparé quand un médecin ouvre Onco360") : "") + "</p></div>" +
     '<div class="actions"><button class="bt clair" data-fn="bilan.exports" onclick="biExport(\'xlsx\')"><svg class="pi"><use href="#i-telecharger"/></svg>Excel</button><button class="bt clair" data-fn="bilan.exports" onclick="biExport(\'pdf\')"><svg class="pi"><use href="#i-telecharger"/></svg>PDF</button><button class="bt gris" onclick="biActualiser()"><svg class="pi"><use href="#i-actualiser"/></svg>Actualiser</button></div></section>' +
     '<section class="carte" data-fn="bilan.filtres"><div class="form" style="grid-template-columns:repeat(auto-fit,minmax(190px,1fr))">' +
     "<div><label>Période</label>" + sel("biPer", F.per, periodes(R), "per") + "</div>" +

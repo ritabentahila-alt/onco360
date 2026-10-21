@@ -13,12 +13,13 @@ const X = require("./exportation");
 const R = require("./restauration");
 const Sv = require("./sauvegarde");
 const G = require("./drive");
+const H = require("./heure");
 
 module.exports = function sauvegardes(o) {
   const { db, getStorage, getFirestore, onCall, onSchedule, HttpsError, FieldValue, Timestamp, estAdministrateur, membre, jAdmin, oauth, SECRET, C } = o;
   const TZ = "Africa/Casablanca", bucket = () => getStorage().bucket();
   const SEMAINES = 14; // exports de la semaine gardés dans Onco360 (données seules) : comme la sauvegarde Firebase (14 semaines)
-  const heureMaroc = (d) => new Date(d || Date.now()).toLocaleString("fr-FR", { timeZone: TZ, day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+  const heureMaroc = (d) => H.dateHeureMaroc(d ? new Date(d).getTime() : Date.now()); // S1 (21/10/2026) : sans les données horaires de Node
 
   // ───── Export complet (étape 1.6 ; R-F6 : au fil de l'eau, ancien effacé APRÈS, vraies extensions, données à part pour la récupération) ─────
   // Lecture paresseuse d'un fichier du stockage : ouvert seulement quand le ZIP en est là (jamais des centaines de lectures à la fois)
@@ -48,7 +49,7 @@ module.exports = function sauvegardes(o) {
     for (const f of Object.values(J.collections.fichiers || {})) { if (f && f.chemin && (await joindre(f.chemin, X.cheminFichier(f, patients, deja)))) nf++; }
     let docs = []; try { docs = JSON.parse(((J.collections.bibliotheques || {}).documentation || {}).data || "[]"); } catch (e) { docs = []; }
     for (const d of docs) { if (d && d.chemin && (await joindre(d.chemin, "documentation/" + String(d.titre || d.nom || d.id).replace(/[\/\\:*?"<>|#]+/g, " ").slice(0, 100) + X.extension(d)))) nd++; }
-    const np = Object.keys(patients).length, jour = new Date().toLocaleDateString("sv-SE", { timeZone: TZ }), m = par ? await membre(espace, par) : null;
+    const np = Object.keys(patients).length, jour = H.jourMaroc(Date.now()), m = par ? await membre(espace, par) : null;
     const texteJ = JSON.stringify(J, null, 1);
     zip.file("LISEZMOI.txt", X.lisezmoi({ cabinet: es.data().nom, espace, date: heureMaroc(), par: auto ? "Onco360 (export automatique de la semaine)" : m && m.nom, patients: np, fichiers: nf, documentation: nd, manquants: manquants.length }));
     zip.file("patients.csv", "﻿" + X.csvPatients(patients, J.collections.etablissements || {}));

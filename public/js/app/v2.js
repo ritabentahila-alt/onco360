@@ -14,6 +14,7 @@ import { cleAlerte, vuesNettoyees, partagerAlertes } from "../moteur/alertes.js"
 import { etatLigne, protocoleDe, seancesCure, poidsDebut, reperesClairance } from "../moteur/doses.js";
 import { finRT, finRTcalc, statutRT, nbA, compteurRT, dosimetrie, contourage, RYTHMES, libRythme, volumesRT, seancesVolumes, dpfVolume, texteVolume } from "../moteur/rt.js";
 import { auj, addJ, ecart, ouvre, age, srcImage, absentMedecin } from "../moteur/outils.js";
+import { changerTable, hmMaroc, jourMaroc } from "../moteur/heure.js";
 import { typeRdv, libRdv, joursH, T_RTC, nommerTypes } from "../moteur/rdv.js";
 import { referentiel, nomsParCle, typesPourRdv, cleDeRdv } from "../moteur/typesconsult.js";
 import { tarif as tarifAu } from "../moteur/tarifs.js";
@@ -36,7 +37,7 @@ import { installer as installerConsultations, datesConsultations, htmlConsultati
 import { installer as installerReglages, reglages, appliquerImpression, margesMm } from "./reglages.js";
 import { montantEnLettres } from "../donnees/factures.js";
 import { installer as installerTaches, pageTaches, demarrerTaches, blocAccueil as blocTaches, tachesDuPatient } from "./taches.js";
-import { installer as installerSalle, heureMaroc, dossiersChanges, pageSalle, demarrerSalle, apresStatutRdv, apresVenuChimio, apresPrix, bullesDossier, presenceDossier, majPresenceDossier, prixPrevu, badgeSalle, chargerJoursPasses, fichesAbsentes } from "./salle.js";
+import { installer as installerSalle, heureMaroc, hmMaintenant, dossiersChanges, pageSalle, demarrerSalle, apresStatutRdv, apresVenuChimio, apresPrix, bullesDossier, presenceDossier, majPresenceDossier, prixPrevu, badgeSalle, chargerJoursPasses, fichesAbsentes } from "./salle.js";
 import { installer as installerAudit } from "./audit.js";
 import { installer as installerRcp, demarrerRcp, rcpDuPatient, bulleRcp, suivreEtablissementRcp, supprimerRcp, pageRcpMenu } from "./rcp.js";
 import { ACTES_RT, DIAG_AJOUTS_1012, DIAG_RENOMS_1012 } from "../donnees/listes.js";
@@ -175,6 +176,8 @@ async function charger(u) {
   const membre = m.data(); membre.droitsStockes = membre.droits || {}; membre.droits = droitsEffectifs(membre); const col = collection(db, "espaces", ESPACE, "patients"), E = (c, i) => doc(db, "espaces", ESPACE, c, i);
   const pFO = getDoc(E("parametres", "formulaires")).catch(() => null); // fiche patient et consultation retouchées par le cabinet (Paramètres › Cabinet, 11/10/2026)
   const pTY = getDoc(E("parametres", "typesConsult")).catch(() => null); // référentiel des types de consultation (3.13)
+  // Heure du Maroc (S1, 21/10/2026) : changements d'heure ajoutés par l'Administration, avant tout calcul du jour (lecture en échec : table du code)
+  await getDoc(doc(db, "plateforme", "heureMaroc")).then((s) => changerTable(s.exists() ? s.data().changements : null)).catch(() => {});
   const [pr, sp, sc, qs, sl, sE, sT, sA, sW, sMT, sTC, sRG, sES] = await Promise.all([
     getDoc(doc(db, "utilisateurs", u.uid)).catch(() => null),
     getDocs(collection(db, "espaces", ESPACE, "protocoles")),
@@ -645,7 +648,7 @@ function ecouterRappels() {
   (e) => { console.warn("rappels WhatsApp (écoute)", e); ECOUTE_RAP = null; });
 }
 const rappelDe = (x, d, cat) => (RAP[x.id] || {})[d + "|" + cat] || ((x.doc && x.doc.rappels) || {})[d + "|" + cat] || null;
-const libEnvoi = (s) => "envoyé par " + (s.nom || "") + " le " + dfrA(String(s.le).slice(0, 10)) + " à " + new Date(s.le).toTimeString().slice(0, 5).replace(":", " h ");
+const libEnvoi = (s) => { const t = Date.parse(s.le); return "envoyé par " + (s.nom || "") + " le " + dfrA(isNaN(t) ? String(s.le).slice(0, 10) : jourMaroc(t)) + " à " + (isNaN(t) ? "" : hmMaroc(t).replace(":", " h ")); };
 const btnWA = (x, cat, d, h) => {
   if (!cat) return ""; const g = ecart(d, D.t), RW = reglages().whatsapp, env = rappelDe(x, d, cat), proche = !env && g >= RW.de && g <= RW.a, ok = !!numeroWA(x.P.tel);
   return '<button data-fn="agenda.whatsapp" class="wa' + (proche ? " proche" : "") + (env ? " envoye" : "") + '"' + (ok ? "" : " disabled") + ' aria-label="Rappel WhatsApp' + (env ? " (déjà envoyé)" : "") + '" title="' + (ok ? (env ? "Rappel " + libEnvoi(env) + " (cliquez pour le renvoyer)" : "Rappel WhatsApp" + (proche ? " (rendez-vous dans " + g * 24 + " h)" : "")) : "Pas de numéro de téléphone dans le dossier") + '" onclick="event.stopPropagation();envoyerWA(\'' + x.id + "','" + cat + "','" + d + "','" + (h || "") + '\')">' + LOGO_WA + "</button>";
@@ -1692,7 +1695,6 @@ async function noterPrixRecu(x, cle, rc, m) {
 }
 const noteRecu = (rc) => (!rc ? "" : "Reçu n° " + rc.numero + " remis pour " + fmtMil(rc.m) + " DH." + (rc.prix || []).map((z) => " Prix changé le " + dfrA(String(z.le).slice(0, 10)) + " par " + (z.parNom || "—") + " : " + fmtMil(z.avant) + " → " + fmtMil(z.apres) + " DH.").join(""));
 API.recuRemis = recuRemis; API.avertirPrixRecu = avertirPrixRecu; API.noterPrixRecu = noterPrixRecu; API.noteRecu = noteRecu; // chimio.js (consultation de chimio)
-const HM_MAROC = new Intl.DateTimeFormat("fr-FR", { timeZone: "Africa/Casablanca", hour: "2-digit", minute: "2-digit", hour12: false });
 const dh2 = (m) => Number(m || 0).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).replace(/[\u202f\u00a0]/g, " ") + " DH";
 const carteMedecin = (uid) => { const c = (D.signataires || {})[uid]; if (c && c.nom) return c; return uid === D.u.uid && D.membre.role === "medecin" ? carteDe() : Object.assign({}, medecinFiche()); };
 function htmlRecu(x, o, num, ctx) {
@@ -1720,7 +1722,7 @@ const CSS_RECU = "html,body{margin:0}body{font-family:Arial,Helvetica,sans-serif
 async function imprimerRecu(w, x, o) {
   if (!w) return;
   let num = null, echec = ""; try { num = await numeroterRecu(x, o); } catch (e) { echec = (e && e.message) || String(e); console.warn("numéro du reçu", e); toast("Reçu imprimé sans numéro (" + echec + ")."); }
-  const html = htmlRecu(x, o, num, { jour: D.t, par: $("nomMenu").textContent, heure: HM_MAROC.format(new Date()).replace(/\s/g, "").replace(":", " h ") });
+  const html = htmlRecu(x, o, num, { jour: D.t, par: $("nomMenu").textContent, heure: hmMaintenant().replace(":", " h ") }); // heure du Maroc, horloge corrigée (S1)
   const css = "@page{size:A5 portrait;margin:" + margesMm("a5") + "}" + CSS_RECU;
   w.document.open(); w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>&#8203;</title><style>' + css + "</style></head><body>" + html + "</body></html>"); w.document.close();
   setTimeout(() => { try { w.focus(); w.print(); } catch (e) { /* fenêtre fermée */ } }, 400);

@@ -7,12 +7,15 @@
 // Google (1 à 11, "" = couleur de l'agenda) vient de espaces/{e}/parametres/couleursAgenda (Configuration › Google Agenda),
 // sinon de COULEURS0. Mêmes valeurs par défaut dans public/js/app/configuration.js.
 const crypto = require("crypto");
+const H = require("./heure");
 
+// Fuseau envoyé à Google (Agenda, horaires des traitements de nuit) : Google tient ses données horaires à jour. Le jour du Maroc calculé
+// ici ne dépend plus de Node (S1, 21/10/2026 : table des changements d'heure, functions/heure.js).
 const TZ = "Africa/Casablanca";
 const HORIZON = 450; // jours
 const DUREE = 30; // minutes d'un rendez-vous à heure fixe
 
-const jourCasa = (now) => new Intl.DateTimeFormat("en-CA", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit" }).format(now || new Date());
+const jourCasa = (now) => H.jourMaroc(now ? now.getTime() : Date.now());
 const addJ = (d, n) => { const x = new Date(d + "T12:00:00Z"); x.setUTCDate(x.getUTCDate() + n); return x.toISOString().slice(0, 10); };
 
 // Le membre voit-il ce dossier ? (mêmes règles que firestore.rules : actif + établissement dans son périmètre)

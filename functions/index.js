@@ -25,6 +25,15 @@ const L = require("./logique");
 
 initializeApp();
 const db = getFirestore();
+// Heure du Maroc (S1, 21/10/2026) : table des changements d'heure du code (functions/heure.js) + ceux ajoutés par l'Administration
+// (plateforme/heureMaroc), relue au plus une fois par heure, au démarrage et avant chaque traitement de nuit.
+const H = require("./heure");
+let HEURE_LUE = 0;
+async function heureAJour(force) {
+  if (!force && Date.now() - HEURE_LUE < 3600e3) return; HEURE_LUE = Date.now();
+  try { const s = await db.doc("plateforme/heureMaroc").get(); H.changerTable(s.exists ? s.data().changements : null); } catch (e) { console.warn("heure du Maroc", e.message); }
+}
+heureAJour();
 setGlobalOptions({ region: "europe-west1", maxInstances: 5 });
 const SECRET = defineSecret("GOOGLE_CLIENT_SECRET");
 const CLIENT_ID = defineString("GOOGLE_CLIENT_ID");
@@ -305,12 +314,14 @@ exports.tachesAutoPatient = onDocumentWritten(Object.assign({ document: "espaces
   catch (er) { console.error("tâches automatiques", ev.params.p, er); }
 });
 exports.tachesAutoNuit = onSchedule(Object.assign({ schedule: "0 3 * * *", timeZone: L.TZ }, OPTS), async () => {
+  await heureAJour();
   for (const es of (await db.collection("espaces").get()).docs) {
     const ctx = await contexteAuto(es.id); if (!ctx.regles.some((r) => r.actif !== false)) continue;
     for (const d of (await db.collection("espaces/" + es.id + "/patients").get()).docs) { try { await tachesAuto(es.id, d.id, d.data(), ctx, {}); } catch (er) { console.error("tâches automatiques", d.id, er); } }
   }
 });
 exports.agendaNuit = onSchedule(Object.assign({ schedule: "30 3 * * *", timeZone: L.TZ }, OPTS), async () => {
+  await heureAJour();
   const l = (await db.collection("agendaJetons").get()).docs.filter((d) => !d.data().revoque);
   for (const d of l) { try { await syncComplet(d.id, d.data()); } catch (e) { await echec(d.id, e); } }
 });
@@ -1211,6 +1222,24 @@ exports.reglagesAbonnements = onCall({ timeoutSeconds: 30, memory: "256MiB" }, a
   await jAdmin(par, "abonnement", "", "", "Réglages des abonnements : suspension " + LIB[R.suspension] + " après " + R.delai + " jours de retard, rappel " + R.rappel + " jours avant, essai " + R.essai + " jours");
   return { reglages: R };
 });
+// ───── Heure du Maroc (S1, 21/10/2026) : changements d'heure ajoutés par l'Administration ─────
+// plateforme/heureMaroc = { changements: [{ du (instant universel ISO), dec (minutes) }], le, par } : lu par tout compte connecté (règle),
+// écrit ici seulement. Action « lire » (table du code, ajouts, décalage de maintenant) ou « enregistrer » (liste complète des ajouts).
+exports.heureMaroc = onCall({ timeoutSeconds: 30, memory: "256MiB" }, async (req) => {
+  const par = req.auth && req.auth.uid, d = req.data || {};
+  if (!(await estAdministrateur(par))) throw new HttpsError("permission-denied", "Réservé à l'administration d'Onco360.");
+  const ref = db.doc("plateforme/heureMaroc");
+  if (d.action === "enregistrer") {
+    const l = (Array.isArray(d.changements) ? d.changements : []).map((c) => ({ du: String((c && c.du) || ""), dec: Number(c && c.dec) }));
+    const mauvais = l.filter((c) => !H.changementValide(c));
+    if (mauvais.length || l.length > 100) throw new HttpsError("invalid-argument", "Changement d'heure illisible (date ou décalage).");
+    await ref.set({ changements: l, le: new Date().toISOString(), par });
+    H.changerTable(l); HEURE_LUE = Date.now();
+    await jAdmin(par, "heure", "", "", "Heure du Maroc : " + (l.length ? l.map((c) => "à partir du " + H.dateHeureMaroc(Date.parse(c.du), H.tableAvec(l)) + " : GMT" + (c.dec ? (c.dec > 0 ? "+" : "") + c.dec / 60 : "")).join(" ; ") : "aucun changement ajouté (table d'Onco360 seule)"));
+  }
+  const s = await ref.get(), aj = s.exists ? s.data().changements || [] : [];
+  return { code: H.CHANGEMENTS0, ajouts: aj, maintenant: Date.now(), decalage: H.decalage(Date.now(), H.tableAvec(aj)) };
+});
 // ───── Factures (18.4, 10/10/2026) ─────
 // factures/{id} (serveur seulement) = { numero F-AAAA-NNNN | AV-AAAA-NNNN, type facture|avoir, annee, rang, d (émission), espace, cabinet,
 // client, editeur (copie au jour de la facture), lignes [{ lib, du, au, ht, tva, ttc }], ht, tva, ttc, taux, paiement { id, d, moyen, ref },
@@ -1305,6 +1334,7 @@ async function releveCabinet(e) {
   return { fait: true, n: R.length };
 }
 exports.releveNuit = onSchedule({ schedule: "45 2 * * *", timeZone: L.TZ, timeoutSeconds: 540, memory: "512MiB" }, async () => {
+  await heureAJour();
   for (const es of (await db.collection("espaces").get()).docs) {
     if (C.estBib(es.id)) continue;
     try { const r = await releveCabinet(es.id); if (r.fait) console.log("relevé du comptable", es.id, r.n); } catch (er) { console.error("relevé du comptable", es.id, er); }

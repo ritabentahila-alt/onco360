@@ -20,6 +20,7 @@ import { noterHeures, seanceProposee, DU_SEANCE, DU_CONS } from "../moteur/heure
 import { notesVigilance, flaconsCabinet } from "./vigilances.js";
 import { interactions, foie, arrondiFlacon, flaconsPour } from "../moteur/p10.js";
 import { seuilsJour, hebdomadaire, SEUILS_HEBDO, risqueDe, libRisque } from "../moteur/seuils.js";
+import { hmMaroc } from "../moteur/heure.js";
 
 let A = null; // outils fournis par l'application (v2.js)
 export function installer(api) { A = api; const f0 = window.fermerFenetre; window.fermerFenetre = () => { if (!A.petiteSurPanneau()) CM = null; f0(); }; A.surFermerPanneau(() => { CM = null; }); } // R-G e : une petite fenêtre fermée au-dessus du panneau garde la cure
@@ -413,7 +414,7 @@ function vueJour(x, i, k, j) {
   const bioIn = !figeJ && okT ? bilanJour({ x, i, k, j, figeJ, F, okT, G, e, qc, gr, dis, u, auc: q.dr.some((d) => /AUC/.test(d.u)), prods: figeJ && F && F.doses ? Object.values(F.doses) : Object.values(instantane(e, gi).doses), crU: L.crU, inline: true }) : "";
   h += '<div class="form par-j" style="grid-template-columns:repeat(auto-fill,minmax(118px,1fr));margin-top:4px"><div><label for="chPoids">Poids (kg)</label><input id="chPoids" inputmode="decimal" value="' + esc(G.poids || "") + '"' + (G.saisi.poids ? ' class="saisi"' : "") + (poidsSec ? "" : dis) + ' onchange="chChamp(' + qc + ',\'poids\',this.value,' + gr.j + ')">' +
     (poidsSec ? '<button class="bt vert petit" style="margin-top:6px" onclick="chChamp(' + qc + ',\'poids\',document.getElementById(\'chPoids\').value,' + gr.j + ')"><svg class="pi"><use href="#i-check"/></svg>Valider le poids</button>' : "") +
-    (pv ? '<div class="mesures">Poids validé par ' + esc(pv.nom || "") + " le " + A.dfrA(String(pv.le || "").slice(0, 10)) + " à " + String(pv.le ? new Date(pv.le).toTimeString().slice(0, 5) : "").replace(":", " h ") + "</div>" : "") + "</div>" +
+    (pv ? '<div class="mesures">Poids validé par ' + esc(pv.nom || "") + " le " + A.dfrA(String(pv.le || "").slice(0, 10)) + " à " + (pv.le && !isNaN(Date.parse(pv.le)) ? hmMaroc(Date.parse(pv.le)) : "").replace(":", " h ") + "</div>" : "") + "</div>" +
     '<div><label>Surface corporelle</label><input disabled value="' + (G.sc ? fr2(G.sc) + " m²" : "—") + '"></div>' +
     '<div><label title="Dose des anticancéreux (%)">Dose anticancéreux %</label><input inputmode="decimal" placeholder="100" aria-label="Dose des anticancéreux (%)" value="' + esc(G.pctAll == null ? "" : G.pctAll) + '"' + (G.pctAll != null ? ' class="saisi"' : "") + dis + ' onchange="chChamp(' + qc + ',\'pctAll\',this.value,' + gr.j + ')"></div>' + bioIn + "</div>" +
     (j > 1 && !figeJ ? '<p class="mesures aide" style="margin:2px 0 6px">Valeurs reprises de la séance précédente tant que rien n\'est saisi ; une valeur saisie ici est reprise aux séances et cures suivantes.</p>' : "") +

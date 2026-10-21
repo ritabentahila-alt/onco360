@@ -15,6 +15,10 @@ service cloud.firestore {
     // par Dr Bentahila (console). Le compte d'administration ne lit ni les profils ni les cabinets : tout passe par les fonctions.
     match /administrateurs/{uid} { allow read: if connecte() && (request.auth.uid == uid || proprietaire()); allow write: if proprietaire(); }
 
+    // Heure du Maroc (S1, 21/10/2026) : changements d'heure ajoutés par l'Administration, lus au démarrage par tout compte connecté ;
+    // écrits par la fonction heureMaroc seulement
+    match /plateforme/heureMaroc { allow read: if connecte(); allow write: if false; }
+
     // Profil personnel : chacun lit et modifie le sien (aucun droit n'y est stocké) ; Dr Bentahila aussi ceux de son équipe (inchangé)
     match /utilisateurs/{uid} {
       allow read: if connecte() && (request.auth.uid == uid || proprietaire());

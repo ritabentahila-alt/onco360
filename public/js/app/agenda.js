@@ -154,7 +154,7 @@ function aVenir() {
 }
 function vueGrille(du, n) {
   const jours = []; for (let k = 0; k < n; k++) jours.push(addJ(du, k));
-  const t = D().t, now = new Date(), nowM = now.getHours() * 60 + now.getMinutes(), haut = (H1 - H0) * 4 * PAS;
+  const t = D().t, nowM = heureMaroc().m, haut = (H1 - H0) * 4 * PAS;
   const parJour = jours.map((d) => EVS.map((e, i) => [e, i]).filter(([e]) => d >= e.d && d <= e.f));
   let h = '<div class="ag-tete" style="grid-template-columns:56px repeat(' + n + ',minmax(0,1fr))"><span></span>' + jours.map((d, k) => {
     const x = new Date(d + "T12:00:00"), c = comptes(parJour[k].map(([e]) => e)); // R-C6 : « 5 consult. · 8 chimio »

@@ -1,12 +1,9 @@
 // Onco360 – numéro de dossier (étape 8, 09/10/2026) : calculs purs, testables hors ligne (node functions/test-numeros.js).
 // Numéro = AAAAMM (mois d'inscription, heure du Maroc) + rang d'inscription dans ce mois sur 3 chiffres (4 au-delà de 999) :
 // 202610001 = 1er patient inscrit en octobre 2026. Un seul compteur pour le cabinet ; le numéro ne change jamais.
-const TZ = "Africa/Casablanca";
+const H = require("./heure"); // heure du Maroc sans les données horaires de Node (S1, 21/10/2026)
 
-const moisCasa = (ms) => {
-  const p = new Intl.DateTimeFormat("en-CA", { timeZone: TZ, year: "numeric", month: "2-digit" }).formatToParts(new Date(ms));
-  return p.find((x) => x.type === "year").value + p.find((x) => x.type === "month").value;
-};
+const moisCasa = (ms) => H.jourMaroc(ms).slice(0, 7).replace("-", "");
 const numero = (mois, n) => mois + String(n).padStart(3, "0");
 
 // Date d'inscription d'un dossier (ms) : l'identifiant porte l'heure de création (« P » + 13 chiffres pour les dossiers venus

@@ -4,7 +4,7 @@
 // et meta = { n, le, par, parNom, sig, nb }. Même signature : si rien n'a changé, rien n'est réécrit (ni la nuit, ni par le navigateur).
 // Calcul des actes = code du site recopié dans functions/site/ (moteur/finances.js et ce dont il dépend ; firebase.json, predeploy),
 // vérifié par node functions/test-releve.js. Logique pure ici ; lecture et écriture de la base dans index.js (releveNuit).
-const MOTEUR = ["finances", "outils", "doses", "rdv", "tarifs", "rt", "heures", "poids"];
+const MOTEUR = ["finances", "outils", "doses", "rdv", "tarifs", "rt", "heures", "poids", "heure"];
 const DONNEES = ["conversion"];
 const FICHIERS = MOTEUR.map((f) => "moteur/" + f + ".js").concat(DONNEES.map((f) => "donnees/" + f + ".js"));
 let M0 = null;

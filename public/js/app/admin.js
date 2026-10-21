@@ -6,6 +6,7 @@
 import { app, auth, db } from "../config.js";
 import { onAuthStateChanged, sendPasswordResetEmail, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { tableAvec, jourMaroc, hmMaroc, dateHeureMaroc, instantMaroc, decalage } from "../moteur/heure.js";
 import { MENU, FONCTIONS, FONCTIONS_RELIEES, CARTES, SECTIONS, BIBLIOTHEQUES, FICHE, TYPES_CHAMP, TOUJOURS_ENTETE, CONSULT, TYPES_CHAMP_CS, reglageEffectif, ficheEffective, ficheRetouches, consultEffective, formRetouches, libDe, avecOnco, formulairesCabinet, accueilEffectif, FAMILLES_SECTIONS } from "../donnees/catalogue.js";
 import { htmlFacture, dh2 } from "../donnees/factures.js";
 import { editeurFiche } from "./editeurfiche.js";
@@ -17,7 +18,7 @@ const $ = (i) => document.getElementById(i);
 const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const dfr = (d) => (typeof d === "string" && d.length >= 10 ? d.slice(8, 10) + "/" + d.slice(5, 7) + "/" + d.slice(0, 4) : "");
 const sansAcc = (x) => String(x || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
-const ONGLETS = [["cabinets", "Cabinets"], ["nouveau", "Nouveau cabinet"], ["compta", "Comptabilité"], ["specialites", "Par spécialité"], ["modules", "Modules"], ["sauvegardes", "Sauvegardes"], ["journal", "Journal"]];
+const ONGLETS = [["cabinets", "Cabinets"], ["nouveau", "Nouveau cabinet"], ["compta", "Comptabilité"], ["specialites", "Par spécialité"], ["modules", "Modules"], ["sauvegardes", "Sauvegardes"], ["plateforme", "Plateforme"], ["journal", "Journal"]];
 // CABINETS : liste (null = chargement) ; FS : packs (formules) enregistrés (sinon ceux de départ)
 let RA = Object.assign({}, REGLAGES_ABO0); // réglages des abonnements (suspension, délais ; 18.3)
 let EDITEUR = null, FACT = []; // Mon entreprise (mentions des factures) ; factures et avoirs (18.4)
@@ -171,9 +172,9 @@ function dessiner() {
   const o = ONG();
   $("onglets").innerHTML = ONGLETS.map(([k, lib]) => '<a href="#' + k + '" class="' + (k === o ? "on" : "") + '">' + esc(lib) + (k === "cabinets" && CABINETS ? ' <span class="nb">' + CABINETS.length + "</span>" : "") + "</a>").join("");
   const bandeau = RES ? '<div class="ok bandeau">' + RES + '<button class="x" id="resX" aria-label="Fermer">✕</button></div>' : "";
-  $("page").innerHTML = bandeau + (o === "nouveau" ? htmlNouveau() : o === "specialites" ? htmlSpecialites() : o === "modules" ? htmlModules() : o === "journal" ? htmlJournal() : o === "compta" ? htmlCompta() : o === "sauvegardes" ? htmlSauvegardes() : alerteSauvegardes() + htmlCabinets());
+  $("page").innerHTML = bandeau + (o === "nouveau" ? htmlNouveau() : o === "specialites" ? htmlSpecialites() : o === "modules" ? htmlModules() : o === "journal" ? htmlJournal() : o === "compta" ? htmlCompta() : o === "sauvegardes" ? htmlSauvegardes() : o === "plateforme" ? htmlPlateforme() : alerteSauvegardes() + htmlCabinets());
   if ($("resX")) $("resX").onclick = () => { RES = ""; dessiner(); };
-  if (o === "nouveau") brancherNouveau(); else if (o === "specialites") brancherSpecialites(); else if (o === "modules") brancherModules(); else if (o === "journal") brancherJournal(); else if (o === "compta") brancherCompta(); else if (o === "sauvegardes") brancherSauvegardes(); else brancherCabinets();
+  if (o === "nouveau") brancherNouveau(); else if (o === "specialites") brancherSpecialites(); else if (o === "modules") brancherModules(); else if (o === "journal") brancherJournal(); else if (o === "compta") brancherCompta(); else if (o === "sauvegardes") brancherSauvegardes(); else if (o === "plateforme") brancherPlateforme(); else brancherCabinets();
 }
 
 // ───── Onglet Cabinets : chiffres, recherche, filtres, cartes ─────
@@ -1014,6 +1015,40 @@ function brancherModules() {
   document.querySelectorAll("[data-mg]").forEach((b) => { b.onclick = () => { MF.genre = b.dataset.mg; dessiner(); }; });
   $("mSpe").onchange = () => { MF.spe = $("mSpe").value; dessiner(); };
   $("mQ").oninput = () => { MF.q = $("mQ").value; const pos = $("mQ").selectionStart; dessiner(); $("mQ").focus(); $("mQ").setSelectionRange(pos, pos); };
+}
+
+// ───── Onglet Plateforme (S1, 21/10/2026) : heure du Maroc ─────
+// Onco360 calcule l'heure du Maroc lui-même (moteur/heure.js) ; ici, l'Administration ajoute un changement d'heure décidé par le gouvernement
+// (Ramadan, heure d'été…) sans programmer : fonction heureMaroc, plateforme/heureMaroc, relu par chaque poste à l'ouverture et par le serveur.
+const HMA = { data: null, err: "", res: "", lu: false };
+const gmt = (dec) => "GMT" + (dec ? (dec > 0 ? "+" : "−") + Math.abs(dec / 60) : "");
+function htmlPlateforme() {
+  if (!HMA.lu) { HMA.lu = true; serveur("heureMaroc", { action: "lire" }).then((x) => { HMA.data = x; dessiner(); }, (e) => { HMA.err = e.message; dessiner(); }); }
+  const X = HMA.data;
+  if (!X) return '<section class="carte"><h2>Heure du Maroc</h2>' + (HMA.err ? '<p class="err">' + esc(HMA.err) + "</p>" : '<p class="sous">Lecture…</p>') + "</section>";
+  const T = tableAvec(X.ajouts), now = X.maintenant, auj = jourMaroc(now, T), ajouts = new Set((X.ajouts || []).map((c) => c.du));
+  const lignes = T.filter((c) => c.t > now - 400 * 864e5).map((c) => '<tr><td data-l="À partir du">' + esc(dateHeureMaroc(c.t, T)) + '</td><td data-l="Heure">' + gmt(c.dec) + '</td><td data-l="Source">' + (ajouts.has(c.du) ? 'ajouté ici <button class="lien" data-hm-retirer="' + esc(c.du) + '">Retirer</button>' : '<span class="m">Onco360</span>') + (c.t > now ? ' <span class="bdg demo">à venir</span>' : "") + "</td></tr>").join("");
+  return '<section class="carte"><h2>Heure du Maroc</h2><p class="sous">Onco360 calcule l\'heure du Maroc lui-même, sans se fier à l\'ordinateur ni au serveur (leurs données horaires peuvent être en retard). Maintenant : <b>' + esc(hmMaroc(now, T)) + "</b> au Maroc, le " + esc(auj.split("-").reverse().join("/")) + " (" + gmt(decalage(now, T)) + "). Comparez avec l\'heure d\'un téléphone : si elle est fausse, ajoutez le changement d\'heure décidé par le gouvernement.</p>" +
+    '<div class="tableau"><table class="lc"><thead><tr><th>À partir du (heure du Maroc)</th><th>Heure</th><th>Source</th></tr></thead><tbody>' + lignes + "</tbody></table></div>" +
+    '<h3 style="margin-top:14px">Ajouter un changement d\'heure</h3><div class="barre" style="gap:8px;flex-wrap:wrap"><label>Le <input type="date" id="hmD" value="' + esc(auj) + '"></label><label>à <input type="time" id="hmH" value="02:00"></label><label>passer à <select id="hmDec"><option value="0">GMT</option><option value="60">GMT+1</option></select></label><button class="bt plein" id="hmAj">Ajouter</button></div>' +
+    '<p class="m">Exemple : Ramadan à GMT, puis retour à GMT+1 : deux lignes. Chaque poste prend la nouvelle table à l\'ouverture d\'Onco360 ; le serveur, dans l\'heure.</p>' +
+    (HMA.err ? '<p class="err">' + esc(HMA.err) + "</p>" : "") + (HMA.res ? '<p class="ok">' + esc(HMA.res) + "</p>" : "") + "</section>";
+}
+async function hmEnregistrer(l, msg) {
+  HMA.err = ""; HMA.res = "";
+  try { HMA.data = await serveur("heureMaroc", { action: "enregistrer", changements: l }); HMA.res = msg; } catch (e) { HMA.err = e.message; }
+  dessiner();
+}
+function brancherPlateforme() {
+  const X = HMA.data; if (!X) return;
+  const aj = () => (X.ajouts || []).map((c) => ({ du: c.du, dec: c.dec }));
+  if ($("hmAj")) $("hmAj").onclick = () => {
+    const t = instantMaroc($("hmD").value, $("hmH").value, tableAvec(X.ajouts)), dec = Number($("hmDec").value);
+    if (isNaN(t)) { HMA.err = "Date ou heure illisible."; dessiner(); return; }
+    const du = new Date(t).toISOString().slice(0, 16) + "Z";
+    hmEnregistrer(aj().filter((c) => c.du !== du).concat([{ du, dec }]), "Changement ajouté : à partir du " + $("hmD").value.split("-").reverse().join("/") + " à " + $("hmH").value + ", " + gmt(dec) + ".");
+  };
+  document.querySelectorAll("[data-hm-retirer]").forEach((b) => { b.onclick = () => hmEnregistrer(aj().filter((c) => c.du !== b.dataset.hmRetirer), "Changement retiré."); });
 }
 
 // ───── Onglet Par spécialité (16.2, 10/10/2026) : packs, modules et menus, bibliothèques et paramètres ─────

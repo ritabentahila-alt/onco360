@@ -160,7 +160,19 @@ Avant le **premier client payant** : société éditrice, projet Firebase et nom
 | À placer : test_comptable | **S7** ; heure du Maroc : **S1** (la note de l'ancien « À placer » croyait l'inverse : c'est le serveur à jour qui a raison) |
 
 ## Phase S – Soins et sécurité (cette semaine)
-- [ ] **S1 Heure du Maroc** (d. 2 ; audit 10, « À reprendre » et « Méthode › Heure »). Le Maroc est à **GMT depuis le 20/09/2026** (décret
+- [x] **(21/10/2026, testé ; pas encore en ligne)** Vérifié en ligne : retour à GMT le 20/09/2026, définitif (décret n° 2.26.530, BO n° 7521 du
+      29/06/2026 ; TelQuel, Hespress, FNH) ; l'horloge de la session de Claude ne suivait pas l'heure d'internet (07 h 34 UTC sur internet quand elle donnait
+      22 h 48 UTC la veille) : l'écart noté le 20/10 venait de là, pas d'Onco360. `public/js/moteur/heure.js` (table `CHANGEMENTS0` tirée des données horaires 2026c,
+      2018 → 2026 ; `tableAvec`, `changerTable`, `decalage`, `jourMaroc`, `hmMaroc`, `minutesMaroc`, `dateHeureMaroc`, `instantMaroc`) = `functions/heure.js`
+      (CommonJS, même code vérifié par `functions/test-heure.js` 19/19) ; site : `auj()` sans argument (jour d'Onco360), salle.js (`hm`, `heureMaroc`,
+      `nouveauJour`, `hmMaintenant`), reçu (Visa accueil), agenda (trait de l'heure), tâches, journal d'audit, relevé du comptable, poids validé, rappels
+      WhatsApp envoyés ; serveur : `jourCasa` (logique.js), numéro de dossier (numeros.js), exports (sauvegardes.js) ; Google Agenda et horaires des
+      traitements de nuit gardent « Africa/Casablanca » (données horaires de Google, à jour). **Changements ajoutés sans programmer** : Administration ›
+      **Plateforme** › Heure du Maroc (fonction `heureMaroc`, `plateforme/heureMaroc` lu par tout compte connecté à l'ouverture, écrit par la fonction
+      seule : règle + `tests/regles/test-heure.mjs` 6/6 ; serveur : relu avant chaque traitement de nuit, `heureAJour`). Tests : `tests/test_heure.py`
+      13/13 (ordinateur à Bruxelles, « Casablanca » du navigateur, table de l'Administration, écran de l'Administration, 390 px), test_salle 51 (attendu
+      fixe 09:00), test_recu 23, test_agenda 57, tests serveur et moteur ; ajoutés au contrôle complet. **À mettre en ligne : site, règles, fonctions.**
+      **S1 Heure du Maroc** (d. 2 ; audit 10, « À reprendre » et « Méthode › Heure »). Le Maroc est à **GMT depuis le 20/09/2026** (décret
       n° 2.26.530) ; les navigateurs et Node pas à jour (données horaires 2025b) donnent encore GMT+1 pour `Africa/Casablanca` : arrivée et attente en
       salle, « à jour à », Visa accueil du reçu, créneau « maintenant », changement de jour (`nouveauJour` à 23 h au lieu de minuit) faux d'une heure.
       Rendez-vous et Google Agenda non touchés. **Réponse de Dr Bentahila : oui, mais suivre les changements d'heure marocains (plusieurs dans
@@ -1597,7 +1609,7 @@ démarrage par un médecin (comme `marquerProtocoles`), avec une fenêtre récap
   (ou le réglage du jeu de test), pas l'application.
 - (20/10, R-F4) Export de la semaine sur un autre support que Google Drive (OneDrive, Dropbox, disque réseau) : à faire quand un cabinet client le
   demande (chaque service demande sa propre autorisation et son propre envoi ; aujourd'hui : Google Drive, ou gardé dans Onco360 à télécharger).
-- (20/10, R-F) Heure du Maroc : Node 24 (ICU 78.3, tzdata 2026c) donne `Africa/Casablanca` = UTC+0 en octobre 2026 ; Chrome, Safari et le Mac donnent UTC+1. À vérifier (changement d’heure légal ou erreur de tzdata) avant
+- (21/10 : **réglé par S1**, la note qui suit se trompait de sens : c'est Node 24 / tzdata 2026c qui avait raison, GMT) (20/10, R-F) Heure du Maroc : Node 24 (ICU 78.3, tzdata 2026c) donne `Africa/Casablanca` = UTC+0 en octobre 2026 ; Chrome, Safari et le Mac donnent UTC+1. À vérifier (changement d’heure légal ou erreur de tzdata) avant
   de se fier à une heure calculée côté serveur (`heureMaroc` du serveur, affichage des heures d'export dans l'historique).
 
 ---

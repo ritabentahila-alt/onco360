@@ -23,6 +23,7 @@ import { db } from "../config.js";
 import { typeRdv, joursH, T_RTC } from "../moteur/rdv.js";
 import { lignesSalle, ongletDe, ongletOuverture, dansPeriode as periodeOk, correspond, cleNum as cleNumM, trierSalle, hhmm, MIDI, idDoc } from "../moteur/salle.js"; // calculs purs (SA7)
 import { addJ } from "../moteur/outils.js";
+import { hmMaroc, jourMaroc, minutesMaroc } from "../moteur/heure.js";
 import { tarif } from "../moteur/tarifs.js";
 import { oublierEncaissements } from "./chimio.js";
 import { reglages } from "./reglages.js";
@@ -48,11 +49,11 @@ const triPerso = () => (D().profil && D().profil.salleTri) || "rdv"; // rdv | ar
 let ECART = 0, ECRIT = 0;
 const maintenant = () => Date.now() + ECART;
 function noterEcart(ts) { const v = ts && typeof ts.toMillis === "function" ? ts.toMillis() : null; if (v && Date.now() - ECRIT < 15000) ECART = v - Date.now(); }
-const HM = new Intl.DateTimeFormat("fr-FR", { timeZone: "Africa/Casablanca", hour: "2-digit", minute: "2-digit", hour12: false });
-const hm = (ms) => (ms ? HM.format(new Date(ms)).replace(/\s/g, "") : "");
+// Heure du Maroc d'Onco360 (S1, 21/10/2026 : table des changements d'heure de moteur/heure.js, pas les données horaires du navigateur)
+const hm = (ms) => (ms ? hmMaroc(ms) : "");
 // Heure du Maroc, horloge corrigée (R-A3, 18/10/2026 : créneaux du jour) : { d: "AAAA-MM-JJ", m: minutes depuis minuit }
-const JM = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Casablanca", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
-export function heureMaroc() { const p = {}; JM.formatToParts(new Date(maintenant())).forEach((x) => { p[x.type] = x.value; }); return { d: p.year + "-" + p.month + "-" + p.day, m: (+p.hour % 24) * 60 + +p.minute }; }
+export const hmMaintenant = () => hmMaroc(maintenant()); // « 14:05 », heure du Maroc, horloge corrigée (reçu : Visa accueil)
+export function heureMaroc() { const t = maintenant(); return { d: jourMaroc(t), m: minutesMaroc(t) }; }
 const minutes = (ms) => Math.max(0, Math.floor((maintenant() - ms) / 60000));
 const duree = (m) => (m < 60 ? m + " min" : Math.floor(m / 60) + " h " + String(m % 60).padStart(2, "0"));
 const peutRdv = () => A.peut("rendezvous");
@@ -108,7 +109,7 @@ const majAJour = () => { const e = $("saAjour"); if (e) e.textContent = AJOUR ? 
 window.saActualiser = () => actualiser(true);
 // Écran resté ouvert après minuit : Onco360 se recharge sur le nouveau jour (sauf fenêtre ou saisie en cours : message)
 function nouveauJour() {
-  const d = new Date(maintenant()), j = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  const j = jourMaroc(maintenant()); // minuit à l'heure du Maroc (S1)
   if (j <= D().t) return;
   const saisie = document.activeElement && /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName);
   if ($("fenetre") && $("fenetre").classList.contains("cache") && !saisie) location.reload();

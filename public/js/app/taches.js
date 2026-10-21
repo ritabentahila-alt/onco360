@@ -11,6 +11,7 @@
 // utilisateurs/{uid}.tachesVu { idTâche: longueur du fil lue } ; pastille du menu, titre de l'onglet, bloc du tableau de bord.
 import { collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, query, where, serverTimestamp, arrayUnion, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { db } from "../config.js";
+import { dateHeureMaroc } from "../moteur/heure.js";
 // RCP : page du menu principal depuis le 19/10/2026 (R-B1, rcp.js pageRcpMenu) ; #taches/rcp y renvoie
 
 let A = null;
@@ -155,8 +156,8 @@ const peutSupprimer = (t) => t.de === D().u.uid || (estMedecin() && t.statut !==
 const retard = (t) => t.statut !== "fait" && !!t.ech && t.ech < D().t;
 const ordre = (a, b) => (b.urgent ? 1 : 0) - (a.urgent ? 1 : 0) || (retard(b) ? 1 : 0) - (retard(a) ? 1 : 0) ||
   ((a.ech || "9999") + (a.h || "99")).localeCompare((b.ech || "9999") + (b.h || "99")) || (b.o || 0) - (a.o || 0);
-// Date et heure locales d'un moment enregistré en ISO (UTC) : « 08/10/2026 à 00:25 »
-const quand = (iso) => { const d = new Date(iso); if (isNaN(d)) return ""; const z = (n) => String(n).padStart(2, "0"); return z(d.getDate()) + "/" + z(d.getMonth() + 1) + "/" + d.getFullYear() + " à " + z(d.getHours()) + ":" + z(d.getMinutes()); };
+// Date et heure du Maroc d'un moment enregistré en ISO (UTC) : « 08/10/2026 à 00:25 » (S1 : heure d'Onco360, pas celle de l'ordinateur)
+const quand = (iso) => { const t = Date.parse(iso); return isNaN(t) ? "" : dateHeureMaroc(t).replace(" ", " à "); };
 // Tâche avec une période (contourage, dosimétrie : du début à l'échéance, 09/10/2026) : « Du 08/10 au 19/10/2026 »
 const echeance = (t) => !t.ech ? "" : t.debut && t.debut < t.ech && !t.h ? "Du " + A.dfr(t.debut) + " au " + A.dfrA(t.ech) : "Échéance : " + A.dfrA(t.ech) + (t.h ? " à " + t.h : "");
 function badges(t) {
