@@ -17,7 +17,7 @@ import { auj, addJ, ecart, ouvre, age, srcImage, absentMedecin } from "../moteur
 import { changerTable, hmMaroc, jourMaroc } from "../moteur/heure.js";
 import { typeRdv, libRdv, joursH, T_RTC, nommerTypes } from "../moteur/rdv.js";
 import { referentiel, nomsParCle, typesPourRdv, cleDeRdv } from "../moteur/typesconsult.js";
-import { tarif as tarifAu } from "../moteur/tarifs.js";
+import { tarif as tarifAu, net as netTarif } from "../moteur/tarifs.js";
 import { genererConsultRT, consultFinRT } from "../moteur/rt.js";
 import { idsParDefaut } from "../donnees/migration.js";
 import { installer as installerDocuments, docsDe, boutonDoc, oublierDocs, suivreEtablissementDocs, supprimerDocs } from "./documents.js";
@@ -1770,18 +1770,22 @@ async function prixVenu(x, l, r, opts) {
   const t = r.act || typeRdv(r.type), hs = t === "hospit", etab = x.P.hop || x.doc.etablissementId || "", v = (tarifsVus() && tarifAu(tarifsVus(), etab, t, r.d)) || { brut: 0, retro: 0, impot: 0 };
   const sec = !peut("finances"), deja = r.st === "fait";
   let M0 = {};
-  if (sec) { try { const s = await getDoc(doc(db, "espaces", ESPACE, "encaissements", x.id)); const E = s.exists() ? JSON.parse(s.data().data || "{}") : {}, o = (E.rdv || {})[r.id]; if (o) M0 = { rdv: { [r.id]: o.tj != null ? { tj: o.tj } : { brut: o.m, mode: o.mode } } }; } catch (e) {} }
+  if (sec) { try { const s = await getDoc(doc(db, "espaces", ESPACE, "encaissements", x.id)); const E = s.exists() ? JSON.parse(s.data().data || "{}") : {}, o = (E.rdv || {})[r.id]; if (o) M0 = { rdv: { [r.id]: o.tj != null ? { tj: o.tj } : o.v1 ? { v1: true, prix: o.m, b: o.b, mode: o.mode } : { brut: o.m, mode: o.mode } } }; } catch (e) {} }
   else { try { const s = await getDoc(doc(db, "espaces", ESPACE, "patientsFinances", x.id)); M0 = s.exists() ? JSON.parse(s.data().montantsJson || "{}") : {}; } catch (e) {} }
-  const o0 = (M0.rdv || {})[r.id] || {}, nj = hs ? joursH(r) : 1, lieuCab = payeCabinet(x) && !hs && !o0.v1, cab = lieuCab && encaisseIci(); // lieu « payé au cabinet » (19.5)
+  // 21/10/2026 (signalé par Dr Bentahila : HCK 225 DH proposé au lieu de 250) : rendez-vous pris dans l'ancienne application et pas encore « Venu » :
+  // son prix v1 est le NET du tarif (250 − 10 % = 225) ; il est validé comme un rendez-vous d'Onco360 (prix brut du tarif proposé, enregistré en brut,
+  // le bilan retire l'impôt comme pour les autres) ; un prix v1 différent du tarif (réduction, gratuité) reste proposé tel quel
+  const o0 = (M0.rdv || {})[r.id] || {}, v1Prevu = !!o0.v1 && !deja && !hs, v1 = !!o0.v1 && !v1Prevu, nj = hs ? joursH(r) : 1, lieuCab = payeCabinet(x) && !hs && !v1, cab = lieuCab && encaisseIci(); // lieu « payé au cabinet » (19.5)
+  const prixV1 = v1Prevu && o0.prix != null && o0.b == null && +o0.prix !== Math.round(netTarif(v.brut || 0, v)) && +o0.prix !== +v.brut ? +o0.prix : null; // b : brut affiché noté à l'encaissement quand le prix v1 = net du tarif (secrétaire)
   const enc = cab && deja && aEncaisser(o0.mode); // « Encaisser » (salle d'attente, dossier) : la secrétaire reçoit le paiement
   // Médecin sans secrétaire ce jour-là : case « Encaisser maintenant » (décochée = « à encaisser » pour la secrétaire)
   const medCab = lieuCab && !encaisseIci(), dejaPaye = (!!o0.mode && !aEncaisser(o0.mode)) || !!(opts && opts.encaisser); // ouvert par « Encaisser » : case cochée
   const encT = enc || (medCab && deja && aEncaisser(o0.mode) && !!(opts && opts.encaisser)); // libellés « Encaisser »
   const pp = deja ? null : prixPrevu(x.id, "r-" + r.id, r.d); // prix convenu d'avance dans la salle d'attente (payé avant la consultation)
-  const def = o0.v1 ? o0.prix : hs ? (o0.tj != null ? o0.tj : pp != null ? pp : v.brut) : o0.brut != null ? o0.brut : pp != null ? pp : v.brut;
+  const def = v1 ? o0.prix : prixV1 != null ? prixV1 : hs ? (o0.tj != null ? o0.tj : pp != null ? pp : v.brut) : o0.brut != null ? o0.brut : pp != null ? pp : v.brut;
   const fmt = (n) => (n == null || n === "" || isNaN(n) ? "" : Number(n).toLocaleString("fr-FR", { maximumFractionDigits: 2 }).replace(/[\u202f\u00a0]/g, " "));
   fenetre("<h3>" + esc(x.r.nm) + " – " + esc(libRdv(r)) + '</h3><p class="sous">' + cap(jourLong(r.d)) + (r.h ? " à " + r.h : "") + (hs && nj ? " · " + nj + " jour" + (nj > 1 ? "s" : "") + " d'hospitalisation" : "") + "</p>" +
-    '<div class="form"><div><label for="pvM">' + (hs && !o0.v1 ? "Tarif journalier (DH)" : "Montant de la consultation (DH)") + '</label><input id="pvM" class="mt" inputmode="decimal" value="' + esc(fmt(def)) + '"></div>' + (cab ? htmlMode(o0.mode) : medCab ? '<div id="pvEncZ"' + (dejaPaye ? "" : ' class="cache"') + ">" + htmlMode(o0.mode).replace(/^<div>|<\/div>$/g, "") + "</div>" : "") + "</div>" +
+    '<div class="form"><div><label for="pvM">' + (hs && !v1 ? "Tarif journalier (DH)" : "Montant de la consultation (DH)") + '</label><input id="pvM" class="mt" inputmode="decimal" value="' + esc(fmt(def)) + '"></div>' + (cab ? htmlMode(o0.mode) : medCab ? '<div id="pvEncZ"' + (dejaPaye ? "" : ' class="cache"') + ">" + htmlMode(o0.mode).replace(/^<div>|<\/div>$/g, "") + "</div>" : "") + "</div>" +
     (medCab ? '<label class="chk" style="margin:4px 0 6px"><input type="checkbox" id="pvEncK"' + (dejaPaye ? " checked" : "") + '> Encaisser maintenant (pas de secrétaire : le patient me paie)</label>' : "") +
     '<p class="mesures">Tarif ' + esc(etab || "de l'établissement") + " : " + fmt(v.brut) + " DH" + (hs ? " par jour" : "") + ". Modifiez le montant en cas de réduction ou de gratuité (0).</p>" + '<p class="mesures" id="pvRecu"></p>' +
     '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button>' + (cab || medCab ? '<button class="bt clair' + (medCab && !dejaPaye ? " cache" : "") + '" id="fOkR">' + ic("imprimer") + (encT ? "Encaisser et imprimer le reçu" : deja ? "Enregistrer et imprimer le reçu" : "Valider et imprimer le reçu") + "</button>" : "") + '<button class="bt vert" id="fOk"><svg class="pi"><use href="#i-check"/></svg>' + (encT ? "Encaisser" : deja ? "Enregistrer le prix" : "Valider : venu") + "</button></div>");
@@ -1794,13 +1798,13 @@ async function prixVenu(x, l, r, opts) {
     const w = recu && mode !== "np" && m > 0 ? window.open("", "_blank") : null; // fenêtre d'impression ouverte au clic
     occupe($("fOk"), true);
     try {
-      const lib = fmt(m) + " DH" + (hs && !o0.v1 ? "/jour" : "") + (mode === "ae" ? ", à encaisser" : mode ? ", " + libMode(mode) : "");
+      const lib = fmt(m) + " DH" + (hs && !v1 ? "/jour" : "") + (mode === "ae" ? ", à encaisser" : mode ? ", " + libMode(mode) : "");
       if (!deja) { r.st = "fait"; r.dv = r.d; r.sp = D.u.uid; await enregistrer(x, { rdvsJson: JSON.stringify(l) }, "Rendez-vous : venu (" + lib + ")"); }
       if (sec) {
-        try { await appelServeur("prixConsultation", Object.assign({ espace: ESPACE, patientId: x.id, rdvId: r.id, montant: m }, mode ? { mode } : {})); }
+        try { await appelServeur("prixConsultation", Object.assign({ espace: ESPACE, patientId: x.id, rdvId: r.id, montant: m }, mode ? { mode } : {}, v1Prevu ? { v1Prevu: true } : {})); }
         catch (e) { if (!deja) { fermerFenetre(); toast("Rendez-vous validé, mais le prix n'a pas pu être enregistré : " + e.message); apresStatutRdv(x, r, "fait", "prevu"); reafficher(x.id); return; } throw e; }
         oublierEncaissements(x.id);
-      } else await majMontants(x, (M) => { M.rdv = M.rdv || {}; const o = M.rdv[r.id] = M.rdv[r.id] || {}; if (o.v1) o.prix = m; else if (hs) { o.tj = m; delete o.brut; } else o.brut = m; if (mode) o.mode = mode; else delete o.mode; });
+      } else await majMontants(x, (M) => { M.rdv = M.rdv || {}; const o = M.rdv[r.id] = M.rdv[r.id] || {}; if (o.v1 && v1Prevu) { delete o.v1; delete o.prix; } if (o.v1) o.prix = m; else if (hs) { o.tj = m; delete o.brut; } else o.brut = m; if (mode) o.mode = mode; else delete o.mode; });
       if (deja) journal(x, "Prix de la consultation du " + dfrA(r.d) + " : " + lib);
       fermerFenetre(); toast("Enregistré."); if (deja) apresPrix(x, "r-" + r.id, r.d); else apresStatutRdv(x, r, "fait", "prevu"); reafficher(x.id);
       await noterPrixRecu(x, cleRecuRdv(r.id), rcV, m);

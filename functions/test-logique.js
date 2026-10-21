@@ -174,6 +174,8 @@ const infirmiere = { actif: true, etablissements: ["HGC", "CIOC"], droits: { tra
   ok(M.rdv.r2.tj === 400 && E.rdv.r2.tj === 400, "hospitalisation : tarif journalier");
   let er = ""; try { L.appliquerPrix(dos, M, E, { rdvId: "r4", montant: 200 }); } catch (e) { er = e.message; }
   ok(/ancienne application/.test(er) && M.rdv.r4.prix === 300, "refusé : prix repris de l'ancienne application (médecin seulement, bilan inchangé)");
+  L.appliquerPrix(dos, M, E, { rdvId: "r4", montant: 250, v1Prevu: true });
+  ok(M.rdv.r4.brut === 250 && !M.rdv.r4.v1 && M.rdv.r4.prix == null && E.rdv.r4.m === 250, "rendez-vous pris dans l'ancienne application, validé maintenant : prix enregistré en brut (21/10/2026)");
   er = ""; try { L.appliquerPrix(dos, M, E, { rdvId: "r3", montant: 100 }); } catch (e) { er = e.message; }
   ok(/pas validé/.test(er) && !M.rdv.r3, "refusé : rendez-vous non validé « Venu »");
   er = ""; try { L.appliquerPrix(dos, M, E, { rdvId: "r1", montant: -5 }); } catch (e) { er = e.message; }

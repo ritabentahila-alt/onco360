@@ -303,6 +303,8 @@ function appliquerPrix(dossier, M, E, q) {
     if (r.st !== "fait") throw new Error("Le rendez-vous n'est pas validé « Venu ».");
     if (m == null) throw new Error("Montant invalide.");
     const o = M.rdv[r.id] = M.rdv[r.id] || {}, hs = !r.act && r.type === "Hospitalisation";
+    // 21/10/2026 : rendez-vous pris dans l'ancienne application, validé « Venu » maintenant (q.v1Prevu) : prix enregistré comme dans Onco360 (brut)
+    if (o.v1 && q.v1Prevu && !hs) { delete o.v1; delete o.prix; }
     if (o.v1) throw new Error("Prix repris de l'ancienne application : seul le médecin peut le modifier.");
     if (hs) { o.tj = m; delete o.brut; E.rdv[r.id] = { tj: m }; } else { o.brut = m; E.rdv[r.id] = { m }; }
     if (mode && !hs) { o.mode = mode; E.rdv[r.id].mode = mode; } else delete o.mode;

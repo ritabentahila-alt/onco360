@@ -300,6 +300,17 @@ Avant le **premier client payant** : société éditrice, projet Firebase et nom
       `guide/en-cas-de-probleme.md`), en moins d'une heure ; Claude ne fait que chronométrer et noter ce qui bloque. Résultat dans le registre des
       exercices (`outils/RESTAURER.md` § 8) ; ce qui a gêné corrigé dans le mode d'emploi.
 
+## Corrections du 21/10/2026 (signalées par Dr Bentahila avant la mise en ligne de S1 à S5)
+- [x] **Prix pré-rempli 225 DH au lieu de 250 à HCK** (Paramètres : HCK, consultation de suivi et d'annonce, 250 DH brut, impôt 10 %, vérifié dans la base en
+      lecture seule). Cause trouvée : rendez-vous **pris dans l'ancienne application** et validés « Venu » maintenant : leur prix v1 est le **net** (250 − 10 %
+      = 225), proposé tel quel (médecin : `o0.prix` ; secrétaire : montant de l'encaissement). Corrigé (`prixVenu` de v2.js) : un tel rendez-vous est validé
+      comme un rendez-vous d'Onco360 (brut du tarif proposé, enregistré en brut ; bilan : même net, 225) ; un prix v1 différent du tarif (réduction,
+      gratuité) reste proposé ; un rendez-vous v1 déjà « Venu » ne change pas. Serveur (`appliquerPrix`, secrétaire) : `v1Prevu` accepté. Tests :
+      `tests/test_prix_v1.py` 8/8 (médecin et secrétaire), test-logique 105. **Si 225 DH revient sur un rendez-vous créé dans Onco360 : le dire.**
+- [x] **Salle d'attente sur téléphone : onglet « En salle » réduit à son nombre** : la règle CSS `.o-barre .sm{display:none}` du lot G (dossier) cachait aussi
+      le libellé court des onglets de la salle ; limitée au dossier (`.dos-trav .o-barre .sm`). Test `tests/test_salle_tel.py` 5/5 (390 px et ordinateur,
+      onglets du dossier inchangés).
+
 ## Phase T – Tous les jours (audit 11, facilité d'utilisation ; impressions de l'audit 10)
 Ce qui ne change pas (décisions du 12/10 et du 17/10) : « Ouvrir » reste le bouton principal de chaque cure ; Valider, Reporter, Annuler restent
 dans ⋯ ; Afficher, Journal, Modifier restent visibles ; aucune consultation créée d'office ; rien n'est créé tout seul.
