@@ -456,5 +456,13 @@ async function formulaire(t, pid) {
     } catch (e) { A.occupe($("taOk"), false); A.erreur(messageErreur(e)); }
   };
 }
+// Tâche écrite par Onco360 pour la personne connectée (audit n° 10, 21/10/2026 : ligne de chimio à vérifier après une correction de la
+// bibliothèque) : même forme qu'une tâche créée à la main « pour soi-même » (règles inchangées), type « Autre », urgente, échéance aujourd'hui
+export async function tacheSysteme(o) {
+  const moi = D().u.uid, nom = nomConnecte();
+  const n = { titre: o.titre, desc: o.desc || "", type: "Autre", urgent: true, ech: D().t, h: "", pour: moi, pourNom: nom, patientId: o.patientId || "", patientNom: o.patientNom || "", etablissementId: o.etablissementId || "",
+    de: moi, deNom: nom, qui: [moi], statut: "afaire", fil: [entree("Créée par Onco360 (audit n° 10)")], o: Date.now(), cree: serverTimestamp(), maj: serverTimestamp(), majPar: moi };
+  const r = await addDoc(col(), n); if (T) T.push(Object.assign({ id: r.id }, n)); return r.id;
+}
 // Nouvelle tâche, depuis la page Tâches ou depuis le dossier d'un patient (patient déjà choisi)
 window.taNouvelle = (pid) => formulaire(null, pid || "");

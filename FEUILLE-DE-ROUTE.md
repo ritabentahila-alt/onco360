@@ -186,7 +186,20 @@ Avant le **premier client payant** : société éditrice, projet Firebase et nom
       partout `timeZone: "Africa/Casablanca"` / `heureMaroc` / `hm` (salle.js, v2.js, recus, documents, serveur : exports, relevé, tâches de nuit).
       Tests : heure d'arrivée, attente, Visa accueil, « maintenant » des créneaux, passage à minuit, une période GMT+1 ajoutée (ex. Ramadan),
       serveur (`functions/test-*.js`). Corriger la note « Heure du Maroc » de l'ancien « À placer ».
-- [ ] **S2 Bibliothèque : le danger** (d. 26, 27, 29 ; audit 10, « Bibliothèque › À corriger tout de suite »). (1) Les **5 protocoles où un anticorps
+- [x] **(21/10/2026, testé ; pas encore en ligne)** `public/js/moteur/audit10.js` `correctionsS2` (sur la bibliothèque reconstruite du 18/10 :
+      9 protocoles corrigés, 1 créé) : trastuzumab toutes les 2 semaines (mFOLFOX6 + Herceptin, FOLFIRI + Trastuzumab) = charge 6 mg/kg à C1 J1
+      seulement (`c1s`), 4 mg/kg à J1 sauf C1 (`nc1`) et à J15, plus de ligne J29 (C1 : 420 / 280 mg au lieu de 420 / 420 + 280 ; plus de séance
+      « C3 J29 ») ; « C1 seule » / « sauf C1 » / « cycle 1 uniquement » lus par le calcul (Paclitaxel 80 + Trastuzumab, ERBITAX, TPEx : J1 = charge
+      OU entretien, plus les deux) ; lignes en double retirées (retrait du diffuseur J17 ; **relevé en passant : Solumedrol 80 mg deux fois à J1**
+      dans « Paclitaxel 80 J1-J8-J15 + Carboplatine AUC 6 » et « Carboplatine AUC 6 + Paclitaxel 100 J1-J8-J15 », créés le 18/10 → 80 mg une fois) ;
+      KEYNOTE-A18 – phase 2 « Validé » ; « Létrozole 2,5 mg + Palbociclib + Zometa » et nouveau « Fulvestrant 500 + Palbociclib + Zometa / 28 j »
+      (fulvestrant J1 et J15 de C1). Rien d'écrasé si le protocole a changé depuis (rendu « à vérifier » au journal). `appliquerAudit10`
+      (protocoles.js, après P5b, drapeau `audit10a`, sans fenêtre, journal) ; **lignes en cours sous un protocole corrigé : une tâche urgente
+      « Vérifier la ligne de chimio » pour le médecin** (`lignesAVerifier`, `tacheSysteme` de taches.js), la ligne garde sa copie. Modèle des
+      cabinets neufs : corrigé quand l'Administration l'ouvre (comme P4), puis étape 1 « Copier » à refaire. Tests : `tests/moteur/test-audit10.mjs`
+      32/32 (doses calculées par le moteur, 70 kg / 1,82 m²), `tests/test_audit10.py` 13/13 ; test_audit3 22, test_p9 13, test_protocoles,
+      test_cures bons ; ajoutés au contrôle complet.
+      **S2 Bibliothèque : le danger** (d. 26, 27, 29 ; audit 10, « Bibliothèque › À corriger tout de suite »). (1) Les **5 protocoles où un anticorps
       est prescrit deux fois le même jour** : mFOLFOX6 + Herceptin, FOLFIRI + Trastuzumab 6 puis 4 mg/kg, Paclitaxel 80 + Trastuzumab hebdomadaires,
       Paclitaxel 80 + Cétuximab hebdomadaires (ERBITAX), TPEx : dose de charge à **C1 J1 seulement** (6 mg/kg trastuzumab, 4 mg/kg trastuzumab
       hebdo, 400 mg/m² cétuximab), puis la dose d'entretien à chaque injection ; plus de ligne à J29 hors du cycle ; « C1 seule » / « sauf C1 » mis
