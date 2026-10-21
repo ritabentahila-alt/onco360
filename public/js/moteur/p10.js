@@ -19,7 +19,7 @@ const QT_TKI = /RIBOCICLIB|KISQALI|VANDETANIB|NILOTINIB|LAPATINIB|SUNITINIB|SUTE
 const MTX = /METHOTREXATE/;
 export function interactions(o) {
   const m = [], P = (o.prods || []).map((z) => sa(typeof z === "string" ? z : z.p)), a = (re) => P.some((p) => re.test(p)), T = sa(o.texte || "");
-  const nom = (re) => (o.prods || []).map((z) => (typeof z === "string" ? z : z.p)).find((p) => re.test(sa(p))) || "";
+  const nom = (re) => (o.prods || []).map((z) => (typeof z === "string" ? z : z.p)).find((p) => (typeof re === "function" ? re(sa(p)) : re.test(sa(p)))) || "";
   const emend = (o.ordos || []).some((x) => /EMEND|risque émétique élevé|AC \(/i.test(x)) || a(/APREPITANT|EMEND/);
   if (emend && AVK.test(T)) m.push("Interaction : aprépitant (EMEND) et AVK : effet de l'AVK diminué ; INR à contrôler dans les 7 à 10 jours qui suivent chaque cure.");
   if (emend && CONTRACEPTIF.test(T)) m.push("Interaction : aprépitant (EMEND) et contraception hormonale : efficacité diminuée jusqu'à 28 jours après ; contraception non hormonale associée.");
@@ -29,7 +29,34 @@ export function interactions(o) {
   if (a(MTX) && (AINS.test(T) || IPP.test(T) || COTRIM.test(T))) m.push("Interaction : méthotrexate et " + [AINS.test(T) ? "AINS / aspirine" : "", IPP.test(T) ? "IPP" : "", COTRIM.test(T) ? "cotrimoxazole" : ""].filter(Boolean).join(", ") + " : élimination du méthotrexate diminuée (toxicité grave) ; à arrêter autour du méthotrexate.");
   if (a(QT_TKI) && (a(/ONDANSETRON|ONSET|ZOPHREN|GRANISETRON|PALONOSETRON/) || QT_AUTRES.test(T))) m.push("Interaction : " + nom(QT_TKI) + " allonge le QT, avec " + (a(/ONDANSETRON|ONSET|ZOPHREN|GRANISETRON|PALONOSETRON/) ? "un sétron" : "un autre médicament qui allonge le QT") + " : ECG, kaliémie et magnésémie.");
   if (a(/CAPECITABINE|XELODA|FLUORO|5-?FU\b/) && /PHENYTOINE|DI-HYDAN/.test(T)) m.push("Interaction : 5-FU / capécitabine et phénytoïne : phénytoïnémie augmentée (surveillance).");
+  // S5 (21/10/2026, audit n° 10 d. 47) : interactions du cabinet, réglables dans Paramètres › Bibliothèques › Vigilance des molécules (liste de
+  // départ INTERACTIONS0, mise à jour sans écraser ce que le cabinet a changé ou retiré : interactionsEffectives)
+  (o.liste || INTERACTIONS0).forEach((I) => {
+    if (I.cl && !(o.cl != null && o.cl < +I.cl)) return;
+    const ma = mots(I.a).find((w) => P.some((p) => trouve(w, p))), mb = mots(I.b).find((w) => trouve(w, T));
+    if (ma && mb) m.push("Interaction : " + (nom((x) => trouve(ma, x)) || ma.toLowerCase()) + " et " + mb.toLowerCase() + " (traitement en cours)" + (I.cl ? ", clairance de " + o.cl + " ml/min" : "") + " : " + I.m);
+  });
   return m;
+}
+// Mots d'une interaction (« PACLITAXEL, DOCETAXEL ») ; un mot court (< 5 lettres : AINS, IPP) n'est cherché que comme mot entier
+const mots = (t) => String(t || "").split(/[,;\n]/).map((w) => sa(w).trim()).filter(Boolean);
+const trouve = (w, texte) => (w.length < 5 ? new RegExp("(^|[^A-Z0-9])" + w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "([^A-Z0-9]|$)").test(texte) : texte.indexOf(w) >= 0);
+const AZOLES = "KETOCONAZOLE, ITRACONAZOLE, SPORANOX, VORICONAZOLE, VFEND, POSACONAZOLE, NOXAFIL, FLUCONAZOLE, TRIFLUCAN, NOCAND, ISAVUCONAZOLE";
+const CYP3A4 = AZOLES + ", CLARITHROMYCINE, ERYTHROMYCINE, RITONAVIR, COBICISTAT, PAMPLEMOUSSE, RIFAMPICINE, RIFADINE, CARBAMAZEPINE, TEGRETOL, PHENYTOINE, DI-HYDAN, PHENOBARBITAL, GARDENAL, MILLEPERTUIS, EFAVIRENZ";
+const AINS_MOTS = "AINS, IBUPROFENE, ADVIL, BRUFEN, KETOPROFENE, PROFENID, BI-PROFENID, DICLOFENAC, VOLTARENE, NAPROXENE, APRANAX, CELECOXIB, CELEBREX, ETORICOXIB, ARCOXIA, ASPIRINE, ACIDE ACETYLSALICYLIQUE, INDOMETACINE, PIROXICAM, MELOXICAM";
+export const INTERACTIONS0 = [
+  { id: "i-vinca-azoles", a: "VINCRISTINE, ONCOVIN, VINBLASTINE, VINORELBINE, NAVELBINE, VINDESINE, ERIBULINE, HALAVEN", b: AZOLES, m: "neuropathie et iléus paralytique sévères (CYP3A4) ; éviter l'association, sinon surveillance étroite." },
+  { id: "i-taxanes-cyp3a4", a: "PACLITAXEL, TAXOL, DOCETAXEL, TAXOTERE, CABAZITAXEL, JEVTANA, IRINOTECAN, CAMPTO", b: CYP3A4, m: "inhibiteur du CYP3A4 : toxicité augmentée ; inducteur : efficacité diminuée ; éviter l'association ou adapter (RCP)." },
+  { id: "i-tamoxifene-cyp2d6", a: "TAMOXIFENE, NOLVADEX", b: "PAROXETINE, DEROXAT, FLUOXETINE, PROZAC, BUPROPION, ZYBAN, QUINIDINE", m: "inhibiteur puissant du CYP2D6 : efficacité du tamoxifène diminuée ; préférer un autre antidépresseur (venlafaxine, escitalopram)." },
+  { id: "i-pemetrexed-ains", a: "PEMETREXED, ALIMTA", b: AINS_MOTS, cl: 80, m: "élimination du pémétrexed diminuée : AINS à arrêter 2 jours avant et jusqu'à 2 jours après (5 jours pour un AINS à demi-vie longue) (RCP)." },
+  { id: "i-5fu-brivudine", a: "FLUORO, 5-FU, 5FU, CAPECITABINE, XELODA, TEGAFUR", b: "BRIVUDINE, ZOSTEX", m: "CONTRE-INDICATION ABSOLUE : toxicité du 5-FU mortelle (DPD bloquée) ; 4 semaines au moins entre la brivudine et le 5-FU ou la capécitabine." },
+];
+// Liste effective du cabinet : la sienne (parametres/interactions { data: JSON [ { id, a, b, m, cl } ], retires: [id] }) + les interactions de
+// départ qu'il n'a pas encore (même identifiant) et n'a pas retirées ; absente ou illisible = liste de départ
+export function interactionsEffectives(cab, retires) {
+  if (!Array.isArray(cab)) return INTERACTIONS0;
+  const R = new Set(retires || []), ids = new Set(cab.map((I) => I && I.id));
+  return cab.filter((I) => I && I.a && I.b && I.m).concat(INTERACTIONS0.filter((I) => !ids.has(I.id) && !R.has(I.id)));
 }
 
 // ───── j) Adaptation hépatique (en plus de la vigilance déjà en place : docétaxel, paclitaxel, anthracyclines, irinotécan, immunothérapie,

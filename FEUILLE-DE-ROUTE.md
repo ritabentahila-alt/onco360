@@ -258,7 +258,20 @@ Avant le **premier client payant** : société éditrice, projet Firebase et nom
       (6) **ZOMETA** : créatinine avant chaque perfusion, dose selon la clairance, bilan dentaire, calcium et vitamine D (comme XGEVA) ;
       **NAUSELIUM** : durée maximale de la dompéridone (7 jours, EMA 2014) ; selon les recommandations. Même passage unique qu'en S2 ; puis
       modèle recopié (étape 1 de l'Administration, à faire par Dr Bentahila). Tests : test-audit3p4, test_audit3.
-- [ ] **S5 Vigilance et interactions** (d. 47, 48 ; audit 10, « Seuils, vigilances et interactions »). (1) Interactions ajoutées : vinca-alcaloïdes +
+- [x] **(21/10/2026, testé ; pas encore en ligne)** `moteur/p10.js` : `INTERACTIONS0` (vinca-alcaloïdes + azolés dont fluconazole / NOCAND ; taxanes et
+      irinotécan + inhibiteurs ou inducteurs du CYP3A4 ; tamoxifène + paroxétine, fluoxétine, bupropion ; pémétrexed + AINS **sous 80 ml/min** ; 5-FU /
+      capécitabine + brivudine : contre-indication absolue), mots cherchés dans les traitements en cours et antécédents (mot de moins de 5 lettres = mot
+      entier), en plus des interactions déjà écrites ; **réglables** : Paramètres › Bibliothèques › Vigilance des molécules › « Interactions » (ajouter,
+      modifier, retirer, clairance facultative, ↺ liste de départ ; `parametres/interactions` { data, retires }, règle existante du droit « paramètres » ;
+      une interaction de départ ajoutée plus tard arrive sans écraser : `interactionsEffectives`) ; encart Vigilance et fenêtre de validation (clairance du
+      jour passée). Rein (`REINS` de doses.js) : topotécan (< 40 : 0,75 mg/m²/j ; < 20 non recommandé), acide zolédronique (même rangé en prémédication :
+      4 / 3,5 / 3,3 / 3 mg, < 30 non recommandé), trabectédine (< 30 contre-indiquée) ; trabectédine : **albumine** ≥ 25 g/L (nouvel examen du bilan du
+      jour). **Anthracyclines** : épirubicine × 0,8 (Feijen 2019, JAMA Oncology), daunorubicine × 0,6 et mitoxantrone × 10,5 (Feijen 2019, repris par le
+      groupe international IGHG en 2025) ; idarubicine non comptée (aucun rapport validé) — **vérifié en ligne : ces rapports ne viennent pas de l'ESC 2022**
+      (ce que disait ce plan) mais de Feijen et de l'IGHG. Traitements en cours toujours en texte libre (d. 46). Tests : `tests/moteur/test-s5.mjs` 19/19,
+      `tests/test_s5.py` 10/10 (séance, validation, Paramètres, liste du cabinet, 390 px), test-vigilance 60 (épirubicine 100 mg/m² = 80), test-seuils,
+      test-doses, test-p10, test_vigilance, test_validation, test_p10, test_s3, test_cures ; ajoutés au contrôle complet.
+      **S5 Vigilance et interactions** (d. 47, 48 ; audit 10, « Seuils, vigilances et interactions »). (1) Interactions ajoutées : vinca-alcaloïdes +
       azolés ; taxanes et irinotécan + inhibiteurs ou inducteurs du CYP3A4 ; tamoxifène + paroxétine, fluoxétine, bupropion ; pémétrexed + AINS si
       clairance < 80 ml/min ; 5-FU ou capécitabine + brivudine (contre-indication absolue). (2) Rein : topotécan (dose réduite sous 40 ml/min) et
       acide zolédronique (sorti des prémédications). (3) Trabectédine : albumine ≥ 25 g/L et clairance ≥ 30 ml/min. (4) **« Aussi dans le
@@ -435,6 +448,11 @@ dans ⋯ ; Afficher, Journal, Modifier restent visibles ; aucune consultation cr
   couverture joint au dossier ; **7.3** guides (le guide de démarrage L3 en est le début). Licences : jszip choisi en MIT par écrit. Détail des
   anciennes 7.1 à 7.4 en bas.
 
+## À placer (nouveau plan)
+- (21/10, S5) **Vigilance des molécules, flacons et interactions ne sont pas dans le modèle des cabinets neufs** (`PARAMS_SPE` de functions/cabinets.js :
+  ils reçoivent les listes de départ du code). La d. 12 dit « chaque autre cabinet reçoit tout le modèle, sauf correspondants et tarifs des
+  consultations » : ajouter `vigilances`, `flacons`, `interactions` à `PARAMS_SPE` (fonctions, test-modele, émulateurs) avant le 1er cabinet ami.
+
 ## Plus tard, sur demande
 - Export de la semaine vers un autre support que Google Drive (OneDrive, Dropbox) : à la demande d'un cabinet client.
 - Audits d'autres écrans (Paramètres, Bilan, ordonnances, radiothérapie, poste de l'infirmière) et d'autres appareils (Safari, tablette) : « oui,
@@ -518,7 +536,7 @@ dans ⋯ ; Afficher, Journal, Modifier restent visibles ; aucune consultation cr
 | d. 45 | Créatinine < 7 mg/L avant carboplatine | oui | S3 |
 | d. 46 | Traitements en cours choisis dans une liste | non | refusé |
 | d. 47 | Interactions manquantes | oui, **aussi dans le paramétrage** | S5 |
-| d. 48 | Épirubicine 0,8 | oui, **selon la recommandation internationale** | S5 |
+| d. 48 | Épirubicine 0,8 | oui, **selon la recommandation internationale** (Feijen 2019, IGHG 2025) | S5 |
 | d. 49 | Fiche de chimio : en-tête répété | oui | T6 |
 | d. 50 | Reçu sur une seule feuille A5 | oui, **réduire la police si besoin** | T6 |
 | d. 51 | Jamais « À compléter » imprimé | oui | T6 |

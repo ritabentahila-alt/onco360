@@ -60,10 +60,12 @@ export function historique(lignes, exclure) {
 }
 
 // Doses cumulées (mg/m² : dose de chaque séance divisée par sa surface corporelle). Anthracyclines en équivalent doxorubicine
-// (épirubicine × 0,5 : 900 mg/m² d'épirubicine ≈ 450 de doxorubicine) ; doxorubicine liposomale pégylée (Caelyx) à part, non comptée.
+// S5 (21/10/2026, audit n° 10 d. 48, « selon la recommandation internationale ») : épirubicine × 0,8 (Feijen 2019, JAMA Oncology ; avant : 0,5
+// du RCP), daunorubicine × 0,6 et mitoxantrone × 10,5 (Feijen 2019, repris par le groupe international IGHG en 2025) ; idarubicine non comptée
+// (aucun rapport validé) ; doxorubicine liposomale pégylée (Caelyx) à part, non comptée.
 export const CUMULS = [
-  { id: "anthra", nom: "anthracyclines (équivalent doxorubicine)", seuil: 450, alerte: 0.8, mols: [[/DOXORUBICINE|ADRIAMYCINE/, 1], [/EPIRUBICINE|FARMORUBICINE/, 0.5]], sauf: /LIPOSOM|PEGYL|CAELYX/,
-    msg: "risque d'insuffisance cardiaque : FEVG à contrôler, poursuite à discuter (seuils habituels : doxorubicine 450 à 550 mg/m², épirubicine 900 mg/m²)" },
+  { id: "anthra", nom: "anthracyclines (équivalent doxorubicine)", seuil: 450, alerte: 0.8, mols: [[/DOXORUBICINE|ADRIAMYCINE/, 1], [/EPIRUBICINE|FARMORUBICINE/, 0.8], [/DAUNORUBICINE|CERUBIDINE/, 0.6], [/MITOXANTRONE|NOVANTRONE/, 10.5]], sauf: /LIPOSOM|PEGYL|CAELYX/,
+    msg: "risque d'insuffisance cardiaque : FEVG à contrôler, poursuite à discuter (seuils habituels : doxorubicine 450 à 550 mg/m² ; équivalences : épirubicine × 0,8, daunorubicine × 0,6, mitoxantrone × 10,5)" },
   { id: "oxali", nom: "oxaliplatine", seuil: 850, alerte: 1, mols: [[MOL.oxali, 1]], msg: "neuropathie fréquente au-delà : vérifier le grade de la neuropathie avant de poursuivre" },
   // P3 (18/10/2026, audit n° 3) : bléomycine en mg (30 mg = 30 000 UI), pas par m² ; cisplatine (oreille, rein)
   { id: "bleo", nom: "bléomycine", seuil: 400, alerte: 0.8, u: "mg", mols: [[MOL.bleo, 1]], msg: "toxicité pulmonaire : DLCO, auscultation ; 400 mg = 400 000 UI" },
@@ -97,6 +99,7 @@ export const EXAMENS = [
   ["prot", "Protéinurie", () => "g/24 h", "ou ++", ["antiVegf"]],
   ["pal", "PAL", () => "UI/L", "", ["taxDoc", "trabect"]],
   ["cpk", "CPK", () => "UI/L", "", ["trabect"]],
+  ["alb", "Albumine", () => "g/L", "", ["trabect"]], // S5 (21/10/2026) : trabectédine, albumine ≥ 25 g/L (RCP)
 ];
 export const examensProposes = (prods) => EXAMENS.filter((x) => x[4].some((f) => avec(prods, f))).map((x) => x[0]);
 

@@ -176,14 +176,19 @@ export const REINS = [
   { re: /OXALIPLATINE|ELOXATINE/, nom: "oxaliplatine", seuils: [[30, "moins de 30 ml/min : réduction de dose à envisager"]] },
   { re: /ETOPOSIDE|VP ?16|VEPESIDE/, nom: "étoposide", seuils: [[15, "moins de 15 ml/min : réduction à 50 % ou suspension selon le protocole"], [51, "15-50 ml/min : réduction de la dose à 75 %"]] },
   { re: /BLEOMYCINE/, nom: "bléomycine", seuils: [[50, "moins de 50 ml/min : réduction progressive de la dose (toxicité pulmonaire)"]] },
+  // S5 (21/10/2026, audit n° 10 d. 47) : topotécan, acide zolédronique (rangé parmi les prémédications : premed vrai), trabectédine (RCP)
+  { re: /TOPOTECAN|HYCAMTIN/, nom: "topotécan", seuils: [[20, "moins de 20 ml/min : non recommandé (données insuffisantes)"], [40, "20-39 ml/min : dose réduite (IV : 0,75 mg/m²/j ; RCP)"]] },
+  { re: /ZOLEDRON|ZOMETA/, nom: "acide zolédronique", premed: true, seuils: [[30, "moins de 30 ml/min : non recommandé"], [40, "30-39 ml/min : 3 mg"], [50, "40-49 ml/min : 3,3 mg"], [61, "50-60 ml/min : 3,5 mg (RCP)"]] },
+  { re: /TRABECTEDINE|YONDELIS/, nom: "trabectédine", seuils: [[30, "moins de 30 ml/min : contre-indiquée (RCP)"]] },
   { re: /LENALIDOMIDE|REVLIMID/, nom: "lénalidomide", seuils: [[30, "moins de 30 ml/min : palier d'ajustement de dose (élimination rénale)"], [51, "30-50 ml/min : palier d'ajustement de dose"]] },
 ];
 // La séance contient-elle une molécule à surveiller pour le rein (ou une dose en AUC) ?
-export const reinSensible = (e) => REINS.some((R) => avecMolecule(e, R.re)) || (e.prod || []).some((P) => P.u === "AUC");
+const avecRein = (e, R) => (R.premed ? (e.prod || []).some((P) => R.re.test(sansAccents(P.p))) : avecMolecule(e, R.re));
+export const reinSensible = (e) => REINS.some((R) => avecRein(e, R)) || (e.prod || []).some((P) => P.u === "AUC");
 export function reperesClairance(e, G) {
   const l = [], cl = G.cl;
   REINS.forEach((R) => {
-    if (!avecMolecule(e, R.re)) return;
+    if (!avecRein(e, R)) return;
     if (cl == null) { if (R.nom === "cisplatine") l.push("cisplatine : créatinine non saisie, clairance inconnue (repère : DFG ≥ 60 ml/min)"); return; }
     const s0 = R.seuils.find(([m]) => cl < m); if (s0) l.push(R.nom + " avec une clairance de " + cl + " ml/min : " + s0[1]);
   });

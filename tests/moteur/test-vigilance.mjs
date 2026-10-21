@@ -31,7 +31,7 @@ cas("alerte au-delà de 80 % du seuil", contient(vd, "dose cumulée d'anthracycl
 const h7 = h6.concat([doxo("2026-09-04")]), v7 = vigilances(base({ histo: h7, prods: [P("DOXORUBICINE", 120)], bio: { fevg: 60 } }));
 cas("seuil de 450 atteint : message « atteint ou dépassé »", contient(v7, "atteint ou dépassé"), v7);
 const ce = cumuls({ prods: [P("ÉPIRUBICINE", 200)], sc: 2, histo: [], date: "2026-10-12" })[0];
-cas("épirubicine 100 mg/m² = 50 en équivalent doxorubicine", ce && ce.total === 50, ce);
+cas("épirubicine 100 mg/m² = 80 en équivalent doxorubicine (× 0,8, Feijen 2019 ; S5 du 21/10/2026)", ce && ce.total === 80, ce);
 cas("Caelyx (liposomale pégylée) non compté", cumuls({ prods: [P("DOXORUBICINE LIPOSOMALE PÉGYLÉE (Caelyx)", 80)], sc: 2, histo: [] }).length === 0);
 cas("séances datées après la séance affichée non comptées", cumuls({ prods: [P("DOXORUBICINE", 120)], sc: 2, histo: [doxo("2026-11-01")], date: "2026-10-12" })[0].avant === 0);
 const ox = Array.from({ length: 9 }, (_, i) => S("2026-0" + (1 + Math.floor(i / 2)) + "-1" + (i % 2), [P("OXALIPLATINE", 170)]));

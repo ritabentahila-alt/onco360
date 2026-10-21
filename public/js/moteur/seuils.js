@@ -58,7 +58,8 @@ export function seuilsJour(o) {
     if (b.pal != null && b.pal > 2.5 * LSN.pal) l.push("PAL " + b.pal + " UI/L");
     if (transa > 2.5 * LSN.transa) l.push("transaminases " + transa + " UI/L");
     if (b.cpk != null && b.cpk > 2.5 * LSN.cpk) l.push("CPK " + b.cpk + " UI/L");
-    if (l.length) m.push("Trabectédine : " + l.join(", ") + " au-dessus des seuils (bilirubine ≤ normale ; PAL, transaminases, CPK ≤ 2,5 × la normale) : report ou dose réduite.");
+    if (b.alb != null && b.alb !== "" && +b.alb < 25) l.push("albumine " + fr(+b.alb) + " g/L"); // S5 (21/10/2026, RCP)
+    if (l.length) m.push("Trabectédine : " + l.join(", ") + " hors des seuils (bilirubine ≤ normale ; PAL, transaminases, CPK ≤ 2,5 × la normale ; albumine ≥ 25 g/L) : report ou dose réduite.");
   }
   // Docétaxel : ne pas faire si transaminases > 1,5 × N avec PAL > 2,5 × N (la bilirubine est déjà vue par la vigilance)
   if (a(/DOCETAXEL|TAXOTERE/) && transa > 1.5 * LSN.transa && b.pal != null && b.pal > 2.5 * LSN.pal) m.push("Docétaxel : transaminases > 1,5 × la normale avec PAL > 2,5 × la normale : contre-indiqué (RCP).");

@@ -17,7 +17,7 @@ import * as ficheP from "./fichepatient.js"; // fiche patient réglable (10/10/2
 import { vigilances, historique, cumuls, examensProposes, EXAMENS, horsNorme, vesicant, notesPour } from "../moteur/vigilance.js"; // 12/10/2026
 import { finRT } from "../moteur/rt.js";
 import { noterHeures, seanceProposee, DU_SEANCE, DU_CONS } from "../moteur/heures.js"; // heures de la séance (12/10/2026)
-import { notesVigilance, flaconsCabinet } from "./vigilances.js";
+import { notesVigilance, flaconsCabinet, interactionsCabinet } from "./vigilances.js";
 import { interactions, foie, arrondiFlacon, flaconsPour } from "../moteur/p10.js";
 import { seuilsJour, hebdomadaire, SEUILS_HEBDO, risqueDe, libRisque } from "../moteur/seuils.js";
 import { hmMaroc } from "../moteur/heure.js";
@@ -585,7 +585,7 @@ function encartVigilance(o) {
     l.push("<div>Risque émétique : <b>" + esc(libRisque(risqueDe(pc, premedP))) + "</b>" + ((pc.ordos || []).length ? " · Ordonnances liées : " + pc.ordos.map(esc).join(" ; ") : "") + "</div>");
     if ((pc.seuils || []).length) l.push('<details' + (figeJ ? "" : " open") + '><summary style="cursor:pointer">Seuils du jour (protocole)</summary><ul style="margin:4px 0 0 18px;padding:0">' + pc.seuils.map((s) => "<li>" + esc(s) + "</li>").join("") + "</ul></details>");
   }
-  if (pc) { const it = interactions({ prods: pc.dr.map((d) => d.p), texte: [x.P.traitCours, x.P.atcdMed].filter(Boolean).join(" "), ordos: pc.ordos }); if (it.length) l.push('<div style="color:var(--orange,#B46A00)">' + it.map(esc).join("<br>") + "</div>"); }
+  if (pc) { const it = interactions({ prods: pc.dr.map((d) => d.p), texte: [x.P.traitCours, x.P.atcdMed].filter(Boolean).join(" "), ordos: pc.ordos, liste: interactionsCabinet(), cl: figeJ && F ? F.cl : G.cl }); if (it.length) l.push('<div style="color:var(--orange,#B46A00)">' + it.map(esc).join("<br>") + "</div>"); }
   const N = notesPour(prods, notesVigilance());
   if (N.length) l.push("<details><summary style=\"cursor:pointer\">À vérifier pour " + N.map((n) => esc(n.nom)).join(", ") + "</summary>" + N.map((n) => "<div style=\"margin:4px 0 0 4px\"><b>" + esc(n.nom) + "</b> : " + esc(n.txt) + "</div>").join("") + "</details>");
   // 19/10/2026 : une ligne de résumé (cumuls en %, risque émétique, vésicant), le détail derrière ▸ ; ouvert d'office si une alerte est forte
@@ -638,7 +638,7 @@ function verifierValidation(x, i, k, n) {
   const pc = protocoleCure(L, k, D().ctx.bib) || {}, hebdo = hebdomadaire({ n, cycle: pc.c });
   seuilsJour({ prods: cv.prods.filter((z) => z && z.u !== "txt"), n, cycle: pc.c, bio, crU: L.crU }).forEach((s) => vg.push(s));
   // P10 (18/10/2026) : interactions (traitements en cours de la fiche, ordonnances liées) et adaptation hépatique
-  interactions({ prods: cv.prods.filter((z) => z && !premedP(z)).concat(cv.prods.filter((z) => z && /ONDANSETRON|ONSET/i.test(z.p))), texte: cv.patient.texte, ordos: (champsBib(pc, L) || {}).ordos }).forEach((s) => vg.push(s));
+  interactions({ prods: cv.prods.filter((z) => z && !premedP(z)).concat(cv.prods.filter((z) => z && /ONDANSETRON|ONSET/i.test(z.p))), texte: cv.patient.texte, ordos: (champsBib(pc, L) || {}).ordos, liste: interactionsCabinet(), cl: E[k] && E[k].g[n] ? E[k].g[n].cl : null }).forEach((s) => vg.push(s));
   foie({ prods: cv.prods.filter((z) => z && z.u !== "txt"), bio, crU: L.crU }).forEach((s) => vg.push(s));
   const al = r.alertes.concat(alertesBio(bio, { hebdo }));
   if ((al.length || vg.length) && !confirm("À vérifier avant de valider (repères, vous gardez la main) :\n\n" + (al.length ? "• " + al.join("\n• ") : "") +
