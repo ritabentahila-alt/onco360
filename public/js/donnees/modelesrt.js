@@ -38,7 +38,7 @@ export const MODELES_RT0 = {
   rdv: '<p class="dc-titre dc-rdvt">Rendez-vous du patient</p>' +
     '<p class="dc-bande">Date de début : {debut} &nbsp;–&nbsp; Date de fin : {fin}</p>' +
     '<table class="dc-ident"><tbody><tr><td><b>Patient : </b>{patient}</td><td><b>ID patient : </b>{id_patient}</td><td><b>Oncologue : </b>{medecin}</td></tr></tbody></table>' +
-    "{tableau_seances}" + '<p class="dc-note">{note_calendrier}</p>',
+    "{tableau_seances}",
 };
 export const NOMS_RT = { pli: "Pli confidentiel (radiothérapie)", cr: "Compte rendu de fin de radiothérapie", rdv: "Calendrier de fin de radiothérapie" };
 // Champs à insérer, par document : [clé, libellé]

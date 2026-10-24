@@ -1718,7 +1718,7 @@ function htmlRecu(x, o, num, ctx) {
     L("Médecin", esc(c.nom || "") + (c.specialite ? "<br><i>" + esc(c.specialite) + "</i>" : "")) + L("Prestation", esc(lib.charAt(0).toUpperCase() + lib.slice(1)) + "<br><small>du " + dfrA(o.d) + "</small>") +
     L("Encaissement", "<b>" + dh2(o.m) + "</b><br><small>" + esc(montantEnLettres(o.m)) + "</small>" + (mode && !aEncaisser(o.mode) ? "<br>" + esc(mode) : "")) + "</tbody></table>" +
     '<div class="rc-visa"><span>Visa accueil</span><b>' + esc(ctx.par) + "</b><small>" + esc(ctx.heure) + "</small></div>" +
-    (mentions.length || I.rTva ? '<p class="rc-ment">' + mentions.map(esc).join(" · ") + (I.rTva ? (mentions.length ? "<br>" : "") + "Acte exonéré de TVA" : "") + "</p>" : "") +
+    (mentions.length ? '<p class="rc-ment">' + mentions.map(esc).join(" · ") + "</p>" : "") + // T6 (24/10/2026, d. 15) : plus de mention « Acte exonéré de TVA »
     '<p class="rc-sig">Cachet et signature</p>' + (genere && I.eLieu && et.nom ? '<div class="rc-pied">' + esc([et.nom, et.adresse, et.ville, et.tel ? "Tél. " + et.tel : ""].filter(Boolean).join(" · ")) + "</div>" : "");
 }
 const CSS_RECU = "html,body{margin:0}body{font-family:Arial,Helvetica,sans-serif;color:#000;font-size:10.5pt;line-height:1.35}.rc-haut{display:flex;justify-content:space-between;align-items:center;gap:4mm;margin-bottom:5mm}" +
@@ -1730,8 +1730,12 @@ async function imprimerRecu(w, x, o) {
   if (!w) return;
   let num = null, echec = ""; try { num = await numeroterRecu(x, o); } catch (e) { echec = (e && e.message) || String(e); console.warn("numéro du reçu", e); toast("Reçu imprimé sans numéro (" + echec + ")."); }
   const html = htmlRecu(x, o, num, { jour: D.t, par: $("nomMenu").textContent, heure: hmMaintenant().replace(":", " h ") }); // heure du Maroc, horloge corrigée (S1)
-  const css = "@page{size:A5 portrait;margin:" + margesMm("a5") + "}" + CSS_RECU;
-  w.document.open(); w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>&#8203;</title><style>' + css + "</style></head><body>" + html + "</body></html>"); w.document.close();
+  // T6 (24/10/2026, d. 50) : A5 sur une seule feuille, même avec toutes les mentions (le reçu est réduit jusqu'à tenir : zoom calculé dans la page
+  // imprimée, d'après la hauteur utile) ; A4 si le cabinet le choisit (Paramètres › Impression › Reçus)
+  const a4 = !!reglages().impression.recuA4, q = a4 ? "a4" : "a5", m = margesMm(q), mm = m.split(" ").map((v) => parseFloat(v) || 0);
+  const css = "@page{size:" + (a4 ? "A4" : "A5") + " portrait;margin:" + m + "}" + CSS_RECU;
+  const ajuste = a4 ? "" : "<script>(function(){var b=document.getElementById('rcPage');if(!b)return;b.style.width='" + (148 - 2 * (mm[1] || 0)) + "mm';var h=(210-" + (mm[0] + (mm[2] != null ? mm[2] : mm[0])) + ")*3.7795-6;if(b.scrollHeight>h)b.style.zoom=Math.max(0.55,h/b.scrollHeight).toFixed(3);b.style.width='';})();<\/script>";
+  w.document.open(); w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>&#8203;</title><style>' + css + '</style></head><body><div id="rcPage">' + html + "</div>" + ajuste + "</body></html>"); w.document.close();
   setTimeout(() => { try { w.focus(); w.print(); } catch (e) { /* fenêtre fermée */ } }, 400);
   if (!num && o.cle) journal(x, "Reçu imprimé SANS NUMÉRO (" + fmtMil(o.m) + " DH, " + dfrA(o.d) + ") : le numéro n'a pas pu être enregistré (" + String(echec).slice(0, 120) + ")");
   else journal(x, "Reçu " + (num ? num.numero + (num.duplicata ? " (duplicata)" : "") + " " : "") + "imprimé (" + fmtMil(o.m) + " DH, " + dfrA(o.d) + ")");

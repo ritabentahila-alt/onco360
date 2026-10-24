@@ -63,7 +63,7 @@ async def main():
         pg = await ouvrir(b, S3); ev = pg.evaluate
         await pg.goto(f'http://localhost:{PORT}/v2.html#dossier/{P7}'); await pg.wait_for_timeout(3500)
         html = await recu(pg); t = H.unescape(re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', ' ', html)))
-        ok('Acte exonéré de TVA' in t and 'ICE-TEST-3' not in t and 'Clinique de démonstration Date' not in t, 'case TVA cochée : mention imprimée ; ICE décoché : absent ; papier à en-tête : pas de lieu en haut', t[:200])
+        ok('exonéré' not in t and 'ICE-TEST-3' not in t and 'Clinique de démonstration Date' not in t, 'T6 (24/10/2026, d. 15) : plus jamais « Acte exonéré de TVA » (même avec l\'ancienne case) ; ICE décoché : absent ; papier à en-tête : pas de lieu en haut', t[:200])
         # Numéro impossible à enregistrer : reçu sans numéro, noté au journal
         await ev("window.__panne = ['/recus/']")  # lecture du reçu impossible (réseau coupé) : la transaction du numéro échoue
         h3 = await recu(pg)
@@ -76,7 +76,7 @@ async def main():
         ok(await ev("!!document.getElementById('pfIf') && !!document.getElementById('pfTp') && !!document.getElementById('pfIce')"), 'Mon compte : champs IF, TP, ICE (médecin)')
         await pg.goto(f'http://localhost:{PORT}/v2.html#parametres/impression'); await pg.wait_for_timeout(1500)
         t = await ev("document.getElementById('page').textContent")
-        ok('Reçus : mentions imprimées' in t and 'Acte exonéré de TVA' in t, 'Paramètres › Impression : cases « Reçus : mentions imprimées »')
+        ok('Reçus : mentions imprimées' in t and 'exonéré' not in t and 'comptable' not in t and 'reçus en A4' in t, 'Paramètres › Impression : cases « Reçus : mentions imprimées » (sans TVA ni comptable ; choix A4)')
         await pg.set_viewport_size({'width': 390, 'height': 800}); await pg.wait_for_timeout(400)
         ok(await ev("document.documentElement.scrollWidth <= 392"), 'téléphone (390 px) : Paramètres › Impression sans débordement')
         ok(not pg.errs, 'aucune erreur JavaScript', pg.errs[:2]); await pg.close(); await b.close()

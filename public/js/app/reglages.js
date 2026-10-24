@@ -35,10 +35,12 @@ export function reglages() {
   return r;
 }
 // Marges d'impression : « 45mm 28mm 18mm » pour @page ; variables CSS de l'aperçu à l'écran (feuille modifiable)
-export const margesMm = (q) => { const I = reglages().impression, m = I[q].slice(); if (I.entete === "genere" && q !== "doc") m[0] = Math.min(m[1], 20); return m.map((v) => v + "mm").join(" "); }; // en-tête imprimé (3.9) : marge du haut réduite
+// en-tête imprimé (3.9) : marge du haut réduite ; T6 (24/10/2026, d. 52) : ordonnance A5 avec l'en-tête imprimé par Onco360 : marges latérales à
+// 15 mm au plus (avant : 28 mm, 92 mm de texte sur 148) ; papier à en-tête : marges du cabinet (haut 55 mm, réglé par Dr Bentahila)
+export const margesMm = (q) => { const I = reglages().impression, m = I[q].slice(); if (I.entete === "genere" && q !== "doc") m[0] = Math.min(m[1], 20); if (I.entete === "genere" && q === "a5") m[1] = Math.min(m[1], 15); return m.map((v) => v + "mm").join(" "); };
 export function appliquerImpression() {
   const I = reglages().impression, st = document.documentElement.style;
-  [["a5", I.a5], ["a4", I.a4], ["dc", I.doc]].forEach(([k, m]) => { st.setProperty("--" + k + "-h", I.entete === "genere" && k !== "dc" ? Math.min(m[1], 20) : m[0]); /* en-tête imprimé (3.9) : pas de place pour le papier */ st.setProperty("--" + k + "-c", m[1]); st.setProperty("--" + k + "-b", m[2]); });
+  [["a5", I.a5], ["a4", I.a4], ["dc", I.doc]].forEach(([k, m]) => { st.setProperty("--" + k + "-h", I.entete === "genere" && k !== "dc" ? Math.min(m[1], 20) : m[0]); /* en-tête imprimé (3.9) : pas de place pour le papier */ st.setProperty("--" + k + "-c", I.entete === "genere" && k === "a5" ? Math.min(m[1], 15) : m[1]); /* T6 : aperçu = impression */ st.setProperty("--" + k + "-b", m[2]); });
 }
 // Enregistre seulement ce qui diffère des valeurs par défaut
 export async function enregistrerReglages(r) {

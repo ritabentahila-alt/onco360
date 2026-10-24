@@ -907,7 +907,8 @@ function cadre(pid, uid) {
   const e = A.esc, x = trouver(pid), et = (x && A.etabDe && A.etabDe(x.doc.etablissementId)) || {}, c = carte(uid) || { nom: medecin() };
   const lg = I.eLogo && srcImage(et.logo) ? '<img class="or-elogo" src="' + srcImage(et.logo) + '" alt="">' : "";
   const id = [I.eNom && c.nom ? "<b>" + e(c.nom) + "</b>" : "", I.eSpe && c.specialite ? e(c.specialite) : "", I.eInpe && c.inpe ? "INPE : " + e(c.inpe) : ""].filter(Boolean).join("<br>");
-  const pied = I.eLieu ? [et.nom, et.adresse, et.ville, et.tel ? "Tél. " + et.tel : ""].filter(Boolean).map(e).join(" · ") : "";
+  // T6 (24/10/2026) : chaque morceau du pied (téléphone compris) d'un bloc, jamais coupé en deux lignes
+  const pied = I.eLieu ? [et.nom, et.adresse, et.ville, et.tel ? "Tél. " + et.tel : ""].filter(Boolean).map((z) => '<span style="white-space:nowrap">' + e(z) + "</span>").join(" · ") : "";
   return { haut: lg || id ? '<div class="or-ent">' + lg + '<div class="or-eid">' + id + "</div></div>" : "", bas: pied ? '<div class="or-pied">' + pied + "</div>" : "" };
 }
 const CSS_CADRE = ".or-ent{display:flex;align-items:center;gap:6mm;border-bottom:0.3mm solid #000;padding-bottom:3mm;margin-bottom:6mm}.or-elogo{max-height:18mm;max-width:45mm}.or-eid{margin-left:auto;text-align:right;line-height:1.35}" +
@@ -984,7 +985,16 @@ function majApercu() {
 // Impression au format choisi : feuille seule (papier à en-tête), ou avec l'en-tête et le pied imprimés (3.9) ; jamais de signature scannée (R-E5) ;
 // plus d'une page (R-E2) : chaque page a le même en-tête (date, patient, âge…), « Cachet et signature » et « page 1 / 2 » ; aucune hauteur de
 // page imposée (le navigateur ne fait jamais une feuille de plus avec une ligne seule) ; jamais de passage automatique en A4
+// T6 (24/10/2026, décision 51) : « À compléter » ne s'imprime jamais (après « Imprimer quand même ») : la zone reste vide, comme dans les documents de RT,
+// avec la place d'écrire à la main
+export function viderZones(html) {
+  if (!/or-ac/.test(html)) return html;
+  const d = document.createElement("div"); d.innerHTML = html;
+  d.querySelectorAll("mark.or-ac").forEach((m) => { if (zoneRestante(m.textContent)) m.outerHTML = '<span class="or-vide" style="display:inline-block;min-width:30mm">&nbsp;</span>'; });
+  return d.innerHTML;
+}
 function imprimer(w, html, format, taille, ctx, t) {
+  html = viderZones(html);
   const cd = ctx ? cadre(ctx.pid, ctx.uid) : { haut: "", bas: "" }, courrier = t === "courrier" || html.indexOf("or-ti") >= 0;
   const r = courrier ? null : mesurer(html, format, taille, ctx);
   let corps = cd.haut + html + cd.bas;

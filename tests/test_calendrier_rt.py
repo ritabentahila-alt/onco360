@@ -42,7 +42,7 @@ async def main():
         ok(all(r[1] == '08:30' for r in L), 'heure de la 1re séance sur chaque ligne', L[0])
         ok(not any('HAL' in r[4] for r in L) and L[0][4] and not L[0][4].startswith('Dr'), 'ressource : le médecin (NOM Prénom), sans appareil', L[0][4])
         ok(all(r[5] == 'Prévu' for r in L), 'RT non terminée : toutes « Prévu »')
-        ok("Dates des séances intermédiaires établies d'après le calendrier ; début, fin et nombre de séances conformes au dossier." in t, 'ligne du bas (dates intermédiaires reconstituées)')
+        ok("établies d'après le calendrier" not in t, 'plus de ligne du bas (T6, 24/10/2026, décision 14 : retirée)')
         ok(pages == 1, '25 séances : une seule page A4', pages)
         ok(not errs, 'aucune erreur JavaScript', errs[:2])
         # 2. Fin validée : « Terminé » ; fin = fin validée

@@ -115,7 +115,7 @@ function valeursRdv(P, r, ctx, o) {
   return { debut: AR(dfrA((L[0] && L[0].d) || r.deb)), fin: AR(dfrA(fin)), patient: esc((P.nomF || "").toUpperCase() + (P.prenom ? ", " + P.prenom : "")), id_patient: AR(P.numero || ""), medecin: AR(o.medecin), radiotherapie: AR(r.acte || ""),
     tableau_seances: '<table class="dc-tab dc-rdv' + taille + '"><tbody><tr><th>Date du rendez-vous</th><th>Heure du rendez-vous</th><th>Durée de l\'activité (min)</th><th>Activité</th><th>Ressource</th><th>État du rendez-vous</th></tr>' +
       L.map((z) => "<tr><td>" + dfrA(z.d) + "</td><td>" + esc(z.h) + '</td><td class="dc-n">' + z.du + "</td><td>" + z.act + "</td><td>" + esc(ressource) + "</td><td>" + z.etat + "</td></tr>").join("") + "</tbody></table>",
-    note_calendrier: "Dates des séances intermédiaires établies d'après le calendrier ; début, fin et nombre de séances conformes au dossier." }; // décision du 18/10 (R-B4)
+    note_calendrier: "" }; // T6 (24/10/2026, d. 14) : ligne du bas retirée (document envoyé à la CNSS pour fermer le dossier) ; champ gardé, vide, pour les modèles déjà modifiés
 }
 
 // ───── Documents enregistrés : une fiche par radiothérapie et par type ─────
@@ -193,7 +193,7 @@ function imprimer(w, html) {
 }
 // Mise en page commune (fenêtre et impression)
 const CSS_DOC = ".dc p{margin:0 0 7px}.dc .dc-titre{text-align:center;font-weight:bold;font-size:15pt;margin:4px 0 16px}.dc .dc-cr{font-size:14pt}.dc .dc-d{text-align:right;margin-bottom:14px}.dc .dc-c{text-align:center}.dc .dc-g{font-size:13pt}" +
-  ".dc .dc-rub{font-weight:bold;border-bottom:1px solid #9AA3B5;padding-bottom:3px;margin:14px 0 6px}.dc .dc-h{font-weight:bold;font-size:12pt;margin:14px 0 6px}.dc .dc-li{margin-left:14px}.dc .dc-sig{text-align:right;margin-top:22px;margin-bottom:60px;break-inside:avoid;page-break-inside:avoid;break-before:avoid;page-break-before:avoid}.dc .dc-note{font-size:9pt;color:#555;margin-top:6px}" +
+  ".dc .dc-note:empty{display:none}.dc .dc-rub{font-weight:bold;border-bottom:1px solid #9AA3B5;padding-bottom:3px;margin:14px 0 6px}.dc .dc-h{font-weight:bold;font-size:12pt;margin:14px 0 6px}.dc .dc-li{margin-left:14px}.dc .dc-sig{text-align:right;margin-top:22px;margin-bottom:60px;break-inside:avoid;page-break-inside:avoid;break-before:avoid;page-break-before:avoid}.dc .dc-note{font-size:9pt;color:#555;margin-top:6px}" +
   ".dc .dc-ar{background:#FFF200;font-weight:bold}.dc .dc-af{color:#8A8A8A;font-style:italic}.dc .dc-saut{page-break-before:always;break-before:page;height:0}" +
   ".dc .dc-tab{width:100%;border-collapse:collapse;margin:4px 0 8px}.dc .dc-tab th,.dc .dc-tab td{border:1px solid #8C8C8C;padding:5px 7px;vertical-align:top;text-align:left}.dc .dc-tab th{background:#DCE6F2}.dc .dc-tab td p{margin:0 0 3px}" +
   ".dc .dc-rdv th{background:#2B4A7E;color:#fff;font-size:9pt;line-height:1.15;padding:2px 4px}.dc .dc-rdv td{font-size:9pt;line-height:1.2;padding:1px 4px;white-space:nowrap}.dc .dc-rdv .dc-n{text-align:right}" +

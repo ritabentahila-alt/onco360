@@ -381,7 +381,16 @@ dans ⋯ ; Afficher, Journal, Modifier restent visibles ; aucune consultation cr
       **T5 Salle d'attente et tableau de bord** (U23, U24). (1) Salle : le **nom du patient n'est jamais coupé** (sur deux lignes s'il le faut) ; la
       mutuelle et le motif cèdent la place. (2) Tableau de bord, carte « Aujourd'hui » : **consultations et chimio d'abord, puis la radiothérapie**,
       **sans la plier** (réponse de Dr Bentahila : « sans plier la radiothérapie »).
-- [ ] **T6 Impressions** (d. 14, 15, 49, 50, 51, 52 ; audit 10, « Tout ce qui s'imprime » ). (1) **Fiche de chimio** (A4
+- [x] **(24/10/2026, testé ; pas encore en ligne)** (1) Fiche de chimio (`fiche.js`) : `thead` = ligne « NOM · cure · protocole » + titres des colonnes,
+      répété par le navigateur en haut de chaque page, lignes jamais coupées ; (2) reçu A5 (`imprimerRecu`, v2.js) ramené sur une seule feuille (zoom
+      calculé dans la page imprimée d'après la hauteur utile, largeur imprimable mesurée) ; **A4 au choix** : case « Imprimer les reçus en A4 » de
+      Paramètres › Impression › Reçus (`impression.recuA4`, réponse de Dr Bentahila : « on peut toujours l'imprimer en A4 si voulu ») ; (3) « À compléter »
+      jamais imprimé (`viderZones` d'ordonnances.js : zone vide de 30 mm pour écrire à la main) ; morceaux du pied (téléphone compris) jamais coupés ;
+      (4) `margesMm` / aperçu : ordonnance A5 avec l'en-tête d'Onco360, marges latérales 15 mm au plus (papier à en-tête : marges du cabinet, haut 55 mm) ;
+      (5) calendrier de fin de RT : ligne du bas retirée (`note_calendrier` vide, retirée du modèle de départ, `.dc-note:empty` caché) ; (6) reçu : plus
+      de mention « Acte exonéré de TVA » ni de phrase sur le comptable (case `rTva` retirée). Tests : `tests/test_t6.py` 8/8 (PDF compté : 1 page),
+      test_recu 23 (adapté), test_ordonnances_e, test_calendrier_rt (adapté), test_ordo_entete, test_consultations34, test_cabinet_neutre.
+      **T6 Impressions** (d. 14, 15, 49, 50, 51, 52 ; audit 10, « Tout ce qui s'imprime » ). (1) **Fiche de chimio** (A4
       paysage, `fiche.js`) : nom du patient et titres des colonnes **répétés en haut de chaque page**. (2) **Reçu toujours sur une seule feuille A5**
       même avec toutes les mentions (« réduire la police ou autre ») : taille du texte et espacements réduits jusqu'à tenir, mesuré comme les
       ordonnances (`mesurer`), jamais de passage en A4. (3) **Jamais « À compléter » imprimé** (certificats, courriers après « Imprimer quand
