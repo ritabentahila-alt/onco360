@@ -10,6 +10,7 @@ import { etatLigne, protocoleDe, protocoleCure, seancesCure, seancesDe, dedupIds
 import { addJ, ecart, num, age } from "../moteur/outils.js";
 import { tarif } from "../moteur/tarifs.js";
 import { consJours } from "../moteur/finances.js";
+import { trierRecherche, curesProposees } from "../moteur/recherche.js";
 import { typeRdv, T_RTC } from "../moteur/rdv.js";
 import { DIAG, MUT0, DICT } from "../donnees/listes.js";
 import { poso, doseTxt, ficheHTML, imprimerFiche } from "./fiche.js";
@@ -1078,12 +1079,12 @@ export function menusCascade(liste, F, fn) {
 function valeurs(n) { return valeursCascade(BIB(), CF, n); }
 function resultats() {
   const q = sansAccents(CF.q).split(/\s+/).filter(Boolean);
-  return BIB().filter((p) => {
+  return trierRecherche(BIB().filter((p) => {
     if (CF.fav && !p.fav) return false;
     if (CF.c && !(p.ind || []).some((x) => x[0] === CF.c && (!CF.o || x[1] === CF.o) && (!CF.s || x[2] === CF.s) && (!CF.g || x[3] === CF.g))) return false;
     if (q.length) { const h = sansAccents(p.nom + " " + molecules(p) + " " + (p.ind || []).map((x) => x.join(" ")).join(" ")); if (!q.every((w) => h.indexOf(w) >= 0)) return false; }
     return true;
-  }).sort((a, b) => a.nom.localeCompare(b.nom, "fr", { sensitivity: "base" }));
+  }), CF.q); // T1 (24/10/2026, U2) : le nom qui commence par le mot cherché d'abord
 }
 function puces(n, lbl) {
   const v = valeurs(n); if (!v.length) return "";
@@ -1115,7 +1116,9 @@ function dessinerNL() {
   const ch = (lib, f, v, typ) => "<div><label>" + lib + '</label><input class="req"' + (typ === "date" ? ' type="date"' : ' inputmode="decimal"') + ' value="' + esc(v == null ? "" : v) + '" onchange="nlSet(\'' + f + "',this.value)\"></div>";
   A.panneau("<h3>Nouvelle ligne de traitement</h3>" +
     '<div class="bloc gris"><b>' + esc(p.nom) + '</b><br><span class="mesures">' + esc(p.r || "") + '</span> <button class="mini" onclick="nlChanger()">Changer de protocole</button>' +
-      '<br><span class="mesures">Intention : <b>' + esc(libIntention(NL) || "non précisée") + '</b></span> <button class="mini" onclick="nlIntention()">Modifier</button></div>' +
+      // T1 (24/10/2026, U3) : intention choisie ici, dans le même écran que le nombre de cures et la date (plus de fenêtre à part)
+      '<div class="nl-int" style="margin-top:8px"><span class="mesures">Intention :</span> <span class="puces" style="display:inline-flex;flex-wrap:wrap;gap:4px">' + INTENTIONS.map(([k, l]) => '<button type="button" class="puce' + (NL.intent === k ? " on" : "") + '" onclick="nlIntent(\'' + k + '\')">' + l + "</button>").join("") + "</span>" +
+      (NL.intent === "meta" ? ' <label class="mesures" style="font-weight:normal;margin-left:6px">Ligne n° <select onchange="nlRang(this.value)">' + [1, 2, 3, 4, 5, 6, 7, 8].map((n) => '<option value="' + n + '"' + (n === +(NL.rang || 1) ? " selected" : "") + ">" + rangLib(n) + "</option>").join("") + "</select></label>" : "") + "</div></div>" +
     '<div class="form grille-nl" style="margin-top:12px">' + (ED.c ? ch("Nombre de cures *", "nb", NL.nb) : "") + ch("Date J1 *", "j1", NL.j1, "date") + ch("Poids (kg) *", "po", NL.po) +
     (auc ? ch("Créatinine (mg/L) *", "cr", NL.cr) + '<div><label>Clairance (Cockcroft) – automatique</label><input disabled value="' + (cl ? cl + " ml/min" : P.sexe ? "—" : "sexe manquant") + '"></div>' : "") +
     '<div><label>Cycle (jours, 0 = continu)</label><input inputmode="numeric" value="' + esc(ED.c || 0) + '" onchange="nlSet(\'c\',this.value)"></div>' +
@@ -1133,7 +1136,21 @@ function dessinerNL() {
     const lignes = lignesDe(x); lignes.push({ id: "L" + Date.now() + Math.floor(Math.random() * 1000), protoId: p.id, pr: ED, assoc: p.assoc ? 1 : 0, ...(NL.intent ? { intent: NL.intent } : {}), ...(NL.rang ? { rang: NL.rang } : {}), ...(A.medPourPatient(x) ? { med: A.medPourPatient(x) } : {}) /* R-C3 : médecin de la ligne */, j1: NL.j1, poids: String(num(NL.po)), creat: NL.cr ? String(num(NL.cr)) : "", crU: "mgL", cures });
     await sauverLignes(x, lignes, "Nouvelle ligne : " + ED.nom, { poids: String(num(NL.po)) });
     SEL.pid = x.id; SEL.l = lignes.length - 1; SEL.c = null;
-  });
+  }).then((ok) => { if (ok) suiteLigne(x.id, ED.nom); });
+}
+// T1 (24/10/2026, U7) : après « Créer la ligne », la suite est proposée (chaque bouton facultatif ; « Plus tard » ferme) : fiche de chimiothérapie
+// pour la prise en charge, ordonnances du protocole, heure de la C1
+function suiteLigne(pid, nom) {
+  const x = trouver(pid); if (!x) return; const i = x.P.lignes.length - 1, esc = A.esc;
+  A.fenetre("<h3>Ligne créée</h3><p class=\"sous\">" + esc(nom) + " — et maintenant ?</p><div class=\"boutons\" style=\"flex-wrap:wrap;justify-content:flex-start\">" +
+    '<button class="bt clair" id="slFiche">' + A.ic("imprimer") + "Fiche de chimio (prise en charge)</button>" +
+    (A.peut("ecrireConsultations") ? '<button class="bt clair" data-fn="prescriptions" id="slOrdo">' + A.ic("imprimer") + "Ordonnances du protocole</button>" : "") +
+    (A.traitMod() || A.peut("planning") ? '<button class="bt clair" id="slHeure">' + A.ic("horloge") + "Heure de la C1</button>" : "") +
+    '</div><div class="boutons"><button class="bt plein" onclick="fermerFenetre()">Plus tard</button></div>');
+  const on = (id, f) => { const b = document.getElementById(id); if (b) b.onclick = f; };
+  on("slFiche", () => { A.fermerFenetre(); window.chFiche(pid, i, 0); });
+  on("slOrdo", () => { A.fermerFenetre(); window.chOrdos(pid, i, 0, 1); });
+  on("slHeure", () => { A.fermerFenetre(); window.chHeure(pid, i, 0, 1); });
 }
 // 12/10/2026 (signalé par Dr Bentahila : « la page se recharge, je n'arrive plus à choisir ») : un choix dans les menus ne redessine plus
 // toute la fenêtre (saisie, défilement et menu ouvert perdus, surtout sur téléphone) : seuls les menus et la liste des protocoles changent
@@ -1170,9 +1187,10 @@ window.chIntention = (id, i) => {
     await sauverLignes(x, lignes, "Intention de la ligne : " + libIntention(L2));
   }));
 };
-window.nlProto = (pid) => { const x = trouver(NL.pid); ED = JSON.parse(JSON.stringify(D().ctx.bib[pid])); delete ED.fav; NL = Object.assign(NL, { p: pid, nb: 6, j1: D().t, po: x.P.poids || "", cr: "", pct: 100, intent: "", rang: null }); REDRAW = dessinerNL;
-  // fenêtre intermédiaire : l'intention de la ligne, puis les paramètres de la ligne
-  fenetreIntention(ED.nom, { rang: rangSuivant(x) }, (o) => { NL.intent = o.intent; NL.rang = o.rang; dessinerNL(); }, () => dessinerNL()); };
+// T1 (24/10/2026) : nombre de cures propre au protocole (U4 : réglé dans le protocole, sinon « × n » du nom, sinon 6) ; intention dans le même écran (U3)
+window.nlProto = (pid) => { const x = trouver(NL.pid); ED = JSON.parse(JSON.stringify(D().ctx.bib[pid])); delete ED.fav; NL = Object.assign(NL, { p: pid, nb: curesProposees(ED), j1: D().t, po: x.P.poids || "", cr: "", pct: 100, intent: "", rang: rangSuivant(x) }); REDRAW = dessinerNL; dessinerNL(); };
+window.nlIntent = (k) => { NL.intent = NL.intent === k ? "" : k; dessinerNL(); };
+window.nlRang = (v) => { NL.rang = +v || 1; };
 window.nlChanger = () => { NL.p = null; dessinerNL(); };
 window.nlIntention = () => { const x = trouver(NL.pid); fenetreIntention(ED.nom, { intent: NL.intent, rang: NL.rang || rangSuivant(x) }, (o) => { NL.intent = o.intent; NL.rang = o.rang; dessinerNL(); }, () => dessinerNL()); };
 window.nlSet = (f, v) => { if (f === "c") { ED.c = parseInt(v, 10) || 0; dessinerNL(); return; } NL[f] = String(v).trim(); if (f === "po" || f === "cr" || f === "j1") dessinerNL(); };

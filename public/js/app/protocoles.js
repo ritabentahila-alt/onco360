@@ -6,6 +6,7 @@ import { dedupIds, premed, protocoleValide } from "../moteur/doses.js";
 import { tableMol, edValide, editerAvec, menusCascade, valeursCascade } from "./chimio.js";
 import { correctionsAudit3 } from "../moteur/audit3.js";
 import { RISQUES, risqueEmetique, libRisque } from "../moteur/seuils.js";
+import { trierRecherche, curesProposees } from "../moteur/recherche.js";
 // P9 : fonctions serveur (europe-west1), chargées seulement quand on s'en sert
 const serveur = async (nom, d) => { const { getFunctions, httpsCallable } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js"); const { app } = await import("../config.js"); return (await httpsCallable(getFunctions(app, "europe-west1"), nom, { timeout: 120000 })(d || {})).data; };
 
@@ -25,13 +26,13 @@ const badgeSt = (p) => (valide(p) ? '<span class="badge b-ch" title="' + A.esc(t
 const valeurs = (n) => valeursCascade(BIB(), CF, n);
 function resultats() {
   const q = sa(CF.q).split(/\s+/).filter(Boolean);
-  return BIB().filter((p) => {
+  return trierRecherche(BIB().filter((p) => {
     if (CF.fav && !p.fav) return false;
     if (CF.st === "ok" && !valide(p)) return false; if (CF.st === "todo" && valide(p)) return false;
     if (CF.c && !(p.ind || []).some((x) => x[0] === CF.c && (!CF.o || x[1] === CF.o) && (!CF.s || x[2] === CF.s) && (!CF.g || x[3] === CF.g))) return false;
     if (q.length) { const h = sa(p.nom + " " + molecules(p) + " " + (p.ind || []).map((x) => x.join(" ")).join(" ")); if (!q.every((w) => h.indexOf(w) >= 0)) return false; }
     return true;
-  }).sort((a, b) => a.nom.localeCompare(b.nom, "fr", { sensitivity: "base" }));
+  }), CF.q); // T1 (24/10/2026) : le nom qui commence par le mot cherché d'abord, puis l'ordre alphabétique
 }
 function liste() {
   const r = resultats(), esc = A.esc, ok = A.peut("parametres");
@@ -344,8 +345,9 @@ window.prOuvrir = (id) => {
   function dessiner() {
     const esc = A.esc, tous = [[], [], [], []];
     BIB().forEach((x) => (x.ind || []).forEach((i) => { for (let k = 0; k < 4; k++) if (i[k] && tous[k].indexOf(i[k]) < 0) tous[k].push(i[k]); }));
-    A.fenetre("<h3>" + (nouv ? "Nouveau protocole" : "Protocole de la bibliothèque") + '</h3><div class="form" style="grid-template-columns:2fr 1fr 1fr">' +
+    A.fenetre("<h3>" + (nouv ? "Nouveau protocole" : "Protocole de la bibliothèque") + '</h3><div class="form" style="grid-template-columns:2fr 1fr 1fr 1fr">' +
       '<div><label>Nom du protocole (schéma compris)</label><input value="' + esc(ED.nom) + '" onchange="prProp(\'nom\',this.value)"></div><div><label>Cycle (jours, 0 = continu)</label><input inputmode="numeric" value="' + esc(ED.c || 0) + '" onchange="prProp(\'c\',this.value)"></div>' +
+      '<div><label>Nombre de cures proposé</label><input inputmode="numeric" placeholder="' + curesProposees(Object.assign({}, ED, { nbc: 0 })) + '" value="' + esc(ED.nbc || "") + '" onchange="prProp(\'nbc\',this.value)" title="Proposé à la création d\'une ligne (toujours modifiable) ; vide : « × n » du nom, sinon 6"></div>' +
       '<div><label>Statut</label><select onchange="prProp(\'st\',this.value)"><option value="ok"' + (valide(ED) ? " selected" : "") + '>Validé (utilisable)</option><option value="todo"' + (!valide(ED) ? " selected" : "") + ">Non validé</option></select></div>" +
       '<div class="large" style="grid-column:1/-1"><label>Rythme / observations</label><input value="' + esc(ED.r || "") + '" onchange="prProp(\'r\',this.value)"></div>' +
       '<div class="large" style="grid-column:1/-1"><label>Source (référentiel, article, recommandation)</label><input value="' + esc(ED.src || "") + '" placeholder="ex. ESMO 2023, KEYNOTE-189…" onchange="prProp(\'src\',this.value)"></div>' +
@@ -392,7 +394,7 @@ window.prOuvrir = (id) => {
 };
 window.prProp = (f, v) => { if (f === "src") { ED.src = String(v).trim(); return; }
   if (f === "ordos" || f === "seuils") { const l = String(v).split("\n").map((z) => z.trim()).filter(Boolean); if (l.length) ED[f] = l; else delete ED[f]; return; }
-  if (f === "re") { if (v) ED.re = v; else delete ED.re; return; } if (f === "c") ED.c = parseInt(v, 10) || 0; else if (f === "no") ED.no = String(v).split("\n").map((z) => z.trim()).filter(Boolean); else if (f === "assoc") ED.assoc = v ? 1 : 0; else ED[f] = String(v).trim(); };
+  if (f === "re") { if (v) ED.re = v; else delete ED.re; return; } if (f === "c") ED.c = parseInt(v, 10) || 0; else if (f === "nbc") { const n = parseInt(v, 10); if (n > 0) ED.nbc = n; else delete ED.nbc; } else if (f === "no") ED.no = String(v).split("\n").map((z) => z.trim()).filter(Boolean); else if (f === "assoc") ED.assoc = v ? 1 : 0; else ED[f] = String(v).trim(); };
 window.prInd = (i, k, v) => { ED.ind[i][k] = String(v).trim(); };
 window.prIndAj = () => { ED.ind.push(["", "", "", ""]); REDESSINER(); };
 window.prIndSup = (i) => { ED.ind.splice(i, 1); REDESSINER(); };

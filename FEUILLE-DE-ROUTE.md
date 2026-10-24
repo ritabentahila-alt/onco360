@@ -333,7 +333,13 @@ Avant le **premier client payant** : société éditrice, projet Firebase et nom
 ## Phase T – Tous les jours (audit 11, facilité d'utilisation ; impressions de l'audit 10)
 Ce qui ne change pas (décisions du 12/10 et du 17/10) : « Ouvrir » reste le bouton principal de chaque cure ; Valider, Reporter, Annuler restent
 dans ⋯ ; Afficher, Journal, Modifier restent visibles ; aucune consultation créée d'office ; rien n'est créé tout seul.
-- [ ] **T1 Prescrire une ligne de chimio** (U2, U3, U4, U7 ; audit 11, « Prescrire »). (1) **Recherche** : les protocoles dont le nom **commence**
+- [x] **(24/10/2026, testé ; pas encore en ligne)** `public/js/moteur/recherche.js` : `trierRecherche` (nom qui commence par le mot entier, puis par ces
+      lettres, puis qui contient le mot, puis le reste ; page Protocoles et « Nouvelle ligne ») et `curesProposees` (champ **« Nombre de cures proposé »**
+      `nbc` dans l'éditeur de protocole ; sinon « × n » du nom ou du rythme, jamais « 300 mg × 2/j » ; sinon 6) ; intention en puces dans le même écran
+      (`nlIntent`, `nlRang` ; plus de fenêtre `fenetreIntention` à la création, gardée pour modifier une ligne) ; après « Créer la ligne » : fenêtre « Ligne
+      créée » (`suiteLigne` : fiche de chimio, ordonnances du protocole si droit, heure de la C1, « Plus tard »). Tests : `tests/moteur/test-recherche.mjs`
+      9/9, `tests/test_t1.py` 12/12 (1440 et 390 px), test_intention 24 (adapté), test_protocoles, test_cures, test_p9, test_audit3.
+      **T1 Prescrire une ligne de chimio** (U2, U3, U4, U7 ; audit 11, « Prescrire »). (1) **Recherche** : les protocoles dont le nom **commence**
       par le mot cherché passent en premier (« EC » : EC d'abord, puis le reste ; même tri dans la page Protocoles et dans « Nouvelle ligne »).
       (2) **Intention** (néoadjuvante, adjuvante…) choisie **dans le même écran** que le nombre de cures et la date (plus de fenêtre à part ; la
       fenêtre « Avant la ligne » pour les mesures manquantes reste). (3) **Nombre de cures propre à chaque protocole** (« selon les
