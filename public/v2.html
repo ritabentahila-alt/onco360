@@ -530,6 +530,8 @@ a.lien-nm{text-decoration:none}a.lien-nm:hover{text-decoration:underline}
 @media (min-width:901px){
 .sa-carte.compact .sa-l:not(.ent){padding:3px 4px;margin-top:2px;font-size:var(--t3);min-height:32px;height:32px}
 .sa-carte.compact .sa-l>*:not(.actr){white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* T5 (24/10/2026, audit n° 11 U23) : le nom du patient n'est jamais coupé (sur deux lignes s'il le faut) ; la mutuelle et le motif cèdent la place */
+.sa-carte .sa-l>.nm,.sa-carte.compact .sa-l>.nm:not(.actr){white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}.sa-carte .sa-l>.nm .lien-nm{white-space:normal}
 .sa-carte.compact .lien-nm{font-size:var(--t4)}.sa-carte.compact .nm .badge,.sa-carte.compact .c-st .mesures{display:none}
 .sa-carte.compact .sa-pres{display:inline;margin-left:6px;font-size:0}.sa-carte.compact .sa-pres .pi{width:14px;height:14px}
 .sa-carte.compact .c-type .badge{white-space:nowrap;font-size:var(--t1);padding:2px 7px}.sa-carte.compact .pst{padding:1px 8px;font-size:var(--t2);white-space:nowrap}

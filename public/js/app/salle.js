@@ -389,8 +389,8 @@ export function apresPrix(x, cle, jour) {
 // SA8a (11/10/2026) : civilité dans le nom, heures étroites (RDV, Arrivée, Attente, Présence en hh:mm), largeur de chaque colonne
 // réglable à la souris (poignée du titre), gardée pour chaque compte (utilisateurs/{uid}.salleLargeurs { colonne: px })
 const COLS = [
-  ["ord", "N° d'ordre", "40px"], ["h", "RDV", "44px", 1], ["nm", "Patient", "minmax(130px,1.6fr)", 1], ["type", "Type", "76px"],
-  ["mo", "Motif", "minmax(80px,1.2fr)"], ["cor", "Correspondant", "minmax(70px,.8fr)"], ["mut", "Mutuelle", "58px"], ["ar", "Arrivée", "46px"],
+  ["ord", "N° d'ordre", "40px"], ["h", "RDV", "44px", 1], ["nm", "Patient", "minmax(170px,2fr)", 1], ["type", "Type", "76px"],
+  ["mo", "Motif", "minmax(56px,1fr)"], ["cor", "Correspondant", "minmax(70px,.8fr)"], ["mut", "Mutuelle", "58px"], ["ar", "Arrivée", "46px"],
   ["att", "Attente", "46px"], ["pres", "Présence", "50px"], ["st", "Statut", "92px", 1], ["px", "Prix", "58px"], ["com", "Commentaire", "minmax(70px,1fr)"], ["act", "", "104px", 1]];
 const TITRE_COURT = { ord: "N°", ar: "Arr.", att: "Att.", pres: "Prés.", cor: "Corresp.", mut: "Mut.", com: "Comment." };
 const largeurs = () => (D().profil && D().profil.salleLargeurs) || {};

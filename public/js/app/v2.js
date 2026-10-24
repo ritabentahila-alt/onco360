@@ -982,7 +982,8 @@ function pageAccueil() {
   carte("ppas", () => { h += premiersPas(); });
   carte("jour", () => {
   h += '<section class="jour"><div class="ent"><h3><span class="ic">' + ic("agenda") + "</span>Aujourd'hui</h3><span>" + cap(jourLong(D.t)) + (ouvre(D.t, D.ctx.feries) ? "" : " · jour non ouvré") + '</span><span class="tot">' + tot + " au programme</span></div>" +
-    categorie("rt", "radiation", "Radiothérapie", pj.rt) + categorie("co", "stetho", "Consultations", pj.co) + categorie("ch", "seringue", "Chimiothérapie", pj.ch) +
+    // T5 (24/10/2026, audit n° 11 U24) : consultations et chimiothérapie d'abord, puis la radiothérapie (dépliée, réponse de Dr Bentahila)
+    categorie("co", "stetho", "Consultations", pj.co) + categorie("ch", "seringue", "Chimiothérapie", pj.ch) + categorie("rt", "radiation", "Radiothérapie", pj.rt) +
     (tot ? "" : '<div class="cat"><div class="vide" style="padding:12px 14px">Rien de prévu aujourd\'hui.</div></div>') + "</section>";
   });
   carte("afaire", () => { h += blocAFaire(pj); });

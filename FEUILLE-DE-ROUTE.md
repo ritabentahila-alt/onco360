@@ -375,7 +375,10 @@ dans ⋯ ; Afficher, Journal, Modifier restent visibles ; aucune consultation cr
       ouvre la cure. (3) Téléphone (après le reste) : **ce qui était décidé le 17/10** et ne se voit pas : bandeau réduit (nom, âge, allergie), barre
       d'actions **d'une ligne qui défile de côté** (aujourd'hui 3 lignes, 138 px) ; rien de plus. Le dossier s'ouvre toujours comme aujourd'hui
       (U19 : non).
-- [ ] **T5 Salle d'attente et tableau de bord** (U23, U24). (1) Salle : le **nom du patient n'est jamais coupé** (sur deux lignes s'il le faut) ; la
+- [x] **(24/10/2026, testé ; pas encore en ligne)** Salle : nom du patient jamais coupé (CSS « T5 » de v2.html, plus fort que la règle compacte ;
+      colonne Patient `minmax(170px,2fr)`, Motif `minmax(56px,1fr)` cède la place) ; tableau de bord « Aujourd'hui » : Consultations, Chimiothérapie,
+      puis Radiothérapie (dépliée). Tests : `tests/test_t5.py` 4/4 (1280 et 1440 px), test_salle 51, test_accueil, test_salle_315.
+      **T5 Salle d'attente et tableau de bord** (U23, U24). (1) Salle : le **nom du patient n'est jamais coupé** (sur deux lignes s'il le faut) ; la
       mutuelle et le motif cèdent la place. (2) Tableau de bord, carte « Aujourd'hui » : **consultations et chimio d'abord, puis la radiothérapie**,
       **sans la plier** (réponse de Dr Bentahila : « sans plier la radiothérapie »).
 - [ ] **T6 Impressions** (d. 14, 15, 49, 50, 51, 52 ; audit 10, « Tout ce qui s'imprime » ). (1) **Fiche de chimio** (A4
