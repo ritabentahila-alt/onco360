@@ -46,7 +46,7 @@ async def main():
         ok('Deuxième avis' in op and 'Consultation de surveillance' in op and 'Consultation de contrôle' not in op and 'RCP' not in op, 'prise de rendez-vous : types « pris en rendez-vous »', op)
         await pg.select_option('#fType', label='Deuxième avis'); await ev("document.getElementById('fType').dispatchEvent(new Event('change'))")
         ok(await ev("document.getElementById('fDu').value") == '45', 'durée du type proposée (45 min)')
-        await ev("fermerFenetre()")
+        await ev("fermerFenetre()"); await ev(f"voirAvTout('{pid}')"); await pg.wait_for_timeout(500)  # T4 (24/10) : liste dépliée en entier
         ok('Consultation de surveillance' in await pg.inner_text('#page'), 'rendez-vous existant (Suivi) affiché sous le nouveau nom')
         await ev(f"csNouvelle('{pid}')"); await pg.wait_for_timeout(400)
         tp = await ev("[...document.getElementById('csType').options].map(o=>o.textContent)")
