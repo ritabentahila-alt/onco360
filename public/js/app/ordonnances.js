@@ -826,7 +826,7 @@ function vueAntecedents() {
       (vs.length ? '<label class="or-sg">Version <select id="anVer" onchange="anVersion(this.value)"><option value="">actuelle' + (o.l.dm ? " (modifiée le " + A.dfrA(o.l.dm) + ")" : "") + "</option>" + vs.map((v, i) => '<option value="' + i + '"' + (H.v === i ? " selected" : "") + ">du " + A.esc(A.dfrA(String(v.d || "").slice(0, 10)) + (v.par ? " (" + v.par + ")" : "")) + ", remplacée le " + A.esc(A.dfrA(String(v.le || "").slice(0, 10))) + "</option>").reverse().join("") + "</select></label>" : "") +
       '<div class="or-zone"><div class="or-feuille ' + String((aff && aff.format) || "A5").toLowerCase() + '" style="font-size:' + (((aff && aff.format) === "A4" ? 15 : 14) + ((aff && aff.taille) || 0)) + 'px">' + (aff ? nettoyer(aff.html) : "") + "</div></div>" +
       (o ? '<p class="mesures" style="margin:6px 0 0">Édition ' + A.esc(o.l.format || "A5") + " · faite par " + A.esc(o.l.par || "") + (o.l.med ? " · signée " + A.esc(o.l.med) : "") + (o.l.modifPar ? " · modifiée par " + A.esc(o.l.modifPar) : "") + "</p>" : "") + "</div>" +
-      '<div class="an-b">' + (ok ? bt("Imprimer", "anImprimer()", "clair", "imprimer", an || ve) + bt("Duplicata", "anDuplicata()", "gris", "", an || ve) + (peutSupprimer() ? bt("Annuler l'ordonnance", "anSupprimer()", "gris rouge-t", "", an || ve) : "") + bt("Modifier", "anModifier()", "gris", "", an || ve) + bt("Renouveler", "anRenouveler()", "plein", "", ve) : "") +
+      '<div class="an-b">' + (ok ? bt("Imprimer", "anImprimer()", "clair", "imprimer", an || ve) + bt("Duplicata", "anDuplicata()", "gris", "", an || ve) + (peutSupprimer() ? bt("Supprimer", "anSupprimer()", "gris rouge-t", "", ve) : "") + bt("Modifier", "anModifier()", "gris", "", an || ve) + bt("Renouveler", "anRenouveler()", "plein", "", ve) : "") +
       '<button class="bt gris" onclick="anFermer()">Fermer</button></div></div>'
       : '<p class="sous">' + (tous.length ? "Aucune ordonnance ne correspond." : "Aucune ordonnance (" + A.esc(f.titre.toLowerCase()) + ") pour ce patient.") + '</p><div class="boutons"><button class="bt gris" onclick="anFermer()">Fermer</button></div>'), "large");
   const q = $("anQ"); if (q) { q.oninput = () => { H.q = q.value; const p = q.selectionStart; vueAntecedents(); const n = $("anQ"); if (n) { n.focus(); try { n.setSelectionRange(p, p); } catch (e) {} } }; }
@@ -838,10 +838,10 @@ window.anFermer = () => { const pid = H && H.pid; H = null; A.fermerFenetre(); i
 window.anImprimer = () => { const l = choisie(); if (!l || l.annulee) return; let w = null; try { w = window.open("", "_blank"); } catch (e) { w = null; } if (w) imprimer(w, nettoyer(l.html), l.format || "A5", l.taille || 0, { pid: H.pid, uid: l.medUid || uidDeNom(l.med) }, l.t); else A.toast("Impression bloquée par le navigateur : autorisez les fenêtres pour Onco360."); };
 // R-E7 (d. 29) : « Annuler » au lieu d'effacer (l'ordonnance reste lisible, barrée, avec la date et l'auteur de l'annulation)
 window.anSupprimer = async () => {
-  const l = choisie(), x = H && trouver(H.pid); if (!l || !x || !peutSupprimer() || l.annulee) return;
-  if (!confirm("Annuler l'ordonnance du " + A.dfrA(l.d) + " ?\n\n« " + (l.lib || "") + " »\n\nElle reste lisible (barrée, « annulée ») dans sa consultation et ici.")) return;
-  try { await supprimerPrescription(x, l.id); A.toast("Ordonnance annulée."); vueAntecedents(); }
-  catch (e) { A.toast(e && e.code === "permission-denied" ? "Vous n'avez pas le droit d'annuler cette ordonnance." : "Annulation impossible."); }
+  const l = choisie(), x = H && trouver(H.pid); if (!l || !x || !peutSupprimer()) return;
+  if (!confirm("Supprimer l'ordonnance du " + A.dfrA(l.d) + " ?\n\n« " + (l.lib || "") + " »")) return;
+  try { await supprimerPrescription(x, l.id); H.sel = null; A.toast("Ordonnance supprimée."); vueAntecedents(); }
+  catch (e) { A.toast(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de supprimer cette ordonnance." : "Suppression impossible."); }
 };
 // Modifier : la même ordonnance, à sa date de prescription ; enregistrée, elle change aussi dans sa consultation
 // (rouvre la liste des médicaments avec ceux de l'ordonnance : ajouter, retirer, réordonner, puis « Afficher l'ordonnance »)

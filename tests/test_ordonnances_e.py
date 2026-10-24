@@ -1,7 +1,7 @@
 import pathlib; __file__=str(pathlib.Path(__file__).resolve()); exec(open(pathlib.Path(__file__).parent/'base.py').read())
 # Lot R-E (19/10/2026, audit n° 7) : ordonnances et bibliothèques de prescription. Zones « À compléter » et durées, doublons, allergie par
 # familles (toutes les lignes), vérification unique avant l'impression, impression sur plusieurs pages, mise à jour des bibliothèques sans
-# écrasement, secrétaire sans modification de bibliothèque, ordonnance annulée (pas effacée), version précédente gardée, renouvellement (âge,
+# écrasement, secrétaire sans modification de bibliothèque, ordonnance supprimée (24/10/2026 ; « annulée » du 19/10 retiré), version précédente gardée, renouvellement (âge,
 # poids, allergie refaits), duplicata, recherche par médicament, format retenu par compte, chimiothérapie orale calculée ; téléphone 390 px.
 import re
 ok_n = ko_n = 0
@@ -131,16 +131,18 @@ async def main():
         ok(await ev("!!document.getElementById('anVer')"), 'antécédents : choix de la version (actuelle ou précédente)')
         await ev("window.__win=[]"); await ev("anDuplicata()"); await pg.wait_for_timeout(700)
         hh = await ev("(window.__win||[]).map(w=>w.w.document._h).join('')"); ok('DUPLICATA' in hh, 'duplicata imprimé (mention « DUPLICATA » et date d\'origine)')
+        n_av = len([l for k, v in (await ev("window.__fs")).items() if k.startswith(E + 'consultations/') and v.get('patientId') == pid for l in v.get('lignes', []) if l.get('t') == 'ordo'])
         await ev("anSupprimer()"); await pg.wait_for_timeout(900)
         fs = await ev("window.__fs"); lg = [l for k, v in fs.items() if k.startswith(E + 'consultations/') and v.get('patientId') == pid for l in v.get('lignes', []) if l.get('t') == 'ordo']
-        ok(lg and lg[-1].get('annulee') and lg[-1].get('html'), 'ordonnance annulée : gardée (feuille, date et auteur de l\'annulation), pas effacée', lg[-1].get('annulee') if lg else None)
-        t = await pg.inner_text('#fenetre'); ok('Annulée le' in t and await ev("document.querySelector('.an-b [onclick=\"anImprimer()\"]').disabled"), 'antécédents : « Annulée le … », plus réimprimable')
+        ok(len(lg) == n_av - 1 and not any(l.get('annulee') for l in lg), '24/10/2026 : ordonnance SUPPRIMÉE (plus « annulée »)', [n_av, len(lg)])
+        hist = [v.get('quoi', '') for k, v in fs.items() if '/historique/' in k]
+        ok(any(h.startswith('Ordonnance supprimée') for h in hist), 'journal du cabinet : « Ordonnance supprimée »')
         await ev(f"ordAntecedents('{pid}','medic')"); await pg.wait_for_timeout(700)
         await ev("anRenouveler()"); await pg.wait_for_timeout(800)
         ok('kg' in await ev("(document.querySelector('#orPage .or-pat2')||{}).innerText||''"), 'renouveler : âge, poids, allergie refaits depuis le dossier')
         await ev("orFermer()"); await ev(f"ordAntecedents('{pid}','ordo')"); await pg.wait_for_timeout(600); await ev("anFermer()"); await pg.wait_for_timeout(1200)
         n = await ev("(()=>{const b=[...document.querySelectorAll('.pr [data-fn=\"prescriptions.compteur\"]')].map(e=>e.closest('.pr').getAttribute('data-fn')+':'+e.textContent);return b.join(' ')})()")
-        ok(f'prescriptions.ordo:{nb0 - 1}' in n if nb0 > 1 else 'prescriptions.ordo' not in n, 'compteur sous « Ordo. type » : l\'ordonnance annulée n\'est plus comptée', [nb0, n])
+        ok(f'prescriptions.ordo:{nb0 - 1}' in n if nb0 > 1 else 'prescriptions.ordo' not in n, 'compteur sous « Ordo. type » : l\'ordonnance supprimée n\'est plus comptée', [nb0, n])
         ok(not pg.errs, 'aucune erreur JavaScript', pg.errs[:3]); await pg.close()
 
         print('Secrétaire : aucune modification de bibliothèque (R-E5)')

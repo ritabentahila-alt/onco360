@@ -330,6 +330,11 @@ Avant le **premier client payant** : société éditrice, projet Firebase et nom
       pour les 2 protocoles avec paclitaxel ; essai 2025 : dexaméthasone 10 mg non inférieure (≈ 53 mg) ; **pémétrexed + carboplatine** (pas de taxane) :
       **80 mg** (règle du 13/10). Tests : test-audit10 52/52, test_audit10 18/18.
 
+- [x] **(24/10/2026, demande de Dr Bentahila, « comme demandé avant » ; testé ; pas encore en ligne) Ordonnance supprimée, plus « annulée »** :
+      `supprimerPrescription` (consultations.js) retire la ligne (la consultation « Ordonnance » créée pour elle seule disparaît avec elle), journal
+      « Ordonnance supprimée » ; bouton « Supprimer » des antécédents (aussi pour une ordonnance déjà « annulée », affichée barrée). R-E7 « Annuler
+      l'ordonnance » (19/10) retiré. Test test_ordonnances_e 47/47 (adapté).
+
 ## Phase T – Tous les jours (audit 11, facilité d'utilisation ; impressions de l'audit 10)
 Ce qui ne change pas (décisions du 12/10 et du 17/10) : « Ouvrir » reste le bouton principal de chaque cure ; Valider, Reporter, Annuler restent
 dans ⋯ ; Afficher, Journal, Modifier restent visibles ; aucune consultation créée d'office ; rien n'est créé tout seul.

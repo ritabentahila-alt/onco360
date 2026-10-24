@@ -69,7 +69,7 @@ Tout Onco360 est sous `espaces/cabinet-bentahila/` :
   ; une ligne = une ordonnance { id, t: medic|exam|ordo|analyse|courrier, d, lib, par, med (signataire), html, format A5|A4,
   taille }, ajoutée à la consultation du jour (créée « Ordonnance » si besoin) par `enregistrerPrescription` ; R-E7 (19/10/2026) : `items`
   [{ nom, poso }], `parUid`, `modifPar(Uid)`, `versions` [{ le, par, d, lib, html, format, taille, med }] (20 dernières), `annulee` { le, par, parNom }
-  (plus jamais effacée)
+  (anciennes seulement : depuis le 24/10/2026 une ordonnance se **supprime** de nouveau, `supprimerPrescription`)
 - `bibliotheques/medicaments` : `data` = JSON [{ id, nom, poso, classe }] (absent = liste de départ `donnees/medicaments.js`) ;
   `bibliotheques/ordostypes` : `data` = JSON [{ id, nom, items: [{ nom, poso }] }] (absent = `donnees/ordostypes.js`) ;
   `bibliotheques/analyses` [{ id, nom, cat, fav }] et `bibliotheques/bilans` [{ id, nom, items: [noms d'analyses ou de bilans], fav }]

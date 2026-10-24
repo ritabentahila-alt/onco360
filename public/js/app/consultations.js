@@ -292,15 +292,19 @@ export function prescriptionsDe(pid, t) {
 export function lignesType(pid, t) {
   const r = []; (CS[pid] || []).forEach((c) => (c.lignes || []).forEach((l) => { if (l.t === t) r.push({ cid: c.id, l }); })); return r;
 }
-// R-E7 (19/10/2026, audit n° 7, d. 29) : une ordonnance n'est plus effacée : elle est marquée « annulée » (date, auteur), comme un reçu
-// annulé ; elle reste lisible dans sa consultation (barrée) et dans les antécédents, n'est plus comptée ni réimprimée
+// 24/10/2026 (demande de Dr Bentahila, « comme demandé avant ») : une ordonnance se SUPPRIME de nouveau (plus d'« annuler » : R-E7 du 19/10 retiré) ;
+// la consultation « Ordonnance » créée pour elle seule disparaît avec elle ; le journal du cabinet garde la trace (date, type, libellé). Les ordonnances
+// déjà « annulées » restent affichées barrées et peuvent être supprimées aussi.
 export async function supprimerPrescription(x, lid) {
   const c = (CS[x.id] || []).find((z) => (z.lignes || []).some((l) => l.id === lid)); if (!c) return;
   const ref = doc(db, "espaces", A.ESPACE, "consultations", c.id), s = await getDoc(ref);
-  const lignes = ((s.exists() && s.data().lignes) || c.lignes || []).map((z) => (z.id === lid ? Object.assign({}, z, { annulee: { le: new Date().toISOString(), par: D().u.uid, parNom: nomCompte() } }) : z));
-  const l = lignes.find((z) => z.id === lid), maj = { lignes, majPar: D().u.uid, majParNom: nomConnecte(), maj: serverTimestamp() };
-  await updateDoc(ref, maj); Object.assign(c, maj);
-  A.journal(x, "Ordonnance annulée (" + libLigne((l || {}).t) + ") : " + ((l || {}).lib || ""));
+  const avant = (s.exists() && s.data().lignes) || c.lignes || [], l = avant.find((z) => z.id === lid), lignes = avant.filter((z) => z.id !== lid);
+  if (!lignes.length && c.titre === "Ordonnance" && !c.type && !c.note) {
+    // vidée d'abord : la secrétaire peut supprimer une consultation « Ordonnance » vide (règles), le médecin toute consultation
+    await updateDoc(ref, { lignes: [], majPar: D().u.uid, majParNom: nomConnecte(), maj: serverTimestamp() });
+    await deleteDoc(ref); CS[x.id] = CS[x.id].filter((z) => z.id !== c.id);
+  } else { const maj = { lignes, majPar: D().u.uid, majParNom: nomConnecte(), maj: serverTimestamp() }; await updateDoc(ref, maj); Object.assign(c, maj); }
+  A.journal(x, "Ordonnance supprimée (" + libLigne((l || {}).t) + ") : " + ((l || {}).lib || ""));
 }
 // Une ordonnance (ligne) retrouvée par sa consultation
 export function trouverLigne(pid, cid, lid) { const c = (CS[pid] || []).find((z) => z.id === cid); return c && (c.lignes || []).find((l) => l.id === lid); }
