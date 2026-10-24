@@ -23,20 +23,20 @@ export function resume(P, ctx) {
   const t = ctx.aujourdhui, feries = ctx.feries;
   // 1. base
   const r = { nm: P.nom, ddn: P.ddn, diag: P.diag || "", t: null, act: [], rec: [], rep: 0, pr: [] };
-  (P.lignes || []).forEach((L) => {
+  (P.lignes || []).forEach((L, li) => { // li : n° de la ligne (T2, 24/10/2026 : « Cures à valider » ouvre la cure)
     const s = statutLigne(L, P, ctx), p = protocoleDe(L, ctx.bib); r.pr.push(p.nom);
     s.E.forEach((e) => { if (e.st === "recue") r.rec.push(e.date); r.rep += (e.c.rep || []).length; });
-    if (s.code === "cours" && s.next) r.act.push({ nom: p.nom, k: s.next.n, nb: L.cures.length, d: s.next.date, c: p.c });
+    if (s.code === "cours" && s.next) r.act.push({ nom: p.nom, k: s.next.n, nb: L.cures.length, d: s.next.date, c: p.c, li });
   });
   const i = ligneCourante(P, ctx);
   if (i != null) { const L = P.lignes[i], s = statutLigne(L, P, ctx), p = protocoleDe(L, ctx.bib); r.t = { nom: p.nom, st: "cours", k: s.next ? s.next.n : null, nb: L.cures.length, next: s.next ? s.next.date : null, last: s.last ? s.last.date : null, c: p.c, li: i }; }
   else if ((P.lignes || []).length) { const L2 = P.lignes[P.lignes.length - 1], s2 = statutLigne(L2, P, ctx); r.t = { nom: protocoleDe(L2, ctx.bib).nom, st: s2.code, fin: s2.fin }; }
   // 2. séances J8/J15 à faire des cures reçues
-  (P.lignes || []).forEach((L) => {
+  (P.lignes || []).forEach((L, li) => {
     if (L.arret) return; const p = protocoleDe(L, ctx.bib);
     etatLigne(L, P, ctx).forEach((e) => {
       if (e.st !== "recue") return;
-      seancesCure(L, e, ctx.bib).forEach((s) => { if (s.st === "recue" || s.st === "annulee") return; if (!s.suivi && (!e.c.reelle || ecart(t, e.c.reelle) > s.j + 14)) return; r.act.push({ nom: p.nom + " · J" + s.j, k: e.n, nb: L.cures.length, d: s.prevue, c: 0, sj: s.j }); });
+      seancesCure(L, e, ctx.bib).forEach((s) => { if (s.st === "recue" || s.st === "annulee") return; if (!s.suivi && (!e.c.reelle || ecart(t, e.c.reelle) > s.j + 14)) return; r.act.push({ nom: p.nom + " · J" + s.j, k: e.n, nb: L.cures.length, d: s.prevue, c: 0, sj: s.j, li }); });
     });
   });
   // 3. rendez-vous à venir

@@ -348,7 +348,13 @@ dans ⋯ ; Afficher, Journal, Modifier restent visibles ; aucune consultation cr
       ligne »** : une petite fenêtre propose la suite (fiche de chimio pour la prise en charge, ordonnances du protocole `orProtocole`, heure de C1
       `fenetreHeureSeance`), chaque bouton facultatif, « Plus tard » ferme. **Pas** de liste filtrée par localisation (U1 : non, la localisation
       n'est pas toujours remplie) ; **pas** de dose en mg avant la création (U5 : non) ; **tableau d'édition gardé tel quel** (U6 : non).
-- [ ] **T2 Valider une cure, reporter** (U8, U13, d. 53, U10). (1) **« Ouvrir » va directement au jour à faire** (aujourd'hui ou en retard) pour une
+- [x] **(24/10/2026, testé ; pas encore en ligne)** `chOuvrir` + `jourAFaire` (chimio.js) : une cure en plusieurs jours s'ouvre sur le jour à faire
+      (aujourd'hui ou en retard ; le tableau des jours reste à un clic) ; « Cures à valider » (`blocAFaire`, v2.js) ouvre directement la cure et le jour
+      (`li` = n° de la ligne ajouté aux entrées `act` du résumé, moteur/resume.js) ; report (`chReporter`, `chReporterJ`) : `dateReportOk` (samedi, dimanche,
+      férié, absence du médecin : « Reporter quand même ? », un clic ; `API.absenceLe`) ; téléphone : barre de validation (`.valj`) fixée en bas de la
+      grande fenêtre, plus compacte (CSS « T2 » de v2.html). Tests : `tests/test_t2.py` 9/9 (1440 et 390 px), test_cures, test_seances, test_validation,
+      test_accueil, test_lot_c.
+      **T2 Valider une cure, reporter** (U8, U13, d. 53, U10). (1) **« Ouvrir » va directement au jour à faire** (aujourd'hui ou en retard) pour une
       cure en plusieurs jours (J1, J15) ; le tableau des jours reste à un clic. (2) **« Cures à valider »** du tableau de bord ouvre **directement
       la cure à valider** (2 gestes au lieu de 4 ; d. 53). (3) **Report** (U13) : nouvelle date comparée aux fériés, au week-end et aux absences du
       médecin → avertissement d'un clic, rien de bloqué (`chReporter`, même contrôle que les rendez-vous). (4) Téléphone (U10, après le reste,

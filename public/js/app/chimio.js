@@ -481,7 +481,15 @@ const rafraichir = (x) => { const cm = CM;
   if (cm && cm.pid === x.id && A.panneauOuvert()) { if (A.petiteSurPanneau()) A.fermerPetite(); A.pageDossier(x.id); CM = cm; ouvrirCure(); return; }
   A.fermerFenetre(); A.fermerPanneau(true); A.pageDossier(x.id); if (cm && cm.pid === x.id) { CM = cm; ouvrirCure(); } };
 window.chTog = (id, i) => { SEL.pid = id; SEL.l = SEL.l === i ? null : i; SEL.c = null; A.pageDossier(id); };
-window.chOuvrir = (id, i, k, j) => { const x = trouver(id), L = x && x.P.lignes[i]; if (!j && L && unSeulJour(L, k)) j = 1; SEL.pid = id; SEL.l = i; SEL.c = k; CM = { pid: id, i, k, j: j || null }; A.pageDossier(id); ouvrirCure(); };
+// T2 (24/10/2026, audit n° 11 U8) : une cure en plusieurs jours (J1, J15) s'ouvre directement sur le jour à faire (aujourd'hui ou en retard) ;
+// le tableau des jours reste à un clic (« Tous les jours » de la cure)
+function jourAFaire(x, L, k) {
+  const e = etatLigne(L, x.P, D().ctx)[k]; if (!e) return null;
+  if (e.st !== "recue") return e.st !== "annulee" && e.date && e.date <= D().t ? 1 : null;
+  const z = seancesCure(L, e, D().ctx.bib).find((s) => s.st !== "recue" && s.st !== "annulee" && (s.prevue || "9999") <= D().t);
+  return z ? z.j : null;
+}
+window.chOuvrir = (id, i, k, j) => { const x = trouver(id), L = x && x.P.lignes[i]; if (!j && L && unSeulJour(L, k)) j = 1; if (!j && L) j = jourAFaire(x, L, k) || null; SEL.pid = id; SEL.l = i; SEL.c = k; CM = { pid: id, i, k, j: j || null }; A.pageDossier(id); ouvrirCure(); };
 const boutons = (lib, cls) => '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="chSousAnnuler()">Annuler</button><button class="bt ' + (cls || "plein") + '" id="fOk">' + lib + "</button></div>";
 async function executer(x, fn) { A.occupe(document.getElementById("fOk"), true); try { await fn(); A.toast("Enregistré."); rafraichir(x); return true; } catch (e) { A.occupe(document.getElementById("fOk"), false); A.erreur(e.message); return false; } }
 // Après la validation d'une cure (J1) ou d'une séance (J8…) dans le dossier, la fenêtre de prix de la consultation de chimio
@@ -706,7 +714,7 @@ window.chReporter = (id, i, k, salle) => {
     '<div><label for="rR">Raison</label><select id="rR">' + RAISONS.map((r) => "<option>" + r + "</option>").join("") + "</select></div>" +
     '<div class="large"><label for="rC">Commentaire</label><input id="rC"></div>' + choixSuite("rS", "Cures suivantes", "suite") + "</div>" + optSalle(salle) + boutons("Reporter", "orange"));
   lierSalle(salle);
-  document.getElementById("fOk").onclick = () => executer(x, async () => {
+  document.getElementById("fOk").onclick = () => dateReportOk(A.val("rD")) && executer(x, async () => {
     const nd = A.val("rD"); if (!nd) throw new Error("Indiquez la nouvelle date.");
     const lignes = lignesDe(x), L = lignes[i], E = etatLigne(L, x.P, D().ctx), c = L.cures[k];
     if (choix("rS") === "seule") figerSuivantes(L, k, E); else libererSuivantes(L, k);
@@ -747,7 +755,7 @@ window.chReporterJ = (id, i, k, j, salle) => {
     '<div><label for="rR">Raison</label><select id="rR">' + RAISONS.map((r) => "<option>" + r + "</option>").join("") + "</select></div>" +
     '<div class="large"><label for="rC">Commentaire</label><input id="rC"></div>' + choixSuite("sS", "Séances et cures suivantes", "suite") + "</div>" + optSalle(salle) + boutons("Reporter", "orange"));
   lierSalle(salle);
-  document.getElementById("fOk").onclick = () => executer(x, async () => {
+  document.getElementById("fOk").onclick = () => dateReportOk(A.val("rD")) && executer(x, async () => {
     const nd = A.val("rD"); if (!nd) throw new Error("Indiquez la nouvelle date.");
     await majSeance(x, i, k, j, nd, false, { de: d0, a: nd, raison: A.val("rR"), com: A.val("rC"), le: D().t });
     if (salle) salle(nd);
@@ -956,6 +964,16 @@ window.chSupprCure = (id, i, k) => {
     if (ch) await A.enregistrer(x, { heures: H }, "C" + (k + 1) + " : heures retirées (cure supprimée)");
   });
 };
+// T2 (24/10/2026, audit n° 11 U13) : nouvelle date d'un report comparée au week-end, aux fériés et aux absences du médecin, comme les rendez-vous :
+// avertissement d'un clic, rien de bloqué
+function dateReportOk(d) {
+  if (!d) return true;
+  const js = new Date(d + "T12:00:00Z").getUTCDay(), f = A.ferieLe(d), ab = A.absenceLe && A.absenceLe(d), m = [];
+  if (js === 0 || js === 6) m.push("c'est un " + (js === 0 ? "dimanche" : "samedi"));
+  if (f) m.push("jour férié (" + (f.nom || "férié") + ")");
+  if (ab) m.push("absence prévue" + (ab.motif ? " (" + ab.motif + ")" : ""));
+  return !m.length || confirm("Nouvelle date le " + A.dfrA(d) + " : " + m.join(", ") + ".\n\nReporter quand même ?");
+}
 // ───── Lignes ─────
 window.chAjouterCure = (id, i) => { const x = trouver(id); direct(x, async () => { const lignes = lignesDe(x); lignes[i].cures.push({}); await sauverLignes(x, lignes, "Cure ajoutée (" + lignes[i].cures.length + " cures)"); }); };
 window.chReprendre = (id, i) => { const x = trouver(id); if (!confirm("Reprendre cette ligne de traitement ?")) return; direct(x, async () => { const lignes = lignesDe(x); delete lignes[i].arret; await sauverLignes(x, lignes, "Ligne reprise"); }); };
