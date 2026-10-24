@@ -1749,7 +1749,7 @@ window.statutRdv = async (id, rid, st) => {
   const x = D.patients.find((p) => p.id === id); if (!x) return;
   const l = lireRdvs(x), r = l.find((v) => v.id === rid); if (!r) return; const ancien = r.st || "prevu";
   if (st === "prevu" && !annulable(r)) { toast("Statut posé par le médecin : lui seul peut l'annuler."); return; }
-  if (st === "supprimer") { if (!confirm("Supprimer ce rendez-vous ?")) return;
+  if (st === "supprimer") { if (!confirm("Supprimer ce rendez-vous ?" + (ancien === "fait" ? "\n\nAttention : il est validé « Venu » ; son prix ne comptera plus dans le bilan." : ""))) return;
     // 3.15 c : consultation créée d'office (fin de RT, hebdomadaire de RT) : gardée comme « supprimée » pour ne pas être recréée
     if (r.rtfin || r.rtc) Object.assign(r, { st: "supprime", supLe: new Date().toISOString(), sp: D.u.uid }); else l.splice(l.indexOf(r), 1); }
   else if (st === "absent" && ancien === "prevu") { absentRdv(x, l, r); return; }

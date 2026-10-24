@@ -9,7 +9,7 @@ def ok(c, m, d=None):
     else: ko_n += 1; print('  ✘ ' + m + ('' if d is None else ' ' + str(d)[:300]))
 S2, PIDS = avec_demo(S, E)
 for k in [k for k in S2 if k.startswith(E + 'patients/') and k.split('/')[-1] not in PIDS]: del S2[k]
-[S2[E + 'parametres/migrations'].pop(k, None) for k in ('audit3a', 'audit3b', 'audit3c', 'audit3d', 'audit3e', 'audit3f', 'audit3g', 'audit10a', 'audit10b', 'audit10c')]
+[S2[E + 'parametres/migrations'].pop(k, None) for k in ('audit3a', 'audit3b', 'audit3c', 'audit3d', 'audit3e', 'audit3f', 'audit3g', 'audit10a', 'audit10b', 'audit10c', 'audit10d')]
 bib = lambda fs: {p['id']: p for k in fs if k.startswith(E + 'protocoles/') for p in json.loads(fs[k]['data'] or '[]')}
 B0 = bib(S2); FH = B0['colon|FOLFOX herceptine']
 # PATIENT TEST 1 : une ligne mFOLFOX6 + Herceptin en cours (C1 reçue, C2 prévue), avec sa copie du protocole d'avant
@@ -34,6 +34,8 @@ async def main():
         tpf = [d for d in B['todo|tpf']['dr'] if 'FLUORO' in d['p'].upper()][0]; lvf = [d for d in B['maj|mfolfox6-eviq-']['dr'] if 'FOLINIQUE' in d['p'].upper()][0]
         ok(tpf['d'] == 4000 and lvf['d'] == 400 and lvf['u'] == 'mg/m²', 'S4 : TPF 5-FU 4 000 mg/m² par diffuseur, mFOLFOX6 acide folinique 400 mg/m²', [tpf, lvf])
         ok([d for d in B['audit3|n027']['dr'] if 'VINCRISTINE' in d['p'].upper()][0].get('dec') == 1, 'S3 : vincristine d\'EMA-CO à 1 décimale')
+        ok(mig.get('audit10d') and not any('POLARAMINE' in d['p'].upper() for p0 in B.values() for d in p0['dr']), '24/10 : POLARAMINE retirée de tous les protocoles (audit10d)')
+        ok(not B['poumon|Paclitaxel - Carboplatine hebdomdaire'].get('assoc'), '24/10 : « Paclitaxel + Carboplatine hebdomadaire » n\'est plus « Traitement associé »')
         T = [v for k, v in fs.items() if k.startswith(E + 'taches/')]
         t = [x for x in T if x.get('patientId') == P1]
         ok(len(t) == 1 and 'Vérifier la ligne de chimio' in t[0]['titre'] and 'mFOLFOX6' in t[0]['desc'] and t[0]['pour'] == t[0]['de'], 'tâche « Vérifier la ligne de chimio » pour le médecin, sur PATIENT TEST 1', t)

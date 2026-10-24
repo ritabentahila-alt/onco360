@@ -157,14 +157,14 @@ export async function appliquerP5b() {
 // (trastuzumab, cétuximab : « C1 seule » / « sauf C1 » enfin lus par le calcul), lignes en double, KEYNOTE-A18 phase 2 validé, létrozole et
 // fulvestrant séparés (moteur/audit10.js). Sans fenêtre, noté au journal. Lignes de chimio en cours sous un protocole corrigé : elles gardent
 // leur copie → une tâche « à vérifier » pour le médecin, par patient (rien n'est changé dans une ligne prescrite).
-// Étapes de l'audit n° 10, chacune une fois (drapeau) : S2 (audit10a), S3 décimales (audit10b), S4 harmonisation (audit10c)
-const ETAPES_A10 = [["audit10a", "correctionsS2", "Audit n° 10 (anticorps en double, KEYNOTE-A18, létrozole / fulvestrant)"], ["audit10b", "correctionsS3", "Audit n° 10 (décimales des petites doses)"], ["audit10c", "correctionsS4", "Audit n° 10 (5-FU en dose totale du diffuseur, Solumedrol 80 mg avec le carboplatine, acide folinique 400 mg/m², vinorelbine, durée des immunothérapies)"]];
+// Étapes de l'audit n° 10, chacune une fois (drapeau) : S2 (audit10a), S3 décimales (audit10b), S4 harmonisation (audit10c), corrections du 24/10 (audit10d, sans tâche)
+const ETAPES_A10 = [["audit10a", "correctionsS2", "Audit n° 10 (anticorps en double, KEYNOTE-A18, létrozole / fulvestrant)"], ["audit10b", "correctionsS3", "Audit n° 10 (décimales des petites doses)"], ["audit10c", "correctionsS4", "Audit n° 10 (5-FU en dose totale du diffuseur, Solumedrol 80 mg avec le carboplatine, acide folinique 400 mg/m², vinorelbine, durée des immunothérapies)"], ["audit10d", "correctionsS4b", "Protocoles (24/10 : POLARAMINE retirée, Solumedrol du pémétrexed-carboplatine, case « Traitement associé » d'une chimiothérapie)", false]];
 export async function appliquerAudit10() {
   if (!A.peut("parametres") || !D().membre || D().membre.role !== "medecin" || !BIB().length) return null;
   const rm = doc(db, "espaces", A.ESPACE, "parametres", "migrations"), g = await getDoc(rm).catch(() => null);
   if (!g) return null;
   const fait = g.exists() ? g.data() : {}, M = await import("../moteur/audit10.js"), res = [];
-  for (const [drapeau, fn, titre] of ETAPES_A10) {
+  for (const [drapeau, fn, titre, taches] of ETAPES_A10) {
     if (fait[drapeau]) continue;
     const r = M[fn](D().ctx.bib), moi = { par: D().u.uid, parNom: (D().membre && D().membre.nom) || "", le: new Date().toISOString() };
     const signer = (p, neuf) => { p.version = neuf ? 1 : (p.version || 1) + 1; Object.assign(p, { majLe: moi.le, majPar: moi.par, majParNom: moi.parNom }); if (neuf) p.st = "ok"; if (p.st === "ok") p.valide = Object.assign({ version: p.version }, moi); };
@@ -173,7 +173,7 @@ export async function appliquerAudit10() {
     const ecrits = r.modifies.map((m) => m.id).concat(r.crees.map((p) => p.id));
     if (ecrits.length) await sauverDocs(ecrits);
     const ids = r.modifies.filter((m) => m.quoi.some((q) => !/statut/.test(q))).map((m) => m.id);
-    const av = D().bib ? [] : M.lignesAVerifier((D().patients || []).map((x) => ({ id: x.id, nom: (x.r && x.r.nm) || "", etablissementId: (x.doc && x.doc.etablissementId) || "", lignes: (x.P && x.P.lignes) || [] })), ids);
+    const av = D().bib || taches === false ? [] : M.lignesAVerifier((D().patients || []).map((x) => ({ id: x.id, nom: (x.r && x.r.nm) || "", etablissementId: (x.doc && x.doc.etablissementId) || "", lignes: (x.P && x.P.lignes) || [] })), ids);
     if (av.length && A.tacheSysteme) for (const l of av) {
       const m = r.modifies.find((z) => z.id === l.protoId);
       await A.tacheSysteme({ titre: "Vérifier la ligne de chimio : protocole corrigé le " + A.dfrA(moi.le.slice(0, 10)), patientId: l.patientId, patientNom: l.nom, etablissementId: l.etablissementId,

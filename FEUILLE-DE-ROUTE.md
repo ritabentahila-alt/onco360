@@ -93,7 +93,7 @@ Sources plus anciennes : audits n° 1 à 3 (Drive › Audit, `archives/audit-3/`
    (montant, « PAYANT ») ; cadre « Visa accueil » (identifiant de l'agent, heure). **Aucune mention de TVA, ni IF, TP, ICE, INPE, ni montant en
    lettres.** → T6 : « Acte exonéré de TVA » et la phrase « à valider par le comptable » retirées. Les autres mentions du reçu d'Onco360 (IF, TP,
    ICE, INPE, montant en lettres), décidées le 17/10, restent ; chacune se décoche déjà dans Paramètres › Impression.
-6. (21/10, S4) **Solumedrol à 120 mg** dans 3 de vos protocoles d'origine avec le carboplatine (Paclitaxel 175 + Carboplatine J1-J21 ; Paclitaxel 200 +
+6. ~~(21/10, S4)~~ **Répondu le 24/10 (voir « Corrections du 24/10 »)** **Solumedrol à 120 mg** dans 3 de vos protocoles d'origine avec le carboplatine (Paclitaxel 175 + Carboplatine J1-J21 ; Paclitaxel 200 +
    Carboplatine + Bévacizumab ; Pémétrexed + Carboplatine J1-J21) : la règle du 13/10 dit 80 mg ; je ne baisse pas une prémédication sans votre accord.
    Passer à 80 mg ? (Conseil : oui pour le pémétrexed ; pour le paclitaxel, 80 mg comme vos autres paclitaxel-carboplatine, ou garder 120.)
 5. (20/10, O4) Prix des packs : « mettre plutôt les mêmes prix que GestiCab ou DabaDoc, prix marocains » (étape L10 : relevé des prix, puis
@@ -310,6 +310,25 @@ Avant le **premier client payant** : société éditrice, projet Firebase et nom
 - [x] **Salle d'attente sur téléphone : onglet « En salle » réduit à son nombre** : la règle CSS `.o-barre .sm{display:none}` du lot G (dossier) cachait aussi
       le libellé court des onglets de la salle ; limitée au dossier (`.dos-trav .o-barre .sm`). Test `tests/test_salle_tel.py` 5/5 (390 px et ordinateur,
       onglets du dossier inchangés).
+
+## Corrections du 24/10/2026 (demandes de Dr Bentahila)
+- [x] **C1J1 validée absente du bilan (dossier signalé ; lu en lecture seule, rien n'est écrit dans la base)** : la ligne « Paclitaxel + Carboplatine
+      hebdomadaire – fractionné » portait la case **« Traitement associé »** (castration, os, support), cochée sur ce protocole depuis la reprise de
+      l'ancienne application : `ligneHon` (moteur/finances.js) retirait alors séances **et** consultations du bilan. Corrigé : la case ne retire plus les
+      honoraires d'une vraie chimiothérapie (seulement castration, hormonothérapie, support ; os : toujours compté) ; case retirée du protocole (audit10d).
+      Bilan de référence inchangé (test-bilan 42/42). **Consultation** : la C1J1 de la ligne actuelle a été validée à 250 DH, puis la ligne a été supprimée et
+      recréée (le 250 DH est resté sur l'ancienne ligne, qui n'existe plus), puis le prix de la nouvelle ligne a été remis à **0 DH** à 11 h 06 (le reçu
+      R-2026-0003 de 250 DH en garde la trace) ; un rendez-vous validé à 300 DH a ensuite été remis à « prévu » puis supprimé. **À faire par Dr Bentahila** :
+      dans la cure C1, « Modifier le prix » → 250 DH. Ajouté : avertissement avant de supprimer une ligne avec des cures validées ou des consultations
+      encaissées (« ne compteront plus dans le bilan ; utilisez plutôt Arrêter la ligne »), et avant de supprimer un rendez-vous validé. Test
+      `tests/moteur/test-honoraires.mjs` 6/6.
+- [x] **POLARAMINE retirée de tous les protocoles** (n'existe pas au Maroc ; 56 protocoles dans la bibliothèque en ligne, dont 40 avec un taxane) :
+      `correctionsS4b` (audit10.js, drapeau `audit10d`, sans tâche ; les lignes déjà prescrites gardent leur copie). **Question** : quel anti-H1 donnez-vous
+      avant le paclitaxel (le RCP en demande un) ?
+- [x] **Solumedrol à 120 mg avec le carboplatine (question 6)**, vérifié dans la littérature : paclitaxel 175-200 mg/m² toutes les 3 semaines =
+      dexaméthasone 20 mg avant la perfusion (RCP) ≈ méthylprednisolone 107 mg (0,75 mg de dexaméthasone ≈ 4 mg de méthylprednisolone) → **120 mg gardé**
+      pour les 2 protocoles avec paclitaxel ; essai 2025 : dexaméthasone 10 mg non inférieure (≈ 53 mg) ; **pémétrexed + carboplatine** (pas de taxane) :
+      **80 mg** (règle du 13/10). Tests : test-audit10 52/52, test_audit10 18/18.
 
 ## Phase T – Tous les jours (audit 11, facilité d'utilisation ; impressions de l'audit 10)
 Ce qui ne change pas (décisions du 12/10 et du 17/10) : « Ouvrir » reste le bouton principal de chaque cure ; Valider, Reporter, Annuler restent

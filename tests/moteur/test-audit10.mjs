@@ -5,7 +5,7 @@ import { readFileSync } from "node:fs";
 import { correctionsAudit3 } from "../../public/js/moteur/audit3.js";
 import { correctionsP4, correctionsP5b } from "../../public/js/moteur/audit3p4.js";
 import { P4, P7 } from "../../public/js/donnees/audit3p4.js";
-import { correctionsS2, correctionsS3, correctionsS4, lignesAVerifier } from "../../public/js/moteur/audit10.js";
+import { correctionsS2, correctionsS3, correctionsS4, correctionsS4b, lignesAVerifier } from "../../public/js/moteur/audit10.js";
 import { protocoleCure, calcul, seancesDe, joursDe, protocoleValide, premed } from "../../public/js/moteur/doses.js";
 let ok = 0, ko = 0;
 const cas = (nom, v, d) => { if (v) { ok++; console.log("  ✔ " + nom); } else { ko++; console.log("  ✘ " + nom + (d === undefined ? "" : "  " + JSON.stringify(d).slice(0, 400))); } };
@@ -96,6 +96,13 @@ const vi = A4["poumon|Cisplatine - Navelbine Avec Radiotherapie"];
 cas("Cisplatine 20 + Vinorelbine 15 hebdomadaire + RT : vinorelbine 15 mg/m², source notée", vi.dr.find((d) => /VINORELBINE/.test(S(d.p))).d === 15 && /Michael 2005/.test(vi.src));
 cas("14 immunothérapies : durée maximale en remarque (selon l'indication)", r4.modifies.filter((m) => m.quoi.some((q) => /immunoth/.test(q))).length === 14 && /35 cures/.test(A4["poumon|keytruda alimta"].no.join(" ")) && /KEYNOTE-522/.test(A4["sein|carboplatine paclitaxel hebdomadaire pembrolizumab"].no.join(" ")));
 cas("aucune dose d'anticancéreux changée hors 5-FU (total du diffuseur), acide folinique et vinorelbine", r4.modifies.every((m) => B4[m.id].dr.filter((d) => !premed(d) && !/FLUORO|FOLINIQUE|VINORELBINE|SOLUMEDROL/.test(S(d.p))).every((d) => m.p.dr.some((x) => x.id === d.id && x.d === d.d && x.u === d.u))));
+
+console.log("7. 24/10 : POLARAMINE, Solumedrol du pémétrexed-carboplatine, « Traitement associé »");
+const B5 = Object.assign({}, A4), r5 = correctionsS4b(B5), A5 = Object.assign({}, B5); r5.modifies.forEach((m) => { A5[m.id] = m.p; });
+cas("plus aucune POLARAMINE dans la bibliothèque ; relancer ne refait rien", !Object.values(A5).some((p) => p.dr.some((d) => /POLARAMINE/.test(S(d.p)))) && !correctionsS4b(A5).modifies.length);
+cas("pémétrexed + carboplatine : Solumedrol 80 mg ; paclitaxel 175 + carboplatine J1-J21 : 120 mg gardé (dexaméthasone 20 mg du RCP)", A5["poumon|Pemetrexed - Carboplatine J1J21"].dr.find((d) => /SOLUMEDROL/.test(S(d.p))).d === 80 && A5["estomac|carboplatine paclitaxel j1j21"].dr.find((d) => /SOLUMEDROL/.test(S(d.p))).d === 120);
+cas("« Paclitaxel + Carboplatine hebdomadaire » : plus « Traitement associé » ; goséréline : gardé", !A5["poumon|Paclitaxel - Carboplatine hebdomdaire"].assoc && (!A5["todo|gosereline-3-6-mg"] || A5["todo|gosereline-3-6-mg"].assoc));
+cas("aucune dose d'anticancéreux changée", r5.modifies.every((m) => B5[m.id].dr.filter((d) => !premed(d)).every((d) => m.p.dr.some((x) => x.id === d.id && x.d === d.d))));
 
 console.log("\n" + ok + " réussi(s), " + ko + " échec(s)");
 process.exit(ko ? 1 : 0);

@@ -958,9 +958,13 @@ window.chSupprCure = (id, i, k) => {
 // ───── Lignes ─────
 window.chAjouterCure = (id, i) => { const x = trouver(id); direct(x, async () => { const lignes = lignesDe(x); lignes[i].cures.push({}); await sauverLignes(x, lignes, "Cure ajoutée (" + lignes[i].cures.length + " cures)"); }); };
 window.chReprendre = (id, i) => { const x = trouver(id); if (!confirm("Reprendre cette ligne de traitement ?")) return; direct(x, async () => { const lignes = lignesDe(x); delete lignes[i].arret; await sauverLignes(x, lignes, "Ligne reprise"); }); };
-window.chSupprLigne = (id, i) => {
-  const x = trouver(id), p = protocoleDe(x.P.lignes[i], D().ctx.bib);
-  if (!confirm("Supprimer définitivement cette ligne (" + p.nom + ") et toutes ses cures ?")) return;
+window.chSupprLigne = async (id, i) => {
+  const x = trouver(id), L0 = x.P.lignes[i], p = protocoleDe(L0, D().ctx.bib);
+  // 24/10/2026 (dossier signalé par Dr Bentahila) : une ligne supprimée emporte ses cures validées et ses consultations encaissées hors du bilan
+  const nv = (L0.cures || []).filter((c) => c && c.st === "recue").length;
+  let enc = 0; if (A.peut("finances")) { const M = await chargerMontants(x).catch(() => null), cc = (M && M.cures && M.cures[L0.id]) || {}; Object.values(cc).forEach((c) => { Object.values(consJours(c)).forEach((m) => { enc += num(m) || 0; }); }); }
+  const perte = nv || enc ? "\n\nAttention : " + [nv ? nv + " cure" + (nv > 1 ? "s validées" : " validée") : "", enc ? "consultations encaissées (" + enc + " DH)" : ""].filter(Boolean).join(" et ") + " ne compteront plus dans le bilan. Pour garder l'historique, utilisez plutôt « Arrêter la ligne »." : "";
+  if (!confirm("Supprimer définitivement cette ligne (" + p.nom + ") et toutes ses cures ?" + perte)) return;
   direct(x, async () => { const lignes = lignesDe(x); lignes.splice(i, 1); SEL.c = null; await sauverLignes(x, lignes, "Ligne supprimée : " + p.nom); SEL.l = ligneCourante(x.P, D().ctx); });
 };
 window.chArreter = (id, i) => {

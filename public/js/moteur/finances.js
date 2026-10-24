@@ -17,9 +17,13 @@ const RE_HO = /tamox|l[ée]trozole|anastrozole|ex[ée]m[ée]stane|aromasine|fema
 // Une ligne donne-t-elle lieu à des honoraires de séance ? (pas l'hormonothérapie ni la castration seules ; oui pour l'acide zolédronique / dénosumab)
 export function ligneHon(L, p) {
   const txt = (p.nom || "") + " " + (p.dr || []).map((d) => d.p).join(" ");
-  if (RE_OS.test(txt)) return true; if (L.assoc) return false;
-  const ac = (p.dr || []).filter((d) => !premed(d) && d.u !== "txt");
-  if (ac.length && ac.every((d) => RE_CAST.test(d.p) || /per os/i.test(d.v || "") || (RE_HO.test(d.p) && !d.v))) return false;
+  if (RE_OS.test(txt)) return true;
+  const ac = (p.dr || []).filter((d) => !premed(d) && d.u !== "txt"), horsChimio = ac.every((d) => RE_CAST.test(d.p) || /per os/i.test(d.v || "") || (RE_HO.test(d.p) && !d.v));
+  // 24/10/2026 : « Traitement associé » (castration, os, support) ne retire plus les honoraires d'une vraie chimiothérapie : la case était cochée
+  // sur « Paclitaxel + Carboplatine hebdomadaire – fractionné » (reprise de l'ancienne application), et ses séances et consultations validées
+  // n'apparaissaient pas dans le bilan
+  if (L.assoc && (!ac.length || horsChimio)) return false;
+  if (ac.length && horsChimio) return false;
   return true;
 }
 const r2 = (x) => Math.round(x * 100) / 100;

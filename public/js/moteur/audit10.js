@@ -213,3 +213,25 @@ export function correctionsS4(bib) {
   });
   return { modifies, crees: [], ignores };
 }
+
+// 24/10/2026 (demandes de Dr Bentahila) : (1) POLARAMINE (dexchlorphéniramine) retirée de tous les protocoles : elle n'existe pas au Maroc ;
+// (2) Solumedrol à 120 mg avec le carboplatine, vérifié dans la littérature : paclitaxel 175-200 mg/m² toutes les 3 semaines = dexaméthasone 20 mg
+// avant la perfusion (RCP du paclitaxel) ≈ méthylprednisolone 107 mg (0,75 mg de dexaméthasone ≈ 4 mg de méthylprednisolone) : 120 mg gardé ;
+// pémétrexed + carboplatine (pas de taxane : prémédication antiémétique seulement) : 80 mg (règle du 13/10) ; (3) chimiothérapie marquée par erreur
+// « Traitement associé » (castration, os, support ; reprise de l'ancienne application) : case retirée (« Paclitaxel + Carboplatine hebdomadaire –
+// fractionné » : ses séances n'étaient pas comptées dans le bilan)
+const ID_PEM_CARBO = "poumon|Pemetrexed - Carboplatine J1J21";
+const RE_ASSOC_OK = /ZOLADEX|GOSERELINE|DECAPEPTYL|TRIPTORELINE|LEUPRORELINE|ELIGARD|ENANTONE|DEGARELIX|FIRMAGON|ZOMETA|ZOLEDRON|DENOSUMAB|XGEVA|PROLIA|NIVESTIM|FILGRASTIM|RECORMON|EPOETINE|EPREX|ARANESP|NEULASTA|PEGFILGRASTIM|TAMOX|LETROZOLE|ANASTROZOLE|EXEMESTANE|FULVESTRANT|ABIRATERONE|ENZALUTAMIDE|APALUTAMIDE|DAROLUTAMIDE|BICALUTAMIDE|PREDNIS/;
+export function correctionsS4b(bib) {
+  const modifies = [], ignores = [];
+  Object.keys(bib).forEach((id) => {
+    const p0 = bib[id]; if (!p0 || !Array.isArray(p0.dr)) return;
+    const p = copie(p0), quoi = [];
+    const avant = p.dr.length; p.dr = p.dr.filter((d) => !/POLARAMINE|DEXCHLORPHENIRAMINE/.test(S(d.p)));
+    if (p.dr.length < avant) { quoi.push("POLARAMINE retirée (n'existe pas au Maroc)"); p.no = (p.no || []).map((t) => String(t).replace(/La POLARAMINE et le SOLUMEDROL couvrent/i, "Le SOLUMEDROL couvre")); }
+    if (id === ID_PEM_CARBO) p.dr.forEach((d) => { if (/SOLUMEDROL|METHYLPREDNISOLONE/.test(S(d.p)) && d.u === "mg" && +d.d === 120 && JSON.stringify(d.j) === "[1]") { d.d = 80; quoi.push("Solumedrol de J1 : 120 → 80 mg (pas de taxane ; règle du 13/10)"); } });
+    if (p.assoc) { const ac = p.dr.filter((d) => !premed(d) && d.u !== "txt"); if (ac.length && ac.some((d) => !RE_ASSOC_OK.test(S(d.p)) && !/PER OS/.test(S(d.v)))) { delete p.assoc; quoi.push("case « Traitement associé » retirée (chimiothérapie : séances et consultations comptées dans le bilan)"); } }
+    if (quoi.length) modifies.push({ id, p, quoi, nom: p.nom });
+  });
+  return { modifies, crees: [], ignores };
+}
