@@ -306,7 +306,8 @@ Ancienne application : collections racine `patients`, `protocoles`, `finances`, 
   `dosiRT`, seulement après le contourage) → 1re séance (`deb`) → fin (`fin` : `terminerRT`) ; tâches automatiques fixes « Valider
   le contourage » (scanner → 1re séance), « Valider la dosimétrie » (contourage validé → 1re séance), « Valider la fin de
   radiothérapie » ; valider la tâche = valider dans le dossier (même fenêtre, `taValiderAuto`).
-- Bilan : `tests/test_bilan.py` compare au chiffre du jeu de test figé (352 317 DH, copie du 06/10/2026), pas au cabinet en ligne ; décidé le 10/10/2026 : ne plus le vérifier à chaque étape, seulement si bilan.js ou les calculs changent.
+- Bilan : `tests/test_bilan.py` compare au chiffre du jeu de test **fictif** figé (S7, 24/10/2026 : `tests/seed-fictif.json` de `tests/mkfictif.mjs`, 363 734 DH,
+  `tests/bilan_ref_fictif.txt` ; l'ancienne copie réelle, 352 317 DH, seulement avec `ONCO360_SEED=reel`), pas au cabinet en ligne ; décidé le 10/10/2026 : ne plus le vérifier à chaque étape, seulement si bilan.js ou les calculs changent.
 - Droits : `medecin` / `infirmiere` / `assistante` / `comptable` (09/10/2026 : bilan et pointage des paiements sur le relevé
   `comptabilite/releve_*` préparé par le médecin, `publierReleve` de bilan.js ; aucun dossier : règles `comptable()` / `dansPerimetre`), grille par membre ; un membre ne modifie pas ses propres droits.
   Droits ajoutés le 06/10/2026 (DROITS_ROLE et `droitsEffectifs` dans profil.js : un droit absent de la grille d'un membre
@@ -402,7 +403,8 @@ Google Agenda (déjà en place, par personne).
 
 ## Tests
 `tests/` : faux Firebase (`mockfb/`) + Playwright (Python). Voir `tests/LISEZMOI.md`.
-Aucune donnée patient n'est dans le code ; le jeu de test se construit depuis une sauvegarde JSON (Drive).
+Aucune donnée patient n'est dans le code ; jeu de test fictif `tests/seed-fictif.json` (S7, refait par `node tests/mkfictif.mjs`) ; contrôle
+`outils/noms-reels.py` (aucun nom de la copie réelle locale `tests/seed.json` dans le dépôt) et ESLint (`outils/eslint`) dans `avant-mise-en-ligne.sh`.
 Règles de sécurité : `cd tests/regles && npm test` (émulateur Firestore, Java 21 ; `npm install --cache` vers un dossier
 temporaire si le cache npm du Mac refuse) — à relancer avant chaque mise en ligne des règles ; ajouter des cas pour chaque nouvelle règle.
 

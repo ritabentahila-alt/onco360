@@ -14,7 +14,7 @@ async def main():
         ok(await vis(p0, '.ag-etab') == 1, 'sans réglage : filtre par établissement présent')
         await p0.evaluate("location.hash='bilan'"); await p0.wait_for_timeout(1500); await p0.select_option('#biPer', 'annee'); await p0.wait_for_timeout(400)
         k0 = (await p0.evaluate("[...document.querySelectorAll('.kpi .k')].map(e=>e.textContent)"))[0]
-        ok('352 317' in k0.replace('\u202f', ' ').replace('\xa0', ' '), 'sans réglage : bilan 2026 = ' + k0)
+        ok(REF_BILAN in k0.replace('\u202f', ' ').replace('\xa0', ' '), 'sans réglage : bilan 2026 = ' + k0)
         # Avec réglage : fonctions retirées
         pg = await ouvrir(b, S2); await pg.goto(f'http://localhost:{PORT}/v2.html#agenda'); await pg.wait_for_timeout(2500)
         ok(await vis(pg, '.ag-etab') == 0, 'agenda : filtre par établissement retiré')

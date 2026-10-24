@@ -98,6 +98,6 @@ export async function lancer({ res, ctx, pai, ver, B, cas, T0, evtsFin }) {
   cas("rangement refait : rien à changer", !B.repartirPaiements(res, rp.docs).change);
   const inc = B.repartirPaiements(res, Object.assign(copie(rp.docs), { paiements_2025: { "Pdisparu#r|1": "2025-03-01" } }));
   cas("case d'un acte introuvable : reste dans son document", inc.docs.paiements_2025["Pdisparu#r|1"] === "2025-03-01");
-  const big = { paiements_2026: {} }; for (let i = 0; i < 14000; i++) big.paiements_2026["P1790151173832#s|L1790254866988796|" + i + "|1"] = "2026-09-28";
+  const big = { paiements_2026: {} }; for (let i = 0; i < 14000; i++) big.paiements_2026["P0000000000000#s|L0000000000000000|" + i + "|1"] = "2026-09-28";
   cas("alerte à 70 % de la place d'un document", B.placePaiements(big).length === 1 && B.placePaiements(rp.docs).length === 0);
 }

@@ -1,0 +1,7 @@
+{
+  "name": "onco360-eslint",
+  "private": true,
+  "type": "module",
+  "description": "S7 (24/10/2026) : contrôle du code avant mise en ligne (variables inconnues, doubles déclarations) ; lancé par outils/avant-mise-en-ligne.sh",
+  "devDependencies": { "eslint": "9.13.0", "globals": "15.11.0" }
+}

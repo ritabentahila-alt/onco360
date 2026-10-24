@@ -2,8 +2,8 @@
 const Dm = require("./demo");
 const ok = (c, m) => { console.log((c ? "✅ " : "❌ ") + m); if (!c) process.exitCode = 1; };
 (async () => {
-  const fs = require("fs"), seed = __dirname + "/../tests/seed.json";
-  if (!fs.existsSync(seed)) { console.log("(tests/seed.json absent : protocoles de test minimaux)"); }
+  const fs = require("fs"), seed = __dirname + "/../tests/seed-fictif.json";
+  if (!fs.existsSync(seed)) { console.log("(tests/seed-fictif.json absent : protocoles de test minimaux)"); }
   const S = fs.existsSync(seed) ? JSON.parse(fs.readFileSync(seed, "utf8")) : {};
   const protos = [].concat(...Object.keys(S).filter((k) => /\/protocoles\//.test(k)).map((k) => JSON.parse(S[k].data)));
   const actes = [{ nom: "Sein", prix: 15000 }, { nom: "Prostate conformationnelle", prix: 20000 }, { nom: "ORL", prix: 18000 }];
@@ -25,3 +25,5 @@ const ok = (c, m) => { console.log((c ? "✅ " : "❌ ") + m); if (!c) process.e
   const C = Dm.consultationsDemo(P, jour, "U");
   ok(C.length === 4 && C.every((c) => P.some((p) => p.id === c.patientId) && /exemple/.test(c.note)), "consultations de démonstration");
 })();
+// S7 (24/10/2026) : bibliothèque vide : un protocole de secours, rien ne plante
+{ const D2 = require("./demo"); let L = null, er = ""; try { L = D2.patientsDemo([], [], "2026-10-06"); } catch (e) { er = e.message; } console.log((L && L.length === 8 && !er ? "✅ " : "❌ ") + "bibliothèque vide : 8 patients de démonstration quand même (protocole de secours)" + (er ? " — " + er : "")); if (!(L && L.length === 8)) process.exitCode = 1; }

@@ -11,7 +11,7 @@ T = '2026-10-06'
 S3 = json.loads(json.dumps(S))
 def ajout(pid, rdvs):
     R = json.loads(S3[E+'patients/'+pid].get('rdvsJson') or '[]'); R += rdvs; S3[E+'patients/'+pid]['rdvsJson'] = json.dumps(R)
-A1, A2, A3, K1 = 'P1790155538558', 'P1790335106635', 'P1790510177539', 'P1790510171257'
+A1, A2, A3, K1 = 'PTA1', 'PTA2', 'PTA3', 'PTK1'
 ajout(A1, [{"id":"rS1","type":"Suivi","d":T,"h":"09:30","st":"prevu","mo":"Résultats du scanner"},{"id":"rS9","type":"Suivi","d":"2026-10-09","h":"09:00","st":"prevu"}])
 ajout(A2, [{"id":"rS2","type":"Annonce","d":T,"h":"11:00","st":"prevu","n":"Nouveau patient"}])
 ajout(A3, [{"id":"rS5","type":"Suivi","d":T,"h":"12:00","st":"prevu"}])

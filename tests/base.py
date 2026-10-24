@@ -13,7 +13,11 @@ def serveur():
     subprocess.Popen(['python3','-m','http.server',str(PORT)],cwd=ROOT,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,start_new_session=True); time.sleep(1.2)
 M={n:open(ICI/'mockfb'/n).read() for n in ['firebase-app.js','firebase-auth.js','firebase-firestore.js','firebase-functions.js','firebase-storage.js']}
 JSZ=open(ICI/'mockfb'/'jszip.min.js').read()
-S=json.load(open(ICI/'seed.json')); E='espaces/cabinet-bentahila/'
+# S7 (24/10/2026, audit n° 10 d. 7) : jeu de test FICTIF (tests/seed-fictif.json, construit par tests/mkfictif.mjs) ; la copie de vrais dossiers
+# (tests/seed.json) n'est plus lue que si ONCO360_SEED=reel est demandé, le temps de finir la transition
+S=json.load(open(ICI/('seed.json' if os.environ.get('ONCO360_SEED')=='reel' else 'seed-fictif.json'))); E='espaces/cabinet-bentahila/'
+# chiffre du bilan 2026 du jeu de test (« 353 449 » pour le jeu fictif), pour les tests qui le comparent à l'écran
+REF_BILAN=open(ICI/('bilan_ref.txt' if os.environ.get('ONCO360_SEED')=='reel' else 'bilan_ref_fictif.txt')).read().split(' DH')[0].strip()
 # audit n° 3 (13/10/2026) : corrections de la bibliothèque déjà faites dans le jeu commun (sa fenêtre cacherait les boutons) ; test_audit3 les rejoue
 S.setdefault(E + 'parametres/migrations', {}).update({'audit3a': '2026-10-13', 'audit3b': '2026-10-13', 'audit3c': '2026-10-18', 'audit3d': '2026-10-18', 'audit3e': '2026-10-18', 'audit3f': '2026-10-18', 'audit3g': '2026-10-18', 'bibE3': 2, 'audit10a': '2026-10-21', 'audit10b': '2026-10-21', 'audit10c': '2026-10-21', 'audit10d': '2026-10-24'})  # audit10a : corrections de l'audit n° 10 (S2), rejouées par test_audit10  # bibE3 : mise à jour des bibliothèques (R-E3, 19/10/2026), rejouée par test_ordonnances_e
 async def ouvrir(b, seed=None, w=1440, h=900, t="2026-10-06T10:00:00", tz=None):

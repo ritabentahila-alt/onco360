@@ -1,5 +1,5 @@
 // Tests des calculs de la salle d'attente, sans navigateur (SA7, 11/10/2026) : node tests/moteur/test-salle.mjs
-// Jeu de test : tests/seed.json (jamais dans le dépôt). Lignes du jour (rendez-vous, séances de chimio, venues déjà notées,
+// Jeu de test : tests/seed-fictif.json (S7, 24/10/2026 ; tests/seed.json, copie réelle hors dépôt, avec ONCO360_SEED=reel). Lignes du jour (rendez-vous, séances de chimio, venues déjà notées,
 // séances reportées), onglets, période, recherche (nom, n° de dossier, téléphone), place dans la file, tri, durées.
 import fs from "fs"; import path from "path"; import { fileURLToPath } from "url";
 const ICI = path.dirname(fileURLToPath(import.meta.url)), P = "file://" + path.join(ICI, "..", "..", "public", "js") + "/";
@@ -9,13 +9,13 @@ let ok = 0, ko = 0;
 const cas = (nom, v, detail) => { if (v) { ok++; console.log("  ✔ " + nom); } else { ko++; console.log("  ✘ " + nom + (detail !== undefined ? "\n      obtenu : " + JSON.stringify(detail) : "")); } };
 
 const T0 = "2026-10-06", E = "espaces/cabinet-bentahila/";
-const SEED = JSON.parse(fs.readFileSync(path.join(ICI, "..", "seed.json"), "utf8"));
+const REEL = process.env.ONCO360_SEED === "reel", SEED = JSON.parse(fs.readFileSync(path.join(ICI, "..", REEL ? "seed.json" : "seed-fictif.json"), "utf8"));
 const bib = {}; Object.keys(SEED).filter((k) => k.startsWith(E + "protocoles/")).forEach((k) => JSON.parse(SEED[k].data).forEach((p) => { bib[p.id] = p; }));
 const cal = SEED[E + "parametres/calendrier"] ? JSON.parse(SEED[E + "parametres/calendrier"].data) : { feries: [] };
 const ctx = { aujourdhui: T0, bib, feries: cal.feries || [] };
 const patients = Object.keys(SEED).filter((k) => k.startsWith(E + "patients/")).map((k) => { const id = k.split("/").pop(), doc = JSON.parse(JSON.stringify(SEED[k])), Pt = fusionner(id, doc, null); return { id, doc, P: Pt, r: { nm: Pt.nom } }; });
 const pat = (id) => patients.find((x) => x.id === id);
-const A1 = "P1790155538558", A2 = "P1790335106635", K1 = "P1790510171257"; // patients du jeu de test (HGC, HGC, HCK)
+const [A1, A2, K1] = REEL ? ["P1790155538558", "P1790335106635", "P1790510171257"] : ["PTA1", "PTA2", "PTK1"]; // dossiers du jeu de test (HGC, HGC, HCK)
 const hm = (ms) => { const d = new Date(ms); return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0"); };
 
 // Rendez-vous du jour ajoutés pour le test

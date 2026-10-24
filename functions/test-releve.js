@@ -1,5 +1,5 @@
 // Tests du relevé du comptable préparé la nuit (R-D2, A7, 20/10/2026) : node functions/test-releve.js
-// 1) functions/site/ = copie exacte du calcul du site ; 2) sur le jeu de test (tests/seed.json, s'il est là) : même relevé que le calcul du
+// 1) functions/site/ = copie exacte du calcul du site ; 2) sur le jeu de test (tests/seed-fictif.json, S7 ; tests/seed.json avec ONCO360_SEED=reel) : même relevé que le calcul du
 // site, aucun diagnostic, bilan du comptable = référence (352 317 DH) ; 3) cabinets concernés ; découpage ; signature.
 const fs = require("fs"), path = require("path"), RL = require("./releve");
 let ok = 0, ko = 0;
@@ -7,7 +7,7 @@ const cas = (nom, v, info) => { if (v) { ok++; console.log("✅ " + nom); } else
 (async () => {
   RL.FICHIERS.forEach((f) => cas("functions/site/" + f + " = public/js/" + f + " (sinon : cp public/js/" + f + " functions/site/" + f + ")",
     fs.existsSync(path.join(__dirname, "site", f)) && fs.readFileSync(path.join(__dirname, "site", f), "utf8") === fs.readFileSync(path.join(__dirname, "..", "public", "js", f), "utf8")));
-  const SEED = path.join(__dirname, "..", "tests", "seed.json");
+  const REEL = process.env.ONCO360_SEED === "reel", SEED = path.join(__dirname, "..", "tests", REEL ? "seed.json" : "seed-fictif.json");
   if (fs.existsSync(SEED)) {
     const S = JSON.parse(fs.readFileSync(SEED, "utf8")), E = "espaces/cabinet-bentahila/", T0 = "2026-10-06", J = (k, d) => (S[E + k] ? JSON.parse(S[E + k].data) : d);
     const bib = {}; Object.keys(S).filter((k) => k.startsWith(E + "protocoles/")).forEach((k) => JSON.parse(S[k].data).forEach((p) => { bib[p.id] = p; }));
@@ -25,14 +25,14 @@ const cas = (nom, v, info) => { if (v) { ok++; console.log("✅ " + nom); } else
     const ctx = { aujourdhui: T0, bib, feries: d.feries, table: d.tarifs };
     cas("actes identiques au calcul du site", R.every((x) => JSON.stringify(x.fin) === JSON.stringify(evtsFin(fusionner(x.id, patients.find((p) => p.id === x.id).data, null), montants[x.id] || {}, ctx))));
     const B = await site("moteur/bilan.js"), pai = J("finances/paiements", {}), ver = J("finances/versements", []);
-    const ref = fs.readFileSync(path.join(__dirname, "..", "tests", "bilan_ref.txt"), "utf8").trim();
+    const ref = fs.readFileSync(path.join(__dirname, "..", "tests", REEL ? "bilan_ref.txt" : "bilan_ref_fictif.txt"), "utf8").trim();
     const t = B.texteTotaux(B.calculerBilan(R, ver, pai, { per: "annee", hop: "tous" }, T0).tot);
     cas("bilan du comptable depuis le relevé de la nuit = référence (" + t.slice(0, 10) + ")", t === ref, t);
     cas("signature stable (rien de réécrit si rien n'a changé)", RL.signature(JSON.stringify(R)) === RL.signature(JSON.stringify(RL.lignes(await RL.moteur(), d))));
     const P2 = Object.assign({}, d, { patients: patients.concat([{ id: "Zmal", data: { identite: { nom: "TEST" }, etablissementId: "HGC", lignesJson: "{" } }]) });
     const R2 = RL.lignes(await RL.moteur(), P2);
     cas("dossier mal formé : gardé, sans actes (le relevé se fait quand même)", R2.length === R.length + 1 && R2[R2.length - 1].nm === "TEST");
-  } else console.log("(tests/seed.json absent : jeu de test sauté)");
+  } else console.log("(" + SEED + " absent : jeu de test sauté)");
   // Cabinets concernés
   const comp = [{ role: "medecin" }, { role: "comptable", actif: true }], T = { etablissements: {} };
   cas("cabinet avec un comptable et des tarifs : relevé", RL.concerne({ titulaire: "x" }, comp, T));

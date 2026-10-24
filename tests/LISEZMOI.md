@@ -5,10 +5,14 @@ Faux Firebase en mémoire (`mockfb/`) + navigateur automatisé (Playwright, Pyth
 ## Préparer (une fois)
 ```
 python3 -m venv tests/.venv && tests/.venv/bin/pip install playwright && tests/.venv/bin/python -m playwright install chromium   # déjà fait sur le Mac (11/10/2026)
-node tests/mkseed.mjs 2026-10-06 ~/Downloads/ChimioHGC_Firebase_2026-10-06.json   # crée tests/seed.json (NE PAS partager)
+node tests/mkfictif.mjs   # refait tests/seed-fictif.json et tests/bilan_ref_fictif.txt (jeu fictif, dans le dépôt)
 ```
-La sauvegarde JSON se trouve dans le Drive (sauvegarde quotidienne de l'ancienne application).
-Le seed simule l'état d'Onco360 converti depuis cette sauvegarde ; le bilan de référence est écrit dans `bilan_ref.txt`.
+**Jeu de test (S7, 24/10/2026)** : `tests/seed-fictif.json`, entièrement fictif (80 « PATIENT TEST n » de janvier à octobre 2026 dans trois lieux
+fictifs, tarifs de même forme que ceux du cabinet, cases « Payé » à l'ancien format, séances J8, radiothérapies terminées ; protocoles de la copie
+du 18/10 sans patient), construit par `tests/mkfictif.mjs` à partir de `functions/demo.js`. Bilan 2026 de référence : `bilan_ref_fictif.txt`
+(363 734 DH). Tous les tests le lisent ; aucun ne lit plus la copie réelle.
+Ancienne copie réelle (`node tests/mkseed.mjs …` → `tests/seed.json`, jamais dans le dépôt, bilan 352 317 DH) : seulement avec `ONCO360_SEED=reel`,
+et elle sert à `outils/noms-reels.py` (aucun de ses noms dans les fichiers du dépôt).
 
 ## Lancer
 ```
@@ -17,7 +21,7 @@ node tests/moteur/test-salle.mjs  # salle d'attente sans navigateur : lignes du 
 node tests/moteur/test-recus.mjs  # reçus numérotés : R-AAAA-NNNN, duplicata, nouveau numéro et numéros annulés
 python tests/test_agenda.py       # agenda (étape 21) : vue Jour sur téléphone, durée par type, glisser-déposer, médecin du rendez-vous, heure des séances de chimio / du scanner
 python tests/test_salle.py        # salle d'attente : médecin, secrétaire, infirmière, chimio, Patient suivant, messages, heure du Maroc, téléphone, onglet d'ouverture, reçus
-python tests/test_bilan.py        # bilan de l'année (352 317 DH au 06/10/2026) + aucune erreur JavaScript
+python tests/test_bilan.py        # bilan de l'année du jeu fictif (bilan_ref_fictif.txt) + aucune erreur JavaScript
 python tests/test_cures.py        # J1 / J8, paramètres par séance, report des doses, fiche chimio
 python tests/test_seances.py      # report de J8, molécules ajoutées / retirées à J8
 python tests/test_protocoles.py   # menus en cascade, fenêtre « Venu »

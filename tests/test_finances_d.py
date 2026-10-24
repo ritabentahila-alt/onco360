@@ -3,7 +3,7 @@ import pathlib; __file__=str(pathlib.Path(__file__).resolve()); exec(open(pathli
 # R-D3 transactions (montants + prix à encaisser ensemble) et taux commun
 # de la radiothérapie (écrit une fois : 60 % / 10 %, bilan inchangé), R-D4 cases « Payé » rangées par année ; ordinateur et 390 px.
 ok = lambda c, m: print(('✅ ' if c else '❌ ') + m)
-PID, LID = 'P1790238573180', 'L1790456543575938'  # cure C1 validée avec une séance J8 le 10/09/2026 (jeu de test)
+PID, LID = 'PTESS', 'LESS'  # cure C1 validée avec une séance J8 le 10/09/2026 (jeu de test)
 RG = [{'id': 'rg1', 'd': '2026-09-15', 'hop': 'HCK', 'mode': 'vir', 'm': 5000, 'ref': 'V1', 'per': 'août', 'par': 'x', 'parNom': 'x', 'le': 1},
       {'id': 'rg2', 'd': '2026-09-20', 'hop': 'HCK', 'mode': 'chq', 'm': 1000, 'ref': 'C1', 'per': 'août', 'par': 'x', 'parNom': 'x', 'le': 2}]
 kpi = "[...document.querySelectorAll('.kpi .k')].map(e=>e.textContent.replace(/[\\u202f\\u00a0]/g,' '))"
@@ -20,7 +20,7 @@ async def main():
         await pg.evaluate("location.hash='bilan'"); await pg.wait_for_timeout(1500)
         await pg.select_option('#biPer', 'annee'); await pg.wait_for_timeout(500)
         k0 = await pg.evaluate(kpi)
-        ok('352 317' in k0[0], 'bilan de l\'année inchangé : ' + k0[0])
+        ok(REF_BILAN in k0[0], 'bilan de l\'année inchangé : ' + k0[0])
         fs = await pg.evaluate("window.__fs")
         docs = sorted(k.split('/')[-1] for k in fs if '/finances/paiements' in k)
         n26 = len(json.loads(fs[E + 'finances/paiements_2026']['data'])); nV = len(json.loads(fs[E + 'finances/paiements']['data']))

@@ -1,7 +1,7 @@
 import pathlib; __file__=str(pathlib.Path(__file__).resolve()); exec(open(pathlib.Path(__file__).parent/'base.py').read())
 # Lot G (19/10/2026) : sur ordinateur, la cure s'ouvre dans le panneau (#panneauCorps) ; une petite fenêtre (#fenetreCorps) passe devant
 exec(open(pathlib.Path(__file__).parent/'reglages_test.py').read())
-ESS='P1790238573180'
+ESS='PTESS'
 # Fenêtre de la cure (depuis le remodelage du dossier) : tableau des jours J1, J8… (une ligne par jour : Ouvrir, Valider,
 # Reporter…), « Ouvrir » affiche la vue du jour. Après la validation d'un jour s'ouvre la fenêtre du prix de la consultation
 # (« Valider : venu »), qui ramène au dossier : on rouvre alors la cure depuis le tableau des cures.

@@ -8,12 +8,12 @@ def ok(c, m, d=None):
     if c: ok_n += 1; print('  ✔ ' + m)
     else: ko_n += 1; print('  ✘ ' + m + ('' if d is None else ' ' + str(d)[:400]))
 T = '2026-10-06'
-K1 = 'P1790510171257'
+K1 = 'PTK1'
 async def main():
     async with async_playwright() as p:
         b = await p.chromium.launch()
         # séance de chimio C1 J15 de A1 le 09/10 (même jeu que test_salle) : heure de la consultation notée à 10:15
-        A1 = 'P1790155538558'; S2 = json.loads(json.dumps(S)); L1 = json.loads(S2[E + 'patients/' + A1]['lignesJson'])[0]['id']
+        A1 = 'PTA1'; S2 = json.loads(json.dumps(S)); L1 = json.loads(S2[E + 'patients/' + A1]['lignesJson'])[0]['id']
         S2[E + 'patients/' + A1]['heures'] = {f'{L1}|1|15': {"cons": {"h": "10:15", "du": 15, "par": "x", "parNom": "x", "le": 1}}}
         pg = await ouvrir(b, S2, t="2026-10-09T08:00:00"); ev = pg.evaluate
         await pg.goto(f'http://localhost:{PORT}/v2.html#salle'); await pg.wait_for_timeout(3000)

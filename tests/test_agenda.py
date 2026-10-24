@@ -10,7 +10,7 @@ T = '2026-10-06'  # mardi
 S2 = json.loads(json.dumps(S))
 def ajout(pid, rdvs):
     R = json.loads(S2[E+'patients/'+pid].get('rdvsJson') or '[]'); R += rdvs; S2[E+'patients/'+pid]['rdvsJson'] = json.dumps(R)
-A1, A2, A3 = 'P1790155538558', 'P1790335106635', 'P1790510177539'
+A1, A2, A3 = 'PTA1', 'PTA2', 'PTA3'
 ajout(A1, [{"id":"rG1","type":"Annonce","d":T,"h":"10:00","st":"prevu"}])
 ajout(A2, [{"id":"rG2","type":"Suivi","d":T,"h":"11:00","st":"prevu","du":20}])
 cal = json.loads(S2[E+'parametres/calendrier']['data']); cal['durees'] = {"s:Annonce": 45}; S2[E+'parametres/calendrier']['data'] = json.dumps(cal)
@@ -143,7 +143,7 @@ async def main():
         for u, r in [('INF','infirmiere')]:
             S6[E+'membres/'+u] = {"role":r,"nom":u,"email":u.lower()+"@test.ma","actif":True,"tousEtablissements":True,"etablissements":["HGC","HCK","CIOC"],"droits":{}}
             S6['utilisateurs/'+u] = {"nom":u,"prenom":"Test"}
-        ESS = 'P1790238674279'  # suivie au CIOC
+        ESS = 'PTCIOC'  # suivie au CIOC
         NOM_ESS = S6[E+'patients/'+ESS]['identite']['nomF'].upper()  # nom lu dans le jeu de test : jamais écrit dans le code
         S6[E+'membres/SEC'] = dict(S6[E+'membres/SEC'], etablissements=["HGC", "HCK", "CIOC"])
         pg = await ouvrir(b, S6, h=1400, t=T+"T08:00:00"); ev = pg.evaluate

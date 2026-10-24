@@ -108,7 +108,7 @@ async def main():
         ok(r and r['principal'] and r['menus'] and r['valider'], '3.14 : « Ouvrir » en bouton principal, « Valider » dans ⋯', r)
         ok(r and r['menuLigne'] and r['arreter'], '« Arrêter la ligne » et « Supprimer » dans le menu ⋯ de la ligne', r)
         ok(await ev("[...document.querySelectorAll('#cChimio .tcures td[data-l=\"Date prévue\"] button')].some(b=>/heure|🩺/.test(b.textContent))"), 'heure de la consultation à côté de la date prévue')
-        multi = [('P1790238573180', 0, 2)] if 'P1790238573180' in L else []  # C3 J1 / J8 (même cure que test_cures)
+        multi = [('PTESS', 0, 2)] if 'PTESS' in L else []  # C3 J1 / J8 (même cure que test_cures)
         if multi:
             x, i, k = multi[0]
             await pg.goto(f'http://localhost:{PORT}/v2.html#dossier/{x}'); await pg.wait_for_timeout(1500)

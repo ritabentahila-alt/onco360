@@ -7,4 +7,4 @@ S2=json.loads(json.dumps(S))
 for c in ['HGC','HCK','CIOC']: S2[E+'etablissements/'+c]['logo']=png()
 S2['utilisateurs/UIDRITA']['signature']=png(40,16)
 # un RDV « suivi » prévu hier pour tester « Venu »
-pid='P1790510171257'; R=json.loads(S2[E+'patients/'+pid]['rdvsJson']); R.append({"id":"rTEST","type":"Suivi","d":"2026-10-05","h":"10:00","st":"prevu"}); S2[E+'patients/'+pid]['rdvsJson']=json.dumps(R)
+pid='PTK1'; R=json.loads(S2[E+'patients/'+pid]['rdvsJson']); R.append({"id":"rTEST","type":"Suivi","d":"2026-10-05","h":"10:00","st":"prevu"}); S2[E+'patients/'+pid]['rdvsJson']=json.dumps(R)

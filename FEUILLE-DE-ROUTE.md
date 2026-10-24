@@ -286,7 +286,15 @@ Avant le **premier client payant** : société éditrice, projet Firebase et nom
       usuelles, ligne au-delà du cycle, protocole sans statut « Validé », source vide, doublon de nom, hormonothérapies incompatibles ensemble)
       écrit une fois dans le moteur (`moteur/controleProto.js`, test) et lancé **à chaque enregistrement d'un protocole** et **avant chaque copie
       vers le modèle** (Administration, étape 1) : avertissement d'un clic (« 2 points à vérifier : … — Enregistrer quand même »), jamais bloquant.
-- [ ] **S7 Tests fiables** (d. 7, 8 ; ancien Q-a, Q-b, Q-f ; audit 10, « Code et tests pour la cession »). (1) **Jeu fictif pour tous les tests**
+- [ ] **S7 Tests fiables — EN COURS (24/10/2026, pas en ligne)** : fait : jeu fictif `tests/seed-fictif.json` (`tests/mkfictif.mjs` : 80 patients
+      fictifs + 6 dossiers de référence PTA1, PTA2, PTA3, PTK1, PTESS, PTCIOC ; bibliothèque du 06/10 sans patient `tests/moteur/donnees/bibliotheque-2026-10-06.json` ;
+      cases « Payé » à l'ancien format, séances J8) ; bilan de référence fictif `tests/bilan_ref_fictif.txt` (363 734 DH) ; test-bilan 42/42, test-salle 32/32,
+      test-releve 25/25, test-demo passent dessus ; tests du navigateur repointés (ids, `REF_BILAN` de base.py) ; `outils/noms-reels.py` + ESLint dans
+      `avant-mise-en-ligne.sh`. **Reste** : finir le passage des 81 tests du navigateur un par un (ne pas les lancer 4 à la fois : trop lent, faux échecs) ;
+      test_agenda « créneau pris » : **vrai défaut trouvé** — déposer un rendez-vous sur un autre rendez-vous (créneau occupé) ne fait rien (agenda.js
+      `glisser`, `ou()` / drop) → à corriger ; ajouter au jeu fictif une absence 15-18/10 et une séance de chimio sans heure le 08/10 (secrétaire,
+      test_agenda) ; puis contrôle complet, CLAUDE.md (chiffre), journal, enregistrement.
+      Plan d'origine : (d. 7, 8 ; ancien Q-a, Q-b, Q-f ; audit 10, « Code et tests pour la cession »). (1) **Jeu fictif pour tous les tests**
       (`functions/demo.js` étendu : patients, cures, RT, rendez-vous, montants, sur 3 ans ; `tests/base.py`, `tests/mkseed.mjs`) : plus aucun test ne
       lit `tests/seed.json` ; test-bilan, test-salle, test-releve et les 71 tests du navigateur passent sur une copie propre du dépôt. **Nouveau
       chiffre de référence du bilan** = celui du jeu fictif figé (noté ici et dans CLAUDE.md ; l'ancien 352 317 DH gardé pour mémoire). Contrôle

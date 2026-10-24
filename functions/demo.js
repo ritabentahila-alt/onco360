@@ -14,7 +14,9 @@ const diag = (rx, d) => DEPART.DIAG.find((x) => rx.test(x)) || d;
 
 // Patients : protos = protocoles du cabinet (bibliothèque copiée) ; actes = actes de radiothérapie (tarifs) ; jour = AAAA-MM-JJ
 function patientsDemo(protos, actes, jour) {
-  const P = (protos || []).filter((p) => p && p.dr && p.dr.length), avecCycle = (p) => p.c > 0;
+  // S7 (24/10/2026, audit n° 10) : bibliothèque vide ou sans le protocole attendu : un protocole de secours (fictif) au lieu de planter
+  const P0 = (protos || []).filter((p) => p && p.dr && p.dr.length), avecCycle = (p) => p.c > 0;
+  const P = P0.length ? P0 : [{ id: "demo|ec", nom: "EC (démonstration)", c: 21, st: "ok", r: "J1 tous les 21 jours", dr: [{ id: "d0", p: "ÉPIRUBICINE", u: "mg/m²", d: 90, j: [1] }, { id: "d1", p: "CYCLOPHOSPHAMIDE", u: "mg/m²", d: 600, j: [1] }] }];
   const proto = (rx, cycle) => choisir(P, rx, cycle === false ? null : avecCycle) || P[0];
   const acte = (rx) => { const a = choisir(actes || [], rx); return (a && a.nom) || ((actes || [])[0] || {}).nom || "Radiothérapie conformationnelle"; };
   const mois = jour.slice(0, 7).replace("-", ""), now = new Date(jour + "T08:00:00Z").toISOString();

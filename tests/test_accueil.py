@@ -23,7 +23,7 @@ async def main():
         ok('À valider par le médecin' in t, 'médecin : bloc « À valider par le médecin »')
         ok(not await pg.evaluate(EMOJI), 'aucun émoji sur le tableau de bord (pictogrammes au trait)')
         ok('Bonjour' in t and '👋' not in t, '« Bonjour » sans main')
-        ok(not await pg.evaluate("/Séance \\d+ \\/ \\d+(?! prévue)/.test(document.getElementById('page').innerText)"), 'radiothérapie : « Séance n / N prévue » (calcul de calendrier), jamais présenté comme fait')
+        ok(not await pg.evaluate("/Séance \\d+ \\/ \\d+(?![\\d ]*prévue)/.test(document.getElementById('page').innerText)"), 'radiothérapie : « Séance n / N prévue » (calcul de calendrier), jamais présenté comme fait')
         ok(await pg.evaluate("[...document.querySelectorAll('.sept .evi svg')].length>0 || !document.querySelector('.sept .ev')"), '7 prochains jours : pictogrammes au trait')
         ok(not await pg.evaluate("[...document.querySelectorAll('#blocTaches .ta-mini b')].some(b=>/^Valider (le contourage|la dosimétrie|la fin)/.test(b.textContent))"), 'Mes tâches : contourage / dosimétrie / fin de RT laissés au bloc « À valider »')
         await pg.screenshot(path=str(SH / 'accueil-1440.png'), full_page=True)
