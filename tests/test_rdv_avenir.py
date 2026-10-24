@@ -19,7 +19,7 @@ def seed(rts=None, rdvs=None):
     if rdvs is not None: P['rdvsJson'] = json.dumps(rdvs)
     S2.pop(E + 'parametres/migrations', None); return S2
 async def dossier(b, S2):
-    pg = await ouvrir(b, S2); await pg.goto(f'http://localhost:{PORT}/v2.html#dossier/{pid}'); await pg.wait_for_timeout(3000); return pg, pg.evaluate
+    pg = await ouvrir(b, S2); await pg.goto(f'http://localhost:{PORT}/v2.html#dossier/{pid}'); await pg.wait_for_timeout(3000); await pg.evaluate(f"voirAvTout('{pid}')"); await pg.wait_for_timeout(500); return pg, pg.evaluate  # T4 : liste dépliée en entier (« Voir tout »)
 doc = lambda fs: fs[E + 'patients/' + pid]
 async def dates_cures(ev):
     return await ev(f"(async()=>{{const m=await import('./js/moteur/doses.js');const c=await import('./js/donnees/conversion.js');const d=window.__fs['{E}patients/{pid}'];const P=c.fusionner('{pid}',d,null);return null}})()")
@@ -66,7 +66,7 @@ async def main():
 
         print('Consultation déplacée à la main : ne suit plus la fin')
         P3 = S3[E + 'patients/' + pid]; rd = json.loads(P3['rdvsJson']); [z.update(d='2026-11-20') for z in rd if z.get('rtfin') == 'rtF']; P3['rdvsJson'] = json.dumps(rd)
-        pg = await ouvrir(b, S3); ev = pg.evaluate; await pg.goto(f'http://localhost:{PORT}/v2.html#dossier/{pid}'); await pg.wait_for_timeout(2500)
+        pg = await ouvrir(b, S3); ev = pg.evaluate; await pg.goto(f'http://localhost:{PORT}/v2.html#dossier/{pid}'); await pg.wait_for_timeout(2500); await ev(f"voirAvTout('{pid}')"); await pg.wait_for_timeout(500)
         await ev(f"modifierEtapeRT('{pid}','rtF','deb')"); await pg.wait_for_timeout(400); await pg.fill('#eD', '2026-10-21'); await pg.click('#fOk'); await pg.wait_for_timeout(1800)
         f = [z for z in json.loads(doc(await ev("window.__fs"))['rdvsJson']) if z.get('rtfin') == 'rtF']
         ok(len(f) == 1 and f[0]['d'] == '2026-11-20', 'reste au 20/11 (déplacée à la main)', f)

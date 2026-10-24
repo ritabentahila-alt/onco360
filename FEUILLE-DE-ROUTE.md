@@ -364,7 +364,13 @@ dans ⋯ ; Afficher, Journal, Modifier restent visibles ; aucune consultation cr
       contrôles habituels : férié, absence, horaires). (2) Avant toute recherche, la liste des patients montre **les patients vus aujourd'hui en
       tête** (à 5 000 dossiers : seulement eux et les résultats de la recherche, avec 5.3). **Pas** de « Prochains créneaux libres » (U15 : non),
       « Déjà ce jour-là, sans heure » gardé tel quel (U16 : non), **pas** de bouton « Prochain RDV » dans la salle (U18 : non).
-- [ ] **T4 Dossier patient** (U20, U21, U22). (1) « Rendez-vous et tâches à venir » : **les 5 prochains**, puis « Voir tout » (rien ne disparaît).
+- [x] **(24/10/2026, testé ; pas encore en ligne)** « Rendez-vous et tâches à venir » : 5 prochains puis « Voir tout (n) » / « Voir les 5 prochains »
+      (`AV_TOUT`, `voirAvTout` de v2.js) ; élément de chimio : « Consultation : venu » (bouton et badge) et bouton « Séance » qui ouvre la cure ; téléphone
+      (< 768 px, CSS « T4 » de v2.html) : bandeau réduit (champs de la ligne 2 dans « Afficher »), barre d'actions sur une ligne qui défile de côté (alignée
+      à gauche, tous les boutons présents). Tests : `tests/test_t4.py` 10/10 ; test_dossier_boutons (liste dépliée avant la comparaison : aucune action
+      perdue), test_dossier_disposition (barre du téléphone : une ligne qui défile, décision du 17/10), test_rdv_avenir adaptés ; test_lot_c,
+      test_dossier_menu_pts, test_debordement bons.
+      **T4 Dossier patient** (U20, U21, U22). (1) « Rendez-vous et tâches à venir » : **les 5 prochains**, puis « Voir tout » (rien ne disparaît).
       (2) Sur un élément de chimio de la colonne Patient : **« Consultation : venu »** à la place de « Venu », et à côté un bouton **« Séance »** qui
       ouvre la cure. (3) Téléphone (après le reste) : **ce qui était décidé le 17/10** et ne se voit pas : bandeau réduit (nom, âge, allergie), barre
       d'actions **d'une ligne qui défile de côté** (aujourd'hui 3 lignes, 138 px) ; rien de plus. Le dossier s'ouvre toujours comme aujourd'hui

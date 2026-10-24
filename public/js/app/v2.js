@@ -1163,6 +1163,8 @@ window.dosPhoto = (id) => {
 window.voirAides = () => document.body.classList.toggle("voir-aides");
 const grilleDossier = () => { const d = $("dos"); return !!d && getComputedStyle(d).display === "grid"; };
 
+const AV_TOUT = new Set(); // T4 : « Rendez-vous et tâches à venir » dépliés en entier (pour la session)
+window.voirAvTout = (id) => { if (AV_TOUT.has(id)) AV_TOUT.delete(id); else AV_TOUT.add(id); pageDossier(id); };
 function pageDossier(id) {
   const x = D.patients.find((p) => p.id === id);
   $("page").classList.add("p-dos");
@@ -1201,8 +1203,10 @@ function pageDossier(id) {
   // leur date ne se change pas ici (protocole de la ligne)
   const venuChimio = (c, d) => {
     const v = EN && EN.cons && EN.cons[c.lid + "|" + c.n + "|" + c.j], qv = "'" + x.id + "','" + c.lid + "'," + c.n + "," + c.j;
-    if (v) return '<span class="badge b-ch">Venu</span><span class="badge b-ch" title="Prix validé">' + (v.m != null ? fmtMil(v.m) + " DH" : "—") + "</span>" + (peut("finances") ? b("Annuler le statut", "chAnnulerVenuChimio(" + qv + ")") : prixParServeur() ? b("Modifier le prix", "chVenuChimio(" + qv + ")") : "");
-    return (peut("finances") || prixParServeur()) && d <= D.t ? b("Venu", "chVenuChimio(" + qv + ")", "v") : "";
+    // T4 (24/10/2026, audit n° 11 U21) : « Consultation : venu » (le bouton valide la consultation, pas la séance) ; « Séance » ouvre la cure
+    const li = (P.lignes || []).findIndex((L) => L.id === c.lid), sea = li >= 0 && (traitMod() || peut("planningChimio") || peut("administrer") || voit("traitements")) ? b("Séance", "chOuvrir('" + x.id + "'," + li + "," + (c.n - 1) + "," + c.j + ")") : "";
+    if (v) return '<span class="badge b-ch">Consultation : venu</span><span class="badge b-ch" title="Prix validé">' + (v.m != null ? fmtMil(v.m) + " DH" : "—") + "</span>" + (peut("finances") ? b("Annuler le statut", "chAnnulerVenuChimio(" + qv + ")") : prixParServeur() ? b("Modifier le prix", "chVenuChimio(" + qv + ")") : "") + sea;
+    return ((peut("finances") || prixParServeur()) && d <= D.t ? b("Consultation : venu", "chVenuChimio(" + qv + ")", "v") : "") + sea;
   };
   // 12/10/2026 : heure de la consultation de la séance (l'infirmière : sa séance à l'hôpital de jour) ; « Modifier » = date et heure
   const inf = D.membre.role === "infirmiere", modCh = (c) => (traitMod() || peut("planningChimio") || peut("administrer")) && c.lid ? b("Modifier", "chModifierRdvChimio('" + x.id + "','" + c.lid + "'," + c.n + "," + c.j + ")") : "";
@@ -1218,7 +1222,8 @@ function pageDossier(id) {
   av.sort((p, q) => (p.d + (p.h || "00")).localeCompare(q.d + (q.h || "00")));
   const ligneAv = (v) => '<div class="rdv">' + (absenceLe(v.d) ? '<span class="badge b-al"><svg class="pi"><use href="#i-stop"/></svg>' + absentMedecin(medecinFiche().genre) + "</span>" : ferieLe(v.d) ? '<span class="badge b-al">Férié</span>' : "") + '<span class="badge ' + (v.retard ? "b-al" : "b-co") + '">' + (v.d ? dfr(v.d) : "—") + (v.f && v.f !== v.d ? " → " + dfr(v.f) : "") + (v.h ? " " + v.h : "") + "</span><span>" + v.em + '</span><div class="tx">' + esc(v.t) + (v.rep && v.rep.length ? '<div class="mesures">Reporté (initialement le ' + dfrA(v.rep[0].d) + ")</div>" : "") + "</div>" + (v.act || "") + "</div>";
   const hAvenir = (decede(P) && av.some((v) => v.d >= t) ? '<p class="al-band dc">Patient décédé' + (P.decesLe ? " le " + dfrA(P.decesLe) : "") + " : " + av.filter((v) => v.d >= t).length + " rendez-vous, séance(s) ou tâche(s) encore prévus, à annuler.</p>" : "") +
-    '<div class="rdv-liste" id="rdvListe">' + (av.length ? av.map(ligneAv).join("") : '<p class="sous">Aucun rendez-vous ni tâche à venir.</p>') + '</div><p class="mesures" style="margin:8px 0 0">Prochaine étape de chimiothérapie et de radiothérapie (automatique) et consultations programmées.</p>';
+    // T4 (24/10/2026, U20) : les 5 prochains, puis « Voir tout » (rien ne disparaît)
+    '<div class="rdv-liste" id="rdvListe">' + (av.length ? av.slice(0, AV_TOUT.has(x.id) ? av.length : 5).map(ligneAv).join("") + (av.length > 5 ? '<button class="lien" style="margin-top:6px" onclick="voirAvTout(\'' + x.id + '\')">' + (AV_TOUT.has(x.id) ? "Voir les 5 prochains" : "Voir tout (" + av.length + ")") + "</button>" : "") : '<p class="sous">Aucun rendez-vous ni tâche à venir.</p>') + '</div><p class="mesures" style="margin:8px 0 0">Prochaine étape de chimiothérapie et de radiothérapie (automatique) et consultations programmées.</p>';
   // Prochain rendez-vous (toujours visible) : rendez-vous, séance de chimio ou étape de RT, à partir d'aujourd'hui
   const proch = av.find((v) => v.rdv && v.d >= t);
 

@@ -33,6 +33,7 @@ JS = r"""(() => {
 async def actions(b, uid, p):
     pg = await ouvrir(b, S2, w=1440, h=900); await pg.add_init_script(f"window.__uid='{uid}'")
     await pg.goto(f'http://localhost:{PORT}/v2.html#dossier/{p}'); await pg.wait_for_timeout(3500)
+    await pg.evaluate(f"window.voirAvTout && voirAvTout('{p}')"); await pg.wait_for_timeout(600)  # T4 (24/10) : 5 prochains, puis « Voir tout » : rien ne disparaît
     tout = set(await pg.evaluate(JS))
     # photo du bandeau agrandie au clic (lot G) : « Changer ou retirer la photo » dans la fenêtre
     if await pg.evaluate("!!document.querySelector('.bn-ph')"):
