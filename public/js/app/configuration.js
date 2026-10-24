@@ -57,7 +57,7 @@ const WA_FR = {
 // Noms propres en lettres latines (nom, lieu) isolés (U+2068 … U+2069) : la ponctuation arabe reste à sa place, à l'écran comme dans WhatsApp
 export const WA_AR = {
   confirm: "مرحبا \u2068{nom}\u2069، نؤكد موعدكم يوم {jour_ar} {heure_ar} في \u2068{lieu}\u2069.\nفي حال تعذر حضوركم، نرجو إخبارنا.",
-  chimio: "مرحبا \u2068{nom}\u2069، نذكركم بحصة العلاج الكيميائي يوم {jour_ar} {heure_ar} في \u2068{lieu}\u2069.\nيرجى إحضار آخر تحليل للدم. لا تنسوا تناول الأدوية الوقائية إذا وُصفت لكم.\nفي حال الإصابة بالحمى أو حدوث أي مشكل، اتصلوا بنا قبل التنقل.",
+  chimio: "مرحبا \u2068{nom}\u2069، نذكركم بحصة العلاج الكيميائي يوم {jour_ar} {heure_ar} في \u2068{lieu}\u2069.\nيرجى إحضار آخر تحاليل الدم. لا تنسوا تناول الأدوية التي وُصفت لكم قبل الحصة.\nفي حال الإصابة بالحمى أو حدوث أي مشكلة، اتصلوا بنا قبل الحضور.",
   annonce: "مرحبا \u2068{nom}\u2069، نذكركم بموعد استشارتكم يوم {jour_ar} {heure_ar} في \u2068{lieu}\u2069.\nيرجى إحضار جميع فحوصاتكم (الخزعة، تقرير التشريح المرضي، الصور الإشعاعية، تحاليل الدم)، ويمكنكم إن شئتم أن يرافقكم أحد أقاربكم.",
   suivi: "مرحبا \u2068{nom}\u2069، نذكركم بموعد استشارتكم يوم {jour_ar} {heure_ar} في \u2068{lieu}\u2069.\nيرجى إحضار آخر فحوصاتكم (تحاليل الدم، الصور الإشعاعية) ووصفاتكم الطبية الحالية.",
   controle: "مرحبا \u2068{nom}\u2069، نذكركم بموعد استشارتكم يوم {jour_ar} {heure_ar} في \u2068{lieu}\u2069.\nيرجى إحضار آخر فحوصاتكم (تحاليل الدم، الصور الإشعاعية) ووصفاتكم الطبية الحالية.",
@@ -68,6 +68,18 @@ export const WA_AR = {
   autre: "مرحبا \u2068{nom}\u2069، نذكركم بموعدكم يوم {jour_ar} {heure_ar} في \u2068{lieu}\u2069.",
 };
 export const aDeLArabe = (m) => /[\u0600-\u06FF]/.test(String(m || ""));
+// T7 (24/10/2026, audit n° 10 d. 56) : 3 retouches de l'arabe de la séance de chimio (« تحاليل » au pluriel, prémédication = « الأدوية التي وُصفت لكم
+// قبل الحصة », « مشكلة … قبل الحضور » en arabe classique) ; reprises une fois dans les messages du cabinet (waAr3, v2.js)
+export const AR_RETOUCHES = [["آخر تحليل للدم", "آخر تحاليل الدم"], ["الأدوية الوقائية إذا وُصفت لكم", "الأدوية التي وُصفت لكم قبل الحصة"], ["أي مشكل، اتصلوا بنا قبل التنقل", "أي مشكلة، اتصلوا بنا قبل الحضور"]];
+export const retouchesArabe = (m) => AR_RETOUCHES.reduce((s, [a, b]) => s.split(a).join(b), String(m || ""));
+// T7 : le français d'un message a changé mais l'arabe est encore celui de départ (ou ajouté à l'envoi) : il ne le traduit plus
+const sansEspaces = (t) => String(t || "").replace(/\s+/g, " ").trim();
+export function arabeDecale(m, cat) {
+  const s = String(m || ""), i = s.search(/[\u0600-\u06FF]/), fr = sansEspaces((i < 0 ? s : s.slice(0, i)).replace(/\{medecin\}/g, "").replace(/مرحبا[\s\S]*$/, ""));
+  const fr0 = sansEspaces(WA_FR[cat] || WA_FR.autre);
+  if (!fr || fr === fr0) return false;
+  return i < 0 || s.indexOf(WA_AR[cat] || WA_AR.autre) >= 0;
+}
 // Arabe ajouté avant la signature ({medecin} en dernière ligne), sinon à la fin
 export const messageAvecArabe = (m, cat) => {
   const s = String(m || ""); if (aDeLArabe(s)) return s;
@@ -352,7 +364,7 @@ const RUBRIQUES = {
       return '<div class="wa-i' + (ouvert ? " on" : "") + '"><button type="button" class="wa-t" aria-expanded="' + ouvert + '" onclick="cfWaO(\'' + k + "')\"><span class=\"n\">" + (ico ? A.ic(ico) : "") + esc(lib) + (perso ? ' <span class="badge b-or">personnalisé</span>' : "") + '</span><span class="ap">' + esc(remplir(messageAvecArabe(v, k), ex).replace(/\s+/g, " ")) + '</span><span class="chev" aria-hidden="true">›</span></button>' +
         (ouvert ? '<div class="wa-ed"><div><textarea id="waT_' + k + '" class="notes" rows="7"' + c.disE + ' aria-label="Message : ' + esc(lib) + '" oninput="cfWa(\'' + k + "',this.value)\">" + esc(v) + "</textarea>" +
           (c.okE ? '<div class="wa-v"><span class="mesures">Insérer :</span>' + VARS_WA.map(([n, t]) => '<button type="button" class="puce" title="' + esc(t) + '" onclick="cfWaVar(\'' + k + "','" + n + "')\">{" + n + "}</button>").join("") + (perso ? '<button type="button" class="mini" onclick="cfWaDef(\'' + k + "')\">↺ Message par défaut</button>" : "") + "</div>" : "") +
-          '</div><div><span class="mesures">Aperçu</span><div class="wa-ex" id="waEx_' + k + '">' + esc(remplir(messageAvecArabe(v, k), ex)) + "</div>" + (aDeLArabe(v) ? "" : '<p class="mesures" style="margin:4px 0 0">Sans texte en arabe dans ce message : celui de départ est ajouté à la suite à l\'envoi.</p>') + "</div></div>" : "") + "</div>";
+          '</div><div><span class="mesures">Aperçu</span><div class="wa-ex" id="waEx_' + k + '">' + esc(remplir(messageAvecArabe(v, k), ex)) + "</div>" + (aDeLArabe(v) ? "" : '<p class="mesures" style="margin:4px 0 0">Sans texte en arabe dans ce message : celui de départ est ajouté à la suite à l\'envoi.</p>') + '<p class="mesures" id="waDec_' + k + '" style="margin:4px 0 0;color:var(--orange-t,#8F5600)">' + (arabeDecale(v, k) ? "Le français a changé : l'arabe n'est plus sa traduction (corrigez l'arabe dans le message)." : "") + "</p></div></div>" : "") + "</div>";
     }).join("") + "</div></section>";
     return h;
   },
@@ -463,7 +475,7 @@ window.cfSupPlage = (j, k) => { HC().jours[j].splice(k, 1); modif(true); };
 // Lieux du membre connecté (secrétaire d'un centre : les siens seulement)
 const lieuxMembre = () => { const m = D().membre, l = D().etabs || []; return m.tousEtablissements ? l : l.filter((e) => (m.etablissements || []).indexOf(e.code) >= 0); };
 const exempleWa = () => { const p = D().profil || {}, nomDr = D().membre.role === "medecin" ? (p.nom || D().membre.nom || "") : ((D().medTitulaire && D().medTitulaire.nom) || D().nomTitulaire || ""); return { prenom: "Fatima", nom: "ALAOUI Fatima", jour: "mardi 14 octobre", heure: "à 10h00", jour_ar: "الثلاثاء 14 أكتوبر", heure_ar: heureAr("10:00"), lieu: (lieuxMembre()[0] || {}).nom || "Clinique", adresse: "", medecin: "Dr " + String(nomDr).replace(/^(Dr|Pr)\.?\s*/i, "").toUpperCase() }; };
-window.cfWa = (k, v) => { ED.wa[k] = v; const e = A.$("waEx_" + k); if (e) e.textContent = remplir(messageAvecArabe(v, k), exempleWa()); modif(); };
+window.cfWa = (k, v) => { ED.wa[k] = v; const e = A.$("waEx_" + k); if (e) e.textContent = remplir(messageAvecArabe(v, k), exempleWa()); const w = A.$("waDec_" + k); if (w) w.textContent = arabeDecale(v, k) ? "Le français a changé : l'arabe n'est plus sa traduction (corrigez l'arabe dans le message)." : ""; modif(); };
 window.cfWaDef = (k) => { delete ED.wa[k]; modif(true); };
 window.cfWaO = (k) => { WAO = WAO === k ? null : k; pageConfiguration(); const t = A.$("waT_" + k); if (t) t.focus(); };
 // Variable insérée à la place du curseur

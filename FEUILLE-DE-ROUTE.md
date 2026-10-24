@@ -400,7 +400,11 @@ dans ⋯ ; Afficher, Journal, Modifier restent visibles ; aucune consultation cr
       fermer le dossier » ; `documents.js`, `note_calendrier`). (6) **Reçu** (d. 15, question 4, d'après le reçu de l'hôpital Cheikh Khalifa) : mention « Acte exonéré de TVA » et phrase « à valider
       par le comptable du cabinet » retirées (case `rTva` de Paramètres › Impression, `htmlRecu` de v2.js) ; plus d'étape « faire valider par le
       comptable ». Tests : PDF comptés (pages), test_recu, test_calendrier_rt, test_ordonnances_e.
-- [ ] **T7 Messages en arabe** (d. 56 ; audit 10, « Messages en arabe ») : les 3 retouches de la séance de chimio (« آخر تحاليل الدم », « الأدوية التي
+- [x] **(24/10/2026, testé ; pas encore en ligne)** `WA_AR.chimio` : « آخر تحاليل الدم », « الأدوية التي وُصفت لكم قبل الحصة », « مشكلة … قبل الحضور » ;
+      `AR_RETOUCHES` / `retouchesArabe` reprises une fois dans les messages du cabinet (`migrations.waAr3`, v2.js ; le français n'est jamais touché) ;
+      `arabeDecale` : Paramètres › WhatsApp affiche « Le français a changé : l'arabe n'est plus sa traduction » quand le français d'un message diffère du
+      départ alors que l'arabe est encore celui de départ (ou ajouté à l'envoi). Tests : `tests/test_t7.py` 5/5, test_lot_c, test_types_consult.
+      **T7 Messages en arabe** (d. 56 ; audit 10, « Messages en arabe ») : les 3 retouches de la séance de chimio (« آخر تحاليل الدم », « الأدوية التي
       وُصفت لكم قبل الحصة », « مشكلة … قبل الحضور ») dans `WA_AR` et, une fois, dans les messages du cabinet qui ont encore le texte de départ ;
       **avertissement dans Paramètres › WhatsApp** quand le français d'un message a changé sans l'arabe (« le français a changé, l'arabe n'est
       plus sa traduction »).

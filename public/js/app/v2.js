@@ -24,7 +24,7 @@ import { installer as installerDocuments, docsDe, boutonDoc, oublierDocs, suivre
 import { installer as installerVigilances, vigilancesAudit3 } from "./vigilances.js";
 import { installer as installerChimio, htmlChimio, nouveauPatient as creerPatient, champDiag, activerDiag, listeMut, listeCor, figerCuresValidees, alertesBio, enrichirListes, majMontants, encaissementsDe, construireEncaissements, ecrireEncaissements, prixParServeur, oublierEncaissements } from "./chimio.js";
 import { installer as installerAgenda, pageAgenda } from "./agenda.js";
-import { installer as installerConfig, pageConfiguration, horaires, dureeDe, dureeType, WA0, remplir, messageAvecArabe, jourAr, heureAr } from "./configuration.js";
+import { installer as installerConfig, pageConfiguration, horaires, dureeDe, dureeType, WA0, remplir, messageAvecArabe, retouchesArabe, jourAr, heureAr } from "./configuration.js";
 import { installer as installerProfil, pageProfil, DROITS_ROLE, droitsEffectifs, lireImage } from "./profil.js";
 import { installer as installerProtocoles, pageProtocoles, marquerProtocoles, appliquerAudit3, appliquerP4, appliquerP5b, appliquerAudit10 } from "./protocoles.js";
 import { installer as installerParametres, pageParametres } from "./parametres.js";
@@ -354,6 +354,14 @@ async function migrations() {
       let ok = true;
       if (n) await setDoc(doc(db, "espaces", ESPACE, "parametres", "whatsapp"), { data: JSON.stringify(W1) }).then(() => { D.wa = W1; }).catch((er) => { ok = false; console.warn("messages WhatsApp (arabe)", er); });
       if (ok) await setDoc(doc(db, "espaces", ESPACE, "parametres", "migrations"), { waBilingue: D.t }, { merge: true }).catch(() => {});
+    }
+    // T7 (24/10/2026) : les 3 retouches de l'arabe reprises une fois dans les messages du cabinet qui ont encore le texte de départ
+    if (!fait.waAr3) {
+      const W0 = D.wa || {}, W1 = {}; let n = 0;
+      Object.keys(W0).forEach((k) => { const v = W0[k]; W1[k] = typeof v === "string" ? retouchesArabe(v) : v; if (W1[k] !== v) n++; });
+      let ok = true;
+      if (n) await setDoc(doc(db, "espaces", ESPACE, "parametres", "whatsapp"), { data: JSON.stringify(W1) }).then(() => { D.wa = W1; }).catch((er) => { ok = false; console.warn("messages WhatsApp (arabe, T7)", er); });
+      if (ok) await setDoc(doc(db, "espaces", ESPACE, "parametres", "migrations"), { waAr3: D.t }, { merge: true }).catch(() => {});
     }
     // R-C1 (19/10/2026) : consultations hebdomadaires de RT refaites une fois (jour férié compris, identifiants gardés, médecin et lieu de la RT)
     if (!fait.rtcFeries && peut("rendezvous") && fnOn("rt.hebdo") && reglages().auto.rtHebdo) {
