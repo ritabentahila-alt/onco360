@@ -366,7 +366,7 @@ Avant le **premier client payant** : société éditrice, projet Firebase et nom
       immunothérapies (`RE_IMMUNO`, chimio.js `chOrdos`) ; autres bilans dans « Autres » ; **une ordonnance par case cochée** (plus jamais réunies) :
       « Imprimer les N ordonnances » (une seule impression, chacune sur sa page, `imprimerPlusieurs` ; chacune enregistrée à part dans la
       consultation du jour ; vérification zones / allergie d'un clic) ou « Voir et modifier une par une » (« Ordonnance 1 / 3 », la suivante
-      s'ouvre après Valider). Test `tests/test_ordos_proto.py` 21/21 (Chrome, Safari), test_ordonnances_protocole adapté.
+      s'ouvre après Valider) ; bilan sur une ligne, analyses séparées par des virgules, comme la fenêtre « Analyses » (20261025c). Test `tests/test_ordos_proto.py` 21/21 (Chrome, Safari), test_ordonnances_protocole adapté.
 - [x] **(25/10) Nouvelle ligne : liste filtrée sur la localisation du dossier quand elle est remplie** (U1 revu par Dr Bentahila : avant, « non ») :
       type de cancer (et localisation quand elle est claire) choisis d'office, mention « Liste filtrée sur la localisation du dossier », « Tous
       les cancers » pour tout voir ; correspondance localisation → indications des protocoles dans `moteur/recherche.js` (`filtreLocalisation`,

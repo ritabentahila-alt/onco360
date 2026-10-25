@@ -204,8 +204,9 @@ window.orProtocole = async (pid, noms, opts) => {
       const items = o.items.map((it) => ({ nom: it.nom, poso: it.poso })); S = null; O = { t: "ordo" };
       L.push({ pid, t: "ordo", types: [o.nom], html: contenu(x, items, D0, med), format: items.length > 5 ? "A4" : "A5", taille: 0 }); O = null; });
     [...document.querySelectorAll("[data-bl]:checked")].map((i) => bilans.find((b) => b.id === i.dataset.bl)).filter(Boolean).forEach((b) => {
-      const items = analysesDuBilan(b, bilans).map((n) => ({ nom: n }));
-      L.push({ pid, t: "analyse", types: [b.nom], html: contenuAnalyses(x, items, D0, med), format: items.length > 14 ? "A4" : "A5", taille: 0 }); });
+      // 25/10/2026 (Dr Bentahila) : même disposition que la fenêtre « Analyses » : le bilan sur une ligne, analyses séparées par des virgules (tient sur une page)
+      const items = [{ nom: analysesDuBilan(b, bilans).join(", ") }];
+      L.push({ pid, t: "analyse", types: [b.nom], html: contenuAnalyses(x, items, D0, med), format: "A5", taille: 0 }); });
     return L;
   };
   const majN = () => { const n = document.querySelectorAll("[data-ot]:checked,[data-bl]:checked").length, z = $("orPcN"); if (z) z.textContent = n > 1 ? "Imprimer les " + n + " ordonnances" : "Imprimer l'ordonnance"; };
