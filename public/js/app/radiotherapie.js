@@ -8,9 +8,9 @@
 // (chargement, aucun résultat, erreur). Recherche et menus restent en mémoire pendant la session (comme les filtres de Protocoles).
 // Réglages personnels : utilisateurs/{uid}.rtFavoris (identifiants), .rtRecents (8 derniers ouverts), .rtOnglet (dernier onglet de fiche).
 // Fiche (RT4) : à partir de 1 280 px, à droite de la liste ; en dessous, page entière avec Retour.
-import { collection, doc, getDocs, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { collection, doc, getDocs, setDoc, deleteDoc, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { db } from "../config.js";
-import { fusionner, trier, chercher, motBloquant, termes, sansAcc, resumePrescription, libPreuve, nb, TYPES, FRACTIONNEMENTS, CONTEXTES } from "../moteur/rtref.js";
+import { fusionner, trier, chercher, motBloquant, termes, sansAcc, resumePrescription, fmtPrescription, controlePrescription, nombre, libPreuve, nb, TYPES, FRACTIONNEMENTS, CONTEXTES } from "../moteur/rtref.js";
 import { idProtocole } from "./protocoles.js";
 
 let A = null, INDEX = null, CAB = null, LISTE = null, ERREUR = null, CHARGE = null;
@@ -32,7 +32,9 @@ function charger() {
       INDEX = await json("index.json");
       CAB = {};
       try { (await getDocs(collection(db, "espaces", A.ESPACE, "referentielRT"))).forEach((d) => { CAB[d.id] = d.data(); }); } catch (e) { console.warn("référentiel du cabinet", e); }
-      LISTE = fusionner(INDEX, CAB); ERREUR = null;
+      // fiches du cabinet : acronymes des essais lus dans la bibliothèque (la référence les a déjà dans index.json)
+      if (Object.keys(CAB).length) await chargerBibs().catch(() => null);
+      LISTE = fusionner(INDEX, CAB, acronymeDe); ERREUR = null;
     } catch (e) { ERREUR = e; CHARGE = null; throw e; }
   })();
   return CHARGE;
@@ -102,7 +104,7 @@ function dessinerFiltres() {
   const z = $("rtrFiltres"); if (!z || !LISTE) return;
   const n = actifs();
   z.innerHTML = '<button class="bt clair petit rtr-ftr' + (RF.filtres ? " ouv" : "") + '" onclick="rtrFiltres()">Filtres' + (n ? ' <span class="n">' + n + "</span>" : "") + "</button>" +
-    '<div class="rtr-mz' + (RF.filtres ? " ouv" : "") + '">' + menus() + (n || RF.q ? '<button class="bt gris petit" onclick="rtrEffacer()">Effacer</button>' : "") + "</div>";
+    '<div class="rtr-mz' + (RF.filtres ? " ouv" : "") + '">' + menus() + (n || RF.q ? '<button class="bt gris petit" onclick="rtrEffacer()">Effacer</button>' : "") + (peutModif() ? '<button class="bt clair petit rtr-nouv" onclick="rtrNouveau()">' + A.ic("plus") + "Nouveau schéma</button>" : "") + "</div>";
   const h = document.querySelector(".rtr-haut"), r = $("rtr"); if (h && r) r.style.setProperty("--rtr-h", h.offsetHeight + "px");
 }
 
@@ -175,8 +177,10 @@ let BIBS = null, FICHE = null, IMPRESSION = false;
 const ongletDe = (o) => (ONGLETS.some((x) => x[0] === o) ? o : "prescription");
 window.rtrOuvrir = (id) => { RF.y = window.scrollY; location.hash = "radiotherapie/s/" + encodeURIComponent(id) + "/" + ongletDe(profil().rtOnglet); };
 window.rtrRetour = () => { location.hash = "radiotherapie"; };
-window.rtrOnglet = (o) => { if (profil().rtOnglet !== o) noter({ rtOnglet: o }); location.hash = "radiotherapie/s/" + encodeURIComponent(RF.ouvert) + "/" + o; };
-const chargerBibs = () => BIBS || (BIBS = Promise.all(["oar.json", "contraintes.json", "essais.json"].map(json)).then(([o, c, e]) => ({ oar: o.oar, jeux: c.jeux, aide: c.aide_colonnes, essais: e.essais })).catch((e) => { BIBS = null; throw e; }));
+window.rtrOnglet = (o) => { if (ED) { FICHE.onglet = o; dessinerFiche(); return; } if (profil().rtOnglet !== o) noter({ rtOnglet: o }); location.hash = "radiotherapie/s/" + encodeURIComponent(RF.ouvert) + "/" + o; };
+let ESSAIS = null;
+const chargerBibs = () => BIBS || (BIBS = Promise.all(["oar.json", "contraintes.json", "essais.json"].map(json)).then(([o, c, e]) => { ESSAIS = {}; e.essais.forEach((x) => { ESSAIS[x.id] = x.acronyme; }); return { oar: o.oar, jeux: c.jeux, aide: c.aide_colonnes, essais: e.essais }; }).catch((e) => { BIBS = null; throw e; }));
+const acronymeDe = (id) => (ESSAIS && ESSAIS[id]) || id;
 async function ouvrirFiche(id, onglet) {
   const e = LISTE.find((x) => x.id === id), z = $("rtrFiche"); if (!z) return;
   RF.ouvert = id;
@@ -310,17 +314,29 @@ function enteteHtml() {
   const etoile = '<button class="rtr-et' + (fav ? " on" : "") + '" title="' + (fav ? "Retirer des favoris" : "Ajouter aux favoris") + '" aria-pressed="' + fav + '" onclick="rtrEtoile(\'' + esc(e.id) + "')\">" + A.ic("etoile") + "</button>";
   return '<div class="rtr-ft">' + (large() ? "" : '<button class="mini rtr-ret" onclick="rtrRetour()">' + A.ic("retour") + "Retour</button>") +
     '<div class="rtr-ar" role="navigation" aria-label="Fil d\'Ariane"><a href="#radiotherapie" onclick="rtrSommaire(\'' + r.id + "','');return true\">" + esc(r.nom || "") + '</a> › <a href="#radiotherapie" onclick="rtrSommaire(\'' + r.id + "','" + l.id + "');return true\">" + esc(l.nom || "") + "</a> › <span>" + esc(s.titre || "") + "</span></div>" +
-    '<div class="rtr-t"><h2>' + esc(e.titre) + '</h2><div class="rtr-act">' + etoile + '<button class="bt clair petit rtr-imp" onclick="rtrImprimer()">' + A.ic("imprimer") + "Imprimer</button>" +
-    '<details class="m3 rtr-pts3"><summary class="mini" title="Autres actions" aria-label="Autres actions">⋯</summary><div class="m3-l"><button class="mini" onclick="this.closest(\'details\').open=false;rtrImprimer()">' + A.ic("imprimer") + "Imprimer</button></div></details></div></div>" +
+    (ED ? '<div class="rtr-t rtr-ted"><label class="rtr-lab">Titre du schéma' + inp("titre", ED.schema.titre, "Titre du schéma") + "</label>" + err("titre") + "</div>" : '<div class="rtr-t"><h2>' + esc(e.titre) + '</h2><div class="rtr-act">' + etoile + actions() + "</div></div>") +
     '<div class="rtr-res">' + esc(resumePrescription(schema)) + ' <span class="badge b-ch"><svg class="pi"><use href="#i-check"/></svg>Validé</span> <span class="badge b-gr">' + esc(libPreuve(schema.preuve || e.preuve)) + "</span>" + (schema.date_verif ? ' <span class="mesures">Vérifié le ' + esc(dfr(schema.date_verif)) + "</span>" : "") + "</div>" +
-    (e.modifie ? '<p class="mesures rtr-mod"><span class="badge b-or">Modifié pour le cabinet</span>' + (e.cab && e.cab.majParNom ? " · par " + esc(e.cab.majParNom) + (e.cab.majLe ? " le " + esc(dfr(String(e.cab.majLe).slice(0, 10))) : "") : "") + (e.refChangee ? " · La référence a changé depuis" : "") + "</p>" : "") + "</div>";
+    (e.modifie && !ED ? '<p class="mesures rtr-mod"><span class="badge b-or">Modifié pour le cabinet</span>' + (e.cab && e.cab.majParNom ? " · par " + esc(e.cab.majParNom) + (e.cab.majLe ? " le " + esc(dfr(String(e.cab.majLe).slice(0, 10))) : "") : "") +
+      (e.nouveau ? "" : e.refChangee ? ' · La référence a changé depuis · <a href="#" class="rtr-lien" onclick="rtrComparer();return false">Voir la comparaison</a>' : ' · <a href="#" class="rtr-lien" onclick="rtrComparer();return false">Voir la référence</a>') + "</p>" : "") + "</div>";
+}
+// Actions de la fiche, toujours dans le même ordre : étoile, Imprimer, « Modifier pour le cabinet », ⋯ (Dupliquer, Voir la référence, puis en rouge
+// et en dernier Revenir à la référence ou Supprimer le schéma) ; sous 900 px, Imprimer et Modifier passent dans ⋯
+function actions() {
+  const mod = peutModif(), c = FICHE.cab, ic = A.ic, fm = "this.closest('details').open=false;";
+  const tel = '<button class="mini rtr-tel" onclick="' + fm + 'rtrImprimer()">' + ic("imprimer") + "Imprimer</button>" + (mod ? '<button class="mini rtr-tel" onclick="' + fm + 'rtrModifier()">' + ic("crayon") + "Modifier pour le cabinet</button>" : "");
+  const autres = (mod ? '<button class="mini" onclick="' + fm + 'rtrDupliquer()">' + ic("copier") + "Dupliquer</button>" : "") + (c && !c.nouveau ? '<button class="mini" onclick="' + fm + 'rtrComparer()">' + ic("liste") + "Voir la référence</button>" : "") +
+    (mod && c ? '<button class="mini rouge-t" onclick="' + fm + 'rtrRevenir()">' + ic("retour") + (c.nouveau ? "Supprimer le schéma" : "Revenir à la référence") + "</button>" : "");
+  return '<button class="bt clair petit rtr-imp" onclick="rtrImprimer()">' + ic("imprimer") + "Imprimer</button>" + (mod ? '<button class="bt clair petit rtr-mbt" onclick="rtrModifier()">' + ic("crayon") + "Modifier pour le cabinet</button>" : "") +
+    '<details class="m3 rtr-pts3' + (autres ? "" : " seul") + '"><summary class="mini" title="Autres actions" aria-label="Autres actions">⋯</summary><div class="m3-l">' + tel + autres + "</div></details>";
 }
 function dessinerFiche() {
   const z = $("rtrFiche"); if (!z || !FICHE) return;
-  const n = nombres(), o = FICHE.onglet;
+  const n = nombres(), o = FICHE.onglet, R = ED ? EDITS : RENDUS;
   z.innerHTML = enteteHtml() + '<div class="ag-vues defile rtr-ong" role="tablist">' + ONGLETS.map(([k, lib]) => '<button role="tab" aria-selected="' + (k === o) + '" class="' + (k === o ? "on" : "") + (n[k] ? "" : " vide") + '" onclick="rtrOnglet(\'' + k + "')\">" + lib + (n[k] && ["contraintes", "essais", "attention"].indexOf(k) >= 0 ? ' <span class="n">' + n[k] + "</span>" : "") + "</button>").join("") + "</div>" +
-    '<div class="rtr-oc" role="tabpanel">' + RENDUS[o]() + "</div>";
+    '<div class="rtr-oc" role="tabpanel">' + R[o]() + "</div>" +
+    (ED ? '<div class="barre-enr rtr-barre"><button class="bt gris" onclick="rtrAnnulerEd()">Annuler</button><span class="mesures" id="rtrBmsg" aria-live="polite"></span><button class="bt plein" id="rtrEnr" onclick="rtrEnregistrer()">' + A.ic("enregistrer") + "Enregistrer pour le cabinet</button></div>" : "");
   const on = z.querySelector(".rtr-ong .on"); if (on && on.scrollIntoView) on.scrollIntoView({ block: "nearest", inline: "nearest" });
+  if (ED) { majEtat(); if (ED.choisir) { ED.choisir = false; const t = z.querySelector('[data-p="titre"]'); if (t) { t.focus(); t.select(); } } }
 }
 
 // Impression : sections cochées (toutes par défaut), A4 portrait, en-tête Onco360 et nom du médecin, sources et date en pied de page
@@ -350,11 +366,244 @@ const CSS_IMP = "@page{size:A4 portrait;margin:14mm 12mm}body{font-family:Arial,
   ".badge{border:1px solid #999;border-radius:8px;padding:0 5px;font-size:8.5pt}ul{margin:4px 0;padding-left:18px}dl{display:grid;grid-template-columns:110px 1fr;gap:3px 10px}dt{color:#555}dd{margin:0}a{color:inherit;text-decoration:none}.rtr-ln,.rtr-raccourcis,.vide-c{color:#555}" +
   "details>summary{list-style:none}footer{margin-top:16px;border-top:1px solid #999;padding-top:4px;font-size:8.5pt;color:#555}";
 
+// ───── Modification pour le cabinet (RT5, 25/10/2026 ; médecin avec le droit referentielRT « modifier ») ─────
+// Sur place : même en-tête, mêmes onglets, des champs à la place des valeurs ; barre du bas « Annuler » · « Enregistrer pour le cabinet » (nombre
+// de changements) ; champ changé sur fond --prim-c ; contrôles sous le champ, pendant la saisie (dose par séance = dose / séances à 0,01 Gy près,
+// nombres > 0, titre) ; quitter avec des changements : « Quitter sans enregistrer ? » (garde de v2.js) ; enregistrement en transaction : fiche
+// changée par un collègue entre-temps = rien n'est écrasé, fiche rechargée. Ce que l'on modifie : le schéma (forme de la référence) ; centrage,
+// volumes, jeux de contraintes et essais se choisissent parmi ceux de la référence (ils ne sont pas réécrits).
+// espaces/{e}/referentielRT/{id} = { schema, localisation_id, origine « cabinet », base (date_maj de la localisation), note, nouveau + copie_de
+// (schéma créé ou dupliqué, identifiant cab-…), majPar (règle : la personne connectée), majParNom, majLe }.
+let ED = null;
+const clone = (x) => JSON.parse(JSON.stringify(x == null ? null : x));
+const peutModif = () => !!(A.modifRefRT && A.modifRefRT());
+const CHAMPS_ED = ["titre", "type", "situation_id", "technique", "systemique", "couverture", "simulation_id", "volumes_id"];
+const CHAMPS_P = ["volume", "dose_Gy", "fractions", "dose_fx_Gy", "mode", "rythme", "note"];
+const NUM_P = ["dose_Gy", "fractions", "dose_fx_Gy"];
+const txt = (v) => (v == null ? "" : String(v));
+function differences() {
+  const a = ED.orig, b = ED.schema, d = [];
+  CHAMPS_ED.forEach((k) => { if (txt(a[k]) !== txt(b[k])) d.push(k); });
+  const n = Math.max((a.prescriptions || []).length, (b.prescriptions || []).length);
+  for (let i = 0; i < n; i++) CHAMPS_P.forEach((k) => { if (txt(((a.prescriptions || [])[i] || {})[k]) !== txt(((b.prescriptions || [])[i] || {})[k])) d.push("prescriptions." + i + "." + k); });
+  ["contraintes_ids", "essai_ids", "points_attention"].forEach((k) => { if (JSON.stringify(a[k] || []) !== JSON.stringify(b[k] || [])) d.push(k); });
+  if (txt(ED.noteOrig) !== txt(ED.note)) d.push("note");
+  return d;
+}
+function erreurs() {
+  const e = {}, P = ED.schema.prescriptions || [];
+  if (!txt(ED.schema.titre).trim()) e.titre = "Indiquez le titre du schéma";
+  if (!P.length) e.prescriptions = "Au moins une ligne de prescription";
+  P.forEach((p, i) => { controlePrescription(p).forEach((x) => { e["prescriptions." + i + "." + x.champ] = x.txt; }); });
+  return e;
+}
+// Saisie d'un nombre : vide = absent ; « 1,8 » ou « 1.8 » = nombre ; autre chose gardé tel quel (le contrôle le signale)
+const lireNombre = (v) => { const s = txt(v).trim(); if (!s) return undefined; const n = nombre(s); return isNaN(n) ? s : n; };
+function poser(p, v) {
+  if (p === "note") { ED.note = v; return; }
+  const k = p.split(".");
+  if (k[0] === "prescriptions") { const l = ED.schema.prescriptions[Number(k[1])]; const val = NUM_P.indexOf(k[2]) >= 0 ? lireNombre(v) : v; if (val === undefined || val === "") delete l[k[2]]; else l[k[2]] = val; return; }
+  if (k[0] === "points_attention") { ED.schema.points_attention[Number(k[1])] = v; return; }
+  if (v === "" || v == null) delete ED.schema[p]; else ED.schema[p] = v;
+}
+// Barre du bas, champs changés, contrôles : mis à jour sans redessiner (le curseur reste dans le champ)
+function majEtat() {
+  const z = $("rtrFiche"); if (!z || !ED) return;
+  const d = differences(), e = erreurs(), ne = Object.keys(e).length;
+  z.querySelectorAll("[data-p]").forEach((x) => x.classList.toggle("mod", d.indexOf(x.dataset.p) >= 0 || (x.dataset.p.startsWith("points_attention") && d.indexOf("points_attention") >= 0)));
+  z.querySelectorAll("[data-err]").forEach((x) => { const k = x.dataset.err, m = Object.keys(e).filter((c) => c === k || (k !== "prescriptions" && c.startsWith(k + "."))).map((c) => e[c]); x.textContent = m.join(" ; "); x.hidden = !m.length; });
+  const b = $("rtrEnr"), msg = $("rtrBmsg");
+  if (b) { b.disabled = !!ne || (!d.length && !ED.nouveau); b.title = ne ? "À corriger : " + Object.values(e).join(" ; ") : !d.length && !ED.nouveau ? "Aucun changement" : ""; }
+  if (msg) msg.textContent = ne ? Object.values(e)[0] : d.length ? d.length + " changement" + (d.length > 1 ? "s" : "") : ED.nouveau ? "Nouveau schéma" : "Aucun changement";
+}
+document.addEventListener("input", (ev) => { const t = ev.target; if (!ED || !t.dataset || !t.dataset.p || !t.closest("#rtrFiche")) return; poser(t.dataset.p, t.value); if (t.dataset.p === "titre") FICHE.e.titre = t.value; majEtat(); });
+document.addEventListener("change", (ev) => {
+  const t = ev.target; if (!ED || !t.closest || !t.closest("#rtrFiche")) return;
+  if (t.dataset.p && t.tagName === "SELECT") { poser(t.dataset.p, t.value); dessinerFiche(); }
+  else if (t.dataset.jeu) { const L = ED.schema.contraintes_ids = ED.schema.contraintes_ids || [], i = L.indexOf(t.dataset.jeu); if (t.checked && i < 0) L.push(t.dataset.jeu); if (!t.checked && i >= 0) L.splice(i, 1); majEtat(); }
+  else if (t.id === "rtrAjEssai") { const x = FICHE.B.essais.find((e) => libEssai(e) === t.value); if (x) { const L = ED.schema.essai_ids = ED.schema.essai_ids || []; if (L.indexOf(x.id) < 0) L.push(x.id); dessinerFiche(); } else t.value = ""; }
+});
+async function garde() {
+  if (!ED || (!differences().length && !ED.nouveau)) { finEdition(); return true; }
+  if ((await A.question("<h3>Quitter sans enregistrer ?</h3><p>Les changements de cette fiche seront perdus.</p>", [["rester", "Rester", "plein"], ["quitter", "Quitter", "rouge"]])) !== "quitter") return false;
+  finEdition(); return true;
+}
+function finEdition() { if (ED && ED.avant && FICHE) FICHE.schema = ED.avant; ED = null; A.garde(null); }
+function demarrer(ed) {
+  ED = Object.assign({ orig: clone(ed.schema), noteOrig: ed.note || "", lu: CAB[ed.id] ? clone(CAB[ed.id]) : null }, ed);
+  A.garde(garde);
+}
+window.rtrModifier = () => {
+  if (!FICHE || !peutModif()) return;
+  const c = FICHE.cab;
+  demarrer({ id: FICHE.e.id, schema: clone(FICHE.schema), note: (c && c.note) || "", localisation_id: FICHE.e.localisation_id, nouveau: !!(c && c.nouveau), copie_de: c && c.copie_de, avant: FICHE.schema });
+  FICHE.schema = ED.schema; dessinerFiche();
+};
+window.rtrAnnulerEd = async () => {
+  if (ED && (differences().length || ED.nouveau) && (await A.question("<h3>Abandonner les changements ?</h3>", [["non", "Continuer", "plein"], ["oui", "Abandonner", "rouge"]])) !== "oui") return;
+  const neuf = ED && ED.nouveau && !ED.lu, source = ED && ED.copie_de; finEdition();
+  if (neuf) location.hash = source ? "radiotherapie/s/" + encodeURIComponent(source) + "/prescription" : "radiotherapie"; else dessinerFiche();
+};
+// Schéma tel qu'enregistré : textes sans espaces autour, champs vides retirés, ind recalculé
+function nettoyer(s0) {
+  const s = clone(s0);
+  Object.keys(s).forEach((k) => { if (typeof s[k] === "string") { s[k] = s[k].trim(); if (!s[k]) delete s[k]; } });
+  s.prescriptions = (s.prescriptions || []).map((p) => { const q = {}; CHAMPS_P.forEach((k) => { const v = typeof p[k] === "string" ? p[k].trim() : p[k]; if (v !== undefined && v !== "") q[k] = v; }); return q; });
+  s.points_attention = (s.points_attention || []).map((x) => txt(x).trim()).filter(Boolean);
+  const st = sit(s.situation_id) || {}, l = loc(st.localisation_id) || {}, r = INDEX.regions.find((x) => x.id === l.region_id) || {};
+  s.ind = [r.nom || "", l.nom || "", st.titre || "", TYPES[s.type] || ""];
+  return s;
+}
+const signature = (c) => (c ? txt(c.majLe) + "|" + txt(c.majPar) : "");
+window.rtrEnregistrer = async () => {
+  if (!ED || Object.keys(erreurs()).length || (!differences().length && !ED.nouveau)) return;
+  const id = ED.id, ref = doc(db, "espaces", A.ESPACE, "referentielRT", id), l = loc(ED.localisation_id) || {}, b = $("rtrEnr"), msg = $("rtrBmsg");
+  const d = { schema: nettoyer(ED.schema), localisation_id: ED.localisation_id, origine: "cabinet", base: l.date_maj || "", note: txt(ED.note).trim(), majPar: D().u.uid, majParNom: $("nomMenu") ? $("nomMenu").textContent : "", majLe: new Date().toISOString() };
+  if (ED.nouveau) { d.nouveau = true; if (ED.copie_de) d.copie_de = ED.copie_de; }
+  if (b) b.disabled = true; if (msg) msg.textContent = "Enregistrement…";
+  let res;
+  try {
+    res = await runTransaction(db, async (tx) => {
+      const s = await tx.get(ref), cur = s.exists() ? s.data() : null;
+      if (signature(cur) !== signature(ED.lu)) return { conflit: cur };
+      tx.set(ref, d); return { ok: true };
+    });
+  } catch (e) { console.warn("enregistrement du référentiel", e); if (msg) msg.textContent = "Pas de connexion : réessayez (la saisie est conservée)"; if (b) b.disabled = false; return; }
+  const neuf = ED.nouveau && !ED.lu;
+  if (res.conflit !== undefined) {
+    if (res.conflit) CAB[id] = res.conflit; else delete CAB[id];
+    rafraichir(); finEdition(); A.toast("Fiche modifiée par un collègue entre-temps : rien n'a été écrasé, elle est rechargée."); FICHE = null;
+    if (!neuf) ouvrirFiche(id, ongletDe(profil().rtOnglet)); return;
+  }
+  CAB[id] = d; rafraichir(); const o = FICHE ? FICHE.onglet : "prescription"; finEdition(); FICHE = null; A.toast("Enregistré pour le cabinet");
+  const zf = $("rtrFiche"); if (zf) zf.scrollTop = 0; window.scrollTo(0, 0); // retour en haut : la ligne « Modifié pour le cabinet »
+  if (neuf) location.hash = "radiotherapie/s/" + encodeURIComponent(id) + "/" + o; else ouvrirFiche(id, o);
+};
+function rafraichir() { LISTE = fusionner(INDEX, CAB, acronymeDe); TEXTES.clear(); dessinerListe(); }
+// « Revenir à la référence » (schéma de la référence) ou « Supprimer le schéma » (créé par le cabinet) : confirmation qui dit ce qui sera perdu, puis
+// 10 secondes pour annuler ; la fiche du cabinet n'est supprimée qu'après
+let ANNUL = null;
+function annulable(texte, annuler, valider) {
+  if (ANNUL) { ANNUL.fin(); }
+  const z = document.createElement("div"); z.className = "rtr-annul"; z.setAttribute("role", "status");
+  z.innerHTML = "<span>" + A.esc(texte) + '</span><button type="button" class="bt clair petit">Annuler</button>';
+  const fin = () => { clearTimeout(t); z.remove(); ANNUL = null; valider(); }, t = setTimeout(fin, 10000);
+  z.querySelector("button").onclick = () => { clearTimeout(t); z.remove(); ANNUL = null; annuler(); };
+  ANNUL = { fin }; document.body.appendChild(z);
+}
+window.rtrRevenir = async () => {
+  const id = RF.ouvert, c = CAB[id]; if (!c || !peutModif()) return;
+  const quand = dfr(txt(c.majLe).slice(0, 10)), neuf = !!c.nouveau;
+  const r = await A.question(neuf ? "<h3>Supprimer ce schéma du cabinet ?</h3><p>« " + A.esc(c.schema.titre || "") + " » sera supprimé pour tout le cabinet.</p>" : "<h3>Revenir à la référence ?</h3><p>Les modifications du " + A.esc(quand) + " seront supprimées pour tout le cabinet.</p>",
+    [["non", "Rester", "gris"], ["oui", neuf ? "Supprimer le schéma" : "Revenir à la référence", "rouge"]]);
+  if (r !== "oui") return;
+  delete CAB[id]; rafraichir(); FICHE = null;
+  if (neuf) location.hash = "radiotherapie"; else ouvrirFiche(id, ongletDe(profil().rtOnglet));
+  annulable(neuf ? "Schéma supprimé." : "Modifications retirées : la référence s'affiche.", () => { CAB[id] = c; rafraichir(); FICHE = null; if (RF.ouvert === id) ouvrirFiche(id, ongletDe(profil().rtOnglet)); else if (neuf) location.hash = "radiotherapie/s/" + encodeURIComponent(id) + "/prescription"; },
+    () => { deleteDoc(doc(db, "espaces", A.ESPACE, "referentielRT", id)).catch((e) => { console.warn("référentiel", e); CAB[id] = c; rafraichir(); A.toast("Pas de connexion : la version du cabinet est gardée, réessayez."); }); });
+};
+const nouvelId = () => "cab-" + Date.now().toString(36);
+window.rtrDupliquer = () => {
+  if (!FICHE || !peutModif()) return;
+  const s = clone(FICHE.schema), id = nouvelId();
+  Object.assign(s, { id, titre: "Copie de " + (s.titre || ""), preuve: "pratique_du_cabinet" }); delete s.date_verif; delete s.source_institutionnelle;
+  NOUVEAU = { id, schema: s, note: (FICHE.cab && FICHE.cab.note) || "", localisation_id: FICHE.e.localisation_id, nouveau: true, copie_de: FICHE.e.id, loc: FICHE.loc, B: FICHE.B, choisir: true };
+  location.hash = "radiotherapie/nouveau";
+};
+let NOUVEAU = null;
+// « + Nouveau schéma » : localisation et situation des menus, à confirmer
+window.rtrNouveau = () => {
+  if (!peutModif() || !LISTE) return;
+  const esc = A.esc, locId = RF.loc || INDEX.localisations[0].id;
+  const optsSit = (l) => INDEX.situations.filter((s) => s.localisation_id === l).map((s) => '<option value="' + esc(s.id) + '"' + (s.id === RF.sit ? " selected" : "") + ">" + esc(s.titre) + "</option>").join("");
+  A.fenetre('<h3>Nouveau schéma du cabinet</h3><div class="form" style="grid-template-columns:1fr"><div><label for="rtrNL">Localisation</label><select id="rtrNL" onchange="document.getElementById(\'rtrNS\').innerHTML=rtrSits(this.value)">' +
+    INDEX.regions.map((r) => '<optgroup label="' + esc(r.nom) + '">' + INDEX.localisations.filter((l) => l.region_id === r.id).map((l) => '<option value="' + l.id + '"' + (l.id === locId ? " selected" : "") + ">" + esc(l.nom) + "</option>").join("") + "</optgroup>").join("") +
+    '</select></div><div><label for="rtrNS">Situation</label><select id="rtrNS">' + optsSit(locId) + '</select></div><div><label for="rtrNT">Fractionnement</label><select id="rtrNT">' + Object.keys(TYPES).map((k) => '<option value="' + k + '"' + (TYPES[k] === RF.frac ? " selected" : "") + ">" + esc(TYPES[k] + (/^curie_/.test(k) ? " " + k.slice(6).toUpperCase() : "")) + "</option>").join("") +
+    '</select></div></div><div class="actr"><button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt plein" onclick="rtrNouveauOk()">Créer le schéma</button></div>');
+  window.rtrSits = optsSit;
+};
+window.rtrNouveauOk = async () => {
+  const l = A.val("rtrNL"), s = A.val("rtrNS"), t = A.val("rtrNT"); A.fermerFenetre();
+  let L, B; try { [L, B] = await Promise.all([locFichier(l), chargerBibs()]); } catch (e) { A.toast("Pas de connexion : réessayez"); return; }
+  const id = nouvelId();
+  NOUVEAU = { id, schema: { id, situation_id: s, titre: "", type: t, preuve: "pratique_du_cabinet", essai_ids: [], prescriptions: [{ volume: "", mode: "seul" }], contraintes_ids: [], points_attention: [] }, note: "", localisation_id: l, nouveau: true, loc: L, B, choisir: true };
+  location.hash = "radiotherapie/nouveau";
+};
+// Champs de la fiche en modification
+const libEssai = (x) => x.acronyme + (x.annee ? " (" + x.annee + ")" : "") + (x.revue ? " · " + x.revue : "");
+const inp = (p, v, lab, o) => '<input class="rtr-in' + (o && o.num ? " n" : "") + '" data-p="' + p + '" value="' + A.esc(txt(v)) + '" aria-label="' + A.esc(lab) + '"' + (o && o.num ? ' inputmode="decimal"' : "") + (o && o.ph ? ' placeholder="' + A.esc(o.ph) + '"' : "") + ">";
+const zone = (p, v, lab, r) => '<label class="rtr-lab">' + A.esc(lab) + '<textarea class="rtr-in" data-p="' + p + '" rows="' + (r || 2) + '">' + A.esc(txt(v)) + "</textarea></label>";
+const err = (k) => '<div class="rtr-err" data-err="' + k + '" hidden></div>';
+const sel = (p, v, opts, lab) => '<select class="rtr-in" data-p="' + p + '" aria-label="' + A.esc(lab) + '">' + opts.map(([k, l]) => '<option value="' + A.esc(k) + '"' + (txt(v) === k ? " selected" : "") + ">" + A.esc(l) + "</option>").join("") + "</select>";
+window.rtrLigne = (i) => { if (!ED) return; const P = ED.schema.prescriptions = ED.schema.prescriptions || []; if (i == null) P.push({ volume: "", mode: P.length ? P[P.length - 1].mode : "seul", rythme: P.length ? P[P.length - 1].rythme : "" }); else P.splice(i, 1); dessinerFiche(); };
+window.rtrPoint = (i) => { if (!ED) return; const P = ED.schema.points_attention = ED.schema.points_attention || []; if (i == null) P.push(""); else P.splice(i, 1); dessinerFiche(); };
+window.rtrRetEssai = (id) => { if (!ED) return; ED.schema.essai_ids = (ED.schema.essai_ids || []).filter((x) => x !== id); dessinerFiche(); };
+window.rtrFiltreJeux = (q) => { const s = sansAcc(q); document.querySelectorAll(".rtr-jeux label").forEach((l) => { l.hidden = !!s && sansAcc(l.textContent).indexOf(s) < 0; }); };
+function editPrescription() {
+  const s = ED.schema, P = s.prescriptions || [];
+  let h = ED.nouveau ? '<div class="form rtr-fn"><div><label>Situation</label>' + sel("situation_id", s.situation_id, INDEX.situations.filter((x) => x.localisation_id === ED.localisation_id).map((x) => [x.id, x.titre]), "Situation") + "</div><div><label>Fractionnement</label>" +
+    sel("type", s.type, Object.keys(TYPES).map((k) => [k, TYPES[k] + (/^curie_/.test(k) ? " " + k.slice(6).toUpperCase() : "")]), "Fractionnement") + "</div></div>" : "";
+  h += '<div class="rtr-tw"><table class="rtr-tab rtr-edt"><thead><tr><th>Volume</th><th class="n">Dose totale (Gy)</th><th class="n">Séances</th><th class="n">Dose par séance (Gy)</th><th>Mode</th><th>Rythme</th><th></th></tr></thead><tbody>' +
+    P.map((p, i) => '<tr><td data-l="Volume">' + inp("prescriptions." + i + ".volume", p.volume, "Volume") + inp("prescriptions." + i + ".note", p.note, "Note de la ligne", { ph: "Note" }) + "</td>" +
+      '<td data-l="Dose totale (Gy)">' + inp("prescriptions." + i + ".dose_Gy", typeof p.dose_Gy === "number" ? nb(p.dose_Gy) : p.dose_Gy, "Dose totale (Gy)", { num: 1 }) + '</td><td data-l="Séances">' + inp("prescriptions." + i + ".fractions", typeof p.fractions === "number" ? nb(p.fractions) : p.fractions, "Séances", { num: 1 }) + "</td>" +
+      '<td data-l="Dose par séance (Gy)">' + inp("prescriptions." + i + ".dose_fx_Gy", typeof p.dose_fx_Gy === "number" ? nb(p.dose_fx_Gy) : p.dose_fx_Gy, "Dose par séance (Gy)", { num: 1 }) + '</td><td data-l="Mode">' + sel("prescriptions." + i + ".mode", p.mode || "seul", [["seul", "Seul"], ["SIB", "SIB"], ["sequentiel", "Séquentiel"]], "Mode") + "</td>" +
+      '<td data-l="Rythme">' + inp("prescriptions." + i + ".rythme", p.rythme, "Rythme", { ph: "5 fx/sem" }) + '</td><td><details class="m3"><summary class="mini" title="Autres actions" aria-label="Actions de la ligne">⋯</summary><div class="m3-l"><button type="button" class="mini rouge-t" onclick="rtrLigne(' + i + ')">' + A.ic("corbeille") + "Supprimer la ligne</button></div></details></td></tr>" +
+      '<tr class="rtr-errl"><td colspan="7">' + err("prescriptions." + i) + "</td></tr>").join("") + "</tbody></table></div>" + err("prescriptions") +
+    '<button type="button" class="mini rtr-aj" onclick="rtrLigne()">' + A.ic("plus") + "Ajouter une ligne</button>";
+  h += zone("technique", s.technique, "Technique") + zone("systemique", s.systemique, "Traitement associé") + zone("couverture", s.couverture, "Objectifs de couverture") + zone("note", ED.note, "Note du médecin", 3);
+  return h;
+}
+function editCentrage() {
+  const L = FICHE.loc.simulations || [];
+  return '<label class="rtr-lab">Fiche de centrage' + sel("simulation_id", ED.schema.simulation_id || "", [["", "Aucune"]].concat(L.map((m) => [m.id, (m.position || m.id) + " (" + m.id + ")"])), "Fiche de centrage") + "</label>" + ongletCentrage();
+}
+function editContourage() {
+  const L = FICHE.loc.volumes || [];
+  return '<label class="rtr-lab">Volumes' + sel("volumes_id", ED.schema.volumes_id || "", [["", "Aucun"]].concat(L.map((v) => [v.id, v.id + " : " + (v.cibles || []).map((c) => c.nom).join(", ")])), "Volumes") + "</label>" + ongletContourage();
+}
+function editContraintes() {
+  const esc = A.esc, on = ED.schema.contraintes_ids || [];
+  return '<label class="rtr-lab">Jeux de contraintes liés<input type="search" class="rtr-in" placeholder="Filtrer (organe, source, fractionnement)" oninput="rtrFiltreJeux(this.value)"></label><div class="rtr-jeux">' +
+    FICHE.B.jeux.map((j) => '<label><input type="checkbox" data-jeu="' + esc(j.id) + '"' + (on.indexOf(j.id) >= 0 ? " checked" : "") + ' style="width:auto"> <b>' + esc(j.titre) + '</b> <span class="mesures">' + esc([j.fractionnement, j.source].filter(Boolean).join(" · ")) + "</span></label>").join("") + "</div>";
+}
+function editEssais() {
+  const esc = A.esc, L = (ED.schema.essai_ids || []).map(essai).filter(Boolean);
+  return '<ul class="rtr-sys">' + L.map((x) => "<li><b>" + esc(x.acronyme) + '</b> <span class="mesures">' + esc([x.revue, x.annee].filter(Boolean).join(", ")) + '</span> <button type="button" class="mini" onclick="rtrRetEssai(\'' + esc(x.id) + '\')" aria-label="Retirer ' + esc(x.acronyme) + '">' + A.ic("croix") + "</button></li>").join("") + "</ul>" +
+    '<label class="rtr-lab">Ajouter un essai ou une référence de la bibliothèque<input id="rtrAjEssai" class="rtr-in" list="rtrEssaisL" placeholder="Acronyme (ex. CHHiP)"></label><datalist id="rtrEssaisL">' + FICHE.B.essais.map((x) => '<option value="' + esc(libEssai(x)) + '">').join("") + "</datalist>";
+}
+function editAttention() {
+  const P = ED.schema.points_attention || [];
+  return P.map((x, i) => '<div class="rtr-pe"><textarea class="rtr-in" data-p="points_attention.' + i + '" rows="2" aria-label="Point d\'attention ' + (i + 1) + '">' + A.esc(txt(x)) + '</textarea><button type="button" class="mini" onclick="rtrPoint(' + i + ')" aria-label="Retirer ce point">' + A.ic("croix") + "</button></div>").join("") +
+    '<button type="button" class="mini rtr-aj" onclick="rtrPoint()">' + A.ic("plus") + "Ajouter un point</button>";
+}
+const EDITS = { prescription: editPrescription, centrage: editCentrage, contourage: editContourage, contraintes: editContraintes, essais: editEssais, attention: editAttention };
+// Voir la référence : deux colonnes, différences surlignées ; sur téléphone, un sélecteur Référence / Version du cabinet
+function lignesComparaison(a, b, na, nb2) {
+  const P = (s) => (s.prescriptions || []), lp = (p) => p ? [p.volume, fmtPrescription(p).replace(/ /g, " "), MODES[p.mode] || p.mode, p.rythme, p.note].filter(Boolean).join(" · ") : "";
+  const sim = (s) => { const m = (FICHE.loc.simulations || []).find((x) => x.id === s.simulation_id); return m ? m.position || m.id : ""; };
+  const jeux = (s) => (s.contraintes_ids || []).map((id) => (FICHE.B.jeux.find((j) => j.id === id) || { titre: id }).titre).join(" ; ");
+  const r = [["Titre", a.titre, b.titre], ["Fractionnement", TYPES[a.type], TYPES[b.type]], ["Preuve", libPreuve(a.preuve), libPreuve(b.preuve)]];
+  for (let i = 0; i < Math.max(P(a).length, P(b).length); i++) r.push(["Prescription " + (i + 1), lp(P(a)[i]), lp(P(b)[i])]);
+  return r.concat([["Technique", a.technique, b.technique], ["Traitement associé", a.systemique, b.systemique], ["Couverture", a.couverture, b.couverture], ["Centrage", sim(a), sim(b)], ["Volumes", a.volumes_id, b.volumes_id],
+    ["Contraintes", jeux(a), jeux(b)], ["Essais", acronymes(a.essai_ids), acronymes(b.essai_ids)], ["Points d'attention", (a.points_attention || []).join(" • "), (b.points_attention || []).join(" • ")], ["Note du médecin", na, nb2]]).map(([l, x, y]) => [l, txt(x), txt(y)]);
+}
+window.rtrComparer = () => {
+  const id = RF.ouvert, c = CAB[id], ref = FICHE && FICHE.loc.schemas.find((s) => s.id === id); if (!c || !ref) return;
+  const esc = A.esc, l = loc(c.localisation_id) || {};
+  A.fenetre('<h3>Voir la référence</h3><p class="mesures">Référence du ' + esc(dfr(l.date_maj)) + " · version du cabinet du " + esc(dfr(txt(c.majLe).slice(0, 10))) + (c.majParNom ? " par " + esc(c.majParNom) : "") + "</p>" +
+    '<div class="ag-vues rtr-cmpv"><button class="on" onclick="rtrCmp(this,\'ref\')">Référence</button><button onclick="rtrCmp(this,\'cab\')">Version du cabinet</button></div>' +
+    '<div class="rtr-tw"><table class="rtr-tab rtr-cmp voir-ref"><thead><tr><th></th><th>Référence</th><th>Version du cabinet</th></tr></thead><tbody>' +
+    lignesComparaison(ref, c.schema, "", c.note).map(([lab, a, b]) => '<tr class="' + (a !== b ? "diff" : "") + '"><th scope="row">' + esc(lab) + '</th><td class="cr" data-l="Référence">' + esc(a || "—") + '</td><td class="cc" data-l="Version du cabinet">' + esc(b || "—") + "</td></tr>").join("") +
+    '</tbody></table></div><div class="actr"><button class="bt gris" onclick="fermerFenetre()">Fermer</button></div>', "large");
+};
+window.rtrCmp = (b, v) => { b.parentNode.querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === b)); const t = document.querySelector(".rtr-cmp"); t.classList.toggle("voir-ref", v === "ref"); t.classList.toggle("voir-cab", v === "cab"); };
+
 // ───── Page ─────
 // arg : null (accueil et liste) ou « s/<schemaId>/<onglet> » (fiche) ; sous 1 280 px la fiche prend toute la page
 export async function pageRadiotherapie(arg) {
+  if (arg === "nouveau" && !NOUVEAU && !(ED && ED.nouveau)) { location.replace("#radiotherapie"); return; }
   ARG = arg || null;
-  const m = /^s\/([^/]+)(?:\/([a-z]+))?/.exec(arg || ""), id = m ? m[1] : null;
+  const m = /^s\/([^/]+)(?:\/([a-z]+))?/.exec(arg || ""), id = m ? m[1] : arg === "nouveau" ? "nouveau" : null;
   if (!id) RF.ouvert = null;
   const deux = !!id && large(), seule = !!id && !deux, z = $("rtr");
   // deux colonnes déjà affichées : seule la fiche change (la liste garde sa position)
@@ -377,6 +626,10 @@ export async function pageRadiotherapie(arg) {
   try { await charger(); } catch (e) { console.warn("référentiel de radiothérapie", e); }
   if (!$("rtr")) return; // page quittée pendant le chargement
   dessinerFiltres(); dessinerListe();
-  if (id) await ouvrirFiche(decodeURIComponent(id), m[2]);
+  if (id === "nouveau") {
+    // schéma créé ou dupliqué : fiche en modification, enregistrée seulement par « Enregistrer pour le cabinet »
+    if (NOUVEAU) { const n = NOUVEAU; NOUVEAU = null; demarrer(n); FICHE = { e: { id: n.id, titre: n.schema.titre, situation_id: n.schema.situation_id, localisation_id: n.localisation_id, preuve: "pratique_du_cabinet" }, cab: null, schema: ED.schema, loc: n.loc, B: n.B, onglet: "prescription" }; }
+    RF.ouvert = ED.id; dessinerFiche();
+  } else if (id) await ouvrirFiche(decodeURIComponent(id), m[2]);
   else if (RF.y) { window.scrollTo(0, RF.y); RF.y = 0; }
 }

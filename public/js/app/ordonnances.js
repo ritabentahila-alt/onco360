@@ -48,7 +48,7 @@ const etoile = (o, fn) => !gereListes() ? (o.fav ? '<span class="ico etoile on" 
 const ico = (n) => '<svg class="pi"><use href="#i-' + n + '"/></svg>';
 // Lot R-E (19/10/2026) : petite question par-dessus la fenêtre (la fenêtre de l'ordonnance reste telle quelle dessous) ; boutons [[clé, libellé,
 // classe]] ; Échap = le 1er bouton ; avant(clé) est appelé pendant le clic (ouvrir la fenêtre d'impression sans que le navigateur la bloque)
-function question(html, boutons, avant) {
+export function question(html, boutons, avant) {
   return new Promise((res) => {
     const d = document.createElement("div"); d.className = "or-dlg"; d.setAttribute("role", "alertdialog"); d.setAttribute("aria-modal", "true");
     d.innerHTML = '<div class="boite">' + html + '<div class="boutons">' + boutons.map(([k, l, c]) => '<button type="button" class="bt ' + (c || "gris") + '" data-k="' + k + '">' + l + "</button>").join("") + "</div></div>";

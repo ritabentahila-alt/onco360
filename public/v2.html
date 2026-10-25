@@ -1141,7 +1141,7 @@ details.vig-b>summary::-webkit-details-marker{display:none}.vig-d{font-size:var(
 }
 @media (pointer:coarse){.rtr-et{width:44px;height:44px}}
 /* Lot RTR, RT4 (25/10/2026) : fiche d'un schéma (en-tête, onglets, tableaux à chiffres alignés, en-têtes fixés, « ? » qui déplie la suite) */
-.rtr-act{display:flex;align-items:center;gap:6px;flex:none}.rtr-pts3{display:none!important}.rtr-mod{margin:6px 0 0}
+.rtr-act{display:flex;align-items:center;gap:6px;flex:none}.rtr-mod{margin:6px 0 0}
 .rtr-ong{margin:14px 0 8px;align-self:flex-start}.rtr-ong button.vide{color:var(--gris-m)}.rtr-ong .n{font-weight:normal;color:var(--doux);margin-left:3px}
 .rtr-oc h4{margin:16px 0 6px;font-size:var(--t4);color:var(--titre)}.rtr-oc>h4:first-child{margin-top:4px}.rtr-oc p{margin:6px 0;font-size:var(--t4);line-height:1.45}
 .rtr-l2 .mesures,.rtr-sys .mesures:first-child{margin-right:4px}.rtr-tx{color:var(--encre)}.rtr-tx code,.rtr-pts code{background:var(--gris-c);border-radius:4px;padding:0 4px;font-size:var(--t3)}
@@ -1160,8 +1160,23 @@ details.vig-b>summary::-webkit-details-marker{display:none}.vig-d{font-size:var(
 .rtr-ln{display:flex;gap:10px;flex:none}.rtr-ln a{color:var(--prim);font-size:var(--t3);font-weight:bold;text-decoration:none}.rtr-ed{padding:4px 4px 10px 4px}
 .rtr-c [hidden]{display:none}.rtr-ic{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;margin:10px 0 14px}.rtr-ic label{font-weight:normal;display:flex;gap:6px;align-items:center}
 .rtr.seule .rtr-tab th{top:64px}
+/* Lot RTR, RT5 (25/10/2026) : modification pour le cabinet (champs, champ changé, contrôles, barre du bas, annulation 10 s, comparaison) */
+.rtr-tel{display:none!important}.rtr-pts3.seul{display:none}.rtr-pts3{display:inline-block}.m3-l .mini.rouge-t{color:var(--rouge)}
+.rtr-in{width:100%;padding:8px 9px;border:1px solid var(--bord-champ);border-radius:8px;font-size:var(--t4);background:var(--carte);color:var(--encre);font-family:inherit}
+.rtr-in.n{text-align:right;font-variant-numeric:tabular-nums;max-width:110px}.rtr-in.mod{background:var(--prim-c);border-color:var(--prim-cc)}
+textarea.rtr-in{resize:vertical;min-height:44px}.rtr-lab{display:block;margin:12px 0 0;font-size:var(--t3);font-weight:bold;color:var(--doux)}.rtr-lab .rtr-in{margin-top:4px;font-weight:normal}
+.rtr-ted{flex-direction:column;align-items:stretch}.rtr-ted .rtr-in{font-size:var(--t6);font-weight:bold;color:var(--titre)}
+.rtr-edt td{vertical-align:top}.rtr-edt td:first-child{min-width:200px}.rtr-edt select.rtr-in{min-width:118px}.rtr-edt td[data-l=Rythme]{min-width:110px}.rtr-edt .rtr-in.n{min-width:72px}.rtr-edt td .rtr-in+.rtr-in{margin-top:4px}.rtr-errl td{padding:0 8px;border:0}.rtr-err{color:var(--rouge);font-size:var(--t3);font-weight:bold;margin:2px 0 6px}
+.rtr-aj{display:inline-flex;align-items:center;gap:5px;margin:8px 0}.rtr-aj .i{width:14px;height:14px}.rtr-fn{grid-template-columns:1fr 1fr;margin:0 0 10px}
+.rtr-jeux{max-height:360px;overflow-y:auto;border:1px solid var(--trait);border-radius:var(--r-s);padding:6px 10px;margin-top:6px}.rtr-jeux label{display:flex;gap:6px;align-items:baseline;font-weight:normal;padding:5px 0;flex-wrap:wrap}
+.rtr-pe{display:flex;gap:6px;align-items:flex-start;margin:6px 0}.rtr-pe .rtr-in{flex:1}
+.rtr-barre{margin-top:16px;z-index:8}.rtr-barre #rtrBmsg{flex:1;min-width:0;text-align:center}.rtr.deux .rtr-barre{bottom:0}
+.rtr-annul{position:fixed;left:50%;transform:translateX(-50%);bottom:24px;z-index:90;display:flex;gap:12px;align-items:center;background:var(--encre);color:var(--carte);border-radius:var(--r-m);padding:10px 14px;box-shadow:var(--ombre);max-width:calc(100% - 32px)}
+.rtr-cmpv{display:none;margin:6px 0 10px}.rtr-cmp tr.diff td{background:var(--orange-c)}.rtr-cmp th[scope=row]{color:var(--doux);font-size:var(--t3);white-space:nowrap;position:static;background:none}
+@media (max-width:899px){.rtr-tel{display:flex!important}.rtr-mbt{display:none}.rtr-pts3.seul{display:inline-block}.rtr-fn{grid-template-columns:1fr}.rtr-barre{bottom:8px}}
+@media (max-width:640px){.rtr-cmpv{display:flex}.rtr-cmp.voir-ref td.cc,.rtr-cmp.voir-cab td.cr{display:none}.rtr-cmp td::before{display:none!important}.rtr-in.n{max-width:none}.rtr-barre{position:sticky;bottom:6px}.rtr-annul{bottom:84px}}
 @media (max-width:899px){
-  .rtr-imp{display:none}.rtr-pts3{display:inline-block!important}.rtr-ong{position:sticky;top:64px;z-index:6;background:var(--carte);margin-left:-14px;margin-right:-14px;padding:0 14px;max-width:calc(100% + 28px)}
+  .rtr-imp{display:none}.rtr-ong{position:sticky;top:64px;z-index:6;background:var(--carte);margin-left:-14px;margin-right:-14px;padding:0 14px;max-width:calc(100% + 28px)}
   .rtr-ar{display:none}.rtr.seule .rtr-tab th{top:110px}.rtr-dl{grid-template-columns:1fr}.rtr-dl dd{margin-bottom:6px}
 }
 @media (max-width:640px){

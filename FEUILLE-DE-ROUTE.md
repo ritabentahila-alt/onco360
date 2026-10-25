@@ -605,7 +605,18 @@ Un lot par session ; chaque lot finit par ses tests verts, la feuille de route c
       fictif : 0 sur 62) : tous les liens ouvrent pour l'instant la page filtrée. Impression A4 portrait (sections au choix, en-tête Onco360 et
       médecin, « Version du cabinet, modifiée le … », sources et date en pied). Icône `i-copier`. `tests/test_rtref_fiche.py` 39/39 (Chrome,
       Safari ; 1 440, 1 280, 390 px). Lien « EQD2 » des lignes de prescription : RT6, avec la calculatrice.
-- [ ] **RT5 Modification** : modification pour le cabinet, comparaison, revenir à la référence, dupliquer, nouveau schéma ; règles et tests.
+- [x] **RT5 Modification** (25/10/2026) : médecin avec `referentielRT` « modifier » (`modifRefRT`) : « Modifier pour le cabinet » sur place (titre
+      en champ, mêmes onglets ; Prescription = lignes modifiables + ⋯ Supprimer la ligne + « Ajouter une ligne », technique, traitement associé,
+      couverture, note du médecin ; Centrage / Contourage = choix parmi les fiches et volumes de la localisation ; Contraintes = jeux cochés ;
+      Essais = ajout depuis la bibliothèque ; Points d'attention), champ changé sur `--prim-c`, contrôles sous la ligne (`controlePrescription`,
+      titre obligatoire), barre du bas « Annuler » · nombre de changements · « Enregistrer pour le cabinet » (inactif tant qu'un contrôle échoue, la
+      raison au survol) ; **garde de navigation** générale dans v2.js (`API.garde`, `hashchange`, `beforeunload`) : « Quitter sans enregistrer ? »
+      (`question` des ordonnances, exportée, `API.question`) ; enregistrement en **transaction** (signature `majLe|majPar` relue : un collègue
+      entre-temps = rien d'écrasé, fiche rechargée avec un message) ; « Voir la référence » (deux colonnes, différences surlignées ; téléphone :
+      sélecteur) ; « Revenir à la référence » / « Supprimer le schéma » (créé par le cabinet) : confirmation qui dit ce qui sera perdu, 10 s pour
+      annuler, suppression ensuite ; « Dupliquer » (`cab-…`, `nouveau`, `copie_de`, « Copie de … » sélectionné, preuve « pratique du cabinet ») ;
+      « + Nouveau schéma » (localisation et situation des menus). Sans le droit : aucun bouton (ni grisé). Acronymes des essais des fiches du
+      cabinet lus dans la bibliothèque. Règles : RT1 (`tests/regles/test-rtref.mjs`). `tests/test_rtref_modif.py` 37/37.
 - [ ] **RT6 Sous-pages** : Organes à risque, Contraintes, Essais, Calcul BED / EQD2 (cas de contrôle de la spécification).
 - [ ] **RT7 Modèle** : copie vers le modèle des cabinets neufs et vers chaque cabinet neuf ; page du module dans « Ajuster le modèle ».
 - [ ] **RT8 Dossier et mise en ligne** : lien « Référentiel › » de l'onglet Radiothérapie du dossier ; contrôle complet ; mise en ligne avec l'accord de
