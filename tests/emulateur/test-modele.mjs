@@ -35,6 +35,11 @@ await db.doc(BIB + "/bibliotheques/medicaments").set(J([{ id: "m1", nom: "FICTIV
 // Protocoles (20/10/2026 : copiés dans la même action que les réglages)
 await db.doc(MOD + "/protocoles/lib_0").set(J([{ id: "p1", nom: "PROTOCOLE TEST A", fav: true, valide: { le: "2026-10-01", par: "MED" } }, { id: "p2", nom: "PROTOCOLE TEST B" }]));
 await db.doc(BIB + "/protocoles/lib_0").set(J([{ id: "p0", nom: "ANCIEN PROTOCOLE DU MODÈLE" }]));
+// RTR, RT7 (25/10/2026) : référentiel de radiothérapie du cabinet modèle (un schéma modifié, un créé) ; ancien schéma du modèle (retiré par la copie)
+const RT = (titre, o) => Object.assign({ schema: { id: "x", situation_id: "pro-ep-fav", titre, type: "rte_hypo", preuve: "essai_phase3", prescriptions: [{ volume: "PTV", dose_Gy: 60, fractions: 20, dose_fx_Gy: 3 }] }, localisation_id: "prostate", origine: "cabinet", base: "2026-10-22", majPar: "MED", majParNom: "Dr Modèle", majLe: "2026-10-25T09:00:00Z" }, o || {});
+await db.doc(MOD + "/referentielRT/pro-fav-60-20").set(RT("60 Gy / 20 fx (version du modèle, test)"));
+await db.doc(MOD + "/referentielRT/cab-test1").set(RT("Schéma créé (test)", { nouveau: true, copie_de: "pro-fav-60-20" }));
+await db.doc(BIB + "/referentielRT/ancien-test").set(RT("ANCIEN SCHÉMA DU MODÈLE"));
 await db.doc(X).set({ nom: "Cabinet X (test)", titulaire: "MX", actif: true, ficheSpe: { ajouts: [{ id: "xvieux", lib: "Ancien champ", type: "texte", partie: "clinique" }] },
   abonnement: { formule: "complet", modules: { chimio: true }, reglage: { menu: ["agenda"], cartes: { stats: true } } } });
 await db.doc(X + "/parametres/listes").set(J({ diag: ["Cancer X"], mut: [], cor: ["Dr Correspondant de X"] }));
@@ -60,6 +65,8 @@ cas("aperçu : rien n'est écrit", !(await db.doc("plateforme/specialites").get(
 const dp = a1.diffs.find((d) => d.k === "protocoles");
 cas("aperçu : les protocoles dans la même copie (2 ajoutés, 1 retiré)", dp && dp.n === 3 && dp.nb === 2, dp);
 cas("aperçu : protocoles du modèle pas encore remplacés", (await lire(BIB + "/protocoles/lib_0"))[0].id === "p0");
+const dr = a1.diffs.find((d) => d.k === "referentielRT");
+cas("aperçu : le référentiel de radiothérapie dans la même copie (2 ajoutés, 1 retiré)", dr && dr.n === 3 && dr.nb === 2, dr);
 const a2 = (await reprendre({ confirmer: true })).data, SP = (await db.doc("plateforme/specialites").get()).data(), m = Object.values(SP)[0];
 cas("modèle écrit : fiche avec les champs ajoutés (spécialité et cabinet), le nom « Organisme », le champ caché", m && (m.fiche.ajouts || []).map((x) => x.id).sort().join() === "xgeuit,xscore" && m.fiche.libs.mut === "Organisme" && m.fiche.champs.tel2 === false, m && m.fiche);
 cas("modèle écrit : formulaire de consultation (formulaire nommé « RCP »), réglage (menu, cartes, fonctions)", m.consultation.typesForm && m.consultation.typesForm.RCP === "frcp" && m.reglage.menu[0] === "salle" && m.reglage.cartes.stats === false && m.reglage.cartes.rappels === false && m.reglage.fonctions["agenda.whatsapp"] === false);
@@ -73,6 +80,9 @@ cas("tableau de bord repris (20/10/2026) : ordre et cartes retirées seulement",
 cas("fiche et formulaire du modèle aussi dans la fiche de la bibliothèque (lus par Onco360)", JSON.stringify((await db.doc(BIB).get()).data().ficheSpe) === JSON.stringify(m.fiche) && (await db.doc(BIB).get()).data().consultSpe.typesForm.RCP === "frcp");
 cas("types de consultation et WhatsApp repris", ((await lire(BIB + "/parametres/typesConsult")) || []).some((t) => t.k === "telecs") && (await lire(BIB + "/parametres/whatsapp")).rappel);
 const Pb = await lire(BIB + "/protocoles/lib_0");
+const Rb = (await db.collection(BIB + "/referentielRT").get()).docs.map((d) => [d.id, d.data()]);
+cas("référentiel de radiothérapie copié dans le modèle (2 schémas, origine « modele »), l'ancien retiré", Rb.map((x) => x[0]).sort().join() === "cab-test1,pro-fav-60-20" && Rb.every((x) => x[1].origine === "modele") && Rb.find((x) => x[0] === "cab-test1")[1].nouveau === true, Rb.map((x) => x[0]));
+cas("le référentiel du cabinet modèle n'est pas touché (origine « cabinet »)", (await db.doc(MOD + "/referentielRT/pro-fav-60-20").get()).data().origine === "cabinet");
 cas("protocoles copiés dans le modèle, sans étoiles", Pb.map((x) => x.id).join() === "p1,p2" && !Pb.some((x) => x.fav), Pb);
 cas("anciens protocoles du modèle gardés dans la copie de secours", JSON.stringify(JSON.parse((await bucket.file(m.repris.copie).download())[0]).protocoles).includes("ANCIEN PROTOCOLE DU MODÈLE"));
 cas("le cabinet modèle n'est pas touché (ses étoiles, ses correspondants)", (await lire(MOD + "/bibliotheques/medicaments"))[0].fav === true && (await lire(MOD + "/parametres/listes")).cor[0] === "Dr Correspondant Privé");
@@ -81,6 +91,7 @@ const a3 = (await reprendre({})).data;
 cas("après la reprise : aucune différence depuis", a3.n === 0 && a3.repris, a3.diffs.filter((d) => d.n));
 const j1 = await db.collection("journalAdmin").get();
 cas("reprise notée au journal de l'administration", j1.docs.some((d) => /Modèle repris du cabinet du Dr Bentahila/.test(d.data().txt)));
+cas("copie du référentiel notée au journal (nombre de schémas)", j1.docs.some((d) => /2 schémas du référentiel de radiothérapie/.test(d.data().txt)));
 
 console.log("Fiche de la spécialité enregistrée dans l'Administration : plus liée au cabinet du Dr Bentahila");
 const ficheSpe = httpsCallable(fn, "ficheSpecialite", { timeout: 120000 }), avantMod = JSON.stringify((await db.doc(MOD).get()).data().ficheSpe);
@@ -139,6 +150,12 @@ const Nd = (await db.doc(N).get()).data();
 cas("fiche et formulaire de consultation du modèle", (Nd.ficheSpe.ajouts || []).map((x) => x.id).sort().join() === "xgeuit,xscore" && Nd.consultSpe.typesForm.RCP === "frcp", Nd.ficheSpe);
 cas("réglage du pack complété par le modèle (menu de départ du modèle, salle en tête)", Nd.abonnement.reglage && Nd.abonnement.reglage.menu && Nd.abonnement.reglage.menu.indexOf("salle") >= 0, Nd.abonnement.reglage);
 cas("tableau de bord du modèle copié dans le cabinet neuf", ((await lire(N + "/parametres/accueil")) || {}).ordre[0] === "jour");
+const Rn = (await db.collection(N + "/referentielRT").get()).docs.map((d) => [d.id, d.data()]);
+cas("référentiel de radiothérapie du modèle copié dans le cabinet neuf (origine « modele »)", Rn.map((x) => x[0]).sort().join() === "cab-test1,pro-fav-60-20" && Rn.every((x) => x[1].origine === "modele" && x[1].schema && x[1].schema.titre), Rn.map((x) => x[0]));
+// Cabinet de démonstration recréé : même création (creerEspace), donc le référentiel du modèle aussi
+const demo = (await httpsCallable(fn, "creerCabinetDemo", { timeout: 300000 })({ email: "demo-rt7@test.ma" })).data, Dm = "espaces/" + demo.espace;
+const Rd = (await db.collection(Dm + "/referentielRT").get()).docs.map((d) => [d.id, d.data().origine]);
+cas("cabinet de démonstration recréé : patients fictifs et référentiel de radiothérapie du modèle", demo.patients > 0 && Rd.map((x) => x[0]).sort().join() === "cab-test1,pro-fav-60-20" && Rd.every((x) => x[1] === "modele"), [demo.patients, Rd]);
 const ouvrir = httpsCallable(fn, "bibliothequeOuvrir", { timeout: 120000 });
 await db.doc(BIB).update({ ficheSpe: {} }); await ouvrir({ bib: "bib-oncologie" });
 cas("ouvrir le modèle : sa fiche et son formulaire recopiés depuis le modèle de la spécialité", JSON.stringify((await db.doc(BIB).get()).data().ficheSpe) === JSON.stringify(Object.values((await db.doc("plateforme/specialites").get()).data())[0].fiche));

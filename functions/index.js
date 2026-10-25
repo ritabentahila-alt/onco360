@@ -452,6 +452,8 @@ async function sourceBib(bib) {
   sp.forEach((x, i) => { const v = C.parametreDepart(C.PARAMS_SPE[i], json(x), jour); if (v) out.docs.push({ chemin: "parametres/" + C.PARAMS_SPE[i], data: { data: JSON.stringify(v) } }); });
   out.docs.push({ chemin: "finances/tarifs", data: { data: JSON.stringify(C.tarifsDepart(json(st))) } });
   bibs.forEach((d) => out.docs.push({ chemin: "bibliotheques/" + d.id, data: d.data() }));
+  // RTR, RT7 (25/10/2026) : schémas du référentiel de radiothérapie modifiés ou créés dans le modèle, reçus avec origine « modele »
+  (await db.collection(B + "referentielRT").get()).forEach((d) => out.docs.push({ chemin: "referentielRT/" + d.id, data: Object.assign({}, d.data(), { origine: "modele" }) }));
   return out;
 }
 async function source(par, specialite) {
@@ -481,6 +483,10 @@ async function protocolesDe(e) {
   const l = []; (await db.collection("espaces/" + e + "/protocoles").get()).docs.forEach((d) => { try { (JSON.parse(d.data().data || "[]") || []).forEach((o) => { if (!o || typeof o !== "object") return; const c = Object.assign({}, o); ["fav", "valide", "majPar", "majParNom"].forEach((k) => delete c[k]); l.push(c); }); } catch (er) { /* illisible */ } });
   return l;
 }
+// Schémas du référentiel de radiothérapie d'un espace (RT7), sans ce qui change à chaque copie (auteur, date, origine) : pour compter les différences
+async function referentielDe(e) {
+  return (await db.collection("espaces/" + e + "/referentielRT").get()).docs.map((d) => { const v = d.data(); return { id: d.id, schema: v.schema || null, note: v.note || "", nouveau: !!v.nouveau }; });
+}
 async function copierBibliothequeBentahila(par) {
   const M = "espaces/" + C.MODELE + "/", E = "espaces/bib-oncologie/", jour = new Date().toISOString().slice(0, 10);
   if (!(await db.doc("espaces/bib-oncologie").get()).exists) throw new HttpsError("failed-precondition", "Ouvrez d'abord une fois la bibliothèque d'Oncologie – Radiothérapie (« Créer et ouvrir »).");
@@ -494,6 +500,12 @@ async function copierBibliothequeBentahila(par) {
   sb.forEach((x, i) => { if (x.exists) { const v = x.data(); ecr.push(["set", db.doc(E + "bibliotheques/" + C.BIBLIOTHEQUES[i]), Object.assign({}, v, { data: C.sansEtoiles(v.data, jour) })]); } });
   sp.forEach((x, i) => { const v = C.parametreDepart(C.PARAMS_SPE[i], json(x), jour); if (v) ecr.push(["set", db.doc(E + "parametres/" + C.PARAMS_SPE[i]), { data: JSON.stringify(v) }]); });
   ecr.push(["set", db.doc(E + "finances/tarifs"), { data: JSON.stringify(C.tarifsDepart(json(st))) }]);
+  // RTR, RT7 (25/10/2026) : schémas du référentiel de radiothérapie du cabinet (modifiés ou créés) recopiés avec origine « modele » ; ceux du
+  // modèle d'avant retirés (la copie remplace, comme pour les protocoles)
+  const [rtM, rtE] = await Promise.all([db.collection(M + "referentielRT").get(), db.collection(E + "referentielRT").get()]);
+  rtE.docs.forEach((d) => ecr.push(["del", d.ref]));
+  rtM.docs.forEach((d) => ecr.push(["set", db.doc(E + "referentielRT/" + d.id), Object.assign({}, d.data(), { origine: "modele" })]));
+  nb.referentielRT = rtM.size;
   ecr.push(["merge", db.doc(E + "parametres/migrations"), C.migrationsFaites(jour)]);
   ecr.push(["merge", db.doc("espaces/bib-oncologie"), { copieDuCabinet: { le: new Date().toISOString(), par, nb } }]);
   for (let i = 0; i < ecr.length; i += 400) {
@@ -501,7 +513,7 @@ async function copierBibliothequeBentahila(par) {
     ecr.slice(i, i + 400).forEach(([op, ref, v]) => { if (op === "del") b.delete(ref); else if (op === "merge") b.set(ref, v, { merge: true }); else b.set(ref, v); });
     await b.commit();
   }
-  await jAdmin(par, "bibliotheque", "bib-oncologie", "Bibliothèque Oncologie – Radiothérapie", "Recopiée depuis le cabinet du Dr Bentahila (" + nb.protocoles + " protocoles)");
+  await jAdmin(par, "bibliotheque", "bib-oncologie", "Bibliothèque Oncologie – Radiothérapie", "Recopiée depuis le cabinet du Dr Bentahila (" + nb.protocoles + " protocoles, " + nb.referentielRT + " schéma" + (nb.referentielRT > 1 ? "s" : "") + " du référentiel de radiothérapie)");
   console.log("référence recopiée depuis", C.MODELE, "par", par, JSON.stringify(nb));
   return { nb, le: jour };
 }
@@ -719,7 +731,8 @@ exports.listeCabinets = onCall({ timeoutSeconds: 60, memory: "256MiB" }, async (
   // Bibliothèques de référence : nombre d'éléments de chaque liste (null = liste de départ d'Onco360)
   const bibliotheques = await Promise.all(C.BIBS.map(async (B) => {
     const s = snap.docs.find((d) => d.id === B.id); if (!s) return Object.assign({}, B, { existe: false });
-    const [p, l] = await Promise.all([db.collection("espaces/" + B.id + "/protocoles").get(), db.collection("espaces/" + B.id + "/bibliotheques").get()]), nb = {};
+    const [p, l, rt] = await Promise.all([db.collection("espaces/" + B.id + "/protocoles").get(), db.collection("espaces/" + B.id + "/bibliotheques").get(), db.collection("espaces/" + B.id + "/referentielRT").get()]), nb = {};
+    nb.referentielRT = rt.size; // RT7 : schémas du référentiel de radiothérapie modifiés dans le modèle
     nb.protocoles = p.docs.reduce((n, d) => { try { return n + JSON.parse(d.data().data || "[]").length; } catch (er) { return n; } }, 0);
     l.forEach((d) => { try { nb[d.id] = JSON.parse(d.data().data || "[]").length; } catch (er) { /* illisible */ } });
     return Object.assign({}, B, { existe: true, nb, cree: s.data().cree || "", version: s.data().version || 0, versions: (s.data().versions || []).slice(-5), copieDuCabinet: s.data().copieDuCabinet || null });
@@ -1052,6 +1065,7 @@ exports.modeleReprendre = onCall({ timeoutSeconds: 120, memory: "512MiB" }, asyn
   const avant = await etatModele(spe), diffs = MOD.PARTIES.map(([k, lib]) => { const d = MOD.difference(avant.modele[k], nouveau[k]); return { k, lib, n: MOD.total(d), resume: MOD.resume(d) }; });
   // 20/10/2026 : les protocoles font partie de la même copie (bibliothèque d'oncologie seulement)
   const avecProt = avant.bib === "bib-oncologie";
+  if (avecProt) { const [rc, rb] = await Promise.all([referentielDe(C.MODELE), referentielDe(avant.bib)]), d = MOD.difference(rb, rc); diffs.unshift({ k: "referentielRT", lib: "Référentiel de radiothérapie (schémas modifiés ou créés)", n: MOD.total(d), resume: MOD.resume(d), nb: rc.length }); }
   if (avecProt) { const [pc, pr] = await Promise.all([protocolesDe(C.MODELE), protocolesDe(avant.bib)]), d = MOD.difference(pr, pc); diffs.unshift({ k: "protocoles", lib: "Protocoles de chimiothérapie", n: MOD.total(d), resume: MOD.resume(d), nb: pc.length }); }
   const n = diffs.reduce((t, d) => t + d.n, 0);
   if (!confirmer) return { specialite: spe, repris: avant.repris, diffs, n };

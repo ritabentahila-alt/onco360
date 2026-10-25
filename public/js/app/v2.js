@@ -766,8 +766,9 @@ const FILTRES = {
 // Module dont dépend chaque page (formule du cabinet) : page d'un module retiré → tableau de bord
 // Comptable : le bilan et son profil seulement
 const PAGES_COMPTABLE = ["bilan", "profil"];
-// Bibliothèque de référence (10/10/2026) : protocoles et paramètres (bibliothèques, listes, fériés, tarifs RT) seulement
-const PAGES_BIB = ["protocoles", "parametres", "configuration"];
+// Bibliothèque de référence (10/10/2026) : protocoles et paramètres (bibliothèques, listes, fériés, tarifs RT) seulement ; référentiel de
+// radiothérapie (RTR, RT7 du 25/10/2026 : l'administration y modifie le modèle comme un médecin dans son cabinet)
+const PAGES_BIB = ["protocoles", "radiotherapie", "parametres", "configuration"];
 const estComptable = () => !!(D && D.membre && D.membre.role === "comptable");
 const PAGE_MODULE = { agenda: "agenda", salle: "salle", taches: "taches", rcp: "rcp", protocoles: "chimio", radiotherapie: "rt", bilan: "bilan" };
 // Référentiel de radiothérapie (RTR, RT1 du 25/10/2026) : fonction rt.referentiel du réglage et droit referentielRT « voir » ou « modifier »

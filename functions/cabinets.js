@@ -162,7 +162,7 @@ const BIBS = [
 const bibDe = (specialite) => (BIBS.find((b) => b.specialites.indexOf(specialite) >= 0) || BIBS[0]).id;
 const estBib = (e) => /^bib-/.test(String(e || ""));
 // Droits du compte d'administration dans une bibliothèque : protocoles, prescriptions, listes, fériés, tarifs RT ; aucun patient
-const DROITS_BIB = { identite: false, fichePatient: false, rendezvous: false, consultations: false, ecrireConsultations: true, planningChimio: false, traitements: "modifier", radiotherapie: "modifier", documents: false, administrer: false, encaissements: false, creerPatient: false, supprimerPatient: false, finances: true, parametres: true, secretariat: false };
+const DROITS_BIB = { identite: false, fichePatient: false, rendezvous: false, consultations: false, ecrireConsultations: true, planningChimio: false, traitements: "modifier", radiotherapie: "modifier", documents: false, administrer: false, encaissements: false, creerPatient: false, supprimerPatient: false, finances: true, parametres: true, secretariat: false, referentielRT: "modifier" };
 // (modules ouverts pour régler les paramètres correspondants : tâches, RCP, couleurs de Google Agenda… ; la bibliothèque n'a pas de patient)
 const MODULES_BIB = { chimio: true, rt: true, agenda: false, salle: false, taches: true, rcp: true, prescriptions: true, documents: false, gagenda: true, listes: true, bilan: false };
 // Paramètres de base d'une spécialité (10/10/2026) : gardés dans la bibliothèque de référence, modifiés par l'administration, copiés

@@ -627,7 +627,15 @@ Un lot par session ; chaque lot finit par ses tests verts, la feuille de route c
       à l'écran** (96,4 · 86,4 · 72,7 / 225,0 · 144,0 · 87,3 / 3,00 · 2,92 · 2,74 ; 27 fractions · 63,0 Gy). Lien « EQD2 » en bout de ligne de
       prescription (prérempli ; grisé « Calcul non applicable » pour une ligne LDR, PDR ou sans dose ; absent à l'impression). Bibliothèques en
       commun `BB`. `tests/test_rtref_pages.py` 32/32 (Chrome, Safari ; 1 440 et 390 px).
-- [ ] **RT7 Modèle** : copie vers le modèle des cabinets neufs et vers chaque cabinet neuf ; page du module dans « Ajuster le modèle ».
+- [x] **RT7 Modèle** (25/10/2026) : « Copier depuis le cabinet du Dr Bentahila » (`modeleReprendre` → `copierBibliothequeBentahila`) recopie
+      `espaces/cabinet-bentahila/referentielRT` dans `espaces/bib-oncologie/referentielRT` avec `origine: "modele"` (ceux du modèle d'avant retirés,
+      `nb.referentielRT`, journal de l'Administration avec le nombre de schémas ; aperçu : partie « Référentiel de radiothérapie », `referentielDe`) ;
+      cabinet neuf (`creerEspace` ← `sourceBib`) et cabinet de démonstration recréé : fiches du modèle reçues avec `origine: "modele"` (pas de badge),
+      ensuite plus aucun lien ; cabinet déjà créé : rien. « Ajuster le modèle » : page Radiothérapie ouverte (`PAGES_BIB`, menu du mode bibliothèque),
+      l'administration y modifie le modèle (`DROITS_BIB.referentielRT = "modifier"`, `NIVEAUX` serveur). Administration › Par spécialité : le
+      référentiel cité dans « Copier » et « Ce que reçoivent les cabinets » (nombre de schémas modifiés du modèle, `listeCabinets` `nb.referentielRT`).
+      Tests : `tests/emulateur/test-modele.mjs` 60/60 (dont 6 du référentiel : aperçu, copie, ancien retiré, cabinet modèle intact, journal, cabinet
+      neuf, démonstration recréée) ; `tests/test_rtref_modele.py` 7/7 ; `node functions/test-*.js` verts. Rien de déployé (fonctions comprises).
 - [ ] **RT8 Dossier et mise en ligne** : lien « Référentiel › » de l'onglet Radiothérapie du dossier ; contrôle complet ; mise en ligne avec l'accord de
       Dr Bentahila.
 
