@@ -286,7 +286,7 @@ Avant le **premier client payant** : société éditrice, projet Firebase et nom
       usuelles, ligne au-delà du cycle, protocole sans statut « Validé », source vide, doublon de nom, hormonothérapies incompatibles ensemble)
       écrit une fois dans le moteur (`moteur/controleProto.js`, test) et lancé **à chaque enregistrement d'un protocole** et **avant chaque copie
       vers le modèle** (Administration, étape 1) : avertissement d'un clic (« 2 points à vérifier : … — Enregistrer quand même »), jamais bloquant.
-- [x] **S7 Tests fiables (24-25/10/2026 ; pas encore en ligne)** : jeu fictif `tests/seed-fictif.json` (`node tests/mkfictif.mjs` : 80 patients
+- [x] **S7 Tests fiables (24-25/10/2026 ; en ligne le 25/10, 20261025a)** : jeu fictif `tests/seed-fictif.json` (`node tests/mkfictif.mjs` : 80 patients
       fictifs « PATIENT TEST n, Démo » + 6 dossiers de référence en tête PTA1, PTA2, PTA3, PTK1, PTESS, PTCIOC « PATIENT TEST REF n, Réf » ; bibliothèque
       du 06/10 sans patient ; cases « Payé » à l'ancien format (2025 et 2026), séances J8, RT terminées, absence fictive du 15 au 18/10) ; **chiffre de
       référence du bilan : 363 734 DH** (`tests/bilan_ref_fictif.txt`, `REF_BILAN` de base.py ; l'ancien 352 317 DH seulement avec `ONCO360_SEED=reel`) ;
@@ -344,7 +344,7 @@ Avant le **premier client payant** : société éditrice, projet Firebase et nom
       « Ordonnance supprimée » ; bouton « Supprimer » des antécédents (aussi pour une ordonnance déjà « annulée », affichée barrée). R-E7 « Annuler
       l'ordonnance » (19/10) retiré. Test test_ordonnances_e 47/47 (adapté).
 
-## Corrections du 25/10/2026 (demandes de Dr Bentahila ; testé ; pas encore en ligne)
+## Corrections du 25/10/2026 (demandes de Dr Bentahila ; testé ; **en ligne le 25/10/2026, version 20261025a**, site + fonctions)
 - [x] **Cure validée toujours absente du bilan, bandeau « Chimio Cundefined/undefined »** (même dossier ; lu en lecture seule, rien n'est écrit dans la
       base) : la ligne recréée le 24/10 porte encore la case « Traitement associé » (copiée du protocole : la correction du protocole, audit10d, n'est
       pas encore en ligne ; et une ligne déjà prescrite garde sa copie). Avec cette case, ni la séance ni la consultation n'allaient au bilan, **quel
