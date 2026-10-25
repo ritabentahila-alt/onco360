@@ -1,0 +1,248 @@
+# RecoRad SFRO (Noël et Antoni, Cancer/Radiothérapie, CANRAD-4270), normofractionné ou hypofractionné modéré (< 6 Gy/fx)
+# colonnes : table	organe	contexte	indicateur et valeur	colonne (usuel = « Usual constraints of planning » ; autre = « Other published » ; risque = « Dosimetric limits associated with risk »)	références
+T1	Encéphale		V60Gy < 33 %	usuel	40
+T1	Encéphale		D33% < 72 Gy	autre	40
+T1	Encéphale	risque 5 % à 5 ans	V60Gy < 33 % ; EPTN : V60Gy < 3 mL	risque	40,41
+T1	Cuir chevelu	alopécie permanente	V25Gy < 0,03 mL	autre	42
+T1	Cuir chevelu	alopécie < 50 %	Dmax < 43 Gy	risque	42
+T1	Chiasma		Dmax 54 Gy	usuel	44
+T1	Chiasma		V55Gy ≤ 0,03 mL	usuel	41
+T1	Chiasma		Dmax PRV ≤ 60 Gy si nécessaire	usuel	44
+T1	Chiasma		V50Gy ≤ 10 %	autre	45
+T1	Cochlée		Dmean ≤ 40–45 Gy	usuel	41,46
+T1	Cochlée		V50Gy < 0,03 mL	usuel	47
+T1	Cochlée	si conservation de l'audition essentielle	Dmean ≤ 35 Gy	usuel	47
+T1	Cochlée		Dmean ≤ 10 Gy	autre	46
+T1	Cornée		Dmax = 30–50 Gy	autre	50
+T1	Cristallin		Dmax < 10–15 Gy	usuel	
+T1	Cristallin		V10Gy ≤ 0,03 mL	autre	41
+T1	Glande lacrymale	kérato-conjonctivite (EPTN)	Dmean < 25 Gy	usuel	41
+T1	Glande lacrymale		Dmean < 32 Gy	autre	53
+T1	Hippocampe	2 hippocampes + 5 mm	Dmax < 16 Gy	usuel	54
+T1	Hippocampe	somme des 2 hippocampes	D40% ≤ 7,3 Gy	usuel	55,56
+T1	Hypophyse		Dmax = 45–50 Gy	usuel	57
+T1	Hypophyse	panhypopituitarisme	Dmean ≤ 45 Gy	autre	41
+T1	Hypophyse	déficit en GH	Dmean ≤ 20 Gy	autre	41
+T1	Lobe temporal	nécrose < 5 % à 5 ou 10 ans	BED = 108–119 Gy	autre	58
+T1	Nerf optique		Dmax 54 Gy	usuel	44
+T1	Nerf optique		V55Gy ≤ 0,03 mL	usuel	58
+T1	Nerf optique		Dmax PRV ≤ 60 Gy si nécessaire	usuel	44
+T1	Nerf optique		V60Gy < 25 %	autre	43,62
+T1	Nerf optique		V54Gy < 1 %	autre	63
+T1	Nerf optique		V<50–60Gy = 5–30 %	autre	61
+T1	Œil entier		V30Gy < 50 %	usuel	
+T1	Œil entier		V50Gy < 30 %	usuel	
+T1	Rétine		Dmean ≤ 45 Gy	usuel	
+T1	Rétine		V45Gy ≤ 0,03 mL	usuel	65
+T1	Rétine		V45Gy < 50 %	autre	50
+T1	Rétine		V50Gy < 60 %	autre	66
+T2	Articulation temporo-mandibulaire		Dmax < 50 Gy	usuel	68
+T2	Articulation temporo-mandibulaire		D33% < 65 Gy ; D66% < 60 Gy ; D100% < 60 Gy	autre	41
+T2	Articulation temporo-mandibulaire	trismus au-delà de 50 Gy	Dmean < 40 Gy	risque	39,67
+T2	Cavité buccale		V30Gy < 65 %	usuel	69
+T2	Cavité buccale		V35Gy < 35 %	usuel	69
+T2	Parotide	2 parotides	Dmean ≤ 26 Gy	usuel	70
+T2	Parotide		V15Gy < 66–67 % ; V30Gy < 43–45 % ; V45Gy < 24–26 %	autre	70,71
+T2	Glande sous-maxillaire		Dmean < 32 Gy	autre	53
+T2	Glande sous-maxillaire		Dmean < 39 Gy	autre	72
+T2	Larynx		Dmax < 63–66 Gy	usuel	73,74
+T2	Larynx		Dmean < 43,5 Gy	usuel	75
+T2	Larynx	glotte et étage sus-glottique	Dmean < 40–48 Gy	usuel	69
+T2	Larynx	glotte et étage sus-glottique	V50Gy < 21 %	usuel	69
+T2	Larynx		V50Gy < 27 %	autre	75
+T2	Mandibule		Dmax < 65 Gy	usuel	
+T2	Mandibule		Dmean < 60 Gy	usuel	
+T2	Mandibule	pas de rejet d'implant	Dmax < 40 Gy	autre	76,77
+T2	Muscles constricteurs du pharynx	constricteurs supérieur et moyen	Dmean < 63 Gy	usuel	69
+T2	Muscles constricteurs du pharynx	constricteurs supérieur et moyen	V55Gy < 80 %	usuel	69
+T2	Muscles constricteurs du pharynx	constricteurs supérieur et moyen	V65Gy < 30 %	usuel	69
+T2	Muscles constricteurs du pharynx	constricteur inférieur	Dmean < 54 Gy	usuel	69
+T2	Muscles constricteurs du pharynx	constricteur inférieur	V40Gy ≤ 41 %	usuel	79
+T2	Muscles constricteurs du pharynx	constricteur inférieur	V50Gy < 51 %	usuel	69
+T2	Muscles constricteurs du pharynx		V40Gy < 90 % ; V50Gy < 80 % ; V60Gy < 70 % ; V65Gy < 50 %	autre	80
+T2	Thyroïde		Dmean < 30 Gy	autre	40
+T2	Thyroïde		V40Gy < 85 %	autre	81
+T2	Thyroïde		V50Gy < 30 %	autre	82
+T2	Thyroïde		V50Gy < 60 %	autre	83
+T2	Thyroïde		V25Gy < 60 % et V35Gy < 55 % et V45Gy < 45 %	autre	84
+T3	Artère interventriculaire antérieure		V20Gy < 0 %	usuel	85
+T3	Base du cœur (oreillette droite, coronaire droite, aorte ascendante)	RT3D et RCMI	Dmax < 8,5 Gy	autre	86
+T3	Base du cœur (oreillette droite, coronaire droite, aorte ascendante)		Dmax < 23 Gy EQD2	autre	87
+T3	Cœur	cancer du sein	Dmean ≤ 5 Gy	usuel	88
+T3	Cœur	autres cancers thoraciques	Dmax 30 Gy si cœur irradié en totalité	usuel	
+T3	Cœur	autres cancers thoraciques	V45Gy ≤ 66 %	usuel	89
+T3	Cœur	autres cancers thoraciques	V60Gy ≤ 33 %	usuel	89
+T3	Cœur	valvulopathie 1,6 %	Dmean des valves ≤ 30 Gy	usuel	90,91
+T3	Cœur	cancer du poumon	V40Gy ≤ 100 %	autre	89
+T3	Cœur	cancer du sein	V20Gy ≤ 20 %	autre	92
+T3	Cœur	cancer du sein	V20Gy ≤ 10 %	autre	85
+T3	Cœur	cancer du sein	V40Gy ≤ 5 %	autre	85
+T3	Cœur	cancer du sein	droit : V5Gy ≤ 40 % ; gauche : V5Gy ≤ 50 %	autre	92
+T3	Cœur	cancer gastrique	V25Gy < 50 % ; V40Gy < 30 %	autre	93
+T3	Cœur	cancer du sein : +1 % d'événement cardiaque par Gy	Dmean > 5 Gy	risque	88
+T3	Œsophage	RT seule	Dmax < 69 Gy	usuel	95
+T3	Œsophage	RT seule, œsophagite de grade 2 limitée	V35Gy < 50 %	usuel	96
+T3	Œsophage	radiochimiothérapie	Dmax < 69 Gy	usuel	95
+T3	Œsophage	radiochimiothérapie	V60Gy ≤ 30 %	usuel	94
+T3	Œsophage	radiochimiothérapie, œsophagite de grade 2 limitée	V35Gy < 31 %	usuel	96
+T3	Œsophage		V20Gy ≤ 35 %	autre	97
+T3	Œsophage		V20Gy ≤ 45 %	autre	15
+T3	Œsophage		V45Gy < 40 %	autre	15
+T3	Œsophage		V50Gy ≤ 32 %	autre	99
+T3	Œsophage		V40 à V70Gy (valeurs moyennes ± écart-type de la référence 98)	autre	98
+T3	Œsophage	œsophagite sévère : RT seule V60Gy ≥ 30 % ; RCT V50Gy ≥ 30 %	—	risque	94,15
+T3	Oreillette gauche	RT3D et RCMI	Dmax < 64 Gy	autre	100
+T3	Péricarde	RT3D	V50Gy ≤ 17 %	autre	101
+T3	Péricarde	RT3D	V55Gy ≤ 21 %	autre	102
+T3	Plexus brachial		Dmax < 54 Gy	usuel	85
+T3	Plexus brachial	si nécessaire	Dmax < 60–66 Gy	usuel	103
+T3	Poumons (total des 2)	cancers intrathoraciques	V20Gy ≤ 35–37 %	usuel	89
+T3	Poumons (total des 2)	cancers intrathoraciques	Dmean ≤ 20 Gy	usuel	89
+T3	Poumons (total des 2)	cancers intrathoraciques (Recorad 2021)	V20Gy ≤ 30–35 %	usuel	
+T3	Poumons (total des 2)	cancers intrathoraciques (Recorad 2021)	V30Gy ≤ 20 %	usuel	
+T3	Poumons (total des 2)	cancers intrathoraciques (Recorad 2021)	V13Gy ≤ 42 %	usuel	
+T3	Poumons (total des 2)	cancers intrathoraciques (Recorad 2021)	Dmean ≤ 15–20 Gy	usuel	
+T3	Poumon homolatéral	cancers intrathoraciques	V20Gy < 20 %	usuel	
+T3	Poumons (total des 2)	RCMI	V5Gy < 60 %	usuel	104
+T3	Poumons (total des 2)	RCMI	V5Gy < 70 %	usuel	105
+T3	Poumon homolatéral	sein	Dmean ≤ 15 Gy	usuel	
+T3	Poumon homolatéral	sein seul	V20Gy ≤ 14 %	usuel	106
+T3	Poumon homolatéral	sein + ganglions	V20Gy ≤ 22 %	usuel	106
+T3	Poumon homolatéral	sein	Dmean ≤ 18 Gy	usuel	85
+T3	Poumon homolatéral	sein seul	V20Gy ≤ 25 %	usuel	85
+T3	Poumon homolatéral	sein + ganglions	V20Gy ≤ 35 %	usuel	85
+T3	Poumons (total des 2)	cancer du poumon	V<5Gy > 2300 mL	autre	93
+T3	Poumons (total des 2)	cancer du poumon	V20Gy < 20 %	autre	93
+T3	Poumons (total des 2)	pneumopathie ≥ G2 0 %	V20Gy ≤ 22 %	risque	107
+T3	Poumons (total des 2)	pneumopathie ≥ G2 7 %	V20Gy = 22–31 %	risque	107
+T3	Poumons (total des 2)	pneumopathie ≥ G3 4 %	V25Gy ≤ 30 %	risque	108
+T3	Poumons (total des 2)	pneumopathie tous grades 4 %	V30Gy ≤ 18 %	risque	108
+T3	Poumon homolatéral	pneumopathie ≥ G2 9 %	V20Gy ≤ 52 %	risque	109
+T3	Poumon homolatéral	pneumopathie ≥ G2 8 %	V30Gy ≤ 39 %	risque	109
+T3	Poumon controlatéral	pneumopathie ≥ G3 0 %	V5Gy ≤ 60 %	risque	110
+T3	Poumon controlatéral	pneumopathie ≥ G3 3 %	V5Gy ≤ 42 %	risque	110,111
+T3	Poumon controlatéral	pneumopathie ≥ G3 4 %	V5Gy ≤ 75 %	risque	110
+T3	Poumon homolatéral	sein	V20Gy ≤ 45 %	autre	92
+T3	Poumon homolatéral	sein	V30Gy < 35 %	autre	92
+T3	Poumon homolatéral	sein	V30Gy < 10 %	autre	112
+T3	Sein controlatéral		V5Gy ≤ 15 %	autre	92
+T3	Trachée		Dmax < 70 Gy	autre	
+T3	Ventricule droit		V10Gy < 4 %	autre	113
+T3	Ventricule gauche		V60Gy < 0 %	autre	59
+T3	Ventricule gauche		V30Gy < 10 %	autre	114
+T4	Duodénum	anses grêles seules	V15Gy < 120 mL	autre	20,115
+T4	Duodénum		V25Gy ≤ 45 %	autre	116
+T4	Duodénum		V35Gy ≤ 20 %	autre	116
+T4	Duodénum	cavité péritonéale	V45Gy < 190 mL	autre	
+T4	Duodénum	tardif	V55Gy < 1 mL	autre	117
+T4	Duodénum	tardif	V55Gy < 15 mL	autre	118
+T4	Estomac	ulcère au-delà de 45 Gy	risque ulcère > 45 Gy	risque	
+T4	Estomac		Dmax < 54 Gy	usuel	119
+T4	Estomac		Dmean < 45 Gy	usuel	119
+T4	Foie	foie − GTV	Dmean < 28–32 Gy	usuel	120
+T4	Foie		Dmean < 26 Gy	usuel	121
+T4	Foie	foie pathologique	Dmean < 22 Gy	usuel	122
+T4	Foie		Vtotal − V30Gy > 700 mL	usuel	121
+T4	Foie		D100% ≤ 28–30 Gy	autre	120
+T4	Foie		V5Gy < 86 %	autre	121
+T4	Foie		V10Gy < 68 %	autre	121
+T4	Foie		V15Gy < 59 %	autre	121
+T4	Foie		V16Gy < 66 %	autre	121
+T4	Foie		V20Gy < 49 %	autre	121
+T4	Foie		V25Gy < 35 %	autre	121
+T4	Foie		V30Gy < 30 %	autre	93,123
+T4	Foie		V32Gy < 33 %	autre	121
+T4	Foie		V35Gy < 25 %	autre	121
+T4	Foie		V40Gy < 20 %	autre	121
+T4	Foie		V47,6Gy < 33 %	autre	124
+T4	Pancréas	sécrétion exocrine	Dmean < 20–25 Gy	usuel	125
+T4	Pancréas	sécrétion endocrine (queue)	Dmean < 25 Gy	usuel	125
+T4	Tube digestif (anses grêles)	RTOG tardif ≥ G2 < 25 %	V30Gy < 178 mL	autre	126
+T4	Tube digestif (anses grêles)	RTOG tardif ≥ G2 < 25 %	V40Gy < 151 mL	autre	126
+T4	Tube digestif (anses grêles)	RTOG tardif ≥ G2 < 25 %	V45Gy < 139 mL	autre	126
+T4	Tube digestif (anses grêles)	RTOG tardif ≥ G2 < 25 %	V60Gy < 98 mL	autre	126
+T4	Tube digestif (anses grêles)	RTOG tardif ≥ G2 < 25 %	V65Gy < 40 mL	autre	126
+T4	Reins		Dmean < 16,2 Gy	usuel	127
+T4	Reins	total des 2 reins	V20Gy < 50 %	usuel	93,128
+T4	Rein unique	rein unique	V20Gy < 30 %	usuel	93,128-130
+T4	Reins	irradiation des 2 reins	V20Gy < 70 % d'un rein et < 30 % de l'autre	usuel	93,128-130
+T4	Reins	un ou deux reins	V5Gy < 50 %	autre	127
+T4	Reins	un ou deux reins	V10Gy < 30 %	autre	127
+T4	Reins	un ou deux reins	V20Gy < 10 %	autre	127
+T4	Reins	un ou deux reins	V20Gy < 100 mL	autre	127
+T4	Reins	clairance et atrophie	V20Gy < 26,6 %	autre	131
+T4	Reins	clairance et atrophie	D30% < 19 Gy	autre	131
+T5	Bulbe pénien		Dmean ≤ 38,2 Gy	autre	40,132
+T5	Bulbe pénien		Dmean ≤ 52,5 Gy	autre	133,134
+T5	Bulbe pénien		D30% < 67 Gy	autre	133
+T5	Bulbe pénien		D45% < 63 Gy	autre	133
+T5	Bulbe pénien		D60% < 42 Gy	autre	133
+T5	Bulbe pénien		D75% < 20 Gy	autre	133
+T5	Bulbe pénien		D95% < 50 Gy	autre	135
+T5	Canal anal		dose limitée à 55 Gy dans tout le canal	usuel	
+T5	Canal anal		Dmean < 40–45 Gy	autre	136
+T5	Canal anal		Dmean < 40–47 Gy	autre	14
+T5	Canal anal	incontinence fécale	V35Gy < 60 %	autre	137
+T5	Canal anal	incontinence fécale	V40Gy < 40 %	autre	137
+T5	Côlon / sigmoïde	tardif	V15Gy < 250 mL	autre	138
+T5	Côlon / sigmoïde	tardif	V30Gy < 100 mL	autre	138
+T5	Côlon / sigmoïde	tardif	V40Gy < 90 mL	autre	138
+T5	Côlon / sigmoïde	diarrhée tardive G1	V40Gy < 10 %	autre	139
+T5	Côlon / sigmoïde	diarrhée tardive G1	V30Gy < 16 %	autre	139
+T5	Intestin grêle (cavité ou sac)	diarrhée G3 risque 2 %	V45Gy < 100 mL	risque	140
+T5	Intestin grêle (cavité ou sac)	diarrhée G3 risque 10 %	V45Gy < 200 mL	risque	140
+T5	Intestin grêle (anses)	anses	V15Gy < 275 mL	usuel	141
+T5	Intestin grêle (cavité péritonéale)	cavité péritonéale	V15Gy < 830 mL	usuel	141
+T5	Intestin grêle (cavité péritonéale)	cavité péritonéale	V45Gy < 150 mL	usuel	142
+T5	Intestin grêle (anses)	diarrhée < G2 [143]	V40Gy < 124 mL ; V45Gy < 71 mL ; V60Gy < 0,5 mL	autre	143
+T5	Intestin grêle (anses)	diarrhée < G2 [144]	V5 < 276 ; V10 < 244 ; V15 < 194 ; V20 < 94 ; V25 < 70 ; V30 < 65 ; V35 < 23 ; V40 < 23 ; V>42,75 < 10 mL	autre	144
+T5	Intestin grêle (anses)	diarrhée < G3	V5 < 425–500 ; V10 < 265–300 ; V15 < 120–150 ; V20 < 112–145 ; V25 < 105–140 ; V30 < 92–135 ; V35 < 85–130 ; V40 < 71–125 mL	autre	142,145
+T5	Intestin grêle (cavité péritonéale)	toxicité digestive	V20 < 554 ; V30 < 311 ; V35 < 241 ; V40 < 188 ; V50 < 105 mL	autre	142
+T5	Intestin grêle	tardif	V40Gy < 340 mL	autre	146
+T5	Intestin grêle	tardif	V15Gy < 275 mL	autre	138
+T5	Moelle osseuse		Dmean ≤ 32 Gy	usuel	147
+T5	Moelle osseuse	pelvis	Dmean ≤ 28 Gy	usuel	147
+T5	Moelle osseuse	lombo-sacrée	Dmean ≤ 35 Gy	usuel	147
+T5	Organes génitaux externes		V20Gy < 50 % ; V30Gy < 35 % ; V50Gy < 5 %	autre	148
+T5	Os iliaque		V40Gy < 37 %	usuel	
+T5	Os iliaque	cavité médullaire (hématopoïétique) G2	V40Gy < 40 %	usuel	149
+T5	Os iliaque		V10 < 90 % ; V20 < 75 % ; V30 < 50 % ; V40 < 35 % ; V40 < 37 % ; V50 < 5 % ; Dmax < 50 Gy	autre	23,147,150
+T5	Os iliaque	RCMI + cisplatine	V10Gy < 95 % ; V20Gy < 80 % ; V30Gy < 64 %	autre	151
+T5	Ovaire		Dmean = 6–10 Gy	usuel	152
+T5	Plexus lombo-sacré		Dmax ≤ 50 Gy	usuel	153-155
+T5	Rectum	prostate normofractionné	V60Gy < 50 %	usuel	
+T5	Rectum	prostate normofractionné	V70Gy < 25 %	usuel	
+T5	Rectum	prostate normofractionné (Gétug ; imprimé tel quel)	V75Gy < 35 %	usuel	
+T5	Rectum	prostate hypofractionné 20 × 3 Gy	Dmean aussi basse que possible	usuel	156
+T5	Rectum	prostate hypofractionné 20 × 3 Gy	V46Gy ≤ 30 %	usuel	156
+T5	Rectum	prostate hypofractionné 20 × 3 Gy	V37Gy ≤ 50 %	usuel	156
+T5	Rectum	rectum en totalité	Dmax ≤ 52,5 Gy ; V40 < 50 % ; V65 < 30 % ; V70 < 15 % ; V75 < 3 %	autre	147,157
+T5	Rectum	homme	V40 < 40 % ; V65 < 20 % ; V70 < 10 % (< 15 % [159])	autre	158,159
+T5	Rectum	femme	V40 < 80 % ; V65 < 40 % ; V70 < 20 %	autre	158
+T5	Rectum	toxicité ≥ G2	V40 < 60 % ; V50 < 50 % ; V60 < 40 % (< 25 % [160]) ; V70 < 25 %	autre	160,161
+T5	Rectum	toxicité ≥ G2 (suite)	V72 < 15 % ; V75,6 < 15 % ; V76 < 5 % ; V78 < 5 %	autre	160,161
+T5	Rectum	rectorragie < G2–3	V50 < 60–65 % ; V60 < 50–55 % ; V65 < 40 % ; V70 < 25–30 % ; V75 < 5 %	autre	162,163
+T5	Paroi rectale	NTCP rectorragie ≥ G2 < 5 %	V73,7Gy < 40 %	autre	164
+T5	Rectum	toxicité rectale	V60 < 54 % ; V70 < 44 % ; V75 < 39 %	autre	165
+T5	Rectum	toxicité rectale tardive	V30 ≤ 80 % ; V40 ≤ 65 % ; V50 ≤ 55 % ; V60 ≤ 40 % ; V65 ≤ 30 % ; V70 ≤ 15 % ; V75 ≤ 3 %	autre	166
+T5	Sacrum		Dmax < 50 Gy	autre	150
+T5	Têtes fémorales		V50Gy < 2 %	usuel	147
+T5	Têtes fémorales		V52Gy < 10 %	usuel	167
+T5	Têtes fémorales		V30 < 50 % ; V40 < 35 % ; V44 < 5–10 %	autre	148
+T5	Utérus		D100% < 45 Gy	autre	168
+T5	Vessie	prostate normofractionné	V60Gy < 50 %	usuel	
+T5	Vessie	prostate normofractionné (Gétug)	V70Gy < 25 %	usuel	
+T5	Vessie	prostate hypofractionné 20 × 3 Gy	V60Gy ≤ 5 %	usuel	156
+T5	Vessie	prostate hypofractionné 20 × 3 Gy	V48Gy ≤ 25 %	usuel	156
+T5	Vessie	prostate hypofractionné 20 × 3 Gy	V41Gy ≤ 50 %	usuel	156
+T5	Vessie	vessie en totalité	V20 < 96 % ; V35 < 50 % ; V40 < 35 % ; V45 < 35 % ; V50 < 50 % (5 % [148]) ; V60 < 25 % ; V65 < 50 % ; V70 < 5 % (< 35 % [134]) ; V75 < 25 %	autre	134,147,148,157,169
+T5	Paroi vésicale		V20Gy < 99 %	autre	169
+T6	Moelle épinière (« bone marrow » dans le texte anglais : myélite)	myélite	Dmax = 50–50,4 Gy	risque	89
+T6	Moelle épinière	myélite avec chimiothérapie	Dmax 40–45 Gy	risque	93
+T6	Moelle épinière		Dmax ≤ 45 Gy	usuel	85,170
+T6	Moelle épinière		Dmax ≤ 50 Gy	usuel	
+T6	Moelle épinière	avec radiochimiothérapie	Dmax ≤ 45 Gy	usuel	
+T6	Os longs		Dmax < 59 Gy	usuel	68,170
+T6	Os longs	fracture	V40Gy < 64 %	autre	170
+T6	Peau	réaction tardive ≥ G3	Dmean > 60 Gy sur plus de 20 cm²	risque	171
+T6	Peau	fibrose mammaire	D100% < 60 Gy	autre	103

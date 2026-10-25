@@ -673,6 +673,10 @@ refus reste valable pour des contraintes dans la prescription ou le dossier d'un
       risque »), protocoles IGR (prostate 2016, ORL, col et corps utérin, stéréo poumon, dosimétrie sein), EMBRACE II, Sénorif 2026, harmonisation
       stéréotaxie IGR 2018, fiches dosimétriques IGR, tableurs du service (dernier recours) ; une contrainte par organe, indicateur et régime ;
       tableau des désaccords à faire valider par Dr Bentahila avant toute écriture.
+      25/10/2026 : RecoRad normofractionné recopié en entier (tableaux 1 à 6, `docs/radiotherapie/recorad-normo.tsv`) ; premier tableau des choix
+      (normofractionné) `docs/radiotherapie/choix-contraintes-normo.html` : 71 organes contourés, 40 avec une valeur RecoRad usuelle (10 en désaccord
+      avec un jeu, 5 sans contrainte aujourd'hui), 31 sans valeur usuelle. Les PDF IGR / Curie, EMBRACE II, Sénorif 2026 et RecoRad 2025 ne sont plus
+      sur le Mac : redemandés à Dr Bentahila. Reste : hypofractionné, stéréotaxie (tableaux 7 à 12), validation.
 - [ ] Étapes C (organisation des données, contrôles, écran), D (stéréotaxie, curiethérapie, réirradiation), E (modification par le cabinet),
       F (contrôle complet, mise en ligne avec accord).
 
