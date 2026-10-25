@@ -1,5 +1,6 @@
 import pathlib; __file__=str(pathlib.Path(__file__).resolve()); exec(open(pathlib.Path(__file__).parent/'base.py').read())
-# RTR, RT3 (25/10/2026) : page Référentiel du menu « Radiothérapie » (radiotherapie.js) : accueil (Favoris, Consultés récemment, Sommaire),
+# RTR, RT3 (25/10/2026) : page Référentiel du menu « Radiothérapie » (radiotherapie.js) : sans recherche, Consultés récemment, Favoris puis tous les
+# schémas (étape A du 25/10/2026 : plus de sommaire ; fiche en pleine page, « Retour à la liste ») ;
 # recherche (↑ ↓ Entrée Échap, surlignage), menus Région › Localisation › Situation › Fractionnement (nombres, cascade), liste (intertitres,
 # critères de la situation), aucun résultat (« Chercher sans »), fiche à droite dès 1 280 px, page entière avec Retour en dessous, téléphone
 # (bouton Filtres), badge « Modifié pour le cabinet », réglages personnels (rtFavoris, rtRecents). Jeu fictif + contenu de référence.
@@ -11,7 +12,7 @@ def ok(c, m, d=None):
 S2 = json.loads(json.dumps(S))
 S2[E + 'referentielRT/pro-fav-42-7'] = {'schema': {'id': 'pro-fav-42-7', 'situation_id': 'pro-ep-fav', 'titre': '42,7 Gy / 7 fx (version du cabinet)', 'type': 'rte_hypo', 'preuve': 'essai_phase3', 'essai_ids': [], 'prescriptions': [{'volume': 'PTV_PRO', 'dose_Gy': 42.7, 'fractions': 7, 'dose_fx_Gy': 6.1, 'mode': 'seul', 'rythme': '3 fx/sem'}]}, 'localisation_id': 'prostate', 'origine': 'cabinet', 'base': '2026-10-01', 'majPar': 'UIDRITA', 'majParNom': 'Dr Médecin Test'}
 TXT = "document.getElementById('page').innerText"
-LIGNES = "[...document.querySelectorAll('#rtrListe .rtr-l')].map(e => e.querySelector('b').innerText)"
+LIGNES = "[...document.querySelectorAll('#rtrListe > .rtr-l')].map(e => e.querySelector('b').innerText)"
 DEBORDE = "document.documentElement.scrollWidth > window.innerWidth + 1"
 COUPE = "[...document.querySelectorAll('.rtr-l1 b, .rtr-t h2')].filter(b => b.scrollWidth > b.clientWidth + 1).length"
 async def menu(pg, k, v):
@@ -23,8 +24,8 @@ async def main():
         await pg.goto(f'http://localhost:{PORT}/v2.html#radiotherapie'); await pg.wait_for_timeout(3000)
         # Accueil
         t = await ev(TXT)
-        ok('Sommaire' in t and 'Favoris' not in t and 'Consultés récemment' not in t, 'accueil au premier usage : Sommaire seul (ni Favoris ni Récents)')
-        ok(await ev("document.querySelectorAll('.rtr-reg').length") == 11 and await ev("document.querySelectorAll('.rtr-reg button').length") == 48, 'sommaire : 11 régions, 48 localisations')
+        ok('Tous les schémas' in t and 'Sommaire' not in t and 'Favoris' not in t and 'Consultés récemment' not in t, 'premier usage : tous les schémas, sans sommaire (ni Favoris ni Récents)')
+        ok(len(await ev(LIGNES)) == 295 and await ev("document.querySelectorAll('.rtr-it').length") == 48, 'liste complète : 295 schémas, un intertitre par localisation (48)')
         ok(await ev("document.activeElement && document.activeElement.id") == 'rtrQ', 'ordinateur : le curseur est dans la recherche du module')
         ok(not await ev(DEBORDE), '1 440 px : accueil sans débordement')
         # Recherche, surlignage, clavier
@@ -40,12 +41,13 @@ async def main():
         await pg.keyboard.press('Enter'); await pg.wait_for_timeout(1500)
         h = await ev("location.hash")
         ok(h.startswith('#radiotherapie/s/') and h.endswith('/prescription') and sel in await ev("document.querySelector('.rtr-t h2').innerText"), '↓ ↓ Entrée : le 2e schéma s\'ouvre (#radiotherapie/s/…/prescription)', [h, sel])
-        ok(await ev("document.getElementById('rtr').classList.contains('deux')") and len(await ev(LIGNES)) == len(L), '1 440 px : fiche à droite, la liste reste à gauche')
+        ok(await ev("document.getElementById('rtr').classList.contains('seule')") and not await ev("!!document.getElementById('rtrListe')") and await ev("!!document.querySelector('.rtr-ret')"), '1 440 px : fiche en pleine page, « Retour à la liste »')
         r = await ev("document.querySelector('.rtr-res').textContent")
         ok('Gy' in r and 'Validé' in r and 'Vérifié le' in r, 'en-tête : résumé de prescription, Validé, Vérifié le', r)
-        # Un autre schéma, depuis la liste : seule la fiche change
-        await ev("document.querySelector('#rtrListe').scrollTop = 0"); await pg.click('#rtrListe .rtr-l >> nth=0'); await pg.wait_for_timeout(1200)
-        ok(await ev("document.querySelector('#rtrListe .rtr-l.on') !== null") and await ev("document.getElementById('rtrQ').value") == 'prostate 60', 'autre schéma : liste et recherche gardées, ligne ouverte marquée')
+        # Retour à la liste : même recherche ; un autre schéma
+        await pg.click('.rtr-ret'); await pg.wait_for_timeout(1200)
+        ok(await ev("location.hash") == '#radiotherapie' and await ev("document.getElementById('rtrQ').value") == 'prostate 60' and await ev(LIGNES) == L, '« Retour à la liste » : la même recherche, la même liste')
+        await pg.click('#rtrListe > .rtr-l >> nth=0'); await pg.wait_for_timeout(1200)
         rec = await ev("(window.__fs['utilisateurs/UIDRITA'] || {}).rtRecents || []")
         ok(len(rec) == 2, 'consultés récemment : 2 schémas notés (utilisateurs/{uid}.rtRecents)', rec)
         # Étoile, favoris
@@ -56,7 +58,7 @@ async def main():
         await pg.click('#rtrQ'); await pg.keyboard.press('Escape'); await pg.wait_for_timeout(300)
         t = await ev(TXT)
         ok(await ev("document.getElementById('rtrQ').value") == '' and 'Favoris' in t and 'Consultés récemment' in t, 'Échap vide la recherche ; accueil : Favoris et Consultés récemment')
-        await pg.click('.rtr-bloc >> nth=0 >> .rtr-l'); await pg.wait_for_timeout(1200)
+        await pg.click('.rtr-bloc:has(h3:has-text("Favoris")) .rtr-l'); await pg.wait_for_timeout(1200)
         ok(await ev("location.hash") == '#radiotherapie/s/' + fav[0] + '/prescription', 'un favori s\'ouvre en un clic depuis l\'accueil')
         await ev("location.hash='radiotherapie'"); await pg.wait_for_timeout(800)
         # Menus en cascade
@@ -74,12 +76,10 @@ async def main():
         await menu(pg, 'reg', 'gyneco'); await pg.wait_for_timeout(200)
         ok(await ev("[document.getElementById('rtr_loc').value, document.getElementById('rtr_sit').value]") == ['', ''], 'changer de région vide Localisation et Situation, plus valables')
         await pg.click('.rtr-mz .bt.gris'); await pg.wait_for_timeout(300)
-        ok('Sommaire' in await ev(TXT), '« Effacer » : retour à l\'accueil')
-        # Sommaire
-        await pg.click('.rtr-reg button:has-text("Col utérin")'); await pg.wait_for_timeout(300)
-        ok(await ev("[document.getElementById('rtr_reg').value, document.getElementById('rtr_loc').value]") == ['gyneco', 'col'] and len(await ev(LIGNES)) == 7, 'sommaire : un clic règle Région et Localisation (Col utérin, 7)')
-        await pg.click('.rtr-mz .bt.gris'); await pg.click('.rtr-curie'); await pg.wait_for_timeout(300)
-        ok(await ev("document.getElementById('rtr_frac').value") == 'Curiethérapie' and await ev("document.querySelectorAll('.rtr-it').length") > 3, '« Curiethérapie (n) » règle le Fractionnement ; un intertitre par localisation')
+        t = await ev(TXT)
+        ok('Tous les schémas' in t and t.index('Consultés récemment') < t.index('Favoris') < t.index('Tous les schémas') and len(await ev(LIGNES)) == 295, '« Effacer » : retour à la liste générale, Consultés récemment en tête')
+        await menu(pg, 'frac', 'Curiethérapie')
+        ok(await ev("document.querySelectorAll('.rtr-it').length") > 3, 'Fractionnement « Curiethérapie » : un intertitre par localisation')
         # Aucun résultat
         await pg.click('.rtr-mz .bt.gris'); await pg.fill('#rtrQ', 'prostate zzz'); await pg.wait_for_timeout(300)
         ok('Aucun schéma ne correspond' in await ev(TXT) and 'Chercher sans « zzz »' in await ev(TXT), 'aucun résultat : « Chercher sans « zzz » »')
@@ -91,17 +91,16 @@ async def main():
         ok(await ev("location.hash") == '#radiotherapie' and await ev("document.getElementById('rtr_loc').value") == 'prostate', 'fil d\'Ariane : « Prostate » règle les menus de la liste')
         ok(not await ev(DEBORDE) and not await ev(COUPE), '1 440 px : liste sans débordement, aucun titre coupé')
         ok(not pg.errs, 'aucune erreur JavaScript (1 440 px)', pg.errs[:2]); await pg.close()
-        # 1 280 px : deux colonnes ; 1 200 px : fiche en page entière, Retour retrouve la liste
-        for w, deux in [(1280, True), (1200, False)]:
+        # 1 280 et 1 200 px : fiche en pleine page, Retour retrouve la liste
+        for w in [1280, 1200]:
             pg = await ouvrir(b, S2, w=w); ev = pg.evaluate
             await pg.goto(f'http://localhost:{PORT}/v2.html#radiotherapie'); await pg.wait_for_timeout(2500)
             await pg.fill('#rtrQ', 'col curie'); await pg.wait_for_timeout(300); n = len(await ev(LIGNES))
             await pg.keyboard.press('Enter'); await pg.wait_for_timeout(1500)
-            ok(await ev("document.getElementById('rtr').classList.contains('deux')") == deux and (await ev("!!document.getElementById('rtrListe')")) == deux, f'{w} px : fiche ' + ('à droite de la liste' if deux else 'en page entière'))
+            ok(not await ev("!!document.getElementById('rtrListe')") and await ev("!!document.querySelector('.rtr-ret')"), f'{w} px : fiche en pleine page')
             ok(not await ev(DEBORDE) and not await ev(COUPE), f'{w} px : sans débordement, titres entiers')
-            if not deux:
-                await pg.click('.rtr-ret'); await pg.wait_for_timeout(1200)
-                ok(await ev("document.getElementById('rtrQ').value") == 'col curie' and len(await ev(LIGNES)) == n, f'{w} px : Retour retrouve la même liste')
+            await pg.click('.rtr-ret'); await pg.wait_for_timeout(1200)
+            ok(await ev("document.getElementById('rtrQ').value") == 'col curie' and len(await ev(LIGNES)) == n, f'{w} px : Retour retrouve la même liste')
             ok(not pg.errs, f'{w} px : aucune erreur JavaScript', pg.errs[:2]); await pg.close()
         # Téléphone (390 px)
         pg = await ouvrir(b, S2, w=390, h=800); ev = pg.evaluate

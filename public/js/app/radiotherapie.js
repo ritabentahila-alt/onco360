@@ -4,7 +4,7 @@
 // (écrits en RT5) ; calculs dans moteur/rtref.js. Le module n'écrit rien dans les dossiers patients.
 // RT3 (25/10/2026) : page Référentiel. Recherche du module (fixée en haut ; ↑ ↓ Entrée Échap), menus Région › Localisation › Situation ›
 // Fractionnement (nombre de schémas entre parenthèses ; Situation = contextes tant qu'aucune localisation n'est choisie), liste (2 lignes par
-// schéma, intertitre par localisation, termes surlignés, étoile), accueil sans recherche (Favoris, Consultés récemment, Sommaire), états
+// schéma, intertitre par localisation, termes surlignés, étoile), sans recherche : Consultés récemment, Favoris, puis tous les schémas (25/10/2026, plus de sommaire), états
 // (chargement, aucun résultat, erreur). Recherche et menus restent en mémoire pendant la session (comme les filtres de Protocoles).
 // Réglages personnels : utilisateurs/{uid}.rtFavoris (identifiants), .rtRecents (8 derniers ouverts), .rtOnglet (dernier onglet de fiche).
 // Fiche (RT4) : à partir de 1 280 px, à droite de la liste ; en dessous, page entière avec Retour.
@@ -21,7 +21,6 @@ let ARG = null;
 export function installer(api) { A = api; }
 const D = () => A.D();
 const $ = (i) => document.getElementById(i);
-const large = () => window.innerWidth >= 1280;
 
 // ───── Chargement (une fois par session ; servi en no-cache) ─────
 async function json(f) { const r = await fetch("donnees-rt/" + f, { cache: "no-cache" }); if (!r.ok) throw new Error(f + " : " + r.status); return r.json(); }
@@ -133,12 +132,12 @@ function dessinerListe() {
   const z = $("rtrListe"); if (!z) return;
   if (!LISTE) { z.innerHTML = ERREUR ? erreurHtml() : '<div class="rtr-ch">' + '<i></i>'.repeat(6) + "</div>"; return; }
   const accueil = !RF.q.trim() && !actifs();
-  if (accueil) { VUS = []; z.innerHTML = accueilHtml(); return; }
   const L = trier(filtrer(), INDEX, RF.q), T = termes(RF.q), esc = A.esc; VUS = L;
   if (RF.sel >= L.length) RF.sel = L.length - 1;
-  let h = '<p class="mesures rtr-nb">' + L.length + " schéma" + (L.length > 1 ? "s" : "") + "</p>";
+  // sans recherche ni menu : les schémas consultés récemment et les favoris en tête, puis tous les schémas (comme la page Protocoles)
+  let h = (accueil ? blocListe("Consultés récemment", recents()) + blocListe("Favoris", favoris()) + '<h3 class="rtr-tous">Tous les schémas</h3>' : "") + '<p class="mesures rtr-nb">' + L.length + " schéma" + (L.length > 1 ? "s" : "") + "</p>";
   const s = RF.sit && !RF.sit.startsWith("ctx:") ? sit(RF.sit) : null;
-  if (s && s.criteres) { const c = s.criteres, court = c.length > 90 ? c.slice(0, c.lastIndexOf(" ", 88)) + "…" : c; h += '<p class="rtr-crit">' + esc(court) + (court !== c ? ' <span class="rtr-aide" tabindex="0" title="' + esc(c) + '">?</span>' : "") + "</p>"; }
+  if (s && s.criteres) h += '<p class="rtr-crit">' + esc(s.criteres) + "</p>";
   if (!L.length) {
     const m = motBloquant(LISTE, RF.q, INDEX, TEXTES);
     h += '<div class="vide-c">Aucun schéma ne correspond' + (m ? '<br><button class="bt clair petit" onclick="rtrSansMot(\'' + esc(m).replace(/'/g, "\\'") + "')\">Chercher sans « " + esc(m) + " »</button>" : "") + (actifs() ? ' <button class="bt gris petit" onclick="rtrEffacer()">Effacer les filtres</button>' : "") + "</div>";
@@ -151,17 +150,6 @@ function dessinerListe() {
 function blocListe(titre, ids) {
   const L = ids.map((id) => LISTE.find((e) => e.id === id)).filter(Boolean);
   return L.length ? '<section class="rtr-bloc"><h3>' + titre + "</h3>" + L.map((e, i) => ligne(e, [], 1000 + i)).join("") + "</section>" : "";
-}
-function accueilHtml() {
-  const esc = A.esc, nCurie = LISTE.filter((e) => fracDe(e) === "Curiethérapie").length;
-  let h = blocListe("Favoris", favoris()) + blocListe("Consultés récemment", recents());
-  h += '<section class="rtr-bloc"><h3>Sommaire</h3><button class="rtr-curie" onclick="rtrSommaire(\'\',\'\',\'Curiethérapie\')">Curiethérapie <span>(' + nCurie + ')</span></button><div class="rtr-som">';
-  INDEX.regions.slice().sort((a, b) => a.ordre - b.ordre).forEach((r) => {
-    const L = INDEX.localisations.filter((l) => l.region_id === r.id).sort((a, b) => a.ordre - b.ordre); if (!L.length) return;
-    h += '<div class="rtr-reg"><h4>' + esc(r.nom) + "</h4>" + L.map((l) => { const n = LISTE.filter((e) => e.localisation_id === l.id).length;
-      return n ? '<button onclick="rtrSommaire(\'' + r.id + "','" + l.id + "')\">" + esc(l.nom) + " <span>(" + n + ")</span></button>" : '<span class="rtr-red">' + esc(l.nom) + " · En cours de rédaction</span>"; }).join("") + "</div>";
-  });
-  return h + "</div></section>";
 }
 const erreurHtml = () => '<div class="vide-c">Le référentiel n\'a pas pu être chargé.<br><button class="bt clair petit" id="rtrReessayer" onclick="rtrReessayer()">Réessayer</button></div>';
 window.rtrReessayer = () => { ERREUR = null; pageRadiotherapie(ARG); };
@@ -198,17 +186,13 @@ const dessinerEnteteFiche = () => { if (FICHE && $("rtrFiche")) dessinerFiche();
 
 // Petits morceaux communs
 const dfr = (d) => String(d || "").split("-").reverse().join("/");
-function court(t, n = 90) {
-  const s = String(t == null ? "" : t), esc = A.esc; if (IMPRESSION || s.length <= n) return esc(s);
-  const c = s.slice(0, s.lastIndexOf(" ", n - 2) > 40 ? s.lastIndexOf(" ", n - 2) : n - 2).replace(/[\s,;:]+$/, "") + "…";
-  return '<span class="rtr-c"><span>' + esc(c) + '</span> <button type="button" class="rtr-aide" title="' + esc(s) + '" aria-label="Lire la suite" onclick="rtrPlus(this,event)">?</button><span hidden>' + esc(s) + "</span></span>";
-}
-window.rtrPlus = (b, ev) => { if (ev) ev.stopPropagation(); const p = b.parentNode; p.firstChild.hidden = true; b.hidden = true; p.lastChild.hidden = false; };
+// Textes toujours écrits en entier (demande de Dr Bentahila du 25/10/2026 : plus aucun « ? » dans le module)
+const court = (t) => A.esc(String(t == null ? "" : t));
 // Paragraphes rédigés : HTML échappé, puis **gras**, `identifiant` et [lien](url) seulement
 const md = (t) => A.esc(t).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/`([^`]+)`/g, "<code>$1</code>").replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
 const textes = (k) => ((FICHE.loc.textes || {})[k] || []).map((p) => '<p class="rtr-tx">' + md(p) + "</p>").join("");
-const vide = (note) => "—" + (note ? " " + (IMPRESSION ? '<span class="mesures">' + A.esc(note) + "</span>" : '<button type="button" class="rtr-aide" title="' + A.esc(note) + '" aria-label="Note" onclick="rtrPlus2(this,event)">?</button><span class="mesures" hidden> ' + A.esc(note) + "</span>") : "");
-window.rtrPlus2 = (b, ev) => { if (ev) ev.stopPropagation(); b.hidden = true; b.nextSibling.hidden = false; };
+// valeur absente : « — » (la note de la ligne est écrite sous le volume)
+const vide = () => "—";
 const num = (v, suf) => (typeof v === "number" && isFinite(v) ? nb(v) + (suf || "") : null);
 const essai = (id) => BB.essais.find((x) => x.id === id);
 const acronymes = (ids) => (ids || []).map((i) => (essai(i) || {}).acronyme || i).join(", ");
@@ -232,7 +216,9 @@ function tablePrescription(L) {
 function lignesSyst(rows, champ) {
   const esc = A.esc, s = FICHE.schema;
   const L = rows.filter((x) => !x.situation_id || x.situation_id === s.situation_id); if (!L.length) return "";
-  return '<ul class="rtr-sys">' + L.map((x) => "<li>" + (x.situation ? '<span class="mesures">' + esc(x.situation) + " :</span> " : "") + court(x[champ] || "", 140) + (x.protocole ? " · " + lienProtocole(x.protocole) : "") +
+  // situation écrite seulement si ce n'est pas celle du schéma (nom de la situation, jamais son identifiant)
+  const lib = (x) => { const id = x.situation_id || x.situation, st = sit(id); if (id === s.situation_id) return ""; return st ? st.titre : x.situation || ""; };
+  return '<ul class="rtr-sys">' + L.map((x) => "<li>" + (lib(x) ? '<span class="mesures">' + esc(lib(x)) + " :</span> " : "") + court(x[champ] || "", 140) + (x.protocole ? " · " + lienProtocole(x.protocole) : "") +
     (x.essai_ids && x.essai_ids.length ? ' <span class="mesures">(' + esc(acronymes(x.essai_ids)) + ")</span>" : "") + (x.note ? '<div class="mesures">' + court(x.note) + "</div>" : "") + "</li>").join("") + "</ul>";
 }
 function ongletPrescription() {
@@ -264,7 +250,7 @@ function ongletContourage() {
   let h = '<div class="rtr-tw"><table class="rtr-tab"><thead><tr><th>Nom</th><th>Type</th><th>Définition</th><th>Quand</th><th>Marge</th></tr></thead><tbody>' + (v.cibles || []).map((c) =>
     '<tr><td data-l="Nom"><b>' + esc(c.nom || "") + '</b></td><td data-l="Type"><span class="badge b-gr">' + esc(c.type || "") + '</span></td><td data-l="Définition">' + court(c.definition || "") + '</td><td data-l="Quand">' + court(c.quand || "", 60) + '</td><td data-l="Marge"><b>' + esc(c.marge || "—") + "</b></td></tr>").join("") + "</tbody></table></div>";
   if ((v.oar_ids || []).length) h += "<h4>Organes à risque à contourer</h4><ul class=\"rtr-oar\">" + v.oar_ids.map((id) => { const o = oar(id), n = (v.oar_notes || {})[id];
-    return "<li>" + esc(o.nom) + (o.nom_tg263 ? ' <span class="mesures">' + esc(o.nom_tg263) + "</span>" : "") + (n ? ' <span class="mesures">(' + esc(n) + ")</span>" : "") + (o.definition && !IMPRESSION ? ' <button type="button" class="rtr-aide" title="' + esc(o.definition) + '" aria-label="Définition" onclick="rtrPlus2(this,event)">?</button><span class="mesures" hidden> ' + esc(o.definition) + "</span>" : "") + "</li>"; }).join("") + "</ul>";
+    return "<li>" + esc(o.nom) + (o.nom_tg263 ? ' <span class="mesures">' + esc(o.nom_tg263) + "</span>" : "") + (n ? ' <span class="mesures">(' + esc(n) + ")</span>" : "") + (o.definition ? '<div class="mesures">' + esc(o.definition) + "</div>" : "") + "</li>"; }).join("") + "</ul>";
   if ((v.atlas || []).length) h += '<p class="rtr-l2"><span class="mesures">Atlas</span> ' + v.atlas.map((a) => (a.url ? '<a href="' + esc(a.url) + '" target="_blank" rel="noopener">' + esc(a.nom) + "</a>" : esc(a.nom))).join(" · ") + "</p>";
   return h + textes("contourage");
 }
@@ -273,10 +259,10 @@ const jeuxDe = () => (FICHE.schema.contraintes_ids || []).map((id) => BB.jeux.fi
 function aideDe(j) { const A2 = BB.aide || []; return A2.find((a) => a.source_contient !== "defaut" && String(j.source || "").indexOf(a.source_contient) >= 0) || A2.find((a) => a.source_contient === "defaut") || {}; }
 function groupes(j) { const g = []; j.lignes.forEach((l) => { const d = g[g.length - 1]; if (d && d.oar === l.oar_id) d.l.push(l); else g.push({ oar: l.oar_id, l: [l] }); }); return g; }
 function tableJeu(j, i) {
-  const esc = A.esc, a = aideDe(j), aide = (t) => (t && !IMPRESSION ? ' <span class="rtr-aide" tabindex="0" title="' + esc(t) + '">?</span>' : "");
-  return '<section class="rtr-jeu" id="rtrJeu' + i + '"><div class="rtr-jt"><div><h4>' + esc(j.titre) + '</h4><p class="mesures">' + esc([j.fractionnement, j.source].filter(Boolean).join(" · ")) + "</p></div>" +
+  const esc = A.esc, a = aideDe(j);
+  return '<section class="rtr-jeu" id="rtrJeu' + i + '"><div class="rtr-jt"><div><h4>' + esc(j.titre) + '</h4><p class="mesures">' + esc([j.fractionnement, j.source].filter(Boolean).join(" · ")) + "</p>" + (a.ideal || a.limitant ? '<p class="mesures rtr-aidec">' + (a.ideal ? "<b>Idéal</b> : " + esc(a.ideal) : "") + (a.ideal && a.limitant ? " · " : "") + (a.limitant ? "<b>Limitant</b> : " + esc(a.limitant) : "") + "</p>" : "") + "</div>" +
     (IMPRESSION ? "" : '<button type="button" class="mini rtr-cp" onclick="rtrCopierJeu(\'' + esc(j.id) + '\')">' + A.ic("copier") + "Copier</button>") + "</div>" +
-    '<div class="rtr-tw"><table class="rtr-tab rtr-ct"><thead><tr><th>Organe</th><th>Indicateur</th><th class="n">Idéal' + aide(a.ideal) + '</th><th class="n">Limitant' + aide(a.limitant) + "</th><th>Note</th></tr></thead><tbody>" +
+    '<div class="rtr-tw"><table class="rtr-tab rtr-ct"><thead><tr><th>Organe</th><th>Indicateur</th><th class="n">Idéal</th><th class="n">Limitant</th><th>Note</th></tr></thead><tbody>' +
     groupes(j).map((g) => { const o = oar(g.oar); return g.l.map((l, k) => '<tr class="' + (k ? "" : "g1") + '">' + (k ? "" : '<td class="o" rowspan="' + g.l.length + '" data-l="Organe"><b>' + esc(o.nom) + "</b>" + (o.nom_tg263 ? '<br><span class="mesures">' + esc(o.nom_tg263) + "</span>" : "") + "</td>") +
       '<td data-l="Indicateur">' + esc(l.indicateur || "") + '</td><td class="n" data-l="Idéal">' + esc(l.ideal || "") + '</td><td class="n lim" data-l="Limitant">' + esc(l.limitant || "") + '</td><td data-l="Note">' + court(l.note || "", 60) + "</td></tr>").join(""); }).join("") + "</tbody></table></div></section>";
 }
@@ -313,7 +299,7 @@ function nombres() { const J = jeuxDe(); return { prescription: (FICHE.schema.pr
 function enteteHtml() {
   const esc = A.esc, { e, schema } = FICHE, s = sit(e.situation_id) || {}, l = loc(e.localisation_id) || {}, r = INDEX.regions.find((x) => x.id === l.region_id) || {}, fav = favoris().indexOf(e.id) >= 0;
   const etoile = '<button class="rtr-et' + (fav ? " on" : "") + '" title="' + (fav ? "Retirer des favoris" : "Ajouter aux favoris") + '" aria-pressed="' + fav + '" onclick="rtrEtoile(\'' + esc(e.id) + "')\">" + A.ic("etoile") + "</button>";
-  return '<div class="rtr-ft">' + (large() ? "" : '<button class="mini rtr-ret" onclick="rtrRetour()">' + A.ic("retour") + "Retour</button>") +
+  return '<div class="rtr-ft"><button class="mini rtr-ret" onclick="rtrRetour()">' + A.ic("retour") + "Retour à la liste</button>" +
     '<div class="rtr-ar" role="navigation" aria-label="Fil d\'Ariane"><a href="#radiotherapie" onclick="rtrSommaire(\'' + r.id + "','');return true\">" + esc(r.nom || "") + '</a> › <a href="#radiotherapie" onclick="rtrSommaire(\'' + r.id + "','" + l.id + "');return true\">" + esc(l.nom || "") + "</a> › <span>" + esc(s.titre || "") + "</span></div>" +
     (ED ? '<div class="rtr-t rtr-ted"><label class="rtr-lab">Titre du schéma' + inp("titre", ED.schema.titre, "Titre du schéma") + "</label>" + err("titre") + "</div>" : '<div class="rtr-t"><h2>' + esc(e.titre) + '</h2><div class="rtr-act">' + etoile + actions() + "</div></div>") +
     '<div class="rtr-res">' + esc(resumePrescription(schema)) + ' <span class="badge b-ch"><svg class="pi"><use href="#i-check"/></svg>Validé</span> <span class="badge b-gr">' + esc(libPreuve(schema.preuve || e.preuve)) + "</span>" + (schema.date_verif ? ' <span class="mesures">Vérifié le ' + esc(dfr(schema.date_verif)) + "</span>" : "") + "</div>" +
@@ -753,10 +739,10 @@ export async function pageRadiotherapie(arg) {
   ARG = arg || null;
   const m = /^s\/([^/]+)(?:\/([a-z]+))?/.exec(arg || ""), id = m ? m[1] : arg === "nouveau" ? "nouveau" : null;
   if (!id) RF.ouvert = null;
-  const deux = !!id && large(), seule = !!id && !deux, z = $("rtr");
-  // deux colonnes déjà affichées : seule la fiche change (la liste garde sa position)
-  if (!(deux && z && z.classList.contains("deux") && $("rtrListe"))) {
-    $("page").innerHTML = '<div class="rtr' + (deux ? " deux" : "") + (seule ? " seule" : "") + '" id="rtr">' + (seule ? "" : ongletsPage("")) +
+  // fiche en pleine page (demande du 25/10/2026 : plus de liste à gauche) ; « Retour à la liste » retrouve la recherche et la position
+  const seule = !!id;
+  {
+    $("page").innerHTML = '<div class="rtr' + (seule ? " seule" : "") + '" id="rtr">' + (seule ? "" : ongletsPage("")) +
       (seule ? "" : '<div class="rtr-haut"><div class="recherche"><svg class="i"><use href="#i-loupe"/></svg><input id="rtrQ" type="search" autocomplete="off" placeholder="Rechercher : localisation, dose, essai (ex. prostate 60, col curie, 45 Gy)" aria-label="Rechercher un schéma" value="' + A.esc(RF.q) + '"></div><div class="rtr-filtres" id="rtrFiltres"></div></div>') +
       '<div class="rtr-corps">' + (seule ? "" : '<div class="rtr-liste" id="rtrListe"></div>') + (id ? '<div class="rtr-fiche" id="rtrFiche"></div>' : "") + "</div></div>";
     const q = $("rtrQ");

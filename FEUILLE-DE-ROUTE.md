@@ -659,6 +659,19 @@ prescription d'un patient, pas de mention « hors référentiel ».
 contraintes (onglet Contraintes de la fiche, sous-page Contraintes) est un guide de consultation, sans lien avec le dossier d'un patient. Le
 refus reste valable pour des contraintes dans la prescription ou le dossier d'un patient.
 
+### Phase RTR, suite (demandes de Dr Bentahila du 25/10/2026 après la mise en ligne 20261025d)
+- [x] **Étape A, affichage** (25/10/2026, pas encore en ligne) : fiche en **pleine page** (plus de liste à gauche à partir de 1 280 px), bouton
+      « Retour à la liste » toujours présent (même recherche, même position) ; **plus aucun « ? »** dans tout le module : textes écrits en entier
+      (`court` ne coupe plus ; définition des OAR sous leur nom ; aide d'Idéal et de Limitant écrite sous le titre de chaque jeu ; critères de la
+      situation en entier) ; **plus de sommaire** : tous les schémas listés (comme la page Protocoles), Consultés récemment puis Favoris en tête ;
+      situation d'un traitement associé écrite par son nom (jamais son identifiant). Tests du module adaptés, verts dans Chrome et Safari.
+- [ ] **Étape B, table de référence des contraintes et tableau des choix** : RecoRad 2025 (« Doses limites… » et « Délinéation des organes à
+      risque »), protocoles IGR (prostate 2016, ORL, col et corps utérin, stéréo poumon, dosimétrie sein), EMBRACE II, Sénorif 2026, harmonisation
+      stéréotaxie IGR 2018, fiches dosimétriques IGR, tableurs du service (dernier recours) ; une contrainte par organe, indicateur et régime ;
+      tableau des désaccords à faire valider par Dr Bentahila avant toute écriture.
+- [ ] Étapes C (organisation des données, contrôles, écran), D (stéréotaxie, curiethérapie, réirradiation), E (modification par le cabinet),
+      F (contrôle complet, mise en ligne avec accord).
+
 ## À placer (nouveau plan)
 - (21/10, S5) **Vigilance des molécules, flacons et interactions ne sont pas dans le modèle des cabinets neufs** (`PARAMS_SPE` de functions/cabinets.js :
   ils reçoivent les listes de départ du code). La d. 12 dit « chaque autre cabinet reçoit tout le modèle, sauf correspondants et tarifs des

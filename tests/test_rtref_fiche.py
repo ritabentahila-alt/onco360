@@ -1,8 +1,8 @@
 import pathlib; __file__=str(pathlib.Path(__file__).resolve()); exec(open(pathlib.Path(__file__).parent/'base.py').read())
 # RTR, RT4 (25/10/2026) : fiche d'un schéma du référentiel de radiothérapie (radiotherapie.js) : en-tête, six onglets (ordre fixe, vides grisés,
 # nombres), dernier onglet gardé (rtOnglet, adresse), Prescription (RTE puis curiethérapie, chiffres alignés, traitement systémique, lien vers
-# Protocoles), Centrage, Contourage (types, OAR, atlas), Contraintes (blocs par jeu, « ? », Copier), Essais (PubMed, DOI, détail, Copier la
-# référence), Points d'attention, « ? » qui déplie la suite, impression A4 (sections au choix), 1 440 / 1 280 / 390 px. Jeu fictif ; un protocole
+# Protocoles), Centrage, Contourage (types, OAR, atlas), Contraintes (blocs par jeu, aide d'Idéal et de Limitant, Copier), Essais (PubMed, DOI,
+# détail, Copier la référence), Points d'attention, textes écrits en entier (aucun « ? », étape A du 25/10/2026), impression A4 (sections au choix), 1 440 / 1 280 / 390 px. Jeu fictif ; un protocole
 # fictif porte le nom exact cité par l'œsophage (lien direct) ; les autres noms ne sont pas dans la bibliothèque (page filtrée).
 ok_n = ko_n = 0
 def ok(c, m, d=None):
@@ -40,7 +40,7 @@ async def main():
         await aller(pg, 'radiotherapie'); await pg.fill('#rtrQ', 'prostate 70'); await pg.wait_for_timeout(300); await pg.keyboard.press('Enter'); await pg.wait_for_timeout(1800)
         ok((await ev("location.hash")).endswith('/contraintes') and await ev("!!document.querySelector('.rtr-jeu')"), 'autre schéma ouvert de la liste : directement sur Contraintes (aucun clic)')
         await aller(pg, 'radiotherapie/s/pro-fav-60-20/contraintes')
-        ok(await ev("document.querySelectorAll('.rtr-ct thead .rtr-aide').length") == 2, 'Contraintes : « ? » à côté d\'Idéal et de Limitant')
+        ok('Idéal' in await ev("document.querySelector('.rtr-aidec').innerText") and 'Limitant' in await ev("document.querySelector('.rtr-aidec').innerText"), 'Contraintes : aide d\'Idéal et de Limitant écrite sous le titre du jeu')
         ok(await ev("document.querySelectorAll('.rtr-ct td.o').length") >= 3 and await ev("getComputedStyle(document.querySelector('.rtr-ct td.lim')).fontWeight") in ('700', 'bold'), 'Contraintes : lignes groupées par organe, Limitant en gras')
         await pg.click('.rtr-cp'); await pg.wait_for_timeout(400)
         cp = await ev("window.__copie[window.__copie.length - 1] || ''")
@@ -56,10 +56,9 @@ async def main():
         ok(h4[:2] == ['Radiothérapie externe', 'Curiethérapie'] and len(vols) == 2 and any('PTV_N55' in v for v in vols[0]) and all('CTV-HR' in v for v in vols[1]), 'RTE + curiethérapie : deux tableaux ; les ganglions dans la RTE, le CTV-HR en curiethérapie', vols)
         await aller(pg, 'radiotherapie/s/pro-boost-ldr/prescription')
         ok('—' in await ev("document.querySelectorAll('.rtr-tab')[1].innerText") and await ev("!!document.querySelector('.rtr-tx b')"), 'curiethérapie LDR : « — » pour les séances ; paragraphes rédigés (gras)')
-        # « ? » : la suite s'affiche
+        # Plus aucun « ? » : les textes sont écrits en entier
         await aller(pg, 'radiotherapie/s/pro-fav-60-20/contourage')
-        n0 = len(await ev(OC)); await pg.click('.rtr-c .rtr-aide >> nth=0'); await pg.wait_for_timeout(200)
-        ok(len(await ev(OC)) > n0, '« ? » : la suite du texte s\'affiche à la place')
+        ok(await ev("document.querySelectorAll('.rtr-aide, .rtr-c').length") == 0 and '…' not in await ev(OC), 'aucun « ? » ni texte coupé (« … »)')
         ok(await ev("document.querySelectorAll('.rtr-tab .badge.b-gr').length") >= 3 and await ev("document.querySelectorAll('.rtr-oar li').length") >= 5 and await ev("[...document.querySelectorAll('.rtr-l2 a')].every(a => a.target === '_blank')"), 'Contourage : types en badge neutre, organes à risque, atlas dans un nouvel onglet')
         # Essais
         await aller(pg, 'radiotherapie/s/pro-fav-60-20/essais')
@@ -93,7 +92,7 @@ async def main():
         ok(await ev("document.querySelectorAll('.rtr-ic input:checked').length") == 6, 'Imprimer : six sections, toutes cochées')
         await pg.uncheck('.rtr-ic input[data-s=essais]'); await pg.click('#fenetre .bt.plein'); await pg.wait_for_timeout(900)
         doc = await ev("window.__win.length ? window.__win[window.__win.length - 1].w.document._h : ''")
-        ok('size:A4 portrait' in doc and '<h2>Prescription</h2>' in doc and '<h2>Contraintes</h2>' in doc and '<h2>Essais et sources</h2>' not in doc and 'Imprimé le' in doc and 'Sources : CHHiP, PROFIT' in doc and 'rtr-aide' not in doc, 'impression A4 : sections choisies, sources et date en pied de page, textes entiers (sans « ? »)')
+        ok('size:A4 portrait' in doc and '<h2>Prescription</h2>' in doc and '<h2>Contraintes</h2>' in doc and '<h2>Essais et sources</h2>' not in doc and 'Imprimé le' in doc and 'Sources : CHHiP, PROFIT' in doc and 'class="rtr-aide"' not in doc and 'Limitant</b>' in doc, 'impression A4 : sections choisies, sources et date en pied de page, textes entiers (sans « ? »)')
         await aller(pg, 'radiotherapie/s/pro-def-60-20/prescription'); await pg.click('.rtr-imp'); await pg.wait_for_timeout(300); await pg.click('#fenetre .bt.plein'); await pg.wait_for_timeout(900)
         ok('Version du cabinet, modifiée le 25/10/2026' in await ev("window.__win[window.__win.length - 1].w.document._h"), 'impression d\'une version du cabinet : « Version du cabinet, modifiée le … » en tête')
         ok(not await ev(DEBORDE) and not await ev(COUPE), '1 440 px : sans débordement, titre entier')

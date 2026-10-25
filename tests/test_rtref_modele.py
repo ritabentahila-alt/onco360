@@ -25,7 +25,7 @@ async def main():
         await pg.goto(f'http://localhost:{PORT}/v2.html?espace=bib-oncologie#radiotherapie'); await pg.wait_for_timeout(3500)
         m = await ev("[...document.querySelectorAll('nav a[data-p]')].filter(a => a.offsetParent !== null).map(a => a.dataset.p)")
         ok(m == ['protocoles', 'radiotherapie', 'parametres'] or sorted(m) == ['parametres', 'protocoles', 'radiotherapie'], 'modèle ouvert : menu Protocoles, Radiothérapie, Paramètres', m)
-        ok(await ev("document.getElementById('titrePage').textContent") == 'Radiothérapie' and await ev("document.querySelectorAll('.rtr-reg button').length") == 48, 'la page Radiothérapie s\'ouvre dans le modèle (PAGES_BIB)')
+        ok(await ev("document.getElementById('titrePage').textContent") == 'Radiothérapie' and await ev("document.querySelectorAll('#rtrListe > .rtr-l').length") >= 295, 'la page Radiothérapie s\'ouvre dans le modèle (PAGES_BIB)')
         await pg.fill('#rtrQ', 'reçu du cabinet modèle'); await pg.wait_for_timeout(300)
         ok(await ev("document.querySelectorAll('#rtrListe .rtr-l').length") == 1 and 'Modifié pour le cabinet' not in await ev("document.getElementById('rtrListe').innerText"), 'fiche reçue du modèle (origine « modele ») : sa version, sans badge « Modifié pour le cabinet »')
         await ev("location.hash='radiotherapie/s/pro-fav-60-20/prescription'"); await pg.wait_for_timeout(2000)

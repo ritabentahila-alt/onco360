@@ -27,7 +27,7 @@ async def main():
         ok(await ev(f"JSON.stringify(window.__fs['{E}patients/{PID}'])") == avant, 'le module n\'a rien écrit dans le dossier')
         if SANS:
             await onglet_rt(pg, SANS[0]); await pg.click('a.rtr-lien[href^="#radiotherapie/diag/"]'); await pg.wait_for_timeout(2500)
-            ok('Sommaire' in await ev("document.getElementById('page').innerText"), 'diagnostic sans correspondance dans le référentiel : l\'accueil du module')
+            ok('Tous les schémas' in await ev("document.getElementById('page').innerText") and await ev("document.getElementById('rtr_loc').value") == '', 'diagnostic sans correspondance dans le référentiel : la liste générale')
         ok(not pg.errs, 'aucune erreur JavaScript', pg.errs[:2]); await pg.close()
         # Sans le droit, sans la fonction : pas de lien
         S2 = json.loads(json.dumps(S)); S2[E + 'membres/UIDSEC'] = {'role': 'assistante', 'actif': True, 'nom': 'SECRETAIRE Test', 'tousEtablissements': True, 'etablissements': [], 'droits': {'identite': True, 'fichePatient': True, 'rendezvous': True, 'radiotherapie': 'voir'}}

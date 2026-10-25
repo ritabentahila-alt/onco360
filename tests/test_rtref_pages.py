@@ -45,7 +45,7 @@ async def main():
         await pg.click('.rtr-sous button:has-text("Contraintes")'); await pg.wait_for_timeout(2500)
         ok(await ev("document.querySelectorAll('#rtrJs option').length") == 50 and await ev("document.querySelectorAll('#rtrJs optgroup').length") >= 8, 'Contraintes : 49 jeux, groupés par région')
         await pg.select_option('#rtrJs', 'ct-pro-3gy-20fx-curie'); await pg.wait_for_timeout(300)
-        ok(await ev("document.querySelectorAll('#rtrJt .rtr-ct td.o').length") >= 3 and await ev("document.querySelectorAll('#rtrJt thead .rtr-aide').length") == 2, 'jeu choisi : le même tableau que dans la fiche (organes, « ? »)')
+        ok(await ev("document.querySelectorAll('#rtrJt .rtr-ct td.o').length") >= 3 and 'Limitant' in await ev("document.querySelector('#rtrJt .rtr-aidec').innerText"), 'jeu choisi : le même tableau que dans la fiche (organes, aide d\'Idéal et de Limitant écrite en entier)')
         await pg.click('#rtrJt .rtr-cp'); await pg.wait_for_timeout(300)
         ok((await ev("window.__copie[window.__copie.length - 1] || ''")).startswith('Prostate en place, 3 Gy/fx'), '« Copier » depuis la sous-page')
         await pg.fill('#rtrJq', 'HyTEC'); await pg.wait_for_timeout(800)
