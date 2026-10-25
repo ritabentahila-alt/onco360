@@ -36,8 +36,10 @@ async def main():
         ok('PATIENT TEST' in t and 'pour commencer' not in t, 'tableau de bord : patients fictifs du jour, pas de « pour commencer »')
         await pg.evaluate("location.hash='patients'"); await pg.wait_for_timeout(800); tp = await pg.inner_text('#page')
         ok(all(('PATIENT TEST ' + str(i)) in tp for i in range(1, 9)), 'les 8 patients dans la liste')
-        reels = [json.loads(v.get('resume') or '{}').get('nm') for k, v in S.items() if k.startswith(E + 'patients/')][:30]
-        ok(not any(n and n in tp for n in reels), 'aucun vrai patient')
+        # patients du cabinet du jeu de test (fictifs depuis S7 : « PATIENT TEST 9… », « PATIENT TEST REF n ») : aucun dans la démonstration
+        import re
+        autres = [n for n in (json.loads(v.get('resume') or '{}').get('nm') for k, v in S.items() if k.startswith(E + 'patients/')) if n and not re.fullmatch(r'PATIENT TEST [1-8]', n)][:40]
+        ok(autres and not any(re.search(re.escape(n) + r'(?!\d)', tp) for n in autres), 'aucun patient d\'un autre cabinet')
         ids = [k.split('/')[-1] for k in S2 if k.startswith('espaces/cab-demonstration/patients/')]
         vus = 0
         for pid in ids:

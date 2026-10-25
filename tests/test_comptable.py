@@ -1,5 +1,5 @@
 import pathlib; __file__=str(pathlib.Path(__file__).resolve()); exec(open(pathlib.Path(__file__).parent/'base.py').read())
-# Rôle Comptable (étape 9 S2, 09/10/2026) : le médecin prépare le relevé financier ; le comptable voit le même bilan (352 317 DH
+# Rôle Comptable (étape 9 S2, 09/10/2026) : le médecin prépare le relevé financier ; le comptable voit le même bilan (chiffre du jeu de test, REF_BILAN
 # en 2026), pointe un paiement, n'ouvre aucun dossier ; le relevé ne contient aucun diagnostic.
 ok = lambda c, m: print(('✅ ' if c else '❌ ') + m)
 async def main():
@@ -27,7 +27,7 @@ async def main():
         ok(vis == ['bilan', 'profil'], 'menu : Bilan et Profil seulement ' + str(vis))
         await pc.select_option('#biPer', 'annee'); await pc.wait_for_timeout(400)
         k_comp = (await pc.evaluate("[...document.querySelectorAll('.kpi .k')].map(e=>e.textContent)"))
-        ok(k_comp and k_comp[0] == k_med[0] and '352' in k_comp[0], 'même bilan que le médecin : ' + (k_comp[0] if k_comp else '?'))
+        ok(k_comp and k_comp[0] == k_med[0] and REF_BILAN in k_comp[0].replace('\u202f', ' ').replace('\xa0', ' '), 'même bilan que le médecin : ' + (k_comp[0] if k_comp else '?'))
         ok(k_comp == k_med, 'tous les indicateurs identiques')
         ok(await pc.evaluate("!document.querySelector('#page [onclick*=ouvrirDossier]')"), 'aucun lien vers un dossier')
         pid = [k.split('/')[-1] for k in S if k.startswith(E + 'patients/')][0]

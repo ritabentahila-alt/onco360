@@ -5,6 +5,7 @@ import { etatLigne, protocoleDe, seancesCure } from "./doses.js";
 import { rdvMigre } from "./rdv.js";
 import { finRT, joursOuvresRest, dosimetrie } from "./rt.js";
 import { evtsAgenda } from "./agenda.js";
+import { associeVrai } from "./finances.js";
 
 // B7 – statut d'une ligne
 export function statutLigne(L, P, ctx) {
@@ -17,7 +18,8 @@ export function statutLigne(L, P, ctx) {
   return r;
 }
 // B8 – ligne principale en cours (les lignes associées sont ignorées)
-export function ligneCourante(P, ctx) { const ls = P.lignes || []; for (let i = ls.length - 1; i >= 0; i--) { if (!ls[i].assoc && statutLigne(ls[i], P, ctx).code === "cours") return i; } return null; }
+// 25/10/2026 : une ligne cochée « Traitement associé » par erreur sur une vraie chimiothérapie reste la ligne en cours (associeVrai)
+export function ligneCourante(P, ctx) { const ls = P.lignes || []; for (let i = ls.length - 1; i >= 0; i--) { if (!associeVrai(ls[i], protocoleDe(ls[i], ctx.bib)) && statutLigne(ls[i], P, ctx).code === "cours") return i; } return null; }
 
 export function resume(P, ctx) {
   const t = ctx.aujourdhui, feries = ctx.feries;
@@ -30,7 +32,7 @@ export function resume(P, ctx) {
   });
   const i = ligneCourante(P, ctx);
   if (i != null) { const L = P.lignes[i], s = statutLigne(L, P, ctx), p = protocoleDe(L, ctx.bib); r.t = { nom: p.nom, st: "cours", k: s.next ? s.next.n : null, nb: L.cures.length, next: s.next ? s.next.date : null, last: s.last ? s.last.date : null, c: p.c, li: i }; }
-  else if ((P.lignes || []).length) { const L2 = P.lignes[P.lignes.length - 1], s2 = statutLigne(L2, P, ctx); r.t = { nom: protocoleDe(L2, ctx.bib).nom, st: s2.code, fin: s2.fin }; }
+  else if ((P.lignes || []).length) { const L2 = P.lignes[P.lignes.length - 1], s2 = statutLigne(L2, P, ctx); r.t = Object.assign({ nom: protocoleDe(L2, ctx.bib).nom, st: s2.code, fin: s2.fin }, s2.code === "cours" ? { k: s2.next ? s2.next.n : null, nb: L2.cures.length } : {}); }
   // 2. séances J8/J15 à faire des cures reçues
   (P.lignes || []).forEach((L, li) => {
     if (L.arret) return; const p = protocoleDe(L, ctx.bib);

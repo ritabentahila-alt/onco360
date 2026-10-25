@@ -1192,7 +1192,7 @@ function pageDossier(id) {
     '<div class="bn-id"><h2>' + esc(r.nm) + '</h2><span class="bn-m">' + esc([a != null ? a + " ans" : "", P.sexe === "F" ? "Femme" : P.sexe === "H" ? "Homme" : "", P.numero ? "Dossier n° " + P.numero : "", L1._med && multiMed() ? nomMed(medPatient(x) || titulaireUid()) || "" : ""].filter(Boolean).join(" · ")) + "</span></div>" +
     '<div class="bn-bd">' + (allergique(P) ? '<span class="badge b-al bn-al" title="' + esc("Allergie" + (alTxt ? " : " + alTxt : " (détail non précisé)")) + '">' + ic("alerte") + "Allergie" + (alTxt ? " : " + esc(alTxt.length > 40 ? alTxt.slice(0, 38) + "…" : alTxt) : "") + "</span>" : "") +
       (P.statut ? '<span class="badge ' + (P.statut === "decede" ? "b-dc" : P.statut === "perdu" ? "b-or" : "b-gr") + '">' + esc(libStatut(P.statut)) + (P.statut === "decede" && P.decesLe ? " le " + dfrA(P.decesLe) : "") + "</span>" : "") +
-      (L1._chimio && enCh ? '<span class="badge b-co" title="Chimiothérapie en cours : ' + esc(r.t.nom || "") + '">Chimio C' + (r.t.k || r.t.nb) + "/" + r.t.nb + "</span>" : "") +
+      (L1._chimio && enCh ? '<span class="badge b-co" title="Chimiothérapie en cours : ' + esc(r.t.nom || "") + '">Chimio' + (r.t.nb ? " C" + (r.t.k || r.t.nb) + "/" + r.t.nb : "") + "</span>" : "") +
       (L1._rt && enRT ? '<span class="badge b-rt">RT en cours</span>' : "") + '<span id="presSlot"></span></div>' +
     '<div class="bn-bt"><button class="bt gris petit" onclick="afficherPatient(' + qx + ')">Afficher</button>' + (D.espaceDoc && D.espaceDoc.titulaire === D.u.uid ? '<button class="bt gris petit" onclick="auditPatient(' + qx + ')" title="Journal d\'audit de ce dossier : qui l\'a ouvert, modifié…">Journal</button>' : "") + (peut("identite") || peut("fichePatient") || traitMod() ? '<button class="bt clair petit" onclick="modifierIdentite(' + qx + ')">Modifier</button>' : "") + "</div></div>" +
     '<div class="bn2">' + ficheP.htmlBandeau(x, dn) + "</div>";
@@ -1214,7 +1214,7 @@ function pageDossier(id) {
     const v = EN && EN.cons && EN.cons[c.lid + "|" + c.n + "|" + c.j], qv = "'" + x.id + "','" + c.lid + "'," + c.n + "," + c.j;
     // T4 (24/10/2026, audit n° 11 U21) : « Consultation : venu » (le bouton valide la consultation, pas la séance) ; « Séance » ouvre la cure
     const li = (P.lignes || []).findIndex((L) => L.id === c.lid), sea = li >= 0 && (traitMod() || peut("planningChimio") || peut("administrer") || voit("traitements")) ? b("Séance", "chOuvrir('" + x.id + "'," + li + "," + (c.n - 1) + "," + c.j + ")") : "";
-    if (v) return '<span class="badge b-ch">Consultation : venu</span><span class="badge b-ch" title="Prix validé">' + (v.m != null ? fmtMil(v.m) + " DH" : "—") + "</span>" + (peut("finances") ? b("Annuler le statut", "chAnnulerVenuChimio(" + qv + ")") : prixParServeur() ? b("Modifier le prix", "chVenuChimio(" + qv + ")") : "") + sea;
+    if (v) return '<span class="badge b-ch">Consultation : venu</span><span class="badge b-ch" title="Prix validé">' + (v.m != null ? fmtMil(v.m) + " DH" : "—") + "</span>" + (peut("finances") || prixParServeur() ? b("Modifier le prix", "chVenuChimio(" + qv + ")") : "") + (peut("finances") ? b("Annuler le statut", "chAnnulerVenuChimio(" + qv + ")") : "") + sea;
     return ((peut("finances") || prixParServeur()) && d <= D.t ? b("Consultation : venu", "chVenuChimio(" + qv + ")", "v") : "") + sea;
   };
   // 12/10/2026 : heure de la consultation de la séance (l'infirmière : sa séance à l'hôpital de jour) ; « Modifier » = date et heure
@@ -1276,7 +1276,8 @@ function pageDossier(id) {
         if (c) { const qc = "'" + x.id + "','" + c.lid + "'," + c.n + "," + c.j;
           if (c.v) { if (aEncaisser(c.v.mode) && payeCabinet(x) && (peut("finances") || prixParServeur())) vis.push(b("Encaisser", "chVenuChimio(" + qc + ",true)", "v"));
             if (c.v.mode && !aEncaisser(c.v.mode) && c.v.m > 0) m.push(b("Reçu", "recuCons('" + x.id + "','" + c.lid + "|" + c.n + "|" + c.j + "')"));
-            if (peut("finances")) m.push(b("Annuler le statut", "chAnnulerVenuChimio(" + qc + ")")); else if (prixParServeur()) m.push(b("Modifier le prix", "chVenuChimio(" + qc + ")")); }
+            // 25/10/2026 (demande de Dr Bentahila) : « Modifier le prix » aussi pour le médecin (il n'avait que « Annuler le statut »)
+            if (peut("finances") || prixParServeur()) m.push(b("Modifier le prix", "chVenuChimio(" + qc + ")")); if (peut("finances")) m.push(b("Annuler le statut", "chAnnulerVenuChimio(" + qc + ")")); }
           else if (peut("finances") || prixParServeur()) vis.push(b("Venu", "chVenuChimio(" + qc + ")", "v"));
           return '<div class="rdv"><span class="badge b-gr">' + (d ? dfrA(d) : "—") + '</span><div class="tx"><b>Chimiothérapie</b><div class="mesures">' + esc((c.lib || "") + " · C" + c.n + " J" + c.j) + "</div></div>" +
             (c.v ? '<span class="badge b-ch">Venu</span><span class="badge ' + (aEncaisser(c.v.mode) ? "b-or" : "b-ch") + '" title="Prix validé">' + (c.v.m != null ? fmtMil(c.v.m) + " DH" : "—") + (aEncaisser(c.v.mode) ? " · à encaisser" : "") + "</span>" : '<span class="badge b-or">À valider</span>') + actr(vis, m) + "</div>"; }

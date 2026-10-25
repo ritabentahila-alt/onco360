@@ -6,7 +6,7 @@ def ok(c, m, d=None):
     if c: ok_n += 1; print('  ✔ ' + m)
     else: ko_n += 1; print('  ✘ ' + m + ('' if d is None else ' ' + str(d)[:300]))
 pid = [k.split('/')[-1] for k, v in S.items() if k.startswith(E + 'patients/') and k.count('/') == 3][0]
-I = S[E + 'patients/' + pid]['identite']; mot = (I.get('nomF') or I.get('nom') or '').split()[0][:4].lower()
+I = S[E + 'patients/' + pid]['identite']; mot = (I.get('nomF') or I.get('nom') or '').lower()  # nom complet (jeu fictif : tous commencent par « PATIENT TEST »)
 async def main():
     async with async_playwright() as p:
         b = await p.chromium.launch()

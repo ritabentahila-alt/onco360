@@ -25,7 +25,8 @@ async def main():
         docs = sorted(k.split('/')[-1] for k in fs if '/finances/paiements' in k)
         n26 = len(json.loads(fs[E + 'finances/paiements_2026']['data'])); nV = len(json.loads(fs[E + 'finances/paiements']['data']))
         ok('paiements_2026' in docs and n26 > 0, 'cases « Payé » rangées par année : ' + ', '.join(docs) + ' (2026 : ' + str(n26) + ', anciennes clés introuvables gardées : ' + str(nV) + ')')
-        ok(n26 + nV == len(json.loads(S[E + 'finances/paiements']['data'])), 'aucune case perdue ni en double (' + str(n26 + nV) + ')')
+        nT = sum(len(json.loads(fs[E + 'finances/' + k]['data'])) for k in docs)  # toutes les années (jeu fictif : 2025 et 2026)
+        ok(nT == len(json.loads(S[E + 'finances/paiements']['data'])), 'aucune case perdue ni en double (' + str(nT) + ')')
         # Cocher puis décocher « Payé » : dans le document de l'année de l'acte
         await pg.select_option('#biPay', 'att'); await pg.wait_for_timeout(400)
         i0 = await pg.evaluate("[...document.querySelectorAll('[onclick^=biPaye]')].findIndex(b=>b.textContent==='Payé')")

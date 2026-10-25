@@ -67,7 +67,8 @@ async def main():
         ok(await ev("!!document.querySelector('#mdOrdo [onclick^=mdCalcul]')"), 'bouton « mg/m² » sur la chimiothérapie orale')
         await ev("document.querySelector('#mdOrdo [onclick^=mdCalcul]').click()"); await pg.wait_for_timeout(400)
         t = await ev(dlg); sc = await ev("(document.getElementById('ccSc')||{}).value")
-        ok(sc == '1,71' and 'mg par prise' in t, 'surface corporelle du dossier proposée (65 kg, 162 cm : 1,71 m²) et calcul affiché', [sc, t[-200:]])
+        cl = S[P].get('clinique') or {}; sc0 = ('%.2f' % (float(cl.get('poids')) * float(cl.get('taille')) / 3600) ** 0.5).replace('.', ',')  # Mosteller, poids et taille du dossier
+        ok(sc and abs(float(sc.replace(',', '.')) - float(sc0.replace(',', '.'))) < 0.006 and 'mg par prise' in t, f'surface corporelle du dossier proposée ({cl.get("poids")} kg, {cl.get("taille")} cm : {sc0} m²) et calcul affiché', [sc, t[-200:]])
         await repondre(pg, 'ok'); o = await pg.inner_text('#mdOrdo')
         ok('3 comprimés de 500 mg et 1 comprimé de 150 mg' in o.replace('\n', ' ') and '1000 mg/m²' in o, 'posologie remplie : 1 710 mg → 3 × 500 + 1 × 150 = 1 650 mg (le moins de comprimés à moins d\'un demi comprimé près)', o[:300])
         await ev("mdLigneLibre()"); await pg.wait_for_timeout(200); await pg.fill('#edNom', 'ROCÉPHINE 1 g'); await pg.fill('#edPoso', '1 injection par jour'); await ev("(mdEditOk(1), 0)"); await pg.wait_for_timeout(300)
@@ -89,7 +90,7 @@ async def main():
         ok('CAPÉCITABINE' in hh and 'class="or-num"' not in hh, '« Imprimer quand même » : imprimée (une page, sans numéro de page)', hh[:200])
         fs = await ev("window.__fs"); lg = [l for k, v in fs.items() if k.startswith(E + 'consultations/') and v.get('patientId') == pid for l in v.get('lignes', [])]
         l0 = lg[-1] if lg else {}
-        ok(l0.get('items') and l0['items'][0]['nom'].startswith('CAPÉCITABINE') and l0.get('par') == 'Dr Rita Bentahila' and l0.get('parUid') == 'UIDRITA', 'enregistrée avec la liste des médicaments et l\'auteur pris du compte', {k: l0.get(k) for k in ('par', 'parUid', 'items')})
+        ok(l0.get('items') and l0['items'][0]['nom'].startswith('CAPÉCITABINE') and l0.get('par') == 'Dr ' + S['utilisateurs/UIDRITA']['prenom'] + ' ' + S['utilisateurs/UIDRITA']['nom'].capitalize() and l0.get('parUid') == 'UIDRITA', 'enregistrée avec la liste des médicaments et l\'auteur pris du compte', {k: l0.get(k) for k in ('par', 'parUid', 'items')})
 
         print('Ordonnances types : doublons, plusieurs pages (R-E1, R-E2)')
         await ev(f"ordTypes('{pid}')"); await pg.wait_for_timeout(700)

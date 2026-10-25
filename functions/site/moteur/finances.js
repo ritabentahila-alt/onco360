@@ -14,16 +14,19 @@ import { nbA, finRT } from "./rt.js";
 const RE_OS = /zol[ée]dron|zometa|d[ée]nosumab|xgeva/i;
 const RE_CAST = /zoladex|gos[ée]r[ée]line|d[ée]capeptyl|tript?or[ée]line|leupror[ée]line|eligard|[ée]nantone|d[ée]gar[ée]lix|firmagon|castration/i;
 const RE_HO = /tamox|l[ée]trozole|anastrozole|ex[ée]m[ée]stane|aromasine|femara|arimidex|abirat[ée]rone|zytiga|enzalutamide|xtandi|apalutamide|erleada|darolutamide|nubeqa|bicalutamide|casodex|m[ée]gestrol|m[ée]droxyprog|farlutal|prednis/i;
+// Traitement sans vraie chimiothérapie (castration, hormonothérapie, comprimés seuls ; prémédication et texte exclus)
+const horsChimioDe = (p) => { const ac = (p.dr || []).filter((d) => !premed(d) && d.u !== "txt"); return { ac, hors: ac.every((d) => RE_CAST.test(d.p) || /per os/i.test(d.v || "") || (RE_HO.test(d.p) && !d.v)) }; };
+// « Traitement associé » qui compte comme tel (24-25/10/2026) : la case de la ligne, seulement pour un traitement sans vraie chimiothérapie.
+// Cochée sur une vraie chimiothérapie (reprise de l'ancienne application, ex. « Paclitaxel + Carboplatine hebdomadaire – fractionné »), elle
+// est ignorée partout : bilan, ligne en cours du dossier (bandeau), nom de la ligne. Les lignes déjà prescrites gardent leur case.
+export function associeVrai(L, p) { if (!L || !L.assoc) return false; const h = horsChimioDe(p || {}); return !h.ac.length || h.hors; }
 // Une ligne donne-t-elle lieu à des honoraires de séance ? (pas l'hormonothérapie ni la castration seules ; oui pour l'acide zolédronique / dénosumab)
 export function ligneHon(L, p) {
   const txt = (p.nom || "") + " " + (p.dr || []).map((d) => d.p).join(" ");
   if (RE_OS.test(txt)) return true;
-  const ac = (p.dr || []).filter((d) => !premed(d) && d.u !== "txt"), horsChimio = ac.every((d) => RE_CAST.test(d.p) || /per os/i.test(d.v || "") || (RE_HO.test(d.p) && !d.v));
-  // 24/10/2026 : « Traitement associé » (castration, os, support) ne retire plus les honoraires d'une vraie chimiothérapie : la case était cochée
-  // sur « Paclitaxel + Carboplatine hebdomadaire – fractionné » (reprise de l'ancienne application), et ses séances et consultations validées
-  // n'apparaissaient pas dans le bilan
-  if (L.assoc && (!ac.length || horsChimio)) return false;
-  if (ac.length && horsChimio) return false;
+  const h = horsChimioDe(p);
+  if (associeVrai(L, p)) return false;
+  if (h.ac.length && h.hors) return false;
   return true;
 }
 const r2 = (x) => Math.round(x * 100) / 100;

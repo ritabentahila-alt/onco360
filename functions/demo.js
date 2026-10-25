@@ -31,7 +31,7 @@ function patientsDemo(protos, actes, jour) {
   const rt = (a, o) => Object.assign({ id: id("RT"), acte: a, hop: "DEMO", nb: "25", ryt: "1", nbA: 1, vmat: true, note: "", cree: addJ(jour, -40) }, o);
   const valide = (d) => ({ le: d + "T10:00:00.000Z", par: "Dr Démo ONCO360" });
   const fiche = (n, sexe, age, d, poids, taille, notes) => ({
-    identite: { nom: "PATIENT TEST " + n, nomF: "PATIENT TEST " + n, prenom: "", sexe, ddn: addJ(jour, -Math.round(age * 365.25)).slice(0, 4) + "-06-15", tel: "06000000" + String(n).padStart(2, "0"), mut: ["CNOPS", "CNSS", "AXA Assurance Maroc", "Wafa Assurance"][n % 4], cor: "", cin: "DEMO" + n, ald: "", numero: mois + String(n).padStart(3, "0") },
+    identite: { nom: "PATIENT TEST " + n, nomF: "PATIENT TEST " + n, prenom: "Démo", sexe, ddn: addJ(jour, -Math.round(age * 365.25)).slice(0, 4) + "-06-15", tel: "06000000" + String(n).padStart(2, "0"), mut: ["CNOPS", "CNSS", "AXA Assurance Maroc", "Wafa Assurance"][n % 4], cor: "", cin: "DEMO" + n, ald: "", numero: mois + String(n).padStart(3, "0") },
     clinique: { poids: String(poids), taille: String(taille), diag: d, notes: "Patient fictif de démonstration. " + notes },
   });
   const L = [];

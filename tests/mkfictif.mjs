@@ -26,7 +26,7 @@ const grille = (consult) => ({ activites: [act("annonce", "Consultation d'annonc
 const table = { repli: "HGC", vmat: 10000, actesRT: [{ nom: "Sein", prix: 28000 }, { nom: "Prostate conformationnelle", prix: 30600 }, { nom: "Cavum", prix: 35000 }, { nom: "Rectum", prix: 30000 }, { nom: "Palliative", prix: 8000 }],
   etablissements: { HGC: grille([400, 300, 0, 1, 60]), HCK: grille([250, 250, 10, 0, 70]), CIOC: grille([400, 300, 0, 1, 60]) } };
 S[E + "finances/tarifs"] = { data: JSON.stringify(table) }; S[E + "finances/versements"] = { data: "[]" };
-S[E + "parametres/calendrier"] = { data: JSON.stringify({ feries: FERIES0, abs: [] }) };
+S[E + "parametres/calendrier"] = { data: JSON.stringify({ feries: FERIES0, abs: [{ du: "2026-10-15", au: "2026-10-18", m: "Congrès (absence fictive)" }] }) };
 S[E + "parametres/listes"] = { data: JSON.stringify({ mut: MUT0.slice(0, 2), cor: ["Dr CORRESPONDANT UN", "Dr CORRESPONDANT DEUX", "Dr CORRESPONDANT TROIS"] }) };
 // Bibliothèque : copie du 06/10 (316 protocoles, aucune donnée patient ; mêmes documents lib_0…lib_10), celle d'avant les corrections des audits n° 3
 // et 10, que test_audit3 / test_audit10 rejouent ; les tests du moteur ont aussi la copie du 18/10 (tests/moteur/donnees)
@@ -45,7 +45,7 @@ jours.forEach((j, mi) => Dm.patientsDemo(BIB, table.actesRT, j).forEach((p) => {
   ajouter(id, d, lieu, null);
 }));
 // Dossiers de référence des tests du navigateur (ids fixes, cités par les tests) : déroulés types autour du 06/10/2026
-const fiche = (k, sexe, poids) => ({ identite: { nom: "PATIENT TEST REF " + k, nomF: "PATIENT TEST REF " + k, prenom: "", sexe, ddn: "1965-06-15", tel: "0600000000", mut: "CNOPS", cor: "", cin: "REF" + k, numero: "202609" + String(900 + k) },
+const fiche = (k, sexe, poids) => ({ identite: { nom: "PATIENT TEST REF " + k, nomF: "PATIENT TEST REF " + k, prenom: "Réf", sexe, ddn: "1965-06-15", tel: "0600000000", mut: "CNOPS", cor: "", cin: "REF" + k, numero: "202609" + String(900 + k) },
   clinique: { poids: String(poids), taille: "168", diag: "Cancer colorectal métastatique", notes: "Dossier fictif de référence des tests." } });
 const ligneR = (id, protoId, j1, poids, cures) => ({ id, protoId, pr: JSON.parse(JSON.stringify(bib[protoId])), j1, poids: String(poids), creat: "8", crU: "mgL", assoc: 0, cures });
 const valR = (d) => d + "T10:00:00.000Z", rdvR = (id, type, d, h, st, o) => Object.assign({ id, type, d, h, st }, st === "fait" ? { dv: d } : {}, o || {});
@@ -87,7 +87,12 @@ function ajouter(id, d, lieu, M0) {
 const pai = {}; let q = 0;
 res.forEach((x) => x.fin.forEach((e) => { if (e[1] !== "rtprev" && e[0] < T0 && q++ % 5 === 0) pai[x.id + "|" + e[1] + "|" + e[0] + "|" + e[3]] = Dm.addJ(e[0], 20); }));
 S[E + "finances/paiements"] = { data: JSON.stringify(pai) };
-fs.writeFileSync(path.join(ICI, "seed-fictif.json"), JSON.stringify(S));
+// dossiers de référence (en cours au 06/10) en tête : les tests qui prennent « le premier patient avec une cure à venir » tombent sur eux
+const REFS = ["PTA1", "PTA2", "PTA3", "PTK1", "PTESS", "PTCIOC"], estRef = (k) => REFS.some((r) => k.endsWith("/" + r));
+const S2 = {}; Object.keys(S).filter((k) => !k.includes("/patients/")).forEach((k) => { S2[k] = S[k]; });
+Object.keys(S).filter((k) => k.includes("/patients/") && estRef(k)).forEach((k) => { S2[k] = S[k]; });
+Object.keys(S).filter((k) => !(k in S2)).forEach((k) => { S2[k] = S[k]; });
+fs.writeFileSync(path.join(ICI, "seed-fictif.json"), JSON.stringify(S2));
 const txt = texteTotaux(calculerBilan(res, [], pai, { per: "annee", hop: "tous" }, T0).tot);
 fs.writeFileSync(path.join(ICI, "bilan_ref_fictif.txt"), txt + "\n");
 console.log(n + " patients fictifs ; bilan 2026 du jeu fictif : " + txt.slice(0, 160));

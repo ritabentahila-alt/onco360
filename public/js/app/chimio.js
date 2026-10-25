@@ -9,7 +9,7 @@ import { statutLigne, ligneCourante } from "../moteur/resume.js";
 import { etatLigne, protocoleDe, protocoleCure, seancesCure, seancesDe, dedupIds, joursDe, clairance, jourVersSeance, instantane, controleSeance, poidsAvant, poidsDebut, protocoleValide, REPERES, avecMolecule, reinSensible, reperesClairance, texteNiv, premed as premedP } from "../moteur/doses.js";
 import { addJ, ecart, num, age } from "../moteur/outils.js";
 import { tarif } from "../moteur/tarifs.js";
-import { consJours } from "../moteur/finances.js";
+import { consJours, associeVrai } from "../moteur/finances.js";
 import { trierRecherche, curesProposees } from "../moteur/recherche.js";
 import { typeRdv, T_RTC } from "../moteur/rdv.js";
 import { DIAG, MUT0, DICT } from "../donnees/listes.js";
@@ -307,7 +307,7 @@ export function htmlChimio(x) {
   (P.lignes || []).forEach((L, i) => {
     // 3.7 (12/10/2026) : l'intention de la ligne (« Métastatique · 2e ligne »…) à la place de « Chimio · ligne n » ; en-tête raccourci (plus de
     // « Protocole : », date de début une seule fois : dans la période à droite)
-    const s = statutLigne(L, P, ctx), p = protocoleDe(L, ctx.bib), ouv = SEL.l === i, tag = libIntention(L) || (L.assoc ? "Associé · ligne " : "Chimio · ligne ") + (i + 1);
+    const s = statutLigne(L, P, ctx), p = protocoleDe(L, ctx.bib), ouv = SEL.l === i, tag = libIntention(L) || (associeVrai(L, p) ? "Associé · ligne " : "Chimio · ligne ") + (i + 1);
     const cur = p.c ? (s.next ? "C" + s.next.n + "/" + L.cures.length : "C" + L.cures.length + "/" + L.cures.length) : "";
     h += '<div class="acc' + (ouv ? " on" : "") + '"><div class="acc-t" onclick="chTog(' + q1 + "," + i + ')"><span><b class="tag">' + (ouv ? "▾" : "▸") + " [" + esc(tag) + "]</b> <b>" + esc(p.nom) + "</b>" + (cur ? " | " + cur : "") + (s.code === "cours" && s.next ? " | Prochaine : <b>" + A.dfrA(s.next.date) + "</b>" : "") + '</span><span class="st">' + periode(s, p) + " &nbsp; " + libStatut(s) + "</span></div>" +
       (ouv ? vueLigne(x, i) : "") + "</div>";
@@ -1151,7 +1151,7 @@ function dessinerNL() {
     edValide(); dedupIds(ED);
     const cures = []; for (let n = 0; n < nb; n++) cures.push({});
     if (num(NL.pct) != null && num(NL.pct) !== 100) cures[0].pctAll = String(num(NL.pct));
-    const lignes = lignesDe(x); lignes.push({ id: "L" + Date.now() + Math.floor(Math.random() * 1000), protoId: p.id, pr: ED, assoc: p.assoc ? 1 : 0, ...(NL.intent ? { intent: NL.intent } : {}), ...(NL.rang ? { rang: NL.rang } : {}), ...(A.medPourPatient(x) ? { med: A.medPourPatient(x) } : {}) /* R-C3 : médecin de la ligne */, j1: NL.j1, poids: String(num(NL.po)), creat: NL.cr ? String(num(NL.cr)) : "", crU: "mgL", cures });
+    const lignes = lignesDe(x); lignes.push({ id: "L" + Date.now() + Math.floor(Math.random() * 1000), protoId: p.id, pr: ED, assoc: associeVrai(p, ED) ? 1 : 0, ...(NL.intent ? { intent: NL.intent } : {}), ...(NL.rang ? { rang: NL.rang } : {}), ...(A.medPourPatient(x) ? { med: A.medPourPatient(x) } : {}) /* R-C3 : médecin de la ligne */, j1: NL.j1, poids: String(num(NL.po)), creat: NL.cr ? String(num(NL.cr)) : "", crU: "mgL", cures });
     await sauverLignes(x, lignes, "Nouvelle ligne : " + ED.nom, { poids: String(num(NL.po)) });
     SEL.pid = x.id; SEL.l = lignes.length - 1; SEL.c = null;
   }).then((ok) => { if (ok) suiteLigne(x.id, ED.nom); });

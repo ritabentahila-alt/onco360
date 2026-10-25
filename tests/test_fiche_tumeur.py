@@ -8,7 +8,7 @@ def ok(c, m, d=None):
     else: ko_n += 1; print('  ✘ ' + m + ('' if d is None else ' ' + str(d)[:400]))
 def lignes_de(seed): return {k.split('/')[-1]: json.loads(v.get('lignesJson') or '[]') for k, v in seed.items() if k.startswith(E + 'patients/')}
 cible = [(pid, i, k) for pid, ls in lignes_de(S).items() for i, L in enumerate(ls) for k, c in enumerate(L.get('cures', [])) if c.get('st', 'prevue') == 'prevue' and (k == 0 or L['cures'][k - 1].get('st') == 'recue') and L.get('pr')]
-pid, i, k = cible[0]
+pid, i, k = next((c for c in cible if c[0] == 'PTESS'), cible[0])  # dossier de référence avec une cure à venir (C3 le 14/10)
 vis = "(id)=>{const e=document.getElementById(id);return !!e&&!e.closest('.cache')&&e.closest('[data-champ]').style.display!=='none'}"
 async def main():
     async with async_playwright() as p:

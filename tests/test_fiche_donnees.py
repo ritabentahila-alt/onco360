@@ -25,7 +25,7 @@ async def main():
         print('Nouvelle ligne de chimiothérapie : la fiche est gardée')
         await ev(f"chNouvelleLigne('{pid}')"); await pg.wait_for_timeout(600)
         await ev(await ev("document.querySelector('#nlL [onclick^=\"nlProto\"]').getAttribute('onclick')")); await pg.wait_for_timeout(400)
-        await pg.click('#itP [data-k=adj]'); await pg.click('#fOk'); await pg.wait_for_timeout(400)
+        await ev("nlIntent('adj')"); await pg.wait_for_timeout(200)  # T1 (24/10/2026) : intention dans le même écran
         for _ in range(2):
             await ev("document.querySelectorAll('#fenetreCorps input.req').forEach(i=>{if(!i.value){i.value=i.type==='date'?'2026-10-12':'10';i.dispatchEvent(new Event('change'))}})"); await pg.wait_for_timeout(300)
         await pg.click('#fOk'); await pg.wait_for_timeout(2000)

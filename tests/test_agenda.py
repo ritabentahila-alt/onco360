@@ -86,6 +86,7 @@ async def main():
         verif('fenêtre de confirmation : ancien et nouvel horaire', 'au Mardi 6 octobre à 15:00' in await ev("document.querySelector('.dep-de')?.innerText||''"), await ev("document.querySelector('.dep-de')?.innerText||''"))
         verif('rien n\'est enregistré avant la confirmation', [x for x in await rdvs(pg, A2) if x['id'] == 'rG2'][0]['h'] == '11:00')
         await pg.click('#fOk'); await pg.wait_for_timeout(800)
+        await ev("fermerFenetre()"); await pg.wait_for_timeout(200)  # fenêtre « Envoyer la confirmation par WhatsApp ? » (patient avec téléphone)
         r = [x for x in await rdvs(pg, A2) if x['id'] == 'rG2'][0]
         verif('déplacé à 15:00, ancien horaire gardé (rep), durée gardée', r['h'] == '15:00' and r['d'] == T and r.get('rep', [{}])[-1].get('h') == '11:00' and r.get('du') == 20, r)
         verif('grille redessinée : le rendez-vous est à 15:00', await ev("[...document.querySelectorAll('.ev-g')].some(e=>e.innerText.startsWith('15:00'))"))

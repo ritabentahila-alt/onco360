@@ -286,14 +286,15 @@ Avant le **premier client payant** : société éditrice, projet Firebase et nom
       usuelles, ligne au-delà du cycle, protocole sans statut « Validé », source vide, doublon de nom, hormonothérapies incompatibles ensemble)
       écrit une fois dans le moteur (`moteur/controleProto.js`, test) et lancé **à chaque enregistrement d'un protocole** et **avant chaque copie
       vers le modèle** (Administration, étape 1) : avertissement d'un clic (« 2 points à vérifier : … — Enregistrer quand même »), jamais bloquant.
-- [ ] **S7 Tests fiables — EN COURS (24/10/2026, pas en ligne)** : fait : jeu fictif `tests/seed-fictif.json` (`tests/mkfictif.mjs` : 80 patients
-      fictifs + 6 dossiers de référence PTA1, PTA2, PTA3, PTK1, PTESS, PTCIOC ; bibliothèque du 06/10 sans patient `tests/moteur/donnees/bibliotheque-2026-10-06.json` ;
-      cases « Payé » à l'ancien format, séances J8) ; bilan de référence fictif `tests/bilan_ref_fictif.txt` (363 734 DH) ; test-bilan 42/42, test-salle 32/32,
-      test-releve 25/25, test-demo passent dessus ; tests du navigateur repointés (ids, `REF_BILAN` de base.py) ; `outils/noms-reels.py` + ESLint dans
-      `avant-mise-en-ligne.sh`. **Reste** : finir le passage des 81 tests du navigateur un par un (ne pas les lancer 4 à la fois : trop lent, faux échecs) ;
-      test_agenda « créneau pris » : **vrai défaut trouvé** — déposer un rendez-vous sur un autre rendez-vous (créneau occupé) ne fait rien (agenda.js
-      `glisser`, `ou()` / drop) → à corriger ; ajouter au jeu fictif une absence 15-18/10 et une séance de chimio sans heure le 08/10 (secrétaire,
-      test_agenda) ; puis contrôle complet, CLAUDE.md (chiffre), journal, enregistrement.
+- [x] **S7 Tests fiables (24-25/10/2026 ; pas encore en ligne)** : jeu fictif `tests/seed-fictif.json` (`node tests/mkfictif.mjs` : 80 patients
+      fictifs « PATIENT TEST n, Démo » + 6 dossiers de référence en tête PTA1, PTA2, PTA3, PTK1, PTESS, PTCIOC « PATIENT TEST REF n, Réf » ; bibliothèque
+      du 06/10 sans patient ; cases « Payé » à l'ancien format (2025 et 2026), séances J8, RT terminées, absence fictive du 15 au 18/10) ; **chiffre de
+      référence du bilan : 363 734 DH** (`tests/bilan_ref_fictif.txt`, `REF_BILAN` de base.py ; l'ancien 352 317 DH seulement avec `ONCO360_SEED=reel`) ;
+      plus aucun test ne lit `tests/seed.json` ; `outils/noms-reels.py` (aucun nom de la copie réelle dans le dépôt) et ESLint dans
+      `avant-mise-en-ligne.sh` ; test-bilan 42, test-salle 32, test-releve 25, test-demo ; les 82 tests du navigateur passés **un par un** (lancés 4 à la
+      fois, ils échouent par lenteur). Trouvé en chemin : prénom manquant des patients fictifs et du cabinet de démonstration (« Modifier » l'identité
+      refusé) → « Démo » ; zone de validation de la cure qui dépassait de 4 px sur téléphone (fenêtre, sous 940 px) ; tests restés sur l'ancien écran
+      (panneau de la cure, nouvelle ligne T1, calendrier de RT T6, fenêtre WhatsApp après un déplacement). Contrôle complet : voir le journal.
       Plan d'origine : (d. 7, 8 ; ancien Q-a, Q-b, Q-f ; audit 10, « Code et tests pour la cession »). (1) **Jeu fictif pour tous les tests**
       (`functions/demo.js` étendu : patients, cures, RT, rendez-vous, montants, sur 3 ans ; `tests/base.py`, `tests/mkseed.mjs`) : plus aucun test ne
       lit `tests/seed.json` ; test-bilan, test-salle, test-releve et les 71 tests du navigateur passent sur une copie propre du dépôt. **Nouveau
@@ -331,8 +332,8 @@ Avant le **premier client payant** : société éditrice, projet Firebase et nom
       encaissées (« ne compteront plus dans le bilan ; utilisez plutôt Arrêter la ligne »), et avant de supprimer un rendez-vous validé. Test
       `tests/moteur/test-honoraires.mjs` 6/6.
 - [x] **POLARAMINE retirée de tous les protocoles** (n'existe pas au Maroc ; 56 protocoles dans la bibliothèque en ligne, dont 40 avec un taxane) :
-      `correctionsS4b` (audit10.js, drapeau `audit10d`, sans tâche ; les lignes déjà prescrites gardent leur copie). **Question** : quel anti-H1 donnez-vous
-      avant le paclitaxel (le RCP en demande un) ?
+      `correctionsS4b` (audit10.js, drapeau `audit10d`, sans tâche ; les lignes déjà prescrites gardent leur copie). **Réponse du 25/10** : aucun anti-H1 avant le
+      paclitaxel (rien à ajouter aux protocoles).
 - [x] **Solumedrol à 120 mg avec le carboplatine (question 6)**, vérifié dans la littérature : paclitaxel 175-200 mg/m² toutes les 3 semaines =
       dexaméthasone 20 mg avant la perfusion (RCP) ≈ méthylprednisolone 107 mg (0,75 mg de dexaméthasone ≈ 4 mg de méthylprednisolone) → **120 mg gardé**
       pour les 2 protocoles avec paclitaxel ; essai 2025 : dexaméthasone 10 mg non inférieure (≈ 53 mg) ; **pémétrexed + carboplatine** (pas de taxane) :
@@ -342,6 +343,22 @@ Avant le **premier client payant** : société éditrice, projet Firebase et nom
       `supprimerPrescription` (consultations.js) retire la ligne (la consultation « Ordonnance » créée pour elle seule disparaît avec elle), journal
       « Ordonnance supprimée » ; bouton « Supprimer » des antécédents (aussi pour une ordonnance déjà « annulée », affichée barrée). R-E7 « Annuler
       l'ordonnance » (19/10) retiré. Test test_ordonnances_e 47/47 (adapté).
+
+## Corrections du 25/10/2026 (demandes de Dr Bentahila ; testé ; pas encore en ligne)
+- [x] **Cure validée toujours absente du bilan, bandeau « Chimio Cundefined/undefined »** (même dossier ; lu en lecture seule, rien n'est écrit dans la
+      base) : la ligne recréée le 24/10 porte encore la case « Traitement associé » (copiée du protocole : la correction du protocole, audit10d, n'est
+      pas encore en ligne ; et une ligne déjà prescrite garde sa copie). Avec cette case, ni la séance ni la consultation n'allaient au bilan, **quel
+      que soit le prix** (le 0 DH de la consultation a été saisi par Dr Bentahila), et la ligne n'était pas « en cours » pour le bandeau. Corrigé pour
+      tous les patients : `associeVrai` (moteur/finances.js) = la case ne compte que pour un traitement sans vraie chimiothérapie (castration,
+      hormonothérapie, support) ; utilisée par le bilan (`ligneHon`), la ligne en cours (`ligneCourante`, resume.js), le nom de la ligne, la nouvelle
+      ligne (case plus copiée d'un protocole de vraie chimio) ; bandeau protégé (« Chimio » sans numéro plutôt que « undefined »). Tests :
+      test-honoraires 10/10, `tests/test_associe.py` 8/8 (bilan + 450 DH de séance nette + 250 DH, bandeau « C2/6 », téléphone).
+- [x] **« Modifier le prix » de la consultation de chimio pour le médecin** (il n'avait que « Annuler le statut », qui retire la consultation validée) :
+      dans « Rendez-vous et tâches à venir » et dans la partie passée. **À faire après la mise en ligne** : dans le dossier signalé, C1 J1 →
+      « Modifier le prix » → 250 DH.
+- [x] **Agenda, glisser un rendez-vous sur un créneau déjà pris** : ça marche (avertissement « Créneau déjà pris » + « Déplacer quand même » : le double
+      rendez-vous reste possible, décision du 25/10) ; l'échec du test venait de la fenêtre « Envoyer la confirmation par WhatsApp ? » restée ouverte
+      (patient fictif avec téléphone) : test corrigé (test_agenda 57/57).
 
 ## Phase T – Tous les jours (audit 11, facilité d'utilisation ; impressions de l'audit 10)
 Ce qui ne change pas (décisions du 12/10 et du 17/10) : « Ouvrir » reste le bouton principal de chaque cure ; Valider, Reporter, Annuler restent

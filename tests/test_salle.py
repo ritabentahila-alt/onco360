@@ -82,6 +82,7 @@ async def main():
         await pg.fill('#abD', '2026-10-08'); await pg.fill('#abH', '15:00'); await pg.click('#fOk'); await pg.wait_for_timeout(1000)
         R = json.loads(await ev(f"window.__fs['{E}patients/{A2}'].rdvsJson"))
         verif('Absent + report : rendez-vous « Non venu », nouveau le 08/10 à 15:00', any(x['id']=='rS2' and x['st']=='absent' for x in R) and any(x['d']=='2026-10-08' and x.get('h')=='15:00' and x.get('rep') for x in R))
+        await ev("fermerFenetre()"); await pg.wait_for_timeout(200)  # fenêtre « Envoyer la confirmation par WhatsApp ? » (patient avec téléphone)
         await onglet(pg, 'avenir'); await ligne(pg, '12:00').click(button='right'); await pg.wait_for_timeout(200)
         verif('clic droit : menu des actions', await ev("!!document.getElementById('saMenuF')"))
         await pg.keyboard.press('Escape'); await pg.wait_for_timeout(100)

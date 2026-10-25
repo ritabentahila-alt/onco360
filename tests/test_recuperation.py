@@ -57,7 +57,7 @@ async def main():
         await pg.click('#rcTel'); await pg.wait_for_timeout(1000)
         ok(len(pg.dl) == 2 and pg.dl[1].suggested_filename == 'Onco360_export_semaine_2026-10-04.zip', 'dernier export de la semaine téléchargé', [d.suggested_filename for d in pg.dl])
         # Récupérer : base à une heure donnée, un dossier
-        ok(await ev("document.querySelector('[name=rcSrc][value=instant]').checked") and (await ev("document.getElementById('rcLe').value")) == '2026-10-06T09:00', 'source par défaut : la base une heure avant', await ev("(document.getElementById('rcLe')||{}).value"))
+        ok(await ev("document.querySelector('[name=rcSrc][value=instant]').checked") and (await ev("document.getElementById('rcLe').value")) == await ev("(()=>{const d=new Date(Date.now()-3600000),z=(n)=>String(n).padStart(2,'0');return d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate())+'T'+z(d.getHours())+':'+z(d.getMinutes())})()"), 'source par défaut : la base une heure avant (heure locale du navigateur)', await ev("(document.getElementById('rcLe')||{}).value"))
         await pg.click('#rcLire'); await pg.wait_for_timeout(800)
         ap = await ev('window.__appels'); dern = ap[-1][1]
         ok(dern['action'] == 'liste' and dern['source']['type'] == 'instant' and dern['source']['le'].startswith('2026-10-06T'), 'lecture de la source « base à une heure donnée »', dern)
