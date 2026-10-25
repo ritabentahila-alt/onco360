@@ -31,7 +31,7 @@ DROITS_ROLE.remplacant = Object.assign({}, DROITS_ROLE.medecin);
 export const droitsEffectifs = (m) => Object.assign({}, DROITS_ROLE[(m && m.role)] || {}, (m && m.droits) || {});
 const LIB_DROITS = [
   ["identite", "Identité des patients (modifier)"], ["fichePatient", "Fiche du patient : poids, taille, diagnostic, allergies, antécédents (modifier)"],
-  ["rendezvous", "Rendez-vous (créer, modifier, venu / non venu)"], ["consultations", "Voir les consultations et hospitalisations"],
+  ["rendezvous", "Rendez-vous (créer, modifier, venu / non venu)"], ["consultations", "Voir l'historique des RDV (consultations, hospitalisations)"],
   ["ecrireConsultations", "Journal des consultations et ordonnances : créer, modifier (tous le lisent)"],
   ["traitements", "Chimiothérapie : lignes, cures et doses", "niv"], ["radiotherapie", "Radiothérapie : prescriptions et rendez-vous", "niv"], ["referentielRT", "Référentiel de radiothérapie", "niv"],
   ["documents", "Documents : pli confidentiel, compte rendu, rendez-vous Excel (voir, télécharger)"],

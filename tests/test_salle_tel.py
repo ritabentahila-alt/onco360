@@ -27,6 +27,7 @@ async def main():
         pd = await ouvrir(b, S2, t=T + "T10:00:00Z"); await pd.goto(f'http://localhost:{PORT}/v2.html#salle'); await pd.wait_for_timeout(3500)
         L = await pd.evaluate(lib)
         ok(len(L) == 4 and L[1] == "En salle d'attente 2", "ordinateur : « En salle d'attente » (inchangé)", L)
+        await pd.evaluate("try{localStorage.setItem('onco360.menuReplieDossier','0')}catch(e){}")  # lot A §10 : menu ouvert (centre large ; replié, le centre étroit prend les libellés courts)
         await pd.goto(f'http://localhost:{PORT}/v2.html#dossier/{PIDS[0]}'); await pd.wait_for_timeout(2500)
         o = await pd.evaluate("[...document.querySelectorAll('.dos-trav .o-barre [role=tab] .sm')].filter(e => getComputedStyle(e).display !== 'none').length")
         ok(o == 0, 'dossier sur ordinateur : libellés courts toujours cachés', o)

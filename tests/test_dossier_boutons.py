@@ -26,7 +26,7 @@ S2[E + 'fichiers/F1'] = {'patientId': P8, 'etablissementId': 'DEMO', 'titre': 'C
 JS = r"""(() => {
   const s = new Set(), f = (t) => { (String(t || '').match(/[A-Za-z_$][\w$]*(?=\()/g) || []).forEach((n) => { if (!/^(this|event|document|if|return|confirm|setTimeout|getElementById|closest|toggle|contains|stopPropagation|preventDefault|querySelector|querySelectorAll|classList|replace|focus|select|click|blur|function)$/.test(n)) s.add(n); }); };
   document.querySelectorAll('#page [onclick], #page [onchange], #page [oninput], #fenetre [onclick]').forEach((e) => { f(e.getAttribute('onclick')); f(e.getAttribute('onchange')); });
-  document.querySelectorAll('#page a[href^="#"]').forEach((a) => s.add('lien:' + a.getAttribute('href').split('/')[0]));
+  document.querySelectorAll('#page a[href^="#"], #titrePage a[href^="#"]').forEach((a) => s.add('lien:' + a.getAttribute('href').split('/')[0])); // lot A : « ‹ Patients » dans la barre du haut
   document.querySelectorAll('#page [role=tab][id]').forEach((t) => s.add('onglet:' + t.id));
   return [...s].sort();
 })()"""
@@ -55,7 +55,8 @@ async def main():
         json.dump(res, open(REF, 'w'), ensure_ascii=False, indent=1); print('Référence écrite :', REF); return
     ref = json.load(open(REF))
     # même action, autre place (lot G) : menu et plein écran de l'aperçu de l'onglet → ceux de la visionneuse de droite (ordinateur)
-    EQUIV = {'fiMenu': 'dvMenu', 'fiPleinEcran': 'dvPleinEcran'}
+    # lot A (25/10/2026) : Afficher et Modifier du bandeau → titre de la rubrique (formulaire entier ou lecture au centre, dosRubrique)
+    EQUIV = {'fiMenu': 'dvMenu', 'fiPleinEcran': 'dvPleinEcran', 'afficherPatient': 'dosRubrique', 'modifierIdentite': 'dosRubrique'}
     for k in res: res[k] = res[k] + [a for a, b in EQUIV.items() if b in res[k]]
     for k, L in ref.items():
         manque = [a for a in L if a not in res.get(k, [])]

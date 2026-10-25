@@ -1,10 +1,11 @@
 // Onco360 – fiche patient réglable (étape 16, 10/10/2026). La fiche de la spécialité (la même pour tous les packs), puis les retouches
 // du cabinet (D().reg.fiche) disent quels champs sont présents, dans quel ordre, sous quel nom, et ajoutent des champs (texte,
 // nombre, date, liste de choix, oui / non).
-// 3.11 (12/10/2026) : les formulaires (Nouveau patient, Modifier, Afficher, en-tête du dossier) sont rendus ici depuis la fiche effective
+// 3.11 (12/10/2026) : les formulaires (Nouveau patient, Modifier, Afficher ; en-tête du dossier jusqu'au lot A) sont rendus ici depuis la fiche effective
 // (champsDe : type, nom, partie, ordre, liste, unité, imprimé, en-tête de chaque champ) ; un champ retiré n'est pas affiché, sa valeur est gardée.
 // Valeurs des champs ajoutés : identite.extra { id: valeur } ou clinique.extra (selon la partie du champ).
-import { champPropose, champsDe, drapeau, ENTETE0, ENTETE_CALC, ENTETE_CALC0 } from "../donnees/catalogue.js";
+import { champPropose, champsDe, drapeau } from "../donnees/catalogue.js";
+import { htmlEditeur, lireEditeur, elements, texteDe as texteLignes } from "./infosmed.js"; // lot A §4 : antécédents, allergies, traitements en lignes
 import { age as ageDe } from "../moteur/outils.js";
 import { textePoids } from "../moteur/poids.js";
 let A = null;
@@ -12,8 +13,6 @@ export function installer(api) { A = api; }
 const D = () => A.D();
 const F = () => (D().reg && D().reg.fiche) || { ordre: [], champs: {}, libs: {}, ajouts: [] };
 export const champsAjoutes = () => F().ajouts;
-// En tête du dossier ? (réglé champ par champ : spécialité, puis retouches du cabinet ; sans réglage : l'en-tête d'aujourd'hui)
-export const enTete = (k) => { const R = F(), a = R.ajouts.find((z) => z.id === k); return R.champs[k] !== false && (R.entetes && k in R.entetes ? R.entetes[k] : a ? a.entete === true : ENTETE0.indexOf(k) >= 0); };
 
 // Fiche tumeur (3.1) : champ à condition (si.diag : biomarqueurs selon la localisation = le diagnostic) caché tant que la condition n'est pas
 // remplie, recalculé quand le diagnostic change (écoute ci-dessous) ; stade et grade : listes du cabinet (Paramètres › Listes)
@@ -48,7 +47,9 @@ const oui = (v) => String(v || "").toLowerCase() === "oui" || v === true;
 // Texte d'un champ (lecture) ; vide si rien
 export function texteChamp(doc, c) {
   const v = brut(doc, c), esc = String;
-  if (c.type === "ouinonp") { const d = brutDrap(doc, c); return d === "oui" ? "Oui" + (v ? " : " + v : "") : d === "non" ? "Non" : v ? esc(v) : ""; }
+  const lignes = (s) => elements(s, c.k).map((e) => e.lib + (e.dosage ? " " + e.dosage : "") + (e.note ? " (" + e.note + ")" : "")).join(" ; "); // lot A : une ligne par élément
+  if (c.type === "ouinonp") { const d = brutDrap(doc, c), w = c.k === "allergies" ? lignes(v) : v; return d === "oui" ? "Oui" + (w ? " : " + w : "") : d === "non" ? "Non" : w ? esc(w) : ""; }
+  if (c.type === "listem") return lignes(v);
   if (v == null || v === "") return "";
   if (c.type === "date") return A.dfrA(v) + (c.k === "ddn" ? (() => { const a = ageDe(v, D().t); return a != null ? " (" + a + " ans)" : ""; })() : "");
   if (c.type === "sexe") return v === "F" ? "Femme" : v === "H" ? "Homme" : "";
@@ -73,7 +74,7 @@ function htmlMedecin(x, o) {
 const secsDe = (o) => { const s = o && o.sec; return s ? [].concat(s) : PARTIES_F.map((z) => z[0]); };
 export const partiesPresentes = () => { const L = champsFiche().filter((c) => c.present); return PARTIES_F.map((z) => z[0]).filter((k) => L.some((c) => c.section === k)); };
 export function htmlFormulaire(x, o) {
-  const esc = A.esc, doc = docVu(x), dg = diagDe(x), L = champsFiche().filter((c) => c.present), pa = poidsVu(x);
+  const esc = A.esc, doc = docVu(x), dg = diagDe(x), L = champsFiche().filter((c) => c.present && (!o.seul || c.k === o.seul)), pa = poidsVu(x); // o.seul (lot A) : un seul champ
   const champ = (c) => {
     if (o.nouveau && o.off && o.off(c.partie)) return ""; // nouveau patient : partie non autorisée = non proposée
     const id = idDe(c), v = brut(doc, c), V = v == null ? "" : v, dis = o.off && o.off(c.partie) ? " disabled" : "", lab = '<label for="' + id + '">' + esc(c.lib) + (c.type === "nombre" && c.unite ? " (" + esc(c.unite) + ")" : "") + "</label>";
@@ -88,7 +89,9 @@ export function htmlFormulaire(x, o) {
       case "ouinon": { const ca = !c.ajout, val = oui(V) ? (ca ? "Oui" : "oui") : String(V).toLowerCase() === "non" ? (ca ? "Non" : "non") : ""; return enve(lab + '<select id="' + id + '"' + dis + '><option value=""></option>' + [["oui", "Oui"], ["non", "Non"]].map(([k, l]) => '<option value="' + (ca ? l : k) + '"' + (val.toLowerCase() === k ? " selected" : "") + ">" + l + "</option>").join("") + "</select>", " "); }
       case "ouinonp": { const d = brutDrap(doc, c) || (V ? (/^(aucune?|non|rien|néant)\b/i.test(String(V).trim()) ? "non" : "oui") : ""), z = idZone(c); // ancien texte seul : « Aucune » = non
         return enve('<label for="' + idDrap(c) + '">' + esc(c.lib) + '</label><select id="' + idDrap(c) + '"' + dis + ' onchange="document.getElementById(\'' + z + '\').classList.toggle(\'cache\',this.value!==\'oui\')"><option value="">—</option><option value="non"' + (d === "non" ? " selected" : "") + '>Non</option><option value="oui"' + (d === "oui" ? " selected" : "") + ">Oui</option></select>" +
-          '<div id="' + z + '"' + (d === "oui" ? "" : ' class="cache"') + ' style="margin-top:6px"><label for="' + id + '">' + (c.k === "allergies" ? "Laquelle ou lesquelles ?" : "Précisez") + '</label><textarea id="' + id + '" rows="2" class="champ-t"' + dis + ">" + esc(V) + "</textarea></div>"); }
+          '<div id="' + z + '"' + (d === "oui" ? "" : ' class="cache"') + ' style="margin-top:6px"><label for="' + id + '">' + (c.k === "allergies" ? "Laquelle ou lesquelles ?" : "Précisez") + "</label>" +
+          (c.k === "allergies" && !dis ? htmlEditeur("allergies", elements(V, "allergies")) : '<textarea id="' + id + '" rows="2" class="champ-t"' + dis + ">" + esc(V) + "</textarea>") + "</div>"); } // lot A §4 : allergies en lignes (liste du cabinet)
+      case "listem": return enve('<label>' + esc(c.lib) + "</label>" + (dis ? '<div class="mesures">' + esc(texteChamp(doc, c) || "—") + "</div>" : htmlEditeur(c.k, elements(V, c.k)))); // lot A §4
       case "choix": { const ch = choixDeC(c), l = ch.concat(V && ch.indexOf(V) < 0 ? [V] : []); return enve(lab + '<select id="' + id + '"' + dis + '><option value=""></option>' + l.map((t) => "<option" + (t === V ? " selected" : "") + ">" + esc(t) + "</option>").join("") + "</select>", " "); }
       case "textelong": return enve(lab + '<textarea id="' + id + '" rows="2" class="champ-t"' + dis + ">" + esc(V) + "</textarea>");
       default: if (c.k === "poids" && pa && pa.src === "seance") return enve(lab + '<input id="' + id + '" inputmode="decimal" value="' + esc(V) + '"' + dis + '><span class="mesures">' + esc(pa.lib) + "</span>"); // R-A5
@@ -104,11 +107,15 @@ export function lireFormulaire(x, o) {
   const doc = (x && x.doc) || {}, I = Object.assign({}, doc.identite || {}), C = Object.assign({}, doc.clinique || {}), out = { identite: I, clinique: C, etab: null, erreur: "" };
   const el = (i) => document.getElementById(i), val = (i) => { const e = el(i); return e ? String(e.value || "").replace(/\s+$/, "").trim() : null; };
   champsFiche().filter((c) => c.present).forEach((c) => {
+    if (c.type === "listem") { const z = document.querySelector('[data-champ="' + c.k + '"] .im-ed'); if (!z) return; const r = lireEditeur(z); if (r.erreur && !out.erreur) out.erreur = r.erreur; // lot A §4
+      const tx = r.L.length ? r.L : []; if (tx.length) C[c.k] = texteLignes(tx, c.k); else delete C[c.k]; (out.nouveaux = out.nouveaux || {})[c.k] = r.L.map((z2) => z2.lib); return; }
     const id = idDe(c), e = el(c.type === "ouinonp" ? idDrap(c) : id); if (!e || e.disabled) return;
     if (c.k === "etab") { out.etab = val(id) || null; return; }
     const obj = c.partie === "clinique" ? C : I, cible = c.ajout ? (obj.extra = Object.assign({}, obj.extra || {})) : obj, cle = c.ajout ? c.k : STO[c.k] || c.k;
     const pose = (k, v) => { if (v == null || v === "") delete cible[k]; else cible[k] = v; };
-    if (c.type === "ouinonp") { const d = val(idDrap(c)), t = val(id); pose(c.ajout ? c.k + "Oui" : drapeau(c.k), d); pose(cle, d === "non" ? "" : t); return; }
+    if (c.type === "ouinonp") { const d = val(idDrap(c)), zl = c.k === "allergies" ? document.querySelector('[data-champ="allergies"] .im-ed') : null, r = zl ? lireEditeur(zl) : null;
+      if (r && r.erreur && !out.erreur) out.erreur = r.erreur; const t = r ? texteLignes(r.L, "allergies") : val(id);
+      if (r && d !== "non") (out.nouveaux = out.nouveaux || {}).allergies = r.L.map((z2) => z2.lib); pose(c.ajout ? c.k + "Oui" : drapeau(c.k), d); pose(cle, d === "non" ? "" : t); return; }
     let v = val(id);
     if (c.k === "nom") v = (v || "").toUpperCase(); if (c.k === "cin") v = (v || "").toUpperCase();
     if (c.type === "nombre" && v) v = v.replace(",", ".");
@@ -126,56 +133,26 @@ export function lireFormulaire(x, o) {
   if (C.poidsLe == null || C.poidsLe === "") delete C.poidsLe; // 20/10/2026 : poids sans date connue (fiche ancienne) : jamais « undefined » (Firestore refusait l'enregistrement)
   return out;
 }
-// Lecture complète (Afficher) : les trois parties
-export function htmlLectureFiche(x) {
+// Lecture complète (Afficher) : les trois parties ; sec (lot A §3) : une seule partie (rubrique ouverte au centre, sans droit de modifier)
+export function htmlLectureFiche(x, sec) {
   const esc = A.esc, doc = docVu(x), dg = diagDe(x), L = champsFiche().filter((c) => c.present && (!c.ajout || !c.ajout.si || champPropose(c.ajout, dg)));
-  return PARTIES_F.map(([k, lib]) => { const l = L.filter((c) => c.section === k); if (!l.length) return "";
+  return PARTIES_F.filter(([k]) => !sec || k === sec).map(([k, lib]) => { const l = L.filter((c) => c.section === k); if (!l.length) return "";
     const md = k === "id" && medsP().length ? '<div data-champ="medecin"><label>Médecin du patient</label><div>' + (((doc.identite || {}).med) ? "<b>" + esc(A.nomMed(doc.identite.med) || "Médecin retiré de l'équipe") + "</b>" : '<span class="mesures">— (titulaire)</span>') + "</div></div>" : ""; // R-C3
     return '<h4 class="soustitre fp-sec">' + lib + '</h4><div class="form fiche-lecture" data-sec="' + k + '">' + md + l.map((c) => { const t = texteChamp(doc, c);
       const tp = c.k === "poids" && poidsVu(x) ? textePoids(poidsVu(x)) : t;
       return '<div data-champ="' + c.k + '"' + (tp.length > 60 || /\n/.test(tp) ? ' class="large"' : "") + "><label>" + esc(c.lib) + "</label><div>" + (tp ? "<b>" + esc(tp) + "</b>" : '<span class="mesures">—</span>') + "</div></div>"; }).join("") + "</div>"; }).join("");
 }
-// En-tête du dossier : champs « en tête » qui ont une valeur (sauf ceux déjà sous le nom : sauf)
-export function htmlEnteteFiche(x, sauf) {
-  const esc = A.esc, doc = docVu(x), dg = diagDe(x);
-  return champsFiche().filter((c) => c.present && c.entete && (sauf || []).indexOf(c.k) < 0 && (!c.ajout || !c.ajout.si || champPropose(c.ajout, dg))).map((c) => { const t = c.k === "poids" && poidsVu(x) ? textePoids(poidsVu(x)) : texteChamp(doc, c); if (!t) return "";
-    const v = c.type === "tel" ? '<a href="tel:' + esc(brut(doc, c)) + '">' + esc(t) + "</a>" : esc(t);
-    return '<div data-champ="' + c.k + '"' + (c.k === "cor" ? ' data-fn="listes.cor"' : "") + (t.length > 60 ? ' class="large"' : "") + "><label>" + esc(c.lib) + "</label><b>" + v + "</b></div>"; }).join("");
-}
-
-
-// ───── R-G a (audit n° 5, 19/10/2026) : bandeau du dossier ─────
-// Ligne 1 : « Chimio en cours » et « RT en cours » (cochés par défaut, réglables comme les champs : entetes._chimio / ._rt)
-export const ligne1 = () => { const en = F().entetes || {}, o = {}; ENTETE_CALC.forEach(([k]) => { o[k] = typeof en[k] === "boolean" ? en[k] : !!ENTETE_CALC0[k]; }); return o; };
-// Valeurs calculées proposées à cocher (ligne 2) : surface corporelle (Mosteller, poids actuel et taille), localisation et stade
-function valeurCalc(x, k) {
-  const doc = docVu(x), C = doc.clinique || {}, pa = poidsVu(x), num = (v) => parseFloat(String(v == null ? "" : v).replace(",", "."));
-  if (k === "_sc") { const po = pa ? pa.poids : num(C.poids), ta = num(C.taille); return po > 0 && ta > 0 ? String(Math.round(Math.sqrt((po * ta) / 3600) * 100) / 100).replace(".", ",") + " m²" : ""; }
-  if (k === "_locst") { const st = ((C.extra || {}).xtstade) || ""; return [C.diag || "", st ? "stade " + st : ""].filter(Boolean).join(", "); }
-  return "";
-}
-// Libellés courts de départ (maquette du 17/10) quand le cabinet n'en a pas donné ; le nom complet reste au survol
-const COURTS0 = { ddn: "Né(e) le", tel: "Tél.", tel2: "Tél. 2", etab: "Lieu", mut: "Mut.", cor: "Corresp.", diag: "Tumeur", diagP: "Précision", adresse: "Adr.", email: "E-mail" };
-// Ligne 2 : seulement les champs cochés « Dans le bandeau » (libellé court s'il y en a un), puis les valeurs calculées cochées ; les dernières
-// nouvelles (3.3) à la fin. Nom, sexe (ligne 1) et allergie « oui » (badge rouge de la ligne 1) n'y sont pas repris.
-export function htmlBandeau(x, dn) {
-  const esc = A.esc, doc = docVu(x), dg = diagDe(x), R = F(), courts = R.courts || {}, en = R.entetes || {}, P = (x && x.P) || {};
-  const sauf = ["nom", "prenom", "sexe"].concat(P.allergie ? ["allergies"] : []);
-  const item = (k, lib, t, v) => '<span class="bn-c" data-champ="' + k + '"' + (k === "cor" ? ' data-fn="listes.cor"' : "") + ' title="' + esc(lib + " : " + t) + '"><i>' + esc(courts[k] || (!(R.libs || {})[k] && COURTS0[k]) || lib) + "</i> " + (v || esc(t)) + "</span>";
-  const L = champsFiche().filter((c) => c.present && c.entete && sauf.indexOf(c.k) < 0 && (!c.ajout || !c.ajout.si || champPropose(c.ajout, dg))).map((c) => {
-    const t = c.k === "poids" && poidsVu(x) ? textePoids(poidsVu(x)) : c.k === "ddn" ? A.dfrA(brut(doc, c) || "") : texteChamp(doc, c); if (!t) return "";
-    return item(c.k, c.lib, t, c.type === "tel" ? '<a href="tel:' + esc(brut(doc, c)) + '">' + esc(t) + "</a>" : ""); });
-  ENTETE_CALC.filter(([k, , l]) => l === 2 && (typeof en[k] === "boolean" ? en[k] : !!ENTETE_CALC0[k])).forEach(([k, lib]) => { const t = valeurCalc(x, k); if (t) L.push(item(k, lib, t)); });
-  if (dn) L.push(item("_dn", "Dernières nouvelles", A.dfrA(dn)));
-  return L.join("");
-}
-// Colonne Patient : chaque partie de la fiche en lecture (tous ses champs, pas seulement ceux du bandeau) et le nombre de champs remplis
-export function partiesLecture(x) {
-  const esc = A.esc, doc = docVu(x), dg = diagDe(x), out = { n: {}, libs: {} }, L = champsFiche().filter((c) => c.present && (!c.ajout || !c.ajout.si || champPropose(c.ajout, dg)));
-  PARTIES_F.forEach(([k, lib]) => { const l = L.filter((c) => c.section === k); if (!l.length) return; let n = 0;
+// Lot A §1 (25/10/2026) : bandeau du dossier retiré (htmlBandeau, ligne1, htmlEnteteFiche) : remplacé par le bloc patient de v2.js
+// Colonne Patient : chaque partie de la fiche en lecture (tous ses champs, pas seulement ceux du bandeau) et le nombre de champs remplis ;
+// o.plus = { partie: lignes ajoutées à la fin } (lot A §1 : médecin du patient et dernières nouvelles, avant dans le bandeau) ; o.sauf = champs à ne
+// pas reprendre (lot A §4 : sous-parties des informations médicales, dessinées par infosmed.js) ; o.vide = { partie: (clé) → html d'un champ vide }
+// (« non renseigné » cliquable des informations médicales)
+export function partiesLecture(x, o) {
+  const esc = A.esc, doc = docVu(x), dg = diagDe(x), out = { n: {}, libs: {} }, sauf = (o && o.sauf) || [], L = champsFiche().filter((c) => c.present && (!c.ajout || !c.ajout.si || champPropose(c.ajout, dg)));
+  PARTIES_F.forEach(([k, lib]) => { out.libs[k] = lib; const l = L.filter((c) => c.section === k && sauf.indexOf(c.k) < 0); if (!l.length) return; let n = 0; // o.sauf (lot A) : champs affichés à part (informations médicales)
     out[k] = '<div class="fiche-lecture dp-f" data-sec="' + k + '">' + l.map((c) => { const t = c.k === "poids" && poidsVu(x) ? textePoids(poidsVu(x)) : texteChamp(doc, c); if (t) n++;
       const al = c.k === "allergies" && /^Oui/.test(t);
-      return '<div data-champ="' + c.k + '"' + (al ? ' class="allergie"' : "") + (c.k === "cor" ? ' data-fn="listes.cor"' : "") + "><label>" + esc(c.lib) + "</label>" + (t ? c.type === "tel" ? '<a href="tel:' + esc(brut(doc, c)) + '"><b>' + esc(t) + "</b></a>" : "<b>" + esc(t) + "</b>" : '<span class="mesures">—</span>') + "</div>"; }).join("") + "</div>";
+      return '<div data-champ="' + c.k + '"' + (al ? ' class="allergie"' : "") + (c.k === "cor" ? ' data-fn="listes.cor"' : "") + "><label>" + esc(c.lib) + "</label>" + (t ? c.type === "tel" ? '<a href="tel:' + esc(brut(doc, c)) + '"><b>' + esc(t) + "</b></a>" : "<b>" + esc(t) + "</b>" : o && o.vide && o.vide[k] ? o.vide[k](c.k) : '<span class="mesures">—</span>') + "</div>"; }).join("") + ((o && o.plus && o.plus[k]) || "") + "</div>";
     out.n[k] = n; out.libs[k] = lib; });
   return out;
 }

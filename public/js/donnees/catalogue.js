@@ -66,7 +66,7 @@ export const FICHE = [
   ["taille", "Taille", "clinique"], ["poids", "Poids", "clinique"], ["diag", "Diagnostic", "clinique"], ["diagP", "Précision du diagnostic", "clinique"], ["cin", "CIN", "identite"], ["tel", "Téléphone", "identite"], ["tel2", "2e téléphone", "identite"],
   ["etab", "Hôpital (lieu d'exercice)", "identite", true], ["ald", "ALD", "identite"], ["cor", "Correspondant", "identite"], ["mut", "Mutuelle", "identite"],
   ["adresse", "Adresse", "identite"], ["email", "E-mail", "identite"], ["allergies", "Allergies", "clinique"], ["atcdMed", "Antécédents médicaux", "clinique"],
-  ["atcdFam", "Antécédents familiaux", "clinique"], ["modeVie", "Mode de vie", "clinique"], ["traitCours", "Traitement en cours", "clinique"],
+  ["atcdChir", "Antécédents chirurgicaux", "clinique"], ["atcdFam", "Antécédents familiaux", "clinique"], ["modeVie", "Mode de vie", "clinique"], ["traitCours", "Traitement en cours", "clinique"],
 ];
 // En tête du dossier (sous le nom du patient) au départ : ce qui y est aujourd'hui (10/10/2026) ; réglable champ par champ (entetes)
 export const ENTETE0 = ["ddn", "sexe", "taille", "poids", "diag", "diagP", "cin", "tel", "tel2", "etab", "ald", "cor", "mut"]; // diagP : précision (3.11, avant affichée avec le diagnostic)
@@ -80,12 +80,16 @@ export const TYPES_CHAMP = [["texte", "Texte"], ["textelong", "Texte long (plusi
 // une liste du cabinet ou un format (FIXES : la raison affichée) ; « oui / non + précision » : case à remplir si « oui » (valeur : le texte
 // dans le champ, le oui / non dans champ + « Oui » ; pour l'allergie : allergie / allergies, comme avant)
 export const TYPE_FICHE0 = { nom: "texte", prenom: "texte", ddn: "date", sexe: "sexe", taille: "nombre", poids: "nombre", diag: "liste", diagP: "texte", cin: "texte", tel: "tel", tel2: "tel",
-  etab: "etab", ald: "ouinon", cor: "liste", mut: "liste", adresse: "texte", email: "email", allergies: "ouinonp", atcdMed: "textelong", atcdFam: "textelong", modeVie: "textelong", traitCours: "textelong" };
+  etab: "etab", ald: "ouinon", cor: "liste", mut: "liste", adresse: "texte", email: "email", allergies: "ouinonp", atcdMed: "listem", atcdChir: "listem", atcdFam: "listem", modeVie: "textelong", traitCours: "listem" };
+// Lot A §4 et §6 (25/10/2026, demande de Dr Bentahila) : antécédents (médicaux, chirurgicaux, familiaux) et traitements en cours = « liste du cabinet,
+// une ligne par élément » (listem : libellé + note, dosage facultatif pour un traitement ; rangés une ligne chacun dans le champ texte d'avant, voir
+// app/infosmed.js) ; allergie : oui / non, puis la liste si oui. Types fixes (FIXES) : un réglage d'avant (« texte long ») n'est plus appliqué
 export const FIXES = { nom: "nom du dossier", prenom: "nom du dossier", ddn: "sert à l'âge (doses)", sexe: "sert à la clairance (doses)", taille: "sert à la surface corporelle (doses)",
-  poids: "sert aux doses", etab: "hôpital du dossier", diag: "liste des localisations", cor: "liste des correspondants", mut: "liste des mutuelles", tel: "numéro de téléphone", tel2: "numéro de téléphone", email: "adresse e-mail" };
-export const LISTES_CAB = { diag: "diag", cor: "cor", mut: "mut", xtstade: "stade", xtgrade: "grade" }; // champs dont la liste est celle du cabinet (parametres/listes)
+  poids: "sert aux doses", etab: "hôpital du dossier", diag: "liste des localisations", cor: "liste des correspondants", mut: "liste des mutuelles", tel: "numéro de téléphone", tel2: "numéro de téléphone", email: "adresse e-mail",
+  atcdMed: "liste du cabinet", atcdChir: "liste du cabinet", atcdFam: "liste du cabinet", traitCours: "liste du cabinet", allergies: "oui / non, puis la liste du cabinet" };
+export const LISTES_CAB = { diag: "diag", cor: "cor", mut: "mut", xtstade: "stade", xtgrade: "grade", allergies: "allergies", atcdMed: "atcdMed", atcdChir: "atcdChir", atcdFam: "atcdFam", traitCours: "traitCours" }; // champs dont la liste est celle du cabinet (parametres/listes) ; lot A : informations médicales
 export const UNITE0 = { taille: "cm", poids: "kg" };
-export const libType = (t) => ({ sexe: "Femme / Homme", liste: "liste du cabinet", tel: "téléphone", email: "e-mail", etab: "hôpital" }[t] || ((TYPES_CHAMP.find((z) => z[0] === t) || [])[1] || t).toLowerCase());
+export const libType = (t) => ({ sexe: "Femme / Homme", liste: "liste du cabinet", listem: "liste du cabinet (une ligne par élément)", tel: "téléphone", email: "e-mail", etab: "hôpital" }[t] || ((TYPES_CHAMP.find((z) => z[0] === t) || [])[1] || t).toLowerCase());
 export const drapeau = (k) => (k === "allergies" ? "allergie" : k + "Oui"); // « oui / non » d'un champ « oui / non + précision »
 // Fiche tumeur (3.1, 12/10/2026, décisions de Dr Bentahila) : champs de la spécialité Oncologie, ajoutés d'office à la fiche des cabinets
 // d'oncologie / radiothérapie (formEffectif, s._onco) ; chaque cabinet les affiche ou non, en tête du dossier ou non (Paramètres › Cabinet ›

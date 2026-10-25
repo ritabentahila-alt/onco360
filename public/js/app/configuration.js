@@ -13,6 +13,7 @@ import { typesTaches, enregistrerTypesTaches, TYPES_TACHES0, TYPE_RT, listeMembr
 import { reglages, enregistrerReglages, REGLAGES0 } from "./reglages.js";
 import { pageParametres } from "./parametres.js";
 import { listeDiag, listeMut, listeCor, LISTES0 } from "./chimio.js";
+import { LISTES_MED, listeMed, departMed, elements as elementsMed } from "./infosmed.js"; // lot A §6 : listes des informations médicales
 import { gererListe, tailleListe } from "./ordonnances.js";
 import { installer as installerRecuperation, htmlRecuperation, afficherRecuperation, appelLong } from "./recuperation.js";
 import { htmlOngletProfil, apresOngletProfil, titulaireConnecte } from "./profil.js";
@@ -293,16 +294,19 @@ const RUBRIQUES = {
     // Lot D (25/10/2026, demande de Dr Bentahila) : Bibliothèques › Listes réunit toutes les listes : localisations, mutuelles, correspondants,
     // types de tâches (avec les tâches automatiques) et types de documents ; stades et grades ne sont pas des listes ici : ils se règlent
     // depuis leur champ de la fiche patient (✎), qui ouvre cette page avec « Retour »
-    const onco = !!((D().reg || {}).fiche || {}).onco, tout = Object.assign({ diag: onco ? "Localisations" : "Diagnostics" }, onco ? { stade: "Stades", grade: "Grades" } : {}, { mut: "Mutuelles", cor: "Correspondants" });
-    const deFiche = ["stade", "grade"].indexOf(LS) >= 0 || (LS === "diag" && FICHE_LS), lib = Object.fromEntries(Object.entries(tout).filter(([k]) => (["diag", "mut", "cor"].indexOf(k) >= 0 || k === LS) && !(k === "cor" && A.D().bib))); // modèle : pas de correspondants (20/10/2026)
+    // Lot A §6 (25/10/2026) : ordre de la fiche du lot : Mutuelle, Correspondant, Allergies, Antécédents médicaux, chirurgicaux, familiaux, Traitements
+    // en cours, Localisation (fiche tumeur), Tâches, Documents
+    const onco = !!((D().reg || {}).fiche || {}).onco, tout = Object.assign({ mut: "Mutuelles", cor: "Correspondants" }, Object.fromEntries(["allergies", "atcdMed", "atcdChir", "atcdFam", "traitCours"].map((k) => LISTES_MED.find((z) => z[0] === k))), { diag: onco ? "Localisations" : "Diagnostics" }, onco ? { stade: "Stades", grade: "Grades" } : {});
+    const deFiche = ["stade", "grade"].indexOf(LS) >= 0 || (LS === "diag" && FICHE_LS) || (LISTES_MED.some((z) => z[0] === LS) && FICHE_LS), lib = Object.fromEntries(Object.entries(tout).filter(([k]) => (["stade", "grade"].indexOf(k) < 0 || k === LS) && !(k === "cor" && A.D().bib))); // modèle : pas de correspondants (20/10/2026)
     const autres = [["taches", "Tâches", A.module("taches")], ["documents", "Documents", A.module("documents") !== false]].filter((z) => z[2]);
     if (!lib[LS] && !autres.some((z) => z[0] === LS)) LS = Object.keys(lib)[0];
+    const med = LISTES_MED.some((z) => z[0] === LS);
     const nb = (k) => (k === "taches" ? ED.ttache.length + 1 : k === "documents" ? ED.tdoc.length : ED.listes[k].length);
     const puces = '<div class="puces">' + Object.keys(lib).map((k) => [k, lib[k]]).concat(autres.map((z) => [z[0], z[1]])).map(([k, l]) => "<button" + (k === "cor" ? ' data-fn="listes.cor"' : "") + ' class="puce' + (LS === k ? " on" : "") + '" onclick="cfLs(\'' + k + "')\">" + l + " (" + nb(k) + ")</button>").join("") + "</div>";
     const retour = deFiche && A.peut("parametres") ? '<a class="retour" href="#parametres/fiche" onclick="event.preventDefault();cfRetourFiche()">' + A.ic("retour") + "Retour à la fiche patient</a>" : "";
     if (LS === "taches" || LS === "documents") return '<section class="carte cf-ls">' + titre("liste", "Listes") + puces + "</section>" + RUBRIQUES[LS](c);
     return retour +
-      '<section class="carte">' + titre("liste", "Listes") + '<p class="sous">Un nom corrigé ici est corrigé aussi dans les dossiers ; un nom retiré y reste. Un nom nouveau saisi dans une fiche patient est ajouté à sa liste.</p>' +
+      '<section class="carte">' + titre("liste", "Listes") + '<p class="sous">' + (med ? "Proposée dans les informations médicales du dossier. Un nom corrigé ici n'est pas changé dans les dossiers déjà remplis ; un nom retiré y reste." : "Un nom corrigé ici est corrigé aussi dans les dossiers ; un nom retiré y reste.") + " Un nom nouveau saisi dans une fiche patient est ajouté à sa liste.</p>" +
       puces +
       '<div class="recherche" style="max-width:420px;margin-bottom:8px">' + A.ic("loupe") + '<input id="cfLq" type="search" autocomplete="off" placeholder="Rechercher dans la liste…" value="' + A.esc(LQ) + '"></div>' +
       '<div class="cf-td cf-l" id="cfLl"></div>' + (diagModifiable() ? "" : '<p class="sous" style="margin-top:8px">' + (LS === "diag" ? "Les localisations" : "Les stades et les grades") + " sont modifiés par un médecin.</p>") + (LS === "stade" || LS === "grade" ? '<p class="mesures" style="margin-top:8px">Un nom corrigé ici n\'est pas changé dans les dossiers déjà remplis.</p>' : "") + (c.okE && diagModifiable() ? '<button class="bt clair petit" style="margin-top:10px" onclick="cfLAj()">' + A.ic("plus") + "Ajouter</button>" : "") + "</section>";
@@ -317,7 +321,7 @@ const RUBRIQUES = {
   // R-G d (audit n° 5, 19/10/2026) : affichage du dossier patient. Pour le cabinet (titulaire ou secrétaire) : parties de la colonne Patient
   // dépliées à l'ouverture (parametres/reglages, clé dossier). Pour moi : taille de la visionneuse (utilisateurs/{uid}.dossier), « Rétablir ».
   affichage(c) {
-    const Pa = ED.reg.dossier.parties, L = [["avenir", "Rendez-vous et tâches à venir"], ["passe", "Consultations et hospitalisations"], ["id", "Identité et administratif"], ["med", "Informations médicales"], ["tum", "Fiche tumeur"]];
+    const Pa = ED.reg.dossier.parties, L = [["avenir", "Rendez-vous et tâches à venir"], ["id", "Identité et administratif"], ["med", "Informations médicales"], ["tum", "Fiche tumeur"], ["passe", "Historique des RDV"]]; // lot A §3
     const moi = (D().profil && D().profil.dossier) || {}, v = moi.visionneuse === "deuxTiers" ? "deuxTiers" : "colonne";
     return '<section class="carte">' + titre("colonnes", "Pour le cabinet : colonne Patient") + '<p class="sous">Parties dépliées à l\'ouverture du dossier. Chacun peut ensuite déplier ou replier : son choix est gardé sur son appareil.</p>' +
       L.map(([k, lib]) => '<label class="chk" style="display:block;margin:6px 0"><input type="checkbox" data-part="' + k + '"' + (Pa[k] ? " checked" : "") + c.disE + ' onchange="cfPartie(\'' + k + '\',this.checked)"> ' + lib + "</label>").join("") + "</section>" +
@@ -441,7 +445,7 @@ export function pageConfiguration(arg) {
   if (!configChargee()) chargerConfigRcp().then(relire).catch(() => {});
   if (TDOC === null) { TDOC = []; typesDocuments().then((L) => { TDOC = L.slice(); relire(); }).catch(() => {}); }
   if (!ED || !MOD) {
-    ED = { horaires: copie(horaires()), horairesEtab: copie(D().cal.horairesEtab || {}), durees: copie(D().cal.durees || {}), abs: copie(D().cal.abs || []), feries: copie(D().cal.feries || []), wa: Object.assign({}, D().wa || {}), reg: reglages(), listes: { diag: listeDiag().slice(), stade: listeTum("stade"), grade: listeTum("grade"), mut: listeMut(), cor: listeCor() }, listesOrig: { diag: listeDiag().slice(), stade: listeTum("stade"), grade: listeTum("grade"), mut: listeMut(), cor: listeCor() }, coul: Object.assign({}, COULEURS0, COUL), tdoc: TDOC.slice(), ttache: TTA.slice(), auto: JSON.parse(JSON.stringify(AUTO)), rcp: configRcp(),
+    ED = { horaires: copie(horaires()), horairesEtab: copie(D().cal.horairesEtab || {}), durees: copie(D().cal.durees || {}), abs: copie(D().cal.abs || []), feries: copie(D().cal.feries || []), wa: Object.assign({}, D().wa || {}), reg: reglages(), listes: Object.assign({ diag: listeDiag().slice(), stade: listeTum("stade"), grade: listeTum("grade"), mut: listeMut(), cor: listeCor() }, listesMedDe(listeMed)), listesOrig: Object.assign({ diag: listeDiag().slice(), stade: listeTum("stade"), grade: listeTum("grade"), mut: listeMut(), cor: listeCor() }, listesMedDe(listeMed)), coul: Object.assign({}, COULEURS0, COUL), tdoc: TDOC.slice(), ttache: TTA.slice(), auto: JSON.parse(JSON.stringify(AUTO)), rcp: configRcp(),
       accueil: accueilCab(), fiche: ficheCab(), consultation: consultCab(), typesC: copie(A.typesC ? A.typesC() : []) };
     FE = null; CE = null;
   }
@@ -526,7 +530,7 @@ function categoriesAgenda() {
   const typesC = (A.typesC ? A.typesC() : []).filter((t) => t.k !== "cchimio" && (t.rdv || STDF[t.k]));
   const types = (TTA && TTA.length ? TTA : TYPES_TACHES0).concat([TYPE_RT]);
   return [
-    ["Consultations et hospitalisations", typesC.map((t) => [STDF[t.k] || "rdv:act:" + t.nom.toLowerCase(), t.nom])],
+    ["Rendez-vous", typesC.map((t) => [STDF[t.k] || "rdv:act:" + t.nom.toLowerCase(), t.nom])],
     ["Chimiothérapie", [["chimio:cure", "Cures (J1)"], ["chimio:seance", "Séances J8, J15…"]]],
     ["Radiothérapie", [["rt:scan", "Scanner de centrage"], ["rt:deb", "1re séance"], ["rt:fin", "Fin de radiothérapie prévue"]]],
     ["Tâches dont vous êtes responsable (avec une échéance)", types.map((t) => ["tache:" + t, t]).concat([["tache:", "Tâches sans type"]])],
@@ -555,8 +559,9 @@ window.cfAgenda = async (cb) => {
 let LS = "mut", LQ = "", FICHE_LS = false; // 3.11 : localisations, stades, grades ouverts depuis leur champ de la fiche (FICHE_LS : « Retour à la fiche »)
 function listeL() {
   const z = A.$("cfLl"); if (!z) return;
-  const champ = { diag: "diag", mut: "mut", cor: "cor" }[LS], n = {}, ok = (A.peut("parametres") || secretariat()) && diagModifiable(), esc = A.esc;
-  D().patients.forEach((x) => { const v = String((champ ? x.P && x.P[champ] : (((x.doc.clinique || {}).extra) || {})["xt" + LS]) || "").trim().toLowerCase(); if (v) n[v] = (n[v] || 0) + 1; });
+  const champ = { diag: "diag", mut: "mut", cor: "cor" }[LS], n = {}, ok = (A.peut("parametres") || secretariat()) && diagModifiable(), esc = A.esc, med = LISTES_MED.some((z) => z[0] === LS);
+  if (med) D().patients.forEach((x) => { new Set(elementsMed(((x.doc.clinique || {})[LS]) || "", LS).map((e) => e.lib.trim().toLowerCase())).forEach((v) => { if (v) n[v] = (n[v] || 0) + 1; }); }); // lot A : une ligne par élément
+  else D().patients.forEach((x) => { const v = String((champ ? x.P && x.P[champ] : (((x.doc.clinique || {}).extra) || {})["xt" + LS]) || "").trim().toLowerCase(); if (v) n[v] = (n[v] || 0) + 1; });
   const mots = A.sansAcc(LQ).split(/\s+/).filter(Boolean), L = ED.listes[LS].map((t, i) => ({ t, i })).filter(({ t }) => !t || mots.every((w) => A.sansAcc(t).indexOf(w) >= 0));
   z.innerHTML = L.length ? L.map(({ t, i }) => { const c = n[String(t).trim().toLowerCase()] || 0;
     return '<div class="it"><input value="' + esc(t) + '"' + (ok ? "" : " disabled") + ' aria-label="Nom" onchange="cfL(' + i + ',this.value)"><span class="mesures nb">' + (c ? c + " dossier" + (c > 1 ? "s" : "") : "") + "</span>" + (ok ? sup("cfLSup(" + i + ")", "Retirer « " + esc(t) + " »") : "") + "</div>"; }).join("")
@@ -578,6 +583,8 @@ window.cfExporter = async () => {
   } catch (e) { msg(""); A.toast("Export impossible : " + ((e && e.message) || e)); }
   A.occupe(b, false);
 };
+// Lot A §6 (25/10/2026) : listes des informations médicales (allergies, antécédents médicaux, chirurgicaux, familiaux, traitements en cours)
+const listesMedDe = (f) => Object.fromEntries(LISTES_MED.map(([k]) => [k, f(k).slice().sort((a, z) => a.localeCompare(z, "fr"))]));
 // Diagnostics : modifiés par un médecin seulement (1.3, 11/10/2026 ; le serveur ne corrige un diagnostic dans les dossiers que pour un médecin)
 const diagModifiable = () => ["diag", "stade", "grade"].indexOf(LS) < 0 || !!A.D().bib || (A.D().membre && A.estMed());
 // Stades et grades de la fiche tumeur (3.1 bis) : liste du cabinet (parametres/listes), sinon celle du catalogue
@@ -631,7 +638,7 @@ window.cfDefaut = () => {
   if (ONG === "whatsapp") { if (!confirm("Rétablir tous les messages WhatsApp et le délai du bouton vert par défaut ?")) return; ED.wa = {}; ED.reg.whatsapp = copie(REGLAGES0.whatsapp); modif(true); return; }
   if (ONG === "listes" && LS === "taches") { if (!confirm("Rétablir la liste des types de tâches de base ?")) return; ED.ttache = TYPES_TACHES0.slice(); modif(true); return; }
   if (ONG === "listes" && LS === "documents") { if (!confirm("Rétablir la liste des types de documents de départ ?")) return; ED.tdoc = TYPES_DOCUMENTS0.slice(); modif(true); return; }
-  if (ONG === "listes") { if (!confirm("Rétablir les listes de départ (diagnostics, mutuelles, correspondants) ?\nLes ajouts et corrections du cabinet seront perdus.")) return; ED.listes = { diag: LISTES0.diag.slice(), stade: STADES.slice(), grade: GRADES.slice(), mut: LISTES0.mut.slice().sort((a, z) => a.localeCompare(z, "fr")), cor: LISTES0.cor.slice().sort((a, z) => a.localeCompare(z, "fr")) }; ED.listesOrig = JSON.parse(JSON.stringify(ED.listes)); modif(true); return; }
+  if (ONG === "listes") { if (!confirm("Rétablir les listes de départ (mutuelles, correspondants, informations médicales, localisations) ?\nLes ajouts et corrections du cabinet seront perdus.")) return; ED.listes = Object.assign({ diag: LISTES0.diag.slice(), stade: STADES.slice(), grade: GRADES.slice(), mut: LISTES0.mut.slice().sort((a, z) => a.localeCompare(z, "fr")), cor: LISTES0.cor.slice().sort((a, z) => a.localeCompare(z, "fr")) }, listesMedDe(departMed)); ED.listesOrig = JSON.parse(JSON.stringify(ED.listes)); modif(true); return; }
   if (ONG === "impression") { if (!confirm("Rétablir les marges d'impression par défaut ?")) return; ED.reg.impression = copie(REGLAGES0.impression); modif(true); return; }
   if (ONG === "alertes") { if (!confirm("Rétablir les délais " + (A.D().membre.role === "assistante" ? "de la salle d'attente" : "des alertes et de la salle d'attente") + " par défaut ?")) return; if (A.D().membre.role !== "assistante") ED.reg.alertes = copie(REGLAGES0.alertes); ED.reg.salle = copie(REGLAGES0.salle); modif(true); return; }
   if (ONG === "couleurs") { if (!confirm("Rétablir les couleurs Google Agenda par défaut ?")) return; ED.coul = Object.assign({}, COULEURS0); modif(true); return; }
@@ -660,7 +667,7 @@ window.cfEnregistrer = async () => {
     if (qu.length) aMaj.push({ x, ch, quoi: "Liste corrigée (Paramètres) : " + qu.join(" ; ") });
   });
   if (aMaj.length && !confirm(renoms.length + " nom" + (renoms.length > 1 ? "s corrigés" : " corrigé") + " dans les listes :\n" + renoms.slice(0, 8).map((r) => "• " + r.de + " → " + r.vers).join("\n") + (renoms.length > 8 ? "\n…" : "") + "\n\n" + aMaj.length + " dossier" + (aMaj.length > 1 ? "s" : "") + " de vos patients" + (D().membre.tousEtablissements ? "" : " (et ceux des autres lieux du cabinet)") + " seront corrigés aussi. Continuer ?")) return;
-  const listes = {}; for (const k of ["diag", "stade", "grade", "mut", "cor"]) {
+  const listes = {}; for (const k of ["diag", "stade", "grade", "mut", "cor"].concat(LISTES_MED.map((z) => z[0]))) { // lot A : listes des informations médicales
     const l = ED.listes[k].map((t) => String(t || "").trim()).filter(Boolean);
     const dbl = l.find((t, i) => l.findIndex((u) => u.toLowerCase() === t.toLowerCase()) !== i); if (dbl) { A.toast("Listes : « " + dbl + " » figure deux fois."); return; }
     listes[k] = k === "diag" || k === "stade" || k === "grade" ? l : l.sort((a, z) => a.localeCompare(z, "fr"));

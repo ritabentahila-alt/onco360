@@ -21,7 +21,7 @@ async def main():
         await pg.goto(f'http://localhost:{PORT}/v2.html#dossier/{P2}'); await pg.wait_for_timeout(3500)
         fiche = lambda: ev(f"window.__fs['{E}patients/{P2}'].clinique")
         c0 = await fiche()
-        page = await ev("document.getElementById('page').innerText")
+        page = await ev("document.getElementById('page').textContent")  # lot A : le poids est dans Informations médicales (partie peut-être repliée)
         ok('78 kg' in page, 'avant : le poids de la fiche (78 kg) dans le dossier')
         # Séance du jour (C4 J1) : poids 75 saisi puis validé
         lid = json.loads(await ev(f"window.__fs['{E}patients/{P2}'].lignesJson"))[0]['id']
@@ -35,7 +35,7 @@ async def main():
         autres = {k: v for k, v in c0.items() if k not in ('poids', 'poidsLe')}
         ok(all(c1.get(k) == v for k, v in autres.items()) and set(c1) - set(c0) <= {'poidsLe'}, 'fiche patient : aucun autre champ touché (diagnostic, notes…)', [k for k in c1 if c1.get(k) != c0.get(k)])
         await pg.goto(f'http://localhost:{PORT}/v2.html#accueil'); await pg.goto(f'http://localhost:{PORT}/v2.html#dossier/{P2}'); await pg.wait_for_timeout(2000)
-        page = await ev("document.getElementById('page').innerText")
+        page = await ev("document.getElementById('page').textContent")  # lot A : le poids est dans Informations médicales (partie peut-être repliée)
         ok('75 kg (C4 J1 du 06/10/2026)' in page, 'dossier : « 75 kg (C4 J1 du 06/10/2026) »', page[:400])
         # Fiche (Afficher) et Modifier : poids actuel
         await ev(f"afficherIdentite && afficherIdentite('{P2}')") if await ev("typeof afficherIdentite === 'function'") else None
@@ -59,7 +59,7 @@ async def main():
         await ev(f"modifierIdentite('{P2}','med')"); await pg.wait_for_timeout(800); await pg.fill('#fPoids', '76'); await ev("document.getElementById('fOk').click()"); await pg.wait_for_timeout(1500)
         c2 = await fiche()
         ok(c2.get('poids') == '76' and str(c2.get('poidsLe')).startswith('2026-10-06') and str(c2.get('poidsLe')) > str(c1.get('poidsLe')), 'poids changé à la main dans la fiche : 76 kg, daté d\'aujourd\'hui', {k: c2.get(k) for k in ('poids', 'poidsLe')})
-        page = await ev("document.getElementById('page').innerText")
+        page = await ev("document.getElementById('page').textContent")  # lot A : le poids est dans Informations médicales (partie peut-être repliée)
         ok('76 kg (le 06/10/2026)' in page, 'dossier après la correction à la main : « 76 kg (le 06/10/2026) » (la fiche passe devant la séance du matin)', page[:300])
         ok(not pg.errs, 'aucune erreur JavaScript (médecin)', pg.errs[:2]); await pg.close()
         # Secrétaire (droit « planning » et « fiche patient ») : poids pesé et validé, la fiche suit ; sans le droit « fiche patient » : non

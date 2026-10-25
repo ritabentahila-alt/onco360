@@ -90,6 +90,7 @@ nav a.actif .i{color:#fff}
 .tr-res{position:absolute;top:calc(100% + 6px);left:0;right:0;background:#fff;border:1px solid var(--trait);border-radius:var(--r-m);box-shadow:var(--ombre-h);padding:6px;z-index:40;max-height:60vh;overflow:auto}
 .tr-res button{display:flex;flex-direction:column;align-items:flex-start;width:100%;text-align:left;border:0;background:none;border-radius:8px;padding:8px 10px;cursor:pointer;font:inherit;color:var(--encre)}
 .tr-res button:hover,.tr-res button.on{background:var(--prim-c)}.tr-res small{color:var(--doux);font-size:var(--t2)}.tr-res p{margin:6px 10px;color:var(--doux);font-size:var(--t3)}
+.tr-res p.tr-rec{margin:4px 10px 2px;font-size:var(--t2);text-transform:uppercase;letter-spacing:.04em} /* Lot A §2 : derniers dossiers ouverts */
 @media (max-width:767px){.tr-pil{display:none}}
 body.role-comptable .tr-pil{display:none}
 /* R-B3 (19/10/2026) : téléphone : loupe ronde à gauche de la cloche ; au toucher, la recherche s'ouvre sur toute la largeur sous la barre */
@@ -871,30 +872,22 @@ nav a.actif{box-shadow:var(--ombre-prim)}
 .dos{--dpx:36px;display:flex;flex-direction:column;gap:14px;padding:18px var(--dpx) 0}
 @media (max-width:1023px){.dos{--dpx:12px;padding-top:12px}}
 .dos>section{min-width:0}
-.dos-ban{padding:12px 16px}
-.bn1{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.bn-ret{font-size:var(--t3);gap:2px}.bn-ret .i{width:16px;height:16px}
-.bn-menu{width:32px;height:32px;flex:none;border:1px solid var(--trait);background:#fff;border-radius:var(--r-s);display:grid;place-items:center;color:var(--doux);padding:0}
-.bn-menu:hover{background:var(--prim-c);color:var(--prim)}.bn-menu .i{width:18px;height:18px}
-@media (max-width:1023px){.bn-menu{display:none}}
+/* Lot A §1 (25/10/2026) : bloc patient en haut de la colonne Patient (plus de bandeau sur toute la largeur) : photo, nom et « ⋯ », « N° · né(e) le
+   (âge) · hôpital », pastilles, allergie. Trois colonnes : au-dessus de la colonne Patient ; deux colonnes : en haut, sur toute la largeur (la colonne
+   de droite passe de Patient à Documents) ; une colonne : en haut */
+.dos-ban{padding:12px 14px}
+.bp{display:flex;gap:10px;align-items:flex-start;min-width:0}
 .bn-ph{border:0;background:none;padding:0;border-radius:50%;cursor:pointer;flex:none}
 .av.ph-ban{width:40px;height:40px;font-size:14px}
 .av.ph-grand{width:min(320px,70vw);height:min(320px,70vw);border-radius:16px;font-size:60px}.av.ph-grand img{border-radius:16px}
-.bn-id{display:flex;align-items:baseline;gap:4px 10px;flex-wrap:wrap;min-width:0}
-.bn-id h2{margin:0;font-size:var(--t7);color:var(--titre);overflow-wrap:anywhere}
-.bn-m{color:var(--doux);font-size:var(--t4)}
+.bp-id{display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:0;flex:1}
+.bp-l1{display:flex;align-items:flex-start;gap:6px;width:100%}.bp-l1 h2{margin:0;font-size:var(--t6);line-height:1.3;color:var(--titre);overflow-wrap:anywhere;flex:1;min-width:0}
+.bp-l1 .mpts{flex:none;margin:-3px -4px 0 0}
+.bn-m{color:var(--doux);font-size:var(--t3)}
 .bn-bd{display:flex;gap:6px;flex-wrap:wrap;align-items:center;min-width:0}
 .bn-al{display:inline-flex;align-items:center;gap:4px;max-width:100%;overflow:hidden;text-overflow:ellipsis}.bn-al .i{width:14px;height:14px;flex:none}
 .bn-bd .pres-dossier{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;font-size:var(--t3);border-radius:20px}.bn-bd .pres-dossier .pi{width:14px;height:14px}
-.bn-bt{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
-.bn2{display:flex;flex-wrap:wrap;row-gap:2px;margin-top:8px;padding-left:2px;font-size:var(--t3);color:var(--encre)}
-.bn2:empty{display:none}
-.bn-c{white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}.bn-c i{font-style:normal;color:var(--doux);margin-right:2px}.bn-c a{color:inherit}
-.bn-c+.bn-c::before{content:"·";color:var(--gris-m);margin:0 9px}
-.tp-age{font-size:var(--t4);color:var(--doux);font-weight:normal;margin-left:8px;white-space:nowrap}
-.tp-al{display:inline-flex;align-items:center;gap:3px;margin-left:8px;background:var(--rouge-c);color:var(--rouge);border-radius:20px;padding:2px 8px;font-size:var(--t2);vertical-align:middle;white-space:nowrap}.tp-al .i{width:12px;height:12px}
-@media (min-width:768px){.tp-age,.tp-al{display:none}}
-@media (max-width:767px){#tete h1{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#tete h1:has(.tp-n){display:flex;align-items:center}.tp-n{min-width:0;overflow:hidden;text-overflow:ellipsis}.tp-age,.tp-al{flex:none}}
+#tete h1 .tp-ret{font-size:var(--t5)}#tete h1 .tp-ret .i{width:18px;height:18px}
 /* Colonne Patient */
 .dos-pat{display:flex;flex-direction:column;gap:10px;background:#fff;border:1px solid var(--gris-c);border-radius:var(--r-l);box-shadow:var(--ombre);padding:14px}
 .dos-pat .resume{margin:0;padding:0;border:0}
@@ -910,6 +903,39 @@ details.dp>summary::before{content:"▸";color:var(--doux);font-size:var(--t2);w
 details.dp>summary .dp-av{margin-left:auto;font-size:var(--t1);padding:2px 8px}details.dp>summary .dp-av+.n{margin-left:6px}details.dp[open]>summary .dp-av{display:none}details.dp>summary .n{margin-left:auto;color:var(--doux);font-weight:normal;font-size:var(--t3)}
 .dp-c{padding:0 0 10px}
 .dos-pat .rdv{flex-wrap:wrap;font-size:var(--t3);gap:6px 8px}.dos-pat .rdv .tx{flex:1 1 140px}.dos-pat .rdv .actr{width:100%;justify-content:flex-start}
+/* Lot A §3, §8, §8 bis (25/10/2026) : titres des rubriques en petites capitales grises (la flèche déplie sur place, le titre ouvre la rubrique au
+   centre) ; rendez-vous, séances et tâches en cartes d'une ou deux lignes, actions sous « ⋯ » ; « À valider » / « À encaisser » en orange */
+details.dp>summary .dp-t{border:0;background:none;padding:2px 0;margin:0;font:inherit;font-size:var(--t3);font-weight:bold;text-transform:uppercase;letter-spacing:.02em;color:var(--doux);cursor:pointer;text-align:left;min-width:0}
+details.dp>summary .dp-t:hover,details.dp>summary .dp-t:focus-visible{color:var(--prim);text-decoration:underline}
+.rc-liste{display:flex;flex-direction:column;gap:6px}
+.rc{border:1px solid var(--trait);border-radius:var(--r-s);background:#fff;padding:5px 6px 6px 10px;min-width:0}
+.rc-1{display:flex;align-items:center;gap:6px;min-width:0;font-size:var(--t3);min-height:30px}
+.rc-d{color:var(--prim);font-weight:bold;white-space:nowrap;flex:none}.rc.passe .rc-d{color:var(--encre);font-weight:normal}.rc.retard .rc-d{color:var(--rouge)}
+.rc-wa{color:var(--vert);display:inline-flex;flex:none}.rc-wa .i{width:14px;height:14px}
+.rc-em{display:inline-flex;flex:none;color:var(--doux)}.rc-em .i,.rc-em .pi{width:14px;height:14px}
+.rc-t{flex:1;min-width:0;overflow-wrap:break-word;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;color:var(--encre);line-height:1.3}
+.rc-al{color:var(--rouge);font-weight:bold;white-space:nowrap;flex:none}.rc-av{color:var(--orange-t);font-weight:bold;white-space:nowrap;flex:none}
+.rc-1 .mpts{flex:none;margin:-4px 0}
+.rc-2{color:var(--doux);font-size:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.rc-plus{align-self:flex-start;margin-top:2px}
+.rc-grand{max-width:900px;margin-bottom:12px}.rc-grand .rc{padding:8px 12px}.rc-grand .rc-1,.rc-grand .rc-2{font-size:var(--t4)}
+#ptsMenuF .pts-info{font-size:var(--t3);color:var(--doux);padding:6px 12px 2px;font-weight:bold}
+/* Lot A §4 (25/10/2026) : informations médicales en lignes (infosmed.js) : sous-parties toujours affichées (« non renseigné » cliquable, ✎ ;
+   plus de « + Ajouter » : 2e demande du 25/10), éditeur en lignes (libellé de la liste du cabinet ou saisie libre, dosage d'un traitement, note, ✕) */
+.im{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
+.im-h{display:flex;align-items:center;gap:4px;min-height:24px}.im-l{font-size:var(--t3);color:var(--doux)}
+.im-cr{width:28px;height:28px;padding:0;display:inline-grid;place-items:center}.im-cr .i{width:14px;height:14px}
+.im-ul{margin:2px 0 0;padding-left:18px;font-size:var(--t4)}.im-ul li{margin:1px 0}.im-n{color:var(--doux)}
+.im-al b,.im-txt.im-al{color:var(--rouge)}
+.im-nr{border:0;background:none;padding:0;font:inherit;font-size:var(--t3);font-style:italic;color:var(--doux);cursor:pointer;text-align:left}button.im-nr:hover{color:var(--prim);text-decoration:underline}span.im-nr{cursor:default}
+.im-txt{margin:2px 0 0;font-size:var(--t4);white-space:pre-wrap}
+.im-ed{display:flex;flex-direction:column;gap:8px}.im-lignes{display:flex;flex-direction:column;gap:6px}
+.im-r{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1.4fr) 36px;gap:6px;align-items:center}.im-r:has(.im-dz){grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1.4fr) 36px}
+.im-r input{min-width:0}.im-x{width:36px;height:36px}
+.im-ed input,#imAl,#imTxt{width:100%;box-sizing:border-box;padding:9px 10px;border:1px solid var(--bord-champ);border-radius:var(--r-s);font-size:var(--t5);background:#fff;color:var(--encre);font-family:inherit}#imAl{max-width:220px}#imTxt{resize:vertical}
+#fenetreCorps label[for=imAl],#fenetreCorps label[for=imTxt],#imAlZ>label{display:block;font-weight:bold;font-size:var(--t3);color:var(--doux);margin:0 0 4px}
+.im-plus{align-self:flex-start;display:inline-flex;align-items:center;gap:4px}.im-plus .i{width:14px;height:14px}
+@media (max-width:640px){.im-r,.im-r:has(.im-dz){grid-template-columns:minmax(0,1fr) 36px}.im-r .im-lib{grid-column:1}.im-r .im-dz,.im-r .im-no{grid-column:1}.im-r .im-x{grid-column:2;grid-row:1}}
 .dp-f{display:grid;grid-template-columns:1fr;gap:8px}.dp-f label{display:block;font-size:var(--t2);color:var(--doux)}.dp-f b{font-weight:bold;white-space:pre-wrap;overflow-wrap:anywhere}
 .dp-f .allergie{background:#FFF1F1;border:1px solid #F3C4C4;border-radius:8px;padding:6px 10px}.dp-f .allergie b{color:#A1232B}
 @container dos (min-width:600px) and (max-width:939px){.dp-f{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -981,7 +1007,6 @@ details.dp>summary .dp-av{margin-left:auto;font-size:var(--t1);padding:2px 8px}d
   .dos-barre{flex-wrap:wrap;gap:6px}.br-d{order:-1;width:100%;flex-wrap:wrap}.dos-barre .sa-bulles,.dos-barre .sa-b,.dos-barre .rcp-bulle{width:100%;flex-wrap:wrap}
   .dos-barre .sa-b .lbl{width:auto}.dos-barre .sa-b .bt,.dos-barre .rcp-bulle .bt{flex:1;justify-content:center;min-height:44px}.dos-barre .rcp-bulle .lbl{max-width:none;width:100%}.dos-barre .rcp-bulle .bts{width:100%;flex-wrap:wrap}
   .dos .cs-t .ti{max-width:40%}.dos .cs-t .ex{display:none}
-  .bn-bt{width:100%;display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr))}.bn-bt .bt{justify-content:center;min-height:40px}
 }
 /* 19/10/2026 (demande de Dr Bentahila) : onglets du centre et barre d'actions tiennent sur une ligne, sans défiler : libellés courts quand la
    place manque (Consult., Chimio, RT, Docs ; Examens, + RDV), « Agrandir » en icône ; téléphone : la barre passe sur deux lignes */
@@ -1014,8 +1039,7 @@ details.dp>summary .dp-av{margin-left:auto;font-size:var(--t1);padding:2px 8px}d
 .pn-corps .valj .boutons{position:static;margin:6px 0 0;padding:0;border:0}
 /* T4 (24/10/2026, audit n° 11 U22 : décidé le 17/10 pour le téléphone) : bandeau réduit (nom, âge, allergie, traitement en cours ; les champs de la
    ligne 2 restent dans « Afficher ») et barre d'actions sur une seule ligne qui défile de côté */
-@media (max-width:767px){.dos-ban .bn2{display:none}.dos-ban .bn1{gap:6px 8px}.dos-ban .bn-bt{gap:6px}.dos-ban .bn-bt .bt{padding:6px 10px}
-  .dos-barre{flex-wrap:nowrap}.dos-barre{justify-content:flex-start}.dos-barre .br-g{justify-content:flex-start;flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;min-width:0;flex:1 1 auto}.dos-barre .br-g::-webkit-scrollbar{display:none}.dos-barre .br-g .pr{flex:0 0 auto}}
+@media (max-width:767px){.dos-barre{flex-wrap:nowrap}.dos-barre{justify-content:flex-start}.dos-barre .br-g{justify-content:flex-start;flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;min-width:0;flex:1 1 auto}.dos-barre .br-g::-webkit-scrollbar{display:none}.dos-barre .br-g .pr{flex:0 0 auto}}
 /* T2 (24/10/2026, audit n° 11 U10) : sur téléphone (cure ouverte dans la grande fenêtre), la même barre fixée en bas que sur ordinateur : date, Ordonnances, Reporter, Valider */
 @media (max-width:939px){#fenetreCorps.large .valj{position:sticky;bottom:-22px;z-index:4;background:#fff;margin:8px -22px -22px;padding:8px 22px 10px;border-top:1px solid var(--trait);box-shadow:0 -6px 12px rgba(30,42,68,.07)}#fenetreCorps.large .valj .boutons{position:static;margin:6px 0 0;padding:0;border:0;flex-wrap:wrap;gap:6px}#fenetreCorps.large .valj .boutons .bt{padding:8px 10px;flex:1 1 auto}#fenetreCorps.large .valj .form{gap:6px 10px}#fenetreCorps.large .valj .form .large,#fenetreCorps.large .valj .form .large label{font-size:var(--t2);line-height:1.25}#fenetreCorps.large .valj .form .large label{margin:0}}
 /* 25/10/2026 : marges de la zone de validation = celles de la fenêtre (22 px ; 16 / 12 px sous 640 px) : plus de débordement de 4 px sur téléphone */
@@ -1055,6 +1079,43 @@ details.vig-b>summary::-webkit-details-marker{display:none}.vig-d{font-size:var(
 .dos .cs-o{background:none;padding:2px 0;margin:4px 0 0}.cs-ol2{display:block;line-height:1.6}
 .rt-pl{display:inline-flex;margin-left:auto;flex-wrap:nowrap}.rt:not(.on){display:flex;align-items:center;flex-wrap:wrap;gap:6px 8px;padding-top:10px;padding-bottom:10px}.rt:not(.on) .tl{flex:1 1 260px;margin:0}
 .dos .cs .cs-note{min-height:0}.dos .cs.on .cs-c{position:relative}.dos .cs-etat{position:absolute;right:10px;top:2px;min-height:0;margin:0;font-size:var(--t1)}
+/* Lot A §9 (25/10/2026, demande de Dr Bentahila) : consultations en cartes sobres : fond blanc, filet gris clair de 1 px, coins légèrement arrondis,
+   en-tête blanc séparé du texte par un filet, même cadre fermée ou ouverte ; ouverte : nom complet du médecin à droite, « Signée le … » et
+   Modifier / Supprimer en bas ; le bleu seulement pour les liens et les actions (avant : bande bleue, 19/10) */
+.dos .cs,.dos .cs.on{border:1px solid var(--trait);border-radius:var(--r-s);background:var(--carte);margin:0 0 6px;overflow:visible}
+.dos .cs-h,.dos .cs.on .cs-h{background:var(--carte);border-radius:var(--r-s);padding-right:6px}.dos .cs.on .cs-h{border-bottom:1px solid var(--gris-c);border-radius:var(--r-s) var(--r-s) 0 0}
+.dos .cs-h:hover{background:var(--fond-doux)}
+.dos .cs-t .no{background:none;color:var(--doux);padding:0;font-weight:normal}
+.dos .cs-t .in.nom{min-width:0;flex:0 1 auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--doux);font-size:var(--t3)}
+.dos .cs.on .cs-c{padding:6px 10px 8px}
+.dos .cs-o .ck{text-transform:uppercase;font-size:var(--t2);letter-spacing:.03em}
+.dos .cs-pied{margin-top:6px;padding-top:6px;border-top:1px solid var(--gris-c)}.dos .cs-pied .cs-sig{margin:0}
+/* Lot A §10 (25/10/2026) : dans le dossier, menu en icônes (76 px), déplié par-dessus au survol ; texte des cartes à 14 px (13 px pour la 2e ligne) ;
+   zones tactiles de 44 px sur iPad et téléphone */
+@media (min-width:1024px) and (hover:hover){
+  body.dans-dossier.menu-replie #menu:hover{width:250px;padding-left:12px;padding-right:12px;box-shadow:0 12px 32px rgba(30,42,68,.18)}
+  body.dans-dossier.menu-replie #menu:hover .marque{flex-direction:row;padding:0 8px 24px;gap:10px}
+  body.dans-dossier.menu-replie #menu:hover .marque b{display:inline}body.dans-dossier.menu-replie #menu:hover .cab-choix,body.dans-dossier.menu-replie #menu:hover .qui-t{display:block}
+  body.dans-dossier.menu-replie #menu:hover nav a{font-size:inherit;gap:12px;justify-content:flex-start;padding:10px 12px}
+  body.dans-dossier.menu-replie #menu:hover .qui{justify-content:flex-start;padding:6px}body.dans-dossier.menu-replie #menu:hover .replier{margin-left:auto}
+}
+.rc-1{font-size:var(--t4)}
+@media (pointer:coarse){.rc-1 .mpts button,.im-cr,.im-x,details.dp>summary .dp-t{min-height:44px;min-width:44px}.rc-1{min-height:44px}button.im-nr{min-height:44px}}
+/* Lot A §11 (25/10/2026) : téléphone : onglets Consult. · Patient · Chimio · RT · Docs (le bloc patient reste en haut ; Patient = la colonne Patient) ;
+   barre de prescriptions derrière un bouton « + Prescrire », ouverte par-dessus et refermée après un choix */
+.o-barre .og-pat,.dos-fab{display:none}
+@media (max-width:767px){
+  .dos-ban{order:0}.dos-trav{order:1}.dos-pat{order:2}.dos-barre{order:5}
+  .o-barre .og-pat{display:inline-flex}
+  .dos:not(.t-pat) .dos-pat{display:none}.dos.t-pat .dos-trav .o-pan{display:none}.dos.t-pat .dos-trav>.carte.onglets{min-height:0;padding-bottom:0}.dos.t-pat .dos-trav .o-barre{border-bottom:0}
+  .dos-fab{display:inline-flex;align-items:center;gap:6px;margin-left:auto;min-height:48px;padding:0 18px;border:0;border-radius:24px;background:var(--prim);color:var(--carte);font:inherit;font-weight:bold;font-size:var(--t5);box-shadow:0 6px 18px rgba(30,42,68,.25);pointer-events:auto;flex:none;order:9}
+  .dos-fab .i{width:18px;height:18px;transition:transform .15s ease}
+  .dos-barre .br-g,.dos-barre .br-sep{display:none!important}
+  .dos:not(.barre-ouv) .dos-barre:not(:has(#barreDroite > *)){background:transparent;border:0;box-shadow:none;pointer-events:none;justify-content:flex-end}
+  .dos.barre-ouv .dos-barre,.dos .dos-barre:has(#barreDroite > *){flex-wrap:wrap}
+  .dos.barre-ouv .dos-barre .br-g{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%;overflow:visible;order:0;padding:4px 0 6px}
+  .dos.barre-ouv .dos-barre .br-g .pr{display:flex;width:100%}.dos.barre-ouv .dos-barre .br-g .pr>button:first-child{flex:1;justify-content:flex-start;min-height:44px}
+}
 /* Panneau de chimio et de RT (à la place du centre et de la colonne Documents) */
 .dos-pn{display:none}
 /* Ordinateur : grille qui tient dans l'écran, chaque colonne défile seule */
@@ -1077,17 +1138,17 @@ details.vig-b>summary::-webkit-details-marker{display:none}.vig-d{font-size:var(
     .dos.pn-ouv .dos-trav,.dos.pn-ouv .dos-docs,.dos.pn-ouv .dos-pat{visibility:hidden}
   }
   @container dos (min-width:1280px){
-    .dos{grid-template-columns:300px minmax(500px,1fr) clamp(400px,calc((100cqw - 330px) * .4),760px);grid-template-areas:"ban ban ban" "pat trav docs" "barre barre barre"}
+    .dos{grid-template-columns:300px minmax(500px,1fr) clamp(400px,calc((100cqw - 330px) * .4),760px);grid-template-areas:"ban trav docs" "pat trav docs" "barre barre barre"} /* lot A §1 : bloc patient en haut de la colonne Patient */
     .dos .dos-pat,.dos.d-docs .dos-pat{grid-area:pat;display:flex}
     .dos .dos-docs,.dos.d-docs .dos-docs{grid-area:docs;display:flex;flex-direction:column}
     .dos .dos-sw{display:none}
     .dos.docs-grand{grid-template-columns:300px minmax(320px,1fr) minmax(0,2fr)}
-    .dos.sans-docs{grid-template-columns:300px minmax(0,1fr);grid-template-areas:"ban ban" "pat trav" "barre barre"}
-    .dos.agrandi{grid-template-columns:300px minmax(0,1fr);grid-template-areas:"ban ban" "pat trav" "barre barre"}
+    .dos.sans-docs{grid-template-columns:300px minmax(0,1fr);grid-template-areas:"ban trav" "pat trav" "barre barre"}
+    .dos.agrandi{grid-template-columns:300px minmax(0,1fr);grid-template-areas:"ban trav" "pat trav" "barre barre"}
     .dos.agrandi .dos-docs{display:none}
     .dos.agrandi .dos-trav .fi-split{grid-template-columns:minmax(200px,25%) minmax(0,1fr)}.dos.agrandi .dos-trav .fi-v{display:block}.dos.agrandi .dos-trav .fi-g .fi-liste{height:72vh}
     .o-barre .dos-agr{display:inline-flex}
-    .dos-pn{grid-column:2/-1}
+    .dos-pn{grid-column:2/-1;grid-row:1/3}
     .dos.pn-ouv .dos-pat{visibility:visible}
   }
 }

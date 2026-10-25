@@ -69,7 +69,7 @@ async def main():
         await ev("document.getElementById('fMedP').value='UIDB'"); await pg.click('#fOk'); await pg.wait_for_timeout(800)
         verif('médecin du patient enregistré (identite.med)', await ev(f"window.__fs['{E}patients/PC1'].identite.med") == 'UIDB')
         await pg.wait_for_timeout(500)
-        verif('bandeau ligne 1 : « … · Dr Bêta » (médecin du patient)', 'Dr Bêta' in await ev("document.querySelector('.bn-m').textContent"), await ev("document.querySelector('.bn-m').textContent"))
+        verif('Identité et administratif : « Médecin du patient : Dr Bêta » (lot A : avant dans le bandeau)', 'Dr Bêta' in await ev("(document.querySelector('.dos-pat details[data-p=id] [data-champ=medecin]')||{}).textContent||''"), await ev("(document.querySelector('.dos-pat details[data-p=id] [data-champ=medecin]')||{}).textContent||''"))
         await ev("ouvrirRdv('PC1')"); await pg.wait_for_timeout(400)
         verif('nouveau rendez-vous : médecin du patient proposé', await ev("document.getElementById('fMed').value") == 'UIDB')
         verif('nouveau rendez-vous : lieu proposé (lieu du patient)', await ev("document.getElementById('fLieu') && document.getElementById('fLieu').value") == 'HGC')
@@ -122,7 +122,7 @@ async def main():
         verif('rappel noté dans rappels/PC1 (patient, lieu, signé)', rap and rap.get('patientId') == 'PC1' and rap.get('majPar') == 'UIDRITA' and '2026-10-08|suivi' in rap.get('l', {}), rap)
         verif('le dossier n\'est pas réécrit (version inchangée)', await ev(f"window.__fs['{E}patients/PC1'].version") == v0)
         await ev("location.hash='#dossier/PC1'"); await pg.wait_for_timeout(1500)
-        verif('bouton WhatsApp « déjà envoyé » dans le dossier', await ev("!!document.querySelector('#rdvListe button.wa.envoye')"))
+        verif('rappel WhatsApp « déjà envoyé » dans le dossier (coche verte de la carte ; lot A)', await ev("!!document.querySelector('#rdvListe .rc-wa')"))
 
         print('5. Agenda (R-C2, R-C6, R-C7, R-C8)')
         await ev("location.hash='#agenda'"); await pg.wait_for_timeout(2500)

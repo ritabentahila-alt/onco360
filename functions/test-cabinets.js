@@ -28,6 +28,9 @@ const echoue = (f) => { try { f(); return false; } catch (e) { return true; } };
   const L2 = C.listesDepart({ diag: ["Nouveau diag"], mut: [], cor: ["Dr Z"] });
   ok(L2.diag.length === DEP.DIAG.length + 1 && L2.mut.length === DEP.MUT0.length && L2.cor.length === 0 && L2.complet, "ancien format : listes de départ + ajouts, correspondants vides, marquées complètes");
   ok(C.listesDepart(null).diag.length === DEP.DIAG.length, "modèle sans listes : listes de départ");
+  // Lot A §6 (25/10/2026) : listes des informations médicales du modèle recopiées ; absentes = listes de départ du site
+  const L3 = C.listesDepart({ diag: [], mut: [], complet: true, allergies: ["Pénicilline"], atcdMed: ["HTA", 3], traitCours: [] });
+  ok(JSON.stringify(L3.allergies) === '["Pénicilline"]' && JSON.stringify(L3.atcdMed) === '["HTA"]' && !("traitCours" in L3) && !("atcdChir" in L3) && !("stade" in L3), "listes des informations médicales du modèle recopiées (vides ou absentes : départ du site)");
 
   const cal = C.calendrierDepart({ feries: [{ d: "2026-11-06", nom: "Marche verte" }], abs: [{ du: "2026-12-01" }], horaires: { lun: 1 } });
   ok(cal.feries.length === 1 && cal.abs.length === 0 && !cal.horaires, "calendrier : jours fériés seulement");

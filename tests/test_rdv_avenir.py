@@ -50,7 +50,7 @@ async def main():
         rd = json.loads(doc(await ev("window.__fs")).get('rdvsJson') or '[]'); f = [r for r in rd if r.get('rtfin') == 'rtF']
         ok(len(f) == 1 and f[0]['type'] == 'Fin de radiothérapie' and f[0]['d'] == '2026-10-30' and f[0]['dO'] == '2026-10-30', 'créée une fois (titulaire) à la fin calculée : 30/10/2026', f)
         await ev("location.hash='#patients'"); await pg.wait_for_timeout(500); await ev(f"location.hash='#dossier/{pid}'"); await pg.wait_for_timeout(1500)
-        t = await ev("[...document.querySelectorAll('#rdvListe .rdv')].map(e=>e.innerText.replace(/\\n/g,' ')).join(' | ')")
+        t = await ev("[...document.querySelectorAll('#rdvListe .rc')].map(e=>e.innerText.replace(/\\n/g,' ')).join(' | ')")
         ok('Consultation de fin de radiothérapie' in t and 'Fin de radiothérapie prévue' in t, '« Rendez-vous et tâches à venir » : fin de radiothérapie prévue ET consultation de fin, toutes les deux', t[:500])
         print('1re séance de radiothérapie : date et heure')
         await ev(f"modifierEtapeRT('{pid}','rtF','deb')"); await pg.wait_for_timeout(500)
@@ -58,7 +58,7 @@ async def main():
         fs = await ev("window.__fs"); r = json.loads(doc(fs)['rtsJson'])[0]; rd = json.loads(doc(fs)['rdvsJson']); f = [z for z in rd if z.get('rtfin') == 'rtF'][0]
         ok(r['deb'] == '2026-10-26' and r.get('debH', {}).get('h') == '08:30', '1re séance au 26/10 à 08:30', r)
         ok(f['d'] == f['dO'] and f['d'] > '2026-10-30', 'la consultation de fin suit la nouvelle fin (' + f['d'] + ')', f)
-        t = await ev("[...document.querySelectorAll('#rdvListe .rdv')].map(e=>e.innerText.replace(/\\n/g,' ')).join(' | ')")
+        t = await ev("[...document.querySelectorAll('#rdvListe .rc')].map(e=>e.innerText.replace(/\\n/g,' ')).join(' | ')")
         ok('08:30' in t, 'heure de la 1re séance affichée', t[:400])
         await ev(f"modifierEtapeRT('{pid}','rtF','deb')"); await pg.wait_for_timeout(400); await pg.fill('#eD', '2026-10-05'); await pg.click('#fOk'); await pg.wait_for_timeout(500)
         ok('avant le scanner' in await pg.inner_text('#fErr'), '1re séance avant le scanner : refusée')
@@ -82,7 +82,7 @@ async def main():
         print('3.16 : fin de radiothérapie prévue (heure ; autre date = fin prévue, la consultation de fin suit) ; agenda')
         pg, ev = await dossier(b, seed([RT], []))
         await pg.wait_for_timeout(1500)
-        t = await ev("[...document.querySelectorAll('#rdvListe .rdv')].filter(e=>/Fin de radiothérapie prévue/.test(e.innerText)).map(e=>e.innerText).join()")
+        t = await ev("[...document.querySelectorAll('#rdvListe .rc')].filter(e=>/Fin de radiothérapie prévue/.test(e.innerText)).map(e=>e.textContent).join()")  # lot A : « Modifier » sous « ⋯ »
         ok('Modifier' in t, '« Modifier » sur la fin de radiothérapie prévue', t[:200])
         await ev(f"modifierEtapeRT('{pid}','rtF','fin')"); await pg.wait_for_timeout(400)
         ok(await ev("document.getElementById('eD').value") == '2026-10-30', 'date proposée : la fin calculée (30/10)')

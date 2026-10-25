@@ -376,6 +376,52 @@ Avant le **premier client payant** : société éditrice, projet Firebase et nom
       les cancers » pour tout voir ; correspondance localisation → indications des protocoles dans `moteur/recherche.js` (`filtreLocalisation`,
       `filtreValide` : seulement des valeurs de la bibliothèque du cabinet) ; test-recherche 13/13.
 
+## Demandes du 24 et 25/10/2026 : en-têtes, menu, bibliothèques, remplaçant, dossier patient (lots B, D, C, A, E ; testé ; **pas en ligne**)
+Fiche des lots (Claude Doc « Onco360 — Lot Dossier patient, en-têtes et rôle Remplaçant », préparée avec Hamza Benzekri pour Dr Bentahila) ;
+ordre B, D, C, A puis E. **Ces demandes passent avant ce plan quand elles le contredisent** (voir « Changements de décision » ci-dessous).
+- [x] **Lot B (en-têtes et barres d'outils)** : titre et sous-titre retirés en haut de Agenda, Salle d'attente, Patients, Tâches, RCP, Protocoles,
+      Paramètres, Bilan, Mon compte (Radiothérapie : déjà sans titre) ; modèle : « Paramètres du modèle » dans la barre du haut, la phrase
+      d'explication gardée. Mon compte et Déconnexion dans le menu du nom / de la photo (bas du menu) ; roue Paramètres entre la recherche et la
+      cloche. Agenda : « + Nouveau rendez-vous » et Actualiser sur la ligne des vues ; Salle d'attente : Colonnes, Imprimer, Pharmacie, Clôturer
+      sous « ⋯ » ; Tâches : Imprimer (liste filtrée) ; Patients : « + Nouveau patient » juste au-dessus de la liste ; Protocoles, Bilan : barre
+      remontée. Test `tests/test_lot_b.py`.
+- [x] **Lot D (bibliothèques du dossier, ordonnance, consultations, listes)** : Modifier / Supprimer sous « ⋯ » dans les fenêtres du dossier
+      (Paramètres › Bibliothèques inchangé) ; « + » après l'étoile dans Analyses et Examens compl. ; police de l'ordonnance ; formulaire de
+      consultation : Consultation, Date, Titre, Note, puis le formulaire ; RCP et Note du secrétariat sans durée ni rendez-vous ; **Paramètres ›
+      Bibliothèques › Listes** réunit toutes les listes (ancien « Listes de la fiche » de Dossier patient). Test `tests/test_lot_d.py`.
+- [x] **Lot C (rôle « Médecin remplaçant »)** : mêmes droits et établissements que le titulaire (recopiés et tenus à jour par le serveur),
+      tout au nom du titulaire (consultations, ordonnances, signature, tâches, reçus ; le journal d'audit garde la vraie personne), accès pour une
+      période (règles : `periodeOk`) ou sans limite, 3 par formule. Tests `functions/test-cabinets.js`, `tests/regles/test-remplacant.mjs`
+      (**à lancer sur le Mac** : `cd tests/regles && npm test`, l'émulateur n'a pas pu être téléchargé dans la session qui a écrit le lot),
+      `tests/test_remplacant.py`.
+- [x] **Lot A (dossier patient retouché)** : bloc patient en haut de la colonne Patient (plus de bandeau ; réglage « En-tête du dossier » retiré,
+      les réglages enregistrés sont gardés et ignorés) ; « ‹ Patients » dans la barre du haut ; recherche du haut = 8 derniers dossiers
+      (`utilisateurs/{uid}.recents`) ; « Historique des RDV » (ancien « Consultations et hospitalisations ») en dernier ; titre d'une rubrique =
+      rubrique ouverte au centre ; rendez-vous en cartes, actions sous « ⋯ » ; informations médicales en lignes (antécédents médicaux,
+      **chirurgicaux (nouveau champ `atcdChir`)**, familiaux, allergies, traitements en cours avec dosage facultatif, mode de vie), « non renseigné »
+      cliquable (aussi sur l'OMS ; **pas de « + Ajouter » : 2e demande du 25/10**), listes du cabinet (`parametres/listes` : allergies, atcdMed,
+      atcdChir, atcdFam, traitCours ; départ : `donnees/listes.js`, traitements = médicaments de Médic. sans dose) ; consultations en cartes sobres ;
+      menu en icônes dans le dossier ; téléphone : onglets Consult. · Patient · Chimio · RT · Docs et bouton « + Prescrire ». Test `tests/test_lot_a.py`.
+      **Reste à faire** : 4 colonnes à partir de 1 600 px (§10 : à préciser, quelle 4e colonne ?) ; liste des médicaments courants vendus au Maroc
+      pour les traitements en cours (§6 : sans source vérifiable, pas ajoutée ; à fournir par Dr Bentahila).
+- [x] **(25/10, 3e demande) Bilan : consultations à 0 DH non affichées** (J8 / J15 de chimio, consultation en cours ou de fin de radiothérapie…) :
+      ni dans le journal détaillé, ni dans le nombre de consultations, ni dans les exports et le relevé ; une consultation sans tarif reste
+      affichée avec son alerte ; totaux en DH inchangés (calcul du bilan `moteur/bilan.js` et référence `bilan_ref_fictif.txt` inchangés ; filtre
+      d'affichage `sansZero` de app/bilan.js). Test `tests/test_bilan_zero.py`.
+- [ ] **Lot E (harmonisation visuelle)** : page témoin Tâches d'abord, validée par Dr Bentahila, puis les autres pages (points 1, 2, 4, 5, 7, 8, 9,
+      11 de la fiche ; pas 3, 6, 10). Point 1 (« le nom du patient une seule fois ») déjà fait avec le lot A.
+
+**Changements de décision (demandés par Dr Bentahila le 24 et le 25/10/2026, ils remplacent ce qui est écrit plus bas)** :
+- d. 46 (20/10 : « traitements en cours choisis dans une liste : non ») → **oui** (lot A §4 et §6) : liste du cabinet + saisie libre. Le texte
+  reste lisible tel quel par les interactions (S5) et le contrôle d'allergie.
+- 17/10 (refusé : « menu … pour Afficher, Journal, Modifier ») → Afficher et Modifier du haut du dossier **retirés** (clic sur le titre d'une
+  rubrique), **Journal sous « ⋯ »** à côté du nom (lot A §1) ; Modifier / Supprimer sous « ⋯ » dans les fenêtres de bibliothèque (lot D).
+- U20 (T4 : « les 5 prochains, puis Voir tout ») → **3 cartes, puis « Voir plus »** ; la liste complète par le titre de la rubrique (lot A §8).
+- U21 (T4 : « Consultation : venu » et « Séance » visibles) → **sous « ⋯ »** comme toutes les actions de la carte (lot A §8) ; seuls « À valider »
+  et « À encaisser » restent visibles.
+- 19/10 (consultation ouverte : « signée le … », Modifier et Supprimer sur la ligne de titre) → en bas de la consultation (lot A §9).
+- Paramètres › Dossier patient › Listes de la fiche → Paramètres › Bibliothèques › Listes (lot D) ; Mon compte et Paramètres sortis du menu (lot B).
+
 ## Phase T – Tous les jours (audit 11, facilité d'utilisation ; impressions de l'audit 10)
 Ce qui ne change pas (décisions du 12/10 et du 17/10) : « Ouvrir » reste le bouton principal de chaque cure ; Valider, Reporter, Annuler restent
 dans ⋯ ; Afficher, Journal, Modifier restent visibles ; aucune consultation créée d'office ; rien n'est créé tout seul.
@@ -718,8 +764,8 @@ refus reste valable pour des contraintes dans la prescription ou le dossier d'un
 - **20/10/2026 (audits 10 et 11)** : tout l'**audit n° 9** (radiothérapie : lot RT-1 « séances reçues, motif d'arrêt, compteur, 1re séance un jour
   férié » (d. 4), lots RT-2 à RT-6, bibliothèque de contraintes de dose (d. 5)) ; écran « Corrections proposées » P1 (d. 10) ; écran de
   l'infirmière 3.8 (d. 11) ; ligne de protection du calendrier de fin de RT (d. 14 : retirée) ; validation du reçu par le comptable (d. 15) ;
-  juriste cette semaine (d. 17 : après les essais) ; double vérification du compte d'administration (d. 37) ; traitements en cours choisis dans
-  une liste (d. 46) ; mots de passe de 10 caractères et protection contre la recherche des adresses (d. 58) ; autorisation CNDP vérifiée
+  juriste cette semaine (d. 17 : après les essais) ; double vérification du compte d'administration (d. 37) ; ~~traitements en cours choisis dans
+  une liste (d. 46)~~ (revu le 24/10 : demandé, lot A) ; mots de passe de 10 caractères et protection contre la recherche des adresses (d. 58) ; autorisation CNDP vérifiée
   maintenant (d. 62 : plus tard) ; liste de protocoles filtrée par la localisation (U1) ; dose en mg avant de créer la ligne (U5) ; résumé à la
   place du tableau d'édition des molécules (U6) ; rappel des doses à côté de Valider (U9) ; cures reçues repliées (U11) ; « Cures à valider » en
   deux groupes (U12) ; « Prochains créneaux libres » (U15) ; nombre au lieu de la liste « Déjà ce jour-là, sans heure » (U16) ; bouton « Prochain
@@ -730,7 +776,7 @@ refus reste valable pour des contraintes dans la prescription ou le dossier d'un
 - **17/10** : déplacement automatique des consultations de RT un jour férié ; calendrier imprimable de chimio ; fauteuils / hôpital de jour ;
   toute la « caisse » (caisse du jour, clôture, registre, impayés, total du jour) ; avertissement « stupéfiant » ; remplacement de COTIPRED ;
   NIVESTIM / NEUPOGEN alignés ; bilans intercure enrichis ; double vérification à la connexion ; code-barres sur le reçu ; passage automatique
-  en A4 ; menu « … » pour Afficher, Journal, Modifier ; consultation créée d'office.
+  en A4 ; ~~menu « … » pour Afficher, Journal, Modifier~~ (revu le 24/10 : Journal sous « ⋯ », Afficher et Modifier retirés, lot A) ; consultation créée d'office.
 - **13/10** : relecture par un deuxième oncologue ; double contrôle avant préparation ; WhatsApp envoyé tout seul (3.17) ; format du papier
   choisi tout seul (3.18) ; case « EMEND prescrit » ; mention « hors référentiel » ; fenêtre pour les corrections de l'audit ; motif pour
   « Valider quand même » ; contrôle automatique des prémédications.
@@ -788,7 +834,7 @@ refus reste valable pour des contraintes dans la prescription ou le dossier d'un
 | d. 43 | CSP appliquée + permissions | oui | L7 |
 | d. 44 | Décimales (5 lignes, mg/kg) | oui | S3 |
 | d. 45 | Créatinine < 7 mg/L avant carboplatine | oui | S3 |
-| d. 46 | Traitements en cours choisis dans une liste | non | refusé |
+| d. 46 | Traitements en cours choisis dans une liste | non | refusé — **revu le 24/10 : oui (lot A)** |
 | d. 47 | Interactions manquantes | oui, **aussi dans le paramétrage** | S5 |
 | d. 48 | Épirubicine 0,8 | oui, **selon la recommandation internationale** (Feijen 2019, IGHG 2025) | S5 |
 | d. 49 | Fiche de chimio : en-tête répété | oui | T6 |
@@ -824,8 +870,8 @@ refus reste valable pour des contraintes dans la prescription ou le dossier d'un
 | U17 | Patients vus aujourd'hui en tête | oui | T3 |
 | U18 | « Prochain RDV » dans la salle | non | refusé |
 | U19 | Onglet d'ouverture selon le jour | non | refusé |
-| U20 | 5 prochains puis « Voir tout » | oui | T4 |
-| U21 | « Consultation : venu » + « Séance » | oui | T4 |
+| U20 | 5 prochains puis « Voir tout » | oui | T4 — **revu le 24/10 : 3 cartes puis « Voir plus » (lot A)** |
+| U21 | « Consultation : venu » + « Séance » | oui | T4 — **revu le 24/10 : sous « ⋯ » (lot A)** |
 | U22 | Téléphone : ce qui était décidé le 17/10 | oui (après, O2) | T4 |
 | U23 | Nom jamais coupé en salle | oui | T5 |
 | U24 | Consultations et chimio d'abord | oui, **sans plier la radiothérapie** | T5 |

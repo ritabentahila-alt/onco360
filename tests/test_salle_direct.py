@@ -71,7 +71,8 @@ async def main():
         await pg.goto(f'http://localhost:{PORT}/v2.html#dossier/{P7}'); await pg.wait_for_timeout(2500)
         await autre_poste(P7, {'id': 'rAutre4', 'type': 'Contrôle', 'd': '2026-10-09', 'h': '11:00', 'n': '', 'st': 'prevu', 'du': 30})
         await pg.wait_for_timeout(3000)
-        ok('Dossier mis à jour' in await ev("document.getElementById('toast').textContent") and '09/10' in await ev("document.getElementById('page').innerText"), 'dossier ouvert : redessiné avec le rendez-vous ajouté ailleurs, message « Dossier mis à jour »')
+        toast = await ev("document.getElementById('toast').textContent"); await ev(f"voirAvTout('{P7}')"); await pg.wait_for_timeout(500)  # lot A : 3 cartes, puis « Voir plus »
+        ok('Dossier mis à jour' in toast and '09/10' in await ev("document.getElementById('page').innerText"), 'dossier ouvert : redessiné avec le rendez-vous ajouté ailleurs, message « Dossier mis à jour »')
         # Téléphone
         await pg.goto(f'http://localhost:{PORT}/v2.html#salle'); await pg.set_viewport_size({'width': 390, 'height': 800}); await pg.wait_for_timeout(2000)
         ok(await ev("document.documentElement.scrollWidth <= 392"), 'téléphone (390 px) : salle sans débordement avec le bouton « Actualiser »')

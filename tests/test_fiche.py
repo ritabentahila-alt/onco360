@@ -45,8 +45,9 @@ async def main():
         d = await pg.evaluate(f"window.__fs['{E}patients/{pid}']")
         ok(d['clinique'].get('extra', {}).get('xgs001') == 'A+' and d['identite'].get('ald') == 'Oui', 'Modifier : Groupe sanguin enregistré, ALD caché mais gardé (Oui)')
         await pg.evaluate(f"location.hash='patients'"); await pg.wait_for_timeout(300); await pg.evaluate(f"location.hash='dossier/{pid}'"); await pg.wait_for_timeout(1500)
-        ok('Groupe sanguin' in await pg.inner_text('#page .bn2') and 'A+' in await pg.inner_text('#page .bn2'), 'en-tête du dossier (bandeau, ligne 2) : Groupe sanguin = A+')
-        ok('Pénicilline' in await pg.inner_text('#page .dos-ban') and await pg.evaluate("!document.querySelector('#page .bn2 [data-champ=\"tel2\"]') && !!document.querySelector('#page .bn2 [data-champ=\"tel\"]')"), 'en-tête réglé champ par champ : allergie (bandeau, « oui » déduit du texte), 2e téléphone retiré (Téléphone gardé)')
+        # lot A (25/10/2026) : plus de bandeau ni de réglage « en-tête » : le champ ajouté dans sa partie, l'allergie dans le bloc patient
+        ok(await pg.evaluate("(() => { const z = document.querySelector('.dos-pat details[data-p=med] [data-champ=xgs001]'); return !!z && /Groupe sanguin/.test(z.textContent) && /A\\+/.test(z.textContent); })()"), 'dossier : Groupe sanguin = A+ dans Informations médicales')
+        ok('Pénicilline' in await pg.inner_text('#page .dos-ban'), 'bloc patient : allergie (« oui » déduit du texte)')
         await pg.evaluate(f"afficherPatient('{pid}')"); await pg.wait_for_timeout(400); ta = await pg.inner_text('#fenetre')
         ok('Groupe sanguin' in ta and 'Médecin traitant' in ta, 'Afficher : champs ajoutés')
         await pg.evaluate("fermerFenetre()")

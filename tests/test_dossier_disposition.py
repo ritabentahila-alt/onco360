@@ -26,7 +26,8 @@ U = f'http://localhost:{PORT}/v2.html#dossier/{P8}'
 R = lambda sel: f"(() => {{ const e = document.querySelector('{sel}'); if (!e) return null; const r = e.getBoundingClientRect(); return [Math.round(r.left), Math.round(r.top), Math.round(r.width), Math.round(r.height), getComputedStyle(e).display, getComputedStyle(e).visibility]; }})()"
 async def page(b, w, h, replie=False, init=''):
     pg = await ouvrir(b, S2, w=w, h=h)
-    await pg.add_init_script("try{localStorage.setItem('onco360.menuReplie','" + ('1' if replie else '0') + "')}catch(e){}" + init)
+    # lot A §10 (25/10/2026) : le dossier a son propre choix (replié par défaut) : le même que le reste ici
+    await pg.add_init_script("try{localStorage.setItem('onco360.menuReplie','" + ('1' if replie else '0') + "');localStorage.setItem('onco360.menuReplieDossier','" + ('1' if replie else '0') + "')}catch(e){}" + init)
     await pg.goto(U); await pg.wait_for_timeout(3500); return pg
 async def main():
     async with async_playwright() as p:
@@ -36,15 +37,15 @@ async def main():
         d = await ev("({ sh: document.documentElement.scrollHeight, ih: innerHeight, sw: document.documentElement.scrollWidth })")
         ok(d['sh'] <= d['ih'] + 1 and d['sw'] <= 1440, '1440 × 900 : la page ne défile pas', d)
         pat, trav, docs, bar, ban = [await ev(R(s)) for s in ['.dos-pat', '.dos-trav', '.dos-docs', '.dos-barre', '.dos-ban']]
-        ok(pat and trav and docs and pat[0] < trav[0] < docs[0] and pat[1] == trav[1] == docs[1] and abs(pat[2] - 300) <= 1 and trav[2] >= 500 and 400 <= docs[2] <= 760, 'trois colonnes : Patient 300 px · Travail ≥ 500 · Documents 400 à 760', (pat, trav, docs))
+        ok(pat and trav and docs and pat[0] < trav[0] < docs[0] and trav[1] == docs[1] and pat[1] > trav[1] and abs(pat[2] - 300) <= 1 and trav[2] >= 500 and 400 <= docs[2] <= 760, 'trois colonnes : Patient 300 px (sous le bloc patient, lot A) · Travail ≥ 500 · Documents 400 à 760', (pat, trav, docs))
         ok(bar and bar[1] + bar[3] <= 901 and bar[1] >= pat[1] + pat[3], 'barre d\'actions visible, collée en bas', bar)
-        ok(ban and ban[1] < pat[1] and ban[3] <= 130, 'bandeau en haut (≤ 130 px)', ban)
+        ok(ban and ban[1] < pat[1] and ban[3] <= 130 and abs(ban[0] - pat[0]) <= 1 and ban[1] == trav[1], 'bloc patient en haut de la colonne Patient (≤ 130 px ; le centre monte tout en haut)', ban)
         ok(await ev("['.dos-pat','.dos-trav','.dos-docs'].every(s => getComputedStyle(document.querySelector(s)).overflowY === 'auto' && document.querySelector(s).tabIndex === 0)"), 'chaque colonne défile seule (et s\'atteint au clavier)')
         ok(await ev("document.querySelector('.dos-trav').scrollHeight > document.querySelector('.dos-trav').clientHeight"), 'le centre a plus de contenu que sa hauteur : il défile')
         # bandeau
         t = await ev("document.querySelector('.dos-ban').innerText")
-        ok(all(m in t for m in ['PATIENT TEST 8', '67 ans', 'Homme', 'Dossier n°', 'Afficher', 'Journal', 'Modifier', 'RT en cours']) and 'Chimio C' in t, 'bandeau ligne 1 : nom, âge, sexe, n° de dossier, Chimio C…, RT en cours, Afficher · Journal · Modifier', t[:200])
-        ok(await ev("[...document.querySelectorAll('.bn2 .bn-c')].map(e => e.innerText).some(x => /^Tél\\./.test(x))") and await ev("!document.querySelector('.bn2 [data-champ=nom]')"), 'bandeau ligne 2 : champs « en-tête » (libellés courts « Tél. »…), pas le nom')
+        ok(all(m in t for m in ['PATIENT TEST 8', '67 ans', 'N° ', 'RT en cours']) and 'Chimio C' in t and not any(m in t for m in ['Afficher', 'Modifier']), 'bloc patient (lot A) : nom, n° · né(e) le (âge) · hôpital, Chimio C…, RT en cours ; plus d\'Afficher ni de Modifier', t[:200])
+        ok(await ev("!document.querySelector('.bn2') && /Téléphone/.test(document.querySelector('.dos-pat details[data-p=id]').textContent)"), 'plus de ligne 2 : téléphone et autres champs dans « Identité et administratif »')
         ok(await ev("document.querySelector('.dos-ban').getAttribute('aria-label').indexOf('PATIENT TEST 8') >= 0"), 'zones nommées pour les lecteurs d\'écran')
         # barre
         tb = await ev("document.querySelector('.br-g').innerText.replace(/\\s+/g,' ')")
@@ -52,22 +53,22 @@ async def main():
         ok(await ev("/Nouvelle ligne/.test(document.getElementById('op-ch').textContent) && /Prescription/.test(document.getElementById('op-rt').textContent)"), '« Nouvelle ligne » et « + Prescription » dans les onglets Chimiothérapie et Radiothérapie')
         ok(await ev("(document.querySelector('.br-g [data-fn=\"prescriptions.medic\"] .br-n')||{}).textContent") == '7', 'nombre d\'ordonnances déjà faites sous « Médic. » (7)')
         ok(await ev("new Set([...document.querySelectorAll('.br-g .pr')].map(e => Math.round(e.getBoundingClientRect().top))).size === 1 && document.querySelector('.dos-barre').scrollWidth <= document.querySelector('.dos-barre').clientWidth"), 'barre entière sur une ligne, sans défiler (1440, menu replié)')
-        ok(await ev("(() => { const o = document.querySelector('.dos-trav .o-barre'); return o.scrollWidth <= o.clientWidth && new Set([...o.querySelectorAll('[role=tab]')].map(e => Math.round(e.getBoundingClientRect().top))).size === 1; })()"), 'onglets du centre sur une ligne')
+        ok(await ev("(() => { const o = document.querySelector('.dos-trav .o-barre'); return o.scrollWidth <= o.clientWidth && new Set([...o.querySelectorAll('[role=tab]')].filter(e => e.getClientRects().length).map(e => Math.round(e.getBoundingClientRect().top))).size === 1; })()"), 'onglets du centre sur une ligne')
         ok(await ev("!document.querySelector('.sa-bulles[style*=fixed], .rcp-bulle') && getComputedStyle(document.querySelector('.dos-barre')).position !== 'fixed'"), 'plus de bulle flottante ; la barre est une case de la grille')
         # colonne Patient
         tp = await ev("document.querySelector('.dos-pat').innerText")
         ok('Résumé du patient' in tp and 'PROCHAIN RENDEZ-VOUS' in tp.upper(), 'colonne Patient : résumé et prochain rendez-vous en haut', tp[:120])
-        ok(await ev("[...document.querySelectorAll('.dos-pat details.dp')].map(d => d.dataset.p).join()") == 'avenir,passe,id,med,tum', 'parties dépliables : à venir, consultations passées, identité, informations médicales, fiche tumeur')
+        ok(await ev("[...document.querySelectorAll('.dos-pat details.dp')].map(d => d.dataset.p).join()") == 'avenir,id,med,tum,passe', 'parties dépliables : à venir, identité, informations médicales, fiche tumeur, Historique des RDV (lot A)')
         ok(await ev("[...document.querySelectorAll('.dos-pat details.dp')].map(d => d.open).join()") == 'true,false,false,false,false', 'au départ : seulement « à venir » dépliée (réglage du cabinet)')
         ok(await ev("[...document.querySelectorAll('.dos-pat details.dp summary .n')].every(n => /^\\d+$/.test(n.textContent))"), 'chaque partie a un compteur')
         await ev("document.querySelector('.dos-pat details[data-p=med] summary').click()"); await pg.wait_for_timeout(300)
         ok(await ev("JSON.parse(localStorage.getItem('onco360.dossierParties')).med === true"), 'partie ouverte gardée pour chacun (appareil)')
-        ok(await ev("!!document.querySelector('.dos-pat details[data-p=med] [data-champ]') && /Modifier/.test(document.querySelector('.dos-pat details[data-p=med]').innerText)"), 'partie dépliée : ses champs et « Modifier »')
+        ok(await ev("!!document.querySelector('.dos-pat details[data-p=med] .im-s') && !/Modifier/.test(document.querySelector('.dos-pat details[data-p=med]').innerText) && !!document.querySelector('.dos-pat details[data-p=med] summary button.dp-t')"), 'partie dépliée : ses champs, plus de « Modifier » (le titre ouvre le formulaire, lot A)')
         # consultations : lignes serrées, la dernière dépliée, note entière
         h = await ev("[...document.querySelectorAll('#csListe .cs:not(.on) .cs-t')].map(e => e.getBoundingClientRect().height)")
         ok(len(h) == 13 and max(h) <= 30, 'consultations fermées : une ligne de 28 px (13 lignes)', h[:3])
         ok(await ev("document.querySelectorAll('#csListe .cs.on').length") == 1 and await ev("document.querySelector('#csListe .cs').classList.contains('on')"), 'seule la dernière consultation est dépliée')
-        ok(await ev("(() => { const h = document.querySelector('#csListe .cs.on .cs-h'); return !!h && /signée le/.test(h.textContent) && /Modifier/.test(h.textContent) && !document.querySelector('#csListe .cs-pied'); })()"), 'note ouverte : « signée le », Modifier, Supprimer sur la ligne de titre')
+        ok(await ev("(() => { const p = document.querySelector('#csListe .cs.on .cs-pied'), h = document.querySelector('#csListe .cs.on .cs-h'); return !!p && /Signée le/.test(p.textContent) && /Modifier/.test(p.textContent) && !/Modifier/.test(h.textContent); })()"), 'note ouverte : « Signée le », Modifier, Supprimer en bas (lot A §9 ; avant : sur la ligne de titre)')
         z = await ev("(() => { const t = document.querySelector('#csListe .cs.on textarea'); return [t.scrollHeight, t.clientHeight]; })()")
         ok(z[0] <= z[1] + 2 and z[1] > 300, 'note longue dépliée affichée en entier (pas de défilement dans la note)', z)
         ok(await ev("[...document.querySelectorAll('#csListe .cs:not(.on) .cs-t')].every(e => /\\d{2}\\/\\d{2}\\/\\d{4}/.test(e.innerText) && e.querySelector('.in').textContent.length)"), 'ligne fermée : date, type, début de note, initiales')
@@ -170,13 +171,17 @@ async def main():
         pg = await page(b, 390, 800); ev = pg.evaluate
         ok(await ev("document.documentElement.scrollWidth") <= 390, '390 px : aucun débordement')
         ok(await ev("getComputedStyle(document.getElementById('dos')).display") == 'flex' and (await ev(R('.dos-docs')))[4] == 'none', 'une seule colonne (pas de visionneuse à part)')
-        t = await ev("document.getElementById('titrePage').innerText")
-        ok('PATIENT TEST 8' in t and '67 ans' in t, 'bandeau réduit dans la barre du haut : nom et âge', t)
+        t = await ev("document.getElementById('titrePage').innerText"); tb = await ev("document.querySelector('.dos-ban').innerText")
+        ok(t.strip() == 'Patients' and 'PATIENT TEST 8' in tb and '67 ans' in tb, 'barre du haut : « ‹ Patients » ; nom et âge dans le bloc patient, en haut (lot A)', (t, tb[:80]))
         bar = await ev(R('.dos-barre'))
         ok(bar and abs(bar[1] + bar[3] - 800) <= 2, 'barre d\'actions collée en bas de l\'écran', bar)
         # T4 (24/10/2026, U22, décidé le 17/10) : sur téléphone, la barre tient sur UNE ligne qui défile de côté (aucun bouton derrière « Plus »)
-        ok(await ev("(() => { const g = document.querySelector('.br-g'), b = document.querySelector('.dos-barre').getBoundingClientRect(); return b.height <= 70 && getComputedStyle(g).overflowX === 'auto' && [...document.querySelectorAll('.br-g .pr')].length >= 9; })()"), 'barre sur une ligne qui défile de côté, tous les boutons présents (pas de « Plus »)', await ev(R('.dos-barre')))
+        # lot A §11 (25/10/2026) : sur téléphone, la barre est derrière « + Prescrire » (remplace la ligne qui défilait, U22)
+        ok(await ev("getComputedStyle(document.querySelector('.br-g')).display === 'none' && !!document.querySelector('.dos-fab').getClientRects().length"), '« + Prescrire » à la place de la barre')
+        await ev("dosPrescrire()"); await pg.wait_for_timeout(200)
+        ok(await ev("(() => { const g = document.querySelector('.br-g'); return getComputedStyle(g).display === 'grid' && [...document.querySelectorAll('.br-g .pr')].length >= 9; })()"), '« + Prescrire » : toute la barre (9 boutons) par-dessus', await ev(R('.dos-barre')))
         ok(await ev("[...document.querySelectorAll('.br-g .sm')].some(e => getComputedStyle(e).display !== 'none' && e.textContent === '+ RDV')"), 'libellés courts sur téléphone (« + RDV »)')
+        await ev("dosPrescrire(true)"); await pg.wait_for_timeout(200)
         ok(await ev("(() => { const o = document.querySelector('.dos-trav .o-barre'); return o.scrollWidth <= o.clientWidth; })()"), 'onglets du centre sur une ligne (téléphone)')
         ok(await ev("[...document.querySelectorAll('.dos-trav .o-barre [role=tab]')].every(b => { const n = b.querySelector('.n'), l = [...b.querySelectorAll('.sm')].find(e => getComputedStyle(e).display !== 'none'); return !n || !l || n.getBoundingClientRect().left >= l.getBoundingClientRect().right - 1; })"), 'téléphone : le nombre à côté du nom de l\'onglet, pas dessus')
         g = await ev("(() => { const o = document.querySelector('.dos-trav .o-barre'), t = [...o.querySelectorAll('[role=tab]')]; return [Math.round(t[0].getBoundingClientRect().left - o.getBoundingClientRect().left), Math.round(o.getBoundingClientRect().right - t[t.length - 1].getBoundingClientRect().right)]; })()")
@@ -192,7 +197,7 @@ async def main():
         ok(await ev("!!document.querySelector('#cfMod:not(.cache), .cf-mod:not(.cache)') || true"), 'case cochée (à enregistrer)')
         await pg.goto(f'http://localhost:{PORT}/v2.html#parametres/fiche'); await pg.wait_for_timeout(2000)
         tf = await ev("document.getElementById('page').innerText")
-        ok('En-tête du dossier (bandeau)' in tf and 'Surface corporelle' in tf and 'Chimio en cours' in tf, 'Fiche patient : réglage du bandeau (cases « en-tête », valeurs calculées, ligne 1)')
+        ok('En-tête du dossier (bandeau)' not in tf and not await ev("!!document.querySelector('[data-ren]')"), 'Fiche patient : plus de réglage du bandeau (lot A, remplacé par le bloc patient)')
         await pg.close(); await b.close()
     print(f'\n{ok_n} réussis, {ko_n} échoués')
 asyncio.run(main())

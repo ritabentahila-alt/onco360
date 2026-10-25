@@ -151,6 +151,8 @@ function contenuAccueil() {
 // Modifier, réattribuer : l'auteur, le responsable, les médecins ; supprimer : l'auteur (toujours), un médecin (non terminée)
 const peutModifier = (t) => estMedecin() || t.de === D().u.uid || t.pour === D().u.uid;
 const peutSupprimer = (t) => t.de === D().u.uid || (estMedecin() && t.statut !== "fait");
+// Lot A §8 (25/10/2026) : droits sur une tâche, pour le menu « ⋯ » des cartes du dossier (mêmes droits que la page Tâches)
+export const droitsTache = (t) => ({ mod: peutModifier(t), sup: peutSupprimer(t) });
 
 // ───── Affichage ─────
 const retard = (t) => t.statut !== "fait" && !!t.ech && t.ech < D().t;
