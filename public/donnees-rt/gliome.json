@@ -60,10 +60,7 @@
    "systemique": "Selon la situation, voir Traitement systémique",
    "simulation_id": "sim-crane",
    "volumes_id": "vol-gliome-g2",
-   "contraintes_ids": [
-    "ct-crane-igr",
-    "ct-crane-quantec"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "RT précoce : SSP 5,3 vs 3,4 ans, sans gain de survie globale (EORTC 22845). La RT peut être différée chez un patient en bon état, surveillé de près",
     "Témozolomide seul au lieu de la RT : SSP 39 vs 46 mois, différence non significative (EORTC 22033)",
@@ -102,10 +99,7 @@
    "systemique": "PCV après la RT",
    "simulation_id": "sim-crane",
    "volumes_id": "vol-gliome-g2",
-   "contraintes_ids": [
-    "ct-crane-igr",
-    "ct-crane-quantec"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "RT précoce : SSP 5,3 vs 3,4 ans, sans gain de survie globale (EORTC 22845). La RT peut être différée chez un patient en bon état, surveillé de près",
     "Témozolomide seul au lieu de la RT : SSP 39 vs 46 mois, différence non significative (EORTC 22033)",
@@ -146,10 +140,7 @@
    "systemique": "PCV",
    "simulation_id": "sim-crane",
    "volumes_id": "vol-gliome-g3",
-   "contraintes_ids": [
-    "ct-crane-igr",
-    "ct-crane-quantec"
-   ],
+   "contraintes_ids": [],
    "date_verif": "2026-10-24",
    "ind": [
     "SNC",
@@ -185,10 +176,7 @@
    "systemique": "Témozolomide adjuvant",
    "simulation_id": "sim-crane",
    "volumes_id": "vol-gliome-g3",
-   "contraintes_ids": [
-    "ct-crane-igr",
-    "ct-crane-quantec"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "Bénéfice du témozolomide adjuvant lié à la mutation IDH1/2 (CATNON, 2e analyse)"
    ],

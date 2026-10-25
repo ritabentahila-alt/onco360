@@ -70,9 +70,7 @@
    "systemique": "Aucune",
    "simulation_id": "sim-orl-curie",
    "volumes_id": "vol-orl-curie-postop",
-   "contraintes_ids": [
-    "ct-orl-curie"
-   ],
+   "contraintes_ids": [],
    "couverture": "PTV : D95 % ≥ 95 % ; CTV : D98 % ≥ 98 % ; PTV66 ∪ PTV59,4 : D2 % ≤ 107 %",
    "points_attention": [
     "La RT post-opératoire améliore le contrôle local à 10 ans : T3–T4 84 contre 18 %, exérèse incomplète 82 contre 44 %, marges proches 95 contre 55 %, envahissement osseux 86 contre 54 %, engainements 88 contre 60 % (Terhaard 2005)"
@@ -119,10 +117,7 @@
    "systemique": "Aucune",
    "simulation_id": "sim-orl-curie",
    "volumes_id": "vol-orl-curie-postop",
-   "contraintes_ids": [
-    "ct-orl-curie",
-    "ct-orl-igr"
-   ],
+   "contraintes_ids": [],
    "couverture": "Tableur du service : D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
    "points_attention": [
     "La RT post-opératoire améliore le contrôle local à 10 ans : T3–T4 84 contre 18 %, exérèse incomplète 82 contre 44 %, marges proches 95 contre 55 %, envahissement osseux 86 contre 54 %, engainements 88 contre 60 % (Terhaard 2005)"
@@ -179,9 +174,7 @@
    "systemique": "Aucune",
    "simulation_id": "sim-orl-curie",
    "volumes_id": "vol-orl-curie-en-place",
-   "contraintes_ids": [
-    "ct-orl-curie"
-   ],
+   "contraintes_ids": [],
    "couverture": "PTV : D95 % ≥ 95 % ; CTV : D98 % ≥ 98 % ; PTV70 : D2 % ≤ 107 %",
    "date_verif": "2026-10-24",
    "ind": [

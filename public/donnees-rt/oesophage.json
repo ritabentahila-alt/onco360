@@ -107,9 +107,7 @@
    "systemique": "Voir Traitement systémique",
    "simulation_id": "sim-oeso",
    "volumes_id": "vol-oeso-excl",
-   "contraintes_ids": [
-    "ct-thorax-quantec"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "Épidermoïde répondeur : la chirurgie après RCT n'améliore pas la survie et augmente la mortalité à 3 mois (FFCD 9102)",
     "GTV_N = ganglions envahis visibles. Les stations « à risque ≥ 20 % » relèvent du CTV_N"
@@ -147,9 +145,7 @@
    "systemique": "Voir Traitement systémique",
    "simulation_id": "sim-oeso",
    "volumes_id": "vol-oeso-excl",
-   "contraintes_ids": [
-    "ct-thorax-quantec"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "Épidermoïde répondeur : la chirurgie après RCT n'améliore pas la survie et augmente la mortalité à 3 mois (FFCD 9102)",
     "GTV_N = ganglions envahis visibles. Les stations « à risque ≥ 20 % » relèvent du CTV_N"
@@ -198,9 +194,7 @@
    "systemique": "Voir Traitement systémique",
    "simulation_id": "sim-oeso",
    "volumes_id": "vol-oeso-excl",
-   "contraintes_ids": [
-    "ct-thorax-quantec"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "Épidermoïde répondeur : la chirurgie après RCT n'améliore pas la survie et augmente la mortalité à 3 mois (FFCD 9102)",
     "GTV_N = ganglions envahis visibles. Les stations « à risque ≥ 20 % » relèvent du CTV_N"

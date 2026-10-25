@@ -106,9 +106,7 @@
    "systemique": "Faible : aucune. Intermédiaire favorable : aucune, option 4–6 mois",
    "simulation_id": "sim-pro-ep",
    "volumes_id": "vol-pro-ep",
-   "contraintes_ids": [
-    "ct-pro-3gy-20fx-curie"
-   ],
+   "contraintes_ids": [],
    "couverture": "CTV D98% ≥ 58,8 Gy ; PTV D95% ≥ 57 Gy ; D1cc ≤ 107 %",
    "points_attention": [
     "CHHiP : 57 Gy / 19 fx n'a pas démontré sa non-infériorité ; ne pas l'utiliser comme alternative à 60 Gy / 20 fx"
@@ -144,9 +142,7 @@
    "systemique": "Aucune (risque faible)",
    "simulation_id": "sim-pro-ep",
    "volumes_id": "vol-pro-ep",
-   "contraintes_ids": [
-    "ct-pro-25gy-28fx-curie"
-   ],
+   "contraintes_ids": [],
    "couverture": "CTV D98% ≥ 68,6 Gy ; PTV D95% ≥ 66,5 Gy ; D1cc ≤ 107 %",
    "date_verif": "2026-10-22",
    "ind": [
@@ -183,9 +179,7 @@
    "systemique": "Faible : aucune. Intermédiaire favorable : aucune, option 4–6 mois",
    "simulation_id": "sim-pro-ep",
    "volumes_id": "vol-pro-ep",
-   "contraintes_ids": [
-    "ct-pro-2gy-curie"
-   ],
+   "contraintes_ids": [],
    "couverture": "CTV D98% ≥ 76,4 Gy ; PTV D95% ≥ 74,1 Gy ; D1cc ≤ 107 % ; option 76 Gy / 38 fx : CTV D98% ≥ 74,5 Gy, PTV D95% ≥ 72,2 Gy",
    "date_verif": "2026-10-22",
    "ind": [
@@ -221,9 +215,7 @@
    "systemique": "Aucune (sauf ISUP 3 retenu au cas par cas)",
    "simulation_id": "sim-pro-sbrt",
    "volumes_id": "vol-pro-sbrt",
-   "contraintes_ids": [
-    "ct-pro-sbrt5-curie"
-   ],
+   "contraintes_ids": [],
    "couverture": "PTV D98% ≥ 34,4 Gy ; PTV D95% ≥ 36,25 Gy ; PTV D2% ≤ 43,5 Gy ; Dmax ≤ 45,3 Gy (acceptable ≤ 48 Gy) ; CTV D99% ≥ 36,25 Gy ; CTV D95% ≥ 40 Gy (acceptable D90% ≥ 40 Gy)",
    "points_attention": [
     "Toxicité génito-urinaire tardive de grade ≥ 2 plus fréquente qu'en RT standard (26,9 % vs 18,3 % à 5 ans, PACE-B)",
@@ -298,9 +290,7 @@
    "systemique": "Int. défavorable : 4–6 mois. Haut risque : 18 à 36 mois",
    "simulation_id": "sim-pro-ep",
    "volumes_id": "vol-pro-ep",
-   "contraintes_ids": [
-    "ct-pro-3gy-20fx-curie"
-   ],
+   "contraintes_ids": [],
    "couverture": "CTV D98% ≥ 58,8 Gy ; PTV D95% ≥ 57 Gy ; D1cc ≤ 107 %",
    "date_verif": "2026-10-22",
    "ind": [
@@ -333,9 +323,7 @@
    "systemique": "Int. défavorable : 4–6 mois. Haut risque : 18 à 36 mois",
    "simulation_id": "sim-pro-ep",
    "volumes_id": "vol-pro-ep",
-   "contraintes_ids": [
-    "ct-pro-2gy-curie"
-   ],
+   "contraintes_ids": [],
    "couverture": "CTV D98% ≥ 76,4 Gy ; PTV D95% ≥ 74,1 Gy (80 Gy : 78,4 / 76 Gy) ; D1cc ≤ 107 %",
    "date_verif": "2026-10-22",
    "ind": [
@@ -429,9 +417,7 @@
    "systemique": "Int. défavorable : 4–6 mois. Haut risque : 18 à 36 mois ; très haut risque : HT 3 ans + abiratérone 2 ans",
    "simulation_id": "sim-pro-ep",
    "volumes_id": "vol-pro-ep",
-   "contraintes_ids": [
-    "ct-pro-25gy-28fx-curie"
-   ],
+   "contraintes_ids": [],
    "couverture": "PRO : CTV D98% ≥ 68,6 / PTV D95% ≥ 66,5 Gy ; VS : 54,9 / 53,2 Gy ; PELV : 49,4 / 47,9 Gy ; D1cc ≤ 107 %",
    "date_verif": "2026-10-22",
    "ind": [
@@ -524,9 +510,7 @@
    "systemique": "Int. défavorable : 4–6 mois. Haut risque : 18 à 36 mois ; très haut risque : HT 3 ans + abiratérone 2 ans",
    "simulation_id": "sim-pro-ep",
    "volumes_id": "vol-pro-ep",
-   "contraintes_ids": [
-    "ct-pro-2gy-curie"
-   ],
+   "contraintes_ids": [],
    "couverture": "PRO 78 : 76,4 / 74,1 Gy ; VS 54 : 52,9 / 51,3 Gy ; PELV 50 : 49 / 47,5 Gy ; D1cc ≤ 107 %",
    "date_verif": "2026-10-22",
    "ind": [
@@ -588,9 +572,7 @@
    "systemique": "HT 24–36 mois (Curie) ; avec abiratérone : HT 3 ans + abiratérone 2 ans (STAMPEDE)",
    "simulation_id": "sim-pro-ep",
    "volumes_id": "vol-pro-ep",
-   "contraintes_ids": [
-    "ct-pro-25gy-28fx-curie"
-   ],
+   "contraintes_ids": [],
    "couverture": "PRO 68,6 / 66,5 ; VS 54,9 / 53,2 ; PELV 49,4 / 47,9 ; ADP : CTV D98% ≥ 60,4 / PTV D95% ≥ 58,5 Gy",
    "date_verif": "2026-10-22",
    "ind": [
@@ -863,9 +845,7 @@
    "systemique": "Voir « Hormonothérapie associée » (post-op)",
    "simulation_id": "sim-pro-loge",
    "volumes_id": "vol-pro-loge",
-   "contraintes_ids": [
-    "ct-loge-66-33-curie"
-   ],
+   "contraintes_ids": [],
    "couverture": "LOGE : CTV D98% ≥ 64,7 / PTV D95% ≥ 62,7 Gy ; PELV : 53,4 / 51,7 ; ADP : 61,4 / 59,6 ; NODULE : 69,5 / 67,4 Gy ; D1cc ≤ 107 %",
    "points_attention": [
     "Rattrapage précoce (PSA ≥ 0,1–0,2 ng/ml) préféré à la RT adjuvante systématique : contrôle comparable, moins de toxicité urinaire et érectile (RADICALS-RT, GETUG-AFU 17, RAVES)",
@@ -1025,9 +1005,7 @@
    "systemique": "Selon risque",
    "simulation_id": "sim-pro-loge",
    "volumes_id": "vol-pro-loge-service",
-   "contraintes_ids": [
-    "ct-loge-66-33-curie"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "Rattrapage précoce (PSA ≥ 0,1–0,2 ng/ml) préféré à la RT adjuvante systématique : contrôle comparable, moins de toxicité urinaire et érectile (RADICALS-RT, GETUG-AFU 17, RAVES)",
     "Identifier les clips de prostatectomie (à inclure) et ceux du curage (à exclure du CTV_LOGE)"
@@ -1178,9 +1156,7 @@
    "systemique": "HT + abiratérone (PEACE-1)",
    "simulation_id": "sim-pro-ep",
    "volumes_id": "vol-pro-ep",
-   "contraintes_ids": [
-    "ct-pro-2gy-curie"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "STAMPEDE : pas de bénéfice de survie chez les patients non sélectionnés ; l'indication vise le faible volume métastatique"
    ],

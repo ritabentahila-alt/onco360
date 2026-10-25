@@ -10,10 +10,15 @@
 // Fiche (RT4) : à partir de 1 280 px, à droite de la liste ; en dessous, page entière avec Retour.
 import { collection, doc, getDocs, setDoc, deleteDoc, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { db } from "../config.js";
-import { fusionner, trier, chercher, motBloquant, termes, sansAcc, resumePrescription, fmtPrescription, controlePrescription, nombre, calculBED, calculable, fixe, libPreuve, nb, TYPES, FRACTIONNEMENTS, CONTEXTES } from "../moteur/rtref.js";
+import { fusionner, trier, chercher, motBloquant, termes, sansAcc, resumePrescription, fmtPrescription, controlePrescription, nombre, calculBED, calculable, fixe, libPreuve, nb, TYPES, FRACTIONNEMENTS, CONTEXTES,
+  contraintesSchema, regimeDe, baseEffective, cleOar, REGIMES } from "../moteur/rtref.js";
 import { idProtocole } from "./protocoles.js";
 
 let A = null, INDEX = null, CAB = null, LISTE = null, ERREUR = null, CHARGE = null, PROTOS = {};
+// Bibliothèques modifiées par le cabinet (25/10/2026) : referentielRT/_oar { oar: { id: { nom, nom_tg263, definition } }, ajouts: [OAR] } et
+// referentielRT/_contraintes { lignes: [lignes modifiées (même id) ou ajoutées (cc-…)], retirees: [id] }
+let CAB_OAR = null, CAB_CT = null;
+export const DOCS_BIB = ["_oar", "_contraintes"];
 const LOCS = {}, TEXTES = new Map();
 // Recherche et menus de la session ; sel = ligne choisie au clavier ; filtres = menus ouverts sur téléphone
 const RF = { q: "", reg: "", loc: "", sit: "", frac: "", sel: -1, filtres: false, y: 0, ouvert: null };
@@ -32,6 +37,7 @@ function charger() {
       try { PROTOS = (await json("protocoles-chimio.json")).correspondances || {}; } catch (e) { console.warn("protocoles-chimio", e); PROTOS = {}; }
       CAB = {};
       try { (await getDocs(collection(db, "espaces", A.ESPACE, "referentielRT"))).forEach((d) => { CAB[d.id] = d.data(); }); } catch (e) { console.warn("référentiel du cabinet", e); }
+      CAB_OAR = CAB._oar || null; CAB_CT = CAB._contraintes || null; DOCS_BIB.forEach((k) => { delete CAB[k]; });
       // fiches du cabinet : acronymes des essais lus dans la bibliothèque (la référence les a déjà dans index.json)
       if (Object.keys(CAB).length) await chargerBibs().catch(() => null);
       LISTE = fusionner(INDEX, CAB, acronymeDe); ERREUR = null;
@@ -169,7 +175,15 @@ window.rtrRetour = () => { location.hash = "radiotherapie"; };
 window.rtrOnglet = (o) => { if (ED) { FICHE.onglet = o; dessinerFiche(); return; } if (profil().rtOnglet !== o) noter({ rtOnglet: o }); location.hash = "radiotherapie/s/" + encodeURIComponent(RF.ouvert) + "/" + o; };
 // BB : bibliothèques lues (OAR, jeux de contraintes et aide des colonnes, essais), communes à la fiche et aux sous-pages
 let ESSAIS = null, BB = null;
-const chargerBibs = () => BIBS || (BIBS = Promise.all(["oar.json", "contraintes.json", "essais.json"].map(json)).then(([o, c, e]) => { ESSAIS = {}; e.essais.forEach((x) => { ESSAIS[x.id] = x.acronyme; }); BB = { oar: o.oar, jeux: c.jeux, aide: c.aide_colonnes, essais: e.essais }; return BB; }).catch((e) => { BIBS = null; throw e; }));
+// BB.oar et BB.base : référence + changements du cabinet ; BB.jeux = contraintes propres aux essais et à la curiethérapie ; BB.paires = droite et gauche
+const chargerBibs = () => BIBS || (BIBS = Promise.all(["oar.json", "contraintes.json", "essais.json"].map(json)).then(([o, c, e]) => { ESSAIS = {}; e.essais.forEach((x) => { ESSAIS[x.id] = x.acronyme; });
+  BB = { oarRef: o.oar, paires: o.paires || [], baseRef: c.base || [], jeux: c.essais || [], aideCol: c.aide || {}, aide: c.aide_colonnes, essais: e.essais }; appliquerCab(); return BB; }).catch((e) => { BIBS = null; throw e; }));
+function appliquerCab() {
+  if (!BB) return;
+  const m = (CAB_OAR && CAB_OAR.oar) || {};
+  BB.oar = BB.oarRef.map((o) => (m[o.id] ? Object.assign({}, o, m[o.id], { cabinet: true }) : o)).concat(((CAB_OAR && CAB_OAR.ajouts) || []).map((o) => Object.assign({ region: "divers" }, o, { cabinet: true, ajout: true })));
+  BB.base = baseEffective(BB.baseRef, CAB_CT);
+}
 const acronymeDe = (id) => (ESSAIS && ESSAIS[id]) || id;
 async function ouvrirFiche(id, onglet) {
   const e = LISTE.find((x) => x.id === id), z = $("rtrFiche"); if (!z) return;
@@ -197,7 +211,13 @@ const vide = () => "—";
 const num = (v, suf) => (typeof v === "number" && isFinite(v) ? nb(v) + (suf || "") : null);
 const essai = (id) => BB.essais.find((x) => x.id === id);
 const acronymes = (ids) => (ids || []).map((i) => (essai(i) || {}).acronyme || i).join(", ");
-const oar = (id) => (id === "cible-ctv" ? { nom: "Cible (CTV)" } : id === "cible-ptv" ? { nom: "Cible (PTV)" } : BB.oar.find((o) => o.id === id) || { nom: id });
+// Organe, paire droite et gauche (nom de la paire, deux noms TG-263) ou cible
+function oar(id) {
+  if (id === "cible-ctv") return { nom: "Cible (CTV)" }; if (id === "cible-ptv") return { nom: "Cible (PTV)" };
+  const o = BB.oar.find((x) => x.id === id); if (o) return o;
+  const p = BB.paires.find((x) => x.id === id);
+  return p ? { id, nom: p.nom, nom_tg263: p.membres.map((m) => (BB.oar.find((x) => x.id === m) || {}).nom_tg263).filter(Boolean).join(" / "), paire: true } : { nom: id };
+}
 // Lien vers Protocoles : par le nom exact, sinon le protocole correspondant (donnees-rt/protocoles-chimio.json, le premier présent dans le cabinet),
 // sinon la page filtrée sur la localisation ; sans module chimio ni la fonction : le nom seul
 function idCorrespondant(nom) { const bib = (D().ctx && D().ctx.bib) || {}; return idProtocole(nom) || (PROTOS[nom] || []).find((i) => bib[i]) || null; }
@@ -240,24 +260,23 @@ function ongletPrescription() {
 }
 // Centrage
 const SIM = [["position", "Position"], ["contention", "Contention"], ["preparation", "Préparation"], ["scanner", "Scanner"], ["imagerie", "Imagerie"], ["reperes", "Repères"]];
-const simDe = () => (FICHE.loc.simulations || []).find((x) => x.id === FICHE.schema.simulation_id);
+const simDe = () => FICHE.schema.simulation || (FICHE.loc.simulations || []).find((x) => x.id === FICHE.schema.simulation_id);
 function ongletCentrage() {
   const m = simDe(); if (!m) return '<p class="vide-c">Pas de fiche de centrage du service pour cette localisation</p>' + textes("centrage");
-  return '<dl class="rtr-dl">' + SIM.filter(([k]) => m[k]).map(([k, lib]) => "<dt>" + lib + "</dt><dd>" + court(m[k], 220) + "</dd>").join("") + "</dl>" + textes("centrage");
+  return '<dl class="rtr-dl">' + SIM.filter(([k]) => m[k]).map(([k, lib]) => "<dt>" + lib + "</dt><dd>" + court(m[k], 220) + "</dd>").join("") + (m.autres || []).filter((x) => x.lib || x.val).map((x) => "<dt>" + court(x.lib) + "</dt><dd>" + court(x.val) + "</dd>").join("") + "</dl>" + textes("centrage");
 }
 // Contourage
-const volDe = () => (FICHE.loc.volumes || []).find((x) => x.id === FICHE.schema.volumes_id);
+const volDe = () => FICHE.schema.volumes || (FICHE.loc.volumes || []).find((x) => x.id === FICHE.schema.volumes_id);
 function ongletContourage() {
   const esc = A.esc, v = volDe(); if (!v) return '<p class="vide-c">Pas de volumes décrits pour ce schéma</p>' + textes("contourage");
   let h = '<div class="rtr-tw"><table class="rtr-tab"><thead><tr><th>Nom</th><th>Type</th><th>Définition</th><th>Quand</th><th>Marge</th></tr></thead><tbody>' + (v.cibles || []).map((c) =>
     '<tr><td data-l="Nom"><b>' + esc(c.nom || "") + '</b></td><td data-l="Type"><span class="badge b-gr">' + esc(c.type || "") + '</span></td><td data-l="Définition">' + court(c.definition || "") + '</td><td data-l="Quand">' + court(c.quand || "", 60) + '</td><td data-l="Marge"><b>' + esc(c.marge || "—") + "</b></td></tr>").join("") + "</tbody></table></div>";
-  if ((v.oar_ids || []).length) h += "<h4>Organes à risque à contourer</h4><ul class=\"rtr-oar\">" + v.oar_ids.map((id) => { const o = oar(id), n = (v.oar_notes || {})[id];
-    return "<li>" + esc(o.nom) + (o.nom_tg263 ? ' <span class="mesures">' + esc(o.nom_tg263) + "</span>" : "") + (n ? ' <span class="mesures">(' + esc(n) + ")</span>" : "") + (o.definition ? '<div class="mesures">' + esc(o.definition) + "</div>" : "") + "</li>"; }).join("") + "</ul>";
-  if ((v.atlas || []).length) h += '<p class="rtr-l2"><span class="mesures">Atlas</span> ' + v.atlas.map((a) => (a.url ? '<a href="' + esc(a.url) + '" target="_blank" rel="noopener">' + esc(a.nom) + "</a>" : esc(a.nom))).join(" · ") + "</p>";
+  // organes à risque : le nom et le nom TG-263 seulement (la définition est dans la page Organes à risque)
+  if ((v.oar_ids || []).length) h += '<h4>Organes à risque à contourer</h4><ul class="rtr-oar">' + v.oar_ids.map((id) => { const o = oar(id);
+    return "<li>" + esc(o.nom) + (o.nom_tg263 ? ' <span class="mesures">' + esc(o.nom_tg263) + "</span>" : "") + "</li>"; }).join("") + "</ul>";
   return h + textes("contourage");
 }
 // Contraintes : un bloc par jeu, lignes groupées par OAR ; « ? » d'Idéal et de Limitant tirés de aide_colonnes
-const jeuxDe = () => (FICHE.schema.contraintes_ids || []).map((id) => BB.jeux.find((j) => j.id === id)).filter(Boolean);
 function aideDe(j) { const A2 = BB.aide || []; return A2.find((a) => a.source_contient !== "defaut" && String(j.source || "").indexOf(a.source_contient) >= 0) || A2.find((a) => a.source_contient === "defaut") || {}; }
 function groupes(j) { const g = []; j.lignes.forEach((l) => { const d = g[g.length - 1]; if (d && d.oar === l.oar_id) d.l.push(l); else g.push({ oar: l.oar_id, l: [l] }); }); return g; }
 function tableJeu(j, i) {
@@ -270,10 +289,47 @@ function tableJeu(j, i) {
 }
 // Objectifs de couverture des volumes cibles : en tête de l'onglet Contraintes
 const couvHtml = () => (FICHE.schema.couverture ? '<section class="rtr-couv"><h4>Objectifs de couverture</h4><p>' + court(FICHE.schema.couverture) + "</p></section>" : "");
-function ongletContraintes() {
-  const J = jeuxDe(), esc = A.esc; if (!J.length) return couvHtml() + '<p class="vide-c">Aucun jeu publié pour ce fractionnement</p>';
-  return couvHtml() + (J.length > 1 ? '<div class="rtr-raccourcis">' + J.map((j, i) => '<button type="button" class="mini" onclick="document.getElementById(\'rtrJeu' + i + '\').scrollIntoView({block:\'start\'})">' + esc(j.titre) + "</button>").join("") + "</div>" : "") + J.map(tableJeu).join("");
+// Une seule table (25/10/2026) : pour chaque organe contouré, la contrainte de la base pour le régime du schéma (RecoRad 2025, précisions de la
+// localisation, moteur/rtref.js contraintesSchema), ou celle de l'essai suivi ; table modifiée pour le schéma par le cabinet (schema.contraintes)
+function grouperLignes(L, origine) {
+  const g = []; L.forEach((l) => { let x = g.find((y) => y.cle === l.oar_id); if (!x) { x = { cle: l.oar_id, origine, lignes: [] }; g.push(x); } x.lignes.push(l); });
+  return g.sort((a, b) => (/^cible-/.test(b.cle) ? 1 : 0) - (/^cible-/.test(a.cle) ? 1 : 0));
 }
+function contraintesCalculees(schema) {
+  const v = volDe() || {};
+  return contraintesSchema({ schema, loc: FICHE.e.localisation_id, oarIds: v.oar_ids || [], oar: BB.oar, base: BB.base, essais: BB.jeux });
+}
+const lignesFiche = () => (Array.isArray(FICHE.schema.contraintes) ? grouperLignes(FICHE.schema.contraintes, "cabinet") : contraintesCalculees(FICHE.schema));
+function enteteContraintes() {
+  const rg = regimeDe(FICHE.schema), a = BB.aideCol || {};
+  return '<p class="mesures rtr-aidec">' + (rg ? "<b>" + REGIMES[rg.regime] + (rg.fx ? " · " + rg.fx + " séance" + (rg.fx > 1 ? "s" : "") : "") + "</b> · " : "") + (a.ideal ? "<b>Idéal</b> : " + A.esc(a.ideal) + " · " : "") + (a.limitant ? "<b>Limitant</b> : " + A.esc(a.limitant) : "") + "</p>";
+}
+function sourceGroupe(g) {
+  if (g.origine === "conversion") return "Pas de valeur publiée pour ce fractionnement : valeur du normofractionné, à convertir en EQD2";
+  if (g.origine === "cabinet") return "Pratique du cabinet";
+  const src = [...new Set(g.lignes.map((l) => l.source).filter(Boolean))].join(" ; ");
+  return (g.proche ? "Valeurs publiées pour " + g.proche + " séance" + (g.proche > 1 ? "s" : "") + (g.plusLarge ? ", plus permissives : à adapter" : "") + " · " : "") + src;
+}
+function tableContraintes(G) {
+  const esc = A.esc;
+  return '<div class="rtr-tw"><table class="rtr-tab rtr-ct"><thead><tr><th>Organe</th><th>Indicateur</th><th class="n">Idéal</th><th class="n">Limitant</th><th>Note</th></tr></thead><tbody>' +
+    G.map((g) => { const o = oar(g.cle), src = sourceGroupe(g), L = g.lignes.length ? g.lignes : [null];
+      const tete = (n) => '<td class="o" rowspan="' + n + '" data-l="Organe"><b>' + esc(o.nom) + "</b>" + (o.nom_tg263 ? '<br><span class="mesures">' + esc(o.nom_tg263) + "</span>" : "") + (src ? '<div class="mesures rtr-src' + (g.origine === "conversion" ? " conv" : "") + '">' + esc(src) + "</div>" : "") + "</td>";
+      return L.map((l, k) => '<tr class="' + (k ? "" : "g1") + (g.origine === "conversion" ? " conv" : "") + '">' + (k ? "" : tete(L.length)) +
+        (l ? '<td data-l="Indicateur">' + esc(l.indicateur || "") + '</td><td class="n" data-l="Idéal">' + esc(l.ideal || "") + '</td><td class="n lim" data-l="Limitant">' + esc(l.limitant || "") + '</td><td data-l="Note">' + court(l.note || "") + "</td>"
+          : '<td colspan="4" class="mesures" data-l="Contrainte">Aucune contrainte publiée</td>') + "</tr>").join(""); }).join("") + "</tbody></table></div>";
+}
+function ongletContraintes() {
+  const G = lignesFiche();
+  if (!G.length) return couvHtml() + '<p class="vide-c">Aucun organe à risque contouré pour ce schéma</p>';
+  return couvHtml() + '<div class="rtr-jt"><div>' + enteteContraintes() + "</div>" + (IMPRESSION ? "" : '<button type="button" class="mini rtr-cp" onclick="rtrCopierCt()">' + A.ic("copier") + "Copier</button>") + "</div>" + tableContraintes(G);
+}
+window.rtrCopierCt = () => {
+  if (!FICHE) return;
+  const t = [[FICHE.e.titre, resumePrescription(FICHE.schema)].join("\t"), ["Organe", "TG-263", "Indicateur", "Idéal", "Limitant", "Note", "Source"].join("\t")]
+    .concat([].concat(...lignesFiche().map((g) => { const o = oar(g.cle); return g.lignes.map((l) => [o.nom, o.nom_tg263 || "", l.indicateur || "", l.ideal || "", l.limitant || "", l.note || "", sourceGroupe(g)].join("\t")); }))).join("\n");
+  copier(t, "Tableau copié");
+};
 window.rtrCopierJeu = (id) => {
   const j = BB.jeux.find((x) => x.id === id); if (!j) return;
   const t = [[j.titre, j.fractionnement || "", j.source || ""].join("\t"), ["Organe", "TG-263", "Indicateur", "Idéal", "Limitant", "Note"].join("\t")]
@@ -299,7 +355,7 @@ window.rtrCopierRef = (id) => { const x = essai(id); if (x) copier([x.acronyme, 
 function pointsDe() { const p = (FICHE.schema.points_attention || []).slice(); (FICHE.loc.points_attention || []).forEach((x) => { if (x.portee === "localisation" && p.indexOf(x.point) < 0) p.push(x.point); }); return p; }
 const ongletAttention = () => { const p = pointsDe(); return p.length ? '<ul class="rtr-pts">' + p.map((x) => "<li>" + md(x) + "</li>").join("") + "</ul>" : '<p class="vide-c">Pas de point d\'attention pour ce schéma</p>'; };
 const RENDUS = { prescription: ongletPrescription, centrage: ongletCentrage, contourage: ongletContourage, contraintes: ongletContraintes, essais: ongletEssais, attention: ongletAttention };
-function nombres() { const J = jeuxDe(); return { prescription: (FICHE.schema.prescriptions || []).length, centrage: simDe() ? 1 : 0, contourage: volDe() ? 1 : 0, contraintes: J.reduce((n, j) => n + j.lignes.length, 0), essais: (FICHE.schema.essai_ids || []).length, attention: pointsDe().length }; }
+function nombres() { return { prescription: (FICHE.schema.prescriptions || []).length, centrage: simDe() ? 1 : 0, contourage: volDe() ? 1 : 0, contraintes: lignesFiche().reduce((n, g) => n + g.lignes.length, 0), essais: (FICHE.schema.essai_ids || []).length, attention: pointsDe().length }; }
 function enteteHtml() {
   const esc = A.esc, { e, schema } = FICHE, s = sit(e.situation_id) || {}, l = loc(e.localisation_id) || {}, r = INDEX.regions.find((x) => x.id === l.region_id) || {}, fav = favoris().indexOf(e.id) >= 0;
   const etoile = '<button class="rtr-et' + (fav ? " on" : "") + '" title="' + (fav ? "Retirer des favoris" : "Ajouter aux favoris") + '" aria-pressed="' + fav + '" onclick="rtrEtoile(\'' + esc(e.id) + "')\">" + A.ic("etoile") + "</button>";
@@ -378,6 +434,7 @@ function differences() {
   const n = Math.max((a.prescriptions || []).length, (b.prescriptions || []).length);
   for (let i = 0; i < n; i++) CHAMPS_P.forEach((k) => { if (txt(((a.prescriptions || [])[i] || {})[k]) !== txt(((b.prescriptions || [])[i] || {})[k])) d.push("prescriptions." + i + "." + k); });
   ["contraintes_ids", "essai_ids", "points_attention"].forEach((k) => { if (JSON.stringify(a[k] || []) !== JSON.stringify(b[k] || [])) d.push(k); });
+  ["volumes", "simulation", "contraintes"].forEach((k) => { if (JSON.stringify(a[k] == null ? null : a[k]) !== JSON.stringify(b[k] == null ? null : b[k])) d.push(k); });
   if (txt(ED.noteOrig) !== txt(ED.note)) d.push("note");
   return d;
 }
@@ -395,6 +452,9 @@ function poser(p, v) {
   const k = p.split(".");
   if (k[0] === "prescriptions") { const l = ED.schema.prescriptions[Number(k[1])]; const val = NUM_P.indexOf(k[2]) >= 0 ? lireNombre(v) : v; if (val === undefined || val === "") delete l[k[2]]; else l[k[2]] = val; return; }
   if (k[0] === "points_attention") { ED.schema.points_attention[Number(k[1])] = v; return; }
+  if (k[0] === "vol") { matVol().cibles[Number(k[1])][k[2]] = v; return; }
+  if (k[0] === "sim") { const M = matSim(); if (k[1] === "autres") M.autres[Number(k[2])][k[3]] = v; else M[k[1]] = v; return; }
+  if (k[0] === "ct") { matCt()[Number(k[1])][k[2]] = v; return; }
   if (v === "" || v == null) delete ED.schema[p]; else ED.schema[p] = v;
 }
 // Barre du bas, champs changés, contrôles : mis à jour sans redessiner (le curseur reste dans le champ)
@@ -411,7 +471,6 @@ document.addEventListener("input", (ev) => { const t = ev.target; if (!ED || !t.
 document.addEventListener("change", (ev) => {
   const t = ev.target; if (!ED || !t.closest || !t.closest("#rtrFiche")) return;
   if (t.dataset.p && t.tagName === "SELECT") { poser(t.dataset.p, t.value); dessinerFiche(); }
-  else if (t.dataset.jeu) { const L = ED.schema.contraintes_ids = ED.schema.contraintes_ids || [], i = L.indexOf(t.dataset.jeu); if (t.checked && i < 0) L.push(t.dataset.jeu); if (!t.checked && i >= 0) L.splice(i, 1); majEtat(); }
   else if (t.id === "rtrAjEssai") { const x = BB.essais.find((e) => libEssai(e) === t.value); if (x) { const L = ED.schema.essai_ids = ED.schema.essai_ids || []; if (L.indexOf(x.id) < 0) L.push(x.id); dessinerFiche(); } else t.value = ""; }
 });
 async function garde() {
@@ -529,7 +588,6 @@ const sel = (p, v, opts, lab) => '<select class="rtr-in" data-p="' + p + '" aria
 window.rtrLigne = (i) => { if (!ED) return; const P = ED.schema.prescriptions = ED.schema.prescriptions || []; if (i == null) P.push({ volume: "", mode: P.length ? P[P.length - 1].mode : "seul", rythme: P.length ? P[P.length - 1].rythme : "" }); else P.splice(i, 1); dessinerFiche(); };
 window.rtrPoint = (i) => { if (!ED) return; const P = ED.schema.points_attention = ED.schema.points_attention || []; if (i == null) P.push(""); else P.splice(i, 1); dessinerFiche(); };
 window.rtrRetEssai = (id) => { if (!ED) return; ED.schema.essai_ids = (ED.schema.essai_ids || []).filter((x) => x !== id); dessinerFiche(); };
-window.rtrFiltreJeux = (q) => { const s = sansAcc(q); document.querySelectorAll(".rtr-jeux label").forEach((l) => { l.hidden = !!s && sansAcc(l.textContent).indexOf(s) < 0; }); };
 function editPrescription() {
   const s = ED.schema, P = s.prescriptions || [];
   let h = ED.nouveau ? '<div class="form rtr-fn"><div><label>Situation</label>' + sel("situation_id", s.situation_id, INDEX.situations.filter((x) => x.localisation_id === ED.localisation_id).map((x) => [x.id, x.titre]), "Situation") + "</div><div><label>Fractionnement</label>" +
@@ -544,18 +602,51 @@ function editPrescription() {
   h += zone("technique", s.technique, "Technique") + zone("systemique", s.systemique, "Traitement associé") + zone("note", ED.note, "Note du médecin", 3);
   return h;
 }
+// Centrage, contourage et contraintes modifiés ligne par ligne (25/10/2026) : la première modification recopie dans le schéma la version affichée
+// (schema.simulation, schema.volumes, schema.contraintes), qui remplace ensuite le modèle de la localisation et la base
+const tri = (L) => L.slice().sort((a, b) => sansAcc(a[1]).localeCompare(sansAcc(b[1])));
+function matSim() {
+  if (!ED.schema.simulation) { const m = simDe() || {}, x = {}; SIM.forEach(([k]) => { if (m[k]) x[k] = m[k]; }); x.autres = clone(m.autres || []); ED.schema.simulation = x; }
+  ED.schema.simulation.autres = ED.schema.simulation.autres || []; return ED.schema.simulation;
+}
+function matVol() { if (!ED.schema.volumes) { const v = volDe() || {}; ED.schema.volumes = { cibles: clone(v.cibles || []), oar_ids: (v.oar_ids || []).slice() }; } return ED.schema.volumes; }
+function matCt() {
+  if (!ED.schema.contraintes) ED.schema.contraintes = [].concat(...contraintesCalculees(ED.schema).map((g) => g.lignes.map((l) => ({ oar_id: g.cle, indicateur: l.indicateur || "", ideal: l.ideal || "", limitant: l.limitant || "", note: l.note || "" }))));
+  return ED.schema.contraintes;
+}
+window.rtrSim = (i) => { if (!ED) return; const M = matSim(); if (i == null) M.autres.push({ lib: "", val: "" }); else M.autres.splice(i, 1); dessinerFiche(); };
+window.rtrVol = (i) => { if (!ED) return; const V = matVol(); if (i == null) V.cibles.push({ nom: "", type: "", definition: "", quand: "", marge: "" }); else V.cibles.splice(i, 1); dessinerFiche(); };
+window.rtrVolOar = (id, ajout) => { if (!ED || !id) return; const V = matVol(); if (ajout) { if (V.oar_ids.indexOf(id) < 0) V.oar_ids.push(id); } else V.oar_ids = V.oar_ids.filter((x) => x !== id); dessinerFiche(); };
+window.rtrCt = (i) => { if (!ED) return; const C = matCt(); if (i == null) C.push({ oar_id: (C[C.length - 1] || {}).oar_id || "", indicateur: "", ideal: "", limitant: "", note: "" }); else C.splice(i, 1); dessinerFiche(); };
+window.rtrCtBase = () => { if (!ED) return; delete ED.schema.contraintes; dessinerFiche(); };
 function editCentrage() {
-  const L = FICHE.loc.simulations || [];
-  return '<label class="rtr-lab">Fiche de centrage' + sel("simulation_id", ED.schema.simulation_id || "", [["", "Aucune"]].concat(L.map((m) => [m.id, (m.position || m.id) + " (" + m.id + ")"])), "Fiche de centrage") + "</label>" + ongletCentrage();
+  const m = ED.schema.simulation || simDe() || {}, autres = m.autres || [];
+  return '<div class="rtr-ed2">' + SIM.map(([k, lib]) => zone("sim." + k, m[k], lib)).join("") +
+    autres.map((x, i) => '<div class="rtr-pe rtr-sim2">' + inp("sim.autres." + i + ".lib", x.lib, "Rubrique", { ph: "Rubrique" }) + '<textarea class="rtr-in" data-p="sim.autres.' + i + '.val" rows="2" aria-label="Contenu">' + A.esc(txt(x.val)) + '</textarea><button type="button" class="mini" onclick="rtrSim(' + i + ')" aria-label="Retirer cette ligne">' + A.ic("croix") + "</button></div>").join("") +
+    '<button type="button" class="mini rtr-aj" onclick="rtrSim()">' + A.ic("plus") + "Ajouter une ligne</button></div>";
 }
 function editContourage() {
-  const L = FICHE.loc.volumes || [];
-  return '<label class="rtr-lab">Volumes' + sel("volumes_id", ED.schema.volumes_id || "", [["", "Aucun"]].concat(L.map((v) => [v.id, v.id + " : " + (v.cibles || []).map((c) => c.nom).join(", ")])), "Volumes") + "</label>" + ongletContourage();
+  const esc = A.esc, v = ED.schema.volumes || volDe() || {}, C = v.cibles || [], O = v.oar_ids || [];
+  let h = '<div class="rtr-tw"><table class="rtr-tab rtr-edt"><thead><tr><th>Nom</th><th>Type</th><th>Définition</th><th>Quand</th><th>Marge</th><th></th></tr></thead><tbody>' +
+    C.map((c, i) => '<tr><td data-l="Nom">' + inp("vol." + i + ".nom", c.nom, "Nom") + '</td><td data-l="Type">' + inp("vol." + i + ".type", c.type, "Type", { ph: "GTV, CTV, PTV" }) + '</td><td data-l="Définition"><textarea class="rtr-in" data-p="vol.' + i + '.definition" rows="2" aria-label="Définition">' + esc(txt(c.definition)) + "</textarea></td>" +
+      '<td data-l="Quand">' + inp("vol." + i + ".quand", c.quand, "Quand") + '</td><td data-l="Marge">' + inp("vol." + i + ".marge", c.marge, "Marge") + '</td><td><button type="button" class="mini" onclick="rtrVol(' + i + ')" aria-label="Retirer cette ligne">' + A.ic("croix") + "</button></td></tr>").join("") +
+    '</tbody></table></div><button type="button" class="mini rtr-aj" onclick="rtrVol()">' + A.ic("plus") + "Ajouter une ligne</button>";
+  h += '<h4>Organes à risque à contourer</h4><ul class="rtr-oar rtr-oare">' + O.map((id) => { const o = oar(id); return "<li>" + esc(o.nom) + (o.nom_tg263 ? ' <span class="mesures">' + esc(o.nom_tg263) + "</span>" : "") + ' <button type="button" class="mini" onclick="rtrVolOar(\'' + esc(id) + '\')" aria-label="Retirer ' + esc(o.nom) + '">' + A.ic("croix") + "</button></li>"; }).join("") + "</ul>" +
+    '<label class="rtr-lab">Ajouter un organe à risque<select class="rtr-in" onchange="rtrVolOar(this.value,1)"><option value="">Choisir dans la liste des organes à risque…</option>' +
+    tri(BB.oar.filter((o) => O.indexOf(o.id) < 0).map((o) => [o.id, o.nom])).map(([k, l]) => '<option value="' + esc(k) + '">' + esc(l) + "</option>").join("") + "</select></label>";
+  return h;
 }
 function editContraintes() {
-  const esc = A.esc, on = ED.schema.contraintes_ids || [];
-  return zone("couverture", ED.schema.couverture, "Objectifs de couverture") + '<label class="rtr-lab">Jeux de contraintes liés<input type="search" class="rtr-in" placeholder="Filtrer (organe, source, fractionnement)" oninput="rtrFiltreJeux(this.value)"></label><div class="rtr-jeux">' +
-    BB.jeux.map((j) => '<label><input type="checkbox" data-jeu="' + esc(j.id) + '"' + (on.indexOf(j.id) >= 0 ? " checked" : "") + ' style="width:auto"> <b>' + esc(j.titre) + '</b> <span class="mesures">' + esc([j.fractionnement, j.source].filter(Boolean).join(" · ")) + "</span></label>").join("") + "</div>";
+  const esc = A.esc, cab = Array.isArray(ED.schema.contraintes);
+  const L = cab ? ED.schema.contraintes : [].concat(...contraintesCalculees(ED.schema).map((g) => g.lignes.map((l) => Object.assign({ oar_id: g.cle }, l))));
+  const choix = [["cible-ptv", "Cible (PTV)"], ["cible-ctv", "Cible (CTV)"]].concat(tri(BB.paires.map((p) => [p.id, p.nom]).concat(BB.oar.filter((o) => !o.paire).map((o) => [o.id, o.nom]))));
+  return zone("couverture", ED.schema.couverture, "Objectifs de couverture") + enteteContraintes() +
+    (cab ? '<p class="mesures">Table du cabinet pour ce schéma · <a href="#" class="rtr-lien" onclick="rtrCtBase();return false">Revenir aux contraintes de la base</a></p>' : "") +
+    '<div class="rtr-tw"><table class="rtr-tab rtr-edt rtr-ctedit"><thead><tr><th>Organe</th><th>Indicateur</th><th>Idéal</th><th>Limitant</th><th>Note</th><th></th></tr></thead><tbody>' +
+    L.map((l, i) => '<tr><td data-l="Organe">' + sel("ct." + i + ".oar_id", l.oar_id, (choix.some(([k]) => k === l.oar_id) ? [] : [[l.oar_id, oar(l.oar_id).nom]]).concat(choix), "Organe") + '</td><td data-l="Indicateur">' + inp("ct." + i + ".indicateur", l.indicateur, "Indicateur", { ph: "Dmax, V20Gy…" }) + "</td>" +
+      '<td data-l="Idéal">' + inp("ct." + i + ".ideal", l.ideal, "Idéal") + '</td><td data-l="Limitant">' + inp("ct." + i + ".limitant", l.limitant, "Limitant") + '</td><td data-l="Note">' + inp("ct." + i + ".note", l.note, "Note") + "</td>" +
+      '<td><button type="button" class="mini" onclick="rtrCt(' + i + ')" aria-label="Retirer cette contrainte">' + A.ic("croix") + "</button></td></tr>").join("") +
+    '</tbody></table></div><button type="button" class="mini rtr-aj" onclick="rtrCt()">' + A.ic("plus") + "Ajouter une contrainte</button>";
 }
 function editEssais() {
   const esc = A.esc, L = (ED.schema.essai_ids || []).map(essai).filter(Boolean);
@@ -571,11 +662,12 @@ const EDITS = { prescription: editPrescription, centrage: editCentrage, contoura
 // Voir la référence : deux colonnes, différences surlignées ; sur téléphone, un sélecteur Référence / Version du cabinet
 function lignesComparaison(a, b, na, nb2) {
   const P = (s) => (s.prescriptions || []), lp = (p) => p ? [p.volume, fmtPrescription(p).replace(/ /g, " "), MODES[p.mode] || p.mode, p.rythme, p.note].filter(Boolean).join(" · ") : "";
-  const sim = (s) => { const m = (FICHE.loc.simulations || []).find((x) => x.id === s.simulation_id); return m ? m.position || m.id : ""; };
-  const jeux = (s) => (s.contraintes_ids || []).map((id) => (BB.jeux.find((j) => j.id === id) || { titre: id }).titre).join(" ; ");
+  const sim = (s) => { const m = s.simulation || (FICHE.loc.simulations || []).find((x) => x.id === s.simulation_id) || {}; return SIM.map(([k, l]) => (m[k] ? l + " : " + m[k] : "")).concat((m.autres || []).map((x) => x.lib + " : " + x.val)).filter(Boolean).join(" • "); };
+  const vols = (s) => { const v = s.volumes || (FICHE.loc.volumes || []).find((x) => x.id === s.volumes_id) || {}; return (v.cibles || []).map((c) => [c.nom, c.marge].filter(Boolean).join(" ")).concat((v.oar_ids || []).map((id) => oar(id).nom)).join(" ; "); };
+  const jeux = (s) => (Array.isArray(s.contraintes) ? s.contraintes.map((l) => oar(l.oar_id).nom + " " + [l.indicateur, l.ideal, l.limitant].filter(Boolean).join(" ")).join(" ; ") : "Base du référentiel" + ((s.contraintes_ids || []).length ? " ; " + s.contraintes_ids.map((id) => (BB.jeux.find((j) => j.id === id) || { titre: id }).titre).join(" ; ") : ""));
   const r = [["Titre", a.titre, b.titre], ["Fractionnement", TYPES[a.type], TYPES[b.type]], ["Preuve", libPreuve(a.preuve), libPreuve(b.preuve)]];
   for (let i = 0; i < Math.max(P(a).length, P(b).length); i++) r.push(["Prescription " + (i + 1), lp(P(a)[i]), lp(P(b)[i])]);
-  return r.concat([["Technique", a.technique, b.technique], ["Traitement associé", a.systemique, b.systemique], ["Couverture", a.couverture, b.couverture], ["Centrage", sim(a), sim(b)], ["Volumes", a.volumes_id, b.volumes_id],
+  return r.concat([["Technique", a.technique, b.technique], ["Traitement associé", a.systemique, b.systemique], ["Couverture", a.couverture, b.couverture], ["Centrage", sim(a), sim(b)], ["Contourage", vols(a), vols(b)],
     ["Contraintes", jeux(a), jeux(b)], ["Essais", acronymes(a.essai_ids), acronymes(b.essai_ids)], ["Points d'attention", (a.points_attention || []).join(" • "), (b.points_attention || []).join(" • ")], ["Note du médecin", na, nb2]]).map(([l, x, y]) => [l, txt(x), txt(y)]);
 }
 window.rtrComparer = () => {
@@ -618,40 +710,124 @@ function pageOar() {
   listeOar();
 }
 window.RS_oar = (k, v) => { if (k === "r") RS.oarR = v; listeOar(); };
+// Liste : nom, TG-263, définition sur deux lignes ; un clic déplie la ligne (définition entière, schémas qui contourent l'organe) ; le médecin qui
+// a le droit « modifier » change le nom, le nom TG-263 et la définition pour le cabinet, ou ajoute un organe (referentielRT/_oar)
+const oarsDe = (s, L) => (s.volumes || (L.volumes || []).find((x) => x.id === s.volumes_id) || {}).oar_ids || [];
 function listeOar() {
   const z = $("rtrOl"); if (!z) return;
   const esc = A.esc, q = sansAcc(RS.oarQ).trim(), L = BB.oar.filter((o) => (!RS.oarR || o.region === RS.oarR) && (!q || sansAcc(o.nom + " " + (o.nom_tg263 || "") + " " + (o.definition || "")).indexOf(q) >= 0));
-  z.innerHTML = '<p class="mesures rtr-nb">' + L.length + " organe" + (L.length > 1 ? "s" : "") + "</p>" + (L.length ? '<div class="rtr-tw"><table class="rtr-tab rtr-ot"><thead><tr><th>Nom</th><th>TG-263</th><th>Définition</th><th>Source</th></tr></thead><tbody>' +
-    L.map((o) => '<tr class="rtr-clic" tabindex="0" onclick="rtrDetailOar(this,\'' + esc(o.id) + '\')" onkeydown="if(event.key===\'Enter\')this.click()"><td data-l="Nom"><b>' + esc(o.nom) + '</b></td><td data-l="TG-263">' + esc(o.nom_tg263 || "") + '</td><td data-l="Définition">' + court(o.definition || "") + '</td><td data-l="Source">' + court(o.source || "", 40) + "</td></tr>").join("") + "</tbody></table></div>" : '<div class="vide-c">Aucun organe ne correspond</div>');
+  z.innerHTML = '<div class="rtr-ohaut"><p class="mesures rtr-nb">' + L.length + " organe" + (L.length > 1 ? "s" : "") + "</p>" + (peutModif() ? '<button type="button" class="mini" onclick="rtrOarForm(null)">' + A.ic("plus") + "Ajouter un organe</button>" : "") + "</div>" +
+    (L.length ? '<div class="rtr-tw"><table class="rtr-tab rtr-ot"><thead><tr><th>Nom</th><th>TG-263</th><th>Définition</th></tr></thead><tbody>' +
+    L.map((o) => '<tr class="rtr-clic" tabindex="0" data-oar="' + esc(o.id) + '" onclick="rtrDetailOar(this,\'' + esc(o.id) + '\')" onkeydown="if(event.key===\'Enter\')this.click()"><td data-l="Nom"><b>' + esc(o.nom) + "</b>" + (o.cabinet ? ' <span class="badge b-or">Cabinet</span>' : "") + '</td><td data-l="TG-263">' + esc(o.nom_tg263 || "") + '</td><td data-l="Définition"><div class="rtr-def2">' + court(o.definition || "") + "</div></td></tr>").join("") + "</tbody></table></div>" : '<div class="vide-c">Aucun organe ne correspond</div>');
 }
 window.rtrDetailOar = async (tr, id) => {
-  const n = tr.nextElementSibling; if (n && n.classList.contains("rtr-det")) { n.remove(); return; }
-  const o = BB.oar.find((x) => x.id === id), esc = A.esc, d = document.createElement("tr"); d.className = "rtr-det";
-  d.innerHTML = '<td colspan="4"><p>' + esc(o.definition || "") + '</p><p class="mesures">Chargement…</p></td>'; tr.after(d);
+  const n = tr.nextElementSibling; if (n && n.classList.contains("rtr-det")) { n.remove(); tr.classList.remove("ouv"); return; }
+  const esc = A.esc, d = document.createElement("tr"); d.className = "rtr-det"; tr.classList.add("ouv");
+  d.innerHTML = '<td colspan="3"><p class="mesures">Chargement…</p></td>'; tr.after(d);
   try { await chargerTout(); } catch (e) { d.querySelector(".mesures").textContent = "Pas de connexion : réessayez"; return; }
-  const S2 = schemasComplets().filter(({ s, L }) => { const v = (L.volumes || []).find((x) => x.id === s.volumes_id); return v && (v.oar_ids || []).indexOf(id) >= 0; });
-  d.querySelector(".mesures").innerHTML = "Utilisé dans " + S2.length + " schéma" + (S2.length > 1 ? "s" : "") + (S2.length ? " : " + S2.slice(0, 12).map(({ s }) => '<a href="#radiotherapie/s/' + encodeURIComponent(s.id) + '/contourage">' + esc(s.titre) + "</a>").join(" · ") + (S2.length > 12 ? " · …" : "") : "");
+  const S2 = schemasComplets().filter(({ s, L }) => oarsDe(s, L).indexOf(id) >= 0);
+  d.querySelector("td").innerHTML = '<p class="mesures rtr-util">Utilisé dans ' + S2.length + " schéma" + (S2.length > 1 ? "s" : "") + (S2.length ? " : " : "") + S2.map(({ s, L }) => '<a href="#radiotherapie/s/' + encodeURIComponent(s.id) + '/contourage">' + esc(L.nom + " · " + s.titre) + "</a>").join(" · ") + "</p>" +
+    (peutModif() ? '<button type="button" class="mini" onclick="event.stopPropagation();rtrOarForm(\'' + esc(id) + '\')">' + A.ic("crayon") + "Modifier pour le cabinet</button>" : "");
 };
-// Contraintes : choix du jeu (recherche, groupé par région), puis le même tableau que dans la fiche
-function regionsJeux() {
-  const r = {}; schemasComplets().forEach(({ s, L }) => (s.contraintes_ids || []).forEach((j) => { if (!r[j]) r[j] = L.region_id; }));
+window.rtrOarForm = (id) => {
+  if (!peutModif()) return;
+  const o = id ? BB.oar.find((x) => x.id === id) : { nom: "", nom_tg263: "", definition: "", region: RS.oarR || "divers" }, esc = A.esc;
+  A.fenetre("<h3>" + (id ? "Modifier l'organe pour le cabinet" : "Ajouter un organe") + '</h3><div class="form" style="grid-template-columns:1fr"><div><label for="rtrOn">Nom</label><input id="rtrOn" value="' + esc(o.nom || "") + '"></div><div><label for="rtrOt">TG-263</label><input id="rtrOt" value="' + esc(o.nom_tg263 || "") + '"></div>' +
+    '<div><label for="rtrOd">Définition du contourage</label><textarea id="rtrOd" rows="5">' + esc(o.definition || "") + "</textarea></div>" + (id ? "" : '<div><label for="rtrOg">Région</label><select id="rtrOg">' + Object.keys(REGIONS_OAR).map((k) => '<option value="' + k + '"' + (k === o.region ? " selected" : "") + ">" + esc(REGIONS_OAR[k]) + "</option>").join("") + "</select></div>") + "</div>" +
+    '<div class="actr">' + (id && CAB_OAR && CAB_OAR.oar && CAB_OAR.oar[id] ? '<button class="bt rouge" onclick="rtrOarOk(\'' + esc(id) + '\',1)">Revenir à la référence</button>' : "") + '<button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt plein" onclick="rtrOarOk(\'' + esc(id || "") + '\')">' + A.ic("enregistrer") + "Enregistrer pour le cabinet</button></div>");
+};
+window.rtrOarOk = async (id, revenir) => {
+  const v = { nom: A.val("rtrOn").trim(), nom_tg263: A.val("rtrOt").trim(), definition: A.val("rtrOd").trim() };
+  if (!revenir && !v.nom) { A.toast("Indiquez le nom de l'organe"); return; }
+  const ref = doc(db, "espaces", A.ESPACE, "referentielRT", "_oar");
+  try {
+    CAB_OAR = await runTransaction(db, async (tx) => {
+      const sn = await tx.get(ref), c = sn.exists() ? sn.data() : { oar: {}, ajouts: [] };
+      c.oar = c.oar || {}; c.ajouts = c.ajouts || [];
+      const aj = c.ajouts.findIndex((x) => x.id === id);
+      if (revenir) delete c.oar[id];
+      else if (!id) c.ajouts.push(Object.assign({ id: "oarc-" + Date.now().toString(36), region: A.val("rtrOg") || "divers" }, v));
+      else if (aj >= 0) Object.assign(c.ajouts[aj], v);
+      else c.oar[id] = v;
+      Object.assign(c, { majPar: D().u.uid, majParNom: $("nomMenu") ? $("nomMenu").textContent : "", majLe: new Date().toISOString() });
+      tx.set(ref, c); return c;
+    });
+  } catch (e) { console.warn("organes du cabinet", e); A.toast("Pas de connexion : réessayez"); return; }
+  A.fermerFenetre(); appliquerCab(); listeOar(); A.toast(revenir ? "La référence s'affiche de nouveau" : "Enregistré pour le cabinet");
+};
+// Contraintes (25/10/2026) : tous les organes, une ligne chacun, avec leurs contraintes en normofractionné, hypofractionné et stéréotaxie (selon le
+// nombre de séances), et les précisions par localisation ; un clic ouvre la liste complète, modifiable par le médecin qui a le droit « modifier »
+// (referentielRT/_contraintes) ; en bas, les contraintes propres aux essais et à la curiethérapie
+const nomLoc = (id) => (loc(id) || {}).nom || id;
+function cleOarsListe() {
+  const vus = new Set(), r = [];
+  BB.oar.forEach((o) => { const k = o.somme || o.paire || o.id; if (vus.has(k)) return; vus.add(k); r.push(k); });
+  BB.base.forEach((l) => { if (!vus.has(l.oar_id)) { vus.add(l.oar_id); r.push(l.oar_id); } });
   return r;
+}
+function etiquette(l) { return [l.loc ? l.loc.map(nomLoc).join(", ") : "", l.fx ? l.fx + " séance" + (l.fx > 1 ? "s" : "") + (l.dpf ? " de " + nb(l.dpf) + " Gy" : "") : ""].filter(Boolean).join(" · "); }
+function celluleRegime(L) {
+  const esc = A.esc, g = []; L.forEach((l) => { const e = etiquette(l); let x = g.find((y) => y.e === e); if (!x) { x = { e, l: [] }; g.push(x); } x.l.push(l); });
+  return g.sort((a, b) => (a.e ? 1 : 0) - (b.e ? 1 : 0)).map((x) => (x.e ? '<div class="rtr-ctg">' + esc(x.e) + "</div>" : "") + x.l.map((l) => '<div class="rtr-ctl">' + esc(l.indicateur || "") + " " + (l.ideal ? '<span class="mesures">idéal ' + esc(l.ideal) + "</span> " : "") + "<b>" + esc(l.limitant || "") + "</b></div>").join("")).join("");
 }
 async function pageContraintesRef() {
   const z = $("rtrSous"); if (!z) return;
-  const esc = A.esc;
-  z.innerHTML = '<div class="rtr-ch">' + "<i></i>".repeat(3) + "</div>";
-  try { await chargerTout(); } catch (e) { z.innerHTML = erreurHtml(); return; }
-  const reg = regionsJeux(), Rg = INDEX.regions.slice().sort((a, b) => a.ordre - b.ordre), q = sansAcc(RS.jeuQ);
-  const lib = (j) => j.titre + (j.fractionnement ? " — " + j.fractionnement : "") + (j.source ? " — " + j.source : "");
-  const J = BB.jeux.filter((j) => !q || sansAcc(lib(j)).indexOf(q) >= 0);
-  const groupe = (rid, nom) => { const g = J.filter((j) => (reg[j.id] || "") === rid); return g.length ? '<optgroup label="' + esc(nom) + '">' + g.map((j) => '<option value="' + esc(j.id) + '"' + (j.id === RS.jeu ? " selected" : "") + ">" + esc(lib(j)) + "</option>").join("") + "</optgroup>" : ""; };
-  z.innerHTML = '<div class="rtr-haut rtr-sh"><div class="recherche"><svg class="i"><use href="#i-loupe"/></svg><input id="rtrJq" type="search" autocomplete="off" placeholder="Rechercher un jeu (organe, source, fractionnement)" aria-label="Rechercher un jeu de contraintes" value="' + esc(RS.jeuQ) + '"></div>' +
-    '<div class="cascade rtr-menus"><div><label for="rtrJs">Jeu de contraintes (' + J.length + ')</label><select id="rtrJs" onchange="RS_jeu(this.value)"><option value="">Choisir…</option>' + Rg.map((r) => groupe(r.id, r.nom)).join("") + groupe("", "Autres") + "</select></div></div></div>" +
-    '<div class="rtr-fiche rtr-sl" id="rtrJt">' + (RS.jeu && BB.jeux.find((j) => j.id === RS.jeu) ? tableJeu(BB.jeux.find((j) => j.id === RS.jeu), 0) : '<div class="vide-c">' + BB.jeux.length + " jeux de contraintes</div>") + "</div>";
-  const i = $("rtrJq"); i.oninput = () => { RS.jeuQ = i.value; clearTimeout(i.t); i.t = setTimeout(() => { pageContraintesRef().then(() => { const k = $("rtrJq"); if (k) { k.focus(); k.setSelectionRange(k.value.length, k.value.length); } }); }, 200); };
+  const esc = A.esc, q = sansAcc(RS.jeuQ).trim();
+  const K = cleOarsListe().filter((k) => { const o = oar(k), L = BB.base.filter((l) => l.oar_id === k); return !q || sansAcc(o.nom + " " + (o.nom_tg263 || "") + " " + L.map((l) => l.indicateur).join(" ")).indexOf(q) >= 0; });
+  const R0 = ["normo", "hypo", "stereo"];
+  if (!$("rtrJq")) {
+    z.innerHTML = '<div class="rtr-haut rtr-sh"><div class="recherche"><svg class="i"><use href="#i-loupe"/></svg><input id="rtrJq" type="search" autocomplete="off" placeholder="Rechercher un organe ou un indicateur" aria-label="Rechercher un organe" value="' + esc(RS.jeuQ) + '"></div></div><div class="rtr-liste rtr-sl" id="rtrJt"></div>';
+    $("rtrJq").oninput = (e) => { RS.jeuQ = e.target.value; pageContraintesRef(); };
+  }
+  const a = BB.aideCol || {};
+  $("rtrJt").innerHTML = '<p class="mesures rtr-nb">' + K.length + " organe" + (K.length > 1 ? "s" : "") + " · base RecoRad 2025, précisions par localisation" + (a.ideal ? " · <b>idéal</b> : " + esc(a.ideal) : "") + "</p>" +
+    '<div class="rtr-tw"><table class="rtr-tab rtr-ctr"><thead><tr><th>Organe</th>' + R0.map((r) => "<th>" + REGIMES[r] + "</th>").join("") + "</tr></thead><tbody>" +
+    K.map((k) => { const o = oar(k); return '<tr class="rtr-clic" tabindex="0" onclick="rtrDetailCt(this,\'' + esc(k) + '\')" onkeydown="if(event.key===\'Enter\')this.click()"><td data-l="Organe"><b>' + esc(o.nom) + "</b>" + (o.nom_tg263 ? '<br><span class="mesures">' + esc(o.nom_tg263) + "</span>" : "") + "</td>" +
+      R0.map((r) => { const L = BB.base.filter((l) => l.oar_id === k && l.regime === r); return '<td data-l="' + REGIMES[r] + '">' + (L.length ? celluleRegime(L) : '<span class="mesures">—</span>') + "</td>"; }).join("") + "</tr>"; }).join("") + "</tbody></table></div>" +
+    '<h3 class="rtr-tous">Contraintes propres aux essais et à la curiethérapie</h3><p class="mesures">Elles remplacent la base pour les organes qu\'elles citent, dans les schémas qui suivent l\'essai.</p>' +
+    BB.jeux.map((j, i) => '<details class="rtr-e"><summary><span class="t"><b>' + esc(j.titre) + '</b> <span class="mesures">' + esc([j.fractionnement, j.source].filter(Boolean).join(" · ")) + "</span></span></summary>" + tableJeu(j, i) + "</details>").join("");
 }
-window.RS_jeu = (v) => { RS.jeu = v; const z = $("rtrJt"), j = BB.jeux.find((x) => x.id === v); if (z) z.innerHTML = j ? tableJeu(j, 0) : ""; };
+let CTED = null;
+window.rtrDetailCt = (tr, k) => {
+  const n = tr.nextElementSibling; if (n && n.classList.contains("rtr-det")) { n.remove(); CTED = null; return; }
+  document.querySelectorAll(".rtr-ctr .rtr-det").forEach((x) => x.remove());
+  const d = document.createElement("tr"); d.className = "rtr-det"; d.innerHTML = '<td colspan="4"></td>'; tr.after(d);
+  CTED = { k, L: clone(BB.base.filter((l) => l.oar_id === k)), ret: [] }; dessinerCtEd();
+};
+function dessinerCtEd() {
+  const z = document.querySelector(".rtr-ctr .rtr-det td"); if (!z || !CTED) return;
+  const esc = A.esc, mod = peutModif(), R0 = [["normo", "Normofractionné"], ["hypo", "Hypofractionné"], ["stereo", "Stéréotaxie"]];
+  const locs = [["", "Toutes"]].concat(INDEX.localisations.map((l) => [l.id, l.nom]));
+  const c = (i, f, v, ph) => '<input class="rtr-in" data-cti="' + i + '" data-ctf="' + f + '" value="' + esc(txt(v)) + '"' + (ph ? ' placeholder="' + esc(ph) + '"' : "") + ' aria-label="' + esc(f) + '">';
+  const s = (i, f, v, o) => '<select class="rtr-in" data-cti="' + i + '" data-ctf="' + f + '" aria-label="' + esc(f) + '">' + o.map(([k, l]) => '<option value="' + esc(k) + '"' + (txt(v) === k ? " selected" : "") + ">" + esc(l) + "</option>").join("") + "</select>";
+  z.innerHTML = !mod ? '<p class="mesures">' + CTED.L.length + " contrainte" + (CTED.L.length > 1 ? "s" : "") + " · sources : " + esc([...new Set(CTED.L.map((l) => l.source).filter(Boolean))].join(" ; ")) + "</p>" :
+    '<div class="rtr-tw"><table class="rtr-tab rtr-edt"><thead><tr><th>Régime</th><th>Séances</th><th>Localisation</th><th>Indicateur</th><th>Idéal</th><th>Limitant</th><th>Note</th><th></th></tr></thead><tbody>' +
+    CTED.L.map((l, i) => '<tr><td data-l="Régime">' + s(i, "regime", l.regime, R0) + '</td><td data-l="Séances">' + c(i, "fx", l.fx, "toutes") + '</td><td data-l="Localisation">' + s(i, "loc", (l.loc || [])[0] || "", locs) + (l.loc && l.loc.length > 1 ? '<span class="mesures">' + esc(l.loc.map(nomLoc).join(", ")) + "</span>" : "") + "</td>" +
+      '<td data-l="Indicateur">' + c(i, "indicateur", l.indicateur) + '</td><td data-l="Idéal">' + c(i, "ideal", l.ideal) + '</td><td data-l="Limitant">' + c(i, "limitant", l.limitant) + '</td><td data-l="Note">' + c(i, "note", l.note) + "</td>" +
+      '<td><button type="button" class="mini" onclick="rtrCtLigne(' + i + ')" aria-label="Retirer cette contrainte">' + A.ic("croix") + "</button></td></tr>").join("") +
+    '</tbody></table></div><div class="actr"><button type="button" class="mini rtr-aj" onclick="rtrCtLigne()">' + A.ic("plus") + 'Ajouter une contrainte</button><span></span><button class="bt plein petit" onclick="rtrCtEnr()">' + A.ic("enregistrer") + "Enregistrer pour le cabinet</button></div>";
+}
+document.addEventListener("input", (ev) => { const t = ev.target; if (!CTED || !t.dataset || t.dataset.cti == null) return; const l = CTED.L[Number(t.dataset.cti)], f = t.dataset.ctf;
+  if (f === "fx") { const n = parseInt(t.value, 10); if (n > 0) l.fx = n; else delete l.fx; } else if (f === "loc") { if (t.value) { if (!(l.loc || []).length || l.loc.length === 1) l.loc = [t.value]; } else delete l.loc; } else l[f] = t.value; });
+document.addEventListener("change", (ev) => { const t = ev.target; if (!CTED || !t.dataset || t.dataset.cti == null || t.tagName !== "SELECT") return; t.dispatchEvent(new Event("input", { bubbles: true })); });
+window.rtrCtLigne = (i) => { if (!CTED) return; if (i == null) CTED.L.push({ id: "cc-" + Date.now().toString(36) + CTED.L.length, oar_id: CTED.k, regime: "normo", indicateur: "", limitant: "", source: "Cabinet" }); else { const x = CTED.L.splice(i, 1)[0]; if (x.id && !/^cc-/.test(x.id)) CTED.ret.push(x.id); } dessinerCtEd(); };
+window.rtrCtEnr = async () => {
+  if (!CTED || !peutModif()) return;
+  const ref = doc(db, "espaces", A.ESPACE, "referentielRT", "_contraintes"), ids = new Set(BB.baseRef.map((l) => l.id));
+  const propre = (l) => { const x = {}; ["id", "oar_id", "regime", "fx", "dpf", "loc", "indicateur", "ideal", "limitant", "note", "source"].forEach((k) => { if (l[k] !== undefined && l[k] !== "") x[k] = l[k]; }); return x; };
+  const avant = {}; BB.baseRef.forEach((l) => { avant[l.id] = JSON.stringify(propre(l)); });
+  const chang = CTED.L.map(propre).filter((l) => !ids.has(l.id) || avant[l.id] !== JSON.stringify(l));
+  try {
+    CAB_CT = await runTransaction(db, async (tx) => {
+      const sn = await tx.get(ref), c = sn.exists() ? sn.data() : { lignes: [], retirees: [] };
+      const autres = (c.lignes || []).filter((l) => l.oar_id !== CTED.k);
+      c.lignes = autres.concat(chang); c.retirees = [...new Set((c.retirees || []).concat(CTED.ret))];
+      Object.assign(c, { majPar: D().u.uid, majParNom: $("nomMenu") ? $("nomMenu").textContent : "", majLe: new Date().toISOString() });
+      tx.set(ref, c); return c;
+    });
+  } catch (e) { console.warn("contraintes du cabinet", e); A.toast("Pas de connexion : réessayez"); return; }
+  appliquerCab(); CTED = null; A.toast("Enregistré pour le cabinet"); pageContraintesRef();
+};
 // Essais : tableau triable (acronyme, année, localisation, revue), recherche ; détail : population, bras, schémas qui le citent
 function citants(x) { return LISTE.filter((e) => (e.essais || []).indexOf(x.acronyme) >= 0); }
 function pageEssaisRef() {

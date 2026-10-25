@@ -42,10 +42,7 @@
    "systemique": "Aucune",
    "simulation_id": "sim-crane-srs",
    "volumes_id": "vol-sch",
-   "contraintes_ids": [
-    "ct-srs-igr-1fx",
-    "ct-srs-hytec"
-   ],
+   "contraintes_ids": [],
    "couverture": "Dose prescrite en périphérie de la tumeur",
    "points_attention": [
     "Audition : dose prescrite limitée à 12–14 Gy ; au-delà de 14 Gy, l'audition utile chute nettement (QUANTEC)"
@@ -83,10 +80,7 @@
    "systemique": "Aucune",
    "simulation_id": "sim-crane",
    "volumes_id": "vol-sch",
-   "contraintes_ids": [
-    "ct-crane-igr",
-    "ct-crane-quantec"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "Cochlée en fractionnement classique : dose moyenne ≤ 45 Gy, ≤ 35 Gy par prudence, aussi basse que possible (QUANTEC)"
    ],
@@ -123,10 +117,7 @@
    "systemique": "Aucune",
    "simulation_id": "sim-crane-srs",
    "volumes_id": "vol-sch",
-   "contraintes_ids": [
-    "ct-srs-igr-5fx",
-    "ct-srs-hytec"
-   ],
+   "contraintes_ids": [],
    "couverture": "Dose prescrite à l'isodose 80 %",
    "points_attention": [
     "QUANTEC propose 21 à 30 Gy en fractions de 3 à 7 Gy sur 3 à 10 jours (données limitées)"

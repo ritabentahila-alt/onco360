@@ -48,9 +48,7 @@
    "technique": "RT conformationnelle moderne (RCMI)",
    "systemique": "Aucune",
    "volumes_id": "vol-thymome",
-   "contraintes_ids": [
-    "ct-thorax-quantec"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "Stade II R0 : bénéfice de la PORT discuté (méta-analyses discordantes) ; l'essai français RADIORYTHMIC compare PORT et surveillance dans les stades IIb–III R0",
     "Méta-analyse de 31 études : PORT associée à une meilleure SG (HR 0,73) après résection complète, bénéfice net pour les stades III–IV et le carcinome thymique"
@@ -87,9 +85,7 @@
    "technique": "RT conformationnelle moderne (RCMI)",
    "systemique": "Aucune",
    "volumes_id": "vol-thymome",
-   "contraintes_ids": [
-    "ct-thorax-quantec"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "Stade II R0 : bénéfice de la PORT discuté (méta-analyses discordantes) ; l'essai français RADIORYTHMIC compare PORT et surveillance dans les stades IIb–III R0",
     "Méta-analyse de 31 études : PORT associée à une meilleure SG (HR 0,73) après résection complète, bénéfice net pour les stades III–IV et le carcinome thymique"
@@ -126,9 +122,7 @@
    "technique": "RT conformationnelle moderne (RCMI)",
    "systemique": "Selon RCP",
    "volumes_id": "vol-thymome",
-   "contraintes_ids": [
-    "ct-thorax-quantec"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "Stade II R0 : bénéfice de la PORT discuté (méta-analyses discordantes) ; l'essai français RADIORYTHMIC compare PORT et surveillance dans les stades IIb–III R0",
     "Méta-analyse de 31 études : PORT associée à une meilleure SG (HR 0,73) après résection complète, bénéfice net pour les stades III–IV et le carcinome thymique"
@@ -165,9 +159,7 @@
    "technique": "RT conformationnelle moderne (RCMI)",
    "systemique": "Voir Traitement systémique",
    "volumes_id": "vol-thymome",
-   "contraintes_ids": [
-    "ct-thorax-quantec"
-   ],
+   "contraintes_ids": [],
    "date_verif": "2026-10-24",
    "ind": [
     "Thorax",

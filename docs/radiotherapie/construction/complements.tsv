@@ -1,0 +1,30 @@
+# Compléments de la table des contraintes : OAR contourés sans valeur dans RecoRad 2025 ni dans l'harmonisation stéréotaxie IGR 2018.
+# oar_id | régime | fx (vide = tous) | indicateur | idéal | limitant | note | source
+oar-trachee	normo		Dmax		< 70 Gy		RecoRad 2022 (autres contraintes publiées)
+oar-arbre-bronchique	normo		Dmax		< 70 Gy	même valeur que la trachée	RecoRad 2022 (autres contraintes publiées)
+oar-bulbe	normo		Dmean		≤ 52,5 Gy		RecoRad 2022 (autres contraintes publiées) ; RTOG 0415
+oar-canal-anal	normo		Dmax		≤ 55 Gy	dose limitée à 55 Gy dans tout le canal	RecoRad 2022
+oar-canal-anal	normo		Dmean	< 40 Gy	< 45 Gy		RecoRad 2022 (autres contraintes publiées)
+oar-ovaires	normo		Dmean		≤ 6–10 Gy	aussi basse que possible si une préservation de la fonction ovarienne est recherchée	RecoRad 2022
+oar-uterus	normo		D100%		< 45 Gy		RecoRad 2022 (autres contraintes publiées)
+oar-peau	normo		Dose > 60 Gy		sur moins de 20 cm²	réaction tardive de grade ≥ 3 au-delà	RecoRad 2022
+oar-uretre	normo		Points chauds		≤ 105 % de la dose prescrite	urètre dans le PTV : éviter les surdosages	Pratique usuelle
+oar-hypothalamus	normo		Dose		ALARA	pas de contrainte publiée	RecoRad, délinéation 2021
+oar-hypothalamus	stereo		Dose		ALARA	pas de contrainte publiée	RecoRad, délinéation 2021
+oar-nerfs-craniens	normo		Dmax		≤ dose prescrite	pas de contrainte publiée ; éviter les points chauds au contact	Pratique usuelle
+oar-paroi-thoracique	normo		Dose		ALARA	pas de contrainte publiée en normofractionné	Pratique usuelle
+oar-vagin	normo		Dose		ALARA	hors volume cible	Pratique usuelle
+oar-sac-dural	stereo	1	Dmax		≤ 12,4–14 Gy	myélopathie 1 à 5 %, première irradiation	HyTEC 2021 (Sahgal)
+oar-sac-dural	stereo	2	Dmax		≤ 17 Gy	myélopathie 1 à 5 %, première irradiation	HyTEC 2021 (Sahgal)
+oar-sac-dural	stereo	3	Dmax		≤ 20,3 Gy	myélopathie 1 à 5 %, première irradiation	HyTEC 2021 (Sahgal)
+oar-sac-dural	stereo	4	Dmax		≤ 23 Gy	myélopathie 1 à 5 %, première irradiation	HyTEC 2021 (Sahgal)
+oar-sac-dural	stereo	5	Dmax		≤ 25,3 Gy	myélopathie 1 à 5 %, première irradiation	HyTEC 2021 (Sahgal)
+oar-larynx	stereo		Dose		ALARA	pas de contrainte publiée en stéréotaxie	Pratique usuelle
+oar-pharynx	stereo		Dose		ALARA	pas de contrainte publiée en stéréotaxie	Pratique usuelle
+oar-parotides	stereo		Dose		ALARA		RecoRad 2025 (encéphale)
+oar-retines	stereo		Dose		ALARA	pas de contrainte publiée en stéréotaxie	Pratique usuelle
+oar-nerf-sciatique	stereo		Dose		ALARA	pas de contrainte publiée en stéréotaxie	Pratique usuelle
+oar-racines-nerveuses	stereo		Dose		ALARA	surtout en cas d'atteinte foraminale	Pratique usuelle
+oar-vulve	stereo		Dose		ALARA	pas de contrainte publiée en stéréotaxie	Pratique usuelle
+oar-canal-anal	stereo		Dose		ALARA	pas de contrainte publiée en stéréotaxie	Pratique usuelle
+oar-pancreas	stereo		Dose		ALARA	pas de contrainte publiée en stéréotaxie rachidienne	Pratique usuelle

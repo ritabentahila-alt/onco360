@@ -83,9 +83,7 @@
    "systemique": "Voir Traitement systémique",
    "simulation_id": "sim-pou",
    "volumes_id": "vol-pou-rct",
-   "contraintes_ids": [
-    "ct-thorax-quantec"
-   ],
+   "contraintes_ids": [],
    "couverture": "RTOG 0617 : 99 % du PTV ≥ 93 % de la dose",
    "points_attention": [
     "La marge CTV s'ajoute toujours, même en 4D ou en gating. ITV = réunion des CTV sur le cycle respiratoire",
@@ -125,9 +123,7 @@
    "systemique": "Voir Traitement systémique",
    "simulation_id": "sim-pou",
    "volumes_id": "vol-pou-rct",
-   "contraintes_ids": [
-    "ct-thorax-quantec"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "La marge CTV s'ajoute toujours, même en 4D ou en gating. ITV = réunion des CTV sur le cycle respiratoire"
    ],
@@ -164,9 +160,7 @@
    "systemique": "Aucun pendant la RT",
    "simulation_id": "sim-pou",
    "volumes_id": "vol-pou-port",
-   "contraintes_ids": [
-    "ct-thorax-quantec"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "PORT non recommandée en standard après résection complète pN2. Lung ART : survie sans maladie 47 % vs 44 % (NS), plus de toxicité cardiopulmonaire (11 % vs 5 %)"
    ],
@@ -205,9 +199,7 @@
    "systemique": "Aucune",
    "simulation_id": "sim-pou-sbrt",
    "volumes_id": "vol-pou-sbrt",
-   "contraintes_ids": [
-    "ct-pou-sbrt-curie-3fx"
-   ],
+   "contraintes_ids": [],
    "couverture": "(i)GTV : D98 % ≥ 100 % (souple : ≥ 110 %), D0,035 cc entre 118 et 143 %. PTV : D90 % ≥ 99 % (souple : D95 % ≥ 95 %). PTVéval (PTV moins les OAR) : D95 % ≥ 100 % (souple : D98 % ≥ 100 %). Aucune dose > 105 % hors du PTV. R100 % entre 1 et 1,2 ; R50 % et D2cm selon le volume du PTV (protocole Curie)",
    "points_attention": [
     "54 Gy / 3 fx : tumeur primitive seulement, jamais pour une métastase (Curie)",
@@ -252,9 +244,7 @@
    "systemique": "Aucune",
    "simulation_id": "sim-pou-sbrt",
    "volumes_id": "vol-pou-sbrt",
-   "contraintes_ids": [
-    "ct-pou-sbrt-curie-3fx"
-   ],
+   "contraintes_ids": [],
    "couverture": "(i)GTV : D98 % ≥ 100 % (souple : ≥ 110 %), D0,035 cc entre 118 et 143 %. PTV : D90 % ≥ 99 % (souple : D95 % ≥ 95 %). PTVéval (PTV moins les OAR) : D95 % ≥ 100 % (souple : D98 % ≥ 100 %). Aucune dose > 105 % hors du PTV. R100 % entre 1 et 1,2 ; R50 % et D2cm selon le volume du PTV (protocole Curie)",
    "points_attention": [
     "54 Gy / 3 fx : tumeur primitive seulement, jamais pour une métastase (Curie)",
@@ -300,9 +290,7 @@
    "systemique": "Aucune",
    "simulation_id": "sim-pou-sbrt",
    "volumes_id": "vol-pou-sbrt",
-   "contraintes_ids": [
-    "ct-pou-sbrt-curie-4fx"
-   ],
+   "contraintes_ids": [],
    "couverture": "(i)GTV : D98 % ≥ 100 % (souple : ≥ 110 %), D0,035 cc entre 118 et 143 %. PTV : D90 % ≥ 99 % (souple : D95 % ≥ 95 %). PTVéval (PTV moins les OAR) : D95 % ≥ 100 % (souple : D98 % ≥ 100 %). Aucune dose > 105 % hors du PTV. R100 % entre 1 et 1,2 ; R50 % et D2cm selon le volume du PTV (protocole Curie)",
    "points_attention": [
     "54 Gy / 3 fx : tumeur primitive seulement, jamais pour une métastase (Curie)",
@@ -348,9 +336,7 @@
    "systemique": "Aucune",
    "simulation_id": "sim-pou-sbrt",
    "volumes_id": "vol-pou-sbrt",
-   "contraintes_ids": [
-    "ct-pou-sbrt-curie-5-8fx"
-   ],
+   "contraintes_ids": [],
    "couverture": "(i)GTV : D98 % ≥ 100 % (souple : ≥ 110 %), D0,035 cc entre 118 et 143 %. PTV : D90 % ≥ 99 % (souple : D95 % ≥ 95 %). PTVéval (PTV moins les OAR) : D95 % ≥ 100 % (souple : D98 % ≥ 100 %). Aucune dose > 105 % hors du PTV. R100 % entre 1 et 1,2 ; R50 % et D2cm selon le volume du PTV (protocole Curie)",
    "points_attention": [
     "54 Gy / 3 fx : tumeur primitive seulement, jamais pour une métastase (Curie)",
@@ -396,9 +382,7 @@
    "systemique": "Aucune",
    "simulation_id": "sim-pou-sbrt",
    "volumes_id": "vol-pou-sbrt",
-   "contraintes_ids": [
-    "ct-pou-sbrt-curie-5-8fx"
-   ],
+   "contraintes_ids": [],
    "couverture": "(i)GTV : D98 % ≥ 100 % (souple : ≥ 110 %), D0,035 cc entre 118 et 143 %. PTV : D90 % ≥ 99 % (souple : D95 % ≥ 95 %). PTVéval (PTV moins les OAR) : D95 % ≥ 100 % (souple : D98 % ≥ 100 %). Aucune dose > 105 % hors du PTV. R100 % entre 1 et 1,2 ; R50 % et D2cm selon le volume du PTV (protocole Curie)",
    "points_attention": [
     "54 Gy / 3 fx : tumeur primitive seulement, jamais pour une métastase (Curie)",
@@ -440,9 +424,7 @@
    "systemique": "Aucune",
    "simulation_id": "sim-pou-sbrt-igr",
    "volumes_id": "vol-pou-sbrt-igr",
-   "contraintes_ids": [
-    "ct-pou-sbrt-igr-5plus"
-   ],
+   "contraintes_ids": [],
    "couverture": "95 % du PTV à la dose prescrite, 99 % à 90 % ; Dmax 110–140 %",
    "points_attention": [
     "54 Gy / 3 fx : tumeur primitive seulement, jamais pour une métastase (Curie)",
@@ -489,9 +471,7 @@
    "systemique": "Aucune",
    "simulation_id": "sim-pou-sbrt-igr",
    "volumes_id": "vol-pou-sbrt-igr",
-   "contraintes_ids": [
-    "ct-pou-sbrt-igr-5plus"
-   ],
+   "contraintes_ids": [],
    "couverture": "95 % du PTV à la dose prescrite, 99 % à 90 % ; Dmax 110–140 %",
    "points_attention": [
     "54 Gy / 3 fx : tumeur primitive seulement, jamais pour une métastase (Curie)",
@@ -537,9 +517,7 @@
    "systemique": "Voir Traitement systémique",
    "simulation_id": "sim-pou",
    "volumes_id": "vol-pou-cbpc",
-   "contraintes_ids": [
-    "ct-thorax-quantec"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "45 Gy bifractionnés reste le standard. 66 Gy / 33 fx et 70 Gy / 35 fx ne font pas mieux (CONVERT, CALGB 30610)"
    ],
@@ -576,9 +554,7 @@
    "systemique": "Voir Traitement systémique",
    "simulation_id": "sim-pou",
    "volumes_id": "vol-pou-cbpc",
-   "contraintes_ids": [
-    "ct-thorax-quantec"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "45 Gy bifractionnés reste le standard. 66 Gy / 33 fx et 70 Gy / 35 fx ne font pas mieux (CONVERT, CALGB 30610)"
    ],
@@ -614,9 +590,7 @@
    "systemique": "Voir Traitement systémique",
    "simulation_id": "sim-pou",
    "volumes_id": "vol-pou-cbpc",
-   "contraintes_ids": [
-    "ct-thorax-quantec"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "45 Gy bifractionnés reste le standard. 66 Gy / 33 fx et 70 Gy / 35 fx ne font pas mieux (CONVERT, CALGB 30610)"
    ],
@@ -652,9 +626,7 @@
    "systemique": "Voir Traitement systémique",
    "simulation_id": "sim-pou",
    "volumes_id": "vol-pou-cbpc",
-   "contraintes_ids": [
-    "ct-thorax-quantec"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "45 Gy bifractionnés reste le standard. 66 Gy / 33 fx et 70 Gy / 35 fx ne font pas mieux (CONVERT, CALGB 30610)"
    ],

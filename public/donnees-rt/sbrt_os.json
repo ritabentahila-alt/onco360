@@ -58,9 +58,7 @@
    "systemique": "Aucune",
    "simulation_id": "sim-sr-service",
    "volumes_id": "vol-sr-service",
-   "contraintes_ids": [
-    "ct-hytec-moelle"
-   ],
+   "contraintes_ids": [],
    "couverture": "Isodose de prescription englobant tout le PTV (Zelefsky 2021) ; couverture réduite au contact de la moelle si nécessaire pour respecter sa contrainte (consensus, Redmond 2017)",
    "points_attention": [
     "Fracture vertébrale après SBRT : 14 % ; risque plus élevé avec 24 Gy ou plus par fraction, ostéolyse, déformation et fracture préexistante (Sahgal 2013) ; prudence au-delà de 20 Gy par fraction",
@@ -101,9 +99,7 @@
    "systemique": "Aucune",
    "simulation_id": "sim-sr-service",
    "volumes_id": "vol-sr-service",
-   "contraintes_ids": [
-    "ct-hytec-moelle"
-   ],
+   "contraintes_ids": [],
    "couverture": "Isodose de prescription englobant tout le PTV (Zelefsky 2021) ; couverture réduite au contact de la moelle si nécessaire pour respecter sa contrainte (consensus, Redmond 2017)",
    "points_attention": [
     "Fracture vertébrale après SBRT : 14 % ; risque plus élevé avec 24 Gy ou plus par fraction, ostéolyse, déformation et fracture préexistante (Sahgal 2013) ; prudence au-delà de 20 Gy par fraction",
@@ -145,9 +141,7 @@
    "systemique": "Aucune",
    "simulation_id": "sim-sr-service",
    "volumes_id": "vol-sr-service",
-   "contraintes_ids": [
-    "ct-hytec-moelle"
-   ],
+   "contraintes_ids": [],
    "couverture": "Isodose de prescription englobant tout le PTV (Zelefsky 2021) ; couverture réduite au contact de la moelle si nécessaire pour respecter sa contrainte (consensus, Redmond 2017)",
    "points_attention": [
     "Fracture vertébrale après SBRT : 14 % ; risque plus élevé avec 24 Gy ou plus par fraction, ostéolyse, déformation et fracture préexistante (Sahgal 2013) ; prudence au-delà de 20 Gy par fraction",
@@ -188,9 +182,7 @@
    "systemique": "Aucune",
    "simulation_id": "sim-sr-service",
    "volumes_id": "vol-sr-service",
-   "contraintes_ids": [
-    "ct-hytec-moelle"
-   ],
+   "contraintes_ids": [],
    "couverture": "Isodose de prescription englobant tout le PTV (Zelefsky 2021) ; couverture réduite au contact de la moelle si nécessaire pour respecter sa contrainte (consensus, Redmond 2017)",
    "points_attention": [
     "Fracture vertébrale après SBRT : 14 % ; risque plus élevé avec 24 Gy ou plus par fraction, ostéolyse, déformation et fracture préexistante (Sahgal 2013) ; prudence au-delà de 20 Gy par fraction",
@@ -230,9 +222,7 @@
    "systemique": "Aucune",
    "simulation_id": "sim-sr-service",
    "volumes_id": "vol-sr-service",
-   "contraintes_ids": [
-    "ct-hytec-moelle"
-   ],
+   "contraintes_ids": [],
    "couverture": "Isodose de prescription englobant tout le PTV (Zelefsky 2021) ; couverture réduite au contact de la moelle si nécessaire pour respecter sa contrainte (consensus, Redmond 2017)",
    "points_attention": [
     "Fracture vertébrale après SBRT : 14 % ; risque plus élevé avec 24 Gy ou plus par fraction, ostéolyse, déformation et fracture préexistante (Sahgal 2013) ; prudence au-delà de 20 Gy par fraction",
@@ -275,8 +265,7 @@
    "simulation_id": "sim-sr-service",
    "volumes_id": "vol-sr-service",
    "contraintes_ids": [
-    "ct-reirr-moelle",
-    "ct-hytec-moelle"
+    "ct-reirr-moelle"
    ],
    "couverture": "Isodose de prescription englobant tout le PTV (Zelefsky 2021) ; couverture réduite au contact de la moelle si nécessaire pour respecter sa contrainte (consensus, Redmond 2017)",
    "date_verif": "2026-10-25",

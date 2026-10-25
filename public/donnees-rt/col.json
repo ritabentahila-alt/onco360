@@ -304,7 +304,6 @@
    "simulation_id": "sim-col",
    "volumes_id": "vol-col",
    "contraintes_ids": [
-    "ct-gyn-curie-rte",
     "ct-col-embrace2-curie"
    ],
    "couverture": "PTV45 : D95 > 95 %, D2 < 107 % ; ITV45 : D98 > 95 % ; PTV_N : D98 > 90 %, D2 < 107 % ; CTV_N : D98 > 98 %",
@@ -358,9 +357,7 @@
    "systemique": "Cisplatine 40 mg/m² hebdomadaire si facteurs de Peters",
    "simulation_id": "sim-gyn-postop",
    "volumes_id": "vol-gyn-postop",
-   "contraintes_ids": [
-    "ct-gyn-curie-rte"
-   ],
+   "contraintes_ids": [],
    "couverture": "PTV_45 : D95 > 95 %, D2 < 107 % ; ITV_T : D98 > 95 %",
    "points_attention": [
     "Indication de radiochimiothérapie si facteurs de Peters ; RT seule si facteurs de Sedlis sans facteur de Peters"
@@ -408,9 +405,7 @@
    "systemique": "Cisplatine 40 mg/m² hebdomadaire si facteurs de Peters",
    "simulation_id": "sim-gyn-postop",
    "volumes_id": "vol-gyn-postop",
-   "contraintes_ids": [
-    "ct-gyn-curie-rte"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "Indication de radiochimiothérapie si facteurs de Peters ; RT seule si facteurs de Sedlis sans facteur de Peters"
    ],

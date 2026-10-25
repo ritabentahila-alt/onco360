@@ -179,3 +179,72 @@ export function calculBED({ lignes, ab = [1.5, 3, 10], x = 2, N = 25 }) {
   });
   return { valides: ok, total, colonnes };
 }
+
+// ───── Contraintes d'un schéma (table unique, donnees-rt/contraintes.json format 2, 25/10/2026) ─────
+// Base = une contrainte par OAR et par régime (normofractionné, hypofractionné, stéréotaxie selon le nombre de séances), avec des précisions par
+// localisation (champ loc) ; un essai suivi par le schéma (contraintes_ids) remplace la base pour les OAR qu'il cite. Clé d'un OAR : structure
+// réunie (somme : poumons, reins, hippocampes), paire droite et gauche (paire), sinon l'OAR lui-même.
+export const REGIMES = { normo: "Normofractionné", hypo: "Hypofractionné", stereo: "Stéréotaxie" };
+const REG_TYPE = { rte_normo: "normo", rte_plus_curie: "normo", rte_hypo: "hypo", sbrt: "stereo" };
+export const cleOar = (o) => (o ? o.somme || o.paire || o.id : null);
+// Régime du schéma, d'après son type ; séances et dose par séance de la ligne de prescription la plus longue (volume principal)
+export function regimeDe(schema) {
+  const regime = REG_TYPE[schema && schema.type]; if (!regime) return null;
+  const p = (schema.prescriptions || []).filter((x) => num(x.fractions)).sort((a, b) => b.fractions - a.fractions)[0];
+  return { regime, fx: p ? p.fractions : null, dpf: p && num(p.dose_fx_Gy) ? p.dose_fx_Gy : null };
+}
+// Lignes d'un régime qui conviennent au schéma : même nombre de séances (et même dose par séance si la ligne la précise) ; sinon les lignes valables
+// pour tout le régime ; sinon, par prudence, le plus grand nombre de séances publié qui ne dépasse pas celui du schéma, s'il en vaut au moins la
+// moitié (moins de séances = valeurs plus strictes ; proche = ce nombre) ; sinon rien
+export function choisirLignes(L, fx, dpf) {
+  const avec = L.filter((l) => l.fx), sans = L.filter((l) => !l.fx);
+  if (fx) {
+    const ex = avec.filter((l) => l.fx === fx && (!l.dpf || (num(dpf) && Math.abs(l.dpf - dpf) < 0.01)));
+    if (ex.length) { const d = ex.filter((l) => l.dpf); return { lignes: d.length ? d : ex }; }
+  }
+  if (sans.length) return { lignes: sans };
+  const ok = num(fx) ? avec.filter((l) => !l.dpf && l.fx <= fx && l.fx * 2 >= fx) : [];
+  if (!ok.length) return { lignes: [] };
+  const n = Math.max(...ok.map((l) => l.fx));
+  return { lignes: ok.filter((l) => l.fx === n), proche: n };
+}
+// Lignes de la base pour une clé : celles de la localisation si elle en a pour ce régime, sinon les lignes générales
+export function lignesBase(base, cle, loc, rg) {
+  const L = (base || []).filter((l) => l.oar_id === cle && l.regime === rg.regime);
+  const ici = choisirLignes(L.filter((l) => l.loc && l.loc.indexOf(loc) >= 0), rg.fx, rg.dpf);
+  return ici.lignes.length ? ici : choisirLignes(L.filter((l) => !l.loc), rg.fx, rg.dpf);
+}
+// Table des contraintes d'un schéma : une entrée par organe contouré (dans l'ordre du contourage), puis les organes cités par l'essai seulement.
+// origine : essai | base | conversion (hypofractionnement ou stéréotaxie sans valeur publiée : valeur du normofractionné, à convertir en EQD2) | aucune
+export function contraintesSchema({ schema, loc, oarIds, oar, base, essais }) {
+  const parId = {}; (oar || []).forEach((o) => { parId[o.id] = o; });
+  const cle = (id) => cleOar(parId[id]) || id, rg = regimeDe(schema);
+  const parEssai = {};
+  (schema.contraintes_ids || []).forEach((jid) => { const j = (essais || []).find((x) => x.id === jid); if (!j) return;
+    j.lignes.forEach((l) => { const k = cle(l.oar_id); (parEssai[k] = parEssai[k] || []).push(Object.assign({}, l, { oar_id: k, source: j.titre + (j.source ? " (" + j.source + ")" : "") })); }); });
+  const cles = []; (oarIds || []).forEach((id) => { const k = cle(id); if (cles.indexOf(k) < 0) cles.push(k); });
+  Object.keys(parEssai).forEach((k) => { if (cles.indexOf(k) < 0) cles.push(k); });
+  return cles.map((k) => {
+    if (parEssai[k]) return { cle: k, origine: "essai", lignes: parEssai[k] };
+    if (!rg) return { cle: k, origine: "aucune", lignes: [] };
+    const b = lignesBase(base, k, loc, rg);
+    if (b.lignes.length) return { cle: k, origine: "base", lignes: b.lignes, proche: b.proche };
+    if (rg.regime === "stereo") {
+      // stéréotaxie sans valeur publiée pour ce nombre de séances (ni moins) : nombre de séances publié le plus proche, signalé (jamais le normofractionné)
+      const L = (base || []).filter((l) => l.oar_id === k && l.regime === "stereo" && l.fx && !l.dpf), ici = L.filter((l) => l.loc && l.loc.indexOf(loc) >= 0), G = ici.length ? ici : L.filter((l) => !l.loc);
+      if (G.length && num(rg.fx)) { const n = G.map((l) => l.fx).reduce((m, x) => (Math.abs(x - rg.fx) < Math.abs(m - rg.fx) ? x : m)); return { cle: k, origine: "base", lignes: G.filter((l) => l.fx === n), proche: n, plusLarge: n > rg.fx }; }
+    }
+    if (rg.regime === "hypo") { const n = lignesBase(base, k, loc, { regime: "normo" }); if (n.lignes.length) return { cle: k, origine: "conversion", lignes: n.lignes }; }
+    return { cle: k, origine: "aucune", lignes: [] };
+  }).map((x) => Object.assign(x, { lignes: sansDoublon(x.lignes) })).sort((a, b) => (/^cible-/.test(b.cle) ? 1 : 0) - (/^cible-/.test(a.cle) ? 1 : 0));
+}
+function sansDoublon(L) { const vus = new Set(); return L.filter((l) => { const c = [l.indicateur, l.ideal, l.limitant, l.note].join("|"); if (vus.has(c)) return false; vus.add(c); return true; }); }
+// Base du cabinet : lignes modifiées (même id), ajoutées (id « cc-… ») et retirées (retirees) par-dessus la référence
+export function baseEffective(ref, cab) {
+  if (!cab) return ref || [];
+  const mod = {}; (cab.lignes || []).forEach((l) => { mod[l.id] = l; });
+  const ret = new Set(cab.retirees || []);
+  const L = (ref || []).filter((l) => !ret.has(l.id)).map((l) => (mod[l.id] ? Object.assign({}, l, mod[l.id], { cabinet: true }) : l));
+  (cab.lignes || []).forEach((l) => { if (!(ref || []).some((r) => r.id === l.id) && !ret.has(l.id)) L.push(Object.assign({}, l, { cabinet: true })); });
+  return L;
+}

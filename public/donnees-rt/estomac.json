@@ -51,9 +51,7 @@
    "systemique": "Voir Traitement systémique",
    "simulation_id": "sim-est",
    "volumes_id": "vol-est-adj",
-   "contraintes_ids": [
-    "ct-abdo-acrop-crt"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "Indication résiduelle : patient opéré d'emblée, sans chimiothérapie périopératoire, pT3+ ou N+"
    ],

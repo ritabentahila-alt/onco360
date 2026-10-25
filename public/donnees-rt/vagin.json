@@ -100,9 +100,7 @@
    "systemique": "Cisplatine 40 mg/m² hebdomadaire (pas de niveau de preuve, décision en RCP)",
    "simulation_id": "sim-vagin",
    "volumes_id": "vol-vagin",
-   "contraintes_ids": [
-    "ct-gyn-curie-rte"
-   ],
+   "contraintes_ids": [],
    "couverture": "PTV : D95 > 95 %, D2 < 107 % ; PTV_N : D98 > 90 %",
    "points_attention": [
     "Vérifier dès le début de la RTE que la curiethérapie est programmée ; examen sous anesthésie et IRM avec gel avant la curiethérapie"

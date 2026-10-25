@@ -37,7 +37,7 @@ async def main():
         ok(await ev(MSG) == '2 changements' and not await ev("document.getElementById('rtrEnr').disabled") and await ev("document.querySelector('[data-p=\"prescriptions.0.rythme\"]').classList.contains('mod')") and not await ev("document.querySelector('[data-p=\"prescriptions.0.volume\"]').classList.contains('mod')"), '« 2 changements » ; champ changé surligné, les autres non', await ev(MSG))
         # Changer d'onglet pendant la modification : la saisie reste
         await pg.click('.rtr-ong button:has-text("Contraintes")'); await pg.wait_for_timeout(300)
-        ok(await ev("document.querySelectorAll('.rtr-jeux input').length") > 40 and await ev(MSG) == '2 changements', 'onglet Contraintes en modification : choix des jeux ; la saisie est gardée')
+        ok(await ev("document.querySelectorAll('.rtr-ctedit input[data-p$=\".limitant\"]').length") > 10 and await ev(MSG) == '2 changements', 'onglet Contraintes en modification : la table, chaque valeur modifiable ; la saisie est gardée')
         ok(await ev("!!document.querySelector('.rtr-oc [data-p=\"couverture\"]') && document.querySelector('.rtr-oc .rtr-lab').contains(document.querySelector('[data-p=\"couverture\"]'))"), 'onglet Contraintes en modification : les objectifs de couverture en premier')
         await pg.click('.rtr-ong button:has-text("Prescription")'); await pg.wait_for_timeout(300)
         ok(not await ev("!!document.querySelector('.rtr-oc [data-p=\"couverture\"]')"), 'onglet Prescription en modification : plus de champ des objectifs de couverture')

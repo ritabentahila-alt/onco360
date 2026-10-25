@@ -56,9 +56,7 @@
    "systemique": "Aucune",
    "simulation_id": "sim-orl-curie",
    "volumes_id": "vol-lar-precoce",
-   "contraintes_ids": [
-    "ct-orl-curie"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "2,25 Gy par fraction : meilleur contrôle local que 2 Gy (92 contre 77 % à 5 ans, Yamazaki 2006)"
    ],
@@ -94,9 +92,7 @@
    "systemique": "Aucune",
    "simulation_id": "sim-orl-curie",
    "volumes_id": "vol-lar-precoce",
-   "contraintes_ids": [
-    "ct-orl-curie"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "2,25 Gy par fraction : meilleur contrôle local que 2 Gy (92 contre 77 % à 5 ans, Yamazaki 2006)"
    ],
@@ -132,9 +128,7 @@
    "systemique": "Aucune",
    "simulation_id": "sim-orl-curie",
    "volumes_id": "vol-lar-precoce",
-   "contraintes_ids": [
-    "ct-orl-curie"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "2,25 Gy par fraction : meilleur contrôle local que 2 Gy (92 contre 77 % à 5 ans, Yamazaki 2006)",
     "L'hyperfractionnement (79,2 Gy / 66 fx, 2 fx/j) n'a pas amélioré significativement le contrôle local en T2 (RTOG 9512) ; T2a et T2b ont un pronostic différent"
@@ -193,9 +187,7 @@
    "systemique": "Voir Traitement systémique",
    "simulation_id": "sim-orl-curie",
    "volumes_id": "vol-orl-curie-en-place",
-   "contraintes_ids": [
-    "ct-orl-curie"
-   ],
+   "contraintes_ids": [],
    "couverture": "PTV : D95 % ≥ 95 % ; CTV : D98 % ≥ 98 % ; PTV70 : D2 % ≤ 107 %",
    "points_attention": [
     "À 10 ans, induction PF et RCT donnent la même survie sans laryngectomie ; la RCT contrôle mieux la tumeur et préserve plus souvent le larynx, mais les décès non liés au cancer sont plus fréquents (RTOG 91-11, Forastiere 2013)"
@@ -253,9 +245,7 @@
    "systemique": "Voir Traitement systémique",
    "simulation_id": "sim-orl-curie",
    "volumes_id": "vol-orl-curie-en-place",
-   "contraintes_ids": [
-    "ct-orl-curie"
-   ],
+   "contraintes_ids": [],
    "couverture": "PTV : D95 % ≥ 95 % ; CTV : D98 % ≥ 98 % ; PTV70 : D2 % ≤ 107 %",
    "points_attention": [
     "À 10 ans, induction PF et RCT donnent la même survie sans laryngectomie ; la RCT contrôle mieux la tumeur et préserve plus souvent le larynx, mais les décès non liés au cancer sont plus fréquents (RTOG 91-11, Forastiere 2013)"
@@ -312,10 +302,7 @@
    "systemique": "Voir Traitement systémique",
    "simulation_id": "sim-orl-curie",
    "volumes_id": "vol-orl-igr",
-   "contraintes_ids": [
-    "ct-orl-curie",
-    "ct-orl-igr"
-   ],
+   "contraintes_ids": [],
    "couverture": "Tableur du service : D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
    "points_attention": [
     "À 10 ans, induction PF et RCT donnent la même survie sans laryngectomie ; la RCT contrôle mieux la tumeur et préserve plus souvent le larynx, mais les décès non liés au cancer sont plus fréquents (RTOG 91-11, Forastiere 2013)"
@@ -371,9 +358,7 @@
    "systemique": "Voir Traitement systémique",
    "simulation_id": "sim-orl-igr",
    "volumes_id": "vol-orl-igr",
-   "contraintes_ids": [
-    "ct-orl-igr"
-   ],
+   "contraintes_ids": [],
    "couverture": "PTV70 : D95 % ≥ 66,5 Gy, D5 % ≤ 77 Gy ; PTV60 : D95 % ≥ 57 Gy ; PTV54 : D95 % ≥ 51,3 Gy",
    "points_attention": [
     "À 10 ans, induction PF et RCT donnent la même survie sans laryngectomie ; la RCT contrôle mieux la tumeur et préserve plus souvent le larynx, mais les décès non liés au cancer sont plus fréquents (RTOG 91-11, Forastiere 2013)"
@@ -432,9 +417,7 @@
    "systemique": "Voir Traitement systémique",
    "simulation_id": "sim-orl-curie",
    "volumes_id": "vol-orl-curie-postop",
-   "contraintes_ids": [
-    "ct-orl-curie"
-   ],
+   "contraintes_ids": [],
    "couverture": "PTV : D95 % ≥ 95 % ; CTV : D98 % ≥ 98 % ; PTV66 ∪ PTV59,4 : D2 % ≤ 107 %",
    "date_verif": "2026-10-24",
    "ind": [
@@ -481,10 +464,7 @@
    "systemique": "Voir Traitement systémique",
    "simulation_id": "sim-orl-curie",
    "volumes_id": "vol-lar-postop-service",
-   "contraintes_ids": [
-    "ct-orl-curie",
-    "ct-orl-igr"
-   ],
+   "contraintes_ids": [],
    "couverture": "Tableur du service : D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
    "date_verif": "2026-10-24",
    "ind": [
@@ -530,10 +510,7 @@
    "systemique": "Aucune",
    "simulation_id": "sim-orl-curie",
    "volumes_id": "vol-lar-postop-service",
-   "contraintes_ids": [
-    "ct-orl-curie",
-    "ct-orl-igr"
-   ],
+   "contraintes_ids": [],
    "couverture": "Tableur du service : D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
    "date_verif": "2026-10-24",
    "ind": [

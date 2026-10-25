@@ -92,8 +92,7 @@
    "simulation_id": "sim-sein",
    "volumes_id": "vol-sein",
    "contraintes_ids": [
-    "ct-sein-ff-15fx",
-    "ct-sein-senorif"
+    "ct-sein-ff-15fx"
    ],
    "couverture": "PTV : V95 % > 95 %, V105 % < 5 %, V107 % < 2 %, Dmax < 110 % (FAST-Forward)",
    "points_attention": [
@@ -147,8 +146,7 @@
    "simulation_id": "sim-sein",
    "volumes_id": "vol-sein",
    "contraintes_ids": [
-    "ct-sein-ff-15fx",
-    "ct-sein-senorif"
+    "ct-sein-ff-15fx"
    ],
    "couverture": "Comme sein-40-15 pour le premier temps",
    "points_attention": [
@@ -188,9 +186,7 @@
    "systemique": "Voir Traitement systémique",
    "simulation_id": "sim-sein",
    "volumes_id": "vol-sein",
-   "contraintes_ids": [
-    "ct-sein-senorif"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "Le risque d'événement coronarien augmente de 7,4 % par gray de dose moyenne au cœur, sans seuil (Darby 2013) : objectif Dmoy < 5 Gy (Sénorif)",
     "La RT après conservation réduit le risque de récidive à 10 ans de 35,0 à 19,3 % et la mortalité par cancer à 15 ans de 25,2 à 21,4 % (EBCTCG 2011)",
@@ -231,8 +227,7 @@
    "simulation_id": "sim-sein",
    "volumes_id": "vol-sein",
    "contraintes_ids": [
-    "ct-sein-ff-5fx",
-    "ct-sein-senorif"
+    "ct-sein-ff-5fx"
    ],
    "couverture": "PTV : V95 % > 95 %, V105 % < 5 %, V107 % < 2 %, Dmax < 110 %",
    "points_attention": [
@@ -285,8 +280,7 @@
    "simulation_id": "sim-sein",
    "volumes_id": "vol-sein",
    "contraintes_ids": [
-    "ct-sein-ff-5fx",
-    "ct-sein-senorif"
+    "ct-sein-ff-5fx"
    ],
    "couverture": "Comme sein-26-5 pour le premier temps",
    "points_attention": [
@@ -328,9 +322,7 @@
    "systemique": "Voir Traitement systémique",
    "simulation_id": "sim-sein",
    "volumes_id": "vol-sein",
-   "contraintes_ids": [
-    "ct-sein-senorif"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "Le risque d'événement coronarien augmente de 7,4 % par gray de dose moyenne au cœur, sans seuil (Darby 2013) : objectif Dmoy < 5 Gy (Sénorif)",
     "La RT après conservation réduit le risque de récidive à 10 ans de 35,0 à 19,3 % et la mortalité par cancer à 15 ans de 25,2 à 21,4 % (EBCTCG 2011)",
@@ -380,10 +372,7 @@
    "systemique": "Voir Traitement systémique",
    "simulation_id": "sim-sein",
    "volumes_id": "vol-sein",
-   "contraintes_ids": [
-    "ct-sein-senorif",
-    "ct-thorax-quantec"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "Le risque d'événement coronarien augmente de 7,4 % par gray de dose moyenne au cœur, sans seuil (Darby 2013) : objectif Dmoy < 5 Gy (Sénorif)",
     "La RT après conservation réduit le risque de récidive à 10 ans de 35,0 à 19,3 % et la mortalité par cancer à 15 ans de 25,2 à 21,4 % (EBCTCG 2011)",
@@ -433,10 +422,7 @@
    "systemique": "Voir Traitement systémique",
    "simulation_id": "sim-sein",
    "volumes_id": "vol-sein",
-   "contraintes_ids": [
-    "ct-sein-senorif",
-    "ct-thorax-quantec"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "Le risque d'événement coronarien augmente de 7,4 % par gray de dose moyenne au cœur, sans seuil (Darby 2013) : objectif Dmoy < 5 Gy (Sénorif)",
     "La RT après conservation réduit le risque de récidive à 10 ans de 35,0 à 19,3 % et la mortalité par cancer à 15 ans de 25,2 à 21,4 % (EBCTCG 2011)",
@@ -492,9 +478,7 @@
    "systemique": "Voir Traitement systémique",
    "simulation_id": "sim-sein",
    "volumes_id": "vol-sein",
-   "contraintes_ids": [
-    "ct-sein-senorif"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "Le risque d'événement coronarien augmente de 7,4 % par gray de dose moyenne au cœur, sans seuil (Darby 2013) : objectif Dmoy < 5 Gy (Sénorif)",
     "La RT après conservation réduit le risque de récidive à 10 ans de 35,0 à 19,3 % et la mortalité par cancer à 15 ans de 25,2 à 21,4 % (EBCTCG 2011)",
@@ -536,8 +520,7 @@
    "simulation_id": "sim-sein",
    "volumes_id": "vol-sein",
    "contraintes_ids": [
-    "ct-sein-ff-15fx",
-    "ct-sein-senorif"
+    "ct-sein-ff-15fx"
    ],
    "couverture": "PTV : V95 % > 95 %, V105 % < 5 %, V107 % < 2 %, Dmax < 110 %",
    "points_attention": [
@@ -578,10 +561,7 @@
    "systemique": "Voir Traitement systémique",
    "simulation_id": "sim-sein",
    "volumes_id": "vol-sein",
-   "contraintes_ids": [
-    "ct-sein-senorif",
-    "ct-thorax-quantec"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "Le risque d'événement coronarien augmente de 7,4 % par gray de dose moyenne au cœur, sans seuil (Darby 2013) : objectif Dmoy < 5 Gy (Sénorif)",
     "Reconstruction mammaire : Sénorif 2021 recommande le normofractionnement ; le consensus ESTRO-ACROP 2022 admet l'hypofractionnement modéré pour le sein, la paroi (avec ou sans reconstruction) et les ganglions, et 5 fractions pour le sein ou la paroi sans reconstruction ni ganglions"
@@ -632,10 +612,7 @@
    "systemique": "Voir Traitement systémique",
    "simulation_id": "sim-sein",
    "volumes_id": "vol-sein-gg",
-   "contraintes_ids": [
-    "ct-sein-senorif",
-    "ct-thorax-quantec"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "Le risque d'événement coronarien augmente de 7,4 % par gray de dose moyenne au cœur, sans seuil (Darby 2013) : objectif Dmoy < 5 Gy (Sénorif)",
     "RT axillaire contre curage après ganglion sentinelle positif : récidive axillaire à 10 ans 1,82 contre 0,93 %, sans différence de survie, moins de lymphœdème (AMAROS)",
@@ -695,9 +672,7 @@
    "systemique": "Voir Traitement systémique",
    "simulation_id": "sim-sein",
    "volumes_id": "vol-sein-gg",
-   "contraintes_ids": [
-    "ct-sein-senorif"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "Le risque d'événement coronarien augmente de 7,4 % par gray de dose moyenne au cœur, sans seuil (Darby 2013) : objectif Dmoy < 5 Gy (Sénorif)",
     "RT axillaire contre curage après ganglion sentinelle positif : récidive axillaire à 10 ans 1,82 contre 0,93 %, sans différence de survie, moins de lymphœdème (AMAROS)",
@@ -738,9 +713,7 @@
    "systemique": "Voir Traitement systémique",
    "simulation_id": "sim-sein",
    "volumes_id": "vol-sein-ipb",
-   "contraintes_ids": [
-    "ct-sein-senorif"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "Le risque d'événement coronarien augmente de 7,4 % par gray de dose moyenne au cœur, sans seuil (Darby 2013) : objectif Dmoy < 5 Gy (Sénorif)"
    ],
@@ -777,9 +750,7 @@
    "systemique": "Voir Traitement systémique",
    "simulation_id": "sim-sein",
    "volumes_id": "vol-sein-ipb",
-   "contraintes_ids": [
-    "ct-sein-senorif"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "Le risque d'événement coronarien augmente de 7,4 % par gray de dose moyenne au cœur, sans seuil (Darby 2013) : objectif Dmoy < 5 Gy (Sénorif)"
    ],
@@ -888,10 +859,7 @@
    "systemique": "Voir Traitement systémique",
    "simulation_id": "sim-sein",
    "volumes_id": "vol-sein-gg",
-   "contraintes_ids": [
-    "ct-sein-senorif",
-    "ct-thorax-quantec"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "Le risque d'événement coronarien augmente de 7,4 % par gray de dose moyenne au cœur, sans seuil (Darby 2013) : objectif Dmoy < 5 Gy (Sénorif)"
    ],
@@ -937,10 +905,7 @@
    "systemique": "Voir Traitement systémique",
    "simulation_id": "sim-sein",
    "volumes_id": "vol-sein",
-   "contraintes_ids": [
-    "ct-sein-senorif",
-    "ct-thorax-quantec"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "Le risque d'événement coronarien augmente de 7,4 % par gray de dose moyenne au cœur, sans seuil (Darby 2013) : objectif Dmoy < 5 Gy (Sénorif)"
    ],
@@ -986,10 +951,7 @@
    "systemique": "Voir Traitement systémique",
    "simulation_id": "sim-sein",
    "volumes_id": "vol-sein-gg",
-   "contraintes_ids": [
-    "ct-sein-senorif",
-    "ct-thorax-quantec"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "Le risque d'événement coronarien augmente de 7,4 % par gray de dose moyenne au cœur, sans seuil (Darby 2013) : objectif Dmoy < 5 Gy (Sénorif)"
    ],

@@ -50,10 +50,7 @@
    "systemique": "Aucune",
    "simulation_id": "sim-sein",
    "volumes_id": "vol-sein",
-   "contraintes_ids": [
-    "ct-sein-senorif",
-    "ct-thorax-quantec"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "Surimpression : 97,1 % sans récidive locale à 5 ans contre 92,7 % sans surimpression (HR 0,47), au prix de plus de douleurs et d'induration (BIG 3-07)",
     "Omission de la RT seulement dans des études prospectives contrôlées ou en cas de contre-indication (Sénorif)"
@@ -101,10 +98,7 @@
    "systemique": "Aucune",
    "simulation_id": "sim-sein",
    "volumes_id": "vol-sein",
-   "contraintes_ids": [
-    "ct-sein-senorif",
-    "ct-thorax-quantec"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "Surimpression : 97,1 % sans récidive locale à 5 ans contre 92,7 % sans surimpression (HR 0,47), au prix de plus de douleurs et d'induration (BIG 3-07)",
     "Omission de la RT seulement dans des études prospectives contrôlées ou en cas de contre-indication (Sénorif)"
@@ -150,9 +144,7 @@
    "systemique": "Aucune",
    "simulation_id": "sim-sein",
    "volumes_id": "vol-sein",
-   "contraintes_ids": [
-    "ct-sein-senorif"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "Surimpression : 97,1 % sans récidive locale à 5 ans contre 92,7 % sans surimpression (HR 0,47), au prix de plus de douleurs et d'induration (BIG 3-07)",
     "Omission de la RT seulement dans des études prospectives contrôlées ou en cas de contre-indication (Sénorif)"
@@ -192,8 +184,7 @@
    "simulation_id": "sim-sein",
    "volumes_id": "vol-sein",
    "contraintes_ids": [
-    "ct-sein-ff-15fx",
-    "ct-sein-senorif"
+    "ct-sein-ff-15fx"
    ],
    "couverture": "PTV : V95 % > 95 %, V105 % < 5 %, V107 % < 2 %, Dmax < 110 % (FAST-Forward)",
    "points_attention": [
@@ -234,10 +225,7 @@
    "systemique": "Aucune",
    "simulation_id": "sim-sein",
    "volumes_id": "vol-sein",
-   "contraintes_ids": [
-    "ct-sein-senorif",
-    "ct-thorax-quantec"
-   ],
+   "contraintes_ids": [],
    "date_verif": "2026-10-24",
    "ind": [
     "Sein",

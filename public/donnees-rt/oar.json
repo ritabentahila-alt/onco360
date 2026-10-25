@@ -1,805 +1,1020 @@
 {
  "version": "2026-10-25",
+ "note": "Nom TG-263 : liste officielle AAPM TG-263 v20170815 ; « construit » = absent de la liste, nommé selon ses règles. Définition : délinéation RecoRad (Noël et al. 2021) et atlas de référence.",
  "oar": [
-  {
-   "id": "oar-vessie",
-   "nom": "Vessie",
-   "nom_tg263": "Bladder",
-   "definition": "Contour externe sur toute la hauteur de l'organe (Curie), col vésical inclus (fiche du service). Scanner avec contraste ou IRM utiles pour le dôme et la base",
-   "source": "Curie 2021 ; RTOG 2012",
-   "region": "pelvis"
-  },
-  {
-   "id": "oar-rectum",
-   "nom": "Rectum",
-   "nom_tg263": "Rectum",
-   "definition": "Référence RTOG (tumeurs urologiques) : contour externe du niveau le plus bas des tubérosités ischiatiques jusqu'à la perte de sa forme ronde, là où il rejoint le sigmoïde. Variante Curie : limite inférieure à la dernière coupe où les ischions sont visibles, ou 1 cm sous le bord caudal du PTV si celui-ci descend plus bas ; limite supérieure à la jonction recto-sigmoïde (le rectum se projette vers l'avant)",
-   "source": "RTOG 2012 ; Curie 2021",
-   "region": "pelvis"
-  },
-  {
-   "id": "oar-sigmoide",
-   "nom": "Sigmoïde",
-   "nom_tg263": "Colon_Sigmoid",
-   "definition": "Au-dessus de la jonction recto-sigmoïde jusqu'à l'angle colique gauche",
-   "source": "Curie 2021",
-   "region": "pelvis"
-  },
-  {
-   "id": "oar-grele",
-   "nom": "Intestin grêle (sac péritonéal)",
-   "nom_tg263": "Bag_Bowel",
-   "definition": "Sac péritonéal à l'intérieur des muscles de la paroi, côlons droit et gauche inclus, de la première coupe au-dessus du rectum jusqu'à 2 cm au-dessus de la dernière coupe du CTV (Curie) ; RTOG : arrêt 1 cm au-dessus du PTV en technique coplanaire. Inclure les anses qui descendent devant ou à côté de la vessie ou du mésorectum. Latéralement : parois pelviennes, sans la graisse périvasculaire du CTV pelvien. En SBRT, le sigmoïde y est inclus",
-   "source": "Curie 2021 ; RTOG 2012",
-   "region": "pelvis"
-  },
-  {
-   "id": "oar-tete-femorale-d",
-   "nom": "Tête fémorale droite",
-   "nom_tg263": "Femur_Head_R (tête, Curie) ; Femur_R (fémur proximal, RTOG)",
-   "definition": "Référence RTOG : fémur proximal (tête, col et trochanters) jusqu'au niveau le plus bas des tubérosités ischiatiques. Variante Curie : depuis sa limite supérieure jusqu'au grand trochanter. Fiche OAR du service : jusqu'au petit trochanter",
-   "source": "RTOG 2012 ; Curie 2021",
-   "region": "pelvis"
-  },
-  {
-   "id": "oar-tete-femorale-g",
-   "nom": "Tête fémorale gauche",
-   "nom_tg263": "Femur_Head_L (tête, Curie) ; Femur_L (fémur proximal, RTOG)",
-   "definition": "Comme la droite",
-   "source": "RTOG 2012 ; Curie 2021",
-   "region": "pelvis"
-  },
-  {
-   "id": "oar-bulbe",
-   "nom": "Bulbe pénien",
-   "nom_tg263": "PenileBulb",
-   "definition": "Structure ronde sous l'apex prostatique ; IRM ou urétrographie aident. Erreurs fréquentes : trop haut près de l'apex, trop en avant, forme triangulaire ou rectangulaire, diamètre réduit à celui de l'urètre",
-   "source": "RTOG 2012 ; facultatif en SBRT (Curie)",
-   "region": "pelvis"
-  },
-  {
-   "id": "oar-uretre",
-   "nom": "Urètre",
-   "nom_tg263": "Urethra",
-   "definition": "Sur IRM T2 fusionnée : outil pinceau de 7 mm de diamètre centré sur l'urètre. Facultatif en SBRT si non visible",
-   "source": "Curie 2021 (SBRT)",
-   "region": "pelvis"
-  },
-  {
-   "id": "oar-canal-medullaire",
-   "nom": "Canal médullaire",
-   "nom_tg263": "SpinalCanal",
-   "definition": "De L3 jusqu'à 2 cm au-dessus de la dernière coupe des CTV (irradiation lombo-aortique)",
-   "source": "Curie 2021",
-   "region": "pelvis"
-  },
-  {
-   "id": "oar-queue-cheval",
-   "nom": "Queue de cheval",
-   "nom_tg263": "CaudaEquina",
-   "definition": "Contenu du canal rachidien à partir de L2",
-   "source": "Fiche OAR du service",
-   "region": "pelvis"
-  },
-  {
-   "id": "oar-rein-d",
-   "nom": "Rein droit",
-   "nom_tg263": "Kidney_R",
-   "definition": "Contour externe du rein en totalité (irradiation lombo-aortique)",
-   "source": "Curie 2021",
-   "region": "pelvis"
-  },
-  {
-   "id": "oar-rein-g",
-   "nom": "Rein gauche",
-   "nom_tg263": "Kidney_L",
-   "definition": "Comme le droit",
-   "source": "Curie 2021",
-   "region": "pelvis"
-  },
-  {
-   "id": "oar-foie",
-   "nom": "Foie",
-   "nom_tg263": "Liver",
-   "definition": "Contour externe du foie en totalité (irradiation lombo-aortique)",
-   "source": "Curie 2021",
-   "region": "pelvis"
-  },
-  {
-   "id": "oar-moelle",
-   "nom": "Moelle épinière",
-   "nom_tg263": "SpinalCord",
-   "definition": "Moelle épinière sur toute la hauteur du champ ; à contourer si irradiation lombo-aortique (EMBRACE II, Curie). À défaut, utiliser le canal médullaire (oar-canal-medullaire)",
-   "source": "EMBRACE II ; Curie 2021 ; tableurs du service",
-   "region": "pelvis"
-  },
-  {
-   "id": "oar-moelle-osseuse",
-   "nom": "Moelle osseuse pelvienne",
-   "nom_tg263": "Bone_Marrow",
-   "definition": "Contour externe des os du bassin dans le champ, en trois sous-régions : rachis lombo-sacré (L5 et sacrum), os iliaques, bassin inférieur (pubis, ischions, cotyles, fémurs proximaux). V10 ≥ 90 % associé à plus de toxicité hématologique sous cisplatine",
-   "source": "Mell 2006 (cité par Curie) ; tableurs du service",
-   "region": "pelvis"
-  },
-  {
-   "id": "oar-sillon-fessier",
-   "nom": "Sillon interfessier",
-   "definition": "Peau et tissu sous-cutané du sillon interfessier en regard du champ (définition usuelle : le tableur n'en donne pas)",
-   "source": "Tableur du service",
-   "region": "pelvis"
-  },
-  {
-   "id": "oar-rate",
-   "nom": "Rate",
-   "nom_tg263": "Spleen",
-   "definition": "Rate entière, contour externe (définition usuelle)",
-   "source": "Tableur du service",
-   "region": "pelvis"
-  },
-  {
-   "id": "oar-oge",
-   "nom": "Organes génitaux externes",
-   "nom_tg263": "Genitals",
-   "definition": "Femme : vulve (voir oar-vulve). Homme : pénis et scrotum, contour externe (définition usuelle : les tableurs n'en donnent pas)",
-   "source": "Tableur du service",
-   "region": "pelvis"
-  },
-  {
-   "id": "oar-canal-anal",
-   "nom": "Canal anal",
-   "nom_tg263": "Anus",
-   "definition": "De la jonction ano-rectale (fin du rectum) à la marge anale",
-   "source": "Fiche vagin-vulve du service ; fiches rectum et canal anal",
-   "region": "pelvis"
-  },
-  {
-   "id": "oar-vulve",
-   "nom": "Vulve",
-   "nom_tg263": "Vulva",
-   "definition": "Grandes et petites lèvres, contour externe ; à contourer en particulier si irradiation ganglionnaire seule (vulve)",
-   "source": "Curie 2021 ; fiche vagin-vulve",
-   "region": "pelvis"
-  },
-  {
-   "id": "oar-vagin",
-   "nom": "Vagin",
-   "nom_tg263": "Vagina",
-   "definition": "Paroi vaginale, contour externe. Point PIBS : bord postéro-inférieur de la symphyse pubienne projeté sur l'axe du vagin ; PIBS − 2 cm : 2 cm plus bas sur cet axe",
-   "source": "EMBRACE II",
-   "region": "pelvis"
-  },
-  {
-   "id": "oar-point-rv",
-   "nom": "Point recto-vaginal ICRU",
-   "definition": "Point sur la paroi vaginale postérieure, à hauteur du centre des sources vaginales (anneau ou ovoïdes)",
-   "source": "EMBRACE II (ICRU)",
-   "region": "pelvis"
-  },
-  {
-   "id": "oar-help-ctvhr10",
-   "nom": "Help contour CTV-HR + 10 mm",
-   "definition": "Structure d'aide : CTV-HR + 10 mm, où la curiethérapie délivre déjà une forte dose ; sert à limiter les points chauds de RTE",
-   "source": "EMBRACE II ; Curie 2021",
-   "region": "pelvis"
-  },
-  {
-   "id": "oar-corps",
-   "nom": "Corps (contour externe)",
-   "nom_tg263": "External",
-   "definition": "Contour externe du patient",
-   "source": "EMBRACE II ; Curie 2021",
-   "region": "pelvis"
-  },
-  {
-   "id": "oar-plexus-sacre",
-   "nom": "Plexus sacré",
-   "nom_tg263": "SacralPlex",
-   "definition": "Racines sacrées de leur sortie des foramens sacrés jusqu'à la grande échancrure sciatique (définition usuelle) ; à contourer si boost ganglionnaire ou boost centro-pelvien en RTE",
-   "source": "Curie 2021",
-   "region": "pelvis"
-  },
-  {
-   "id": "oar-duodenum",
-   "nom": "Duodénum",
-   "nom_tg263": "Duodenum",
-   "definition": "Du pylore à l'angle duodéno-jéjunal, contour externe (définition usuelle) ; à contourer si irradiation lombo-aortique au-dessus de L1",
-   "source": "Curie 2021 ; EMBRACE II",
-   "region": "pelvis"
-  },
-  {
-   "id": "oar-ovaire-d",
-   "nom": "Ovaire droit",
-   "nom_tg263": "Ovary_R",
-   "definition": "Ovaire en place ou transposé ; à contourer si transposition ovarienne ou femme non ménopausée",
-   "source": "Curie 2021",
-   "region": "pelvis"
-  },
-  {
-   "id": "oar-ovaire-g",
-   "nom": "Ovaire gauche",
-   "nom_tg263": "Ovary_L",
-   "definition": "Comme le droit",
-   "source": "Curie 2021",
-   "region": "pelvis"
-  },
-  {
-   "id": "oar-uterus",
-   "nom": "Utérus",
-   "nom_tg263": "Uterus",
-   "definition": "Corps et col utérins ; à contourer si préservation de la fertilité (vulve)",
-   "source": "Curie 2021 (vulve)",
-   "region": "pelvis"
-  },
-  {
-   "id": "oar-aile-iliaque-d",
-   "nom": "Aile iliaque droite",
-   "nom_tg263": "Ilium_R",
-   "definition": "Crête et aile iliaque, jusqu'au cotyle",
-   "source": "Fiches endomètre et vagin-vulve du service",
-   "region": "pelvis"
-  },
-  {
-   "id": "oar-aile-iliaque-g",
-   "nom": "Aile iliaque gauche",
-   "nom_tg263": "Ilium_L",
-   "definition": "Comme la droite",
-   "source": "Fiches du service",
-   "region": "pelvis"
-  },
-  {
-   "id": "oar-estomac",
-   "nom": "Estomac",
-   "nom_tg263": "Stomach",
-   "definition": "Estomac entier, contour externe (définition usuelle) ; irradiation lombo-aortique",
-   "source": "Tableur « GYNECO 45Gy + BOOST »",
-   "region": "pelvis"
-  },
-  {
-   "id": "oar-plis-inguinaux",
-   "nom": "Plis inguinaux",
-   "definition": "Peau des plis de l'aine en regard du champ (définition usuelle)",
-   "source": "Tableur « Canal anal »",
-   "region": "pelvis"
-  },
-  {
-   "id": "oar-greffon-renal",
-   "nom": "Greffon rénal",
-   "definition": "Rein transplanté (fosse iliaque), contour externe",
-   "source": "Tableur « Canal anal »",
-   "region": "pelvis"
-  },
-  {
-   "id": "oar-poumons",
-   "nom": "Poumons",
-   "nom_tg263": "Lungs",
-   "definition": "Poumons droit et gauche en fenêtre parenchymateuse, sans la trachée ni les bronches souches. En SBRT : poumons moins (i)GTV",
-   "source": "Atlas RTOG (Kong 2011) ; Institut Curie SBRT",
-   "region": "thorax"
-  },
-  {
-   "id": "oar-poumon-d",
-   "nom": "Poumon droit",
-   "nom_tg263": "Lung_R",
-   "definition": "Poumon droit en fenêtre parenchymateuse",
-   "source": "Atlas RTOG (Kong 2011)",
-   "region": "thorax"
-  },
-  {
-   "id": "oar-poumon-g",
-   "nom": "Poumon gauche",
-   "nom_tg263": "Lung_L",
-   "definition": "Poumon gauche en fenêtre parenchymateuse",
-   "source": "Atlas RTOG (Kong 2011)",
-   "region": "thorax"
-  },
-  {
-   "id": "oar-coeur",
-   "nom": "Cœur",
-   "nom_tg263": "Heart",
-   "definition": "Oreillettes et ventricules, de l'émergence des gros vaisseaux à l'apex ; sans l'aorte descendante. Gustave Roussy : limite haute une coupe sous le tronc de l'artère pulmonaire, limite basse le diaphragme",
-   "source": "Fiche OAR du service ; Gustave Roussy SBRT 2016",
-   "region": "thorax"
-  },
-  {
-   "id": "oar-oesophage",
-   "nom": "Œsophage",
-   "nom_tg263": "Esophagus",
-   "definition": "Du cartilage cricoïde à la jonction œsogastrique, paroi et lumière, en fenêtre médiastinale",
-   "source": "Fiche OAR du service ; QUANTEC 2010",
-   "region": "thorax"
-  },
-  {
-   "id": "oar-trachee",
-   "nom": "Trachée",
-   "nom_tg263": "Trachea",
-   "definition": "Trachée jusqu'à 2 cm au-dessus de la carène (le reste appartient à l'arbre bronchique proximal)",
-   "source": "Gustave Roussy SBRT 2016",
-   "region": "thorax"
-  },
-  {
-   "id": "oar-arbre-bronchique",
-   "nom": "Arbre bronchique proximal",
-   "definition": "Une seule structure : 2 cm distaux de la trachée, carène, bronches souches, bronches lobaires supérieure, intermédiaire et inférieure droites, supérieure et inférieure gauches",
-   "source": "Institut Curie SBRT",
-   "region": "thorax"
-  },
-  {
-   "id": "oar-gros-vaisseaux",
-   "nom": "Gros vaisseaux",
-   "nom_tg263": "GreatVes",
-   "definition": "Aorte, artère pulmonaire, veines pulmonaires ; veine cave si lésion droite proche",
-   "source": "Institut Curie SBRT ; Gustave Roussy SBRT 2016",
-   "region": "thorax"
-  },
-  {
-   "id": "oar-plexus-brachial-d",
-   "nom": "Plexus brachial droit",
-   "nom_tg263": "BrachialPlex_R",
-   "definition": "De C5 à T1, depuis les trous de conjugaison, entre les scalènes. Contouré si le GTV est à moins de 1 cm ; PRV = + 5 mm",
-   "source": "Fiche OAR du service ; Institut Curie SBRT ; atlas RTOG (Kong 2011)",
-   "region": "thorax"
-  },
-  {
-   "id": "oar-plexus-brachial-g",
-   "nom": "Plexus brachial gauche",
-   "nom_tg263": "BrachialPlex_L",
-   "definition": "Comme le plexus droit",
-   "source": "Fiche OAR du service ; Institut Curie SBRT ; atlas RTOG (Kong 2011)",
-   "region": "thorax"
-  },
-  {
-   "id": "oar-paroi-thoracique",
-   "nom": "Paroi thoracique",
-   "nom_tg263": "Chestwall",
-   "definition": "Expansion de 2 cm autour du poumon, sans médiastin, peau, sternum ni vertèbres (Curie). Gustave Roussy : côtes et muscles intercostaux compris, 3 cm au-dessus et au-dessous du PTV",
-   "source": "Institut Curie SBRT ; Gustave Roussy SBRT 2016",
-   "region": "thorax"
-  },
-  {
-   "id": "oar-cotes",
-   "nom": "Côtes",
-   "definition": "Côtes en regard du volume cible, numérotation facultative",
-   "source": "Institut Curie SBRT ; Gustave Roussy foie SBRT 2016",
-   "region": "thorax"
-  },
-  {
-   "id": "oar-peau",
-   "nom": "Peau",
-   "nom_tg263": "Skin",
-   "definition": "Contour externe moins 3 mm",
-   "source": "Institut Curie SBRT",
-   "region": "thorax"
-  },
-  {
-   "id": "oar-thyroide",
-   "nom": "Thyroïde",
-   "nom_tg263": "Thyroid",
-   "definition": "Glande thyroïde (définition usuelle : les fiches n'en donnent pas)",
-   "source": "Fiche du service",
-   "region": "thorax"
-  },
-  {
-   "id": "oar-larynx",
-   "nom": "Larynx",
-   "nom_tg263": "Larynx",
-   "definition": "Larynx (définition usuelle : la fiche n'en donne pas)",
-   "source": "Fiche du service",
-   "region": "thorax"
-  },
-  {
-   "id": "oar-colon",
-   "nom": "Côlon",
-   "nom_tg263": "Colon",
-   "definition": "Côlon en regard du champ (définition usuelle)",
-   "source": "Tableurs Gustave Roussy",
-   "region": "abdomen"
-  },
-  {
-   "id": "oar-voie-biliaire",
-   "nom": "Voie biliaire principale",
-   "definition": "Canal cholédoque (définition usuelle)",
-   "source": "ESTRO ACROP pancréas 2021",
-   "region": "abdomen"
-  },
-  {
-   "id": "oar-reins",
-   "nom": "Reins",
-   "nom_tg263": "Kidneys",
-   "definition": "Reins droit et gauche additionnés",
-   "source": "ESTRO ACROP pancréas 2021",
-   "region": "abdomen"
-  },
   {
    "id": "oar-encephale",
    "nom": "Encéphale",
    "nom_tg263": "Brain",
-   "definition": "Hémisphères cérébraux, cervelet et tronc cérébral (Curie). Fiche OAR du service : parenchyme cérébral, sans le tronc ni le cervelet s'ils sont contourés à part",
-   "source": "Institut Curie, métastases cérébrales 2021 ; fiche OAR du service",
+   "definition": "Parenchyme sus-tentoriel et cervelet, sans le tronc cérébral ; sur l'IRM fusionnée au scanner.",
    "region": "snc"
   },
   {
    "id": "oar-encephale-sain",
-   "nom": "Encéphale sain",
-   "definition": "Encéphale moins les cibles. Stéréotaxie : moins chaque GTV (tumeur en place) et chaque lit opératoire (Curie) ; Gustave Roussy : encéphale moins PTV. Fractionnement classique : encéphale moins PTV (fiche glioblastome)",
-   "source": "Institut Curie 2021 ; Gustave Roussy neuro-stéréotaxie 2016 ; fiche glioblastome du service",
+   "nom": "Encéphale moins PTV",
+   "nom_tg263": "Brain-PTV",
+   "definition": "Encéphale dont on retire le PTV (en stéréotaxie, chaque PTV ou lit opératoire).",
    "region": "snc"
   },
   {
    "id": "oar-tronc-cerebral",
    "nom": "Tronc cérébral",
    "nom_tg263": "Brainstem",
-   "definition": "Mésencéphale, pont et bulbe, de l'émergence du mésencéphale à la jonction bulbo-médullaire ; sans le cervelet. Erreurs fréquentes : inclure le cervelet, s'arrêter trop haut",
-   "source": "Fiche OAR du service ; atlas EPTN 2018",
+   "definition": "Mésencéphale, pont et bulbe, du plan des commissures postérieures jusqu'au sommet de l'apophyse odontoïde ; sans le cervelet ni l'aqueduc. Sa surface correspond aux 2 premiers millimètres d'épaisseur. IRM fusionnée.",
    "region": "snc"
   },
   {
    "id": "oar-cervelet",
    "nom": "Cervelet",
    "nom_tg263": "Cerebellum",
-   "definition": "Hémisphères et vermis cérébelleux (définition usuelle : les fiches le citent sans le définir)",
-   "source": "Fiche OAR et fiche encéphale in toto du service",
+   "definition": "Hémisphères et vermis cérébelleux, sous la tente du cervelet, séparés du tronc par les pédoncules ; partie antérieure et postérieure séparées par la scissure primaire si besoin. IRM T1.",
    "region": "snc"
   },
   {
-   "id": "oar-chiasma",
-   "nom": "Chiasma optique",
-   "nom_tg263": "OpticChiasm",
-   "definition": "Structure en X au-dessus de la selle turcique, à la jonction des nerfs optiques ; IRM, vérifiée sur le scanner. Curie y inclut la portion proximale des bandelettes optiques",
-   "source": "Fiches OAR et glioblastome du service ; Institut Curie 2021",
+   "id": "oar-fosse-posterieure",
+   "nom": "Fosse postérieure",
+   "nom_tg263": "Fossa_Posterior",
+   "definition": "Contenu de la fosse cérébrale postérieure : cervelet, tronc cérébral et quatrième ventricule, sous la tente du cervelet jusqu'au trou occipital.",
    "region": "snc"
   },
   {
-   "id": "oar-bandelettes-optiques",
-   "nom": "Bandelettes optiques",
-   "definition": "Prolongement postérieur du chiasma (définition usuelle) ; contourées avec le chiasma chez Curie",
-   "source": "Fiche stéréotaxie cérébrale du service ; Institut Curie 2021",
-   "region": "snc"
+   "id": "oar-lobe-temporal-d",
+   "nom": "Lobe temporal droit",
+   "nom_tg263": "Lobe_Temporal_R",
+   "definition": "Du bord supérieur de la scissure de Sylvius à la base de la fosse cérébrale moyenne ; en avant l'os temporal et la grande aile du sphénoïde, en arrière le rocher, la tente du cervelet et la scissure préoccipitale ; en dedans le sinus caverneux et la selle turcique, hippocampe et gyrus parahippocampique inclus. IRM.",
+   "region": "snc",
+   "paire": "oar-lobes-temporaux"
   },
   {
-   "id": "oar-nerf-optique-d",
-   "nom": "Nerf optique droit",
-   "nom_tg263": "OpticNrv_R",
-   "definition": "De l'arrière du globe au chiasma, en suivant le canal optique ; IRM et scanner en fenêtres parenchymateuse et osseuse",
-   "source": "Fiches OAR et glioblastome du service",
-   "region": "snc"
+   "id": "oar-lobe-temporal-g",
+   "nom": "Lobe temporal gauche",
+   "nom_tg263": "Lobe_Temporal_L",
+   "definition": "Mêmes limites que le lobe temporal droit, à gauche.",
+   "region": "snc",
+   "paire": "oar-lobes-temporaux"
   },
   {
-   "id": "oar-nerf-optique-g",
-   "nom": "Nerf optique gauche",
-   "nom_tg263": "OpticNrv_L",
-   "definition": "Comme le droit",
-   "source": "Fiches OAR et glioblastome du service",
-   "region": "snc"
-  },
-  {
-   "id": "oar-oeil-d",
-   "nom": "Œil droit",
-   "nom_tg263": "Eye_R",
-   "definition": "Globe oculaire, scanner en fenêtre parenchymateuse",
-   "source": "Fiche glioblastome du service",
-   "region": "snc"
-  },
-  {
-   "id": "oar-oeil-g",
-   "nom": "Œil gauche",
-   "nom_tg263": "Eye_L",
-   "definition": "Comme le droit",
-   "source": "Fiche glioblastome du service",
-   "region": "snc"
-  },
-  {
-   "id": "oar-retine-d",
-   "nom": "Rétine droite",
-   "nom_tg263": "Retina_R",
-   "definition": "Paroi postérieure du globe oculaire (définition usuelle : les tableurs la citent sans la définir)",
-   "source": "Tableurs du service ; fiche stéréotaxie cérébrale",
-   "region": "snc"
-  },
-  {
-   "id": "oar-retine-g",
-   "nom": "Rétine gauche",
-   "nom_tg263": "Retina_L",
-   "definition": "Comme la droite",
-   "source": "Tableurs du service ; fiche stéréotaxie cérébrale",
-   "region": "snc"
-  },
-  {
-   "id": "oar-cristallin-d",
-   "nom": "Cristallin droit",
-   "nom_tg263": "Lens_R",
-   "definition": "Scanner en fenêtre parenchymateuse",
-   "source": "Fiche glioblastome du service",
-   "region": "snc"
-  },
-  {
-   "id": "oar-cristallin-g",
-   "nom": "Cristallin gauche",
-   "nom_tg263": "Lens_L",
-   "definition": "Comme le droit",
-   "source": "Fiche glioblastome du service",
-   "region": "snc"
-  },
-  {
-   "id": "oar-cochlee-d",
-   "nom": "Cochlée droite",
-   "nom_tg263": "Cochlea_R",
-   "definition": "Petit volume osseux dense de l'oreille interne, en avant du conduit auditif interne ; scanner en fenêtre osseuse, coupes de 1 mm au plus",
-   "source": "Fiche OAR du service ; QUANTEC 2010 (Bhandare)",
-   "region": "snc"
-  },
-  {
-   "id": "oar-cochlee-g",
-   "nom": "Cochlée gauche",
-   "nom_tg263": "Cochlea_L",
-   "definition": "Comme la droite",
-   "source": "Fiche OAR du service ; QUANTEC 2010 (Bhandare)",
+   "id": "oar-lobe-frontal",
+   "nom": "Lobe frontal",
+   "nom_tg263": "Lobe_Frontal",
+   "definition": "Parenchyme en avant du sillon central et au-dessus de la scissure de Sylvius ; contouré quand la base du crâne antérieure est irradiée. IRM.",
    "region": "snc"
   },
   {
    "id": "oar-hippocampe-d",
    "nom": "Hippocampe droit",
    "nom_tg263": "Hippocampus_R",
-   "definition": "Contouré sur l'IRM T1 3D injectée fusionnée au scanner",
-   "source": "Institut Curie 2021 ; RTOG 0933",
-   "region": "snc"
+   "definition": "Substance grise en hyposignal T1 le long de la corne temporale du ventricule latéral, de la tête (en avant) à la queue (sous le splénium) ; sans le gyrus parahippocampique. IRM T1 3D injectée fusionnée.",
+   "region": "snc",
+   "somme": "oar-hippocampes"
   },
   {
    "id": "oar-hippocampe-g",
    "nom": "Hippocampe gauche",
    "nom_tg263": "Hippocampus_L",
-   "definition": "Comme le droit",
-   "source": "Institut Curie 2021 ; RTOG 0933",
-   "region": "snc"
+   "definition": "Mêmes limites que l'hippocampe droit, à gauche.",
+   "region": "snc",
+   "somme": "oar-hippocampes"
   },
   {
    "id": "oar-hippocampes",
    "nom": "Hippocampes",
    "nom_tg263": "Hippocampi",
-   "definition": "Hippocampes droit et gauche réunis en une structure",
-   "source": "RTOG 0933 (Pokhrel 2015)",
+   "definition": "Hippocampes droit et gauche réunis en une seule structure.",
    "region": "snc"
   },
   {
    "id": "oar-zone-evitement-hippocampique",
    "nom": "Zone d'évitement hippocampique",
    "nom_tg263": "Hippocampi_PRV05",
-   "definition": "Hippocampes + 5 mm ; retirée du PTV encéphale dans l'épargne hippocampique",
-   "source": "Gondi 2010 ; RTOG 0933",
+   "definition": "Hippocampes réunis + 5 mm, retirés du PTV de l'encéphale dans l'épargne hippocampique.",
+   "region": "snc",
+   "construit": true
+  },
+  {
+   "id": "oar-chiasma",
+   "nom": "Chiasma optique",
+   "nom_tg263": "OpticChiasm",
+   "definition": "Croisement des nerfs optiques au-dessus de la selle turcique, sous le troisième ventricule ; contouré en continuité avec les nerfs optiques et les bandelettes. IRM T1 injectée, vérifié sur le scanner.",
    "region": "snc"
   },
   {
-   "id": "oar-hypophyse",
-   "nom": "Hypophyse",
-   "nom_tg263": "Pituitary",
-   "definition": "Loge hypophysaire, scanner en fenêtres parenchymateuse et osseuse",
-   "source": "Fiche glioblastome du service ; Institut Curie 2021",
-   "region": "snc"
+   "id": "oar-bandelettes-optiques",
+   "nom": "Bandelettes optiques",
+   "nom_tg263": "OpticTract",
+   "definition": "Prolongement postérieur du chiasma qui contourne les pédoncules cérébraux jusqu'au corps genouillé latéral. IRM.",
+   "region": "snc",
+   "construit": true
   },
   {
-   "id": "oar-hypothalamus",
-   "nom": "Hypothalamus",
-   "nom_tg263": "Hypothalamus",
-   "definition": "IRM, vérifié sur le scanner",
-   "source": "Fiche glioblastome du service",
-   "region": "snc"
+   "id": "oar-nerf-optique-d",
+   "nom": "Nerf optique droit",
+   "nom_tg263": "OpticNrv_R",
+   "definition": "De la face postérieure du globe oculaire au chiasma, dans l'orbite puis le canal optique ; en continuité avec le chiasma. Scanner en fenêtre osseuse pour le canal, IRM.",
+   "region": "snc",
+   "paire": "oar-nerfs-optiques"
+  },
+  {
+   "id": "oar-nerf-optique-g",
+   "nom": "Nerf optique gauche",
+   "nom_tg263": "OpticNrv_L",
+   "definition": "Mêmes limites que le nerf optique droit, à gauche.",
+   "region": "snc",
+   "paire": "oar-nerfs-optiques"
+  },
+  {
+   "id": "oar-oeil-d",
+   "nom": "Œil droit",
+   "nom_tg263": "Eye_R",
+   "definition": "Globe oculaire entier, sclère incluse ; le patient regarde droit devant au scanner et pendant les séances.",
+   "region": "snc",
+   "paire": "oar-yeux"
+  },
+  {
+   "id": "oar-oeil-g",
+   "nom": "Œil gauche",
+   "nom_tg263": "Eye_L",
+   "definition": "Globe oculaire gauche entier, sclère incluse.",
+   "region": "snc",
+   "paire": "oar-yeux"
+  },
+  {
+   "id": "oar-retine-d",
+   "nom": "Rétine droite",
+   "nom_tg263": "Retina_R",
+   "definition": "Paroi des quatre cinquièmes postérieurs du globe (sclère, choroïde et rétine, indissociables au scanner), contourée sur 3 mm d'épaisseur.",
+   "region": "snc",
+   "paire": "oar-retines"
+  },
+  {
+   "id": "oar-retine-g",
+   "nom": "Rétine gauche",
+   "nom_tg263": "Retina_L",
+   "definition": "Paroi des quatre cinquièmes postérieurs du globe gauche, sur 3 mm d'épaisseur.",
+   "region": "snc",
+   "paire": "oar-retines"
+  },
+  {
+   "id": "oar-cornee-d",
+   "nom": "Cornée droite",
+   "nom_tg263": "Cornea_R",
+   "definition": "Partie antérieure transparente de la paroi du globe, en avant de la chambre antérieure, sur 3 mm d'épaisseur.",
+   "region": "snc",
+   "paire": "oar-cornees"
+  },
+  {
+   "id": "oar-cornee-g",
+   "nom": "Cornée gauche",
+   "nom_tg263": "Cornea_L",
+   "definition": "Partie antérieure de la paroi du globe gauche, sur 3 mm d'épaisseur.",
+   "region": "snc",
+   "paire": "oar-cornees"
+  },
+  {
+   "id": "oar-cristallin-d",
+   "nom": "Cristallin droit",
+   "nom_tg263": "Lens_R",
+   "definition": "Lentille biconvexe dense visible dans l'humeur aqueuse ; ne pas contourer un implant (vérifier l'interrogatoire). Scanner sans injection.",
+   "region": "snc",
+   "paire": "oar-cristallins"
+  },
+  {
+   "id": "oar-cristallin-g",
+   "nom": "Cristallin gauche",
+   "nom_tg263": "Lens_L",
+   "definition": "Lentille du globe gauche ; ne pas contourer un implant.",
+   "region": "snc",
+   "paire": "oar-cristallins"
   },
   {
    "id": "oar-glande-lacrymale-d",
    "nom": "Glande lacrymale droite",
    "nom_tg263": "Glnd_Lacrimal_R",
-   "definition": "Scanner en fenêtres osseuse et parenchymateuse",
-   "source": "Fiche glioblastome du service",
-   "region": "snc"
+   "definition": "Glande de la partie supéro-externe et antérieure de l'orbite, contre le toit orbitaire. Scanner sans injection.",
+   "region": "snc",
+   "paire": "oar-glandes-lacrymales"
   },
   {
    "id": "oar-glande-lacrymale-g",
    "nom": "Glande lacrymale gauche",
    "nom_tg263": "Glnd_Lacrimal_L",
-   "definition": "Comme la droite",
-   "source": "Fiche glioblastome du service",
+   "definition": "Glande de la partie supéro-externe et antérieure de l'orbite gauche.",
+   "region": "snc",
+   "paire": "oar-glandes-lacrymales"
+  },
+  {
+   "id": "oar-cochlee-d",
+   "nom": "Cochlée droite",
+   "nom_tg263": "Cochlea_R",
+   "definition": "Spirale osseuse de l'oreille interne, en avant et en dehors du conduit auditif interne. Scanner en fenêtre osseuse, sans injection.",
+   "region": "snc",
+   "paire": "oar-cochlees"
+  },
+  {
+   "id": "oar-cochlee-g",
+   "nom": "Cochlée gauche",
+   "nom_tg263": "Cochlea_L",
+   "definition": "Spirale osseuse de l'oreille interne gauche. Scanner en fenêtre osseuse.",
+   "region": "snc",
+   "paire": "oar-cochlees"
+  },
+  {
+   "id": "oar-oreille-interne-d",
+   "nom": "Oreille interne droite",
+   "nom_tg263": "Ear_Internal_R",
+   "definition": "Cochlée, vestibule et canaux semi-circulaires, avec le conduit auditif interne. Scanner en fenêtre osseuse.",
+   "region": "snc",
+   "paire": "oar-oreilles-internes"
+  },
+  {
+   "id": "oar-oreille-interne-g",
+   "nom": "Oreille interne gauche",
+   "nom_tg263": "Ear_Internal_L",
+   "definition": "Cochlée, vestibule, canaux semi-circulaires et conduit auditif interne gauches.",
+   "region": "snc",
+   "paire": "oar-oreilles-internes"
+  },
+  {
+   "id": "oar-hypophyse",
+   "nom": "Hypophyse",
+   "nom_tg263": "Pituitary",
+   "definition": "Glande dans la selle turcique, sous le diaphragme sellaire ; tige pituitaire exclue. Scanner en fenêtre osseuse et IRM.",
    "region": "snc"
   },
   {
-   "id": "oar-cavite-orale",
-   "nom": "Cavité orale",
-   "nom_tg263": "Cavity_Oral",
-   "definition": "Scanner en fenêtre osseuse",
-   "source": "Fiche glioblastome du service",
+   "id": "oar-hypothalamus",
+   "nom": "Hypothalamus",
+   "nom_tg263": "Hypothalmus",
+   "definition": "Deux volumes de part et d'autre du troisième ventricule, entre les coupes des commissures antérieure et postérieure, jusqu'au plancher du troisième ventricule ; corps mamillaires inclus ; latéralement 3 mm du ventricule. IRM.",
+   "region": "snc"
+  },
+  {
+   "id": "oar-nerfs-craniens",
+   "nom": "Nerfs crâniens",
+   "nom_tg263": "CN",
+   "definition": "Nerfs crâniens (hors nerfs optiques) au contact du volume cible, contourés sur leur trajet intracrânien et à la base du crâne. IRM T1 injectée.",
+   "region": "snc",
+   "construit": true
+  },
+  {
+   "id": "oar-cuir-chevelu",
+   "nom": "Cuir chevelu",
+   "nom_tg263": "Scalp",
+   "definition": "Peau et tissu sous-cutané de la voûte crânienne sur 5 mm, en regard des faisceaux.",
    "region": "snc"
   },
   {
    "id": "oar-parotide-d",
    "nom": "Parotide droite",
    "nom_tg263": "Parotid_R",
-   "definition": "Scanner en fenêtres parenchymateuse et osseuse",
-   "source": "Fiche glioblastome du service",
-   "region": "snc"
+   "definition": "Glande entière : du conduit auditif externe et de la mastoïde (en haut) à l'angle de la mandibule (en bas) ; en avant le masséter, en dedans l'espace parapharyngé ; lobe profond et prolongement antérieur inclus. Scanner injecté.",
+   "region": "orl",
+   "paire": "oar-parotides"
   },
   {
    "id": "oar-parotide-g",
    "nom": "Parotide gauche",
    "nom_tg263": "Parotid_L",
-   "definition": "Comme la droite",
-   "source": "Fiche glioblastome du service",
-   "region": "snc"
-  },
-  {
-   "id": "oar-nerfs-craniens",
-   "nom": "Nerfs crâniens (hors nerfs optiques)",
-   "definition": "Nerfs crâniens au contact de la cible, contourés s'ils sont concernés (définition usuelle)",
-   "source": "Institut Curie 2021",
-   "region": "snc"
+   "definition": "Glande parotide gauche entière, mêmes limites que la droite.",
+   "region": "orl",
+   "paire": "oar-parotides"
   },
   {
    "id": "oar-glande-sous-max-d",
    "nom": "Glande sous-mandibulaire droite",
    "nom_tg263": "Glnd_Submand_R",
-   "definition": "Glande sous-maxillaire (sous-mandibulaire), contourée sur le scanner",
-   "source": "Institut Curie 2021 ; fiche ORL du service ; consensus Brouwer 2015",
-   "region": "orl"
+   "definition": "Glande de la loge sous-mandibulaire, sous le muscle mylohyoïdien, entre le corps de la mandibule et le ventre antérieur du digastrique. Scanner injecté.",
+   "region": "orl",
+   "paire": "oar-glandes-sous-max"
   },
   {
    "id": "oar-glande-sous-max-g",
    "nom": "Glande sous-mandibulaire gauche",
    "nom_tg263": "Glnd_Submand_L",
-   "definition": "Comme la droite",
-   "source": "Institut Curie 2021 ; fiche ORL du service ; consensus Brouwer 2015",
-   "region": "orl"
+   "definition": "Glande de la loge sous-mandibulaire gauche.",
+   "region": "orl",
+   "paire": "oar-glandes-sous-max"
   },
   {
-   "id": "oar-atm-d",
-   "nom": "Articulation temporo-mandibulaire droite",
-   "nom_tg263": "Joint_TM_R",
-   "definition": "Articulation temporo-mandibulaire",
-   "source": "Institut Curie 2021 ; Gustave Roussy 2017",
-   "region": "orl"
-  },
-  {
-   "id": "oar-atm-g",
-   "nom": "Articulation temporo-mandibulaire gauche",
-   "nom_tg263": "Joint_TM_L",
-   "definition": "Comme la droite",
-   "source": "Institut Curie 2021 ; Gustave Roussy 2017",
-   "region": "orl"
-  },
-  {
-   "id": "oar-mandibule",
-   "nom": "Mandibule",
-   "nom_tg263": "Bone_Mandible",
-   "definition": "Mandibule entière",
-   "source": "Institut Curie 2021 ; Gustave Roussy 2017 ; fiche ORL du service",
-   "region": "orl"
-  },
-  {
-   "id": "oar-constricteurs",
-   "nom": "Muscles constricteurs du pharynx",
-   "nom_tg263": "Musc_Constrict",
-   "definition": "Constricteurs supérieur, moyen et inférieur (Curie) ; dans DARS, la partie hors volume haute dose",
-   "source": "Institut Curie 2021 ; DARS (Nutting 2023)",
+   "id": "oar-cavite-orale",
+   "nom": "Cavité orale",
+   "nom_tg263": "Cavity_Oral",
+   "definition": "En haut la muqueuse du palais dur, en bas la base de langue et l'os hyoïde (en arrière) puis le mylohyoïdien et le digastrique (en avant), en avant la face interne de la mandibule et du maxillaire, en arrière le voile, la luette et la base de langue ; dents et air exclus.",
    "region": "orl"
   },
   {
    "id": "oar-levres",
    "nom": "Lèvres",
    "nom_tg263": "Lips",
-   "definition": "Lèvres supérieure et inférieure",
-   "source": "Institut Curie 2021 ; Gustave Roussy 2017",
+   "definition": "Lèvres supérieure et inférieure, de la peau à la muqueuse, en avant des dents ; latéralement les commissures.",
    "region": "orl"
   },
   {
-   "id": "oar-oreille-interne-d",
-   "nom": "Oreille interne droite",
-   "definition": "Cochlée, vestibule et conduit auditif interne (Curie)",
-   "source": "Institut Curie 2021",
+   "id": "oar-mandibule",
+   "nom": "Mandibule",
+   "nom_tg263": "Bone_Mandible",
+   "definition": "Os de la mandibule sans les dents, des condyles à la symphyse ; peut être divisé en sextants. Scanner en fenêtre osseuse.",
    "region": "orl"
   },
   {
-   "id": "oar-oreille-interne-g",
-   "nom": "Oreille interne gauche",
-   "definition": "Comme la droite",
-   "source": "Institut Curie 2021",
+   "id": "oar-atm-d",
+   "nom": "Articulation temporo-mandibulaire droite",
+   "nom_tg263": "Joint_TM_R",
+   "definition": "Condyle mandibulaire et fosse mandibulaire de l'os temporal, de la base du crâne au col du condyle.",
+   "region": "orl",
+   "paire": "oar-atm"
+  },
+  {
+   "id": "oar-atm-g",
+   "nom": "Articulation temporo-mandibulaire gauche",
+   "nom_tg263": "Joint_TM_L",
+   "definition": "Condyle et fosse mandibulaire gauches.",
+   "region": "orl",
+   "paire": "oar-atm"
+  },
+  {
+   "id": "oar-constricteurs",
+   "nom": "Muscles constricteurs du pharynx",
+   "nom_tg263": "Musc_Constrict",
+   "definition": "Constricteurs supérieur, moyen et inférieur, de l'apophyse ptérygoïde (en haut) jusqu'au bord inférieur du cartilage cricoïde (en bas), sur 3 mm d'épaisseur en arrière de la lumière pharyngée.",
    "region": "orl"
-  },
-  {
-   "id": "oar-lobe-temporal-d",
-   "nom": "Lobe temporal droit",
-   "definition": "Contouré si la base du crâne est irradiée (template Curie « ORL cavum/sinus »)",
-   "source": "Institut Curie 2021 ; Gustave Roussy 2017",
-   "region": "orl"
-  },
-  {
-   "id": "oar-lobe-temporal-g",
-   "nom": "Lobe temporal gauche",
-   "definition": "Comme le droit",
-   "source": "Institut Curie 2021 ; Gustave Roussy 2017",
-   "region": "orl"
-  },
-  {
-   "id": "oar-lobe-frontal",
-   "nom": "Lobe frontal",
-   "definition": "Contouré si la base du crâne est irradiée",
-   "source": "Institut Curie 2021 ; Gustave Roussy 2017",
-   "region": "orl"
-  },
-  {
-   "id": "oar-fosse-posterieure",
-   "nom": "Fosse postérieure",
-   "definition": "Contenu de la fosse cérébrale postérieure (contrainte de Gustave Roussy)",
-   "source": "Gustave Roussy 2017",
-   "region": "orl"
-  },
-  {
-   "id": "oar-muscles-nuque",
-   "nom": "Muscles postérieurs du cou",
-   "definition": "Muscles de la nuque (Gustave Roussy ; « nuque » dans la fiche du service)",
-   "source": "Gustave Roussy 2017 ; fiche ORL du service",
-   "region": "orl"
-  },
-  {
-   "id": "oar-poumon-homolateral",
-   "nom": "Poumon homolatéral",
-   "definition": "Poumon du côté traité, contouré sur le scanner de planification",
-   "source": "FAST-Forward (Brunt 2020)",
-   "region": "sein"
-  },
-  {
-   "id": "oar-sein-controlateral",
-   "nom": "Sein controlatéral",
-   "definition": "Sein opposé au côté traité",
-   "source": "Sénorif 2021-2022",
-   "region": "sein"
-  },
-  {
-   "id": "oar-sac-dural",
-   "nom": "Sac dural",
-   "definition": "Sac dural (thécal), utilisé comme substitut de la moelle pour les doses de réirradiation en SBRT",
-   "source": "HyTEC 2021 (Sahgal : moelle) ; Sahgal 2012",
-   "region": "rachis"
-  },
-  {
-   "id": "oar-racines-nerveuses",
-   "nom": "Racines nerveuses",
-   "definition": "Racines nerveuses du ou des niveaux traités, surtout en cas d'atteinte foraminale",
-   "source": "Fiche du service « stéréotaxie osseuse vertébrale »",
-   "region": "rachis"
-  },
-  {
-   "id": "oar-nerf-sciatique",
-   "nom": "Nerf sciatique",
-   "definition": "À contourer en cas d'extension latérale (rachis lombaire bas, sacrum)",
-   "source": "Fiche du service « stéréotaxie osseuse vertébrale »",
-   "region": "pelvis"
   },
   {
    "id": "oar-pharynx",
    "nom": "Pharynx",
-   "definition": "Pharynx, en SBRT du rachis cervical",
-   "source": "Fiche du service « stéréotaxie osseuse vertébrale » ; tableur du service « vertèbre stéréo 2 × 12 »",
+   "nom_tg263": "Pharynx",
+   "definition": "Muqueuse et paroi du pharynx, du nasopharynx au bord inférieur du cricoïde, lumière exclue.",
    "region": "orl"
   },
   {
-   "id": "oar-pancreas",
-   "nom": "Pancréas",
-   "nom_tg263": "Pancreas",
-   "definition": "Pancréas, en SBRT du rachis dorso-lombaire",
-   "source": "Fiche du service « stéréotaxie osseuse vertébrale »",
-   "region": "abdomen"
+   "id": "oar-larynx",
+   "nom": "Larynx",
+   "nom_tg263": "Larynx",
+   "definition": "Larynx sus-glottique (épiglotte, bandes ventriculaires, replis ary-épiglottiques) et glottique, de la pointe de l'épiglotte au bord inférieur du cricoïde, cartilages inclus, air exclu.",
+   "region": "orl"
+  },
+  {
+   "id": "oar-oesophage-cervical",
+   "nom": "Œsophage cervical",
+   "nom_tg263": "Esophagus_S",
+   "definition": "De 1 cm sous le bord inférieur du cricoïde jusqu'au niveau de C7 ; bouche œsophagienne et muscle cricopharyngien inclus.",
+   "region": "orl"
+  },
+  {
+   "id": "oar-thyroide",
+   "nom": "Thyroïde",
+   "nom_tg263": "Glnd_Thyroid",
+   "definition": "Glande thyroïde entière, lobes et isthme. Scanner injecté.",
+   "region": "orl"
   },
   {
    "id": "oar-carotide-d",
    "nom": "Artère carotide droite",
    "nom_tg263": "A_Carotid_R",
-   "definition": "Artère carotide commune et interne droite",
-   "source": "RTOG 9911 et Gustave Roussy (de Crevoisier 1998) : hémorragies carotidiennes après réirradiation",
-   "region": "orl"
+   "definition": "Carotide commune droite depuis le tronc brachiocéphalique, puis carotide interne jusqu'à la base du crâne ; carotide externe exclue. Scanner injecté.",
+   "region": "orl",
+   "paire": "oar-carotides"
   },
   {
    "id": "oar-carotide-g",
    "nom": "Artère carotide gauche",
    "nom_tg263": "A_Carotid_L",
-   "definition": "Comme la droite",
-   "source": "RTOG 9911 et Gustave Roussy (de Crevoisier 1998) : hémorragies carotidiennes après réirradiation",
-   "region": "orl"
+   "definition": "Carotide commune gauche depuis la crosse aortique, puis carotide interne jusqu'à la base du crâne.",
+   "region": "orl",
+   "paire": "oar-carotides"
+  },
+  {
+   "id": "oar-canal-parotidien",
+   "nom": "Canal parotidien",
+   "nom_tg263": "Parotid_Duct",
+   "definition": "Canal de Sténon, du bord antérieur de la parotide à son abouchement en regard de la deuxième molaire supérieure.",
+   "region": "orl",
+   "construit": true
+  },
+  {
+   "id": "oar-muscles-nuque",
+   "nom": "Muscles postérieurs du cou",
+   "nom_tg263": "Musc_Neck_Post",
+   "definition": "Muscles de la nuque en arrière des processus épineux, de l'occiput à C7.",
+   "region": "orl",
+   "construit": true
+  },
+  {
+   "id": "oar-poumons",
+   "nom": "Poumons",
+   "nom_tg263": "Lungs",
+   "definition": "Poumons droit et gauche en fenêtre pulmonaire, sans la trachée ni les bronches souches ; on en retire le PTV (ou l'ITV en stéréotaxie) pour les contraintes.",
+   "region": "thorax"
+  },
+  {
+   "id": "oar-poumon-d",
+   "nom": "Poumon droit",
+   "nom_tg263": "Lung_R",
+   "definition": "Poumon droit en fenêtre pulmonaire, sans le hile ni les bronches souches.",
+   "region": "thorax",
+   "somme": "oar-poumons"
+  },
+  {
+   "id": "oar-poumon-g",
+   "nom": "Poumon gauche",
+   "nom_tg263": "Lung_L",
+   "definition": "Poumon gauche en fenêtre pulmonaire, sans le hile ni les bronches souches.",
+   "region": "thorax",
+   "somme": "oar-poumons"
+  },
+  {
+   "id": "oar-poumon-homolateral",
+   "nom": "Poumon homolatéral",
+   "nom_tg263": "Lung_Ipsi",
+   "definition": "Poumon du côté traité, en fenêtre pulmonaire.",
+   "region": "sein",
+   "construit": true
+  },
+  {
+   "id": "oar-poumon-controlateral",
+   "nom": "Poumon controlatéral",
+   "nom_tg263": "Lung_Contra",
+   "definition": "Poumon du côté opposé au traitement, en fenêtre pulmonaire.",
+   "region": "sein",
+   "construit": true
+  },
+  {
+   "id": "oar-coeur",
+   "nom": "Cœur",
+   "nom_tg263": "Heart",
+   "definition": "Cœur et péricarde, du bord inférieur de l'artère pulmonaire (au-dessus) jusqu'à l'apex ; aorte ascendante et veine cave supérieure exclues. Scanner injecté.",
+   "region": "thorax"
+  },
+  {
+   "id": "oar-iva",
+   "nom": "Artère interventriculaire antérieure",
+   "nom_tg263": "A_LAD",
+   "definition": "Branche de la coronaire gauche dans le sillon interventriculaire antérieur, de son origine à l'apex ; contourée avec une marge de 2 à 3 mm si elle est mal visible. Scanner injecté.",
+   "region": "thorax"
+  },
+  {
+   "id": "oar-ventricule-gauche",
+   "nom": "Ventricule gauche",
+   "nom_tg263": "Ventricle_L",
+   "definition": "Cavité et paroi myocardique du ventricule gauche, de la valve mitrale à l'apex. Scanner injecté.",
+   "region": "thorax"
+  },
+  {
+   "id": "oar-valves",
+   "nom": "Valves cardiaques",
+   "nom_tg263": "Valve",
+   "definition": "Valves aortique, mitrale, pulmonaire et tricuspide, contourées à leur anneau. Scanner injecté.",
+   "region": "thorax"
+  },
+  {
+   "id": "oar-gros-vaisseaux",
+   "nom": "Gros vaisseaux",
+   "nom_tg263": "GreatVes",
+   "definition": "Aorte thoracique, artère pulmonaire et ses branches principales, veines caves ; paroi et lumière, 5 mm au-delà de la paroi. Scanner injecté.",
+   "region": "thorax"
+  },
+  {
+   "id": "oar-oesophage",
+   "nom": "Œsophage",
+   "nom_tg263": "Esophagus",
+   "definition": "Du bord inférieur du cricoïde jusqu'à la jonction œsogastrique, paroi et lumière, en fenêtre médiastinale.",
+   "region": "thorax"
+  },
+  {
+   "id": "oar-trachee",
+   "nom": "Trachée",
+   "nom_tg263": "Trachea",
+   "definition": "Du bord inférieur du cricoïde jusqu'à 2 cm au-dessus de la carène, paroi cartilagineuse incluse (fenêtre parenchymateuse) ; la suite appartient à l'arbre bronchique proximal.",
+   "region": "thorax"
+  },
+  {
+   "id": "oar-arbre-bronchique",
+   "nom": "Arbre bronchique proximal",
+   "nom_tg263": "Bronchus",
+   "definition": "Les 2 derniers centimètres de la trachée, la carène, les bronches souches, intermédiaire et lobaires jusqu'à leur première division, en fenêtre pulmonaire.",
+   "region": "thorax"
+  },
+  {
+   "id": "oar-plexus-brachial-d",
+   "nom": "Plexus brachial droit",
+   "nom_tg263": "BrachialPlex_R",
+   "definition": "Racines C5 à T1 de leur sortie des trous de conjugaison, entre les scalènes antérieur et moyen, puis sous la clavicule jusqu'au bord externe de la première côte. Scanner injecté.",
+   "region": "thorax",
+   "paire": "oar-plexus-brachiaux"
+  },
+  {
+   "id": "oar-plexus-brachial-g",
+   "nom": "Plexus brachial gauche",
+   "nom_tg263": "BrachialPlex_L",
+   "definition": "Mêmes limites que le plexus brachial droit, à gauche.",
+   "region": "thorax",
+   "paire": "oar-plexus-brachiaux"
+  },
+  {
+   "id": "oar-paroi-thoracique",
+   "nom": "Paroi thoracique",
+   "nom_tg263": "Chestwall",
+   "definition": "Expansion de 2 cm autour du poumon, du bord du corps vertébral (racines incluses) au bord latéral du sternum ; peau, sternum et vertèbres exclus ; 2 à 3 cm au-dessus et au-dessous du PTV.",
+   "region": "thorax"
+  },
+  {
+   "id": "oar-cotes",
+   "nom": "Côtes",
+   "nom_tg263": "Rib",
+   "definition": "Côtes en regard du volume cible, os cortical et médullaire ; numérotées si besoin.",
+   "region": "thorax"
+  },
+  {
+   "id": "oar-sein-controlateral",
+   "nom": "Sein controlatéral",
+   "nom_tg263": "Breast_Contra",
+   "definition": "Glande mammaire du côté opposé, mêmes limites cliniques que le sein traité, repérées au scanner (fil radio-opaque).",
+   "region": "sein",
+   "construit": true
+  },
+  {
+   "id": "oar-tete-humerale",
+   "nom": "Tête humérale",
+   "nom_tg263": "Humerus_Head",
+   "definition": "Tête humérale du côté traité, jusqu'au col chirurgical.",
+   "region": "sein",
+   "construit": true
+  },
+  {
+   "id": "oar-foie",
+   "nom": "Foie",
+   "nom_tg263": "Liver",
+   "definition": "Foie entier, vésicule biliaire et veine cave inférieure exclues ; en stéréotaxie, on en retire le GTV ou le CTV pour les contraintes. Scanner injecté.",
+   "region": "abdomen"
+  },
+  {
+   "id": "oar-voie-biliaire",
+   "nom": "Voie biliaire principale",
+   "nom_tg263": "BileDuct_Common",
+   "definition": "Canal hépatique commun et cholédoque, de la confluence biliaire à l'ampoule de Vater.",
+   "region": "abdomen"
+  },
+  {
+   "id": "oar-estomac",
+   "nom": "Estomac",
+   "nom_tg263": "Stomach",
+   "definition": "Estomac entier, du cardia au pylore, paroi et contenu. Scanner injecté, idéalement à jeun.",
+   "region": "abdomen"
+  },
+  {
+   "id": "oar-duodenum",
+   "nom": "Duodénum",
+   "nom_tg263": "Duodenum",
+   "definition": "Du pylore à l'angle duodéno-jéjunal, paroi et contenu. Scanner injecté.",
+   "region": "abdomen"
+  },
+  {
+   "id": "oar-grele",
+   "nom": "Intestin grêle (sac péritonéal)",
+   "nom_tg263": "Bag_Bowel",
+   "definition": "Cavité péritonéale contenant les anses intestinales : en avant et latéralement la paroi abdominale, en arrière les muscles et les vaisseaux, de la première coupe au-dessus du rectum (ou de la jonction recto-sigmoïdienne) jusqu'à 2 cm au-dessus du PTV ; sigmoïde exclu.",
+   "region": "abdomen"
+  },
+  {
+   "id": "oar-colon",
+   "nom": "Côlon",
+   "nom_tg263": "Colon",
+   "definition": "Côlon ascendant, transverse et descendant, paroi et contenu, en regard du champ.",
+   "region": "abdomen"
+  },
+  {
+   "id": "oar-pancreas",
+   "nom": "Pancréas",
+   "nom_tg263": "Pancreas",
+   "definition": "Tête, crochet, corps et queue du pancréas. Scanner injecté.",
+   "region": "abdomen"
+  },
+  {
+   "id": "oar-rate",
+   "nom": "Rate",
+   "nom_tg263": "Spleen",
+   "definition": "Rate entière, hile inclus.",
+   "region": "abdomen"
+  },
+  {
+   "id": "oar-reins",
+   "nom": "Reins",
+   "nom_tg263": "Kidneys",
+   "definition": "Reins droit et gauche réunis en une seule structure.",
+   "region": "abdomen"
+  },
+  {
+   "id": "oar-rein-d",
+   "nom": "Rein droit",
+   "nom_tg263": "Kidney_R",
+   "definition": "Parenchyme et cavités du rein droit, hile inclus. Scanner injecté.",
+   "region": "abdomen",
+   "somme": "oar-reins"
+  },
+  {
+   "id": "oar-rein-g",
+   "nom": "Rein gauche",
+   "nom_tg263": "Kidney_L",
+   "definition": "Parenchyme et cavités du rein gauche, hile inclus.",
+   "region": "abdomen",
+   "somme": "oar-reins"
+  },
+  {
+   "id": "oar-hile-renal",
+   "nom": "Hile rénal",
+   "nom_tg263": "Kidney_Hilums",
+   "definition": "Artère et veine rénales et bassinet, du sinus rénal à l'aorte et à la veine cave.",
+   "region": "abdomen"
+  },
+  {
+   "id": "oar-greffon-renal",
+   "nom": "Greffon rénal",
+   "nom_tg263": "Kidney_Transplant",
+   "definition": "Rein transplanté dans la fosse iliaque, parenchyme et cavités.",
+   "region": "abdomen",
+   "construit": true
+  },
+  {
+   "id": "oar-vessie",
+   "nom": "Vessie",
+   "nom_tg263": "Bladder",
+   "definition": "Paroi externe de la vessie entière, du dôme au col vésical ; contenu inclus.",
+   "region": "pelvis"
+  },
+  {
+   "id": "oar-rectum",
+   "nom": "Rectum",
+   "nom_tg263": "Rectum",
+   "definition": "Paroi externe du rectum, contenu inclus, de la jonction anorectale (en bas) jusqu'à la jonction recto-sigmoïdienne, là où il se porte vers l'avant (en haut).",
+   "region": "pelvis"
+  },
+  {
+   "id": "oar-sigmoide",
+   "nom": "Sigmoïde",
+   "nom_tg263": "Colon_Sigmoid",
+   "definition": "De la jonction recto-sigmoïdienne jusqu'au côlon descendant, paroi et contenu.",
+   "region": "pelvis"
+  },
+  {
+   "id": "oar-canal-anal",
+   "nom": "Canal anal",
+   "nom_tg263": "Canal_Anal",
+   "definition": "De la jonction anorectale (relèvement des releveurs) jusqu'à la marge anale, paroi et sphincters inclus.",
+   "region": "pelvis"
+  },
+  {
+   "id": "oar-tete-femorale-d",
+   "nom": "Tête fémorale droite",
+   "nom_tg263": "Femur_Head_R",
+   "definition": "Tête et col du fémur, jusqu'au bas du petit trochanter.",
+   "region": "pelvis",
+   "paire": "oar-tetes-femorales"
+  },
+  {
+   "id": "oar-tete-femorale-g",
+   "nom": "Tête fémorale gauche",
+   "nom_tg263": "Femur_Head_L",
+   "definition": "Tête et col du fémur gauche, jusqu'au bas du petit trochanter.",
+   "region": "pelvis",
+   "paire": "oar-tetes-femorales"
+  },
+  {
+   "id": "oar-bulbe",
+   "nom": "Bulbe pénien",
+   "nom_tg263": "PenileBulb",
+   "definition": "Renflement du corps spongieux sous l'apex prostatique et le diaphragme urogénital, au-dessus de la racine des corps caverneux. IRM T2 utile.",
+   "region": "pelvis"
+  },
+  {
+   "id": "oar-uretre",
+   "nom": "Urètre",
+   "nom_tg263": "Urethra",
+   "definition": "Urètre prostatique, sur l'IRM T2 fusionnée ou repéré par sonde ; tracé au pinceau de 7 mm de diamètre si mal visible.",
+   "region": "pelvis"
+  },
+  {
+   "id": "oar-oge",
+   "nom": "Organes génitaux externes",
+   "nom_tg263": "Genitals",
+   "definition": "Homme : verge et scrotum, peau incluse. Femme : vulve (grandes et petites lèvres, clitoris).",
+   "region": "pelvis"
+  },
+  {
+   "id": "oar-vulve",
+   "nom": "Vulve",
+   "nom_tg263": "Vulva",
+   "definition": "Grandes et petites lèvres, clitoris et vestibule, peau incluse.",
+   "region": "pelvis"
+  },
+  {
+   "id": "oar-vagin",
+   "nom": "Vagin",
+   "nom_tg263": "Vagina",
+   "definition": "Paroi vaginale, du col (ou du fond vaginal) à l'introït.",
+   "region": "pelvis"
+  },
+  {
+   "id": "oar-uterus",
+   "nom": "Utérus",
+   "nom_tg263": "Uterus",
+   "definition": "Corps et col utérins, sans distinction.",
+   "region": "pelvis"
+  },
+  {
+   "id": "oar-ovaire-d",
+   "nom": "Ovaire droit",
+   "nom_tg263": "Ovary_R",
+   "definition": "Ovaire en place ou transposé (clips repères). IRM utile.",
+   "region": "pelvis",
+   "paire": "oar-ovaires"
+  },
+  {
+   "id": "oar-ovaire-g",
+   "nom": "Ovaire gauche",
+   "nom_tg263": "Ovary_L",
+   "definition": "Ovaire gauche en place ou transposé.",
+   "region": "pelvis",
+   "paire": "oar-ovaires"
+  },
+  {
+   "id": "oar-testicule-controlateral",
+   "nom": "Testicule controlatéral",
+   "nom_tg263": "Testis_Contra",
+   "definition": "Testicule restant, dans la bourse, contour externe.",
+   "region": "pelvis",
+   "construit": true
+  },
+  {
+   "id": "oar-os-pelviens",
+   "nom": "Os pelviens",
+   "nom_tg263": "Bone_Pelvic",
+   "definition": "Os iliaques, sacrum et coccyx, en regard du champ, cortical et médullaire.",
+   "region": "pelvis"
+  },
+  {
+   "id": "oar-aile-iliaque-d",
+   "nom": "Aile iliaque droite",
+   "nom_tg263": "Bone_Ilium_R",
+   "definition": "Os iliaque droit, de la crête iliaque jusqu'au toit du cotyle.",
+   "region": "pelvis",
+   "paire": "oar-ailes-iliaques"
+  },
+  {
+   "id": "oar-aile-iliaque-g",
+   "nom": "Aile iliaque gauche",
+   "nom_tg263": "Bone_Ilium_L",
+   "definition": "Os iliaque gauche, de la crête iliaque jusqu'au toit du cotyle.",
+   "region": "pelvis",
+   "paire": "oar-ailes-iliaques"
+  },
+  {
+   "id": "oar-moelle-osseuse",
+   "nom": "Moelle osseuse",
+   "nom_tg263": "BoneMarrow",
+   "definition": "Os du bassin dans le champ : rachis lombo-sacré (L5 et sacrum), os iliaques et partie basse du bassin (pubis, ischions, cotyles, têtes fémorales).",
+   "region": "pelvis"
+  },
+  {
+   "id": "oar-plexus-sacre",
+   "nom": "Plexus sacré",
+   "nom_tg263": "SacralPlex",
+   "definition": "Racines L4 à S3, de leur sortie des trous de conjugaison et des foramens sacrés jusqu'à la grande échancrure sciatique.",
+   "region": "pelvis"
+  },
+  {
+   "id": "oar-nerf-sciatique",
+   "nom": "Nerf sciatique",
+   "nom_tg263": "Nrv_Sciatic",
+   "definition": "Nerf sciatique, de la grande échancrure sciatique sur toute la hauteur du champ, entre le grand fessier et les pelvi-trochantériens.",
+   "region": "pelvis",
+   "construit": true
+  },
+  {
+   "id": "oar-sillon-fessier",
+   "nom": "Sillon interfessier",
+   "nom_tg263": "Skin_Gluteal",
+   "definition": "Peau et tissu sous-cutané (5 mm) du sillon interfessier en regard du champ.",
+   "region": "pelvis",
+   "construit": true
+  },
+  {
+   "id": "oar-plis-inguinaux",
+   "nom": "Plis inguinaux",
+   "nom_tg263": "Skin_Inguinal",
+   "definition": "Peau et tissu sous-cutané (5 mm) des plis de l'aine en regard du champ.",
+   "region": "pelvis",
+   "construit": true
+  },
+  {
+   "id": "oar-point-rv",
+   "nom": "Point recto-vaginal",
+   "nom_tg263": "Pt_RectoVag",
+   "definition": "Point de la paroi vaginale postérieure en regard du centre des sources vaginales (anneau ou ovoïdes), 5 mm sous la muqueuse.",
+   "region": "pelvis",
+   "construit": true
+  },
+  {
+   "id": "oar-help-ctvhr10",
+   "nom": "CTV-HR + 10 mm (aide)",
+   "nom_tg263": "CTV_HR_Ev10",
+   "definition": "Structure d'aide : CTV haut risque + 10 mm, zone où la curiethérapie délivre déjà une forte dose ; limite les points chauds de la radiothérapie externe.",
+   "region": "pelvis",
+   "construit": true
+  },
+  {
+   "id": "oar-moelle",
+   "nom": "Moelle épinière",
+   "nom_tg263": "SpinalCord",
+   "definition": "Moelle visible sur l'IRM fusionnée (ou canal médullaire osseux au scanner), du trou occipital jusqu'au cône terminal, sur toute la hauteur du champ.",
+   "region": "rachis"
+  },
+  {
+   "id": "oar-canal-medullaire",
+   "nom": "Canal médullaire",
+   "nom_tg263": "SpinalCanal",
+   "definition": "Canal rachidien osseux (bord interne des corps vertébraux, pédicules et lames), sur toute la hauteur du champ.",
+   "region": "rachis"
+  },
+  {
+   "id": "oar-sac-dural",
+   "nom": "Sac dural",
+   "nom_tg263": "ThecalSac",
+   "definition": "Sac thécal (dure-mère et son contenu) sur l'IRM T2 fusionnée, utilisé à la place de la moelle en stéréotaxie rachidienne et en réirradiation.",
+   "region": "rachis"
+  },
+  {
+   "id": "oar-queue-cheval",
+   "nom": "Queue de cheval",
+   "nom_tg263": "CaudaEquina",
+   "definition": "Racines dans le sac dural, du cône terminal (vers L1–L2) jusqu'au bas du sac. IRM.",
+   "region": "rachis"
+  },
+  {
+   "id": "oar-racines-nerveuses",
+   "nom": "Racines nerveuses",
+   "nom_tg263": "Nrv_Root",
+   "definition": "Racines du ou des niveaux traités, du foramen jusqu'à 2 cm en dehors, surtout en cas d'atteinte foraminale.",
+   "region": "rachis"
+  },
+  {
+   "id": "oar-peau",
+   "nom": "Peau",
+   "nom_tg263": "Skin",
+   "definition": "Contour externe moins 3 mm (5 mm en stéréotaxie rénale), en regard des faisceaux.",
+   "region": "divers"
+  },
+  {
+   "id": "oar-os-longs",
+   "nom": "Os longs",
+   "nom_tg263": "Bone_Long",
+   "definition": "Os long irradié (fémur, humérus, tibia…), cortical et médullaire, sur toute la hauteur du champ.",
+   "region": "divers",
+   "construit": true
+  },
+  {
+   "id": "oar-corps",
+   "nom": "Corps (contour externe)",
+   "nom_tg263": "External",
+   "definition": "Contour externe du patient.",
+   "region": "divers"
+  }
+ ],
+ "paires": [
+  {
+   "id": "oar-lobes-temporaux",
+   "nom": "Lobes temporaux (droit et gauche)",
+   "membres": [
+    "oar-lobe-temporal-d",
+    "oar-lobe-temporal-g"
+   ]
+  },
+  {
+   "id": "oar-nerfs-optiques",
+   "nom": "Nerfs optiques (droit et gauche)",
+   "membres": [
+    "oar-nerf-optique-d",
+    "oar-nerf-optique-g"
+   ]
+  },
+  {
+   "id": "oar-yeux",
+   "nom": "Yeux (droit et gauche)",
+   "membres": [
+    "oar-oeil-d",
+    "oar-oeil-g"
+   ]
+  },
+  {
+   "id": "oar-retines",
+   "nom": "Rétines (droite et gauche)",
+   "membres": [
+    "oar-retine-d",
+    "oar-retine-g"
+   ]
+  },
+  {
+   "id": "oar-cornees",
+   "nom": "Cornées (droite et gauche)",
+   "membres": [
+    "oar-cornee-d",
+    "oar-cornee-g"
+   ]
+  },
+  {
+   "id": "oar-cristallins",
+   "nom": "Cristallins (droit et gauche)",
+   "membres": [
+    "oar-cristallin-d",
+    "oar-cristallin-g"
+   ]
+  },
+  {
+   "id": "oar-glandes-lacrymales",
+   "nom": "Glandes lacrymales (droite et gauche)",
+   "membres": [
+    "oar-glande-lacrymale-d",
+    "oar-glande-lacrymale-g"
+   ]
+  },
+  {
+   "id": "oar-cochlees",
+   "nom": "Cochlées (droite et gauche)",
+   "membres": [
+    "oar-cochlee-d",
+    "oar-cochlee-g"
+   ]
+  },
+  {
+   "id": "oar-oreilles-internes",
+   "nom": "Oreilles internes (droite et gauche)",
+   "membres": [
+    "oar-oreille-interne-d",
+    "oar-oreille-interne-g"
+   ]
+  },
+  {
+   "id": "oar-parotides",
+   "nom": "Parotides (droite et gauche)",
+   "membres": [
+    "oar-parotide-d",
+    "oar-parotide-g"
+   ]
+  },
+  {
+   "id": "oar-glandes-sous-max",
+   "nom": "Glandes sous-mandibulaires (droite et gauche)",
+   "membres": [
+    "oar-glande-sous-max-d",
+    "oar-glande-sous-max-g"
+   ]
+  },
+  {
+   "id": "oar-atm",
+   "nom": "Articulations temporo-mandibulaires (droite et gauche)",
+   "membres": [
+    "oar-atm-d",
+    "oar-atm-g"
+   ]
+  },
+  {
+   "id": "oar-carotides",
+   "nom": "Artères carotides (droite et gauche)",
+   "membres": [
+    "oar-carotide-d",
+    "oar-carotide-g"
+   ]
+  },
+  {
+   "id": "oar-plexus-brachiaux",
+   "nom": "Plexus brachiaux (droit et gauche)",
+   "membres": [
+    "oar-plexus-brachial-d",
+    "oar-plexus-brachial-g"
+   ]
+  },
+  {
+   "id": "oar-tetes-femorales",
+   "nom": "Têtes fémorales (droite et gauche)",
+   "membres": [
+    "oar-tete-femorale-d",
+    "oar-tete-femorale-g"
+   ]
+  },
+  {
+   "id": "oar-ovaires",
+   "nom": "Ovaires (droit et gauche)",
+   "membres": [
+    "oar-ovaire-d",
+    "oar-ovaire-g"
+   ]
+  },
+  {
+   "id": "oar-ailes-iliaques",
+   "nom": "Ailes iliaques (droite et gauche)",
+   "membres": [
+    "oar-aile-iliaque-d",
+    "oar-aile-iliaque-g"
+   ]
   }
  ]
 }

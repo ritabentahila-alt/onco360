@@ -42,10 +42,7 @@
    "systemique": "Aucune",
    "simulation_id": "sim-crane",
    "volumes_id": "vol-crp",
-   "contraintes_ids": [
-    "ct-crane-igr",
-    "ct-crane-quantec"
-   ],
+   "contraintes_ids": [],
    "date_verif": "2026-10-24",
    "ind": [
     "SNC",
@@ -78,10 +75,7 @@
    "systemique": "Aucune",
    "simulation_id": "sim-crane",
    "volumes_id": "vol-crp",
-   "contraintes_ids": [
-    "ct-crane-igr",
-    "ct-crane-quantec"
-   ],
+   "contraintes_ids": [],
    "date_verif": "2026-10-24",
    "ind": [
     "SNC",
@@ -115,10 +109,7 @@
    "systemique": "Aucune",
    "simulation_id": "sim-crane-srs",
    "volumes_id": "vol-crane-srs",
-   "contraintes_ids": [
-    "ct-srs-igr-1fx",
-    "ct-srs-hytec"
-   ],
+   "contraintes_ids": [],
    "couverture": "Dose prescrite en périphérie du résidu",
    "points_attention": [
     "Radiochirurgie ou stéréotaxie en 3 fractions (19,5–24 Gy) si le résidu est loin des voies optiques ; sinon 54 Gy / 30 fx (Kamogawa 2022)"

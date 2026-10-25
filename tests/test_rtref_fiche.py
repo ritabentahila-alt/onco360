@@ -27,7 +27,7 @@ async def main():
         # En-tête et onglets
         ong = await ev("[...document.querySelectorAll('.rtr-ong button')].map(b => b.textContent.replace(/\\s*\\d+$/, ''))")
         ok(ong == ['Prescription', 'Centrage', 'Contourage', 'Contraintes', 'Essais et sources', "Points d'attention"], 'six onglets, dans l\'ordre de la chaîne de traitement', ong)
-        ok((await ev("document.querySelector('.rtr-ong button:nth-child(4)').textContent")).replace('\xa0', ' ').endswith('11') and (await ev("document.querySelector('.rtr-ong button:nth-child(5)').textContent")).endswith('2'), 'nombres : « Contraintes 11 », « Essais 2 »')
+        ok(int((await ev("document.querySelector('.rtr-ong button:nth-child(4) .n').textContent")) or 0) >= 15 and (await ev("document.querySelector('.rtr-ong button:nth-child(5)').textContent")).endswith('2'), 'nombres : « Contraintes » (lignes de la table unique), « Essais 2 »')
         ok('60 Gy / 20 fx (3 Gy/fx)' in (await ev("document.querySelector('.rtr-res').innerText")).replace('\xa0', ' ') and await ev("!!document.querySelector('.rtr-t .rtr-imp')"), 'en-tête : résumé de prescription, étoile et Imprimer en haut à droite')
         # Prescription
         row = await ev("[...document.querySelectorAll('.rtr-tab tbody tr:first-child td')].map(t => t.innerText.trim())")
@@ -40,15 +40,20 @@ async def main():
         ok((await ev("location.hash")).endswith('/contraintes') and (await ev("(window.__fs['utilisateurs/UIDRITA'] || {}).rtOnglet")) == 'contraintes', 'onglet Contraintes : dans l\'adresse et gardé pour la personne (rtOnglet)')
         await aller(pg, 'radiotherapie'); await pg.fill('#rtrQ', 'prostate 70'); await pg.wait_for_timeout(300); await pg.keyboard.press('Enter'); await pg.wait_for_timeout(1800)
         ok(await ev("(document.querySelector('.rtr-oc > *') || {}).className") == 'rtr-couv' and 'Objectifs de couverture' in await ev(OC), 'Contraintes : les objectifs de couverture en premier', await ev("(document.querySelector('.rtr-oc > *') || {}).className"))
-        ok((await ev("location.hash")).endswith('/contraintes') and await ev("!!document.querySelector('.rtr-jeu')"), 'autre schéma ouvert de la liste : directement sur Contraintes (aucun clic)')
+        ok((await ev("location.hash")).endswith('/contraintes') and await ev("!!document.querySelector('.rtr-ct')"), 'autre schéma ouvert de la liste : directement sur Contraintes (aucun clic)')
         await aller(pg, 'radiotherapie/s/pro-fav-60-20/contraintes')
-        ok('Idéal' in await ev("document.querySelector('.rtr-aidec').innerText") and 'Limitant' in await ev("document.querySelector('.rtr-aidec').innerText"), 'Contraintes : aide d\'Idéal et de Limitant écrite sous le titre du jeu')
+        t = await ev("document.querySelector('.rtr-aidec').innerText")
+        ok('Hypofractionné · 20 séances' in t.replace('\xa0', ' ') and 'Idéal' in t and 'Limitant' in t and await ev("document.querySelectorAll('.rtr-ct').length") == 1, 'Contraintes : une seule table, régime du schéma (Hypofractionné · 20 séances), aide d\'Idéal et de Limitant', t)
+        t = await ev(OC)
+        ok('RecoRad 2025 (prostate)' in t and 'V37Gy' in t and 'à convertir en EQD2' in t, 'base RecoRad 2025 de la localisation (PROFIT : V37Gy) ; organe sans valeur publiée : valeur du normofractionné à convertir', t[:300])
         ok(await ev("document.querySelectorAll('.rtr-ct td.o').length") >= 3 and await ev("getComputedStyle(document.querySelector('.rtr-ct td.lim')).fontWeight") in ('700', 'bold'), 'Contraintes : lignes groupées par organe, Limitant en gras')
         await pg.click('.rtr-cp'); await pg.wait_for_timeout(400)
         cp = await ev("window.__copie[window.__copie.length - 1] || ''")
-        ok(cp.startswith('Prostate en place, 3 Gy/fx\t') and '\nRectum\tRectum\tV60Gy\t' in cp and 'Tableau copié' in await ev("document.body.innerText"), 'Copier : tableau en texte tabulé, « Tableau copié »', cp[:120])
+        ok(cp.startswith('60 Gy / 20 fx\t') and '\nRectum\tRectum\tV37Gy\t' in cp and 'Tableau copié' in await ev("document.body.innerText"), 'Copier : tableau en texte tabulé, « Tableau copié »', cp[:120])
         await aller(pg, 'radiotherapie/s/rec-5x5-tme/contraintes')
-        ok('Aucun jeu publié pour ce fractionnement' in await ev(OC) and await ev("document.querySelector('.rtr-ong button:nth-child(4)').classList.contains('vide')"), 'sans jeu : « Aucun jeu publié pour ce fractionnement », onglet grisé (à sa place)')
+        ok('RecoRad 2025 (rectum)' in await ev(OC) and 'V25Gy' in await ev(OC), 'rectum 5 × 5 Gy : contraintes RecoRad 2025 du rectum pour 5 séances')
+        await aller(pg, 'radiotherapie/s/sein-26-5/contraintes')
+        ok('FAST-Forward' in await ev(OC) and 'V1,5Gy' in await ev(OC), 'essai suivi (FAST-Forward) : ses contraintes à la place de la base')
         await aller(pg, 'radiotherapie/s/mu-coms-85/centrage')
         ok('Pas de fiche de centrage du service pour cette localisation' in await ev(OC), 'sans fiche de centrage : la phrase de l\'onglet')
         # RTE + curiethérapie
@@ -61,7 +66,7 @@ async def main():
         # Plus aucun « ? » : les textes sont écrits en entier
         await aller(pg, 'radiotherapie/s/pro-fav-60-20/contourage')
         ok(await ev("document.querySelectorAll('.rtr-aide, .rtr-c').length") == 0 and '…' not in await ev(OC), 'aucun « ? » ni texte coupé (« … »)')
-        ok(await ev("document.querySelectorAll('.rtr-tab .badge.b-gr').length") >= 3 and await ev("document.querySelectorAll('.rtr-oar li').length") >= 5 and await ev("[...document.querySelectorAll('.rtr-l2 a')].every(a => a.target === '_blank')"), 'Contourage : types en badge neutre, organes à risque, atlas dans un nouvel onglet')
+        ok(await ev("document.querySelectorAll('.rtr-tab .badge.b-gr').length") >= 3 and await ev("document.querySelectorAll('.rtr-oar li').length") >= 5 and await ev("document.querySelectorAll('.rtr-oar li .mesures').length") == await ev("document.querySelectorAll('.rtr-oar li').length") and not await ev("!!document.querySelector('.rtr-oc .rtr-l2')") and 'Rectum' in await ev("document.querySelector('.rtr-oar').innerText"), 'Contourage : organes à risque listés (nom et TG-263 seulement), sans atlas')
         # Essais
         await aller(pg, 'radiotherapie/s/pro-fav-60-20/essais')
         ok(await ev("document.querySelector('.rtr-ln a').href") == 'https://pubmed.ncbi.nlm.nih.gov/27339115/' and await ev("[...document.querySelectorAll('.rtr-ln a')].some(a => a.href.startsWith('https://doi.org/'))"), 'Essais : liens PubMed et DOI')

@@ -67,9 +67,7 @@
    "systemique": "Capécitabine 800 mg/m² × 2/j les jours de RT",
    "simulation_id": "sim-rec",
    "volumes_id": "vol-rec",
-   "contraintes_ids": [
-    "ct-quantec-grele"
-   ],
+   "contraintes_ids": [],
    "date_verif": "2026-10-23",
    "ind": [
     "Digestif",
@@ -259,9 +257,7 @@
    "systemique": "FOLFIRINOX × 6 avant ; capécitabine pendant ; 3 mois après la chirurgie",
    "simulation_id": "sim-rec",
    "volumes_id": "vol-rec",
-   "contraintes_ids": [
-    "ct-quantec-grele"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "Choix (fiche du service) : RAPIDO si le risque métastatique domine (CRM < 1 mm, T4, N2, EMVI+) ; PRODIGE 23 si le contrôle local domine (tumeur basse ou volumineuse, besoin de boost, préservation sphinctérienne, patient jeune en bon état général)",
     "La fiche du service indique « FOLFOX ou CAPOX » en adjuvant ; PRODIGE 23 donnait mFOLFOX6 ou capécitabine pendant 3 mois"

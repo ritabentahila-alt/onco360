@@ -1,0 +1,218 @@
+# Gustave Roussy, « Contraintes de dose en RT stéréotaxique », harmonisation juin 2018 (AAPM TG101, RTOG 0813-0915, ROSEL, consensus UK, Timmerman). table | organe | colonne | indicateur | idéal | limitant | note
+IC	Tronc cérébral	S1	D0,035cm³		≤ 15 Gy	
+IC	Tronc cérébral	S1	V10Gy		≤ 0,5 cm³	
+IC	Tronc cérébral	S3	D0,035cm³		≤ 23,1 Gy	
+IC	Tronc cérébral	S3	V18Gy		≤ 0,5 cm³	
+IC	Tronc cérébral	S5	D0,035cm³		≤ 31 Gy	
+IC	Tronc cérébral	S5	V23Gy		≤ 0,5 cm³	
+IC	Chiasma optique	S1	D0,035cm³		≤ 10 Gy	
+IC	Chiasma optique	S1	V8Gy		≤ 0,2 cm³	
+IC	Chiasma optique	S3	D0,035cm³		≤ 17,4 Gy	
+IC	Chiasma optique	S3	V15,3Gy		≤ 0,2 cm³	
+IC	Chiasma optique	S5	D0,035cm³		≤ 25 Gy	
+IC	Chiasma optique	S5	V23Gy		≤ 0,2 cm³	
+IC	Cochlée	S1	D0,035cm³		≤ 9 Gy	
+IC	Cochlée	S3	D0,035cm³		≤ 17,1 Gy	
+IC	Cochlée	S5	D0,035cm³		≤ 25 Gy	
+IC	Cristallin	S1	D0,035cm³		≤ 3 Gy	
+IC	Cristallin	S3	D0,035cm³		≤ 7 Gy	
+IC	Cristallin	S5	D0,035cm³		≤ 7 Gy	
+IC	Nerf optique	S1	D0,035cm³		≤ 10 Gy	
+IC	Nerf optique	S1	V8Gy		≤ 0,2 cm³	
+IC	Nerf optique	S3	D0,035cm³		≤ 17,4 Gy	
+IC	Nerf optique	S3	V15,3Gy		≤ 0,2 cm³	
+IC	Nerf optique	S5	D0,035cm³		≤ 25 Gy	
+IC	Nerf optique	S5	V23Gy		≤ 0,2 cm³	
+IC	Encéphale − PTV	S1	V12Gy		≤ 5–7,5 cm³	
+IC	Encéphale − PTV	S3	V12Gy		≤ 21 cm³	
+IC	Encéphale − PTV	S5	V20Gy		< 100 %	tel qu'imprimé
+IC	Peau (contour externe − 3 mm)	S1	D0,035cm³		≤ 26 Gy	
+IC	Peau (contour externe − 3 mm)	S1	V23Gy		≤ 10 cm³	
+IC	Peau (contour externe − 3 mm)	S3	D0,035cm³		≤ 33 Gy	
+IC	Peau (contour externe − 3 mm)	S3	V30Gy		≤ 10 cm³	
+IC	Peau (contour externe − 3 mm)	S5	D0,035cm³		≤ 39,5 Gy	
+IC	Peau (contour externe − 3 mm)	S5	V36,5Gy		≤ 10 cm³	
+IC	Moelle épinière haute	S1	D0,035cm³		≤ 14 Gy	
+IC	Moelle épinière haute	S1	V10Gy		≤ 0,35 cm³	
+IC	Moelle épinière haute	S3	D0,035cm³		≤ 21,9 Gy	
+IC	Moelle épinière haute	S3	V18Gy		≤ 0,35 cm³	
+IC	Moelle épinière haute	S5	D0,035cm³		≤ 30 Gy	
+IC	Moelle épinière haute	S5	V23Gy		≤ 0,35 cm³	
+EC	Moelle épinière	S1	D0,35cm³		≤ 10 Gy	RTOG 0915
+EC	Moelle épinière	S1	D0,035cm³		≤ 14 Gy	
+EC	Moelle épinière	S1	V7Gy		≤ 1,2 cm³	
+EC	Moelle épinière	S3	D0,5cm³		≤ 15 Gy	
+EC	Moelle épinière	S3	D0,035cm³		≤ 18 Gy	
+EC	Moelle épinière	S5	D0,5cm³		≤ 25 Gy	
+EC	Moelle épinière	S5	D0,035cm³		≤ 26 Gy	
+EC	Moelle épinière	S8	D0,5cm³		≤ 28 Gy	
+EC	Moelle épinière	S8	D0,035cm³		≤ 32 Gy	
+EC	Moelle épinière	S10	D0,5cm³		≤ 28 Gy	
+EC	Moelle épinière	S10	D0,035cm³		≤ 32 Gy	
+EC	Moelle épinière (rachis)	S3	V18Gy		< 0,35 cm³	stéréotaxie rachidienne (TG101)
+EC	Moelle épinière (rachis)	S5	V23Gy		≤ 0,35 cm³	stéréotaxie rachidienne (TG101)
+EC	PRV moelle (rachis)	S3	D0,035cm³		≤ 21,9 Gy	stéréotaxie rachidienne (TG101)
+EC	PRV moelle (rachis)	S5	D0,035cm³		≤ 30 Gy	stéréotaxie rachidienne (TG101)
+EC	Poumons − ITV	S1	V20Gy		≤ 4–10 %	
+EC	Poumons − ITV	S1	V2,5Gy		≤ 35 %	
+EC	Poumons − ITV	S1	Dmean		≤ 10 Gy	
+EC	Poumons − ITV	S1	V7Gy		≤ 1 500 cm³	
+EC	Poumons − ITV	S3	V20Gy		≤ 4–10 %	
+EC	Poumons − ITV	S3	V2,5Gy		≤ 35 %	
+EC	Poumons − ITV	S3	Dmean		≤ 10 Gy	
+EC	Poumons − ITV	S5	V20Gy		≤ 4–10 %	
+EC	Poumons − ITV	S5	V2,5Gy		≤ 35 %	
+EC	Poumons − ITV	S5	Dmean		≤ 10 Gy	
+EC	Poumons − ITV	S8	V20Gy		≤ 4–10 %	
+EC	Poumons − ITV	S8	V2,5Gy		≤ 35 %	
+EC	Poumons − ITV	S8	Dmean		≤ 10 Gy	
+EC	Poumons − ITV	S10	V20Gy		≤ 4–10 %	
+EC	Poumons − ITV	S10	V2,5Gy		≤ 35 %	
+EC	Poumons − ITV	S10	Dmean		≤ 10 Gy	
+EC	Poumon controlatéral	S3	V5Gy		≤ 26 %	
+EC	Poumon controlatéral	S5	V5Gy		≤ 26 %	
+EC	Poumon controlatéral	S8	V5Gy		≤ 26 %	
+EC	Poumon controlatéral	S10	V5Gy		≤ 26 %	
+EC	Cœur	S1	D0,035cm³		≤ 22 Gy	
+EC	Cœur	S1	V16Gy		< 15 cm³	
+EC	Cœur	S3	D15cm³		≤ 21 Gy	
+EC	Cœur	S3	D0,035cm³		≤ 24 Gy	
+EC	Cœur	S5	D15cm³		≤ 27 Gy	
+EC	Cœur	S5	D0,035cm³		≤ 35 Gy	
+EC	Cœur	S8	D15cm³		≤ 38 Gy	
+EC	Cœur	S8	D0,035cm³		≤ 105 % de la dose prescrite	
+EC	Cœur	S10	D15cm³		≤ 38 Gy	
+EC	Cœur	S10	D0,035cm³		≤ 60 Gy	
+EC	Œsophage	S1	D0,035cm³		≤ 15,4 Gy	
+EC	Œsophage	S1	V11,9Gy		< 5 cm³	
+EC	Œsophage	S3	V17,7Gy		≤ 5 cm³	
+EC	Œsophage	S3	D0,035cm³ (PRV)		≤ 25,2 Gy	
+EC	Œsophage	S5	V19,5Gy		≤ 5 cm³	
+EC	Œsophage	S5	D0,035cm³ (PRV)		≤ 35 Gy	
+EC	Œsophage	S8	D5cm³		≤ 28 Gy	
+EC	Œsophage	S8	D0,035cm³ (PRV)		≤ 40–44 Gy	
+EC	Œsophage	S10	D1cm³		≤ 40 Gy	
+EC	Œsophage	S10	D0,035cm³ (PRV)		≤ 60 Gy	
+EC	Arbre bronchique proximal	S1	D0,035cm³		≤ 20,2 Gy	
+EC	Arbre bronchique proximal	S1	V10,5Gy		≤ 4 cm³	
+EC	Arbre bronchique proximal	S3	D4cm³		≤ 15 Gy	
+EC	Arbre bronchique proximal	S3	D0,5cm³		≤ 19 Gy	
+EC	Arbre bronchique proximal	S3	D0,035cm³		≤ 30 Gy	
+EC	Arbre bronchique proximal	S5	D4cm³		≤ 17 Gy	
+EC	Arbre bronchique proximal	S5	D0,5cm³		≤ 21 Gy	
+EC	Arbre bronchique proximal	S5	D0,035cm³		≤ 32–35 Gy	
+EC	Arbre bronchique proximal	S8	D4cm³		≤ 36 Gy	
+EC	Arbre bronchique proximal	S8	D0,035cm³		≤ 44 Gy	
+EC	Arbre bronchique proximal	S10	D4cm³		≤ 45 Gy	
+EC	Arbre bronchique proximal	S10	D0,035cm³		≤ 50 Gy	
+EC	Trachée	S1	D0,035cm³		≤ 20,2 Gy	
+EC	Trachée	S1	V10,5Gy		≤ 4 cm³	
+EC	Trachée	S3	D0,035cm³		≤ 30 Gy	
+EC	Trachée	S3	V15Gy		≤ 4 cm³	
+EC	Trachée	S5	D0,035cm³		≤ 40 Gy	
+EC	Trachée	S5	V16,5Gy		≤ 4 cm³	
+EC	Paroi thoracique	S1	D0,035cm³		≤ 30 Gy	
+EC	Paroi thoracique	S1	V22Gy		< 1 cm³	
+EC	Paroi thoracique	S3	D30cm³		≤ 30–35 Gy	
+EC	Paroi thoracique	S5	D30cm³		≤ 30–35 Gy	
+EC	Paroi thoracique	S8	D30cm³		≤ 30–35 Gy	
+EC	Paroi thoracique	S10	D30cm³		≤ 30–35 Gy	
+EC	Plexus brachial	S1	D0,035cm³		≤ 17,5 Gy	
+EC	Plexus brachial	S1	V14Gy		≤ 3 cm³	
+EC	Plexus brachial	S3	D0,035cm³		≤ 24 Gy	
+EC	Plexus brachial	S3	V20,4Gy		≤ 3 cm³	
+EC	Plexus brachial	S5	D0,035cm³		≤ 30,5 Gy	
+EC	Plexus brachial	S5	V27Gy		≤ 3 cm³	
+EC	Plexus brachial	S8	D0,035cm³		≤ 38 Gy	
+EC	Plexus brachial	S10	D0,035cm³		≤ 38 Gy	
+EC	Gros vaisseaux (aorte)	S1	D0,035cm³		≤ 37 Gy	
+EC	Gros vaisseaux (aorte)	S1	V31Gy		≤ 10 cm³	
+EC	Gros vaisseaux (aorte)	S3	D0,035cm³		≤ 45 Gy	
+EC	Gros vaisseaux (aorte)	S3	V39Gy		≤ 10 cm³	
+EC	Gros vaisseaux (aorte)	S5	D10cm³		≤ 47 Gy	
+EC	Gros vaisseaux (aorte)	S5	D0,035cm³		≤ 53 Gy	D1cm³ si réirradiation ≤ 120 Gy
+EC	Gros vaisseaux (aorte)	S8	D10cm³		≤ 47 Gy	
+EC	Gros vaisseaux (aorte)	S8	D0,035cm³		≤ 105 % de la dose prescrite	
+EC	Gros vaisseaux (aorte)	S10	D10cm³		≤ 47 Gy	
+EC	Gros vaisseaux (aorte)	S10	D0,035cm³		≤ 75 Gy	
+EC	Foie − CTV	S3	V15Gy		≤ 50 %	
+EC	Foie − CTV	S3	V21Gy		≤ 33 %	
+EC	Foie − CTV	S3	Volume recevant moins de 17 Gy		≥ 700 cm³	
+EC	Foie − CTV	S5	V28Gy		≤ 33 %	
+EC	Foie − CTV	S5	V20Gy		≤ 50 %	
+EC	Foie − CTV	S5	Volume recevant moins de 21 Gy		≥ 700 cm³	
+EC	Foie − CTV	S6	V30Gy		≤ 33 %	
+EC	Foie − CTV	S6	V21Gy		≤ 50 %	
+EC	Foie − CTV	S6	Volume recevant moins de 22,5 Gy		> 700 cm³	
+EC	Foie − CTV	S10	V27Gy		≤ 30 %	
+EC	Foie − CTV	S10	V24Gy		≤ 50 %	
+EC	Foie − CTV	S10	Volume recevant moins de 21 Gy		≥ 800 cm³	
+EC	Duodénum	S3	V16,5Gy		≤ 5 cm³	
+EC	Duodénum	S3	D0,5cm³		≤ 24 Gy	
+EC	Duodénum	S5	V25Gy		≤ 5 cm³	
+EC	Duodénum	S5	D0,5cm³		≤ 35 Gy	
+EC	Duodénum	S6	V25Gy		≤ 5 cm³	
+EC	Duodénum	S6	D0,5cm³		≤ 35 Gy	
+EC	Duodénum	S10	V37Gy		≤ 1 cm³	
+EC	Duodénum	S10	V40Gy		≤ 0,5 cm³	
+EC	Estomac	S1	D0,035cm³		≤ 26 Gy	
+EC	Estomac	S1	V23Gy		≤ 10 cm³	
+EC	Estomac	S3	D0,5cm³		≤ 22,2 Gy	
+EC	Estomac	S3	V16,5Gy		≤ 10 cm³	
+EC	Estomac	S5	D0,5cm³		≤ 35 Gy	
+EC	Estomac	S5	V25Gy		≤ 10 cm³	
+EC	Estomac	S5	V12Gy		≤ 50 cm³	
+EC	Estomac	S6	D0,5cm³		≤ 35 Gy	
+EC	Estomac	S6	V30Gy		≤ 10 cm³	
+EC	Estomac	S10	V37Gy		≤ 1 cm³	
+EC	Intestin grêle	S3	V17,7Gy		≤ 5 cm³	
+EC	Intestin grêle	S3	D0,5cm³		≤ 27 Gy	
+EC	Intestin grêle	S5	V25Gy		≤ 5 cm³	
+EC	Intestin grêle	S5	D0,5cm³		≤ 35 Gy	
+EC	Intestin grêle	S6	V25Gy		≤ 5 cm³	
+EC	Intestin grêle	S6	D0,5cm³		≤ 38 Gy	
+EC	Intestin grêle	S10	V37Gy		≤ 1 cm³	
+EC	Côlon	S3	V20Gy		≤ 20 cm³	
+EC	Côlon	S3	D0,5cm³		≤ 28,2 Gy	
+EC	Côlon	S5	V25Gy		≤ 20 cm³	
+EC	Côlon	S5	D0,5cm³		≤ 32 Gy	
+EC	Côlon	S6	V27Gy		≤ 20 cm³	
+EC	Côlon	S6	D0,5cm³		≤ 32 Gy	
+EC	Côlon	S10	V37Gy		≤ 1 cm³	
+EC	Reins (droit et gauche ensemble)	S3	V16Gy		≤ 200 cm³	
+EC	Reins (droit et gauche ensemble)	S3	V10Gy		≤ 50 %	
+EC	Reins (droit et gauche ensemble)	S5	V18Gy		≤ 200 cm³	
+EC	Reins (droit et gauche ensemble)	S5	V15Gy		≤ 50 %	
+EC	Reins (droit et gauche ensemble)	S6	V19,5Gy		≤ 200 cm³	
+EC	Reins (droit et gauche ensemble)	S6	V15Gy		≤ 50 %	
+EC	Reins (droit et gauche ensemble)	S10	V20Gy		≤ 50 %	
+EC	Rein unique	S3	V10Gy		≤ 10–45 %	
+EC	Rein unique	S5	V10Gy		≤ 10–45 %	
+EC	Rein unique	S6	V10Gy		≤ 10–45 %	
+EC	Plexus sacré	S3	D0,035cm³		≤ 24 Gy	
+EC	Plexus sacré	S3	V22,5Gy		≤ 5 cm³	
+EC	Plexus sacré	S5	D0,035cm³		≤ 32 Gy	
+EC	Plexus sacré	S5	V30Gy		≤ 5 cm³	
+EC	Plexus sacré	S6	D0,035cm³		≤ 37 Gy	
+EC	Plexus sacré	S6	V32Gy		≤ 5 cm³	
+EC	Queue de cheval	S3	D0,035cm³ (PRV)		≤ 24 Gy	
+EC	Queue de cheval	S3	V21,9Gy		≤ 5 cm³	
+EC	Queue de cheval	S5	D0,035cm³ (PRV)		≤ 32 Gy	
+EC	Queue de cheval	S5	V30Gy		≤ 5 cm³	
+EC	Queue de cheval	S6	D0,035cm³ (PRV)		≤ 37 Gy	
+EC	Queue de cheval	S6	V32Gy		≤ 5 cm³	
+EC	Rectum	S3	D0,5cm³		≤ 28,2 Gy	
+EC	Rectum	S3	V20Gy		≤ 20 cm³	
+EC	Rectum	S5	D0,5cm³		≤ 32 Gy	
+EC	Rectum	S5	V25Gy		≤ 20 cm³	
+EC	Rectum	S6	D0,5cm³		≤ 40,5 Gy	
+EC	Rectum	S6	V27Gy		≤ 20 cm³	
+EC	Vessie	S3	D0,5cm³		≤ 28,2 Gy	
+EC	Vessie	S3	V16,8Gy		≤ 15 cm³	
+EC	Vessie	S5	D0,5cm³		≤ 38 Gy	
+EC	Vessie	S5	V18,3Gy		≤ 15 cm³	
+EC	Vessie	S6	D0,5cm³		≤ 40 Gy	
+EC	Vessie	S6	V19Gy		≤ 15 cm³	
+EC	Têtes fémorales	S1	V14Gy		≤ 10 cm³	
+EC	Têtes fémorales	S3	V21,9Gy		≤ 10 cm³	
+EC	Têtes fémorales	S5	V30Gy		≤ 10 cm³	

@@ -79,9 +79,7 @@
    "systemique": "Voir Traitement systémique",
    "simulation_id": "sim-orl-curie",
    "volumes_id": "vol-orl-curie-en-place",
-   "contraintes_ids": [
-    "ct-orl-curie"
-   ],
+   "contraintes_ids": [],
    "couverture": "PTV : D95 % ≥ 95 % ; CTV : D98 % ≥ 98 % ; PTV70 : D2 % ≤ 107 %",
    "points_attention": [
     "HPV positif : le cetuximab donne une survie inférieure au cisplatine (RTOG 1016) sans réduire la toxicité (De-ESCALaTE) ; la désescalade reste du domaine des essais",
@@ -121,10 +119,7 @@
    "systemique": "Voir Traitement systémique",
    "simulation_id": "sim-orl-curie",
    "volumes_id": "vol-orl-curie-en-place",
-   "contraintes_ids": [
-    "ct-orl-curie",
-    "ct-orl-igr"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "HPV positif : le cetuximab donne une survie inférieure au cisplatine (RTOG 1016) sans réduire la toxicité (De-ESCALaTE) ; la désescalade reste du domaine des essais",
     "Six fractions par semaine : meilleur contrôle locorégional que cinq (DAHANCA 6 et 7) ; le fractionnement modifié améliore la survie (méta-analyse MARCH)",
@@ -182,10 +177,7 @@
    "systemique": "Voir Traitement systémique",
    "simulation_id": "sim-orl-curie",
    "volumes_id": "vol-oro-igr",
-   "contraintes_ids": [
-    "ct-orl-curie",
-    "ct-orl-igr"
-   ],
+   "contraintes_ids": [],
    "couverture": "Tableur du service : D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
    "points_attention": [
     "HPV positif : le cetuximab donne une survie inférieure au cisplatine (RTOG 1016) sans réduire la toxicité (De-ESCALaTE) ; la désescalade reste du domaine des essais",
@@ -242,9 +234,7 @@
    "systemique": "Voir Traitement systémique",
    "simulation_id": "sim-orl-igr",
    "volumes_id": "vol-oro-igr",
-   "contraintes_ids": [
-    "ct-orl-igr"
-   ],
+   "contraintes_ids": [],
    "couverture": "PTV70 : D95 % ≥ 66,5 Gy, D5 % ≤ 77 Gy ; PTV60 : D95 % ≥ 57 Gy ; PTV54 : D95 % ≥ 51,3 Gy",
    "points_attention": [
     "HPV positif : le cetuximab donne une survie inférieure au cisplatine (RTOG 1016) sans réduire la toxicité (De-ESCALaTE) ; la désescalade reste du domaine des essais",
@@ -304,9 +294,7 @@
    "systemique": "Voir Traitement systémique",
    "simulation_id": "sim-orl-curie",
    "volumes_id": "vol-orl-curie-postop",
-   "contraintes_ids": [
-    "ct-orl-curie"
-   ],
+   "contraintes_ids": [],
    "couverture": "PTV : D95 % ≥ 95 % ; CTV : D98 % ≥ 98 % ; PTV66 ∪ PTV59,4 : D2 % ≤ 107 %",
    "date_verif": "2026-10-24",
    "ind": [
@@ -353,10 +341,7 @@
    "systemique": "Voir Traitement systémique",
    "simulation_id": "sim-orl-curie",
    "volumes_id": "vol-oro-postop-service",
-   "contraintes_ids": [
-    "ct-orl-curie",
-    "ct-orl-igr"
-   ],
+   "contraintes_ids": [],
    "couverture": "Tableur du service : D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
    "date_verif": "2026-10-24",
    "ind": [
@@ -402,10 +387,7 @@
    "systemique": "Aucune",
    "simulation_id": "sim-orl-curie",
    "volumes_id": "vol-oro-postop-service",
-   "contraintes_ids": [
-    "ct-orl-curie",
-    "ct-orl-igr"
-   ],
+   "contraintes_ids": [],
    "couverture": "Tableur du service : D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
    "date_verif": "2026-10-24",
    "ind": [
@@ -449,9 +431,7 @@
    "systemique": "Aucune",
    "simulation_id": "sim-orl-curie",
    "volumes_id": "vol-cb-curie",
-   "contraintes_ids": [
-    "ct-orl-curie"
-   ],
+   "contraintes_ids": [],
    "date_verif": "2026-10-24",
    "ind": [
     "ORL",

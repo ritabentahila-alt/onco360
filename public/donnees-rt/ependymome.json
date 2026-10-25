@@ -39,10 +39,7 @@
    "systemique": "Aucune",
    "simulation_id": "sim-crane",
    "volumes_id": "vol-ependymome",
-   "contraintes_ids": [
-    "ct-crane-igr",
-    "ct-crane-quantec"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "RT post-opératoire : meilleurs contrôle local, survie sans progression et SG en analyse multivariée ; pour le grade 2, meilleurs contrôle local et survie sans progression (KROG 18-06)"
    ],
@@ -77,10 +74,7 @@
    "systemique": "Aucune",
    "simulation_id": "sim-crane",
    "volumes_id": "vol-ependymome",
-   "contraintes_ids": [
-    "ct-crane-igr",
-    "ct-crane-quantec"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "RT post-opératoire : meilleurs contrôle local, survie sans progression et SG en analyse multivariée ; pour le grade 2, meilleurs contrôle local et survie sans progression (KROG 18-06)"
    ],

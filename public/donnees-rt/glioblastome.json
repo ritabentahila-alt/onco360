@@ -54,10 +54,7 @@
    "systemique": "Voir Traitement systémique",
    "simulation_id": "sim-crane",
    "volumes_id": "vol-gbm",
-   "contraintes_ids": [
-    "ct-crane-igr",
-    "ct-crane-quantec"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "Un seul CTV de 15 mm, sans réduction de champ (ESTRO-EANO). Les protocoles NRG utilisent deux CTV : CTV_4600 sur l'hypersignal T2-FLAIR, CTV_6000 sur la cavité et la prise de contraste (Kruser 2019)",
     "Hippocampes : D40 % ≤ 7,3 Gy en EQD2 si possible sans dégrader le PTV (Gondi 2013)",
@@ -95,10 +92,7 @@
    "systemique": "Voir Traitement systémique",
    "simulation_id": "sim-crane",
    "volumes_id": "vol-gbm",
-   "contraintes_ids": [
-    "ct-crane-igr",
-    "ct-crane-quantec"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "Un seul CTV de 15 mm, sans réduction de champ (ESTRO-EANO). Les protocoles NRG utilisent deux CTV : CTV_4600 sur l'hypersignal T2-FLAIR, CTV_6000 sur la cavité et la prise de contraste (Kruser 2019)",
     "Hippocampes : D40 % ≤ 7,3 Gy en EQD2 si possible sans dégrader le PTV (Gondi 2013)",

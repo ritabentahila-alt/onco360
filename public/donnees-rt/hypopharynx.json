@@ -69,9 +69,7 @@
    "systemique": "Voir Traitement systémique",
    "simulation_id": "sim-orl-curie",
    "volumes_id": "vol-orl-curie-en-place",
-   "contraintes_ids": [
-    "ct-orl-curie"
-   ],
+   "contraintes_ids": [],
    "couverture": "PTV : D95 % ≥ 95 % ; CTV : D98 % ≥ 98 % ; PTV70 : D2 % ≤ 107 %",
    "points_attention": [
     "TPF supérieur à PF en induction pour la réponse (80 contre 59 %) et la préservation laryngée (GORTEC 2000-01)"
@@ -129,9 +127,7 @@
    "systemique": "Voir Traitement systémique",
    "simulation_id": "sim-orl-curie",
    "volumes_id": "vol-orl-curie-en-place",
-   "contraintes_ids": [
-    "ct-orl-curie"
-   ],
+   "contraintes_ids": [],
    "couverture": "PTV : D95 % ≥ 95 % ; CTV : D98 % ≥ 98 % ; PTV70 : D2 % ≤ 107 %",
    "points_attention": [
     "TPF supérieur à PF en induction pour la réponse (80 contre 59 %) et la préservation laryngée (GORTEC 2000-01)"
@@ -188,10 +184,7 @@
    "systemique": "Voir Traitement systémique",
    "simulation_id": "sim-orl-curie",
    "volumes_id": "vol-orl-igr",
-   "contraintes_ids": [
-    "ct-orl-curie",
-    "ct-orl-igr"
-   ],
+   "contraintes_ids": [],
    "couverture": "Tableur du service : D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
    "points_attention": [
     "TPF supérieur à PF en induction pour la réponse (80 contre 59 %) et la préservation laryngée (GORTEC 2000-01)"
@@ -247,9 +240,7 @@
    "systemique": "Voir Traitement systémique",
    "simulation_id": "sim-orl-igr",
    "volumes_id": "vol-orl-igr",
-   "contraintes_ids": [
-    "ct-orl-igr"
-   ],
+   "contraintes_ids": [],
    "couverture": "PTV70 : D95 % ≥ 66,5 Gy, D5 % ≤ 77 Gy ; PTV60 : D95 % ≥ 57 Gy ; PTV54 : D95 % ≥ 51,3 Gy",
    "points_attention": [
     "TPF supérieur à PF en induction pour la réponse (80 contre 59 %) et la préservation laryngée (GORTEC 2000-01)"
@@ -308,9 +299,7 @@
    "systemique": "Voir Traitement systémique",
    "simulation_id": "sim-orl-curie",
    "volumes_id": "vol-orl-curie-postop",
-   "contraintes_ids": [
-    "ct-orl-curie"
-   ],
+   "contraintes_ids": [],
    "couverture": "PTV : D95 % ≥ 95 % ; CTV : D98 % ≥ 98 % ; PTV66 ∪ PTV59,4 : D2 % ≤ 107 %",
    "date_verif": "2026-10-24",
    "ind": [
@@ -357,10 +346,7 @@
    "systemique": "Voir Traitement systémique",
    "simulation_id": "sim-orl-curie",
    "volumes_id": "vol-hyp-postop-service",
-   "contraintes_ids": [
-    "ct-orl-curie",
-    "ct-orl-igr"
-   ],
+   "contraintes_ids": [],
    "couverture": "Tableur du service : D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
    "date_verif": "2026-10-24",
    "ind": [
@@ -406,10 +392,7 @@
    "systemique": "Aucune",
    "simulation_id": "sim-orl-curie",
    "volumes_id": "vol-hyp-postop-service",
-   "contraintes_ids": [
-    "ct-orl-curie",
-    "ct-orl-igr"
-   ],
+   "contraintes_ids": [],
    "couverture": "Tableur du service : D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
    "date_verif": "2026-10-24",
    "ind": [

@@ -41,10 +41,7 @@
    "systemique": "Aucune",
    "simulation_id": "sim-crane",
    "volumes_id": "vol-neu",
-   "contraintes_ids": [
-    "ct-crane-igr",
-    "ct-crane-quantec"
-   ],
+   "contraintes_ids": [],
    "date_verif": "2026-10-24",
    "ind": [
     "SNC",
@@ -88,10 +85,7 @@
    "systemique": "Aucune",
    "simulation_id": "sim-crane",
    "volumes_id": "vol-neu-service",
-   "contraintes_ids": [
-    "ct-crane-igr",
-    "ct-crane-quantec"
-   ],
+   "contraintes_ids": [],
    "date_verif": "2026-10-24",
    "ind": [
     "SNC",
@@ -125,10 +119,7 @@
    "systemique": "Aucune",
    "simulation_id": "sim-crane-srs",
    "volumes_id": "vol-crane-srs",
-   "contraintes_ids": [
-    "ct-srs-igr-1fx",
-    "ct-srs-hytec"
-   ],
+   "contraintes_ids": [],
    "couverture": "Dose prescrite en périphérie du résidu",
    "points_attention": [
     "Radiochirurgie : alternative pour un résidu limité, contrôle local 87 % à 10 ans (Hung 2020)"

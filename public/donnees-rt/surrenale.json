@@ -44,9 +44,7 @@
    "systemique": "Aucune",
    "simulation_id": "sim-surrenale",
    "volumes_id": "vol-surrenale",
-   "contraintes_ids": [
-    "ct-surrenale-igr-5fx"
-   ],
+   "contraintes_ids": [],
    "couverture": "GTV/ITV : rapporter D95 % et Dmoy. PTV : D99 % ≈ 90 % de la dose prescrite, D90 % ≈ dose prescrite ; rapporter D50 %, Dmoy, D2 %, D98 %",
    "points_attention": [
     "Méta-régression : BED10 de 60, 80 et 100 Gy → contrôle local à 1 an de 70,5, 84,8 et 92,9 % ; toxicité de grade ≥ 3 : 1,8 % ; insuffisance surrénalienne de grade 2 : 0,5 % (Chen 2020)",
@@ -88,9 +86,7 @@
    "systemique": "Aucune",
    "simulation_id": "sim-surrenale",
    "volumes_id": "vol-surrenale",
-   "contraintes_ids": [
-    "ct-sbrt-abdo-5fx"
-   ],
+   "contraintes_ids": [],
    "couverture": "D95 % du PTV = dose prescrite",
    "points_attention": [
     "Méta-régression : BED10 de 60, 80 et 100 Gy → contrôle local à 1 an de 70,5, 84,8 et 92,9 % ; toxicité de grade ≥ 3 : 1,8 % ; insuffisance surrénalienne de grade 2 : 0,5 % (Chen 2020)",

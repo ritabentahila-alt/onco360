@@ -58,9 +58,7 @@
    "systemique": "Voir Traitement systémique",
    "simulation_id": "sim-panc",
    "volumes_id": "vol-panc-crt",
-   "contraintes_ids": [
-    "ct-abdo-acrop-crt"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "54 Gy en 30 fractions de 1,8 Gy, 5 par semaine"
    ],
@@ -98,9 +96,7 @@
    "systemique": "Voir Traitement systémique",
    "simulation_id": "sim-panc",
    "volumes_id": "vol-panc-sbrt",
-   "contraintes_ids": [
-    "ct-sbrt-abdo-5fx"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "Limite (borderline) : SBRT après mFOLFIRINOX moins bonne que mFOLFIRINOX seul dans A021501 (phase 2)"
    ],
@@ -136,9 +132,7 @@
    "systemique": "Voir Traitement systémique",
    "simulation_id": "sim-panc",
    "volumes_id": "vol-panc-sbrt",
-   "contraintes_ids": [
-    "ct-sbrt-abdo-5fx"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "Prudence si chirurgie après SMART, surtout avec résection vasculaire (2 décès postopératoires possiblement liés)"
    ],
@@ -176,9 +170,7 @@
    "systemique": "Voir Traitement systémique",
    "simulation_id": "sim-panc",
    "volumes_id": "vol-panc-crt",
-   "contraintes_ids": [
-    "ct-abdo-acrop-crt"
-   ],
+   "contraintes_ids": [],
    "date_verif": "2026-10-23",
    "ind": [
     "Digestif",
@@ -212,9 +204,7 @@
    "systemique": "Voir Traitement systémique",
    "simulation_id": "sim-panc",
    "volumes_id": "vol-panc-adj",
-   "contraintes_ids": [
-    "ct-abdo-acrop-crt"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "RTOG 0848 : pas de gain de survie globale ; gain de survie chez les N0 seulement"
    ],

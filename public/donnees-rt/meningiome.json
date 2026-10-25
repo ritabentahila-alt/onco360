@@ -58,10 +58,7 @@
    "systemique": "Aucune",
    "simulation_id": "sim-crane",
    "volumes_id": "vol-men-g1",
-   "contraintes_ids": [
-    "ct-crane-igr",
-    "ct-crane-quantec"
-   ],
+   "contraintes_ids": [],
    "date_verif": "2026-10-24",
    "ind": [
     "SNC",
@@ -96,10 +93,7 @@
    "systemique": "Aucune",
    "simulation_id": "sim-crane",
    "volumes_id": "vol-men-g1",
-   "contraintes_ids": [
-    "ct-crane-igr",
-    "ct-crane-quantec"
-   ],
+   "contraintes_ids": [],
    "date_verif": "2026-10-24",
    "ind": [
     "SNC",
@@ -134,10 +128,7 @@
    "systemique": "Aucune",
    "simulation_id": "sim-crane-srs",
    "volumes_id": "vol-crane-srs",
-   "contraintes_ids": [
-    "ct-srs-igr-1fx",
-    "ct-srs-hytec"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "Radiochirurgie recommandée pour le grade 1 (niveau II) ; contrôle local à 10 ans de 71 à 100 % (ISRS)"
    ],
@@ -174,10 +165,7 @@
    "systemique": "Aucune",
    "simulation_id": "sim-crane",
    "volumes_id": "vol-men-int",
-   "contraintes_ids": [
-    "ct-crane-igr",
-    "ct-crane-quantec"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "Grade 2 après exérèse complète : RT ou surveillance comparées dans ROAM/EORTC-1308 et NRG BN003"
    ],
@@ -213,10 +201,7 @@
    "systemique": "Aucune",
    "simulation_id": "sim-crane",
    "volumes_id": "vol-men-int",
-   "contraintes_ids": [
-    "ct-crane-igr",
-    "ct-crane-quantec"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "Grade 2 après exérèse complète : RT ou surveillance comparées dans ROAM/EORTC-1308 et NRG BN003"
    ],
@@ -262,10 +247,7 @@
    "systemique": "Aucune",
    "simulation_id": "sim-crane",
    "volumes_id": "vol-men-hr",
-   "contraintes_ids": [
-    "ct-crane-igr",
-    "ct-crane-quantec"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "92,9 % des progressions dans le PTV 54 Gy ; la queue durale n'est pas incluse spécifiquement (RTOG 0539)",
     "1 décès par nécrose à 1 an sur 53 patients ; toxicité G3+ 15,1 % à long terme (RTOG 0539)"
@@ -309,10 +291,7 @@
    "systemique": "Aucune",
    "simulation_id": "sim-crane",
    "volumes_id": "vol-men-service-684",
-   "contraintes_ids": [
-    "ct-crane-igr",
-    "ct-crane-quantec"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "Dose au-delà de 60 Gy non évaluée par RTOG 0539 ; tableur établi pour une protonthérapie"
    ],

@@ -25,7 +25,7 @@ const absents = COMMUNS.filter(f => !J[f]);
 cas("fichiers communs présents", absents.length === 0, liste(absents));
 if (absents.length || illisibles.length) { console.log("\n" + ok + " réussi(s), " + ko + " échec(s)"); process.exit(1); }
 
-const IDX = J["index.json"], OAR = J["oar.json"].oar, JEUX = J["contraintes.json"].jeux, ESS = J["essais.json"].essais;
+const IDX = J["index.json"], OAR = J["oar.json"].oar, PAIRES = J["oar.json"].paires || [], JEUX = J["contraintes.json"].essais, BASE = J["contraintes.json"].base, ESS = J["essais.json"].essais;
 const VERSION = IDX.version;
 cas("version au format AAAA-MM-JJ", /^\d{4}-\d{2}-\d{2}$/.test(VERSION), VERSION);
 const sansVersion = fichiers.filter(f => J[f].version !== VERSION);
@@ -36,6 +36,19 @@ const doublons = a => a.filter((x, i) => a.indexOf(x) !== i);
 const oarIds = new Set(OAR.map(o => o.id)), jeuIds = new Set(JEUX.map(j => j.id)), essIds = new Set(ESS.map(e => e.id));
 cas("OAR : identifiants uniques (" + OAR.length + ")", doublons(OAR.map(o => o.id)).length === 0, liste(doublons(OAR.map(o => o.id))));
 cas("OAR : nom présent", OAR.every(o => o.id && o.nom));
+// 25/10/2026 : un seul nom TG-263, une seule définition, sans source entre parenthèses ni variante
+cas("OAR : un nom TG-263 chacun, sans variante", OAR.every(o => o.nom_tg263 && !/[;(]| ou /.test(o.nom_tg263)), liste(OAR.filter(o => !o.nom_tg263 || /[;(]| ou /.test(o.nom_tg263)).map(o => o.id)));
+cas("OAR : une définition chacun, sans source ni variante", OAR.every(o => o.definition && !/\((Curie|RTOG|Gustave|IGR|service|EMBRACE|fiche)/i.test(o.definition) && !/Variante|Référence RTOG|Comme l[ea] (droit|gauche)/.test(o.definition)),
+  liste(OAR.filter(o => !o.definition || /\((Curie|RTOG|Gustave|IGR|service|EMBRACE|fiche)/i.test(o.definition) || /Variante|Référence RTOG|Comme l[ea] (droit|gauche)/.test(o.definition)).map(o => o.id)));
+cas("OAR : plus de colonne source", OAR.every(o => !("source" in o)));
+cas("OAR : paires de deux organes connus", PAIRES.every(p => p.membres.length === 2 && p.membres.every(m => OAR.some(o => o.id === m && o.paire === p.id))));
+// Table unique des contraintes : une ligne par OAR, régime, nombre de séances et localisation
+const CLES = new Set(OAR.map(o => o.id).concat(PAIRES.map(p => p.id), ["cible-ctv", "cible-ptv"]));
+cas("base : identifiants uniques (" + BASE.length + ")", doublons(BASE.map(l => l.id)).length === 0, liste(doublons(BASE.map(l => l.id))));
+cas("base : chaque ligne renvoie à un OAR ou une paire connus", BASE.every(l => CLES.has(l.oar_id)), liste(BASE.filter(l => !CLES.has(l.oar_id)).map(l => l.id + ":" + l.oar_id)));
+cas("base : régime normo, hypo ou stereo", BASE.every(l => ["normo", "hypo", "stereo"].includes(l.regime)));
+cas("base : séances entières, localisations connues", BASE.every(l => (l.fx === undefined || Number.isInteger(l.fx)) && (l.loc || []).every(x => IDX.localisations.some(y => y.id === x))));
+cas("base : chaque ligne a un indicateur, une valeur et sa source", BASE.every(l => l.indicateur && (l.ideal || l.limitant) && l.source), liste(BASE.filter(l => !l.indicateur || !(l.ideal || l.limitant) || !l.source).map(l => l.id)));
 cas("jeux de contraintes : identifiants uniques (" + JEUX.length + ")", doublons(JEUX.map(j => j.id)).length === 0, liste(doublons(JEUX.map(j => j.id))));
 cas("jeux de contraintes : vérifiés (référence) ou du service", JEUX.every(j => ["verifie", "service"].includes(j.verification)), liste(JEUX.filter(j => !["verifie", "service"].includes(j.verification)).map(j => j.id)));
 cas("jeux de contraintes : titre, source et au moins une ligne", JEUX.every(j => j.titre && j.source && Array.isArray(j.lignes) && j.lignes.length));
@@ -160,6 +173,20 @@ const horsLoc = Object.entries(corr).filter(([, v]) => !locIds.has(v)).map(([k, 
 cas("diag-localisation : chaque libellé existe dans DIAG (" + Object.keys(corr).length + ")", horsDiag.length === 0, liste(horsDiag));
 cas("diag-localisation : chaque localisation existe", horsLoc.length === 0, liste(horsLoc));
 cas("diag-localisation : pas de lymphome", !Object.keys(corr).some(k => /lymphom/i.test(k)));
+
+// 4 bis. Chaque organe contouré a sa contrainte (demande du 25/10/2026) : base du régime du schéma, essai, ou valeur du normofractionné à convertir
+const { contraintesSchema } = await import("../../public/js/moteur/rtref.js");
+const sansCt = [];
+let nCt = 0;
+for (const l of IDX.localisations) {
+  const F = J[l.id + ".json"]; if (!F) continue;
+  for (const s of F.schemas) {
+    if (/^curie_/.test(s.type)) continue;
+    const v = (F.volumes || []).find(x => x.id === s.volumes_id) || {};
+    for (const g of contraintesSchema({ schema: s, loc: l.id, oarIds: v.oar_ids || [], oar: OAR, base: BASE, essais: JEUX })) { nCt++; if (!g.lignes.length) sansCt.push(s.id + ":" + g.cle); }
+  }
+}
+cas("chaque organe contouré a sa contrainte dans chaque schéma (" + nCt + ")", nCt > 2500 && sansCt.length === 0, liste(sansCt, 12));
 
 // 5 bis. Protocoles de chimiothérapie correspondants : chaque nom est un traitement du référentiel, chaque identifiant existe dans la bibliothèque de départ (jeu fictif)
 const PC = (J["protocoles-chimio.json"] || {}).correspondances || {};

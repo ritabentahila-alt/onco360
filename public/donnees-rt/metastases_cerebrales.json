@@ -70,10 +70,7 @@
    "systemique": "Selon le primitif",
    "simulation_id": "sim-crane-srs",
    "volumes_id": "vol-crane-srs",
-   "contraintes_ids": [
-    "ct-srs-curie-1fx",
-    "ct-srs-hytec"
-   ],
+   "contraintes_ids": [],
    "couverture": "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 % (Curie)",
    "points_attention": [
     "Les contraintes des OAR priment sur le choix de la dose et du fractionnement (Curie)",
@@ -135,10 +132,7 @@
    "systemique": "Selon le primitif",
    "simulation_id": "sim-crane-srs",
    "volumes_id": "vol-crane-srs",
-   "contraintes_ids": [
-    "ct-srs-curie-1fx",
-    "ct-srs-hytec"
-   ],
+   "contraintes_ids": [],
    "couverture": "Dose prescrite en périphérie de la lésion",
    "points_attention": [
     "Les contraintes des OAR priment sur le choix de la dose et du fractionnement (Curie)",
@@ -191,10 +185,7 @@
    "systemique": "Selon le primitif",
    "simulation_id": "sim-crane-srs",
    "volumes_id": "vol-crane-srs",
-   "contraintes_ids": [
-    "ct-srs-curie-1fx",
-    "ct-srs-hytec"
-   ],
+   "contraintes_ids": [],
    "couverture": "Dose prescrite en périphérie de la lésion",
    "points_attention": [
     "Les contraintes des OAR priment sur le choix de la dose et du fractionnement (Curie)",
@@ -241,10 +232,7 @@
    "systemique": "Selon le primitif",
    "simulation_id": "sim-crane-srs",
    "volumes_id": "vol-crane-srs",
-   "contraintes_ids": [
-    "ct-srs-curie-3fx",
-    "ct-srs-hytec"
-   ],
+   "contraintes_ids": [],
    "couverture": "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 % (Curie)",
    "points_attention": [
     "Les contraintes des OAR priment sur le choix de la dose et du fractionnement (Curie)",
@@ -290,10 +278,7 @@
    "systemique": "Selon le primitif",
    "simulation_id": "sim-crane-srs",
    "volumes_id": "vol-crane-srs",
-   "contraintes_ids": [
-    "ct-srs-curie-3fx",
-    "ct-srs-hytec"
-   ],
+   "contraintes_ids": [],
    "couverture": "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 % (Curie)",
    "points_attention": [
     "Les contraintes des OAR priment sur le choix de la dose et du fractionnement (Curie)",
@@ -338,10 +323,7 @@
    "systemique": "Selon le primitif",
    "simulation_id": "sim-crane-srs",
    "volumes_id": "vol-crane-srs",
-   "contraintes_ids": [
-    "ct-srs-curie-5fx",
-    "ct-srs-hytec"
-   ],
+   "contraintes_ids": [],
    "couverture": "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 % (Curie)",
    "points_attention": [
     "Les contraintes des OAR priment sur le choix de la dose et du fractionnement (Curie)",
@@ -387,10 +369,7 @@
    "systemique": "Selon le primitif",
    "simulation_id": "sim-crane-srs",
    "volumes_id": "vol-crane-srs",
-   "contraintes_ids": [
-    "ct-srs-curie-5fx",
-    "ct-srs-hytec"
-   ],
+   "contraintes_ids": [],
    "couverture": "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 % (Curie)",
    "points_attention": [
     "Les contraintes des OAR priment sur le choix de la dose et du fractionnement (Curie)",
@@ -436,10 +415,7 @@
    "systemique": "Selon le primitif",
    "simulation_id": "sim-crane-srs",
    "volumes_id": "vol-crane-srs",
-   "contraintes_ids": [
-    "ct-srs-curie-3fx",
-    "ct-srs-hytec"
-   ],
+   "contraintes_ids": [],
    "couverture": "PTV couvert par l'isodose 70 %",
    "points_attention": [
     "Les contraintes des OAR priment sur le choix de la dose et du fractionnement (Curie)",
@@ -488,10 +464,7 @@
    "systemique": "Selon le primitif",
    "simulation_id": "sim-crane-srs",
    "volumes_id": "vol-meta-cavite",
-   "contraintes_ids": [
-    "ct-srs-curie-3fx",
-    "ct-srs-hytec"
-   ],
+   "contraintes_ids": [],
    "couverture": "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 % (Curie)",
    "points_attention": [
     "Stéréotaxie de la cavité : 72 vs 43 % sans récidive locale à 12 mois par rapport à la surveillance (MD Anderson) ; cognition mieux préservée qu'avec l'encéphale in toto (N107C)",
@@ -531,10 +504,7 @@
    "systemique": "Selon le primitif",
    "simulation_id": "sim-crane-srs",
    "volumes_id": "vol-meta-cavite",
-   "contraintes_ids": [
-    "ct-srs-curie-3fx",
-    "ct-srs-hytec"
-   ],
+   "contraintes_ids": [],
    "couverture": "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 % (Curie)",
    "points_attention": [
     "Stéréotaxie de la cavité : 72 vs 43 % sans récidive locale à 12 mois par rapport à la surveillance (MD Anderson) ; cognition mieux préservée qu'avec l'encéphale in toto (N107C)",
@@ -575,10 +545,7 @@
    "systemique": "Selon le primitif",
    "simulation_id": "sim-crane-srs",
    "volumes_id": "vol-meta-cavite",
-   "contraintes_ids": [
-    "ct-srs-curie-5fx",
-    "ct-srs-hytec"
-   ],
+   "contraintes_ids": [],
    "couverture": "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 % (Curie)",
    "points_attention": [
     "Stéréotaxie de la cavité : 72 vs 43 % sans récidive locale à 12 mois par rapport à la surveillance (MD Anderson) ; cognition mieux préservée qu'avec l'encéphale in toto (N107C)",
@@ -618,10 +585,7 @@
    "systemique": "Selon le primitif",
    "simulation_id": "sim-crane-srs",
    "volumes_id": "vol-meta-cavite",
-   "contraintes_ids": [
-    "ct-srs-curie-5fx",
-    "ct-srs-hytec"
-   ],
+   "contraintes_ids": [],
    "couverture": "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 % (Curie)",
    "points_attention": [
     "Stéréotaxie de la cavité : 72 vs 43 % sans récidive locale à 12 mois par rapport à la surveillance (MD Anderson) ; cognition mieux préservée qu'avec l'encéphale in toto (N107C)",
@@ -661,10 +625,7 @@
    "systemique": "Selon le primitif",
    "simulation_id": "sim-crane-srs",
    "volumes_id": "vol-meta-cavite",
-   "contraintes_ids": [
-    "ct-srs-curie-3fx",
-    "ct-srs-hytec"
-   ],
+   "contraintes_ids": [],
    "couverture": "PTV couvert par l'isodose 70 %",
    "points_attention": [
     "Stéréotaxie de la cavité : 72 vs 43 % sans récidive locale à 12 mois par rapport à la surveillance (MD Anderson) ; cognition mieux préservée qu'avec l'encéphale in toto (N107C)",
@@ -829,10 +790,7 @@
    "systemique": "Selon le primitif",
    "simulation_id": "sim-crane-srs",
    "volumes_id": "vol-crane-srs",
-   "contraintes_ids": [
-    "ct-srs-curie-3fx",
-    "ct-srs-hytec"
-   ],
+   "contraintes_ids": [],
    "couverture": "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 % (Curie)",
    "points_attention": [
     "Marge de 3 mm au lieu de 1 mm : pas de meilleur contrôle, plus de radionécroses (Kirkpatrick 2015)",
@@ -872,10 +830,7 @@
    "systemique": "Selon le primitif",
    "simulation_id": "sim-crane-srs",
    "volumes_id": "vol-crane-srs",
-   "contraintes_ids": [
-    "ct-srs-curie-3fx",
-    "ct-srs-hytec"
-   ],
+   "contraintes_ids": [],
    "couverture": "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 % (Curie)",
    "points_attention": [
     "Marge de 3 mm au lieu de 1 mm : pas de meilleur contrôle, plus de radionécroses (Kirkpatrick 2015)",
@@ -914,10 +869,7 @@
    "systemique": "Selon le primitif",
    "simulation_id": "sim-crane-srs",
    "volumes_id": "vol-crane-srs",
-   "contraintes_ids": [
-    "ct-srs-curie-5fx",
-    "ct-srs-hytec"
-   ],
+   "contraintes_ids": [],
    "couverture": "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 % (Curie)",
    "points_attention": [
     "Marge de 3 mm au lieu de 1 mm : pas de meilleur contrôle, plus de radionécroses (Kirkpatrick 2015)",
@@ -956,10 +908,7 @@
    "systemique": "Selon le primitif",
    "simulation_id": "sim-crane-srs",
    "volumes_id": "vol-crane-srs",
-   "contraintes_ids": [
-    "ct-srs-curie-5fx",
-    "ct-srs-hytec"
-   ],
+   "contraintes_ids": [],
    "couverture": "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 % (Curie)",
    "points_attention": [
     "Marge de 3 mm au lieu de 1 mm : pas de meilleur contrôle, plus de radionécroses (Kirkpatrick 2015)",

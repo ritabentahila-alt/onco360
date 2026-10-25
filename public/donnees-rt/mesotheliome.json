@@ -66,9 +66,7 @@
    "systemique": "Chimiothérapie avant la RT",
    "simulation_id": "sim-meso",
    "volumes_id": "vol-meso-hemi",
-   "contraintes_ids": [
-    "ct-meso-igr-postop"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "Toxicité non négligeable : 9 pneumopathies G2+, dont 1 G5 (Trovo). Respecter strictement les contraintes du poumon restant"
    ],
@@ -114,9 +112,7 @@
    "systemique": "Aucune avant la chirurgie",
    "simulation_id": "sim-meso",
    "volumes_id": "vol-meso-hemi",
-   "contraintes_ids": [
-    "ct-meso-igr-preop-5x5"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "Seulement si la pneumonectomie extrapleurale est programmée dans les 7 jours : jamais en RT seule"
    ],

@@ -44,9 +44,7 @@
    "systemique": "Aucune",
    "simulation_id": "sim-srp",
    "volumes_id": "vol-srp",
-   "contraintes_ids": [
-    "ct-sarcome-rp-igr"
-   ],
+   "contraintes_ids": [],
    "couverture": "Gustave Roussy : PTV D95 % ≈ 95 % de la dose prescrite ; rapporter D50 %, Dmoy, D2 %, D98 % du PTV et D95 %, Dmoy du GTV",
    "points_attention": [
     "STRASS : survie sans récidive abdominale médiane 4,5 ans avec RT contre 5,0 ans sans (HR 1,01) ; lymphopénie de grade 3–4 : 77 % ; événements graves 24 % contre 10 %",

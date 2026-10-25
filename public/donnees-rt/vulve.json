@@ -68,9 +68,7 @@
    "systemique": "Cisplatine 40 mg/m² hebdomadaire possible",
    "simulation_id": "sim-vulve",
    "volumes_id": "vol-vulve",
-   "contraintes_ids": [
-    "ct-gyn-curie-rte"
-   ],
+   "contraintes_ids": [],
    "couverture": "PTV45 : D95 > 95 %, D2 < 107 % ; CTV_T : D98 > 95 % ; PTV_N : D98 > 90 %, D2 < 107 % ; CTV_N : D98 > 98 %",
    "date_verif": "2026-10-23",
    "ind": [
@@ -122,9 +120,7 @@
    "systemique": "Cisplatine 40 mg/m² hebdomadaire",
    "simulation_id": "sim-vulve",
    "volumes_id": "vol-vulve",
-   "contraintes_ids": [
-    "ct-gyn-curie-rte"
-   ],
+   "contraintes_ids": [],
    "couverture": "PTV_Tboost : D95 > 95 %, D2 < 107 %",
    "date_verif": "2026-10-23",
    "ind": [

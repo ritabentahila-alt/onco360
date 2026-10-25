@@ -49,10 +49,7 @@
    "systemique": "Aucune",
    "simulation_id": "sim-crane",
    "volumes_id": "vol-hyp",
-   "contraintes_ids": [
-    "ct-crane-igr",
-    "ct-crane-quantec"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "Stéréotaxie hypofractionnée : dose médiane 21 Gy en 3 à 5 fractions, contrôle à 5 ans 97 %, recul encore court (ISRS 2020)"
    ],
@@ -89,10 +86,7 @@
    "systemique": "Aucune",
    "simulation_id": "sim-crane-srs",
    "volumes_id": "vol-hyp",
-   "contraintes_ids": [
-    "ct-srs-igr-1fx",
-    "ct-srs-hytec"
-   ],
+   "contraintes_ids": [],
    "couverture": "Dose prescrite en périphérie de l'adénome",
    "points_attention": [
     "Voies optiques en 1 fraction : Dmax 10 Gy recommandé, 12 Gy pour un risque < 1 % (HyTEC)",
@@ -131,10 +125,7 @@
    "systemique": "Traitement médical antisécrétoire selon l'endocrinologue",
    "simulation_id": "sim-crane",
    "volumes_id": "vol-hyp",
-   "contraintes_ids": [
-    "ct-crane-igr",
-    "ct-crane-quantec"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "Radiochirurgie des adénomes sécrétants : contrôle tumoral 92–97 %, rémission endocrinienne 28–48 % (ISRS 2021)"
    ],

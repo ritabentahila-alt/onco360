@@ -60,10 +60,7 @@
    "systemique": "5FU + mitomycine, voir « Traitement systémique associé »",
    "simulation_id": "sim-anal",
    "volumes_id": "vol-anal",
-   "contraintes_ids": [
-    "ct-service-anal",
-    "ct-quantec-grele"
-   ],
+   "contraintes_ids": [],
    "date_verif": "2026-10-23",
    "ind": [
     "Digestif",
@@ -108,10 +105,7 @@
    "systemique": "5FU + mitomycine",
    "simulation_id": "sim-anal",
    "volumes_id": "vol-anal",
-   "contraintes_ids": [
-    "ct-service-anal",
-    "ct-quantec-grele"
-   ],
+   "contraintes_ids": [],
    "date_verif": "2026-10-23",
    "ind": [
     "Digestif",
@@ -145,10 +139,7 @@
    "systemique": "5FU + mitomycine 12 mg/m²",
    "simulation_id": "sim-anal",
    "volumes_id": "vol-anal-agitg",
-   "contraintes_ids": [
-    "ct-service-anal",
-    "ct-quantec-grele"
-   ],
+   "contraintes_ids": [],
    "date_verif": "2026-10-23",
    "ind": [
     "Digestif",
@@ -191,10 +182,7 @@
    "systemique": "5FU + mitomycine",
    "simulation_id": "sim-anal",
    "volumes_id": "vol-anal-agitg",
-   "contraintes_ids": [
-    "ct-service-anal",
-    "ct-quantec-grele"
-   ],
+   "contraintes_ids": [],
    "date_verif": "2026-10-23",
    "ind": [
     "Digestif",
@@ -236,10 +224,7 @@
    "systemique": "5FU + mitomycine J1 et J29",
    "simulation_id": "sim-anal",
    "volumes_id": "vol-anal-agitg",
-   "contraintes_ids": [
-    "ct-service-anal",
-    "ct-quantec-grele"
-   ],
+   "contraintes_ids": [],
    "couverture": "Isodose de prescription sur au moins 90 % du PTV tumeur, 85 % du PTV électif (RTOG 0529)",
    "date_verif": "2026-10-23",
    "ind": [
@@ -298,10 +283,7 @@
    "systemique": "5FU + mitomycine J1 et J29",
    "simulation_id": "sim-anal",
    "volumes_id": "vol-anal-agitg",
-   "contraintes_ids": [
-    "ct-service-anal",
-    "ct-quantec-grele"
-   ],
+   "contraintes_ids": [],
    "couverture": "Isodose de prescription sur au moins 90 % des PTV tumeur et adénopathies, 85 % du PTV électif (RTOG 0529)",
    "date_verif": "2026-10-23",
    "ind": [

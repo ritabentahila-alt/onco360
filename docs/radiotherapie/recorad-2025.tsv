@@ -1,0 +1,676 @@
+# RecoRad 2025 (Noël et al., Cancer/Radiothérapie 30 (2026) 104833, CC BY). table | organe | colonne | indicateur | idéal (optimal) | limitant (mandatory / sans mention) | note
+# Dmax : D2 % en normofractionné, D0,035 cm³ en stéréotaxie (note a) ; EQD2 = dose équivalente en 2 Gy (note b)
+T1	Encéphale	N	V60Gy		< 33 %	
+T1	Encéphale − PTV	N	V60Gy		≤ 3 cm³	
+T1	Encéphale − PTV	H15	Dmax		< 105 % de la dose prescrite	
+T1	Encéphale − PTV	S1	V12Gy		≤ 5–10 %	
+T1	Encéphale	S3	V20Gy		< 20 cm³	
+T1	Encéphale − PTV	S3	V18Gy		< 26–30 cm³	
+T1	Encéphale − PTV	S3	V21Gy		< 21 cm³	
+T1	Encéphale − PTV	S3	V23Gy		< 5–7 cm³	
+T1	Encéphale	S5	V24Gy		< 20 cm³	
+T1	Encéphale − PTV	S5	V30Gy		< 10 cm³	
+T1	Encéphale − PTV	S5	V28,8Gy		< 3–7 cm³	
+T1	Encéphale − PTV	S5	V25Gy		< 16 cm³	
+T1	Tronc cérébral	N	Dmax	≤ 54 Gy		
+T1	Tronc cérébral	N	Dmax en surface		≤ 60 Gy	
+T1	Tronc cérébral	N	Dmax intérieur		≤ 54 Gy	
+T1	Tronc cérébral	H15	Dmax		≤ dose prescrite	EQD2
+T1	Tronc cérébral	H10	Dmax		≤ dose prescrite	
+T1	Tronc cérébral	S1	Dmax	< 10 Gy	< 15 Gy	
+T1	Tronc cérébral	S3	Dmax	< 18 Gy	< 23,1 Gy	
+T1	Tronc cérébral	S5	Dmax	< 23 Gy	< 31 Gy	
+T1	Cochlée	N	Dmean	≤ 32 Gy	≤ 45 Gy	45 Gy = acceptable
+T1	Cochlée	H15	Dose		ALARA	
+T1	Cochlée	S1	Dmean	< 4 Gy		
+T1	Cochlée	S1	Dmax		< 9 Gy	
+T1	Cochlée	S3	Dmean	< 17,1 Gy		
+T1	Cochlée	S3	Dmax		< 14,4 Gy	
+T1	Cochlée	S5	Dmean	< 25 Gy		
+T1	Cochlée	S5	Dmax		< 22 Gy	
+T1	Œil	N	Dmean	< 35 Gy		
+T1	Œil	N	V30Gy		< 50 %	
+T1	Œil	N	V50Gy		< 30 %	
+T1	Œil	H15	V24,3Gy		< 50 %	EQD2
+T1	Œil	H15	V40,5Gy		< 30 %	EQD2
+T1	Œil	H10	V22,5Gy		< 50 %	EQD2
+T1	Œil	H10	V37,5Gy		< 30 %	EQD2
+T1	Œil	S1	D0,1cm³		< 8 Gy	
+T1	Globe oculaire	N	Dmax		≤ 50 Gy	
+T1	Cornée	N	Dmax		≤ 50 Gy	
+T1	Cornée	S1	Dmax	< 1,5 Gy		
+T1	Rétine / macula	N	Dmax		≤ 45 Gy	
+T1	Rétine / macula	H15	Dmax	< 4 Gy		
+T1	Rétine / macula	H10	Dmax	< 3 Gy		
+T1	Cristallin	N	Dmax	< 6 Gy	≤ 10 Gy	10 Gy = acceptable
+T1	Hippocampes	N	D40%	≤ 7,3 Gy		
+T1	Hippocampes	H15	D40%	≤ 6,4 Gy		EQD2
+T1	Hippocampes	H10	D40%	≤ 6,0 Gy		EQD2
+T1	Hippocampes	H10	D100%		≤ 9 Gy	
+T1	Hippocampes	H10	Dmax		≤ 16 Gy	
+T1	Glande lacrymale	N	Dmax		< 40 Gy	
+T1	Glande lacrymale	N	Dmean	≤ 25 Gy		
+T1	Glande lacrymale	H15	Dose		ALARA	
+T1	Chiasma optique	N	Dmax	≤ 54 Gy		
+T1	Chiasma optique	N	Dmax si chevauchement du PRV		≤ 60 Gy	
+T1	Chiasma optique	H15	Dmax		≤ dose prescrite	EQD2
+T1	Chiasma optique	H10	Dmax		≤ dose prescrite	
+T1	Chiasma optique	S1	Dmax	< 8 Gy	< 10 Gy	
+T1	Chiasma optique	S3	Dmax	< 15 Gy	< 20 Gy	
+T1	Chiasma optique	S5	Dmax	< 22,5 Gy	< 25 Gy	
+T1	Nerf optique	N	Dmax	≤ 54 Gy	≤ 55 Gy	
+T1	Nerf optique	N	Dmax si chevauchement du PRV		≤ 60 Gy	
+T1	Nerf optique	H15	Dmax		≤ 47,3 Gy	EQD2
+T1	Nerf optique	H10	Dmax		≤ 30 Gy	
+T1	Nerf optique	S1	Dmax	< 8 Gy	< 10 Gy	
+T1	Nerf optique	S3	Dmax	< 13,7 Gy	< 20 Gy	
+T1	Nerf optique	S5	Dmax	< 22,5 Gy	< 25 Gy	
+T1	Parotide	N	Dose		ALARA	
+T1	Parotide	H15	Dose		ALARA	
+T1	Parotide	H10	Dose		ALARA	
+T1	Hypophyse	N	Dmax	≤ 50 Gy		
+T1	Hypophyse	N	Dmean	≤ 30–45 Gy		
+T1	Hypophyse	H15	Dmax		≤ dose prescrite	EQD2
+T1	Cuir chevelu	N	Dmax	≤ 25 Gy	≤ 43 Gy	43 Gy = acceptable
+T1	Cuir chevelu	H15	Dmax		< 105 % de la dose prescrite	
+T1	Cuir chevelu	H10	Dmax		≤ dose prescrite	
+T1	Canal médullaire	N	Dmax		≤ 45 Gy	
+T1	Canal médullaire	N	Dmax si chevauchement du PRV		≤ 50 Gy	
+T1	Canal médullaire	H15	Dmax		≤ 38,5 Gy	EQD2
+# T2 ORL : N = normofractionné ; H20 = 55 Gy / 20 fx (ELAN RT)
+T2	Mandibule	N	Dmax	< 65 Gy		ou D5 % < 70 Gy
+T2	Mandibule	N	V70Gy		< 1 cm³	
+T2	Mandibule	N	Dmean	< 60 Gy		
+T2	Mandibule	N	V50Gy		< 32 %	Limiter les volumes de dose élevée et intermédiaire réduit le risque d'ostéoradionécrose ; éviter les points chauds
+T2	Mandibule	H20	Points chauds		à éviter	
+T2	Plexus brachial	N	Dmax		< 60 Gy	sans chevauchement du PTV haut risque
+T2	Plexus brachial	N	Dmax	< 60–66 Gy		
+T2	Plexus brachial	N	V70Gy	< 10 %		si chevauchement du PTV haut risque ; éviter les points chauds
+T2	Plexus brachial	H20	Dmax		< 50 Gy	sans chevauchement du PTV 55 Gy ; éviter les points chauds
+T2	Encéphale	N	D2%	< 60 Gy		
+T2	Encéphale	N	V70Gy		< 1 cm³	éviter les points chauds
+T2	Encéphale	N	D0,03cm³ (cavum)		< 65 Gy (stade précoce) ; < 70 Gy (stade localement avancé)	cancer du cavum
+T2	Tronc cérébral	N	Dmax	≤ 54 Gy		
+T2	Tronc cérébral	N	D0,03cm³		≤ 60 Gy	
+T2	Tronc cérébral	N	D1–10cm³		< 59 Gy	
+T2	Tronc cérébral	H20	D2%	≤ 42 Gy		
+T2	Tronc cérébral	H20	D2% (PRV 5 mm)	< 42–45 Gy	< 50 Gy	
+T2	Artère carotide	N	Dmean	< 35 Gy		larynx précoce ou irradiation cervicale unilatérale
+T2	Artère carotide	N	Dmax		< 35–40 Gy	larynx précoce ou irradiation cervicale unilatérale, si applicable
+T2	Cochlée	N	Dmean	≤ 40–45 Gy	≤ 55 Gy	
+T2	Cochlée	N	V55Gy	< 5 %		
+T2	Cochlée	N	V60Gy		< 5 %	
+T2	Cochlée	N	Dmean (cisplatine)	< 10 Gy		idéalement, si chimiothérapie concomitante par cisplatine
+T2	Œil	N	Dmean	< 35 Gy		
+T2	Œil	N	V50Gy		< 30 %	
+T2	Œil	N	V30Gy		< 50 %	
+T2	Globe oculaire	N	Dmax	≤ 40 Gy	≤ 50–55 Gy	
+T2	Cornée	N	Dmax		< 40 Gy	
+T2	Rétine / macula	N	Dmax		≤ 45 Gy	
+T2	Cristallin	N	Dmax		≤ 6 Gy	
+T2	Œsophage cervical	N	Dmean	≤ 30–35 Gy		œsophage cervical, bouche œsophagienne et muscle cricopharyngien
+T2	Hippocampes	N	V7,2Gy	≤ 40 %		
+T2	Glande lacrymale	N	Dmax		< 40 Gy	
+T2	Glande lacrymale	N	Dmean	≤ 25 Gy	≤ 30 Gy	
+T2	Larynx	N	Dmean	< 30–40 Gy		
+T2	Larynx	N	V50Gy	< 27 %		
+T2	Larynx	H20	Dmean	< 25 Gy		
+T2	Lèvres	N	Dmean	≤ 20 Gy	≤ 30–50 Gy	
+T2	Chiasma optique	N	Dmax	≤ 54 Gy		
+T2	Chiasma optique	N	Dmax (PRV)		≤ 60 Gy	
+T2	Cavité orale	N	Dmean		< 30 Gy	cavité orale non envahie
+T2	Cavité orale	N	V30Gy		< 73 %	
+T2	Cavité orale	N	Dmean (envahie)	< 50 Gy		cavité orale envahie
+T2	Cavité orale	H20	Dmean		< 30 Gy	cavité orale non envahie
+T2	Parotide	N	Dmean (les deux)	≤ 26 Gy		irradiation bilatérale
+T2	Parotide	N	Dmean (au moins une)		≤ 30 Gy	irradiation bilatérale (acceptable)
+T2	Parotide	N	Dmean (controlatérale)	≤ 20 Gy		irradiation bilatérale ; irradiation unilatérale : parotide controlatérale ALARA
+T2	Parotide	H20	Dmean (homolatérale)	≤ 25 Gy		
+T2	Parotide	H20	Dmean (controlatérale)	≤ 20 Gy		
+T2	Canal parotidien intraglandulaire	N	Dmean		< 14 Gy	
+T2	Canal parotidien total	N	Dmean		< 12 Gy	
+T2	Muscles constricteurs du pharynx	N	Dmean	< 45 Gy	< 55 Gy	55 Gy = acceptable
+T2	Muscles constricteurs du pharynx	N	V50–60Gy (constricteurs moyen et supérieur)		< 70 %	
+T2	Hypophyse	N	Dmax	≤ 45 Gy		
+T2	Hypophyse	N	Dmean	≤ 20 Gy		
+T2	Hypophyse	N	Dmax (cavum)		≤ 65 Gy	cancer du cavum
+T2	Canal médullaire	N	Dmax		≤ 45 Gy	
+T2	Canal médullaire	N	Dmax (PRV 5 mm)		≤ 50 Gy	
+T2	Canal médullaire	H20	D2%		≤ 35 Gy	
+T2	Canal médullaire	H20	D2% (PRV 5 mm)	≤ 35–39 Gy	< 41 Gy	
+T2	Glande sous-mandibulaire	N	Dmean	≤ 35 Gy		
+T2	Lobe temporal	N	Dmax (cavum)	< 65 Gy (stade précoce) ; < 70 Gy (stade avancé)		cancer du cavum
+T2	Articulation temporo-mandibulaire	N	Dmax	< 50 Gy	< 70 Gy	
+T2	Thyroïde	N	Dmean		< 40–45 Gy	
+T2	Thyroïde	N	V30Gy		< 73 %	
+T2	Thyroïde	N	V50Gy		< 60 %	
+# T3 poumon : N = 54–66 Gy / 30–33 fx ; H20 = 55 Gy / 20 fx ; H15 = 60 Gy / 15 fx ; BID = 45 Gy / 30 fx (1,5 Gy × 2/j) ; S1 S3 S4 S5 S8
+T3	Plexus brachial	N	Dmax		≤ 60–66 Gy	
+T3	Plexus brachial	H20	Dmax		≤ 55 Gy	
+T3	Plexus brachial	H15	Dmax		< 50 Gy	
+T3	Plexus brachial	BID	Points chauds		à éviter	
+T3	Plexus brachial	S1	Dmax		< 15–16,4 Gy	
+T3	Plexus brachial	S1	V13,6Gy		< 3 cm³	
+T3	Plexus brachial	S1	V14Gy		< 3 cm³	
+T3	Plexus brachial	S3	Dmax		< 24–26 Gy	
+T3	Plexus brachial	S3	V20,4Gy	< 3 cm³		
+T3	Plexus brachial	S3	V22Gy		< 3 cm³	
+T3	Plexus brachial	S4	Dmax		< 27,2–29,6 Gy	
+T3	Plexus brachial	S4	V24,8Gy		< 3 cm³	
+T3	Plexus brachial	S5	Dmax	< 30,5 Gy	< 32,5 Gy	
+T3	Plexus brachial	S5	V27Gy		< 3 cm³	
+T3	Plexus brachial	S8	Dmax	< 35 Gy	< 39,2 Gy	
+T3	Plexus brachial	S8	V32,8Gy		< 3 cm³	
+T3	Paroi thoracique	S1	Dmax	< 30 Gy		
+T3	Paroi thoracique	S3	Dmax		< 36,9–50 Gy	
+T3	Paroi thoracique	S3	V30Gy		< 30 cm³	
+T3	Paroi thoracique	S4	Dmax		< 40–54 Gy	
+T3	Paroi thoracique	S5	Dmax		< 43–57 Gy	
+T3	Paroi thoracique	S5	V60Gy		< 3 cm³	
+T3	Paroi thoracique	S5	V45Gy		< 5 cm³	
+T3	Paroi thoracique	S8	Dmax		< 63 Gy	
+T3	Paroi thoracique	S8	V50Gy		< 5 cm³	
+T3	Œsophage	N	V60Gy		≤ 30 %	
+T3	Œsophage	N	V50Gy		≤ 35 %	
+T3	Œsophage	N	Dmean		≤ 28–34 Gy	
+T3	Œsophage	N	Dmax		< 69 Gy	
+T3	Œsophage	H20	V52Gy		≤ 30 %	
+T3	Œsophage	H20	Dmax		< 57 Gy	
+T3	Œsophage	H15	Dmax		< 50,5 Gy	
+T3	Œsophage	H15	D5cm³		< 48 Gy	
+T3	Œsophage	BID	Dmean		≤ 34 Gy	
+T3	Œsophage	S1	Dmax		< 15,4–24 Gy	
+T3	Œsophage	S1	V11,9Gy		< 5 cm³	
+T3	Œsophage	S1	V20Gy		< 5 cm³	
+T3	Œsophage	S3	Dmax		< 25,2–32,4 Gy	
+T3	Œsophage	S3	V21Gy		< 5 cm³	
+T3	Œsophage	S3	V27,9Gy		< 5 cm³	
+T3	Œsophage	S4	Dmax		< 30–35,6 Gy	
+T3	Œsophage	S4	V30,4Gy		< 5 cm³	
+T3	Œsophage	S5	Dmax		< 32–38 Gy	
+T3	Œsophage	S5	V32,5Gy		< 5 cm³	
+T3	Œsophage	S8	Dmax		< 43,2 Gy	
+T3	Œsophage	S8	V36,8Gy		< 5 cm³	
+T3	Gros vaisseaux	N	Dmax		< 74 Gy	
+T3	Gros vaisseaux	H15	Dmax		< 64 Gy	
+T3	Gros vaisseaux	H15	D10cm³		< 60 Gy	
+T3	Gros vaisseaux	S1	Dmax		< 30–37 Gy	
+T3	Gros vaisseaux	S1	V31Gy		< 10 cm³	
+T3	Gros vaisseaux	S3	Dmax		< 45 Gy	
+T3	Gros vaisseaux	S3	V39Gy		< 10 cm³	
+T3	Gros vaisseaux	S4	Dmax		< 47 Gy	
+T3	Gros vaisseaux	S5	Dmax		< 53 Gy	
+T3	Gros vaisseaux	S5	V47Gy		< 10 cm³	
+T3	Gros vaisseaux	S8	Dmax	< 60 Gy	< 65 Gy	
+T3	Gros vaisseaux	S8	V55,2Gy		< 10 cm³	
+T3	Cœur	N	V30Gy	< 30 %	≤ 40 %	
+T3	Cœur	N	Dmean		≤ 10–20 Gy	
+T3	Cœur	H20	V35Gy		≤ 10–20 %	
+T3	Cœur	H20	Dmean		≤ 10–18 Gy	
+T3	Cœur	H15	Dmax		< 66 Gy	
+T3	Cœur	H15	D10cm³		< 62 Gy	
+T3	Cœur	S1	Dmax		< 22 Gy	
+T3	Cœur	S3	Dmax	< 26 Gy	< 30 Gy	
+T3	Cœur	S3	V24Gy		< 15 cm³	
+T3	Cœur	S4	Dmax		< 34 Gy	
+T3	Cœur	S4	V28Gy		< 15 cm³	
+T3	Cœur	S5	Dmax	< 29 Gy	< 38 Gy	lésion centrale : Dmax < 50 Gy, V32Gy ≤ 15 cm³
+T3	Cœur	S8	Dmax	< 40 Gy	< 46 Gy	lésion centrale : Dmax < 50–60 Gy
+T3	Poumons − PTV	N	V20Gy		≤ 30–35 %	
+T3	Poumons − PTV	N	Dmean	≤ 15 Gy	< 20 Gy	20 Gy = acceptable
+T3	Poumons − PTV	N	V30Gy		≤ 20 %	
+T3	Poumons − PTV	H20	V18Gy		≤ 30–35 %	
+T3	Poumons − PTV	H20	V28Gy		≤ 20 %	
+T3	Poumons − PTV	H20	Dmean		≤ 13–16 Gy	
+T3	Poumons − ITV	H15	Dmean		< 14 Gy	
+T3	Poumons − ITV	H15	V15Gy		< 20 %	
+T3	Poumons − PTV	BID	V20Gy		≤ 35 %	
+T3	Poumons − ITV	S1	V20Gy	< 10 %	< 15 %	
+T3	Poumons − ITV	S1	Dmean		≤ 8 Gy	
+T3	Poumons − ITV	S3	Volume critique 1 500 cm³		< 10,5 Gy	1 500 cm³ de poumon reçoivent moins de 10,5 Gy
+T3	Poumons − ITV	S3	Volume critique 1 000 cm³		< 11,4 Gy	
+T3	Poumons − ITV	S3	V20Gy	< 10 %	< 15 %	
+T3	Poumons − ITV	S3	Dmean		≤ 8 Gy	
+T3	Poumons − ITV	S4	Volume critique 1 500 cm³		< 11,6 Gy	
+T3	Poumons − ITV	S4	Volume critique 1 000 cm³		< 12,4 Gy	
+T3	Poumons − ITV	S4	V20Gy	< 10 %	< 15 %	
+T3	Poumons − ITV	S4	Dmean		≤ 8 Gy	
+T3	Poumons − ITV	S5	Volume critique 1 500 cm³		< 12,5 Gy	
+T3	Poumons − ITV	S5	Volume critique 1 000 cm³		< 13,5 Gy	
+T3	Poumons − ITV	S5	V20Gy	< 10 %	< 15 %	
+T3	Poumons − ITV	S5	Dmean		≤ 8 Gy	
+T3	Poumons − ITV	S8	V20Gy	< 10 %	< 15 %	
+T3	Poumons − ITV	S8	Dmean		≤ 8 Gy	
+T3	Poumon unique (après pneumonectomie)	N	V20Gy		≤ 20 %	
+T3	Arbre bronchique proximal et trachée	H15	Dmax		< 66 Gy	
+T3	Arbre bronchique proximal et trachée	H15	D10cm³		< 62 Gy	
+T3	Arbre bronchique proximal et trachée	S1	Dmax		< 20,2–30 Gy	
+T3	Arbre bronchique proximal et trachée	S1	V27,5Gy		< 4 cm³	
+T3	Arbre bronchique proximal et trachée	S3	Dmax		< 32–43 Gy	
+T3	Arbre bronchique proximal et trachée	S3	V39Gy		< 5 cm³	
+T3	Arbre bronchique proximal et trachée	S4	Dmax	< 34,8 Gy	< 47 Gy	
+T3	Arbre bronchique proximal et trachée	S4	V15,6Gy		< 4 cm³	
+T3	Arbre bronchique proximal et trachée	S4	V33,5Gy		< 4 cm³	
+T3	Arbre bronchique proximal et trachée	S4	V42,4Gy		< 5 cm³	
+T3	Arbre bronchique proximal et trachée	S5	Dmax	< 35 Gy	< 38 Gy	lésion centrale : Dmax < 50 Gy, V33,5Gy < 4 cm³, V45Gy < 4 cm³
+T3	Arbre bronchique proximal et trachée	S5	V18Gy		< 4 cm³	
+T3	Arbre bronchique proximal et trachée	S8	Dmax		< 40 Gy	lésion centrale ou ultracentrale : Dmax < 56–60 Gy ; V50Gy (valeur absente de l'article)
+T3	Peau	S1	Dmax		< 26 Gy	
+T3	Peau	S1	V23Gy		< 10 cm³	
+T3	Peau	S3	Dmax	< 33 Gy		
+T3	Peau	S3	V30Gy	< 10 cm³		
+T3	Peau	S4	Dmax		< 36 Gy	
+T3	Peau	S4	V33,6Gy		< 10 cm³	
+T3	Peau	S5	Dmax	< 39,5 Gy		
+T3	Peau	S5	V36,5Gy	< 10 cm³		
+T3	Peau	S8	Dmax	< 45,6 Gy		
+T3	Peau	S8	V43,2Gy	< 10 cm³		
+T3	Canal médullaire	N	Dmax		≤ 45–50 Gy	
+T3	Canal médullaire	H20	Dmax		≤ 43 Gy	
+T3	Canal médullaire	H15	Dmax		≤ 39,5 Gy	
+T3	Canal médullaire	H15	Dmax (PRV 3 mm)		≤ 42 Gy	
+T3	Canal médullaire	BID	Dmax		≤ 42 Gy	
+T3	Canal médullaire	S1	Dmax	< 12,4 Gy	< 14 Gy	
+T3	Canal médullaire	S3	Dmax		< 20,3–22,5 Gy	
+T3	Canal médullaire	S4	Dmax		< 26 Gy	
+T3	Canal médullaire	S5	Dmax		< 25,3–28 Gy	
+T3	Canal médullaire	S8	Dmax		< 33,6 Gy	
+# T4 sein : N = 50 Gy / 25 fx ; H15 = 40 Gy / 15 fx (START B) ; H5 = 26 Gy / 5 fx (FAST-Forward) ; NS = non précisé
+T4	Plexus brachial	N	Dmax		≤ 54 Gy	
+T4	Plexus brachial	N	Dmax (GTV ganglionnaire)		≤ 60–66 Gy	si GTV ganglionnaire
+T4	Plexus brachial	H15	Dmax (GTV ganglionnaire)		≤ 46,25 Gy	si GTV ganglionnaire
+T4	Sein controlatéral	N	Dmean		< 4 Gy	ALARA
+T4	Sein controlatéral	N	V4Gy		< 10 %	
+T4	Sein controlatéral	N	D5% (sein ou paroi)		≤ 1,86 Gy	
+T4	Sein controlatéral	N	D10% (sein ou paroi + ganglions)		≤ 3 Gy	
+T4	Sein controlatéral	H15	Dmean		< 3 Gy	ALARA
+T4	Sein controlatéral	H15	D5% (sein ou paroi)		≤ 1,44 Gy	
+T4	Sein controlatéral	H15	D10% (sein ou paroi + ganglions)		≤ 3 Gy	
+T4	Œsophage	N	Dmean (sein ou paroi + ganglions)		< 11 Gy	
+T4	Œsophage	N	V20Gy (sein ou paroi + ganglions)		≤ 15 %	
+T4	Œsophage	N	V10Gy (sein ou paroi + ganglions)		≤ 30 %	
+T4	Œsophage	H15	V25Gy		< 20 %	
+T4	Œsophage	H15	V35Gy		< 0,27 cm³	
+T4	Cœur	N	Dmean (sein ou paroi)		< 4 Gy	
+T4	Cœur	N	V20Gy (sein ou paroi)		≤ 5 %	
+T4	Cœur	N	V40Gy (sein ou paroi)		≤ 1 %	
+T4	Cœur	N	Dmean (sein ou paroi + ganglions)		< 5 Gy	
+T4	Cœur	N	V20Gy (sein ou paroi + ganglions)		≤ 10 %	
+T4	Cœur	N	V40Gy (sein ou paroi + ganglions)		≤ 5 %	
+T4	Cœur	N	Dmean (inspiration bloquée)		< 2,5 Gy	
+T4	Cœur	H15	Dmean (sein ou paroi)		< 3,2 Gy	
+T4	Cœur	H15	V17Gy (sein ou paroi)		≤ 5 %	
+T4	Cœur	H15	V35Gy (sein ou paroi)		≤ 1 %	
+T4	Cœur	H15	Dmean (sein ou paroi + ganglions)		< 5 Gy	
+T4	Cœur	H15	V17Gy (sein ou paroi + ganglions)		≤ 10 %	
+T4	Cœur	H15	V35Gy (sein ou paroi + ganglions)		≤ 5 %	
+T4	Cœur	H15	V13Gy (inspiration bloquée)	< 2 %	< 10 %	10 % = acceptable
+T4	Cœur	H15	Dmean (inspiration bloquée)		< 3 Gy	
+T4	Cœur	H5	V7Gy		≤ 5 %	
+T4	Cœur	H5	V1,5Gy		≤ 30 %	
+T4	Artère interventriculaire antérieure	N	Dmax		≤ 20 Gy	
+T4	Artère interventriculaire antérieure	N	Dmean		< 10 Gy	
+T4	Artère interventriculaire antérieure	N	V30Gy		< 2 %	
+T4	Artère interventriculaire antérieure	N	V40Gy		< 1 %	
+T4	Artère interventriculaire antérieure	H15	Dmax		< 17 Gy	
+T4	Ventricule gauche	N	Dmean		< 3–4,5 Gy	
+T4	Ventricule gauche	N	V5Gy		< 17 %	
+T4	Ventricule gauche	N	V23Gy		< 5 %	
+T4	Tête humérale	N	Dose		ALARA	
+T4	Tête humérale	H15	Dose		ALARA	
+T4	Foie	N	Dmean (sein gauche)		≤ 3 Gy	
+T4	Foie	N	Dmean (sein droit)		≤ 4 Gy	
+T4	Foie	H15	Dmean (sein gauche)		≤ 3 Gy	
+T4	Foie	H15	Dmean (sein droit)		≤ 4 Gy	
+T4	Poumon homolatéral	N	V20Gy (sein ou paroi)		≤ 25 %	
+T4	Poumon homolatéral	N	Dmean (sein ou paroi)		≤ 8 Gy	
+T4	Poumon homolatéral	N	V10Gy (sein ou paroi)	≤ 35 %	≤ 40 %	40 % = acceptable
+T4	Poumon homolatéral	N	V5Gy (sein ou paroi)	≤ 50 %	≤ 55 %	55 % = acceptable
+T4	Poumon homolatéral	N	V20Gy (sein ou paroi + ganglions)		≤ 35 %	
+T4	Poumon homolatéral	N	Dmean (sein ou paroi + ganglions)		≤ 18 Gy	
+T4	Poumon homolatéral	N	V10Gy (sein ou paroi + ganglions)		≤ 65 %	
+T4	Poumon homolatéral	N	V5Gy (sein ou paroi + ganglions)		≤ 75 %	
+T4	Poumon homolatéral	H15	V17Gy (sein ou paroi)		≤ 25 %	
+T4	Poumon homolatéral	H15	Dmean (sein ou paroi)		< 10–16 Gy	
+T4	Poumon homolatéral	H15	V20Gy (sein ou paroi)		< 10 %	
+T4	Poumon homolatéral	H15	V8Gy (sein ou paroi)		< 35–40 %	
+T4	Poumon homolatéral	H15	V4Gy (sein ou paroi)		≤ 50 %	
+T4	Poumon homolatéral	H15	V17Gy (sein ou paroi + ganglions)		≤ 35 %	
+T4	Poumon homolatéral	H15	V18Gy (inspiration bloquée)		< 10 %	
+T4	Poumon homolatéral	H15	Dmean (inspiration bloquée)		< 6 Gy	
+T4	Poumon homolatéral	H5	V8Gy (sein ou paroi)		< 15 %	
+T4	Poumon homolatéral	H5	V30% (sein ou paroi + ganglions)		≤ 25 %	tel qu'imprimé dans l'article
+T4	Poumon controlatéral	N	V5Gy (sein ou paroi)	< 10 %	< 15 %	15 % = acceptable
+T4	Poumon controlatéral	N	V5Gy (sein ou paroi + ganglions)		≤ 15 %	
+T4	Poumon controlatéral	H15	V4Gy (sein ou paroi)	< 10 %	< 15 %	15 % = acceptable
+T4	Poumon controlatéral	H15	V4,8Gy (sein ou paroi + ganglions)	< 10 %	< 15 %	15 % = acceptable
+T4	Poumon controlatéral	H15	V2,5Gy (inspiration bloquée)		< 3 %	
+T4	Poumon controlatéral	H15	Dmean (inspiration bloquée)		< 1 Gy	
+T4	Poumons	N	Dmean		≤ 6 Gy	
+T4	Canal médullaire	N	Dmax		≤ 45 Gy	
+T4	Canal médullaire	N	Dmax (PRV)		< 50 Gy	
+T4	Canal médullaire	H15	Dmax	≤ 37,8 Gy	< 42 Gy	
+T4	Thyroïde	N	Dmean		< 21 Gy	
+T4	Thyroïde	N	V30Gy		< 50 %	
+T4	Thyroïde	H15	Dmean		< 21 Gy	
+# T5 œsophage : N = 41,4 à 50,4 Gy, 1,8–2 Gy/fx
+T5	Cœur	N	V40Gy		< 30 %	
+T5	Cœur	N	Dmean		ALARA	
+T5	Artère interventriculaire antérieure	N	V15Gy		< 10 %	
+T5	Reins	N	Dmean		< 15–18 Gy	
+T5	Reins	N	V20Gy		< 32 %	
+T5	Foie	N	Dmean		< 30 Gy	
+T5	Foie	N	V30Gy		< 30 %	
+T5	Poumons − PTV	N	Dmean		< 20 Gy	
+T5	Poumons − PTV	N	V20Gy		< 30 %	
+T5	Pancréas	N	Dmean		< 25 Gy	
+T5	Intestin grêle	N	Dmax		< 50 Gy	
+T5	Canal médullaire	N	Dmax		< 45 Gy	
+T5	Rate	N	Dmean		< 10 Gy	
+# T6 foie (ASTRO) : N = ≥ 20 fx ; H15 = 15 fx ; S3 ; S5
+T6	Foie sain (non cirrhotique)	N	Dmean		< 32 Gy	
+T6	Foie sain (non cirrhotique)	H15	Dmean		< 24 Gy	
+T6	Foie sain (non cirrhotique)	S3	Dmean		< 12–15 Gy	
+T6	Foie sain (non cirrhotique)	S3	D700cm³		< 19 Gy	
+T6	Foie sain (non cirrhotique)	S5	Dmean		< 15–18 Gy	
+T6	Foie sain (non cirrhotique)	S5	D700cm³		< 21 Gy	
+T6	Foie sain (Child-Pugh A)	N	Dmean		< 30 Gy	
+T6	Foie sain (Child-Pugh A)	H15	Dmean		< 20 Gy	
+T6	Foie sain (Child-Pugh A)	S3	Dmean		< 10–12 Gy	
+T6	Foie sain (Child-Pugh A)	S5	Dmean		< 13–15 Gy	
+T6	Foie sain (Child-Pugh A)	S5	D700cm³		< 15 Gy	
+T6	Foie sain (Child-Pugh B7)	N	Dmean		< 24 Gy	
+T6	Foie sain (Child-Pugh B7)	H15	Dmean		< 16 Gy	
+T6	Foie sain (Child-Pugh B7)	S3	Stéréotaxie en 3 fractions		non recommandée	préférer 5 fractions ou un hypofractionnement
+T6	Foie sain (Child-Pugh B7)	S5	Dmean		< 8–10 Gy	
+T6	Foie sain (Child-Pugh B7)	S5	D500cm³		< 10 Gy	
+T6	Voie biliaire principale	S3	D0,03cm³		< 35,7 Gy	
+T6	Voie biliaire principale	S5	D0,03cm³		< 40,5 Gy	
+T6	Estomac	N	D0,03cm³		< 54 Gy	
+T6	Estomac	N	V40Gy		< 66,7 %	
+T6	Estomac	N	V45Gy		< 33,3 %	
+T6	Estomac	H15	D0,03cm³		< 42 Gy	
+T6	Estomac	S3	D0,03cm³		< 22 Gy	
+T6	Estomac	S3	D10cm³		< 16,5 Gy	
+T6	Estomac	S5	D0,03cm³		< 32 Gy	
+T6	Estomac	S5	D5cm³		< 18 Gy	
+T6	Duodénum	N	D0,03cm³		< 54 Gy	
+T6	Duodénum	H15	D0,03cm³		< 45 Gy	
+T6	Duodénum	S3	D0,03cm³		< 22 Gy	
+T6	Duodénum	S3	D5cm³		< 16,5 Gy	
+T6	Duodénum	S5	D0,03cm³		< 32 Gy	
+T6	Duodénum	S5	D5cm³		< 18 Gy	
+T6	Intestin grêle	N	D0,03cm³		< 54 Gy	
+T6	Intestin grêle	N	V45Gy		< 195 cm³	
+T6	Intestin grêle	H15	D0,03cm³		< 45 Gy	
+T6	Intestin grêle	S3	D0,03cm³		< 25 Gy	
+T6	Intestin grêle	S3	D5cm³		< 18 Gy	
+T6	Intestin grêle	S5	D0,03cm³		< 32 Gy	
+T6	Intestin grêle	S5	D5cm³		< 19,5 Gy	
+T6	Côlon	N	D0,03cm³		< 60 Gy	
+T6	Côlon	N	V30Gy		< 200 cm³	
+T6	Côlon	N	V35Gy		< 150 cm³	
+T6	Côlon	N	V45Gy		< 60 cm³	
+T6	Côlon	N	V55Gy		< 5 cm³	
+T6	Côlon	H15	D0,03cm³		< 45 Gy	
+T6	Côlon	S3	D0,03cm³		< 28 Gy	
+T6	Côlon	S3	D20cm³		< 24 Gy	
+T6	Côlon	S5	D0,03cm³		< 34 Gy	
+T6	Côlon	S5	D20cm³		< 25 Gy	
+# T7 pancréas : N = 50,4–54 Gy / 25 fx (RTOG 0936, 1102, 0848, ESTRO ACROP) ; S5 (consensus UK)
+T7	Duodénum	N	Dmax		≤ 55 Gy	
+T7	Duodénum	N	V50Gy	≤ 10 cm³	≤ 10 %	
+T7	Duodénum	N	V45Gy		≤ 15 %	
+T7	Duodénum	N	V35Gy		< 20 %	
+T7	Duodénum	S5	Dmax	< 32–35 Gy		
+T7	Duodénum	S5	V18Gy	< 5 cm³		si possible
+T7	Duodénum	S5	D0,5cm³		< 35 Gy	
+T7	Duodénum	S5	D1cm³	< 33 Gy		
+T7	Duodénum	S5	D5cm³	< 25 Gy		
+T7	Duodénum	S5	D9cm³	< 15 Gy		
+T7	Duodénum	S5	D10cm³		< 25 Gy	
+T7	Estomac	N	Dmax		≤ 55 Gy	
+T7	Estomac	N	V50Gy		≤ 10 %	
+T7	Estomac	N	V45Gy	≤ 75 cm³	≤ 15 %	
+T7	Estomac	N	V35Gy		< 20 %	
+T7	Estomac	N	V30Gy		< 50 %	
+T7	Estomac	S5	Dmax	< 32–35 Gy		
+T7	Estomac	S5	V18Gy	< 10 cm³		si possible
+T7	Estomac	S5	D0,5cm³	< 33 Gy	< 35 Gy	
+T7	Estomac	S5	D5cm³	< 25 Gy		
+T7	Estomac	S5	D10cm³		< 25 Gy	
+T7	Estomac	S5	D50cm³	< 12 Gy		
+T7	Intestin grêle	N	Dmax		≤ 55 Gy	
+T7	Intestin grêle	N	V50Gy	≤ 120 cm³	≤ 10 %	
+T7	Intestin grêle	N	V45Gy		≤ 15 %	
+T7	Intestin grêle	N	V40Gy		< 30 % ou 200 cm³	
+T7	Intestin grêle	N	V30Gy		< 40 % ou 400 cm³	
+T7	Intestin grêle	S5	Dmax	< 32–35 Gy		
+T7	Intestin grêle	S5	V19,5Gy	< 5 cm³		si possible
+T7	Intestin grêle	S5	D0,5cm³	< 30 Gy	< 35 Gy	
+T7	Intestin grêle	S5	D5cm³	< 25 Gy		
+T7	Intestin grêle	S5	D10cm³		< 25 Gy	
+T7	Foie	N	Dmean		≤ 30 Gy	
+T7	Foie	N	V30Gy		≤ 50 %	
+T7	Foie	N	V20Gy		≤ 33 %	
+T7	Foie	S5	V10Gy	< 70 %		
+T7	Foie	S5	Dmean	< 13 Gy	< 15,2 Gy	
+T7	Foie	S5	Volume recevant moins de 15 Gy		> 700 cm³	
+T7	Reins (droit et gauche ensemble)	N	Dmean		< 18 Gy	
+T7	Reins (droit et gauche ensemble)	N	V20Gy		≤ 32 %	
+T7	Reins (droit et gauche ensemble)	N	V18Gy		≤ 50 %	
+T7	Reins (droit et gauche ensemble)	S5	V18Gy		< 33 %	
+T7	Reins (droit et gauche ensemble)	S5	Volume recevant moins de 17,5 Gy		> 200 cm³	
+T7	Reins (droit et gauche ensemble)	S5	Dmean	< 10 Gy		
+T7	Canal médullaire	N	D0,1cm³		≤ 45 Gy	
+T7	Canal médullaire	S5	Dmax		< 25 Gy	
+T7	Côlon	S5	Dmax	< 32–35 Gy		
+T7	Côlon	S5	V25Gy	< 5 cm³		si possible
+T7	Côlon	S5	D0,5cm³		< 32 Gy	
+T7	Voie biliaire principale	S5	D0,5cm³	< 50 Gy		
+T7	Rein unique	S5	V10Gy	< 10 %	< 45 %	
+T7	Rein unique	S5	Volume recevant moins de 14,5 Gy		> 130 cm³	
+T7	Gros vaisseaux	S5	D0,5cm³		< 53 Gy	
+# T8 rein (stéréotaxie) : S1 S3 (FASTRACK II / consensus UK 2022) ; S5 (consensus UK 2022 / Timmerman)
+T8	Duodénum	S1	D0,1cm³		≤ 12,4 Gy	
+T8	Duodénum	S1	D10cm³		≤ 9 Gy	
+T8	Duodénum	S3	D0,1cm³		≤ 22,2 Gy	
+T8	Duodénum	S3	D10cm³		≤ 11,4 Gy	
+T8	Duodénum	S5	D0,1cm³	≤ 33 Gy	≤ 35 Gy	
+T8	Duodénum	S5	D10cm³	≤ 25 Gy		
+T8	Intestin grêle	S1	D0,03cm³		< 26 Gy	
+T8	Intestin grêle	S1	D5cm³		< 22,5 Gy	
+T8	Intestin grêle	S1	Dose sur toute la circonférence d'une anse	< 13 Gy	≤ 12,5 Gy	dose maximale couvrant toute la circonférence de la paroi ≤ 12,5 Gy
+T8	Intestin grêle	S1	D30cm³		≤ 17,6 Gy	Timmerman
+T8	Intestin grêle	S3	D0,03cm³		< 30 Gy	
+T8	Intestin grêle	S3	D30cm³		< 12,5 Gy	
+T8	Intestin grêle	S3	Dose sur toute la circonférence de la paroi		≤ 22,5 Gy	
+T8	Intestin grêle	S5	D0,1cm³	< 30 Gy	< 35 Gy	
+T8	Intestin grêle	S5	D10cm³	≤ 25 Gy		
+T8	Intestin grêle	S5	D30cm³		≤ 24 Gy	Timmerman
+T8	Côlon	S1	D1,5cm³		ALARA (viser < 26 Gy)	
+T8	Côlon	S3	D1,5cm³		ALARA (viser < 42 Gy)	
+T8	Côlon	S5	D0,1cm³		≤ 38 Gy	
+T8	Œsophage	S1	D0,1cm³		≤ 15,4 Gy	
+T8	Œsophage	S3	D0,1cm³		≤ 25,2 Gy	
+T8	Œsophage	S5	D0,1cm³		≤ 35 Gy	
+T8	Rein controlatéral	S1	V10Gy		≤ 33 %	
+T8	Rein controlatéral	S3	V10Gy		≤ 33 %	
+T8	Rein homolatéral − ITV	S1	D1,5cm³ et V10Gy		ALARA	limiter le volume des zones de dose élevée (> isodose 50 %)
+T8	Rein homolatéral − ITV	S3	D1,5cm³ et V10Gy		ALARA	limiter le volume des zones de dose élevée (> isodose 50 %)
+T8	Rein unique	S1	V10Gy		< 33 %	
+T8	Rein unique	S3	V10Gy		< 33 %	
+T8	Rein unique	S5	V10Gy	< 10 %	< 45 %	
+T8	Hile rénal / tronc vasculaire	S1	V14Gy		< 15 cm³	Timmerman
+T8	Hile rénal / tronc vasculaire	S3	V19,5Gy		< 15 cm³	Timmerman
+T8	Hile rénal / tronc vasculaire	S5	V23Gy		< 15 cm³	Timmerman
+T8	Foie (non cirrhotique)	S1	Dmean et D700cm³		à documenter	pas de contrainte
+T8	Foie (non cirrhotique)	S3	D700cm³		< 15 Gy	
+T8	Foie (non cirrhotique)	S5	D700cm³	< 15 Gy		
+T8	Estomac	S1	D1,5cm³		< 15,4 Gy	
+T8	Estomac	S1	D5cm³		≤ 22,5 Gy	
+T8	Estomac	S3	D0,03cm³		< 30 Gy	
+T8	Estomac	S3	D5cm³		≤ 22,5 Gy	
+T8	Estomac	S5	D0,1cm³	≤ 33 Gy	≤ 35 Gy	
+T8	Estomac	S5	D10cm³	≤ 25 Gy		
+T8	Estomac	S5	D50cm³	≤ 12 Gy		
+T8	Moelle épinière	S1	D0,03cm³		< 12 Gy	
+T8	Moelle épinière	S3	D0,03cm³		< 18 Gy	
+T8	Moelle épinière	S5	D0,035cm³		< 28 Gy	Timmerman
+T8	Moelle épinière	S5	D0,35cm³		< 22 Gy	Timmerman
+T8	Peau (5 mm sous la surface)	S1	D1,5cm³		< 18 Gy	
+T8	Peau (5 mm sous la surface)	S3	D1,5cm³		< 30 Gy	
+T8	Peau (5 mm sous la surface)	S5	D10cm³		< 36,5 Gy	Timmerman
+# T9 prostate : N = 74–80 Gy / 37–40 fx (RTOG / Gétug) ; N33 = 66 Gy / 33 fx (QUANTEC / RTOG 0534, loge) ; H25 = 68 Gy / 25 fx (POP-RT) ; H20 = 60 Gy / 20 fx (PROFIT / Gétug) ; H20b = 52,5 Gy / 20 fx (RADICALS-RT) ; S5 = 36,25 Gy / 5 fx (PACE-B)
+# note a = organe entier ; b = parois vésicale et rectale (contourées 18 mm au-dessus et au-dessous du CTV 60) ; c = EQD2 (α/β = 2)
+T9	Vessie	N	Dmax		< 80 Gy	
+T9	Vessie	N	V65Gy		< 50 %	organe entier
+T9	Vessie	N	V70Gy		< 35 %	organe entier
+T9	Vessie	N	V75Gy		< 25 %	organe entier
+T9	Vessie	N33	V40Gy		< 70 %	organe entier
+T9	Vessie	N33	V65Gy		< 50 %	organe entier
+T9	Vessie	H25	V50Gy		< 50 %	organe entier
+T9	Vessie	H25	V60Gy		< 25 %	organe entier
+T9	Vessie	H25	V70Gy		< 5 %	organe entier
+T9	Vessie	H20	V37Gy		< 50 %	paroi vésicale
+T9	Vessie	H20	V41Gy		< 50 %	organe entier
+T9	Vessie	H20	V46Gy		< 30 %	paroi vésicale
+T9	Vessie	H20	V48Gy		< 25 %	organe entier
+T9	Vessie	H20	V60Gy		< 5 %	organe entier
+T9	Vessie	H20b	V40Gy		< 80 %	organe entier
+T9	Vessie	H20b	V48Gy		< 50 %	organe entier
+T9	Vessie	S5	V18,1Gy		< 40 %	organe entier
+T9	Vessie	S5	V37Gy	< 5 cm³	< 10 cm³	organe entier
+T9	Rectum	N	Dmax		≤ 76 Gy	
+T9	Rectum	N	V60Gy		< 50 %	organe entier
+T9	Rectum	N	V65Gy		< 35 %	organe entier
+T9	Rectum	N	V70Gy		< 25 %	organe entier
+T9	Rectum	N	V75Gy	< 5 %	< 15 %	organe entier
+T9	Rectum	N33	V40Gy		< 55 %	organe entier
+T9	Rectum	N33	V50Gy		< 50 %	organe entier
+T9	Rectum	N33	V60Gy		< 35 %	organe entier
+T9	Rectum	N33	V65Gy	< 25 %	< 35 %	organe entier
+T9	Rectum	H25	V40Gy		< 60 %	organe entier
+T9	Rectum	H25	V60Gy		< 57 %	organe entier
+T9	Rectum	H25	V65Gy		< 30 %	organe entier
+T9	Rectum	H25	V70Gy		< 15 %	organe entier
+T9	Rectum	H25	V75Gy		< 5 %	organe entier
+T9	Rectum	H20	V37Gy		< 50 %	paroi rectale
+T9	Rectum	H20	V46Gy		< 30 %	paroi rectale
+T9	Rectum	H20b	V24Gy		< 80 %	organe entier
+T9	Rectum	H20b	V32Gy		< 70 %	organe entier
+T9	Rectum	H20b	V40Gy		< 60 %	organe entier
+T9	Rectum	H20b	V48Gy		< 50 %	organe entier
+T9	Rectum	H20b	V52,5Gy		< 30 %	organe entier
+T9	Rectum	S5	V18,1Gy		< 50 %	organe entier ; ne pas couper la paroi postérieure
+T9	Rectum	S5	V29Gy		< 20 %	organe entier
+T9	Rectum	S5	V36Gy		< 1 cm³	organe entier
+T9	Têtes fémorales	N	V50Gy		< 5–10 %	
+T9	Têtes fémorales	N33	V50Gy		< 5–10 %	
+T9	Têtes fémorales	H25	V50Gy		< 5 %	
+T9	Têtes fémorales	H20	V43Gy		< 5 %	
+T9	Têtes fémorales	H20b	V43Gy		< 5 %	
+T9	Têtes fémorales	S5	V14,5Gy		< 5 %	
+T9	Intestin	N	V15Gy	< 830 cm³		
+T9	Intestin	N	V45Gy	< 150 cm³	< 200 cm³	
+T9	Intestin	N33	V15Gy	< 830 cm³		
+T9	Intestin	N33	V45Gy	< 150 cm³	< 200 cm³	
+T9	Intestin	H25	V45Gy		< 158 cm³	
+T9	Intestin	H25	V50Gy		< 110 cm³	
+T9	Intestin	H25	V55Gy		< 28 cm³	
+T9	Intestin	H25	V60Gy		< 6 cm³	
+T9	Intestin	H25	V65Gy		< 0 cm³	
+T9	Intestin	H20	V12Gy	< 830 cm³		EQD2 (α/β = 2)
+T9	Intestin	H20	V36Gy	< 150 cm³	< 200 cm³	EQD2 (α/β = 2)
+T9	Intestin	H20b	V13Gy	< 830 cm³		EQD2 (α/β = 2)
+T9	Intestin	H20b	V38,9Gy	< 150 cm³	< 200 cm³	EQD2 (α/β = 2)
+T9	Intestin	S5	V18,1Gy		< 5 cm³	
+T9	Intestin	S5	V30Gy		< 1 cm³	
+T9	Canal médullaire	N	Dmax		< 45 Gy	
+T9	Canal médullaire	N33	Dmax		< 45 Gy	
+T9	Canal médullaire	H25	Dmax		< 45 Gy	
+T9	Queue de cheval	N	Dmax		< 50 Gy	
+T9	Queue de cheval	N33	Dmax		< 50 Gy	
+T9	Bulbe pénien	S5	V29,5Gy		< 50 %	
+T9	Urètre	S5	V42Gy		< 50 %	
+# T10 gynécologie : N = 45 Gy / 25 fx (EMBRACE II) ; note a = contrainte respectée chez 70 à 80 % des patientes
+T10	Intestin	N	V40Gy		< 100 cm³	sans boost ganglionnaire ; respectée chez 70 à 80 % des patientes
+T10	Intestin	N	V30Gy		< 350 cm³	sans boost ganglionnaire
+T10	Intestin	N	Dmax		< 47,3 Gy	sans boost ganglionnaire
+T10	Intestin	N	V40Gy (boost ganglionnaire ou lombo-aortique)		< 250 cm³	
+T10	Intestin	N	V30Gy (boost ganglionnaire ou lombo-aortique)		< 500 cm³	
+T10	Intestin	N	Dmax (boost ganglionnaire ou lombo-aortique)		< 57,5 Gy	
+T10	Rectum	N	Dmax		< 47,3 Gy	57,5 Gy si boost ganglionnaire
+T10	Rectum	N	V40Gy	< 85 %		
+T10	Rectum	N	V30Gy	< 95 %		
+T10	Vessie	N	Dmax		< 47,3 Gy	57,5 Gy si boost ganglionnaire
+T10	Vessie	N	V40Gy	< 75 %		
+T10	Vessie	N	V30Gy	< 85 %		
+T10	Sigmoïde	N	Dmax		< 47,3 Gy	57,5 Gy si boost ganglionnaire
+T10	Reins	N	Dmean	< 10 Gy	< 15 Gy	
+T10	Têtes fémorales	N	Dmax		< 50 Gy	
+T10	Moelle épinière	N	Dmax		< 45 Gy	
+T10	Moelle osseuse	N	V10Gy	< 90 %		
+T10	Moelle osseuse	N	V20Gy	< 75 %		
+T10	Moelle osseuse	N	V30Gy	< 65 %		
+T10	Moelle osseuse	N	V40Gy	< 37 %		
+# T11 vessie : N = 64 Gy / 32 fx ; H20 = 55 Gy / 20 fx (Portner)
+T11	Rectum	N	V45Gy		< 50 %	
+T11	Rectum	N	V60Gy		< 40 %	
+T11	Rectum	H20	Dmean		< 40 Gy	
+T11	Rectum	H20	V50Gy		< 50 %	
+T11	Intestin grêle	N	V40Gy	< 200 cm³		
+T11	Intestin grêle	N	V45Gy	< 150 cm³		
+T11	Intestin grêle	H20	V50Gy		< 98 cm³	
+T11	Têtes fémorales	N	V50Gy		< 5 %	
+T11	Têtes fémorales	H20	V50Gy		< 5 %	
+# T12 rectum : N = 45 Gy / 25 fx (PRODIGE 23) ; H5 = 25 Gy / 5 fx
+T12	Intestin	N	V15Gy		< 830 cm³	
+T12	Intestin	N	V45Gy		< 150 cm³	
+T12	Intestin	H5	V25Gy		< 5 cm³	
+T12	Vessie	N	D2%		< dose prescrite	
+T12	Vessie	N	V40Gy	< 35 %		
+T12	Vessie	H5	V20Gy		< 15 cm³	
+T12	Sigmoïde	N	D2%		< dose prescrite	
+T12	Sigmoïde	N	V40Gy		< 90 cm³	
+T12	Sigmoïde	H5	V30Gy		< 5 cm³	
+T12	Têtes fémorales	N	Dmean		< 30 Gy	
+T12	Têtes fémorales	N	V50Gy		< 2 %	
+T12	Têtes fémorales	H5	V30Gy		< 10 cm³	
+T12	Vulve	N	D2%		< 10 Gy	
+T12	Organes génitaux masculins	N	V20Gy		< 50 %	
+T12	Organes génitaux masculins	N	V30Gy		< 35 %	
+T12	Os pelviens	N	V10Gy		< 90 %	
+T12	Os pelviens	N	V20Gy		< 75 %	
+T12	Os pelviens	N	V30Gy		< 65 %	
+T12	Os pelviens	N	V40Gy		< 37 %	
+# T13 canal anal : N = 59,4–65 Gy / 33–35 fx (RTOG 05-29)
+T13	Intestin	N	V30Gy		< 500 cm³	
+T13	Intestin	N	V40Gy		< 300 cm³	
+T13	Intestin	N	V45Gy	< 150 cm³	< 200 cm³	50 Gy tolérés dans de petits volumes, 40 Gy à ne pas dépasser dans de grands volumes
+T13	Vessie	N	D2%		< dose prescrite	
+T13	Vessie	N	V40Gy	< 50 %		
+T13	Vessie	N	V60Gy		< 50 %	
+T13	Sigmoïde	N	D2%		< dose prescrite	
+T13	Sigmoïde	N	V40Gy	< 40 %		
+T13	Têtes fémorales	N	V50Gy	< 2 %		
+T13	Vulve	N	D2%	< 10 Gy		
+T13	Organes génitaux masculins	N	V20Gy	< 50 %		
+T13	Organes génitaux masculins	N	V30Gy	< 35 %		
+T13	Os pelviens	N	V10Gy	< 90 %		
+T13	Os pelviens	N	V20Gy	< 75 %		
+T13	Os pelviens	N	V30Gy	< 65 %		
+T13	Os pelviens	N	V40Gy	< 37 %		
+# T14 testicule (séminome) : N = 20 Gy / 10 fx (Zilli)
+T14	Duodénum / cavité péritonéale	N	V10Gy		< 50 %	
+T14	Moelle osseuse hématopoïétique	N	Dmean		≤ 7,5 Gy	
+T14	Reins (droit et gauche ensemble)	N	V10Gy		< 33 %	
+T14	Reins (droit et gauche ensemble)	N	V15Gy		< 20 %	
+T14	Reins (droit et gauche ensemble)	N	V20Gy		< 1 %	
+T14	Reins (droit et gauche ensemble)	N	Dmean		< 6,9 Gy	
+T14	Foie	N	V10Gy		< 33 %	
+T14	Estomac	N	V5Gy		< 50 %	
+T14	Pancréas	N	V15Gy		< 50 %	
+T14	Pancréas	N	V20Gy		< 30 %	
+T14	Moelle épinière	N	Dose		ALARA	
+T14	Testicule controlatéral	N	Dose		ALARA	

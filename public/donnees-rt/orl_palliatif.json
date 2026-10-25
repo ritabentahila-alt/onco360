@@ -67,9 +67,7 @@
    "systemique": "Aucune",
    "simulation_id": "sim-orl-curie",
    "volumes_id": "vol-orl-curie-en-place",
-   "contraintes_ids": [
-    "ct-orl-curie"
-   ],
+   "contraintes_ids": [],
    "couverture": "PTV : D95 % ≥ 95 % ; CTV : D98 % ≥ 98 %",
    "date_verif": "2026-10-24",
    "ind": [

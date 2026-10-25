@@ -73,9 +73,7 @@
    "systemique": "Aucune",
    "simulation_id": "sim-foie-sbrt",
    "volumes_id": "vol-foie-sbrt",
-   "contraintes_ids": [
-    "ct-foie-sbrt-igr-3fx"
-   ],
+   "contraintes_ids": [],
    "couverture": "Gustave Roussy : rapporter D2 %, D50 %, D98 %, D99 % du PTV et l'indice d'homogénéité",
    "date_verif": "2026-10-23",
    "ind": [
@@ -113,9 +111,7 @@
    "systemique": "Voir Traitement systémique",
    "simulation_id": "sim-foie-sbrt",
    "volumes_id": "vol-foie-sbrt",
-   "contraintes_ids": [
-    "ct-foie-sbrt-igr-5fx"
-   ],
+   "contraintes_ids": [],
    "couverture": "Gustave Roussy : rapporter D2 %, D50 %, D98 %, D99 % du PTV et l'indice d'homogénéité",
    "points_attention": [
     "RTOG 1112 : SBRT avant sorafénib, SG médiane 15,8 vs 12,3 mois (HR 0,77, NS ; 0,72 après ajustement) et SSP 9,2 vs 5,5 mois"
@@ -153,9 +149,7 @@
    "systemique": "Aucune",
    "simulation_id": "sim-foie-sbrt",
    "volumes_id": "vol-foie-sbrt",
-   "contraintes_ids": [
-    "ct-foie-sbrt-igr-10fx"
-   ],
+   "contraintes_ids": [],
    "couverture": "Gustave Roussy : rapporter D2 %, D50 %, D98 %, D99 % du PTV et l'indice d'homogénéité",
    "date_verif": "2026-10-23",
    "ind": [
@@ -227,9 +221,7 @@
    "systemique": "Selon le primitif",
    "simulation_id": "sim-foie-sbrt",
    "volumes_id": "vol-foie-sbrt",
-   "contraintes_ids": [
-    "ct-foie-sbrt-igr-3fx"
-   ],
+   "contraintes_ids": [],
    "couverture": "Gustave Roussy : rapporter D2 %, D50 %, D98 %, D99 % du PTV et l'indice d'homogénéité",
    "points_attention": [
     "Oligométastases : décision en RCP, toutes les lésions traitables (SABR-COMET)"
@@ -311,9 +303,7 @@
    "systemique": "Voir Traitement systémique",
    "simulation_id": "sim-foie",
    "volumes_id": "vol-foie-cca-adj",
-   "contraintes_ids": [
-    "ct-abdo-acrop-crt"
-   ],
+   "contraintes_ids": [],
    "date_verif": "2026-10-23",
    "ind": [
     "Digestif",

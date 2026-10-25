@@ -78,9 +78,7 @@
    "systemique": "Voir Traitement systémique",
    "simulation_id": "sim-orl-curie",
    "volumes_id": "vol-orl-curie-postop",
-   "contraintes_ids": [
-    "ct-orl-curie"
-   ],
+   "contraintes_ids": [],
    "couverture": "PTV : D95 % ≥ 95 % ; CTV : D98 % ≥ 98 % (acceptable D95 % ≥ 98 %) ; PTV66 ∪ PTV59,4 : D2 % ≤ 107 %",
    "points_attention": [
     "Rupture capsulaire et marges atteintes sont les deux facteurs qui justifient le cisplatine concomitant (analyse EORTC 22931 et RTOG 9501, Bernier 2005)",
@@ -131,10 +129,7 @@
    "systemique": "Voir Traitement systémique",
    "simulation_id": "sim-orl-curie",
    "volumes_id": "vol-cb-postop-service",
-   "contraintes_ids": [
-    "ct-orl-curie",
-    "ct-orl-igr"
-   ],
+   "contraintes_ids": [],
    "couverture": "Tableur du service : D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 % de la dose prescrite",
    "points_attention": [
     "Rupture capsulaire et marges atteintes sont les deux facteurs qui justifient le cisplatine concomitant (analyse EORTC 22931 et RTOG 9501, Bernier 2005)",
@@ -185,10 +180,7 @@
    "systemique": "Aucune",
    "simulation_id": "sim-orl-curie",
    "volumes_id": "vol-cb-postop-service",
-   "contraintes_ids": [
-    "ct-orl-curie",
-    "ct-orl-igr"
-   ],
+   "contraintes_ids": [],
    "couverture": "Tableur du service : D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
    "points_attention": [
     "Rupture capsulaire et marges atteintes sont les deux facteurs qui justifient le cisplatine concomitant (analyse EORTC 22931 et RTOG 9501, Bernier 2005)",
@@ -250,9 +242,7 @@
    "systemique": "Voir Traitement systémique",
    "simulation_id": "sim-orl-curie",
    "volumes_id": "vol-orl-curie-en-place",
-   "contraintes_ids": [
-    "ct-orl-curie"
-   ],
+   "contraintes_ids": [],
    "couverture": "PTV : D95 % ≥ 95 % ; CTV : D98 % ≥ 98 % ; PTV70 : D2 % ≤ 107 %",
    "points_attention": [
     "Si un OAR chevauche un PTV, l'objectif s'applique à l'OAR moins le PTV (Curie)"
@@ -309,10 +299,7 @@
    "systemique": "Voir Traitement systémique",
    "simulation_id": "sim-orl-curie",
    "volumes_id": "vol-orl-igr",
-   "contraintes_ids": [
-    "ct-orl-curie",
-    "ct-orl-igr"
-   ],
+   "contraintes_ids": [],
    "couverture": "Tableur du service : D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
    "points_attention": [
     "Si un OAR chevauche un PTV, l'objectif s'applique à l'OAR moins le PTV (Curie)"
@@ -368,9 +355,7 @@
    "systemique": "Voir Traitement systémique",
    "simulation_id": "sim-orl-igr",
    "volumes_id": "vol-orl-igr",
-   "contraintes_ids": [
-    "ct-orl-igr"
-   ],
+   "contraintes_ids": [],
    "couverture": "PTV70 : D95 % ≥ 66,5 Gy, D5 % ≤ 77 Gy ; PTV60 : D95 % ≥ 57 Gy, D5 % ≤ 66 Gy ; PTV54 : D95 % ≥ 51,3 Gy, D5 % ≤ 59,4 Gy",
    "points_attention": [
     "Schéma Gustave Roussy à 2,33 Gy par fraction sur le macroscopique ; les essais EORTC 1219 et ARTFORCE utilisaient 70 Gy / 35 fx et 54,25 Gy (référentiel Gustave Roussy)"
@@ -490,9 +475,7 @@
    "systemique": "Aucune",
    "simulation_id": "sim-orl-curie",
    "volumes_id": "vol-cb-curie",
-   "contraintes_ids": [
-    "ct-orl-curie"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "Le curage ganglionnaire est indispensable avec la curiethérapie exclusive : 44,6 % d'envahissement occulte (Bourgier 2005)",
     "Si un OAR chevauche un PTV, l'objectif s'applique à l'OAR moins le PTV (Curie)"

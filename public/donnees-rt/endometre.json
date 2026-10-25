@@ -235,9 +235,7 @@
    "systemique": "Cisplatine 40 mg/m² hebdomadaire possible (Curie)",
    "simulation_id": "sim-gyn-postop",
    "volumes_id": "vol-gyn-postop",
-   "contraintes_ids": [
-    "ct-gyn-curie-rte"
-   ],
+   "contraintes_ids": [],
    "couverture": "PTV_45 : D95 > 95 %, D2 < 107 % ; ITV_T : D98 > 95 % ; PTV_N : D98 > 90 %, D2 < 107 % ; CTV_N : D98 > 98 %",
    "date_verif": "2026-10-23",
    "ind": [
@@ -282,9 +280,7 @@
    "systemique": "Selon RCP",
    "simulation_id": "sim-gyn-postop",
    "volumes_id": "vol-gyn-postop",
-   "contraintes_ids": [
-    "ct-gyn-curie-rte"
-   ],
+   "contraintes_ids": [],
    "couverture": "PTV_45 : D95 > 95 %, D2 < 107 % ; ITV_T : D98 > 95 % ; PTV_N : D98 > 90 %, D2 < 107 % ; CTV_N : D98 > 98 %",
    "points_attention": [
     "Lombo-aortique : image kV/kV quotidienne en plus du CBCT ; décalage > 5 mm entre pelvis et lombo-aortique = repositionner ; pas de traitement sur Halcyon (Curie)"

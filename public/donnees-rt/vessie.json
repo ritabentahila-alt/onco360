@@ -91,9 +91,7 @@
    "systemique": "5FU + mitomycine C (BC2001), voir « Traitement systémique associé »",
    "simulation_id": "sim-ves",
    "volumes_id": "vol-ves",
-   "contraintes_ids": [
-    "ct-quantec-grele"
-   ],
+   "contraintes_ids": [],
    "date_verif": "2026-10-22",
    "ind": [
     "Uro",
@@ -133,9 +131,7 @@
    "systemique": "Chimiothérapie concomitante selon le protocole en vigueur (fiche)",
    "simulation_id": "sim-ves",
    "volumes_id": "vol-ves-service",
-   "contraintes_ids": [
-    "ct-quantec-grele"
-   ],
+   "contraintes_ids": [],
    "points_attention": [
     "Total 65 Gy (45 + 20), pas 66 Gy ; irradiation pelvienne propre au service, gardée pour les cN1",
     "Bien distinguer PTV ganglionnaire prophylactique et PTV ganglionnaire boosté (fiche)"
