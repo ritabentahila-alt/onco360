@@ -50,6 +50,15 @@
         ]
       },
       {
+        "source": "/donnees-rt/**",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache"
+          }
+        ]
+      },
+      {
         "source": "**",
         "headers": [
           {

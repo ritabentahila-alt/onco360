@@ -1,0 +1,409 @@
+{
+ "version": "2026-10-25",
+ "id": "gliome",
+ "region_id": "snc",
+ "nom": "Gliomes de grade 2 et 3",
+ "ordre": 29,
+ "date_maj": "2026-10-24",
+ "situations": [
+  {
+   "id": "gli-g2",
+   "localisation_id": "gliome",
+   "titre": "Gliome IDH muté de grade 2 à haut risque : radiothérapie",
+   "contexte": "post_op",
+   "criteres": "Astrocytome ou oligodendrogliome IDH muté de grade 2 ; moins de 40 ans après exérèse incomplète ou biopsie, ou 40 ans et plus (critères RTOG 9802)",
+   "ordre": 1
+  },
+  {
+   "id": "gli-oligo-g3",
+   "localisation_id": "gliome",
+   "titre": "Oligodendrogliome IDH muté et codélété 1p/19q, grade 3",
+   "contexte": "post_op",
+   "criteres": "Oligodendrogliome anaplasique codélété 1p/19q",
+   "ordre": 2
+  },
+  {
+   "id": "gli-astro-g3",
+   "localisation_id": "gliome",
+   "titre": "Astrocytome IDH muté de grade 3 (non codélété)",
+   "contexte": "post_op",
+   "criteres": "Gliome anaplasique non codélété 1p/19q (population de CATNON)",
+   "ordre": 3
+  }
+ ],
+ "schemas": [
+  {
+   "id": "gli-g2-504-28",
+   "situation_id": "gli-g2",
+   "titre": "RT 50,4 Gy / 28 fx",
+   "type": "rte_normo",
+   "preuve": "recommandation",
+   "essai_ids": [
+    "estro-eano-idh-2024",
+    "eortc22033",
+    "ncctg-lgg",
+    "eortc22844"
+   ],
+   "source_institutionnelle": "Tableur du service « Gliome grade 2 »",
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 50.4,
+     "fractions": 28,
+     "dose_fx_Gy": 1.8,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "45 et 59,4 Gy ne diffèrent pas (EORTC 22844) ; 64,8 Gy n'apporte rien (NCCTG)"
+    }
+   ],
+   "technique": "IMRT ou VMAT, IGRT",
+   "systemique": "Selon la situation, voir Traitement systémique",
+   "simulation_id": "sim-crane",
+   "volumes_id": "vol-gliome-g2",
+   "contraintes_ids": [
+    "ct-crane-igr",
+    "ct-crane-quantec"
+   ],
+   "points_attention": [
+    "RT précoce : SSP 5,3 vs 3,4 ans, sans gain de survie globale (EORTC 22845). La RT peut être différée chez un patient en bon état, surveillé de près",
+    "Témozolomide seul au lieu de la RT : SSP 39 vs 46 mois, différence non significative (EORTC 22033)",
+    "Pas d'escalade de dose : 45 et 59,4 Gy identiques (EORTC 22844) ; 64,8 Gy donne un peu plus de radionécroses (NCCTG)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "SNC",
+    "Gliomes de grade 2 et 3",
+    "Gliome IDH muté de grade 2 à haut risque : radiothérapie",
+    "Normofractionné"
+   ]
+  },
+  {
+   "id": "gli-g2-54-30",
+   "situation_id": "gli-g2",
+   "titre": "RT 54 Gy / 30 fx puis PCV",
+   "type": "rte_normo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "eortc22845",
+    "rtog9802"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 54,
+     "fractions": 30,
+     "dose_fx_Gy": 1.8,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Dose de l'EORTC 22845 ; puis 6 cycles de PCV (RTOG 9802)"
+    }
+   ],
+   "technique": "IMRT ou VMAT, IGRT",
+   "systemique": "PCV après la RT",
+   "simulation_id": "sim-crane",
+   "volumes_id": "vol-gliome-g2",
+   "contraintes_ids": [
+    "ct-crane-igr",
+    "ct-crane-quantec"
+   ],
+   "points_attention": [
+    "RT précoce : SSP 5,3 vs 3,4 ans, sans gain de survie globale (EORTC 22845). La RT peut être différée chez un patient en bon état, surveillé de près",
+    "Témozolomide seul au lieu de la RT : SSP 39 vs 46 mois, différence non significative (EORTC 22033)",
+    "Pas d'escalade de dose : 45 et 59,4 Gy identiques (EORTC 22844) ; 64,8 Gy donne un peu plus de radionécroses (NCCTG)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "SNC",
+    "Gliomes de grade 2 et 3",
+    "Gliome IDH muté de grade 2 à haut risque : radiothérapie",
+    "Normofractionné"
+   ]
+  },
+  {
+   "id": "gli-oligo-594-33",
+   "situation_id": "gli-oligo-g3",
+   "titre": "RT 59,4 Gy / 33 fx + PCV",
+   "type": "rte_normo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "eortc26951",
+    "rtog9402",
+    "estro-eano-idh-2024"
+   ],
+   "source_institutionnelle": "Tableur du service « Gliome grade 3 »",
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 59.4,
+     "fractions": 33,
+     "dose_fx_Gy": 1.8,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "PCV après la RT (EORTC 26951) ou avant (RTOG 9402)"
+    }
+   ],
+   "technique": "IMRT ou VMAT, IGRT",
+   "systemique": "PCV",
+   "simulation_id": "sim-crane",
+   "volumes_id": "vol-gliome-g3",
+   "contraintes_ids": [
+    "ct-crane-igr",
+    "ct-crane-quantec"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "SNC",
+    "Gliomes de grade 2 et 3",
+    "Oligodendrogliome IDH muté et codélété 1p/19q, grade 3",
+    "Normofractionné"
+   ],
+   "points_attention": []
+  },
+  {
+   "id": "gli-astro-594-33",
+   "situation_id": "gli-astro-g3",
+   "titre": "RT 59,4 Gy / 33 fx puis témozolomide adjuvant (CATNON)",
+   "type": "rte_normo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "catnon2017",
+    "catnon2021",
+    "estro-eano-idh-2024"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 59.4,
+     "fractions": 33,
+     "dose_fx_Gy": 1.8,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Puis 12 cycles de témozolomide"
+    }
+   ],
+   "technique": "IMRT ou VMAT, IGRT",
+   "systemique": "Témozolomide adjuvant",
+   "simulation_id": "sim-crane",
+   "volumes_id": "vol-gliome-g3",
+   "contraintes_ids": [
+    "ct-crane-igr",
+    "ct-crane-quantec"
+   ],
+   "points_attention": [
+    "Bénéfice du témozolomide adjuvant lié à la mutation IDH1/2 (CATNON, 2e analyse)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "SNC",
+    "Gliomes de grade 2 et 3",
+    "Astrocytome IDH muté de grade 3 (non codélété)",
+    "Normofractionné"
+   ]
+  }
+ ],
+ "simulations": [
+  {
+   "id": "sim-crane",
+   "position": "Décubitus dorsal, bras le long du corps, coussin sous les genoux",
+   "contention": "Masque thermoformé 3 points",
+   "scanner": "Non injecté, coupes jointives de 2,5 mm, crâne entier jusqu'à C3, moins de 2 semaines avant le début de la RT",
+   "imagerie": "IRM dosimétrique T1 3D gadolinium et T2-FLAIR, axiales strictes, fusionnées au scanner ; IRM post-opératoire précoce (48–72 h) pour le GTV ; éviter l'IRM post-opératoire tardive, qui surestime le résidu"
+  }
+ ],
+ "volumes": [
+  {
+   "id": "vol-gliome-g2",
+   "cibles": [
+    {
+     "nom": "GTV",
+     "type": "GTV",
+     "definition": "Cavité opératoire et tumeur résiduelle, anomalies T2/FLAIR incluses ; prise de contraste incluse si elle traduit un résidu",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "CTV",
+     "type": "CTV",
+     "definition": "GTV + 10 mm",
+     "quand": "Toujours",
+     "marge": "10 mm"
+    },
+    {
+     "nom": "PTV",
+     "type": "PTV",
+     "definition": "CTV + 3 mm au plus avec IGRT (ESTRO-EANO 2023) ; tableurs du service : 3 mm",
+     "quand": "Toujours",
+     "marge": "3 mm"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "ESTRO-EANO 2024, gliomes IDH mutés",
+     "url": "https://doi.org/10.1016/j.radonc.2024.110594"
+    },
+    {
+     "nom": "atlas EPTN 2018",
+     "url": "https://doi.org/10.1016/j.radonc.2017.12.013"
+    }
+   ],
+   "oar_ids": [
+    "oar-encephale-sain",
+    "oar-tronc-cerebral",
+    "oar-chiasma",
+    "oar-nerf-optique-d",
+    "oar-nerf-optique-g",
+    "oar-oeil-d",
+    "oar-oeil-g",
+    "oar-retine-d",
+    "oar-retine-g",
+    "oar-cristallin-d",
+    "oar-cristallin-g",
+    "oar-cochlee-d",
+    "oar-cochlee-g",
+    "oar-hippocampes",
+    "oar-hypophyse",
+    "oar-glande-lacrymale-d",
+    "oar-glande-lacrymale-g",
+    "oar-cavite-orale",
+    "oar-parotide-d",
+    "oar-parotide-g",
+    "oar-moelle"
+   ]
+  },
+  {
+   "id": "vol-gliome-g3",
+   "cibles": [
+    {
+     "nom": "GTV",
+     "type": "GTV",
+     "definition": "Cavité opératoire et tumeur résiduelle, anomalies T2/FLAIR incluses sauf les zones d'œdème ; prise de contraste incluse si elle traduit un résidu",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "CTV",
+     "type": "CTV",
+     "definition": "GTV + 15 mm",
+     "quand": "Toujours",
+     "marge": "15 mm"
+    },
+    {
+     "nom": "PTV",
+     "type": "PTV",
+     "definition": "Comme vol-gliome-g2",
+     "quand": "Toujours",
+     "marge": "3 mm"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "ESTRO-EANO 2024, gliomes IDH mutés",
+     "url": "https://doi.org/10.1016/j.radonc.2024.110594"
+    },
+    {
+     "nom": "atlas EPTN 2018",
+     "url": "https://doi.org/10.1016/j.radonc.2017.12.013"
+    }
+   ],
+   "oar_ids": [
+    "oar-encephale-sain",
+    "oar-tronc-cerebral",
+    "oar-chiasma",
+    "oar-nerf-optique-d",
+    "oar-nerf-optique-g",
+    "oar-oeil-d",
+    "oar-oeil-g",
+    "oar-retine-d",
+    "oar-retine-g",
+    "oar-cristallin-d",
+    "oar-cristallin-g",
+    "oar-cochlee-d",
+    "oar-cochlee-g",
+    "oar-hippocampes",
+    "oar-hypophyse",
+    "oar-glande-lacrymale-d",
+    "oar-glande-lacrymale-g",
+    "oar-cavite-orale",
+    "oar-parotide-d",
+    "oar-parotide-g",
+    "oar-moelle"
+   ]
+  }
+ ],
+ "curie_indications": [],
+ "systemique": [
+  {
+   "situation": "gli-g2",
+   "traitement": "PCV (procarbazine, lomustine, vincristine), 6 cycles après la RT",
+   "protocole": "PCV",
+   "situation_id": "gli-g2",
+   "essai_ids": [
+    "rtog9802"
+   ],
+   "note": "SG médiane 13,3 vs 7,8 ans"
+  },
+  {
+   "situation": "gli-g2",
+   "traitement": "Vorasidenib 40 mg/j, cycles de 28 jours, si résidu ou récidive après chirurgie seule",
+   "protocole": "Vorasidenib",
+   "situation_id": "gli-g2",
+   "essai_ids": [
+    "indigo"
+   ],
+   "note": "SSP 27,7 vs 11,1 mois ; retarde le traitement suivant (RT, chimiothérapie)"
+  },
+  {
+   "situation": "gli-oligo-g3",
+   "traitement": "PCV, 6 cycles après la RT (EORTC 26951) ou avant la RT (RTOG 9402)",
+   "protocole": "PCV",
+   "situation_id": "gli-oligo-g3",
+   "essai_ids": [
+    "eortc26951",
+    "rtog9402"
+   ],
+   "note": "Codélétés : SG 14,7 vs 7,3 ans (RTOG 9402)"
+  },
+  {
+   "situation": "gli-astro-g3",
+   "traitement": "Témozolomide 150–200 mg/m² J1–J5, 12 cycles de 4 semaines après la RT",
+   "protocole": "Témozolomide adjuvant (CATNON)",
+   "situation_id": "gli-astro-g3",
+   "essai_ids": [
+    "catnon2017",
+    "catnon2021"
+   ],
+   "note": "SG à 5 ans 55,9 vs 44,1 % ; pas de bénéfice du témozolomide concomitant"
+  }
+ ],
+ "hormonotherapie": [],
+ "points_attention": [
+  {
+   "cible": "gli-g2",
+   "point": "RT précoce : SSP 5,3 vs 3,4 ans, sans gain de survie globale (EORTC 22845). La RT peut être différée chez un patient en bon état, surveillé de près",
+   "portee": "situation"
+  },
+  {
+   "cible": "gli-g2",
+   "point": "Témozolomide seul au lieu de la RT : SSP 39 vs 46 mois, différence non significative (EORTC 22033)",
+   "portee": "situation"
+  },
+  {
+   "cible": "gli-g2",
+   "point": "Pas d'escalade de dose : 45 et 59,4 Gy identiques (EORTC 22844) ; 64,8 Gy donne un peu plus de radionécroses (NCCTG)",
+   "portee": "situation"
+  },
+  {
+   "cible": "gli-astro-g3",
+   "point": "Bénéfice du témozolomide adjuvant lié à la mutation IDH1/2 (CATNON, 2e analyse)",
+   "portee": "situation"
+  },
+  {
+   "cible": "gliome",
+   "point": "Hippocampes : D40 % ≤ 7,3 Gy en EQD2 si possible (Gondi 2013, tumeurs bénignes ou de bas grade)",
+   "portee": "localisation"
+  }
+ ],
+ "textes": {
+  "contourage": [
+   "Les tableurs du service prévoyaient 5 mm en grade 2 et 20 mm en grade 3."
+  ]
+ }
+}

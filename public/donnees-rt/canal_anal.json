@@ -1,0 +1,516 @@
+{
+ "version": "2026-10-25",
+ "id": "canal_anal",
+ "region_id": "digestif",
+ "nom": "Canal anal",
+ "ordre": 14,
+ "date_maj": "2026-10-23",
+ "situations": [
+  {
+   "id": "anal-precoce",
+   "localisation_id": "canal_anal",
+   "titre": "Tumeur limitée T1–T2 N0",
+   "contexte": "en_place",
+   "criteres": "Carcinome épidermoïde T1 ou T2 N0 M0",
+   "ordre": 1
+  },
+  {
+   "id": "anal-avance",
+   "localisation_id": "canal_anal",
+   "titre": "Tumeur localement avancée T3–T4 ou N+",
+   "contexte": "en_place",
+   "criteres": "T3–T4 ou atteinte ganglionnaire, M0 ; ACCORD 03 : tumeur ≥ 4 cm, ou < 4 cm et N1–N3",
+   "ordre": 2
+  }
+ ],
+ "schemas": [
+  {
+   "id": "anal-service-avance",
+   "situation_id": "anal-avance",
+   "titre": "RCT 45 Gy / 25 fx puis complément jusqu'à 59,4 Gy (33 fx)",
+   "type": "rte_normo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "accord03",
+    "rtog9811",
+    "act2"
+   ],
+   "source_institutionnelle": "Fiche du service",
+   "prescriptions": [
+    {
+     "volume": "PTV BR (canal anal, fosses ischio-rectales, aires ganglionnaires)",
+     "dose_Gy": 45,
+     "fractions": 25,
+     "dose_fx_Gy": 1.8,
+     "mode": "sequentiel",
+     "rythme": "5 fx/sem",
+     "note": "5FU + mitomycine"
+    },
+    {
+     "volume": "PTV HR (tumeur et adénopathies)",
+     "dose_Gy": 14.4,
+     "fractions": 8,
+     "dose_fx_Gy": 1.8,
+     "mode": "sequentiel",
+     "rythme": "5 fx/sem",
+     "note": "Complément après 45 Gy : total 59,4 Gy en 33 fx. ACCORD 03 : 45 Gy + 15 Gy (bras de référence)"
+    }
+   ],
+   "technique": "IMRT ou VMAT, IGRT quotidienne",
+   "systemique": "5FU + mitomycine, voir « Traitement systémique associé »",
+   "simulation_id": "sim-anal",
+   "volumes_id": "vol-anal",
+   "contraintes_ids": [
+    "ct-service-anal",
+    "ct-quantec-grele"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Digestif",
+    "Canal anal",
+    "Tumeur localement avancée T3–T4 ou N+",
+    "Normofractionné"
+   ],
+   "points_attention": []
+  },
+  {
+   "id": "anal-service-t1n0",
+   "situation_id": "anal-precoce",
+   "titre": "RCT 45 Gy / 25 fx puis complément jusqu'à 59,4 Gy, sans aires ganglionnaires si T1 N0",
+   "type": "rte_normo",
+   "preuve": "pratique_institutionnelle",
+   "essai_ids": [
+    "accord03",
+    "agitg-atlas"
+   ],
+   "source_institutionnelle": "Fiche du service",
+   "prescriptions": [
+    {
+     "volume": "PTV BR (canal anal, fosses ischio-rectales ; pas d'aires ganglionnaires)",
+     "dose_Gy": 45,
+     "fractions": 25,
+     "dose_fx_Gy": 1.8,
+     "mode": "sequentiel",
+     "rythme": "5 fx/sem",
+     "note": "Tumeur de la jonction ano-rectale : ajouter le mésorectum"
+    },
+    {
+     "volume": "PTV HR (tumeur)",
+     "dose_Gy": 14.4,
+     "fractions": 8,
+     "dose_fx_Gy": 1.8,
+     "mode": "sequentiel",
+     "rythme": "5 fx/sem",
+     "note": "Total 59,4 Gy"
+    }
+   ],
+   "technique": "IMRT ou VMAT, IGRT quotidienne",
+   "systemique": "5FU + mitomycine",
+   "simulation_id": "sim-anal",
+   "volumes_id": "vol-anal",
+   "contraintes_ids": [
+    "ct-service-anal",
+    "ct-quantec-grele"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Digestif",
+    "Canal anal",
+    "Tumeur limitée T1–T2 N0",
+    "Normofractionné"
+   ],
+   "points_attention": []
+  },
+  {
+   "id": "anal-act2-504",
+   "situation_id": "anal-avance",
+   "titre": "RCT 50,4 Gy / 28 fx + 5FU-mitomycine (ACT II)",
+   "type": "rte_normo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "act2"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV (tumeur primitive)",
+     "dose_Gy": 50.4,
+     "fractions": 28,
+     "dose_fx_Gy": 1.8,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Dose reçue par les aires ganglionnaires électives selon le protocole ACT II (non détaillée ici)"
+    }
+   ],
+   "technique": "Selon le protocole de l'essai",
+   "systemique": "5FU + mitomycine 12 mg/m²",
+   "simulation_id": "sim-anal",
+   "volumes_id": "vol-anal-agitg",
+   "contraintes_ids": [
+    "ct-service-anal",
+    "ct-quantec-grele"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Digestif",
+    "Canal anal",
+    "Tumeur localement avancée T3–T4 ou N+",
+    "Normofractionné"
+   ],
+   "points_attention": []
+  },
+  {
+   "id": "anal-agitg-54-30",
+   "situation_id": "anal-avance",
+   "titre": "IMRT avec boost intégré : 54 Gy / 30 fx sur la maladie macroscopique, 45 Gy sur les aires électives",
+   "type": "rte_normo",
+   "preuve": "recommandation",
+   "essai_ids": [
+    "agitg-atlas",
+    "rtog0529"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV maladie macroscopique (tumeur + adénopathies)",
+     "dose_Gy": 54,
+     "fractions": 30,
+     "dose_fx_Gy": 1.8,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Avec chimiothérapie"
+    },
+    {
+     "volume": "PTV électif (aires ganglionnaires)",
+     "dose_Gy": 45,
+     "fractions": 30,
+     "dose_fx_Gy": 1.5,
+     "mode": "SIB",
+     "rythme": "5 fx/sem"
+    }
+   ],
+   "technique": "IMRT, IGRT quotidienne",
+   "systemique": "5FU + mitomycine",
+   "simulation_id": "sim-anal",
+   "volumes_id": "vol-anal-agitg",
+   "contraintes_ids": [
+    "ct-service-anal",
+    "ct-quantec-grele"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Digestif",
+    "Canal anal",
+    "Tumeur localement avancée T3–T4 ou N+",
+    "Normofractionné"
+   ],
+   "points_attention": []
+  },
+  {
+   "id": "anal-rtog0529-t2n0",
+   "situation_id": "anal-precoce",
+   "titre": "IMRT dose-painting T2 N0 : 50,4 Gy tumeur / 42 Gy électif en 28 fx (RTOG 0529)",
+   "type": "rte_normo",
+   "preuve": "option",
+   "essai_ids": [
+    "rtog0529"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV tumeur",
+     "dose_Gy": 50.4,
+     "fractions": 28,
+     "dose_fx_Gy": 1.8,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "5FU + mitomycine J1 et J29"
+    },
+    {
+     "volume": "PTV électif",
+     "dose_Gy": 42,
+     "fractions": 28,
+     "dose_fx_Gy": 1.5,
+     "mode": "SIB",
+     "rythme": "5 fx/sem"
+    }
+   ],
+   "technique": "IMRT dose-painting, contrôle qualité avant traitement",
+   "systemique": "5FU + mitomycine J1 et J29",
+   "simulation_id": "sim-anal",
+   "volumes_id": "vol-anal-agitg",
+   "contraintes_ids": [
+    "ct-service-anal",
+    "ct-quantec-grele"
+   ],
+   "couverture": "Isodose de prescription sur au moins 90 % du PTV tumeur, 85 % du PTV électif (RTOG 0529)",
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Digestif",
+    "Canal anal",
+    "Tumeur limitée T1–T2 N0",
+    "Normofractionné"
+   ],
+   "points_attention": []
+  },
+  {
+   "id": "anal-rtog0529-t34",
+   "situation_id": "anal-avance",
+   "titre": "IMRT dose-painting T3–T4 ou N+ : 54 Gy tumeur, 50,4–54 Gy adénopathies, 45 Gy électif en 30 fx (RTOG 0529)",
+   "type": "rte_normo",
+   "preuve": "option",
+   "essai_ids": [
+    "rtog0529"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV tumeur",
+     "dose_Gy": 54,
+     "fractions": 30,
+     "dose_fx_Gy": 1.8,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "5FU + mitomycine J1 et J29"
+    },
+    {
+     "volume": "PTV_N adénopathie > 3 cm",
+     "dose_Gy": 54,
+     "fractions": 30,
+     "dose_fx_Gy": 1.8,
+     "mode": "SIB",
+     "rythme": "5 fx/sem"
+    },
+    {
+     "volume": "PTV_N adénopathie ≤ 3 cm",
+     "dose_Gy": 50.4,
+     "fractions": 30,
+     "dose_fx_Gy": 1.68,
+     "mode": "SIB",
+     "rythme": "5 fx/sem"
+    },
+    {
+     "volume": "PTV électif",
+     "dose_Gy": 45,
+     "fractions": 30,
+     "dose_fx_Gy": 1.5,
+     "mode": "SIB",
+     "rythme": "5 fx/sem"
+    }
+   ],
+   "technique": "IMRT dose-painting, contrôle qualité avant traitement",
+   "systemique": "5FU + mitomycine J1 et J29",
+   "simulation_id": "sim-anal",
+   "volumes_id": "vol-anal-agitg",
+   "contraintes_ids": [
+    "ct-service-anal",
+    "ct-quantec-grele"
+   ],
+   "couverture": "Isodose de prescription sur au moins 90 % des PTV tumeur et adénopathies, 85 % du PTV électif (RTOG 0529)",
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Digestif",
+    "Canal anal",
+    "Tumeur localement avancée T3–T4 ou N+",
+    "Normofractionné"
+   ],
+   "points_attention": []
+  }
+ ],
+ "simulations": [
+  {
+   "id": "sim-anal",
+   "position": "Décubitus dorsal",
+   "contention": "Immobilisation pelvienne standard",
+   "preparation": "Vessie mi-pleine (reproductibilité) ; rectum le plus vide possible, sans lavement traumatique",
+   "scanner": "Injecté (repérage vasculaire) ; inclure les aines",
+   "imagerie": "IRM pelvienne pré-thérapeutique T2 sagittale + axiale oblique : fusion obligatoire ; TEP-TDM pour les ganglions",
+   "reperes": "Fil plombé sur la marge anale (impératif) ; marqueurs vaginal, prostatique ou des fosses ischio-rectales si atteinte"
+  }
+ ],
+ "volumes": [
+  {
+   "id": "vol-anal",
+   "cibles": [
+    {
+     "nom": "GTV_T",
+     "type": "GTV",
+     "definition": "Tumeur primitive (IRM + examen clinique + endoscopie), volume initial",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "GTV_N#",
+     "type": "GTV",
+     "definition": "Adénopathies visibles (IRM ± TEP), une structure par ganglion",
+     "quand": "Si adénopathie"
+    },
+    {
+     "nom": "CTV_T_HR (59,4 Gy)",
+     "type": "CTV",
+     "definition": "GTV_T + 1 cm en latéral et en antéro-postérieur, 1,5 cm en cranio-caudal ; canal anal en totalité. Si atteinte : cloison recto-vaginale → toute la paroi vaginale postérieure ; prostate ou vésicules séminales → en totalité ; fosse ischio-rectale → fosse entière ; marge anale cutanée → 2,5 cm de peau ; abcès drainé → lit de l'abcès et trajet de drainage",
+     "quand": "Toujours",
+     "marge": "1 cm (1,5 cm cranio-caudal)"
+    },
+    {
+     "nom": "CTV_N_HR",
+     "type": "CTV",
+     "definition": "GTV_N + 0,5 cm, toujours inclus dans le CTV_N_BR",
+     "quand": "Si adénopathie",
+     "marge": "5 mm"
+    },
+    {
+     "nom": "CTV_T_BR (45 Gy)",
+     "type": "CTV",
+     "definition": "Canal anal entier (de la marge anale à la jonction ano-rectale) + fosses ischio-rectales entières des deux côtés + cloison recto-vaginale ou prostate en regard du GTV ; sans CTV_T_HR : cloison recto-vaginale + moitié interne des fosses ischio-rectales ; rectum seulement si atteinte rectale documentée ; doit contenir le CTV_T_HR",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "CTV_N_BR (45 Gy)",
+     "type": "CTV",
+     "definition": "Iliaques internes, iliaques externes, inguinaux des deux côtés, présacrés du promontoire au coccyx ; doit contenir le CTV_N_HR",
+     "quand": "T2 et plus ou N+ (fiche : « > T2 N0 ») ; T1 N0 : pas d'aires ganglionnaires, sauf tumeur de la jonction ano-rectale (mésorectum)"
+    },
+    {
+     "nom": "PTV_HR",
+     "type": "PTV",
+     "definition": "(CTV_T_HR + CTV_N_HR) + 5 mm",
+     "quand": "Toujours",
+     "marge": "5 mm"
+    },
+    {
+     "nom": "PTV_BR",
+     "type": "PTV",
+     "definition": "(CTV_T_BR + 5 mm) + (CTV_N_BR + 7 mm) ; rester à distance de la peau (fiche : « < 5 mm de la surface cutanée ») sauf atteinte cutanée, avec ajustement manuel vulve, marge anale, périnée",
+     "quand": "Toujours",
+     "marge": "5 mm (T), 7 mm (N)"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "AGITG 2012"
+    },
+    {
+     "nom": "RTOG 2009, CTV ano-rectaux"
+    }
+   ],
+   "oar_ids": [
+    "oar-vessie",
+    "oar-grele",
+    "oar-sigmoide",
+    "oar-tete-femorale-d",
+    "oar-tete-femorale-g",
+    "oar-queue-cheval",
+    "oar-oge",
+    "oar-vulve",
+    "oar-moelle-osseuse",
+    "oar-plis-inguinaux"
+   ],
+   "oar_notes": {
+    "oar-grele": "fiche : grêle + côlon jusqu'à 1 cm au-dessus du PTV HR",
+    "oar-vulve": "si atteinte ou proximité"
+   }
+  },
+  {
+   "id": "vol-anal-agitg",
+   "cibles": [
+    {
+     "nom": "GTV",
+     "type": "GTV",
+     "definition": "Tumeur primitive et adénopathies",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "CTV primitif",
+     "type": "CTV",
+     "definition": "GTV tumoral + 20 mm en respectant les barrières anatomiques",
+     "quand": "Toujours",
+     "marge": "20 mm"
+    },
+    {
+     "nom": "CTV ganglionnaire",
+     "type": "CTV",
+     "definition": "Adénopathie + 10 à 20 mm",
+     "quand": "Si adénopathie",
+     "marge": "10 à 20 mm"
+    },
+    {
+     "nom": "CTV électif",
+     "type": "CTV",
+     "definition": "Aires ganglionnaires (vaisseaux + 7 mm) : toutes, à tous les stades ; on peut exclure les inguinaux et le haut pelvis seulement pour certains T1 N0",
+     "quand": "Toujours",
+     "marge": "7 mm"
+    },
+    {
+     "nom": "PTV",
+     "type": "PTV",
+     "definition": "CTV + 5 à 10 mm",
+     "quand": "Toujours",
+     "marge": "5 à 10 mm"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "AGITG 2012"
+    }
+   ],
+   "oar_ids": [
+    "oar-vessie",
+    "oar-grele",
+    "oar-tete-femorale-d",
+    "oar-tete-femorale-g",
+    "oar-oge",
+    "oar-moelle-osseuse"
+   ]
+  }
+ ],
+ "curie_indications": [],
+ "systemique": [
+  {
+   "situation": "Tous stades",
+   "traitement": "5FU 1000 mg/m²/j J1–J4 et J29–J32 + mitomycine C 12 mg/m² J1",
+   "essai_ids": [
+    "act2",
+    "rtog9811"
+   ],
+   "note": "Standard. ACT II : réponse complète à 26 semaines identique avec le cisplatine (90,5 % vs 89,6 %) mais 5FU-mitomycine reste la référence ; pas de bénéfice d'un traitement d'entretien"
+  },
+  {
+   "situation": "Tous stades",
+   "traitement": "Pas de chimiothérapie d'induction",
+   "essai_ids": [
+    "rtog9811",
+    "accord03"
+   ],
+   "note": "RTOG 98-11 : induction + 5FU-cisplatine inférieure (SSM à 5 ans 57,8 % vs 67,8 %, SG 70,7 % vs 78,3 %) ; ACCORD 03 : pas de gain de survie sans colostomie"
+  }
+ ],
+ "hormonotherapie": [],
+ "points_attention": [
+  {
+   "cible": "canal_anal",
+   "point": "Pas de chimiothérapie d'induction ni de complément à haute dose (20–25 Gy) : aucun bénéfice dans ACCORD 03",
+   "portee": "localisation"
+  },
+  {
+   "cible": "canal_anal",
+   "point": "IMRT dose-painting : moins de toxicité hématologique G2+, digestive G3+ et cutanée G3+ qu'avec la technique de RTOG 98-11 ; 81 % des plans ont dû être refaits au contrôle qualité (RTOG 0529) : faire relire les contours",
+   "portee": "localisation"
+  },
+  {
+   "cible": "canal_anal",
+   "point": "La fiche du service liste le canal anal parmi les OAR à contourer : c'est une cible ici (copie de la fiche rectum)",
+   "portee": "localisation"
+  },
+  {
+   "cible": "canal_anal",
+   "point": "Le tableur du service prévoit 36 Gy / 20 fx sur le pelvis, la fiche 45 Gy / 25 fx ; la fiche est retenue (ACCORD 03, AGITG : 45 Gy électif)",
+   "portee": "localisation"
+  },
+  {
+   "cible": "canal_anal",
+   "point": "Vérifier que le CTV HR est inclus dans le CTV BR ; iliaques communes non incluses en routine sauf N+ latéral",
+   "portee": "localisation"
+  }
+ ],
+ "textes": {
+  "contourage": [
+   "Deux jeux : celui de la fiche du service (CTV haut risque et bas risque) et celui de l'atlas AGITG, utilisé par les schémas à boost intégré. Le volume tumoral de référence est le volume initial, avant tout traitement."
+  ]
+ }
+}

@@ -1,0 +1,237 @@
+{
+ "version": "2026-10-25",
+ "id": "surrenale",
+ "region_id": "os_palliatif",
+ "nom": "Surrénale",
+ "ordre": 40,
+ "date_maj": "2026-10-24",
+ "situations": [
+  {
+   "id": "su-oligo",
+   "localisation_id": "surrenale",
+   "titre": "Métastase surrénalienne oligométastatique",
+   "contexte": "oligometastatique",
+   "criteres": "Métastase surrénalienne isolée ou maladie oligométastatique (5 métastases ou moins dans les séries publiées) ; surrénalectomie ou SBRT à discuter en RCP",
+   "ordre": 1
+  }
+ ],
+ "schemas": [
+  {
+   "id": "su-igr-45-5",
+   "situation_id": "su-oligo",
+   "titre": "SBRT 45 Gy / 5 fx (5 × 9 Gy)",
+   "type": "sbrt",
+   "preuve": "pratique_institutionnelle",
+   "essai_ids": [
+    "igr-surrenale",
+    "chen2020-surrenale",
+    "liao2023-surrenale",
+    "giraud2026-surrenale"
+   ],
+   "source_institutionnelle": "Gustave Roussy, fiche « stéréotaxie surrénale 5 × 9 Gy »",
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 45,
+     "fractions": 5,
+     "dose_fx_Gy": 9,
+     "mode": "seul",
+     "rythme": "Selon le centre",
+     "note": "BED10 85,5 Gy"
+    }
+   ],
+   "technique": "SBRT avec gestion du mouvement respiratoire, IGRT",
+   "systemique": "Aucune",
+   "simulation_id": "sim-surrenale",
+   "volumes_id": "vol-surrenale",
+   "contraintes_ids": [
+    "ct-surrenale-igr-5fx"
+   ],
+   "couverture": "GTV/ITV : rapporter D95 % et Dmoy. PTV : D99 % ≈ 90 % de la dose prescrite, D90 % ≈ dose prescrite ; rapporter D50 %, Dmoy, D2 %, D98 %",
+   "points_attention": [
+    "Méta-régression : BED10 de 60, 80 et 100 Gy → contrôle local à 1 an de 70,5, 84,8 et 92,9 % ; toxicité de grade ≥ 3 : 1,8 % ; insuffisance surrénalienne de grade 2 : 0,5 % (Chen 2020)",
+    "Méta-analyse 2026 : contrôle local 91,7 % après surrénalectomie et 84,8 % après SABR ; avec une BED10 ≥ 100 Gy, 95 % à 1 an ; survie meilleure après chirurgie, probablement par sélection des patients (Giraud 2026)",
+    "Pour une BED10 de 60 à 80 Gy, 9 Gy ou plus par fraction : contrôle local à 1 an 91 % contre 78 % en dessous de 9 Gy (Liao 2023)",
+    "Moelle : Gustave Roussy Dmax ≤ 28 Gy en 5 fractions ; HyTEC : Dmax 25,3 Gy en 5 fractions pour un risque de myélopathie de 1 à 5 % (jeu ct-hytec-moelle)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Os et palliatif",
+    "Surrénale",
+    "Métastase surrénalienne oligométastatique",
+    "Stéréotaxie"
+   ]
+  },
+  {
+   "id": "su-service-45-5",
+   "situation_id": "su-oligo",
+   "titre": "SBRT 45 Gy / 5 fx, prescription sur l'isodose 70 %",
+   "type": "sbrt",
+   "preuve": "pratique_institutionnelle",
+   "essai_ids": [
+    "chen2020-surrenale",
+    "hanna-uk"
+   ],
+   "source_institutionnelle": "Tableur du service « surrénale stéréo 5 fractions »",
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 45,
+     "fractions": 5,
+     "dose_fx_Gy": 9,
+     "mode": "seul",
+     "rythme": "Selon le service",
+     "note": "Isodose 70 % ; D95 % du PTV = dose prescrite"
+    }
+   ],
+   "technique": "SBRT avec gestion du mouvement respiratoire, IGRT",
+   "systemique": "Aucune",
+   "simulation_id": "sim-surrenale",
+   "volumes_id": "vol-surrenale",
+   "contraintes_ids": [
+    "ct-sbrt-abdo-5fx"
+   ],
+   "couverture": "D95 % du PTV = dose prescrite",
+   "points_attention": [
+    "Méta-régression : BED10 de 60, 80 et 100 Gy → contrôle local à 1 an de 70,5, 84,8 et 92,9 % ; toxicité de grade ≥ 3 : 1,8 % ; insuffisance surrénalienne de grade 2 : 0,5 % (Chen 2020)",
+    "Méta-analyse 2026 : contrôle local 91,7 % après surrénalectomie et 84,8 % après SABR ; avec une BED10 ≥ 100 Gy, 95 % à 1 an ; survie meilleure après chirurgie, probablement par sélection des patients (Giraud 2026)",
+    "Pour une BED10 de 60 à 80 Gy, 9 Gy ou plus par fraction : contrôle local à 1 an 91 % contre 78 % en dessous de 9 Gy (Liao 2023)",
+    "Les contraintes du tableur du service reprennent les valeurs du consensus UK SABR en 5 fractions (jeu ct-sbrt-abdo-5fx)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Os et palliatif",
+    "Surrénale",
+    "Métastase surrénalienne oligométastatique",
+    "Stéréotaxie"
+   ]
+  },
+  {
+   "id": "su-60-8",
+   "situation_id": "su-oligo",
+   "titre": "SBRT 60 Gy / 8 fx",
+   "type": "sbrt",
+   "preuve": "option",
+   "essai_ids": [
+    "sabrcomet",
+    "chen2020-surrenale"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 60,
+     "fractions": 8,
+     "dose_fx_Gy": 7.5,
+     "mode": "seul",
+     "rythme": "Selon le centre",
+     "note": "Dose de SABR-COMET pour la surrénale ; BED10 105 Gy"
+    }
+   ],
+   "technique": "SBRT avec gestion du mouvement respiratoire, IGRT",
+   "systemique": "Aucune",
+   "simulation_id": "sim-surrenale",
+   "volumes_id": "vol-surrenale",
+   "points_attention": [
+    "Méta-régression : BED10 de 60, 80 et 100 Gy → contrôle local à 1 an de 70,5, 84,8 et 92,9 % ; toxicité de grade ≥ 3 : 1,8 % ; insuffisance surrénalienne de grade 2 : 0,5 % (Chen 2020)",
+    "Méta-analyse 2026 : contrôle local 91,7 % après surrénalectomie et 84,8 % après SABR ; avec une BED10 ≥ 100 Gy, 95 % à 1 an ; survie meilleure après chirurgie, probablement par sélection des patients (Giraud 2026)",
+    "Pour une BED10 de 60 à 80 Gy, 9 Gy ou plus par fraction : contrôle local à 1 an 91 % contre 78 % en dessous de 9 Gy (Liao 2023)",
+    "Pas de jeu de contraintes abdominal en 8 fractions dans la bibliothèque"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Os et palliatif",
+    "Surrénale",
+    "Métastase surrénalienne oligométastatique",
+    "Stéréotaxie"
+   ],
+   "contraintes_ids": []
+  }
+ ],
+ "simulations": [
+  {
+   "id": "sim-surrenale",
+   "scanner": "Scanner 4D pour l'ITV, ou blocage respiratoire",
+   "reperes": "Fiduciaires possibles : le suivi de fiduciaires est associé à une BED10 et à un contrôle local à 1 an plus élevés ; complications de la pose 10,7 % dans la seule série qui les rapporte (Chen 2020)"
+  }
+ ],
+ "volumes": [
+  {
+   "id": "vol-surrenale",
+   "cibles": [
+    {
+     "nom": "GTV",
+     "type": "GTV",
+     "definition": "Métastase surrénalienne",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "ITV",
+     "type": "ITV",
+     "definition": "Réunion des positions du GTV sur le cycle respiratoire ; Gustave Roussy rapporte la couverture du GTV/ITV",
+     "quand": "Respiration libre (scanner 4D)"
+    },
+    {
+     "nom": "PTV",
+     "type": "PTV",
+     "definition": "ITV, ou GTV en blocage respiratoire, + marge selon la gestion du mouvement et l'IGRT",
+     "quand": "Toujours"
+    }
+   ],
+   "atlas": [],
+   "oar_ids": [
+    "oar-foie",
+    "oar-estomac",
+    "oar-duodenum",
+    "oar-grele",
+    "oar-colon",
+    "oar-reins",
+    "oar-rein-d",
+    "oar-rein-g",
+    "oar-moelle",
+    "oar-paroi-thoracique",
+    "oar-oesophage",
+    "oar-voie-biliaire"
+   ]
+  }
+ ],
+ "curie_indications": [],
+ "systemique": [],
+ "hormonotherapie": [],
+ "points_attention": [
+  {
+   "cible": "su-oligo",
+   "point": "Méta-régression : BED10 de 60, 80 et 100 Gy → contrôle local à 1 an de 70,5, 84,8 et 92,9 % ; toxicité de grade ≥ 3 : 1,8 % ; insuffisance surrénalienne de grade 2 : 0,5 % (Chen 2020)",
+   "portee": "situation"
+  },
+  {
+   "cible": "su-oligo",
+   "point": "Méta-analyse 2026 : contrôle local 91,7 % après surrénalectomie et 84,8 % après SABR ; avec une BED10 ≥ 100 Gy, 95 % à 1 an ; survie meilleure après chirurgie, probablement par sélection des patients (Giraud 2026)",
+   "portee": "situation"
+  },
+  {
+   "cible": "su-oligo",
+   "point": "Pour une BED10 de 60 à 80 Gy, 9 Gy ou plus par fraction : contrôle local à 1 an 91 % contre 78 % en dessous de 9 Gy (Liao 2023)",
+   "portee": "situation"
+  },
+  {
+   "cible": "ct-surrenale-igr-5fx",
+   "point": "Moelle : Gustave Roussy Dmax ≤ 28 Gy en 5 fractions ; HyTEC : Dmax 25,3 Gy en 5 fractions pour un risque de myélopathie de 1 à 5 % (jeu ct-hytec-moelle)",
+   "portee": "contraintes"
+  },
+  {
+   "cible": "su-service-45-5",
+   "point": "Les contraintes du tableur du service reprennent les valeurs du consensus UK SABR en 5 fractions (jeu ct-sbrt-abdo-5fx)",
+   "portee": "schema"
+  },
+  {
+   "cible": "su-60-8",
+   "point": "Pas de jeu de contraintes abdominal en 8 fractions dans la bibliothèque",
+   "portee": "schema"
+  }
+ ],
+ "textes": {
+  "systemique": [
+   "Pas de traitement systémique associé à la RT dans ces schémas."
+  ]
+ }
+}

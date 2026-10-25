@@ -1,0 +1,286 @@
+{
+ "version": "2026-10-25",
+ "id": "craniopharyngiome",
+ "region_id": "snc",
+ "nom": "Craniopharyngiome",
+ "ordre": 34,
+ "date_maj": "2026-10-24",
+ "situations": [
+  {
+   "id": "crp-post-op",
+   "localisation_id": "craniopharyngiome",
+   "titre": "Craniopharyngiome après chirurgie limitée, ou récidive",
+   "contexte": "post_op",
+   "criteres": "Chirurgie limitée suivie de RT : contrôle local à 10 ans 77–100 % ; RT au diagnostic ou à la progression : survies comparables (Iannalfi 2013)",
+   "ordre": 1
+  }
+ ],
+ "schemas": [
+  {
+   "id": "crp-54-30",
+   "situation_id": "crp-post-op",
+   "titre": "RT 54 Gy / 30 fx",
+   "type": "rte_normo",
+   "preuve": "recommandation",
+   "essai_ids": [
+    "iannalfi2013",
+    "kamogawa2022"
+   ],
+   "source_institutionnelle": "Tableur du service « Craniopharyngiome 54 Gy »",
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 54,
+     "fractions": 30,
+     "dose_fx_Gy": 1.8,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Borne haute de la dose recommandée"
+    }
+   ],
+   "technique": "IMRT ou RT stéréotaxique, IGRT quotidienne",
+   "systemique": "Aucune",
+   "simulation_id": "sim-crane",
+   "volumes_id": "vol-crp",
+   "contraintes_ids": [
+    "ct-crane-igr",
+    "ct-crane-quantec"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "SNC",
+    "Craniopharyngiome",
+    "Craniopharyngiome après chirurgie limitée, ou récidive",
+    "Normofractionné"
+   ],
+   "points_attention": []
+  },
+  {
+   "id": "crp-504-28",
+   "situation_id": "crp-post-op",
+   "titre": "RT 50,4 Gy / 28 fx",
+   "type": "rte_normo",
+   "preuve": "recommandation",
+   "essai_ids": [
+    "iannalfi2013"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 50.4,
+     "fractions": 28,
+     "dose_fx_Gy": 1.8,
+     "mode": "seul",
+     "rythme": "5 fx/sem"
+    }
+   ],
+   "technique": "IMRT ou RT stéréotaxique, IGRT quotidienne",
+   "systemique": "Aucune",
+   "simulation_id": "sim-crane",
+   "volumes_id": "vol-crp",
+   "contraintes_ids": [
+    "ct-crane-igr",
+    "ct-crane-quantec"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "SNC",
+    "Craniopharyngiome",
+    "Craniopharyngiome après chirurgie limitée, ou récidive",
+    "Normofractionné"
+   ],
+   "points_attention": []
+  },
+  {
+   "id": "crp-srs-12-1",
+   "situation_id": "crp-post-op",
+   "titre": "Radiochirurgie 12 Gy (12 à 15 Gy) d'un petit résidu éloigné des voies optiques",
+   "type": "sbrt",
+   "preuve": "option",
+   "essai_ids": [
+    "kamogawa2022"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV (isodose 50 %, Gamma Knife)",
+     "dose_Gy": 12,
+     "fractions": 1,
+     "dose_fx_Gy": 12,
+     "mode": "seul",
+     "rythme": "1 séance",
+     "note": "12 à 15 Gy ; choix selon la distance aux nerfs optiques et au chiasma"
+    }
+   ],
+   "technique": "Radiochirurgie, IGRT stéréotaxique",
+   "systemique": "Aucune",
+   "simulation_id": "sim-crane-srs",
+   "volumes_id": "vol-crane-srs",
+   "contraintes_ids": [
+    "ct-srs-igr-1fx",
+    "ct-srs-hytec"
+   ],
+   "couverture": "Dose prescrite en périphérie du résidu",
+   "points_attention": [
+    "Radiochirurgie ou stéréotaxie en 3 fractions (19,5–24 Gy) si le résidu est loin des voies optiques ; sinon 54 Gy / 30 fx (Kamogawa 2022)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "SNC",
+    "Craniopharyngiome",
+    "Craniopharyngiome après chirurgie limitée, ou récidive",
+    "Stéréotaxie"
+   ]
+  }
+ ],
+ "simulations": [
+  {
+   "id": "sim-crane",
+   "position": "Décubitus dorsal, bras le long du corps, coussin sous les genoux",
+   "contention": "Masque thermoformé 3 points",
+   "scanner": "Non injecté, coupes jointives de 2,5 mm, crâne entier jusqu'à C3, moins de 2 semaines avant le début de la RT",
+   "imagerie": "IRM dosimétrique T1 3D gadolinium et T2-FLAIR, axiales strictes, fusionnées au scanner ; IRM post-opératoire précoce (48–72 h) pour le GTV ; éviter l'IRM post-opératoire tardive, qui surestime le résidu"
+  },
+  {
+   "id": "sim-crane-srs",
+   "position": "Décubitus dorsal, tête en position neutre, bras le long du corps, coussin sous les genoux",
+   "contention": "Masque thermoformé 5 points ou cadre stéréotaxique (fiche du service) ; Curie : masque bivalve sans cadre, moulé sur une cale retirée avant l'acquisition",
+   "scanner": "Coupes axiales millimétriques. Curie : non injecté, de 1 cm au-dessus du vertex jusqu'à T1 ; fiche du service : injecté",
+   "imagerie": "IRM de planification T1 sans injection (saignement récent), T1 gadolinium 3D (contourage) et perfusion (référence du suivi), jusqu'à C3–C4, fusionnée au scanner. Première séance dans les 14 jours suivant l'IRM, 16 au plus (Curie)",
+   "reperes": "Plan de référence pointe du nez–tragus, perpendiculaire à la table (Curie)"
+  }
+ ],
+ "volumes": [
+  {
+   "id": "vol-crp",
+   "cibles": [
+    {
+     "nom": "GTV",
+     "type": "GTV",
+     "definition": "Partie solide rehaussée en T1 gadolinium et kyste (tableur du service)",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "CTV",
+     "type": "CTV",
+     "definition": "GTV + 7 mm (tableur du service)",
+     "quand": "Toujours",
+     "marge": "7 mm"
+    },
+    {
+     "nom": "PTV",
+     "type": "PTV",
+     "definition": "CTV + 3 mm (tableur du service)",
+     "quand": "Toujours",
+     "marge": "3 mm"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "atlas EPTN 2018",
+     "url": "https://doi.org/10.1016/j.radonc.2017.12.013"
+    }
+   ],
+   "oar_ids": [
+    "oar-chiasma",
+    "oar-nerf-optique-d",
+    "oar-nerf-optique-g",
+    "oar-bandelettes-optiques",
+    "oar-hypothalamus",
+    "oar-hypophyse",
+    "oar-tronc-cerebral",
+    "oar-hippocampes",
+    "oar-cochlee-d",
+    "oar-cochlee-g",
+    "oar-oeil-d",
+    "oar-oeil-g",
+    "oar-retine-d",
+    "oar-retine-g",
+    "oar-cristallin-d",
+    "oar-cristallin-g",
+    "oar-encephale-sain",
+    "oar-moelle"
+   ]
+  },
+  {
+   "id": "vol-crane-srs",
+   "cibles": [
+    {
+     "nom": "GTV",
+     "type": "GTV",
+     "definition": "Prise de contraste nodulaire en T1 gadolinium 3D, zoom maximal ; œdème FLAIR exclu ; composante hémorragique limitée incluse si le PTV reste compatible (Curie)",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "CTV",
+     "type": "CTV",
+     "definition": "CTV = GTV",
+     "quand": "Toujours",
+     "marge": "0 mm"
+    },
+    {
+     "nom": "PTV",
+     "type": "PTV",
+     "definition": "CTV + 1 mm isotrope (Curie, masque et Novalis) ; plus petit diamètre du PTV d'au moins 8 mm, sinon marge augmentée ; à adapter à la plateforme",
+     "quand": "Toujours",
+     "marge": "1 mm"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "Procédure Curie (modèle « Volumes Stéréotaxie intracrânienne »)"
+    },
+    {
+     "nom": "atlas EPTN 2018",
+     "url": "https://doi.org/10.1016/j.radonc.2017.12.013"
+    }
+   ],
+   "oar_ids": [
+    "oar-encephale-sain",
+    "oar-encephale",
+    "oar-tronc-cerebral",
+    "oar-chiasma",
+    "oar-nerf-optique-d",
+    "oar-nerf-optique-g",
+    "oar-bandelettes-optiques",
+    "oar-oeil-d",
+    "oar-oeil-g",
+    "oar-retine-d",
+    "oar-retine-g",
+    "oar-cristallin-d",
+    "oar-cristallin-g",
+    "oar-cochlee-d",
+    "oar-cochlee-g",
+    "oar-hippocampe-d",
+    "oar-hippocampe-g",
+    "oar-hypophyse",
+    "oar-canal-medullaire",
+    "oar-nerfs-craniens",
+    "oar-parotide-d",
+    "oar-parotide-g"
+   ],
+   "oar_notes": {
+    "oar-nerfs-craniens": "si concernés"
+   }
+  }
+ ],
+ "curie_indications": [],
+ "systemique": [],
+ "hormonotherapie": [],
+ "points_attention": [
+  {
+   "cible": "craniopharyngiome",
+   "point": "Toxicité tardive moindre avec chirurgie limitée et RT qu'avec chirurgie radicale (Iannalfi 2013)",
+   "portee": "localisation"
+  },
+  {
+   "cible": "crp-srs-12-1",
+   "point": "Radiochirurgie ou stéréotaxie en 3 fractions (19,5–24 Gy) si le résidu est loin des voies optiques ; sinon 54 Gy / 30 fx (Kamogawa 2022)",
+   "portee": "schema"
+  }
+ ],
+ "textes": {
+  "systemique": [
+   "Pas de traitement systémique standard."
+  ]
+ }
+}

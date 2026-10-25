@@ -1,0 +1,445 @@
+Rapport de conversion — référentiel de radiothérapie Onco360
+Version du contenu : 2026-10-25 · généré le 2026-10-25
+Source : document Claude « Onco360 — Module Radiothérapie (spécification + référentiel) », exporté onglet par onglet en Markdown.
+
+== Comptes ==
+Régions : 11 · localisations : 48 · situations : 124 · schémas : 295
+Prescriptions : 455 · fiches de centrage : 37 · jeux de volumes : 98
+OAR : 103 · jeux de contraintes : 49 (48 publiés, 1 du service) · lignes de contraintes : 717
+Essais et références : 452 (dont 436 avec PMID) · aide des colonnes : 12 lignes
+Curiethérapie : 30 schémas, 41 lignes d'indications dans 16 localisations
+Traitement systémique : 84 lignes · hormonothérapie : 10 lignes
+Points d'attention : 258 · diag-localisation : 52 libellés de DIAG sur 94 rattachés
+
+== Par localisation ==
+ 1. prostate                  9 situations  27 schémas  mise à jour 2026-10-22  (Uro — Prostate)
+ 2. vessie                    3 situations   5 schémas  mise à jour 2026-10-22  (Uro — Vessie)
+ 3. seminome                  2 situations   4 schémas  mise à jour 2026-10-24  (Uro — Séminome testiculaire)
+ 4. penis                     1 situations   2 schémas  mise à jour 2026-10-24  (Uro — Pénis)
+ 5. col                       3 situations   7 schémas  mise à jour 2026-10-23  (Gynéco — Col utérin)
+ 6. endometre                 3 situations   6 schémas  mise à jour 2026-10-23  (Gynéco — Endomètre)
+ 7. vagin                     2 situations   2 schémas  mise à jour 2026-10-23  (Gynéco — Vagin)
+ 8. vulve                     2 situations   3 schémas  mise à jour 2026-10-23  (Gynéco — Vulve)
+ 9. oesophage                 3 situations   7 schémas  mise à jour 2026-10-23  (Digestif — Œsophage)
+10. estomac                   2 situations   3 schémas  mise à jour 2026-10-23  (Digestif — Estomac)
+11. pancreas                  3 situations   5 schémas  mise à jour 2026-10-23  (Digestif — Pancréas)
+12. foie                      5 situations   8 schémas  mise à jour 2026-10-23  (Digestif — Foie et voies biliaires)
+13. rectum                    3 situations   8 schémas  mise à jour 2026-10-23  (Digestif — Rectum)
+14. canal_anal                2 situations   6 schémas  mise à jour 2026-10-23  (Digestif — Canal anal)
+15. cavite_buccale            3 situations   9 schémas  mise à jour 2026-10-24  (ORL — Cavité buccale)
+16. oropharynx                3 situations   8 schémas  mise à jour 2026-10-24  (ORL — Oropharynx)
+17. larynx                    3 situations  10 schémas  mise à jour 2026-10-24  (ORL — Larynx)
+18. hypopharynx               2 situations   7 schémas  mise à jour 2026-10-24  (ORL — Hypopharynx)
+19. cavum                     2 situations   6 schémas  mise à jour 2026-10-24  (ORL — Cavum)
+20. sinus                     2 situations   4 schémas  mise à jour 2026-10-24  (ORL — Sinus et cavités nasales)
+21. glandes_salivaires        2 situations   3 schémas  mise à jour 2026-10-24  (ORL — Glandes salivaires)
+22. orl_palliatif             2 situations   6 schémas  mise à jour 2026-10-24  (ORL — Situations palliatives et sujet fragile)
+23. poumon                    6 situations  18 schémas  mise à jour 2026-10-23  (Thorax — Poumon)
+24. mesotheliome              3 situations   3 schémas  mise à jour 2026-10-23  (Thorax — Mésothéliome)
+25. thymome                   2 situations   4 schémas  mise à jour 2026-10-24  (Thorax — Thymome)
+26. sein                      7 situations  20 schémas  mise à jour 2026-10-25  (Sein — Carcinome infiltrant)
+27. sein_ccis                 2 situations   5 schémas  mise à jour 2026-10-24  (Sein — Carcinome in situ)
+28. glioblastome              2 situations   5 schémas  mise à jour 2026-10-24  (SNC — Glioblastome)
+29. gliome                    3 situations   4 schémas  mise à jour 2026-10-24  (SNC — Gliomes de grade 2 et 3)
+30. metastases_cerebrales     4 situations  20 schémas  mise à jour 2026-10-25  (SNC — Métastases cérébrales)
+31. meningiome                3 situations   7 schémas  mise à jour 2026-10-24  (SNC — Méningiome)
+32. schwannome                1 situations   3 schémas  mise à jour 2026-10-24  (SNC — Schwannome vestibulaire)
+33. hypophyse                 2 situations   3 schémas  mise à jour 2026-10-24  (SNC — Adénome hypophysaire)
+34. craniopharyngiome         1 situations   3 schémas  mise à jour 2026-10-24  (SNC — Craniopharyngiome)
+35. neurocytome               1 situations   3 schémas  mise à jour 2026-10-24  (SNC — Neurocytome central)
+36. ependymome                1 situations   2 schémas  mise à jour 2026-10-24  (SNC — Épendymome de l'adulte)
+37. medulloblastome           1 situations   1 schémas  mise à jour 2026-10-24  (SNC — Médulloblastome de l'adulte)
+38. metastases_osseuses       2 situations   8 schémas  mise à jour 2026-10-24  (Os et palliatif — Métastases osseuses)
+39. sbrt_os                   3 situations   7 schémas  mise à jour 2026-10-25  (Os et palliatif — Stéréotaxie osseuse)
+40. surrenale                 1 situations   3 schémas  mise à jour 2026-10-24  (Os et palliatif — Surrénale)
+41. reirradiation             6 situations  10 schémas  mise à jour 2026-10-24  (Os et palliatif — Réirradiation)
+42. sarcome_membres           2 situations   6 schémas  mise à jour 2026-10-25  (Sarcomes — Membres et tronc)
+43. sarcome_retroperitoine    1 situations   1 schémas  mise à jour 2026-10-24  (Sarcomes — Rétropéritoine)
+44. chordome                  1 situations   2 schémas  mise à jour 2026-10-24  (Sarcomes — Chordome)
+45. peau_carcinome            2 situations   5 schémas  mise à jour 2026-10-24  (Peau — Carcinomes basocellulaires et épidermoïdes)
+46. merkel                    3 situations   3 schémas  mise à jour 2026-10-24  (Peau — Carcinome de Merkel)
+47. melanome                  1 situations   1 schémas  mise à jour 2026-10-24  (Peau — Mélanome)
+48. melanome_uveal            1 situations   2 schémas  mise à jour 2026-10-24  (Autres — Mélanome uvéal)
+
+== Lignes de traitement systémique : rattachement au protocole ==
+Aucune ligne ne porte de protocole_id : la bibliothèque Protocoles est dans Firestore (cabinet du Dr Bentahila), pas dans le dépôt.
+Le module cherche donc le protocole par le nom exact « protocole », puis ouvre la page Protocoles filtrée sur la localisation (spécification, Fiche d’un schéma, Lien vers Protocoles).
+62 lignes avec un nom de protocole, 22 lignes sans nom (onglets du lot pelvis : lien vers la page Protocoles filtrée).
+  estomac · 5FU-leucovorine (INT-0116, Macdonald)
+  estomac · FLOT (œsogastrique)
+  foie · Sorafénib (CHC)
+  foie · Gemcitabine-capécitabine puis capécitabine concomitante à la RT (voies biliaires)
+  foie · Capécitabine adjuvante (voies biliaires)
+  oesophage · Carboplatine-paclitaxel hebdomadaire (CROSS)
+  oesophage · Nivolumab adjuvant (œsophage)
+  oesophage · FLOT (œsogastrique)
+  oesophage · FOLFOX concomitant à la RT (œsophage)
+  oesophage · 5FU-cisplatine concomitant à la RT (œsophage)
+  pancreas · Capécitabine concomitante à la RT (pancréas)
+  pancreas · Gemcitabine (pancréas)
+  pancreas · Gemcitabine concomitante à la RT (PREOPANC)
+  pancreas · FOLFIRINOX (pancréas)
+  pancreas · Capécitabine concomitante à la RT (pancréas)
+  cavite_buccale · Cisplatine 100 mg/m² toutes les 3 semaines, concomitant à la RT
+  cavite_buccale · Cisplatine 100 mg/m² toutes les 3 semaines, concomitant à la RT
+  cavite_buccale · Carboplatine–5-FU concomitant (GORTEC 99-02)
+  cavite_buccale · Cetuximab concomitant à la RT
+  cavum · Cisplatine hebdomadaire 30 mg/m² concomitant (cavum)
+  cavum · Gemcitabine–cisplatine d'induction (cavum)
+  cavum · TPF d'induction (cavum)
+  cavum · Cisplatine 100 mg/m² toutes les 3 semaines, concomitant à la RT
+  hypopharynx · TPF d'induction (docétaxel–cisplatine–5-FU)
+  hypopharynx · Cisplatine 100 mg/m² toutes les 3 semaines, concomitant à la RT
+  hypopharynx · Cisplatine 100 mg/m² toutes les 3 semaines, concomitant à la RT
+  larynx · Cisplatine 100 mg/m² toutes les 3 semaines, concomitant à la RT
+  larynx · TPF d'induction (docétaxel–cisplatine–5-FU)
+  larynx · Cisplatine 100 mg/m² toutes les 3 semaines, concomitant à la RT
+  oropharynx · Cisplatine 100 mg/m² toutes les 3 semaines, concomitant à la RT
+  oropharynx · Cetuximab concomitant à la RT
+  oropharynx · Cisplatine 100 mg/m² toutes les 3 semaines, concomitant à la RT
+  reirradiation · 5-FU + hydroxyurée concomitants (réirradiation ORL)
+  reirradiation · 5-FU + hydroxyurée concomitants (réirradiation ORL)
+  reirradiation · Cisplatine–paclitaxel concomitants (RTOG 9911)
+  reirradiation · Bévacizumab (glioblastome en récidive)
+  reirradiation · 5-FU continu concomitant à la RT (rectum)
+  sein · Hormonothérapie adjuvante
+  sein · Trastuzumab adjuvant
+  sein · Capécitabine concomitante à la RT (sein)
+  sein · Trastuzumab emtansine (T-DM1) adjuvant
+  sein · Capécitabine adjuvante (CREATE-X)
+  glioblastome · Témozolomide concomitant puis adjuvant (Stupp)
+  glioblastome · Témozolomide adjuvant (Stupp)
+  glioblastome · Lomustine-témozolomide (CeTeG)
+  glioblastome · Témozolomide avec RT courte (Perry)
+  glioblastome · Témozolomide seul (sujet âgé)
+  gliome · PCV
+  gliome · Vorasidenib
+  gliome · PCV
+  gliome · Témozolomide adjuvant (CATNON)
+  medulloblastome · Vincristine concomitante puis cisplatine–lomustine–vincristine (NOA-07)
+  medulloblastome · Lomustine–vincristine–cisplatine en entretien (HIT 2000)
+  metastases_cerebrales · Mémantine (encéphale in toto)
+  mesotheliome · —
+  poumon · Carboplatine-paclitaxel hebdomadaire concomitant à la RT (poumon)
+  poumon · Cisplatine-étoposide concomitant à la RT (poumon)
+  poumon · Cisplatine-pémétrexed concomitant à la RT (poumon)
+  poumon · Durvalumab consolidation (poumon)
+  poumon · Cisplatine-étoposide (CBPC)
+  poumon · Durvalumab consolidation (CBPC limité)
+  thymome · Étoposide–cisplatine concomitant (tumeurs épithéliales thymiques)
+Sans nom de protocole :
+  canal_anal · 5FU 1000 mg/m²/j J1–J4 et J29–J32 + mitomycine C 12 mg/m² J1
+  canal_anal · Pas de chimiothérapie d'induction
+  rectum · Capécitabine 800 mg/m² × 2/j, 5 jours sur 7 pendant la RT
+  rectum · 5FU 1000 mg/m²/j en perfusion de 120 h aux semaines 1 et 5, puis 4 cycles de 5FU 500 mg/m²/j × 5 un mois après
+  rectum · Après 5 × 5 Gy : CAPOX × 6 (capécitabine 1000 mg/m² × 2/j J1–J14 + oxaliplatine 130 mg/m² J1, toutes les 3 sem
+  rectum · FOLFIRINOX × 6 (oxaliplatine 85, irinotécan 180, acide folinique 400, 5FU 2400 mg/m² en 46 h, toutes les 2 sem
+  rectum · Aucun
+  col · Cisplatine 40 mg/m² hebdomadaire pendant la RTE (5 à 6 cures)
+  col · Pembrolizumab 200 mg toutes les 3 semaines × 5 pendant la RCT, puis 400 mg toutes les 6 semaines × 15
+  col · Induction carboplatine AUC 2 + paclitaxel 80 mg/m² hebdomadaires × 6, puis RCT
+  col · Chimiothérapie concomitante à base de cisplatine (Peters : cisplatine 70 mg/m² + 5FU 1000 mg/m²/j × 4 j toutes
+  col · Aucun
+  endometre · Cisplatine 50 mg/m² aux semaines 1 et 4 de la RTE, puis 4 cures de carboplatine AUC 5 + paclitaxel 175 mg/m² t
+  endometre · Chimiothérapie seule (6 cures) ou radiochimiothérapie
+  endometre · Cisplatine 40 mg/m² hebdomadaire possible
+  endometre · Aucun en standard
+  vagin · Cisplatine 40 mg/m² hebdomadaire pendant la RTE
+  vagin · Aucun
+  vulve · Cisplatine 40 mg/m² hebdomadaire pendant la RT
+  vulve · Cisplatine 40 mg/m² hebdomadaire possible (Curie)
+  vessie · 5FU 500 mg/m²/j pendant les fractions 1 à 5 et 16 à 20 + mitomycine C 12 mg/m² à J1
+  vessie · Aucun
+
+== Contrôles bloquants ==
+Aucun : identifiants uniques, toutes les références (essais, OAR, jeux, volumes, centrages, situations) trouvées, valeurs dans les listes autorisées.
+
+== Informations (non bloquantes) ==
+-- OAR fusionnés (1)
+  oar-anus fusionné sous oar-canal-anal (définition : « Nom des tableurs gynéco pour le canal anal : même structure que oar-canal-anal (… »)
+-- Essais à plusieurs publications (5)
+  keynote-a18 : pmid = 38521086 ; 39288779 → pmid = 38521086, pmid_suite = ['39288779']
+  rtog8502 : pmid = 7679668 ; 8083097 → pmid = 7679668, pmid_suite = ['8083097']
+  rtog8502 : annee = 1993 ; 1994 → annee = 1993, annee_suite = ['1994']
+  portec3 : pmid = 29449189 ; 31345626 → pmid = 29449189, pmid_suite = ['31345626']
+  portec3 : annee = 2018 ; 2019 → annee = 2018, annee_suite = ['2019']
+-- Renvois au journal des écarts retirés du texte affiché (52)
+  volumes vol-pro-loge-service : atlas « écarts E07 à E11 » retiré
+  prostate/volumes/cibles/quand : « …he : risque ganglionnaire ≥ 15 % (voir écart E11)… »
+  prostate/textes/contourage : « …thie + 5 mm, VS + 7 mm, pelvis + 7 mm (écart E03).… »
+  vessie/schemas/prescriptions/note : « …a vessie 65 Gy (la fiche écrit 66 Gy : écart E26)… »
+  vessie/points_attention/point : « … un schéma ORL palliatif. Non intégré (écart E27) ; … »
+  col/schemas/points_attention : « … + 5 mm puis PTV_N = CTV_N sans marge (écart E28)… »
+  col/schemas/points_attention : « … + 5 mm puis PTV_N = CTV_N sans marge (écart E28)… »
+  col/schemas/points_attention : « … + 5 mm puis PTV_N = CTV_N sans marge (écart E28)… »
+  col/schemas/points_attention : « … + 5 mm puis PTV_N = CTV_N sans marge (écart E28)… »
+  col/points_attention/point : « … + 5 mm puis PTV_N = CTV_N sans marge (écart E28)… »
+  endometre/schemas/points_attention : « …our les adénopathies macroscopiques » (écart E33) ; … »
+  endometre/points_attention/point : « …our les adénopathies macroscopiques » (écart E33) ; … »
+  vagin/points_attention/point : « …e donne pas de dose pour PTV2 et PTV3 (écart E34) : … »
+  vulve/points_attention/point : « …ice ne donne pas de dose pour le PTV2 (écart E34) : … »
+  oesophage/schemas/points_attention : « …« à risque ≥ 20 % » relèvent du CTV_N (écart E42)… »
+  oesophage/schemas/points_attention : « …« à risque ≥ 20 % » relèvent du CTV_N (écart E42)… »
+  oesophage/schemas/points_attention : « …« à risque ≥ 20 % » relèvent du CTV_N (écart E42)… »
+  oesophage/points_attention/point : « …« à risque ≥ 20 % » relèvent du CTV_N (écart E42)… »
+  pancreas/schemas/points_attention : « …30 fractions de 1,8 Gy, 5 par semaine (écart E44 : l… »
+  pancreas/points_attention/point : « …30 fractions de 1,8 Gy, 5 par semaine (écart E44 : l… »
+  rectum/schemas/points_attention : « …OLFOX6 ou capécitabine pendant 3 mois (écart E35)… »
+  rectum/points_attention/point : « …OLFOX6 ou capécitabine pendant 3 mois (écart E35)… »
+  canal_anal/volumes/cibles/quand : « … plus ou N+ (fiche : « > T2 N0 », voir écart E37) ; … »
+  canal_anal/points_attention/point : « …sur le pelvis, la fiche 45 Gy / 25 fx (écart E36) ; … »
+  cavite_buccale/schemas/prescriptions/note : « …ine) » : corrigé à 1,64 Gy pour 33 fx (écart E63)… »
+  cavite_buccale/schemas/points_attention : « …férentiel retient CTV T54 et un CTV60 (écart E24)… »
+  cavite_buccale/schemas/points_attention : « …férentiel retient CTV T54 et un CTV60 (écart E24)… »
+  cavite_buccale/volumes/cibles/definition : « … emboles) sans facteur de haut risque (écart E24)… »
+  cavite_buccale/points_attention/point : « …férentiel retient CTV T54 et un CTV60 (écart E24)… »
+  oropharynx/schemas/prescriptions/note : « …Aires II–IV ± Ib (écart E63 pou… »
+  oropharynx/volumes/cibles/definition : « …ainement, sans facteur de haut risque (écart E24)… »
+  larynx/schemas/prescriptions/note : « …Aires électives (écart E63)… »
+  larynx/volumes/cibles/definition : « …édiaires, sans facteur de haut risque (écart E24)… »
+  hypopharynx/schemas/prescriptions/note : « …II–IV bilatéraux ± VI (écart E63)… »
+  hypopharynx/volumes/cibles/definition : « … emboles, sans facteur de haut risque (écart E24)… »
+  poumon/schemas/points_attention : « …ion des CTV sur le cycle respiratoire (écart E40)… »
+  poumon/schemas/points_attention : « …ion des CTV sur le cycle respiratoire (écart E40)… »
+  poumon/schemas/points_attention : « …e) : retenir 95 % (fiche dosimétrique, écart E51)… »
+  poumon/points_attention/point : « …ion des CTV sur le cycle respiratoire (écart E40)… »
+  poumon/points_attention/point : « …e) : retenir 95 % (fiche dosimétrique, écart E51)… »
+  mesotheliome/points_attention/point : « …ART et PIT ne montrent aucun bénéfice (écart E41)… »
+  sein_ccis/schemas/prescriptions/note : « …norif écrit « 42 Gy en 16 fractions » (écart E66)… »
+  glioblastome/textes/contourage : « …Volumes de … »
+  gliome/textes/contourage : « …t 5 mm en grade 2 et 20 mm en grade 3 (écart E59).… »
+  metastases_cerebrales/textes/contourage : « …Stéréotaxie… »
+  meningiome/schemas/points_attention : « …ableur établi pour une protonthérapie (écart E61)… »
+  meningiome/volumes/cibles/definition : « … mm (tableur 54 Gy, écriture ambiguë : écart E60)… »
+  meningiome/points_attention/point : « …ableur établi pour une protonthérapie (écart E61)… »
+  chordome/schemas/prescriptions/note : « …isque ; le tableur écrit « 1,7 Gy/j » (écart E76)… »
+  chordome/schemas/points_attention : « …es du tableur du service non reprises (écart E77) ; … »
+  chordome/points_attention/point : « …es du tableur du service non reprises (écart E77) ; … »
+  oar/oar/definition : « …u service : jusqu'au petit trochanter (écart E05)… »
+-- « Comme … » résolus (52)
+  volumes vol-ves-service : OAR et atlas recopiés de vol-ves
+  schéma anal-service-t1n0 : couverture recopié de anal-service-avance
+  schéma foie-chc-40-5 : couverture recopié de foie-chc-45-3
+  schéma foie-50-10 : couverture recopié de foie-chc-45-3
+  schéma foie-meta-45-3 : couverture recopié de foie-chc-45-3
+  schéma rec-5x5-delai : couverture recopié de rec-5x5-tme
+  schéma rec-rapido : couverture recopié de rec-5x5-tme
+  schéma rec-prodige23 : couverture recopié de rec-cap50
+  schéma col-rch-hdr-5x55 : technique recopié de col-rch-hdr-7x4
+  schéma col-rch-hdr-5x55 : systemique recopié de col-rch-hdr-7x4
+  schéma col-rch-hdr-5x6 : technique recopié de col-rch-hdr-7x4
+  schéma col-rch-hdr-5x6 : systemique recopié de col-rch-hdr-7x4
+  schéma col-postop-45-vbt : systemique recopié de col-postop-45
+  schéma endo-pelv-lao-45-curie : couverture recopié de endo-pelv-45-vbt-curie
+  schéma meta-srs-rtog9005 : technique recopié de meta-srs-20-1
+  schéma meta-srs-jlgk : technique recopié de meta-srs-20-1
+  schéma meta-srt-27-3 : technique recopié de meta-srs-20-1
+  schéma meta-srt-27-3 : couverture recopié de meta-srs-20-1
+  schéma meta-srt-24-3 : technique recopié de meta-srs-20-1
+  schéma meta-srt-24-3 : couverture recopié de meta-srs-20-1
+  schéma meta-srt-30-5 : technique recopié de meta-srs-20-1
+  schéma meta-srt-30-5 : couverture recopié de meta-srs-20-1
+  schéma meta-srt-25-5 : technique recopié de meta-srs-20-1
+  schéma meta-srt-25-5 : couverture recopié de meta-srs-20-1
+  schéma meta-srt-service-33-3 : technique recopié de meta-srs-20-1
+  schéma cav-27-3 : technique recopié de meta-srs-20-1
+  schéma cav-27-3 : couverture recopié de meta-srs-20-1
+  schéma cav-24-3 : technique recopié de meta-srs-20-1
+  schéma cav-24-3 : couverture recopié de meta-srs-20-1
+  schéma cav-30-5 : technique recopié de meta-srs-20-1
+  schéma cav-30-5 : couverture recopié de meta-srs-20-1
+  schéma cav-25-5 : technique recopié de meta-srs-20-1
+  schéma cav-25-5 : couverture recopié de meta-srs-20-1
+  schéma cav-service-33-3 : technique recopié de meta-srs-20-1
+  schéma reirr-27-3 : technique recopié de meta-srs-20-1
+  schéma reirr-27-3 : couverture recopié de meta-srs-20-1
+  schéma reirr-24-3 : technique recopié de meta-srs-20-1
+  schéma reirr-24-3 : couverture recopié de meta-srs-20-1
+  schéma reirr-30-5 : technique recopié de meta-srs-20-1
+  schéma reirr-30-5 : couverture recopié de meta-srs-20-1
+  schéma reirr-25-5 : technique recopié de meta-srs-20-1
+  schéma reirr-25-5 : couverture recopié de meta-srs-20-1
+  schéma pou-sbrt-45-3 : couverture recopié de pou-sbrt-54-3
+  schéma pou-sbrt-48-4 : couverture recopié de pou-sbrt-54-3
+  schéma pou-sbrt-50-5 : couverture recopié de pou-sbrt-54-3
+  schéma pou-sbrt-60-8 : couverture recopié de pou-sbrt-54-3
+  schéma pou-sbrt-50-10-igr : couverture recopié de pou-sbrt-55-5-igr
+  schéma pro-fav-78-39 : systemique recopié de pro-fav-60-20
+  schéma pro-def-78-39 : systemique recopié de pro-def-60-20
+  schéma pro-pelv-seq-78 : systemique recopié de pro-pelv-70-28
+  schéma pro-pelv-60-54 : systemique recopié de pro-pelv-70-28
+  schéma ves-64-32 : systemique recopié de ves-55-20
+-- Schémas sans fiche de centrage (26)
+  mu-coms-85
+  mu-63
+  cb-pdr-56
+  cb-hdr-54-18
+  pc-excl-6070
+  pc-excl-48-12
+  pc-postop-60-30
+  pc-curie-40-10
+  pc-curie-30-10
+  ml-48-20
+  ch-service-704-56
+  ch-delaney-774
+  sm-curie-ldr
+  sein-ipb-hdr-32
+  sein-ipb-pdr-50
+  md-csi-352-552
+  th-r0-50
+  th-r1-54
+  th-r2-60
+  th-excl-66
+  pn-ldr-60
+  pn-pdr-igr
+  se-20-10
+  se-30-15
+  se-iia-30
+  se-iib-36
+-- Schémas sans jeu de contraintes (« Aucun jeu publié pour ce fractionnement ») (92)
+  mu-coms-85
+  mu-63
+  est-pall-30-10
+  est-pall-20-5
+  foie-tvp-tace-45
+  foie-meta-60-3
+  foie-cca-675-15
+  oeso-curie-12-1
+  oeso-pall-20-5
+  oeso-pall-30-10
+  rec-504-28
+  rec-5x5-tme
+  rec-5x5-delai
+  rec-rapido
+  rec-postop-558
+  rec-cap45
+  col-pall-rtog8502
+  endo-vbt-7x3
+  endo-vbt-7x3-hir
+  endo-pelv-46-23
+  endo-portec3
+  vagin-curie-excl
+  vulve-gog205
+  cb-pdr-56
+  cb-hdr-54-18
+  pal-split-55
+  pal-quadshot
+  pal-hypo-30-5
+  pal-30-10
+  pal-8-1
+  mo-8-1
+  mo-20-5
+  mo-24-6
+  mo-30-10
+  mc-postop-30-10
+  mc-8-1
+  mc-20-5
+  mc-30-10
+  re-gbm-35-10
+  re-sein-45-30
+  re-rectum-30-108
+  sr-pubis-3x9
+  su-60-8
+  mk-lit-50-25
+  mk-gg-50
+  mk-macro-56
+  pc-excl-6070
+  pc-excl-48-12
+  pc-postop-60-30
+  pc-curie-40-10
+  pc-curie-30-10
+  ml-48-20
+  sm-preop-50-25
+  sm-preop-4275-15
+  sm-postop-r0
+  sm-postop-r1
+  sm-postop-r2
+  sm-curie-ldr
+  sein-ipb-hdr-32
+  sein-ipb-pdr-50
+  gbm-age-40-15
+  gbm-age-25-5
+  gbm-age-34-10
+  md-csi-352-552
+  itc-30-10
+  itc-20-5
+  meso-pall-20-5
+  pou-ipc-25-10
+  pou-cbpc-et-30-10
+  pou-pall-17-2
+  pou-pall-10-1
+  pn-ldr-60
+  pro-fav-42-7
+  pro-def-flame
+  pro-pelv-poprt
+  pro-boost-ldr
+  pro-boost-hdr-hoskin
+  pro-hdr-27-2
+  pro-postop-52-20
+  pro-postop-62-25
+  pro-postop-spport
+  pro-recid-46-23
+  pro-m1-55-20
+  pro-m1-36-6
+  pro-pelv-60-54
+  se-20-10
+  se-30-15
+  se-iia-30
+  se-iib-36
+  ves-55-20
+  ves-pall-21-3
+  ves-pall-35-10
+-- Objets partagés recopiés (53)
+  col.json reçoit la simulation sim-gyn-postop (définie dans endometre)
+  col.json reçoit les volumes vol-gyn-postop (définis dans endometre)
+  vagin.json reçoit la simulation sim-col-curie (définie dans col)
+  oropharynx.json reçoit la simulation sim-orl-curie (définie dans cavite_buccale)
+  oropharynx.json reçoit la simulation sim-orl-igr (définie dans cavite_buccale)
+  oropharynx.json reçoit les volumes vol-orl-curie-en-place (définis dans cavite_buccale)
+  oropharynx.json reçoit les volumes vol-orl-curie-postop (définis dans cavite_buccale)
+  oropharynx.json reçoit les volumes vol-cb-curie (définis dans cavite_buccale)
+  larynx.json reçoit la simulation sim-orl-curie (définie dans cavite_buccale)
+  larynx.json reçoit la simulation sim-orl-igr (définie dans cavite_buccale)
+  larynx.json reçoit les volumes vol-orl-curie-en-place (définis dans cavite_buccale)
+  larynx.json reçoit les volumes vol-orl-igr (définis dans cavite_buccale)
+  larynx.json reçoit les volumes vol-orl-curie-postop (définis dans cavite_buccale)
+  hypopharynx.json reçoit la simulation sim-orl-curie (définie dans cavite_buccale)
+  hypopharynx.json reçoit la simulation sim-orl-igr (définie dans cavite_buccale)
+  hypopharynx.json reçoit les volumes vol-orl-curie-en-place (définis dans cavite_buccale)
+  hypopharynx.json reçoit les volumes vol-orl-igr (définis dans cavite_buccale)
+  hypopharynx.json reçoit les volumes vol-orl-curie-postop (définis dans cavite_buccale)
+  cavum.json reçoit la simulation sim-orl-igr (définie dans cavite_buccale)
+  cavum.json reçoit la simulation sim-orl-curie (définie dans cavite_buccale)
+  sinus.json reçoit la simulation sim-orl-curie (définie dans cavite_buccale)
+  sinus.json reçoit la simulation sim-orl-igr (définie dans cavite_buccale)
+  sinus.json reçoit les volumes vol-orl-curie-postop (définis dans cavite_buccale)
+  sinus.json reçoit les volumes vol-orl-curie-en-place (définis dans cavite_buccale)
+  sinus.json reçoit les volumes vol-orl-igr (définis dans cavite_buccale)
+  glandes_salivaires.json reçoit la simulation sim-orl-curie (définie dans cavite_buccale)
+  glandes_salivaires.json reçoit les volumes vol-orl-curie-postop (définis dans cavite_buccale)
+  glandes_salivaires.json reçoit les volumes vol-orl-curie-en-place (définis dans cavite_buccale)
+  orl_palliatif.json reçoit la simulation sim-orl-curie (définie dans cavite_buccale)
+  orl_palliatif.json reçoit les volumes vol-orl-curie-en-place (définis dans cavite_buccale)
+  sein_ccis.json reçoit la simulation sim-sein (définie dans sein)
+  sein_ccis.json reçoit les volumes vol-sein (définis dans sein)
+  gliome.json reçoit la simulation sim-crane (définie dans glioblastome)
+  meningiome.json reçoit la simulation sim-crane (définie dans glioblastome)
+  meningiome.json reçoit la simulation sim-crane-srs (définie dans metastases_cerebrales)
+  meningiome.json reçoit les volumes vol-crane-srs (définis dans metastases_cerebrales)
+  schwannome.json reçoit la simulation sim-crane-srs (définie dans metastases_cerebrales)
+  schwannome.json reçoit la simulation sim-crane (définie dans glioblastome)
+  hypophyse.json reçoit la simulation sim-crane (définie dans glioblastome)
+  hypophyse.json reçoit la simulation sim-crane-srs (définie dans metastases_cerebrales)
+  craniopharyngiome.json reçoit la simulation sim-crane (définie dans glioblastome)
+  craniopharyngiome.json reçoit la simulation sim-crane-srs (définie dans metastases_cerebrales)
+  craniopharyngiome.json reçoit les volumes vol-crane-srs (définis dans metastases_cerebrales)
+  neurocytome.json reçoit la simulation sim-crane (définie dans glioblastome)
+  neurocytome.json reçoit la simulation sim-crane-srs (définie dans metastases_cerebrales)
+  neurocytome.json reçoit les volumes vol-crane-srs (définis dans metastases_cerebrales)
+  ependymome.json reçoit la simulation sim-crane (définie dans glioblastome)
+  reirradiation.json reçoit la simulation sim-orl-curie (définie dans cavite_buccale)
+  reirradiation.json reçoit la simulation sim-crane (définie dans glioblastome)
+  reirradiation.json reçoit la simulation sim-sein (définie dans sein)
+  reirradiation.json reçoit la simulation sim-rec (définie dans rectum)
+  reirradiation.json reçoit la simulation sim-mo-service (définie dans metastases_osseuses)
+  reirradiation.json reçoit les volumes vol-mo-service (définis dans metastases_osseuses)

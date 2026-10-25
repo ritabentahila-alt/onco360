@@ -1,0 +1,4460 @@
+{
+ "version": "2026-10-25",
+ "jeux": [
+  {
+   "id": "ct-pro-2gy-curie",
+   "titre": "Prostate en place, 2 Gy/fx",
+   "fractionnement": "2 Gy/fx (74–80 Gy)",
+   "source": "Institut Curie 2021",
+   "verification": "verifie",
+   "lignes": [
+    {
+     "oar_id": "oar-rectum",
+     "indicateur": "D5%",
+     "limitant": "≤ 80 Gy"
+    },
+    {
+     "oar_id": "oar-rectum",
+     "indicateur": "D20%",
+     "ideal": "≤ 65 Gy",
+     "limitant": "≤ 70 Gy"
+    },
+    {
+     "oar_id": "oar-rectum",
+     "indicateur": "D30%",
+     "ideal": "≤ 60 Gy",
+     "limitant": "≤ 65 Gy"
+    },
+    {
+     "oar_id": "oar-rectum",
+     "indicateur": "D55%",
+     "ideal": "≤ 50 Gy"
+    },
+    {
+     "oar_id": "oar-vessie",
+     "indicateur": "D5%",
+     "ideal": "≤ 75 Gy",
+     "limitant": "≤ 80 Gy"
+    },
+    {
+     "oar_id": "oar-vessie",
+     "indicateur": "D25%",
+     "ideal": "≤ 65 Gy",
+     "limitant": "≤ 70 Gy"
+    },
+    {
+     "oar_id": "oar-vessie",
+     "indicateur": "D55%",
+     "ideal": "≤ 50 Gy",
+     "limitant": "≤ 55 Gy"
+    },
+    {
+     "oar_id": "oar-grele",
+     "indicateur": "Dmoy",
+     "ideal": "≤ 30 Gy"
+    },
+    {
+     "oar_id": "oar-grele",
+     "indicateur": "V45Gy",
+     "ideal": "≤ 200 cm³",
+     "limitant": "≤ 300 cm³",
+     "note": "Jusqu'à 350 cm³ si irradiation lombo-aortique"
+    },
+    {
+     "oar_id": "oar-tete-femorale-d",
+     "indicateur": "D5%",
+     "limitant": "≤ 55 Gy",
+     "note": "Chaque tête"
+    },
+    {
+     "oar_id": "oar-tete-femorale-g",
+     "indicateur": "D5%",
+     "limitant": "≤ 55 Gy",
+     "note": "Chaque tête"
+    },
+    {
+     "oar_id": "oar-sigmoide",
+     "ideal": "Aussi bas que possible",
+     "limitant": "Comme le rectum"
+    }
+   ]
+  },
+  {
+   "id": "ct-pro-25gy-28fx-curie",
+   "titre": "Prostate en place, 2,5 Gy/fx",
+   "fractionnement": "70 Gy en 28 fx",
+   "source": "Institut Curie 2021 (rectum et vessie extrapolés par équivalence de BED, α/β = 3 et 4)",
+   "verification": "verifie",
+   "lignes": [
+    {
+     "oar_id": "oar-rectum",
+     "indicateur": "D5%",
+     "limitant": "≤ 70 Gy"
+    },
+    {
+     "oar_id": "oar-rectum",
+     "indicateur": "D20%",
+     "ideal": "≤ 59 Gy",
+     "limitant": "≤ 63 Gy"
+    },
+    {
+     "oar_id": "oar-rectum",
+     "indicateur": "D30%",
+     "ideal": "≤ 55 Gy",
+     "limitant": "≤ 59 Gy"
+    },
+    {
+     "oar_id": "oar-rectum",
+     "indicateur": "D55%",
+     "ideal": "≤ 46 Gy"
+    },
+    {
+     "oar_id": "oar-vessie",
+     "indicateur": "D5%",
+     "ideal": "≤ 68 Gy",
+     "limitant": "≤ 73 Gy"
+    },
+    {
+     "oar_id": "oar-vessie",
+     "indicateur": "D25%",
+     "ideal": "≤ 60 Gy",
+     "limitant": "≤ 64 Gy"
+    },
+    {
+     "oar_id": "oar-vessie",
+     "indicateur": "D55%",
+     "ideal": "≤ 46 Gy",
+     "limitant": "≤ 51 Gy"
+    },
+    {
+     "oar_id": "oar-grele",
+     "indicateur": "Dmoy",
+     "ideal": "≤ 30 Gy"
+    },
+    {
+     "oar_id": "oar-grele",
+     "indicateur": "V45Gy",
+     "ideal": "≤ 200 cm³",
+     "limitant": "≤ 300 cm³",
+     "note": "Jusqu'à 350 cm³ si irradiation lombo-aortique"
+    },
+    {
+     "oar_id": "oar-tete-femorale-d",
+     "indicateur": "D5%",
+     "limitant": "≤ 55 Gy"
+    },
+    {
+     "oar_id": "oar-tete-femorale-g",
+     "indicateur": "D5%",
+     "limitant": "≤ 55 Gy"
+    },
+    {
+     "oar_id": "oar-sigmoide",
+     "ideal": "Aussi bas que possible",
+     "limitant": "Comme le rectum"
+    }
+   ]
+  },
+  {
+   "id": "ct-pro-3gy-20fx-curie",
+   "titre": "Prostate en place, 3 Gy/fx",
+   "fractionnement": "60 Gy en 20 fx",
+   "source": "Institut Curie 2021",
+   "verification": "verifie",
+   "lignes": [
+    {
+     "oar_id": "oar-rectum",
+     "indicateur": "V60Gy",
+     "limitant": "≤ 5 %"
+    },
+    {
+     "oar_id": "oar-rectum",
+     "indicateur": "V57Gy",
+     "ideal": "≤ 10 %",
+     "limitant": "≤ 20 %"
+    },
+    {
+     "oar_id": "oar-rectum",
+     "indicateur": "V50Gy",
+     "ideal": "≤ 25 %",
+     "limitant": "≤ 35 %"
+    },
+    {
+     "oar_id": "oar-rectum",
+     "indicateur": "V40Gy",
+     "ideal": "≤ 45 %",
+     "limitant": "≤ 55 %"
+    },
+    {
+     "oar_id": "oar-vessie",
+     "indicateur": "V60Gy",
+     "limitant": "≤ 5 %"
+    },
+    {
+     "oar_id": "oar-vessie",
+     "indicateur": "V50Gy",
+     "ideal": "≤ 5 %",
+     "limitant": "≤ 15 %"
+    },
+    {
+     "oar_id": "oar-vessie",
+     "indicateur": "V40Gy",
+     "ideal": "≤ 35 %",
+     "limitant": "≤ 45 %"
+    },
+    {
+     "oar_id": "oar-tete-femorale-d",
+     "indicateur": "D5%",
+     "limitant": "≤ 55 Gy"
+    },
+    {
+     "oar_id": "oar-tete-femorale-g",
+     "indicateur": "D5%",
+     "limitant": "≤ 55 Gy"
+    },
+    {
+     "oar_id": "oar-sigmoide",
+     "ideal": "Aussi bas que possible",
+     "limitant": "Comme le rectum"
+    },
+    {
+     "oar_id": "oar-grele",
+     "indicateur": "Recouvrement PTV / grêle",
+     "limitant": "Aucun"
+    }
+   ]
+  },
+  {
+   "id": "ct-pro-sbrt5-curie",
+   "titre": "SBRT prostate",
+   "fractionnement": "36,25 Gy en 5 fx",
+   "source": "Institut Curie 2021 (SBRT)",
+   "verification": "verifie",
+   "lignes": [
+    {
+     "oar_id": "oar-rectum",
+     "indicateur": "D50%",
+     "limitant": "< 18,1 Gy"
+    },
+    {
+     "oar_id": "oar-rectum",
+     "indicateur": "D20%",
+     "limitant": "< 29 Gy"
+    },
+    {
+     "oar_id": "oar-rectum",
+     "indicateur": "D10%",
+     "limitant": "< 32,6 Gy"
+    },
+    {
+     "oar_id": "oar-rectum",
+     "indicateur": "D2cc",
+     "limitant": "< 36 Gy"
+    },
+    {
+     "oar_id": "oar-rectum",
+     "indicateur": "D1cc",
+     "ideal": "< 36 Gy"
+    },
+    {
+     "oar_id": "oar-rectum",
+     "indicateur": "Dmax",
+     "ideal": "< 38 Gy"
+    },
+    {
+     "oar_id": "oar-vessie",
+     "indicateur": "D40%",
+     "limitant": "< 18,1 Gy"
+    },
+    {
+     "oar_id": "oar-vessie",
+     "indicateur": "D10cc",
+     "limitant": "< 37 Gy"
+    },
+    {
+     "oar_id": "oar-vessie",
+     "indicateur": "D5cc",
+     "ideal": "< 37 Gy"
+    },
+    {
+     "oar_id": "oar-vessie",
+     "indicateur": "D1cc",
+     "ideal": "< 38 Gy"
+    },
+    {
+     "oar_id": "oar-vessie",
+     "indicateur": "Dmax",
+     "ideal": "< 41,8 Gy"
+    },
+    {
+     "oar_id": "oar-tete-femorale-d",
+     "indicateur": "D5%",
+     "ideal": "< 14,5 Gy"
+    },
+    {
+     "oar_id": "oar-tete-femorale-g",
+     "indicateur": "D5%",
+     "ideal": "< 14,5 Gy"
+    },
+    {
+     "oar_id": "oar-grele",
+     "indicateur": "D5cc",
+     "ideal": "< 18,1 Gy",
+     "note": "Sigmoïde inclus"
+    },
+    {
+     "oar_id": "oar-grele",
+     "indicateur": "D1cc",
+     "ideal": "< 30 Gy"
+    },
+    {
+     "oar_id": "oar-bulbe",
+     "indicateur": "D50%",
+     "ideal": "< 29,5 Gy"
+    },
+    {
+     "oar_id": "oar-uretre",
+     "indicateur": "D50%",
+     "ideal": "≤ 42 Gy",
+     "note": "Dmax du plan en dehors de l'urètre (optimal)"
+    }
+   ]
+  },
+  {
+   "id": "ct-loge-66-33-curie",
+   "titre": "Loge prostatique",
+   "fractionnement": "66 Gy en 33 fx",
+   "source": "Institut Curie 2021 (choix de service, un peu plus strict que prostate en place ; pas de D5% car dose modérée)",
+   "verification": "verifie",
+   "lignes": [
+    {
+     "oar_id": "oar-rectum",
+     "indicateur": "D20%",
+     "ideal": "≤ 65 Gy",
+     "limitant": "≤ 70 Gy",
+     "note": "Pas de contrainte D5% (dose modérée)"
+    },
+    {
+     "oar_id": "oar-rectum",
+     "indicateur": "D30%",
+     "ideal": "≤ 60 Gy",
+     "limitant": "≤ 65 Gy"
+    },
+    {
+     "oar_id": "oar-rectum",
+     "indicateur": "D55%",
+     "ideal": "≤ 50 Gy"
+    },
+    {
+     "oar_id": "oar-vessie",
+     "indicateur": "D25%",
+     "ideal": "≤ 65 Gy",
+     "limitant": "≤ 70 Gy"
+    },
+    {
+     "oar_id": "oar-vessie",
+     "indicateur": "D55%",
+     "ideal": "≤ 50 Gy",
+     "limitant": "≤ 55 Gy"
+    },
+    {
+     "oar_id": "oar-grele",
+     "indicateur": "Dmoy",
+     "ideal": "≤ 30 Gy"
+    },
+    {
+     "oar_id": "oar-grele",
+     "indicateur": "V45Gy",
+     "ideal": "≤ 200 cm³",
+     "limitant": "≤ 300 cm³",
+     "note": "Jusqu'à 350 cm³ si irradiation lombo-aortique"
+    },
+    {
+     "oar_id": "oar-sigmoide",
+     "ideal": "Aussi bas que possible",
+     "limitant": "Comme le rectum"
+    },
+    {
+     "oar_id": "oar-tete-femorale-d",
+     "indicateur": "D5%",
+     "limitant": "≤ 55 Gy"
+    },
+    {
+     "oar_id": "oar-tete-femorale-g",
+     "indicateur": "D5%",
+     "limitant": "≤ 55 Gy"
+    }
+   ]
+  },
+  {
+   "id": "ct-curie-ldr-gec",
+   "titre": "Curiethérapie LDR iode 125 exclusive",
+   "fractionnement": "145 Gy (monothérapie uniquement, pas le boost)",
+   "source": "GEC-ESTRO ACROP 2022, tableau 1",
+   "verification": "verifie",
+   "lignes": [
+    {
+     "oar_id": "oar-rectum",
+     "indicateur": "D2cc",
+     "limitant": "≤ 145 Gy",
+     "note": "Monothérapie 145 Gy uniquement"
+    },
+    {
+     "oar_id": "oar-rectum",
+     "indicateur": "D0.1cc",
+     "limitant": "< 200 Gy",
+     "note": "Monothérapie 145 Gy uniquement"
+    },
+    {
+     "oar_id": "oar-uretre",
+     "indicateur": "D10",
+     "limitant": "< 150 % de la dose prescrite"
+    },
+    {
+     "oar_id": "oar-uretre",
+     "indicateur": "D30",
+     "limitant": "< 130 % de la dose prescrite"
+    },
+    {
+     "oar_id": "oar-uretre",
+     "indicateur": "D0.1cc",
+     "note": "À rapporter, sans seuil"
+    }
+   ]
+  },
+  {
+   "id": "ct-curie-hdr15-gec",
+   "titre": "Boost HDR 15 Gy",
+   "fractionnement": "15 Gy en 1 fx après RTE",
+   "source": "GEC-ESTRO ACROP 2022, tableau 2",
+   "verification": "verifie",
+   "lignes": [
+    {
+     "oar_id": "oar-rectum",
+     "indicateur": "D2cc",
+     "limitant": "≤ 10 Gy"
+    },
+    {
+     "oar_id": "oar-uretre",
+     "indicateur": "D10",
+     "limitant": "≤ 17 Gy"
+    },
+    {
+     "oar_id": "oar-uretre",
+     "indicateur": "D30",
+     "limitant": "≤ 15 Gy"
+    }
+   ]
+  },
+  {
+   "id": "ct-curie-hdr-eqd2-gec",
+   "titre": "Boost HDR après RTE, objectifs en EQD2 cumulée",
+   "fractionnement": "RTE 25 × 2 Gy + HDR 15 Gy × 1, α/β = 1,5 (base de calcul du tableau)",
+   "source": "GEC-ESTRO ACROP 2022, tableau 2",
+   "verification": "verifie",
+   "lignes": [
+    {
+     "oar_id": "cible-ctv",
+     "indicateur": "D90",
+     "limitant": "> 121 Gy EQD2",
+     "note": "Cumul RTE 25 × 2 Gy + HDR 15 Gy"
+    },
+    {
+     "oar_id": "oar-rectum",
+     "indicateur": "D2cc",
+     "limitant": "≤ 75 Gy EQD2",
+     "note": "Cumul RTE + HDR"
+    },
+    {
+     "oar_id": "oar-uretre",
+     "indicateur": "D10",
+     "limitant": "≤ 120 Gy EQD2",
+     "note": "Cumul RTE + HDR"
+    },
+    {
+     "oar_id": "oar-uretre",
+     "indicateur": "D30",
+     "limitant": "≤ 105 Gy EQD2",
+     "note": "Cumul RTE + HDR"
+    }
+   ]
+  },
+  {
+   "id": "ct-quantec-grele",
+   "titre": "Intestin grêle (QUANTEC)",
+   "fractionnement": "Fractionnement classique",
+   "source": "QUANTEC 2010 (Kavanagh)",
+   "verification": "verifie",
+   "lignes": [
+    {
+     "oar_id": "oar-grele",
+     "indicateur": "V15Gy (anses contourées une à une)",
+     "limitant": "< 120 cm³",
+     "note": "Toxicité aiguë G3+"
+    },
+    {
+     "oar_id": "oar-grele",
+     "indicateur": "V45Gy (cavité péritonéale entière)",
+     "limitant": "< 195 cm³",
+     "note": "Selon la méthode de contourage"
+    }
+   ]
+  },
+  {
+   "id": "ct-col-embrace2-rte",
+   "titre": "Col en place, RTE",
+   "fractionnement": "45 Gy / 25 fx, adénopathies 55–57,5 Gy en SIB",
+   "source": "EMBRACE II, tableau 9.4",
+   "verification": "verifie",
+   "lignes": [
+    {
+     "oar_id": "cible-ptv",
+     "indicateur": "PTV45 : V95%",
+     "limitant": "> 95 %"
+    },
+    {
+     "oar_id": "cible-ptv",
+     "indicateur": "PTV45 : Dmax",
+     "limitant": "< 107 %",
+     "note": "Sans boost ganglionnaire"
+    },
+    {
+     "oar_id": "cible-ctv",
+     "indicateur": "ITV45 : Dmin",
+     "limitant": "> 95 %"
+    },
+    {
+     "oar_id": "cible-ptv",
+     "indicateur": "PTV-N : D98%",
+     "limitant": "> 90 % de la dose ganglionnaire"
+    },
+    {
+     "oar_id": "cible-ptv",
+     "indicateur": "PTV-N : Dmax",
+     "limitant": "< 107 % de la dose ganglionnaire"
+    },
+    {
+     "oar_id": "cible-ctv",
+     "indicateur": "CTV-N : D98%",
+     "limitant": "> 100 % de la dose ganglionnaire"
+    },
+    {
+     "oar_id": "cible-ctv",
+     "indicateur": "CTV-N : D50%",
+     "ideal": "> 102 %"
+    },
+    {
+     "oar_id": "oar-help-ctvhr10",
+     "indicateur": "Dmax",
+     "ideal": "< 103 %"
+    },
+    {
+     "oar_id": "oar-grele",
+     "indicateur": "Dmax",
+     "limitant": "< 105 % (47,3 Gy)",
+     "note": "Sans boost ganglionnaire"
+    },
+    {
+     "oar_id": "oar-grele",
+     "indicateur": "V40Gy",
+     "ideal": "< 100 cm³",
+     "note": "Sans boost ganglionnaire"
+    },
+    {
+     "oar_id": "oar-grele",
+     "indicateur": "V30Gy",
+     "ideal": "< 350 cm³",
+     "note": "Sans boost ganglionnaire"
+    },
+    {
+     "oar_id": "oar-grele",
+     "indicateur": "V40Gy",
+     "ideal": "< 250 cm³",
+     "note": "Boost ganglionnaire ou lombo-aortique"
+    },
+    {
+     "oar_id": "oar-grele",
+     "indicateur": "V30Gy",
+     "ideal": "< 500 cm³",
+     "note": "Boost ganglionnaire ou lombo-aortique"
+    },
+    {
+     "oar_id": "oar-grele",
+     "indicateur": "Dmax",
+     "ideal": "< 57,5 Gy",
+     "note": "Boost ganglionnaire ou lombo-aortique"
+    },
+    {
+     "oar_id": "oar-sigmoide",
+     "indicateur": "Dmax",
+     "limitant": "< 105 % (47,3 Gy)",
+     "note": "Sans boost ganglionnaire"
+    },
+    {
+     "oar_id": "oar-sigmoide",
+     "indicateur": "Dmax",
+     "ideal": "< 57,5 Gy",
+     "note": "Avec boost"
+    },
+    {
+     "oar_id": "oar-vessie",
+     "indicateur": "Dmax",
+     "limitant": "< 105 % (47,3 Gy)",
+     "note": "Sans boost ganglionnaire"
+    },
+    {
+     "oar_id": "oar-vessie",
+     "indicateur": "V40Gy",
+     "ideal": "< 75 %"
+    },
+    {
+     "oar_id": "oar-vessie",
+     "indicateur": "V30Gy",
+     "ideal": "< 85 %"
+    },
+    {
+     "oar_id": "oar-vessie",
+     "indicateur": "Dmax",
+     "ideal": "< 57,5 Gy",
+     "note": "Avec boost"
+    },
+    {
+     "oar_id": "oar-rectum",
+     "indicateur": "Dmax",
+     "limitant": "< 105 % (47,3 Gy)",
+     "note": "Sans boost ganglionnaire"
+    },
+    {
+     "oar_id": "oar-rectum",
+     "indicateur": "V40Gy",
+     "ideal": "< 85 %"
+    },
+    {
+     "oar_id": "oar-rectum",
+     "indicateur": "V30Gy",
+     "ideal": "< 95 %"
+    },
+    {
+     "oar_id": "oar-rectum",
+     "indicateur": "Dmax",
+     "ideal": "< 57,5 Gy",
+     "note": "Avec boost"
+    },
+    {
+     "oar_id": "oar-moelle",
+     "indicateur": "Dmax",
+     "limitant": "< 48 Gy"
+    },
+    {
+     "oar_id": "oar-tete-femorale-d",
+     "indicateur": "Dmax",
+     "limitant": "< 50 Gy"
+    },
+    {
+     "oar_id": "oar-tete-femorale-g",
+     "indicateur": "Dmax",
+     "limitant": "< 50 Gy"
+    },
+    {
+     "oar_id": "oar-rein-d",
+     "indicateur": "Dmoy",
+     "ideal": "< 10 Gy",
+     "limitant": "< 15 Gy"
+    },
+    {
+     "oar_id": "oar-rein-g",
+     "indicateur": "Dmoy",
+     "ideal": "< 10 Gy",
+     "limitant": "< 15 Gy"
+    },
+    {
+     "oar_id": "oar-corps",
+     "indicateur": "Dmax",
+     "limitant": "< 107 %",
+     "note": "Sans boost ganglionnaire"
+    },
+    {
+     "oar_id": "oar-vagin",
+     "indicateur": "D(PIBS − 2 cm)",
+     "ideal": "< 5 Gy",
+     "note": "Vagin non envahi"
+    },
+    {
+     "oar_id": "oar-ovaire-d",
+     "indicateur": "Dose",
+     "ideal": "< 5–8 Gy",
+     "note": "Optionnel"
+    },
+    {
+     "oar_id": "oar-ovaire-g",
+     "indicateur": "Dose",
+     "ideal": "< 5–8 Gy",
+     "note": "Optionnel"
+    },
+    {
+     "oar_id": "oar-duodenum",
+     "indicateur": "V55Gy",
+     "ideal": "< 15 cm³",
+     "note": "Optionnel"
+    }
+   ]
+  },
+  {
+   "id": "ct-col-embrace2-curie",
+   "titre": "Col, curiethérapie guidée par l'image (EQD2 RTE + curiethérapie)",
+   "fractionnement": "45 Gy / 25 fx + HDR ou PDR",
+   "source": "EMBRACE II, tableaux 10.1 et 10.2",
+   "verification": "verifie",
+   "lignes": [
+    {
+     "oar_id": "cible-ctv",
+     "indicateur": "CTV-HR : D90 (EQD2₁₀)",
+     "ideal": "90 à 95 Gy",
+     "limitant": "> 85 Gy",
+     "note": "EQD2 cumulée RTE 45 Gy / 25 fx + curiethérapie"
+    },
+    {
+     "oar_id": "cible-ctv",
+     "indicateur": "CTV-HR : D98",
+     "ideal": "> 75 Gy"
+    },
+    {
+     "oar_id": "cible-ctv",
+     "indicateur": "GTV-res : D98",
+     "ideal": "> 95 Gy",
+     "limitant": "> 90 Gy"
+    },
+    {
+     "oar_id": "cible-ctv",
+     "indicateur": "CTV-IR : D98",
+     "ideal": "> 60 Gy"
+    },
+    {
+     "oar_id": "cible-ctv",
+     "indicateur": "Point A",
+     "ideal": "> 65 Gy",
+     "note": "Garde-fou contre une dose trop faible sur un petit volume"
+    },
+    {
+     "oar_id": "oar-vessie",
+     "indicateur": "D2cm³ (EQD2₃)",
+     "ideal": "< 80 Gy",
+     "limitant": "< 90 Gy"
+    },
+    {
+     "oar_id": "oar-rectum",
+     "indicateur": "D2cm³ (EQD2₃)",
+     "ideal": "< 65 Gy",
+     "limitant": "< 75 Gy"
+    },
+    {
+     "oar_id": "oar-point-rv",
+     "indicateur": "Dose au point (EQD2₃)",
+     "ideal": "< 65 Gy",
+     "limitant": "< 75 Gy",
+     "note": "Priorité de la désescalade vaginale"
+    },
+    {
+     "oar_id": "oar-sigmoide",
+     "indicateur": "D2cm³ (EQD2₃)",
+     "ideal": "< 70 Gy",
+     "limitant": "< 75 Gy",
+     "note": "Valable si les anses sont peu mobiles"
+    },
+    {
+     "oar_id": "oar-grele",
+     "indicateur": "D2cm³ (EQD2₃)",
+     "ideal": "< 70 Gy",
+     "limitant": "< 75 Gy",
+     "note": "Valable si les anses sont peu mobiles"
+    },
+    {
+     "oar_id": "oar-vagin",
+     "indicateur": "Points latéraux à 5 mm (EQD2₃)",
+     "ideal": "< 85 Gy",
+     "note": "Tableau 10.2"
+    },
+    {
+     "oar_id": "oar-vagin",
+     "indicateur": "TRAK vaginal / TRAK total",
+     "ideal": "< 30–40 %",
+     "note": "Tableau 10.2"
+    }
+   ]
+  },
+  {
+   "id": "ct-col-abs-hdr",
+   "titre": "Col, curiethérapie HDR (ABS)",
+   "fractionnement": "45 Gy + 5 × 5,5–6 Gy",
+   "source": "ABS 2012",
+   "verification": "verifie",
+   "lignes": [
+    {
+     "oar_id": "cible-ctv",
+     "indicateur": "CTV-HR : D90 (EQD2₁₀)",
+     "ideal": "≥ 80 Gy si réponse complète ou résidu < 4 cm ; 85–90 Gy si résidu > 4 cm"
+    },
+    {
+     "oar_id": "oar-rectum",
+     "indicateur": "D2cm³ (EQD2₃)",
+     "limitant": "70–75 Gy"
+    },
+    {
+     "oar_id": "oar-sigmoide",
+     "indicateur": "D2cm³ (EQD2₃)",
+     "limitant": "70–75 Gy"
+    },
+    {
+     "oar_id": "oar-vessie",
+     "indicateur": "D2cm³ (EQD2₃)",
+     "limitant": "≤ 90 Gy"
+    }
+   ]
+  },
+  {
+   "id": "ct-gyn-curie-rte",
+   "titre": "Gynéco Curie (col en place, col opéré, endomètre, vagin, vulve)",
+   "fractionnement": "45 Gy / 25 fx ± SIB",
+   "source": "Institut Curie 2021 (protocoles col-vagin, endomètre-col post-opératoire, vulve)",
+   "verification": "verifie",
+   "lignes": [
+    {
+     "oar_id": "cible-ptv",
+     "indicateur": "PTV45 : D95%",
+     "limitant": "> 95 %"
+    },
+    {
+     "oar_id": "cible-ptv",
+     "indicateur": "PTV45 : D2%",
+     "limitant": "< 107 %",
+     "note": "Sans boost ganglionnaire ; déviation acceptable < 110 %"
+    },
+    {
+     "oar_id": "cible-ctv",
+     "indicateur": "ITV45 (col), ITV_T (col opéré, endomètre), CTV_T (vulve) : D98%",
+     "limitant": "> 95 %"
+    },
+    {
+     "oar_id": "cible-ptv",
+     "indicateur": "PTV_Tboost (vulve) : D95% / D2%",
+     "limitant": "> 95 % / < 107 %"
+    },
+    {
+     "oar_id": "cible-ptv",
+     "indicateur": "PTV_N : D98%",
+     "limitant": "> 90 % de la dose ganglionnaire"
+    },
+    {
+     "oar_id": "cible-ptv",
+     "indicateur": "PTV_N : D2%",
+     "limitant": "< 107 % de la dose ganglionnaire"
+    },
+    {
+     "oar_id": "cible-ctv",
+     "indicateur": "CTV_N : D98%",
+     "limitant": "> 98 % de la dose ganglionnaire"
+    },
+    {
+     "oar_id": "oar-help-ctvhr10",
+     "indicateur": "D2%",
+     "ideal": "< 103 %",
+     "note": "Col en place"
+    },
+    {
+     "oar_id": "oar-corps",
+     "indicateur": "V43Gy / volume du PTV45",
+     "ideal": "< 1,1 (idéalement 1,05)"
+    },
+    {
+     "oar_id": "oar-corps",
+     "indicateur": "V43Gy",
+     "ideal": "< 2200 cm³"
+    },
+    {
+     "oar_id": "oar-grele",
+     "indicateur": "V40Gy",
+     "ideal": "< 100 cm³",
+     "note": "Sans boost ganglionnaire"
+    },
+    {
+     "oar_id": "oar-grele",
+     "indicateur": "V30Gy",
+     "ideal": "< 350 cm³",
+     "note": "Sans boost ganglionnaire"
+    },
+    {
+     "oar_id": "oar-grele",
+     "indicateur": "D2%",
+     "ideal": "< 105 % (47,3 Gy)",
+     "note": "Sans boost ganglionnaire"
+    },
+    {
+     "oar_id": "oar-grele",
+     "indicateur": "V40Gy",
+     "ideal": "< 250 cm³",
+     "note": "Boost ganglionnaire ou lombo-aortique"
+    },
+    {
+     "oar_id": "oar-grele",
+     "indicateur": "V30Gy",
+     "ideal": "< 500 cm³",
+     "note": "Boost ganglionnaire ou lombo-aortique"
+    },
+    {
+     "oar_id": "oar-grele",
+     "indicateur": "D2%",
+     "ideal": "< 57,5 Gy",
+     "note": "Boost ganglionnaire ou lombo-aortique"
+    },
+    {
+     "oar_id": "oar-sigmoide",
+     "indicateur": "D2%",
+     "ideal": "< 105 % (47,3 Gy) sans boost ; < 57,5 Gy avec boost"
+    },
+    {
+     "oar_id": "oar-vessie",
+     "indicateur": "D2%",
+     "ideal": "< 105 % (47,3 Gy) sans boost ; < 57,5 Gy avec boost"
+    },
+    {
+     "oar_id": "oar-vessie",
+     "indicateur": "V40Gy",
+     "ideal": "< 75 % (idéalement < 40 %)"
+    },
+    {
+     "oar_id": "oar-vessie",
+     "indicateur": "V30Gy",
+     "ideal": "< 85 %"
+    },
+    {
+     "oar_id": "oar-rectum",
+     "indicateur": "D2%",
+     "ideal": "< 105 % (47,3 Gy) sans boost ; < 57,5 Gy avec boost"
+    },
+    {
+     "oar_id": "oar-rectum",
+     "indicateur": "V40Gy",
+     "ideal": "< 85 % (idéalement < 40 %)"
+    },
+    {
+     "oar_id": "oar-rectum",
+     "indicateur": "V30Gy",
+     "ideal": "< 95 %"
+    },
+    {
+     "oar_id": "oar-vulve",
+     "indicateur": "Dose",
+     "ideal": "Aussi basse que possible",
+     "note": "Vulve traitée par irradiation ganglionnaire seule"
+    },
+    {
+     "oar_id": "oar-queue-cheval",
+     "indicateur": "D2%",
+     "limitant": "< 48 Gy"
+    },
+    {
+     "oar_id": "oar-plexus-sacre",
+     "indicateur": "D2%",
+     "limitant": "< 60 Gy"
+    },
+    {
+     "oar_id": "oar-canal-medullaire",
+     "indicateur": "D2%",
+     "limitant": "< 48 Gy"
+    },
+    {
+     "oar_id": "oar-tete-femorale-d",
+     "indicateur": "D2%",
+     "ideal": "< 50 Gy"
+    },
+    {
+     "oar_id": "oar-tete-femorale-g",
+     "indicateur": "D2%",
+     "ideal": "< 50 Gy"
+    },
+    {
+     "oar_id": "oar-moelle-osseuse",
+     "indicateur": "V10Gy",
+     "ideal": "< 90 %"
+    },
+    {
+     "oar_id": "oar-moelle-osseuse",
+     "indicateur": "V20Gy",
+     "ideal": "< 80 %"
+    },
+    {
+     "oar_id": "oar-rein-d",
+     "indicateur": "Dmoy",
+     "ideal": "< 10 Gy",
+     "note": "Déviation acceptable < 15 Gy"
+    },
+    {
+     "oar_id": "oar-rein-g",
+     "indicateur": "Dmoy",
+     "ideal": "< 10 Gy",
+     "note": "Déviation acceptable < 15 Gy"
+    },
+    {
+     "oar_id": "oar-duodenum",
+     "indicateur": "V55Gy",
+     "ideal": "< 15 cm³"
+    }
+   ]
+  },
+  {
+   "id": "ct-service-anal",
+   "titre": "Canal anal, tableur du service",
+   "fractionnement": "59,4 Gy / 33 fx + pelvis 36 Gy / 20 fx",
+   "source": "Tableur du service « Canal anal » (pratique du service)",
+   "verification": "service",
+   "lignes": [
+    {
+     "oar_id": "cible-ptv",
+     "indicateur": "PTV36 et PTV60 : D98% / D95%",
+     "ideal": "D98 ≥ 95 %",
+     "limitant": "D95 ≥ 95 %"
+    },
+    {
+     "oar_id": "cible-ptv",
+     "indicateur": "PTV36 et PTV60 : Dmax / D2%",
+     "ideal": "Dmax < 107 %",
+     "limitant": "D2 < 107 %"
+    },
+    {
+     "oar_id": "cible-ptv",
+     "indicateur": "PTV36 et PTV60 : D50%",
+     "ideal": "= dose prescrite"
+    },
+    {
+     "oar_id": "oar-tete-femorale-d",
+     "indicateur": "V50",
+     "ideal": "≤ 10 %"
+    },
+    {
+     "oar_id": "oar-tete-femorale-g",
+     "indicateur": "V50",
+     "ideal": "≤ 10 %"
+    },
+    {
+     "oar_id": "oar-sigmoide",
+     "indicateur": "Dmax / D2%",
+     "ideal": "Dmax < 55 Gy",
+     "limitant": "D2% = dose prescrite"
+    },
+    {
+     "oar_id": "oar-sigmoide",
+     "indicateur": "V40",
+     "ideal": "≤ 40 %",
+     "limitant": "≤ 60 %"
+    },
+    {
+     "oar_id": "oar-grele",
+     "indicateur": "V15 / V30 / V45 / V50",
+     "ideal": "≤ 830 / < 500 / ≤ 150 / ≤ 35 cm³"
+    },
+    {
+     "oar_id": "oar-vessie",
+     "indicateur": "D2%",
+     "ideal": "= dose prescrite"
+    },
+    {
+     "oar_id": "oar-vessie",
+     "indicateur": "V40",
+     "ideal": "≤ 40 %",
+     "limitant": "≤ 60 %"
+    },
+    {
+     "oar_id": "oar-moelle-osseuse",
+     "indicateur": "V10 / V20 / V25",
+     "ideal": "≤ 90 % / ≤ 80 % / ≤ 70 %",
+     "note": "Priorité à la couverture du PTV"
+    },
+    {
+     "oar_id": "oar-greffon-renal",
+     "indicateur": "Dmoy / V20",
+     "ideal": "Dmoy < 16,2 Gy ; V20 < 30 %"
+    },
+    {
+     "oar_id": "oar-oge",
+     "indicateur": "Dmoy / V30",
+     "ideal": "Dmoy < 30 Gy ; V30 < 35 %",
+     "note": "Priorité à la couverture du PTV"
+    },
+    {
+     "oar_id": "oar-plis-inguinaux",
+     "indicateur": "Dmoy",
+     "ideal": "< 30 Gy",
+     "note": "Priorité à la couverture du PTV"
+    },
+    {
+     "oar_id": "oar-queue-cheval",
+     "indicateur": "Dmax",
+     "ideal": "< 54 Gy"
+    }
+   ]
+  },
+  {
+   "id": "ct-thorax-quantec",
+   "titre": "Thorax, fractionnement classique",
+   "fractionnement": "1,8–2 Gy/fx (poumon, œsophage)",
+   "source": "QUANTEC 2010 (Marks, Werner-Wasik, Kirkpatrick) ; RTOG 0617",
+   "verification": "verifie",
+   "lignes": [
+    {
+     "oar_id": "oar-poumons",
+     "indicateur": "V20Gy",
+     "limitant": "≤ 30–35 %",
+     "note": "Pneumopathie ≤ 20 % (CBNPC)"
+    },
+    {
+     "oar_id": "oar-poumons",
+     "indicateur": "Dmoy",
+     "limitant": "≤ 20–23 Gy",
+     "note": "Pneumopathie ≤ 20 % (CBNPC)"
+    },
+    {
+     "oar_id": "oar-oesophage",
+     "indicateur": "Dmoy",
+     "ideal": "< 34 Gy",
+     "note": "Recommandation de RTOG 0617 ; pas de point chaud au-delà de la dose prescrite"
+    },
+    {
+     "oar_id": "oar-moelle",
+     "indicateur": "Dmax",
+     "limitant": "< 54 Gy",
+     "note": "Myélopathie < 1 % à 54 Gy, < 10 % à 61 Gy"
+    },
+    {
+     "oar_id": "oar-coeur",
+     "indicateur": "V5Gy et V30Gy",
+     "ideal": "Aussi bas que possible",
+     "note": "Prédictifs de la survie (RTOG 0617)"
+    }
+   ]
+  },
+  {
+   "id": "ct-oeso-neoaegis",
+   "titre": "Œsophage préopératoire (CROSS)",
+   "fractionnement": "41,4 Gy / 23 fx",
+   "source": "Protocole Neo-AEGIS (BMC Cancer 2017)",
+   "verification": "verifie",
+   "lignes": [
+    {
+     "oar_id": "oar-poumons",
+     "indicateur": "V20Gy",
+     "ideal": "< 25 %",
+     "note": "Objectif « si possible »"
+    },
+    {
+     "oar_id": "oar-coeur",
+     "indicateur": "V40Gy",
+     "ideal": "< 30 %",
+     "note": "Objectif optimal"
+    },
+    {
+     "oar_id": "oar-coeur",
+     "indicateur": "V25Gy",
+     "ideal": "< 50 %",
+     "note": "Objectif optimal"
+    },
+    {
+     "oar_id": "oar-foie",
+     "indicateur": "V30Gy",
+     "limitant": "< 30 %"
+    },
+    {
+     "oar_id": "oar-moelle",
+     "indicateur": "D0,03cc",
+     "limitant": "≤ 45 Gy"
+    },
+    {
+     "oar_id": "oar-moelle",
+     "indicateur": "D1cc du PRV moelle",
+     "limitant": "< 40 Gy",
+     "note": "Point maximal toléré jusqu'à 45 Gy si le PTV touche le PRV"
+    }
+   ]
+  },
+  {
+   "id": "ct-pou-sbrt-curie-3fx",
+   "titre": "SBRT pulmonaire, 3 fractions",
+   "fractionnement": "3 fx (45 et 54 Gy)",
+   "source": "Institut Curie, SBRT d'un nodule pulmonaire, version du 05/12/2021 (KEYNOTE-867, RTOG 0813, Ma 2019, HyTEC 2021)",
+   "verification": "verifie",
+   "lignes": [
+    {
+     "oar_id": "oar-poumons",
+     "indicateur": "Dmoy (poumons − (i)GTV)",
+     "ideal": "≤ 8 Gy",
+     "limitant": "≤ 8 Gy",
+     "note": "HyTEC 2021 : pas de déviation acceptable"
+    },
+    {
+     "oar_id": "oar-poumons",
+     "indicateur": "V20Gy (poumons − (i)GTV)",
+     "ideal": "< 10 %",
+     "limitant": "< 10 %",
+     "note": "HyTEC 2021 : pas de déviation acceptable"
+    },
+    {
+     "oar_id": "oar-paroi-thoracique",
+     "indicateur": "D30cc",
+     "ideal": "< 30 Gy",
+     "note": "Ma 2019 ; vaut pour tous les fractionnements"
+    },
+    {
+     "oar_id": "oar-canal-medullaire",
+     "indicateur": "D1,2cc (canal + 5 mm)",
+     "ideal": "< 13 Gy",
+     "limitant": "< 13,7 Gy"
+    },
+    {
+     "oar_id": "oar-canal-medullaire",
+     "indicateur": "D0,03cc (canal + 5 mm)",
+     "ideal": "< 22,5 Gy",
+     "limitant": "< 23,6 Gy"
+    },
+    {
+     "oar_id": "oar-plexus-brachial-d",
+     "indicateur": "D3cc (plexus + 5 mm)",
+     "ideal": "< 22 Gy",
+     "limitant": "< 23,1 Gy"
+    },
+    {
+     "oar_id": "oar-plexus-brachial-g",
+     "indicateur": "D3cc (plexus + 5 mm)",
+     "ideal": "< 22 Gy",
+     "limitant": "< 23,1 Gy"
+    },
+    {
+     "oar_id": "oar-plexus-brachial-d",
+     "indicateur": "D0,03cc (plexus + 5 mm)",
+     "ideal": "< 26 Gy",
+     "limitant": "< 27,3 Gy"
+    },
+    {
+     "oar_id": "oar-plexus-brachial-g",
+     "indicateur": "D0,03cc (plexus + 5 mm)",
+     "ideal": "< 26 Gy",
+     "limitant": "< 27,3 Gy"
+    },
+    {
+     "oar_id": "oar-arbre-bronchique",
+     "indicateur": "D5cc",
+     "ideal": "< 25,8 Gy",
+     "limitant": "< 27,1 Gy"
+    },
+    {
+     "oar_id": "oar-arbre-bronchique",
+     "indicateur": "D0,03cc",
+     "ideal": "< 30 Gy",
+     "limitant": "< 31,5 Gy"
+    },
+    {
+     "oar_id": "oar-coeur",
+     "indicateur": "D15cc",
+     "ideal": "< 24 Gy",
+     "limitant": "< 25,2 Gy"
+    },
+    {
+     "oar_id": "oar-coeur",
+     "indicateur": "D0,03cc",
+     "ideal": "< 30 Gy",
+     "limitant": "< 31,5 Gy"
+    },
+    {
+     "oar_id": "oar-gros-vaisseaux",
+     "indicateur": "D10cc",
+     "ideal": "< 39 Gy",
+     "limitant": "< 41 Gy"
+    },
+    {
+     "oar_id": "oar-gros-vaisseaux",
+     "indicateur": "D0,03cc",
+     "ideal": "< 45 Gy",
+     "limitant": "< 47,3 Gy"
+    },
+    {
+     "oar_id": "oar-cotes",
+     "indicateur": "D5cc",
+     "ideal": "< 40 Gy",
+     "limitant": "< 42 Gy"
+    },
+    {
+     "oar_id": "oar-cotes",
+     "indicateur": "D0,03cc",
+     "ideal": "< 50 Gy",
+     "limitant": "< 52,5 Gy"
+    },
+    {
+     "oar_id": "oar-oesophage",
+     "indicateur": "D5cc",
+     "ideal": "< 17,7 Gy",
+     "limitant": "< 18,6 Gy"
+    },
+    {
+     "oar_id": "oar-oesophage",
+     "indicateur": "D0,03cc",
+     "ideal": "< 27 Gy",
+     "limitant": "< 28,4 Gy"
+    },
+    {
+     "oar_id": "oar-estomac",
+     "indicateur": "D10cc",
+     "ideal": "< 22,5 Gy",
+     "limitant": "< 23,6 Gy"
+    },
+    {
+     "oar_id": "oar-estomac",
+     "indicateur": "D0,03cc",
+     "ideal": "< 30 Gy",
+     "limitant": "< 31,5 Gy"
+    },
+    {
+     "oar_id": "oar-duodenum",
+     "indicateur": "D10cc",
+     "ideal": "< 15 Gy",
+     "limitant": "< 15,8 Gy"
+    },
+    {
+     "oar_id": "oar-duodenum",
+     "indicateur": "D0,03cc",
+     "ideal": "< 24 Gy",
+     "limitant": "< 25,2 Gy"
+    },
+    {
+     "oar_id": "oar-grele",
+     "indicateur": "D20cc",
+     "ideal": "< 24 Gy",
+     "limitant": "< 25,2 Gy"
+    },
+    {
+     "oar_id": "oar-colon",
+     "indicateur": "D20cc",
+     "ideal": "< 24 Gy",
+     "limitant": "< 25,2 Gy"
+    },
+    {
+     "oar_id": "oar-grele",
+     "indicateur": "D0,03cc",
+     "ideal": "< 34,5 Gy",
+     "limitant": "< 36,2 Gy"
+    },
+    {
+     "oar_id": "oar-colon",
+     "indicateur": "D0,03cc",
+     "ideal": "< 34,5 Gy",
+     "limitant": "< 36,2 Gy"
+    },
+    {
+     "oar_id": "oar-peau",
+     "indicateur": "D10cc",
+     "ideal": "< 31 Gy",
+     "limitant": "< 32,6 Gy"
+    },
+    {
+     "oar_id": "oar-peau",
+     "indicateur": "D0,03cc",
+     "ideal": "< 33 Gy",
+     "limitant": "< 34,7 Gy"
+    },
+    {
+     "oar_id": "oar-poumons",
+     "indicateur": "D15 % (poumons − (i)GTV)",
+     "ideal": "< 20 Gy",
+     "limitant": "< 22 Gy"
+    },
+    {
+     "oar_id": "oar-poumons",
+     "indicateur": "D37 % (poumons − (i)GTV)",
+     "ideal": "< 11 Gy",
+     "limitant": "< 12,1 Gy"
+    },
+    {
+     "oar_id": "oar-poumons",
+     "indicateur": "Volume poumon sain − volume de l'isodose 11,4 Gy",
+     "ideal": "> 1000 cc"
+    },
+    {
+     "oar_id": "oar-poumons",
+     "indicateur": "Volume poumon sain − volume de l'isodose 10,5 Gy",
+     "ideal": "> 1500 cc"
+    },
+    {
+     "oar_id": "oar-reins",
+     "indicateur": "Volume reins − volume de l'isodose 15 Gy",
+     "ideal": "> 200 cc"
+    },
+    {
+     "oar_id": "oar-foie",
+     "indicateur": "Volume foie − volume de l'isodose 17,1 Gy",
+     "ideal": "> 700 cc"
+    }
+   ]
+  },
+  {
+   "id": "ct-pou-sbrt-curie-4fx",
+   "titre": "SBRT pulmonaire, 4 fractions",
+   "fractionnement": "4 fx (48 Gy)",
+   "source": "Institut Curie, SBRT d'un nodule pulmonaire, version du 05/12/2021",
+   "verification": "verifie",
+   "lignes": [
+    {
+     "oar_id": "oar-poumons",
+     "indicateur": "Dmoy (poumons − (i)GTV)",
+     "ideal": "≤ 8 Gy",
+     "limitant": "≤ 8 Gy",
+     "note": "HyTEC 2021 : pas de déviation acceptable"
+    },
+    {
+     "oar_id": "oar-poumons",
+     "indicateur": "V20Gy (poumons − (i)GTV)",
+     "ideal": "< 10 %",
+     "limitant": "< 10 %",
+     "note": "HyTEC 2021 : pas de déviation acceptable"
+    },
+    {
+     "oar_id": "oar-paroi-thoracique",
+     "indicateur": "D30cc",
+     "ideal": "< 30 Gy",
+     "note": "Ma 2019 ; vaut pour tous les fractionnements"
+    },
+    {
+     "oar_id": "oar-canal-medullaire",
+     "indicateur": "D1,2cc (canal + 5 mm)",
+     "ideal": "< 14,4 Gy",
+     "limitant": "< 15,1 Gy"
+    },
+    {
+     "oar_id": "oar-canal-medullaire",
+     "indicateur": "D0,35cc (canal + 5 mm)",
+     "ideal": "< 20 Gy",
+     "limitant": "< 21 Gy"
+    },
+    {
+     "oar_id": "oar-canal-medullaire",
+     "indicateur": "D0,03cc (canal + 5 mm)",
+     "ideal": "< 25,2 Gy",
+     "limitant": "< 26,5 Gy"
+    },
+    {
+     "oar_id": "oar-plexus-brachial-d",
+     "indicateur": "D3cc (plexus + 5 mm)",
+     "ideal": "< 24,8 Gy",
+     "limitant": "< 26 Gy"
+    },
+    {
+     "oar_id": "oar-plexus-brachial-g",
+     "indicateur": "D3cc (plexus + 5 mm)",
+     "ideal": "< 24,8 Gy",
+     "limitant": "< 26 Gy"
+    },
+    {
+     "oar_id": "oar-plexus-brachial-d",
+     "indicateur": "D0,03cc (plexus + 5 mm)",
+     "ideal": "< 29,6 Gy",
+     "limitant": "< 31,1 Gy"
+    },
+    {
+     "oar_id": "oar-plexus-brachial-g",
+     "indicateur": "D0,03cc (plexus + 5 mm)",
+     "ideal": "< 29,6 Gy",
+     "limitant": "< 31,1 Gy"
+    },
+    {
+     "oar_id": "oar-arbre-bronchique",
+     "indicateur": "D5cc",
+     "ideal": "< 28 Gy",
+     "limitant": "< 29,4 Gy"
+    },
+    {
+     "oar_id": "oar-arbre-bronchique",
+     "indicateur": "D0,03cc",
+     "ideal": "< 34 Gy",
+     "limitant": "< 35,7 Gy"
+    },
+    {
+     "oar_id": "oar-coeur",
+     "indicateur": "D15cc",
+     "ideal": "< 28 Gy",
+     "limitant": "< 29,4 Gy"
+    },
+    {
+     "oar_id": "oar-coeur",
+     "indicateur": "D0,03cc",
+     "ideal": "< 34 Gy",
+     "limitant": "< 35,7 Gy"
+    },
+    {
+     "oar_id": "oar-gros-vaisseaux",
+     "indicateur": "D10cc",
+     "ideal": "< 43 Gy",
+     "limitant": "< 45,2 Gy"
+    },
+    {
+     "oar_id": "oar-gros-vaisseaux",
+     "indicateur": "D0,03cc",
+     "ideal": "< 49 Gy",
+     "limitant": "< 51,5 Gy"
+    },
+    {
+     "oar_id": "oar-cotes",
+     "indicateur": "D5cc",
+     "ideal": "< 43 Gy",
+     "limitant": "< 45,2 Gy"
+    },
+    {
+     "oar_id": "oar-cotes",
+     "indicateur": "D0,03cc",
+     "ideal": "< 54 Gy",
+     "limitant": "< 56,7 Gy"
+    },
+    {
+     "oar_id": "oar-oesophage",
+     "indicateur": "D5cc",
+     "ideal": "< 20 Gy",
+     "limitant": "< 21 Gy"
+    },
+    {
+     "oar_id": "oar-oesophage",
+     "indicateur": "D0,03cc",
+     "ideal": "< 30 Gy",
+     "limitant": "< 31,5 Gy"
+    },
+    {
+     "oar_id": "oar-estomac",
+     "indicateur": "D10cc",
+     "ideal": "< 25 Gy",
+     "limitant": "< 26,3 Gy"
+    },
+    {
+     "oar_id": "oar-estomac",
+     "indicateur": "D0,03cc",
+     "ideal": "< 33,2 Gy",
+     "limitant": "< 34,9 Gy"
+    },
+    {
+     "oar_id": "oar-duodenum",
+     "indicateur": "D5cc",
+     "ideal": "< 16,8 Gy",
+     "limitant": "< 17,6 Gy"
+    },
+    {
+     "oar_id": "oar-duodenum",
+     "indicateur": "D0,03cc",
+     "ideal": "< 26,4 Gy",
+     "limitant": "< 27,7 Gy"
+    },
+    {
+     "oar_id": "oar-grele",
+     "indicateur": "D20cc",
+     "ideal": "< 26,4 Gy",
+     "limitant": "< 27,7 Gy"
+    },
+    {
+     "oar_id": "oar-colon",
+     "indicateur": "D20cc",
+     "ideal": "< 26,4 Gy",
+     "limitant": "< 27,7 Gy"
+    },
+    {
+     "oar_id": "oar-grele",
+     "indicateur": "D0,03cc",
+     "ideal": "< 36 Gy",
+     "limitant": "< 37,8 Gy"
+    },
+    {
+     "oar_id": "oar-colon",
+     "indicateur": "D0,03cc",
+     "ideal": "< 36 Gy",
+     "limitant": "< 37,8 Gy"
+    },
+    {
+     "oar_id": "oar-peau",
+     "indicateur": "D10cc",
+     "ideal": "< 33,6 Gy",
+     "limitant": "< 35,3 Gy"
+    },
+    {
+     "oar_id": "oar-peau",
+     "indicateur": "D0,03cc",
+     "ideal": "< 36 Gy",
+     "limitant": "< 37,8 Gy"
+    },
+    {
+     "oar_id": "oar-poumons",
+     "indicateur": "D37 % (poumons − (i)GTV)",
+     "ideal": "< 12,4 Gy",
+     "limitant": "< 13,7 Gy"
+    },
+    {
+     "oar_id": "oar-poumons",
+     "indicateur": "Volume poumon sain − volume de l'isodose 12,4 Gy",
+     "ideal": "> 1000 cc"
+    },
+    {
+     "oar_id": "oar-poumons",
+     "indicateur": "Volume poumon sain − volume de l'isodose 11,6 Gy",
+     "ideal": "> 1500 cc"
+    },
+    {
+     "oar_id": "oar-reins",
+     "indicateur": "Volume reins − volume de l'isodose 16,8 Gy",
+     "ideal": "> 200 cc"
+    },
+    {
+     "oar_id": "oar-foie",
+     "indicateur": "Volume foie − volume de l'isodose 19,2 Gy",
+     "ideal": "> 700 cc"
+    }
+   ]
+  },
+  {
+   "id": "ct-pou-sbrt-curie-5-8fx",
+   "titre": "SBRT pulmonaire, 5 ou 8 fractions",
+   "fractionnement": "5 fx (50 Gy) ou 8 fx (60 Gy)",
+   "source": "Institut Curie, SBRT d'un nodule pulmonaire, version du 05/12/2021 (RTOG 0813, Manyam 2020, SABR UK v6.1)",
+   "verification": "verifie",
+   "lignes": [
+    {
+     "oar_id": "oar-poumons",
+     "indicateur": "Dmoy (poumons − (i)GTV)",
+     "ideal": "≤ 8 Gy",
+     "limitant": "≤ 8 Gy",
+     "note": "HyTEC 2021 : pas de déviation acceptable"
+    },
+    {
+     "oar_id": "oar-poumons",
+     "indicateur": "V20Gy (poumons − (i)GTV)",
+     "ideal": "< 10 %",
+     "limitant": "< 10 %",
+     "note": "HyTEC 2021 : pas de déviation acceptable"
+    },
+    {
+     "oar_id": "oar-paroi-thoracique",
+     "indicateur": "D30cc",
+     "ideal": "< 30 Gy",
+     "note": "Ma 2019 ; vaut pour tous les fractionnements"
+    },
+    {
+     "oar_id": "oar-canal-medullaire",
+     "indicateur": "D1,2cc (canal + 5 mm)",
+     "ideal": "< 15,6 Gy",
+     "limitant": "< 16,4 Gy"
+    },
+    {
+     "oar_id": "oar-canal-medullaire",
+     "indicateur": "D0,35cc (canal + 5 mm)",
+     "ideal": "< 22 Gy",
+     "limitant": "< 23,1 Gy"
+    },
+    {
+     "oar_id": "oar-canal-medullaire",
+     "indicateur": "D0,03cc (canal + 5 mm)",
+     "ideal": "< 28 Gy",
+     "limitant": "< 29,4 Gy"
+    },
+    {
+     "oar_id": "oar-plexus-brachial-d",
+     "indicateur": "D3cc (plexus + 5 mm)",
+     "ideal": "< 30 Gy",
+     "limitant": "< 31,5 Gy"
+    },
+    {
+     "oar_id": "oar-plexus-brachial-g",
+     "indicateur": "D3cc (plexus + 5 mm)",
+     "ideal": "< 30 Gy",
+     "limitant": "< 31,5 Gy"
+    },
+    {
+     "oar_id": "oar-plexus-brachial-d",
+     "indicateur": "D0,03cc (plexus + 5 mm)",
+     "ideal": "< 32 Gy",
+     "limitant": "< 33,6 Gy"
+    },
+    {
+     "oar_id": "oar-plexus-brachial-g",
+     "indicateur": "D0,03cc (plexus + 5 mm)",
+     "ideal": "< 32 Gy",
+     "limitant": "< 33,6 Gy"
+    },
+    {
+     "oar_id": "oar-arbre-bronchique",
+     "indicateur": "D5cc",
+     "ideal": "< 32 Gy",
+     "limitant": "< 33,6 Gy"
+    },
+    {
+     "oar_id": "oar-arbre-bronchique",
+     "indicateur": "D0,03cc",
+     "ideal": "< 40 Gy",
+     "limitant": "< 42 Gy"
+    },
+    {
+     "oar_id": "oar-arbre-bronchique",
+     "indicateur": "D4cc (lésion centrale)",
+     "ideal": "< 18 Gy",
+     "note": "RTOG 0813"
+    },
+    {
+     "oar_id": "oar-arbre-bronchique",
+     "indicateur": "D0,33cc (lésion centrale)",
+     "ideal": "< 47,1 Gy",
+     "note": "Manyam 2020"
+    },
+    {
+     "oar_id": "oar-arbre-bronchique",
+     "indicateur": "D0,03cc (lésion centrale)",
+     "ideal": "< 50 Gy",
+     "note": "Manyam 2020"
+    },
+    {
+     "oar_id": "oar-coeur",
+     "indicateur": "D15cc",
+     "ideal": "< 32 Gy",
+     "limitant": "< 33,6 Gy"
+    },
+    {
+     "oar_id": "oar-coeur",
+     "indicateur": "D0,03cc",
+     "ideal": "< 38 Gy",
+     "limitant": "< 39,9 Gy"
+    },
+    {
+     "oar_id": "oar-coeur",
+     "indicateur": "D0,5cc (8 fractions)",
+     "ideal": "< 50 Gy",
+     "limitant": "< 60 Gy",
+     "note": "SABR UK v6.1"
+    },
+    {
+     "oar_id": "oar-gros-vaisseaux",
+     "indicateur": "D10cc",
+     "ideal": "< 47 Gy",
+     "limitant": "< 49,4 Gy"
+    },
+    {
+     "oar_id": "oar-gros-vaisseaux",
+     "indicateur": "D0,03cc",
+     "ideal": "< 53 Gy",
+     "limitant": "< 55,7 Gy"
+    },
+    {
+     "oar_id": "oar-cotes",
+     "indicateur": "D5cc",
+     "ideal": "< 45 Gy",
+     "limitant": "< 47,3 Gy"
+    },
+    {
+     "oar_id": "oar-cotes",
+     "indicateur": "D0,03cc",
+     "ideal": "< 57 Gy",
+     "limitant": "< 59,9 Gy"
+    },
+    {
+     "oar_id": "oar-oesophage",
+     "indicateur": "D5cc",
+     "ideal": "< 27,5 Gy",
+     "limitant": "< 28,9 Gy"
+    },
+    {
+     "oar_id": "oar-oesophage",
+     "indicateur": "D0,03cc",
+     "ideal": "< 35 Gy",
+     "limitant": "< 36,8 Gy"
+    },
+    {
+     "oar_id": "oar-estomac",
+     "indicateur": "D5cc",
+     "ideal": "< 26,5 Gy",
+     "limitant": "< 27,8 Gy"
+    },
+    {
+     "oar_id": "oar-estomac",
+     "indicateur": "D0,05cc",
+     "ideal": "< 35 Gy",
+     "limitant": "< 36,8 Gy"
+    },
+    {
+     "oar_id": "oar-duodenum",
+     "indicateur": "D5cc",
+     "ideal": "< 18,3 Gy",
+     "limitant": "< 19,2 Gy"
+    },
+    {
+     "oar_id": "oar-duodenum",
+     "indicateur": "D0,05cc",
+     "ideal": "< 30 Gy",
+     "limitant": "< 31,5 Gy"
+    },
+    {
+     "oar_id": "oar-grele",
+     "indicateur": "D20cc",
+     "ideal": "< 28,5 Gy",
+     "limitant": "< 29,9 Gy"
+    },
+    {
+     "oar_id": "oar-colon",
+     "indicateur": "D20cc",
+     "ideal": "< 28,5 Gy",
+     "limitant": "< 29,9 Gy"
+    },
+    {
+     "oar_id": "oar-grele",
+     "indicateur": "D0,03cc",
+     "ideal": "< 40 Gy",
+     "limitant": "< 42 Gy"
+    },
+    {
+     "oar_id": "oar-colon",
+     "indicateur": "D0,03cc",
+     "ideal": "< 40 Gy",
+     "limitant": "< 42 Gy"
+    },
+    {
+     "oar_id": "oar-peau",
+     "indicateur": "D10cc",
+     "ideal": "< 36,5 Gy",
+     "limitant": "< 38,3 Gy"
+    },
+    {
+     "oar_id": "oar-peau",
+     "indicateur": "D0,03cc",
+     "ideal": "< 38,5 Gy",
+     "limitant": "< 40,4 Gy"
+    },
+    {
+     "oar_id": "oar-poumons",
+     "indicateur": "D37 % (poumons − (i)GTV)",
+     "ideal": "< 13,5 Gy",
+     "limitant": "< 14,9 Gy"
+    },
+    {
+     "oar_id": "oar-poumons",
+     "indicateur": "Volume poumon sain − volume de l'isodose 13,5 Gy",
+     "ideal": "> 1000 cc"
+    },
+    {
+     "oar_id": "oar-poumons",
+     "indicateur": "Volume poumon sain − volume de l'isodose 12,5 Gy",
+     "ideal": "> 1500 cc"
+    },
+    {
+     "oar_id": "oar-reins",
+     "indicateur": "Volume reins − volume de l'isodose 18 Gy",
+     "ideal": "> 200 cc"
+    },
+    {
+     "oar_id": "oar-foie",
+     "indicateur": "Volume foie − volume de l'isodose 21 Gy",
+     "ideal": "> 700 cc"
+    }
+   ]
+  },
+  {
+   "id": "ct-pou-sbrt-igr-3fx",
+   "titre": "SBRT pulmonaire, 3 × 18 Gy",
+   "fractionnement": "54 Gy / 3 fx",
+   "source": "Gustave Roussy, protocole SBRT pulmonaire RLS-PTC-007 (2016)",
+   "verification": "verifie",
+   "lignes": [
+    {
+     "oar_id": "oar-moelle",
+     "indicateur": "Dose maximale",
+     "ideal": "≤ 18 Gy",
+     "limitant": "≤ 22 Gy",
+     "note": "Volume non précisé dans le protocole"
+    },
+    {
+     "oar_id": "oar-poumons",
+     "indicateur": "V20Gy (poumons − GTV)",
+     "ideal": "≤ 4 %",
+     "limitant": "< 10 %",
+     "note": "Idéal : Barriger ; limitant : RTOG ; ROSEL 4–10 % selon la taille"
+    },
+    {
+     "oar_id": "oar-poumons",
+     "indicateur": "Dmoy (poumons − GTV)",
+     "ideal": "≤ 4 Gy",
+     "note": "Barriger"
+    },
+    {
+     "oar_id": "oar-oesophage",
+     "indicateur": "Dose maximale",
+     "ideal": "≤ 24 Gy",
+     "limitant": "≤ 27 Gy"
+    },
+    {
+     "oar_id": "oar-plexus-brachial-d",
+     "indicateur": "Dose maximale",
+     "ideal": "≤ 24 Gy",
+     "limitant": "≤ 26 Gy"
+    },
+    {
+     "oar_id": "oar-plexus-brachial-g",
+     "indicateur": "Dose maximale",
+     "ideal": "≤ 24 Gy",
+     "limitant": "≤ 26 Gy"
+    },
+    {
+     "oar_id": "oar-coeur",
+     "indicateur": "Dose maximale",
+     "ideal": "≤ 24 Gy"
+    },
+    {
+     "oar_id": "oar-arbre-bronchique",
+     "indicateur": "Dose maximale (bronche souche)",
+     "ideal": "≤ 30 Gy",
+     "limitant": "≤ 32 Gy"
+    },
+    {
+     "oar_id": "oar-paroi-thoracique",
+     "indicateur": "V30Gy (paroi homolatérale)",
+     "ideal": "< 30 cc",
+     "limitant": "< 35 cc"
+    }
+   ]
+  },
+  {
+   "id": "ct-pou-sbrt-igr-5plus",
+   "titre": "SBRT pulmonaire, 5 séances ou plus",
+   "fractionnement": "5 à 10 fx",
+   "source": "Gustave Roussy, protocole SBRT pulmonaire RLS-PTC-007 (2016)",
+   "verification": "verifie",
+   "lignes": [
+    {
+     "oar_id": "oar-moelle",
+     "indicateur": "Dose maximale",
+     "ideal": "≤ 25 Gy",
+     "limitant": "≤ 28 Gy",
+     "note": "Volume non précisé dans le protocole"
+    },
+    {
+     "oar_id": "oar-oesophage",
+     "indicateur": "Dose maximale",
+     "ideal": "≤ 27 Gy",
+     "limitant": "≤ 28,5 Gy"
+    },
+    {
+     "oar_id": "oar-plexus-brachial-d",
+     "indicateur": "Dose maximale",
+     "ideal": "≤ 27 Gy",
+     "limitant": "≤ 29 Gy"
+    },
+    {
+     "oar_id": "oar-plexus-brachial-g",
+     "indicateur": "Dose maximale",
+     "ideal": "≤ 27 Gy",
+     "limitant": "≤ 29 Gy"
+    },
+    {
+     "oar_id": "oar-arbre-bronchique",
+     "indicateur": "Dose maximale (bronche souche)",
+     "ideal": "≤ 32 Gy",
+     "limitant": "≤ 35 Gy"
+    },
+    {
+     "oar_id": "oar-paroi-thoracique",
+     "indicateur": "V30Gy (paroi homolatérale)",
+     "ideal": "< 30 cc",
+     "limitant": "< 35 cc"
+    },
+    {
+     "oar_id": "oar-poumons",
+     "indicateur": "V20Gy (poumons − GTV)",
+     "limitant": "< 10 %",
+     "note": "RTOG"
+    }
+   ]
+  },
+  {
+   "id": "ct-meso-igr-postop",
+   "titre": "Mésothéliome, RT hémithoracique post-opératoire",
+   "fractionnement": "Fractionnement classique",
+   "source": "Gustave Roussy, fiche dosimétrique mésothéliome post-opératoire",
+   "verification": "verifie",
+   "lignes": [
+    {
+     "oar_id": "oar-poumons",
+     "indicateur": "V20Gy (poumon controlatéral ; poumons − PTV)",
+     "ideal": "≤ 7 %",
+     "limitant": "≤ 10 %"
+    },
+    {
+     "oar_id": "oar-poumons",
+     "indicateur": "V10Gy (poumon controlatéral)",
+     "limitant": "≤ 55 %"
+    },
+    {
+     "oar_id": "oar-poumons",
+     "indicateur": "V5Gy (poumon controlatéral)",
+     "limitant": "≤ 75 %"
+    },
+    {
+     "oar_id": "oar-poumons",
+     "indicateur": "Dmoy (poumon controlatéral)",
+     "ideal": "< 8,5 Gy",
+     "limitant": "< 9,5 Gy"
+    },
+    {
+     "oar_id": "oar-foie",
+     "indicateur": "V30Gy",
+     "ideal": "≤ 30 %",
+     "limitant": "≤ 45 %"
+    },
+    {
+     "oar_id": "oar-foie",
+     "indicateur": "Dmoy",
+     "limitant": "< 31 Gy"
+    },
+    {
+     "oar_id": "oar-coeur",
+     "indicateur": "V30Gy",
+     "limitant": "≤ 50 %"
+    },
+    {
+     "oar_id": "oar-coeur",
+     "indicateur": "V45Gy",
+     "limitant": "≤ 30 %"
+    },
+    {
+     "oar_id": "oar-coeur",
+     "indicateur": "V50Gy",
+     "limitant": "≤ 20 %"
+    },
+    {
+     "oar_id": "oar-moelle",
+     "indicateur": "D2 %",
+     "limitant": "≤ 45 Gy"
+    },
+    {
+     "oar_id": "oar-moelle",
+     "indicateur": "Dmax",
+     "limitant": "≤ 50 Gy"
+    },
+    {
+     "oar_id": "oar-oesophage",
+     "indicateur": "V55Gy",
+     "limitant": "≤ 30 %"
+    },
+    {
+     "oar_id": "oar-oesophage",
+     "indicateur": "Dmoy",
+     "ideal": "≤ 28 Gy",
+     "limitant": "≤ 34 Gy"
+    },
+    {
+     "oar_id": "oar-rein-d",
+     "indicateur": "Dmoy (rein controlatéral)",
+     "limitant": "≤ 8 Gy"
+    },
+    {
+     "oar_id": "oar-rein-g",
+     "indicateur": "Dmoy (rein controlatéral)",
+     "limitant": "≤ 8 Gy"
+    },
+    {
+     "oar_id": "oar-rein-d",
+     "indicateur": "D2 % (rein controlatéral)",
+     "ideal": "≤ 10 Gy",
+     "limitant": "≤ 12 Gy"
+    },
+    {
+     "oar_id": "oar-rein-g",
+     "indicateur": "D2 % (rein controlatéral)",
+     "ideal": "≤ 10 Gy",
+     "limitant": "≤ 12 Gy"
+    }
+   ]
+  },
+  {
+   "id": "ct-meso-igr-preop-5x5",
+   "titre": "Mésothéliome, RT pré-opératoire 5 × 5 Gy",
+   "fractionnement": "25 Gy / 5 fx",
+   "source": "Gustave Roussy, fiche dosimétrique mésothéliome pré-opératoire",
+   "verification": "verifie",
+   "lignes": [
+    {
+     "oar_id": "oar-poumons",
+     "indicateur": "V12,5Gy (poumon controlatéral)",
+     "ideal": "≤ 7 %",
+     "limitant": "≤ 10 %"
+    },
+    {
+     "oar_id": "oar-poumons",
+     "indicateur": "V7Gy (poumon controlatéral)",
+     "limitant": "≤ 20 %"
+    },
+    {
+     "oar_id": "oar-poumons",
+     "indicateur": "V3Gy (poumon controlatéral)",
+     "limitant": "≤ 55 %"
+    },
+    {
+     "oar_id": "oar-poumons",
+     "indicateur": "Dmoy (poumon controlatéral)",
+     "limitant": "< 3,5 Gy"
+    },
+    {
+     "oar_id": "oar-foie",
+     "indicateur": "V17Gy (tumeur droite)",
+     "limitant": "≤ 60 %"
+    },
+    {
+     "oar_id": "oar-foie",
+     "indicateur": "V8Gy (tumeur gauche)",
+     "limitant": "≤ 30 %"
+    },
+    {
+     "oar_id": "oar-coeur",
+     "indicateur": "V15Gy (tumeur droite)",
+     "limitant": "≤ 40 %"
+    },
+    {
+     "oar_id": "oar-coeur",
+     "indicateur": "V18Gy (tumeur gauche)",
+     "limitant": "≤ 70 %"
+    },
+    {
+     "oar_id": "oar-moelle",
+     "indicateur": "Dmax du PRV moelle",
+     "limitant": "≤ 22 Gy"
+    },
+    {
+     "oar_id": "oar-oesophage",
+     "indicateur": "Dmax",
+     "limitant": "≤ 30 Gy"
+    },
+    {
+     "oar_id": "oar-oesophage",
+     "indicateur": "Dmoy",
+     "limitant": "≤ 17 Gy"
+    },
+    {
+     "oar_id": "oar-reins",
+     "indicateur": "V7Gy",
+     "limitant": "≤ 33 %"
+    },
+    {
+     "oar_id": "oar-rein-d",
+     "indicateur": "Dmoy",
+     "limitant": "≤ 5 Gy",
+     "note": "Au moins un des deux reins sous 5 Gy"
+    },
+    {
+     "oar_id": "oar-rein-g",
+     "indicateur": "Dmoy",
+     "limitant": "≤ 5 Gy",
+     "note": "Au moins un des deux reins sous 5 Gy"
+    }
+   ]
+  },
+  {
+   "id": "ct-abdo-acrop-crt",
+   "titre": "Abdomen, radiochimiothérapie classique",
+   "fractionnement": "1,8–2 Gy/fx (45–54 Gy)",
+   "source": "ESTRO ACROP pancréas 2021, tableau 4a (d'après QUANTEC, RTOG 0848, SCALOP-2, NCCN)",
+   "verification": "verifie",
+   "lignes": [
+    {
+     "oar_id": "oar-duodenum",
+     "indicateur": "Dmax",
+     "limitant": "≤ 55 Gy"
+    },
+    {
+     "oar_id": "oar-duodenum",
+     "indicateur": "Dose circonférentielle",
+     "limitant": "≤ 50 Gy",
+     "note": "RTOG 0936 et 1102"
+    },
+    {
+     "oar_id": "oar-duodenum",
+     "indicateur": "V50Gy",
+     "ideal": "≤ 10 cc"
+    },
+    {
+     "oar_id": "oar-duodenum",
+     "indicateur": "V50Gy",
+     "limitant": "≤ 10 %"
+    },
+    {
+     "oar_id": "oar-duodenum",
+     "indicateur": "V45Gy",
+     "limitant": "≤ 15 %"
+    },
+    {
+     "oar_id": "oar-estomac",
+     "indicateur": "Dmax",
+     "limitant": "≤ 55 Gy"
+    },
+    {
+     "oar_id": "oar-estomac",
+     "indicateur": "V45Gy",
+     "ideal": "≤ 75 cc"
+    },
+    {
+     "oar_id": "oar-estomac",
+     "indicateur": "V50Gy",
+     "limitant": "≤ 10 %"
+    },
+    {
+     "oar_id": "oar-estomac",
+     "indicateur": "V45Gy",
+     "limitant": "≤ 15 %"
+    },
+    {
+     "oar_id": "oar-grele",
+     "indicateur": "Dmax",
+     "limitant": "≤ 55 Gy"
+    },
+    {
+     "oar_id": "oar-grele",
+     "indicateur": "V50Gy",
+     "ideal": "≤ 10 cc"
+    },
+    {
+     "oar_id": "oar-grele",
+     "indicateur": "V15Gy",
+     "ideal": "≤ 120 cc"
+    },
+    {
+     "oar_id": "oar-grele",
+     "indicateur": "V50Gy",
+     "limitant": "≤ 10 %"
+    },
+    {
+     "oar_id": "oar-grele",
+     "indicateur": "V45Gy",
+     "limitant": "≤ 15 %"
+    },
+    {
+     "oar_id": "oar-foie",
+     "indicateur": "Dmoy",
+     "limitant": "≤ 25 Gy"
+    },
+    {
+     "oar_id": "oar-reins",
+     "indicateur": "Dmoy",
+     "limitant": "≤ 18 Gy",
+     "note": "Reins additionnés"
+    },
+    {
+     "oar_id": "oar-reins",
+     "indicateur": "V20Gy",
+     "limitant": "≤ 32 %",
+     "note": "Reins additionnés"
+    },
+    {
+     "oar_id": "oar-moelle",
+     "indicateur": "D0,1cc",
+     "limitant": "≤ 45 Gy"
+    }
+   ]
+  },
+  {
+   "id": "ct-sbrt-abdo-5fx",
+   "titre": "SBRT abdominale, 5 fractions",
+   "fractionnement": "5 fx",
+   "source": "Consensus UK SABR (Hanna 2018), repris par l'ESTRO ACROP pancréas 2021",
+   "verification": "verifie",
+   "lignes": [
+    {
+     "oar_id": "oar-duodenum",
+     "indicateur": "Dmax (0,5 cc)",
+     "limitant": "< 35 Gy"
+    },
+    {
+     "oar_id": "oar-duodenum",
+     "indicateur": "D1cc",
+     "ideal": "< 33 Gy"
+    },
+    {
+     "oar_id": "oar-duodenum",
+     "indicateur": "D5cc",
+     "ideal": "< 25 Gy"
+    },
+    {
+     "oar_id": "oar-duodenum",
+     "indicateur": "D9cc",
+     "ideal": "< 15 Gy"
+    },
+    {
+     "oar_id": "oar-duodenum",
+     "indicateur": "D10cc",
+     "limitant": "< 25 Gy"
+    },
+    {
+     "oar_id": "oar-estomac",
+     "indicateur": "Dmax (0,5 cc)",
+     "ideal": "< 33 Gy",
+     "limitant": "< 35 Gy"
+    },
+    {
+     "oar_id": "oar-estomac",
+     "indicateur": "D5cc",
+     "ideal": "< 25 Gy"
+    },
+    {
+     "oar_id": "oar-estomac",
+     "indicateur": "D10cc",
+     "limitant": "< 25 Gy"
+    },
+    {
+     "oar_id": "oar-estomac",
+     "indicateur": "D50cc",
+     "ideal": "< 12 Gy"
+    },
+    {
+     "oar_id": "oar-grele",
+     "indicateur": "Dmax (0,5 cc)",
+     "ideal": "< 30 Gy",
+     "limitant": "< 35 Gy"
+    },
+    {
+     "oar_id": "oar-grele",
+     "indicateur": "D5cc",
+     "ideal": "< 25 Gy"
+    },
+    {
+     "oar_id": "oar-grele",
+     "indicateur": "D10cc",
+     "limitant": "< 25 Gy"
+    },
+    {
+     "oar_id": "oar-voie-biliaire",
+     "indicateur": "Dmax (0,5 cc)",
+     "ideal": "< 50 Gy"
+    },
+    {
+     "oar_id": "oar-oesophage",
+     "indicateur": "Dmax (0,5 cc)",
+     "ideal": "< 32 Gy",
+     "limitant": "< 34 Gy"
+    },
+    {
+     "oar_id": "oar-colon",
+     "indicateur": "Dmax (0,5 cc)",
+     "limitant": "< 32 Gy"
+    },
+    {
+     "oar_id": "oar-rectum",
+     "indicateur": "Dmax (0,5 cc)",
+     "limitant": "< 32 Gy"
+    },
+    {
+     "oar_id": "oar-foie",
+     "indicateur": "D70 % (foie − GTV)",
+     "ideal": "< 10 Gy"
+    },
+    {
+     "oar_id": "oar-foie",
+     "indicateur": "Dmoy (foie − GTV)",
+     "ideal": "< 13 Gy",
+     "limitant": "< 15,2 Gy"
+    },
+    {
+     "oar_id": "oar-reins",
+     "indicateur": "Dmoy (chaque rein et les deux)",
+     "ideal": "< 10 Gy"
+    },
+    {
+     "oar_id": "oar-rein-d",
+     "indicateur": "D10 % (rein unique, ou un rein > 10 Gy de moyenne)",
+     "ideal": "< 10 Gy"
+    },
+    {
+     "oar_id": "oar-rein-g",
+     "indicateur": "D10 % (rein unique, ou un rein > 10 Gy de moyenne)",
+     "ideal": "< 10 Gy"
+    },
+    {
+     "oar_id": "oar-rein-d",
+     "indicateur": "D45 % (rein unique, ou un rein > 10 Gy de moyenne)",
+     "limitant": "< 10 Gy"
+    },
+    {
+     "oar_id": "oar-rein-g",
+     "indicateur": "D45 % (rein unique, ou un rein > 10 Gy de moyenne)",
+     "limitant": "< 10 Gy"
+    }
+   ]
+  },
+  {
+   "id": "ct-foie-sbrt-igr-3fx",
+   "titre": "SBRT hépatique, 3 fractions",
+   "fractionnement": "3 × 15 Gy",
+   "source": "Gustave Roussy, stéréotaxie hépatique v1 (2016)",
+   "verification": "verifie",
+   "lignes": [
+    {
+     "oar_id": "oar-foie",
+     "indicateur": "Volume de foie sain (foie − PTV)",
+     "limitant": "≥ 800 cc"
+    },
+    {
+     "oar_id": "oar-foie",
+     "indicateur": "V15Gy (foie sain)",
+     "limitant": "< 50 %"
+    },
+    {
+     "oar_id": "oar-foie",
+     "indicateur": "V21Gy (foie sain)",
+     "limitant": "< 33 %"
+    },
+    {
+     "oar_id": "oar-foie",
+     "indicateur": "Foie sain − V17Gy",
+     "limitant": "> 700 cc"
+    },
+    {
+     "oar_id": "oar-rein-d",
+     "indicateur": "V15Gy (rein homolatéral)",
+     "limitant": "< 66 %"
+    },
+    {
+     "oar_id": "oar-rein-g",
+     "indicateur": "V15Gy (rein homolatéral)",
+     "limitant": "< 66 %"
+    },
+    {
+     "oar_id": "oar-rein-d",
+     "indicateur": "V10Gy (rein homolatéral)",
+     "limitant": "< 50 %"
+    },
+    {
+     "oar_id": "oar-rein-g",
+     "indicateur": "V10Gy (rein homolatéral)",
+     "limitant": "< 50 %"
+    },
+    {
+     "oar_id": "oar-rein-d",
+     "indicateur": "V18Gy (hile rénal)",
+     "limitant": "< 66 %"
+    },
+    {
+     "oar_id": "oar-rein-g",
+     "indicateur": "V18Gy (hile rénal)",
+     "limitant": "< 66 %"
+    },
+    {
+     "oar_id": "oar-reins",
+     "indicateur": "V10Gy",
+     "limitant": "< 50 %"
+    },
+    {
+     "oar_id": "oar-reins",
+     "indicateur": "Volume total − V15Gy",
+     "limitant": "> 200 cc"
+    },
+    {
+     "oar_id": "oar-canal-medullaire",
+     "indicateur": "V16Gy",
+     "limitant": "< 1,2 cc"
+    },
+    {
+     "oar_id": "oar-canal-medullaire",
+     "indicateur": "V18Gy",
+     "limitant": "< 0,25 cc"
+    },
+    {
+     "oar_id": "oar-canal-medullaire",
+     "indicateur": "Dmax",
+     "limitant": "< 22 Gy"
+    },
+    {
+     "oar_id": "oar-grele",
+     "indicateur": "V16Gy",
+     "limitant": "< 5 cc"
+    },
+    {
+     "oar_id": "oar-grele",
+     "indicateur": "V27Gy",
+     "limitant": "< 0,5 cc"
+    },
+    {
+     "oar_id": "oar-colon",
+     "indicateur": "V20Gy",
+     "limitant": "< 20 cc"
+    },
+    {
+     "oar_id": "oar-colon",
+     "indicateur": "V30Gy",
+     "limitant": "< 1 cc"
+    },
+    {
+     "oar_id": "oar-estomac",
+     "indicateur": "V19Gy",
+     "limitant": "< 10 cc"
+    },
+    {
+     "oar_id": "oar-estomac",
+     "indicateur": "V21Gy",
+     "limitant": "< 5 cc"
+    },
+    {
+     "oar_id": "oar-estomac",
+     "indicateur": "V25Gy",
+     "limitant": "< 0,5 cc"
+    },
+    {
+     "oar_id": "oar-duodenum",
+     "indicateur": "V15Gy",
+     "limitant": "< 5 cc"
+    },
+    {
+     "oar_id": "oar-duodenum",
+     "indicateur": "V24Gy",
+     "limitant": "< 0,5 cc"
+    },
+    {
+     "oar_id": "oar-coeur",
+     "indicateur": "V24Gy",
+     "limitant": "< 15 cc"
+    },
+    {
+     "oar_id": "oar-coeur",
+     "indicateur": "D2 % (Dmax)",
+     "limitant": "< 30 Gy"
+    },
+    {
+     "oar_id": "oar-oesophage",
+     "indicateur": "V15Gy",
+     "limitant": "< 10 cc"
+    },
+    {
+     "oar_id": "oar-oesophage",
+     "indicateur": "V21Gy",
+     "limitant": "< 5 cc"
+    },
+    {
+     "oar_id": "oar-oesophage",
+     "indicateur": "V25Gy",
+     "limitant": "< 0,5 cc"
+    },
+    {
+     "oar_id": "oar-poumons",
+     "indicateur": "V5Gy (poumons − PTV)",
+     "limitant": "< 50 %"
+    },
+    {
+     "oar_id": "oar-poumons",
+     "indicateur": "V10Gy (poumons − PTV)",
+     "limitant": "< 30 %"
+    },
+    {
+     "oar_id": "oar-poumons",
+     "indicateur": "Volume total − V11Gy",
+     "limitant": "≥ 1500 cc"
+    },
+    {
+     "oar_id": "oar-cotes",
+     "indicateur": "V37Gy (chaque côte)",
+     "limitant": "< 0,035 cc"
+    },
+    {
+     "oar_id": "oar-cotes",
+     "indicateur": "V29Gy (chaque côte)",
+     "limitant": "< 1 cc"
+    },
+    {
+     "oar_id": "oar-cotes",
+     "indicateur": "V22Gy (chaque côte)",
+     "limitant": "< 10 cc"
+    }
+   ]
+  },
+  {
+   "id": "ct-foie-sbrt-igr-5fx",
+   "titre": "SBRT hépatique, 5 fractions",
+   "fractionnement": "5 × 6,5 à 5 × 9 Gy",
+   "source": "Gustave Roussy, stéréotaxie hépatique v1 (2016), d'après RTOG 0438",
+   "verification": "verifie",
+   "lignes": [
+    {
+     "oar_id": "oar-foie",
+     "indicateur": "Foie sain − V21Gy",
+     "limitant": "≥ 700 cc"
+    },
+    {
+     "oar_id": "oar-foie",
+     "indicateur": "V28Gy (foie sain)",
+     "limitant": "< 33 %"
+    },
+    {
+     "oar_id": "oar-foie",
+     "indicateur": "V20Gy (foie sain)",
+     "limitant": "< 50 %"
+    },
+    {
+     "oar_id": "oar-rein-d",
+     "indicateur": "V15Gy (rein unique fonctionnel ou créatinine > 2 mg/dl)",
+     "limitant": "< 50 %"
+    },
+    {
+     "oar_id": "oar-rein-g",
+     "indicateur": "V15Gy (rein unique fonctionnel ou créatinine > 2 mg/dl)",
+     "limitant": "< 50 %"
+    },
+    {
+     "oar_id": "oar-reins",
+     "indicateur": "Volume total − V18Gy",
+     "limitant": "> 200 cc",
+     "note": "Deux reins fonctionnels"
+    },
+    {
+     "oar_id": "oar-reins",
+     "indicateur": "V15Gy",
+     "limitant": "< 50 %",
+     "note": "Deux reins fonctionnels"
+    },
+    {
+     "oar_id": "oar-rein-d",
+     "indicateur": "V23Gy (hile rénal)",
+     "limitant": "< 66 %"
+    },
+    {
+     "oar_id": "oar-rein-g",
+     "indicateur": "V23Gy (hile rénal)",
+     "limitant": "< 66 %"
+    },
+    {
+     "oar_id": "oar-canal-medullaire",
+     "indicateur": "V22,5Gy",
+     "limitant": "< 0,25 cc"
+    },
+    {
+     "oar_id": "oar-canal-medullaire",
+     "indicateur": "Dmax",
+     "limitant": "< 30 Gy"
+    },
+    {
+     "oar_id": "oar-duodenum",
+     "indicateur": "V32Gy",
+     "limitant": "< 0,5 cc"
+    },
+    {
+     "oar_id": "oar-duodenum",
+     "indicateur": "V18Gy",
+     "limitant": "< 5 cc"
+    },
+    {
+     "oar_id": "oar-grele",
+     "indicateur": "V35Gy",
+     "limitant": "< 0,5 cc"
+    },
+    {
+     "oar_id": "oar-grele",
+     "indicateur": "V21Gy",
+     "limitant": "< 5 cc"
+    },
+    {
+     "oar_id": "oar-colon",
+     "indicateur": "V38Gy",
+     "limitant": "< 0,5 cc"
+    },
+    {
+     "oar_id": "oar-colon",
+     "indicateur": "V30Gy",
+     "limitant": "< 1 cc"
+    },
+    {
+     "oar_id": "oar-colon",
+     "indicateur": "V25Gy",
+     "limitant": "< 20 cc"
+    },
+    {
+     "oar_id": "oar-estomac",
+     "indicateur": "V30Gy",
+     "limitant": "< 0,5 cc"
+    },
+    {
+     "oar_id": "oar-estomac",
+     "indicateur": "V28Gy",
+     "limitant": "< 10 cc"
+    },
+    {
+     "oar_id": "oar-oesophage",
+     "indicateur": "V20Gy",
+     "limitant": "< 10 cc"
+    },
+    {
+     "oar_id": "oar-oesophage",
+     "indicateur": "V27,5Gy",
+     "limitant": "< 5 cc"
+    },
+    {
+     "oar_id": "oar-oesophage",
+     "indicateur": "V30Gy",
+     "limitant": "< 0,5 cc"
+    },
+    {
+     "oar_id": "oar-coeur",
+     "indicateur": "V32Gy",
+     "limitant": "< 15 cc"
+    },
+    {
+     "oar_id": "oar-coeur",
+     "indicateur": "V40Gy",
+     "limitant": "< 1 cc"
+    },
+    {
+     "oar_id": "oar-poumons",
+     "indicateur": "V13,5Gy (poumons − PTV)",
+     "limitant": "< 1000 cc"
+    },
+    {
+     "oar_id": "oar-poumons",
+     "indicateur": "Volume total − V12,5Gy",
+     "limitant": "> 1500 cc"
+    },
+    {
+     "oar_id": "oar-cotes",
+     "indicateur": "V30Gy (chaque côte)",
+     "limitant": "< 10 cc"
+    },
+    {
+     "oar_id": "oar-cotes",
+     "indicateur": "V35Gy (chaque côte)",
+     "limitant": "< 1 cc"
+    },
+    {
+     "oar_id": "oar-cotes",
+     "indicateur": "V43Gy (chaque côte)",
+     "limitant": "< 0,035 cc"
+    }
+   ]
+  },
+  {
+   "id": "ct-foie-sbrt-igr-10fx",
+   "titre": "RT stéréotaxique hépatique, 10 fractions ou plus",
+   "fractionnement": "10 × 5 Gy",
+   "source": "Gustave Roussy, stéréotaxie hépatique v1 (2016), d'après RTOG 0438",
+   "verification": "verifie",
+   "lignes": [
+    {
+     "oar_id": "oar-foie",
+     "indicateur": "Foie sain − V21Gy",
+     "limitant": "≥ 800 cc"
+    },
+    {
+     "oar_id": "oar-foie",
+     "indicateur": "V27Gy (foie sain)",
+     "limitant": "< 30 %"
+    },
+    {
+     "oar_id": "oar-foie",
+     "indicateur": "V24Gy (foie sain)",
+     "limitant": "< 50 %"
+    },
+    {
+     "oar_id": "oar-rein-d",
+     "indicateur": "V10Gy (rein unique fonctionnel ou créatinine > 2 mg/dl)",
+     "limitant": "< 10 %"
+    },
+    {
+     "oar_id": "oar-rein-g",
+     "indicateur": "V10Gy (rein unique fonctionnel ou créatinine > 2 mg/dl)",
+     "limitant": "< 10 %"
+    },
+    {
+     "oar_id": "oar-reins",
+     "indicateur": "V20Gy",
+     "limitant": "< 50 %",
+     "note": "Deux reins fonctionnels"
+    },
+    {
+     "oar_id": "oar-canal-medullaire",
+     "indicateur": "Dmax",
+     "limitant": "< 34 Gy"
+    },
+    {
+     "oar_id": "oar-estomac",
+     "indicateur": "V37Gy",
+     "limitant": "< 1 cc"
+    },
+    {
+     "oar_id": "oar-duodenum",
+     "indicateur": "V37Gy",
+     "limitant": "< 1 cc"
+    },
+    {
+     "oar_id": "oar-duodenum",
+     "indicateur": "V40Gy",
+     "limitant": "< 0,5 cc"
+    },
+    {
+     "oar_id": "oar-grele",
+     "indicateur": "V37Gy",
+     "limitant": "< 1 cc"
+    },
+    {
+     "oar_id": "oar-colon",
+     "indicateur": "V37Gy",
+     "limitant": "< 1 cc"
+    },
+    {
+     "oar_id": "oar-coeur",
+     "indicateur": "V34Gy",
+     "limitant": "< 15 cc"
+    },
+    {
+     "oar_id": "oar-coeur",
+     "indicateur": "V43Gy",
+     "limitant": "< 1 cc"
+    },
+    {
+     "oar_id": "oar-oesophage",
+     "indicateur": "V21,5Gy",
+     "limitant": "< 10 cc"
+    },
+    {
+     "oar_id": "oar-oesophage",
+     "indicateur": "V29,5Gy",
+     "limitant": "< 5 cc"
+    },
+    {
+     "oar_id": "oar-oesophage",
+     "indicateur": "V32Gy",
+     "limitant": "< 0,5 cc"
+    }
+   ]
+  },
+  {
+   "id": "ct-crane-igr",
+   "titre": "Encéphale, fractionnement classique",
+   "fractionnement": "1,8–2 Gy/fx",
+   "source": "Gustave Roussy, fiche dosimétrique encéphale (version du 31/01/2018)",
+   "verification": "verifie",
+   "lignes": [
+    {
+     "oar_id": "oar-tronc-cerebral",
+     "indicateur": "Dmax",
+     "ideal": "≤ 54 Gy (milieu du tronc)",
+     "limitant": "≤ 60 Gy (bord du volume cible)",
+     "note": "≤ 48 Gy au bord opposé"
+    },
+    {
+     "oar_id": "oar-chiasma",
+     "indicateur": "Dmax",
+     "ideal": "≤ 50 Gy",
+     "limitant": "≤ 54 Gy si proche du volume cible"
+    },
+    {
+     "oar_id": "oar-nerf-optique-d",
+     "indicateur": "Dmax",
+     "ideal": "≤ 50 Gy",
+     "limitant": "≤ 54 Gy si proche du volume cible"
+    },
+    {
+     "oar_id": "oar-nerf-optique-g",
+     "indicateur": "Dmax",
+     "ideal": "≤ 50 Gy",
+     "limitant": "≤ 54 Gy si proche du volume cible"
+    },
+    {
+     "oar_id": "oar-oeil-d",
+     "indicateur": "Dmax / Dmoy",
+     "ideal": "Dmax ≤ 45 Gy ; Dmoy ≤ 30 Gy"
+    },
+    {
+     "oar_id": "oar-oeil-g",
+     "indicateur": "Dmax / Dmoy",
+     "ideal": "Dmax ≤ 45 Gy ; Dmoy ≤ 30 Gy"
+    },
+    {
+     "oar_id": "oar-cochlee-d",
+     "indicateur": "Dmoy",
+     "ideal": "≤ 35 Gy",
+     "limitant": "≤ 45 Gy si proche du volume cible",
+     "note": "Cochlées et oreilles internes"
+    },
+    {
+     "oar_id": "oar-cochlee-g",
+     "indicateur": "Dmoy",
+     "ideal": "≤ 35 Gy",
+     "limitant": "≤ 45 Gy si proche du volume cible",
+     "note": "Cochlées et oreilles internes"
+    },
+    {
+     "oar_id": "oar-moelle",
+     "indicateur": "Dmax",
+     "ideal": "≤ 45 Gy",
+     "limitant": "≤ 50 Gy en cervical"
+    },
+    {
+     "oar_id": "oar-hypophyse",
+     "indicateur": "Dmoy",
+     "ideal": "≤ 45 Gy"
+    },
+    {
+     "oar_id": "oar-cristallin-d",
+     "indicateur": "Dmax",
+     "ideal": "≤ 10 Gy"
+    },
+    {
+     "oar_id": "oar-cristallin-g",
+     "indicateur": "Dmax",
+     "ideal": "≤ 10 Gy"
+    }
+   ]
+  },
+  {
+   "id": "ct-crane-quantec",
+   "titre": "Encéphale, voies optiques, tronc, cochlées, moelle, hippocampes",
+   "fractionnement": "≤ 2 Gy/fx",
+   "source": "QUANTEC 2010 (Lawrence, Mayo, Bhandare, Kirkpatrick) ; Gondi 2013 pour les hippocampes",
+   "verification": "verifie",
+   "lignes": [
+    {
+     "oar_id": "oar-encephale-sain",
+     "indicateur": "Nécrose radique (BED, fractions < 2,5 Gy)",
+     "ideal": "BED < 120 Gy (risque 5 %)",
+     "limitant": "BED < 150 Gy (risque 10 %)",
+     "note": "Au-delà de 2,5 Gy par fraction, risque imprévisible"
+    },
+    {
+     "oar_id": "oar-chiasma",
+     "indicateur": "Dmax",
+     "limitant": "≤ 60 Gy",
+     "note": "Risque nettement accru au-delà de 60 Gy (≈ 1,8 Gy/fx)"
+    },
+    {
+     "oar_id": "oar-nerf-optique-d",
+     "indicateur": "Dmax",
+     "limitant": "≤ 60 Gy",
+     "note": "Risque nettement accru au-delà de 60 Gy (≈ 1,8 Gy/fx)"
+    },
+    {
+     "oar_id": "oar-nerf-optique-g",
+     "indicateur": "Dmax",
+     "limitant": "≤ 60 Gy",
+     "note": "Risque nettement accru au-delà de 60 Gy (≈ 1,8 Gy/fx)"
+    },
+    {
+     "oar_id": "oar-tronc-cerebral",
+     "indicateur": "Dmax",
+     "ideal": "Tronc entier ≤ 54 Gy",
+     "limitant": "1 à 10 cm³ ≤ 59 Gy",
+     "note": "Risque nettement accru au-delà de 64 Gy"
+    },
+    {
+     "oar_id": "oar-cochlee-d",
+     "indicateur": "Dmoy",
+     "ideal": "≤ 35 Gy",
+     "limitant": "≤ 45 Gy",
+     "note": "Aussi basse que possible ; limiter strictement avec le cisplatine"
+    },
+    {
+     "oar_id": "oar-cochlee-g",
+     "indicateur": "Dmoy",
+     "ideal": "≤ 35 Gy",
+     "limitant": "≤ 45 Gy",
+     "note": "Aussi basse que possible ; limiter strictement avec le cisplatine"
+    },
+    {
+     "oar_id": "oar-moelle",
+     "indicateur": "Dmax",
+     "ideal": "≤ 54 Gy (myélopathie < 1 %)",
+     "note": "< 10 % à 61 Gy"
+    },
+    {
+     "oar_id": "oar-hippocampes",
+     "indicateur": "D40 % (EQD2, α/β = 2 Gy)",
+     "ideal": "≤ 7,3 Gy",
+     "note": "Au-delà, déficit du rappel différé (Gondi 2013) ; sans dégrader le PTV"
+    }
+   ]
+  },
+  {
+   "id": "ct-ha-wbrt-rtog0933",
+   "titre": "Encéphale in toto avec épargne hippocampique",
+   "fractionnement": "30 Gy / 10 fx",
+   "source": "RTOG 0933, critères de conformité dosimétrique (tableau 1 de Pokhrel 2015)",
+   "verification": "verifie",
+   "lignes": [
+    {
+     "oar_id": "oar-hippocampes",
+     "indicateur": "D100 %",
+     "ideal": "≤ 9 Gy",
+     "limitant": "≤ 10 Gy",
+     "note": "Hippocampes réunis en une structure"
+    },
+    {
+     "oar_id": "oar-hippocampes",
+     "indicateur": "Dmax",
+     "ideal": "≤ 16 Gy",
+     "limitant": "≤ 17 Gy"
+    },
+    {
+     "oar_id": "oar-chiasma",
+     "indicateur": "Dmax",
+     "ideal": "< 37,5 Gy"
+    },
+    {
+     "oar_id": "oar-nerf-optique-d",
+     "indicateur": "Dmax",
+     "ideal": "< 37,5 Gy"
+    },
+    {
+     "oar_id": "oar-nerf-optique-g",
+     "indicateur": "Dmax",
+     "ideal": "< 37,5 Gy"
+    }
+   ]
+  },
+  {
+   "id": "ct-srs-curie-1fx",
+   "titre": "Stéréotaxie intracrânienne, 1 fraction",
+   "fractionnement": "1 fx (15 à 24 Gy)",
+   "source": "Institut Curie, stéréotaxie des métastases cérébrales (version de travail du 05/12/2021), d'après l'AAPM",
+   "verification": "verifie",
+   "lignes": [
+    {
+     "oar_id": "oar-chiasma",
+     "indicateur": "V8Gy / D0,035cm³",
+     "limitant": "V8 < 0,2 cm³ ; D0,035 cm³ < 10 Gy"
+    },
+    {
+     "oar_id": "oar-nerf-optique-d",
+     "indicateur": "V8Gy / D0,035cm³",
+     "limitant": "V8 < 0,2 cm³ ; D0,035 cm³ < 10 Gy"
+    },
+    {
+     "oar_id": "oar-nerf-optique-g",
+     "indicateur": "V8Gy / D0,035cm³",
+     "limitant": "V8 < 0,2 cm³ ; D0,035 cm³ < 10 Gy"
+    },
+    {
+     "oar_id": "oar-cochlee-d",
+     "indicateur": "D0,035cm³",
+     "limitant": "< 9 Gy",
+     "note": "Risque discutable pour la cochlée homolatérale si l'audition controlatérale est bonne"
+    },
+    {
+     "oar_id": "oar-cochlee-g",
+     "indicateur": "D0,035cm³",
+     "limitant": "< 9 Gy",
+     "note": "Risque discutable pour la cochlée homolatérale si l'audition controlatérale est bonne"
+    },
+    {
+     "oar_id": "oar-tronc-cerebral",
+     "indicateur": "V10Gy / D0,035cm³",
+     "limitant": "V10 < 1 cm³ ; D0,035 cm³ < 15 Gy"
+    },
+    {
+     "oar_id": "oar-canal-medullaire",
+     "indicateur": "V8Gy / V10Gy / D0,035cm³",
+     "limitant": "V8 < 0,25 cm³ ; V10 < 0,35 cm³ ; D0,035 cm³ < 14 Gy"
+    },
+    {
+     "oar_id": "oar-nerfs-craniens",
+     "indicateur": "V10Gy / D0,035cm³",
+     "limitant": "V10 < 0,2 cm³ ; D0,035 cm³ < 12 Gy",
+     "note": "Hors nerfs optiques, si concernés"
+    },
+    {
+     "oar_id": "oar-encephale-sain",
+     "indicateur": "V12Gy / V10Gy / V8Gy",
+     "limitant": "V12 < 8,4 cm³ ; V10 < 10,4 cm³ ; V8 < 12,4 cm³"
+    },
+    {
+     "oar_id": "oar-oeil-d",
+     "indicateur": "Dose",
+     "ideal": "Aussi basse que possible",
+     "note": "Pas une limite de validation du plan (Curie)"
+    },
+    {
+     "oar_id": "oar-oeil-g",
+     "indicateur": "Dose",
+     "ideal": "Aussi basse que possible",
+     "note": "Pas une limite de validation du plan (Curie)"
+    },
+    {
+     "oar_id": "oar-cristallin-d",
+     "indicateur": "Dose",
+     "ideal": "Aussi basse que possible",
+     "note": "Pas une limite de validation du plan (Curie)"
+    },
+    {
+     "oar_id": "oar-cristallin-g",
+     "indicateur": "Dose",
+     "ideal": "Aussi basse que possible",
+     "note": "Pas une limite de validation du plan (Curie)"
+    },
+    {
+     "oar_id": "oar-hippocampe-d",
+     "indicateur": "Dose",
+     "ideal": "Aussi basse que possible",
+     "note": "Pas une limite de validation du plan (Curie)"
+    },
+    {
+     "oar_id": "oar-hippocampe-g",
+     "indicateur": "Dose",
+     "ideal": "Aussi basse que possible",
+     "note": "Pas une limite de validation du plan (Curie)"
+    },
+    {
+     "oar_id": "oar-hypophyse",
+     "indicateur": "Dose",
+     "ideal": "Aussi basse que possible",
+     "note": "Pas une limite de validation du plan (Curie)"
+    }
+   ]
+  },
+  {
+   "id": "ct-srs-curie-3fx",
+   "titre": "Stéréotaxie intracrânienne, 3 fractions",
+   "fractionnement": "3 fx (24 à 27 Gy)",
+   "source": "Institut Curie, stéréotaxie des métastases cérébrales (version de travail du 05/12/2021), d'après l'AAPM",
+   "verification": "verifie",
+   "lignes": [
+    {
+     "oar_id": "oar-chiasma",
+     "indicateur": "V15Gy / D0,035cm³",
+     "limitant": "V15 < 0,2 cm³ ; D0,035 cm³ < 17,4 Gy"
+    },
+    {
+     "oar_id": "oar-nerf-optique-d",
+     "indicateur": "V15Gy / D0,035cm³",
+     "limitant": "V15 < 0,2 cm³ ; D0,035 cm³ < 17,4 Gy"
+    },
+    {
+     "oar_id": "oar-nerf-optique-g",
+     "indicateur": "V15Gy / D0,035cm³",
+     "limitant": "V15 < 0,2 cm³ ; D0,035 cm³ < 17,4 Gy"
+    },
+    {
+     "oar_id": "oar-cochlee-d",
+     "indicateur": "D0,035cm³",
+     "limitant": "< 17,1 Gy",
+     "note": "Risque discutable pour la cochlée homolatérale si l'audition controlatérale est bonne"
+    },
+    {
+     "oar_id": "oar-cochlee-g",
+     "indicateur": "D0,035cm³",
+     "limitant": "< 17,1 Gy",
+     "note": "Risque discutable pour la cochlée homolatérale si l'audition controlatérale est bonne"
+    },
+    {
+     "oar_id": "oar-tronc-cerebral",
+     "indicateur": "V18Gy / D0,035cm³",
+     "limitant": "V18 < 1 cm³ ; D0,035 cm³ < 23,1 Gy"
+    },
+    {
+     "oar_id": "oar-canal-medullaire",
+     "indicateur": "V18Gy / D0,035cm³",
+     "limitant": "V18 < 0,25 cm³ ; D0,035 cm³ < 22 Gy"
+    },
+    {
+     "oar_id": "oar-nerfs-craniens",
+     "indicateur": "V20Gy / D0,035cm³",
+     "limitant": "V20 < 0,2 cm³ ; D0,035 cm³ < 22 Gy",
+     "note": "Hors nerfs optiques, si concernés"
+    },
+    {
+     "oar_id": "oar-encephale-sain",
+     "indicateur": "Post-opératoire : V24Gy",
+     "limitant": "< 16,8 cm³"
+    },
+    {
+     "oar_id": "oar-encephale-sain",
+     "indicateur": "Tumeur en place : V19,6Gy − GTV / V23,1Gy − GTV",
+     "limitant": "< 10 cm³ ; < 7 cm³"
+    },
+    {
+     "oar_id": "oar-encephale-sain",
+     "indicateur": "Réirradiation : recoupe V18Gy actuel × V12Gy (1re SRS) ou × V21Gy (1re SRT en 3 fx)",
+     "limitant": "< 10 cm³",
+     "note": "Volume d'encéphale sain recevant les deux doses"
+    },
+    {
+     "oar_id": "oar-oeil-d",
+     "indicateur": "Dose",
+     "ideal": "Aussi basse que possible",
+     "note": "Pas une limite de validation du plan (Curie)"
+    },
+    {
+     "oar_id": "oar-oeil-g",
+     "indicateur": "Dose",
+     "ideal": "Aussi basse que possible",
+     "note": "Pas une limite de validation du plan (Curie)"
+    },
+    {
+     "oar_id": "oar-cristallin-d",
+     "indicateur": "Dose",
+     "ideal": "Aussi basse que possible",
+     "note": "Pas une limite de validation du plan (Curie)"
+    },
+    {
+     "oar_id": "oar-cristallin-g",
+     "indicateur": "Dose",
+     "ideal": "Aussi basse que possible",
+     "note": "Pas une limite de validation du plan (Curie)"
+    },
+    {
+     "oar_id": "oar-hippocampe-d",
+     "indicateur": "Dose",
+     "ideal": "Aussi basse que possible",
+     "note": "Pas une limite de validation du plan (Curie)"
+    },
+    {
+     "oar_id": "oar-hippocampe-g",
+     "indicateur": "Dose",
+     "ideal": "Aussi basse que possible",
+     "note": "Pas une limite de validation du plan (Curie)"
+    },
+    {
+     "oar_id": "oar-hypophyse",
+     "indicateur": "Dose",
+     "ideal": "Aussi basse que possible",
+     "note": "Pas une limite de validation du plan (Curie)"
+    }
+   ]
+  },
+  {
+   "id": "ct-srs-curie-5fx",
+   "titre": "Stéréotaxie intracrânienne, 5 fractions",
+   "fractionnement": "5 fx (25 à 30 Gy)",
+   "source": "Institut Curie, stéréotaxie des métastases cérébrales (version de travail du 05/12/2021), d'après l'AAPM",
+   "verification": "verifie",
+   "lignes": [
+    {
+     "oar_id": "oar-chiasma",
+     "indicateur": "V23Gy / D0,035cm³",
+     "limitant": "V23 < 0,2 cm³ ; D0,035 cm³ < 25 Gy"
+    },
+    {
+     "oar_id": "oar-nerf-optique-d",
+     "indicateur": "V23Gy / D0,035cm³",
+     "limitant": "V23 < 0,2 cm³ ; D0,035 cm³ < 25 Gy"
+    },
+    {
+     "oar_id": "oar-nerf-optique-g",
+     "indicateur": "V23Gy / D0,035cm³",
+     "limitant": "V23 < 0,2 cm³ ; D0,035 cm³ < 25 Gy"
+    },
+    {
+     "oar_id": "oar-cochlee-d",
+     "indicateur": "D0,035cm³",
+     "limitant": "< 25 Gy",
+     "note": "Risque discutable pour la cochlée homolatérale si l'audition controlatérale est bonne"
+    },
+    {
+     "oar_id": "oar-cochlee-g",
+     "indicateur": "D0,035cm³",
+     "limitant": "< 25 Gy",
+     "note": "Risque discutable pour la cochlée homolatérale si l'audition controlatérale est bonne"
+    },
+    {
+     "oar_id": "oar-tronc-cerebral",
+     "indicateur": "V23Gy / D0,035cm³",
+     "limitant": "V23 < 1 cm³ ; D0,035 cm³ < 31 Gy"
+    },
+    {
+     "oar_id": "oar-canal-medullaire",
+     "indicateur": "V22,5Gy / D0,035cm³",
+     "limitant": "V22,5 < 0,25 cm³ ; D0,035 cm³ < 30 Gy"
+    },
+    {
+     "oar_id": "oar-nerfs-craniens",
+     "indicateur": "V28Gy / D0,035cm³",
+     "limitant": "V28 < 0,2 cm³ ; D0,035 cm³ < 30 Gy",
+     "note": "Hors nerfs optiques, si concernés"
+    },
+    {
+     "oar_id": "oar-encephale-sain",
+     "indicateur": "V28,8Gy / V20Gy",
+     "limitant": "V28,8 < 7 cm³ ; V20 < 20 cm³"
+    },
+    {
+     "oar_id": "oar-encephale-sain",
+     "indicateur": "Réirradiation : recoupe V22,5Gy actuel × V12Gy (1re SRS) ou × V21Gy (1re SRT en 3 fx)",
+     "limitant": "< 10 cm³",
+     "note": "Volume d'encéphale sain recevant les deux doses"
+    },
+    {
+     "oar_id": "oar-oeil-d",
+     "indicateur": "Dose",
+     "ideal": "Aussi basse que possible",
+     "note": "Pas une limite de validation du plan (Curie)"
+    },
+    {
+     "oar_id": "oar-oeil-g",
+     "indicateur": "Dose",
+     "ideal": "Aussi basse que possible",
+     "note": "Pas une limite de validation du plan (Curie)"
+    },
+    {
+     "oar_id": "oar-cristallin-d",
+     "indicateur": "Dose",
+     "ideal": "Aussi basse que possible",
+     "note": "Pas une limite de validation du plan (Curie)"
+    },
+    {
+     "oar_id": "oar-cristallin-g",
+     "indicateur": "Dose",
+     "ideal": "Aussi basse que possible",
+     "note": "Pas une limite de validation du plan (Curie)"
+    },
+    {
+     "oar_id": "oar-hippocampe-d",
+     "indicateur": "Dose",
+     "ideal": "Aussi basse que possible",
+     "note": "Pas une limite de validation du plan (Curie)"
+    },
+    {
+     "oar_id": "oar-hippocampe-g",
+     "indicateur": "Dose",
+     "ideal": "Aussi basse que possible",
+     "note": "Pas une limite de validation du plan (Curie)"
+    },
+    {
+     "oar_id": "oar-hypophyse",
+     "indicateur": "Dose",
+     "ideal": "Aussi basse que possible",
+     "note": "Pas une limite de validation du plan (Curie)"
+    }
+   ]
+  },
+  {
+   "id": "ct-srs-igr-1fx",
+   "titre": "Stéréotaxie intracrânienne, 1 séance",
+   "fractionnement": "1 fx",
+   "source": "Gustave Roussy, fiches dosimétriques de neuro-stéréotaxie v1 (19/04/2016)",
+   "verification": "verifie",
+   "lignes": [
+    {
+     "oar_id": "oar-tronc-cerebral",
+     "indicateur": "D0,035cm³ / V10Gy",
+     "limitant": "D0,035 cm³ ≤ 15 Gy ; V10 ≤ 0,5 cm³"
+    },
+    {
+     "oar_id": "oar-chiasma",
+     "indicateur": "D0,035cm³ / V8Gy",
+     "limitant": "D0,035 cm³ ≤ 10 Gy ; V8 ≤ 0,2 cm³",
+     "note": "Voies optiques"
+    },
+    {
+     "oar_id": "oar-nerf-optique-d",
+     "indicateur": "D0,035cm³ / V8Gy",
+     "limitant": "D0,035 cm³ ≤ 10 Gy ; V8 ≤ 0,2 cm³",
+     "note": "Voies optiques"
+    },
+    {
+     "oar_id": "oar-nerf-optique-g",
+     "indicateur": "D0,035cm³ / V8Gy",
+     "limitant": "D0,035 cm³ ≤ 10 Gy ; V8 ≤ 0,2 cm³",
+     "note": "Voies optiques"
+    },
+    {
+     "oar_id": "oar-cochlee-d",
+     "indicateur": "D0,035cm³",
+     "limitant": "≤ 9 Gy"
+    },
+    {
+     "oar_id": "oar-cochlee-g",
+     "indicateur": "D0,035cm³",
+     "limitant": "≤ 9 Gy"
+    },
+    {
+     "oar_id": "oar-cristallin-d",
+     "indicateur": "D0,035cm³",
+     "limitant": "≤ 3 Gy"
+    },
+    {
+     "oar_id": "oar-cristallin-g",
+     "indicateur": "D0,035cm³",
+     "limitant": "≤ 3 Gy"
+    },
+    {
+     "oar_id": "oar-moelle",
+     "indicateur": "D0,035cm³ / V10Gy",
+     "limitant": "D0,035 cm³ ≤ 14 Gy ; V10 ≤ 0,35 cm³"
+    },
+    {
+     "oar_id": "oar-encephale-sain",
+     "indicateur": "V12Gy (encéphale moins PTV)",
+     "limitant": "≤ 5 à 7,5 cm³"
+    },
+    {
+     "oar_id": "oar-peau",
+     "indicateur": "D0,035cm³ / V23Gy",
+     "limitant": "D0,035 cm³ ≤ 26 Gy ; V23 ≤ 10 cm³"
+    }
+   ]
+  },
+  {
+   "id": "ct-srs-igr-3fx",
+   "titre": "Stéréotaxie intracrânienne, 3 séances",
+   "fractionnement": "3 fx",
+   "source": "Gustave Roussy, fiches dosimétriques de neuro-stéréotaxie v1 (19/04/2016)",
+   "verification": "verifie",
+   "lignes": [
+    {
+     "oar_id": "oar-tronc-cerebral",
+     "indicateur": "D0,035cm³ / V18Gy",
+     "limitant": "D0,035 cm³ ≤ 23,1 Gy ; V18 ≤ 0,5 cm³"
+    },
+    {
+     "oar_id": "oar-chiasma",
+     "indicateur": "D0,035cm³ / V15,3Gy",
+     "limitant": "D0,035 cm³ ≤ 17,4 Gy ; V15,3 ≤ 0,2 cm³",
+     "note": "Voies optiques"
+    },
+    {
+     "oar_id": "oar-nerf-optique-d",
+     "indicateur": "D0,035cm³ / V15,3Gy",
+     "limitant": "D0,035 cm³ ≤ 17,4 Gy ; V15,3 ≤ 0,2 cm³",
+     "note": "Voies optiques"
+    },
+    {
+     "oar_id": "oar-nerf-optique-g",
+     "indicateur": "D0,035cm³ / V15,3Gy",
+     "limitant": "D0,035 cm³ ≤ 17,4 Gy ; V15,3 ≤ 0,2 cm³",
+     "note": "Voies optiques"
+    },
+    {
+     "oar_id": "oar-cochlee-d",
+     "indicateur": "D0,035cm³",
+     "limitant": "≤ 17,1 Gy"
+    },
+    {
+     "oar_id": "oar-cochlee-g",
+     "indicateur": "D0,035cm³",
+     "limitant": "≤ 17,1 Gy"
+    },
+    {
+     "oar_id": "oar-cristallin-d",
+     "indicateur": "D0,035cm³",
+     "limitant": "≤ 7 Gy"
+    },
+    {
+     "oar_id": "oar-cristallin-g",
+     "indicateur": "D0,035cm³",
+     "limitant": "≤ 7 Gy"
+    },
+    {
+     "oar_id": "oar-moelle",
+     "indicateur": "D0,035cm³ / V18Gy",
+     "limitant": "D0,035 cm³ ≤ 21,9 Gy ; V18 ≤ 0,35 cm³"
+    },
+    {
+     "oar_id": "oar-encephale-sain",
+     "indicateur": "V12Gy (encéphale moins PTV)",
+     "limitant": "≤ 21 cm³"
+    },
+    {
+     "oar_id": "oar-peau",
+     "indicateur": "D0,035cm³ / V30Gy",
+     "limitant": "D0,035 cm³ ≤ 33 Gy ; V30 ≤ 10 cm³"
+    }
+   ]
+  },
+  {
+   "id": "ct-srs-igr-5fx",
+   "titre": "Stéréotaxie intracrânienne, 5 séances",
+   "fractionnement": "5 fx",
+   "source": "Gustave Roussy, fiches dosimétriques de neuro-stéréotaxie v1 (19/04/2016)",
+   "verification": "verifie",
+   "lignes": [
+    {
+     "oar_id": "oar-tronc-cerebral",
+     "indicateur": "D0,035cm³ / V23Gy",
+     "limitant": "D0,035 cm³ ≤ 31 Gy ; V23 ≤ 0,5 cm³"
+    },
+    {
+     "oar_id": "oar-chiasma",
+     "indicateur": "D0,035cm³ / V23Gy",
+     "limitant": "D0,035 cm³ ≤ 25 Gy ; V23 ≤ 0,2 cm³",
+     "note": "Voies optiques"
+    },
+    {
+     "oar_id": "oar-nerf-optique-d",
+     "indicateur": "D0,035cm³ / V23Gy",
+     "limitant": "D0,035 cm³ ≤ 25 Gy ; V23 ≤ 0,2 cm³",
+     "note": "Voies optiques"
+    },
+    {
+     "oar_id": "oar-nerf-optique-g",
+     "indicateur": "D0,035cm³ / V23Gy",
+     "limitant": "D0,035 cm³ ≤ 25 Gy ; V23 ≤ 0,2 cm³",
+     "note": "Voies optiques"
+    },
+    {
+     "oar_id": "oar-cochlee-d",
+     "indicateur": "D0,035cm³",
+     "limitant": "≤ 25 Gy"
+    },
+    {
+     "oar_id": "oar-cochlee-g",
+     "indicateur": "D0,035cm³",
+     "limitant": "≤ 25 Gy"
+    },
+    {
+     "oar_id": "oar-cristallin-d",
+     "indicateur": "D0,035cm³",
+     "limitant": "≤ 7 Gy"
+    },
+    {
+     "oar_id": "oar-cristallin-g",
+     "indicateur": "D0,035cm³",
+     "limitant": "≤ 7 Gy"
+    },
+    {
+     "oar_id": "oar-moelle",
+     "indicateur": "D0,035cm³ / V23Gy",
+     "limitant": "D0,035 cm³ ≤ 30 Gy ; V23 ≤ 0,35 cm³"
+    },
+    {
+     "oar_id": "oar-peau",
+     "indicateur": "D0,035cm³ / V36,5Gy",
+     "limitant": "D0,035 cm³ ≤ 39,5 Gy ; V36,5 ≤ 10 cm³"
+    }
+   ]
+  },
+  {
+   "id": "ct-srs-hytec",
+   "titre": "Stéréotaxie intracrânienne : encéphale et voies optiques",
+   "fractionnement": "1, 3 ou 5 fx",
+   "source": "HyTEC 2021 (Milano : encéphale ; voies optiques)",
+   "verification": "verifie",
+   "lignes": [
+    {
+     "oar_id": "oar-encephale",
+     "indicateur": "V12Gy en 1 fx (cible comprise)",
+     "ideal": "< 5 cm³ (radionécrose symptomatique ≈ 10 %)",
+     "limitant": "< 10 cm³ (≈ 15 %)",
+     "note": "Au-delà de 15 cm³ : ≈ 20 %"
+    },
+    {
+     "oar_id": "oar-encephale",
+     "indicateur": "V20Gy en 3 fx ou V24Gy en 5 fx (cible comprise)",
+     "ideal": "< 20 cm³",
+     "note": "Nécrose ou œdème < 10 % ; nécrose opérée < 4 %"
+    },
+    {
+     "oar_id": "oar-chiasma",
+     "indicateur": "Dmax (point)",
+     "ideal": "1 fx : ≤ 10 Gy",
+     "limitant": "1 fx 12 Gy ; 3 fx 20 Gy ; 5 fx 25 Gy",
+     "note": "Neuropathie < 1 % sans irradiation antérieure ; risque × 10 après RT antérieure"
+    },
+    {
+     "oar_id": "oar-nerf-optique-d",
+     "indicateur": "Dmax (point)",
+     "ideal": "1 fx : ≤ 10 Gy",
+     "limitant": "1 fx 12 Gy ; 3 fx 20 Gy ; 5 fx 25 Gy",
+     "note": "Neuropathie < 1 % sans irradiation antérieure ; risque × 10 après RT antérieure"
+    },
+    {
+     "oar_id": "oar-nerf-optique-g",
+     "indicateur": "Dmax (point)",
+     "ideal": "1 fx : ≤ 10 Gy",
+     "limitant": "1 fx 12 Gy ; 3 fx 20 Gy ; 5 fx 25 Gy",
+     "note": "Neuropathie < 1 % sans irradiation antérieure ; risque × 10 après RT antérieure"
+    }
+   ]
+  },
+  {
+   "id": "ct-orl-curie",
+   "titre": "VADS, tumeur en place ou opérée",
+   "fractionnement": "33 fx (66 / 59,4 / 54 Gy) ou 35 fx (70 / 63 / 56 Gy)",
+   "source": "Institut Curie 2021, protocoles RT des VADS (tumeur en place et opérée)",
+   "verification": "verifie",
+   "lignes": [
+    {
+     "oar_id": "oar-parotide-d",
+     "indicateur": "Dmoy",
+     "ideal": "≤ 24–26 Gy",
+     "note": "En cas de chevauchement avec un PTV : appliquer à l'OAR moins le PTV"
+    },
+    {
+     "oar_id": "oar-parotide-g",
+     "indicateur": "Dmoy",
+     "ideal": "≤ 24–26 Gy",
+     "note": "En cas de chevauchement avec un PTV : appliquer à l'OAR moins le PTV"
+    },
+    {
+     "oar_id": "oar-glande-sous-max-d",
+     "indicateur": "Dmoy",
+     "ideal": "≤ 40 Gy",
+     "note": "OAR moins PTV si chevauchement"
+    },
+    {
+     "oar_id": "oar-glande-sous-max-g",
+     "indicateur": "Dmoy",
+     "ideal": "≤ 40 Gy",
+     "note": "OAR moins PTV si chevauchement"
+    },
+    {
+     "oar_id": "oar-larynx",
+     "indicateur": "Dmoy",
+     "ideal": "≤ 40–45 Gy",
+     "note": "Du cricoïde à la margelle ; OAR moins PTV si chevauchement"
+    },
+    {
+     "oar_id": "oar-cavite-orale",
+     "indicateur": "Dmoy",
+     "ideal": "≤ 30–40 Gy",
+     "note": "Langue, palais mou et plancher ; OAR moins PTV si chevauchement"
+    },
+    {
+     "oar_id": "oar-canal-medullaire",
+     "indicateur": "D0,035cc sur le PRV (+ 3 mm)",
+     "ideal": "≤ 45 Gy",
+     "limitant": "50 Gy",
+     "note": "50 Gy sur avis médical selon la situation clinique ; prioritaire sur la couverture"
+    },
+    {
+     "oar_id": "oar-tronc-cerebral",
+     "indicateur": "D0,035cc sur le PRV (+ 3 mm)",
+     "ideal": "≤ 54 Gy",
+     "limitant": "64 Gy",
+     "note": "64 Gy sur avis médical ; prioritaire sur la couverture"
+    },
+    {
+     "oar_id": "oar-atm-d",
+     "indicateur": "D0,035cc",
+     "ideal": "≤ 65 Gy"
+    },
+    {
+     "oar_id": "oar-atm-g",
+     "indicateur": "D0,035cc",
+     "ideal": "≤ 65 Gy"
+    },
+    {
+     "oar_id": "oar-oreille-interne-d",
+     "indicateur": "Dmoy",
+     "ideal": "≤ 45 Gy"
+    },
+    {
+     "oar_id": "oar-oreille-interne-g",
+     "indicateur": "Dmoy",
+     "ideal": "≤ 45 Gy"
+    },
+    {
+     "oar_id": "oar-oreille-interne-d",
+     "indicateur": "D0,035cc",
+     "ideal": "≤ 60 Gy"
+    },
+    {
+     "oar_id": "oar-oreille-interne-g",
+     "indicateur": "D0,035cc",
+     "ideal": "≤ 60 Gy"
+    },
+    {
+     "oar_id": "oar-mandibule",
+     "indicateur": "D0,035cc",
+     "ideal": "≤ 70 Gy",
+     "note": "Limiter le volume recevant plus de 60 Gy"
+    },
+    {
+     "oar_id": "oar-constricteurs",
+     "indicateur": "Dmoy",
+     "ideal": "≤ 45–50 Gy",
+     "note": "OAR moins PTV si chevauchement"
+    },
+    {
+     "oar_id": "oar-cristallin-d",
+     "indicateur": "D0,035cc",
+     "ideal": "≤ 10 Gy"
+    },
+    {
+     "oar_id": "oar-cristallin-g",
+     "indicateur": "D0,035cc",
+     "ideal": "≤ 10 Gy"
+    },
+    {
+     "oar_id": "oar-oeil-d",
+     "indicateur": "Dmoy (hors tumeur des sinus)",
+     "ideal": "≤ 5 Gy"
+    },
+    {
+     "oar_id": "oar-oeil-g",
+     "indicateur": "Dmoy (hors tumeur des sinus)",
+     "ideal": "≤ 5 Gy"
+    },
+    {
+     "oar_id": "oar-oeil-d",
+     "indicateur": "Dmoy (tumeur des sinus)",
+     "ideal": "≤ 35 Gy",
+     "note": "Lecture du tableau Curie : deuxième valeur de la ligne Œil"
+    },
+    {
+     "oar_id": "oar-oeil-g",
+     "indicateur": "Dmoy (tumeur des sinus)",
+     "ideal": "≤ 35 Gy",
+     "note": "Lecture du tableau Curie : deuxième valeur de la ligne Œil"
+    },
+    {
+     "oar_id": "oar-oeil-d",
+     "indicateur": "D0,035cc (tumeur des sinus)",
+     "ideal": "≤ 50 Gy",
+     "note": "Idem"
+    },
+    {
+     "oar_id": "oar-oeil-g",
+     "indicateur": "D0,035cc (tumeur des sinus)",
+     "ideal": "≤ 50 Gy",
+     "note": "Idem"
+    },
+    {
+     "oar_id": "oar-oesophage",
+     "indicateur": "Dmoy",
+     "ideal": "≤ 40 Gy",
+     "note": "Bouche œsophagienne et œsophage cervical ; OAR moins PTV si chevauchement"
+    },
+    {
+     "oar_id": "oar-glande-lacrymale-d",
+     "indicateur": "Dmoy",
+     "ideal": "≤ 35 Gy"
+    },
+    {
+     "oar_id": "oar-glande-lacrymale-g",
+     "indicateur": "Dmoy",
+     "ideal": "≤ 35 Gy"
+    },
+    {
+     "oar_id": "oar-nerf-optique-d",
+     "indicateur": "D0,035cc sur le PRV (+ 3 mm)",
+     "ideal": "≤ 54 Gy",
+     "note": "PRV du nerf homolatéral facultatif si la tumeur est au contact"
+    },
+    {
+     "oar_id": "oar-nerf-optique-g",
+     "indicateur": "D0,035cc sur le PRV (+ 3 mm)",
+     "ideal": "≤ 54 Gy",
+     "note": "PRV du nerf homolatéral facultatif si la tumeur est au contact"
+    },
+    {
+     "oar_id": "oar-chiasma",
+     "indicateur": "D0,035cc sur le PRV (+ 3 mm)",
+     "ideal": "≤ 54 Gy"
+    },
+    {
+     "oar_id": "oar-plexus-brachial-d",
+     "indicateur": "D0,035cc",
+     "ideal": "≤ 54–60 Gy",
+     "note": "Davantage sur avis médical si l'irradiation n'est pas circonférentielle"
+    },
+    {
+     "oar_id": "oar-plexus-brachial-g",
+     "indicateur": "D0,035cc",
+     "ideal": "≤ 54–60 Gy",
+     "note": "Davantage sur avis médical si l'irradiation n'est pas circonférentielle"
+    },
+    {
+     "oar_id": "oar-cervelet",
+     "indicateur": "D2cc",
+     "ideal": "≤ 60 Gy",
+     "note": "Cervelet et cerveau"
+    },
+    {
+     "oar_id": "oar-encephale",
+     "indicateur": "D2cc",
+     "ideal": "≤ 60 Gy",
+     "note": "Cervelet et cerveau"
+    },
+    {
+     "oar_id": "oar-thyroide",
+     "indicateur": "Dmoy",
+     "ideal": "≤ 50 Gy",
+     "note": "OAR moins PTV si chevauchement"
+    },
+    {
+     "oar_id": "oar-levres",
+     "indicateur": "Dmoy",
+     "ideal": "≤ 30 Gy",
+     "note": "OAR moins PTV si chevauchement"
+    }
+   ]
+  },
+  {
+   "id": "ct-orl-igr",
+   "titre": "Tête et cou, RCMI",
+   "fractionnement": "30–33 fx (70 / 60 / 54 Gy)",
+   "source": "Gustave Roussy, RCMI des cancers de la tête et du cou, RLS-PTC-002-V02 (2017)",
+   "verification": "verifie",
+   "lignes": [
+    {
+     "oar_id": "oar-canal-medullaire",
+     "indicateur": "Dmax",
+     "ideal": "< 50 Gy",
+     "note": "PRV moelle 5 mm ; contourage sur repères osseux"
+    },
+    {
+     "oar_id": "oar-canal-medullaire",
+     "indicateur": "D0,5cc",
+     "ideal": "≤ 48 Gy"
+    },
+    {
+     "oar_id": "oar-tronc-cerebral",
+     "indicateur": "Dmax",
+     "ideal": "< 50 Gy",
+     "note": "PRV 3 mm"
+    },
+    {
+     "oar_id": "oar-tronc-cerebral",
+     "indicateur": "D0,5cc",
+     "ideal": "≤ 54 Gy"
+    },
+    {
+     "oar_id": "oar-chiasma",
+     "indicateur": "Dmax",
+     "ideal": "< 54 Gy",
+     "note": "PRV voies optiques 2 mm"
+    },
+    {
+     "oar_id": "oar-chiasma",
+     "indicateur": "D5%",
+     "ideal": "≤ 54 Gy"
+    },
+    {
+     "oar_id": "oar-nerf-optique-d",
+     "indicateur": "D5% (nerf homolatéral)",
+     "ideal": "≤ 54 Gy"
+    },
+    {
+     "oar_id": "oar-nerf-optique-g",
+     "indicateur": "D5% (nerf homolatéral)",
+     "ideal": "≤ 54 Gy"
+    },
+    {
+     "oar_id": "oar-nerf-optique-d",
+     "indicateur": "D5% (nerf controlatéral)",
+     "ideal": "≤ 50 Gy"
+    },
+    {
+     "oar_id": "oar-nerf-optique-g",
+     "indicateur": "D5% (nerf controlatéral)",
+     "ideal": "≤ 50 Gy"
+    },
+    {
+     "oar_id": "oar-lobe-frontal",
+     "indicateur": "Dmax",
+     "ideal": "< 65 Gy"
+    },
+    {
+     "oar_id": "oar-lobe-temporal-d",
+     "indicateur": "Dmax",
+     "ideal": "< 65 Gy"
+    },
+    {
+     "oar_id": "oar-lobe-temporal-g",
+     "indicateur": "Dmax",
+     "ideal": "< 65 Gy"
+    },
+    {
+     "oar_id": "oar-lobe-frontal",
+     "indicateur": "D0,5cc",
+     "ideal": "< 60 Gy"
+    },
+    {
+     "oar_id": "oar-lobe-temporal-d",
+     "indicateur": "D0,5cc",
+     "ideal": "< 60 Gy"
+    },
+    {
+     "oar_id": "oar-lobe-temporal-g",
+     "indicateur": "D0,5cc",
+     "ideal": "< 60 Gy"
+    },
+    {
+     "oar_id": "oar-fosse-posterieure",
+     "indicateur": "Dmoy",
+     "ideal": "≤ 20 Gy"
+    },
+    {
+     "oar_id": "oar-cristallin-d",
+     "indicateur": "Dose",
+     "ideal": "Au cas par cas"
+    },
+    {
+     "oar_id": "oar-cristallin-g",
+     "indicateur": "Dose",
+     "ideal": "Au cas par cas"
+    },
+    {
+     "oar_id": "oar-oeil-d",
+     "indicateur": "D5%",
+     "ideal": "≤ 45 Gy",
+     "note": "Œil homolatéral : sauf extension antérieure"
+    },
+    {
+     "oar_id": "oar-oeil-g",
+     "indicateur": "D5%",
+     "ideal": "≤ 45 Gy",
+     "note": "Œil homolatéral : sauf extension antérieure"
+    },
+    {
+     "oar_id": "oar-hypophyse",
+     "indicateur": "D5%",
+     "ideal": "≤ 60 Gy"
+    },
+    {
+     "oar_id": "oar-cochlee-d",
+     "indicateur": "Dmoy",
+     "ideal": "≤ 45 Gy",
+     "note": "Contourage sur repères osseux"
+    },
+    {
+     "oar_id": "oar-cochlee-g",
+     "indicateur": "Dmoy",
+     "ideal": "≤ 45 Gy",
+     "note": "Contourage sur repères osseux"
+    },
+    {
+     "oar_id": "oar-parotide-d",
+     "indicateur": "D50%",
+     "ideal": "≤ 30 Gy",
+     "note": "Homolatérale et controlatérale"
+    },
+    {
+     "oar_id": "oar-parotide-g",
+     "indicateur": "D50%",
+     "ideal": "≤ 30 Gy",
+     "note": "Homolatérale et controlatérale"
+    },
+    {
+     "oar_id": "oar-parotide-d",
+     "indicateur": "Dmoy",
+     "ideal": "≤ 26 Gy"
+    },
+    {
+     "oar_id": "oar-parotide-g",
+     "indicateur": "Dmoy",
+     "ideal": "≤ 26 Gy"
+    },
+    {
+     "oar_id": "oar-glande-sous-max-d",
+     "indicateur": "D50%",
+     "ideal": "≤ 30 Gy",
+     "note": "Glande controlatérale seulement"
+    },
+    {
+     "oar_id": "oar-glande-sous-max-g",
+     "indicateur": "D50%",
+     "ideal": "≤ 30 Gy",
+     "note": "Glande controlatérale seulement"
+    },
+    {
+     "oar_id": "oar-glande-sous-max-d",
+     "indicateur": "Dmoy",
+     "ideal": "≤ 26 Gy",
+     "note": "Glande controlatérale seulement"
+    },
+    {
+     "oar_id": "oar-glande-sous-max-g",
+     "indicateur": "Dmoy",
+     "ideal": "≤ 26 Gy",
+     "note": "Glande controlatérale seulement"
+    },
+    {
+     "oar_id": "oar-atm-d",
+     "indicateur": "D5%",
+     "ideal": "≤ 70 Gy"
+    },
+    {
+     "oar_id": "oar-atm-g",
+     "indicateur": "D5%",
+     "ideal": "≤ 70 Gy"
+    },
+    {
+     "oar_id": "oar-mandibule",
+     "indicateur": "D5%",
+     "ideal": "≤ 70 Gy"
+    },
+    {
+     "oar_id": "oar-levres",
+     "indicateur": "Dmoy",
+     "ideal": "≤ 20 Gy"
+    },
+    {
+     "oar_id": "oar-cavite-orale",
+     "indicateur": "Dmoy (bouche hors PTV)",
+     "ideal": "≤ 45 Gy"
+    },
+    {
+     "oar_id": "oar-larynx",
+     "indicateur": "Dmoy (larynx sain)",
+     "ideal": "≤ 25 Gy"
+    },
+    {
+     "oar_id": "oar-constricteurs",
+     "indicateur": "Dmoy",
+     "ideal": "≤ 50 Gy"
+    },
+    {
+     "oar_id": "oar-thyroide",
+     "indicateur": "Dmoy",
+     "ideal": "≤ 50 Gy"
+    },
+    {
+     "oar_id": "oar-muscles-nuque",
+     "indicateur": "Dmax",
+     "ideal": "≤ 60 Gy"
+    },
+    {
+     "oar_id": "oar-muscles-nuque",
+     "indicateur": "Dmoy",
+     "ideal": "≤ 45 Gy"
+    }
+   ]
+  },
+  {
+   "id": "ct-sein-ff-15fx",
+   "titre": "Sein ou paroi, 40 Gy / 15 fx",
+   "fractionnement": "40 Gy / 15 fx",
+   "source": "FAST-Forward (Brunt 2020), bras contrôle",
+   "verification": "verifie",
+   "lignes": [
+    {
+     "oar_id": "oar-poumon-homolateral",
+     "indicateur": "V12Gy",
+     "limitant": "< 15 %"
+    },
+    {
+     "oar_id": "oar-coeur",
+     "indicateur": "V2Gy",
+     "limitant": "< 30 %"
+    },
+    {
+     "oar_id": "oar-coeur",
+     "indicateur": "V10Gy",
+     "limitant": "< 5 %"
+    }
+   ]
+  },
+  {
+   "id": "ct-sein-ff-5fx",
+   "titre": "Sein ou paroi, 26 Gy / 5 fx",
+   "fractionnement": "26 ou 27 Gy / 5 fx",
+   "source": "FAST-Forward (Brunt 2020), bras à 5 fractions",
+   "verification": "verifie",
+   "lignes": [
+    {
+     "oar_id": "oar-poumon-homolateral",
+     "indicateur": "V8Gy",
+     "limitant": "< 15 %"
+    },
+    {
+     "oar_id": "oar-coeur",
+     "indicateur": "V1,5Gy",
+     "limitant": "< 30 %"
+    },
+    {
+     "oar_id": "oar-coeur",
+     "indicateur": "V7Gy",
+     "limitant": "< 5 %"
+    }
+   ]
+  },
+  {
+   "id": "ct-sein-senorif",
+   "titre": "Sein, objectifs du référentiel régional",
+   "fractionnement": "Tous fractionnements",
+   "source": "Sénorif 2021-2022 (renvoie à RECORAD 2021 pour les autres OAR) ; Darby 2013",
+   "verification": "verifie",
+   "lignes": [
+    {
+     "oar_id": "oar-coeur",
+     "indicateur": "Dmoy",
+     "ideal": "< 5 Gy",
+     "note": "Le plus bas possible : + 7,4 % d'événements coronariens par gray (Darby 2013)"
+    },
+    {
+     "oar_id": "oar-sein-controlateral",
+     "indicateur": "Dmoy",
+     "ideal": "Le plus bas possible",
+     "note": "Surtout avant 40 ans ou en cas de prédisposition génétique ; à évaluer systématiquement en RCMI"
+    }
+   ]
+  },
+  {
+   "id": "ct-hytec-moelle",
+   "titre": "SBRT : moelle épinière, première irradiation",
+   "fractionnement": "1 à 5 fx",
+   "source": "HyTEC 2021 (Sahgal : moelle)",
+   "verification": "verifie",
+   "lignes": [
+    {
+     "oar_id": "oar-moelle",
+     "indicateur": "Dmax (point)",
+     "limitant": "1 fx : 12,4–14,0 Gy ; 2 fx : 17,0 Gy ; 3 fx : 20,3 Gy ; 4 fx : 23,0 Gy ; 5 fx : 25,3 Gy",
+     "note": "Risque estimé de myélopathie radique de 1 à 5 % ; première irradiation"
+    }
+   ]
+  },
+  {
+   "id": "ct-reirr-moelle",
+   "titre": "Réirradiation : moelle épinière (doses cumulées)",
+   "fractionnement": "Tous fractionnements",
+   "source": "HyTEC 2021 (Sahgal : moelle) ; Sahgal 2012 ; Nieder 2006",
+   "verification": "verifie",
+   "lignes": [
+    {
+     "oar_id": "oar-sac-dural",
+     "indicateur": "Dmax (point) cumulée, EQD2",
+     "limitant": "≤ 70 Gy₂/₂",
+     "note": "Réirradiation en SBRT (HyTEC ; Sahgal 2012)"
+    },
+    {
+     "oar_id": "oar-sac-dural",
+     "indicateur": "Dmax (point) de la SBRT de réirradiation, EQD2",
+     "ideal": "20–25 Gy₂/₂",
+     "limitant": "≤ 25 Gy₂/₂"
+    },
+    {
+     "oar_id": "oar-sac-dural",
+     "indicateur": "Dmax de la SBRT / Dmax cumulée (EQD2)",
+     "limitant": "≤ 0,5"
+    },
+    {
+     "oar_id": "oar-sac-dural",
+     "indicateur": "Intervalle entre les deux irradiations",
+     "limitant": "≥ 5 mois"
+    },
+    {
+     "oar_id": "oar-moelle",
+     "indicateur": "BED cumulée (α/β = 2 Gy cervical et thoracique, 4 Gy lombaire)",
+     "ideal": "≤ 120 Gy₂",
+     "limitant": "≤ 135,5 Gy₂",
+     "note": "Si intervalle ≥ 6 mois et chaque cure ≤ 98 Gy₂ ; aucune myélopathie rapportée jusqu'à 120 Gy₂ (Nieder 2006)"
+    },
+    {
+     "oar_id": "oar-canal-medullaire",
+     "indicateur": "BED cumulée (α/β = 2 Gy cervical et thoracique, 4 Gy lombaire)",
+     "ideal": "≤ 120 Gy₂",
+     "limitant": "≤ 135,5 Gy₂",
+     "note": "Si intervalle ≥ 6 mois et chaque cure ≤ 98 Gy₂ ; aucune myélopathie rapportée jusqu'à 120 Gy₂ (Nieder 2006)"
+    }
+   ]
+  },
+  {
+   "id": "ct-surrenale-igr-5fx",
+   "titre": "SBRT de la surrénale, 5 × 9 Gy",
+   "fractionnement": "5 fx",
+   "source": "Gustave Roussy, fiche de dosimétrie « stéréo surrénale 5 × 9 Gy »",
+   "verification": "verifie",
+   "lignes": [
+    {
+     "oar_id": "oar-foie",
+     "indicateur": "V20Gy",
+     "limitant": "< 50 %"
+    },
+    {
+     "oar_id": "oar-foie",
+     "indicateur": "V28Gy",
+     "limitant": "≤ 33 %"
+    },
+    {
+     "oar_id": "oar-foie",
+     "indicateur": "Vtotal − V21Gy",
+     "limitant": "> 700 cm³",
+     "note": "Volume de foie recevant moins de 21 Gy"
+    },
+    {
+     "oar_id": "oar-estomac",
+     "indicateur": "V28Gy",
+     "limitant": "≤ 10 cm³"
+    },
+    {
+     "oar_id": "oar-estomac",
+     "indicateur": "V30Gy",
+     "limitant": "≤ 0,5 cm³"
+    },
+    {
+     "oar_id": "oar-duodenum",
+     "indicateur": "V18Gy",
+     "limitant": "≤ 5 cm³"
+    },
+    {
+     "oar_id": "oar-duodenum",
+     "indicateur": "V32Gy",
+     "limitant": "≤ 0,5 cm³"
+    },
+    {
+     "oar_id": "oar-grele",
+     "indicateur": "V21Gy",
+     "limitant": "≤ 5 cm³"
+    },
+    {
+     "oar_id": "oar-grele",
+     "indicateur": "V35Gy",
+     "limitant": "≤ 0,5 cm³"
+    },
+    {
+     "oar_id": "oar-reins",
+     "indicateur": "Vtotal − V18Gy",
+     "limitant": "> 200 cm³",
+     "note": "Volume rénal recevant moins de 18 Gy"
+    },
+    {
+     "oar_id": "oar-reins",
+     "indicateur": "V23Gy",
+     "limitant": "≤ 66 %"
+    },
+    {
+     "oar_id": "oar-reins",
+     "indicateur": "V10Gy",
+     "limitant": "≤ 50 %"
+    },
+    {
+     "oar_id": "oar-rein-d",
+     "indicateur": "V15Gy (rein homolatéral)",
+     "limitant": "≤ 66 %"
+    },
+    {
+     "oar_id": "oar-rein-g",
+     "indicateur": "V15Gy (rein homolatéral)",
+     "limitant": "≤ 66 %"
+    },
+    {
+     "oar_id": "oar-rein-d",
+     "indicateur": "V10Gy (rein homolatéral)",
+     "limitant": "≤ 50 %"
+    },
+    {
+     "oar_id": "oar-rein-g",
+     "indicateur": "V10Gy (rein homolatéral)",
+     "limitant": "≤ 50 %"
+    },
+    {
+     "oar_id": "oar-moelle",
+     "indicateur": "D0,5cm³",
+     "limitant": "≤ 25 Gy"
+    },
+    {
+     "oar_id": "oar-moelle",
+     "indicateur": "Dmax",
+     "limitant": "≤ 28 Gy"
+    },
+    {
+     "oar_id": "oar-colon",
+     "indicateur": "V25Gy",
+     "limitant": "≤ 20 cm³"
+    },
+    {
+     "oar_id": "oar-colon",
+     "indicateur": "D0,5cm³",
+     "limitant": "≤ 38 Gy"
+    },
+    {
+     "oar_id": "oar-paroi-thoracique",
+     "indicateur": "D30cm³",
+     "limitant": "≤ 30–35 Gy"
+    },
+    {
+     "oar_id": "oar-paroi-thoracique",
+     "indicateur": "D0,035cm³",
+     "limitant": "≤ 43 Gy"
+    }
+   ]
+  },
+  {
+   "id": "ct-sarcome-rp-igr",
+   "titre": "Sarcome rétropéritonéal, RT pré-opératoire",
+   "fractionnement": "Non précisé par la fiche",
+   "source": "Gustave Roussy, fiche de dosimétrie « sarcomes rétropéritonéaux » (2017)",
+   "verification": "verifie",
+   "lignes": [
+    {
+     "oar_id": "oar-rein-d",
+     "indicateur": "Dmoy du rein restant (un seul rein fonctionnel prévu)",
+     "limitant": "≤ 8 Gy"
+    },
+    {
+     "oar_id": "oar-rein-g",
+     "indicateur": "Dmoy du rein restant (un seul rein fonctionnel prévu)",
+     "limitant": "≤ 8 Gy"
+    },
+    {
+     "oar_id": "oar-rein-d",
+     "indicateur": "D2% du rein restant (un seul rein fonctionnel prévu)",
+     "limitant": "≤ 10–12 Gy"
+    },
+    {
+     "oar_id": "oar-rein-g",
+     "indicateur": "D2% du rein restant (un seul rein fonctionnel prévu)",
+     "limitant": "≤ 10–12 Gy"
+    },
+    {
+     "oar_id": "oar-reins",
+     "indicateur": "D2% (deux reins conservés)",
+     "limitant": "≤ 20 Gy"
+    },
+    {
+     "oar_id": "oar-moelle",
+     "indicateur": "D2%",
+     "limitant": "≤ 45 Gy"
+    },
+    {
+     "oar_id": "oar-moelle",
+     "indicateur": "Dmax",
+     "limitant": "≤ 50 Gy"
+    },
+    {
+     "oar_id": "oar-grele",
+     "indicateur": "D50% (cavité intestinale moins PTV)",
+     "limitant": "≤ 25 Gy"
+    },
+    {
+     "oar_id": "oar-grele",
+     "indicateur": "V45Gy (cavité intestinale moins PTV)",
+     "limitant": "≤ 195 cm³"
+    },
+    {
+     "oar_id": "oar-grele",
+     "indicateur": "D2% (cavité intestinale moins PTV)",
+     "limitant": "≤ 50 Gy"
+    },
+    {
+     "oar_id": "oar-estomac",
+     "indicateur": "D2%",
+     "limitant": "≤ 45 Gy"
+    },
+    {
+     "oar_id": "oar-duodenum",
+     "indicateur": "D2%",
+     "limitant": "≤ 45 Gy"
+    },
+    {
+     "oar_id": "oar-estomac",
+     "indicateur": "Dmax",
+     "limitant": "≤ 54 Gy"
+    },
+    {
+     "oar_id": "oar-duodenum",
+     "indicateur": "Dmax",
+     "limitant": "≤ 54 Gy"
+    },
+    {
+     "oar_id": "oar-foie",
+     "indicateur": "Dmoy",
+     "limitant": "≤ 26 Gy"
+    },
+    {
+     "oar_id": "oar-foie",
+     "indicateur": "V30Gy",
+     "limitant": "≤ 50 %"
+    },
+    {
+     "oar_id": "oar-rectum",
+     "indicateur": "V40Gy",
+     "limitant": "≤ 60 %"
+    },
+    {
+     "oar_id": "oar-rectum",
+     "indicateur": "V50Gy",
+     "limitant": "≤ 50 %"
+    },
+    {
+     "oar_id": "oar-vessie",
+     "indicateur": "V45Gy",
+     "limitant": "≤ 35 %"
+    }
+   ]
+  },
+  {
+   "id": "ct-chordome-delaney",
+   "titre": "Rachis et sacrum, photons-protons de haute dose",
+   "fractionnement": "1,8 Gy RBE par fraction",
+   "source": "DeLaney 2009 (protocole de phase 2)",
+   "verification": "verifie",
+   "lignes": [
+    {
+     "oar_id": "oar-moelle",
+     "indicateur": "Dose à la surface de la moelle",
+     "limitant": "≤ 63 Gy RBE",
+     "note": "Aucune myélopathie dans l'essai"
+    },
+    {
+     "oar_id": "oar-moelle",
+     "indicateur": "Dose au centre de la moelle",
+     "limitant": "≤ 54 Gy RBE"
+    }
+   ]
+  },
+  {
+   "id": "ct-penis-igr",
+   "titre": "Curiethérapie du gland, débit pulsé",
+   "fractionnement": "Débit pulsé",
+   "source": "Gustave Roussy (Achkar 2025)",
+   "verification": "verifie",
+   "lignes": [
+    {
+     "oar_id": "oar-uretre",
+     "indicateur": "D0,1cm³ de l'urètre distal",
+     "ideal": "< 82 Gy",
+     "note": "Seuil associé à moins de sténoses méatiques (HR 0,12)"
+    },
+    {
+     "oar_id": "oar-uretre",
+     "indicateur": "D0,2cm³ de l'urètre distal",
+     "ideal": "< 79 Gy",
+     "note": "HR 0,19"
+    }
+   ]
+  }
+ ],
+ "aide_colonnes": [
+  {
+   "source_contient": "métastases cérébrales",
+   "ideal": "À minimiser ; ne bloque pas la validation du plan.",
+   "limitant": "Contrainte limitante : plan non validé au-delà."
+  },
+  {
+   "source_contient": "RTOG 0933",
+   "ideal": "Valeur du protocole.",
+   "limitant": "Déviation acceptable du protocole."
+  },
+  {
+   "source_contient": "HyTEC",
+   "ideal": "Objectif recommandé.",
+   "limitant": "Seuil associé au risque indiqué en note."
+  },
+  {
+   "source_contient": "EMBRACE II",
+   "ideal": "Contrainte souple, sans base clinique directe, atteinte chez 70 à 80 % des patientes.",
+   "limitant": "À ne pas dépasser sauf avis médical."
+  },
+  {
+   "source_contient": "Institut Curie",
+   "ideal": "Valeur recommandée. Peut être dépassée sur accord médical, la couverture des cibles restant prioritaire.",
+   "limitant": "Valeur acceptable."
+  },
+  {
+   "source_contient": "Gustave Roussy",
+   "ideal": "Valeur recommandée.",
+   "limitant": "Valeur acceptable."
+  },
+  {
+   "source_contient": "Hanna 2018",
+   "ideal": "Valeur optimale.",
+   "limitant": "Valeur obligatoire."
+  },
+  {
+   "source_contient": "Neo-AEGIS",
+   "ideal": "Objectif optimal.",
+   "limitant": "À ne pas dépasser sauf avis médical."
+  },
+  {
+   "source_contient": "defaut",
+   "ideal": "À atteindre si possible.",
+   "limitant": "À ne pas dépasser sauf avis médical."
+  },
+  {
+   "source_contient": "Tableur du service",
+   "ideal": "Objectif du service.",
+   "limitant": "Valeur acceptable pour le service."
+  },
+  {
+   "source_contient": "FAST-Forward",
+   "limitant": "Contrainte de dose du protocole de l'essai."
+  },
+  {
+   "source_contient": "Sénorif",
+   "ideal": "Objectif du référentiel régional."
+  }
+ ]
+}

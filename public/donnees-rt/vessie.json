@@ -1,0 +1,414 @@
+{
+ "version": "2026-10-25",
+ "id": "vessie",
+ "region_id": "uro",
+ "nom": "Vessie",
+ "ordre": 2,
+ "date_maj": "2026-10-22",
+ "situations": [
+  {
+   "id": "ves-tmt",
+   "localisation_id": "vessie",
+   "titre": "Préservation vésicale (traitement trimodal), cT2–T4a N0 M0",
+   "contexte": "en_place",
+   "criteres": "Carcinome urothélial infiltrant le muscle ; résection endoscopique (RTUV) la plus complète possible avant la RT ; patient non candidat à la cystectomie ou la refusant",
+   "ordre": 1
+  },
+  {
+   "id": "ves-n1",
+   "localisation_id": "vessie",
+   "titre": "Préservation vésicale avec atteinte ganglionnaire pelvienne (cN1 M0)",
+   "contexte": "en_place",
+   "criteres": "Adénopathie(s) pelvienne(s) au scanner, à l'IRM ou au TEP",
+   "ordre": 2
+  },
+  {
+   "id": "ves-pall",
+   "localisation_id": "vessie",
+   "titre": "Palliatif (hématurie, symptômes vésicaux)",
+   "contexte": "palliatif",
+   "criteres": "Patient non éligible à un traitement curatif (stade ou comorbidités)",
+   "ordre": 3
+  }
+ ],
+ "schemas": [
+  {
+   "id": "ves-55-20",
+   "situation_id": "ves-tmt",
+   "titre": "Vessie 55 Gy / 20 fx",
+   "type": "rte_hypo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "choudhury",
+    "bc2001"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV_VESSIE",
+     "dose_Gy": 55,
+     "fractions": 20,
+     "dose_fx_Gy": 2.75,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Avec chimiothérapie concomitante si possible (BC2001)"
+    }
+   ],
+   "technique": "VMAT, IGRT CBCT quotidien (remplissage vésical vérifié)",
+   "systemique": "5FU + mitomycine C (BC2001), voir « Traitement systémique associé »",
+   "simulation_id": "sim-ves",
+   "volumes_id": "vol-ves",
+   "date_verif": "2026-10-22",
+   "ind": [
+    "Uro",
+    "Vessie",
+    "Préservation vésicale (traitement trimodal), cT2–T4a N0 M0",
+    "Hypofractionné"
+   ],
+   "contraintes_ids": [],
+   "points_attention": []
+  },
+  {
+   "id": "ves-64-32",
+   "situation_id": "ves-tmt",
+   "titre": "Vessie 64 Gy / 32 fx",
+   "type": "rte_normo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "bc2001",
+    "choudhury"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV_VESSIE",
+     "dose_Gy": 64,
+     "fractions": 32,
+     "dose_fx_Gy": 2,
+     "mode": "seul",
+     "rythme": "5 fx/sem"
+    }
+   ],
+   "technique": "VMAT, IGRT CBCT quotidien",
+   "systemique": "5FU + mitomycine C (BC2001), voir « Traitement systémique associé »",
+   "simulation_id": "sim-ves",
+   "volumes_id": "vol-ves",
+   "contraintes_ids": [
+    "ct-quantec-grele"
+   ],
+   "date_verif": "2026-10-22",
+   "ind": [
+    "Uro",
+    "Vessie",
+    "Préservation vésicale (traitement trimodal), cT2–T4a N0 M0",
+    "Normofractionné"
+   ],
+   "points_attention": []
+  },
+  {
+   "id": "ves-pelv-65",
+   "situation_id": "ves-n1",
+   "titre": "Pelvis 45 Gy / 25 fx puis boost vessie et adénopathies 20 Gy / 10 fx (65 Gy)",
+   "type": "rte_normo",
+   "preuve": "pratique_institutionnelle",
+   "source_institutionnelle": "Fiche du service (Dr Bentahila) ; BC2001, cité par la fiche, ne traitait que la vessie",
+   "prescriptions": [
+    {
+     "volume": "PTV1 (vessie + aires ganglionnaires)",
+     "dose_Gy": 45,
+     "fractions": 25,
+     "dose_fx_Gy": 1.8,
+     "mode": "sequentiel",
+     "rythme": "5 fx/sem"
+    },
+    {
+     "volume": "PTV2 (vessie + adénopathies résiduelles)",
+     "dose_Gy": 20,
+     "fractions": 10,
+     "dose_fx_Gy": 2,
+     "mode": "sequentiel",
+     "rythme": "5 fx/sem",
+     "note": "Boost après les 45 Gy du PTV1 ; total sur la vessie 65 Gy (la fiche écrit 66 Gy)"
+    }
+   ],
+   "technique": "VMAT, IGRT ; scanner de centrage non injecté (fiche)",
+   "systemique": "Chimiothérapie concomitante selon le protocole en vigueur (fiche)",
+   "simulation_id": "sim-ves",
+   "volumes_id": "vol-ves-service",
+   "contraintes_ids": [
+    "ct-quantec-grele"
+   ],
+   "points_attention": [
+    "Total 65 Gy (45 + 20), pas 66 Gy ; irradiation pelvienne propre au service, gardée pour les cN1",
+    "Bien distinguer PTV ganglionnaire prophylactique et PTV ganglionnaire boosté (fiche)"
+   ],
+   "date_verif": "2026-10-22",
+   "ind": [
+    "Uro",
+    "Vessie",
+    "Préservation vésicale avec atteinte ganglionnaire pelvienne (cN1 M0)",
+    "Normofractionné"
+   ],
+   "essai_ids": []
+  },
+  {
+   "id": "ves-pall-21-3",
+   "situation_id": "ves-pall",
+   "titre": "Palliatif 21 Gy / 3 fx",
+   "type": "rte_hypo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "ba09"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV_VESSIE",
+     "dose_Gy": 21,
+     "fractions": 3,
+     "dose_fx_Gy": 7,
+     "mode": "seul",
+     "rythme": "3 fx en 1 semaine",
+     "note": "MRC BA09"
+    }
+   ],
+   "technique": "RC3D ou VMAT",
+   "systemique": "Aucune",
+   "simulation_id": "sim-ves",
+   "volumes_id": "vol-ves-pall",
+   "points_attention": [
+    "MRC BA09 : 21 Gy / 3 fx aussi efficace que 35 Gy / 10 fx sur les symptômes à 3 mois (64 % vs 71 %, différence non significative)"
+   ],
+   "date_verif": "2026-10-22",
+   "ind": [
+    "Uro",
+    "Vessie",
+    "Palliatif (hématurie, symptômes vésicaux)",
+    "Hypofractionné"
+   ],
+   "contraintes_ids": []
+  },
+  {
+   "id": "ves-pall-35-10",
+   "situation_id": "ves-pall",
+   "titre": "Palliatif 35 Gy / 10 fx",
+   "type": "rte_hypo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "ba09"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV_VESSIE",
+     "dose_Gy": 35,
+     "fractions": 10,
+     "dose_fx_Gy": 3.5,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "MRC BA09"
+    }
+   ],
+   "technique": "RC3D ou VMAT",
+   "systemique": "Aucune",
+   "simulation_id": "sim-ves",
+   "volumes_id": "vol-ves-pall",
+   "points_attention": [
+    "MRC BA09 : 21 Gy / 3 fx aussi efficace que 35 Gy / 10 fx sur les symptômes à 3 mois (64 % vs 71 %, différence non significative)"
+   ],
+   "date_verif": "2026-10-22",
+   "ind": [
+    "Uro",
+    "Vessie",
+    "Palliatif (hématurie, symptômes vésicaux)",
+    "Hypofractionné"
+   ],
+   "contraintes_ids": []
+  }
+ ],
+ "simulations": [
+  {
+   "id": "sim-ves",
+   "position": "Décubitus dorsal",
+   "contention": "Positionnement reproductible, repères cutanés stables",
+   "preparation": "Vessie partiellement remplie, consignes mictionnelles expliquées au patient ; rectum le plus vide possible (suppositoire de glycérine le matin du scanner)",
+   "scanner": "Non injecté (fiche du service)",
+   "imagerie": "Cartographie de la RTUV, scanner, IRM ou TEP du bilan pour la tumeur et les ganglions"
+  }
+ ],
+ "volumes": [
+  {
+   "id": "vol-ves",
+   "cibles": [
+    {
+     "nom": "GTV_T",
+     "type": "GTV",
+     "definition": "Tumeur vésicale visible (scanner, IRM) et site de résection d'après le compte rendu de RTUV",
+     "quand": "Si visible"
+    },
+    {
+     "nom": "CTV_VESSIE",
+     "type": "CTV",
+     "definition": "Vessie entière (paroi externe) + extension extravésicale visible",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "PTV_VESSIE",
+     "type": "PTV",
+     "definition": "CTV_VESSIE + marge",
+     "quand": "Toujours",
+     "marge": "Fiche du service : 1 cm, 2 cm vers le haut ; marge de BC2001 non relevée dans le résumé (à confirmer)"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "RTOG 2012, OAR du pelvis"
+    }
+   ],
+   "oar_ids": [
+    "oar-rectum",
+    "oar-grele",
+    "oar-tete-femorale-d",
+    "oar-tete-femorale-g",
+    "oar-queue-cheval",
+    "oar-oge"
+   ],
+   "oar_notes": {
+    "oar-rectum": "de la jonction ano-rectale à la charnière recto-sigmoïdienne, fiche"
+   }
+  },
+  {
+   "id": "vol-ves-service",
+   "cibles": [
+    {
+     "nom": "CTV_T",
+     "type": "CTV",
+     "definition": "Vessie en totalité",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "CTV_N",
+     "type": "CTV",
+     "definition": "Obturatrices, iliaques internes et externes droites et gauches, présacrées",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "PTVT1",
+     "type": "PTV",
+     "definition": "CTV_T + 1 cm dans toutes les directions sauf 2 cm vers la tête",
+     "quand": "Toujours",
+     "marge": "1 cm (2 cm crânial)"
+    },
+    {
+     "nom": "PTVN1",
+     "type": "PTV",
+     "definition": "CTV_N + 5 mm",
+     "quand": "Toujours",
+     "marge": "5 mm"
+    },
+    {
+     "nom": "PTVN2",
+     "type": "PTV",
+     "definition": "GTV_N + 5 mm",
+     "quand": "Ganglion résiduel",
+     "marge": "5 mm"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "Fiche du service"
+    }
+   ],
+   "oar_ids": [
+    "oar-rectum",
+    "oar-grele",
+    "oar-tete-femorale-d",
+    "oar-tete-femorale-g",
+    "oar-queue-cheval",
+    "oar-oge"
+   ],
+   "oar_notes": {
+    "oar-rectum": "de la jonction ano-rectale à la charnière recto-sigmoïdienne, fiche"
+   }
+  },
+  {
+   "id": "vol-ves-pall",
+   "cibles": [
+    {
+     "nom": "CTV",
+     "type": "CTV",
+     "definition": "Vessie (ou tumeur vésicale)",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "PTV",
+     "type": "PTV",
+     "definition": "CTV + marge selon l'IGRT",
+     "quand": "Toujours"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "RTOG 2012, OAR du pelvis"
+    }
+   ],
+   "oar_ids": [
+    "oar-rectum",
+    "oar-grele"
+   ]
+  }
+ ],
+ "curie_indications": [],
+ "systemique": [
+  {
+   "situation": "Préservation vésicale",
+   "traitement": "5FU 500 mg/m²/j pendant les fractions 1 à 5 et 16 à 20 + mitomycine C 12 mg/m² à J1",
+   "essai_ids": [
+    "bc2001"
+   ],
+   "note": "Survie sans maladie locorégionale à 2 ans : RCT 67 %, RT seule 54 % ; pas d'augmentation significative de la toxicité"
+  },
+  {
+   "situation": "Palliatif",
+   "traitement": "Aucun",
+   "essai_ids": [
+    "ba09"
+   ]
+  }
+ ],
+ "hormonotherapie": [],
+ "points_attention": [
+  {
+   "cible": "vessie",
+   "point": "55 Gy / 20 fx est non inférieur à 64 Gy / 32 fx et meilleur pour le contrôle locorégional invasif (HR 0,71), toxicité identique (méta-analyse BC2001 + BCON)",
+   "portee": "localisation"
+  },
+  {
+   "cible": "vessie",
+   "point": "Remplissage vésical reproductible chaque jour ; vérifier vessie et grêle sur le CBCT (fiche)",
+   "portee": "localisation"
+  },
+  {
+   "cible": "vessie",
+   "point": "Volume réduit (dose pleine sur la tumeur, 80 % sur le reste de la vessie) : pas de réduction de la toxicité démontrée dans BC2001 ; la vessie entière reste la référence",
+   "portee": "localisation"
+  },
+  {
+   "cible": "ves-pelv-65",
+   "point": "Total 65 Gy (45 + 20), pas 66 Gy ; irradiation pelvienne propre au service, gardée pour les cN1",
+   "portee": "schema"
+  },
+  {
+   "cible": "ves-pelv-65",
+   "point": "Bien distinguer PTV ganglionnaire prophylactique et PTV ganglionnaire boosté (fiche)",
+   "portee": "schema"
+  },
+  {
+   "cible": "vessie",
+   "point": "IHF2SQ (deux séances par jour, sujets de plus de 75 ans, groupe 2 de Balducci) : cité par la fiche sans dose ni source pour la vessie ; le schéma IHF2SQ publié est un schéma ORL palliatif. Non intégré ; le médecin peut l'ajouter avec sa source",
+   "portee": "localisation"
+  },
+  {
+   "cible": "ves-pall",
+   "point": "MRC BA09 : 21 Gy / 3 fx aussi efficace que 35 Gy / 10 fx sur les symptômes à 3 mois (64 % vs 71 %, différence non significative)",
+   "portee": "situation"
+  }
+ ],
+ "textes": {}
+}

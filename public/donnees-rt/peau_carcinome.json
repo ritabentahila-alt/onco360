@@ -1,0 +1,291 @@
+{
+ "version": "2026-10-25",
+ "id": "peau_carcinome",
+ "region_id": "peau",
+ "nom": "Carcinomes basocellulaires et épidermoïdes",
+ "ordre": 45,
+ "date_maj": "2026-10-24",
+ "situations": [
+  {
+   "id": "pc-exclusif",
+   "localisation_id": "peau_carcinome",
+   "titre": "CBC ou CEC cutané : RT exclusive",
+   "contexte": "en_place",
+   "criteres": "Alternative à la chirurgie (refus, contre-indication, chirurgie mutilante), en particulier chez le sujet âgé ; pour le CBC, la chirurgie fait mieux et avec moins de toxicité dans un essai randomisé (RECORAD)",
+   "ordre": 1
+  },
+  {
+   "id": "pc-postop",
+   "localisation_id": "peau_carcinome",
+   "titre": "CEC cutané de la tête et du cou à haut risque, opéré",
+   "contexte": "post_op",
+   "criteres": "Après exérèse de la maladie macroscopique, atteinte ganglionnaire à haut risque ou primitif à haut risque (TROG 05.01)",
+   "ordre": 2
+  }
+ ],
+ "schemas": [
+  {
+   "id": "pc-excl-6070",
+   "situation_id": "pc-exclusif",
+   "titre": "RT exclusive 60 à 70 Gy",
+   "type": "rte_normo",
+   "preuve": "recommandation",
+   "essai_ids": [
+    "hennequin2022",
+    "likhacheva2020"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 70,
+     "mode": "seul",
+     "rythme": "Selon le centre",
+     "note": "60 à 70 Gy à moduler selon la taille de la lésion (RECORAD) ; fractionnement à choisir parmi les schémas ASTRO"
+    }
+   ],
+   "technique": "RT externe",
+   "systemique": "Aucune",
+   "volumes_id": "vol-pc",
+   "points_attention": [
+    "Hypofractionnement chez le sujet âgé : dose moyenne 38 Gy à environ 8 Gy par fraction ; récidive locale ≤ 7,9 % dans 33 des 36 séries (revue de 12 337 lésions)",
+    "Irradiation ganglionnaire prophylactique (45 à 50 Gy) pour les formes localement évoluées : moins d'échecs locorégionaux, sans gain de survie (RECORAD)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Peau",
+    "Carcinomes basocellulaires et épidermoïdes",
+    "CBC ou CEC cutané : RT exclusive",
+    "Normofractionné"
+   ],
+   "contraintes_ids": []
+  },
+  {
+   "id": "pc-excl-48-12",
+   "situation_id": "pc-exclusif",
+   "titre": "RT exclusive 48 Gy / 12 fx (sujet âgé)",
+   "type": "rte_hypo",
+   "preuve": "option",
+   "essai_ids": [
+    "sahara-protocole",
+    "gunaratne2018"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 48,
+     "fractions": 12,
+     "dose_fx_Gy": 4,
+     "mode": "seul",
+     "rythme": "3 fx/sem (4 semaines)",
+     "note": "Bras standard de l'essai SAHARA (âge ≥ 65 ans, T2 ou plus)"
+    }
+   ],
+   "technique": "RT externe",
+   "systemique": "Aucune",
+   "volumes_id": "vol-pc",
+   "points_attention": [
+    "Hypofractionnement chez le sujet âgé : dose moyenne 38 Gy à environ 8 Gy par fraction ; récidive locale ≤ 7,9 % dans 33 des 36 séries (revue de 12 337 lésions)",
+    "Irradiation ganglionnaire prophylactique (45 à 50 Gy) pour les formes localement évoluées : moins d'échecs locorégionaux, sans gain de survie (RECORAD)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Peau",
+    "Carcinomes basocellulaires et épidermoïdes",
+    "CBC ou CEC cutané : RT exclusive",
+    "Hypofractionné"
+   ],
+   "contraintes_ids": []
+  },
+  {
+   "id": "pc-postop-60-30",
+   "situation_id": "pc-postop",
+   "titre": "RT post-opératoire 60 Gy / 30 fx",
+   "type": "rte_normo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "trog0501",
+    "likhacheva2020"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 60,
+     "fractions": 30,
+     "dose_fx_Gy": 2,
+     "mode": "seul",
+     "rythme": "5 fx/sem (6 semaines)",
+     "note": "TROG 05.01 : 60 ou 66 Gy en 6 à 6,5 semaines, dose médiane 60 Gy"
+    }
+   ],
+   "technique": "RT externe",
+   "systemique": "Aucune",
+   "volumes_id": "vol-pc",
+   "points_attention": [
+    "TROG 05.01 : contrôle locorégional à 5 ans 83 % (RT) contre 87 % (RT + carboplatine), HR 0,84, non significatif"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Peau",
+    "Carcinomes basocellulaires et épidermoïdes",
+    "CEC cutané de la tête et du cou à haut risque, opéré",
+    "Normofractionné"
+   ],
+   "contraintes_ids": []
+  },
+  {
+   "id": "pc-curie-40-10",
+   "situation_id": "pc-exclusif",
+   "titre": "Curiethérapie de contact haut débit 40 Gy / 10 fx",
+   "type": "curie_hdr",
+   "preuve": "option",
+   "essai_ids": [
+    "josset2026-peau",
+    "gec-estro-peau-2018"
+   ],
+   "prescriptions": [
+    {
+     "volume": "CTV",
+     "dose_Gy": 40,
+     "fractions": 10,
+     "dose_fx_Gy": 4,
+     "mode": "seul",
+     "rythme": "3 séances par semaine",
+     "note": "Plésiothérapie avec applicateur souple (flap)"
+    }
+   ],
+   "technique": "Curiethérapie haut débit de contact",
+   "systemique": "Aucune",
+   "volumes_id": "vol-pc-curie",
+   "points_attention": [
+    "Hypofractionnement chez le sujet âgé : dose moyenne 38 Gy à environ 8 Gy par fraction ; récidive locale ≤ 7,9 % dans 33 des 36 séries (revue de 12 337 lésions)",
+    "Irradiation ganglionnaire prophylactique (45 à 50 Gy) pour les formes localement évoluées : moins d'échecs locorégionaux, sans gain de survie (RECORAD)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Peau",
+    "Carcinomes basocellulaires et épidermoïdes",
+    "CBC ou CEC cutané : RT exclusive",
+    "Curiethérapie"
+   ],
+   "contraintes_ids": []
+  },
+  {
+   "id": "pc-curie-30-10",
+   "situation_id": "pc-postop",
+   "titre": "Curiethérapie de contact haut débit adjuvante 30 Gy / 10 fx",
+   "type": "curie_hdr",
+   "preuve": "option",
+   "essai_ids": [
+    "josset2026-peau",
+    "gec-estro-peau-2018"
+   ],
+   "prescriptions": [
+    {
+     "volume": "CTV",
+     "dose_Gy": 30,
+     "fractions": 10,
+     "dose_fx_Gy": 3,
+     "mode": "seul",
+     "rythme": "3 séances par semaine",
+     "note": "Après exérèse"
+    }
+   ],
+   "technique": "Curiethérapie haut débit de contact",
+   "systemique": "Aucune",
+   "volumes_id": "vol-pc-curie",
+   "points_attention": [
+    "TROG 05.01 : contrôle locorégional à 5 ans 83 % (RT) contre 87 % (RT + carboplatine), HR 0,84, non significatif"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Peau",
+    "Carcinomes basocellulaires et épidermoïdes",
+    "CEC cutané de la tête et du cou à haut risque, opéré",
+    "Curiethérapie"
+   ],
+   "contraintes_ids": []
+  }
+ ],
+ "simulations": [],
+ "volumes": [
+  {
+   "id": "vol-pc",
+   "cibles": [
+    {
+     "nom": "GTV",
+     "type": "GTV",
+     "definition": "Lésion visible et palpable",
+     "quand": "RT exclusive"
+    },
+    {
+     "nom": "CTV",
+     "type": "CTV",
+     "definition": "GTV ou lit opératoire + marge du centre ; aires ganglionnaires si atteinte (TROG 05.01)",
+     "quand": "Toujours"
+    }
+   ],
+   "atlas": [],
+   "oar_ids": [
+    "oar-cristallin-d",
+    "oar-cristallin-g",
+    "oar-oeil-d",
+    "oar-oeil-g",
+    "oar-glande-lacrymale-d",
+    "oar-glande-lacrymale-g",
+    "oar-parotide-d",
+    "oar-parotide-g",
+    "oar-mandibule"
+   ]
+  },
+  {
+   "id": "vol-pc-curie",
+   "cibles": [
+    {
+     "nom": "CTV",
+     "type": "CTV",
+     "definition": "Lésion ou lit opératoire ; profondeur ≤ 5 mm pour une application de contact",
+     "quand": "Toujours"
+    }
+   ],
+   "atlas": [],
+   "oar_ids": [
+    "oar-cristallin-d",
+    "oar-cristallin-g",
+    "oar-oeil-d",
+    "oar-oeil-g"
+   ]
+  }
+ ],
+ "curie_indications": [
+  {
+   "indication": "Carcinome cutané, en particulier sur une surface courbe",
+   "modalite": "Contact (plésiothérapie) si épaisseur ≤ 5 mm ; interstitielle au-delà",
+   "niveau_preuve": "Recommandations GEC-ESTRO ACROP 2018",
+   "note": "Plus le volume est petit, plus la dose par fraction peut être élevée et le traitement court"
+  }
+ ],
+ "systemique": [],
+ "hormonotherapie": [],
+ "points_attention": [
+  {
+   "cible": "pc-postop",
+   "point": "TROG 05.01 : contrôle locorégional à 5 ans 83 % (RT) contre 87 % (RT + carboplatine), HR 0,84, non significatif",
+   "portee": "situation"
+  },
+  {
+   "cible": "pc-exclusif",
+   "point": "Hypofractionnement chez le sujet âgé : dose moyenne 38 Gy à environ 8 Gy par fraction ; récidive locale ≤ 7,9 % dans 33 des 36 séries (revue de 12 337 lésions)",
+   "portee": "situation"
+  },
+  {
+   "cible": "pc-exclusif",
+   "point": "Irradiation ganglionnaire prophylactique (45 à 50 Gy) pour les formes localement évoluées : moins d'échecs locorégionaux, sans gain de survie (RECORAD)",
+   "portee": "situation"
+  }
+ ],
+ "textes": {
+  "systemique": [
+   "Pas de traitement systémique associé à la RT : le carboplatine hebdomadaire n'améliore pas le contrôle locorégional après chirurgie (TROG 05.01)."
+  ]
+ }
+}

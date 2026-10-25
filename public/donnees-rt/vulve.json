@@ -1,0 +1,372 @@
+{
+ "version": "2026-10-25",
+ "id": "vulve",
+ "region_id": "gyneco",
+ "nom": "Vulve",
+ "ordre": 8,
+ "date_maj": "2026-10-23",
+ "situations": [
+  {
+   "id": "vulve-postop",
+   "localisation_id": "vulve",
+   "titre": "Vulve opérée : radiothérapie adjuvante",
+   "contexte": "post_op",
+   "criteres": "Lit opératoire : marge proche (< 5 mm) ou atteinte (R1). Aires ganglionnaires : plus d'un ganglion envahi et/ou rupture capsulaire ; à discuter si une seule macrométastase après curage complet",
+   "ordre": 1
+  },
+  {
+   "id": "vulve-excl",
+   "localisation_id": "vulve",
+   "titre": "Vulve localement avancée non résécable : radiochimiothérapie exclusive",
+   "contexte": "en_place",
+   "criteres": "T3–T4 non résécables par vulvectomie radicale, ou exérèse mutilante (anus, urètre, vessie)",
+   "ordre": 2
+  }
+ ],
+ "schemas": [
+  {
+   "id": "vulve-postop-45-56",
+   "situation_id": "vulve-postop",
+   "titre": "Post-opératoire 45 Gy / 25 fx ± boost intégré 56 Gy",
+   "type": "rte_normo",
+   "preuve": "pratique_institutionnelle",
+   "essai_ids": [
+    "gog37",
+    "gaffney-vulve"
+   ],
+   "source_institutionnelle": "Institut Curie, protocole vulve 2021",
+   "prescriptions": [
+    {
+     "volume": "PTV_45Gy (vulve ± aires ganglionnaires)",
+     "dose_Gy": 45,
+     "fractions": 25,
+     "dose_fx_Gy": 1.8,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Curie : 45 à 50 Gy en fractionnement standard ; prescription à la dose médiane ou moyenne"
+    },
+    {
+     "volume": "PTV_N56Gy (aires ganglionnaires initialement envahies)",
+     "dose_Gy": 56,
+     "fractions": 25,
+     "dose_fx_Gy": 2.24,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Boost à discuter"
+    },
+    {
+     "volume": "PTV_T56Gy (lit opératoire en marge proche < 5 mm)",
+     "dose_Gy": 56,
+     "fractions": 25,
+     "dose_fx_Gy": 2.24,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Marge positive (R1) : discuter plutôt un boost en curiethérapie"
+    }
+   ],
+   "technique": "VMAT, kV-CBCT quotidien avec recalage osseux",
+   "systemique": "Cisplatine 40 mg/m² hebdomadaire possible",
+   "simulation_id": "sim-vulve",
+   "volumes_id": "vol-vulve",
+   "contraintes_ids": [
+    "ct-gyn-curie-rte"
+   ],
+   "couverture": "PTV45 : D95 > 95 %, D2 < 107 % ; CTV_T : D98 > 95 % ; PTV_N : D98 > 90 %, D2 < 107 % ; CTV_N : D98 > 98 %",
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Gynéco",
+    "Vulve",
+    "Vulve opérée : radiothérapie adjuvante",
+    "Normofractionné"
+   ],
+   "points_attention": []
+  },
+  {
+   "id": "vulve-excl-curie",
+   "situation_id": "vulve-excl",
+   "titre": "RCT 45 Gy / 25 fx + adénopathies 60 Gy + boost tumoral ≥ 60 Gy EQD2",
+   "type": "rte_plus_curie",
+   "preuve": "pratique_institutionnelle",
+   "essai_ids": [
+    "gaffney-vulve",
+    "gog205"
+   ],
+   "source_institutionnelle": "Institut Curie, protocole vulve 2021",
+   "prescriptions": [
+    {
+     "volume": "PTV_45Gy",
+     "dose_Gy": 45,
+     "fractions": 25,
+     "dose_fx_Gy": 1.8,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Avec cisplatine 40 mg/m² hebdomadaire"
+    },
+    {
+     "volume": "PTV_N60Gy (adénopathie en place)",
+     "dose_Gy": 60,
+     "fractions": 25,
+     "dose_fx_Gy": 2.4,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Adénopathie : au moins 60 Gy EQD2"
+    },
+    {
+     "volume": "PTV_Tboost (tumeur)",
+     "mode": "sequentiel",
+     "rythme": "SIB ou séquentiel",
+     "note": "Objectif : dose totale ≥ 60 Gy EQD2 sur la tumeur, idéalement par curiethérapie"
+    }
+   ],
+   "technique": "VMAT, kV-CBCT quotidien ; curiethérapie interstitielle pour le boost si possible",
+   "systemique": "Cisplatine 40 mg/m² hebdomadaire",
+   "simulation_id": "sim-vulve",
+   "volumes_id": "vol-vulve",
+   "contraintes_ids": [
+    "ct-gyn-curie-rte"
+   ],
+   "couverture": "PTV_Tboost : D95 > 95 %, D2 < 107 %",
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Gynéco",
+    "Vulve",
+    "Vulve localement avancée non résécable : radiochimiothérapie exclusive",
+    "RTE + curiethérapie"
+   ],
+   "points_attention": []
+  },
+  {
+   "id": "vulve-gog205",
+   "situation_id": "vulve-excl",
+   "titre": "RCT 57,6 Gy / 32 fx + cisplatine hebdomadaire (GOG 205)",
+   "type": "rte_normo",
+   "preuve": "option",
+   "essai_ids": [
+    "gog205"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV tumeur vulvaire",
+     "dose_Gy": 57.6,
+     "fractions": 32,
+     "dose_fx_Gy": 1.8,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Puis exérèse du résidu, ou biopsie si réponse clinique complète ; prise en charge ganglionnaire standardisée mais hors objectif de l'essai (phase 2)"
+    }
+   ],
+   "technique": "IMRT ou RC3D",
+   "systemique": "Cisplatine 40 mg/m² hebdomadaire",
+   "simulation_id": "sim-vulve",
+   "volumes_id": "vol-vulve",
+   "points_attention": [
+    "Essai de phase 2 (58 patientes) : 31 % n'ont pas terminé le traitement (refus, toxicité, décès)"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Gynéco",
+    "Vulve",
+    "Vulve localement avancée non résécable : radiochimiothérapie exclusive",
+    "Normofractionné"
+   ],
+   "contraintes_ids": []
+  }
+ ],
+ "simulations": [
+  {
+   "id": "sim-vulve",
+   "position": "Décubitus dorsal, position « grenouille » si la patiente y parvient",
+   "contention": "Sinon cale genoux + cale pieds",
+   "preparation": "Rectum vide (Normacol), vessie confortable ; consignes plus souples en post-opératoire sans atteinte vaginale (pas de volume centro-pelvien)",
+   "scanner": "Injecté (temps vasculaire) sauf contre-indication ; de L2–L3 + 5 cm (pelvis) ou des coupoles + 5 cm (lombo-aortique) jusqu'aux ischions + 20 cm",
+   "imagerie": "IRM T2 axiale et sagittale de moins d'un mois, fusion sur la vulve ; TEP-TDM si N+, fusion sur le bassin osseux",
+   "reperes": "Fils métalliques sur les cicatrices en post-opératoire"
+  }
+ ],
+ "volumes": [
+  {
+   "id": "vol-vulve",
+   "cibles": [
+    {
+     "nom": "GTV_T",
+     "type": "GTV",
+     "definition": "Tumeur vulvaire (examen clinique + IRM). Fiche du service en post-opératoire : zone de marge insuffisante ou atteinte",
+     "quand": "Exclusif, ou résidu"
+    },
+    {
+     "nom": "GTV_N#",
+     "type": "GTV",
+     "definition": "Adénopathie, une structure par ganglion",
+     "quand": "Si adénopathie"
+    },
+    {
+     "nom": "CTV_T (post-opératoire)",
+     "type": "CTV",
+     "definition": "Vulve en totalité ; exclure les plis cutanés des cuisses et des fesses non envahis. Fiche du service : grandes et petites lèvres + tiers inférieur du vagin",
+     "quand": "Post-opératoire"
+    },
+    {
+     "nom": "CTV_T56Gy",
+     "type": "CTV",
+     "definition": "Lit opératoire en marge proche",
+     "quand": "Marge < 5 mm"
+    },
+    {
+     "nom": "CTV_Tboost (exclusif)",
+     "type": "CTV",
+     "definition": "Vulve en totalité ; au moins 1 cm au-delà du GTV s'il dépasse la vulve ; 1 à 3 cm de vagin non atteint ; GTV + au moins 2 cm sur le canal anal, le rectum, la vessie ou l'urètre envahis ; lésion clitoridienne : ligament suspenseur du clitoris ; exclure les plis cutanés non envahis",
+     "quand": "Exclusif"
+    },
+    {
+     "nom": "CTV_E",
+     "type": "CTV",
+     "definition": "Aire inguinale homolatérale toujours ; bilatérale sauf tumeur < 2 cm bien latéralisée (au cas par cas) ; N0 : iliaques jusqu'à la bifurcation iliaque commune ; ganglions pelviens suspects : limite supérieure adaptée. Lésion clitoridienne : drainage iliaque direct possible. Fiche du service : inguinaux, iliaques externes, ilio-obturateurs + 5 mm, sans os ni tube digestif",
+     "quand": "Exclusif ; post-opératoire si indication ganglionnaire"
+    },
+    {
+     "nom": "CTV_N#",
+     "type": "CTV",
+     "definition": "GTV_N# + 3 mm ; CTV_N56Gy = aire ganglionnaire initialement envahie en post-opératoire",
+     "quand": "Si adénopathie",
+     "marge": "3 mm"
+    },
+    {
+     "nom": "CTV_45Gy",
+     "type": "ITV",
+     "definition": "CTV_E + CTV_T",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "PTV_45Gy",
+     "type": "PTV",
+     "definition": "CTV_45Gy + 5 mm isotrope. Fiche du service : PTV1 = (CTV_T + GTV_T) + 1 cm, réuni avec CTV_N + 5 mm",
+     "quand": "Toujours",
+     "marge": "5 mm"
+    },
+    {
+     "nom": "PTV_N#",
+     "type": "PTV",
+     "definition": "CTV_N# + 5 mm isotrope",
+     "quand": "Si adénopathie",
+     "marge": "5 mm"
+    },
+    {
+     "nom": "PTV_Tboost",
+     "type": "PTV",
+     "definition": "CTV_Tboost + 5 mm isotrope. Fiche du service : PTV2 = GTV_T + 1 cm",
+     "quand": "Exclusif",
+     "marge": "5 mm"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "Gaffney 2016 (consensus vulve)"
+    },
+    {
+     "nom": "RTOG 2012, OAR du pelvis"
+    }
+   ],
+   "oar_ids": [
+    "oar-vessie",
+    "oar-rectum",
+    "oar-canal-anal",
+    "oar-sigmoide",
+    "oar-grele",
+    "oar-tete-femorale-d",
+    "oar-tete-femorale-g",
+    "oar-moelle-osseuse",
+    "oar-aile-iliaque-d",
+    "oar-aile-iliaque-g",
+    "oar-vulve",
+    "oar-ovaire-d",
+    "oar-ovaire-g",
+    "oar-uterus",
+    "oar-queue-cheval",
+    "oar-plexus-sacre",
+    "oar-rein-d",
+    "oar-rein-g",
+    "oar-foie",
+    "oar-moelle",
+    "oar-duodenum",
+    "oar-corps"
+   ],
+   "oar_notes": {
+    "oar-canal-anal": "fiche",
+    "oar-aile-iliaque-d": "fiche",
+    "oar-aile-iliaque-g": "fiche",
+    "oar-vulve": "si irradiation ganglionnaire seule",
+    "oar-ovaire-d": "si non ménopausée",
+    "oar-ovaire-g": "si non ménopausée",
+    "oar-uterus": "si préservation de la fertilité",
+    "oar-queue-cheval": "si boost ganglionnaire pelvien",
+    "oar-plexus-sacre": "si boost ganglionnaire pelvien",
+    "oar-rein-d": "si lombo-aortique",
+    "oar-rein-g": "si lombo-aortique",
+    "oar-foie": "si lombo-aortique",
+    "oar-moelle": "si lombo-aortique",
+    "oar-duodenum": "si lombo-aortique au-dessus de L1"
+   }
+  }
+ ],
+ "curie_indications": [
+  {
+   "indication": "Traitement exclusif",
+   "modalite": "Boost tumoral par curiethérapie interstitielle pour une dose totale ≥ 60 Gy EQD2",
+   "niveau_preuve": "Pratique Institut Curie",
+   "note": "À défaut, boost externe intégré ou séquentiel"
+  },
+  {
+   "indication": "Post-opératoire, marge positive (R1)",
+   "modalite": "Boost du lit opératoire en curiethérapie",
+   "niveau_preuve": "Pratique Institut Curie",
+   "note": "À discuter"
+  },
+  {
+   "indication": "Post-opératoire, sans indication ganglionnaire",
+   "modalite": "Curiethérapie exclusive du lit opératoire, 60 Gy",
+   "niveau_preuve": "Option du protocole Curie"
+  }
+ ],
+ "systemique": [
+  {
+   "situation": "Vulve localement avancée (exclusif)",
+   "traitement": "Cisplatine 40 mg/m² hebdomadaire pendant la RT",
+   "essai_ids": [
+    "gog205"
+   ],
+   "note": "Réponse clinique complète 64 % ; réponse histologique complète chez 78 % des répondeuses cliniques biopsiées"
+  },
+  {
+   "situation": "Vulve opérée",
+   "traitement": "Cisplatine 40 mg/m² hebdomadaire possible (Curie)",
+   "essai_ids": [
+    "gaffney-vulve"
+   ],
+   "note": "Selon RCP"
+  }
+ ],
+ "hormonotherapie": [],
+ "points_attention": [
+  {
+   "cible": "vulve",
+   "point": "GOG 37 : après vulvectomie et curage inguinal N+, la RT inguinale et pelvienne (45–50 Gy) fait mieux que le curage pelvien (survie à 2 ans 68 % vs 54 %), surtout si adénopathie fixée ou ulcérée ou au moins 2 ganglions envahis",
+   "portee": "localisation"
+  },
+  {
+   "cible": "vulve",
+   "point": "CBCT quotidien avec recalage osseux ; toute la vulve visible sur le CBCT ; la vulve doit rester dans le CTV_T, les vaisseaux dans le CTV_E, à défaut dans le PTV_45Gy (Curie)",
+   "portee": "localisation"
+  },
+  {
+   "cible": "vulve",
+   "point": "La fiche du service ne donne pas de dose pour le PTV2 : référence Curie = 56 Gy (marge proche, aires envahies) en post-opératoire, ≥ 60 Gy EQD2 en exclusif",
+   "portee": "localisation"
+  },
+  {
+   "cible": "vulve-gog205",
+   "point": "Essai de phase 2 (58 patientes) : 31 % n'ont pas terminé le traitement (refus, toxicité, décès)",
+   "portee": "schema"
+  }
+ ],
+ "textes": {}
+}

@@ -1,0 +1,223 @@
+{
+ "version": "2026-10-25",
+ "id": "seminome",
+ "region_id": "uro",
+ "nom": "Séminome testiculaire",
+ "ordre": 3,
+ "date_maj": "2026-10-24",
+ "situations": [
+  {
+   "id": "se-st1",
+   "localisation_id": "seminome",
+   "titre": "Séminome stade I : RT adjuvante",
+   "contexte": "post_op",
+   "criteres": "Après orchidectomie, sans chirurgie inguino-scrotale homolatérale préalable (critère de TE10) ; option parmi les stratégies adjuvantes discutées en RCP",
+   "ordre": 1
+  },
+  {
+   "id": "se-st2",
+   "localisation_id": "seminome",
+   "titre": "Séminome stade IIA ou IIB",
+   "contexte": "post_op",
+   "criteres": "Atteinte ganglionnaire rétropéritonéale (IIA, IIB)",
+   "ordre": 2
+  }
+ ],
+ "schemas": [
+  {
+   "id": "se-20-10",
+   "situation_id": "se-st1",
+   "titre": "Para-aortique 20 Gy / 10 fx",
+   "type": "rte_normo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "te18",
+    "te10"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV para-aortique",
+     "dose_Gy": 20,
+     "fractions": 10,
+     "dose_fx_Gy": 2,
+     "mode": "seul",
+     "rythme": "2 semaines",
+     "note": "Rechutes 11 contre 10 avec 30 Gy (HR 1,11) ; moins de fatigue (5 contre 20 %)"
+    }
+   ],
+   "technique": "RT externe",
+   "systemique": "Aucune",
+   "volumes_id": "vol-seminome",
+   "points_attention": [
+    "Para-aortique seul contre para-aortique et iliaque homolatéral (30 Gy / 15 fx) : survie sans rechute à 3 ans 96 contre 96,6 % ; l'IC à 95 % exclut une différence de rechutes pelviennes de plus de 4 % (TE10)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Uro",
+    "Séminome testiculaire",
+    "Séminome stade I : RT adjuvante",
+    "Normofractionné"
+   ],
+   "contraintes_ids": []
+  },
+  {
+   "id": "se-30-15",
+   "situation_id": "se-st1",
+   "titre": "Para-aortique 30 Gy / 15 fx",
+   "type": "rte_normo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "te18",
+    "te10"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV para-aortique",
+     "dose_Gy": 30,
+     "fractions": 15,
+     "dose_fx_Gy": 2,
+     "mode": "seul",
+     "rythme": "3 semaines",
+     "note": "Ancien standard de TE18 et TE10"
+    }
+   ],
+   "technique": "RT externe",
+   "systemique": "Aucune",
+   "volumes_id": "vol-seminome",
+   "points_attention": [
+    "Para-aortique seul contre para-aortique et iliaque homolatéral (30 Gy / 15 fx) : survie sans rechute à 3 ans 96 contre 96,6 % ; l'IC à 95 % exclut une différence de rechutes pelviennes de plus de 4 % (TE10)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Uro",
+    "Séminome testiculaire",
+    "Séminome stade I : RT adjuvante",
+    "Normofractionné"
+   ],
+   "contraintes_ids": []
+  },
+  {
+   "id": "se-iia-30",
+   "situation_id": "se-st2",
+   "titre": "Stade IIA : 30 Gy",
+   "type": "rte_normo",
+   "preuve": "option",
+   "essai_ids": [
+    "classen2003"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 30,
+     "mode": "seul",
+     "rythme": "Selon le protocole",
+     "note": "Survie sans rechute à 6 ans 95,3 %"
+    }
+   ],
+   "technique": "RT externe",
+   "systemique": "Aucune",
+   "volumes_id": "vol-seminome",
+   "points_attention": [
+    "Toxicité aiguë maximale : nausées de grade 3 chez 8 % (IIA) ; nausées et diarrhée de grade 3 chez 10 % (IIB) (Classen 2003)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Uro",
+    "Séminome testiculaire",
+    "Séminome stade IIA ou IIB",
+    "Normofractionné"
+   ],
+   "contraintes_ids": []
+  },
+  {
+   "id": "se-iib-36",
+   "situation_id": "se-st2",
+   "titre": "Stade IIB : 36 Gy",
+   "type": "rte_normo",
+   "preuve": "option",
+   "essai_ids": [
+    "classen2003"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 36,
+     "mode": "seul",
+     "rythme": "Selon le protocole",
+     "note": "Survie sans rechute à 6 ans 88,9 %"
+    }
+   ],
+   "technique": "RT externe",
+   "systemique": "Aucune",
+   "volumes_id": "vol-seminome",
+   "points_attention": [
+    "Toxicité aiguë maximale : nausées de grade 3 chez 8 % (IIA) ; nausées et diarrhée de grade 3 chez 10 % (IIB) (Classen 2003)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Uro",
+    "Séminome testiculaire",
+    "Séminome stade IIA ou IIB",
+    "Normofractionné"
+   ],
+   "contraintes_ids": []
+  }
+ ],
+ "simulations": [],
+ "volumes": [
+  {
+   "id": "vol-seminome",
+   "cibles": [
+    {
+     "nom": "CTV para-aortique",
+     "type": "CTV",
+     "definition": "Ganglions para-aortiques (bande para-aortique)",
+     "quand": "Stade I"
+    },
+    {
+     "nom": "CTV iliaque homolatéral",
+     "type": "CTV",
+     "definition": "Ganglions iliaques homolatéraux, ajoutés au para-aortique (champ « dog-leg »)",
+     "quand": "Selon l'indication"
+    },
+    {
+     "nom": "GTV ganglionnaire",
+     "type": "GTV",
+     "definition": "Adénopathies rétropéritonéales",
+     "quand": "Stade II"
+    }
+   ],
+   "atlas": [],
+   "oar_ids": [
+    "oar-reins",
+    "oar-rein-d",
+    "oar-rein-g",
+    "oar-grele",
+    "oar-moelle",
+    "oar-foie",
+    "oar-estomac",
+    "oar-duodenum"
+   ]
+  }
+ ],
+ "curie_indications": [],
+ "systemique": [],
+ "hormonotherapie": [],
+ "points_attention": [
+  {
+   "cible": "se-st1",
+   "point": "Para-aortique seul contre para-aortique et iliaque homolatéral (30 Gy / 15 fx) : survie sans rechute à 3 ans 96 contre 96,6 % ; l'IC à 95 % exclut une différence de rechutes pelviennes de plus de 4 % (TE10)",
+   "portee": "situation"
+  },
+  {
+   "cible": "se-st2",
+   "point": "Toxicité aiguë maximale : nausées de grade 3 chez 8 % (IIA) ; nausées et diarrhée de grade 3 chez 10 % (IIB) (Classen 2003)",
+   "portee": "situation"
+  }
+ ],
+ "textes": {
+  "systemique": [
+   "Pas de traitement systémique associé à la RT dans ces schémas."
+  ]
+ }
+}

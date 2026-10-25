@@ -1,0 +1,450 @@
+{
+ "version": "2026-10-25",
+ "id": "pancreas",
+ "region_id": "digestif",
+ "nom": "Pancréas",
+ "ordre": 11,
+ "date_maj": "2026-10-23",
+ "situations": [
+  {
+   "id": "panc-la",
+   "localisation_id": "pancreas",
+   "titre": "Localement avancé contrôlé après chimiothérapie d'induction",
+   "contexte": "en_place",
+   "criteres": "Non résécable, sans progression après 4 mois de chimiothérapie (LAP07)",
+   "ordre": 1
+  },
+  {
+   "id": "panc-neoadj",
+   "localisation_id": "pancreas",
+   "titre": "Résécable ou limite : traitement néoadjuvant",
+   "contexte": "en_place",
+   "criteres": "Résécable ou limite (borderline), opérable",
+   "ordre": 2
+  },
+  {
+   "id": "panc-adj",
+   "localisation_id": "pancreas",
+   "titre": "Tête du pancréas opérée : RCT adjuvante",
+   "contexte": "post_op",
+   "criteres": "Résection à visée curative, sans progression après chimiothérapie adjuvante. Bénéfice limité aux N0 (RTOG 0848)",
+   "ordre": 3
+  }
+ ],
+ "schemas": [
+  {
+   "id": "panc-lap07-54-30",
+   "situation_id": "panc-la",
+   "titre": "RCT 54 Gy / 30 fx + capécitabine (LAP07)",
+   "type": "rte_normo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "lap07",
+    "conko007"
+   ],
+   "source_institutionnelle": "Fiche du service",
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 54,
+     "fractions": 30,
+     "dose_fx_Gy": 1.8,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Moins de progression locale (32 % vs 46 %), pas de gain de survie"
+    }
+   ],
+   "technique": "IMRT ou VMAT, IGRT quotidienne",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-panc",
+   "volumes_id": "vol-panc-crt",
+   "contraintes_ids": [
+    "ct-abdo-acrop-crt"
+   ],
+   "points_attention": [
+    "54 Gy en 30 fractions de 1,8 Gy, 5 par semaine"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Digestif",
+    "Pancréas",
+    "Localement avancé contrôlé après chimiothérapie d'induction",
+    "Normofractionné"
+   ]
+  },
+  {
+   "id": "panc-sbrt-33-5",
+   "situation_id": "panc-la",
+   "titre": "SBRT 33 Gy / 5 fx",
+   "type": "sbrt",
+   "preuve": "option",
+   "essai_ids": [
+    "herman",
+    "a021501",
+    "hytec-pancreas"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 33,
+     "fractions": 5,
+     "dose_fx_Gy": 6.6,
+     "mode": "seul",
+     "rythme": "5 fx",
+     "note": "Après gemcitabine (Herman) ; 33 à 40 Gy / 5 fx dans A021501"
+    }
+   ],
+   "technique": "SBRT, 4D ou blocage respiratoire, IGRT sur repères",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-panc",
+   "volumes_id": "vol-panc-sbrt",
+   "contraintes_ids": [
+    "ct-sbrt-abdo-5fx"
+   ],
+   "points_attention": [
+    "Limite (borderline) : SBRT après mFOLFIRINOX moins bonne que mFOLFIRINOX seul dans A021501 (phase 2)"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Digestif",
+    "Pancréas",
+    "Localement avancé contrôlé après chimiothérapie d'induction",
+    "Stéréotaxie"
+   ]
+  },
+  {
+   "id": "panc-smart-50-5",
+   "situation_id": "panc-la",
+   "titre": "SBRT adaptative guidée par IRM 50 Gy / 5 fx",
+   "type": "sbrt",
+   "preuve": "option",
+   "essai_ids": [
+    "smart-pancreas"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 50,
+     "fractions": 5,
+     "dose_fx_Gy": 10,
+     "mode": "seul",
+     "rythme": "5 fx",
+     "note": "Replanification à chaque séance sur IRM-linac"
+    }
+   ],
+   "technique": "IRM-linac, adaptation quotidienne",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-panc",
+   "volumes_id": "vol-panc-sbrt",
+   "contraintes_ids": [
+    "ct-sbrt-abdo-5fx"
+   ],
+   "points_attention": [
+    "Prudence si chirurgie après SMART, surtout avec résection vasculaire (2 décès postopératoires possiblement liés)"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Digestif",
+    "Pancréas",
+    "Localement avancé contrôlé après chimiothérapie d'induction",
+    "Stéréotaxie"
+   ]
+  },
+  {
+   "id": "panc-preopanc-36-15",
+   "situation_id": "panc-neoadj",
+   "titre": "RCT néoadjuvante 36 Gy / 15 fx + gemcitabine (PREOPANC)",
+   "type": "rte_hypo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "preopanc",
+    "preopanc-lt",
+    "preopanc2"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 36,
+     "fractions": 15,
+     "dose_fx_Gy": 2.4,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Pendant le 2e cycle de gemcitabine"
+    }
+   ],
+   "technique": "IMRT ou VMAT, IGRT quotidienne",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-panc",
+   "volumes_id": "vol-panc-crt",
+   "contraintes_ids": [
+    "ct-abdo-acrop-crt"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Digestif",
+    "Pancréas",
+    "Résécable ou limite : traitement néoadjuvant",
+    "Hypofractionné"
+   ],
+   "points_attention": []
+  },
+  {
+   "id": "panc-adj-504-28",
+   "situation_id": "panc-adj",
+   "titre": "RCT adjuvante 50,4 Gy / 28 fx + capécitabine ou 5FU (RTOG 0848)",
+   "type": "rte_normo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "rtog0848"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV (lit opératoire, anastomose pancréato-jéjunale, ganglions régionaux)",
+     "dose_Gy": 50.4,
+     "fractions": 28,
+     "dose_fx_Gy": 1.8,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Après 6 cycles de chimiothérapie"
+    }
+   ],
+   "technique": "IMRT ou VMAT, IGRT quotidienne",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-panc",
+   "volumes_id": "vol-panc-adj",
+   "contraintes_ids": [
+    "ct-abdo-acrop-crt"
+   ],
+   "points_attention": [
+    "RTOG 0848 : pas de gain de survie globale ; gain de survie chez les N0 seulement"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Digestif",
+    "Pancréas",
+    "Tête du pancréas opérée : RCT adjuvante",
+    "Normofractionné"
+   ]
+  }
+ ],
+ "simulations": [
+  {
+   "id": "sim-panc",
+   "position": "Décubitus dorsal, bras au-dessus de la tête",
+   "contention": "Matelas ou cale genoux",
+   "preparation": "À jeun ; même préparation au scanner et à chaque séance",
+   "scanner": "Injecté, phase pancréatique. Gating si l'apnée est tenue (fiche : au moins 45 s), sinon scanner 4D",
+   "imagerie": "Scanner, IRM et TEP du bilan, fusion obligatoire",
+   "reperes": "OAR sur le scanner moyen ; GTV sur chaque phase du 4D"
+  }
+ ],
+ "volumes": [
+  {
+   "id": "vol-panc-crt",
+   "cibles": [
+    {
+     "nom": "GTV",
+     "type": "GTV",
+     "definition": "Tumeur primitive et ganglions radiologiquement augmentés, sur le scanner en phase pancréatique",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "CTV",
+     "type": "CTV",
+     "definition": "Pas d'irradiation ganglionnaire élective en localement avancé. Tumeur > 3 cm : pas de CTV spécifique ; plus petite : discuter une marge",
+     "quand": "Selon la taille"
+    },
+    {
+     "nom": "ITV",
+     "type": "ITV",
+     "definition": "Réunion des GTV sur les phases du 4D",
+     "quand": "Scanner 4D"
+    },
+    {
+     "nom": "PTV",
+     "type": "PTV",
+     "definition": "ITV + 5 à 10 mm selon la mise en place du centre ; gating : GTV + 5 mm (fiche). Sans 4D : GTV + 1,5 cm en radial et au moins 2 cm en cranio-caudal",
+     "quand": "Toujours",
+     "marge": "5–10 mm"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "ESTRO ACROP pancréas 2021"
+    },
+    {
+     "nom": "ESTRO ACROP aires ganglionnaires digestives hautes 2021"
+    }
+   ],
+   "oar_ids": [
+    "oar-duodenum",
+    "oar-estomac",
+    "oar-grele",
+    "oar-colon",
+    "oar-foie",
+    "oar-rein-d",
+    "oar-rein-g",
+    "oar-moelle"
+   ]
+  },
+  {
+   "id": "vol-panc-sbrt",
+   "cibles": [
+    {
+     "nom": "GTV",
+     "type": "GTV",
+     "definition": "Tumeur primitive",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "ITV",
+     "type": "ITV",
+     "definition": "Réunion des GTV sur le cycle respiratoire, pas de CTV",
+     "quand": "Respiration libre"
+    },
+    {
+     "nom": "PTV",
+     "type": "PTV",
+     "definition": "ITV + 0 à 5 mm selon les mesures du centre",
+     "quand": "Toujours",
+     "marge": "0–5 mm"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "ESTRO ACROP pancréas 2021"
+    }
+   ],
+   "oar_ids": [
+    "oar-duodenum",
+    "oar-estomac",
+    "oar-grele",
+    "oar-colon",
+    "oar-voie-biliaire",
+    "oar-foie",
+    "oar-rein-d",
+    "oar-rein-g",
+    "oar-moelle",
+    "oar-gros-vaisseaux"
+   ]
+  },
+  {
+   "id": "vol-panc-adj",
+   "cibles": [
+    {
+     "nom": "CTV",
+     "type": "CTV",
+     "definition": "Lit tumoral post-opératoire, anastomose pancréato-jéjunale, ganglions régionaux",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "PTV",
+     "type": "PTV",
+     "definition": "CTV + marge selon le mouvement et l'IGRT",
+     "quand": "Toujours"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "ESTRO ACROP pancréas 2021"
+    }
+   ],
+   "oar_ids": [
+    "oar-duodenum",
+    "oar-estomac",
+    "oar-grele",
+    "oar-foie",
+    "oar-rein-d",
+    "oar-rein-g",
+    "oar-moelle"
+   ]
+  }
+ ],
+ "curie_indications": [],
+ "systemique": [
+  {
+   "situation": "panc-la",
+   "traitement": "Capécitabine pendant la RT (54 Gy)",
+   "protocole": "Capécitabine concomitante à la RT (pancréas)",
+   "situation_id": "panc-la",
+   "essai_ids": [
+    "lap07"
+   ],
+   "note": "Après 4 mois de chimiothérapie d'induction"
+  },
+  {
+   "situation": "panc-la",
+   "traitement": "Gemcitabine avant la SBRT",
+   "protocole": "Gemcitabine (pancréas)",
+   "situation_id": "panc-la",
+   "essai_ids": [
+    "herman"
+   ]
+  },
+  {
+   "situation": "panc-neoadj",
+   "traitement": "Gemcitabine : 3 cycles, le 2e avec la RT ; puis 4 cycles adjuvants",
+   "protocole": "Gemcitabine concomitante à la RT (PREOPANC)",
+   "situation_id": "panc-neoadj",
+   "essai_ids": [
+    "preopanc"
+   ],
+   "note": "FOLFIRINOX néoadjuvant : même survie (PREOPANC-2)"
+  },
+  {
+   "situation": "panc-neoadj",
+   "traitement": "FOLFIRINOX néoadjuvant sans RT",
+   "protocole": "FOLFIRINOX (pancréas)",
+   "situation_id": "panc-neoadj",
+   "essai_ids": [
+    "preopanc2",
+    "a021501"
+   ],
+   "note": "Alternative de même efficacité"
+  },
+  {
+   "situation": "panc-adj",
+   "traitement": "Capécitabine ou 5FU en perfusion continue pendant la RT",
+   "protocole": "Capécitabine concomitante à la RT (pancréas)",
+   "situation_id": "panc-adj",
+   "essai_ids": [
+    "rtog0848"
+   ],
+   "note": "Après 6 cycles de gemcitabine"
+  }
+ ],
+ "hormonotherapie": [],
+ "points_attention": [
+  {
+   "cible": "pancreas",
+   "point": "Localement avancé : la RCT diminue la progression locale mais pas la mortalité (LAP07, CONKO-007)",
+   "portee": "localisation"
+  },
+  {
+   "cible": "panc-lap07-54-30",
+   "point": "54 Gy en 30 fractions de 1,8 Gy, 5 par semaine",
+   "portee": "schema"
+  },
+  {
+   "cible": "panc-sbrt-33-5",
+   "point": "Limite (borderline) : SBRT après mFOLFIRINOX moins bonne que mFOLFIRINOX seul dans A021501 (phase 2)",
+   "portee": "schema"
+  },
+  {
+   "cible": "panc-smart-50-5",
+   "point": "Prudence si chirurgie après SMART, surtout avec résection vasculaire (2 décès postopératoires possiblement liés)",
+   "portee": "schema"
+  },
+  {
+   "cible": "panc-adj",
+   "point": "RTOG 0848 : pas de gain de survie globale ; gain de survie chez les N0 seulement",
+   "portee": "situation"
+  },
+  {
+   "cible": "pancreas",
+   "point": "Douleur : la SBRT soulage 85 % des patients (revue, doses médianes 28 Gy en 1 à 6 fx)",
+   "portee": "localisation"
+  }
+ ],
+ "textes": {}
+}

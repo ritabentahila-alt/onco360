@@ -1,0 +1,254 @@
+{
+ "version": "2026-10-25",
+ "id": "estomac",
+ "region_id": "digestif",
+ "nom": "Estomac",
+ "ordre": 10,
+ "date_maj": "2026-10-23",
+ "situations": [
+  {
+   "id": "est-adj",
+   "localisation_id": "estomac",
+   "titre": "Opéré sans chimiothérapie périopératoire : RCT adjuvante",
+   "contexte": "post_op",
+   "criteres": "Adénocarcinome gastrique ou de la jonction réséqué, pT3 ou plus et/ou N+, sans chimiothérapie périopératoire (INT-0116). Type diffus : peu de bénéfice",
+   "ordre": 1
+  },
+  {
+   "id": "est-pall",
+   "localisation_id": "estomac",
+   "titre": "Palliatif : saignement",
+   "contexte": "palliatif",
+   "criteres": "Cancer gastrique hémorragique non opérable",
+   "ordre": 2
+  }
+ ],
+ "schemas": [
+  {
+   "id": "est-int0116-45-25",
+   "situation_id": "est-adj",
+   "titre": "RCT adjuvante 45 Gy / 25 fx + 5FU-leucovorine (INT-0116)",
+   "type": "rte_normo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "int0116",
+    "int0116-lt",
+    "critics",
+    "artist2"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV (lit tumoral, anastomose, aires ganglionnaires)",
+     "dose_Gy": 45,
+     "fractions": 25,
+     "dose_fx_Gy": 1.8,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "SG médiane 36 vs 27 mois"
+    }
+   ],
+   "technique": "IMRT ou VMAT, IGRT quotidienne",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-est",
+   "volumes_id": "vol-est-adj",
+   "contraintes_ids": [
+    "ct-abdo-acrop-crt"
+   ],
+   "points_attention": [
+    "Indication résiduelle : patient opéré d'emblée, sans chimiothérapie périopératoire, pT3+ ou N+"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Digestif",
+    "Estomac",
+    "Opéré sans chimiothérapie périopératoire : RCT adjuvante",
+    "Normofractionné"
+   ]
+  },
+  {
+   "id": "est-pall-30-10",
+   "situation_id": "est-pall",
+   "titre": "RT hémostatique 30 Gy / 10 fx",
+   "type": "rte_hypo",
+   "preuve": "option",
+   "essai_ids": [
+    "hemostase-estomac"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV tumeur gastrique",
+     "dose_Gy": 30,
+     "fractions": 10,
+     "dose_fx_Gy": 3,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Schéma le plus utilisé ; hémostase environ 80 %"
+    }
+   ],
+   "technique": "RT 3D ou VMAT",
+   "systemique": "Aucune",
+   "simulation_id": "sim-est",
+   "volumes_id": "vol-est-pall",
+   "points_attention": [
+    "Pas d'essai randomisé : 30 Gy / 10 fx et 20 Gy / 5 fx sont les schémas retenus par les revues"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Digestif",
+    "Estomac",
+    "Palliatif : saignement",
+    "Hypofractionné"
+   ],
+   "contraintes_ids": []
+  },
+  {
+   "id": "est-pall-20-5",
+   "situation_id": "est-pall",
+   "titre": "RT hémostatique 20 Gy / 5 fx",
+   "type": "rte_hypo",
+   "preuve": "option",
+   "essai_ids": [
+    "hemostase-estomac"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV tumeur gastrique",
+     "dose_Gy": 20,
+     "fractions": 5,
+     "dose_fx_Gy": 4,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Si survie attendue courte"
+    }
+   ],
+   "technique": "RT 3D ou VMAT",
+   "systemique": "Aucune",
+   "simulation_id": "sim-est",
+   "volumes_id": "vol-est-pall",
+   "points_attention": [
+    "Pas d'essai randomisé : 30 Gy / 10 fx et 20 Gy / 5 fx sont les schémas retenus par les revues"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Digestif",
+    "Estomac",
+    "Palliatif : saignement",
+    "Hypofractionné"
+   ],
+   "contraintes_ids": []
+  }
+ ],
+ "simulations": [
+  {
+   "id": "sim-est",
+   "position": "Décubitus dorsal, bras au-dessus de la tête",
+   "contention": "Matelas ou cale genoux",
+   "preparation": "À jeun ; même préparation au scanner et à chaque séance",
+   "scanner": "Injecté sauf contre-indication",
+   "imagerie": "Scanner préopératoire, comptes rendus opératoire et histologique",
+   "reperes": "Clips chirurgicaux"
+  }
+ ],
+ "volumes": [
+  {
+   "id": "vol-est-adj",
+   "cibles": [
+    {
+     "nom": "CTV",
+     "type": "CTV",
+     "definition": "Lit tumoral, anastomose ou moignon, aires ganglionnaires de drainage selon la localisation de la tumeur (classification japonaise)",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "PTV",
+     "type": "PTV",
+     "definition": "CTV + marge selon le mouvement et l'IGRT",
+     "quand": "Toujours"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "EORTC-ROG (Matzinger 2009)"
+    },
+    {
+     "nom": "ESTRO ACROP aires ganglionnaires digestives hautes 2021"
+    }
+   ],
+   "oar_ids": [
+    "oar-rein-d",
+    "oar-rein-g",
+    "oar-foie",
+    "oar-moelle",
+    "oar-coeur",
+    "oar-poumons",
+    "oar-grele",
+    "oar-duodenum"
+   ]
+  },
+  {
+   "id": "vol-est-pall",
+   "cibles": [
+    {
+     "nom": "PTV",
+     "type": "PTV",
+     "definition": "Tumeur gastrique, marge selon le mouvement",
+     "quand": "Toujours"
+    }
+   ],
+   "atlas": [],
+   "oar_ids": [
+    "oar-rein-d",
+    "oar-rein-g",
+    "oar-foie",
+    "oar-moelle"
+   ]
+  }
+ ],
+ "curie_indications": [],
+ "systemique": [
+  {
+   "situation": "est-adj",
+   "traitement": "5FU 425 mg/m²/j + leucovorine 20 mg/m²/j, 5 jours, avant et après la RT ; doses réduites pendant la RT",
+   "protocole": "5FU-leucovorine (INT-0116, Macdonald)",
+   "situation_id": "est-adj",
+   "essai_ids": [
+    "int0116"
+   ],
+   "note": "Chimiothérapie de l'essai"
+  },
+  {
+   "situation": "est-adj",
+   "traitement": "Chimiothérapie périopératoire FLOT : standard si la tumeur est vue avant la chirurgie",
+   "protocole": "FLOT (œsogastrique)",
+   "situation_id": "est-adj",
+   "essai_ids": [
+    "flot4"
+   ],
+   "note": "Après FLOT, pas de RT adjuvante (CRITICS)"
+  }
+ ],
+ "hormonotherapie": [],
+ "points_attention": [
+  {
+   "cible": "estomac",
+   "point": "Après chimiothérapie périopératoire, la RCT postopératoire n'apporte rien (CRITICS). La RCT préopératoire non plus (TOPGEAR)",
+   "portee": "localisation"
+  },
+  {
+   "cible": "estomac",
+   "point": "Après gastrectomie D2 N+, l'ajout de la RT au SOX ne réduit pas les récidives (ARTIST 2)",
+   "portee": "localisation"
+  },
+  {
+   "cible": "est-adj",
+   "point": "Indication résiduelle : patient opéré d'emblée, sans chimiothérapie périopératoire, pT3+ ou N+",
+   "portee": "situation"
+  },
+  {
+   "cible": "est-pall",
+   "point": "Pas d'essai randomisé : 30 Gy / 10 fx et 20 Gy / 5 fx sont les schémas retenus par les revues",
+   "portee": "situation"
+  }
+ ],
+ "textes": {}
+}

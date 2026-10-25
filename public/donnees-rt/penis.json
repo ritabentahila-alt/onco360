@@ -1,0 +1,140 @@
+{
+ "version": "2026-10-25",
+ "id": "penis",
+ "region_id": "uro",
+ "nom": "Pénis",
+ "ordre": 4,
+ "date_maj": "2026-10-24",
+ "situations": [
+  {
+   "id": "pn-gland",
+   "localisation_id": "penis",
+   "titre": "Carcinome épidermoïde du gland T1, T2 ou T3 sélectionné",
+   "contexte": "en_place",
+   "criteres": "Curiethérapie interstitielle recommandée en traitement initial (ABS-GEC-ESTRO 2013) ; posthectomie avant l'implant (Gustave Roussy)",
+   "ordre": 1
+  }
+ ],
+ "schemas": [
+  {
+   "id": "pn-ldr-60",
+   "situation_id": "pn-gland",
+   "titre": "Curiethérapie interstitielle bas débit ou débit pulsé 60 Gy",
+   "type": "curie_ldr",
+   "preuve": "recommandation",
+   "essai_ids": [
+    "abs-gec-estro-penis-2013",
+    "crook2005-penis"
+   ],
+   "prescriptions": [
+    {
+     "volume": "CTV",
+     "dose_Gy": 60,
+     "mode": "seul",
+     "rythme": "Débit moyen 65 cGy/h, durée moyenne 98,8 h",
+     "note": "Débit pulsé 50 à 61,2 cGy/h sans correction de la dose totale (Crook 2005)"
+    }
+   ],
+   "technique": "Implant d'iridium 192 : 2 ou 3 plans parallèles d'aiguilles sur gabarit acrylique (médiane 6 aiguilles, espacement moyen 13,5 mm)",
+   "systemique": "Aucune",
+   "volumes_id": "vol-penis",
+   "points_attention": [
+    "Conservation du pénis à 5 ans 86,5 % ; nécrose des tissus mous 16 %, sténose urétrale 12 % ; échecs locaux tous rattrapés par la chirurgie (Crook 2005)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Uro",
+    "Pénis",
+    "Carcinome épidermoïde du gland T1, T2 ou T3 sélectionné",
+    "Curiethérapie"
+   ],
+   "contraintes_ids": []
+  },
+  {
+   "id": "pn-pdr-igr",
+   "situation_id": "pn-gland",
+   "titre": "Curiethérapie débit pulsé guidée par scanner, 60 Gy (Gustave Roussy)",
+   "type": "curie_pdr",
+   "preuve": "pratique_institutionnelle",
+   "essai_ids": [
+    "achkar2025-penis"
+   ],
+   "source_institutionnelle": "Gustave Roussy, unité de curiethérapie",
+   "prescriptions": [
+    {
+     "volume": "CTV",
+     "dose_Gy": 60,
+     "mode": "seul",
+     "rythme": "Médiane 150 pulses",
+     "note": "Dose médiane 60 Gy (37 à 65 Gy)"
+    }
+   ],
+   "technique": "Implant interstitiel, dosimétrie sur scanner",
+   "systemique": "Aucune",
+   "volumes_id": "vol-penis",
+   "contraintes_ids": [
+    "ct-penis-igr"
+   ],
+   "points_attention": [
+    "Gustave Roussy (65 patients) : rechute locale 18,4 %, survie sans maladie à 3 ans 74,4 % ; sténose méatique de grade 2 : 21,5 %, liée à la dose à l'urètre distal"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Uro",
+    "Pénis",
+    "Carcinome épidermoïde du gland T1, T2 ou T3 sélectionné",
+    "Curiethérapie"
+   ]
+  }
+ ],
+ "simulations": [],
+ "volumes": [
+  {
+   "id": "vol-penis",
+   "cibles": [
+    {
+     "nom": "CTV",
+     "type": "CTV",
+     "definition": "Tumeur du gland, après posthectomie",
+     "quand": "Toujours"
+    }
+   ],
+   "atlas": [],
+   "oar_ids": [
+    "oar-uretre"
+   ]
+  }
+ ],
+ "curie_indications": [
+  {
+   "indication": "Carcinome invasif du gland T1, T2 et T3 sélectionnés",
+   "modalite": "Interstitielle, iridium 192 bas débit, débit pulsé ou haut débit",
+   "niveau_preuve": "Consensus ABS-GEC-ESTRO 2013",
+   "note": "Conservation du pénis 70 % à 10 ans ; dose et fractionnement optimaux du haut débit encore en développement"
+  }
+ ],
+ "systemique": [],
+ "hormonotherapie": [],
+ "points_attention": [
+  {
+   "cible": "pn-ldr-60",
+   "point": "Conservation du pénis à 5 ans 86,5 % ; nécrose des tissus mous 16 %, sténose urétrale 12 % ; échecs locaux tous rattrapés par la chirurgie (Crook 2005)",
+   "portee": "schema"
+  },
+  {
+   "cible": "pn-pdr-igr",
+   "point": "Gustave Roussy (65 patients) : rechute locale 18,4 %, survie sans maladie à 3 ans 74,4 % ; sténose méatique de grade 2 : 21,5 %, liée à la dose à l'urètre distal",
+   "portee": "schema"
+  },
+  {
+   "cible": "penis",
+   "point": "Complications principales : sténose du méat et ulcération des tissus mous ; ulcération persistante traitable notamment par oxygénothérapie hyperbare (ABS-GEC-ESTRO 2013)",
+   "portee": "localisation"
+  }
+ ],
+ "textes": {
+  "systemique": [
+   "Pas de traitement systémique associé à la curiethérapie."
+  ]
+ }
+}

@@ -1,0 +1,334 @@
+{
+ "version": "2026-10-25",
+ "id": "sein_ccis",
+ "region_id": "sein",
+ "nom": "Carcinome in situ",
+ "ordre": 27,
+ "date_maj": "2026-10-24",
+ "situations": [
+  {
+   "id": "ccis-bcs",
+   "localisation_id": "sein_ccis",
+   "titre": "CCIS après chirurgie conservatrice à berges saines",
+   "contexte": "post_op",
+   "criteres": "RT du sein entier en standard, dans les 12 semaines après la chirurgie. Surimpression : marge < 2 mm unifocale sans microcalcification résiduelle et sans reprise possible ; en option si âge < 50 ans, nécrose étendue, haut grade nucléaire",
+   "ordre": 1
+  },
+  {
+   "id": "ccis-paget",
+   "localisation_id": "sein_ccis",
+   "titre": "Maladie de Paget isolée",
+   "contexte": "post_op",
+   "criteres": "À considérer comme un CCIS de haut grade : RT du sein après chirurgie possible",
+   "ordre": 2
+  }
+ ],
+ "schemas": [
+  {
+   "id": "ccis-50-25",
+   "situation_id": "ccis-bcs",
+   "titre": "Sein 50 Gy / 25 fx",
+   "type": "rte_normo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "big307",
+    "senorif-2021"
+   ],
+   "source_institutionnelle": "Sénorif 2021-2022 (standard)",
+   "prescriptions": [
+    {
+     "volume": "PTV sein",
+     "dose_Gy": 50,
+     "fractions": 25,
+     "dose_fx_Gy": 2,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Sans surimpression si aucun facteur"
+    }
+   ],
+   "technique": "RT conformationnelle 3D",
+   "systemique": "Aucune",
+   "simulation_id": "sim-sein",
+   "volumes_id": "vol-sein",
+   "contraintes_ids": [
+    "ct-sein-senorif",
+    "ct-thorax-quantec"
+   ],
+   "points_attention": [
+    "Surimpression : 97,1 % sans récidive locale à 5 ans contre 92,7 % sans surimpression (HR 0,47), au prix de plus de douleurs et d'induration (BIG 3-07)",
+    "Omission de la RT seulement dans des études prospectives contrôlées ou en cas de contre-indication (Sénorif)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Sein",
+    "Carcinome in situ",
+    "CCIS après chirurgie conservatrice à berges saines",
+    "Normofractionné"
+   ]
+  },
+  {
+   "id": "ccis-50-25-boost",
+   "situation_id": "ccis-bcs",
+   "titre": "Sein 50 Gy / 25 fx puis surimpression 16 Gy / 8 fx",
+   "type": "rte_normo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "big307",
+    "senorif-2021"
+   ],
+   "source_institutionnelle": "Sénorif 2021-2022 (10 à 16 Gy)",
+   "prescriptions": [
+    {
+     "volume": "PTV sein",
+     "dose_Gy": 50,
+     "fractions": 25,
+     "dose_fx_Gy": 2,
+     "mode": "sequentiel",
+     "rythme": "5 fx/sem",
+     "note": "Premier temps"
+    },
+    {
+     "volume": "PTV lit tumoral",
+     "dose_Gy": 16,
+     "fractions": 8,
+     "dose_fx_Gy": 2,
+     "mode": "sequentiel",
+     "rythme": "5 fx/sem",
+     "note": "Sénorif : 10 à 16 Gy en fractions de 2 Gy ; BIG 3-07 : 16 Gy / 8 fx"
+    }
+   ],
+   "technique": "RT 3D puis surimpression",
+   "systemique": "Aucune",
+   "simulation_id": "sim-sein",
+   "volumes_id": "vol-sein",
+   "contraintes_ids": [
+    "ct-sein-senorif",
+    "ct-thorax-quantec"
+   ],
+   "points_attention": [
+    "Surimpression : 97,1 % sans récidive locale à 5 ans contre 92,7 % sans surimpression (HR 0,47), au prix de plus de douleurs et d'induration (BIG 3-07)",
+    "Omission de la RT seulement dans des études prospectives contrôlées ou en cas de contre-indication (Sénorif)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Sein",
+    "Carcinome in situ",
+    "CCIS après chirurgie conservatrice à berges saines",
+    "Normofractionné"
+   ]
+  },
+  {
+   "id": "ccis-425-16-boost",
+   "situation_id": "ccis-bcs",
+   "titre": "Sein 42,5 Gy / 16 fx ± surimpression 16 Gy / 8 fx",
+   "type": "rte_hypo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "big307"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV sein",
+     "dose_Gy": 42.5,
+     "fractions": 16,
+     "dose_fx_Gy": 2.656,
+     "mode": "sequentiel",
+     "rythme": "5 fx/sem",
+     "note": "Bras hypofractionné de BIG 3-07 ; Sénorif écrit « 42 Gy en 16 fractions »"
+    },
+    {
+     "volume": "PTV lit tumoral",
+     "dose_Gy": 16,
+     "fractions": 8,
+     "dose_fx_Gy": 2,
+     "mode": "sequentiel",
+     "rythme": "5 fx/sem",
+     "note": "Si surimpression indiquée"
+    }
+   ],
+   "technique": "RT 3D puis surimpression",
+   "systemique": "Aucune",
+   "simulation_id": "sim-sein",
+   "volumes_id": "vol-sein",
+   "contraintes_ids": [
+    "ct-sein-senorif"
+   ],
+   "points_attention": [
+    "Surimpression : 97,1 % sans récidive locale à 5 ans contre 92,7 % sans surimpression (HR 0,47), au prix de plus de douleurs et d'induration (BIG 3-07)",
+    "Omission de la RT seulement dans des études prospectives contrôlées ou en cas de contre-indication (Sénorif)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Sein",
+    "Carcinome in situ",
+    "CCIS après chirurgie conservatrice à berges saines",
+    "Hypofractionné"
+   ]
+  },
+  {
+   "id": "ccis-40-15",
+   "situation_id": "ccis-bcs",
+   "titre": "Sein 40,05 Gy / 15 fx ± surimpression",
+   "type": "rte_hypo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "dbcg-hypo",
+    "senorif-2021"
+   ],
+   "source_institutionnelle": "Sénorif 2021-2022 (option)",
+   "prescriptions": [
+    {
+     "volume": "PTV sein",
+     "dose_Gy": 40.05,
+     "fractions": 15,
+     "dose_fx_Gy": 2.67,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "DBCG HYPO : induration et récidive locorégionale non augmentées, CCIS inclus"
+    }
+   ],
+   "technique": "RT 3D",
+   "systemique": "Aucune",
+   "simulation_id": "sim-sein",
+   "volumes_id": "vol-sein",
+   "contraintes_ids": [
+    "ct-sein-ff-15fx",
+    "ct-sein-senorif"
+   ],
+   "couverture": "PTV : V95 % > 95 %, V105 % < 5 %, V107 % < 2 %, Dmax < 110 % (FAST-Forward)",
+   "points_attention": [
+    "Surimpression : 97,1 % sans récidive locale à 5 ans contre 92,7 % sans surimpression (HR 0,47), au prix de plus de douleurs et d'induration (BIG 3-07)",
+    "Omission de la RT seulement dans des études prospectives contrôlées ou en cas de contre-indication (Sénorif)",
+    "Sénorif 2021 classe l'hypofractionnement du CCIS en niveau de preuve faible ; DBCG HYPO (2020) incluait des CCIS et BIG 3-07 (2022) a testé 42,5 Gy / 16 fx"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Sein",
+    "Carcinome in situ",
+    "CCIS après chirurgie conservatrice à berges saines",
+    "Hypofractionné"
+   ]
+  },
+  {
+   "id": "ccis-paget-50-25",
+   "situation_id": "ccis-paget",
+   "titre": "Sein 50 Gy / 25 fx",
+   "type": "rte_normo",
+   "preuve": "recommandation",
+   "essai_ids": [
+    "senorif-2021"
+   ],
+   "source_institutionnelle": "Sénorif 2021-2022",
+   "prescriptions": [
+    {
+     "volume": "PTV sein",
+     "dose_Gy": 50,
+     "fractions": 25,
+     "dose_fx_Gy": 2,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Comme un CCIS de haut grade"
+    }
+   ],
+   "technique": "RT 3D",
+   "systemique": "Aucune",
+   "simulation_id": "sim-sein",
+   "volumes_id": "vol-sein",
+   "contraintes_ids": [
+    "ct-sein-senorif",
+    "ct-thorax-quantec"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Sein",
+    "Carcinome in situ",
+    "Maladie de Paget isolée",
+    "Normofractionné"
+   ],
+   "points_attention": []
+  }
+ ],
+ "simulations": [
+  {
+   "id": "sim-sein",
+   "position": "Décubitus dorsal (référence) ; décubitus latéral isocentrique possible pour le sein seul (Sénorif)",
+   "preparation": "Inspiration bloquée recommandée à gauche et en cas d'irradiation de la CMI, sauf sein seul en décubitus latéral (Sénorif)",
+   "scanner": "Scanner 3D, coupes de 5 mm au plus, sein entier et OAR contourés (FAST-Forward)",
+   "imagerie": "Lit tumoral : examen clinique préopératoire, mammographie, échographie, IRM, compte rendu opératoire, clips et anatomopathologie (Sénorif)",
+   "reperes": "Clips en titane ou grains d'or sur les parois de la cavité, fortement recommandés (FAST-Forward, IMPORT LOW)"
+  }
+ ],
+ "volumes": [
+  {
+   "id": "vol-sein",
+   "cibles": [
+    {
+     "nom": "CTV sein",
+     "type": "CTV",
+     "definition": "Glande mammaire entière avec ses prolongements axillaires (Sénorif) : tissus mous de 5 mm sous la peau jusqu'au fascia profond, sans muscle ni grill costal (FAST-Forward) ; recommandations ESTRO 2016",
+     "quand": "Après conservation"
+    },
+    {
+     "nom": "CTV paroi",
+     "type": "CTV",
+     "definition": "Lambeaux cutanés, tissu sous-cutané et cicatrice, jusqu'au fascia profond, sans muscle ni côtes (FAST-Forward ; Sénorif) ; avec prothèse : ESTRO-ACROP 2019",
+     "quand": "Après mastectomie"
+    },
+    {
+     "nom": "CTV lit tumoral",
+     "type": "CTV",
+     "definition": "Lit tumoral d'après les clips, l'imagerie préopératoire, le compte rendu opératoire et l'anatomopathologie (taille, berges)",
+     "quand": "Si surimpression"
+    },
+    {
+     "nom": "PTV",
+     "type": "PTV",
+     "definition": "CTV + 10 mm en général (positionnement, œdème, respiration ; FAST-Forward)",
+     "quand": "Toujours",
+     "marge": "10 mm"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "ESTRO 2016",
+     "url": "https://doi.org/10.1016/j.radonc.2015.12.027"
+    },
+    {
+     "nom": "ESTRO-ACROP 2019, reconstruction par prothèse",
+     "url": "https://doi.org/10.1016/j.radonc.2019.04.010"
+    }
+   ],
+   "oar_ids": [
+    "oar-coeur",
+    "oar-poumon-homolateral",
+    "oar-sein-controlateral"
+   ]
+  }
+ ],
+ "curie_indications": [],
+ "systemique": [],
+ "hormonotherapie": [],
+ "points_attention": [
+  {
+   "cible": "ccis-bcs",
+   "point": "Surimpression : 97,1 % sans récidive locale à 5 ans contre 92,7 % sans surimpression (HR 0,47), au prix de plus de douleurs et d'induration (BIG 3-07)",
+   "portee": "situation"
+  },
+  {
+   "cible": "ccis-bcs",
+   "point": "Omission de la RT seulement dans des études prospectives contrôlées ou en cas de contre-indication (Sénorif)",
+   "portee": "situation"
+  },
+  {
+   "cible": "sein_ccis",
+   "point": "Pas de RT après mastectomie totale, sauf berges atteintes ; pas de RT pour le carcinome lobulaire in situ classique, sauf forme pléomorphe ou avec nécrose (Sénorif)",
+   "portee": "localisation"
+  },
+  {
+   "cible": "ccis-40-15",
+   "point": "Sénorif 2021 classe l'hypofractionnement du CCIS en niveau de preuve faible ; DBCG HYPO (2020) incluait des CCIS et BIG 3-07 (2022) a testé 42,5 Gy / 16 fx",
+   "portee": "schema"
+  }
+ ],
+ "textes": {}
+}

@@ -1,0 +1,1278 @@
+{
+ "version": "2026-10-25",
+ "id": "sein",
+ "region_id": "sein",
+ "nom": "Carcinome infiltrant",
+ "ordre": 26,
+ "date_maj": "2026-10-25",
+ "situations": [
+  {
+   "id": "sein-bcs",
+   "localisation_id": "sein",
+   "titre": "Après chirurgie conservatrice : sein entier ± surimpression",
+   "contexte": "post_op",
+   "criteres": "Irradiation du sein entier en référence. Surimpression du lit si âge < 50 ans ; possible à 50 ans et plus avec au moins un facteur : grade III, emboles, triple négatif",
+   "ordre": 1
+  },
+  {
+   "id": "sein-mastectomie",
+   "localisation_id": "sein",
+   "titre": "Après mastectomie : paroi thoracique",
+   "contexte": "post_op",
+   "criteres": "pT3–T4 ; ou au moins deux facteurs parmi âge < 40 ans, pT2, emboles, grade III, triple négatif ; berges latérales atteintes ; pN+",
+   "ordre": 2
+  },
+  {
+   "id": "sein-ganglions",
+   "localisation_id": "sein",
+   "titre": "Irradiation des aires ganglionnaires (avec le sein ou la paroi)",
+   "contexte": "post_op",
+   "criteres": "Ganglion sentinelle macrométastatique sans curage : CMI, niveaux I à IV, interpectoral. Curage pN+ : CMI et niveaux II à IV, + niveau I si envahissement > 50 % ou moins de 6 ganglions. pN0 : option CMI et niveaux III–IV si tumeur centrale ou interne avec pT3 ou au moins 2 facteurs (âge ≤ 40 ans, pT2, emboles, grade III)",
+   "ordre": 3
+  },
+  {
+   "id": "sein-ipb",
+   "localisation_id": "sein",
+   "titre": "Irradiation partielle du sein",
+   "contexte": "post_op",
+   "criteres": "Tous les critères : âge > 50 ans, pT1 N0, grade I–II, RH+, pas d'emboles, berges saines ; CCIS associé possible sauf grade III, nécrose ou CCIS étendu",
+   "ordre": 4
+  },
+  {
+   "id": "sein-post-neoadj",
+   "localisation_id": "sein",
+   "titre": "Après chimiothérapie néoadjuvante",
+   "contexte": "post_op",
+   "criteres": "Indications selon le stade clinique et radiologique initial ; ganglions irradiés si N+ initial prouvé, même ypN0. RT concomitante : capécitabine si triple négatif sans réponse complète, T-DM1 si HER2+ sans réponse complète",
+   "ordre": 5
+  },
+  {
+   "id": "sein-en-place",
+   "localisation_id": "sein",
+   "titre": "Tumeur du sein non opérée : RT exclusive",
+   "contexte": "en_place",
+   "criteres": "Irradiation du sein puis surimpression de la tumeur en place",
+   "ordre": 6
+  },
+  {
+   "id": "sein-occulte",
+   "localisation_id": "sein",
+   "titre": "Carcinome occulte révélé par une adénopathie (cT0 N+)",
+   "contexte": "post_op",
+   "criteres": "Irradiation du sein et des aires ganglionnaires",
+   "ordre": 7
+  }
+ ],
+ "schemas": [
+  {
+   "id": "sein-40-15",
+   "situation_id": "sein-bcs",
+   "titre": "Sein 40,05 Gy / 15 fx",
+   "type": "rte_hypo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "startb",
+    "fastforward",
+    "senorif-2021"
+   ],
+   "source_institutionnelle": "Sénorif 2021-2022 ; tableur du service « SEIN HYPOG 40,05 Gy »",
+   "prescriptions": [
+    {
+     "volume": "PTV sein",
+     "dose_Gy": 40.05,
+     "fractions": 15,
+     "dose_fx_Gy": 2.67,
+     "mode": "seul",
+     "rythme": "5 fx/sem (3 semaines)",
+     "note": "START B : récidive locorégionale à 10 ans 4,3 % contre 5,5 % avec 50 Gy ; moins d'effets tardifs"
+    }
+   ],
+   "technique": "RT conformationnelle 3D, tangentielles ; inspiration bloquée à gauche",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-sein",
+   "volumes_id": "vol-sein",
+   "contraintes_ids": [
+    "ct-sein-ff-15fx",
+    "ct-sein-senorif"
+   ],
+   "couverture": "PTV : V95 % > 95 %, V105 % < 5 %, V107 % < 2 %, Dmax < 110 % (FAST-Forward)",
+   "points_attention": [
+    "Le risque d'événement coronarien augmente de 7,4 % par gray de dose moyenne au cœur, sans seuil (Darby 2013) : objectif Dmoy < 5 Gy (Sénorif)",
+    "La RT après conservation réduit le risque de récidive à 10 ans de 35,0 à 19,3 % et la mortalité par cancer à 15 ans de 25,2 à 21,4 % (EBCTCG 2011)",
+    "Femme de 65 ans et plus, RH+, N0, tumeur ≤ 3 cm, sous hormonothérapie : l'omission de la RT augmente la récidive locale à 10 ans (9,5 contre 0,9 %) sans changer la survie (PRIME II) ; à 70 ans et plus, résultats proches (CALGB 9343)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Sein",
+    "Carcinome infiltrant",
+    "Après chirurgie conservatrice : sein entier ± surimpression",
+    "Hypofractionné"
+   ]
+  },
+  {
+   "id": "sein-40-15-boost16",
+   "situation_id": "sein-bcs",
+   "titre": "Sein 40,05 Gy / 15 fx puis surimpression séquentielle 16 Gy / 8 fx ou 10 Gy / 5 fx",
+   "type": "rte_hypo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "startb",
+    "import-high",
+    "eortc22881",
+    "senorif-2021"
+   ],
+   "source_institutionnelle": "Sénorif 2021-2022 ; tableur du service « SEIN HYPOG 40,05 Gy + boost séquentiel 16 Gy »",
+   "prescriptions": [
+    {
+     "volume": "PTV sein",
+     "dose_Gy": 40.05,
+     "fractions": 15,
+     "dose_fx_Gy": 2.67,
+     "mode": "sequentiel",
+     "rythme": "5 fx/sem",
+     "note": "Premier temps"
+    },
+    {
+     "volume": "PTV lit tumoral",
+     "dose_Gy": 16,
+     "fractions": 8,
+     "dose_fx_Gy": 2,
+     "mode": "sequentiel",
+     "rythme": "5 fx/sem",
+     "note": "Surimpression de référence normofractionnée (Sénorif) ; bras contrôle d'IMPORT HIGH ; option : 10 Gy / 5 fx de 2 Gy"
+    }
+   ],
+   "technique": "RT 3D puis surimpression en photons ou électrons",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-sein",
+   "volumes_id": "vol-sein",
+   "contraintes_ids": [
+    "ct-sein-ff-15fx",
+    "ct-sein-senorif"
+   ],
+   "couverture": "Comme sein-40-15 pour le premier temps",
+   "points_attention": [
+    "Le risque d'événement coronarien augmente de 7,4 % par gray de dose moyenne au cœur, sans seuil (Darby 2013) : objectif Dmoy < 5 Gy (Sénorif)",
+    "La RT après conservation réduit le risque de récidive à 10 ans de 35,0 à 19,3 % et la mortalité par cancer à 15 ans de 25,2 à 21,4 % (EBCTCG 2011)",
+    "Femme de 65 ans et plus, RH+, N0, tumeur ≤ 3 cm, sous hormonothérapie : l'omission de la RT augmente la récidive locale à 10 ans (9,5 contre 0,9 %) sans changer la survie (PRIME II) ; à 70 ans et plus, résultats proches (CALGB 9343)"
+   ],
+   "date_verif": "2026-10-25",
+   "ind": [
+    "Sein",
+    "Carcinome infiltrant",
+    "Après chirurgie conservatrice : sein entier ± surimpression",
+    "Hypofractionné"
+   ]
+  },
+  {
+   "id": "sein-425-16",
+   "situation_id": "sein-bcs",
+   "titre": "Sein 42,5 Gy / 16 fx",
+   "type": "rte_hypo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "whelan2010"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV sein",
+     "dose_Gy": 42.5,
+     "fractions": 16,
+     "dose_fx_Gy": 2.656,
+     "mode": "seul",
+     "rythme": "5 fx/sem (22 jours)",
+     "note": "Récidive locale à 10 ans 6,2 % contre 6,7 % avec 50 Gy"
+    }
+   ],
+   "technique": "RT conformationnelle 3D",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-sein",
+   "volumes_id": "vol-sein",
+   "contraintes_ids": [
+    "ct-sein-senorif"
+   ],
+   "points_attention": [
+    "Le risque d'événement coronarien augmente de 7,4 % par gray de dose moyenne au cœur, sans seuil (Darby 2013) : objectif Dmoy < 5 Gy (Sénorif)",
+    "La RT après conservation réduit le risque de récidive à 10 ans de 35,0 à 19,3 % et la mortalité par cancer à 15 ans de 25,2 à 21,4 % (EBCTCG 2011)",
+    "Femme de 65 ans et plus, RH+, N0, tumeur ≤ 3 cm, sous hormonothérapie : l'omission de la RT augmente la récidive locale à 10 ans (9,5 contre 0,9 %) sans changer la survie (PRIME II) ; à 70 ans et plus, résultats proches (CALGB 9343)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Sein",
+    "Carcinome infiltrant",
+    "Après chirurgie conservatrice : sein entier ± surimpression",
+    "Hypofractionné"
+   ]
+  },
+  {
+   "id": "sein-26-5",
+   "situation_id": "sein-bcs",
+   "titre": "Sein 26 Gy / 5 fx en 1 semaine (FAST-Forward)",
+   "type": "rte_hypo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "fastforward",
+    "senorif-2021"
+   ],
+   "source_institutionnelle": "Sénorif 2021-2022 (option)",
+   "prescriptions": [
+    {
+     "volume": "PTV sein",
+     "dose_Gy": 26,
+     "fractions": 5,
+     "dose_fx_Gy": 5.2,
+     "mode": "seul",
+     "rythme": "5 fx/sem (1 semaine)",
+     "note": "Sein seul, sans aires ganglionnaires ; récidive à 5 ans 1,4 % contre 2,1 % avec 40 Gy"
+    }
+   ],
+   "technique": "RT 3D, imagerie de vérification à chaque séance",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-sein",
+   "volumes_id": "vol-sein",
+   "contraintes_ids": [
+    "ct-sein-ff-5fx",
+    "ct-sein-senorif"
+   ],
+   "couverture": "PTV : V95 % > 95 %, V105 % < 5 %, V107 % < 2 %, Dmax < 110 %",
+   "points_attention": [
+    "Le risque d'événement coronarien augmente de 7,4 % par gray de dose moyenne au cœur, sans seuil (Darby 2013) : objectif Dmoy < 5 Gy (Sénorif)",
+    "La RT après conservation réduit le risque de récidive à 10 ans de 35,0 à 19,3 % et la mortalité par cancer à 15 ans de 25,2 à 21,4 % (EBCTCG 2011)",
+    "Femme de 65 ans et plus, RH+, N0, tumeur ≤ 3 cm, sous hormonothérapie : l'omission de la RT augmente la récidive locale à 10 ans (9,5 contre 0,9 %) sans changer la survie (PRIME II) ; à 70 ans et plus, résultats proches (CALGB 9343)",
+    "FAST-Forward : 27 Gy / 5 fx donne plus d'effets tardifs que 40 Gy ; 26 Gy est le schéma retenu"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Sein",
+    "Carcinome infiltrant",
+    "Après chirurgie conservatrice : sein entier ± surimpression",
+    "Hypofractionné"
+   ]
+  },
+  {
+   "id": "sein-26-5-boost-service",
+   "situation_id": "sein-bcs",
+   "titre": "Sein 26 Gy / 5 fx puis surimpression 13,35 Gy / 5 fx",
+   "type": "rte_hypo",
+   "preuve": "pratique_institutionnelle",
+   "essai_ids": [
+    "fastforward",
+    "senorif-2021"
+   ],
+   "source_institutionnelle": "Tableur du service « SEIN FASTFORWARD 26 Gy + boost séquentiel 13,35 Gy »",
+   "prescriptions": [
+    {
+     "volume": "PTV sein",
+     "dose_Gy": 26,
+     "fractions": 5,
+     "dose_fx_Gy": 5.2,
+     "mode": "sequentiel",
+     "rythme": "5 fx/sem",
+     "note": "Premier temps"
+    },
+    {
+     "volume": "PTV lit tumoral",
+     "dose_Gy": 13.35,
+     "fractions": 5,
+     "dose_fx_Gy": 2.67,
+     "mode": "sequentiel",
+     "rythme": "5 fx/sem",
+     "note": "Surimpression hypofractionnée : option de niveau de preuve très faible (Sénorif) ; FAST-Forward autorisait 10 ou 16 Gy en fractions de 2 Gy"
+    }
+   ],
+   "technique": "RT 3D, imagerie à chaque séance, puis surimpression",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-sein",
+   "volumes_id": "vol-sein",
+   "contraintes_ids": [
+    "ct-sein-ff-5fx",
+    "ct-sein-senorif"
+   ],
+   "couverture": "Comme sein-26-5 pour le premier temps",
+   "points_attention": [
+    "Le risque d'événement coronarien augmente de 7,4 % par gray de dose moyenne au cœur, sans seuil (Darby 2013) : objectif Dmoy < 5 Gy (Sénorif)",
+    "La RT après conservation réduit le risque de récidive à 10 ans de 35,0 à 19,3 % et la mortalité par cancer à 15 ans de 25,2 à 21,4 % (EBCTCG 2011)",
+    "Femme de 65 ans et plus, RH+, N0, tumeur ≤ 3 cm, sous hormonothérapie : l'omission de la RT augmente la récidive locale à 10 ans (9,5 contre 0,9 %) sans changer la survie (PRIME II) ; à 70 ans et plus, résultats proches (CALGB 9343)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Sein",
+    "Carcinome infiltrant",
+    "Après chirurgie conservatrice : sein entier ± surimpression",
+    "Hypofractionné"
+   ]
+  },
+  {
+   "id": "sein-285-5-hebdo",
+   "situation_id": "sein-bcs",
+   "titre": "Sein 28,5 Gy / 5 fx, une séance par semaine (FAST)",
+   "type": "rte_hypo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "fast",
+    "senorif-2021"
+   ],
+   "source_institutionnelle": "Sénorif 2021-2022 (option)",
+   "prescriptions": [
+    {
+     "volume": "PTV sein",
+     "dose_Gy": 28.5,
+     "fractions": 5,
+     "dose_fx_Gy": 5.7,
+     "mode": "seul",
+     "rythme": "1 fx/sem (5 semaines)",
+     "note": "Femmes de 50 ans et plus, pT1–2 pN0 ; effets tardifs proches de 50 Gy / 25 fx"
+    }
+   ],
+   "technique": "RT 3D",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-sein",
+   "volumes_id": "vol-sein",
+   "contraintes_ids": [
+    "ct-sein-senorif"
+   ],
+   "points_attention": [
+    "Le risque d'événement coronarien augmente de 7,4 % par gray de dose moyenne au cœur, sans seuil (Darby 2013) : objectif Dmoy < 5 Gy (Sénorif)",
+    "La RT après conservation réduit le risque de récidive à 10 ans de 35,0 à 19,3 % et la mortalité par cancer à 15 ans de 25,2 à 21,4 % (EBCTCG 2011)",
+    "Femme de 65 ans et plus, RH+, N0, tumeur ≤ 3 cm, sous hormonothérapie : l'omission de la RT augmente la récidive locale à 10 ans (9,5 contre 0,9 %) sans changer la survie (PRIME II) ; à 70 ans et plus, résultats proches (CALGB 9343)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Sein",
+    "Carcinome infiltrant",
+    "Après chirurgie conservatrice : sein entier ± surimpression",
+    "Hypofractionné"
+   ]
+  },
+  {
+   "id": "sein-50-25",
+   "situation_id": "sein-bcs",
+   "titre": "Sein 50 Gy / 25 fx ± surimpression 16 Gy / 8 fx",
+   "type": "rte_normo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "eortc22881",
+    "ebctcg2011",
+    "senorif-2021"
+   ],
+   "source_institutionnelle": "Sénorif 2021-2022",
+   "prescriptions": [
+    {
+     "volume": "PTV sein",
+     "dose_Gy": 50,
+     "fractions": 25,
+     "dose_fx_Gy": 2,
+     "mode": "sequentiel",
+     "rythme": "5 fx/sem",
+     "note": "Référence normofractionnée"
+    },
+    {
+     "volume": "PTV lit tumoral",
+     "dose_Gy": 16,
+     "fractions": 8,
+     "dose_fx_Gy": 2,
+     "mode": "sequentiel",
+     "rythme": "5 fx/sem",
+     "note": "Si indiquée ; récidive à 20 ans 12,0 % contre 16,4 % sans surimpression (EORTC 22881)"
+    }
+   ],
+   "technique": "RT conformationnelle 3D",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-sein",
+   "volumes_id": "vol-sein",
+   "contraintes_ids": [
+    "ct-sein-senorif",
+    "ct-thorax-quantec"
+   ],
+   "points_attention": [
+    "Le risque d'événement coronarien augmente de 7,4 % par gray de dose moyenne au cœur, sans seuil (Darby 2013) : objectif Dmoy < 5 Gy (Sénorif)",
+    "La RT après conservation réduit le risque de récidive à 10 ans de 35,0 à 19,3 % et la mortalité par cancer à 15 ans de 25,2 à 21,4 % (EBCTCG 2011)",
+    "Femme de 65 ans et plus, RH+, N0, tumeur ≤ 3 cm, sous hormonothérapie : l'omission de la RT augmente la récidive locale à 10 ans (9,5 contre 0,9 %) sans changer la survie (PRIME II) ; à 70 ans et plus, résultats proches (CALGB 9343)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Sein",
+    "Carcinome infiltrant",
+    "Après chirurgie conservatrice : sein entier ± surimpression",
+    "Normofractionné"
+   ]
+  },
+  {
+   "id": "sein-sib-504-644",
+   "situation_id": "sein-bcs",
+   "titre": "Sein 50,4 Gy / 28 fx avec surimpression intégrée 64,4 Gy",
+   "type": "rte_normo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "imrt-mc2",
+    "imrt-mc2-5ans",
+    "senorif-2021"
+   ],
+   "source_institutionnelle": "Sénorif 2021-2022 (option)",
+   "prescriptions": [
+    {
+     "volume": "PTV sein",
+     "dose_Gy": 50.4,
+     "fractions": 28,
+     "dose_fx_Gy": 1.8,
+     "mode": "SIB",
+     "rythme": "5 fx/sem (5,5 semaines)",
+     "note": "Sénorif : 63 à 64,4 Gy sur le lit en 28 fx"
+    },
+    {
+     "volume": "PTV lit tumoral",
+     "dose_Gy": 64.4,
+     "fractions": 28,
+     "dose_fx_Gy": 2.3,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Contrôle local non inférieur à 5 ans"
+    }
+   ],
+   "technique": "IMRT avec surimpression intégrée",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-sein",
+   "volumes_id": "vol-sein",
+   "contraintes_ids": [
+    "ct-sein-senorif",
+    "ct-thorax-quantec"
+   ],
+   "points_attention": [
+    "Le risque d'événement coronarien augmente de 7,4 % par gray de dose moyenne au cœur, sans seuil (Darby 2013) : objectif Dmoy < 5 Gy (Sénorif)",
+    "La RT après conservation réduit le risque de récidive à 10 ans de 35,0 à 19,3 % et la mortalité par cancer à 15 ans de 25,2 à 21,4 % (EBCTCG 2011)",
+    "Femme de 65 ans et plus, RH+, N0, tumeur ≤ 3 cm, sous hormonothérapie : l'omission de la RT augmente la récidive locale à 10 ans (9,5 contre 0,9 %) sans changer la survie (PRIME II) ; à 70 ans et plus, résultats proches (CALGB 9343)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Sein",
+    "Carcinome infiltrant",
+    "Après chirurgie conservatrice : sein entier ± surimpression",
+    "Normofractionné"
+   ]
+  },
+  {
+   "id": "sein-sib-import-high",
+   "situation_id": "sein-bcs",
+   "titre": "Sein 36 Gy, sein partiel 40 Gy, lit 48 Gy en 15 fx (SIB)",
+   "type": "rte_hypo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "import-high"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV sein",
+     "dose_Gy": 36,
+     "fractions": 15,
+     "dose_fx_Gy": 2.4,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Sein entier"
+    },
+    {
+     "volume": "PTV sein partiel",
+     "dose_Gy": 40,
+     "fractions": 15,
+     "dose_fx_Gy": 2.67,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Quadrant du lit tumoral"
+    },
+    {
+     "volume": "PTV lit tumoral",
+     "dose_Gy": 48,
+     "fractions": 15,
+     "dose_fx_Gy": 3.2,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "48 Gy non inférieur à 40 Gy + 16 Gy séquentiel ; 53 Gy non retenu"
+    }
+   ],
+   "technique": "RT 3D ou IMRT avec surimpression intégrée",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-sein",
+   "volumes_id": "vol-sein",
+   "contraintes_ids": [
+    "ct-sein-senorif"
+   ],
+   "points_attention": [
+    "Le risque d'événement coronarien augmente de 7,4 % par gray de dose moyenne au cœur, sans seuil (Darby 2013) : objectif Dmoy < 5 Gy (Sénorif)",
+    "La RT après conservation réduit le risque de récidive à 10 ans de 35,0 à 19,3 % et la mortalité par cancer à 15 ans de 25,2 à 21,4 % (EBCTCG 2011)",
+    "Femme de 65 ans et plus, RH+, N0, tumeur ≤ 3 cm, sous hormonothérapie : l'omission de la RT augmente la récidive locale à 10 ans (9,5 contre 0,9 %) sans changer la survie (PRIME II) ; à 70 ans et plus, résultats proches (CALGB 9343)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Sein",
+    "Carcinome infiltrant",
+    "Après chirurgie conservatrice : sein entier ± surimpression",
+    "Hypofractionné"
+   ]
+  },
+  {
+   "id": "sein-paroi-40-15",
+   "situation_id": "sein-mastectomie",
+   "titre": "Paroi 40,05 Gy / 15 fx",
+   "type": "rte_hypo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "fastforward",
+    "ebctcg2014",
+    "senorif-2021"
+   ],
+   "source_institutionnelle": "Sénorif 2021-2022 (recommandé, sauf chimiothérapie concomitante)",
+   "prescriptions": [
+    {
+     "volume": "PTV paroi",
+     "dose_Gy": 40.05,
+     "fractions": 15,
+     "dose_fx_Gy": 2.67,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Hypofractionnement modéré recommandé sauf chimiothérapie concomitante"
+    }
+   ],
+   "technique": "RT 3D ; IMRT si reconstruction",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-sein",
+   "volumes_id": "vol-sein",
+   "contraintes_ids": [
+    "ct-sein-ff-15fx",
+    "ct-sein-senorif"
+   ],
+   "couverture": "PTV : V95 % > 95 %, V105 % < 5 %, V107 % < 2 %, Dmax < 110 %",
+   "points_attention": [
+    "Le risque d'événement coronarien augmente de 7,4 % par gray de dose moyenne au cœur, sans seuil (Darby 2013) : objectif Dmoy < 5 Gy (Sénorif)",
+    "Reconstruction mammaire : Sénorif 2021 recommande le normofractionnement ; le consensus ESTRO-ACROP 2022 admet l'hypofractionnement modéré pour le sein, la paroi (avec ou sans reconstruction) et les ganglions, et 5 fractions pour le sein ou la paroi sans reconstruction ni ganglions"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Sein",
+    "Carcinome infiltrant",
+    "Après mastectomie : paroi thoracique",
+    "Hypofractionné"
+   ]
+  },
+  {
+   "id": "sein-paroi-50-25",
+   "situation_id": "sein-mastectomie",
+   "titre": "Paroi 50 Gy / 25 fx",
+   "type": "rte_normo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "ebctcg2014",
+    "senorif-2021"
+   ],
+   "source_institutionnelle": "Sénorif 2021-2022 (recommandé si reconstruction avant la RT)",
+   "prescriptions": [
+    {
+     "volume": "PTV paroi",
+     "dose_Gy": 50,
+     "fractions": 25,
+     "dose_fx_Gy": 2,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Option ; recommandé en cas de reconstruction avant la RT (modulation d'intensité favorisée)"
+    }
+   ],
+   "technique": "RT 3D ; IMRT favorisée si reconstruction",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-sein",
+   "volumes_id": "vol-sein",
+   "contraintes_ids": [
+    "ct-sein-senorif",
+    "ct-thorax-quantec"
+   ],
+   "points_attention": [
+    "Le risque d'événement coronarien augmente de 7,4 % par gray de dose moyenne au cœur, sans seuil (Darby 2013) : objectif Dmoy < 5 Gy (Sénorif)",
+    "Reconstruction mammaire : Sénorif 2021 recommande le normofractionnement ; le consensus ESTRO-ACROP 2022 admet l'hypofractionnement modéré pour le sein, la paroi (avec ou sans reconstruction) et les ganglions, et 5 fractions pour le sein ou la paroi sans reconstruction ni ganglions"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Sein",
+    "Carcinome infiltrant",
+    "Après mastectomie : paroi thoracique",
+    "Normofractionné"
+   ]
+  },
+  {
+   "id": "sein-gg-50-25",
+   "situation_id": "sein-ganglions",
+   "titre": "Sein ou paroi et aires ganglionnaires 50 Gy / 25 fx",
+   "type": "rte_normo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "eortc22922",
+    "ma20",
+    "amaros",
+    "amaros-10ans",
+    "senorif-2021"
+   ],
+   "source_institutionnelle": "Sénorif 2021-2022 (standard)",
+   "prescriptions": [
+    {
+     "volume": "PTV sein ou paroi",
+     "dose_Gy": 50,
+     "fractions": 25,
+     "dose_fx_Gy": 2,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Tous les volumes à la même dose et au même fractionnement"
+    },
+    {
+     "volume": "PTV ganglionnaires",
+     "dose_Gy": 50,
+     "fractions": 25,
+     "dose_fx_Gy": 2,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Surimpression du lit possible après conservation"
+    }
+   ],
+   "technique": "RT 3D ; IMRT si contraintes non tenues ; inspiration bloquée à gauche et si CMI",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-sein",
+   "volumes_id": "vol-sein-gg",
+   "contraintes_ids": [
+    "ct-sein-senorif",
+    "ct-thorax-quantec"
+   ],
+   "points_attention": [
+    "Le risque d'événement coronarien augmente de 7,4 % par gray de dose moyenne au cœur, sans seuil (Darby 2013) : objectif Dmoy < 5 Gy (Sénorif)",
+    "RT axillaire contre curage après ganglion sentinelle positif : récidive axillaire à 10 ans 1,82 contre 0,93 %, sans différence de survie, moins de lymphœdème (AMAROS)",
+    "Irradiation de la CMI et de la sus-claviculaire médiale : SG à 10 ans 82,3 contre 80,7 % (EORTC 22922) ; irradiation ganglionnaire : survie sans maladie 82,0 contre 77,0 % (MA.20)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Sein",
+    "Carcinome infiltrant",
+    "Irradiation des aires ganglionnaires (avec le sein ou la paroi)",
+    "Normofractionné"
+   ]
+  },
+  {
+   "id": "sein-gg-40-15",
+   "situation_id": "sein-ganglions",
+   "titre": "Sein ou paroi et aires ganglionnaires 40,05 Gy / 15 fx ± surimpression 16 Gy / 8 fx ou 10 Gy / 5 fx",
+   "type": "rte_hypo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "hypog01",
+    "wang2019",
+    "estro-acrop-sein-2022",
+    "senorif-2021"
+   ],
+   "source_institutionnelle": "Tableur du service « SEIN HYPOG 40,05 Gy + GG 40,05 Gy + boost séquentiel »",
+   "prescriptions": [
+    {
+     "volume": "PTV sein ou paroi",
+     "dose_Gy": 40.05,
+     "fractions": 15,
+     "dose_fx_Gy": 2.67,
+     "mode": "sequentiel",
+     "rythme": "5 fx/sem",
+     "note": "HypoG-01 : 40 Gy / 15 fx non inférieur à 50 Gy / 25 fx pour le lymphœdème"
+    },
+    {
+     "volume": "PTV ganglionnaires",
+     "dose_Gy": 40.05,
+     "fractions": 15,
+     "dose_fx_Gy": 2.67,
+     "mode": "sequentiel",
+     "rythme": "5 fx/sem",
+     "note": "Même fractionnement que le sein ou la paroi"
+    },
+    {
+     "volume": "PTV lit tumoral",
+     "dose_Gy": 16,
+     "fractions": 8,
+     "dose_fx_Gy": 2,
+     "mode": "sequentiel",
+     "rythme": "5 fx/sem",
+     "note": "Si indiquée ; surimpression de référence normofractionnée (Sénorif) ; option : 10 Gy / 5 fx de 2 Gy"
+    }
+   ],
+   "technique": "RT 3D ou IMRT ; inspiration bloquée à gauche et si CMI",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-sein",
+   "volumes_id": "vol-sein-gg",
+   "contraintes_ids": [
+    "ct-sein-senorif"
+   ],
+   "points_attention": [
+    "Le risque d'événement coronarien augmente de 7,4 % par gray de dose moyenne au cœur, sans seuil (Darby 2013) : objectif Dmoy < 5 Gy (Sénorif)",
+    "RT axillaire contre curage après ganglion sentinelle positif : récidive axillaire à 10 ans 1,82 contre 0,93 %, sans différence de survie, moins de lymphœdème (AMAROS)",
+    "Irradiation de la CMI et de la sus-claviculaire médiale : SG à 10 ans 82,3 contre 80,7 % (EORTC 22922) ; irradiation ganglionnaire : survie sans maladie 82,0 contre 77,0 % (MA.20)",
+    "Paroi et ganglions en 43,5 Gy / 15 fx : récidive locorégionale à 5 ans 8,3 contre 8,1 % avec 50 Gy (Wang 2019)"
+   ],
+   "date_verif": "2026-10-25",
+   "ind": [
+    "Sein",
+    "Carcinome infiltrant",
+    "Irradiation des aires ganglionnaires (avec le sein ou la paroi)",
+    "Hypofractionné"
+   ]
+  },
+  {
+   "id": "sein-ipb-40-15",
+   "situation_id": "sein-ipb",
+   "titre": "Sein partiel 40 Gy / 15 fx (IMPORT LOW)",
+   "type": "rte_hypo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "import-low",
+    "senorif-2021"
+   ],
+   "source_institutionnelle": "Sénorif 2021-2022",
+   "prescriptions": [
+    {
+     "volume": "PTV sein partiel",
+     "dose_Gy": 40,
+     "fractions": 15,
+     "dose_fx_Gy": 2.67,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Faisceaux tangentiels raccourcis ; récidive locale à 5 ans 0,5 % contre 1,1 % (sein entier)"
+    }
+   ],
+   "technique": "IMRT direct (field-in-field), tangentielles raccourcies",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-sein",
+   "volumes_id": "vol-sein-ipb",
+   "contraintes_ids": [
+    "ct-sein-senorif"
+   ],
+   "points_attention": [
+    "Le risque d'événement coronarien augmente de 7,4 % par gray de dose moyenne au cœur, sans seuil (Darby 2013) : objectif Dmoy < 5 Gy (Sénorif)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Sein",
+    "Carcinome infiltrant",
+    "Irradiation partielle du sein",
+    "Hypofractionné"
+   ]
+  },
+  {
+   "id": "sein-ipb-30-5",
+   "situation_id": "sein-ipb",
+   "titre": "Sein partiel 30 Gy / 5 fx en IMRT (Florence)",
+   "type": "rte_hypo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "florence",
+    "florence-10ans"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV lit tumoral",
+     "dose_Gy": 30,
+     "fractions": 5,
+     "dose_fx_Gy": 6,
+     "mode": "seul",
+     "rythme": "5 fx/sem (1 fx/j)",
+     "note": "Récidive à 10 ans faible, non différente du sein entier"
+    }
+   ],
+   "technique": "IMRT",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-sein",
+   "volumes_id": "vol-sein-ipb",
+   "contraintes_ids": [
+    "ct-sein-senorif"
+   ],
+   "points_attention": [
+    "Le risque d'événement coronarien augmente de 7,4 % par gray de dose moyenne au cœur, sans seuil (Darby 2013) : objectif Dmoy < 5 Gy (Sénorif)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Sein",
+    "Carcinome infiltrant",
+    "Irradiation partielle du sein",
+    "Hypofractionné"
+   ]
+  },
+  {
+   "id": "sein-ipb-hdr-32",
+   "situation_id": "sein-ipb",
+   "titre": "Curiethérapie interstitielle HDR 32 Gy / 8 fx (ou 30,1 Gy / 7 fx) en 5 jours",
+   "type": "curie_hdr",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "gec-estro-ipb",
+    "gec-estro-ipb-10ans",
+    "senorif-2021"
+   ],
+   "source_institutionnelle": "Sénorif 2021-2022",
+   "prescriptions": [
+    {
+     "volume": "CTV (implant multicathéter)",
+     "dose_Gy": 32,
+     "fractions": 8,
+     "dose_fx_Gy": 4,
+     "mode": "seul",
+     "rythme": "2 fx/j, 5 jours",
+     "note": "Variante 30,1 Gy / 7 fx (4,3 Gy) ; récidive locale à 10 ans 3,51 % contre 1,58 % (sein entier)"
+    }
+   ],
+   "technique": "Curiethérapie interstitielle multicathéter",
+   "systemique": "Voir Traitement systémique",
+   "volumes_id": "vol-sein-curie",
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Sein",
+    "Carcinome infiltrant",
+    "Irradiation partielle du sein",
+    "Curiethérapie"
+   ],
+   "contraintes_ids": [],
+   "points_attention": []
+  },
+  {
+   "id": "sein-ipb-pdr-50",
+   "situation_id": "sein-ipb",
+   "titre": "Curiethérapie interstitielle PDR 50 Gy en 5 jours",
+   "type": "curie_pdr",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "gec-estro-ipb",
+    "gec-estro-ipb-10ans",
+    "senorif-2021"
+   ],
+   "source_institutionnelle": "Sénorif 2021-2022",
+   "prescriptions": [
+    {
+     "volume": "CTV (implant multicathéter)",
+     "dose_Gy": 50,
+     "mode": "seul",
+     "rythme": "Débit pulsé, 5 jours",
+     "note": "Même essai"
+    }
+   ],
+   "technique": "Curiethérapie interstitielle multicathéter",
+   "systemique": "Voir Traitement systémique",
+   "volumes_id": "vol-sein-curie",
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Sein",
+    "Carcinome infiltrant",
+    "Irradiation partielle du sein",
+    "Curiethérapie"
+   ],
+   "contraintes_ids": [],
+   "points_attention": []
+  },
+  {
+   "id": "sein-pna-50-25",
+   "situation_id": "sein-post-neoadj",
+   "titre": "Sein ou paroi ± ganglions 50 Gy / 25 fx avec capécitabine ou T-DM1",
+   "type": "rte_normo",
+   "preuve": "recommandation",
+   "essai_ids": [
+    "woodward2017",
+    "katherine",
+    "senorif-2021"
+   ],
+   "source_institutionnelle": "Sénorif 2021-2022",
+   "prescriptions": [
+    {
+     "volume": "PTV sein ou paroi ± ganglions",
+     "dose_Gy": 50,
+     "fractions": 25,
+     "dose_fx_Gy": 2,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Normofractionné en cas de chimiothérapie concomitante (Sénorif, arbre 2)"
+    }
+   ],
+   "technique": "RT 3D ou IMRT",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-sein",
+   "volumes_id": "vol-sein-gg",
+   "contraintes_ids": [
+    "ct-sein-senorif",
+    "ct-thorax-quantec"
+   ],
+   "points_attention": [
+    "Le risque d'événement coronarien augmente de 7,4 % par gray de dose moyenne au cœur, sans seuil (Darby 2013) : objectif Dmoy < 5 Gy (Sénorif)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Sein",
+    "Carcinome infiltrant",
+    "Après chimiothérapie néoadjuvante",
+    "Normofractionné"
+   ]
+  },
+  {
+   "id": "sein-en-place-50-boost",
+   "situation_id": "sein-en-place",
+   "titre": "Sein 50 Gy / 25 fx puis surimpression de la tumeur 20 à 26 Gy",
+   "type": "rte_normo",
+   "preuve": "recommandation",
+   "essai_ids": [
+    "senorif-2021"
+   ],
+   "source_institutionnelle": "Sénorif 2021-2022",
+   "prescriptions": [
+    {
+     "volume": "PTV sein",
+     "dose_Gy": 50,
+     "fractions": 25,
+     "dose_fx_Gy": 2,
+     "mode": "sequentiel",
+     "rythme": "5 fx/sem",
+     "note": "Premier temps"
+    },
+    {
+     "volume": "PTV tumeur",
+     "dose_Gy": 20,
+     "fractions": 10,
+     "dose_fx_Gy": 2,
+     "mode": "sequentiel",
+     "rythme": "5 fx/sem",
+     "note": "20 à 26 Gy selon la tumeur"
+    }
+   ],
+   "technique": "RT 3D puis surimpression",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-sein",
+   "volumes_id": "vol-sein",
+   "contraintes_ids": [
+    "ct-sein-senorif",
+    "ct-thorax-quantec"
+   ],
+   "points_attention": [
+    "Le risque d'événement coronarien augmente de 7,4 % par gray de dose moyenne au cœur, sans seuil (Darby 2013) : objectif Dmoy < 5 Gy (Sénorif)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Sein",
+    "Carcinome infiltrant",
+    "Tumeur du sein non opérée : RT exclusive",
+    "Normofractionné"
+   ]
+  },
+  {
+   "id": "sein-occulte-50",
+   "situation_id": "sein-occulte",
+   "titre": "Sein 50 à 54 Gy et aires ganglionnaires 50 Gy, fractionnement classique",
+   "type": "rte_normo",
+   "preuve": "recommandation",
+   "essai_ids": [
+    "senorif-2021"
+   ],
+   "source_institutionnelle": "Sénorif 2021-2022",
+   "prescriptions": [
+    {
+     "volume": "PTV sein",
+     "dose_Gy": 50,
+     "fractions": 25,
+     "dose_fx_Gy": 2,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "50 à 54 Gy"
+    },
+    {
+     "volume": "PTV ganglionnaires",
+     "dose_Gy": 50,
+     "fractions": 25,
+     "dose_fx_Gy": 2,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Fractionnement classique"
+    }
+   ],
+   "technique": "RT 3D ou IMRT",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-sein",
+   "volumes_id": "vol-sein-gg",
+   "contraintes_ids": [
+    "ct-sein-senorif",
+    "ct-thorax-quantec"
+   ],
+   "points_attention": [
+    "Le risque d'événement coronarien augmente de 7,4 % par gray de dose moyenne au cœur, sans seuil (Darby 2013) : objectif Dmoy < 5 Gy (Sénorif)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Sein",
+    "Carcinome infiltrant",
+    "Carcinome occulte révélé par une adénopathie (cT0 N+)",
+    "Normofractionné"
+   ]
+  }
+ ],
+ "simulations": [
+  {
+   "id": "sim-sein",
+   "position": "Décubitus dorsal (référence) ; décubitus latéral isocentrique possible pour le sein seul (Sénorif)",
+   "preparation": "Inspiration bloquée recommandée à gauche et en cas d'irradiation de la CMI, sauf sein seul en décubitus latéral (Sénorif)",
+   "scanner": "Scanner 3D, coupes de 5 mm au plus, sein entier et OAR contourés (FAST-Forward)",
+   "imagerie": "Lit tumoral : examen clinique préopératoire, mammographie, échographie, IRM, compte rendu opératoire, clips et anatomopathologie (Sénorif)",
+   "reperes": "Clips en titane ou grains d'or sur les parois de la cavité, fortement recommandés (FAST-Forward, IMPORT LOW)"
+  }
+ ],
+ "volumes": [
+  {
+   "id": "vol-sein",
+   "cibles": [
+    {
+     "nom": "CTV sein",
+     "type": "CTV",
+     "definition": "Glande mammaire entière avec ses prolongements axillaires (Sénorif) : tissus mous de 5 mm sous la peau jusqu'au fascia profond, sans muscle ni grill costal (FAST-Forward) ; recommandations ESTRO 2016",
+     "quand": "Après conservation"
+    },
+    {
+     "nom": "CTV paroi",
+     "type": "CTV",
+     "definition": "Lambeaux cutanés, tissu sous-cutané et cicatrice, jusqu'au fascia profond, sans muscle ni côtes (FAST-Forward ; Sénorif) ; avec prothèse : ESTRO-ACROP 2019",
+     "quand": "Après mastectomie"
+    },
+    {
+     "nom": "CTV lit tumoral",
+     "type": "CTV",
+     "definition": "Lit tumoral d'après les clips, l'imagerie préopératoire, le compte rendu opératoire et l'anatomopathologie (taille, berges)",
+     "quand": "Si surimpression"
+    },
+    {
+     "nom": "PTV",
+     "type": "PTV",
+     "definition": "CTV + 10 mm en général (positionnement, œdème, respiration ; FAST-Forward)",
+     "quand": "Toujours",
+     "marge": "10 mm"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "ESTRO 2016",
+     "url": "https://doi.org/10.1016/j.radonc.2015.12.027"
+    },
+    {
+     "nom": "ESTRO-ACROP 2019, reconstruction par prothèse",
+     "url": "https://doi.org/10.1016/j.radonc.2019.04.010"
+    }
+   ],
+   "oar_ids": [
+    "oar-coeur",
+    "oar-poumon-homolateral",
+    "oar-sein-controlateral"
+   ]
+  },
+  {
+   "id": "vol-sein-gg",
+   "cibles": [
+    {
+     "nom": "CTV sein ou paroi",
+     "type": "CTV",
+     "definition": "Comme `vol-sein`",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "CTVn niveaux I à IV et interpectoral",
+     "type": "CTV",
+     "definition": "Selon l'indication (situation `sein-ganglions`) ; le niveau II est toujours irradié avec le niveau interpectoral (Rotter) ; délinéation ESTRO 2016",
+     "quand": "Selon l'indication"
+    },
+    {
+     "nom": "CTVn CMI",
+     "type": "CTV",
+     "definition": "Chaîne mammaire interne, délinéation ESTRO 2016",
+     "quand": "Selon l'indication"
+    },
+    {
+     "nom": "PTV",
+     "type": "PTV",
+     "definition": "Marges du centre",
+     "quand": "Toujours"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "ESTRO 2016",
+     "url": "https://doi.org/10.1016/j.radonc.2015.12.027"
+    }
+   ],
+   "oar_ids": [
+    "oar-coeur",
+    "oar-poumon-homolateral",
+    "oar-poumons",
+    "oar-sein-controlateral",
+    "oar-plexus-brachial-d",
+    "oar-plexus-brachial-g",
+    "oar-moelle",
+    "oar-oesophage",
+    "oar-thyroide"
+   ]
+  },
+  {
+   "id": "vol-sein-ipb",
+   "cibles": [
+    {
+     "nom": "CTV sein partiel",
+     "type": "CTV",
+     "definition": "Lit tumoral repéré par clips (sinon échographie, IRM ou scanner) et marge de tissu sain ; faisceaux tangentiels raccourcis mais pas rétrécis (IMPORT LOW)",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "PTV",
+     "type": "PTV",
+     "definition": "Selon le protocole de l'essai suivi (IMPORT LOW ou Florence)",
+     "quand": "Toujours"
+    }
+   ],
+   "atlas": [],
+   "oar_ids": [
+    "oar-coeur",
+    "oar-poumon-homolateral",
+    "oar-sein-controlateral"
+   ]
+  },
+  {
+   "id": "vol-sein-curie",
+   "cibles": [
+    {
+     "nom": "CTV (implant)",
+     "type": "CTV",
+     "definition": "Lit tumoral et marge, implant multicathéter selon le protocole GEC-ESTRO",
+     "quand": "Toujours"
+    }
+   ],
+   "atlas": [],
+   "oar_ids": [
+    "oar-peau",
+    "oar-cotes"
+   ]
+  }
+ ],
+ "curie_indications": [
+  {
+   "indication": "Irradiation partielle du sein, faible risque",
+   "modalite": "HDR 32 Gy / 8 fx ou 30,1 Gy / 7 fx, ou PDR 50 Gy, en 5 jours",
+   "niveau_preuve": "Essai de phase 3 GEC-ESTRO (Strnad 2016, 2023)",
+   "note": "Récidive locale à 10 ans 3,51 % contre 1,58 % avec le sein entier ; moins de fibrose sévère"
+  },
+  {
+   "indication": "Seconde conservation après récidive, dans un essai",
+   "modalite": "Curiethérapie interstitielle (GEC-ESTRO)",
+   "niveau_preuve": "Niveau de preuve faible (Sénorif)",
+   "note": "Réirradiation traitée au lot E"
+  }
+ ],
+ "systemique": [
+  {
+   "situation": "sein-bcs",
+   "traitement": "Inhibiteur de l'aromatase : peut commencer pendant la RT. Tamoxifène : après la fin de la RT",
+   "protocole": "Hormonothérapie adjuvante",
+   "situation_id": "sein-bcs",
+   "essai_ids": [
+    "senorif-2021"
+   ],
+   "note": "Valable pour toutes les situations ; décision d'association en RCP"
+  },
+  {
+   "situation": "sein-bcs",
+   "traitement": "Trastuzumab : la RT est faite pendant le trastuzumab",
+   "protocole": "Trastuzumab adjuvant",
+   "situation_id": "sein-bcs",
+   "essai_ids": [
+    "senorif-2021"
+   ],
+   "note": "HER2+"
+  },
+  {
+   "situation": "sein-post-neoadj",
+   "traitement": "Capécitabine 825 mg/m² deux fois par jour, 5 jours sur 7, pendant la RT",
+   "protocole": "Capécitabine concomitante à la RT (sein)",
+   "situation_id": "sein-post-neoadj",
+   "essai_ids": [
+    "woodward2017",
+    "senorif-2021"
+   ],
+   "note": "Triple négatif sans réponse complète ; capécitabine adjuvante : CREATE-X"
+  },
+  {
+   "situation": "sein-post-neoadj",
+   "traitement": "T-DM1 : la RT peut être faite pendant le traitement",
+   "protocole": "Trastuzumab emtansine (T-DM1) adjuvant",
+   "situation_id": "sein-post-neoadj",
+   "essai_ids": [
+    "katherine",
+    "senorif-2021"
+   ],
+   "note": "HER2+ sans réponse complète"
+  },
+  {
+   "situation": "sein-post-neoadj",
+   "traitement": "Capécitabine adjuvante après la RT",
+   "protocole": "Capécitabine adjuvante (CREATE-X)",
+   "situation_id": "sein-post-neoadj",
+   "essai_ids": [
+    "create-x"
+   ],
+   "note": "Survie sans maladie à 5 ans 74,1 contre 67,6 %"
+  }
+ ],
+ "hormonotherapie": [],
+ "points_attention": [
+  {
+   "cible": "ct-sein-senorif",
+   "point": "Le risque d'événement coronarien augmente de 7,4 % par gray de dose moyenne au cœur, sans seuil (Darby 2013) : objectif Dmoy < 5 Gy (Sénorif)",
+   "portee": "contraintes"
+  },
+  {
+   "cible": "sein",
+   "point": "RCMI recommandée pour les irradiations bilatérales, les pectus excavatum et les irradiations ganglionnaires complexes ; évaluer alors la dose au sein controlatéral, surtout chez la femme jeune ou en cas de prédisposition génétique (Sénorif)",
+   "portee": "localisation"
+  },
+  {
+   "cible": "sein-bcs",
+   "point": "La RT après conservation réduit le risque de récidive à 10 ans de 35,0 à 19,3 % et la mortalité par cancer à 15 ans de 25,2 à 21,4 % (EBCTCG 2011)",
+   "portee": "situation"
+  },
+  {
+   "cible": "sein-bcs",
+   "point": "Femme de 65 ans et plus, RH+, N0, tumeur ≤ 3 cm, sous hormonothérapie : l'omission de la RT augmente la récidive locale à 10 ans (9,5 contre 0,9 %) sans changer la survie (PRIME II) ; à 70 ans et plus, résultats proches (CALGB 9343)",
+   "portee": "situation"
+  },
+  {
+   "cible": "sein-ganglions",
+   "point": "RT axillaire contre curage après ganglion sentinelle positif : récidive axillaire à 10 ans 1,82 contre 0,93 %, sans différence de survie, moins de lymphœdème (AMAROS)",
+   "portee": "situation"
+  },
+  {
+   "cible": "sein-ganglions",
+   "point": "Irradiation de la CMI et de la sus-claviculaire médiale : SG à 10 ans 82,3 contre 80,7 % (EORTC 22922) ; irradiation ganglionnaire : survie sans maladie 82,0 contre 77,0 % (MA.20)",
+   "portee": "situation"
+  },
+  {
+   "cible": "sein-gg-40-15",
+   "point": "Paroi et ganglions en 43,5 Gy / 15 fx : récidive locorégionale à 5 ans 8,3 contre 8,1 % avec 50 Gy (Wang 2019)",
+   "portee": "schema"
+  },
+  {
+   "cible": "sein-26-5",
+   "point": "FAST-Forward : 27 Gy / 5 fx donne plus d'effets tardifs que 40 Gy ; 26 Gy est le schéma retenu",
+   "portee": "schema"
+  },
+  {
+   "cible": "sein",
+   "point": "Cancer du sein métastatique d'emblée bien contrôlé : RT de la maladie locorégionale macroscopique initiale, avec ou sans chirurgie ; pas de CMI sauf atteinte initiale (Sénorif)",
+   "portee": "localisation"
+  },
+  {
+   "cible": "sein-mastectomie",
+   "point": "Reconstruction mammaire : Sénorif 2021 recommande le normofractionnement ; le consensus ESTRO-ACROP 2022 admet l'hypofractionnement modéré pour le sein, la paroi (avec ou sans reconstruction) et les ganglions, et 5 fractions pour le sein ou la paroi sans reconstruction ni ganglions",
+   "portee": "situation"
+  },
+  {
+   "cible": "sein",
+   "point": "Inversion de séquence (RT préopératoire) : hors protocole de recherche, données insuffisantes (Sénorif)",
+   "portee": "localisation"
+  }
+ ],
+ "textes": {
+  "contourage": [
+   "Contourage des OAR : RECORAD 2021 (Sénorif)."
+  ]
+ }
+}

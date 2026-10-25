@@ -1,0 +1,249 @@
+{
+ "version": "2026-10-25",
+ "id": "hypophyse",
+ "region_id": "snc",
+ "nom": "Adénome hypophysaire",
+ "ordre": 33,
+ "date_maj": "2026-10-24",
+ "situations": [
+  {
+   "id": "hyp-nf",
+   "localisation_id": "hypophyse",
+   "titre": "Adénome non sécrétant résiduel ou récidivant",
+   "contexte": "post_op",
+   "criteres": "Résidu évolutif ou récidive après chirurgie, y compris adénome volumineux ou invasif",
+   "ordre": 1
+  },
+  {
+   "id": "hyp-secretant",
+   "localisation_id": "hypophyse",
+   "titre": "Adénome sécrétant non contrôlé",
+   "contexte": "post_op",
+   "criteres": "Adénome à GH, ACTH ou prolactine non contrôlé après chirurgie",
+   "ordre": 2
+  }
+ ],
+ "schemas": [
+  {
+   "id": "hyp-fsrt-45-25",
+   "situation_id": "hyp-nf",
+   "titre": "RT stéréotaxique fractionnée 45 Gy / 25 fx",
+   "type": "rte_normo",
+   "preuve": "option",
+   "essai_ids": [
+    "minniti2015",
+    "minniti2006"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 45,
+     "fractions": 25,
+     "dose_fx_Gy": 1.8,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Contrôle local 97 % à 5 ans, 91 % à 10 ans"
+    }
+   ],
+   "technique": "RT stéréotaxique conformationnelle ou IMRT, IGRT quotidienne",
+   "systemique": "Aucune",
+   "simulation_id": "sim-crane",
+   "volumes_id": "vol-hyp",
+   "contraintes_ids": [
+    "ct-crane-igr",
+    "ct-crane-quantec"
+   ],
+   "points_attention": [
+    "Stéréotaxie hypofractionnée : dose médiane 21 Gy en 3 à 5 fractions, contrôle à 5 ans 97 %, recul encore court (ISRS 2020)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "SNC",
+    "Adénome hypophysaire",
+    "Adénome non sécrétant résiduel ou récidivant",
+    "Normofractionné"
+   ]
+  },
+  {
+   "id": "hyp-srs-15-1",
+   "situation_id": "hyp-nf",
+   "titre": "Radiochirurgie 15 Gy en 1 séance",
+   "type": "sbrt",
+   "preuve": "recommandation",
+   "essai_ids": [
+    "isrs-hypophyse",
+    "hytec-optique"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV (dose marginale)",
+     "dose_Gy": 15,
+     "fractions": 1,
+     "dose_fx_Gy": 15,
+     "mode": "seul",
+     "rythme": "1 séance",
+     "note": "Dose médiane des études (5 à 35 Gy) ; contrôle local 94 % à 5 ans, 83 % à 10 ans"
+    }
+   ],
+   "technique": "Radiochirurgie, IGRT stéréotaxique",
+   "systemique": "Aucune",
+   "simulation_id": "sim-crane-srs",
+   "volumes_id": "vol-hyp",
+   "contraintes_ids": [
+    "ct-srs-igr-1fx",
+    "ct-srs-hytec"
+   ],
+   "couverture": "Dose prescrite en périphérie de l'adénome",
+   "points_attention": [
+    "Voies optiques en 1 fraction : Dmax 10 Gy recommandé, 12 Gy pour un risque < 1 % (HyTEC)",
+    "Stéréotaxie hypofractionnée : dose médiane 21 Gy en 3 à 5 fractions, contrôle à 5 ans 97 %, recul encore court (ISRS 2020)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "SNC",
+    "Adénome hypophysaire",
+    "Adénome non sécrétant résiduel ou récidivant",
+    "Stéréotaxie"
+   ]
+  },
+  {
+   "id": "hyp-sec-fsrt-45-25",
+   "situation_id": "hyp-secretant",
+   "titre": "RT stéréotaxique fractionnée 45 Gy / 25 fx",
+   "type": "rte_normo",
+   "preuve": "option",
+   "essai_ids": [
+    "minniti2006",
+    "isrs-hypophyse-secretant"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 45,
+     "fractions": 25,
+     "dose_fx_Gy": 1.8,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Hormones normalisées chez plus d'un tiers des adénomes à GH et à prolactine"
+    }
+   ],
+   "technique": "RT stéréotaxique conformationnelle ou IMRT, IGRT quotidienne",
+   "systemique": "Traitement médical antisécrétoire selon l'endocrinologue",
+   "simulation_id": "sim-crane",
+   "volumes_id": "vol-hyp",
+   "contraintes_ids": [
+    "ct-crane-igr",
+    "ct-crane-quantec"
+   ],
+   "points_attention": [
+    "Radiochirurgie des adénomes sécrétants : contrôle tumoral 92–97 %, rémission endocrinienne 28–48 % (ISRS 2021)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "SNC",
+    "Adénome hypophysaire",
+    "Adénome sécrétant non contrôlé",
+    "Normofractionné"
+   ]
+  }
+ ],
+ "simulations": [
+  {
+   "id": "sim-crane",
+   "position": "Décubitus dorsal, bras le long du corps, coussin sous les genoux",
+   "contention": "Masque thermoformé 3 points",
+   "scanner": "Non injecté, coupes jointives de 2,5 mm, crâne entier jusqu'à C3, moins de 2 semaines avant le début de la RT",
+   "imagerie": "IRM dosimétrique T1 3D gadolinium et T2-FLAIR, axiales strictes, fusionnées au scanner ; IRM post-opératoire précoce (48–72 h) pour le GTV ; éviter l'IRM post-opératoire tardive, qui surestime le résidu"
+  },
+  {
+   "id": "sim-crane-srs",
+   "position": "Décubitus dorsal, tête en position neutre, bras le long du corps, coussin sous les genoux",
+   "contention": "Masque thermoformé 5 points ou cadre stéréotaxique (fiche du service) ; Curie : masque bivalve sans cadre, moulé sur une cale retirée avant l'acquisition",
+   "scanner": "Coupes axiales millimétriques. Curie : non injecté, de 1 cm au-dessus du vertex jusqu'à T1 ; fiche du service : injecté",
+   "imagerie": "IRM de planification T1 sans injection (saignement récent), T1 gadolinium 3D (contourage) et perfusion (référence du suivi), jusqu'à C3–C4, fusionnée au scanner. Première séance dans les 14 jours suivant l'IRM, 16 au plus (Curie)",
+   "reperes": "Plan de référence pointe du nez–tragus, perpendiculaire à la table (Curie)"
+  }
+ ],
+ "volumes": [
+  {
+   "id": "vol-hyp",
+   "cibles": [
+    {
+     "nom": "GTV",
+     "type": "GTV",
+     "definition": "Adénome résiduel ou récidivant en T1 gadolinium, IRM fusionnée au scanner",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "CTV",
+     "type": "CTV",
+     "definition": "CTV = GTV (tumeur bénigne)",
+     "quand": "Toujours",
+     "marge": "0 mm"
+    },
+    {
+     "nom": "PTV",
+     "type": "PTV",
+     "definition": "CTV + marge de la technique : 1 mm en radiochirurgie (comme vol-crane-srs) ; selon la contention et l'IGRT en fractionné",
+     "quand": "Toujours"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "atlas EPTN 2018",
+     "url": "https://doi.org/10.1016/j.radonc.2017.12.013"
+    }
+   ],
+   "oar_ids": [
+    "oar-chiasma",
+    "oar-nerf-optique-d",
+    "oar-nerf-optique-g",
+    "oar-bandelettes-optiques",
+    "oar-hypothalamus",
+    "oar-tronc-cerebral",
+    "oar-hippocampes",
+    "oar-cochlee-d",
+    "oar-cochlee-g",
+    "oar-oeil-d",
+    "oar-oeil-g",
+    "oar-cristallin-d",
+    "oar-cristallin-g",
+    "oar-encephale-sain",
+    "oar-nerfs-craniens"
+   ],
+   "oar_notes": {
+    "oar-nerfs-craniens": "sinus caverneux"
+   }
+  }
+ ],
+ "curie_indications": [],
+ "systemique": [],
+ "hormonotherapie": [],
+ "points_attention": [
+  {
+   "cible": "hypophyse",
+   "point": "Hypopituitarisme : 21 % après radiochirurgie, 40 % à 5 ans et 72 % à 10 ans après 45 Gy ; bilan endocrinien régulier",
+   "portee": "localisation"
+  },
+  {
+   "cible": "hyp-srs-15-1",
+   "point": "Voies optiques en 1 fraction : Dmax 10 Gy recommandé, 12 Gy pour un risque < 1 % (HyTEC)",
+   "portee": "schema"
+  },
+  {
+   "cible": "hyp-nf",
+   "point": "Stéréotaxie hypofractionnée : dose médiane 21 Gy en 3 à 5 fractions, contrôle à 5 ans 97 %, recul encore court (ISRS 2020)",
+   "portee": "situation"
+  },
+  {
+   "cible": "hyp-secretant",
+   "point": "Radiochirurgie des adénomes sécrétants : contrôle tumoral 92–97 %, rémission endocrinienne 28–48 % (ISRS 2021)",
+   "portee": "situation"
+  }
+ ],
+ "textes": {
+  "systemique": [
+   "Pas de chimiothérapie. Adénome sécrétant : traitement médical antisécrétoire poursuivi selon l'endocrinologue."
+  ]
+ }
+}

@@ -1,0 +1,902 @@
+{
+ "version": "2026-10-25",
+ "id": "col",
+ "region_id": "gyneco",
+ "nom": "Col utérin",
+ "ordre": 5,
+ "date_maj": "2026-10-23",
+ "situations": [
+  {
+   "id": "col-lacc",
+   "localisation_id": "col",
+   "titre": "Col en place : radiochimiothérapie exclusive + curiethérapie",
+   "contexte": "en_place",
+   "criteres": "FIGO 2018 IB3, IIA2, IIB à IVA, tout stade avec adénopathie pelvienne ou lombo-aortique (IIIC), stade précoce non opérable ; IVB limité aux adénopathies lombo-aortiques sous L1–L2 (EMBRACE) ; carcinome épidermoïde, adénocarcinome ou adénosquameux ; bilan IRM pelvienne + TEP-TDM",
+   "ordre": 1
+  },
+  {
+   "id": "col-postop",
+   "localisation_id": "col",
+   "titre": "Col opéré (hystérectomie radicale) : radiothérapie adjuvante",
+   "contexte": "post_op",
+   "criteres": "Facteurs de Sedlis (au moins 2 parmi invasion stromale > 1/3, emboles lymphovasculaires, taille tumorale) → RT seule ; facteurs de Peters (ganglion envahi, marge atteinte, paramètre envahi) → radiochimiothérapie",
+   "ordre": 2
+  },
+  {
+   "id": "col-pall",
+   "localisation_id": "col",
+   "titre": "Palliatif pelvien (saignement, douleur)",
+   "contexte": "palliatif",
+   "criteres": "Patiente non éligible à un traitement curatif (stade ou état général)",
+   "ordre": 3
+  }
+ ],
+ "schemas": [
+  {
+   "id": "col-rch-hdr-7x4",
+   "situation_id": "col-lacc",
+   "titre": "RCT 45 Gy / 25 fx + curiethérapie HDR 4 × 7 Gy (EMBRACE II)",
+   "type": "rte_plus_curie",
+   "preuve": "recommandation",
+   "essai_ids": [
+    "embrace2",
+    "embrace1",
+    "gec-estro-gyn1",
+    "gec-estro-gyn2",
+    "cccmac"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV45",
+     "dose_Gy": 45,
+     "fractions": 25,
+     "dose_fx_Gy": 1.8,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Avec cisplatine 40 mg/m² hebdomadaire"
+    },
+    {
+     "volume": "PTV_N55 (adénopathies du petit bassin : iliaques internes, externes, obturatrices)",
+     "dose_Gy": 55,
+     "fractions": 25,
+     "dose_fx_Gy": 2.2,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Environ 56 Gy EQD2 + 3–4 Gy EQD2 apportés par la curiethérapie, soit environ 60 Gy EQD2"
+    },
+    {
+     "volume": "PTV_N57.5 (adénopathies hors petit bassin : iliaques communes, lombo-aortiques, inguinales)",
+     "dose_Gy": 57.5,
+     "fractions": 25,
+     "dose_fx_Gy": 2.3,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Environ 59 Gy EQD2 ; contribution de la curiethérapie négligeable"
+    },
+    {
+     "volume": "CTV-HR (curiethérapie HDR, dose au D90)",
+     "dose_Gy": 28,
+     "fractions": 4,
+     "dose_fx_Gy": 7,
+     "mode": "sequentiel",
+     "rythme": "Semaines 6–7",
+     "note": "Dose nominale ; 45 Gy / 25 + 4 × 7 Gy au D90 ≈ 84 Gy EQD2₁₀ : ajuster la dose par fraction pour atteindre 90–95 Gy EQD2"
+    }
+   ],
+   "technique": "VMAT ou IMRT, IGRT quotidienne (CBCT) avec recalage osseux ; curiethérapie IRM avec applicateur intracavitaire ± aiguilles interstitielles",
+   "systemique": "Cisplatine 40 mg/m² hebdomadaire, voir « Traitement systémique associé »",
+   "simulation_id": "sim-col",
+   "volumes_id": "vol-col",
+   "contraintes_ids": [
+    "ct-col-embrace2-rte",
+    "ct-col-embrace2-curie"
+   ],
+   "couverture": "PTV45 : V95 % > 95 %, Dmax < 107 % ; ITV45 : Dmin > 95 % ; PTV_N : D98 > 90 % ; CTV_N : D98 > 100 % ; CTV-HR D90 90–95 Gy EQD2",
+   "points_attention": [
+    "Contourer toutes les adénopathies pathologiques, une par une (EMBRACE II). Curie ne contoure pas celles situées à moins de 1 cm du CTV-HR, couvertes par la curiethérapie",
+    "Dose ganglionnaire : 55 Gy dans le petit bassin (+ 3–4 Gy EQD2 de curiethérapie), 57,5 Gy hors petit bassin ; viser 55–65 Gy EQD2 au total. Contribution mesurée de la curiethérapie : environ 5 Gy EQD2 aux iliaques internes, externes et obturatrices, 2,5 Gy aux iliaques communes (Bacorro 2017)",
+    "Le service prescrit 60 Gy / 25 fx (2,4 Gy) aux adénopathies lombo-aortiques (tableur « GYNECO 45Gy + BOOST ») : EQD2 ≈ 62 Gy, dans la fourchette d'EMBRACE II ; Curie et EMBRACE II prescrivent 57,5 Gy",
+    "PTV_N = CTV_N + 5 mm. Le protocole Curie col écrit « GTV_N + 5 mm » (coquille : le protocole Curie endomètre et EMBRACE II écrivent CTV_N + 5 mm) ; la fiche du service fait CTV_N = GTV_N + 5 mm puis PTV_N = CTV_N sans marge",
+    "Vagin non envahi : D(PIBS − 2 cm) < 5 Gy en RTE (EMBRACE II)"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Gynéco",
+    "Col utérin",
+    "Col en place : radiochimiothérapie exclusive + curiethérapie",
+    "RTE + curiethérapie"
+   ]
+  },
+  {
+   "id": "col-rch-hdr-5x55",
+   "situation_id": "col-lacc",
+   "titre": "RCT 45 Gy / 25 fx + curiethérapie HDR 5 × 5,5 Gy",
+   "type": "rte_plus_curie",
+   "preuve": "recommandation",
+   "essai_ids": [
+    "abs-hdr-col",
+    "cccmac"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV45",
+     "dose_Gy": 45,
+     "fractions": 25,
+     "dose_fx_Gy": 1.8,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Avec cisplatine 40 mg/m² hebdomadaire"
+    },
+    {
+     "volume": "PTV_N55 (adénopathies du petit bassin)",
+     "dose_Gy": 55,
+     "fractions": 25,
+     "dose_fx_Gy": 2.2,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Si adénopathie"
+    },
+    {
+     "volume": "PTV_N57.5 (adénopathies hors petit bassin)",
+     "dose_Gy": 57.5,
+     "fractions": 25,
+     "dose_fx_Gy": 2.3,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Si adénopathie"
+    },
+    {
+     "volume": "CTV-HR (curiethérapie HDR)",
+     "dose_Gy": 27.5,
+     "fractions": 5,
+     "dose_fx_Gy": 5.5,
+     "mode": "sequentiel",
+     "rythme": "2 fx/sem",
+     "note": "Réponse complète ou résidu < 4 cm au moment de la curiethérapie ; total ≈ 80 Gy EQD2₁₀"
+    }
+   ],
+   "technique": "VMAT ou IMRT, IGRT quotidienne (CBCT) avec recalage osseux ; curiethérapie IRM avec applicateur intracavitaire ± aiguilles interstitielles",
+   "systemique": "Cisplatine 40 mg/m² hebdomadaire, voir « Traitement systémique associé »",
+   "simulation_id": "sim-col",
+   "volumes_id": "vol-col",
+   "contraintes_ids": [
+    "ct-col-embrace2-rte",
+    "ct-col-abs-hdr"
+   ],
+   "couverture": "D90 ≥ 80 Gy EQD2",
+   "points_attention": [
+    "Contourer toutes les adénopathies pathologiques, une par une (EMBRACE II). Curie ne contoure pas celles situées à moins de 1 cm du CTV-HR, couvertes par la curiethérapie",
+    "Dose ganglionnaire : 55 Gy dans le petit bassin (+ 3–4 Gy EQD2 de curiethérapie), 57,5 Gy hors petit bassin ; viser 55–65 Gy EQD2 au total. Contribution mesurée de la curiethérapie : environ 5 Gy EQD2 aux iliaques internes, externes et obturatrices, 2,5 Gy aux iliaques communes (Bacorro 2017)",
+    "Le service prescrit 60 Gy / 25 fx (2,4 Gy) aux adénopathies lombo-aortiques (tableur « GYNECO 45Gy + BOOST ») : EQD2 ≈ 62 Gy, dans la fourchette d'EMBRACE II ; Curie et EMBRACE II prescrivent 57,5 Gy",
+    "PTV_N = CTV_N + 5 mm. Le protocole Curie col écrit « GTV_N + 5 mm » (coquille : le protocole Curie endomètre et EMBRACE II écrivent CTV_N + 5 mm) ; la fiche du service fait CTV_N = GTV_N + 5 mm puis PTV_N = CTV_N sans marge",
+    "Vagin non envahi : D(PIBS − 2 cm) < 5 Gy en RTE (EMBRACE II)"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Gynéco",
+    "Col utérin",
+    "Col en place : radiochimiothérapie exclusive + curiethérapie",
+    "RTE + curiethérapie"
+   ]
+  },
+  {
+   "id": "col-rch-hdr-5x6",
+   "situation_id": "col-lacc",
+   "titre": "RCT 45 Gy / 25 fx + curiethérapie HDR 5 × 6 Gy",
+   "type": "rte_plus_curie",
+   "preuve": "recommandation",
+   "essai_ids": [
+    "abs-hdr-col",
+    "cccmac"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV45",
+     "dose_Gy": 45,
+     "fractions": 25,
+     "dose_fx_Gy": 1.8,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Avec cisplatine 40 mg/m² hebdomadaire"
+    },
+    {
+     "volume": "PTV_N55 (adénopathies du petit bassin)",
+     "dose_Gy": 55,
+     "fractions": 25,
+     "dose_fx_Gy": 2.2,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Si adénopathie"
+    },
+    {
+     "volume": "PTV_N57.5 (adénopathies hors petit bassin)",
+     "dose_Gy": 57.5,
+     "fractions": 25,
+     "dose_fx_Gy": 2.3,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Si adénopathie"
+    },
+    {
+     "volume": "CTV-HR (curiethérapie HDR)",
+     "dose_Gy": 30,
+     "fractions": 5,
+     "dose_fx_Gy": 6,
+     "mode": "sequentiel",
+     "rythme": "2 fx/sem",
+     "note": "Résidu > 4 cm ; total ≈ 84 Gy EQD2₁₀"
+    }
+   ],
+   "technique": "VMAT ou IMRT, IGRT quotidienne (CBCT) avec recalage osseux ; curiethérapie IRM avec applicateur intracavitaire ± aiguilles interstitielles",
+   "systemique": "Cisplatine 40 mg/m² hebdomadaire, voir « Traitement systémique associé »",
+   "simulation_id": "sim-col",
+   "volumes_id": "vol-col",
+   "contraintes_ids": [
+    "ct-col-embrace2-rte",
+    "ct-col-abs-hdr"
+   ],
+   "couverture": "D90 85–90 Gy EQD2",
+   "points_attention": [
+    "Contourer toutes les adénopathies pathologiques, une par une (EMBRACE II). Curie ne contoure pas celles situées à moins de 1 cm du CTV-HR, couvertes par la curiethérapie",
+    "Dose ganglionnaire : 55 Gy dans le petit bassin (+ 3–4 Gy EQD2 de curiethérapie), 57,5 Gy hors petit bassin ; viser 55–65 Gy EQD2 au total. Contribution mesurée de la curiethérapie : environ 5 Gy EQD2 aux iliaques internes, externes et obturatrices, 2,5 Gy aux iliaques communes (Bacorro 2017)",
+    "Le service prescrit 60 Gy / 25 fx (2,4 Gy) aux adénopathies lombo-aortiques (tableur « GYNECO 45Gy + BOOST ») : EQD2 ≈ 62 Gy, dans la fourchette d'EMBRACE II ; Curie et EMBRACE II prescrivent 57,5 Gy",
+    "PTV_N = CTV_N + 5 mm. Le protocole Curie col écrit « GTV_N + 5 mm » (coquille : le protocole Curie endomètre et EMBRACE II écrivent CTV_N + 5 mm) ; la fiche du service fait CTV_N = GTV_N + 5 mm puis PTV_N = CTV_N sans marge",
+    "Vagin non envahi : D(PIBS − 2 cm) < 5 Gy en RTE (EMBRACE II)"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Gynéco",
+    "Col utérin",
+    "Col en place : radiochimiothérapie exclusive + curiethérapie",
+    "RTE + curiethérapie"
+   ]
+  },
+  {
+   "id": "col-rch-pdr-curie",
+   "situation_id": "col-lacc",
+   "titre": "RCT 45 Gy / 25 fx + curiethérapie PDR 15 Gy sur le CTV-IR",
+   "type": "rte_plus_curie",
+   "preuve": "pratique_institutionnelle",
+   "essai_ids": [
+    "embrace2",
+    "gec-estro-gyn2",
+    "cccmac"
+   ],
+   "source_institutionnelle": "Institut Curie, protocole col et vagin 2021",
+   "prescriptions": [
+    {
+     "volume": "PTV45",
+     "dose_Gy": 45,
+     "fractions": 25,
+     "dose_fx_Gy": 1.8,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Avec cisplatine 40 mg/m² hebdomadaire ; prescription à la dose médiane ou moyenne"
+    },
+    {
+     "volume": "PTV_N55 (adénopathies ilio-obturatrices)",
+     "dose_Gy": 55,
+     "fractions": 25,
+     "dose_fx_Gy": 2.2,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Tient compte de la contribution de la curiethérapie aux ganglions pelviens"
+    },
+    {
+     "volume": "PTV_N57.5 (adénopathies iliaques primitives et lombo-aortiques)",
+     "dose_Gy": 57.5,
+     "fractions": 25,
+     "dose_fx_Gy": 2.3,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Le service prescrit 60 Gy / 25 fx (2,4 Gy) aux adénopathies lombo-aortiques : environ 62 Gy EQD2, dans la fourchette 55–65 Gy EQD2 d'EMBRACE II"
+    },
+    {
+     "volume": "CTV-IR (curiethérapie PDR)",
+     "dose_Gy": 15,
+     "mode": "sequentiel",
+     "rythme": "Débit pulsé",
+     "note": "Objectif : EQD2 cumulé > 85 Gy au D90 du CTV-HR (α/β = 10, T½ = 1,5 h)"
+    }
+   ],
+   "technique": "VMAT, kV-CBCT quotidien avec recalage osseux ; curiethérapie PDR guidée par l'image",
+   "systemique": "Cisplatine 40 mg/m² hebdomadaire",
+   "simulation_id": "sim-col",
+   "volumes_id": "vol-col",
+   "contraintes_ids": [
+    "ct-gyn-curie-rte",
+    "ct-col-embrace2-curie"
+   ],
+   "couverture": "PTV45 : D95 > 95 %, D2 < 107 % ; ITV45 : D98 > 95 % ; PTV_N : D98 > 90 %, D2 < 107 % ; CTV_N : D98 > 98 %",
+   "points_attention": [
+    "Contourer toutes les adénopathies pathologiques, une par une (EMBRACE II). Curie ne contoure pas celles situées à moins de 1 cm du CTV-HR, couvertes par la curiethérapie",
+    "Dose ganglionnaire : 55 Gy dans le petit bassin (+ 3–4 Gy EQD2 de curiethérapie), 57,5 Gy hors petit bassin ; viser 55–65 Gy EQD2 au total. Contribution mesurée de la curiethérapie : environ 5 Gy EQD2 aux iliaques internes, externes et obturatrices, 2,5 Gy aux iliaques communes (Bacorro 2017)",
+    "Le service prescrit 60 Gy / 25 fx (2,4 Gy) aux adénopathies lombo-aortiques (tableur « GYNECO 45Gy + BOOST ») : EQD2 ≈ 62 Gy, dans la fourchette d'EMBRACE II ; Curie et EMBRACE II prescrivent 57,5 Gy",
+    "PTV_N = CTV_N + 5 mm. Le protocole Curie col écrit « GTV_N + 5 mm » (coquille : le protocole Curie endomètre et EMBRACE II écrivent CTV_N + 5 mm) ; la fiche du service fait CTV_N = GTV_N + 5 mm puis PTV_N = CTV_N sans marge",
+    "Vagin non envahi : D(PIBS − 2 cm) < 5 Gy en RTE (EMBRACE II)"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Gynéco",
+    "Col utérin",
+    "Col en place : radiochimiothérapie exclusive + curiethérapie",
+    "RTE + curiethérapie"
+   ]
+  },
+  {
+   "id": "col-postop-45",
+   "situation_id": "col-postop",
+   "titre": "Pelvis post-opératoire 45 Gy / 25 fx",
+   "type": "rte_normo",
+   "preuve": "pratique_institutionnelle",
+   "essai_ids": [
+    "sedlis",
+    "peters"
+   ],
+   "source_institutionnelle": "Institut Curie, protocole endomètre et col post-opératoire 2021",
+   "prescriptions": [
+    {
+     "volume": "PTV_45Gy",
+     "dose_Gy": 45,
+     "fractions": 25,
+     "dose_fx_Gy": 1.8,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Cisplatine 40 mg/m² hebdomadaire si facteurs de Peters ; mode SIB si PTV_N"
+    },
+    {
+     "volume": "PTV_N60Gy (adénopathie macroscopique résiduelle)",
+     "dose_Gy": 60,
+     "fractions": 25,
+     "dose_fx_Gy": 2.4,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Uniquement si adénopathie visible"
+    }
+   ],
+   "technique": "VMAT, kV-CBCT quotidien avec recalage osseux",
+   "systemique": "Cisplatine 40 mg/m² hebdomadaire si facteurs de Peters",
+   "simulation_id": "sim-gyn-postop",
+   "volumes_id": "vol-gyn-postop",
+   "contraintes_ids": [
+    "ct-gyn-curie-rte"
+   ],
+   "couverture": "PTV_45 : D95 > 95 %, D2 < 107 % ; ITV_T : D98 > 95 %",
+   "points_attention": [
+    "Indication de radiochimiothérapie si facteurs de Peters ; RT seule si facteurs de Sedlis sans facteur de Peters"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Gynéco",
+    "Col utérin",
+    "Col opéré (hystérectomie radicale) : radiothérapie adjuvante",
+    "Normofractionné"
+   ]
+  },
+  {
+   "id": "col-postop-45-vbt",
+   "situation_id": "col-postop",
+   "titre": "Pelvis 45 Gy / 25 fx + curiethérapie du fond vaginal 2 × 5 Gy",
+   "type": "rte_plus_curie",
+   "preuve": "pratique_institutionnelle",
+   "essai_ids": [
+    "sedlis",
+    "peters"
+   ],
+   "source_institutionnelle": "Institut Curie, protocole endomètre et col post-opératoire 2021 ; fiche du service",
+   "prescriptions": [
+    {
+     "volume": "PTV_45Gy",
+     "dose_Gy": 45,
+     "fractions": 25,
+     "dose_fx_Gy": 1.8,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Comme col-postop-45"
+    },
+    {
+     "volume": "Fond vaginal (curiethérapie HDR, prescription à 5 mm de la surface)",
+     "dose_Gy": 10,
+     "fractions": 2,
+     "dose_fx_Gy": 5,
+     "mode": "sequentiel",
+     "rythme": "Après la RTE",
+     "note": "20 à 30 mm de vagin supérieur selon l'anatomie (fiche du service)"
+    }
+   ],
+   "technique": "Comme col-postop-45 ; cylindre vaginal HDR",
+   "systemique": "Cisplatine 40 mg/m² hebdomadaire si facteurs de Peters",
+   "simulation_id": "sim-gyn-postop",
+   "volumes_id": "vol-gyn-postop",
+   "contraintes_ids": [
+    "ct-gyn-curie-rte"
+   ],
+   "points_attention": [
+    "Indication de radiochimiothérapie si facteurs de Peters ; RT seule si facteurs de Sedlis sans facteur de Peters"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Gynéco",
+    "Col utérin",
+    "Col opéré (hystérectomie radicale) : radiothérapie adjuvante",
+    "RTE + curiethérapie"
+   ]
+  },
+  {
+   "id": "col-pall-rtog8502",
+   "situation_id": "col-pall",
+   "titre": "Palliatif 3,7 Gy × 4 en 2 jours, jusqu'à 3 cycles (RTOG 85-02)",
+   "type": "rte_hypo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "rtog8502"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV (tumeur pelvienne symptomatique)",
+     "dose_Gy": 14.8,
+     "fractions": 4,
+     "dose_fx_Gy": 3.7,
+     "mode": "seul",
+     "rythme": "2 fx/jour pendant 2 jours",
+     "note": "Un cycle ; répéter toutes les 2 à 4 semaines, 3 cycles au maximum (44,4 Gy en 12 fx)"
+    }
+   ],
+   "technique": "RC3D ou VMAT",
+   "systemique": "Aucune",
+   "simulation_id": "sim-col",
+   "volumes_id": "vol-col-pall",
+   "points_attention": [
+    "Aucune toxicité tardive sous 30 Gy (moins de 3 cycles) ; 6 % de toxicité tardive grade 3+ au total ; repos de 2 ou 4 semaines équivalent"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Gynéco",
+    "Col utérin",
+    "Palliatif pelvien (saignement, douleur)",
+    "Hypofractionné"
+   ],
+   "contraintes_ids": []
+  }
+ ],
+ "simulations": [
+  {
+   "id": "sim-col",
+   "position": "Décubitus dorsal",
+   "contention": "Cale genoux + cale pieds, immobilisation pelvienne",
+   "preparation": "Rectum vide (Normacol la veille et le jour même ; diamètre antéro-postérieur ≤ 5 cm, sinon évacuer le gaz ou refaire un Normacol) ; vessie confortable : 2 à 3 verres d'eau dans l'heure qui précède",
+   "scanner": "Injecté (temps vasculaire) sauf contre-indication ; coupes ≤ 3 mm ; de L2–L3 + 5 cm (pelvis) ou des coupoles + 5 cm (lombo-aortique) jusqu'aux ischions + 15 cm ; scanner vessie pleine + vessie vide utile pour un ITV individualisé",
+   "imagerie": "IRM pelvienne T2 axiale et sagittale de moins d'un mois, fusion sur le bassin osseux ; TEP-TDM si N+",
+   "reperes": "Fil plombé dans le fond vaginal (fiche du service) ; tatouages, tatouage supplémentaire en L2 si lombo-aortique"
+  },
+  {
+   "id": "sim-col-curie",
+   "position": "Décubitus dorsal, jambes en étriers pour la pose",
+   "contention": "Applicateur utéro-vaginal fixé par tamponnement vaginal",
+   "preparation": "Anesthésie ; sonde urinaire (HDR : vidange puis volume fixe de sérum ; PDR : sonde ouverte) ; rectum vide",
+   "scanner": "IRM T2 avec applicateur (ou scanner) à chaque implantation",
+   "imagerie": "IRM du diagnostic et schéma clinique initial disponibles au contourage",
+   "reperes": "Reconstruction de l'applicateur sur l'IRM"
+  },
+  {
+   "id": "sim-gyn-postop",
+   "position": "Décubitus dorsal",
+   "contention": "Cale genoux + cale pieds, immobilisation pelvienne",
+   "preparation": "Rectum vide (Normacol ; diamètre antéro-postérieur ≤ 5 cm) ; vessie confortable : 2 à 3 verres d'eau dans l'heure qui précède ; reproductibilité vessie et rectum à vérifier",
+   "scanner": "Injecté (temps vasculaire) sauf contre-indication ; coupes ≤ 3 mm ; de L2–L3 + 5 cm (pelvis) ou des coupoles + 5 cm (lombo-aortique) jusqu'aux ischions + 15 cm",
+   "imagerie": "TEP-TDM du bilan si N+, fusion sur le bassin osseux",
+   "reperes": "Fil plombé dans le fond vaginal si la cicatrisation est acquise (fiche du service)"
+  }
+ ],
+ "volumes": [
+  {
+   "id": "vol-col",
+   "cibles": [
+    {
+     "nom": "GTV_T",
+     "type": "GTV",
+     "definition": "Tumeur primitive sur l'IRM T2 du diagnostic (GTV-T init)",
+     "quand": "Optionnel (aide au CTV)"
+    },
+    {
+     "nom": "GTV_N#",
+     "type": "GTV",
+     "definition": "Chaque adénopathie pathologique (contour externe + extension extracapsulaire visible), contourée sur l'IRM, le TEP servant de guide ; une structure par ganglion, numérotée",
+     "quand": "Si adénopathie"
+    },
+    {
+     "nom": "CTV_HR",
+     "type": "CTV",
+     "definition": "GTV_T + reste du col non envahi (CTV-T HR init)",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "CTV_LR",
+     "type": "CTV",
+     "definition": "Col + utérus entier + paramètres bilatéraux (sans les aires ganglionnaires) + vagin : au moins le tiers supérieur si non envahi, sinon jusqu'à 2 cm sous la limite inférieure de l'atteinte ; trompes, mésorectum si envahis",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "ITV_T",
+     "type": "ITV",
+     "definition": "CTV_LR + 10 mm en antéro-postérieur, 10 mm en cranio-caudal, 5 mm en latéral ; pas de marge vers le bas le long du vagin ; exclure muscles et os ; + 5 mm autour du corps utérin s'il est envahi ; ou ITV individualisé (fusion vessie pleine / vessie vide), minimum 5 mm en AP et CC",
+     "quand": "Toujours",
+     "marge": "10 mm AP et CC, 5 mm latéral"
+    },
+    {
+     "nom": "CTV_E (faible risque)",
+     "type": "CTV",
+     "definition": "« Petit pelvis » : iliaques internes, externes, obturatrices, présacrées ; vaisseaux + au moins 7 mm de tissu périvasculaire, lymphocèles et clips inclus. Fiche du service : présacrés = bande de 1 cm de S2 au promontoire",
+     "quand": "Tumeur ≤ 4 cm ET stade IA/IB1/IIA1 ET N0 ET carcinome épidermoïde ET pas d'envahissement utérin",
+     "marge": "7 mm autour des vaisseaux"
+    },
+    {
+     "nom": "CTV_E (risque intermédiaire)",
+     "type": "CTV",
+     "definition": "« Grand pelvis » : petit pelvis + iliaques communes jusqu'à la bifurcation aortique ; + inguinaux si atteinte du tiers inférieur du vagin ; + espace mésorectal si adénopathie mésorectale ou maladie locale avancée",
+     "quand": "Ni faible ni haut risque",
+     "marge": "7 mm autour des vaisseaux"
+    },
+    {
+     "nom": "CTV_E (haut risque)",
+     "type": "CTV",
+     "definition": "« Grand pelvis + lombo-aortique » : limite supérieure au minimum aux veines rénales (souvent L2), et au moins 3 cm au-dessus de l'adénopathie lombo-aortique la plus haute",
+     "quand": "Au moins 1 adénopathie iliaque commune ou plus haute, OU au moins 3 adénopathies pathologiques",
+     "marge": "7 mm autour des vaisseaux"
+    },
+    {
+     "nom": "CTV_N#",
+     "type": "CTV",
+     "definition": "GTV_N# + 0 à 3 mm (EMBRACE II ; Curie : 3 mm), sans os ni muscle ; un CTV par ganglion, jamais regroupés",
+     "quand": "Si adénopathie",
+     "marge": "0 à 3 mm"
+    },
+    {
+     "nom": "ITV45 (CTV_45Gy)",
+     "type": "ITV",
+     "definition": "ITV_T + CTV_E (+ CTV_N)",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "PTV45",
+     "type": "PTV",
+     "definition": "ITV45 + 5 mm isotrope, + tous les PTV_N",
+     "quand": "Toujours",
+     "marge": "5 mm"
+    },
+    {
+     "nom": "PTV_N#",
+     "type": "PTV",
+     "definition": "CTV_N# + 5 mm isotrope ; 10 mm localement si le PTV_N sort du PTV45",
+     "quand": "Si adénopathie",
+     "marge": "5 mm"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "Protocole EMBRACE II (annexes de contourage)"
+    },
+    {
+     "nom": "Lim 2011"
+    },
+    {
+     "nom": "RTOG 2012, OAR du pelvis"
+    }
+   ],
+   "oar_ids": [
+    "oar-vessie",
+    "oar-rectum",
+    "oar-sigmoide",
+    "oar-grele",
+    "oar-tete-femorale-d",
+    "oar-tete-femorale-g",
+    "oar-moelle-osseuse",
+    "oar-vulve",
+    "oar-vagin",
+    "oar-help-ctvhr10",
+    "oar-corps",
+    "oar-queue-cheval",
+    "oar-plexus-sacre",
+    "oar-rein-d",
+    "oar-rein-g",
+    "oar-foie",
+    "oar-moelle",
+    "oar-duodenum",
+    "oar-ovaire-d",
+    "oar-ovaire-g"
+   ],
+   "oar_notes": {
+    "oar-rectum": "fiche : de la marge anale à la charnière recto-sigmoïdienne",
+    "oar-queue-cheval": "si boost ganglionnaire",
+    "oar-plexus-sacre": "si boost ganglionnaire",
+    "oar-rein-d": "si lombo-aortique",
+    "oar-rein-g": "si lombo-aortique",
+    "oar-foie": "si lombo-aortique",
+    "oar-moelle": "si lombo-aortique",
+    "oar-duodenum": "si lombo-aortique au-dessus de L1",
+    "oar-ovaire-d": "si transposition",
+    "oar-ovaire-g": "si transposition"
+   }
+  },
+  {
+   "id": "vol-col-pall",
+   "cibles": [
+    {
+     "nom": "CTV",
+     "type": "CTV",
+     "definition": "Tumeur pelvienne symptomatique (col, extensions)",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "PTV",
+     "type": "PTV",
+     "definition": "CTV + marge selon l'IGRT",
+     "quand": "Toujours"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "RTOG 2012, OAR du pelvis"
+    }
+   ],
+   "oar_ids": [
+    "oar-vessie",
+    "oar-rectum",
+    "oar-grele"
+   ]
+  },
+  {
+   "id": "vol-gyn-postop",
+   "cibles": [
+    {
+     "nom": "GTV_N#",
+     "type": "GTV",
+     "definition": "Adénopathie visible ou prouvée, une structure par ganglion, nommée par son niveau de dose (GTV_N60Gy)",
+     "quand": "Si adénopathie"
+    },
+    {
+     "nom": "CTV_T",
+     "type": "CTV",
+     "definition": "3 à 4 cm supérieurs du vagin + cicatrice + 0,5 à 2 cm au-dessus selon la position du grêle + paravagin jusqu'à la paroi pelvienne, sans les aires ganglionnaires ; exclure les anses grêles. Fiche du service : limite inférieure à 1 cm au-dessus du bord inférieur des trous obturateurs ou 3 cm sous le marqueur vaginal (la plus basse), marge de 5 mm dans le paravagin au niveau du haut des têtes fémorales ; adapter à la longueur résiduelle du vagin",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "ITV_T",
+     "type": "ITV",
+     "definition": "CTV_T + 5 mm isotrope sans autre imagerie, ou ITV individualisé si plusieurs imageries post-opératoires",
+     "quand": "Toujours",
+     "marge": "5 mm"
+    },
+    {
+     "nom": "CTV_E",
+     "type": "CTV",
+     "definition": "Marges anatomiques autour des vaisseaux. Toujours : iliaques internes, externes, obturatrices (fiche : + 15 mm distaux des iliaques communes). Iliaques communes entières : col atteint ; endomètre si N+ prouvé ou si risque intermédiaire-élevé ou haut sans curage pelvien. Présacrés : N+, col ou paramètres atteints, ligaments utéro-sacrés atteints (fiche : jusqu'à S2–S3). Inguinaux : tiers inférieur du vagin atteint ou adénopathie inguinale. Lombo-aortiques : N+ lombo-aortique prouvé ou radiologique, atteinte iliaque commune massive (fiche : jusqu'à D12–L1, au moins 2 cm au-dessus de l'adénopathie la plus haute). Lymphocèles si pN+",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "CTV_N#",
+     "type": "CTV",
+     "definition": "GTV_N# + 3 mm",
+     "quand": "Si adénopathie",
+     "marge": "3 mm"
+    },
+    {
+     "nom": "CTV_45Gy",
+     "type": "ITV",
+     "definition": "CTV_E + ITV_T",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "PTV_45Gy",
+     "type": "PTV",
+     "definition": "CTV_45Gy + 5 mm isotrope + tous les PTV_N. Fiche du service : PTV-T = CTV-T + 1 cm, PTV-N = CTV-N + 0,5 cm (même résultat)",
+     "quand": "Toujours",
+     "marge": "5 mm"
+    },
+    {
+     "nom": "PTV_N#",
+     "type": "PTV",
+     "definition": "CTV_N# + 5 mm isotrope",
+     "quand": "Si adénopathie",
+     "marge": "5 mm"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "NRG/RTOG 2021, CTV post-opératoire"
+    },
+    {
+     "nom": "RTOG 2012, OAR du pelvis"
+    }
+   ],
+   "oar_ids": [
+    "oar-vessie",
+    "oar-rectum",
+    "oar-sigmoide",
+    "oar-grele",
+    "oar-tete-femorale-d",
+    "oar-tete-femorale-g",
+    "oar-moelle-osseuse",
+    "oar-vulve",
+    "oar-aile-iliaque-d",
+    "oar-aile-iliaque-g",
+    "oar-corps",
+    "oar-queue-cheval",
+    "oar-plexus-sacre",
+    "oar-rein-d",
+    "oar-rein-g",
+    "oar-foie",
+    "oar-moelle",
+    "oar-duodenum",
+    "oar-ovaire-d",
+    "oar-ovaire-g"
+   ],
+   "oar_notes": {
+    "oar-aile-iliaque-d": "fiche",
+    "oar-aile-iliaque-g": "fiche",
+    "oar-queue-cheval": "si boost ganglionnaire",
+    "oar-plexus-sacre": "si boost ganglionnaire",
+    "oar-rein-d": "si lombo-aortique",
+    "oar-rein-g": "si lombo-aortique",
+    "oar-foie": "si lombo-aortique",
+    "oar-moelle": "si lombo-aortique",
+    "oar-duodenum": "si lombo-aortique au-dessus de L1",
+    "oar-ovaire-d": "si transposition",
+    "oar-ovaire-g": "si transposition"
+   }
+  }
+ ],
+ "curie_indications": [
+  {
+   "indication": "Tout col traité par radiochimiothérapie exclusive",
+   "modalite": "Curiethérapie utéro-vaginale guidée par l'IRM après 4 à 5 semaines de RCT",
+   "niveau_preuve": "Cohorte prospective multicentrique (EMBRACE-I : contrôle local 92 % à 5 ans)",
+   "note": "Petite tumeur bien répondeuse : curiethérapie possible pendant la RTE pour raccourcir le traitement (EMBRACE II)"
+  },
+  {
+   "indication": "Résidu volumineux, extension paramétriale ou vaginale au moment de la curiethérapie",
+   "modalite": "Applicateur intracavitaire + aiguilles interstitielles",
+   "niveau_preuve": "Protocole EMBRACE II",
+   "note": "Au moins 20 % des patientes en ont besoin ; les aiguilles portent environ 5 à 20 % du TRAK total"
+  },
+  {
+   "indication": "Choix du débit",
+   "modalite": "HDR (4 × 7 Gy ou 5 × 5,5–6 Gy) ou PDR (15 Gy sur le CTV-IR, Curie)",
+   "niveau_preuve": "Recommandations EMBRACE II et ABS 2012 ; pratique Institut Curie",
+   "note": "Dose finale décidée sur le D90 du CTV-HR, pas sur le point A"
+  },
+  {
+   "indication": "Étalement",
+   "modalite": "Fin de la curiethérapie avant le 50e jour (EMBRACE II), au plus tard le 55e (Curie)",
+   "niveau_preuve": "Analyse rétrospective EMBRACE",
+   "note": "Une semaine de plus équivaut à perdre environ 5 Gy sur le CTV-HR"
+  },
+  {
+   "indication": "Chimiothérapie et HDR",
+   "modalite": "Pas de cisplatine le jour d'une fraction HDR",
+   "niveau_preuve": "ABS 2012 (avis d'experts)",
+   "note": "Donner la cure un jour de RTE"
+  }
+ ],
+ "systemique": [
+  {
+   "situation": "Col en place (RCT)",
+   "traitement": "Cisplatine 40 mg/m² hebdomadaire pendant la RTE (5 à 6 cures)",
+   "essai_ids": [
+    "cccmac",
+    "embrace1"
+   ],
+   "note": "Méta-analyse : + 6 % de survie à 5 ans (HR 0,81)"
+  },
+  {
+   "situation": "Col en place à haut risque (IB2–IIB N+ ou III–IVA, FIGO 2014)",
+   "traitement": "Pembrolizumab 200 mg toutes les 3 semaines × 5 pendant la RCT, puis 400 mg toutes les 6 semaines × 15",
+   "essai_ids": [
+    "keynote-a18"
+   ],
+   "note": "SSP HR 0,70 ; survie globale améliorée à la 2e analyse intermédiaire"
+  },
+  {
+   "situation": "Col en place (option)",
+   "traitement": "Induction carboplatine AUC 2 + paclitaxel 80 mg/m² hebdomadaires × 6, puis RCT",
+   "essai_ids": [
+    "interlace"
+   ],
+   "note": "SSP à 5 ans 72 % vs 64 % ; SG 80 % vs 72 % ; plus de toxicité G3+ (59 % vs 48 %)"
+  },
+  {
+   "situation": "Col opéré, facteurs de Peters",
+   "traitement": "Chimiothérapie concomitante à base de cisplatine (Peters : cisplatine 70 mg/m² + 5FU 1000 mg/m²/j × 4 j toutes les 3 semaines, 4 cures dont 2 pendant la RT ; Curie : cisplatine 40 mg/m² hebdomadaire)",
+   "essai_ids": [
+    "peters"
+   ],
+   "note": "SG à 4 ans 81 % vs 71 %"
+  },
+  {
+   "situation": "Palliatif",
+   "traitement": "Aucun",
+   "essai_ids": [
+    "rtog8502"
+   ]
+  }
+ ],
+ "hormonotherapie": [],
+ "points_attention": [
+  {
+   "cible": "col",
+   "point": "Étalement total (RTE + curiethérapie) ≤ 50 jours (EMBRACE II), 55 jours au plus (Curie) ; une semaine de plus équivaut à environ 5 Gy de moins sur le CTV-HR",
+   "portee": "localisation"
+  },
+  {
+   "cible": "col",
+   "point": "CBCT quotidien avec recalage sur le bassin osseux ; ne pas recaler sur l'utérus (on sortirait les ganglions) ; l'utérus doit rester dans l'ITV_T, à défaut dans le PTV45 ; nouvelle simulation à discuter si les volumes sortent des PTV après 3 séances (Curie)",
+   "portee": "localisation"
+  },
+  {
+   "cible": "col",
+   "point": "Irradiation lombo-aortique : image kV/kV quotidienne en plus du CBCT pour vérifier le rachis lombaire ; décalage > 5 mm entre pelvis et lombo-aortique = repositionner (Curie)",
+   "portee": "localisation"
+  },
+  {
+   "cible": "col",
+   "point": "Help contour CTV-HR + 10 mm : Dmax < 103 % de 45 Gy, pour éviter les points chauds de RTE là où la curiethérapie délivre déjà une forte dose",
+   "portee": "localisation"
+  },
+  {
+   "cible": "col",
+   "point": "Sous-dosage toléré de 10 % (40 Gy) dans l'utérus non envahi ; la curiethérapie y ajoute plus de 5 à 10 Gy (EMBRACE II)",
+   "portee": "localisation"
+  },
+  {
+   "cible": "col-lacc",
+   "point": "Contourer toutes les adénopathies pathologiques, une par une (EMBRACE II). Curie ne contoure pas celles situées à moins de 1 cm du CTV-HR, couvertes par la curiethérapie",
+   "portee": "situation"
+  },
+  {
+   "cible": "col-lacc",
+   "point": "Dose ganglionnaire : 55 Gy dans le petit bassin (+ 3–4 Gy EQD2 de curiethérapie), 57,5 Gy hors petit bassin ; viser 55–65 Gy EQD2 au total. Contribution mesurée de la curiethérapie : environ 5 Gy EQD2 aux iliaques internes, externes et obturatrices, 2,5 Gy aux iliaques communes (Bacorro 2017)",
+   "portee": "situation"
+  },
+  {
+   "cible": "col-lacc",
+   "point": "Le service prescrit 60 Gy / 25 fx (2,4 Gy) aux adénopathies lombo-aortiques (tableur « GYNECO 45Gy + BOOST ») : EQD2 ≈ 62 Gy, dans la fourchette d'EMBRACE II ; Curie et EMBRACE II prescrivent 57,5 Gy",
+   "portee": "situation"
+  },
+  {
+   "cible": "col-lacc",
+   "point": "PTV_N = CTV_N + 5 mm. Le protocole Curie col écrit « GTV_N + 5 mm » (coquille : le protocole Curie endomètre et EMBRACE II écrivent CTV_N + 5 mm) ; la fiche du service fait CTV_N = GTV_N + 5 mm puis PTV_N = CTV_N sans marge",
+   "portee": "situation"
+  },
+  {
+   "cible": "col-lacc",
+   "point": "Vagin non envahi : D(PIBS − 2 cm) < 5 Gy en RTE (EMBRACE II)",
+   "portee": "situation"
+  },
+  {
+   "cible": "col-postop",
+   "point": "Indication de radiochimiothérapie si facteurs de Peters ; RT seule si facteurs de Sedlis sans facteur de Peters",
+   "portee": "situation"
+  },
+  {
+   "cible": "col-pall-rtog8502",
+   "point": "Aucune toxicité tardive sous 30 Gy (moins de 3 cycles) ; 6 % de toxicité tardive grade 3+ au total ; repos de 2 ou 4 semaines équivalent",
+   "portee": "schema"
+  }
+ ],
+ "textes": {
+  "curietherapie": [
+   "La curiethérapie utéro-vaginale guidée par l'image fait partie du traitement de tout col traité par radiochimiothérapie exclusive. Elle ne se remplace pas par un complément en radiothérapie externe : c'est la technique d'escalade de dose centro-pelvienne (Curie).",
+   "**Volumes de curiethérapie (GEC-ESTRO, EMBRACE II) :** GTV-res = tumeur résiduelle visible en T2 au moment de la curiethérapie ; CTV-HR = GTV-res + totalité du col + extensions résiduelles (zones grises paramétriales ou vaginales) ; CTV-IR = CTV-HR + marge couvrant l'extension tumorale initiale (5 à 15 mm selon la réponse). Contourage sur l'IRM T2 avec applicateur en place (coupes para-axiales, vérifiées en sagittal et coronal), après examen gynécologique par le médecin qui contoure, avec le schéma clinique et l'IRM du diagnostic. Pas de marge PTV en curiethérapie ; une marge seulement le long de la sonde intra-utérine est admise pour les incertitudes de reconstruction.",
+   "**Objectifs de dose :** jeu `ct-col-embrace2-curie` (EQD2 cumulée RTE + curiethérapie, α/β = 10 pour les cibles, 3 pour les OAR, T½ = 1,5 h). Pour l'HDR ABS : jeu `ct-col-abs-hdr`. L'EQD2 se calcule fraction par fraction sur le D90 et les D2cm³ réels, puis s'ajoute à l'EQD2 de la RTE (45 Gy / 25 fx = 44,25 Gy EQD2₁₀).",
+   "**Désescalade de la dose vaginale (EMBRACE II, tableau 10.2) :** point recto-vaginal ICRU < 65 Gy EQD2 (priorité) ; rapport TRAK vaginal / TRAK total < 30–40 % ; points vaginaux latéraux à 5 mm < 85 Gy EQD2 ; isodose 140 % le plus possible dans l'applicateur.",
+   "**Mise en place :** applicateur sous anesthésie, tamponnement vaginal ; vessie : vidange puis instillation d'un volume fixe de sérum en HDR, sonde ouverte en PDR ; IRM (ou à défaut scanner) avec applicateur pour chaque implantation ; dosimétrie avant chaque fraction.",
+   "**PDR :** Curie prescrit 15 Gy sur le CTV-IR en débit pulsé (la durée et la dose des pulses ne sont pas précisées dans le protocole). Le calcul d'EQD2 utilise le modèle linéaire-quadratique à réparation incomplète (T½ = 1,5 h) : les tableurs IGR et ICM du service le font ; le module n'en propose pas, il affiche « calcul PDR : utiliser l'outil dédié »."
+  ],
+  "centrage": [
+   "Pour tout centrage RTE, vérifier dès le début de la RTE que la curiethérapie est programmée, avec un étalement total ≤ 50 jours."
+  ],
+  "contourage": [
+   "Les adénopathies sont contourées et numérotées une par une ; chaque niveau de dose a son nom (GTV\\_N55, GTV\\_N57.5)."
+  ]
+ }
+}

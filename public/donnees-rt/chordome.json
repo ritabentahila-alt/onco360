@@ -1,0 +1,231 @@
+{
+ "version": "2026-10-25",
+ "id": "chordome",
+ "region_id": "sarcome",
+ "nom": "Chordome",
+ "ordre": 44,
+ "date_maj": "2026-10-24",
+ "situations": [
+  {
+   "id": "ch-rachis",
+   "localisation_id": "chordome",
+   "titre": "Chordome du sacrum ou du rachis mobile : RT de haute dose",
+   "contexte": "post_op",
+   "criteres": "Prise en charge en centre expert, après chirurgie ou à la place de la chirurgie pour une tumeur non réséquée (consensus de Stacchiotti 2015 ; Kabolizadeh 2017) ; les marges saines sont rares dans le rachis (DeLaney 2009)",
+   "ordre": 1
+  }
+ ],
+ "schemas": [
+  {
+   "id": "ch-service-704-56",
+   "situation_id": "ch-rachis",
+   "titre": "Tomothérapie 70,4 / 56 Gy en 32 fx (SIB)",
+   "type": "rte_normo",
+   "preuve": "pratique_institutionnelle",
+   "essai_ids": [
+    "stacchiotti2015"
+   ],
+   "source_institutionnelle": "Tableur du service « chordome sacrum »",
+   "prescriptions": [
+    {
+     "volume": "PTVHR",
+     "dose_Gy": 70.4,
+     "fractions": 32,
+     "dose_fx_Gy": 2.2,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Haut risque"
+    },
+    {
+     "volume": "PTVBR",
+     "dose_Gy": 56,
+     "fractions": 32,
+     "dose_fx_Gy": 1.75,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Bas risque ; le tableur écrit « 1,7 Gy/j »"
+    }
+   ],
+   "technique": "Tomothérapie",
+   "systemique": "Aucune",
+   "volumes_id": "vol-ch-service",
+   "contraintes_ids": [
+    "ct-chordome-delaney"
+   ],
+   "points_attention": [
+    "Récidive locale 11 % pour les tumeurs primitives contre 50 % pour les récidives (DeLaney 2014) : traiter dès la première prise en charge",
+    "Contraintes du tableur du service non reprises ; moelle selon DeLaney"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Sarcomes",
+    "Chordome",
+    "Chordome du sacrum ou du rachis mobile : RT de haute dose",
+    "Normofractionné"
+   ]
+  },
+  {
+   "id": "ch-delaney-774",
+   "situation_id": "ch-rachis",
+   "titre": "Photons-protons 50,4 puis 70,2 puis 77,4 Gy (RBE) en fractions de 1,8 Gy",
+   "type": "rte_normo",
+   "preuve": "option",
+   "essai_ids": [
+    "delaney2009",
+    "delaney2014",
+    "kabolizadeh2017"
+   ],
+   "prescriptions": [
+    {
+     "volume": "Maladie infraclinique",
+     "dose_Gy": 50.4,
+     "fractions": 28,
+     "dose_fx_Gy": 1.8,
+     "mode": "sequentiel",
+     "rythme": "1 fx/j",
+     "note": "Gy RBE"
+    },
+    {
+     "volume": "Lit tumoral (maladie microscopique)",
+     "dose_Gy": 19.8,
+     "fractions": 11,
+     "dose_fx_Gy": 1.8,
+     "mode": "sequentiel",
+     "rythme": "1 fx/j",
+     "note": "Cumul 70,2 Gy RBE"
+    },
+    {
+     "volume": "Maladie macroscopique",
+     "dose_Gy": 7.2,
+     "fractions": 4,
+     "dose_fx_Gy": 1.8,
+     "mode": "sequentiel",
+     "rythme": "1 fx/j",
+     "note": "Cumul 77,4 Gy RBE ; contrôle local à 5 ans 85,4 % en RT exclusive (Kabolizadeh 2017)"
+    }
+   ],
+   "technique": "Protonthérapie ou association photons-protons",
+   "systemique": "Aucune",
+   "volumes_id": "vol-ch-delaney",
+   "contraintes_ids": [
+    "ct-chordome-delaney"
+   ],
+   "points_attention": [
+    "Récidive locale 11 % pour les tumeurs primitives contre 50 % pour les récidives (DeLaney 2014) : traiter dès la première prise en charge",
+    "Neuropathies sacrées après 76,6 à 77,4 Gy RBE, aucune toxicité neurologique tardive jusqu'à 72 Gy RBE ; morbidité tardive de grade 3–4 à 8 ans 13 % (DeLaney 2014)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Sarcomes",
+    "Chordome",
+    "Chordome du sacrum ou du rachis mobile : RT de haute dose",
+    "Normofractionné"
+   ]
+  }
+ ],
+ "simulations": [],
+ "volumes": [
+  {
+   "id": "vol-ch-service",
+   "cibles": [
+    {
+     "nom": "CTVHR",
+     "type": "CTV",
+     "definition": "Volume à haut risque, défini par le médecin",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "PTVHR",
+     "type": "PTV",
+     "definition": "CTVHR + 5 mm",
+     "quand": "Toujours",
+     "marge": "5 mm"
+    },
+    {
+     "nom": "CTVBR",
+     "type": "CTV",
+     "definition": "Volume à bas risque, défini par le médecin",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "PTVBR",
+     "type": "PTV",
+     "definition": "CTVBR + 5 mm",
+     "quand": "Toujours",
+     "marge": "5 mm"
+    }
+   ],
+   "atlas": [],
+   "oar_ids": [
+    "oar-tete-femorale-d",
+    "oar-tete-femorale-g",
+    "oar-vessie",
+    "oar-rectum",
+    "oar-canal-anal",
+    "oar-bulbe",
+    "oar-queue-cheval",
+    "oar-moelle",
+    "oar-oge",
+    "oar-grele",
+    "oar-plexus-sacre"
+   ]
+  },
+  {
+   "id": "vol-ch-delaney",
+   "cibles": [
+    {
+     "nom": "Maladie infraclinique",
+     "type": "CTV",
+     "definition": "Volume infraclinique (50,4 Gy RBE)",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "Lit tumoral",
+     "type": "CTV",
+     "definition": "Maladie microscopique du lit tumoral (70,2 Gy RBE)",
+     "quand": "Après chirurgie"
+    },
+    {
+     "nom": "Maladie macroscopique",
+     "type": "GTV",
+     "definition": "Tumeur macroscopique (77,4 Gy RBE)",
+     "quand": "Tumeur en place ou reliquat"
+    }
+   ],
+   "atlas": [],
+   "oar_ids": [
+    "oar-moelle",
+    "oar-queue-cheval",
+    "oar-plexus-sacre",
+    "oar-rectum",
+    "oar-vessie",
+    "oar-grele"
+   ]
+  }
+ ],
+ "curie_indications": [],
+ "systemique": [],
+ "hormonotherapie": [],
+ "points_attention": [
+  {
+   "cible": "ch-rachis",
+   "point": "Récidive locale 11 % pour les tumeurs primitives contre 50 % pour les récidives (DeLaney 2014) : traiter dès la première prise en charge",
+   "portee": "situation"
+  },
+  {
+   "cible": "ch-delaney-774",
+   "point": "Neuropathies sacrées après 76,6 à 77,4 Gy RBE, aucune toxicité neurologique tardive jusqu'à 72 Gy RBE ; morbidité tardive de grade 3–4 à 8 ans 13 % (DeLaney 2014)",
+   "portee": "schema"
+  },
+  {
+   "cible": "ch-service-704-56",
+   "point": "Contraintes du tableur du service non reprises ; moelle selon DeLaney",
+   "portee": "schema"
+  }
+ ],
+ "textes": {
+  "systemique": [
+   "Pas de traitement systémique associé à la RT dans ces schémas."
+  ]
+ }
+}

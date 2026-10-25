@@ -1,0 +1,418 @@
+{
+ "version": "2026-10-25",
+ "id": "metastases_osseuses",
+ "region_id": "os_palliatif",
+ "nom": "Métastases osseuses",
+ "ordre": 38,
+ "date_maj": "2026-10-24",
+ "situations": [
+  {
+   "id": "mo-douleur",
+   "localisation_id": "metastases_osseuses",
+   "titre": "Métastase osseuse douloureuse non compliquée",
+   "contexte": "palliatif",
+   "criteres": "Douleur d'une ou plusieurs métastases osseuses, sans compression médullaire ni fracture à stabiliser",
+   "ordre": 1
+  },
+  {
+   "id": "mo-compression",
+   "localisation_id": "metastases_osseuses",
+   "titre": "Compression médullaire métastatique",
+   "contexte": "palliatif",
+   "criteres": "Discuter d'abord la chirurgie de décompression (Patchell 2005) ; RT seule si chirurgie non indiquée ; RT post-opératoire après décompression",
+   "ordre": 2
+  }
+ ],
+ "schemas": [
+  {
+   "id": "mo-8-1",
+   "situation_id": "mo-douleur",
+   "titre": "RT 8 Gy en 1 fx",
+   "type": "rte_hypo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "rtog9714",
+    "dutch-bms",
+    "chow2012-os",
+    "astro-os-2017"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 8,
+     "fractions": 1,
+     "dose_fx_Gy": 8,
+     "mode": "seul",
+     "rythme": "1 séance",
+     "note": "Même antalgie que 30 Gy / 10 fx ou 24 Gy / 6 fx ; plus de retraitements (18 vs 9 %, RTOG 97-14 ; 25 vs 7 %, étude néerlandaise)"
+    }
+   ],
+   "technique": "RT conformationnelle 3D",
+   "systemique": "Aucune",
+   "simulation_id": "sim-mo-service",
+   "volumes_id": "vol-mo-service",
+   "points_attention": [
+    "Méta-analyse : réponse globale 60 % (fraction unique) contre 61 % (fractions multiples), réponse complète 23 contre 24 % ; risque de réirradiation 2,6 fois plus élevé après fraction unique (Chow 2012)",
+    "La fraction unique peut être délivrée sur le rachis avec une toxicité tardive acceptable (ASTRO 2017)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Os et palliatif",
+    "Métastases osseuses",
+    "Métastase osseuse douloureuse non compliquée",
+    "Hypofractionné"
+   ],
+   "contraintes_ids": []
+  },
+  {
+   "id": "mo-20-5",
+   "situation_id": "mo-douleur",
+   "titre": "RT 20 Gy / 5 fx",
+   "type": "rte_hypo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "sc24",
+    "chow2012-os"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 20,
+     "fractions": 5,
+     "dose_fx_Gy": 4,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Bras de référence de SC.24"
+    }
+   ],
+   "technique": "RT conformationnelle 3D",
+   "systemique": "Aucune",
+   "simulation_id": "sim-mo-service",
+   "volumes_id": "vol-mo-service",
+   "points_attention": [
+    "Méta-analyse : réponse globale 60 % (fraction unique) contre 61 % (fractions multiples), réponse complète 23 contre 24 % ; risque de réirradiation 2,6 fois plus élevé après fraction unique (Chow 2012)",
+    "La fraction unique peut être délivrée sur le rachis avec une toxicité tardive acceptable (ASTRO 2017)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Os et palliatif",
+    "Métastases osseuses",
+    "Métastase osseuse douloureuse non compliquée",
+    "Hypofractionné"
+   ],
+   "contraintes_ids": []
+  },
+  {
+   "id": "mo-24-6",
+   "situation_id": "mo-douleur",
+   "titre": "RT 24 Gy / 6 fx",
+   "type": "rte_hypo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "dutch-bms"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 24,
+     "fractions": 6,
+     "dose_fx_Gy": 4,
+     "mode": "seul",
+     "rythme": "4 Gy par fraction",
+     "note": "Bras de l'étude néerlandaise ; réponse antalgique identique à 8 Gy"
+    }
+   ],
+   "technique": "RT conformationnelle 3D",
+   "systemique": "Aucune",
+   "simulation_id": "sim-mo-service",
+   "volumes_id": "vol-mo-service",
+   "points_attention": [
+    "Méta-analyse : réponse globale 60 % (fraction unique) contre 61 % (fractions multiples), réponse complète 23 contre 24 % ; risque de réirradiation 2,6 fois plus élevé après fraction unique (Chow 2012)",
+    "La fraction unique peut être délivrée sur le rachis avec une toxicité tardive acceptable (ASTRO 2017)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Os et palliatif",
+    "Métastases osseuses",
+    "Métastase osseuse douloureuse non compliquée",
+    "Hypofractionné"
+   ],
+   "contraintes_ids": []
+  },
+  {
+   "id": "mo-30-10",
+   "situation_id": "mo-douleur",
+   "titre": "RT 30 Gy / 10 fx",
+   "type": "rte_hypo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "rtog9714",
+    "chow2012-os"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 30,
+     "fractions": 10,
+     "dose_fx_Gy": 3,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Moins de retraitements, plus de toxicité aiguë de grade 2–4 (17 vs 10 %)"
+    }
+   ],
+   "technique": "RT conformationnelle 3D",
+   "systemique": "Aucune",
+   "simulation_id": "sim-mo-service",
+   "volumes_id": "vol-mo-service",
+   "points_attention": [
+    "Méta-analyse : réponse globale 60 % (fraction unique) contre 61 % (fractions multiples), réponse complète 23 contre 24 % ; risque de réirradiation 2,6 fois plus élevé après fraction unique (Chow 2012)",
+    "La fraction unique peut être délivrée sur le rachis avec une toxicité tardive acceptable (ASTRO 2017)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Os et palliatif",
+    "Métastases osseuses",
+    "Métastase osseuse douloureuse non compliquée",
+    "Hypofractionné"
+   ],
+   "contraintes_ids": []
+  },
+  {
+   "id": "mc-postop-30-10",
+   "situation_id": "mo-compression",
+   "titre": "RT post-opératoire 30 Gy / 10 fx après décompression",
+   "type": "rte_hypo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "patchell2005"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 30,
+     "fractions": 10,
+     "dose_fx_Gy": 3,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Chirurgie + RT : 84 % de patients marchant contre 57 % avec la RT seule"
+    }
+   ],
+   "technique": "RT conformationnelle 3D",
+   "systemique": "Aucune",
+   "simulation_id": "sim-mo-service",
+   "volumes_id": "vol-mo-service",
+   "points_attention": [
+    "Chirurgie de décompression puis RT : plus de patients marchent (84 contre 57 %) et marchent plus longtemps (médiane 122 contre 13 jours) ; 62 % des patients non ambulatoires remarchent contre 19 % (Patchell 2005)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Os et palliatif",
+    "Métastases osseuses",
+    "Compression médullaire métastatique",
+    "Hypofractionné"
+   ],
+   "contraintes_ids": []
+  },
+  {
+   "id": "mc-8-1",
+   "situation_id": "mo-compression",
+   "titre": "RT 8 Gy en 1 fx",
+   "type": "rte_hypo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "scorad3"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 8,
+     "fractions": 1,
+     "dose_fx_Gy": 8,
+     "mode": "seul",
+     "rythme": "1 séance",
+     "note": "Marche à 8 semaines 69,3 vs 72,7 % avec 20 Gy / 5 fx : non-infériorité non démontrée de justesse à 8 semaines, démontrée aux autres temps"
+    }
+   ],
+   "technique": "RT conformationnelle 3D",
+   "systemique": "Aucune",
+   "simulation_id": "sim-mo-service",
+   "volumes_id": "vol-mo-service",
+   "points_attention": [
+    "Chirurgie de décompression puis RT : plus de patients marchent (84 contre 57 %) et marchent plus longtemps (médiane 122 contre 13 jours) ; 62 % des patients non ambulatoires remarchent contre 19 % (Patchell 2005)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Os et palliatif",
+    "Métastases osseuses",
+    "Compression médullaire métastatique",
+    "Hypofractionné"
+   ],
+   "contraintes_ids": []
+  },
+  {
+   "id": "mc-20-5",
+   "situation_id": "mo-compression",
+   "titre": "RT 20 Gy / 5 fx",
+   "type": "rte_hypo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "scorad3",
+    "score2"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 20,
+     "fractions": 5,
+     "dose_fx_Gy": 4,
+     "mode": "seul",
+     "rythme": "5 jours consécutifs",
+     "note": "Bras de référence de SCORAD III ; SCORE-2 : réponse motrice à 1 mois 87,2 % avec 4 Gy × 5 contre 89,6 % avec 30 Gy / 10 fx"
+    }
+   ],
+   "technique": "RT conformationnelle 3D",
+   "systemique": "Aucune",
+   "simulation_id": "sim-mo-service",
+   "volumes_id": "vol-mo-service",
+   "points_attention": [
+    "Chirurgie de décompression puis RT : plus de patients marchent (84 contre 57 %) et marchent plus longtemps (médiane 122 contre 13 jours) ; 62 % des patients non ambulatoires remarchent contre 19 % (Patchell 2005)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Os et palliatif",
+    "Métastases osseuses",
+    "Compression médullaire métastatique",
+    "Hypofractionné"
+   ],
+   "contraintes_ids": []
+  },
+  {
+   "id": "mc-30-10",
+   "situation_id": "mo-compression",
+   "titre": "RT 30 Gy / 10 fx",
+   "type": "rte_hypo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "score2",
+    "patchell2005"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 30,
+     "fractions": 10,
+     "dose_fx_Gy": 3,
+     "mode": "seul",
+     "rythme": "5 fx/sem (2 semaines)",
+     "note": "Survie sans progression locale à 6 mois 81,8 vs 75,2 % avec 4 Gy × 5"
+    }
+   ],
+   "technique": "RT conformationnelle 3D",
+   "systemique": "Aucune",
+   "simulation_id": "sim-mo-service",
+   "volumes_id": "vol-mo-service",
+   "points_attention": [
+    "Chirurgie de décompression puis RT : plus de patients marchent (84 contre 57 %) et marchent plus longtemps (médiane 122 contre 13 jours) ; 62 % des patients non ambulatoires remarchent contre 19 % (Patchell 2005)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Os et palliatif",
+    "Métastases osseuses",
+    "Compression médullaire métastatique",
+    "Hypofractionné"
+   ],
+   "contraintes_ids": []
+  }
+ ],
+ "simulations": [
+  {
+   "id": "sim-mo-service",
+   "position": "Position reproductible ; bras au-dessus de la tête si possible pour les côtes et le rachis dorsal",
+   "contention": "Immobilisation adaptée (matelas coque si nécessaire)",
+   "scanner": "Scanner de centrage",
+   "reperes": "Lésions palpables cerclées ; repères plombés aux limites supérieure et inférieure d'une douleur élective à la palpation (rachis, côtes, sternum)"
+  }
+ ],
+ "volumes": [
+  {
+   "id": "vol-mo-service",
+   "cibles": [
+    {
+     "nom": "GTV",
+     "type": "GTV",
+     "definition": "Lésion visible au scanner avec son extension osseuse complète, l'extension aux parties molles et la composante épidurale",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "CTV (rachis)",
+     "type": "CTV",
+     "definition": "Corps vertébral atteint ; pédicules et arc postérieur s'ils sont atteints ; tout le compartiment postérieur en cas d'atteinte pédiculaire",
+     "quand": "Rachis"
+    },
+    {
+     "nom": "CTV (os long)",
+     "type": "CTV",
+     "definition": "Totalité du segment osseux atteint ; marges longitudinales adaptées au risque fracturaire",
+     "quand": "Os long"
+    },
+    {
+     "nom": "PTV",
+     "type": "PTV",
+     "definition": "CTV + 7 mm (protocole du service)",
+     "quand": "Toujours",
+     "marge": "7 mm"
+    }
+   ],
+   "atlas": [],
+   "oar_ids": [
+    "oar-poumon-d",
+    "oar-poumon-g",
+    "oar-coeur",
+    "oar-moelle",
+    "oar-queue-cheval",
+    "oar-rectum",
+    "oar-vessie",
+    "oar-rein-d",
+    "oar-rein-g",
+    "oar-grele",
+    "oar-tete-femorale-d",
+    "oar-tete-femorale-g",
+    "oar-oesophage",
+    "oar-foie"
+   ]
+  }
+ ],
+ "curie_indications": [],
+ "systemique": [],
+ "hormonotherapie": [],
+ "points_attention": [
+  {
+   "cible": "mo-douleur",
+   "point": "Méta-analyse : réponse globale 60 % (fraction unique) contre 61 % (fractions multiples), réponse complète 23 contre 24 % ; risque de réirradiation 2,6 fois plus élevé après fraction unique (Chow 2012)",
+   "portee": "situation"
+  },
+  {
+   "cible": "mo-douleur",
+   "point": "La fraction unique peut être délivrée sur le rachis avec une toxicité tardive acceptable (ASTRO 2017)",
+   "portee": "situation"
+  },
+  {
+   "cible": "mo-compression",
+   "point": "Chirurgie de décompression puis RT : plus de patients marchent (84 contre 57 %) et marchent plus longtemps (médiane 122 contre 13 jours) ; 62 % des patients non ambulatoires remarchent contre 19 % (Patchell 2005)",
+   "portee": "situation"
+  },
+  {
+   "cible": "metastases_osseuses",
+   "point": "Fiche du service : contourage des volumes et OAR sans schéma de dose ; les schémas viennent des essais cités",
+   "portee": "localisation"
+  }
+ ],
+ "textes": {
+  "contourage": [
+   "Fiche du service « contourage des métastases osseuses »."
+  ],
+  "systemique": [
+   "Pas de traitement systémique associé à la RT dans ces schémas."
+  ]
+ }
+}

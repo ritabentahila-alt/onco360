@@ -1,0 +1,793 @@
+{
+ "version": "2026-10-25",
+ "id": "reirradiation",
+ "region_id": "os_palliatif",
+ "nom": "Réirradiation",
+ "ordre": 41,
+ "date_maj": "2026-10-24",
+ "situations": [
+  {
+   "id": "re-orl-postop",
+   "localisation_id": "reirradiation",
+   "titre": "Récidive ORL opérée : réirradiation post-opératoire",
+   "contexte": "reirradiation",
+   "criteres": "Récidive ou second primitif en territoire irradié, chirurgie de rattrapage macroscopiquement complète, pas de séquelle majeure de la première RT, bon état général, pas de métastase (GETTEC-GORTEC)",
+   "ordre": 1
+  },
+  {
+   "id": "re-orl-exclusif",
+   "localisation_id": "reirradiation",
+   "titre": "Récidive ORL non résécable",
+   "contexte": "reirradiation",
+   "criteres": "Carcinome épidermoïde récidivant ou second primitif en territoire irradié, non résécable (RTOG 9610, RTOG 9911)",
+   "ordre": 2
+  },
+  {
+   "id": "re-gbm",
+   "localisation_id": "reirradiation",
+   "titre": "Glioblastome en récidive",
+   "contexte": "reirradiation",
+   "criteres": "Progression à 6 mois ou plus de la fin de la radiochimiothérapie (RTOG 1205)",
+   "ordre": 3
+  },
+  {
+   "id": "re-sein",
+   "localisation_id": "reirradiation",
+   "titre": "Récidive mammaire homolatérale après traitement conservateur",
+   "contexte": "reirradiation",
+   "criteres": "Récidive unifocale de moins de 3 cm, plus d'un an après chirurgie conservatrice et RT du sein, seconde tumorectomie à berges saines, N0 clinique (RTOG 1014)",
+   "ordre": 4
+  },
+  {
+   "id": "re-rectum",
+   "localisation_id": "reirradiation",
+   "titre": "Récidive pelvienne d'un cancer du rectum déjà irradié",
+   "contexte": "reirradiation",
+   "criteres": "Récidive pelvienne prouvée, sans maladie extrapelvienne ni atteinte osseuse ; RT pelvienne antérieure ≤ 55 Gy ; Karnofsky ≥ 60 (Valentini 2006)",
+   "ordre": 5
+  },
+  {
+   "id": "re-os",
+   "localisation_id": "reirradiation",
+   "titre": "Métastase osseuse douloureuse déjà irradiée",
+   "contexte": "reirradiation",
+   "criteres": "Douleur d'au moins 2 points (Brief Pain Inventory) sur une métastase osseuse déjà irradiée (SC.20)",
+   "ordre": 6
+  }
+ ],
+ "schemas": [
+  {
+   "id": "re-orl-postop-60-30",
+   "situation_id": "re-orl-postop",
+   "titre": "RT post-opératoire 60 Gy / 30 fx + 5-FU et hydroxyurée",
+   "type": "rte_normo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "janot2008-reirr",
+    "decrevoisier2001"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 60,
+     "fractions": 30,
+     "dose_fx_Gy": 2,
+     "mode": "seul",
+     "rythme": "Étalée sur 11 semaines (cycles)",
+     "note": "Survie sans maladie améliorée (HR 1,68), SG non différente ; toxicité tardive de grade 3–4 à 2 ans 39 contre 10 %"
+    }
+   ],
+   "technique": "RT externe, RCMI de préférence",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-orl-curie",
+   "volumes_id": "vol-re-orl",
+   "contraintes_ids": [
+    "ct-reirr-moelle"
+   ],
+   "points_attention": [
+    "Doses cumulées en EQD2 ou en BED avec α/β = 2 Gy pour la moelle (Sahgal, HyTEC) ; Nieder 2006 prend 2 Gy pour la moelle cervicale et thoracique, 4 Gy pour la moelle lombaire"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Os et palliatif",
+    "Réirradiation",
+    "Récidive ORL opérée : réirradiation post-opératoire",
+    "Normofractionné"
+   ]
+  },
+  {
+   "id": "re-orl-rtog9610",
+   "situation_id": "re-orl-exclusif",
+   "titre": "RT 60 Gy / 40 fx (1,5 Gy × 2/j) en 4 cycles + 5-FU et hydroxyurée",
+   "type": "rte_normo",
+   "preuve": "option",
+   "essai_ids": [
+    "rtog9610"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 60,
+     "fractions": 40,
+     "dose_fx_Gy": 1.5,
+     "mode": "seul",
+     "rythme": "4 cycles d'une semaine : 1,5 Gy × 2/j pendant 5 jours",
+     "note": "SG à 2 ans 15,2 % ; toxicité aiguë de grade 5 : 7,6 %"
+    }
+   ],
+   "technique": "RT externe (protocole de l'essai)",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-orl-curie",
+   "volumes_id": "vol-re-orl",
+   "contraintes_ids": [
+    "ct-reirr-moelle"
+   ],
+   "points_attention": [
+    "Survie meilleure si la réirradiation commence plus d'un an après la première RT : médiane 9,8 contre 5,8 mois (RTOG 9610)",
+    "SBRT de réirradiation ORL : survie comparable à la RCMI pour les petits volumes traités à 35 Gy ou plus ; moins de toxicité aiguë de grade ≥ 4 (0,5 contre 5,1 %) (Vargo 2018)",
+    "RCMI : contrôle locorégional à 2 ans 52 % contre 20 % sans RCMI (Lee 2007) ; 5 décès par hémorragie carotidienne dans la série de Gustave Roussy (de Crevoisier 1998) et 2 dans RTOG 9911",
+    "Doses cumulées en EQD2 ou en BED avec α/β = 2 Gy pour la moelle (Sahgal, HyTEC) ; Nieder 2006 prend 2 Gy pour la moelle cervicale et thoracique, 4 Gy pour la moelle lombaire"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Os et palliatif",
+    "Réirradiation",
+    "Récidive ORL non résécable",
+    "Normofractionné"
+   ]
+  },
+  {
+   "id": "re-orl-rtog9911",
+   "situation_id": "re-orl-exclusif",
+   "titre": "RT 60 Gy / 40 fx (1,5 Gy × 2/j) une semaine sur deux + cisplatine et paclitaxel",
+   "type": "rte_normo",
+   "preuve": "option",
+   "essai_ids": [
+    "rtog9911"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 60,
+     "fractions": 40,
+     "dose_fx_Gy": 1.5,
+     "mode": "seul",
+     "rythme": "1,5 Gy × 2/j pendant 5 jours, toutes les 2 semaines, 4 cycles",
+     "note": "SG à 2 ans 25,9 % ; 8 % de décès liés au traitement"
+    }
+   ],
+   "technique": "RT externe (protocole de l'essai)",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-orl-curie",
+   "volumes_id": "vol-re-orl",
+   "contraintes_ids": [
+    "ct-reirr-moelle"
+   ],
+   "points_attention": [
+    "Survie meilleure si la réirradiation commence plus d'un an après la première RT : médiane 9,8 contre 5,8 mois (RTOG 9610)",
+    "SBRT de réirradiation ORL : survie comparable à la RCMI pour les petits volumes traités à 35 Gy ou plus ; moins de toxicité aiguë de grade ≥ 4 (0,5 contre 5,1 %) (Vargo 2018)",
+    "RCMI : contrôle locorégional à 2 ans 52 % contre 20 % sans RCMI (Lee 2007) ; 5 décès par hémorragie carotidienne dans la série de Gustave Roussy (de Crevoisier 1998) et 2 dans RTOG 9911",
+    "Doses cumulées en EQD2 ou en BED avec α/β = 2 Gy pour la moelle (Sahgal, HyTEC) ; Nieder 2006 prend 2 Gy pour la moelle cervicale et thoracique, 4 Gy pour la moelle lombaire"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Os et palliatif",
+    "Réirradiation",
+    "Récidive ORL non résécable",
+    "Normofractionné"
+   ]
+  },
+  {
+   "id": "re-orl-rcmi-60",
+   "situation_id": "re-orl-exclusif",
+   "titre": "RCMI 60 Gy / 30 fx ± chimiothérapie",
+   "type": "rte_normo",
+   "preuve": "option",
+   "essai_ids": [
+    "miri-ward2018",
+    "lee2007-reirr",
+    "decrevoisier1998",
+    "vargo2018"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 60,
+     "fractions": 30,
+     "dose_fx_Gy": 2,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "MIRI : dose médiane 60 Gy, chimiothérapie chez 76 %, toxicité tardive de grade ≥ 3 à 2 ans 14,2 % ; Gustave Roussy : 2 Gy par jour"
+    }
+   ],
+   "technique": "RCMI",
+   "systemique": "Selon RCP",
+   "simulation_id": "sim-orl-curie",
+   "volumes_id": "vol-re-orl",
+   "contraintes_ids": [
+    "ct-reirr-moelle"
+   ],
+   "points_attention": [
+    "Survie meilleure si la réirradiation commence plus d'un an après la première RT : médiane 9,8 contre 5,8 mois (RTOG 9610)",
+    "SBRT de réirradiation ORL : survie comparable à la RCMI pour les petits volumes traités à 35 Gy ou plus ; moins de toxicité aiguë de grade ≥ 4 (0,5 contre 5,1 %) (Vargo 2018)",
+    "RCMI : contrôle locorégional à 2 ans 52 % contre 20 % sans RCMI (Lee 2007) ; 5 décès par hémorragie carotidienne dans la série de Gustave Roussy (de Crevoisier 1998) et 2 dans RTOG 9911",
+    "Doses cumulées en EQD2 ou en BED avec α/β = 2 Gy pour la moelle (Sahgal, HyTEC) ; Nieder 2006 prend 2 Gy pour la moelle cervicale et thoracique, 4 Gy pour la moelle lombaire"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Os et palliatif",
+    "Réirradiation",
+    "Récidive ORL non résécable",
+    "Normofractionné"
+   ]
+  },
+  {
+   "id": "re-gbm-35-10",
+   "situation_id": "re-gbm",
+   "titre": "RT 35 Gy / 10 fx + bévacizumab",
+   "type": "rte_hypo",
+   "preuve": "option",
+   "essai_ids": [
+    "rtog1205",
+    "fogh2010"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 35,
+     "fractions": 10,
+     "dose_fx_Gy": 3.5,
+     "mode": "seul",
+     "rythme": "10 séances",
+     "note": "SSP médiane 7,1 contre 3,8 mois avec le bévacizumab seul ; SG 10,1 contre 9,7 mois"
+    }
+   ],
+   "technique": "RT conformationnelle ou stéréotaxie fractionnée",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-crane",
+   "volumes_id": "vol-re-gbm",
+   "points_attention": [
+    "Stéréotaxie hypofractionnée, médiane 35 Gy en fractions de 3,5 Gy : survie médiane 11 mois ; âge jeune et petit GTV associés à une meilleure survie (Fogh 2010)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Os et palliatif",
+    "Réirradiation",
+    "Glioblastome en récidive",
+    "Hypofractionné"
+   ],
+   "contraintes_ids": []
+  },
+  {
+   "id": "re-sein-45-30",
+   "situation_id": "re-sein",
+   "titre": "Irradiation partielle du sein 45 Gy / 30 fx (1,5 Gy × 2/j)",
+   "type": "rte_normo",
+   "preuve": "option",
+   "essai_ids": [
+    "rtog1014"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 45,
+     "fractions": 30,
+     "dose_fx_Gy": 1.5,
+     "mode": "seul",
+     "rythme": "1,5 Gy × 2/j, 30 séances en 15 jours",
+     "note": "Récidive dans le sein à 5 ans 5 % ; mastectomie 10 % ; toxicité tardive de grade 3 : 7 %"
+    }
+   ],
+   "technique": "RT conformationnelle 3D",
+   "systemique": "Aucune",
+   "simulation_id": "sim-sein",
+   "volumes_id": "vol-re-sein",
+   "points_attention": [
+    "RTOG 1014 : conservation du sein chez 90 % des patientes ; survie sans métastase et SG à 5 ans 95 %"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Os et palliatif",
+    "Réirradiation",
+    "Récidive mammaire homolatérale après traitement conservateur",
+    "Normofractionné"
+   ],
+   "contraintes_ids": []
+  },
+  {
+   "id": "re-rectum-30-108",
+   "situation_id": "re-rectum",
+   "titre": "RT 30 Gy / 25 fx puis complément 10,8 Gy / 9 fx (1,2 Gy × 2/j) + 5-FU continu",
+   "type": "rte_normo",
+   "preuve": "option",
+   "essai_ids": [
+    "valentini2006",
+    "guren2014"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV2",
+     "dose_Gy": 30,
+     "fractions": 25,
+     "dose_fx_Gy": 1.2,
+     "mode": "sequentiel",
+     "rythme": "1,2 Gy × 2/j, au moins 6 h d'intervalle",
+     "note": "GTV + 4 cm"
+    },
+    {
+     "volume": "PTV1",
+     "dose_Gy": 10.8,
+     "fractions": 9,
+     "dose_fx_Gy": 1.2,
+     "mode": "sequentiel",
+     "rythme": "1,2 Gy × 2/j, au moins 6 h d'intervalle",
+     "note": "GTV + 2 cm ; 40,8 Gy au total ; chirurgie 6 à 8 semaines après la fin"
+    }
+   ],
+   "technique": "RT externe",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-rec",
+   "volumes_id": "vol-re-rectum",
+   "points_attention": [
+    "Revue : 30 à 40 Gy sur le GTV avec 2 à 4 cm de marge ; hyperfractionnement (1,2 à 1,5 Gy × 2/j) préférable quand une résection est possible (Guren 2014)",
+    "Survie à 5 ans 39,3 %, 66,8 % après résection R0 (Valentini 2006)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Os et palliatif",
+    "Réirradiation",
+    "Récidive pelvienne d'un cancer du rectum déjà irradié",
+    "Normofractionné"
+   ],
+   "contraintes_ids": []
+  },
+  {
+   "id": "re-os-8-1",
+   "situation_id": "re-os",
+   "titre": "RT 8 Gy en 1 fx",
+   "type": "rte_hypo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "sc20"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 8,
+     "fractions": 1,
+     "dose_fx_Gy": 8,
+     "mode": "seul",
+     "rythme": "1 séance",
+     "note": "Réponse globale à 2 mois (intention de traiter) 28 % contre 32 % avec 20 Gy : non inférieur ; moins de perte d'appétit et de diarrhée"
+    }
+   ],
+   "technique": "RT conformationnelle 3D",
+   "systemique": "Aucune",
+   "simulation_id": "sim-mo-service",
+   "volumes_id": "vol-mo-service",
+   "contraintes_ids": [
+    "ct-reirr-moelle"
+   ],
+   "points_attention": [
+    "SC.20 en per-protocole : réponse 45 contre 51 %, non-infériorité non démontrée ; fractures pathologiques 7 contre 5 %, non significatif",
+    "Doses cumulées en EQD2 ou en BED avec α/β = 2 Gy pour la moelle (Sahgal, HyTEC) ; Nieder 2006 prend 2 Gy pour la moelle cervicale et thoracique, 4 Gy pour la moelle lombaire"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Os et palliatif",
+    "Réirradiation",
+    "Métastase osseuse douloureuse déjà irradiée",
+    "Hypofractionné"
+   ]
+  },
+  {
+   "id": "re-os-20-5",
+   "situation_id": "re-os",
+   "titre": "RT 20 Gy / 5 fx",
+   "type": "rte_hypo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "sc20",
+    "tsang2015"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 20,
+     "fractions": 5,
+     "dose_fx_Gy": 4,
+     "mode": "seul",
+     "rythme": "5 séances",
+     "note": "Bras « 20 Gy en fractions multiples » de SC.20"
+    }
+   ],
+   "technique": "RT conformationnelle 3D",
+   "systemique": "Aucune",
+   "simulation_id": "sim-mo-service",
+   "volumes_id": "vol-mo-service",
+   "contraintes_ids": [
+    "ct-reirr-moelle"
+   ],
+   "points_attention": [
+    "SC.20 en per-protocole : réponse 45 contre 51 %, non-infériorité non démontrée ; fractures pathologiques 7 contre 5 %, non significatif",
+    "Doses cumulées en EQD2 ou en BED avec α/β = 2 Gy pour la moelle (Sahgal, HyTEC) ; Nieder 2006 prend 2 Gy pour la moelle cervicale et thoracique, 4 Gy pour la moelle lombaire"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Os et palliatif",
+    "Réirradiation",
+    "Métastase osseuse douloureuse déjà irradiée",
+    "Hypofractionné"
+   ]
+  },
+  {
+   "id": "re-os-20-8",
+   "situation_id": "re-os",
+   "titre": "RT 20 Gy / 8 fx",
+   "type": "rte_hypo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "sc20",
+    "tsang2015"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 20,
+     "fractions": 8,
+     "dose_fx_Gy": 2.5,
+     "mode": "seul",
+     "rythme": "8 séances",
+     "note": "Bras « 20 Gy en fractions multiples » de SC.20"
+    }
+   ],
+   "technique": "RT conformationnelle 3D",
+   "systemique": "Aucune",
+   "simulation_id": "sim-mo-service",
+   "volumes_id": "vol-mo-service",
+   "contraintes_ids": [
+    "ct-reirr-moelle"
+   ],
+   "points_attention": [
+    "SC.20 en per-protocole : réponse 45 contre 51 %, non-infériorité non démontrée ; fractures pathologiques 7 contre 5 %, non significatif",
+    "Doses cumulées en EQD2 ou en BED avec α/β = 2 Gy pour la moelle (Sahgal, HyTEC) ; Nieder 2006 prend 2 Gy pour la moelle cervicale et thoracique, 4 Gy pour la moelle lombaire"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Os et palliatif",
+    "Réirradiation",
+    "Métastase osseuse douloureuse déjà irradiée",
+    "Hypofractionné"
+   ]
+  }
+ ],
+ "simulations": [
+  {
+   "id": "sim-orl-curie",
+   "position": "Décubitus dorsal, bras le long du corps, nuque dégagée, épaules basses, mousse sous les genoux, plan dur (matelas fin seulement si intolérance)",
+   "contention": "Masque thermoformé 5 points et têtière 5 points ; cale-tête adapté à la courbure cervicale ; tête en légère extension, axe conduits auditifs–commissures labiales perpendiculaire à la table",
+   "preparation": "Retrait des prothèses dentaires amovibles ; canule de trachéotomie gardée si non laryngectomisé ; fil de plomb sur les cicatrices et bolus sur prescription ; ne pas avaler pendant l'acquisition",
+   "scanner": "Sans puis avec injection iodée (60 ml en 40 s, pause 90 s, 40 ml en 27 s), mêmes limites, coupes jointives de 2 mm, du vertex à la carène, épaules incluses ; contre-indications : allergie, clairance < 50 ml/min ; biguanides arrêtés 48 h",
+   "imagerie": "Fusion rigide avec l'IRM et la TEP-FDG (validée par le médecin, région centrée sur la tumeur) ; imagerie de plus d'un mois renouvelable ; post-opératoire : fusion avec l'imagerie préopératoire",
+   "reperes": "Point 0 : trois points sur le masque (un médian, deux latéraux) ; points tatoués sur la fourchette sternale et l'appendice xiphoïde"
+  },
+  {
+   "id": "sim-crane",
+   "position": "Décubitus dorsal, bras le long du corps, coussin sous les genoux",
+   "contention": "Masque thermoformé 3 points",
+   "scanner": "Non injecté, coupes jointives de 2,5 mm, crâne entier jusqu'à C3, moins de 2 semaines avant le début de la RT",
+   "imagerie": "IRM dosimétrique T1 3D gadolinium et T2-FLAIR, axiales strictes, fusionnées au scanner ; IRM post-opératoire précoce (48–72 h) pour le GTV ; éviter l'IRM post-opératoire tardive, qui surestime le résidu"
+  },
+  {
+   "id": "sim-sein",
+   "position": "Décubitus dorsal (référence) ; décubitus latéral isocentrique possible pour le sein seul (Sénorif)",
+   "preparation": "Inspiration bloquée recommandée à gauche et en cas d'irradiation de la CMI, sauf sein seul en décubitus latéral (Sénorif)",
+   "scanner": "Scanner 3D, coupes de 5 mm au plus, sein entier et OAR contourés (FAST-Forward)",
+   "imagerie": "Lit tumoral : examen clinique préopératoire, mammographie, échographie, IRM, compte rendu opératoire, clips et anatomopathologie (Sénorif)",
+   "reperes": "Clips en titane ou grains d'or sur les parois de la cavité, fortement recommandés (FAST-Forward, IMPORT LOW)"
+  },
+  {
+   "id": "sim-rec",
+   "position": "Décubitus dorsal",
+   "contention": "Immobilisation pelvienne standard",
+   "preparation": "Vessie mi-pleine (reproductibilité) ; rectum le plus vide possible, sans lavement traumatique",
+   "scanner": "Injecté (repérage vasculaire, limites mésorectales)",
+   "imagerie": "IRM pelvienne pré-thérapeutique T2 sagittale et axiale oblique dans l'axe du rectum : fusion obligatoire ; TEP-TDM si disponible",
+   "reperes": "Repère plombé sur la marge anale (impératif)"
+  },
+  {
+   "id": "sim-mo-service",
+   "position": "Position reproductible ; bras au-dessus de la tête si possible pour les côtes et le rachis dorsal",
+   "contention": "Immobilisation adaptée (matelas coque si nécessaire)",
+   "scanner": "Scanner de centrage",
+   "reperes": "Lésions palpables cerclées ; repères plombés aux limites supérieure et inférieure d'une douleur élective à la palpation (rachis, côtes, sternum)"
+  }
+ ],
+ "volumes": [
+  {
+   "id": "vol-re-orl",
+   "cibles": [
+    {
+     "nom": "GTV",
+     "type": "GTV",
+     "definition": "Récidive ou second primitif macroscopique",
+     "quand": "Réirradiation exclusive"
+    },
+    {
+     "nom": "CTV",
+     "type": "CTV",
+     "definition": "Lit de résection de la récidive",
+     "quand": "Post-opératoire"
+    },
+    {
+     "nom": "PTV",
+     "type": "PTV",
+     "definition": "Volume à limiter : le volume de la réirradiation est le seul facteur associé au risque de décès en analyse multivariée (de Crevoisier 1998) ; marge du centre",
+     "quand": "Toujours"
+    }
+   ],
+   "atlas": [],
+   "oar_ids": [
+    "oar-canal-medullaire",
+    "oar-tronc-cerebral",
+    "oar-carotide-d",
+    "oar-carotide-g",
+    "oar-mandibule",
+    "oar-larynx",
+    "oar-constricteurs",
+    "oar-cavite-orale",
+    "oar-parotide-d",
+    "oar-parotide-g"
+   ]
+  },
+  {
+   "id": "vol-re-gbm",
+   "cibles": [
+    {
+     "nom": "GTV",
+     "type": "GTV",
+     "definition": "Récidive visible en IRM",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "PTV",
+     "type": "PTV",
+     "definition": "GTV + marge du centre ; un petit GTV est associé à une meilleure survie (Fogh 2010)",
+     "quand": "Toujours"
+    }
+   ],
+   "atlas": [],
+   "oar_ids": [
+    "oar-tronc-cerebral",
+    "oar-chiasma",
+    "oar-nerf-optique-d",
+    "oar-nerf-optique-g",
+    "oar-encephale"
+   ]
+  },
+  {
+   "id": "vol-re-sein",
+   "cibles": [
+    {
+     "nom": "CTV",
+     "type": "CTV",
+     "definition": "Lit de la seconde tumorectomie (irradiation partielle du sein)",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "PTV",
+     "type": "PTV",
+     "definition": "CTV + marge du centre",
+     "quand": "Toujours"
+    }
+   ],
+   "atlas": [],
+   "oar_ids": [
+    "oar-coeur",
+    "oar-poumon-homolateral",
+    "oar-sein-controlateral",
+    "oar-peau"
+   ]
+  },
+  {
+   "id": "vol-re-rectum",
+   "cibles": [
+    {
+     "nom": "GTV",
+     "type": "GTV",
+     "definition": "Récidive pelvienne",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "PTV2",
+     "type": "PTV",
+     "definition": "GTV + 4 cm",
+     "quand": "Premier temps (30 Gy)",
+     "marge": "4 cm"
+    },
+    {
+     "nom": "PTV1",
+     "type": "PTV",
+     "definition": "GTV + 2 cm",
+     "quand": "Complément (10,8 Gy)",
+     "marge": "2 cm"
+    }
+   ],
+   "atlas": [],
+   "oar_ids": [
+    "oar-grele",
+    "oar-vessie",
+    "oar-colon",
+    "oar-tete-femorale-d",
+    "oar-tete-femorale-g"
+   ]
+  },
+  {
+   "id": "vol-mo-service",
+   "cibles": [
+    {
+     "nom": "GTV",
+     "type": "GTV",
+     "definition": "Lésion visible au scanner avec son extension osseuse complète, l'extension aux parties molles et la composante épidurale",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "CTV (rachis)",
+     "type": "CTV",
+     "definition": "Corps vertébral atteint ; pédicules et arc postérieur s'ils sont atteints ; tout le compartiment postérieur en cas d'atteinte pédiculaire",
+     "quand": "Rachis"
+    },
+    {
+     "nom": "CTV (os long)",
+     "type": "CTV",
+     "definition": "Totalité du segment osseux atteint ; marges longitudinales adaptées au risque fracturaire",
+     "quand": "Os long"
+    },
+    {
+     "nom": "PTV",
+     "type": "PTV",
+     "definition": "CTV + 7 mm (protocole du service)",
+     "quand": "Toujours",
+     "marge": "7 mm"
+    }
+   ],
+   "atlas": [],
+   "oar_ids": [
+    "oar-poumon-d",
+    "oar-poumon-g",
+    "oar-coeur",
+    "oar-moelle",
+    "oar-queue-cheval",
+    "oar-rectum",
+    "oar-vessie",
+    "oar-rein-d",
+    "oar-rein-g",
+    "oar-grele",
+    "oar-tete-femorale-d",
+    "oar-tete-femorale-g",
+    "oar-oesophage",
+    "oar-foie"
+   ]
+  }
+ ],
+ "curie_indications": [
+  {
+   "indication": "Récidive mammaire homolatérale après tumorectomie de rattrapage",
+   "modalite": "Curiethérapie interstitielle multicathéters, bas débit, débit pulsé ou haut débit",
+   "niveau_preuve": "Étude multicentrique du groupe sein du GEC-ESTRO (Hannoun-Levi 2013)",
+   "note": "Seconde récidive locale 5,6 % à 5 ans et 7,2 % à 10 ans ; complications de grade 3–4 : 11 % ; résultat esthétique bon ou excellent : 85 %"
+  }
+ ],
+ "systemique": [
+  {
+   "situation": "re-orl-postop",
+   "traitement": "5-fluorouracil et hydroxyurée concomitants à la RT",
+   "protocole": "5-FU + hydroxyurée concomitants (réirradiation ORL)",
+   "situation_id": "re-orl-postop",
+   "essai_ids": [
+    "janot2008-reirr",
+    "decrevoisier2001"
+   ],
+   "note": "Doses selon le protocole de l'essai"
+  },
+  {
+   "situation": "re-orl-exclusif",
+   "traitement": "5-FU 300 mg/m² en bolus IV et hydroxyurée 1,5 g per os à chaque cycle de RT (4 cycles)",
+   "protocole": "5-FU + hydroxyurée concomitants (réirradiation ORL)",
+   "situation_id": "re-orl-exclusif",
+   "essai_ids": [
+    "rtog9610"
+   ],
+   "note": "Schéma re-orl-rtog9610"
+  },
+  {
+   "situation": "re-orl-exclusif",
+   "traitement": "Cisplatine 15 mg/m² IV J1–J5 et paclitaxel 20 mg/m² IV J1–J5, toutes les 2 semaines, 4 cycles",
+   "protocole": "Cisplatine–paclitaxel concomitants (RTOG 9911)",
+   "situation_id": "re-orl-exclusif",
+   "essai_ids": [
+    "rtog9911"
+   ],
+   "note": "Schéma re-orl-rtog9911"
+  },
+  {
+   "situation": "re-gbm",
+   "traitement": "Bévacizumab 10 mg/kg IV toutes les 2 semaines, concomitant à la RT, jusqu'à progression",
+   "protocole": "Bévacizumab (glioblastome en récidive)",
+   "situation_id": "re-gbm",
+   "essai_ids": [
+    "rtog1205"
+   ],
+   "note": "SSP à 6 mois 54,3 contre 29,1 %"
+  },
+  {
+   "situation": "re-rectum",
+   "traitement": "5-FU en perfusion continue 225 mg/m²/j, 7 j/7 pendant la RT ; raltitrexed adjuvant 3 mg/m² toutes les 3 semaines, 5 cycles",
+   "protocole": "5-FU continu concomitant à la RT (rectum)",
+   "situation_id": "re-rectum",
+   "essai_ids": [
+    "valentini2006"
+   ],
+   "note": "Chirurgie 6 à 8 semaines après la radiochimiothérapie"
+  }
+ ],
+ "hormonotherapie": [],
+ "points_attention": [
+  {
+   "cible": "reirradiation",
+   "point": "Classification et compte rendu des réirradiations : consensus ESTRO-EORTC (Andratschke 2022). Type 1 : recouvrement avec un volume déjà irradié ; type 2 : pas de recouvrement, mais toxicité cumulée possible",
+   "portee": "localisation"
+  },
+  {
+   "cible": "reirradiation",
+   "point": "ORL, MIRI : classe I (plus de 2 ans depuis la première RT et tumeur réséquée) SG à 2 ans 61,9 % ; classe II (plus de 2 ans et non réséquée, ou 2 ans ou moins sans sonde d'alimentation ni trachéotomie) 40,0 % ; classe III 16,8 % (Ward 2018)",
+   "portee": "localisation"
+  },
+  {
+   "cible": "re-orl-exclusif",
+   "point": "Survie meilleure si la réirradiation commence plus d'un an après la première RT : médiane 9,8 contre 5,8 mois (RTOG 9610)",
+   "portee": "situation"
+  },
+  {
+   "cible": "re-orl-exclusif",
+   "point": "SBRT de réirradiation ORL : survie comparable à la RCMI pour les petits volumes traités à 35 Gy ou plus ; moins de toxicité aiguë de grade ≥ 4 (0,5 contre 5,1 %) (Vargo 2018)",
+   "portee": "situation"
+  },
+  {
+   "cible": "re-orl-exclusif",
+   "point": "RCMI : contrôle locorégional à 2 ans 52 % contre 20 % sans RCMI (Lee 2007) ; 5 décès par hémorragie carotidienne dans la série de Gustave Roussy (de Crevoisier 1998) et 2 dans RTOG 9911",
+   "portee": "situation"
+  },
+  {
+   "cible": "re-gbm",
+   "point": "Stéréotaxie hypofractionnée, médiane 35 Gy en fractions de 3,5 Gy : survie médiane 11 mois ; âge jeune et petit GTV associés à une meilleure survie (Fogh 2010)",
+   "portee": "situation"
+  },
+  {
+   "cible": "re-sein",
+   "point": "RTOG 1014 : conservation du sein chez 90 % des patientes ; survie sans métastase et SG à 5 ans 95 %",
+   "portee": "situation"
+  },
+  {
+   "cible": "re-rectum",
+   "point": "Revue : 30 à 40 Gy sur le GTV avec 2 à 4 cm de marge ; hyperfractionnement (1,2 à 1,5 Gy × 2/j) préférable quand une résection est possible (Guren 2014)",
+   "portee": "situation"
+  },
+  {
+   "cible": "re-rectum",
+   "point": "Survie à 5 ans 39,3 %, 66,8 % après résection R0 (Valentini 2006)",
+   "portee": "situation"
+  },
+  {
+   "cible": "re-os",
+   "point": "SC.20 en per-protocole : réponse 45 contre 51 %, non-infériorité non démontrée ; fractures pathologiques 7 contre 5 %, non significatif",
+   "portee": "situation"
+  },
+  {
+   "cible": "ct-reirr-moelle",
+   "point": "Doses cumulées en EQD2 ou en BED avec α/β = 2 Gy pour la moelle (Sahgal, HyTEC) ; Nieder 2006 prend 2 Gy pour la moelle cervicale et thoracique, 4 Gy pour la moelle lombaire",
+   "portee": "contraintes"
+  }
+ ],
+ "textes": {}
+}

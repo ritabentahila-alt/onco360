@@ -1,0 +1,989 @@
+{
+ "version": "2026-10-25",
+ "id": "cavite_buccale",
+ "region_id": "orl",
+ "nom": "Cavité buccale",
+ "ordre": 15,
+ "date_maj": "2026-10-24",
+ "situations": [
+  {
+   "id": "cb-post-op",
+   "localisation_id": "cavite_buccale",
+   "titre": "Cavité buccale opérée : RT adjuvante",
+   "contexte": "post_op",
+   "criteres": "Haut risque : R1 ou rupture capsulaire → 66 Gy et cisplatine. Risque intermédiaire : marges < 5 mm, T3–T4, engainements, emboles → 60 Gy (fiche du service ; Bernier 2005)",
+   "ordre": 1
+  },
+  {
+   "id": "cb-en-place",
+   "localisation_id": "cavite_buccale",
+   "titre": "Cavité buccale non opérée : RT exclusive ± chimiothérapie",
+   "contexte": "en_place",
+   "criteres": "Tumeur non résécable, contre-indication ou refus de la chirurgie",
+   "ordre": 2
+  },
+  {
+   "id": "cb-curie",
+   "localisation_id": "cavite_buccale",
+   "titre": "T1–T2 N0 de la langue mobile ou du plancher : curiethérapie interstitielle",
+   "contexte": "en_place",
+   "criteres": "Curiethérapie exclusive avec curage ganglionnaire (44,6 % d'envahissement occulte au curage, Bourgier 2005), ou complément après RT externe",
+   "ordre": 3
+  }
+ ],
+ "schemas": [
+  {
+   "id": "cb-postop-66-curie",
+   "situation_id": "cb-post-op",
+   "titre": "RT post-opératoire 66 / 59,4 / 54 Gy en 33 fx (SIB)",
+   "type": "rte_normo",
+   "preuve": "pratique_institutionnelle",
+   "essai_ids": [
+    "eortc22931",
+    "rtog9501",
+    "bernier2005",
+    "curie-vads-2021"
+   ],
+   "source_institutionnelle": "Institut Curie 2021 ; tableur du service « ORL 66-59,4-54,12 Gy »",
+   "prescriptions": [
+    {
+     "volume": "PTV66",
+     "dose_Gy": 66,
+     "fractions": 33,
+     "dose_fx_Gy": 2,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Seulement si R1 ou rupture capsulaire ; prescription sur la D50 ou la Dmoy du PTV"
+    },
+    {
+     "volume": "PTV59,4",
+     "dose_Gy": 59.4,
+     "fractions": 33,
+     "dose_fx_Gy": 1.8,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Lit opératoire et niveaux N+"
+    },
+    {
+     "volume": "PTV54",
+     "dose_Gy": 54.12,
+     "fractions": 33,
+     "dose_fx_Gy": 1.64,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Curie écrit « 54 Gy (1,64 Gy/séance) »"
+    }
+   ],
+   "technique": "VMAT SIB, CBCT quotidien",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-orl-curie",
+   "volumes_id": "vol-orl-curie-postop",
+   "contraintes_ids": [
+    "ct-orl-curie"
+   ],
+   "couverture": "PTV : D95 % ≥ 95 % ; CTV : D98 % ≥ 98 % (acceptable D95 % ≥ 98 %) ; PTV66 ∪ PTV59,4 : D2 % ≤ 107 %",
+   "points_attention": [
+    "Rupture capsulaire et marges atteintes sont les deux facteurs qui justifient le cisplatine concomitant (analyse EORTC 22931 et RTOG 9501, Bernier 2005)",
+    "Résidu macroscopique (R2) : passer au schéma de tumeur en place, 70 Gy (fiche du service)",
+    "Si un OAR chevauche un PTV, l'objectif s'applique à l'OAR moins le PTV (Curie)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "ORL",
+    "Cavité buccale",
+    "Cavité buccale opérée : RT adjuvante",
+    "Normofractionné"
+   ]
+  },
+  {
+   "id": "cb-postop-66-54-service",
+   "situation_id": "cb-post-op",
+   "titre": "RT post-opératoire 66 / 54 Gy en 33 fx, deux niveaux (fiche du service)",
+   "type": "rte_normo",
+   "preuve": "pratique_institutionnelle",
+   "essai_ids": [
+    "eortc22931",
+    "rtog9501",
+    "bernier2005"
+   ],
+   "source_institutionnelle": "Fiche du service « RT ORL post-opératoire »",
+   "prescriptions": [
+    {
+     "volume": "PTV66",
+     "dose_Gy": 66,
+     "fractions": 33,
+     "dose_fx_Gy": 2,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "CTV haut risque : R1 et/ou aires N+ R+"
+    },
+    {
+     "volume": "PTV54",
+     "dose_Gy": 54.12,
+     "fractions": 33,
+     "dose_fx_Gy": 1.64,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "La fiche écrit « 54 Gy (5 × 1,6 Gy/semaine) » : corrigé à 1,64 Gy pour 33 fx"
+    }
+   ],
+   "technique": "VMAT ou tomothérapie SIB, IGRT quotidienne",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-orl-curie",
+   "volumes_id": "vol-cb-postop-service",
+   "contraintes_ids": [
+    "ct-orl-curie",
+    "ct-orl-igr"
+   ],
+   "couverture": "Tableur du service : D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 % de la dose prescrite",
+   "points_attention": [
+    "Rupture capsulaire et marges atteintes sont les deux facteurs qui justifient le cisplatine concomitant (analyse EORTC 22931 et RTOG 9501, Bernier 2005)",
+    "Résidu macroscopique (R2) : passer au schéma de tumeur en place, 70 Gy (fiche du service)",
+    "La fiche du service mélange « CTV T54 » et « CTV T56 » et prescrit 60 Gy sans CTV60 défini : le référentiel retient CTV T54 et un CTV60",
+    "Si un OAR chevauche un PTV, l'objectif s'applique à l'OAR moins le PTV (Curie)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "ORL",
+    "Cavité buccale",
+    "Cavité buccale opérée : RT adjuvante",
+    "Normofractionné"
+   ]
+  },
+  {
+   "id": "cb-postop-60-54-service",
+   "situation_id": "cb-post-op",
+   "titre": "RT post-opératoire 60 / 54 Gy en 30 fx (risque intermédiaire)",
+   "type": "rte_normo",
+   "preuve": "pratique_institutionnelle",
+   "essai_ids": [
+    "rtog9501",
+    "bernier2005"
+   ],
+   "source_institutionnelle": "Fiche du service « RT ORL post-opératoire » ; tableur du service « ORL 60-54 Gy »",
+   "prescriptions": [
+    {
+     "volume": "PTV60",
+     "dose_Gy": 60,
+     "fractions": 30,
+     "dose_fx_Gy": 2,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Lit opératoire, risque intermédiaire"
+    },
+    {
+     "volume": "PTV54",
+     "dose_Gy": 54,
+     "fractions": 30,
+     "dose_fx_Gy": 1.8,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Aires électives"
+    }
+   ],
+   "technique": "VMAT ou tomothérapie SIB, IGRT quotidienne",
+   "systemique": "Aucune",
+   "simulation_id": "sim-orl-curie",
+   "volumes_id": "vol-cb-postop-service",
+   "contraintes_ids": [
+    "ct-orl-curie",
+    "ct-orl-igr"
+   ],
+   "couverture": "Tableur du service : D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
+   "points_attention": [
+    "Rupture capsulaire et marges atteintes sont les deux facteurs qui justifient le cisplatine concomitant (analyse EORTC 22931 et RTOG 9501, Bernier 2005)",
+    "Résidu macroscopique (R2) : passer au schéma de tumeur en place, 70 Gy (fiche du service)",
+    "La fiche du service mélange « CTV T54 » et « CTV T56 » et prescrit 60 Gy sans CTV60 défini : le référentiel retient CTV T54 et un CTV60",
+    "Si un OAR chevauche un PTV, l'objectif s'applique à l'OAR moins le PTV (Curie)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "ORL",
+    "Cavité buccale",
+    "Cavité buccale opérée : RT adjuvante",
+    "Normofractionné"
+   ]
+  },
+  {
+   "id": "cb-70-35-curie",
+   "situation_id": "cb-en-place",
+   "titre": "RT exclusive 70 / 63 / 56 Gy en 35 fx (SIB) ± chimiothérapie",
+   "type": "rte_normo",
+   "preuve": "pratique_institutionnelle",
+   "essai_ids": [
+    "mach-nc",
+    "mach-nc-2021",
+    "bonner2006",
+    "curie-vads-2021"
+   ],
+   "source_institutionnelle": "Institut Curie 2021 ; tableur du service « ORL 70-63-56 Gy »",
+   "prescriptions": [
+    {
+     "volume": "PTV70",
+     "dose_Gy": 70,
+     "fractions": 35,
+     "dose_fx_Gy": 2,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Prescription sur la D50 du PTV"
+    },
+    {
+     "volume": "PTV63",
+     "dose_Gy": 63,
+     "fractions": 35,
+     "dose_fx_Gy": 1.8,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Optionnel : niveaux N+"
+    },
+    {
+     "volume": "PTV56",
+     "dose_Gy": 56,
+     "fractions": 35,
+     "dose_fx_Gy": 1.6,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Prophylaxie"
+    }
+   ],
+   "technique": "VMAT SIB, CBCT quotidien",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-orl-curie",
+   "volumes_id": "vol-orl-curie-en-place",
+   "contraintes_ids": [
+    "ct-orl-curie"
+   ],
+   "couverture": "PTV : D95 % ≥ 95 % ; CTV : D98 % ≥ 98 % ; PTV70 : D2 % ≤ 107 %",
+   "points_attention": [
+    "Si un OAR chevauche un PTV, l'objectif s'applique à l'OAR moins le PTV (Curie)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "ORL",
+    "Cavité buccale",
+    "Cavité buccale non opérée : RT exclusive ± chimiothérapie",
+    "Normofractionné"
+   ]
+  },
+  {
+   "id": "cb-6996-33-service",
+   "situation_id": "cb-en-place",
+   "titre": "RT exclusive 69,96 / 59,4 / 54,12 Gy en 33 fx (SIB) ± chimiothérapie",
+   "type": "rte_normo",
+   "preuve": "pratique_institutionnelle",
+   "essai_ids": [
+    "rtog0225",
+    "mach-nc"
+   ],
+   "source_institutionnelle": "Tableur du service « ORL 69,96-59,4-54,12 Gy »",
+   "prescriptions": [
+    {
+     "volume": "PTV69,96",
+     "dose_Gy": 69.96,
+     "fractions": 33,
+     "dose_fx_Gy": 2.12,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "RTOG 0225 : 70 Gy sur le macroscopique et 59,4 Gy sur l'infraclinique en 33 séances"
+    },
+    {
+     "volume": "PTV59,4",
+     "dose_Gy": 59.4,
+     "fractions": 33,
+     "dose_fx_Gy": 1.8,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Haut risque infraclinique"
+    },
+    {
+     "volume": "PTV54,12",
+     "dose_Gy": 54.12,
+     "fractions": 33,
+     "dose_fx_Gy": 1.64,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Bas risque"
+    }
+   ],
+   "technique": "Tomothérapie ou VMAT SIB, IGRT quotidienne",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-orl-curie",
+   "volumes_id": "vol-orl-igr",
+   "contraintes_ids": [
+    "ct-orl-curie",
+    "ct-orl-igr"
+   ],
+   "couverture": "Tableur du service : D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
+   "points_attention": [
+    "Si un OAR chevauche un PTV, l'objectif s'applique à l'OAR moins le PTV (Curie)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "ORL",
+    "Cavité buccale",
+    "Cavité buccale non opérée : RT exclusive ± chimiothérapie",
+    "Normofractionné"
+   ]
+  },
+  {
+   "id": "cb-70-30-igr",
+   "situation_id": "cb-en-place",
+   "titre": "RT exclusive 70 / 60 / 54 Gy en 30 fx (SIB)",
+   "type": "rte_hypo",
+   "preuve": "pratique_institutionnelle",
+   "essai_ids": [
+    "igr-orl-rcmi"
+   ],
+   "source_institutionnelle": "Gustave Roussy, RCMI des cancers de la tête et du cou (2017)",
+   "prescriptions": [
+    {
+     "volume": "PTV70",
+     "dose_Gy": 70,
+     "fractions": 30,
+     "dose_fx_Gy": 2.333,
+     "mode": "SIB",
+     "rythme": "5 fx/sem (6 semaines)",
+     "note": "Maladie macroscopique ; Gustave Roussy admet aussi 33 fx (2,12 Gy)"
+    },
+    {
+     "volume": "PTV60",
+     "dose_Gy": 60,
+     "fractions": 30,
+     "dose_fx_Gy": 2,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "CTV haut risque"
+    },
+    {
+     "volume": "PTV54",
+     "dose_Gy": 54,
+     "fractions": 30,
+     "dose_fx_Gy": 1.8,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "CTV risque intermédiaire"
+    }
+   ],
+   "technique": "RapidArc ou tomothérapie SIB",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-orl-igr",
+   "volumes_id": "vol-orl-igr",
+   "contraintes_ids": [
+    "ct-orl-igr"
+   ],
+   "couverture": "PTV70 : D95 % ≥ 66,5 Gy, D5 % ≤ 77 Gy ; PTV60 : D95 % ≥ 57 Gy, D5 % ≤ 66 Gy ; PTV54 : D95 % ≥ 51,3 Gy, D5 % ≤ 59,4 Gy",
+   "points_attention": [
+    "Schéma Gustave Roussy à 2,33 Gy par fraction sur le macroscopique ; les essais EORTC 1219 et ARTFORCE utilisaient 70 Gy / 35 fx et 54,25 Gy (référentiel Gustave Roussy)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "ORL",
+    "Cavité buccale",
+    "Cavité buccale non opérée : RT exclusive ± chimiothérapie",
+    "Hypofractionné"
+   ]
+  },
+  {
+   "id": "cb-pdr-56",
+   "situation_id": "cb-curie",
+   "titre": "Curiethérapie PDR exclusive, 56 Gy (pulses de 0,4 à 0,7 Gy/h)",
+   "type": "curie_pdr",
+   "preuve": "option",
+   "essai_ids": [
+    "strnad2005-pdr",
+    "kovacs2017",
+    "guinot2024"
+   ],
+   "prescriptions": [
+    {
+     "volume": "CTV (implant)",
+     "dose_Gy": 56,
+     "mode": "seul",
+     "rythme": "Débit pulsé",
+     "note": "Dose de référence médiane des implants seuls, le plus souvent après chirurgie minimale non mutilante ; 1 pulse par heure, 24 h/24"
+    }
+   ],
+   "technique": "Implant interstitiel, planification 3D sur scanner",
+   "systemique": "Aucune",
+   "volumes_id": "vol-cb-curie",
+   "points_attention": [
+    "Le curage ganglionnaire est indispensable avec la curiethérapie exclusive : 44,6 % d'envahissement occulte (Bourgier 2005)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "ORL",
+    "Cavité buccale",
+    "T1–T2 N0 de la langue mobile ou du plancher : curiethérapie interstitielle",
+    "Curiethérapie"
+   ],
+   "contraintes_ids": []
+  },
+  {
+   "id": "cb-hdr-54-18",
+   "situation_id": "cb-curie",
+   "titre": "Curiethérapie HDR exclusive, 18 × 3 Gy (2 fx/j)",
+   "type": "curie_hdr",
+   "preuve": "option",
+   "essai_ids": [
+    "tucek2011",
+    "guinot2010",
+    "guinot2024"
+   ],
+   "prescriptions": [
+    {
+     "volume": "CTV (implant)",
+     "dose_Gy": 54,
+     "fractions": 18,
+     "dose_fx_Gy": 3,
+     "mode": "seul",
+     "rythme": "2 fx/j",
+     "note": "Contrôle local 85 % ; protection mandibulaire recommandée"
+    }
+   ],
+   "technique": "Implant interstitiel (tubes plastiques), planification 3D",
+   "systemique": "Aucune",
+   "volumes_id": "vol-cb-curie",
+   "points_attention": [
+    "Le curage ganglionnaire est indispensable avec la curiethérapie exclusive : 44,6 % d'envahissement occulte (Bourgier 2005)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "ORL",
+    "Cavité buccale",
+    "T1–T2 N0 de la langue mobile ou du plancher : curiethérapie interstitielle",
+    "Curiethérapie"
+   ],
+   "contraintes_ids": []
+  },
+  {
+   "id": "cb-rte-hdr-boost",
+   "situation_id": "cb-curie",
+   "titre": "RT externe 50 Gy / 25 fx puis complément HDR 18 Gy en 6 fx",
+   "type": "rte_plus_curie",
+   "preuve": "option",
+   "essai_ids": [
+    "guinot2010",
+    "santos2017",
+    "guinot2024"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV (tumeur et aires ganglionnaires)",
+     "dose_Gy": 50,
+     "fractions": 25,
+     "dose_fx_Gy": 2,
+     "mode": "sequentiel",
+     "rythme": "5 fx/sem",
+     "note": "RT externe première"
+    },
+    {
+     "volume": "CTV (implant)",
+     "dose_Gy": 18,
+     "fractions": 6,
+     "dose_fx_Gy": 3,
+     "mode": "sequentiel",
+     "rythme": "2 fx/j",
+     "note": "Dose médiane ; 18 à 24 Gy en 6 à 8 fx après 50–60 Gy pour les tumeurs évoluées (Santos 2017)"
+    }
+   ],
+   "technique": "RT externe puis implant interstitiel",
+   "systemique": "Aucune",
+   "simulation_id": "sim-orl-curie",
+   "volumes_id": "vol-cb-curie",
+   "contraintes_ids": [
+    "ct-orl-curie"
+   ],
+   "points_attention": [
+    "Le curage ganglionnaire est indispensable avec la curiethérapie exclusive : 44,6 % d'envahissement occulte (Bourgier 2005)",
+    "Si un OAR chevauche un PTV, l'objectif s'applique à l'OAR moins le PTV (Curie)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "ORL",
+    "Cavité buccale",
+    "T1–T2 N0 de la langue mobile ou du plancher : curiethérapie interstitielle",
+    "RTE + curiethérapie"
+   ]
+  }
+ ],
+ "simulations": [
+  {
+   "id": "sim-orl-curie",
+   "position": "Décubitus dorsal, bras le long du corps, nuque dégagée, épaules basses, mousse sous les genoux, plan dur (matelas fin seulement si intolérance)",
+   "contention": "Masque thermoformé 5 points et têtière 5 points ; cale-tête adapté à la courbure cervicale ; tête en légère extension, axe conduits auditifs–commissures labiales perpendiculaire à la table",
+   "preparation": "Retrait des prothèses dentaires amovibles ; canule de trachéotomie gardée si non laryngectomisé ; fil de plomb sur les cicatrices et bolus sur prescription ; ne pas avaler pendant l'acquisition",
+   "scanner": "Sans puis avec injection iodée (60 ml en 40 s, pause 90 s, 40 ml en 27 s), mêmes limites, coupes jointives de 2 mm, du vertex à la carène, épaules incluses ; contre-indications : allergie, clairance < 50 ml/min ; biguanides arrêtés 48 h",
+   "imagerie": "Fusion rigide avec l'IRM et la TEP-FDG (validée par le médecin, région centrée sur la tumeur) ; imagerie de plus d'un mois renouvelable ; post-opératoire : fusion avec l'imagerie préopératoire",
+   "reperes": "Point 0 : trois points sur le masque (un médian, deux latéraux) ; points tatoués sur la fourchette sternale et l'appendice xiphoïde"
+  },
+  {
+   "id": "sim-orl-igr",
+   "position": "Décubitus dorsal, tête en extension modérée (angle de Reid 20–30°)",
+   "contention": "Masque 5 points (tête, cou, haut du thorax et épaules) ; traction des épaules si le volume descend sous l'os hyoïde ; masque stéréotaxique 3 points possible pour les sinus",
+   "scanner": "Sans contraste pour la dosimétrie, puis avec contraste (double injection, la première au moins 5 min avant) pour le contourage ; coupes de 2 ou 3 mm selon le système ; du vertex à la carène",
+   "imagerie": "IRM et TEP-FDG fortement recommandées pour le cavum, l'oropharynx et les récidives",
+   "reperes": "Marqueurs cutanés selon la technique"
+  }
+ ],
+ "volumes": [
+  {
+   "id": "vol-cb-curie",
+   "cibles": [
+    {
+     "nom": "CTV (implant)",
+     "type": "CTV",
+     "definition": "Tumeur et marge définies sur l'examen clinique et l'imagerie ; planification 3D sur scanner avec les vecteurs en place (GEC-ESTRO)",
+     "quand": "Toujours"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "GEC-ESTRO ACROP 2017",
+     "url": "https://doi.org/10.1016/j.radonc.2016.10.008"
+    }
+   ],
+   "oar_ids": [
+    "oar-mandibule"
+   ]
+  },
+  {
+   "id": "vol-orl-curie-en-place",
+   "cibles": [
+    {
+     "nom": "GTV_T",
+     "type": "GTV",
+     "definition": "Tumeur primitive sur le scanner injecté (seule imagerie de référence), aidé de l'IRM, de la TEP-FDG et de la description clinique (panendoscopie, photos)",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "GTV_N",
+     "type": "GTV",
+     "definition": "Adénopathies métastatiques regroupées. Critères scanner : petit axe > 10 mm (6–8 mm si plus de 3 ganglions contigus), forme ronde, centre nécrotique, perte du hile graisseux, effraction capsulaire",
+     "quand": "Si N+"
+    },
+    {
+     "nom": "CTV70",
+     "type": "CTV",
+     "definition": "GTV_T + 5 mm et GTV_N + 5 mm, réduits à l'air et aux barrières non envahies (os, fascia, muscle) ; marge plus large possible en base de langue, ou autour d'une adénopathie avec effraction ou de plus de 3 cm",
+     "quand": "Toujours",
+     "marge": "5 mm"
+    },
+    {
+     "nom": "CTV63",
+     "type": "CTV",
+     "definition": "Optionnel : totalité des niveaux contenant une adénopathie (ex. : adénopathie sous-digastrique → niveau IIa) ; contenu dans CTV56",
+     "quand": "Option, si N+"
+    },
+    {
+     "nom": "CTV56",
+     "type": "CTV",
+     "definition": "CTV56_T : extension infraclinique selon l'approche compartimentale (Lapeyre 2005 et 2010 ; Lee 2018 pour le cavum) ; GTV + 5 mm + 5 mm (Grégoire 2018) = minimum. CTV56_N : aires à risque (sélection Biau 2019, délinéation Grégoire 2014) ; muscle envahi inclus sur toute sa hauteur",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "PTV70, PTV63, PTV56",
+     "type": "PTV",
+     "definition": "CTV + 3 mm, moins 2 mm sous le contour externe (pas de retrait si la peau est envahie : bolus)",
+     "quand": "Toujours",
+     "marge": "3 mm"
+    },
+    {
+     "nom": "PRV",
+     "type": "PRV",
+     "definition": "Canal médullaire, tronc cérébral, chiasma et nerfs optiques + 3 mm ; PRV du nerf optique homolatéral facultatif si la tumeur est au contact",
+     "quand": "Toujours",
+     "marge": "3 mm"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "Grégoire 2014, aires ganglionnaires",
+     "url": "https://doi.org/10.1016/j.radonc.2013.10.010"
+    },
+    {
+     "nom": "Grégoire 2018, CTV-P",
+     "url": "https://doi.org/10.1016/j.radonc.2017.10.016"
+    },
+    {
+     "nom": "Brouwer 2015, OAR",
+     "url": "https://doi.org/10.1016/j.radonc.2015.07.041"
+    }
+   ],
+   "oar_ids": [
+    "oar-parotide-d",
+    "oar-parotide-g",
+    "oar-glande-sous-max-d",
+    "oar-glande-sous-max-g",
+    "oar-cavite-orale",
+    "oar-levres",
+    "oar-larynx",
+    "oar-constricteurs",
+    "oar-oesophage",
+    "oar-canal-medullaire",
+    "oar-tronc-cerebral",
+    "oar-cervelet",
+    "oar-atm-d",
+    "oar-atm-g",
+    "oar-mandibule",
+    "oar-oreille-interne-d",
+    "oar-oreille-interne-g",
+    "oar-plexus-brachial-d",
+    "oar-plexus-brachial-g",
+    "oar-thyroide"
+   ]
+  },
+  {
+   "id": "vol-orl-curie-postop",
+   "cibles": [
+    {
+     "nom": "CTV66",
+     "type": "CTV",
+     "definition": "Seulement si R1 ou N+ R+. CTV66_T : lit où la marge est ≤ 1 mm (5–10 mm d'épaisseur). CTV66_N : lit des adénopathies en rupture capsulaire, emplacement du GTV_N préopératoire + 5 mm ; contenu dans CTV59,4",
+     "quand": "R1 ou rupture capsulaire",
+     "marge": "5 mm"
+    },
+    {
+     "nom": "CTV59,4",
+     "type": "CTV",
+     "definition": "CTV59,4_T : lit opératoire, 10–15 mm (voire 20 mm) de tissu résiduel autour du GTV_T préopératoire, sans l'air ; lambeau : 5–10 mm à la jonction avec les tissus natifs. CTV59,4_N : niveaux N+",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "CTV54",
+     "type": "CTV",
+     "definition": "CTV54_T : extension infraclinique au-delà du lit (approche compartimentale ; Piram 2019 et Frédéric-Moreau 2019 pour les glandes salivaires, Guillemin 2021 pour l'ethmoïde). CTV54_N : aires au-delà des niveaux N+ selon le site, l'atteinte et le côté du curage ; extension sous-cutanée vers la cicatrice si rupture capsulaire",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "PTV66, PTV59,4, PTV54",
+     "type": "PTV",
+     "definition": "CTV + 3 mm, moins 2 mm sous le contour externe",
+     "quand": "Toujours",
+     "marge": "3 mm"
+    },
+    {
+     "nom": "PRV",
+     "type": "PRV",
+     "definition": "Comme en place : canal médullaire, tronc cérébral, chiasma et nerfs optiques + 3 mm",
+     "quand": "Toujours",
+     "marge": "3 mm"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "Grégoire 2014",
+     "url": "https://doi.org/10.1016/j.radonc.2013.10.010"
+    },
+    {
+     "nom": "Brouwer 2015",
+     "url": "https://doi.org/10.1016/j.radonc.2015.07.041"
+    }
+   ],
+   "oar_ids": [
+    "oar-parotide-d",
+    "oar-parotide-g",
+    "oar-glande-sous-max-d",
+    "oar-glande-sous-max-g",
+    "oar-cavite-orale",
+    "oar-levres",
+    "oar-larynx",
+    "oar-constricteurs",
+    "oar-oesophage",
+    "oar-canal-medullaire",
+    "oar-tronc-cerebral",
+    "oar-cervelet",
+    "oar-atm-d",
+    "oar-atm-g",
+    "oar-mandibule",
+    "oar-oreille-interne-d",
+    "oar-oreille-interne-g",
+    "oar-plexus-brachial-d",
+    "oar-plexus-brachial-g",
+    "oar-thyroide"
+   ]
+  },
+  {
+   "id": "vol-orl-igr",
+   "cibles": [
+    {
+     "nom": "GTV",
+     "type": "GTV",
+     "definition": "Maladie macroscopique clinique, endoscopique et radiologique (imagerie fusionnée) ; adénopathie tumorale si plus de 1 cm de grand axe ou centre nécrotique",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "CTV70",
+     "type": "CTV",
+     "definition": "GTV + 5 mm en tous sens, sauf irradiation excessive d'une structure saine majeure ; jusqu'à 10 mm pour les formes sous-muqueuses mal limitées",
+     "quand": "Toujours",
+     "marge": "5 mm"
+    },
+    {
+     "nom": "CTV60",
+     "type": "CTV",
+     "definition": "Haut risque : zones, y compris ganglionnaires, où le risque d'extension microscopique dépasse environ 50 %",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "CTV54",
+     "type": "CTV",
+     "definition": "Risque intermédiaire : environ 10 à 50 %",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "PTV",
+     "type": "PTV",
+     "definition": "CTV + 5 mm habituellement, réductible au contact du tronc cérébral ou du chiasma",
+     "quand": "Toujours",
+     "marge": "5 mm"
+    },
+    {
+     "nom": "PRV",
+     "type": "PRV",
+     "definition": "Moelle + 5 mm, tronc cérébral + 3 mm, voies optiques + 2 mm ; peau (3 mm) contourée en tomothérapie et RapidArc",
+     "quand": "Toujours"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "Grégoire 2014",
+     "url": "https://doi.org/10.1016/j.radonc.2013.10.010"
+    },
+    {
+     "nom": "Brouwer 2015",
+     "url": "https://doi.org/10.1016/j.radonc.2015.07.041"
+    }
+   ],
+   "oar_ids": [
+    "oar-canal-medullaire",
+    "oar-moelle",
+    "oar-tronc-cerebral",
+    "oar-chiasma",
+    "oar-nerf-optique-d",
+    "oar-nerf-optique-g",
+    "oar-lobe-frontal",
+    "oar-lobe-temporal-d",
+    "oar-lobe-temporal-g",
+    "oar-fosse-posterieure",
+    "oar-cristallin-d",
+    "oar-cristallin-g",
+    "oar-oeil-d",
+    "oar-oeil-g",
+    "oar-hypophyse",
+    "oar-cochlee-d",
+    "oar-cochlee-g",
+    "oar-parotide-d",
+    "oar-parotide-g",
+    "oar-glande-sous-max-d",
+    "oar-glande-sous-max-g",
+    "oar-atm-d",
+    "oar-atm-g",
+    "oar-mandibule",
+    "oar-levres",
+    "oar-cavite-orale",
+    "oar-larynx",
+    "oar-constricteurs",
+    "oar-thyroide",
+    "oar-muscles-nuque"
+   ]
+  },
+  {
+   "id": "vol-cb-postop-service",
+   "cibles": [
+    {
+     "nom": "GTV",
+     "type": "GTV",
+     "definition": "Seulement si résidu R2 ou reliquat visible : basculer vers un schéma de tumeur en place (70 Gy)",
+     "quand": "R2"
+    },
+    {
+     "nom": "CTV T66",
+     "type": "CTV",
+     "definition": "Lit tumoral chirurgical, marges positives ou < 1 mm, envahissement osseux, trajet périnerveux si engainement majeur",
+     "quand": "Haut risque"
+    },
+    {
+     "nom": "CTV T54",
+     "type": "CTV",
+     "definition": "Langue mobile profonde, muscles intrinsèques adjacents, plancher buccal profond, génioglosse, bord mandibulaire interne, glande sublinguale, loge submandibulaire, gencive et trigone rétromolaire, espace masticateur antérieur, mandibule adjacente si proche ; barrières osseuses respectées sauf effraction",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "CTV N66",
+     "type": "CTV",
+     "definition": "Loge ganglionnaire avec rupture capsulaire, marge positive ou résidu",
+     "quand": "Rupture capsulaire"
+    },
+    {
+     "nom": "CTV N54",
+     "type": "CTV",
+     "definition": "IA, IB, II, III ; ± IV si T3–T4 ; ± V si extension postérieure ; homolatéral si latéralisé, bilatéral si ligne médiane ; niveaux séparés",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "CTV60",
+     "type": "CTV",
+     "definition": "Lit tumoral quand le risque est intermédiaire (marges < 5 mm, T3–T4, engainement, emboles) sans facteur de haut risque",
+     "quand": "Risque intermédiaire"
+    },
+    {
+     "nom": "PTV66, PTV60, PTV54",
+     "type": "PTV",
+     "definition": "CTV + 5 mm",
+     "quand": "Toujours",
+     "marge": "5 mm"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "Grégoire 2014",
+     "url": "https://doi.org/10.1016/j.radonc.2013.10.010"
+    }
+   ],
+   "oar_ids": [
+    "oar-parotide-d",
+    "oar-parotide-g",
+    "oar-glande-sous-max-d",
+    "oar-glande-sous-max-g",
+    "oar-constricteurs",
+    "oar-moelle",
+    "oar-larynx",
+    "oar-thyroide",
+    "oar-atm-d",
+    "oar-atm-g",
+    "oar-mandibule",
+    "oar-tronc-cerebral",
+    "oar-muscles-nuque",
+    "oar-encephale",
+    "oar-nerf-optique-d",
+    "oar-nerf-optique-g",
+    "oar-chiasma",
+    "oar-oeil-d",
+    "oar-oeil-g",
+    "oar-cristallin-d",
+    "oar-cristallin-g",
+    "oar-cochlee-d",
+    "oar-cochlee-g",
+    "oar-plexus-brachial-d",
+    "oar-plexus-brachial-g"
+   ]
+  }
+ ],
+ "curie_indications": [
+  {
+   "indication": "T1–T2 N0 de la langue mobile, exclusive",
+   "modalite": "PDR (56 Gy) ou HDR (18 × 3 Gy)",
+   "niveau_preuve": "Séries prospectives et rétrospectives ; recommandations GEC-ESTRO",
+   "note": "Curage ganglionnaire associé"
+  },
+  {
+   "indication": "T2 N0 de la langue mobile, série historique",
+   "modalite": "LDR, 60 Gy à 0,5 Gy/h",
+   "niveau_preuve": "Série de 279 patients (Bourgier 2005)",
+   "note": "Contrôle local 79,1 % à 2 ans ; technique abandonnée"
+  },
+  {
+   "indication": "Complément après RT externe",
+   "modalite": "HDR 18 Gy (6 × 3 Gy) ou PDR 24 Gy",
+   "niveau_preuve": "Séries (Guinot 2010 ; Strnad 2005)",
+   "note": "Après 50 Gy de RT externe"
+  },
+  {
+   "indication": "Lit opératoire du plancher buccal",
+   "modalite": "HDR seule, 22,7 Gy en moyenne",
+   "niveau_preuve": "Série de 44 patients (Ferenczi 2021)",
+   "note": "Contrôle local 89 % à 5 et 10 ans"
+  }
+ ],
+ "systemique": [
+  {
+   "situation": "cb-post-op",
+   "traitement": "Cisplatine 100 mg/m² J1, J22 et J43 de la RT",
+   "protocole": "Cisplatine 100 mg/m² toutes les 3 semaines, concomitant à la RT",
+   "situation_id": "cb-post-op",
+   "essai_ids": [
+    "eortc22931",
+    "rtog9501",
+    "bernier2005"
+   ],
+   "note": "Si R1 ou rupture capsulaire (fiche du service ; Bernier 2005)"
+  },
+  {
+   "situation": "cb-en-place",
+   "traitement": "Cisplatine 100 mg/m² J1, J22 et J43 de la RT",
+   "protocole": "Cisplatine 100 mg/m² toutes les 3 semaines, concomitant à la RT",
+   "situation_id": "cb-en-place",
+   "essai_ids": [
+    "mach-nc",
+    "mach-nc-2021"
+   ],
+   "note": "Chimiothérapie concomitante : HR de décès 0,81, + 6,5 % de survie à 5 ans ; bénéfice décroissant avec l'âge"
+  },
+  {
+   "situation": "cb-en-place",
+   "traitement": "Carboplatine et 5-fluorouracil, 3 cycles de 4 jours pendant 70 Gy en 7 semaines",
+   "protocole": "Carboplatine–5-FU concomitant (GORTEC 99-02)",
+   "situation_id": "cb-en-place",
+   "essai_ids": [
+    "gortec9902"
+   ],
+   "note": "L'accélération de la RT ne remplace pas la chimiothérapie"
+  },
+  {
+   "situation": "cb-en-place",
+   "traitement": "Cetuximab 400 mg/m² avant la RT puis 250 mg/m² par semaine",
+   "protocole": "Cetuximab concomitant à la RT",
+   "situation_id": "cb-en-place",
+   "essai_ids": [
+    "bonner2006"
+   ],
+   "note": "Si contre-indication au cisplatine ; SG améliorée par rapport à la RT seule (HR 0,74)"
+  }
+ ],
+ "hormonotherapie": [],
+ "points_attention": [
+  {
+   "cible": "cb-post-op",
+   "point": "Rupture capsulaire et marges atteintes sont les deux facteurs qui justifient le cisplatine concomitant (analyse EORTC 22931 et RTOG 9501, Bernier 2005)",
+   "portee": "situation"
+  },
+  {
+   "cible": "cb-post-op",
+   "point": "Résidu macroscopique (R2) : passer au schéma de tumeur en place, 70 Gy (fiche du service)",
+   "portee": "situation"
+  },
+  {
+   "cible": "vol-cb-postop-service",
+   "point": "La fiche du service mélange « CTV T54 » et « CTV T56 » et prescrit 60 Gy sans CTV60 défini : le référentiel retient CTV T54 et un CTV60",
+   "portee": "volumes"
+  },
+  {
+   "cible": "cb-70-30-igr",
+   "point": "Schéma Gustave Roussy à 2,33 Gy par fraction sur le macroscopique ; les essais EORTC 1219 et ARTFORCE utilisaient 70 Gy / 35 fx et 54,25 Gy (référentiel Gustave Roussy)",
+   "portee": "schema"
+  },
+  {
+   "cible": "cb-curie",
+   "point": "Le curage ganglionnaire est indispensable avec la curiethérapie exclusive : 44,6 % d'envahissement occulte (Bourgier 2005)",
+   "portee": "situation"
+  },
+  {
+   "cible": "ct-orl-curie",
+   "point": "Si un OAR chevauche un PTV, l'objectif s'applique à l'OAR moins le PTV (Curie)",
+   "portee": "contraintes"
+  },
+  {
+   "cible": "cavite_buccale",
+   "point": "IMRT avec épargne parotidienne : moins de xérostomie (PARSPORT, Nutting 2011). Épargne des constricteurs (Dmoy ≤ 50 Gy hors volume haute dose) : meilleure déglutition (DARS, Nutting 2023)",
+   "portee": "localisation"
+  }
+ ],
+ "textes": {
+  "curietherapie": [
+   "Le bas débit continu (fils d'iridium) a été remplacé par le débit pulsé et le haut débit (GEC-ESTRO 2024)."
+  ],
+  "contourage": [
+   "Volumes communs, puis volumes propres à la cavité buccale (fiche du service). Contourage des OAR : consensus Brouwer 2015."
+  ]
+ }
+}

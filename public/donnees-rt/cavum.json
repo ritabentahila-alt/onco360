@@ -1,0 +1,634 @@
+{
+ "version": "2026-10-25",
+ "id": "cavum",
+ "region_id": "orl",
+ "nom": "Cavum",
+ "ordre": 19,
+ "date_maj": "2026-10-24",
+ "situations": [
+  {
+   "id": "cav-localise",
+   "localisation_id": "cavum",
+   "titre": "Cavum T1–T2, peu ou pas d'atteinte ganglionnaire",
+   "contexte": "en_place",
+   "criteres": "RT exclusive en T1–T2 N0 (annexe Gustave Roussy) ; stade II : cisplatine hebdomadaire concomitant (Chen 2011)",
+   "ordre": 1
+  },
+  {
+   "id": "cav-avance",
+   "localisation_id": "cavum",
+   "titre": "Cavum localement évolué (stades III–IVA)",
+   "contexte": "en_place",
+   "criteres": "Chimiothérapie d'induction (gemcitabine-cisplatine ou TPF) puis RCT au cisplatine (Zhang 2019 ; Sun 2016)",
+   "ordre": 2
+  }
+ ],
+ "schemas": [
+  {
+   "id": "cav-loc-70-30-igr",
+   "situation_id": "cav-localise",
+   "titre": "RT 70 / 60 / 54 Gy en 30 fx (SIB), T1–T2 N0",
+   "type": "rte_hypo",
+   "preuve": "pratique_institutionnelle",
+   "essai_ids": [
+    "igr-orl-rcmi"
+   ],
+   "source_institutionnelle": "Gustave Roussy, RCMI des cancers de la tête et du cou (2017), annexe 2",
+   "prescriptions": [
+    {
+     "volume": "PTV70",
+     "dose_Gy": 70,
+     "fractions": 30,
+     "dose_fx_Gy": 2.333,
+     "mode": "SIB",
+     "rythme": "5 fx/sem (6 semaines)",
+     "note": "GTV + 5 mm (10 mm si forme sous-muqueuse mal limitée)"
+    },
+    {
+     "volume": "PTV60",
+     "dose_Gy": 60,
+     "fractions": 30,
+     "dose_fx_Gy": 2,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Cavum entier, base du crâne et aires de drainage préférentiel"
+    },
+    {
+     "volume": "PTV54",
+     "dose_Gy": 54,
+     "fractions": 30,
+     "dose_fx_Gy": 1.8,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Autres aires N0"
+    }
+   ],
+   "technique": "RapidArc ou tomothérapie SIB",
+   "systemique": "Aucune",
+   "simulation_id": "sim-orl-igr",
+   "volumes_id": "vol-cav-igr",
+   "contraintes_ids": [
+    "ct-orl-igr"
+   ],
+   "couverture": "PTV70 : D95 % ≥ 66,5 Gy, D5 % ≤ 77 Gy ; PTV60 : D95 % ≥ 57 Gy ; PTV54 : D95 % ≥ 51,3 Gy",
+   "date_verif": "2026-10-24",
+   "ind": [
+    "ORL",
+    "Cavum",
+    "Cavum T1–T2, peu ou pas d'atteinte ganglionnaire",
+    "Hypofractionné"
+   ],
+   "points_attention": []
+  },
+  {
+   "id": "cav-loc-70-35-curie",
+   "situation_id": "cav-localise",
+   "titre": "RT 70 / 63 / 56 Gy en 35 fx (SIB) ± cisplatine",
+   "type": "rte_normo",
+   "preuve": "pratique_institutionnelle",
+   "essai_ids": [
+    "chen2011-npc",
+    "curie-vads-2021"
+   ],
+   "source_institutionnelle": "Institut Curie 2021",
+   "prescriptions": [
+    {
+     "volume": "PTV70",
+     "dose_Gy": 70,
+     "fractions": 35,
+     "dose_fx_Gy": 2,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Prescription sur la D50 du PTV"
+    },
+    {
+     "volume": "PTV63",
+     "dose_Gy": 63,
+     "fractions": 35,
+     "dose_fx_Gy": 1.8,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Optionnel : niveaux N+"
+    },
+    {
+     "volume": "PTV56",
+     "dose_Gy": 56,
+     "fractions": 35,
+     "dose_fx_Gy": 1.6,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Prophylaxie"
+    }
+   ],
+   "technique": "VMAT SIB, CBCT quotidien",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-orl-curie",
+   "volumes_id": "vol-cav-curie",
+   "contraintes_ids": [
+    "ct-orl-curie"
+   ],
+   "couverture": "PTV : D95 % ≥ 95 % ; CTV : D98 % ≥ 98 % ; PTV70 : D2 % ≤ 107 %",
+   "date_verif": "2026-10-24",
+   "ind": [
+    "ORL",
+    "Cavum",
+    "Cavum T1–T2, peu ou pas d'atteinte ganglionnaire",
+    "Normofractionné"
+   ],
+   "points_attention": []
+  },
+  {
+   "id": "cav-av-70-35-curie",
+   "situation_id": "cav-avance",
+   "titre": "RCT 70 / 63 / 56 Gy en 35 fx (SIB) après induction",
+   "type": "rte_normo",
+   "preuve": "pratique_institutionnelle",
+   "essai_ids": [
+    "zhang2019-gp",
+    "sun2016-tpf",
+    "int0099",
+    "curie-vads-2021"
+   ],
+   "source_institutionnelle": "Institut Curie 2021 ; tableur du service « ORL 70-63-56 Gy »",
+   "prescriptions": [
+    {
+     "volume": "PTV70",
+     "dose_Gy": 70,
+     "fractions": 35,
+     "dose_fx_Gy": 2,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Avec cisplatine 100 mg/m² toutes les 3 semaines"
+    },
+    {
+     "volume": "PTV63",
+     "dose_Gy": 63,
+     "fractions": 35,
+     "dose_fx_Gy": 1.8,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Optionnel : niveaux N+"
+    },
+    {
+     "volume": "PTV56",
+     "dose_Gy": 56,
+     "fractions": 35,
+     "dose_fx_Gy": 1.6,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Prophylaxie bilatérale"
+    }
+   ],
+   "technique": "VMAT SIB, CBCT quotidien",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-orl-curie",
+   "volumes_id": "vol-cav-curie",
+   "contraintes_ids": [
+    "ct-orl-curie"
+   ],
+   "couverture": "PTV : D95 % ≥ 95 % ; CTV : D98 % ≥ 98 % ; PTV70 : D2 % ≤ 107 %",
+   "points_attention": [
+    "La chimiothérapie adjuvante cisplatine–5-FU après RCT n'améliore pas la survie sans échec (Chen 2012)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "ORL",
+    "Cavum",
+    "Cavum localement évolué (stades III–IVA)",
+    "Normofractionné"
+   ]
+  },
+  {
+   "id": "cav-av-6996-33",
+   "situation_id": "cav-avance",
+   "titre": "RCT 69,96 / 59,4 / 54,12 Gy en 33 fx (SIB) après induction",
+   "type": "rte_normo",
+   "preuve": "pratique_institutionnelle",
+   "essai_ids": [
+    "rtog0225",
+    "zhang2019-gp",
+    "sun2016-tpf"
+   ],
+   "source_institutionnelle": "Tableur du service « ORL 69,96-59,4-54,12 Gy »",
+   "prescriptions": [
+    {
+     "volume": "PTV69,96",
+     "dose_Gy": 69.96,
+     "fractions": 33,
+     "dose_fx_Gy": 2.12,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "RTOG 0225 : 70 Gy sur T et N+, 59,4 Gy sur l'infraclinique, 33 séances"
+    },
+    {
+     "volume": "PTV59,4",
+     "dose_Gy": 59.4,
+     "fractions": 33,
+     "dose_fx_Gy": 1.8,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Haut risque"
+    },
+    {
+     "volume": "PTV54,12",
+     "dose_Gy": 54.12,
+     "fractions": 33,
+     "dose_fx_Gy": 1.64,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Bas risque"
+    }
+   ],
+   "technique": "Tomothérapie ou VMAT SIB, IGRT quotidienne",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-orl-curie",
+   "volumes_id": "vol-cav-igr",
+   "contraintes_ids": [
+    "ct-orl-curie",
+    "ct-orl-igr"
+   ],
+   "couverture": "Tableur du service : D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
+   "points_attention": [
+    "La chimiothérapie adjuvante cisplatine–5-FU après RCT n'améliore pas la survie sans échec (Chen 2012)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "ORL",
+    "Cavum",
+    "Cavum localement évolué (stades III–IVA)",
+    "Normofractionné"
+   ]
+  },
+  {
+   "id": "cav-av-70-30-igr",
+   "situation_id": "cav-avance",
+   "titre": "RT 70 / 60 / 54 Gy en 30 fx (SIB)",
+   "type": "rte_hypo",
+   "preuve": "pratique_institutionnelle",
+   "essai_ids": [
+    "igr-orl-rcmi"
+   ],
+   "source_institutionnelle": "Gustave Roussy, RCMI des cancers de la tête et du cou (2017)",
+   "prescriptions": [
+    {
+     "volume": "PTV70",
+     "dose_Gy": 70,
+     "fractions": 30,
+     "dose_fx_Gy": 2.333,
+     "mode": "SIB",
+     "rythme": "5 fx/sem (6 semaines)",
+     "note": "Macroscopique T et N"
+    },
+    {
+     "volume": "PTV60",
+     "dose_Gy": 60,
+     "fractions": 30,
+     "dose_fx_Gy": 2,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Haut risque"
+    },
+    {
+     "volume": "PTV54",
+     "dose_Gy": 54,
+     "fractions": 30,
+     "dose_fx_Gy": 1.8,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Risque intermédiaire"
+    }
+   ],
+   "technique": "RapidArc ou tomothérapie SIB",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-orl-igr",
+   "volumes_id": "vol-cav-igr",
+   "contraintes_ids": [
+    "ct-orl-igr"
+   ],
+   "couverture": "PTV70 : D95 % ≥ 66,5 Gy, D5 % ≤ 77 Gy ; PTV60 : D95 % ≥ 57 Gy ; PTV54 : D95 % ≥ 51,3 Gy",
+   "points_attention": [
+    "La chimiothérapie adjuvante cisplatine–5-FU après RCT n'améliore pas la survie sans échec (Chen 2012)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "ORL",
+    "Cavum",
+    "Cavum localement évolué (stades III–IVA)",
+    "Hypofractionné"
+   ]
+  },
+  {
+   "id": "cav-loc-6996-33",
+   "situation_id": "cav-localise",
+   "titre": "RT 69,96 / 59,4 / 54,12 Gy en 33 fx (SIB)",
+   "type": "rte_normo",
+   "preuve": "pratique_institutionnelle",
+   "essai_ids": [
+    "rtog0225"
+   ],
+   "source_institutionnelle": "Tableur du service « ORL 69,96-59,4-54,12 Gy »",
+   "prescriptions": [
+    {
+     "volume": "PTV69,96",
+     "dose_Gy": 69.96,
+     "fractions": 33,
+     "dose_fx_Gy": 2.12,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Macroscopique"
+    },
+    {
+     "volume": "PTV59,4",
+     "dose_Gy": 59.4,
+     "fractions": 33,
+     "dose_fx_Gy": 1.8,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Haut risque"
+    },
+    {
+     "volume": "PTV54,12",
+     "dose_Gy": 54.12,
+     "fractions": 33,
+     "dose_fx_Gy": 1.64,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Bas risque"
+    }
+   ],
+   "technique": "Tomothérapie ou VMAT SIB, IGRT quotidienne",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-orl-curie",
+   "volumes_id": "vol-cav-igr",
+   "contraintes_ids": [
+    "ct-orl-curie",
+    "ct-orl-igr"
+   ],
+   "couverture": "Tableur du service : D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
+   "date_verif": "2026-10-24",
+   "ind": [
+    "ORL",
+    "Cavum",
+    "Cavum T1–T2, peu ou pas d'atteinte ganglionnaire",
+    "Normofractionné"
+   ],
+   "points_attention": []
+  }
+ ],
+ "simulations": [
+  {
+   "id": "sim-orl-igr",
+   "position": "Décubitus dorsal, tête en extension modérée (angle de Reid 20–30°)",
+   "contention": "Masque 5 points (tête, cou, haut du thorax et épaules) ; traction des épaules si le volume descend sous l'os hyoïde ; masque stéréotaxique 3 points possible pour les sinus",
+   "scanner": "Sans contraste pour la dosimétrie, puis avec contraste (double injection, la première au moins 5 min avant) pour le contourage ; coupes de 2 ou 3 mm selon le système ; du vertex à la carène",
+   "imagerie": "IRM et TEP-FDG fortement recommandées pour le cavum, l'oropharynx et les récidives",
+   "reperes": "Marqueurs cutanés selon la technique"
+  },
+  {
+   "id": "sim-orl-curie",
+   "position": "Décubitus dorsal, bras le long du corps, nuque dégagée, épaules basses, mousse sous les genoux, plan dur (matelas fin seulement si intolérance)",
+   "contention": "Masque thermoformé 5 points et têtière 5 points ; cale-tête adapté à la courbure cervicale ; tête en légère extension, axe conduits auditifs–commissures labiales perpendiculaire à la table",
+   "preparation": "Retrait des prothèses dentaires amovibles ; canule de trachéotomie gardée si non laryngectomisé ; fil de plomb sur les cicatrices et bolus sur prescription ; ne pas avaler pendant l'acquisition",
+   "scanner": "Sans puis avec injection iodée (60 ml en 40 s, pause 90 s, 40 ml en 27 s), mêmes limites, coupes jointives de 2 mm, du vertex à la carène, épaules incluses ; contre-indications : allergie, clairance < 50 ml/min ; biguanides arrêtés 48 h",
+   "imagerie": "Fusion rigide avec l'IRM et la TEP-FDG (validée par le médecin, région centrée sur la tumeur) ; imagerie de plus d'un mois renouvelable ; post-opératoire : fusion avec l'imagerie préopératoire",
+   "reperes": "Point 0 : trois points sur le masque (un médian, deux latéraux) ; points tatoués sur la fourchette sternale et l'appendice xiphoïde"
+  }
+ ],
+ "volumes": [
+  {
+   "id": "vol-cav-curie",
+   "cibles": [
+    {
+     "nom": "GTV_T, GTV_N",
+     "type": "GTV",
+     "definition": "Comme `vol-orl-curie-en-place` (scanner injecté, IRM, TEP-FDG, endoscopie)",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "CTV70",
+     "type": "CTV",
+     "definition": "GTV + 5 mm, réduit à l'air et aux barrières non envahies",
+     "quand": "Toujours",
+     "marge": "5 mm"
+    },
+    {
+     "nom": "CTV63",
+     "type": "CTV",
+     "definition": "Optionnel : niveaux ganglionnaires N+ entiers",
+     "quand": "Option, si N+"
+    },
+    {
+     "nom": "CTV56",
+     "type": "CTV",
+     "definition": "CTV56_T selon le guide international de Lee 2018 ; CTV56_N selon Biau 2019 et Grégoire 2014",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "PTV70, PTV63, PTV56",
+     "type": "PTV",
+     "definition": "CTV + 3 mm, moins 2 mm sous le contour externe",
+     "quand": "Toujours",
+     "marge": "3 mm"
+    },
+    {
+     "nom": "PRV",
+     "type": "PRV",
+     "definition": "Canal médullaire, tronc cérébral, chiasma et nerfs optiques + 3 mm",
+     "quand": "Toujours",
+     "marge": "3 mm"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "Lee 2018, CTV du nasopharynx",
+     "url": "https://doi.org/10.1016/j.radonc.2017.10.032"
+    },
+    {
+     "nom": "Brouwer 2015",
+     "url": "https://doi.org/10.1016/j.radonc.2015.07.041"
+    }
+   ],
+   "oar_ids": [
+    "oar-parotide-d",
+    "oar-parotide-g",
+    "oar-glande-sous-max-d",
+    "oar-glande-sous-max-g",
+    "oar-cavite-orale",
+    "oar-larynx",
+    "oar-constricteurs",
+    "oar-oesophage",
+    "oar-canal-medullaire",
+    "oar-tronc-cerebral",
+    "oar-cervelet",
+    "oar-atm-d",
+    "oar-atm-g",
+    "oar-mandibule",
+    "oar-oreille-interne-d",
+    "oar-oreille-interne-g",
+    "oar-thyroide",
+    "oar-chiasma",
+    "oar-nerf-optique-d",
+    "oar-nerf-optique-g",
+    "oar-cristallin-d",
+    "oar-cristallin-g",
+    "oar-oeil-d",
+    "oar-oeil-g",
+    "oar-retine-d",
+    "oar-retine-g",
+    "oar-lobe-temporal-d",
+    "oar-lobe-temporal-g",
+    "oar-lobe-frontal",
+    "oar-glande-lacrymale-d",
+    "oar-glande-lacrymale-g",
+    "oar-hypophyse"
+   ]
+  },
+  {
+   "id": "vol-cav-igr",
+   "cibles": [
+    {
+     "nom": "CTV70",
+     "type": "CTV",
+     "definition": "GTV + 5 mm dans tous les plans, jusqu'à 10 mm pour les formes sous-muqueuses mal limitées",
+     "quand": "Toujours",
+     "marge": "5 mm"
+    },
+    {
+     "nom": "CTV60",
+     "type": "CTV",
+     "definition": "Cavum entier, base du crâne, moitié inférieure du sinus sphénoïdal, tiers à moitié antérieure du clivus, fosses ptérygo-maxillaires, rétropharyngés bilatéraux jusqu'au disque C2-C3, tiers postérieur des fosses nasales et des sinus maxillaires ; aires N0 de drainage préférentiel",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "CTV54",
+     "type": "CTV",
+     "definition": "Aires ganglionnaires N0 en dehors du drainage préférentiel",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "PTV",
+     "type": "PTV",
+     "definition": "CTV + 5 mm, réductible au contact du tronc cérébral ou du chiasma",
+     "quand": "Toujours",
+     "marge": "5 mm"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "Lee 2018",
+     "url": "https://doi.org/10.1016/j.radonc.2017.10.032"
+    }
+   ],
+   "oar_ids": [
+    "oar-moelle",
+    "oar-canal-medullaire",
+    "oar-tronc-cerebral",
+    "oar-chiasma",
+    "oar-nerf-optique-d",
+    "oar-nerf-optique-g",
+    "oar-lobe-temporal-d",
+    "oar-lobe-temporal-g",
+    "oar-lobe-frontal",
+    "oar-fosse-posterieure",
+    "oar-oeil-d",
+    "oar-oeil-g",
+    "oar-cristallin-d",
+    "oar-cristallin-g",
+    "oar-hypophyse",
+    "oar-cochlee-d",
+    "oar-cochlee-g",
+    "oar-parotide-d",
+    "oar-parotide-g",
+    "oar-glande-sous-max-d",
+    "oar-glande-sous-max-g",
+    "oar-atm-d",
+    "oar-atm-g",
+    "oar-mandibule",
+    "oar-cavite-orale",
+    "oar-larynx",
+    "oar-constricteurs",
+    "oar-thyroide"
+   ]
+  }
+ ],
+ "curie_indications": [
+  {
+   "indication": "Complément ou récidive du nasopharynx",
+   "modalite": "Curiethérapie endocavitaire, selon GEC-ESTRO",
+   "niveau_preuve": "Recommandations GEC-ESTRO 2009 et 2024",
+   "note": "Indications, techniques et doses par site dans les recommandations ; réirradiation traitée au lot E"
+  }
+ ],
+ "systemique": [
+  {
+   "situation": "cav-localise",
+   "traitement": "Cisplatine 30 mg/m² par semaine pendant la RT",
+   "protocole": "Cisplatine hebdomadaire 30 mg/m² concomitant (cavum)",
+   "situation_id": "cav-localise",
+   "essai_ids": [
+    "chen2011-npc"
+   ],
+   "note": "Stade II : SG à 5 ans 94,5 contre 85,8 %"
+  },
+  {
+   "situation": "cav-avance",
+   "traitement": "Gemcitabine 1 g/m² J1 et J8 + cisplatine 80 mg/m² J1, toutes les 3 semaines, 3 cycles",
+   "protocole": "Gemcitabine–cisplatine d'induction (cavum)",
+   "situation_id": "cav-avance",
+   "essai_ids": [
+    "zhang2019-gp"
+   ],
+   "note": "Survie sans récidive à 3 ans 85,3 contre 76,5 % ; SG 94,6 contre 90,3 %"
+  },
+  {
+   "situation": "cav-avance",
+   "traitement": "Docétaxel 60 mg/m² J1 + cisplatine 60 mg/m² J1 + 5-FU 600 mg/m²/j J1–J5, toutes les 3 semaines, 3 cycles",
+   "protocole": "TPF d'induction (cavum)",
+   "situation_id": "cav-avance",
+   "essai_ids": [
+    "sun2016-tpf"
+   ],
+   "note": "Survie sans échec à 3 ans 80 contre 72 %"
+  },
+  {
+   "situation": "cav-avance",
+   "traitement": "Cisplatine 100 mg/m² toutes les 3 semaines, 3 cycles pendant la RT",
+   "protocole": "Cisplatine 100 mg/m² toutes les 3 semaines, concomitant à la RT",
+   "situation_id": "cav-avance",
+   "essai_ids": [
+    "int0099",
+    "sun2016-tpf",
+    "zhang2019-gp"
+   ],
+   "note": "Base de la RCT après induction"
+  }
+ ],
+ "hormonotherapie": [],
+ "points_attention": [
+  {
+   "cible": "cav-avance",
+   "point": "La chimiothérapie adjuvante cisplatine–5-FU après RCT n'améliore pas la survie sans échec (Chen 2012)",
+   "portee": "situation"
+  },
+  {
+   "cible": "cavum",
+   "point": "Priorités de dose et critères d'acceptation des plans : guide international de Lee 2019",
+   "portee": "localisation"
+  },
+  {
+   "cible": "cavum",
+   "point": "Cavum opéré (rare) : 66 Gy sur le lit haut risque, 60 Gy sur la base du crâne, 54 Gy sur les rétropharyngés et II–V bilatéraux (fiche du service)",
+   "portee": "localisation"
+  },
+  {
+   "cible": "cavum",
+   "point": "Indication type de l'IMRT ; RTOG 0225 : contrôle locorégional 90 %, xérostomie de grade 2 à 1 an 13,5 %",
+   "portee": "localisation"
+  }
+ ],
+ "textes": {
+  "centrage": [
+   "Curie : template « ORL cavum/sinus » avec les OAR de la base du crâne. IRM et TEP-FDG fortement recommandées (Gustave Roussy)."
+  ]
+ }
+}

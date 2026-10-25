@@ -1,0 +1,350 @@
+{
+ "version": "2026-10-25",
+ "id": "neurocytome",
+ "region_id": "snc",
+ "nom": "Neurocytome central",
+ "ordre": 35,
+ "date_maj": "2026-10-24",
+ "situations": [
+  {
+   "id": "neu-post-op",
+   "localisation_id": "neurocytome",
+   "titre": "Neurocytome central après exérèse incomplète, ou récidive",
+   "contexte": "post_op",
+   "criteres": "RT adjuvante : survie sans progression plus longue (Samhouri 2021)",
+   "ordre": 1
+  }
+ ],
+ "schemas": [
+  {
+   "id": "neu-54-30",
+   "situation_id": "neu-post-op",
+   "titre": "RT 54 Gy / 30 fx",
+   "type": "rte_normo",
+   "preuve": "option",
+   "essai_ids": [
+    "samhouri2021",
+    "mallick2015"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 54,
+     "fractions": 30,
+     "dose_fx_Gy": 1.8,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Dose médiane de la série multicentrique (50 à 60 Gy)"
+    }
+   ],
+   "technique": "IMRT ou VMAT, IGRT quotidienne",
+   "systemique": "Aucune",
+   "simulation_id": "sim-crane",
+   "volumes_id": "vol-neu",
+   "contraintes_ids": [
+    "ct-crane-igr",
+    "ct-crane-quantec"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "SNC",
+    "Neurocytome central",
+    "Neurocytome central après exérèse incomplète, ou récidive",
+    "Normofractionné"
+   ],
+   "points_attention": []
+  },
+  {
+   "id": "neu-service-594",
+   "situation_id": "neu-post-op",
+   "titre": "RT en deux plans : 54 Gy sur les ventricules puis complément jusqu'à 59,4 Gy",
+   "type": "rte_normo",
+   "preuve": "pratique_institutionnelle",
+   "essai_ids": [
+    "samhouri2021"
+   ],
+   "source_institutionnelle": "Tableur du service « Neurocytome 59,4 Gy »",
+   "prescriptions": [
+    {
+     "volume": "PTV54 (ventricules)",
+     "dose_Gy": 54,
+     "fractions": 30,
+     "dose_fx_Gy": 1.8,
+     "mode": "sequentiel",
+     "rythme": "5 fx/sem",
+     "note": "Premier plan"
+    },
+    {
+     "volume": "PTV59,4 (lit tumoral)",
+     "dose_Gy": 5.4,
+     "fractions": 3,
+     "dose_fx_Gy": 1.8,
+     "mode": "sequentiel",
+     "rythme": "5 fx/sem",
+     "note": "Total 59,4 Gy / 33 fx"
+    }
+   ],
+   "technique": "IMRT, deux plans, IGRT quotidienne",
+   "systemique": "Aucune",
+   "simulation_id": "sim-crane",
+   "volumes_id": "vol-neu-service",
+   "contraintes_ids": [
+    "ct-crane-igr",
+    "ct-crane-quantec"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "SNC",
+    "Neurocytome central",
+    "Neurocytome central après exérèse incomplète, ou récidive",
+    "Normofractionné"
+   ],
+   "points_attention": []
+  },
+  {
+   "id": "neu-srs-13-1",
+   "situation_id": "neu-post-op",
+   "titre": "Radiochirurgie 13 Gy en 1 séance",
+   "type": "sbrt",
+   "preuve": "option",
+   "essai_ids": [
+    "hung2020"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV (dose marginale)",
+     "dose_Gy": 13,
+     "fractions": 1,
+     "dose_fx_Gy": 13,
+     "mode": "seul",
+     "rythme": "1 séance",
+     "note": "Dose marginale médiane ; contrôle local 93 % à 5 ans, 87 % à 10 ans"
+    }
+   ],
+   "technique": "Radiochirurgie, IGRT stéréotaxique",
+   "systemique": "Aucune",
+   "simulation_id": "sim-crane-srs",
+   "volumes_id": "vol-crane-srs",
+   "contraintes_ids": [
+    "ct-srs-igr-1fx",
+    "ct-srs-hytec"
+   ],
+   "couverture": "Dose prescrite en périphérie du résidu",
+   "points_attention": [
+    "Radiochirurgie : alternative pour un résidu limité, contrôle local 87 % à 10 ans (Hung 2020)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "SNC",
+    "Neurocytome central",
+    "Neurocytome central après exérèse incomplète, ou récidive",
+    "Stéréotaxie"
+   ]
+  }
+ ],
+ "simulations": [
+  {
+   "id": "sim-crane",
+   "position": "Décubitus dorsal, bras le long du corps, coussin sous les genoux",
+   "contention": "Masque thermoformé 3 points",
+   "scanner": "Non injecté, coupes jointives de 2,5 mm, crâne entier jusqu'à C3, moins de 2 semaines avant le début de la RT",
+   "imagerie": "IRM dosimétrique T1 3D gadolinium et T2-FLAIR, axiales strictes, fusionnées au scanner ; IRM post-opératoire précoce (48–72 h) pour le GTV ; éviter l'IRM post-opératoire tardive, qui surestime le résidu"
+  },
+  {
+   "id": "sim-crane-srs",
+   "position": "Décubitus dorsal, tête en position neutre, bras le long du corps, coussin sous les genoux",
+   "contention": "Masque thermoformé 5 points ou cadre stéréotaxique (fiche du service) ; Curie : masque bivalve sans cadre, moulé sur une cale retirée avant l'acquisition",
+   "scanner": "Coupes axiales millimétriques. Curie : non injecté, de 1 cm au-dessus du vertex jusqu'à T1 ; fiche du service : injecté",
+   "imagerie": "IRM de planification T1 sans injection (saignement récent), T1 gadolinium 3D (contourage) et perfusion (référence du suivi), jusqu'à C3–C4, fusionnée au scanner. Première séance dans les 14 jours suivant l'IRM, 16 au plus (Curie)",
+   "reperes": "Plan de référence pointe du nez–tragus, perpendiculaire à la table (Curie)"
+  }
+ ],
+ "volumes": [
+  {
+   "id": "vol-neu",
+   "cibles": [
+    {
+     "nom": "GTV",
+     "type": "GTV",
+     "definition": "Résidu et lit tumoral en T1 gadolinium",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "CTV",
+     "type": "CTV",
+     "definition": "GTV + 5 mm (tableur du service)",
+     "quand": "Toujours",
+     "marge": "5 mm"
+    },
+    {
+     "nom": "PTV",
+     "type": "PTV",
+     "definition": "CTV + 3 mm (tableur du service)",
+     "quand": "Toujours",
+     "marge": "3 mm"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "atlas EPTN 2018",
+     "url": "https://doi.org/10.1016/j.radonc.2017.12.013"
+    }
+   ],
+   "oar_ids": [
+    "oar-encephale-sain",
+    "oar-tronc-cerebral",
+    "oar-chiasma",
+    "oar-nerf-optique-d",
+    "oar-nerf-optique-g",
+    "oar-hypothalamus",
+    "oar-hypophyse",
+    "oar-hippocampes",
+    "oar-cochlee-d",
+    "oar-cochlee-g",
+    "oar-oeil-d",
+    "oar-oeil-g",
+    "oar-retine-d",
+    "oar-retine-g",
+    "oar-cristallin-d",
+    "oar-cristallin-g",
+    "oar-glande-lacrymale-d",
+    "oar-glande-lacrymale-g",
+    "oar-moelle"
+   ]
+  },
+  {
+   "id": "vol-neu-service",
+   "cibles": [
+    {
+     "nom": "CTV54",
+     "type": "CTV",
+     "definition": "GTV préopératoire + 15 mm, étendu aux ventricules (tableur du service)",
+     "quand": "Toujours",
+     "marge": "15 mm"
+    },
+    {
+     "nom": "CTV59,4",
+     "type": "CTV",
+     "definition": "GTV + 5 mm (tableur du service)",
+     "quand": "Toujours",
+     "marge": "5 mm"
+    },
+    {
+     "nom": "PTV54, PTV59,4",
+     "type": "PTV",
+     "definition": "CTV + 3 mm (tableur du service)",
+     "quand": "Toujours",
+     "marge": "3 mm"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "atlas EPTN 2018",
+     "url": "https://doi.org/10.1016/j.radonc.2017.12.013"
+    }
+   ],
+   "oar_ids": [
+    "oar-encephale-sain",
+    "oar-tronc-cerebral",
+    "oar-chiasma",
+    "oar-nerf-optique-d",
+    "oar-nerf-optique-g",
+    "oar-hypothalamus",
+    "oar-hypophyse",
+    "oar-hippocampes",
+    "oar-cochlee-d",
+    "oar-cochlee-g",
+    "oar-oeil-d",
+    "oar-oeil-g",
+    "oar-retine-d",
+    "oar-retine-g",
+    "oar-cristallin-d",
+    "oar-cristallin-g",
+    "oar-glande-lacrymale-d",
+    "oar-glande-lacrymale-g",
+    "oar-moelle"
+   ]
+  },
+  {
+   "id": "vol-crane-srs",
+   "cibles": [
+    {
+     "nom": "GTV",
+     "type": "GTV",
+     "definition": "Prise de contraste nodulaire en T1 gadolinium 3D, zoom maximal ; œdème FLAIR exclu ; composante hémorragique limitée incluse si le PTV reste compatible (Curie)",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "CTV",
+     "type": "CTV",
+     "definition": "CTV = GTV",
+     "quand": "Toujours",
+     "marge": "0 mm"
+    },
+    {
+     "nom": "PTV",
+     "type": "PTV",
+     "definition": "CTV + 1 mm isotrope (Curie, masque et Novalis) ; plus petit diamètre du PTV d'au moins 8 mm, sinon marge augmentée ; à adapter à la plateforme",
+     "quand": "Toujours",
+     "marge": "1 mm"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "Procédure Curie (modèle « Volumes Stéréotaxie intracrânienne »)"
+    },
+    {
+     "nom": "atlas EPTN 2018",
+     "url": "https://doi.org/10.1016/j.radonc.2017.12.013"
+    }
+   ],
+   "oar_ids": [
+    "oar-encephale-sain",
+    "oar-encephale",
+    "oar-tronc-cerebral",
+    "oar-chiasma",
+    "oar-nerf-optique-d",
+    "oar-nerf-optique-g",
+    "oar-bandelettes-optiques",
+    "oar-oeil-d",
+    "oar-oeil-g",
+    "oar-retine-d",
+    "oar-retine-g",
+    "oar-cristallin-d",
+    "oar-cristallin-g",
+    "oar-cochlee-d",
+    "oar-cochlee-g",
+    "oar-hippocampe-d",
+    "oar-hippocampe-g",
+    "oar-hypophyse",
+    "oar-canal-medullaire",
+    "oar-nerfs-craniens",
+    "oar-parotide-d",
+    "oar-parotide-g"
+   ],
+   "oar_notes": {
+    "oar-nerfs-craniens": "si concernés"
+   }
+  }
+ ],
+ "curie_indications": [],
+ "systemique": [],
+ "hormonotherapie": [],
+ "points_attention": [
+  {
+   "cible": "neurocytome",
+   "point": "RT adjuvante : survie sans progression plus longue (p = 0,004), tendance pour la survie globale (Samhouri 2021)",
+   "portee": "localisation"
+  },
+  {
+   "cible": "neu-srs-13-1",
+   "point": "Radiochirurgie : alternative pour un résidu limité, contrôle local 87 % à 10 ans (Hung 2020)",
+   "portee": "schema"
+  }
+ ],
+ "textes": {
+  "systemique": [
+   "Pas de traitement systémique standard."
+  ]
+ }
+}

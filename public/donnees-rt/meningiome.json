@@ -1,0 +1,655 @@
+{
+ "version": "2026-10-25",
+ "id": "meningiome",
+ "region_id": "snc",
+ "nom": "Méningiome",
+ "ordre": 31,
+ "date_maj": "2026-10-24",
+ "situations": [
+  {
+   "id": "men-g1",
+   "localisation_id": "meningiome",
+   "titre": "Méningiome grade 1 non opérable ou résidu évolutif",
+   "contexte": "en_place",
+   "criteres": "Tumeur symptomatique ou évolutive ; une forme fortuite asymptomatique peut être surveillée (EANO 2021)",
+   "ordre": 1
+  },
+  {
+   "id": "men-intermediaire",
+   "localisation_id": "meningiome",
+   "titre": "Risque intermédiaire : grade 2 après exérèse complète, ou grade 1 récidivant",
+   "contexte": "post_op",
+   "criteres": "Grade 2 après exérèse Simpson I–III, ou grade 1 récidivant quelle que soit l'exérèse (RTOG 0539, groupe 2)",
+   "ordre": 2
+  },
+  {
+   "id": "men-haut-risque",
+   "localisation_id": "meningiome",
+   "titre": "Haut risque : grade 3, grade 2 récidivant ou grade 2 après exérèse incomplète",
+   "contexte": "post_op",
+   "criteres": "Grade 3 nouveau ou récidivant, grade 2 récidivant, grade 2 nouveau après exérèse incomplète (RTOG 0539, groupe 3)",
+   "ordre": 3
+  }
+ ],
+ "schemas": [
+  {
+   "id": "men-g1-54-30",
+   "situation_id": "men-g1",
+   "titre": "RT 54 Gy / 30 fx",
+   "type": "rte_normo",
+   "preuve": "recommandation",
+   "essai_ids": [
+    "eano-meningiome-2021",
+    "goldsmith1994"
+   ],
+   "source_institutionnelle": "Tableur du service « Méningiome bénin base du crâne 54 Gy »",
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 54,
+     "fractions": 30,
+     "dose_fx_Gy": 1.8,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Dose médiane de la série UCSF ; la dose minimale influe sur la SSP (Goldsmith 1994)"
+    }
+   ],
+   "technique": "IMRT ou VMAT, IGRT",
+   "systemique": "Aucune",
+   "simulation_id": "sim-crane",
+   "volumes_id": "vol-men-g1",
+   "contraintes_ids": [
+    "ct-crane-igr",
+    "ct-crane-quantec"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "SNC",
+    "Méningiome",
+    "Méningiome grade 1 non opérable ou résidu évolutif",
+    "Normofractionné"
+   ],
+   "points_attention": []
+  },
+  {
+   "id": "men-g1-504-28",
+   "situation_id": "men-g1",
+   "titre": "RT 50,4 Gy / 28 fx",
+   "type": "rte_normo",
+   "preuve": "pratique_institutionnelle",
+   "essai_ids": [
+    "eano-meningiome-2021"
+   ],
+   "source_institutionnelle": "Tableur du service « Méningiome 50,4 Gy »",
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 50.4,
+     "fractions": 28,
+     "dose_fx_Gy": 1.8,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Pratique du service"
+    }
+   ],
+   "technique": "IMRT ou VMAT, IGRT",
+   "systemique": "Aucune",
+   "simulation_id": "sim-crane",
+   "volumes_id": "vol-men-g1",
+   "contraintes_ids": [
+    "ct-crane-igr",
+    "ct-crane-quantec"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "SNC",
+    "Méningiome",
+    "Méningiome grade 1 non opérable ou résidu évolutif",
+    "Normofractionné"
+   ],
+   "points_attention": []
+  },
+  {
+   "id": "men-g1-srs",
+   "situation_id": "men-g1",
+   "titre": "Radiochirurgie 12 à 15 Gy en 1 séance",
+   "type": "sbrt",
+   "preuve": "recommandation",
+   "essai_ids": [
+    "isrs-meningiome",
+    "eano-meningiome-2021"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV (dose marginale)",
+     "dose_Gy": 12,
+     "fractions": 1,
+     "dose_fx_Gy": 12,
+     "mode": "seul",
+     "rythme": "1 séance",
+     "note": "12 à 15 Gy selon le volume et les OAR (ISRS)"
+    }
+   ],
+   "technique": "Radiochirurgie, IGRT stéréotaxique",
+   "systemique": "Aucune",
+   "simulation_id": "sim-crane-srs",
+   "volumes_id": "vol-crane-srs",
+   "contraintes_ids": [
+    "ct-srs-igr-1fx",
+    "ct-srs-hytec"
+   ],
+   "points_attention": [
+    "Radiochirurgie recommandée pour le grade 1 (niveau II) ; contrôle local à 10 ans de 71 à 100 % (ISRS)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "SNC",
+    "Méningiome",
+    "Méningiome grade 1 non opérable ou résidu évolutif",
+    "Stéréotaxie"
+   ]
+  },
+  {
+   "id": "men-int-54-30",
+   "situation_id": "men-intermediaire",
+   "titre": "RT 54 Gy / 30 fx (RTOG 0539)",
+   "type": "rte_normo",
+   "preuve": "recommandation",
+   "essai_ids": [
+    "rtog0539-int",
+    "rtog0539-lt"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 54,
+     "fractions": 30,
+     "dose_fx_Gy": 1.8,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "SSP à 3 ans 93,8 %, à 10 ans 72,2 %"
+    }
+   ],
+   "technique": "IMRT ou RC3D",
+   "systemique": "Aucune",
+   "simulation_id": "sim-crane",
+   "volumes_id": "vol-men-int",
+   "contraintes_ids": [
+    "ct-crane-igr",
+    "ct-crane-quantec"
+   ],
+   "points_attention": [
+    "Grade 2 après exérèse complète : RT ou surveillance comparées dans ROAM/EORTC-1308 et NRG BN003"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "SNC",
+    "Méningiome",
+    "Risque intermédiaire : grade 2 après exérèse complète, ou grade 1 récidivant",
+    "Normofractionné"
+   ]
+  },
+  {
+   "id": "men-int-60-30",
+   "situation_id": "men-intermediaire",
+   "titre": "RT 60 Gy / 30 fx (EORTC 22042, grade 2 réséqué)",
+   "type": "rte_normo",
+   "preuve": "option",
+   "essai_ids": [
+    "eortc22042"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 60,
+     "fractions": 30,
+     "dose_fx_Gy": 2,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Grade 2 après exérèse Simpson 1–3 : SSP à 3 ans 88,7 %"
+    }
+   ],
+   "technique": "IMRT ou VMAT, IGRT",
+   "systemique": "Aucune",
+   "simulation_id": "sim-crane",
+   "volumes_id": "vol-men-int",
+   "contraintes_ids": [
+    "ct-crane-igr",
+    "ct-crane-quantec"
+   ],
+   "points_attention": [
+    "Grade 2 après exérèse complète : RT ou surveillance comparées dans ROAM/EORTC-1308 et NRG BN003"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "SNC",
+    "Méningiome",
+    "Risque intermédiaire : grade 2 après exérèse complète, ou grade 1 récidivant",
+    "Normofractionné"
+   ]
+  },
+  {
+   "id": "men-hr-60-54-30",
+   "situation_id": "men-haut-risque",
+   "titre": "IMRT 60 Gy / 30 fx avec 54 Gy en SIB (RTOG 0539)",
+   "type": "rte_normo",
+   "preuve": "recommandation",
+   "essai_ids": [
+    "rtog0539-hr",
+    "rtog0539-lt",
+    "eano-meningiome-2021"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV60",
+     "dose_Gy": 60,
+     "fractions": 30,
+     "dose_fx_Gy": 2,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "SSP à 3 ans 58,8 %, à 10 ans 42,5 %"
+    },
+    {
+     "volume": "PTV54",
+     "dose_Gy": 54,
+     "fractions": 30,
+     "dose_fx_Gy": 1.8,
+     "mode": "SIB",
+     "rythme": "5 fx/sem"
+    }
+   ],
+   "technique": "IMRT en SIB",
+   "systemique": "Aucune",
+   "simulation_id": "sim-crane",
+   "volumes_id": "vol-men-hr",
+   "contraintes_ids": [
+    "ct-crane-igr",
+    "ct-crane-quantec"
+   ],
+   "points_attention": [
+    "92,9 % des progressions dans le PTV 54 Gy ; la queue durale n'est pas incluse spécifiquement (RTOG 0539)",
+    "1 décès par nécrose à 1 an sur 53 patients ; toxicité G3+ 15,1 % à long terme (RTOG 0539)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "SNC",
+    "Méningiome",
+    "Haut risque : grade 3, grade 2 récidivant ou grade 2 après exérèse incomplète",
+    "Normofractionné"
+   ]
+  },
+  {
+   "id": "men-hr-service-684-38",
+   "situation_id": "men-haut-risque",
+   "titre": "59,4 Gy puis complément jusqu'à 68,4 Gy / 38 fx",
+   "type": "rte_normo",
+   "preuve": "pratique_institutionnelle",
+   "source_institutionnelle": "Tableur du service « Méningiome grade III 68,4 Gy »",
+   "prescriptions": [
+    {
+     "volume": "PTV1 (59,4 Gy)",
+     "dose_Gy": 59.4,
+     "fractions": 33,
+     "dose_fx_Gy": 1.8,
+     "mode": "sequentiel",
+     "rythme": "5 fx/sem",
+     "note": "Premier plan"
+    },
+    {
+     "volume": "PTV2 (complément)",
+     "dose_Gy": 9,
+     "fractions": 5,
+     "dose_fx_Gy": 1.8,
+     "mode": "sequentiel",
+     "rythme": "5 fx/sem",
+     "note": "Total 68,4 Gy / 38 fx ; tableur établi pour une protonthérapie"
+    }
+   ],
+   "technique": "IMRT ou protonthérapie, deux plans",
+   "systemique": "Aucune",
+   "simulation_id": "sim-crane",
+   "volumes_id": "vol-men-service-684",
+   "contraintes_ids": [
+    "ct-crane-igr",
+    "ct-crane-quantec"
+   ],
+   "points_attention": [
+    "Dose au-delà de 60 Gy non évaluée par RTOG 0539 ; tableur établi pour une protonthérapie"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "SNC",
+    "Méningiome",
+    "Haut risque : grade 3, grade 2 récidivant ou grade 2 après exérèse incomplète",
+    "Normofractionné"
+   ],
+   "essai_ids": []
+  }
+ ],
+ "simulations": [
+  {
+   "id": "sim-crane",
+   "position": "Décubitus dorsal, bras le long du corps, coussin sous les genoux",
+   "contention": "Masque thermoformé 3 points",
+   "scanner": "Non injecté, coupes jointives de 2,5 mm, crâne entier jusqu'à C3, moins de 2 semaines avant le début de la RT",
+   "imagerie": "IRM dosimétrique T1 3D gadolinium et T2-FLAIR, axiales strictes, fusionnées au scanner ; IRM post-opératoire précoce (48–72 h) pour le GTV ; éviter l'IRM post-opératoire tardive, qui surestime le résidu"
+  },
+  {
+   "id": "sim-crane-srs",
+   "position": "Décubitus dorsal, tête en position neutre, bras le long du corps, coussin sous les genoux",
+   "contention": "Masque thermoformé 5 points ou cadre stéréotaxique (fiche du service) ; Curie : masque bivalve sans cadre, moulé sur une cale retirée avant l'acquisition",
+   "scanner": "Coupes axiales millimétriques. Curie : non injecté, de 1 cm au-dessus du vertex jusqu'à T1 ; fiche du service : injecté",
+   "imagerie": "IRM de planification T1 sans injection (saignement récent), T1 gadolinium 3D (contourage) et perfusion (référence du suivi), jusqu'à C3–C4, fusionnée au scanner. Première séance dans les 14 jours suivant l'IRM, 16 au plus (Curie)",
+   "reperes": "Plan de référence pointe du nez–tragus, perpendiculaire à la table (Curie)"
+  }
+ ],
+ "volumes": [
+  {
+   "id": "vol-men-g1",
+   "cibles": [
+    {
+     "nom": "GTV",
+     "type": "GTV",
+     "definition": "Méningiome rehaussé en T1 gadolinium",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "CTV",
+     "type": "CTV",
+     "definition": "GTV + 2 à 5 mm (tableur 50,4 Gy) ou 3 à 5 mm (tableur 54 Gy, écriture ambiguë)",
+     "quand": "Toujours",
+     "marge": "2–5 mm"
+    },
+    {
+     "nom": "PTV",
+     "type": "PTV",
+     "definition": "CTV + 3 mm (tableur 54 Gy)",
+     "quand": "Toujours",
+     "marge": "3 mm"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "atlas EPTN 2018",
+     "url": "https://doi.org/10.1016/j.radonc.2017.12.013"
+    }
+   ],
+   "oar_ids": [
+    "oar-encephale-sain",
+    "oar-tronc-cerebral",
+    "oar-chiasma",
+    "oar-nerf-optique-d",
+    "oar-nerf-optique-g",
+    "oar-oeil-d",
+    "oar-oeil-g",
+    "oar-retine-d",
+    "oar-retine-g",
+    "oar-cristallin-d",
+    "oar-cristallin-g",
+    "oar-cochlee-d",
+    "oar-cochlee-g",
+    "oar-hippocampes",
+    "oar-hypophyse",
+    "oar-glande-lacrymale-d",
+    "oar-glande-lacrymale-g",
+    "oar-cavite-orale",
+    "oar-parotide-d",
+    "oar-parotide-g",
+    "oar-moelle",
+    "oar-peau"
+   ]
+  },
+  {
+   "id": "vol-men-int",
+   "cibles": [
+    {
+     "nom": "GTV",
+     "type": "GTV",
+     "definition": "Lit tumoral et toute prise de contraste nodulaire (IRM post-opératoire)",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "PTV",
+     "type": "PTV",
+     "definition": "GTV + 8 à 15 mm, selon la localisation et la reproductibilité de la contention (marge totale de l'essai)",
+     "quand": "Toujours",
+     "marge": "8–15 mm"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "RTOG 0539, risque intermédiaire",
+     "url": "https://doi.org/10.3171/2016.11.JNS161170"
+    }
+   ],
+   "oar_ids": [
+    "oar-encephale-sain",
+    "oar-tronc-cerebral",
+    "oar-chiasma",
+    "oar-nerf-optique-d",
+    "oar-nerf-optique-g",
+    "oar-oeil-d",
+    "oar-oeil-g",
+    "oar-cristallin-d",
+    "oar-cristallin-g",
+    "oar-cochlee-d",
+    "oar-cochlee-g",
+    "oar-hippocampes",
+    "oar-hypophyse",
+    "oar-moelle"
+   ]
+  },
+  {
+   "id": "vol-men-hr",
+   "cibles": [
+    {
+     "nom": "GTV",
+     "type": "GTV",
+     "definition": "Lit tumoral sur l'IRM post-opératoire, avec toute prise de contraste nodulaire (en récidive non réopérée : le site opératoire antérieur) ; os hyperostosique ou envahi inclus ; œdème et queue durale non inclus spécifiquement",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "CTV60",
+     "type": "CTV",
+     "definition": "GTV + 10 mm",
+     "quand": "Toujours",
+     "marge": "10 mm"
+    },
+    {
+     "nom": "CTV54",
+     "type": "CTV",
+     "definition": "GTV + 20 mm, réductible à 10 mm le long des barrières naturelles comme le crâne, sauf os hyperostosique ou envahi",
+     "quand": "Toujours",
+     "marge": "20 mm"
+    },
+    {
+     "nom": "PTV60, PTV54",
+     "type": "PTV",
+     "definition": "CTV + 3 à 5 mm. OAR : PRV = OAR + 3 mm ; si la contrainte ne peut pas être tenue, PTV d'évaluation = intersection PTV–PRV",
+     "quand": "Toujours",
+     "marge": "3–5 mm"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "RTOG 0539, haut risque",
+     "url": "https://doi.org/10.1016/j.ijrobp.2019.11.028"
+    }
+   ],
+   "oar_ids": [
+    "oar-encephale-sain",
+    "oar-tronc-cerebral",
+    "oar-chiasma",
+    "oar-nerf-optique-d",
+    "oar-nerf-optique-g",
+    "oar-oeil-d",
+    "oar-oeil-g",
+    "oar-cristallin-d",
+    "oar-cristallin-g",
+    "oar-cochlee-d",
+    "oar-cochlee-g",
+    "oar-hippocampes",
+    "oar-hypophyse",
+    "oar-moelle"
+   ]
+  },
+  {
+   "id": "vol-men-service-684",
+   "cibles": [
+    {
+     "nom": "GTV",
+     "type": "GTV",
+     "definition": "Prise de contraste (gadolinium)",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "CTV2 (68,4 Gy)",
+     "type": "CTV",
+     "definition": "GTV + 2 mm",
+     "quand": "Toujours",
+     "marge": "2 mm"
+    },
+    {
+     "nom": "CTV1 (59,4 Gy)",
+     "type": "CTV",
+     "definition": "CTV2 + 2 à 10 mm",
+     "quand": "Toujours",
+     "marge": "2–10 mm"
+    },
+    {
+     "nom": "PTV1, PTV2",
+     "type": "PTV",
+     "definition": "CTV + 3 mm",
+     "quand": "Toujours",
+     "marge": "3 mm"
+    }
+   ],
+   "atlas": [],
+   "oar_ids": [
+    "oar-encephale-sain",
+    "oar-tronc-cerebral",
+    "oar-chiasma",
+    "oar-nerf-optique-d",
+    "oar-nerf-optique-g",
+    "oar-oeil-d",
+    "oar-oeil-g",
+    "oar-retine-d",
+    "oar-retine-g",
+    "oar-cristallin-d",
+    "oar-cristallin-g",
+    "oar-cochlee-d",
+    "oar-cochlee-g",
+    "oar-hippocampes",
+    "oar-hypophyse",
+    "oar-glande-lacrymale-d",
+    "oar-glande-lacrymale-g",
+    "oar-cavite-orale",
+    "oar-parotide-d",
+    "oar-parotide-g",
+    "oar-moelle",
+    "oar-peau"
+   ]
+  },
+  {
+   "id": "vol-crane-srs",
+   "cibles": [
+    {
+     "nom": "GTV",
+     "type": "GTV",
+     "definition": "Prise de contraste nodulaire en T1 gadolinium 3D, zoom maximal ; œdème FLAIR exclu ; composante hémorragique limitée incluse si le PTV reste compatible (Curie)",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "CTV",
+     "type": "CTV",
+     "definition": "CTV = GTV",
+     "quand": "Toujours",
+     "marge": "0 mm"
+    },
+    {
+     "nom": "PTV",
+     "type": "PTV",
+     "definition": "CTV + 1 mm isotrope (Curie, masque et Novalis) ; plus petit diamètre du PTV d'au moins 8 mm, sinon marge augmentée ; à adapter à la plateforme",
+     "quand": "Toujours",
+     "marge": "1 mm"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "Procédure Curie (modèle « Volumes Stéréotaxie intracrânienne »)"
+    },
+    {
+     "nom": "atlas EPTN 2018",
+     "url": "https://doi.org/10.1016/j.radonc.2017.12.013"
+    }
+   ],
+   "oar_ids": [
+    "oar-encephale-sain",
+    "oar-encephale",
+    "oar-tronc-cerebral",
+    "oar-chiasma",
+    "oar-nerf-optique-d",
+    "oar-nerf-optique-g",
+    "oar-bandelettes-optiques",
+    "oar-oeil-d",
+    "oar-oeil-g",
+    "oar-retine-d",
+    "oar-retine-g",
+    "oar-cristallin-d",
+    "oar-cristallin-g",
+    "oar-cochlee-d",
+    "oar-cochlee-g",
+    "oar-hippocampe-d",
+    "oar-hippocampe-g",
+    "oar-hypophyse",
+    "oar-canal-medullaire",
+    "oar-nerfs-craniens",
+    "oar-parotide-d",
+    "oar-parotide-g"
+   ],
+   "oar_notes": {
+    "oar-nerfs-craniens": "si concernés"
+   }
+  }
+ ],
+ "curie_indications": [],
+ "systemique": [],
+ "hormonotherapie": [],
+ "points_attention": [
+  {
+   "cible": "meningiome",
+   "point": "Grade 1 fortuit et asymptomatique, surtout chez le sujet âgé : surveillance possible (EANO 2021)",
+   "portee": "localisation"
+  },
+  {
+   "cible": "men-hr-60-54-30",
+   "point": "92,9 % des progressions dans le PTV 54 Gy ; la queue durale n'est pas incluse spécifiquement (RTOG 0539)",
+   "portee": "schema"
+  },
+  {
+   "cible": "men-hr-60-54-30",
+   "point": "1 décès par nécrose à 1 an sur 53 patients ; toxicité G3+ 15,1 % à long terme (RTOG 0539)",
+   "portee": "schema"
+  },
+  {
+   "cible": "men-g1-srs",
+   "point": "Radiochirurgie recommandée pour le grade 1 (niveau II) ; contrôle local à 10 ans de 71 à 100 % (ISRS)",
+   "portee": "schema"
+  },
+  {
+   "cible": "men-intermediaire",
+   "point": "Grade 2 après exérèse complète : RT ou surveillance comparées dans ROAM/EORTC-1308 et NRG BN003",
+   "portee": "situation"
+  },
+  {
+   "cible": "men-hr-service-684-38",
+   "point": "Dose au-delà de 60 Gy non évaluée par RTOG 0539 ; tableur établi pour une protonthérapie",
+   "portee": "schema"
+  }
+ ],
+ "textes": {
+  "systemique": [
+   "Pas de traitement systémique standard. Bévacizumab et inhibiteurs multikinases du VEGFR donnent les meilleurs résultats, modestes (EANO 2021)."
+  ]
+ }
+}

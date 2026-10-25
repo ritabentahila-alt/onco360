@@ -1,0 +1,156 @@
+{
+ "version": "2026-10-25",
+ "id": "melanome_uveal",
+ "region_id": "autres",
+ "nom": "Mélanome uvéal",
+ "ordre": 48,
+ "date_maj": "2026-10-24",
+ "situations": [
+  {
+   "id": "mu-plaque",
+   "localisation_id": "melanome_uveal",
+   "titre": "Mélanome de l'iris, du corps ciliaire ou de la choroïde",
+   "contexte": "en_place",
+   "criteres": "La plupart des mélanomes uvéaux sont accessibles à la plaque, avec des restrictions selon la taille et la position ; contre-indications : extension orbitaire macroscopique, œil aveugle douloureux, absence de perception lumineuse ; traitement en centre spécialisé (ABS 2014)",
+   "ordre": 1
+  }
+ ],
+ "schemas": [
+  {
+   "id": "mu-coms-85",
+   "situation_id": "mu-plaque",
+   "titre": "Plaque d'iode 125, 85 Gy à l'apex",
+   "type": "curie_ldr",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "coms-12ans",
+    "saconn2010",
+    "abs-uvee-2014",
+    "vonk2015",
+    "berry2013"
+   ],
+   "prescriptions": [
+    {
+     "volume": "Apex tumoral",
+     "dose_Gy": 85,
+     "mode": "seul",
+     "rythme": "Débit 60 à 105 cGy/h (ABS) ; environ 7 jours",
+     "note": "Dose de prescription de COMS"
+    }
+   ],
+   "technique": "Plaque épisclérale COMS chargée en grains d'iode 125 ; pose par un chirurgien formé",
+   "systemique": "Aucune",
+   "volumes_id": "vol-uvee",
+   "couverture": "Volume englobant l'apex et 2 mm autour de la base",
+   "points_attention": [
+    "COMS : mortalité toutes causes à 12 ans 43 % (plaque) contre 41 % (énucléation) ; décès par métastase confirmée 21 contre 17 % : pas de différence de survie",
+    "Pour les tumeurs de moins de 5 mm de haut, prescrire à l'apex diminue la dose à toutes les structures sensibles sans perte de contrôle local ; contrôle local à 5 ans 95,3 % (Vonk 2015)",
+    "Toxicités après plaque (85 Gy en 7 jours) : rétinopathie 37,8 %, neuropathie optique 14,6 %, cataracte 31,7 % (Berry 2013)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Autres",
+    "Mélanome uvéal",
+    "Mélanome de l'iris, du corps ciliaire ou de la choroïde",
+    "Curiethérapie"
+   ],
+   "contraintes_ids": []
+  },
+  {
+   "id": "mu-63",
+   "situation_id": "mu-plaque",
+   "titre": "Plaque d'iode 125, environ 63 Gy à l'apex",
+   "type": "curie_ldr",
+   "preuve": "option",
+   "essai_ids": [
+    "saconn2010"
+   ],
+   "prescriptions": [
+    {
+     "volume": "Apex tumoral",
+     "dose_Gy": 63,
+     "mode": "seul",
+     "rythme": "Débit médian 63,5 cGy/h",
+     "note": "56 à 69 Gy dans la série ; objectif : meilleur résultat visuel"
+    }
+   ],
+   "technique": "Plaque épisclérale COMS chargée en grains d'iode 125",
+   "systemique": "Aucune",
+   "volumes_id": "vol-uvee",
+   "couverture": "Prescription à l'apex",
+   "points_attention": [
+    "Toxicités après plaque (85 Gy en 7 jours) : rétinopathie 37,8 %, neuropathie optique 14,6 %, cataracte 31,7 % (Berry 2013)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Autres",
+    "Mélanome uvéal",
+    "Mélanome de l'iris, du corps ciliaire ou de la choroïde",
+    "Curiethérapie"
+   ],
+   "contraintes_ids": []
+  }
+ ],
+ "simulations": [],
+ "volumes": [
+  {
+   "id": "vol-uvee",
+   "cibles": [
+    {
+     "nom": "GTV",
+     "type": "GTV",
+     "definition": "Tumeur (base et hauteur)",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "Volume de prescription",
+     "type": "CTV",
+     "definition": "Volume englobant l'apex et 2 mm autour de la base tumorale (Berry 2013)",
+     "quand": "Toujours",
+     "marge": "2 mm"
+    }
+   ],
+   "atlas": [],
+   "oar_ids": [
+    "oar-nerf-optique-d",
+    "oar-nerf-optique-g",
+    "oar-cristallin-d",
+    "oar-cristallin-g",
+    "oar-retine-d",
+    "oar-retine-g"
+   ]
+  }
+ ],
+ "curie_indications": [
+  {
+   "indication": "Mélanome de l'iris, du corps ciliaire ou de la choroïde",
+   "modalite": "Curiethérapie par plaque épisclérale (iode 125)",
+   "niveau_preuve": "Essai randomisé COMS (plaque contre énucléation) ; recommandations ABS 2014",
+   "note": "Assurance qualité, fabrication des plaques et dosimétrie selon les recommandations AAPM-ABS 2012"
+  }
+ ],
+ "systemique": [],
+ "hormonotherapie": [],
+ "points_attention": [
+  {
+   "cible": "mu-coms-85",
+   "point": "COMS : mortalité toutes causes à 12 ans 43 % (plaque) contre 41 % (énucléation) ; décès par métastase confirmée 21 contre 17 % : pas de différence de survie",
+   "portee": "schema"
+  },
+  {
+   "cible": "mu-coms-85",
+   "point": "Pour les tumeurs de moins de 5 mm de haut, prescrire à l'apex diminue la dose à toutes les structures sensibles sans perte de contrôle local ; contrôle local à 5 ans 95,3 % (Vonk 2015)",
+   "portee": "schema"
+  },
+  {
+   "cible": "mu-plaque",
+   "point": "Toxicités après plaque (85 Gy en 7 jours) : rétinopathie 37,8 %, neuropathie optique 14,6 %, cataracte 31,7 % (Berry 2013)",
+   "portee": "situation"
+  }
+ ],
+ "textes": {
+  "systemique": [
+   "Pas de traitement systémique associé à la curiethérapie."
+  ]
+ }
+}

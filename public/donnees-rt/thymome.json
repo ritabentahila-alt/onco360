@@ -1,0 +1,252 @@
+{
+ "version": "2026-10-25",
+ "id": "thymome",
+ "region_id": "thorax",
+ "nom": "Thymome",
+ "ordre": 25,
+ "date_maj": "2026-10-24",
+ "situations": [
+  {
+   "id": "th-postop",
+   "localisation_id": "thymome",
+   "titre": "Tumeur épithéliale thymique opérée : RT post-opératoire",
+   "contexte": "post_op",
+   "criteres": "PORT si résection R1 ou R2, stade III–IV, ou stade II à haut risque (B2–B3, invasion transcapsulaire) ; carcinome thymique au-delà du stade I ; pas de PORT pour le stade I R0",
+   "ordre": 1
+  },
+  {
+   "id": "th-exclusif",
+   "localisation_id": "thymome",
+   "titre": "Tumeur non résécable : RT exclusive",
+   "contexte": "en_place",
+   "criteres": "RT exclusive, le plus souvent avec chimiothérapie concomitante",
+   "ordre": 2
+  }
+ ],
+ "schemas": [
+  {
+   "id": "th-r0-50",
+   "situation_id": "th-postop",
+   "titre": "PORT R0 : 50 Gy / 25 fx",
+   "type": "rte_normo",
+   "preuve": "recommandation",
+   "essai_ids": [
+    "katano2026-thymome",
+    "esmo-thymus-2015"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 50,
+     "fractions": 25,
+     "dose_fx_Gy": 2,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Recommandations : 45 à 50 Gy, 1,8 à 2 Gy par fraction"
+    }
+   ],
+   "technique": "RT conformationnelle moderne (RCMI)",
+   "systemique": "Aucune",
+   "volumes_id": "vol-thymome",
+   "contraintes_ids": [
+    "ct-thorax-quantec"
+   ],
+   "points_attention": [
+    "Stade II R0 : bénéfice de la PORT discuté (méta-analyses discordantes) ; l'essai français RADIORYTHMIC compare PORT et surveillance dans les stades IIb–III R0",
+    "Méta-analyse de 31 études : PORT associée à une meilleure SG (HR 0,73) après résection complète, bénéfice net pour les stades III–IV et le carcinome thymique"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Thorax",
+    "Thymome",
+    "Tumeur épithéliale thymique opérée : RT post-opératoire",
+    "Normofractionné"
+   ]
+  },
+  {
+   "id": "th-r1-54",
+   "situation_id": "th-postop",
+   "titre": "PORT R1 : 54 Gy / 27 fx",
+   "type": "rte_normo",
+   "preuve": "recommandation",
+   "essai_ids": [
+    "katano2026-thymome",
+    "esmo-thymus-2015"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 54,
+     "fractions": 27,
+     "dose_fx_Gy": 2,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Recommandations : 50 à 54 Gy"
+    }
+   ],
+   "technique": "RT conformationnelle moderne (RCMI)",
+   "systemique": "Aucune",
+   "volumes_id": "vol-thymome",
+   "contraintes_ids": [
+    "ct-thorax-quantec"
+   ],
+   "points_attention": [
+    "Stade II R0 : bénéfice de la PORT discuté (méta-analyses discordantes) ; l'essai français RADIORYTHMIC compare PORT et surveillance dans les stades IIb–III R0",
+    "Méta-analyse de 31 études : PORT associée à une meilleure SG (HR 0,73) après résection complète, bénéfice net pour les stades III–IV et le carcinome thymique"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Thorax",
+    "Thymome",
+    "Tumeur épithéliale thymique opérée : RT post-opératoire",
+    "Normofractionné"
+   ]
+  },
+  {
+   "id": "th-r2-60",
+   "situation_id": "th-postop",
+   "titre": "PORT R2 : 60 Gy / 30 fx",
+   "type": "rte_normo",
+   "preuve": "recommandation",
+   "essai_ids": [
+    "katano2026-thymome",
+    "esmo-thymus-2015"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 60,
+     "fractions": 30,
+     "dose_fx_Gy": 2,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "ESMO : 60 Gy avec une surimpression d'environ 10 Gy sur le macroscopique"
+    }
+   ],
+   "technique": "RT conformationnelle moderne (RCMI)",
+   "systemique": "Selon RCP",
+   "volumes_id": "vol-thymome",
+   "contraintes_ids": [
+    "ct-thorax-quantec"
+   ],
+   "points_attention": [
+    "Stade II R0 : bénéfice de la PORT discuté (méta-analyses discordantes) ; l'essai français RADIORYTHMIC compare PORT et surveillance dans les stades IIb–III R0",
+    "Méta-analyse de 31 études : PORT associée à une meilleure SG (HR 0,73) après résection complète, bénéfice net pour les stades III–IV et le carcinome thymique"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Thorax",
+    "Thymome",
+    "Tumeur épithéliale thymique opérée : RT post-opératoire",
+    "Normofractionné"
+   ]
+  },
+  {
+   "id": "th-excl-66",
+   "situation_id": "th-exclusif",
+   "titre": "RT exclusive 60 à 66 Gy en fractions de 2 Gy",
+   "type": "rte_normo",
+   "preuve": "recommandation",
+   "essai_ids": [
+    "katano2026-thymome",
+    "esmo-thymus-2015"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 66,
+     "fractions": 33,
+     "dose_fx_Gy": 2,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "ESMO : 60 à 66 Gy ; Ontario : 60 Gy en 30 à 33 fractions"
+    }
+   ],
+   "technique": "RT conformationnelle moderne (RCMI)",
+   "systemique": "Voir Traitement systémique",
+   "volumes_id": "vol-thymome",
+   "contraintes_ids": [
+    "ct-thorax-quantec"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Thorax",
+    "Thymome",
+    "Tumeur non résécable : RT exclusive",
+    "Normofractionné"
+   ],
+   "points_attention": []
+  }
+ ],
+ "simulations": [],
+ "volumes": [
+  {
+   "id": "vol-thymome",
+   "cibles": [
+    {
+     "nom": "GTV",
+     "type": "GTV",
+     "definition": "Reliquat macroscopique ou tumeur en place",
+     "quand": "R2 ou RT exclusive"
+    },
+    {
+     "nom": "CTV",
+     "type": "CTV",
+     "definition": "Lit tumoral ; pas d'irradiation ganglionnaire élective",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "PTV",
+     "type": "PTV",
+     "definition": "CTV + marge du centre",
+     "quand": "Toujours"
+    }
+   ],
+   "atlas": [],
+   "oar_ids": [
+    "oar-poumons",
+    "oar-coeur",
+    "oar-oesophage",
+    "oar-moelle",
+    "oar-gros-vaisseaux",
+    "oar-arbre-bronchique"
+   ]
+  }
+ ],
+ "curie_indications": [],
+ "systemique": [
+  {
+   "situation": "th-exclusif",
+   "traitement": "Étoposide et cisplatine concomitants à la RCMI",
+   "protocole": "Étoposide–cisplatine concomitant (tumeurs épithéliales thymiques)",
+   "situation_id": "th-exclusif",
+   "essai_ids": [
+    "katano2026-thymome"
+   ],
+   "note": "Phase 2 (Fan) : réponse objective 85,7 %, SG à 5 ans 56,2 %"
+  }
+ ],
+ "hormonotherapie": [],
+ "points_attention": [
+  {
+   "cible": "th-postop",
+   "point": "Stade II R0 : bénéfice de la PORT discuté (méta-analyses discordantes) ; l'essai français RADIORYTHMIC compare PORT et surveillance dans les stades IIb–III R0",
+   "portee": "situation"
+  },
+  {
+   "cible": "th-postop",
+   "point": "Méta-analyse de 31 études : PORT associée à une meilleure SG (HR 0,73) après résection complète, bénéfice net pour les stades III–IV et le carcinome thymique",
+   "portee": "situation"
+  },
+  {
+   "cible": "thymome",
+   "point": "SBRT réservée aux récidives limitées ou aux métastases pleurales, avec les contraintes thoraciques de la SBRT pulmonaire",
+   "portee": "localisation"
+  }
+ ],
+ "textes": {
+  "centrage": [
+   "Définitions et compte rendu : ITMIG (Gomez 2011)."
+  ]
+ }
+}

@@ -1,0 +1,478 @@
+{
+ "version": "2026-10-25",
+ "id": "sbrt_os",
+ "region_id": "os_palliatif",
+ "nom": "Stéréotaxie osseuse",
+ "ordre": 39,
+ "date_maj": "2026-10-25",
+ "situations": [
+  {
+   "id": "sr-rachis",
+   "localisation_id": "sbrt_os",
+   "titre": "Métastase vertébrale, première irradiation",
+   "contexte": "oligometastatique",
+   "criteres": "Décision en RCP sur scanner et IRM. OMS < 2, espérance de vie > 3 mois, chirurgie ou cimentoplastie non retenues. Oligométastatique (< 5 métastases), douleur persistante après RT conformationnelle, plasmocytome rachidien unique, tumeur rachidienne rare. Lésion < 5 cm ; 1 ou 2 vertèbres contiguës, ou 3 sites séparés par au moins 2 vertèbres saines ; épidurite ≤ 25 % du canal et à 5 mm ou plus de la moelle. Contre-indications : compression médullaire non opérée, instabilité rachidienne, atteinte majeure des parties molles, progression dans le champ moins de 3 mois après une RT, RT métabolique de moins d'un mois",
+   "ordre": 1
+  },
+  {
+   "id": "sr-reirr",
+   "localisation_id": "sbrt_os",
+   "titre": "Métastase vertébrale déjà irradiée",
+   "contexte": "reirradiation",
+   "criteres": "Mêmes critères ; cumul des doses et des fractionnements antérieurs à prendre en compte (fiche du service)",
+   "ordre": 2
+  },
+  {
+   "id": "sr-os",
+   "localisation_id": "sbrt_os",
+   "titre": "Métastase osseuse hors rachis (bassin)",
+   "contexte": "oligometastatique",
+   "criteres": "Lésion osseuse oligométastatique accessible à la stéréotaxie, par exemple pubis (tableur du service)",
+   "ordre": 3
+  }
+ ],
+ "schemas": [
+  {
+   "id": "sr-24-2",
+   "situation_id": "sr-rachis",
+   "titre": "SBRT 24 Gy / 2 fx",
+   "type": "sbrt",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "sc24",
+    "hytec-moelle"
+   ],
+   "source_institutionnelle": "Tableur du service « vertèbre stéréo 2 × 12 »",
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 24,
+     "fractions": 2,
+     "dose_fx_Gy": 12,
+     "mode": "seul",
+     "rythme": "2 jours consécutifs",
+     "note": "Réponse complète de la douleur à 3 mois 35 % contre 14 % avec 20 Gy / 5 fx (SC.24)"
+    }
+   ],
+   "technique": "SBRT, IGRT par CBCT à chaque séance",
+   "systemique": "Aucune",
+   "simulation_id": "sim-sr-service",
+   "volumes_id": "vol-sr-service",
+   "contraintes_ids": [
+    "ct-hytec-moelle"
+   ],
+   "couverture": "Isodose de prescription englobant tout le PTV (Zelefsky 2021) ; couverture réduite au contact de la moelle si nécessaire pour respecter sa contrainte (consensus, Redmond 2017)",
+   "points_attention": [
+    "Fracture vertébrale après SBRT : 14 % ; risque plus élevé avec 24 Gy ou plus par fraction, ostéolyse, déformation et fracture préexistante (Sahgal 2013) ; prudence au-delà de 20 Gy par fraction",
+    "16 ou 18 Gy en 1 fx n'ont pas fait mieux que 8 Gy en 1 fx sur la douleur à 3 mois (RTOG 0631 : 41,3 contre 60,5 %)",
+    "SBRT après chirurgie rachidienne : CTV = étendue préopératoire de l'atteinte osseuse et épidurale et compartiments adjacents, en anneau si l'épidurite était circonférentielle, matériel exclu (Redmond 2017)"
+   ],
+   "date_verif": "2026-10-25",
+   "ind": [
+    "Os et palliatif",
+    "Stéréotaxie osseuse",
+    "Métastase vertébrale, première irradiation",
+    "Stéréotaxie"
+   ]
+  },
+  {
+   "id": "sr-3x8-service",
+   "situation_id": "sr-rachis",
+   "titre": "SBRT 3 × 8 Gy, une séance tous les 3 jours",
+   "type": "sbrt",
+   "preuve": "pratique_institutionnelle",
+   "essai_ids": [
+    "lai2025",
+    "cox2012"
+   ],
+   "source_institutionnelle": "Fiche du service « stéréotaxie osseuse vertébrale »",
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 24,
+     "fractions": 3,
+     "dose_fx_Gy": 8,
+     "mode": "seul",
+     "rythme": "1 séance tous les 3 jours",
+     "note": "Phase 2 randomisée contre 16 Gy / 1 fx : progression locale à 1 an 4,9 contre 2,6 %, fracture 10,1 contre 7,9 % (Lai 2025)"
+    }
+   ],
+   "technique": "SBRT, IGRT par CBCT à chaque séance",
+   "systemique": "Aucune",
+   "simulation_id": "sim-sr-service",
+   "volumes_id": "vol-sr-service",
+   "contraintes_ids": [
+    "ct-hytec-moelle"
+   ],
+   "couverture": "Isodose de prescription englobant tout le PTV (Zelefsky 2021) ; couverture réduite au contact de la moelle si nécessaire pour respecter sa contrainte (consensus, Redmond 2017)",
+   "points_attention": [
+    "Fracture vertébrale après SBRT : 14 % ; risque plus élevé avec 24 Gy ou plus par fraction, ostéolyse, déformation et fracture préexistante (Sahgal 2013) ; prudence au-delà de 20 Gy par fraction",
+    "16 ou 18 Gy en 1 fx n'ont pas fait mieux que 8 Gy en 1 fx sur la douleur à 3 mois (RTOG 0631 : 41,3 contre 60,5 %)",
+    "SBRT après chirurgie rachidienne : CTV = étendue préopératoire de l'atteinte osseuse et épidurale et compartiments adjacents, en anneau si l'épidurite était circonférentielle, matériel exclu (Redmond 2017)"
+   ],
+   "date_verif": "2026-10-25",
+   "ind": [
+    "Os et palliatif",
+    "Stéréotaxie osseuse",
+    "Métastase vertébrale, première irradiation",
+    "Stéréotaxie"
+   ]
+  },
+  {
+   "id": "sr-3x9-service",
+   "situation_id": "sr-rachis",
+   "titre": "SBRT 3 × 9 Gy",
+   "type": "sbrt",
+   "preuve": "pratique_institutionnelle",
+   "essai_ids": [
+    "zelefsky2021",
+    "wang2012-sbrt",
+    "cox2012"
+   ],
+   "source_institutionnelle": "Tableur du service « vertèbre stéréo 3 × 9 »",
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 27,
+     "fractions": 3,
+     "dose_fx_Gy": 9,
+     "mode": "seul",
+     "rythme": "Selon le service",
+     "note": "Bras 3 × 9 Gy de la phase 3 de Zelefsky 2021 : rechute locale à 3 ans 22 % contre 5,8 % avec 24 Gy / 1 fx"
+    }
+   ],
+   "technique": "SBRT, IGRT par CBCT à chaque séance",
+   "systemique": "Aucune",
+   "simulation_id": "sim-sr-service",
+   "volumes_id": "vol-sr-service",
+   "contraintes_ids": [
+    "ct-hytec-moelle"
+   ],
+   "couverture": "Isodose de prescription englobant tout le PTV (Zelefsky 2021) ; couverture réduite au contact de la moelle si nécessaire pour respecter sa contrainte (consensus, Redmond 2017)",
+   "points_attention": [
+    "Fracture vertébrale après SBRT : 14 % ; risque plus élevé avec 24 Gy ou plus par fraction, ostéolyse, déformation et fracture préexistante (Sahgal 2013) ; prudence au-delà de 20 Gy par fraction",
+    "16 ou 18 Gy en 1 fx n'ont pas fait mieux que 8 Gy en 1 fx sur la douleur à 3 mois (RTOG 0631 : 41,3 contre 60,5 %)",
+    "SBRT après chirurgie rachidienne : CTV = étendue préopératoire de l'atteinte osseuse et épidurale et compartiments adjacents, en anneau si l'épidurite était circonférentielle, matériel exclu (Redmond 2017)"
+   ],
+   "date_verif": "2026-10-25",
+   "ind": [
+    "Os et palliatif",
+    "Stéréotaxie osseuse",
+    "Métastase vertébrale, première irradiation",
+    "Stéréotaxie"
+   ]
+  },
+  {
+   "id": "sr-3x10-service",
+   "situation_id": "sr-rachis",
+   "titre": "SBRT 3 × 10 Gy, une séance tous les 3 jours",
+   "type": "sbrt",
+   "preuve": "pratique_institutionnelle",
+   "essai_ids": [
+    "wang2012-sbrt",
+    "cox2012"
+   ],
+   "source_institutionnelle": "Fiche du service « stéréotaxie osseuse vertébrale »",
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 30,
+     "fractions": 3,
+     "dose_fx_Gy": 10,
+     "mode": "seul",
+     "rythme": "1 séance tous les 3 jours",
+     "note": "27 à 30 Gy en 3 fx : phase 1-2 du MD Anderson, survie sans progression à 1 an 80,5 % (Wang 2012)"
+    }
+   ],
+   "technique": "SBRT, IGRT par CBCT à chaque séance",
+   "systemique": "Aucune",
+   "simulation_id": "sim-sr-service",
+   "volumes_id": "vol-sr-service",
+   "contraintes_ids": [
+    "ct-hytec-moelle"
+   ],
+   "couverture": "Isodose de prescription englobant tout le PTV (Zelefsky 2021) ; couverture réduite au contact de la moelle si nécessaire pour respecter sa contrainte (consensus, Redmond 2017)",
+   "points_attention": [
+    "Fracture vertébrale après SBRT : 14 % ; risque plus élevé avec 24 Gy ou plus par fraction, ostéolyse, déformation et fracture préexistante (Sahgal 2013) ; prudence au-delà de 20 Gy par fraction",
+    "16 ou 18 Gy en 1 fx n'ont pas fait mieux que 8 Gy en 1 fx sur la douleur à 3 mois (RTOG 0631 : 41,3 contre 60,5 %)",
+    "SBRT après chirurgie rachidienne : CTV = étendue préopératoire de l'atteinte osseuse et épidurale et compartiments adjacents, en anneau si l'épidurite était circonférentielle, matériel exclu (Redmond 2017)"
+   ],
+   "date_verif": "2026-10-25",
+   "ind": [
+    "Os et palliatif",
+    "Stéréotaxie osseuse",
+    "Métastase vertébrale, première irradiation",
+    "Stéréotaxie"
+   ]
+  },
+  {
+   "id": "sr-1x24",
+   "situation_id": "sr-rachis",
+   "titre": "SBRT 24 Gy en 1 fx",
+   "type": "sbrt",
+   "preuve": "option",
+   "essai_ids": [
+    "sprave2018",
+    "sahgal2013-vcf"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 24,
+     "fractions": 1,
+     "dose_fx_Gy": 24,
+     "mode": "seul",
+     "rythme": "1 séance",
+     "note": "Réponse antalgique meilleure qu'avec 30 Gy / 10 fx à 6 mois (phase 2) ; risque de fracture vertébrale plus élevé à partir de 20 Gy par fraction"
+    }
+   ],
+   "technique": "SBRT, IGRT par CBCT",
+   "systemique": "Aucune",
+   "simulation_id": "sim-sr-service",
+   "volumes_id": "vol-sr-service",
+   "contraintes_ids": [
+    "ct-hytec-moelle"
+   ],
+   "couverture": "Isodose de prescription englobant tout le PTV (Zelefsky 2021) ; couverture réduite au contact de la moelle si nécessaire pour respecter sa contrainte (consensus, Redmond 2017)",
+   "points_attention": [
+    "Fracture vertébrale après SBRT : 14 % ; risque plus élevé avec 24 Gy ou plus par fraction, ostéolyse, déformation et fracture préexistante (Sahgal 2013) ; prudence au-delà de 20 Gy par fraction",
+    "16 ou 18 Gy en 1 fx n'ont pas fait mieux que 8 Gy en 1 fx sur la douleur à 3 mois (RTOG 0631 : 41,3 contre 60,5 %)",
+    "SBRT après chirurgie rachidienne : CTV = étendue préopératoire de l'atteinte osseuse et épidurale et compartiments adjacents, en anneau si l'épidurite était circonférentielle, matériel exclu (Redmond 2017)"
+   ],
+   "date_verif": "2026-10-25",
+   "ind": [
+    "Os et palliatif",
+    "Stéréotaxie osseuse",
+    "Métastase vertébrale, première irradiation",
+    "Stéréotaxie"
+   ]
+  },
+  {
+   "id": "sr-reirr-5x6",
+   "situation_id": "sr-reirr",
+   "titre": "SBRT de réirradiation 5 × 6 Gy, une séance tous les 3 jours",
+   "type": "sbrt",
+   "preuve": "pratique_institutionnelle",
+   "essai_ids": [
+    "garg2011",
+    "sahgal2012-reirr",
+    "hytec-moelle"
+   ],
+   "source_institutionnelle": "Fiche du service « stéréotaxie osseuse vertébrale »",
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 30,
+     "fractions": 5,
+     "dose_fx_Gy": 6,
+     "mode": "seul",
+     "rythme": "1 séance tous les 3 jours",
+     "note": "30 Gy / 5 fx en réirradiation : contrôle local à 1 an 76 % (Garg 2011) ; adapter au cumul des doses antérieures (jeu ct-reirr-moelle)"
+    }
+   ],
+   "technique": "SBRT, IGRT par CBCT à chaque séance",
+   "systemique": "Aucune",
+   "simulation_id": "sim-sr-service",
+   "volumes_id": "vol-sr-service",
+   "contraintes_ids": [
+    "ct-reirr-moelle",
+    "ct-hytec-moelle"
+   ],
+   "couverture": "Isodose de prescription englobant tout le PTV (Zelefsky 2021) ; couverture réduite au contact de la moelle si nécessaire pour respecter sa contrainte (consensus, Redmond 2017)",
+   "date_verif": "2026-10-25",
+   "ind": [
+    "Os et palliatif",
+    "Stéréotaxie osseuse",
+    "Métastase vertébrale déjà irradiée",
+    "Stéréotaxie"
+   ],
+   "points_attention": []
+  },
+  {
+   "id": "sr-pubis-3x9",
+   "situation_id": "sr-os",
+   "titre": "SBRT 3 × 9 Gy (bassin, pubis)",
+   "type": "sbrt",
+   "preuve": "pratique_institutionnelle",
+   "essai_ids": [
+    "zelefsky2021",
+    "sabrcomet",
+    "sabrcomet5",
+    "guckenberger2020"
+   ],
+   "source_institutionnelle": "Tableur du service « pubis stéréo 3 × 9 »",
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 27,
+     "fractions": 3,
+     "dose_fx_Gy": 9,
+     "mode": "seul",
+     "rythme": "Selon le service",
+     "note": "Bras 3 × 9 Gy de la phase 3 de Zelefsky 2021 (lésions oligométastatiques) ; isodose d'enveloppe 80 % (33,75 Gy à l'isocentre)"
+    }
+   ],
+   "technique": "SBRT, IGRT par CBCT à chaque séance",
+   "systemique": "Aucune",
+   "simulation_id": "sim-sr-service",
+   "volumes_id": "vol-sr-os",
+   "couverture": "Isodose de prescription englobant tout le PTV (Zelefsky 2021) ; couverture réduite au contact de la moelle si nécessaire pour respecter sa contrainte (consensus, Redmond 2017)",
+   "points_attention": [
+    "Contraintes du tableur du service non reprises ; pas de jeu publié pour le bassin en 3 fractions dans la bibliothèque"
+   ],
+   "date_verif": "2026-10-25",
+   "ind": [
+    "Os et palliatif",
+    "Stéréotaxie osseuse",
+    "Métastase osseuse hors rachis (bassin)",
+    "Stéréotaxie"
+   ],
+   "contraintes_ids": []
+  }
+ ],
+ "simulations": [
+  {
+   "id": "sim-sr-service",
+   "position": "Décubitus dorsal ; décubitus ventral possible pour les tumeurs très postérieures (non compatible avec certains robots)",
+   "contention": "Rachis cervical : bras le long du corps, masque 5 points. Rachis dorso-lombaire : bras le long du corps, coussin à dépression (blue-bag) possible",
+   "scanner": "Scanner dosimétrique sans injection (référence) ; scanner injecté recommandé",
+   "imagerie": "IRM T1 gadolinium et T2, coupes axiales, coronales et sagittales ; fusion scanner-IRM explicite et datée",
+   "reperes": "Volumes nommés par niveau (GTV_T8, CTV_T8, PTV_T8)"
+  }
+ ],
+ "volumes": [
+  {
+   "id": "vol-sr-service",
+   "cibles": [
+    {
+     "nom": "GTV",
+     "type": "GTV",
+     "definition": "Lyse ou condensation tumorale visible, sur la fusion scanner-IRM",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "CTV",
+     "type": "CTV",
+     "definition": "Vertèbre atteinte et expansion anatomique selon le consensus : moelle osseuse anormale et os normal adjacent ; pas d'expansion épidurale sans épidurite ; CTV circonférentiel seulement si corps, pédicules ou lames bilatéraux et épineuse sont atteints, ou si l'épidurite est circonférentielle (Cox 2012). Réirradiation : pas de standard publié",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "PTV",
+     "type": "PTV",
+     "definition": "CTV + 3 mm, ou moins selon la précision du CBCT",
+     "quand": "Toujours",
+     "marge": "3 mm"
+    },
+    {
+     "nom": "PRV moelle",
+     "type": "PRV",
+     "definition": "Moelle + 3 mm",
+     "quand": "Toujours",
+     "marge": "3 mm"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "Cox 2012, consensus de contourage",
+     "url": "https://doi.org/10.1016/j.ijrobp.2012.03.009"
+    },
+    {
+     "nom": "Redmond 2017, post-opératoire",
+     "url": "https://doi.org/10.1016/j.ijrobp.2016.09.014"
+    }
+   ],
+   "oar_ids": [
+    "oar-moelle",
+    "oar-sac-dural",
+    "oar-queue-cheval",
+    "oar-racines-nerveuses",
+    "oar-plexus-brachial-d",
+    "oar-plexus-brachial-g",
+    "oar-oesophage",
+    "oar-trachee",
+    "oar-pharynx",
+    "oar-larynx",
+    "oar-parotide-d",
+    "oar-parotide-g",
+    "oar-poumons",
+    "oar-coeur",
+    "oar-gros-vaisseaux",
+    "oar-rein-d",
+    "oar-rein-g",
+    "oar-foie",
+    "oar-estomac",
+    "oar-duodenum",
+    "oar-grele",
+    "oar-colon",
+    "oar-pancreas",
+    "oar-rectum",
+    "oar-vessie",
+    "oar-plexus-sacre",
+    "oar-nerf-sciatique"
+   ]
+  },
+  {
+   "id": "vol-sr-os",
+   "cibles": [
+    {
+     "nom": "GTV",
+     "type": "GTV",
+     "definition": "Lésion osseuse visible (scanner, IRM)",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "PTV",
+     "type": "PTV",
+     "definition": "Marge du service, non précisée par le tableur",
+     "quand": "Toujours"
+    }
+   ],
+   "atlas": [],
+   "oar_ids": [
+    "oar-rectum",
+    "oar-canal-anal",
+    "oar-sigmoide",
+    "oar-grele",
+    "oar-vessie",
+    "oar-vulve",
+    "oar-tete-femorale-d",
+    "oar-tete-femorale-g"
+   ]
+  }
+ ],
+ "curie_indications": [],
+ "systemique": [],
+ "hormonotherapie": [],
+ "points_attention": [
+  {
+   "cible": "sr-rachis",
+   "point": "Fracture vertébrale après SBRT : 14 % ; risque plus élevé avec 24 Gy ou plus par fraction, ostéolyse, déformation et fracture préexistante (Sahgal 2013) ; prudence au-delà de 20 Gy par fraction",
+   "portee": "situation"
+  },
+  {
+   "cible": "sr-rachis",
+   "point": "16 ou 18 Gy en 1 fx n'ont pas fait mieux que 8 Gy en 1 fx sur la douleur à 3 mois (RTOG 0631 : 41,3 contre 60,5 %)",
+   "portee": "situation"
+  },
+  {
+   "cible": "sr-rachis",
+   "point": "SBRT après chirurgie rachidienne : CTV = étendue préopératoire de l'atteinte osseuse et épidurale et compartiments adjacents, en anneau si l'épidurite était circonférentielle, matériel exclu (Redmond 2017)",
+   "portee": "situation"
+  },
+  {
+   "cible": "sbrt_os",
+   "point": "Oligométastases : SABR-COMET, SG à 5 ans 42,3 contre 17,7 % ; classification et nomenclature ESTRO-EORTC (Guckenberger 2020). Sites : onglets Poumon, Foie, Surrénale, Métastases cérébrales",
+   "portee": "localisation"
+  },
+  {
+   "cible": "sr-pubis-3x9",
+   "point": "Contraintes du tableur du service non reprises ; pas de jeu publié pour le bassin en 3 fractions dans la bibliothèque",
+   "portee": "schema"
+  }
+ ],
+ "textes": {
+  "systemique": [
+   "Pas de traitement systémique associé à la RT dans ces schémas."
+  ]
+ }
+}

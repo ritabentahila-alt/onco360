@@ -1,0 +1,245 @@
+{
+ "version": "2026-10-25",
+ "id": "schwannome",
+ "region_id": "snc",
+ "nom": "Schwannome vestibulaire",
+ "ordre": 32,
+ "date_maj": "2026-10-24",
+ "situations": [
+  {
+   "id": "sch-traitement",
+   "localisation_id": "schwannome",
+   "titre": "Schwannome vestibulaire à traiter",
+   "contexte": "en_place",
+   "criteres": "Tumeur évolutive ou symptomatique, ou résidu évolutif après chirurgie ; diagnostic sur l'IRM, histologie pas toujours nécessaire (EANO 2020)",
+   "ordre": 1
+  }
+ ],
+ "schemas": [
+  {
+   "id": "sch-srs-12-1",
+   "situation_id": "sch-traitement",
+   "titre": "Radiochirurgie 12 Gy en 1 séance (dose marginale 12 à 14 Gy)",
+   "type": "sbrt",
+   "preuve": "recommandation",
+   "essai_ids": [
+    "isrs-schwannome",
+    "quantec-cochlee",
+    "eano-schwannome-2020"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV (dose marginale)",
+     "dose_Gy": 12,
+     "fractions": 1,
+     "dose_fx_Gy": 12,
+     "mode": "seul",
+     "rythme": "1 séance",
+     "note": "12 à 14 Gy : contrôle à 5 ans 90–99 %, audition préservée 41–79 % (ISRS)"
+    }
+   ],
+   "technique": "Radiochirurgie (Gamma Knife ou accélérateur), IGRT stéréotaxique",
+   "systemique": "Aucune",
+   "simulation_id": "sim-crane-srs",
+   "volumes_id": "vol-sch",
+   "contraintes_ids": [
+    "ct-srs-igr-1fx",
+    "ct-srs-hytec"
+   ],
+   "couverture": "Dose prescrite en périphérie de la tumeur",
+   "points_attention": [
+    "Audition : dose prescrite limitée à 12–14 Gy ; au-delà de 14 Gy, l'audition utile chute nettement (QUANTEC)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "SNC",
+    "Schwannome vestibulaire",
+    "Schwannome vestibulaire à traiter",
+    "Stéréotaxie"
+   ]
+  },
+  {
+   "id": "sch-fsrt-576-32",
+   "situation_id": "sch-traitement",
+   "titre": "RT stéréotaxique fractionnée 57,6 Gy / 32 fx",
+   "type": "rte_normo",
+   "preuve": "option",
+   "essai_ids": [
+    "combs2005",
+    "isrs-schwannome"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 57.6,
+     "fractions": 32,
+     "dose_fx_Gy": 1.8,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Contrôle local 93 % à 5 ans ; audition utile préservée 94 % (98 % hors NF2)"
+    }
+   ],
+   "technique": "RT stéréotaxique conformationnelle ou IMRT, IGRT quotidienne",
+   "systemique": "Aucune",
+   "simulation_id": "sim-crane",
+   "volumes_id": "vol-sch",
+   "contraintes_ids": [
+    "ct-crane-igr",
+    "ct-crane-quantec"
+   ],
+   "points_attention": [
+    "Cochlée en fractionnement classique : dose moyenne ≤ 45 Gy, ≤ 35 Gy par prudence, aussi basse que possible (QUANTEC)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "SNC",
+    "Schwannome vestibulaire",
+    "Schwannome vestibulaire à traiter",
+    "Normofractionné"
+   ]
+  },
+  {
+   "id": "sch-hfsrt-25-5",
+   "situation_id": "sch-traitement",
+   "titre": "Stéréotaxie hypofractionnée 25 Gy / 5 fx",
+   "type": "sbrt",
+   "preuve": "option",
+   "essai_ids": [
+    "meijer2003",
+    "quantec-cochlee"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV (isodose 80 %)",
+     "dose_Gy": 25,
+     "fractions": 5,
+     "dose_fx_Gy": 5,
+     "mode": "seul",
+     "rythme": "1 semaine",
+     "note": "Contrôle à 5 ans 94 % ; trijumeau mieux préservé qu'en dose unique (98 vs 92 %)"
+    }
+   ],
+   "technique": "Stéréotaxie, IGRT à chaque séance",
+   "systemique": "Aucune",
+   "simulation_id": "sim-crane-srs",
+   "volumes_id": "vol-sch",
+   "contraintes_ids": [
+    "ct-srs-igr-5fx",
+    "ct-srs-hytec"
+   ],
+   "couverture": "Dose prescrite à l'isodose 80 %",
+   "points_attention": [
+    "QUANTEC propose 21 à 30 Gy en fractions de 3 à 7 Gy sur 3 à 10 jours (données limitées)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "SNC",
+    "Schwannome vestibulaire",
+    "Schwannome vestibulaire à traiter",
+    "Stéréotaxie"
+   ]
+  }
+ ],
+ "simulations": [
+  {
+   "id": "sim-crane-srs",
+   "position": "Décubitus dorsal, tête en position neutre, bras le long du corps, coussin sous les genoux",
+   "contention": "Masque thermoformé 5 points ou cadre stéréotaxique (fiche du service) ; Curie : masque bivalve sans cadre, moulé sur une cale retirée avant l'acquisition",
+   "scanner": "Coupes axiales millimétriques. Curie : non injecté, de 1 cm au-dessus du vertex jusqu'à T1 ; fiche du service : injecté",
+   "imagerie": "IRM de planification T1 sans injection (saignement récent), T1 gadolinium 3D (contourage) et perfusion (référence du suivi), jusqu'à C3–C4, fusionnée au scanner. Première séance dans les 14 jours suivant l'IRM, 16 au plus (Curie)",
+   "reperes": "Plan de référence pointe du nez–tragus, perpendiculaire à la table (Curie)"
+  },
+  {
+   "id": "sim-crane",
+   "position": "Décubitus dorsal, bras le long du corps, coussin sous les genoux",
+   "contention": "Masque thermoformé 3 points",
+   "scanner": "Non injecté, coupes jointives de 2,5 mm, crâne entier jusqu'à C3, moins de 2 semaines avant le début de la RT",
+   "imagerie": "IRM dosimétrique T1 3D gadolinium et T2-FLAIR, axiales strictes, fusionnées au scanner ; IRM post-opératoire précoce (48–72 h) pour le GTV ; éviter l'IRM post-opératoire tardive, qui surestime le résidu"
+  }
+ ],
+ "volumes": [
+  {
+   "id": "vol-sch",
+   "cibles": [
+    {
+     "nom": "GTV",
+     "type": "GTV",
+     "definition": "Schwannome rehaussé en T1 gadolinium 3D, portion intracanalaire comprise, IRM fusionnée au scanner",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "CTV",
+     "type": "CTV",
+     "definition": "CTV = GTV (tumeur bénigne)",
+     "quand": "Toujours",
+     "marge": "0 mm"
+    },
+    {
+     "nom": "PTV",
+     "type": "PTV",
+     "definition": "CTV + marge de la plateforme : 1 mm en stéréotaxie avec IGRT (comme vol-crane-srs)",
+     "quand": "Toujours",
+     "marge": "1 mm"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "atlas EPTN 2018",
+     "url": "https://doi.org/10.1016/j.radonc.2017.12.013"
+    },
+    {
+     "nom": "QUANTEC cochlée",
+     "url": "https://doi.org/10.1016/j.ijrobp.2009.04.096"
+    }
+   ],
+   "oar_ids": [
+    "oar-cochlee-d",
+    "oar-cochlee-g",
+    "oar-tronc-cerebral",
+    "oar-nerfs-craniens",
+    "oar-encephale-sain",
+    "oar-chiasma",
+    "oar-nerf-optique-d",
+    "oar-nerf-optique-g",
+    "oar-oeil-d",
+    "oar-oeil-g",
+    "oar-cristallin-d",
+    "oar-cristallin-g",
+    "oar-hippocampes"
+   ],
+   "oar_notes": {
+    "oar-nerfs-craniens": "nerfs facial et trijumeau"
+   }
+  }
+ ],
+ "curie_indications": [],
+ "systemique": [],
+ "hormonotherapie": [],
+ "points_attention": [
+  {
+   "cible": "sch-srs-12-1",
+   "point": "Audition : dose prescrite limitée à 12–14 Gy ; au-delà de 14 Gy, l'audition utile chute nettement (QUANTEC)",
+   "portee": "schema"
+  },
+  {
+   "cible": "sch-fsrt-576-32",
+   "point": "Cochlée en fractionnement classique : dose moyenne ≤ 45 Gy, ≤ 35 Gy par prudence, aussi basse que possible (QUANTEC)",
+   "portee": "schema"
+  },
+  {
+   "cible": "sch-hfsrt-25-5",
+   "point": "QUANTEC propose 21 à 30 Gy en fractions de 3 à 7 Gy sur 3 à 10 jours (données limitées)",
+   "portee": "schema"
+  },
+  {
+   "cible": "schwannome",
+   "point": "Neurofibromatose de type 2 : audition moins bien préservée après radiochirurgie ou RT fractionnée",
+   "portee": "localisation"
+  }
+ ],
+ "textes": {
+  "systemique": [
+   "Pas de traitement médical, sauf le bévacizumab dans la neurofibromatose de type 2 (EANO 2020)."
+  ]
+ }
+}

@@ -1,0 +1,163 @@
+{
+ "version": "2026-10-25",
+ "id": "ependymome",
+ "region_id": "snc",
+ "nom": "Épendymome de l'adulte",
+ "ordre": 36,
+ "date_maj": "2026-10-24",
+ "situations": [
+  {
+   "id": "ep-intracranien",
+   "localisation_id": "ependymome",
+   "titre": "Épendymome intracrânien opéré",
+   "contexte": "post_op",
+   "criteres": "RT pour l'épendymome anaplasique (grade 3) et pour le grade 2 incomplètement réséqué (EANO 2018)",
+   "ordre": 1
+  }
+ ],
+ "schemas": [
+  {
+   "id": "ep-g2-54",
+   "situation_id": "ep-intracranien",
+   "titre": "Grade 2 : 54 Gy sur le lit tumoral",
+   "type": "rte_normo",
+   "preuve": "option",
+   "essai_ids": [
+    "eano-ependymome-2018",
+    "wee2020-ependymome"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV lit tumoral",
+     "dose_Gy": 54,
+     "mode": "seul",
+     "rythme": "Selon le centre",
+     "note": "Dose médiane de la série coréenne multicentrique (172 adultes)"
+    }
+   ],
+   "technique": "RT conformationnelle",
+   "systemique": "Aucune",
+   "simulation_id": "sim-crane",
+   "volumes_id": "vol-ependymome",
+   "contraintes_ids": [
+    "ct-crane-igr",
+    "ct-crane-quantec"
+   ],
+   "points_attention": [
+    "RT post-opératoire : meilleurs contrôle local, survie sans progression et SG en analyse multivariée ; pour le grade 2, meilleurs contrôle local et survie sans progression (KROG 18-06)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "SNC",
+    "Épendymome de l'adulte",
+    "Épendymome intracrânien opéré",
+    "Normofractionné"
+   ]
+  },
+  {
+   "id": "ep-g3-594",
+   "situation_id": "ep-intracranien",
+   "titre": "Grade 3 : 59,4 Gy sur le lit tumoral",
+   "type": "rte_normo",
+   "preuve": "option",
+   "essai_ids": [
+    "eano-ependymome-2018",
+    "wee2020-ependymome"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV lit tumoral",
+     "dose_Gy": 59.4,
+     "mode": "seul",
+     "rythme": "Selon le centre",
+     "note": "Dose médiane de la même série"
+    }
+   ],
+   "technique": "RT conformationnelle",
+   "systemique": "Aucune",
+   "simulation_id": "sim-crane",
+   "volumes_id": "vol-ependymome",
+   "contraintes_ids": [
+    "ct-crane-igr",
+    "ct-crane-quantec"
+   ],
+   "points_attention": [
+    "RT post-opératoire : meilleurs contrôle local, survie sans progression et SG en analyse multivariée ; pour le grade 2, meilleurs contrôle local et survie sans progression (KROG 18-06)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "SNC",
+    "Épendymome de l'adulte",
+    "Épendymome intracrânien opéré",
+    "Normofractionné"
+   ]
+  }
+ ],
+ "simulations": [
+  {
+   "id": "sim-crane",
+   "position": "Décubitus dorsal, bras le long du corps, coussin sous les genoux",
+   "contention": "Masque thermoformé 3 points",
+   "scanner": "Non injecté, coupes jointives de 2,5 mm, crâne entier jusqu'à C3, moins de 2 semaines avant le début de la RT",
+   "imagerie": "IRM dosimétrique T1 3D gadolinium et T2-FLAIR, axiales strictes, fusionnées au scanner ; IRM post-opératoire précoce (48–72 h) pour le GTV ; éviter l'IRM post-opératoire tardive, qui surestime le résidu"
+  }
+ ],
+ "volumes": [
+  {
+   "id": "vol-ependymome",
+   "cibles": [
+    {
+     "nom": "GTV",
+     "type": "GTV",
+     "definition": "Lit tumoral et reliquat sur l'IRM post-opératoire",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "PTV",
+     "type": "PTV",
+     "definition": "Marges du centre",
+     "quand": "Toujours"
+    }
+   ],
+   "atlas": [],
+   "oar_ids": [
+    "oar-tronc-cerebral",
+    "oar-chiasma",
+    "oar-nerf-optique-d",
+    "oar-nerf-optique-g",
+    "oar-cochlee-d",
+    "oar-cochlee-g",
+    "oar-encephale",
+    "oar-moelle"
+   ]
+  }
+ ],
+ "curie_indications": [],
+ "systemique": [],
+ "hormonotherapie": [],
+ "points_attention": [
+  {
+   "cible": "ep-intracranien",
+   "point": "RT post-opératoire : meilleurs contrôle local, survie sans progression et SG en analyse multivariée ; pour le grade 2, meilleurs contrôle local et survie sans progression (KROG 18-06)",
+   "portee": "situation"
+  },
+  {
+   "cible": "ependymome",
+   "point": "Épendymome spinal : la résection complète est le traitement principal, RT réservée aux résections incomplètes (EANO 2018)",
+   "portee": "localisation"
+  },
+  {
+   "cible": "ependymome",
+   "point": "9 sous-groupes moléculaires selon le compartiment et l'âge, aux pronostics distincts (EANO 2018)",
+   "portee": "localisation"
+  }
+ ],
+ "textes": {
+  "centrage": [
+   "Bilan par IRM craniospinale (EANO 2018)."
+  ],
+  "systemique": [
+   "Pas de traitement systémique associé à la RT ; chimiothérapie réservée aux récidives sans option locale (EANO 2018)."
+  ]
+ }
+}

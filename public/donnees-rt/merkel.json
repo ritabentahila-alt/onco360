@@ -1,0 +1,210 @@
+{
+ "version": "2026-10-25",
+ "id": "merkel",
+ "region_id": "peau",
+ "nom": "Carcinome de Merkel",
+ "ordre": 46,
+ "date_maj": "2026-10-24",
+ "situations": [
+  {
+   "id": "mk-lit",
+   "localisation_id": "merkel",
+   "titre": "Carcinome de Merkel opéré : lit tumoral",
+   "contexte": "post_op",
+   "criteres": "RT adjuvante du lit tumoral même après résection complète, pour tous les patients (S2k 2023)",
+   "ordre": 1
+  },
+  {
+   "id": "mk-gg",
+   "localisation_id": "merkel",
+   "titre": "Aires ganglionnaires",
+   "contexte": "post_op",
+   "criteres": "Sentinelle négative mais risque élevé (tumeur > 2 cm, drainage incertain en tête et cou) ; sentinelle positive (alternative au curage) ; atteinte clinique (seule ou après curage si rupture capsulaire)",
+   "ordre": 2
+  },
+  {
+   "id": "mk-macro",
+   "localisation_id": "merkel",
+   "titre": "Tumeur macroscopique ou inopérable",
+   "contexte": "en_place",
+   "criteres": "RT exclusive à visée curative possible",
+   "ordre": 3
+  }
+ ],
+ "schemas": [
+  {
+   "id": "mk-lit-50-25",
+   "situation_id": "mk-lit",
+   "titre": "Lit tumoral 50 Gy / 25 fx",
+   "type": "rte_normo",
+   "preuve": "recommandation",
+   "essai_ids": [
+    "vordermark2023-merkel",
+    "hennequin2022"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV lit tumoral",
+     "dose_Gy": 50,
+     "fractions": 25,
+     "dose_fx_Gy": 2,
+     "mode": "seul",
+     "rythme": "1 fx/j",
+     "note": "Marge de 3 cm autour du lit et de la cicatrice ; bolus"
+    }
+   ],
+   "technique": "RT externe avec bolus",
+   "systemique": "Aucune",
+   "simulation_id": "sim-merkel",
+   "volumes_id": "vol-merkel",
+   "couverture": "Dose à la peau assurée (bolus)",
+   "points_attention": [
+    "Tête et cou, tumeurs de moins de 1 cm : 26 % de récidives sans RT contre 0 % avec RT (étude appariée citée par S2k 2023)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Peau",
+    "Carcinome de Merkel",
+    "Carcinome de Merkel opéré : lit tumoral",
+    "Normofractionné"
+   ],
+   "contraintes_ids": []
+  },
+  {
+   "id": "mk-gg-50",
+   "situation_id": "mk-gg",
+   "titre": "Aires ganglionnaires infracliniques 50 à 56 Gy",
+   "type": "rte_normo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "jouary2012",
+    "vordermark2023-merkel"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV ganglionnaire",
+     "dose_Gy": 50,
+     "mode": "seul",
+     "rythme": "Selon le centre",
+     "note": "50 à 56 Gy (S2k 2023)"
+    }
+   ],
+   "technique": "RT externe",
+   "systemique": "Aucune",
+   "simulation_id": "sim-merkel",
+   "volumes_id": "vol-merkel",
+   "points_attention": [
+    "Essai randomisé (stade I) : la RT ganglionnaire prophylactique réduit les récidives régionales (0 % contre 16,7 %) sans gain de survie ; essai antérieur à la sentinelle (Jouary 2012)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Peau",
+    "Carcinome de Merkel",
+    "Aires ganglionnaires",
+    "Normofractionné"
+   ],
+   "contraintes_ids": []
+  },
+  {
+   "id": "mk-macro-56",
+   "situation_id": "mk-macro",
+   "titre": "Maladie macroscopique, 56 Gy ou plus",
+   "type": "rte_normo",
+   "preuve": "recommandation",
+   "essai_ids": [
+    "vordermark2023-merkel"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV macroscopique",
+     "dose_Gy": 56,
+     "mode": "seul",
+     "rythme": "Selon le centre",
+     "note": "56 Gy ou plus (S2k 2023)"
+    }
+   ],
+   "technique": "RT externe",
+   "systemique": "Selon RCP",
+   "simulation_id": "sim-merkel",
+   "volumes_id": "vol-merkel",
+   "points_attention": [
+    "RT exclusive des stades I–II : doses médianes 55 Gy (local) et 65 Gy (local et régional), rechutes 25 et 21 %"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Peau",
+    "Carcinome de Merkel",
+    "Tumeur macroscopique ou inopérable",
+    "Normofractionné"
+   ],
+   "contraintes_ids": []
+  }
+ ],
+ "simulations": [
+  {
+   "id": "sim-merkel",
+   "position": "Selon le site",
+   "preparation": "Bolus pour assurer la dose à la peau",
+   "scanner": "Scanner de planification"
+  }
+ ],
+ "volumes": [
+  {
+   "id": "vol-merkel",
+   "cibles": [
+    {
+     "nom": "CTV lit tumoral",
+     "type": "CTV",
+     "definition": "Lit tumoral et cicatrice + 3 cm (S2k 2023 ; Danemark 1 à 2 cm, NCCN 5 cm)",
+     "quand": "Toujours",
+     "marge": "3 cm"
+    },
+    {
+     "nom": "CTV ganglionnaire",
+     "type": "CTV",
+     "definition": "Aire de drainage ganglionnaire concernée (sentinelle)",
+     "quand": "Selon l'indication"
+    },
+    {
+     "nom": "GTV",
+     "type": "GTV",
+     "definition": "Tumeur ou adénopathie macroscopique",
+     "quand": "Maladie macroscopique"
+    }
+   ],
+   "atlas": [],
+   "oar_ids": [
+    "oar-peau",
+    "oar-parotide-d",
+    "oar-parotide-g",
+    "oar-cristallin-d",
+    "oar-cristallin-g"
+   ]
+  }
+ ],
+ "curie_indications": [],
+ "systemique": [],
+ "hormonotherapie": [],
+ "points_attention": [
+  {
+   "cible": "mk-gg",
+   "point": "Essai randomisé (stade I) : la RT ganglionnaire prophylactique réduit les récidives régionales (0 % contre 16,7 %) sans gain de survie ; essai antérieur à la sentinelle (Jouary 2012)",
+   "portee": "situation"
+  },
+  {
+   "cible": "mk-lit",
+   "point": "Tête et cou, tumeurs de moins de 1 cm : 26 % de récidives sans RT contre 0 % avec RT (étude appariée citée par S2k 2023)",
+   "portee": "situation"
+  },
+  {
+   "cible": "mk-macro",
+   "point": "RT exclusive des stades I–II : doses médianes 55 Gy (local) et 65 Gy (local et régional), rechutes 25 et 21 %",
+   "portee": "situation"
+  }
+ ],
+ "textes": {
+  "systemique": [
+   "Pas de traitement systémique concomitant défini ; maladie métastatique : immunothérapie anti-PD-1 ou anti-PD-L1, la RT s'intégrant au cas par cas (S2k 2023)."
+  ]
+ }
+}

@@ -1,0 +1,519 @@
+{
+ "version": "2026-10-25",
+ "id": "rectum",
+ "region_id": "digestif",
+ "nom": "Rectum",
+ "ordre": 13,
+ "date_maj": "2026-10-23",
+ "situations": [
+  {
+   "id": "rec-neoadj",
+   "localisation_id": "rectum",
+   "titre": "Rectum localement avancé : radiothérapie préopératoire",
+   "contexte": "en_place",
+   "criteres": "cT3–T4 ou N+, M0, résécable ; ou résécable avec besoin de réduire le risque de récidive locale (5 × 5 Gy)",
+   "ordre": 1
+  },
+  {
+   "id": "rec-hr-tnt",
+   "localisation_id": "rectum",
+   "titre": "Rectum à haut risque : traitement néoadjuvant total",
+   "contexte": "en_place",
+   "criteres": "Au moins un critère IRM : cT4a ou cT4b, invasion vasculaire extramurale (EMVI), cN2, fascia mésorectal envahi ou menacé, adénopathie latérale (RAPIDO) ; ou cT3–T4 M0 chez un patient de 18 à 75 ans en bon état général (PRODIGE 23)",
+   "ordre": 2
+  },
+  {
+   "id": "rec-postop",
+   "localisation_id": "rectum",
+   "titre": "Rectum opéré d'emblée, sans radiothérapie préopératoire",
+   "contexte": "post_op",
+   "criteres": "pT3–T4 ou pN+ ; situation devenue rare : la RCT préopératoire fait mieux",
+   "ordre": 3
+  }
+ ],
+ "schemas": [
+  {
+   "id": "rec-cap50",
+   "situation_id": "rec-neoadj",
+   "titre": "RCT 45 Gy pelvis + boost intégré tumoral 50 Gy en 25 fx + capécitabine (CAP 50)",
+   "type": "rte_normo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "accord12",
+    "prodige23"
+   ],
+   "source_institutionnelle": "Fiche du service (schéma CAP 50)",
+   "prescriptions": [
+    {
+     "volume": "PTV pelvis",
+     "dose_Gy": 45,
+     "fractions": 25,
+     "dose_fx_Gy": 1.8,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Avec capécitabine 800 mg/m² × 2/j, 5 jours sur 7"
+    },
+    {
+     "volume": "PTV boost tumoral (GTV_T + 1 cm)",
+     "dose_Gy": 50,
+     "fractions": 25,
+     "dose_fx_Gy": 2,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "ACCORD 12 et PRODIGE 23 délivrent 50 Gy en 25 fx ; la fiche du service le fait en boost intégré ; chirurgie 6 à 8 semaines après la RCT"
+    }
+   ],
+   "technique": "IMRT ou VMAT, IGRT quotidienne",
+   "systemique": "Capécitabine 800 mg/m² × 2/j les jours de RT",
+   "simulation_id": "sim-rec",
+   "volumes_id": "vol-rec",
+   "contraintes_ids": [
+    "ct-quantec-grele"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Digestif",
+    "Rectum",
+    "Rectum localement avancé : radiothérapie préopératoire",
+    "Normofractionné"
+   ],
+   "points_attention": []
+  },
+  {
+   "id": "rec-504-28",
+   "situation_id": "rec-neoadj",
+   "titre": "RCT 50,4 Gy / 28 fx + 5FU ou capécitabine",
+   "type": "rte_normo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "cao-aro-94",
+    "rapido"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV pelvis",
+     "dose_Gy": 50.4,
+     "fractions": 28,
+     "dose_fx_Gy": 1.8,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "CAO/ARO/AIO-94 : 5FU 1000 mg/m²/j en 120 h aux semaines 1 et 5, chirurgie 6 semaines après ; bras standard de RAPIDO : 50,4 Gy / 28 fx ou 50 Gy / 25 fx avec capécitabine 825 mg/m² × 2/j"
+    }
+   ],
+   "technique": "IMRT, VMAT ou RC3D, IGRT",
+   "systemique": "5FU continu ou capécitabine",
+   "simulation_id": "sim-rec",
+   "volumes_id": "vol-rec",
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Digestif",
+    "Rectum",
+    "Rectum localement avancé : radiothérapie préopératoire",
+    "Normofractionné"
+   ],
+   "contraintes_ids": [],
+   "points_attention": []
+  },
+  {
+   "id": "rec-5x5-tme",
+   "situation_id": "rec-neoadj",
+   "titre": "5 × 5 Gy puis chirurgie dans la semaine",
+   "type": "rte_hypo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "dutch-tme",
+    "stockholm3"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV pelvis",
+     "dose_Gy": 25,
+     "fractions": 5,
+     "dose_fx_Gy": 5,
+     "mode": "seul",
+     "rythme": "5 jours consécutifs",
+     "note": "Chirurgie dans la semaine qui suit"
+    }
+   ],
+   "technique": "IMRT ou VMAT, IGRT",
+   "systemique": "Aucune",
+   "simulation_id": "sim-rec",
+   "volumes_id": "vol-rec",
+   "points_attention": [
+    "Dutch TME : récidive locale à 2 ans 2,4 % vs 8,2 % sans RT, sans gain de survie"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Digestif",
+    "Rectum",
+    "Rectum localement avancé : radiothérapie préopératoire",
+    "Hypofractionné"
+   ],
+   "contraintes_ids": []
+  },
+  {
+   "id": "rec-5x5-delai",
+   "situation_id": "rec-neoadj",
+   "titre": "5 × 5 Gy puis chirurgie après 4 à 8 semaines",
+   "type": "rte_hypo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "stockholm3"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV pelvis",
+     "dose_Gy": 25,
+     "fractions": 5,
+     "dose_fx_Gy": 5,
+     "mode": "seul",
+     "rythme": "5 jours consécutifs",
+     "note": "Chirurgie 4 à 8 semaines après"
+    }
+   ],
+   "technique": "IMRT ou VMAT, IGRT",
+   "systemique": "Aucune",
+   "simulation_id": "sim-rec",
+   "volumes_id": "vol-rec",
+   "points_attention": [
+    "Stockholm III : récidive locale non inférieure avec le délai ; moins de complications post-opératoires ; toxicité radio-induite aiguë 7 % avec délai contre < 1 % sans délai"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Digestif",
+    "Rectum",
+    "Rectum localement avancé : radiothérapie préopératoire",
+    "Hypofractionné"
+   ],
+   "contraintes_ids": []
+  },
+  {
+   "id": "rec-rapido",
+   "situation_id": "rec-hr-tnt",
+   "titre": "5 × 5 Gy puis CAPOX × 6 ou FOLFOX4 × 9, puis exérèse du mésorectum (RAPIDO)",
+   "type": "rte_hypo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "rapido"
+   ],
+   "source_institutionnelle": "Fiche du service",
+   "prescriptions": [
+    {
+     "volume": "PTV pelvis",
+     "dose_Gy": 25,
+     "fractions": 5,
+     "dose_fx_Gy": 5,
+     "mode": "seul",
+     "rythme": "En 8 jours au plus",
+     "note": "Sans chimiothérapie concomitante ; chimiothérapie de consolidation 1 à 2 semaines après (fiche)"
+    }
+   ],
+   "technique": "IMRT ou VMAT, IGRT",
+   "systemique": "CAPOX × 6 ou FOLFOX4 × 9 après la RT",
+   "simulation_id": "sim-rec",
+   "volumes_id": "vol-rec",
+   "points_attention": [
+    "Choix (fiche du service) : RAPIDO si le risque métastatique domine (CRM < 1 mm, T4, N2, EMVI+) ; PRODIGE 23 si le contrôle local domine (tumeur basse ou volumineuse, besoin de boost, préservation sphinctérienne, patient jeune en bon état général)",
+    "Diarrhée G3+ pendant le traitement préopératoire 18 % (vs 9 % dans le bras standard)"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Digestif",
+    "Rectum",
+    "Rectum à haut risque : traitement néoadjuvant total",
+    "Hypofractionné"
+   ],
+   "contraintes_ids": []
+  },
+  {
+   "id": "rec-prodige23",
+   "situation_id": "rec-hr-tnt",
+   "titre": "FOLFIRINOX × 6 puis RCT 50 Gy / 25 fx + capécitabine, chirurgie, chimiothérapie adjuvante (PRODIGE 23)",
+   "type": "rte_normo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "prodige23"
+   ],
+   "source_institutionnelle": "Fiche du service",
+   "prescriptions": [
+    {
+     "volume": "PTV pelvis",
+     "dose_Gy": 45,
+     "fractions": 25,
+     "dose_fx_Gy": 1.8,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Après FOLFIRINOX × 6 ; capécitabine 800 mg/m² × 2/j, 5 jours sur 7"
+    },
+    {
+     "volume": "PTV boost tumoral (GTV_T + 1 cm)",
+     "dose_Gy": 50,
+     "fractions": 25,
+     "dose_fx_Gy": 2,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "PRODIGE 23 : 50 Gy en 5 semaines ; boost intégré selon la fiche du service"
+    }
+   ],
+   "technique": "IMRT ou VMAT, IGRT quotidienne",
+   "systemique": "FOLFIRINOX × 6 avant ; capécitabine pendant ; 3 mois après la chirurgie",
+   "simulation_id": "sim-rec",
+   "volumes_id": "vol-rec",
+   "contraintes_ids": [
+    "ct-quantec-grele"
+   ],
+   "points_attention": [
+    "Choix (fiche du service) : RAPIDO si le risque métastatique domine (CRM < 1 mm, T4, N2, EMVI+) ; PRODIGE 23 si le contrôle local domine (tumeur basse ou volumineuse, besoin de boost, préservation sphinctérienne, patient jeune en bon état général)",
+    "La fiche du service indique « FOLFOX ou CAPOX » en adjuvant ; PRODIGE 23 donnait mFOLFOX6 ou capécitabine pendant 3 mois"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Digestif",
+    "Rectum",
+    "Rectum à haut risque : traitement néoadjuvant total",
+    "Normofractionné"
+   ]
+  },
+  {
+   "id": "rec-postop-558",
+   "situation_id": "rec-postop",
+   "titre": "RCT post-opératoire 50,4 Gy / 28 fx + complément 5,4 Gy",
+   "type": "rte_normo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "cao-aro-94"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV pelvis",
+     "dose_Gy": 50.4,
+     "fractions": 28,
+     "dose_fx_Gy": 1.8,
+     "mode": "sequentiel",
+     "rythme": "5 fx/sem",
+     "note": "Avec 5FU (CAO/ARO/AIO-94)"
+    },
+    {
+     "volume": "PTV complément (lit tumoral)",
+     "dose_Gy": 5.4,
+     "fractions": 3,
+     "dose_fx_Gy": 1.8,
+     "mode": "sequentiel",
+     "rythme": "5 fx/sem",
+     "note": "Total 55,8 Gy"
+    }
+   ],
+   "technique": "IMRT ou RC3D",
+   "systemique": "5FU",
+   "simulation_id": "sim-rec",
+   "volumes_id": "vol-rec",
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Digestif",
+    "Rectum",
+    "Rectum opéré d'emblée, sans radiothérapie préopératoire",
+    "Normofractionné"
+   ],
+   "contraintes_ids": [],
+   "points_attention": []
+  },
+  {
+   "id": "rec-cap45",
+   "situation_id": "rec-neoadj",
+   "titre": "RCT 45 Gy / 25 fx + capécitabine (bras Cap 45 d'ACCORD 12)",
+   "type": "rte_normo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "accord12"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV pelvis",
+     "dose_Gy": 45,
+     "fractions": 25,
+     "dose_fx_Gy": 1.8,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Capécitabine 800 mg/m² × 2/j, 5 jours sur 7"
+    }
+   ],
+   "technique": "IMRT ou VMAT, IGRT",
+   "systemique": "Capécitabine",
+   "simulation_id": "sim-rec",
+   "volumes_id": "vol-rec",
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Digestif",
+    "Rectum",
+    "Rectum localement avancé : radiothérapie préopératoire",
+    "Normofractionné"
+   ],
+   "contraintes_ids": [],
+   "points_attention": []
+  }
+ ],
+ "simulations": [
+  {
+   "id": "sim-rec",
+   "position": "Décubitus dorsal",
+   "contention": "Immobilisation pelvienne standard",
+   "preparation": "Vessie mi-pleine (reproductibilité) ; rectum le plus vide possible, sans lavement traumatique",
+   "scanner": "Injecté (repérage vasculaire, limites mésorectales)",
+   "imagerie": "IRM pelvienne pré-thérapeutique T2 sagittale et axiale oblique dans l'axe du rectum : fusion obligatoire ; TEP-TDM si disponible",
+   "reperes": "Repère plombé sur la marge anale (impératif)"
+  }
+ ],
+ "volumes": [
+  {
+   "id": "vol-rec",
+   "cibles": [
+    {
+     "nom": "GTV_T",
+     "type": "GTV",
+     "definition": "Tumeur primitive : IRM pré-thérapeutique (référence), toucher rectal, endoscopie ; tout le rectum sur la hauteur de l'atteinte ; ne pas extrapoler au-delà de l'atteinte visible",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "GTV_N#",
+     "type": "GTV",
+     "definition": "Adénopathie (IRM : taille, morphologie ; ± TEP), une structure par ganglion",
+     "quand": "Si adénopathie"
+    },
+    {
+     "nom": "CTV_T",
+     "type": "CTV",
+     "definition": "GTV_T + mésorectum en totalité. Arrière : face antérieure du sacrum. Avant : prostate et vésicules séminales, ou utérus et vagin, puis face postérieure de la vessie. Latéral : releveurs en bas, paroi pelvienne en haut. Bas : résection antérieure prévue et tumeur du tiers moyen (bord inférieur > 2 cm de la ligne pectinée) → jonction ano-rectale ; tiers inférieur ≤ 1 cm des releveurs → tout le canal anal ; > 1 cm → moitié supérieure du canal anal (releveurs, canal anal et sphincters inclus) ; amputation abdomino-périnéale prévue → fosses ischio-rectales entières jusqu'à la marge anale",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "CTV_N",
+     "type": "CTV",
+     "definition": "Présacrés, iliaques internes, obturateurs ; iliaques externes si extension antérieure ou adénopathie latérale ; iliaques communes non systématiques. Limite supérieure : bifurcation de l'artère rectale supérieure (injection de qualité) sinon interligne S2–S3 ; en général 3 à 5 cm au-dessus du GTV, jamais moins de 2 cm ; hors N+ massif, pas jusqu'au promontoire",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "PTV pelvis",
+     "type": "PTV",
+     "definition": "CTV_T + CTV_N + 5 mm",
+     "quand": "Toujours",
+     "marge": "5 mm"
+    },
+    {
+     "nom": "PTV boost tumoral",
+     "type": "PTV",
+     "definition": "GTV_T + 1 cm (mésorectum adjacent inclus), en respectant canal anal et vessie",
+     "quand": "CAP 50, PRODIGE 23",
+     "marge": "1 cm"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "Valentini 2016 (consensus international)"
+    },
+    {
+     "nom": "RTOG 2009, CTV ano-rectaux"
+    },
+    {
+     "nom": "RTOG 2012, OAR du pelvis"
+    }
+   ],
+   "oar_ids": [
+    "oar-vessie",
+    "oar-canal-anal",
+    "oar-grele",
+    "oar-tete-femorale-d",
+    "oar-tete-femorale-g",
+    "oar-queue-cheval",
+    "oar-sigmoide",
+    "oar-oge",
+    "oar-moelle-osseuse"
+   ],
+   "oar_notes": {
+    "oar-grele": "fiche : cavité abdominale antérieure jusqu'à 1 cm au-dessus du PTV"
+   }
+  }
+ ],
+ "curie_indications": [],
+ "systemique": [
+  {
+   "situation": "RCT longue",
+   "traitement": "Capécitabine 800 mg/m² × 2/j, 5 jours sur 7 pendant la RT",
+   "essai_ids": [
+    "accord12",
+    "prodige23"
+   ],
+   "note": "Pas d'oxaliplatine concomitant : plus de toxicité G3–4 (25 % vs 1 %) sans gain de réponse (ACCORD 12)"
+  },
+  {
+   "situation": "RCT longue (CAO/ARO/AIO-94)",
+   "traitement": "5FU 1000 mg/m²/j en perfusion de 120 h aux semaines 1 et 5, puis 4 cycles de 5FU 500 mg/m²/j × 5 un mois après la chirurgie",
+   "essai_ids": [
+    "cao-aro-94"
+   ],
+   "note": "Récidive locale à 5 ans 6 % (préopératoire) vs 13 % (post-opératoire), toxicité moindre"
+  },
+  {
+   "situation": "RAPIDO",
+   "traitement": "Après 5 × 5 Gy : CAPOX × 6 (capécitabine 1000 mg/m² × 2/j J1–J14 + oxaliplatine 130 mg/m² J1, toutes les 3 semaines) ou FOLFOX4 × 9 (toutes les 2 semaines), puis chirurgie ; pas de chimiothérapie adjuvante",
+   "essai_ids": [
+    "rapido"
+   ],
+   "note": "Échec lié à la maladie à 3 ans 23,7 % vs 30,4 % (HR 0,75)"
+  },
+  {
+   "situation": "PRODIGE 23",
+   "traitement": "FOLFIRINOX × 6 (oxaliplatine 85, irinotécan 180, acide folinique 400, 5FU 2400 mg/m² en 46 h, toutes les 2 semaines), puis RCT capécitabine, chirurgie, puis 3 mois de mFOLFOX6 ou de capécitabine",
+   "essai_ids": [
+    "prodige23"
+   ],
+   "note": "Survie sans maladie à 3 ans 76 % vs 69 % (HR 0,69)"
+  },
+  {
+   "situation": "5 × 5 Gy suivi de chirurgie",
+   "traitement": "Aucun",
+   "essai_ids": [
+    "dutch-tme",
+    "stockholm3"
+   ]
+  }
+ ],
+ "hormonotherapie": [],
+ "points_attention": [
+  {
+   "cible": "rectum",
+   "point": "Fusion IRM–scanner indispensable ; vérifier que le mésorectum est entier dans le CTV et que la limite supérieure n'est pas inutilement haute",
+   "portee": "localisation"
+  },
+  {
+   "cible": "rectum",
+   "point": "Adapter la limite inférieure à la distance de la ligne pectinée et à la chirurgie prévue ; prudence sur le canal anal et les fosses ischio-anales (toxicité)",
+   "portee": "localisation"
+  },
+  {
+   "cible": "rec-hr-tnt",
+   "point": "Choix (fiche du service) : RAPIDO si le risque métastatique domine (CRM < 1 mm, T4, N2, EMVI+) ; PRODIGE 23 si le contrôle local domine (tumeur basse ou volumineuse, besoin de boost, préservation sphinctérienne, patient jeune en bon état général)",
+   "portee": "situation"
+  },
+  {
+   "cible": "rec-prodige23",
+   "point": "La fiche du service indique « FOLFOX ou CAPOX » en adjuvant ; PRODIGE 23 donnait mFOLFOX6 ou capécitabine pendant 3 mois",
+   "portee": "schema"
+  },
+  {
+   "cible": "rec-5x5-delai",
+   "point": "Stockholm III : récidive locale non inférieure avec le délai ; moins de complications post-opératoires ; toxicité radio-induite aiguë 7 % avec délai contre < 1 % sans délai",
+   "portee": "schema"
+  },
+  {
+   "cible": "rec-5x5-tme",
+   "point": "Dutch TME : récidive locale à 2 ans 2,4 % vs 8,2 % sans RT, sans gain de survie",
+   "portee": "schema"
+  },
+  {
+   "cible": "rec-rapido",
+   "point": "Diarrhée G3+ pendant le traitement préopératoire 18 % (vs 9 % dans le bras standard)",
+   "portee": "schema"
+  }
+ ],
+ "textes": {}
+}

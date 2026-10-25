@@ -1,0 +1,133 @@
+{
+ "version": "2026-10-25",
+ "id": "medulloblastome",
+ "region_id": "snc",
+ "nom": "Médulloblastome de l'adulte",
+ "ordre": 37,
+ "date_maj": "2026-10-24",
+ "situations": [
+  {
+   "id": "md-nonmeta",
+   "localisation_id": "medulloblastome",
+   "titre": "Médulloblastome de l'adulte non métastatique opéré",
+   "contexte": "post_op",
+   "criteres": "Bilan d'extension par IRM de l'encéphale et du rachis et cytologie du LCR ; prise en charge multidisciplinaire (EANO-EURACAN 2019)",
+   "ordre": 1
+  }
+ ],
+ "schemas": [
+  {
+   "id": "md-csi-352-552",
+   "situation_id": "md-nonmeta",
+   "titre": "Irradiation craniospinale 35,2 Gy puis fosse postérieure jusqu'à 55,2 Gy",
+   "type": "rte_normo",
+   "preuve": "option",
+   "essai_ids": [
+    "hit2000-adultes",
+    "noa07",
+    "eano-medullo-2019"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV craniospinal",
+     "dose_Gy": 35.2,
+     "mode": "sequentiel",
+     "rythme": "Selon le protocole HIT 2000",
+     "note": "Adultes de 21 ans ou plus suivis dans HIT 2000"
+    },
+    {
+     "volume": "PTV fosse postérieure",
+     "dose_Gy": 20,
+     "mode": "sequentiel",
+     "rythme": "Selon le protocole HIT 2000",
+     "note": "Cumul 55,2 Gy ; survie sans événement à 4 ans 68 %, SG 89 %"
+    }
+   ],
+   "technique": "Irradiation craniospinale",
+   "systemique": "Voir Traitement systémique",
+   "volumes_id": "vol-medullo",
+   "points_attention": [
+    "Chez l'adulte, localisation latérale des formes desmoplasiques et statut du résidu inconnu sont des facteurs pronostiques défavorables ; l'absence de résidu post-opératoire est associée à moins de rechutes (HIT 2000)",
+    "NOA-07 : réductions de dose fréquentes pendant les 4 premiers cycles ; surveillance rapprochée"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "SNC",
+    "Médulloblastome de l'adulte",
+    "Médulloblastome de l'adulte non métastatique opéré",
+    "Normofractionné"
+   ],
+   "contraintes_ids": []
+  }
+ ],
+ "simulations": [],
+ "volumes": [
+  {
+   "id": "vol-medullo",
+   "cibles": [
+    {
+     "nom": "CTV craniospinal",
+     "type": "CTV",
+     "definition": "Encéphale et espaces sous-arachnoïdiens du canal rachidien",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "CTV fosse postérieure",
+     "type": "CTV",
+     "definition": "Fosse postérieure",
+     "quand": "Complément"
+    }
+   ],
+   "atlas": [],
+   "oar_ids": [
+    "oar-cristallin-d",
+    "oar-cristallin-g",
+    "oar-cochlee-d",
+    "oar-cochlee-g",
+    "oar-thyroide",
+    "oar-coeur",
+    "oar-poumons",
+    "oar-oesophage",
+    "oar-reins",
+    "oar-foie"
+   ]
+  }
+ ],
+ "curie_indications": [],
+ "systemique": [
+  {
+   "situation": "md-nonmeta",
+   "traitement": "Vincristine pendant l'irradiation craniospinale, puis 8 cycles de cisplatine, lomustine et vincristine",
+   "protocole": "Vincristine concomitante puis cisplatine–lomustine–vincristine (NOA-07)",
+   "situation_id": "md-nonmeta",
+   "essai_ids": [
+    "noa07"
+   ],
+   "note": "Survie sans événement à 3 ans 66,6 % ; 4 cycles réalisables chez 70 % ; toxicité hématologique et polyneuropathie fréquentes"
+  },
+  {
+   "situation": "md-nonmeta",
+   "traitement": "Chimiothérapie d'entretien lomustine, vincristine et cisplatine après la RT",
+   "protocole": "Lomustine–vincristine–cisplatine en entretien (HIT 2000)",
+   "situation_id": "md-nonmeta",
+   "essai_ids": [
+    "hit2000-adultes"
+   ],
+   "note": "Neuropathie périphérique 74 % et toxicité hématologique 55 % : plus fréquentes que chez l'enfant"
+  }
+ ],
+ "hormonotherapie": [],
+ "points_attention": [
+  {
+   "cible": "md-nonmeta",
+   "point": "Chez l'adulte, localisation latérale des formes desmoplasiques et statut du résidu inconnu sont des facteurs pronostiques défavorables ; l'absence de résidu post-opératoire est associée à moins de rechutes (HIT 2000)",
+   "portee": "situation"
+  },
+  {
+   "cible": "md-nonmeta",
+   "point": "NOA-07 : réductions de dose fréquentes pendant les 4 premiers cycles ; surveillance rapprochée",
+   "portee": "situation"
+  }
+ ],
+ "textes": {}
+}

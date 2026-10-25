@@ -1,0 +1,265 @@
+{
+ "version": "2026-10-25",
+ "id": "mesotheliome",
+ "region_id": "thorax",
+ "nom": "Mésothéliome",
+ "ordre": 24,
+ "date_maj": "2026-10-23",
+ "situations": [
+  {
+   "id": "meso-pd",
+   "localisation_id": "mesotheliome",
+   "titre": "Après chirurgie épargnant le poumon : RT hémithoracique",
+   "contexte": "post_op",
+   "criteres": "Mésothéliome non métastatique après pleurectomie-décortication ou chirurgie non radicale, et chimiothérapie",
+   "ordre": 1
+  },
+  {
+   "id": "meso-preop",
+   "localisation_id": "mesotheliome",
+   "titre": "Avant pneumonectomie extrapleurale (SMART)",
+   "contexte": "en_place",
+   "criteres": "cT1–3 N0 M0 résécable, pneumonectomie extrapleurale programmée dans la semaine",
+   "ordre": 2
+  },
+  {
+   "id": "meso-pall",
+   "localisation_id": "mesotheliome",
+   "titre": "Palliatif : douleur",
+   "contexte": "palliatif",
+   "criteres": "Douleur liée à une masse pleurale ou pariétale",
+   "ordre": 3
+  }
+ ],
+ "schemas": [
+  {
+   "id": "meso-hemi-50-25",
+   "situation_id": "meso-pd",
+   "titre": "RT hémithoracique 50 Gy / 25 fx + SIB 60 Gy sur le résidu",
+   "type": "rte_normo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "trovo",
+    "gomez-meso"
+   ],
+   "source_institutionnelle": "Gustave Roussy, fiche dosimétrique mésothéliome post-opératoire",
+   "prescriptions": [
+    {
+     "volume": "PTV hémithorax (cavité pleurale homolatérale)",
+     "dose_Gy": 50,
+     "fractions": 25,
+     "dose_fx_Gy": 2,
+     "mode": "seul",
+     "rythme": "5 fx/sem"
+    },
+    {
+     "volume": "PTV résidu macroscopique",
+     "dose_Gy": 60,
+     "fractions": 25,
+     "dose_fx_Gy": 2.4,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "SG à 2 ans 58 % vs 28 % (Trovo)"
+    }
+   ],
+   "technique": "IMRT ou VMAT, IGRT quotidienne",
+   "systemique": "Chimiothérapie avant la RT",
+   "simulation_id": "sim-meso",
+   "volumes_id": "vol-meso-hemi",
+   "contraintes_ids": [
+    "ct-meso-igr-postop"
+   ],
+   "points_attention": [
+    "Toxicité non négligeable : 9 pneumopathies G2+, dont 1 G5 (Trovo). Respecter strictement les contraintes du poumon restant"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Thorax",
+    "Mésothéliome",
+    "Après chirurgie épargnant le poumon : RT hémithoracique",
+    "Normofractionné"
+   ]
+  },
+  {
+   "id": "meso-smart-25-5",
+   "situation_id": "meso-preop",
+   "titre": "RT hémithoracique 25 Gy / 5 fx + boost concomitant 30 Gy, puis pneumonectomie extrapleurale",
+   "type": "rte_hypo",
+   "preuve": "option",
+   "essai_ids": [
+    "cho-smart"
+   ],
+   "source_institutionnelle": "Gustave Roussy, fiche dosimétrique mésothéliome pré-opératoire 5 × 5 Gy",
+   "prescriptions": [
+    {
+     "volume": "PTV hémithorax",
+     "dose_Gy": 25,
+     "fractions": 5,
+     "dose_fx_Gy": 5,
+     "mode": "seul",
+     "rythme": "5 fx/sem, 1 semaine",
+     "note": "Pneumonectomie extrapleurale dans la semaine suivante"
+    },
+    {
+     "volume": "PTV zones à risque",
+     "dose_Gy": 30,
+     "fractions": 5,
+     "dose_fx_Gy": 6,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Boost concomitant de 5 Gy (Cho 2014)"
+    }
+   ],
+   "technique": "IMRT",
+   "systemique": "Aucune avant la chirurgie",
+   "simulation_id": "sim-meso",
+   "volumes_id": "vol-meso-hemi",
+   "contraintes_ids": [
+    "ct-meso-igr-preop-5x5"
+   ],
+   "points_attention": [
+    "Seulement si la pneumonectomie extrapleurale est programmée dans les 7 jours : jamais en RT seule"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Thorax",
+    "Mésothéliome",
+    "Avant pneumonectomie extrapleurale (SMART)",
+    "Hypofractionné"
+   ]
+  },
+  {
+   "id": "meso-pall-20-5",
+   "situation_id": "meso-pall",
+   "titre": "RT antalgique 20 Gy / 5 fx",
+   "type": "rte_hypo",
+   "preuve": "option",
+   "essai_ids": [
+    "systems",
+    "gomez-meso"
+   ],
+   "prescriptions": [
+    {
+     "volume": "Masse douloureuse",
+     "dose_Gy": 20,
+     "fractions": 5,
+     "dose_fx_Gy": 4,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Douleur améliorée chez 47 % des patients évaluables"
+    }
+   ],
+   "technique": "RT 3D",
+   "systemique": "Aucune",
+   "simulation_id": "sim-meso",
+   "volumes_id": "vol-meso-pall",
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Thorax",
+    "Mésothéliome",
+    "Palliatif : douleur",
+    "Hypofractionné"
+   ],
+   "contraintes_ids": [],
+   "points_attention": []
+  }
+ ],
+ "simulations": [
+  {
+   "id": "sim-meso",
+   "position": "Décubitus dorsal, bras au-dessus de la tête",
+   "contention": "Contention thoracique",
+   "scanner": "Injecté",
+   "imagerie": "TEP-TDM du bilan"
+  }
+ ],
+ "volumes": [
+  {
+   "id": "vol-meso-hemi",
+   "cibles": [
+    {
+     "nom": "GTV",
+     "type": "GTV",
+     "definition": "Résidu tumoral macroscopique",
+     "quand": "Si résidu"
+    },
+    {
+     "nom": "CTV hémithorax",
+     "type": "CTV",
+     "definition": "Cavité pleurale homolatérale entière, trajet de thoracotomie, stations médiastinales envahies ou ouvertes par la chirurgie",
+     "quand": "Toujours"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "Consensus NCI/IASLC 2019"
+    }
+   ],
+   "oar_ids": [
+    "oar-poumon-d",
+    "oar-poumon-g",
+    "oar-poumons",
+    "oar-foie",
+    "oar-coeur",
+    "oar-moelle",
+    "oar-oesophage",
+    "oar-rein-d",
+    "oar-rein-g",
+    "oar-estomac"
+   ]
+  },
+  {
+   "id": "vol-meso-pall",
+   "cibles": [
+    {
+     "nom": "PTV",
+     "type": "PTV",
+     "definition": "Masse responsable de la douleur, marge selon la technique",
+     "quand": "Toujours"
+    }
+   ],
+   "atlas": [],
+   "oar_ids": [
+    "oar-moelle",
+    "oar-poumons"
+   ]
+  }
+ ],
+ "curie_indications": [],
+ "systemique": [
+  {
+   "situation": "meso-pd",
+   "traitement": "Chimiothérapie avant la RT (Trovo)",
+   "situation_id": "meso-pd",
+   "essai_ids": [
+    "trovo"
+   ],
+   "note": "Protocole choisi en RCP ; la RT suit la chirurgie et la chimiothérapie",
+   "protocole": "—"
+  }
+ ],
+ "hormonotherapie": [],
+ "points_attention": [
+  {
+   "cible": "mesotheliome",
+   "point": "Pas d'irradiation prophylactique des orifices de ponction ou de drainage : SMART et PIT ne montrent aucun bénéfice",
+   "portee": "localisation"
+  },
+  {
+   "cible": "mesotheliome",
+   "point": "RT hémithoracique après pneumonectomie extrapleurale non recommandée en routine (SAKK 17/04)",
+   "portee": "localisation"
+  },
+  {
+   "cible": "meso-hemi-50-25",
+   "point": "Toxicité non négligeable : 9 pneumopathies G2+, dont 1 G5 (Trovo). Respecter strictement les contraintes du poumon restant",
+   "portee": "schema"
+  },
+  {
+   "cible": "meso-smart-25-5",
+   "point": "Seulement si la pneumonectomie extrapleurale est programmée dans les 7 jours : jamais en RT seule",
+   "portee": "schema"
+  }
+ ],
+ "textes": {}
+}

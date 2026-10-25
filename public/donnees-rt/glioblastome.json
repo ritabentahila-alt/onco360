@@ -1,0 +1,401 @@
+{
+ "version": "2026-10-25",
+ "id": "glioblastome",
+ "region_id": "snc",
+ "nom": "Glioblastome",
+ "ordre": 28,
+ "date_maj": "2026-10-24",
+ "situations": [
+  {
+   "id": "gbm-standard",
+   "localisation_id": "glioblastome",
+   "titre": "Glioblastome opéré ou biopsié, jusqu'à 70 ans : radiochimiothérapie",
+   "contexte": "post_op",
+   "criteres": "Glioblastome IDH non muté confirmé histologiquement, après exérèse maximale ou biopsie ; OMS 0–2, IK ≥ 70 (fiche du service) ; bénéfice du témozolomide démontré jusqu'à 70 ans",
+   "ordre": 1
+  },
+  {
+   "id": "gbm-age",
+   "localisation_id": "glioblastome",
+   "titre": "Sujet âgé ou fragile : radiothérapie courte",
+   "contexte": "post_op",
+   "criteres": "65 ans et plus (Perry 2017) ; ou 50 ans et plus avec IK 50–70 (Roa 2015) ; 60 ans et plus dans l'étude nordique",
+   "ordre": 2
+  }
+ ],
+ "schemas": [
+  {
+   "id": "gbm-stupp-60-30",
+   "situation_id": "gbm-standard",
+   "titre": "RT 60 Gy / 30 fx + témozolomide concomitant puis adjuvant (Stupp)",
+   "type": "rte_normo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "stupp2005",
+    "stupp2009",
+    "hegi2005",
+    "ef14",
+    "estro-eano-gbm-2023",
+    "eano-gliomes-2021"
+   ],
+   "source_institutionnelle": "Fiche du service « glioblastome »",
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 60,
+     "fractions": 30,
+     "dose_fx_Gy": 2,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Avec témozolomide 75 mg/m²/j, 7 j/7, du premier au dernier jour de RT"
+    }
+   ],
+   "technique": "IMRT ou VMAT, IGRT",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-crane",
+   "volumes_id": "vol-gbm",
+   "contraintes_ids": [
+    "ct-crane-igr",
+    "ct-crane-quantec"
+   ],
+   "points_attention": [
+    "Un seul CTV de 15 mm, sans réduction de champ (ESTRO-EANO). Les protocoles NRG utilisent deux CTV : CTV_4600 sur l'hypersignal T2-FLAIR, CTV_6000 sur la cavité et la prise de contraste (Kruser 2019)",
+    "Hippocampes : D40 % ≤ 7,3 Gy en EQD2 si possible sans dégrader le PTV (Gondi 2013)",
+    "Statut MGMT à demander : il prédit le bénéfice du témozolomide (Hegi 2005) et oriente vers CeTeG"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "SNC",
+    "Glioblastome",
+    "Glioblastome opéré ou biopsié, jusqu'à 70 ans : radiochimiothérapie",
+    "Normofractionné"
+   ]
+  },
+  {
+   "id": "gbm-ceteg-60-30",
+   "situation_id": "gbm-standard",
+   "titre": "RT 60 Gy / 30 fx + lomustine-témozolomide (MGMT méthylé, CeTeG)",
+   "type": "rte_normo",
+   "preuve": "option",
+   "essai_ids": [
+    "ceteg"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 60,
+     "fractions": 30,
+     "dose_fx_Gy": 2,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Essai : 59–60 Gy ; 18–70 ans, IK ≥ 70 %, MGMT méthylé"
+    }
+   ],
+   "technique": "IMRT ou VMAT, IGRT",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-crane",
+   "volumes_id": "vol-gbm",
+   "contraintes_ids": [
+    "ct-crane-igr",
+    "ct-crane-quantec"
+   ],
+   "points_attention": [
+    "Un seul CTV de 15 mm, sans réduction de champ (ESTRO-EANO). Les protocoles NRG utilisent deux CTV : CTV_4600 sur l'hypersignal T2-FLAIR, CTV_6000 sur la cavité et la prise de contraste (Kruser 2019)",
+    "Hippocampes : D40 % ≤ 7,3 Gy en EQD2 si possible sans dégrader le PTV (Gondi 2013)",
+    "Statut MGMT à demander : il prédit le bénéfice du témozolomide (Hegi 2005) et oriente vers CeTeG"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "SNC",
+    "Glioblastome",
+    "Glioblastome opéré ou biopsié, jusqu'à 70 ans : radiochimiothérapie",
+    "Normofractionné"
+   ]
+  },
+  {
+   "id": "gbm-age-40-15",
+   "situation_id": "gbm-age",
+   "titre": "RT 40 Gy / 15 fx ± témozolomide (Perry)",
+   "type": "rte_hypo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "perry2017",
+    "roa2004"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 40,
+     "fractions": 15,
+     "dose_fx_Gy": 2.67,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Non inférieur à 60 Gy / 30 fx après 60 ans (Roa 2004)"
+    }
+   ],
+   "technique": "IMRT ou VMAT, IGRT",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-crane",
+   "volumes_id": "vol-gbm",
+   "points_attention": [
+    "Un seul CTV de 15 mm, sans réduction de champ (ESTRO-EANO). Les protocoles NRG utilisent deux CTV : CTV_4600 sur l'hypersignal T2-FLAIR, CTV_6000 sur la cavité et la prise de contraste (Kruser 2019)",
+    "Hippocampes : D40 % ≤ 7,3 Gy en EQD2 si possible sans dégrader le PTV (Gondi 2013)",
+    "Après 70 ans, 60 Gy / 30 fx fait moins bien que 34 Gy / 10 fx ou le témozolomide seul (étude nordique)",
+    "Même après 70 ans (IK ≥ 70), la RT (50 Gy en fractions de 1,8 Gy) allonge la survie par rapport aux soins de support : 29,1 vs 16,9 semaines (ANOCEF)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "SNC",
+    "Glioblastome",
+    "Sujet âgé ou fragile : radiothérapie courte",
+    "Hypofractionné"
+   ],
+   "contraintes_ids": []
+  },
+  {
+   "id": "gbm-age-25-5",
+   "situation_id": "gbm-age",
+   "titre": "RT 25 Gy / 5 fx (sujet fragile)",
+   "type": "rte_hypo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "roa2015"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 25,
+     "fractions": 5,
+     "dose_fx_Gy": 5,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Non inférieur à 40 Gy / 15 fx : SG 7,9 vs 6,4 mois"
+    }
+   ],
+   "technique": "IMRT ou VMAT, IGRT",
+   "systemique": "Aucune",
+   "simulation_id": "sim-crane",
+   "volumes_id": "vol-gbm",
+   "points_attention": [
+    "Un seul CTV de 15 mm, sans réduction de champ (ESTRO-EANO). Les protocoles NRG utilisent deux CTV : CTV_4600 sur l'hypersignal T2-FLAIR, CTV_6000 sur la cavité et la prise de contraste (Kruser 2019)",
+    "Hippocampes : D40 % ≤ 7,3 Gy en EQD2 si possible sans dégrader le PTV (Gondi 2013)",
+    "Après 70 ans, 60 Gy / 30 fx fait moins bien que 34 Gy / 10 fx ou le témozolomide seul (étude nordique)",
+    "Même après 70 ans (IK ≥ 70), la RT (50 Gy en fractions de 1,8 Gy) allonge la survie par rapport aux soins de support : 29,1 vs 16,9 semaines (ANOCEF)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "SNC",
+    "Glioblastome",
+    "Sujet âgé ou fragile : radiothérapie courte",
+    "Hypofractionné"
+   ],
+   "contraintes_ids": []
+  },
+  {
+   "id": "gbm-age-34-10",
+   "situation_id": "gbm-age",
+   "titre": "RT 34 Gy / 10 fx (étude nordique)",
+   "type": "rte_hypo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "nordic-malmstrom",
+    "keime-guibert"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 34,
+     "fractions": 10,
+     "dose_fx_Gy": 3.4,
+     "mode": "seul",
+     "rythme": "5 fx/sem (2 semaines)",
+     "note": "Après 70 ans, meilleur que 60 Gy / 30 fx"
+    }
+   ],
+   "technique": "IMRT ou VMAT, IGRT",
+   "systemique": "Aucune",
+   "simulation_id": "sim-crane",
+   "volumes_id": "vol-gbm",
+   "points_attention": [
+    "Un seul CTV de 15 mm, sans réduction de champ (ESTRO-EANO). Les protocoles NRG utilisent deux CTV : CTV_4600 sur l'hypersignal T2-FLAIR, CTV_6000 sur la cavité et la prise de contraste (Kruser 2019)",
+    "Hippocampes : D40 % ≤ 7,3 Gy en EQD2 si possible sans dégrader le PTV (Gondi 2013)",
+    "Après 70 ans, 60 Gy / 30 fx fait moins bien que 34 Gy / 10 fx ou le témozolomide seul (étude nordique)",
+    "Même après 70 ans (IK ≥ 70), la RT (50 Gy en fractions de 1,8 Gy) allonge la survie par rapport aux soins de support : 29,1 vs 16,9 semaines (ANOCEF)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "SNC",
+    "Glioblastome",
+    "Sujet âgé ou fragile : radiothérapie courte",
+    "Hypofractionné"
+   ],
+   "contraintes_ids": []
+  }
+ ],
+ "simulations": [
+  {
+   "id": "sim-crane",
+   "position": "Décubitus dorsal, bras le long du corps, coussin sous les genoux",
+   "contention": "Masque thermoformé 3 points",
+   "scanner": "Non injecté, coupes jointives de 2,5 mm, crâne entier jusqu'à C3, moins de 2 semaines avant le début de la RT",
+   "imagerie": "IRM dosimétrique T1 3D gadolinium et T2-FLAIR, axiales strictes, fusionnées au scanner ; IRM post-opératoire précoce (48–72 h) pour le GTV ; éviter l'IRM post-opératoire tardive, qui surestime le résidu"
+  }
+ ],
+ "volumes": [
+  {
+   "id": "vol-gbm",
+   "cibles": [
+    {
+     "nom": "GTV",
+     "type": "GTV",
+     "definition": "Cavité opératoire et prise de contraste résiduelle en T1 gadolinium sur l'IRM post-opératoire ; hypersignal FLAIR non inclus",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "CTV",
+     "type": "CTV",
+     "definition": "GTV + 15 mm isotrope, un seul CTV sans réduction de champ ; exclure l'os, les ventricules et la faux, réduire aux barrières anatomiques, adapter aux méninges au contact",
+     "quand": "Toujours",
+     "marge": "15 mm"
+    },
+    {
+     "nom": "PTV",
+     "type": "PTV",
+     "definition": "CTV + 3 mm au plus avec IGRT, selon le système de contention (ESTRO-EANO) ; fiche du service : 3 mm",
+     "quand": "Toujours",
+     "marge": "3 mm"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "ESTRO-EANO 2023, glioblastome",
+     "url": "https://doi.org/10.1016/j.radonc.2023.109663"
+    },
+    {
+     "nom": "atlas EPTN 2018",
+     "url": "https://doi.org/10.1016/j.radonc.2017.12.013"
+    },
+    {
+     "nom": "mise à jour EPTN 2021",
+     "url": "https://doi.org/10.1016/j.radonc.2021.05.013"
+    }
+   ],
+   "oar_ids": [
+    "oar-encephale-sain",
+    "oar-tronc-cerebral",
+    "oar-chiasma",
+    "oar-nerf-optique-d",
+    "oar-nerf-optique-g",
+    "oar-oeil-d",
+    "oar-oeil-g",
+    "oar-cristallin-d",
+    "oar-cristallin-g",
+    "oar-cochlee-d",
+    "oar-cochlee-g",
+    "oar-hippocampes",
+    "oar-hypophyse",
+    "oar-hypothalamus",
+    "oar-glande-lacrymale-d",
+    "oar-glande-lacrymale-g",
+    "oar-cavite-orale",
+    "oar-parotide-d",
+    "oar-parotide-g",
+    "oar-moelle"
+   ]
+  }
+ ],
+ "curie_indications": [],
+ "systemique": [
+  {
+   "situation": "gbm-standard",
+   "traitement": "Témozolomide 75 mg/m²/j, 7 j/7 pendant la RT, puis 6 cycles de 150–200 mg/m² J1–J5 tous les 28 jours",
+   "protocole": "Témozolomide concomitant puis adjuvant (Stupp)",
+   "situation_id": "gbm-standard",
+   "essai_ids": [
+    "stupp2005",
+    "stupp2009",
+    "hegi2005"
+   ],
+   "note": "SG médiane 14,6 vs 12,1 mois ; bénéfice surtout si MGMT méthylé"
+  },
+  {
+   "situation": "gbm-standard",
+   "traitement": "TTFields (au moins 18 h/j) avec le témozolomide d'entretien, après la radiochimiothérapie",
+   "protocole": "Témozolomide adjuvant (Stupp)",
+   "situation_id": "gbm-standard",
+   "essai_ids": [
+    "ef14"
+   ],
+   "note": "SG 20,9 vs 16,0 mois"
+  },
+  {
+   "situation": "gbm-standard",
+   "traitement": "Lomustine 100 mg/m² J1 + témozolomide 100–200 mg/m² J2–J6, cycles de 6 semaines, jusqu'à 6 cycles, avec la RT",
+   "protocole": "Lomustine-témozolomide (CeTeG)",
+   "situation_id": "gbm-standard",
+   "essai_ids": [
+    "ceteg"
+   ],
+   "note": "MGMT méthylé, 18–70 ans : SG 48,1 vs 31,4 mois (petit effectif)"
+  },
+  {
+   "situation": "gbm-age",
+   "traitement": "Témozolomide concomitant puis adjuvant avec 40 Gy / 15 fx",
+   "protocole": "Témozolomide avec RT courte (Perry)",
+   "situation_id": "gbm-age",
+   "essai_ids": [
+    "perry2017"
+   ],
+   "note": "SG 9,3 vs 7,6 mois ; MGMT méthylé 13,5 vs 7,7 mois"
+  },
+  {
+   "situation": "gbm-age",
+   "traitement": "Témozolomide seul si MGMT méthylé et RT non retenue : 200 mg/m² J1–J5 tous les 28 jours (6 cycles), ou 100 mg/m² une semaine sur deux",
+   "protocole": "Témozolomide seul (sujet âgé)",
+   "situation_id": "gbm-age",
+   "essai_ids": [
+    "nordic-malmstrom",
+    "noa08"
+   ],
+   "note": "Non inférieur à la RT (NOA-08) ; meilleure efficacité si MGMT méthylé"
+  }
+ ],
+ "hormonotherapie": [],
+ "points_attention": [
+  {
+   "cible": "glioblastome",
+   "point": "Bévacizumab en première ligne : pas de gain de survie globale (RTOG 0825 : 15,7 vs 16,1 mois ; AVAglio)",
+   "portee": "localisation"
+  },
+  {
+   "cible": "vol-gbm",
+   "point": "Un seul CTV de 15 mm, sans réduction de champ (ESTRO-EANO). Les protocoles NRG utilisent deux CTV : CTV_4600 sur l'hypersignal T2-FLAIR, CTV_6000 sur la cavité et la prise de contraste (Kruser 2019)",
+   "portee": "volumes"
+  },
+  {
+   "cible": "vol-gbm",
+   "point": "Hippocampes : D40 % ≤ 7,3 Gy en EQD2 si possible sans dégrader le PTV (Gondi 2013)",
+   "portee": "volumes"
+  },
+  {
+   "cible": "gbm-age",
+   "point": "Après 70 ans, 60 Gy / 30 fx fait moins bien que 34 Gy / 10 fx ou le témozolomide seul (étude nordique)",
+   "portee": "situation"
+  },
+  {
+   "cible": "gbm-age",
+   "point": "Même après 70 ans (IK ≥ 70), la RT (50 Gy en fractions de 1,8 Gy) allonge la survie par rapport aux soins de support : 29,1 vs 16,9 semaines (ANOCEF)",
+   "portee": "situation"
+  },
+  {
+   "cible": "gbm-standard",
+   "point": "Statut MGMT à demander : il prédit le bénéfice du témozolomide (Hegi 2005) et oriente vers CeTeG",
+   "portee": "situation"
+  }
+ ],
+ "textes": {
+  "contourage": [
+   "Volumes de l'ESTRO-EANO 2023 : un seul CTV, fondé sur la cavité et la prise de contraste. La fiche du service ajoutait 20 mm et l'hypersignal FLAIR."
+  ]
+ }
+}

@@ -1,0 +1,318 @@
+{
+ "version": "2026-10-25",
+ "id": "vagin",
+ "region_id": "gyneco",
+ "nom": "Vagin",
+ "ordre": 7,
+ "date_maj": "2026-10-23",
+ "situations": [
+  {
+   "id": "vagin-local",
+   "localisation_id": "vagin",
+   "titre": "Stade I limité et superficiel : curiethérapie exclusive",
+   "contexte": "en_place",
+   "criteres": "Petite tumeur T1 superficielle (FIGO I : paroi vaginale) ; traitement conservateur ; curage pelvien à discuter (6 à 14 % de pN+ au stade I)",
+   "ordre": 1
+  },
+  {
+   "id": "vagin-lacc",
+   "localisation_id": "vagin",
+   "titre": "Stades I à IVA ou N+ : radio(chimio)thérapie + curiethérapie",
+   "contexte": "en_place",
+   "criteres": "Stade I non éligible à la curiethérapie seule, stades II à IVA, atteinte ganglionnaire ; carcinome épidermoïde surtout (80 à 85 %)",
+   "ordre": 2
+  }
+ ],
+ "schemas": [
+  {
+   "id": "vagin-curie-excl",
+   "situation_id": "vagin-local",
+   "titre": "Curiethérapie exclusive endocavitaire ± interstitielle",
+   "type": "curie_pdr",
+   "preuve": "pratique_institutionnelle",
+   "essai_ids": [
+    "gec-estro-vagin",
+    "abs-vagin"
+   ],
+   "source_institutionnelle": "Gustave Roussy (C. Chargari, cancers primitifs du vagin)",
+   "prescriptions": [
+    {
+     "volume": "CTV de curiethérapie (GTV + 1 cm)",
+     "dose_Gy": 60,
+     "mode": "seul",
+     "rythme": "Débit pulsé ou bas débit",
+     "note": "Série IGR de traitement conservateur (jeunes patientes) : 60 Gy dans le GTV + 1 cm"
+    }
+   ],
+   "technique": "Curiethérapie guidée par l'IRM (gel vaginal)",
+   "systemique": "Aucune",
+   "simulation_id": "sim-col-curie",
+   "volumes_id": "vol-vagin-curie",
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Gynéco",
+    "Vagin",
+    "Stade I limité et superficiel : curiethérapie exclusive",
+    "Curiethérapie"
+   ],
+   "contraintes_ids": [],
+   "points_attention": []
+  },
+  {
+   "id": "vagin-rch-curie",
+   "situation_id": "vagin-lacc",
+   "titre": "Pelvis 45 Gy / 25 fx (± boost ganglionnaire 60 Gy) + curiethérapie",
+   "type": "rte_plus_curie",
+   "preuve": "pratique_institutionnelle",
+   "essai_ids": [
+    "gec-estro-vagin",
+    "abs-vagin",
+    "embrace2"
+   ],
+   "source_institutionnelle": "Gustave Roussy ; Institut Curie, protocole col et vagin 2021 ; fiche du service",
+   "prescriptions": [
+    {
+     "volume": "PTV1 (tumeur + vagin + aires ganglionnaires)",
+     "dose_Gy": 45,
+     "fractions": 25,
+     "dose_fx_Gy": 1.8,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Cisplatine 40 mg/m² hebdomadaire selon RCP"
+    },
+    {
+     "volume": "PTV_N60 (adénopathie)",
+     "dose_Gy": 60,
+     "fractions": 25,
+     "dose_fx_Gy": 2.4,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "IGR : boost ganglionnaire de 60 Gy, intégré ou séquentiel"
+    },
+    {
+     "volume": "CTV-HR de curiethérapie",
+     "mode": "sequentiel",
+     "rythme": "Après la RTE",
+     "note": "Endocavitaire, interstitielle si épaisseur résiduelle > 5 mm (ABS) ; série IGR : 60 Gy au CTV (tumeur + 10–20 mm) ; si curiethérapie impossible : boost externe sur GTV_T + 1 cm (PTV3 de la fiche)"
+    }
+   ],
+   "technique": "VMAT, CBCT quotidien avec recalage osseux ; curiethérapie guidée par l'IRM",
+   "systemique": "Cisplatine 40 mg/m² hebdomadaire (pas de niveau de preuve, décision en RCP)",
+   "simulation_id": "sim-vagin",
+   "volumes_id": "vol-vagin",
+   "contraintes_ids": [
+    "ct-gyn-curie-rte"
+   ],
+   "couverture": "PTV : D95 > 95 %, D2 < 107 % ; PTV_N : D98 > 90 %",
+   "points_attention": [
+    "Vérifier dès le début de la RTE que la curiethérapie est programmée ; examen sous anesthésie et IRM avec gel avant la curiethérapie"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Gynéco",
+    "Vagin",
+    "Stades I à IVA ou N+ : radio(chimio)thérapie + curiethérapie",
+    "RTE + curiethérapie"
+   ]
+  }
+ ],
+ "simulations": [
+  {
+   "id": "sim-vagin",
+   "position": "Décubitus dorsal",
+   "contention": "Cale genoux + cale pieds, immobilisation pelvienne",
+   "preparation": "Rectum vide (Normacol), vessie confortable ; scanner vessie pleine puis vessie vide pour l'ITV (fiche du service)",
+   "scanner": "Injecté sauf contre-indication ; coupes ≤ 3 mm ; jusqu'aux ischions + 15 cm (+ inguinaux si tiers inférieur)",
+   "imagerie": "IRM pelvienne avec gel vaginal ; TEP-TDM ; empreinte vaginale",
+   "reperes": "Marqueur de la limite inférieure de la tumeur"
+  },
+  {
+   "id": "sim-col-curie",
+   "position": "Décubitus dorsal, jambes en étriers pour la pose",
+   "contention": "Applicateur utéro-vaginal fixé par tamponnement vaginal",
+   "preparation": "Anesthésie ; sonde urinaire (HDR : vidange puis volume fixe de sérum ; PDR : sonde ouverte) ; rectum vide",
+   "scanner": "IRM T2 avec applicateur (ou scanner) à chaque implantation",
+   "imagerie": "IRM du diagnostic et schéma clinique initial disponibles au contourage",
+   "reperes": "Reconstruction de l'applicateur sur l'IRM"
+  }
+ ],
+ "volumes": [
+  {
+   "id": "vol-vagin",
+   "cibles": [
+    {
+     "nom": "GTV_T",
+     "type": "GTV",
+     "definition": "Tumeur visible (examen clinique, IRM)",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "GTV_N#",
+     "type": "GTV",
+     "definition": "Adénopathie identifiée (imagerie ou cytologie)",
+     "quand": "Si adénopathie"
+    },
+    {
+     "nom": "CTV_T",
+     "type": "CTV",
+     "definition": "GTV + 2 cm, vagin en totalité, paravagin ; col utérin et paramètres si lésion du tiers supérieur, ± utérus entier (IGR). Fiche du service : vagin entier + col + paramètres ; utérus entier si tumeur des deux tiers supérieurs",
+     "quand": "Toujours",
+     "marge": "2 cm autour du GTV"
+    },
+    {
+     "nom": "ITV_T",
+     "type": "ITV",
+     "definition": "Union du CTV_T sur le scanner vessie pleine et sur le scanner vessie vide (fiche)",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "CTV_N",
+     "type": "CTV",
+     "definition": "Iliaques internes, externes, présacrés, ilio-obturateurs ; iliaques primitives si N+ ou atteinte du tiers supérieur (IGR) ; inguinaux si tiers inférieur ; fiche : vaisseaux + 5 mm, sans os ni tube digestif",
+     "quand": "Toujours",
+     "marge": "5 mm autour des vaisseaux"
+    },
+    {
+     "nom": "PTV1",
+     "type": "PTV",
+     "definition": "(GTV_T + CTV_T) + 1 cm, réuni avec CTV_N + 5 mm (fiche)",
+     "quand": "Toujours",
+     "marge": "1 cm (T), 5 mm (N)"
+    },
+    {
+     "nom": "PTV2",
+     "type": "PTV",
+     "definition": "GTV_N inguinal + 1 cm (fiche)",
+     "quand": "Si adénopathie inguinale",
+     "marge": "1 cm"
+    },
+    {
+     "nom": "PTV3",
+     "type": "PTV",
+     "definition": "GTV_T + 1 cm si curiethérapie impossible, ou GTV_N iliaque + 1 cm (fiche)",
+     "quand": "Selon indication",
+     "marge": "1 cm"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "GEC-ESTRO ACROP 2020 (curiethérapie)"
+    },
+    {
+     "nom": "RTOG 2012, OAR du pelvis"
+    }
+   ],
+   "oar_ids": [
+    "oar-grele",
+    "oar-sigmoide",
+    "oar-rectum",
+    "oar-canal-anal",
+    "oar-vessie",
+    "oar-tete-femorale-d",
+    "oar-tete-femorale-g",
+    "oar-aile-iliaque-d",
+    "oar-aile-iliaque-g",
+    "oar-moelle-osseuse",
+    "oar-vulve"
+   ],
+   "oar_notes": {
+    "oar-grele": "fiche : sac péritonéal jusqu'à 4 cm au-dessus de la dernière coupe du PTV1",
+    "oar-sigmoide": "fiche : du début de la boucle sigmoïde à la jonction recto-sigmoïdienne",
+    "oar-rectum": "fiche : du canal anal à la boucle sigmoïde",
+    "oar-tete-femorale-g": "fiche : jusqu'au petit trochanter inclus",
+    "oar-aile-iliaque-g": "fiche : crêtes iliaques jusqu'à l'acétabulum"
+   }
+  },
+  {
+   "id": "vol-vagin-curie",
+   "cibles": [
+    {
+     "nom": "CTV de curiethérapie",
+     "type": "CTV",
+     "definition": "GTV + 1 cm (curiethérapie exclusive, IGR)",
+     "quand": "Toujours",
+     "marge": "1 cm"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "GEC-ESTRO ACROP 2020"
+    }
+   ],
+   "oar_ids": [
+    "oar-rectum",
+    "oar-vessie",
+    "oar-uretre",
+    "oar-sigmoide"
+   ]
+  }
+ ],
+ "curie_indications": [
+  {
+   "indication": "Petite tumeur T1 superficielle",
+   "modalite": "Curiethérapie exclusive",
+   "niveau_preuve": "Séries rétrospectives (IGR)",
+   "note": "Traitement conservateur"
+  },
+  {
+   "indication": "Stades I à IVA après RTE",
+   "modalite": "Curiethérapie endocavitaire ± interstitielle",
+   "niveau_preuve": "Séries rétrospectives (IGR) ; concept GEC-ESTRO ACROP 2020",
+   "note": "Contrôle local 80 à 90 %, survie à 5 ans 40 à 70 % ; facteurs pronostiques : stade, taille > 4 cm, réponse à la RTE"
+  },
+  {
+   "indication": "Épaisseur tumorale > 5 mm",
+   "modalite": "Interstitielle",
+   "niveau_preuve": "ABS 2012 (consensus)",
+   "note": "Endocavitaire seule si ≤ 5 mm"
+  },
+  {
+   "indication": "Jeune patiente (adénocarcinome à cellules claires, exposition au DES)",
+   "modalite": "Curage pelvien + transposition ovarienne + curiethérapie endocavitaire ± interstitielle, 60 Gy dans le GTV + 1 cm",
+   "niveau_preuve": "Série IGR (61 patientes)",
+   "note": "Survie spécifique à 5 ans 79 %"
+  }
+ ],
+ "systemique": [
+  {
+   "situation": "Stades I à IVA, N+",
+   "traitement": "Cisplatine 40 mg/m² hebdomadaire pendant la RTE",
+   "essai_ids": [
+    "embrace2"
+   ],
+   "note": "Pas de niveau de preuve propre au vagin (IGR) ; décision en RCP selon les comorbidités"
+  },
+  {
+   "situation": "Curiethérapie exclusive",
+   "traitement": "Aucun"
+  }
+ ],
+ "hormonotherapie": [],
+ "points_attention": [
+  {
+   "cible": "vagin",
+   "point": "Drainage : deux tiers supérieurs → iliaques ; tiers inférieur → iliaques internes et inguinaux ; cloison postérieure → ganglions sacrés. Adapter le CTV_N au siège",
+   "portee": "localisation"
+  },
+  {
+   "cible": "vagin",
+   "point": "La fiche du service ne donne pas de dose pour PTV2 et PTV3 : référence IGR = 60 Gy sur les adénopathies",
+   "portee": "localisation"
+  },
+  {
+   "cible": "vagin",
+   "point": "Données rétrospectives seulement ; vérifier l'absence d'atteinte du col et de la vulve (sinon traiter comme un col ou une vulve) et d'hystérectomie pour cancer dans les 5 ans",
+   "portee": "localisation"
+  },
+  {
+   "cible": "vagin-rch-curie",
+   "point": "Vérifier dès le début de la RTE que la curiethérapie est programmée ; examen sous anesthésie et IRM avec gel avant la curiethérapie",
+   "portee": "schema"
+  }
+ ],
+ "textes": {
+  "curietherapie": [
+   "**Volumes de curiethérapie (GEC-ESTRO ACROP 2020) :** GTV-T res = tumeur résiduelle au moment de la curiethérapie ; CTV-T HR = GTV-T res + zones grises et paroi vaginale atteinte ; CTV-T IR = extension tumorale initiale. Examen gynécologique et IRM avec gel vaginal, schéma clinique standardisé du vagin. Contraintes D2cm³ rectum, vessie, grêle, sigmoïde utilisées pour optimiser la curiethérapie (fiche du service) ; pas de valeur publiée propre au vagin dans nos sources."
+  ]
+ }
+}

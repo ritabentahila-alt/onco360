@@ -1,0 +1,1277 @@
+{
+ "version": "2026-10-25",
+ "id": "poumon",
+ "region_id": "thorax",
+ "nom": "Poumon",
+ "ordre": 23,
+ "date_maj": "2026-10-23",
+ "situations": [
+  {
+   "id": "pou-cbnpc-iii",
+   "localisation_id": "poumon",
+   "titre": "CBNPC stade III non résécable : radiochimiothérapie",
+   "contexte": "en_place",
+   "criteres": "Stade III non résécable, PS 0–1. Bilan : TEP-TDM et IRM cérébrale",
+   "ordre": 1
+  },
+  {
+   "id": "pou-cbnpc-postop",
+   "localisation_id": "poumon",
+   "titre": "CBNPC opéré : radiothérapie post-opératoire",
+   "contexte": "post_op",
+   "criteres": "Résection R1–R2, ou pN2 discuté en RCP. Pas d'indication en standard après résection complète pN2 (Lung ART)",
+   "ordre": 2
+  },
+  {
+   "id": "pou-sbrt",
+   "localisation_id": "poumon",
+   "titre": "Stéréotaxie pulmonaire : CBNPC stade I ou métastase",
+   "contexte": "en_place",
+   "criteres": "CBNPC T1–T2a N0 inopérable ou refusant la chirurgie ; nodule évolutif hypermétabolique sans histologie ; métastase pulmonaire (≤ 5 métastases dans ≤ 3 organes). PTV de 1 à 5 cm (Curie)",
+   "ordre": 3
+  },
+  {
+   "id": "pou-cbpc-limite",
+   "localisation_id": "poumon",
+   "titre": "CBPC limité : radiochimiothérapie",
+   "contexte": "en_place",
+   "criteres": "Maladie limitée à un hémithorax, irradiable en un champ ; PS 0–2",
+   "ordre": 4
+  },
+  {
+   "id": "pou-cbpc-etendu",
+   "localisation_id": "poumon",
+   "titre": "CBPC étendu répondeur : radiothérapie thoracique",
+   "contexte": "metastatique",
+   "criteres": "Réponse à la chimiothérapie de première ligne",
+   "ordre": 5
+  },
+  {
+   "id": "pou-pall",
+   "localisation_id": "poumon",
+   "titre": "Palliatif thoracique",
+   "contexte": "palliatif",
+   "criteres": "Symptômes thoraciques (toux, hémoptysie, douleur, dyspnée) chez un patient non curable",
+   "ordre": 6
+  }
+ ],
+ "schemas": [
+  {
+   "id": "pou-rct-60-30",
+   "situation_id": "pou-cbnpc-iii",
+   "titre": "RCT 60 Gy / 30 fx puis durvalumab (RTOG 0617, PACIFIC)",
+   "type": "rte_normo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "rtog0617",
+    "rtog0617lt",
+    "pacific",
+    "pacific5y"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV (tumeur + adénopathies)",
+     "dose_Gy": 60,
+     "fractions": 30,
+     "dose_fx_Gy": 2,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "74 Gy fait moins bien que 60 Gy (RTOG 0617)"
+    }
+   ],
+   "technique": "IMRT ou VMAT, 4D ou blocage respiratoire, IGRT quotidienne",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-pou",
+   "volumes_id": "vol-pou-rct",
+   "contraintes_ids": [
+    "ct-thorax-quantec"
+   ],
+   "couverture": "RTOG 0617 : 99 % du PTV ≥ 93 % de la dose",
+   "points_attention": [
+    "La marge CTV s'ajoute toujours, même en 4D ou en gating. ITV = réunion des CTV sur le cycle respiratoire",
+    "74 Gy fait moins bien que 60 Gy : SG médiane 20,3 vs 28,7 mois. Le V5 et le V30 du cœur prédisent la survie (RTOG 0617)"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Thorax",
+    "Poumon",
+    "CBNPC stade III non résécable : radiochimiothérapie",
+    "Normofractionné"
+   ]
+  },
+  {
+   "id": "pou-rct-66-33",
+   "situation_id": "pou-cbnpc-iii",
+   "titre": "RCT 66 Gy / 33 fx puis durvalumab",
+   "type": "rte_normo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "proclaim",
+    "pacific"
+   ],
+   "source_institutionnelle": "Fiche du service",
+   "prescriptions": [
+    {
+     "volume": "PTV (tumeur + adénopathies)",
+     "dose_Gy": 66,
+     "fractions": 33,
+     "dose_fx_Gy": 2,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Dans l'intervalle 60–66 Gy de PROCLAIM ; dose de la fiche du service"
+    }
+   ],
+   "technique": "IMRT ou VMAT, 4D ou gating, IGRT quotidienne",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-pou",
+   "volumes_id": "vol-pou-rct",
+   "contraintes_ids": [
+    "ct-thorax-quantec"
+   ],
+   "points_attention": [
+    "La marge CTV s'ajoute toujours, même en 4D ou en gating. ITV = réunion des CTV sur le cycle respiratoire"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Thorax",
+    "Poumon",
+    "CBNPC stade III non résécable : radiochimiothérapie",
+    "Normofractionné"
+   ]
+  },
+  {
+   "id": "pou-port-54-27",
+   "situation_id": "pou-cbnpc-postop",
+   "titre": "RT médiastinale post-opératoire 54 Gy / 27 fx (Lung ART)",
+   "type": "rte_normo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "lungart",
+    "portc"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV médiastinal",
+     "dose_Gy": 54,
+     "fractions": 27,
+     "dose_fx_Gy": 2,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Lung ART autorisait aussi 54 Gy / 30 fx"
+    }
+   ],
+   "technique": "RT 3D ou IMRT",
+   "systemique": "Aucun pendant la RT",
+   "simulation_id": "sim-pou",
+   "volumes_id": "vol-pou-port",
+   "contraintes_ids": [
+    "ct-thorax-quantec"
+   ],
+   "points_attention": [
+    "PORT non recommandée en standard après résection complète pN2. Lung ART : survie sans maladie 47 % vs 44 % (NS), plus de toxicité cardiopulmonaire (11 % vs 5 %)"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Thorax",
+    "Poumon",
+    "CBNPC opéré : radiothérapie post-opératoire",
+    "Normofractionné"
+   ]
+  },
+  {
+   "id": "pou-sbrt-54-3",
+   "situation_id": "pou-sbrt",
+   "titre": "SBRT 54 Gy / 3 fx (tumeur primitive périphérique)",
+   "type": "sbrt",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "rtog0236",
+    "rtog0236lt",
+    "chisel"
+   ],
+   "source_institutionnelle": "Institut Curie, SBRT d'un nodule pulmonaire",
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 54,
+     "fractions": 3,
+     "dose_fx_Gy": 18,
+     "mode": "seul",
+     "rythme": "Tous les 2 jours",
+     "note": "Tumeur primitive seulement, pas pour une métastase (Curie)"
+    }
+   ],
+   "technique": "VMAT, inspiration bloquée ou 4D, CBCT avant et pendant la séance",
+   "systemique": "Aucune",
+   "simulation_id": "sim-pou-sbrt",
+   "volumes_id": "vol-pou-sbrt",
+   "contraintes_ids": [
+    "ct-pou-sbrt-curie-3fx"
+   ],
+   "couverture": "(i)GTV : D98 % ≥ 100 % (souple : ≥ 110 %), D0,035 cc entre 118 et 143 %. PTV : D90 % ≥ 99 % (souple : D95 % ≥ 95 %). PTVéval (PTV moins les OAR) : D95 % ≥ 100 % (souple : D98 % ≥ 100 %). Aucune dose > 105 % hors du PTV. R100 % entre 1 et 1,2 ; R50 % et D2cm selon le volume du PTV (protocole Curie)",
+   "points_attention": [
+    "54 Gy / 3 fx : tumeur primitive seulement, jamais pour une métastase (Curie)",
+    "Ultracentral au contact de l'arbre bronchique proximal, de l'œsophage ou du plexus : pas de SBRT à Curie (RT hypofractionnée). 7 × 8 Gy à proscrire à moins de 1 cm des bronches souches et de la trachée (HILUS : 10 décès)",
+    "Lésion centrale = PTV à moins de 2 cm de toute structure sensible (définition IASLC retenue par Curie). Ultracentrale = PTV au contact de l'arbre bronchique proximal, du cœur, des vaisseaux pulmonaires ou de l'œsophage",
+    "Séances tous les 2 jours (voire 3). CBCT avant le premier arc et entre les arcs ; écart os / tissu mou > 1 cm : appeler médecin et physicien",
+    "Patient opérable : SBRT non inférieure à la lobectomie dans STARS révisé (bras unique, comparaison appariée). Décision en RCP",
+    "Métastases : SABR-COMET (phase 2) améliore la survie (5 ans 42 % vs 18 %) au prix de 4,5 % de décès liés au traitement",
+    "34 Gy / 1 fx (RTOG 0915, phase 2) : non retenu par Curie ni Gustave Roussy",
+    "Surveillance : TDM à 3, 6 et 12 mois, puis tous les 6 mois pendant 3 ans, puis annuelle (Curie)"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Thorax",
+    "Poumon",
+    "Stéréotaxie pulmonaire : CBNPC stade I ou métastase",
+    "Stéréotaxie"
+   ]
+  },
+  {
+   "id": "pou-sbrt-45-3",
+   "situation_id": "pou-sbrt",
+   "titre": "SBRT 45 Gy / 3 fx (périphérique)",
+   "type": "sbrt",
+   "preuve": "recommandation",
+   "essai_ids": [
+    "acrop-sbrt-poumon"
+   ],
+   "source_institutionnelle": "Institut Curie, SBRT d'un nodule pulmonaire",
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 45,
+     "fractions": 3,
+     "dose_fx_Gy": 15,
+     "mode": "seul",
+     "rythme": "Tous les 2 jours",
+     "note": "Périphérique non pariétal"
+    }
+   ],
+   "technique": "VMAT, inspiration bloquée ou 4D, CBCT avant et pendant la séance",
+   "systemique": "Aucune",
+   "simulation_id": "sim-pou-sbrt",
+   "volumes_id": "vol-pou-sbrt",
+   "contraintes_ids": [
+    "ct-pou-sbrt-curie-3fx"
+   ],
+   "couverture": "(i)GTV : D98 % ≥ 100 % (souple : ≥ 110 %), D0,035 cc entre 118 et 143 %. PTV : D90 % ≥ 99 % (souple : D95 % ≥ 95 %). PTVéval (PTV moins les OAR) : D95 % ≥ 100 % (souple : D98 % ≥ 100 %). Aucune dose > 105 % hors du PTV. R100 % entre 1 et 1,2 ; R50 % et D2cm selon le volume du PTV (protocole Curie)",
+   "points_attention": [
+    "54 Gy / 3 fx : tumeur primitive seulement, jamais pour une métastase (Curie)",
+    "Ultracentral au contact de l'arbre bronchique proximal, de l'œsophage ou du plexus : pas de SBRT à Curie (RT hypofractionnée). 7 × 8 Gy à proscrire à moins de 1 cm des bronches souches et de la trachée (HILUS : 10 décès)",
+    "Lésion centrale = PTV à moins de 2 cm de toute structure sensible (définition IASLC retenue par Curie). Ultracentrale = PTV au contact de l'arbre bronchique proximal, du cœur, des vaisseaux pulmonaires ou de l'œsophage",
+    "Séances tous les 2 jours (voire 3). CBCT avant le premier arc et entre les arcs ; écart os / tissu mou > 1 cm : appeler médecin et physicien",
+    "Patient opérable : SBRT non inférieure à la lobectomie dans STARS révisé (bras unique, comparaison appariée). Décision en RCP",
+    "Métastases : SABR-COMET (phase 2) améliore la survie (5 ans 42 % vs 18 %) au prix de 4,5 % de décès liés au traitement",
+    "34 Gy / 1 fx (RTOG 0915, phase 2) : non retenu par Curie ni Gustave Roussy",
+    "Surveillance : TDM à 3, 6 et 12 mois, puis tous les 6 mois pendant 3 ans, puis annuelle (Curie)"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Thorax",
+    "Poumon",
+    "Stéréotaxie pulmonaire : CBNPC stade I ou métastase",
+    "Stéréotaxie"
+   ]
+  },
+  {
+   "id": "pou-sbrt-48-4",
+   "situation_id": "pou-sbrt",
+   "titre": "SBRT 48 Gy / 4 fx (périphérique)",
+   "type": "sbrt",
+   "preuve": "recommandation",
+   "essai_ids": [
+    "acrop-sbrt-poumon",
+    "chisel"
+   ],
+   "source_institutionnelle": "Institut Curie, SBRT d'un nodule pulmonaire",
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 48,
+     "fractions": 4,
+     "dose_fx_Gy": 12,
+     "mode": "seul",
+     "rythme": "Tous les 2 jours",
+     "note": "Périphérique ; dose ESTRO du contact pariétal"
+    }
+   ],
+   "technique": "VMAT, inspiration bloquée ou 4D, CBCT avant et pendant la séance",
+   "systemique": "Aucune",
+   "simulation_id": "sim-pou-sbrt",
+   "volumes_id": "vol-pou-sbrt",
+   "contraintes_ids": [
+    "ct-pou-sbrt-curie-4fx"
+   ],
+   "couverture": "(i)GTV : D98 % ≥ 100 % (souple : ≥ 110 %), D0,035 cc entre 118 et 143 %. PTV : D90 % ≥ 99 % (souple : D95 % ≥ 95 %). PTVéval (PTV moins les OAR) : D95 % ≥ 100 % (souple : D98 % ≥ 100 %). Aucune dose > 105 % hors du PTV. R100 % entre 1 et 1,2 ; R50 % et D2cm selon le volume du PTV (protocole Curie)",
+   "points_attention": [
+    "54 Gy / 3 fx : tumeur primitive seulement, jamais pour une métastase (Curie)",
+    "Ultracentral au contact de l'arbre bronchique proximal, de l'œsophage ou du plexus : pas de SBRT à Curie (RT hypofractionnée). 7 × 8 Gy à proscrire à moins de 1 cm des bronches souches et de la trachée (HILUS : 10 décès)",
+    "Lésion centrale = PTV à moins de 2 cm de toute structure sensible (définition IASLC retenue par Curie). Ultracentrale = PTV au contact de l'arbre bronchique proximal, du cœur, des vaisseaux pulmonaires ou de l'œsophage",
+    "Séances tous les 2 jours (voire 3). CBCT avant le premier arc et entre les arcs ; écart os / tissu mou > 1 cm : appeler médecin et physicien",
+    "Patient opérable : SBRT non inférieure à la lobectomie dans STARS révisé (bras unique, comparaison appariée). Décision en RCP",
+    "Métastases : SABR-COMET (phase 2) améliore la survie (5 ans 42 % vs 18 %) au prix de 4,5 % de décès liés au traitement",
+    "34 Gy / 1 fx (RTOG 0915, phase 2) : non retenu par Curie ni Gustave Roussy",
+    "Surveillance : TDM à 3, 6 et 12 mois, puis tous les 6 mois pendant 3 ans, puis annuelle (Curie)"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Thorax",
+    "Poumon",
+    "Stéréotaxie pulmonaire : CBNPC stade I ou métastase",
+    "Stéréotaxie"
+   ]
+  },
+  {
+   "id": "pou-sbrt-50-5",
+   "situation_id": "pou-sbrt",
+   "titre": "SBRT 50 Gy / 5 fx (pariétal ou central à plus de 1 cm des OAR)",
+   "type": "sbrt",
+   "preuve": "pratique_institutionnelle",
+   "essai_ids": [
+    "rtog0813",
+    "lenglet"
+   ],
+   "source_institutionnelle": "Institut Curie, SBRT d'un nodule pulmonaire",
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 50,
+     "fractions": 5,
+     "dose_fx_Gy": 10,
+     "mode": "seul",
+     "rythme": "Tous les 2 jours",
+     "note": "Pariétal (préféré à 4 × 12 Gy par Curie) ; central à plus de 1 cm des OAR"
+    }
+   ],
+   "technique": "VMAT, inspiration bloquée ou 4D, CBCT avant et pendant la séance",
+   "systemique": "Aucune",
+   "simulation_id": "sim-pou-sbrt",
+   "volumes_id": "vol-pou-sbrt",
+   "contraintes_ids": [
+    "ct-pou-sbrt-curie-5-8fx"
+   ],
+   "couverture": "(i)GTV : D98 % ≥ 100 % (souple : ≥ 110 %), D0,035 cc entre 118 et 143 %. PTV : D90 % ≥ 99 % (souple : D95 % ≥ 95 %). PTVéval (PTV moins les OAR) : D95 % ≥ 100 % (souple : D98 % ≥ 100 %). Aucune dose > 105 % hors du PTV. R100 % entre 1 et 1,2 ; R50 % et D2cm selon le volume du PTV (protocole Curie)",
+   "points_attention": [
+    "54 Gy / 3 fx : tumeur primitive seulement, jamais pour une métastase (Curie)",
+    "Ultracentral au contact de l'arbre bronchique proximal, de l'œsophage ou du plexus : pas de SBRT à Curie (RT hypofractionnée). 7 × 8 Gy à proscrire à moins de 1 cm des bronches souches et de la trachée (HILUS : 10 décès)",
+    "Lésion centrale = PTV à moins de 2 cm de toute structure sensible (définition IASLC retenue par Curie). Ultracentrale = PTV au contact de l'arbre bronchique proximal, du cœur, des vaisseaux pulmonaires ou de l'œsophage",
+    "Séances tous les 2 jours (voire 3). CBCT avant le premier arc et entre les arcs ; écart os / tissu mou > 1 cm : appeler médecin et physicien",
+    "Patient opérable : SBRT non inférieure à la lobectomie dans STARS révisé (bras unique, comparaison appariée). Décision en RCP",
+    "Métastases : SABR-COMET (phase 2) améliore la survie (5 ans 42 % vs 18 %) au prix de 4,5 % de décès liés au traitement",
+    "34 Gy / 1 fx (RTOG 0915, phase 2) : non retenu par Curie ni Gustave Roussy",
+    "Surveillance : TDM à 3, 6 et 12 mois, puis tous les 6 mois pendant 3 ans, puis annuelle (Curie)"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Thorax",
+    "Poumon",
+    "Stéréotaxie pulmonaire : CBNPC stade I ou métastase",
+    "Stéréotaxie"
+   ]
+  },
+  {
+   "id": "pou-sbrt-60-8",
+   "situation_id": "pou-sbrt",
+   "titre": "SBRT 60 Gy / 8 fx (central à 1 cm ou moins, ultracentral)",
+   "type": "sbrt",
+   "preuve": "pratique_institutionnelle",
+   "essai_ids": [
+    "lenglet",
+    "hilus"
+   ],
+   "source_institutionnelle": "Institut Curie, SBRT d'un nodule pulmonaire",
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 60,
+     "fractions": 8,
+     "dose_fx_Gy": 7.5,
+     "mode": "seul",
+     "rythme": "Tous les 2 jours",
+     "note": "Central à 1 cm ou moins des OAR ; ultracentral au contact du cœur ou des gros vaisseaux"
+    }
+   ],
+   "technique": "VMAT, inspiration bloquée ou 4D, CBCT avant et pendant la séance",
+   "systemique": "Aucune",
+   "simulation_id": "sim-pou-sbrt",
+   "volumes_id": "vol-pou-sbrt",
+   "contraintes_ids": [
+    "ct-pou-sbrt-curie-5-8fx"
+   ],
+   "couverture": "(i)GTV : D98 % ≥ 100 % (souple : ≥ 110 %), D0,035 cc entre 118 et 143 %. PTV : D90 % ≥ 99 % (souple : D95 % ≥ 95 %). PTVéval (PTV moins les OAR) : D95 % ≥ 100 % (souple : D98 % ≥ 100 %). Aucune dose > 105 % hors du PTV. R100 % entre 1 et 1,2 ; R50 % et D2cm selon le volume du PTV (protocole Curie)",
+   "points_attention": [
+    "54 Gy / 3 fx : tumeur primitive seulement, jamais pour une métastase (Curie)",
+    "Ultracentral au contact de l'arbre bronchique proximal, de l'œsophage ou du plexus : pas de SBRT à Curie (RT hypofractionnée). 7 × 8 Gy à proscrire à moins de 1 cm des bronches souches et de la trachée (HILUS : 10 décès)",
+    "Lésion centrale = PTV à moins de 2 cm de toute structure sensible (définition IASLC retenue par Curie). Ultracentrale = PTV au contact de l'arbre bronchique proximal, du cœur, des vaisseaux pulmonaires ou de l'œsophage",
+    "Séances tous les 2 jours (voire 3). CBCT avant le premier arc et entre les arcs ; écart os / tissu mou > 1 cm : appeler médecin et physicien",
+    "Patient opérable : SBRT non inférieure à la lobectomie dans STARS révisé (bras unique, comparaison appariée). Décision en RCP",
+    "Métastases : SABR-COMET (phase 2) améliore la survie (5 ans 42 % vs 18 %) au prix de 4,5 % de décès liés au traitement",
+    "34 Gy / 1 fx (RTOG 0915, phase 2) : non retenu par Curie ni Gustave Roussy",
+    "Surveillance : TDM à 3, 6 et 12 mois, puis tous les 6 mois pendant 3 ans, puis annuelle (Curie)"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Thorax",
+    "Poumon",
+    "Stéréotaxie pulmonaire : CBNPC stade I ou métastase",
+    "Stéréotaxie"
+   ]
+  },
+  {
+   "id": "pou-sbrt-55-5-igr",
+   "situation_id": "pou-sbrt",
+   "titre": "SBRT 55 Gy / 5 fx (contact costal ou T2 N0)",
+   "type": "sbrt",
+   "preuve": "pratique_institutionnelle",
+   "source_institutionnelle": "Gustave Roussy, protocole SBRT pulmonaire 2016",
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 55,
+     "fractions": 5,
+     "dose_fx_Gy": 11,
+     "mode": "seul",
+     "rythme": "Intervalle 40 à 96 h",
+     "note": "T1 N0 au contact des côtes ou T2 N0 ; calcul de type B"
+    }
+   ],
+   "technique": "Faisceaux conformationnels ou VMAT, scanner 4D, CBCT quotidien",
+   "systemique": "Aucune",
+   "simulation_id": "sim-pou-sbrt-igr",
+   "volumes_id": "vol-pou-sbrt-igr",
+   "contraintes_ids": [
+    "ct-pou-sbrt-igr-5plus"
+   ],
+   "couverture": "95 % du PTV à la dose prescrite, 99 % à 90 % ; Dmax 110–140 %",
+   "points_attention": [
+    "54 Gy / 3 fx : tumeur primitive seulement, jamais pour une métastase (Curie)",
+    "Ultracentral au contact de l'arbre bronchique proximal, de l'œsophage ou du plexus : pas de SBRT à Curie (RT hypofractionnée). 7 × 8 Gy à proscrire à moins de 1 cm des bronches souches et de la trachée (HILUS : 10 décès)",
+    "Lésion centrale = PTV à moins de 2 cm de toute structure sensible (définition IASLC retenue par Curie). Ultracentrale = PTV au contact de l'arbre bronchique proximal, du cœur, des vaisseaux pulmonaires ou de l'œsophage",
+    "Séances tous les 2 jours (voire 3). CBCT avant le premier arc et entre les arcs ; écart os / tissu mou > 1 cm : appeler médecin et physicien",
+    "Patient opérable : SBRT non inférieure à la lobectomie dans STARS révisé (bras unique, comparaison appariée). Décision en RCP",
+    "Métastases : SABR-COMET (phase 2) améliore la survie (5 ans 42 % vs 18 %) au prix de 4,5 % de décès liés au traitement",
+    "34 Gy / 1 fx (RTOG 0915, phase 2) : non retenu par Curie ni Gustave Roussy",
+    "Surveillance : TDM à 3, 6 et 12 mois, puis tous les 6 mois pendant 3 ans, puis annuelle (Curie)",
+    "Le protocole Gustave Roussy donne deux couvertures du PTV (90 % ou 95 % à la dose prescrite) : retenir 95 % (fiche dosimétrique)"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Thorax",
+    "Poumon",
+    "Stéréotaxie pulmonaire : CBNPC stade I ou métastase",
+    "Stéréotaxie"
+   ],
+   "essai_ids": []
+  },
+  {
+   "id": "pou-sbrt-50-10-igr",
+   "situation_id": "pou-sbrt",
+   "titre": "SBRT 50 Gy / 10 fx (au contact de l'arbre bronchique proximal ou de l'œsophage)",
+   "type": "sbrt",
+   "preuve": "pratique_institutionnelle",
+   "essai_ids": [
+    "hilus"
+   ],
+   "source_institutionnelle": "Gustave Roussy, protocole SBRT pulmonaire 2016",
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 50,
+     "fractions": 10,
+     "dose_fx_Gy": 5,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Lésion jouxtant l'arbre bronchique proximal ou l'œsophage"
+    }
+   ],
+   "technique": "Faisceaux conformationnels ou VMAT, scanner 4D, CBCT quotidien",
+   "systemique": "Aucune",
+   "simulation_id": "sim-pou-sbrt-igr",
+   "volumes_id": "vol-pou-sbrt-igr",
+   "contraintes_ids": [
+    "ct-pou-sbrt-igr-5plus"
+   ],
+   "couverture": "95 % du PTV à la dose prescrite, 99 % à 90 % ; Dmax 110–140 %",
+   "points_attention": [
+    "54 Gy / 3 fx : tumeur primitive seulement, jamais pour une métastase (Curie)",
+    "Ultracentral au contact de l'arbre bronchique proximal, de l'œsophage ou du plexus : pas de SBRT à Curie (RT hypofractionnée). 7 × 8 Gy à proscrire à moins de 1 cm des bronches souches et de la trachée (HILUS : 10 décès)",
+    "Lésion centrale = PTV à moins de 2 cm de toute structure sensible (définition IASLC retenue par Curie). Ultracentrale = PTV au contact de l'arbre bronchique proximal, du cœur, des vaisseaux pulmonaires ou de l'œsophage",
+    "Séances tous les 2 jours (voire 3). CBCT avant le premier arc et entre les arcs ; écart os / tissu mou > 1 cm : appeler médecin et physicien",
+    "Patient opérable : SBRT non inférieure à la lobectomie dans STARS révisé (bras unique, comparaison appariée). Décision en RCP",
+    "Métastases : SABR-COMET (phase 2) améliore la survie (5 ans 42 % vs 18 %) au prix de 4,5 % de décès liés au traitement",
+    "34 Gy / 1 fx (RTOG 0915, phase 2) : non retenu par Curie ni Gustave Roussy",
+    "Surveillance : TDM à 3, 6 et 12 mois, puis tous les 6 mois pendant 3 ans, puis annuelle (Curie)"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Thorax",
+    "Poumon",
+    "Stéréotaxie pulmonaire : CBNPC stade I ou métastase",
+    "Stéréotaxie"
+   ]
+  },
+  {
+   "id": "pou-cbpc-45-30",
+   "situation_id": "pou-cbpc-limite",
+   "titre": "RCT 45 Gy / 30 fx bifractionnés puis durvalumab",
+   "type": "rte_normo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "turrisi",
+    "convert",
+    "adriatic"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV (tumeur + adénopathies)",
+     "dose_Gy": 45,
+     "fractions": 30,
+     "dose_fx_Gy": 1.5,
+     "mode": "seul",
+     "rythme": "2 fx/j, 5 j/sem (19 jours)",
+     "note": "Débute avec le 1er cycle (Turrisi) ou au jour 22 (CONVERT)"
+    }
+   ],
+   "technique": "IMRT ou VMAT, IGRT quotidienne",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-pou",
+   "volumes_id": "vol-pou-cbpc",
+   "contraintes_ids": [
+    "ct-thorax-quantec"
+   ],
+   "points_attention": [
+    "45 Gy bifractionnés reste le standard. 66 Gy / 33 fx et 70 Gy / 35 fx ne font pas mieux (CONVERT, CALGB 30610)"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Thorax",
+    "Poumon",
+    "CBPC limité : radiochimiothérapie",
+    "Normofractionné"
+   ]
+  },
+  {
+   "id": "pou-cbpc-66-33",
+   "situation_id": "pou-cbpc-limite",
+   "titre": "RCT 66 Gy / 33 fx monofractionnés",
+   "type": "rte_normo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "convert",
+    "adriatic"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV (tumeur + adénopathies)",
+     "dose_Gy": 66,
+     "fractions": 33,
+     "dose_fx_Gy": 2,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Bras quotidien de CONVERT : pas supérieur au bifractionné"
+    }
+   ],
+   "technique": "IMRT ou VMAT, IGRT quotidienne",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-pou",
+   "volumes_id": "vol-pou-cbpc",
+   "contraintes_ids": [
+    "ct-thorax-quantec"
+   ],
+   "points_attention": [
+    "45 Gy bifractionnés reste le standard. 66 Gy / 33 fx et 70 Gy / 35 fx ne font pas mieux (CONVERT, CALGB 30610)"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Thorax",
+    "Poumon",
+    "CBPC limité : radiochimiothérapie",
+    "Normofractionné"
+   ]
+  },
+  {
+   "id": "pou-cbpc-70-35",
+   "situation_id": "pou-cbpc-limite",
+   "titre": "RCT 70 Gy / 35 fx monofractionnés",
+   "type": "rte_normo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "calgb30610"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV (tumeur + adénopathies)",
+     "dose_Gy": 70,
+     "fractions": 35,
+     "dose_fx_Gy": 2,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "CALGB 30610 : pas supérieur à 45 Gy bifractionnés"
+    }
+   ],
+   "technique": "IMRT ou VMAT, IGRT quotidienne",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-pou",
+   "volumes_id": "vol-pou-cbpc",
+   "contraintes_ids": [
+    "ct-thorax-quantec"
+   ],
+   "points_attention": [
+    "45 Gy bifractionnés reste le standard. 66 Gy / 33 fx et 70 Gy / 35 fx ne font pas mieux (CONVERT, CALGB 30610)"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Thorax",
+    "Poumon",
+    "CBPC limité : radiochimiothérapie",
+    "Normofractionné"
+   ]
+  },
+  {
+   "id": "pou-cbpc-60-40",
+   "situation_id": "pou-cbpc-limite",
+   "titre": "RCT 60 Gy / 40 fx bifractionnés",
+   "type": "rte_normo",
+   "preuve": "option",
+   "essai_ids": [
+    "gronberg"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV (tumeur + adénopathies)",
+     "dose_Gy": 60,
+     "fractions": 40,
+     "dose_fx_Gy": 1.5,
+     "mode": "seul",
+     "rythme": "2 fx/j, 10 fx/sem",
+     "note": "Phase 2 : SG à 2 ans 74 % vs 48 %"
+    }
+   ],
+   "technique": "IMRT ou VMAT, IGRT quotidienne",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-pou",
+   "volumes_id": "vol-pou-cbpc",
+   "contraintes_ids": [
+    "ct-thorax-quantec"
+   ],
+   "points_attention": [
+    "45 Gy bifractionnés reste le standard. 66 Gy / 33 fx et 70 Gy / 35 fx ne font pas mieux (CONVERT, CALGB 30610)"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Thorax",
+    "Poumon",
+    "CBPC limité : radiochimiothérapie",
+    "Normofractionné"
+   ]
+  },
+  {
+   "id": "pou-ipc-25-10",
+   "situation_id": "pou-cbpc-limite",
+   "titre": "Irradiation cérébrale prophylactique 25 Gy / 10 fx",
+   "type": "rte_normo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "pci9901",
+    "auperin",
+    "takahashi"
+   ],
+   "prescriptions": [
+    {
+     "volume": "Encéphale",
+     "dose_Gy": 25,
+     "fractions": 10,
+     "dose_fx_Gy": 2.5,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Après réponse. 36 Gy : pas moins de métastases et survie plus basse (PCI 99-01)"
+    }
+   ],
+   "technique": "RT 3D ou VMAT, masque thermoformé",
+   "systemique": "Aucune",
+   "simulation_id": "sim-ipc",
+   "volumes_id": "vol-ipc",
+   "points_attention": [
+    "45 Gy bifractionnés reste le standard. 66 Gy / 33 fx et 70 Gy / 35 fx ne font pas mieux (CONVERT, CALGB 30610)",
+    "IPC 25 Gy / 10 fx après réponse (CBPC limité). CBPC étendu : IPC non indispensable si surveillance IRM (Takahashi)"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Thorax",
+    "Poumon",
+    "CBPC limité : radiochimiothérapie",
+    "Normofractionné"
+   ],
+   "contraintes_ids": []
+  },
+  {
+   "id": "pou-cbpc-et-30-10",
+   "situation_id": "pou-cbpc-etendu",
+   "titre": "RT thoracique de consolidation 30 Gy / 10 fx (CREST)",
+   "type": "rte_hypo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "crest"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV thoracique résiduel",
+     "dose_Gy": 30,
+     "fractions": 10,
+     "dose_fx_Gy": 3,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Après réponse à la chimiothérapie"
+    }
+   ],
+   "technique": "RT 3D ou IMRT",
+   "systemique": "Chimio-immunothérapie selon RCP",
+   "simulation_id": "sim-pou",
+   "volumes_id": "vol-pou-cbpc",
+   "points_attention": [
+    "CREST a été mené avant l'immunothérapie : discuter la RT thoracique en RCP"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Thorax",
+    "Poumon",
+    "CBPC étendu répondeur : radiothérapie thoracique",
+    "Hypofractionné"
+   ],
+   "contraintes_ids": []
+  },
+  {
+   "id": "pou-pall-17-2",
+   "situation_id": "pou-pall",
+   "titre": "RT palliative 17 Gy / 2 fx (J1, J8)",
+   "type": "rte_hypo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "mrc-pall",
+    "astro-pall-poumon"
+   ],
+   "prescriptions": [
+    {
+     "volume": "Tumeur symptomatique",
+     "dose_Gy": 17,
+     "fractions": 2,
+     "dose_fx_Gy": 8.5,
+     "mode": "seul",
+     "rythme": "J1 et J8",
+     "note": "Plus de dysphagie qu'avec 10 Gy / 1 fx"
+    }
+   ],
+   "technique": "RT 3D",
+   "systemique": "Aucune",
+   "simulation_id": "sim-pou",
+   "volumes_id": "vol-pou-pall",
+   "points_attention": [
+    "Stade III non curable, PS 0–2 : RT modérément hypofractionnée avec un doublet de platine (ASTRO). Stade IV : pas de RCT concomitante en routine"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Thorax",
+    "Poumon",
+    "Palliatif thoracique",
+    "Hypofractionné"
+   ],
+   "contraintes_ids": []
+  },
+  {
+   "id": "pou-pall-10-1",
+   "situation_id": "pou-pall",
+   "titre": "RT palliative 10 Gy / 1 fx (mauvais état général)",
+   "type": "rte_hypo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "mrc-pall"
+   ],
+   "prescriptions": [
+    {
+     "volume": "Tumeur symptomatique",
+     "dose_Gy": 10,
+     "fractions": 1,
+     "dose_fx_Gy": 10,
+     "mode": "seul",
+     "rythme": "1 séance",
+     "note": "Palliation équivalente à 17 Gy / 2 fx"
+    }
+   ],
+   "technique": "RT 3D",
+   "systemique": "Aucune",
+   "simulation_id": "sim-pou",
+   "volumes_id": "vol-pou-pall",
+   "points_attention": [
+    "Stade III non curable, PS 0–2 : RT modérément hypofractionnée avec un doublet de platine (ASTRO). Stade IV : pas de RCT concomitante en routine"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Thorax",
+    "Poumon",
+    "Palliatif thoracique",
+    "Hypofractionné"
+   ],
+   "contraintes_ids": []
+  }
+ ],
+ "simulations": [
+  {
+   "id": "sim-pou",
+   "position": "Décubitus dorsal, bras au-dessus de la tête",
+   "contention": "Contention thoracique",
+   "preparation": "Entraînement respiratoire",
+   "scanner": "Injecté sauf contre-indication. Gating si l'apnée est tenue (fiche : au moins 45 s), sinon scanner 4D",
+   "imagerie": "Fusion TEP-TDM du bilan",
+   "reperes": "OAR sur le scanner moyen (average) ; GTV sur chaque phase du 4D"
+  },
+  {
+   "id": "sim-pou-sbrt",
+   "position": "Décubitus dorsal, bras au-dessus de la tête",
+   "contention": "Contention ORFIT + matelas sous vide ou masque",
+   "preparation": "Apprentissage du spiromètre ou de la respiration régulière (J1)",
+   "scanner": "Non injecté, poumons entiers. Lobe inférieur, ultracentral, paracardiaque : inspiration bloquée (spirométrie). Lobe supérieur ou moyen : scanner 4D, 10 phases + average + MIP",
+   "imagerie": "IRM rachidienne (T2) si GTV à moins de 1 cm du canal",
+   "reperes": "Amplitude du GTV > 5 mm au 4D : refaire en inspiration bloquée"
+  },
+  {
+   "id": "sim-pou-sbrt-igr",
+   "position": "Décubitus dorsal, bras relevés",
+   "contention": "Contention thoracique + matelas",
+   "scanner": "Scanner 4D non injecté (8 phases, coupes 2 mm) + scanner injecté en respiration libre",
+   "reperes": "Pas de fiduciaire si scanner 4D"
+  },
+  {
+   "id": "sim-ipc",
+   "position": "Décubitus dorsal",
+   "contention": "Masque thermoformé",
+   "scanner": "Scanner cérébral"
+  }
+ ],
+ "volumes": [
+  {
+   "id": "vol-pou-rct",
+   "cibles": [
+    {
+     "nom": "GTV_T",
+     "type": "GTV",
+     "definition": "Tumeur visible en fenêtres parenchymateuse et médiastinale, avec la TEP-TDM",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "GTV_N",
+     "type": "GTV",
+     "definition": "Adénopathies hypermétaboliques, ou petit axe > 1 cm, ou prouvées (EBUS). Pas d'irradiation ganglionnaire prophylactique",
+     "quand": "Si N+"
+    },
+    {
+     "nom": "IGTV",
+     "type": "ITV",
+     "definition": "Réunion des GTV sur toutes les phases du 4D, transférée sur l'average",
+     "quand": "Si scanner 4D"
+    },
+    {
+     "nom": "CTV_T",
+     "type": "CTV",
+     "definition": "GTV_T ou IGTV + 5 à 8 mm, corrigé au contact des OAR. 95 % de l'extension microscopique : 8 mm (adénocarcinome), 6 mm (épidermoïde)",
+     "quand": "Toujours",
+     "marge": "5–8 mm"
+    },
+    {
+     "nom": "CTV_N",
+     "type": "CTV",
+     "definition": "GTV_N + 3 mm si l'adénopathie fait moins de 20 mm ; marge plus large au-delà (fiche : 8 mm)",
+     "quand": "Si N+",
+     "marge": "3 mm"
+    },
+    {
+     "nom": "PTV",
+     "type": "PTV",
+     "definition": "CTV_T + CTV_N + 5 mm (fiche). RTOG 0617 : 5 à 15 mm selon le 4D et l'IGRT",
+     "quand": "Toujours",
+     "marge": "5 mm"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "ESTRO ACROP CBNPC 2018"
+    },
+    {
+     "nom": "atlas OAR thoraciques RTOG (Kong 2011)"
+    }
+   ],
+   "oar_ids": [
+    "oar-poumons",
+    "oar-coeur",
+    "oar-oesophage",
+    "oar-moelle",
+    "oar-canal-medullaire",
+    "oar-thyroide",
+    "oar-paroi-thoracique",
+    "oar-plexus-brachial-d",
+    "oar-plexus-brachial-g",
+    "oar-foie"
+   ],
+   "oar_notes": {
+    "oar-plexus-brachial-d": "selon localisation",
+    "oar-plexus-brachial-g": "selon localisation",
+    "oar-foie": "selon localisation"
+   }
+  },
+  {
+   "id": "vol-pou-port",
+   "cibles": [
+    {
+     "nom": "CTV médiastinal",
+     "type": "CTV",
+     "definition": "Stations envahies (compte rendu histologique) + moignon bronchique + stations adjacentes. 1–2R → 1–2R, 4R, 7, 10R ; 1–2L → 1–2L, 4L, 7, 10L ; 3 droite → 3, 4R, 7, 10R ; 3 gauche → 3, 4L, 7, 10L ; 4R → 2R, 4R, 7, 10R ; 4L → 2L, 4L, 7, 10L ; 5 ou 6 → 2L, 4L, 5, 6, 7 ; 7 droite → 4R, 7 ; 7 gauche → 4L, 5, 6, 7 ; 8 droite → 4R, 7, 8 ; 8 gauche → 4L, 5, 6, 7, 8",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "CTV pariétal",
+     "type": "CTV",
+     "definition": "Lit tumoral au contact pariétal (pT3 pariétal) ou zone de résection incomplète (R1–R2)",
+     "quand": "Si pT3 pariétal ou R1–R2"
+    },
+    {
+     "nom": "PTV",
+     "type": "PTV",
+     "definition": "CTV + 5 mm (fiche)",
+     "quand": "Toujours",
+     "marge": "5 mm"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "ESTRO ACROP CBNPC 2018"
+    }
+   ],
+   "oar_ids": [
+    "oar-poumons",
+    "oar-coeur",
+    "oar-oesophage",
+    "oar-moelle"
+   ]
+  },
+  {
+   "id": "vol-pou-sbrt",
+   "cibles": [
+    {
+     "nom": "GTV",
+     "type": "GTV",
+     "definition": "Lésion en fenêtre parenchymateuse (−600 / +1600 UH), verre dépoli suspect adjacent inclus",
+     "quand": "Inspiration bloquée"
+    },
+    {
+     "nom": "iGTV",
+     "type": "ITV",
+     "definition": "Réunion des GTV des 10 phases, ou contour sur le MIP vérifié en ciné ; transféré sur l'average",
+     "quand": "Respiration libre (4D)"
+    },
+    {
+     "nom": "PTV",
+     "type": "PTV",
+     "definition": "(i)GTV + 5 mm isotrope. Pas de CTV",
+     "quand": "Toujours",
+     "marge": "5 mm"
+    },
+    {
+     "nom": "PTVéval",
+     "type": "PTV",
+     "definition": "PTV moins les OAR (ou PRV)",
+     "quand": "Toujours"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "Atlas OAR thoraciques RTOG (Kong 2011)"
+    }
+   ],
+   "oar_ids": [
+    "oar-poumons",
+    "oar-poumon-d",
+    "oar-poumon-g",
+    "oar-oesophage",
+    "oar-coeur",
+    "oar-canal-medullaire",
+    "oar-moelle",
+    "oar-trachee",
+    "oar-gros-vaisseaux",
+    "oar-arbre-bronchique",
+    "oar-paroi-thoracique",
+    "oar-cotes",
+    "oar-plexus-brachial-d",
+    "oar-plexus-brachial-g",
+    "oar-peau",
+    "oar-foie",
+    "oar-estomac"
+   ],
+   "oar_notes": {
+    "oar-moelle": "si GTV à moins de 1 cm, sur IRM T2",
+    "oar-plexus-brachial-d": "si GTV à moins de 1 cm",
+    "oar-plexus-brachial-g": "si GTV à moins de 1 cm",
+    "oar-estomac": "si à moins de 1 cm"
+   }
+  },
+  {
+   "id": "vol-pou-sbrt-igr",
+   "cibles": [
+    {
+     "nom": "ITV",
+     "type": "ITV",
+     "definition": "GTV = CTV, contouré sur le MIP et vérifié sur chaque phase",
+     "quand": "Scanner 4D"
+    },
+    {
+     "nom": "PTV",
+     "type": "PTV",
+     "definition": "ITV + 4 mm. Sans 4D : GTV + 5 mm en antéro-postérieur et latéral, 9 mm en cranio-caudal",
+     "quand": "Toujours",
+     "marge": "4 mm"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "Atlas RTOG"
+    }
+   ],
+   "oar_ids": [
+    "oar-canal-medullaire",
+    "oar-oesophage",
+    "oar-plexus-brachial-d",
+    "oar-plexus-brachial-g",
+    "oar-coeur",
+    "oar-trachee",
+    "oar-arbre-bronchique",
+    "oar-poumon-d",
+    "oar-poumon-g",
+    "oar-paroi-thoracique",
+    "oar-gros-vaisseaux"
+   ],
+   "oar_notes": {
+    "oar-plexus-brachial-d": "si apical",
+    "oar-plexus-brachial-g": "si apical",
+    "oar-gros-vaisseaux": "si juxta-aortique"
+   }
+  },
+  {
+   "id": "vol-pou-cbpc",
+   "cibles": [
+    {
+     "nom": "GTV_T",
+     "type": "GTV",
+     "definition": "Tumeur après chimiothérapie si la RT débute après elle",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "GTV_N",
+     "type": "GTV",
+     "definition": "Adénopathies envahies avant chimiothérapie (TDM et TEP initiales)",
+     "quand": "Si N+"
+    },
+    {
+     "nom": "PTV",
+     "type": "PTV",
+     "definition": "CTV + 5 mm (fiche) ; marges CTV comme vol-pou-rct",
+     "quand": "Toujours",
+     "marge": "5 mm"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "ESTRO ACROP CBPC 2020"
+    }
+   ],
+   "oar_ids": [
+    "oar-poumons",
+    "oar-coeur",
+    "oar-oesophage",
+    "oar-moelle"
+   ]
+  },
+  {
+   "id": "vol-ipc",
+   "cibles": [
+    {
+     "nom": "CTV",
+     "type": "CTV",
+     "definition": "Encéphale entier",
+     "quand": "Toujours"
+    }
+   ],
+   "atlas": [],
+   "oar_ids": []
+  },
+  {
+   "id": "vol-pou-pall",
+   "cibles": [
+    {
+     "nom": "PTV",
+     "type": "PTV",
+     "definition": "Tumeur et adénopathies responsables des symptômes, marge selon la technique",
+     "quand": "Toujours"
+    }
+   ],
+   "atlas": [],
+   "oar_ids": [
+    "oar-moelle",
+    "oar-poumons",
+    "oar-oesophage"
+   ]
+  }
+ ],
+ "curie_indications": [],
+ "systemique": [
+  {
+   "situation": "pou-cbnpc-iii",
+   "traitement": "Carboplatine AUC 2 + paclitaxel 45 mg/m² hebdomadaires pendant la RT",
+   "protocole": "Carboplatine-paclitaxel hebdomadaire concomitant à la RT (poumon)",
+   "situation_id": "pou-cbnpc-iii",
+   "essai_ids": [
+    "rtog0617"
+   ],
+   "note": "Consolidation de RTOG 0617 remplacée aujourd'hui par le durvalumab"
+  },
+  {
+   "situation": "pou-cbnpc-iii",
+   "traitement": "Cisplatine-étoposide concomitant",
+   "protocole": "Cisplatine-étoposide concomitant à la RT (poumon)",
+   "situation_id": "pou-cbnpc-iii",
+   "essai_ids": [
+    "proclaim"
+   ],
+   "note": "Bras standard de PROCLAIM"
+  },
+  {
+   "situation": "pou-cbnpc-iii",
+   "traitement": "Cisplatine 75 mg/m² + pémétrexed 500 mg/m² toutes les 3 semaines × 3",
+   "protocole": "Cisplatine-pémétrexed concomitant à la RT (poumon)",
+   "situation_id": "pou-cbnpc-iii",
+   "essai_ids": [
+    "proclaim"
+   ],
+   "note": "Non épidermoïde seulement ; moins de toxicité G3–4"
+  },
+  {
+   "situation": "pou-cbnpc-iii",
+   "traitement": "Durvalumab 12 mois après la RCT",
+   "protocole": "Durvalumab consolidation (poumon)",
+   "situation_id": "pou-cbnpc-iii",
+   "essai_ids": [
+    "pacific",
+    "pacific5y"
+   ],
+   "note": "Début 1 à 42 jours après la RCT ; PACIFIC : 10 mg/kg toutes les 2 semaines"
+  },
+  {
+   "situation": "pou-cbpc-limite",
+   "traitement": "Cisplatine-étoposide, 4 cycles, RT dès le cycle 1 ou 2",
+   "protocole": "Cisplatine-étoposide (CBPC)",
+   "situation_id": "pou-cbpc-limite",
+   "essai_ids": [
+    "turrisi",
+    "convert"
+   ],
+   "note": "Carboplatine possible (Grønberg)"
+  },
+  {
+   "situation": "pou-cbpc-limite",
+   "traitement": "Durvalumab 1500 mg toutes les 4 semaines, jusqu'à 24 mois",
+   "protocole": "Durvalumab consolidation (CBPC limité)",
+   "situation_id": "pou-cbpc-limite",
+   "essai_ids": [
+    "adriatic"
+   ],
+   "note": "Après RCT sans progression"
+  }
+ ],
+ "hormonotherapie": [],
+ "points_attention": [
+  {
+   "cible": "poumon",
+   "point": "Pas d'irradiation ganglionnaire prophylactique en RCT exclusive. Seuls la tumeur et les ganglions pathologiques sont traités",
+   "portee": "localisation"
+  },
+  {
+   "cible": "vol-pou-rct",
+   "point": "La marge CTV s'ajoute toujours, même en 4D ou en gating. ITV = réunion des CTV sur le cycle respiratoire",
+   "portee": "volumes"
+  },
+  {
+   "cible": "pou-rct-60-30",
+   "point": "74 Gy fait moins bien que 60 Gy : SG médiane 20,3 vs 28,7 mois. Le V5 et le V30 du cœur prédisent la survie (RTOG 0617)",
+   "portee": "schema"
+  },
+  {
+   "cible": "pou-cbnpc-postop",
+   "point": "PORT non recommandée en standard après résection complète pN2. Lung ART : survie sans maladie 47 % vs 44 % (NS), plus de toxicité cardiopulmonaire (11 % vs 5 %)",
+   "portee": "situation"
+  },
+  {
+   "cible": "pou-sbrt",
+   "point": "54 Gy / 3 fx : tumeur primitive seulement, jamais pour une métastase (Curie)",
+   "portee": "situation"
+  },
+  {
+   "cible": "pou-sbrt",
+   "point": "Ultracentral au contact de l'arbre bronchique proximal, de l'œsophage ou du plexus : pas de SBRT à Curie (RT hypofractionnée). 7 × 8 Gy à proscrire à moins de 1 cm des bronches souches et de la trachée (HILUS : 10 décès)",
+   "portee": "situation"
+  },
+  {
+   "cible": "pou-sbrt",
+   "point": "Lésion centrale = PTV à moins de 2 cm de toute structure sensible (définition IASLC retenue par Curie). Ultracentrale = PTV au contact de l'arbre bronchique proximal, du cœur, des vaisseaux pulmonaires ou de l'œsophage",
+   "portee": "situation"
+  },
+  {
+   "cible": "pou-sbrt",
+   "point": "Séances tous les 2 jours (voire 3). CBCT avant le premier arc et entre les arcs ; écart os / tissu mou > 1 cm : appeler médecin et physicien",
+   "portee": "situation"
+  },
+  {
+   "cible": "pou-sbrt",
+   "point": "Patient opérable : SBRT non inférieure à la lobectomie dans STARS révisé (bras unique, comparaison appariée). Décision en RCP",
+   "portee": "situation"
+  },
+  {
+   "cible": "pou-sbrt",
+   "point": "Métastases : SABR-COMET (phase 2) améliore la survie (5 ans 42 % vs 18 %) au prix de 4,5 % de décès liés au traitement",
+   "portee": "situation"
+  },
+  {
+   "cible": "pou-sbrt",
+   "point": "34 Gy / 1 fx (RTOG 0915, phase 2) : non retenu par Curie ni Gustave Roussy",
+   "portee": "situation"
+  },
+  {
+   "cible": "pou-sbrt",
+   "point": "Surveillance : TDM à 3, 6 et 12 mois, puis tous les 6 mois pendant 3 ans, puis annuelle (Curie)",
+   "portee": "situation"
+  },
+  {
+   "cible": "pou-sbrt-55-5-igr",
+   "point": "Le protocole Gustave Roussy donne deux couvertures du PTV (90 % ou 95 % à la dose prescrite) : retenir 95 % (fiche dosimétrique)",
+   "portee": "schema"
+  },
+  {
+   "cible": "pou-cbpc-limite",
+   "point": "45 Gy bifractionnés reste le standard. 66 Gy / 33 fx et 70 Gy / 35 fx ne font pas mieux (CONVERT, CALGB 30610)",
+   "portee": "situation"
+  },
+  {
+   "cible": "pou-ipc-25-10",
+   "point": "IPC 25 Gy / 10 fx après réponse (CBPC limité). CBPC étendu : IPC non indispensable si surveillance IRM (Takahashi)",
+   "portee": "schema"
+  },
+  {
+   "cible": "pou-cbpc-etendu",
+   "point": "CREST a été mené avant l'immunothérapie : discuter la RT thoracique en RCP",
+   "portee": "situation"
+  },
+  {
+   "cible": "pou-pall",
+   "point": "Stade III non curable, PS 0–2 : RT modérément hypofractionnée avec un doublet de platine (ASTRO). Stade IV : pas de RCT concomitante en routine",
+   "portee": "situation"
+  }
+ ],
+ "textes": {}
+}

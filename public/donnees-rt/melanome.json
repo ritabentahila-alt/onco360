@@ -1,0 +1,101 @@
+{
+ "version": "2026-10-25",
+ "id": "melanome",
+ "region_id": "peau",
+ "nom": "Mélanome",
+ "ordre": 47,
+ "date_maj": "2026-10-24",
+ "situations": [
+  {
+   "id": "ml-gg",
+   "localisation_id": "melanome",
+   "titre": "Après curage d'une rechute ganglionnaire palpable, à haut risque de nouvelle rechute dans l'aire",
+   "contexte": "post_op",
+   "criteres": "Critères de l'essai ANZMTG 01.02 / TROG 02.01 (aire parotidienne et cervicale, axillaire ou inguinale ; nombre et taille des ganglions, rupture capsulaire) ; pas de gain de survie : décision en RCP",
+   "ordre": 1
+  }
+ ],
+ "schemas": [
+  {
+   "id": "ml-48-20",
+   "situation_id": "ml-gg",
+   "titre": "RT adjuvante 48 Gy / 20 fx",
+   "type": "rte_hypo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "trog0201",
+    "trog0201-lt"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV aire de curage",
+     "dose_Gy": 48,
+     "fractions": 20,
+     "dose_fx_Gy": 2.4,
+     "mode": "seul",
+     "rythme": "En 30 jours au plus",
+     "note": "Rechutes dans l'aire 21 % contre 36 % (HR 0,52) ; SG et survie sans rechute non différentes"
+    }
+   ],
+   "technique": "RT externe",
+   "systemique": "Selon RCP",
+   "volumes_id": "vol-melanome",
+   "points_attention": [
+    "Effets tardifs mineurs fréquents (douleur, fibrose cutanée ou sous-cutanée) au suivi médian de 73 mois (TROG 02.01)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Peau",
+    "Mélanome",
+    "Après curage d'une rechute ganglionnaire palpable, à haut risque de nouvelle rechute dans l'aire",
+    "Hypofractionné"
+   ],
+   "contraintes_ids": []
+  }
+ ],
+ "simulations": [],
+ "volumes": [
+  {
+   "id": "vol-melanome",
+   "cibles": [
+    {
+     "nom": "CTV",
+     "type": "CTV",
+     "definition": "Aire de curage ganglionnaire (parotidienne et cervicale, axillaire ou inguinale)",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "PTV",
+     "type": "PTV",
+     "definition": "CTV + marge du centre",
+     "quand": "Toujours"
+    }
+   ],
+   "atlas": [],
+   "oar_ids": [
+    "oar-peau",
+    "oar-parotide-d",
+    "oar-parotide-g",
+    "oar-plexus-brachial-d",
+    "oar-plexus-brachial-g",
+    "oar-tete-femorale-d",
+    "oar-tete-femorale-g"
+   ]
+  }
+ ],
+ "curie_indications": [],
+ "systemique": [],
+ "hormonotherapie": [],
+ "points_attention": [
+  {
+   "cible": "ml-48-20",
+   "point": "Effets tardifs mineurs fréquents (douleur, fibrose cutanée ou sous-cutanée) au suivi médian de 73 mois (TROG 02.01)",
+   "portee": "schema"
+  }
+ ],
+ "textes": {
+  "systemique": [
+   "Pas de traitement systémique associé à la RT dans ce schéma ; le traitement adjuvant systémique relève de la RCP."
+  ]
+ }
+}

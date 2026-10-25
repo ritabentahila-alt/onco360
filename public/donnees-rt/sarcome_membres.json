@@ -1,0 +1,439 @@
+{
+ "version": "2026-10-25",
+ "id": "sarcome_membres",
+ "region_id": "sarcome",
+ "nom": "Membres et tronc",
+ "ordre": 42,
+ "date_maj": "2026-10-25",
+ "situations": [
+  {
+   "id": "sm-preop",
+   "localisation_id": "sarcome_membres",
+   "titre": "Sarcome localisé des membres ou du tronc : RT pré-opératoire",
+   "contexte": "en_place",
+   "criteres": "RT indiquée si risque accru de récidive locale, en particulier si des marges étroites ou atteintes sont attendues (ASTRO 2021) ; la RT pré-opératoire suivie de la chirurgie est la séquence préférée (ESTRO 2026)",
+   "ordre": 1
+  },
+  {
+   "id": "sm-postop",
+   "localisation_id": "sarcome_membres",
+   "titre": "Sarcome opéré sans RT pré-opératoire : RT post-opératoire",
+   "contexte": "post_op",
+   "criteres": "Fiche du service : sarcomes profonds de plus de 5 cm, grade 2–3, chirurgie R1 ou R2",
+   "ordre": 2
+  }
+ ],
+ "schemas": [
+  {
+   "id": "sm-preop-50-25",
+   "situation_id": "sm-preop",
+   "titre": "RT pré-opératoire 50 Gy / 25 fx",
+   "type": "rte_normo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "ncic-sr2",
+    "davis2005",
+    "rtog0630",
+    "wang2011-sts",
+    "estro-sts-2026"
+   ],
+   "source_institutionnelle": "Fiche du service (pré-opératoire : 50 Gy)",
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 50,
+     "fractions": 25,
+     "dose_fx_Gy": 2,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Chirurgie après la RT"
+    }
+   ],
+   "technique": "RT hautement conformationnelle, imagerie volumique quotidienne",
+   "systemique": "Aucune",
+   "simulation_id": "sim-sarcome-service",
+   "volumes_id": "vol-sm-preop-service",
+   "points_attention": [
+    "Pré-opératoire 50 Gy contre post-opératoire 66 Gy : complications de la cicatrice 35 % contre 17 % (NCIC SR2), fibrose de grade ≥ 2 : 31,5 % contre 48,2 % ; la taille du champ prédit fibrose et raideur (Davis 2005)",
+    "IGRT et volumes réduits (RTOG 0630) : toxicité tardive de grade ≥ 2 à 2 ans 10,5 % contre 37 % dans NCIC SR2 ; 5 récidives locales, toutes dans le champ"
+   ],
+   "date_verif": "2026-10-25",
+   "ind": [
+    "Sarcomes",
+    "Membres et tronc",
+    "Sarcome localisé des membres ou du tronc : RT pré-opératoire",
+    "Normofractionné"
+   ],
+   "contraintes_ids": []
+  },
+  {
+   "id": "sm-preop-4275-15",
+   "situation_id": "sm-preop",
+   "titre": "RT pré-opératoire 42,75 Gy / 15 fx",
+   "type": "rte_hypo",
+   "preuve": "option",
+   "essai_ids": [
+    "hyport-sts",
+    "baldini2024-hypo",
+    "estro-sts-2026"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 42.75,
+     "fractions": 15,
+     "dose_fx_Gy": 2.85,
+     "mode": "seul",
+     "rythme": "5 fx/sem (3 semaines)",
+     "note": "Complications majeures de la cicatrice 31 % contre 35 % attendus (HYPORT-STS) ; ESTRO 2026 : pas en routine hors essai"
+    }
+   ],
+   "technique": "RT hautement conformationnelle, imagerie volumique quotidienne",
+   "systemique": "Aucune",
+   "simulation_id": "sim-sarcome-service",
+   "volumes_id": "vol-sm-preop-service",
+   "points_attention": [
+    "Pré-opératoire 50 Gy contre post-opératoire 66 Gy : complications de la cicatrice 35 % contre 17 % (NCIC SR2), fibrose de grade ≥ 2 : 31,5 % contre 48,2 % ; la taille du champ prédit fibrose et raideur (Davis 2005)",
+    "IGRT et volumes réduits (RTOG 0630) : toxicité tardive de grade ≥ 2 à 2 ans 10,5 % contre 37 % dans NCIC SR2 ; 5 récidives locales, toutes dans le champ",
+    "Hypofractionnement pré-opératoire : pas encore un standard (Baldini 2024 ; ESTRO 2026)"
+   ],
+   "date_verif": "2026-10-25",
+   "ind": [
+    "Sarcomes",
+    "Membres et tronc",
+    "Sarcome localisé des membres ou du tronc : RT pré-opératoire",
+    "Hypofractionné"
+   ],
+   "contraintes_ids": []
+  },
+  {
+   "id": "sm-postop-r0",
+   "situation_id": "sm-postop",
+   "titre": "RT post-opératoire R0 : 50 Gy / 25 fx ± 10 Gy",
+   "type": "rte_normo",
+   "preuve": "pratique_institutionnelle",
+   "essai_ids": [
+    "yang1998",
+    "ncic-sr2"
+   ],
+   "source_institutionnelle": "Fiche du service",
+   "prescriptions": [
+    {
+     "volume": "PTV50",
+     "dose_Gy": 50,
+     "fractions": 25,
+     "dose_fx_Gy": 2,
+     "mode": "sequentiel",
+     "rythme": "5 fx/sem"
+    },
+    {
+     "volume": "PTV60",
+     "dose_Gy": 10,
+     "fractions": 5,
+     "dose_fx_Gy": 2,
+     "mode": "sequentiel",
+     "rythme": "5 fx/sem",
+     "note": "Seulement si sarcome à haut risque de rechute (fiche du service)"
+    }
+   ],
+   "technique": "RT hautement conformationnelle, imagerie volumique",
+   "systemique": "Aucune",
+   "simulation_id": "sim-sarcome-service",
+   "volumes_id": "vol-sm-postop-service",
+   "points_attention": [
+    "RT post-opératoire : moins de récidives locales sans différence de survie, pour les hauts et les bas grades ; chez les patients à faible risque de récidive, la RT adjuvante peut ne pas être nécessaire (Yang 1998)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Sarcomes",
+    "Membres et tronc",
+    "Sarcome opéré sans RT pré-opératoire : RT post-opératoire",
+    "Normofractionné"
+   ],
+   "contraintes_ids": []
+  },
+  {
+   "id": "sm-postop-r1",
+   "situation_id": "sm-postop",
+   "titre": "RT post-opératoire R1 : 50 Gy puis 10 Gy puis 6 Gy (66 Gy sur la zone R1)",
+   "type": "rte_normo",
+   "preuve": "pratique_institutionnelle",
+   "essai_ids": [
+    "ncic-sr2"
+   ],
+   "source_institutionnelle": "Fiche du service",
+   "prescriptions": [
+    {
+     "volume": "PTV50",
+     "dose_Gy": 50,
+     "fractions": 25,
+     "dose_fx_Gy": 2,
+     "mode": "sequentiel",
+     "rythme": "5 fx/sem"
+    },
+    {
+     "volume": "PTV60",
+     "dose_Gy": 10,
+     "fractions": 5,
+     "dose_fx_Gy": 2,
+     "mode": "sequentiel",
+     "rythme": "5 fx/sem"
+    },
+    {
+     "volume": "PTV66",
+     "dose_Gy": 6,
+     "fractions": 3,
+     "dose_fx_Gy": 2,
+     "mode": "sequentiel",
+     "rythme": "5 fx/sem",
+     "note": "Zone R1 ; fiche : 50 + 10 à 16 Gy ; NCIC SR2 : 66 Gy / 33 fx en post-opératoire"
+    }
+   ],
+   "technique": "RT hautement conformationnelle, imagerie volumique",
+   "systemique": "Aucune",
+   "simulation_id": "sim-sarcome-service",
+   "volumes_id": "vol-sm-postop-service",
+   "points_attention": [
+    "RT post-opératoire : moins de récidives locales sans différence de survie, pour les hauts et les bas grades ; chez les patients à faible risque de récidive, la RT adjuvante peut ne pas être nécessaire (Yang 1998)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Sarcomes",
+    "Membres et tronc",
+    "Sarcome opéré sans RT pré-opératoire : RT post-opératoire",
+    "Normofractionné"
+   ],
+   "contraintes_ids": []
+  },
+  {
+   "id": "sm-postop-r2",
+   "situation_id": "sm-postop",
+   "titre": "RT post-opératoire R2 sans reprise possible : 50 Gy puis 20 Gy",
+   "type": "rte_normo",
+   "preuve": "pratique_institutionnelle",
+   "essai_ids": [
+    "astro-sts-2021"
+   ],
+   "source_institutionnelle": "Fiche du service",
+   "prescriptions": [
+    {
+     "volume": "PTV50",
+     "dose_Gy": 50,
+     "fractions": 25,
+     "dose_fx_Gy": 2,
+     "mode": "sequentiel",
+     "rythme": "5 fx/sem"
+    },
+    {
+     "volume": "PTV reliquat",
+     "dose_Gy": 20,
+     "fractions": 10,
+     "dose_fx_Gy": 2,
+     "mode": "sequentiel",
+     "rythme": "5 fx/sem",
+     "note": "Fiche : 50 + 15 à 20 Gy si reprise chirurgicale impossible"
+    }
+   ],
+   "technique": "RT hautement conformationnelle, imagerie volumique",
+   "systemique": "Aucune",
+   "simulation_id": "sim-sarcome-service",
+   "volumes_id": "vol-sm-postop-service",
+   "points_attention": [
+    "RT post-opératoire : moins de récidives locales sans différence de survie, pour les hauts et les bas grades ; chez les patients à faible risque de récidive, la RT adjuvante peut ne pas être nécessaire (Yang 1998)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Sarcomes",
+    "Membres et tronc",
+    "Sarcome opéré sans RT pré-opératoire : RT post-opératoire",
+    "Normofractionné"
+   ],
+   "contraintes_ids": []
+  },
+  {
+   "id": "sm-curie-ldr",
+   "situation_id": "sm-postop",
+   "titre": "Curiethérapie adjuvante bas débit 42 à 45 Gy",
+   "type": "curie_ldr",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "pisters1996",
+    "abs-sts-2021"
+   ],
+   "prescriptions": [
+    {
+     "volume": "CTV lit opératoire",
+     "dose_Gy": 45,
+     "mode": "seul",
+     "rythme": "4 à 6 jours",
+     "note": "Iridium 192, 42 à 45 Gy ; contrôle local à 5 ans 82 % contre 69 % sans curiethérapie, 89 % contre 66 % pour les hauts grades"
+    }
+   ],
+   "technique": "Implant d'iridium 192 posé pendant la chirurgie",
+   "systemique": "Aucune",
+   "volumes_id": "vol-sm-curie",
+   "points_attention": [
+    "RT post-opératoire : moins de récidives locales sans différence de survie, pour les hauts et les bas grades ; chez les patients à faible risque de récidive, la RT adjuvante peut ne pas être nécessaire (Yang 1998)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Sarcomes",
+    "Membres et tronc",
+    "Sarcome opéré sans RT pré-opératoire : RT post-opératoire",
+    "Curiethérapie"
+   ],
+   "contraintes_ids": []
+  }
+ ],
+ "simulations": [
+  {
+   "id": "sim-sarcome-service",
+   "position": "Décubitus adapté au membre atteint (dorsal, ventral, assis selon le site)",
+   "contention": "Immobilisation rigide : plaque ou coussin moulé",
+   "scanner": "Scanner injecté recommandé (tumeur et vaisseaux adjacents)",
+   "imagerie": "Fusion obligatoire avec l'IRM pré-thérapeutique (GTV et œdème T2)",
+   "reperes": "Marquage cutané ou repères radio-opaques sur la zone tumorale et la cicatrice de biopsie"
+  }
+ ],
+ "volumes": [
+  {
+   "id": "vol-sm-preop-service",
+   "cibles": [
+    {
+     "nom": "GTV T",
+     "type": "GTV",
+     "definition": "Tumeur macroscopique primaire sur le recalage IRM",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "CTV T",
+     "type": "CTV",
+     "definition": "GTV + 3 cm longitudinal et 1,5 cm radial (consensus RTOG) ; inclure l'œdème T2 et la cicatrice de biopsie ; adapter aux barrières anatomiques (os, compartiments musculaires, articulations)",
+     "quand": "Toujours",
+     "marge": "3 cm / 1,5 cm"
+    },
+    {
+     "nom": "PTV T",
+     "type": "PTV",
+     "definition": "CTV + 0,5 cm si CBCT quotidien ; CTV + 1 cm si imagerie plus espacée",
+     "quand": "Toujours",
+     "marge": "5 ou 10 mm"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "Consensus RTOG, GTV et CTV pré-opératoires",
+     "url": "https://doi.org/10.1016/j.ijrobp.2011.04.038"
+    }
+   ],
+   "oar_ids": [
+    "oar-peau",
+    "oar-tete-femorale-d",
+    "oar-tete-femorale-g",
+    "oar-oge"
+   ]
+  },
+  {
+   "id": "vol-sm-postop-service",
+   "cibles": [
+    {
+     "nom": "GTV T",
+     "type": "GTV",
+     "definition": "Tumeur primitive macroscopique avant tout traitement (IRM)",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "CTV T 50 Gy",
+     "type": "CTV",
+     "definition": "GTV + 3,5 cm longitudinal, 1,5 cm dans les autres directions ; inclure cicatrice, hématomes et collections ; marge longitudinale réductible près d'une articulation",
+     "quand": "Toujours",
+     "marge": "3,5 cm / 1,5 cm"
+    },
+    {
+     "nom": "CTV T 60 Gy",
+     "type": "CTV",
+     "definition": "GTV + 2 cm longitudinal, 1,5 cm dans les autres directions ; mêmes adaptations",
+     "quand": "Complément",
+     "marge": "2 cm / 1,5 cm"
+    },
+    {
+     "nom": "CTV T 66 Gy",
+     "type": "CTV",
+     "definition": "Zone R1 résiduelle (marge chirurgicale atteinte)",
+     "quand": "R1"
+    },
+    {
+     "nom": "PTV T",
+     "type": "PTV",
+     "definition": "CTV + 0,5 cm si CBCT quotidien ; CTV + 1 cm si imagerie plus espacée",
+     "quand": "Toujours",
+     "marge": "5 ou 10 mm"
+    }
+   ],
+   "atlas": [],
+   "oar_ids": [
+    "oar-peau",
+    "oar-tete-femorale-d",
+    "oar-tete-femorale-g",
+    "oar-oge"
+   ]
+  },
+  {
+   "id": "vol-sm-curie",
+   "cibles": [
+    {
+     "nom": "CTV",
+     "type": "CTV",
+     "definition": "Lit de résection, implant posé pendant la chirurgie",
+     "quand": "Toujours"
+    }
+   ],
+   "atlas": [],
+   "oar_ids": [
+    "oar-peau"
+   ]
+  }
+ ],
+ "curie_indications": [
+  {
+   "indication": "Sarcome des membres ou du tronc superficiel réséqué",
+   "modalite": "Curiethérapie interstitielle adjuvante bas débit (iridium 192), 42 à 45 Gy en 4 à 6 jours",
+   "niveau_preuve": "Essai randomisé (Pisters 1996) ; consensus ABS 2021",
+   "note": "Gain de contrôle local limité aux hauts grades ; doses et fractionnements selon le site et l'intention (ABS 2021)"
+  }
+ ],
+ "systemique": [],
+ "hormonotherapie": [],
+ "points_attention": [
+  {
+   "cible": "sm-preop",
+   "point": "Pré-opératoire 50 Gy contre post-opératoire 66 Gy : complications de la cicatrice 35 % contre 17 % (NCIC SR2), fibrose de grade ≥ 2 : 31,5 % contre 48,2 % ; la taille du champ prédit fibrose et raideur (Davis 2005)",
+   "portee": "situation"
+  },
+  {
+   "cible": "sm-preop",
+   "point": "IGRT et volumes réduits (RTOG 0630) : toxicité tardive de grade ≥ 2 à 2 ans 10,5 % contre 37 % dans NCIC SR2 ; 5 récidives locales, toutes dans le champ",
+   "portee": "situation"
+  },
+  {
+   "cible": "sm-preop-4275-15",
+   "point": "Hypofractionnement pré-opératoire : pas encore un standard (Baldini 2024 ; ESTRO 2026)",
+   "portee": "schema"
+  },
+  {
+   "cible": "sm-postop",
+   "point": "RT post-opératoire : moins de récidives locales sans différence de survie, pour les hauts et les bas grades ; chez les patients à faible risque de récidive, la RT adjuvante peut ne pas être nécessaire (Yang 1998)",
+   "portee": "situation"
+  },
+  {
+   "cible": "sarcome_membres",
+   "point": "Fiche du service : fusion IRM et scanner systématique ; CTV respectant les barrières anatomiques ; inclusion hiérarchique des CTV 50, 60 et 66 Gy",
+   "portee": "localisation"
+  }
+ ],
+ "textes": {
+  "systemique": [
+   "Pas de traitement systémique associé à la RT dans ces schémas."
+  ]
+ }
+}

@@ -1,0 +1,609 @@
+{
+ "version": "2026-10-25",
+ "id": "oesophage",
+ "region_id": "digestif",
+ "nom": "Œsophage",
+ "ordre": 9,
+ "date_maj": "2026-10-23",
+ "situations": [
+  {
+   "id": "oeso-neoadj",
+   "localisation_id": "oesophage",
+   "titre": "Résécable : radiochimiothérapie préopératoire (CROSS)",
+   "contexte": "en_place",
+   "criteres": "Tumeur résécable de l'œsophage ou de la jonction, patient opérable. Épidermoïde : indication principale. Adénocarcinome : FLOT périopératoire supérieur à CROSS (ESOPEC)",
+   "ordre": 1
+  },
+  {
+   "id": "oeso-excl",
+   "localisation_id": "oesophage",
+   "titre": "Radiochimiothérapie exclusive",
+   "contexte": "en_place",
+   "criteres": "Épidermoïde (alternative à la chirurgie), patient inopérable, tumeur non résécable, œsophage cervical",
+   "ordre": 2
+  },
+  {
+   "id": "oeso-pall",
+   "localisation_id": "oesophage",
+   "titre": "Palliatif : dysphagie ou saignement",
+   "contexte": "palliatif",
+   "criteres": "Cancer incurable ou patient non éligible à un traitement curatif",
+   "ordre": 3
+  }
+ ],
+ "schemas": [
+  {
+   "id": "oeso-cross-414-23",
+   "situation_id": "oeso-neoadj",
+   "titre": "RCT 41,4 Gy / 23 fx + carboplatine-paclitaxel, puis chirurgie (CROSS)",
+   "type": "rte_normo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "cross",
+    "cross-lt",
+    "cross-10",
+    "neoaegis",
+    "esopec",
+    "cm577",
+    "sano"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 41.4,
+     "fractions": 23,
+     "dose_fx_Gy": 1.8,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Chirurgie 3 à 10 semaines après (Neo-AEGIS)"
+    }
+   ],
+   "technique": "IMRT ou VMAT ; CBCT obligatoire (Neo-AEGIS)",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-oeso",
+   "volumes_id": "vol-oeso-cross",
+   "contraintes_ids": [
+    "ct-oeso-neoaegis"
+   ],
+   "points_attention": [
+    "Adénocarcinome : FLOT périopératoire supérieur à CROSS (ESOPEC). CROSS reste le standard de l'épidermoïde résécable",
+    "Réponse clinique complète après CROSS : la surveillance active est non inférieure à la chirurgie à 2 ans (SANO). Décision en RCP"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Digestif",
+    "Œsophage",
+    "Résécable : radiochimiothérapie préopératoire (CROSS)",
+    "Normofractionné"
+   ]
+  },
+  {
+   "id": "oeso-rct-50-25",
+   "situation_id": "oeso-excl",
+   "titre": "RCT exclusive 50 Gy / 25 fx + FOLFOX ou 5FU-cisplatine",
+   "type": "rte_normo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "prodige5",
+    "rtog8501",
+    "rtog8501-lt",
+    "ffcd9102",
+    "recorad-oeso",
+    "xu-60-50",
+    "xu-60-50-lt"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 50,
+     "fractions": 25,
+     "dose_fx_Gy": 2,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Dose de PRODIGE 5 et de la SFRO. Pas d'escalade au-delà de 50 Gy"
+    }
+   ],
+   "technique": "IMRT ou VMAT, IGRT quotidienne",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-oeso",
+   "volumes_id": "vol-oeso-excl",
+   "contraintes_ids": [
+    "ct-thorax-quantec"
+   ],
+   "points_attention": [
+    "Épidermoïde répondeur : la chirurgie après RCT n'améliore pas la survie et augmente la mortalité à 3 mois (FFCD 9102)",
+    "GTV_N = ganglions envahis visibles. Les stations « à risque ≥ 20 % » relèvent du CTV_N"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Digestif",
+    "Œsophage",
+    "Radiochimiothérapie exclusive",
+    "Normofractionné"
+   ]
+  },
+  {
+   "id": "oeso-rct-504-28",
+   "situation_id": "oeso-excl",
+   "titre": "RCT exclusive 50,4 Gy / 28 fx",
+   "type": "rte_normo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "int0123",
+    "artdeco"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 50.4,
+     "fractions": 28,
+     "dose_fx_Gy": 1.8,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Bras standard d'INT 0123 et d'ARTDECO"
+    }
+   ],
+   "technique": "IMRT ou VMAT, IGRT quotidienne",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-oeso",
+   "volumes_id": "vol-oeso-excl",
+   "contraintes_ids": [
+    "ct-thorax-quantec"
+   ],
+   "points_attention": [
+    "Épidermoïde répondeur : la chirurgie après RCT n'améliore pas la survie et augmente la mortalité à 3 mois (FFCD 9102)",
+    "GTV_N = ganglions envahis visibles. Les stations « à risque ≥ 20 % » relèvent du CTV_N"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Digestif",
+    "Œsophage",
+    "Radiochimiothérapie exclusive",
+    "Normofractionné"
+   ]
+  },
+  {
+   "id": "oeso-rct-40-10-service",
+   "situation_id": "oeso-excl",
+   "titre": "RCT exclusive 40 Gy / 20 fx (ganglions) puis complément 10 Gy / 5 fx (tumeur)",
+   "type": "rte_normo",
+   "preuve": "pratique_institutionnelle",
+   "essai_ids": [
+    "concorde",
+    "boustani-2022",
+    "recorad-oeso"
+   ],
+   "source_institutionnelle": "Fiche du service « protocole CONCORDE »",
+   "prescriptions": [
+    {
+     "volume": "PTV prophylactique (tumeur + ganglions à risque)",
+     "dose_Gy": 40,
+     "fractions": 20,
+     "dose_fx_Gy": 2,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Fiche du service"
+    },
+    {
+     "volume": "PTV boost (tumeur + ganglions envahis)",
+     "dose_Gy": 10,
+     "fractions": 5,
+     "dose_fx_Gy": 2,
+     "mode": "sequentiel",
+     "rythme": "5 fx/sem",
+     "note": "Total 50 Gy / 25 fx sur la tumeur"
+    }
+   ],
+   "technique": "IMRT ou VMAT, IGRT quotidienne",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-oeso",
+   "volumes_id": "vol-oeso-excl",
+   "contraintes_ids": [
+    "ct-thorax-quantec"
+   ],
+   "points_attention": [
+    "Épidermoïde répondeur : la chirurgie après RCT n'améliore pas la survie et augmente la mortalité à 3 mois (FFCD 9102)",
+    "GTV_N = ganglions envahis visibles. Les stations « à risque ≥ 20 % » relèvent du CTV_N"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Digestif",
+    "Œsophage",
+    "Radiochimiothérapie exclusive",
+    "Normofractionné"
+   ]
+  },
+  {
+   "id": "oeso-curie-12-1",
+   "situation_id": "oeso-pall",
+   "titre": "Curiethérapie endoluminale HDR 12 Gy en 1 fraction",
+   "type": "curie_hdr",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "homs",
+    "abs-oeso"
+   ],
+   "prescriptions": [
+    {
+     "volume": "Lumière œsophagienne (applicateur endoluminal)",
+     "dose_Gy": 12,
+     "fractions": 1,
+     "dose_fx_Gy": 12,
+     "mode": "seul",
+     "rythme": "1 séance",
+     "note": "Dose à 1 cm de la source (ABS)"
+    }
+   ],
+   "technique": "Applicateur endoluminal HDR",
+   "systemique": "Aucune",
+   "simulation_id": "sim-oeso-curie",
+   "volumes_id": "vol-oeso-curie",
+   "points_attention": [
+    "Après prothèse, la RT externe n'améliore ni la dysphagie ni la survie (ROCS) : la réserver au risque hémorragique",
+    "La curiethérapie soulage plus lentement que la prothèse mais plus durablement, avec moins d'hémorragies tardives (5 % vs 13 %)"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Digestif",
+    "Œsophage",
+    "Palliatif : dysphagie ou saignement",
+    "Curiethérapie"
+   ],
+   "contraintes_ids": []
+  },
+  {
+   "id": "oeso-pall-20-5",
+   "situation_id": "oeso-pall",
+   "titre": "RT externe palliative 20 Gy / 5 fx",
+   "type": "rte_hypo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "rocs"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV tumeur",
+     "dose_Gy": 20,
+     "fractions": 5,
+     "dose_fx_Gy": 4,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Après prothèse : seulement si risque hémorragique (ROCS)"
+    }
+   ],
+   "technique": "RT 3D",
+   "systemique": "Aucune",
+   "simulation_id": "sim-oeso",
+   "volumes_id": "vol-oeso-pall",
+   "points_attention": [
+    "Après prothèse, la RT externe n'améliore ni la dysphagie ni la survie (ROCS) : la réserver au risque hémorragique"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Digestif",
+    "Œsophage",
+    "Palliatif : dysphagie ou saignement",
+    "Hypofractionné"
+   ],
+   "contraintes_ids": []
+  },
+  {
+   "id": "oeso-pall-30-10",
+   "situation_id": "oeso-pall",
+   "titre": "RT externe palliative 30 Gy / 10 fx",
+   "type": "rte_hypo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "rocs"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV tumeur",
+     "dose_Gy": 30,
+     "fractions": 10,
+     "dose_fx_Gy": 3,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Même indication que 20 Gy / 5 fx"
+    }
+   ],
+   "technique": "RT 3D",
+   "systemique": "Aucune",
+   "simulation_id": "sim-oeso",
+   "volumes_id": "vol-oeso-pall",
+   "points_attention": [
+    "Après prothèse, la RT externe n'améliore ni la dysphagie ni la survie (ROCS) : la réserver au risque hémorragique"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Digestif",
+    "Œsophage",
+    "Palliatif : dysphagie ou saignement",
+    "Hypofractionné"
+   ],
+   "contraintes_ids": []
+  }
+ ],
+ "simulations": [
+  {
+   "id": "sim-oeso",
+   "position": "Décubitus dorsal, bras au-dessus de la tête, cale genoux",
+   "contention": "Masque thermoformé ou matelas",
+   "preparation": "Tumeur distale ou de la jonction : à jeun 2 h, puis 200 mL 30 min avant le scanner et chaque séance (Neo-AEGIS)",
+   "scanner": "Injecté sauf contre-indication, cible et OAR en entier (poumons, foie, reins, estomac) ; 4D encouragé",
+   "imagerie": "Endoscopie, écho-endoscopie, TEP-TDM",
+   "reperes": "Limites de la tumeur repérées en endoscopie ; marqueurs si disponibles"
+  },
+  {
+   "id": "sim-oeso-curie",
+   "position": "Décubitus dorsal",
+   "preparation": "À jeun",
+   "scanner": "Repérage de l'applicateur",
+   "imagerie": "Endoscopie",
+   "reperes": "Limites de la sténose"
+  }
+ ],
+ "volumes": [
+  {
+   "id": "vol-oeso-cross",
+   "cibles": [
+    {
+     "nom": "GTV",
+     "type": "GTV",
+     "definition": "Tumeur primitive (toute la circonférence de l'œsophage) + ganglions envahis ; endoscopie, écho-endoscopie et TEP-TDM",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "CTV",
+     "type": "CTV",
+     "definition": "GTV + 0,5 cm isotrope + graisse péri-œsophagienne 3 cm au-dessus et au-dessous du GTV. Sous la jonction : tumeur seule, pas toute la circonférence gastrique. Ganglion abdominal envahi : toute la station",
+     "quand": "Toujours",
+     "marge": "0,5 cm + 3 cm cranio-caudal"
+    },
+    {
+     "nom": "PTV",
+     "type": "PTV",
+     "definition": "CTV + 1 cm isotrope (5 mm mouvement interne + 5 mm mise en place)",
+     "quand": "Toujours",
+     "marge": "1 cm"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "Neo-AEGIS (protocole)"
+    },
+    {
+     "nom": "Wu 2015"
+    },
+    {
+     "nom": "ESTRO ACROP aires ganglionnaires digestives hautes 2021"
+    }
+   ],
+   "oar_ids": [
+    "oar-poumons",
+    "oar-coeur",
+    "oar-foie",
+    "oar-rein-d",
+    "oar-rein-g",
+    "oar-moelle",
+    "oar-estomac"
+   ]
+  },
+  {
+   "id": "vol-oeso-excl",
+   "cibles": [
+    {
+     "nom": "GTV_T",
+     "type": "GTV",
+     "definition": "Tumeur avant tout traitement : endoscopie, écho-endoscopie, scanner, TEP",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "GTV_N",
+     "type": "GTV",
+     "definition": "Ganglions envahis (écho-endoscopie, scanner, TEP)",
+     "quand": "Si N+"
+    },
+    {
+     "nom": "CTV_T",
+     "type": "CTV",
+     "definition": "GTV_T + 5 cm cranio-caudal, limité au muscle cricopharyngien et au cardia ; graisse médiastinale jusqu'aux interfaces (plèvre, vaisseaux, trachée, vertèbres, piliers)",
+     "quand": "Toujours",
+     "marge": "5 cm cranio-caudal"
+    },
+    {
+     "nom": "CTV_N",
+     "type": "CTV",
+     "definition": "Stations ganglionnaires à risque d'envahissement ≥ 20 %",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "PTV prophylactique",
+     "type": "PTV",
+     "definition": "CTV_T + CTV_N + 1 cm",
+     "quand": "Toujours",
+     "marge": "1 cm"
+    },
+    {
+     "nom": "PTV boost",
+     "type": "PTV",
+     "definition": "GTV_T + GTV_N + 2 cm cranio-caudal, 1 cm radial",
+     "quand": "Schéma 40 + 10 Gy",
+     "marge": "2 cm / 1 cm"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "Wu 2015"
+    },
+    {
+     "nom": "ESTRO ACROP aires ganglionnaires digestives hautes 2021"
+    }
+   ],
+   "oar_ids": [
+    "oar-canal-medullaire",
+    "oar-coeur",
+    "oar-trachee",
+    "oar-poumon-d",
+    "oar-poumon-g",
+    "oar-thyroide",
+    "oar-plexus-brachial-d",
+    "oar-plexus-brachial-g",
+    "oar-larynx",
+    "oar-rein-d",
+    "oar-rein-g",
+    "oar-foie"
+   ],
+   "oar_notes": {
+    "oar-plexus-brachial-d": "cervical",
+    "oar-plexus-brachial-g": "cervical",
+    "oar-larynx": "cervical"
+   }
+  },
+  {
+   "id": "vol-oeso-curie",
+   "cibles": [
+    {
+     "nom": "CTV",
+     "type": "CTV",
+     "definition": "Sténose tumorale, longueur repérée en endoscopie",
+     "quand": "Toujours"
+    }
+   ],
+   "atlas": [],
+   "oar_ids": []
+  },
+  {
+   "id": "vol-oeso-pall",
+   "cibles": [
+    {
+     "nom": "PTV",
+     "type": "PTV",
+     "definition": "Tumeur responsable des symptômes, marge selon la technique",
+     "quand": "Toujours"
+    }
+   ],
+   "atlas": [],
+   "oar_ids": [
+    "oar-moelle",
+    "oar-poumons",
+    "oar-coeur"
+   ]
+  }
+ ],
+ "curie_indications": [
+  {
+   "indication": "Dysphagie d'un cancer inopérable",
+   "modalite": "HDR 12 Gy en 1 fraction",
+   "niveau_preuve": "Essai de phase 3 (Homs)",
+   "note": "Soulagement plus lent mais plus durable que la prothèse, moins de complications"
+  },
+  {
+   "indication": "Palliatif après 30 Gy de RT externe",
+   "modalite": "HDR 10 à 14 Gy en 1 ou 2 fractions",
+   "niveau_preuve": "Recommandation ABS 1997",
+   "note": "Pas pendant la chimiothérapie"
+  },
+  {
+   "indication": "Palliatif sans RT externe (espérance de vie < 3 mois)",
+   "modalite": "HDR 15 à 20 Gy en 2 à 4 fractions",
+   "niveau_preuve": "Recommandation ABS 1997"
+  }
+ ],
+ "systemique": [
+  {
+   "situation": "oeso-neoadj",
+   "traitement": "Carboplatine AUC 2 + paclitaxel 50 mg/m² hebdomadaires × 5 (J1, J8, J15, J22, J29)",
+   "protocole": "Carboplatine-paclitaxel hebdomadaire (CROSS)",
+   "situation_id": "oeso-neoadj",
+   "essai_ids": [
+    "cross"
+   ],
+   "note": "Pendant la RT"
+  },
+  {
+   "situation": "oeso-neoadj",
+   "traitement": "Nivolumab adjuvant 1 an si résidu tumoral après chirurgie",
+   "protocole": "Nivolumab adjuvant (œsophage)",
+   "situation_id": "oeso-neoadj",
+   "essai_ids": [
+    "cm577"
+   ],
+   "note": "R0 avec réponse histologique incomplète"
+  },
+  {
+   "situation": "oeso-neoadj",
+   "traitement": "Adénocarcinome : FLOT périopératoire à la place de CROSS",
+   "protocole": "FLOT (œsogastrique)",
+   "situation_id": "oeso-neoadj",
+   "essai_ids": [
+    "esopec",
+    "flot4"
+   ],
+   "note": "SG à 3 ans 57,4 % vs 50,7 %"
+  },
+  {
+   "situation": "oeso-excl",
+   "traitement": "FOLFOX pendant la RT",
+   "protocole": "FOLFOX concomitant à la RT (œsophage)",
+   "situation_id": "oeso-excl",
+   "essai_ids": [
+    "prodige5"
+   ],
+   "note": "Plus pratique que le 5FU-cisplatine, même efficacité"
+  },
+  {
+   "situation": "oeso-excl",
+   "traitement": "5FU-cisplatine pendant la RT",
+   "protocole": "5FU-cisplatine concomitant à la RT (œsophage)",
+   "situation_id": "oeso-excl",
+   "essai_ids": [
+    "rtog8501",
+    "prodige5"
+   ]
+  }
+ ],
+ "hormonotherapie": [],
+ "points_attention": [
+  {
+   "cible": "oesophage",
+   "point": "Pas d'escalade de dose au-delà de 50 Gy en RCT exclusive : INT 0123, ARTDECO, CONCORDE, Xu, SFRO",
+   "portee": "localisation"
+  },
+  {
+   "cible": "oeso-neoadj",
+   "point": "Adénocarcinome : FLOT périopératoire supérieur à CROSS (ESOPEC). CROSS reste le standard de l'épidermoïde résécable",
+   "portee": "situation"
+  },
+  {
+   "cible": "oeso-neoadj",
+   "point": "Réponse clinique complète après CROSS : la surveillance active est non inférieure à la chirurgie à 2 ans (SANO). Décision en RCP",
+   "portee": "situation"
+  },
+  {
+   "cible": "oeso-excl",
+   "point": "Épidermoïde répondeur : la chirurgie après RCT n'améliore pas la survie et augmente la mortalité à 3 mois (FFCD 9102)",
+   "portee": "situation"
+  },
+  {
+   "cible": "vol-oeso-excl",
+   "point": "GTV_N = ganglions envahis visibles. Les stations « à risque ≥ 20 % » relèvent du CTV_N",
+   "portee": "volumes"
+  },
+  {
+   "cible": "oeso-pall",
+   "point": "Après prothèse, la RT externe n'améliore ni la dysphagie ni la survie (ROCS) : la réserver au risque hémorragique",
+   "portee": "situation"
+  },
+  {
+   "cible": "oeso-curie-12-1",
+   "point": "La curiethérapie soulage plus lentement que la prothèse mais plus durablement, avec moins d'hémorragies tardives (5 % vs 13 %)",
+   "portee": "schema"
+  }
+ ],
+ "textes": {
+  "curietherapie": [
+   "**Technique :** applicateur endoluminal ; dose prescrite à 1 cm du milieu de la source ou de la position d'arrêt (ABS)."
+  ]
+ }
+}

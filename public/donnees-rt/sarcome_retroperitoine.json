@@ -1,0 +1,149 @@
+{
+ "version": "2026-10-25",
+ "id": "sarcome_retroperitoine",
+ "region_id": "sarcome",
+ "nom": "Rétropéritoine",
+ "ordre": 43,
+ "date_maj": "2026-10-24",
+ "situations": [
+  {
+   "id": "srp-preop",
+   "localisation_id": "sarcome_retroperitoine",
+   "titre": "Sarcome rétropéritonéal primitif localisé opérable",
+   "contexte": "en_place",
+   "criteres": "RT pré-opératoire non standard : à discuter en RCP de sarcome (Baldini 2015) ; STRASS n'a pas montré de gain de survie sans récidive abdominale",
+   "ordre": 1
+  }
+ ],
+ "schemas": [
+  {
+   "id": "srp-504-28",
+   "situation_id": "srp-preop",
+   "titre": "RT pré-opératoire 50,4 Gy / 28 fx",
+   "type": "rte_normo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "strass",
+    "baldini2015-rps",
+    "baldini2015-contours",
+    "igr-sarcome-rp"
+   ],
+   "source_institutionnelle": "Gustave Roussy, fiche « sarcomes rétropéritonéaux » (2017)",
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 50.4,
+     "fractions": 28,
+     "dose_fx_Gy": 1.8,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Chirurgie 4 à 8 semaines après la RT (Baldini 2015)"
+    }
+   ],
+   "technique": "RT conformationnelle 3D ou RCMI (STRASS)",
+   "systemique": "Aucune",
+   "simulation_id": "sim-srp",
+   "volumes_id": "vol-srp",
+   "contraintes_ids": [
+    "ct-sarcome-rp-igr"
+   ],
+   "couverture": "Gustave Roussy : PTV D95 % ≈ 95 % de la dose prescrite ; rapporter D50 %, Dmoy, D2 %, D98 % du PTV et D95 %, Dmoy du GTV",
+   "points_attention": [
+    "STRASS : survie sans récidive abdominale médiane 4,5 ans avec RT contre 5,0 ans sans (HR 1,01) ; lymphopénie de grade 3–4 : 77 % ; événements graves 24 % contre 10 %",
+    "Accord de contourage élevé pour le GTV et le CTV, plus faible pour le CTV à haut risque et le duodénum (Baldini 2015)",
+    "Reins : contraintes différentes selon qu'un seul rein fonctionnel est prévu après la chirurgie ou que les deux sont conservés"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "Sarcomes",
+    "Rétropéritoine",
+    "Sarcome rétropéritonéal primitif localisé opérable",
+    "Normofractionné"
+   ]
+  }
+ ],
+ "simulations": [
+  {
+   "id": "sim-srp",
+   "position": "Décubitus dorsal, bras au-dessus de la tête",
+   "preparation": "Opacification digestive orale",
+   "scanner": "Scanner de planification ; scanner 4D pour le mouvement interne (ITV)"
+  }
+ ],
+ "volumes": [
+  {
+   "id": "vol-srp",
+   "cibles": [
+    {
+     "nom": "GTV",
+     "type": "GTV",
+     "definition": "Tumeur rétropéritonéale",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "CTV (ou ITV si scanner 4D)",
+     "type": "CTV",
+     "definition": "GTV + 1,5 cm, réduit à 0 mm dans l'os, 5 mm dans la cavité péritonéale et les cavités aériques, 0 mm aux interfaces rénale et hépatique si le mouvement interne est pris en compte, 3 mm sous la peau ; expansion complète dans les muscles rétropéritonéaux",
+     "quand": "Toujours",
+     "marge": "1,5 cm"
+    },
+    {
+     "nom": "PTV",
+     "type": "PTV",
+     "definition": "CTV ou ITV + marge selon l'IGRT",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "CTV à haut risque",
+     "type": "CTV",
+     "definition": "Zone à risque de marge atteinte (paroi abdominale postérieure, espace para- et prévertébral, gros vaisseaux) : surimpression non recommandée hors essai",
+     "quand": "Non"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "Consensus de contourage, Baldini 2015",
+     "url": "https://doi.org/10.1016/j.ijrobp.2015.04.039"
+    }
+   ],
+   "oar_ids": [
+    "oar-grele",
+    "oar-colon",
+    "oar-estomac",
+    "oar-duodenum",
+    "oar-reins",
+    "oar-rein-d",
+    "oar-rein-g",
+    "oar-foie",
+    "oar-moelle",
+    "oar-rectum",
+    "oar-vessie"
+   ]
+  }
+ ],
+ "curie_indications": [],
+ "systemique": [],
+ "hormonotherapie": [],
+ "points_attention": [
+  {
+   "cible": "srp-preop",
+   "point": "STRASS : survie sans récidive abdominale médiane 4,5 ans avec RT contre 5,0 ans sans (HR 1,01) ; lymphopénie de grade 3–4 : 77 % ; événements graves 24 % contre 10 %",
+   "portee": "situation"
+  },
+  {
+   "cible": "srp-preop",
+   "point": "Accord de contourage élevé pour le GTV et le CTV, plus faible pour le CTV à haut risque et le duodénum (Baldini 2015)",
+   "portee": "situation"
+  },
+  {
+   "cible": "ct-sarcome-rp-igr",
+   "point": "Reins : contraintes différentes selon qu'un seul rein fonctionnel est prévu après la chirurgie ou que les deux sont conservés",
+   "portee": "contraintes"
+  }
+ ],
+ "textes": {
+  "systemique": [
+   "Pas de traitement systémique associé à la RT dans ce schéma."
+  ]
+ }
+}

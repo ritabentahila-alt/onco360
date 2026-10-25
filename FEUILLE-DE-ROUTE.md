@@ -98,6 +98,8 @@ Sources plus anciennes : audits n° 1 à 3 (Drive › Audit, `archives/audit-3/`
    Passer à 80 mg ? (Conseil : oui pour le pémétrexed ; pour le paclitaxel, 80 mg comme vos autres paclitaxel-carboplatine, ou garder 120.)
 5. (20/10, O4) Prix des packs : « mettre plutôt les mêmes prix que GestiCab ou DabaDoc, prix marocains » (étape L10 : relevé des prix, puis
    proposition).
+7. (25/10, RT0) Le refus d. 5 du 20/10 (« Contraintes de dose (audit 9) ») est-il levé pour le référentiel de radiothérapie, qui contient une
+   bibliothèque de contraintes (onglet Contraintes de la fiche, sous-page Contraintes) ? À trancher avant RT6 (phase RTR).
 
 Questions répondues le 20/10 : question 6 du 17/10 (d. 12 : chaque autre cabinet reçoit **tout le modèle, sauf les correspondants et les tarifs
 des consultations** — c'est déjà le réglage par défaut d'« Appliquer le modèle », rien à coder) ; question 8 du 17/10 (d. 13 : reçu imprimé sans
@@ -136,6 +138,7 @@ semaines de sessions, puis une recopie des données (l'export complet sert déj�
 | **D / E** Design, code, charge | Accessibilité, fenêtres Onco360, vitesse, 5 000 dossiers, code | 4.1, 4.2, 5.1 à 5.8 | ensuite |
 | **C** Conformité | Juriste, société, projet et domaine, hébergement | 0.5, 6.1 à 6.6 | plus tard (décidé le 20/10) ; société, projet et domaine avant le 1er client **payant** |
 | **V** Vente et cession | Abonnement d'abord, preuves d'usage, dossier de cession préparé en avance | V-a à V-d, 7.1 à 7.4 | en avance, sans projet de vente immédiat |
+| **RTR** Référentiel de radiothérapie | Guide de consultation (schémas, centrage, contourage, OAR, contraintes, essais, BED / EQD2) ; `docs/radiotherapie/SPEC.md` | RT0 à RT8 | un lot par session, dans l'ordre (décidé en octobre 2026) |
 
 **Premier cabinet** (d. 16, 17, 20, O1) : le gel 0.5 est **levé pour des confrères amis qui testent** (pilote gratuit d'un mois, peut-être gratuit
 pour toujours, un point chaque semaine) ; juriste **après** l'essai chez 2 ou 3 médecins. **Date pas fixée** : Dr Bentahila pense devoir d'abord
@@ -553,6 +556,32 @@ dans ⋯ ; Afficher, Journal, Modifier restent visibles ; aucune consultation cr
   mise en forme automatique en une fois (697 lignes de plus de 300 caractères) puis découpage de `v2.js` et `configuration.js` → **7.4** rapport de
   couverture joint au dossier ; **7.3** guides (le guide de démarrage L3 en est le début). Licences : jszip choisi en MIT par écrit. Détail des
   anciennes 7.1 à 7.4 en bas.
+
+## Phase RTR – Référentiel de radiothérapie (spécification : `docs/radiotherapie/SPEC.md`, « Plan d'exécution pour Claude Code »)
+Contenu de référence : `public/donnees-rt/` (JSON, jamais modifiés par l'application ; nouvelle livraison = on remplace les fichiers et on relance
+`node tests/moteur/test-rtref-contenu.mjs`) ; fiches lisibles `docs/radiotherapie/contenu/`, journal des écarts `docs/radiotherapie/ecarts.md`.
+Un lot par session ; chaque lot finit par ses tests verts, la feuille de route cochée et une ligne dans `JOURNAL.md`.
+- [x] **RT0 Préparer** (25/10/2026) : livraison déposée (`docs/radiotherapie/`, 53 JSON dans `public/donnees-rt/`, test de contenu) ; `/donnees-rt/**`
+      servi en `no-cache` (firebase.json) ; `test-rtref-contenu.mjs` dans les tests moteur de `avant-mise-en-ligne.sh` (46/46). Avant le dépôt, les
+      11 écarts encore ouverts ont été tranchés par Dr Bentahila (E16, E55, E64 + 10 Gy / 5 fx, E65, E68, E71, E73, E75 ; E17, E19, E21 déjà
+      corrigés) : 295 schémas (5 retirés), 5 références ajoutées, date de vérification par schéma dans `convertir.py`, nom `pratique_du_cabinet`.
+      Rien de visible dans Onco360.
+- [ ] **RT1 Socle** : droit `referentielRT`, fonction `rt.referentiel`, menu, route, règles Firestore, `tests/regles/test-rtref.mjs`.
+- [ ] **RT2 Moteur** : `js/moteur/rtref.js` (fusion référence + cabinet, recherche, tri, doses, BED / EQD2), `tests/moteur/test-rtref.mjs`.
+- [ ] **RT3 Référentiel** : accueil du module, recherche, menus, liste, favoris, récents (`js/app/radiotherapie.js`, CSS « Lot RTR », `tests/test_rtref.py`).
+- [ ] **RT4 Fiche** : fiche et ses onglets, copier, lien Protocoles (`#protocoles/<id>`), impression A4.
+- [ ] **RT5 Modification** : modification pour le cabinet, comparaison, revenir à la référence, dupliquer, nouveau schéma ; règles et tests.
+- [ ] **RT6 Sous-pages** : Organes à risque, Contraintes, Essais, Calcul BED / EQD2 (cas de contrôle de la spécification).
+- [ ] **RT7 Modèle** : copie vers le modèle des cabinets neufs et vers chaque cabinet neuf ; page du module dans « Ajuster le modèle ».
+- [ ] **RT8 Dossier et mise en ligne** : lien « Référentiel › » de l'onglet Radiothérapie du dossier ; contrôle complet ; mise en ligne avec l'accord de
+      Dr Bentahila.
+
+**Décision (octobre 2026)** : Module « Référentiel de radiothérapie », décidé par Dr Bentahila en octobre 2026 : guide de consultation (schémas,
+centrage, contourage, organes à risque, contraintes, essais, calcul BED / EQD2), spécification dans `docs/radiotherapie/SPEC.md`. Il n'écrit rien
+dans les dossiers et ne revient sur aucun refus de la feuille de route : pas d'organes à risque, de toxicités ni de journal des séances dans la
+prescription d'un patient, pas de mention « hors référentiel ».
+**À confirmer par Dr Bentahila avant RT6** (signalé à RT0, 25/10) : le refus d. 5 du 20/10 (« Contraintes de dose (audit 9) », liste des refus) visait
+une bibliothèque de contraintes ; ce module en contient une (sous-page Contraintes, onglet Contraintes de la fiche). À lever pour ce module ?
 
 ## À placer (nouveau plan)
 - (21/10, S5) **Vigilance des molécules, flacons et interactions ne sont pas dans le modèle des cabinets neufs** (`PARAMS_SPE` de functions/cabinets.js :

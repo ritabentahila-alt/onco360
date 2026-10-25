@@ -1,0 +1,807 @@
+{
+ "version": "2026-10-25",
+ "id": "hypopharynx",
+ "region_id": "orl",
+ "nom": "Hypopharynx",
+ "ordre": 18,
+ "date_maj": "2026-10-24",
+ "situations": [
+  {
+   "id": "hyp-en-place",
+   "localisation_id": "hypopharynx",
+   "titre": "Hypopharynx non opéré : RCT ou préservation laryngée",
+   "contexte": "en_place",
+   "criteres": "Tumeur relevant d'une laryngectomie totale chez un patient candidat à la préservation : chimiothérapie d'induction puis RT chez les répondeurs (EORTC 24891, GORTEC 2000-01) ; sinon RCT au cisplatine",
+   "ordre": 1
+  },
+  {
+   "id": "hyp-post-op",
+   "localisation_id": "hypopharynx",
+   "titre": "Hypopharynx opéré : RT adjuvante",
+   "contexte": "post_op",
+   "criteres": "Haut risque : marges positives ou rupture capsulaire → 66 Gy et cisplatine. Intermédiaire : T3–T4, engainements, emboles → 60 Gy (fiche du service)",
+   "ordre": 2
+  }
+ ],
+ "schemas": [
+  {
+   "id": "hyp-rct-70-35-curie",
+   "situation_id": "hyp-en-place",
+   "titre": "RCT 70 / 63 / 56 Gy en 35 fx (SIB) + cisplatine",
+   "type": "rte_normo",
+   "preuve": "pratique_institutionnelle",
+   "essai_ids": [
+    "mach-nc",
+    "mach-nc-2021",
+    "curie-vads-2021"
+   ],
+   "source_institutionnelle": "Institut Curie 2021 ; tableur du service « ORL 70-63-56 Gy »",
+   "prescriptions": [
+    {
+     "volume": "PTV70",
+     "dose_Gy": 70,
+     "fractions": 35,
+     "dose_fx_Gy": 2,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Prescription sur la D50 du PTV"
+    },
+    {
+     "volume": "PTV63",
+     "dose_Gy": 63,
+     "fractions": 35,
+     "dose_fx_Gy": 1.8,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Optionnel : niveaux N+"
+    },
+    {
+     "volume": "PTV56",
+     "dose_Gy": 56,
+     "fractions": 35,
+     "dose_fx_Gy": 1.6,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Prophylaxie, bilatérale"
+    }
+   ],
+   "technique": "VMAT SIB, CBCT quotidien",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-orl-curie",
+   "volumes_id": "vol-orl-curie-en-place",
+   "contraintes_ids": [
+    "ct-orl-curie"
+   ],
+   "couverture": "PTV : D95 % ≥ 95 % ; CTV : D98 % ≥ 98 % ; PTV70 : D2 % ≤ 107 %",
+   "points_attention": [
+    "TPF supérieur à PF en induction pour la réponse (80 contre 59 %) et la préservation laryngée (GORTEC 2000-01)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "ORL",
+    "Hypopharynx",
+    "Hypopharynx non opéré : RCT ou préservation laryngée",
+    "Normofractionné"
+   ]
+  },
+  {
+   "id": "hyp-induction-rt",
+   "situation_id": "hyp-en-place",
+   "titre": "Induction TPF × 3 puis RT 70 / 63 / 56 Gy en 35 fx chez les répondeurs",
+   "type": "rte_normo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "eortc24891",
+    "gortec2000-01",
+    "curie-vads-2021"
+   ],
+   "source_institutionnelle": "Institut Curie 2021 pour la RT",
+   "prescriptions": [
+    {
+     "volume": "PTV70",
+     "dose_Gy": 70,
+     "fractions": 35,
+     "dose_fx_Gy": 2,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Non-répondeurs : chirurgie puis RT post-opératoire"
+    },
+    {
+     "volume": "PTV63",
+     "dose_Gy": 63,
+     "fractions": 35,
+     "dose_fx_Gy": 1.8,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Optionnel"
+    },
+    {
+     "volume": "PTV56",
+     "dose_Gy": 56,
+     "fractions": 35,
+     "dose_fx_Gy": 1.6,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Prophylaxie"
+    }
+   ],
+   "technique": "VMAT SIB, CBCT quotidien",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-orl-curie",
+   "volumes_id": "vol-orl-curie-en-place",
+   "contraintes_ids": [
+    "ct-orl-curie"
+   ],
+   "couverture": "PTV : D95 % ≥ 95 % ; CTV : D98 % ≥ 98 % ; PTV70 : D2 % ≤ 107 %",
+   "points_attention": [
+    "TPF supérieur à PF en induction pour la réponse (80 contre 59 %) et la préservation laryngée (GORTEC 2000-01)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "ORL",
+    "Hypopharynx",
+    "Hypopharynx non opéré : RCT ou préservation laryngée",
+    "Normofractionné"
+   ]
+  },
+  {
+   "id": "hyp-6996-33-service",
+   "situation_id": "hyp-en-place",
+   "titre": "RCT 69,96 / 59,4 / 54,12 Gy en 33 fx (SIB)",
+   "type": "rte_normo",
+   "preuve": "pratique_institutionnelle",
+   "essai_ids": [
+    "rtog0225",
+    "mach-nc"
+   ],
+   "source_institutionnelle": "Tableur du service « ORL 69,96-59,4-54,12 Gy »",
+   "prescriptions": [
+    {
+     "volume": "PTV69,96",
+     "dose_Gy": 69.96,
+     "fractions": 33,
+     "dose_fx_Gy": 2.12,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Macroscopique"
+    },
+    {
+     "volume": "PTV59,4",
+     "dose_Gy": 59.4,
+     "fractions": 33,
+     "dose_fx_Gy": 1.8,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Haut risque"
+    },
+    {
+     "volume": "PTV54,12",
+     "dose_Gy": 54.12,
+     "fractions": 33,
+     "dose_fx_Gy": 1.64,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Bas risque"
+    }
+   ],
+   "technique": "Tomothérapie ou VMAT SIB, IGRT quotidienne",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-orl-curie",
+   "volumes_id": "vol-orl-igr",
+   "contraintes_ids": [
+    "ct-orl-curie",
+    "ct-orl-igr"
+   ],
+   "couverture": "Tableur du service : D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
+   "points_attention": [
+    "TPF supérieur à PF en induction pour la réponse (80 contre 59 %) et la préservation laryngée (GORTEC 2000-01)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "ORL",
+    "Hypopharynx",
+    "Hypopharynx non opéré : RCT ou préservation laryngée",
+    "Normofractionné"
+   ]
+  },
+  {
+   "id": "hyp-70-30-igr",
+   "situation_id": "hyp-en-place",
+   "titre": "RT 70 / 60 / 54 Gy en 30 fx (SIB)",
+   "type": "rte_hypo",
+   "preuve": "pratique_institutionnelle",
+   "essai_ids": [
+    "igr-orl-rcmi"
+   ],
+   "source_institutionnelle": "Gustave Roussy, RCMI des cancers de la tête et du cou (2017)",
+   "prescriptions": [
+    {
+     "volume": "PTV70",
+     "dose_Gy": 70,
+     "fractions": 30,
+     "dose_fx_Gy": 2.333,
+     "mode": "SIB",
+     "rythme": "5 fx/sem (6 semaines)",
+     "note": "Macroscopique"
+    },
+    {
+     "volume": "PTV60",
+     "dose_Gy": 60,
+     "fractions": 30,
+     "dose_fx_Gy": 2,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Haut risque"
+    },
+    {
+     "volume": "PTV54",
+     "dose_Gy": 54,
+     "fractions": 30,
+     "dose_fx_Gy": 1.8,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Risque intermédiaire"
+    }
+   ],
+   "technique": "RapidArc ou tomothérapie SIB",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-orl-igr",
+   "volumes_id": "vol-orl-igr",
+   "contraintes_ids": [
+    "ct-orl-igr"
+   ],
+   "couverture": "PTV70 : D95 % ≥ 66,5 Gy, D5 % ≤ 77 Gy ; PTV60 : D95 % ≥ 57 Gy ; PTV54 : D95 % ≥ 51,3 Gy",
+   "points_attention": [
+    "TPF supérieur à PF en induction pour la réponse (80 contre 59 %) et la préservation laryngée (GORTEC 2000-01)"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "ORL",
+    "Hypopharynx",
+    "Hypopharynx non opéré : RCT ou préservation laryngée",
+    "Hypofractionné"
+   ]
+  },
+  {
+   "id": "hyp-postop-66-curie",
+   "situation_id": "hyp-post-op",
+   "titre": "RT post-opératoire 66 / 59,4 / 54 Gy en 33 fx (SIB)",
+   "type": "rte_normo",
+   "preuve": "pratique_institutionnelle",
+   "essai_ids": [
+    "eortc22931",
+    "rtog9501",
+    "bernier2005",
+    "curie-vads-2021"
+   ],
+   "source_institutionnelle": "Institut Curie 2021 ; tableur du service « ORL 66-59,4-54,12 Gy »",
+   "prescriptions": [
+    {
+     "volume": "PTV66",
+     "dose_Gy": 66,
+     "fractions": 33,
+     "dose_fx_Gy": 2,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Seulement si R1 ou rupture capsulaire"
+    },
+    {
+     "volume": "PTV59,4",
+     "dose_Gy": 59.4,
+     "fractions": 33,
+     "dose_fx_Gy": 1.8,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Lit opératoire et niveaux N+"
+    },
+    {
+     "volume": "PTV54",
+     "dose_Gy": 54.12,
+     "fractions": 33,
+     "dose_fx_Gy": 1.64,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Prophylaxie"
+    }
+   ],
+   "technique": "VMAT SIB, CBCT quotidien",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-orl-curie",
+   "volumes_id": "vol-orl-curie-postop",
+   "contraintes_ids": [
+    "ct-orl-curie"
+   ],
+   "couverture": "PTV : D95 % ≥ 95 % ; CTV : D98 % ≥ 98 % ; PTV66 ∪ PTV59,4 : D2 % ≤ 107 %",
+   "date_verif": "2026-10-24",
+   "ind": [
+    "ORL",
+    "Hypopharynx",
+    "Hypopharynx opéré : RT adjuvante",
+    "Normofractionné"
+   ],
+   "points_attention": []
+  },
+  {
+   "id": "hyp-postop-66-54-service",
+   "situation_id": "hyp-post-op",
+   "titre": "RT post-opératoire 66 / 54 Gy en 33 fx (fiche du service)",
+   "type": "rte_normo",
+   "preuve": "pratique_institutionnelle",
+   "essai_ids": [
+    "eortc22931",
+    "rtog9501",
+    "bernier2005"
+   ],
+   "source_institutionnelle": "Fiche du service « RT ORL post-opératoire »",
+   "prescriptions": [
+    {
+     "volume": "PTV66",
+     "dose_Gy": 66,
+     "fractions": 33,
+     "dose_fx_Gy": 2,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Marges positives ou rupture capsulaire"
+    },
+    {
+     "volume": "PTV54",
+     "dose_Gy": 54.12,
+     "fractions": 33,
+     "dose_fx_Gy": 1.64,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "II–IV bilatéraux ± VI"
+    }
+   ],
+   "technique": "VMAT ou tomothérapie SIB, IGRT quotidienne",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-orl-curie",
+   "volumes_id": "vol-hyp-postop-service",
+   "contraintes_ids": [
+    "ct-orl-curie",
+    "ct-orl-igr"
+   ],
+   "couverture": "Tableur du service : D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
+   "date_verif": "2026-10-24",
+   "ind": [
+    "ORL",
+    "Hypopharynx",
+    "Hypopharynx opéré : RT adjuvante",
+    "Normofractionné"
+   ],
+   "points_attention": []
+  },
+  {
+   "id": "hyp-postop-60-54-service",
+   "situation_id": "hyp-post-op",
+   "titre": "RT post-opératoire 60 / 54 Gy en 30 fx (risque intermédiaire)",
+   "type": "rte_normo",
+   "preuve": "pratique_institutionnelle",
+   "essai_ids": [
+    "rtog9501",
+    "bernier2005"
+   ],
+   "source_institutionnelle": "Fiche du service « RT ORL post-opératoire » ; tableur du service « ORL 60-54 Gy »",
+   "prescriptions": [
+    {
+     "volume": "PTV60",
+     "dose_Gy": 60,
+     "fractions": 30,
+     "dose_fx_Gy": 2,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "T3–T4, engainements, emboles"
+    },
+    {
+     "volume": "PTV54",
+     "dose_Gy": 54,
+     "fractions": 30,
+     "dose_fx_Gy": 1.8,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Aires électives"
+    }
+   ],
+   "technique": "VMAT ou tomothérapie SIB, IGRT quotidienne",
+   "systemique": "Aucune",
+   "simulation_id": "sim-orl-curie",
+   "volumes_id": "vol-hyp-postop-service",
+   "contraintes_ids": [
+    "ct-orl-curie",
+    "ct-orl-igr"
+   ],
+   "couverture": "Tableur du service : D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
+   "date_verif": "2026-10-24",
+   "ind": [
+    "ORL",
+    "Hypopharynx",
+    "Hypopharynx opéré : RT adjuvante",
+    "Normofractionné"
+   ],
+   "points_attention": []
+  }
+ ],
+ "simulations": [
+  {
+   "id": "sim-orl-curie",
+   "position": "Décubitus dorsal, bras le long du corps, nuque dégagée, épaules basses, mousse sous les genoux, plan dur (matelas fin seulement si intolérance)",
+   "contention": "Masque thermoformé 5 points et têtière 5 points ; cale-tête adapté à la courbure cervicale ; tête en légère extension, axe conduits auditifs–commissures labiales perpendiculaire à la table",
+   "preparation": "Retrait des prothèses dentaires amovibles ; canule de trachéotomie gardée si non laryngectomisé ; fil de plomb sur les cicatrices et bolus sur prescription ; ne pas avaler pendant l'acquisition",
+   "scanner": "Sans puis avec injection iodée (60 ml en 40 s, pause 90 s, 40 ml en 27 s), mêmes limites, coupes jointives de 2 mm, du vertex à la carène, épaules incluses ; contre-indications : allergie, clairance < 50 ml/min ; biguanides arrêtés 48 h",
+   "imagerie": "Fusion rigide avec l'IRM et la TEP-FDG (validée par le médecin, région centrée sur la tumeur) ; imagerie de plus d'un mois renouvelable ; post-opératoire : fusion avec l'imagerie préopératoire",
+   "reperes": "Point 0 : trois points sur le masque (un médian, deux latéraux) ; points tatoués sur la fourchette sternale et l'appendice xiphoïde"
+  },
+  {
+   "id": "sim-orl-igr",
+   "position": "Décubitus dorsal, tête en extension modérée (angle de Reid 20–30°)",
+   "contention": "Masque 5 points (tête, cou, haut du thorax et épaules) ; traction des épaules si le volume descend sous l'os hyoïde ; masque stéréotaxique 3 points possible pour les sinus",
+   "scanner": "Sans contraste pour la dosimétrie, puis avec contraste (double injection, la première au moins 5 min avant) pour le contourage ; coupes de 2 ou 3 mm selon le système ; du vertex à la carène",
+   "imagerie": "IRM et TEP-FDG fortement recommandées pour le cavum, l'oropharynx et les récidives",
+   "reperes": "Marqueurs cutanés selon la technique"
+  }
+ ],
+ "volumes": [
+  {
+   "id": "vol-hyp-postop-service",
+   "cibles": [
+    {
+     "nom": "CTV T66",
+     "type": "CTV",
+     "definition": "Lit du sinus piriforme, de la région rétrocricoïdienne ou de la paroi postérieure ; zones de marge positive",
+     "quand": "Haut risque"
+    },
+    {
+     "nom": "CTV T54",
+     "type": "CTV",
+     "definition": "Sinus piriforme controlatéral si tumeur médiane, paroi pharyngée postérieure, espace paraglottique, région rétrocricoïdienne, œsophage cervical supérieur, cartilage thyroïde adjacent ; couverture cranio-caudale large (extension sous-muqueuse fréquente)",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "CTV N66",
+     "type": "CTV",
+     "definition": "Loge ganglionnaire avec rupture capsulaire",
+     "quand": "Rupture capsulaire"
+    },
+    {
+     "nom": "CTV N54",
+     "type": "CTV",
+     "definition": "II, III, IV, VI (important), ± rétropharyngés ; bilatéral presque toujours",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "CTV60",
+     "type": "CTV",
+     "definition": "Lit tumoral si T3–T4, engainements ou emboles, sans facteur de haut risque",
+     "quand": "Risque intermédiaire"
+    },
+    {
+     "nom": "PTV66, PTV60, PTV54",
+     "type": "PTV",
+     "definition": "CTV + 5 mm",
+     "quand": "Toujours",
+     "marge": "5 mm"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "Grégoire 2014",
+     "url": "https://doi.org/10.1016/j.radonc.2013.10.010"
+    },
+    {
+     "nom": "Lapeyre 2010",
+     "url": "https://doi.org/10.1016/S1278-3218(10)70007-X"
+    }
+   ],
+   "oar_ids": [
+    "oar-parotide-d",
+    "oar-parotide-g",
+    "oar-glande-sous-max-d",
+    "oar-glande-sous-max-g",
+    "oar-cavite-orale",
+    "oar-moelle",
+    "oar-thyroide",
+    "oar-mandibule",
+    "oar-tronc-cerebral",
+    "oar-muscles-nuque",
+    "oar-plexus-brachial-d",
+    "oar-plexus-brachial-g"
+   ]
+  },
+  {
+   "id": "vol-orl-curie-en-place",
+   "cibles": [
+    {
+     "nom": "GTV_T",
+     "type": "GTV",
+     "definition": "Tumeur primitive sur le scanner injecté (seule imagerie de référence), aidé de l'IRM, de la TEP-FDG et de la description clinique (panendoscopie, photos)",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "GTV_N",
+     "type": "GTV",
+     "definition": "Adénopathies métastatiques regroupées. Critères scanner : petit axe > 10 mm (6–8 mm si plus de 3 ganglions contigus), forme ronde, centre nécrotique, perte du hile graisseux, effraction capsulaire",
+     "quand": "Si N+"
+    },
+    {
+     "nom": "CTV70",
+     "type": "CTV",
+     "definition": "GTV_T + 5 mm et GTV_N + 5 mm, réduits à l'air et aux barrières non envahies (os, fascia, muscle) ; marge plus large possible en base de langue, ou autour d'une adénopathie avec effraction ou de plus de 3 cm",
+     "quand": "Toujours",
+     "marge": "5 mm"
+    },
+    {
+     "nom": "CTV63",
+     "type": "CTV",
+     "definition": "Optionnel : totalité des niveaux contenant une adénopathie (ex. : adénopathie sous-digastrique → niveau IIa) ; contenu dans CTV56",
+     "quand": "Option, si N+"
+    },
+    {
+     "nom": "CTV56",
+     "type": "CTV",
+     "definition": "CTV56_T : extension infraclinique selon l'approche compartimentale (Lapeyre 2005 et 2010 ; Lee 2018 pour le cavum) ; GTV + 5 mm + 5 mm (Grégoire 2018) = minimum. CTV56_N : aires à risque (sélection Biau 2019, délinéation Grégoire 2014) ; muscle envahi inclus sur toute sa hauteur",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "PTV70, PTV63, PTV56",
+     "type": "PTV",
+     "definition": "CTV + 3 mm, moins 2 mm sous le contour externe (pas de retrait si la peau est envahie : bolus)",
+     "quand": "Toujours",
+     "marge": "3 mm"
+    },
+    {
+     "nom": "PRV",
+     "type": "PRV",
+     "definition": "Canal médullaire, tronc cérébral, chiasma et nerfs optiques + 3 mm ; PRV du nerf optique homolatéral facultatif si la tumeur est au contact",
+     "quand": "Toujours",
+     "marge": "3 mm"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "Grégoire 2014, aires ganglionnaires",
+     "url": "https://doi.org/10.1016/j.radonc.2013.10.010"
+    },
+    {
+     "nom": "Grégoire 2018, CTV-P",
+     "url": "https://doi.org/10.1016/j.radonc.2017.10.016"
+    },
+    {
+     "nom": "Brouwer 2015, OAR",
+     "url": "https://doi.org/10.1016/j.radonc.2015.07.041"
+    }
+   ],
+   "oar_ids": [
+    "oar-parotide-d",
+    "oar-parotide-g",
+    "oar-glande-sous-max-d",
+    "oar-glande-sous-max-g",
+    "oar-cavite-orale",
+    "oar-levres",
+    "oar-larynx",
+    "oar-constricteurs",
+    "oar-oesophage",
+    "oar-canal-medullaire",
+    "oar-tronc-cerebral",
+    "oar-cervelet",
+    "oar-atm-d",
+    "oar-atm-g",
+    "oar-mandibule",
+    "oar-oreille-interne-d",
+    "oar-oreille-interne-g",
+    "oar-plexus-brachial-d",
+    "oar-plexus-brachial-g",
+    "oar-thyroide"
+   ]
+  },
+  {
+   "id": "vol-orl-igr",
+   "cibles": [
+    {
+     "nom": "GTV",
+     "type": "GTV",
+     "definition": "Maladie macroscopique clinique, endoscopique et radiologique (imagerie fusionnée) ; adénopathie tumorale si plus de 1 cm de grand axe ou centre nécrotique",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "CTV70",
+     "type": "CTV",
+     "definition": "GTV + 5 mm en tous sens, sauf irradiation excessive d'une structure saine majeure ; jusqu'à 10 mm pour les formes sous-muqueuses mal limitées",
+     "quand": "Toujours",
+     "marge": "5 mm"
+    },
+    {
+     "nom": "CTV60",
+     "type": "CTV",
+     "definition": "Haut risque : zones, y compris ganglionnaires, où le risque d'extension microscopique dépasse environ 50 %",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "CTV54",
+     "type": "CTV",
+     "definition": "Risque intermédiaire : environ 10 à 50 %",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "PTV",
+     "type": "PTV",
+     "definition": "CTV + 5 mm habituellement, réductible au contact du tronc cérébral ou du chiasma",
+     "quand": "Toujours",
+     "marge": "5 mm"
+    },
+    {
+     "nom": "PRV",
+     "type": "PRV",
+     "definition": "Moelle + 5 mm, tronc cérébral + 3 mm, voies optiques + 2 mm ; peau (3 mm) contourée en tomothérapie et RapidArc",
+     "quand": "Toujours"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "Grégoire 2014",
+     "url": "https://doi.org/10.1016/j.radonc.2013.10.010"
+    },
+    {
+     "nom": "Brouwer 2015",
+     "url": "https://doi.org/10.1016/j.radonc.2015.07.041"
+    }
+   ],
+   "oar_ids": [
+    "oar-canal-medullaire",
+    "oar-moelle",
+    "oar-tronc-cerebral",
+    "oar-chiasma",
+    "oar-nerf-optique-d",
+    "oar-nerf-optique-g",
+    "oar-lobe-frontal",
+    "oar-lobe-temporal-d",
+    "oar-lobe-temporal-g",
+    "oar-fosse-posterieure",
+    "oar-cristallin-d",
+    "oar-cristallin-g",
+    "oar-oeil-d",
+    "oar-oeil-g",
+    "oar-hypophyse",
+    "oar-cochlee-d",
+    "oar-cochlee-g",
+    "oar-parotide-d",
+    "oar-parotide-g",
+    "oar-glande-sous-max-d",
+    "oar-glande-sous-max-g",
+    "oar-atm-d",
+    "oar-atm-g",
+    "oar-mandibule",
+    "oar-levres",
+    "oar-cavite-orale",
+    "oar-larynx",
+    "oar-constricteurs",
+    "oar-thyroide",
+    "oar-muscles-nuque"
+   ]
+  },
+  {
+   "id": "vol-orl-curie-postop",
+   "cibles": [
+    {
+     "nom": "CTV66",
+     "type": "CTV",
+     "definition": "Seulement si R1 ou N+ R+. CTV66_T : lit où la marge est ≤ 1 mm (5–10 mm d'épaisseur). CTV66_N : lit des adénopathies en rupture capsulaire, emplacement du GTV_N préopératoire + 5 mm ; contenu dans CTV59,4",
+     "quand": "R1 ou rupture capsulaire",
+     "marge": "5 mm"
+    },
+    {
+     "nom": "CTV59,4",
+     "type": "CTV",
+     "definition": "CTV59,4_T : lit opératoire, 10–15 mm (voire 20 mm) de tissu résiduel autour du GTV_T préopératoire, sans l'air ; lambeau : 5–10 mm à la jonction avec les tissus natifs. CTV59,4_N : niveaux N+",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "CTV54",
+     "type": "CTV",
+     "definition": "CTV54_T : extension infraclinique au-delà du lit (approche compartimentale ; Piram 2019 et Frédéric-Moreau 2019 pour les glandes salivaires, Guillemin 2021 pour l'ethmoïde). CTV54_N : aires au-delà des niveaux N+ selon le site, l'atteinte et le côté du curage ; extension sous-cutanée vers la cicatrice si rupture capsulaire",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "PTV66, PTV59,4, PTV54",
+     "type": "PTV",
+     "definition": "CTV + 3 mm, moins 2 mm sous le contour externe",
+     "quand": "Toujours",
+     "marge": "3 mm"
+    },
+    {
+     "nom": "PRV",
+     "type": "PRV",
+     "definition": "Comme en place : canal médullaire, tronc cérébral, chiasma et nerfs optiques + 3 mm",
+     "quand": "Toujours",
+     "marge": "3 mm"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "Grégoire 2014",
+     "url": "https://doi.org/10.1016/j.radonc.2013.10.010"
+    },
+    {
+     "nom": "Brouwer 2015",
+     "url": "https://doi.org/10.1016/j.radonc.2015.07.041"
+    }
+   ],
+   "oar_ids": [
+    "oar-parotide-d",
+    "oar-parotide-g",
+    "oar-glande-sous-max-d",
+    "oar-glande-sous-max-g",
+    "oar-cavite-orale",
+    "oar-levres",
+    "oar-larynx",
+    "oar-constricteurs",
+    "oar-oesophage",
+    "oar-canal-medullaire",
+    "oar-tronc-cerebral",
+    "oar-cervelet",
+    "oar-atm-d",
+    "oar-atm-g",
+    "oar-mandibule",
+    "oar-oreille-interne-d",
+    "oar-oreille-interne-g",
+    "oar-plexus-brachial-d",
+    "oar-plexus-brachial-g",
+    "oar-thyroide"
+   ]
+  }
+ ],
+ "curie_indications": [],
+ "systemique": [
+  {
+   "situation": "hyp-en-place",
+   "traitement": "TPF d'induction × 3 (docétaxel, cisplatine, 5-FU), puis RT si réponse",
+   "protocole": "TPF d'induction (docétaxel–cisplatine–5-FU)",
+   "situation_id": "hyp-en-place",
+   "essai_ids": [
+    "gortec2000-01",
+    "eortc24891"
+   ],
+   "note": "EORTC 24891 (cisplatine–5-FU d'induction) : survie équivalente à la chirurgie, larynx fonctionnel 35 % à 5 ans"
+  },
+  {
+   "situation": "hyp-en-place",
+   "traitement": "Cisplatine concomitant à la RT",
+   "protocole": "Cisplatine 100 mg/m² toutes les 3 semaines, concomitant à la RT",
+   "situation_id": "hyp-en-place",
+   "essai_ids": [
+    "mach-nc",
+    "mach-nc-2021"
+   ],
+   "note": "Bénéfice de la chimiothérapie concomitante (HR 0,81)"
+  },
+  {
+   "situation": "hyp-post-op",
+   "traitement": "Cisplatine 100 mg/m² J1, J22 et J43",
+   "protocole": "Cisplatine 100 mg/m² toutes les 3 semaines, concomitant à la RT",
+   "situation_id": "hyp-post-op",
+   "essai_ids": [
+    "eortc22931",
+    "rtog9501",
+    "bernier2005"
+   ],
+   "note": "Si marges positives ou rupture capsulaire"
+  }
+ ],
+ "hormonotherapie": [],
+ "points_attention": [
+  {
+   "cible": "hypopharynx",
+   "point": "Drainage ganglionnaire bilatéral fréquent ; niveau VI à inclure (fiche du service)",
+   "portee": "localisation"
+  },
+  {
+   "cible": "hyp-en-place",
+   "point": "TPF supérieur à PF en induction pour la réponse (80 contre 59 %) et la préservation laryngée (GORTEC 2000-01)",
+   "portee": "situation"
+  }
+ ],
+ "textes": {
+  "centrage": [
+   "Traction des épaules si le volume descend sous l'os hyoïde (Gustave Roussy)."
+  ]
+ }
+}

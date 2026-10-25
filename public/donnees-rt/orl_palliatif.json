@@ -1,0 +1,432 @@
+{
+ "version": "2026-10-25",
+ "id": "orl_palliatif",
+ "region_id": "orl",
+ "nom": "Situations palliatives",
+ "ordre": 22,
+ "date_maj": "2026-10-24",
+ "situations": [
+  {
+   "id": "pal-fragile",
+   "localisation_id": "orl_palliatif",
+   "titre": "Patient âgé ou fragile : protocole dégradé",
+   "contexte": "palliatif",
+   "criteres": "Patient ne supportant pas un traitement continu de 7 semaines (Curie, annexe B)",
+   "ordre": 1
+  },
+  {
+   "id": "pal-incurable",
+   "localisation_id": "orl_palliatif",
+   "titre": "Cancer incurable : RT palliative",
+   "contexte": "palliatif",
+   "criteres": "Maladie incurable, état général altéré (QUAD SHOT : 20 patients sur 30 en OMS 2–3)",
+   "ordre": 2
+  }
+ ],
+ "schemas": [
+  {
+   "id": "pal-split-70",
+   "situation_id": "pal-fragile",
+   "titre": "Split course 70 Gy / 35 fx sans changer volumes ni dose",
+   "type": "rte_normo",
+   "preuve": "pratique_institutionnelle",
+   "essai_ids": [
+    "curie-vads-2021"
+   ],
+   "source_institutionnelle": "Institut Curie 2021, annexe B",
+   "prescriptions": [
+    {
+     "volume": "PTV70",
+     "dose_Gy": 70,
+     "fractions": 35,
+     "dose_fx_Gy": 2,
+     "mode": "SIB",
+     "rythme": "10 fx, 2 sem de repos, 10 fx, 2 sem de repos, 15 fx",
+     "note": "Volumes et prescription identiques au schéma 70 / 63 / 56 Gy"
+    },
+    {
+     "volume": "PTV63",
+     "dose_Gy": 63,
+     "fractions": 35,
+     "dose_fx_Gy": 1.8,
+     "mode": "SIB",
+     "rythme": "Même étalement",
+     "note": "Optionnel"
+    },
+    {
+     "volume": "PTV56",
+     "dose_Gy": 56,
+     "fractions": 35,
+     "dose_fx_Gy": 1.6,
+     "mode": "SIB",
+     "rythme": "Même étalement",
+     "note": "Prophylaxie"
+    }
+   ],
+   "technique": "VMAT SIB, CBCT quotidien",
+   "systemique": "Aucune",
+   "simulation_id": "sim-orl-curie",
+   "volumes_id": "vol-orl-curie-en-place",
+   "contraintes_ids": [
+    "ct-orl-curie"
+   ],
+   "couverture": "PTV : D95 % ≥ 95 % ; CTV : D98 % ≥ 98 %",
+   "date_verif": "2026-10-24",
+   "ind": [
+    "ORL",
+    "Situations palliatives",
+    "Patient âgé ou fragile : protocole dégradé",
+    "Normofractionné"
+   ],
+   "points_attention": []
+  },
+  {
+   "id": "pal-split-55",
+   "situation_id": "pal-fragile",
+   "titre": "Split course 55 Gy (30 Gy / 10 fx puis 25 Gy / 10 fx) sur le macroscopique",
+   "type": "rte_hypo",
+   "preuve": "pratique_institutionnelle",
+   "essai_ids": [
+    "curie-vads-2021"
+   ],
+   "source_institutionnelle": "Institut Curie 2021, annexe B",
+   "prescriptions": [
+    {
+     "volume": "PTV55 (ex-PTV70)",
+     "dose_Gy": 30,
+     "fractions": 10,
+     "dose_fx_Gy": 3,
+     "mode": "sequentiel",
+     "rythme": "5 fx/sem",
+     "note": "Pas de prophylaxie : macroscopique seulement"
+    },
+    {
+     "volume": "PTV55 (ex-PTV70)",
+     "dose_Gy": 25,
+     "fractions": 10,
+     "dose_fx_Gy": 2.5,
+     "mode": "sequentiel",
+     "rythme": "5 fx/sem, après 2 sem de repos",
+     "note": "Total 55 Gy"
+    }
+   ],
+   "technique": "VMAT ou RT conformationnelle",
+   "systemique": "Aucune",
+   "simulation_id": "sim-orl-curie",
+   "volumes_id": "vol-orl-pal",
+   "date_verif": "2026-10-24",
+   "ind": [
+    "ORL",
+    "Situations palliatives",
+    "Patient âgé ou fragile : protocole dégradé",
+    "Hypofractionné"
+   ],
+   "contraintes_ids": [],
+   "points_attention": []
+  },
+  {
+   "id": "pal-quadshot",
+   "situation_id": "pal-incurable",
+   "titre": "QUAD SHOT : 14 Gy / 4 fx en 2 jours, 3 cycles",
+   "type": "rte_hypo",
+   "preuve": "option",
+   "essai_ids": [
+    "corry2005"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV (tumeur et adénopathies)",
+     "dose_Gy": 42,
+     "fractions": 12,
+     "dose_fx_Gy": 3.5,
+     "mode": "seul",
+     "rythme": "2 fx/j à 6 h d'intervalle, 2 jours ; cycle répété à 4 semaines (3 cycles)",
+     "note": "14 Gy par cycle ; cycles 2 et 3 seulement sans progression ; réponse objective 53 %"
+    }
+   ],
+   "technique": "RT conformationnelle ou VMAT",
+   "systemique": "Aucune",
+   "simulation_id": "sim-orl-curie",
+   "volumes_id": "vol-orl-pal",
+   "points_attention": [
+    "Survie courte : médiane 5,7 mois (QUAD SHOT) et 6,1 mois (Hypo Trial) ; amélioration de la qualité de vie chez 44 % et 62 % des patients évaluables",
+    "Pas de jeu de contraintes publié pour ces schémas courts"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "ORL",
+    "Situations palliatives",
+    "Cancer incurable : RT palliative",
+    "Hypofractionné"
+   ],
+   "contraintes_ids": []
+  },
+  {
+   "id": "pal-hypo-30-5",
+   "situation_id": "pal-incurable",
+   "titre": "30 Gy / 5 fx (2 fx/sem) ± complément 6 Gy",
+   "type": "rte_hypo",
+   "preuve": "option",
+   "essai_ids": [
+    "porceddu2007"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 30,
+     "fractions": 5,
+     "dose_fx_Gy": 6,
+     "mode": "sequentiel",
+     "rythme": "2 fx/sem, au moins 3 jours d'intervalle",
+     "note": "Réponse objective 80 %"
+    },
+    {
+     "volume": "PTV (maladie ≤ 3 cm)",
+     "dose_Gy": 6,
+     "fractions": 1,
+     "dose_fx_Gy": 6,
+     "mode": "sequentiel",
+     "rythme": "1 fx",
+     "note": "Complément si petit volume et patient apte"
+    }
+   ],
+   "technique": "RT conformationnelle ou VMAT",
+   "systemique": "Aucune",
+   "simulation_id": "sim-orl-curie",
+   "volumes_id": "vol-orl-pal",
+   "points_attention": [
+    "Survie courte : médiane 5,7 mois (QUAD SHOT) et 6,1 mois (Hypo Trial) ; amélioration de la qualité de vie chez 44 % et 62 % des patients évaluables",
+    "Pas de jeu de contraintes publié pour ces schémas courts"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "ORL",
+    "Situations palliatives",
+    "Cancer incurable : RT palliative",
+    "Hypofractionné"
+   ],
+   "contraintes_ids": []
+  },
+  {
+   "id": "pal-30-10",
+   "situation_id": "pal-incurable",
+   "titre": "30 Gy / 10 fx",
+   "type": "rte_hypo",
+   "preuve": "pratique_institutionnelle",
+   "essai_ids": [
+    "curie-vads-2021"
+   ],
+   "source_institutionnelle": "Institut Curie 2021, annexe B",
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 30,
+     "fractions": 10,
+     "dose_fx_Gy": 3,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Exemple de schéma palliatif (Curie)"
+    }
+   ],
+   "technique": "RT conformationnelle ou VMAT",
+   "systemique": "Aucune",
+   "simulation_id": "sim-orl-curie",
+   "volumes_id": "vol-orl-pal",
+   "points_attention": [
+    "Survie courte : médiane 5,7 mois (QUAD SHOT) et 6,1 mois (Hypo Trial) ; amélioration de la qualité de vie chez 44 % et 62 % des patients évaluables",
+    "Pas de jeu de contraintes publié pour ces schémas courts"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "ORL",
+    "Situations palliatives",
+    "Cancer incurable : RT palliative",
+    "Hypofractionné"
+   ],
+   "contraintes_ids": []
+  },
+  {
+   "id": "pal-8-1",
+   "situation_id": "pal-incurable",
+   "titre": "8 Gy / 1 fx",
+   "type": "rte_hypo",
+   "preuve": "pratique_institutionnelle",
+   "essai_ids": [
+    "curie-vads-2021"
+   ],
+   "source_institutionnelle": "Institut Curie 2021, annexe B",
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 8,
+     "fractions": 1,
+     "dose_fx_Gy": 8,
+     "mode": "seul",
+     "rythme": "1 fx",
+     "note": "Exemple de schéma palliatif (Curie)"
+    }
+   ],
+   "technique": "RT conformationnelle",
+   "systemique": "Aucune",
+   "simulation_id": "sim-orl-curie",
+   "volumes_id": "vol-orl-pal",
+   "points_attention": [
+    "Survie courte : médiane 5,7 mois (QUAD SHOT) et 6,1 mois (Hypo Trial) ; amélioration de la qualité de vie chez 44 % et 62 % des patients évaluables",
+    "Pas de jeu de contraintes publié pour ces schémas courts"
+   ],
+   "date_verif": "2026-10-24",
+   "ind": [
+    "ORL",
+    "Situations palliatives",
+    "Cancer incurable : RT palliative",
+    "Hypofractionné"
+   ],
+   "contraintes_ids": []
+  }
+ ],
+ "simulations": [
+  {
+   "id": "sim-orl-curie",
+   "position": "Décubitus dorsal, bras le long du corps, nuque dégagée, épaules basses, mousse sous les genoux, plan dur (matelas fin seulement si intolérance)",
+   "contention": "Masque thermoformé 5 points et têtière 5 points ; cale-tête adapté à la courbure cervicale ; tête en légère extension, axe conduits auditifs–commissures labiales perpendiculaire à la table",
+   "preparation": "Retrait des prothèses dentaires amovibles ; canule de trachéotomie gardée si non laryngectomisé ; fil de plomb sur les cicatrices et bolus sur prescription ; ne pas avaler pendant l'acquisition",
+   "scanner": "Sans puis avec injection iodée (60 ml en 40 s, pause 90 s, 40 ml en 27 s), mêmes limites, coupes jointives de 2 mm, du vertex à la carène, épaules incluses ; contre-indications : allergie, clairance < 50 ml/min ; biguanides arrêtés 48 h",
+   "imagerie": "Fusion rigide avec l'IRM et la TEP-FDG (validée par le médecin, région centrée sur la tumeur) ; imagerie de plus d'un mois renouvelable ; post-opératoire : fusion avec l'imagerie préopératoire",
+   "reperes": "Point 0 : trois points sur le masque (un médian, deux latéraux) ; points tatoués sur la fourchette sternale et l'appendice xiphoïde"
+  }
+ ],
+ "volumes": [
+  {
+   "id": "vol-orl-pal",
+   "cibles": [
+    {
+     "nom": "GTV",
+     "type": "GTV",
+     "definition": "Tumeur et adénopathies macroscopiques",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "PTV",
+     "type": "PTV",
+     "definition": "Volume macroscopique sans prophylaxie ganglionnaire (Curie, annexe B) ; marges du centre",
+     "quand": "Toujours"
+    }
+   ],
+   "atlas": [],
+   "oar_ids": [
+    "oar-canal-medullaire",
+    "oar-tronc-cerebral",
+    "oar-parotide-d",
+    "oar-parotide-g",
+    "oar-cavite-orale",
+    "oar-larynx"
+   ]
+  },
+  {
+   "id": "vol-orl-curie-en-place",
+   "cibles": [
+    {
+     "nom": "GTV_T",
+     "type": "GTV",
+     "definition": "Tumeur primitive sur le scanner injecté (seule imagerie de référence), aidé de l'IRM, de la TEP-FDG et de la description clinique (panendoscopie, photos)",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "GTV_N",
+     "type": "GTV",
+     "definition": "Adénopathies métastatiques regroupées. Critères scanner : petit axe > 10 mm (6–8 mm si plus de 3 ganglions contigus), forme ronde, centre nécrotique, perte du hile graisseux, effraction capsulaire",
+     "quand": "Si N+"
+    },
+    {
+     "nom": "CTV70",
+     "type": "CTV",
+     "definition": "GTV_T + 5 mm et GTV_N + 5 mm, réduits à l'air et aux barrières non envahies (os, fascia, muscle) ; marge plus large possible en base de langue, ou autour d'une adénopathie avec effraction ou de plus de 3 cm",
+     "quand": "Toujours",
+     "marge": "5 mm"
+    },
+    {
+     "nom": "CTV63",
+     "type": "CTV",
+     "definition": "Optionnel : totalité des niveaux contenant une adénopathie (ex. : adénopathie sous-digastrique → niveau IIa) ; contenu dans CTV56",
+     "quand": "Option, si N+"
+    },
+    {
+     "nom": "CTV56",
+     "type": "CTV",
+     "definition": "CTV56_T : extension infraclinique selon l'approche compartimentale (Lapeyre 2005 et 2010 ; Lee 2018 pour le cavum) ; GTV + 5 mm + 5 mm (Grégoire 2018) = minimum. CTV56_N : aires à risque (sélection Biau 2019, délinéation Grégoire 2014) ; muscle envahi inclus sur toute sa hauteur",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "PTV70, PTV63, PTV56",
+     "type": "PTV",
+     "definition": "CTV + 3 mm, moins 2 mm sous le contour externe (pas de retrait si la peau est envahie : bolus)",
+     "quand": "Toujours",
+     "marge": "3 mm"
+    },
+    {
+     "nom": "PRV",
+     "type": "PRV",
+     "definition": "Canal médullaire, tronc cérébral, chiasma et nerfs optiques + 3 mm ; PRV du nerf optique homolatéral facultatif si la tumeur est au contact",
+     "quand": "Toujours",
+     "marge": "3 mm"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "Grégoire 2014, aires ganglionnaires",
+     "url": "https://doi.org/10.1016/j.radonc.2013.10.010"
+    },
+    {
+     "nom": "Grégoire 2018, CTV-P",
+     "url": "https://doi.org/10.1016/j.radonc.2017.10.016"
+    },
+    {
+     "nom": "Brouwer 2015, OAR",
+     "url": "https://doi.org/10.1016/j.radonc.2015.07.041"
+    }
+   ],
+   "oar_ids": [
+    "oar-parotide-d",
+    "oar-parotide-g",
+    "oar-glande-sous-max-d",
+    "oar-glande-sous-max-g",
+    "oar-cavite-orale",
+    "oar-levres",
+    "oar-larynx",
+    "oar-constricteurs",
+    "oar-oesophage",
+    "oar-canal-medullaire",
+    "oar-tronc-cerebral",
+    "oar-cervelet",
+    "oar-atm-d",
+    "oar-atm-g",
+    "oar-mandibule",
+    "oar-oreille-interne-d",
+    "oar-oreille-interne-g",
+    "oar-plexus-brachial-d",
+    "oar-plexus-brachial-g",
+    "oar-thyroide"
+   ]
+  }
+ ],
+ "curie_indications": [],
+ "systemique": [],
+ "hormonotherapie": [],
+ "points_attention": [
+  {
+   "cible": "pal-incurable",
+   "point": "Survie courte : médiane 5,7 mois (QUAD SHOT) et 6,1 mois (Hypo Trial) ; amélioration de la qualité de vie chez 44 % et 62 % des patients évaluables",
+   "portee": "situation"
+  },
+  {
+   "cible": "pal-incurable",
+   "point": "Pas de jeu de contraintes publié pour ces schémas courts",
+   "portee": "situation"
+  }
+ ],
+ "textes": {
+  "systemique": [
+   "Pas de traitement systémique associé dans ces schémas."
+  ]
+ }
+}

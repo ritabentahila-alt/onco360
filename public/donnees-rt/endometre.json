@@ -1,0 +1,544 @@
+{
+ "version": "2026-10-25",
+ "id": "endometre",
+ "region_id": "gyneco",
+ "nom": "Endomètre",
+ "ordre": 6,
+ "date_maj": "2026-10-23",
+ "situations": [
+  {
+   "id": "endo-ri",
+   "localisation_id": "endometre",
+   "titre": "Risque intermédiaire : curiethérapie vaginale",
+   "contexte": "post_op",
+   "criteres": "Stade IB endométrioïde bas grade sans emboles (ou emboles focaux), IA haut grade sans emboles, IA non endométrioïde sans invasion myométriale (ESGO-ESTRO-ESP 2021) ; abstention possible avant 60 ans",
+   "ordre": 1
+  },
+  {
+   "id": "endo-hir",
+   "localisation_id": "endometre",
+   "titre": "Risque intermédiaire-élevé",
+   "contexte": "post_op",
+   "criteres": "Stade I endométrioïde avec emboles lymphovasculaires massifs, IB haut grade, stade II endométrioïde ; curiethérapie vaginale si pN0, radiothérapie pelvienne si emboles massifs ou statut ganglionnaire inconnu (pNx)",
+   "ordre": 2
+  },
+  {
+   "id": "endo-hr",
+   "localisation_id": "endometre",
+   "titre": "Haut risque et stades avancés opérés",
+   "contexte": "post_op",
+   "criteres": "Stade III–IVA sans résidu ; stade I–IVA non endométrioïde (séreux, cellules claires, indifférencié, carcinosarcome) ou p53 anormal avec invasion myométriale ; critères PORTEC-3 (stade I endométrioïde grade 3 avec invasion ≥ 50 % et/ou emboles, stades II–III, séreux ou cellules claires I–III)",
+   "ordre": 3
+  }
+ ],
+ "schemas": [
+  {
+   "id": "endo-vbt-7x3",
+   "situation_id": "endo-ri",
+   "titre": "Curiethérapie vaginale exclusive HDR 3 × 7 Gy (PORTEC-2)",
+   "type": "curie_hdr",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "portec2",
+    "esgo-endo-2021",
+    "esgo-endo-2025"
+   ],
+   "prescriptions": [
+    {
+     "volume": "Vagin supérieur (HDR, prescription à 5 mm de la muqueuse)",
+     "dose_Gy": 21,
+     "fractions": 3,
+     "dose_fx_Gy": 7,
+     "mode": "seul",
+     "rythme": "3 séances",
+     "note": "PORTEC-2 ; alternative du même essai : 30 Gy en bas débit"
+    }
+   ],
+   "technique": "Cylindre vaginal HDR, dosimétrie sur scanner",
+   "systemique": "Aucune",
+   "simulation_id": "sim-gyn-vbt",
+   "volumes_id": "vol-gyn-vbt",
+   "points_attention": [
+    "Curiethérapie vaginale seule ; abstention possible avant 60 ans (PORTEC-1 : pas de RT avant 60 ans ni pour les grade 2 à invasion superficielle)"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Gynéco",
+    "Endomètre",
+    "Risque intermédiaire : curiethérapie vaginale",
+    "Curiethérapie"
+   ],
+   "contraintes_ids": []
+  },
+  {
+   "id": "endo-vbt-7x3-hir",
+   "situation_id": "endo-hir",
+   "titre": "Curiethérapie vaginale exclusive HDR 3 × 7 Gy (pN0)",
+   "type": "curie_hdr",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "portec2",
+    "esgo-endo-2021"
+   ],
+   "prescriptions": [
+    {
+     "volume": "Vagin supérieur (HDR, prescription à 5 mm de la muqueuse)",
+     "dose_Gy": 21,
+     "fractions": 3,
+     "dose_fx_Gy": 7,
+     "mode": "seul",
+     "rythme": "3 séances",
+     "note": "Uniquement si pN0 et pas d'emboles massifs"
+    }
+   ],
+   "technique": "Cylindre vaginal HDR",
+   "systemique": "Aucune",
+   "simulation_id": "sim-gyn-vbt",
+   "volumes_id": "vol-gyn-vbt",
+   "points_attention": [
+    "Radiothérapie pelvienne plutôt que curiethérapie seule si emboles massifs ou absence de stadification ganglionnaire (pNx)"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Gynéco",
+    "Endomètre",
+    "Risque intermédiaire-élevé",
+    "Curiethérapie"
+   ],
+   "contraintes_ids": []
+  },
+  {
+   "id": "endo-pelv-46-23",
+   "situation_id": "endo-hir",
+   "titre": "Pelvis 46 Gy / 23 fx (bras RTE de PORTEC-1 et PORTEC-2)",
+   "type": "rte_normo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "portec1",
+    "portec2"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV pelvien",
+     "dose_Gy": 46,
+     "fractions": 23,
+     "dose_fx_Gy": 2,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "PORTEC-1 et PORTEC-2"
+    }
+   ],
+   "technique": "VMAT ou IMRT, IGRT quotidienne",
+   "systemique": "Aucune",
+   "simulation_id": "sim-gyn-postop",
+   "volumes_id": "vol-gyn-postop",
+   "points_attention": [
+    "Radiothérapie pelvienne plutôt que curiethérapie seule si emboles massifs ou absence de stadification ganglionnaire (pNx)"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Gynéco",
+    "Endomètre",
+    "Risque intermédiaire-élevé",
+    "Normofractionné"
+   ],
+   "contraintes_ids": []
+  },
+  {
+   "id": "endo-portec3",
+   "situation_id": "endo-hr",
+   "titre": "Pelvis 48,6 Gy / 27 fx + cisplatine, puis carboplatine-paclitaxel (PORTEC-3)",
+   "type": "rte_normo",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "portec3",
+    "gog258",
+    "esgo-endo-2021"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV pelvien",
+     "dose_Gy": 48.6,
+     "fractions": 27,
+     "dose_fx_Gy": 1.8,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Début 4 à 6 semaines après la chirurgie (8 au plus) ; étalement ≤ 50 jours"
+    },
+    {
+     "volume": "Fond vaginal (HDR, si atteinte glandulaire ou stromale du col)",
+     "dose_Gy": 10,
+     "fractions": 2,
+     "dose_fx_Gy": 5,
+     "mode": "sequentiel",
+     "rythme": "Après la RTE",
+     "note": "Boost de PORTEC-3 : 14 Gy EQD2, schéma recommandé 2 × 5 Gy HDR"
+    }
+   ],
+   "technique": "VMAT ou IMRT, IGRT quotidienne",
+   "systemique": "Cisplatine 50 mg/m² semaines 1 et 4, puis 4 cures de carboplatine AUC 5 + paclitaxel 175 mg/m² toutes les 3 semaines",
+   "simulation_id": "sim-gyn-postop",
+   "volumes_id": "vol-gyn-postop",
+   "points_attention": [
+    "Ne pas confondre 48,6 Gy / 27 fx (dose pelvienne de PORTEC-3) avec un boost ganglionnaire : la fiche du service écrit « boost intégré 48,6 Gy en 27 fractions pour les adénopathies macroscopiques » ; Curie booste les adénopathies à 60 Gy / 25 fx en SIB"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Gynéco",
+    "Endomètre",
+    "Haut risque et stades avancés opérés",
+    "Normofractionné"
+   ],
+   "contraintes_ids": []
+  },
+  {
+   "id": "endo-pelv-45-vbt-curie",
+   "situation_id": "endo-hr",
+   "titre": "Pelvis 45 Gy / 25 fx + curiethérapie du fond vaginal 2 × 5 Gy",
+   "type": "rte_plus_curie",
+   "preuve": "pratique_institutionnelle",
+   "essai_ids": [
+    "portec3",
+    "nrg-atlas-postop"
+   ],
+   "source_institutionnelle": "Institut Curie, protocole endomètre et col post-opératoire 2021 ; fiche du service",
+   "prescriptions": [
+    {
+     "volume": "PTV_45Gy",
+     "dose_Gy": 45,
+     "fractions": 25,
+     "dose_fx_Gy": 1.8,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Prescription à la dose médiane ou moyenne ; mode SIB si PTV_N"
+    },
+    {
+     "volume": "PTV_N60Gy (adénopathie macroscopique)",
+     "dose_Gy": 60,
+     "fractions": 25,
+     "dose_fx_Gy": 2.4,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Uniquement si adénopathie visible"
+    },
+    {
+     "volume": "Fond vaginal (HDR, prescription à 5 mm)",
+     "dose_Gy": 10,
+     "fractions": 2,
+     "dose_fx_Gy": 5,
+     "mode": "sequentiel",
+     "rythme": "Après la RTE",
+     "note": "20 à 30 mm de vagin supérieur selon l'anatomie (fiche du service)"
+    }
+   ],
+   "technique": "VMAT, kV-CBCT quotidien avec recalage osseux ; cylindre vaginal HDR",
+   "systemique": "Cisplatine 40 mg/m² hebdomadaire possible (Curie)",
+   "simulation_id": "sim-gyn-postop",
+   "volumes_id": "vol-gyn-postop",
+   "contraintes_ids": [
+    "ct-gyn-curie-rte"
+   ],
+   "couverture": "PTV_45 : D95 > 95 %, D2 < 107 % ; ITV_T : D98 > 95 % ; PTV_N : D98 > 90 %, D2 < 107 % ; CTV_N : D98 > 98 %",
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Gynéco",
+    "Endomètre",
+    "Haut risque et stades avancés opérés",
+    "RTE + curiethérapie"
+   ],
+   "points_attention": []
+  },
+  {
+   "id": "endo-pelv-lao-45-curie",
+   "situation_id": "endo-hr",
+   "titre": "Pelvis + lombo-aortique 45 Gy / 25 fx (± boost ganglionnaire 60 Gy)",
+   "type": "rte_normo",
+   "preuve": "pratique_institutionnelle",
+   "essai_ids": [
+    "nrg-atlas-postop"
+   ],
+   "source_institutionnelle": "Institut Curie, protocole endomètre et col post-opératoire 2021",
+   "prescriptions": [
+    {
+     "volume": "PTV_45Gy (pelvis + lombo-aortique)",
+     "dose_Gy": 45,
+     "fractions": 25,
+     "dose_fx_Gy": 1.8,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Lombo-aortique si N+ lombo-aortique prouvé ou radiologique, ou atteinte iliaque commune massive"
+    },
+    {
+     "volume": "PTV_N60Gy (adénopathie macroscopique)",
+     "dose_Gy": 60,
+     "fractions": 25,
+     "dose_fx_Gy": 2.4,
+     "mode": "SIB",
+     "rythme": "5 fx/sem",
+     "note": "Uniquement si adénopathie visible"
+    }
+   ],
+   "technique": "VMAT, kV-CBCT quotidien + image kV/kV pour le rachis lombaire",
+   "systemique": "Selon RCP",
+   "simulation_id": "sim-gyn-postop",
+   "volumes_id": "vol-gyn-postop",
+   "contraintes_ids": [
+    "ct-gyn-curie-rte"
+   ],
+   "couverture": "PTV_45 : D95 > 95 %, D2 < 107 % ; ITV_T : D98 > 95 % ; PTV_N : D98 > 90 %, D2 < 107 % ; CTV_N : D98 > 98 %",
+   "points_attention": [
+    "Lombo-aortique : image kV/kV quotidienne en plus du CBCT ; décalage > 5 mm entre pelvis et lombo-aortique = repositionner ; pas de traitement sur Halcyon (Curie)"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Gynéco",
+    "Endomètre",
+    "Haut risque et stades avancés opérés",
+    "Normofractionné"
+   ]
+  }
+ ],
+ "simulations": [
+  {
+   "id": "sim-gyn-postop",
+   "position": "Décubitus dorsal",
+   "contention": "Cale genoux + cale pieds, immobilisation pelvienne",
+   "preparation": "Rectum vide (Normacol ; diamètre antéro-postérieur ≤ 5 cm) ; vessie confortable : 2 à 3 verres d'eau dans l'heure qui précède ; reproductibilité vessie et rectum à vérifier",
+   "scanner": "Injecté (temps vasculaire) sauf contre-indication ; coupes ≤ 3 mm ; de L2–L3 + 5 cm (pelvis) ou des coupoles + 5 cm (lombo-aortique) jusqu'aux ischions + 15 cm",
+   "imagerie": "TEP-TDM du bilan si N+, fusion sur le bassin osseux",
+   "reperes": "Fil plombé dans le fond vaginal si la cicatrisation est acquise (fiche du service)"
+  },
+  {
+   "id": "sim-gyn-vbt",
+   "position": "Décubitus dorsal ou position gynécologique",
+   "contention": "Cylindre vaginal fixé",
+   "preparation": "Vessie et rectum vides",
+   "scanner": "Scanner avec cylindre en place",
+   "reperes": "Contrôle de la position du cylindre à chaque séance"
+  }
+ ],
+ "volumes": [
+  {
+   "id": "vol-gyn-postop",
+   "cibles": [
+    {
+     "nom": "GTV_N#",
+     "type": "GTV",
+     "definition": "Adénopathie visible ou prouvée, une structure par ganglion, nommée par son niveau de dose (GTV_N60Gy)",
+     "quand": "Si adénopathie"
+    },
+    {
+     "nom": "CTV_T",
+     "type": "CTV",
+     "definition": "3 à 4 cm supérieurs du vagin + cicatrice + 0,5 à 2 cm au-dessus selon la position du grêle + paravagin jusqu'à la paroi pelvienne, sans les aires ganglionnaires ; exclure les anses grêles. Fiche du service : limite inférieure à 1 cm au-dessus du bord inférieur des trous obturateurs ou 3 cm sous le marqueur vaginal (la plus basse), marge de 5 mm dans le paravagin au niveau du haut des têtes fémorales ; adapter à la longueur résiduelle du vagin",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "ITV_T",
+     "type": "ITV",
+     "definition": "CTV_T + 5 mm isotrope sans autre imagerie, ou ITV individualisé si plusieurs imageries post-opératoires",
+     "quand": "Toujours",
+     "marge": "5 mm"
+    },
+    {
+     "nom": "CTV_E",
+     "type": "CTV",
+     "definition": "Marges anatomiques autour des vaisseaux. Toujours : iliaques internes, externes, obturatrices (fiche : + 15 mm distaux des iliaques communes). Iliaques communes entières : col atteint ; endomètre si N+ prouvé ou si risque intermédiaire-élevé ou haut sans curage pelvien. Présacrés : N+, col ou paramètres atteints, ligaments utéro-sacrés atteints (fiche : jusqu'à S2–S3). Inguinaux : tiers inférieur du vagin atteint ou adénopathie inguinale. Lombo-aortiques : N+ lombo-aortique prouvé ou radiologique, atteinte iliaque commune massive (fiche : jusqu'à D12–L1, au moins 2 cm au-dessus de l'adénopathie la plus haute). Lymphocèles si pN+",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "CTV_N#",
+     "type": "CTV",
+     "definition": "GTV_N# + 3 mm",
+     "quand": "Si adénopathie",
+     "marge": "3 mm"
+    },
+    {
+     "nom": "CTV_45Gy",
+     "type": "ITV",
+     "definition": "CTV_E + ITV_T",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "PTV_45Gy",
+     "type": "PTV",
+     "definition": "CTV_45Gy + 5 mm isotrope + tous les PTV_N. Fiche du service : PTV-T = CTV-T + 1 cm, PTV-N = CTV-N + 0,5 cm (même résultat)",
+     "quand": "Toujours",
+     "marge": "5 mm"
+    },
+    {
+     "nom": "PTV_N#",
+     "type": "PTV",
+     "definition": "CTV_N# + 5 mm isotrope",
+     "quand": "Si adénopathie",
+     "marge": "5 mm"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "NRG/RTOG 2021, CTV post-opératoire"
+    },
+    {
+     "nom": "RTOG 2012, OAR du pelvis"
+    }
+   ],
+   "oar_ids": [
+    "oar-vessie",
+    "oar-rectum",
+    "oar-sigmoide",
+    "oar-grele",
+    "oar-tete-femorale-d",
+    "oar-tete-femorale-g",
+    "oar-moelle-osseuse",
+    "oar-vulve",
+    "oar-aile-iliaque-d",
+    "oar-aile-iliaque-g",
+    "oar-corps",
+    "oar-queue-cheval",
+    "oar-plexus-sacre",
+    "oar-rein-d",
+    "oar-rein-g",
+    "oar-foie",
+    "oar-moelle",
+    "oar-duodenum",
+    "oar-ovaire-d",
+    "oar-ovaire-g"
+   ],
+   "oar_notes": {
+    "oar-aile-iliaque-d": "fiche",
+    "oar-aile-iliaque-g": "fiche",
+    "oar-queue-cheval": "si boost ganglionnaire",
+    "oar-plexus-sacre": "si boost ganglionnaire",
+    "oar-rein-d": "si lombo-aortique",
+    "oar-rein-g": "si lombo-aortique",
+    "oar-foie": "si lombo-aortique",
+    "oar-moelle": "si lombo-aortique",
+    "oar-duodenum": "si lombo-aortique au-dessus de L1",
+    "oar-ovaire-d": "si transposition",
+    "oar-ovaire-g": "si transposition"
+   }
+  },
+  {
+   "id": "vol-gyn-vbt",
+   "cibles": [
+    {
+     "nom": "CTV vaginal",
+     "type": "CTV",
+     "definition": "Muqueuse du vagin supérieur sur la longueur traitée ; dose prescrite à 5 mm de profondeur",
+     "quand": "Toujours"
+    }
+   ],
+   "atlas": [],
+   "oar_ids": [
+    "oar-vessie",
+    "oar-rectum",
+    "oar-sigmoide"
+   ]
+  }
+ ],
+ "curie_indications": [
+  {
+   "indication": "Risque intermédiaire et intermédiaire-élevé pN0",
+   "modalite": "Curiethérapie vaginale exclusive HDR 3 × 7 Gy",
+   "niveau_preuve": "Essai de phase 3 (PORTEC-2)",
+   "note": "Récidive vaginale à 5 ans 1,8 % contre 1,6 % avec la RTE, beaucoup moins de toxicité digestive"
+  },
+  {
+   "indication": "Atteinte glandulaire ou stromale du col après RTE pelvienne",
+   "modalite": "Complément 2 × 5 Gy HDR",
+   "niveau_preuve": "Protocole PORTEC-3",
+   "note": "14 Gy EQD2"
+  },
+  {
+   "indication": "Après RTE pelvienne 45 Gy (Curie)",
+   "modalite": "Complément 2 × 5 Gy HDR systématique",
+   "niveau_preuve": "Pratique Institut Curie",
+   "note": "La fiche du service le réserve aux stades II–III et aux marges R1"
+  }
+ ],
+ "systemique": [
+  {
+   "situation": "Haut risque (PORTEC-3)",
+   "traitement": "Cisplatine 50 mg/m² aux semaines 1 et 4 de la RTE, puis 4 cures de carboplatine AUC 5 + paclitaxel 175 mg/m² toutes les 3 semaines",
+   "essai_ids": [
+    "portec3"
+   ],
+   "note": "Survie globale et sans récidive améliorées, surtout stade III et carcinome séreux ; neuropathie G2+ persistante 6 %"
+  },
+  {
+   "situation": "Stade III–IVA",
+   "traitement": "Chimiothérapie seule (6 cures) ou radiochimiothérapie",
+   "essai_ids": [
+    "gog258"
+   ],
+   "note": "Survie sans récidive identique ; la RT diminue les récidives vaginales (2 % vs 7 %) et ganglionnaires (11 % vs 20 %)"
+  },
+  {
+   "situation": "Pelvis 45 Gy (Curie)",
+   "traitement": "Cisplatine 40 mg/m² hebdomadaire possible",
+   "essai_ids": [
+    "esgo-endo-2021"
+   ],
+   "note": "Selon RCP"
+  },
+  {
+   "situation": "Risque intermédiaire et intermédiaire-élevé",
+   "traitement": "Aucun en standard",
+   "essai_ids": [
+    "portec2"
+   ]
+  }
+ ],
+ "hormonotherapie": [],
+ "points_attention": [
+  {
+   "cible": "endometre",
+   "point": "Groupes ESGO-ESTRO-ESP 2021 (classification moléculaire inconnue) : faible = IA endométrioïde bas grade sans emboles ou emboles focaux ; intermédiaire = IB endométrioïde bas grade sans emboles massifs, IA haut grade sans emboles massifs, IA non endométrioïde sans invasion myométriale ; intermédiaire-élevé = stade I endométrioïde avec emboles massifs, IB haut grade, stade II ; haut = III–IVA sans résidu, I–IVA non endométrioïde avec invasion myométriale. Mise à jour 2025 : FIGO 2023 et profil moléculaire (POLE muté = risque abaissé, p53 anormal avec invasion myométriale = haut risque)",
+   "portee": "localisation"
+  },
+  {
+   "cible": "endometre",
+   "point": "Vérifier le groupe de risque dans la recommandation ESGO-ESTRO-ESP en vigueur avant de choisir un schéma : ce tableau en est un résumé",
+   "portee": "localisation"
+  },
+  {
+   "cible": "endo-ri",
+   "point": "Curiethérapie vaginale seule ; abstention possible avant 60 ans (PORTEC-1 : pas de RT avant 60 ans ni pour les grade 2 à invasion superficielle)",
+   "portee": "situation"
+  },
+  {
+   "cible": "endo-hir",
+   "point": "Radiothérapie pelvienne plutôt que curiethérapie seule si emboles massifs ou absence de stadification ganglionnaire (pNx)",
+   "portee": "situation"
+  },
+  {
+   "cible": "endo-portec3",
+   "point": "Ne pas confondre 48,6 Gy / 27 fx (dose pelvienne de PORTEC-3) avec un boost ganglionnaire : la fiche du service écrit « boost intégré 48,6 Gy en 27 fractions pour les adénopathies macroscopiques » ; Curie booste les adénopathies à 60 Gy / 25 fx en SIB",
+   "portee": "schema"
+  },
+  {
+   "cible": "endometre",
+   "point": "CBCT quotidien avec recalage osseux : le fond vaginal doit rester dans l'ITV_T, les vaisseaux dans le CTV_E, à défaut dans le PTV_45Gy ; tout le vagin visible sur le CBCT (Curie)",
+   "portee": "localisation"
+  },
+  {
+   "cible": "endo-pelv-lao-45-curie",
+   "point": "Lombo-aortique : image kV/kV quotidienne en plus du CBCT ; décalage > 5 mm entre pelvis et lombo-aortique = repositionner ; pas de traitement sur Halcyon (Curie)",
+   "portee": "schema"
+  },
+  {
+   "cible": "endometre",
+   "point": "PORTEC-2 : récidive pelvienne isolée 1,5 % après curiethérapie contre 0,5 % après RTE (non significatif) ; toxicité digestive aiguë de grade 1–2 en fin de traitement nettement moindre (12,6 % vs 53,8 %)",
+   "portee": "localisation"
+  }
+ ],
+ "textes": {
+  "curietherapie": [
+   "La curiethérapie du fond vaginal se fait seule (risque intermédiaire, intermédiaire-élevé pN0) ou en complément de la radiothérapie pelvienne (atteinte du col, stades II–III, marge vaginale).",
+   "**Technique :** cylindre vaginal du plus grand diamètre toléré ; prescription à 5 mm de la muqueuse ; longueur traitée 20 à 30 mm de vagin supérieur après RTE (fiche du service). Pas de PTV."
+  ],
+  "contourage": [
+   "Pas de GTV\\_T après chirurgie, sauf résidu."
+  ]
+ }
+}

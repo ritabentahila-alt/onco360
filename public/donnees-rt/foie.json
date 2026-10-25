@@ -1,0 +1,590 @@
+{
+ "version": "2026-10-25",
+ "id": "foie",
+ "region_id": "digestif",
+ "nom": "Foie et voies biliaires",
+ "ordre": 12,
+ "date_maj": "2026-10-23",
+ "situations": [
+  {
+   "id": "foie-chc",
+   "localisation_id": "foie",
+   "titre": "CHC non éligible aux traitements locaux standard : stéréotaxie",
+   "contexte": "en_place",
+   "criteres": "CHC non résécable, non transplantable, non accessible à l'ablation ou à la chimio-embolisation ; Child-Pugh A (B : voir points d'attention) ; au moins 700 cc de foie sain",
+   "ordre": 1
+  },
+  {
+   "id": "foie-chc-tvp",
+   "localisation_id": "foie",
+   "titre": "CHC avec invasion vasculaire macroscopique",
+   "contexte": "en_place",
+   "criteres": "Thrombose tumorale portale ou cave, maladie limitée au foie",
+   "ordre": 2
+  },
+  {
+   "id": "foie-meta",
+   "localisation_id": "foie",
+   "titre": "Métastases hépatiques : stéréotaxie",
+   "contexte": "oligometastatique",
+   "criteres": "1 à 3 métastases de moins de 6 cm, primitif contrôlé",
+   "ordre": 3
+  },
+  {
+   "id": "foie-cca-adj",
+   "localisation_id": "foie",
+   "titre": "Cholangiocarcinome extrahépatique ou vésicule opéré : RCT adjuvante",
+   "contexte": "post_op",
+   "criteres": "pT2–4, N+ ou R1, M0 (SWOG S0809)",
+   "ordre": 4
+  },
+  {
+   "id": "foie-cca-ihc",
+   "localisation_id": "foie",
+   "titre": "Cholangiocarcinome intrahépatique non résécable",
+   "contexte": "en_place",
+   "criteres": "Après chimiothérapie systémique, maladie limitée au foie",
+   "ordre": 5
+  }
+ ],
+ "schemas": [
+  {
+   "id": "foie-chc-45-3",
+   "situation_id": "foie-chc",
+   "titre": "SBRT 45 Gy / 3 fx",
+   "type": "sbrt",
+   "preuve": "pratique_institutionnelle",
+   "essai_ids": [
+    "durand-labrunie",
+    "astro-foie"
+   ],
+   "source_institutionnelle": "Gustave Roussy, stéréotaxie hépatique 2016 (3 × 15 Gy)",
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 45,
+     "fractions": 3,
+     "dose_fx_Gy": 15,
+     "mode": "seul",
+     "note": "Contrôle local à 18 mois 98 % (phase 2 française)"
+    }
+   ],
+   "technique": "SBRT, 4D ou blocage, CBCT ; repères radio-opaques recommandés",
+   "systemique": "Aucune",
+   "simulation_id": "sim-foie-sbrt",
+   "volumes_id": "vol-foie-sbrt",
+   "contraintes_ids": [
+    "ct-foie-sbrt-igr-3fx"
+   ],
+   "couverture": "Gustave Roussy : rapporter D2 %, D50 %, D98 %, D99 % du PTV et l'indice d'homogénéité",
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Digestif",
+    "Foie et voies biliaires",
+    "CHC non éligible aux traitements locaux standard : stéréotaxie",
+    "Stéréotaxie"
+   ],
+   "points_attention": []
+  },
+  {
+   "id": "foie-chc-40-5",
+   "situation_id": "foie-chc",
+   "titre": "SBRT 40 Gy / 5 fx (5 × 6,5 à 5 × 9 Gy selon le foie sain et les OAR)",
+   "type": "sbrt",
+   "preuve": "essai_phase3",
+   "essai_ids": [
+    "rtog1112",
+    "rtog1112-igrt",
+    "bujold",
+    "astro-foie"
+   ],
+   "source_institutionnelle": "Gustave Roussy, stéréotaxie hépatique 2016 (5 fractions)",
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 40,
+     "fractions": 5,
+     "dose_fx_Gy": 8,
+     "mode": "seul",
+     "note": "Gustave Roussy : 5 × 9, 8, 7 ou 6,5 Gy, prescription sur l'isodose 82 %. RTOG 1112 : 27,5 à 50 Gy / 5 fx"
+    }
+   ],
+   "technique": "SBRT, 4D ou blocage, CBCT ; repères radio-opaques recommandés",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-foie-sbrt",
+   "volumes_id": "vol-foie-sbrt",
+   "contraintes_ids": [
+    "ct-foie-sbrt-igr-5fx"
+   ],
+   "couverture": "Gustave Roussy : rapporter D2 %, D50 %, D98 %, D99 % du PTV et l'indice d'homogénéité",
+   "points_attention": [
+    "RTOG 1112 : SBRT avant sorafénib, SG médiane 15,8 vs 12,3 mois (HR 0,77, NS ; 0,72 après ajustement) et SSP 9,2 vs 5,5 mois"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Digestif",
+    "Foie et voies biliaires",
+    "CHC non éligible aux traitements locaux standard : stéréotaxie",
+    "Stéréotaxie"
+   ]
+  },
+  {
+   "id": "foie-50-10",
+   "situation_id": "foie-chc",
+   "titre": "RT stéréotaxique 50 Gy / 10 fx (proximité des OAR)",
+   "type": "sbrt",
+   "preuve": "pratique_institutionnelle",
+   "essai_ids": [
+    "astro-foie"
+   ],
+   "source_institutionnelle": "Gustave Roussy, stéréotaxie hépatique 2016 (10 × 5 Gy)",
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 50,
+     "fractions": 10,
+     "dose_fx_Gy": 5,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Lésion proche du tube digestif ou du hile"
+    }
+   ],
+   "technique": "SBRT, 4D ou blocage, CBCT",
+   "systemique": "Aucune",
+   "simulation_id": "sim-foie-sbrt",
+   "volumes_id": "vol-foie-sbrt",
+   "contraintes_ids": [
+    "ct-foie-sbrt-igr-10fx"
+   ],
+   "couverture": "Gustave Roussy : rapporter D2 %, D50 %, D98 %, D99 % du PTV et l'indice d'homogénéité",
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Digestif",
+    "Foie et voies biliaires",
+    "CHC non éligible aux traitements locaux standard : stéréotaxie",
+    "Stéréotaxie"
+   ],
+   "points_attention": []
+  },
+  {
+   "id": "foie-tvp-tace-45",
+   "situation_id": "foie-chc-tvp",
+   "titre": "Chimio-embolisation + RT 45 Gy (2,5 à 3 Gy par fraction)",
+   "type": "rte_hypo",
+   "preuve": "option",
+   "essai_ids": [
+    "yoon",
+    "astro-foie"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV (tumeur + thrombus)",
+     "dose_Gy": 45,
+     "fractions": 18,
+     "dose_fx_Gy": 2.5,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "RT dans les 3 semaines après la 1re chimio-embolisation ; jusqu'à 3 Gy par fraction"
+    }
+   ],
+   "technique": "RT 3D ou IMRT",
+   "systemique": "Chimio-embolisation toutes les 6 semaines",
+   "simulation_id": "sim-foie",
+   "volumes_id": "vol-foie-tvp",
+   "points_attention": [
+    "Chimio-embolisation + RT : SG 55 vs 43 semaines contre sorafénib (Yoon, essai randomisé monocentrique)"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Digestif",
+    "Foie et voies biliaires",
+    "CHC avec invasion vasculaire macroscopique",
+    "Hypofractionné"
+   ],
+   "contraintes_ids": []
+  },
+  {
+   "id": "foie-meta-45-3",
+   "situation_id": "foie-meta",
+   "titre": "SBRT 45 Gy / 3 fx",
+   "type": "sbrt",
+   "preuve": "pratique_institutionnelle",
+   "essai_ids": [
+    "sabrcomet",
+    "sabrcomet5"
+   ],
+   "source_institutionnelle": "Gustave Roussy, stéréotaxie hépatique 2016 (3 × 15 Gy)",
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 45,
+     "fractions": 3,
+     "dose_fx_Gy": 15,
+     "mode": "seul"
+    }
+   ],
+   "technique": "SBRT, 4D ou blocage, CBCT",
+   "systemique": "Selon le primitif",
+   "simulation_id": "sim-foie-sbrt",
+   "volumes_id": "vol-foie-sbrt",
+   "contraintes_ids": [
+    "ct-foie-sbrt-igr-3fx"
+   ],
+   "couverture": "Gustave Roussy : rapporter D2 %, D50 %, D98 %, D99 % du PTV et l'indice d'homogénéité",
+   "points_attention": [
+    "Oligométastases : décision en RCP, toutes les lésions traitables (SABR-COMET)"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Digestif",
+    "Foie et voies biliaires",
+    "Métastases hépatiques : stéréotaxie",
+    "Stéréotaxie"
+   ]
+  },
+  {
+   "id": "foie-meta-60-3",
+   "situation_id": "foie-meta",
+   "titre": "SBRT 60 Gy / 3 fx",
+   "type": "sbrt",
+   "preuve": "option",
+   "essai_ids": [
+    "rusthoven"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 60,
+     "fractions": 3,
+     "dose_fx_Gy": 20,
+     "mode": "seul",
+     "note": "Contrôle local à 2 ans 92 % (100 % si ≤ 3 cm)"
+    }
+   ],
+   "technique": "SBRT, 4D ou blocage, CBCT",
+   "systemique": "Selon le primitif",
+   "simulation_id": "sim-foie-sbrt",
+   "volumes_id": "vol-foie-sbrt",
+   "points_attention": [
+    "Oligométastases : décision en RCP, toutes les lésions traitables (SABR-COMET)"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Digestif",
+    "Foie et voies biliaires",
+    "Métastases hépatiques : stéréotaxie",
+    "Stéréotaxie"
+   ],
+   "contraintes_ids": []
+  },
+  {
+   "id": "foie-cca-s0809",
+   "situation_id": "foie-cca-adj",
+   "titre": "RCT adjuvante 45 Gy (aires) + complément jusqu'à 54 Gy (lit tumoral) + capécitabine",
+   "type": "rte_normo",
+   "preuve": "option",
+   "essai_ids": [
+    "s0809",
+    "bilcap",
+    "astro-foie"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV aires ganglionnaires régionales",
+     "dose_Gy": 45,
+     "fractions": 25,
+     "dose_fx_Gy": 1.8,
+     "mode": "seul",
+     "rythme": "5 fx/sem"
+    },
+    {
+     "volume": "PTV lit tumoral",
+     "dose_Gy": 9,
+     "fractions": 5,
+     "dose_fx_Gy": 1.8,
+     "mode": "sequentiel",
+     "rythme": "5 fx/sem",
+     "note": "Total 54 Gy ; l'essai autorisait jusqu'à 59,4 Gy"
+    }
+   ],
+   "technique": "IMRT ou VMAT, IGRT quotidienne",
+   "systemique": "Voir Traitement systémique",
+   "simulation_id": "sim-foie",
+   "volumes_id": "vol-foie-cca-adj",
+   "contraintes_ids": [
+    "ct-abdo-acrop-crt"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Digestif",
+    "Foie et voies biliaires",
+    "Cholangiocarcinome extrahépatique ou vésicule opéré : RCT adjuvante",
+    "Normofractionné"
+   ],
+   "points_attention": []
+  },
+  {
+   "id": "foie-cca-675-15",
+   "situation_id": "foie-cca-ihc",
+   "titre": "RT hypofractionnée 67,5 Gy / 15 fx",
+   "type": "rte_hypo",
+   "preuve": "option",
+   "essai_ids": [
+    "hong-protons",
+    "tao",
+    "astro-foie"
+   ],
+   "prescriptions": [
+    {
+     "volume": "PTV",
+     "dose_Gy": 67.5,
+     "fractions": 15,
+     "dose_fx_Gy": 4.5,
+     "mode": "seul",
+     "rythme": "5 fx/sem",
+     "note": "Dose maximale de l'essai (protons) ; viser une BED10 > 80,5 Gy (Tao)"
+    }
+   ],
+   "technique": "IMRT ou VMAT (ou protons), IGRT quotidienne",
+   "systemique": "Selon RCP",
+   "simulation_id": "sim-foie",
+   "volumes_id": "vol-foie-cca-ihc",
+   "points_attention": [
+    "Cholangiocarcinome intrahépatique : la dose compte. BED10 > 80,5 Gy : SG à 3 ans 73 % vs 38 % (Tao)"
+   ],
+   "date_verif": "2026-10-23",
+   "ind": [
+    "Digestif",
+    "Foie et voies biliaires",
+    "Cholangiocarcinome intrahépatique non résécable",
+    "Hypofractionné"
+   ],
+   "contraintes_ids": []
+  }
+ ],
+ "simulations": [
+  {
+   "id": "sim-foie-sbrt",
+   "position": "Décubitus dorsal, bras au-dessus de la tête",
+   "contention": "Contention corps entier",
+   "preparation": "À jeun",
+   "scanner": "Scanner 4D ou en inspiration bloquée, injection multiphasique",
+   "imagerie": "IRM hépatique et scanner multiphasique du bilan, fusion",
+   "reperes": "Repères radio-opaques (fiduciaires, clips, prothèse biliaire) : jamais d'écart > 5 mm, contre 3 % > 10 mm sur les tissus mous (RTOG 1112)"
+  },
+  {
+   "id": "sim-foie",
+   "position": "Décubitus dorsal, bras au-dessus de la tête",
+   "contention": "Matelas ou cale genoux",
+   "preparation": "À jeun",
+   "scanner": "Injecté ; 4D si mobilité",
+   "imagerie": "Imagerie du bilan, comptes rendus opératoire et histologique",
+   "reperes": "Clips chirurgicaux"
+  }
+ ],
+ "volumes": [
+  {
+   "id": "vol-foie-sbrt",
+   "cibles": [
+    {
+     "nom": "GTV",
+     "type": "GTV",
+     "definition": "Lésion visible en IRM et scanner multiphasique (temps artériel et portal)",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "ITV",
+     "type": "ITV",
+     "definition": "Réunion des GTV sur le cycle respiratoire",
+     "quand": "Respiration libre (4D)"
+    },
+    {
+     "nom": "PTV",
+     "type": "PTV",
+     "definition": "ITV (ou GTV en inspiration bloquée) + marge selon le contrôle du mouvement et l'IGRT",
+     "quand": "Toujours"
+    }
+   ],
+   "atlas": [],
+   "oar_ids": [
+    "oar-foie",
+    "oar-rein-d",
+    "oar-rein-g",
+    "oar-moelle",
+    "oar-canal-medullaire",
+    "oar-grele",
+    "oar-duodenum",
+    "oar-colon",
+    "oar-estomac",
+    "oar-coeur",
+    "oar-oesophage",
+    "oar-poumons",
+    "oar-cotes",
+    "oar-voie-biliaire",
+    "oar-gros-vaisseaux"
+   ]
+  },
+  {
+   "id": "vol-foie-tvp",
+   "cibles": [
+    {
+     "nom": "GTV",
+     "type": "GTV",
+     "definition": "Tumeur et thrombus tumoral vasculaire",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "PTV",
+     "type": "PTV",
+     "definition": "GTV + marge selon le mouvement et l'IGRT",
+     "quand": "Toujours"
+    }
+   ],
+   "atlas": [],
+   "oar_ids": [
+    "oar-foie",
+    "oar-rein-d",
+    "oar-rein-g",
+    "oar-moelle",
+    "oar-duodenum",
+    "oar-estomac"
+   ]
+  },
+  {
+   "id": "vol-foie-cca-adj",
+   "cibles": [
+    {
+     "nom": "CTV aires",
+     "type": "CTV",
+     "definition": "Aires ganglionnaires régionales",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "CTV lit tumoral",
+     "type": "CTV",
+     "definition": "Lit tumoral",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "PTV",
+     "type": "PTV",
+     "definition": "CTV + marge selon le mouvement et l'IGRT",
+     "quand": "Toujours"
+    }
+   ],
+   "atlas": [
+    {
+     "nom": "ESTRO ACROP aires ganglionnaires digestives hautes 2021"
+    }
+   ],
+   "oar_ids": [
+    "oar-foie",
+    "oar-rein-d",
+    "oar-rein-g",
+    "oar-moelle",
+    "oar-duodenum",
+    "oar-estomac",
+    "oar-grele"
+   ]
+  },
+  {
+   "id": "vol-foie-cca-ihc",
+   "cibles": [
+    {
+     "nom": "GTV",
+     "type": "GTV",
+     "definition": "Tumeur visible",
+     "quand": "Toujours"
+    },
+    {
+     "nom": "PTV",
+     "type": "PTV",
+     "definition": "GTV ou ITV + marge selon la technique",
+     "quand": "Toujours"
+    }
+   ],
+   "atlas": [],
+   "oar_ids": [
+    "oar-foie",
+    "oar-rein-d",
+    "oar-rein-g",
+    "oar-moelle",
+    "oar-duodenum",
+    "oar-estomac",
+    "oar-grele",
+    "oar-colon"
+   ]
+  }
+ ],
+ "curie_indications": [],
+ "systemique": [
+  {
+   "situation": "foie-chc",
+   "traitement": "Sorafénib après la SBRT (RTOG 1112)",
+   "protocole": "Sorafénib (CHC)",
+   "situation_id": "foie-chc",
+   "essai_ids": [
+    "rtog1112"
+   ],
+   "note": "Essai arrêté tôt : le traitement systémique de première ligne a changé"
+  },
+  {
+   "situation": "foie-cca-adj",
+   "traitement": "Gemcitabine 1000 mg/m² J1, J8 + capécitabine 1500 mg/m²/j J1–J14, toutes les 3 semaines × 4, puis capécitabine 1330 mg/m²/j pendant la RT",
+   "protocole": "Gemcitabine-capécitabine puis capécitabine concomitante à la RT (voies biliaires)",
+   "situation_id": "foie-cca-adj",
+   "essai_ids": [
+    "s0809"
+   ]
+  },
+  {
+   "situation": "foie-cca-adj",
+   "traitement": "Capécitabine adjuvante sans RT",
+   "protocole": "Capécitabine adjuvante (voies biliaires)",
+   "situation_id": "foie-cca-adj",
+   "essai_ids": [
+    "bilcap"
+   ],
+   "note": "Alternative de référence après résection"
+  }
+ ],
+ "hormonotherapie": [],
+ "points_attention": [
+  {
+   "cible": "foie",
+   "point": "Foie sain (foie moins GTV), dose moyenne : < 13 Gy (CHC, 3 fx), < 18 Gy (CHC, 6 fx), < 15 Gy (métastases, 3 fx), < 20 Gy (métastases, 6 fx). Au moins 700 cc ≤ 15 Gy en 3 à 5 fx (QUANTEC)",
+   "portee": "localisation"
+  },
+  {
+   "cible": "foie",
+   "point": "Child-Pugh B : dose moyenne au foie sain < 6 Gy en 4 à 6 Gy par fraction (QUANTEC)",
+   "portee": "localisation"
+  },
+  {
+   "cible": "foie",
+   "point": "Fractionnement classique : dose moyenne au foie sain < 28 Gy (CHC) ou < 32 Gy (métastases) en 2 Gy (QUANTEC)",
+   "portee": "localisation"
+  },
+  {
+   "cible": "foie-chc-40-5",
+   "point": "RTOG 1112 : SBRT avant sorafénib, SG médiane 15,8 vs 12,3 mois (HR 0,77, NS ; 0,72 après ajustement) et SSP 9,2 vs 5,5 mois",
+   "portee": "schema"
+  },
+  {
+   "cible": "foie-chc-tvp",
+   "point": "Chimio-embolisation + RT : SG 55 vs 43 semaines contre sorafénib (Yoon, essai randomisé monocentrique)",
+   "portee": "situation"
+  },
+  {
+   "cible": "foie-cca-ihc",
+   "point": "Cholangiocarcinome intrahépatique : la dose compte. BED10 > 80,5 Gy : SG à 3 ans 73 % vs 38 % (Tao)",
+   "portee": "situation"
+  },
+  {
+   "cible": "foie-meta",
+   "point": "Oligométastases : décision en RCP, toutes les lésions traitables (SABR-COMET)",
+   "portee": "situation"
+  }
+ ],
+ "textes": {}
+}
