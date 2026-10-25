@@ -636,7 +636,7 @@ Un lot par session ; chaque lot finit par ses tests verts, la feuille de route c
       référentiel cité dans « Copier » et « Ce que reçoivent les cabinets » (nombre de schémas modifiés du modèle, `listeCabinets` `nb.referentielRT`).
       Tests : `tests/emulateur/test-modele.mjs` 60/60 (dont 6 du référentiel : aperçu, copie, ancien retiré, cabinet modèle intact, journal, cabinet
       neuf, démonstration recréée) ; `tests/test_rtref_modele.py` 7/7 ; `node functions/test-*.js` verts. Rien de déployé (fonctions comprises).
-- [ ] **RT8 Dossier et mise en ligne** : lien « Référentiel › » de l'onglet Radiothérapie du dossier ; contrôle complet ; mise en ligne avec l'accord de
+- [x] **RT8 Dossier et mise en ligne** (**en ligne le 25/10/2026, version 20261025d**, site + règles + fonctions) : lien « Référentiel › » de l'onglet Radiothérapie du dossier ; contrôle complet ; mise en ligne avec l'accord de
       Dr Bentahila.
   - [x] (25/10/2026) Lien « Référentiel › » dans l'en-tête de l'onglet Radiothérapie (`htmlRT`, avec le module rt, la fonction et le droit ; aussi
         sans le droit d'ajouter une prescription) → `#radiotherapie/diag/<clinique.diag>` : la page traduit le diagnostic par `diag-localisation.json`
@@ -644,7 +644,9 @@ Un lot par session ; chaque lot finit par ses tests verts, la feuille de route c
         dossier. `voitRefRT` vérifie aussi le module rt. `tests/test_rtref_dossier.py` 12/12 (Chrome, Safari).
   - [x] (25/10/2026) **Contrôle complet vert** : `bash outils/avant-mise-en-ligne.sh --navigateur --regles` (181 contrôles : tous les parcours dans Chrome et
         Safari, dont les 7 du module, règles de sécurité, export et restauration, modèle de la spécialité sur les émulateurs).
-  - [ ] **Mise en ligne : attend l'accord de Dr Bentahila.** Quand elle le donne : copie propre (`git worktree`), changer `v2.js?v=` dans v2.html,
+  - [x] **Mise en ligne faite le 25/10/2026 avec l'accord de Dr Bentahila** (version 20261025d, copie propre `fd6e780`) : règles, fonctions (56 mises à jour,
+        aucune supprimée), site ; vérifié en ligne : v2.js et admin.js 20261025d, `donnees-rt/index.json` en `no-cache` (48 localisations, 295 schémas),
+        rapport de conversion non publié (404). Procédure suivie : copie propre (`git worktree`), changer `v2.js?v=` dans v2.html,
         `bash outils/avant-mise-en-ligne.sh --navigateur --regles`, puis **trois** déploiements : `firebase deploy --only hosting` (site + `donnees-rt`),
         `firebase deploy --only firestore:rules` (règles `referentielRT`, RT1) et `firebase deploy --only functions` (RT7 : modèle, cabinet neuf,
         `DROITS_BIB`, `NIVEAUX`). Après : ouvrir Radiothérapie dans le cabinet, puis « Ajuster le modèle » (Administration).
