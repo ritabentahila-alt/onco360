@@ -376,7 +376,7 @@ Avant le **premier client payant** : société éditrice, projet Firebase et nom
       les cancers » pour tout voir ; correspondance localisation → indications des protocoles dans `moteur/recherche.js` (`filtreLocalisation`,
       `filtreValide` : seulement des valeurs de la bibliothèque du cabinet) ; test-recherche 13/13.
 
-## Demandes du 24 et 25/10/2026 : en-têtes, menu, bibliothèques, remplaçant, dossier patient (lots B, D, C, A, E ; testé ; **pas en ligne**)
+## Demandes du 24 et 25/10/2026 : en-têtes, menu, bibliothèques, remplaçant, dossier patient (lots B, D, C, A, E ; testé ; **en ligne le 25/10/2026, version 20261025f**)
 Fiche des lots (Claude Doc « Onco360 — Lot Dossier patient, en-têtes et rôle Remplaçant », préparée avec Hamza Benzekri pour Dr Bentahila) ;
 ordre B, D, C, A puis E. **Ces demandes passent avant ce plan quand elles le contredisent** (voir « Changements de décision » ci-dessous).
 - [x] **Lot B (en-têtes et barres d'outils)** : titre et sous-titre retirés en haut de Agenda, Salle d'attente, Patients, Tâches, RCP, Protocoles,
@@ -392,7 +392,7 @@ ordre B, D, C, A puis E. **Ces demandes passent avant ce plan quand elles le con
 - [x] **Lot C (rôle « Médecin remplaçant »)** : mêmes droits et établissements que le titulaire (recopiés et tenus à jour par le serveur),
       tout au nom du titulaire (consultations, ordonnances, signature, tâches, reçus ; le journal d'audit garde la vraie personne), accès pour une
       période (règles : `periodeOk`) ou sans limite, 3 par formule. Tests `functions/test-cabinets.js`, `tests/regles/test-remplacant.mjs`
-      (**à lancer sur le Mac** : `cd tests/regles && npm test`, l'émulateur n'a pas pu être téléchargé dans la session qui a écrit le lot),
+      (lancé sur le Mac le 25/10/2026 : 16/16, `cd tests/regles && npm test`),
       `tests/test_remplacant.py`.
 - [x] **Lot A (dossier patient retouché)** : bloc patient en haut de la colonne Patient (plus de bandeau ; réglage « En-tête du dossier » retiré,
       les réglages enregistrés sont gardés et ignorés) ; « ‹ Patients » dans la barre du haut ; recherche du haut = 8 derniers dossiers
@@ -418,6 +418,14 @@ ordre B, D, C, A puis E. **Ces demandes passent avant ce plan quand elles le con
         ✕ en haut à droite, Échap ferme, Annuler / Fermer (secondaire) puis l'action (principal) en bas à droite ; états vides : une phrase grise
         centrée et un bouton. Les autres pages gardent `bt …` jusqu'à la validation. Test `tests/test_lot_e.py` (390, 900, 1 280, 1 600 px,
         contraste d'au moins 4,5 pour 1).
+  - [x] **Mise en ligne 20261025f** (25/10/2026, à la demande de Dr Bentahila, sans attendre son retour) : patchs 0001 à 0006 rejoués à la main sur
+        main (écrits sur b1dbbe2 ; conflits de la liste des tests, des styles, du journal et de test_rtref_modele réglés), `appliquerProtocolesRT`
+        (référentiel RT, arrivé entre-temps) ouvert au remplaçant (`estMed`), test_rtref patient dans Safari ; contrôle complet --navigateur --regles
+        vert (seul test_rtref Safari rouge par lenteur, vert seul et après correction), règles 17 suites (test-remplacant 16/16), test-cabinets 101/101,
+        13 tests hors de la suite verts ; mis en ligne depuis une copie propre de 3927e4a : règles, 56 fonctions (6 fonctions de nuit relancées après une
+        erreur IAM passagère), site. **La page Tâches du lot E est donc en ligne : à regarder par Dr Bentahila** (si elle ne convient pas, on la retire).
+        Points à trancher : LISEZMOI des lots (4 colonnes à 1 600 px, médicaments vendus au Maroc, statut du patient, nom « Rendez-vous » dans
+        Google Agenda, menu du dossier en icônes, « + Prescrire » sur téléphone, stades et grades du modèle, couleur d'Urgent / À réattribuer).
   - [ ] Après validation : les familles `bt plein`, `bt clair`, `bt gris`, `mini`, `rond`, `ico vert`… ramenées à `b1` / `b2` / `b3` dans
         v2.html et sur toutes les pages ; tailles écrites dans les pages remplacées par les quatre variables ; aide, fenêtres et états vides au
         même modèle partout.
