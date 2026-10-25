@@ -1160,6 +1160,23 @@ details.vig-b>summary::-webkit-details-marker{display:none}.vig-d{font-size:var(
 .rtr-ln{display:flex;gap:10px;flex:none}.rtr-ln a{color:var(--prim);font-size:var(--t3);font-weight:bold;text-decoration:none}.rtr-ed{padding:4px 4px 10px 4px}
 .rtr-c [hidden]{display:none}.rtr-ic{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;margin:10px 0 14px}.rtr-ic label{font-weight:normal;display:flex;gap:6px;align-items:center}
 .rtr.seule .rtr-tab th{top:64px}
+/* Lot RTR, RT6 (25/10/2026) : sous-pages (Organes à risque, Contraintes, Essais) et calcul BED / EQD2 ; lien « EQD2 » des lignes de prescription */
+.rtr-sous{align-self:flex-start;margin-bottom:2px}.rtr-sh{position:static;margin:0}.rtr-sl{margin-top:10px}.rtr-sl.rtr-liste{padding:6px 12px}
+.rtr-clic{cursor:pointer}.rtr-clic:hover td,.rtr-clic:focus td{background:var(--prim-c)}.rtr-det td{background:var(--fond-doux);font-size:var(--t4)}.rtr-det p{margin:4px 0}.rtr-det a{color:var(--prim)}
+.rtr-tri{border:0;background:none;padding:0;font:inherit;color:inherit;cursor:pointer;white-space:nowrap}.rtr-tri.on{color:var(--prim)}
+.rtr-eqd{font-size:var(--t2);font-weight:bold;color:var(--prim);text-decoration:none;margin-left:4px;white-space:nowrap}.rtr-eqd.off{color:var(--gris-m);cursor:help}
+.rtr-calc{max-width:820px}.rtr-calc h3{margin:0 0 8px;font-size:var(--t5);color:var(--titre)}
+.rtr-cl{display:flex;align-items:flex-end;gap:12px;margin:0 0 8px;flex-wrap:wrap}.rtr-cl label{display:flex;flex-direction:column;gap:4px;font-size:var(--t3);font-weight:bold;color:var(--doux)}.rtr-cl .rtr-in{width:130px;max-width:none}
+.rtr-cto{min-width:80px;padding-bottom:10px}.rtr-ctot{font-weight:bold;margin:4px 0 10px}.rtr-calc .rtr-in.err{border-color:var(--rouge);background:var(--rouge-c)}
+.rtr-cres th[scope=row]{white-space:nowrap;color:var(--encre);font-size:var(--t4);position:static;background:none;text-align:left}.rtr-cres .rtr-in{width:76px;max-width:76px;display:inline-block;padding:5px 6px}
+.rtr-cres .rtr-x{width:64px;max-width:64px;margin:0 4px}.rtr-cres tr.rtr-eqd td,.rtr-cres tr.rtr-eqd th{font-weight:bold;font-size:var(--t6)}.rtr-cres td.n{font-size:var(--t5)}
+.rtr-calc .sm{display:none}.rtr-cdet{margin:10px 0}.rtr-cdet summary{cursor:pointer;font-weight:bold;color:var(--prim);min-height:32px}
+@media (max-width:640px){
+  .rtr-cl{flex-wrap:nowrap;gap:8px}.rtr-cl label{flex:1;min-width:0}.rtr-cl .rtr-in{width:100%}.rtr-cto{display:none}
+  .rtr-calc .lg{display:none}.rtr-calc .sm{display:inline}.rtr-tab.rtr-cres thead{display:table-header-group}.rtr-tab.rtr-cres{display:table;width:100%}.rtr-tab.rtr-cres tbody{display:table-row-group}.rtr-tab.rtr-cres tr{display:table-row}.rtr-tab.rtr-cres td,.rtr-tab.rtr-cres th{display:table-cell;padding:6px 4px;border-bottom:1px solid var(--trait)}
+  .rtr-tab.rtr-cres td[data-l]::before{display:none}.rtr-tab.rtr-cres .n{text-align:right}.rtr-cres .rtr-in{width:52px;max-width:52px}.rtr-cres .rtr-x{width:46px;max-width:46px;margin:0 2px}.rtr-cres td.n{text-align:right}
+  .rtr-ot td:first-child{grid-column:1 / -1}
+}
 /* Lot RTR, RT5 (25/10/2026) : modification pour le cabinet (champs, champ changé, contrôles, barre du bas, annulation 10 s, comparaison) */
 .rtr-tel{display:none!important}.rtr-pts3.seul{display:none}.rtr-pts3{display:inline-block}.m3-l .mini.rouge-t{color:var(--rouge)}
 .rtr-in{width:100%;padding:8px 9px;border:1px solid var(--bord-champ);border-radius:8px;font-size:var(--t4);background:var(--carte);color:var(--encre);font-family:inherit}

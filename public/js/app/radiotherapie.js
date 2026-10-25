@@ -10,7 +10,7 @@
 // Fiche (RT4) : à partir de 1 280 px, à droite de la liste ; en dessous, page entière avec Retour.
 import { collection, doc, getDocs, setDoc, deleteDoc, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { db } from "../config.js";
-import { fusionner, trier, chercher, motBloquant, termes, sansAcc, resumePrescription, fmtPrescription, controlePrescription, nombre, libPreuve, nb, TYPES, FRACTIONNEMENTS, CONTEXTES } from "../moteur/rtref.js";
+import { fusionner, trier, chercher, motBloquant, termes, sansAcc, resumePrescription, fmtPrescription, controlePrescription, nombre, calculBED, calculable, fixe, libPreuve, nb, TYPES, FRACTIONNEMENTS, CONTEXTES } from "../moteur/rtref.js";
 import { idProtocole } from "./protocoles.js";
 
 let A = null, INDEX = null, CAB = null, LISTE = null, ERREUR = null, CHARGE = null;
@@ -178,8 +178,9 @@ const ongletDe = (o) => (ONGLETS.some((x) => x[0] === o) ? o : "prescription");
 window.rtrOuvrir = (id) => { RF.y = window.scrollY; location.hash = "radiotherapie/s/" + encodeURIComponent(id) + "/" + ongletDe(profil().rtOnglet); };
 window.rtrRetour = () => { location.hash = "radiotherapie"; };
 window.rtrOnglet = (o) => { if (ED) { FICHE.onglet = o; dessinerFiche(); return; } if (profil().rtOnglet !== o) noter({ rtOnglet: o }); location.hash = "radiotherapie/s/" + encodeURIComponent(RF.ouvert) + "/" + o; };
-let ESSAIS = null;
-const chargerBibs = () => BIBS || (BIBS = Promise.all(["oar.json", "contraintes.json", "essais.json"].map(json)).then(([o, c, e]) => { ESSAIS = {}; e.essais.forEach((x) => { ESSAIS[x.id] = x.acronyme; }); return { oar: o.oar, jeux: c.jeux, aide: c.aide_colonnes, essais: e.essais }; }).catch((e) => { BIBS = null; throw e; }));
+// BB : bibliothèques lues (OAR, jeux de contraintes et aide des colonnes, essais), communes à la fiche et aux sous-pages
+let ESSAIS = null, BB = null;
+const chargerBibs = () => BIBS || (BIBS = Promise.all(["oar.json", "contraintes.json", "essais.json"].map(json)).then(([o, c, e]) => { ESSAIS = {}; e.essais.forEach((x) => { ESSAIS[x.id] = x.acronyme; }); BB = { oar: o.oar, jeux: c.jeux, aide: c.aide_colonnes, essais: e.essais }; return BB; }).catch((e) => { BIBS = null; throw e; }));
 const acronymeDe = (id) => (ESSAIS && ESSAIS[id]) || id;
 async function ouvrirFiche(id, onglet) {
   const e = LISTE.find((x) => x.id === id), z = $("rtrFiche"); if (!z) return;
@@ -209,9 +210,9 @@ const textes = (k) => ((FICHE.loc.textes || {})[k] || []).map((p) => '<p class="
 const vide = (note) => "—" + (note ? " " + (IMPRESSION ? '<span class="mesures">' + A.esc(note) + "</span>" : '<button type="button" class="rtr-aide" title="' + A.esc(note) + '" aria-label="Note" onclick="rtrPlus2(this,event)">?</button><span class="mesures" hidden> ' + A.esc(note) + "</span>") : "");
 window.rtrPlus2 = (b, ev) => { if (ev) ev.stopPropagation(); b.hidden = true; b.nextSibling.hidden = false; };
 const num = (v, suf) => (typeof v === "number" && isFinite(v) ? nb(v) + (suf || "") : null);
-const essai = (id) => FICHE.B.essais.find((x) => x.id === id);
+const essai = (id) => BB.essais.find((x) => x.id === id);
 const acronymes = (ids) => (ids || []).map((i) => (essai(i) || {}).acronyme || i).join(", ");
-const oar = (id) => (id === "cible-ctv" ? { nom: "Cible (CTV)" } : id === "cible-ptv" ? { nom: "Cible (PTV)" } : FICHE.B.oar.find((o) => o.id === id) || { nom: id });
+const oar = (id) => (id === "cible-ctv" ? { nom: "Cible (CTV)" } : id === "cible-ptv" ? { nom: "Cible (PTV)" } : BB.oar.find((o) => o.id === id) || { nom: id });
 // Lien vers Protocoles : par le nom exact, sinon la page filtrée sur la localisation ; sans module chimio ni la fonction : le nom seul
 function lienProtocole(nom) {
   const esc = A.esc; if (!nom) return "";
@@ -226,7 +227,7 @@ function tablePrescription(L) {
   return '<div class="rtr-tw"><table class="rtr-tab"><thead><tr><th>Volume</th><th class="n">Dose totale (Gy)</th><th class="n">Séances</th><th class="n">Dose par séance (Gy)</th><th>Mode</th><th>Rythme</th></tr></thead><tbody>' +
     L.map((p) => "<tr" + (p.mode === "SIB" ? ' class="sib"' : "") + '><td data-l="Volume"><b>' + esc(p.volume || "") + "</b>" + (p.note ? '<div class="mesures">' + court(p.note) + "</div>" : "") + "</td>" +
       '<td class="n" data-l="Dose totale (Gy)">' + (num(p.dose_Gy) || vide(p.note)) + '</td><td class="n" data-l="Séances">' + (num(p.fractions) || "—") + '</td><td class="n" data-l="Dose par séance (Gy)">' + (num(p.dose_fx_Gy) || "—") + "</td>" +
-      '<td data-l="Mode">' + esc(MODES[p.mode] || p.mode || "") + '</td><td data-l="Rythme">' + court(p.rythme || "", 40) + "</td></tr>").join("") + "</tbody></table></div>";
+      '<td data-l="Mode">' + esc(MODES[p.mode] || p.mode || "") + '</td><td data-l="Rythme">' + court(p.rythme || "", 40) + (IMPRESSION ? "" : calculable(p) ? ' <a class="rtr-eqd" href="#radiotherapie/calcul/' + p.dose_fx_Gy + "/" + p.fractions + '" title="Calcul BED / EQD2 prérempli">EQD2</a>' : ' <span class="rtr-eqd off" title="Calcul non applicable : PDR, LDR ou dose à définir">EQD2</span>') + "</td></tr>").join("") + "</tbody></table></div>";
 }
 function lignesSyst(rows, champ) {
   const esc = A.esc, s = FICHE.schema;
@@ -268,13 +269,13 @@ function ongletContourage() {
   return h + textes("contourage");
 }
 // Contraintes : un bloc par jeu, lignes groupées par OAR ; « ? » d'Idéal et de Limitant tirés de aide_colonnes
-const jeuxDe = () => (FICHE.schema.contraintes_ids || []).map((id) => FICHE.B.jeux.find((j) => j.id === id)).filter(Boolean);
-function aideDe(j) { const A2 = FICHE.B.aide || []; return A2.find((a) => a.source_contient !== "defaut" && String(j.source || "").indexOf(a.source_contient) >= 0) || A2.find((a) => a.source_contient === "defaut") || {}; }
+const jeuxDe = () => (FICHE.schema.contraintes_ids || []).map((id) => BB.jeux.find((j) => j.id === id)).filter(Boolean);
+function aideDe(j) { const A2 = BB.aide || []; return A2.find((a) => a.source_contient !== "defaut" && String(j.source || "").indexOf(a.source_contient) >= 0) || A2.find((a) => a.source_contient === "defaut") || {}; }
 function groupes(j) { const g = []; j.lignes.forEach((l) => { const d = g[g.length - 1]; if (d && d.oar === l.oar_id) d.l.push(l); else g.push({ oar: l.oar_id, l: [l] }); }); return g; }
 function tableJeu(j, i) {
   const esc = A.esc, a = aideDe(j), aide = (t) => (t && !IMPRESSION ? ' <span class="rtr-aide" tabindex="0" title="' + esc(t) + '">?</span>' : "");
   return '<section class="rtr-jeu" id="rtrJeu' + i + '"><div class="rtr-jt"><div><h4>' + esc(j.titre) + '</h4><p class="mesures">' + esc([j.fractionnement, j.source].filter(Boolean).join(" · ")) + "</p></div>" +
-    (IMPRESSION ? "" : '<button type="button" class="mini rtr-cp" onclick="rtrCopierJeu(' + i + ')">' + A.ic("copier") + "Copier</button>") + "</div>" +
+    (IMPRESSION ? "" : '<button type="button" class="mini rtr-cp" onclick="rtrCopierJeu(\'' + esc(j.id) + '\')">' + A.ic("copier") + "Copier</button>") + "</div>" +
     '<div class="rtr-tw"><table class="rtr-tab rtr-ct"><thead><tr><th>Organe</th><th>Indicateur</th><th class="n">Idéal' + aide(a.ideal) + '</th><th class="n">Limitant' + aide(a.limitant) + "</th><th>Note</th></tr></thead><tbody>" +
     groupes(j).map((g) => { const o = oar(g.oar); return g.l.map((l, k) => '<tr class="' + (k ? "" : "g1") + '">' + (k ? "" : '<td class="o" rowspan="' + g.l.length + '" data-l="Organe"><b>' + esc(o.nom) + "</b>" + (o.nom_tg263 ? '<br><span class="mesures">' + esc(o.nom_tg263) + "</span>" : "") + "</td>") +
       '<td data-l="Indicateur">' + esc(l.indicateur || "") + '</td><td class="n" data-l="Idéal">' + esc(l.ideal || "") + '</td><td class="n lim" data-l="Limitant">' + esc(l.limitant || "") + '</td><td data-l="Note">' + court(l.note || "", 60) + "</td></tr>").join(""); }).join("") + "</tbody></table></div></section>";
@@ -283,8 +284,8 @@ function ongletContraintes() {
   const J = jeuxDe(), esc = A.esc; if (!J.length) return '<p class="vide-c">Aucun jeu publié pour ce fractionnement</p>';
   return (J.length > 1 ? '<div class="rtr-raccourcis">' + J.map((j, i) => '<button type="button" class="mini" onclick="document.getElementById(\'rtrJeu' + i + '\').scrollIntoView({block:\'start\'})">' + esc(j.titre) + "</button>").join("") + "</div>" : "") + J.map(tableJeu).join("");
 }
-window.rtrCopierJeu = (i) => {
-  const j = jeuxDe()[i]; if (!j) return;
+window.rtrCopierJeu = (id) => {
+  const j = BB.jeux.find((x) => x.id === id); if (!j) return;
   const t = [[j.titre, j.fractionnement || "", j.source || ""].join("\t"), ["Organe", "TG-263", "Indicateur", "Idéal", "Limitant", "Note"].join("\t")]
     .concat(j.lignes.map((l) => { const o = oar(l.oar_id); return [o.nom, o.nom_tg263 || "", l.indicateur || "", l.ideal || "", l.limitant || "", l.note || ""].join("\t"); })).join("\n");
   copier(t, "Tableau copié");
@@ -421,7 +422,7 @@ document.addEventListener("change", (ev) => {
   const t = ev.target; if (!ED || !t.closest || !t.closest("#rtrFiche")) return;
   if (t.dataset.p && t.tagName === "SELECT") { poser(t.dataset.p, t.value); dessinerFiche(); }
   else if (t.dataset.jeu) { const L = ED.schema.contraintes_ids = ED.schema.contraintes_ids || [], i = L.indexOf(t.dataset.jeu); if (t.checked && i < 0) L.push(t.dataset.jeu); if (!t.checked && i >= 0) L.splice(i, 1); majEtat(); }
-  else if (t.id === "rtrAjEssai") { const x = FICHE.B.essais.find((e) => libEssai(e) === t.value); if (x) { const L = ED.schema.essai_ids = ED.schema.essai_ids || []; if (L.indexOf(x.id) < 0) L.push(x.id); dessinerFiche(); } else t.value = ""; }
+  else if (t.id === "rtrAjEssai") { const x = BB.essais.find((e) => libEssai(e) === t.value); if (x) { const L = ED.schema.essai_ids = ED.schema.essai_ids || []; if (L.indexOf(x.id) < 0) L.push(x.id); dessinerFiche(); } else t.value = ""; }
 });
 async function garde() {
   if (!ED || (!differences().length && !ED.nouveau)) { finEdition(); return true; }
@@ -564,12 +565,12 @@ function editContourage() {
 function editContraintes() {
   const esc = A.esc, on = ED.schema.contraintes_ids || [];
   return '<label class="rtr-lab">Jeux de contraintes liés<input type="search" class="rtr-in" placeholder="Filtrer (organe, source, fractionnement)" oninput="rtrFiltreJeux(this.value)"></label><div class="rtr-jeux">' +
-    FICHE.B.jeux.map((j) => '<label><input type="checkbox" data-jeu="' + esc(j.id) + '"' + (on.indexOf(j.id) >= 0 ? " checked" : "") + ' style="width:auto"> <b>' + esc(j.titre) + '</b> <span class="mesures">' + esc([j.fractionnement, j.source].filter(Boolean).join(" · ")) + "</span></label>").join("") + "</div>";
+    BB.jeux.map((j) => '<label><input type="checkbox" data-jeu="' + esc(j.id) + '"' + (on.indexOf(j.id) >= 0 ? " checked" : "") + ' style="width:auto"> <b>' + esc(j.titre) + '</b> <span class="mesures">' + esc([j.fractionnement, j.source].filter(Boolean).join(" · ")) + "</span></label>").join("") + "</div>";
 }
 function editEssais() {
   const esc = A.esc, L = (ED.schema.essai_ids || []).map(essai).filter(Boolean);
   return '<ul class="rtr-sys">' + L.map((x) => "<li><b>" + esc(x.acronyme) + '</b> <span class="mesures">' + esc([x.revue, x.annee].filter(Boolean).join(", ")) + '</span> <button type="button" class="mini" onclick="rtrRetEssai(\'' + esc(x.id) + '\')" aria-label="Retirer ' + esc(x.acronyme) + '">' + A.ic("croix") + "</button></li>").join("") + "</ul>" +
-    '<label class="rtr-lab">Ajouter un essai ou une référence de la bibliothèque<input id="rtrAjEssai" class="rtr-in" list="rtrEssaisL" placeholder="Acronyme (ex. CHHiP)"></label><datalist id="rtrEssaisL">' + FICHE.B.essais.map((x) => '<option value="' + esc(libEssai(x)) + '">').join("") + "</datalist>";
+    '<label class="rtr-lab">Ajouter un essai ou une référence de la bibliothèque<input id="rtrAjEssai" class="rtr-in" list="rtrEssaisL" placeholder="Acronyme (ex. CHHiP)"></label><datalist id="rtrEssaisL">' + BB.essais.map((x) => '<option value="' + esc(libEssai(x)) + '">').join("") + "</datalist>";
 }
 function editAttention() {
   const P = ED.schema.points_attention || [];
@@ -581,7 +582,7 @@ const EDITS = { prescription: editPrescription, centrage: editCentrage, contoura
 function lignesComparaison(a, b, na, nb2) {
   const P = (s) => (s.prescriptions || []), lp = (p) => p ? [p.volume, fmtPrescription(p).replace(/ /g, " "), MODES[p.mode] || p.mode, p.rythme, p.note].filter(Boolean).join(" · ") : "";
   const sim = (s) => { const m = (FICHE.loc.simulations || []).find((x) => x.id === s.simulation_id); return m ? m.position || m.id : ""; };
-  const jeux = (s) => (s.contraintes_ids || []).map((id) => (FICHE.B.jeux.find((j) => j.id === id) || { titre: id }).titre).join(" ; ");
+  const jeux = (s) => (s.contraintes_ids || []).map((id) => (BB.jeux.find((j) => j.id === id) || { titre: id }).titre).join(" ; ");
   const r = [["Titre", a.titre, b.titre], ["Fractionnement", TYPES[a.type], TYPES[b.type]], ["Preuve", libPreuve(a.preuve), libPreuve(b.preuve)]];
   for (let i = 0; i < Math.max(P(a).length, P(b).length); i++) r.push(["Prescription " + (i + 1), lp(P(a)[i]), lp(P(b)[i])]);
   return r.concat([["Technique", a.technique, b.technique], ["Traitement associé", a.systemique, b.systemique], ["Couverture", a.couverture, b.couverture], ["Centrage", sim(a), sim(b)], ["Volumes", a.volumes_id, b.volumes_id],
@@ -598,9 +599,151 @@ window.rtrComparer = () => {
 };
 window.rtrCmp = (b, v) => { b.parentNode.querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === b)); const t = document.querySelector(".rtr-cmp"); t.classList.toggle("voir-ref", v === "ref"); t.classList.toggle("voir-cab", v === "cab"); };
 
+// ───── Sous-pages (RT6, 25/10/2026) : Organes à risque, Contraintes, Essais, Calcul BED / EQD2 ─────
+// Onglets en haut de la page Radiothérapie (Référentiel · Organes à risque · Contraintes · Essais · Calcul BED / EQD2) ; adresses #radiotherapie/oar,
+// /contraintes, /essais, /calcul (/calcul/<dose par séance>/<séances> : prérempli depuis le lien « EQD2 » d'une ligne de prescription).
+// « Utilisé dans n schémas » et la région d'un jeu de contraintes demandent les 48 fichiers de localisation : lus à la première sous-page.
+const SOUS = [["", "Référentiel"], ["oar", "Organes à risque"], ["contraintes", "Contraintes"], ["essais", "Essais"], ["calcul", "Calcul BED / EQD2"]];
+const ongletsPage = (k) => '<div class="ag-vues defile rtr-sous" role="tablist">' + SOUS.map(([c, l]) => '<button role="tab" aria-selected="' + (c === k) + '" class="' + (c === k ? "on" : "") + '" onclick="location.hash=\'radiotherapie' + (c ? "/" + c : "") + "'\">" + l + "</button>").join("") + "</div>";
+let TOUT = null;
+const chargerTout = () => TOUT || (TOUT = Promise.all(INDEX.localisations.map((l) => locFichier(l.id))).catch((e) => { TOUT = null; throw e; }));
+// schémas de la référence (+ ceux du cabinet) avec leur fichier : qui cite quel OAR, quel jeu
+function schemasComplets() {
+  const r = [];
+  INDEX.localisations.forEach((l) => { const L = LOCS[l.id]; if (!L) return; L.schemas.forEach((s) => { const c = CAB[s.id]; r.push({ s: c && c.schema ? c.schema : s, L }); }); });
+  Object.keys(CAB).forEach((id) => { const c = CAB[id]; if (c.nouveau && c.schema && LOCS[c.localisation_id]) r.push({ s: c.schema, L: LOCS[c.localisation_id] }); });
+  return r;
+}
+const RS = { oarQ: "", oarR: "", jeu: "", jeuQ: "", essQ: "", essTri: "acronyme", essSens: 1 };
+const REGIONS_OAR = { orl: "Tête et cou", sein: "Sein", thorax: "Thorax", abdomen: "Abdomen", snc: "Système nerveux central", rachis: "Rachis", pelvis: "Pelvis" };
+// Organes à risque
+function pageOar() {
+  const esc = A.esc, B = BB;
+  const z = $("rtrSous"); if (!z) return;
+  if (!$("rtrOq")) {
+    z.innerHTML = '<div class="rtr-haut rtr-sh"><div class="recherche"><svg class="i"><use href="#i-loupe"/></svg><input id="rtrOq" type="search" autocomplete="off" placeholder="Rechercher un organe (français ou TG-263)" aria-label="Rechercher un organe" value="' + esc(RS.oarQ) + '"></div>' +
+      '<div class="cascade rtr-menus"><div><label for="rtrOr">Région</label><select id="rtrOr" onchange="RS_oar(\'r\',this.value)"><option value="">Toutes</option>' + Object.keys(REGIONS_OAR).map((k) => '<option value="' + k + '"' + (RS.oarR === k ? " selected" : "") + ">" + esc(REGIONS_OAR[k]) + "</option>").join("") + '</select></div></div></div><div class="rtr-liste rtr-sl" id="rtrOl"></div>';
+    $("rtrOq").oninput = (e) => { RS.oarQ = e.target.value; listeOar(); };
+  }
+  listeOar();
+}
+window.RS_oar = (k, v) => { if (k === "r") RS.oarR = v; listeOar(); };
+function listeOar() {
+  const z = $("rtrOl"); if (!z) return;
+  const esc = A.esc, q = sansAcc(RS.oarQ).trim(), L = BB.oar.filter((o) => (!RS.oarR || o.region === RS.oarR) && (!q || sansAcc(o.nom + " " + (o.nom_tg263 || "") + " " + (o.definition || "")).indexOf(q) >= 0));
+  z.innerHTML = '<p class="mesures rtr-nb">' + L.length + " organe" + (L.length > 1 ? "s" : "") + "</p>" + (L.length ? '<div class="rtr-tw"><table class="rtr-tab rtr-ot"><thead><tr><th>Nom</th><th>TG-263</th><th>Définition</th><th>Source</th></tr></thead><tbody>' +
+    L.map((o) => '<tr class="rtr-clic" tabindex="0" onclick="rtrDetailOar(this,\'' + esc(o.id) + '\')" onkeydown="if(event.key===\'Enter\')this.click()"><td data-l="Nom"><b>' + esc(o.nom) + '</b></td><td data-l="TG-263">' + esc(o.nom_tg263 || "") + '</td><td data-l="Définition">' + court(o.definition || "") + '</td><td data-l="Source">' + court(o.source || "", 40) + "</td></tr>").join("") + "</tbody></table></div>" : '<div class="vide-c">Aucun organe ne correspond</div>');
+}
+window.rtrDetailOar = async (tr, id) => {
+  const n = tr.nextElementSibling; if (n && n.classList.contains("rtr-det")) { n.remove(); return; }
+  const o = BB.oar.find((x) => x.id === id), esc = A.esc, d = document.createElement("tr"); d.className = "rtr-det";
+  d.innerHTML = '<td colspan="4"><p>' + esc(o.definition || "") + '</p><p class="mesures">Chargement…</p></td>'; tr.after(d);
+  try { await chargerTout(); } catch (e) { d.querySelector(".mesures").textContent = "Pas de connexion : réessayez"; return; }
+  const S2 = schemasComplets().filter(({ s, L }) => { const v = (L.volumes || []).find((x) => x.id === s.volumes_id); return v && (v.oar_ids || []).indexOf(id) >= 0; });
+  d.querySelector(".mesures").innerHTML = "Utilisé dans " + S2.length + " schéma" + (S2.length > 1 ? "s" : "") + (S2.length ? " : " + S2.slice(0, 12).map(({ s }) => '<a href="#radiotherapie/s/' + encodeURIComponent(s.id) + '/contourage">' + esc(s.titre) + "</a>").join(" · ") + (S2.length > 12 ? " · …" : "") : "");
+};
+// Contraintes : choix du jeu (recherche, groupé par région), puis le même tableau que dans la fiche
+function regionsJeux() {
+  const r = {}; schemasComplets().forEach(({ s, L }) => (s.contraintes_ids || []).forEach((j) => { if (!r[j]) r[j] = L.region_id; }));
+  return r;
+}
+async function pageContraintesRef() {
+  const z = $("rtrSous"); if (!z) return;
+  const esc = A.esc;
+  z.innerHTML = '<div class="rtr-ch">' + "<i></i>".repeat(3) + "</div>";
+  try { await chargerTout(); } catch (e) { z.innerHTML = erreurHtml(); return; }
+  const reg = regionsJeux(), Rg = INDEX.regions.slice().sort((a, b) => a.ordre - b.ordre), q = sansAcc(RS.jeuQ);
+  const lib = (j) => j.titre + (j.fractionnement ? " — " + j.fractionnement : "") + (j.source ? " — " + j.source : "");
+  const J = BB.jeux.filter((j) => !q || sansAcc(lib(j)).indexOf(q) >= 0);
+  const groupe = (rid, nom) => { const g = J.filter((j) => (reg[j.id] || "") === rid); return g.length ? '<optgroup label="' + esc(nom) + '">' + g.map((j) => '<option value="' + esc(j.id) + '"' + (j.id === RS.jeu ? " selected" : "") + ">" + esc(lib(j)) + "</option>").join("") + "</optgroup>" : ""; };
+  z.innerHTML = '<div class="rtr-haut rtr-sh"><div class="recherche"><svg class="i"><use href="#i-loupe"/></svg><input id="rtrJq" type="search" autocomplete="off" placeholder="Rechercher un jeu (organe, source, fractionnement)" aria-label="Rechercher un jeu de contraintes" value="' + esc(RS.jeuQ) + '"></div>' +
+    '<div class="cascade rtr-menus"><div><label for="rtrJs">Jeu de contraintes (' + J.length + ')</label><select id="rtrJs" onchange="RS_jeu(this.value)"><option value="">Choisir…</option>' + Rg.map((r) => groupe(r.id, r.nom)).join("") + groupe("", "Autres") + "</select></div></div></div>" +
+    '<div class="rtr-fiche rtr-sl" id="rtrJt">' + (RS.jeu && BB.jeux.find((j) => j.id === RS.jeu) ? tableJeu(BB.jeux.find((j) => j.id === RS.jeu), 0) : '<div class="vide-c">' + BB.jeux.length + " jeux de contraintes</div>") + "</div>";
+  const i = $("rtrJq"); i.oninput = () => { RS.jeuQ = i.value; clearTimeout(i.t); i.t = setTimeout(() => { pageContraintesRef().then(() => { const k = $("rtrJq"); if (k) { k.focus(); k.setSelectionRange(k.value.length, k.value.length); } }); }, 200); };
+}
+window.RS_jeu = (v) => { RS.jeu = v; const z = $("rtrJt"), j = BB.jeux.find((x) => x.id === v); if (z) z.innerHTML = j ? tableJeu(j, 0) : ""; };
+// Essais : tableau triable (acronyme, année, localisation, revue), recherche ; détail : population, bras, schémas qui le citent
+function citants(x) { return LISTE.filter((e) => (e.essais || []).indexOf(x.acronyme) >= 0); }
+function pageEssaisRef() {
+  const z = $("rtrSous"); if (!z) return;
+  const esc = A.esc;
+  if (!$("rtrEq")) {
+    z.innerHTML = '<div class="rtr-haut rtr-sh"><div class="recherche"><svg class="i"><use href="#i-loupe"/></svg><input id="rtrEq" type="search" autocomplete="off" placeholder="Rechercher un essai (acronyme, revue, population, résultat)" aria-label="Rechercher un essai" value="' + esc(RS.essQ) + '"></div></div><div class="rtr-liste rtr-sl" id="rtrEl"></div>';
+    $("rtrEq").oninput = (e) => { RS.essQ = e.target.value; listeEssais(); };
+  }
+  listeEssais();
+}
+window.RS_tri = (k) => { if (RS.essTri === k) RS.essSens = -RS.essSens; else { RS.essTri = k; RS.essSens = k === "annee" ? -1 : 1; } listeEssais(); };
+function listeEssais() {
+  const z = $("rtrEl"); if (!z) return;
+  const esc = A.esc, q = sansAcc(RS.essQ).trim(), locsDe = (x) => [...new Set(citants(x).map((e) => (loc(e.localisation_id) || {}).nom))].join(", ");
+  const L = BB.essais.map((x) => ({ x, locs: locsDe(x) })).filter(({ x, locs }) => !q || sansAcc([x.acronyme, x.revue, x.annee, x.population, x.bras, x.resultat, locs].join(" ")).indexOf(q) >= 0);
+  const v = { acronyme: ({ x }) => sansAcc(x.acronyme), annee: ({ x }) => x.annee || 0, localisation: ({ locs }) => sansAcc(locs || "zzz"), revue: ({ x }) => sansAcc(x.revue || "") }[RS.essTri];
+  L.sort((a, b) => (v(a) < v(b) ? -1 : v(a) > v(b) ? 1 : 0) * RS.essSens);
+  const th = (k, l) => '<th><button type="button" class="rtr-tri' + (RS.essTri === k ? " on" : "") + '" onclick="RS_tri(\'' + k + '\')" aria-sort="' + (RS.essTri === k ? (RS.essSens > 0 ? "ascending" : "descending") : "none") + '">' + l + (RS.essTri === k ? (RS.essSens > 0 ? " ▲" : " ▼") : "") + "</button></th>";
+  z.innerHTML = '<p class="mesures rtr-nb">' + L.length + " essai" + (L.length > 1 ? "s" : "") + " et références</p>" + (L.length ? '<div class="rtr-tw"><table class="rtr-tab rtr-et2"><thead><tr>' + th("acronyme", "Acronyme") + th("annee", "Année") + th("localisation", "Localisation") + th("revue", "Revue") + "</tr></thead><tbody>" +
+    L.slice(0, 300).map(({ x, locs }) => '<tr class="rtr-clic" tabindex="0" onclick="rtrDetailEssai(this,\'' + esc(x.id) + '\')" onkeydown="if(event.key===\'Enter\')this.click()"><td data-l="Acronyme"><b>' + esc(x.acronyme) + '</b></td><td class="n" data-l="Année">' + esc(x.annee || "") + '</td><td data-l="Localisation">' + court(locs || "—", 50) + '</td><td data-l="Revue">' + esc(x.revue || "") + "</td></tr>").join("") + "</tbody></table></div>" + (L.length > 300 ? '<p class="mesures rtr-nb">Affinez la recherche pour voir les ' + (L.length - 300) + " autres.</p>" : "") : '<div class="vide-c">Aucun essai ne correspond</div>');
+}
+window.rtrDetailEssai = (tr, id) => {
+  const n = tr.nextElementSibling; if (n && n.classList.contains("rtr-det")) { n.remove(); return; }
+  const x = BB.essais.find((e) => e.id === id), esc = A.esc, C = citants(x), d = document.createElement("tr"); d.className = "rtr-det";
+  const liens = [].concat(x.pmid ? [x.pmid] : [], x.pmid_suite || []).map((p) => '<a href="https://pubmed.ncbi.nlm.nih.gov/' + esc(p) + '/" target="_blank" rel="noopener">PubMed ' + esc(p) + "</a>").concat([].concat(x.doi ? [x.doi] : [], x.doi_suite || []).map((o) => '<a href="https://doi.org/' + esc(o) + '" target="_blank" rel="noopener">DOI</a>')).join(" · ");
+  d.innerHTML = '<td colspan="4">' + (x.resultat ? "<p>" + esc(x.resultat) + "</p>" : "") + (x.population ? '<p><span class="mesures">Population</span> ' + esc(x.population) + "</p>" : "") + (x.bras ? '<p><span class="mesures">Bras</span> ' + esc(x.bras) + "</p>" : "") + (liens ? "<p>" + liens + "</p>" : "") +
+    '<p class="mesures">Cité par ' + C.length + " schéma" + (C.length > 1 ? "s" : "") + (C.length ? " : " + C.slice(0, 12).map((e) => '<a href="#radiotherapie/s/' + encodeURIComponent(e.id) + '/essais">' + esc(e.titre) + "</a>").join(" · ") + (C.length > 12 ? " · …" : "") : "") + "</p></td>";
+  tr.after(d);
+};
+// Calcul BED / EQD2 : un seul écran, tout se recalcule pendant la frappe (moteur/rtref.js calculBED) ; valeurs gardées pendant la session
+const CALC0 = () => ({ lignes: [{ d: "", n: "" }], ab: ["1,5", "3", "10"], x: "2,0", N: "25" });
+let CALC = CALC0();
+function pageCalcul(pre) {
+  const z = $("rtrSous"); if (!z) return;
+  if (pre) { const [d, n] = pre.split("/"); if (d && n) CALC = Object.assign(CALC0(), { lignes: [{ d: d.replace(".", ","), n }] }); }
+  const esc = A.esc, mult = CALC.lignes.length > 1;
+  z.innerHTML = '<div class="rtr-fiche rtr-calc"><h3>Traitements</h3>' + CALC.lignes.map((l, i) => '<div class="rtr-cl"><label>Dose par fraction (Gy)<input class="rtr-in n" inputmode="decimal" data-c="d" data-i="' + i + '" value="' + esc(l.d) + '"></label><label>Fractions<input class="rtr-in n" inputmode="decimal" data-c="n" data-i="' + i + '" value="' + esc(l.n) + '"></label><span class="rtr-cto mesures" id="rtrCt' + i + '"></span>' +
+      (mult ? '<button type="button" class="mini" onclick="rtrCalcLigne(' + i + ')" aria-label="Retirer ce traitement">' + A.ic("croix") + "</button>" : "") + "</div>").join("") +
+    '<button type="button" class="mini rtr-aj" onclick="rtrCalcLigne()">' + A.ic("plus") + 'Ajouter un traitement</button><p class="rtr-ctot" id="rtrCtot"></p>' +
+    '<div class="rtr-tw"><table class="rtr-tab rtr-cres"><thead><tr><th>α/β (Gy)</th>' + CALC.ab.map((a, k) => '<th class="n"><input class="rtr-in n rtr-ab" inputmode="decimal" data-c="ab" data-i="' + k + '" value="' + esc(a) + '" aria-label="α/β ' + (k + 1) + '"></th>').join("") + "</tr></thead><tbody>" +
+    '<tr class="rtr-eqd"><th scope="row"><span class="lg">EQD en </span><span class="sm">EQD</span><input class="rtr-in n rtr-x" inputmode="decimal" data-c="x" value="' + esc(CALC.x) + '" aria-label="Dose par fraction de référence (Gy)"><span class="lg"> Gy/fx</span></th>' + CALC.ab.map((a, k) => '<td class="n" id="rtrE' + k + '">—</td>').join("") + "</tr>" +
+    '<tr><th scope="row">BED</th>' + CALC.ab.map((a, k) => '<td class="n" id="rtrB' + k + '">—</td>').join("") + "</tr>" +
+    '<tr><th scope="row"><span class="lg">Dose par fraction en </span><span class="sm">Dose/fx en </span><input class="rtr-in n rtr-x" inputmode="decimal" data-c="N" value="' + esc(CALC.N) + '" aria-label="Nombre de fractions"> fx</th>' + CALC.ab.map((a, k) => '<td class="n" id="rtrD' + k + '">—</td>').join("") + "</tr></tbody></table></div>" +
+    (mult ? '<details class="rtr-cdet"><summary>Détail par traitement</summary><div class="rtr-tw"><table class="rtr-tab"><thead><tr><th>Traitement</th>' + CALC.ab.map((a, k) => '<th class="n" id="rtrDh' + k + '"></th>').join("") + "</tr></thead><tbody>" +
+      CALC.lignes.map((l, i) => '<tr><th scope="row" id="rtrDl' + i + '"></th>' + CALC.ab.map((a, k) => '<td class="n" id="rtrDd' + i + "_" + k + '">—</td>').join("") + "</tr>").join("") + "</tbody></table></div></details>" : "") +
+    '<p class="mesures">Modèle linéaire-quadratique, sans correction de temps. Indicatif. <a href="#" class="rtr-lien" onclick="rtrCalcEffacer();return false">Tout effacer</a></p></div>';
+  calculer();
+}
+function calculer() {
+  const R = calculBED({ lignes: CALC.lignes, ab: CALC.ab, x: CALC.x, N: CALC.N }), set = (id, v) => { const e = $(id); if (e) e.textContent = v; };
+  CALC.lignes.forEach((l, i) => { const ok = R.valides[i], e = document.querySelectorAll('[data-i="' + i + '"][data-c]'); e.forEach((x) => { const v = x.dataset.c === "d" ? l.d : l.n; x.classList.toggle("err", String(v).trim() !== "" && isNaN(nombre(v))); }); set("rtrCt" + i, ok ? "= " + fixe(nombre(l.d) * nombre(l.n), 1) + " Gy" : ""); set("rtrDl" + i, ok ? nb(nombre(l.d)) + " Gy × " + nb(nombre(l.n)) : "—"); });
+  const nv = R.valides.filter(Boolean).length;
+  set("rtrCtot", CALC.lignes.length > 1 && nv ? "Total : " + nb(R.total.n) + " fractions · " + fixe(R.total.dose, 1) + " Gy" : "");
+  R.colonnes.forEach((c, k) => { set("rtrE" + k, fixe(c.eqd, 1)); set("rtrB" + k, fixe(c.bed, 1)); set("rtrD" + k, fixe(c.dN, 2)); set("rtrDh" + k, "α/β " + (isNaN(c.ab) ? "—" : nb(c.ab))); c.detail.forEach((v, i) => set("rtrDd" + i + "_" + k, fixe(v, 1))); });
+  document.querySelectorAll(".rtr-calc [data-c=ab],.rtr-calc [data-c=x],.rtr-calc [data-c=N]").forEach((x) => x.classList.toggle("err", isNaN(nombre(x.value))));
+}
+document.addEventListener("input", (ev) => {
+  const t = ev.target; if (!t.dataset || !t.dataset.c || !t.closest(".rtr-calc")) return;
+  const c = t.dataset.c, i = Number(t.dataset.i);
+  if (c === "d" || c === "n") CALC.lignes[i][c] = t.value; else if (c === "ab") CALC.ab[i] = t.value; else CALC[c] = t.value;
+  calculer();
+});
+// Entrée passe au champ suivant : dose, fractions, puis la ligne suivante
+document.addEventListener("keydown", (ev) => {
+  const t = ev.target; if (ev.key !== "Enter" || !t.dataset || !t.dataset.c || !t.closest(".rtr-calc")) return;
+  ev.preventDefault(); const L = [...document.querySelectorAll(".rtr-calc input")], i = L.indexOf(t); if (L[i + 1]) { L[i + 1].focus(); L[i + 1].select(); }
+});
+window.rtrCalcLigne = (i) => { if (i == null) CALC.lignes.push({ d: "", n: "" }); else CALC.lignes.splice(i, 1); pageCalcul(); const L = document.querySelectorAll('.rtr-calc [data-c="d"]'); if (i == null && L.length) L[L.length - 1].focus(); };
+window.rtrCalcEffacer = () => { CALC = CALC0(); pageCalcul(); };
+async function pageSous(k, reste) {
+  $("page").innerHTML = '<div class="rtr sous" id="rtr">' + ongletsPage(k) + '<div id="rtrSous"><div class="rtr-ch">' + "<i></i>".repeat(4) + "</div></div></div>";
+  try { await charger(); await chargerBibs(); } catch (e) { const z = $("rtrSous"); if (z) z.innerHTML = erreurHtml(); return; }
+  if (!$("rtrSous")) return;
+  if (k === "oar") pageOar(); else if (k === "contraintes") await pageContraintesRef(); else if (k === "essais") pageEssaisRef(); else pageCalcul(reste);
+}
+
 // ───── Page ─────
 // arg : null (accueil et liste) ou « s/<schemaId>/<onglet> » (fiche) ; sous 1 280 px la fiche prend toute la page
 export async function pageRadiotherapie(arg) {
+  const sp = /^(oar|contraintes|essais|calcul)(?:\/(.*))?$/.exec(arg || "");
+  if (sp) { ARG = arg; RF.ouvert = null; await pageSous(sp[1], sp[2]); return; }
   if (arg === "nouveau" && !NOUVEAU && !(ED && ED.nouveau)) { location.replace("#radiotherapie"); return; }
   ARG = arg || null;
   const m = /^s\/([^/]+)(?:\/([a-z]+))?/.exec(arg || ""), id = m ? m[1] : arg === "nouveau" ? "nouveau" : null;
@@ -608,7 +751,7 @@ export async function pageRadiotherapie(arg) {
   const deux = !!id && large(), seule = !!id && !deux, z = $("rtr");
   // deux colonnes déjà affichées : seule la fiche change (la liste garde sa position)
   if (!(deux && z && z.classList.contains("deux") && $("rtrListe"))) {
-    $("page").innerHTML = '<div class="rtr' + (deux ? " deux" : "") + (seule ? " seule" : "") + '" id="rtr">' +
+    $("page").innerHTML = '<div class="rtr' + (deux ? " deux" : "") + (seule ? " seule" : "") + '" id="rtr">' + (seule ? "" : ongletsPage("")) +
       (seule ? "" : '<div class="rtr-haut"><div class="recherche"><svg class="i"><use href="#i-loupe"/></svg><input id="rtrQ" type="search" autocomplete="off" placeholder="Rechercher : localisation, dose, essai (ex. prostate 60, col curie, 45 Gy)" aria-label="Rechercher un schéma" value="' + A.esc(RF.q) + '"></div><div class="rtr-filtres" id="rtrFiltres"></div></div>') +
       '<div class="rtr-corps">' + (seule ? "" : '<div class="rtr-liste" id="rtrListe"></div>') + (id ? '<div class="rtr-fiche" id="rtrFiche"></div>' : "") + "</div></div>";
     const q = $("rtrQ");

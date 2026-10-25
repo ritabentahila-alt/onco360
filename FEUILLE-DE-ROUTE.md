@@ -617,7 +617,16 @@ Un lot par session ; chaque lot finit par ses tests verts, la feuille de route c
       annuler, suppression ensuite ; « Dupliquer » (`cab-…`, `nouveau`, `copie_de`, « Copie de … » sélectionné, preuve « pratique du cabinet ») ;
       « + Nouveau schéma » (localisation et situation des menus). Sans le droit : aucun bouton (ni grisé). Acronymes des essais des fiches du
       cabinet lus dans la bibliothèque. Règles : RT1 (`tests/regles/test-rtref.mjs`). `tests/test_rtref_modif.py` 37/37.
-- [ ] **RT6 Sous-pages** : Organes à risque, Contraintes, Essais, Calcul BED / EQD2 (cas de contrôle de la spécification).
+- [x] **RT6 Sous-pages** (25/10/2026) : onglets en haut de la page (Référentiel · Organes à risque · Contraintes · Essais · Calcul BED / EQD2 ;
+      `#radiotherapie/oar|contraintes|essais|calcul[/<dose par séance>/<séances>]`) ; Organes à risque (recherche, menu Région, détail « Utilisé dans
+      n schémas » : les 48 fichiers lus à la première sous-page, `chargerTout`) ; Contraintes (jeu choisi par une recherche et un menu groupé par
+      région, même tableau que la fiche, Copier) ; Essais (tableau triable acronyme / année / localisation / revue, recherche, détail : résultat,
+      population, bras, PubMed, DOI, « Cité par n schémas » ; 300 lignes affichées au plus) ; **Calcul BED / EQD2** (lignes de traitement, total,
+      α/β modifiables dans l'en-tête, EQDx et N dans le libellé, détail par traitement replié, « — » sans saisie valable, champ en erreur ignoré,
+      Entrée = champ suivant, « Tout effacer », téléphone : libellés raccourcis, clavier numérique) : **cas de contrôle de la spécification retrouvé
+      à l'écran** (96,4 · 86,4 · 72,7 / 225,0 · 144,0 · 87,3 / 3,00 · 2,92 · 2,74 ; 27 fractions · 63,0 Gy). Lien « EQD2 » en bout de ligne de
+      prescription (prérempli ; grisé « Calcul non applicable » pour une ligne LDR, PDR ou sans dose ; absent à l'impression). Bibliothèques en
+      commun `BB`. `tests/test_rtref_pages.py` 32/32 (Chrome, Safari ; 1 440 et 390 px).
 - [ ] **RT7 Modèle** : copie vers le modèle des cabinets neufs et vers chaque cabinet neuf ; page du module dans « Ajuster le modèle ».
 - [ ] **RT8 Dossier et mise en ligne** : lien « Référentiel › » de l'onglet Radiothérapie du dossier ; contrôle complet ; mise en ligne avec l'accord de
       Dr Bentahila.
