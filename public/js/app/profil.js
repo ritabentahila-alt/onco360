@@ -13,11 +13,11 @@ const ROLES = { medecin: "Médecin", infirmiere: "Infirmière", assistante: "Ass
 // Droits proposés par défaut selon le rôle (grille validée en phase B1, complétée le 06/10/2026 et le 07/10/2026), modifiables membre par membre.
 // radiotherapie : "aucun" | "voir" | "modifier" | "chimio" (= voir, seulement les patients sous chimio en même temps)
 export const DROITS_ROLE = {
-  medecin: { identite: true, fichePatient: true, rendezvous: true, consultations: true, ecrireConsultations: true, planningChimio: true, traitements: "modifier", radiotherapie: "modifier", documents: true, administrer: true, encaissements: true, creerPatient: true, supprimerPatient: true, finances: true, parametres: true, secretariat: true },
-  infirmiere: { identite: false, fichePatient: false, rendezvous: false, consultations: false, ecrireConsultations: false, planningChimio: false, traitements: "voir", radiotherapie: "chimio", documents: false, administrer: true, encaissements: false, creerPatient: false, supprimerPatient: false, finances: false, parametres: false, secretariat: false },
-  assistante: { identite: true, fichePatient: true, rendezvous: true, consultations: true, ecrireConsultations: true, planningChimio: true, traitements: "voir", radiotherapie: "aucun", documents: true, administrer: false, encaissements: true, creerPatient: true, supprimerPatient: false, finances: false, parametres: false, secretariat: true },
+  medecin: { identite: true, fichePatient: true, rendezvous: true, consultations: true, ecrireConsultations: true, planningChimio: true, traitements: "modifier", radiotherapie: "modifier", documents: true, administrer: true, encaissements: true, creerPatient: true, supprimerPatient: true, finances: true, parametres: true, secretariat: true, referentielRT: "modifier" },
+  infirmiere: { identite: false, fichePatient: false, rendezvous: false, consultations: false, ecrireConsultations: false, planningChimio: false, traitements: "voir", radiotherapie: "chimio", documents: false, administrer: true, encaissements: false, creerPatient: false, supprimerPatient: false, finances: false, parametres: false, secretariat: false, referentielRT: "aucun" },
+  assistante: { identite: true, fichePatient: true, rendezvous: true, consultations: true, ecrireConsultations: true, planningChimio: true, traitements: "voir", radiotherapie: "aucun", documents: true, administrer: false, encaissements: true, creerPatient: true, supprimerPatient: false, finances: false, parametres: false, secretariat: true, referentielRT: "aucun" },
   // Comptable (étape 9 S2, 09/10/2026) : bilan et pointage des paiements seulement ; aucun dossier (les règles le lui ferment)
-  comptable: { identite: false, fichePatient: false, rendezvous: false, consultations: false, ecrireConsultations: false, planningChimio: false, traitements: "aucun", radiotherapie: "aucun", documents: false, administrer: false, encaissements: false, creerPatient: false, supprimerPatient: false, finances: true, parametres: false, secretariat: false },
+  comptable: { identite: false, fichePatient: false, rendezvous: false, consultations: false, ecrireConsultations: false, planningChimio: false, traitements: "aucun", radiotherapie: "aucun", documents: false, administrer: false, encaissements: false, creerPatient: false, supprimerPatient: false, finances: true, parametres: false, secretariat: false, referentielRT: "aucun" },
 };
 // Droits d'un membre : ceux de sa grille, complétés par les valeurs par défaut de son rôle pour les droits ajoutés depuis
 export const droitsEffectifs = (m) => Object.assign({}, DROITS_ROLE[(m && m.role)] || {}, (m && m.droits) || {});
@@ -25,7 +25,7 @@ const LIB_DROITS = [
   ["identite", "Identité des patients (modifier)"], ["fichePatient", "Fiche du patient : poids, taille, diagnostic, allergies, antécédents (modifier)"],
   ["rendezvous", "Rendez-vous (créer, modifier, venu / non venu)"], ["consultations", "Voir les consultations et hospitalisations"],
   ["ecrireConsultations", "Journal des consultations et ordonnances : créer, modifier (tous le lisent)"],
-  ["traitements", "Chimiothérapie : lignes, cures et doses", "niv"], ["radiotherapie", "Radiothérapie : prescriptions et rendez-vous", "niv"],
+  ["traitements", "Chimiothérapie : lignes, cures et doses", "niv"], ["radiotherapie", "Radiothérapie : prescriptions et rendez-vous", "niv"], ["referentielRT", "Référentiel de radiothérapie", "niv"],
   ["documents", "Documents : pli confidentiel, compte rendu, rendez-vous Excel (voir, télécharger)"],
   ["planningChimio", "Planning de l'hôpital de jour (déplacer les cures)"],
   ["encaissements", "Prix à encaisser : consultations validées par le médecin, consultation de chimio"],

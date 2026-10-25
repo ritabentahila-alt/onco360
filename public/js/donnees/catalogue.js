@@ -11,6 +11,7 @@ import { MODULES, FORMULES } from "./modules.js";
 export const MENU = [
   ["accueil", "Tableau de bord", null], ["agenda", "Agenda / Rendez-vous", "agenda"], ["salle", "Salle d'attente", "salle"],
   ["patients", "Patients", null], ["taches", "Tâches", "taches"], ["rcp", "RCP", "rcp"], ["protocoles", "Protocoles", "chimio"], // RCP : menu (R-B1, 19/10/2026)
+  ["radiotherapie", "Radiothérapie", "rt"], // référentiel de radiothérapie (RTR, RT1 du 25/10/2026) : module rt, fonction rt.referentiel, droit referentielRT
   ["parametres", "Paramètres", null], ["bilan", "Bilan", "bilan"], ["profil", "Mon compte", null],
 ];
 // Fonctions de chaque module (partie 1.2 du plan, validée le 10/10/2026) ; 3e élément true = fonction de base, toujours présente avec
@@ -26,7 +27,7 @@ export const FONCTIONS = {
   listes: [["diag", "Diagnostics", true], ["mut", "Mutuelles", true], ["cor", "Correspondants"]],
   bilan: [["filtres", "Périodes et filtres"], ["paye", "Payé / à recevoir, payé auto.", true], ["versements", "Versements"], ["referents", "Référents"], ["rtprev", "Radiothérapies prévisionnelles"], ["exports", "Exports Excel / PDF"], ["comptable", "Relevé du comptable"]],
   chimio: [["lignes", "Lignes de traitement", true], ["cures", "Cures J1 / J8 / J15", true], ["doses", "Calcul des doses", true], ["seances", "% et doses par séance", true], ["molecules", "Molécules ajoutées / retirées"], ["report", "Report de cure"], ["fiche", "Fiche chimio A4"], ["planning", "Planning de l'hôpital de jour", true], ["protocoles", "Bibliothèque de protocoles"]],
-  rt: [["prescription", "Prescription (acte, séances, VMAT)", true], ["deroule", "Scanner → contourage → dosimétrie → séances → fin", true], ["hebdo", "Consultations hebdomadaires"], ["taches", "Tâches fixes (contourage, dosimétrie, fin)"], ["documents", "Pli, compte rendu, rendez-vous"], ["tarifs", "Tarifs des actes RT"]],
+  rt: [["prescription", "Prescription (acte, séances, VMAT)", true], ["deroule", "Scanner → contourage → dosimétrie → séances → fin", true], ["hebdo", "Consultations hebdomadaires"], ["taches", "Tâches fixes (contourage, dosimétrie, fin)"], ["documents", "Pli, compte rendu, rendez-vous"], ["tarifs", "Tarifs des actes RT"], ["referentiel", "Référentiel de radiothérapie"]],
 };
 // Fonctions déjà reliées à l'écran (ou au serveur) le 10/10/2026 ; les autres sont enregistrées mais pas encore appliquées (« bientôt »)
 export const FONCTIONS_RELIEES = ["prescriptions.medic", "prescriptions.exam", "prescriptions.ordo", "prescriptions.analyse", "prescriptions.courrier", "prescriptions.doc",
@@ -35,7 +36,7 @@ export const FONCTIONS_RELIEES = ["prescriptions.medic", "prescriptions.exam", "
   "agenda.whatsapp", "agenda.vues", "agenda.filtre", "agenda.horaires", "agenda.absences",
   "salle.prix", "salle.passage", "salle.commentaire", "salle.attente", "salle.colonnes", "salle.bulles",
   "documents.depot", "documents.types", "documents.rt", "gagenda.filtre", "gagenda.couleurs", "listes.cor",
-  "chimio.fiche", "chimio.protocoles", "chimio.molecules", "chimio.report", "rt.taches", "rt.hebdo", "rt.documents", "rt.tarifs"];
+  "chimio.fiche", "chimio.protocoles", "chimio.molecules", "chimio.report", "rt.taches", "rt.hebdo", "rt.documents", "rt.tarifs", "rt.referentiel"];
 // Fiche patient (10/10/2026) : champs existants [clé, libellé, partie (identite | clinique), base = toujours présent], dans l'ordre de
 // départ (celui d'aujourd'hui pour l'oncologie). Champs ajoutés par l'administration (pack ou cabinet) : reglage.fiche.ajouts =
 // [{ id: "x…", lib, type: texte|nombre|date|choix|ouinon, choix: […], partie, imprimer, entete }] ; valeurs dans identite.extra /
@@ -50,8 +51,8 @@ function ordreAvecNouveaux(l, ref, cat) {
   return r;
 }
 // Entrées ajoutées au menu après que des cabinets ont réglé le leur (R-B1, 19/10/2026) : placées juste après l'entrée qui les précède dans le
-// catalogue (« RCP » sous « Tâches ») ; toute autre entrée absente : à la fin, comme avant
-const MENU_NOUVEAUX = ["rcp"];
+// catalogue (« RCP » sous « Tâches », « Radiothérapie » sous « Protocoles » le 25/10/2026) ; toute autre entrée absente : à la fin, comme avant
+const MENU_NOUVEAUX = ["rcp", "radiotherapie"];
 function menuAvecNouveaux(l) {
   const ref = MENU.map((m) => m[0]), r = ordre(Array.isArray(l) ? l.filter((k) => MENU_NOUVEAUX.indexOf(k) < 0 || l.indexOf(k) >= 0) : l, ref.filter((k) => MENU_NOUVEAUX.indexOf(k) < 0 || (Array.isArray(l) && l.indexOf(k) >= 0)));
   ref.forEach((k, i) => { if (r.indexOf(k) >= 0) return; const j = r.indexOf(ref[i - 1]); r.splice(j >= 0 ? j + 1 : r.length, 0, k); });

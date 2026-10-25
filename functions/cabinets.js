@@ -8,7 +8,7 @@ const DEPART = require("./listes-depart.json");
 const MODELE = "cabinet-bentahila"; // cabinet dont on copie la bibliothèque
 const BIBLIOTHEQUES = ["medicaments", "ordostypes", "analyses", "bilans", "examens", "courriers"];
 // Droits du médecin titulaire : tous (mêmes valeurs que DROITS_ROLE.medecin de public/js/app/profil.js, vérifié par le test)
-const DROITS_MEDECIN = { identite: true, fichePatient: true, rendezvous: true, consultations: true, ecrireConsultations: true, planningChimio: true, traitements: "modifier", radiotherapie: "modifier", documents: true, administrer: true, encaissements: true, creerPatient: true, supprimerPatient: true, finances: true, parametres: true, secretariat: true };
+const DROITS_MEDECIN = { identite: true, fichePatient: true, rendezvous: true, consultations: true, ecrireConsultations: true, planningChimio: true, traitements: "modifier", radiotherapie: "modifier", documents: true, administrer: true, encaissements: true, creerPatient: true, supprimerPatient: true, finances: true, parametres: true, secretariat: true, referentielRT: "modifier" };
 // Mises à niveau de migrations() (v2.js) propres aux dossiers venus de l'ancienne application : déjà « faites » dans un cabinet neuf
 // (sinon la liste d'ordonnances types copiée serait remplacée par celle de départ)
 const MIGRATIONS = ["dosimetriePeriode", "secretaireChimio", "secretairePlanning", "ordostypesExcel1", "encaissements", "encaissementsJours", "encaissementsBrutV1", "encaissementsBrutV1b",
@@ -111,7 +111,7 @@ function infos(o) {
 }
 // Membre de l'équipe créé par le titulaire (Paramètres › Accès) : rôle connu, droits connus, établissements (10/10/2026)
 const ROLES = ["medecin", "assistante", "infirmiere", "comptable"];
-const NIVEAUX = { traitements: ["aucun", "voir", "modifier"], radiotherapie: ["aucun", "chimio", "voir", "modifier"] };
+const NIVEAUX = { traitements: ["aucun", "voir", "modifier"], radiotherapie: ["aucun", "chimio", "voir", "modifier"], referentielRT: ["aucun", "voir", "modifier"] };
 function membreDemande(o, jour, par) {
   const t = (v, n) => String(v == null ? "" : v).replace(/\s+/g, " ").trim().slice(0, n);
   const role = ROLES.indexOf(o.role) >= 0 ? o.role : null; if (!role) throw new Error("Rôle inconnu.");

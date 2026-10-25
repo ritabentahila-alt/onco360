@@ -305,6 +305,17 @@ service cloud.firestore {
       // Bibliothèque et paramètres : lecture par les membres, modification avec le droit « paramètres »
       // 2.4 (12/10/2026, audit) : modifiés par un médecin seulement (avec le droit « paramètres »)
       match /protocoles/{d} { allow read: if estMembre(); allow write: if droit('parametres') && m().role == 'medecin'; }
+      // Référentiel de radiothérapie (RTR, RT1 du 25/10/2026) : changements du cabinet par schéma (la référence est dans le site,
+      // public/donnees-rt). Module « rt » et fonction « rt.referentiel » du réglage ; droit referentielRT (aucun | voir | modifier) :
+      // médecin sans droit noté = « modifier » ; le comptable ne le lit jamais ; seul un médecin avec « modifier » écrit, signé par lui-même
+      function rtRefFn() { return get(/databases/$(database)/documents/espaces/$(e)).data.get('abonnement', {}).get('reglage', {}).get('fonctions', {}).get('rt.referentiel', true) != false; }
+      function rtRefVoir() { return estMembre() && moduleOn('rt') && rtRefFn() && m().role != 'comptable' && (m().droits.get('referentielRT', 'aucun') in ['voir', 'modifier'] || (m().role == 'medecin' && !('referentielRT' in m().droits))); }
+      function rtRefModif() { return estMembre() && moduleOn('rt') && rtRefFn() && m().role == 'medecin' && m().droits.get('referentielRT', 'modifier') == 'modifier'; }
+      match /referentielRT/{s} {
+        allow read: if rtRefVoir();
+        allow create, update: if rtRefModif() && request.resource.data.majPar == request.auth.uid;
+        allow delete: if rtRefModif();
+      }
       // Paramètres du secrétariat (droit « secretariat », secrétaire, 10/10/2026) : absences, jours fériés et horaires (calendrier),
       // listes, types de tâches et de documents, messages WhatsApp, dates de RCP, réglages (bouton vert, impression, alertes, salle
       // d'attente) ; restent au droit « paramètres » : couleurs Google Agenda, tâches automatiques, tarifs, etc.
