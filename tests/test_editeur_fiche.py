@@ -23,7 +23,7 @@ async def main():
         ok(med == 'État général (OMS)', 'informations médicales : OMS en premier', med)
         ok(await ev("!!document.querySelector('.fiche-b [data-chf=\"xthisto\"]') && !!document.querySelector('.fiche-b [data-chf=\"cin\"]')"), '3.11 : chaque champ modifiable (✎), champs d\'origine compris')
         typ = await ev("(()=>{const r=(k)=>{const b=document.querySelector('.fiche-b [data-chf=\"'+k+'\"]');return b.closest('.rg-l').querySelector('.m').textContent};return {cin:r('cin'),atcd:r('atcdMed'),diag:r('diag'),poids:r('poids')}})()")
-        ok(typ['cin'].startswith('texte') and typ['atcd'].startswith('texte long') and 'liste du cabinet' in typ['diag'] and 'nombre (kg)' in typ['poids'], 'type affiché pour chaque champ', typ)
+        ok(typ['cin'].startswith('texte') and typ['atcd'].startswith('liste du cabinet') and 'liste du cabinet' in typ['diag'] and 'nombre (kg)' in typ['poids'], 'type affiché pour chaque champ', typ)
         clic = lambda k: ev("document.querySelector('.fiche-b [data-chf=\"" + k + "\"]').click()")
         await clic('xthisto'); await pg.wait_for_timeout(200)
         await pg.fill('#chLib', 'Type histologique'); await ev("document.getElementById('chOk').click()"); await pg.wait_for_timeout(200)
@@ -33,8 +33,12 @@ async def main():
         await clic('poids'); await pg.wait_for_timeout(200)
         ok(await ev("document.getElementById('chType').disabled && /doses/.test(document.querySelector('.ch-f').textContent)"), 'poids : type fixe, raison donnée (doses)')
         await ev("document.getElementById('chAnn').click()"); await pg.wait_for_timeout(200)
-        # antécédents médicaux → oui / non + précision, imprimés ; CIN → liste de choix ; adresse → informations médicales
+        # Lot A (25/10/2026) : antécédents = liste du cabinet, type fixe ; l'exemple « oui / non + précision » passe sur le mode de vie
         await clic('atcdMed'); await pg.wait_for_timeout(200)
+        ok(await ev("document.getElementById('chType').disabled && /liste du cabinet/.test(document.querySelector('.ch-f').textContent)"), 'antécédents médicaux : type fixe (liste du cabinet, lot A)')
+        await ev("document.getElementById('chAnn').click()"); await pg.wait_for_timeout(200)
+        # mode de vie → oui / non + précision, imprimé ; CIN → liste de choix ; adresse → informations médicales
+        await clic('modeVie'); await pg.wait_for_timeout(200)
         await pg.select_option('#chType', 'ouinonp'); await ev("document.getElementById('chImp').checked=true"); await ev("document.getElementById('chOk').click()"); await pg.wait_for_timeout(200)
         await clic('cin'); await pg.wait_for_timeout(200)
         await pg.select_option('#chType', 'choix'); await ev("document.getElementById('chType').dispatchEvent(new Event('change'))"); await pg.fill('#chChoix', 'Marocaine\nÉtrangère'); await ev("document.getElementById('chOk').click()"); await pg.wait_for_timeout(200)
@@ -47,7 +51,10 @@ async def main():
         ok(await ev("!document.getElementById('chChoixZ') && !!document.getElementById('chListe')"), 'stade : « Modifier la liste » (liste du cabinet)')
         await ev("document.getElementById('chListe').click()"); await pg.wait_for_timeout(500)
         t = await pg.inner_text('#page'); pu = await ev("[...document.querySelectorAll('.puces .puce')].map(b=>b.textContent.split(' (')[0])")
-        ok('Retour à la fiche patient' in t and pu == ['Stades', 'Mutuelles', 'Correspondants'], 'Listes : la liste ouverte + mutuelles / correspondants, retour à la fiche', pu)
+        # Lot D (25/10/2026) : Paramètres › Bibliothèques › Listes réunit toutes les listes ; ouverte depuis la fiche, sur la liste du champ (Stades et
+        # Grades n'y sont que dans ce cas : on les modifie depuis le ✎ de la fiche patient, demande du 25/10)
+        on = await ev("(document.querySelector('.puces .puce.on')||{}).textContent||''")
+        ok('Retour à la fiche patient' in t and pu[:2] == ['Mutuelles', 'Correspondants'] and 'Stades' in pu and 'Grades' not in pu and on.startswith('Stades'), 'Listes : toutes les listes, celle du champ ouverte, retour à la fiche', (pu, on))
         await ev("cfRetourFiche()"); await pg.wait_for_timeout(500)
         ok(await ev("!!document.querySelector('.fiche-b')"), 'retour à la fiche patient (modifications gardées)')
         await ev("document.getElementById('chNouv').click()"); await pg.wait_for_timeout(200)
@@ -56,7 +63,7 @@ async def main():
         await ev("cfEnregistrer()"); await pg.wait_for_timeout(1500)
         fo = json.loads((await ev("window.__fs")).get(E + 'parametres/formulaires', {}).get('data') or '{}').get('fiche', {})
         ok(fo.get('libs', {}).get('xthisto') == 'Type histologique' and 'Faiblement positif' in (fo.get('choixs', {}).get('xtre') or []), 'enregistré : nom et liste retouchés par le cabinet', fo)
-        ok(fo.get('types', {}).get('atcdMed') == 'ouinonp' and fo.get('types', {}).get('cin') == 'choix' and fo.get('choixs', {}).get('cin') == ['Marocaine', 'Étrangère'] and fo.get('imprimes', {}).get('atcdMed') is True and fo.get('sections', {}).get('adresse') == 'med', 'enregistré : types, liste, impression, partie', fo)
+        ok(fo.get('types', {}).get('modeVie') == 'ouinonp' and fo.get('types', {}).get('cin') == 'choix' and fo.get('choixs', {}).get('cin') == ['Marocaine', 'Étrangère'] and fo.get('imprimes', {}).get('modeVie') is True and fo.get('sections', {}).get('adresse') == 'med', 'enregistré : types, liste, impression, partie', fo)
         ok(any(a.get('lib') == 'Score de Gleason' and a.get('tumeur') for a in fo.get('ajouts', [])), 'champ propre au cabinet dans la fiche tumeur', fo.get('ajouts'))
         pid = [x for x, ls in lignes_de(S).items() if ls][0]
         await pg.goto(f'http://localhost:{PORT}/v2.html#dossier/{pid}'); await pg.wait_for_timeout(1500)
@@ -66,13 +73,13 @@ async def main():
         await ev(f"fermerFenetre();modifierIdentite('{pid}','id')"); await pg.wait_for_timeout(500)
         f1 = await ev("(()=>{const c=document.getElementById('fCin');return {cin:c&&c.tagName,opts:c?[...c.options].map(o=>o.value).join():''}})()")
         await ev(f"fermerFenetre();modifierIdentite('{pid}','med')"); await pg.wait_for_timeout(500)
-        f2 = await ev("(()=>{const c=document.getElementById('fCin');return {cin:c&&c.tagName,opts:c?[...c.options].map(o=>o.value).join():'',atcd:!!document.getElementById('f_atcdMedOui'),adr:!!document.querySelector('#fenetre [data-sec=med] [data-champ=adresse]')}})()")
-        f2.update(f1); ok(f2['cin'] == 'SELECT' and 'Étrangère' in f2['opts'] and f2['atcd'] and f2['adr'], 'formulaire du patient : CIN en liste, antécédents oui / non + précision, adresse dans les informations médicales', f2)
-        await pg.select_option('#f_atcdMedOui', 'oui'); await pg.fill('#f_atcdMed', 'HTA'); await pg.click('#fOk'); await pg.wait_for_timeout(1200)
+        f2 = await ev("(()=>{const c=document.getElementById('fCin');return {cin:c&&c.tagName,opts:c?[...c.options].map(o=>o.value).join():'',atcd:!!document.getElementById('f_modeVieOui'),adr:!!document.querySelector('#fenetre [data-sec=med] [data-champ=adresse]')}})()")
+        f2.update(f1); ok(f2['cin'] == 'SELECT' and 'Étrangère' in f2['opts'] and f2['atcd'] and f2['adr'], 'formulaire du patient : CIN en liste, mode de vie oui / non + précision, adresse dans les informations médicales', f2)
+        await pg.select_option('#f_modeVieOui', 'oui'); await pg.fill('#f_modeVie', 'Tabac sevré'); await pg.click('#fOk'); await pg.wait_for_timeout(1200)
         d = (await ev("window.__fs"))[E + 'patients/' + pid]
-        ok(d['clinique'].get('atcdMedOui') == 'oui' and d['clinique'].get('atcdMed') == 'HTA', 'enregistré : antécédents « oui » + « HTA »', d['clinique'])
+        ok(d['clinique'].get('modeVieOui') == 'oui' and d['clinique'].get('modeVie') == 'Tabac sevré', 'enregistré : mode de vie « oui » + « Tabac sevré »', d['clinique'])
         await ev(f"afficherPatient('{pid}')"); await pg.wait_for_timeout(300)
-        ok('Oui : HTA' in await pg.inner_text('#fenetre'), 'Afficher : « Oui : HTA »')
+        ok('Oui : Tabac sevré' in await pg.inner_text('#fenetre'), 'Afficher : « Oui : Tabac sevré »')
         await ev("fermerFenetre()")
         ok(not pg.errs, 'aucune erreur JavaScript', pg.errs[:2]); await pg.close()
 

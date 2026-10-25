@@ -45,7 +45,7 @@ async def main():
         fs = await ev("window.__fs"); H = fs[E + 'patients/' + pid].get('heures') or {}
         cle = [c for c, v in H.items() if (v or {}).get('cons')]
         ok(len(cle) == 1 and H[cle[0]]['cons']['h'] == '09:30', 'consultation notée dans le dossier (champ « heures »)', H)
-        ok('09:30' in (await ev("[...document.querySelectorAll('#rdvListe .rdv')].map(e=>e.innerText).join('|')")), 'heure affichée dans « Rendez-vous et tâches à venir »')
+        ok('09:30' in (await ev("[...document.querySelectorAll('#rdvListe .rc')].map(e=>e.innerText).join('|')")), 'heure affichée dans « Rendez-vous et tâches à venir »')
         t = await agenda(pg, d)
         ok('09:30' in t and 'Consultation' in t and 'Séance ·' not in t, 'planning du médecin : consultation à 09:30, pas de séance', t[:300])
         ok(not pg.errs, 'aucune erreur JavaScript', pg.errs[:2]); await pg.close()

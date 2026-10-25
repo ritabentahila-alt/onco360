@@ -41,7 +41,7 @@ async def main():
         ok(str(nbProt) in pages['protocoles'] or nbProt > 0, f'protocoles copiés ({nbProt})')
         # Paramètres : lieux, correspondants vides, grille tarifaire
         await pg.evaluate("location.hash='parametres/listes'"); await pg.wait_for_timeout(900); await pg.evaluate("cfLs('diag')"); await pg.wait_for_timeout(300); tl = await pg.inner_text('#page')  # 3.11 : localisations ouvertes depuis la fiche
-        ok('Mutuelles (3' in tl and 'Localisations (diagnostics) (94)' in tl and 'Correspondants (0)' in tl, 'diagnostics et mutuelles reçus, correspondants vides')
+        ok('Mutuelles (3' in tl and 'Localisations (94)' in tl and 'Correspondants (0)' in tl, 'diagnostics et mutuelles reçus, correspondants vides')
         await pg.evaluate("location.hash='parametres/activites'"); await pg.wait_for_timeout(900); ta = await pg.inner_text('#page')
         ok('Ajoutez d\'abord un lieu' in ta, 'tarifs : il faut d\'abord un lieu')
         ok('HGC' not in ta and 'HCK' not in ta, 'aucun établissement de Dr Bentahila dans les tarifs')
@@ -109,7 +109,7 @@ async def main():
         ok(len(await pa.evaluate("[...document.querySelectorAll('#aFor option')]")) == 0, 'Médecine générale : aucun pack pour l\'instant')
         await pa.select_option('#aSpe', 'Oncologie – Radiothérapie'); await pa.wait_for_timeout(200)
         await pa.select_option('#aFor', 'essentiel'); await pa.wait_for_timeout(200); ap = await pa.inner_text('#aApercu')
-        ok('1 médecin · 1 secrétaire · 0 infirmière · 1 lieu d\'exercice · 300 dossiers patients · sans limite : comptables' in ap and 'bibliothèque et les paramètres de base de « Oncologie – Radiothérapie »' in ap and 'vos patients' not in await pa.inner_text('main'), 'Nouveau cabinet : limites bien écrites, ce que reçoit le cabinet (spécialité) ' + ap[:160].replace('\n', ' '))
+        ok('1 médecin · 3 remplaçants · 1 secrétaire · 0 infirmière · 1 lieu d\'exercice · 300 dossiers patients · sans limite : comptables' in ap and 'bibliothèque et les paramètres de base de « Oncologie – Radiothérapie »' in ap and 'vos patients' not in await pa.inner_text('main'), 'Nouveau cabinet : limites bien écrites, ce que reçoit le cabinet (spécialité) ' + ap[:160].replace('\n', ' '))
         await pa.select_option('#aFor', 'rt-pro')
         for i, v in [('aCab', 'Cabinet Agdal'), ('aPre', 'Karim'), ('aNom', 'Alami'), ('aMail', 'Karim@Exemple.ma')]: await pa.fill('#' + i, v)
         await pa.click('#aOk'); await pa.wait_for_timeout(800)

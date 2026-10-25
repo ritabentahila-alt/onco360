@@ -14,7 +14,7 @@ async def main():
         c = await pg.inner_text('[data-abo-carte]') if await pg.evaluate("!!document.querySelector('[data-abo-carte]')") else ''
         ok('EXPIRÉ' in c and 'Abonnement expiré' in c and '02 septembre 2026' in c and 'en retard de 34 jours' in c and 'Renouveler' in c, 'tableau de bord : carte « Abonnement expiré » (échéance, retard) · ' + c.replace('\n', ' ')[:80])
         ok(await pg.evaluate("document.querySelector('[data-abo-carte] a').getAttribute('href')") == '#profil/abonnement' and (await pg.evaluate('window.__ma')) == {'espace': 'cabinet-bentahila'}, '« Renouveler » mène à Profil & Paramètres › Abonnement ; lu pour ce cabinet')
-        ok('Mon compte' in await pg.inner_text('nav'), 'menu « Mon compte » (ex-« Profil & Paramètres », 11/10)')
+        ok(await pg.evaluate("[...document.querySelectorAll('#menuCompte a,#menuCompte button')].some(x => x.textContent.trim() === 'Mon compte')"), '« Mon compte » dans le menu du compte (nom ou photo : lot B, 25/10/2026 ; ex-« Profil & Paramètres », 11/10)')
         await pg.click('[data-abo-carte] a'); await pg.wait_for_timeout(800); t = await pg.inner_text('#page')
         ok('Informations' in t and 'Accès' in t and 'Abonnement' in t and 'Factures' in t and 'ONCOLOGIE – PRO' in t and 'Expiré' in t and '2 mois offerts' in t and '11 900 DH' in t and '14 280 DH' in t and 'RIB : 011 780 0000' in t, 'onglet Abonnement : formule, état, mensuel / annuel (2 mois offerts, prix barré), RIB')
         await pg.click('text=Passer à l\'annuel'); await pg.wait_for_timeout(300); await pg.fill('#aboMsg', 'Par chèque'); await pg.click('#aboOk'); await pg.wait_for_timeout(800)
@@ -24,7 +24,7 @@ async def main():
         await pg.click('text=Télécharger'); await pg.wait_for_timeout(400)
         ok('FACTURE' in await pg.evaluate("window.__win[window.__win.length-1].w.document._h"), 'facture ouverte pour impression / PDF')
         await pg.evaluate("location.hash='profil/acces'"); await pg.wait_for_timeout(1200)
-        ok('Ajouter un membre' in await pg.inner_text('#page') or 'équipe' in (await pg.inner_text('#page')).lower(), 'onglet Accès dans Profil & Paramètres')
+        ok('Gestion des accès' in await pg.inner_text('#page') and 'Ajouter un accès' in await pg.inner_text('#page'), 'onglet Accès dans Profil & Paramètres')  # lot B : plus de sous-titre de page
         await pg.evaluate("location.hash='parametres/acces'"); await pg.wait_for_timeout(800)
         ok(pg.url.endswith('#profil/acces'), 'ancien lien Paramètres › Accès → Profil & Paramètres › Accès')
         ok(await pg.evaluate("![...document.querySelectorAll('.ag-vues button')].some(b=>/^Accès/.test(b.textContent.trim())) || location.hash.startsWith('#profil')"), 'Paramètres : plus d\'onglet Accès')

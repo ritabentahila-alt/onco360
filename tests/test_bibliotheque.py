@@ -18,7 +18,8 @@ async def main():
         await pg.goto(f'http://localhost:{PORT}/v2.html?espace=bib-oncologie#accueil'); await pg.wait_for_timeout(3000)
         ok(pg.url.endswith('#accueil') and 'Protocoles' in await pg.inner_text('#titrePage'), 'la bibliothèque s\'ouvre sur les Protocoles (pas de tableau de bord)')
         vis = await pg.evaluate("[...document.querySelectorAll('nav a')].filter(a=>a.offsetParent!==null).map(a=>a.dataset.p||a.id)")
-        ok(vis == ['protocoles', 'parametres', 'lienAdmin'], 'menu : Protocoles, Paramètres, Retour à l\'Administration ' + str(vis))
+        # Lot B (25/10/2026) : Paramètres passe dans l'icône de la barre du haut (#btParam) ; Radiothérapie (référentiel, 25/10/2026) dans le menu
+        ok(vis == ['protocoles', 'radiotherapie', 'lienAdmin'] and await pg.evaluate("!!document.getElementById('btParam') && document.getElementById('btParam').offsetParent !== null"), 'menu : Protocoles, Radiothérapie, Retour à l\'Administration ; Paramètres par l\'icône du haut ' + str(vis))
         ok('ce que reçoivent les nouveaux cabinets' in await pg.inner_text('body'), 'bandeau « ce que reçoivent les nouveaux cabinets »')
         fs = await pg.evaluate("window.__fs")
         fig = [k.split('/')[-1] for k in fs if k.startswith(B + 'bibliotheques/')]
@@ -29,7 +30,7 @@ async def main():
         ok('Documentation' in tp and 'Médicaments' in tp, 'Paramètres › Bibliothèques : médicaments… et documentation')
         # Paramètres en familles (11/10/2026) : toutes les rubriques, famille par famille
         ong = await pg.evaluate("(async()=>{const r=[];for(const f of [...document.querySelectorAll('.cf-fam button')].map(b=>b.getAttribute('onclick').match(/'(\\w+)'/)[1])){cfFamille(f);await new Promise(z=>setTimeout(z,150));const s=[...document.querySelectorAll('.cf-sous button')].map(b=>b.innerText.trim());r.push(...(s.length?s:[document.querySelector('.cf-fam button.on').innerText.trim()]))}return r})()")
-        ok(len(ong) >= 13 and not any(x in ' '.join(ong) for x in ['Lieux', 'Accès', 'Journal']) and any('Tâches' in o for o in ong) and any('RCP' in o for o in ong), 'Paramètres : tous les paramètres de base, sans lieux, accès ni journal ' + str(ong))
+        ok(len(ong) >= 13 and not any(x in ' '.join(ong) for x in ['Lieux', 'Accès', 'Journal']) and any('Listes' in o for o in ong) and any('RCP' in o for o in ong), 'Paramètres : tous les paramètres de base (Tâches et Documents dans Listes : lot D), sans lieux, accès ni journal ' + str(ong))
         await pg.evaluate("location.hash='parametres/couleurs'"); await pg.wait_for_timeout(800)
         ok('Lier mon Google Agenda' not in await pg.inner_text('#page') and 'Couleurs' in await pg.inner_text('#page'), 'Google Agenda : les couleurs, sans liaison personnelle')
         await pg.evaluate("location.hash='parametres/bibliotheques'"); await pg.wait_for_timeout(800)

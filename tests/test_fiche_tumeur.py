@@ -16,7 +16,7 @@ async def main():
         print('Fiche : tumeur, allergie, statut')
         pg = await ouvrir(b, S); ev = pg.evaluate
         await pg.goto(f'http://localhost:{PORT}/v2.html#dossier/{pid}'); await pg.wait_for_timeout(2500)
-        ok(await ev("!/Tâche/.test(document.querySelector('.dos-ban .bn-bt').innerText) && /\\+ Tâche/.test(document.querySelector('.dos-barre').innerText)"), 'lot G : « + Tâche » / « + Rendez-vous » dans la barre d\'actions, pas dans le bandeau')
+        ok(await ev("!/Tâche/.test(document.querySelector('.dos-ban').innerText) && /\\+ Tâche/.test(document.querySelector('.dos-barre').innerText)"), 'lot G : « + Tâche » / « + Rendez-vous » dans la barre d\'actions, pas dans le bandeau')
         # 20/10/2026 : une partie à la fois (bandeau « Modifier » = identité ; colonne Patient : « Modifier » de chaque partie)
         part, secs = {}, {}
         for sec in ['id', 'med', 'tum']:
@@ -47,7 +47,7 @@ async def main():
         await pg.select_option('#fx_xtoms', '1')
         await pg.select_option('#f_allergie', 'oui'); await pg.wait_for_timeout(100)
         ok(not await ev("document.getElementById('zAlD').classList.contains('cache')"), '« Oui » : la case « Laquelle ? » apparaît')
-        await pg.fill('#f_allergies', 'Pénicilline')
+        await pg.fill('#fenetre [data-ed-im=allergies] .im-lib >> nth=0', 'Pénicilline')  # lot A : allergies en lignes (liste du cabinet)
         await pg.select_option('#fStatut', 'surveillance')
         await pg.click('#fOk'); await pg.wait_for_timeout(1800)
         cl = (await ev("window.__fs"))[E + 'patients/' + pid]['clinique']
@@ -91,7 +91,8 @@ async def main():
         await pg.goto(f'http://localhost:{PORT}/v2.html#parametres/listes'); await pg.wait_for_timeout(1500)
         t = await ev("document.getElementById('page').textContent")  # 18/10 : la phrase d'explication est rangée derrière l'aide « ? » du titre
         pu = await ev("[...document.querySelectorAll('.puces .puce')].map(b=>b.textContent.split(' (')[0])")
-        ok(pu == ['Mutuelles', 'Correspondants'] and 'depuis leur champ' in t, 'Paramètres › Listes : mutuelles, correspondants (localisations, stades, grades : depuis la fiche, 3.11)', pu)
+        # Lot D (25/10/2026) : Bibliothèques › Listes réunit toutes les listes, localisations comprises ; stades et grades : depuis leur champ de la fiche
+        ok(pu[:2] == ['Mutuelles', 'Correspondants'] and 'Localisations' in pu and 'Tâches' in pu and not any(x in pu for x in ('Stades', 'Grades')), 'Paramètres › Listes : toutes les listes ; stades et grades depuis la fiche (✎)', pu)
         await pg.goto(f'http://localhost:{PORT}/v2.html#parametres/impression'); await pg.wait_for_timeout(1200)
         ok(await ev("[...document.querySelectorAll('#page label.chk')].map(l=>l.textContent.trim()).filter(t=>t==='Âge'||t==='Poids').length") == 2, 'Paramètres › Impression : âge et poids séparés')
         ok(not pg.errs, 'aucune erreur JavaScript', pg.errs[:2]); await pg.close()
@@ -101,7 +102,7 @@ async def main():
         await pg.goto(f'http://localhost:{PORT}/v2.html#dossier/{pid}'); await pg.wait_for_timeout(2500)
         # lot G (19/10/2026) : nom, âge et allergie collés en haut ; fiche dans des parties dépliables
         r = await ev("(()=>({al:/Allergie/.test(document.getElementById('titrePage').innerText),band:!!document.querySelector('.dos-ban .bn-al'),med:document.querySelector('.dos-pat details[data-p=med]').open,sw:document.documentElement.scrollWidth,cw:document.documentElement.clientWidth}))()")
-        ok(r['al'] and r['band'] and not r['med'], 'allergie dans la barre du haut et le bandeau ; informations médicales repliées', r)
+        ok(not r['al'] and r['band'] and not r['med'], 'allergie dans le bloc patient (lot A : la barre du haut n\'affiche plus que « ‹ Patients ») ; informations médicales repliées', r)
         ok(r['sw'] <= r['cw'] + 1, 'pas de débordement horizontal', r)
         await ev("document.querySelector('.dos-pat details[data-p=med] summary').click()"); await pg.wait_for_timeout(200)
         ok(await ev("document.querySelector('.dos-pat details[data-p=med]').open && !!document.querySelector('.dos-pat details[data-p=med] [data-champ]')"), 'déplié au toucher')

@@ -29,7 +29,8 @@ async def main():
         ok(d.suggested_filename.startswith('Journal_audit_') and txt.count('\r\n') == 2 and 'Rendez-vous' in txt, 'export Excel (en-tête + 2 lignes)')
         # Bouton « Journal » du dossier
         await pg.evaluate(f"location.hash='dossier/{pats[0]}'"); await pg.wait_for_timeout(1200)
-        await pg.click('button:has-text("Journal")'); await pg.wait_for_timeout(1200)
+        # Lot A (25/10/2026) : « Journal » sous le « ⋯ » à côté du nom, dans le bloc patient
+        await pg.click('.bp-l1 .sa-plus'); await pg.wait_for_timeout(200); await pg.click('#ptsMenuF button:has-text("Journal")'); await pg.wait_for_timeout(1200)
         t = await pg.inner_text('#page')
         ok(pg.url.endswith('#parametres/audit') and 'Tous les patients' in t and await pg.evaluate("document.querySelectorAll('.au-t tr').length") == 3, 'Journal du dossier : 2 lignes de ce patient')
         await pg.set_viewport_size({'width': 390, 'height': 800}); await pg.wait_for_timeout(300)

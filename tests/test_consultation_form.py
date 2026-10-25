@@ -29,7 +29,7 @@ async def main():
         pg = await ouvrir(b, S2); await pg.goto(f'http://localhost:{PORT}/v2.html#dossier/{pid}'); await pg.wait_for_timeout(2500)
         await pg.evaluate(f"csNouvelle('{pid}')"); await pg.wait_for_timeout(400)
         ids = await pg.evaluate("[...document.querySelectorAll('#fenetre .form input,#fenetre .form select,#fenetre .form textarea')].map(e=>e.id)")
-        ok([i for i in ids if not i.startswith('cx_xcs')] == ['csDate', 'csType', 'cx_xpds01', 'cx_xobs01', 'csNote', 'cx_xgly01'], 'ordre de la spécialité, Titre retiré, champ du cabinet à la fin ' + str(ids))
+        ok([i for i in ids if not i.startswith('cx_xcs')] == ['csType', 'csDate', 'csNote', 'cx_xpds01', 'cx_xobs01', 'cx_xgly01'], 'champs communs d\'abord (lot D, 25/10/2026 : Consultation, Date, Titre, Note), Titre retiré, puis l\'ordre de la spécialité, champ du cabinet à la fin ' + str(ids))
         t = await pg.inner_text('#fenetre')
         ok('Mesures et constantes' in t and 'Poids (kg)' in t and 'Conclusion' in t and 'Glycémie (g/l)' in t, 'section, unité, « Note » renommée « Conclusion »')
         ty = await pg.evaluate("[...document.querySelectorAll('#csType option')].map(o=>o.textContent)")
