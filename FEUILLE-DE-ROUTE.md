@@ -360,6 +360,18 @@ Avant le **premier client payant** : société éditrice, projet Firebase et nom
       rendez-vous reste possible, décision du 25/10) ; l'échec du test venait de la fenêtre « Envoyer la confirmation par WhatsApp ? » restée ouverte
       (patient fictif avec téléphone) : test corrigé (test_agenda 57/57).
 
+- [x] **(25/10, 2e demande) « Ligne créée » revient après chaque action** (fiche de chimio, ordonnances, heure de la C1 : ✓ « fait » sur chacune,
+      « Terminer » ; crochet `apresFenetre` de v2.js) ; **ordonnances du protocole avec la biologie** : « Bilan chimiothérapie – bilan initial » à la
+      création de la ligne (avant la C1), « – intercure » depuis une cure ; ceux de l'immunothérapie quand tous les anticancéreux sont des
+      immunothérapies (`RE_IMMUNO`, chimio.js `chOrdos`) ; autres bilans dans « Autres » ; **une ordonnance par case cochée** (plus jamais réunies) :
+      « Imprimer les N ordonnances » (une seule impression, chacune sur sa page, `imprimerPlusieurs` ; chacune enregistrée à part dans la
+      consultation du jour ; vérification zones / allergie d'un clic) ou « Voir et modifier une par une » (« Ordonnance 1 / 3 », la suivante
+      s'ouvre après Valider). Test `tests/test_ordos_proto.py` 21/21 (Chrome, Safari), test_ordonnances_protocole adapté.
+- [x] **(25/10) Nouvelle ligne : liste filtrée sur la localisation du dossier quand elle est remplie** (U1 revu par Dr Bentahila : avant, « non ») :
+      type de cancer (et localisation quand elle est claire) choisis d'office, mention « Liste filtrée sur la localisation du dossier », « Tous
+      les cancers » pour tout voir ; correspondance localisation → indications des protocoles dans `moteur/recherche.js` (`filtreLocalisation`,
+      `filtreValide` : seulement des valeurs de la bibliothèque du cabinet) ; test-recherche 13/13.
+
 ## Phase T – Tous les jours (audit 11, facilité d'utilisation ; impressions de l'audit 10)
 Ce qui ne change pas (décisions du 12/10 et du 17/10) : « Ouvrir » reste le bouton principal de chaque cure ; Valider, Reporter, Annuler restent
 dans ⋯ ; Afficher, Journal, Modifier restent visibles ; aucune consultation créée d'office ; rien n'est créé tout seul.

@@ -23,3 +23,31 @@ export function curesProposees(p) {
   const n = nb(String((p && p.nom) || "")) || nb(String((p && p.r) || ""));
   return n > 0 && n <= 40 ? n : 6;
 }
+
+// 25/10/2026 (demande de Dr Bentahila, U1 revu) : nouvelle ligne, localisation du dossier remplie → liste des protocoles filtrée d'office sur le
+// type de cancer (et la localisation quand elle est claire) des indications des protocoles ; [type, localisation | ""], ou null (rien de reconnu).
+// L'écran garde « Tous les cancers » pour tout revoir. Seules les valeurs présentes dans la bibliothèque du cabinet sont gardées (filtreValide).
+const LOC = [
+  [/sein/, "Sein", "Sein"],
+  [/jonction oeso/, "Digestif", "Œsophage / jonction – adénocarcinome"], [/oesophag/, "Digestif", ""], [/estomac|gastrique/, "Digestif", "Estomac"], [/colorectal/, "Digestif", "Côlon"], [/colon/, "Digestif", "Côlon"],
+  [/rectum/, "Digestif", "Rectum"], [/canal anal/, "Digestif", "Canal anal"], [/pancrea|ampoule de vater/, "Digestif", "Pancréas"],
+  [/hepatocellulaire|foie/, "Digestif", "Carcinome hépatocellulaire"], [/voies biliaires|vesicule biliaire|cholangio/, "Digestif", "Voies biliaires / vésicule"],
+  [/\bgist\b|stromale gastro/, "Digestif", "GIST"], [/carcinoide bronch/, "Poumon / thorax", ""], [/neuroendocrine|carcinoide/, "Digestif", "Tumeurs neuroendocrines"], [/intestin grele|appendice|carcinose|pseudomyxome/, "Digestif", ""],
+  [/ovaire|trompe|peritoine/, "Gynécologie", "Ovaire / trompe / péritoine"], [/endometre|corps de l.uterus|corps uterin/, "Gynécologie", "Endomètre"],
+  [/col de l.uterus|col uterin|\bcol\b/, "Gynécologie", "Col de l'utérus"], [/vulve/, "Gynécologie", "Vulve"], [/vagin/, "Gynécologie", ""],
+  [/cavum|nasopharynx/, "Tête et cou", "Nasopharynx"], [/vads|orl|cavite buccale|langue|levre|oropharynx|hypopharynx|larynx|fosses nasales|sinus|glandes salivaires|adenopathie cervicale/, "Tête et cou", "VADS"],
+  [/mesotheliome/, "Poumon / thorax", "Mésothéliome pleural"], [/thym/, "Poumon / thorax", "Tumeurs du thymus"], [/petites cellules/, "Poumon / thorax", "CBPC"],
+  [/cbnpc/, "Poumon / thorax", "CBNPC"], [/poumon|bronch/, "Poumon / thorax", ""],
+  [/ewing/, "Sarcomes", "Sarcome d'Ewing"], [/osteosarcome/, "Sarcomes", "Ostéosarcome"], [/liposarcome/, "Sarcomes", "Liposarcome"], [/angiosarcome/, "Sarcomes", "Angiosarcome"], [/sarcome/, "Sarcomes", ""],
+  [/vessie|urothel|voies excretrices/, "Urologie", "Vessie / urothélium"], [/prostate/, "Urologie", "Prostate"], [/testicul|germinal/, "Urologie", "Testicule"],
+  [/\brein\b|cancer renal|carcinome renal/, "Rein", "Rein"], [/melanome/, "Mélanome", "Mélanome"], [/thyroid/, "Thyroïde", ""], [/\bgliome|glioblastome|tumeur cerebrale|astrocytome/, "Neurologie", ""],
+];
+export function filtreLocalisation(diag) {
+  const d = sa(diag).replace(/œ/g, "oe").replace(/[’']/g, "'"); if (!d.trim()) return null;
+  // « non à petites cellules » = CBNPC (jamais CBPC)
+  if (/non a petites cellules/.test(d)) return ["Poumon / thorax", "CBNPC"];
+  for (const [re, c, o] of LOC) if (re.test(d)) return [c, o];
+  return null;
+}
+// valeurs gardées seulement si la bibliothèque en a (types = valeurs du 1er menu, locs(type) = valeurs du 2e)
+export function filtreValide(f, types, locs) { if (!f || types.indexOf(f[0]) < 0) return null; return [f[0], f[1] && locs(f[0]).indexOf(f[1]) >= 0 ? f[1] : ""]; }

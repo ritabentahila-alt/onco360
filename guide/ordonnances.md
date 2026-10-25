@@ -17,6 +17,14 @@ antécédents). Une ordonnance validée s'ajoute à la consultation du jour.
   vérifier »), sulfamides, quinolones, anti-inflammatoires (AINS), aspirine, produits de contraste iodés (scanners injectés), morphiniques.
   Un clic : « Ajouter quand même » ou « Ne pas ajouter ». Rien n'est bloqué.
 
+## Ordonnances du protocole (chimiothérapie)
+- À la création d'une ligne (« Ligne créée » → « Ordonnances du protocole ») et dans une cure (bouton « Ordonnances ») : les ordonnances liées
+  au protocole sont cochées (et « Fièvre sous chimiothérapie » à la 1re cure), ainsi que le **bilan biologique** : bilan initial avant la
+  1re cure, bilan intercure ensuite (celui de l'immunothérapie pour une immunothérapie seule). Les autres sont dans « Autres ».
+- **Une ordonnance par case cochée**, jamais tout sur la même : « Imprimer les N ordonnances » (une seule impression, chacune sur sa page,
+  chacune enregistrée dans la consultation du jour) ou « Voir et modifier une par une » (la suivante s'ouvre après « Valider »).
+- « Ligne créée » revient après chaque action : fiche de chimio, ordonnances et heure de la C1 peuvent se faire à la suite.
+
 ## Avant d'imprimer
 Une seule fenêtre regroupe ce qui reste à voir : zones « À compléter », doublons, allergie, ordonnance sur 2 pages. **Corriger** (retour à
 l'ordonnance) ou **Imprimer quand même** / **Enregistrer quand même**. Pas de contrôle des stupéfiants (décision du cabinet).

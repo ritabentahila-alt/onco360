@@ -166,27 +166,71 @@ export async function ordosAudit3() {
   return r;
 }
 // P6 (18/10/2026, audit n° 3) : bouton « Ordonnances » de la séance de chimiothérapie : les ordonnances types liées au protocole
-// cochées (et « Fièvre sous chimiothérapie » à la 1re cure), les autres ordonnances « Chimio » à cocher ; « Préparer l'ordonnance »
-// réunit leurs médicaments dans une ordonnance modifiable (la fenêtre habituelle : Valider / Valider + Imprimer, consultation du jour).
+// cochées (et « Fièvre sous chimiothérapie » à la 1re cure), les autres ordonnances « Chimio » à cocher.
+// 25/10/2026 (demande de Dr Bentahila) : le bilan biologique aussi (opts.bio : « initial » à la création de la ligne, sinon « intercure » ;
+// opts.immuno : celui de l'immunothérapie), et **une ordonnance par case cochée** (jamais tout sur la même) : « Imprimer les N ordonnances »
+// (chacune sur sa page, une seule impression, chacune enregistrée dans la consultation du jour) ou « Voir et modifier une par une ».
 const FIEVRE = "Chimio – Fièvre sous chimiothérapie : conduite à tenir";
+const BIO_NOMS = { chimio: { initial: "Bilan chimiothérapie – bilan initial", intercure: "Bilan chimiothérapie – intercure" }, immuno: { initial: "Bilan immunothérapie – bilan initial", intercure: "Bilan immunothérapie – intercure" } };
+// analyses d'un bilan, bilans inclus dépliés (un bilan peut en contenir un autre), sans doublon
+function analysesDuBilan(b, bilans, vus) {
+  vus = vus || new Set(); if (!b || vus.has(b.id)) return []; vus.add(b.id); const cle = (z) => sansAcc(z).replace(/[^a-z0-9]/g, ""), out = [];
+  (b.items || []).forEach((n) => { const sb = bilans.find((z) => z.id !== b.id && cle(z.nom) === cle(n)); (sb ? analysesDuBilan(sb, bilans, vus) : [n]).forEach((a) => { if (out.indexOf(a) < 0) out.push(a); }); });
+  return out;
+}
+let PC_DOCS = null; // ordonnances préparées (une par case cochée)
 window.orProtocole = async (pid, noms, opts) => {
   opts = opts || {}; A.fenetre('<p class="sous">Chargement…</p>', "large");
-  if (!(await charge(chargerTypes()))) return; const x = trouver(pid), cle = (s) => sansAcc(s).replace(/[^a-z0-9]/g, "");
+  let bilans = []; if (!(await charge(Promise.all([chargerTypes(), lireListe("bilans").then((L) => { bilans = L || []; })])))) return;
+  const x = trouver(pid), cle = (s) => sansAcc(s).replace(/[^a-z0-9]/g, "");
   const lies = (noms || []).map((n) => TYPES.find((o) => cle(o.nom) === cle(n))).filter(Boolean);
   if (opts.fievre) { const f = TYPES.find((o) => o.nom === FIEVRE); if (f && lies.indexOf(f) < 0) lies.push(f); }
   const autres = TYPES.filter((o) => /^Chimio/.test(o.nom) && lies.indexOf(o) < 0).sort(alpha), manque = (noms || []).filter((n) => !TYPES.some((o) => cle(o.nom) === cle(n)));
+  const bilan = (nom) => bilans.find((b) => cle(b.nom) === cle(nom)), fam = opts.immuno ? "immuno" : "chimio", moment = opts.bio === "initial" ? "initial" : "intercure";
+  const bioPropose = opts.bio ? bilan(BIO_NOMS[fam][moment]) : null;
+  const bioAutres = [BIO_NOMS.chimio.initial, BIO_NOMS.chimio.intercure, BIO_NOMS.immuno.initial, BIO_NOMS.immuno.intercure].map(bilan).filter((b) => b && b !== bioPropose);
   const ligne = (o, c) => '<label class="or-pc" style="display:block;margin:6px 0;font-weight:normal"><input type="checkbox" data-ot="' + A.esc(o.id) + '"' + (c ? " checked" : "") + '> <b>' + A.esc(o.nom) + '</b> <span class="mesures">' + A.esc(o.items.map((i) => i.nom).join(" ; ")) + "</span></label>";
+  const ligneB = (b, c) => '<label class="or-pc" style="display:block;margin:6px 0;font-weight:normal"><input type="checkbox" data-bl="' + A.esc(b.id) + '"' + (c ? " checked" : "") + '> <b>' + A.esc(b.nom) + '</b> <span class="mesures">' + A.esc(analysesDuBilan(b, bilans).join(" ; ")) + "</span></label>";
   A.fenetre("<h3>Ordonnances du protocole — " + A.esc(x.r.nm) + "</h3>" + (opts.proto ? '<p class="sous">' + A.esc(opts.proto) + "</p>" : "") +
     (lies.length ? "<h4 class=\"soustitre\">Liées au protocole</h4>" + lies.map((o) => ligne(o, true)).join("") : '<p class="mesures">Aucune ordonnance liée à ce protocole (Protocoles › fiche du protocole › « Ordonnances liées »).</p>') +
     (manque.length ? '<p class="mesures">Introuvables dans la liste du cabinet : ' + manque.map(A.esc).join(" ; ") + "</p>" : "") +
-    (autres.length ? '<details><summary style="cursor:pointer;margin-top:8px">Autres ordonnances de chimiothérapie</summary>' + autres.map((o) => ligne(o, false)).join("") + "</details>" : "") +
-    '<p class="mesures" style="margin-top:8px">Les médicaments des ordonnances cochées passent dans une seule ordonnance, modifiable avant de l\'imprimer. Rien n\'est obligatoire.</p>' +
-    '<div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Fermer</button><button class="bt plein" id="orPcOk">Préparer l\'ordonnance</button></div>', "large");
-  $("orPcOk").onclick = () => {
-    const ch = [...document.querySelectorAll("[data-ot]:checked")].map((i) => TYPES.find((o) => o.id === i.dataset.ot)).filter(Boolean);
-    if (!ch.length) { A.toast("Cochez au moins une ordonnance."); return; }
-    const items = []; ch.forEach((o) => o.items.forEach((it) => { if (!items.some((z) => z.nom === it.nom && z.poso === it.poso)) items.push({ nom: it.nom, poso: it.poso }); }));
-    S = null; ouvrirOrdonnance({ pid, t: "ordo", types: ch.map((o) => o.nom), html: contenu(x, items, D().t, medecin()), format: items.length > 5 ? "A4" : "A5", taille: 0 });
+    (opts.bio ? "<h4 class=\"soustitre\">Biologie" + (moment === "initial" ? " avant la 1re cure" : " intercure") + "</h4>" + (bioPropose ? ligneB(bioPropose, true) : '<p class="mesures">« ' + A.esc(BIO_NOMS[fam][moment]) + " » n'est pas dans les bilans du cabinet (Paramètres › Bibliothèques › Analyses).</p>") : "") +
+    (autres.length || bioAutres.length ? '<details><summary style="cursor:pointer;margin-top:8px">Autres ordonnances de chimiothérapie et bilans</summary>' + autres.map((o) => ligne(o, false)).join("") + bioAutres.map((b) => ligneB(b, false)).join("") + "</details>" : "") +
+    '<p class="mesures" style="margin-top:8px">Une ordonnance par case cochée, chacune sur sa page. Rien n\'est obligatoire.</p>' +
+    '<div class="boutons" style="flex-wrap:wrap"><button class="bt gris" onclick="fermerFenetre()">Fermer</button><button class="bt clair" id="orPcUne">Voir et modifier une par une</button><button class="bt plein" id="orPcImp">' + A.ic("imprimer") + '<span id="orPcN">Imprimer</span></button></div>', "large");
+  const coches = () => {
+    const D0 = D().t, med = medecin(), L = [];
+    [...document.querySelectorAll("[data-ot]:checked")].map((i) => TYPES.find((o) => o.id === i.dataset.ot)).filter(Boolean).forEach((o) => {
+      const items = o.items.map((it) => ({ nom: it.nom, poso: it.poso })); S = null; O = { t: "ordo" };
+      L.push({ pid, t: "ordo", types: [o.nom], html: contenu(x, items, D0, med), format: items.length > 5 ? "A4" : "A5", taille: 0 }); O = null; });
+    [...document.querySelectorAll("[data-bl]:checked")].map((i) => bilans.find((b) => b.id === i.dataset.bl)).filter(Boolean).forEach((b) => {
+      const items = analysesDuBilan(b, bilans).map((n) => ({ nom: n }));
+      L.push({ pid, t: "analyse", types: [b.nom], html: contenuAnalyses(x, items, D0, med), format: items.length > 14 ? "A4" : "A5", taille: 0 }); });
+    return L;
+  };
+  const majN = () => { const n = document.querySelectorAll("[data-ot]:checked,[data-bl]:checked").length, z = $("orPcN"); if (z) z.textContent = n > 1 ? "Imprimer les " + n + " ordonnances" : "Imprimer l'ordonnance"; };
+  document.querySelectorAll("[data-ot],[data-bl]").forEach((c) => { c.onchange = majN; }); majN();
+  $("orPcUne").onclick = () => { const L = coches(); if (!L.length) { A.toast("Cochez au moins une ordonnance."); return; } PC_DOCS = L.map((d, k) => Object.assign(d, { file: { i: k + 1, n: L.length } })); S = null; ouvrirOrdonnance(PC_DOCS.shift()); };
+  $("orPcImp").onclick = async () => {
+    const L = coches(); if (!L.length) { A.toast("Cochez au moins une ordonnance."); return; }
+    // même vérification qu'une ordonnance seule : zones « À compléter » (laissées vides à l'impression), allergie connue
+    const zones = L.filter((d) => /or-ac/.test(d.html) && [...new DOMParser().parseFromString(d.html, "text/html").querySelectorAll("mark.or-ac")].some((m) => zoneRestante(m.textContent))).length;
+    const al = []; L.forEach((d) => { const dv = document.createElement("div"); dv.innerHTML = d.html; alertesPour(x, lignesFeuille(dv)).forEach((a) => al.push(texteAlerte(a))); });
+    let w = null;
+    if (zones || al.length) {
+      const k = await question("<h4>Avant d'imprimer</h4><ul>" + (zones ? "<li>" + zones + " ordonnance(s) avec des zones « À compléter » : elles s'impriment vides, à remplir à la main.</li>" : "") + (al.length ? "<li>Allergie connue (" + A.esc(x.P.allergies || "oui") + ") : " + al.map(A.esc).join(" ; ") + "</li>" : "") + "</ul>",
+        [["une", "Voir une par une", "gris"], ["ok", "Imprimer quand même", "plein"]], (c) => { if (c === "ok") w = ouvrirImpression(); });
+      if (k !== "ok") { $("orPcUne").click(); return; }
+    } else w = ouvrirImpression();
+    A.occupe($("orPcImp"), true);
+    try {
+      const uid = A.medDefaut ? A.medDefaut() : "", sg = uid ? { med: nomSignataire(uid), medUid: uid } : {};
+      for (const d of L) await enregistrerPrescription(x, Object.assign({ t: d.t, d: D().t, med: medecin(), par: A.nomCompte ? A.nomCompte() : "", parUid: D().u.uid }, sg,
+        { lib: d.types.join(" + ") + " : " + libelle(d.html), types: d.types, html: d.html, format: d.format, taille: 0 }, d.t === "ordo" ? { items: medicamentsDe(d.html) } : {}));
+      if (w) imprimerPlusieurs(w, L, { pid, uid }); else A.toast("Impression bloquée par le navigateur : autorisez les fenêtres pour Onco360, puis réimprimez depuis la consultation.");
+      A.journal(x, L.length + " ordonnance(s) du protocole imprimée(s) : " + L.map((d) => d.types[0]).join(" ; "));
+      A.fermerFenetre(); A.toast(L.length + " ordonnance(s) enregistrée(s) dans la consultation du jour.");
+    } catch (e) { if (w) try { w.close(); } catch (er) {} A.occupe($("orPcImp"), false); A.erreur("Enregistrement impossible : " + ((e && e.message) || e)); }
   };
 };
 // P9 (18/10/2026) : liste des ordonnances types modifiée depuis la page Protocoles (mise à jour de la bibliothèque de référence)
@@ -869,7 +913,7 @@ function ouvrirOrdonnance(o) {
   // 3.9 : signataire (cabinet de plusieurs médecins) : celui de l'ordonnance modifiée, sinon le médecin connecté, sinon le titulaire
   O.medUid = (l && (l.medUid || uidDeNom(l.med))) || (A.medDefaut ? A.medDefaut() : "");
   const cd = cadre(o.pid, O.medUid), sigSel = plusieursMedecins() && !o.lecture ? '<label class="or-sg">Signée par <select id="orSig" onchange="orSignataire(this.value)">' + A.medecins().map((m) => '<option value="' + A.esc(m.uid) + '"' + (m.uid === O.medUid ? " selected" : "") + ">" + A.esc(m.nom) + "</option>").join("") + "</select></label>" : "";
-  A.fenetre("<h3>" + (o.t === "courrier" ? "Courrier" : "Ordonnance") + " — " + A.esc(x.r.nm) + (l ? ' <span class="mesures">(du ' + A.dfrA(l.d) + ", modification)</span>" : o.renouv ? ' <span class="mesures">(renouvellement de celle du ' + A.dfrA(o.renouv.d) + ")</span>" : "") + "</h3>" +
+  A.fenetre("<h3>" + (o.t === "courrier" ? "Courrier" : "Ordonnance") + (o.file ? " " + o.file.i + " / " + o.file.n + (o.types && o.types[0] ? ' <span class="mesures">(' + A.esc(o.types[0]) + ")</span>" : "") : "") + " — " + A.esc(x.r.nm) + (l ? ' <span class="mesures">(du ' + A.dfrA(l.d) + ", modification)</span>" : o.renouv ? ' <span class="mesures">(renouvellement de celle du ' + A.dfrA(o.renouv.d) + ")</span>" : "") + "</h3>" +
     '<div class="or-outils"><div class="ag-vues" data-fn="prescriptions.format" role="radiogroup" aria-label="Format">' + ["A5", "A4"].map((f) => '<button role="radio" aria-checked="' + (o.format === f) + '" class="' + (o.format === f ? "on" : "") + '" onclick="orFormat(\'' + f + '\')">Édition ' + f + "</button>").join("") + "</div>" +
     (o.lecture ? "" : '<span class="sep"></span><button class="ico" title="Gras" aria-label="Gras" onmousedown="event.preventDefault()" onclick="orStyle(\'bold\')"><b>G</b></button><button class="ico" title="Souligné" aria-label="Souligné" onmousedown="event.preventDefault()" onclick="orStyle(\'underline\')"><u>S</u></button>' +
       '<button class="ico" title="Texte plus petit" aria-label="Texte plus petit" onclick="orTaille(-1)">A−</button><button class="ico" title="Texte plus grand" aria-label="Texte plus grand" onclick="orTaille(1)">A+</button>') + "</div>" +
@@ -890,7 +934,7 @@ window.orFormat = (f) => {
 };
 window.orStyle = (c) => { try { document.execCommand(c, false, null); } catch (e) {} };
 window.orTaille = (s) => { if (!O) return; O.taille = Math.max(-4, Math.min(6, O.taille + s)); miseEnPage(); };
-window.orFermer = () => { O = null; A.fermerFenetre(); };
+window.orFermer = () => { if (PC_DOCS && PC_DOCS.length) A.toast(PC_DOCS.length + " ordonnance(s) suivante(s) non faite(s)."); PC_DOCS = null; O = null; A.fermerFenetre(); };
 // 3.9 : autre médecin signataire : nom sous « Cachet et signature » et en-tête imprimé
 window.orSignataire = (uid) => { if (!O) return; O.medUid = uid; const n = nomSignataire(uid), p = $("orPage");
   p.querySelectorAll(".or-med").forEach((z) => { z.textContent = n; }); const g = p.querySelector(".or-sig b"); if (g) g.textContent = n;
@@ -994,6 +1038,18 @@ export function viderZones(html) {
   return d.innerHTML;
 }
 function imprimer(w, html, format, taille, ctx, t) {
+  const r = corpsImpression(html, format, taille, ctx, t);
+  w.document.open(); w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>&#8203;</title><style>' + cssImpression(format, taille, r.courrier) + '</style></head><body><div class="pg">' + r.corps + "</div></body></html>"); w.document.close();
+  setTimeout(() => { try { w.focus(); w.print(); } catch (e) {} }, 400);
+}
+// 25/10/2026 : plusieurs ordonnances dans une seule impression, chacune commençant sur une nouvelle page (format de la 1re : A5 ou A4)
+function imprimerPlusieurs(w, docs, ctx) {
+  const f = docs.some((d) => d.format === "A4") ? "A4" : "A5";
+  const corps = docs.map((d) => '<div class="pgo">' + corpsImpression(d.html, f, d.taille || 0, ctx, d.t).corps + "</div>").join("");
+  w.document.open(); w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>&#8203;</title><style>' + cssImpression(f, 0, false) + ".pgo{break-after:page;page-break-after:always;display:flow-root}.pgo:last-child{break-after:auto;page-break-after:auto}" + '</style></head><body><div class="pg">' + corps + "</div></body></html>"); w.document.close();
+  setTimeout(() => { try { w.focus(); w.print(); } catch (e) {} }, 400);
+}
+function corpsImpression(html, format, taille, ctx, t) {
   html = viderZones(html);
   const cd = ctx ? cadre(ctx.pid, ctx.uid) : { haut: "", bas: "" }, courrier = t === "courrier" || html.indexOf("or-ti") >= 0;
   const r = courrier ? null : mesurer(html, format, taille, ctx);
@@ -1009,8 +1065,7 @@ function imprimer(w, html, format, taille, ctx, t) {
       return '<div class="pgp">' + cd.haut + (i ? tete : "") + G.map((g) => '<div class="or-gr">' + g.join("") + "</div>").join("") +
         '<div class="or-gr">' + fin + sg + '<div class="pgb"><p class="or-num">page ' + (i + 1) + " / " + n + "</p>" + cd.bas + "</div></div></div>"; }).join("");
   }
-  w.document.open(); w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>&#8203;</title><style>' + cssImpression(format, taille, courrier) + '</style></head><body><div class="pg">' + corps + "</div></body></html>"); w.document.close();
-  setTimeout(() => { try { w.focus(); w.print(); } catch (e) {} }, 400);
+  return { corps, courrier };
 }
 // R-E1 (d. 28) : une seule vérification avant d'enregistrer ou d'imprimer : zones « À compléter » restantes, doublons, allergie, ordonnance sur
 // plusieurs pages ; « Corriger » ou « … quand même » (jamais bloquant ; pas de contrôle des stupéfiants, décision du cabinet)
@@ -1046,6 +1101,8 @@ window.orValider = async (imp) => {
       { t: O.t, lib: O.t === "courrier" ? (O.types || []).join(" + ") || libelle(html) : ((O.types || []).length ? O.types.join(" + ") + " : " : "") + libelle(html), types: O.types || [], html, format: O.format, taille: O.taille },
       O.t === "courrier" ? {} : { items: medicamentsDe(html) }, l ? { modifPar: A.nomCompte ? A.nomCompte() : "", modifParUid: D().u.uid } : {}));
     if (imp) { if (w) imprimer(w, html, O.format, O.taille, { pid: x.id, uid: O.medUid || (l && (l.medUid || uidDeNom(l.med))) || (A.medDefaut ? A.medDefaut() : "") }, O.t); else A.toast("Impression bloquée par le navigateur : autorisez les fenêtres pour Onco360, puis réimprimez depuis la consultation."); }
+    if (PC_DOCS && PC_DOCS.length) { O = null; S = null; ouvrirOrdonnance(PC_DOCS.shift()); A.toast("Ordonnance enregistrée — voici la suivante."); return; } // 25/10/2026 : ordonnances du protocole une par une
+    PC_DOCS = null;
     const pid = O.pid, renouv = !!O.renouv, cr = O.t === "courrier"; O = null; S = null; CQ = null; A.fermerFenetre();
     A.toast(cr ? (l ? "Courrier modifié (et dans sa consultation)." : renouv ? "Courrier refait à la date du jour, dans la consultation du jour." : "Courrier enregistré dans la consultation du jour.") : l ? "Ordonnance modifiée (et dans sa consultation)." : renouv ? "Ordonnance renouvelée dans la consultation du jour." : "Ordonnance enregistrée dans la consultation du jour."); A.pageDossier(pid);
   } catch (e) {

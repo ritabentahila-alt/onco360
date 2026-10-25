@@ -136,7 +136,9 @@ async def main():
         print('5. Messages à l\'écran')
         pm = await ouvrir(b, S3, t=T+"T10:00:00"); await pm.goto(U+'#salle'); await pm.wait_for_timeout(2500)
         await pm.evaluate(f"window.__fs['{sid(K1,'r-rS3')}']={{jour:'{T}',patientId:'{K1}',etablissementId:'HCK',cle:'r-rS3',etat:'salle',arr:Date.now()-50*60000,arrNom:'Sara',ordre:3,majPar:'SEC'}}")
-        await pm.wait_for_timeout(1600)
+        for _ in range(25):  # jusqu'à 5 s (écoute en direct puis relecture du dossier)
+            await pm.wait_for_timeout(200)
+            if any('est arrivé(e)' in n for n in await pm.evaluate("[...document.querySelectorAll('#notifs .notif')].map(n=>n.innerText)")): break
         verif('médecin : « (patient) est arrivé(e) en salle d\'attente »', any('est arrivé(e)' in n for n in await pm.evaluate("[...document.querySelectorAll('#notifs .notif')].map(n=>n.innerText)")))
         await pm.close()
         ps = await ouvrir(b, S4, t=T+"T10:00:00"); await ps.add_init_script("window.__uid='SEC'"); await ps.goto(U+'#salle'); await ps.wait_for_timeout(2500)

@@ -13,4 +13,11 @@ cas("nombre de cures : réglé dans le protocole (nbc) d'abord", curesProposees(
 cas("nombre de cures : « x 6 » du rythme ; rien = 6", curesProposees({ nom: "TC", r: "J1 tous les 21 jours x 6" }) === 6 && curesProposees({ nom: "FOLFOX" }) === 6 && curesProposees({ nom: "BEP × 3" }) === 3);
 cas("« 300 mg × 2/j » ou « 150 mg × 2 » : pas un nombre de cures (6)", curesProposees({ nom: "Olaparib 300 mg × 2/j" }) === 6 && curesProposees({ nom: "Abémaciclib 150 mg × 2/j (adjuvant)" }) === 6 && curesProposees({ nom: "Capécitabine 1000 mg/m² × 2" }) === 6);
 cas("« / 21 j × 4 (CheckMate 8HW) » : 4", curesProposees({ nom: "Nivolumab 240 + Ipilimumab 1 mg/kg / 21 j × 4 (CheckMate 8HW)" }) === 4);
+// 25/10/2026 : liste filtrée par la localisation du dossier
+const { filtreLocalisation: FL, filtreValide: FV } = await import("../../public/js/moteur/recherche.js");
+const eq = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+cas("localisation : sein HER2+ → Sein › Sein ; endomètre → Gynécologie › Endomètre", eq(FL("Cancer du sein HER2+"), ["Sein", "Sein"]) && eq(FL("Cancer de l’endomètre"), ["Gynécologie", "Endomètre"]));
+cas("localisation : CBNPC (non à petites cellules) / CBPC / colorectal / cavum", eq(FL("Cancer bronchique non à petites cellules"), ["Poumon / thorax", "CBNPC"]) && eq(FL("Cancer bronchique à petites cellules"), ["Poumon / thorax", "CBPC"]) && eq(FL("Cancer colorectal métastatique"), ["Digestif", "Côlon"]) && eq(FL("Cancer du cavum"), ["Tête et cou", "Nasopharynx"]));
+cas("localisation vide ou inconnue : pas de filtre", FL("") === null && FL(null) === null && FL("Lymphome") === null);
+cas("valeur absente de la bibliothèque : type seul, ou rien", eq(FV(["Sein", "Sein"], ["Sein"], () => []), ["Sein", ""]) && FV(["Rein", "Rein"], ["Sein"], () => []) === null);
 console.log("\n" + ok + " réussi(s), " + ko + " échec(s)"); process.exit(ko ? 1 : 0);

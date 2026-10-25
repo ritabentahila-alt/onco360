@@ -35,14 +35,19 @@ async def main():
         ok('Ordonnances du protocole' in t and 'Chimio : risque émétique modéré (oxaliplatine, irinotécan…)' in coche and 'Chimio – Capécitabine : mains-pieds et diarrhée' in coche, 'les deux ordonnances liées sont cochées', coche)
         ok('Chimio – Fièvre sous chimiothérapie : conduite à tenir' in coche, '1re cure : « Fièvre sous chimiothérapie » cochée aussi', coche)
         ok('Autres ordonnances de chimiothérapie' in t, 'les autres ordonnances « Chimio » proposées (décochées)')
-        await ev("document.querySelector('[data-ot]:checked').click()"); await ev("document.getElementById('orPcOk').click()"); await pg.wait_for_timeout(1200)
+        # 25/10/2026 (Dr Bentahila) : une ordonnance par case cochée (plus de réunion dans une seule) ; « Voir et modifier une par une »
+        await ev("document.querySelectorAll('[data-bl]:checked').forEach(c=>c.click())")
+        await ev("document.querySelector('[data-ot]:checked').click()"); await ev("document.getElementById('orPcUne').click()"); await pg.wait_for_timeout(1200)
         page = await ev("(document.getElementById('orPage')||{}).innerText||''")
-        ok('CRÈME À L\'URÉE' in page and 'NFS + CRP' in page and 'CHEMOSET' not in page, 'une ordonnance décochée n\'y est pas ; les autres médicaments réunis, modifiables', page[:300])
+        ok('CRÈME À L\'URÉE' in page and 'NFS + CRP' not in page and 'CHEMOSET' not in page, 'une ordonnance décochée n\'y est pas ; chaque ordonnance cochée à part (capécitabine seule sur la 1re), modifiable', page[:300])
         await ev("document.getElementById('orOk').click()"); await pg.wait_for_timeout(600)
         # R-E1 (19/10/2026) : vérification avant d'enregistrer (doublons, zones…) : « Enregistrer quand même »
         dlg = await ev("(document.querySelector('.or-dlg')||{}).innerText||''")
         print('    (vérification : ' + dlg.replace('\n', ' ')[:160] + ')')
         if dlg: await ev("document.querySelector('.or-dlg [data-k=ok]').click()"); await pg.wait_for_timeout(1500)
+        page2 = await ev("(document.getElementById('orPage')||{}).innerText||''")
+        ok('NFS + CRP' in page2 and 'CRÈME' not in page2, 'la suivante s\'ouvre : « Fièvre sous chimiothérapie » sur sa propre ordonnance', page2[:200])
+        await ev("orFermer()"); await pg.wait_for_timeout(400)
         fs = await ev("window.__fs")
         cs = [v for k, v in fs.items() if k.startswith(E + 'consultations/') and v.get('patientId') == pid and any(l.get('t') == 'ordo' and 'Capécitabine' in (l.get('lib') or '') for l in v.get('lignes', []))]
         ok(cs, 'ordonnance enregistrée dans la consultation du jour', [k for k in fs if k.startswith(E + 'consultations/')][-3:])

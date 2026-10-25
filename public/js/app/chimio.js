@@ -10,7 +10,7 @@ import { etatLigne, protocoleDe, protocoleCure, seancesCure, seancesDe, dedupIds
 import { addJ, ecart, num, age } from "../moteur/outils.js";
 import { tarif } from "../moteur/tarifs.js";
 import { consJours, associeVrai } from "../moteur/finances.js";
-import { trierRecherche, curesProposees } from "../moteur/recherche.js";
+import { trierRecherche, curesProposees, filtreLocalisation, filtreValide } from "../moteur/recherche.js";
 import { typeRdv, T_RTC } from "../moteur/rdv.js";
 import { DIAG, MUT0, DICT } from "../donnees/listes.js";
 import { poso, doseTxt, ficheHTML, imprimerFiche } from "./fiche.js";
@@ -661,10 +661,14 @@ function champsBib(pc, L) {
   const b = L && D().ctx.bib[L.protoId]; if (!pc || !b) return pc;
   return Object.assign({}, pc, { ordos: (pc.ordos || []).length ? pc.ordos : b.ordos, seuils: (pc.seuils || []).length ? pc.seuils : b.seuils, re: pc.re || b.re });
 }
-window.chOrdos = (id, i, k, j) => {
+// 25/10/2026 : bilan biologique proposé avec les ordonnances : initial (prescrit à la création de la ligne, avant la C1), sinon intercure ;
+// celui de l'immunothérapie quand tous les anticancéreux du protocole sont des immunothérapies, sinon celui de la chimiothérapie
+const RE_IMMUNO = /pembrolizumab|keytruda|nivolumab|opdivo|atezolizumab|tecentriq|durvalumab|imfinzi|ipilimumab|yervoy|cemiplimab|libtayo|avelumab|bavencio|dostarlimab|jemperli|tislelizumab|tevimbra|toripalimab|tremelimumab|imjudo|retifanlimab|relatlimab/i;
+window.chOrdos = (id, i, k, j, o) => {
   const x = trouver(id), L = lignesDe(x)[i], pc = champsBib(protocoleCure(L, k, D().ctx.bib), L) || {};
-  const iv = (pc.dr || []).some((d) => !premedP(d) && !/PER OS|ORAL/i.test(d.v || ""));
-  window.orProtocole(id, pc.ordos || [], { fievre: k === 0 && j === 1 && iv, proto: "C" + (k + 1) + " — " + (pc.nom || "") });
+  const ac = (pc.dr || []).filter((d) => !premedP(d) && d.u !== "txt"), iv = ac.some((d) => !/PER OS|ORAL/i.test(d.v || ""));
+  const immuno = ac.length > 0 && ac.every((d) => RE_IMMUNO.test(d.p || ""));
+  window.orProtocole(id, pc.ordos || [], { fievre: k === 0 && j === 1 && iv, proto: "C" + (k + 1) + " — " + (pc.nom || ""), bio: o && o.initial ? "initial" : "intercure", immuno });
 };
 // P10 n (18/10/2026) : anticancéreux d'une séance (cure n, jour j) avec leur dose et les flacons, pour la liste de la pharmacie
 window.chDosesSeance = (pid, lid, n, j) => {
@@ -1120,7 +1124,7 @@ function dessinerNL() {
   const x = trouver(NL.pid), esc = A.esc;
   if (!NL.p) {
     if (CF.c && !CF.o) { const o = valeurs(1); if (o.length === 1) CF.o = o[0]; }
-    let h = "<h3>Nouvelle ligne de traitement</h3>" + menusCascade(BIB(), CF, "nlChoixV");
+    let h = "<h3>Nouvelle ligne de traitement</h3>" + (NL.loc && CF.c ? '<p class="mesures" style="margin:0 0 6px">Liste filtrée sur la localisation du dossier (' + esc(NL.loc) + ") : choisissez « Tous les cancers » pour tout voir.</p>" : "") + menusCascade(BIB(), CF, "nlChoixV");
     h += '<div class="actr" style="justify-content:flex-start;margin-top:8px;flex-wrap:nowrap"><input id="nlQ" class="champ" style="flex:1;min-width:0" placeholder="Rechercher : molécule, protocole ou situation (ex. pertuzumab, sein adjuvant)…" value="' + esc(CF.q) + '">' +
       '<button class="bt ' + (CF.fav ? "plein" : "clair") + ' petit" onclick="nlFav()"><svg class="pi"><use href="#i-etoile"/></svg>Favoris</button><button class="bt gris petit" onclick="nlReinit()">Réinitialiser</button></div>' +
       '<div id="nlL" class="liste-protos">' + listeProtos() + '</div><div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button></div>';
@@ -1156,19 +1160,23 @@ function dessinerNL() {
     SEL.pid = x.id; SEL.l = lignes.length - 1; SEL.c = null;
   }).then((ok) => { if (ok) suiteLigne(x.id, ED.nom); });
 }
-// T1 (24/10/2026, U7) : après « Créer la ligne », la suite est proposée (chaque bouton facultatif ; « Plus tard » ferme) : fiche de chimiothérapie
-// pour la prise en charge, ordonnances du protocole, heure de la C1
-function suiteLigne(pid, nom) {
-  const x = trouver(pid); if (!x) return; const i = x.P.lignes.length - 1, esc = A.esc;
+// T1 (24/10/2026, U7) : après « Créer la ligne », la suite est proposée (chaque bouton facultatif ; « Terminer » ferme) : fiche de chimiothérapie
+// pour la prise en charge, ordonnances du protocole (avec le bilan biologique initial), heure de la C1. 25/10/2026 (demande de Dr Bentahila) :
+// la fenêtre revient après chaque action (✓ sur ce qui est fait), pour en faire deux ou trois de suite
+function suiteLigne(pid, nom, fait) {
+  const x = trouver(pid); if (!x) return; const i = x.P.lignes.length - 1, esc = A.esc, F = fait || {};
+  const bt = (id, ico, lib, k) => '<button class="bt ' + (F[k] ? "gris" : "clair") + '" id="' + id + '">' + A.ic(F[k] ? "check" : ico) + lib + (F[k] ? " (fait)" : "") + "</button>";
   A.fenetre("<h3>Ligne créée</h3><p class=\"sous\">" + esc(nom) + " — et maintenant ?</p><div class=\"boutons\" style=\"flex-wrap:wrap;justify-content:flex-start\">" +
-    '<button class="bt clair" id="slFiche">' + A.ic("imprimer") + "Fiche de chimio (prise en charge)</button>" +
-    (A.peut("ecrireConsultations") ? '<button class="bt clair" data-fn="prescriptions" id="slOrdo">' + A.ic("imprimer") + "Ordonnances du protocole</button>" : "") +
-    (A.traitMod() || A.peut("planning") ? '<button class="bt clair" id="slHeure">' + A.ic("horloge") + "Heure de la C1</button>" : "") +
-    '</div><div class="boutons"><button class="bt plein" onclick="fermerFenetre()">Plus tard</button></div>');
+    bt("slFiche", "imprimer", "Fiche de chimio (prise en charge)", "fiche") +
+    (A.peut("ecrireConsultations") ? bt("slOrdo", "imprimer", "Ordonnances du protocole", "ordo").replace('<button ', '<button data-fn="prescriptions" ') : "") +
+    (A.traitMod() || A.peut("planning") ? bt("slHeure", "horloge", "Heure de la C1", "heure") : "") +
+    '</div><p class="mesures">Vous pouvez en faire plusieurs : cette fenêtre revient après chacune.</p><div class="boutons"><button class="bt plein" onclick="fermerFenetre()">' + (Object.keys(F).length ? "Terminer" : "Plus tard") + "</button></div>");
   const on = (id, f) => { const b = document.getElementById(id); if (b) b.onclick = f; };
-  on("slFiche", () => { A.fermerFenetre(); window.chFiche(pid, i, 0); });
-  on("slOrdo", () => { A.fermerFenetre(); window.chOrdos(pid, i, 0, 1); });
-  on("slHeure", () => { A.fermerFenetre(); window.chHeure(pid, i, 0, 1); });
+  const revenir = (k) => () => suiteLigne(pid, nom, Object.assign({}, F, { [k]: 1 }));
+  // fiche : imprimée dans un nouvel onglet, la fenêtre reste ; ordonnances et heure : leur fenêtre, puis retour ici à sa fermeture
+  on("slFiche", () => { window.chFiche(pid, i, 0); revenir("fiche")(); });
+  on("slOrdo", () => { A.fermerFenetre(); window.chOrdos(pid, i, 0, 1, { initial: true }); if (A.apresFenetre) A.apresFenetre(revenir("ordo")); });
+  on("slHeure", () => { A.fermerFenetre(); window.chHeure(pid, i, 0, 1); if (A.apresFenetre) A.apresFenetre(revenir("heure")); });
 }
 // 12/10/2026 (signalé par Dr Bentahila : « la page se recharge, je n'arrive plus à choisir ») : un choix dans les menus ne redessine plus
 // toute la fenêtre (saisie, défilement et menu ouvert perdus, surtout sur téléphone) : seuls les menus et la liste des protocoles changent
@@ -1218,7 +1226,10 @@ window.chNouvelleLigne = (id) => {
   CM = null; // R-G e : depuis la barre d'actions, une cure ouverte dans le panneau est remplacée
   const x = trouver(id), P = x.P, m = [];
   if (!P.ddn) m.push("ddn"); if (!P.sexe) m.push("sexe"); if (!num(P.taille)) m.push("taille"); if (!num(P.poids)) m.push("poids");
-  const ouvrir = () => { NL = { pid: id, p: null }; CF = { c: "", o: "", s: "", g: "", q: "", fav: 0 }; dessinerNL(); };
+  // 25/10/2026 (Dr Bentahila, U1 revu) : localisation du dossier remplie → liste filtrée d'office sur ce type de cancer (« Tous les cancers » pour tout voir)
+  const ouvrir = () => { NL = { pid: id, p: null }; CF = { c: "", o: "", s: "", g: "", q: "", fav: 0 };
+    const f = filtreValide(filtreLocalisation(trouver(id).P.diag), valeurs(0), (c) => valeursCascade(BIB(), { c }, 1)); if (f) { CF.c = f[0]; CF.o = f[1]; NL.loc = trouver(id).P.diag; }
+    dessinerNL(); };
   if (!m.length) { ouvrir(); return; }
   const c = (l, k, t) => "<div><label for=\"q_" + k + "\">" + l + ' *</label><input id="q_' + k + '" class="req"' + (t === "date" ? ' type="date"' : ' inputmode="decimal"') + "></div>";
   A.fenetre('<h3>Avant la ligne de chimiothérapie</h3><p class="sous">Ces informations sont nécessaires au calcul des doses (surface corporelle, clairance).</p><div class="form">' +

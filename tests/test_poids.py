@@ -44,7 +44,7 @@ async def main():
         await ev("fermerFenetre()")
         # Ordonnance : âge et poids (réglage Impression) avec la date
         await ev(f"orProtocole('{P2}', [], {{}})"); await pg.wait_for_timeout(1200)
-        await ev("(document.querySelector('[data-ot]')||{click(){}}).click()"); await ev("(document.getElementById('orPcOk')||{click(){}}).click()"); await pg.wait_for_timeout(1500)
+        await ev("(document.querySelector('[data-ot]')||{click(){}}).click()"); await ev("(document.getElementById('orPcUne')||{click(){}}).click()"); await pg.wait_for_timeout(1500)
         o = await ev("(document.getElementById('orPage')||{}).innerText||''")
         ok('75 kg (06/10/2026)' in o, 'ordonnance : « 75 kg (06/10/2026) » sous le nom du patient', o[:300])
         await ev("fermerFenetre()")

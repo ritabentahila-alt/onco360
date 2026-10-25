@@ -513,7 +513,9 @@ function journal(x, quoi) { addDoc(collection(db, "espaces", ESPACE, "historique
 // Fenêtre (formulaires)
 function fenetre(html, taille) { $("fenetreCorps").innerHTML = html; $("fenetreCorps").classList.toggle("large", taille === "large"); $("fenetre").classList.remove("cache"); const f = $("fenetreCorps").querySelector("input,select,textarea"); if (f) setTimeout(() => f.focus(), 50); }
 // R-G e : la petite fenêtre se ferme d'abord ; sans petite fenêtre, c'est le panneau de chimio / RT qui se ferme
-window.fermerFenetre = () => { if (!$("fenetre").classList.contains("cache")) { $("fenetre").classList.add("cache"); $("fenetreCorps").innerHTML = ""; return; } fermerPanneau(); };
+// 25/10/2026 : apresFenetre(f) = f appelée une fois, à la prochaine fermeture de la petite fenêtre (ex. « Ligne créée » qui revient après chaque action)
+let APRES_FEN = null;
+window.fermerFenetre = () => { if (!$("fenetre").classList.contains("cache")) { $("fenetre").classList.add("cache"); $("fenetreCorps").innerHTML = ""; const f = APRES_FEN; APRES_FEN = null; if (f) setTimeout(f, 0); return; } fermerPanneau(); };
 const val = (i) => { const e = $(i); return e ? String(e.value || "").trim() : ""; };
 const occupe = (b, oui) => { if (!b) return; b.disabled = oui; b.dataset.t = b.dataset.t || b.textContent; b.textContent = oui ? "Enregistrement…" : b.dataset.t; };
 const erreur = (t) => { const e = $("fErr"); if (e) e.textContent = t; };
@@ -529,7 +531,7 @@ function fmtSaisie(el) {
 document.addEventListener("input", (ev) => { if (ev.target && ev.target.classList && ev.target.classList.contains("mt")) fmtSaisie(ev.target); });
 const ferieLe = (d) => (D.ctx.feries || []).map((f) => (typeof f === "string" ? { d: f, nom: "Jour férié" } : f)).find((f) => f.d === d);
 const PN = { sale: false, apres: [] }; // panneau de chimio / RT (R-G e) : changements non enregistrés, fonctions appelées à sa fermeture
-const API = { D: () => D, get ESPACE() { return ESPACE; }, ecouteDossiers: () => !!ECOUTE_D, $, esc, ic, dfr, dfrA, cap, jourLong, val, occupe, erreur, toast, fenetre, fermerFenetre: () => window.fermerFenetre(), panneau: (h) => panneau(h), fermerPanneau: (f) => fermerPanneau(f), panneauOuvert: () => panneauOuvert(), petiteSurPanneau: () => panneauOuvert() && petiteOuverte(), surFermerPanneau: (f) => PN.apres.push(f), fermerPetite: () => fermerPetite(), corpsLarge: () => (grilleDossier() && $("panneauCorps") ? $("panneauCorps") : $("fenetreCorps")), peut, voit, traitMod, enregistrer, pageDossier: (id) => reafficher(id), recalculer, journal };
+const API = { D: () => D, get ESPACE() { return ESPACE; }, apresFenetre: (f) => { APRES_FEN = f || null; }, ecouteDossiers: () => !!ECOUTE_D, $, esc, ic, dfr, dfrA, cap, jourLong, val, occupe, erreur, toast, fenetre, fermerFenetre: () => window.fermerFenetre(), panneau: (h) => panneau(h), fermerPanneau: (f) => fermerPanneau(f), panneauOuvert: () => panneauOuvert(), petiteSurPanneau: () => panneauOuvert() && petiteOuverte(), surFermerPanneau: (f) => PN.apres.push(f), fermerPetite: () => fermerPetite(), corpsLarge: () => (grilleDossier() && $("panneauCorps") ? $("panneauCorps") : $("fenetreCorps")), peut, voit, traitMod, enregistrer, pageDossier: (id) => reafficher(id), recalculer, journal };
 API.typesRdv = (e) => typesRdv(e); API.typesC = () => D.typesC || []; API.actsDe = () => actsDe(D.tarifs, D.activites); // Paramètres › Horaires : durée par type de consultation (AG2)
 // Heure facultative du scanner de centrage (AG5, 11/10/2026) : r.scanH = { h, du } ou retirée (droit « radiothérapie : modifier »)
 API.traitModRT = () => traitModRT();
