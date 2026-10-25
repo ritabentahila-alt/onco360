@@ -592,7 +592,19 @@ Un lot par session ; chaque lot finit par ses tests verts, la feuille de route c
       à droite de la liste dès 1 280 px (seule la fiche change), page entière avec Retour en dessous ; téléphone : bouton « Filtres (n) ».
       CSS « Lot RTR » de v2.html (variables seulement). `tests/test_rtref.py` 46/46 à 1 440, 1 280, 1 200 et 390 px (Chrome, Safari).
       « + Nouveau schéma » : RT5.
-- [ ] **RT4 Fiche** : fiche et ses onglets, copier, lien Protocoles (`#protocoles/<id>`), impression A4.
+- [x] **RT4 Fiche** (25/10/2026) : en-tête (fil d'Ariane, titre, étoile, Imprimer ; sous 900 px Imprimer dans ⋯ ; résumé, Validé, preuve,
+      Vérifié le ; ligne « Modifié pour le cabinet » avec auteur, date, « La référence a changé depuis ») ; onglets `ag-vues defile` Prescription ·
+      Centrage · Contourage · Contraintes · Essais et sources · Points d'attention (ordre fixe, vide = grisé avec sa phrase, nombres ; dernier
+      onglet `utilisateurs/{uid}.rtOnglet` et dans l'adresse) ; tableaux à chiffres alignés, en-têtes fixés, empilés sous 640 px ; textes longs
+      sous « ? » (la suite s'affiche au toucher) ; paragraphes rédigés (gras, identifiant, lien) ; RTE + curiethérapie = deux tableaux **d'après le
+      nom du volume seulement** (une note de RTE cite la curiethérapie : col) ; traitement systémique et hormonothérapie de la situation ;
+      contraintes par jeu, groupées par organe, « ? » d'Idéal / Limitant (`aide_colonnes`), « Copier » (texte tabulé) ; essais (PubMed, DOI,
+      suites, détail, « Copier la référence ») ; points du schéma + de la localisation sans doublon. Lien « Ouvrir dans Protocoles › » :
+      `#protocoles/<id>` (nom exact, `idProtocole` de protocoles.js) sinon `#protocoles/loc/<localisation>` (page filtrée, `filtreLocalisation`) ;
+      sans module chimio ou sans la fonction : nom seul. **Aucun nom du référentiel n'est identique à un protocole de la bibliothèque** (jeu
+      fictif : 0 sur 62) : tous les liens ouvrent pour l'instant la page filtrée. Impression A4 portrait (sections au choix, en-tête Onco360 et
+      médecin, « Version du cabinet, modifiée le … », sources et date en pied). Icône `i-copier`. `tests/test_rtref_fiche.py` 39/39 (Chrome,
+      Safari ; 1 440, 1 280, 390 px). Lien « EQD2 » des lignes de prescription : RT6, avec la calculatrice.
 - [ ] **RT5 Modification** : modification pour le cabinet, comparaison, revenir à la référence, dupliquer, nouveau schéma ; règles et tests.
 - [ ] **RT6 Sous-pages** : Organes à risque, Contraintes, Essais, Calcul BED / EQD2 (cas de contrôle de la spécification).
 - [ ] **RT7 Modèle** : copie vers le modèle des cabinets neufs et vers chaque cabinet neuf ; page du module dans « Ajuster le modèle ».

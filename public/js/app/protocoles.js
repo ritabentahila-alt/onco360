@@ -6,7 +6,7 @@ import { dedupIds, premed, protocoleValide } from "../moteur/doses.js";
 import { tableMol, edValide, editerAvec, menusCascade, valeursCascade } from "./chimio.js";
 import { correctionsAudit3 } from "../moteur/audit3.js";
 import { RISQUES, risqueEmetique, libRisque } from "../moteur/seuils.js";
-import { trierRecherche, curesProposees } from "../moteur/recherche.js";
+import { trierRecherche, curesProposees, filtreLocalisation, filtreValide } from "../moteur/recherche.js";
 // P9 : fonctions serveur (europe-west1), chargées seulement quand on s'en sert
 const serveur = async (nom, d) => { const { getFunctions, httpsCallable } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js"); const { app } = await import("../config.js"); return (await httpsCallable(getFunctions(app, "europe-west1"), nom, { timeout: 120000 })(d || {})).data; };
 
@@ -44,7 +44,18 @@ function liste() {
       '<div class="actr" style="flex-wrap:nowrap"><button class="mini" onclick="prOuvrir(\'' + esc(p.id) + "')\">" + (ok ? "Ouvrir / modifier" : "Voir") + "</button></div></div>";
   }).join("");
 }
-export function pageProtocoles() {
+// RTR, RT4 (25/10/2026) : lien du référentiel de radiothérapie. #protocoles/<id> ouvre la fiche du protocole ; #protocoles/loc/<localisation> ouvre
+// la page filtrée sur la localisation (même correspondance que « Nouvelle ligne », filtreLocalisation) ; identifiant cherché par le nom exact
+export const idProtocole = (nom) => { const e = Object.entries((D().ctx && D().ctx.bib) || {}).find(([, p]) => p && p.nom === nom); return e ? e[0] : null; };
+export function pageProtocoles(arg) {
+  if (arg && arg.startsWith("loc/")) {
+    const f = filtreValide(filtreLocalisation(arg.slice(4)), valeurs(0), (c) => valeursCascade(BIB(), { c }, 1));
+    CF = { c: f ? f[0] : "", o: f ? f[1] : "", s: "", g: "", q: f ? "" : arg.slice(4), fav: 0, st: "" };
+  }
+  pageProtocoles0();
+  if (arg && !arg.startsWith("loc/") && D().ctx.bib[arg]) setTimeout(() => window.prOuvrir(arg), 0);
+}
+function pageProtocoles0() {
   const esc = A.esc, b = BIB(), nOk = b.filter(valide).length, ok = A.peut("parametres");
   let h = '<section class="accueil"><div><h2>Protocoles</h2><p>' + b.length + " protocoles · " + nOk + " validés · " + (b.length - nOk) + " non validés</p></div>" +
     '<div class="actions"><button class="bt clair" onclick="prExporter(\'xlsx\')" title="Toute la bibliothèque dans un tableau Excel">' + A.ic("telecharger") + 'Excel</button><button class="bt clair" onclick="prExporter(\'pdf\')" title="Livret imprimable, par localisation">' + A.ic("imprimer") + "Livret PDF</button>" +
@@ -121,7 +132,7 @@ export async function appliquerAudit3() {
   await setDoc(rm, { audit3c: moi.le.slice(0, 10) }, { merge: true });
   if (!ecrits.length && !r.supprimes.length) return r;
   A.journal({ id: "", r: { nm: "" } }, "Audit n° 3 : " + r.modifies.length + " protocole(s) corrigé(s), " + r.crees.length + " créé(s), " + r.supprimes.length + " supprimé(s)");
-  if (D().page === "protocoles") pageProtocoles();
+  if (/^protocoles/.test(D().page || "")) pageProtocoles();
   return r;
 }
 // Audit n° 3, P4 (18/10/2026) – une fois par bibliothèque (médecin ; drapeau audit3e), après appliquerAudit3 : consignes des ordres 2 et 3
@@ -139,7 +150,7 @@ export async function appliquerP4() {
   if (ecrits.length) await sauverDocs(ecrits);
   await setDoc(rm, { audit3e: moi.le.slice(0, 10) }, { merge: true });
   if (ecrits.length) A.journal({ id: "", r: { nm: "" } }, "Audit n° 3 (ordres 2 et 3) : " + r.modifies.length + " protocole(s) complété(s), " + r.crees.length + " créé(s)" + (r.ignores.length ? " ; " + r.ignores.length + " consigne(s) déjà faite(s)" : ""));
-  if (D().page === "protocoles") pageProtocoles();
+  if (/^protocoles/.test(D().page || "")) pageProtocoles();
   return r;
 }
 // 18/10/2026 : acide folinique racémique nommé, Solumedrol en mg/kg passé en dose fixe (moteur/audit3p4.js correctionsP5b) ; une fois (audit3g)
@@ -184,7 +195,7 @@ export async function appliquerAudit10() {
     if (ecrits.length || r.ignores.length) A.journal({ id: "", r: { nm: "" } }, titre + " : " + r.modifies.length + " protocole(s) corrigé(s), " + r.crees.length + " créé(s)" + (r.modifies.length ? " (" + r.modifies.map((m) => m.nom).join(" ; ") + ")" : "") + (r.ignores.length ? " ; à vérifier : " + r.ignores.map((x) => x.id + " " + x.raison).join(" ; ") : "") + (av.length ? " ; " + av.length + " ligne(s) en cours à vérifier (tâches créées)" : ""));
     res.push(Object.assign(r, { aVerifier: av, drapeau }));
   }
-  if (res.length && D().page === "protocoles") pageProtocoles();
+  if (res.length && /^protocoles/.test(D().page || "")) pageProtocoles();
   return res;
 }
 // ───── P9 (18/10/2026) : mises à jour de la bibliothèque de référence (médecin, cabinets autres que celui du Dr Bentahila) ─────
@@ -276,7 +287,7 @@ window.prMajChoix = async (i, quoi, o) => {
       A.journal({ id: "", r: { nm: "" } }, "Bibliothèque de référence v" + MAJ.version + " : « " + p.nom + " » " + (quoi === "deux" ? "ajouté à côté du vôtre" : ancien ? "remplacé par la version de la référence" : "ajouté"));
     }
     (o ? MAJ.ordos : MAJ.items).splice(o ? +String(i).slice(1) : i, 1);
-    await finMaj(quoi === "garder" ? "Noté : le vôtre est gardé." : "Enregistré."); if (D().page === "protocoles") A.$("prL").innerHTML = liste();
+    await finMaj(quoi === "garder" ? "Noté : le vôtre est gardé." : "Enregistré."); if (/^protocoles/.test(D().page || "")) A.$("prL").innerHTML = liste();
   } catch (e) { A.erreur(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de modifier la bibliothèque." : (e.message || String(e))); }
 };
 // ───── P9 : export de la bibliothèque (Excel, livret PDF par localisation) et « Signaler une erreur » ─────
