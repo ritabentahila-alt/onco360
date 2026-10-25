@@ -1,36 +1,156 @@
 {
   "version": "2026-10-25",
-  "note": "Traitement du référentiel (champ « protocole » des localisations) → identifiant du protocole de chimiothérapie de la bibliothèque (le premier présent dans le cabinet est ouvert). Seulement les protocoles de même schéma (molécules, doses, rythme). Sans correspondance : la page Protocoles filtrée sur la localisation.",
+  "note": "Traitement du référentiel (champ « protocole » des localisations) → protocoles de chimiothérapie de la bibliothèque (tous ceux présents dans le cabinet sont proposés) ; { localisation: [...], \"*\": [...] } quand le protocole dépend de la localisation. Protocoles de même schéma (molécules, doses, rythme) ; créés pour le référentiel : donnees/protocolesrt.js (rtref|…), créés le 18/10/2026 : audit3|…. Le cabinet peut changer le lien (referentielRT/_protocoles).",
   "correspondances": {
-    "Carboplatine–5-FU concomitant (GORTEC 99-02)": ["todo|carboplatine-5-fu-radiotherapie"],
-    "Cetuximab concomitant à la RT": ["todo|cetuximab-radiotherapie"],
-    "Gemcitabine–cisplatine d'induction (cavum)": ["maj|gemcitabine-1000-j1-j8-cisplatine-80-j1-21-j-nasopharynx-"],
-    "TPF d'induction (docétaxel–cisplatine–5-FU)": ["todo|tpf"],
-    "FLOT (œsogastrique)": ["estomac|FLOT"],
-    "Sorafénib (CHC)": ["todo|sorafenib"],
-    "Capécitabine adjuvante (voies biliaires)": ["colon|XELODA monotherapie"],
-    "Témozolomide concomitant puis adjuvant (Stupp)": ["todo|temozolomide-radiotherapie-stupp-"],
-    "Témozolomide adjuvant (Stupp)": ["todo|temozolomide-adjuvant"],
-    "Témozolomide avec RT courte (Perry)": ["todo|temozolomide-radiotherapie-stupp-"],
-    "Témozolomide seul (sujet âgé)": ["todo|temozolomide"],
-    "PCV": ["todo|pcv"],
-    "Témozolomide adjuvant (CATNON)": ["todo|temozolomide-adjuvant"],
-    "Carboplatine-paclitaxel hebdomadaire (CROSS)": ["todo|carboplatine-paclitaxel-radiotherapie-cross-"],
-    "Nivolumab adjuvant (œsophage)": ["todo|nivolumab-adjuvant"],
-    "FOLFOX concomitant à la RT (œsophage)": ["todo|folfox-radiotherapie"],
-    "5FU-cisplatine concomitant à la RT (œsophage)": ["todo|cisplatine-5-fu-radiotherapie"],
-    "Capécitabine concomitante à la RT (pancréas)": ["colon|XELODA radiotherapie"],
-    "Carboplatine-paclitaxel hebdomadaire concomitant à la RT (poumon)": ["todo|carboplatine-paclitaxel-radiotherapie"],
-    "Cisplatine-étoposide concomitant à la RT (poumon)": ["todo|cisplatine-etoposide-radiotherapie"],
-    "Cisplatine-pémétrexed concomitant à la RT (poumon)": ["todo|cisplatine-pemetrexed-radiotherapie"],
-    "Durvalumab consolidation (poumon)": ["poumon|durvalumab q2s", "poumon|durvalumab q4s"],
-    "Durvalumab consolidation (CBPC limité)": ["poumon|durvalumab q4s"],
-    "Bévacizumab (glioblastome en récidive)": ["maj|bevacizumab-10-mg-kg-14-j-glioblastome-"],
-    "5-FU continu concomitant à la RT (rectum)": ["todo|5-fu-radiotherapie"],
-    "Trastuzumab adjuvant": ["todo|trastuzumab-6-mg-kg-j1-j21"],
-    "Capécitabine concomitante à la RT (sein)": ["colon|XELODA radiotherapie"],
-    "Trastuzumab emtansine (T-DM1) adjuvant": ["sein|kadcyla"],
-    "Capécitabine adjuvante (CREATE-X)": ["colon|XELODA monotherapie"],
-    "Étoposide–cisplatine concomitant (tumeurs épithéliales thymiques)": ["maj|cisplatine-60-j1-etoposide-120-j1-j3-21-j-thymus-"]
+    "Carboplatine–5-FU concomitant (GORTEC 99-02)": [
+      "todo|carboplatine-5-fu-radiotherapie"
+    ],
+    "Cetuximab concomitant à la RT": [
+      "todo|cetuximab-radiotherapie"
+    ],
+    "Gemcitabine–cisplatine d'induction (cavum)": [
+      "maj|gemcitabine-1000-j1-j8-cisplatine-80-j1-21-j-nasopharynx-"
+    ],
+    "TPF d'induction (docétaxel–cisplatine–5-FU)": [
+      "todo|tpf"
+    ],
+    "FLOT (œsogastrique)": [
+      "estomac|FLOT"
+    ],
+    "Sorafénib (CHC)": [
+      "todo|sorafenib"
+    ],
+    "Capécitabine adjuvante (voies biliaires)": [
+      "colon|XELODA monotherapie"
+    ],
+    "Témozolomide concomitant puis adjuvant (Stupp)": [
+      "todo|temozolomide-radiotherapie-stupp-"
+    ],
+    "Témozolomide avec RT courte (Perry)": [
+      "todo|temozolomide-radiotherapie-stupp-"
+    ],
+    "Témozolomide seul (sujet âgé)": [
+      "todo|temozolomide"
+    ],
+    "PCV": [
+      "todo|pcv"
+    ],
+    "Témozolomide adjuvant (CATNON)": [
+      "todo|temozolomide-adjuvant"
+    ],
+    "Carboplatine-paclitaxel hebdomadaire (CROSS)": [
+      "todo|carboplatine-paclitaxel-radiotherapie-cross-"
+    ],
+    "Nivolumab adjuvant (œsophage)": [
+      "todo|nivolumab-adjuvant"
+    ],
+    "FOLFOX concomitant à la RT (œsophage)": [
+      "todo|folfox-radiotherapie"
+    ],
+    "5FU-cisplatine concomitant à la RT (œsophage)": [
+      "todo|cisplatine-5-fu-radiotherapie"
+    ],
+    "Capécitabine concomitante à la RT (pancréas)": [
+      "colon|XELODA radiotherapie"
+    ],
+    "Carboplatine-paclitaxel hebdomadaire concomitant à la RT (poumon)": [
+      "todo|carboplatine-paclitaxel-radiotherapie"
+    ],
+    "Cisplatine-étoposide concomitant à la RT (poumon)": [
+      "todo|cisplatine-etoposide-radiotherapie"
+    ],
+    "Cisplatine-pémétrexed concomitant à la RT (poumon)": [
+      "todo|cisplatine-pemetrexed-radiotherapie"
+    ],
+    "Durvalumab consolidation (poumon)": [
+      "poumon|durvalumab q2s",
+      "poumon|durvalumab q4s"
+    ],
+    "Durvalumab consolidation (CBPC limité)": [
+      "poumon|durvalumab q4s"
+    ],
+    "Bévacizumab (glioblastome en récidive)": [
+      "maj|bevacizumab-10-mg-kg-14-j-glioblastome-"
+    ],
+    "5-FU continu concomitant à la RT (rectum)": [
+      "todo|5-fu-radiotherapie"
+    ],
+    "Trastuzumab adjuvant": [
+      "todo|trastuzumab-6-mg-kg-j1-j21"
+    ],
+    "Capécitabine concomitante à la RT (sein)": [
+      "colon|XELODA radiotherapie"
+    ],
+    "Trastuzumab emtansine (T-DM1) adjuvant": [
+      "sein|kadcyla"
+    ],
+    "Capécitabine adjuvante (CREATE-X)": [
+      "colon|XELODA monotherapie"
+    ],
+    "Étoposide–cisplatine concomitant (tumeurs épithéliales thymiques)": [
+      "maj|cisplatine-60-j1-etoposide-120-j1-j3-21-j-thymus-"
+    ],
+    "Cisplatine 100 mg/m² toutes les 3 semaines, concomitant à la RT": {
+      "cavum": [
+        "audit3|n009"
+      ],
+      "*": [
+        "audit3|n010"
+      ]
+    },
+    "Cisplatine hebdomadaire 30 mg/m² concomitant (cavum)": [
+      "rtref|cisplatine-30-hebdo-rt"
+    ],
+    "TPF d'induction (cavum)": [
+      "rtref|tpf-nasopharynx-sun"
+    ],
+    "5FU-leucovorine (INT-0116, Macdonald)": [
+      "rtref|5fu-acide-folinique-macdonald"
+    ],
+    "Gemcitabine-capécitabine puis capécitabine concomitante à la RT (voies biliaires)": [
+      "rtref|gemcitabine-capecitabine-s0809",
+      "rtref|capecitabine-rt-s0809"
+    ],
+    "Lomustine-témozolomide (CeTeG)": [
+      "rtref|lomustine-temozolomide-ceteg"
+    ],
+    "Vorasidenib": [
+      "rtref|vorasidenib"
+    ],
+    "Vincristine concomitante puis cisplatine–lomustine–vincristine (NOA-07)": [
+      "rtref|vincristine-csi",
+      "rtref|lomustine-cisplatine-vincristine"
+    ],
+    "Lomustine–vincristine–cisplatine en entretien (HIT 2000)": [
+      "rtref|lomustine-cisplatine-vincristine"
+    ],
+    "Mémantine (encéphale in toto)": [
+      "rtref|memantine-encephale"
+    ],
+    "Gemcitabine (pancréas)": [
+      "todo|gemcitabine-ovaire-"
+    ],
+    "Gemcitabine concomitante à la RT (PREOPANC)": [
+      "rtref|gemcitabine-preopanc"
+    ],
+    "FOLFIRINOX (pancréas)": [
+      "todo|folfirinox"
+    ],
+    "Cisplatine-étoposide (CBPC)": [
+      "maj|ep-21-jours-cisplatine-75-etoposide-100-j1-j3-"
+    ],
+    "5-FU + hydroxyurée concomitants (réirradiation ORL)": [
+      "rtref|5fu-hydroxyuree-reirradiation"
+    ],
+    "Cisplatine–paclitaxel concomitants (RTOG 9911)": [
+      "rtref|cisplatine-paclitaxel-rtog9911"
+    ],
+    "Hormonothérapie adjuvante": [
+      "sein|hormono - letrozole",
+      "todo|tamoxifene"
+    ],
+    "TTFields avec le témozolomide d'entretien (EF-14)": [
+      "todo|temozolomide-adjuvant"
+    ]
   }
 }

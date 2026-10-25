@@ -17,8 +17,9 @@ import { idProtocole } from "./protocoles.js";
 let A = null, INDEX = null, CAB = null, LISTE = null, ERREUR = null, CHARGE = null, PROTOS = {};
 // Bibliothèques modifiées par le cabinet (25/10/2026) : referentielRT/_oar { oar: { id: { nom, nom_tg263, definition } }, ajouts: [OAR] } et
 // referentielRT/_contraintes { lignes: [lignes modifiées (même id) ou ajoutées (cc-…)], retirees: [id] }
-let CAB_OAR = null, CAB_CT = null;
-export const DOCS_BIB = ["_oar", "_contraintes"];
+let CAB_OAR = null, CAB_CT = null, CAB_PR = null;
+// referentielRT/_protocoles { liens: { traitement du référentiel: [identifiants de protocoles] } } : lien vers Protocoles choisi par le cabinet
+export const DOCS_BIB = ["_oar", "_contraintes", "_protocoles"];
 const LOCS = {}, TEXTES = new Map();
 // Recherche et menus de la session ; sel = ligne choisie au clavier ; filtres = menus ouverts sur téléphone
 const RF = { q: "", reg: "", loc: "", sit: "", frac: "", sel: -1, filtres: false, y: 0, ouvert: null };
@@ -37,7 +38,7 @@ function charger() {
       try { PROTOS = (await json("protocoles-chimio.json")).correspondances || {}; } catch (e) { console.warn("protocoles-chimio", e); PROTOS = {}; }
       CAB = {};
       try { (await getDocs(collection(db, "espaces", A.ESPACE, "referentielRT"))).forEach((d) => { CAB[d.id] = d.data(); }); } catch (e) { console.warn("référentiel du cabinet", e); }
-      CAB_OAR = CAB._oar || null; CAB_CT = CAB._contraintes || null; DOCS_BIB.forEach((k) => { delete CAB[k]; });
+      CAB_OAR = CAB._oar || null; CAB_CT = CAB._contraintes || null; CAB_PR = CAB._protocoles || null; DOCS_BIB.forEach((k) => { delete CAB[k]; });
       // fiches du cabinet : acronymes des essais lus dans la bibliothèque (la référence les a déjà dans index.json)
       if (Object.keys(CAB).length) await chargerBibs().catch(() => null);
       LISTE = fusionner(INDEX, CAB, acronymeDe); ERREUR = null;
@@ -218,15 +219,54 @@ function oar(id) {
   const p = BB.paires.find((x) => x.id === id);
   return p ? { id, nom: p.nom, nom_tg263: p.membres.map((m) => (BB.oar.find((x) => x.id === m) || {}).nom_tg263).filter(Boolean).join(" / "), paire: true } : { nom: id };
 }
-// Lien vers Protocoles : par le nom exact, sinon le protocole correspondant (donnees-rt/protocoles-chimio.json, le premier présent dans le cabinet),
-// sinon la page filtrée sur la localisation ; sans module chimio ni la fonction : le nom seul
-function idCorrespondant(nom) { const bib = (D().ctx && D().ctx.bib) || {}; return idProtocole(nom) || (PROTOS[nom] || []).find((i) => bib[i]) || null; }
+// Lien vers Protocoles : le choix du cabinet (referentielRT/_protocoles), sinon le nom exact, sinon les protocoles correspondants
+// (donnees-rt/protocoles-chimio.json, selon la localisation ; tous ceux présents dans le cabinet) ; sans protocole : la page filtrée sur la
+// localisation ; sans module chimio ni la fonction : le nom seul. Le médecin qui a le droit « modifier » change le lien (« Changer »).
+const bibProto = () => (D().ctx && D().ctx.bib) || {};
+function idsCorrespondants(nom) {
+  const bib = bibProto(), cab = CAB_PR && CAB_PR.liens && CAB_PR.liens[nom];
+  if (cab) return cab.filter((i) => bib[i]);
+  const exact = idProtocole(nom); if (exact) return [exact];
+  const m = PROTOS[nom], L = Array.isArray(m) ? m : m ? m[FICHE.e.localisation_id] || m["*"] || [] : [];
+  return L.filter((i) => bib[i]);
+}
+const NOMS_PR = [];
 function lienProtocole(nom) {
   const esc = A.esc; if (!nom) return "";
   if (!A.module("chimio") || !A.fn("chimio.protocoles")) return nom === "—" ? "" : esc(nom);
-  const id = nom === "—" ? null : idCorrespondant(nom), cible = id ? encodeURIComponent(id) : "loc/" + encodeURIComponent(FICHE.loc.nom);
-  return (nom === "—" ? "" : esc(nom) + " ") + '<a class="rtr-lien" href="#protocoles/' + cible + '">Ouvrir dans Protocoles ›</a>';
+  const ids = nom === "—" ? [] : idsCorrespondants(nom), bib = bibProto();
+  let i = NOMS_PR.indexOf(nom); if (i < 0) { NOMS_PR.push(nom); i = NOMS_PR.length - 1; }
+  const liens = ids.length > 1 ? ids.map((id) => '<a class="rtr-lien" href="#protocoles/' + encodeURIComponent(id) + '">' + esc(bib[id].nom) + " ›</a>").join(" · ")
+    : '<a class="rtr-lien" href="#protocoles/' + (ids.length ? encodeURIComponent(ids[0]) : "loc/" + encodeURIComponent(FICHE.loc.nom)) + '">Ouvrir dans Protocoles ›</a>';
+  return (nom === "—" ? "" : esc(nom) + " ") + liens + (peutModif() && nom !== "—" && !IMPRESSION ? ' <button type="button" class="mini rtr-chg" onclick="rtrLienProto(' + i + ')">' + A.ic("crayon") + "Changer</button>" : "");
 }
+// « Changer » : protocoles liés (retirer), en ajouter un (recherche dans la bibliothèque), revenir au lien de la référence
+let LP = null;
+window.rtrLienProto = (i) => {
+  const nom = NOMS_PR[i]; if (!nom || !peutModif()) return;
+  LP = { nom, ids: idsCorrespondants(nom).slice() }; dessinerLienProto();
+};
+function dessinerLienProto() {
+  const esc = A.esc, bib = bibProto(), L = Object.values(bib).filter((p) => p && p.nom).sort((a, b) => sansAcc(a.nom).localeCompare(sansAcc(b.nom)));
+  A.fenetre("<h3>Protocole lié</h3><p class=\"mesures\">" + esc(LP.nom) + '</p><ul class="rtr-sys rtr-lp">' + (LP.ids.length ? LP.ids.map((id, k) => "<li>" + esc((bib[id] || {}).nom || id) + ' <button type="button" class="mini" onclick="rtrLpRet(' + k + ')" aria-label="Retirer">' + A.ic("croix") + "</button></li>").join("") : '<li class="mesures">Aucun : la page Protocoles s\'ouvrira filtrée sur la localisation</li>') + "</ul>" +
+    '<label class="rtr-lab">Ajouter un protocole de la bibliothèque<input id="rtrLpQ" class="rtr-in" list="rtrLpL" placeholder="Nom du protocole" onchange="rtrLpAj(this.value)"></label><datalist id="rtrLpL">' + L.map((p) => '<option value="' + esc(p.nom) + '">').join("") + "</datalist>" +
+    '<div class="actr">' + (CAB_PR && CAB_PR.liens && CAB_PR.liens[LP.nom] ? '<button class="bt rouge" onclick="rtrLpOk(1)">Revenir au lien de la référence</button>' : "") + '<button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt plein" onclick="rtrLpOk()">' + A.ic("enregistrer") + "Enregistrer pour le cabinet</button></div>");
+}
+window.rtrLpRet = (k) => { LP.ids.splice(k, 1); dessinerLienProto(); };
+window.rtrLpAj = (v) => { const p = Object.values(bibProto()).find((x) => x && x.nom === v); if (p && LP.ids.indexOf(p.id) < 0) LP.ids.push(p.id); dessinerLienProto(); };
+window.rtrLpOk = async (revenir) => {
+  if (!LP || !peutModif()) return;
+  const ref = doc(db, "espaces", A.ESPACE, "referentielRT", "_protocoles");
+  try {
+    CAB_PR = await runTransaction(db, async (tx) => {
+      const sn = await tx.get(ref), c = sn.exists() ? sn.data() : { liens: {} }; c.liens = c.liens || {};
+      if (revenir) delete c.liens[LP.nom]; else c.liens[LP.nom] = LP.ids.slice();
+      Object.assign(c, { majPar: D().u.uid, majParNom: $("nomMenu") ? $("nomMenu").textContent : "", majLe: new Date().toISOString() });
+      tx.set(ref, c); return c;
+    });
+  } catch (e) { console.warn("lien vers Protocoles", e); A.toast("Pas de connexion : réessayez"); return; }
+  LP = null; A.fermerFenetre(); A.toast(revenir ? "Lien de la référence rétabli" : "Enregistré pour le cabinet"); if (FICHE) dessinerFiche();
+};
 
 // Prescription
 function tablePrescription(L) {

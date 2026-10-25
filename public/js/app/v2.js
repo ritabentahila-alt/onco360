@@ -26,7 +26,7 @@ import { installer as installerChimio, htmlChimio, nouveauPatient as creerPatien
 import { installer as installerAgenda, pageAgenda } from "./agenda.js";
 import { installer as installerConfig, pageConfiguration, horaires, dureeDe, dureeType, WA0, remplir, messageAvecArabe, retouchesArabe, jourAr, heureAr } from "./configuration.js";
 import { installer as installerProfil, pageProfil, DROITS_ROLE, droitsEffectifs, lireImage } from "./profil.js";
-import { installer as installerProtocoles, pageProtocoles, marquerProtocoles, appliquerAudit3, appliquerP4, appliquerP5b, appliquerAudit10 } from "./protocoles.js";
+import { installer as installerProtocoles, pageProtocoles, marquerProtocoles, appliquerAudit3, appliquerP4, appliquerP5b, appliquerAudit10, appliquerProtocolesRT } from "./protocoles.js";
 import { installer as installerParametres, pageParametres } from "./parametres.js";
 import { installer as installerBilan, pagePageBilan, publierReleve } from "./bilan.js";
 import { installer as installerOrdonnances, ajouterOrdosManquants, figerListes, ordosAudit3, majBibliotheques, question } from "./ordonnances.js";
@@ -76,7 +76,7 @@ onAuthStateChanged(auth, async (u) => {
   try { D = await charger(u); appliquerImpression(); entete(); rechercheTete(); route(); menuCabinets().catch(() => {});
     if (D.bib) { lireAccueilCab(); Promise.all([figerListes(), figerDocumentation()]).catch((e) => console.warn("bibliothèque", e)); return; } // bibliothèque de référence (modèle) : rien d'autre que son tableau de bord
     lireAccueilCab();
-    if (D.membre.role !== "comptable") { ecouterDossiers(); ecouterRappels(); if (module("taches")) demarrerTaches(); if (module("salle")) demarrerSalle(); if (module("rcp")) demarrerRcp(); } publierTarifsC(); planifierReleve(3000); chargerMedecins(); chargerSignataires().then(publierCarte).catch(() => {}); effacerSignature().catch((e) => console.warn("signature", e)); nomTitulaire().then(migrations); marquerProtocoles().then(() => appliquerAudit3()).then(() => appliquerP4()).then(() => appliquerP5b()).then(() => appliquerAudit10()).then(() => ordosAudit3()).then(() => majBibliotheques().catch((er) => console.warn("bibliothèques (R-E3)", er))).then(() => vigilancesAudit3()).catch((er) => console.warn("protocoles", er)); }
+    if (D.membre.role !== "comptable") { ecouterDossiers(); ecouterRappels(); if (module("taches")) demarrerTaches(); if (module("salle")) demarrerSalle(); if (module("rcp")) demarrerRcp(); } publierTarifsC(); planifierReleve(3000); chargerMedecins(); chargerSignataires().then(publierCarte).catch(() => {}); effacerSignature().catch((e) => console.warn("signature", e)); nomTitulaire().then(migrations); marquerProtocoles().then(() => appliquerAudit3()).then(() => appliquerP4()).then(() => appliquerP5b()).then(() => appliquerAudit10()).then(() => appliquerProtocolesRT()).then(() => ordosAudit3()).then(() => majBibliotheques().catch((er) => console.warn("bibliothèques (R-E3)", er))).then(() => vigilancesAudit3()).catch((er) => console.warn("protocoles", er)); }
   catch (e) { $("page").innerHTML = '<div class="carte"><h3>Impossible d\'ouvrir Onco360</h3><p class="sous">' + esc(e && e.code === "permission-denied" ? "Accès refusé : votre accès a peut-être été désactivé. Contactez le médecin titulaire." : e.message) + '</p><button class="bt clair" onclick="document.getElementById(\'btSortie\').click()">Se déconnecter</button></div>'; }
 });
 // Cabinets de la personne (19.2, 10/10/2026 : secrétaire de plusieurs médecins) : comptes/{uid}.espaces, le cabinet choisi dans le

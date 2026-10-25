@@ -165,6 +165,21 @@ export async function appliquerP5b() {
   if (r.modifies.length) A.journal({ id: "", r: { nm: "" } }, "Protocoles : acide folinique racémique nommé, Solumedrol en dose fixe (" + r.modifies.length + " protocole(s))");
   return r;
 }
+// Référentiel de radiothérapie (25/10/2026) – une fois par bibliothèque (médecin ; drapeau rtref1), après l'audit n° 10 : protocoles de
+// chimiothérapie cités par le référentiel et absents de la bibliothèque (donnees/protocolesrt.js), créés « Validé » sans mention, noté au journal
+export async function appliquerProtocolesRT() {
+  if (!A.peut("parametres") || !D().membre || D().membre.role !== "medecin" || !BIB().length) return null;
+  const rm = doc(db, "espaces", A.ESPACE, "parametres", "migrations"), g = await getDoc(rm).catch(() => null);
+  if (!g || (g.exists() && g.data().rtref1)) return null;
+  const [{ protocolesACreer }, { PROTOCOLES_RT }] = await Promise.all([import("../moteur/protocolesrt.js"), import("../donnees/protocolesrt.js")]);
+  const crees = protocolesACreer(D().ctx.bib, PROTOCOLES_RT), moi = { par: D().u.uid, parNom: (D().membre && D().membre.nom) || "", le: new Date().toISOString() };
+  crees.forEach((p) => { Object.assign(p, { version: 1, majLe: moi.le, majPar: moi.par, majParNom: moi.parNom, st: "ok" }); p.valide = Object.assign({ version: 1 }, moi); D().ctx.bib[p.id] = p; rangerNouveau(p.id); });
+  if (crees.length) await sauverDocs(crees.map((p) => p.id));
+  await setDoc(rm, { rtref1: moi.le.slice(0, 10) }, { merge: true });
+  if (crees.length) A.journal({ id: "", r: { nm: "" } }, "Référentiel de radiothérapie : " + crees.length + " protocole(s) de chimiothérapie créé(s) (" + crees.map((p) => p.nom).join(" ; ") + ")");
+  if (crees.length && /^protocoles/.test(D().page || "")) pageProtocoles();
+  return crees;
+}
 // Audit n° 10, S2 (21/10/2026) – une fois par bibliothèque (médecin ; drapeau audit10a), après P5b : anticorps prescrit deux fois le même jour
 // (trastuzumab, cétuximab : « C1 seule » / « sauf C1 » enfin lus par le calcul), lignes en double, KEYNOTE-A18 phase 2 validé, létrozole et
 // fulvestrant séparés (moteur/audit10.js). Sans fenêtre, noté au journal. Lignes de chimio en cours sous un protocole corrigé : elles gardent

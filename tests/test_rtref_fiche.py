@@ -12,8 +12,11 @@ def ok(c, m, d=None):
 S2 = json.loads(json.dumps(S)); k0 = E + 'protocoles/lib_0'; L0 = json.loads(S2[k0]['data'])
 cross = dict(L0[0], id='oeso|cross-test', nom='Carboplatine-paclitaxel hebdomadaire (CROSS)', loc='Œsophage', ind=[['Digestif', 'Œsophage', 'Néoadjuvant', '']])
 S2[k0] = dict(S2[k0], data=json.dumps(L0 + [cross]))
+# protocoles créés à l'ouverture (18/10 : cisplatine 100 J1-J22-J43 + RT ; 25/10 : référentiel) : rejoués ici
+for k in ('audit3e', 'rtref1'): S2[E + 'parametres/migrations'].pop(k, None)
 S2[E + 'referentielRT/pro-def-60-20'] = {'schema': {'id': 'pro-def-60-20', 'situation_id': 'pro-ep-def-sans-pelvis', 'titre': '60 Gy / 20 fx (version du cabinet)', 'type': 'rte_hypo', 'preuve': 'essai_phase3', 'essai_ids': ['chhip'], 'prescriptions': [{'volume': 'PTV_PRO', 'dose_Gy': 60, 'fractions': 20, 'dose_fx_Gy': 3, 'mode': 'seul', 'rythme': '5 fx/sem'}], 'contraintes_ids': [], 'date_verif': '2026-10-25'}, 'localisation_id': 'prostate', 'origine': 'cabinet', 'base': '2026-10-01', 'note': 'Notre pratique (note fictive)', 'majPar': 'UIDRITA', 'majParNom': 'Dr Médecin Test', 'majLe': '2026-10-25'}
 OC = "document.querySelector('.rtr-oc').innerText"
+CAV = 'cav-av-70-35-curie'
 DEBORDE = "document.documentElement.scrollWidth > window.innerWidth + 1"
 COUPE = "[...document.querySelectorAll('.rtr-t h2')].filter(b => b.scrollWidth > b.clientWidth + 1).length"
 async def aller(pg, h, t=1800):
@@ -94,12 +97,18 @@ async def main():
         # Protocole correspondant (donnees-rt/protocoles-chimio.json) : « Cetuximab concomitant à la RT » → Cétuximab + Radiothérapie (Bonner)
         await aller(pg, 'radiotherapie/s/oro-70-35-6fx/prescription')
         hrefs = await ev("[...document.querySelectorAll('.rtr-lien')].map(a => a.getAttribute('href'))")
-        ok('#protocoles/todo%7Ccetuximab-radiotherapie' in hrefs and any(h.startswith('#protocoles/loc/') for h in hrefs), 'protocole correspondant : Cetuximab concomitant → la fiche « Cétuximab + Radiothérapie (Bonner) »', hrefs)
+        ok('#protocoles/todo%7Ccetuximab-radiotherapie' in hrefs and '#protocoles/audit3%7Cn010' in hrefs, 'protocole correspondant : Cetuximab concomitant → la fiche « Cétuximab + Radiothérapie (Bonner) »', hrefs)
         await pg.click('.rtr-lien[href="#protocoles/todo%7Ccetuximab-radiotherapie"]'); await pg.wait_for_timeout(1500)
         ok(await ev("[...document.querySelectorAll('#fenetre input')].some(i => /Cétuximab \\+ Radiothérapie/.test(i.value))"), 'le protocole correspondant s\'ouvre directement')
         await ev("window.fermerFenetre()"); await pg.go_back(); await pg.wait_for_timeout(1800)
-        await pg.click('.rtr-lien[href^="#protocoles/loc/"] >> nth=0'); await pg.wait_for_timeout(1500)
-        ok(await ev("[...document.querySelectorAll('#page .cascade select')].map(s => s.value).filter(Boolean).length") >= 1 and 'Protocoles' in await ev("document.getElementById('titrePage').textContent"), 'sans protocole correspondant (Cisplatine 100 mg/m² toutes les 3 semaines) : page Protocoles filtrée sur la localisation', await ev("[...document.querySelectorAll('#page .cascade select')].map(s => s.value)"))
+        await pg.click('.rtr-lien[href="#protocoles/audit3%7Cn010"]'); await pg.wait_for_timeout(1500)
+        ok(await ev("[...document.querySelectorAll('#fenetre input')].some(i => /Cisplatine 100 mg\/m² J1-J22-J43/.test(i.value))"), 'Cisplatine 100 mg/m² toutes les 3 semaines (ORL) : la fiche « Cisplatine 100 mg/m² J1-J22-J43 + Radiothérapie » s\'ouvre directement')
+        await ev("window.fermerFenetre()")
+        await aller(pg, 'radiotherapie/s/' + CAV + '/prescription')
+        hrefs = await ev("[...document.querySelectorAll('.rtr-lien')].map(a => a.getAttribute('href'))")
+        ok('#protocoles/audit3%7Cn009' in hrefs and '#protocoles/rtref%7Ctpf-nasopharynx-sun' in hrefs and not any(h.startswith('#protocoles/loc/') for h in hrefs), 'cavum : cisplatine 100 version nasopharynx, TPF d\'induction créé (Sun), plus aucune page filtrée', hrefs)
+        await aller(pg, 'protocoles'); await pg.fill('#prQ', 'CeTeG'); await pg.wait_for_timeout(600)
+        ok('CeTeG' in await ev("document.getElementById('page').innerText"), 'protocoles créés pour le référentiel présents dans la bibliothèque (CeTeG)')
         # Impression
         await aller(pg, 'radiotherapie/s/pro-fav-60-20/prescription')
         await pg.click('.rtr-imp'); await pg.wait_for_timeout(400)

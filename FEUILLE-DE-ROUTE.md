@@ -669,16 +669,36 @@ refus reste valable pour des contraintes dans la prescription ou le dossier d'un
 - [x] **« Ouvrir dans Protocoles › » ouvre le protocole** (25/10/2026, pas encore en ligne) : nom exact, sinon `donnees-rt/protocoles-chimio.json`
       (30 traitements du référentiel → protocole de même schéma de la bibliothèque, le premier présent dans le cabinet), sinon la page filtrée sur la
       localisation. 17 traitements sans protocole de même schéma (dont Cisplatine 100 mg/m² toutes les 3 semaines + RT) : liste soumise à Dr Bentahila.
-- [ ] **Étape B, table de référence des contraintes et tableau des choix** : RecoRad 2025 (« Doses limites… » et « Délinéation des organes à
-      risque »), protocoles IGR (prostate 2016, ORL, col et corps utérin, stéréo poumon, dosimétrie sein), EMBRACE II, Sénorif 2026, harmonisation
-      stéréotaxie IGR 2018, fiches dosimétriques IGR, tableurs du service (dernier recours) ; une contrainte par organe, indicateur et régime ;
-      tableau des désaccords à faire valider par Dr Bentahila avant toute écriture.
-      25/10/2026 : RecoRad normofractionné recopié en entier (tableaux 1 à 6, `docs/radiotherapie/recorad-normo.tsv`) ; premier tableau des choix
-      (normofractionné) `docs/radiotherapie/choix-contraintes-normo.html` : 71 organes contourés, 40 avec une valeur RecoRad usuelle (10 en désaccord
-      avec un jeu, 5 sans contrainte aujourd'hui), 31 sans valeur usuelle. Les PDF IGR / Curie, EMBRACE II, Sénorif 2026 et RecoRad 2025 ne sont plus
-      sur le Mac : redemandés à Dr Bentahila. Reste : hypofractionné, stéréotaxie (tableaux 7 à 12), validation.
-- [ ] Étapes C (organisation des données, contrôles, écran), D (stéréotaxie, curiethérapie, réirradiation), E (modification par le cabinet),
-      F (contrôle complet, mise en ligne avec accord).
+- [x] **Étape B, table unique des contraintes** (25/10/2026, pas encore en ligne ; modèle demandé par Dr Bentahila : « pour chaque OAR, une contrainte en
+      normofractionné, hypofractionné ou stéréotaxie selon les fractions, liée au schéma si l'OAR est contouré ; sauf essai particulier ») :
+      `donnees-rt/contraintes.json` format 2 = `base` (859 lignes : RecoRad 2025, Noël et al., Cancer/Radiothérapie 2026;30:104833, recopié en entier dans
+      `docs/radiotherapie/recorad-2025.tsv` ; stéréotaxie hors RecoRad : harmonisation Gustave Roussy 2018, `igr-stereo-2018.tsv` ; compléments
+      `docs/radiotherapie/construction/complements.tsv` ; anciens jeux Curie / IGR seulement pour un OAR sans autre valeur) + précisions par localisation
+      (`loc`) + `essais` (13 jeux gardés : EMBRACE II, FAST-Forward, Neo-AEGIS, RTOG 0933, DeLaney, curiethérapie GEC-ESTRO / ABS, pénis, réirradiation).
+      Choix dans `moteur/rtref.js` (`contraintesSchema`, `regimeDe`, `choisirLignes`, `lignesBase`) : même nombre de séances, sinon tout le régime, sinon
+      par prudence le nombre publié inférieur le plus proche ; hypofractionné sans valeur = valeur du normofractionné « à convertir en EQD2 » ;
+      stéréotaxie sans valeur = nombre de séances publié le plus proche, signalé. Construction : `docs/radiotherapie/construction/contraintes.py ecrire`.
+      Contrôle : chaque OAR contouré a sa contrainte dans chaque schéma (2 809 couples, `test-rtref-contenu.mjs`).
+- [x] **Bibliothèque des OAR refaite** (25/10/2026) : nom TG-263 de la liste officielle AAPM (v20170815, `sources-contraintes/TG263_…xls`), un seul ;
+      « construit » (16 organes absents de la liste, nommés selon ses règles) ; une définition de contourage (délinéation RecoRad 2021 et atlas), sans
+      source ; colonne Source retirée ; 14 OAR ajoutés (cornées, cuir chevelu, IVA, ventricule gauche, valves, tête humérale, œsophage cervical, canal
+      parotidien, hile rénal, os pelviens, os longs, poumon controlatéral, testicule controlatéral) ; paires droite / gauche (`paires`) et structures
+      réunies (`somme` : poumons, reins, hippocampes). Construction : `docs/radiotherapie/construction/oar.py`.
+- [x] **Écrans** (25/10/2026) : Contourage = organes listés (nom et TG-263), plus d'atlas ; Contraintes = une seule table (régime, objectifs de
+      couverture en tête, source sous chaque organe, Copier) ; page Organes à risque (définition sur deux lignes, un clic déplie et liste tous les schémas) ;
+      page Contraintes = tous les organes, colonnes Normofractionné / Hypofractionné / Stéréotaxie, essais en bas.
+- [x] **Étape E, modification par le cabinet** (25/10/2026) : centrage (rubriques, lignes ajoutées : `schema.simulation`), contourage (lignes des volumes,
+      organes ajoutés depuis la liste : `schema.volumes`), contraintes du schéma (`schema.contraintes`, « Revenir aux contraintes de la base »), base des
+      contraintes (`referentielRT/_contraintes`), organes (`referentielRT/_oar`), protocole lié (`referentielRT/_protocoles`). Test `tests/test_rtref_edition.py`.
+- [x] **Protocoles de chimiothérapie du référentiel** (25/10/2026) : tous les traitements cités ont leur protocole (`donnees-rt/protocoles-chimio.json`,
+      par localisation, plusieurs liens possibles) ; 13 créés (`donnees/protocolesrt.js`, une fois par bibliothèque, drapeau `rtref1`,
+      `appliquerProtocolesRT` de protocoles.js ; Solumedrol selon les règles du 13/10, pas d'anti-H1, seuils, ordonnances liées, source) : TPF
+      nasopharynx (Sun), cisplatine 30 hebdomadaire + RT, gemcitabine PREOPANC, gemcitabine-capécitabine et capécitabine + RT (SWOG S0809), CeTeG,
+      vorasidenib, vincristine pendant l'irradiation craniospinale, lomustine-cisplatine-vincristine (entretien), mémantine, 5-FU + hydroxyurée
+      (RTOG 9610), cisplatine-paclitaxel (RTOG 9911), 5-FU-acide folinique (Macdonald). Cisplatine 100 J1-J22-J43 + RT : protocoles du 18/10 (ORL et
+      nasopharynx) ; FOLFIRINOX = mFOLFIRINOX (décision du 25/10) ; ligne « Témozolomide adjuvant (Stupp) » corrigée (TTFields, EF-14). Test
+      `tests/moteur/test-protocolesrt.mjs`.
+- [ ] Étapes D (curiethérapie et réirradiation à revoir avec les sources) et F (contrôle complet, mise en ligne avec accord).
 
 ## À placer (nouveau plan)
 - (21/10, S5) **Vigilance des molécules, flacons et interactions ne sont pas dans le modèle des cabinets neufs** (`PARAMS_SPE` de functions/cabinets.js :

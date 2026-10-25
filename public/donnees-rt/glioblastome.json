@@ -315,7 +315,7 @@
   {
    "situation": "gbm-standard",
    "traitement": "TTFields (au moins 18 h/j) avec le témozolomide d'entretien, après la radiochimiothérapie",
-   "protocole": "Témozolomide adjuvant (Stupp)",
+   "protocole": "TTFields avec le témozolomide d'entretien (EF-14)",
    "situation_id": "gbm-standard",
    "essai_ids": [
     "ef14"

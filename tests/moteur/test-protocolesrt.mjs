@@ -1,0 +1,30 @@
+// Protocoles de chimiothérapie créés pour le référentiel de radiothérapie (25/10/2026) : contenu (règles de la bibliothèque) et création unique.
+import { PROTOCOLES_RT } from "../../public/js/donnees/protocolesrt.js";
+import { protocolesACreer } from "../../public/js/moteur/protocolesrt.js";
+import { ORDOS_TYPES0, ORDOS_AUDIT3 } from "../../public/js/donnees/ordostypes.js";
+let ok = 0, ko = 0;
+const cas = (nom, v, d) => { if (v) { ok++; console.log("  ✔ " + nom); } else { ko++; console.log("  ✘ " + nom + (d ? " — " + d : "")); } };
+const P = PROTOCOLES_RT, S = (t) => String(t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toUpperCase();
+cas("13 protocoles, identifiants « rtref| » uniques", P.length === 13 && new Set(P.map((p) => p.id)).size === 13 && P.every((p) => /^rtref\|/.test(p.id)));
+const champs = P.filter((p) => !(p.nom && Number.isInteger(p.c) && p.nbc && p.st === "ok" && p.r && p.src && Array.isArray(p.dr) && p.dr.length && Array.isArray(p.ind) && p.ind.length && Array.isArray(p.seuils) && Array.isArray(p.ordos) && p.dos && p.loc));
+cas("chaque protocole : nom, cycle, nombre de cures, statut Validé, rythme, source, molécules, indications, seuils, ordonnances liées", champs.length === 0, champs.map((p) => p.id).join(", "));
+cas("lignes : identifiant, produit, unité, jours", P.every((p) => p.dr.every((d) => d.id && d.p && d.u && Array.isArray(d.j) && d.j.length)));
+cas("aucun anti-H1 (Polaramine retirée de la bibliothèque)", P.every((p) => p.dr.every((d) => !/POLARAMINE|DEXCHLORPHENIRAMINE/.test(S(d.p)))));
+const solu = (p) => p.dr.filter((d) => /SOLUMEDROL/.test(S(d.p))), cis = (p) => p.dr.find((d) => /^CISPLATINE/.test(S(d.p)));
+const regle = P.filter((p) => cis(p)).map((p) => {
+  const c = cis(p), s = solu(p)[0], hebdo = /hebdomadaire/i.test(p.nom) && p.c === 0, multi = c.j.length > 1 && !hebdo && Math.max(...c.j) <= 5;
+  const attendu = hebdo ? 80 : multi ? 50 : 60;
+  return s && s.d === attendu ? null : p.id + " (Solumedrol " + (s && s.d) + ", attendu " + attendu + ")";
+}).filter(Boolean);
+cas("Solumedrol selon les règles du 13/10 : 60 mg cisplatine 1 jour, 50 mg/j sur plusieurs jours, 80 mg hebdomadaire + RT", regle.length === 0, regle.join(" ; "));
+cas("cisplatine : hydratation avant, ONSET, seuil rénal", P.filter((p) => cis(p)).every((p) => p.dr.some((d) => /HYDRATATION AVANT CISPLATINE/.test(d.p)) && p.dr.some((d) => /ONSET/.test(d.p)) && p.seuils.some((x) => /DFG/.test(x))));
+const ordos = new Set(ORDOS_TYPES0.concat(ORDOS_AUDIT3 || []).map((o) => o.nom));
+const inconnues = [].concat(...P.map((p) => p.ordos.filter((o) => !ordos.has(o))));
+cas("ordonnances liées : des ordonnances types de la bibliothèque", inconnues.length === 0, inconnues.join(" ; "));
+cas("vincristine plafonnée à 2 mg", P.every((p) => p.dr.filter((d) => /VINCRISTINE/.test(S(d.p))).every((d) => d.max === 2)));
+const bib = { "x|1": { id: "x|1", nom: "Vorasidenib 40 mg/j (gliome de grade 2 IDH muté)" } };
+const c1 = protocolesACreer(bib, P);
+cas("création : protocole du même nom déjà présent → pas de double", c1.length === 12 && !c1.some((p) => /Vorasidenib/.test(p.nom)));
+c1.forEach((p) => { bib[p.id] = p; });
+cas("relancer ne crée rien", protocolesACreer(bib, P).length === 0);
+console.log("\n" + ok + " réussi(s), " + ko + " échec(s)"); process.exit(ko ? 1 : 0);

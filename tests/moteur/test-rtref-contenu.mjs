@@ -193,7 +193,13 @@ const PC = (J["protocoles-chimio.json"] || {}).correspondances || {};
 const nomsRef = new Set(); for (const f of fichiers) for (const ch of ["systemique", "hormonotherapie"]) for (const x of (J[f] || {})[ch] || []) if (x && x.protocole) nomsRef.add(x.protocole);
 const SEED = JSON.parse(readFileSync(new URL("../seed-fictif.json", import.meta.url), "utf8")), BIBIDS = new Set();
 for (const [k, v] of Object.entries(SEED)) if (k.startsWith("espaces/cabinet-bentahila/protocoles/")) JSON.parse(v.data).forEach((p) => BIBIDS.add(p.id));
-const pcNoms = Object.keys(PC).filter((k) => !nomsRef.has(k)), pcIds = Object.values(PC).flat().filter((i) => !BIBIDS.has(i));
+// protocoles créés à l'ouverture d'Onco360 : le 18/10/2026 (audit3|…, donnees/audit3p4.js P7) et pour le référentiel (rtref|…, donnees/protocolesrt.js)
+const { P7 } = await import("../../public/js/donnees/audit3p4.js"), { PROTOCOLES_RT } = await import("../../public/js/donnees/protocolesrt.js");
+Object.values(P7).forEach((p) => BIBIDS.add(p.id)); PROTOCOLES_RT.forEach((p) => BIBIDS.add(p.id));
+const idsDe = (v) => (Array.isArray(v) ? v : Object.values(v).flat());
+const pcNoms = Object.keys(PC).filter((k) => !nomsRef.has(k)), pcIds = Object.values(PC).map(idsDe).flat().filter((i) => !BIBIDS.has(i));
+const sansProto = [...nomsRef].filter((n) => n !== "—" && !PC[n]);
+cas("chaque traitement du référentiel a son protocole (" + nomsRef.size + ")", sansProto.length === 0, liste(sansProto, 20));
 cas("protocoles-chimio : chaque nom est un traitement du référentiel (" + Object.keys(PC).length + ")", Object.keys(PC).length > 20 && pcNoms.length === 0, liste(pcNoms));
 cas("protocoles-chimio : chaque protocole existe dans la bibliothèque", pcIds.length === 0, liste(pcIds));
 
