@@ -185,8 +185,16 @@ function alerteSansTarif(all) {
     (estComptable() ? "Le médecin doit régler ces tarifs." : '<a href="#parametres/activites">Régler les tarifs</a> (radiothérapie : prix de l\'acte).') + "</p>";
 }
 let LIM = 300; // lignes du journal affichées (« Afficher plus »)
+// 25/10/2026 (demande de Dr Bentahila) : consultations à 0 DH (J8 / J15 de chimio, consultation en cours ou de fin de radiothérapie…) non affichées,
+// pour ne pas encombrer : ni dans le journal, ni dans leur nombre, ni dans les exports et le relevé ; une consultation sans tarif (comptée 0 DH faute
+// de réglage) reste affichée, avec son alerte ; les totaux en DH ne changent pas (le calcul du bilan, moteur/bilan.js, est inchangé)
+const zeroDH = (o) => !/^(seance|hospit|rt|rtprev|kl)$/.test(o.t) && !o.sansT && !(num(o.brut) || 0) && !(num(o.net) || 0);
+function sansZero(b) {
+  const n = b.all.filter(zeroDH).length; if (!n) return b;
+  return Object.assign({}, b, { all: b.all.filter((o) => !zeroDH(o)), tot: Object.assign({}, b.tot, { nbActes: b.tot.nbActes - n, nbConsultations: b.tot.nbConsultations - n }) });
+}
 function dessiner() {
-  const esc = A.esc, R = resumes(), b = (PE = paiementsEffectifs(R), calculerBilan(R, B.versements, PE, F.per === "perso" ? Object.assign({}, F, { per: "" }) : F, D().t)), T = b.tot, all = b.all;
+  const esc = A.esc, R = resumes(), b = sansZero((PE = paiementsEffectifs(R), calculerBilan(R, B.versements, PE, F.per === "perso" ? Object.assign({}, F, { per: "" }) : F, D().t))), T = b.tot, all = b.all;
   DATA = b;
   const corDe = {}; R.forEach((x) => { corDe[x.id] = x.cor || ""; });
   const sel = (id, v, opts, f) => '<select id="' + id + '" onchange="biF(\'' + f + '\',this.value)">' + opts.map((o) => '<option value="' + esc(o[0]) + '"' + (o[0] === v ? " selected" : "") + ">" + esc(o[1]) + "</option>").join("") + "</select>";
@@ -464,7 +472,7 @@ window.biMois = (y, m) => { const p2 = (n) => (n < 10 ? "0" : "") + n; Object.as
 // Relevé pour un établissement : actes à régler (non payés) de la période choisie, à lui envoyer (PDF par l'impression)
 window.biReleve = (h) => {
   if (!DATA) return;
-  const esc = A.esc, R = resumes(), l = calculerBilan(R, [], PE, { per: "", du: DATA.pr[0], au: DATA.pr[1], hop: h, pay: "att" }, D().t).all;
+  const esc = A.esc, R = resumes(), l = calculerBilan(R, [], PE, { per: "", du: DATA.pr[0], au: DATA.pr[1], hop: h, pay: "att" }, D().t).all.filter((o) => !zeroDH(o));
   if (!l.length) { A.toast("Aucun acte à régler pour " + h + " sur la période."); return; }
   const e = (D().etabsTous || D().etabs || []).find((z) => z.code === h) || {}, numDe = (id) => { const x = (RES || []).find((r) => r.id === id) || {}; return x.num || A.numDossier((D().patients || []).find((p) => p.id === id)) || ""; };
   const td = 'style="border:1px solid #ccc;padding:4px 6px"', tr = 'style="border:1px solid #ccc;padding:4px 6px;text-align:right"', sb = l.reduce((a, o) => a + (num(o.brut) || 0), 0), sn = l.reduce((a, o) => a + (num(o.net) || 0), 0);
