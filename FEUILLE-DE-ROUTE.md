@@ -582,7 +582,16 @@ Un lot par session ; chaque lot finit par ses tests verts, la feuille de route c
       séances « 5 fx », nombre seul = dose, séances, dose par séance ou titre ; dès 2 caractères), `motBloquant`, `termes` ; `nb` / `gy` /
       `fmtPrescription` / `resumePrescription` (virgule, espace insécable) ; `controlePrescription` (0,01 Gy) ; `calculBED` (BED, EQDx, dose en N
       fractions, détail ; cas de contrôle retrouvé). `tests/moteur/test-rtref.mjs` 42/42 (recherche < 1 ms sur 295 schémas), dans les tests moteur.
-- [ ] **RT3 Référentiel** : accueil du module, recherche, menus, liste, favoris, récents (`js/app/radiotherapie.js`, CSS « Lot RTR », `tests/test_rtref.py`).
+- [x] **RT3 Référentiel** (25/10/2026) : `js/app/radiotherapie.js` : recherche du module fixée en haut (curseur dedans sur ordinateur ; ↑ ↓ Entrée,
+      Échap vide), menus Région › Localisation › Situation › Fractionnement (propres au module, classe `cascade` ; nombre de schémas ; Situation =
+      contextes sans localisation, situations groupées par contexte ensuite ; un menu plus valable est vidé), « Effacer », liste en 2 lignes (titre
+      + étoile ; localisation › situation · 3 essais · type · badge « Modifié pour le cabinet »), intertitre par localisation, termes surlignés,
+      critères de la situation choisie, accueil (Favoris `utilisateurs/{uid}.rtFavoris`, Consultés récemment `rtRecents`, Sommaire 11 régions /
+      48 localisations + « Curiethérapie (n) »), aucun résultat (« Chercher sans « … » », « Effacer les filtres »), chargement (lignes grises),
+      erreur (« Réessayer ») ; fiche réduite à l'en-tête (fil d'Ariane qui règle les menus, titre, étoile, résumé, Validé, preuve, Vérifié le) :
+      à droite de la liste dès 1 280 px (seule la fiche change), page entière avec Retour en dessous ; téléphone : bouton « Filtres (n) ».
+      CSS « Lot RTR » de v2.html (variables seulement). `tests/test_rtref.py` 46/46 à 1 440, 1 280, 1 200 et 390 px (Chrome, Safari).
+      « + Nouveau schéma » : RT5.
 - [ ] **RT4 Fiche** : fiche et ses onglets, copier, lien Protocoles (`#protocoles/<id>`), impression A4.
 - [ ] **RT5 Modification** : modification pour le cabinet, comparaison, revenir à la référence, dupliquer, nouveau schéma ; règles et tests.
 - [ ] **RT6 Sous-pages** : Organes à risque, Contraintes, Essais, Calcul BED / EQD2 (cas de contrôle de la spécification).

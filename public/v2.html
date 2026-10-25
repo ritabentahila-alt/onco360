@@ -1097,6 +1097,49 @@ details.vig-b>summary::-webkit-details-marker{display:none}.vig-d{font-size:var(
 .rc-quoi{flex-wrap:wrap!important;overflow:visible!important}.rc-form{grid-template-columns:repeat(2,minmax(0,260px));margin:10px 0}
 .rc-aide{margin:10px 0 0;padding-left:20px;line-height:1.5}.rc-aide li{margin:0 0 6px}
 @media (max-width:760px){.rc-form{grid-template-columns:minmax(0,1fr)}.rc-sous,.rc-pats{margin-left:0}}
+/* Lot RTR (RT3, 25/10/2026) : menu Radiothérapie, référentiel (radiotherapie.js) ; recherche fixée en haut, liste, fiche à droite dès 1 280 px.
+   --rtr-h = hauteur de la zone de recherche (posée par radiotherapie.js), pour les intertitres et les colonnes fixées */
+.rtr{display:flex;flex-direction:column;gap:12px;--rtr-h:120px}
+.rtr-haut{position:sticky;top:64px;z-index:20;background:var(--fond);margin:-8px 0 0;padding:8px 0 6px;display:flex;flex-direction:column;gap:10px}
+.rtr-haut .recherche{flex:none;width:100%}
+.rtr-filtres{display:flex;flex-direction:column;gap:8px}.rtr-ftr{display:none;align-self:flex-start}
+.rtr-ftr .n{background:var(--prim);color:var(--carte);border-radius:10px;padding:0 7px;font-size:var(--t2);margin-left:4px}.rtr-ftr.ouv{background:var(--prim-c);color:var(--prim)}
+.rtr-mz{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}.rtr-mz .rtr-menus{flex:1;min-width:0;margin:0}.rtr-mz>.bt{margin-bottom:1px}
+.rtr-liste,.rtr-fiche{background:var(--carte);border-radius:var(--r-l);box-shadow:var(--ombre);min-width:0}
+.rtr-liste{padding:6px 0}.rtr-fiche{padding:18px 22px}
+.rtr-nb{margin:6px 18px 2px}.rtr-crit{margin:4px 18px 8px;font-size:var(--t4);color:var(--encre)}
+.rtr-it{position:sticky;top:calc(64px + var(--rtr-h));z-index:5;margin:0;padding:8px 18px 6px;background:var(--fond-doux);border-bottom:1px solid var(--trait);font-size:var(--t3);color:var(--doux)}
+.rtr-l{padding:10px 18px;border-bottom:1px solid var(--trait);cursor:pointer;min-height:44px}.rtr-l:last-child{border-bottom:0}
+.rtr-l:hover,.rtr-l.sel{background:var(--prim-c)}.rtr-l.on{box-shadow:inset 3px 0 0 var(--prim);background:var(--prim-c)}
+.rtr-l1{display:flex;align-items:flex-start;gap:8px}.rtr-l1 b{flex:1;min-width:0;color:var(--titre);font-size:var(--t5);overflow-wrap:anywhere}
+.rtr-l .mesures{overflow-wrap:anywhere}.rtr-ty{color:var(--doux)}.rtr-l .badge{padding:1px 8px;font-size:var(--t2)}
+.rtr mark{background:var(--prim-cc);color:inherit;border-radius:3px;padding:0 1px}
+.rtr-et{flex:none;border:0;background:none;color:var(--gris-m);width:36px;height:36px;margin:-8px -8px -8px 0;display:inline-flex;align-items:center;justify-content:center;border-radius:8px}
+.rtr-et:hover{background:var(--prim-cc)}.rtr-et.on{color:var(--or)}.rtr-et.on .i{fill:currentColor}
+.rtr-aide{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--gris-c);color:var(--doux);font-size:var(--t2);font-weight:bold;cursor:help}
+.rtr-bloc{padding:4px 0 8px}.rtr-bloc+.rtr-bloc{border-top:1px solid var(--trait)}.rtr-bloc h3{margin:8px 18px 4px;font-size:var(--t5);color:var(--titre)}
+.rtr-som{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:2px 22px;padding:0 18px 10px}
+.rtr-reg h4{margin:12px 0 2px;font-size:var(--t3);color:var(--doux)}
+.rtr-reg button,.rtr-curie{display:block;border:0;background:none;padding:6px 0;text-align:left;font-size:var(--t4);font-weight:bold;color:var(--prim);min-height:32px;cursor:pointer}
+.rtr-reg button span,.rtr-curie span{color:var(--doux);font-weight:normal}.rtr-curie{margin:0 18px}.rtr-red{display:block;padding:6px 0;font-size:var(--t3);color:var(--doux)}
+.rtr-ch i{display:block;height:46px;margin:10px 18px;border-radius:8px;background:var(--gris-c)}
+.rtr.deux .rtr-corps{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,3fr);gap:18px;align-items:start}
+.rtr.deux .rtr-liste,.rtr.deux .rtr-fiche{position:sticky;top:calc(64px + var(--rtr-h) + 6px);max-height:calc(100vh - 64px - var(--rtr-h) - 24px);overflow-y:auto;overscroll-behavior:contain}
+.rtr.deux .rtr-it{top:0}
+.rtr-ar{font-size:var(--t3);color:var(--doux)}.rtr-ar a{color:var(--prim);text-decoration:none}.rtr-ar a:hover{text-decoration:underline}
+.rtr-t{display:flex;gap:8px;align-items:flex-start;margin:4px 0}.rtr-t h2{flex:1;min-width:0;margin:0;font-size:var(--t7);color:var(--titre);overflow-wrap:anywhere}
+.rtr-res{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;font-size:var(--t4);color:var(--encre)}.rtr-res .badge .i{width:13px;height:13px;margin:-2px 3px 0 0;vertical-align:middle}
+.rtr-ret{display:inline-flex;align-items:center;gap:4px;margin-bottom:10px}.rtr-ret .i{width:16px;height:16px}
+.rtr-fiche .vide-c{margin-top:14px;border-top:1px solid var(--trait)}
+@media (max-width:899px){
+  .rtr-ftr{display:inline-flex;min-height:44px}.rtr-mz:not(.ouv){display:none}.rtr-mz{flex-direction:column;align-items:stretch}
+  .rtr-mz .rtr-menus{grid-template-columns:1fr 1fr}.rtr-mz select{min-height:44px}.rtr-l{padding:12px 14px}
+}
+@media (max-width:640px){
+  .rtr-mz .rtr-menus{grid-template-columns:1fr}.rtr-fiche{padding:14px 14px}.rtr-som{grid-template-columns:1fr 1fr;gap:0 14px;padding:0 14px 8px}
+  .rtr-bloc h3,.rtr-nb,.rtr-crit,.rtr-curie{margin-left:14px;margin-right:14px}.rtr-et{width:44px;height:44px}
+}
+@media (pointer:coarse){.rtr-et{width:44px;height:44px}}
 </style>
 </head>
 <body>
