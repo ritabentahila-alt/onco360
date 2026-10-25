@@ -105,6 +105,7 @@ async def main():
         # Téléphone (390 px)
         pg = await ouvrir(b, S2, w=390, h=800); ev = pg.evaluate
         await pg.goto(f'http://localhost:{PORT}/v2.html#radiotherapie'); await pg.wait_for_timeout(2500)
+        await pg.wait_for_selector('.rtr-mz', state='attached', timeout=15000)  # Safari, suite complète : page parfois plus lente
         ok(not await ev(DEBORDE), '390 px : accueil sans débordement')
         ok(await ev("document.querySelector('.rtr-mz').offsetParent === null") and await ev("document.querySelector('.rtr-ftr').offsetHeight") >= 44, '390 px : menus repliés derrière « Filtres » (44 px)')
         await pg.click('.rtr-ftr'); await pg.wait_for_timeout(300); await menu(pg, 'reg', 'sein')

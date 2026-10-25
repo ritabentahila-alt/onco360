@@ -170,7 +170,7 @@ export async function appliquerP5b() {
 // Référentiel de radiothérapie (25/10/2026) – une fois par bibliothèque (médecin ; drapeau rtref1), après l'audit n° 10 : protocoles de
 // chimiothérapie cités par le référentiel et absents de la bibliothèque (donnees/protocolesrt.js), créés « Validé » sans mention, noté au journal
 export async function appliquerProtocolesRT() {
-  if (!A.peut("parametres") || !D().membre || D().membre.role !== "medecin" || !BIB().length) return null;
+  if (!A.peut("parametres") || !D().membre || !A.estMed() || !BIB().length) return null;
   const rm = doc(db, "espaces", A.ESPACE, "parametres", "migrations"), g = await getDoc(rm).catch(() => null);
   if (!g || (g.exists() && g.data().rtref1)) return null;
   const [{ protocolesACreer }, { PROTOCOLES_RT }] = await Promise.all([import("../moteur/protocolesrt.js"), import("../donnees/protocolesrt.js")]);
