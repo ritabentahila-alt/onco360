@@ -439,7 +439,7 @@ window.rtrImprimerOk = () => {
   let corps = "";
   try { corps = ONGLETS.filter(([k]) => ks.indexOf(k) >= 0).map(([k, lib]) => '<section><h2>' + lib + "</h2>" + RENDUS[k]() + "</section>").join(""); } finally { IMPRESSION = false; }
   const sources = [acronymes(schema.essai_ids), schema.source_institutionnelle].filter(Boolean).join(" ; ");
-  const html = '<header><b>Onco360</b> · Référentiel de radiothérapie<span>' + esc($("nomMenu") ? $("nomMenu").textContent : "") + "</span></header>" +
+  const html = '<header><b>Onco360</b> · Référentiel de radiothérapie<span>' + esc(A.nomAgissant()) + "</span></header>" +
     (e.modifie ? '<p class="vc">Version du cabinet, modifiée le ' + esc(dfr(String((e.cab && e.cab.majLe) || "").slice(0, 10))) + "</p>" : "") +
     '<p class="ar">' + esc([l.nom, s.titre].filter(Boolean).join(" › ")) + "</p><h1>" + esc(e.titre) + '</h1><p class="res">' + esc(resumePrescription(schema)) + " · " + esc(libPreuve(schema.preuve || e.preuve)) + (schema.date_verif ? " · vérifié le " + esc(dfr(schema.date_verif)) : "") + "</p>" + corps +
     "<footer>" + (sources ? "Sources : " + esc(sources) + " · " : "") + "Imprimé le " + esc(new Date().toLocaleDateString("fr-FR")) + "</footer>";
@@ -548,7 +548,7 @@ const signature = (c) => (c ? txt(c.majLe) + "|" + txt(c.majPar) : "");
 window.rtrEnregistrer = async () => {
   if (!ED || Object.keys(erreurs()).length || (!differences().length && !ED.nouveau)) return;
   const id = ED.id, ref = doc(db, "espaces", A.ESPACE, "referentielRT", id), l = loc(ED.localisation_id) || {}, b = $("rtrEnr"), msg = $("rtrBmsg");
-  const d = { schema: nettoyer(ED.schema), localisation_id: ED.localisation_id, origine: "cabinet", base: l.date_maj || "", note: txt(ED.note).trim(), majPar: D().u.uid, majParNom: $("nomMenu") ? $("nomMenu").textContent : "", majLe: new Date().toISOString() };
+  const d = { schema: nettoyer(ED.schema), localisation_id: ED.localisation_id, origine: "cabinet", base: l.date_maj || "", note: txt(ED.note).trim(), majPar: D().u.uid, majParNom: A.nomAgissant(), majLe: new Date().toISOString() };
   if (ED.nouveau) { d.nouveau = true; if (ED.copie_de) d.copie_de = ED.copie_de; }
   if (b) b.disabled = true; if (msg) msg.textContent = "Enregistrement…";
   let res;

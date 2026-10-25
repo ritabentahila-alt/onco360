@@ -44,7 +44,11 @@ service cloud.firestore {
       function m() { return get(cheminMembre()).data; }
       // Cabinet suspendu par l'administration (abonnement non payé, 09/10/2026) : plus personne n'y entre ; rien n'est effacé
       function cabinetActif() { return get(/databases/$(database)/documents/espaces/$(e)).data.get('actif', true) != false; }
-      function estMembre() { return connecte() && exists(cheminMembre()) && m().actif == true && cabinetActif(); }
+      // Lot C (25/10/2026) : un médecin remplaçant n'entre que pendant sa période (remplaceDebMs / remplaceFinMs, absents ou 0 = sans limite)
+      function periodeOk() { return m().role != 'remplacant' || ((m().get('remplaceDebMs', 0) == 0 || request.time >= timestamp.value(m().remplaceDebMs)) && (m().get('remplaceFinMs', 0) == 0 || request.time <= timestamp.value(m().remplaceFinMs))); }
+      function estMembre() { return connecte() && exists(cheminMembre()) && m().actif == true && cabinetActif() && periodeOk(); }
+      // Lot C : le remplaçant agit comme un médecin (mêmes droits que le titulaire, recopiés par le serveur)
+      function estMed() { return m().role in ['medecin', 'remplacant']; }
       // Module de la formule (1.3, 11/10/2026) : un module retiré (abonnement.modules[k] == false) est aussi fermé à l'écriture par le
       // serveur, pas seulement caché à l'écran ; cabinet sans abonnement (cabinet Bentahila) = tous les modules
       function moduleOn(k) { return get(/databases/$(database)/documents/espaces/$(e)).data.get('abonnement', {}).get('modules', {}).get(k, true) != false; }
@@ -89,6 +93,8 @@ service cloud.firestore {
       // Membres et leurs droits : gérés par le médecin titulaire (ou l'administrateur). Un membre ne modifie jamais ses propres droits.
       match /membres/{uid} {
         allow read: if estMembre() || adminIci();
+        // Lot C (25/10/2026) : chacun lit sa propre fiche, même désactivée ou hors de sa période de remplacement (message clair à l'ouverture)
+        allow get: if connecte() && uid == request.auth.uid;
         // 1.3 (11/10/2026, audit) : un nouveau membre n'est créé que par le serveur (creerMembre : limite de la formule, compte
         // vérifié) ; le titulaire modifie ou retire les fiches existantes, jamais la sienne. Il ne peut plus rattacher lui-même un
         // compte quelconque à son cabinet.
@@ -125,7 +131,7 @@ service cloud.firestore {
           && request.resource.data.creePar == resource.data.creePar && request.resource.data.patientId == resource.data.patientId;
         // suppression : le médecin ; la secrétaire celles qu'elle a créées, et une consultation « Ordonnance » vidée
         allow delete: if droit('ecrireConsultations') && dansPerimetre(resource.data.etablissementId)
-          && (m().role == 'medecin' || resource.data.creePar == request.auth.uid || (resource.data.titre == 'Ordonnance' && resource.data.get('type', '') == ''
+          && (estMed() || resource.data.creePar == request.auth.uid || (resource.data.titre == 'Ordonnance' && resource.data.get('type', '') == ''
               && resource.data.get('note', '') == '' && resource.data.get('lignes', []).size() == 0));
       }
       // Inscriptions en RCP (09/10/2026, rcp.js) : lues par tous les membres (périmètre) ; inscrire, modifier, cocher « Fait » :
@@ -140,7 +146,7 @@ service cloud.firestore {
           && dansPerimetre(request.resource.data.etablissementId) && request.resource.data.majPar == request.auth.uid
           && request.resource.data.creePar == resource.data.creePar && request.resource.data.patientId == resource.data.patientId;
         allow delete: if droit('ecrireConsultations') && dansPerimetre(resource.data.etablissementId)
-          && (m().role == 'medecin' || resource.data.creePar == request.auth.uid);
+          && (estMed() || resource.data.creePar == request.auth.uid);
       }
       // Bibliothèques des prescriptions (médicaments, examens, ordonnances types, analyses, courriers) : lues par les
       // membres, modifiées par le médecin seulement (07/10/2026 : la secrétaire s'en sert sans les changer)
@@ -148,7 +154,7 @@ service cloud.firestore {
       // (du 10/10 au 19/10, elle pouvait ajouter un médicament) ; elle garde la ligne libre sur l'ordonnance
       match /bibliotheques/{b} {
         allow read: if estMembre();
-        allow write: if droit('ecrireConsultations') && m().role == 'medecin';
+        allow write: if droit('ecrireConsultations') && estMed();
       }
       // Documents de radiothérapie (pli confidentiel, compte rendu de fin, rendez-vous) enregistrés depuis leur fenêtre :
       // lus, modifiés et supprimés avec le droit « documents » (médecin, secrétaire), dans le périmètre du membre
@@ -168,7 +174,7 @@ service cloud.firestore {
           && request.resource.data.majPar == request.auth.uid && request.resource.data.creePar == resource.data.creePar
           && request.resource.data.patientId == resource.data.patientId && request.resource.data.chemin == resource.data.chemin;
         allow delete: if droit('documents') && dansPerimetre(resource.data.etablissementId)
-          && (m().role == 'medecin' || resource.data.creePar == request.auth.uid);
+          && (estMed() || resource.data.creePar == request.auth.uid);
       }
       // Tâches de l'équipe (07/10/2026) : les médecins les voient toutes ; les autres celles qu'ils ont créées ou dont ils sont
       // responsables (qui = [auteur, responsable]). Modification et réattribution : l'auteur, le responsable, les médecins ;
@@ -176,7 +182,7 @@ service cloud.firestore {
       // jamais, signée par la personne connectée (08/10/2026).
       // Suppression : l'auteur, toujours (même terminée, 08/10/2026) ; un médecin, une tâche non terminée d'un autre.
       match /taches/{t} {
-        function estMedecin() { return estMembre() && m().role == 'medecin'; }
+        function estMedecin() { return estMembre() && estMed(); }
         function concerne() { return estMedecin() || (estMembre() && request.auth.uid in resource.data.qui); }
         function valide(d) {
           return d.titre is string && d.titre.size() > 0 && d.statut in ['afaire', 'encours', 'fait'] && d.majPar == request.auth.uid
@@ -304,13 +310,13 @@ service cloud.firestore {
       match /finances/{d} { allow read: if droit('finances'); allow write: if droit('finances') && (!comptable() || d in ['paiements', 'versements'] || d.matches('paiements_[0-9]{4}')); }
       // Bibliothèque et paramètres : lecture par les membres, modification avec le droit « paramètres »
       // 2.4 (12/10/2026, audit) : modifiés par un médecin seulement (avec le droit « paramètres »)
-      match /protocoles/{d} { allow read: if estMembre(); allow write: if droit('parametres') && m().role == 'medecin'; }
+      match /protocoles/{d} { allow read: if estMembre(); allow write: if droit('parametres') && estMed(); }
       // Référentiel de radiothérapie (RTR, RT1 du 25/10/2026) : changements du cabinet par schéma (la référence est dans le site,
       // public/donnees-rt). Module « rt » et fonction « rt.referentiel » du réglage ; droit referentielRT (aucun | voir | modifier) :
       // médecin sans droit noté = « modifier » ; le comptable ne le lit jamais ; seul un médecin avec « modifier » écrit, signé par lui-même
       function rtRefFn() { return get(/databases/$(database)/documents/espaces/$(e)).data.get('abonnement', {}).get('reglage', {}).get('fonctions', {}).get('rt.referentiel', true) != false; }
-      function rtRefVoir() { return estMembre() && moduleOn('rt') && rtRefFn() && m().role != 'comptable' && (m().droits.get('referentielRT', 'aucun') in ['voir', 'modifier'] || (m().role == 'medecin' && !('referentielRT' in m().droits))); }
-      function rtRefModif() { return estMembre() && moduleOn('rt') && rtRefFn() && m().role == 'medecin' && m().droits.get('referentielRT', 'modifier') == 'modifier'; }
+      function rtRefVoir() { return estMembre() && moduleOn('rt') && rtRefFn() && m().role != 'comptable' && (m().droits.get('referentielRT', 'aucun') in ['voir', 'modifier'] || (estMed() && !('referentielRT' in m().droits))); }
+      function rtRefModif() { return estMembre() && moduleOn('rt') && rtRefFn() && estMed() && m().droits.get('referentielRT', 'modifier') == 'modifier'; }
       match /referentielRT/{s} {
         allow read: if rtRefVoir();
         allow create, update: if rtRefModif() && request.resource.data.majPar == request.auth.uid;

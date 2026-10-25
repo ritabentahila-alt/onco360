@@ -103,7 +103,7 @@ async function sauverDocs(ids, retirer) {
 // 2.4 – une fois (médecin, aussi dans une bibliothèque de référence) : les protocoles sans statut (bibliothèque d'origine) deviennent
 // « Validé avant le 12/10/2026 » ; ensuite, sans statut = non validé
 export async function marquerProtocoles() {
-  if (!A.peut("parametres") || !D().membre || D().membre.role !== "medecin") return 0;
+  if (!A.peut("parametres") || !D().membre || !A.estMed()) return 0;
   const ids = BIB().filter((p) => !p.st).map((p) => p.id); if (!ids.length) return 0;
   ids.forEach((id) => { const p = D().ctx.bib[id]; p.st = "ok"; p.version = p.version || 1; p.valide = { retro: true, le: "2026-10-12", version: p.version }; });
   await sauverDocs(ids);
@@ -115,7 +115,7 @@ export async function marquerProtocoles() {
 // 18/10 (palier 3, drapeau audit3c ; relancer ne refait rien) : [211] AI 3 jours, « HGC » retiré des remarques ;
 // calcul dans moteur/audit3.js ; les lignes déjà prescrites gardent leur copie ; sans fenêtre (décision de Dr Bentahila), noté au journal.
 export async function appliquerAudit3() {
-  if (!A.peut("parametres") || !D().membre || D().membre.role !== "medecin" || !BIB().length) return null;
+  if (!A.peut("parametres") || !D().membre || !A.estMed() || !BIB().length) return null;
   const rm = doc(db, "espaces", A.ESPACE, "parametres", "migrations"), g = await getDoc(rm).catch(() => null);
   if (!g || (g.exists() && g.data().audit3c)) return null;
   const r = correctionsAudit3(D().ctx.bib);
@@ -140,7 +140,7 @@ export async function appliquerAudit3() {
 // Audit n° 3, P4 (18/10/2026) – une fois par bibliothèque (médecin ; drapeau audit3e), après appliquerAudit3 : consignes des ordres 2 et 3
 // du classeur, seuils du jour et ordonnances liées (moteur/audit3p4.js ; données chargées seulement ici). Sans fenêtre, noté au journal.
 export async function appliquerP4() {
-  if (!A.peut("parametres") || !D().membre || D().membre.role !== "medecin" || !BIB().length) return null;
+  if (!A.peut("parametres") || !D().membre || !A.estMed() || !BIB().length) return null;
   const rm = doc(db, "espaces", A.ESPACE, "parametres", "migrations"), g = await getDoc(rm).catch(() => null);
   if (!g || (g.exists() && g.data().audit3e)) return null;
   const [{ correctionsP4 }, { P4, P7 }] = await Promise.all([import("../moteur/audit3p4.js"), import("../donnees/audit3p4.js")]);
@@ -157,7 +157,7 @@ export async function appliquerP4() {
 }
 // 18/10/2026 : acide folinique racémique nommé, Solumedrol en mg/kg passé en dose fixe (moteur/audit3p4.js correctionsP5b) ; une fois (audit3g)
 export async function appliquerP5b() {
-  if (!A.peut("parametres") || !D().membre || D().membre.role !== "medecin" || !BIB().length) return null;
+  if (!A.peut("parametres") || !D().membre || !A.estMed() || !BIB().length) return null;
   const rm = doc(db, "espaces", A.ESPACE, "parametres", "migrations"), g = await getDoc(rm).catch(() => null);
   if (!g || (g.exists() && g.data().audit3g)) return null;
   const { correctionsP5b } = await import("../moteur/audit3p4.js"), r = correctionsP5b(D().ctx.bib), moi = { par: D().u.uid, parNom: (D().membre && D().membre.nom) || "", le: new Date().toISOString() };
@@ -189,7 +189,7 @@ export async function appliquerProtocolesRT() {
 // Étapes de l'audit n° 10, chacune une fois (drapeau) : S2 (audit10a), S3 décimales (audit10b), S4 harmonisation (audit10c), corrections du 24/10 (audit10d, sans tâche)
 const ETAPES_A10 = [["audit10a", "correctionsS2", "Audit n° 10 (anticorps en double, KEYNOTE-A18, létrozole / fulvestrant)"], ["audit10b", "correctionsS3", "Audit n° 10 (décimales des petites doses)"], ["audit10c", "correctionsS4", "Audit n° 10 (5-FU en dose totale du diffuseur, Solumedrol 80 mg avec le carboplatine, acide folinique 400 mg/m², vinorelbine, durée des immunothérapies)"], ["audit10d", "correctionsS4b", "Protocoles (24/10 : POLARAMINE retirée, Solumedrol du pémétrexed-carboplatine, case « Traitement associé » d'une chimiothérapie)", false]];
 export async function appliquerAudit10() {
-  if (!A.peut("parametres") || !D().membre || D().membre.role !== "medecin" || !BIB().length) return null;
+  if (!A.peut("parametres") || !D().membre || !A.estMed() || !BIB().length) return null;
   const rm = doc(db, "espaces", A.ESPACE, "parametres", "migrations"), g = await getDoc(rm).catch(() => null);
   if (!g) return null;
   const fait = g.exists() ? g.data() : {}, M = await import("../moteur/audit10.js"), res = [];
@@ -218,7 +218,7 @@ export async function appliquerAudit10() {
 // ───── P9 (18/10/2026) : mises à jour de la bibliothèque de référence (médecin, cabinets autres que celui du Dr Bentahila) ─────
 let MAJ = null, MAJ_ESP = null;
 async function bandeauMaj() {
-  if (!A.peut("parametres") || !D().membre || D().membre.role !== "medecin" || D().bib || A.ESPACE === "cabinet-bentahila") return;
+  if (!A.peut("parametres") || !D().membre || !A.estMed() || D().bib || A.ESPACE === "cabinet-bentahila") return;
   if (MAJ_ESP !== A.ESPACE) { MAJ = null; MAJ_ESP = A.ESPACE; try { MAJ = await serveur("referenceDiff", { espace: A.ESPACE }); } catch (e) { MAJ = { items: [], ordos: [] }; } MAJ.listes = MAJ.listes || []; }
   const z = A.$("prMaj"); if (!z || !MAJ) return;
   const n = MAJ.items.length + MAJ.ordos.length + MAJ.listes.length; if (!n) { z.innerHTML = ""; return; }

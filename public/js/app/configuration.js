@@ -310,9 +310,9 @@ const RUBRIQUES = {
   bibliotheques() {
     // Bibliothèques des prescriptions : les mêmes fenêtres que dans le dossier, en gestion de la liste (sans patient)
     const B = [["medicaments", "pilule", "Médicaments", "Nom, posologie, classe"], ["ordostypes", "presse", "Ordonnances types", "Médicaments prescrits ensemble"], ["analyses", "tube", "Analyses et bilans", "Analyses et bilans"], ["examens", "loupe", "Examens complémentaires", "Imagerie, explorations"], ["courriers", "courrier", "Modèles de courriers", "Certificats, courriers, ALD…"]];
-    return '<section class="carte">' + titre("pilule", "Bibliothèques des prescriptions") + '<p class="sous">' + (A.D().membre.role === "medecin" ? "Chaque changement est enregistré tout de suite ; ⭐ = en tête de liste." : A.peut("ecrireConsultations") ? "Vous pouvez ajouter un médicament ; le reste est modifié par le médecin." : "Consultation seulement : le médecin les modifie.") + "</p>" +
+    return '<section class="carte">' + titre("pilule", "Bibliothèques des prescriptions") + '<p class="sous">' + (A.estMed() ? "Chaque changement est enregistré tout de suite ; ⭐ = en tête de liste." : A.peut("ecrireConsultations") ? "Vous pouvez ajouter un médicament ; le reste est modifié par le médecin." : "Consultation seulement : le médecin les modifie.") + "</p>" +
       '<div class="cf-bib">' + B.map(([k, ico, t, sous]) => '<button class="cf-b" data-bib="' + k + '" onclick="cfBib(\'' + k + "')\"><span class=\"ic\">" + A.ic(ico) + "</span><span><b>" + t + '</b><span class="mesures">' + sous + '</span><span class="mesures" id="cfBn-' + k + '"></span></span></button>').join("") +
-      (A.D().membre.role === "medecin" ? '<button class="cf-b" data-bib="documentation" onclick="ordDocumentationGestion()"><span class="ic">' + A.ic("document") + '</span><span><b>Documentation</b><span class="mesures">Fiches PDF remises aux patients</span></span></button>' : "") + "</div></section>";
+      (A.estMed() ? '<button class="cf-b" data-bib="documentation" onclick="ordDocumentationGestion()"><span class="ic">' + A.ic("document") + '</span><span><b>Documentation</b><span class="mesures">Fiches PDF remises aux patients</span></span></button>' : "") + "</div></section>";
   },
   // R-G d (audit n° 5, 19/10/2026) : affichage du dossier patient. Pour le cabinet (titulaire ou secrétaire) : parties de la colonne Patient
   // dépliées à l'ouverture (parametres/reglages, clé dossier). Pour moi : taille de la visionneuse (utilisateurs/{uid}.dossier), « Rétablir ».
@@ -579,7 +579,7 @@ window.cfExporter = async () => {
   A.occupe(b, false);
 };
 // Diagnostics : modifiés par un médecin seulement (1.3, 11/10/2026 ; le serveur ne corrige un diagnostic dans les dossiers que pour un médecin)
-const diagModifiable = () => ["diag", "stade", "grade"].indexOf(LS) < 0 || !!A.D().bib || (A.D().membre && A.D().membre.role === "medecin");
+const diagModifiable = () => ["diag", "stade", "grade"].indexOf(LS) < 0 || !!A.D().bib || (A.D().membre && A.estMed());
 // Stades et grades de la fiche tumeur (3.1 bis) : liste du cabinet (parametres/listes), sinon celle du catalogue
 const listeTum = (k) => { const L = D().listes || {}; return (Array.isArray(L[k]) && L[k].length ? L[k] : k === "stade" ? STADES : GRADES).slice(); };
 window.cfL = (i, v) => { ED.listes[LS][i] = String(v || "").trim(); modif(); };

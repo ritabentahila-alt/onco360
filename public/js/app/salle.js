@@ -58,7 +58,7 @@ const minutes = (ms) => Math.max(0, Math.floor((maintenant() - ms) / 60000));
 const duree = (m) => (m < 60 ? m + " min" : Math.floor(m / 60) + " h " + String(m % 60).padStart(2, "0"));
 const peutRdv = () => A.peut("rendezvous");
 const voitPrix = () => A.peut("finances") || A.peut("encaissements");
-const nomConnecte = () => $("nomMenu").textContent;
+const nomConnecte = () => A.nomAgissant(); // Lot C : au nom du titulaire pour un remplaçant
 const jourVu = () => JOUR || D().t;
 const filtresEtab = () => { const m = D().membre; return m.tousEtablissements ? [] : [where("etablissementId", "in", (m.etablissements || []).length ? m.etablissements : ["—"])]; };
 
@@ -72,7 +72,7 @@ export function demarrerSalle() {
       const av = SA.get(c.doc.id);
       if (c.type === "removed") SA.delete(c.doc.id); else SA.set(c.doc.id, c.doc.data());
       const d = c.doc.data(); if (!premier && d && d.majPar !== D().u.uid) autres.push(d.patientId);
-      if (!premier && d && d.majPar !== D().u.uid && d.etat === "salle" && (!av || av.etat !== "salle") && D().membre.role === "medecin" && reglages().salle.notifArrivee !== false) arrivees.push(d);
+      if (!premier && d && d.majPar !== D().u.uid && d.etat === "salle" && (!av || av.etat !== "salle") && A.estMed() && reglages().salle.notifArrivee !== false) arrivees.push(d);
       if (d && d.majPar === D().u.uid) noterEcart(d.maj);
     });
     premier = false; PRET = true;
@@ -335,7 +335,7 @@ window.saAnnuler = (pid, cle) => {
   if (!peutRdv()) return;
   if (l.etat === "consult") { window.saRetour(pid, cle); return; }
   if (l.rdv) { window.statutRdv(pid, l.rdv.id, "prevu"); return; }
-  const annulable = D().membre.role === "medecin" || l.doc.sp === D().u.uid;
+  const annulable = A.estMed() || l.doc.sp === D().u.uid;
   if (!annulable) { A.toast("Statut posé par le médecin : lui seul peut l'annuler."); return; }
   if (l.etat === "vu") { if (A.peutPrix()) window.chAnnulerVenuChimio(pid, l.chimio.lid, l.chimio.n, l.chimio.j); return; }
   essayer(() => ecrire(l, { etat: "", fin: null, finPar: null, finNom: null, sp: null }));
@@ -442,7 +442,7 @@ export function pageSalle(j) {
   const m = D().membre, etabs = m.tousEtablissements ? D().etabs.map((e) => e.code) : (m.etablissements || []);
   if (ETAB && etabs.indexOf(ETAB) < 0) ETAB = "";
   // Médecin (comme l'agenda) : un médecin voit d'abord ses patients, la secrétaire et l'infirmière ceux de tous ; « Tous les médecins » pour aider un confrère
-  if (!A.multiMed()) MED = null; else if (MED == null || (MED && !A.medecins().some((z) => z.uid === MED))) MED = m.role === "medecin" && A.medecins().some((z) => z.uid === D().u.uid) ? D().u.uid : "";
+  if (!A.multiMed()) MED = null; else if (MED == null || (MED && !A.medecins().some((z) => z.uid === MED))) MED = A.estMed() && A.medecins().some((z) => z.uid === A.medDefaut()) ? A.medDefaut() : ""; // Lot C : remplaçant = patients du titulaire
   // Lot B (25/10/2026) : plus de titre ; ligne 1 = le jour (‹ jour ›, semaine, Calendrier, Aujourd'hui) à gauche, Patient suivant, Actualiser
   // (à jour dessous) et « ⋯ » (Colonnes, Imprimer, Pharmacie, Clôturer la journée) à droite ; ligne 2 = recherche, période, établissement, médecin, tri
   $("page").innerHTML = '<div class="sa-pg' + (FILTRES ? " ouv" : "") + '" id="saPg"><div class="barre-page sa-l1">' +
@@ -514,7 +514,7 @@ function dessiner() {
   // Mise à jour ligne par ligne : une ligne inchangée n'est pas touchée (clic en cours, survol et défilement gardés)
   poser($("saL"), l.length ? l.map((z) => ({ k: z.pid + "|" + z.cle, h: ligneHtml(z, cv) })) : [{ k: "vide", h: '<p class="vide-c" data-k="vide">' + vide + "</p>" }]);
   // Patient suivant (médecin, aujourd'hui) ; Clôturer la journée (aujourd'hui et jours passés)
-  const f = JOUR === t && peutRdv() && D().membre.role === "medecin" ? fileSalle() : [];
+  const f = JOUR === t && peutRdv() && A.estMed() ? fileSalle() : [];
   $("saSuiv").classList.toggle("cache", !f.length); if (f.length) $("saSuiv").title = "Démarrer la consultation de " + f[0].x.r.nm + " (attend depuis " + duree(minutes(f[0].doc.arr || maintenant())) + ")";
   $("saClo").classList.toggle("cache", !(JOUR <= t && peutRdv()));
   // Lot B : « Clôturer la journée » rangé sous « ⋯ » ; une pastille sur « ⋯ » quand un jour passé n'est pas clôturé (patients restés en salle,

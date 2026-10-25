@@ -898,7 +898,7 @@ async function poidsSecretaire(x, L, k, j, v) {
   if (!(Number(w) > 0)) throw new Error("Indiquez le poids en kg.");
   const pl = JSON.parse(x.doc.planningJson || "{}"), o = ((pl[L.id] = pl[L.id] || {})[n] = pl[L.id][n] || {});
   if (j > 1) (o.spoids = o.spoids || {})[j] = w; else o.poids = w;
-  (o.pv = o.pv || {})[j] = { nom: document.getElementById("nomMenu").textContent, par: D().u.uid, le: new Date().toISOString() };
+  (o.pv = o.pv || {})[j] = { nom: A.nomAgissant(), par: D().u.uid, le: new Date().toISOString() };
   const pj = JSON.stringify(pl), cp = cliniquePoids(x, { planningJson: pj }); // R-A5 : la fiche suit (droit « fiche patient »)
   await A.enregistrer(x, Object.assign({ planningJson: pj }, cp ? { clinique: cp } : {}), "Poids de la C" + n + (j > 1 ? " J" + j : "") + " validé : " + w + " kg");
   A.toast("Poids validé : " + w + " kg.");

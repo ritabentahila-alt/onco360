@@ -18,7 +18,7 @@ const $ = (i) => document.getElementById(i);
 const st = () => getStorage(app);
 const trouver = (pid) => D().patients.find((p) => p.id === pid);
 const peutRemettre = () => A.peut("ecrireConsultations");
-const gere = () => peutRemettre() && D().membre.role === "medecin"; // ajouter, modifier, supprimer, favoris : le médecin
+const gere = () => peutRemettre() && A.estMed(); // ajouter, modifier, supprimer, favoris : le médecin
 const sansAcc = (s) => String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 const ico = (n) => '<svg class="pi"><use href="#i-' + n + '"/></svg>';
 // Lot D (25/10/2026) : fenêtre ouverte depuis le dossier = Modifier et Supprimer rangés sous « ⋯ » (Paramètres › Bibliothèques garde ses boutons)
@@ -128,7 +128,7 @@ window.dcRemettre = async (id) => {
   const d = DOCS.find((z) => z.id === id), x = V && trouver(V.pid); if (!d || !x || !peutRemettre()) return;
   const w = fenetreVide(d); // ouverte tout de suite, sinon le navigateur la bloque
   if (!(await ouvrir(d, w))) return;
-  try { await enregistrerPrescription(x, { t: "doc", d: D().t, lib: d.titre, docId: d.id, par: document.getElementById("nomMenu").textContent }); A.toast("« " + d.titre + " » noté dans la consultation du jour."); liste(); }
+  try { await enregistrerPrescription(x, { t: "doc", d: D().t, lib: d.titre, docId: d.id, par: A.nomAgissant() }); A.toast("« " + d.titre + " » noté dans la consultation du jour."); liste(); }
   catch (e) { A.toast("Le document est ouvert, mais n'a pas pu être noté dans la consultation : " + ((e && e.message) || e)); }
 };
 // Ligne « Doc. » d'une consultation : rouvrir le document
@@ -174,7 +174,7 @@ window.dcEnvoyer = async () => {
       const t = uploadBytesResumable(sr, f, { contentType: "application/pdf", customMetadata: { creePar: D().u.uid } });
       t.on("state_changed", (s) => { const b = $("dcBarre"); if (b && s.totalBytes) b.style.width = Math.round((s.bytesTransferred / s.totalBytes) * 100) + "%"; }, ko, ok);
     });
-    try { await modifier((L) => L.push({ id, titre, cat, nom, taille: f.size, chemin, le: D().t, par: document.getElementById("nomMenu").textContent })); }
+    try { await modifier((L) => L.push({ id, titre, cat, nom, taille: f.size, chemin, le: D().t, par: A.nomAgissant() })); }
     catch (e) { await deleteObject(sr).catch(() => {}); throw e; }
     A.toast("Document ajouté à la documentation."); dcRetour();
   } catch (e) { A.occupe($("dcOk"), false); $("dcProg").classList.add("cache"); A.erreur(erreurDroit(e, "ajouter un document") || "Envoi impossible : " + ((e && e.message) || e)); }

@@ -29,13 +29,13 @@ export const MODULES_BASE = [
   ["patients", "Patients et dossiers", "Liste, recherche, filtre par hôpital, dossier du patient", "Menu « Patients »", ["Liste et recherche", "Numéro de dossier (AAAAMM + rang)", "Fiche patient (réglée par spécialité)", "Rendez-vous et tâches à venir du dossier"]],
   ["consultations", "Consultations", "Journal des consultations du dossier", "Onglet Consultation du dossier", ["Journal des consultations", "Formulaire de consultation (réglé par spécialité)", "Barre des prescriptions (module Prescriptions)"]],
   ["parametres", "Paramètres (paramétrage)", "Réglages du cabinet, onglet par onglet", "Icône « Paramètres » de la barre du haut", "sections"],
-  ["equipe", "Équipe et droits", "Comptes de l'équipe, rôles et droits, lieux d'exercice", "Paramètres › Accès, Lieux d'exercice", ["Médecins", "Secrétaires", "Infirmières", "Comptables", "Droits par membre", "Lieux d'exercice (logos)"]],
+  ["equipe", "Équipe et droits", "Comptes de l'équipe, rôles et droits, lieux d'exercice", "Paramètres › Accès, Lieux d'exercice", ["Médecins", "Remplaçants", "Secrétaires", "Infirmières", "Comptables", "Droits par membre", "Lieux d'exercice (logos)"]],
   ["audit", "Journal d'audit", "Qui a ouvert, créé, modifié ou supprimé quoi (titulaire)", "Paramètres › Journal d'audit ; bouton « Journal » du dossier", ["Période et filtres", "Export Excel", "Journal d'un dossier"]],
   ["profil", "Mon compte", "Informations de chaque personne, abonnement, factures", "Menu du compte (nom ou photo du médecin)", ["Photo", "INPE", "Signature", "Mot de passe"]],
 ];
 // Modules prévus pour d'autres spécialités (à construire, feuille de route étape 14)
 export const MODULES_PREVUS = [["stocks", "Traitements et stocks", "bib-generaliste"], ["materiel", "Matériel et consommables", "bib-generaliste"]];
-export const ROLES_MAX = [["medecin", "Médecins"], ["assistante", "Secrétaires"], ["infirmiere", "Infirmières"], ["comptable", "Comptables"], ["etablissements", "Lieux d'exercice"], ["patients", "Dossiers patients"]];
+export const ROLES_MAX = [["medecin", "Médecins"], ["remplacant", "Remplaçants"], ["assistante", "Secrétaires"], ["infirmiere", "Infirmières"], ["comptable", "Comptables"], ["etablissements", "Lieux d'exercice"], ["patients", "Dossiers patients"]];
 // Spécialités (09/10/2026) : chaque formule appartient à une spécialité. Médecine générale et gynécologie : modules à créer plus
 // tard (feuille de route), avec leurs propres formules.
 // Une seule spécialité d'oncologie depuis le 10/10/2026 (oncologie médicale, radiothérapie, onco-radiothérapie = packs) ; anciens noms
@@ -52,7 +52,8 @@ export const BIBLIOTHEQUES_SPE = [
 // leur identifiant d'origine pour les cabinets qui les ont déjà)
 const COMMUNS = ["agenda", "prescriptions", "documents", "listes", "gagenda", "bilan"], EQUIPE = ["salle", "taches", "rcp"];
 const f = (specialite, lib, modules, max) => ({ lib, specialite, modules: MODULES.map((m) => m[0]).filter((k) => modules.indexOf(k) >= 0), max });
-const mx = (medecin, assistante, infirmiere, etablissements, patients, comptable = null) => ({ medecin, assistante, infirmiere, comptable, etablissements, patients });
+// Lot C (25/10/2026) : 3 médecins remplaçants par formule (à part des médecins : un remplacement ne bloque pas une formule à 1 médecin)
+const mx = (medecin, assistante, infirmiere, etablissements, patients, comptable = null, remplacant = 3) => ({ medecin, remplacant, assistante, infirmiere, comptable, etablissements, patients });
 import { PRIX0 } from "./facturation.js";
 export const FORMULES = {
   essentiel: f("Oncologie – Radiothérapie", "Oncologie – Essentiel", ["chimio"].concat(COMMUNS), mx(1, 1, 0, 1, 300)),
@@ -72,6 +73,7 @@ export function abonnementEffectif(ab) {
   const m = {}, x = {}, a = ab || {};
   MODULES.forEach(([k]) => { m[k] = !a.modules || a.modules[k] === true; });
   if (!m.taches) m.rcp = false;
-  ROLES_MAX.forEach(([k]) => { const v = a.max && a.max[k]; x[k] = v == null || v === "" || isNaN(v) ? null : Math.max(0, Math.floor(Number(v))); });
+  // Lot C : maximum absent d'un abonnement enregistré avant (ex. « remplacant ») = celui de sa formule
+  ROLES_MAX.forEach(([k]) => { const F = FORMULES[a.formule], v = a.max && k in a.max ? a.max[k] : a.max && F ? F.max[k] : undefined; x[k] = v == null || v === "" || isNaN(v) ? null : Math.max(0, Math.floor(Number(v))); });
   return { formule: a.formule || "", modules: m, max: x };
 }

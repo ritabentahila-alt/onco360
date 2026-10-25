@@ -19,8 +19,8 @@ export function installer(api) { A = api; }
 const D = () => A.D();
 const $ = (i) => document.getElementById(i);
 const col = () => collection(db, "espaces", A.ESPACE, "taches");
-const nomConnecte = () => $("nomMenu").textContent;
-const estMedecin = () => D().membre.role === "medecin";
+const nomConnecte = () => A.nomAgissant(); // Lot C : au nom du titulaire pour un remplaçant
+const estMedecin = () => A.estMed(); // Lot C : le remplaçant aussi
 let T = null, MB = null, VUE = "mes", TERM = false; // tâches lues (null = à lire), membres, onglet, terminées affichées
 
 // Types de tâches (P1, 08/10/2026) : liste du cabinet parametres/typesTaches = { data: JSON [noms] } (Configuration › Tâches,

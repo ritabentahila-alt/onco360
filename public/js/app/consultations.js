@@ -22,8 +22,8 @@ const tri = (a, b) => (b.d || "").localeCompare(a.d || "") || (b.o || 0) - (a.o 
 const trouver = (pid) => D().patients.find((p) => p.id === pid);
 const peutEcrire = () => A.peut("ecrireConsultations");
 // Suppression d'une consultation : le médecin toutes, les autres (secrétaire) seulement celles qu'ils ont créées (07/10/2026)
-const peutSupprimer = (c) => peutEcrire() && (D().membre.role === "medecin" || (!!c && c.creePar === D().u.uid));
-const nomConnecte = () => document.getElementById("nomMenu").textContent;
+const peutSupprimer = (c) => peutEcrire() && (A.estMed() || (!!c && c.creePar === D().u.uid));
+const nomConnecte = () => A.nomAgissant(); // Lot C : au nom du titulaire pour un remplaçant
 const nomCompte = () => (A.nomCompte ? A.nomCompte() : nomConnecte()); // R-E7 : nom pris du compte
 
 // Les 5 familles de prescriptions (barre en bas de l'onglet), libellé de leur ligne dans la consultation

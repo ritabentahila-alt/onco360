@@ -39,7 +39,7 @@ const sansAcc = (s) => String(s || "").toLowerCase().normalize("NFD").replace(/[
 const alpha = (a, b) => (b.fav ? 1 : 0) - (a.fav ? 1 : 0) || sansAcc(a.nom).localeCompare(sansAcc(b.nom));
 // Listes du cabinet (médicaments, ordonnances types, analyses, examens, modèles de courriers) : créées, modifiées, supprimées
 // et mises en favori par le médecin seulement (07/10/2026) ; la secrétaire s'en sert pour prescrire
-const gereListes = () => peutEcrire() && D().membre.role === "medecin";
+const gereListes = () => peutEcrire() && A.estMed();
 const gerer = (h) => (gereListes() ? h : "");
 // Nouveau médicament dans la liste du cabinet : le médecin seulement (R-E5, 19/10/2026 ; la secrétaire l'a pu du 10/10 au 19/10) ;
 // elle écrit un médicament hors liste en « ligne libre »
@@ -146,7 +146,7 @@ export async function ajouterOrdosManquants() {
 // sont ajoutées sauf si le cabinet les a retirées. Une fois par cabinet (parametres/migrations.bibE3), par le médecin (droit « paramètres ») ;
 // une liste jamais modifiée par le cabinet n'est pas touchée (elle affiche déjà la liste de départ d'aujourd'hui).
 export async function majBibliotheques() {
-  if (!A.peut("parametres") || !D().membre || D().membre.role !== "medecin") return null;
+  if (!A.peut("parametres") || !D().membre || !A.estMed()) return null;
   const rm = doc(db, "espaces", A.ESPACE, "parametres", "migrations"), g = await getDoc(rm).catch(() => null);
   if (!g || (g.exists() && (g.data().bibE3 || 0) >= VERSION_BIB)) return null;
   const tot = { corriges: 0, ajoutes: 0, renommees: 0, lignes: 0 }, noms = [];
@@ -162,7 +162,7 @@ export async function majBibliotheques() {
 // Audit n° 3 (13/10/2026) : les 14 ordonnances de chimiothérapie, une fois dans la liste du cabinet (médecin ; parametres/migrations.audit3b,
 // puis audit3d le 18/10 : doublon « Chimiothérapie antiémétique » retiré ; relancer ne refait rien)
 export async function ordosAudit3() {
-  if (!A.peut("parametres") || !D().membre || D().membre.role !== "medecin") return null;
+  if (!A.peut("parametres") || !D().membre || !A.estMed()) return null;
   const rm = doc(db, "espaces", A.ESPACE, "parametres", "migrations"), g = await getDoc(rm).catch(() => null);
   if (!g || (g.exists() && g.data().audit3d)) return null;
   let r = null; const L = await modifierListe("ordostypes", (l) => { r = appliquerOrdosAudit3(l); }); TYPES = L;

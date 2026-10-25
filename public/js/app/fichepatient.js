@@ -61,7 +61,7 @@ const PARTIES_F = [["id", "Identité et administratif"], ["med", "Informations m
 // de 2 médecins (avec un seul, il est posé d'office à la création). Médecin qui crée le dossier = lui ; secrétaire = elle choisit ; modifiable.
 // Il devient le médecin par défaut des rendez-vous, lignes de chimio, radiothérapies et consultations automatiques (sinon : le titulaire).
 const medsP = () => (A.multiMed && A.multiMed() ? A.medecins() : []);
-export function medecinParDefaut() { const m = D().membre, l = (A.medecins && A.medecins()) || []; return m.role === "medecin" ? D().u.uid : l.length === 1 ? l[0].uid : ""; }
+export function medecinParDefaut() { const m = D().membre, l = (A.medecins && A.medecins()) || []; return m.role === "medecin" ? D().u.uid : m.role === "remplacant" ? A.medDefaut() : l.length === 1 ? l[0].uid : ""; } // Lot C : remplaçant = au nom du titulaire
 function htmlMedecin(x, o) {
   const l = medsP(); if (!l.length) return ""; const I = ((x && x.doc) || {}).identite || {}, v = I.med || (o.nouveau ? medecinParDefaut() : ""), dis = o.off && o.off("identite") ? " disabled" : "";
   const opts = (v ? [] : [["", "— Choisir —"]]).concat(l.map((m) => [m.uid, m.nom])).concat(v && !l.some((m) => m.uid === v) ? [[v, "Médecin retiré de l'équipe"]] : []);

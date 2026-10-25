@@ -401,6 +401,21 @@ exports.compteMembre = onDocumentWritten({ document: "espaces/{e}/membres/{uid}"
   if (!nv) { if (c.exists) await ref.delete(); }
   else if (!c.exists || c.data().espace !== nv.espace || JSON.stringify(c.data().espaces || []) !== JSON.stringify(nv.espaces)) await ref.set(Object.assign(nv, { le: new Date().toISOString() }));
   if (apres) {
+    // Lot C (25/10/2026) : remplaçants alignés sur le titulaire (droits, établissements) : fiche du titulaire changée → ses remplaçants ;
+    // fiche d'un remplaçant écrite → reprise depuis celle du titulaire ; bornes de la période recalculées (règles)
+    try {
+      const es0 = (await db.doc("espaces/" + e).get()).data() || {};
+      if (es0.titulaire === uid) {
+        const rs = await db.collection("espaces/" + e + "/membres").where("role", "==", "remplacant").get();
+        for (const r of rs.docs) { const v = C.alignerRemplacant(r.data(), apres); if (v) { await r.ref.update(v); console.log("remplaçant aligné", e, r.id); } }
+      } else if (apres.role === "remplacant" && es0.titulaire) {
+        const ts = await db.doc("espaces/" + e + "/membres/" + es0.titulaire).get(), v = ts.exists ? C.alignerRemplacant(apres, ts.data()) || {} : {};
+        const p = C.periodeRemplacant(apres.remplaceDu, apres.remplaceAu);
+        if (p.remplaceDebMs !== (apres.remplaceDebMs || 0) || p.remplaceFinMs !== (apres.remplaceFinMs || 0)) Object.assign(v, { remplaceDebMs: p.remplaceDebMs, remplaceFinMs: p.remplaceFinMs });
+        if (!apres.remplace) v.remplace = es0.titulaire;
+        if (Object.keys(v).length) { await ev.data.after.ref.update(v); console.log("remplaçant repris du titulaire", e, uid); return; }
+      }
+    } catch (er) { console.warn("remplaçants", e, uid, er.message); }
     // Nombre maximum de comptes de ce rôle (formule du cabinet) : au-delà, ce compte est désactivé (« hors formule »), jamais le titulaire
     if (apres.actif !== false) {
       const es = (await db.doc("espaces/" + e).get()).data() || {};
@@ -412,7 +427,7 @@ exports.compteMembre = onDocumentWritten({ document: "espaces/{e}/membres/{uid}"
     // Profil de départ d'un membre ajouté par son titulaire (le navigateur ne peut pas écrire le profil d'une autre personne)
     if (!ev.data.before.exists) {
       const p = db.doc("utilisateurs/" + uid), sp = await p.get();
-      if (!sp.exists || !sp.data().nom) await p.set({ email: apres.email || "", nom: String(apres.nom || "").replace(/^(Dr|Pr)\.?\s+/i, ""), telephone: apres.telephone || "", titre: apres.role === "medecin" ? "Dr" : "", profession: apres.role || "" }, { merge: true });
+      if (!sp.exists || !sp.data().nom) await p.set({ email: apres.email || "", nom: String(apres.nom || "").replace(/^(Dr|Pr)\.?\s+/i, ""), telephone: apres.telephone || "", titre: apres.role === "medecin" || apres.role === "remplacant" ? "Dr" : "", profession: apres.role || "" }, { merge: true });
     }
   }
 });
@@ -536,7 +551,7 @@ exports.referenceDiff = onCall({ timeoutSeconds: 120, memory: "512MiB" }, async 
   if (!par) throw new HttpsError("unauthenticated", "Connectez-vous à Onco360.");
   if (!espace || espace === C.MODELE || C.estBib(espace)) return { version: 0, items: [], ordos: [], listes: [] };
   const es = await db.doc("espaces/" + espace).get(), m = es.exists ? await membre(espace, par) : null;
-  if (!m || m.actif === false || es.data().actif === false || m.role !== "medecin" || !(m.droits && m.droits.parametres === true)) throw new HttpsError("permission-denied", "Réservé au médecin (droit « paramètres »).");
+  if (!m || m.actif === false || es.data().actif === false || ["medecin", "remplacant"].indexOf(m.role) < 0 || !(m.droits && m.droits.parametres === true)) throw new HttpsError("permission-denied", "Réservé au médecin (droit « paramètres »).");
   const rs = await db.doc(REF_E).get(); if (!rs.exists || !rs.data().version) return { version: 0, items: [], ordos: [], listes: [] };
   const RF = require("./reference.js"), lire = (snap) => { const L = []; snap.forEach((d) => { try { JSON.parse(d.data().data || "[]").forEach((p) => L.push(p)); } catch (er) { /* bloc illisible */ } }); return L; };
   const jsonDe = (x, def) => { try { return x.exists ? JSON.parse(x.data().data || "null") || def : def; } catch (er) { return def; } };
@@ -931,10 +946,12 @@ exports.creerMembre = onCall({ timeoutSeconds: 60, memory: "256MiB" }, async (re
   const x = es.data();
   if (x.titulaire !== par) throw new HttpsError("permission-denied", "Seul le médecin titulaire peut créer un accès.");
   if (x.actif === false) throw new HttpsError("permission-denied", "Le cabinet est suspendu.");
-  let d; try { d = C.membreDemande(o, new Date().toISOString().slice(0, 10), par); } catch (er) { throw new HttpsError("invalid-argument", er.message); }
+  // Lot C : remplaçant = droits et établissements recopiés de la fiche du titulaire (jamais ceux envoyés par le navigateur)
+  const tit = o.role === "remplacant" ? ((await db.doc("espaces/" + e + "/membres/" + par).get()).data() || null) : null;
+  let d; try { d = C.membreDemande(o, new Date().toISOString().slice(0, 10), par, tit); } catch (er) { throw new HttpsError("invalid-argument", er.message); }
   const sm = await db.collection("espaces/" + e + "/membres").get();
   const n = sm.docs.filter((m) => m.data().role === d.membre.role && m.data().actif !== false).length;
-  if (x.abonnement && C.horsQuota(x.abonnement, d.membre.role, n + 1)) throw new HttpsError("resource-exhausted", "Votre formule Onco360 permet " + x.abonnement.max[d.membre.role] + " compte(s) de ce rôle : la limite est atteinte. Contactez l'éditeur d'Onco360 pour en ajouter.");
+  if (x.abonnement && C.horsQuota(x.abonnement, d.membre.role, n + 1)) throw new HttpsError("resource-exhausted", "Votre formule Onco360 permet " + C.maxRole(x.abonnement, d.membre.role) + " compte(s) de ce rôle : la limite est atteinte. Contactez l'éditeur d'Onco360 pour en ajouter.");
   const auth = getAuth(); let u = null, existant = false;
   try { u = await auth.getUserByEmail(d.email); existant = true; } catch (er) { if (er.code !== "auth/user-not-found") throw er; }
   let compte = null;
@@ -953,7 +970,7 @@ exports.creerMembre = onCall({ timeoutSeconds: 60, memory: "256MiB" }, async (re
   b.set(db.doc("espaces/" + e + "/membres/" + u.uid), d.membre);
   b.set(db.doc("comptes/" + u.uid), Object.assign(compte || { espace: e, espaces: [e] }, { le: new Date().toISOString() }));
   // profil : celui d'une personne qui a déjà un compte n'est pas changé (c'est le sien)
-  if (!compte) b.set(db.doc("utilisateurs/" + u.uid), { email: d.email, prenom: d.prenom, nom: d.nomFamille, telephone: d.membre.telephone, titre: d.membre.role === "medecin" ? "Dr" : "", profession: d.membre.role }, { merge: true });
+  if (!compte) b.set(db.doc("utilisateurs/" + u.uid), { email: d.email, prenom: d.prenom, nom: d.nomFamille, telephone: d.membre.telephone, titre: d.membre.role === "medecin" || d.membre.role === "remplacant" ? "Dr" : "", profession: d.membre.role }, { merge: true });
   await b.commit();
   console.log("membre créé", e, d.membre.role, "par", par);
   return { uid: u.uid, existant };
@@ -984,7 +1001,7 @@ exports.corrigerListes = onCall({ timeoutSeconds: 120, memory: "256MiB" }, async
   if (!m || m.actif === false || es.data().actif === false || !(m.droits && (m.droits.parametres === true || m.droits.secretariat === true))) throw new HttpsError("permission-denied", "Vous n'avez pas le droit de corriger les listes.");
   // 1.3 (11/10/2026, audit) : un diagnostic n'est corrigé dans les dossiers que par un médecin ; la secrétaire corrige mutuelles et
   // correspondants
-  const R = C.renomsValides((req.data || {}).renoms).filter((r) => r.k !== "diag" || m.role === "medecin"); if (!R.length) return { n: 0 };
+  const R = C.renomsValides((req.data || {}).renoms).filter((r) => r.k !== "diag" || m.role === "medecin" || m.role === "remplacant"); if (!R.length) return { n: 0 };
   const snap = await db.collection("espaces/" + espace + "/patients").get(); let n = 0, b = db.batch(), k = 0;
   for (const d of snap.docs) {
     const ch = C.corrigerDossier(d.data(), R); if (!ch) continue;

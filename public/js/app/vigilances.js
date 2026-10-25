@@ -81,7 +81,7 @@ window.vgFlacons = async () => {
 };
 // Audit n° 3 (18/10/2026) : seuils du jour ajoutés à la liste déjà enregistrée par le cabinet, une fois (médecin ; audit3f)
 export async function vigilancesAudit3() {
-  if (!A.peut("parametres") || !A.D().membre || A.D().membre.role !== "medecin") return null;
+  if (!A.peut("parametres") || !A.D().membre || !A.estMed()) return null;
   const rm = doc(db, "espaces", A.ESPACE, "parametres", "migrations"), g = await getDoc(rm).catch(() => null);
   if (!g || (g.exists() && g.data().audit3f)) return null;
   const s = await getDoc(doc(db, "espaces", A.ESPACE, "parametres", "vigilances")).catch(() => null);

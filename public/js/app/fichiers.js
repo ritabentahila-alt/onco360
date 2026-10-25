@@ -17,8 +17,8 @@ const st = () => getStorage(app);
 const col = () => collection(db, "espaces", A.ESPACE, "fichiers");
 const trouver = (pid) => D().patients.find((p) => p.id === pid);
 const peutDeposer = () => A.peut("documents");
-const peutSupprimer = (f) => peutDeposer() && (D().membre.role === "medecin" || f.creePar === D().u.uid);
-const nomConnecte = () => document.getElementById("nomMenu").textContent;
+const peutSupprimer = (f) => peutDeposer() && (A.estMed() || f.creePar === D().u.uid);
+const nomConnecte = () => A.nomAgissant(); // Lot C : au nom du titulaire pour un remplaçant
 const sansAcc = (s) => String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 const MAX = 25 * 1024 * 1024; // 25 Mo par fichier (règles de stockage)
 

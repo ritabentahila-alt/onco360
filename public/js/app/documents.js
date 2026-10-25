@@ -210,7 +210,7 @@ window.dcEnregistrer = async (imp) => {
   let w = null; if (imp) { try { w = window.open("", "_blank"); } catch (e) { w = null; } }
   ["dcOk", "dcImp"].forEach((i) => A.occupe($(i), true));
   try {
-    const nom = document.getElementById("nomMenu").textContent;
+    const nom = A.nomAgissant();
     await setDoc(doc(col(), idDoc(F.pid, F.rid, F.type)), { patientId: F.pid, etablissementId: x.doc.etablissementId || "", rtId: F.rid, type: F.type, html, majLe: D().t, maj: serverTimestamp(), majPar: D().u.uid, majParNom: nom });
     (DOCS[F.pid] = DOCS[F.pid] || {})[idDoc(F.pid, F.rid, F.type)] = { majLe: D().t, majParNom: nom };
     A.journal(x, TITRES_DOC[F.type] + " enregistré (" + (r.acte || "radiothérapie") + ")");

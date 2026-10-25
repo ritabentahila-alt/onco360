@@ -55,11 +55,12 @@ const membreTitulaire = (d, jour, par) => ({ role: "medecin", nom: "Dr " + [d.pr
 
 // Modules et formules (09/10/2026) : mêmes valeurs que public/js/donnees/modules.js (vérifié par le test)
 const MODULES = ["chimio", "rt", "agenda", "salle", "taches", "rcp", "prescriptions", "documents", "gagenda", "listes", "bilan"];
-const MAX = ["medecin", "assistante", "infirmiere", "comptable", "etablissements", "patients"];
+const MAX = ["medecin", "remplacant", "assistante", "infirmiere", "comptable", "etablissements", "patients"];
 const COMMUNS = ["agenda", "prescriptions", "documents", "listes", "gagenda", "bilan"], EQUIPE = ["salle", "taches", "rcp"];
 const fo = (specialite, lib, modules, max) => ({ lib, specialite, modules: MODULES.filter((k) => modules.indexOf(k) >= 0), max });
 const { PRIX0 } = require("./facturation");
-const mx = (medecin, assistante, infirmiere, etablissements, patients, comptable = null) => ({ medecin, assistante, infirmiere, comptable, etablissements, patients });
+// Lot C (25/10/2026) : 3 médecins remplaçants par formule (mêmes valeurs que modules.js)
+const mx = (medecin, assistante, infirmiere, etablissements, patients, comptable = null, remplacant = 3) => ({ medecin, remplacant, assistante, infirmiere, comptable, etablissements, patients });
 const FORMULES = {
   essentiel: fo("Oncologie – Radiothérapie", "Oncologie – Essentiel", ["chimio"].concat(COMMUNS), mx(1, 1, 0, 1, 300)),
   "onco-pro": fo("Oncologie – Radiothérapie", "Oncologie – Pro", ["chimio"].concat(COMMUNS, EQUIPE), mx(1, 2, 2, 2, 1000)),
@@ -100,7 +101,9 @@ function abonnement(o, formules) {
   return Object.assign({ formule: f, surMesure: !pareil || retouche, retouche, modules: mod, max }, rg ? { reglage: rg } : {});
 }
 // Trop de comptes actifs pour ce rôle ? (max null = sans limite)
-const horsQuota = (ab, role, nbActifs) => { const m = ab && ab.max && ab.max[role]; return m != null && nbActifs > m; };
+// Lot C : maximum absent d'un abonnement enregistré avant (ex. « remplacant ») = celui de sa formule
+const maxRole = (ab, role) => { if (!ab || !ab.max) return null; if (role in ab.max) return ab.max[role]; const F = FORMULES[ab.formule]; return F && F.max[role] != null ? F.max[role] : null; };
+const horsQuota = (ab, role, nbActifs) => { const m = maxRole(ab, role); return m != null && nbActifs > m; };
 
 // Nom et coordonnées d'un cabinet modifiés par l'administration
 function infos(o) {
@@ -110,18 +113,37 @@ function infos(o) {
   return d;
 }
 // Membre de l'équipe créé par le titulaire (Paramètres › Accès) : rôle connu, droits connus, établissements (10/10/2026)
-const ROLES = ["medecin", "assistante", "infirmiere", "comptable"];
+const ROLES = ["medecin", "remplacant", "assistante", "infirmiere", "comptable"];
 const NIVEAUX = { traitements: ["aucun", "voir", "modifier"], radiotherapie: ["aucun", "chimio", "voir", "modifier"], referentielRT: ["aucun", "voir", "modifier"] };
-function membreDemande(o, jour, par) {
+// Lot C (25/10/2026) : médecin remplaçant = droits et établissements du titulaire (tit = sa fiche de membre), au nom du titulaire ; accès pour une
+// période (remplaceDu / remplaceAu « AAAA-MM-JJ », bornes en ms pour les règles : début du premier jour, fin du dernier, heure du Maroc) ou sans limite
+const JOUR_RE = /^\d{4}-\d{2}-\d{2}$/;
+function periodeRemplacant(du, au) {
+  du = JOUR_RE.test(String(du || "")) ? String(du) : ""; au = JOUR_RE.test(String(au || "")) ? String(au) : "";
+  if (du && au && au < du) throw new Error("La fin du remplacement doit être après son début.");
+  // heure du Maroc (UTC+1, UTC+0 pendant le ramadan) : début à minuit UTC+1, fin à 23 h 59 UTC (au plus une heure de plus)
+  return { remplaceDu: du, remplaceAu: au, remplaceDebMs: du ? Date.parse(du + "T00:00:00+01:00") : 0, remplaceFinMs: au ? Date.parse(au + "T23:59:59Z") : 0 };
+}
+const DROITS_DE = (dr) => { const droits = {}; Object.keys(DROITS_MEDECIN).forEach((k) => { const v = (dr || {})[k]; droits[k] = NIVEAUX[k] ? (NIVEAUX[k].indexOf(v) >= 0 ? v : "aucun") : v === true; }); return droits; };
+// Ce qu'un remplaçant doit avoir de son titulaire ; null = déjà aligné (fonction compteMembre, à chaque écriture de l'une ou l'autre fiche)
+function alignerRemplacant(r, tit) {
+  if (!r || r.role !== "remplacant" || !tit) return null;
+  const v = { droits: DROITS_DE(Object.assign({}, DROITS_MEDECIN, tit.droits || {})), tousEtablissements: tit.tousEtablissements === true, etablissements: tit.tousEtablissements === true ? [] : (tit.etablissements || []).slice() };
+  return JSON.stringify(v.droits) === JSON.stringify(DROITS_DE(r.droits)) && v.tousEtablissements === (r.tousEtablissements === true) && JSON.stringify(v.etablissements) === JSON.stringify(r.tousEtablissements === true ? [] : r.etablissements || []) ? null : v;
+}
+function membreDemande(o, jour, par, tit) {
   const t = (v, n) => String(v == null ? "" : v).replace(/\s+/g, " ").trim().slice(0, n);
   const role = ROLES.indexOf(o.role) >= 0 ? o.role : null; if (!role) throw new Error("Rôle inconnu.");
   const email = t(o.email, 120).toLowerCase(); if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) throw new Error("Indiquez une adresse e-mail valide.");
   const nom = t(o.nom, 60).toUpperCase(), prenom = t(o.prenom, 60); if (!nom) throw new Error("Indiquez le nom.");
-  const droits = {}; Object.keys(DROITS_MEDECIN).forEach((k) => { const v = (o.droits || {})[k]; droits[k] = NIVEAUX[k] ? (NIVEAUX[k].indexOf(v) >= 0 ? v : "aucun") : v === true; });
-  const tous = role === "medecin" || role === "comptable" ? o.tousEtablissements !== false : o.tousEtablissements === true;
-  const etabs = Array.isArray(o.etablissements) ? o.etablissements.map((x) => t(x, 20)).filter(Boolean).slice(0, 50) : [];
+  const dr = role === "remplacant" ? null : o.droits;
+  if (role === "remplacant" && !tit) throw new Error("Fiche du médecin titulaire introuvable.");
+  const droits = role === "remplacant" ? DROITS_DE(Object.assign({}, DROITS_MEDECIN, tit.droits || {})) : DROITS_DE(dr);
+  const tous = role === "remplacant" ? tit.tousEtablissements === true : role === "medecin" || role === "comptable" ? o.tousEtablissements !== false : o.tousEtablissements === true;
+  const etabs = role === "remplacant" ? (tit.etablissements || []).slice() : Array.isArray(o.etablissements) ? o.etablissements.map((x) => t(x, 20)).filter(Boolean).slice(0, 50) : [];
   if (!tous && !etabs.length) throw new Error("Choisissez au moins un établissement.");
-  return { email, prenom, nomFamille: nom, membre: { role, nom: (role === "medecin" ? "Dr " : "") + [prenom, nom].filter(Boolean).join(" "), email, telephone: t(o.telephone, 30), actif: true, tousEtablissements: tous, etablissements: tous ? [] : etabs, droits, cree: jour, creePar: par } };
+  const rem = role === "remplacant" ? Object.assign({ remplace: par }, periodeRemplacant(o.remplaceDu, o.remplaceAu)) : {};
+  return { email, prenom, nomFamille: nom, membre: Object.assign({ role, nom: (role === "medecin" || role === "remplacant" ? "Dr " : "") + [prenom, nom].filter(Boolean).join(" "), email, telephone: t(o.telephone, 30), actif: true, tousEtablissements: tous, etablissements: tous ? [] : etabs, droits, cree: jour, creePar: par }, rem) };
 }
 // Plusieurs cabinets pour un compte (19.2, 10/10/2026 : une secrétaire qui travaille pour plusieurs médecins) :
 // comptes/{uid} = { espace (cabinet principal, ouvert par défaut), espaces: [tous ses cabinets] } ; anciens comptes : { espace } seul ;
@@ -237,4 +259,4 @@ function sansEtoiles(data, jour) {
     if (c.valide) c.valide = { reference: jour, version: c.version || 1 }; delete c.majPar; delete c.majParNom; return c;
   }));
 }
-module.exports = { accueilNettoye, sansEtoiles, renomsValides, corrigerDossier, espacesCompte, compteModifie, ficheNettoyee, idSpecialite, reglageNettoye, PARAMS_SPE, parametreDepart, BIBS, bibDe, estBib, DROITS_BIB, MODULES_BIB, infos, ROLES, membreDemande, MODULES, MAX, FORMULES, formulesValides, abonnement, horsQuota, MODELE, BIBLIOTHEQUES, DROITS_MEDECIN, MIGRATIONS, verifier, idCabinet, listesDepart, calendrierDepart, tarifsDepart, migrationsFaites, membreTitulaire };
+module.exports = { alignerRemplacant, periodeRemplacant, maxRole, accueilNettoye, sansEtoiles, renomsValides, corrigerDossier, espacesCompte, compteModifie, ficheNettoyee, idSpecialite, reglageNettoye, PARAMS_SPE, parametreDepart, BIBS, bibDe, estBib, DROITS_BIB, MODULES_BIB, infos, ROLES, membreDemande, MODULES, MAX, FORMULES, formulesValides, abonnement, horsQuota, MODELE, BIBLIOTHEQUES, DROITS_MEDECIN, MIGRATIONS, verifier, idCabinet, listesDepart, calendrierDepart, tarifsDepart, migrationsFaites, membreTitulaire };

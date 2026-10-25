@@ -17,9 +17,9 @@ export function installer(api) { A = api; }
 const D = () => A.D();
 const $ = (i) => document.getElementById(i);
 const col = () => collection(db, "espaces", A.ESPACE, "rcp");
-const nomConnecte = () => $("nomMenu").textContent;
+const nomConnecte = () => A.nomAgissant(); // Lot C : au nom du titulaire pour un remplaçant
 const peutEcrire = () => A.peut("ecrireConsultations");
-const peutSupprimer = (r) => peutEcrire() && (D().membre.role === "medecin" || r.creePar === D().u.uid);
+const peutSupprimer = (r) => peutEcrire() && (A.estMed() || r.creePar === D().u.uid);
 const trouver = (id) => (R || []).find((r) => r.id === id);
 const patient = (pid) => D().patients.find((p) => p.id === pid);
 const nomDe = (r) => { const x = patient(r.patientId); return x ? x.r.nm : r.patientNom || "Patient"; };

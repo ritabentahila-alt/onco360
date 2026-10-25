@@ -111,7 +111,7 @@ export function pageAgenda() {
   // Téléphone (AG1, 11/10/2026) : vue Jour à l'ouverture (7 colonnes de 37 px illisibles) ; ordinateur et tablette : Semaine
   if (!AG.vue) AG.vue = window.matchMedia && matchMedia("(max-width:640px)").matches ? "jour" : "semaine";
   // Médecin (AG4) : à partir de 2 médecins ; un médecin voit d'abord son agenda, la secrétaire celui de tous
-  if (!A.multiMed()) AG.med = null; else if (AG.med == null || (AG.med && !A.medecins().some((m) => m.uid === AG.med))) AG.med = D().membre.role === "medecin" && A.medecins().some((m) => m.uid === D().u.uid) ? D().u.uid : "";
+  if (!A.multiMed()) AG.med = null; else if (AG.med == null || (AG.med && !A.medecins().some((m) => m.uid === AG.med))) AG.med = A.estMed() && A.medecins().some((m) => m.uid === A.medDefaut()) ? A.medDefaut() : ""; // Lot C : le remplaçant voit d'abord l'agenda du titulaire
   const EV = etabsVus(); if (AG.etab == null || (AG.etab && EV.indexOf(AG.etab) < 0)) AG.etab = EV.length === 1 ? EV[0] : "";
   const HR = horaires(AG.etab), tout = Object.values(HR.jours).flat(); DUREE = HR.duree || 30;
   H0 = Math.min(7, ...tout.map((p) => Math.floor(mn(p[0]) / 60))); H1 = Math.max(20, ...tout.map((p) => Math.ceil(mn(p[1]) / 60)));
