@@ -773,7 +773,7 @@ const estComptable = () => !!(D && D.membre && D.membre.role === "comptable");
 const PAGE_MODULE = { agenda: "agenda", salle: "salle", taches: "taches", rcp: "rcp", protocoles: "chimio", radiotherapie: "rt", bilan: "bilan" };
 // Référentiel de radiothérapie (RTR, RT1 du 25/10/2026) : fonction rt.referentiel du réglage et droit referentielRT « voir » ou « modifier »
 // (médecin : « modifier » par défaut ; secrétaire, infirmière, comptable : « aucun » ; le comptable ne le voit jamais)
-const voitRefRT = () => !!(D && D.membre && D.membre.role !== "comptable" && ["voir", "modifier"].indexOf((D.membre.droits || {}).referentielRT) >= 0 && fnOn("rt.referentiel"));
+const voitRefRT = () => !!(D && D.membre && D.membre.role !== "comptable" && ["voir", "modifier"].indexOf((D.membre.droits || {}).referentielRT) >= 0 && fnOn("rt.referentiel") && module("rt"));
 const modifRefRT = () => voitRefRT() && D.membre.role === "medecin" && D.membre.droits.referentielRT === "modifier";
 const module = (k) => !D || !D.abo || D.abo.modules[k] !== false;
 // ───── Dossiers modifiés sur un autre poste, écoutés en direct (R-A4, 18/10/2026, demande du 17/10) ─────
@@ -1391,7 +1391,10 @@ window.hauteurResume = (z) => { z.style.height = "auto"; z.style.height = Math.m
 function htmlRT(x, okRT) {
   const { P } = x, ctx = D.ctx, t = D.t;
   const JS = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"], TECH = { stereo: "Stéréotaxie", vmat: "VMAT", imrt: "IMRT", "3d": "3D" };
-  let hr = okRT ? '<div class="entete"><button class="bt clair petit" onclick="ouvrirRT(\'' + x.id + '\')">' + ic("plus") + "Prescription</button></div>" : "";
+  // RTR, RT8 (25/10/2026) : « Référentiel › » ouvre le référentiel de radiothérapie filtré sur la localisation du dossier (clinique.diag,
+  // traduit par donnees-rt/diag-localisation.json ; sans correspondance : l'accueil du module) ; avec le droit referentielRT et la fonction
+  const ref = voitRefRT() ? '<a class="rtr-lien" href="#radiotherapie/diag/' + encodeURIComponent(P.diag || "") + '">Référentiel ›</a>' : "";
+  let hr = okRT || ref ? '<div class="entete">' + (okRT ? '<button class="bt clair petit" onclick="ouvrirRT(\'' + x.id + '\')">' + ic("plus") + "Prescription</button>" : "") + ref + "</div>" : "";
   if (!(P.rts || []).length) hr += '<p class="vide-c">Aucune prescription de radiothérapie.</p>';
   // Une seule radiothérapie ouverte (11/10/2026) : la plus récente à l'ouverture du dossier ; les autres fermées (titre, dose, séances,
   // boutons ; sans les étapes)

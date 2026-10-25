@@ -742,6 +742,11 @@ async function pageSous(k, reste) {
 // ───── Page ─────
 // arg : null (accueil et liste) ou « s/<schemaId>/<onglet> » (fiche) ; sous 1 280 px la fiche prend toute la page
 export async function pageRadiotherapie(arg) {
+  // Lien « Référentiel › » du dossier (RT8) : #radiotherapie/diag/<diagnostic> = liste filtrée sur la localisation, sinon l'accueil
+  if (/^diag\//.test(arg || "")) {
+    let l = null; try { await charger(); const c = (await json("diag-localisation.json")).correspondances || {}; l = loc(c[arg.slice(5)]); } catch (e) { console.warn("diag-localisation", e); }
+    Object.assign(RF, { q: "", reg: l ? l.region_id : "", loc: l ? l.id : "", sit: "", frac: "", sel: -1 }); location.replace("#radiotherapie"); return;
+  }
   const sp = /^(oar|contraintes|essais|calcul)(?:\/(.*))?$/.exec(arg || "");
   if (sp) { ARG = arg; RF.ouvert = null; await pageSous(sp[1], sp[2]); return; }
   if (arg === "nouveau" && !NOUVEAU && !(ED && ED.nouveau)) { location.replace("#radiotherapie"); return; }

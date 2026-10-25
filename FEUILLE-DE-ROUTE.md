@@ -638,6 +638,16 @@ Un lot par session ; chaque lot finit par ses tests verts, la feuille de route c
       neuf, démonstration recréée) ; `tests/test_rtref_modele.py` 7/7 ; `node functions/test-*.js` verts. Rien de déployé (fonctions comprises).
 - [ ] **RT8 Dossier et mise en ligne** : lien « Référentiel › » de l'onglet Radiothérapie du dossier ; contrôle complet ; mise en ligne avec l'accord de
       Dr Bentahila.
+  - [x] (25/10/2026) Lien « Référentiel › » dans l'en-tête de l'onglet Radiothérapie (`htmlRT`, avec le module rt, la fonction et le droit ; aussi
+        sans le droit d'ajouter une prescription) → `#radiotherapie/diag/<clinique.diag>` : la page traduit le diagnostic par `diag-localisation.json`
+        et ouvre la liste filtrée (région, localisation), sinon l'accueil ; `location.replace` : Retour ramène au dossier ; rien n'est écrit dans le
+        dossier. `voitRefRT` vérifie aussi le module rt. `tests/test_rtref_dossier.py` 12/12 (Chrome, Safari).
+  - [x] (25/10/2026) **Contrôle complet vert** : `bash outils/avant-mise-en-ligne.sh --navigateur --regles` (181 contrôles : tous les parcours dans Chrome et
+        Safari, dont les 7 du module, règles de sécurité, export et restauration, modèle de la spécialité sur les émulateurs).
+  - [ ] **Mise en ligne : attend l'accord de Dr Bentahila.** Quand elle le donne : copie propre (`git worktree`), changer `v2.js?v=` dans v2.html,
+        `bash outils/avant-mise-en-ligne.sh --navigateur --regles`, puis **trois** déploiements : `firebase deploy --only hosting` (site + `donnees-rt`),
+        `firebase deploy --only firestore:rules` (règles `referentielRT`, RT1) et `firebase deploy --only functions` (RT7 : modèle, cabinet neuf,
+        `DROITS_BIB`, `NIVEAUX`). Après : ouvrir Radiothérapie dans le cabinet, puis « Ajuster le modèle » (Administration).
 
 **Décision (octobre 2026)** : Module « Référentiel de radiothérapie », décidé par Dr Bentahila en octobre 2026 : guide de consultation (schémas,
 centrage, contourage, organes à risque, contraintes, essais, calcul BED / EQD2), spécification dans `docs/radiotherapie/SPEC.md`. Il n'écrit rien
