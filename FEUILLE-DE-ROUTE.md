@@ -698,7 +698,9 @@ refus reste valable pour des contraintes dans la prescription ou le dossier d'un
       (RTOG 9610), cisplatine-paclitaxel (RTOG 9911), 5-FU-acide folinique (Macdonald). Cisplatine 100 J1-J22-J43 + RT : protocoles du 18/10 (ORL et
       nasopharynx) ; FOLFIRINOX = mFOLFIRINOX (décision du 25/10) ; ligne « Témozolomide adjuvant (Stupp) » corrigée (TTFields, EF-14). Test
       `tests/moteur/test-protocolesrt.mjs`.
-- [ ] Étapes D (curiethérapie et réirradiation à revoir avec les sources) et F (contrôle complet, mise en ligne avec accord).
+- [x] **Mise en ligne 20261025e** (25/10/2026, site seulement, accord de Dr Bentahila) : contrôle complet vert (180), copie propre f4ce0af ; vérifié en ligne
+      (version, contraintes 859 lignes + 13 essais, 117 OAR, 47 correspondances de protocoles, docs non publiés).
+- [ ] Étape D (curiethérapie et réirradiation à revoir avec les sources ; Sénorif 2026 à comparer pour le sein).
 
 ## À placer (nouveau plan)
 - (21/10, S5) **Vigilance des molécules, flacons et interactions ne sont pas dans le modèle des cabinets neufs** (`PARAMS_SPE` de functions/cabinets.js :
