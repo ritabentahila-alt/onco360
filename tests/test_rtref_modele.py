@@ -24,7 +24,7 @@ async def main():
         pg = await ouvrir(b, S2); ev = pg.evaluate; await pg.add_init_script("window.__uid='ADM';")
         await pg.goto(f'http://localhost:{PORT}/v2.html?espace=bib-oncologie#radiotherapie'); await pg.wait_for_timeout(3500)
         m = await ev("[...document.querySelectorAll('nav a[data-p]')].filter(a => a.offsetParent !== null).map(a => a.dataset.p)")
-        ok(m == ['protocoles', 'radiotherapie', 'parametres'] or sorted(m) == ['parametres', 'protocoles', 'radiotherapie'], 'modèle ouvert : menu Protocoles, Radiothérapie, Paramètres', m)
+        ok(sorted(m) == ['protocoles', 'radiotherapie'] and await ev("!!document.getElementById('btParam') && document.getElementById('btParam').offsetParent !== null"), 'modèle ouvert : menu Protocoles, Radiothérapie ; Paramètres par la roue du haut (lot B)', m)
         ok(await ev("document.getElementById('titrePage').textContent") == 'Radiothérapie' and await ev("document.querySelectorAll('#rtrListe > .rtr-l').length") >= 295, 'la page Radiothérapie s\'ouvre dans le modèle (PAGES_BIB)')
         await pg.fill('#rtrQ', 'reçu du cabinet modèle'); await pg.wait_for_timeout(300)
         ok(await ev("document.querySelectorAll('#rtrListe .rtr-l').length") == 1 and 'Modifié pour le cabinet' not in await ev("document.getElementById('rtrListe').innerText"), 'fiche reçue du modèle (origine « modele ») : sa version, sans badge « Modifié pour le cabinet »')

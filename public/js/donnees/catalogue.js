@@ -12,8 +12,10 @@ export const MENU = [
   ["accueil", "Tableau de bord", null], ["agenda", "Agenda / Rendez-vous", "agenda"], ["salle", "Salle d'attente", "salle"],
   ["patients", "Patients", null], ["taches", "Tâches", "taches"], ["rcp", "RCP", "rcp"], ["protocoles", "Protocoles", "chimio"], // RCP : menu (R-B1, 19/10/2026)
   ["radiotherapie", "Radiothérapie", "rt"], // référentiel de radiothérapie (RTR, RT1 du 25/10/2026) : module rt, fonction rt.referentiel, droit referentielRT
-  ["parametres", "Paramètres", null], ["bilan", "Bilan", "bilan"], ["profil", "Mon compte", null],
+  ["bilan", "Bilan", "bilan"],
 ];
+// Lot B (25/10/2026) : « Paramètres » (icône de la barre du haut) et « Mon compte » (menu du compte, ouvert par le nom ou la photo) ne sont plus dans le
+// menu ; un ordre enregistré qui les cite les perd (ordre() ne garde que les entrées de MENU)
 // Fonctions de chaque module (partie 1.2 du plan, validée le 10/10/2026) ; 3e élément true = fonction de base, toujours présente avec
 // son module (la retirer casserait le module : lignes et cures de chimio, venu / non venu…)
 export const FONCTIONS = {
@@ -305,12 +307,14 @@ export const SECTIONS = [
   ["horaires", "Horaires", true], ["fermetures", "Congés et jours fériés", true], ["lieux", "Lieux d'exercice", false],
   ["accueil", "Tableau de bord", false], ["fiche", "Fiche patient", false], ["consultation", "Formulaire de consultation", false], ["types", "Types de consultation", false],
   ["audit", "Journal d'audit", false], ["whatsapp", "WhatsApp", true], ["couleurs", "Google Agenda", true], ["documents", "Types de documents", true], ["taches", "Tâches", true],
-  ["rcp", "RCP", true], ["listes", "Listes de la fiche", true], ["bibliotheques", "Bibliothèques", true], ["vigilances", "Vigilance des molécules", true], ["impression", "Impression", true], ["alertes", "Alertes", true], ["activites", "Activités et rémunérations", true],
+  ["rcp", "RCP", true], ["listes", "Listes", true], ["bibliotheques", "Bibliothèques", true], ["vigilances", "Vigilance des molécules", true], ["impression", "Impression", true], ["alertes", "Alertes", true], ["activites", "Activités et rémunérations", true],
   ["affichage", "Affichage du dossier", true], ["export", "Export des données", false],
 ];
 // Familles de la page Paramètres (même découpage que configuration.js FAMILLES) : l'Administration montre les onglets famille par famille
-export const FAMILLES_SECTIONS = [["cabinet", "Cabinet", ["lieux", "accueil", "rcp", "impression", "audit", "export"]], ["dossier", "Dossier patient", ["fiche", "consultation", "types", "listes", "affichage"]],
-  ["agenda", "Agenda et rappels", ["horaires", "fermetures", "couleurs", "whatsapp", "alertes"]], ["listes", "Bibliothèques", ["bibliotheques", "vigilances", "documents", "taches"]], ["finances", "Finances", ["activites"]]];
+// Lot D (25/10/2026) : toutes les listes (mutuelles, correspondants, localisations, types de tâches et de documents…) dans Bibliothèques › Listes ;
+// « Types de documents » et « Tâches » (types et tâches automatiques) sont des sous-onglets de Listes (anciennes adresses #parametres/documents|taches)
+export const FAMILLES_SECTIONS = [["cabinet", "Cabinet", ["lieux", "accueil", "rcp", "impression", "audit", "export"]], ["dossier", "Dossier patient", ["fiche", "consultation", "types", "affichage"]],
+  ["agenda", "Agenda et rappels", ["horaires", "fermetures", "couleurs", "whatsapp", "alertes"]], ["listes", "Bibliothèques", ["listes", "bibliotheques", "vigilances"]], ["finances", "Finances", ["activites"]]];
 // Bibliothèques (copiées de la bibliothèque de la spécialité dans chaque cabinet neuf)
 export const BIBLIOTHEQUES = [["protocoles", "Protocoles de chimiothérapie"], ["medicaments", "Médicaments"], ["ordostypes", "Ordonnances types"], ["analyses", "Analyses"], ["bilans", "Bilans biologiques"], ["examens", "Examens complémentaires"], ["courriers", "Courriers"], ["documentation", "Documentation (Doc.)"], ["diag", "Diagnostics"], ["mut", "Mutuelles"]];
 

@@ -21,6 +21,8 @@ const peutRemettre = () => A.peut("ecrireConsultations");
 const gere = () => peutRemettre() && D().membre.role === "medecin"; // ajouter, modifier, supprimer, favoris : le médecin
 const sansAcc = (s) => String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 const ico = (n) => '<svg class="pi"><use href="#i-' + n + '"/></svg>';
+// Lot D (25/10/2026) : fenêtre ouverte depuis le dossier = Modifier et Supprimer rangés sous « ⋯ » (Paramètres › Bibliothèques garde ses boutons)
+const plus3 = (h, lib) => '<details class="m3 bib-pts"><summary class="ico" title="Autres actions" aria-label="Autres actions : ' + lib + '">⋯</summary><div class="m3-l">' + h + "</div></details>";
 const MAX = 25 * 1024 * 1024;
 const taille = (o) => (o >= 1048576 ? (o / 1048576).toFixed(1).replace(".", ",") + " Mo" : Math.max(1, Math.round((o || 0) / 1024)) + " Ko");
 
@@ -109,7 +111,8 @@ function liste() {
       : d.fav ? '<span class="ico etoile on" title="Favori">' + ico("etoile") + "</span>" : "";
     return sep + '<tr><td><b>' + esc(d.titre) + '</b><div class="cl">PDF · ' + taille(d.taille) + (remis[d.id] ? ' · <span class="badge b-ch">remis le ' + A.dfrA(remis[d.id]) + "</span>" : "") + "</div></td><td>" + esc(d.cat || "") + '</td><td class="act">' + etoile +
       '<button class="mini" onclick="dcOuvrir(' + q + ')">Ouvrir</button>' + (V.pid ? '<button class="mini v" title="Ouvrir pour imprimer et noter dans la consultation du jour" onclick="dcRemettre(' + q + ')">Remettre</button>' : "") +
-      (gere() ? '<button class="ico" title="Modifier le titre ou la catégorie" aria-label="Modifier ' + esc(d.titre) + '" onclick="dcFiche(' + q + ')">' + ico("crayon") + '</button><button class="ico rouge" title="Supprimer le document" aria-label="Supprimer ' + esc(d.titre) + '" onclick="dcSupprimer(' + q + ')">' + ico("croix") + "</button>" : "") + "</td></tr>";
+      (!gere() ? "" : V.pid ? plus3('<button class="mini" onclick="dcFiche(' + q + ')">' + ico("crayon") + "Modifier</button>" + '<button class="mini rouge-t" onclick="dcSupprimer(' + q + ')">' + ico("croix") + "Supprimer</button>", esc(d.titre))
+        : '<button class="ico" title="Modifier le titre ou la catégorie" aria-label="Modifier ' + esc(d.titre) + '" onclick="dcFiche(' + q + ')">' + ico("crayon") + '</button><button class="ico rouge" title="Supprimer le document" aria-label="Supprimer ' + esc(d.titre) + '" onclick="dcSupprimer(' + q + ')">' + ico("croix") + "</button>") + "</td></tr>";
   }).join("") + "</table>" : '<p class="sous" style="padding:12px">Aucun document ne correspond.' + (gere() ? " « Ajouter un PDF » pour en ajouter un." : "") + "</p>";
 }
 

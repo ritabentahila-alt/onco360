@@ -194,6 +194,7 @@ window.csImprimer = (pid) => {
 // ───── Nouvelle consultation / modifier : titre, date (du jour par défaut), note ─────
 // pre { type, titre, d, note } : nouvelle consultation déjà remplie ; apres(id, champs) : appelé une fois enregistrée
 // (décision de RCP, rcp.js 09/10/2026)
+const CHAMPS_COMMUNS = ["type", "d", "titre", "note"];
 function formulaire(x, c, pre, apres) {
   pre = c ? null : pre || null;
   const esc = A.esc, R = FORM(), FO = formulairesDe(R), v0 = (k) => (c ? c[k] || "" : (pre && pre[k]) || ""), ex = (c && c.extra) || (pre && pre.extra) || {};
@@ -226,7 +227,9 @@ function formulaire(x, c, pre, apres) {
     return "<div" + (a.type === "texte" ? ' class="large"' : "") + csA + ">" + lab + '<input id="' + id + '"' + (a.type === "date" ? ' type="date"' : a.type === "nombre" ? ' inputmode="decimal"' : "") + ' value="' + esc(v) + '"></div>';
   };
   A.fenetre("<h3>" + (c ? "Modifier la consultation" : "Nouvelle consultation") + "</h3>" +
-    '<div class="form">' + R.ordre.map(champ).join("") + "</div>" +
+    // Lot D (25/10/2026) : toujours les champs communs d'abord (Consultation, Date, Titre, Note), puis les champs propres au formulaire du type,
+    // dans l'ordre réglé (avant : l'ordre commun à tous les formulaires pouvait placer la Note au milieu, ex. « Consultation de fin de radiothérapie »)
+    '<div class="form">' + CHAMPS_COMMUNS.concat(R.ordre.filter((k) => CHAMPS_COMMUNS.indexOf(k) < 0)).map(champ).join("") + "</div>" +
     '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt plein" id="csOk">Enregistrer</button></div>');
   const selT = document.getElementById("csType");
   if (selT) selT.onchange = () => document.querySelectorAll("#fenetre [data-cs]").forEach((z) => { const a = R.ajouts.find((y) => y.id === z.dataset.cs), e = document.getElementById("cx_" + z.dataset.cs); z.style.display = a && (champDuType(R, a, selT.value, FO) || (e && e.value && ex[a.id] != null)) ? "" : "none"; });

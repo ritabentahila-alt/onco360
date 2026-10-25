@@ -1,7 +1,7 @@
 import pathlib; __file__=str(pathlib.Path(__file__).resolve()); exec(open(pathlib.Path(__file__).parent/'base.py').read())
 # Modèle des cabinets neufs ouvert dans Onco360 (20/10/2026, demande de Dr Bentahila : « tout au même endroit, comme un paramétrage de
 # médecin ») : page Paramètres du modèle = celle d'un médecin (Cabinet › Tableau de bord ; Dossier patient › Fiche patient, Formulaire et
-# Types de consultation, Listes de la fiche, Affichage du dossier), sans ce qui est propre à chaque cabinet (lieux, journal, export,
+# Types de consultation, Affichage du dossier ; Listes dans Bibliothèques), sans ce qui est propre à chaque cabinet (lieux, journal, export,
 # correspondants). Fiche et formulaire enregistrés dans le modèle de la spécialité (fonction ficheSpecialite, simulée), en entier.
 ok_n = ko_n = 0
 def ok(c, m, d=None):
@@ -27,18 +27,18 @@ async def main():
         pg = await ouvrir(b, S2); ev = pg.evaluate; await pg.add_init_script(MOCK)
         await pg.goto(f'http://localhost:{PORT}/v2.html?espace=bib-oncologie#parametres/fiche'); await pg.wait_for_timeout(3000)
         t = await pg.inner_text('#page')
-        ok('Paramètres du modèle' in t and 'Rien ne touche le cabinet du Dr Bentahila' in t, 'en-tête « Paramètres du modèle » : ce que reçoit un cabinet neuf, rien ne touche le cabinet du Dr Bentahila')
+        ok(await pg.inner_text('#titrePage') == 'Paramètres du modèle' and 'Rien ne touche le cabinet du Dr Bentahila' in t, 'en-tête « Paramètres du modèle » (barre du haut) : ce que reçoit un cabinet neuf, rien ne touche le cabinet du Dr Bentahila')
         fams = await ev("[...document.querySelectorAll('.cf-fam button')].map(b=>b.textContent.trim())")
         ok(fams[:2] == ['Cabinet', 'Dossier patient'] and 'Agenda et rappels' in fams and 'Bibliothèques' in fams, 'familles comme chez un médecin', fams)
         sous = await ev("[...document.querySelectorAll('.cf-sous button')].map(b=>b.textContent.trim())")
-        ok(sous == ['Fiche patient', 'Formulaire de consultation', 'Types de consultation', 'Listes de la fiche', 'Affichage du dossier'], 'Dossier patient : fiche, formulaire, types de consultation, listes de la fiche, affichage du dossier', sous)
+        ok(sous == ['Fiche patient', 'Formulaire de consultation', 'Types de consultation', 'Affichage du dossier'], 'Dossier patient : fiche, formulaire, types de consultation, affichage du dossier (Listes : dans Bibliothèques, lot D)', sous)
         await ev("cfFamille('cabinet')"); await pg.wait_for_timeout(400)
         sc = await ev("[...document.querySelectorAll('.cf-sous button')].map(b=>b.textContent.trim())")
         ok('Tableau de bord' in sc and "Lieux d'exercice" not in sc and "Journal d'audit" not in sc and 'Export des données' not in sc, 'Cabinet : Tableau de bord ; ni lieux, ni journal, ni export (propres à chaque cabinet)', sc)
-        # Listes de la fiche : comme chez un médecin (mutuelles), sans correspondants
+        # Listes (Bibliothèques, lot D) : comme chez un médecin (localisations, mutuelles, tâches), sans correspondants ; stades et grades depuis leur champ
         await ev("location.hash='parametres/listes'"); await pg.wait_for_timeout(600)
         pl = await ev("[...document.querySelectorAll('#page .puces .puce')].map(b=>b.textContent.trim())")
-        ok(len(pl) == 1 and pl[0].startswith('Mutuelles'), 'Listes de la fiche : Mutuelles (localisations, stades, grades : depuis leur champ ; pas de correspondants)', pl)
+        ok(any(x.startswith('Localisations') for x in pl) and any(x.startswith('Mutuelles') for x in pl) and not any(x.startswith('Correspondants') or x.startswith('Stades') or x.startswith('Grades') for x in pl), 'Listes : Localisations, Mutuelles (stades, grades : depuis leur champ ; pas de correspondants)', pl)
         # Fiche patient du modèle : celle reçue (Organisme, Groupe sanguin), tout modifiable, enregistrée en entier dans le modèle
         await ev("location.hash='parametres/fiche'"); await pg.wait_for_timeout(600)
         tf = await pg.inner_text('#page')

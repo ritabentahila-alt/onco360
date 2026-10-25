@@ -239,8 +239,9 @@ function dessiner() {
   // Lieux d'exercice proposés : ceux du membre (tous s'il voit tous les établissements) et ceux de ses tâches
   const etT = D().etabsTous || D().etabs || [], nomLieu = {}; etT.forEach((e) => { nomLieu[e.code] = e.nom || ""; });
   const lieux = (D().membre.tousEtablissements ? etT.map((e) => e.code) : (D().membre.etablissements || []).slice()).concat(T.map(lieuDe)).filter((c, i, a) => c && a.indexOf(c) === i).sort();
-  let h = '<section class="accueil"><div><h2>Tâches</h2><p>Rappels, demandes et suivis de l\'équipe.</p></div><div class="actions"><button class="bt plein" onclick="taNouvelle()">' + A.ic("plus") + "Nouvelle tâche</button></div></section>" +
-    '<div class="ag-vues ta-vues" style="align-self:flex-start">' + onglet("mes", "profil", "Mes tâches", nbOuv(mes)) + ongletT("toutes", "taches", '<span class="lg">Toutes les tâches</span><span class="sm">Toutes</span>', nbOuv(T)) + "</div>";
+  // Lot B (25/10/2026) : plus de titre ; Mes tâches / Toutes les tâches à gauche, Imprimer et « + Nouvelle tâche » à droite, sur la même ligne
+  let h = '<div class="barre-page"><div class="ag-vues ta-vues">' + onglet("mes", "profil", "Mes tâches", nbOuv(mes)) + ongletT("toutes", "taches", '<span class="lg">Toutes les tâches</span><span class="sm">Toutes</span>', nbOuv(T)) + "</div>" +
+    '<div class="bp-act"><button class="bt gris" id="taImp" onclick="taImprimer()" title="Imprimer la liste affichée (vue et filtres en cours)">' + A.ic("imprimer") + 'Imprimer</button><button class="bt plein" onclick="taNouvelle()">' + A.ic("plus") + "Nouvelle tâche</button></div></div>";
   h += '<div class="ta-filtres"><div class="recherche">' + A.ic("loupe") + '<input id="taQ" type="search" placeholder="Rechercher : titre, patient, personne…" autocomplete="off" value="' + esc(F.q) + '"></div>' +
     (VUE === "toutes" ? sel("taFqui", "Responsable", F.qui, optsQui) : "") +
     sel("taFst", "Statut", F.st, [["ouv", "À faire et en cours"], ["afaire", "À faire"], ["encours", "En cours"], ["fait", "Terminées"], ["tous", "Tous les statuts"]]) +
@@ -281,6 +282,23 @@ const raf = () => {
 window.taVue = (k) => { if (k === "rcp") { location.hash = "rcp"; return; } VUE = k; history.replaceState(null, "", "#taches"); if (T) dessiner(); else pageTaches(k); };
 window.taTerminees = () => { TERM = !TERM; liste(); };
 window.taEffacer = () => { F = Object.assign({}, F0); if (T && $("taL")) dessiner(); };
+// Lot B (25/10/2026) : imprimer exactement la liste affichée (vue, recherche et filtres en cours), comme la liste du jour de la salle d'attente
+window.taImprimer = () => {
+  let w = null; try { w = window.open("", "_blank"); } catch (er) { w = null; }
+  if (!w || !w.document) { A.toast("Autorisez l'ouverture des fenêtres pour imprimer la liste."); return; }
+  const esc = A.esc, l = filtrer(base()), ouv = l.filter((x) => x.statut !== "fait").sort(ordre), fin = l.filter((x) => x.statut === "fait").sort((a, b) => String(b.faitLe || "").localeCompare(String(a.faitLe || "")));
+  const L = F.st === "ouv" ? ouv : ouv.concat(fin), moi = D().u.uid;
+  const opt = (id) => { const s = $(id); return s && s.value && s.selectedIndex >= 0 ? s.options[s.selectedIndex].text : ""; };
+  const filtres = [F.q.trim() ? "Recherche : " + F.q.trim() : "", VUE === "toutes" && F.qui ? opt("taFqui") : "", opt("taFst"), F.ech ? opt("taFech") : "", F.type ? opt("taFtype") : "", F.lieu ? opt("taFlieu") : ""].filter(Boolean).join(" · ");
+  const ech = (x) => (x.ech ? A.dfrA(x.ech) + (x.h ? " à " + x.h : "") : "—") + (retard(x) ? " (en retard)" : "");
+  const qui = (x) => (x.pour === moi ? "Moi" : x.pourNom || "?");
+  const lieu = (x) => lieuDe(x) || "—";
+  const cab = (D().espaceDoc && D().espaceDoc.nom) || "";
+  const html = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Tâches – ' + esc(A.dfrA(D().t)) + '</title><style>@page{size:A4 portrait;margin:12mm}body{font-family:Arial,sans-serif;font-size:11px;color:#1E2A44}h1{font-size:17px;margin:0 0 2px}p{margin:0 0 10px;color:#64708A}table{width:100%;border-collapse:collapse}th,td{border:1px solid #D5DCE8;padding:4px 6px;text-align:left;vertical-align:top}th{background:#EEF2F8}.r{color:#B42318;font-weight:bold}</style></head><body>' +
+    "<h1>Onco360" + (cab ? " · " + esc(cab) : "") + " – Tâches – " + (VUE === "mes" ? "Mes tâches" : "Toutes les tâches") + "</h1><p>" + (filtres ? esc(filtres) + " · " : "") + L.length + " tâche" + (L.length > 1 ? "s" : "") + " · imprimé le " + esc(A.dfrA(D().t)) + " à " + esc(dateHeureMaroc(Date.now()).split(" ").pop()) + "</p>" +
+    (L.length ? "<table><tr><th>Échéance</th><th>Tâche</th><th>Patient</th><th>Responsable</th><th>Statut</th><th>Type</th><th>Lieu</th></tr>" + L.map((x) => "<tr><td" + (retard(x) ? ' class="r"' : "") + ">" + esc(ech(x)) + "</td><td>" + esc(x.titre) + (x.urgent && x.statut !== "fait" ? " (urgent)" : "") + "</td><td>" + esc(x.patientId ? nomPat(x) : "—") + "</td><td>" + esc(qui(x)) + "</td><td>" + esc(libStatut(x.statut)) + "</td><td>" + esc(x.type || "—") + "</td><td>" + esc(lieu(x)) + "</td></tr>").join("") + "</table>" : "<p>Aucune tâche.</p>") + "</body></html>";
+  w.document.open(); w.document.write(html); w.document.close(); setTimeout(() => { w.focus(); w.print(); }, 400);
+};
 window.taPatient = (id) => {
   const t = trouver(id); if (!t) return;
   if (!D().patients.some((p) => p.id === t.patientId)) { A.toast("Ce dossier n'existe plus ou n'est pas dans vos établissements."); return; }

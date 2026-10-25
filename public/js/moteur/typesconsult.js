@@ -26,6 +26,10 @@ const ALIAS = { "consultation annonce": "annonce", "consultation suivi": "suivi"
 const sansAcc = (s) => String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[’']/g, "'").trim();
 const propre = (s) => String(s || "").replace(/\s*\(par jour ouvré\)\s*$/i, "").replace(/\s+/g, " ").trim();
 export const cleJournal = (nom) => "j" + sansAcc(nom).replace(/[^a-z0-9]+/g, "").slice(0, 20);
+// Lot D (25/10/2026, demande de Dr Bentahila) : « RCP » et « Note du secrétariat » sont des notes du journal, jamais des rendez-vous : pas de
+// durée, jamais proposés à la prise de rendez-vous, même dans une liste enregistrée avant
+const NOTES = ["rcp", "note du secretariat"];
+export const estNote = (nom) => NOTES.indexOf(sansAcc(propre(nom))) >= 0;
 
 // Liste effective. enr = liste enregistrée (ou null) ; src = { acts: [[clé, nom]] (activités des établissements), journal: [noms] }
 export function referentiel(enr, src) {
@@ -33,7 +37,7 @@ export function referentiel(enr, src) {
   const met = (t) => { if (!t || !t.k || vu[t.k]) return; vu[t.k] = 1; out.push(t); };
   if (Array.isArray(enr) && enr.length) {
     enr.forEach((t) => { if (!t || typeof t.k !== "string" || !/^[a-z0-9_-]{1,30}$/i.test(t.k) || !propre(t.nom)) return;
-      met({ k: t.k, nom: propre(t.nom).slice(0, 80), rdv: t.k === "cchimio" ? false : t.rdv !== false, anciens: Array.isArray(t.anciens) ? t.anciens.map(propre).filter(Boolean).slice(0, 20) : [] }); });
+      met({ k: t.k, nom: propre(t.nom).slice(0, 80), rdv: t.k === "cchimio" || estNote(t.nom) ? false : t.rdv !== false, anciens: Array.isArray(t.anciens) ? t.anciens.map(propre).filter(Boolean).slice(0, 20) : [] }); });
     STD.forEach(([k, nom, rdv]) => met({ k, nom, rdv, anciens: [] })); // type de base absent (liste ancienne) : remis
     return out;
   }

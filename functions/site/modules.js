@@ -21,17 +21,17 @@ export const MODULES = [
 // famille d'une bibliothèque (ex. Chimiothérapie et protocoles : Oncologie – Radiothérapie). Menu toujours présent : MENU_COMMUN.
 export const MODULE_FAMILLE = { chimio: "bib-oncologie", rt: "bib-oncologie" };
 export const MODULE_MENU = { chimio: "Menu « Protocoles » ; onglet Chimiothérapie du dossier", rt: "Onglet Radiothérapie du dossier", agenda: "Menu « Agenda / Rendez-vous »", salle: "Menu « Salle d'attente »", taches: "Menu « Tâches »", rcp: "Menu « RCP » (sous Tâches) ; bouton « + RCP » du dossier", prescriptions: "Boutons Médic., Examens compl., Ordo. type, Analyses, Courriers, Doc. du dossier", documents: "Onglet Documents du dossier ; pli, compte rendu", gagenda: "Paramètres › Google Agenda", listes: "Paramètres › Listes", bilan: "Menu « Bilan »" };
-export const MENU_COMMUN = ["Tableau de bord", "Patients (dossiers, consultations, rendez-vous)", "Paramètres", "Mon compte"];
+export const MENU_COMMUN = ["Tableau de bord", "Patients (dossiers, consultations, rendez-vous)", "Paramètres (icône de la barre du haut)", "Mon compte (nom ou photo)"];
 // Parties de base d'Onco360 (10/10/2026, onglet « Modules » de l'Administration) : toujours présentes dans chaque cabinet, quelle que
 // soit la spécialité ; [clé, nom, description, où dans Onco360, contenu]
 export const MODULES_BASE = [
   ["accueil", "Tableau de bord", "Page d'accueil du cabinet", "Menu « Tableau de bord »", "cartes"],
   ["patients", "Patients et dossiers", "Liste, recherche, filtre par hôpital, dossier du patient", "Menu « Patients »", ["Liste et recherche", "Numéro de dossier (AAAAMM + rang)", "Fiche patient (réglée par spécialité)", "Rendez-vous et tâches à venir du dossier"]],
   ["consultations", "Consultations", "Journal des consultations du dossier", "Onglet Consultation du dossier", ["Journal des consultations", "Formulaire de consultation (réglé par spécialité)", "Barre des prescriptions (module Prescriptions)"]],
-  ["parametres", "Paramètres (paramétrage)", "Réglages du cabinet, onglet par onglet", "Menu « Paramètres »", "sections"],
+  ["parametres", "Paramètres (paramétrage)", "Réglages du cabinet, onglet par onglet", "Icône « Paramètres » de la barre du haut", "sections"],
   ["equipe", "Équipe et droits", "Comptes de l'équipe, rôles et droits, lieux d'exercice", "Paramètres › Accès, Lieux d'exercice", ["Médecins", "Secrétaires", "Infirmières", "Comptables", "Droits par membre", "Lieux d'exercice (logos)"]],
   ["audit", "Journal d'audit", "Qui a ouvert, créé, modifié ou supprimé quoi (titulaire)", "Paramètres › Journal d'audit ; bouton « Journal » du dossier", ["Période et filtres", "Export Excel", "Journal d'un dossier"]],
-  ["profil", "Mon compte", "Informations de chaque personne, abonnement, factures", "Menu « Mon compte »", ["Photo", "INPE", "Signature", "Mot de passe"]],
+  ["profil", "Mon compte", "Informations de chaque personne, abonnement, factures", "Menu du compte (nom ou photo du médecin)", ["Photo", "INPE", "Signature", "Mot de passe"]],
 ];
 // Modules prévus pour d'autres spécialités (à construire, feuille de route étape 14)
 export const MODULES_PREVUS = [["stocks", "Traitements et stocks", "bib-generaliste"], ["materiel", "Matériel et consommables", "bib-generaliste"]];

@@ -20,7 +20,7 @@ import { afficherAudit } from "./audit.js"; // onglet « Journal d'audit » (tit
 import { configRcp, configChargee, chargerConfigRcp, enregistrerConfigRcp, prochainesRcp, CFG0 as RCP0, libDate } from "./rcp.js";
 import { CARTES, accueilEffectif, FICHE, CONSULT, STADES, GRADES, formEffectif, ficheEffective, consultEffective, ficheRetouches, formRetouches, formSpecialite, formulairesDe, formDuType, FAMILLES_SECTIONS } from "../donnees/catalogue.js";
 import { editeurFiche } from "./editeurfiche.js";
-import { estStd, AUTO as AUTO_TY, cleDuree, renommer, nouvelleCle, aEnregistrer } from "../moteur/typesconsult.js";
+import { estStd, estNote, AUTO as AUTO_TY, cleDuree, renommer, nouvelleCle, aEnregistrer } from "../moteur/typesconsult.js";
 import { htmlVigilances } from "./vigilances.js"; // notes « À vérifier » par molécule (12/10/2026) // fiche patient et formulaire de consultation du cabinet (11/10/2026)
 
 let A = null;
@@ -137,7 +137,7 @@ const ICO_FAM = { cabinet: "hopital", dossier: "profil", agenda: "agenda", liste
 const FAMILLES = FAMILLES_SECTIONS.map(([k, lib, l]) => [k, ICO_FAM[k] || "liste", lib, l]);
 const RUB = { lieux: ["hopital", "Lieux d'exercice"], accueil: ["accueil", "Tableau de bord"], fiche: ["profil", "Fiche patient"], consultation: ["stetho", "Formulaire de consultation"], types: ["agenda", "Types de consultation"],
   impression: ["imprimer", "Impression"], audit: ["liste", "Journal d'audit"], export: ["telecharger", "Export des données"], horaires: ["horloge", "Horaires"], fermetures: ["avion", "Congés et jours fériés"], rdvauto: ["agenda", "Rendez-vous automatiques"],
-  couleurs: ["agenda", "Google Agenda"], whatsapp: ["whatsapp", "WhatsApp"], rcp: ["rcp", "RCP"], alertes: ["alerte", "Alertes"], listes: ["liste", "Listes de la fiche"], affichage: ["colonnes", "Affichage du dossier"],
+  couleurs: ["agenda", "Google Agenda"], whatsapp: ["whatsapp", "WhatsApp"], rcp: ["rcp", "RCP"], alertes: ["alerte", "Alertes"], listes: ["liste", "Listes"], affichage: ["colonnes", "Affichage du dossier"],
   bibliotheques: ["pilule", "Bibliothèques"], vigilances: ["alerte", "Vigilance des molécules"], documents: ["document", "Types de documents"], taches: ["taches", "Tâches"], activites: ["bilan", "Activités et rémunérations"] };
 const famDe = (k) => (FAMILLES.find((f) => f[3].indexOf(k) >= 0) || FAMILLES[0])[0];
 // Rubriques présentes, dans l'ordre des familles ; dans une famille, l'ordre du réglage du cabinet (Administration)
@@ -163,8 +163,10 @@ const MODULE_ONGLET = { vigilances: "chimio", couleurs: "gagenda", taches: "tach
 const DERN = {}; // dernière rubrique ouverte de chaque famille
 function entete() {
   const L = ONGLETS(), fam = famDe(ONG), sous = L.filter((o) => famDe(o[0]) === fam);
-  return '<section class="accueil"><div><h2>' + (A.D().bib ? "Paramètres du modèle" : "Paramètres") + "</h2><p>" + (A.D().bib ? "Ce que reçoit chaque cabinet neuf de la spécialité, réglé comme chez un médecin. Rien ne touche le cabinet du Dr Bentahila ; les cabinets déjà créés ne reçoivent que la fiche patient et le formulaire de consultation (leurs retouches restent par-dessus)." : "Réglages du cabinet, de l\'agenda, des listes" + (A.peut("finances") ? " et des finances" : "") + ".") + "</p></div></section>" +
-    '<div class="ag-vues defile cf-fam" role="tablist" style="align-self:flex-start">' + FAMILLES.filter((f) => L.some((o) => famDe(o[0]) === f[0])).map(([k, ico, lib]) => '<button role="tab" aria-selected="' + (fam === k) + '" class="' + (fam === k ? "on" : "") + '" onclick="cfFamille(\'' + k + "')\">" + A.ic(ico) + lib + "</button>").join("") + "</div>" +
+  // Lot B (25/10/2026) : plus de titre ; les familles en haut ; dans le modèle des cabinets neufs, la phrase d'explication reste en petit sous les familles
+  const expl = A.D().bib ? '<p class="mesures cf-modele">' + "Ce que reçoit chaque cabinet neuf de la spécialité, réglé comme chez un médecin. Rien ne touche le cabinet du Dr Bentahila ; les cabinets déjà créés ne reçoivent que la fiche patient et le formulaire de consultation (leurs retouches restent par-dessus)." + "</p>" : "";
+  return '' +
+    '<div class="ag-vues defile cf-fam" role="tablist" style="align-self:flex-start">' + FAMILLES.filter((f) => L.some((o) => famDe(o[0]) === f[0])).map(([k, ico, lib]) => '<button role="tab" aria-selected="' + (fam === k) + '" class="' + (fam === k ? "on" : "") + '" onclick="cfFamille(\'' + k + "')\">" + A.ic(ico) + lib + "</button>").join("") + "</div>" + expl +
     (sous.length > 1 ? '<nav class="cf-sous" aria-label="Rubriques">' + sous.map(([k, , lib]) => '<button class="' + (ONG === k ? "on" : "") + '"' + (ONG === k ? ' aria-current="page"' : "") + ' onclick="cfOnglet(\'' + k + "')\">" + lib + "</button>").join("") + "</nav>" : "");
 }
 // Bouton de retrait discret (gris, rouge au survol) à la place de la croix rouge sur chaque ligne
@@ -242,11 +244,13 @@ const RUBRIQUES = {
       return '<div class="ty-l"><span class="fl"><button class="clair petit" aria-label="Monter" onclick="cfTyBouger(' + i + ',-1)"' + (i && ok ? "" : " disabled") + '>↑</button><button class="clair petit" aria-label="Descendre" onclick="cfTyBouger(' + i + ',1)"' + (i < L.length - 1 && ok ? "" : " disabled") + ">↓</button></span>" +
         '<input class="ty-n" value="' + esc(t.nom) + '" aria-label="Nom du type"' + dis + ' onchange="cfTy(' + i + ',\'nom\',this.value)">' +
         // 3.13 bis : « Comment il est prévu » (à la main = proposé à la prise de rendez-vous ; d'office = créé par Onco360) ; tous sont des rendez-vous
-        '<label class="ty-s"><span class="ty-lb">Comment il est prévu</span> <select aria-label="Comment est prévu : ' + esc(t.nom) + '"' + (ok && t.k !== "cchimio" ? "" : " disabled") + ' onchange="cfTyMode(' + i + ',this.value)">' +
+        '<label class="ty-s"><span class="ty-lb">Comment il est prévu</span> <select aria-label="Comment est prévu : ' + esc(t.nom) + '"' + (ok && t.k !== "cchimio" && !estNote(t.nom) ? "" : " disabled") + ' onchange="cfTyMode(' + i + ',this.value)">' +
           (t.k === "cchimio" ? '<option>D\'office (avec la cure)</option>' : (au ? [["main", "À la main"], ["office", "D'office (" + au[1] + ")"], ["les2", "D'office et à la main"], ["sans", "Sans rendez-vous"]] : [["main", "À la main"], ["sans", "Sans rendez-vous (journal seulement)"]])
             .map(([v, l]) => '<option value="' + v + '"' + (v === modeTy(t) ? " selected" : "") + ">" + esc(l) + "</option>").join("")) + "</select></label>" +
         // hospitalisation : toute la journée, facturée par jour ouvré (pas un créneau de consultation)
         (t.k === "hospit" ? '<span class="ty-s mesures">Journée entière (facturée par jour ouvré)</span>' :
+        // Lot D (25/10/2026) : un type sans rendez-vous (journal seulement : RCP, Note du secrétariat…) n'a pas de durée
+        modeTy(t) === "sans" ? '<span class="ty-s mesures ty-sd" title="Note du journal, sans rendez-vous : pas de durée"><span class="ty-lb">Durée</span> —</span>' :
         '<label class="ty-s"><span class="ty-lb">Durée</span> <select aria-label="Durée : ' + esc(t.nom) + '"' + c.disE + ' onchange="cfDureeT(\'' + esc(dk) + '\',this.value)">' + (() => { const v = du[dk] || (ED.horaires && ED.horaires.duree) || 30; return [10, 15, 20, 30, 40, 45, 60, 90, 120].concat([10, 15, 20, 30, 40, 45, 60, 90, 120].indexOf(v) < 0 ? [v] : []).sort((a2, b2) => a2 - b2).map((m) => '<option value="' + m + '"' + (m === v ? " selected" : "") + ">" + m + " min</option>").join(""); })() + "</select></label>") +
         '<label class="ty-s"><span class="ty-lb">Formulaire</span> <select aria-label="Formulaire : ' + esc(t.nom) + '"' + dis + ' onchange="cfTy(' + i + ',\'form\',this.value)">' + FO.map((z) => '<option value="' + esc(z.id) + '"' + (z.id === f ? " selected" : "") + ">" + esc(z.nom) + "</option>").join("") + "</select></label>" +
         (st || !ok ? "<span></span>" : sup("cfTySup(" + i + ")", "Retirer « " + esc(t.nom) + " »")) + "</div>"; };
@@ -286,16 +290,22 @@ const RUBRIQUES = {
   listes(c) {
     // Listes proposées dans les fiches patients (P2 bis, 08/10/2026) : corriger, retirer, ajouter ; nombre de dossiers concernés
     // 3.1 bis (12/10/2026) : en oncologie, diagnostics = localisations ; stades et grades de la fiche tumeur
-    const onco = !!((D().reg || {}).fiche || {}).onco, tout = Object.assign({ diag: onco ? "Localisations (diagnostics)" : "Diagnostics" }, onco ? { stade: "Stades", grade: "Grades" } : {}, { mut: "Mutuelles", cor: "Correspondants" });
-    // 3.11 : localisations, stades et grades se règlent depuis leur champ de la fiche (Fiche patient › ✎ › Modifier la liste) ; ici : mutuelles et
-    // correspondants, plus la liste ouverte depuis la fiche (avec « Retour ») ; bibliothèque de référence (pas de fiche) : toutes
-    const deFiche = ["diag", "stade", "grade"].indexOf(LS) >= 0, lib = Object.fromEntries(Object.entries(tout).filter(([k]) => (["mut", "cor"].indexOf(k) >= 0 || k === LS) && !(k === "cor" && A.D().bib))); // modèle : pas de correspondants (20/10/2026)
-    if (!lib[LS]) LS = Object.keys(lib)[0];
-    return (deFiche && A.peut("parametres") ? '<a class="retour" href="#parametres/fiche" onclick="event.preventDefault();cfRetourFiche()">' + A.ic("retour") + "Retour à la fiche patient</a>" : "") +
-      '<section class="carte">' + titre("liste", "Listes de la fiche patient") + '<p class="sous">Un nom corrigé ici est corrigé aussi dans les dossiers ; un nom retiré y reste.' + (!A.peut("parametres") ? "" : " Localisations, stades et grades : depuis leur champ (Fiche patient › ✎).") + "</p>" +
-      '<div class="puces">' + Object.keys(lib).map((k) => "<button" + (k === "cor" ? ' data-fn="listes.cor"' : "") + ' class="puce' + (LS === k ? " on" : "") + '" onclick="cfLs(\'' + k + "')\">" + lib[k] + " (" + ED.listes[k].length + ")</button>").join("") + "</div>" +
+    // Lot D (25/10/2026, demande de Dr Bentahila) : Bibliothèques › Listes réunit toutes les listes : localisations, mutuelles, correspondants,
+    // types de tâches (avec les tâches automatiques) et types de documents ; stades et grades ne sont pas des listes ici : ils se règlent
+    // depuis leur champ de la fiche patient (✎), qui ouvre cette page avec « Retour »
+    const onco = !!((D().reg || {}).fiche || {}).onco, tout = Object.assign({ diag: onco ? "Localisations" : "Diagnostics" }, onco ? { stade: "Stades", grade: "Grades" } : {}, { mut: "Mutuelles", cor: "Correspondants" });
+    const deFiche = ["stade", "grade"].indexOf(LS) >= 0 || (LS === "diag" && FICHE_LS), lib = Object.fromEntries(Object.entries(tout).filter(([k]) => (["diag", "mut", "cor"].indexOf(k) >= 0 || k === LS) && !(k === "cor" && A.D().bib))); // modèle : pas de correspondants (20/10/2026)
+    const autres = [["taches", "Tâches", A.module("taches")], ["documents", "Documents", A.module("documents") !== false]].filter((z) => z[2]);
+    if (!lib[LS] && !autres.some((z) => z[0] === LS)) LS = Object.keys(lib)[0];
+    const nb = (k) => (k === "taches" ? ED.ttache.length + 1 : k === "documents" ? ED.tdoc.length : ED.listes[k].length);
+    const puces = '<div class="puces">' + Object.keys(lib).map((k) => [k, lib[k]]).concat(autres.map((z) => [z[0], z[1]])).map(([k, l]) => "<button" + (k === "cor" ? ' data-fn="listes.cor"' : "") + ' class="puce' + (LS === k ? " on" : "") + '" onclick="cfLs(\'' + k + "')\">" + l + " (" + nb(k) + ")</button>").join("") + "</div>";
+    const retour = deFiche && A.peut("parametres") ? '<a class="retour" href="#parametres/fiche" onclick="event.preventDefault();cfRetourFiche()">' + A.ic("retour") + "Retour à la fiche patient</a>" : "";
+    if (LS === "taches" || LS === "documents") return '<section class="carte cf-ls">' + titre("liste", "Listes") + puces + "</section>" + RUBRIQUES[LS](c);
+    return retour +
+      '<section class="carte">' + titre("liste", "Listes") + '<p class="sous">Un nom corrigé ici est corrigé aussi dans les dossiers ; un nom retiré y reste. Un nom nouveau saisi dans une fiche patient est ajouté à sa liste.</p>' +
+      puces +
       '<div class="recherche" style="max-width:420px;margin-bottom:8px">' + A.ic("loupe") + '<input id="cfLq" type="search" autocomplete="off" placeholder="Rechercher dans la liste…" value="' + A.esc(LQ) + '"></div>' +
-      '<div class="cf-td cf-l" id="cfLl"></div>' + (diagModifiable() ? "" : '<p class="sous" style="margin-top:8px">' + (LS === "diag" ? "Les diagnostics" : "Les stades et les grades") + " sont modifiés par un médecin.</p>") + (LS === "stade" || LS === "grade" ? '<p class="mesures" style="margin-top:8px">Un nom corrigé ici n\'est pas changé dans les dossiers déjà remplis.</p>' : "") + (c.okE && diagModifiable() ? '<button class="bt clair petit" style="margin-top:10px" onclick="cfLAj()">' + A.ic("plus") + "Ajouter</button>" : "") + "</section>";
+      '<div class="cf-td cf-l" id="cfLl"></div>' + (diagModifiable() ? "" : '<p class="sous" style="margin-top:8px">' + (LS === "diag" ? "Les localisations" : "Les stades et les grades") + " sont modifiés par un médecin.</p>") + (LS === "stade" || LS === "grade" ? '<p class="mesures" style="margin-top:8px">Un nom corrigé ici n\'est pas changé dans les dossiers déjà remplis.</p>' : "") + (c.okE && diagModifiable() ? '<button class="bt clair petit" style="margin-top:10px" onclick="cfLAj()">' + A.ic("plus") + "Ajouter</button>" : "") + "</section>";
   },
   bibliotheques() {
     // Bibliothèques des prescriptions : les mêmes fenêtres que dans le dossier, en gestion de la liste (sans patient)
@@ -378,7 +388,7 @@ const RUBRIQUES = {
   },
   fiche() {
     // 3.11 : ✎ = tout le champ (nom, type, liste, unité, partie, impression, en-tête) ; listes du cabinet (localisations, stades…) ouvertes depuis leur champ
-    if (!FE) FE = editeurFiche(ED.fiche, A.D().bib ? "spe" : "cabinet", false, { ouvrirListe: (k) => { LS = k; LQ = ""; window.cfOnglet("listes"); }, tailleListe: (k) => (ED.listes[k] || []).length });
+    if (!FE) FE = editeurFiche(ED.fiche, A.D().bib ? "spe" : "cabinet", false, { ouvrirListe: (k) => { LS = k; LQ = ""; FICHE_LS = true; window.cfOnglet("listes"); }, tailleListe: (k) => (ED.listes[k] || []).length });
     return '<section class="carte edf">' + titre("profil", "Fiche patient") + '<p class="sous">Ordre et présence des champs ; ✎ = nom, type, liste, partie, impression ; « en-tête » = affiché sous le nom du patient. Un champ décoché est caché, sa valeur est gardée.</p>' + FE.html() + "</section>";
   },
   consultation() {
@@ -419,6 +429,7 @@ export function pageConfiguration(arg) {
   // Onglets du titulaire (Accès, Journal d'audit) connus un instant plus tard : l'onglet demandé par le lien est ouvert ensuite
   if (TIT === null) { TIT = false; titulaireConnecte().then((v) => { TIT = v; const dem = (location.hash.match(/^#parametres\/([^/?]+)/) || [])[1]; if (v && location.hash.startsWith("#parametres") && !MOD) pageConfiguration(dem); }).catch(() => {}); }
   if (arg === "rdvauto") arg = "types"; // 3.13 : rendez-vous créés d'office réglés avec leur type
+  if (arg === "documents" || arg === "taches") { LS = arg; arg = "listes"; history.replaceState(null, "", "#parametres/listes"); } // Lot D : sous-onglets de Listes
   if (arg && ONGLETS().some((o) => o[0] === arg)) ONG = arg;
   if (!ONGLETS().some((o) => o[0] === ONG)) ONG = (ONGLETS()[0] || ["horaires"])[0]; // 1re rubrique présente (réglage du cabinet)
   DERN[famDe(ONG)] = ONG;
@@ -452,7 +463,7 @@ export function pageConfiguration(arg) {
   if (A.$("cfProfil")) { const o = ONG === "couleurs" ? "gagenda" : ONG; htmlOngletProfil(o).then((x) => { const z = A.$("cfProfil"); if (z && ONG === (o === "gagenda" ? "couleurs" : o)) { z.innerHTML = x; apresOngletProfil(o); } }).catch((e) => { const z = A.$("cfProfil"); if (z) z.innerHTML = '<p class="sous" style="color:var(--rouge)">Lecture impossible : ' + A.esc(e.message || String(e)) + "</p>"; }); }
   if (ONG === "audit") afficherAudit(A.$("cfAudit"));
   if (ONG === "export") afficherRecuperation();
-  if (ONG === "listes") { listeL(); A.$("cfLq").oninput = () => { LQ = A.$("cfLq").value; listeL(); }; }
+  if (ONG === "listes" && A.$("cfLq")) { listeL(); A.$("cfLq").oninput = () => { LQ = A.$("cfLq").value; listeL(); }; }
   // Fiche patient, formulaire de consultation : l'éditeur commun avec l'Administration (editeurfiche.js) ; toute action = modification
   if (ONG === "fiche" || ONG === "consultation") { const E = ONG === "fiche" ? FE : CE, z = document.querySelector(".edf"); E.brancher(() => modif(true)); if (z) z.addEventListener("change", () => modif()); }
   if (ONG === "bibliotheques") [["medicaments", ["medicaments"], [["médicament", "médicaments"]]], ["ordostypes", ["ordostypes"], [["ordonnance type", "ordonnances types"]]], ["analyses", ["analyses", "bilans"], [["analyse", "analyses"], ["bilan", "bilans"]]], ["examens", ["examens"], [["examen", "examens"]]], ["courriers", ["courriers"], [["modèle", "modèles"]]]].forEach(([k, ls, mots]) =>
@@ -541,7 +552,7 @@ window.cfAgenda = async (cb) => {
   } catch (e) { cb.checked = !cb.checked; A.toast("Enregistrement impossible : " + ((e && e.message) || e)); }
 };
 // Onglet Listes : affichage filtré (la recherche garde le curseur), nombre de dossiers qui utilisent chaque nom
-let LS = "mut", LQ = ""; // 3.11 : localisations, stades, grades ouverts depuis leur champ de la fiche
+let LS = "mut", LQ = "", FICHE_LS = false; // 3.11 : localisations, stades, grades ouverts depuis leur champ de la fiche (FICHE_LS : « Retour à la fiche »)
 function listeL() {
   const z = A.$("cfLl"); if (!z) return;
   const champ = { diag: "diag", mut: "mut", cor: "cor" }[LS], n = {}, ok = (A.peut("parametres") || secretariat()) && diagModifiable(), esc = A.esc;
@@ -551,8 +562,8 @@ function listeL() {
     return '<div class="it"><input value="' + esc(t) + '"' + (ok ? "" : " disabled") + ' aria-label="Nom" onchange="cfL(' + i + ',this.value)"><span class="mesures nb">' + (c ? c + " dossier" + (c > 1 ? "s" : "") : "") + "</span>" + (ok ? sup("cfLSup(" + i + ")", "Retirer « " + esc(t) + " »") : "") + "</div>"; }).join("")
     : '<p class="sous">Rien ne correspond.</p>';
 }
-window.cfLs = (k) => { LS = k; LQ = ""; pageConfiguration(); };
-window.cfRetourFiche = () => { LS = "mut"; LQ = ""; window.cfOnglet("fiche"); };
+window.cfLs = (k) => { LS = k; LQ = ""; FICHE_LS = false; pageConfiguration(); };
+window.cfRetourFiche = () => { LS = "mut"; LQ = ""; FICHE_LS = false; window.cfOnglet("fiche"); };
 window.cfExporter = async () => {
   const b = A.$("cfExp"), msg = (t) => { const z = A.$("cfExpMsg"); if (z) z.textContent = t; };
   A.occupe(b, true); msg("Préparation de l'export par le serveur… (une à deux minutes)");
@@ -618,6 +629,8 @@ window.cfDefaut = () => {
   if (ONG === "consultation") { if (!confirm("Revenir au formulaire de consultation de départ ?\nLes champs ajoutés par le cabinet sont retirés (les valeurs déjà saisies restent dans les consultations).")) return; ED.consultation = baseConsult(); CE = null; modif(true); return; }
   if (ONG === "rcp") { if (!confirm("Effacer les dates de RCP (jours, heure, lieu, dates ajoutées et annulées) ?\nLes patients déjà inscrits gardent leur date.")) return; ED.rcp = RCP0(); modif(true); return; }
   if (ONG === "whatsapp") { if (!confirm("Rétablir tous les messages WhatsApp et le délai du bouton vert par défaut ?")) return; ED.wa = {}; ED.reg.whatsapp = copie(REGLAGES0.whatsapp); modif(true); return; }
+  if (ONG === "listes" && LS === "taches") { if (!confirm("Rétablir la liste des types de tâches de base ?")) return; ED.ttache = TYPES_TACHES0.slice(); modif(true); return; }
+  if (ONG === "listes" && LS === "documents") { if (!confirm("Rétablir la liste des types de documents de départ ?")) return; ED.tdoc = TYPES_DOCUMENTS0.slice(); modif(true); return; }
   if (ONG === "listes") { if (!confirm("Rétablir les listes de départ (diagnostics, mutuelles, correspondants) ?\nLes ajouts et corrections du cabinet seront perdus.")) return; ED.listes = { diag: LISTES0.diag.slice(), stade: STADES.slice(), grade: GRADES.slice(), mut: LISTES0.mut.slice().sort((a, z) => a.localeCompare(z, "fr")), cor: LISTES0.cor.slice().sort((a, z) => a.localeCompare(z, "fr")) }; ED.listesOrig = JSON.parse(JSON.stringify(ED.listes)); modif(true); return; }
   if (ONG === "impression") { if (!confirm("Rétablir les marges d'impression par défaut ?")) return; ED.reg.impression = copie(REGLAGES0.impression); modif(true); return; }
   if (ONG === "alertes") { if (!confirm("Rétablir les délais " + (A.D().membre.role === "assistante" ? "de la salle d'attente" : "des alertes et de la salle d'attente") + " par défaut ?")) return; if (A.D().membre.role !== "assistante") ED.reg.alertes = copie(REGLAGES0.alertes); ED.reg.salle = copie(REGLAGES0.salle); modif(true); return; }

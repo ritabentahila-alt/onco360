@@ -120,7 +120,7 @@ const netPer = (x, pr) => (x.fin || []).filter((e) => e[1] !== "rtprev" && e[0] 
 // Ouverture de la page (15 bis, 10/10/2026) : montants relus et bilan recalculé à chaque fois (avant : gardés depuis la 1re ouverture,
 // une cure validée ou un prix fixé ensuite n'apparaissaient qu'après « Actualiser »). Dernier bilan affiché tout de suite, puis mis à jour.
 export async function pagePageBilan() {
-  const msg = (t) => { A.$("page").innerHTML = '<section class="accueil"><div><h2>Bilan</h2></div></section><section class="carte"><p class="sous">' + t + "</p></section>"; };
+  const msg = (t) => { A.$("page").innerHTML = '<section class="carte"><p class="sous">' + t + "</p></section>"; }; // Lot B : plus de titre de page
   if (!A.peut("finances")) { msg("Le bilan est réservé au droit « finances »."); return; }
   if (!D().tarifs) { msg("Aucun tarif enregistré pour ce cabinet : " + (estComptable() ? "le médecin doit d'abord renseigner ses lieux et ses tarifs (Paramètres › Activités et rémunérations)." : 'renseignez vos lieux et vos tarifs dans <a href="#parametres/activites">Paramètres › Activités et rémunérations</a>.')); return; }
   const lire = () => (estComptable() ? chargerReleve() : charger());
@@ -192,9 +192,11 @@ function dessiner() {
   const sel = (id, v, opts, f) => '<select id="' + id + '" onchange="biF(\'' + f + '\',this.value)">' + opts.map((o) => '<option value="' + esc(o[0]) + '"' + (o[0] === v ? " selected" : "") + ">" + esc(o[1]) + "</option>").join("") + "</select>";
   const refs = [...new Set(R.map((x) => x.cor || ""))].sort((a, z) => a.localeCompare(z, "fr"));
   const etabs = (D().etabsTous || D().etabs).map((e) => [e.code, e.code]);
-  let h = '<section class="accueil"><div><h2>Bilan</h2><p>Du ' + A.dfrA(b.pr[0] > "0001" ? b.pr[0] : "") + " au " + A.dfrA(b.pr[1] < "9999" ? b.pr[1] : "") +
-    (estComptable() ? " · " + (RELEVE_LE ? "relevé à jour au " + dateHeureMaroc(RELEVE_LE.getTime()) : "aucun relevé : il est préparé quand un médecin ouvre Onco360") : "") + "</p></div>" +
-    '<div class="actions"><button class="bt clair" data-fn="bilan.exports" onclick="biExport(\'xlsx\')"><svg class="pi"><use href="#i-telecharger"/></svg>Excel</button><button class="bt clair" data-fn="bilan.exports" onclick="biExport(\'pdf\')"><svg class="pi"><use href="#i-telecharger"/></svg>PDF</button><button class="bt gris" onclick="biActualiser()"><svg class="pi"><use href="#i-actualiser"/></svg>Actualiser</button></div></section>' +
+  // Lot B (25/10/2026) : plus de titre ni de période en sous-titre (elle reste dans les filtres) ; Excel, PDF, Actualiser à droite ; pour le comptable,
+  // l'état du relevé passe sous Actualiser
+  let h = '<div class="barre-page"><div class="bp-act"><button class="bt clair" data-fn="bilan.exports" onclick="biExport(\'xlsx\')"><svg class="pi"><use href="#i-telecharger"/></svg>Excel</button><button class="bt clair" data-fn="bilan.exports" onclick="biExport(\'pdf\')"><svg class="pi"><use href="#i-telecharger"/></svg>PDF</button>' +
+    '<span class="bp-maj"><button class="bt gris" onclick="biActualiser()"><svg class="pi"><use href="#i-actualiser"/></svg>Actualiser</button>' +
+    (estComptable() ? '<span class="mesures" id="biReleve">' + (RELEVE_LE ? "relevé à jour au " + dateHeureMaroc(RELEVE_LE.getTime()) : "aucun relevé : il est préparé quand un médecin ouvre Onco360") + "</span>" : "") + "</span></div></div>" +
     '<section class="carte" data-fn="bilan.filtres"><div class="form" style="grid-template-columns:repeat(auto-fit,minmax(190px,1fr))">' +
     "<div><label>Période</label>" + sel("biPer", F.per, periodes(R), "per") + "</div>" +
     (F.per === "perso" ? '<div><label>Du</label><input type="date" value="' + esc(F.du) + '" onchange="biF(\'du\',this.value)"></div><div><label>Au</label><input type="date" value="' + esc(F.au) + '" onchange="biF(\'au\',this.value)"></div>' : "") +

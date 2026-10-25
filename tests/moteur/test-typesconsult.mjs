@@ -17,5 +17,9 @@ const E = T.referentiel(T.aEnregistrer(L2.filter((t) => t.k !== "rtf")), {});
 v(E.some((t) => t.k === "rtf") && E.find((t) => t.k === "suivi").nom === "Consultation de surveillance" && E.find((t) => t.k === "suivi").anciens.length === 1, "liste enregistrée relue ; type de base manquant remis");
 v(T.nouvelleCle(L, "2nd avis") === "2ndavis" && T.nouvelleCle(L, "Annonce") === "annonce2", "nouvelle clé unique");
 v(T.referentiel(null, { journal: ["Consultation annonce"] }).find((t) => t.k === "annonce").anciens[0] === "Consultation annonce", "ancien libellé « Consultation annonce » rattaché au type « annonce »");
+// Lot D (25/10/2026) : RCP et Note du secrétariat = notes du journal, jamais en rendez-vous, même enregistrées « pris en rendez-vous »
+const LN = T.referentiel([{ k: "jrcp", nom: "RCP", rdv: true }, { k: "jnotedusecretariat", nom: "Note du secrétariat" }, { k: "2avis", nom: "2nd avis", rdv: true }], {});
+v(T.estNote("RCP") && T.estNote("note du secrétariat") && !T.estNote("Consultation de suivi"), "estNote : RCP et Note du secrétariat");
+v(!LN.find((t) => t.k === "jrcp").rdv && !LN.find((t) => t.k === "jnotedusecretariat").rdv && LN.find((t) => t.k === "2avis").rdv && T.typesPourRdv(LN).every((o) => o.lib !== "RCP" && o.lib !== "Note du secrétariat"), "notes jamais proposées au rendez-vous (liste enregistrée)", LN);
 console.log(ko ? "❌ " + ko + " échec(s), " + ok + " réussis" : "✅ référentiel des types : " + ok + " réussis");
 process.exit(ko ? 1 : 0);

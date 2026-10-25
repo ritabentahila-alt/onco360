@@ -48,8 +48,10 @@ nav a.actif{background:var(--prim);color:#fff}
 nav a.actif .i{color:#fff}
 .pied{margin-top:auto;border-top:1px solid var(--trait);padding-top:14px}
 .qui{display:flex;align-items:center;gap:10px;padding:0 6px 12px}
+/* Lot B (25/10/2026) : le bloc du bas du menu (photo, nom, spécialité) est un bouton qui ouvre le menu du compte (Mon compte, Déconnexion) */
+.pied .qui{padding:6px;margin:0 0 2px;width:100%;border:0;background:none;border-radius:var(--r-m);text-align:left;cursor:pointer;font:inherit;color:inherit;min-height:44px}.pied .qui:hover,.pied .qui[aria-expanded="true"]{background:var(--gris-cc)}.qui-t{min-width:0}
 .av{width:40px;height:40px;border-radius:50%;background:var(--prim-c);color:var(--prim);display:grid;place-items:center;font-weight:bold;font-size:14px;flex:none}
-.qui b{display:block;font-size:var(--t4);color:var(--titre)}.qui span{font-size:var(--t3);color:var(--doux)}
+.qui b{display:block;font-size:var(--t4);color:var(--titre)}.qui span{font-size:var(--t3);color:var(--doux)}.qui-t>span{display:block}
 .cab-pt{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--orange-v);margin-left:4px;vertical-align:middle}.cab-choix{padding:0 6px 12px}.cab-choix label{display:block;font-size:var(--t2);color:var(--doux);margin:0 0 4px 2px}.cab-choix select{width:100%;font-weight:bold;color:var(--titre);border:1px solid var(--trait);border-radius:var(--r-m);padding:8px 10px;background:#fff}
 .sortie{width:100%;display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--trait);background:#fff;border-radius:var(--r-m);color:var(--encre);font-weight:bold}
 .voile{position:fixed;inset:0;background:rgba(30,42,68,.35);z-index:35}
@@ -61,12 +63,12 @@ nav a.actif .i{color:#fff}
   body.menu-replie{--menu:76px}
   body.menu-replie #menu{padding-left:10px;padding-right:10px}
   body.menu-replie .marque{flex-direction:column;padding:0 0 18px;gap:12px}
-  body.menu-replie .marque b,body.menu-replie .cab-choix,body.menu-replie .qui>div:not(.av){display:none}
+  body.menu-replie .marque b,body.menu-replie .cab-choix,body.menu-replie .qui>div:not(.av),body.menu-replie .qui-t{display:none}
   body.menu-replie .replier{margin-left:0}body.menu-replie .replier .i{transform:rotate(180deg)}
   body.menu-replie nav a{font-size:0;gap:0;justify-content:center;padding:11px 0;position:relative}
   body.menu-replie nav a .nb-menu{position:absolute;top:2px;right:2px;min-width:17px;height:17px;padding:0 4px;font-size:var(--t1)}
   body.menu-replie .qui{justify-content:center;padding:0 0 12px}
-  body.menu-replie .sortie{font-size:0;gap:0;justify-content:center;padding:10px 0}
+  body.menu-replie #menu .sortie{font-size:0;gap:0;justify-content:center;padding:10px 0}
 }
 /* ── Onglets sur une ligne qui défile vers la droite (Paramètres, Profil) ── */
 .ag-vues.defile{flex-wrap:nowrap;overflow-x:auto;max-width:100%;scrollbar-width:thin;scroll-behavior:smooth;overscroll-behavior-x:contain}
@@ -1212,6 +1214,49 @@ textarea.rtr-in{resize:vertical;min-height:44px}.rtr-lab{display:block;margin:12
 .rtr-ctr .rtr-det td{background:var(--fond)}.rtr-ctr .rtr-det .rtr-edt td{min-width:0;background:none}.rtr-ctr .rtr-det .actr{justify-content:space-between}
 .rtr-ed2 .rtr-sim2 .rtr-in:first-child{flex:0 0 180px}.rtr-oare li{break-inside:avoid}.rtr-oare .mini{padding:2px 6px;min-height:0}.rtr-ctedit td{min-width:0}.rtr-ctedit td:first-child{min-width:180px}
 @media (max-width:640px){.rtr-ed2 .rtr-sim2{flex-wrap:wrap}.rtr-ed2 .rtr-sim2 .rtr-in:first-child{flex:1 1 100%}.rtr-ctr td:not(:first-child){min-width:0}}
+/* ───── Lot B (25/10/2026) : pages sans titre ; barre de page (ligne 1 : vue à gauche, actions à droite, l'action principale en dernier) et barre
+   de filtres (ligne 2) ; « à jour à … » sous Actualiser ; menu du compte (Mon compte, Déconnexion) ; Paramètres en icône dans la barre du haut ───── */
+.barre-page{display:flex;align-items:center;gap:8px 16px;flex-wrap:wrap;min-width:0}
+.barre-page .bp-vue{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0;flex:1 1 auto}
+.barre-page .bp-act{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.barre-page>.ag-vues{align-self:auto!important}
+.bp-maj{display:inline-flex;flex-direction:column;align-items:center;gap:2px}.bp-maj>.mesures{font-size:var(--t1);line-height:1.15;white-space:nowrap;margin:0}
+.bp-maj>.mesures:empty{display:none}
+@media (max-width:640px){.barre-page .bp-act{margin-left:0;width:100%;justify-content:stretch}.barre-page .bp-act>.bt.plein{flex:1;justify-content:center}}
+.liste-tete{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:0 0 8px}.liste-tete .sous{margin:0}
+.pr-rech .champ{min-height:40px}.pr-barre .bp-vue{flex:1 1 420px}
+.cf-modele{margin:-4px 0 0}
+/* Agenda : Actualiser (et l'heure dessous) puis « + Nouveau rendez-vous » au bout de la barre */
+.ag-barre{justify-content:flex-start}.ag-droite{margin-left:auto;display:flex;align-items:center;gap:8px}.ag-act{flex-direction:column;gap:2px}.ag-act .mesures{font-size:var(--t1);line-height:1.15}.ag-act .mesures:empty{display:none}
+.ag-nouv .sm{display:none}
+@media (max-width:1599px){body:not(.menu-replie) .ag-nouv .lg{display:none}body:not(.menu-replie) .ag-nouv .sm{display:inline}}
+@media (max-width:1419px){.ag-nouv .lg{display:none}.ag-nouv .sm{display:inline}}
+@media (max-width:640px){.ag-droite{margin-left:0;width:100%}.ag-nouv{flex:1;justify-content:center}}
+/* Salle d'attente : ligne 1 (jour à gauche ; Patient suivant, Actualiser, ⋯ à droite), ligne 2 (recherche, période, établissement, médecin, tri) */
+.sa-l1{align-items:center}.sa-l1>.sa-jours{flex:1 1 auto;min-width:0}
+.sa-l1 .bp-act{flex-wrap:nowrap}
+.sa-plus>summary.sa-pts{position:relative;min-width:44px;justify-content:center;font-size:var(--t6);letter-spacing:1px}
+.sa-pts-n{position:absolute;top:-6px;right:-6px;min-width:18px;height:18px;padding:0 4px;border-radius:9px;background:var(--orange-v);color:#fff;font-size:var(--t1);font-weight:bold;display:grid;place-items:center;letter-spacing:0}
+.sa-plus .m3-l .mini{display:flex;align-items:center;gap:8px;min-height:40px}.sa-plus .m3-l .mini .i{width:16px;height:16px}
+.sa-outils.barre-filtres .sa-per{flex:none}
+@media (max-width:640px){.sa-l1 .bp-act{flex-wrap:wrap}}
+/* Menu du compte */
+.menu-compte{position:fixed;z-index:60;min-width:230px;background:#fff;border:1px solid var(--trait);border-radius:var(--r-m);box-shadow:var(--ombre-h);padding:6px;display:flex;flex-direction:column;gap:2px}
+.menu-compte.cache{display:none}
+.menu-compte .mc-nom{padding:8px 10px 6px;font-weight:bold;color:var(--titre);border-bottom:1px solid var(--trait);margin-bottom:4px}
+.menu-compte a,.menu-compte .sortie{display:flex;align-items:center;gap:10px;min-height:44px;padding:0 10px;border:0;border-radius:var(--r-s);background:none;color:var(--encre);font-weight:normal;text-decoration:none;font-size:var(--t5);width:100%;cursor:pointer}
+.menu-compte a:hover,.menu-compte .sortie:hover,.menu-compte a:focus-visible,.menu-compte .sortie:focus-visible{background:var(--gris-cc)}
+.menu-compte .i{width:18px;height:18px}
+#avTete{border:0;padding:0;cursor:pointer;overflow:hidden}#avTete:focus-visible,#btCompte:focus-visible{outline:2px solid var(--prim);outline-offset:2px}
+#btParam.on{background:var(--prim-c);border-color:var(--prim-cc);color:var(--prim)}
+body.role-comptable #btParam{display:none}
+@media (max-width:767px){#tete #btParam{width:44px;height:44px}}
+/* ───── Lot D (25/10/2026) : « ⋯ » des lignes de bibliothèque ouvertes depuis le dossier (Modifier, Supprimer) ───── */
+details.m3.bib-pts{margin-left:4px;vertical-align:middle;display:inline-block}.md-t td.act>.ico{vertical-align:middle}details.m3.bib-pts>summary.ico{display:inline-grid;margin-left:0;font-size:var(--t5);letter-spacing:1px}
+.bib-pts .m3-l .mini{display:flex;align-items:center;gap:8px;min-height:36px}.bib-pts .m3-l .pi{width:15px;height:15px;margin:0}
+/* Lot D : police de l'ordonnance (mêmes classes à l'impression : CSS_POLICES d'ordonnances.js) */
+.or-fa{font-family:Arial,Helvetica,sans-serif}.or-fh{font-family:Helvetica,Arial,sans-serif}.or-ft{font-family:"Times New Roman",Times,serif}.or-fg{font-family:Georgia,serif}.or-fv{font-family:Verdana,sans-serif}
+.or-outils .or-pol{height:32px;padding:0 8px;border:1px solid var(--trait);border-radius:8px;background:#fff;font-size:var(--t3);color:var(--titre);margin-left:4px;max-width:170px}
 </style>
 </head>
 <body>
@@ -1280,16 +1325,15 @@ textarea.rtr-in{resize:vertical;min-height:44px}.rtr-lab{display:block;margin:12
     <a href="#rcp" data-p="rcp" data-mod="rcp"><svg class="i"><use href="#i-rcp"/></svg>RCP<span class="nb-menu cache" id="nbRcp"></span></a>
     <a href="#protocoles" data-p="protocoles" data-mod="chimio" data-fn="chimio.protocoles" data-bib="protocoles"><svg class="i"><use href="#i-protocoles"/></svg>Protocoles</a>
     <a href="#radiotherapie" data-p="radiotherapie" data-mod="rt" data-fn="rt.referentiel"><svg class="i"><use href="#i-radiation"/></svg>Radiothérapie</a>
-    <a href="#parametres" data-p="parametres"><svg class="i"><use href="#i-parametres"/></svg>Paramètres</a>
     <a href="#bilan" data-p="bilan" data-droit="finances" data-mod="bilan"><svg class="i"><use href="#i-bilan"/></svg>Bilan</a>
-    <a href="#profil" data-p="profil"><svg class="i"><use href="#i-profil"/></svg>Mon compte</a>
   </nav>
+  <!-- Lot B (25/10/2026) : Mon compte et Déconnexion dans le menu du compte, ouvert par le nom ou la photo (en bas du menu, ou en haut à droite) -->
   <div class="pied">
-    <div class="qui"><div class="av" id="avMenu">··</div><div><b id="nomMenu">…</b><span id="specMenu"></span></div></div>
-    <button class="sortie" id="btSortie"><svg class="i"><use href="#i-sortie"/></svg>Déconnexion</button>
+    <button type="button" class="qui" id="btCompte" aria-haspopup="menu" aria-expanded="false" aria-controls="menuCompte"><span class="av" id="avMenu">··</span><span class="qui-t"><b id="nomMenu">…</b><span id="specMenu"></span></span></button>
   </div>
 </aside>
 <div class="voile cache" id="voile"></div>
+<div class="menu-compte cache" id="menuCompte" role="menu" aria-label="Mon compte"><div class="mc-nom" id="mcNom"></div><a href="#profil" role="menuitem" id="mcCompte"><svg class="i"><use href="#i-profil"/></svg>Mon compte</a><button type="button" role="menuitem" class="sortie" id="btSortie"><svg class="i"><use href="#i-sortie"/></svg>Déconnexion</button></div>
 <!-- R-G e : avant #zone, pour que les identifiants de la fenêtre (fOk, fErr…) passent avant ceux du panneau de chimio / RT -->
 <div id="fenetre" class="cache" role="dialog" aria-modal="true"><div class="boite" id="fenetreCorps"></div></div>
 
@@ -1299,8 +1343,9 @@ textarea.rtr-in{resize:vertical;min-height:44px}.rtr-lab{display:block;margin:12
     <h1 id="titrePage">Tableau de bord</h1>
     <div class="tr-pil" id="trPil" role="search"><svg class="i"><use href="#i-loupe"/></svg><input id="trQ" type="search" autocomplete="off" placeholder="Rechercher un patient" aria-label="Rechercher un patient (nom, n° de dossier, téléphone)"><div id="trRes" class="tr-res cache" role="listbox"></div><button type="button" class="tr-x" id="trX" aria-label="Fermer la recherche"><svg class="i"><use href="#i-croix"/></svg></button></div>
     <button class="rond tr-loupe" id="trLoupe" aria-label="Rechercher un patient" aria-expanded="false" aria-controls="trPil"><svg class="i"><use href="#i-loupe"/></svg></button>
+    <button class="rond" id="btParam" aria-label="Paramètres" title="Paramètres" onclick="location.hash='parametres'"><svg class="i"><use href="#i-parametres"/></svg></button>
     <button class="rond" id="cloche" aria-label="Alertes"><svg class="i"><use href="#i-cloche"/></svg><span class="pastille cache" id="nbAl"></span></button>
-    <div class="av" id="avTete">··</div>
+    <button type="button" class="av" id="avTete" aria-haspopup="menu" aria-expanded="false" aria-controls="menuCompte">··</button>
     <div id="panneauAlertes" class="cache" role="dialog" aria-label="Alertes"></div>
   </header>
   <main id="page"><div class="chargement">Chargement de vos données…</div></main>

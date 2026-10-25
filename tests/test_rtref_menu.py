@@ -70,7 +70,7 @@ async def main():
             ok(not pg.errs, lib + ' : aucune erreur JavaScript', pg.errs[:2]); await pg.close()
         # Comptable, même avec « voir » : jamais
         pg = await page(b, jeu(lambda s: s.__setitem__(E + 'membres/UIDCOMP', membre('comptable', {'finances': True, 'referentielRT': 'voir'}))), 'UIDCOMP'); ev = pg.evaluate
-        ok(await ev(MENU) == ['bilan', 'profil'], 'comptable (« voir ») : menu Bilan et Profil seulement', await ev(MENU))
+        ok(await ev(MENU) == ['bilan'], 'comptable (« voir ») : menu Bilan seulement (Mon compte : menu du nom, lot B)', await ev(MENU))
         await ev("location.hash='radiotherapie'"); await pg.wait_for_timeout(1000)
         ok('Bilan' in await ev("document.getElementById('titrePage').textContent"), 'comptable : #radiotherapie → Bilan'); await pg.close()
         # Fonction coupée, module retiré

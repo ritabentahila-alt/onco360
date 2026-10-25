@@ -22,7 +22,7 @@ async def main():
         fam = await ev("[...document.querySelectorAll('.cf-sous button')].map(b=>b.innerText.trim())")
         md = await ev("Object.fromEntries([...document.querySelectorAll('.ty-l:not(.ty-h)')].map(l=>[l.querySelector('.ty-n').value,l.querySelector('select').value]))")
         ok(md.get('Consultation de suivi') == 'main' and md.get('Consultation en cours de radiothérapie') == 'office' and md.get('RCP') == 'sans' and not await ev("[...document.querySelectorAll('.ty-l select option')].some(o=>/^Créneau du lieu/.test(o.textContent))"), '3.13 bis : « Comment il est prévu » ; durée réelle de chaque type (plus de « créneau du lieu »)', md)
-        ok(fam == ['Fiche patient', 'Formulaire de consultation', 'Types de consultation', 'Listes de la fiche', 'Affichage du dossier'], 'famille Dossier patient', fam)
+        ok(fam == ['Fiche patient', 'Formulaire de consultation', 'Types de consultation', 'Affichage du dossier'], 'famille Dossier patient (Listes : dans Bibliothèques, lot D)', fam)
         i = L.index('Consultation de suivi')
         await ev(f"(()=>{{const e=document.querySelectorAll('.ty-l:not(.ty-h) .ty-n')[{i}];e.value='Consultation de surveillance';e.dispatchEvent(new Event('change'))}})()"); await pg.wait_for_timeout(300)
         i = (await ev(nomsTy)).index('Consultation de contrôle')

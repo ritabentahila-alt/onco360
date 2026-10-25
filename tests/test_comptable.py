@@ -22,9 +22,9 @@ async def main():
         S2 = {k: v for k, v in S2.items() if True}
         pc = await ouvrir(b, S2); await pc.add_init_script("window.__uid='UIDCOMP'")
         await pc.goto(f'http://localhost:{PORT}/v2.html#accueil'); await pc.wait_for_timeout(2500)
-        ok(pc.url.endswith('#accueil') and 'Bilan' in await pc.inner_text('#page') and 'relevé à jour au' in await pc.inner_text('#page'), 'le comptable arrive sur le Bilan (relevé daté)')
+        ok(pc.url.endswith('#accueil') and await pc.inner_text('#titrePage') == 'Bilan' and 'relevé à jour au' in await pc.inner_text('#page'), 'le comptable arrive sur le Bilan (relevé daté)')
         vis = await pc.evaluate("[...document.querySelectorAll('nav a')].filter(a=>a.offsetParent!==null).map(a=>a.dataset.p)")
-        ok(vis == ['bilan', 'profil'], 'menu : Bilan et Profil seulement ' + str(vis))
+        ok(vis == ['bilan'], 'menu : Bilan seulement (Mon compte : menu du compte, lot B du 25/10/2026) ' + str(vis))
         await pc.select_option('#biPer', 'annee'); await pc.wait_for_timeout(400)
         k_comp = (await pc.evaluate("[...document.querySelectorAll('.kpi .k')].map(e=>e.textContent)"))
         ok(k_comp and k_comp[0] == k_med[0] and REF_BILAN in k_comp[0].replace('\u202f', ' ').replace('\xa0', ' '), 'même bilan que le médecin : ' + (k_comp[0] if k_comp else '?'))
@@ -32,10 +32,10 @@ async def main():
         ok(await pc.evaluate("!document.querySelector('#page [onclick*=ouvrirDossier]')"), 'aucun lien vers un dossier')
         pid = [k.split('/')[-1] for k in S if k.startswith(E + 'patients/')][0]
         await pc.evaluate(f"location.hash='dossier/{pid}'"); await pc.wait_for_timeout(800)
-        ok('Bilan' in await pc.inner_text('#page'), 'dossier demandé → renvoyé au Bilan')
+        ok(await pc.inner_text('#titrePage') == 'Bilan' and await pc.evaluate("!!document.querySelector('#page .kpi')"), 'dossier demandé → renvoyé au Bilan')
         for h in ['patients', 'agenda', 'parametres', 'taches']:
             await pc.evaluate(f"location.hash='{h}'"); await pc.wait_for_timeout(300)
-        ok('Bilan' in await pc.inner_text('#page'), 'patients, agenda, paramètres, tâches → Bilan')
+        ok(await pc.inner_text('#titrePage') == 'Bilan' and await pc.evaluate("!!document.querySelector('#page .kpi')"), 'patients, agenda, paramètres, tâches → Bilan')
         cases = "JSON.stringify(Object.keys(window.__fs).filter(k=>/finances\\/paiements/.test(k)).sort().map(k=>[k,window.__fs[k].data]))"  # R-D4 : un document par année
         av = await pc.evaluate(cases)
         await pc.evaluate("location.hash='bilan'"); await pc.wait_for_timeout(600); await pc.select_option('#biPer', 'annee'); await pc.wait_for_timeout(300)

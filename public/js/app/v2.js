@@ -832,8 +832,9 @@ function route() {
   const h = location.hash.replace("#", ""), i = h.indexOf("/"), p = i < 0 ? h : h.slice(0, i), arg = i < 0 ? null : decodeURIComponent(h.slice(i + 1)), nom = PAGES[p] && module(PAGE_MODULE[p] || "") && !(p === "protocoles" && D.reg && D.reg.fonctions["chimio.protocoles"] === false) && (p !== "radiotherapie" || voitRefRT()) && (!estComptable() || PAGES_COMPTABLE.indexOf(p) >= 0) && (!D.bib || PAGES_BIB.indexOf(p) >= 0) ? p : estComptable() ? "bilan" : D.bib ? "protocoles" : "accueil";
   if (!$("fenetre").classList.contains("cache")) window.fermerFenetre();
   fermerPanneau(true); $("page").classList.toggle("p-dos", nom === "dossier"); menuDossier(nom === "dossier"); // R-G : panneau fermé, menu replié dans le dossier seulement
-  D.page = nom + (arg ? "/" + encodeURIComponent(arg) : ""); $("titrePage").textContent = PAGES[nom][0]; $("page").classList.toggle("large", nom === "agenda");
+  D.page = nom + (arg ? "/" + encodeURIComponent(arg) : ""); $("titrePage").textContent = nom === "parametres" && D.bib ? "Paramètres du modèle" : PAGES[nom][0]; $("page").classList.toggle("large", nom === "agenda");
   document.querySelectorAll("nav a").forEach((a) => a.classList.toggle("actif", a.dataset.p === (nom === "dossier" ? "patients" : nom)));
+  $("btParam").classList.toggle("on", nom === "parametres"); $("mcCompte").classList.toggle("actif", nom === "profil"); // Lot B : Paramètres et Mon compte hors du menu
   if (nom === "dossier" && arg) { delete ONGLET[arg]; oublierConsultations(arg); oublierDocs(arg); oublierFichiers(arg); } // dossier ouvert : onglet Consultation, consultations relues
   PAGES[nom][1](arg); window.scrollTo(0, 0);
   if (!estComptable() && !D.bib) presenceDossier(nom === "dossier" ? arg : null); // « Dossier ouvert par » (salle d'attente)
@@ -1084,9 +1085,9 @@ function pagePatients(filtre) {
   D.patients.forEach((x) => { (x.r.act || []).forEach((a) => { protos[a.nom.replace(/ · J\d+$/, "")] = 1; }); if (x.r.t && x.r.t.st === "cours") protos[x.r.t.nom] = 1; });
   const opts = Object.entries(FILTRES).map(([k, v]) => '<option value="' + k + '">' + v[0] + "</option>").join("") +
     '<optgroup label="Protocoles en cours">' + Object.keys(protos).sort().map((p) => '<option value="p:' + esc(p) + '">Sous ' + esc(p) + "</option>").join("") + "</optgroup>";
-  $("page").innerHTML = '<section class="accueil"><div><h2>Patients</h2><p>Retrouvez et gérez vos dossiers patients.</p></div><div class="actions"><button class="bt plein" onclick="nouveauPatient()">' + ic("plus") + "Nouveau patient</button></div></section>" +
-    '<div class="filtres"><div class="recherche">' + ic("loupe") + '<input id="q" type="search" placeholder="Rechercher un patient…" title="Nom, prénom, date de naissance, numéro de dossier, diagnostic, protocole" autocomplete="off"></div><select id="flt">' + opts + "</select>" + (hopsVus().length > 1 ? '<select id="fhop" aria-label="Hôpital"><option value="">Tous les hôpitaux</option>' + hopsVus().map((e) => '<option value="' + esc(e.code) + '">' + esc(e.code + " – " + e.nom) + "</option>").join("") + "</select>" : "") + "</div>" +
-    '<section class="carte"><div class="sous" id="nbRes" style="margin:0 0 6px"></div><div id="lst"></div></section>';
+  // Lot B (25/10/2026) : plus de titre ; les filtres d'abord, puis « + Nouveau patient » en tête de la liste, à droite du nombre de patients
+  $("page").innerHTML = '<div class="filtres barre-filtres"><div class="recherche">' + ic("loupe") + '<input id="q" type="search" placeholder="Rechercher un patient…" title="Nom, prénom, date de naissance, numéro de dossier, diagnostic, protocole" autocomplete="off"></div><select id="flt">' + opts + "</select>" + (hopsVus().length > 1 ? '<select id="fhop" aria-label="Hôpital"><option value="">Tous les hôpitaux</option>' + hopsVus().map((e) => '<option value="' + esc(e.code) + '">' + esc(e.code + " – " + e.nom) + "</option>").join("") + "</select>" : "") + "</div>" +
+    '<section class="carte"><div class="liste-tete"><div class="sous" id="nbRes"></div><button class="bt plein" onclick="nouveauPatient()">' + ic("plus") + "Nouveau patient</button></div><div id=\"lst\"></div></section>";
   // 3.1 et 3.3 (12/10/2026) : filtres par statut, localisation et stade (fiche tumeur), proposés s'il y a des valeurs
   const ex = (x, k) => (((x.doc.clinique || {}).extra) || {})[k] || "", vus = (k, ref) => ref.filter((v) => D.patients.some((x) => ex(x, k) === v));
   const sel = (id, lib, l) => (l.length ? '<select id="' + id + '" aria-label="' + lib + '"><option value="">' + lib + "</option>" + l.map(([v, t]) => '<option value="' + esc(v) + '">' + esc(t) + "</option>").join("") + "</select>" : "");
@@ -2187,4 +2188,24 @@ document.addEventListener("wheel", (e) => {
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") { fermerMenu(); $("panneauAlertes").classList.add("cache"); } });
 $("cloche").onclick = (e) => { e.stopPropagation(); $("panneauAlertes").classList.toggle("cache"); };
 document.addEventListener("click", (e) => { if (!$("panneauAlertes").contains(e.target)) $("panneauAlertes").classList.add("cache"); });
-$("btSortie").onclick = async () => { if (!confirm("Se déconnecter d'Onco360 sur cet appareil ?")) return; await signOut(auth); location.replace("index.html"); };
+// Lot B (25/10/2026) : menu du compte (Mon compte, Déconnexion), ouvert par le nom ou la photo en bas du menu, ou par la photo en haut à droite
+function menuCompte(ouvrir, depuis) {
+  const m = $("menuCompte"), bts = [$("btCompte"), $("avTete")];
+  if (!ouvrir) { if (!m.classList.contains("cache")) { m.classList.add("cache"); bts.forEach((b) => b.setAttribute("aria-expanded", "false")); } return; }
+  $("mcNom").textContent = $("nomMenu").textContent;
+  m.classList.remove("cache"); depuis.setAttribute("aria-expanded", "true");
+  const r = depuis.getBoundingClientRect(), w = m.offsetWidth, h = m.offsetHeight, haut = depuis.id === "avTete";
+  m.style.left = Math.max(8, Math.min(window.innerWidth - w - 8, haut ? r.right - w : r.left)) + "px";
+  m.style.top = Math.max(8, haut ? r.bottom + 6 : r.top - h - 6) + "px";
+  const pr = m.querySelector("a,button"); if (pr) pr.focus();
+}
+["btCompte", "avTete"].forEach((i) => { $(i).onclick = (ev) => { ev.stopPropagation(); const ouv = !$("menuCompte").classList.contains("cache"); menuCompte(false); if (!ouv) menuCompte(true, $(i)); }; });
+document.addEventListener("click", (ev) => { if (!ev.target.closest("#menuCompte")) menuCompte(false); });
+document.addEventListener("keydown", (ev) => {
+  if (ev.key !== "Escape") return;
+  if (!$("menuCompte").classList.contains("cache")) { menuCompte(false); ($("btCompte").offsetParent ? $("btCompte") : $("avTete")).focus(); return; }
+  document.querySelectorAll("details.m3[open]").forEach((d) => d.removeAttribute("open")); // Échap ferme aussi un menu ⋯ ouvert
+});
+$("mcCompte").onclick = () => { menuCompte(false); fermerMenu(); };
+window.addEventListener("resize", () => menuCompte(false));
+$("btSortie").onclick = async () => { menuCompte(false); if (!confirm("Se déconnecter d'Onco360 sur cet appareil ?")) return; await signOut(auth); location.replace("index.html"); };

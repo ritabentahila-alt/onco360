@@ -171,7 +171,7 @@ function periodeDefaut() {
 // R-B1 (19/10/2026, demande du 17/10) : page « RCP » du menu principal, juste sous Tâches (avant : onglet de la page Tâches, #taches/rcp
 // y renvoie) ; même contenu : calendrier des semaines, période, Tous / À faire / Faits, case Fait, impression
 export function pageRcpMenu() {
-  $("page").innerHTML = '<section class="accueil"><div><h2>RCP</h2><p>Réunions de concertation pluridisciplinaire : dossiers inscrits, décisions.</p></div></section>' + htmlOngletRcp();
+  $("page").innerHTML = htmlOngletRcp(); // Lot B (25/10/2026) : plus de titre de page, les onglets de la RCP en haut
   pageRcp(); majBadgeRcp();
 }
 const majBadgeRcp = () => { const e = $("nbRcp"), n = nbRcpAFaire(); if (e) { e.textContent = n; e.classList.toggle("cache", !n); e.title = n + " inscription" + (n > 1 ? "s" : "") + " en RCP sans décision"; } };

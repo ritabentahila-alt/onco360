@@ -17,7 +17,8 @@ async def main():
         await pg.goto(f'http://localhost:{PORT}/v2.html#accueil'); await pg.wait_for_timeout(3500)
         lo, cl, pil = await ev(R('#trLoupe')), await ev(R('#cloche')), await ev(R('#trPil'))
         ok(lo and lo[4] != 'none' and lo[2] >= 44 and lo[3] >= 44, 'téléphone : loupe ronde visible, 44 px', lo)
-        ok(lo and cl and lo[0] + lo[2] <= cl[0] and cl[0] - (lo[0] + lo[2]) <= 16 and abs(lo[1] - cl[1]) <= 2 and lo[2] == cl[2], 'loupe juste à gauche de la cloche, même taille', (lo, cl))
+        pa = await ev(R('#btParam'))  # lot B (25/10/2026) : icône Paramètres entre la recherche et la cloche
+        ok(lo and cl and pa and lo[0] + lo[2] <= pa[0] and pa[0] + pa[2] <= cl[0] and cl[0] - (lo[0] + lo[2]) <= 16 + pa[2] + 16 and abs(lo[1] - cl[1]) <= 2 and lo[2] == cl[2] == pa[2], 'loupe, Paramètres puis cloche, même taille', (lo, pa, cl))
         ok(pil[4] == 'none', 'la pilule de l\'ordinateur reste cachée', pil)
         await pg.tap('#trLoupe') if False else await pg.click('#trLoupe'); await pg.wait_for_timeout(300)
         pil = await ev(R('#trPil'))

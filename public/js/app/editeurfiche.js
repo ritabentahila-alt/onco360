@@ -12,7 +12,7 @@ const caseC = (attr, on, txt) => '<label class="rg-c"><input type="checkbox" ' +
 // ajoutés propres au cabinet (cabinet: true) modifiables. FI = fiche effective (ficheEffective), modifiée sur place.
 // Même éditeur pour le formulaire de consultation (16.7) : cs = true (catalogue CONSULT, types en plus : texte long, titre de section,
 // unité d'un nombre ; liste de choix des champs existants modifiable ; ni partie, ni impression, ni en-tête).
-// o (3.11) : { ouvrirListe(cle) } = ouvre la liste du cabinet d'un champ (Paramètres › Dossier patient › Listes) ; sans : texte d'aide
+// o (3.11) : { ouvrirListe(cle) } = ouvre la liste du cabinet d'un champ (Paramètres › Bibliothèques › Listes) ; sans : texte d'aide
 export function editeurFiche(FI, mode, cs, o) {
   o = o || {};
   // 3.12 (12/10/2026) : formulaires de consultation nommés (onglets) ; listes rendues explicites à l'ouverture (un champ retiré n'est dans aucun)
@@ -54,7 +54,7 @@ export function editeurFiche(FI, mode, cs, o) {
       '<div><label for="' + P + 'Partie">Partie de la fiche</label><select id="' + P + 'Partie"' + (partieFixe ? " disabled" : "") + ">" + partiesF().map(([v, l]) => '<option value="' + v + '"' + (c.section === v ? " selected" : "") + ">" + l + "</option>").join("") + "</select></div>" +
       (ent ? "" : '<div><label for="' + P + 'Court">Libellé court dans le bandeau (facultatif)</label><input id="' + P + 'Court" maxlength="14" value="' + esc((FI.courts || {})[k] || "") + '" placeholder="ex. Corresp., Mut."></div>') +
       '<div id="' + P + 'UniteZ"' + (c.type === "nombre" ? "" : ' style="display:none"') + '><label for="' + P + 'Unite">Unité (facultatif)</label><input id="' + P + 'Unite" value="' + esc(c.unite || "") + '" placeholder="ex. kg, cm, %"' + (fixe && c.unite ? " disabled" : "") + "></div>" +
-      (c.liste ? '<div class="large"><label>Liste</label><div>' + (o.ouvrirListe ? '<button class="clair petit" type="button" id="' + P + 'Liste" data-liste="' + c.liste + '">Modifier la liste' + (nbListe(c.liste) != null ? " (" + nbListe(c.liste) + " choix)" : "") + "</button>" : '<span class="mesures">Liste du cabinet (Paramètres › Dossier patient › Listes)</span>') + "</div></div>"
+      (c.liste ? '<div class="large"><label>Liste</label><div>' + (o.ouvrirListe ? '<button class="clair petit" type="button" id="' + P + 'Liste" data-liste="' + c.liste + '">Modifier la liste' + (nbListe(c.liste) != null ? " (" + nbListe(c.liste) + " choix)" : "") + "</button>" : '<span class="mesures">Liste du cabinet (Paramètres › Bibliothèques › Listes)</span>') + "</div></div>"
         : '<div class="large" id="' + P + 'ChoixZ"' + (c.type === "choix" ? "" : ' style="display:none"') + '><label for="' + P + 'Choix">Choix possibles (un par ligne)</label><textarea id="' + P + 'Choix" rows="5">' + esc((c.choix || []).join("\n")) + "</textarea></div>") + "</div>" +
       (c.type === "ouinonp" || !fixe ? '<p class="mesures" style="margin:4px 0 0">« Oui / Non + précision » : la case de précision s\'ouvre si « Oui ».</p>' : "") +
       '<div class="barre" style="margin-top:6px">' + caseC('id="' + P + 'Imp"', !!c.imprimer, "À imprimer (fiche chimio, courriers)") + (ent ? "" : caseC('id="' + P + 'Ent"', !!c.entete, "En tête du dossier (bandeau)")) +

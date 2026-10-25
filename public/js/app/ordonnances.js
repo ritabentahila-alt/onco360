@@ -46,6 +46,11 @@ const gerer = (h) => (gereListes() ? h : "");
 const ajouteMedic = () => gereListes();
 const etoile = (o, fn) => !gereListes() ? (o.fav ? '<span class="ico etoile on" title="Favori" aria-label="Favori">' + ico("etoile") + "</span>" : "") : '<button class="ico etoile' + (o.fav ? " on" : "") + '" aria-pressed="' + !!o.fav + '" title="' + (o.fav ? "Retirer des favoris" : "Mettre en favori (en tête de liste)") + '" aria-label="Favori : ' + A.esc(o.nom) + '" onclick="' + fn + "('" + o.id + "')\">" + ico("etoile") + "</button>";
 const ico = (n) => '<svg class="pi"><use href="#i-' + n + '"/></svg>';
+// Lot D (25/10/2026) : dans les fenêtres ouvertes depuis le dossier, Modifier et Supprimer (ou Remettre le modèle d'origine) sont rangés sous
+// « ⋯ » ; en gestion (Paramètres › Bibliothèques, gest vrai), les boutons restent visibles. l = [[libellé, action, icône, rouge]]
+const actions = (gest, l, nom) => { l = l.filter(Boolean); if (!l.length || !gereListes()) return "";
+  if (gest) return l.map(([lib, f, ic, r]) => '<button class="ico' + (r ? " rouge" : "") + '" title="' + A.esc(lib) + '" aria-label="' + A.esc(lib + " : " + nom) + '" onclick="' + f + '">' + (ic.length > 2 ? ico(ic) : ic) + "</button>").join("");
+  return '<details class="m3 bib-pts"><summary class="ico" title="Autres actions" aria-label="Autres actions : ' + A.esc(nom) + '">⋯</summary><div class="m3-l">' + l.map(([lib, f, ic, r]) => '<button class="mini' + (r ? " rouge-t" : "") + '" onclick="' + f + '">' + (ic.length > 2 ? ico(ic) : ic) + A.esc(lib) + "</button>").join("") + "</div></details>"; };
 // Lot R-E (19/10/2026) : petite question par-dessus la fenêtre (la fenêtre de l'ordonnance reste telle quelle dessous) ; boutons [[clé, libellé,
 // classe]] ; Échap = le 1er bouton ; avant(clé) est appelé pendant le clic (ouvrir la fenêtre d'impression sans que le navigateur la bloque)
 export function question(html, boutons, avant) {
@@ -296,8 +301,7 @@ function liste() {
     const q = "'" + m.id + "'";
     return '<tr class="m" ondblclick="mdAjouter(' + q + ')"><td><b>' + A.esc(m.nom) + "</b>" + (m.classe ? '<div class="cl">' + A.esc(m.classe) + "</div>" : "") + "</td><td>" + A.esc(m.poso) + '</td><td class="act">' + etoile(m, "mdFavori") +
       (S && S.gestion ? "" : '<button class="ico vert" title="Ajouter à l\'ordonnance" aria-label="Ajouter ' + A.esc(m.nom) + ' à l\'ordonnance" onclick="mdAjouter(' + q + ')">' + ico("plus") + "</button>") +
-      gerer('<button class="ico" title="Modifier" aria-label="Modifier ' + A.esc(m.nom) + '" onclick="mdFiche(' + q + ')">' + ico("crayon") + "</button>" +
-      '<button class="ico rouge" title="Supprimer de la liste" aria-label="Supprimer ' + A.esc(m.nom) + '" onclick="mdSupprimer(' + q + ')">' + ico("croix") + "</button>") + "</td></tr>";
+      actions(GEST(), [["Modifier", "mdFiche(" + q + ")", "crayon"], ["Supprimer de la liste", "mdSupprimer(" + q + ")", "croix", 1]], m.nom) + "</td></tr>";
   }).join("") + "</table>" : '<p class="sous" style="padding:12px">Aucun médicament ne correspond.' + (ajouteMedic() ? " « Nouveau médicament » pour l'ajouter à la liste" + (S && !S.gestion ? ", ou « Ligne libre » pour l'écrire seulement dans cette ordonnance." : ".") : "") + "</p>";
 }
 // Médicaments de l'ordonnance en préparation : modifier ✎ (nom, posologie), monter, descendre, retirer
@@ -437,8 +441,7 @@ function listeTypes() {
     const q = "'" + o.id + "'";
     return '<tr class="m" onclick="otAjouter(' + q + ')"><td><b>' + A.esc(o.nom) + '</b><div class="cl">' + o.items.length + " médicament" + (o.items.length > 1 ? "s" : "") + "</div></td><td>" + A.esc(o.items.map((i) => i.nom).join(" ; ")) + '</td><td class="act" onclick="event.stopPropagation()">' + etoile(o, "otFavori") +
       (S && S.gestion ? "" : '<button class="ico vert" title="Mettre ses médicaments dans l\'ordonnance" aria-label="Utiliser ' + A.esc(o.nom) + '" onclick="otAjouter(' + q + ')">' + ico("plus") + "</button>") +
-      gerer('<button class="ico" title="Modifier l\'ordonnance type" aria-label="Modifier ' + A.esc(o.nom) + '" onclick="otFiche(' + q + ')">' + ico("crayon") + "</button>" +
-      '<button class="ico rouge" title="Supprimer l\'ordonnance type" aria-label="Supprimer ' + A.esc(o.nom) + '" onclick="otSupprimer(' + q + ')">' + ico("croix") + "</button>") + "</td></tr>";
+      actions(GEST(), [["Modifier l'ordonnance type", "otFiche(" + q + ")", "crayon"], ["Supprimer l'ordonnance type", "otSupprimer(" + q + ")", "croix", 1]], o.nom) + "</td></tr>";
   }).join("") + "</table>" : '<p class="sous" style="padding:12px">Aucune ordonnance type ne correspond.' + gerer(" « Nouvelle ordonnance type » pour en créer une.") + "</p>";
 }
 window.otAjouter = async (id) => {
@@ -548,12 +551,13 @@ function listeAnalyses() {
   const mots = sansAcc(S.q).split(/\s+/).filter(Boolean), ok = (t) => mots.every((w) => sansAcc(t).indexOf(w) >= 0);
   const parNom = (o) => (mots.length && !ok(o.nom) ? 1 : 0); // nom qui correspond d'abord, puis contenu
   const B = BIL.filter((b) => ok(b.nom + " " + b.items.join(" "))).sort((a, b) => parNom(a) - parNom(b)), L = ANA.filter((a) => ok(a.nom + " " + (a.cat || "") + " " + (a.note || ""))).sort((a, b) => parNom(a) - parNom(b));
-  const act = (o, fav, fiche, sup) => '<td class="act" onclick="event.stopPropagation()">' + etoile(o, fav) + gerer(
-    '<button class="ico" title="Modifier" aria-label="Modifier ' + A.esc(o.nom) + '" onclick="' + fiche + "('" + o.id + "')\">" + ico("crayon") + "</button>" +
-    '<button class="ico rouge" title="Supprimer de la liste" aria-label="Supprimer ' + A.esc(o.nom) + '" onclick="' + sup + "('" + o.id + "')\">" + ico("croix") + "</button>") + "</td>";
+  // Lot D (25/10/2026) : « + » juste après l'étoile (ajoute à la demande en cours, comme le + de Médic.) ; pas en gestion seule
+  const plusA = (o, k) => (GEST() && !T ? "" : '<button class="ico vert" title="Ajouter à la demande" aria-label="Ajouter ' + A.esc(o.nom) + '" onclick="anaAjouter(\'' + k + ":" + o.id + '\')">' + ico("plus") + "</button>");
+  const act = (o, fav, fiche, sup, k) => '<td class="act" onclick="event.stopPropagation()">' + etoile(o, fav) + plusA(o, k) +
+    actions(GEST() && !T, [["Modifier", fiche + "('" + o.id + "')", "crayon"], ["Supprimer de la liste", sup + "('" + o.id + "')", "croix", 1]], o.nom) + "</td>";
   $("anListe").innerHTML = B.length || L.length ? '<table class="md-t">' +
-    (B.length ? "<tr><th>" + FAM.colB + "</th><th>Contenu</th><th></th></tr>" + B.map((b) => '<tr class="m" onclick="anaAjouter(\'b:' + b.id + '\')"><td><b>' + A.esc(b.nom) + "</b>" + (general(b) && !FAM.eclater ? '<div class="cl">Bilan général</div>' : "") + "</td><td>" + A.esc(b.items.join(", ")) + "</td>" + act(b, "bilFavori", "bilFiche", "bilSupprimer") + "</tr>").join("") : "") +
-    (L.length ? "<tr><th>" + FAM.colA + "</th><th>Catégorie</th><th></th></tr>" + L.map((a) => '<tr class="m" onclick="anaAjouter(\'a:' + a.id + '\')"><td><b>' + A.esc(a.nom) + "</b>" + (a.note ? '<div class="cl">' + A.esc(a.note) + "</div>" : "") + "</td><td>" + A.esc(a.cat || "") + "</td>" + act(a, "anaFavori", "anaFiche", "anaSupprimer") + "</tr>").join("") : "") + "</table>"
+    (B.length ? "<tr><th>" + FAM.colB + "</th><th>Contenu</th><th></th></tr>" + B.map((b) => '<tr class="m" onclick="anaAjouter(\'b:' + b.id + '\')"><td><b>' + A.esc(b.nom) + "</b>" + (general(b) && !FAM.eclater ? '<div class="cl">Bilan général</div>' : "") + "</td><td>" + A.esc(b.items.join(", ")) + "</td>" + act(b, "bilFavori", "bilFiche", "bilSupprimer", "b") + "</tr>").join("") : "") +
+    (L.length ? "<tr><th>" + FAM.colA + "</th><th>Catégorie</th><th></th></tr>" + L.map((a) => '<tr class="m" onclick="anaAjouter(\'a:' + a.id + '\')"><td><b>' + A.esc(a.nom) + "</b>" + (a.note ? '<div class="cl">' + A.esc(a.note) + "</div>" : "") + "</td><td>" + A.esc(a.cat || "") + "</td>" + act(a, "anaFavori", "anaFiche", "anaSupprimer", "a") + "</tr>").join("") : "") + "</table>"
     : '<p class="sous" style="padding:12px">Rien ne correspond.' + gerer(" " + (FAM.lb ? "« " + FAM.nouvB + " » ou " : "") + "« " + FAM.nouvA + " » pour l'ajouter.") + "</p>";
 }
 // Ajout : dans l'ordonnance du patient (lignes développées) ou dans la fiche d'un bilan (le nom de l'analyse ou du bilan)
@@ -667,9 +671,7 @@ function listeCourriers() {
   $("crListe").innerHTML = L.length ? '<table class="md-t"><tr><th>Modèle</th><th>Début du texte</th><th></th></tr>' + L.map((m) => {
     const q = "'" + m.id + "'", t = texteModele(m.html);
     return '<tr class="m" onclick="crUtiliser(' + q + ')"><td><b>' + A.esc(m.nom) + "</b>" + (m.rt ? ' <span class="badge b-rt">radiothérapie</span>' + (m.defaut ? "" : ' <span class="badge b-gr">modifié</span>') : "") + "</td><td>" + A.esc(t.length > 110 ? t.slice(0, 110) + "…" : t) + '</td><td class="act" onclick="event.stopPropagation()">' + (m.rt ? "" : etoile(m, "crFavori")) +
-      gerer('<button class="ico" title="Modifier le modèle" aria-label="Modifier ' + A.esc(m.nom) + '" onclick="crFiche(' + q + ')">' + ico("crayon") + "</button>" +
-      (m.rt ? (m.defaut ? "" : '<button class="ico" title="Remettre le modèle d\'origine" aria-label="Remettre le modèle d\'origine" onclick="crSupprimer(' + q + ')">↺</button>')
-        : '<button class="ico rouge" title="Supprimer le modèle" aria-label="Supprimer ' + A.esc(m.nom) + '" onclick="crSupprimer(' + q + ')">' + ico("croix") + "</button>")) + "</td></tr>";
+      actions(CQ.gestion, [["Modifier le modèle", "crFiche(" + q + ")", "crayon"], m.rt ? (m.defaut ? null : ["Remettre le modèle d'origine", "crSupprimer(" + q + ")", "↺"]) : ["Supprimer le modèle", "crSupprimer(" + q + ")", "croix", 1]], m.nom) + "</td></tr>";
   }).join("") + "</table>" : '<p class="sous" style="padding:12px">Aucun modèle ne correspond.' + gerer(" « Nouveau modèle » pour en créer un.") + "</p>";
 }
 // Modèle rempli pour le patient : champs {…} remplacés, « (e) » accordé ; un champ inconnu du dossier reste à compléter
@@ -917,12 +919,13 @@ function ouvrirOrdonnance(o) {
   A.fenetre("<h3>" + (o.t === "courrier" ? "Courrier" : "Ordonnance") + (o.file ? " " + o.file.i + " / " + o.file.n + (o.types && o.types[0] ? ' <span class="mesures">(' + A.esc(o.types[0]) + ")</span>" : "") : "") + " — " + A.esc(x.r.nm) + (l ? ' <span class="mesures">(du ' + A.dfrA(l.d) + ", modification)</span>" : o.renouv ? ' <span class="mesures">(renouvellement de celle du ' + A.dfrA(o.renouv.d) + ")</span>" : "") + "</h3>" +
     '<div class="or-outils"><div class="ag-vues" data-fn="prescriptions.format" role="radiogroup" aria-label="Format">' + ["A5", "A4"].map((f) => '<button role="radio" aria-checked="' + (o.format === f) + '" class="' + (o.format === f ? "on" : "") + '" onclick="orFormat(\'' + f + '\')">Édition ' + f + "</button>").join("") + "</div>" +
     (o.lecture ? "" : '<span class="sep"></span><button class="ico" title="Gras" aria-label="Gras" onmousedown="event.preventDefault()" onclick="orStyle(\'bold\')"><b>G</b></button><button class="ico" title="Souligné" aria-label="Souligné" onmousedown="event.preventDefault()" onclick="orStyle(\'underline\')"><u>S</u></button>' +
-      '<button class="ico" title="Texte plus petit" aria-label="Texte plus petit" onclick="orTaille(-1)">A−</button><button class="ico" title="Texte plus grand" aria-label="Texte plus grand" onclick="orTaille(1)">A+</button>') + "</div>" +
+      '<button class="ico" title="Texte plus petit" aria-label="Texte plus petit" onclick="orTaille(-1)">A−</button><button class="ico" title="Texte plus grand" aria-label="Texte plus grand" onclick="orTaille(1)">A+</button>' +
+      '<select class="or-pol" id="orPol" aria-label="Police" title="Police : du texte sélectionné, sinon de toute l\'ordonnance" onmousedown="orGarderSel()" onfocus="orGarderSel()" onchange="orPolice(this.value)">' + POLICES.map(([k, lib]) => '<option value="' + k + '">' + lib + "</option>").join("") + "</select>") + "</div>" +
     (o.lecture ? "" : '<p class="mesures" style="margin:0 0 8px">' + (o.t === "courrier" ? "Le courrier reste modifiable : cliquez dans la feuille pour écrire ; complétez les zones surlignées en jaune (le surlignage ne s'imprime pas)." : "L'ordonnance reste modifiable : cliquez dans la feuille pour corriger le texte.") + " Le haut de la feuille est laissé libre pour l'en-tête du papier.</p>") +
     sigSel + '<div id="orAl" aria-live="polite"></div><div class="or-zone"><div class="or-feuille-c" id="orCadre">' + (cd.haut ? '<div class="or-apercu">' + cd.haut + "</div>" : "") + '<div id="orPage" class="or-feuille" ' + (o.lecture ? "" : 'contenteditable="true" spellcheck="true"') + "></div>" + (cd.bas ? '<div class="or-apercu">' + cd.bas + "</div>" : "") + "</div></div>" +
     '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="orFermer()">Fermer</button>' +
     (o.lecture ? "" : '<button class="bt clair" id="orOk" onclick="orValider(false)">Valider</button><button class="bt plein" id="orImp" onclick="orValider(true)">' + A.ic("imprimer") + "Valider + Imprimer</button>") + "</div>", "large");
-  $("orPage").innerHTML = nettoyer(o.html); if (!o.lecture) $("orPage").oninput = () => { clearTimeout(AP_T); AP_T = setTimeout(majApercu, 350); }; miseEnPage(); // nettoyé aussi à l'affichage (audit du 10/10 : un HTML écrit directement dans la base ne doit rien exécuter)
+  $("orPage").innerHTML = nettoyer(o.html); policeDepart(o); if (!o.lecture) $("orPage").oninput = () => { clearTimeout(AP_T); AP_T = setTimeout(majApercu, 350); }; miseEnPage(); // nettoyé aussi à l'affichage (audit du 10/10 : un HTML écrit directement dans la base ne doit rien exécuter)
   // un clic dans une zone « À compléter » la sélectionne : ce qu'on tape la remplace
   $("orPage").onclick = (ev) => { const m = ev.target.closest && ev.target.closest("mark.or-ac"); if (!m || !zoneRestante(m.textContent)) return; const r = document.createRange(), s = window.getSelection(); r.selectNodeContents(m); s.removeAllRanges(); s.addRange(r); };
 }
@@ -934,6 +937,46 @@ window.orFormat = (f) => {
   miseEnPage();
 };
 window.orStyle = (c) => { try { document.execCommand(c, false, null); } catch (e) {} };
+// Lot D (25/10/2026) : police de l'ordonnance, en classes « or-f… » (seules classes gardées par nettoyer) imprimées par CSS_POLICES : avec une
+// sélection, sur la sélection (comme G et S) ; sans sélection, sur tout le corps (chaque bloc) ; la dernière police choisie pour tout le corps
+// est retenue pour le médecin (utilisateurs/{uid}.policeOrdo) et reprise sur une nouvelle ordonnance ; l'en-tête imprimé ne change pas
+const POLICES = [["", "Police habituelle"], ["fa", "Arial", "Arial,Helvetica,sans-serif"], ["fh", "Helvetica", "Helvetica,Arial,sans-serif"], ["ft", "Times New Roman", '"Times New Roman",Times,serif'], ["fg", "Georgia", "Georgia,serif"], ["fv", "Verdana", "Verdana,sans-serif"]];
+export const CSS_POLICES = POLICES.filter((z) => z[0]).map((z) => ".or-" + z[0] + "{font-family:" + z[2] + "}").join("");
+const CLS_POL = POLICES.filter((z) => z[0]).map((z) => "or-" + z[0]);
+let SEL_POL = null;
+window.orGarderSel = () => { const s = window.getSelection(), p = $("orPage"); SEL_POL = s && s.rangeCount && !s.isCollapsed && p && p.contains(s.getRangeAt(0).commonAncestorContainer) ? s.getRangeAt(0).cloneRange() : null; };
+const policeDe = (el) => { const c = CLS_POL.find((k) => el && el.classList && el.classList.contains(k)); return c ? c.slice(3) : ""; };
+function policeCorps(k) {
+  const p = $("orPage"); if (!p) return;
+  [...p.children].forEach((e) => { CLS_POL.forEach((c) => e.classList.remove(c)); if (k) e.classList.add("or-" + k); });
+  p.querySelectorAll("span").forEach((z) => { CLS_POL.forEach((c) => z.classList.remove(c)); if (!z.className) z.removeAttribute("class"); });
+}
+function policeDepart(o) {
+  const p = $("orPage"), el = $("orPol"); if (!p) return;
+  const vue = p.firstElementChild ? policeDe(p.firstElementChild) : "";
+  const k = o.ligne || o.renouv || vue ? vue : ((D().profil || {}).policeOrdo || "");
+  if (k && !vue && !o.lecture) policeCorps(k);
+  O.police = k; if (el) el.value = POLICES.some((z) => z[0] === k) ? k : "";
+}
+window.orPolice = (k) => {
+  const p = $("orPage"); if (!O || !p) return;
+  const r = SEL_POL; SEL_POL = null;
+  if (r && !r.collapsed) {
+    const s = window.getSelection(); p.focus(); s.removeAllRanges(); s.addRange(r);
+    try { document.execCommand("styleWithCSS", false, false); document.execCommand("fontName", false, "onco360" + (k || "x")); } catch (e) { /* navigateur sans fontName */ }
+    p.querySelectorAll('font[face^="onco360"]').forEach((f) => {
+      const c = f.getAttribute("face").slice(7), sp = document.createElement("span");
+      if (c !== "x") sp.className = "or-" + c;
+      while (f.firstChild) sp.appendChild(f.firstChild);
+      sp.querySelectorAll("span").forEach((z) => { CLS_POL.forEach((x) => z.classList.remove(x)); if (!z.className) z.removeAttribute("class"); });
+      if (sp.className) f.replaceWith(sp); else f.replaceWith(...sp.childNodes);
+    });
+  } else {
+    policeCorps(k); O.police = k;
+    if ((D().profil || {}).policeOrdo !== k) { if (D().profil) D().profil.policeOrdo = k; setDoc(doc(db, "utilisateurs", D().u.uid), { policeOrdo: k }, { merge: true }).catch((e) => console.warn("police", e)); }
+  }
+  majApercu();
+};
 window.orTaille = (s) => { if (!O) return; O.taille = Math.max(-4, Math.min(6, O.taille + s)); miseEnPage(); };
 window.orFermer = () => { if (PC_DOCS && PC_DOCS.length) A.toast(PC_DOCS.length + " ordonnance(s) suivante(s) non faite(s)."); PC_DOCS = null; O = null; A.fermerFenetre(); };
 // 3.9 : autre médecin signataire : nom sous « Cachet et signature » et en-tête imprimé
@@ -968,7 +1011,7 @@ function cssImpression(format, taille, courrier) {
     ".or-t{margin:0 0 3mm}p.or-a{margin:0 0 1.5mm 4mm}.or-rc{margin-top:6mm}mark.or-ac{background:none;color:inherit}.or-dup{text-align:center;font-weight:bold;letter-spacing:0.5mm;margin:0 0 4mm}" + CSS_CADRE +
     // R-E2 : plusieurs pages (nom du patient et date en haut des pages suivantes, « page 1 / 2 » en bas)
     ".or-gr{break-inside:avoid;page-break-inside:avoid;display:flow-root}.pgp{break-after:page;page-break-after:always;display:flow-root}.pgp:last-child{break-after:auto;page-break-after:auto}.pgb{margin-top:3mm}.pgb .or-pied{margin-top:2mm}" +
-    ".or-num{text-align:right;font-size:8pt;margin:1mm 0 0}" +
+    ".or-num{text-align:right;font-size:8pt;margin:1mm 0 0}" + CSS_POLICES +
     (courrier ? "p{margin:0 0 4mm;text-align:justify}.or-ti{text-align:center;font-weight:bold;font-size:1.1em;margin:0 0 9mm}.or-sig{text-align:right}.or-date{text-align:right}" : ""); // courriers
 }
 // R-E2 (19/10/2026, audit n° 7, d. 24) : la feuille mesurée à sa taille réelle (cadre caché, en mm) : hauteur de chaque paragraphe, pages

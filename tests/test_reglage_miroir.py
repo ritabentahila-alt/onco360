@@ -38,7 +38,7 @@ async def main():
         tp = await pa.inner_text('#fCorps [data-op="param"]')
         fam = await ev("[...document.querySelectorAll('#fCorps .rg-fam')].map(x=>x.textContent)")
         ok(fam == ['Cabinet', 'Dossier patient', 'Agenda et rappels', 'Bibliothèques', 'Finances'], 'onglets des Paramètres rangés par famille, comme dans Onco360', fam)
-        ok('Affichage du dossier' in tp and 'Export des données' in tp and 'Accès (équipe)' not in tp and 'Listes de la fiche' in tp, 'onglets à jour : Affichage du dossier, Export des données, Listes de la fiche ; plus d\'« Accès »')
+        ok('Affichage du dossier' in tp and 'Export des données' in tp and 'Accès (équipe)' not in tp and 'Listes' in tp and 'Listes de la fiche' not in tp, 'onglets à jour : Affichage du dossier, Export des données, Listes (lot D) ; plus d\'« Accès »')
         o0 = await ev("[...document.querySelectorAll('#fCorps [data-op=\"param\"] .rg-l .rg-t')].map(x=>x.textContent)")
         await ev("document.querySelector('#fCorps [data-sb=\"fiche\"]').click()"); await pa.wait_for_timeout(300)
         o1 = await ev("[...document.querySelectorAll('#fCorps [data-op=\"param\"] .rg-l .rg-t')].map(x=>x.textContent)")

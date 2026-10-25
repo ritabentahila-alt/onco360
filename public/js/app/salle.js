@@ -443,23 +443,27 @@ export function pageSalle(j) {
   if (ETAB && etabs.indexOf(ETAB) < 0) ETAB = "";
   // Médecin (comme l'agenda) : un médecin voit d'abord ses patients, la secrétaire et l'infirmière ceux de tous ; « Tous les médecins » pour aider un confrère
   if (!A.multiMed()) MED = null; else if (MED == null || (MED && !A.medecins().some((z) => z.uid === MED))) MED = m.role === "medecin" && A.medecins().some((z) => z.uid === D().u.uid) ? D().u.uid : "";
-  $("page").innerHTML = '<div class="sa-pg' + (FILTRES ? " ouv" : "") + '" id="saPg"><section class="accueil"><div><h2>Salle d\'attente</h2><p id="saTitre"></p></div>' +
-    '<div class="actions sa-etab">' + (etabs.length > 1 ? '<select id="saEtab" aria-label="Établissement"><option value="">Tous les établissements</option>' + etabs.map((c) => '<option value="' + A.esc(c) + '"' + (c === ETAB ? " selected" : "") + ">" + A.esc(c) + "</option>").join("") + "</select>" : "") +
-    (A.multiMed() ? '<select id="saMed" aria-label="Médecin"><option value="">Tous les médecins</option>' + A.medecins().map((z) => '<option value="' + A.esc(z.uid) + '"' + (z.uid === MED ? " selected" : "") + ">" + A.esc(z.nom) + "</option>").join("") + "</select>" : "") +
-    // téléphone (SA9b) : établissement, colonnes, période, recherche, tri, impression et calendrier repliés derrière « Filtres »
-    '<button class="bt gris sa-ftr" id="saFtr" onclick="saFiltres()" aria-expanded="' + FILTRES + '" aria-controls="saOutils"><svg class="i"><use href="#i-loupe"/></svg>Filtres<span class="n" id="saFtrN"></span></button>' +
-    '<button class="bt vert cache" id="saSuiv" onclick="saSuivant()"><svg class="i"><use href="#i-check"/></svg>Patient suivant</button>' +
-    '<button class="bt gris" data-fn="salle.colonnes" onclick="saColonnes()" title="Choisir les colonnes affichées"><svg class="i"><use href="#i-liste"/></svg>Colonnes</button>' +
-    '<button class="bt gris" id="saAct" onclick="saActualiser()" title="Relire la salle d\'attente, les dossiers du jour et les prix (fait aussi tout seul chaque minute)"><svg class="i"><use href="#i-actualiser"/></svg>Actualiser</button><span class="mesures sa-ajour" id="saAjour"></span></div></section>' +
+  // Lot B (25/10/2026) : plus de titre ; ligne 1 = le jour (‹ jour ›, semaine, Calendrier, Aujourd'hui) à gauche, Patient suivant, Actualiser
+  // (à jour dessous) et « ⋯ » (Colonnes, Imprimer, Pharmacie, Clôturer la journée) à droite ; ligne 2 = recherche, période, établissement, médecin, tri
+  $("page").innerHTML = '<div class="sa-pg' + (FILTRES ? " ouv" : "") + '" id="saPg"><div class="barre-page sa-l1">' +
     '<div class="sa-jours' + (semaineOuverte() ? "" : " repli") + '" id="saJours"><button class="sa-fl" onclick="saJour(-1)" aria-label="Jour précédent" title="Jour précédent">‹</button><button class="sa-jtxt" id="saJtxt" onclick="saSemaine()" title="Afficher ou replier la semaine"></button><div class="sa-sem" id="saSem"></div><button class="sa-fl" onclick="saJour(1)" aria-label="Jour suivant" title="Jour suivant">›</button>' +
     '<label class="sa-cal" title="Choisir un jour dans le calendrier"><svg class="i"><use href="#i-agenda"/></svg><span>Calendrier</span><input type="date" id="saD" aria-label="Choisir un jour"></label>' +
     '<button class="bt clair petit" id="saAuj" onclick="saAller(\'' + D().t + '\')">Aujourd\'hui</button></div>' +
-    '<div class="sa-outils" id="saOutils"><div class="sa-per" role="group" aria-label="Période">' + [["matin", "Matinée"], ["am", "Après-midi"], ["jour", "Toute la journée"]].map(([k, t]) => '<button data-per="' + k + '" onclick="saPeriode(\'' + k + '\')">' + t + "</button>").join("") + "</div>" +
+    '<div class="bp-act sa-etab">' +
+    '<button class="bt gris sa-ftr" id="saFtr" onclick="saFiltres()" aria-expanded="' + FILTRES + '" aria-controls="saOutils"><svg class="i"><use href="#i-loupe"/></svg>Filtres<span class="n" id="saFtrN"></span></button>' +
+    '<button class="bt vert cache" id="saSuiv" onclick="saSuivant()"><svg class="i"><use href="#i-check"/></svg>Patient suivant</button>' +
+    '<span class="bp-maj"><button class="bt gris" id="saAct" onclick="saActualiser()" title="Relire la salle d\'attente, les dossiers du jour et les prix (fait aussi tout seul chaque minute)"><svg class="i"><use href="#i-actualiser"/></svg>Actualiser</button><span class="mesures sa-ajour" id="saAjour"></span></span>' +
+    '<details class="m3 sa-plus" id="saPlus"><summary class="bt gris sa-pts" title="Autres actions" aria-label="Autres actions">⋯<span class="sa-pts-n cache" id="saPtsN"></span></summary><div class="m3-l">' +
+    '<button class="mini" data-fn="salle.colonnes" onclick="saColonnes()" title="Choisir les colonnes affichées"><svg class="i"><use href="#i-liste"/></svg>Colonnes</button>' +
+    '<button class="mini" onclick="saImprimer()" title="Imprimer la liste du jour"><svg class="i"><use href="#i-imprimer"/></svg>Imprimer la liste du jour</button>' +
+    (A.voit("traitements") ? '<button class="mini" data-mod="chimio" onclick="saPharmacie()" title="Séances de chimiothérapie du lendemain, doses et flacons, pour la pharmacie de la clinique"><svg class="i"><use href="#i-pilule"/></svg>Pharmacie</button>' : "") +
+    '<button class="mini cache" id="saClo" onclick="saCloturer()" title="Patients restés en salle, en consultation ou jamais arrivés"><svg class="i"><use href="#i-check"/></svg>Clôturer la journée</button></div></details></div></div>' +
+    '<div class="sa-outils barre-filtres" id="saOutils">' +
     '<div class="recherche"><svg class="i"><use href="#i-loupe"/></svg><input id="saQ" type="search" placeholder="Nom, n° de dossier, téléphone…" autocomplete="off" aria-label="Rechercher un patient"></div>' +
-    '<select id="saTri" aria-label="Tri"><option value="rdv">Tri : heure du rendez-vous</option><option value="arrivee">Tri : heure d\'arrivée</option><option value="alpha">Tri : alphabétique</option></select>' +
-    '<button class="bt gris" onclick="saImprimer()" title="Imprimer la liste du jour"><svg class="i"><use href="#i-imprimer"/></svg>Imprimer</button>' +
-    (A.voit("traitements") ? '<button class="bt gris" data-mod="chimio" onclick="saPharmacie()" title="Séances de chimiothérapie du lendemain, doses et flacons, pour la pharmacie de la clinique"><svg class="i"><use href="#i-pilule"/></svg>Pharmacie</button>' : "") +
-    '<button class="bt gris cache" id="saClo" onclick="saCloturer()" title="Patients restés en salle, en consultation ou jamais arrivés"><svg class="i"><use href="#i-check"/></svg>Clôturer la journée</button></div>' +
+    '<div class="sa-per" role="group" aria-label="Période">' + [["matin", "Matinée"], ["am", "Après-midi"], ["jour", "Toute la journée"]].map(([k, t]) => '<button data-per="' + k + '" onclick="saPeriode(\'' + k + '\')">' + t + "</button>").join("") + "</div>" +
+    (etabs.length > 1 ? '<select id="saEtab" aria-label="Établissement"><option value="">Tous les établissements</option>' + etabs.map((c) => '<option value="' + A.esc(c) + '"' + (c === ETAB ? " selected" : "") + ">" + A.esc(c) + "</option>").join("") + "</select>" : "") +
+    (A.multiMed() ? '<select id="saMed" aria-label="Médecin"><option value="">Tous les médecins</option>' + A.medecins().map((z) => '<option value="' + A.esc(z.uid) + '"' + (z.uid === MED ? " selected" : "") + ">" + A.esc(z.nom) + "</option>").join("") + "</select>" : "") +
+    '<select id="saTri" aria-label="Tri"><option value="rdv">Tri : heure du rendez-vous</option><option value="arrivee">Tri : heure d\'arrivée</option><option value="alpha">Tri : alphabétique</option></select></div>' +
     // Onglets, indicateurs et titres des colonnes restent en haut pendant le défilement (SA6, 11/10/2026)
     '<section class="carte onglets sa-carte" id="saCarte"><div class="sa-haut"><div class="o-barre sa-o" role="tablist" aria-label="Salle d\'attente" id="saO"></div><div class="sa-ent-z" id="saEZ"><div id="saE"></div></div></div>' +
     '<div class="sa-defile" id="saDef"><div id="saL"></div></div><div id="saTot"></div></section></div>';
@@ -492,7 +496,7 @@ function dessiner() {
   if (!$("saL")) return;
   const t = D().t, j0 = lundi(JOUR), sem = Array.from({ length: 7 }, (_, i) => addJ(j0, i)), tout = lignes(sem).filter(dansFiltre);
   const nb = {}; tout.forEach((l) => { nb[l.jour] = (nb[l.jour] || 0) + 1; });
-  $("saTitre").textContent = A.cap(A.jourLong(JOUR)) + " " + JOUR.slice(0, 4) + (JOUR === t ? " · aujourd'hui" : JOUR < t ? " · jour passé" : "");
+  // Lot B (25/10/2026) : plus de titre « Salle d'attente » ni de date sous le titre : le jour est dans la barre des jours (#saJtxt)
   remplir($("saSem"), sem.map((d) => '<button class="sa-j' + (d === JOUR ? " on" : "") + (d === t ? " auj" : "") + '" onclick="saAller(\'' + d + '\')" aria-pressed="' + (d === JOUR) + '" title="' + A.esc(A.cap(A.jourLong(d))) + '"><span>' + JC[new Date(d + "T12:00:00").getDay()] + "</span><b>" + +d.slice(8, 10) + "</b><i>" + (nb[d] || "") + "</i></button>").join(""));
   $("saD").value = JOUR; $("saAuj").classList.toggle("cache", JOUR === t);
   document.querySelectorAll(".sa-per button").forEach((b) => b.classList.toggle("on", b.dataset.per === PER));
@@ -505,7 +509,7 @@ function dessiner() {
   const vide = { avenir: JOUR < t ? "Aucune consultation restée sans validation." : JOUR > t ? "Aucune consultation prévue ce jour-là." : "Plus aucun patient attendu aujourd'hui.", salle: "Personne en salle d'attente.", vus: "Aucun patient vu.", absents: "Aucun absent." }[VUE];
   const cv = colsVues(), gc = gabarit(cv); $("saL").style.setProperty("--cols", gc); $("saE").style.setProperty("--cols", gc);
   $("saCarte").classList.add("compact"); // compact = affichage normal (11/10/2026)
-  remplir($("saJtxt"), A.cap(A.jourLong(JOUR)) + (JOUR === t ? " · aujourd'hui" : "") + ' <span class="fl">' + (semaineOuverte() ? "▴" : "▾") + "</span>");
+  remplir($("saJtxt"), A.cap(A.jourLong(JOUR)) + (JOUR === t ? " · aujourd'hui" : JOUR < t ? " · jour passé" : "") + ' <span class="fl">' + (semaineOuverte() ? "▴" : "▾") + "</span>");
   remplir($("saE"), l.length ? '<div class="sa-l ent">' + cv.map((c) => '<span class="c-' + c[0] + '" title="' + c[1] + '">' + (TITRE_COURT[c[0]] || c[1]) + (c[0] !== "act" ? '<i class="sa-poi" data-c="' + c[0] + '" title="Tirer pour élargir ; double-clic : largeur d\'origine"></i>' : "") + "</span>").join("") + "</div>" : "");
   // Mise à jour ligne par ligne : une ligne inchangée n'est pas touchée (clic en cours, survol et défilement gardés)
   poser($("saL"), l.length ? l.map((z) => ({ k: z.pid + "|" + z.cle, h: ligneHtml(z, cv) })) : [{ k: "vide", h: '<p class="vide-c" data-k="vide">' + vide + "</p>" }]);
@@ -513,6 +517,9 @@ function dessiner() {
   const f = JOUR === t && peutRdv() && D().membre.role === "medecin" ? fileSalle() : [];
   $("saSuiv").classList.toggle("cache", !f.length); if (f.length) $("saSuiv").title = "Démarrer la consultation de " + f[0].x.r.nm + " (attend depuis " + duree(minutes(f[0].doc.arr || maintenant())) + ")";
   $("saClo").classList.toggle("cache", !(JOUR <= t && peutRdv()));
+  // Lot B : « Clôturer la journée » rangé sous « ⋯ » ; une pastille sur « ⋯ » quand un jour passé n'est pas clôturé (patients restés en salle,
+  // en consultation ou jamais arrivés) ; pas pour aujourd'hui, où les patients de l'après-midi ne sont pas encore arrivés
+  { const n = JOUR < t && peutRdv() ? lignes([JOUR]).filter((l) => dansFiltre(l) && (l.etat === "" || l.etat === "salle" || l.etat === "consult")).length : 0; remplir($("saPtsN"), n ? String(n) : ""); $("saPtsN").classList.toggle("cache", !n); $("saPtsN").title = n ? n + " patient" + (n > 1 ? "s" : "") + " à clôturer" : ""; }
   // Total du jour (établissement choisi), sans les absents : encaissé (vus, prix validé) et prévu (le reste, au tarif)
   if (voitPrix()) {
     // à encaisser (19.5, lieux « payé au cabinet ») : vu (validé par le médecin) mais pas encore encaissé, ou non payé : compté à part
