@@ -98,8 +98,9 @@ Sources plus anciennes : audits n° 1 à 3 (Drive › Audit, `archives/audit-3/`
    Passer à 80 mg ? (Conseil : oui pour le pémétrexed ; pour le paclitaxel, 80 mg comme vos autres paclitaxel-carboplatine, ou garder 120.)
 5. (20/10, O4) Prix des packs : « mettre plutôt les mêmes prix que GestiCab ou DabaDoc, prix marocains » (étape L10 : relevé des prix, puis
    proposition).
-7. (25/10, RT0) Le refus d. 5 du 20/10 (« Contraintes de dose (audit 9) ») est-il levé pour le référentiel de radiothérapie, qui contient une
-   bibliothèque de contraintes (onglet Contraintes de la fiche, sous-page Contraintes) ? À trancher avant RT6 (phase RTR).
+7. ~~(25/10, RT0) Le refus d. 5 du 20/10 (« Contraintes de dose (audit 9) ») est-il levé pour le référentiel de radiothérapie ?~~ **Répondu le
+   25/10 : oui**, levé pour ce module de consultation (le refus visait des contraintes liées au dossier d'un patient ; le référentiel n'écrit
+   rien dans les dossiers). Voir la phase RTR.
 
 Questions répondues le 20/10 : question 6 du 17/10 (d. 12 : chaque autre cabinet reçoit **tout le modèle, sauf les correspondants et les tarifs
 des consultations** — c'est déjà le réglage par défaut d'« Appliquer le modèle », rien à coder) ; question 8 du 17/10 (d. 13 : reçu imprimé sans
@@ -566,8 +567,21 @@ Un lot par session ; chaque lot finit par ses tests verts, la feuille de route c
       11 écarts encore ouverts ont été tranchés par Dr Bentahila (E16, E55, E64 + 10 Gy / 5 fx, E65, E68, E71, E73, E75 ; E17, E19, E21 déjà
       corrigés) : 295 schémas (5 retirés), 5 références ajoutées, date de vérification par schéma dans `convertir.py`, nom `pratique_du_cabinet`.
       Rien de visible dans Onco360.
-- [ ] **RT1 Socle** : droit `referentielRT`, fonction `rt.referentiel`, menu, route, règles Firestore, `tests/regles/test-rtref.mjs`.
-- [ ] **RT2 Moteur** : `js/moteur/rtref.js` (fusion référence + cabinet, recherche, tri, doses, BED / EQD2), `tests/moteur/test-rtref.mjs`.
+- [x] **RT1 Socle** (25/10/2026) : droit à niveaux `referentielRT` (DROITS_ROLE de profil.js : médecin « modifier », secrétaire, infirmière,
+      comptable « aucun » ; ligne « Référentiel de radiothérapie » de Paramètres › Accès ; écrit dans les fiches des membres par `migrations()`) ;
+      fonction `rt.referentiel` (FONCTIONS.rt, FONCTIONS_RELIEES, active par défaut) ; menu « Radiothérapie » sous « Protocoles » (MENU, data-mod rt,
+      data-fn, icône `i-radiation` ; `MENU_NOUVEAUX` : inséré après Protocoles dans un menu déjà réglé) ; page `radiotherapie` (PAGES, PAGE_MODULE rt,
+      `voitRefRT` / `modifRefRT` de v2.js, aussi dans l'API ; adresse refusée sans module, fonction ou droit ; comptable jamais) ; page d'attente
+      `js/app/radiotherapie.js` (sommaire lu dans `donnees-rt/index.json` : « 48 localisations · 295 schémas » ; « Réessayer » si illisible) ;
+      règles `espaces/{e}/referentielRT/{s}` (`rtRefVoir` / `rtRefModif` + `rtRefFn`, fonction coupée = fermé) ; tests `tests/regles/test-rtref.mjs`
+      28/28, `tests/test_rtref_menu.py` 38/38 (Chrome, Safari).
+- [x] **RT2 Moteur** (25/10/2026) : `js/moteur/rtref.js`, calculs purs : `fusionner` (fiche du cabinet à la place de la référence, schémas
+      `cab-…` ajoutés en « pratique du cabinet », `modifie` = origine « cabinet », `refChangee` = date_maj > base), `ficheEffective`, `trier` (région,
+      localisation, situation, preuve, fichier ; rang du titre d'abord avec une recherche), `chercher` (tous les mots, sans accents ni ligatures,
+      synonymes de la spécification, post-op ⇄ adjuvant réciproques car la prostate n'a que « Après prostatectomie », doses « 45 Gy » / « 45Gy »,
+      séances « 5 fx », nombre seul = dose, séances, dose par séance ou titre ; dès 2 caractères), `motBloquant`, `termes` ; `nb` / `gy` /
+      `fmtPrescription` / `resumePrescription` (virgule, espace insécable) ; `controlePrescription` (0,01 Gy) ; `calculBED` (BED, EQDx, dose en N
+      fractions, détail ; cas de contrôle retrouvé). `tests/moteur/test-rtref.mjs` 42/42 (recherche < 1 ms sur 295 schémas), dans les tests moteur.
 - [ ] **RT3 Référentiel** : accueil du module, recherche, menus, liste, favoris, récents (`js/app/radiotherapie.js`, CSS « Lot RTR », `tests/test_rtref.py`).
 - [ ] **RT4 Fiche** : fiche et ses onglets, copier, lien Protocoles (`#protocoles/<id>`), impression A4.
 - [ ] **RT5 Modification** : modification pour le cabinet, comparaison, revenir à la référence, dupliquer, nouveau schéma ; règles et tests.
@@ -580,8 +594,9 @@ Un lot par session ; chaque lot finit par ses tests verts, la feuille de route c
 centrage, contourage, organes à risque, contraintes, essais, calcul BED / EQD2), spécification dans `docs/radiotherapie/SPEC.md`. Il n'écrit rien
 dans les dossiers et ne revient sur aucun refus de la feuille de route : pas d'organes à risque, de toxicités ni de journal des séances dans la
 prescription d'un patient, pas de mention « hors référentiel ».
-**À confirmer par Dr Bentahila avant RT6** (signalé à RT0, 25/10) : le refus d. 5 du 20/10 (« Contraintes de dose (audit 9) », liste des refus) visait
-une bibliothèque de contraintes ; ce module en contient une (sous-page Contraintes, onglet Contraintes de la fiche). À lever pour ce module ?
+**Décision du 25/10/2026** : le refus d. 5 du 20/10 (« Contraintes de dose (audit 9) ») est **levé pour ce module** : sa bibliothèque de
+contraintes (onglet Contraintes de la fiche, sous-page Contraintes) est un guide de consultation, sans lien avec le dossier d'un patient. Le
+refus reste valable pour des contraintes dans la prescription ou le dossier d'un patient.
 
 ## À placer (nouveau plan)
 - (21/10, S5) **Vigilance des molécules, flacons et interactions ne sont pas dans le modèle des cabinets neufs** (`PARAMS_SPE` de functions/cabinets.js :
@@ -628,7 +643,7 @@ une bibliothèque de contraintes ; ce module en contient une (sous-page Contrain
 | d. 2 | Heure du Maroc calculée par Onco360 | oui, **en suivant les changements d'heure marocains** | S1 |
 | d. 3 | NOCAND = fluconazole | oui (juste) | — |
 | d. 4 | Audit 9, lot RT-1 | **non** (audit 9 pas fait) | refusé |
-| d. 5 | Contraintes de dose (audit 9) | non | refusé |
+| d. 5 | Contraintes de dose (audit 9) | non | refusé (levé le 25/10 pour le référentiel de radiothérapie, phase RTR) |
 | d. 6 | Contrôle complet avant chaque mise en ligne | oui | Comment on travaille |
 | d. 7 | Tests sur jeu fictif seulement | oui | S7 |
 | d. 8 | Réparer les tests rouges | oui | S7 |
