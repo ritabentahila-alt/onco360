@@ -231,7 +231,6 @@ function ongletPrescription() {
   if (s.technique) h += '<p class="rtr-l2"><span class="mesures">Technique</span> ' + court(s.technique, 160) + "</p>";
   const sys = (s.systemique ? '<p class="rtr-l2"><span class="mesures">Traitement associé</span> ' + court(s.systemique, 160) + "</p>" : "") + lignesSyst(L.systemique || [], "traitement") + lignesSyst(L.hormonotherapie || [], "hormonotherapie");
   if (sys) h += "<h4>Traitement systémique</h4>" + sys + textes("systemique");
-  if (s.couverture) h += "<h4>Objectifs de couverture</h4><p>" + court(s.couverture, 200) + "</p>";
   if (curie && (L.curie_indications || []).length) h += "<h4>Curiethérapie : indications</h4><ul class=\"rtr-sys\">" + L.curie_indications.map((x) => "<li><b>" + esc(x.indication || "") + "</b> · " + esc(x.modalite || "") + (x.niveau_preuve ? ' <span class="mesures">(' + esc(x.niveau_preuve) + ")</span>" : "") + (x.note ? '<div class="mesures">' + court(x.note) + "</div>" : "") + "</li>").join("") + "</ul>" + textes("curietherapie");
   if (FICHE.cab && FICHE.cab.note) h += "<h4>Note du médecin</h4><p>" + esc(FICHE.cab.note) + "</p>";
   return h;
@@ -266,9 +265,11 @@ function tableJeu(j, i) {
     groupes(j).map((g) => { const o = oar(g.oar); return g.l.map((l, k) => '<tr class="' + (k ? "" : "g1") + '">' + (k ? "" : '<td class="o" rowspan="' + g.l.length + '" data-l="Organe"><b>' + esc(o.nom) + "</b>" + (o.nom_tg263 ? '<br><span class="mesures">' + esc(o.nom_tg263) + "</span>" : "") + "</td>") +
       '<td data-l="Indicateur">' + esc(l.indicateur || "") + '</td><td class="n" data-l="Idéal">' + esc(l.ideal || "") + '</td><td class="n lim" data-l="Limitant">' + esc(l.limitant || "") + '</td><td data-l="Note">' + court(l.note || "", 60) + "</td></tr>").join(""); }).join("") + "</tbody></table></div></section>";
 }
+// Objectifs de couverture des volumes cibles : en tête de l'onglet Contraintes
+const couvHtml = () => (FICHE.schema.couverture ? '<section class="rtr-couv"><h4>Objectifs de couverture</h4><p>' + court(FICHE.schema.couverture) + "</p></section>" : "");
 function ongletContraintes() {
-  const J = jeuxDe(), esc = A.esc; if (!J.length) return '<p class="vide-c">Aucun jeu publié pour ce fractionnement</p>';
-  return (J.length > 1 ? '<div class="rtr-raccourcis">' + J.map((j, i) => '<button type="button" class="mini" onclick="document.getElementById(\'rtrJeu' + i + '\').scrollIntoView({block:\'start\'})">' + esc(j.titre) + "</button>").join("") + "</div>" : "") + J.map(tableJeu).join("");
+  const J = jeuxDe(), esc = A.esc; if (!J.length) return couvHtml() + '<p class="vide-c">Aucun jeu publié pour ce fractionnement</p>';
+  return couvHtml() + (J.length > 1 ? '<div class="rtr-raccourcis">' + J.map((j, i) => '<button type="button" class="mini" onclick="document.getElementById(\'rtrJeu' + i + '\').scrollIntoView({block:\'start\'})">' + esc(j.titre) + "</button>").join("") + "</div>" : "") + J.map(tableJeu).join("");
 }
 window.rtrCopierJeu = (id) => {
   const j = BB.jeux.find((x) => x.id === id); if (!j) return;
@@ -537,7 +538,7 @@ function editPrescription() {
       '<td data-l="Rythme">' + inp("prescriptions." + i + ".rythme", p.rythme, "Rythme", { ph: "5 fx/sem" }) + '</td><td><details class="m3"><summary class="mini" title="Autres actions" aria-label="Actions de la ligne">⋯</summary><div class="m3-l"><button type="button" class="mini rouge-t" onclick="rtrLigne(' + i + ')">' + A.ic("corbeille") + "Supprimer la ligne</button></div></details></td></tr>" +
       '<tr class="rtr-errl"><td colspan="7">' + err("prescriptions." + i) + "</td></tr>").join("") + "</tbody></table></div>" + err("prescriptions") +
     '<button type="button" class="mini rtr-aj" onclick="rtrLigne()">' + A.ic("plus") + "Ajouter une ligne</button>";
-  h += zone("technique", s.technique, "Technique") + zone("systemique", s.systemique, "Traitement associé") + zone("couverture", s.couverture, "Objectifs de couverture") + zone("note", ED.note, "Note du médecin", 3);
+  h += zone("technique", s.technique, "Technique") + zone("systemique", s.systemique, "Traitement associé") + zone("note", ED.note, "Note du médecin", 3);
   return h;
 }
 function editCentrage() {
@@ -550,7 +551,7 @@ function editContourage() {
 }
 function editContraintes() {
   const esc = A.esc, on = ED.schema.contraintes_ids || [];
-  return '<label class="rtr-lab">Jeux de contraintes liés<input type="search" class="rtr-in" placeholder="Filtrer (organe, source, fractionnement)" oninput="rtrFiltreJeux(this.value)"></label><div class="rtr-jeux">' +
+  return zone("couverture", ED.schema.couverture, "Objectifs de couverture") + '<label class="rtr-lab">Jeux de contraintes liés<input type="search" class="rtr-in" placeholder="Filtrer (organe, source, fractionnement)" oninput="rtrFiltreJeux(this.value)"></label><div class="rtr-jeux">' +
     BB.jeux.map((j) => '<label><input type="checkbox" data-jeu="' + esc(j.id) + '"' + (on.indexOf(j.id) >= 0 ? " checked" : "") + ' style="width:auto"> <b>' + esc(j.titre) + '</b> <span class="mesures">' + esc([j.fractionnement, j.source].filter(Boolean).join(" · ")) + "</span></label>").join("") + "</div>";
 }
 function editEssais() {
