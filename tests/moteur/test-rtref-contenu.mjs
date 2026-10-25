@@ -20,7 +20,7 @@ const fichiers = readdirSync(DOS).filter(f => f.endsWith(".json")).sort();
 const J = {}, illisibles = [];
 for (const f of fichiers) { try { J[f] = JSON.parse(readFileSync(join(DOS, f), "utf8")); } catch (e) { illisibles.push(f + " (" + e.message + ")"); } }
 cas("tous les fichiers JSON se lisent (" + fichiers.length + ")", illisibles.length === 0, liste(illisibles));
-const COMMUNS = ["index.json", "oar.json", "contraintes.json", "essais.json", "diag-localisation.json"];
+const COMMUNS = ["index.json", "oar.json", "contraintes.json", "essais.json", "diag-localisation.json", "protocoles-chimio.json"];
 const absents = COMMUNS.filter(f => !J[f]);
 cas("fichiers communs présents", absents.length === 0, liste(absents));
 if (absents.length || illisibles.length) { console.log("\n" + ok + " réussi(s), " + ko + " échec(s)"); process.exit(1); }
@@ -160,6 +160,15 @@ const horsLoc = Object.entries(corr).filter(([, v]) => !locIds.has(v)).map(([k, 
 cas("diag-localisation : chaque libellé existe dans DIAG (" + Object.keys(corr).length + ")", horsDiag.length === 0, liste(horsDiag));
 cas("diag-localisation : chaque localisation existe", horsLoc.length === 0, liste(horsLoc));
 cas("diag-localisation : pas de lymphome", !Object.keys(corr).some(k => /lymphom/i.test(k)));
+
+// 5 bis. Protocoles de chimiothérapie correspondants : chaque nom est un traitement du référentiel, chaque identifiant existe dans la bibliothèque de départ (jeu fictif)
+const PC = (J["protocoles-chimio.json"] || {}).correspondances || {};
+const nomsRef = new Set(); for (const f of fichiers) for (const ch of ["systemique", "hormonotherapie"]) for (const x of (J[f] || {})[ch] || []) if (x && x.protocole) nomsRef.add(x.protocole);
+const SEED = JSON.parse(readFileSync(new URL("../seed-fictif.json", import.meta.url), "utf8")), BIBIDS = new Set();
+for (const [k, v] of Object.entries(SEED)) if (k.startsWith("espaces/cabinet-bentahila/protocoles/")) JSON.parse(v.data).forEach((p) => BIBIDS.add(p.id));
+const pcNoms = Object.keys(PC).filter((k) => !nomsRef.has(k)), pcIds = Object.values(PC).flat().filter((i) => !BIBIDS.has(i));
+cas("protocoles-chimio : chaque nom est un traitement du référentiel (" + Object.keys(PC).length + ")", Object.keys(PC).length > 20 && pcNoms.length === 0, liste(pcNoms));
+cas("protocoles-chimio : chaque protocole existe dans la bibliothèque", pcIds.length === 0, liste(pcIds));
 
 // 6. Mentions interdites
 const INTERDIT = [/source non vérifiée/i, /hors référentiel/i, /non lié à ce schéma/i, /\bécart\s+E\d{2}/i, /\(écart/i, /\bE\d{2}\b/, /\bprotocole_ref\b/];

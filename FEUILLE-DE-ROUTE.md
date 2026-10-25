@@ -665,6 +665,10 @@ refus reste valable pour des contraintes dans la prescription ou le dossier d'un
       (`court` ne coupe plus ; définition des OAR sous leur nom ; aide d'Idéal et de Limitant écrite sous le titre de chaque jeu ; critères de la
       situation en entier) ; **plus de sommaire** : tous les schémas listés (comme la page Protocoles), Consultés récemment puis Favoris en tête ;
       situation d'un traitement associé écrite par son nom (jamais son identifiant). Tests du module adaptés, verts dans Chrome et Safari.
+- [x] **Objectifs de couverture** (25/10/2026, pas encore en ligne) : en tête de l'onglet Contraintes (lecture, modification, impression), plus dans Prescription.
+- [x] **« Ouvrir dans Protocoles › » ouvre le protocole** (25/10/2026, pas encore en ligne) : nom exact, sinon `donnees-rt/protocoles-chimio.json`
+      (30 traitements du référentiel → protocole de même schéma de la bibliothèque, le premier présent dans le cabinet), sinon la page filtrée sur la
+      localisation. 17 traitements sans protocole de même schéma (dont Cisplatine 100 mg/m² toutes les 3 semaines + RT) : liste soumise à Dr Bentahila.
 - [ ] **Étape B, table de référence des contraintes et tableau des choix** : RecoRad 2025 (« Doses limites… » et « Délinéation des organes à
       risque »), protocoles IGR (prostate 2016, ORL, col et corps utérin, stéréo poumon, dosimétrie sein), EMBRACE II, Sénorif 2026, harmonisation
       stéréotaxie IGR 2018, fiches dosimétriques IGR, tableurs du service (dernier recours) ; une contrainte par organe, indicateur et régime ;

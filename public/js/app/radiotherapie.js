@@ -13,7 +13,7 @@ import { db } from "../config.js";
 import { fusionner, trier, chercher, motBloquant, termes, sansAcc, resumePrescription, fmtPrescription, controlePrescription, nombre, calculBED, calculable, fixe, libPreuve, nb, TYPES, FRACTIONNEMENTS, CONTEXTES } from "../moteur/rtref.js";
 import { idProtocole } from "./protocoles.js";
 
-let A = null, INDEX = null, CAB = null, LISTE = null, ERREUR = null, CHARGE = null;
+let A = null, INDEX = null, CAB = null, LISTE = null, ERREUR = null, CHARGE = null, PROTOS = {};
 const LOCS = {}, TEXTES = new Map();
 // Recherche et menus de la session ; sel = ligne choisie au clavier ; filtres = menus ouverts sur téléphone
 const RF = { q: "", reg: "", loc: "", sit: "", frac: "", sel: -1, filtres: false, y: 0, ouvert: null };
@@ -29,6 +29,7 @@ function charger() {
   if (!CHARGE) CHARGE = (async () => {
     try {
       INDEX = await json("index.json");
+      try { PROTOS = (await json("protocoles-chimio.json")).correspondances || {}; } catch (e) { console.warn("protocoles-chimio", e); PROTOS = {}; }
       CAB = {};
       try { (await getDocs(collection(db, "espaces", A.ESPACE, "referentielRT"))).forEach((d) => { CAB[d.id] = d.data(); }); } catch (e) { console.warn("référentiel du cabinet", e); }
       // fiches du cabinet : acronymes des essais lus dans la bibliothèque (la référence les a déjà dans index.json)
@@ -197,11 +198,13 @@ const num = (v, suf) => (typeof v === "number" && isFinite(v) ? nb(v) + (suf || 
 const essai = (id) => BB.essais.find((x) => x.id === id);
 const acronymes = (ids) => (ids || []).map((i) => (essai(i) || {}).acronyme || i).join(", ");
 const oar = (id) => (id === "cible-ctv" ? { nom: "Cible (CTV)" } : id === "cible-ptv" ? { nom: "Cible (PTV)" } : BB.oar.find((o) => o.id === id) || { nom: id });
-// Lien vers Protocoles : par le nom exact, sinon la page filtrée sur la localisation ; sans module chimio ni la fonction : le nom seul
+// Lien vers Protocoles : par le nom exact, sinon le protocole correspondant (donnees-rt/protocoles-chimio.json, le premier présent dans le cabinet),
+// sinon la page filtrée sur la localisation ; sans module chimio ni la fonction : le nom seul
+function idCorrespondant(nom) { const bib = (D().ctx && D().ctx.bib) || {}; return idProtocole(nom) || (PROTOS[nom] || []).find((i) => bib[i]) || null; }
 function lienProtocole(nom) {
   const esc = A.esc; if (!nom) return "";
   if (!A.module("chimio") || !A.fn("chimio.protocoles")) return nom === "—" ? "" : esc(nom);
-  const id = nom === "—" ? null : idProtocole(nom), cible = id ? encodeURIComponent(id) : "loc/" + encodeURIComponent(FICHE.loc.nom);
+  const id = nom === "—" ? null : idCorrespondant(nom), cible = id ? encodeURIComponent(id) : "loc/" + encodeURIComponent(FICHE.loc.nom);
   return (nom === "—" ? "" : esc(nom) + " ") + '<a class="rtr-lien" href="#protocoles/' + cible + '">Ouvrir dans Protocoles ›</a>';
 }
 
