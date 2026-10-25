@@ -165,7 +165,7 @@ const echeance = (t) => !t.ech ? "" : t.debut && t.debut < t.ech && !t.h ? "Du "
 function badges(t) {
   let h = t.urgent && t.statut !== "fait" ? '<span class="badge b-al">Urgent</span>' : "";
   if (retard(t)) h += '<span class="badge b-al">En retard</span>';
-  else if (t.statut !== "fait" && t.ech === D().t) h += '<span class="badge b-or">Aujourd\'hui</span>';
+  else if (t.statut !== "fait" && t.ech === D().t) h += '<span class="ta-neutre">Aujourd\'hui</span>'; // lot E : couleur pour ce qui demande une action seulement
   if (sansAcces(t)) h += '<span class="badge b-or" title="' + A.esc(t.pourNom || "") + ' n\'a plus accès à Onco360">À réattribuer</span>';
   return h;
 }
@@ -179,13 +179,15 @@ const lienPat = (t, stop) => !t.patientId ? "" : dossierDe(t)
 const membreDe = (uid) => (MB || []).find((m) => m.uid === uid);
 const sansAcces = (t) => !!MB && t.statut !== "fait" && !(membreDe(t.pour) && membreDe(t.pour).actif !== false);
 const nbCom = (t) => (t.fil || []).filter((f) => f.c).length;
+// Lot E (25/10/2026, page témoin) : une explication permanente passe sous un petit « ? » (bulle au survol, panneau au toucher), le texte ne change pas
+const aideQ = (txt) => '<button type="button" class="q-aide" aria-label="Explication" onclick="event.stopPropagation();this.classList.toggle(\'ouv\')">?<span class="q-txt" role="tooltip">' + A.esc(txt) + "</span></button>";
 function ligne(t) {
   const esc = A.esc, q = "'" + t.id + "'", moi = D().u.uid;
   const qui = t.de === t.pour ? "Pour soi-même (" + (t.de === moi ? "moi" : t.deNom) + ")" : "De " + (t.de === moi ? "moi" : t.deNom || "?") + " → pour " + (t.pour === moi ? "moi" : t.pourNom || "?");
   const pat = lienPat(t, true);
   const fin = t.statut === "fait" ? "Terminée par " + esc(t.faitParNom || "?") + (t.faitLe ? " le " + quand(t.faitLe) : "") : "";
   return '<div class="tache st-' + t.statut + (retard(t) ? " retard" : "") + (t.urgent && t.statut !== "fait" ? " urgent" : "") + (nonLue(t) ? " nonlue" : "") + '" onclick="taOuvrir(' + q + ')">' +
-    '<div class="tx"><div class="ti"><b>' + esc(t.titre) + "</b>" + (nonLue(t) ? '<span class="badge b-co">Nouveau</span>' : "") + badges(t) + "</div>" +
+    '<div class="tx"><div class="ti"><b>' + esc(t.titre) + "</b>" + (nonLue(t) ? '<span class="ta-neutre fort">Nouveau</span>' : "") + badges(t) + "</div>" +
     '<div class="de">' + [t.type && t.titre.indexOf(t.type) !== 0 ? esc(t.type) : "", pat, t.ech ? '<span class="' + (retard(t) ? "rouge" : "") + '">' + esc(echeance(t)) + "</span>" : ""].filter(Boolean).join(" · ") + "</div>" +
     (t.desc ? '<div class="de ta-dsc">' + esc(t.desc) + "</div>" : "") +
     '<div class="de">' + esc(qui) + (fin ? " · " + fin : "") + (nbCom(t) ? ' · <span class="ta-com" title="Commentaires">' + A.ic("bulle") + nbCom(t) + "</span>" : "") + "</div></div>" +
@@ -243,15 +245,16 @@ function dessiner() {
   const lieux = (D().membre.tousEtablissements ? etT.map((e) => e.code) : (D().membre.etablissements || []).slice()).concat(T.map(lieuDe)).filter((c, i, a) => c && a.indexOf(c) === i).sort();
   // Lot B (25/10/2026) : plus de titre ; Mes tâches / Toutes les tâches à gauche, Imprimer et « + Nouvelle tâche » à droite, sur la même ligne
   let h = '<div class="barre-page"><div class="ag-vues ta-vues">' + onglet("mes", "profil", "Mes tâches", nbOuv(mes)) + ongletT("toutes", "taches", '<span class="lg">Toutes les tâches</span><span class="sm">Toutes</span>', nbOuv(T)) + "</div>" +
-    '<div class="bp-act"><button class="bt gris" id="taImp" onclick="taImprimer()" title="Imprimer la liste affichée (vue et filtres en cours)">' + A.ic("imprimer") + 'Imprimer</button><button class="bt plein" onclick="taNouvelle()">' + A.ic("plus") + "Nouvelle tâche</button></div></div>";
+    // Lot E (25/10/2026) : page témoin des règles communes (boutons b1 / b2 / b3, quatre tailles de texte, couleurs, états vides, fenêtres)
+    '<div class="bp-act"><button class="b2" id="taImp" onclick="taImprimer()" title="Imprimer la liste affichée (vue et filtres en cours)">' + A.ic("imprimer") + 'Imprimer</button><button class="b1" onclick="taNouvelle()">' + A.ic("plus") + "Nouvelle tâche</button></div></div>";
   h += '<div class="ta-filtres"><div class="recherche">' + A.ic("loupe") + '<input id="taQ" type="search" placeholder="Rechercher : titre, patient, personne…" autocomplete="off" value="' + esc(F.q) + '"></div>' +
     (VUE === "toutes" ? sel("taFqui", "Responsable", F.qui, optsQui) : "") +
     sel("taFst", "Statut", F.st, [["ouv", "À faire et en cours"], ["afaire", "À faire"], ["encours", "En cours"], ["fait", "Terminées"], ["tous", "Tous les statuts"]]) +
     sel("taFech", "Échéance", F.ech, [["", "Toutes les échéances"], ["retard", "En retard"], ["auj", "Aujourd'hui"], ["sem", "Cette semaine"], ["sans", "Sans échéance"]]) +
     sel("taFtype", "Type", F.type, [["", "Tous les types"]].concat(types.map((x) => [x, x]))).replace("<select ", '<select data-fn="taches.types" ') +
     sel("taFlieu", "Lieu d'exercice", F.lieu, [["", "Tous les lieux"]].concat(lieux.map((c) => [c, c + (nomLieu[c] ? " – " + nomLieu[c] : "")]), [["-", "Sans patient"]])) + "</div>" +
-    '<section class="carte"><div class="ta-entete"><span class="sous" id="taNb"></span><button class="lien' + (filtresActifs() ? "" : " cache") + '" id="taFx" onclick="taEffacer()">Effacer les filtres</button></div><div id="taL"></div></section>';
-  $("page").innerHTML = h;
+    '<section class="carte"><div class="ta-entete"><span class="sous"><span id="taNb"></span>' + aideQ(VUE === "mes" ? "Les tâches dont vous êtes responsable." : estMedecin() ? "Toutes les tâches de l'équipe." : "Vos tâches et celles que vous avez demandées.") + '</span><button class="lien' + (filtresActifs() ? "" : " cache") + '" id="taFx" onclick="taEffacer()">Effacer les filtres</button></div><div id="taL"></div></section>';
+  $("page").innerHTML = '<div class="p-ta">' + h + "</div>";
   $("taQ").oninput = () => { F.q = $("taQ").value; liste(); };
   [["taFqui", "qui"], ["taFst", "st"], ["taFech", "ech"], ["taFtype", "type"], ["taFlieu", "lieu"]].forEach(([i, k]) => { if ($(i)) $(i).onchange = () => { F[k] = $(i).value; liste(); }; });
   liste();
@@ -259,19 +262,23 @@ function dessiner() {
 }
 const nbOuv = (x) => x.filter((t) => t.statut !== "fait").length;
 function majOnglets() { const a = $("taNb-mes"), b = $("taNb-toutes"); if (a) a.textContent = nbOuv(T.filter((t) => t.pour === D().u.uid)); if (b) b.textContent = nbOuv(T); }
+// Lot E : croix de fermeture en haut à droite des fenêtres (Échap ferme aussi : data-echap, v2.js) ; état vide = une phrase courte, grise,
+// centrée, et un seul bouton (secondaire : le principal est en haut de la page)
+const X = '<button type="button" class="b3 fen-x" onclick="fermerFenetre()" aria-label="Fermer" title="Fermer (Échap)">✕</button>';
+const vide = (txt, bouton) => '<div class="vide-e"><p>' + A.esc(txt) + "</p>" + (bouton || "") + "</div>";
 // Liste seule (la recherche garde le curseur) : ouvertes, puis terminées (repliées quand le statut est « À faire et en cours »)
 function liste() {
   const l = filtrer(base()), ouvertes = l.filter((t) => t.statut !== "fait").sort(ordre), finies = l.filter((t) => t.statut === "fait").sort((a, b) => String(b.faitLe || "").localeCompare(String(a.faitLe || "")));
   const actifs = filtresActifs(), n = F.st === "ouv" ? ouvertes.length : l.length;
-  $("taNb").textContent = (VUE === "mes" ? "Les tâches dont vous êtes responsable" : estMedecin() ? "Toutes les tâches de l'équipe" : "Vos tâches et celles que vous avez demandées") + " · " + n + " tâche" + (n > 1 ? "s" : "") + (F.st === "ouv" ? " à faire" : "") + (actifs ? " (filtrées)" : "");
+  $("taNb").textContent = n + " tâche" + (n > 1 ? "s" : "") + (F.st === "ouv" ? " à faire" : "") + (actifs ? " (filtrées)" : ""); // lot E : l'explication est sous « ? »
   $("taFx").classList.toggle("cache", !actifs);
   let h = ouvertes.map(ligne).join("");
   if (F.st === "ouv") {
-    if (!ouvertes.length) h += '<p class="vide-c">' + (actifs ? "Aucune tâche ne correspond aux filtres." : "Aucune tâche à faire." + (VUE === "mes" ? " « Nouvelle tâche » pour en créer une." : "")) + "</p>";
+    if (!ouvertes.length) h += vide(actifs ? "Aucune tâche ne correspond aux filtres." : "Aucune tâche à faire.", actifs ? '<button class="b2" onclick="taEffacer()">Effacer les filtres</button>' : '<button class="b2" onclick="taNouvelle()">' + A.ic("plus") + "Nouvelle tâche</button>");
     if (finies.length) h += '<button class="lien" style="margin-top:12px" onclick="taTerminees()">' + (TERM ? "▾ Masquer" : "▸ Afficher") + " les tâches terminées (" + finies.length + ")</button>" + (TERM ? '<div class="taches-finies">' + finies.map(ligne).join("") + "</div>" : "");
   } else {
     h += finies.map(ligne).join("");
-    if (!l.length) h += '<p class="vide-c">Aucune tâche ne correspond aux filtres.</p>';
+    if (!l.length) h += vide("Aucune tâche ne correspond aux filtres.", '<button class="b2" onclick="taEffacer()">Effacer les filtres</button>');
   }
   $("taL").innerHTML = h;
 }
@@ -342,23 +349,24 @@ function taFiche(t) {
   const actuel = membreDe(t.pour), opts = MB ? MB.filter((m) => m.actif !== false) : [];
   const optPour = (actuel && actuel.actif !== false ? "" : '<option value="' + esc(t.pour) + '" selected>' + esc((t.pourNom || "?") + " (n'a plus accès)") + "</option>") +
     opts.map((m) => '<option value="' + esc(m.uid) + '"' + (m.uid === t.pour ? " selected" : "") + ">" + esc(m.uid === moi ? "Moi-même (" + nomMembre(m) + ")" : nomMembre(m)) + "</option>").join("");
-  const pour = (reattr && A.fn("taches.reattribuer") ? '<select id="taRe" aria-label="Pour">' + optPour + '</select><button class="bt plein petit cache" id="taReOk" onclick="taReattribuer(' + q + ')">Réattribuer</button>' : esc(t.pourNom || "?")) +
+  const pour = (reattr && A.fn("taches.reattribuer") ? '<select id="taRe" aria-label="Pour">' + optPour + '</select><button class="b2 cache" id="taReOk" onclick="taReattribuer(' + q + ')">Réattribuer</button>' : esc(t.pourNom || "?")) +
     (sansAcces(t) ? '<div class="mesures" style="width:100%;color:var(--orange)">' + esc(t.pourNom || "Cette personne") + " n'a plus accès à Onco360 : réattribuez la tâche." + "</div>" : "");
   // Fil : dans l'ordre, les événements en petit, les commentaires en bulles
   const fil = (t.fil || []).map((f) => f.c
     ? '<div class="ta-c' + (f.par === moi ? " moi" : "") + '"><div class="qui"><b>' + esc(f.parNom || "") + "</b>" + esc(quand(f.le)) + '</div><div class="txt">' + esc(f.txt || "") + "</div></div>"
     : '<div class="ta-ev"><span class="dt">' + esc(quand(f.le).replace(" à ", " ")) + "</span><b>" + esc(f.parNom || "") + "</b> " + esc(f.txt || "") + "</div>").join("");
-  A.fenetre('<div id="taFiche" data-id="' + esc(t.id) + '" data-n="' + (t.fil || []).length + '"><h3>' + esc(t.titre) + "</h3>" + '<div class="ti" style="margin:-6px 0 12px">' + badges(t) + "</div>" +
+  const rt = estRT(t) && t.statut !== "fait" && dossierDe(t); // validation dans le dossier : l'action principale de la fenêtre
+  A.fenetre('<div id="taFiche" class="p-ta" data-echap="1" data-id="' + esc(t.id) + '" data-n="' + (t.fil || []).length + '">' + X + "<h3>" + esc(t.titre) + "</h3>" + '<div class="ti" style="margin:-6px 0 12px">' + badges(t) + "</div>" +
     '<div class="form">' + champ("Type", esc(t.type)) + champ("Description", t.desc ? '<div class="ta-desc">' + esc(t.desc) + "</div>" : "") +
     champ("Patient", t.patientId ? lienPat(t) + (dossierDe(t) ? "" : ' <span class="mesures">(dossier non accessible : hors de vos établissements ou supprimé)</span>') : "") +
     champ("Échéance", t.ech ? esc(A.dfrA(t.ech) + (t.h ? " à " + t.h : "")) : "") +
     '<div><label>De la part de</label><div>' + esc(t.deNom || "?") + '</div></div><div><label' + (reattr ? ' for="taRe"' : "") + '>Pour</label><div class="ta-re">' + pour + "</div></div>" +
     '<div class="large"><label for="taSt">Statut</label><select id="taSt" onchange="taStatut(' + q + ',this.value)">' + STATUTS.map(([k, l]) => '<option value="' + k + '"' + (t.statut === k ? " selected" : "") + ">" + l + "</option>").join("") + "</select></div></div>" +
-    (estRT(t) && t.statut !== "fait" && dossierDe(t) ? '<div class="ta-auto"><button class="bt vert" onclick="taValiderAuto(' + q + ')">' + A.ic("check") + LIB_RT[t.auto.ev] + '</button><span class="mesures">Valide aussi dans le dossier du patient ; la tâche se termine toute seule.</span></div>' : "") +
+    (rt ? '<div class="ta-auto"><button class="b1" onclick="taValiderAuto(' + q + ')">' + A.ic("check") + LIB_RT[t.auto.ev] + "</button>" + aideQ("Valide aussi dans le dossier du patient ; la tâche se termine toute seule.") + "</div>" : "") +
     '<h4 class="soustitre">Fil de la tâche</h4><div class="ta-fil" id="taFil">' + fil + "</div>" +
-    '<div class="ta-ecrire"><textarea id="taCom" rows="2" placeholder="Écrire un commentaire (consigne, précision…)"></textarea><button class="bt plein" id="taComOk" onclick="taCommenter(' + q + ')">Envoyer</button></div>' +
-    '<div class="err" id="fErr"></div><div class="boutons">' + (peutSupprimer(t) ? '<button class="bt gris" style="margin-right:auto;color:var(--rouge)" onclick="taSupprimer(' + q + ')">' + A.ic("corbeille") + "Supprimer</button>" : "") +
-    (peutModifier(t) ? '<button class="bt clair" onclick="taModifier(' + q + ')">Modifier</button>' : "") + '<button class="bt plein" onclick="fermerFenetre()">Fermer</button></div></div>');
+    '<div class="ta-ecrire"><textarea id="taCom" rows="2" placeholder="Écrire un commentaire (consigne, précision…)"></textarea><button class="' + (rt ? "b2" : "b1") + '" id="taComOk" onclick="taCommenter(' + q + ')">Envoyer</button></div>' +
+    '<div class="err" id="fErr"></div><div class="boutons">' + (peutSupprimer(t) ? '<button class="b2 danger" style="margin-right:auto" onclick="taSupprimer(' + q + ')">' + A.ic("corbeille") + "Supprimer</button>" : "") +
+    '<button class="b2" onclick="fermerFenetre()">Fermer</button>' + (peutModifier(t) ? '<button class="b2" onclick="taModifier(' + q + ')">Modifier</button>' : "") + "</div></div>");
   const z = $("taFil"); z.scrollTop = z.scrollHeight; // le plus récent en bas, visible
   marquerVue(t);
   if ($("taRe")) $("taRe").onchange = () => $("taReOk").classList.toggle("cache", $("taRe").value === t.pour);
@@ -418,7 +426,7 @@ async function formulaire(t, pid) {
   if (P.id && !P.nom) { const x = D().patients.find((z) => z.id === P.id); P.nom = x ? x.r.nm : ""; }
   let type = t ? t.type || "" : "";
   const optsPour = '<option value="">— Choisir —</option>' + mb.map((m) => '<option value="' + esc(m.uid) + '"' + (t && t.pour === m.uid ? " selected" : "") + ">" + esc(m.uid === moi ? "Moi-même (" + nomMembre(m) + ")" : nomMembre(m) + " – " + (ROLES[m.role] || m.role || "")) + "</option>").join("");
-  A.fenetre("<h3>" + (t ? "Modifier la tâche" : "Nouvelle tâche") + "</h3>" +
+  A.fenetre('<div class="p-ta" data-echap="1">' + X + "<h3>" + (t ? "Modifier la tâche" : "Nouvelle tâche") + "</h3>" +
     '<div class="puces" data-fn="taches.types" id="taTypes" role="radiogroup" aria-label="Type de tâche">' + TYPES().concat(type && TYPES().indexOf(type) < 0 ? [type] : []).map((x) => '<button type="button" class="puce' + (x === type ? " on" : "") + '" role="radio" aria-checked="' + (x === type) + '" data-t="' + esc(x) + '">' + esc(x) + "</button>").join("") + "</div>" +
     '<div class="form"><div class="large"><label for="taTitre">Titre</label><input id="taTitre" value="' + esc(t ? t.titre : "") + '" placeholder="Ex. Relancer le laboratoire"></div>' +
     '<div class="large"><label for="taDesc">Description <span class="mesures">(facultatif)</span></label><textarea id="taDesc" rows="3">' + esc(t ? t.desc || "" : "") + "</textarea></div>" +
@@ -427,7 +435,7 @@ async function formulaire(t, pid) {
     '<div><label for="taH">Heure <span class="mesures">(facultatif)</span></label><input id="taH" type="time" value="' + esc(t ? t.h || "" : "") + '"></div>' +
     '<div class="large" data-fn="taches.urgent"><label style="font-weight:normal;color:var(--encre)"><input id="taUrg" type="checkbox" style="width:auto;margin-right:8px"' + (t && t.urgent ? " checked" : "") + ">Urgent</label></div>" +
     '<div class="large" style="position:relative"><label for="taPq">Patient <span class="mesures">(facultatif)</span></label><div id="taPch"></div><input id="taPq" placeholder="Nom, prénom…" autocomplete="off"><div id="taPl" class="sug cache"></div></div></div>' +
-    '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt plein" id="taOk">' + (t ? "Enregistrer" : "Créer la tâche") + "</button></div>");
+    '<div class="err" id="fErr"></div><div class="boutons"><button class="b2" onclick="fermerFenetre()">Annuler</button><button class="b1" id="taOk">' + (t ? "Enregistrer" : "Créer la tâche") + "</button></div></div>");
   // Type rapide : préremplit le titre s'il est vide (ou s'il n'était que le type précédent)
   $("taTypes").onclick = (ev) => {
     const b = ev.target.closest("[data-t]"); if (!b) return; const avant = type; type = type === b.dataset.t ? "" : b.dataset.t;

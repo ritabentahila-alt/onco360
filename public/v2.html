@@ -503,6 +503,39 @@ nav a.actif .nb-menu{background:#fff;color:var(--prim)}
 .ta-entete{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:4px}
 @media (max-width:640px){.ta-filtres{grid-template-columns:1fr 1fr}.ta-filtres select{font-size:var(--t4);padding:10px 8px}}
 @media (max-width:640px){.tache{flex-wrap:wrap;gap:8px}.tache select.st{width:100%}}
+/* Lot E (25/10/2026) : règles communes, d'abord sur la page témoin Tâches (.p-ta, page et fenêtres), à valider par Dr Bentahila avant les autres pages.
+   Quatre tailles de texte (titre, sous-titre, texte, petit ; jamais sous 13 px) ; trois niveaux de boutons : b1 principal (plein bleu, un seul par écran
+   ou par fenêtre), b2 secondaire (contour gris), b3 icône seule ; même hauteur (40 px, 44 px au toucher), même rayon ; couleur seulement pour ce qui
+   demande une action (à valider, à encaisser, en retard, urgent, à réattribuer, erreurs) et pour les liens ; explications sous « ? » ; fenêtres :
+   titre à gauche, ✕ en haut à droite, boutons en bas à droite (Annuler / Fermer puis l'action) ; états vides : une phrase grise centrée, un bouton */
+:root{--tx-titre:var(--t7);--tx-sous:var(--t5);--tx-texte:var(--t4);--tx-petit:var(--t3)}
+.b1,.b2,.b3{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:40px;border-radius:var(--r-m);font:inherit;font-weight:bold;font-size:var(--tx-texte);cursor:pointer;white-space:nowrap;box-sizing:border-box;text-decoration:none}
+.b1,.b2{padding:0 16px}.b1 .i,.b2 .i,.b3 .i{width:18px;height:18px;flex:none}
+.b1{background:var(--prim);color:var(--carte);border:1px solid var(--prim)}.b1:hover{background:var(--prim-f);border-color:var(--prim-f)}
+.b2{background:var(--carte);color:var(--encre);border:1px solid var(--bord-champ)}.b2:hover{background:var(--fond-doux)}.b2.danger{color:var(--rouge)}
+.b3{width:40px;padding:0;background:none;border:1px solid transparent;color:var(--doux);font-size:var(--tx-sous)}.b3:hover{background:var(--fond-doux);color:var(--encre)}
+.b1:disabled,.b2:disabled{opacity:.55;cursor:default}
+@media (pointer:coarse){.b1,.b2,.b3{min-height:44px}.b3{width:44px}}
+#fenetre .boite:has(.fen-x){position:relative}.fen-x{position:absolute;top:12px;right:12px;z-index:2}#fenetre .boite:has(.fen-x) h3:first-of-type{padding-right:48px}
+.vide-e{display:flex;flex-direction:column;align-items:center;gap:12px;padding:28px 12px;text-align:center;color:var(--doux);font-size:var(--tx-texte)}.vide-e p{margin:0}
+.ta-neutre{display:inline-block;border:1px solid var(--trait);border-radius:20px;padding:1px 9px;font-size:var(--tx-petit);font-weight:bold;color:var(--doux);white-space:nowrap}.ta-neutre.fort{color:var(--encre)}
+.q-aide{position:relative;display:inline-grid;place-items:center;width:22px;height:22px;margin:0 0 0 6px;padding:0;border:1px solid var(--bord-champ);border-radius:50%;background:var(--carte);color:var(--doux);font:inherit;font-size:var(--tx-petit);font-weight:bold;cursor:help;vertical-align:middle}
+.q-aide .q-txt{display:none;position:absolute;left:50%;top:calc(100% + 6px);transform:translateX(-50%);z-index:30;width:max-content;max-width:min(280px,80vw);padding:8px 10px;border:1px solid var(--trait);border-radius:var(--r-s);background:var(--carte);box-shadow:var(--ombre-h);color:var(--encre);font-weight:normal;font-size:var(--tx-petit);text-align:left;white-space:normal;line-height:1.4}
+.q-aide:hover .q-txt,.q-aide:focus-visible .q-txt,.q-aide.ouv .q-txt{display:block}
+@media (pointer:coarse){.q-aide{width:32px;height:32px}}
+/* Page témoin Tâches */
+.p-ta .bp-act{gap:8px}
+.p-ta .ta-filtres select{font-size:var(--tx-texte)}.p-ta .ag-vues .nb{font-size:var(--tx-petit)}
+.p-ta .tache .ti b{font-size:var(--tx-texte)}.p-ta .tache .de{font-size:var(--tx-petit)}
+.p-ta .tache.st-encours{border-left-color:transparent}.p-ta .tache.urgent,.p-ta .tache.retard{border-left-color:var(--rouge)}
+.p-ta .tache select.st,.p-ta .tache.st-encours select.st,.p-ta .tache.st-fait select.st{color:var(--encre);border-color:var(--bord-champ);font-size:var(--tx-petit)}
+.p-ta .tache.nonlue .ti b{color:var(--encre)}.p-ta .ta-com{color:var(--doux)}
+.p-ta .ta-entete .sous{display:inline-flex;align-items:center;font-size:var(--tx-petit)}
+.p-ta h3{font-size:var(--tx-titre)}.p-ta h4.soustitre{font-size:var(--tx-sous)}
+.p-ta .ta-auto{display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin:4px 0 12px}
+#taFiche>.ti{display:flex;gap:6px;flex-wrap:wrap}
+.p-ta .boutons{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.p-ta .ta-ecrire .b1,.p-ta .ta-ecrire .b2{align-self:flex-end}
 /* Salle d'attente (SA1, 08/10/2026) : lignes du jour, pastilles de statut au trait, bulles du dossier en consultation */
 .sa-ajour{align-self:center;white-space:nowrap}
 .sa-etab select{padding:11px 12px;border:1px solid var(--bord-champ);border-radius:var(--r-m);background:#fff;font-size:var(--t5);max-width:100%}

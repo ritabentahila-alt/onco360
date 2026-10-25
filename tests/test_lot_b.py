@@ -48,7 +48,7 @@ async def main():
 
         # Tâches : Mes tâches / Toutes, Imprimer et « + Nouvelle tâche » sur la même ligne ; Imprimer = la liste filtrée
         await pg.goto(f'http://localhost:{PORT}/v2.html#taches'); await pg.wait_for_timeout(1800)
-        r = await ev("(() => { const v = document.querySelector('.barre-page .ta-vues'), i = document.getElementById('taImp'), n = document.querySelector('.barre-page .bp-act .bt.plein'); if (!v || !i || !n) return null; const c = (e) => { const x = e.getBoundingClientRect(); return x.top + x.height / 2; }; return Math.abs(c(v) - c(i)) < 14 && Math.abs(c(v) - c(n)) < 14 && i.getBoundingClientRect().right <= n.getBoundingClientRect().left; })()")
+        r = await ev("(() => { const v = document.querySelector('.barre-page .ta-vues'), i = document.getElementById('taImp'), n = document.querySelector('.barre-page .bp-act .bt.plein, .barre-page .bp-act .b1'); if (!v || !i || !n) return null; const c = (e) => { const x = e.getBoundingClientRect(); return x.top + x.height / 2; }; return Math.abs(c(v) - c(i)) < 14 && Math.abs(c(v) - c(n)) < 14 && i.getBoundingClientRect().right <= n.getBoundingClientRect().left; })()")
         ok(r, 'tâches : Mes tâches / Toutes les tâches, Imprimer, « + Nouvelle tâche » alignés')
         await pg.fill('#taQ', 'zzzz-aucune'); await pg.wait_for_timeout(300)
         await pg.click('#taImp'); await pg.wait_for_timeout(600)

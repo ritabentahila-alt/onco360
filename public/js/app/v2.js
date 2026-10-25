@@ -2294,6 +2294,8 @@ document.addEventListener("keydown", (ev) => {
   if (ev.key !== "Escape") return;
   if (!$("menuCompte").classList.contains("cache")) { menuCompte(false); ($("btCompte").offsetParent ? $("btCompte") : $("avTete")).focus(); return; }
   document.querySelectorAll("details.m3[open]").forEach((d) => d.removeAttribute("open")); // Échap ferme aussi un menu ⋯ ouvert
+  // Lot E (25/10/2026, page témoin Tâches) : Échap ferme une fenêtre marquée data-echap (les autres pages suivront après validation)
+  if (!$("fenetre").classList.contains("cache") && $("fenetreCorps").querySelector("[data-echap]") && !$("ptsMenuF")) window.fermerFenetre();
 });
 $("mcCompte").onclick = () => { menuCompte(false); fermerMenu(); };
 window.addEventListener("resize", () => menuCompte(false));

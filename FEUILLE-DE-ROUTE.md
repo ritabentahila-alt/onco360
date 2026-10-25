@@ -410,6 +410,17 @@ ordre B, D, C, A puis E. **Ces demandes passent avant ce plan quand elles le con
       d'affichage `sansZero` de app/bilan.js). Test `tests/test_bilan_zero.py`.
 - [ ] **Lot E (harmonisation visuelle)** : page témoin Tâches d'abord, validée par Dr Bentahila, puis les autres pages (points 1, 2, 4, 5, 7, 8, 9,
       11 de la fiche ; pas 3, 6, 10). Point 1 (« le nom du patient une seule fois ») déjà fait avec le lot A.
+  - [x] **Page témoin Tâches (25/10/2026, écrite et testée, à valider par Dr Bentahila)** : trois classes de boutons `b1` (principal, un seul
+        par écran ou par fenêtre : « + Nouvelle tâche » ; dans une tâche « Envoyer », ou la validation de radiothérapie quand elle existe),
+        `b2` (secondaire, contour gris), `b3` (icône seule) ; quatre tailles `--tx-titre` / `--tx-sous` / `--tx-texte` / `--tx-petit`, rien sous
+        13 px ; « Aujourd'hui », « En cours » et « Nouveau » en gris (couleur gardée pour Urgent, En retard, À réattribuer : **à trancher**,
+        la fiche ne cite pas « urgent » ni « à réattribuer ») ; l'explication de la liste et celle de la validation RT sous « ? » ; fenêtres :
+        ✕ en haut à droite, Échap ferme, Annuler / Fermer (secondaire) puis l'action (principal) en bas à droite ; états vides : une phrase grise
+        centrée et un bouton. Les autres pages gardent `bt …` jusqu'à la validation. Test `tests/test_lot_e.py` (390, 900, 1 280, 1 600 px,
+        contraste d'au moins 4,5 pour 1).
+  - [ ] Après validation : les familles `bt plein`, `bt clair`, `bt gris`, `mini`, `rond`, `ico vert`… ramenées à `b1` / `b2` / `b3` dans
+        v2.html et sur toutes les pages ; tailles écrites dans les pages remplacées par les quatre variables ; aide, fenêtres et états vides au
+        même modèle partout.
 
 **Changements de décision (demandés par Dr Bentahila le 24 et le 25/10/2026, ils remplacent ce qui est écrit plus bas)** :
 - d. 46 (20/10 : « traitements en cours choisis dans une liste : non ») → **oui** (lot A §4 et §6) : liste du cabinet + saisie libre. Le texte
