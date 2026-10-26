@@ -1545,12 +1545,52 @@ details.dp[open]>.dp-c{animation:ev-apparait .2s ease-out}
 /* 26/10/2026 : états vides du tableau de bord (petite illustration, ou pastille ronde et phrase) ; « n alertes vues » en pastille */
 .ev-vide.petit{padding:12px 12px 16px;gap:6px}.ev-vide.petit .ev-ill{width:min(150px,55%)}.ev-vide.petit h4{font-size:var(--t5);margin-top:2px}.ev-vide.petit p{font-size:var(--t3)}
 .ev-mini{display:flex;align-items:center;gap:12px;padding:4px 14px 14px;color:var(--doux);font-size:var(--t4)}
-.ev-rond{width:38px;height:38px;border-radius:50%;background:#EAF0FA;color:var(--prim);display:inline-flex;align-items:center;justify-content:center;flex:none}.ev-rond .pi{width:18px;height:18px}
+.ev-rond{width:38px;height:38px;border-radius:50%;background:#EAF0FA;color:var(--prim);display:inline-flex;align-items:center;justify-content:center;flex:none}.ev-rond svg{width:18px;height:18px}
 section.carte>.ev-mini{padding:4px 2px 2px}
 .af-g-vues{display:flex;justify-content:flex-end;border:0}
 .af-vues{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:#F3F5F8;border:1px solid #E3E7EE;color:#55607A;font:inherit;font-size:var(--t3);font-weight:600;cursor:pointer}
-.af-vues .pi{width:14px;height:14px;color:#2FA37A}.af-vues .fl{margin-left:2px;color:var(--doux)}
+.af-vues svg{width:14px;height:14px;color:#2FA37A}.af-vues .fl{margin-left:2px;color:var(--doux)}
 .af-vues:hover{background:var(--prim-c);border-color:#C9D5EA;color:var(--prim)}
+/* 26/10/2026 (demande de Dr Bentahila) : tâches en tableau, statut en pastille, terminées dans un cadre à part ; fenêtre d'une tâche */
+.ta-tab{border:1px solid #E3E9F3;border-radius:12px;overflow:hidden;background:#fff}
+.ta-h,.ta-r{display:grid;grid-template-columns:minmax(0,2.6fr) minmax(0,1.3fr) minmax(0,1.3fr) minmax(0,1.3fr) minmax(112px,.9fr) 138px;align-items:center}
+.ta-h{background:#F4F7FC;color:var(--doux);font-size:var(--t3);font-weight:600}
+.ta-h>span,.ta-r>div{padding:12px 14px;border-left:1px solid #EDF1F7;min-width:0}
+.ta-h>span:first-child,.ta-r>div:first-child{border-left:0}
+.ta-tab .ta-r{border:0;border-top:1px solid #EDF1F7;border-radius:0;margin:0;cursor:pointer;background:#fff;box-shadow:none;padding:0;transition:background-color .2s ease-in-out}
+.ta-tab .ta-r:hover{background:#F7F9FD}
+.ta-r.nonlue{background:#FAFCFF}
+.c-t{display:flex;align-items:flex-start;gap:10px}.c-t>svg{flex:none;margin-top:3px;color:#B4C0D4;width:16px;height:16px}.ta-r.urgent .c-t>svg{color:var(--rouge)}
+.c-t .tx{min-width:0;flex:1}.c-t .ti{display:flex;flex-wrap:wrap;align-items:center;gap:6px}.c-t b{font-weight:600;color:var(--titre)}
+.ta-r.st-fait .c-t b{text-decoration:line-through;color:var(--doux)}
+.ta-s{display:block;color:var(--doux);font-size:var(--t2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px}
+.c-t .ta-com{display:inline-flex;align-items:center;gap:3px;color:var(--doux);font-size:var(--t2);margin-top:2px}
+.c-u{display:flex;align-items:center;gap:8px}.ta-nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ta-av{display:inline-flex;width:26px;height:26px;border-radius:50%;background:#DCE6F7;color:#2F5597;font-size:11px;font-weight:700;align-items:center;justify-content:center;flex:none}
+.c-p .lien-p{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.ta-r.retard .c-e{color:var(--rouge);font-weight:600}
+.ta-r select.st,.ta-st select.st{width:100%;border-radius:999px;padding:6px 26px 6px 12px;border:1px solid #D5DDEB;background-color:#F3F5F8;color:#55607A;font-size:var(--t3);font-weight:600;cursor:pointer}
+.ta-r.st-encours select.st,.ta-st.st-encours select.st{background-color:#EEF3FC;border-color:#D3E0F5;color:#2F5597}
+.ta-r.st-fait select.st,.ta-st.st-fait select.st{background-color:#ECFDF5;border-color:#C9F0DD;color:#047857}
+.ta-finies{margin-top:18px;padding:0}
+.ta-fin-t{display:flex;align-items:center;gap:10px;width:100%;background:none;border:0;padding:16px 20px;font:inherit;font-weight:700;color:var(--titre);cursor:pointer;text-align:left}
+.ta-fin-t .fl{color:var(--doux);width:12px}.ta-fin-t .n{margin-left:auto;background:#ECFDF5;color:#047857;border-radius:999px;padding:2px 10px;font-size:var(--t2)}
+.ta-finies .taches-finies{padding:0 16px 16px}
+@media (max-width:899px){.ta-h{display:none}.ta-tab .ta-r{display:flex;flex-wrap:wrap;align-items:center;padding:8px 0}.ta-r>div{border-left:0;padding:4px 14px}
+  .ta-r>.c-t{flex:1 1 100%}.ta-r>.c-de{display:none}.ta-r>.c-s{margin-left:auto;width:150px}}
+.ta-f .ta-fh{display:flex;gap:14px;align-items:flex-start;padding-right:44px}.ta-fh-t{flex:1;min-width:0}.ta-f .ta-fh h3{margin:0 0 8px}
+.ta-fh .ti{display:flex;flex-wrap:wrap;gap:6px;align-items:center}.ta-st{width:150px;flex:none}
+.ta-f .ta-desc{background:#F7F9FD;border-left:3px solid #C9D5EA;border-radius:0 8px 8px 0;padding:10px 14px;margin:14px 0 0;white-space:pre-wrap;color:var(--encre)}
+.ta-meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin:14px 0}
+.ta-m{display:flex;gap:10px;align-items:flex-start;background:#fff;border:1px solid #E9EEF6;border-radius:12px;padding:10px 12px;min-width:0}
+.ta-mi{width:32px;height:32px;border-radius:50%;background:#EAF0FA;color:var(--prim);display:inline-flex;align-items:center;justify-content:center;flex:none}.ta-mi svg{width:16px;height:16px}
+.ta-m label{display:block;font-size:var(--t2);color:var(--doux);font-weight:600;margin-bottom:3px}.ta-m>div{min-width:0;flex:1}.ta-m .c-u,.ta-m>div>div{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ta-fil-t{font-size:var(--t2);font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--doux);margin:18px 0 8px}
+@media (max-width:600px){.ta-f .ta-fh{flex-direction:column;padding-right:40px}.ta-st{width:100%}}
+.ta-tab .lien-p{text-decoration:none;font-weight:600;color:var(--prim)}.ta-tab .lien-p:hover{text-decoration:underline}
+.ta-m select{width:100%;padding:7px 10px;border:1px solid #D5DDEB;border-radius:8px;background:#fff;font:inherit}
+@media (max-width:899px){.ta-r>.c-p:has(>.mesures){display:none}}
+.p-ta .ta-s,.p-ta .pc-mol,.p-ta .ta-m label,.p-ta .ta-fil-t,.p-ta .c-t .ta-com{font-size:13px}.p-ta .ta-av{font-size:13px;width:30px;height:30px}
 </style>
 </head>
 <body>
