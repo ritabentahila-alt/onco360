@@ -430,7 +430,7 @@ ordre B, D, C, A puis E. **Ces demandes passent avant ce plan quand elles le con
         v2.html et sur toutes les pages ; tailles écrites dans les pages remplacées par les quatre variables ; aide, fenêtres et états vides au
         même modèle partout.
 
-- [x] **Retouches du 26/10/2026 (demandes de Dr Bentahila, testées, version 20261026a)** : colonne Patient du dossier : « Prochain rendez-vous »
+- [x] **Retouches du 26/10/2026 (demandes de Dr Bentahila, testées, en ligne le 26/10 : version 20261026a, fonctions et site)** : colonne Patient du dossier : « Prochain rendez-vous »
       retiré (doublon) ; « Rendez-vous et tâches à venir » et « Historique des RDV » sur **une ligne** par rendez-vous (« Lun. 26/10 · 08:30 »,
       icône, nom court comme la salle d'attente : Séance chimio, RT hebdo, Suivi, Annonce, Contrôle, Scanner RT, Début RT, Dernière séance RT, Tâche,
       RCP ; détail en gris coupé ; même « ⋯ ») ; la carte complète reste au centre (clic sur le titre de la rubrique) ; informations médicales :
