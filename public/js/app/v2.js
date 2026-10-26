@@ -1252,6 +1252,7 @@ function pageDossier(id) {
   // Afficher et Modifier du haut : retirés (clic sur le titre d'une rubrique). Réglages « En-tête du dossier » d'avant : ignorés (gardés).
   const enCh = r.t && r.t.st === "cours", enRT = (r.rtS || []).some((s) => s.st === "cours"), num = numDossier(x);
   const mBp = D.espaceDoc && D.espaceDoc.titulaire === D.u.uid ? ['<button class="mini" onclick="auditPatient(' + qx + ')" title="Journal d\'audit de ce dossier : qui l\'a ouvert, modifié…">Journal</button>'] : [];
+  if (peut("supprimerPatient")) mBp.push('<button class="mini rouge-t" onclick="dosSupprimer(' + qx + ')">Supprimer le patient</button>');
   const ban = '<div class="bp">' +
     '<button type="button" class="bn-ph" onclick="' + (!P.photo && peut("identite") ? "photoPatient" : "dosPhoto") + "(" + qx + ')" title="' + (P.photo ? "Agrandir la photo" : peut("identite") ? "Ajouter une photo du patient" : "Photo du patient") + '" aria-label="Photo du patient">' + bulle(x, "ph-ban") + "</button>" +
     '<div class="bp-id"><div class="bp-l1"><h2>' + esc(r.nm) + "</h2>" + menuPts(mBp) + "</div>" +
@@ -1603,6 +1604,20 @@ document.addEventListener("scroll", (e) => { if (!(e.target && e.target.closest 
 // ───── Modifier l'identité ─────
 // 20/10/2026 (demande de Dr Bentahila) : une partie de la fiche à la fois. sec = "id" (bandeau, Afficher : Identité et administratif ; sans le droit
 // « identité » : Informations médicales), "med" ou "tum" (« Modifier » de la partie dans la colonne Patient). Statut du patient : avec les
+// « Supprimer le patient » : fenêtre de l'identité et, depuis le 26/10/2026 (demande de Dr Bentahila), « ⋯ » de l'en-tête du dossier, sous Journal ;
+// droit « supprimerPatient », deux confirmations
+window.dosSupprimer = async (id) => {
+  const x = D.patients.find((p) => p.id === id); if (!x || !peut("supprimerPatient")) return;
+  if (!confirm("Supprimer définitivement le dossier de " + x.r.nm + " ?\n\nToutes ses lignes de traitement et ses cures seront effacées.\n\nLe médecin titulaire peut le récupérer pendant 7 jours (Paramètres › Cabinet › Export des données › Récupérer des données).")) return;
+  if (!confirm("Confirmer la suppression du dossier de " + x.r.nm + " ?")) return;
+  try {
+    await supprimerConsultations(x); await supprimerDocs(x); await supprimerFichiers(x); await supprimerRcp(x);
+    await deleteDoc(doc(db, "espaces", ESPACE, "patients", x.id));
+    await deleteDoc(doc(db, "espaces", ESPACE, "rappels", x.id)).catch(() => {}); // R-C4
+    if (peut("finances")) { await deleteDoc(doc(db, "espaces", ESPACE, "patientsFinances", x.id)).catch(() => {}); await deleteDoc(doc(db, "espaces", ESPACE, "encaissements", x.id)).catch(() => {}); }
+    journal(x, "Patient supprimé"); D.patients.splice(D.patients.indexOf(x), 1); fermerFenetre(); toast("Dossier supprimé."); location.hash = "patients";
+  } catch (e) { ($("fErr") ? erreur : alert)(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de supprimer ce dossier." : "Suppression impossible : " + ((e && e.message) || e)); }
+};
 // Informations médicales (avec l'identité si le cabinet n'a pas de partie médicale) ; « Supprimer le patient » : avec l'identité.
 window.modifierIdentite = (id, sec, centre) => { // centre (lot A §3) : formulaire ouvert à la place du centre du dossier (panneau)
   const x = D.patients.find((p) => p.id === id); if (!x) return;
@@ -1618,17 +1633,7 @@ window.modifierIdentite = (id, sec, centre) => { // centre (lot A §3) : formula
       '<div id="zDeces"' + (C.statut === "decede" ? "" : ' class="cache"') + '><label for="fDeces">Date du décès</label><input id="fDeces" type="date" value="' + esc(C.decesLe || "") + '"' + (okC ? "" : " disabled") + "></div></div>") +
     '<div class="err" id="fErr"></div><div class="boutons">' + (peut("supprimerPatient") && sec === "id" ? '<button class="bt gris" id="fSup" style="margin-right:auto;color:var(--rouge)"><svg class="pi"><use href="#i-corbeille"/></svg>Supprimer le patient</button>' : "") + '<button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt plein" id="fOk">Enregistrer</button></div>');
   activerDiag("fDiag", "fDiagP");
-  if ($("fSup")) $("fSup").onclick = async () => {
-    if (!confirm("Supprimer définitivement le dossier de " + x.r.nm + " ?\n\nToutes ses lignes de traitement et ses cures seront effacées.")) return;
-    if (!confirm("Confirmer la suppression de " + x.r.nm + " ? Cette action est irréversible.")) return;
-    try {
-      await supprimerConsultations(x); await supprimerDocs(x); await supprimerFichiers(x); await supprimerRcp(x);
-      await deleteDoc(doc(db, "espaces", ESPACE, "patients", x.id));
-      await deleteDoc(doc(db, "espaces", ESPACE, "rappels", x.id)).catch(() => {}); // R-C4
-      if (peut("finances")) { await deleteDoc(doc(db, "espaces", ESPACE, "patientsFinances", x.id)).catch(() => {}); await deleteDoc(doc(db, "espaces", ESPACE, "encaissements", x.id)).catch(() => {}); }
-      journal(x, "Patient supprimé"); D.patients.splice(D.patients.indexOf(x), 1); fermerFenetre(); toast("Dossier supprimé."); location.hash = "patients";
-    } catch (e) { erreur(e && e.code === "permission-denied" ? "Vous n'avez pas le droit de supprimer ce dossier." : "Suppression impossible : " + ((e && e.message) || e)); }
-  };
+  if ($("fSup")) $("fSup").onclick = () => dosSupprimer(x.id);
   $("fOk").onclick = async () => {
     const changes = {}, lu = ficheP.lireFormulaire(x), nI = lu.identite, nC = lu.clinique;
     if (lu.erreur) { erreur(lu.erreur); return; }
