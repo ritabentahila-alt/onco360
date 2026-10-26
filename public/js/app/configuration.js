@@ -167,9 +167,13 @@ function entete() {
   const L = ONGLETS(), fam = famDe(ONG), sous = L.filter((o) => famDe(o[0]) === fam);
   // Lot B (25/10/2026) : plus de titre ; les familles en haut ; dans le modèle des cabinets neufs, la phrase d'explication reste en petit sous les familles
   const expl = A.D().bib ? '<p class="mesures cf-modele">' + "Ce que reçoit chaque cabinet neuf de la spécialité, réglé comme chez un médecin. Rien ne touche le cabinet du Dr Bentahila ; les cabinets déjà créés ne reçoivent que la fiche patient et le formulaire de consultation (leurs retouches restent par-dessus)." + "</p>" : "";
-  return '' +
-    '<div class="ag-vues defile cf-fam" role="tablist" style="align-self:flex-start">' + FAMILLES.filter((f) => L.some((o) => famDe(o[0]) === f[0])).map(([k, ico, lib]) => '<button role="tab" aria-selected="' + (fam === k) + '" class="' + (fam === k ? "on" : "") + '" onclick="cfFamille(\'' + k + "')\">" + A.ic(ico) + lib + "</button>").join("") + "</div>" + expl +
-    (sous.length > 1 ? '<nav class="cf-sous" aria-label="Rubriques">' + sous.map(([k, , lib]) => '<button class="' + (ONG === k ? "on" : "") + '"' + (ONG === k ? ' aria-current="page"' : "") + ' onclick="cfOnglet(\'' + k + "')\">" + lib + "</button>").join("") + "</nav>" : "");
+  // 26/10/2026 (demande de Dr Bentahila, modèle Doctolib) : menu fixe à gauche, « Paramètres » puis les grandes familles (icône, nom, flèche) ;
+  // la famille ouverte montre ses rubriques en dessous ; la page à droite. Téléphone : le menu passe au-dessus.
+  return '<div class="cf-lay"><aside class="cf-nav" aria-label="Paramètres"><div class="cf-nav-t">Paramètres</div><div class="cf-fam" role="tablist">' +
+    FAMILLES.filter((f) => L.some((o) => famDe(o[0]) === f[0])).map(([k, ico, lib]) => { const sk = L.filter((o) => famDe(o[0]) === k);
+      return '<div class="cf-g' + (fam === k ? " ouv" : "") + '"><button role="tab" aria-selected="' + (fam === k) + '" aria-expanded="' + (fam === k) + '" class="cf-gt' + (fam === k ? " on" : "") + '" onclick="cfFamille(\'' + k + "')\">" + A.ic(ico) + "<span>" + lib + "</span></button>" +
+        (fam === k ? '<nav class="cf-sous" aria-label="Rubriques">' + sk.map(([o, , l2]) => '<button class="' + (ONG === o ? "on" : "") + '"' + (ONG === o ? ' aria-current="page"' : "") + ' onclick="cfOnglet(\'' + o + "')\">" + l2 + "</button>").join("") + "</nav>" : "") + "</div>"; }).join("") +
+    '</div></aside><div class="cf-main">' + expl;
 }
 // Bouton de retrait discret (gris, rouge au survol) à la place de la croix rouge sur chaque ligne
 // 3.10 (12/10/2026, audit) : retrait dans un menu ⋯ (plus de corbeille à portée de clic) et confirmation avant de retirer
@@ -459,7 +463,7 @@ export function pageConfiguration(arg) {
   if (!ok && !(ONG === "bibliotheques" && A.peut("ecrireConsultations")) && !(okE && !MSG_SEC[ONG])) h += '<p class="mesures">' + (ONG === "couleurs" ? "Votre Google Agenda et ses couleurs : réglages personnels." : sec && MSG_SEC[ONG] ? MSG_SEC[ONG] : "Lecture seule : la modification demande le droit « paramètres ».") + "</p>";
   h += (RUBRIQUES[ONG] || RUBRIQUES.fermetures)({ ok, okE, disE, dis, sec });
   if (okE && ["bibliotheques", "vigilances", "lieux", "acces", "audit", "export"].indexOf(ONG) < 0) h += '<div class="barre-enr">' + (ok || ["horaires", "fermetures"].indexOf(ONG) < 0 ? '<button class="bt gris" onclick="cfDefaut()">↺ Valeurs par défaut</button>' : "<span></span>") + '<span id="cfMod" class="mesures' + (MOD ? "" : " cache") + '">Modifications non enregistrées</span><button class="bt plein" id="cfOk" onclick="cfEnregistrer()"><svg class="pi"><use href="#i-enregistrer"/></svg>Enregistrer</button></div>';
-  A.$("page").innerHTML = h;
+  A.$("page").innerHTML = h + "</div></div>"; // fin de .cf-main et .cf-lay (menu à gauche)
   // 26/10/2026 (demande de Dr Bentahila, style minimaliste) : plus de phrase d'explication sous les titres, ni de « ? » (avant : 3.10, bulle « ? »
   // pour les explications longues) ; une ligne qui porte un bouton, un lien ou un champ reste
   document.querySelectorAll("#page section.carte > h3 + p.sous").forEach((p) => { if (!p.querySelector("button, a, input, select")) p.classList.add("cache"); });

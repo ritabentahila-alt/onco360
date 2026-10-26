@@ -97,7 +97,7 @@ async def main():
 
         # 9. Listes : dans Bibliothèques, avec Localisations, Mutuelles, Correspondants, Tâches, Documents
         await pg.goto(f'http://localhost:{PORT}/v2.html#parametres/listes'); await pg.wait_for_timeout(1800)
-        r = await ev("[document.querySelector('.cf-fam button.on') && document.querySelector('.cf-fam button.on').textContent.trim(), [...document.querySelectorAll('.puces .puce')].map(b => b.textContent.replace(/ \\(\\d+\\)$/, '').trim())]")
+        r = await ev("[document.querySelector('.cf-fam .cf-gt.on') && document.querySelector('.cf-fam .cf-gt.on').textContent.trim(), [...document.querySelectorAll('.puces .puce')].map(b => b.textContent.replace(/ \\(\\d+\\)$/, '').trim())]")
         ok(r[0] == 'Bibliothèques' and r[1][:2] == ['Mutuelles', 'Correspondants'] and all(k in r[1] for k in ['Localisations', 'Tâches', 'Documents', 'Allergies']), 'Bibliothèques › Listes : Mutuelles, Correspondants, informations médicales (lot A), Localisations, Tâches, Documents ' + str(r))
         await ev("cfFamille('dossier')"); await pg.wait_for_timeout(800)
         ok(not await ev("[...document.querySelectorAll('.cf-sous button')].some(b => /Liste/.test(b.textContent))"), 'Dossier patient : plus de « Listes de la fiche »')
