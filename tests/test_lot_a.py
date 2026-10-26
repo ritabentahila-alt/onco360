@@ -91,7 +91,7 @@ async def main():
         # 26/10/2026 : dans l'ordre réglé de la fiche (test_retouches_2610b), plus dans un ordre fixe
         ok(sorted(await ev("[...document.querySelectorAll('details.dp[data-p=med] .im-s')].map(s=>s.dataset.im)")) == sorted(['atcdMed', 'atcdChir', 'atcdFam', 'allergies', 'traitCours', 'modeVie']), 'six sous-parties toujours affichées')
         await ev("document.querySelector('.im-s[data-im=atcdChir] button.im-nr').click()"); await pg.wait_for_timeout(400)
-        ok(await ev("document.querySelectorAll('#fenetreCorps .im-r').length") == 1 and await ev("(()=>{const i=document.querySelector('#fenetreCorps .im-lib');i.focus();imSug(i);return document.querySelectorAll('#fenetreCorps .im-sug button').length})()") >= 30, 'petite fenêtre : une ligne, liste de départ proposée')
+        ok(await ev("document.querySelectorAll('#fenetreCorps .im-r').length") == 1 and await ev("(()=>{const i=document.querySelector('#fenetreCorps .im-lib');i.focus();i.value='ec';imSug(i);const n=document.querySelectorAll('#fenetreCorps .im-sug:not(.cache) button').length;i.value='';return n})()") >= 3, 'petite fenêtre : une ligne, liste de départ proposée dès 2 lettres')
         await pg.fill('#fenetreCorps .im-lib', 'Appendicectomie'); await pg.fill('#fenetreCorps .im-no', 'en 1990')
         await ev("document.querySelector('#fenetreCorps .im-plus').click()"); await pg.wait_for_timeout(100)
         await ev("const l=document.querySelectorAll('#fenetreCorps .im-lib'); l[1].value='appendicectomie '")

@@ -2276,6 +2276,43 @@ const fermerMenu = () => { document.body.classList.remove("menu-ouvert"); $("voi
 $("burger").onclick = () => { document.body.classList.add("menu-ouvert"); $("voile").classList.remove("cache"); };
 $("voile").onclick = fermerMenu;
 document.querySelectorAll("nav a").forEach((a) => a.addEventListener("click", fermerMenu));
+// 26/10/2026 (demandes de Dr Bentahila) : tout champ relié à une liste (datalist : mutuelle, correspondant, molécule, catégorie…) propose la liste
+// dès 2 lettres tapées (rien au clic sur un champ vide), filtrée à chaque lettre (mots dans n'importe quel ordre, sans accents), flèches et Entrée ;
+// la saisie libre reste possible ; la liste du navigateur est coupée (elle variait d'un navigateur à l'autre). Même principe que les informations
+// médicales (infosmed.js imSug)
+{
+  const sansA = (t) => String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  let IN = null, S = null;
+  const fermer = () => { if (S) S.remove(); S = null; };
+  const options = (inp) => { const dl = document.getElementById(inp.dataset.liste); return dl ? [...new Set([...dl.options].map((o) => o.value).filter(Boolean))] : []; };
+  const placer = () => { if (!S) return; if (!IN || !IN.isConnected) { fermer(); IN = null; return; } const r = IN.getBoundingClientRect(), w = Math.min(420, Math.max(r.width, 220)), h = S.offsetHeight;
+    S.style.left = Math.max(4, Math.min(r.left, window.innerWidth - w - 4)) + "px"; S.style.width = w + "px";
+    S.style.top = (window.innerHeight - r.bottom < h + 8 && r.top > h + 8 ? r.top - h - 2 : r.bottom + 2) + "px"; };
+  const dessiner = () => {
+    const mots = sansA(IN.value).split(/\s+/).filter(Boolean), L = options(IN).filter((t) => mots.every((m) => sansA(t).indexOf(m) >= 0)).slice(0, 80);
+    if (sansA(IN.value).trim().length < 2 || !L.length || (L.length === 1 && sansA(L[0]) === sansA(IN.value))) { fermer(); return; }
+    if (!S) { S = document.createElement("div"); S.className = "im-sug lst-sug"; S.setAttribute("role", "listbox"); document.body.appendChild(S);
+      S.addEventListener("mousedown", (ev) => ev.preventDefault()); S.addEventListener("click", (ev) => { const b = ev.target.closest("button"); if (b) choisir(b); }); }
+    S.innerHTML = L.map((t, i) => '<button type="button" role="option" tabindex="-1"' + (i === 0 && mots.length ? ' class="on"' : "") + ">" + esc(t) + "</button>").join("");
+    placer();
+  };
+  const choisir = (b) => { const inp = IN; if (!inp) return; inp.value = b.textContent; fermer(); inp.dispatchEvent(new Event("input", { bubbles: true })); inp.dispatchEvent(new Event("change", { bubbles: true })); };
+  document.addEventListener("focusin", (ev) => { const inp = ev.target; if (!(inp instanceof HTMLInputElement)) return;
+    if (inp.hasAttribute("list")) { inp.dataset.liste = inp.getAttribute("list"); inp.removeAttribute("list"); inp.setAttribute("autocomplete", "off"); }
+    if (inp.dataset.liste) { IN = inp; dessiner(); } });
+  document.addEventListener("click", (ev) => { if (ev.target === IN && !S) dessiner(); });
+  // champ retiré de la page (fenêtre fermée) ou clic ailleurs : liste fermée
+  document.addEventListener("mousedown", (ev) => { if (S && ev.target !== IN && !S.contains(ev.target)) fermer(); }, true);
+  new MutationObserver(() => { if (S && (!IN || !IN.isConnected)) { fermer(); IN = null; } }).observe(document.body, { childList: true, subtree: true });
+  document.addEventListener("input", (ev) => { if (ev.target === IN && ev.isTrusted) dessiner(); });
+  document.addEventListener("focusout", (ev) => { if (ev.target === IN) setTimeout(() => { if (document.activeElement !== IN) { fermer(); IN = null; } }, 150); });
+  document.addEventListener("keydown", (ev) => { if (!S || ev.target !== IN) return; const B = [...S.querySelectorAll("button")]; let i = B.findIndex((b) => b.classList.contains("on"));
+    if (ev.key === "ArrowDown" || ev.key === "ArrowUp") { ev.preventDefault(); i = ev.key === "ArrowDown" ? Math.min(B.length - 1, i + 1) : Math.max(0, i - 1); B.forEach((b, j) => b.classList.toggle("on", j === i)); if (B[i]) B[i].scrollIntoView({ block: "nearest" }); }
+    else if (ev.key === "Enter" && i >= 0) { ev.preventDefault(); choisir(B[i]); }
+    else if (ev.key === "Escape") { ev.stopPropagation(); fermer(); } }, true);
+  window.addEventListener("scroll", (ev) => { if (S && ev.target !== S) placer(); }, true);
+  window.addEventListener("resize", placer);
+}
 // Menu repliable (20.2) : colonne d'icônes sur ordinateur, choix gardé sur l'appareil ; nom de la page au survol
 const menuReplie = (oui) => {
   document.body.classList.toggle("menu-replie", oui);

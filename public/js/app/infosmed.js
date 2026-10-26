@@ -78,9 +78,11 @@ const ligneEd = (k, e) => '<div class="im-r"><input class="im-lib" data-k="' + k
   '<input class="im-no" value="' + A.esc((e && e.note) || "") + '" placeholder="Note (facultatif)" aria-label="Note">' +
   '<button type="button" class="ico im-x" onclick="imRetirer(this)" title="Supprimer cette ligne" aria-label="Supprimer cette ligne">✕</button></div>';
 // 26/10/2026 (Dr Bentahila : « pas liée à la liste du paramétrage ») : la liste native du navigateur (datalist) ne s'ouvrait pas d'un clic sur un champ
-// vide (Safari : jamais) ; propositions dessinées ici : toute la liste du cabinet (Paramètres › Bibliothèques › Listes) dès le clic, filtrée pendant la
+// vide (Safari : jamais) ; propositions dessinées ici : la liste du cabinet (Paramètres › Bibliothèques › Listes) dès 2 lettres tapées, filtrée pendant la
 // frappe (mots dans n'importe quel ordre, sans accents), flèches et Entrée ; la saisie libre reste possible (ajoutée à la liste à l'enregistrement)
 window.imSug = (inp) => {
+  // 26/10/2026 (2e demande de Dr Bentahila) : rien au clic sur un champ vide, la liste vient dès 2 lettres tapées
+  if (norm(inp.value).trim().length < 2) { const s0 = inp.parentNode.querySelector(".im-sug"); if (s0) s0.classList.add("cache"); return; }
   const k = inp.dataset.k, mots = norm(inp.value).split(" ").filter(Boolean), deja = new Set([...inp.closest(".im-lignes").querySelectorAll(".im-lib")].filter((z) => z !== inp).map((z) => norm(z.value)));
   const L = listeMed(k).filter((t) => !deja.has(norm(t)) && mots.every((m) => norm(t).indexOf(m) >= 0)).slice(0, 80);
   let s = inp.parentNode.querySelector(".im-sug"); if (!s) { s = document.createElement("div"); s.className = "im-sug"; s.setAttribute("role", "listbox"); inp.parentNode.appendChild(s); }
