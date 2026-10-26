@@ -572,6 +572,32 @@ const ILL_VIDE = {
     [62, 112, 162].map((x, i) => '<rect x="' + x + '" y="92" width="36" height="28" rx="6" fill="#fff" stroke="#9AAAC4" stroke-width="2"/><rect x="' + (x - 3) + '" y="118" width="42" height="9" rx="4" fill="' + (i === 1 ? "#3563B0" : "#fff") + '" stroke="' + (i === 1 ? "#3563B0" : "#9AAAC4") + '" stroke-width="2"/>' +
       '<path d="M' + (x + 3) + ' 127v18M' + (x + 33) + ' 127v18" stroke="#9AAAC4" stroke-width="2" stroke-linecap="round"/>').join("") + "</svg>",
 };
+// 26/10/2026 (2e série) : tâches toutes terminées (fête), jour sans patient (calendrier), tous passés (calendrier coché), personne vu (dossier),
+// RCP (table de réunion)
+const CAL_VIDE = (coche) => '<svg class="ev-ill" viewBox="0 0 260 170" aria-hidden="true"><circle cx="130" cy="88" r="78" fill="#EAF0FA"/><rect x="76" y="40" width="108" height="100" rx="10" fill="#fff" stroke="#C9D5EA" stroke-width="2"/>' +
+  '<path d="M86 40h88a10 10 0 0 1 10 10v12H76V50a10 10 0 0 1 10-10z" fill="#3563B0"/><path d="M100 32v16M160 32v16" stroke="#3563B0" stroke-width="5" stroke-linecap="round"/>' +
+  [0, 1, 2].map((r) => [0, 1, 2, 3].map((c) => '<rect x="' + (88 + c * 22) + '" y="' + (72 + r * 20) + '" width="14" height="12" rx="3" fill="' + (r === 1 && c === 2 && !coche ? "#C9D5EA" : "#F1F5FB") + '"/>').join("")).join("") +
+  (coche ? '<circle cx="176" cy="126" r="20" fill="#fff"/><circle cx="176" cy="126" r="16" fill="#2FA37A"/><path d="M168 126l6 6 10-11" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>' : "") + "</svg>";
+Object.assign(ILL_VIDE, {
+  fete: '<svg class="ev-ill" viewBox="0 0 260 170" aria-hidden="true"><circle cx="130" cy="88" r="78" fill="#EAF0FA"/><rect x="118" y="46" width="78" height="100" rx="6" fill="#E3E9F3" transform="rotate(8 157 96)"/>' +
+    '<rect x="112" y="42" width="78" height="100" rx="6" fill="#fff" stroke="#D5DDEB" transform="rotate(8 151 92)"/>' +
+    [0, 1, 2, 3].map((i) => '<g transform="rotate(8 151 92)"><rect x="124" y="' + (58 + i * 20) + '" width="9" height="9" rx="2" fill="#E3E9F3"/><path d="M125 ' + (62 + i * 20) + 'l3 3 6-7" fill="none" stroke="#2FA37A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><rect x="139" y="' + (59 + i * 20) + '" width="' + [36, 30, 34, 26][i] + '" height="3" rx="1.5" fill="#9AAAC4"/><rect x="139" y="' + (65 + i * 20) + '" width="' + [24, 32, 20, 28][i] + '" height="2.5" rx="1.2" fill="#C9D5EA"/></g>').join("") +
+    '<path d="M74 92l36-30 12 28z" fill="#3563B0"/><path d="M84 84l26-22M92 90l22-18" stroke="#7FA1DA" stroke-width="3" stroke-linecap="round"/>' +
+    '<path d="M100 54c-6-8 4-12-2-20" fill="none" stroke="#2FA37A" stroke-width="3" stroke-linecap="round"/><path d="M118 52c4-8 12-6 10-16" fill="none" stroke="#3563B0" stroke-width="3" stroke-linecap="round"/><path d="M84 66c-10-2-14-8-22-6" fill="none" stroke="#F2B8C6" stroke-width="3" stroke-linecap="round"/>' +
+    '<rect x="70" y="50" width="5" height="5" fill="#3563B0" transform="rotate(20 72 52)"/><rect x="108" y="38" width="5" height="5" fill="#2FA37A" transform="rotate(45 110 40)"/><rect x="62" y="80" width="5" height="5" fill="#2FA37A"/><rect x="132" y="40" width="4" height="4" fill="#F2B8C6"/><rect x="92" y="44" width="4" height="4" fill="#F2B8C6"/></svg>',
+  agenda: CAL_VIDE(false),
+  agendaOk: CAL_VIDE(true),
+  dossier: '<svg class="ev-ill" viewBox="0 0 260 170" aria-hidden="true"><circle cx="130" cy="88" r="78" fill="#EAF0FA"/><rect x="92" y="36" width="76" height="104" rx="8" fill="#fff" stroke="#C9D5EA" stroke-width="2"/><rect x="112" y="28" width="36" height="16" rx="5" fill="#3563B0"/>' +
+    [0, 1, 2, 3].map((i) => '<rect x="106" y="' + (62 + i * 16) + '" width="' + [48, 40, 44, 30][i] + '" height="4" rx="2" fill="' + (i ? "#D5DDEB" : "#9AAAC4") + '"/>').join("") +
+    '<path d="M168 96c14 0 18 10 18 20s-8 16-18 16" fill="none" stroke="#3563B0" stroke-width="4" stroke-linecap="round"/><circle cx="168" cy="132" r="6" fill="#fff" stroke="#3563B0" stroke-width="4"/></svg>',
+  patients: '<svg class="ev-ill" viewBox="0 0 260 170" aria-hidden="true"><circle cx="130" cy="88" r="78" fill="#EAF0FA"/><path d="M74 58a8 8 0 0 1 8-8h30l10 10h56a8 8 0 0 1 8 8v66a8 8 0 0 1-8 8H82a8 8 0 0 1-8-8z" fill="#C9D5EA"/>' +
+    '<rect x="74" y="66" width="112" height="76" rx="8" fill="#fff" stroke="#C9D5EA" stroke-width="2"/><circle cx="110" cy="96" r="12" fill="#3563B0"/><path d="M92 128c0-11 8-17 18-17s18 6 18 17" fill="#3563B0"/>' +
+    '<rect x="138" y="88" width="34" height="4" rx="2" fill="#9AAAC4"/><rect x="138" y="98" width="26" height="4" rx="2" fill="#D5DDEB"/><rect x="138" y="108" width="30" height="4" rx="2" fill="#D5DDEB"/>' +
+    '<circle cx="182" cy="134" r="16" fill="#fff"/><circle cx="182" cy="134" r="13" fill="#2FA37A"/><path d="M182 127v14M175 134h14" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>',
+  rcp: '<svg class="ev-ill" viewBox="0 0 260 170" aria-hidden="true"><circle cx="130" cy="88" r="78" fill="#EAF0FA"/><ellipse cx="130" cy="112" rx="62" ry="20" fill="#fff" stroke="#C9D5EA" stroke-width="2"/>' +
+    [[84, 78], [130, 66], [176, 78]].map(([x, y], i) => '<circle cx="' + x + '" cy="' + y + '" r="11" fill="' + (i === 1 ? "#3563B0" : "#9AAAC4") + '"/><path d="M' + (x - 17) + " " + (y + 30) + "c0-12 8-18 17-18s17 6 17 18" + '" fill="' + (i === 1 ? "#3563B0" : "#9AAAC4") + '"/>').join("") +
+    '<rect x="112" y="102" width="36" height="22" rx="3" fill="#F1F5FB" stroke="#C9D5EA"/><rect x="118" y="108" width="24" height="2.5" rx="1.2" fill="#9AAAC4"/><rect x="118" y="114" width="18" height="2.5" rx="1.2" fill="#C9D5EA"/></svg>',
+});
 const etatVide = (o) => '<div class="ev-vide"' + (o.k ? ' data-k="' + o.k + '"' : "") + ">" + (ILL_VIDE[o.ill] || "") + "<h4>" + esc(o.titre) + "</h4>" + (o.txt ? "<p>" + o.txt.split("\n").map(esc).join("<br>") + "</p>" : "") + (o.bouton || "") + "</div>";
 API.etatVide = (o) => etatVide(o);
 // 26/10/2026 (demande de Dr Bentahila) : pagination des listes en cartes (Protocoles, Radiothérapie) : ‹ 1 2 … 9 › ; fn = fonction globale (n° de page)
@@ -1164,7 +1190,7 @@ function listePatients() {
     if (f.indexOf("p:") === 0) return (r.act || []).some((a) => a.nom.replace(/ · J\d+$/, "") === f.slice(2)) || (r.t && r.t.st === "cours" && r.t.nom === f.slice(2));
     return FILTRES[f][1](x);
   });
-  $("nbRes").textContent = l.length + " patient" + (l.length > 1 ? "s" : "");
+  $("nbRes").textContent = ""; // 26/10/2026 (style minimaliste) : plus de compteur « 65 patients »
   $("lst").innerHTML = l.length ? l.map((xp) => { const { id, r } = xp;
     const a = age(r.ddn, t), rtC = (r.rtS || []).find((s) => s.st === "cours"), rtP = (r.rtS || []).find((s) => s.st === "prev");
     let tr = "", bd = "";
@@ -1173,7 +1199,8 @@ function listePatients() {
     else if (rtP) { tr = (tr ? tr + " · " : "") + "☢️ " + rtP.a + " à partir du " + dfr(rtP.deb); bd += ' <span class="badge b-rt">RT prévue</span>'; }
     const st0 = (xp.doc.clinique || {}).statut; if (st0 && st0 !== "traitement") bd += ' <span class="badge ' + (st0 === "decede" ? "b-dc" : st0 === "perdu" ? "b-or" : "b-gr") + '">' + esc(libStatut(st0)) + "</span>"; // 3.3
     return '<div class="pat" onclick="ouvrirDossier(\'' + id + '\')">' + bulle(D.patients.find((z) => z.id === id)) + '<div class="tx"><b>' + esc(r.nm) + "</b><span>" + esc([numDossier(xp) ? "N° " + numDossier(xp) : "", r.ddn ? "Né(e) le " + dfrA(r.ddn) + (a != null ? " (" + a + " ans)" : "") : "", r.diag].filter(Boolean).join(" · ")) + "</span>" + (tr ? "<span>" + icones(esc(tr)) + "</span>" : "") + '</div><div class="dr">' + (r.hop ? '<span class="badge b-gr">' + esc(r.hop) + "</span>" : "") + bd + "</div></div>";
-  }).join("") : '<p class="vide-c">Aucun patient ne correspond. Essayez un autre nom ou retirez le filtre.</p>';
+  }).join("") : !D.patients.length ? etatVide({ ill: "patients", titre: "Aucun patient pour l'instant", txt: "Créez le premier dossier : l'identité d'abord,\npuis les traitements et les rendez-vous.", bouton: '<button class="b2" onclick="nouveauPatient()">' + ic("plus") + "Nouveau patient</button>" })
+    : '<p class="vide-c">Aucun patient ne correspond.</p>';
 }
 
 // 4.3 (12/10/2026) : un seul jeu d'icônes : les émojis d'un texte déjà échappé deviennent les icônes dessinées

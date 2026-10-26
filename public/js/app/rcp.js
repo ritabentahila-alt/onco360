@@ -212,7 +212,7 @@ function dessinerListe() {
   const per = DU === AU ? "le " + libDate(DU) : "du " + A.dfrA(DU) + " au " + A.dfrA(AU);
   h += '<section class="carte"><div class="ta-entete"><span class="sous">RCP ' + esc(per) + " · " + L.length + " dossier" + (L.length > 1 ? "s" : "") + (FILTRE === "afaire" ? " à faire" : FILTRE === "fait" ? " faits" : "") + "</span>" +
     (L.length ? '<button class="bt gris petit" data-fn="rcp.impression" onclick="rcpImprimer()" title="Imprimer la liste des dossiers de la période">' + A.ic("imprimer") + "Imprimer</button>" : "") + "</div>";
-  if (!jours.length) h += '<p class="vide-c">Aucune RCP ni aucun dossier inscrit sur cette période.</p>';
+  if (!jours.length) h += A.etatVide({ ill: "rcp", titre: "Aucune RCP sur cette période", txt: "Aucun dossier n'est inscrit pour ces dates." });
   jours.forEach((d) => {
     const l = L.filter((r) => r.d === d), nf = l.filter((r) => r.fait).length;
     h += '<div class="rcp-j"><h4>' + esc(A.cap(libDate(d))) + (estRcp(d, c) && c.heure ? " · " + esc(c.heure.replace(":", "h")) : "") + '<span class="mesures">' + (l.length ? l.length + " dossier" + (l.length > 1 ? "s" : "") + (nf ? " · " + nf + " fait" + (nf > 1 ? "s" : "") : "") : "aucun dossier inscrit") + "</span></h4>";

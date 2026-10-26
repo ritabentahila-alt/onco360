@@ -276,7 +276,9 @@ function liste() {
   let h = ouvertes.map(ligne).join("");
   if (F.st === "ouv") {
     // 26/10/2026 (demande de Dr Bentahila) : aucune tâche = illustration, « Toutes les tâches au même endroit », texte, bouton Nouvelle tâche
+    // tâches qui existaient, toutes terminées : la fête (26/10/2026, 2e série)
     if (!ouvertes.length) h += actifs ? vide("Aucune tâche ne correspond aux filtres.", '<button class="b2" onclick="taEffacer()">Effacer les filtres</button>')
+      : finies.length ? A.etatVide({ ill: "fete", titre: "Toutes les tâches sont terminées", bouton: '<button class="b2" onclick="taNouvelle()">' + A.ic("plus") + "Nouvelle tâche</button>" })
       : A.etatVide({ ill: "taches", titre: "Toutes les tâches au même endroit", txt: "Créez des tâches pour vous-même et vos collègues\npour améliorer votre productivité.", bouton: '<button class="b2" onclick="taNouvelle()">' + A.ic("plus") + "Nouvelle tâche</button>" });
     if (finies.length) h += '<button class="lien" style="margin-top:12px" onclick="taTerminees()">' + (TERM ? "▾ Masquer" : "▸ Afficher") + " les tâches terminées (" + finies.length + ")</button>" + (TERM ? '<div class="taches-finies">' + finies.map(ligne).join("") + "</div>" : "");
   } else {

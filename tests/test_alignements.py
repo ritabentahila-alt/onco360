@@ -49,6 +49,13 @@ async def main():
         await pg.goto(f'http://localhost:{PORT}/v2.html#salle'); await pg.wait_for_timeout(1800)
         await ev("saOnglet('absents')"); await pg.wait_for_timeout(500)
         ok(await ev("!!document.querySelector('#saL .ev-vide svg')") and 'Aucun absent' in await ev("document.getElementById('saL').innerText"), 'Salle d\'attente : onglet vide illustré')
+        T = {}
+        for o in ['avenir', 'salle', 'vus', 'absents']:
+            await ev(f"saOnglet('{o}')"); await pg.wait_for_timeout(300); T[o] = await ev("(document.querySelector('#saL .ev-vide h4') || {}).textContent || ''")
+        ok(len(set(T.values())) == 4 and all(T.values()), 'Salle d\'attente : une phrase par onglet', T)
+        await pg.goto(f'http://localhost:{PORT}/v2.html#taches/rcp'); await pg.wait_for_timeout(1500); await ev("rcpPer('2027-01-01','2027-01-02')"); await pg.wait_for_timeout(400)
+        ok('Aucune RCP sur cette période' in await ev("(document.querySelector('.ev-vide') || {}).innerText || ''"), 'RCP : période vide illustrée')
+        ok(await ev("(() => { const a = document.querySelector('.rcp-haut').getBoundingClientRect(), b = document.querySelector('.rcp-haut').nextElementSibling.getBoundingClientRect(); return b.top - a.bottom >= 12; })()"), 'RCP : les deux cadres espacés')
         ok(not pg.errs, 'aucune erreur JavaScript', pg.errs[:2]); await pg.close()
         print('Téléphone (390 px)')
         pg = await ouvrir(b, w=390, h=844); ev = pg.evaluate

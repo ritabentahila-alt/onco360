@@ -529,13 +529,12 @@ function dessiner() {
   if (AUTO) { VUE = ongletOuverture(n); if (JOUR === t ? PRET : LU[JOUR]) AUTO = false; }
   remplir($("saO"), ONGLETS.map(([k, lib, court]) => { if (k === "avenir" && JOUR < t) { lib = "À valider"; court = ""; } return '<button role="tab" aria-selected="' + (k === VUE) + '"' + (k === VUE ? ' class="on"' : "") + ' onclick="saOnglet(\'' + k + '\')">' + (court ? '<span class="lg">' + lib + '</span><span class="sm">' + court + "</span>" : lib) + '<span class="n">' + n[k] + "</span></button>"; }).join(""));
   const l = trier(L.filter((z) => ongletDe(z) === VUE), VUE);
-  const vide = { avenir: JOUR < t ? "Aucune consultation restée sans validation." : JOUR > t ? "Aucune consultation prévue ce jour-là." : "Plus aucun patient attendu aujourd'hui.", salle: "Personne en salle d'attente.", vus: "Aucun patient vu.", absents: "Aucun absent." }[VUE];
   DERN = L.filter(dansFiltre); const cv = colsVues(), gc = gabarit(cv); $("saL").style.setProperty("--cols", gc); $("saE").style.setProperty("--cols", gc);
   $("saCarte").classList.add("compact"); // compact = affichage normal (11/10/2026)
   remplir($("saJtxt"), A.cap(A.jourLong(JOUR)) + (JOUR === t ? " · aujourd'hui" : JOUR < t ? " · jour passé" : "") + ' <span class="fl">' + (semaineOuverte() ? "▴" : "▾") + "</span>");
   remplir($("saE"), l.length ? '<div class="sa-l ent">' + cv.map((c) => '<span class="c-' + c[0] + '" title="' + c[1] + '">' + (TITRE_COURT[c[0]] || c[1]) + (c[0] !== "act" ? '<i class="sa-poi" data-c="' + c[0] + '" title="Tirer pour élargir ; double-clic : largeur d\'origine"></i>' : "") + "</span>").join("") + "</div>" : "");
   // Mise à jour ligne par ligne : une ligne inchangée n'est pas touchée (clic en cours, survol et défilement gardés)
-  poser($("saL"), l.length ? l.map((z) => ({ k: z.pid + "|" + z.cle, h: ligneHtml(z, cv) })) : [{ k: "vide", h: A.etatVide({ k: "vide", ill: "salle", titre: vide.replace(/\.$/, ""), txt: VUE === "avenir" && JOUR >= t ? "Les rendez-vous et les séances de chimiothérapie du jour\napparaissent ici dès qu'ils sont prévus." : "" }) }]);
+  poser($("saL"), l.length ? l.map((z) => ({ k: z.pid + "|" + z.cle, h: ligneHtml(z, cv) })) : [{ k: "vide", h: A.etatVide(Object.assign({ k: "vide" }, videSalle(L.filter(dansFiltre).length, t))) }]);
   // Patient suivant (médecin, aujourd'hui) ; Clôturer la journée (aujourd'hui et jours passés)
   const f = JOUR === t && peutRdv() && A.estMed() ? fileSalle() : [];
   $("saSuiv").classList.toggle("cache", !f.length); if (f.length) $("saSuiv").title = "Démarrer la consultation de " + f[0].x.r.nm + " (attend depuis " + duree(minutes(f[0].doc.arr || maintenant())) + ")";
@@ -555,6 +554,16 @@ function dessiner() {
 // Contenu remplacé seulement s'il a changé
 function remplir(el, h) { if (el && el._h !== h) { el.innerHTML = h; el._h = h; } }
 // Liste par clé (data-k) : les éléments au même contenu sont gardés et seulement déplacés, les autres remplacés ou retirés
+// 26/10/2026 (demande de Dr Bentahila) : onglet vide = illustration et phrase propres à l'onglet ; « À venir » : personne de prévu, ou tous passés
+function videSalle(nJour, t) {
+  const auj = JOUR === t, jr = auj ? "aujourd'hui" : JOUR > t ? "ce jour-là" : "ce jour-là";
+  if (VUE === "avenir") return JOUR < t ? { ill: "agendaOk", titre: "Aucune consultation restée sans validation" }
+    : nJour ? { ill: "agendaOk", titre: "Tous les patients sont passés", txt: "Plus aucun patient attendu " + jr + "." }
+    : { ill: "agenda", titre: "Aucun patient prévu " + jr };
+  if (VUE === "salle") return { ill: "salle", titre: "Personne en salle d'attente", txt: auj && nJour ? "Les patients apparaissent ici dès leur arrivée." : "" };
+  if (VUE === "vus") return { ill: "dossier", titre: "Aucun patient vu " + (auj ? "pour l'instant" : jr) };
+  return { ill: "agendaOk", titre: "Aucun absent", txt: nJour ? "Tous les patients prévus sont venus ou attendus." : "" };
+}
 function poser(cont, items) {
   const vieux = new Map(), garde = new Set();
   [...cont.children].forEach((e) => { if (e.dataset && e.dataset.k) vieux.set(e.dataset.k, e); });
