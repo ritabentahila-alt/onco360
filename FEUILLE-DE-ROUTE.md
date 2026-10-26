@@ -430,7 +430,7 @@ ordre B, D, C, A puis E. **Ces demandes passent avant ce plan quand elles le con
         explications qui évitent une erreur restent visibles ; la couleur reste pour la sécurité (allergie, retard, à valider, à encaisser, alertes
         de dose ; « Urgent » des tâches en rouge) ; fiche de chimio et écrans de doses : tailles et boutons seulement. Ordre : 1. Agenda et Salle
         d'attente ; 2. dossier patient ; 3. Paramètres, Protocoles, Bilan ; 4. fenêtres (ordonnances, chimio).
-  - [x] **Étape 1 : Agenda et Salle d'attente (26/10/2026, version 20261026b)** : boutons b1 (un seul : « + Nouveau rendez-vous » ; « Patient
+  - [x] **Étape 1 : Agenda et Salle d'attente (26/10/2026, version 20261026b, en ligne)** : boutons b1 (un seul : « + Nouveau rendez-vous » ; « Patient
         suivant » dans la salle) / b2 / b3 (flèches, « ⋯ ») ; « à jour à … » sous Actualiser sans le décaler : Actualiser et « + Nouveau rendez-vous »
         alignés sur la ligne des vues, Actualiser et « ⋯ » sur celle du jour ; Calendrier, jour et flèches de 40 px ; fenêtres (rendez-vous de
         l'agenda ; prix, motif, colonnes, commentaire, clôture, pharmacie de la salle) : ✕ en haut à droite, Échap, un seul bouton principal ; états
@@ -456,7 +456,7 @@ ordre B, D, C, A puis E. **Ces demandes passent avant ce plan quand elles le con
       les cabinets neufs (`listesDepart` ; **à faire par l'Administration** : « Copier depuis le cabinet du Dr Bentahila » pour que le modèle les
       reçoive). Test `tests/test_retouches_2610.py`. Décisions du 26/10 : statut du patient gardé dans le bloc patient (oui) ; 4 colonnes : non.
 
-- [x] **Retouches du 26/10/2026, 2e série (version 20261026b)** : document « Rendez-vous » (calendrier de radiothérapie) : séance passée
+- [x] **Retouches du 26/10/2026, 2e série (version 20261026b, en ligne le 26/10)** : document « Rendez-vous » (calendrier de radiothérapie) : séance passée
       « Terminé » même avant la validation de la fin (`lignesCalendrierRT`) ; colonne Patient : sous-parties des informations médicales dans
       l'ordre réglé de la fiche (`partiesLecture` option `rendu`, `infosmed.htmlColonne` → `parK` ; avant : toujours en tête) ; formulaire ouvert
       (Identité, Informations médicales, Fiche tumeur ; aussi Nouveau patient et Modifier) : OMS seul, Taille + Poids, Antécédents familiaux +
