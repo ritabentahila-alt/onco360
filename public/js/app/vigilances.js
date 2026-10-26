@@ -101,8 +101,7 @@ export function htmlVigilances(ok) {
   if (!VE || !VMOD) VE = JSON.parse(JSON.stringify(notesVigilance(() => { if (!VMOD && location.hash.indexOf("vigilances") >= 0) window.cfOnglet("vigilances"); })));
   const esc = A.esc, dis = ok ? "" : " disabled";
   return '<section class="carte"><h3><span class="ic">' + A.ic("alerte") + '</span>Vigilance des molécules <span class="cf-n">' + VE.length + "</span></h3>" +
-    '<p class="sous">Notes « À vérifier » affichées dans la séance de chimiothérapie quand une molécule de la séance contient un des mots indiqués (DCI ou marque, séparés par des virgules). ' +
-    "Les contrôles automatiques (dose cumulée, FEVG, TSH, uracilémie, bilan du jour, radiothérapie en cours…) ouvrent de toute façon une fenêtre à la validation si quelque chose cloche.</p>" +
+    "" +
     VE.map((N, i) => '<div class="cf-auto"><div class="form" style="grid-template-columns:1fr 2fr"><div><label>Nom</label><input value="' + esc(N.nom) + '"' + dis + ' onchange="vgCh(' + i + ',\'nom\',this.value)"></div>' +
       '<div><label>Mots cherchés dans le nom du produit</label><input value="' + esc(N.mots) + '"' + dis + ' onchange="vgCh(' + i + ',\'mots\',this.value)"></div>' +
       '<div class="large"><label>À vérifier</label><textarea rows="2"' + dis + ' onchange="vgCh(' + i + ',\'txt\',this.value)">' + esc(N.txt) + "</textarea></div></div>" +

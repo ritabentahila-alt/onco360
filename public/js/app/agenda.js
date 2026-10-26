@@ -126,9 +126,7 @@ export function pageAgenda() {
   // établissement et médecin passent en tête de la colonne de gauche (sur téléphone et tablette : au-dessus de l'agenda, seuls)
   const fil = (EV.length > 1 ? '<select class="ag-etab" data-fn="agenda.filtre" aria-label="Établissement" onchange="agEtab(this.value)"><option value="">Tous les établissements</option>' + EV.map((c) => '<option value="' + esc(c) + '"' + (AG.etab === c ? " selected" : "") + ">" + esc(c) + "</option>").join("") + "</select>" : EV.length === 1 ? '<span class="badge b-gr">' + esc(EV[0]) + "</span>" : "") +
     (A.multiMed() ? '<select class="ag-etab" id="agMed" aria-label="Médecin" onchange="agMed(this.value)"><option value="">Tous les médecins</option>' + A.medecins().map((m) => '<option value="' + esc(m.uid) + '"' + (AG.med === m.uid ? " selected" : "") + ">" + esc(m.nom) + "</option>").join("") + "</select>" : "");
-  const gg = (D().profil.agendaGoogle || {}).email ? 'Vos rendez-vous apparaissent aussi dans votre Google Agenda (agenda « Onco360 »), dans un seul sens. <a href="#parametres/couleurs">État</a>'
-    : 'Voir ces rendez-vous dans votre Google Agenda : <a href="#parametres/couleurs">Paramètres › Google Agenda</a>.';
-  const main = v === "mois" ? vueMois(du) : v === "liste" ? vueListe() : vueGrille(du, v === "jour" ? 1 : 7), cote = (fil ? '<div class="ag-fil">' + fil + "</div>" : "") + miniCal() + aVenir() + '<p class="mesures ag-gg">' + gg + "</p>";
+  const main = v === "mois" ? vueMois(du) : v === "liste" ? vueListe() : vueGrille(du, v === "jour" ? 1 : 7), cote = (fil ? '<div class="ag-fil">' + fil + "</div>" : "") + miniCal() + aVenir();
   const onglet = (k, ico, t) => '<button' + (k === "liste" ? "" : ' data-fn="agenda.vues"') + ' class="' + (v === k ? "on" : "") + '" onclick="agVue(\'' + k + '\')">' + A.ic(ico) + t + "</button>";
   // Lot B (25/10/2026) : plus de titre de page ; « + Nouveau rendez-vous » au bout de la barre (vues, période, filtres, Actualiser)
   let h = '<div class="ag-barre"><div class="ag-vues">' + onglet("liste", "liste", "Liste") + onglet("jour", "agenda", "Jour") + onglet("semaine", "agenda", "Semaine") + onglet("mois", "accueil", "Mois") + "</div>" +
@@ -136,7 +134,7 @@ export function pageAgenda() {
     '<div class="ag-nav"><button class="b2" onclick="agAuj()">Aujourd\'hui</button><button class="b3" onclick="agNav(-1)" aria-label="Précédent" title="Précédent">' + A.ic("retour") + '</button><button class="b3" onclick="agNav(1)" aria-label="Suivant" title="Suivant" style="transform:scaleX(-1)">' + A.ic("retour") + "</button><b>" + esc(lib) + "</b></div>" +
     '<span class="ag-droite"><span class="ag-act"><button class="b2" id="agAct" onclick="agActualiser()" title="Relire les rendez-vous, séances et radiothérapies (aussi chaque minute)">' + A.ic("actualiser") + 'Actualiser</button><span class="mesures" id="agAjour"></span></span>' +
     '<button class="b1 ag-nouv" onclick="nouveauRdv(null,null,\'' + esc(AG.etab || "") + '\',\'' + esc(AG.med || "") + '\')">' + A.ic("plus") + '<span class="lg">Nouveau rendez-vous</span><span class="sm">Rendez-vous</span></button></span></div>' +
-    '<div class="ag-corps"><aside class="ag-cote">' + cote + '</aside><div class="ag-main carte">' + main + "</div></div>" + '<p class="mesures ag-gg-bas">' + gg + "</p>";
+    '<div class="ag-corps"><aside class="ag-cote">' + cote + '</aside><div class="ag-main carte">' + main + "</div></div>";
   // R-C8 : même vue et même période redessinées (Actualiser, écoute des dossiers, après une modification) : le défilement de la grille est gardé
   const g0 = document.querySelector(".ag-grille"), cleVue = v + "|" + du, garde = g0 && AG.cleVue === cleVue ? g0.scrollTop : null;
   A.$("page").innerHTML = h; AG.cleVue = cleVue; majAJour(); demarrerMinute();

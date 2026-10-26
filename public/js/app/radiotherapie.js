@@ -904,7 +904,7 @@ async function pageContraintesRef() {
     '<div class="rtr-tw"><table class="rtr-tab rtr-ctr"><thead><tr><th>Organe</th>' + R0.map((r) => "<th>" + REGIMES[r] + "</th>").join("") + "</tr></thead><tbody>" +
     K.map((k) => { const o = oar(k); return '<tr class="rtr-clic" tabindex="0" onclick="rtrDetailCt(this,\'' + esc(k) + '\')" onkeydown="if(event.key===\'Enter\')this.click()"><td data-l="Organe"><b>' + esc(o.nom) + "</b>" + (o.nom_tg263 ? '<br><span class="mesures">' + esc(o.nom_tg263) + "</span>" : "") + "</td>" +
       R0.map((r) => { const L = BB.base.filter((l) => l.oar_id === k && l.regime === r); return '<td data-l="' + REGIMES[r] + '">' + (L.length ? celluleRegime(L) : '<span class="mesures">—</span>') + "</td>"; }).join("") + "</tr>"; }).join("") + "</tbody></table></div>" +
-    '<h3 class="rtr-tous">Contraintes propres aux essais et à la curiethérapie</h3><p class="mesures">Elles remplacent la base pour les organes qu\'elles citent, dans les schémas qui suivent l\'essai.</p>' +
+    '<h3 class="rtr-tous">Contraintes propres aux essais et à la curiethérapie</h3>' +
     BB.jeux.map((j, i) => '<details class="rtr-e"><summary><span class="t"><b>' + esc(j.titre) + '</b> <span class="mesures">' + esc([j.fractionnement, j.source].filter(Boolean).join(" · ")) + "</span></span></summary>" + tableJeu(j, i) + "</details>").join("");
 }
 let CTED = null;

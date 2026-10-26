@@ -31,7 +31,7 @@ export function pageParametres() {
   if (!ETAB || etabs.indexOf(ETAB) < 0) ETAB = etabs[0];
   const E = ED.etablissements[ETAB], nomE = ((D().etabsTous || D().etabs).find((e) => e.code === ETAB) || {}).nom || ETAB;
   let h = A.enteteParametres() + // onglet « Activités et rémunérations » de la page Paramètres (08/10/2026)
-    '<section class="carte"><h3><span class="ic">' + A.ic("bilan") + '</span>Activités et rémunérations</h3><p class="sous">Net = brut × (1 − rétrocession) × (1 − impôt). Un changement s\'applique aux actes réalisés à partir de sa date d\'effet ; les actes plus anciens gardent l\'ancien tarif.</p>' +
+    '<section class="carte"><h3><span class="ic">' + A.ic("bilan") + '</span>Activités et rémunérations</h3>' +
     '<div class="puces">' + etabs.map((c) => '<button class="puce' + (c === ETAB ? " on" : "") + '" onclick="paEtab(\'' + esc(c) + "')\">" + esc(c) + "</button>").join("") + "</div>";
   const srcG = sourceGrille();
   if (!ETAB) h += '<p class="sous">Ajoutez d\'abord un lieu d\'exercice (Paramètres › Lieux d\'exercice) : chaque lieu a sa grille tarifaire.</p>';
@@ -48,13 +48,13 @@ export function pageParametres() {
           '<td class="calc">' + (rt ? "—" : fr(n)) + "</td>" +
           "<td>" + (v.depuis && v.depuis > "2000-01-01" ? A.dfrA(v.depuis) : "Origine") + "</td></tr>";
       }).join("") + "</table></div>" +
-      '<div class="actr" style="justify-content:flex-start;margin-top:8px"><button class="bt clair petit" onclick="cfOnglet(\'types\')">' + A.ic("plus") + 'Ajouter un type de consultation</button><span class="mesures">Les types de consultation (nom, rendez-vous, durée, formulaire) se règlent dans Dossier patient › Types de consultation ; ici, leur prix dans chaque lieu (sans prix = non facturé ici).</span></div>';
+      '<div class="actr" style="justify-content:flex-start;margin-top:8px"><button class="bt clair petit" onclick="cfOnglet(\'types\')">' + A.ic("plus") + 'Ajouter un type de consultation</button></div>';
   }
   h += "</section>";
-  h += '<section class="carte" data-fn="rt.tarifs"><h3><span class="ic">' + A.ic("radiation") + '</span>Actes de radiothérapie</h3><p class="sous">Prix proposé automatiquement à la prescription ; la part du médecin suit la rétrocession et l\'impôt de la ligne « Radiothérapie » de chaque établissement, sinon le taux commun ci-dessous.</p>' +
+  h += '<section class="carte" data-fn="rt.tarifs"><h3><span class="ic">' + A.ic("radiation") + '</span>Actes de radiothérapie</h3>' +
     // R-D3 (20/10/2026, audit n° 6, C5) : taux commun, pour un lieu sans ligne « Radiothérapie » (avant : 60 % / 10 % pris sans le dire) ; vide = « sans tarif »
     '<div class="form" style="grid-template-columns:repeat(auto-fit,minmax(150px,200px));margin-bottom:6px" id="paTauxRT"><div><label for="paTrR">Taux commun : rétrocession %</label><input id="paTrR" inputmode="decimal" value="' + esc(ED.tauxRT && ED.tauxRT.retro != null ? fr(ED.tauxRT.retro) : "") + '" onchange="paTauxRT(\'retro\',this.value)"></div><div><label for="paTrI">Taux commun : impôt %</label><input id="paTrI" inputmode="decimal" value="' + esc(ED.tauxRT && ED.tauxRT.impot != null ? fr(ED.tauxRT.impot) : "") + '" onchange="paTauxRT(\'impot\',this.value)"></div></div>' +
-    '<p class="mesures" style="margin-top:0">Taux commun : pour une radiothérapie faite dans un lieu dont la grille n\'a pas de ligne « Radiothérapie » (la ligne du lieu passe avant). Laissé vide : ces radiothérapies sont comptées « sans tarif » (0 DH) dans le bilan.</p>' +
+    '' +
     '<div class="tableau" style="max-height:460px;overflow:auto"><table class="tcures"><tr><th>Acte</th><th style="width:160px">Prix (DH)</th><th></th></tr>' +
     ED.actesRT.map((a, i) => '<tr><td><input value="' + esc(a.nom) + '" style="width:100%" onchange="paActe(' + i + ',\'nom\',this.value)"></td><td><input class="mt" inputmode="decimal" style="max-width:130px" value="' + esc(mil(a.prix)) + '" onchange="paActe(' + i + ',\'prix\',this.value)"></td><td><button class="mini rouge" onclick="paSupActe(' + i + ')">✕</button></td></tr>').join("") + "</table></div>" +
     '<div class="actr" style="justify-content:flex-start;margin-top:8px"><button class="bt clair petit" onclick="paAjActe()">' + A.ic("plus") + 'Ajouter un acte</button><label style="display:flex;gap:8px;align-items:center;margin-left:auto;font-weight:bold;color:var(--doux);font-size:13px">Montant VMAT (DH) <input class="champ mt" inputmode="decimal" style="max-width:130px;font-size:15px;padding:8px" value="' + esc(mil(ED.vmat)) + '" onchange="paVmat(this.value)"></label></div></section>' +

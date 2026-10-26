@@ -1131,7 +1131,7 @@ function pageAccueil() {
   carte("stats", () => {
   const n = (f) => D.patients.filter(FILTRES[f][1]).length, curesMois = D.patients.reduce((s, x) => s + (x.r.rec || []).filter((d) => d && d.slice(0, 7) === D.t.slice(0, 7)).length, 0);
   const k = (f, ico, v, lib) => '<button class="k" onclick="location.hash=\'patients/' + f + '\'"><span class="ic">' + ico + "</span><b>" + v + "</b><span>" + lib + "</span></button>";
-  h += '<section class="carte"><h3><span class="ic">' + ic("bilan") + '</span>Statistiques</h3><p class="sous">Touchez une case pour voir la liste des patients.</p><div class="kpi">' +
+  h += '<section class="carte"><h3><span class="ic">' + ic("bilan") + '</span>Statistiques</h3><div class="kpi">' +
     k("tous", ic("patients"), D.patients.length, "Patients") + k("chc", ic("seringue"), n("chc"), "Chimiothérapies en cours") + k("rtc", ic("radiation"), n("rtc"), "Radiothérapies en cours") +
     k("rtp", ic("horloge"), n("rtp"), "Radiothérapies prévues") + k("cm", ic("check"), curesMois, "Cures reçues ce mois") + k("fin", ic("drapeau"), n("fin"), "Chimiothérapies terminées") + "</div></section>";
   });
@@ -1688,7 +1688,7 @@ window.modifierIdentite = (id, sec, centre) => { // centre (lot A §3) : formula
       '<div id="zDeces"' + (C.statut === "decede" ? "" : ' class="cache"') + '><label for="fDeces">Date du décès</label><input id="fDeces" type="date" value="' + esc(C.decesLe || "") + '"' + (okC ? "" : " disabled") + "></div></div>") +
     '<div class="err" id="fErr"></div><div class="boutons">' + (peut("supprimerPatient") && sec === "id" ? '<button class="bt gris" id="fSup" style="margin-right:auto;color:var(--rouge)"><svg class="pi"><use href="#i-corbeille"/></svg>Supprimer le patient</button>' : "") + '<button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt plein" id="fOk">Enregistrer</button></div>');
   activerDiag("fDiag", "fDiagP");
-  if ($("fSup")) $("fSup").onclick = () => dosSupprimer(x.id);
+  if ($("fSup")) $("fSup").onclick = () => window.dosSupprimer(x.id);
   $("fOk").onclick = async () => {
     const changes = {}, lu = ficheP.lireFormulaire(x), nI = lu.identite, nC = lu.clinique;
     if (lu.erreur) { erreur(lu.erreur); return; }
