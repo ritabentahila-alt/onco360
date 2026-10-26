@@ -326,6 +326,13 @@ async function migrations() {
     // R-A1 (18/10/2026) : registre illisible = on ne sait pas ce qui est déjà fait ; rien n'est refait (sinon la mise à niveau des ordonnances
     // types remplaçait la liste du cabinet par la liste de départ) ; nouvel essai à la prochaine ouverture
     if (!g) { console.warn("migrations : registre illisible, rien n'est refait"); return; }
+    // Remplaçants (26/10/2026) : ceux créés avec les droits du titulaire (lot C) reçoivent une fois la grille du remplaçant pour le bilan,
+    // les bibliothèques et le référentiel de radiothérapie ; le titulaire les règle ensuite dans Paramètres › Accès
+    if (!fait.remplacantDroits) {
+      let ok = true;
+      for (const d of sm.docs.filter((z) => z.data().role === "remplacant")) await updateDoc(d.ref, { "droits.finances": false, "droits.parametres": false, "droits.referentielRT": "voir" }).catch((er) => { ok = false; console.warn("droits du remplaçant", d.id, er); });
+      if (ok) await setDoc(doc(db, "espaces", ESPACE, "parametres", "migrations"), { remplacantDroits: D.t }, { merge: true }).catch(() => {});
+    }
     // Fiches médicales réparées (12/10/2026) : enregistrées une fois telles que relues (champs remis hors de clinique._autres)
     for (const x of D.patients.filter((z) => z.repare)) { await enregistrer(x, { clinique: x.doc.clinique }, "Fiche médicale réparée (champs ajoutés, statut, allergie)").then(() => { x.repare = false; }).catch((er) => console.warn("réparation", x.id, er)); }
     // Localisations de cancer ajoutées le 12/10/2026 (3.1 bis) : ajoutées une fois à la liste déjà réglée du cabinet (rien n'est retiré)

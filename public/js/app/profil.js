@@ -10,7 +10,7 @@ export function installer(api) { A = api; }
 const D = () => A.D();
 let ONG = "infos", MEMBRES = null, ESPACE_DOC = null, Q = "";
 const ROLES = { medecin: "Médecin", remplacant: "Médecin remplaçant", infirmiere: "Infirmière", assistante: "Assistante / secrétaire", comptable: "Comptable" };
-// Lot C (25/10/2026, demande de Dr Bentahila) : rôle « Médecin remplaçant » = mêmes droits et mêmes patients que le titulaire (recopiés et tenus
+// Lot C (25/10/2026, demande de Dr Bentahila) : rôle « Médecin remplaçant » = mêmes patients que le titulaire (droits propres depuis le 26/10/2026 ; recopiés et tenus
 // à jour par le serveur), il agit partout comme un médecin (estMed) mais tout ce qu'il crée, imprime ou envoie est au nom du titulaire (les
 // fonctions d'identité restent sur role === "medecin" : medDefaut, medecinFiche, signatureWA, carteMedecin, publierCarte) ; le journal d'audit
 // garde la personne réellement connectée ; accès pour une période (remplaceDu / remplaceAu, appliquée par les règles) ou sans limite
@@ -24,9 +24,10 @@ export const DROITS_ROLE = {
   // Comptable (étape 9 S2, 09/10/2026) : bilan et pointage des paiements seulement ; aucun dossier (les règles le lui ferment)
   comptable: { identite: false, fichePatient: false, rendezvous: false, consultations: false, ecrireConsultations: false, planningChimio: false, traitements: "aucun", radiotherapie: "aucun", documents: false, administrer: false, encaissements: false, creerPatient: false, supprimerPatient: false, finances: true, parametres: false, secretariat: false, referentielRT: "aucun" },
 };
-// Lot C (25/10/2026) : le remplaçant a les droits du titulaire (recopiés et tenus à jour par le serveur, fonction compteMembre) ; par défaut,
-// ceux d'un médecin
-DROITS_ROLE.remplacant = Object.assign({}, DROITS_ROLE.medecin);
+// Remplaçant (26/10/2026, demande de Dr Bentahila ; lot C du 25/10 : droits du titulaire) : ceux d'un médecin, sans le bilan (finances), sans
+// modifier les bibliothèques ni les protocoles de chimiothérapie (paramètres), référentiel de radiothérapie en lecture ; il prescrit et adapte
+// la chimiothérapie dans le dossier (traitements « modifier ») ; tous modifiables par le titulaire (= DROITS_REMPLACANT de functions/cabinets.js)
+DROITS_ROLE.remplacant = Object.assign({}, DROITS_ROLE.medecin, { finances: false, parametres: false, referentielRT: "voir" });
 // Droits d'un membre : ceux de sa grille, complétés par les valeurs par défaut de son rôle pour les droits ajoutés depuis
 export const droitsEffectifs = (m) => Object.assign({}, DROITS_ROLE[(m && m.role)] || {}, (m && m.droits) || {});
 const LIB_DROITS = [
@@ -296,15 +297,15 @@ window.pfMembre = (uid) => {
   const m0 = uid ? MEMBRES.find((z) => z.uid === uid) : null, esc = A.esc, etabs = D().etabsTous || D().etabs;
   const m = m0 ? JSON.parse(JSON.stringify(m0)) : { role: "infirmiere", actif: true, tousEtablissements: false, etablissements: [], droits: Object.assign({}, DROITS_ROLE.infirmiere) };
   m.droits = droitsEffectifs(m); // droits ajoutés depuis la création du membre : valeur par défaut de son rôle
-  // Lot C : le titulaire (seul à gérer les accès) prête ses droits et ses établissements au remplaçant
+  // Lot C : le titulaire (seul à gérer les accès) prête ses établissements au remplaçant ; ses droits se règlent comme ceux des autres (26/10/2026)
   const rem = () => m.role === "remplacant", tit = () => MEMBRES.find((z) => z.uid === (D().espaceDoc && D().espaceDoc.titulaire)) || D().membre;
-  const copierTitulaire = () => { const T = tit(); m.droits = droitsEffectifs(T); m.tousEtablissements = !!T.tousEtablissements; m.etablissements = (T.etablissements || []).slice(); m.remplace = (D().espaceDoc && D().espaceDoc.titulaire) || D().u.uid; };
+  const copierTitulaire = () => { const T = tit(); m.tousEtablissements = !!T.tousEtablissements; m.etablissements = (T.etablissements || []).slice(); m.remplace = (D().espaceDoc && D().espaceDoc.titulaire) || D().u.uid; };
   if (rem()) copierTitulaire();
   const dessiner = () => {
     A.fenetre("<h3>" + (m0 ? "Droits de " + esc(m.nom || m.email) : "Ajouter un accès") + '</h3><div class="form">' +
       (m0 ? '<div class="large mesures">' + esc(m.email || "") + "</div>" : '<div><label for="mPre">Prénom</label><input id="mPre"></div><div><label for="mNom">Nom</label><input id="mNom"></div><div><label for="mMail">E-mail (identifiant de connexion)</label><input id="mMail" type="email" autocomplete="off"></div><div><label for="mTel">Téléphone</label><input id="mTel" type="tel"></div>') +
       '<div><label for="mRole">Rôle</label><select id="mRole">' + Object.entries(ROLES).map(([k, l]) => '<option value="' + k + '"' + (m.role === k ? " selected" : "") + ">" + l + "</option>").join("") + "</select></div>" +
-      // Lot C : remplaçant = établissements et droits du titulaire (lecture seule) ; durée de l'accès
+      // Lot C : remplaçant = établissements du titulaire (lecture seule) ; durée de l'accès
       (rem() ? '<div class="large"><label>Établissements visibles</label><div class="mesures">' + esc(m.tousEtablissements ? "Tous les établissements" : (m.etablissements || []).join(", ")) + " (ceux du médecin titulaire)</div></div>" +
         '<div class="large"><label>Durée de l\'accès</label><div class="plages"><label style="font-weight:normal"><input type="radio" name="mDur" id="mDurS" style="width:auto;margin-right:6px"' + (m.remplaceDu || m.remplaceAu ? "" : " checked") + '>Sans limite (remplaçant qui reste et aide)</label>' +
         '<label style="font-weight:normal"><input type="radio" name="mDur" id="mDurP" style="width:auto;margin-right:6px"' + (m.remplaceDu || m.remplaceAu ? " checked" : "") + ">Pour une période</label></div>" +
@@ -312,7 +313,7 @@ window.pfMembre = (uid) => {
         '<p class="mesures" style="margin:4px 0 0">Après la date de fin, la connexion est refusée ; « Accès actif » se décoche aussi à tout moment.</p></div></div>'
       : '<div class="large"><label>Établissements visibles</label><div class="plages"><label style="font-weight:normal"><input id="mTous" type="checkbox" style="width:auto;margin-right:6px"' + (m.tousEtablissements ? " checked" : "") + ">Tous les établissements</label>" +
       etabs.map((e) => '<label style="font-weight:normal"><input type="checkbox" data-e="' + esc(e.code) + '" style="width:auto;margin-right:6px"' + ((m.etablissements || []).indexOf(e.code) >= 0 ? " checked" : "") + (m.tousEtablissements ? " disabled" : "") + ">" + esc(e.code) + "</label>").join("") + "</div></div></div>") +
-      '<h4 class="soustitre">Droits</h4>' + (rem() ? '<p class="mesures">Les droits du médecin titulaire, tenus à jour : le remplaçant fait tout au nom du titulaire (rendez-vous, consultations, ordonnances, courriers). Le journal d\'audit garde son nom.</p>' + grille(m.droits || {}, m.role).replace(/<select /g, "<select disabled ").replace(/<input type="checkbox"/g, '<input type="checkbox" disabled') : grille(m.droits || {}, m.role)) +
+      '<h4 class="soustitre">Droits</h4>' + (rem() ? '<p class="mesures">Le remplaçant fait tout au nom du titulaire (rendez-vous, consultations, ordonnances, courriers). Le journal d\'audit garde son nom. Par défaut : pas de bilan, protocoles et référentiel de radiothérapie en lecture (il adapte la chimiothérapie dans la prescription).</p>' : "") + grille(m.droits || {}, m.role) +
       (m0 ? '<div style="margin-top:12px"><label style="font-weight:normal"><input id="mActif" type="checkbox" style="width:auto;margin-right:6px"' + (m.actif !== false ? " checked" : "") + ">Accès actif (décocher pour bloquer la connexion ; l'historique reste conservé)</label></div>" : '<p class="mesures" style="margin-top:10px">Le compte est créé immédiatement. La personne reçoit un e-mail pour choisir son mot de passe, puis se connecte sur chimio-hgc.web.app.</p>') +
       '<div class="err" id="fErr"></div><div class="boutons">' + (m0 ? '<button class="bt gris" id="mSup" style="margin-right:auto;color:var(--rouge)"><svg class="pi"><use href="#i-corbeille"/></svg>Supprimer l\'accès</button>' : "") + '<button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt plein" id="fOk">' + (m0 ? "Enregistrer" : "Créer l'accès") + "</button></div>", "large");
     if (A.$("mSup")) A.$("mSup").onclick = async () => {
@@ -321,11 +322,12 @@ window.pfMembre = (uid) => {
       try { await deleteDoc(doc(db, "espaces", A.ESPACE, "membres", uid)); A.journal({ id: "", r: { nm: "" } }, "Accès supprimé : " + (m.nom || m.email)); MEMBRES = null; A.fermerFenetre(); A.toast("Accès supprimé."); rafraichir(); }
       catch (e) { A.occupe(A.$("mSup"), false); A.erreur(e && e.code === "permission-denied" ? "Seul le médecin titulaire peut supprimer un accès." : (e.message || String(e))); }
     };
-    const lire = () => { if (rem()) { copierTitulaire(); const per = A.$("mDurP") && A.$("mDurP").checked; m.remplaceDu = per ? A.val("mDu") : ""; m.remplaceAu = per ? A.val("mAu") : "";
+    const lire = () => { document.querySelectorAll("[data-d]").forEach((c) => { m.droits[c.dataset.d] = c.tagName === "SELECT" ? c.value : c.checked; });
+      if (rem()) { copierTitulaire(); const per = A.$("mDurP") && A.$("mDurP").checked; m.remplaceDu = per ? A.val("mDu") : ""; m.remplaceAu = per ? A.val("mAu") : "";
         // bornes lues par les règles (mêmes calculs que periodeRemplacant de functions/cabinets.js, recalculées aussi par le serveur)
         m.remplaceDebMs = m.remplaceDu ? Date.parse(m.remplaceDu + "T00:00:00+01:00") : 0; m.remplaceFinMs = m.remplaceAu ? Date.parse(m.remplaceAu + "T23:59:59Z") : 0; }
-      else { m.tousEtablissements = A.$("mTous").checked; m.etablissements = [...document.querySelectorAll("[data-e]")].filter((c) => c.checked).map((c) => c.dataset.e); document.querySelectorAll("[data-d]").forEach((c) => { m.droits[c.dataset.d] = c.tagName === "SELECT" ? c.value : c.checked; }); delete m.remplaceDu; delete m.remplaceAu; delete m.remplace; delete m.remplaceDebMs; delete m.remplaceFinMs; } if (A.$("mActif")) m.actif = A.$("mActif").checked; ["mPre", "mNom", "mMail", "mTel"].forEach((i) => { if (A.$(i)) m["_" + i] = A.val(i); }); };
-    A.$("mRole").onchange = () => { lire(); const r = A.val("mRole"); if (r === "remplacant") { m.role = r; copierTitulaire(); } else { if (m.role === "remplacant" || confirm("Appliquer les droits par défaut du rôle « " + ROLES[r] + " » ?")) m.droits = Object.assign({}, DROITS_ROLE[r]); m.role = r; if (r === "medecin" || r === "comptable") m.tousEtablissements = true; } dessiner(); ["mPre", "mNom", "mMail", "mTel"].forEach((i) => { if (A.$(i)) A.$(i).value = m["_" + i] || ""; }); };
+      else { m.tousEtablissements = A.$("mTous").checked; m.etablissements = [...document.querySelectorAll("[data-e]")].filter((c) => c.checked).map((c) => c.dataset.e); delete m.remplaceDu; delete m.remplaceAu; delete m.remplace; delete m.remplaceDebMs; delete m.remplaceFinMs; } if (A.$("mActif")) m.actif = A.$("mActif").checked; ["mPre", "mNom", "mMail", "mTel"].forEach((i) => { if (A.$(i)) m["_" + i] = A.val(i); }); };
+    A.$("mRole").onchange = () => { lire(); const r = A.val("mRole"); if (r === "remplacant") { if (m.role !== r) m.droits = Object.assign({}, DROITS_ROLE[r]); m.role = r; copierTitulaire(); } else { if (m.role === "remplacant" || confirm("Appliquer les droits par défaut du rôle « " + ROLES[r] + " » ?")) m.droits = Object.assign({}, DROITS_ROLE[r]); m.role = r; if (r === "medecin" || r === "comptable") m.tousEtablissements = true; } dessiner(); ["mPre", "mNom", "mMail", "mTel"].forEach((i) => { if (A.$(i)) A.$(i).value = m["_" + i] || ""; }); };
     if (A.$("mTous")) A.$("mTous").onchange = () => document.querySelectorAll("[data-e]").forEach((c) => { c.disabled = A.$("mTous").checked; });
     ["mDurS", "mDurP"].forEach((i) => { if (A.$(i)) A.$(i).onchange = () => { A.$("mPer").style.display = A.$("mDurP").checked ? "" : "none"; }; });
     A.$("fOk").onclick = async () => {

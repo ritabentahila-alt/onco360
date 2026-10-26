@@ -401,7 +401,7 @@ exports.compteMembre = onDocumentWritten({ document: "espaces/{e}/membres/{uid}"
   if (!nv) { if (c.exists) await ref.delete(); }
   else if (!c.exists || c.data().espace !== nv.espace || JSON.stringify(c.data().espaces || []) !== JSON.stringify(nv.espaces)) await ref.set(Object.assign(nv, { le: new Date().toISOString() }));
   if (apres) {
-    // Lot C (25/10/2026) : remplaçants alignés sur le titulaire (droits, établissements) : fiche du titulaire changée → ses remplaçants ;
+    // Lot C (25/10/2026) : remplaçants alignés sur le titulaire (établissements ; droits propres depuis le 26/10/2026) : fiche du titulaire changée → ses remplaçants ;
     // fiche d'un remplaçant écrite → reprise depuis celle du titulaire ; bornes de la période recalculées (règles)
     try {
       const es0 = (await db.doc("espaces/" + e).get()).data() || {};

@@ -128,20 +128,24 @@ function periodeRemplacant(du, au) {
   return { remplaceDu: du, remplaceAu: au, remplaceDebMs: du ? Date.parse(du + "T00:00:00+01:00") : 0, remplaceFinMs: au ? Date.parse(au + "T23:59:59Z") : 0 };
 }
 const DROITS_DE = (dr) => { const droits = {}; Object.keys(DROITS_MEDECIN).forEach((k) => { const v = (dr || {})[k]; droits[k] = NIVEAUX[k] ? (NIVEAUX[k].indexOf(v) >= 0 ? v : "aucun") : v === true; }); return droits; };
-// Ce qu'un remplaçant doit avoir de son titulaire ; null = déjà aligné (fonction compteMembre, à chaque écriture de l'une ou l'autre fiche)
+// Droits proposés à un médecin remplaçant (26/10/2026, demande de Dr Bentahila) : ceux d'un médecin, sans le bilan (finances) ni la modification
+// des bibliothèques (paramètres) ni du référentiel de radiothérapie (voir) ; il prescrit et modifie la chimiothérapie dans le dossier ;
+// tous modifiables par le titulaire (= DROITS_ROLE.remplacant de profil.js)
+const DROITS_REMPLACANT = Object.assign({}, DROITS_MEDECIN, { finances: false, parametres: false, referentielRT: "voir" });
+// Ce qu'un remplaçant doit avoir de son titulaire (établissements ; ses droits sont les siens depuis le 26/10/2026) ; null = déjà aligné
+// (fonction compteMembre, à chaque écriture de l'une ou l'autre fiche)
 function alignerRemplacant(r, tit) {
   if (!r || r.role !== "remplacant" || !tit) return null;
-  const v = { droits: DROITS_DE(Object.assign({}, DROITS_MEDECIN, tit.droits || {})), tousEtablissements: tit.tousEtablissements === true, etablissements: tit.tousEtablissements === true ? [] : (tit.etablissements || []).slice() };
-  return JSON.stringify(v.droits) === JSON.stringify(DROITS_DE(r.droits)) && v.tousEtablissements === (r.tousEtablissements === true) && JSON.stringify(v.etablissements) === JSON.stringify(r.tousEtablissements === true ? [] : r.etablissements || []) ? null : v;
+  const v = { tousEtablissements: tit.tousEtablissements === true, etablissements: tit.tousEtablissements === true ? [] : (tit.etablissements || []).slice() };
+  return v.tousEtablissements === (r.tousEtablissements === true) && JSON.stringify(v.etablissements) === JSON.stringify(r.tousEtablissements === true ? [] : r.etablissements || []) ? null : v;
 }
 function membreDemande(o, jour, par, tit) {
   const t = (v, n) => String(v == null ? "" : v).replace(/\s+/g, " ").trim().slice(0, n);
   const role = ROLES.indexOf(o.role) >= 0 ? o.role : null; if (!role) throw new Error("Rôle inconnu.");
   const email = t(o.email, 120).toLowerCase(); if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) throw new Error("Indiquez une adresse e-mail valide.");
   const nom = t(o.nom, 60).toUpperCase(), prenom = t(o.prenom, 60); if (!nom) throw new Error("Indiquez le nom.");
-  const dr = role === "remplacant" ? null : o.droits;
   if (role === "remplacant" && !tit) throw new Error("Fiche du médecin titulaire introuvable.");
-  const droits = role === "remplacant" ? DROITS_DE(Object.assign({}, DROITS_MEDECIN, tit.droits || {})) : DROITS_DE(dr);
+  const droits = role === "remplacant" ? DROITS_DE(Object.assign({}, DROITS_REMPLACANT, o.droits || {})) : DROITS_DE(o.droits);
   const tous = role === "remplacant" ? tit.tousEtablissements === true : role === "medecin" || role === "comptable" ? o.tousEtablissements !== false : o.tousEtablissements === true;
   const etabs = role === "remplacant" ? (tit.etablissements || []).slice() : Array.isArray(o.etablissements) ? o.etablissements.map((x) => t(x, 20)).filter(Boolean).slice(0, 50) : [];
   if (!tous && !etabs.length) throw new Error("Choisissez au moins un établissement.");
@@ -262,4 +266,4 @@ function sansEtoiles(data, jour) {
     if (c.valide) c.valide = { reference: jour, version: c.version || 1 }; delete c.majPar; delete c.majParNom; return c;
   }));
 }
-module.exports = { alignerRemplacant, periodeRemplacant, maxRole, accueilNettoye, sansEtoiles, renomsValides, corrigerDossier, espacesCompte, compteModifie, ficheNettoyee, idSpecialite, reglageNettoye, PARAMS_SPE, parametreDepart, BIBS, bibDe, estBib, DROITS_BIB, MODULES_BIB, infos, ROLES, membreDemande, MODULES, MAX, FORMULES, formulesValides, abonnement, horsQuota, MODELE, BIBLIOTHEQUES, DROITS_MEDECIN, MIGRATIONS, verifier, idCabinet, listesDepart, calendrierDepart, tarifsDepart, migrationsFaites, membreTitulaire };
+module.exports = { DROITS_REMPLACANT, alignerRemplacant, periodeRemplacant, maxRole, accueilNettoye, sansEtoiles, renomsValides, corrigerDossier, espacesCompte, compteModifie, ficheNettoyee, idSpecialite, reglageNettoye, PARAMS_SPE, parametreDepart, BIBS, bibDe, estBib, DROITS_BIB, MODULES_BIB, infos, ROLES, membreDemande, MODULES, MAX, FORMULES, formulesValides, abonnement, horsQuota, MODELE, BIBLIOTHEQUES, DROITS_MEDECIN, MIGRATIONS, verifier, idCabinet, listesDepart, calendrierDepart, tarifsDepart, migrationsFaites, membreTitulaire };
