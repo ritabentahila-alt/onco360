@@ -1542,6 +1542,15 @@ details.dp[open]>.dp-c{animation:ev-apparait .2s ease-out}
 .pc-h .rtr-et{flex:none;margin:-6px -6px 0 0}
 .rtr-bloc .pgrille{margin-bottom:10px}
 .rcp-haut{margin-bottom:18px} /* 26/10/2026 : les deux cadres de la RCP moins collés */
+/* 26/10/2026 : états vides du tableau de bord (petite illustration, ou pastille ronde et phrase) ; « n alertes vues » en pastille */
+.ev-vide.petit{padding:12px 12px 16px;gap:6px}.ev-vide.petit .ev-ill{width:min(150px,55%)}.ev-vide.petit h4{font-size:var(--t5);margin-top:2px}.ev-vide.petit p{font-size:var(--t3)}
+.ev-mini{display:flex;align-items:center;gap:12px;padding:4px 14px 14px;color:var(--doux);font-size:var(--t4)}
+.ev-rond{width:38px;height:38px;border-radius:50%;background:#EAF0FA;color:var(--prim);display:inline-flex;align-items:center;justify-content:center;flex:none}.ev-rond .pi{width:18px;height:18px}
+section.carte>.ev-mini{padding:4px 2px 2px}
+.af-g-vues{display:flex;justify-content:flex-end;border:0}
+.af-vues{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:#F3F5F8;border:1px solid #E3E7EE;color:#55607A;font:inherit;font-size:var(--t3);font-weight:600;cursor:pointer}
+.af-vues .pi{width:14px;height:14px;color:#2FA37A}.af-vues .fl{margin-left:2px;color:var(--doux)}
+.af-vues:hover{background:var(--prim-c);border-color:#C9D5EA;color:var(--prim)}
 </style>
 </head>
 <body>

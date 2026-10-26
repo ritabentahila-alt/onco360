@@ -25,14 +25,14 @@ async def main():
         ok(await ev(alerte + ".length") == 0, 'alerte vue : elle disparaît')
         vues = (await ev("window.__fs['utilisateurs/UIDRITA']") or {}).get('alertesVues', {})
         ok(len(vues) == 1 and list(vues.values())[0] == '2026-10-06' and 'avieille' not in vues, 'rangée dans la fiche du médecin, datée ; vue de plus de 90 jours effacée', vues)
-        ok(await ev("[...document.querySelectorAll('button.lien')].some(b => b.textContent === 'Alertes vues (1)')"), 'lien « Alertes vues (1) »')
+        ok(await ev("[...document.querySelectorAll('button.af-vues')].some(b => b.textContent.includes('1 alerte vue'))"), 'pastille « 1 alerte vue » (26/10/2026)')
         # Rechargement (nouvelle page, avec ce qui a été enregistré) : toujours cachée
         fs = await ev("window.__fs"); await pg.close()
         pg = await ouvrir(b, fs); ev = pg.evaluate
         await pg.goto(f'http://localhost:{PORT}/v2.html#accueil'); await pg.wait_for_timeout(3500)
         ok(await ev(alerte + ".length") == 0, 'après rechargement : l\'alerte ne revient pas')
         # Revoir et remettre
-        await ev("[...document.querySelectorAll('button.lien')].find(b => /Alertes vues/.test(b.textContent)).click()"); await pg.wait_for_timeout(500)
+        await ev("document.querySelector('button.af-vues').click()"); await pg.wait_for_timeout(500)
         t = await pg.inner_text('#fenetreCorps')
         ok('Perte de poids de 14 %' in t and 'Remettre' in t, 'fenêtre « Alertes vues » : l\'alerte et « Remettre »', t[:200])
         await ev("[...document.querySelectorAll('#fenetreCorps button')].find(b => b.textContent === 'Remettre').click()"); await pg.wait_for_timeout(1200)

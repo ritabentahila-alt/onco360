@@ -43,9 +43,7 @@ async def main():
         # 20/10/2026 : rapprochement retiré (les cliniques paient des mois après l'acte) ; explications derrière un « ? » à côté du titre
         ok(await pg.evaluate("!document.getElementById('biRap') && !/Rapprochement/.test(document.getElementById('page').innerText)"), 'plus de cadre « Rapprochement des règlements »')
         q = await pg.evaluate("(()=>{const h=[...document.querySelectorAll('#page section.carte > h3')].filter(h=>/Versements et règlements|Par établissement|Mois par mois|Référents/.test(h.textContent));return [h.length, h.filter(x=>x.querySelector('.cf-q')).length, h.filter(x=>!x.nextElementSibling.classList.contains('cache')).length]})()")
-        ok(q[0] == 4 and q[1] == 4 and q[2] == 0, 'explications cachées derrière un « ? » (4 titres) ' + str(q))
-        await pg.evaluate("[...document.querySelectorAll('#page section.carte > h3 .cf-q')][0].click()"); await pg.wait_for_timeout(200)
-        ok(await pg.evaluate("!document.querySelector('#page section.carte > h3 + p.sous').classList.contains('cache')"), '« ? » : un clic affiche l\'explication')
+        ok(q[0] == 4 and q[1] == 0 and q[2] == 0, 'explications retirées, sans « ? » (26/10/2026, style minimaliste) ' + str(q))
         ok('Janvier à' in sp(await pg.inner_text('#page')), 'mois par mois : chiffres de l\'année toujours visibles')
         # R-D1 : consultation de chimio payée au J8 (200 DH) : un acte à sa date
         await pg.evaluate(f"location.hash='dossier/{PID}'"); await pg.wait_for_timeout(1200)

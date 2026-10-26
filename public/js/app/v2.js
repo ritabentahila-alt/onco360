@@ -598,8 +598,10 @@ Object.assign(ILL_VIDE, {
     [[84, 78], [130, 66], [176, 78]].map(([x, y], i) => '<circle cx="' + x + '" cy="' + y + '" r="11" fill="' + (i === 1 ? "#3563B0" : "#9AAAC4") + '"/><path d="M' + (x - 17) + " " + (y + 30) + "c0-12 8-18 17-18s17 6 17 18" + '" fill="' + (i === 1 ? "#3563B0" : "#9AAAC4") + '"/>').join("") +
     '<rect x="112" y="102" width="36" height="22" rx="3" fill="#F1F5FB" stroke="#C9D5EA"/><rect x="118" y="108" width="24" height="2.5" rx="1.2" fill="#9AAAC4"/><rect x="118" y="114" width="18" height="2.5" rx="1.2" fill="#C9D5EA"/></svg>',
 });
-const etatVide = (o) => '<div class="ev-vide"' + (o.k ? ' data-k="' + o.k + '"' : "") + ">" + (ILL_VIDE[o.ill] || "") + "<h4>" + esc(o.titre) + "</h4>" + (o.txt ? "<p>" + o.txt.split("\n").map(esc).join("<br>") + "</p>" : "") + (o.bouton || "") + "</div>";
+const etatVide = (o) => '<div class="ev-vide' + (o.petit ? " petit" : "") + '"' + (o.k ? ' data-k="' + o.k + '"' : "") + ">" + (ILL_VIDE[o.ill] || "") + "<h4>" + esc(o.titre) + "</h4>" + (o.txt ? "<p>" + o.txt.split("\n").map(esc).join("<br>") + "</p>" : "") + (o.bouton || "") + "</div>";
 API.etatVide = (o) => etatVide(o);
+// Variante d'une ligne (tableau de bord : catégorie ou carte sans rien) : pastille ronde avec l'icône, puis la phrase
+const videMini = (icone, txt) => '<div class="ev-mini"><span class="ev-rond">' + ic(icone) + "</span><span>" + esc(txt) + "</span></div>";
 // 26/10/2026 (demande de Dr Bentahila) : pagination des listes en cartes (Protocoles, Radiothérapie) : ‹ 1 2 … 9 › ; fn = fonction globale (n° de page)
 const pagination = (nb, page, par, fn) => {
   const n = Math.ceil(nb / par); if (n <= 1) return "";
@@ -1009,9 +1011,9 @@ function blocAFaire(pj) {
   const groupe = (icone, titre, l, n) => { if (l.length) G.push('<div class="af-g"><div class="af-t">' + ic(icone) + "<span>" + titre + '</span><span class="n">' + l.length + "</span></div>" + l.slice(0, n || 6).map(ligne).join("") + plus(l, n || 6) + "</div>"); };
   const btn = (lib, js) => '<button class="bt petit vert" onclick="event.stopPropagation();' + js + '">' + ic("check") + lib + "</button>";
   const resume = (icone, html, lien, lib) => G.push('<div class="af-g"><div class="af-r">' + ic(icone) + "<span>" + html + "</span>" + (lien ? '<button class="lien" onclick="' + lien + '">' + lib + " ›</button>" : "") + "</div></div>");
-  let titre, sous;
+  let titre;
   if (estMed(role)) {
-    titre = "À valider par le médecin"; sous = "Cures du jour et en retard, contourages, dosimétries, fins de radiothérapie.";
+    titre = "À valider par le médecin";
     const cures = [];
     D.patients.forEach((x) => (x.r.act || []).forEach((a) => { if (!a.d || a.d > t) return; const ret = a.d < t;
       // T2 (24/10/2026, décision 53) : un clic ouvre directement la cure (et le jour) à valider : 2 gestes au lieu de 4
@@ -1019,7 +1021,7 @@ function blocAFaire(pj) {
     cures.sort((p, q) => p.d.localeCompare(q.d) || p.nm.localeCompare(q.nm)); groupe("seringue", "Cures à valider", cures, 8);
     { const A = partagerAlertes(alertesCliniques(), vuesNettoyees(D.profil.alertesVues, D.t)); // R-B2 : « Vu » (coche) sur chaque alerte ; celles déjà vues à part
       groupe("alerte", "Alertes cliniques", A.aVoir.map((o) => Object.assign({}, o, { bt: '<button class="ico af-vu" title="Vu : ne plus afficher cette alerte" aria-label="Vu : ne plus afficher cette alerte" onclick="event.stopPropagation();alerteVue(\'' + o.cle + '\')">' + ic("check") + "</button>" })), 6);
-      if (A.vues.length) G.push('<div class="af-g"><button class="lien" onclick="alertesVuesVoir()">Alertes vues (' + A.vues.length + ")</button></div>"); }
+      if (A.vues.length) G.push('<div class="af-g af-g-vues"><button type="button" class="af-vues" onclick="alertesVuesVoir()" title="Revoir les alertes déjà vues">' + ic("check") + A.vues.length + " alerte" + (A.vues.length > 1 ? "s" : "") + " vue" + (A.vues.length > 1 ? "s" : "") + '<span class="fl">›</span></button></div>'); }
     const cont = [], dosi = [], fin = [], okV = peutDosi();
     D.patients.forEach((x) => { if (!voitRT(x)) return; let l = []; try { l = JSON.parse(x.doc.rtsJson || "[]"); } catch (e) { /* illisible */ }
       l.forEach((r) => { const q = "'" + x.id + "','" + r.id + "'", ap = "function(){route()}", acte = r.acte || "Radiothérapie";
@@ -1030,7 +1032,7 @@ function blocAFaire(pj) {
       }); });
     groupe("radiation", "Contourages à valider", cont); groupe("radiation", "Dosimétries à valider", dosi); groupe("drapeau", "Fins de radiothérapie à valider", fin);
   } else if (role === "assistante") {
-    titre = "À faire par la secrétaire"; sous = "Rappels WhatsApp, numéros manquants, rendez-vous à décaler, patients à reprogrammer, journées à clôturer.";
+    titre = "À faire par la secrétaire";
     if (fnOn("agenda.whatsapp") && peut("rendezvous")) {
       const L = rappelsAEnvoyer(), a = L.filter((o) => !o.env && o.tel), env = L.length - L.filter((o) => !o.env).length;
       groupe("whatsapp", "Rappels WhatsApp à envoyer", a.map((o) => ({ id: o.id, nm: o.nm, de: dfr(o.d) + (o.h ? " " + o.h : "") + (o.de ? " · " + o.de : ""), bt: btnWA(o.x, o.cat, o.d, o.h) })), 8);
@@ -1051,22 +1053,17 @@ function blocAFaire(pj) {
     const nc = nonCloturees().length;
     if (nc) resume("salle", "<b>" + nc + "</b> consultation" + (nc > 1 ? "s" : "") + " des 7 derniers jours ni « Venu » ni « Non venu »", module("salle") ? "location.hash='salle'" : "", "Salle d'attente");
   } else if (role === "infirmiere") {
-    titre = "À faire par l'infirmière"; sous = "Séances de chimiothérapie du jour.";
+    titre = "À faire par l'infirmière";
     groupe("seringue", "Chimiothérapies du jour", pj.ch.map((o) => ({ id: o.id, nm: o.nm, de: o.lib + " · " + o.de, badge: badgeSalle(o.id, "chimio") })), 10);
   } else return "";
-  return '<section class="carte afaire"><h3><span class="ic">' + ic("check") + "</span>" + titre + "</h3>" + (G.length ? '<p class="sous">' + sous + "</p>" + G.join("") : '<p class="sous" style="margin:0">Rien à faire pour le moment.</p>') + "</section>";
+  return '<section class="carte afaire"><h3><span class="ic">' + ic("check") + "</span>" + titre + "</h3>" + (G.length ? G.join("") : etatVide({ petit: 1, ill: "agendaOk", titre: estMed(role) ? "Rien à valider" : "Rien à faire pour le moment", txt: estMed(role) ? "Cures, contourages, dosimétries et fins de radiothérapie sont à jour." : "" })) + "</section>"; // 26/10/2026 : plus de phrase sous le titre
 }
 
 // 19/10/2026 (demande de Dr Bentahila) : tableau de bord, chaque explication sous un titre de carte va dans un petit rond « ? » à côté du titre
 // (comme dans Paramètres) ; un clic l'affiche ou la cache. Aussi pour les cartes redessinées ensuite (observateur sur la page).
+// 26/10/2026 (demande de Dr Bentahila : « style minimaliste, enlève les ? et les phrases qui pendouillent ») : la phrase est cachée, sans « ? »
 function aidesCartes() {
-  $("page").querySelectorAll("section.carte > h3 + p.sous:not([data-q])").forEach((p) => {
-    const h3 = p.previousElementSibling; p.dataset.q = "1"; p.classList.add("cache");
-    const b = document.createElement("button"); b.type = "button"; b.className = "ty-q cf-q"; b.textContent = "?"; b.title = p.textContent;
-    b.setAttribute("aria-expanded", "false"); b.setAttribute("aria-label", "Afficher l'explication");
-    b.onclick = (ev) => { ev.stopPropagation(); const f = p.classList.toggle("cache"); b.setAttribute("aria-expanded", String(!f)); };
-    h3.appendChild(b);
-  });
+  $("page").querySelectorAll("section.carte > h3 + p.sous:not([data-q])").forEach((p) => { p.dataset.q = "1"; p.classList.add("cache"); });
 }
 // 20/10/2026 (demande de Dr Bentahila) : aussi dans la page Bilan (versements et règlements, par établissement, mois par mois, référents)
 new MutationObserver(() => { if (D && (D.page === "accueil" || D.page === "bilan")) aidesCartes(); }).observe($("page"), { childList: true, subtree: true });
@@ -1075,7 +1072,9 @@ function pageAccueil() {
   const ligne = (o, cat) => '<div class="li" onclick="ouvrirDossier(\'' + o.id + '\')">' + (cat === "co" ? '<span class="h">' + esc(o.h) + "</span>" : "") +
     '<div class="tx"><b>' + esc(o.nm) + '</b><div class="de">' + esc(cat === "co" ? o.lib : o.de) + "</div></div>" +
     (cat === "co" ? (o.fait ? '<span class="badge b-ch">Vu</span>' : o.rid ? badgeSalle(o.id, "r-" + o.rid) : "") : (cat === "ch" ? badgeSalle(o.id, "chimio") : "") + '<span class="badge ' + (o.cls || "b-ch") + '"' + (cat === "rt" && / prévue$/.test(o.lib) ? ' title="Calculé d\'après le calendrier (jours ouvrés depuis la 1re séance) : les séances faites ne sont pas enregistrées."' : "") + ">" + esc(o.lib) + "</span>") + "</div>";
-  const categorie = (cls, icone, titre, l) => l.length ? '<div class="cat"><div class="tc">' + ic(icone) + titre + '<span class="n">' + l.length + "</span></div>" + l.map((o) => ligne(o, cls)).join("") + "</div>" : "";
+  // 26/10/2026 (demande de Dr Bentahila) : une catégorie sans rien reste affichée, avec une pastille et une phrase
+  const categorie = (cls, icone, titre, l, vide) => l.length ? '<div class="cat"><div class="tc">' + ic(icone) + titre + '<span class="n">' + l.length + "</span></div>" + l.map((o) => ligne(o, cls)).join("") + "</div>"
+    : vide ? '<div class="cat"><div class="tc">' + ic(icone) + titre + "</div>" + videMini(icone, vide) + "</div>" : "";
   const A2 = accueilEffectif(D.reg, D.accueilCab); D.accueilCartes = A2.cartes;
 
   let h = '<section class="accueil"><div><h2>Bonjour ' + esc(estMed(D.membre.role) ? [D.titre, D.nomAff].filter(Boolean).join(" ") : cap(String((D.profil && D.profil.prenom) || "").toLowerCase()) || D.nomAff) + "</h2><p>" + cap(jourLong(D.t)) + "</p></div>" +
@@ -1085,10 +1084,10 @@ function pageAccueil() {
   const cartes = {}, carte = (k, fn) => { const avant = h; h = ""; fn(); cartes[k] = h; h = avant; };
   carte("ppas", () => { h += premiersPas(); });
   carte("jour", () => {
-  h += '<section class="jour"><div class="ent"><h3><span class="ic">' + ic("agenda") + "</span>Aujourd'hui</h3><span>" + cap(jourLong(D.t)) + (ouvre(D.t, D.ctx.feries) ? "" : " · jour non ouvré") + '</span><span class="tot">' + tot + " au programme</span></div>" +
+  h += '<section class="jour"><div class="ent"><h3><span class="ic">' + ic("agenda") + "</span>Aujourd'hui</h3><span>" + cap(jourLong(D.t)) + (ouvre(D.t, D.ctx.feries) ? "" : " · jour non ouvré") + '</span>' + (tot ? '<span class="tot">' + tot + " au programme</span>" : "") + "</div>" +
     // T5 (24/10/2026, audit n° 11 U24) : consultations et chimiothérapie d'abord, puis la radiothérapie (dépliée, réponse de Dr Bentahila)
-    categorie("co", "stetho", "Consultations", pj.co) + categorie("ch", "seringue", "Chimiothérapie", pj.ch) + categorie("rt", "radiation", "Radiothérapie", pj.rt) +
-    (tot ? "" : '<div class="cat"><div class="vide" style="padding:12px 14px">Rien de prévu aujourd\'hui.</div></div>') + "</section>";
+    categorie("co", "stetho", "Consultations", pj.co, "Aucune consultation prévue aujourd'hui.") + categorie("ch", "seringue", "Chimiothérapie", pj.ch, "Aucune chimiothérapie prévue aujourd'hui.") +
+    categorie("rt", "radiation", "Radiothérapie", pj.rt, module("rt") ? "Aucune radiothérapie à suivre aujourd'hui." : "") + "</section>";
   });
   carte("afaire", () => { h += blocAFaire(pj); });
 
@@ -1117,6 +1116,7 @@ function pageAccueil() {
   });
 
   carte("conflits", () => {
+  if (!ab.length) h += '<section class="carte abs" id="carteConflits"><h3><span class="ic">' + ic("avion") + "</span>Conflits</h3>" + videMini("check", "Aucun rendez-vous à décaler : rien ne tombe pendant une absence ou un jour férié.") + "</section>"; // 26/10/2026
   if (ab.length) {
     h += '<section class="carte abs" id="carteConflits"><h3><span class="ic">' + ic("avion") + '</span>Conflits : rendez-vous à décaler</h3><p class="sous">Tout ce qui tombe pendant une absence ou un jour férié doit être déplacé.</p>';
     ab.forEach(({ a, l }) => {
