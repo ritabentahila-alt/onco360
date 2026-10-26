@@ -824,6 +824,35 @@ refus reste valable pour des contraintes dans la prescription ou le dossier d'un
       (version, contraintes 859 lignes + 13 essais, 117 OAR, 47 correspondances de protocoles, docs non publiés).
 - [ ] Étape D (curiethérapie et réirradiation à revoir avec les sources ; Sénorif 2026 à comparer pour le sein).
 
+## Demandes du 26/10/2026 (sessions RTR 1 et 2, et retouches ; testé ; version 20261026d)
+- [x] **RTR session 1, affichage** : onglet Contraintes = « Objectifs de couverture » (tableau, colonne Volume) au-dessus des organes à risque, mêmes
+      colonnes ; phrase du régime et aide d'Idéal / Limitant derrière « ? » ; remarques numérotées sous le tableau (exposant sur l'organe), modifiables ;
+      ajouts et changements de la page Contraintes repris dans toutes les fiches concernées (`schema.ct` = différences seulement) ; « ⋯ » = Imprimer,
+      Modifier, Dupliquer, Copier, Supprimer (schéma supprimé rétablissable en bas de la liste) ; « Modifié » partout ; « Changer » = crayon discret ;
+      traitement systémique sans répétition (« Aucun » ou la liste) ; Pratique / Source institutionnelle, commentaires Curie / eContour / RecoRad retirés ;
+      Normacol → Zetalax ; barres fixes (Radiothérapie : recherche et menus ; Protocoles : menus en cascade, sur grand écran) ; menus de la RT dans la carte.
+- [x] **RTR session 2** : définitions de contourage des 117 OAR réécrites (limites dans les six directions, imagerie, pièges ; atlas de consensus),
+      `docs/radiotherapie/construction/oar_definitions.py` appliqué par `oar.py`.
+- [x] **Facturation des séances** : chimiothérapie (même avec Zometa ou Nivestim) et Zometa / Xgeva seuls = tarif de séance ; hormonothérapie (Zoladex,
+      Décapeptyl, Firmagon), comprimés, Nivestim ou fer seuls = non facturés (moteur/finances.js `ligneHon`, `test-honoraires.mjs`).
+- [x] **Médecin remplaçant** : grille de droits propre, modifiable par le titulaire comme pour la secrétaire (défaut : pas de bilan ni de paramètres,
+      référentiel RT en lecture, prescription chimio / RT modifiable) ; établissements toujours ceux du titulaire ; remplaçants existants mis à jour une
+      fois (`migrations.remplacantDroits`) ; fonctions `creerMembre` / `compteMembre` (functions/cabinets.js `DROITS_REMPLACANT`, `alignerRemplacant`).
+- [x] **Consultation de chimio** : reste dans « Rendez-vous et tâches à venir » jusqu'à sa validation (plus à la validation de la cure).
+- [x] **Dossier** : « Supprimer le patient » dans le « ⋯ » de l'en-tête (sous Journal, confirmation) ; menu en icônes plus déplié au survol ; titres
+      des rubriques dans une bulle bleu clair, sans chiffres, contenu décalé à droite ; « ⋯ » de la RT centré sur Modifier / Terminé.
+- [x] **Alignements** : boutons principaux du tableau de bord à la hauteur des autres pages ; Protocoles : Réinitialiser, Excel, Livret PDF sous « ⋯ » ;
+      Bilan : Actualiser et « ⋯ » (Excel, PDF) sur la ligne des filtres.
+- [x] **Listes prédéfinies** : propositions dès 2 lettres tapées (rien au clic sur un champ vide), filtrées à chaque lettre, pour tous les champs à liste.
+- [x] **États vides illustrés** (Tâches : « Toutes les tâches au même endroit » ; Salle d'attente), Tâches sans compteur « 0 » ; **badges** en teintes
+      douces ; **transitions** de 0,2 s (boutons, onglets, menus).
+- [x] **Protocoles de chimiothérapie et schémas de radiothérapie en cartes**, 12 par page, clic sur la carte = ouverture.
+- [ ] **Sessions suivantes du référentiel (une localisation par session, validée par Dr Bentahila)** : guide de contourage de toutes les localisations
+      (recommandations publiées, ses documents « peut-être faux » seulement comme piste) ; ORL : aires ganglionnaires (Grégoire 2014), choix des aires
+      par situation (Biau 2019 en définitif, Evans 2025 en postopératoire de la cavité buccale), CTV-T (Grégoire 2017 / Lapeyre 2019) ; chaque volume de
+      chaque protocole défini anatomiquement (PTV = marges) ; chaque situation dit exactement quoi faire ; schémas manquants ajoutés.
+- [ ] États vides illustrés à étendre aux autres pages (Patients, Agenda, RCP, documents du dossier) si Dr Bentahila le souhaite.
+
 ## À placer (nouveau plan)
 - (21/10, S5) **Vigilance des molécules, flacons et interactions ne sont pas dans le modèle des cabinets neufs** (`PARAMS_SPE` de functions/cabinets.js :
   ils reçoivent les listes de départ du code). La d. 12 dit « chaque autre cabinet reçoit tout le modèle, sauf correspondants et tarifs des
