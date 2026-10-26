@@ -1499,6 +1499,23 @@ details.dp>.dp-c{padding:8px 0 10px 18px}
 .ev-vide h4{margin:6px 0 0;font-size:var(--t6);color:var(--titre)}
 .ev-vide p{margin:0;color:var(--doux);font-size:var(--t4);line-height:1.55;max-width:520px}
 .ev-vide>button{margin-top:6px}
+/* 26/10/2026 (demande de Dr Bentahila) : badges en teintes douces (fond pastel, texte foncé, liseré fin) pour moins de fatigue visuelle ;
+   couleurs d'Onco360 gardées (bleu de la chimio, violet de la RT) */
+.badge{font-weight:600}
+.badge.b-ch{background:#ECFDF5;color:#047857;box-shadow:inset 0 0 0 1px #C9F0DD}
+.badge.b-co{background:#EEF3FC;color:#2F5597;box-shadow:inset 0 0 0 1px #D3E0F5}
+.badge.b-rt{background:#F4F2FF;color:#5145B5;box-shadow:inset 0 0 0 1px #E0DCFA}
+.badge.b-or{background:#FFF7EB;color:#9A5800;box-shadow:inset 0 0 0 1px #F8E2BE}
+.badge.b-al{background:#FEF3F2;color:#B42318;box-shadow:inset 0 0 0 1px #F9D3CF}
+.badge.b-gr{background:#F3F5F8;color:#55607A;box-shadow:inset 0 0 0 1px #E3E7EE}
+.badge.b-dc{background:#ECEEF2;color:#2E3340;box-shadow:inset 0 0 0 1px #D6DAE2}
+/* Transitions douces (0,2 s) : survol et clic des boutons et onglets, champs ; menus « ⋯ » et listes qui apparaissent en fondu. Spécificité nulle
+   (:where) : les transitions déjà réglées ailleurs restent prioritaires. Rien si le système demande moins d'animations */
+:where(button,a,[role=tab],select,input,textarea,summary,.bt,.b1,.b2,.b3,.mini,.badge){transition:background-color .2s ease-in-out,color .2s ease-in-out,border-color .2s ease-in-out,box-shadow .2s ease-in-out,opacity .2s ease-in-out}
+@keyframes ev-apparait{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.sa-menu,.m3-l,.lst-sug,.im-sug:not(.cache),.rtr-pts3[open]>div{animation:ev-apparait .16s ease-out}
+details.dp[open]>.dp-c{animation:ev-apparait .2s ease-out}
+@media (prefers-reduced-motion:reduce){:where(*){transition:none!important;animation:none!important}}
 </style>
 </head>
 <body>
