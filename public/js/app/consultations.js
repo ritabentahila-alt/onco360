@@ -94,9 +94,10 @@ export function htmlConsultations(x) {
   if (!(x.id in CS)) { CS[x.id] = undefined; charger(x).then(() => { if (D().page === "dossier/" + encodeURIComponent(x.id)) A.pageDossier(x.id); }); }
   const L = CS[x.id], ns = !!NSEUL[x.id];
   let h = '<div class="entete cs-outils">' + (peutEcrire() ? '<button class="bt clair petit" onclick="csNouvelle(' + q + ')">' + A.ic("plus") + "Nouvelle consultation</button>" : "") +
+    // 26/10/2026 (demande de Dr Bentahila) : « Tout déplier » et « Imprimer » sous « ⋯ » (moins de place)
     (L && L.length ? '<span class="cs-esp"></span><label class="chk cs-ns"><input type="checkbox" onchange="csNotesSeules(' + q + ')"' + (ns ? " checked" : "") + ">Notes seulement</label>" +
-      (ns ? "" : '<button type="button" class="mini" onclick="csTout(' + q + ')">' + (L.every((c) => ouvertes(x.id).has(c.id)) ? "Tout replier" : "Tout déplier") + "</button>") +
-      '<button type="button" class="mini" onclick="csImprimer(' + q + ')">' + A.ic("imprimer") + "Imprimer</button>" : "") + "</div>";
+      A.menuPts([ns ? "" : '<button type="button" class="mini" onclick="csTout(' + q + ')">' + (L.every((c) => ouvertes(x.id).has(c.id)) ? "Tout replier" : "Tout déplier") + "</button>",
+        '<button type="button" class="mini" onclick="csImprimer(' + q + ')">' + A.ic("imprimer") + "Imprimer</button>"].filter(Boolean)) : "") + "</div>";
   if (L === undefined) return h + '<p class="sous" style="margin:2px 0 0">Chargement des consultations…</p>';
   if (L === null) return h + '<p class="sous" style="margin:2px 0 0;color:var(--rouge)">Les consultations n\'ont pas pu être lues. Rechargez la page.</p>';
   if (!L.length) return h + '<p class="vide-c">Aucune consultation.' + (peutEcrire() ? " « Nouvelle consultation » pour en ajouter une." : "") + "</p>";

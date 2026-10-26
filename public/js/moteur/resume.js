@@ -13,7 +13,9 @@ export function statutLigne(L, P, ctx) {
   const pend = E.filter((e) => e.st === "prevue"), rec = E.filter((e) => e.st === "recue");
   const r = { E, pend, next: pend[0] || null, last: rec.length ? rec[rec.length - 1] : null, deb: E[0] && E[0].date, fin: null };
   if (L.arret) { r.code = "stop"; r.fin = L.arret.date; }
-  else if (p.c && !pend.length) { r.code = "fin"; r.fin = r.last ? r.last.date : null; }
+  // 26/10/2026 (Dr Bentahila : ligne « terminée » alors que le C6 J15 restait à faire) : terminée seulement quand la dernière cure reçue n'a plus de
+  // séance prévue (J8, J15… ; une séance annulée compte comme faite)
+  else if (p.c && !pend.length && !(r.last && seancesCure(L, r.last, ctx.bib).some((s) => s.st === "prevue"))) { r.code = "fin"; r.fin = r.last ? r.last.date : null; }
   else r.code = "cours";
   return r;
 }

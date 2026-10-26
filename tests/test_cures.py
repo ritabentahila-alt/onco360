@@ -13,10 +13,10 @@ async def main():
         b=await p.chromium.launch(); pg=await ouvrir(b, S2); ev=pg.evaluate
         await pg.goto('http://localhost:8767/v2.html#dossier/'+ESS); await pg.wait_for_timeout(2500)
         await pg.click('#og-ch'); await pg.wait_for_timeout(400)  # le dossier s'ouvre sur Consultation : onglet Chimiothérapie
-        async def venu():  # fenêtre du prix après une validation : « Valider : venu », retour au dossier
+        async def venu():  # 26/10/2026 : plus de fenêtre de prix après une validation (la consultation se valide à part)
             await plus_tard(pg)
-            print('  prix :', await ev("document.querySelector(':is(#fenetreCorps,#panneauCorps):not(:empty)').innerText.split('\\n')[0]"), '=', await ev("document.getElementById('pvM').value"), 'DH')
-            await plus_tard(pg); await pg.click(':is(#fenetreCorps,#panneauCorps):not(:empty) >> text=Valider : venu'); await pg.wait_for_timeout(800)
+            if await ev("!!document.getElementById('pvM')"): print('  ✘ fenêtre de prix ouverte après la validation de la séance')
+            else: print('  ✔ pas de fenêtre de prix après la validation de la séance')
         await clic_menu(pg, CURE('C3')); await pg.wait_for_timeout(500)
         await clic_menu(pg, JOUR(0)+' >> text=Ouvrir'); await pg.wait_for_timeout(300)
         await pg.fill('#vD','2026-10-06'); await pg.click('#fOk'); await pg.wait_for_timeout(700)

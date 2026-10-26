@@ -40,9 +40,9 @@ async def main():
 
         # Patients
         await pg.goto(f'http://localhost:{PORT}/v2.html#patients'); await pg.wait_for_timeout(1500)
-        r = await ev("(() => { const f = document.querySelector('#page .filtres'), t = document.querySelector('#page .liste-tete'), b = t && t.querySelector('.bt.plein'); return [!!f && !!t && f.getBoundingClientRect().bottom <= t.getBoundingClientRect().top + 1, b ? b.textContent.trim() : '', !!t && !!t.querySelector('#nbRes')]; })()")
+        r = await ev("(() => { const f = document.querySelector('#page .filtres'), t = document.querySelector('#page .liste-tete'), b = t && t.querySelector('.b1'); return [!!f && !!t && f.getBoundingClientRect().bottom <= t.getBoundingClientRect().top + 1, b ? b.textContent.trim() : '', !!t && !!t.querySelector('#nbRes')]; })()")
         ok(r[0] and r[1] == 'Nouveau patient' and r[2], 'patients : filtres d\'abord, puis « + Nouveau patient » en tête de la liste, à côté du nombre ' + str(r))
-        await pg.click('.liste-tete .bt.plein'); await pg.wait_for_timeout(600)
+        await pg.click('.liste-tete .b1'); await pg.wait_for_timeout(600)
         ok(await ev("!document.getElementById('fenetre').classList.contains('cache')"), 'patients : le bouton ouvre « Nouveau patient »')
         await ev("fermerFenetre()")
 

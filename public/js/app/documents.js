@@ -10,7 +10,7 @@ import { addJ, ouvre, accordMedecin } from "../moteur/outils.js";
 import { finRT, joursSeances, volumesRT, texteVolume, libRythme } from "../moteur/rt.js";
 import { assurerConsultations, consultationsDe } from "./consultations.js"; // bilan de contrôle (3.6)
 import { diagnosticComplet, tumeurDe } from "../moteur/statut.js"; // fiche tumeur (3.1 bis)
-import { nettoyer, modeleRT } from "./ordonnances.js";
+import { nettoyer, modeleRT, POLICES, CSS_POLICES, tailleSelection, tailleTout, policeSelection, policeTout, selGardee } from "./ordonnances.js";
 import { MODELES_RT0, remplirModele } from "../donnees/modelesrt.js"; // modèles modifiables (12/10/2026)
 import { margesMm } from "./reglages.js"; // marges d'impression réglables (Paramètres › Impression)
 
@@ -172,13 +172,18 @@ function vue(x, r, html) {
     (e ? "version enregistrée le " + dfrA(e.majLe) + (e.majParNom ? " par " + esc(e.majParNom) : "") : "nouveau document rempli depuis le dossier : complétez les mentions surlignées, puis enregistrez") +
     (d && d.ajuste ? " · dates ajustées au nombre de fractions" : "") + (d && d.manquantes ? " · attention : " + d.manquantes + " séance(s) manquent avant la fin réelle" : "") + "</p>" +
     (ancienModele ? '<p class="mesures" style="margin:0 0 8px">Votre cabinet a son propre modèle de calendrier : il est gardé. Pour le nouveau « Calendrier de fin de radiothérapie » : Paramètres › Bibliothèques › Courriers › ce modèle › « Remettre le texte d\'origine ».</p>' : "") +
+    // 26/10/2026 (demande de Dr Bentahila) : comme sur les ordonnances, A− / A+ (la sélection, sinon tout le texte) et la police (la sélection, sinon tout)
     '<div class="or-outils"><button class="ico" title="Gras" aria-label="Gras" onmousedown="event.preventDefault()" onclick="orStyle(\'bold\')"><b>G</b></button><button class="ico" title="Souligné" aria-label="Souligné" onmousedown="event.preventDefault()" onclick="orStyle(\'underline\')"><u>S</u></button>' +
+    '<button class="ico" title="Texte plus petit : la sélection, sinon tout le texte" aria-label="Texte plus petit" onmousedown="event.preventDefault()" onclick="dcTaille(-1)">A−</button><button class="ico" title="Texte plus grand : la sélection, sinon tout le texte" aria-label="Texte plus grand" onmousedown="event.preventDefault()" onclick="dcTaille(1)">A+</button>' +
+    '<select class="or-pol" id="dcPol" aria-label="Police" title="Police : du texte sélectionné, sinon de tout le document" onmousedown="orGarderSelDe(\'dcPage\')" onfocus="orGarderSelDe(\'dcPage\')" onchange="dcPolice(this.value)">' + POLICES.map(([k, lib]) => '<option value="' + k + '">' + lib + "</option>").join("") + "</select>" +
     (e ? '<span class="sep"></span><button class="bt gris petit" onclick="dcRepartir()" title="Remplacer le texte par un document neuf, rempli avec les informations actuelles du dossier">Repartir du dossier</button>' : "") + "</div>" +
     '<div class="or-zone"><div id="dcPage" class="or-feuille a4 dc" contenteditable="true" spellcheck="true"></div></div>' +
     '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="dcFermer()">Fermer</button><button class="bt clair" id="dcOk" onclick="dcEnregistrer(false)">Enregistrer</button><button class="bt plein" id="dcImp" onclick="dcEnregistrer(true)">' + A.ic("imprimer") + "Enregistrer + Imprimer</button></div>", "large");
   $("dcPage").innerHTML = html;
   $("dcPage").querySelectorAll(".dc-saut").forEach((z) => z.setAttribute("contenteditable", "false"));
 }
+window.dcTaille = (s) => { const p = $("dcPage"); if (!tailleSelection(p, s)) tailleTout(p, s); };
+window.dcPolice = (k) => { const p = $("dcPage"); if (!policeSelection(p, k, selGardee())) policeTout(p, k); };
 window.dcFermer = () => { const pid = F && F.pid; F = null; A.fermerFenetre(); if (pid) A.pageDossier(pid); };
 window.dcRepartir = () => {
   if (!F || !confirm("Remplacer le texte par un document neuf, rempli avec les informations actuelles du dossier ?\n\nVos modifications ne seront perdues que si vous enregistrez ensuite.")) return;
@@ -188,7 +193,7 @@ window.dcRepartir = () => {
 // Impression A4, sur papier à en-tête : marges de la page (haut laissé libre), saut de page entre les parties du pli
 function imprimer(w, html) {
   // 2.5 : les mentions « À REMPLIR » / « à compléter par le médecin » ne s'impriment pas (avertissement avant, dcEnregistrer)
-  const css = ".dc .dc-ar,.dc .dc-af{display:none}@page{size:A4 portrait;margin:" + margesMm("doc") + "}html,body{margin:0}body{font-family:Arial,Helvetica,sans-serif;font-size:11pt;line-height:1.4;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact}" + CSS_DOC;
+  const css = ".dc .dc-ar,.dc .dc-af{display:none}@page{size:A4 portrait;margin:" + margesMm("doc") + "}html,body{margin:0}body{font-family:Arial,Helvetica,sans-serif;font-size:11pt;line-height:1.4;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact}" + CSS_DOC + CSS_POLICES;
   w.document.open(); w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>&#8203;</title><style>' + css + '</style></head><body><div class="dc">' + html + "</div></body></html>"); w.document.close();
   setTimeout(() => { try { w.focus(); w.print(); } catch (e) {} }, 400);
 }

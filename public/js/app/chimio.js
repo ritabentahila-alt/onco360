@@ -492,15 +492,9 @@ function jourAFaire(x, L, k) {
 window.chOuvrir = (id, i, k, j) => { const x = trouver(id), L = x && x.P.lignes[i]; if (!j && L && unSeulJour(L, k)) j = 1; if (!j && L) j = jourAFaire(x, L, k) || null; SEL.pid = id; SEL.l = i; SEL.c = k; CM = { pid: id, i, k, j: j || null }; A.pageDossier(id); ouvrirCure(); };
 const boutons = (lib, cls) => '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="chSousAnnuler()">Annuler</button><button class="bt ' + (cls || "plein") + '" id="fOk">' + lib + "</button></div>";
 async function executer(x, fn) { A.occupe(document.getElementById("fOk"), true); try { await fn(); A.toast("Enregistré."); rafraichir(x); return true; } catch (e) { A.occupe(document.getElementById("fOk"), false); A.erreur(e.message); return false; } }
-// Après la validation d'une cure (J1) ou d'une séance (J8…) dans le dossier, la fenêtre de prix de la consultation de chimio
-// s'ouvre, comme à la validation d'un rendez-vous (08/10/2026), sauf si ce jour a déjà son prix
-async function proposerPrix(pid, lid, n, j) {
-  if (!(A.peut("finances") || prixParServeur())) return;
-  const s = await getDoc(doc(db, "espaces", A.ESPACE, "encaissements", pid)).catch(() => null);
-  const E = s && s.exists() ? JSON.parse(s.data().data || "{}") : {};
-  if (E.cons && E.cons[lid + "|" + n + "|" + j]) return;
-  window.chVenuChimio(pid, lid, n, j);
-}
+// 26/10/2026 (demande de Dr Bentahila) : valider une cure (J1) ou une séance (J8…) ne valide qu'elle (honoraires de la séance dans le Bilan) ; la
+// consultation de chimiothérapie et sa fenêtre de prix se valident à part : « Consultation : venu » (Rendez-vous et tâches à venir), Valider de la
+// salle d'attente ou du dossier ouvert depuis la salle (avant, sa fenêtre de prix s'ouvrait après chaque validation : proposerPrix, retiré)
 async function direct(x, fn) { try { await fn(); rafraichir(x); } catch (e) { A.toast(e.message); A.pageDossier(x.id); } }
 const choixSuite = (id, nom, def) => '<div class="large"><label>' + nom + '</label><label style="font-weight:normal"><input type="radio" name="' + id + '" value="seule"' + (def !== "suite" ? " checked" : "") + ' style="width:auto;margin-right:6px">Cette date seulement (la suite ne bouge pas)</label><label style="font-weight:normal"><input type="radio" name="' + id + '" value="suite"' + (def === "suite" ? " checked" : "") + ' style="width:auto;margin-right:6px">Recalculer toute la suite</label></div>';
 const choix = (id) => { const r = document.querySelector('input[name="' + id + '"]:checked'); return r ? r.value : "seule"; };
@@ -702,7 +696,7 @@ window.chValiderJ1 = (id, i, k) => {
     if (g.length > 1) { c.sea = c.sea || {}; g.slice(1).forEach((s) => { if (!c.sea[s.j]) c.sea[s.j] = { st: "prevue" }; }); }
     await sauverLignes(x, lignes, "Cure C" + (k + 1) + " validée (" + A.dfrA(d) + ")");
     SEL.pid = x.id; SEL.l = i; SEL.c = k; if (CM) CM.j = null;
-  }).then((ok) => { if (ok) proposerPrix(x.id, x.P.lignes[i].id, k + 1, 1); });
+  });
 };
 window.chRetablir = (id, i, k) => {
   const x = trouver(id); if (!confirm("Remettre la cure C" + (k + 1) + " en « prévue » ?")) return;
@@ -746,7 +740,7 @@ window.chFiche = (id, i, k) => {
 
 // ───── Séances J8 / J15… ─────
 window.chValiderSeance = (id, i, k, j) => window.chOuvrir(id, i, k, j);
-window.chValiderJ = (id, i, k, j) => { const x = trouver(id), L0 = lignesDe(x)[i], n0 = seancesDe(protocoleCure(L0, k, D().ctx.bib) || protocoleDe(L0, D().ctx.bib)).findIndex((g) => g.j === j), ok = verifierValidation(x, i, k, n0 > 0 ? n0 : 0); if (!ok) return; executer(x, async () => { await majSeance(x, i, k, j, A.val("sD") || D().t, true, null, ok); if (CM) CM.j = null; }).then((ok) => { if (ok) proposerPrix(x.id, x.P.lignes[i].id, k + 1, j); }); };
+window.chValiderJ = (id, i, k, j) => { const x = trouver(id), L0 = lignesDe(x)[i], n0 = seancesDe(protocoleCure(L0, k, D().ctx.bib) || protocoleDe(L0, D().ctx.bib)).findIndex((g) => g.j === j), ok = verifierValidation(x, i, k, n0 > 0 ? n0 : 0); if (!ok) return; executer(x, async () => { await majSeance(x, i, k, j, A.val("sD") || D().t, true, null, ok); if (CM) CM.j = null; }); };
 window.chDateSeance = (id, i, k, j, v) => {
   const x = trouver(id); if (!v) return;
   A.fenetre("<h3>Nouvelle date de J" + j + " – cure C" + (k + 1) + '</h3><p class="sous">→ <b>' + A.dfrA(v) + '</b></p><div class="form">' + choixSuite("sS", "Séances et cures suivantes") + "</div>" + boutons("Enregistrer"));
@@ -1292,7 +1286,7 @@ export function nouveauPatient(opts) {
   // 3.11 (12/10/2026) : même formulaire que « Modifier » (fiche réglable : parties, ordre, types) ; partie médicale seulement avec le droit
   // 20/10/2026 (demande de Dr Bentahila) : Identité et administratif seulement ; informations médicales et fiche tumeur : dans le dossier
   A.fenetre("<h3>Nouveau patient</h3>" + ficheP.htmlFormulaire(null, { off: (p) => p === "clinique" && !okC, etabs: permis, nouveau: true, sec: "id" }) +
-    '<p class="mesures" style="margin:6px 0 0">Nom et prénom obligatoires. Informations médicales et fiche tumeur : à remplir ensuite dans le dossier (colonne Patient, « Modifier » de chaque partie).</p>' + boutons("Créer le dossier"));
+    boutons("Créer le dossier")); // 26/10/2026 : mention du bas retirée (demande de Dr Bentahila) ; champs dans l'ordre de Paramètres › Fiche patient
   if (okC) activerDiag("fDiag", "fDiagP");
   // nom tapé dans la recherche du rendez-vous : « NOM Prénom » → Nom, Prénom
   if (o.nom) { const m = String(o.nom).trim().split(/\s+/), n = document.getElementById("fNomF"), pr = document.getElementById("fPrenom"); if (n) n.value = (m.shift() || "").toUpperCase(); if (pr) pr.value = m.join(" "); }

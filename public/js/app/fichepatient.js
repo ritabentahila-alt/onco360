@@ -76,7 +76,7 @@ export const partiesPresentes = () => { const L = champsFiche().filter((c) => c.
 // 26/10/2026 (demande de Dr Bentahila) : formulaire ouvert, champs côte à côte : OMS seul sur sa ligne (SEUL) ; Taille et Poids, ALD et Correspondant,
 // Mutuelle et E-mail, cTNM et pTNM (DEUX), Antécédents familiaux et Traitements en cours sur une même ligne ; Adresse, Mode de vie : toute la ligne.
 // Les champs suivent l'ordre réglé ; dans le formulaire seulement, le 2e champ d'une paire (PAIRES) est placé juste après le 1er, qui commence
-// toujours une ligne (v2.html) ; la colonne Patient et l'ordre enregistré ne changent pas.
+// toujours une ligne (v2.html) ; la colonne Patient, l'ordre enregistré et le formulaire « Nouveau patient » (ordre strict des Paramètres) ne changent pas.
 const SEUL = ["xtoms"], DEUX = ["xtctnm", "xtptnm"], PAIRES = [["taille", "poids"], ["atcdFam", "traitCours"], ["xtctnm", "xtptnm"], ["ald", "cor"], ["mut", "email"]];
 const rapprocher = (l) => { const r = l.slice(); PAIRES.forEach(([a, b]) => { const i = r.findIndex((c) => c.k === a), j = r.findIndex((c) => c.k === b); if (i < 0 || j < 0 || j === i + 1) return; const [cb] = r.splice(j, 1); r.splice(r.findIndex((c) => c.k === a) + 1, 0, cb); }); return r; };
 export function htmlFormulaire(x, o) {
@@ -105,7 +105,7 @@ export function htmlFormulaire(x, o) {
     }
   };
   const S = secsDe(o);
-  return PARTIES_F.filter(([k]) => S.indexOf(k) >= 0).map(([k, lib]) => { const h = rapprocher(L.filter((c) => c.section === k)).map(champ).join("") + (k === "id" && !(o.nouveau && o.off && o.off("identite")) ? htmlMedecin(x, o) : ""); return h ? '<h4 class="soustitre fp-sec">' + lib + '</h4><div class="form" data-sec="' + k + '">' + h + "</div>" : ""; }).join("") +
+  return PARTIES_F.filter(([k]) => S.indexOf(k) >= 0).map(([k, lib]) => { const h = (o.nouveau ? (z) => z : rapprocher)(L.filter((c) => c.section === k)).map(champ).join("") + (k === "id" && !(o.nouveau && o.off && o.off("identite")) ? htmlMedecin(x, o) : ""); return h ? '<h4 class="soustitre fp-sec">' + lib + '</h4><div class="form" data-sec="' + k + '">' + h + "</div>" : ""; }).join("") +
     '<datalist id="lMut">' + (A.listeMut ? A.listeMut() : []).map((m) => '<option value="' + esc(m) + '">').join("") + '</datalist><datalist id="lCor">' + (A.listeCor ? A.listeCor() : []).map((m) => '<option value="' + esc(m) + '">').join("") + "</datalist>";
 }
 // Lecture du formulaire : { identite, clinique, etab, erreur } (copies des parties du dossier, champs modifiables seulement)

@@ -53,6 +53,7 @@ Après déploiement : recharger sans cache (Cmd + Maj + R). Les `.js` sont servi
 | `js/app/profil.js` | page **Profil & Paramètres** (18.5) : onglets Informations (photo, INPE, signature, mot de passe), Accès (droits de l'équipe, titulaire), Abonnement et Factures (titulaire, `js/app/abonnement.js` : fonctions `monAbonnement` / `demandeAbonnement`, carte du tableau de bord) ; fournit à Paramètres (`htmlOngletProfil`) les onglets Lieux d'exercice et Google Agenda |
 | `js/app/protocoles.js` | bibliothèque de 316+ protocoles |
 | `js/app/parametres.js` | onglet « Activités et rémunérations » de la page Paramètres : tarifs par établissement (dates d'effet), activités, actes RT, VMAT |
+| `js/app/laboratoires.js` | Paramètres › Laboratoires (26/10/2026) : laboratoires du cabinet, délégués (nom, téléphone, e-mail), produits (marque, molécule, présentation, prix par unité, programme), carnets, note, recherche ; `parametres/laboratoires` { data: JSON [labos] } (lu par l'équipe, écrit avec le droit « paramètres ») ; famille « Laboratoires » de `FAMILLES_SECTIONS` |
 | `js/app/bilan.js` | bilan financier, exports Excel/PDF |
 | `js/moteur/*.js` | **calculs purs, sans DOM ni Firebase** (doses, dates de cures, RT, finances, bilan, résumé, agenda, salle d'attente `salle.js` : lignes du jour, tri, période, recherche, testé par `node tests/moteur/test-salle.mjs` et `tests/test_salle.py`) |
 | `js/donnees/conversion.js` | `separer` / `fusionner` : dossier médical ↔ montants (les montants ne sont jamais dans le dossier patient) |

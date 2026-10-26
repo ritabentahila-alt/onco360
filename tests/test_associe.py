@@ -24,7 +24,15 @@ async def main():
         await ev("location.hash='dossier/PTA2'"); await pg.wait_for_timeout(2500)
         tx = await ev("document.body.textContent"); ok('Chimio · ligne' in tx and 'Associé · ligne' not in tx, 'nom de la ligne : « Chimio · ligne 1 » (pas « Associé »)')
         await ev("chOuvrir('PTA2',0,0,1)"); await pg.wait_for_timeout(1200); await ev("chValiderJ1('PTA2',0,0)"); await pg.wait_for_timeout(2500)
-        ok(await ev("(document.getElementById('pvM')||{}).value") == '250', 'fenêtre de prix : 250 DH proposés (tarif de la consultation de chimio)')
+        # 26/10/2026 (demande de Dr Bentahila) : valider la cure ne valide qu'elle ; la consultation (et sa fenêtre de prix) se valide à part
+        ok(not await ev("!!document.getElementById('pvM')"), 'cure validée : pas de fenêtre de prix de la consultation (26/10/2026)')
+        await ev("fermerFenetre()"); await pg.wait_for_timeout(300)
+        lid = json.loads(X[E + 'patients/PTA2']['lignesJson'])[0]['id']
+        await ev("location.hash='accueil'"); await pg.wait_for_timeout(800)
+        ok(await ca(pg) - avant == 450, 'bilan : la séance seule (450 DH net), sans la consultation', await ca(pg) - avant)
+        await ev("location.hash='dossier/PTA2'"); await pg.wait_for_timeout(2500)
+        await ev(f"chVenuChimio('PTA2','{lid}',1,1)"); await pg.wait_for_timeout(1200)
+        ok(await ev("(document.getElementById('pvM')||{}).value") == '250', 'consultation validée à part (« Consultation : venu ») : 250 DH proposés (tarif de la consultation de chimio)')
         await pg.click('#fOk'); await pg.wait_for_timeout(1500)
         await ev("location.hash='accueil'"); await pg.wait_for_timeout(800); await ev("location.hash='dossier/PTA2'"); await pg.wait_for_timeout(2500)
         bd = await ev("(document.querySelector('.bn-bd')||{}).innerText||''")

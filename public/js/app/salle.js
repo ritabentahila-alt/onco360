@@ -391,12 +391,30 @@ export function apresPrix(x, cle, jour) {
 // SA8a (11/10/2026) : civilité dans le nom, heures étroites (RDV, Arrivée, Attente, Présence en hh:mm), largeur de chaque colonne
 // réglable à la souris (poignée du titre), gardée pour chaque compte (utilisateurs/{uid}.salleLargeurs { colonne: px })
 const COLS = [
-  ["ord", "N° d'ordre", "40px"], ["h", "RDV", "44px", 1], ["nm", "Patient", "minmax(170px,2fr)", 1], ["type", "Type", "76px"],
-  ["mo", "Motif", "minmax(56px,1fr)"], ["cor", "Correspondant", "minmax(70px,.8fr)"], ["mut", "Mutuelle", "58px"], ["ar", "Arrivée", "46px"],
-  ["att", "Attente", "46px"], ["pres", "Présence", "50px"], ["st", "Statut", "92px", 1], ["px", "Prix", "58px"], ["com", "Commentaire", "minmax(70px,1fr)"], ["act", "", "104px", 1]];
+  ["ord", "N° d'ordre", "36px"], ["h", "RDV", "44px", 1], ["nm", "Patient", "minmax(170px,2fr)", 1], ["type", "Type", "76px"],
+  ["mo", "Motif", "minmax(56px,1fr)"], ["cor", "Correspondant", "minmax(70px,.8fr)"], ["mut", "Mutuelle", "58px"], ["ar", "Arrivée", "42px"],
+  ["att", "Attente", "42px"], ["pres", "Présence", "44px"], ["st", "Statut", "92px", 1], ["px", "Prix", "52px"], ["com", "Commentaire", "minmax(70px,1fr)"], ["act", "", "104px", 1]];
 const TITRE_COURT = { ord: "N°", ar: "Arr.", att: "Att.", pres: "Prés.", cor: "Corresp.", mut: "Mut.", com: "Comment." };
 const largeurs = () => (D().profil && D().profil.salleLargeurs) || {};
-const gabarit = (cv) => cv.map((c) => (c[0] !== "act" && largeurs()[c[0]] ? largeurs()[c[0]] + "px" : c[2])).join(" ");
+// 26/10/2026 (demande de Dr Bentahila) : Patient, Type, Motif, Correspondant et Mutuelle à la largeur de leur texte le plus long du jour (mesuré,
+// avec un plafond) pour être lus en entier ; le Commentaire prend la place qui reste (coupé par « … », texte entier au survol). Une largeur tirée
+// à la main (poignée de l'en-tête) reste prioritaire. Place insuffisante : le Motif rétrécit d'abord (coupé par « … », texte entier au survol).
+let MESURE = null;
+const largeurTexte = (s, police) => { if (!MESURE) MESURE = document.createElement("canvas").getContext("2d"); MESURE.font = police; return MESURE.measureText(String(s || "")).width; };
+const BORNES = { nm: [150, 340], type: [60, 130], mo: [80, 460], cor: [70, 220], mut: [50, 160] };
+function largeursAuto(L) {
+  const fs = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--t4")) || 14, n = (p) => p + " " + fs + "px Arial", b = (p) => "bold " + p + "px Arial", w = {};
+  const max = (k, f) => { w[k] = Math.ceil(Math.min(BORNES[k][1], Math.max(BORNES[k][0], ...L.map(f), 0))); };
+  max("nm", (l) => largeurTexte((l.x.P.sexe === "F" ? "Mme " : l.x.P.sexe === "H" ? "M. " : "") + l.x.r.nm, b(fs)) + (l.x.doc.etablissementId ? largeurTexte(" " + l.x.doc.etablissementId, b(11)) + 6 : 0) + 34);
+  max("type", (l) => largeurTexte(l.type, b(12)) + 22);
+  max("mo", (l) => largeurTexte(l.motif, n("")) + 8);
+  max("cor", (l) => largeurTexte(court(l.x.P.cor), n("")) + 8);
+  max("mut", (l) => largeurTexte(court(l.x.P.mut), n("")) + 8);
+  return w;
+}
+let DERN = []; // lignes du jour affichées (largeurs automatiques gardées pendant qu'on tire une poignée)
+const gabarit = (cv, L = DERN) => { const a = L && L.length ? largeursAuto(L) : {};
+  return cv.map((c) => (c[0] !== "act" && largeurs()[c[0]] ? largeurs()[c[0]] + "px" : a[c[0]] ? (c[0] === "mo" ? "minmax(" + Math.min(a.mo, 100) + "px," + a.mo + "px)" : a[c[0]] + "px") : c[0] === "com" ? "minmax(60px,1fr)" : c[2])).join(" "); };
 // Réglage du cabinet (10/10/2026) : n° de passage, prix, commentaire retirés = colonnes absentes pour tous
 const fnS = (k) => !D().reg || D().reg.fonctions["salle." + k] !== false;
 const COL_FN = { ord: "passage", px: "prix", com: "commentaire" };
@@ -512,7 +530,7 @@ function dessiner() {
   remplir($("saO"), ONGLETS.map(([k, lib, court]) => { if (k === "avenir" && JOUR < t) { lib = "À valider"; court = ""; } return '<button role="tab" aria-selected="' + (k === VUE) + '"' + (k === VUE ? ' class="on"' : "") + ' onclick="saOnglet(\'' + k + '\')">' + (court ? '<span class="lg">' + lib + '</span><span class="sm">' + court + "</span>" : lib) + '<span class="n">' + n[k] + "</span></button>"; }).join(""));
   const l = trier(L.filter((z) => ongletDe(z) === VUE), VUE);
   const vide = { avenir: JOUR < t ? "Aucune consultation restée sans validation." : JOUR > t ? "Aucune consultation prévue ce jour-là." : "Plus aucun patient attendu aujourd'hui.", salle: "Personne en salle d'attente.", vus: "Aucun patient vu.", absents: "Aucun absent." }[VUE];
-  const cv = colsVues(), gc = gabarit(cv); $("saL").style.setProperty("--cols", gc); $("saE").style.setProperty("--cols", gc);
+  DERN = L.filter(dansFiltre); const cv = colsVues(), gc = gabarit(cv); $("saL").style.setProperty("--cols", gc); $("saE").style.setProperty("--cols", gc);
   $("saCarte").classList.add("compact"); // compact = affichage normal (11/10/2026)
   remplir($("saJtxt"), A.cap(A.jourLong(JOUR)) + (JOUR === t ? " · aujourd'hui" : JOUR < t ? " · jour passé" : "") + ' <span class="fl">' + (semaineOuverte() ? "▴" : "▾") + "</span>");
   remplir($("saE"), l.length ? '<div class="sa-l ent">' + cv.map((c) => '<span class="c-' + c[0] + '" title="' + c[1] + '">' + (TITRE_COURT[c[0]] || c[1]) + (c[0] !== "act" ? '<i class="sa-poi" data-c="' + c[0] + '" title="Tirer pour élargir ; double-clic : largeur d\'origine"></i>' : "") + "</span>").join("") + "</div>" : "");

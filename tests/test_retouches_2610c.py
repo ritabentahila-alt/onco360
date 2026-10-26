@@ -1,0 +1,127 @@
+import pathlib; __file__=str(pathlib.Path(__file__).resolve()); exec(open(pathlib.Path(__file__).parent/'base.py').read())
+# Retouches du 26/10/2026, 3e série (demandes de Dr Bentahila) : propositions des informations médicales tirées de la liste du cabinet ; Nouveau
+# patient sans la mention du bas, dans l'ordre réglé ; note de consultation et résumé sobres ; rubriques au centre (air sous le titre, une ligne par
+# rendez-vous) ; « ⋯ » de Consultation (Tout déplier, Imprimer) et des documents de radiothérapie ; boutons principaux à la même taille ; colonnes
+# de la salle d'attente ; Paramètres › Laboratoires ; A− / A+ et police sur la sélection (documents, ordonnances) ; ✕ de toutes les fenêtres. Jeu fictif.
+ok_n = ko_n = 0
+def ok(c, m, d=None):
+    global ok_n, ko_n
+    if c: ok_n += 1; print('  ✔ ' + m)
+    else: ko_n += 1; print('  ✘ ' + m + ('' if d is None else ' ' + str(d)[:300]))
+P0 = [k.split('/')[-1] for k in S if k.startswith(E + 'patients/') and k.count('/') == 3]
+def jeu():
+    s = json.loads(json.dumps(S))
+    rt = None
+    for k, v in s.items():
+        if k.startswith(E + 'patients/') and k.count('/') == 3 and json.loads(v.get('rtsJson') or '[]') and json.loads(v.get('lignesJson') or '[]'): rt = k.split('/')[-1]; break
+    pid = rt or P0[0]; k = E + 'patients/' + pid
+    rd = json.loads(s[k].get('rdvsJson') or '[]')
+    rd += [{'id': 'rC' + str(i), 'type': 'Suivi', 'd': '2026-10-%02d' % (10 + i), 'h': '10:00', 'st': 'prevu', 'mo': 'Résultats du scanner'} for i in range(1, 5)]
+    s[k]['rdvsJson'] = json.dumps(rd)
+    s.setdefault(E + 'parametres/listes', {'data': json.dumps({'diag': [], 'mut': [], 'cor': []})})
+    L = json.loads(s[E + 'parametres/listes']['data']); L['atcdFam'] = ['Cancer du sein (mère)', 'aucun', 'Diabète (père)']; s[E + 'parametres/listes']['data'] = json.dumps(L)
+    for i, (d, ti) in enumerate([('2026-10-05', 'J15C1 Taxol hebdo'), ('2026-09-21', '')]):
+        s[E + 'consultations/CC' + str(i)] = {'patientId': pid, 'etablissementId': s[k].get('etablissementId', 'HGC'), 'd': d, 'type': 'Consultation de chimiothérapie', 'titre': ti, 'note': 'Bonne tolérance.', 'lignes': [], 'o': i, 'creePar': 'UIDRITA', 'creeParNom': 'Dr TEST'}
+    return s, pid
+async def main():
+    s, pid = jeu()
+    async with async_playwright() as p:
+        b = await p.chromium.launch()
+        pg = await ouvrir(b, s, w=1440); ev = pg.evaluate
+        await pg.goto(f'http://localhost:{PORT}/v2.html#dossier/{pid}'); await pg.wait_for_timeout(3000)
+        print('Informations médicales : propositions')
+        await ev(f"imOuvrir('{pid}','atcdFam')"); await pg.wait_for_timeout(400)
+        await pg.click('#fenetreCorps .im-lib'); await pg.wait_for_timeout(300)
+        L = await ev("[...document.querySelectorAll('#fenetreCorps .im-sug:not(.cache) button')].map(b => b.textContent)")
+        ok('aucun' in L and 'Cancer du sein (mère)' in L, 'un clic dans le champ : toute la liste du cabinet (élément ajouté dans Paramètres compris)', L)
+        await pg.keyboard.type('auc'); await pg.wait_for_timeout(200)
+        L = await ev("[...document.querySelectorAll('#fenetreCorps .im-sug:not(.cache) button')].map(b => b.textContent)")
+        ok(L == ['aucun'], 'la frappe filtre la liste', L)
+        await pg.keyboard.press('ArrowDown'); await pg.keyboard.press('Enter'); await pg.wait_for_timeout(200)
+        ok(await ev("document.querySelector('#fenetreCorps .im-lib').value") == 'aucun' and not await ev("document.getElementById('fenetre').classList.contains('cache')"), 'flèche puis Entrée : choisi, la fenêtre reste ouverte')
+        await ev("fermerFenetre()"); await pg.wait_for_timeout(200)
+        print('Consultation : note et titre')
+        t = await ev("(()=>{const c=document.querySelector('.cs.on');if(!c)return null;const ti=c.querySelector('.cs-t'),n=c.querySelector('.cs-note,.cs-nl');return [parseFloat(getComputedStyle(ti).fontSize),parseFloat(getComputedStyle(n).fontSize),Math.round(n.getBoundingClientRect().left-c.getBoundingClientRect().left)]})()")
+        ok(t and t[1] <= t[0] and t[2] >= 24, 'la note n\'est pas plus grande que la ligne de titre, et décalée sous la date', t)
+        r = await ev("(()=>{const n=document.querySelector('.dos-pat .notes');return n?[getComputedStyle(n).fontFamily,parseFloat(getComputedStyle(n).fontSize)]:null})()")
+        ok(r and 'Arial' in r[0] and r[1] == 14, 'résumé du patient : Arial 14 px', r)
+        print('« ⋯ » de Consultation et de la radiothérapie')
+        ok(not await ev("[...document.querySelectorAll('.cs-outils > button')].some(b => /Tout déplier|Imprimer/.test(b.textContent))") and await ev("!!document.querySelector('.cs-outils .mpts')"), 'Tout déplier et Imprimer sous « ⋯ »')
+        await ev("ongletDossier('" + pid + "','rt')"); await pg.wait_for_timeout(500)
+        r = await ev("[!!document.querySelector('#op-rt .actr > button[onclick^=\"docRT\"]'), document.querySelectorAll('#op-rt .actr .mpts .cache button[onclick^=\"docRT\"]').length]")
+        ok(not r[0] and r[1] >= 1, 'documents de radiothérapie (pli, compte rendu, rendez-vous) sous « ⋯ »', r)
+        print('Rubriques ouvertes au centre')
+        await ev(f"dosRubrique('{pid}','avenir')"); await pg.wait_for_timeout(700)
+        g = await ev("(()=>{const h=document.querySelector('[data-rub] h3'),l=document.querySelector('[data-rub] .rc-liste');return [Math.round(l.getBoundingClientRect().top-h.getBoundingClientRect().bottom),[...l.querySelectorAll('.rc')].map(e=>Math.round(e.getBoundingClientRect().height))]})()")
+        ok(g[0] >= 14, 'de l\'air entre le titre et la liste', g[0])
+        ok(len(g[1]) >= 3 and max(g[1]) <= 50, 'une seule ligne par rendez-vous (≤ 50 px)', g[1])
+        tx = await ev("document.querySelector('[data-rub] .rc-liste').innerText")
+        ok('Consultation de suivi · Résultats du scanner' in tx or 'Suivi · Résultats du scanner' in tx, 'ligne : type puis motif sur la même ligne', tx[:200])
+        await ev("fermerFenetre()"); await pg.wait_for_timeout(300)
+        print('Fenêtres : ✕ partout, Échap')
+        await ev("nouveauPatient()"); await pg.wait_for_timeout(600)
+        ok(await ev("!!document.querySelector('#fenetre:not(.cache) .fen-x')"), 'Nouveau patient : ✕ en haut à droite')
+        tx = await ev("document.getElementById('fenetreCorps').innerText")
+        ok('Nom et prénom obligatoires' not in tx and 'à remplir ensuite' not in tx, 'Nouveau patient : plus de mention en bas')
+        o = await ev("(async()=>{const m=await import('./js/app/fichepatient.js');return [[...document.querySelectorAll('#fenetreCorps [data-champ]')].map(e=>e.dataset.champ),m.champsFiche().filter(c=>c.present&&c.section==='id').map(c=>c.k)]})()")
+        ok([k for k in o[0] if k in o[1]] == [k for k in o[1] if k in o[0]], 'Nouveau patient : champs dans l\'ordre de Paramètres › Fiche patient', o)
+        await pg.keyboard.press('Escape'); await pg.wait_for_timeout(200)
+        ok(not await ev("document.getElementById('fenetre').classList.contains('cache')"), 'Échap ne ferme pas une fenêtre avec des champs à remplir')
+        await ev("fermerFenetre()")
+        await ev(f"auditPatient('{pid}')"); await pg.wait_for_timeout(800)
+        if not await ev("document.getElementById('fenetre').classList.contains('cache')") and not await ev("!!document.querySelector('#fenetreCorps input, #fenetreCorps select, #fenetreCorps textarea')"):
+            await pg.keyboard.press('Escape'); await pg.wait_for_timeout(200)
+            ok(await ev("document.getElementById('fenetre').classList.contains('cache')"), 'Échap ferme une fenêtre sans saisie')
+        await ev("fermerFenetre()")
+        ok(not pg.errs, 'aucune erreur JavaScript', pg.errs[:2]); await pg.close()
+        print('Boutons principaux : même taille')
+        pg = await ouvrir(b, s, w=1440); ev = pg.evaluate; H = []
+        for page, txt in [('accueil', 'Nouveau rendez-vous'), ('patients', 'Nouveau patient'), ('taches', 'Nouvelle tâche'), ('protocoles', 'Créer un protocole'), ('radiotherapie', 'Nouveau schéma'), ('agenda', 'Nouveau rendez-vous')]:
+            await pg.goto(f'http://localhost:{PORT}/v2.html#{page}'); await pg.wait_for_timeout(2200)
+            H.append(await ev("(()=>{const b=[...document.querySelectorAll('#page button')].find(e=>e.offsetParent&&/" + txt + "/.test(e.textContent));if(!b)return null;const c=getComputedStyle(b);return [Math.round(b.getBoundingClientRect().height),c.fontSize,c.paddingLeft,c.backgroundColor,c.borderRadius]})()"))
+        ok(None not in H and len(set(json.dumps(h) for h in H)) == 1, '+ Nouveau rendez-vous, patient, tâche, protocole, schéma : même hauteur, police, marges, couleur, arrondi', H)
+        print('Paramètres › Laboratoires')
+        await pg.goto(f'http://localhost:{PORT}/v2.html#parametres/laboratoires'); await pg.wait_for_timeout(2200)
+        ok(await ev("[...document.querySelectorAll('.cf-fam, nav, button, a')].some(e=>/Laboratoires/.test(e.textContent))"), 'onglet Laboratoires dans les Paramètres')
+        await ev("lbModifier()"); await pg.wait_for_timeout(300)
+        await pg.fill('#lbNom', 'LABO FICTIF'); await pg.fill('#lbDels .lb-dn', 'Délégué Fictif'); await pg.fill('#lbDels .lb-dt', '0600000002'); await pg.fill('#lbDels .lb-de', 'fictif@exemple.ma')
+        await pg.fill('#lbPros .lb-pm', 'FICTIVOL'); await pg.fill('#lbPros .lb-pmo', 'fictivine'); await pg.fill('#lbPros .lb-ppx', '1 250,5'); await pg.select_option('#lbPros .lb-pu', 'boîte'); await pg.fill('#lbPros .lb-pg', '1 boîte achetée = 1 offerte')
+        await ev("lbAjouter('del')"); await pg.fill('#lbDels .lb-r:nth-child(2) .lb-dn', 'Deuxième Délégué')
+        await pg.fill('#lbCar', 'Carnets de suivi'); await pg.click('#lbOk'); await pg.wait_for_timeout(800)
+        d = json.loads((await ev("JSON.stringify(window.__fs['" + E + "parametres/laboratoires'])")) or '{}')
+        L = json.loads(d.get('data', '[]'))
+        ok(len(L) == 1 and L[0]['nom'] == 'LABO FICTIF' and len(L[0]['delegues']) == 2 and L[0]['produits'][0]['prix'] == 1250.5 and L[0]['produits'][0]['unite'] == 'boîte' and L[0]['carnets'] == 'Carnets de suivi', 'laboratoire enregistré (2 délégués, produit, prix par boîte, programme, carnets)', L)
+        tx = await ev("document.querySelector('.lb-liste').innerText")
+        ok('FICTIVOL' in tx and '1 250,5 DH / boîte' in tx and '1 boîte achetée = 1 offerte' in tx, 'carte du laboratoire : produit, prix, programme', tx[:300])
+        await pg.fill('#lbQ', 'fictivine'); await pg.wait_for_timeout(200); ok(await ev("document.querySelectorAll('.lb-carte').length") == 1, 'recherche par molécule')
+        await pg.fill('#lbQ', 'zzz'); await pg.wait_for_timeout(200); ok(await ev("document.querySelectorAll('.lb-carte').length") == 0, 'recherche sans résultat')
+        await pg.set_viewport_size({'width': 390, 'height': 844}); await pg.fill('#lbQ', ''); await pg.wait_for_timeout(400)
+        ok(await ev("document.documentElement.scrollWidth") <= 390, 'Laboratoires à 390 px : rien ne déborde')
+        await pg.set_viewport_size({'width': 1440, 'height': 900})
+        print('Salle d\'attente : colonnes')
+        await pg.goto(f'http://localhost:{PORT}/v2.html#salle'); await pg.wait_for_timeout(2500)
+        c = await ev("[...document.querySelectorAll('#saL .sa-l')].map(r=>[...r.children].filter(x=>/\\b(nm|c-type|cor|mut)\\b/.test(x.className)&&x.scrollWidth>x.clientWidth+1).map(x=>x.className)).flat()")
+        ok(c == [], 'Patient, Type, Correspondant, Mutuelle lus en entier', c)
+        ok(not pg.errs, 'aucune erreur JavaScript', pg.errs[:2]); await pg.close()
+        print('Documents et ordonnances : taille et police de la sélection')
+        pg = await ouvrir(b, s, w=1440); ev = pg.evaluate
+        await pg.goto(f'http://localhost:{PORT}/v2.html#dossier/{pid}'); await pg.wait_for_timeout(2500)
+        rts = json.loads(s[E + 'patients/' + pid].get('rtsJson') or '[]')
+        if rts:
+            await ev(f"docRT('{pid}','{rts[0]['id']}','pli')"); await pg.wait_for_timeout(1800)
+            ok(await ev("!!document.getElementById('dcPol') && [...document.querySelectorAll('.or-outils button')].some(b=>b.textContent==='A+')"), 'document de radiothérapie : A− / A+ et police')
+            f0 = await ev("(()=>{const p=document.getElementById('dcPage'),t=[...p.querySelectorAll('p')].find(e=>e.textContent.trim().length>20);const r=document.createRange();r.selectNodeContents(t);const s=getSelection();s.removeAllRanges();s.addRange(r);return [t.textContent.trim().slice(0,30),parseFloat(getComputedStyle(t).fontSize),parseFloat(getComputedStyle(p.querySelector('p:last-of-type')).fontSize)]})()")
+            await ev("dcTaille(1)"); await pg.wait_for_timeout(200)
+            f1 = await ev("(()=>{const p=document.getElementById('dcPage'),sp=p.querySelector('span.or-tg1');return sp?[parseFloat(getComputedStyle(sp).fontSize),sp.textContent.trim().slice(0,30)]:null})()")
+            ok(f1 and f1[0] > f0[1] and f1[1] == f0[0], 'A+ avec une sélection : seul le texte sélectionné grandit', [f0, f1])
+            await ev("dcTaille(1)"); f2 = await ev("(()=>{const sp=document.querySelector('#dcPage span.or-tg2');return sp?parseFloat(getComputedStyle(sp).fontSize):null})()")
+            ok(f2 and f2 > f1[0], 'A+ une 2e fois : la même sélection grandit encore', f2)
+            await ev("getSelection().removeAllRanges()"); n0 = await ev("document.querySelectorAll('#dcPage > .or-tp1').length"); await ev("dcTaille(-1)")
+            ok(await ev("document.querySelectorAll('#dcPage > .or-tp1').length") > n0, 'A− sans sélection : tout le texte')
+            await ev("(()=>{const t=[...document.querySelectorAll('#dcPage p')].find(e=>e.textContent.trim().length>20);const r=document.createRange();r.selectNodeContents(t);const s=getSelection();s.removeAllRanges();s.addRange(r);orGarderSelDe('dcPage')})()")
+            await ev("dcPolice('ft')"); ok(await ev("!!document.querySelector('#dcPage span.or-ft')"), 'police sur la sélection (Times New Roman)')
+            await ev("fermerFenetre()")
+        ok(not pg.errs, 'aucune erreur JavaScript', pg.errs[:2])
+        await b.close()
+    print(f'\n{ok_n} réussis, {ko_n} échoués')
+asyncio.run(main())

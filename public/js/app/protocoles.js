@@ -63,7 +63,7 @@ function pageProtocoles0() {
     '<button class="bt ' + (CF.fav ? "plein" : "clair") + ' petit" onclick="prFiltre(\'fav\')"><svg class="pi"><use href="#i-etoile"/></svg>Favoris</button><select class="champ" style="font-size:14px;padding:8px" onchange="const v=this.value;this.blur();setTimeout(()=>prFiltre(\'st\',v),30)"><option value="">Tous les statuts</option><option value="ok"' + (CF.st === "ok" ? " selected" : "") + '>Validés</option><option value="todo"' + (CF.st === "todo" ? " selected" : "") + ">Non validés</option></select>" +
     '<button class="bt gris petit" onclick="prFiltre(\'reinit\')">Réinitialiser</button></div>' +
     '<div class="bp-act"><button class="bt clair" onclick="prExporter(\'xlsx\')" title="Toute la bibliothèque dans un tableau Excel">' + A.ic("telecharger") + 'Excel</button><button class="bt clair" onclick="prExporter(\'pdf\')" title="Livret imprimable, par localisation">' + A.ic("imprimer") + "Livret PDF</button>" +
-    (ok ? '<button class="bt plein" onclick="prOuvrir()">' + A.ic("plus") + "Créer un protocole</button>" : "") + "</div></div>" + '<div id="prMaj"></div><section class="carte">';
+    (ok ? '<button class="b1" onclick="prOuvrir()">' + A.ic("plus") + "Créer un protocole</button>" : "") + "</div></div>" + '<div id="prMaj"></div><section class="carte">';
   // Menus déroulants en cascade : Type de cancer › Localisation › Situation › Sous-groupe
   if (CF.c && !CF.o) { const o = valeurs(1); if (o.length === 1) CF.o = o[0]; }
   h += menusCascade(BIB(), CF, "prChoixV");

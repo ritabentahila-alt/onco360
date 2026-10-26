@@ -919,7 +919,7 @@ function ouvrirOrdonnance(o) {
   A.fenetre("<h3>" + (o.t === "courrier" ? "Courrier" : "Ordonnance") + (o.file ? " " + o.file.i + " / " + o.file.n + (o.types && o.types[0] ? ' <span class="mesures">(' + A.esc(o.types[0]) + ")</span>" : "") : "") + " — " + A.esc(x.r.nm) + (l ? ' <span class="mesures">(du ' + A.dfrA(l.d) + ", modification)</span>" : o.renouv ? ' <span class="mesures">(renouvellement de celle du ' + A.dfrA(o.renouv.d) + ")</span>" : "") + "</h3>" +
     '<div class="or-outils"><div class="ag-vues" data-fn="prescriptions.format" role="radiogroup" aria-label="Format">' + ["A5", "A4"].map((f) => '<button role="radio" aria-checked="' + (o.format === f) + '" class="' + (o.format === f ? "on" : "") + '" onclick="orFormat(\'' + f + '\')">Édition ' + f + "</button>").join("") + "</div>" +
     (o.lecture ? "" : '<span class="sep"></span><button class="ico" title="Gras" aria-label="Gras" onmousedown="event.preventDefault()" onclick="orStyle(\'bold\')"><b>G</b></button><button class="ico" title="Souligné" aria-label="Souligné" onmousedown="event.preventDefault()" onclick="orStyle(\'underline\')"><u>S</u></button>' +
-      '<button class="ico" title="Texte plus petit" aria-label="Texte plus petit" onclick="orTaille(-1)">A−</button><button class="ico" title="Texte plus grand" aria-label="Texte plus grand" onclick="orTaille(1)">A+</button>' +
+      '<button class="ico" title="Texte plus petit : la sélection, sinon tout le texte" aria-label="Texte plus petit" onmousedown="event.preventDefault()" onclick="orTaille(-1)">A−</button><button class="ico" title="Texte plus grand : la sélection, sinon tout le texte" aria-label="Texte plus grand" onmousedown="event.preventDefault()" onclick="orTaille(1)">A+</button>' +
       '<select class="or-pol" id="orPol" aria-label="Police" title="Police : du texte sélectionné, sinon de toute l\'ordonnance" onmousedown="orGarderSel()" onfocus="orGarderSel()" onchange="orPolice(this.value)">' + POLICES.map(([k, lib]) => '<option value="' + k + '">' + lib + "</option>").join("") + "</select>") + "</div>" +
     (o.lecture ? "" : '<p class="mesures" style="margin:0 0 8px">' + (o.t === "courrier" ? "Le courrier reste modifiable : cliquez dans la feuille pour écrire ; complétez les zones surlignées en jaune (le surlignage ne s'imprime pas)." : "L'ordonnance reste modifiable : cliquez dans la feuille pour corriger le texte.") + " Le haut de la feuille est laissé libre pour l'en-tête du papier.</p>") +
     sigSel + '<div id="orAl" aria-live="polite"></div><div class="or-zone"><div class="or-feuille-c" id="orCadre">' + (cd.haut ? '<div class="or-apercu">' + cd.haut + "</div>" : "") + '<div id="orPage" class="or-feuille" ' + (o.lecture ? "" : 'contenteditable="true" spellcheck="true"') + "></div>" + (cd.bas ? '<div class="or-apercu">' + cd.bas + "</div>" : "") + "</div></div>" +
@@ -940,14 +940,34 @@ window.orStyle = (c) => { try { document.execCommand(c, false, null); } catch (e
 // Lot D (25/10/2026) : police de l'ordonnance, en classes « or-f… » (seules classes gardées par nettoyer) imprimées par CSS_POLICES : avec une
 // sélection, sur la sélection (comme G et S) ; sans sélection, sur tout le corps (chaque bloc) ; la dernière police choisie pour tout le corps
 // est retenue pour le médecin (utilisateurs/{uid}.policeOrdo) et reprise sur une nouvelle ordonnance ; l'en-tête imprimé ne change pas
-const POLICES = [["", "Police habituelle"], ["fa", "Arial", "Arial,Helvetica,sans-serif"], ["fh", "Helvetica", "Helvetica,Arial,sans-serif"], ["ft", "Times New Roman", '"Times New Roman",Times,serif'], ["fg", "Georgia", "Georgia,serif"], ["fv", "Verdana", "Verdana,sans-serif"]];
-export const CSS_POLICES = POLICES.filter((z) => z[0]).map((z) => ".or-" + z[0] + "{font-family:" + z[2] + "}").join("");
-const CLS_POL = POLICES.filter((z) => z[0]).map((z) => "or-" + z[0]);
+export const POLICES = [["", "Police habituelle"], ["fa", "Arial", "Arial,Helvetica,sans-serif"], ["fh", "Helvetica", "Helvetica,Arial,sans-serif"], ["ft", "Times New Roman", '"Times New Roman",Times,serif'], ["fg", "Georgia", "Georgia,serif"], ["fv", "Verdana", "Verdana,sans-serif"]];
+// 26/10/2026 (demande de Dr Bentahila) : A− / A+ sur le texte sélectionné (sinon sur tout le texte, comme avant) : classes « or-tp… » (plus petit) et
+// « or-tg… » (plus grand), en em (relatives au texte autour, donc une sélection dans une sélection agrandie suit) ; gardées par nettoyer, imprimées
+const TAILLES = [["tp2", 0.85], ["tp1", 0.92], ["", 1], ["tg1", 1.08], ["tg2", 1.16], ["tg3", 1.25], ["tg4", 1.35], ["tg5", 1.45], ["tg6", 1.6]];
+const CSS_TAILLES = TAILLES.filter((z) => z[0]).map((z) => ".or-" + z[0] + "{font-size:" + z[1] + "em}").join("");
+export const CSS_POLICES = POLICES.filter((z) => z[0]).map((z) => ".or-" + z[0] + "{font-family:" + z[2] + "}").join("") + CSS_TAILLES;
+const CLS_POL = POLICES.filter((z) => z[0]).map((z) => "or-" + z[0]), CLS_T = TAILLES.filter((z) => z[0]).map((z) => "or-" + z[0]);
+const pasDe = (el) => { const c = CLS_T.find((k) => el && el.classList && el.classList.contains(k)); return TAILLES.findIndex((z) => z[0] === (c ? c.slice(3) : "")); };
+const classePas = (el, i) => { CLS_T.forEach((c) => el.classList.remove(c)); const k = TAILLES[Math.max(0, Math.min(TAILLES.length - 1, i))][0]; if (k) el.classList.add("or-" + k); if (!el.className) el.removeAttribute("class"); };
+// Sélection dans la feuille p : sa taille change d'un pas (s = -1 | 1) ; renvoie false sans sélection (le texte entier change alors)
+export function tailleSelection(p, s) {
+  const sel = window.getSelection(); if (!p || !sel.rangeCount || sel.isCollapsed) return false;
+  const r = sel.getRangeAt(0); if (!p.contains(r.commonAncestorContainer)) return false;
+  const a = r.commonAncestorContainer.nodeType === 3 ? r.commonAncestorContainer.parentNode : r.commonAncestorContainer, choisir = (n0, n1) => { const rr = document.createRange(); if (n0 === n1) rr.selectNodeContents(n0); else { rr.setStartBefore(n0); rr.setEndAfter(n1); } sel.removeAllRanges(); sel.addRange(rr); };
+  if (a !== p && a.tagName === "SPAN" && pasDe(a) !== 2 && a.textContent.trim() === r.toString().trim()) { classePas(a, pasDe(a) + s); choisir(a, a); return true; }
+  try { document.execCommand("styleWithCSS", false, false); document.execCommand("fontName", false, "onco360taille"); } catch (e) { return false; }
+  const nouv = [];
+  p.querySelectorAll('font[face="onco360taille"]').forEach((f) => { const sp = document.createElement("span"); classePas(sp, 2 + s); while (f.firstChild) sp.appendChild(f.firstChild); f.replaceWith(sp); nouv.push(sp); });
+  if (nouv.length) choisir(nouv[0], nouv[nouv.length - 1]);
+  return true;
+}
+// Sans sélection : chaque bloc de la feuille d'un pas (documents de radiothérapie ; l'ordonnance garde sa taille d'ensemble O.taille)
+export function tailleTout(p, s) { if (p) [...p.children].forEach((e) => { if (!e.classList.contains("dc-saut")) classePas(e, pasDe(e) + s); }); }
 let SEL_POL = null;
 window.orGarderSel = () => { const s = window.getSelection(), p = $("orPage"); SEL_POL = s && s.rangeCount && !s.isCollapsed && p && p.contains(s.getRangeAt(0).commonAncestorContainer) ? s.getRangeAt(0).cloneRange() : null; };
 const policeDe = (el) => { const c = CLS_POL.find((k) => el && el.classList && el.classList.contains(k)); return c ? c.slice(3) : ""; };
-function policeCorps(k) {
-  const p = $("orPage"); if (!p) return;
+function policeCorps(k, p0) {
+  const p = p0 || $("orPage"); if (!p) return;
   [...p.children].forEach((e) => { CLS_POL.forEach((c) => e.classList.remove(c)); if (k) e.classList.add("or-" + k); });
   p.querySelectorAll("span").forEach((z) => { CLS_POL.forEach((c) => z.classList.remove(c)); if (!z.className) z.removeAttribute("class"); });
 }
@@ -958,26 +978,33 @@ function policeDepart(o) {
   if (k && !vue && !o.lecture) policeCorps(k);
   O.police = k; if (el) el.value = POLICES.some((z) => z[0] === k) ? k : "";
 }
+// Police sur la sélection r de la feuille p (documents de radiothérapie aussi) ; false sans sélection
+export function policeSelection(p, k, r) {
+  if (!p || !r || r.collapsed) return false;
+  const s = window.getSelection(); p.focus(); s.removeAllRanges(); s.addRange(r);
+  try { document.execCommand("styleWithCSS", false, false); document.execCommand("fontName", false, "onco360" + (k || "x")); } catch (e) { /* navigateur sans fontName */ }
+  p.querySelectorAll('font[face^="onco360"]').forEach((f) => {
+    const c = f.getAttribute("face").slice(7), sp = document.createElement("span");
+    if (c !== "x") sp.className = "or-" + c;
+    while (f.firstChild) sp.appendChild(f.firstChild);
+    sp.querySelectorAll("span").forEach((z) => { CLS_POL.forEach((x) => z.classList.remove(x)); if (!z.className) z.removeAttribute("class"); });
+    if (sp.className) f.replaceWith(sp); else f.replaceWith(...sp.childNodes);
+  });
+  return true;
+}
+export const policeTout = (p, k) => policeCorps(k, p);
+window.orGarderSelDe = (id) => { const s = window.getSelection(), p = $(id); SEL_POL = s && s.rangeCount && !s.isCollapsed && p && p.contains(s.getRangeAt(0).commonAncestorContainer) ? s.getRangeAt(0).cloneRange() : null; };
+export const selGardee = () => { const r = SEL_POL; SEL_POL = null; return r; };
 window.orPolice = (k) => {
   const p = $("orPage"); if (!O || !p) return;
   const r = SEL_POL; SEL_POL = null;
-  if (r && !r.collapsed) {
-    const s = window.getSelection(); p.focus(); s.removeAllRanges(); s.addRange(r);
-    try { document.execCommand("styleWithCSS", false, false); document.execCommand("fontName", false, "onco360" + (k || "x")); } catch (e) { /* navigateur sans fontName */ }
-    p.querySelectorAll('font[face^="onco360"]').forEach((f) => {
-      const c = f.getAttribute("face").slice(7), sp = document.createElement("span");
-      if (c !== "x") sp.className = "or-" + c;
-      while (f.firstChild) sp.appendChild(f.firstChild);
-      sp.querySelectorAll("span").forEach((z) => { CLS_POL.forEach((x) => z.classList.remove(x)); if (!z.className) z.removeAttribute("class"); });
-      if (sp.className) f.replaceWith(sp); else f.replaceWith(...sp.childNodes);
-    });
-  } else {
+  if (!policeSelection(p, k, r)) {
     policeCorps(k); O.police = k;
     if ((D().profil || {}).policeOrdo !== k) { if (D().profil) D().profil.policeOrdo = k; setDoc(doc(db, "utilisateurs", D().u.uid), { policeOrdo: k }, { merge: true }).catch((e) => console.warn("police", e)); }
   }
   majApercu();
 };
-window.orTaille = (s) => { if (!O) return; O.taille = Math.max(-4, Math.min(6, O.taille + s)); miseEnPage(); };
+window.orTaille = (s) => { if (!O) return; if (tailleSelection($("orPage"), s)) { majApercu(); return; } O.taille = Math.max(-4, Math.min(6, O.taille + s)); miseEnPage(); };
 window.orFermer = () => { if (PC_DOCS && PC_DOCS.length) A.toast(PC_DOCS.length + " ordonnance(s) suivante(s) non faite(s)."); PC_DOCS = null; O = null; A.fermerFenetre(); };
 // 3.9 : autre médecin signataire : nom sous « Cachet et signature » et en-tête imprimé
 window.orSignataire = (uid) => { if (!O) return; O.medUid = uid; const n = nomSignataire(uid), p = $("orPage");

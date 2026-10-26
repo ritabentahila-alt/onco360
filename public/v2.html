@@ -1403,6 +1403,68 @@ details.m3.bib-pts{margin-left:4px;vertical-align:middle;display:inline-block}.m
    familiaux, cTNM, ALD, Mutuelle) commence une ligne, le 2e le suit (fichepatient.js rapprocher) ; colonne Patient : informations médicales dans l'ordre réglé */
 .form[data-sec]>[data-champ=taille],.form[data-sec]>[data-champ=atcdFam],.form[data-sec]>[data-champ=xtctnm],.form[data-sec]>[data-champ=ald],.form[data-sec]>[data-champ=mut]{grid-column-start:1}
 .dp-f>.im-s{min-width:0}.dp-f>.im-s>div{padding:0;border:0;min-height:0;white-space:normal}.dos-pat .dp-f>.im-s>.im-h{margin:0 0 4px}
+/* 26/10/2026 : propositions des informations médicales (liste du cabinet) sous le champ, à la place de la liste native du navigateur */
+.im-r{position:relative}.im-sug{position:absolute;left:0;top:calc(100% + 2px);z-index:40;width:min(420px,100%);max-height:240px;overflow-y:auto;background:var(--carte);border:1px solid var(--trait);border-radius:var(--r-s);box-shadow:var(--ombre-h);padding:4px;display:flex;flex-direction:column}
+.im-sug button{border:0;background:none;text-align:left;padding:8px 10px;border-radius:6px;font:inherit;font-size:var(--t4);color:var(--encre);cursor:pointer}.im-sug button:hover,.im-sug button.on{background:var(--prim-c)}
+/* 26/10/2026 (demande de Dr Bentahila) : notes écrites par le médecin (consultation, résumé du patient) : même police sobre que le reste (Arial
+   14 px, interligne 1,55), jamais plus grande que la ligne de titre de la consultation (date et motif, 14 px) ; note décalée sous la date ;
+   résumé du patient en bloc de note (fond doux, sans cadre de formulaire ; cadre bleu pendant la saisie) */
+.dos .cs-t,.dos .cs.on .cs-t{font-size:var(--t4)}
+.dos .cs .cs-note,.dos .cs .cs-nl{font-size:var(--t4);line-height:1.55;color:var(--encre)}
+.dos .cs.on .cs-c{padding:4px 12px 10px 32px}
+.dos .cs .cs-xs,.dos .cs .cs-o,.dos .cs .cs-ex{font-size:var(--t3)}
+.dos-pat .notes{font-size:var(--t4);line-height:1.55;color:var(--encre);background:var(--fond-doux);border:1px solid transparent;border-radius:var(--r-m);padding:10px 12px}
+.dos-pat .notes:hover{border-color:var(--trait)}.dos-pat .notes:focus{background:var(--carte);border-color:var(--prim-cc);outline:2px solid var(--prim-c)}
+.dos-pat .notes.lecture{white-space:pre-wrap}
+@media (max-width:640px){.dos .cs.on .cs-c{padding-left:12px}}
+/* 26/10/2026 : « Rendez-vous et tâches à venir » et « Historique des RDV » ouverts au centre : de l'air sous le titre, une carte d'une ligne */
+#panneauCorps [data-rub] h3.rub-t,#fenetreCorps [data-rub] h3.rub-t{margin:0 0 18px}
+.rc-grand{gap:8px;max-width:none}
+.rc.rg{display:flex;align-items:center;gap:10px;min-height:44px;padding:6px 8px 6px 14px;border:1px solid var(--trait);border-radius:var(--r-s);background:var(--carte);font-size:var(--t4);color:var(--encre)}
+.rc.rg .rc-d{font-weight:normal;color:var(--titre);white-space:nowrap;font-variant-numeric:tabular-nums}.rc.rg.retard .rc-d{color:var(--rouge)}
+.rc.rg .rl-ty{color:var(--encre)}.rc.rg .rc-em .i,.rc.rg .rc-em .pi{width:16px;height:16px}.rc.rg .mpts{flex:none;margin:-4px 0}
+/* 26/10/2026 (Dr Bentahila : « les boutons principaux n'ont pas la même taille ») : + Nouveau patient, + Nouveau rendez-vous, + Nouvelle tâche,
+   + Créer un protocole, + Nouveau schéma = un seul modèle b1 (40 px de haut, 44 px au toucher, texte 14 px gras, icône 18 px, marges 16 px) */
+:where(.b1,.b2) .sm{display:none}
+@media (max-width:640px){.accueil .actions .b1,.accueil .actions .b2,.barre-page .bp-act>.b1,.liste-tete>.b1{flex:1;justify-content:center}:where(.b1,.b2) .lg{display:none}:where(.b1,.b2) .sm{display:inline}}
+/* 26/10/2026 : taille du texte sélectionné dans les ordonnances et les documents (A− / A+ ; mêmes classes à l'impression : CSS_POLICES d'ordonnances.js) */
+.or-tp2{font-size:.85em}.or-tp1{font-size:.92em}.or-tg1{font-size:1.08em}.or-tg2{font-size:1.16em}.or-tg3{font-size:1.25em}.or-tg4{font-size:1.35em}.or-tg5{font-size:1.45em}.or-tg6{font-size:1.6em}
+/* 26/10/2026 : Paramètres › Laboratoires : une carte par laboratoire (délégués à gauche, produits à droite, carnets et note en bas) */
+.lb-barre{margin-bottom:4px}.lb-barre .recherche{flex:1 1 360px;min-width:0}
+.lb-liste{display:flex;flex-direction:column;gap:16px}
+.lb-tete{display:flex;align-items:center;gap:8px;margin:0 0 14px}.lb-tete h3{margin:0;flex:1;min-width:0;font-size:var(--t6);color:var(--titre)}
+.lb-grille{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);gap:20px}
+.lb-grille h4{margin:0 0 8px;font-size:var(--t3);font-weight:bold;color:var(--prim);text-transform:none}
+.lb-del{display:flex;align-items:center;flex-wrap:wrap;gap:4px 12px;padding:6px 0;border-bottom:1px solid var(--gris-c);font-size:var(--t4)}.lb-del:last-child{border-bottom:0}
+.lb-del .i{width:16px;height:16px;color:var(--doux)}.lb-del .lb-dn{font-weight:bold;color:var(--encre)}.lb-del a{color:var(--prim);text-decoration:none}.lb-del a:hover{text-decoration:underline}
+.lb-pros{display:flex;flex-direction:column}.lb-pro{padding:7px 0;border-bottom:1px solid var(--gris-c);font-size:var(--t4)}.lb-pro:last-child{border-bottom:0}
+.lb-pl{display:flex;align-items:baseline;flex-wrap:wrap;gap:2px 6px}.lb-mol{color:var(--encre)}.lb-pres{color:var(--doux)}
+.lb-px{margin-left:auto;font-weight:bold;color:var(--titre);white-space:nowrap}.lb-px.vide{font-weight:normal;color:var(--doux);font-style:italic}
+.lb-prog{display:flex;align-items:flex-start;gap:6px;margin-top:3px;color:var(--vert-t);font-size:var(--t3)}.lb-prog .i{width:14px;height:14px;flex:none;margin-top:2px}
+.lb-pied{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px 20px;margin-top:14px;padding-top:12px;border-top:1px solid var(--trait);font-size:var(--t4)}
+.lb-l{display:block;font-size:var(--t3);font-weight:bold;color:var(--prim);margin-bottom:3px}
+.lb-lignes{display:flex;flex-direction:column;gap:8px;margin:0 0 8px}
+.lb-r{display:grid;gap:6px;align-items:center}.lb-r input,.lb-r select,.lb-r textarea{width:100%;box-sizing:border-box;padding:9px 10px;border:1px solid var(--bord-champ);border-radius:var(--r-s);font:inherit;font-size:var(--t4);background:#fff;color:var(--encre);min-width:0}
+.lb-rd{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) minmax(0,1.3fr) 40px}
+.lb-rp{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr) minmax(0,1.3fr) minmax(0,.7fr) minmax(0,.9fr) 40px;padding:8px;border:1px solid var(--gris-c);border-radius:var(--r-m);background:var(--fond-doux)}
+.lb-rp textarea{grid-column:1 / -2;resize:vertical;min-height:38px}
+.lb-plus{margin-bottom:6px}
+@media (max-width:900px){.lb-grille{grid-template-columns:1fr}}
+@media (max-width:640px){.lb-rd,.lb-rp{grid-template-columns:minmax(0,1fr) 44px}.lb-rd input,.lb-rp input,.lb-rp select,.lb-rp textarea{grid-column:1}.lb-r .b3{grid-column:2;grid-row:1}}
+/* ───── Lot E, étapes 2 à 4 (26/10/2026, plan validé par Dr Bentahila) : dossier patient, Paramètres, Protocoles, Bilan, fenêtres (ordonnances,
+   chimiothérapie) au modèle de la page Tâches. Les anciens boutons prennent l'aspect des trois niveaux : « bt plein » = principal (b1), « bt clair » et
+   « bt gris » = secondaire (b2, contour gris), « bt rouge » = secondaire rouge (suppression) ; même hauteur (40 px, 44 px au toucher), même rayon,
+   texte 14 px ; « bt petit » : 34 px. Gardés en couleur (sécurité, action attendue) : « bt vert » (valider), « bt orange » (reporter), « bt fonce ».
+   Toutes les fenêtres : ✕ en haut à droite (fenetre de v2.js) ; Échap ferme celles sans zone de saisie. ───── */
+.bt{min-height:40px;padding:0 16px;box-sizing:border-box;justify-content:center;font-size:var(--tx-texte);line-height:1.2;border:1px solid transparent;transform:none}
+.bt.plein{background:var(--prim);color:var(--carte);border-color:var(--prim);box-shadow:none}.bt.plein:hover{background:var(--prim-f);border-color:var(--prim-f);transform:none;box-shadow:none}
+.bt.clair,.bt.gris{background:var(--carte);color:var(--encre);border-color:var(--bord-champ)}.bt.clair:hover,.bt.gris:hover{background:var(--fond-doux)}
+.bt.rouge{background:var(--carte);color:var(--rouge);border-color:var(--bord-champ)}.bt.rouge:hover{background:var(--rouge-c)}
+.bt.vert{border-color:var(--vert-f)}.bt.orange{border-color:var(--orange)}.bt.fonce{border-color:var(--nuit)}
+.bt.petit{min-height:34px;padding:0 12px;font-size:var(--t3)}
+.bt:disabled{opacity:.55;cursor:default}
+@media (pointer:coarse){.bt{min-height:44px}.bt.petit{min-height:40px}}
+@media (max-width:640px){.rtr-ftr.bt{min-height:44px}}
 </style>
 </head>
 <body>
@@ -1511,6 +1573,6 @@ function onco360Deconnecter() {
 }
 </script>
 
-<script type="module" src="./js/app/v2.js?v=20261026b"></script>
+<script type="module" src="./js/app/v2.js?v=20261026c"></script>
 </body>
 </html>

@@ -15,7 +15,7 @@ async def main():
         await pg.screenshot(path='/tmp/t7_table.png', clip={'x':280,'y':0,'width':1160,'height':900}, full_page=True)
         await clic_menu(pg, CURE('C3')); await pg.wait_for_timeout(400)
         await clic_menu(pg, JOUR(0)+' >> text=Ouvrir'); await pg.fill('#vD','2026-10-06'); await pg.click('#fOk'); await pg.wait_for_timeout(700)
-        await plus_tard(pg); await pg.click(':is(#fenetreCorps,#panneauCorps):not(:empty) >> text=Valider : venu'); await pg.wait_for_timeout(800)  # prix de la consultation
+        await plus_tard(pg)  # 26/10/2026 : plus de fenêtre de prix de la consultation après la validation
         await clic_menu(pg, CURE('C3')); await pg.wait_for_timeout(400)
         # Report de J8
         await clic_menu(pg, JOUR(1)+' >> text=↪ Reporter'); await pg.wait_for_timeout(300)

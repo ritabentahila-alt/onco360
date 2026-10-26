@@ -77,7 +77,8 @@ async def main():
         await ev("csTog('" + P8 + "', 'CS13')"); await pg.wait_for_timeout(500)
         sp = await ev("[document.querySelector('.dos-pat').scrollTop, document.querySelector('.dos-trav').scrollTop, document.querySelectorAll('#csListe .cs.on').length]")
         ok(s0[0] > 0 and s0[1] > 0 and sp[0] == s0[0] and sp[1] == s0[1] and sp[2] == 2, 'redessiné (consultation dépliée) : les colonnes restent où elles étaient', (s0, sp))
-        await ev("document.querySelector('.cs-outils .mini').click()"); await pg.wait_for_timeout(500)
+        await ev("document.querySelector('.cs-outils .mpts button').click()"); await pg.wait_for_timeout(200)  # 26/10/2026 : « Tout déplier » sous « ⋯ »
+        await ev("[...document.querySelectorAll('#ptsMenuF button')].find(b => /Tout déplier/.test(b.textContent)).click()"); await pg.wait_for_timeout(500)
         ok(await ev("document.querySelectorAll('#csListe .cs.on').length") == 14, '« Tout déplier » : 14 consultations dépliées')
         await ev("document.querySelector('.cs-ns input').click()"); await pg.wait_for_timeout(500)
         ok(await ev("document.querySelectorAll('#csListe .cs-nl').length >= 14 && !document.querySelector('#csListe textarea') && !document.querySelector('#csListe .cs-o')"), '« Notes seulement » : les notes, sans les ordonnances')

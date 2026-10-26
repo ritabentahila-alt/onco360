@@ -73,14 +73,31 @@ export function htmlColonne(x) {
 }
 
 // Lignes de l'éditeur (petite fenêtre et formulaire entier) : libellé (liste du cabinet + saisie libre), dosage (traitement), note, ✕
-const ligneEd = (k, e) => '<div class="im-r"><input class="im-lib" list="imDl-' + k + '" value="' + A.esc((e && e.lib) || "") + '" placeholder="' + (k === "traitCours" ? "Médicament" : k === "allergies" ? "Allergie" : "Antécédent") + ' (liste ou saisie libre)" aria-label="Élément">' +
+const ligneEd = (k, e) => '<div class="im-r"><input class="im-lib" data-k="' + k + '" autocomplete="off" onfocus="imSug(this)" oninput="imSug(this)" onkeydown="imSugTouche(event,this)" onblur="imSugFin(this)" value="' + A.esc((e && e.lib) || "") + '" placeholder="' + (k === "traitCours" ? "Médicament" : k === "allergies" ? "Allergie" : "Antécédent") + ' (liste ou saisie libre)" aria-label="Élément">' +
   (k === "traitCours" ? '<input class="im-dz" value="' + A.esc((e && e.dosage) || "") + '" placeholder="Dosage (facultatif)" aria-label="Dosage">' : "") +
   '<input class="im-no" value="' + A.esc((e && e.note) || "") + '" placeholder="Note (facultatif)" aria-label="Note">' +
   '<button type="button" class="ico im-x" onclick="imRetirer(this)" title="Supprimer cette ligne" aria-label="Supprimer cette ligne">✕</button></div>';
+// 26/10/2026 (Dr Bentahila : « pas liée à la liste du paramétrage ») : la liste native du navigateur (datalist) ne s'ouvrait pas d'un clic sur un champ
+// vide (Safari : jamais) ; propositions dessinées ici : toute la liste du cabinet (Paramètres › Bibliothèques › Listes) dès le clic, filtrée pendant la
+// frappe (mots dans n'importe quel ordre, sans accents), flèches et Entrée ; la saisie libre reste possible (ajoutée à la liste à l'enregistrement)
+window.imSug = (inp) => {
+  const k = inp.dataset.k, mots = norm(inp.value).split(" ").filter(Boolean), deja = new Set([...inp.closest(".im-lignes").querySelectorAll(".im-lib")].filter((z) => z !== inp).map((z) => norm(z.value)));
+  const L = listeMed(k).filter((t) => !deja.has(norm(t)) && mots.every((m) => norm(t).indexOf(m) >= 0)).slice(0, 80);
+  let s = inp.parentNode.querySelector(".im-sug"); if (!s) { s = document.createElement("div"); s.className = "im-sug"; s.setAttribute("role", "listbox"); inp.parentNode.appendChild(s); }
+  s.innerHTML = L.map((t, i) => '<button type="button" role="option" tabindex="-1" class="' + (i === 0 && mots.length ? "on" : "") + '" onmousedown="event.preventDefault()" onclick="imSugChoix(this)">' + A.esc(t) + "</button>").join("");
+  s.classList.toggle("cache", !L.length || (L.length === 1 && norm(L[0]) === norm(inp.value)));
+};
+window.imSugChoix = (b) => { const r = b.closest(".im-r"), inp = r.querySelector(".im-lib"); inp.value = b.textContent; r.querySelector(".im-sug").classList.add("cache"); const n = r.querySelector(".im-dz") || r.querySelector(".im-no"); if (n) n.focus(); };
+window.imSugFin = (inp) => setTimeout(() => { const s = inp.parentNode && inp.parentNode.querySelector(".im-sug"); if (s) s.classList.add("cache"); }, 120);
+window.imSugTouche = (ev, inp) => {
+  const s = inp.parentNode.querySelector(".im-sug"); if (!s || s.classList.contains("cache")) return; const B = [...s.querySelectorAll("button")]; let i = B.findIndex((b) => b.classList.contains("on"));
+  if (ev.key === "ArrowDown" || ev.key === "ArrowUp") { ev.preventDefault(); i = ev.key === "ArrowDown" ? Math.min(B.length - 1, i + 1) : Math.max(0, i - 1); B.forEach((b, j) => b.classList.toggle("on", j === i)); if (B[i]) B[i].scrollIntoView({ block: "nearest" }); }
+  else if (ev.key === "Enter" && i >= 0) { ev.preventDefault(); window.imSugChoix(B[i]); }
+  else if (ev.key === "Escape") { ev.stopPropagation(); s.classList.add("cache"); }
+};
 export function htmlEditeur(k, L, vide) {
-  const dl = '<datalist id="imDl-' + k + '">' + listeMed(k).map((t) => '<option value="' + A.esc(t) + '">').join("") + "</datalist>";
   return '<div class="im-ed" data-ed-im="' + k + '"><div class="im-lignes">' + L.map((e) => ligneEd(k, e)).join("") + (vide || !L.length ? ligneEd(k, null) : "") + "</div>" +
-    '<button type="button" class="bt clair petit im-plus" onclick="imLigne(this,\'' + k + '\')">' + A.ic("plus") + "Ajouter une ligne</button>" + dl + "</div>";
+    '<button type="button" class="bt clair petit im-plus" onclick="imLigne(this,\'' + k + '\')">' + A.ic("plus") + "Ajouter une ligne</button></div>";
 }
 window.imLigne = (b, k) => { const z = b.parentNode.querySelector(".im-lignes"); z.insertAdjacentHTML("beforeend", ligneEd(k, null)); const l = z.querySelectorAll(".im-lib"); l[l.length - 1].focus(); };
 window.imRetirer = (b) => { const r = b.closest(".im-r"), z = r.parentNode; r.remove(); if (!z.querySelector(".im-r")) { const ed = z.closest(".im-ed"); z.insertAdjacentHTML("beforeend", ligneEd(ed.dataset.edIm, null)); } };

@@ -437,7 +437,14 @@ ordre B, D, C, A puis E. **Ces demandes passent avant ce plan quand elles le con
         vides au modèle (vue Liste avec « + Nouveau rendez-vous », onglets de la salle). Gardé tel quel : couleurs des catégories de l'agenda et des
         types de la salle (repérage), boutons des lignes de la salle (« Arrivé »…), texte des cases de la semaine (trop étroites pour 13 px).
         Test `tests/test_retouches_2610b.py`. **À montrer à Dr Bentahila avant l'étape 2 (dossier patient).**
-  - [ ] Étapes 2 à 4 (après validation de l'étape 1) : les familles `bt plein`, `bt clair`, `bt gris`, `mini`, `rond`, `ico vert`… ramenées à `b1` / `b2` / `b3` dans
+  - [x] **Étapes 2 à 4 (26/10/2026, version 20261026c, Dr Bentahila : « passe au dossier patient et tout ce qui reste »)** : dossier patient,
+        Paramètres, Protocoles, Bilan, fenêtres (ordonnances, chimiothérapie) : les anciens boutons prennent l'aspect des trois niveaux par le style
+        (`bt plein` = b1, `bt clair` / `bt gris` = b2, `bt rouge` = b2 rouge ; 40 px, texte 14 px ; `bt petit` 34 px) sans réécrire ~250 boutons ;
+        gardés en couleur : `bt vert` (valider), `bt orange` (reporter), `bt fonce` ; boutons principaux de page en `b1` (+ Nouveau patient, + Nouveau
+        rendez-vous, + Créer un protocole, + Nouveau schéma, comme + Nouvelle tâche : même taille) ; ✕ en haut à droite de **toutes** les fenêtres
+        (`fenetre` de v2.js) ; Échap ferme celles sans zone de saisie. Pas fait (à voir si besoin) : renommer les classes dans le code, les quatre
+        tailles de texte partout.
+  - [ ] Reste : les familles `bt plein`, `bt clair`, `bt gris`, `mini`, `rond`, `ico vert`… ramenées à `b1` / `b2` / `b3` dans
         v2.html et sur toutes les pages ; tailles écrites dans les pages remplacées par les quatre variables ; aide, fenêtres et états vides au
         même modèle partout.
 
@@ -463,7 +470,24 @@ ordre B, D, C, A puis E. **Ces demandes passent avant ce plan quand elles le con
       Traitements en cours, cTNM + pTNM, ALD + Correspondant, Mutuelle + E-mail sur une ligne, Adresse sur toute la ligne (`PAIRES` / `rapprocher`
       de fichepatient.js : le 2e champ suit le 1er dans le formulaire seulement, l'ordre enregistré ne change pas).
 
+- [x] **Retouches du 26/10/2026, 3e série (version 20261026c)** : ligne de chimio « terminée » seulement quand la dernière cure n'a plus de séance
+      prévue (J8, J15 ; `statutLigne`, test `tests/moteur/test-ligne-fin.mjs`) ; **valider une cure ne valide plus la consultation** (fenêtre de
+      prix retirée après la validation : `proposerPrix` supprimé ; la consultation se valide par « Consultation : venu », la salle d'attente ou le
+      dossier ouvert depuis la salle) ; informations médicales : propositions dessinées par Onco360 (toute la liste du cabinet dès le clic, filtre,
+      flèches, Entrée) à la place de la liste native du navigateur (Safari ne l'ouvrait pas) ; Nouveau patient : ordre strict des Paramètres, mention
+      du bas retirée ; modèle des cabinets neufs : documentation (« Doc. », avec ses PDF) recopiée par « Copier depuis le cabinet du Dr Bentahila »
+      (le référentiel de radiothérapie l'était déjà : vérifié par le test émulateur) ; note de consultation et résumé : Arial 14 px, note décalée
+      sous la date, résumé en bloc de note ; rubriques au centre : air sous le titre, une carte d'une ligne (« Lun. 02/11 · 10:00 · Consultation de
+      suivi · motif ») ; « ⋯ » : Tout déplier et Imprimer (Consultation), Pli / Compte rendu / Rendez-vous (radiothérapie) ; salle d'attente :
+      Patient, Type, Motif, Correspondant, Mutuelle à la largeur de leur texte (le motif rétrécit d'abord, le commentaire prend le reste) ;
+      A− / A+ et police sur le texte sélectionné (sinon tout le texte) dans les ordonnances et les documents de radiothérapie (classes `or-tp…` /
+      `or-tg…`) ; **Paramètres › Laboratoires** (`js/app/laboratoires.js`, `parametres/laboratoires`) : délégués, produits (marque, molécule,
+      présentation, prix par boîte / flacon…, programme), carnets, note, recherche. Tests `tests/test_retouches_2610c.py`, `test_associe`,
+      `test_cures`, `test_seances`, `test_dossier_disposition`, `tests/emulateur/test-modele.mjs` (documentation).
+
 **Changements de décision (demandés par Dr Bentahila le 24 et le 25/10/2026, ils remplacent ce qui est écrit plus bas)** :
+- (26/10/2026) « Honoraires de séance / consultation de chimio » : valider une cure ne valide que la séance (sa fenêtre de prix de consultation
+  ne s'ouvre plus) ; la consultation de chimiothérapie se valide à part.
 - d. 46 (20/10 : « traitements en cours choisis dans une liste : non ») → **oui** (lot A §4 et §6) : liste du cabinet + saisie libre. Le texte
   reste lisible tel quel par les interactions (S5) et le contrôle d'allergie.
 - 17/10 (refusé : « menu … pour Afficher, Journal, Modifier ») → Afficher et Modifier du haut du dossier **retirés** (clic sur le titre d'une

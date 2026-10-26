@@ -38,7 +38,7 @@ async def main():
         ok(await ev("document.getElementById('titrePage').textContent") == 'Radiothérapie' and 'Tous les schémas' in t and await ev("document.querySelectorAll('#rtrListe > .rtr-l').length") == 295, 'page Radiothérapie : référentiel lu (295 schémas listés)', t[:200])
         ok(await ev("!!document.querySelector('nav a[data-p=radiotherapie].actif')"), 'entrée du menu en surbrillance')
         # 26/10/2026 (demande de Dr Bentahila) : « + Nouveau schéma » est le seul bouton plein (comme « + Créer un protocole »)
-        ok(await ev("[...document.querySelectorAll('#page .bt.plein')].every(e => e.classList.contains('rtr-nouv'))"), 'page en lecture : aucun bouton plein, sauf « + Nouveau schéma »')
+        ok(await ev("[...document.querySelectorAll('#page .bt.plein, #page .b1')].every(e => e.classList.contains('rtr-nouv'))"), 'page en lecture : aucun bouton plein, sauf « + Nouveau schéma »')
         await pg.set_viewport_size({'width': 390, 'height': 800}); await pg.wait_for_timeout(500)
         ok(await ev("document.documentElement.scrollWidth <= 392"), 'téléphone (390 px) : sans débordement')
         await pg.set_viewport_size({'width': 1440, 'height': 900}); await ev("document.body.classList.add('menu-replie')"); await pg.wait_for_timeout(300)

@@ -12,6 +12,7 @@ import { typesDocuments, enregistrerTypes, TYPES_DOCUMENTS0 } from "./fichiers.j
 import { typesTaches, enregistrerTypesTaches, TYPES_TACHES0, TYPE_RT, listeMembres } from "./taches.js";
 import { reglages, enregistrerReglages, REGLAGES0 } from "./reglages.js";
 import { pageParametres } from "./parametres.js";
+import { installer as installerLabos, pageLaboratoires } from "./laboratoires.js";
 import { listeDiag, listeMut, listeCor, LISTES0 } from "./chimio.js";
 import { LISTES_MED, listeMed, departMed, elements as elementsMed } from "./infosmed.js"; // lot A §6 : listes des informations médicales
 import { gererListe, tailleListe } from "./ordonnances.js";
@@ -25,7 +26,7 @@ import { estStd, estNote, AUTO as AUTO_TY, cleDuree, renommer, nouvelleCle, aEnr
 import { htmlVigilances } from "./vigilances.js"; // notes « À vérifier » par molécule (12/10/2026) // fiche patient et formulaire de consultation du cabinet (11/10/2026)
 
 let A = null;
-export function installer(api) { A = api; A.enteteParametres = () => entete(); A.pageParametres = () => pageConfiguration(); installerRecuperation(api); }
+export function installer(api) { A = api; installerLabos(api); A.enteteParametres = () => entete(); A.pageParametres = () => pageConfiguration(); installerRecuperation(api); }
 const D = () => A.D();
 const JOURS = [[1, "Lundi"], [2, "Mardi"], [3, "Mercredi"], [4, "Jeudi"], [5, "Vendredi"], [6, "Samedi"], [0, "Dimanche"]];
 const TYPES = ["Congé", "Congrès", "Voyage", "Formation", "Fermeture du cabinet", "Autre"];
@@ -134,12 +135,12 @@ let TIT = null;
 // RCP : dans Cabinet (demande du 12/10/2026) ; 3.11 (12/10/2026) : tout ce qui règle le dossier patient au même endroit ; affichage : R-G d
 // (19/10/2026) ; rendez-vous créés d'office : dans Types de consultation (3.13). Liste : catalogue.js FAMILLES_SECTIONS (20/10/2026 : la même
 // dans l'Administration, Réglage du cabinet › Paramètres et bibliothèques)
-const ICO_FAM = { cabinet: "hopital", dossier: "profil", agenda: "agenda", listes: "pilule", finances: "bilan" };
+const ICO_FAM = { cabinet: "hopital", dossier: "profil", agenda: "agenda", listes: "pilule", finances: "bilan", laboratoires: "seringue" };
 const FAMILLES = FAMILLES_SECTIONS.map(([k, lib, l]) => [k, ICO_FAM[k] || "liste", lib, l]);
 const RUB = { lieux: ["hopital", "Lieux d'exercice"], accueil: ["accueil", "Tableau de bord"], fiche: ["profil", "Fiche patient"], consultation: ["stetho", "Formulaire de consultation"], types: ["agenda", "Types de consultation"],
   impression: ["imprimer", "Impression"], audit: ["liste", "Journal d'audit"], export: ["telecharger", "Export des données"], horaires: ["horloge", "Horaires"], fermetures: ["avion", "Congés et jours fériés"], rdvauto: ["agenda", "Rendez-vous automatiques"],
   couleurs: ["agenda", "Google Agenda"], whatsapp: ["whatsapp", "WhatsApp"], rcp: ["rcp", "RCP"], alertes: ["alerte", "Alertes"], listes: ["liste", "Listes"], affichage: ["colonnes", "Affichage du dossier"],
-  bibliotheques: ["pilule", "Bibliothèques"], vigilances: ["alerte", "Vigilance des molécules"], documents: ["document", "Types de documents"], taches: ["taches", "Tâches"], activites: ["bilan", "Activités et rémunérations"] };
+  bibliotheques: ["pilule", "Bibliothèques"], vigilances: ["alerte", "Vigilance des molécules"], documents: ["document", "Types de documents"], taches: ["taches", "Tâches"], activites: ["bilan", "Activités et rémunérations"], laboratoires: ["seringue", "Laboratoires"] };
 const famDe = (k) => (FAMILLES.find((f) => f[3].indexOf(k) >= 0) || FAMILLES[0])[0];
 // Rubriques présentes, dans l'ordre des familles ; dans une famille, l'ordre du réglage du cabinet (Administration)
 const ONGLETS = () => FAMILLES.reduce((l, f) => l.concat(f[3]), [])
@@ -157,7 +158,7 @@ const ONGLETS = () => FAMILLES.reduce((l, f) => l.concat(f[3]), [])
 // du dossier) : fiche et formulaire enregistrés dans le modèle de la spécialité (fonction ficheSpecialite), le reste dans ses paramètres.
 const HORS_BIB = ["lieux", "acces", "audit", "export"];
 // Onglets que la secrétaire (droit « secretariat », sans « paramètres ») peut modifier, et ce qu'elle y modifie
-const ONGLETS_SEC = ["horaires", "fermetures", "whatsapp", "documents", "taches", "rcp", "listes", "impression", "alertes", "types", "affichage"];
+const ONGLETS_SEC = ["horaires", "fermetures", "whatsapp", "documents", "taches", "rcp", "listes", "impression", "alertes", "types", "affichage", "laboratoires"];
 const MSG_SEC = { types: "Vous pouvez régler la durée de chaque type ; le reste est réglé par le médecin.", lieux: "Vous pouvez compléter l'adresse, le téléphone et la ville de votre lieu (« Compléter »).", horaires: "Vous pouvez régler les horaires de vos lieux.", taches: "Vous pouvez modifier les types de tâches ; les tâches automatiques sont réglées par le médecin." };
 const secretariat = () => A.peut("secretariat") && !A.D().bib;
 const MODULE_ONGLET = { vigilances: "chimio", couleurs: "gagenda", taches: "taches", rcp: "rcp", listes: "listes", bibliotheques: "prescriptions" };
@@ -438,6 +439,7 @@ export function pageConfiguration(arg) {
   if (!ONGLETS().some((o) => o[0] === ONG)) ONG = (ONGLETS()[0] || ["horaires"])[0]; // 1re rubrique présente (réglage du cabinet)
   DERN[famDe(ONG)] = ONG;
   if (ONG === "activites") { pageParametres(); return; }
+  if (ONG === "laboratoires") { pageLaboratoires(); return; } // 26/10/2026 : carnet des laboratoires (laboratoires.js)
   const relire = () => { if (!MOD && location.hash.startsWith("#parametres")) { ED = null; pageConfiguration(); } };
   if (COUL === null) { COUL = {}; getDoc(doc(db, "espaces", A.ESPACE, "parametres", "couleursAgenda")).then((s) => { COUL = s.exists() ? JSON.parse(s.data().data || "{}") : {}; relire(); }).catch(() => {}); }
   if (AUTO === null) { AUTO = reglesAutoC({}); Promise.all([getDoc(doc(db, "espaces", A.ESPACE, "parametres", "tachesAuto")).catch(() => null), listeMembres().catch(() => [])]).then(([sa, mb]) => { let c = {}; try { c = sa && sa.exists() ? JSON.parse(sa.data().data || "{}") : {}; } catch (e) { /* illisible */ } AUTO = reglesAutoC(c); MBR = mb; relire(); }); }

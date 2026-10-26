@@ -521,6 +521,14 @@ async function copierBibliothequeBentahila(par) {
   rtE.docs.forEach((d) => ecr.push(["del", d.ref]));
   rtM.docs.forEach((d) => ecr.push(["set", db.doc(E + "referentielRT/" + d.id), Object.assign({}, d.data(), { origine: "modele" })]));
   nb.referentielRT = rtM.size;
+  // 26/10/2026 (demande de Dr Bentahila) : documentation remise aux patients (bouton « Doc. ») aussi, avec ses PDF (chemin réécrit vers le modèle,
+  // fichiers recopiés après l'écriture) ; les fiches de départ du site (url) passent telles quelles. Les cabinets neufs la reçoivent ensuite (creerEspace).
+  const sDoc = await db.doc(M + "bibliotheques/documentation").get(), copiesDoc = [];
+  if (sDoc.exists) {
+    let L = []; try { L = JSON.parse(C.sansEtoiles(sDoc.data().data, jour) || "[]"); } catch (er) { L = []; }
+    L.forEach((d) => { if (d.chemin && d.chemin.indexOf(M) === 0) { const n = E + d.chemin.slice(M.length); copiesDoc.push([d.chemin, n]); d.chemin = n; } });
+    ecr.push(["set", db.doc(E + "bibliotheques/documentation"), Object.assign({}, sDoc.data(), { data: JSON.stringify(L) })]); nb.documentation = L.length;
+  }
   ecr.push(["merge", db.doc(E + "parametres/migrations"), C.migrationsFaites(jour)]);
   ecr.push(["merge", db.doc("espaces/bib-oncologie"), { copieDuCabinet: { le: new Date().toISOString(), par, nb } }]);
   for (let i = 0; i < ecr.length; i += 400) {
@@ -528,7 +536,8 @@ async function copierBibliothequeBentahila(par) {
     ecr.slice(i, i + 400).forEach(([op, ref, v]) => { if (op === "del") b.delete(ref); else if (op === "merge") b.set(ref, v, { merge: true }); else b.set(ref, v); });
     await b.commit();
   }
-  await jAdmin(par, "bibliotheque", "bib-oncologie", "Bibliothèque Oncologie – Radiothérapie", "Recopiée depuis le cabinet du Dr Bentahila (" + nb.protocoles + " protocoles, " + nb.referentielRT + " schéma" + (nb.referentielRT > 1 ? "s" : "") + " du référentiel de radiothérapie)");
+  for (const [de, vers] of copiesDoc) await getStorage().bucket().file(de).copy(vers).catch((er) => console.warn("copie du document", de, er.message));
+  await jAdmin(par, "bibliotheque", "bib-oncologie", "Bibliothèque Oncologie – Radiothérapie", "Recopiée depuis le cabinet du Dr Bentahila (" + nb.protocoles + " protocoles, " + nb.referentielRT + " schéma" + (nb.referentielRT > 1 ? "s" : "") + " du référentiel de radiothérapie, " + (nb.documentation || 0) + " document" + ((nb.documentation || 0) > 1 ? "s" : "") + " de la documentation)");
   console.log("référence recopiée depuis", C.MODELE, "par", par, JSON.stringify(nb));
   return { nb, le: jour };
 }

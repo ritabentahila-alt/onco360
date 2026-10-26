@@ -963,7 +963,7 @@ export async function pageRadiotherapie(arg) {
   const seule = !!id;
   {
     // 26/10/2026 (demande de Dr Bentahila) : « + Nouveau schéma » sur la ligne des onglets, à droite, en bouton principal comme « + Créer un protocole »
-    $("page").innerHTML = '<div class="rtr' + (seule ? " seule" : "") + '" id="rtr">' + (seule ? "" : '<div class="rtr-tete">' + ongletsPage("") + (peutModif() ? '<button class="bt plein rtr-nouv" onclick="rtrNouveau()">' + A.ic("plus") + "Nouveau schéma</button>" : "") + "</div>") +
+    $("page").innerHTML = '<div class="rtr' + (seule ? " seule" : "") + '" id="rtr">' + (seule ? "" : '<div class="rtr-tete">' + ongletsPage("") + (peutModif() ? '<button class="b1 rtr-nouv" onclick="rtrNouveau()">' + A.ic("plus") + "Nouveau schéma</button>" : "") + "</div>") +
       (seule ? "" : '<div class="rtr-haut"><div class="recherche"><svg class="i"><use href="#i-loupe"/></svg><input id="rtrQ" type="search" autocomplete="off" placeholder="Rechercher : localisation, dose, essai (ex. prostate 60, col curie, 45 Gy)" aria-label="Rechercher un schéma" value="' + A.esc(RF.q) + '"></div><div class="rtr-filtres" id="rtrFiltres"></div></div>') +
       '<div class="rtr-corps">' + (seule ? "" : '<div class="rtr-liste" id="rtrListe"></div>') + (id ? '<div class="rtr-fiche" id="rtrFiche"></div>' : "") + "</div></div>";
     const q = $("rtrQ");

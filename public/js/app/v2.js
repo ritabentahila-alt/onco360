@@ -526,7 +526,9 @@ function planifierReleve(delai) {
 function journal(x, quoi) { addDoc(collection(db, "espaces", ESPACE, "historique"), { parUid: D.u.uid, parNom: nomCompte(), le: serverTimestamp(), patientId: x.id, patient: (x.r && x.r.nm) || "", quoi }).catch(() => {}); }
 
 // Fenêtre (formulaires)
-function fenetre(html, taille) { $("fenetreCorps").innerHTML = html; $("fenetreCorps").classList.toggle("large", taille === "large"); $("fenetre").classList.remove("cache"); const f = $("fenetreCorps").querySelector("input,select,textarea"); if (f) setTimeout(() => f.focus(), 50); }
+// Lot E, étapes 2 à 4 (26/10/2026) : toutes les fenêtres ont la croix ✕ en haut à droite (fermer = comme Annuler / Fermer)
+const CROIX = '<button type="button" class="b3 fen-x" onclick="fermerFenetre()" aria-label="Fermer" title="Fermer">✕</button>';
+function fenetre(html, taille) { $("fenetreCorps").innerHTML = html; if (!$("fenetreCorps").querySelector(".fen-x")) $("fenetreCorps").insertAdjacentHTML("afterbegin", CROIX); $("fenetreCorps").classList.toggle("large", taille === "large"); $("fenetre").classList.remove("cache"); const f = $("fenetreCorps").querySelector("input,select,textarea"); if (f) setTimeout(() => f.focus(), 50); }
 // R-G e : la petite fenêtre se ferme d'abord ; sans petite fenêtre, c'est le panneau de chimio / RT qui se ferme
 // 25/10/2026 : apresFenetre(f) = f appelée une fois, à la prochaine fermeture de la petite fenêtre (ex. « Ligne créée » qui revient après chaque action)
 let APRES_FEN = null;
@@ -549,7 +551,7 @@ const PN = { sale: false, apres: [] }; // panneau de chimio / RT (R-G e) : chang
 const API = { D: () => D, get ESPACE() { return ESPACE; }, apresFenetre: (f) => { APRES_FEN = f || null; }, ecouteDossiers: () => !!ECOUTE_D, $, esc, ic, dfr, dfrA, cap, jourLong, val, occupe, erreur, toast, fenetre, fermerFenetre: () => window.fermerFenetre(), panneau: (h) => panneau(h), fermerPanneau: (f) => fermerPanneau(f), panneauOuvert: () => panneauOuvert(), petiteSurPanneau: () => panneauOuvert() && petiteOuverte(), surFermerPanneau: (f) => PN.apres.push(f), fermerPetite: () => fermerPetite(), corpsLarge: () => (grilleDossier() && $("panneauCorps") ? $("panneauCorps") : $("fenetreCorps")), peut, voit, traitMod, enregistrer, pageDossier: (id) => reafficher(id), recalculer, journal };
 API.typesRdv = (e) => typesRdv(e); API.typesC = () => D.typesC || []; API.actsDe = () => actsDe(D.tarifs, D.activites); // Paramètres › Horaires : durée par type de consultation (AG2)
 // Heure facultative du scanner de centrage (AG5, 11/10/2026) : r.scanH = { h, du } ou retirée (droit « radiothérapie : modifier »)
-API.traitModRT = () => traitModRT(); API.estMed = () => estMed(D.membre.role); API.estRemplacant = () => D.membre.role === "remplacant";
+API.traitModRT = () => traitModRT(); API.estMed = () => estMed(D.membre.role); API.menuPts = (m) => menuPts(m); API.estRemplacant = () => D.membre.role === "remplacant";
 // Lot C : le remplaçant agit au nom du médecin titulaire (consultations, ordonnances, tâches, salle, RCP, documents) ; le journal d'audit garde la vraie personne (serveur)
 API.nomAgissant = () => (D.membre.role === "remplacant" ? medecinFiche().nom || nomCompte() : nomCompte());
 API.heureRT = async (pid, rid, hr, z) => { // z : "scan" (défaut) ou "deb" (1re séance, 12/10/2026)
@@ -1018,7 +1020,7 @@ function pageAccueil() {
   const A2 = accueilEffectif(D.reg, D.accueilCab); D.accueilCartes = A2.cartes;
 
   let h = '<section class="accueil"><div><h2>Bonjour ' + esc(estMed(D.membre.role) ? [D.titre, D.nomAff].filter(Boolean).join(" ") : cap(String((D.profil && D.profil.prenom) || "").toLowerCase()) || D.nomAff) + "</h2><p>" + cap(jourLong(D.t)) + "</p></div>" +
-    '<div class="actions"><button class="bt clair" onclick="nouveauPatient()">' + ic("plus") + '<span class="lg">Nouveau patient</span><span class="sm">Patient</span></button><button class="bt plein" onclick="nouveauRdv()">' + ic("plus") + '<span class="lg">Nouveau rendez-vous</span><span class="sm">Rendez-vous</span></button></div></section>';
+    '<div class="actions"><button class="b2" onclick="nouveauPatient()">' + ic("plus") + '<span class="lg">Nouveau patient</span><span class="sm">Patient</span></button><button class="b1" onclick="nouveauRdv()">' + ic("plus") + '<span class="lg">Nouveau rendez-vous</span><span class="sm">Rendez-vous</span></button></div></section>';
 
   // Cartes du tableau de bord : construites une par une, puis placées selon l'organisation réglée (administration, puis cabinet)
   const cartes = {}, carte = (k, fn) => { const avant = h; h = ""; fn(); cartes[k] = h; h = avant; };
@@ -1103,7 +1105,7 @@ function pagePatients(filtre) {
     '<optgroup label="Protocoles en cours">' + Object.keys(protos).sort().map((p) => '<option value="p:' + esc(p) + '">Sous ' + esc(p) + "</option>").join("") + "</optgroup>";
   // Lot B (25/10/2026) : plus de titre ; les filtres d'abord, puis « + Nouveau patient » en tête de la liste, à droite du nombre de patients
   $("page").innerHTML = '<div class="filtres barre-filtres"><div class="recherche">' + ic("loupe") + '<input id="q" type="search" placeholder="Rechercher un patient…" title="Nom, prénom, date de naissance, numéro de dossier, diagnostic, protocole" autocomplete="off"></div><select id="flt">' + opts + "</select>" + (hopsVus().length > 1 ? '<select id="fhop" aria-label="Hôpital"><option value="">Tous les hôpitaux</option>' + hopsVus().map((e) => '<option value="' + esc(e.code) + '">' + esc(e.code + " – " + e.nom) + "</option>").join("") + "</select>" : "") + "</div>" +
-    '<section class="carte"><div class="liste-tete"><div class="sous" id="nbRes"></div><button class="bt plein" onclick="nouveauPatient()">' + ic("plus") + "Nouveau patient</button></div><div id=\"lst\"></div></section>";
+    '<section class="carte"><div class="liste-tete"><div class="sous" id="nbRes"></div><button class="b1" onclick="nouveauPatient()">' + ic("plus") + "Nouveau patient</button></div><div id=\"lst\"></div></section>";
   // 3.1 et 3.3 (12/10/2026) : filtres par statut, localisation et stade (fiche tumeur), proposés s'il y a des valeurs
   const ex = (x, k) => (((x.doc.clinique || {}).extra) || {})[k] || "", vus = (k, ref) => ref.filter((v) => D.patients.some((x) => ex(x, k) === v));
   const sel = (id, lib, l) => (l.length ? '<select id="' + id + '" aria-label="' + lib + '"><option value="">' + lib + "</option>" + l.map(([v, t]) => '<option value="' + esc(v) + '">' + esc(t) + "</option>").join("") + "</select>" : "");
@@ -1264,16 +1266,18 @@ function pageDossier(id) {
     return '<button class="mini"' + (okT ? "" : ' disabled title="Pas de numéro de téléphone dans le dossier"') + " onclick=\"envoyerWA('" + x.id + "','" + cat + "','" + d + "','" + (h || "") + "')\">" + (rappelDe(x, d, cat) ? "Renvoyer le rappel WhatsApp" : "Rappel WhatsApp") + "</button>"; };
   const waEnv = (cat, d) => !!(cat && fnOn("agenda.whatsapp") && rappelDe(x, d, cat));
   const JS3 = ["Dim.", "Lun.", "Mar.", "Mer.", "Jeu.", "Ven.", "Sam."], jourC = (d) => (d ? JS3[new Date(d + "T12:00:00Z").getUTCDay()] + " " + dfr(d) : "—");
-  const carte = (o, passe) => '<div class="rc' + (passe ? " passe" : "") + (o.retard ? " retard" : "") + '"><div class="rc-1"><span class="rc-d">' + (passe ? (o.d ? dfrA(o.d) : "—") : jourC(o.d) + (o.f && o.f !== o.d ? " → " + dfr(o.f) : "")) + (o.h ? " · " + esc(o.h) : "") + "</span>" +
-    (o.env ? '<span class="rc-wa" title="Rappel WhatsApp envoyé">' + ic("check") + "</span>" : "") + (o.em ? '<span class="rc-em">' + o.em + "</span>" : "") + '<b class="rc-t" title="' + esc(o.t) + '">' + esc(o.t) + "</b>" +
-    (o.al ? '<span class="rc-al">' + esc(o.al) + "</span>" : "") + (o.av ? '<span class="rc-av">' + esc(o.av) + "</span>" : "") + menuPts((o.m || []).filter(Boolean)) + "</div>" +
-    (o.s ? '<div class="rc-2" title="' + esc(o.s) + '">' + esc(o.s) + "</div>" : "") + "</div>";
   // 26/10/2026 (demande de Dr Bentahila) : dans la colonne Patient, une ligne par rendez-vous, séance ou tâche : « Lun. 26/10 · 08:30 », icône, nom
   // court (Séance chimio, RT hebdo, Suivi, Annonce, Contrôle… comme la salle d'attente), puis le détail en gris coupé à la largeur (texte entier au
   // survol) ; mêmes repères (À valider, retard, férié, rappel envoyé) et même « ⋯ ». La carte complète reste au centre (clic sur le titre).
   const ligne = (o, passe) => { const ty = o.ty || o.t, q = [o.t === ty ? "" : o.t, o.s].filter(Boolean).join(" · ");
     return '<div class="rc rl' + (passe ? " passe" : "") + (o.retard ? " retard" : "") + '"><span class="rc-d">' + (passe ? (o.d ? dfrA(o.d) : "—") : jourC(o.d) + (o.f && o.f !== o.d ? " → " + dfr(o.f) : "")) + (o.h ? " · " + esc(o.h) : "") + "</span>" +
       (o.em ? '<span class="rc-em">' + o.em + "</span>" : "") + '<span class="rl-t" title="' + esc([ty, q].filter(Boolean).join(" · ")) + '"><span class="rl-ty">' + esc(ty) + "</span>" + (q ? '<span class="rl-q"> · ' + esc(q) + "</span>" : "") + "</span>" +
+      (o.env ? '<span class="rc-wa" title="Rappel WhatsApp envoyé">' + ic("check") + "</span>" : "") + (o.al ? '<span class="rc-al">' + esc(o.al) + "</span>" : "") + (o.av ? '<span class="rc-av">' + esc(o.av) + "</span>" : "") + menuPts((o.m || []).filter(Boolean)) + "</div>"; };
+  // 26/10/2026 (2e demande) : au centre (clic sur le titre de la rubrique), une carte d'une seule ligne sur toute la largeur : « Lun. 02/11 · 10:00 »,
+  // icône, « C1 J22 · consultation » puis le motif ou le protocole en gris (coupé à la largeur, texte entier au survol)
+  const large = (o, passe) => { const q = [o.t, o.s].filter(Boolean).join(" · ");
+    return '<div class="rc rg' + (passe ? " passe" : "") + (o.retard ? " retard" : "") + '"><span class="rc-d">' + (passe ? (o.d ? dfrA(o.d) : "—") : jourC(o.d) + (o.f && o.f !== o.d ? " → " + dfr(o.f) : "")) + (o.h ? " · " + esc(o.h) : "") + "</span>" +
+      (o.em ? '<span class="rc-em">' + o.em + "</span>" : "") + '<span class="rl-t" title="' + esc(q) + '"><span class="rl-ty">' + esc(o.t || "") + "</span>" + (o.s ? '<span class="rl-q"> · ' + esc(o.s) + "</span>" : "") + "</span>" +
       (o.env ? '<span class="rc-wa" title="Rappel WhatsApp envoyé">' + ic("check") + "</span>" : "") + (o.al ? '<span class="rc-al">' + esc(o.al) + "</span>" : "") + (o.av ? '<span class="rc-av">' + esc(o.av) + "</span>" : "") + menuPts((o.m || []).filter(Boolean)) + "</div>"; };
   const NB = 3; // cartes visibles avant « Voir plus »
   const aVenir = (v) => (v.st || "prevu") === "prevu" && (v.f || v.d) >= t;
@@ -1321,7 +1325,7 @@ function pageDossier(id) {
   });
   av.sort((p, q) => (p.d + (p.h || "00")).localeCompare(q.d + (q.h || "00")));
   av.forEach((v) => { v.al = absenceLe(v.d) ? absentMedecin(medecinFiche().genre) : ferieLe(v.d) ? "Férié" : ""; if (v.rep && v.rep.length) v.s = [v.s, "Reporté (initialement le " + dfrA(v.rep[0].d) + ")"].filter(Boolean).join(" · "); });
-  const cAv = av.map((v) => carte(v)), lAv = av.map((v) => ligne(v)), toutAv = AV_TOUT.has(x.id);
+  const cAv = av.map((v) => large(v)), lAv = av.map((v) => ligne(v)), toutAv = AV_TOUT.has(x.id);
   const hAvenir = (decede(P) && av.some((v) => v.d >= t) ? '<p class="al-band dc">Patient décédé' + (P.decesLe ? " le " + dfrA(P.decesLe) : "") + " : " + av.filter((v) => v.d >= t).length + " rendez-vous, séance(s) ou tâche(s) encore prévus, à annuler.</p>" : "") +
     '<div class="rc-liste rl-liste" id="rdvListe">' + (av.length ? lAv.slice(0, toutAv ? av.length : NB).join("") + (av.length > NB ? '<button class="lien rc-plus" onclick="voirAvTout(\'' + x.id + '\')">' + (toutAv ? "Voir moins" : "Voir plus (" + (av.length - NB) + ")") + "</button>" : "") : '<p class="sous">Aucun rendez-vous ni tâche à venir.</p>') + "</div>";
   // « Prochain rendez-vous » retiré le 26/10/2026 (demande de Dr Bentahila : doublon de « Rendez-vous et tâches à venir »)
@@ -1375,7 +1379,7 @@ function pageDossier(id) {
       const mS = [], mP = [], mA = [], aS = statutM(v, mS, mA), aP = prixM(v, mP);
       return { d: v.d, h: v.h || "", em: typeRdv(v.type) === "hospit" ? '<svg class="pi"><use href="#i-hopital"/></svg>' : ic("stetho"), ty: typeCourtSalle(v)[0], t: libRdv(v), s: [v.mo ? "Motif : " + v.mo : "", v.n || "", v.rep && v.rep.length ? "Reporté (initialement le " + dfrA(v.rep[0].d) + ")" : ""].filter(Boolean).join(" · "), av: aS || aP, m: mS.concat(mP, mA) };
     });
-    cPasse = oPasse.map((o) => carte(o, true)); lPasse = oPasse.map((o) => ligne(o, true));
+    cPasse = oPasse.map((o) => large(o, true)); lPasse = oPasse.map((o) => ligne(o, true));
     const toutPa = PA_TOUT.has(x.id);
     hPasse = (EN === undefined ? '<p class="mesures">Chargement des prix…</p>' : "") + '<div class="rc-liste rl-liste">' +
       (lPasse.length ? lPasse.slice(0, toutPa ? lPasse.length : NB).join("") + (cPasse.length > NB ? '<button class="lien rc-plus" onclick="voirPaTout(\'' + x.id + '\')">' + (toutPa ? "Voir moins" : "Voir plus (" + (cPasse.length - NB) + ")") + "</button>" : "") : '<p class="vide-c">Aucun rendez-vous passé.</p>') + "</div>";
@@ -1516,8 +1520,8 @@ function htmlRT(x, okRT) {
       (c ? '<div style="margin-top:10px" title="Calcul d\'après le calendrier (les séances réelles sont suivies dans ARIA)"><b>Séances prévues à ce jour : ' + c.faites + " / " + c.nb + "</b> (" + c.pct + ' %)<div class="barre"><i style="width:' + c.pct + '%"></i></div></div>' : "") +
       (v.note && ouv ? '<p class="sous" style="margin:8px 0 0">' + esc(v.note) + "</p>" : "") +
       '<div class="actr" style="justify-content:flex-start;margin-top:12px">' + (okRT ? '<button class="mini" onclick="ouvrirRT(' + q + ')">Modifier</button>' + (v.deb ? (v.fin ? '<button class="mini" onclick="terminerRT(' + q + ',1)">Rouvrir</button>' : '<button class="mini v" onclick="terminerRT(' + q + ')">Terminé</button>') : "") : "") +
-      (v.acte && peut("documents") ? boutonDoc(x, v, "pli", "Pli confidentiel") : "") +
-      (v.deb && nb && peut("documents") ? boutonDoc(x, v, "cr", "Compte rendu de fin") + boutonDoc(x, v, "rdv", "Rendez-vous") : "") + "</div></div>";
+      // 26/10/2026 (demande de Dr Bentahila) : Pli confidentiel, Compte rendu de fin et Rendez-vous sous « ⋯ » (moins de place ; coche = déjà enregistré)
+      menuPts([v.acte && peut("documents") ? boutonDoc(x, v, "pli", "Pli confidentiel") : "", v.deb && nb && peut("documents") ? boutonDoc(x, v, "cr", "Compte rendu de fin") : "", v.deb && nb && peut("documents") ? boutonDoc(x, v, "rdv", "Rendez-vous") : ""].filter(Boolean)) + "</div></div>";
   });
   return hr;
 }
@@ -1542,7 +1546,7 @@ function panneau(html) {
 window.dosRubrique = (pid, k) => {
   const x = D.patients.find((p) => p.id === pid); if (!x) return;
   if (k === "avenir" || k === "passe") { const lib = (PARTIES_D.find((z) => z[0] === k) || [])[1] || "";
-    panneau('<div data-rub="' + k + '"><h3>' + esc(lib) + " · " + esc(x.r.nm) + '</h3><div class="rc-liste rc-grand">' + ((RUB[pid] || {})[k] || "") + '</div><div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Fermer</button></div></div>'); return; }
+    panneau('<div data-rub="' + k + '"><h3 class="rub-t">' + esc(lib) + " · " + esc(x.r.nm) + '</h3><div class="rc-liste rc-grand">' + ((RUB[pid] || {})[k] || "") + '</div><div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Fermer</button></div></div>'); return; }
   if (k === "id" ? peut("identite") || traitMod() || peut("fichePatient") : traitMod() || peut("fichePatient")) { window.modifierIdentite(pid, k, true); return; }
   panneau('<div data-rub="' + k + '"><h3>' + esc(x.r.nm) + "</h3>" + ficheP.htmlLectureFiche(x, k) + '<div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Fermer</button></div></div>');
 };
@@ -2312,8 +2316,9 @@ document.addEventListener("keydown", (ev) => {
   if (ev.key !== "Escape") return;
   if (!$("menuCompte").classList.contains("cache")) { menuCompte(false); ($("btCompte").offsetParent ? $("btCompte") : $("avTete")).focus(); return; }
   document.querySelectorAll("details.m3[open]").forEach((d) => d.removeAttribute("open")); // Échap ferme aussi un menu ⋯ ouvert
-  // Lot E (25/10/2026, page témoin Tâches) : Échap ferme une fenêtre marquée data-echap (les autres pages suivront après validation)
-  if (!$("fenetre").classList.contains("cache") && $("fenetreCorps").querySelector("[data-echap]") && !$("ptsMenuF")) window.fermerFenetre();
+  // Lot E : Échap ferme une fenêtre marquée data-echap ; 26/10/2026 (étapes 2 à 4) : aussi toute fenêtre sans zone de saisie (rien ne peut être perdu)
+  const fc = $("fenetreCorps"), saisie = fc.querySelector('textarea, select, [contenteditable="true"], input:not([type=checkbox]):not([type=radio]):not([type=hidden])');
+  if (!$("fenetre").classList.contains("cache") && (fc.querySelector("[data-echap]") || !saisie) && !$("ptsMenuF")) window.fermerFenetre();
 });
 $("mcCompte").onclick = () => { menuCompte(false); fermerMenu(); };
 window.addEventListener("resize", () => menuCompte(false));

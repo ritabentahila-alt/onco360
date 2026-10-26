@@ -40,6 +40,9 @@ const RT = (titre, o) => Object.assign({ schema: { id: "x", situation_id: "pro-e
 await db.doc(MOD + "/referentielRT/pro-fav-60-20").set(RT("60 Gy / 20 fx (version du modèle, test)"));
 await db.doc(MOD + "/referentielRT/cab-test1").set(RT("Schéma créé (test)", { nouveau: true, copie_de: "pro-fav-60-20" }));
 await db.doc(BIB + "/referentielRT/ancien-test").set(RT("ANCIEN SCHÉMA DU MODÈLE"));
+// 26/10/2026 : documentation du cabinet modèle (un PDF déposé, une fiche de départ du site) : recopiée dans le modèle avec son fichier
+await bucket.file(MOD + "/documentation/doc1/fiche-test.pdf").save(Buffer.from("%PDF-1.4 test"), { contentType: "application/pdf" });
+await db.doc(MOD + "/bibliotheques/documentation").set(J([{ id: "doc1", titre: "Fiche test (cabinet)", chemin: MOD + "/documentation/doc1/fiche-test.pdf", nom: "fiche-test.pdf", fav: true }, { id: "dep1", titre: "Fiche de départ", url: "documents/x.pdf" }]));
 await db.doc(X).set({ nom: "Cabinet X (test)", titulaire: "MX", actif: true, ficheSpe: { ajouts: [{ id: "xvieux", lib: "Ancien champ", type: "texte", partie: "clinique" }] },
   abonnement: { formule: "complet", modules: { chimio: true }, reglage: { menu: ["agenda"], cartes: { stats: true } } } });
 await db.doc(X + "/parametres/listes").set(J({ diag: ["Cancer X"], mut: [], cor: ["Dr Correspondant de X"] }));
@@ -144,12 +147,16 @@ refus = null; try { await ecart({ espace: "cab-x" }); } catch (e) { refus = e.co
 cas("un médecin (pas l'administration) ne voit pas l'écart d'un autre cabinet", refus === "functions/permission-denied", refus);
 await signInWithEmailAndPassword(auth, "adm@test.ma", "motdepasse-test");
 
+const Db = await lire(BIB + "/bibliotheques/documentation");
+cas("documentation du cabinet recopiée dans le modèle (chemin réécrit, fichier copié, étoile retirée)", Db && Db.length === 2 && Db[0].chemin === BIB + "/documentation/doc1/fiche-test.pdf" && !Db[0].fav && (await bucket.file(BIB + "/documentation/doc1/fiche-test.pdf").exists())[0] && Db[1].url === "documents/x.pdf", Db);
 console.log("Cabinet neuf : reçoit le modèle repris");
 const c1 = (await creer({ cabinet: "Cabinet neuf test", prenom: "Test", nom: "Neuf", email: "neuf@test.ma", telephone: "0600000000", formule: "complet" })).data, N = "espaces/" + c1.espace;
 const Nd = (await db.doc(N).get()).data();
 cas("fiche et formulaire de consultation du modèle", (Nd.ficheSpe.ajouts || []).map((x) => x.id).sort().join() === "xgeuit,xscore" && Nd.consultSpe.typesForm.RCP === "frcp", Nd.ficheSpe);
 cas("réglage du pack complété par le modèle (menu de départ du modèle, salle en tête)", Nd.abonnement.reglage && Nd.abonnement.reglage.menu && Nd.abonnement.reglage.menu.indexOf("salle") >= 0, Nd.abonnement.reglage);
 cas("tableau de bord du modèle copié dans le cabinet neuf", ((await lire(N + "/parametres/accueil")) || {}).ordre[0] === "jour");
+const Dn = await lire(N + "/bibliotheques/documentation");
+cas("cabinet neuf : documentation du modèle avec son PDF", Dn && Dn.length === 2 && Dn[0].chemin === N + "/documentation/doc1/fiche-test.pdf" && (await bucket.file(N + "/documentation/doc1/fiche-test.pdf").exists())[0], Dn);
 const Rn = (await db.collection(N + "/referentielRT").get()).docs.map((d) => [d.id, d.data()]);
 cas("référentiel de radiothérapie du modèle copié dans le cabinet neuf (origine « modele »)", Rn.map((x) => x[0]).sort().join() === "cab-test1,pro-fav-60-20" && Rn.every((x) => x[1].origine === "modele" && x[1].schema && x[1].schema.titre), Rn.map((x) => x[0]));
 // Cabinet de démonstration recréé : même création (creerEspace), donc le référentiel du modèle aussi
