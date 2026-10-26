@@ -90,7 +90,6 @@
     "chhip",
     "profit"
    ],
-   "source_institutionnelle": "Institut Curie, prostate en place (2021)",
    "prescriptions": [
     {
      "volume": "PTV_PRO",
@@ -117,6 +116,29 @@
     "Prostate",
     "En place — risque faible ou intermédiaire favorable (N0 M0)",
     "Hypofractionné"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "CTV",
+     "indicateur": "D98%",
+     "ideal": "",
+     "limitant": "≥ 58,8 Gy",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "D95%",
+     "ideal": "",
+     "limitant": "≥ 57 Gy",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "D1cc",
+     "ideal": "",
+     "limitant": "≤ 107 %",
+     "note": ""
+    }
    ]
   },
   {
@@ -151,7 +173,30 @@
     "En place — risque faible ou intermédiaire favorable (N0 M0)",
     "Hypofractionné"
    ],
-   "points_attention": []
+   "points_attention": [],
+   "couverture_lignes": [
+    {
+     "volume": "CTV",
+     "indicateur": "D98%",
+     "ideal": "",
+     "limitant": "≥ 68,6 Gy",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "D95%",
+     "ideal": "",
+     "limitant": "≥ 66,5 Gy",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "D1cc",
+     "ideal": "",
+     "limitant": "≤ 107 %",
+     "note": ""
+    }
+   ]
   },
   {
    "id": "pro-fav-78-39",
@@ -163,7 +208,6 @@
     "profit",
     "paceb"
    ],
-   "source_institutionnelle": "Institut Curie, prostate en place (2021)",
    "prescriptions": [
     {
      "volume": "PTV_PRO",
@@ -172,7 +216,7 @@
      "dose_fx_Gy": 2,
      "mode": "seul",
      "rythme": "5 fx/sem",
-     "note": "Curie : option si anticoagulants ; 76 Gy / 38 fx en rattrapage après Ablatherm"
+     "note": "Option si anticoagulants ; 76 Gy / 38 fx en rattrapage après Ablatherm"
     }
    ],
    "technique": "VMAT, IGRT kV-CBCT quotidien",
@@ -188,7 +232,37 @@
     "En place — risque faible ou intermédiaire favorable (N0 M0)",
     "Normofractionné"
    ],
-   "points_attention": []
+   "points_attention": [],
+   "couverture_lignes": [
+    {
+     "volume": "CTV",
+     "indicateur": "D98%",
+     "ideal": "",
+     "limitant": "≥ 76,4 Gy",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "D95%",
+     "ideal": "",
+     "limitant": "≥ 74,1 Gy",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "D1cc",
+     "ideal": "",
+     "limitant": "≤ 107 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "option 76 Gy / 38 fx : CTV D98%",
+     "ideal": "",
+     "limitant": "≥ 74,5 Gy, PTV D95% ≥ 72,2 Gy",
+     "note": ""
+    }
+   ]
   },
   {
    "id": "pro-fav-sbrt-36",
@@ -199,7 +273,6 @@
    "essai_ids": [
     "paceb"
    ],
-   "source_institutionnelle": "Institut Curie, SBRT prostate (2021)",
    "prescriptions": [
     {
      "volume": "PTV",
@@ -207,8 +280,8 @@
      "fractions": 5,
      "dose_fx_Gy": 7.25,
      "mode": "seul",
-     "rythme": "1 jour sur 2 (Curie) ; sur 1 ou 2 semaines (PACE-B)",
-     "note": "Objectif CTV D95% ≥ 40 Gy (Curie)"
+     "rythme": "1 jour sur 2 ; sur 1 ou 2 semaines (PACE-B)",
+     "note": "Objectif CTV D95% ≥ 40 Gy"
     }
    ],
    "technique": "VMAT, 3 grains d'or intraprostatiques, CBCT avant chaque arc ou kV-kV intrafraction",
@@ -219,8 +292,8 @@
    "couverture": "PTV D98% ≥ 34,4 Gy ; PTV D95% ≥ 36,25 Gy ; PTV D2% ≤ 43,5 Gy ; Dmax ≤ 45,3 Gy (acceptable ≤ 48 Gy) ; CTV D99% ≥ 36,25 Gy ; CTV D95% ≥ 40 Gy (acceptable D90% ≥ 40 Gy)",
    "points_attention": [
     "Toxicité génito-urinaire tardive de grade ≥ 2 plus fréquente qu'en RT standard (26,9 % vs 18,3 % à 5 ans, PACE-B)",
-    "Critères Curie : IPSS < 15, âge > 70 ans et espérance de vie > 10 ans ; ISUP 3 au cas par cas sans indication pelvienne ; pas de SBRT si le PTV touche l'intestin grêle",
-    "Rythme Curie : 1 jour sur 2 ; jusqu'à 3 jours consécutifs, jamais 4 ; au plus 4 séances par semaine ; interruption ≤ 2 jours (3 avec le week-end)",
+    "Critères : IPSS < 15, âge > 70 ans et espérance de vie > 10 ans ; ISUP 3 au cas par cas sans indication pelvienne ; pas de SBRT si le PTV touche l'intestin grêle",
+    "Rythme : 1 jour sur 2 ; jusqu'à 3 jours consécutifs, jamais 4 ; au plus 4 séances par semaine ; interruption ≤ 2 jours (3 avec le week-end)",
     "Repositionnement sur les 3 grains (chacun dans son volume Grain+2mm) ; décalage > 3 mm : nouveau CBCT ; rotation > 1° : appel de la physique"
    ],
    "date_verif": "2026-10-22",
@@ -229,6 +302,50 @@
     "Prostate",
     "En place — risque faible ou intermédiaire favorable (N0 M0)",
     "Stéréotaxie"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "D98%",
+     "ideal": "",
+     "limitant": "≥ 34,4 Gy",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "D95%",
+     "ideal": "",
+     "limitant": "≥ 36,25 Gy",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "D2%",
+     "ideal": "",
+     "limitant": "≤ 43,5 Gy",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "Dmax",
+     "ideal": "",
+     "limitant": "≤ 45,3 Gy",
+     "note": "acceptable ≤ 48 Gy"
+    },
+    {
+     "volume": "CTV",
+     "indicateur": "D99%",
+     "ideal": "",
+     "limitant": "≥ 36,25 Gy",
+     "note": ""
+    },
+    {
+     "volume": "CTV",
+     "indicateur": "D95%",
+     "ideal": "",
+     "limitant": "≥ 40 Gy",
+     "note": "acceptable D90% ≥ 40 Gy"
+    }
    ]
   },
   {
@@ -274,7 +391,6 @@
    "essai_ids": [
     "chhip"
    ],
-   "source_institutionnelle": "Institut Curie, prostate en place (2021)",
    "prescriptions": [
     {
      "volume": "PTV_PRO",
@@ -299,7 +415,30 @@
     "En place — intermédiaire défavorable ou haut risque, sans irradiation pelvienne (N0 M0)",
     "Hypofractionné"
    ],
-   "points_attention": []
+   "points_attention": [],
+   "couverture_lignes": [
+    {
+     "volume": "CTV",
+     "indicateur": "D98%",
+     "ideal": "",
+     "limitant": "≥ 58,8 Gy",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "D95%",
+     "ideal": "",
+     "limitant": "≥ 57 Gy",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "D1cc",
+     "ideal": "",
+     "limitant": "≤ 107 %",
+     "note": ""
+    }
+   ]
   },
   {
    "id": "pro-def-78-39",
@@ -307,7 +446,6 @@
    "titre": "78 Gy / 39 fx (80 Gy / 40 fx si T3b–T4)",
    "type": "rte_normo",
    "preuve": "option",
-   "source_institutionnelle": "Institut Curie, prostate en place (2021)",
    "prescriptions": [
     {
      "volume": "PTV_PRO",
@@ -316,7 +454,7 @@
      "dose_fx_Gy": 2,
      "mode": "seul",
      "rythme": "5 fx/sem",
-     "note": "80 Gy / 40 fx si T3b–T4 (Curie)"
+     "note": "80 Gy / 40 fx si T3b–T4"
     }
    ],
    "technique": "VMAT, IGRT kV-CBCT quotidien",
@@ -333,7 +471,30 @@
     "Normofractionné"
    ],
    "essai_ids": [],
-   "points_attention": []
+   "points_attention": [],
+   "couverture_lignes": [
+    {
+     "volume": "CTV",
+     "indicateur": "D98%",
+     "ideal": "",
+     "limitant": "≥ 76,4 Gy",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "D95%",
+     "ideal": "",
+     "limitant": "≥ 74,1 Gy",
+     "note": "80 Gy : 78,4 / 76 Gy"
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "D1cc",
+     "ideal": "",
+     "limitant": "≤ 107 %",
+     "note": ""
+    }
+   ]
   },
   {
    "id": "pro-def-flame",
@@ -385,7 +546,6 @@
    "titre": "Prostate 70 Gy + VS 56 Gy + pelvis 50,4 Gy / 28 fx (SIB)",
    "type": "rte_hypo",
    "preuve": "pratique_institutionnelle",
-   "source_institutionnelle": "Institut Curie, prostate en place (2021)",
    "prescriptions": [
     {
      "volume": "PTV_PRO",
@@ -427,7 +587,37 @@
     "Hypofractionné"
    ],
    "essai_ids": [],
-   "points_attention": []
+   "points_attention": [],
+   "couverture_lignes": [
+    {
+     "volume": "",
+     "indicateur": "PRO : CTV D98%",
+     "ideal": "",
+     "limitant": "≥ 68,6 / PTV D95% ≥ 66,5 Gy",
+     "note": ""
+    },
+    {
+     "volume": "",
+     "indicateur": "VS : 54,9 / 53,2 Gy",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    },
+    {
+     "volume": "",
+     "indicateur": "PELV : 49,4 / 47,9 Gy",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "D1cc",
+     "ideal": "",
+     "limitant": "≤ 107 %",
+     "note": ""
+    }
+   ]
   },
   {
    "id": "pro-pelv-poprt",
@@ -477,7 +667,6 @@
    "titre": "Pelvis 50 Gy, VS 54 Gy, prostate 78 Gy (séquentiel)",
    "type": "rte_normo",
    "preuve": "option",
-   "source_institutionnelle": "Institut Curie, prostate en place (2021)",
    "prescriptions": [
     {
      "volume": "PTV_PELV",
@@ -486,7 +675,7 @@
      "dose_fx_Gy": 2,
      "mode": "sequentiel",
      "rythme": "5 fx/sem",
-     "note": "Tableur du service : 46 Gy / 23 fx"
+     "note": "46 Gy / 23 fx"
     },
     {
      "volume": "PTV_VS",
@@ -503,7 +692,7 @@
      "dose_fx_Gy": 2,
      "mode": "sequentiel",
      "rythme": "5 fx/sem",
-     "note": "80 Gy / 40 fx si T3b–T4 (Curie)"
+     "note": "80 Gy / 40 fx si T3b–T4"
     }
    ],
    "technique": "VMAT, IGRT kV-CBCT quotidien",
@@ -520,7 +709,37 @@
     "Normofractionné"
    ],
    "essai_ids": [],
-   "points_attention": []
+   "points_attention": [],
+   "couverture_lignes": [
+    {
+     "volume": "",
+     "indicateur": "PRO 78 : 76,4 / 74,1 Gy",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    },
+    {
+     "volume": "",
+     "indicateur": "VS 54 : 52,9 / 51,3 Gy",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    },
+    {
+     "volume": "",
+     "indicateur": "PELV 50 : 49 / 47,5 Gy",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "D1cc",
+     "ideal": "",
+     "limitant": "≤ 107 %",
+     "note": ""
+    }
+   ]
   },
   {
    "id": "pro-n1-70-28",
@@ -531,7 +750,6 @@
    "essai_ids": [
     "stampede-abi"
    ],
-   "source_institutionnelle": "Institut Curie, prostate en place (2021)",
    "prescriptions": [
     {
      "volume": "PTV_PRO",
@@ -565,11 +783,11 @@
      "dose_fx_Gy": 2.2,
      "mode": "SIB",
      "rythme": "5 fx/sem",
-     "note": "Pas de boost si adénopathie < 5 mm ou disparue sous hormonothérapie (Curie)"
+     "note": "Pas de boost si adénopathie < 5 mm ou disparue sous hormonothérapie"
     }
    ],
    "technique": "VMAT, IGRT kV-CBCT quotidien",
-   "systemique": "HT 24–36 mois (Curie) ; avec abiratérone : HT 3 ans + abiratérone 2 ans (STAMPEDE)",
+   "systemique": "HT 24–36 mois ; avec abiratérone : HT 3 ans + abiratérone 2 ans (STAMPEDE)",
    "simulation_id": "sim-pro-ep",
    "volumes_id": "vol-pro-ep",
    "contraintes_ids": [],
@@ -581,7 +799,37 @@
     "En place — atteinte ganglionnaire pelvienne (cN1 M0)",
     "Hypofractionné"
    ],
-   "points_attention": []
+   "points_attention": [],
+   "couverture_lignes": [
+    {
+     "volume": "",
+     "indicateur": "PRO 68,6 / 66,5",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    },
+    {
+     "volume": "",
+     "indicateur": "VS 54,9 / 53,2",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    },
+    {
+     "volume": "",
+     "indicateur": "PELV 49,4 / 47,9",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    },
+    {
+     "volume": "",
+     "indicateur": "ADP : CTV D98%",
+     "ideal": "",
+     "limitant": "≥ 60,4 / PTV D95% ≥ 58,5 Gy",
+     "note": ""
+    }
+   ]
   },
   {
    "id": "pro-boost-ldr",
@@ -593,7 +841,6 @@
     "ascende",
     "gec-estro-prostate"
    ],
-   "source_institutionnelle": "Institut Curie, prostate en place (2021)",
    "prescriptions": [
     {
      "volume": "PTV_PRO + PTV_VS + PTV_PELV",
@@ -627,7 +874,16 @@
     "En place — boost par curiethérapie (N0 M0)",
     "RTE + curiethérapie"
    ],
-   "contraintes_ids": []
+   "contraintes_ids": [],
+   "couverture_lignes": [
+    {
+     "volume": "",
+     "indicateur": "RTE : CTV_46 D98%",
+     "ideal": "",
+     "limitant": "≥ 45,1 / PTV_46 D95% ≥ 43,7 Gy",
+     "note": ""
+    }
+   ]
   },
   {
    "id": "pro-boost-hdr-15",
@@ -672,7 +928,30 @@
     "En place — boost par curiethérapie (N0 M0)",
     "RTE + curiethérapie"
    ],
-   "points_attention": []
+   "points_attention": [],
+   "couverture_lignes": [
+    {
+     "volume": "CTV",
+     "indicateur": "V100",
+     "ideal": "",
+     "limitant": "> 95 %",
+     "note": ""
+    },
+    {
+     "volume": "CTV",
+     "indicateur": "D90",
+     "ideal": "",
+     "limitant": "> 15 Gy",
+     "note": ""
+    },
+    {
+     "volume": "CTV",
+     "indicateur": "V150",
+     "ideal": "",
+     "limitant": "≤ 40 %",
+     "note": ""
+    }
+   ]
   },
   {
    "id": "pro-boost-hdr-hoskin",
@@ -752,6 +1031,29 @@
     "Prostate",
     "En place — curiethérapie exclusive (N0 M0)",
     "Curiethérapie"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "CTV",
+     "indicateur": "V100",
+     "ideal": "",
+     "limitant": "≥ 95 %",
+     "note": ""
+    },
+    {
+     "volume": "CTV",
+     "indicateur": "D90",
+     "ideal": "",
+     "limitant": "> 145 Gy",
+     "note": ""
+    },
+    {
+     "volume": "CTV",
+     "indicateur": "V150",
+     "ideal": "",
+     "limitant": "≤ 60 %",
+     "note": ""
+    }
    ]
   },
   {
@@ -790,7 +1092,30 @@
     "En place — curiethérapie exclusive (N0 M0)",
     "Curiethérapie"
    ],
-   "contraintes_ids": []
+   "contraintes_ids": [],
+   "couverture_lignes": [
+    {
+     "volume": "CTV",
+     "indicateur": "D90",
+     "ideal": "",
+     "limitant": "≥ 100 %",
+     "note": ""
+    },
+    {
+     "volume": "CTV",
+     "indicateur": "V100",
+     "ideal": "",
+     "limitant": "> 95 %",
+     "note": ""
+    },
+    {
+     "volume": "CTV",
+     "indicateur": "V150",
+     "ideal": "",
+     "limitant": "≤ 40 %",
+     "note": ""
+    }
+   ]
   },
   {
    "id": "pro-postop-66-33",
@@ -803,7 +1128,6 @@
     "radicals-rt",
     "getug-afu17"
    ],
-   "source_institutionnelle": "Institut Curie, rattrapage post-prostatectomie (2021)",
    "prescriptions": [
     {
      "volume": "PTV_LOGE",
@@ -857,6 +1181,43 @@
     "Prostate",
     "Après prostatectomie — rattrapage précoce ou adjuvant",
     "Normofractionné"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "",
+     "indicateur": "LOGE : CTV D98%",
+     "ideal": "",
+     "limitant": "≥ 64,7 / PTV D95% ≥ 62,7 Gy",
+     "note": ""
+    },
+    {
+     "volume": "",
+     "indicateur": "PELV : 53,4 / 51,7",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    },
+    {
+     "volume": "",
+     "indicateur": "ADP : 61,4 / 59,6",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    },
+    {
+     "volume": "",
+     "indicateur": "NODULE : 69,5 / 67,4 Gy",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "D1cc",
+     "ideal": "",
+     "limitant": "≤ 107 %",
+     "note": ""
+    }
    ]
   },
   {
@@ -982,7 +1343,6 @@
    "titre": "Loge 66 Gy / 33 fx + pelvis 46 Gy / 23 fx (séquentiel)",
    "type": "rte_normo",
    "preuve": "pratique_institutionnelle",
-   "source_institutionnelle": "Fiche du service (Dr Bentahila, 2026)",
    "prescriptions": [
     {
      "volume": "PTV_LOGE",
@@ -1025,7 +1385,6 @@
    "titre": "Pelvis 46 Gy + adénopathie 57,5 Gy / 23 fx (SIB)",
    "type": "rte_normo",
    "preuve": "pratique_institutionnelle",
-   "source_institutionnelle": "Institut Curie, prostate en place (2021)",
    "prescriptions": [
     {
      "volume": "PTV_PELV",
@@ -1051,7 +1410,7 @@
    "volumes_id": "vol-pro-recid",
    "couverture": "PELV : CTV D98% ≥ 45,1 / PTV D95% ≥ 43,7 Gy ; ADP : 56,3 / 54,6 Gy",
    "points_attention": [
-    "Vessie vide au scanner et pendant le traitement si la prostate ou la loge a déjà été irradiée (Curie)"
+    "Vessie vide au scanner et pendant le traitement si la prostate ou la loge a déjà été irradiée"
    ],
    "date_verif": "2026-10-22",
    "ind": [
@@ -1061,7 +1420,23 @@
     "Normofractionné"
    ],
    "contraintes_ids": [],
-   "essai_ids": []
+   "essai_ids": [],
+   "couverture_lignes": [
+    {
+     "volume": "",
+     "indicateur": "PELV : CTV D98%",
+     "ideal": "",
+     "limitant": "≥ 45,1 / PTV D95% ≥ 43,7 Gy",
+     "note": ""
+    },
+    {
+     "volume": "",
+     "indicateur": "ADP : 56,3 / 54,6 Gy",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    }
+   ]
   },
   {
    "id": "pro-m1-55-20",
@@ -1178,7 +1553,6 @@
     "chhip",
     "profit"
    ],
-   "source_institutionnelle": "Pratique du service (Dr Bentahila) ; CHHiP et PROFIT valident la dose prostatique, pas l'irradiation pelvienne",
    "prescriptions": [
     {
      "volume": "PTV_PRO",
@@ -1202,7 +1576,7 @@
    "systemique": "Int. défavorable : 4–6 mois. Haut risque : 18 à 36 mois ; très haut risque : HT 3 ans + abiratérone 2 ans",
    "simulation_id": "sim-pro-ep",
    "volumes_id": "vol-pro-ep",
-   "couverture": "PRO : CTV D98% ≥ 58,8 Gy ; PTV D95% ≥ 57 Gy (Curie)",
+   "couverture": "PRO : CTV D98% ≥ 58,8 Gy ; PTV D95% ≥ 57 Gy",
    "date_verif": "2026-10-22",
    "ind": [
     "Uro",
@@ -1211,7 +1585,23 @@
     "Hypofractionné"
    ],
    "contraintes_ids": [],
-   "points_attention": []
+   "points_attention": [],
+   "couverture_lignes": [
+    {
+     "volume": "",
+     "indicateur": "PRO : CTV D98%",
+     "ideal": "",
+     "limitant": "≥ 58,8 Gy",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "D95%",
+     "ideal": "",
+     "limitant": "≥ 57 Gy",
+     "note": ""
+    }
+   ]
   }
  ],
  "simulations": [
@@ -1219,7 +1609,7 @@
    "id": "sim-pro-ep",
    "position": "Décubitus dorsal",
    "contention": "Mousse sous les genoux (immobilisation pelvienne standard)",
-   "preparation": "Rectum vide : lavement Normacol la veille et le matin ; rectum ≤ 5 cm en antéro-postérieur en regard de la prostate, sinon évacuation des gaz par sonde et nouveau Normacol. Vessie semi-pleine « confortable » : uriner 30 à 45 min avant, puis boire 3 à 4 verres d'eau sans retourner aux toilettes",
+   "preparation": "Rectum vide : lavement Zetalax la veille et le matin ; rectum ≤ 5 cm en antéro-postérieur en regard de la prostate, sinon évacuation des gaz par sonde et nouveau Zetalax. Vessie semi-pleine « confortable » : uriner 30 à 45 min avant, puis boire 3 à 4 verres d'eau sans retourner aux toilettes",
    "scanner": "Avec et sans injection iodée, temps vasculaire. Limites : de L2-L3 + 5 cm (ou coupoles + 5 cm si lombo-aortique) jusqu'aux ischions − 5 cm ; vessie et rectum en totalité",
    "imagerie": "IRM pelvienne pré-thérapeutique en fusion recommandée (T2 sagittal et axial oblique)"
   },
@@ -1227,7 +1617,7 @@
    "id": "sim-pro-sbrt",
    "position": "Décubitus dorsal, bras relevés sur la poitrine",
    "contention": "Matelas sous vide au niveau du bassin, cale-genoux, cale-pieds",
-   "preparation": "Identique à sim-pro-ep (Normacol veille et matin, vessie semi-pleine)",
+   "preparation": "Identique à sim-pro-ep (Zetalax veille et matin, vessie semi-pleine)",
    "scanner": "Avec et sans injection, temps vésical (opacification de la vessie), coupes de 1 mm. Limites : pieds des sacro-iliaques + 5 cm jusqu'aux ischions − 5 cm",
    "imagerie": "IRM prostatique de fusion après le scanner : T2, coupes axiales jointives de 2 mm, sans injection, même préparation",
    "reperes": "3 grains d'or intraprostatiques posés ≥ 7 jours avant le scanner (fortement recommandés ; leur contre-indication n'interdit pas la SBRT)"
@@ -1282,7 +1672,7 @@
      "nom": "CTV_ADP",
      "type": "CTV",
      "definition": "Adénopathie(s) pelvienne(s) macroscopique(s) visible(s) au scanner, à l'IRM ou au TEP ; le volume après hormonothérapie sert au boost (NRG)",
-     "quand": "N1 ; pas de boost si < 5 mm ou disparue sous hormonothérapie (Curie)"
+     "quand": "N1 ; pas de boost si < 5 mm ou disparue sous hormonothérapie"
     },
     {
      "nom": "GTV_IRM",
@@ -1396,7 +1786,7 @@
     {
      "nom": "CTV_LOGE",
      "type": "CTV",
-     "definition": "ESTRO-ACROP 2023. Inférieure : 8 à 12 mm sous l'anastomose vésico-urétrale (coupe sous la dernière coupe avec urine) ; si non visible, coupe juste au-dessus du bulbe pénien. Antérieure : en haut 1 à 2 cm de paroi vésicale postérieure (jusqu'à la paroi postérieure seulement si IGRT quotidienne reproductible) ; en bas bord postérieur du pubis sur la moitié aux deux tiers de la symphyse, sans monter au sommet. Postérieure : paroi antérieure du rectum (fascia mésorectal au niveau du lit des VS) ; inclure les angles antéro-latéraux du rectum. Latérale : bords internes des obturateurs internes, puis des releveurs en bas. Supérieure : pont de 3 à 5 mm ; base des VS (tiers inférieur, jusqu'aux canaux déférents sectionnés) sans envahissement des VS ; tout le lit des VS si pT3b. Inclure les clips de prostatectomie (ESTRO-ACROP) ; exclure ceux du curage (fiche du service)",
+     "definition": "ESTRO-ACROP 2023. Inférieure : 8 à 12 mm sous l'anastomose vésico-urétrale (coupe sous la dernière coupe avec urine) ; si non visible, coupe juste au-dessus du bulbe pénien. Antérieure : en haut 1 à 2 cm de paroi vésicale postérieure (jusqu'à la paroi postérieure seulement si IGRT quotidienne reproductible) ; en bas bord postérieur du pubis sur la moitié aux deux tiers de la symphyse, sans monter au sommet. Postérieure : paroi antérieure du rectum (fascia mésorectal au niveau du lit des VS) ; inclure les angles antéro-latéraux du rectum. Latérale : bords internes des obturateurs internes, puis des releveurs en bas. Supérieure : pont de 3 à 5 mm ; base des VS (tiers inférieur, jusqu'aux canaux déférents sectionnés) sans envahissement des VS ; tout le lit des VS si pT3b. Inclure les clips de prostatectomie (ESTRO-ACROP) ; exclure ceux du curage",
      "quand": "Toujours"
     },
     {
@@ -1421,7 +1811,7 @@
      "nom": "PTV_LOGE",
      "type": "PTV",
      "definition": "CTV_LOGE + marge",
-     "marge": "8 mm (Curie) ; minimum 5 mm (ESTRO-ACROP)"
+     "marge": "8 mm ; minimum 5 mm (ESTRO-ACROP)"
     },
     {
      "nom": "PTV_NODULE",
@@ -1680,7 +2070,7 @@
   },
   {
    "situation": "Intermédiaire favorable",
-   "hormonotherapie": "Aucune ; option 4–6 mois (Curie)",
+   "hormonotherapie": "Aucune ; option 4–6 mois",
    "essai_ids": [
     "profit",
     "paceb"
@@ -1698,7 +2088,7 @@
   },
   {
    "situation": "Haut risque",
-   "hormonotherapie": "18 mois minimum, jusqu'à 24–36 mois selon le nombre de facteurs (Curie) ; si seul facteur = T3a IRM modéré non palpable : 4–6 mois (Curie)",
+   "hormonotherapie": "18 mois minimum, jusqu'à 24–36 mois selon le nombre de facteurs ; si seul facteur = T3a IRM modéré non palpable : 4–6 mois",
    "essai_ids": [
     "pcs4",
     "eortc22961"
@@ -1715,7 +2105,7 @@
   },
   {
    "situation": "N1",
-   "hormonotherapie": "HT longue 24–36 mois (Curie) ; avec abiratérone : HT 3 ans + abiratérone 2 ans (STAMPEDE)",
+   "hormonotherapie": "HT longue 24–36 mois ; avec abiratérone : HT 3 ans + abiratérone 2 ans (STAMPEDE)",
    "essai_ids": [
     "stampede-abi"
    ],
@@ -1737,7 +2127,7 @@
     "paceb",
     "gec-estro-prostate"
    ],
-   "note": "Sauf SBRT retenue pour ISUP 3 (Curie)"
+   "note": "Sauf SBRT retenue pour ISUP 3"
   },
   {
    "situation": "Post-prostatectomie, rattrapage",
@@ -1774,7 +2164,7 @@
   },
   {
    "cible": "prostate",
-   "point": "Patient obstructif : résection ou adénomectomie première possible ; délai de cicatrisation d'au moins 3 mois avant la RT (Curie)",
+   "point": "Patient obstructif : résection ou adénomectomie première possible ; délai de cicatrisation d'au moins 3 mois avant la RT",
    "portee": "localisation"
   },
   {
@@ -1799,12 +2189,12 @@
   },
   {
    "cible": "pro-fav-sbrt-36",
-   "point": "Critères Curie : IPSS < 15, âge > 70 ans et espérance de vie > 10 ans ; ISUP 3 au cas par cas sans indication pelvienne ; pas de SBRT si le PTV touche l'intestin grêle",
+   "point": "Critères : IPSS < 15, âge > 70 ans et espérance de vie > 10 ans ; ISUP 3 au cas par cas sans indication pelvienne ; pas de SBRT si le PTV touche l'intestin grêle",
    "portee": "schema"
   },
   {
    "cible": "pro-fav-sbrt-36",
-   "point": "Rythme Curie : 1 jour sur 2 ; jusqu'à 3 jours consécutifs, jamais 4 ; au plus 4 séances par semaine ; interruption ≤ 2 jours (3 avec le week-end)",
+   "point": "Rythme : 1 jour sur 2 ; jusqu'à 3 jours consécutifs, jamais 4 ; au plus 4 séances par semaine ; interruption ≤ 2 jours (3 avec le week-end)",
    "portee": "schema"
   },
   {
@@ -1839,7 +2229,7 @@
   },
   {
    "cible": "pro-recidive-gg",
-   "point": "Vessie vide au scanner et pendant le traitement si la prostate ou la loge a déjà été irradiée (Curie)",
+   "point": "Vessie vide au scanner et pendant le traitement si la prostate ou la loge a déjà été irradiée",
    "portee": "situation"
   },
   {
@@ -1847,25 +2237,5 @@
    "point": "STAMPEDE : pas de bénéfice de survie chez les patients non sélectionnés ; l'indication vise le faible volume métastatique",
    "portee": "situation"
   }
- ],
- "textes": {
-  "curietherapie": [
-   "La référence est la recommandation GEC-ESTRO ACROP 2022 : LDR exclusive 145 Gy, boost LDR 110 Gy, HDR exclusive 26–27 Gy en 2 fractions (schéma cité, mais pas encore de recommandation de prescription fondée sur les preuves), boost HDR 15 Gy en 1 fraction après 45–50 Gy.",
-   "**Définitions de volume (vol-pro-curie) :** CTV = capsule prostatique pour une tumeur intracapsulaire ; pour une tumeur localement avancée, CTV étendu à l'extension extracapsulaire et/ou aux VS envahies. GTV optionnel (boost focal, en essai). Marge PTV de 3 à 5 mm possible, limitée en arrière par le rectum et en haut par le col vésical (grade D, niveau 5).",
-   "**Contrôle qualité LDR :** dosimétrie scanner post-implant à J1, J2 ou entre 2 et 6 semaines, coupes ≤ 3 mm ; rapporter D90, V100, V150 de la prostate et D2cc du rectum.",
-   "**Équivalences pour la HDR :** les objectifs généraux sont donnés en EQD2 cumulée, calculée pour RTE 25 × 2 Gy + HDR 15 Gy (α/β = 1,5) ; ils ne s'appliquent pas tels quels à une HDR exclusive ni à un autre schéma de boost (CTV D90 > 121 Gy EQD2 ; rectum D2cc ≤ 75 Gy EQD2 ; urètre D10 ≤ 120 Gy et D30 ≤ 105 Gy EQD2) ; pour le schéma 15 Gy × 1, les valeurs physiques sont dans le jeu `ct-curie-hdr15-gec`.",
-   "**PDR :** utilisée pour la prostate dans peu de centres ; aucune dose recommandée dans GEC-ESTRO ACROP 2022, pas de schéma dans le référentiel."
-  ],
-  "centrage": [
-   "Cinq fiches de centrage couvrent tous les schémas prostate ; la préparation rectum vide et vessie semi-pleine est commune à toutes, sauf la récidive ganglionnaire après irradiation de la prostate (vessie vide).",
-   "Pour tout scanner injecté (Curie) : accord médical ; contre-indications = allergie (possible après prémédication si déjà bien tolérée) et clairance de la créatinine < 50 ml/min ; hydratation 1,5 à 2 litres après ; biguanides arrêtés 48 h après l'injection, reprise après contrôle de la clairance."
-  ],
-  "contourage": [
-   "Les marges PTV de référence sont celles de Curie (5 mm prostate, 8 mm VS, pelvis, adénopathies et loge) ; ESTRO-ACROP demande au minimum 5 mm pour la loge. Variante de la fiche prostate du service : adénopathie + 5 mm, VS + 7 mm, pelvis + 7 mm.",
-   "Visualisation des contours de référence : [eContour](https://econtour.org) (compte gratuit), conseillé par la fiche OAR du service."
-  ],
-  "systemique": [
-   "La durée d'hormonothérapie dépend du groupe de risque, pas du fractionnement : de rien (risque faible) à 3 ans avec abiratérone (très haut risque ou N1)."
-  ]
- }
+ ]
 }

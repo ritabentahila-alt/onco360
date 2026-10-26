@@ -11,7 +11,7 @@
    "localisation_id": "orl_palliatif",
    "titre": "Patient âgé ou fragile : protocole dégradé",
    "contexte": "palliatif",
-   "criteres": "Patient ne supportant pas un traitement continu de 7 semaines (Curie, annexe B)",
+   "criteres": "Patient ne supportant pas un traitement continu de 7 semaines",
    "ordre": 1
   },
   {
@@ -33,7 +33,6 @@
    "essai_ids": [
     "curie-vads-2021"
    ],
-   "source_institutionnelle": "Institut Curie 2021, annexe B",
    "prescriptions": [
     {
      "volume": "PTV70",
@@ -76,7 +75,23 @@
     "Patient âgé ou fragile : protocole dégradé",
     "Normofractionné"
    ],
-   "points_attention": []
+   "points_attention": [],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "D95 %",
+     "ideal": "",
+     "limitant": "≥ 95 %",
+     "note": ""
+    },
+    {
+     "volume": "CTV",
+     "indicateur": "D98 %",
+     "ideal": "",
+     "limitant": "≥ 98 %",
+     "note": ""
+    }
+   ]
   },
   {
    "id": "pal-split-55",
@@ -87,7 +102,6 @@
    "essai_ids": [
     "curie-vads-2021"
    ],
-   "source_institutionnelle": "Institut Curie 2021, annexe B",
    "prescriptions": [
     {
      "volume": "PTV55 (ex-PTV70)",
@@ -214,7 +228,6 @@
    "essai_ids": [
     "curie-vads-2021"
    ],
-   "source_institutionnelle": "Institut Curie 2021, annexe B",
    "prescriptions": [
     {
      "volume": "PTV",
@@ -223,7 +236,7 @@
      "dose_fx_Gy": 3,
      "mode": "seul",
      "rythme": "5 fx/sem",
-     "note": "Exemple de schéma palliatif (Curie)"
+     "note": "Exemple de schéma palliatif"
     }
    ],
    "technique": "RT conformationnelle ou VMAT",
@@ -252,7 +265,6 @@
    "essai_ids": [
     "curie-vads-2021"
    ],
-   "source_institutionnelle": "Institut Curie 2021, annexe B",
    "prescriptions": [
     {
      "volume": "PTV",
@@ -261,7 +273,7 @@
      "dose_fx_Gy": 8,
      "mode": "seul",
      "rythme": "1 fx",
-     "note": "Exemple de schéma palliatif (Curie)"
+     "note": "Exemple de schéma palliatif"
     }
    ],
    "technique": "RT conformationnelle",
@@ -306,7 +318,7 @@
     {
      "nom": "PTV",
      "type": "PTV",
-     "definition": "Volume macroscopique sans prophylaxie ganglionnaire (Curie, annexe B) ; marges du centre",
+     "definition": "Volume macroscopique sans prophylaxie ganglionnaire ; marges du centre",
      "quand": "Toujours"
     }
    ],
@@ -421,10 +433,5 @@
    "point": "Pas de jeu de contraintes publié pour ces schémas courts",
    "portee": "situation"
   }
- ],
- "textes": {
-  "systemique": [
-   "Pas de traitement systémique associé dans ces schémas."
-  ]
- }
+ ]
 }

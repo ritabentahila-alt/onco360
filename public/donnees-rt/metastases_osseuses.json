@@ -358,7 +358,7 @@
     {
      "nom": "PTV",
      "type": "PTV",
-     "definition": "CTV + 7 mm (protocole du service)",
+     "definition": "CTV + 7 mm",
      "quand": "Toujours",
      "marge": "7 mm"
     }
@@ -403,16 +403,8 @@
   },
   {
    "cible": "metastases_osseuses",
-   "point": "Fiche du service : contourage des volumes et OAR sans schéma de dose ; les schémas viennent des essais cités",
+   "point": "Contourage des volumes et OAR sans schéma de dose ; les schémas viennent des essais cités",
    "portee": "localisation"
   }
- ],
- "textes": {
-  "contourage": [
-   "Fiche du service « contourage des métastases osseuses »."
-  ],
-  "systemique": [
-   "Pas de traitement systémique associé à la RT dans ces schémas."
-  ]
- }
+ ]
 }

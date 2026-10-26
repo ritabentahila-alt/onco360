@@ -25,7 +25,6 @@
    "essai_ids": [
     "stacchiotti2015"
    ],
-   "source_institutionnelle": "Tableur du service « chordome sacrum »",
    "prescriptions": [
     {
      "volume": "PTVHR",
@@ -222,10 +221,5 @@
    "point": "Contraintes du tableur du service non reprises ; moelle selon DeLaney",
    "portee": "schema"
   }
- ],
- "textes": {
-  "systemique": [
-   "Pas de traitement systémique associé à la RT dans ces schémas."
-  ]
- }
+ ]
 }

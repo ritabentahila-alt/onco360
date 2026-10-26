@@ -68,7 +68,16 @@
     "Carcinome de Merkel opéré : lit tumoral",
     "Normofractionné"
    ],
-   "contraintes_ids": []
+   "contraintes_ids": [],
+   "couverture_lignes": [
+    {
+     "volume": "",
+     "indicateur": "Dose à la peau assurée (bolus)",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    }
+   ]
   },
   {
    "id": "mk-gg-50",
@@ -201,10 +210,5 @@
    "point": "RT exclusive des stades I–II : doses médianes 55 Gy (local) et 65 Gy (local et régional), rechutes 25 et 21 %",
    "portee": "situation"
   }
- ],
- "textes": {
-  "systemique": [
-   "Pas de traitement systémique concomitant défini ; maladie métastatique : immunothérapie anti-PD-1 ou anti-PD-L1, la RT s'intégrant au cas par cas (S2k 2023)."
-  ]
- }
+ ]
 }

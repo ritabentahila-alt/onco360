@@ -11,7 +11,7 @@
    "localisation_id": "sinus",
    "titre": "Sinus ou cavités nasales opérés : RT adjuvante",
    "contexte": "post_op",
-   "criteres": "Curie : template « ORL post-op sinus » ; volumes de l'ethmoïde opéré selon Guillemin 2021",
+   "criteres": "Template « ORL post-op sinus » ; volumes de l'ethmoïde opéré selon Guillemin 2021",
    "ordre": 1
   },
   {
@@ -34,7 +34,6 @@
     "guillemin2021",
     "curie-vads-2021"
    ],
-   "source_institutionnelle": "Institut Curie 2021",
    "prescriptions": [
     {
      "volume": "PTV66",
@@ -71,7 +70,7 @@
    "contraintes_ids": [],
    "couverture": "PTV : D95 % ≥ 95 % ; CTV : D98 % ≥ 98 % ; PTV66 ∪ PTV59,4 : D2 % ≤ 107 %",
    "points_attention": [
-    "Œil : Dmoy ≤ 5 Gy hors tumeur des sinus ; pour les sinus, Dmoy ≤ 35 Gy et D0,035cc ≤ 50 Gy (Curie)"
+    "Œil : Dmoy ≤ 5 Gy hors tumeur des sinus ; pour les sinus, Dmoy ≤ 35 Gy et D0,035cc ≤ 50 Gy"
    ],
    "date_verif": "2026-10-24",
    "ind": [
@@ -79,6 +78,29 @@
     "Sinus et cavités nasales",
     "Sinus ou cavités nasales opérés : RT adjuvante",
     "Normofractionné"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "D95 %",
+     "ideal": "",
+     "limitant": "≥ 95 %",
+     "note": ""
+    },
+    {
+     "volume": "CTV",
+     "indicateur": "D98 %",
+     "ideal": "",
+     "limitant": "≥ 98 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV66 ∪ PTV59,4",
+     "indicateur": "D2 %",
+     "ideal": "",
+     "limitant": "≤ 107 %",
+     "note": ""
+    }
    ]
   },
   {
@@ -90,7 +112,6 @@
    "essai_ids": [
     "guillemin2021"
    ],
-   "source_institutionnelle": "Tableur du service « ORL 60-54 Gy »",
    "prescriptions": [
     {
      "volume": "PTV60",
@@ -116,9 +137,9 @@
    "simulation_id": "sim-orl-curie",
    "volumes_id": "vol-orl-curie-postop",
    "contraintes_ids": [],
-   "couverture": "Tableur du service : D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
+   "couverture": "D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
    "points_attention": [
-    "Œil : Dmoy ≤ 5 Gy hors tumeur des sinus ; pour les sinus, Dmoy ≤ 35 Gy et D0,035cc ≤ 50 Gy (Curie)"
+    "Œil : Dmoy ≤ 5 Gy hors tumeur des sinus ; pour les sinus, Dmoy ≤ 35 Gy et D0,035cc ≤ 50 Gy"
    ],
    "date_verif": "2026-10-24",
    "ind": [
@@ -126,6 +147,29 @@
     "Sinus et cavités nasales",
     "Sinus ou cavités nasales opérés : RT adjuvante",
     "Normofractionné"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "D95",
+     "ideal": "",
+     "limitant": "≈ 98 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "D98",
+     "ideal": "",
+     "limitant": "≈ 95 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "Dmax",
+     "ideal": "",
+     "limitant": "≈ 105 %",
+     "note": ""
+    }
    ]
   },
   {
@@ -137,7 +181,6 @@
    "essai_ids": [
     "curie-vads-2021"
    ],
-   "source_institutionnelle": "Institut Curie 2021 ; tableur du service « ORL 70-63-56 Gy »",
    "prescriptions": [
     {
      "volume": "PTV70",
@@ -174,7 +217,7 @@
    "contraintes_ids": [],
    "couverture": "PTV : D95 % ≥ 95 % ; CTV : D98 % ≥ 98 % ; PTV70 : D2 % ≤ 107 %",
    "points_attention": [
-    "Œil : Dmoy ≤ 5 Gy hors tumeur des sinus ; pour les sinus, Dmoy ≤ 35 Gy et D0,035cc ≤ 50 Gy (Curie)"
+    "Œil : Dmoy ≤ 5 Gy hors tumeur des sinus ; pour les sinus, Dmoy ≤ 35 Gy et D0,035cc ≤ 50 Gy"
    ],
    "date_verif": "2026-10-24",
    "ind": [
@@ -182,6 +225,29 @@
     "Sinus et cavités nasales",
     "Tumeur non résécable : RT exclusive ± chimiothérapie",
     "Normofractionné"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "D95 %",
+     "ideal": "",
+     "limitant": "≥ 95 %",
+     "note": ""
+    },
+    {
+     "volume": "CTV",
+     "indicateur": "D98 %",
+     "ideal": "",
+     "limitant": "≥ 98 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV70",
+     "indicateur": "D2 %",
+     "ideal": "",
+     "limitant": "≤ 107 %",
+     "note": ""
+    }
    ]
   },
   {
@@ -193,7 +259,6 @@
    "essai_ids": [
     "igr-orl-rcmi"
    ],
-   "source_institutionnelle": "Gustave Roussy, RCMI des cancers de la tête et du cou (2017)",
    "prescriptions": [
     {
      "volume": "PTV70",
@@ -236,7 +301,37 @@
     "Tumeur non résécable : RT exclusive ± chimiothérapie",
     "Hypofractionné"
    ],
-   "points_attention": []
+   "points_attention": [],
+   "couverture_lignes": [
+    {
+     "volume": "PTV70",
+     "indicateur": "D95 %",
+     "ideal": "",
+     "limitant": "≥ 66,5 Gy",
+     "note": ""
+    },
+    {
+     "volume": "PTV70",
+     "indicateur": "D5 %",
+     "ideal": "",
+     "limitant": "≤ 77 Gy",
+     "note": ""
+    },
+    {
+     "volume": "PTV60",
+     "indicateur": "D95 %",
+     "ideal": "",
+     "limitant": "≥ 57 Gy",
+     "note": ""
+    },
+    {
+     "volume": "PTV54",
+     "indicateur": "D95 %",
+     "ideal": "",
+     "limitant": "≥ 51,3 Gy",
+     "note": ""
+    }
+   ]
   }
  ],
  "simulations": [
@@ -514,12 +609,12 @@
  "points_attention": [
   {
    "cible": "sinus",
-   "point": "Les priorités OAR peuvent changer pour le contenu orbitaire, surtout en irradiation ethmoïdale (Gustave Roussy)",
+   "point": "Les priorités OAR peuvent changer pour le contenu orbitaire, surtout en irradiation ethmoïdale",
    "portee": "localisation"
   },
   {
    "cible": "ct-orl-curie",
-   "point": "Œil : Dmoy ≤ 5 Gy hors tumeur des sinus ; pour les sinus, Dmoy ≤ 35 Gy et D0,035cc ≤ 50 Gy (Curie)",
+   "point": "Œil : Dmoy ≤ 5 Gy hors tumeur des sinus ; pour les sinus, Dmoy ≤ 35 Gy et D0,035cc ≤ 50 Gy",
    "portee": "contraintes"
   },
   {
@@ -527,10 +622,5 @@
    "point": "Proposition de délinéation des CTV post-opératoires des cancers de l'ethmoïde : Guillemin 2021",
    "portee": "localisation"
   }
- ],
- "textes": {
-  "centrage": [
-   "Gustave Roussy : masque stéréotaxique 3 points possible, en particulier pour l'adénocarcinome des sinus. Curie : templates « ORL post-op sinus » et « ORL cavum/sinus » (OAR de la base du crâne et de l'orbite)."
-  ]
- }
+ ]
 }

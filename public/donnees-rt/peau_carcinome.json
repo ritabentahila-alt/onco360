@@ -282,10 +282,5 @@
    "point": "Irradiation ganglionnaire prophylactique (45 à 50 Gy) pour les formes localement évoluées : moins d'échecs locorégionaux, sans gain de survie (RECORAD)",
    "portee": "situation"
   }
- ],
- "textes": {
-  "systemique": [
-   "Pas de traitement systémique associé à la RT : le carboplatine hebdomadaire n'améliore pas le contrôle locorégional après chirurgie (TROG 05.01)."
-  ]
- }
+ ]
 }

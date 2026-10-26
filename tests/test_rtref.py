@@ -72,7 +72,7 @@ async def main():
         await menu(pg, 'frac', 'Hypofractionné')
         L2 = await ev(LIGNES)
         ok(len(L2) >= 2 and await ev("[...document.querySelectorAll('#rtrListe .rtr-ty')].every(e => e.textContent === 'Hypofractionné')"), 'Fractionnement : Hypofractionné seulement', L2)
-        ok('Modifié pour le cabinet' in await ev(TXT) and '42,7 Gy / 7 fx (version du cabinet)' in L2, 'schéma modifié pour le cabinet : sa version, badge orange')
+        ok('Modifié' in await ev(TXT) and '42,7 Gy / 7 fx (version du cabinet)' in L2, 'schéma modifié pour le cabinet : sa version, badge orange')
         await menu(pg, 'reg', 'gyneco'); await pg.wait_for_timeout(200)
         ok(await ev("[document.getElementById('rtr_loc').value, document.getElementById('rtr_sit').value]") == ['', ''], 'changer de région vide Localisation et Situation, plus valables')
         await pg.click('.rtr-mz .bt.gris'); await pg.wait_for_timeout(300)
@@ -121,7 +121,7 @@ async def main():
         pg = await ouvrir(b, S3); await pg.add_init_script("window.__uid='UIDSECV'"); ev = pg.evaluate
         await pg.goto(f'http://localhost:{PORT}/v2.html#radiotherapie'); await pg.wait_for_timeout(2500)
         await pg.fill('#rtrQ', 'prostate'); await pg.wait_for_timeout(300)
-        ok(len(await ev(LIGNES)) == 27 and 'Modifié pour le cabinet' in await ev(TXT), 'secrétaire « voir » : liste et version du cabinet lisibles')
+        ok(len(await ev(LIGNES)) == 27 and 'Modifié' in await ev(TXT), 'secrétaire « voir » : liste et version du cabinet lisibles')
         ok(not pg.errs, 'secrétaire : aucune erreur JavaScript', pg.errs[:2]); await pg.close()
         await b.close()
     print(f'\n{ok_n} réussis, {ko_n} échoués')

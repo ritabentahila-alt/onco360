@@ -39,24 +39,25 @@ async def main():
         ok('Traitement systémique' in t and 'Technique' in t and 'Objectifs de couverture' not in t, 'Prescription : technique, traitement systémique (hormonothérapie), sans les objectifs de couverture')
         # Dernier onglet gardé
         await pg.click('.rtr-ong button:has-text("Contraintes")'); await pg.wait_for_timeout(1500)
-        ok(await ev("(document.querySelector('.rtr-oc > *') || {}).className") == 'rtr-couv' and 'Objectifs de couverture' in await ev(OC), 'Contraintes : les objectifs de couverture en premier', await ev("(document.querySelector('.rtr-oc > *') || {}).className"))
+        ok(await ev("document.querySelector('.rtr-oc h4').textContent") == 'Objectifs de couverture' and await ev("!!document.querySelector('.rtr-oc table.rtr-cv')") and await ev("document.querySelector('.rtr-cv th').textContent") == 'Volume' and await ev("document.querySelector('.rtr-cv').offsetWidth === document.querySelector('.rtr-ct:not(.rtr-cv)').offsetWidth"), 'Contraintes : objectifs de couverture en premier, tableau « Volume » de même largeur que celui des organes')
         ok((await ev("location.hash")).endswith('/contraintes') and (await ev("(window.__fs['utilisateurs/UIDRITA'] || {}).rtOnglet")) == 'contraintes', 'onglet Contraintes : dans l\'adresse et gardé pour la personne (rtOnglet)')
         await aller(pg, 'radiotherapie'); await pg.fill('#rtrQ', 'prostate 70'); await pg.wait_for_timeout(300); await pg.keyboard.press('Enter'); await pg.wait_for_timeout(1800)
-        ok(await ev("(document.querySelector('.rtr-oc > *') || {}).className") == 'rtr-couv' and 'Objectifs de couverture' in await ev(OC), 'Contraintes : les objectifs de couverture en premier', await ev("(document.querySelector('.rtr-oc > *') || {}).className"))
+        ok(await ev("document.querySelector('.rtr-oc h4').textContent") == 'Objectifs de couverture' and await ev("!!document.querySelector('.rtr-oc table.rtr-cv')") and await ev("document.querySelector('.rtr-cv th').textContent") == 'Volume' and await ev("document.querySelector('.rtr-cv').offsetWidth === document.querySelector('.rtr-ct:not(.rtr-cv)').offsetWidth"), 'Contraintes : objectifs de couverture en premier, tableau « Volume » de même largeur que celui des organes')
         ok((await ev("location.hash")).endswith('/contraintes') and await ev("!!document.querySelector('.rtr-ct')"), 'autre schéma ouvert de la liste : directement sur Contraintes (aucun clic)')
         await aller(pg, 'radiotherapie/s/pro-fav-60-20/contraintes')
-        t = await ev("document.querySelector('.rtr-aidec').innerText")
-        ok('Hypofractionné · 20 séances' in t.replace('\xa0', ' ') and 'Idéal' in t and 'Limitant' in t and await ev("document.querySelectorAll('.rtr-ct').length") == 1, 'Contraintes : une seule table, régime du schéma (Hypofractionné · 20 séances), aide d\'Idéal et de Limitant', t)
         t = await ev(OC)
-        ok('RecoRad 2025 (prostate)' in t and 'V37Gy' in t and 'à convertir en EQD2' in t, 'base RecoRad 2025 de la localisation (PROFIT : V37Gy) ; organe sans valeur publiée : valeur du normofractionné à convertir', t[:300])
+        ok('Hypofractionné ·' not in t and 'Objectif optimal' not in t and await ev("document.querySelectorAll('.rtr-ct .rtr-q').length") == 4, 'Contraintes : plus de phrase du régime ni d\'aide écrite ; « ? » sur Idéal et Limitant des deux tableaux')
+        await pg.click('.rtr-ct:not(.rtr-cv) .rtr-q >> nth=1'); await pg.wait_for_timeout(150)
+        ok('Limitant' in await ev("document.getElementById('rtrAideCt').textContent") and not await ev("document.getElementById('rtrAideCt').hidden"), '« ? » de Limitant : l\'explication s\'affiche')
+        ok('V37Gy' in t and 'à convertir en EQD2' in t and 'RecoRad 2025' not in t and await ev("!!document.querySelector('.rtr-ct sup.rtr-rv')") and await ev("document.querySelectorAll('.rtr-renv li').length") >= 1, 'base de la localisation (PROFIT : V37Gy) ; remarque numérotée sous le tableau, chiffre sur l\'organe ; plus de source sous les organes', t[:300])
         ok(await ev("document.querySelectorAll('.rtr-ct td.o').length") >= 3 and await ev("getComputedStyle(document.querySelector('.rtr-ct td.lim')).fontWeight") in ('700', 'bold'), 'Contraintes : lignes groupées par organe, Limitant en gras')
         await pg.click('.rtr-cp'); await pg.wait_for_timeout(400)
         cp = await ev("window.__copie[window.__copie.length - 1] || ''")
         ok(cp.startswith('60 Gy / 20 fx\t') and '\nRectum\tRectum\tV37Gy\t' in cp and 'Tableau copié' in await ev("document.body.innerText"), 'Copier : tableau en texte tabulé, « Tableau copié »', cp[:120])
         await aller(pg, 'radiotherapie/s/rec-5x5-tme/contraintes')
-        ok('RecoRad 2025 (rectum)' in await ev(OC) and 'V25Gy' in await ev(OC), 'rectum 5 × 5 Gy : contraintes RecoRad 2025 du rectum pour 5 séances')
+        ok('V25Gy' in await ev(OC) and 'RecoRad' not in await ev(OC), 'rectum 5 × 5 Gy : contraintes du rectum pour 5 séances, sans source écrite')
         await aller(pg, 'radiotherapie/s/sein-26-5/contraintes')
-        ok('FAST-Forward' in await ev(OC) and 'V1,5Gy' in await ev(OC), 'essai suivi (FAST-Forward) : ses contraintes à la place de la base')
+        ok('V1,5Gy' in await ev(OC), 'essai suivi (FAST-Forward) : ses contraintes à la place de la base')
         await aller(pg, 'radiotherapie/s/mu-coms-85/centrage')
         ok('Pas de fiche de centrage du service pour cette localisation' in await ev(OC), 'sans fiche de centrage : la phrase de l\'onglet')
         # RTE + curiethérapie
@@ -65,7 +66,7 @@ async def main():
         vols = await ev("[...document.querySelectorAll('.rtr-tab')].map(t => [...t.querySelectorAll('tbody tr td:first-child b')].map(b => b.textContent))")
         ok(h4[:2] == ['Radiothérapie externe', 'Curiethérapie'] and len(vols) == 2 and any('PTV_N55' in v for v in vols[0]) and all('CTV-HR' in v for v in vols[1]), 'RTE + curiethérapie : deux tableaux ; les ganglions dans la RTE, le CTV-HR en curiethérapie', vols)
         await aller(pg, 'radiotherapie/s/pro-boost-ldr/prescription')
-        ok('—' in await ev("document.querySelectorAll('.rtr-tab')[1].innerText") and await ev("!!document.querySelector('.rtr-tx b')"), 'curiethérapie LDR : « — » pour les séances ; paragraphes rédigés (gras)')
+        ok('—' in await ev("document.querySelectorAll('.rtr-tab')[1].innerText") and not await ev("!!document.querySelector('.rtr-tx')"), 'curiethérapie LDR : « — » pour les séances ; plus de commentaires rédigés')
         # Plus aucun « ? » : les textes sont écrits en entier
         await aller(pg, 'radiotherapie/s/pro-fav-60-20/contourage')
         ok(await ev("document.querySelectorAll('.rtr-aide, .rtr-c').length") == 0 and '…' not in await ev(OC), 'aucun « ? » ni texte coupé (« … »)')
@@ -77,7 +78,7 @@ async def main():
         ok(await ev("document.querySelector('.rtr-e').open") and 'Population' in await ev(OC), 'un clic déplie la population et les bras')
         await pg.click('.rtr-e[open] .mini'); await pg.wait_for_timeout(300)
         ok(await ev("window.__copie[window.__copie.length - 1]") == 'CHHiP, Lancet Oncol 17:1047, 2016, PMID 27339115', '« Copier la référence » : acronyme, revue, année, PMID', await ev("window.__copie[window.__copie.length - 1]"))
-        ok('Source institutionnelle' in await ev(OC) and 'Institut Curie' in await ev(OC), 'source institutionnelle sous les essais')
+        ok('Source institutionnelle' not in await ev(OC) and 'Institut Curie' not in await ev(OC), 'plus de source institutionnelle sous les essais')
         # Points d'attention
         await aller(pg, 'radiotherapie/s/pro-fav-60-20/attention')
         pts = await ev("[...document.querySelectorAll('.rtr-pts li')].map(l => l.textContent)")
@@ -85,7 +86,7 @@ async def main():
         # Version du cabinet
         await aller(pg, 'radiotherapie/s/pro-def-60-20/prescription')
         t = await ev("document.getElementById('rtrFiche').innerText")
-        ok('Modifié pour le cabinet' in t and 'par Dr Médecin Test le 25/10/2026' in t and 'La référence a changé depuis' in t and 'Note du médecin' in t, 'version du cabinet : ligne « Modifié pour le cabinet », auteur, date, référence changée, note')
+        ok('Modifié' in t and 'par Dr Médecin Test le 25/10/2026' in t and 'La référence a changé depuis' in t and 'Note du médecin' in t, 'version du cabinet : ligne « Modifié pour le cabinet », auteur, date, référence changée, note')
         # Lien vers Protocoles
         await aller(pg, 'radiotherapie/s/oeso-cross-414-23/prescription')
         hrefs = await ev("[...document.querySelectorAll('.rtr-lien')].map(a => a.getAttribute('href'))")
@@ -115,7 +116,7 @@ async def main():
         ok(await ev("document.querySelectorAll('.rtr-ic input:checked').length") == 6, 'Imprimer : six sections, toutes cochées')
         await pg.uncheck('.rtr-ic input[data-s=essais]'); await pg.click('#fenetre .bt.plein'); await pg.wait_for_timeout(900)
         doc = await ev("window.__win.length ? window.__win[window.__win.length - 1].w.document._h : ''")
-        ok('size:A4 portrait' in doc and '<h2>Prescription</h2>' in doc and '<h2>Contraintes</h2>' in doc and '<h2>Essais et sources</h2>' not in doc and 'Imprimé le' in doc and 'Sources : CHHiP, PROFIT' in doc and 'class="rtr-aide"' not in doc and 'Limitant</b>' in doc, 'impression A4 : sections choisies, sources et date en pied de page, textes entiers (sans « ? »)')
+        ok('size:A4 portrait' in doc and '<h2>Prescription</h2>' in doc and '<h2>Contraintes</h2>' in doc and '<h2>Essais et sources</h2>' not in doc and 'Imprimé le' in doc and 'Sources : CHHiP, PROFIT' in doc and 'class="rtr-aide"' not in doc and 'rtr-q' not in doc and '<th>Volume</th>' in doc, 'impression A4 : sections choisies, sources et date en pied de page, textes entiers (sans « ? »)')
         await aller(pg, 'radiotherapie/s/pro-def-60-20/prescription'); await pg.click('.rtr-imp'); await pg.wait_for_timeout(300); await pg.click('#fenetre .bt.plein'); await pg.wait_for_timeout(900)
         ok('Version du cabinet, modifiée le 25/10/2026' in await ev("window.__win[window.__win.length - 1].w.document._h"), 'impression d\'une version du cabinet : « Version du cabinet, modifiée le … » en tête')
         ok(not await ev(DEBORDE) and not await ev(COUPE), '1 440 px : sans débordement, titre entier')
@@ -124,7 +125,7 @@ async def main():
         S3 = json.loads(json.dumps(S2)); S3.setdefault(E[:-1], {})['abonnement'] = {'formule': 'radiotherapie', 'modules': {k: k in ['rt', 'agenda', 'prescriptions', 'documents', 'gagenda', 'listes', 'bilan'] for k in ['chimio', 'rt', 'agenda', 'salle', 'taches', 'rcp', 'prescriptions', 'documents', 'gagenda', 'listes', 'bilan']}}
         pg = await ouvrir(b, S3); ev = pg.evaluate
         await pg.goto(f'http://localhost:{PORT}/v2.html#radiotherapie/s/oeso-cross-414-23/prescription'); await pg.wait_for_timeout(3000)
-        ok(await ev("document.querySelectorAll('.rtr-lien').length") == 0 and 'Carboplatine-paclitaxel hebdomadaire (CROSS)' in await ev(OC), 'formule sans chimio : nom du protocole sans lien')
+        ok(await ev("document.querySelectorAll('.rtr-lien').length") == 0 and 'paclitaxel' in await ev(OC), 'formule sans chimio : le traitement sans lien')
         ok(not pg.errs, 'formule sans chimio : aucune erreur JavaScript', pg.errs[:2]); await pg.close()
         # 1 280 et 390 px
         for w, h in [(1280, 900), (390, 800)]:

@@ -107,7 +107,6 @@
    "titre": "Pelvis 45 Gy / 25 fx puis boost vessie et adénopathies 20 Gy / 10 fx (65 Gy)",
    "type": "rte_normo",
    "preuve": "pratique_institutionnelle",
-   "source_institutionnelle": "Fiche du service (Dr Bentahila) ; BC2001, cité par la fiche, ne traitait que la vessie",
    "prescriptions": [
     {
      "volume": "PTV1 (vessie + aires ganglionnaires)",
@@ -224,7 +223,7 @@
    "position": "Décubitus dorsal",
    "contention": "Positionnement reproductible, repères cutanés stables",
    "preparation": "Vessie partiellement remplie, consignes mictionnelles expliquées au patient ; rectum le plus vide possible (suppositoire de glycérine le matin du scanner)",
-   "scanner": "Non injecté (fiche du service)",
+   "scanner": "Non injecté",
    "imagerie": "Cartographie de la RTUV, scanner, IRM ou TEP du bilan pour la tumeur et les ganglions"
   }
  ],
@@ -249,7 +248,7 @@
      "type": "PTV",
      "definition": "CTV_VESSIE + marge",
      "quand": "Toujours",
-     "marge": "Fiche du service : 1 cm, 2 cm vers le haut ; marge de BC2001 non relevée dans le résumé (à confirmer)"
+     "marge": "1 cm, 2 cm vers le haut ; marge de BC2001 non relevée dans le résumé (à confirmer)"
     }
    ],
    "atlas": [
@@ -405,6 +404,5 @@
    "point": "MRC BA09 : 21 Gy / 3 fx aussi efficace que 35 Gy / 10 fx sur les symptômes à 3 mois (64 % vs 71 %, différence non significative)",
    "portee": "situation"
   }
- ],
- "textes": {}
+ ]
 }

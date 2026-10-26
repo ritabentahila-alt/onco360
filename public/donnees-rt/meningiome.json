@@ -42,7 +42,6 @@
     "eano-meningiome-2021",
     "goldsmith1994"
    ],
-   "source_institutionnelle": "Tableur du service « Méningiome bénin base du crâne 54 Gy »",
    "prescriptions": [
     {
      "volume": "PTV",
@@ -77,7 +76,6 @@
    "essai_ids": [
     "eano-meningiome-2021"
    ],
-   "source_institutionnelle": "Tableur du service « Méningiome 50,4 Gy »",
    "prescriptions": [
     {
      "volume": "PTV",
@@ -266,7 +264,6 @@
    "titre": "59,4 Gy puis complément jusqu'à 68,4 Gy / 38 fx",
    "type": "rte_normo",
    "preuve": "pratique_institutionnelle",
-   "source_institutionnelle": "Tableur du service « Méningiome grade III 68,4 Gy »",
    "prescriptions": [
     {
      "volume": "PTV1 (59,4 Gy)",
@@ -316,10 +313,10 @@
   {
    "id": "sim-crane-srs",
    "position": "Décubitus dorsal, tête en position neutre, bras le long du corps, coussin sous les genoux",
-   "contention": "Masque thermoformé 5 points ou cadre stéréotaxique (fiche du service) ; Curie : masque bivalve sans cadre, moulé sur une cale retirée avant l'acquisition",
-   "scanner": "Coupes axiales millimétriques. Curie : non injecté, de 1 cm au-dessus du vertex jusqu'à T1 ; fiche du service : injecté",
-   "imagerie": "IRM de planification T1 sans injection (saignement récent), T1 gadolinium 3D (contourage) et perfusion (référence du suivi), jusqu'à C3–C4, fusionnée au scanner. Première séance dans les 14 jours suivant l'IRM, 16 au plus (Curie)",
-   "reperes": "Plan de référence pointe du nez–tragus, perpendiculaire à la table (Curie)"
+   "contention": "Masque thermoformé 5 points ou cadre stéréotaxique ; autre approche : masque bivalve sans cadre, moulé sur une cale retirée avant l'acquisition",
+   "scanner": "Coupes axiales millimétriques. Autre approche : non injecté, de 1 cm au-dessus du vertex jusqu'à T1 ; autre approche : injecté",
+   "imagerie": "IRM de planification T1 sans injection (saignement récent), T1 gadolinium 3D (contourage) et perfusion (référence du suivi), jusqu'à C3–C4, fusionnée au scanner. Première séance dans les 14 jours suivant l'IRM, 16 au plus",
+   "reperes": "Plan de référence pointe du nez–tragus, perpendiculaire à la table"
   }
  ],
  "volumes": [
@@ -535,7 +532,7 @@
     {
      "nom": "GTV",
      "type": "GTV",
-     "definition": "Prise de contraste nodulaire en T1 gadolinium 3D, zoom maximal ; œdème FLAIR exclu ; composante hémorragique limitée incluse si le PTV reste compatible (Curie)",
+     "definition": "Prise de contraste nodulaire en T1 gadolinium 3D, zoom maximal ; œdème FLAIR exclu ; composante hémorragique limitée incluse si le PTV reste compatible",
      "quand": "Toujours"
     },
     {
@@ -548,7 +545,7 @@
     {
      "nom": "PTV",
      "type": "PTV",
-     "definition": "CTV + 1 mm isotrope (Curie, masque et Novalis) ; plus petit diamètre du PTV d'au moins 8 mm, sinon marge augmentée ; à adapter à la plateforme",
+     "definition": "CTV + 1 mm isotrope ; plus petit diamètre du PTV d'au moins 8 mm, sinon marge augmentée ; à adapter à la plateforme",
      "quand": "Toujours",
      "marge": "1 mm"
     }
@@ -625,10 +622,5 @@
    "point": "Dose au-delà de 60 Gy non évaluée par RTOG 0539 ; tableur établi pour une protonthérapie",
    "portee": "schema"
   }
- ],
- "textes": {
-  "systemique": [
-   "Pas de traitement systémique standard. Bévacizumab et inhibiteurs multikinases du VEGFR donnent les meilleurs résultats, modestes (EANO 2021)."
-  ]
- }
+ ]
 }

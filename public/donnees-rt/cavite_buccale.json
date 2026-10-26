@@ -11,7 +11,7 @@
    "localisation_id": "cavite_buccale",
    "titre": "Cavité buccale opérée : RT adjuvante",
    "contexte": "post_op",
-   "criteres": "Haut risque : R1 ou rupture capsulaire → 66 Gy et cisplatine. Risque intermédiaire : marges < 5 mm, T3–T4, engainements, emboles → 60 Gy (fiche du service ; Bernier 2005)",
+   "criteres": "Haut risque : R1 ou rupture capsulaire → 66 Gy et cisplatine. Risque intermédiaire : marges < 5 mm, T3–T4, engainements, emboles → 60 Gy (Bernier 2005)",
    "ordre": 1
   },
   {
@@ -44,7 +44,6 @@
     "bernier2005",
     "curie-vads-2021"
    ],
-   "source_institutionnelle": "Institut Curie 2021 ; tableur du service « ORL 66-59,4-54,12 Gy »",
    "prescriptions": [
     {
      "volume": "PTV66",
@@ -82,8 +81,8 @@
    "couverture": "PTV : D95 % ≥ 95 % ; CTV : D98 % ≥ 98 % (acceptable D95 % ≥ 98 %) ; PTV66 ∪ PTV59,4 : D2 % ≤ 107 %",
    "points_attention": [
     "Rupture capsulaire et marges atteintes sont les deux facteurs qui justifient le cisplatine concomitant (analyse EORTC 22931 et RTOG 9501, Bernier 2005)",
-    "Résidu macroscopique (R2) : passer au schéma de tumeur en place, 70 Gy (fiche du service)",
-    "Si un OAR chevauche un PTV, l'objectif s'applique à l'OAR moins le PTV (Curie)"
+    "Résidu macroscopique (R2) : passer au schéma de tumeur en place, 70 Gy",
+    "Si un OAR chevauche un PTV, l'objectif s'applique à l'OAR moins le PTV"
    ],
    "date_verif": "2026-10-24",
    "ind": [
@@ -91,12 +90,35 @@
     "Cavité buccale",
     "Cavité buccale opérée : RT adjuvante",
     "Normofractionné"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "D95 %",
+     "ideal": "",
+     "limitant": "≥ 95 %",
+     "note": ""
+    },
+    {
+     "volume": "CTV",
+     "indicateur": "D98 %",
+     "ideal": "",
+     "limitant": "≥ 98 %",
+     "note": "acceptable D95 % ≥ 98 %"
+    },
+    {
+     "volume": "PTV66 ∪ PTV59,4",
+     "indicateur": "D2 %",
+     "ideal": "",
+     "limitant": "≤ 107 %",
+     "note": ""
+    }
    ]
   },
   {
    "id": "cb-postop-66-54-service",
    "situation_id": "cb-post-op",
-   "titre": "RT post-opératoire 66 / 54 Gy en 33 fx, deux niveaux (fiche du service)",
+   "titre": "RT post-opératoire 66 / 54 Gy en 33 fx, deux niveaux",
    "type": "rte_normo",
    "preuve": "pratique_institutionnelle",
    "essai_ids": [
@@ -104,7 +126,6 @@
     "rtog9501",
     "bernier2005"
    ],
-   "source_institutionnelle": "Fiche du service « RT ORL post-opératoire »",
    "prescriptions": [
     {
      "volume": "PTV66",
@@ -130,12 +151,12 @@
    "simulation_id": "sim-orl-curie",
    "volumes_id": "vol-cb-postop-service",
    "contraintes_ids": [],
-   "couverture": "Tableur du service : D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 % de la dose prescrite",
+   "couverture": "D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 % de la dose prescrite",
    "points_attention": [
     "Rupture capsulaire et marges atteintes sont les deux facteurs qui justifient le cisplatine concomitant (analyse EORTC 22931 et RTOG 9501, Bernier 2005)",
-    "Résidu macroscopique (R2) : passer au schéma de tumeur en place, 70 Gy (fiche du service)",
+    "Résidu macroscopique (R2) : passer au schéma de tumeur en place, 70 Gy",
     "La fiche du service mélange « CTV T54 » et « CTV T56 » et prescrit 60 Gy sans CTV60 défini : le référentiel retient CTV T54 et un CTV60",
-    "Si un OAR chevauche un PTV, l'objectif s'applique à l'OAR moins le PTV (Curie)"
+    "Si un OAR chevauche un PTV, l'objectif s'applique à l'OAR moins le PTV"
    ],
    "date_verif": "2026-10-24",
    "ind": [
@@ -143,6 +164,29 @@
     "Cavité buccale",
     "Cavité buccale opérée : RT adjuvante",
     "Normofractionné"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "D95",
+     "ideal": "",
+     "limitant": "≈ 98 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "D98",
+     "ideal": "",
+     "limitant": "≈ 95 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "Dmax",
+     "ideal": "",
+     "limitant": "≈ 105 % de la dose prescrite",
+     "note": ""
+    }
    ]
   },
   {
@@ -155,7 +199,6 @@
     "rtog9501",
     "bernier2005"
    ],
-   "source_institutionnelle": "Fiche du service « RT ORL post-opératoire » ; tableur du service « ORL 60-54 Gy »",
    "prescriptions": [
     {
      "volume": "PTV60",
@@ -181,12 +224,12 @@
    "simulation_id": "sim-orl-curie",
    "volumes_id": "vol-cb-postop-service",
    "contraintes_ids": [],
-   "couverture": "Tableur du service : D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
+   "couverture": "D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
    "points_attention": [
     "Rupture capsulaire et marges atteintes sont les deux facteurs qui justifient le cisplatine concomitant (analyse EORTC 22931 et RTOG 9501, Bernier 2005)",
-    "Résidu macroscopique (R2) : passer au schéma de tumeur en place, 70 Gy (fiche du service)",
+    "Résidu macroscopique (R2) : passer au schéma de tumeur en place, 70 Gy",
     "La fiche du service mélange « CTV T54 » et « CTV T56 » et prescrit 60 Gy sans CTV60 défini : le référentiel retient CTV T54 et un CTV60",
-    "Si un OAR chevauche un PTV, l'objectif s'applique à l'OAR moins le PTV (Curie)"
+    "Si un OAR chevauche un PTV, l'objectif s'applique à l'OAR moins le PTV"
    ],
    "date_verif": "2026-10-24",
    "ind": [
@@ -194,6 +237,29 @@
     "Cavité buccale",
     "Cavité buccale opérée : RT adjuvante",
     "Normofractionné"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "D95",
+     "ideal": "",
+     "limitant": "≈ 98 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "D98",
+     "ideal": "",
+     "limitant": "≈ 95 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "Dmax",
+     "ideal": "",
+     "limitant": "≈ 105 %",
+     "note": ""
+    }
    ]
   },
   {
@@ -208,7 +274,6 @@
     "bonner2006",
     "curie-vads-2021"
    ],
-   "source_institutionnelle": "Institut Curie 2021 ; tableur du service « ORL 70-63-56 Gy »",
    "prescriptions": [
     {
      "volume": "PTV70",
@@ -245,7 +310,7 @@
    "contraintes_ids": [],
    "couverture": "PTV : D95 % ≥ 95 % ; CTV : D98 % ≥ 98 % ; PTV70 : D2 % ≤ 107 %",
    "points_attention": [
-    "Si un OAR chevauche un PTV, l'objectif s'applique à l'OAR moins le PTV (Curie)"
+    "Si un OAR chevauche un PTV, l'objectif s'applique à l'OAR moins le PTV"
    ],
    "date_verif": "2026-10-24",
    "ind": [
@@ -253,6 +318,29 @@
     "Cavité buccale",
     "Cavité buccale non opérée : RT exclusive ± chimiothérapie",
     "Normofractionné"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "D95 %",
+     "ideal": "",
+     "limitant": "≥ 95 %",
+     "note": ""
+    },
+    {
+     "volume": "CTV",
+     "indicateur": "D98 %",
+     "ideal": "",
+     "limitant": "≥ 98 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV70",
+     "indicateur": "D2 %",
+     "ideal": "",
+     "limitant": "≤ 107 %",
+     "note": ""
+    }
    ]
   },
   {
@@ -265,7 +353,6 @@
     "rtog0225",
     "mach-nc"
    ],
-   "source_institutionnelle": "Tableur du service « ORL 69,96-59,4-54,12 Gy »",
    "prescriptions": [
     {
      "volume": "PTV69,96",
@@ -300,9 +387,9 @@
    "simulation_id": "sim-orl-curie",
    "volumes_id": "vol-orl-igr",
    "contraintes_ids": [],
-   "couverture": "Tableur du service : D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
+   "couverture": "D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
    "points_attention": [
-    "Si un OAR chevauche un PTV, l'objectif s'applique à l'OAR moins le PTV (Curie)"
+    "Si un OAR chevauche un PTV, l'objectif s'applique à l'OAR moins le PTV"
    ],
    "date_verif": "2026-10-24",
    "ind": [
@@ -310,6 +397,29 @@
     "Cavité buccale",
     "Cavité buccale non opérée : RT exclusive ± chimiothérapie",
     "Normofractionné"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "D95",
+     "ideal": "",
+     "limitant": "≈ 98 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "D98",
+     "ideal": "",
+     "limitant": "≈ 95 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "Dmax",
+     "ideal": "",
+     "limitant": "≈ 105 %",
+     "note": ""
+    }
    ]
   },
   {
@@ -321,7 +431,6 @@
    "essai_ids": [
     "igr-orl-rcmi"
    ],
-   "source_institutionnelle": "Gustave Roussy, RCMI des cancers de la tête et du cou (2017)",
    "prescriptions": [
     {
      "volume": "PTV70",
@@ -358,7 +467,7 @@
    "contraintes_ids": [],
    "couverture": "PTV70 : D95 % ≥ 66,5 Gy, D5 % ≤ 77 Gy ; PTV60 : D95 % ≥ 57 Gy, D5 % ≤ 66 Gy ; PTV54 : D95 % ≥ 51,3 Gy, D5 % ≤ 59,4 Gy",
    "points_attention": [
-    "Schéma Gustave Roussy à 2,33 Gy par fraction sur le macroscopique ; les essais EORTC 1219 et ARTFORCE utilisaient 70 Gy / 35 fx et 54,25 Gy (référentiel Gustave Roussy)"
+    "Schéma Gustave Roussy à 2,33 Gy par fraction sur le macroscopique ; les essais EORTC 1219 et ARTFORCE utilisaient 70 Gy / 35 fx et 54,25 Gy"
    ],
    "date_verif": "2026-10-24",
    "ind": [
@@ -366,6 +475,50 @@
     "Cavité buccale",
     "Cavité buccale non opérée : RT exclusive ± chimiothérapie",
     "Hypofractionné"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV70",
+     "indicateur": "D95 %",
+     "ideal": "",
+     "limitant": "≥ 66,5 Gy",
+     "note": ""
+    },
+    {
+     "volume": "PTV70",
+     "indicateur": "D5 %",
+     "ideal": "",
+     "limitant": "≤ 77 Gy",
+     "note": ""
+    },
+    {
+     "volume": "PTV60",
+     "indicateur": "D95 %",
+     "ideal": "",
+     "limitant": "≥ 57 Gy",
+     "note": ""
+    },
+    {
+     "volume": "PTV60",
+     "indicateur": "D5 %",
+     "ideal": "",
+     "limitant": "≤ 66 Gy",
+     "note": ""
+    },
+    {
+     "volume": "PTV54",
+     "indicateur": "D95 %",
+     "ideal": "",
+     "limitant": "≥ 51,3 Gy",
+     "note": ""
+    },
+    {
+     "volume": "PTV54",
+     "indicateur": "D5 %",
+     "ideal": "",
+     "limitant": "≤ 59,4 Gy",
+     "note": ""
+    }
    ]
   },
   {
@@ -478,7 +631,7 @@
    "contraintes_ids": [],
    "points_attention": [
     "Le curage ganglionnaire est indispensable avec la curiethérapie exclusive : 44,6 % d'envahissement occulte (Bourgier 2005)",
-    "Si un OAR chevauche un PTV, l'objectif s'applique à l'OAR moins le PTV (Curie)"
+    "Si un OAR chevauche un PTV, l'objectif s'applique à l'OAR moins le PTV"
    ],
    "date_verif": "2026-10-24",
    "ind": [
@@ -889,7 +1042,7 @@
     "rtog9501",
     "bernier2005"
    ],
-   "note": "Si R1 ou rupture capsulaire (fiche du service ; Bernier 2005)"
+   "note": "Si R1 ou rupture capsulaire (Bernier 2005)"
   },
   {
    "situation": "cb-en-place",
@@ -932,7 +1085,7 @@
   },
   {
    "cible": "cb-post-op",
-   "point": "Résidu macroscopique (R2) : passer au schéma de tumeur en place, 70 Gy (fiche du service)",
+   "point": "Résidu macroscopique (R2) : passer au schéma de tumeur en place, 70 Gy",
    "portee": "situation"
   },
   {
@@ -942,7 +1095,7 @@
   },
   {
    "cible": "cb-70-30-igr",
-   "point": "Schéma Gustave Roussy à 2,33 Gy par fraction sur le macroscopique ; les essais EORTC 1219 et ARTFORCE utilisaient 70 Gy / 35 fx et 54,25 Gy (référentiel Gustave Roussy)",
+   "point": "Schéma Gustave Roussy à 2,33 Gy par fraction sur le macroscopique ; les essais EORTC 1219 et ARTFORCE utilisaient 70 Gy / 35 fx et 54,25 Gy",
    "portee": "schema"
   },
   {
@@ -952,7 +1105,7 @@
   },
   {
    "cible": "ct-orl-curie",
-   "point": "Si un OAR chevauche un PTV, l'objectif s'applique à l'OAR moins le PTV (Curie)",
+   "point": "Si un OAR chevauche un PTV, l'objectif s'applique à l'OAR moins le PTV",
    "portee": "contraintes"
   },
   {
@@ -960,13 +1113,5 @@
    "point": "IMRT avec épargne parotidienne : moins de xérostomie (PARSPORT, Nutting 2011). Épargne des constricteurs (Dmoy ≤ 50 Gy hors volume haute dose) : meilleure déglutition (DARS, Nutting 2023)",
    "portee": "localisation"
   }
- ],
- "textes": {
-  "curietherapie": [
-   "Le bas débit continu (fils d'iridium) a été remplacé par le débit pulsé et le haut débit (GEC-ESTRO 2024)."
-  ],
-  "contourage": [
-   "Volumes communs, puis volumes propres à la cavité buccale (fiche du service). Contourage des OAR : consensus Brouwer 2015."
-  ]
- }
+ ]
 }

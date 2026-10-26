@@ -53,6 +53,15 @@
     "Schwannome vestibulaire",
     "Schwannome vestibulaire à traiter",
     "Stéréotaxie"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "",
+     "indicateur": "Dose prescrite en périphérie de la tumeur",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    }
    ]
   },
   {
@@ -128,6 +137,15 @@
     "Schwannome vestibulaire",
     "Schwannome vestibulaire à traiter",
     "Stéréotaxie"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "",
+     "indicateur": "Dose prescrite à l'isodose 80 %",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    }
    ]
   }
  ],
@@ -135,10 +153,10 @@
   {
    "id": "sim-crane-srs",
    "position": "Décubitus dorsal, tête en position neutre, bras le long du corps, coussin sous les genoux",
-   "contention": "Masque thermoformé 5 points ou cadre stéréotaxique (fiche du service) ; Curie : masque bivalve sans cadre, moulé sur une cale retirée avant l'acquisition",
-   "scanner": "Coupes axiales millimétriques. Curie : non injecté, de 1 cm au-dessus du vertex jusqu'à T1 ; fiche du service : injecté",
-   "imagerie": "IRM de planification T1 sans injection (saignement récent), T1 gadolinium 3D (contourage) et perfusion (référence du suivi), jusqu'à C3–C4, fusionnée au scanner. Première séance dans les 14 jours suivant l'IRM, 16 au plus (Curie)",
-   "reperes": "Plan de référence pointe du nez–tragus, perpendiculaire à la table (Curie)"
+   "contention": "Masque thermoformé 5 points ou cadre stéréotaxique ; autre approche : masque bivalve sans cadre, moulé sur une cale retirée avant l'acquisition",
+   "scanner": "Coupes axiales millimétriques. Autre approche : non injecté, de 1 cm au-dessus du vertex jusqu'à T1 ; autre approche : injecté",
+   "imagerie": "IRM de planification T1 sans injection (saignement récent), T1 gadolinium 3D (contourage) et perfusion (référence du suivi), jusqu'à C3–C4, fusionnée au scanner. Première séance dans les 14 jours suivant l'IRM, 16 au plus",
+   "reperes": "Plan de référence pointe du nez–tragus, perpendiculaire à la table"
   },
   {
    "id": "sim-crane",
@@ -227,10 +245,5 @@
    "point": "Neurofibromatose de type 2 : audition moins bien préservée après radiochirurgie ou RT fractionnée",
    "portee": "localisation"
   }
- ],
- "textes": {
-  "systemique": [
-   "Pas de traitement médical, sauf le bévacizumab dans la neurofibromatose de type 2 (EANO 2020)."
-  ]
- }
+ ]
 }

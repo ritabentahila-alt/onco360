@@ -19,7 +19,7 @@
    "localisation_id": "oropharynx",
    "titre": "Oropharynx opéré : RT adjuvante",
    "contexte": "post_op",
-   "criteres": "Haut risque : marges positives ou rupture capsulaire → 66 Gy et cisplatine. Intermédiaire : marges < 5 mm, T3–T4, engainements → 60 Gy (fiche du service)",
+   "criteres": "Haut risque : marges positives ou rupture capsulaire → 66 Gy et cisplatine. Intermédiaire : marges < 5 mm, T3–T4, engainements → 60 Gy",
    "ordre": 2
   },
   {
@@ -45,7 +45,6 @@
     "de-escalate",
     "curie-vads-2021"
    ],
-   "source_institutionnelle": "Institut Curie 2021 ; tableur du service « ORL 70-63-56 Gy »",
    "prescriptions": [
     {
      "volume": "PTV70",
@@ -83,7 +82,7 @@
    "couverture": "PTV : D95 % ≥ 95 % ; CTV : D98 % ≥ 98 % ; PTV70 : D2 % ≤ 107 %",
    "points_attention": [
     "HPV positif : le cetuximab donne une survie inférieure au cisplatine (RTOG 1016) sans réduire la toxicité (De-ESCALaTE) ; la désescalade reste du domaine des essais",
-    "Volumes Curie : CTV70 élargissable en base de langue ; CTV56_T compartimental (Lapeyre 2005) ; aires ganglionnaires selon Biau 2019"
+    "Volumes : CTV70 élargissable en base de langue ; CTV56_T compartimental (Lapeyre 2005) ; aires ganglionnaires selon Biau 2019"
    ],
    "date_verif": "2026-10-24",
    "ind": [
@@ -91,6 +90,29 @@
     "Oropharynx",
     "Oropharynx non opéré : radiochimiothérapie",
     "Normofractionné"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "D95 %",
+     "ideal": "",
+     "limitant": "≥ 95 %",
+     "note": ""
+    },
+    {
+     "volume": "CTV",
+     "indicateur": "D98 %",
+     "ideal": "",
+     "limitant": "≥ 98 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV70",
+     "indicateur": "D2 %",
+     "ideal": "",
+     "limitant": "≤ 107 %",
+     "note": ""
+    }
    ]
   },
   {
@@ -123,7 +145,7 @@
    "points_attention": [
     "HPV positif : le cetuximab donne une survie inférieure au cisplatine (RTOG 1016) sans réduire la toxicité (De-ESCALaTE) ; la désescalade reste du domaine des essais",
     "Six fractions par semaine : meilleur contrôle locorégional que cinq (DAHANCA 6 et 7) ; le fractionnement modifié améliore la survie (méta-analyse MARCH)",
-    "Volumes Curie : CTV70 élargissable en base de langue ; CTV56_T compartimental (Lapeyre 2005) ; aires ganglionnaires selon Biau 2019"
+    "Volumes : CTV70 élargissable en base de langue ; CTV56_T compartimental (Lapeyre 2005) ; aires ganglionnaires selon Biau 2019"
    ],
    "date_verif": "2026-10-24",
    "ind": [
@@ -143,7 +165,6 @@
     "rtog0225",
     "mach-nc"
    ],
-   "source_institutionnelle": "Tableur du service « ORL 69,96-59,4-54,12 Gy »",
    "prescriptions": [
     {
      "volume": "PTV69,96",
@@ -178,10 +199,10 @@
    "simulation_id": "sim-orl-curie",
    "volumes_id": "vol-oro-igr",
    "contraintes_ids": [],
-   "couverture": "Tableur du service : D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
+   "couverture": "D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
    "points_attention": [
     "HPV positif : le cetuximab donne une survie inférieure au cisplatine (RTOG 1016) sans réduire la toxicité (De-ESCALaTE) ; la désescalade reste du domaine des essais",
-    "Volumes Curie : CTV70 élargissable en base de langue ; CTV56_T compartimental (Lapeyre 2005) ; aires ganglionnaires selon Biau 2019"
+    "Volumes : CTV70 élargissable en base de langue ; CTV56_T compartimental (Lapeyre 2005) ; aires ganglionnaires selon Biau 2019"
    ],
    "date_verif": "2026-10-24",
    "ind": [
@@ -189,6 +210,29 @@
     "Oropharynx",
     "Oropharynx non opéré : radiochimiothérapie",
     "Normofractionné"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "D95",
+     "ideal": "",
+     "limitant": "≈ 98 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "D98",
+     "ideal": "",
+     "limitant": "≈ 95 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "Dmax",
+     "ideal": "",
+     "limitant": "≈ 105 %",
+     "note": ""
+    }
    ]
   },
   {
@@ -200,7 +244,6 @@
    "essai_ids": [
     "igr-orl-rcmi"
    ],
-   "source_institutionnelle": "Gustave Roussy, RCMI des cancers de la tête et du cou (2017)",
    "prescriptions": [
     {
      "volume": "PTV70",
@@ -218,7 +261,7 @@
      "dose_fx_Gy": 2,
      "mode": "SIB",
      "rythme": "5 fx/sem",
-     "note": "Oropharynx et niveaux contigus (annexe Gustave Roussy)"
+     "note": "Oropharynx et niveaux contigus"
     },
     {
      "volume": "PTV54",
@@ -238,7 +281,7 @@
    "couverture": "PTV70 : D95 % ≥ 66,5 Gy, D5 % ≤ 77 Gy ; PTV60 : D95 % ≥ 57 Gy ; PTV54 : D95 % ≥ 51,3 Gy",
    "points_attention": [
     "HPV positif : le cetuximab donne une survie inférieure au cisplatine (RTOG 1016) sans réduire la toxicité (De-ESCALaTE) ; la désescalade reste du domaine des essais",
-    "Volumes Curie : CTV70 élargissable en base de langue ; CTV56_T compartimental (Lapeyre 2005) ; aires ganglionnaires selon Biau 2019"
+    "Volumes : CTV70 élargissable en base de langue ; CTV56_T compartimental (Lapeyre 2005) ; aires ganglionnaires selon Biau 2019"
    ],
    "date_verif": "2026-10-24",
    "ind": [
@@ -246,6 +289,36 @@
     "Oropharynx",
     "Oropharynx non opéré : radiochimiothérapie",
     "Hypofractionné"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV70",
+     "indicateur": "D95 %",
+     "ideal": "",
+     "limitant": "≥ 66,5 Gy",
+     "note": ""
+    },
+    {
+     "volume": "PTV70",
+     "indicateur": "D5 %",
+     "ideal": "",
+     "limitant": "≤ 77 Gy",
+     "note": ""
+    },
+    {
+     "volume": "PTV60",
+     "indicateur": "D95 %",
+     "ideal": "",
+     "limitant": "≥ 57 Gy",
+     "note": ""
+    },
+    {
+     "volume": "PTV54",
+     "indicateur": "D95 %",
+     "ideal": "",
+     "limitant": "≥ 51,3 Gy",
+     "note": ""
+    }
    ]
   },
   {
@@ -260,7 +333,6 @@
     "bernier2005",
     "curie-vads-2021"
    ],
-   "source_institutionnelle": "Institut Curie 2021 ; tableur du service « ORL 66-59,4-54,12 Gy »",
    "prescriptions": [
     {
      "volume": "PTV66",
@@ -303,12 +375,35 @@
     "Oropharynx opéré : RT adjuvante",
     "Normofractionné"
    ],
-   "points_attention": []
+   "points_attention": [],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "D95 %",
+     "ideal": "",
+     "limitant": "≥ 95 %",
+     "note": ""
+    },
+    {
+     "volume": "CTV",
+     "indicateur": "D98 %",
+     "ideal": "",
+     "limitant": "≥ 98 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV66 ∪ PTV59,4",
+     "indicateur": "D2 %",
+     "ideal": "",
+     "limitant": "≤ 107 %",
+     "note": ""
+    }
+   ]
   },
   {
    "id": "oro-postop-66-54-service",
    "situation_id": "oro-post-op",
-   "titre": "RT post-opératoire 66 / 54 Gy en 33 fx (fiche du service)",
+   "titre": "RT post-opératoire 66 / 54 Gy en 33 fx",
    "type": "rte_normo",
    "preuve": "pratique_institutionnelle",
    "essai_ids": [
@@ -316,7 +411,6 @@
     "rtog9501",
     "bernier2005"
    ],
-   "source_institutionnelle": "Fiche du service « RT ORL post-opératoire »",
    "prescriptions": [
     {
      "volume": "PTV66",
@@ -342,7 +436,7 @@
    "simulation_id": "sim-orl-curie",
    "volumes_id": "vol-oro-postop-service",
    "contraintes_ids": [],
-   "couverture": "Tableur du service : D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
+   "couverture": "D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
    "date_verif": "2026-10-24",
    "ind": [
     "ORL",
@@ -350,7 +444,30 @@
     "Oropharynx opéré : RT adjuvante",
     "Normofractionné"
    ],
-   "points_attention": []
+   "points_attention": [],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "D95",
+     "ideal": "",
+     "limitant": "≈ 98 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "D98",
+     "ideal": "",
+     "limitant": "≈ 95 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "Dmax",
+     "ideal": "",
+     "limitant": "≈ 105 %",
+     "note": ""
+    }
+   ]
   },
   {
    "id": "oro-postop-60-54-service",
@@ -362,7 +479,6 @@
     "rtog9501",
     "bernier2005"
    ],
-   "source_institutionnelle": "Fiche du service « RT ORL post-opératoire » ; tableur du service « ORL 60-54 Gy »",
    "prescriptions": [
     {
      "volume": "PTV60",
@@ -388,7 +504,7 @@
    "simulation_id": "sim-orl-curie",
    "volumes_id": "vol-oro-postop-service",
    "contraintes_ids": [],
-   "couverture": "Tableur du service : D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
+   "couverture": "D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
    "date_verif": "2026-10-24",
    "ind": [
     "ORL",
@@ -396,7 +512,30 @@
     "Oropharynx opéré : RT adjuvante",
     "Normofractionné"
    ],
-   "points_attention": []
+   "points_attention": [],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "D95",
+     "ideal": "",
+     "limitant": "≈ 98 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "D98",
+     "ideal": "",
+     "limitant": "≈ 95 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "Dmax",
+     "ideal": "",
+     "limitant": "≈ 105 %",
+     "note": ""
+    }
+   ]
   },
   {
    "id": "oro-rte-pdr-bdl",
@@ -851,7 +990,7 @@
   },
   {
    "cible": "oro-en-place",
-   "point": "Volumes Curie : CTV70 élargissable en base de langue ; CTV56_T compartimental (Lapeyre 2005) ; aires ganglionnaires selon Biau 2019",
+   "point": "Volumes : CTV70 élargissable en base de langue ; CTV56_T compartimental (Lapeyre 2005) ; aires ganglionnaires selon Biau 2019",
    "portee": "situation"
   },
   {
@@ -859,10 +998,5 @@
    "point": "Priorités OAR de Gustave Roussy pour l'oropharynx : parotide et glande sous-mandibulaire controlatérales, ATM",
    "portee": "localisation"
   }
- ],
- "textes": {
-  "centrage": [
-   "IRM et TEP-FDG fortement recommandées pour l'oropharynx (Gustave Roussy)."
-  ]
- }
+ ]
 }

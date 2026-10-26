@@ -27,7 +27,7 @@
    "localisation_id": "poumon",
    "titre": "Stéréotaxie pulmonaire : CBNPC stade I ou métastase",
    "contexte": "en_place",
-   "criteres": "CBNPC T1–T2a N0 inopérable ou refusant la chirurgie ; nodule évolutif hypermétabolique sans histologie ; métastase pulmonaire (≤ 5 métastases dans ≤ 3 organes). PTV de 1 à 5 cm (Curie)",
+   "criteres": "CBNPC T1–T2a N0 inopérable ou refusant la chirurgie ; nodule évolutif hypermétabolique sans histologie ; métastase pulmonaire (≤ 5 métastases dans ≤ 3 organes). PTV de 1 à 5 cm",
    "ordre": 3
   },
   {
@@ -95,6 +95,15 @@
     "Poumon",
     "CBNPC stade III non résécable : radiochimiothérapie",
     "Normofractionné"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "RTOG 0617 : 99 % du PTV",
+     "ideal": "",
+     "limitant": "≥ 93 % de la dose",
+     "note": ""
+    }
    ]
   },
   {
@@ -107,7 +116,6 @@
     "proclaim",
     "pacific"
    ],
-   "source_institutionnelle": "Fiche du service",
    "prescriptions": [
     {
      "volume": "PTV (tumeur + adénopathies)",
@@ -183,7 +191,6 @@
     "rtog0236lt",
     "chisel"
    ],
-   "source_institutionnelle": "Institut Curie, SBRT d'un nodule pulmonaire",
    "prescriptions": [
     {
      "volume": "PTV",
@@ -192,7 +199,7 @@
      "dose_fx_Gy": 18,
      "mode": "seul",
      "rythme": "Tous les 2 jours",
-     "note": "Tumeur primitive seulement, pas pour une métastase (Curie)"
+     "note": "Tumeur primitive seulement, pas pour une métastase"
     }
    ],
    "technique": "VMAT, inspiration bloquée ou 4D, CBCT avant et pendant la séance",
@@ -200,16 +207,16 @@
    "simulation_id": "sim-pou-sbrt",
    "volumes_id": "vol-pou-sbrt",
    "contraintes_ids": [],
-   "couverture": "(i)GTV : D98 % ≥ 100 % (souple : ≥ 110 %), D0,035 cc entre 118 et 143 %. PTV : D90 % ≥ 99 % (souple : D95 % ≥ 95 %). PTVéval (PTV moins les OAR) : D95 % ≥ 100 % (souple : D98 % ≥ 100 %). Aucune dose > 105 % hors du PTV. R100 % entre 1 et 1,2 ; R50 % et D2cm selon le volume du PTV (protocole Curie)",
+   "couverture": "(i)GTV : D98 % ≥ 100 % (souple : ≥ 110 %), D0,035 cc entre 118 et 143 %. PTV : D90 % ≥ 99 % (souple : D95 % ≥ 95 %). PTVéval (PTV moins les OAR) : D95 % ≥ 100 % (souple : D98 % ≥ 100 %). Aucune dose > 105 % hors du PTV. R100 % entre 1 et 1,2 ; R50 % et D2cm selon le volume du PTV",
    "points_attention": [
-    "54 Gy / 3 fx : tumeur primitive seulement, jamais pour une métastase (Curie)",
+    "54 Gy / 3 fx : tumeur primitive seulement, jamais pour une métastase",
     "Ultracentral au contact de l'arbre bronchique proximal, de l'œsophage ou du plexus : pas de SBRT à Curie (RT hypofractionnée). 7 × 8 Gy à proscrire à moins de 1 cm des bronches souches et de la trachée (HILUS : 10 décès)",
-    "Lésion centrale = PTV à moins de 2 cm de toute structure sensible (définition IASLC retenue par Curie). Ultracentrale = PTV au contact de l'arbre bronchique proximal, du cœur, des vaisseaux pulmonaires ou de l'œsophage",
+    "Lésion centrale = PTV à moins de 2 cm de toute structure sensible (définition IASLC). Ultracentrale = PTV au contact de l'arbre bronchique proximal, du cœur, des vaisseaux pulmonaires ou de l'œsophage",
     "Séances tous les 2 jours (voire 3). CBCT avant le premier arc et entre les arcs ; écart os / tissu mou > 1 cm : appeler médecin et physicien",
     "Patient opérable : SBRT non inférieure à la lobectomie dans STARS révisé (bras unique, comparaison appariée). Décision en RCP",
     "Métastases : SABR-COMET (phase 2) améliore la survie (5 ans 42 % vs 18 %) au prix de 4,5 % de décès liés au traitement",
-    "34 Gy / 1 fx (RTOG 0915, phase 2) : non retenu par Curie ni Gustave Roussy",
-    "Surveillance : TDM à 3, 6 et 12 mois, puis tous les 6 mois pendant 3 ans, puis annuelle (Curie)"
+    "34 Gy / 1 fx (RTOG 0915, phase 2) : non retenu",
+    "Surveillance : TDM à 3, 6 et 12 mois, puis tous les 6 mois pendant 3 ans, puis annuelle"
    ],
    "date_verif": "2026-10-23",
    "ind": [
@@ -217,6 +224,22 @@
     "Poumon",
     "Stéréotaxie pulmonaire : CBNPC stade I ou métastase",
     "Stéréotaxie"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "(i)GTV : D98 %",
+     "ideal": "",
+     "limitant": "≥ 100 % (souple : ≥ 110 %), D0,035 cc entre 118 et 143 %. PTV : D90 % ≥ 99 % (souple : D95 % ≥ 95 %). PTVéval (PTV moins les OAR) : D95 % ≥ 100 % (souple : D98 % ≥ 100 %). Aucune dose > 105 % hors du PTV. R100 % entre 1 et 1,2",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "R50 % et D2cm selon le volume du PTV",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    }
    ]
   },
   {
@@ -228,7 +251,6 @@
    "essai_ids": [
     "acrop-sbrt-poumon"
    ],
-   "source_institutionnelle": "Institut Curie, SBRT d'un nodule pulmonaire",
    "prescriptions": [
     {
      "volume": "PTV",
@@ -245,16 +267,16 @@
    "simulation_id": "sim-pou-sbrt",
    "volumes_id": "vol-pou-sbrt",
    "contraintes_ids": [],
-   "couverture": "(i)GTV : D98 % ≥ 100 % (souple : ≥ 110 %), D0,035 cc entre 118 et 143 %. PTV : D90 % ≥ 99 % (souple : D95 % ≥ 95 %). PTVéval (PTV moins les OAR) : D95 % ≥ 100 % (souple : D98 % ≥ 100 %). Aucune dose > 105 % hors du PTV. R100 % entre 1 et 1,2 ; R50 % et D2cm selon le volume du PTV (protocole Curie)",
+   "couverture": "(i)GTV : D98 % ≥ 100 % (souple : ≥ 110 %), D0,035 cc entre 118 et 143 %. PTV : D90 % ≥ 99 % (souple : D95 % ≥ 95 %). PTVéval (PTV moins les OAR) : D95 % ≥ 100 % (souple : D98 % ≥ 100 %). Aucune dose > 105 % hors du PTV. R100 % entre 1 et 1,2 ; R50 % et D2cm selon le volume du PTV",
    "points_attention": [
-    "54 Gy / 3 fx : tumeur primitive seulement, jamais pour une métastase (Curie)",
+    "54 Gy / 3 fx : tumeur primitive seulement, jamais pour une métastase",
     "Ultracentral au contact de l'arbre bronchique proximal, de l'œsophage ou du plexus : pas de SBRT à Curie (RT hypofractionnée). 7 × 8 Gy à proscrire à moins de 1 cm des bronches souches et de la trachée (HILUS : 10 décès)",
-    "Lésion centrale = PTV à moins de 2 cm de toute structure sensible (définition IASLC retenue par Curie). Ultracentrale = PTV au contact de l'arbre bronchique proximal, du cœur, des vaisseaux pulmonaires ou de l'œsophage",
+    "Lésion centrale = PTV à moins de 2 cm de toute structure sensible (définition IASLC). Ultracentrale = PTV au contact de l'arbre bronchique proximal, du cœur, des vaisseaux pulmonaires ou de l'œsophage",
     "Séances tous les 2 jours (voire 3). CBCT avant le premier arc et entre les arcs ; écart os / tissu mou > 1 cm : appeler médecin et physicien",
     "Patient opérable : SBRT non inférieure à la lobectomie dans STARS révisé (bras unique, comparaison appariée). Décision en RCP",
     "Métastases : SABR-COMET (phase 2) améliore la survie (5 ans 42 % vs 18 %) au prix de 4,5 % de décès liés au traitement",
-    "34 Gy / 1 fx (RTOG 0915, phase 2) : non retenu par Curie ni Gustave Roussy",
-    "Surveillance : TDM à 3, 6 et 12 mois, puis tous les 6 mois pendant 3 ans, puis annuelle (Curie)"
+    "34 Gy / 1 fx (RTOG 0915, phase 2) : non retenu",
+    "Surveillance : TDM à 3, 6 et 12 mois, puis tous les 6 mois pendant 3 ans, puis annuelle"
    ],
    "date_verif": "2026-10-23",
    "ind": [
@@ -262,6 +284,22 @@
     "Poumon",
     "Stéréotaxie pulmonaire : CBNPC stade I ou métastase",
     "Stéréotaxie"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "(i)GTV : D98 %",
+     "ideal": "",
+     "limitant": "≥ 100 % (souple : ≥ 110 %), D0,035 cc entre 118 et 143 %. PTV : D90 % ≥ 99 % (souple : D95 % ≥ 95 %). PTVéval (PTV moins les OAR) : D95 % ≥ 100 % (souple : D98 % ≥ 100 %). Aucune dose > 105 % hors du PTV. R100 % entre 1 et 1,2",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "R50 % et D2cm selon le volume du PTV",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    }
    ]
   },
   {
@@ -274,7 +312,6 @@
     "acrop-sbrt-poumon",
     "chisel"
    ],
-   "source_institutionnelle": "Institut Curie, SBRT d'un nodule pulmonaire",
    "prescriptions": [
     {
      "volume": "PTV",
@@ -291,16 +328,16 @@
    "simulation_id": "sim-pou-sbrt",
    "volumes_id": "vol-pou-sbrt",
    "contraintes_ids": [],
-   "couverture": "(i)GTV : D98 % ≥ 100 % (souple : ≥ 110 %), D0,035 cc entre 118 et 143 %. PTV : D90 % ≥ 99 % (souple : D95 % ≥ 95 %). PTVéval (PTV moins les OAR) : D95 % ≥ 100 % (souple : D98 % ≥ 100 %). Aucune dose > 105 % hors du PTV. R100 % entre 1 et 1,2 ; R50 % et D2cm selon le volume du PTV (protocole Curie)",
+   "couverture": "(i)GTV : D98 % ≥ 100 % (souple : ≥ 110 %), D0,035 cc entre 118 et 143 %. PTV : D90 % ≥ 99 % (souple : D95 % ≥ 95 %). PTVéval (PTV moins les OAR) : D95 % ≥ 100 % (souple : D98 % ≥ 100 %). Aucune dose > 105 % hors du PTV. R100 % entre 1 et 1,2 ; R50 % et D2cm selon le volume du PTV",
    "points_attention": [
-    "54 Gy / 3 fx : tumeur primitive seulement, jamais pour une métastase (Curie)",
+    "54 Gy / 3 fx : tumeur primitive seulement, jamais pour une métastase",
     "Ultracentral au contact de l'arbre bronchique proximal, de l'œsophage ou du plexus : pas de SBRT à Curie (RT hypofractionnée). 7 × 8 Gy à proscrire à moins de 1 cm des bronches souches et de la trachée (HILUS : 10 décès)",
-    "Lésion centrale = PTV à moins de 2 cm de toute structure sensible (définition IASLC retenue par Curie). Ultracentrale = PTV au contact de l'arbre bronchique proximal, du cœur, des vaisseaux pulmonaires ou de l'œsophage",
+    "Lésion centrale = PTV à moins de 2 cm de toute structure sensible (définition IASLC). Ultracentrale = PTV au contact de l'arbre bronchique proximal, du cœur, des vaisseaux pulmonaires ou de l'œsophage",
     "Séances tous les 2 jours (voire 3). CBCT avant le premier arc et entre les arcs ; écart os / tissu mou > 1 cm : appeler médecin et physicien",
     "Patient opérable : SBRT non inférieure à la lobectomie dans STARS révisé (bras unique, comparaison appariée). Décision en RCP",
     "Métastases : SABR-COMET (phase 2) améliore la survie (5 ans 42 % vs 18 %) au prix de 4,5 % de décès liés au traitement",
-    "34 Gy / 1 fx (RTOG 0915, phase 2) : non retenu par Curie ni Gustave Roussy",
-    "Surveillance : TDM à 3, 6 et 12 mois, puis tous les 6 mois pendant 3 ans, puis annuelle (Curie)"
+    "34 Gy / 1 fx (RTOG 0915, phase 2) : non retenu",
+    "Surveillance : TDM à 3, 6 et 12 mois, puis tous les 6 mois pendant 3 ans, puis annuelle"
    ],
    "date_verif": "2026-10-23",
    "ind": [
@@ -308,6 +345,22 @@
     "Poumon",
     "Stéréotaxie pulmonaire : CBNPC stade I ou métastase",
     "Stéréotaxie"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "(i)GTV : D98 %",
+     "ideal": "",
+     "limitant": "≥ 100 % (souple : ≥ 110 %), D0,035 cc entre 118 et 143 %. PTV : D90 % ≥ 99 % (souple : D95 % ≥ 95 %). PTVéval (PTV moins les OAR) : D95 % ≥ 100 % (souple : D98 % ≥ 100 %). Aucune dose > 105 % hors du PTV. R100 % entre 1 et 1,2",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "R50 % et D2cm selon le volume du PTV",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    }
    ]
   },
   {
@@ -320,7 +373,6 @@
     "rtog0813",
     "lenglet"
    ],
-   "source_institutionnelle": "Institut Curie, SBRT d'un nodule pulmonaire",
    "prescriptions": [
     {
      "volume": "PTV",
@@ -329,7 +381,7 @@
      "dose_fx_Gy": 10,
      "mode": "seul",
      "rythme": "Tous les 2 jours",
-     "note": "Pariétal (préféré à 4 × 12 Gy par Curie) ; central à plus de 1 cm des OAR"
+     "note": "Pariétal (préféré à 4 × 12 Gy) ; central à plus de 1 cm des OAR"
     }
    ],
    "technique": "VMAT, inspiration bloquée ou 4D, CBCT avant et pendant la séance",
@@ -337,16 +389,16 @@
    "simulation_id": "sim-pou-sbrt",
    "volumes_id": "vol-pou-sbrt",
    "contraintes_ids": [],
-   "couverture": "(i)GTV : D98 % ≥ 100 % (souple : ≥ 110 %), D0,035 cc entre 118 et 143 %. PTV : D90 % ≥ 99 % (souple : D95 % ≥ 95 %). PTVéval (PTV moins les OAR) : D95 % ≥ 100 % (souple : D98 % ≥ 100 %). Aucune dose > 105 % hors du PTV. R100 % entre 1 et 1,2 ; R50 % et D2cm selon le volume du PTV (protocole Curie)",
+   "couverture": "(i)GTV : D98 % ≥ 100 % (souple : ≥ 110 %), D0,035 cc entre 118 et 143 %. PTV : D90 % ≥ 99 % (souple : D95 % ≥ 95 %). PTVéval (PTV moins les OAR) : D95 % ≥ 100 % (souple : D98 % ≥ 100 %). Aucune dose > 105 % hors du PTV. R100 % entre 1 et 1,2 ; R50 % et D2cm selon le volume du PTV",
    "points_attention": [
-    "54 Gy / 3 fx : tumeur primitive seulement, jamais pour une métastase (Curie)",
+    "54 Gy / 3 fx : tumeur primitive seulement, jamais pour une métastase",
     "Ultracentral au contact de l'arbre bronchique proximal, de l'œsophage ou du plexus : pas de SBRT à Curie (RT hypofractionnée). 7 × 8 Gy à proscrire à moins de 1 cm des bronches souches et de la trachée (HILUS : 10 décès)",
-    "Lésion centrale = PTV à moins de 2 cm de toute structure sensible (définition IASLC retenue par Curie). Ultracentrale = PTV au contact de l'arbre bronchique proximal, du cœur, des vaisseaux pulmonaires ou de l'œsophage",
+    "Lésion centrale = PTV à moins de 2 cm de toute structure sensible (définition IASLC). Ultracentrale = PTV au contact de l'arbre bronchique proximal, du cœur, des vaisseaux pulmonaires ou de l'œsophage",
     "Séances tous les 2 jours (voire 3). CBCT avant le premier arc et entre les arcs ; écart os / tissu mou > 1 cm : appeler médecin et physicien",
     "Patient opérable : SBRT non inférieure à la lobectomie dans STARS révisé (bras unique, comparaison appariée). Décision en RCP",
     "Métastases : SABR-COMET (phase 2) améliore la survie (5 ans 42 % vs 18 %) au prix de 4,5 % de décès liés au traitement",
-    "34 Gy / 1 fx (RTOG 0915, phase 2) : non retenu par Curie ni Gustave Roussy",
-    "Surveillance : TDM à 3, 6 et 12 mois, puis tous les 6 mois pendant 3 ans, puis annuelle (Curie)"
+    "34 Gy / 1 fx (RTOG 0915, phase 2) : non retenu",
+    "Surveillance : TDM à 3, 6 et 12 mois, puis tous les 6 mois pendant 3 ans, puis annuelle"
    ],
    "date_verif": "2026-10-23",
    "ind": [
@@ -354,6 +406,22 @@
     "Poumon",
     "Stéréotaxie pulmonaire : CBNPC stade I ou métastase",
     "Stéréotaxie"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "(i)GTV : D98 %",
+     "ideal": "",
+     "limitant": "≥ 100 % (souple : ≥ 110 %), D0,035 cc entre 118 et 143 %. PTV : D90 % ≥ 99 % (souple : D95 % ≥ 95 %). PTVéval (PTV moins les OAR) : D95 % ≥ 100 % (souple : D98 % ≥ 100 %). Aucune dose > 105 % hors du PTV. R100 % entre 1 et 1,2",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "R50 % et D2cm selon le volume du PTV",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    }
    ]
   },
   {
@@ -366,7 +434,6 @@
     "lenglet",
     "hilus"
    ],
-   "source_institutionnelle": "Institut Curie, SBRT d'un nodule pulmonaire",
    "prescriptions": [
     {
      "volume": "PTV",
@@ -383,16 +450,16 @@
    "simulation_id": "sim-pou-sbrt",
    "volumes_id": "vol-pou-sbrt",
    "contraintes_ids": [],
-   "couverture": "(i)GTV : D98 % ≥ 100 % (souple : ≥ 110 %), D0,035 cc entre 118 et 143 %. PTV : D90 % ≥ 99 % (souple : D95 % ≥ 95 %). PTVéval (PTV moins les OAR) : D95 % ≥ 100 % (souple : D98 % ≥ 100 %). Aucune dose > 105 % hors du PTV. R100 % entre 1 et 1,2 ; R50 % et D2cm selon le volume du PTV (protocole Curie)",
+   "couverture": "(i)GTV : D98 % ≥ 100 % (souple : ≥ 110 %), D0,035 cc entre 118 et 143 %. PTV : D90 % ≥ 99 % (souple : D95 % ≥ 95 %). PTVéval (PTV moins les OAR) : D95 % ≥ 100 % (souple : D98 % ≥ 100 %). Aucune dose > 105 % hors du PTV. R100 % entre 1 et 1,2 ; R50 % et D2cm selon le volume du PTV",
    "points_attention": [
-    "54 Gy / 3 fx : tumeur primitive seulement, jamais pour une métastase (Curie)",
+    "54 Gy / 3 fx : tumeur primitive seulement, jamais pour une métastase",
     "Ultracentral au contact de l'arbre bronchique proximal, de l'œsophage ou du plexus : pas de SBRT à Curie (RT hypofractionnée). 7 × 8 Gy à proscrire à moins de 1 cm des bronches souches et de la trachée (HILUS : 10 décès)",
-    "Lésion centrale = PTV à moins de 2 cm de toute structure sensible (définition IASLC retenue par Curie). Ultracentrale = PTV au contact de l'arbre bronchique proximal, du cœur, des vaisseaux pulmonaires ou de l'œsophage",
+    "Lésion centrale = PTV à moins de 2 cm de toute structure sensible (définition IASLC). Ultracentrale = PTV au contact de l'arbre bronchique proximal, du cœur, des vaisseaux pulmonaires ou de l'œsophage",
     "Séances tous les 2 jours (voire 3). CBCT avant le premier arc et entre les arcs ; écart os / tissu mou > 1 cm : appeler médecin et physicien",
     "Patient opérable : SBRT non inférieure à la lobectomie dans STARS révisé (bras unique, comparaison appariée). Décision en RCP",
     "Métastases : SABR-COMET (phase 2) améliore la survie (5 ans 42 % vs 18 %) au prix de 4,5 % de décès liés au traitement",
-    "34 Gy / 1 fx (RTOG 0915, phase 2) : non retenu par Curie ni Gustave Roussy",
-    "Surveillance : TDM à 3, 6 et 12 mois, puis tous les 6 mois pendant 3 ans, puis annuelle (Curie)"
+    "34 Gy / 1 fx (RTOG 0915, phase 2) : non retenu",
+    "Surveillance : TDM à 3, 6 et 12 mois, puis tous les 6 mois pendant 3 ans, puis annuelle"
    ],
    "date_verif": "2026-10-23",
    "ind": [
@@ -400,6 +467,22 @@
     "Poumon",
     "Stéréotaxie pulmonaire : CBNPC stade I ou métastase",
     "Stéréotaxie"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "(i)GTV : D98 %",
+     "ideal": "",
+     "limitant": "≥ 100 % (souple : ≥ 110 %), D0,035 cc entre 118 et 143 %. PTV : D90 % ≥ 99 % (souple : D95 % ≥ 95 %). PTVéval (PTV moins les OAR) : D95 % ≥ 100 % (souple : D98 % ≥ 100 %). Aucune dose > 105 % hors du PTV. R100 % entre 1 et 1,2",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "R50 % et D2cm selon le volume du PTV",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    }
    ]
   },
   {
@@ -408,7 +491,6 @@
    "titre": "SBRT 55 Gy / 5 fx (contact costal ou T2 N0)",
    "type": "sbrt",
    "preuve": "pratique_institutionnelle",
-   "source_institutionnelle": "Gustave Roussy, protocole SBRT pulmonaire 2016",
    "prescriptions": [
     {
      "volume": "PTV",
@@ -427,14 +509,14 @@
    "contraintes_ids": [],
    "couverture": "95 % du PTV à la dose prescrite, 99 % à 90 % ; Dmax 110–140 %",
    "points_attention": [
-    "54 Gy / 3 fx : tumeur primitive seulement, jamais pour une métastase (Curie)",
+    "54 Gy / 3 fx : tumeur primitive seulement, jamais pour une métastase",
     "Ultracentral au contact de l'arbre bronchique proximal, de l'œsophage ou du plexus : pas de SBRT à Curie (RT hypofractionnée). 7 × 8 Gy à proscrire à moins de 1 cm des bronches souches et de la trachée (HILUS : 10 décès)",
-    "Lésion centrale = PTV à moins de 2 cm de toute structure sensible (définition IASLC retenue par Curie). Ultracentrale = PTV au contact de l'arbre bronchique proximal, du cœur, des vaisseaux pulmonaires ou de l'œsophage",
+    "Lésion centrale = PTV à moins de 2 cm de toute structure sensible (définition IASLC). Ultracentrale = PTV au contact de l'arbre bronchique proximal, du cœur, des vaisseaux pulmonaires ou de l'œsophage",
     "Séances tous les 2 jours (voire 3). CBCT avant le premier arc et entre les arcs ; écart os / tissu mou > 1 cm : appeler médecin et physicien",
     "Patient opérable : SBRT non inférieure à la lobectomie dans STARS révisé (bras unique, comparaison appariée). Décision en RCP",
     "Métastases : SABR-COMET (phase 2) améliore la survie (5 ans 42 % vs 18 %) au prix de 4,5 % de décès liés au traitement",
-    "34 Gy / 1 fx (RTOG 0915, phase 2) : non retenu par Curie ni Gustave Roussy",
-    "Surveillance : TDM à 3, 6 et 12 mois, puis tous les 6 mois pendant 3 ans, puis annuelle (Curie)",
+    "34 Gy / 1 fx (RTOG 0915, phase 2) : non retenu",
+    "Surveillance : TDM à 3, 6 et 12 mois, puis tous les 6 mois pendant 3 ans, puis annuelle",
     "Le protocole Gustave Roussy donne deux couvertures du PTV (90 % ou 95 % à la dose prescrite) : retenir 95 % (fiche dosimétrique)"
    ],
    "date_verif": "2026-10-23",
@@ -444,7 +526,23 @@
     "Stéréotaxie pulmonaire : CBNPC stade I ou métastase",
     "Stéréotaxie"
    ],
-   "essai_ids": []
+   "essai_ids": [],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "95 % du PTV à la dose prescrite, 99 % à 90 %",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "Dmax 110–140 %",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    }
+   ]
   },
   {
    "id": "pou-sbrt-50-10-igr",
@@ -455,7 +553,6 @@
    "essai_ids": [
     "hilus"
    ],
-   "source_institutionnelle": "Gustave Roussy, protocole SBRT pulmonaire 2016",
    "prescriptions": [
     {
      "volume": "PTV",
@@ -474,14 +571,14 @@
    "contraintes_ids": [],
    "couverture": "95 % du PTV à la dose prescrite, 99 % à 90 % ; Dmax 110–140 %",
    "points_attention": [
-    "54 Gy / 3 fx : tumeur primitive seulement, jamais pour une métastase (Curie)",
+    "54 Gy / 3 fx : tumeur primitive seulement, jamais pour une métastase",
     "Ultracentral au contact de l'arbre bronchique proximal, de l'œsophage ou du plexus : pas de SBRT à Curie (RT hypofractionnée). 7 × 8 Gy à proscrire à moins de 1 cm des bronches souches et de la trachée (HILUS : 10 décès)",
-    "Lésion centrale = PTV à moins de 2 cm de toute structure sensible (définition IASLC retenue par Curie). Ultracentrale = PTV au contact de l'arbre bronchique proximal, du cœur, des vaisseaux pulmonaires ou de l'œsophage",
+    "Lésion centrale = PTV à moins de 2 cm de toute structure sensible (définition IASLC). Ultracentrale = PTV au contact de l'arbre bronchique proximal, du cœur, des vaisseaux pulmonaires ou de l'œsophage",
     "Séances tous les 2 jours (voire 3). CBCT avant le premier arc et entre les arcs ; écart os / tissu mou > 1 cm : appeler médecin et physicien",
     "Patient opérable : SBRT non inférieure à la lobectomie dans STARS révisé (bras unique, comparaison appariée). Décision en RCP",
     "Métastases : SABR-COMET (phase 2) améliore la survie (5 ans 42 % vs 18 %) au prix de 4,5 % de décès liés au traitement",
-    "34 Gy / 1 fx (RTOG 0915, phase 2) : non retenu par Curie ni Gustave Roussy",
-    "Surveillance : TDM à 3, 6 et 12 mois, puis tous les 6 mois pendant 3 ans, puis annuelle (Curie)"
+    "34 Gy / 1 fx (RTOG 0915, phase 2) : non retenu",
+    "Surveillance : TDM à 3, 6 et 12 mois, puis tous les 6 mois pendant 3 ans, puis annuelle"
    ],
    "date_verif": "2026-10-23",
    "ind": [
@@ -489,6 +586,22 @@
     "Poumon",
     "Stéréotaxie pulmonaire : CBNPC stade I ou métastase",
     "Stéréotaxie"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "95 % du PTV à la dose prescrite, 99 % à 90 %",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "Dmax 110–140 %",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    }
    ]
   },
   {
@@ -1181,7 +1294,7 @@
   },
   {
    "cible": "pou-sbrt",
-   "point": "54 Gy / 3 fx : tumeur primitive seulement, jamais pour une métastase (Curie)",
+   "point": "54 Gy / 3 fx : tumeur primitive seulement, jamais pour une métastase",
    "portee": "situation"
   },
   {
@@ -1191,7 +1304,7 @@
   },
   {
    "cible": "pou-sbrt",
-   "point": "Lésion centrale = PTV à moins de 2 cm de toute structure sensible (définition IASLC retenue par Curie). Ultracentrale = PTV au contact de l'arbre bronchique proximal, du cœur, des vaisseaux pulmonaires ou de l'œsophage",
+   "point": "Lésion centrale = PTV à moins de 2 cm de toute structure sensible (définition IASLC). Ultracentrale = PTV au contact de l'arbre bronchique proximal, du cœur, des vaisseaux pulmonaires ou de l'œsophage",
    "portee": "situation"
   },
   {
@@ -1211,12 +1324,12 @@
   },
   {
    "cible": "pou-sbrt",
-   "point": "34 Gy / 1 fx (RTOG 0915, phase 2) : non retenu par Curie ni Gustave Roussy",
+   "point": "34 Gy / 1 fx (RTOG 0915, phase 2) : non retenu",
    "portee": "situation"
   },
   {
    "cible": "pou-sbrt",
-   "point": "Surveillance : TDM à 3, 6 et 12 mois, puis tous les 6 mois pendant 3 ans, puis annuelle (Curie)",
+   "point": "Surveillance : TDM à 3, 6 et 12 mois, puis tous les 6 mois pendant 3 ans, puis annuelle",
    "portee": "situation"
   },
   {
@@ -1244,6 +1357,5 @@
    "point": "Stade III non curable, PS 0–2 : RT modérément hypofractionnée avec un doublet de platine (ASTRO). Stade IV : pas de RCT concomitante en routine",
    "portee": "situation"
   }
- ],
- "textes": {}
+ ]
 }

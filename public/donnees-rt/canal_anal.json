@@ -35,7 +35,6 @@
     "rtog9811",
     "act2"
    ],
-   "source_institutionnelle": "Fiche du service",
    "prescriptions": [
     {
      "volume": "PTV BR (canal anal, fosses ischio-rectales, aires ganglionnaires)",
@@ -80,7 +79,6 @@
     "accord03",
     "agitg-atlas"
    ],
-   "source_institutionnelle": "Fiche du service",
    "prescriptions": [
     {
      "volume": "PTV BR (canal anal, fosses ischio-rectales ; pas d'aires ganglionnaires)",
@@ -233,7 +231,16 @@
     "Tumeur limitée T1–T2 N0",
     "Normofractionné"
    ],
-   "points_attention": []
+   "points_attention": [],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "Isodose de prescription sur au moins 90 % du PTV tumeur, 85 % du PTV électif",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    }
+   ]
   },
   {
    "id": "anal-rtog0529-t34",
@@ -292,7 +299,16 @@
     "Tumeur localement avancée T3–T4 ou N+",
     "Normofractionné"
    ],
-   "points_attention": []
+   "points_attention": [],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "Isodose de prescription sur au moins 90 % des PTV tumeur et adénopathies, 85 % du PTV électif",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    }
+   ]
   }
  ],
  "simulations": [
@@ -489,10 +505,5 @@
    "point": "Vérifier que le CTV HR est inclus dans le CTV BR ; iliaques communes non incluses en routine sauf N+ latéral",
    "portee": "localisation"
   }
- ],
- "textes": {
-  "contourage": [
-   "Deux jeux : celui de la fiche du service (CTV haut risque et bas risque) et celui de l'atlas AGITG, utilisé par les schémas à boost intégré. Le volume tumoral de référence est le volume initial, avant tout traitement."
-  ]
- }
+ ]
 }

@@ -34,7 +34,6 @@
     "big307",
     "senorif-2021"
    ],
-   "source_institutionnelle": "Sénorif 2021-2022 (standard)",
    "prescriptions": [
     {
      "volume": "PTV sein",
@@ -73,7 +72,6 @@
     "big307",
     "senorif-2021"
    ],
-   "source_institutionnelle": "Sénorif 2021-2022 (10 à 16 Gy)",
    "prescriptions": [
     {
      "volume": "PTV sein",
@@ -167,7 +165,6 @@
     "dbcg-hypo",
     "senorif-2021"
    ],
-   "source_institutionnelle": "Sénorif 2021-2022 (option)",
    "prescriptions": [
     {
      "volume": "PTV sein",
@@ -198,6 +195,36 @@
     "Carcinome in situ",
     "CCIS après chirurgie conservatrice à berges saines",
     "Hypofractionné"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "V95 %",
+     "ideal": "",
+     "limitant": "> 95 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "V105 %",
+     "ideal": "",
+     "limitant": "< 5 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "V107 %",
+     "ideal": "",
+     "limitant": "< 2 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "Dmax",
+     "ideal": "",
+     "limitant": "< 110 %",
+     "note": "FAST-Forward"
+    }
    ]
   },
   {
@@ -209,7 +236,6 @@
    "essai_ids": [
     "senorif-2021"
    ],
-   "source_institutionnelle": "Sénorif 2021-2022",
    "prescriptions": [
     {
      "volume": "PTV sein",
@@ -317,6 +343,5 @@
    "point": "Sénorif 2021 classe l'hypofractionnement du CCIS en niveau de preuve faible ; DBCG HYPO (2020) incluait des CCIS et BIG 3-07 (2022) a testé 42,5 Gy / 16 fx",
    "portee": "schema"
   }
- ],
- "textes": {}
+ ]
 }

@@ -42,7 +42,6 @@
     "accord12",
     "prodige23"
    ],
-   "source_institutionnelle": "Fiche du service (schéma CAP 50)",
    "prescriptions": [
     {
      "volume": "PTV pelvis",
@@ -194,7 +193,6 @@
    "essai_ids": [
     "rapido"
    ],
-   "source_institutionnelle": "Fiche du service",
    "prescriptions": [
     {
      "volume": "PTV pelvis",
@@ -211,7 +209,7 @@
    "simulation_id": "sim-rec",
    "volumes_id": "vol-rec",
    "points_attention": [
-    "Choix (fiche du service) : RAPIDO si le risque métastatique domine (CRM < 1 mm, T4, N2, EMVI+) ; PRODIGE 23 si le contrôle local domine (tumeur basse ou volumineuse, besoin de boost, préservation sphinctérienne, patient jeune en bon état général)",
+    "Choix : RAPIDO si le risque métastatique domine (CRM < 1 mm, T4, N2, EMVI+) ; PRODIGE 23 si le contrôle local domine (tumeur basse ou volumineuse, besoin de boost, préservation sphinctérienne, patient jeune en bon état général)",
     "Diarrhée G3+ pendant le traitement préopératoire 18 % (vs 9 % dans le bras standard)"
    ],
    "date_verif": "2026-10-23",
@@ -232,7 +230,6 @@
    "essai_ids": [
     "prodige23"
    ],
-   "source_institutionnelle": "Fiche du service",
    "prescriptions": [
     {
      "volume": "PTV pelvis",
@@ -259,7 +256,7 @@
    "volumes_id": "vol-rec",
    "contraintes_ids": [],
    "points_attention": [
-    "Choix (fiche du service) : RAPIDO si le risque métastatique domine (CRM < 1 mm, T4, N2, EMVI+) ; PRODIGE 23 si le contrôle local domine (tumeur basse ou volumineuse, besoin de boost, préservation sphinctérienne, patient jeune en bon état général)",
+    "Choix : RAPIDO si le risque métastatique domine (CRM < 1 mm, T4, N2, EMVI+) ; PRODIGE 23 si le contrôle local domine (tumeur basse ou volumineuse, besoin de boost, préservation sphinctérienne, patient jeune en bon état général)",
     "La fiche du service indique « FOLFOX ou CAPOX » en adjuvant ; PRODIGE 23 donnait mFOLFOX6 ou capécitabine pendant 3 mois"
    ],
    "date_verif": "2026-10-23",
@@ -487,7 +484,7 @@
   },
   {
    "cible": "rec-hr-tnt",
-   "point": "Choix (fiche du service) : RAPIDO si le risque métastatique domine (CRM < 1 mm, T4, N2, EMVI+) ; PRODIGE 23 si le contrôle local domine (tumeur basse ou volumineuse, besoin de boost, préservation sphinctérienne, patient jeune en bon état général)",
+   "point": "Choix : RAPIDO si le risque métastatique domine (CRM < 1 mm, T4, N2, EMVI+) ; PRODIGE 23 si le contrôle local domine (tumeur basse ou volumineuse, besoin de boost, préservation sphinctérienne, patient jeune en bon état général)",
    "portee": "situation"
   },
   {
@@ -510,6 +507,5 @@
    "point": "Diarrhée G3+ pendant le traitement préopératoire 18 % (vs 9 % dans le bras standard)",
    "portee": "schema"
   }
- ],
- "textes": {}
+ ]
 }

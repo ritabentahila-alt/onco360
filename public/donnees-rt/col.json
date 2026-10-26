@@ -96,7 +96,7 @@
     "Contourer toutes les adénopathies pathologiques, une par une (EMBRACE II). Curie ne contoure pas celles situées à moins de 1 cm du CTV-HR, couvertes par la curiethérapie",
     "Dose ganglionnaire : 55 Gy dans le petit bassin (+ 3–4 Gy EQD2 de curiethérapie), 57,5 Gy hors petit bassin ; viser 55–65 Gy EQD2 au total. Contribution mesurée de la curiethérapie : environ 5 Gy EQD2 aux iliaques internes, externes et obturatrices, 2,5 Gy aux iliaques communes (Bacorro 2017)",
     "Le service prescrit 60 Gy / 25 fx (2,4 Gy) aux adénopathies lombo-aortiques (tableur « GYNECO 45Gy + BOOST ») : EQD2 ≈ 62 Gy, dans la fourchette d'EMBRACE II ; Curie et EMBRACE II prescrivent 57,5 Gy",
-    "PTV_N = CTV_N + 5 mm. Le protocole Curie col écrit « GTV_N + 5 mm » (coquille : le protocole Curie endomètre et EMBRACE II écrivent CTV_N + 5 mm) ; la fiche du service fait CTV_N = GTV_N + 5 mm puis PTV_N = CTV_N sans marge",
+    "CTV_N + 5 mm (EMBRACE II)",
     "Vagin non envahi : D(PIBS − 2 cm) < 5 Gy en RTE (EMBRACE II)"
    ],
    "date_verif": "2026-10-23",
@@ -105,6 +105,50 @@
     "Col utérin",
     "Col en place : radiochimiothérapie exclusive + curiethérapie",
     "RTE + curiethérapie"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV45",
+     "indicateur": "V95 %",
+     "ideal": "",
+     "limitant": "> 95 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV45",
+     "indicateur": "Dmax",
+     "ideal": "",
+     "limitant": "< 107 %",
+     "note": ""
+    },
+    {
+     "volume": "ITV45",
+     "indicateur": "Dmin",
+     "ideal": "",
+     "limitant": "> 95 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV_N",
+     "indicateur": "D98",
+     "ideal": "",
+     "limitant": "> 90 %",
+     "note": ""
+    },
+    {
+     "volume": "CTV_N",
+     "indicateur": "D98",
+     "ideal": "",
+     "limitant": "> 100 %",
+     "note": ""
+    },
+    {
+     "volume": "CTV-HR",
+     "indicateur": "D90",
+     "ideal": "",
+     "limitant": "90–95 Gy EQD2",
+     "note": ""
+    }
    ]
   },
   {
@@ -168,7 +212,7 @@
     "Contourer toutes les adénopathies pathologiques, une par une (EMBRACE II). Curie ne contoure pas celles situées à moins de 1 cm du CTV-HR, couvertes par la curiethérapie",
     "Dose ganglionnaire : 55 Gy dans le petit bassin (+ 3–4 Gy EQD2 de curiethérapie), 57,5 Gy hors petit bassin ; viser 55–65 Gy EQD2 au total. Contribution mesurée de la curiethérapie : environ 5 Gy EQD2 aux iliaques internes, externes et obturatrices, 2,5 Gy aux iliaques communes (Bacorro 2017)",
     "Le service prescrit 60 Gy / 25 fx (2,4 Gy) aux adénopathies lombo-aortiques (tableur « GYNECO 45Gy + BOOST ») : EQD2 ≈ 62 Gy, dans la fourchette d'EMBRACE II ; Curie et EMBRACE II prescrivent 57,5 Gy",
-    "PTV_N = CTV_N + 5 mm. Le protocole Curie col écrit « GTV_N + 5 mm » (coquille : le protocole Curie endomètre et EMBRACE II écrivent CTV_N + 5 mm) ; la fiche du service fait CTV_N = GTV_N + 5 mm puis PTV_N = CTV_N sans marge",
+    "CTV_N + 5 mm (EMBRACE II)",
     "Vagin non envahi : D(PIBS − 2 cm) < 5 Gy en RTE (EMBRACE II)"
    ],
    "date_verif": "2026-10-23",
@@ -177,6 +221,15 @@
     "Col utérin",
     "Col en place : radiochimiothérapie exclusive + curiethérapie",
     "RTE + curiethérapie"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "CTV-HR",
+     "indicateur": "D90",
+     "ideal": "",
+     "limitant": "≥ 80 Gy EQD2",
+     "note": ""
+    }
    ]
   },
   {
@@ -240,7 +293,7 @@
     "Contourer toutes les adénopathies pathologiques, une par une (EMBRACE II). Curie ne contoure pas celles situées à moins de 1 cm du CTV-HR, couvertes par la curiethérapie",
     "Dose ganglionnaire : 55 Gy dans le petit bassin (+ 3–4 Gy EQD2 de curiethérapie), 57,5 Gy hors petit bassin ; viser 55–65 Gy EQD2 au total. Contribution mesurée de la curiethérapie : environ 5 Gy EQD2 aux iliaques internes, externes et obturatrices, 2,5 Gy aux iliaques communes (Bacorro 2017)",
     "Le service prescrit 60 Gy / 25 fx (2,4 Gy) aux adénopathies lombo-aortiques (tableur « GYNECO 45Gy + BOOST ») : EQD2 ≈ 62 Gy, dans la fourchette d'EMBRACE II ; Curie et EMBRACE II prescrivent 57,5 Gy",
-    "PTV_N = CTV_N + 5 mm. Le protocole Curie col écrit « GTV_N + 5 mm » (coquille : le protocole Curie endomètre et EMBRACE II écrivent CTV_N + 5 mm) ; la fiche du service fait CTV_N = GTV_N + 5 mm puis PTV_N = CTV_N sans marge",
+    "CTV_N + 5 mm (EMBRACE II)",
     "Vagin non envahi : D(PIBS − 2 cm) < 5 Gy en RTE (EMBRACE II)"
    ],
    "date_verif": "2026-10-23",
@@ -249,6 +302,15 @@
     "Col utérin",
     "Col en place : radiochimiothérapie exclusive + curiethérapie",
     "RTE + curiethérapie"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "CTV-HR",
+     "indicateur": "D90",
+     "ideal": "",
+     "limitant": "85–90 Gy EQD2",
+     "note": ""
+    }
    ]
   },
   {
@@ -262,7 +324,6 @@
     "gec-estro-gyn2",
     "cccmac"
    ],
-   "source_institutionnelle": "Institut Curie, protocole col et vagin 2021",
    "prescriptions": [
     {
      "volume": "PTV45",
@@ -311,7 +372,7 @@
     "Contourer toutes les adénopathies pathologiques, une par une (EMBRACE II). Curie ne contoure pas celles situées à moins de 1 cm du CTV-HR, couvertes par la curiethérapie",
     "Dose ganglionnaire : 55 Gy dans le petit bassin (+ 3–4 Gy EQD2 de curiethérapie), 57,5 Gy hors petit bassin ; viser 55–65 Gy EQD2 au total. Contribution mesurée de la curiethérapie : environ 5 Gy EQD2 aux iliaques internes, externes et obturatrices, 2,5 Gy aux iliaques communes (Bacorro 2017)",
     "Le service prescrit 60 Gy / 25 fx (2,4 Gy) aux adénopathies lombo-aortiques (tableur « GYNECO 45Gy + BOOST ») : EQD2 ≈ 62 Gy, dans la fourchette d'EMBRACE II ; Curie et EMBRACE II prescrivent 57,5 Gy",
-    "PTV_N = CTV_N + 5 mm. Le protocole Curie col écrit « GTV_N + 5 mm » (coquille : le protocole Curie endomètre et EMBRACE II écrivent CTV_N + 5 mm) ; la fiche du service fait CTV_N = GTV_N + 5 mm puis PTV_N = CTV_N sans marge",
+    "CTV_N + 5 mm (EMBRACE II)",
     "Vagin non envahi : D(PIBS − 2 cm) < 5 Gy en RTE (EMBRACE II)"
    ],
    "date_verif": "2026-10-23",
@@ -320,6 +381,50 @@
     "Col utérin",
     "Col en place : radiochimiothérapie exclusive + curiethérapie",
     "RTE + curiethérapie"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV45",
+     "indicateur": "D95",
+     "ideal": "",
+     "limitant": "> 95 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV45",
+     "indicateur": "D2",
+     "ideal": "",
+     "limitant": "< 107 %",
+     "note": ""
+    },
+    {
+     "volume": "ITV45",
+     "indicateur": "D98",
+     "ideal": "",
+     "limitant": "> 95 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV_N",
+     "indicateur": "D98",
+     "ideal": "",
+     "limitant": "> 90 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV_N",
+     "indicateur": "D2",
+     "ideal": "",
+     "limitant": "< 107 %",
+     "note": ""
+    },
+    {
+     "volume": "CTV_N",
+     "indicateur": "D98",
+     "ideal": "",
+     "limitant": "> 98 %",
+     "note": ""
+    }
    ]
   },
   {
@@ -332,7 +437,6 @@
     "sedlis",
     "peters"
    ],
-   "source_institutionnelle": "Institut Curie, protocole endomètre et col post-opératoire 2021",
    "prescriptions": [
     {
      "volume": "PTV_45Gy",
@@ -368,6 +472,29 @@
     "Col utérin",
     "Col opéré (hystérectomie radicale) : radiothérapie adjuvante",
     "Normofractionné"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV_45",
+     "indicateur": "D95",
+     "ideal": "",
+     "limitant": "> 95 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV_45",
+     "indicateur": "D2",
+     "ideal": "",
+     "limitant": "< 107 %",
+     "note": ""
+    },
+    {
+     "volume": "ITV_T",
+     "indicateur": "D98",
+     "ideal": "",
+     "limitant": "> 95 %",
+     "note": ""
+    }
    ]
   },
   {
@@ -380,7 +507,6 @@
     "sedlis",
     "peters"
    ],
-   "source_institutionnelle": "Institut Curie, protocole endomètre et col post-opératoire 2021 ; fiche du service",
    "prescriptions": [
     {
      "volume": "PTV_45Gy",
@@ -398,7 +524,7 @@
      "dose_fx_Gy": 5,
      "mode": "sequentiel",
      "rythme": "Après la RTE",
-     "note": "20 à 30 mm de vagin supérieur selon l'anatomie (fiche du service)"
+     "note": "20 à 30 mm de vagin supérieur selon l'anatomie"
     }
    ],
    "technique": "Comme col-postop-45 ; cylindre vaginal HDR",
@@ -459,10 +585,10 @@
    "id": "sim-col",
    "position": "Décubitus dorsal",
    "contention": "Cale genoux + cale pieds, immobilisation pelvienne",
-   "preparation": "Rectum vide (Normacol la veille et le jour même ; diamètre antéro-postérieur ≤ 5 cm, sinon évacuer le gaz ou refaire un Normacol) ; vessie confortable : 2 à 3 verres d'eau dans l'heure qui précède",
+   "preparation": "Rectum vide (Zetalax la veille et le jour même ; diamètre antéro-postérieur ≤ 5 cm, sinon évacuer le gaz ou refaire un Zetalax) ; vessie confortable : 2 à 3 verres d'eau dans l'heure qui précède",
    "scanner": "Injecté (temps vasculaire) sauf contre-indication ; coupes ≤ 3 mm ; de L2–L3 + 5 cm (pelvis) ou des coupoles + 5 cm (lombo-aortique) jusqu'aux ischions + 15 cm ; scanner vessie pleine + vessie vide utile pour un ITV individualisé",
    "imagerie": "IRM pelvienne T2 axiale et sagittale de moins d'un mois, fusion sur le bassin osseux ; TEP-TDM si N+",
-   "reperes": "Fil plombé dans le fond vaginal (fiche du service) ; tatouages, tatouage supplémentaire en L2 si lombo-aortique"
+   "reperes": "Fil plombé dans le fond vaginal ; tatouages, tatouage supplémentaire en L2 si lombo-aortique"
   },
   {
    "id": "sim-col-curie",
@@ -477,10 +603,10 @@
    "id": "sim-gyn-postop",
    "position": "Décubitus dorsal",
    "contention": "Cale genoux + cale pieds, immobilisation pelvienne",
-   "preparation": "Rectum vide (Normacol ; diamètre antéro-postérieur ≤ 5 cm) ; vessie confortable : 2 à 3 verres d'eau dans l'heure qui précède ; reproductibilité vessie et rectum à vérifier",
+   "preparation": "Rectum vide (Zetalax ; diamètre antéro-postérieur ≤ 5 cm) ; vessie confortable : 2 à 3 verres d'eau dans l'heure qui précède ; reproductibilité vessie et rectum à vérifier",
    "scanner": "Injecté (temps vasculaire) sauf contre-indication ; coupes ≤ 3 mm ; de L2–L3 + 5 cm (pelvis) ou des coupoles + 5 cm (lombo-aortique) jusqu'aux ischions + 15 cm",
    "imagerie": "TEP-TDM du bilan si N+, fusion sur le bassin osseux",
-   "reperes": "Fil plombé dans le fond vaginal si la cicatrisation est acquise (fiche du service)"
+   "reperes": "Fil plombé dans le fond vaginal si la cicatrisation est acquise"
   }
  ],
  "volumes": [
@@ -521,7 +647,7 @@
     {
      "nom": "CTV_E (faible risque)",
      "type": "CTV",
-     "definition": "« Petit pelvis » : iliaques internes, externes, obturatrices, présacrées ; vaisseaux + au moins 7 mm de tissu périvasculaire, lymphocèles et clips inclus. Fiche du service : présacrés = bande de 1 cm de S2 au promontoire",
+     "definition": "« Petit pelvis » : iliaques internes, externes, obturatrices, présacrées ; vaisseaux + au moins 7 mm de tissu périvasculaire, lymphocèles et clips inclus. Autre approche : présacrés = bande de 1 cm de S2 au promontoire",
      "quand": "Tumeur ≤ 4 cm ET stade IA/IB1/IIA1 ET N0 ET carcinome épidermoïde ET pas d'envahissement utérin",
      "marge": "7 mm autour des vaisseaux"
     },
@@ -542,7 +668,7 @@
     {
      "nom": "CTV_N#",
      "type": "CTV",
-     "definition": "GTV_N# + 0 à 3 mm (EMBRACE II ; Curie : 3 mm), sans os ni muscle ; un CTV par ganglion, jamais regroupés",
+     "definition": "GTV_N# + 0 à 3 mm (EMBRACE II ; autre approche : 3 mm), sans os ni muscle ; un CTV par ganglion, jamais regroupés",
      "quand": "Si adénopathie",
      "marge": "0 à 3 mm"
     },
@@ -652,7 +778,7 @@
     {
      "nom": "CTV_T",
      "type": "CTV",
-     "definition": "3 à 4 cm supérieurs du vagin + cicatrice + 0,5 à 2 cm au-dessus selon la position du grêle + paravagin jusqu'à la paroi pelvienne, sans les aires ganglionnaires ; exclure les anses grêles. Fiche du service : limite inférieure à 1 cm au-dessus du bord inférieur des trous obturateurs ou 3 cm sous le marqueur vaginal (la plus basse), marge de 5 mm dans le paravagin au niveau du haut des têtes fémorales ; adapter à la longueur résiduelle du vagin",
+     "definition": "3 à 4 cm supérieurs du vagin + cicatrice + 0,5 à 2 cm au-dessus selon la position du grêle + paravagin jusqu'à la paroi pelvienne, sans les aires ganglionnaires ; exclure les anses grêles. Autre approche : limite inférieure à 1 cm au-dessus du bord inférieur des trous obturateurs ou 3 cm sous le marqueur vaginal (la plus basse), marge de 5 mm dans le paravagin au niveau du haut des têtes fémorales ; adapter à la longueur résiduelle du vagin",
      "quand": "Toujours"
     },
     {
@@ -684,7 +810,7 @@
     {
      "nom": "PTV_45Gy",
      "type": "PTV",
-     "definition": "CTV_45Gy + 5 mm isotrope + tous les PTV_N. Fiche du service : PTV-T = CTV-T + 1 cm, PTV-N = CTV-N + 0,5 cm (même résultat)",
+     "definition": "CTV_45Gy + 5 mm isotrope + tous les PTV_N. Autre approche : PTV-T = CTV-T + 1 cm, PTV-N = CTV-N + 0,5 cm (même résultat)",
      "quand": "Toujours",
      "marge": "5 mm"
     },
@@ -756,13 +882,13 @@
   },
   {
    "indication": "Choix du débit",
-   "modalite": "HDR (4 × 7 Gy ou 5 × 5,5–6 Gy) ou PDR (15 Gy sur le CTV-IR, Curie)",
+   "modalite": "HDR (4 × 7 Gy ou 5 × 5,5–6 Gy) ou PDR (15 Gy sur le CTV-IR)",
    "niveau_preuve": "Recommandations EMBRACE II et ABS 2012 ; pratique Institut Curie",
    "note": "Dose finale décidée sur le D90 du CTV-HR, pas sur le point A"
   },
   {
    "indication": "Étalement",
-   "modalite": "Fin de la curiethérapie avant le 50e jour (EMBRACE II), au plus tard le 55e (Curie)",
+   "modalite": "Fin de la curiethérapie avant le 50e jour (EMBRACE II), au plus tard le 55e",
    "niveau_preuve": "Analyse rétrospective EMBRACE",
    "note": "Une semaine de plus équivaut à perdre environ 5 Gy sur le CTV-HR"
   },
@@ -801,7 +927,7 @@
   },
   {
    "situation": "Col opéré, facteurs de Peters",
-   "traitement": "Chimiothérapie concomitante à base de cisplatine (Peters : cisplatine 70 mg/m² + 5FU 1000 mg/m²/j × 4 j toutes les 3 semaines, 4 cures dont 2 pendant la RT ; Curie : cisplatine 40 mg/m² hebdomadaire)",
+   "traitement": "Chimiothérapie concomitante à base de cisplatine (Peters : cisplatine 70 mg/m² + 5FU 1000 mg/m²/j × 4 j toutes les 3 semaines, 4 cures dont 2 pendant la RT ; autre approche : cisplatine 40 mg/m² hebdomadaire)",
    "essai_ids": [
     "peters"
    ],
@@ -819,17 +945,17 @@
  "points_attention": [
   {
    "cible": "col",
-   "point": "Étalement total (RTE + curiethérapie) ≤ 50 jours (EMBRACE II), 55 jours au plus (Curie) ; une semaine de plus équivaut à environ 5 Gy de moins sur le CTV-HR",
+   "point": "Étalement total (RTE + curiethérapie) ≤ 50 jours (EMBRACE II), 55 jours au plus ; une semaine de plus équivaut à environ 5 Gy de moins sur le CTV-HR",
    "portee": "localisation"
   },
   {
    "cible": "col",
-   "point": "CBCT quotidien avec recalage sur le bassin osseux ; ne pas recaler sur l'utérus (on sortirait les ganglions) ; l'utérus doit rester dans l'ITV_T, à défaut dans le PTV45 ; nouvelle simulation à discuter si les volumes sortent des PTV après 3 séances (Curie)",
+   "point": "CBCT quotidien avec recalage sur le bassin osseux ; ne pas recaler sur l'utérus (on sortirait les ganglions) ; l'utérus doit rester dans l'ITV_T, à défaut dans le PTV45 ; nouvelle simulation à discuter si les volumes sortent des PTV après 3 séances",
    "portee": "localisation"
   },
   {
    "cible": "col",
-   "point": "Irradiation lombo-aortique : image kV/kV quotidienne en plus du CBCT pour vérifier le rachis lombaire ; décalage > 5 mm entre pelvis et lombo-aortique = repositionner (Curie)",
+   "point": "Irradiation lombo-aortique : image kV/kV quotidienne en plus du CBCT pour vérifier le rachis lombaire ; décalage > 5 mm entre pelvis et lombo-aortique = repositionner",
    "portee": "localisation"
   },
   {
@@ -859,7 +985,7 @@
   },
   {
    "cible": "col-lacc",
-   "point": "PTV_N = CTV_N + 5 mm. Le protocole Curie col écrit « GTV_N + 5 mm » (coquille : le protocole Curie endomètre et EMBRACE II écrivent CTV_N + 5 mm) ; la fiche du service fait CTV_N = GTV_N + 5 mm puis PTV_N = CTV_N sans marge",
+   "point": "CTV_N + 5 mm (EMBRACE II)",
    "portee": "situation"
   },
   {
@@ -877,21 +1003,5 @@
    "point": "Aucune toxicité tardive sous 30 Gy (moins de 3 cycles) ; 6 % de toxicité tardive grade 3+ au total ; repos de 2 ou 4 semaines équivalent",
    "portee": "schema"
   }
- ],
- "textes": {
-  "curietherapie": [
-   "La curiethérapie utéro-vaginale guidée par l'image fait partie du traitement de tout col traité par radiochimiothérapie exclusive. Elle ne se remplace pas par un complément en radiothérapie externe : c'est la technique d'escalade de dose centro-pelvienne (Curie).",
-   "**Volumes de curiethérapie (GEC-ESTRO, EMBRACE II) :** GTV-res = tumeur résiduelle visible en T2 au moment de la curiethérapie ; CTV-HR = GTV-res + totalité du col + extensions résiduelles (zones grises paramétriales ou vaginales) ; CTV-IR = CTV-HR + marge couvrant l'extension tumorale initiale (5 à 15 mm selon la réponse). Contourage sur l'IRM T2 avec applicateur en place (coupes para-axiales, vérifiées en sagittal et coronal), après examen gynécologique par le médecin qui contoure, avec le schéma clinique et l'IRM du diagnostic. Pas de marge PTV en curiethérapie ; une marge seulement le long de la sonde intra-utérine est admise pour les incertitudes de reconstruction.",
-   "**Objectifs de dose :** jeu `ct-col-embrace2-curie` (EQD2 cumulée RTE + curiethérapie, α/β = 10 pour les cibles, 3 pour les OAR, T½ = 1,5 h). Pour l'HDR ABS : jeu `ct-col-abs-hdr`. L'EQD2 se calcule fraction par fraction sur le D90 et les D2cm³ réels, puis s'ajoute à l'EQD2 de la RTE (45 Gy / 25 fx = 44,25 Gy EQD2₁₀).",
-   "**Désescalade de la dose vaginale (EMBRACE II, tableau 10.2) :** point recto-vaginal ICRU < 65 Gy EQD2 (priorité) ; rapport TRAK vaginal / TRAK total < 30–40 % ; points vaginaux latéraux à 5 mm < 85 Gy EQD2 ; isodose 140 % le plus possible dans l'applicateur.",
-   "**Mise en place :** applicateur sous anesthésie, tamponnement vaginal ; vessie : vidange puis instillation d'un volume fixe de sérum en HDR, sonde ouverte en PDR ; IRM (ou à défaut scanner) avec applicateur pour chaque implantation ; dosimétrie avant chaque fraction.",
-   "**PDR :** Curie prescrit 15 Gy sur le CTV-IR en débit pulsé (la durée et la dose des pulses ne sont pas précisées dans le protocole). Le calcul d'EQD2 utilise le modèle linéaire-quadratique à réparation incomplète (T½ = 1,5 h) : les tableurs IGR et ICM du service le font ; le module n'en propose pas, il affiche « calcul PDR : utiliser l'outil dédié »."
-  ],
-  "centrage": [
-   "Pour tout centrage RTE, vérifier dès le début de la RTE que la curiethérapie est programmée, avec un étalement total ≤ 50 jours."
-  ],
-  "contourage": [
-   "Les adénopathies sont contourées et numérotées une par une ; chaque niveau de dose a son nom (GTV\\_N55, GTV\\_N57.5)."
-  ]
- }
+ ]
 }

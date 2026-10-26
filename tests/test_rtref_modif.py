@@ -26,8 +26,8 @@ async def main():
         b = await p.chromium.launch()
         pg = await ouvrir(b, S); ev = pg.evaluate
         await fiche(pg, 'pro-fav-60-20')
-        ok(await ev("!!document.querySelector('.rtr-mbt')") and await ev("document.querySelectorAll('#page .bt.plein').length") == 0, 'lecture : « Modifier pour le cabinet » (bouton clair), aucun bouton plein', await ev("[!!document.querySelector('.rtr-mbt'), [...document.querySelectorAll('#page .bt.plein')].map(b => b.outerHTML.slice(0, 80))]"))
-        await pg.click('.rtr-mbt'); await pg.wait_for_timeout(400)
+        ok((await ev("[...document.querySelectorAll('.rtr-pts3 .m3-l button')].map(b => b.textContent.trim()).join('|')")).startswith('Imprimer|Modifier|Dupliquer|Copier') and await ev("[...document.querySelectorAll('.rtr-pts3 .m3-l button')].pop().textContent.trim()") == 'Supprimer' and await ev("document.querySelectorAll('#page .bt.plein').length") == 0, 'lecture : sous « ⋯ » Modifier, Dupliquer, Copier… et Supprimer en dernier ; aucun bouton plein', await ev("[!!document.querySelector('.rtr-mbt'), [...document.querySelectorAll('#page .bt.plein')].map(b => b.outerHTML.slice(0, 80))]"))
+        await pg.click('.rtr-pts3 > summary'); await pg.wait_for_timeout(150); await pg.click('.rtr-pts3 .m3-l button:has-text("Modifier")'); await pg.wait_for_timeout(300)
         ok(await ev("!!document.querySelector('[data-p=\"titre\"]')") and await ev("document.querySelectorAll('.rtr-ong button').length") == 6 and await ev(MSG) == 'Aucun changement' and await ev("document.getElementById('rtrEnr').disabled"), 'modification sur place : titre en champ, mêmes onglets, barre du bas « Aucun changement »')
         await pg.fill('[data-p="prescriptions.0.dose_fx_Gy"]', '2,9'); await pg.wait_for_timeout(150)
         ok('Dose par séance différente' in await ev("document.querySelector('[data-err=\"prescriptions.0\"]').textContent") and await ev("document.getElementById('rtrEnr').disabled") and await ev("document.querySelectorAll('.rtr-err:not([hidden])').length") == 1, 'contrôle sous la ligne pendant la saisie ; « Enregistrer » inactif, avec la raison', await ev(MSG))
@@ -38,7 +38,7 @@ async def main():
         # Changer d'onglet pendant la modification : la saisie reste
         await pg.click('.rtr-ong button:has-text("Contraintes")'); await pg.wait_for_timeout(300)
         ok(await ev("document.querySelectorAll('.rtr-ctedit input[data-p$=\".limitant\"]').length") > 10 and await ev(MSG) == '2 changements', 'onglet Contraintes en modification : la table, chaque valeur modifiable ; la saisie est gardée')
-        ok(await ev("!!document.querySelector('.rtr-oc [data-p=\"couverture\"]') && document.querySelector('.rtr-oc .rtr-lab').contains(document.querySelector('[data-p=\"couverture\"]'))"), 'onglet Contraintes en modification : les objectifs de couverture en premier')
+        ok(await ev("document.querySelectorAll('.rtr-oc input[data-p^=\"cv.\"]').length") >= 3 and await ev("document.querySelector('.rtr-oc h4').textContent") == 'Objectifs de couverture', 'onglet Contraintes en modification : les objectifs de couverture en premier, ligne par ligne')
         await pg.click('.rtr-ong button:has-text("Prescription")'); await pg.wait_for_timeout(300)
         ok(not await ev("!!document.querySelector('.rtr-oc [data-p=\"couverture\"]')"), 'onglet Prescription en modification : plus de champ des objectifs de couverture')
         # Quitter sans enregistrer
@@ -51,13 +51,13 @@ async def main():
         d = await ev(DOC('pro-fav-60-20'))
         ok(d and d['origine'] == 'cabinet' and d['majPar'] == 'UIDRITA' and d['base'] == '2026-10-22' and d['schema']['prescriptions'][0]['rythme'] == '4 fx/sem' and d['schema']['prescriptions'][0]['dose_fx_Gy'] == 3 and d['note'] == 'Notre pratique (note fictive)' and d['schema']['ind'][1] == 'Prostate', 'enregistré : schéma complet, origine cabinet, base = date de la référence, auteur, note', d and {k: d[k] for k in d if k != 'schema'})
         t = await ev("document.getElementById('rtrFiche').innerText")
-        ok('Enregistré pour le cabinet' in await ev("document.body.innerText") and 'Modifié pour le cabinet' in t and '4 fx/sem' in t and not await ev("!!document.getElementById('rtrEnr')"), 'après l\'enregistrement : « Enregistré pour le cabinet », la ligne « Modifié pour le cabinet », retour en lecture')
+        ok('Enregistré pour le cabinet' in await ev("document.body.innerText") and 'Modifié' in t and '4 fx/sem' in t and not await ev("!!document.getElementById('rtrEnr')"), 'après l\'enregistrement : « Enregistré pour le cabinet », la ligne « Modifié pour le cabinet », retour en lecture')
         # Voir la référence
         await menu3(pg, 'Voir la référence')
         ok(await ev("document.querySelectorAll('.rtr-cmp tr.diff').length") == 2 and 'Version du cabinet' in await ev("document.getElementById('fenetre').innerText"), 'Voir la référence : deux colonnes, 2 différences surlignées (prescription, note)', await ev("document.querySelectorAll('.rtr-cmp tr.diff').length"))
         await ev("window.fermerFenetre()")
         # Collègue entre-temps : rien n'est écrasé
-        await pg.click('.rtr-mbt'); await pg.wait_for_timeout(300); await pg.fill('[data-p="technique"]', 'Changement de moi'); await pg.wait_for_timeout(100)
+        await pg.click('.rtr-pts3 > summary'); await pg.wait_for_timeout(150); await pg.click('.rtr-pts3 .m3-l button:has-text("Modifier")'); await pg.wait_for_timeout(300); await pg.fill('[data-p="technique"]', 'Changement de moi'); await pg.wait_for_timeout(100)
         await ev(f"window.__fs['{K}pro-fav-60-20'] = Object.assign({{}}, window.__fs['{K}pro-fav-60-20'], {{ majPar: 'UIDAUTRE', majParNom: 'Dr Collègue', majLe: '2026-10-25T11:00:00Z', note: 'Changement du collègue' }})")
         await pg.click('#rtrEnr'); await pg.wait_for_timeout(1500)
         d = await ev(DOC('pro-fav-60-20'))
@@ -69,7 +69,7 @@ async def main():
         await reponse(pg, 'Revenir à la référence')
         ok('5 fx/sem' in await ev("document.getElementById('rtrFiche').innerText") and await ev("!!document.querySelector('.rtr-annul')") and await ev(DOC('pro-fav-60-20')), 'la référence s\'affiche, « Annuler » proposé ; rien n\'est encore supprimé')
         await pg.click('.rtr-annul button'); await pg.wait_for_timeout(800)
-        ok('Modifié pour le cabinet' in await ev("document.getElementById('rtrFiche').innerText") and await ev(DOC('pro-fav-60-20')), '« Annuler » : la version du cabinet revient')
+        ok('Modifié' in await ev("document.getElementById('rtrFiche').innerText") and await ev(DOC('pro-fav-60-20')), '« Annuler » : la version du cabinet revient')
         await menu3(pg, 'Revenir à la référence'); await reponse(pg, 'Revenir à la référence'); await pg.wait_for_timeout(10800)
         ok(await ev(DOC('pro-fav-60-20')) is None and not await ev("!!document.querySelector('.rtr-annul')"), 'après 10 secondes : la fiche du cabinet est supprimée')
         # Dupliquer
@@ -108,7 +108,7 @@ async def main():
         # Téléphone : modification sans débordement, Modifier dans ⋯
         pg = await ouvrir(b, S, w=390, h=800); ev = pg.evaluate
         await fiche(pg, 'col-rch-hdr-7x4')
-        await menu3(pg, 'Modifier pour le cabinet')
+        await menu3(pg, 'Modifier')
         ok(await ev("!!document.getElementById('rtrEnr')") and await ev("document.documentElement.scrollWidth <= innerWidth + 1"), '390 px : Modifier dans ⋯ ; modification sans débordement')
         ok(await ev("document.getElementById('rtrEnr').getBoundingClientRect().bottom <= innerHeight"), '390 px : barre du bas visible')
         ok(not pg.errs, '390 px : aucune erreur JavaScript', pg.errs[:2]); await pg.close()

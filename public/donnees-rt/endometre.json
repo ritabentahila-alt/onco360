@@ -201,7 +201,6 @@
     "portec3",
     "nrg-atlas-postop"
    ],
-   "source_institutionnelle": "Institut Curie, protocole endomètre et col post-opératoire 2021 ; fiche du service",
    "prescriptions": [
     {
      "volume": "PTV_45Gy",
@@ -228,11 +227,11 @@
      "dose_fx_Gy": 5,
      "mode": "sequentiel",
      "rythme": "Après la RTE",
-     "note": "20 à 30 mm de vagin supérieur selon l'anatomie (fiche du service)"
+     "note": "20 à 30 mm de vagin supérieur selon l'anatomie"
     }
    ],
    "technique": "VMAT, kV-CBCT quotidien avec recalage osseux ; cylindre vaginal HDR",
-   "systemique": "Cisplatine 40 mg/m² hebdomadaire possible (Curie)",
+   "systemique": "Cisplatine 40 mg/m² hebdomadaire possible",
    "simulation_id": "sim-gyn-postop",
    "volumes_id": "vol-gyn-postop",
    "contraintes_ids": [],
@@ -244,7 +243,51 @@
     "Haut risque et stades avancés opérés",
     "RTE + curiethérapie"
    ],
-   "points_attention": []
+   "points_attention": [],
+   "couverture_lignes": [
+    {
+     "volume": "PTV_45",
+     "indicateur": "D95",
+     "ideal": "",
+     "limitant": "> 95 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV_45",
+     "indicateur": "D2",
+     "ideal": "",
+     "limitant": "< 107 %",
+     "note": ""
+    },
+    {
+     "volume": "ITV_T",
+     "indicateur": "D98",
+     "ideal": "",
+     "limitant": "> 95 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV_N",
+     "indicateur": "D98",
+     "ideal": "",
+     "limitant": "> 90 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV_N",
+     "indicateur": "D2",
+     "ideal": "",
+     "limitant": "< 107 %",
+     "note": ""
+    },
+    {
+     "volume": "CTV_N",
+     "indicateur": "D98",
+     "ideal": "",
+     "limitant": "> 98 %",
+     "note": ""
+    }
+   ]
   },
   {
    "id": "endo-pelv-lao-45-curie",
@@ -255,7 +298,6 @@
    "essai_ids": [
     "nrg-atlas-postop"
    ],
-   "source_institutionnelle": "Institut Curie, protocole endomètre et col post-opératoire 2021",
    "prescriptions": [
     {
      "volume": "PTV_45Gy (pelvis + lombo-aortique)",
@@ -283,7 +325,7 @@
    "contraintes_ids": [],
    "couverture": "PTV_45 : D95 > 95 %, D2 < 107 % ; ITV_T : D98 > 95 % ; PTV_N : D98 > 90 %, D2 < 107 % ; CTV_N : D98 > 98 %",
    "points_attention": [
-    "Lombo-aortique : image kV/kV quotidienne en plus du CBCT ; décalage > 5 mm entre pelvis et lombo-aortique = repositionner ; pas de traitement sur Halcyon (Curie)"
+    "Lombo-aortique : image kV/kV quotidienne en plus du CBCT ; décalage > 5 mm entre pelvis et lombo-aortique = repositionner ; pas de traitement sur Halcyon"
    ],
    "date_verif": "2026-10-23",
    "ind": [
@@ -291,6 +333,50 @@
     "Endomètre",
     "Haut risque et stades avancés opérés",
     "Normofractionné"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV_45",
+     "indicateur": "D95",
+     "ideal": "",
+     "limitant": "> 95 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV_45",
+     "indicateur": "D2",
+     "ideal": "",
+     "limitant": "< 107 %",
+     "note": ""
+    },
+    {
+     "volume": "ITV_T",
+     "indicateur": "D98",
+     "ideal": "",
+     "limitant": "> 95 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV_N",
+     "indicateur": "D98",
+     "ideal": "",
+     "limitant": "> 90 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV_N",
+     "indicateur": "D2",
+     "ideal": "",
+     "limitant": "< 107 %",
+     "note": ""
+    },
+    {
+     "volume": "CTV_N",
+     "indicateur": "D98",
+     "ideal": "",
+     "limitant": "> 98 %",
+     "note": ""
+    }
    ]
   }
  ],
@@ -299,10 +385,10 @@
    "id": "sim-gyn-postop",
    "position": "Décubitus dorsal",
    "contention": "Cale genoux + cale pieds, immobilisation pelvienne",
-   "preparation": "Rectum vide (Normacol ; diamètre antéro-postérieur ≤ 5 cm) ; vessie confortable : 2 à 3 verres d'eau dans l'heure qui précède ; reproductibilité vessie et rectum à vérifier",
+   "preparation": "Rectum vide (Zetalax ; diamètre antéro-postérieur ≤ 5 cm) ; vessie confortable : 2 à 3 verres d'eau dans l'heure qui précède ; reproductibilité vessie et rectum à vérifier",
    "scanner": "Injecté (temps vasculaire) sauf contre-indication ; coupes ≤ 3 mm ; de L2–L3 + 5 cm (pelvis) ou des coupoles + 5 cm (lombo-aortique) jusqu'aux ischions + 15 cm",
    "imagerie": "TEP-TDM du bilan si N+, fusion sur le bassin osseux",
-   "reperes": "Fil plombé dans le fond vaginal si la cicatrisation est acquise (fiche du service)"
+   "reperes": "Fil plombé dans le fond vaginal si la cicatrisation est acquise"
   },
   {
    "id": "sim-gyn-vbt",
@@ -326,7 +412,7 @@
     {
      "nom": "CTV_T",
      "type": "CTV",
-     "definition": "3 à 4 cm supérieurs du vagin + cicatrice + 0,5 à 2 cm au-dessus selon la position du grêle + paravagin jusqu'à la paroi pelvienne, sans les aires ganglionnaires ; exclure les anses grêles. Fiche du service : limite inférieure à 1 cm au-dessus du bord inférieur des trous obturateurs ou 3 cm sous le marqueur vaginal (la plus basse), marge de 5 mm dans le paravagin au niveau du haut des têtes fémorales ; adapter à la longueur résiduelle du vagin",
+     "definition": "3 à 4 cm supérieurs du vagin + cicatrice + 0,5 à 2 cm au-dessus selon la position du grêle + paravagin jusqu'à la paroi pelvienne, sans les aires ganglionnaires ; exclure les anses grêles. Autre approche : limite inférieure à 1 cm au-dessus du bord inférieur des trous obturateurs ou 3 cm sous le marqueur vaginal (la plus basse), marge de 5 mm dans le paravagin au niveau du haut des têtes fémorales ; adapter à la longueur résiduelle du vagin",
      "quand": "Toujours"
     },
     {
@@ -358,7 +444,7 @@
     {
      "nom": "PTV_45Gy",
      "type": "PTV",
-     "definition": "CTV_45Gy + 5 mm isotrope + tous les PTV_N. Fiche du service : PTV-T = CTV-T + 1 cm, PTV-N = CTV-N + 0,5 cm (même résultat)",
+     "definition": "CTV_45Gy + 5 mm isotrope + tous les PTV_N. Autre approche : PTV-T = CTV-T + 1 cm, PTV-N = CTV-N + 0,5 cm (même résultat)",
      "quand": "Toujours",
      "marge": "5 mm"
     },
@@ -446,7 +532,7 @@
    "note": "14 Gy EQD2"
   },
   {
-   "indication": "Après RTE pelvienne 45 Gy (Curie)",
+   "indication": "Après RTE pelvienne 45 Gy",
    "modalite": "Complément 2 × 5 Gy HDR systématique",
    "niveau_preuve": "Pratique Institut Curie",
    "note": "La fiche du service le réserve aux stades II–III et aux marges R1"
@@ -470,7 +556,7 @@
    "note": "Survie sans récidive identique ; la RT diminue les récidives vaginales (2 % vs 7 %) et ganglionnaires (11 % vs 20 %)"
   },
   {
-   "situation": "Pelvis 45 Gy (Curie)",
+   "situation": "Pelvis 45 Gy",
    "traitement": "Cisplatine 40 mg/m² hebdomadaire possible",
    "essai_ids": [
     "esgo-endo-2021"
@@ -514,12 +600,12 @@
   },
   {
    "cible": "endometre",
-   "point": "CBCT quotidien avec recalage osseux : le fond vaginal doit rester dans l'ITV_T, les vaisseaux dans le CTV_E, à défaut dans le PTV_45Gy ; tout le vagin visible sur le CBCT (Curie)",
+   "point": "CBCT quotidien avec recalage osseux : le fond vaginal doit rester dans l'ITV_T, les vaisseaux dans le CTV_E, à défaut dans le PTV_45Gy ; tout le vagin visible sur le CBCT",
    "portee": "localisation"
   },
   {
    "cible": "endo-pelv-lao-45-curie",
-   "point": "Lombo-aortique : image kV/kV quotidienne en plus du CBCT ; décalage > 5 mm entre pelvis et lombo-aortique = repositionner ; pas de traitement sur Halcyon (Curie)",
+   "point": "Lombo-aortique : image kV/kV quotidienne en plus du CBCT ; décalage > 5 mm entre pelvis et lombo-aortique = repositionner ; pas de traitement sur Halcyon",
    "portee": "schema"
   },
   {
@@ -527,14 +613,5 @@
    "point": "PORTEC-2 : récidive pelvienne isolée 1,5 % après curiethérapie contre 0,5 % après RTE (non significatif) ; toxicité digestive aiguë de grade 1–2 en fin de traitement nettement moindre (12,6 % vs 53,8 %)",
    "portee": "localisation"
   }
- ],
- "textes": {
-  "curietherapie": [
-   "La curiethérapie du fond vaginal se fait seule (risque intermédiaire, intermédiaire-élevé pN0) ou en complément de la radiothérapie pelvienne (atteinte du col, stades II–III, marge vaginale).",
-   "**Technique :** cylindre vaginal du plus grand diamètre toléré ; prescription à 5 mm de la muqueuse ; longueur traitée 20 à 30 mm de vagin supérieur après RTE (fiche du service). Pas de PTV."
-  ],
-  "contourage": [
-   "Pas de GTV\\_T après chirurgie, sauf résidu."
-  ]
- }
+ ]
 }

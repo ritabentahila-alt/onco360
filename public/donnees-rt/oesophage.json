@@ -169,7 +169,6 @@
     "boustani-2022",
     "recorad-oeso"
    ],
-   "source_institutionnelle": "Fiche du service « protocole CONCORDE »",
    "prescriptions": [
     {
      "volume": "PTV prophylactique (tumeur + ganglions à risque)",
@@ -594,10 +593,5 @@
    "point": "La curiethérapie soulage plus lentement que la prothèse mais plus durablement, avec moins d'hémorragies tardives (5 % vs 13 %)",
    "portee": "schema"
   }
- ],
- "textes": {
-  "curietherapie": [
-   "**Technique :** applicateur endoluminal ; dose prescrite à 1 cm du milieu de la source ou de la position d'arrêt (ABS)."
-  ]
- }
+ ]
 }

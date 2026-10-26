@@ -11,7 +11,7 @@
    "localisation_id": "glioblastome",
    "titre": "Glioblastome opéré ou biopsié, jusqu'à 70 ans : radiochimiothérapie",
    "contexte": "post_op",
-   "criteres": "Glioblastome IDH non muté confirmé histologiquement, après exérèse maximale ou biopsie ; OMS 0–2, IK ≥ 70 (fiche du service) ; bénéfice du témozolomide démontré jusqu'à 70 ans",
+   "criteres": "Glioblastome IDH non muté confirmé histologiquement, après exérèse maximale ou biopsie ; OMS 0–2, IK ≥ 70 ; bénéfice du témozolomide démontré jusqu'à 70 ans",
    "ordre": 1
   },
   {
@@ -38,7 +38,6 @@
     "estro-eano-gbm-2023",
     "eano-gliomes-2021"
    ],
-   "source_institutionnelle": "Fiche du service « glioblastome »",
    "prescriptions": [
     {
      "volume": "PTV",
@@ -255,7 +254,7 @@
     {
      "nom": "PTV",
      "type": "PTV",
-     "definition": "CTV + 3 mm au plus avec IGRT, selon le système de contention (ESTRO-EANO) ; fiche du service : 3 mm",
+     "definition": "CTV + 3 mm au plus avec IGRT, selon le système de contention (ESTRO-EANO) ; autre approche : 3 mm",
      "quand": "Toujours",
      "marge": "3 mm"
     }
@@ -386,10 +385,5 @@
    "point": "Statut MGMT à demander : il prédit le bénéfice du témozolomide (Hegi 2005) et oriente vers CeTeG",
    "portee": "situation"
   }
- ],
- "textes": {
-  "contourage": [
-   "Volumes de l'ESTRO-EANO 2023 : un seul CTV, fondé sur la cavité et la prise de contraste. La fiche du service ajoutait 20 mm et l'hypersignal FLAIR."
-  ]
- }
+ ]
 }

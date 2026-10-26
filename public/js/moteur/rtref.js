@@ -78,7 +78,8 @@ export function fusionner(index, cabinet, acronymeDe) {
   const C = cabinet || {}, vus = new Set(), dates = {};
   (index.localisations || []).forEach((l) => { dates[l.id] = l.date_maj || ""; });
   const marquer = (e, c) => Object.assign(e, { cab: c, modifie: c.origine === "cabinet", nouveau: !!c.nouveau, refChangee: !c.nouveau && !!c.base && (dates[e.localisation_id] || "") > c.base });
-  const liste = (index.schemas || []).map((s) => {
+  // schéma de la référence supprimé par le cabinet ({ supprime }) : retiré de la liste
+  const liste = (index.schemas || []).filter((s) => !(C[s.id] && C[s.id].supprime)).map((s) => {
     const c = C[s.id]; vus.add(s.id);
     return c && c.schema && !c.nouveau ? marquer(resumeDe(Object.assign({ id: s.id }, c.schema), s.localisation_id, index, acronymeDe), c) : Object.assign({}, s, { modifie: false, nouveau: false, refChangee: false });
   });
@@ -221,9 +222,13 @@ export function contraintesSchema({ schema, loc, oarIds, oar, base, essais }) {
   const cle = (id) => cleOar(parId[id]) || id, rg = regimeDe(schema);
   const parEssai = {};
   (schema.contraintes_ids || []).forEach((jid) => { const j = (essais || []).find((x) => x.id === jid); if (!j) return;
-    j.lignes.forEach((l) => { const k = cle(l.oar_id); (parEssai[k] = parEssai[k] || []).push(Object.assign({}, l, { oar_id: k, source: j.titre + (j.source ? " (" + j.source + ")" : "") })); }); });
+    j.lignes.forEach((l, i) => { const k = cle(l.oar_id); (parEssai[k] = parEssai[k] || []).push(Object.assign({ id: "e:" + j.id + ":" + i }, l, { oar_id: k, source: j.titre + (j.source ? " (" + j.source + ")" : "") })); }); });
   const cles = []; (oarIds || []).forEach((id) => { const k = cle(id); if (cles.indexOf(k) < 0) cles.push(k); });
   Object.keys(parEssai).forEach((k) => { if (cles.indexOf(k) < 0) cles.push(k); });
+  // contraintes ajoutées par le cabinet dans la page Contraintes : dans toutes les fiches de ce régime (séances et localisation si elles sont
+  // précisées), en plus des lignes choisies (demande du 26/10/2026 : « si j'en ajoute, elles se mettent dans toutes les fiches »)
+  const ajouts = (k) => (rg ? (base || []).filter((l) => l.ajout && l.oar_id === k && l.regime === rg.regime && (!l.fx || l.fx === rg.fx) && (!l.loc || l.loc.indexOf(loc) >= 0)) : []);
+  const avecAjouts = (x) => { const a = ajouts(x.cle).filter((l) => !x.lignes.some((y) => y.id === l.id)); return a.length ? Object.assign(x, { lignes: x.lignes.concat(a), origine: x.origine === "aucune" ? "base" : x.origine }) : x; };
   return cles.map((k) => {
     if (parEssai[k]) return { cle: k, origine: "essai", lignes: parEssai[k] };
     if (!rg) return { cle: k, origine: "aucune", lignes: [] };
@@ -236,7 +241,7 @@ export function contraintesSchema({ schema, loc, oarIds, oar, base, essais }) {
     }
     if (rg.regime === "hypo") { const n = lignesBase(base, k, loc, { regime: "normo" }); if (n.lignes.length) return { cle: k, origine: "conversion", lignes: n.lignes }; }
     return { cle: k, origine: "aucune", lignes: [] };
-  }).map((x) => Object.assign(x, { lignes: sansDoublon(x.lignes) })).sort((a, b) => (/^cible-/.test(b.cle) ? 1 : 0) - (/^cible-/.test(a.cle) ? 1 : 0));
+  }).map(avecAjouts).map((x) => Object.assign(x, { lignes: sansDoublon(x.lignes) })).sort((a, b) => (/^cible-/.test(b.cle) ? 1 : 0) - (/^cible-/.test(a.cle) ? 1 : 0));
 }
 function sansDoublon(L) { const vus = new Set(); return L.filter((l) => { const c = [l.indicateur, l.ideal, l.limitant, l.note].join("|"); if (vus.has(c)) return false; vus.add(c); return true; }); }
 // Base du cabinet : lignes modifiées (même id), ajoutées (id « cc-… ») et retirées (retirees) par-dessus la référence
@@ -245,6 +250,43 @@ export function baseEffective(ref, cab) {
   const mod = {}; (cab.lignes || []).forEach((l) => { mod[l.id] = l; });
   const ret = new Set(cab.retirees || []);
   const L = (ref || []).filter((l) => !ret.has(l.id)).map((l) => (mod[l.id] ? Object.assign({}, l, mod[l.id], { cabinet: true }) : l));
-  (cab.lignes || []).forEach((l) => { if (!(ref || []).some((r) => r.id === l.id) && !ret.has(l.id)) L.push(Object.assign({}, l, { cabinet: true })); });
+  (cab.lignes || []).forEach((l) => { if (!(ref || []).some((r) => r.id === l.id) && !ret.has(l.id)) L.push(Object.assign({}, l, { cabinet: true, ajout: true })); });
   return L;
+}
+// Table d'une fiche modifiée par le cabinet : différences seulement (schema.ct = { mod: { id: champs }, ret: [id], aj: [lignes] }), appliquées
+// à la table calculée ; ce que la page Contraintes change ensuite arrive donc aussi dans cette fiche
+const CHAMPS_CT = ["oar_id", "indicateur", "ideal", "limitant", "note"];
+export function appliquerDelta(G, ct) {
+  if (!ct) return G;
+  const ret = new Set(ct.ret || []), mod = ct.mod || {}, L = [];
+  G.forEach((g) => g.lignes.forEach((l) => { if (!ret.has(l.id)) L.push(Object.assign({}, l, { oar_id: g.cle }, mod[l.id] || {}, mod[l.id] ? { cabinet: true } : {})); }));
+  (ct.aj || []).forEach((l) => L.push(Object.assign({}, l, { cabinet: true })));
+  const out = [];
+  L.forEach((l) => { let g = out.find((x) => x.cle === l.oar_id); if (!g) { const o = G.find((x) => x.cle === l.oar_id) || {}; g = { cle: l.oar_id, origine: o.origine || "cabinet", proche: o.proche, plusLarge: o.plusLarge, lignes: [] }; out.push(g); } g.lignes.push(l); });
+  G.forEach((g) => { if (!g.lignes.length && !out.some((x) => x.cle === g.cle)) out.push(g); });
+  return out;
+}
+// Différences entre une table modifiée (lignes avec leur id ; nouvelles lignes sans id ou id « cl-… ») et la table calculée
+export function deltaDe(lignes, G) {
+  const parId = {}; G.forEach((g) => g.lignes.forEach((l) => { parId[l.id] = Object.assign({}, l, { oar_id: g.cle }); }));
+  const mod = {}, aj = [], vus = new Set(), val = (x, k) => (x[k] == null ? "" : String(x[k]));
+  (lignes || []).forEach((l) => {
+    const r = l.id && parId[l.id];
+    if (!r) { const n = {}; CHAMPS_CT.forEach((k) => { if (val(l, k)) n[k] = val(l, k); }); if (n.oar_id && (n.indicateur || n.ideal || n.limitant || n.note)) aj.push(Object.assign({ id: l.id && /^cl-/.test(l.id) ? l.id : "cl-" + Math.random().toString(36).slice(2, 9) }, n)); return; }
+    vus.add(l.id); const d = {}; CHAMPS_CT.forEach((k) => { if (val(l, k) !== val(r, k)) d[k] = val(l, k); }); if (Object.keys(d).length) mod[l.id] = d;
+  });
+  const ret = Object.keys(parId).filter((id) => !vus.has(id));
+  const ct = {}; if (Object.keys(mod).length) ct.mod = mod; if (ret.length) ct.ret = ret; if (aj.length) ct.aj = aj;
+  return Object.keys(ct).length ? ct : null;
+}
+// Objectifs de couverture : texte de la référence (« CTV D98% ≥ 58,8 Gy ; PTV D95% ≥ 57 Gy ») en lignes { volume, indicateur, limitant, note }
+const OP = /(≥|≤|<|>|=)/;
+export function lignesCouverture(txt) {
+  return String(txt || "").split(/\s*;\s*/).map((p) => p.trim()).filter(Boolean).map((p) => {
+    const m = p.match(/^((?:GTV|CTV|PTV|ITV|IGTV|IGRT|CTVn|CTVp|PTVn|PTVp)[\w.\-–+/]*(?:\s+(?:\d+(?:[,.]\d+)?\s*Gy|N|T|HR|IR|LR))?)\s+(.*)$/i);
+    const vol = m ? m[1] : "", reste = (m ? m[2] : p).replace(/^[:\s]+/, ""), i = reste.search(OP);
+    if (i < 0) return { volume: vol, indicateur: reste, limitant: "", note: "" };
+    const ind = reste.slice(0, i).trim(), val = reste.slice(i).trim(), par = val.match(/^(\S+\s*[^()]*?)\s*\((.+)\)\s*$/);
+    return { volume: vol, indicateur: ind || reste, limitant: par ? par[1].trim() : val, note: par ? par[2] : "" };
+  });
 }

@@ -75,7 +75,6 @@
     "fastforward",
     "senorif-2021"
    ],
-   "source_institutionnelle": "Sénorif 2021-2022 ; tableur du service « SEIN HYPOG 40,05 Gy »",
    "prescriptions": [
     {
      "volume": "PTV sein",
@@ -106,6 +105,36 @@
     "Carcinome infiltrant",
     "Après chirurgie conservatrice : sein entier ± surimpression",
     "Hypofractionné"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "V95 %",
+     "ideal": "",
+     "limitant": "> 95 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "V105 %",
+     "ideal": "",
+     "limitant": "< 5 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "V107 %",
+     "ideal": "",
+     "limitant": "< 2 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "Dmax",
+     "ideal": "",
+     "limitant": "< 110 %",
+     "note": "FAST-Forward"
+    }
    ]
   },
   {
@@ -120,7 +149,6 @@
     "eortc22881",
     "senorif-2021"
    ],
-   "source_institutionnelle": "Sénorif 2021-2022 ; tableur du service « SEIN HYPOG 40,05 Gy + boost séquentiel 16 Gy »",
    "prescriptions": [
     {
      "volume": "PTV sein",
@@ -160,6 +188,15 @@
     "Carcinome infiltrant",
     "Après chirurgie conservatrice : sein entier ± surimpression",
     "Hypofractionné"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "",
+     "indicateur": "Comme sein-40-15 pour le premier temps",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    }
    ]
   },
   {
@@ -210,7 +247,6 @@
     "fastforward",
     "senorif-2021"
    ],
-   "source_institutionnelle": "Sénorif 2021-2022 (option)",
    "prescriptions": [
     {
      "volume": "PTV sein",
@@ -242,6 +278,36 @@
     "Carcinome infiltrant",
     "Après chirurgie conservatrice : sein entier ± surimpression",
     "Hypofractionné"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "V95 %",
+     "ideal": "",
+     "limitant": "> 95 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "V105 %",
+     "ideal": "",
+     "limitant": "< 5 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "V107 %",
+     "ideal": "",
+     "limitant": "< 2 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "Dmax",
+     "ideal": "",
+     "limitant": "< 110 %",
+     "note": ""
+    }
    ]
   },
   {
@@ -254,7 +320,6 @@
     "fastforward",
     "senorif-2021"
    ],
-   "source_institutionnelle": "Tableur du service « SEIN FASTFORWARD 26 Gy + boost séquentiel 13,35 Gy »",
    "prescriptions": [
     {
      "volume": "PTV sein",
@@ -294,6 +359,15 @@
     "Carcinome infiltrant",
     "Après chirurgie conservatrice : sein entier ± surimpression",
     "Hypofractionné"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "",
+     "indicateur": "Comme sein-26-5 pour le premier temps",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    }
    ]
   },
   {
@@ -306,7 +380,6 @@
     "fast",
     "senorif-2021"
    ],
-   "source_institutionnelle": "Sénorif 2021-2022 (option)",
    "prescriptions": [
     {
      "volume": "PTV sein",
@@ -347,7 +420,6 @@
     "ebctcg2011",
     "senorif-2021"
    ],
-   "source_institutionnelle": "Sénorif 2021-2022",
    "prescriptions": [
     {
      "volume": "PTV sein",
@@ -397,7 +469,6 @@
     "imrt-mc2-5ans",
     "senorif-2021"
    ],
-   "source_institutionnelle": "Sénorif 2021-2022 (option)",
    "prescriptions": [
     {
      "volume": "PTV sein",
@@ -503,7 +574,6 @@
     "ebctcg2014",
     "senorif-2021"
    ],
-   "source_institutionnelle": "Sénorif 2021-2022 (recommandé, sauf chimiothérapie concomitante)",
    "prescriptions": [
     {
      "volume": "PTV paroi",
@@ -533,6 +603,36 @@
     "Carcinome infiltrant",
     "Après mastectomie : paroi thoracique",
     "Hypofractionné"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "V95 %",
+     "ideal": "",
+     "limitant": "> 95 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "V105 %",
+     "ideal": "",
+     "limitant": "< 5 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "V107 %",
+     "ideal": "",
+     "limitant": "< 2 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "Dmax",
+     "ideal": "",
+     "limitant": "< 110 %",
+     "note": ""
+    }
    ]
   },
   {
@@ -545,7 +645,6 @@
     "ebctcg2014",
     "senorif-2021"
    ],
-   "source_institutionnelle": "Sénorif 2021-2022 (recommandé si reconstruction avant la RT)",
    "prescriptions": [
     {
      "volume": "PTV paroi",
@@ -587,7 +686,6 @@
     "amaros-10ans",
     "senorif-2021"
    ],
-   "source_institutionnelle": "Sénorif 2021-2022 (standard)",
    "prescriptions": [
     {
      "volume": "PTV sein ou paroi",
@@ -638,7 +736,6 @@
     "estro-acrop-sein-2022",
     "senorif-2021"
    ],
-   "source_institutionnelle": "Tableur du service « SEIN HYPOG 40,05 Gy + GG 40,05 Gy + boost séquentiel »",
    "prescriptions": [
     {
      "volume": "PTV sein ou paroi",
@@ -697,7 +794,6 @@
     "import-low",
     "senorif-2021"
    ],
-   "source_institutionnelle": "Sénorif 2021-2022",
    "prescriptions": [
     {
      "volume": "PTV sein partiel",
@@ -773,7 +869,6 @@
     "gec-estro-ipb-10ans",
     "senorif-2021"
    ],
-   "source_institutionnelle": "Sénorif 2021-2022",
    "prescriptions": [
     {
      "volume": "CTV (implant multicathéter)",
@@ -809,7 +904,6 @@
     "gec-estro-ipb-10ans",
     "senorif-2021"
    ],
-   "source_institutionnelle": "Sénorif 2021-2022",
    "prescriptions": [
     {
      "volume": "CTV (implant multicathéter)",
@@ -843,7 +937,6 @@
     "katherine",
     "senorif-2021"
    ],
-   "source_institutionnelle": "Sénorif 2021-2022",
    "prescriptions": [
     {
      "volume": "PTV sein ou paroi ± ganglions",
@@ -880,7 +973,6 @@
    "essai_ids": [
     "senorif-2021"
    ],
-   "source_institutionnelle": "Sénorif 2021-2022",
    "prescriptions": [
     {
      "volume": "PTV sein",
@@ -926,7 +1018,6 @@
    "essai_ids": [
     "senorif-2021"
    ],
-   "source_institutionnelle": "Sénorif 2021-2022",
    "prescriptions": [
     {
      "volume": "PTV sein",
@@ -1231,10 +1322,5 @@
    "point": "Inversion de séquence (RT préopératoire) : hors protocole de recherche, données insuffisantes (Sénorif)",
    "portee": "localisation"
   }
- ],
- "textes": {
-  "contourage": [
-   "Contourage des OAR : RECORAD 2021 (Sénorif)."
-  ]
- }
+ ]
 }

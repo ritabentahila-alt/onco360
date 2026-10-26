@@ -11,7 +11,7 @@
    "localisation_id": "larynx",
    "titre": "Glotte T1–T2 N0 : RT exclusive",
    "contexte": "en_place",
-   "criteres": "T1 N0 (Yamazaki 2006) ou T2 N0 (RTOG 9512) ; irradiation ganglionnaire souvent inutile (fiche du service)",
+   "criteres": "T1 N0 (Yamazaki 2006) ou T2 N0 (RTOG 9512) ; irradiation ganglionnaire souvent inutile",
    "ordre": 1
   },
   {
@@ -27,7 +27,7 @@
    "localisation_id": "larynx",
    "titre": "Larynx opéré : RT adjuvante",
    "contexte": "post_op",
-   "criteres": "Haut risque : marges positives ou rupture capsulaire → 66 Gy et cisplatine. Intermédiaire → 60 Gy (fiche du service)",
+   "criteres": "Haut risque : marges positives ou rupture capsulaire → 66 Gy et cisplatine. Intermédiaire → 60 Gy",
    "ordre": 3
   }
  ],
@@ -153,7 +153,6 @@
     "mach-nc",
     "curie-vads-2021"
    ],
-   "source_institutionnelle": "Institut Curie 2021 ; tableur du service « ORL 70-63-56 Gy »",
    "prescriptions": [
     {
      "volume": "PTV70",
@@ -198,6 +197,29 @@
     "Larynx",
     "Larynx localement évolué : préservation laryngée",
     "Normofractionné"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "D95 %",
+     "ideal": "",
+     "limitant": "≥ 95 %",
+     "note": ""
+    },
+    {
+     "volume": "CTV",
+     "indicateur": "D98 %",
+     "ideal": "",
+     "limitant": "≥ 98 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV70",
+     "indicateur": "D2 %",
+     "ideal": "",
+     "limitant": "≤ 107 %",
+     "note": ""
+    }
    ]
   },
   {
@@ -211,7 +233,6 @@
     "rtog9111-lt",
     "curie-vads-2021"
    ],
-   "source_institutionnelle": "Institut Curie 2021 pour la RT",
    "prescriptions": [
     {
      "volume": "PTV70",
@@ -256,6 +277,29 @@
     "Larynx",
     "Larynx localement évolué : préservation laryngée",
     "Normofractionné"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "D95 %",
+     "ideal": "",
+     "limitant": "≥ 95 %",
+     "note": ""
+    },
+    {
+     "volume": "CTV",
+     "indicateur": "D98 %",
+     "ideal": "",
+     "limitant": "≥ 98 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV70",
+     "indicateur": "D2 %",
+     "ideal": "",
+     "limitant": "≤ 107 %",
+     "note": ""
+    }
    ]
   },
   {
@@ -268,7 +312,6 @@
     "rtog0225",
     "rtog9111"
    ],
-   "source_institutionnelle": "Tableur du service « ORL 69,96-59,4-54,12 Gy »",
    "prescriptions": [
     {
      "volume": "PTV69,96",
@@ -303,7 +346,7 @@
    "simulation_id": "sim-orl-curie",
    "volumes_id": "vol-orl-igr",
    "contraintes_ids": [],
-   "couverture": "Tableur du service : D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
+   "couverture": "D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
    "points_attention": [
     "À 10 ans, induction PF et RCT donnent la même survie sans laryngectomie ; la RCT contrôle mieux la tumeur et préserve plus souvent le larynx, mais les décès non liés au cancer sont plus fréquents (RTOG 91-11, Forastiere 2013)"
    ],
@@ -313,6 +356,29 @@
     "Larynx",
     "Larynx localement évolué : préservation laryngée",
     "Normofractionné"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "D95",
+     "ideal": "",
+     "limitant": "≈ 98 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "D98",
+     "ideal": "",
+     "limitant": "≈ 95 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "Dmax",
+     "ideal": "",
+     "limitant": "≈ 105 %",
+     "note": ""
+    }
    ]
   },
   {
@@ -324,7 +390,6 @@
    "essai_ids": [
     "igr-orl-rcmi"
    ],
-   "source_institutionnelle": "Gustave Roussy, RCMI des cancers de la tête et du cou (2017)",
    "prescriptions": [
     {
      "volume": "PTV70",
@@ -369,6 +434,36 @@
     "Larynx",
     "Larynx localement évolué : préservation laryngée",
     "Hypofractionné"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV70",
+     "indicateur": "D95 %",
+     "ideal": "",
+     "limitant": "≥ 66,5 Gy",
+     "note": ""
+    },
+    {
+     "volume": "PTV70",
+     "indicateur": "D5 %",
+     "ideal": "",
+     "limitant": "≤ 77 Gy",
+     "note": ""
+    },
+    {
+     "volume": "PTV60",
+     "indicateur": "D95 %",
+     "ideal": "",
+     "limitant": "≥ 57 Gy",
+     "note": ""
+    },
+    {
+     "volume": "PTV54",
+     "indicateur": "D95 %",
+     "ideal": "",
+     "limitant": "≥ 51,3 Gy",
+     "note": ""
+    }
    ]
   },
   {
@@ -383,7 +478,6 @@
     "bernier2005",
     "curie-vads-2021"
    ],
-   "source_institutionnelle": "Institut Curie 2021 ; tableur du service « ORL 66-59,4-54,12 Gy »",
    "prescriptions": [
     {
      "volume": "PTV66",
@@ -426,12 +520,35 @@
     "Larynx opéré : RT adjuvante",
     "Normofractionné"
    ],
-   "points_attention": []
+   "points_attention": [],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "D95 %",
+     "ideal": "",
+     "limitant": "≥ 95 %",
+     "note": ""
+    },
+    {
+     "volume": "CTV",
+     "indicateur": "D98 %",
+     "ideal": "",
+     "limitant": "≥ 98 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV66 ∪ PTV59,4",
+     "indicateur": "D2 %",
+     "ideal": "",
+     "limitant": "≤ 107 %",
+     "note": ""
+    }
+   ]
   },
   {
    "id": "lar-postop-66-54-service",
    "situation_id": "lar-post-op",
-   "titre": "RT post-opératoire 66 / 54 Gy en 33 fx (fiche du service)",
+   "titre": "RT post-opératoire 66 / 54 Gy en 33 fx",
    "type": "rte_normo",
    "preuve": "pratique_institutionnelle",
    "essai_ids": [
@@ -439,7 +556,6 @@
     "rtog9501",
     "bernier2005"
    ],
-   "source_institutionnelle": "Fiche du service « RT ORL post-opératoire »",
    "prescriptions": [
     {
      "volume": "PTV66",
@@ -465,7 +581,7 @@
    "simulation_id": "sim-orl-curie",
    "volumes_id": "vol-lar-postop-service",
    "contraintes_ids": [],
-   "couverture": "Tableur du service : D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
+   "couverture": "D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
    "date_verif": "2026-10-24",
    "ind": [
     "ORL",
@@ -473,7 +589,30 @@
     "Larynx opéré : RT adjuvante",
     "Normofractionné"
    ],
-   "points_attention": []
+   "points_attention": [],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "D95",
+     "ideal": "",
+     "limitant": "≈ 98 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "D98",
+     "ideal": "",
+     "limitant": "≈ 95 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "Dmax",
+     "ideal": "",
+     "limitant": "≈ 105 %",
+     "note": ""
+    }
+   ]
   },
   {
    "id": "lar-postop-60-54-service",
@@ -485,7 +624,6 @@
     "rtog9501",
     "bernier2005"
    ],
-   "source_institutionnelle": "Fiche du service « RT ORL post-opératoire » ; tableur du service « ORL 60-54 Gy »",
    "prescriptions": [
     {
      "volume": "PTV60",
@@ -511,7 +649,7 @@
    "simulation_id": "sim-orl-curie",
    "volumes_id": "vol-lar-postop-service",
    "contraintes_ids": [],
-   "couverture": "Tableur du service : D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
+   "couverture": "D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
    "date_verif": "2026-10-24",
    "ind": [
     "ORL",
@@ -519,7 +657,30 @@
     "Larynx opéré : RT adjuvante",
     "Normofractionné"
    ],
-   "points_attention": []
+   "points_attention": [],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "D95",
+     "ideal": "",
+     "limitant": "≈ 98 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "D98",
+     "ideal": "",
+     "limitant": "≈ 95 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "Dmax",
+     "ideal": "",
+     "limitant": "≈ 105 %",
+     "note": ""
+    }
+   ]
   }
  ],
  "simulations": [
@@ -554,13 +715,13 @@
     {
      "nom": "CTV",
      "type": "CTV",
-     "definition": "GTV et marges de Grégoire 2018 (CTV-P1 et CTV-P2), adaptées au cartilage et à l'air ; sans aire ganglionnaire en T1–T2 N0 le plus souvent (fiche du service)",
+     "definition": "GTV et marges de Grégoire 2018 (CTV-P1 et CTV-P2), adaptées au cartilage et à l'air ; sans aire ganglionnaire en T1–T2 N0 le plus souvent",
      "quand": "Toujours"
     },
     {
      "nom": "PTV",
      "type": "PTV",
-     "definition": "CTV + 3 mm, moins 2 mm sous le contour externe (Curie)",
+     "definition": "CTV + 3 mm, moins 2 mm sous le contour externe",
      "quand": "Toujours",
      "marge": "3 mm"
     }
@@ -952,10 +1113,5 @@
    "point": "Six fractions par semaine : voix préservée plus souvent (80 contre 68 %, DAHANCA 6 et 7)",
    "portee": "localisation"
   }
- ],
- "textes": {
-  "centrage": [
-   "Patient laryngectomisé : retrait de la canule possible, pas obligatoire ; canule de trachéotomie gardée si le larynx est en place (Curie)."
-  ]
- }
+ ]
 }

@@ -42,7 +42,6 @@
     "lap07",
     "conko007"
    ],
-   "source_institutionnelle": "Fiche du service",
    "prescriptions": [
     {
      "volume": "PTV",
@@ -435,6 +434,5 @@
    "point": "Douleur : la SBRT soulage 85 % des patients (revue, doses médianes 28 Gy en 1 à 6 fx)",
    "portee": "localisation"
   }
- ],
- "textes": {}
+ ]
 }

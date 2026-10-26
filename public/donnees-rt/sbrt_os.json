@@ -19,7 +19,7 @@
    "localisation_id": "sbrt_os",
    "titre": "Métastase vertébrale déjà irradiée",
    "contexte": "reirradiation",
-   "criteres": "Mêmes critères ; cumul des doses et des fractionnements antérieurs à prendre en compte (fiche du service)",
+   "criteres": "Mêmes critères ; cumul des doses et des fractionnements antérieurs à prendre en compte",
    "ordre": 2
   },
   {
@@ -27,7 +27,7 @@
    "localisation_id": "sbrt_os",
    "titre": "Métastase osseuse hors rachis (bassin)",
    "contexte": "oligometastatique",
-   "criteres": "Lésion osseuse oligométastatique accessible à la stéréotaxie, par exemple pubis (tableur du service)",
+   "criteres": "Lésion osseuse oligométastatique accessible à la stéréotaxie, par exemple pubis",
    "ordre": 3
   }
  ],
@@ -42,7 +42,6 @@
     "sc24",
     "hytec-moelle"
    ],
-   "source_institutionnelle": "Tableur du service « vertèbre stéréo 2 × 12 »",
    "prescriptions": [
     {
      "volume": "PTV",
@@ -71,6 +70,22 @@
     "Stéréotaxie osseuse",
     "Métastase vertébrale, première irradiation",
     "Stéréotaxie"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "Isodose de prescription englobant tout le PTV (Zelefsky 2021)",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "Couverture réduite au contact de la moelle si nécessaire pour respecter sa contrainte (consensus, Redmond 2017)",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    }
    ]
   },
   {
@@ -83,7 +98,6 @@
     "lai2025",
     "cox2012"
    ],
-   "source_institutionnelle": "Fiche du service « stéréotaxie osseuse vertébrale »",
    "prescriptions": [
     {
      "volume": "PTV",
@@ -112,6 +126,22 @@
     "Stéréotaxie osseuse",
     "Métastase vertébrale, première irradiation",
     "Stéréotaxie"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "Isodose de prescription englobant tout le PTV (Zelefsky 2021)",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "Couverture réduite au contact de la moelle si nécessaire pour respecter sa contrainte (consensus, Redmond 2017)",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    }
    ]
   },
   {
@@ -125,7 +155,6 @@
     "wang2012-sbrt",
     "cox2012"
    ],
-   "source_institutionnelle": "Tableur du service « vertèbre stéréo 3 × 9 »",
    "prescriptions": [
     {
      "volume": "PTV",
@@ -154,6 +183,22 @@
     "Stéréotaxie osseuse",
     "Métastase vertébrale, première irradiation",
     "Stéréotaxie"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "Isodose de prescription englobant tout le PTV (Zelefsky 2021)",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "Couverture réduite au contact de la moelle si nécessaire pour respecter sa contrainte (consensus, Redmond 2017)",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    }
    ]
   },
   {
@@ -166,7 +211,6 @@
     "wang2012-sbrt",
     "cox2012"
    ],
-   "source_institutionnelle": "Fiche du service « stéréotaxie osseuse vertébrale »",
    "prescriptions": [
     {
      "volume": "PTV",
@@ -195,6 +239,22 @@
     "Stéréotaxie osseuse",
     "Métastase vertébrale, première irradiation",
     "Stéréotaxie"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "Isodose de prescription englobant tout le PTV (Zelefsky 2021)",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "Couverture réduite au contact de la moelle si nécessaire pour respecter sa contrainte (consensus, Redmond 2017)",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    }
    ]
   },
   {
@@ -235,6 +295,22 @@
     "Stéréotaxie osseuse",
     "Métastase vertébrale, première irradiation",
     "Stéréotaxie"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "Isodose de prescription englobant tout le PTV (Zelefsky 2021)",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "Couverture réduite au contact de la moelle si nécessaire pour respecter sa contrainte (consensus, Redmond 2017)",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    }
    ]
   },
   {
@@ -248,7 +324,6 @@
     "sahgal2012-reirr",
     "hytec-moelle"
    ],
-   "source_institutionnelle": "Fiche du service « stéréotaxie osseuse vertébrale »",
    "prescriptions": [
     {
      "volume": "PTV",
@@ -275,7 +350,23 @@
     "Métastase vertébrale déjà irradiée",
     "Stéréotaxie"
    ],
-   "points_attention": []
+   "points_attention": [],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "Isodose de prescription englobant tout le PTV (Zelefsky 2021)",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "Couverture réduite au contact de la moelle si nécessaire pour respecter sa contrainte (consensus, Redmond 2017)",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    }
+   ]
   },
   {
    "id": "sr-pubis-3x9",
@@ -289,7 +380,6 @@
     "sabrcomet5",
     "guckenberger2020"
    ],
-   "source_institutionnelle": "Tableur du service « pubis stéréo 3 × 9 »",
    "prescriptions": [
     {
      "volume": "PTV",
@@ -316,7 +406,23 @@
     "Métastase osseuse hors rachis (bassin)",
     "Stéréotaxie"
    ],
-   "contraintes_ids": []
+   "contraintes_ids": [],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "Isodose de prescription englobant tout le PTV (Zelefsky 2021)",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "Couverture réduite au contact de la moelle si nécessaire pour respecter sa contrainte (consensus, Redmond 2017)",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    }
+   ]
   }
  ],
  "simulations": [
@@ -458,10 +564,5 @@
    "point": "Contraintes du tableur du service non reprises ; pas de jeu publié pour le bassin en 3 fractions dans la bibliothèque",
    "portee": "schema"
   }
- ],
- "textes": {
-  "systemique": [
-   "Pas de traitement systémique associé à la RT dans ces schémas."
-  ]
- }
+ ]
 }

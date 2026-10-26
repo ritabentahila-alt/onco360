@@ -28,7 +28,6 @@
     "liao2023-surrenale",
     "giraud2026-surrenale"
    ],
-   "source_institutionnelle": "Gustave Roussy, fiche « stéréotaxie surrénale 5 × 9 Gy »",
    "prescriptions": [
     {
      "volume": "PTV",
@@ -58,6 +57,29 @@
     "Surrénale",
     "Métastase surrénalienne oligométastatique",
     "Stéréotaxie"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "GTV/ITV",
+     "indicateur": "rapporter D95 % et Dmoy. PTV : D99 %",
+     "ideal": "",
+     "limitant": "≈ 90 % de la dose prescrite",
+     "note": ""
+    },
+    {
+     "volume": "GTV/ITV",
+     "indicateur": "D90 %",
+     "ideal": "",
+     "limitant": "≈ dose prescrite",
+     "note": ""
+    },
+    {
+     "volume": "GTV/ITV",
+     "indicateur": "Rapporter D50 %, Dmoy, D2 %, D98 %",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    }
    ]
   },
   {
@@ -70,7 +92,6 @@
     "chen2020-surrenale",
     "hanna-uk"
    ],
-   "source_institutionnelle": "Tableur du service « surrénale stéréo 5 fractions »",
    "prescriptions": [
     {
      "volume": "PTV",
@@ -100,6 +121,15 @@
     "Surrénale",
     "Métastase surrénalienne oligométastatique",
     "Stéréotaxie"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "D95 % du PTV",
+     "ideal": "",
+     "limitant": "= dose prescrite",
+     "note": ""
+    }
    ]
   },
   {
@@ -224,10 +254,5 @@
    "point": "Pas de jeu de contraintes abdominal en 8 fractions dans la bibliothèque",
    "portee": "schema"
   }
- ],
- "textes": {
-  "systemique": [
-   "Pas de traitement systémique associé à la RT dans ces schémas."
-  ]
- }
+ ]
 }

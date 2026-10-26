@@ -11,7 +11,7 @@
    "localisation_id": "metastases_cerebrales",
    "titre": "Métastases en place : stéréotaxie",
    "contexte": "metastatique",
-   "criteres": "Primitif contrôlé, histologie confirmée ; 5 lésions au plus (plus sur avis médical) ; PTV < 40 mm ; IK > 70 %, espérance de vie > 6 mois ; ni hydrocéphalie ni effet de masse (Curie, ANOCEF 2018). Lésion ≥ 30 mm : discuter la chirurgie première",
+   "criteres": "Primitif contrôlé, histologie confirmée ; 5 lésions au plus (plus sur avis médical) ; PTV < 40 mm ; IK > 70 %, espérance de vie > 6 mois ; ni hydrocéphalie ni effet de masse (ANOCEF 2018). Lésion ≥ 30 mm : discuter la chirurgie première",
    "ordre": 1
   },
   {
@@ -19,7 +19,7 @@
    "localisation_id": "metastases_cerebrales",
    "titre": "Métastase opérée : stéréotaxie de la cavité",
    "contexte": "post_op",
-   "criteres": "Après exérèse, stéréotaxie systématique ; PTV < 50 mm (Curie)",
+   "criteres": "Après exérèse, stéréotaxie systématique ; PTV < 50 mm",
    "ordre": 2
   },
   {
@@ -35,7 +35,7 @@
    "localisation_id": "metastases_cerebrales",
    "titre": "Réirradiation stéréotaxique",
    "contexte": "metastatique",
-   "criteres": "Récidive après encéphale in toto ou après une stéréotaxie du même site ; toujours en 3 ou 5 séances ; exérèse première à privilégier si faisable (Curie)",
+   "criteres": "Récidive après encéphale in toto ou après une stéréotaxie du même site ; toujours en 3 ou 5 séances ; exérèse première à privilégier si faisable",
    "ordre": 4
   }
  ],
@@ -54,7 +54,6 @@
     "astro-mc-2022",
     "eano-esmo-mc-2021"
    ],
-   "source_institutionnelle": "Institut Curie, stéréotaxie des métastases cérébrales 2021",
    "prescriptions": [
     {
      "volume": "PTV ≤ 20 mm",
@@ -63,7 +62,7 @@
      "dose_fx_Gy": 20,
      "mode": "seul",
      "rythme": "1 séance",
-     "note": "GTV à plus de 5 mm du tronc et du chiasma, hors zone critique (Curie)"
+     "note": "GTV à plus de 5 mm du tronc et du chiasma, hors zone critique"
     }
    ],
    "technique": "Arcs dynamiques conformationnels ou VMAT non coplanaires (3 à 5 arcs), mono-isocentre si 2 à 4 lésions proches ; IGRT stéréotaxique à chaque séance",
@@ -71,17 +70,17 @@
    "simulation_id": "sim-crane-srs",
    "volumes_id": "vol-crane-srs",
    "contraintes_ids": [],
-   "couverture": "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 % (Curie)",
+   "couverture": "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 %",
    "points_attention": [
-    "Les contraintes des OAR priment sur le choix de la dose et du fractionnement (Curie)",
-    "Dose unique si PTV ≤ 20 mm, GTV à plus de 5 mm du tronc et du chiasma, hors zone critique ; sinon 3 ou 5 fractions (Curie)",
-    "PTV de 50 mm ou plus : pas de stéréotaxie, RCMI (Curie)",
+    "Les contraintes des OAR priment sur le choix de la dose et du fractionnement",
+    "Dose unique si PTV ≤ 20 mm, GTV à plus de 5 mm du tronc et du chiasma, hors zone critique ; sinon 3 ou 5 fractions",
+    "PTV de 50 mm ou plus : pas de stéréotaxie, RCMI",
     "Radiochirurgie seule plutôt qu'avec l'encéphale in toto : déclin cognitif à 3 mois 63,5 vs 91,7 %, sans perte de survie (N0574)",
     "Lésion de plus de 2 cm : 27 Gy / 3 fx donne moins de radionécroses (9 vs 18 % à 1 an) et un meilleur contrôle que la dose unique (Minniti 2016)",
     "Marge de 3 mm au lieu de 1 mm : pas de meilleur contrôle, plus de radionécroses (Kirkpatrick 2015)",
-    "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1° (Curie)",
-    "Suivi : IRM à 3 mois, puis tous les 3 mois pendant au moins 2 ans (Curie) ; pronostic selon le score DS-GPA de l'histologie",
-    "Respecter les délais entre RT et traitements systémiques (ANOCEF 2018) ; vigilance avec gemcitabine, anthracyclines et actinomycine D (Curie)"
+    "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1°",
+    "Suivi : IRM à 3 mois, puis tous les 3 mois pendant au moins 2 ans ; pronostic selon le score DS-GPA de l'histologie",
+    "Respecter les délais entre RT et traitements systémiques (ANOCEF 2018) ; vigilance avec gemcitabine, anthracyclines et actinomycine D"
    ],
    "date_verif": "2026-10-24",
    "ind": [
@@ -89,6 +88,29 @@
     "Métastases cérébrales",
     "Métastases en place : stéréotaxie",
     "Stéréotaxie"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "V100 %",
+     "ideal": "",
+     "limitant": "≥ 99 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "D50 %",
+     "ideal": "",
+     "limitant": "≥ 115 %, Dmax 125–140 % de la dose prescrite",
+     "note": ""
+    },
+    {
+     "volume": "CTV",
+     "indicateur": "D95 %",
+     "ideal": "",
+     "limitant": "≥ 112 %",
+     "note": ""
+    }
    ]
   },
   {
@@ -135,15 +157,15 @@
    "contraintes_ids": [],
    "couverture": "Dose prescrite en périphérie de la lésion",
    "points_attention": [
-    "Les contraintes des OAR priment sur le choix de la dose et du fractionnement (Curie)",
-    "Dose unique si PTV ≤ 20 mm, GTV à plus de 5 mm du tronc et du chiasma, hors zone critique ; sinon 3 ou 5 fractions (Curie)",
-    "PTV de 50 mm ou plus : pas de stéréotaxie, RCMI (Curie)",
+    "Les contraintes des OAR priment sur le choix de la dose et du fractionnement",
+    "Dose unique si PTV ≤ 20 mm, GTV à plus de 5 mm du tronc et du chiasma, hors zone critique ; sinon 3 ou 5 fractions",
+    "PTV de 50 mm ou plus : pas de stéréotaxie, RCMI",
     "Radiochirurgie seule plutôt qu'avec l'encéphale in toto : déclin cognitif à 3 mois 63,5 vs 91,7 %, sans perte de survie (N0574)",
     "Lésion de plus de 2 cm : 27 Gy / 3 fx donne moins de radionécroses (9 vs 18 % à 1 an) et un meilleur contrôle que la dose unique (Minniti 2016)",
     "Marge de 3 mm au lieu de 1 mm : pas de meilleur contrôle, plus de radionécroses (Kirkpatrick 2015)",
-    "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1° (Curie)",
-    "Suivi : IRM à 3 mois, puis tous les 3 mois pendant au moins 2 ans (Curie) ; pronostic selon le score DS-GPA de l'histologie",
-    "Respecter les délais entre RT et traitements systémiques (ANOCEF 2018) ; vigilance avec gemcitabine, anthracyclines et actinomycine D (Curie)"
+    "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1°",
+    "Suivi : IRM à 3 mois, puis tous les 3 mois pendant au moins 2 ans ; pronostic selon le score DS-GPA de l'histologie",
+    "Respecter les délais entre RT et traitements systémiques (ANOCEF 2018) ; vigilance avec gemcitabine, anthracyclines et actinomycine D"
    ],
    "date_verif": "2026-10-24",
    "ind": [
@@ -151,6 +173,15 @@
     "Métastases cérébrales",
     "Métastases en place : stéréotaxie",
     "Stéréotaxie"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "",
+     "indicateur": "Dose prescrite en périphérie de la lésion",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    }
    ]
   },
   {
@@ -188,15 +219,15 @@
    "contraintes_ids": [],
    "couverture": "Dose prescrite en périphérie de la lésion",
    "points_attention": [
-    "Les contraintes des OAR priment sur le choix de la dose et du fractionnement (Curie)",
-    "Dose unique si PTV ≤ 20 mm, GTV à plus de 5 mm du tronc et du chiasma, hors zone critique ; sinon 3 ou 5 fractions (Curie)",
-    "PTV de 50 mm ou plus : pas de stéréotaxie, RCMI (Curie)",
+    "Les contraintes des OAR priment sur le choix de la dose et du fractionnement",
+    "Dose unique si PTV ≤ 20 mm, GTV à plus de 5 mm du tronc et du chiasma, hors zone critique ; sinon 3 ou 5 fractions",
+    "PTV de 50 mm ou plus : pas de stéréotaxie, RCMI",
     "Radiochirurgie seule plutôt qu'avec l'encéphale in toto : déclin cognitif à 3 mois 63,5 vs 91,7 %, sans perte de survie (N0574)",
     "Lésion de plus de 2 cm : 27 Gy / 3 fx donne moins de radionécroses (9 vs 18 % à 1 an) et un meilleur contrôle que la dose unique (Minniti 2016)",
     "Marge de 3 mm au lieu de 1 mm : pas de meilleur contrôle, plus de radionécroses (Kirkpatrick 2015)",
-    "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1° (Curie)",
-    "Suivi : IRM à 3 mois, puis tous les 3 mois pendant au moins 2 ans (Curie) ; pronostic selon le score DS-GPA de l'histologie",
-    "Respecter les délais entre RT et traitements systémiques (ANOCEF 2018) ; vigilance avec gemcitabine, anthracyclines et actinomycine D (Curie)"
+    "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1°",
+    "Suivi : IRM à 3 mois, puis tous les 3 mois pendant au moins 2 ans ; pronostic selon le score DS-GPA de l'histologie",
+    "Respecter les délais entre RT et traitements systémiques (ANOCEF 2018) ; vigilance avec gemcitabine, anthracyclines et actinomycine D"
    ],
    "date_verif": "2026-10-24",
    "ind": [
@@ -204,6 +235,15 @@
     "Métastases cérébrales",
     "Métastases en place : stéréotaxie",
     "Stéréotaxie"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "",
+     "indicateur": "Dose prescrite en périphérie de la lésion",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    }
    ]
   },
   {
@@ -216,7 +256,6 @@
     "minniti2016",
     "hytec-encephale"
    ],
-   "source_institutionnelle": "Institut Curie, stéréotaxie des métastases cérébrales 2021",
    "prescriptions": [
     {
      "volume": "PTV < 41 mm",
@@ -225,7 +264,7 @@
      "dose_fx_Gy": 9,
      "mode": "seul",
      "rythme": "3 séances/sem (J1, J3, J5)",
-     "note": "Lésion du tronc : pas de dose unique, 3 × 8 ou 5 × 5 Gy (Curie)"
+     "note": "Lésion du tronc : pas de dose unique, 3 × 8 ou 5 × 5 Gy"
     }
    ],
    "technique": "Arcs dynamiques conformationnels ou VMAT non coplanaires (3 à 5 arcs), mono-isocentre si 2 à 4 lésions proches ; IGRT stéréotaxique à chaque séance",
@@ -233,17 +272,17 @@
    "simulation_id": "sim-crane-srs",
    "volumes_id": "vol-crane-srs",
    "contraintes_ids": [],
-   "couverture": "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 % (Curie)",
+   "couverture": "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 %",
    "points_attention": [
-    "Les contraintes des OAR priment sur le choix de la dose et du fractionnement (Curie)",
-    "Dose unique si PTV ≤ 20 mm, GTV à plus de 5 mm du tronc et du chiasma, hors zone critique ; sinon 3 ou 5 fractions (Curie)",
-    "PTV de 50 mm ou plus : pas de stéréotaxie, RCMI (Curie)",
+    "Les contraintes des OAR priment sur le choix de la dose et du fractionnement",
+    "Dose unique si PTV ≤ 20 mm, GTV à plus de 5 mm du tronc et du chiasma, hors zone critique ; sinon 3 ou 5 fractions",
+    "PTV de 50 mm ou plus : pas de stéréotaxie, RCMI",
     "Radiochirurgie seule plutôt qu'avec l'encéphale in toto : déclin cognitif à 3 mois 63,5 vs 91,7 %, sans perte de survie (N0574)",
     "Lésion de plus de 2 cm : 27 Gy / 3 fx donne moins de radionécroses (9 vs 18 % à 1 an) et un meilleur contrôle que la dose unique (Minniti 2016)",
     "Marge de 3 mm au lieu de 1 mm : pas de meilleur contrôle, plus de radionécroses (Kirkpatrick 2015)",
-    "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1° (Curie)",
-    "Suivi : IRM à 3 mois, puis tous les 3 mois pendant au moins 2 ans (Curie) ; pronostic selon le score DS-GPA de l'histologie",
-    "Respecter les délais entre RT et traitements systémiques (ANOCEF 2018) ; vigilance avec gemcitabine, anthracyclines et actinomycine D (Curie)"
+    "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1°",
+    "Suivi : IRM à 3 mois, puis tous les 3 mois pendant au moins 2 ans ; pronostic selon le score DS-GPA de l'histologie",
+    "Respecter les délais entre RT et traitements systémiques (ANOCEF 2018) ; vigilance avec gemcitabine, anthracyclines et actinomycine D"
    ],
    "date_verif": "2026-10-24",
    "ind": [
@@ -251,6 +290,29 @@
     "Métastases cérébrales",
     "Métastases en place : stéréotaxie",
     "Stéréotaxie"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "V100 %",
+     "ideal": "",
+     "limitant": "≥ 99 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "D50 %",
+     "ideal": "",
+     "limitant": "≥ 115 %, Dmax 125–140 % de la dose prescrite",
+     "note": ""
+    },
+    {
+     "volume": "CTV",
+     "indicateur": "D95 %",
+     "ideal": "",
+     "limitant": "≥ 112 %",
+     "note": ""
+    }
    ]
   },
   {
@@ -262,7 +324,6 @@
    "essai_ids": [
     "hytec-encephale"
    ],
-   "source_institutionnelle": "Institut Curie, stéréotaxie des métastases cérébrales 2021",
    "prescriptions": [
     {
      "volume": "PTV < 41 mm",
@@ -271,7 +332,7 @@
      "dose_fx_Gy": 8,
      "mode": "seul",
      "rythme": "3 séances/sem (J1, J3, J5)",
-     "note": "Schéma du tronc cérébral en 3 fractions (Curie)"
+     "note": "Schéma du tronc cérébral en 3 fractions"
     }
    ],
    "technique": "Arcs dynamiques conformationnels ou VMAT non coplanaires (3 à 5 arcs), mono-isocentre si 2 à 4 lésions proches ; IGRT stéréotaxique à chaque séance",
@@ -279,17 +340,17 @@
    "simulation_id": "sim-crane-srs",
    "volumes_id": "vol-crane-srs",
    "contraintes_ids": [],
-   "couverture": "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 % (Curie)",
+   "couverture": "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 %",
    "points_attention": [
-    "Les contraintes des OAR priment sur le choix de la dose et du fractionnement (Curie)",
-    "Dose unique si PTV ≤ 20 mm, GTV à plus de 5 mm du tronc et du chiasma, hors zone critique ; sinon 3 ou 5 fractions (Curie)",
-    "PTV de 50 mm ou plus : pas de stéréotaxie, RCMI (Curie)",
+    "Les contraintes des OAR priment sur le choix de la dose et du fractionnement",
+    "Dose unique si PTV ≤ 20 mm, GTV à plus de 5 mm du tronc et du chiasma, hors zone critique ; sinon 3 ou 5 fractions",
+    "PTV de 50 mm ou plus : pas de stéréotaxie, RCMI",
     "Radiochirurgie seule plutôt qu'avec l'encéphale in toto : déclin cognitif à 3 mois 63,5 vs 91,7 %, sans perte de survie (N0574)",
     "Lésion de plus de 2 cm : 27 Gy / 3 fx donne moins de radionécroses (9 vs 18 % à 1 an) et un meilleur contrôle que la dose unique (Minniti 2016)",
     "Marge de 3 mm au lieu de 1 mm : pas de meilleur contrôle, plus de radionécroses (Kirkpatrick 2015)",
-    "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1° (Curie)",
-    "Suivi : IRM à 3 mois, puis tous les 3 mois pendant au moins 2 ans (Curie) ; pronostic selon le score DS-GPA de l'histologie",
-    "Respecter les délais entre RT et traitements systémiques (ANOCEF 2018) ; vigilance avec gemcitabine, anthracyclines et actinomycine D (Curie)"
+    "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1°",
+    "Suivi : IRM à 3 mois, puis tous les 3 mois pendant au moins 2 ans ; pronostic selon le score DS-GPA de l'histologie",
+    "Respecter les délais entre RT et traitements systémiques (ANOCEF 2018) ; vigilance avec gemcitabine, anthracyclines et actinomycine D"
    ],
    "date_verif": "2026-10-24",
    "ind": [
@@ -297,6 +358,29 @@
     "Métastases cérébrales",
     "Métastases en place : stéréotaxie",
     "Stéréotaxie"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "V100 %",
+     "ideal": "",
+     "limitant": "≥ 99 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "D50 %",
+     "ideal": "",
+     "limitant": "≥ 115 %, Dmax 125–140 % de la dose prescrite",
+     "note": ""
+    },
+    {
+     "volume": "CTV",
+     "indicateur": "D95 %",
+     "ideal": "",
+     "limitant": "≥ 112 %",
+     "note": ""
+    }
    ]
   },
   {
@@ -308,7 +392,6 @@
    "essai_ids": [
     "hytec-encephale"
    ],
-   "source_institutionnelle": "Institut Curie, stéréotaxie des métastases cérébrales 2021",
    "prescriptions": [
     {
      "volume": "PTV < 41 mm",
@@ -324,17 +407,17 @@
    "simulation_id": "sim-crane-srs",
    "volumes_id": "vol-crane-srs",
    "contraintes_ids": [],
-   "couverture": "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 % (Curie)",
+   "couverture": "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 %",
    "points_attention": [
-    "Les contraintes des OAR priment sur le choix de la dose et du fractionnement (Curie)",
-    "Dose unique si PTV ≤ 20 mm, GTV à plus de 5 mm du tronc et du chiasma, hors zone critique ; sinon 3 ou 5 fractions (Curie)",
-    "PTV de 50 mm ou plus : pas de stéréotaxie, RCMI (Curie)",
+    "Les contraintes des OAR priment sur le choix de la dose et du fractionnement",
+    "Dose unique si PTV ≤ 20 mm, GTV à plus de 5 mm du tronc et du chiasma, hors zone critique ; sinon 3 ou 5 fractions",
+    "PTV de 50 mm ou plus : pas de stéréotaxie, RCMI",
     "Radiochirurgie seule plutôt qu'avec l'encéphale in toto : déclin cognitif à 3 mois 63,5 vs 91,7 %, sans perte de survie (N0574)",
     "Lésion de plus de 2 cm : 27 Gy / 3 fx donne moins de radionécroses (9 vs 18 % à 1 an) et un meilleur contrôle que la dose unique (Minniti 2016)",
     "Marge de 3 mm au lieu de 1 mm : pas de meilleur contrôle, plus de radionécroses (Kirkpatrick 2015)",
-    "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1° (Curie)",
-    "Suivi : IRM à 3 mois, puis tous les 3 mois pendant au moins 2 ans (Curie) ; pronostic selon le score DS-GPA de l'histologie",
-    "Respecter les délais entre RT et traitements systémiques (ANOCEF 2018) ; vigilance avec gemcitabine, anthracyclines et actinomycine D (Curie)"
+    "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1°",
+    "Suivi : IRM à 3 mois, puis tous les 3 mois pendant au moins 2 ans ; pronostic selon le score DS-GPA de l'histologie",
+    "Respecter les délais entre RT et traitements systémiques (ANOCEF 2018) ; vigilance avec gemcitabine, anthracyclines et actinomycine D"
    ],
    "date_verif": "2026-10-24",
    "ind": [
@@ -342,6 +425,29 @@
     "Métastases cérébrales",
     "Métastases en place : stéréotaxie",
     "Stéréotaxie"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "V100 %",
+     "ideal": "",
+     "limitant": "≥ 99 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "D50 %",
+     "ideal": "",
+     "limitant": "≥ 115 %, Dmax 125–140 % de la dose prescrite",
+     "note": ""
+    },
+    {
+     "volume": "CTV",
+     "indicateur": "D95 %",
+     "ideal": "",
+     "limitant": "≥ 112 %",
+     "note": ""
+    }
    ]
   },
   {
@@ -353,7 +459,6 @@
    "essai_ids": [
     "hytec-encephale"
    ],
-   "source_institutionnelle": "Institut Curie, stéréotaxie des métastases cérébrales 2021",
    "prescriptions": [
     {
      "volume": "PTV < 41 mm",
@@ -362,7 +467,7 @@
      "dose_fx_Gy": 5,
      "mode": "seul",
      "rythme": "3 séances/sem",
-     "note": "Schéma du tronc cérébral en 5 fractions (Curie)"
+     "note": "Schéma du tronc cérébral en 5 fractions"
     }
    ],
    "technique": "Arcs dynamiques conformationnels ou VMAT non coplanaires (3 à 5 arcs), mono-isocentre si 2 à 4 lésions proches ; IGRT stéréotaxique à chaque séance",
@@ -370,17 +475,17 @@
    "simulation_id": "sim-crane-srs",
    "volumes_id": "vol-crane-srs",
    "contraintes_ids": [],
-   "couverture": "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 % (Curie)",
+   "couverture": "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 %",
    "points_attention": [
-    "Les contraintes des OAR priment sur le choix de la dose et du fractionnement (Curie)",
-    "Dose unique si PTV ≤ 20 mm, GTV à plus de 5 mm du tronc et du chiasma, hors zone critique ; sinon 3 ou 5 fractions (Curie)",
-    "PTV de 50 mm ou plus : pas de stéréotaxie, RCMI (Curie)",
+    "Les contraintes des OAR priment sur le choix de la dose et du fractionnement",
+    "Dose unique si PTV ≤ 20 mm, GTV à plus de 5 mm du tronc et du chiasma, hors zone critique ; sinon 3 ou 5 fractions",
+    "PTV de 50 mm ou plus : pas de stéréotaxie, RCMI",
     "Radiochirurgie seule plutôt qu'avec l'encéphale in toto : déclin cognitif à 3 mois 63,5 vs 91,7 %, sans perte de survie (N0574)",
     "Lésion de plus de 2 cm : 27 Gy / 3 fx donne moins de radionécroses (9 vs 18 % à 1 an) et un meilleur contrôle que la dose unique (Minniti 2016)",
     "Marge de 3 mm au lieu de 1 mm : pas de meilleur contrôle, plus de radionécroses (Kirkpatrick 2015)",
-    "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1° (Curie)",
-    "Suivi : IRM à 3 mois, puis tous les 3 mois pendant au moins 2 ans (Curie) ; pronostic selon le score DS-GPA de l'histologie",
-    "Respecter les délais entre RT et traitements systémiques (ANOCEF 2018) ; vigilance avec gemcitabine, anthracyclines et actinomycine D (Curie)"
+    "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1°",
+    "Suivi : IRM à 3 mois, puis tous les 3 mois pendant au moins 2 ans ; pronostic selon le score DS-GPA de l'histologie",
+    "Respecter les délais entre RT et traitements systémiques (ANOCEF 2018) ; vigilance avec gemcitabine, anthracyclines et actinomycine D"
    ],
    "date_verif": "2026-10-24",
    "ind": [
@@ -388,6 +493,29 @@
     "Métastases cérébrales",
     "Métastases en place : stéréotaxie",
     "Stéréotaxie"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "V100 %",
+     "ideal": "",
+     "limitant": "≥ 99 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "D50 %",
+     "ideal": "",
+     "limitant": "≥ 115 %, Dmax 125–140 % de la dose prescrite",
+     "note": ""
+    },
+    {
+     "volume": "CTV",
+     "indicateur": "D95 %",
+     "ideal": "",
+     "limitant": "≥ 112 %",
+     "note": ""
+    }
    ]
   },
   {
@@ -399,7 +527,6 @@
    "essai_ids": [
     "lucia2019"
    ],
-   "source_institutionnelle": "Fiche du service « stéréotaxie cérébrale »",
    "prescriptions": [
     {
      "volume": "PTV (isodose 70 %)",
@@ -418,16 +545,16 @@
    "contraintes_ids": [],
    "couverture": "PTV couvert par l'isodose 70 %",
    "points_attention": [
-    "Les contraintes des OAR priment sur le choix de la dose et du fractionnement (Curie)",
-    "Dose unique si PTV ≤ 20 mm, GTV à plus de 5 mm du tronc et du chiasma, hors zone critique ; sinon 3 ou 5 fractions (Curie)",
-    "PTV de 50 mm ou plus : pas de stéréotaxie, RCMI (Curie)",
+    "Les contraintes des OAR priment sur le choix de la dose et du fractionnement",
+    "Dose unique si PTV ≤ 20 mm, GTV à plus de 5 mm du tronc et du chiasma, hors zone critique ; sinon 3 ou 5 fractions",
+    "PTV de 50 mm ou plus : pas de stéréotaxie, RCMI",
     "Radiochirurgie seule plutôt qu'avec l'encéphale in toto : déclin cognitif à 3 mois 63,5 vs 91,7 %, sans perte de survie (N0574)",
     "Lésion de plus de 2 cm : 27 Gy / 3 fx donne moins de radionécroses (9 vs 18 % à 1 an) et un meilleur contrôle que la dose unique (Minniti 2016)",
     "Dose inhomogène (11 Gy à l'isocentre, isodose 70 % sur le PTV) : meilleur contrôle local et moins de radionécroses qu'une dose homogène (Lucia 2019)",
     "Marge de 3 mm au lieu de 1 mm : pas de meilleur contrôle, plus de radionécroses (Kirkpatrick 2015)",
-    "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1° (Curie)",
-    "Suivi : IRM à 3 mois, puis tous les 3 mois pendant au moins 2 ans (Curie) ; pronostic selon le score DS-GPA de l'histologie",
-    "Respecter les délais entre RT et traitements systémiques (ANOCEF 2018) ; vigilance avec gemcitabine, anthracyclines et actinomycine D (Curie)"
+    "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1°",
+    "Suivi : IRM à 3 mois, puis tous les 3 mois pendant au moins 2 ans ; pronostic selon le score DS-GPA de l'histologie",
+    "Respecter les délais entre RT et traitements systémiques (ANOCEF 2018) ; vigilance avec gemcitabine, anthracyclines et actinomycine D"
    ],
    "date_verif": "2026-10-24",
    "ind": [
@@ -435,6 +562,15 @@
     "Métastases cérébrales",
     "Métastases en place : stéréotaxie",
     "Stéréotaxie"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "Couvert par l'isodose 70 %",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    }
    ]
   },
   {
@@ -448,7 +584,6 @@
     "n107c",
     "soliman-cavite"
    ],
-   "source_institutionnelle": "Institut Curie, stéréotaxie des métastases cérébrales 2021",
    "prescriptions": [
     {
      "volume": "PTV cavité < 41 mm",
@@ -457,7 +592,7 @@
      "dose_fx_Gy": 9,
      "mode": "seul",
      "rythme": "3 séances/sem (J1, J3, J5)",
-     "note": "Pas de dose unique en post-opératoire (Curie)"
+     "note": "Pas de dose unique en post-opératoire"
     }
    ],
    "technique": "Arcs dynamiques conformationnels ou VMAT non coplanaires (3 à 5 arcs), mono-isocentre si 2 à 4 lésions proches ; IGRT stéréotaxique à chaque séance",
@@ -465,11 +600,11 @@
    "simulation_id": "sim-crane-srs",
    "volumes_id": "vol-meta-cavite",
    "contraintes_ids": [],
-   "couverture": "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 % (Curie)",
+   "couverture": "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 %",
    "points_attention": [
     "Stéréotaxie de la cavité : 72 vs 43 % sans récidive locale à 12 mois par rapport à la surveillance (MD Anderson) ; cognition mieux préservée qu'avec l'encéphale in toto (N107C)",
     "Le consensus de 2018 inclut le trajet chirurgical entier et 5 à 10 mm le long de la dure-mère sous le volet ; Curie n'inclut pas la voie d'abord (Soliman 2018)",
-    "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1° (Curie)"
+    "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1°"
    ],
    "date_verif": "2026-10-24",
    "ind": [
@@ -477,6 +612,29 @@
     "Métastases cérébrales",
     "Métastase opérée : stéréotaxie de la cavité",
     "Stéréotaxie"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "V100 %",
+     "ideal": "",
+     "limitant": "≥ 99 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "D50 %",
+     "ideal": "",
+     "limitant": "≥ 115 %, Dmax 125–140 % de la dose prescrite",
+     "note": ""
+    },
+    {
+     "volume": "CTV",
+     "indicateur": "D95 %",
+     "ideal": "",
+     "limitant": "≥ 112 %",
+     "note": ""
+    }
    ]
   },
   {
@@ -489,7 +647,6 @@
     "mdacc-cavite",
     "soliman-cavite"
    ],
-   "source_institutionnelle": "Institut Curie, stéréotaxie des métastases cérébrales 2021",
    "prescriptions": [
     {
      "volume": "PTV cavité < 41 mm",
@@ -505,11 +662,11 @@
    "simulation_id": "sim-crane-srs",
    "volumes_id": "vol-meta-cavite",
    "contraintes_ids": [],
-   "couverture": "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 % (Curie)",
+   "couverture": "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 %",
    "points_attention": [
     "Stéréotaxie de la cavité : 72 vs 43 % sans récidive locale à 12 mois par rapport à la surveillance (MD Anderson) ; cognition mieux préservée qu'avec l'encéphale in toto (N107C)",
     "Le consensus de 2018 inclut le trajet chirurgical entier et 5 à 10 mm le long de la dure-mère sous le volet ; Curie n'inclut pas la voie d'abord (Soliman 2018)",
-    "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1° (Curie)"
+    "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1°"
    ],
    "date_verif": "2026-10-24",
    "ind": [
@@ -517,6 +674,29 @@
     "Métastases cérébrales",
     "Métastase opérée : stéréotaxie de la cavité",
     "Stéréotaxie"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "V100 %",
+     "ideal": "",
+     "limitant": "≥ 99 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "D50 %",
+     "ideal": "",
+     "limitant": "≥ 115 %, Dmax 125–140 % de la dose prescrite",
+     "note": ""
+    },
+    {
+     "volume": "CTV",
+     "indicateur": "D95 %",
+     "ideal": "",
+     "limitant": "≥ 112 %",
+     "note": ""
+    }
    ]
   },
   {
@@ -529,7 +709,6 @@
     "mdacc-cavite",
     "soliman-cavite"
    ],
-   "source_institutionnelle": "Institut Curie, stéréotaxie des métastases cérébrales 2021",
    "prescriptions": [
     {
      "volume": "PTV cavité < 50 mm",
@@ -546,11 +725,11 @@
    "simulation_id": "sim-crane-srs",
    "volumes_id": "vol-meta-cavite",
    "contraintes_ids": [],
-   "couverture": "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 % (Curie)",
+   "couverture": "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 %",
    "points_attention": [
     "Stéréotaxie de la cavité : 72 vs 43 % sans récidive locale à 12 mois par rapport à la surveillance (MD Anderson) ; cognition mieux préservée qu'avec l'encéphale in toto (N107C)",
     "Le consensus de 2018 inclut le trajet chirurgical entier et 5 à 10 mm le long de la dure-mère sous le volet ; Curie n'inclut pas la voie d'abord (Soliman 2018)",
-    "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1° (Curie)"
+    "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1°"
    ],
    "date_verif": "2026-10-24",
    "ind": [
@@ -558,6 +737,29 @@
     "Métastases cérébrales",
     "Métastase opérée : stéréotaxie de la cavité",
     "Stéréotaxie"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "V100 %",
+     "ideal": "",
+     "limitant": "≥ 99 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "D50 %",
+     "ideal": "",
+     "limitant": "≥ 115 %, Dmax 125–140 % de la dose prescrite",
+     "note": ""
+    },
+    {
+     "volume": "CTV",
+     "indicateur": "D95 %",
+     "ideal": "",
+     "limitant": "≥ 112 %",
+     "note": ""
+    }
    ]
   },
   {
@@ -570,7 +772,6 @@
     "mdacc-cavite",
     "soliman-cavite"
    ],
-   "source_institutionnelle": "Institut Curie, stéréotaxie des métastases cérébrales 2021",
    "prescriptions": [
     {
      "volume": "PTV cavité < 50 mm",
@@ -586,11 +787,11 @@
    "simulation_id": "sim-crane-srs",
    "volumes_id": "vol-meta-cavite",
    "contraintes_ids": [],
-   "couverture": "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 % (Curie)",
+   "couverture": "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 %",
    "points_attention": [
     "Stéréotaxie de la cavité : 72 vs 43 % sans récidive locale à 12 mois par rapport à la surveillance (MD Anderson) ; cognition mieux préservée qu'avec l'encéphale in toto (N107C)",
     "Le consensus de 2018 inclut le trajet chirurgical entier et 5 à 10 mm le long de la dure-mère sous le volet ; Curie n'inclut pas la voie d'abord (Soliman 2018)",
-    "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1° (Curie)"
+    "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1°"
    ],
    "date_verif": "2026-10-24",
    "ind": [
@@ -598,6 +799,29 @@
     "Métastases cérébrales",
     "Métastase opérée : stéréotaxie de la cavité",
     "Stéréotaxie"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "V100 %",
+     "ideal": "",
+     "limitant": "≥ 99 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "D50 %",
+     "ideal": "",
+     "limitant": "≥ 115 %, Dmax 125–140 % de la dose prescrite",
+     "note": ""
+    },
+    {
+     "volume": "CTV",
+     "indicateur": "D95 %",
+     "ideal": "",
+     "limitant": "≥ 112 %",
+     "note": ""
+    }
    ]
   },
   {
@@ -609,7 +833,6 @@
    "essai_ids": [
     "lucia2019"
    ],
-   "source_institutionnelle": "Fiche du service « stéréotaxie cérébrale »",
    "prescriptions": [
     {
      "volume": "PTV cavité (isodose 70 %)",
@@ -630,7 +853,7 @@
    "points_attention": [
     "Stéréotaxie de la cavité : 72 vs 43 % sans récidive locale à 12 mois par rapport à la surveillance (MD Anderson) ; cognition mieux préservée qu'avec l'encéphale in toto (N107C)",
     "Le consensus de 2018 inclut le trajet chirurgical entier et 5 à 10 mm le long de la dure-mère sous le volet ; Curie n'inclut pas la voie d'abord (Soliman 2018)",
-    "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1° (Curie)"
+    "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1°"
    ],
    "date_verif": "2026-10-24",
    "ind": [
@@ -638,6 +861,15 @@
     "Métastases cérébrales",
     "Métastase opérée : stéréotaxie de la cavité",
     "Stéréotaxie"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "Couvert par l'isodose 70 %",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    }
    ]
   },
   {
@@ -651,7 +883,6 @@
     "jrosg99-1",
     "n107c"
    ],
-   "source_institutionnelle": "Fiche du service « encéphale in toto »",
    "prescriptions": [
     {
      "volume": "PTV encéphale",
@@ -660,7 +891,7 @@
      "dose_fx_Gy": 3,
      "mode": "seul",
      "rythme": "5 fx/sem",
-     "note": "Bon état général, survie attendue prolongée (fiche du service)"
+     "note": "Bon état général, survie attendue prolongée"
     }
    ],
    "technique": "RC3D ou VMAT, IGRT",
@@ -690,7 +921,6 @@
    "essai_ids": [
     "quartz"
    ],
-   "source_institutionnelle": "Fiche du service « encéphale in toto »",
    "prescriptions": [
     {
      "volume": "PTV encéphale",
@@ -699,7 +929,7 @@
      "dose_fx_Gy": 4,
      "mode": "seul",
      "rythme": "5 fx/sem",
-     "note": "Altération de l'état général (fiche du service)"
+     "note": "Altération de l'état général"
     }
    ],
    "technique": "RC3D ou VMAT, IGRT",
@@ -732,7 +962,6 @@
     "rtog0614",
     "gondi-ha-2010"
    ],
-   "source_institutionnelle": "Tableur du service « Épargne hippocampique »",
    "prescriptions": [
     {
      "volume": "PTV encéphale moins zone d'évitement",
@@ -763,6 +992,22 @@
     "Métastases cérébrales",
     "Encéphale in toto",
     "Hypofractionné"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "D2 %",
+     "ideal": "",
+     "limitant": "≤ 37,5 Gy",
+     "note": "40 Gy accepté"
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "D98 %",
+     "ideal": "",
+     "limitant": "≥ 25 Gy, V30 Gy ≥ 90 %",
+     "note": ""
+    }
    ]
   },
   {
@@ -774,7 +1019,6 @@
    "essai_ids": [
     "hytec-encephale"
    ],
-   "source_institutionnelle": "Institut Curie, stéréotaxie des métastases cérébrales 2021",
    "prescriptions": [
     {
      "volume": "PTV < 31 mm",
@@ -791,11 +1035,11 @@
    "simulation_id": "sim-crane-srs",
    "volumes_id": "vol-crane-srs",
    "contraintes_ids": [],
-   "couverture": "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 % (Curie)",
+   "couverture": "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 %",
    "points_attention": [
     "Marge de 3 mm au lieu de 1 mm : pas de meilleur contrôle, plus de radionécroses (Kirkpatrick 2015)",
-    "Nommer la lésion réirradiée avec le suffixe « bis » (PTV1bis) ; contrainte de recoupe avec la première irradiation (jeux Curie 3 et 5 fx)",
-    "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1° (Curie)"
+    "Nommer la lésion réirradiée avec le suffixe « bis » (PTV1bis) ; contrainte de recoupe avec la première irradiation",
+    "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1°"
    ],
    "date_verif": "2026-10-24",
    "ind": [
@@ -803,6 +1047,29 @@
     "Métastases cérébrales",
     "Réirradiation stéréotaxique",
     "Stéréotaxie"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "V100 %",
+     "ideal": "",
+     "limitant": "≥ 99 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "D50 %",
+     "ideal": "",
+     "limitant": "≥ 115 %, Dmax 125–140 % de la dose prescrite",
+     "note": ""
+    },
+    {
+     "volume": "CTV",
+     "indicateur": "D95 %",
+     "ideal": "",
+     "limitant": "≥ 112 %",
+     "note": ""
+    }
    ]
   },
   {
@@ -814,7 +1081,6 @@
    "essai_ids": [
     "hytec-encephale"
    ],
-   "source_institutionnelle": "Institut Curie, stéréotaxie des métastases cérébrales 2021",
    "prescriptions": [
     {
      "volume": "PTV < 31 mm",
@@ -831,11 +1097,11 @@
    "simulation_id": "sim-crane-srs",
    "volumes_id": "vol-crane-srs",
    "contraintes_ids": [],
-   "couverture": "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 % (Curie)",
+   "couverture": "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 %",
    "points_attention": [
     "Marge de 3 mm au lieu de 1 mm : pas de meilleur contrôle, plus de radionécroses (Kirkpatrick 2015)",
-    "Nommer la lésion réirradiée avec le suffixe « bis » (PTV1bis) ; contrainte de recoupe avec la première irradiation (jeux Curie 3 et 5 fx)",
-    "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1° (Curie)"
+    "Nommer la lésion réirradiée avec le suffixe « bis » (PTV1bis) ; contrainte de recoupe avec la première irradiation",
+    "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1°"
    ],
    "date_verif": "2026-10-24",
    "ind": [
@@ -843,6 +1109,29 @@
     "Métastases cérébrales",
     "Réirradiation stéréotaxique",
     "Stéréotaxie"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "V100 %",
+     "ideal": "",
+     "limitant": "≥ 99 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "D50 %",
+     "ideal": "",
+     "limitant": "≥ 115 %, Dmax 125–140 % de la dose prescrite",
+     "note": ""
+    },
+    {
+     "volume": "CTV",
+     "indicateur": "D95 %",
+     "ideal": "",
+     "limitant": "≥ 112 %",
+     "note": ""
+    }
    ]
   },
   {
@@ -854,7 +1143,6 @@
    "essai_ids": [
     "hytec-encephale"
    ],
-   "source_institutionnelle": "Institut Curie, stéréotaxie des métastases cérébrales 2021",
    "prescriptions": [
     {
      "volume": "PTV < 40 mm (en place) ou < 50 mm (opéré)",
@@ -870,11 +1158,11 @@
    "simulation_id": "sim-crane-srs",
    "volumes_id": "vol-crane-srs",
    "contraintes_ids": [],
-   "couverture": "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 % (Curie)",
+   "couverture": "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 %",
    "points_attention": [
     "Marge de 3 mm au lieu de 1 mm : pas de meilleur contrôle, plus de radionécroses (Kirkpatrick 2015)",
-    "Nommer la lésion réirradiée avec le suffixe « bis » (PTV1bis) ; contrainte de recoupe avec la première irradiation (jeux Curie 3 et 5 fx)",
-    "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1° (Curie)"
+    "Nommer la lésion réirradiée avec le suffixe « bis » (PTV1bis) ; contrainte de recoupe avec la première irradiation",
+    "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1°"
    ],
    "date_verif": "2026-10-24",
    "ind": [
@@ -882,6 +1170,29 @@
     "Métastases cérébrales",
     "Réirradiation stéréotaxique",
     "Stéréotaxie"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "V100 %",
+     "ideal": "",
+     "limitant": "≥ 99 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "D50 %",
+     "ideal": "",
+     "limitant": "≥ 115 %, Dmax 125–140 % de la dose prescrite",
+     "note": ""
+    },
+    {
+     "volume": "CTV",
+     "indicateur": "D95 %",
+     "ideal": "",
+     "limitant": "≥ 112 %",
+     "note": ""
+    }
    ]
   },
   {
@@ -893,7 +1204,6 @@
    "essai_ids": [
     "hytec-encephale"
    ],
-   "source_institutionnelle": "Institut Curie, stéréotaxie des métastases cérébrales 2021",
    "prescriptions": [
     {
      "volume": "PTV < 40 mm (en place) ou < 50 mm (opéré)",
@@ -909,11 +1219,11 @@
    "simulation_id": "sim-crane-srs",
    "volumes_id": "vol-crane-srs",
    "contraintes_ids": [],
-   "couverture": "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 % (Curie)",
+   "couverture": "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 %",
    "points_attention": [
     "Marge de 3 mm au lieu de 1 mm : pas de meilleur contrôle, plus de radionécroses (Kirkpatrick 2015)",
-    "Nommer la lésion réirradiée avec le suffixe « bis » (PTV1bis) ; contrainte de recoupe avec la première irradiation (jeux Curie 3 et 5 fx)",
-    "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1° (Curie)"
+    "Nommer la lésion réirradiée avec le suffixe « bis » (PTV1bis) ; contrainte de recoupe avec la première irradiation",
+    "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1°"
    ],
    "date_verif": "2026-10-24",
    "ind": [
@@ -921,6 +1231,29 @@
     "Métastases cérébrales",
     "Réirradiation stéréotaxique",
     "Stéréotaxie"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "V100 %",
+     "ideal": "",
+     "limitant": "≥ 99 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "D50 %",
+     "ideal": "",
+     "limitant": "≥ 115 %, Dmax 125–140 % de la dose prescrite",
+     "note": ""
+    },
+    {
+     "volume": "CTV",
+     "indicateur": "D95 %",
+     "ideal": "",
+     "limitant": "≥ 112 %",
+     "note": ""
+    }
    ]
   }
  ],
@@ -928,16 +1261,16 @@
   {
    "id": "sim-crane-srs",
    "position": "Décubitus dorsal, tête en position neutre, bras le long du corps, coussin sous les genoux",
-   "contention": "Masque thermoformé 5 points ou cadre stéréotaxique (fiche du service) ; Curie : masque bivalve sans cadre, moulé sur une cale retirée avant l'acquisition",
-   "scanner": "Coupes axiales millimétriques. Curie : non injecté, de 1 cm au-dessus du vertex jusqu'à T1 ; fiche du service : injecté",
-   "imagerie": "IRM de planification T1 sans injection (saignement récent), T1 gadolinium 3D (contourage) et perfusion (référence du suivi), jusqu'à C3–C4, fusionnée au scanner. Première séance dans les 14 jours suivant l'IRM, 16 au plus (Curie)",
-   "reperes": "Plan de référence pointe du nez–tragus, perpendiculaire à la table (Curie)"
+   "contention": "Masque thermoformé 5 points ou cadre stéréotaxique ; autre approche : masque bivalve sans cadre, moulé sur une cale retirée avant l'acquisition",
+   "scanner": "Coupes axiales millimétriques. Autre approche : non injecté, de 1 cm au-dessus du vertex jusqu'à T1 ; autre approche : injecté",
+   "imagerie": "IRM de planification T1 sans injection (saignement récent), T1 gadolinium 3D (contourage) et perfusion (référence du suivi), jusqu'à C3–C4, fusionnée au scanner. Première séance dans les 14 jours suivant l'IRM, 16 au plus",
+   "reperes": "Plan de référence pointe du nez–tragus, perpendiculaire à la table"
   },
   {
    "id": "sim-crane-itc",
    "position": "Décubitus dorsal",
    "contention": "Masque thermoplastique",
-   "scanner": "Injecté recommandé (fiche du service)",
+   "scanner": "Injecté recommandé",
    "imagerie": "IRM fusionnée si disponible ; épargne hippocampique : hippocampes contourés sur l'IRM T1 fusionnée (RTOG 0933)"
   }
  ],
@@ -948,7 +1281,7 @@
     {
      "nom": "GTV",
      "type": "GTV",
-     "definition": "Prise de contraste nodulaire en T1 gadolinium 3D, zoom maximal ; œdème FLAIR exclu ; composante hémorragique limitée incluse si le PTV reste compatible (Curie)",
+     "definition": "Prise de contraste nodulaire en T1 gadolinium 3D, zoom maximal ; œdème FLAIR exclu ; composante hémorragique limitée incluse si le PTV reste compatible",
      "quand": "Toujours"
     },
     {
@@ -961,7 +1294,7 @@
     {
      "nom": "PTV",
      "type": "PTV",
-     "definition": "CTV + 1 mm isotrope (Curie, masque et Novalis) ; plus petit diamètre du PTV d'au moins 8 mm, sinon marge augmentée ; à adapter à la plateforme",
+     "definition": "CTV + 1 mm isotrope ; plus petit diamètre du PTV d'au moins 8 mm, sinon marge augmentée ; à adapter à la plateforme",
      "quand": "Toujours",
      "marge": "1 mm"
     }
@@ -1009,14 +1342,14 @@
     {
      "nom": "CTV",
      "type": "CTV",
-     "definition": "Lit opératoire (paroi externe de la cavité) + 1 mm isotrope + toute prise de contraste résiduelle ; ni œdème ni voie d'abord. Contact méningé initial : + 5 mm le long de la dure-mère ; contact d'un sinus veineux : + 1 à 5 mm le long du sinus (Curie)",
+     "definition": "Lit opératoire (paroi externe de la cavité) + 1 mm isotrope + toute prise de contraste résiduelle ; ni œdème ni voie d'abord. Contact méningé initial : + 5 mm le long de la dure-mère ; contact d'un sinus veineux : + 1 à 5 mm le long du sinus",
      "quand": "Toujours",
      "marge": "1 mm"
     },
     {
      "nom": "PTV",
      "type": "PTV",
-     "definition": "CTV + 1 mm isotrope (Curie)",
+     "definition": "CTV + 1 mm isotrope",
      "quand": "Toujours",
      "marge": "1 mm"
     }
@@ -1056,13 +1389,13 @@
     {
      "nom": "CTV",
      "type": "CTV",
-     "definition": "Encéphale en totalité, de l'apex crânien au trou occipital (jonction crâne–C1, ou dernière coupe du cervelet) (fiche du service)",
+     "definition": "Encéphale en totalité, de l'apex crânien au trou occipital (jonction crâne–C1, ou dernière coupe du cervelet)",
      "quand": "Toujours"
     },
     {
      "nom": "PTV",
      "type": "PTV",
-     "definition": "CTV + 5 mm (fiche du service)",
+     "definition": "CTV + 5 mm",
      "quand": "Toujours",
      "marge": "5 mm"
     }
@@ -1151,17 +1484,17 @@
  "points_attention": [
   {
    "cible": "meta-en-place",
-   "point": "Les contraintes des OAR priment sur le choix de la dose et du fractionnement (Curie)",
+   "point": "Les contraintes des OAR priment sur le choix de la dose et du fractionnement",
    "portee": "situation"
   },
   {
    "cible": "meta-en-place",
-   "point": "Dose unique si PTV ≤ 20 mm, GTV à plus de 5 mm du tronc et du chiasma, hors zone critique ; sinon 3 ou 5 fractions (Curie)",
+   "point": "Dose unique si PTV ≤ 20 mm, GTV à plus de 5 mm du tronc et du chiasma, hors zone critique ; sinon 3 ou 5 fractions",
    "portee": "situation"
   },
   {
    "cible": "meta-en-place",
-   "point": "PTV de 50 mm ou plus : pas de stéréotaxie, RCMI (Curie)",
+   "point": "PTV de 50 mm ou plus : pas de stéréotaxie, RCMI",
    "portee": "situation"
   },
   {
@@ -1211,28 +1544,23 @@
   },
   {
    "cible": "meta-reirr",
-   "point": "Nommer la lésion réirradiée avec le suffixe « bis » (PTV1bis) ; contrainte de recoupe avec la première irradiation (jeux Curie 3 et 5 fx)",
+   "point": "Nommer la lésion réirradiée avec le suffixe « bis » (PTV1bis) ; contrainte de recoupe avec la première irradiation",
    "portee": "situation"
   },
   {
    "cible": "sim-crane-srs",
-   "point": "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1° (Curie)",
+   "point": "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1°",
    "portee": "simulation"
   },
   {
    "cible": "meta-en-place",
-   "point": "Suivi : IRM à 3 mois, puis tous les 3 mois pendant au moins 2 ans (Curie) ; pronostic selon le score DS-GPA de l'histologie",
+   "point": "Suivi : IRM à 3 mois, puis tous les 3 mois pendant au moins 2 ans ; pronostic selon le score DS-GPA de l'histologie",
    "portee": "situation"
   },
   {
    "cible": "meta-en-place",
-   "point": "Respecter les délais entre RT et traitements systémiques (ANOCEF 2018) ; vigilance avec gemcitabine, anthracyclines et actinomycine D (Curie)",
+   "point": "Respecter les délais entre RT et traitements systémiques (ANOCEF 2018) ; vigilance avec gemcitabine, anthracyclines et actinomycine D",
    "portee": "situation"
   }
- ],
- "textes": {
-  "contourage": [
-   "Stéréotaxie selon Curie. La fiche du service prévoyait un PTV de 3 mm et une cavité sans marge."
-  ]
- }
+ ]
 }

@@ -1497,7 +1497,6 @@
     "CHHiP",
     "PROFIT"
    ],
-   "source_institutionnelle": "Institut Curie, prostate en place (2021)",
    "doses": [
     {
      "volume": "PTV_PRO",
@@ -1549,7 +1548,6 @@
     "PROFIT",
     "PACE-B"
    ],
-   "source_institutionnelle": "Institut Curie, prostate en place (2021)",
    "doses": [
     {
      "volume": "PTV_PRO",
@@ -1575,7 +1573,6 @@
    "essais": [
     "PACE-B"
    ],
-   "source_institutionnelle": "Institut Curie, SBRT prostate (2021)",
    "doses": [
     {
      "volume": "PTV",
@@ -1626,7 +1623,6 @@
    "essais": [
     "CHHiP"
    ],
-   "source_institutionnelle": "Institut Curie, prostate en place (2021)",
    "doses": [
     {
      "volume": "PTV_PRO",
@@ -1649,7 +1645,6 @@
    "titre": "78 Gy / 39 fx (80 Gy / 40 fx si T3b–T4)",
    "type": "rte_normo",
    "preuve": "option",
-   "source_institutionnelle": "Institut Curie, prostate en place (2021)",
    "doses": [
     {
      "volume": "PTV_PRO",
@@ -1703,7 +1698,6 @@
    "titre": "Prostate 70 Gy + VS 56 Gy + pelvis 50,4 Gy / 28 fx (SIB)",
    "type": "rte_hypo",
    "preuve": "pratique_institutionnelle",
-   "source_institutionnelle": "Institut Curie, prostate en place (2021)",
    "doses": [
     {
      "volume": "PTV_PRO",
@@ -1769,7 +1763,6 @@
    "titre": "Pelvis 50 Gy, VS 54 Gy, prostate 78 Gy (séquentiel)",
    "type": "rte_normo",
    "preuve": "option",
-   "source_institutionnelle": "Institut Curie, prostate en place (2021)",
    "doses": [
     {
      "volume": "PTV_PELV",
@@ -1807,7 +1800,6 @@
    "essais": [
     "STAMPEDE, abiratérone M0"
    ],
-   "source_institutionnelle": "Institut Curie, prostate en place (2021)",
    "doses": [
     {
      "volume": "PTV_PRO",
@@ -1852,7 +1844,6 @@
     "ASCENDE-RT",
     "GEC-ESTRO ACROP"
    ],
-   "source_institutionnelle": "Institut Curie, prostate en place (2021)",
    "doses": [
     {
      "volume": "PTV_PRO + PTV_VS + PTV_PELV",
@@ -1996,7 +1987,6 @@
     "RADICALS-RT",
     "GETUG-AFU 17"
    ],
-   "source_institutionnelle": "Institut Curie, rattrapage post-prostatectomie (2021)",
    "doses": [
     {
      "volume": "PTV_LOGE",
@@ -2118,7 +2108,6 @@
    "titre": "Loge 66 Gy / 33 fx + pelvis 46 Gy / 23 fx (séquentiel)",
    "type": "rte_normo",
    "preuve": "pratique_institutionnelle",
-   "source_institutionnelle": "Fiche du service (Dr Bentahila, 2026)",
    "doses": [
     {
      "volume": "PTV_LOGE",
@@ -2147,7 +2136,6 @@
    "titre": "Pelvis 46 Gy + adénopathie 57,5 Gy / 23 fx (SIB)",
    "type": "rte_normo",
    "preuve": "pratique_institutionnelle",
-   "source_institutionnelle": "Institut Curie, prostate en place (2021)",
    "doses": [
     {
      "volume": "PTV_PELV",
@@ -2255,7 +2243,6 @@
     "CHHiP",
     "PROFIT"
    ],
-   "source_institutionnelle": "Pratique du service (Dr Bentahila) ; CHHiP et PROFIT valident la dose prostatique, pas l'irradiation pelvienne",
    "doses": [
     {
      "volume": "PTV_PRO",
@@ -2336,7 +2323,6 @@
    "titre": "Pelvis 45 Gy / 25 fx puis boost vessie et adénopathies 20 Gy / 10 fx (65 Gy)",
    "type": "rte_normo",
    "preuve": "pratique_institutionnelle",
-   "source_institutionnelle": "Fiche du service (Dr Bentahila) ; BC2001, cité par la fiche, ne traitait que la vessie",
    "doses": [
     {
      "volume": "PTV1 (vessie + aires ganglionnaires)",
@@ -2534,13 +2520,12 @@
    "id": "pn-pdr-igr",
    "localisation_id": "penis",
    "situation_id": "pn-gland",
-   "titre": "Curiethérapie débit pulsé guidée par scanner, 60 Gy (Gustave Roussy)",
+   "titre": "Curiethérapie débit pulsé guidée par scanner, 60 Gy",
    "type": "curie_pdr",
    "preuve": "pratique_institutionnelle",
    "essais": [
     "Gustave Roussy (Achkar 2025)"
    ],
-   "source_institutionnelle": "Gustave Roussy, unité de curiethérapie",
    "doses": [
     {
      "volume": "CTV",
@@ -2701,7 +2686,6 @@
     "GEC-ESTRO GYN II",
     "CCCMAC"
    ],
-   "source_institutionnelle": "Institut Curie, protocole col et vagin 2021",
    "doses": [
     {
      "volume": "PTV45",
@@ -2744,7 +2728,6 @@
     "GOG 92 (Sedlis)",
     "GOG 109 / SWOG 8797 (Peters)"
    ],
-   "source_institutionnelle": "Institut Curie, protocole endomètre et col post-opératoire 2021",
    "doses": [
     {
      "volume": "PTV_45Gy",
@@ -2777,7 +2760,6 @@
     "GOG 92 (Sedlis)",
     "GOG 109 / SWOG 8797 (Peters)"
    ],
-   "source_institutionnelle": "Institut Curie, protocole endomètre et col post-opératoire 2021 ; fiche du service",
    "doses": [
     {
      "volume": "PTV_45Gy",
@@ -2947,7 +2929,6 @@
     "PORTEC-3",
     "NRG/RTOG 2021"
    ],
-   "source_institutionnelle": "Institut Curie, protocole endomètre et col post-opératoire 2021 ; fiche du service",
    "doses": [
     {
      "volume": "PTV_45Gy",
@@ -2985,7 +2966,6 @@
    "essais": [
     "NRG/RTOG 2021"
    ],
-   "source_institutionnelle": "Institut Curie, protocole endomètre et col post-opératoire 2021",
    "doses": [
     {
      "volume": "PTV_45Gy (pelvis + lombo-aortique)",
@@ -3018,7 +2998,6 @@
     "GEC-ESTRO ACROP vagin",
     "ABS 2012 (vagin)"
    ],
-   "source_institutionnelle": "Gustave Roussy (C. Chargari, cancers primitifs du vagin)",
    "doses": [
     {
      "volume": "CTV de curiethérapie (GTV + 1 cm)",
@@ -3044,7 +3023,6 @@
     "ABS 2012 (vagin)",
     "EMBRACE II"
    ],
-   "source_institutionnelle": "Gustave Roussy ; Institut Curie, protocole col et vagin 2021 ; fiche du service",
    "doses": [
     {
      "volume": "PTV1 (tumeur + vagin + aires ganglionnaires)",
@@ -3080,7 +3058,6 @@
     "GOG 37 (Homesley)",
     "Gaffney 2016"
    ],
-   "source_institutionnelle": "Institut Curie, protocole vulve 2021",
    "doses": [
     {
      "volume": "PTV_45Gy (vulve ± aires ganglionnaires)",
@@ -3119,7 +3096,6 @@
     "Gaffney 2016",
     "GOG 205 (Moore)"
    ],
-   "source_institutionnelle": "Institut Curie, protocole vulve 2021",
    "doses": [
     {
      "volume": "PTV_45Gy",
@@ -3269,7 +3245,6 @@
     "Boustani 2022 (revue)",
     "RECORAD œsophage (SFRO)"
    ],
-   "source_institutionnelle": "Fiche du service « protocole CONCORDE »",
    "doses": [
     {
      "volume": "PTV prophylactique (tumeur + ganglions à risque)",
@@ -3456,7 +3431,6 @@
     "LAP07",
     "CONKO-007"
    ],
-   "source_institutionnelle": "Fiche du service",
    "doses": [
     {
      "volume": "PTV",
@@ -3587,7 +3561,6 @@
     "Durand-Labrunie (France)",
     "ASTRO foie primitif"
    ],
-   "source_institutionnelle": "Gustave Roussy, stéréotaxie hépatique 2016 (3 × 15 Gy)",
    "doses": [
     {
      "volume": "PTV",
@@ -3616,7 +3589,6 @@
     "Bujold 2013",
     "ASTRO foie primitif"
    ],
-   "source_institutionnelle": "Gustave Roussy, stéréotaxie hépatique 2016 (5 fractions)",
    "doses": [
     {
      "volume": "PTV",
@@ -3642,7 +3614,6 @@
    "essais": [
     "ASTRO foie primitif"
    ],
-   "source_institutionnelle": "Gustave Roussy, stéréotaxie hépatique 2016 (10 × 5 Gy)",
    "doses": [
     {
      "volume": "PTV",
@@ -3695,7 +3666,6 @@
     "SABR-COMET",
     "SABR-COMET (5 ans)"
    ],
-   "source_institutionnelle": "Gustave Roussy, stéréotaxie hépatique 2016 (3 × 15 Gy)",
    "doses": [
     {
      "volume": "PTV",
@@ -3807,7 +3777,6 @@
     "ACCORD 12",
     "PRODIGE 23"
    ],
-   "source_institutionnelle": "Fiche du service (schéma CAP 50)",
    "doses": [
     {
      "volume": "PTV pelvis",
@@ -3916,7 +3885,6 @@
    "essais": [
     "RAPIDO"
    ],
-   "source_institutionnelle": "Fiche du service",
    "doses": [
     {
      "volume": "PTV pelvis",
@@ -3942,7 +3910,6 @@
    "essais": [
     "PRODIGE 23"
    ],
-   "source_institutionnelle": "Fiche du service",
    "doses": [
     {
      "volume": "PTV pelvis",
@@ -4032,7 +3999,6 @@
     "RTOG 98-11",
     "ACT II"
    ],
-   "source_institutionnelle": "Fiche du service",
    "doses": [
     {
      "volume": "PTV BR (canal anal, fosses ischio-rectales, aires ganglionnaires)",
@@ -4065,7 +4031,6 @@
     "ACCORD 03",
     "AGITG 2012"
    ],
-   "source_institutionnelle": "Fiche du service",
    "doses": [
     {
      "volume": "PTV BR (canal anal, fosses ischio-rectales ; pas d'aires ganglionnaires)",
@@ -4231,7 +4196,6 @@
     "EORTC 22931 et RTOG 9501",
     "Institut Curie — RT des VADS (tumeur en place et opérée)"
    ],
-   "source_institutionnelle": "Institut Curie 2021 ; tableur du service « ORL 66-59,4-54,12 Gy »",
    "doses": [
     {
      "volume": "PTV66",
@@ -4263,7 +4227,7 @@
    "id": "cb-postop-66-54-service",
    "localisation_id": "cavite_buccale",
    "situation_id": "cb-post-op",
-   "titre": "RT post-opératoire 66 / 54 Gy en 33 fx, deux niveaux (fiche du service)",
+   "titre": "RT post-opératoire 66 / 54 Gy en 33 fx, deux niveaux",
    "type": "rte_normo",
    "preuve": "pratique_institutionnelle",
    "essais": [
@@ -4271,7 +4235,6 @@
     "RTOG 9501",
     "EORTC 22931 et RTOG 9501"
    ],
-   "source_institutionnelle": "Fiche du service « RT ORL post-opératoire »",
    "doses": [
     {
      "volume": "PTV66",
@@ -4304,7 +4267,6 @@
     "RTOG 9501",
     "EORTC 22931 et RTOG 9501"
    ],
-   "source_institutionnelle": "Fiche du service « RT ORL post-opératoire » ; tableur du service « ORL 60-54 Gy »",
    "doses": [
     {
      "volume": "PTV60",
@@ -4339,7 +4301,6 @@
     "Bonner (cetuximab)",
     "Institut Curie — RT des VADS (tumeur en place et opérée)"
    ],
-   "source_institutionnelle": "Institut Curie 2021 ; tableur du service « ORL 70-63-56 Gy »",
    "doses": [
     {
      "volume": "PTV70",
@@ -4378,7 +4339,6 @@
     "RTOG 0225",
     "MACH-NC 2009"
    ],
-   "source_institutionnelle": "Tableur du service « ORL 69,96-59,4-54,12 Gy »",
    "doses": [
     {
      "volume": "PTV69,96",
@@ -4416,7 +4376,6 @@
    "essais": [
     "Gustave Roussy — RCMI des cancers de la tête et du cou"
    ],
-   "source_institutionnelle": "Gustave Roussy, RCMI des cancers de la tête et du cou (2017)",
    "doses": [
     {
      "volume": "PTV70",
@@ -4543,7 +4502,6 @@
     "De-ESCALaTE HPV",
     "Institut Curie — RT des VADS (tumeur en place et opérée)"
    ],
-   "source_institutionnelle": "Institut Curie 2021 ; tableur du service « ORL 70-63-56 Gy »",
    "doses": [
     {
      "volume": "PTV70",
@@ -4609,7 +4567,6 @@
     "RTOG 0225",
     "MACH-NC 2009"
    ],
-   "source_institutionnelle": "Tableur du service « ORL 69,96-59,4-54,12 Gy »",
    "doses": [
     {
      "volume": "PTV69,96",
@@ -4647,7 +4604,6 @@
    "essais": [
     "Gustave Roussy — RCMI des cancers de la tête et du cou"
    ],
-   "source_institutionnelle": "Gustave Roussy, RCMI des cancers de la tête et du cou (2017)",
    "doses": [
     {
      "volume": "PTV70",
@@ -4688,7 +4644,6 @@
     "EORTC 22931 et RTOG 9501",
     "Institut Curie — RT des VADS (tumeur en place et opérée)"
    ],
-   "source_institutionnelle": "Institut Curie 2021 ; tableur du service « ORL 66-59,4-54,12 Gy »",
    "doses": [
     {
      "volume": "PTV66",
@@ -4720,7 +4675,7 @@
    "id": "oro-postop-66-54-service",
    "localisation_id": "oropharynx",
    "situation_id": "oro-post-op",
-   "titre": "RT post-opératoire 66 / 54 Gy en 33 fx (fiche du service)",
+   "titre": "RT post-opératoire 66 / 54 Gy en 33 fx",
    "type": "rte_normo",
    "preuve": "pratique_institutionnelle",
    "essais": [
@@ -4728,7 +4683,6 @@
     "RTOG 9501",
     "EORTC 22931 et RTOG 9501"
    ],
-   "source_institutionnelle": "Fiche du service « RT ORL post-opératoire »",
    "doses": [
     {
      "volume": "PTV66",
@@ -4761,7 +4715,6 @@
     "RTOG 9501",
     "EORTC 22931 et RTOG 9501"
    ],
-   "source_institutionnelle": "Fiche du service « RT ORL post-opératoire » ; tableur du service « ORL 60-54 Gy »",
    "doses": [
     {
      "volume": "PTV60",
@@ -4902,7 +4855,6 @@
     "MACH-NC 2009",
     "Institut Curie — RT des VADS (tumeur en place et opérée)"
    ],
-   "source_institutionnelle": "Institut Curie 2021 ; tableur du service « ORL 70-63-56 Gy »",
    "doses": [
     {
      "volume": "PTV70",
@@ -4942,7 +4894,6 @@
     "RTOG 91-11, 10 ans",
     "Institut Curie — RT des VADS (tumeur en place et opérée)"
    ],
-   "source_institutionnelle": "Institut Curie 2021 pour la RT",
    "doses": [
     {
      "volume": "PTV70",
@@ -4981,7 +4932,6 @@
     "RTOG 0225",
     "RTOG 91-11"
    ],
-   "source_institutionnelle": "Tableur du service « ORL 69,96-59,4-54,12 Gy »",
    "doses": [
     {
      "volume": "PTV69,96",
@@ -5019,7 +4969,6 @@
    "essais": [
     "Gustave Roussy — RCMI des cancers de la tête et du cou"
    ],
-   "source_institutionnelle": "Gustave Roussy, RCMI des cancers de la tête et du cou (2017)",
    "doses": [
     {
      "volume": "PTV70",
@@ -5060,7 +5009,6 @@
     "EORTC 22931 et RTOG 9501",
     "Institut Curie — RT des VADS (tumeur en place et opérée)"
    ],
-   "source_institutionnelle": "Institut Curie 2021 ; tableur du service « ORL 66-59,4-54,12 Gy »",
    "doses": [
     {
      "volume": "PTV66",
@@ -5092,7 +5040,7 @@
    "id": "lar-postop-66-54-service",
    "localisation_id": "larynx",
    "situation_id": "lar-post-op",
-   "titre": "RT post-opératoire 66 / 54 Gy en 33 fx (fiche du service)",
+   "titre": "RT post-opératoire 66 / 54 Gy en 33 fx",
    "type": "rte_normo",
    "preuve": "pratique_institutionnelle",
    "essais": [
@@ -5100,7 +5048,6 @@
     "RTOG 9501",
     "EORTC 22931 et RTOG 9501"
    ],
-   "source_institutionnelle": "Fiche du service « RT ORL post-opératoire »",
    "doses": [
     {
      "volume": "PTV66",
@@ -5133,7 +5080,6 @@
     "RTOG 9501",
     "EORTC 22931 et RTOG 9501"
    ],
-   "source_institutionnelle": "Fiche du service « RT ORL post-opératoire » ; tableur du service « ORL 60-54 Gy »",
    "doses": [
     {
      "volume": "PTV60",
@@ -5167,7 +5113,6 @@
     "MACH-NC 2021",
     "Institut Curie — RT des VADS (tumeur en place et opérée)"
    ],
-   "source_institutionnelle": "Institut Curie 2021 ; tableur du service « ORL 70-63-56 Gy »",
    "doses": [
     {
      "volume": "PTV70",
@@ -5207,7 +5152,6 @@
     "GORTEC 2000-01",
     "Institut Curie — RT des VADS (tumeur en place et opérée)"
    ],
-   "source_institutionnelle": "Institut Curie 2021 pour la RT",
    "doses": [
     {
      "volume": "PTV70",
@@ -5246,7 +5190,6 @@
     "RTOG 0225",
     "MACH-NC 2009"
    ],
-   "source_institutionnelle": "Tableur du service « ORL 69,96-59,4-54,12 Gy »",
    "doses": [
     {
      "volume": "PTV69,96",
@@ -5284,7 +5227,6 @@
    "essais": [
     "Gustave Roussy — RCMI des cancers de la tête et du cou"
    ],
-   "source_institutionnelle": "Gustave Roussy, RCMI des cancers de la tête et du cou (2017)",
    "doses": [
     {
      "volume": "PTV70",
@@ -5325,7 +5267,6 @@
     "EORTC 22931 et RTOG 9501",
     "Institut Curie — RT des VADS (tumeur en place et opérée)"
    ],
-   "source_institutionnelle": "Institut Curie 2021 ; tableur du service « ORL 66-59,4-54,12 Gy »",
    "doses": [
     {
      "volume": "PTV66",
@@ -5357,7 +5298,7 @@
    "id": "hyp-postop-66-54-service",
    "localisation_id": "hypopharynx",
    "situation_id": "hyp-post-op",
-   "titre": "RT post-opératoire 66 / 54 Gy en 33 fx (fiche du service)",
+   "titre": "RT post-opératoire 66 / 54 Gy en 33 fx",
    "type": "rte_normo",
    "preuve": "pratique_institutionnelle",
    "essais": [
@@ -5365,7 +5306,6 @@
     "RTOG 9501",
     "EORTC 22931 et RTOG 9501"
    ],
-   "source_institutionnelle": "Fiche du service « RT ORL post-opératoire »",
    "doses": [
     {
      "volume": "PTV66",
@@ -5398,7 +5338,6 @@
     "RTOG 9501",
     "EORTC 22931 et RTOG 9501"
    ],
-   "source_institutionnelle": "Fiche du service « RT ORL post-opératoire » ; tableur du service « ORL 60-54 Gy »",
    "doses": [
     {
      "volume": "PTV60",
@@ -5430,7 +5369,6 @@
    "essais": [
     "Gustave Roussy — RCMI des cancers de la tête et du cou"
    ],
-   "source_institutionnelle": "Gustave Roussy, RCMI des cancers de la tête et du cou (2017), annexe 2",
    "doses": [
     {
      "volume": "PTV70",
@@ -5469,7 +5407,6 @@
     "Chen 2011 (stade II)",
     "Institut Curie — RT des VADS (tumeur en place et opérée)"
    ],
-   "source_institutionnelle": "Institut Curie 2021",
    "doses": [
     {
      "volume": "PTV70",
@@ -5510,7 +5447,6 @@
     "Intergroupe 0099",
     "Institut Curie — RT des VADS (tumeur en place et opérée)"
    ],
-   "source_institutionnelle": "Institut Curie 2021 ; tableur du service « ORL 70-63-56 Gy »",
    "doses": [
     {
      "volume": "PTV70",
@@ -5550,7 +5486,6 @@
     "Zhang 2019 (GP)",
     "Sun 2016 (TPF)"
    ],
-   "source_institutionnelle": "Tableur du service « ORL 69,96-59,4-54,12 Gy »",
    "doses": [
     {
      "volume": "PTV69,96",
@@ -5588,7 +5523,6 @@
    "essais": [
     "Gustave Roussy — RCMI des cancers de la tête et du cou"
    ],
-   "source_institutionnelle": "Gustave Roussy, RCMI des cancers de la tête et du cou (2017)",
    "doses": [
     {
      "volume": "PTV70",
@@ -5626,7 +5560,6 @@
    "essais": [
     "RTOG 0225"
    ],
-   "source_institutionnelle": "Tableur du service « ORL 69,96-59,4-54,12 Gy »",
    "doses": [
     {
      "volume": "PTV69,96",
@@ -5665,7 +5598,6 @@
     "Guillemin 2021",
     "Institut Curie — RT des VADS (tumeur en place et opérée)"
    ],
-   "source_institutionnelle": "Institut Curie 2021",
    "doses": [
     {
      "volume": "PTV66",
@@ -5703,7 +5635,6 @@
    "essais": [
     "Guillemin 2021"
    ],
-   "source_institutionnelle": "Tableur du service « ORL 60-54 Gy »",
    "doses": [
     {
      "volume": "PTV60",
@@ -5735,7 +5666,6 @@
    "essais": [
     "Institut Curie — RT des VADS (tumeur en place et opérée)"
    ],
-   "source_institutionnelle": "Institut Curie 2021 ; tableur du service « ORL 70-63-56 Gy »",
    "doses": [
     {
      "volume": "PTV70",
@@ -5773,7 +5703,6 @@
    "essais": [
     "Gustave Roussy — RCMI des cancers de la tête et du cou"
    ],
-   "source_institutionnelle": "Gustave Roussy, RCMI des cancers de la tête et du cou (2017)",
    "doses": [
     {
      "volume": "PTV70",
@@ -5814,7 +5743,6 @@
     "Frédéric-Moreau 2019",
     "Institut Curie — RT des VADS (tumeur en place et opérée)"
    ],
-   "source_institutionnelle": "Institut Curie 2021",
    "doses": [
     {
      "volume": "PTV66",
@@ -5852,7 +5780,6 @@
    "essais": [
     "Terhaard 2005 (DHNOCG)"
    ],
-   "source_institutionnelle": "Tableur du service « ORL 60-54 Gy »",
    "doses": [
     {
      "volume": "PTV60",
@@ -5885,7 +5812,6 @@
     "Terhaard 2005 (DHNOCG)",
     "Institut Curie — RT des VADS (tumeur en place et opérée)"
    ],
-   "source_institutionnelle": "Institut Curie 2021 ; tableur du service « ORL 70-63-56 Gy »",
    "doses": [
     {
      "volume": "PTV70",
@@ -5923,7 +5849,6 @@
    "essais": [
     "Institut Curie — RT des VADS (tumeur en place et opérée)"
    ],
-   "source_institutionnelle": "Institut Curie 2021, annexe B",
    "doses": [
     {
      "volume": "PTV70",
@@ -5961,7 +5886,6 @@
    "essais": [
     "Institut Curie — RT des VADS (tumeur en place et opérée)"
    ],
-   "source_institutionnelle": "Institut Curie 2021, annexe B",
    "doses": [
     {
      "volume": "PTV55 (ex-PTV70)",
@@ -6049,7 +5973,6 @@
    "essais": [
     "Institut Curie — RT des VADS (tumeur en place et opérée)"
    ],
-   "source_institutionnelle": "Institut Curie 2021, annexe B",
    "doses": [
     {
      "volume": "PTV",
@@ -6075,7 +5998,6 @@
    "essais": [
     "Institut Curie — RT des VADS (tumeur en place et opérée)"
    ],
-   "source_institutionnelle": "Institut Curie 2021, annexe B",
    "doses": [
     {
      "volume": "PTV",
@@ -6130,7 +6052,6 @@
     "PROCLAIM",
     "PACIFIC"
    ],
-   "source_institutionnelle": "Fiche du service",
    "doses": [
     {
      "volume": "PTV (tumeur + adénopathies)",
@@ -6184,7 +6105,6 @@
     "RTOG 0236 (5 ans)",
     "CHISEL (TROG 09.02)"
    ],
-   "source_institutionnelle": "Institut Curie, SBRT d'un nodule pulmonaire",
    "doses": [
     {
      "volume": "PTV",
@@ -6210,7 +6130,6 @@
    "essais": [
     "ESTRO ACROP SBRT poumon"
    ],
-   "source_institutionnelle": "Institut Curie, SBRT d'un nodule pulmonaire",
    "doses": [
     {
      "volume": "PTV",
@@ -6237,7 +6156,6 @@
     "ESTRO ACROP SBRT poumon",
     "CHISEL (TROG 09.02)"
    ],
-   "source_institutionnelle": "Institut Curie, SBRT d'un nodule pulmonaire",
    "doses": [
     {
      "volume": "PTV",
@@ -6264,7 +6182,6 @@
     "RTOG 0813",
     "Lenglet (Curie)"
    ],
-   "source_institutionnelle": "Institut Curie, SBRT d'un nodule pulmonaire",
    "doses": [
     {
      "volume": "PTV",
@@ -6291,7 +6208,6 @@
     "Lenglet (Curie)",
     "HILUS"
    ],
-   "source_institutionnelle": "Institut Curie, SBRT d'un nodule pulmonaire",
    "doses": [
     {
      "volume": "PTV",
@@ -6314,7 +6230,6 @@
    "titre": "SBRT 55 Gy / 5 fx (contact costal ou T2 N0)",
    "type": "sbrt",
    "preuve": "pratique_institutionnelle",
-   "source_institutionnelle": "Gustave Roussy, protocole SBRT pulmonaire 2016",
    "doses": [
     {
      "volume": "PTV",
@@ -6340,7 +6255,6 @@
    "essais": [
     "HILUS"
    ],
-   "source_institutionnelle": "Gustave Roussy, protocole SBRT pulmonaire 2016",
    "doses": [
     {
      "volume": "PTV",
@@ -6573,7 +6487,6 @@
     "Trovo (Aviano)",
     "Consensus NCI/IASLC mésothéliome"
    ],
-   "source_institutionnelle": "Gustave Roussy, fiche dosimétrique mésothéliome post-opératoire",
    "doses": [
     {
      "volume": "PTV hémithorax (cavité pleurale homolatérale)",
@@ -6605,7 +6518,6 @@
    "essais": [
     "SMART Toronto (Cho)"
    ],
-   "source_institutionnelle": "Gustave Roussy, fiche dosimétrique mésothéliome pré-opératoire 5 × 5 Gy",
    "doses": [
     {
      "volume": "PTV hémithorax",
@@ -6769,7 +6681,6 @@
     "FAST-Forward",
     "Sénorif — Référentiel cancers du sein 2021-2022"
    ],
-   "source_institutionnelle": "Sénorif 2021-2022 ; tableur du service « SEIN HYPOG 40,05 Gy »",
    "doses": [
     {
      "volume": "PTV sein",
@@ -6798,7 +6709,6 @@
     "EORTC 22881 (boost), 20 ans",
     "Sénorif — Référentiel cancers du sein 2021-2022"
    ],
-   "source_institutionnelle": "Sénorif 2021-2022 ; tableur du service « SEIN HYPOG 40,05 Gy + boost séquentiel 16 Gy »",
    "doses": [
     {
      "volume": "PTV sein",
@@ -6856,7 +6766,6 @@
     "FAST-Forward",
     "Sénorif — Référentiel cancers du sein 2021-2022"
    ],
-   "source_institutionnelle": "Sénorif 2021-2022 (option)",
    "doses": [
     {
      "volume": "PTV sein",
@@ -6883,7 +6792,6 @@
     "FAST-Forward",
     "Sénorif — Référentiel cancers du sein 2021-2022"
    ],
-   "source_institutionnelle": "Tableur du service « SEIN FASTFORWARD 26 Gy + boost séquentiel 13,35 Gy »",
    "doses": [
     {
      "volume": "PTV sein",
@@ -6916,7 +6824,6 @@
     "FAST",
     "Sénorif — Référentiel cancers du sein 2021-2022"
    ],
-   "source_institutionnelle": "Sénorif 2021-2022 (option)",
    "doses": [
     {
      "volume": "PTV sein",
@@ -6944,7 +6851,6 @@
     "EBCTCG 2011 (conservation)",
     "Sénorif — Référentiel cancers du sein 2021-2022"
    ],
-   "source_institutionnelle": "Sénorif 2021-2022",
    "doses": [
     {
      "volume": "PTV sein",
@@ -6978,7 +6884,6 @@
     "IMRT-MC2, 5 ans",
     "Sénorif — Référentiel cancers du sein 2021-2022"
    ],
-   "source_institutionnelle": "Sénorif 2021-2022 (option)",
    "doses": [
     {
      "volume": "PTV sein",
@@ -7049,7 +6954,6 @@
     "EBCTCG 2014 (mastectomie)",
     "Sénorif — Référentiel cancers du sein 2021-2022"
    ],
-   "source_institutionnelle": "Sénorif 2021-2022 (recommandé, sauf chimiothérapie concomitante)",
    "doses": [
     {
      "volume": "PTV paroi",
@@ -7076,7 +6980,6 @@
     "EBCTCG 2014 (mastectomie)",
     "Sénorif — Référentiel cancers du sein 2021-2022"
    ],
-   "source_institutionnelle": "Sénorif 2021-2022 (recommandé si reconstruction avant la RT)",
    "doses": [
     {
      "volume": "PTV paroi",
@@ -7106,7 +7009,6 @@
     "AMAROS, 10 ans",
     "Sénorif — Référentiel cancers du sein 2021-2022"
    ],
-   "source_institutionnelle": "Sénorif 2021-2022 (standard)",
    "doses": [
     {
      "volume": "PTV sein ou paroi",
@@ -7141,7 +7043,6 @@
     "ESTRO ACROP 2022 (fractionnement)",
     "Sénorif — Référentiel cancers du sein 2021-2022"
    ],
-   "source_institutionnelle": "Tableur du service « SEIN HYPOG 40,05 Gy + GG 40,05 Gy + boost séquentiel »",
    "doses": [
     {
      "volume": "PTV sein ou paroi",
@@ -7180,7 +7081,6 @@
     "IMPORT LOW",
     "Sénorif — Référentiel cancers du sein 2021-2022"
    ],
-   "source_institutionnelle": "Sénorif 2021-2022",
    "doses": [
     {
      "volume": "PTV sein partiel",
@@ -7234,7 +7134,6 @@
     "GEC-ESTRO APBI, 10 ans",
     "Sénorif — Référentiel cancers du sein 2021-2022"
    ],
-   "source_institutionnelle": "Sénorif 2021-2022",
    "doses": [
     {
      "volume": "CTV (implant multicathéter)",
@@ -7262,7 +7161,6 @@
     "GEC-ESTRO APBI, 10 ans",
     "Sénorif — Référentiel cancers du sein 2021-2022"
    ],
-   "source_institutionnelle": "Sénorif 2021-2022",
    "doses": [
     {
      "volume": "CTV (implant multicathéter)",
@@ -7288,7 +7186,6 @@
     "KATHERINE",
     "Sénorif — Référentiel cancers du sein 2021-2022"
    ],
-   "source_institutionnelle": "Sénorif 2021-2022",
    "doses": [
     {
      "volume": "PTV sein ou paroi ± ganglions",
@@ -7314,7 +7211,6 @@
    "essais": [
     "Sénorif — Référentiel cancers du sein 2021-2022"
    ],
-   "source_institutionnelle": "Sénorif 2021-2022",
    "doses": [
     {
      "volume": "PTV sein",
@@ -7346,7 +7242,6 @@
    "essais": [
     "Sénorif — Référentiel cancers du sein 2021-2022"
    ],
-   "source_institutionnelle": "Sénorif 2021-2022",
    "doses": [
     {
      "volume": "PTV sein",
@@ -7379,7 +7274,6 @@
     "BIG 3-07 / TROG 07.01",
     "Sénorif — Référentiel cancers du sein 2021-2022"
    ],
-   "source_institutionnelle": "Sénorif 2021-2022 (standard)",
    "doses": [
     {
      "volume": "PTV sein",
@@ -7406,7 +7300,6 @@
     "BIG 3-07 / TROG 07.01",
     "Sénorif — Référentiel cancers du sein 2021-2022"
    ],
-   "source_institutionnelle": "Sénorif 2021-2022 (10 à 16 Gy)",
    "doses": [
     {
      "volume": "PTV sein",
@@ -7470,7 +7363,6 @@
     "DBCG HYPO",
     "Sénorif — Référentiel cancers du sein 2021-2022"
    ],
-   "source_institutionnelle": "Sénorif 2021-2022 (option)",
    "doses": [
     {
      "volume": "PTV sein",
@@ -7496,7 +7388,6 @@
    "essais": [
     "Sénorif — Référentiel cancers du sein 2021-2022"
    ],
-   "source_institutionnelle": "Sénorif 2021-2022",
    "doses": [
     {
      "volume": "PTV sein",
@@ -7527,7 +7418,6 @@
     "ESTRO-EANO glioblastome 2023",
     "EANO gliomes 2021"
    ],
-   "source_institutionnelle": "Fiche du service « glioblastome »",
    "doses": [
     {
      "volume": "PTV",
@@ -7658,7 +7548,6 @@
     "NCCTG / RTOG / ECOG",
     "EORTC 22844"
    ],
-   "source_institutionnelle": "Tableur du service « Gliome grade 2 »",
    "doses": [
     {
      "volume": "PTV",
@@ -7712,7 +7601,6 @@
     "RTOG 9402",
     "ESTRO-EANO gliomes IDH mutés 2024"
    ],
-   "source_institutionnelle": "Tableur du service « Gliome grade 3 »",
    "doses": [
     {
      "volume": "PTV",
@@ -7770,7 +7658,6 @@
     "ASTRO métastases cérébrales 2022",
     "EANO-ESMO métastases cérébrales 2021"
    ],
-   "source_institutionnelle": "Institut Curie, stéréotaxie des métastases cérébrales 2021",
    "doses": [
     {
      "volume": "PTV ≤ 20 mm",
@@ -7866,7 +7753,6 @@
     "Minniti 2016",
     "HyTEC encéphale"
    ],
-   "source_institutionnelle": "Institut Curie, stéréotaxie des métastases cérébrales 2021",
    "doses": [
     {
      "volume": "PTV < 41 mm",
@@ -7892,7 +7778,6 @@
    "essais": [
     "HyTEC encéphale"
    ],
-   "source_institutionnelle": "Institut Curie, stéréotaxie des métastases cérébrales 2021",
    "doses": [
     {
      "volume": "PTV < 41 mm",
@@ -7918,7 +7803,6 @@
    "essais": [
     "HyTEC encéphale"
    ],
-   "source_institutionnelle": "Institut Curie, stéréotaxie des métastases cérébrales 2021",
    "doses": [
     {
      "volume": "PTV < 41 mm",
@@ -7944,7 +7828,6 @@
    "essais": [
     "HyTEC encéphale"
    ],
-   "source_institutionnelle": "Institut Curie, stéréotaxie des métastases cérébrales 2021",
    "doses": [
     {
      "volume": "PTV < 41 mm",
@@ -7970,7 +7853,6 @@
    "essais": [
     "Brest (Lucia 2019)"
    ],
-   "source_institutionnelle": "Fiche du service « stéréotaxie cérébrale »",
    "doses": [
     {
      "volume": "PTV (isodose 70 %)",
@@ -7998,7 +7880,6 @@
     "N107C / CEC.3",
     "Consensus cavité (Soliman 2018)"
    ],
-   "source_institutionnelle": "Institut Curie, stéréotaxie des métastases cérébrales 2021",
    "doses": [
     {
      "volume": "PTV cavité < 41 mm",
@@ -8025,7 +7906,6 @@
     "MD Anderson (Mahajan 2017)",
     "Consensus cavité (Soliman 2018)"
    ],
-   "source_institutionnelle": "Institut Curie, stéréotaxie des métastases cérébrales 2021",
    "doses": [
     {
      "volume": "PTV cavité < 41 mm",
@@ -8052,7 +7932,6 @@
     "MD Anderson (Mahajan 2017)",
     "Consensus cavité (Soliman 2018)"
    ],
-   "source_institutionnelle": "Institut Curie, stéréotaxie des métastases cérébrales 2021",
    "doses": [
     {
      "volume": "PTV cavité < 50 mm",
@@ -8079,7 +7958,6 @@
     "MD Anderson (Mahajan 2017)",
     "Consensus cavité (Soliman 2018)"
    ],
-   "source_institutionnelle": "Institut Curie, stéréotaxie des métastases cérébrales 2021",
    "doses": [
     {
      "volume": "PTV cavité < 50 mm",
@@ -8105,7 +7983,6 @@
    "essais": [
     "Brest (Lucia 2019)"
    ],
-   "source_institutionnelle": "Fiche du service « stéréotaxie cérébrale »",
    "doses": [
     {
      "volume": "PTV cavité (isodose 70 %)",
@@ -8133,7 +8010,6 @@
     "JROSG 99-1",
     "N107C / CEC.3"
    ],
-   "source_institutionnelle": "Fiche du service « encéphale in toto »",
    "doses": [
     {
      "volume": "PTV encéphale",
@@ -8159,7 +8035,6 @@
    "essais": [
     "QUARTZ"
    ],
-   "source_institutionnelle": "Fiche du service « encéphale in toto »",
    "doses": [
     {
      "volume": "PTV encéphale",
@@ -8188,7 +8063,6 @@
     "RTOG 0614",
     "Gondi 2010"
    ],
-   "source_institutionnelle": "Tableur du service « Épargne hippocampique »",
    "doses": [
     {
      "volume": "PTV encéphale moins zone d'évitement",
@@ -8214,7 +8088,6 @@
    "essais": [
     "HyTEC encéphale"
    ],
-   "source_institutionnelle": "Institut Curie, stéréotaxie des métastases cérébrales 2021",
    "doses": [
     {
      "volume": "PTV < 31 mm",
@@ -8240,7 +8113,6 @@
    "essais": [
     "HyTEC encéphale"
    ],
-   "source_institutionnelle": "Institut Curie, stéréotaxie des métastases cérébrales 2021",
    "doses": [
     {
      "volume": "PTV < 31 mm",
@@ -8266,7 +8138,6 @@
    "essais": [
     "HyTEC encéphale"
    ],
-   "source_institutionnelle": "Institut Curie, stéréotaxie des métastases cérébrales 2021",
    "doses": [
     {
      "volume": "PTV < 40 mm (en place) ou < 50 mm (opéré)",
@@ -8292,7 +8163,6 @@
    "essais": [
     "HyTEC encéphale"
    ],
-   "source_institutionnelle": "Institut Curie, stéréotaxie des métastases cérébrales 2021",
    "doses": [
     {
      "volume": "PTV < 40 mm (en place) ou < 50 mm (opéré)",
@@ -8319,7 +8189,6 @@
     "EANO méningiomes 2021",
     "UCSF (Goldsmith 1994)"
    ],
-   "source_institutionnelle": "Tableur du service « Méningiome bénin base du crâne 54 Gy »",
    "doses": [
     {
      "volume": "PTV",
@@ -8345,7 +8214,6 @@
    "essais": [
     "EANO méningiomes 2021"
    ],
-   "source_institutionnelle": "Tableur du service « Méningiome 50,4 Gy »",
    "doses": [
     {
      "volume": "PTV",
@@ -8478,7 +8346,6 @@
    "titre": "59,4 Gy puis complément jusqu'à 68,4 Gy / 38 fx",
    "type": "rte_normo",
    "preuve": "pratique_institutionnelle",
-   "source_institutionnelle": "Tableur du service « Méningiome grade III 68,4 Gy »",
    "doses": [
     {
      "volume": "PTV1 (59,4 Gy)",
@@ -8668,7 +8535,6 @@
     "Iannalfi 2013",
     "Kamogawa 2022"
    ],
-   "source_institutionnelle": "Tableur du service « Craniopharyngiome 54 Gy »",
    "doses": [
     {
      "volume": "PTV",
@@ -8770,7 +8636,6 @@
    "essais": [
     "Samhouri 2021"
    ],
-   "source_institutionnelle": "Tableur du service « Neurocytome 59,4 Gy »",
    "doses": [
     {
      "volume": "PTV54 (ventricules)",
@@ -9112,7 +8977,6 @@
     "CCTG SC.24",
     "HyTEC, moelle (Sahgal)"
    ],
-   "source_institutionnelle": "Tableur du service « vertèbre stéréo 2 × 12 »",
    "doses": [
     {
      "volume": "PTV",
@@ -9139,7 +9003,6 @@
     "Lai 2025",
     "Consensus ISRC, volumes cibles"
    ],
-   "source_institutionnelle": "Fiche du service « stéréotaxie osseuse vertébrale »",
    "doses": [
     {
      "volume": "PTV",
@@ -9167,7 +9030,6 @@
     "Wang 2012 (MD Anderson)",
     "Consensus ISRC, volumes cibles"
    ],
-   "source_institutionnelle": "Tableur du service « vertèbre stéréo 3 × 9 »",
    "doses": [
     {
      "volume": "PTV",
@@ -9194,7 +9056,6 @@
     "Wang 2012 (MD Anderson)",
     "Consensus ISRC, volumes cibles"
    ],
-   "source_institutionnelle": "Fiche du service « stéréotaxie osseuse vertébrale »",
    "doses": [
     {
      "volume": "PTV",
@@ -9248,7 +9109,6 @@
     "Sahgal 2012",
     "HyTEC, moelle (Sahgal)"
    ],
-   "source_institutionnelle": "Fiche du service « stéréotaxie osseuse vertébrale »",
    "doses": [
     {
      "volume": "PTV",
@@ -9277,7 +9137,6 @@
     "SABR-COMET (5 ans)",
     "ESTRO-EORTC, oligométastases"
    ],
-   "source_institutionnelle": "Tableur du service « pubis stéréo 3 × 9 »",
    "doses": [
     {
      "volume": "PTV",
@@ -9306,7 +9165,6 @@
     "Liao 2023",
     "Giraud 2026"
    ],
-   "source_institutionnelle": "Gustave Roussy, fiche « stéréotaxie surrénale 5 × 9 Gy »",
    "doses": [
     {
      "volume": "PTV",
@@ -9333,7 +9191,6 @@
     "Chen 2020",
     "Consensus UK SABR 2017"
    ],
-   "source_institutionnelle": "Tableur du service « surrénale stéréo 5 fractions »",
    "doses": [
     {
      "volume": "PTV",
@@ -9653,7 +9510,6 @@
     "Consensus RTOG, volumes pré-opératoires",
     "ESTRO 2026, sarcomes des membres et du tronc"
    ],
-   "source_institutionnelle": "Fiche du service (pré-opératoire : 50 Gy)",
    "doses": [
     {
      "volume": "PTV",
@@ -9707,7 +9563,6 @@
     "NCI (Yang 1998)",
     "NCIC SR2 (O'Sullivan 2002)"
    ],
-   "source_institutionnelle": "Fiche du service",
    "doses": [
     {
      "volume": "PTV50",
@@ -9739,7 +9594,6 @@
    "essais": [
     "NCIC SR2 (O'Sullivan 2002)"
    ],
-   "source_institutionnelle": "Fiche du service",
    "doses": [
     {
      "volume": "PTV50",
@@ -9777,7 +9631,6 @@
    "essais": [
     "ASTRO 2021, sarcomes de l'adulte"
    ],
-   "source_institutionnelle": "Fiche du service",
    "doses": [
     {
      "volume": "PTV50",
@@ -9836,7 +9689,6 @@
     "Accord de contourage NRG (Baldini 2015)",
     "Gustave Roussy — Sarcomes rétropéritonéaux"
    ],
-   "source_institutionnelle": "Gustave Roussy, fiche « sarcomes rétropéritonéaux » (2017)",
    "doses": [
     {
      "volume": "PTV",
@@ -9862,7 +9714,6 @@
    "essais": [
     "Consensus mondial sur le chordome (Stacchiotti 2015)"
    ],
-   "source_institutionnelle": "Tableur du service « chordome sacrum »",
    "doses": [
     {
      "volume": "PTVHR",

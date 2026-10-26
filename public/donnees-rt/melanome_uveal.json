@@ -54,7 +54,16 @@
     "Mélanome de l'iris, du corps ciliaire ou de la choroïde",
     "Curiethérapie"
    ],
-   "contraintes_ids": []
+   "contraintes_ids": [],
+   "couverture_lignes": [
+    {
+     "volume": "",
+     "indicateur": "Volume englobant l'apex et 2 mm autour de la base",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    }
+   ]
   },
   {
    "id": "mu-63",
@@ -88,7 +97,16 @@
     "Mélanome de l'iris, du corps ciliaire ou de la choroïde",
     "Curiethérapie"
    ],
-   "contraintes_ids": []
+   "contraintes_ids": [],
+   "couverture_lignes": [
+    {
+     "volume": "",
+     "indicateur": "Prescription à l'apex",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    }
+   ]
   }
  ],
  "simulations": [],
@@ -147,10 +165,5 @@
    "point": "Toxicités après plaque (85 Gy en 7 jours) : rétinopathie 37,8 %, neuropathie optique 14,6 %, cataracte 31,7 % (Berry 2013)",
    "portee": "situation"
   }
- ],
- "textes": {
-  "systemique": [
-   "Pas de traitement systémique associé à la curiethérapie."
-  ]
- }
+ ]
 }

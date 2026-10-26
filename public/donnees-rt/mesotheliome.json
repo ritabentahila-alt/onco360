@@ -42,7 +42,6 @@
     "trovo",
     "gomez-meso"
    ],
-   "source_institutionnelle": "Gustave Roussy, fiche dosimétrique mésothéliome post-opératoire",
    "prescriptions": [
     {
      "volume": "PTV hémithorax (cavité pleurale homolatérale)",
@@ -87,7 +86,6 @@
    "essai_ids": [
     "cho-smart"
    ],
-   "source_institutionnelle": "Gustave Roussy, fiche dosimétrique mésothéliome pré-opératoire 5 × 5 Gy",
    "prescriptions": [
     {
      "volume": "PTV hémithorax",
@@ -256,6 +254,5 @@
    "point": "Seulement si la pneumonectomie extrapleurale est programmée dans les 7 jours : jamais en RT seule",
    "portee": "schema"
   }
- ],
- "textes": {}
+ ]
 }

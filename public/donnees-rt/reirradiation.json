@@ -197,7 +197,7 @@
      "dose_fx_Gy": 2,
      "mode": "seul",
      "rythme": "5 fx/sem",
-     "note": "MIRI : dose médiane 60 Gy, chimiothérapie chez 76 %, toxicité tardive de grade ≥ 3 à 2 ans 14,2 % ; Gustave Roussy : 2 Gy par jour"
+     "note": "MIRI : dose médiane 60 Gy, chimiothérapie chez 76 %, toxicité tardive de grade ≥ 3 à 2 ans 14,2 % ; autre approche : 2 Gy par jour"
     }
    ],
    "technique": "RCMI",
@@ -646,7 +646,7 @@
     {
      "nom": "PTV",
      "type": "PTV",
-     "definition": "CTV + 7 mm (protocole du service)",
+     "definition": "CTV + 7 mm",
      "quand": "Toujours",
      "marge": "7 mm"
     }
@@ -788,6 +788,5 @@
    "point": "Doses cumulées en EQD2 ou en BED avec α/β = 2 Gy pour la moelle (Sahgal, HyTEC) ; Nieder 2006 prend 2 Gy pour la moelle cervicale et thoracique, 4 Gy pour la moelle lombaire",
    "portee": "contraintes"
   }
- ],
- "textes": {}
+ ]
 }

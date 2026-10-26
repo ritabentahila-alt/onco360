@@ -19,7 +19,7 @@
    "localisation_id": "hypopharynx",
    "titre": "Hypopharynx opéré : RT adjuvante",
    "contexte": "post_op",
-   "criteres": "Haut risque : marges positives ou rupture capsulaire → 66 Gy et cisplatine. Intermédiaire : T3–T4, engainements, emboles → 60 Gy (fiche du service)",
+   "criteres": "Haut risque : marges positives ou rupture capsulaire → 66 Gy et cisplatine. Intermédiaire : T3–T4, engainements, emboles → 60 Gy",
    "ordre": 2
   }
  ],
@@ -35,7 +35,6 @@
     "mach-nc-2021",
     "curie-vads-2021"
    ],
-   "source_institutionnelle": "Institut Curie 2021 ; tableur du service « ORL 70-63-56 Gy »",
    "prescriptions": [
     {
      "volume": "PTV70",
@@ -80,6 +79,29 @@
     "Hypopharynx",
     "Hypopharynx non opéré : RCT ou préservation laryngée",
     "Normofractionné"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "D95 %",
+     "ideal": "",
+     "limitant": "≥ 95 %",
+     "note": ""
+    },
+    {
+     "volume": "CTV",
+     "indicateur": "D98 %",
+     "ideal": "",
+     "limitant": "≥ 98 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV70",
+     "indicateur": "D2 %",
+     "ideal": "",
+     "limitant": "≤ 107 %",
+     "note": ""
+    }
    ]
   },
   {
@@ -93,7 +115,6 @@
     "gortec2000-01",
     "curie-vads-2021"
    ],
-   "source_institutionnelle": "Institut Curie 2021 pour la RT",
    "prescriptions": [
     {
      "volume": "PTV70",
@@ -138,6 +159,29 @@
     "Hypopharynx",
     "Hypopharynx non opéré : RCT ou préservation laryngée",
     "Normofractionné"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "D95 %",
+     "ideal": "",
+     "limitant": "≥ 95 %",
+     "note": ""
+    },
+    {
+     "volume": "CTV",
+     "indicateur": "D98 %",
+     "ideal": "",
+     "limitant": "≥ 98 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV70",
+     "indicateur": "D2 %",
+     "ideal": "",
+     "limitant": "≤ 107 %",
+     "note": ""
+    }
    ]
   },
   {
@@ -150,7 +194,6 @@
     "rtog0225",
     "mach-nc"
    ],
-   "source_institutionnelle": "Tableur du service « ORL 69,96-59,4-54,12 Gy »",
    "prescriptions": [
     {
      "volume": "PTV69,96",
@@ -185,7 +228,7 @@
    "simulation_id": "sim-orl-curie",
    "volumes_id": "vol-orl-igr",
    "contraintes_ids": [],
-   "couverture": "Tableur du service : D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
+   "couverture": "D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
    "points_attention": [
     "TPF supérieur à PF en induction pour la réponse (80 contre 59 %) et la préservation laryngée (GORTEC 2000-01)"
    ],
@@ -195,6 +238,29 @@
     "Hypopharynx",
     "Hypopharynx non opéré : RCT ou préservation laryngée",
     "Normofractionné"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "D95",
+     "ideal": "",
+     "limitant": "≈ 98 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "D98",
+     "ideal": "",
+     "limitant": "≈ 95 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "Dmax",
+     "ideal": "",
+     "limitant": "≈ 105 %",
+     "note": ""
+    }
    ]
   },
   {
@@ -206,7 +272,6 @@
    "essai_ids": [
     "igr-orl-rcmi"
    ],
-   "source_institutionnelle": "Gustave Roussy, RCMI des cancers de la tête et du cou (2017)",
    "prescriptions": [
     {
      "volume": "PTV70",
@@ -251,6 +316,36 @@
     "Hypopharynx",
     "Hypopharynx non opéré : RCT ou préservation laryngée",
     "Hypofractionné"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV70",
+     "indicateur": "D95 %",
+     "ideal": "",
+     "limitant": "≥ 66,5 Gy",
+     "note": ""
+    },
+    {
+     "volume": "PTV70",
+     "indicateur": "D5 %",
+     "ideal": "",
+     "limitant": "≤ 77 Gy",
+     "note": ""
+    },
+    {
+     "volume": "PTV60",
+     "indicateur": "D95 %",
+     "ideal": "",
+     "limitant": "≥ 57 Gy",
+     "note": ""
+    },
+    {
+     "volume": "PTV54",
+     "indicateur": "D95 %",
+     "ideal": "",
+     "limitant": "≥ 51,3 Gy",
+     "note": ""
+    }
    ]
   },
   {
@@ -265,7 +360,6 @@
     "bernier2005",
     "curie-vads-2021"
    ],
-   "source_institutionnelle": "Institut Curie 2021 ; tableur du service « ORL 66-59,4-54,12 Gy »",
    "prescriptions": [
     {
      "volume": "PTV66",
@@ -308,12 +402,35 @@
     "Hypopharynx opéré : RT adjuvante",
     "Normofractionné"
    ],
-   "points_attention": []
+   "points_attention": [],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "D95 %",
+     "ideal": "",
+     "limitant": "≥ 95 %",
+     "note": ""
+    },
+    {
+     "volume": "CTV",
+     "indicateur": "D98 %",
+     "ideal": "",
+     "limitant": "≥ 98 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV66 ∪ PTV59,4",
+     "indicateur": "D2 %",
+     "ideal": "",
+     "limitant": "≤ 107 %",
+     "note": ""
+    }
+   ]
   },
   {
    "id": "hyp-postop-66-54-service",
    "situation_id": "hyp-post-op",
-   "titre": "RT post-opératoire 66 / 54 Gy en 33 fx (fiche du service)",
+   "titre": "RT post-opératoire 66 / 54 Gy en 33 fx",
    "type": "rte_normo",
    "preuve": "pratique_institutionnelle",
    "essai_ids": [
@@ -321,7 +438,6 @@
     "rtog9501",
     "bernier2005"
    ],
-   "source_institutionnelle": "Fiche du service « RT ORL post-opératoire »",
    "prescriptions": [
     {
      "volume": "PTV66",
@@ -347,7 +463,7 @@
    "simulation_id": "sim-orl-curie",
    "volumes_id": "vol-hyp-postop-service",
    "contraintes_ids": [],
-   "couverture": "Tableur du service : D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
+   "couverture": "D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
    "date_verif": "2026-10-24",
    "ind": [
     "ORL",
@@ -355,7 +471,30 @@
     "Hypopharynx opéré : RT adjuvante",
     "Normofractionné"
    ],
-   "points_attention": []
+   "points_attention": [],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "D95",
+     "ideal": "",
+     "limitant": "≈ 98 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "D98",
+     "ideal": "",
+     "limitant": "≈ 95 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "Dmax",
+     "ideal": "",
+     "limitant": "≈ 105 %",
+     "note": ""
+    }
+   ]
   },
   {
    "id": "hyp-postop-60-54-service",
@@ -367,7 +506,6 @@
     "rtog9501",
     "bernier2005"
    ],
-   "source_institutionnelle": "Fiche du service « RT ORL post-opératoire » ; tableur du service « ORL 60-54 Gy »",
    "prescriptions": [
     {
      "volume": "PTV60",
@@ -393,7 +531,7 @@
    "simulation_id": "sim-orl-curie",
    "volumes_id": "vol-hyp-postop-service",
    "contraintes_ids": [],
-   "couverture": "Tableur du service : D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
+   "couverture": "D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
    "date_verif": "2026-10-24",
    "ind": [
     "ORL",
@@ -401,7 +539,30 @@
     "Hypopharynx opéré : RT adjuvante",
     "Normofractionné"
    ],
-   "points_attention": []
+   "points_attention": [],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "D95",
+     "ideal": "",
+     "limitant": "≈ 98 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "D98",
+     "ideal": "",
+     "limitant": "≈ 95 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "Dmax",
+     "ideal": "",
+     "limitant": "≈ 105 %",
+     "note": ""
+    }
+   ]
   }
  ],
  "simulations": [
@@ -773,7 +934,7 @@
  "points_attention": [
   {
    "cible": "hypopharynx",
-   "point": "Drainage ganglionnaire bilatéral fréquent ; niveau VI à inclure (fiche du service)",
+   "point": "Drainage ganglionnaire bilatéral fréquent ; niveau VI à inclure",
    "portee": "localisation"
   },
   {
@@ -781,10 +942,5 @@
    "point": "TPF supérieur à PF en induction pour la réponse (80 contre 59 %) et la préservation laryngée (GORTEC 2000-01)",
    "portee": "situation"
   }
- ],
- "textes": {
-  "centrage": [
-   "Traction des épaules si le volume descend sous l'os hyoïde (Gustave Roussy)."
-  ]
- }
+ ]
 }

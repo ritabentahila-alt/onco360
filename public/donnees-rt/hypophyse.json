@@ -98,6 +98,15 @@
     "Adénome hypophysaire",
     "Adénome non sécrétant résiduel ou récidivant",
     "Stéréotaxie"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "",
+     "indicateur": "Dose prescrite en périphérie de l'adénome",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    }
    ]
   },
   {
@@ -149,10 +158,10 @@
   {
    "id": "sim-crane-srs",
    "position": "Décubitus dorsal, tête en position neutre, bras le long du corps, coussin sous les genoux",
-   "contention": "Masque thermoformé 5 points ou cadre stéréotaxique (fiche du service) ; Curie : masque bivalve sans cadre, moulé sur une cale retirée avant l'acquisition",
-   "scanner": "Coupes axiales millimétriques. Curie : non injecté, de 1 cm au-dessus du vertex jusqu'à T1 ; fiche du service : injecté",
-   "imagerie": "IRM de planification T1 sans injection (saignement récent), T1 gadolinium 3D (contourage) et perfusion (référence du suivi), jusqu'à C3–C4, fusionnée au scanner. Première séance dans les 14 jours suivant l'IRM, 16 au plus (Curie)",
-   "reperes": "Plan de référence pointe du nez–tragus, perpendiculaire à la table (Curie)"
+   "contention": "Masque thermoformé 5 points ou cadre stéréotaxique ; autre approche : masque bivalve sans cadre, moulé sur une cale retirée avant l'acquisition",
+   "scanner": "Coupes axiales millimétriques. Autre approche : non injecté, de 1 cm au-dessus du vertex jusqu'à T1 ; autre approche : injecté",
+   "imagerie": "IRM de planification T1 sans injection (saignement récent), T1 gadolinium 3D (contourage) et perfusion (référence du suivi), jusqu'à C3–C4, fusionnée au scanner. Première séance dans les 14 jours suivant l'IRM, 16 au plus",
+   "reperes": "Plan de référence pointe du nez–tragus, perpendiculaire à la table"
   }
  ],
  "volumes": [
@@ -231,10 +240,5 @@
    "point": "Radiochirurgie des adénomes sécrétants : contrôle tumoral 92–97 %, rémission endocrinienne 28–48 % (ISRS 2021)",
    "portee": "situation"
   }
- ],
- "textes": {
-  "systemique": [
-   "Pas de chimiothérapie. Adénome sécrétant : traitement médical antisécrétoire poursuivi selon l'endocrinologue."
-  ]
- }
+ ]
 }

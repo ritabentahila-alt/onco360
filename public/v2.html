@@ -1465,6 +1465,24 @@ details.m3.bib-pts{margin-left:4px;vertical-align:middle;display:inline-block}.m
 .bt:disabled{opacity:.55;cursor:default}
 @media (pointer:coarse){.bt{min-height:44px}.bt.petit{min-height:40px}}
 @media (max-width:640px){.rtr-ftr.bt{min-height:44px}}
+/* 26/10/2026 (demandes de Dr Bentahila) : onglet Contraintes (deux tableaux de mêmes colonnes, « ? » d'Idéal et de Limitant, remarques numérotées),
+   crayon du protocole lié, schémas supprimés ; menus de Radiothérapie dans le cadre de la liste et fixés en haut ; menus de Protocoles fixés */
+.rtr-ct{table-layout:fixed;width:100%}.rtr-c1{width:22%}.rtr-c2{width:26%}.rtr-c3{width:13%}.rtr-c5{width:26%}.rtr-cx{width:44px}
+.rtr-ct td,.rtr-ct th{overflow-wrap:anywhere}.rtr-cv td.o b{color:var(--prim)}
+.rtr-q{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;border:0;background:var(--gris-c);color:var(--doux);font-size:var(--t1);font-weight:bold;cursor:pointer;vertical-align:1px;padding:0;margin-left:2px}
+.rtr-q:hover{background:var(--prim-cc);color:var(--prim)}.rtr-aideq{margin:8px 0 0}
+.rtr-rv{color:var(--prim);font-weight:bold;margin-left:2px}.rtr-renv{margin:8px 0 0;padding-left:22px;font-size:var(--t3);color:var(--doux)}.rtr-renv li{margin:2px 0}
+.rtr-ct tr.conv td.o b{color:var(--encre)}.rtr-ct tr.conv td:not(.o){color:inherit}
+.rtr-lp1{display:inline-flex;align-items:center;gap:2px;vertical-align:baseline;flex-wrap:wrap}
+.rtr-chg{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border:0;border-radius:6px;background:none;color:var(--gris-m);cursor:pointer;padding:0}
+.rtr-chg .i{width:14px;height:14px}.rtr-chg:hover{background:var(--prim-c);color:var(--prim)}
+.rtr-sup{margin:10px 18px}.rtr-sup summary{cursor:pointer;min-height:32px;display:flex;align-items:center}.rtr-sup ul{margin:4px 0;padding-left:20px}.rtr-sup li{margin:4px 0}
+.rtr-carte{background:var(--carte);border-radius:var(--r-l);box-shadow:var(--ombre);min-width:0}
+.rtr-carte .rtr-liste{box-shadow:none;border-radius:0 0 var(--r-l) var(--r-l)}
+.rtr-carte .rtr-filtres{position:sticky;top:calc(64px + var(--rtr-h));z-index:15;background:var(--carte);border-radius:var(--r-l) var(--r-l) 0 0;padding:12px 18px 8px;border-bottom:1px solid var(--trait)}
+.rtr-carte .rtr-it{top:calc(64px + var(--rtr-hf, 200px))}
+.pr-casc{position:sticky;top:64px;z-index:15;background:var(--carte);margin:-6px -4px 0;padding:6px 4px 2px}
+#prMaj:empty{display:none}.pr-barre{margin-bottom:-8px}
 </style>
 </head>
 <body>

@@ -28,7 +28,6 @@
     "baldini2015-contours",
     "igr-sarcome-rp"
    ],
-   "source_institutionnelle": "Gustave Roussy, fiche « sarcomes rétropéritonéaux » (2017)",
    "prescriptions": [
     {
      "volume": "PTV",
@@ -45,7 +44,7 @@
    "simulation_id": "sim-srp",
    "volumes_id": "vol-srp",
    "contraintes_ids": [],
-   "couverture": "Gustave Roussy : PTV D95 % ≈ 95 % de la dose prescrite ; rapporter D50 %, Dmoy, D2 %, D98 % du PTV et D95 %, Dmoy du GTV",
+   "couverture": "PTV D95 % ≈ 95 % de la dose prescrite ; rapporter D50 %, Dmoy, D2 %, D98 % du PTV et D95 %, Dmoy du GTV",
    "points_attention": [
     "STRASS : survie sans récidive abdominale médiane 4,5 ans avec RT contre 5,0 ans sans (HR 1,01) ; lymphopénie de grade 3–4 : 77 % ; événements graves 24 % contre 10 %",
     "Accord de contourage élevé pour le GTV et le CTV, plus faible pour le CTV à haut risque et le duodénum (Baldini 2015)",
@@ -57,6 +56,22 @@
     "Rétropéritoine",
     "Sarcome rétropéritonéal primitif localisé opérable",
     "Normofractionné"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "D95 %",
+     "ideal": "",
+     "limitant": "≈ 95 % de la dose prescrite",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "Rapporter D50 %, Dmoy, D2 %, D98 % du PTV et D95 %, Dmoy du GTV",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    }
    ]
   }
  ],
@@ -138,10 +153,5 @@
    "point": "Reins : contraintes différentes selon qu'un seul rein fonctionnel est prévu après la chirurgie ou que les deux sont conservés",
    "portee": "contraintes"
   }
- ],
- "textes": {
-  "systemique": [
-   "Pas de traitement systémique associé à la RT dans ce schéma."
-  ]
- }
+ ]
 }

@@ -36,7 +36,6 @@
     "fredericmoreau2019",
     "curie-vads-2021"
    ],
-   "source_institutionnelle": "Institut Curie 2021",
    "prescriptions": [
     {
      "volume": "PTV66",
@@ -81,6 +80,29 @@
     "Glandes salivaires",
     "Glande salivaire opérée : RT adjuvante",
     "Normofractionné"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "D95 %",
+     "ideal": "",
+     "limitant": "≥ 95 %",
+     "note": ""
+    },
+    {
+     "volume": "CTV",
+     "indicateur": "D98 %",
+     "ideal": "",
+     "limitant": "≥ 98 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV66 ∪ PTV59,4",
+     "indicateur": "D2 %",
+     "ideal": "",
+     "limitant": "≤ 107 %",
+     "note": ""
+    }
    ]
   },
   {
@@ -92,7 +114,6 @@
    "essai_ids": [
     "terhaard2005"
    ],
-   "source_institutionnelle": "Tableur du service « ORL 60-54 Gy »",
    "prescriptions": [
     {
      "volume": "PTV60",
@@ -118,7 +139,7 @@
    "simulation_id": "sim-orl-curie",
    "volumes_id": "vol-orl-curie-postop",
    "contraintes_ids": [],
-   "couverture": "Tableur du service : D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
+   "couverture": "D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
    "points_attention": [
     "La RT post-opératoire améliore le contrôle local à 10 ans : T3–T4 84 contre 18 %, exérèse incomplète 82 contre 44 %, marges proches 95 contre 55 %, envahissement osseux 86 contre 54 %, engainements 88 contre 60 % (Terhaard 2005)"
    ],
@@ -128,6 +149,29 @@
     "Glandes salivaires",
     "Glande salivaire opérée : RT adjuvante",
     "Normofractionné"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "D95",
+     "ideal": "",
+     "limitant": "≈ 98 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "D98",
+     "ideal": "",
+     "limitant": "≈ 95 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "Dmax",
+     "ideal": "",
+     "limitant": "≈ 105 %",
+     "note": ""
+    }
    ]
   },
   {
@@ -140,7 +184,6 @@
     "terhaard2005",
     "curie-vads-2021"
    ],
-   "source_institutionnelle": "Institut Curie 2021 ; tableur du service « ORL 70-63-56 Gy »",
    "prescriptions": [
     {
      "volume": "PTV70",
@@ -183,7 +226,30 @@
     "Tumeur non résécable : RT exclusive",
     "Normofractionné"
    ],
-   "points_attention": []
+   "points_attention": [],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "D95 %",
+     "ideal": "",
+     "limitant": "≥ 95 %",
+     "note": ""
+    },
+    {
+     "volume": "CTV",
+     "indicateur": "D98 %",
+     "ideal": "",
+     "limitant": "≥ 98 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV70",
+     "indicateur": "D2 %",
+     "ideal": "",
+     "limitant": "≤ 107 %",
+     "note": ""
+    }
+   ]
   }
  ],
  "simulations": [
@@ -369,10 +435,5 @@
    "point": "Le type histologique aide à estimer le risque ganglionnaire et l'indication d'une irradiation élective du cou (Terhaard 2005)",
    "portee": "localisation"
   }
- ],
- "textes": {
-  "contourage": [
-   "CTV de la tumeur primitive et choix des aires ganglionnaires : Piram 2019 (parotide) et Frédéric-Moreau 2019 (glande sous-mandibulaire), références du protocole Curie."
-  ]
- }
+ ]
 }

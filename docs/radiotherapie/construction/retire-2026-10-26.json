@@ -1,0 +1,2965 @@
+{
+ "canal_anal.json": [
+  [
+   "canal_anal.schemas[0].source_institutionnelle",
+   "Fiche du service",
+   null
+  ],
+  [
+   "canal_anal.schemas[1].source_institutionnelle",
+   "Fiche du service",
+   null
+  ],
+  [
+   "canal_anal.textes",
+   {
+    "contourage": [
+     "Deux jeux : celui de la fiche du service (CTV haut risque et bas risque) et celui de l'atlas AGITG, utilisé par les schémas à boost intégré. Le volume tumoral de référence est le volume initial, avant tout traitement."
+    ]
+   },
+   null
+  ]
+ ],
+ "cavite_buccale.json": [
+  [
+   "cavite_buccale.situations[0].criteres",
+   "Haut risque : R1 ou rupture capsulaire → 66 Gy et cisplatine. Risque intermédiaire : marges < 5 mm, T3–T4, engainements, emboles → 60 Gy (fiche du service ; Bernier 2005)",
+   "Haut risque : R1 ou rupture capsulaire → 66 Gy et cisplatine. Risque intermédiaire : marges < 5 mm, T3–T4, engainements, emboles → 60 Gy (Bernier 2005)"
+  ],
+  [
+   "cavite_buccale.schemas[0].source_institutionnelle",
+   "Institut Curie 2021 ; tableur du service « ORL 66-59,4-54,12 Gy »",
+   null
+  ],
+  [
+   "cavite_buccale.schemas[0].points_attention[1]",
+   "Résidu macroscopique (R2) : passer au schéma de tumeur en place, 70 Gy (fiche du service)",
+   "Résidu macroscopique (R2) : passer au schéma de tumeur en place, 70 Gy"
+  ],
+  [
+   "cavite_buccale.schemas[0].points_attention[2]",
+   "Si un OAR chevauche un PTV, l'objectif s'applique à l'OAR moins le PTV (Curie)",
+   "Si un OAR chevauche un PTV, l'objectif s'applique à l'OAR moins le PTV"
+  ],
+  [
+   "cavite_buccale.schemas[1].titre",
+   "RT post-opératoire 66 / 54 Gy en 33 fx, deux niveaux (fiche du service)",
+   "RT post-opératoire 66 / 54 Gy en 33 fx, deux niveaux"
+  ],
+  [
+   "cavite_buccale.schemas[1].source_institutionnelle",
+   "Fiche du service « RT ORL post-opératoire »",
+   null
+  ],
+  [
+   "cavite_buccale.schemas[1].couverture",
+   "Tableur du service : D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 % de la dose prescrite",
+   "D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 % de la dose prescrite"
+  ],
+  [
+   "cavite_buccale.schemas[1].points_attention[1]",
+   "Résidu macroscopique (R2) : passer au schéma de tumeur en place, 70 Gy (fiche du service)",
+   "Résidu macroscopique (R2) : passer au schéma de tumeur en place, 70 Gy"
+  ],
+  [
+   "cavite_buccale.schemas[1].points_attention[3]",
+   "Si un OAR chevauche un PTV, l'objectif s'applique à l'OAR moins le PTV (Curie)",
+   "Si un OAR chevauche un PTV, l'objectif s'applique à l'OAR moins le PTV"
+  ],
+  [
+   "cavite_buccale.schemas[2].source_institutionnelle",
+   "Fiche du service « RT ORL post-opératoire » ; tableur du service « ORL 60-54 Gy »",
+   null
+  ],
+  [
+   "cavite_buccale.schemas[2].couverture",
+   "Tableur du service : D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
+   "D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %"
+  ],
+  [
+   "cavite_buccale.schemas[2].points_attention[1]",
+   "Résidu macroscopique (R2) : passer au schéma de tumeur en place, 70 Gy (fiche du service)",
+   "Résidu macroscopique (R2) : passer au schéma de tumeur en place, 70 Gy"
+  ],
+  [
+   "cavite_buccale.schemas[2].points_attention[3]",
+   "Si un OAR chevauche un PTV, l'objectif s'applique à l'OAR moins le PTV (Curie)",
+   "Si un OAR chevauche un PTV, l'objectif s'applique à l'OAR moins le PTV"
+  ],
+  [
+   "cavite_buccale.schemas[3].source_institutionnelle",
+   "Institut Curie 2021 ; tableur du service « ORL 70-63-56 Gy »",
+   null
+  ],
+  [
+   "cavite_buccale.schemas[3].points_attention[0]",
+   "Si un OAR chevauche un PTV, l'objectif s'applique à l'OAR moins le PTV (Curie)",
+   "Si un OAR chevauche un PTV, l'objectif s'applique à l'OAR moins le PTV"
+  ],
+  [
+   "cavite_buccale.schemas[4].source_institutionnelle",
+   "Tableur du service « ORL 69,96-59,4-54,12 Gy »",
+   null
+  ],
+  [
+   "cavite_buccale.schemas[4].couverture",
+   "Tableur du service : D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
+   "D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %"
+  ],
+  [
+   "cavite_buccale.schemas[4].points_attention[0]",
+   "Si un OAR chevauche un PTV, l'objectif s'applique à l'OAR moins le PTV (Curie)",
+   "Si un OAR chevauche un PTV, l'objectif s'applique à l'OAR moins le PTV"
+  ],
+  [
+   "cavite_buccale.schemas[5].source_institutionnelle",
+   "Gustave Roussy, RCMI des cancers de la tête et du cou (2017)",
+   null
+  ],
+  [
+   "cavite_buccale.schemas[5].points_attention[0]",
+   "Schéma Gustave Roussy à 2,33 Gy par fraction sur le macroscopique ; les essais EORTC 1219 et ARTFORCE utilisaient 70 Gy / 35 fx et 54,25 Gy (référentiel Gustave Roussy)",
+   "Schéma Gustave Roussy à 2,33 Gy par fraction sur le macroscopique ; les essais EORTC 1219 et ARTFORCE utilisaient 70 Gy / 35 fx et 54,25 Gy"
+  ],
+  [
+   "cavite_buccale.schemas[8].points_attention[1]",
+   "Si un OAR chevauche un PTV, l'objectif s'applique à l'OAR moins le PTV (Curie)",
+   "Si un OAR chevauche un PTV, l'objectif s'applique à l'OAR moins le PTV"
+  ],
+  [
+   "cavite_buccale.systemique[0].note",
+   "Si R1 ou rupture capsulaire (fiche du service ; Bernier 2005)",
+   "Si R1 ou rupture capsulaire (Bernier 2005)"
+  ],
+  [
+   "cavite_buccale.points_attention[1].point",
+   "Résidu macroscopique (R2) : passer au schéma de tumeur en place, 70 Gy (fiche du service)",
+   "Résidu macroscopique (R2) : passer au schéma de tumeur en place, 70 Gy"
+  ],
+  [
+   "cavite_buccale.points_attention[3].point",
+   "Schéma Gustave Roussy à 2,33 Gy par fraction sur le macroscopique ; les essais EORTC 1219 et ARTFORCE utilisaient 70 Gy / 35 fx et 54,25 Gy (référentiel Gustave Roussy)",
+   "Schéma Gustave Roussy à 2,33 Gy par fraction sur le macroscopique ; les essais EORTC 1219 et ARTFORCE utilisaient 70 Gy / 35 fx et 54,25 Gy"
+  ],
+  [
+   "cavite_buccale.points_attention[5].point",
+   "Si un OAR chevauche un PTV, l'objectif s'applique à l'OAR moins le PTV (Curie)",
+   "Si un OAR chevauche un PTV, l'objectif s'applique à l'OAR moins le PTV"
+  ],
+  [
+   "cavite_buccale.textes",
+   {
+    "curietherapie": [
+     "Le bas débit continu (fils d'iridium) a été remplacé par le débit pulsé et le haut débit (GEC-ESTRO 2024)."
+    ],
+    "contourage": [
+     "Volumes communs, puis volumes propres à la cavité buccale (fiche du service). Contourage des OAR : consensus Brouwer 2015."
+    ]
+   },
+   null
+  ]
+ ],
+ "cavum.json": [
+  [
+   "cavum.situations[0].criteres",
+   "RT exclusive en T1–T2 N0 (annexe Gustave Roussy) ; stade II : cisplatine hebdomadaire concomitant (Chen 2011)",
+   "RT exclusive en T1–T2 N0 ; stade II : cisplatine hebdomadaire concomitant (Chen 2011)"
+  ],
+  [
+   "cavum.schemas[0].source_institutionnelle",
+   "Gustave Roussy, RCMI des cancers de la tête et du cou (2017), annexe 2",
+   null
+  ],
+  [
+   "cavum.schemas[1].source_institutionnelle",
+   "Institut Curie 2021",
+   null
+  ],
+  [
+   "cavum.schemas[2].source_institutionnelle",
+   "Institut Curie 2021 ; tableur du service « ORL 70-63-56 Gy »",
+   null
+  ],
+  [
+   "cavum.schemas[3].source_institutionnelle",
+   "Tableur du service « ORL 69,96-59,4-54,12 Gy »",
+   null
+  ],
+  [
+   "cavum.schemas[3].couverture",
+   "Tableur du service : D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
+   "D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %"
+  ],
+  [
+   "cavum.schemas[4].source_institutionnelle",
+   "Gustave Roussy, RCMI des cancers de la tête et du cou (2017)",
+   null
+  ],
+  [
+   "cavum.schemas[5].source_institutionnelle",
+   "Tableur du service « ORL 69,96-59,4-54,12 Gy »",
+   null
+  ],
+  [
+   "cavum.schemas[5].couverture",
+   "Tableur du service : D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
+   "D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %"
+  ],
+  [
+   "cavum.points_attention[2].point",
+   "Cavum opéré (rare) : 66 Gy sur le lit haut risque, 60 Gy sur la base du crâne, 54 Gy sur les rétropharyngés et II–V bilatéraux (fiche du service)",
+   "Cavum opéré (rare) : 66 Gy sur le lit haut risque, 60 Gy sur la base du crâne, 54 Gy sur les rétropharyngés et II–V bilatéraux"
+  ],
+  [
+   "cavum.textes",
+   {
+    "centrage": [
+     "Curie : template « ORL cavum/sinus » avec les OAR de la base du crâne. IRM et TEP-FDG fortement recommandées (Gustave Roussy)."
+    ]
+   },
+   null
+  ]
+ ],
+ "chordome.json": [
+  [
+   "chordome.schemas[0].source_institutionnelle",
+   "Tableur du service « chordome sacrum »",
+   null
+  ],
+  [
+   "chordome.textes",
+   {
+    "systemique": [
+     "Pas de traitement systémique associé à la RT dans ces schémas."
+    ]
+   },
+   null
+  ]
+ ],
+ "col.json": [
+  [
+   "col.schemas[0].points_attention[3]",
+   "PTV_N = CTV_N + 5 mm. Le protocole Curie col écrit « GTV_N + 5 mm » (coquille : le protocole Curie endomètre et EMBRACE II écrivent CTV_N + 5 mm) ; la fiche du service fait CTV_N = GTV_N + 5 mm puis PTV_N = CTV_N sans marge",
+   "PTV_N = CTV_N + 5 mm. Le protocole Curie col écrit « GTV_N + 5 mm » ; la fiche du service fait CTV_N = GTV_N + 5 mm puis PTV_N = CTV_N sans marge"
+  ],
+  [
+   "col.schemas[1].points_attention[3]",
+   "PTV_N = CTV_N + 5 mm. Le protocole Curie col écrit « GTV_N + 5 mm » (coquille : le protocole Curie endomètre et EMBRACE II écrivent CTV_N + 5 mm) ; la fiche du service fait CTV_N = GTV_N + 5 mm puis PTV_N = CTV_N sans marge",
+   "PTV_N = CTV_N + 5 mm. Le protocole Curie col écrit « GTV_N + 5 mm » ; la fiche du service fait CTV_N = GTV_N + 5 mm puis PTV_N = CTV_N sans marge"
+  ],
+  [
+   "col.schemas[2].points_attention[3]",
+   "PTV_N = CTV_N + 5 mm. Le protocole Curie col écrit « GTV_N + 5 mm » (coquille : le protocole Curie endomètre et EMBRACE II écrivent CTV_N + 5 mm) ; la fiche du service fait CTV_N = GTV_N + 5 mm puis PTV_N = CTV_N sans marge",
+   "PTV_N = CTV_N + 5 mm. Le protocole Curie col écrit « GTV_N + 5 mm » ; la fiche du service fait CTV_N = GTV_N + 5 mm puis PTV_N = CTV_N sans marge"
+  ],
+  [
+   "col.schemas[3].source_institutionnelle",
+   "Institut Curie, protocole col et vagin 2021",
+   null
+  ],
+  [
+   "col.schemas[3].points_attention[3]",
+   "PTV_N = CTV_N + 5 mm. Le protocole Curie col écrit « GTV_N + 5 mm » (coquille : le protocole Curie endomètre et EMBRACE II écrivent CTV_N + 5 mm) ; la fiche du service fait CTV_N = GTV_N + 5 mm puis PTV_N = CTV_N sans marge",
+   "PTV_N = CTV_N + 5 mm. Le protocole Curie col écrit « GTV_N + 5 mm » ; la fiche du service fait CTV_N = GTV_N + 5 mm puis PTV_N = CTV_N sans marge"
+  ],
+  [
+   "col.schemas[4].source_institutionnelle",
+   "Institut Curie, protocole endomètre et col post-opératoire 2021",
+   null
+  ],
+  [
+   "col.schemas[5].source_institutionnelle",
+   "Institut Curie, protocole endomètre et col post-opératoire 2021 ; fiche du service",
+   null
+  ],
+  [
+   "col.schemas[5].prescriptions[1].note",
+   "20 à 30 mm de vagin supérieur selon l'anatomie (fiche du service)",
+   "20 à 30 mm de vagin supérieur selon l'anatomie"
+  ],
+  [
+   "col.simulations[0].preparation",
+   "Rectum vide (Normacol la veille et le jour même ; diamètre antéro-postérieur ≤ 5 cm, sinon évacuer le gaz ou refaire un Normacol) ; vessie confortable : 2 à 3 verres d'eau dans l'heure qui précède",
+   "Rectum vide (Zetalax la veille et le jour même ; diamètre antéro-postérieur ≤ 5 cm, sinon évacuer le gaz ou refaire un Zetalax) ; vessie confortable : 2 à 3 verres d'eau dans l'heure qui précède"
+  ],
+  [
+   "col.simulations[0].reperes",
+   "Fil plombé dans le fond vaginal (fiche du service) ; tatouages, tatouage supplémentaire en L2 si lombo-aortique",
+   "Fil plombé dans le fond vaginal ; tatouages, tatouage supplémentaire en L2 si lombo-aortique"
+  ],
+  [
+   "col.simulations[2].preparation",
+   "Rectum vide (Normacol ; diamètre antéro-postérieur ≤ 5 cm) ; vessie confortable : 2 à 3 verres d'eau dans l'heure qui précède ; reproductibilité vessie et rectum à vérifier",
+   "Rectum vide (Zetalax ; diamètre antéro-postérieur ≤ 5 cm) ; vessie confortable : 2 à 3 verres d'eau dans l'heure qui précède ; reproductibilité vessie et rectum à vérifier"
+  ],
+  [
+   "col.simulations[2].reperes",
+   "Fil plombé dans le fond vaginal si la cicatrisation est acquise (fiche du service)",
+   "Fil plombé dans le fond vaginal si la cicatrisation est acquise"
+  ],
+  [
+   "col.volumes[0].cibles[5].definition",
+   "« Petit pelvis » : iliaques internes, externes, obturatrices, présacrées ; vaisseaux + au moins 7 mm de tissu périvasculaire, lymphocèles et clips inclus. Fiche du service : présacrés = bande de 1 cm de S2 au promontoire",
+   "« Petit pelvis » : iliaques internes, externes, obturatrices, présacrées ; vaisseaux + au moins 7 mm de tissu périvasculaire, lymphocèles et clips inclus. Autre approche : présacrés = bande de 1 cm de S2 au promontoire"
+  ],
+  [
+   "col.volumes[0].cibles[8].definition",
+   "GTV_N# + 0 à 3 mm (EMBRACE II ; Curie : 3 mm), sans os ni muscle ; un CTV par ganglion, jamais regroupés",
+   "GTV_N# + 0 à 3 mm (EMBRACE II ; autre approche : 3 mm), sans os ni muscle ; un CTV par ganglion, jamais regroupés"
+  ],
+  [
+   "col.volumes[2].cibles[1].definition",
+   "3 à 4 cm supérieurs du vagin + cicatrice + 0,5 à 2 cm au-dessus selon la position du grêle + paravagin jusqu'à la paroi pelvienne, sans les aires ganglionnaires ; exclure les anses grêles. Fiche du service : limite inférieure à 1 cm au-dessus du bord inférieur des trous obturateurs ou 3 cm sous le marqueur vaginal (la plus basse), marge de 5 mm dans le paravagin au niveau du haut des têtes fémorales ; adapter à la longueur résiduelle du vagin",
+   "3 à 4 cm supérieurs du vagin + cicatrice + 0,5 à 2 cm au-dessus selon la position du grêle + paravagin jusqu'à la paroi pelvienne, sans les aires ganglionnaires ; exclure les anses grêles. Autre approche : limite inférieure à 1 cm au-dessus du bord inférieur des trous obturateurs ou 3 cm sous le marqueur vaginal (la plus basse), marge de 5 mm dans le paravagin au niveau du haut des têtes fémorales ; adapter à la longueur résiduelle du vagin"
+  ],
+  [
+   "col.volumes[2].cibles[6].definition",
+   "CTV_45Gy + 5 mm isotrope + tous les PTV_N. Fiche du service : PTV-T = CTV-T + 1 cm, PTV-N = CTV-N + 0,5 cm (même résultat)",
+   "CTV_45Gy + 5 mm isotrope + tous les PTV_N. Autre approche : PTV-T = CTV-T + 1 cm, PTV-N = CTV-N + 0,5 cm (même résultat)"
+  ],
+  [
+   "col.curie_indications[2].modalite",
+   "HDR (4 × 7 Gy ou 5 × 5,5–6 Gy) ou PDR (15 Gy sur le CTV-IR, Curie)",
+   "HDR (4 × 7 Gy ou 5 × 5,5–6 Gy) ou PDR (15 Gy sur le CTV-IR)"
+  ],
+  [
+   "col.curie_indications[3].modalite",
+   "Fin de la curiethérapie avant le 50e jour (EMBRACE II), au plus tard le 55e (Curie)",
+   "Fin de la curiethérapie avant le 50e jour (EMBRACE II), au plus tard le 55e"
+  ],
+  [
+   "col.systemique[3].traitement",
+   "Chimiothérapie concomitante à base de cisplatine (Peters : cisplatine 70 mg/m² + 5FU 1000 mg/m²/j × 4 j toutes les 3 semaines, 4 cures dont 2 pendant la RT ; Curie : cisplatine 40 mg/m² hebdomadaire)",
+   "Chimiothérapie concomitante à base de cisplatine (Peters : cisplatine 70 mg/m² + 5FU 1000 mg/m²/j × 4 j toutes les 3 semaines, 4 cures dont 2 pendant la RT ; autre approche : cisplatine 40 mg/m² hebdomadaire)"
+  ],
+  [
+   "col.points_attention[0].point",
+   "Étalement total (RTE + curiethérapie) ≤ 50 jours (EMBRACE II), 55 jours au plus (Curie) ; une semaine de plus équivaut à environ 5 Gy de moins sur le CTV-HR",
+   "Étalement total (RTE + curiethérapie) ≤ 50 jours (EMBRACE II), 55 jours au plus ; une semaine de plus équivaut à environ 5 Gy de moins sur le CTV-HR"
+  ],
+  [
+   "col.points_attention[1].point",
+   "CBCT quotidien avec recalage sur le bassin osseux ; ne pas recaler sur l'utérus (on sortirait les ganglions) ; l'utérus doit rester dans l'ITV_T, à défaut dans le PTV45 ; nouvelle simulation à discuter si les volumes sortent des PTV après 3 séances (Curie)",
+   "CBCT quotidien avec recalage sur le bassin osseux ; ne pas recaler sur l'utérus (on sortirait les ganglions) ; l'utérus doit rester dans l'ITV_T, à défaut dans le PTV45 ; nouvelle simulation à discuter si les volumes sortent des PTV après 3 séances"
+  ],
+  [
+   "col.points_attention[2].point",
+   "Irradiation lombo-aortique : image kV/kV quotidienne en plus du CBCT pour vérifier le rachis lombaire ; décalage > 5 mm entre pelvis et lombo-aortique = repositionner (Curie)",
+   "Irradiation lombo-aortique : image kV/kV quotidienne en plus du CBCT pour vérifier le rachis lombaire ; décalage > 5 mm entre pelvis et lombo-aortique = repositionner"
+  ],
+  [
+   "col.points_attention[8].point",
+   "PTV_N = CTV_N + 5 mm. Le protocole Curie col écrit « GTV_N + 5 mm » (coquille : le protocole Curie endomètre et EMBRACE II écrivent CTV_N + 5 mm) ; la fiche du service fait CTV_N = GTV_N + 5 mm puis PTV_N = CTV_N sans marge",
+   "PTV_N = CTV_N + 5 mm. Le protocole Curie col écrit « GTV_N + 5 mm » ; la fiche du service fait CTV_N = GTV_N + 5 mm puis PTV_N = CTV_N sans marge"
+  ],
+  [
+   "col.textes",
+   {
+    "curietherapie": [
+     "La curiethérapie utéro-vaginale guidée par l'image fait partie du traitement de tout col traité par radiochimiothérapie exclusive. Elle ne se remplace pas par un complément en radiothérapie externe : c'est la technique d'escalade de dose centro-pelvienne (Curie).",
+     "**Volumes de curiethérapie (GEC-ESTRO, EMBRACE II) :** GTV-res = tumeur résiduelle visible en T2 au moment de la curiethérapie ; CTV-HR = GTV-res + totalité du col + extensions résiduelles (zones grises paramétriales ou vaginales) ; CTV-IR = CTV-HR + marge couvrant l'extension tumorale initiale (5 à 15 mm selon la réponse). Contourage sur l'IRM T2 avec applicateur en place (coupes para-axiales, vérifiées en sagittal et coronal), après examen gynécologique par le médecin qui contoure, avec le schéma clinique et l'IRM du diagnostic. Pas de marge PTV en curiethérapie ; une marge seulement le long de la sonde intra-utérine est admise pour les incertitudes de reconstruction.",
+     "**Objectifs de dose :** jeu `ct-col-embrace2-curie` (EQD2 cumulée RTE + curiethérapie, α/β = 10 pour les cibles, 3 pour les OAR, T½ = 1,5 h). Pour l'HDR ABS : jeu `ct-col-abs-hdr`. L'EQD2 se calcule fraction par fraction sur le D90 et les D2cm³ réels, puis s'ajoute à l'EQD2 de la RTE (45 Gy / 25 fx = 44,25 Gy EQD2₁₀).",
+     "**Désescalade de la dose vaginale (EMBRACE II, tableau 10.2) :** point recto-vaginal ICRU < 65 Gy EQD2 (priorité) ; rapport TRAK vaginal / TRAK total < 30–40 % ; points vaginaux latéraux à 5 mm < 85 Gy EQD2 ; isodose 140 % le plus possible dans l'applicateur.",
+     "**Mise en place :** applicateur sous anesthésie, tamponnement vaginal ; vessie : vidange puis instillation d'un volume fixe de sérum en HDR, sonde ouverte en PDR ; IRM (ou à défaut scanner) avec applicateur pour chaque implantation ; dosimétrie avant chaque fraction.",
+     "**PDR :** Curie prescrit 15 Gy sur le CTV-IR en débit pulsé (la durée et la dose des pulses ne sont pas précisées dans le protocole). Le calcul d'EQD2 utilise le modèle linéaire-quadratique à réparation incomplète (T½ = 1,5 h) : les tableurs IGR et ICM du service le font ; le module n'en propose pas, il affiche « calcul PDR : utiliser l'outil dédié »."
+    ],
+    "centrage": [
+     "Pour tout centrage RTE, vérifier dès le début de la RTE que la curiethérapie est programmée, avec un étalement total ≤ 50 jours."
+    ],
+    "contourage": [
+     "Les adénopathies sont contourées et numérotées une par une ; chaque niveau de dose a son nom (GTV\\_N55, GTV\\_N57.5)."
+    ]
+   },
+   null
+  ]
+ ],
+ "craniopharyngiome.json": [
+  [
+   "craniopharyngiome.schemas[0].source_institutionnelle",
+   "Tableur du service « Craniopharyngiome 54 Gy »",
+   null
+  ],
+  [
+   "craniopharyngiome.simulations[1].contention",
+   "Masque thermoformé 5 points ou cadre stéréotaxique (fiche du service) ; Curie : masque bivalve sans cadre, moulé sur une cale retirée avant l'acquisition",
+   "Masque thermoformé 5 points ou cadre stéréotaxique ; autre approche : masque bivalve sans cadre, moulé sur une cale retirée avant l'acquisition"
+  ],
+  [
+   "craniopharyngiome.simulations[1].scanner",
+   "Coupes axiales millimétriques. Curie : non injecté, de 1 cm au-dessus du vertex jusqu'à T1 ; fiche du service : injecté",
+   "Coupes axiales millimétriques. Autre approche : non injecté, de 1 cm au-dessus du vertex jusqu'à T1 ; autre approche : injecté"
+  ],
+  [
+   "craniopharyngiome.simulations[1].imagerie",
+   "IRM de planification T1 sans injection (saignement récent), T1 gadolinium 3D (contourage) et perfusion (référence du suivi), jusqu'à C3–C4, fusionnée au scanner. Première séance dans les 14 jours suivant l'IRM, 16 au plus (Curie)",
+   "IRM de planification T1 sans injection (saignement récent), T1 gadolinium 3D (contourage) et perfusion (référence du suivi), jusqu'à C3–C4, fusionnée au scanner. Première séance dans les 14 jours suivant l'IRM, 16 au plus"
+  ],
+  [
+   "craniopharyngiome.simulations[1].reperes",
+   "Plan de référence pointe du nez–tragus, perpendiculaire à la table (Curie)",
+   "Plan de référence pointe du nez–tragus, perpendiculaire à la table"
+  ],
+  [
+   "craniopharyngiome.volumes[0].cibles[0].definition",
+   "Partie solide rehaussée en T1 gadolinium et kyste (tableur du service)",
+   "Partie solide rehaussée en T1 gadolinium et kyste"
+  ],
+  [
+   "craniopharyngiome.volumes[0].cibles[1].definition",
+   "GTV + 7 mm (tableur du service)",
+   "GTV + 7 mm"
+  ],
+  [
+   "craniopharyngiome.volumes[0].cibles[2].definition",
+   "CTV + 3 mm (tableur du service)",
+   "CTV + 3 mm"
+  ],
+  [
+   "craniopharyngiome.volumes[1].cibles[0].definition",
+   "Prise de contraste nodulaire en T1 gadolinium 3D, zoom maximal ; œdème FLAIR exclu ; composante hémorragique limitée incluse si le PTV reste compatible (Curie)",
+   "Prise de contraste nodulaire en T1 gadolinium 3D, zoom maximal ; œdème FLAIR exclu ; composante hémorragique limitée incluse si le PTV reste compatible"
+  ],
+  [
+   "craniopharyngiome.volumes[1].cibles[2].definition",
+   "CTV + 1 mm isotrope (Curie, masque et Novalis) ; plus petit diamètre du PTV d'au moins 8 mm, sinon marge augmentée ; à adapter à la plateforme",
+   "CTV + 1 mm isotrope ; plus petit diamètre du PTV d'au moins 8 mm, sinon marge augmentée ; à adapter à la plateforme"
+  ],
+  [
+   "craniopharyngiome.textes",
+   {
+    "systemique": [
+     "Pas de traitement systémique standard."
+    ]
+   },
+   null
+  ]
+ ],
+ "endometre.json": [
+  [
+   "endometre.schemas[4].source_institutionnelle",
+   "Institut Curie, protocole endomètre et col post-opératoire 2021 ; fiche du service",
+   null
+  ],
+  [
+   "endometre.schemas[4].prescriptions[2].note",
+   "20 à 30 mm de vagin supérieur selon l'anatomie (fiche du service)",
+   "20 à 30 mm de vagin supérieur selon l'anatomie"
+  ],
+  [
+   "endometre.schemas[4].systemique",
+   "Cisplatine 40 mg/m² hebdomadaire possible (Curie)",
+   "Cisplatine 40 mg/m² hebdomadaire possible"
+  ],
+  [
+   "endometre.schemas[5].source_institutionnelle",
+   "Institut Curie, protocole endomètre et col post-opératoire 2021",
+   null
+  ],
+  [
+   "endometre.schemas[5].points_attention[0]",
+   "Lombo-aortique : image kV/kV quotidienne en plus du CBCT ; décalage > 5 mm entre pelvis et lombo-aortique = repositionner ; pas de traitement sur Halcyon (Curie)",
+   "Lombo-aortique : image kV/kV quotidienne en plus du CBCT ; décalage > 5 mm entre pelvis et lombo-aortique = repositionner ; pas de traitement sur Halcyon"
+  ],
+  [
+   "endometre.simulations[0].preparation",
+   "Rectum vide (Normacol ; diamètre antéro-postérieur ≤ 5 cm) ; vessie confortable : 2 à 3 verres d'eau dans l'heure qui précède ; reproductibilité vessie et rectum à vérifier",
+   "Rectum vide (Zetalax ; diamètre antéro-postérieur ≤ 5 cm) ; vessie confortable : 2 à 3 verres d'eau dans l'heure qui précède ; reproductibilité vessie et rectum à vérifier"
+  ],
+  [
+   "endometre.simulations[0].reperes",
+   "Fil plombé dans le fond vaginal si la cicatrisation est acquise (fiche du service)",
+   "Fil plombé dans le fond vaginal si la cicatrisation est acquise"
+  ],
+  [
+   "endometre.volumes[0].cibles[1].definition",
+   "3 à 4 cm supérieurs du vagin + cicatrice + 0,5 à 2 cm au-dessus selon la position du grêle + paravagin jusqu'à la paroi pelvienne, sans les aires ganglionnaires ; exclure les anses grêles. Fiche du service : limite inférieure à 1 cm au-dessus du bord inférieur des trous obturateurs ou 3 cm sous le marqueur vaginal (la plus basse), marge de 5 mm dans le paravagin au niveau du haut des têtes fémorales ; adapter à la longueur résiduelle du vagin",
+   "3 à 4 cm supérieurs du vagin + cicatrice + 0,5 à 2 cm au-dessus selon la position du grêle + paravagin jusqu'à la paroi pelvienne, sans les aires ganglionnaires ; exclure les anses grêles. Autre approche : limite inférieure à 1 cm au-dessus du bord inférieur des trous obturateurs ou 3 cm sous le marqueur vaginal (la plus basse), marge de 5 mm dans le paravagin au niveau du haut des têtes fémorales ; adapter à la longueur résiduelle du vagin"
+  ],
+  [
+   "endometre.volumes[0].cibles[6].definition",
+   "CTV_45Gy + 5 mm isotrope + tous les PTV_N. Fiche du service : PTV-T = CTV-T + 1 cm, PTV-N = CTV-N + 0,5 cm (même résultat)",
+   "CTV_45Gy + 5 mm isotrope + tous les PTV_N. Autre approche : PTV-T = CTV-T + 1 cm, PTV-N = CTV-N + 0,5 cm (même résultat)"
+  ],
+  [
+   "endometre.curie_indications[2].indication",
+   "Après RTE pelvienne 45 Gy (Curie)",
+   "Après RTE pelvienne 45 Gy"
+  ],
+  [
+   "endometre.systemique[2].situation",
+   "Pelvis 45 Gy (Curie)",
+   "Pelvis 45 Gy"
+  ],
+  [
+   "endometre.points_attention[5].point",
+   "CBCT quotidien avec recalage osseux : le fond vaginal doit rester dans l'ITV_T, les vaisseaux dans le CTV_E, à défaut dans le PTV_45Gy ; tout le vagin visible sur le CBCT (Curie)",
+   "CBCT quotidien avec recalage osseux : le fond vaginal doit rester dans l'ITV_T, les vaisseaux dans le CTV_E, à défaut dans le PTV_45Gy ; tout le vagin visible sur le CBCT"
+  ],
+  [
+   "endometre.points_attention[6].point",
+   "Lombo-aortique : image kV/kV quotidienne en plus du CBCT ; décalage > 5 mm entre pelvis et lombo-aortique = repositionner ; pas de traitement sur Halcyon (Curie)",
+   "Lombo-aortique : image kV/kV quotidienne en plus du CBCT ; décalage > 5 mm entre pelvis et lombo-aortique = repositionner ; pas de traitement sur Halcyon"
+  ],
+  [
+   "endometre.textes",
+   {
+    "curietherapie": [
+     "La curiethérapie du fond vaginal se fait seule (risque intermédiaire, intermédiaire-élevé pN0) ou en complément de la radiothérapie pelvienne (atteinte du col, stades II–III, marge vaginale).",
+     "**Technique :** cylindre vaginal du plus grand diamètre toléré ; prescription à 5 mm de la muqueuse ; longueur traitée 20 à 30 mm de vagin supérieur après RTE (fiche du service). Pas de PTV."
+    ],
+    "contourage": [
+     "Pas de GTV\\_T après chirurgie, sauf résidu."
+    ]
+   },
+   null
+  ]
+ ],
+ "ependymome.json": [
+  [
+   "ependymome.textes",
+   {
+    "centrage": [
+     "Bilan par IRM craniospinale (EANO 2018)."
+    ],
+    "systemique": [
+     "Pas de traitement systémique associé à la RT ; chimiothérapie réservée aux récidives sans option locale (EANO 2018)."
+    ]
+   },
+   null
+  ]
+ ],
+ "estomac.json": [
+  [
+   "estomac.textes",
+   {},
+   null
+  ]
+ ],
+ "foie.json": [
+  [
+   "foie.schemas[0].source_institutionnelle",
+   "Gustave Roussy, stéréotaxie hépatique 2016 (3 × 15 Gy)",
+   null
+  ],
+  [
+   "foie.schemas[0].couverture",
+   "Gustave Roussy : rapporter D2 %, D50 %, D98 %, D99 % du PTV et l'indice d'homogénéité",
+   "Rapporter D2 %, D50 %, D98 %, D99 % du PTV et l'indice d'homogénéité"
+  ],
+  [
+   "foie.schemas[1].source_institutionnelle",
+   "Gustave Roussy, stéréotaxie hépatique 2016 (5 fractions)",
+   null
+  ],
+  [
+   "foie.schemas[1].prescriptions[0].note",
+   "Gustave Roussy : 5 × 9, 8, 7 ou 6,5 Gy, prescription sur l'isodose 82 %. RTOG 1112 : 27,5 à 50 Gy / 5 fx",
+   "5 × 9, 8, 7 ou 6,5 Gy, prescription sur l'isodose 82 %. RTOG 1112 : 27,5 à 50 Gy / 5 fx"
+  ],
+  [
+   "foie.schemas[1].couverture",
+   "Gustave Roussy : rapporter D2 %, D50 %, D98 %, D99 % du PTV et l'indice d'homogénéité",
+   "Rapporter D2 %, D50 %, D98 %, D99 % du PTV et l'indice d'homogénéité"
+  ],
+  [
+   "foie.schemas[2].source_institutionnelle",
+   "Gustave Roussy, stéréotaxie hépatique 2016 (10 × 5 Gy)",
+   null
+  ],
+  [
+   "foie.schemas[2].couverture",
+   "Gustave Roussy : rapporter D2 %, D50 %, D98 %, D99 % du PTV et l'indice d'homogénéité",
+   "Rapporter D2 %, D50 %, D98 %, D99 % du PTV et l'indice d'homogénéité"
+  ],
+  [
+   "foie.schemas[4].source_institutionnelle",
+   "Gustave Roussy, stéréotaxie hépatique 2016 (3 × 15 Gy)",
+   null
+  ],
+  [
+   "foie.schemas[4].couverture",
+   "Gustave Roussy : rapporter D2 %, D50 %, D98 %, D99 % du PTV et l'indice d'homogénéité",
+   "Rapporter D2 %, D50 %, D98 %, D99 % du PTV et l'indice d'homogénéité"
+  ],
+  [
+   "foie.textes",
+   {},
+   null
+  ]
+ ],
+ "glandes_salivaires.json": [
+  [
+   "glandes_salivaires.schemas[0].source_institutionnelle",
+   "Institut Curie 2021",
+   null
+  ],
+  [
+   "glandes_salivaires.schemas[1].source_institutionnelle",
+   "Tableur du service « ORL 60-54 Gy »",
+   null
+  ],
+  [
+   "glandes_salivaires.schemas[1].couverture",
+   "Tableur du service : D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
+   "D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %"
+  ],
+  [
+   "glandes_salivaires.schemas[2].source_institutionnelle",
+   "Institut Curie 2021 ; tableur du service « ORL 70-63-56 Gy »",
+   null
+  ],
+  [
+   "glandes_salivaires.textes",
+   {
+    "contourage": [
+     "CTV de la tumeur primitive et choix des aires ganglionnaires : Piram 2019 (parotide) et Frédéric-Moreau 2019 (glande sous-mandibulaire), références du protocole Curie."
+    ]
+   },
+   null
+  ]
+ ],
+ "glioblastome.json": [
+  [
+   "glioblastome.situations[0].criteres",
+   "Glioblastome IDH non muté confirmé histologiquement, après exérèse maximale ou biopsie ; OMS 0–2, IK ≥ 70 (fiche du service) ; bénéfice du témozolomide démontré jusqu'à 70 ans",
+   "Glioblastome IDH non muté confirmé histologiquement, après exérèse maximale ou biopsie ; OMS 0–2, IK ≥ 70 ; bénéfice du témozolomide démontré jusqu'à 70 ans"
+  ],
+  [
+   "glioblastome.schemas[0].source_institutionnelle",
+   "Fiche du service « glioblastome »",
+   null
+  ],
+  [
+   "glioblastome.volumes[0].cibles[2].definition",
+   "CTV + 3 mm au plus avec IGRT, selon le système de contention (ESTRO-EANO) ; fiche du service : 3 mm",
+   "CTV + 3 mm au plus avec IGRT, selon le système de contention (ESTRO-EANO) ; autre approche : 3 mm"
+  ],
+  [
+   "glioblastome.textes",
+   {
+    "contourage": [
+     "Volumes de l'ESTRO-EANO 2023 : un seul CTV, fondé sur la cavité et la prise de contraste. La fiche du service ajoutait 20 mm et l'hypersignal FLAIR."
+    ]
+   },
+   null
+  ]
+ ],
+ "gliome.json": [
+  [
+   "gliome.schemas[0].source_institutionnelle",
+   "Tableur du service « Gliome grade 2 »",
+   null
+  ],
+  [
+   "gliome.schemas[2].source_institutionnelle",
+   "Tableur du service « Gliome grade 3 »",
+   null
+  ],
+  [
+   "gliome.volumes[0].cibles[2].definition",
+   "CTV + 3 mm au plus avec IGRT (ESTRO-EANO 2023) ; tableurs du service : 3 mm",
+   "CTV + 3 mm au plus avec IGRT (ESTRO-EANO 2023) ; autre approche : 3 mm"
+  ],
+  [
+   "gliome.textes",
+   {
+    "contourage": [
+     "Les tableurs du service prévoyaient 5 mm en grade 2 et 20 mm en grade 3."
+    ]
+   },
+   null
+  ]
+ ],
+ "hypopharynx.json": [
+  [
+   "hypopharynx.situations[1].criteres",
+   "Haut risque : marges positives ou rupture capsulaire → 66 Gy et cisplatine. Intermédiaire : T3–T4, engainements, emboles → 60 Gy (fiche du service)",
+   "Haut risque : marges positives ou rupture capsulaire → 66 Gy et cisplatine. Intermédiaire : T3–T4, engainements, emboles → 60 Gy"
+  ],
+  [
+   "hypopharynx.schemas[0].source_institutionnelle",
+   "Institut Curie 2021 ; tableur du service « ORL 70-63-56 Gy »",
+   null
+  ],
+  [
+   "hypopharynx.schemas[1].source_institutionnelle",
+   "Institut Curie 2021 pour la RT",
+   null
+  ],
+  [
+   "hypopharynx.schemas[2].source_institutionnelle",
+   "Tableur du service « ORL 69,96-59,4-54,12 Gy »",
+   null
+  ],
+  [
+   "hypopharynx.schemas[2].couverture",
+   "Tableur du service : D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
+   "D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %"
+  ],
+  [
+   "hypopharynx.schemas[3].source_institutionnelle",
+   "Gustave Roussy, RCMI des cancers de la tête et du cou (2017)",
+   null
+  ],
+  [
+   "hypopharynx.schemas[4].source_institutionnelle",
+   "Institut Curie 2021 ; tableur du service « ORL 66-59,4-54,12 Gy »",
+   null
+  ],
+  [
+   "hypopharynx.schemas[5].titre",
+   "RT post-opératoire 66 / 54 Gy en 33 fx (fiche du service)",
+   "RT post-opératoire 66 / 54 Gy en 33 fx"
+  ],
+  [
+   "hypopharynx.schemas[5].source_institutionnelle",
+   "Fiche du service « RT ORL post-opératoire »",
+   null
+  ],
+  [
+   "hypopharynx.schemas[5].couverture",
+   "Tableur du service : D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
+   "D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %"
+  ],
+  [
+   "hypopharynx.schemas[6].source_institutionnelle",
+   "Fiche du service « RT ORL post-opératoire » ; tableur du service « ORL 60-54 Gy »",
+   null
+  ],
+  [
+   "hypopharynx.schemas[6].couverture",
+   "Tableur du service : D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
+   "D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %"
+  ],
+  [
+   "hypopharynx.points_attention[0].point",
+   "Drainage ganglionnaire bilatéral fréquent ; niveau VI à inclure (fiche du service)",
+   "Drainage ganglionnaire bilatéral fréquent ; niveau VI à inclure"
+  ],
+  [
+   "hypopharynx.textes",
+   {
+    "centrage": [
+     "Traction des épaules si le volume descend sous l'os hyoïde (Gustave Roussy)."
+    ]
+   },
+   null
+  ]
+ ],
+ "hypophyse.json": [
+  [
+   "hypophyse.simulations[1].contention",
+   "Masque thermoformé 5 points ou cadre stéréotaxique (fiche du service) ; Curie : masque bivalve sans cadre, moulé sur une cale retirée avant l'acquisition",
+   "Masque thermoformé 5 points ou cadre stéréotaxique ; autre approche : masque bivalve sans cadre, moulé sur une cale retirée avant l'acquisition"
+  ],
+  [
+   "hypophyse.simulations[1].scanner",
+   "Coupes axiales millimétriques. Curie : non injecté, de 1 cm au-dessus du vertex jusqu'à T1 ; fiche du service : injecté",
+   "Coupes axiales millimétriques. Autre approche : non injecté, de 1 cm au-dessus du vertex jusqu'à T1 ; autre approche : injecté"
+  ],
+  [
+   "hypophyse.simulations[1].imagerie",
+   "IRM de planification T1 sans injection (saignement récent), T1 gadolinium 3D (contourage) et perfusion (référence du suivi), jusqu'à C3–C4, fusionnée au scanner. Première séance dans les 14 jours suivant l'IRM, 16 au plus (Curie)",
+   "IRM de planification T1 sans injection (saignement récent), T1 gadolinium 3D (contourage) et perfusion (référence du suivi), jusqu'à C3–C4, fusionnée au scanner. Première séance dans les 14 jours suivant l'IRM, 16 au plus"
+  ],
+  [
+   "hypophyse.simulations[1].reperes",
+   "Plan de référence pointe du nez–tragus, perpendiculaire à la table (Curie)",
+   "Plan de référence pointe du nez–tragus, perpendiculaire à la table"
+  ],
+  [
+   "hypophyse.textes",
+   {
+    "systemique": [
+     "Pas de chimiothérapie. Adénome sécrétant : traitement médical antisécrétoire poursuivi selon l'endocrinologue."
+    ]
+   },
+   null
+  ]
+ ],
+ "larynx.json": [
+  [
+   "larynx.situations[0].criteres",
+   "T1 N0 (Yamazaki 2006) ou T2 N0 (RTOG 9512) ; irradiation ganglionnaire souvent inutile (fiche du service)",
+   "T1 N0 (Yamazaki 2006) ou T2 N0 (RTOG 9512) ; irradiation ganglionnaire souvent inutile"
+  ],
+  [
+   "larynx.situations[2].criteres",
+   "Haut risque : marges positives ou rupture capsulaire → 66 Gy et cisplatine. Intermédiaire → 60 Gy (fiche du service)",
+   "Haut risque : marges positives ou rupture capsulaire → 66 Gy et cisplatine. Intermédiaire → 60 Gy"
+  ],
+  [
+   "larynx.schemas[3].source_institutionnelle",
+   "Institut Curie 2021 ; tableur du service « ORL 70-63-56 Gy »",
+   null
+  ],
+  [
+   "larynx.schemas[4].source_institutionnelle",
+   "Institut Curie 2021 pour la RT",
+   null
+  ],
+  [
+   "larynx.schemas[5].source_institutionnelle",
+   "Tableur du service « ORL 69,96-59,4-54,12 Gy »",
+   null
+  ],
+  [
+   "larynx.schemas[5].couverture",
+   "Tableur du service : D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
+   "D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %"
+  ],
+  [
+   "larynx.schemas[6].source_institutionnelle",
+   "Gustave Roussy, RCMI des cancers de la tête et du cou (2017)",
+   null
+  ],
+  [
+   "larynx.schemas[7].source_institutionnelle",
+   "Institut Curie 2021 ; tableur du service « ORL 66-59,4-54,12 Gy »",
+   null
+  ],
+  [
+   "larynx.schemas[8].titre",
+   "RT post-opératoire 66 / 54 Gy en 33 fx (fiche du service)",
+   "RT post-opératoire 66 / 54 Gy en 33 fx"
+  ],
+  [
+   "larynx.schemas[8].source_institutionnelle",
+   "Fiche du service « RT ORL post-opératoire »",
+   null
+  ],
+  [
+   "larynx.schemas[8].couverture",
+   "Tableur du service : D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
+   "D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %"
+  ],
+  [
+   "larynx.schemas[9].source_institutionnelle",
+   "Fiche du service « RT ORL post-opératoire » ; tableur du service « ORL 60-54 Gy »",
+   null
+  ],
+  [
+   "larynx.schemas[9].couverture",
+   "Tableur du service : D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
+   "D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %"
+  ],
+  [
+   "larynx.volumes[0].cibles[1].definition",
+   "GTV et marges de Grégoire 2018 (CTV-P1 et CTV-P2), adaptées au cartilage et à l'air ; sans aire ganglionnaire en T1–T2 N0 le plus souvent (fiche du service)",
+   "GTV et marges de Grégoire 2018 (CTV-P1 et CTV-P2), adaptées au cartilage et à l'air ; sans aire ganglionnaire en T1–T2 N0 le plus souvent"
+  ],
+  [
+   "larynx.volumes[0].cibles[2].definition",
+   "CTV + 3 mm, moins 2 mm sous le contour externe (Curie)",
+   "CTV + 3 mm, moins 2 mm sous le contour externe"
+  ],
+  [
+   "larynx.textes",
+   {
+    "centrage": [
+     "Patient laryngectomisé : retrait de la canule possible, pas obligatoire ; canule de trachéotomie gardée si le larynx est en place (Curie)."
+    ]
+   },
+   null
+  ]
+ ],
+ "medulloblastome.json": [
+  [
+   "medulloblastome.textes",
+   {},
+   null
+  ]
+ ],
+ "melanome.json": [
+  [
+   "melanome.textes",
+   {
+    "systemique": [
+     "Pas de traitement systémique associé à la RT dans ce schéma ; le traitement adjuvant systémique relève de la RCP."
+    ]
+   },
+   null
+  ]
+ ],
+ "melanome_uveal.json": [
+  [
+   "melanome_uveal.textes",
+   {
+    "systemique": [
+     "Pas de traitement systémique associé à la curiethérapie."
+    ]
+   },
+   null
+  ]
+ ],
+ "meningiome.json": [
+  [
+   "meningiome.schemas[0].source_institutionnelle",
+   "Tableur du service « Méningiome bénin base du crâne 54 Gy »",
+   null
+  ],
+  [
+   "meningiome.schemas[1].source_institutionnelle",
+   "Tableur du service « Méningiome 50,4 Gy »",
+   null
+  ],
+  [
+   "meningiome.schemas[6].source_institutionnelle",
+   "Tableur du service « Méningiome grade III 68,4 Gy »",
+   null
+  ],
+  [
+   "meningiome.simulations[1].contention",
+   "Masque thermoformé 5 points ou cadre stéréotaxique (fiche du service) ; Curie : masque bivalve sans cadre, moulé sur une cale retirée avant l'acquisition",
+   "Masque thermoformé 5 points ou cadre stéréotaxique ; autre approche : masque bivalve sans cadre, moulé sur une cale retirée avant l'acquisition"
+  ],
+  [
+   "meningiome.simulations[1].scanner",
+   "Coupes axiales millimétriques. Curie : non injecté, de 1 cm au-dessus du vertex jusqu'à T1 ; fiche du service : injecté",
+   "Coupes axiales millimétriques. Autre approche : non injecté, de 1 cm au-dessus du vertex jusqu'à T1 ; autre approche : injecté"
+  ],
+  [
+   "meningiome.simulations[1].imagerie",
+   "IRM de planification T1 sans injection (saignement récent), T1 gadolinium 3D (contourage) et perfusion (référence du suivi), jusqu'à C3–C4, fusionnée au scanner. Première séance dans les 14 jours suivant l'IRM, 16 au plus (Curie)",
+   "IRM de planification T1 sans injection (saignement récent), T1 gadolinium 3D (contourage) et perfusion (référence du suivi), jusqu'à C3–C4, fusionnée au scanner. Première séance dans les 14 jours suivant l'IRM, 16 au plus"
+  ],
+  [
+   "meningiome.simulations[1].reperes",
+   "Plan de référence pointe du nez–tragus, perpendiculaire à la table (Curie)",
+   "Plan de référence pointe du nez–tragus, perpendiculaire à la table"
+  ],
+  [
+   "meningiome.volumes[4].cibles[0].definition",
+   "Prise de contraste nodulaire en T1 gadolinium 3D, zoom maximal ; œdème FLAIR exclu ; composante hémorragique limitée incluse si le PTV reste compatible (Curie)",
+   "Prise de contraste nodulaire en T1 gadolinium 3D, zoom maximal ; œdème FLAIR exclu ; composante hémorragique limitée incluse si le PTV reste compatible"
+  ],
+  [
+   "meningiome.volumes[4].cibles[2].definition",
+   "CTV + 1 mm isotrope (Curie, masque et Novalis) ; plus petit diamètre du PTV d'au moins 8 mm, sinon marge augmentée ; à adapter à la plateforme",
+   "CTV + 1 mm isotrope ; plus petit diamètre du PTV d'au moins 8 mm, sinon marge augmentée ; à adapter à la plateforme"
+  ],
+  [
+   "meningiome.textes",
+   {
+    "systemique": [
+     "Pas de traitement systémique standard. Bévacizumab et inhibiteurs multikinases du VEGFR donnent les meilleurs résultats, modestes (EANO 2021)."
+    ]
+   },
+   null
+  ]
+ ],
+ "merkel.json": [
+  [
+   "merkel.textes",
+   {
+    "systemique": [
+     "Pas de traitement systémique concomitant défini ; maladie métastatique : immunothérapie anti-PD-1 ou anti-PD-L1, la RT s'intégrant au cas par cas (S2k 2023)."
+    ]
+   },
+   null
+  ]
+ ],
+ "mesotheliome.json": [
+  [
+   "mesotheliome.schemas[0].source_institutionnelle",
+   "Gustave Roussy, fiche dosimétrique mésothéliome post-opératoire",
+   null
+  ],
+  [
+   "mesotheliome.schemas[1].source_institutionnelle",
+   "Gustave Roussy, fiche dosimétrique mésothéliome pré-opératoire 5 × 5 Gy",
+   null
+  ],
+  [
+   "mesotheliome.textes",
+   {},
+   null
+  ]
+ ],
+ "metastases_cerebrales.json": [
+  [
+   "metastases_cerebrales.situations[0].criteres",
+   "Primitif contrôlé, histologie confirmée ; 5 lésions au plus (plus sur avis médical) ; PTV < 40 mm ; IK > 70 %, espérance de vie > 6 mois ; ni hydrocéphalie ni effet de masse (Curie, ANOCEF 2018). Lésion ≥ 30 mm : discuter la chirurgie première",
+   "Primitif contrôlé, histologie confirmée ; 5 lésions au plus (plus sur avis médical) ; PTV < 40 mm ; IK > 70 %, espérance de vie > 6 mois ; ni hydrocéphalie ni effet de masse (ANOCEF 2018). Lésion ≥ 30 mm : discuter la chirurgie première"
+  ],
+  [
+   "metastases_cerebrales.situations[1].criteres",
+   "Après exérèse, stéréotaxie systématique ; PTV < 50 mm (Curie)",
+   "Après exérèse, stéréotaxie systématique ; PTV < 50 mm"
+  ],
+  [
+   "metastases_cerebrales.situations[3].criteres",
+   "Récidive après encéphale in toto ou après une stéréotaxie du même site ; toujours en 3 ou 5 séances ; exérèse première à privilégier si faisable (Curie)",
+   "Récidive après encéphale in toto ou après une stéréotaxie du même site ; toujours en 3 ou 5 séances ; exérèse première à privilégier si faisable"
+  ],
+  [
+   "metastases_cerebrales.schemas[0].source_institutionnelle",
+   "Institut Curie, stéréotaxie des métastases cérébrales 2021",
+   null
+  ],
+  [
+   "metastases_cerebrales.schemas[0].prescriptions[0].note",
+   "GTV à plus de 5 mm du tronc et du chiasma, hors zone critique (Curie)",
+   "GTV à plus de 5 mm du tronc et du chiasma, hors zone critique"
+  ],
+  [
+   "metastases_cerebrales.schemas[0].couverture",
+   "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 % (Curie)",
+   "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 %"
+  ],
+  [
+   "metastases_cerebrales.schemas[0].points_attention[0]",
+   "Les contraintes des OAR priment sur le choix de la dose et du fractionnement (Curie)",
+   "Les contraintes des OAR priment sur le choix de la dose et du fractionnement"
+  ],
+  [
+   "metastases_cerebrales.schemas[0].points_attention[1]",
+   "Dose unique si PTV ≤ 20 mm, GTV à plus de 5 mm du tronc et du chiasma, hors zone critique ; sinon 3 ou 5 fractions (Curie)",
+   "Dose unique si PTV ≤ 20 mm, GTV à plus de 5 mm du tronc et du chiasma, hors zone critique ; sinon 3 ou 5 fractions"
+  ],
+  [
+   "metastases_cerebrales.schemas[0].points_attention[2]",
+   "PTV de 50 mm ou plus : pas de stéréotaxie, RCMI (Curie)",
+   "PTV de 50 mm ou plus : pas de stéréotaxie, RCMI"
+  ],
+  [
+   "metastases_cerebrales.schemas[0].points_attention[6]",
+   "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1° (Curie)",
+   "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1°"
+  ],
+  [
+   "metastases_cerebrales.schemas[0].points_attention[7]",
+   "Suivi : IRM à 3 mois, puis tous les 3 mois pendant au moins 2 ans (Curie) ; pronostic selon le score DS-GPA de l'histologie",
+   "Suivi : IRM à 3 mois, puis tous les 3 mois pendant au moins 2 ans ; pronostic selon le score DS-GPA de l'histologie"
+  ],
+  [
+   "metastases_cerebrales.schemas[0].points_attention[8]",
+   "Respecter les délais entre RT et traitements systémiques (ANOCEF 2018) ; vigilance avec gemcitabine, anthracyclines et actinomycine D (Curie)",
+   "Respecter les délais entre RT et traitements systémiques (ANOCEF 2018) ; vigilance avec gemcitabine, anthracyclines et actinomycine D"
+  ],
+  [
+   "metastases_cerebrales.schemas[1].points_attention[0]",
+   "Les contraintes des OAR priment sur le choix de la dose et du fractionnement (Curie)",
+   "Les contraintes des OAR priment sur le choix de la dose et du fractionnement"
+  ],
+  [
+   "metastases_cerebrales.schemas[1].points_attention[1]",
+   "Dose unique si PTV ≤ 20 mm, GTV à plus de 5 mm du tronc et du chiasma, hors zone critique ; sinon 3 ou 5 fractions (Curie)",
+   "Dose unique si PTV ≤ 20 mm, GTV à plus de 5 mm du tronc et du chiasma, hors zone critique ; sinon 3 ou 5 fractions"
+  ],
+  [
+   "metastases_cerebrales.schemas[1].points_attention[2]",
+   "PTV de 50 mm ou plus : pas de stéréotaxie, RCMI (Curie)",
+   "PTV de 50 mm ou plus : pas de stéréotaxie, RCMI"
+  ],
+  [
+   "metastases_cerebrales.schemas[1].points_attention[6]",
+   "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1° (Curie)",
+   "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1°"
+  ],
+  [
+   "metastases_cerebrales.schemas[1].points_attention[7]",
+   "Suivi : IRM à 3 mois, puis tous les 3 mois pendant au moins 2 ans (Curie) ; pronostic selon le score DS-GPA de l'histologie",
+   "Suivi : IRM à 3 mois, puis tous les 3 mois pendant au moins 2 ans ; pronostic selon le score DS-GPA de l'histologie"
+  ],
+  [
+   "metastases_cerebrales.schemas[1].points_attention[8]",
+   "Respecter les délais entre RT et traitements systémiques (ANOCEF 2018) ; vigilance avec gemcitabine, anthracyclines et actinomycine D (Curie)",
+   "Respecter les délais entre RT et traitements systémiques (ANOCEF 2018) ; vigilance avec gemcitabine, anthracyclines et actinomycine D"
+  ],
+  [
+   "metastases_cerebrales.schemas[2].points_attention[0]",
+   "Les contraintes des OAR priment sur le choix de la dose et du fractionnement (Curie)",
+   "Les contraintes des OAR priment sur le choix de la dose et du fractionnement"
+  ],
+  [
+   "metastases_cerebrales.schemas[2].points_attention[1]",
+   "Dose unique si PTV ≤ 20 mm, GTV à plus de 5 mm du tronc et du chiasma, hors zone critique ; sinon 3 ou 5 fractions (Curie)",
+   "Dose unique si PTV ≤ 20 mm, GTV à plus de 5 mm du tronc et du chiasma, hors zone critique ; sinon 3 ou 5 fractions"
+  ],
+  [
+   "metastases_cerebrales.schemas[2].points_attention[2]",
+   "PTV de 50 mm ou plus : pas de stéréotaxie, RCMI (Curie)",
+   "PTV de 50 mm ou plus : pas de stéréotaxie, RCMI"
+  ],
+  [
+   "metastases_cerebrales.schemas[2].points_attention[6]",
+   "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1° (Curie)",
+   "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1°"
+  ],
+  [
+   "metastases_cerebrales.schemas[2].points_attention[7]",
+   "Suivi : IRM à 3 mois, puis tous les 3 mois pendant au moins 2 ans (Curie) ; pronostic selon le score DS-GPA de l'histologie",
+   "Suivi : IRM à 3 mois, puis tous les 3 mois pendant au moins 2 ans ; pronostic selon le score DS-GPA de l'histologie"
+  ],
+  [
+   "metastases_cerebrales.schemas[2].points_attention[8]",
+   "Respecter les délais entre RT et traitements systémiques (ANOCEF 2018) ; vigilance avec gemcitabine, anthracyclines et actinomycine D (Curie)",
+   "Respecter les délais entre RT et traitements systémiques (ANOCEF 2018) ; vigilance avec gemcitabine, anthracyclines et actinomycine D"
+  ],
+  [
+   "metastases_cerebrales.schemas[3].source_institutionnelle",
+   "Institut Curie, stéréotaxie des métastases cérébrales 2021",
+   null
+  ],
+  [
+   "metastases_cerebrales.schemas[3].prescriptions[0].note",
+   "Lésion du tronc : pas de dose unique, 3 × 8 ou 5 × 5 Gy (Curie)",
+   "Lésion du tronc : pas de dose unique, 3 × 8 ou 5 × 5 Gy"
+  ],
+  [
+   "metastases_cerebrales.schemas[3].couverture",
+   "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 % (Curie)",
+   "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 %"
+  ],
+  [
+   "metastases_cerebrales.schemas[3].points_attention[0]",
+   "Les contraintes des OAR priment sur le choix de la dose et du fractionnement (Curie)",
+   "Les contraintes des OAR priment sur le choix de la dose et du fractionnement"
+  ],
+  [
+   "metastases_cerebrales.schemas[3].points_attention[1]",
+   "Dose unique si PTV ≤ 20 mm, GTV à plus de 5 mm du tronc et du chiasma, hors zone critique ; sinon 3 ou 5 fractions (Curie)",
+   "Dose unique si PTV ≤ 20 mm, GTV à plus de 5 mm du tronc et du chiasma, hors zone critique ; sinon 3 ou 5 fractions"
+  ],
+  [
+   "metastases_cerebrales.schemas[3].points_attention[2]",
+   "PTV de 50 mm ou plus : pas de stéréotaxie, RCMI (Curie)",
+   "PTV de 50 mm ou plus : pas de stéréotaxie, RCMI"
+  ],
+  [
+   "metastases_cerebrales.schemas[3].points_attention[6]",
+   "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1° (Curie)",
+   "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1°"
+  ],
+  [
+   "metastases_cerebrales.schemas[3].points_attention[7]",
+   "Suivi : IRM à 3 mois, puis tous les 3 mois pendant au moins 2 ans (Curie) ; pronostic selon le score DS-GPA de l'histologie",
+   "Suivi : IRM à 3 mois, puis tous les 3 mois pendant au moins 2 ans ; pronostic selon le score DS-GPA de l'histologie"
+  ],
+  [
+   "metastases_cerebrales.schemas[3].points_attention[8]",
+   "Respecter les délais entre RT et traitements systémiques (ANOCEF 2018) ; vigilance avec gemcitabine, anthracyclines et actinomycine D (Curie)",
+   "Respecter les délais entre RT et traitements systémiques (ANOCEF 2018) ; vigilance avec gemcitabine, anthracyclines et actinomycine D"
+  ],
+  [
+   "metastases_cerebrales.schemas[4].source_institutionnelle",
+   "Institut Curie, stéréotaxie des métastases cérébrales 2021",
+   null
+  ],
+  [
+   "metastases_cerebrales.schemas[4].prescriptions[0].note",
+   "Schéma du tronc cérébral en 3 fractions (Curie)",
+   "Schéma du tronc cérébral en 3 fractions"
+  ],
+  [
+   "metastases_cerebrales.schemas[4].couverture",
+   "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 % (Curie)",
+   "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 %"
+  ],
+  [
+   "metastases_cerebrales.schemas[4].points_attention[0]",
+   "Les contraintes des OAR priment sur le choix de la dose et du fractionnement (Curie)",
+   "Les contraintes des OAR priment sur le choix de la dose et du fractionnement"
+  ],
+  [
+   "metastases_cerebrales.schemas[4].points_attention[1]",
+   "Dose unique si PTV ≤ 20 mm, GTV à plus de 5 mm du tronc et du chiasma, hors zone critique ; sinon 3 ou 5 fractions (Curie)",
+   "Dose unique si PTV ≤ 20 mm, GTV à plus de 5 mm du tronc et du chiasma, hors zone critique ; sinon 3 ou 5 fractions"
+  ],
+  [
+   "metastases_cerebrales.schemas[4].points_attention[2]",
+   "PTV de 50 mm ou plus : pas de stéréotaxie, RCMI (Curie)",
+   "PTV de 50 mm ou plus : pas de stéréotaxie, RCMI"
+  ],
+  [
+   "metastases_cerebrales.schemas[4].points_attention[6]",
+   "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1° (Curie)",
+   "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1°"
+  ],
+  [
+   "metastases_cerebrales.schemas[4].points_attention[7]",
+   "Suivi : IRM à 3 mois, puis tous les 3 mois pendant au moins 2 ans (Curie) ; pronostic selon le score DS-GPA de l'histologie",
+   "Suivi : IRM à 3 mois, puis tous les 3 mois pendant au moins 2 ans ; pronostic selon le score DS-GPA de l'histologie"
+  ],
+  [
+   "metastases_cerebrales.schemas[4].points_attention[8]",
+   "Respecter les délais entre RT et traitements systémiques (ANOCEF 2018) ; vigilance avec gemcitabine, anthracyclines et actinomycine D (Curie)",
+   "Respecter les délais entre RT et traitements systémiques (ANOCEF 2018) ; vigilance avec gemcitabine, anthracyclines et actinomycine D"
+  ],
+  [
+   "metastases_cerebrales.schemas[5].source_institutionnelle",
+   "Institut Curie, stéréotaxie des métastases cérébrales 2021",
+   null
+  ],
+  [
+   "metastases_cerebrales.schemas[5].couverture",
+   "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 % (Curie)",
+   "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 %"
+  ],
+  [
+   "metastases_cerebrales.schemas[5].points_attention[0]",
+   "Les contraintes des OAR priment sur le choix de la dose et du fractionnement (Curie)",
+   "Les contraintes des OAR priment sur le choix de la dose et du fractionnement"
+  ],
+  [
+   "metastases_cerebrales.schemas[5].points_attention[1]",
+   "Dose unique si PTV ≤ 20 mm, GTV à plus de 5 mm du tronc et du chiasma, hors zone critique ; sinon 3 ou 5 fractions (Curie)",
+   "Dose unique si PTV ≤ 20 mm, GTV à plus de 5 mm du tronc et du chiasma, hors zone critique ; sinon 3 ou 5 fractions"
+  ],
+  [
+   "metastases_cerebrales.schemas[5].points_attention[2]",
+   "PTV de 50 mm ou plus : pas de stéréotaxie, RCMI (Curie)",
+   "PTV de 50 mm ou plus : pas de stéréotaxie, RCMI"
+  ],
+  [
+   "metastases_cerebrales.schemas[5].points_attention[6]",
+   "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1° (Curie)",
+   "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1°"
+  ],
+  [
+   "metastases_cerebrales.schemas[5].points_attention[7]",
+   "Suivi : IRM à 3 mois, puis tous les 3 mois pendant au moins 2 ans (Curie) ; pronostic selon le score DS-GPA de l'histologie",
+   "Suivi : IRM à 3 mois, puis tous les 3 mois pendant au moins 2 ans ; pronostic selon le score DS-GPA de l'histologie"
+  ],
+  [
+   "metastases_cerebrales.schemas[5].points_attention[8]",
+   "Respecter les délais entre RT et traitements systémiques (ANOCEF 2018) ; vigilance avec gemcitabine, anthracyclines et actinomycine D (Curie)",
+   "Respecter les délais entre RT et traitements systémiques (ANOCEF 2018) ; vigilance avec gemcitabine, anthracyclines et actinomycine D"
+  ],
+  [
+   "metastases_cerebrales.schemas[6].source_institutionnelle",
+   "Institut Curie, stéréotaxie des métastases cérébrales 2021",
+   null
+  ],
+  [
+   "metastases_cerebrales.schemas[6].prescriptions[0].note",
+   "Schéma du tronc cérébral en 5 fractions (Curie)",
+   "Schéma du tronc cérébral en 5 fractions"
+  ],
+  [
+   "metastases_cerebrales.schemas[6].couverture",
+   "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 % (Curie)",
+   "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 %"
+  ],
+  [
+   "metastases_cerebrales.schemas[6].points_attention[0]",
+   "Les contraintes des OAR priment sur le choix de la dose et du fractionnement (Curie)",
+   "Les contraintes des OAR priment sur le choix de la dose et du fractionnement"
+  ],
+  [
+   "metastases_cerebrales.schemas[6].points_attention[1]",
+   "Dose unique si PTV ≤ 20 mm, GTV à plus de 5 mm du tronc et du chiasma, hors zone critique ; sinon 3 ou 5 fractions (Curie)",
+   "Dose unique si PTV ≤ 20 mm, GTV à plus de 5 mm du tronc et du chiasma, hors zone critique ; sinon 3 ou 5 fractions"
+  ],
+  [
+   "metastases_cerebrales.schemas[6].points_attention[2]",
+   "PTV de 50 mm ou plus : pas de stéréotaxie, RCMI (Curie)",
+   "PTV de 50 mm ou plus : pas de stéréotaxie, RCMI"
+  ],
+  [
+   "metastases_cerebrales.schemas[6].points_attention[6]",
+   "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1° (Curie)",
+   "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1°"
+  ],
+  [
+   "metastases_cerebrales.schemas[6].points_attention[7]",
+   "Suivi : IRM à 3 mois, puis tous les 3 mois pendant au moins 2 ans (Curie) ; pronostic selon le score DS-GPA de l'histologie",
+   "Suivi : IRM à 3 mois, puis tous les 3 mois pendant au moins 2 ans ; pronostic selon le score DS-GPA de l'histologie"
+  ],
+  [
+   "metastases_cerebrales.schemas[6].points_attention[8]",
+   "Respecter les délais entre RT et traitements systémiques (ANOCEF 2018) ; vigilance avec gemcitabine, anthracyclines et actinomycine D (Curie)",
+   "Respecter les délais entre RT et traitements systémiques (ANOCEF 2018) ; vigilance avec gemcitabine, anthracyclines et actinomycine D"
+  ],
+  [
+   "metastases_cerebrales.schemas[7].source_institutionnelle",
+   "Fiche du service « stéréotaxie cérébrale »",
+   null
+  ],
+  [
+   "metastases_cerebrales.schemas[7].points_attention[0]",
+   "Les contraintes des OAR priment sur le choix de la dose et du fractionnement (Curie)",
+   "Les contraintes des OAR priment sur le choix de la dose et du fractionnement"
+  ],
+  [
+   "metastases_cerebrales.schemas[7].points_attention[1]",
+   "Dose unique si PTV ≤ 20 mm, GTV à plus de 5 mm du tronc et du chiasma, hors zone critique ; sinon 3 ou 5 fractions (Curie)",
+   "Dose unique si PTV ≤ 20 mm, GTV à plus de 5 mm du tronc et du chiasma, hors zone critique ; sinon 3 ou 5 fractions"
+  ],
+  [
+   "metastases_cerebrales.schemas[7].points_attention[2]",
+   "PTV de 50 mm ou plus : pas de stéréotaxie, RCMI (Curie)",
+   "PTV de 50 mm ou plus : pas de stéréotaxie, RCMI"
+  ],
+  [
+   "metastases_cerebrales.schemas[7].points_attention[7]",
+   "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1° (Curie)",
+   "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1°"
+  ],
+  [
+   "metastases_cerebrales.schemas[7].points_attention[8]",
+   "Suivi : IRM à 3 mois, puis tous les 3 mois pendant au moins 2 ans (Curie) ; pronostic selon le score DS-GPA de l'histologie",
+   "Suivi : IRM à 3 mois, puis tous les 3 mois pendant au moins 2 ans ; pronostic selon le score DS-GPA de l'histologie"
+  ],
+  [
+   "metastases_cerebrales.schemas[7].points_attention[9]",
+   "Respecter les délais entre RT et traitements systémiques (ANOCEF 2018) ; vigilance avec gemcitabine, anthracyclines et actinomycine D (Curie)",
+   "Respecter les délais entre RT et traitements systémiques (ANOCEF 2018) ; vigilance avec gemcitabine, anthracyclines et actinomycine D"
+  ],
+  [
+   "metastases_cerebrales.schemas[8].source_institutionnelle",
+   "Institut Curie, stéréotaxie des métastases cérébrales 2021",
+   null
+  ],
+  [
+   "metastases_cerebrales.schemas[8].prescriptions[0].note",
+   "Pas de dose unique en post-opératoire (Curie)",
+   "Pas de dose unique en post-opératoire"
+  ],
+  [
+   "metastases_cerebrales.schemas[8].couverture",
+   "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 % (Curie)",
+   "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 %"
+  ],
+  [
+   "metastases_cerebrales.schemas[8].points_attention[2]",
+   "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1° (Curie)",
+   "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1°"
+  ],
+  [
+   "metastases_cerebrales.schemas[9].source_institutionnelle",
+   "Institut Curie, stéréotaxie des métastases cérébrales 2021",
+   null
+  ],
+  [
+   "metastases_cerebrales.schemas[9].couverture",
+   "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 % (Curie)",
+   "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 %"
+  ],
+  [
+   "metastases_cerebrales.schemas[9].points_attention[2]",
+   "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1° (Curie)",
+   "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1°"
+  ],
+  [
+   "metastases_cerebrales.schemas[10].source_institutionnelle",
+   "Institut Curie, stéréotaxie des métastases cérébrales 2021",
+   null
+  ],
+  [
+   "metastases_cerebrales.schemas[10].couverture",
+   "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 % (Curie)",
+   "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 %"
+  ],
+  [
+   "metastases_cerebrales.schemas[10].points_attention[2]",
+   "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1° (Curie)",
+   "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1°"
+  ],
+  [
+   "metastases_cerebrales.schemas[11].source_institutionnelle",
+   "Institut Curie, stéréotaxie des métastases cérébrales 2021",
+   null
+  ],
+  [
+   "metastases_cerebrales.schemas[11].couverture",
+   "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 % (Curie)",
+   "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 %"
+  ],
+  [
+   "metastases_cerebrales.schemas[11].points_attention[2]",
+   "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1° (Curie)",
+   "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1°"
+  ],
+  [
+   "metastases_cerebrales.schemas[12].source_institutionnelle",
+   "Fiche du service « stéréotaxie cérébrale »",
+   null
+  ],
+  [
+   "metastases_cerebrales.schemas[12].points_attention[2]",
+   "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1° (Curie)",
+   "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1°"
+  ],
+  [
+   "metastases_cerebrales.schemas[13].source_institutionnelle",
+   "Fiche du service « encéphale in toto »",
+   null
+  ],
+  [
+   "metastases_cerebrales.schemas[13].prescriptions[0].note",
+   "Bon état général, survie attendue prolongée (fiche du service)",
+   "Bon état général, survie attendue prolongée"
+  ],
+  [
+   "metastases_cerebrales.schemas[14].source_institutionnelle",
+   "Fiche du service « encéphale in toto »",
+   null
+  ],
+  [
+   "metastases_cerebrales.schemas[14].prescriptions[0].note",
+   "Altération de l'état général (fiche du service)",
+   "Altération de l'état général"
+  ],
+  [
+   "metastases_cerebrales.schemas[15].source_institutionnelle",
+   "Tableur du service « Épargne hippocampique »",
+   null
+  ],
+  [
+   "metastases_cerebrales.schemas[16].source_institutionnelle",
+   "Institut Curie, stéréotaxie des métastases cérébrales 2021",
+   null
+  ],
+  [
+   "metastases_cerebrales.schemas[16].couverture",
+   "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 % (Curie)",
+   "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 %"
+  ],
+  [
+   "metastases_cerebrales.schemas[16].points_attention[1]",
+   "Nommer la lésion réirradiée avec le suffixe « bis » (PTV1bis) ; contrainte de recoupe avec la première irradiation (jeux Curie 3 et 5 fx)",
+   "Nommer la lésion réirradiée avec le suffixe « bis » (PTV1bis) ; contrainte de recoupe avec la première irradiation"
+  ],
+  [
+   "metastases_cerebrales.schemas[16].points_attention[2]",
+   "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1° (Curie)",
+   "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1°"
+  ],
+  [
+   "metastases_cerebrales.schemas[17].source_institutionnelle",
+   "Institut Curie, stéréotaxie des métastases cérébrales 2021",
+   null
+  ],
+  [
+   "metastases_cerebrales.schemas[17].couverture",
+   "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 % (Curie)",
+   "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 %"
+  ],
+  [
+   "metastases_cerebrales.schemas[17].points_attention[1]",
+   "Nommer la lésion réirradiée avec le suffixe « bis » (PTV1bis) ; contrainte de recoupe avec la première irradiation (jeux Curie 3 et 5 fx)",
+   "Nommer la lésion réirradiée avec le suffixe « bis » (PTV1bis) ; contrainte de recoupe avec la première irradiation"
+  ],
+  [
+   "metastases_cerebrales.schemas[17].points_attention[2]",
+   "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1° (Curie)",
+   "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1°"
+  ],
+  [
+   "metastases_cerebrales.schemas[18].source_institutionnelle",
+   "Institut Curie, stéréotaxie des métastases cérébrales 2021",
+   null
+  ],
+  [
+   "metastases_cerebrales.schemas[18].couverture",
+   "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 % (Curie)",
+   "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 %"
+  ],
+  [
+   "metastases_cerebrales.schemas[18].points_attention[1]",
+   "Nommer la lésion réirradiée avec le suffixe « bis » (PTV1bis) ; contrainte de recoupe avec la première irradiation (jeux Curie 3 et 5 fx)",
+   "Nommer la lésion réirradiée avec le suffixe « bis » (PTV1bis) ; contrainte de recoupe avec la première irradiation"
+  ],
+  [
+   "metastases_cerebrales.schemas[18].points_attention[2]",
+   "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1° (Curie)",
+   "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1°"
+  ],
+  [
+   "metastases_cerebrales.schemas[19].source_institutionnelle",
+   "Institut Curie, stéréotaxie des métastases cérébrales 2021",
+   null
+  ],
+  [
+   "metastases_cerebrales.schemas[19].couverture",
+   "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 % (Curie)",
+   "PTV : V100 % ≥ 99 %, D50 % ≥ 115 %, Dmax 125–140 % de la dose prescrite ; CTV : D95 % ≥ 112 %"
+  ],
+  [
+   "metastases_cerebrales.schemas[19].points_attention[1]",
+   "Nommer la lésion réirradiée avec le suffixe « bis » (PTV1bis) ; contrainte de recoupe avec la première irradiation (jeux Curie 3 et 5 fx)",
+   "Nommer la lésion réirradiée avec le suffixe « bis » (PTV1bis) ; contrainte de recoupe avec la première irradiation"
+  ],
+  [
+   "metastases_cerebrales.schemas[19].points_attention[2]",
+   "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1° (Curie)",
+   "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1°"
+  ],
+  [
+   "metastases_cerebrales.simulations[0].contention",
+   "Masque thermoformé 5 points ou cadre stéréotaxique (fiche du service) ; Curie : masque bivalve sans cadre, moulé sur une cale retirée avant l'acquisition",
+   "Masque thermoformé 5 points ou cadre stéréotaxique ; autre approche : masque bivalve sans cadre, moulé sur une cale retirée avant l'acquisition"
+  ],
+  [
+   "metastases_cerebrales.simulations[0].scanner",
+   "Coupes axiales millimétriques. Curie : non injecté, de 1 cm au-dessus du vertex jusqu'à T1 ; fiche du service : injecté",
+   "Coupes axiales millimétriques. Autre approche : non injecté, de 1 cm au-dessus du vertex jusqu'à T1 ; autre approche : injecté"
+  ],
+  [
+   "metastases_cerebrales.simulations[0].imagerie",
+   "IRM de planification T1 sans injection (saignement récent), T1 gadolinium 3D (contourage) et perfusion (référence du suivi), jusqu'à C3–C4, fusionnée au scanner. Première séance dans les 14 jours suivant l'IRM, 16 au plus (Curie)",
+   "IRM de planification T1 sans injection (saignement récent), T1 gadolinium 3D (contourage) et perfusion (référence du suivi), jusqu'à C3–C4, fusionnée au scanner. Première séance dans les 14 jours suivant l'IRM, 16 au plus"
+  ],
+  [
+   "metastases_cerebrales.simulations[0].reperes",
+   "Plan de référence pointe du nez–tragus, perpendiculaire à la table (Curie)",
+   "Plan de référence pointe du nez–tragus, perpendiculaire à la table"
+  ],
+  [
+   "metastases_cerebrales.simulations[1].scanner",
+   "Injecté recommandé (fiche du service)",
+   "Injecté recommandé"
+  ],
+  [
+   "metastases_cerebrales.volumes[0].cibles[0].definition",
+   "Prise de contraste nodulaire en T1 gadolinium 3D, zoom maximal ; œdème FLAIR exclu ; composante hémorragique limitée incluse si le PTV reste compatible (Curie)",
+   "Prise de contraste nodulaire en T1 gadolinium 3D, zoom maximal ; œdème FLAIR exclu ; composante hémorragique limitée incluse si le PTV reste compatible"
+  ],
+  [
+   "metastases_cerebrales.volumes[0].cibles[2].definition",
+   "CTV + 1 mm isotrope (Curie, masque et Novalis) ; plus petit diamètre du PTV d'au moins 8 mm, sinon marge augmentée ; à adapter à la plateforme",
+   "CTV + 1 mm isotrope ; plus petit diamètre du PTV d'au moins 8 mm, sinon marge augmentée ; à adapter à la plateforme"
+  ],
+  [
+   "metastases_cerebrales.volumes[1].cibles[0].definition",
+   "Lit opératoire (paroi externe de la cavité) + 1 mm isotrope + toute prise de contraste résiduelle ; ni œdème ni voie d'abord. Contact méningé initial : + 5 mm le long de la dure-mère ; contact d'un sinus veineux : + 1 à 5 mm le long du sinus (Curie)",
+   "Lit opératoire (paroi externe de la cavité) + 1 mm isotrope + toute prise de contraste résiduelle ; ni œdème ni voie d'abord. Contact méningé initial : + 5 mm le long de la dure-mère ; contact d'un sinus veineux : + 1 à 5 mm le long du sinus"
+  ],
+  [
+   "metastases_cerebrales.volumes[1].cibles[1].definition",
+   "CTV + 1 mm isotrope (Curie)",
+   "CTV + 1 mm isotrope"
+  ],
+  [
+   "metastases_cerebrales.volumes[2].cibles[0].definition",
+   "Encéphale en totalité, de l'apex crânien au trou occipital (jonction crâne–C1, ou dernière coupe du cervelet) (fiche du service)",
+   "Encéphale en totalité, de l'apex crânien au trou occipital (jonction crâne–C1, ou dernière coupe du cervelet)"
+  ],
+  [
+   "metastases_cerebrales.volumes[2].cibles[1].definition",
+   "CTV + 5 mm (fiche du service)",
+   "CTV + 5 mm"
+  ],
+  [
+   "metastases_cerebrales.points_attention[0].point",
+   "Les contraintes des OAR priment sur le choix de la dose et du fractionnement (Curie)",
+   "Les contraintes des OAR priment sur le choix de la dose et du fractionnement"
+  ],
+  [
+   "metastases_cerebrales.points_attention[1].point",
+   "Dose unique si PTV ≤ 20 mm, GTV à plus de 5 mm du tronc et du chiasma, hors zone critique ; sinon 3 ou 5 fractions (Curie)",
+   "Dose unique si PTV ≤ 20 mm, GTV à plus de 5 mm du tronc et du chiasma, hors zone critique ; sinon 3 ou 5 fractions"
+  ],
+  [
+   "metastases_cerebrales.points_attention[2].point",
+   "PTV de 50 mm ou plus : pas de stéréotaxie, RCMI (Curie)",
+   "PTV de 50 mm ou plus : pas de stéréotaxie, RCMI"
+  ],
+  [
+   "metastases_cerebrales.points_attention[12].point",
+   "Nommer la lésion réirradiée avec le suffixe « bis » (PTV1bis) ; contrainte de recoupe avec la première irradiation (jeux Curie 3 et 5 fx)",
+   "Nommer la lésion réirradiée avec le suffixe « bis » (PTV1bis) ; contrainte de recoupe avec la première irradiation"
+  ],
+  [
+   "metastases_cerebrales.points_attention[13].point",
+   "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1° (Curie)",
+   "Contrôle Exactrac 6D table à 0° puis avant chaque arc ; décalage > 2 mm ou > 2° : replacer le patient ; traiter si < 0,5 mm et < 1°"
+  ],
+  [
+   "metastases_cerebrales.points_attention[14].point",
+   "Suivi : IRM à 3 mois, puis tous les 3 mois pendant au moins 2 ans (Curie) ; pronostic selon le score DS-GPA de l'histologie",
+   "Suivi : IRM à 3 mois, puis tous les 3 mois pendant au moins 2 ans ; pronostic selon le score DS-GPA de l'histologie"
+  ],
+  [
+   "metastases_cerebrales.points_attention[15].point",
+   "Respecter les délais entre RT et traitements systémiques (ANOCEF 2018) ; vigilance avec gemcitabine, anthracyclines et actinomycine D (Curie)",
+   "Respecter les délais entre RT et traitements systémiques (ANOCEF 2018) ; vigilance avec gemcitabine, anthracyclines et actinomycine D"
+  ],
+  [
+   "metastases_cerebrales.textes",
+   {
+    "contourage": [
+     "Stéréotaxie selon Curie. La fiche du service prévoyait un PTV de 3 mm et une cavité sans marge."
+    ]
+   },
+   null
+  ]
+ ],
+ "metastases_osseuses.json": [
+  [
+   "metastases_osseuses.volumes[0].cibles[3].definition",
+   "CTV + 7 mm (protocole du service)",
+   "CTV + 7 mm"
+  ],
+  [
+   "metastases_osseuses.points_attention[3].point",
+   "Fiche du service : contourage des volumes et OAR sans schéma de dose ; les schémas viennent des essais cités",
+   "Contourage des volumes et OAR sans schéma de dose ; les schémas viennent des essais cités"
+  ],
+  [
+   "metastases_osseuses.textes",
+   {
+    "contourage": [
+     "Fiche du service « contourage des métastases osseuses »."
+    ],
+    "systemique": [
+     "Pas de traitement systémique associé à la RT dans ces schémas."
+    ]
+   },
+   null
+  ]
+ ],
+ "neurocytome.json": [
+  [
+   "neurocytome.schemas[1].source_institutionnelle",
+   "Tableur du service « Neurocytome 59,4 Gy »",
+   null
+  ],
+  [
+   "neurocytome.simulations[1].contention",
+   "Masque thermoformé 5 points ou cadre stéréotaxique (fiche du service) ; Curie : masque bivalve sans cadre, moulé sur une cale retirée avant l'acquisition",
+   "Masque thermoformé 5 points ou cadre stéréotaxique ; autre approche : masque bivalve sans cadre, moulé sur une cale retirée avant l'acquisition"
+  ],
+  [
+   "neurocytome.simulations[1].scanner",
+   "Coupes axiales millimétriques. Curie : non injecté, de 1 cm au-dessus du vertex jusqu'à T1 ; fiche du service : injecté",
+   "Coupes axiales millimétriques. Autre approche : non injecté, de 1 cm au-dessus du vertex jusqu'à T1 ; autre approche : injecté"
+  ],
+  [
+   "neurocytome.simulations[1].imagerie",
+   "IRM de planification T1 sans injection (saignement récent), T1 gadolinium 3D (contourage) et perfusion (référence du suivi), jusqu'à C3–C4, fusionnée au scanner. Première séance dans les 14 jours suivant l'IRM, 16 au plus (Curie)",
+   "IRM de planification T1 sans injection (saignement récent), T1 gadolinium 3D (contourage) et perfusion (référence du suivi), jusqu'à C3–C4, fusionnée au scanner. Première séance dans les 14 jours suivant l'IRM, 16 au plus"
+  ],
+  [
+   "neurocytome.simulations[1].reperes",
+   "Plan de référence pointe du nez–tragus, perpendiculaire à la table (Curie)",
+   "Plan de référence pointe du nez–tragus, perpendiculaire à la table"
+  ],
+  [
+   "neurocytome.volumes[0].cibles[1].definition",
+   "GTV + 5 mm (tableur du service)",
+   "GTV + 5 mm"
+  ],
+  [
+   "neurocytome.volumes[0].cibles[2].definition",
+   "CTV + 3 mm (tableur du service)",
+   "CTV + 3 mm"
+  ],
+  [
+   "neurocytome.volumes[1].cibles[0].definition",
+   "GTV préopératoire + 15 mm, étendu aux ventricules (tableur du service)",
+   "GTV préopératoire + 15 mm, étendu aux ventricules"
+  ],
+  [
+   "neurocytome.volumes[1].cibles[1].definition",
+   "GTV + 5 mm (tableur du service)",
+   "GTV + 5 mm"
+  ],
+  [
+   "neurocytome.volumes[1].cibles[2].definition",
+   "CTV + 3 mm (tableur du service)",
+   "CTV + 3 mm"
+  ],
+  [
+   "neurocytome.volumes[2].cibles[0].definition",
+   "Prise de contraste nodulaire en T1 gadolinium 3D, zoom maximal ; œdème FLAIR exclu ; composante hémorragique limitée incluse si le PTV reste compatible (Curie)",
+   "Prise de contraste nodulaire en T1 gadolinium 3D, zoom maximal ; œdème FLAIR exclu ; composante hémorragique limitée incluse si le PTV reste compatible"
+  ],
+  [
+   "neurocytome.volumes[2].cibles[2].definition",
+   "CTV + 1 mm isotrope (Curie, masque et Novalis) ; plus petit diamètre du PTV d'au moins 8 mm, sinon marge augmentée ; à adapter à la plateforme",
+   "CTV + 1 mm isotrope ; plus petit diamètre du PTV d'au moins 8 mm, sinon marge augmentée ; à adapter à la plateforme"
+  ],
+  [
+   "neurocytome.textes",
+   {
+    "systemique": [
+     "Pas de traitement systémique standard."
+    ]
+   },
+   null
+  ]
+ ],
+ "oesophage.json": [
+  [
+   "oesophage.schemas[3].source_institutionnelle",
+   "Fiche du service « protocole CONCORDE »",
+   null
+  ],
+  [
+   "oesophage.textes",
+   {
+    "curietherapie": [
+     "**Technique :** applicateur endoluminal ; dose prescrite à 1 cm du milieu de la source ou de la position d'arrêt (ABS)."
+    ]
+   },
+   null
+  ]
+ ],
+ "orl_palliatif.json": [
+  [
+   "orl_palliatif.situations[0].criteres",
+   "Patient ne supportant pas un traitement continu de 7 semaines (Curie, annexe B)",
+   "Patient ne supportant pas un traitement continu de 7 semaines"
+  ],
+  [
+   "orl_palliatif.schemas[0].source_institutionnelle",
+   "Institut Curie 2021, annexe B",
+   null
+  ],
+  [
+   "orl_palliatif.schemas[1].source_institutionnelle",
+   "Institut Curie 2021, annexe B",
+   null
+  ],
+  [
+   "orl_palliatif.schemas[4].source_institutionnelle",
+   "Institut Curie 2021, annexe B",
+   null
+  ],
+  [
+   "orl_palliatif.schemas[4].prescriptions[0].note",
+   "Exemple de schéma palliatif (Curie)",
+   "Exemple de schéma palliatif"
+  ],
+  [
+   "orl_palliatif.schemas[5].source_institutionnelle",
+   "Institut Curie 2021, annexe B",
+   null
+  ],
+  [
+   "orl_palliatif.schemas[5].prescriptions[0].note",
+   "Exemple de schéma palliatif (Curie)",
+   "Exemple de schéma palliatif"
+  ],
+  [
+   "orl_palliatif.volumes[0].cibles[1].definition",
+   "Volume macroscopique sans prophylaxie ganglionnaire (Curie, annexe B) ; marges du centre",
+   "Volume macroscopique sans prophylaxie ganglionnaire ; marges du centre"
+  ],
+  [
+   "orl_palliatif.textes",
+   {
+    "systemique": [
+     "Pas de traitement systémique associé dans ces schémas."
+    ]
+   },
+   null
+  ]
+ ],
+ "oropharynx.json": [
+  [
+   "oropharynx.situations[1].criteres",
+   "Haut risque : marges positives ou rupture capsulaire → 66 Gy et cisplatine. Intermédiaire : marges < 5 mm, T3–T4, engainements → 60 Gy (fiche du service)",
+   "Haut risque : marges positives ou rupture capsulaire → 66 Gy et cisplatine. Intermédiaire : marges < 5 mm, T3–T4, engainements → 60 Gy"
+  ],
+  [
+   "oropharynx.schemas[0].source_institutionnelle",
+   "Institut Curie 2021 ; tableur du service « ORL 70-63-56 Gy »",
+   null
+  ],
+  [
+   "oropharynx.schemas[0].points_attention[1]",
+   "Volumes Curie : CTV70 élargissable en base de langue ; CTV56_T compartimental (Lapeyre 2005) ; aires ganglionnaires selon Biau 2019",
+   "Volumes : CTV70 élargissable en base de langue ; CTV56_T compartimental (Lapeyre 2005) ; aires ganglionnaires selon Biau 2019"
+  ],
+  [
+   "oropharynx.schemas[1].points_attention[2]",
+   "Volumes Curie : CTV70 élargissable en base de langue ; CTV56_T compartimental (Lapeyre 2005) ; aires ganglionnaires selon Biau 2019",
+   "Volumes : CTV70 élargissable en base de langue ; CTV56_T compartimental (Lapeyre 2005) ; aires ganglionnaires selon Biau 2019"
+  ],
+  [
+   "oropharynx.schemas[2].source_institutionnelle",
+   "Tableur du service « ORL 69,96-59,4-54,12 Gy »",
+   null
+  ],
+  [
+   "oropharynx.schemas[2].couverture",
+   "Tableur du service : D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
+   "D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %"
+  ],
+  [
+   "oropharynx.schemas[2].points_attention[1]",
+   "Volumes Curie : CTV70 élargissable en base de langue ; CTV56_T compartimental (Lapeyre 2005) ; aires ganglionnaires selon Biau 2019",
+   "Volumes : CTV70 élargissable en base de langue ; CTV56_T compartimental (Lapeyre 2005) ; aires ganglionnaires selon Biau 2019"
+  ],
+  [
+   "oropharynx.schemas[3].source_institutionnelle",
+   "Gustave Roussy, RCMI des cancers de la tête et du cou (2017)",
+   null
+  ],
+  [
+   "oropharynx.schemas[3].prescriptions[1].note",
+   "Oropharynx et niveaux contigus (annexe Gustave Roussy)",
+   "Oropharynx et niveaux contigus"
+  ],
+  [
+   "oropharynx.schemas[3].points_attention[1]",
+   "Volumes Curie : CTV70 élargissable en base de langue ; CTV56_T compartimental (Lapeyre 2005) ; aires ganglionnaires selon Biau 2019",
+   "Volumes : CTV70 élargissable en base de langue ; CTV56_T compartimental (Lapeyre 2005) ; aires ganglionnaires selon Biau 2019"
+  ],
+  [
+   "oropharynx.schemas[4].source_institutionnelle",
+   "Institut Curie 2021 ; tableur du service « ORL 66-59,4-54,12 Gy »",
+   null
+  ],
+  [
+   "oropharynx.schemas[5].titre",
+   "RT post-opératoire 66 / 54 Gy en 33 fx (fiche du service)",
+   "RT post-opératoire 66 / 54 Gy en 33 fx"
+  ],
+  [
+   "oropharynx.schemas[5].source_institutionnelle",
+   "Fiche du service « RT ORL post-opératoire »",
+   null
+  ],
+  [
+   "oropharynx.schemas[5].couverture",
+   "Tableur du service : D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
+   "D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %"
+  ],
+  [
+   "oropharynx.schemas[6].source_institutionnelle",
+   "Fiche du service « RT ORL post-opératoire » ; tableur du service « ORL 60-54 Gy »",
+   null
+  ],
+  [
+   "oropharynx.schemas[6].couverture",
+   "Tableur du service : D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
+   "D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %"
+  ],
+  [
+   "oropharynx.points_attention[3].point",
+   "Volumes Curie : CTV70 élargissable en base de langue ; CTV56_T compartimental (Lapeyre 2005) ; aires ganglionnaires selon Biau 2019",
+   "Volumes : CTV70 élargissable en base de langue ; CTV56_T compartimental (Lapeyre 2005) ; aires ganglionnaires selon Biau 2019"
+  ],
+  [
+   "oropharynx.textes",
+   {
+    "centrage": [
+     "IRM et TEP-FDG fortement recommandées pour l'oropharynx (Gustave Roussy)."
+    ]
+   },
+   null
+  ]
+ ],
+ "pancreas.json": [
+  [
+   "pancreas.schemas[0].source_institutionnelle",
+   "Fiche du service",
+   null
+  ],
+  [
+   "pancreas.textes",
+   {},
+   null
+  ]
+ ],
+ "peau_carcinome.json": [
+  [
+   "peau_carcinome.textes",
+   {
+    "systemique": [
+     "Pas de traitement systémique associé à la RT : le carboplatine hebdomadaire n'améliore pas le contrôle locorégional après chirurgie (TROG 05.01)."
+    ]
+   },
+   null
+  ]
+ ],
+ "penis.json": [
+  [
+   "penis.situations[0].criteres",
+   "Curiethérapie interstitielle recommandée en traitement initial (ABS-GEC-ESTRO 2013) ; posthectomie avant l'implant (Gustave Roussy)",
+   "Curiethérapie interstitielle recommandée en traitement initial (ABS-GEC-ESTRO 2013) ; posthectomie avant l'implant"
+  ],
+  [
+   "penis.schemas[1].titre",
+   "Curiethérapie débit pulsé guidée par scanner, 60 Gy (Gustave Roussy)",
+   "Curiethérapie débit pulsé guidée par scanner, 60 Gy"
+  ],
+  [
+   "penis.schemas[1].source_institutionnelle",
+   "Gustave Roussy, unité de curiethérapie",
+   null
+  ],
+  [
+   "penis.textes",
+   {
+    "systemique": [
+     "Pas de traitement systémique associé à la curiethérapie."
+    ]
+   },
+   null
+  ]
+ ],
+ "poumon.json": [
+  [
+   "poumon.situations[2].criteres",
+   "CBNPC T1–T2a N0 inopérable ou refusant la chirurgie ; nodule évolutif hypermétabolique sans histologie ; métastase pulmonaire (≤ 5 métastases dans ≤ 3 organes). PTV de 1 à 5 cm (Curie)",
+   "CBNPC T1–T2a N0 inopérable ou refusant la chirurgie ; nodule évolutif hypermétabolique sans histologie ; métastase pulmonaire (≤ 5 métastases dans ≤ 3 organes). PTV de 1 à 5 cm"
+  ],
+  [
+   "poumon.schemas[1].source_institutionnelle",
+   "Fiche du service",
+   null
+  ],
+  [
+   "poumon.schemas[3].source_institutionnelle",
+   "Institut Curie, SBRT d'un nodule pulmonaire",
+   null
+  ],
+  [
+   "poumon.schemas[3].prescriptions[0].note",
+   "Tumeur primitive seulement, pas pour une métastase (Curie)",
+   "Tumeur primitive seulement, pas pour une métastase"
+  ],
+  [
+   "poumon.schemas[3].couverture",
+   "(i)GTV : D98 % ≥ 100 % (souple : ≥ 110 %), D0,035 cc entre 118 et 143 %. PTV : D90 % ≥ 99 % (souple : D95 % ≥ 95 %). PTVéval (PTV moins les OAR) : D95 % ≥ 100 % (souple : D98 % ≥ 100 %). Aucune dose > 105 % hors du PTV. R100 % entre 1 et 1,2 ; R50 % et D2cm selon le volume du PTV (protocole Curie)",
+   "(i)GTV : D98 % ≥ 100 % (souple : ≥ 110 %), D0,035 cc entre 118 et 143 %. PTV : D90 % ≥ 99 % (souple : D95 % ≥ 95 %). PTVéval (PTV moins les OAR) : D95 % ≥ 100 % (souple : D98 % ≥ 100 %). Aucune dose > 105 % hors du PTV. R100 % entre 1 et 1,2 ; R50 % et D2cm selon le volume du PTV"
+  ],
+  [
+   "poumon.schemas[3].points_attention[0]",
+   "54 Gy / 3 fx : tumeur primitive seulement, jamais pour une métastase (Curie)",
+   "54 Gy / 3 fx : tumeur primitive seulement, jamais pour une métastase"
+  ],
+  [
+   "poumon.schemas[3].points_attention[2]",
+   "Lésion centrale = PTV à moins de 2 cm de toute structure sensible (définition IASLC retenue par Curie). Ultracentrale = PTV au contact de l'arbre bronchique proximal, du cœur, des vaisseaux pulmonaires ou de l'œsophage",
+   "Lésion centrale = PTV à moins de 2 cm de toute structure sensible (définition IASLC). Ultracentrale = PTV au contact de l'arbre bronchique proximal, du cœur, des vaisseaux pulmonaires ou de l'œsophage"
+  ],
+  [
+   "poumon.schemas[3].points_attention[6]",
+   "34 Gy / 1 fx (RTOG 0915, phase 2) : non retenu par Curie ni Gustave Roussy",
+   "34 Gy / 1 fx (RTOG 0915, phase 2) : non retenu"
+  ],
+  [
+   "poumon.schemas[3].points_attention[7]",
+   "Surveillance : TDM à 3, 6 et 12 mois, puis tous les 6 mois pendant 3 ans, puis annuelle (Curie)",
+   "Surveillance : TDM à 3, 6 et 12 mois, puis tous les 6 mois pendant 3 ans, puis annuelle"
+  ],
+  [
+   "poumon.schemas[3].couverture_lignes[1].indicateur",
+   "R50 % et D2cm selon le volume du PTV (protocole Curie)",
+   "R50 % et D2cm selon le volume du PTV"
+  ],
+  [
+   "poumon.schemas[4].source_institutionnelle",
+   "Institut Curie, SBRT d'un nodule pulmonaire",
+   null
+  ],
+  [
+   "poumon.schemas[4].couverture",
+   "(i)GTV : D98 % ≥ 100 % (souple : ≥ 110 %), D0,035 cc entre 118 et 143 %. PTV : D90 % ≥ 99 % (souple : D95 % ≥ 95 %). PTVéval (PTV moins les OAR) : D95 % ≥ 100 % (souple : D98 % ≥ 100 %). Aucune dose > 105 % hors du PTV. R100 % entre 1 et 1,2 ; R50 % et D2cm selon le volume du PTV (protocole Curie)",
+   "(i)GTV : D98 % ≥ 100 % (souple : ≥ 110 %), D0,035 cc entre 118 et 143 %. PTV : D90 % ≥ 99 % (souple : D95 % ≥ 95 %). PTVéval (PTV moins les OAR) : D95 % ≥ 100 % (souple : D98 % ≥ 100 %). Aucune dose > 105 % hors du PTV. R100 % entre 1 et 1,2 ; R50 % et D2cm selon le volume du PTV"
+  ],
+  [
+   "poumon.schemas[4].points_attention[0]",
+   "54 Gy / 3 fx : tumeur primitive seulement, jamais pour une métastase (Curie)",
+   "54 Gy / 3 fx : tumeur primitive seulement, jamais pour une métastase"
+  ],
+  [
+   "poumon.schemas[4].points_attention[2]",
+   "Lésion centrale = PTV à moins de 2 cm de toute structure sensible (définition IASLC retenue par Curie). Ultracentrale = PTV au contact de l'arbre bronchique proximal, du cœur, des vaisseaux pulmonaires ou de l'œsophage",
+   "Lésion centrale = PTV à moins de 2 cm de toute structure sensible (définition IASLC). Ultracentrale = PTV au contact de l'arbre bronchique proximal, du cœur, des vaisseaux pulmonaires ou de l'œsophage"
+  ],
+  [
+   "poumon.schemas[4].points_attention[6]",
+   "34 Gy / 1 fx (RTOG 0915, phase 2) : non retenu par Curie ni Gustave Roussy",
+   "34 Gy / 1 fx (RTOG 0915, phase 2) : non retenu"
+  ],
+  [
+   "poumon.schemas[4].points_attention[7]",
+   "Surveillance : TDM à 3, 6 et 12 mois, puis tous les 6 mois pendant 3 ans, puis annuelle (Curie)",
+   "Surveillance : TDM à 3, 6 et 12 mois, puis tous les 6 mois pendant 3 ans, puis annuelle"
+  ],
+  [
+   "poumon.schemas[4].couverture_lignes[1].indicateur",
+   "R50 % et D2cm selon le volume du PTV (protocole Curie)",
+   "R50 % et D2cm selon le volume du PTV"
+  ],
+  [
+   "poumon.schemas[5].source_institutionnelle",
+   "Institut Curie, SBRT d'un nodule pulmonaire",
+   null
+  ],
+  [
+   "poumon.schemas[5].couverture",
+   "(i)GTV : D98 % ≥ 100 % (souple : ≥ 110 %), D0,035 cc entre 118 et 143 %. PTV : D90 % ≥ 99 % (souple : D95 % ≥ 95 %). PTVéval (PTV moins les OAR) : D95 % ≥ 100 % (souple : D98 % ≥ 100 %). Aucune dose > 105 % hors du PTV. R100 % entre 1 et 1,2 ; R50 % et D2cm selon le volume du PTV (protocole Curie)",
+   "(i)GTV : D98 % ≥ 100 % (souple : ≥ 110 %), D0,035 cc entre 118 et 143 %. PTV : D90 % ≥ 99 % (souple : D95 % ≥ 95 %). PTVéval (PTV moins les OAR) : D95 % ≥ 100 % (souple : D98 % ≥ 100 %). Aucune dose > 105 % hors du PTV. R100 % entre 1 et 1,2 ; R50 % et D2cm selon le volume du PTV"
+  ],
+  [
+   "poumon.schemas[5].points_attention[0]",
+   "54 Gy / 3 fx : tumeur primitive seulement, jamais pour une métastase (Curie)",
+   "54 Gy / 3 fx : tumeur primitive seulement, jamais pour une métastase"
+  ],
+  [
+   "poumon.schemas[5].points_attention[2]",
+   "Lésion centrale = PTV à moins de 2 cm de toute structure sensible (définition IASLC retenue par Curie). Ultracentrale = PTV au contact de l'arbre bronchique proximal, du cœur, des vaisseaux pulmonaires ou de l'œsophage",
+   "Lésion centrale = PTV à moins de 2 cm de toute structure sensible (définition IASLC). Ultracentrale = PTV au contact de l'arbre bronchique proximal, du cœur, des vaisseaux pulmonaires ou de l'œsophage"
+  ],
+  [
+   "poumon.schemas[5].points_attention[6]",
+   "34 Gy / 1 fx (RTOG 0915, phase 2) : non retenu par Curie ni Gustave Roussy",
+   "34 Gy / 1 fx (RTOG 0915, phase 2) : non retenu"
+  ],
+  [
+   "poumon.schemas[5].points_attention[7]",
+   "Surveillance : TDM à 3, 6 et 12 mois, puis tous les 6 mois pendant 3 ans, puis annuelle (Curie)",
+   "Surveillance : TDM à 3, 6 et 12 mois, puis tous les 6 mois pendant 3 ans, puis annuelle"
+  ],
+  [
+   "poumon.schemas[5].couverture_lignes[1].indicateur",
+   "R50 % et D2cm selon le volume du PTV (protocole Curie)",
+   "R50 % et D2cm selon le volume du PTV"
+  ],
+  [
+   "poumon.schemas[6].source_institutionnelle",
+   "Institut Curie, SBRT d'un nodule pulmonaire",
+   null
+  ],
+  [
+   "poumon.schemas[6].prescriptions[0].note",
+   "Pariétal (préféré à 4 × 12 Gy par Curie) ; central à plus de 1 cm des OAR",
+   "Pariétal (préféré à 4 × 12 Gy) ; central à plus de 1 cm des OAR"
+  ],
+  [
+   "poumon.schemas[6].couverture",
+   "(i)GTV : D98 % ≥ 100 % (souple : ≥ 110 %), D0,035 cc entre 118 et 143 %. PTV : D90 % ≥ 99 % (souple : D95 % ≥ 95 %). PTVéval (PTV moins les OAR) : D95 % ≥ 100 % (souple : D98 % ≥ 100 %). Aucune dose > 105 % hors du PTV. R100 % entre 1 et 1,2 ; R50 % et D2cm selon le volume du PTV (protocole Curie)",
+   "(i)GTV : D98 % ≥ 100 % (souple : ≥ 110 %), D0,035 cc entre 118 et 143 %. PTV : D90 % ≥ 99 % (souple : D95 % ≥ 95 %). PTVéval (PTV moins les OAR) : D95 % ≥ 100 % (souple : D98 % ≥ 100 %). Aucune dose > 105 % hors du PTV. R100 % entre 1 et 1,2 ; R50 % et D2cm selon le volume du PTV"
+  ],
+  [
+   "poumon.schemas[6].points_attention[0]",
+   "54 Gy / 3 fx : tumeur primitive seulement, jamais pour une métastase (Curie)",
+   "54 Gy / 3 fx : tumeur primitive seulement, jamais pour une métastase"
+  ],
+  [
+   "poumon.schemas[6].points_attention[2]",
+   "Lésion centrale = PTV à moins de 2 cm de toute structure sensible (définition IASLC retenue par Curie). Ultracentrale = PTV au contact de l'arbre bronchique proximal, du cœur, des vaisseaux pulmonaires ou de l'œsophage",
+   "Lésion centrale = PTV à moins de 2 cm de toute structure sensible (définition IASLC). Ultracentrale = PTV au contact de l'arbre bronchique proximal, du cœur, des vaisseaux pulmonaires ou de l'œsophage"
+  ],
+  [
+   "poumon.schemas[6].points_attention[6]",
+   "34 Gy / 1 fx (RTOG 0915, phase 2) : non retenu par Curie ni Gustave Roussy",
+   "34 Gy / 1 fx (RTOG 0915, phase 2) : non retenu"
+  ],
+  [
+   "poumon.schemas[6].points_attention[7]",
+   "Surveillance : TDM à 3, 6 et 12 mois, puis tous les 6 mois pendant 3 ans, puis annuelle (Curie)",
+   "Surveillance : TDM à 3, 6 et 12 mois, puis tous les 6 mois pendant 3 ans, puis annuelle"
+  ],
+  [
+   "poumon.schemas[6].couverture_lignes[1].indicateur",
+   "R50 % et D2cm selon le volume du PTV (protocole Curie)",
+   "R50 % et D2cm selon le volume du PTV"
+  ],
+  [
+   "poumon.schemas[7].source_institutionnelle",
+   "Institut Curie, SBRT d'un nodule pulmonaire",
+   null
+  ],
+  [
+   "poumon.schemas[7].couverture",
+   "(i)GTV : D98 % ≥ 100 % (souple : ≥ 110 %), D0,035 cc entre 118 et 143 %. PTV : D90 % ≥ 99 % (souple : D95 % ≥ 95 %). PTVéval (PTV moins les OAR) : D95 % ≥ 100 % (souple : D98 % ≥ 100 %). Aucune dose > 105 % hors du PTV. R100 % entre 1 et 1,2 ; R50 % et D2cm selon le volume du PTV (protocole Curie)",
+   "(i)GTV : D98 % ≥ 100 % (souple : ≥ 110 %), D0,035 cc entre 118 et 143 %. PTV : D90 % ≥ 99 % (souple : D95 % ≥ 95 %). PTVéval (PTV moins les OAR) : D95 % ≥ 100 % (souple : D98 % ≥ 100 %). Aucune dose > 105 % hors du PTV. R100 % entre 1 et 1,2 ; R50 % et D2cm selon le volume du PTV"
+  ],
+  [
+   "poumon.schemas[7].points_attention[0]",
+   "54 Gy / 3 fx : tumeur primitive seulement, jamais pour une métastase (Curie)",
+   "54 Gy / 3 fx : tumeur primitive seulement, jamais pour une métastase"
+  ],
+  [
+   "poumon.schemas[7].points_attention[2]",
+   "Lésion centrale = PTV à moins de 2 cm de toute structure sensible (définition IASLC retenue par Curie). Ultracentrale = PTV au contact de l'arbre bronchique proximal, du cœur, des vaisseaux pulmonaires ou de l'œsophage",
+   "Lésion centrale = PTV à moins de 2 cm de toute structure sensible (définition IASLC). Ultracentrale = PTV au contact de l'arbre bronchique proximal, du cœur, des vaisseaux pulmonaires ou de l'œsophage"
+  ],
+  [
+   "poumon.schemas[7].points_attention[6]",
+   "34 Gy / 1 fx (RTOG 0915, phase 2) : non retenu par Curie ni Gustave Roussy",
+   "34 Gy / 1 fx (RTOG 0915, phase 2) : non retenu"
+  ],
+  [
+   "poumon.schemas[7].points_attention[7]",
+   "Surveillance : TDM à 3, 6 et 12 mois, puis tous les 6 mois pendant 3 ans, puis annuelle (Curie)",
+   "Surveillance : TDM à 3, 6 et 12 mois, puis tous les 6 mois pendant 3 ans, puis annuelle"
+  ],
+  [
+   "poumon.schemas[7].couverture_lignes[1].indicateur",
+   "R50 % et D2cm selon le volume du PTV (protocole Curie)",
+   "R50 % et D2cm selon le volume du PTV"
+  ],
+  [
+   "poumon.schemas[8].source_institutionnelle",
+   "Gustave Roussy, protocole SBRT pulmonaire 2016",
+   null
+  ],
+  [
+   "poumon.schemas[8].points_attention[0]",
+   "54 Gy / 3 fx : tumeur primitive seulement, jamais pour une métastase (Curie)",
+   "54 Gy / 3 fx : tumeur primitive seulement, jamais pour une métastase"
+  ],
+  [
+   "poumon.schemas[8].points_attention[2]",
+   "Lésion centrale = PTV à moins de 2 cm de toute structure sensible (définition IASLC retenue par Curie). Ultracentrale = PTV au contact de l'arbre bronchique proximal, du cœur, des vaisseaux pulmonaires ou de l'œsophage",
+   "Lésion centrale = PTV à moins de 2 cm de toute structure sensible (définition IASLC). Ultracentrale = PTV au contact de l'arbre bronchique proximal, du cœur, des vaisseaux pulmonaires ou de l'œsophage"
+  ],
+  [
+   "poumon.schemas[8].points_attention[6]",
+   "34 Gy / 1 fx (RTOG 0915, phase 2) : non retenu par Curie ni Gustave Roussy",
+   "34 Gy / 1 fx (RTOG 0915, phase 2) : non retenu"
+  ],
+  [
+   "poumon.schemas[8].points_attention[7]",
+   "Surveillance : TDM à 3, 6 et 12 mois, puis tous les 6 mois pendant 3 ans, puis annuelle (Curie)",
+   "Surveillance : TDM à 3, 6 et 12 mois, puis tous les 6 mois pendant 3 ans, puis annuelle"
+  ],
+  [
+   "poumon.schemas[9].source_institutionnelle",
+   "Gustave Roussy, protocole SBRT pulmonaire 2016",
+   null
+  ],
+  [
+   "poumon.schemas[9].points_attention[0]",
+   "54 Gy / 3 fx : tumeur primitive seulement, jamais pour une métastase (Curie)",
+   "54 Gy / 3 fx : tumeur primitive seulement, jamais pour une métastase"
+  ],
+  [
+   "poumon.schemas[9].points_attention[2]",
+   "Lésion centrale = PTV à moins de 2 cm de toute structure sensible (définition IASLC retenue par Curie). Ultracentrale = PTV au contact de l'arbre bronchique proximal, du cœur, des vaisseaux pulmonaires ou de l'œsophage",
+   "Lésion centrale = PTV à moins de 2 cm de toute structure sensible (définition IASLC). Ultracentrale = PTV au contact de l'arbre bronchique proximal, du cœur, des vaisseaux pulmonaires ou de l'œsophage"
+  ],
+  [
+   "poumon.schemas[9].points_attention[6]",
+   "34 Gy / 1 fx (RTOG 0915, phase 2) : non retenu par Curie ni Gustave Roussy",
+   "34 Gy / 1 fx (RTOG 0915, phase 2) : non retenu"
+  ],
+  [
+   "poumon.schemas[9].points_attention[7]",
+   "Surveillance : TDM à 3, 6 et 12 mois, puis tous les 6 mois pendant 3 ans, puis annuelle (Curie)",
+   "Surveillance : TDM à 3, 6 et 12 mois, puis tous les 6 mois pendant 3 ans, puis annuelle"
+  ],
+  [
+   "poumon.points_attention[4].point",
+   "54 Gy / 3 fx : tumeur primitive seulement, jamais pour une métastase (Curie)",
+   "54 Gy / 3 fx : tumeur primitive seulement, jamais pour une métastase"
+  ],
+  [
+   "poumon.points_attention[6].point",
+   "Lésion centrale = PTV à moins de 2 cm de toute structure sensible (définition IASLC retenue par Curie). Ultracentrale = PTV au contact de l'arbre bronchique proximal, du cœur, des vaisseaux pulmonaires ou de l'œsophage",
+   "Lésion centrale = PTV à moins de 2 cm de toute structure sensible (définition IASLC). Ultracentrale = PTV au contact de l'arbre bronchique proximal, du cœur, des vaisseaux pulmonaires ou de l'œsophage"
+  ],
+  [
+   "poumon.points_attention[10].point",
+   "34 Gy / 1 fx (RTOG 0915, phase 2) : non retenu par Curie ni Gustave Roussy",
+   "34 Gy / 1 fx (RTOG 0915, phase 2) : non retenu"
+  ],
+  [
+   "poumon.points_attention[11].point",
+   "Surveillance : TDM à 3, 6 et 12 mois, puis tous les 6 mois pendant 3 ans, puis annuelle (Curie)",
+   "Surveillance : TDM à 3, 6 et 12 mois, puis tous les 6 mois pendant 3 ans, puis annuelle"
+  ],
+  [
+   "poumon.textes",
+   {},
+   null
+  ]
+ ],
+ "prostate.json": [
+  [
+   "prostate.schemas[0].source_institutionnelle",
+   "Institut Curie, prostate en place (2021)",
+   null
+  ],
+  [
+   "prostate.schemas[2].source_institutionnelle",
+   "Institut Curie, prostate en place (2021)",
+   null
+  ],
+  [
+   "prostate.schemas[2].prescriptions[0].note",
+   "Curie : option si anticoagulants ; 76 Gy / 38 fx en rattrapage après Ablatherm",
+   "Option si anticoagulants ; 76 Gy / 38 fx en rattrapage après Ablatherm"
+  ],
+  [
+   "prostate.schemas[3].source_institutionnelle",
+   "Institut Curie, SBRT prostate (2021)",
+   null
+  ],
+  [
+   "prostate.schemas[3].prescriptions[0].rythme",
+   "1 jour sur 2 (Curie) ; sur 1 ou 2 semaines (PACE-B)",
+   "1 jour sur 2 ; sur 1 ou 2 semaines (PACE-B)"
+  ],
+  [
+   "prostate.schemas[3].prescriptions[0].note",
+   "Objectif CTV D95% ≥ 40 Gy (Curie)",
+   "Objectif CTV D95% ≥ 40 Gy"
+  ],
+  [
+   "prostate.schemas[3].points_attention[1]",
+   "Critères Curie : IPSS < 15, âge > 70 ans et espérance de vie > 10 ans ; ISUP 3 au cas par cas sans indication pelvienne ; pas de SBRT si le PTV touche l'intestin grêle",
+   "Critères : IPSS < 15, âge > 70 ans et espérance de vie > 10 ans ; ISUP 3 au cas par cas sans indication pelvienne ; pas de SBRT si le PTV touche l'intestin grêle"
+  ],
+  [
+   "prostate.schemas[3].points_attention[2]",
+   "Rythme Curie : 1 jour sur 2 ; jusqu'à 3 jours consécutifs, jamais 4 ; au plus 4 séances par semaine ; interruption ≤ 2 jours (3 avec le week-end)",
+   "Rythme : 1 jour sur 2 ; jusqu'à 3 jours consécutifs, jamais 4 ; au plus 4 séances par semaine ; interruption ≤ 2 jours (3 avec le week-end)"
+  ],
+  [
+   "prostate.schemas[5].source_institutionnelle",
+   "Institut Curie, prostate en place (2021)",
+   null
+  ],
+  [
+   "prostate.schemas[6].source_institutionnelle",
+   "Institut Curie, prostate en place (2021)",
+   null
+  ],
+  [
+   "prostate.schemas[6].prescriptions[0].note",
+   "80 Gy / 40 fx si T3b–T4 (Curie)",
+   "80 Gy / 40 fx si T3b–T4"
+  ],
+  [
+   "prostate.schemas[8].source_institutionnelle",
+   "Institut Curie, prostate en place (2021)",
+   null
+  ],
+  [
+   "prostate.schemas[10].source_institutionnelle",
+   "Institut Curie, prostate en place (2021)",
+   null
+  ],
+  [
+   "prostate.schemas[10].prescriptions[0].note",
+   "Tableur du service : 46 Gy / 23 fx",
+   "46 Gy / 23 fx"
+  ],
+  [
+   "prostate.schemas[10].prescriptions[2].note",
+   "80 Gy / 40 fx si T3b–T4 (Curie)",
+   "80 Gy / 40 fx si T3b–T4"
+  ],
+  [
+   "prostate.schemas[11].source_institutionnelle",
+   "Institut Curie, prostate en place (2021)",
+   null
+  ],
+  [
+   "prostate.schemas[11].prescriptions[3].note",
+   "Pas de boost si adénopathie < 5 mm ou disparue sous hormonothérapie (Curie)",
+   "Pas de boost si adénopathie < 5 mm ou disparue sous hormonothérapie"
+  ],
+  [
+   "prostate.schemas[11].systemique",
+   "HT 24–36 mois (Curie) ; avec abiratérone : HT 3 ans + abiratérone 2 ans (STAMPEDE)",
+   "HT 24–36 mois ; avec abiratérone : HT 3 ans + abiratérone 2 ans (STAMPEDE)"
+  ],
+  [
+   "prostate.schemas[12].source_institutionnelle",
+   "Institut Curie, prostate en place (2021)",
+   null
+  ],
+  [
+   "prostate.schemas[17].source_institutionnelle",
+   "Institut Curie, rattrapage post-prostatectomie (2021)",
+   null
+  ],
+  [
+   "prostate.schemas[21].source_institutionnelle",
+   "Fiche du service (Dr Bentahila, 2026)",
+   null
+  ],
+  [
+   "prostate.schemas[22].source_institutionnelle",
+   "Institut Curie, prostate en place (2021)",
+   null
+  ],
+  [
+   "prostate.schemas[22].points_attention[0]",
+   "Vessie vide au scanner et pendant le traitement si la prostate ou la loge a déjà été irradiée (Curie)",
+   "Vessie vide au scanner et pendant le traitement si la prostate ou la loge a déjà été irradiée"
+  ],
+  [
+   "prostate.schemas[26].source_institutionnelle",
+   "Pratique du service (Dr Bentahila) ; CHHiP et PROFIT valident la dose prostatique, pas l'irradiation pelvienne",
+   null
+  ],
+  [
+   "prostate.schemas[26].couverture",
+   "PRO : CTV D98% ≥ 58,8 Gy ; PTV D95% ≥ 57 Gy (Curie)",
+   "PRO : CTV D98% ≥ 58,8 Gy ; PTV D95% ≥ 57 Gy"
+  ],
+  [
+   "prostate.simulations[0].preparation",
+   "Rectum vide : lavement Normacol la veille et le matin ; rectum ≤ 5 cm en antéro-postérieur en regard de la prostate, sinon évacuation des gaz par sonde et nouveau Normacol. Vessie semi-pleine « confortable » : uriner 30 à 45 min avant, puis boire 3 à 4 verres d'eau sans retourner aux toilettes",
+   "Rectum vide : lavement Zetalax la veille et le matin ; rectum ≤ 5 cm en antéro-postérieur en regard de la prostate, sinon évacuation des gaz par sonde et nouveau Zetalax. Vessie semi-pleine « confortable » : uriner 30 à 45 min avant, puis boire 3 à 4 verres d'eau sans retourner aux toilettes"
+  ],
+  [
+   "prostate.simulations[1].preparation",
+   "Identique à sim-pro-ep (Normacol veille et matin, vessie semi-pleine)",
+   "Identique à sim-pro-ep (Zetalax veille et matin, vessie semi-pleine)"
+  ],
+  [
+   "prostate.volumes[0].cibles[3].quand",
+   "N1 ; pas de boost si < 5 mm ou disparue sous hormonothérapie (Curie)",
+   "N1 ; pas de boost si < 5 mm ou disparue sous hormonothérapie"
+  ],
+  [
+   "prostate.volumes[2].cibles[0].definition",
+   "ESTRO-ACROP 2023. Inférieure : 8 à 12 mm sous l'anastomose vésico-urétrale (coupe sous la dernière coupe avec urine) ; si non visible, coupe juste au-dessus du bulbe pénien. Antérieure : en haut 1 à 2 cm de paroi vésicale postérieure (jusqu'à la paroi postérieure seulement si IGRT quotidienne reproductible) ; en bas bord postérieur du pubis sur la moitié aux deux tiers de la symphyse, sans monter au sommet. Postérieure : paroi antérieure du rectum (fascia mésorectal au niveau du lit des VS) ; inclure les angles antéro-latéraux du rectum. Latérale : bords internes des obturateurs internes, puis des releveurs en bas. Supérieure : pont de 3 à 5 mm ; base des VS (tiers inférieur, jusqu'aux canaux déférents sectionnés) sans envahissement des VS ; tout le lit des VS si pT3b. Inclure les clips de prostatectomie (ESTRO-ACROP) ; exclure ceux du curage (fiche du service)",
+   "ESTRO-ACROP 2023. Inférieure : 8 à 12 mm sous l'anastomose vésico-urétrale (coupe sous la dernière coupe avec urine) ; si non visible, coupe juste au-dessus du bulbe pénien. Antérieure : en haut 1 à 2 cm de paroi vésicale postérieure (jusqu'à la paroi postérieure seulement si IGRT quotidienne reproductible) ; en bas bord postérieur du pubis sur la moitié aux deux tiers de la symphyse, sans monter au sommet. Postérieure : paroi antérieure du rectum (fascia mésorectal au niveau du lit des VS) ; inclure les angles antéro-latéraux du rectum. Latérale : bords internes des obturateurs internes, puis des releveurs en bas. Supérieure : pont de 3 à 5 mm ; base des VS (tiers inférieur, jusqu'aux canaux déférents sectionnés) sans envahissement des VS ; tout le lit des VS si pT3b. Inclure les clips de prostatectomie (ESTRO-ACROP) ; exclure ceux du curage"
+  ],
+  [
+   "prostate.volumes[2].cibles[4].marge",
+   "8 mm (Curie) ; minimum 5 mm (ESTRO-ACROP)",
+   "8 mm ; minimum 5 mm (ESTRO-ACROP)"
+  ],
+  [
+   "prostate.hormonotherapie[1].hormonotherapie",
+   "Aucune ; option 4–6 mois (Curie)",
+   "Aucune ; option 4–6 mois"
+  ],
+  [
+   "prostate.hormonotherapie[3].hormonotherapie",
+   "18 mois minimum, jusqu'à 24–36 mois selon le nombre de facteurs (Curie) ; si seul facteur = T3a IRM modéré non palpable : 4–6 mois (Curie)",
+   "18 mois minimum, jusqu'à 24–36 mois selon le nombre de facteurs ; si seul facteur = T3a IRM modéré non palpable : 4–6 mois"
+  ],
+  [
+   "prostate.hormonotherapie[5].hormonotherapie",
+   "HT longue 24–36 mois (Curie) ; avec abiratérone : HT 3 ans + abiratérone 2 ans (STAMPEDE)",
+   "HT longue 24–36 mois ; avec abiratérone : HT 3 ans + abiratérone 2 ans (STAMPEDE)"
+  ],
+  [
+   "prostate.hormonotherapie[7].note",
+   "Sauf SBRT retenue pour ISUP 3 (Curie)",
+   "Sauf SBRT retenue pour ISUP 3"
+  ],
+  [
+   "prostate.points_attention[2].point",
+   "Patient obstructif : résection ou adénomectomie première possible ; délai de cicatrisation d'au moins 3 mois avant la RT (Curie)",
+   "Patient obstructif : résection ou adénomectomie première possible ; délai de cicatrisation d'au moins 3 mois avant la RT"
+  ],
+  [
+   "prostate.points_attention[7].point",
+   "Critères Curie : IPSS < 15, âge > 70 ans et espérance de vie > 10 ans ; ISUP 3 au cas par cas sans indication pelvienne ; pas de SBRT si le PTV touche l'intestin grêle",
+   "Critères : IPSS < 15, âge > 70 ans et espérance de vie > 10 ans ; ISUP 3 au cas par cas sans indication pelvienne ; pas de SBRT si le PTV touche l'intestin grêle"
+  ],
+  [
+   "prostate.points_attention[8].point",
+   "Rythme Curie : 1 jour sur 2 ; jusqu'à 3 jours consécutifs, jamais 4 ; au plus 4 séances par semaine ; interruption ≤ 2 jours (3 avec le week-end)",
+   "Rythme : 1 jour sur 2 ; jusqu'à 3 jours consécutifs, jamais 4 ; au plus 4 séances par semaine ; interruption ≤ 2 jours (3 avec le week-end)"
+  ],
+  [
+   "prostate.points_attention[15].point",
+   "Vessie vide au scanner et pendant le traitement si la prostate ou la loge a déjà été irradiée (Curie)",
+   "Vessie vide au scanner et pendant le traitement si la prostate ou la loge a déjà été irradiée"
+  ],
+  [
+   "prostate.textes",
+   {
+    "curietherapie": [
+     "La référence est la recommandation GEC-ESTRO ACROP 2022 : LDR exclusive 145 Gy, boost LDR 110 Gy, HDR exclusive 26–27 Gy en 2 fractions (schéma cité, mais pas encore de recommandation de prescription fondée sur les preuves), boost HDR 15 Gy en 1 fraction après 45–50 Gy.",
+     "**Définitions de volume (vol-pro-curie) :** CTV = capsule prostatique pour une tumeur intracapsulaire ; pour une tumeur localement avancée, CTV étendu à l'extension extracapsulaire et/ou aux VS envahies. GTV optionnel (boost focal, en essai). Marge PTV de 3 à 5 mm possible, limitée en arrière par le rectum et en haut par le col vésical (grade D, niveau 5).",
+     "**Contrôle qualité LDR :** dosimétrie scanner post-implant à J1, J2 ou entre 2 et 6 semaines, coupes ≤ 3 mm ; rapporter D90, V100, V150 de la prostate et D2cc du rectum.",
+     "**Équivalences pour la HDR :** les objectifs généraux sont donnés en EQD2 cumulée, calculée pour RTE 25 × 2 Gy + HDR 15 Gy (α/β = 1,5) ; ils ne s'appliquent pas tels quels à une HDR exclusive ni à un autre schéma de boost (CTV D90 > 121 Gy EQD2 ; rectum D2cc ≤ 75 Gy EQD2 ; urètre D10 ≤ 120 Gy et D30 ≤ 105 Gy EQD2) ; pour le schéma 15 Gy × 1, les valeurs physiques sont dans le jeu `ct-curie-hdr15-gec`.",
+     "**PDR :** utilisée pour la prostate dans peu de centres ; aucune dose recommandée dans GEC-ESTRO ACROP 2022, pas de schéma dans le référentiel."
+    ],
+    "centrage": [
+     "Cinq fiches de centrage couvrent tous les schémas prostate ; la préparation rectum vide et vessie semi-pleine est commune à toutes, sauf la récidive ganglionnaire après irradiation de la prostate (vessie vide).",
+     "Pour tout scanner injecté (Curie) : accord médical ; contre-indications = allergie (possible après prémédication si déjà bien tolérée) et clairance de la créatinine < 50 ml/min ; hydratation 1,5 à 2 litres après ; biguanides arrêtés 48 h après l'injection, reprise après contrôle de la clairance."
+    ],
+    "contourage": [
+     "Les marges PTV de référence sont celles de Curie (5 mm prostate, 8 mm VS, pelvis, adénopathies et loge) ; ESTRO-ACROP demande au minimum 5 mm pour la loge. Variante de la fiche prostate du service : adénopathie + 5 mm, VS + 7 mm, pelvis + 7 mm.",
+     "Visualisation des contours de référence : [eContour](https://econtour.org) (compte gratuit), conseillé par la fiche OAR du service."
+    ],
+    "systemique": [
+     "La durée d'hormonothérapie dépend du groupe de risque, pas du fractionnement : de rien (risque faible) à 3 ans avec abiratérone (très haut risque ou N1)."
+    ]
+   },
+   null
+  ]
+ ],
+ "rectum.json": [
+  [
+   "rectum.schemas[0].source_institutionnelle",
+   "Fiche du service (schéma CAP 50)",
+   null
+  ],
+  [
+   "rectum.schemas[4].source_institutionnelle",
+   "Fiche du service",
+   null
+  ],
+  [
+   "rectum.schemas[4].points_attention[0]",
+   "Choix (fiche du service) : RAPIDO si le risque métastatique domine (CRM < 1 mm, T4, N2, EMVI+) ; PRODIGE 23 si le contrôle local domine (tumeur basse ou volumineuse, besoin de boost, préservation sphinctérienne, patient jeune en bon état général)",
+   "Choix : RAPIDO si le risque métastatique domine (CRM < 1 mm, T4, N2, EMVI+) ; PRODIGE 23 si le contrôle local domine (tumeur basse ou volumineuse, besoin de boost, préservation sphinctérienne, patient jeune en bon état général)"
+  ],
+  [
+   "rectum.schemas[5].source_institutionnelle",
+   "Fiche du service",
+   null
+  ],
+  [
+   "rectum.schemas[5].points_attention[0]",
+   "Choix (fiche du service) : RAPIDO si le risque métastatique domine (CRM < 1 mm, T4, N2, EMVI+) ; PRODIGE 23 si le contrôle local domine (tumeur basse ou volumineuse, besoin de boost, préservation sphinctérienne, patient jeune en bon état général)",
+   "Choix : RAPIDO si le risque métastatique domine (CRM < 1 mm, T4, N2, EMVI+) ; PRODIGE 23 si le contrôle local domine (tumeur basse ou volumineuse, besoin de boost, préservation sphinctérienne, patient jeune en bon état général)"
+  ],
+  [
+   "rectum.points_attention[2].point",
+   "Choix (fiche du service) : RAPIDO si le risque métastatique domine (CRM < 1 mm, T4, N2, EMVI+) ; PRODIGE 23 si le contrôle local domine (tumeur basse ou volumineuse, besoin de boost, préservation sphinctérienne, patient jeune en bon état général)",
+   "Choix : RAPIDO si le risque métastatique domine (CRM < 1 mm, T4, N2, EMVI+) ; PRODIGE 23 si le contrôle local domine (tumeur basse ou volumineuse, besoin de boost, préservation sphinctérienne, patient jeune en bon état général)"
+  ],
+  [
+   "rectum.textes",
+   {},
+   null
+  ]
+ ],
+ "reirradiation.json": [
+  [
+   "reirradiation.schemas[3].prescriptions[0].note",
+   "MIRI : dose médiane 60 Gy, chimiothérapie chez 76 %, toxicité tardive de grade ≥ 3 à 2 ans 14,2 % ; Gustave Roussy : 2 Gy par jour",
+   "MIRI : dose médiane 60 Gy, chimiothérapie chez 76 %, toxicité tardive de grade ≥ 3 à 2 ans 14,2 % ; autre approche : 2 Gy par jour"
+  ],
+  [
+   "reirradiation.volumes[4].cibles[3].definition",
+   "CTV + 7 mm (protocole du service)",
+   "CTV + 7 mm"
+  ],
+  [
+   "reirradiation.textes",
+   {},
+   null
+  ]
+ ],
+ "sarcome_membres.json": [
+  [
+   "sarcome_membres.situations[1].criteres",
+   "Fiche du service : sarcomes profonds de plus de 5 cm, grade 2–3, chirurgie R1 ou R2",
+   "Sarcomes profonds de plus de 5 cm, grade 2–3, chirurgie R1 ou R2"
+  ],
+  [
+   "sarcome_membres.schemas[0].source_institutionnelle",
+   "Fiche du service (pré-opératoire : 50 Gy)",
+   null
+  ],
+  [
+   "sarcome_membres.schemas[2].source_institutionnelle",
+   "Fiche du service",
+   null
+  ],
+  [
+   "sarcome_membres.schemas[2].prescriptions[1].note",
+   "Seulement si sarcome à haut risque de rechute (fiche du service)",
+   "Seulement si sarcome à haut risque de rechute"
+  ],
+  [
+   "sarcome_membres.schemas[3].source_institutionnelle",
+   "Fiche du service",
+   null
+  ],
+  [
+   "sarcome_membres.schemas[4].source_institutionnelle",
+   "Fiche du service",
+   null
+  ],
+  [
+   "sarcome_membres.points_attention[4].point",
+   "Fiche du service : fusion IRM et scanner systématique ; CTV respectant les barrières anatomiques ; inclusion hiérarchique des CTV 50, 60 et 66 Gy",
+   "Fusion IRM et scanner systématique ; CTV respectant les barrières anatomiques ; inclusion hiérarchique des CTV 50, 60 et 66 Gy"
+  ],
+  [
+   "sarcome_membres.textes",
+   {
+    "systemique": [
+     "Pas de traitement systémique associé à la RT dans ces schémas."
+    ]
+   },
+   null
+  ]
+ ],
+ "sarcome_retroperitoine.json": [
+  [
+   "sarcome_retroperitoine.schemas[0].source_institutionnelle",
+   "Gustave Roussy, fiche « sarcomes rétropéritonéaux » (2017)",
+   null
+  ],
+  [
+   "sarcome_retroperitoine.schemas[0].couverture",
+   "Gustave Roussy : PTV D95 % ≈ 95 % de la dose prescrite ; rapporter D50 %, Dmoy, D2 %, D98 % du PTV et D95 %, Dmoy du GTV",
+   "PTV D95 % ≈ 95 % de la dose prescrite ; rapporter D50 %, Dmoy, D2 %, D98 % du PTV et D95 %, Dmoy du GTV"
+  ],
+  [
+   "sarcome_retroperitoine.textes",
+   {
+    "systemique": [
+     "Pas de traitement systémique associé à la RT dans ce schéma."
+    ]
+   },
+   null
+  ]
+ ],
+ "sbrt_os.json": [
+  [
+   "sbrt_os.situations[1].criteres",
+   "Mêmes critères ; cumul des doses et des fractionnements antérieurs à prendre en compte (fiche du service)",
+   "Mêmes critères ; cumul des doses et des fractionnements antérieurs à prendre en compte"
+  ],
+  [
+   "sbrt_os.situations[2].criteres",
+   "Lésion osseuse oligométastatique accessible à la stéréotaxie, par exemple pubis (tableur du service)",
+   "Lésion osseuse oligométastatique accessible à la stéréotaxie, par exemple pubis"
+  ],
+  [
+   "sbrt_os.schemas[0].source_institutionnelle",
+   "Tableur du service « vertèbre stéréo 2 × 12 »",
+   null
+  ],
+  [
+   "sbrt_os.schemas[1].source_institutionnelle",
+   "Fiche du service « stéréotaxie osseuse vertébrale »",
+   null
+  ],
+  [
+   "sbrt_os.schemas[2].source_institutionnelle",
+   "Tableur du service « vertèbre stéréo 3 × 9 »",
+   null
+  ],
+  [
+   "sbrt_os.schemas[3].source_institutionnelle",
+   "Fiche du service « stéréotaxie osseuse vertébrale »",
+   null
+  ],
+  [
+   "sbrt_os.schemas[5].source_institutionnelle",
+   "Fiche du service « stéréotaxie osseuse vertébrale »",
+   null
+  ],
+  [
+   "sbrt_os.schemas[6].source_institutionnelle",
+   "Tableur du service « pubis stéréo 3 × 9 »",
+   null
+  ],
+  [
+   "sbrt_os.textes",
+   {
+    "systemique": [
+     "Pas de traitement systémique associé à la RT dans ces schémas."
+    ]
+   },
+   null
+  ]
+ ],
+ "schwannome.json": [
+  [
+   "schwannome.simulations[0].contention",
+   "Masque thermoformé 5 points ou cadre stéréotaxique (fiche du service) ; Curie : masque bivalve sans cadre, moulé sur une cale retirée avant l'acquisition",
+   "Masque thermoformé 5 points ou cadre stéréotaxique ; autre approche : masque bivalve sans cadre, moulé sur une cale retirée avant l'acquisition"
+  ],
+  [
+   "schwannome.simulations[0].scanner",
+   "Coupes axiales millimétriques. Curie : non injecté, de 1 cm au-dessus du vertex jusqu'à T1 ; fiche du service : injecté",
+   "Coupes axiales millimétriques. Autre approche : non injecté, de 1 cm au-dessus du vertex jusqu'à T1 ; autre approche : injecté"
+  ],
+  [
+   "schwannome.simulations[0].imagerie",
+   "IRM de planification T1 sans injection (saignement récent), T1 gadolinium 3D (contourage) et perfusion (référence du suivi), jusqu'à C3–C4, fusionnée au scanner. Première séance dans les 14 jours suivant l'IRM, 16 au plus (Curie)",
+   "IRM de planification T1 sans injection (saignement récent), T1 gadolinium 3D (contourage) et perfusion (référence du suivi), jusqu'à C3–C4, fusionnée au scanner. Première séance dans les 14 jours suivant l'IRM, 16 au plus"
+  ],
+  [
+   "schwannome.simulations[0].reperes",
+   "Plan de référence pointe du nez–tragus, perpendiculaire à la table (Curie)",
+   "Plan de référence pointe du nez–tragus, perpendiculaire à la table"
+  ],
+  [
+   "schwannome.textes",
+   {
+    "systemique": [
+     "Pas de traitement médical, sauf le bévacizumab dans la neurofibromatose de type 2 (EANO 2020)."
+    ]
+   },
+   null
+  ]
+ ],
+ "sein.json": [
+  [
+   "sein.schemas[0].source_institutionnelle",
+   "Sénorif 2021-2022 ; tableur du service « SEIN HYPOG 40,05 Gy »",
+   null
+  ],
+  [
+   "sein.schemas[1].source_institutionnelle",
+   "Sénorif 2021-2022 ; tableur du service « SEIN HYPOG 40,05 Gy + boost séquentiel 16 Gy »",
+   null
+  ],
+  [
+   "sein.schemas[3].source_institutionnelle",
+   "Sénorif 2021-2022 (option)",
+   null
+  ],
+  [
+   "sein.schemas[4].source_institutionnelle",
+   "Tableur du service « SEIN FASTFORWARD 26 Gy + boost séquentiel 13,35 Gy »",
+   null
+  ],
+  [
+   "sein.schemas[5].source_institutionnelle",
+   "Sénorif 2021-2022 (option)",
+   null
+  ],
+  [
+   "sein.schemas[6].source_institutionnelle",
+   "Sénorif 2021-2022",
+   null
+  ],
+  [
+   "sein.schemas[7].source_institutionnelle",
+   "Sénorif 2021-2022 (option)",
+   null
+  ],
+  [
+   "sein.schemas[9].source_institutionnelle",
+   "Sénorif 2021-2022 (recommandé, sauf chimiothérapie concomitante)",
+   null
+  ],
+  [
+   "sein.schemas[10].source_institutionnelle",
+   "Sénorif 2021-2022 (recommandé si reconstruction avant la RT)",
+   null
+  ],
+  [
+   "sein.schemas[11].source_institutionnelle",
+   "Sénorif 2021-2022 (standard)",
+   null
+  ],
+  [
+   "sein.schemas[12].source_institutionnelle",
+   "Tableur du service « SEIN HYPOG 40,05 Gy + GG 40,05 Gy + boost séquentiel »",
+   null
+  ],
+  [
+   "sein.schemas[13].source_institutionnelle",
+   "Sénorif 2021-2022",
+   null
+  ],
+  [
+   "sein.schemas[15].source_institutionnelle",
+   "Sénorif 2021-2022",
+   null
+  ],
+  [
+   "sein.schemas[16].source_institutionnelle",
+   "Sénorif 2021-2022",
+   null
+  ],
+  [
+   "sein.schemas[17].source_institutionnelle",
+   "Sénorif 2021-2022",
+   null
+  ],
+  [
+   "sein.schemas[18].source_institutionnelle",
+   "Sénorif 2021-2022",
+   null
+  ],
+  [
+   "sein.schemas[19].source_institutionnelle",
+   "Sénorif 2021-2022",
+   null
+  ],
+  [
+   "sein.textes",
+   {
+    "contourage": [
+     "Contourage des OAR : RECORAD 2021 (Sénorif)."
+    ]
+   },
+   null
+  ]
+ ],
+ "sein_ccis.json": [
+  [
+   "sein_ccis.schemas[0].source_institutionnelle",
+   "Sénorif 2021-2022 (standard)",
+   null
+  ],
+  [
+   "sein_ccis.schemas[1].source_institutionnelle",
+   "Sénorif 2021-2022 (10 à 16 Gy)",
+   null
+  ],
+  [
+   "sein_ccis.schemas[3].source_institutionnelle",
+   "Sénorif 2021-2022 (option)",
+   null
+  ],
+  [
+   "sein_ccis.schemas[4].source_institutionnelle",
+   "Sénorif 2021-2022",
+   null
+  ],
+  [
+   "sein_ccis.textes",
+   {},
+   null
+  ]
+ ],
+ "seminome.json": [
+  [
+   "seminome.textes",
+   {
+    "systemique": [
+     "Pas de traitement systémique associé à la RT dans ces schémas."
+    ]
+   },
+   null
+  ]
+ ],
+ "sinus.json": [
+  [
+   "sinus.situations[0].criteres",
+   "Curie : template « ORL post-op sinus » ; volumes de l'ethmoïde opéré selon Guillemin 2021",
+   "Template « ORL post-op sinus » ; volumes de l'ethmoïde opéré selon Guillemin 2021"
+  ],
+  [
+   "sinus.schemas[0].source_institutionnelle",
+   "Institut Curie 2021",
+   null
+  ],
+  [
+   "sinus.schemas[0].points_attention[0]",
+   "Œil : Dmoy ≤ 5 Gy hors tumeur des sinus ; pour les sinus, Dmoy ≤ 35 Gy et D0,035cc ≤ 50 Gy (Curie)",
+   "Œil : Dmoy ≤ 5 Gy hors tumeur des sinus ; pour les sinus, Dmoy ≤ 35 Gy et D0,035cc ≤ 50 Gy"
+  ],
+  [
+   "sinus.schemas[1].source_institutionnelle",
+   "Tableur du service « ORL 60-54 Gy »",
+   null
+  ],
+  [
+   "sinus.schemas[1].couverture",
+   "Tableur du service : D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
+   "D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %"
+  ],
+  [
+   "sinus.schemas[1].points_attention[0]",
+   "Œil : Dmoy ≤ 5 Gy hors tumeur des sinus ; pour les sinus, Dmoy ≤ 35 Gy et D0,035cc ≤ 50 Gy (Curie)",
+   "Œil : Dmoy ≤ 5 Gy hors tumeur des sinus ; pour les sinus, Dmoy ≤ 35 Gy et D0,035cc ≤ 50 Gy"
+  ],
+  [
+   "sinus.schemas[2].source_institutionnelle",
+   "Institut Curie 2021 ; tableur du service « ORL 70-63-56 Gy »",
+   null
+  ],
+  [
+   "sinus.schemas[2].points_attention[0]",
+   "Œil : Dmoy ≤ 5 Gy hors tumeur des sinus ; pour les sinus, Dmoy ≤ 35 Gy et D0,035cc ≤ 50 Gy (Curie)",
+   "Œil : Dmoy ≤ 5 Gy hors tumeur des sinus ; pour les sinus, Dmoy ≤ 35 Gy et D0,035cc ≤ 50 Gy"
+  ],
+  [
+   "sinus.schemas[3].source_institutionnelle",
+   "Gustave Roussy, RCMI des cancers de la tête et du cou (2017)",
+   null
+  ],
+  [
+   "sinus.points_attention[0].point",
+   "Les priorités OAR peuvent changer pour le contenu orbitaire, surtout en irradiation ethmoïdale (Gustave Roussy)",
+   "Les priorités OAR peuvent changer pour le contenu orbitaire, surtout en irradiation ethmoïdale"
+  ],
+  [
+   "sinus.points_attention[1].point",
+   "Œil : Dmoy ≤ 5 Gy hors tumeur des sinus ; pour les sinus, Dmoy ≤ 35 Gy et D0,035cc ≤ 50 Gy (Curie)",
+   "Œil : Dmoy ≤ 5 Gy hors tumeur des sinus ; pour les sinus, Dmoy ≤ 35 Gy et D0,035cc ≤ 50 Gy"
+  ],
+  [
+   "sinus.textes",
+   {
+    "centrage": [
+     "Gustave Roussy : masque stéréotaxique 3 points possible, en particulier pour l'adénocarcinome des sinus. Curie : templates « ORL post-op sinus » et « ORL cavum/sinus » (OAR de la base du crâne et de l'orbite)."
+    ]
+   },
+   null
+  ]
+ ],
+ "surrenale.json": [
+  [
+   "surrenale.schemas[0].source_institutionnelle",
+   "Gustave Roussy, fiche « stéréotaxie surrénale 5 × 9 Gy »",
+   null
+  ],
+  [
+   "surrenale.schemas[1].source_institutionnelle",
+   "Tableur du service « surrénale stéréo 5 fractions »",
+   null
+  ],
+  [
+   "surrenale.textes",
+   {
+    "systemique": [
+     "Pas de traitement systémique associé à la RT dans ces schémas."
+    ]
+   },
+   null
+  ]
+ ],
+ "thymome.json": [
+  [
+   "thymome.textes",
+   {
+    "centrage": [
+     "Définitions et compte rendu : ITMIG (Gomez 2011)."
+    ]
+   },
+   null
+  ]
+ ],
+ "vagin.json": [
+  [
+   "vagin.schemas[0].source_institutionnelle",
+   "Gustave Roussy (C. Chargari, cancers primitifs du vagin)",
+   null
+  ],
+  [
+   "vagin.schemas[1].source_institutionnelle",
+   "Gustave Roussy ; Institut Curie, protocole col et vagin 2021 ; fiche du service",
+   null
+  ],
+  [
+   "vagin.schemas[1].prescriptions[1].note",
+   "IGR : boost ganglionnaire de 60 Gy, intégré ou séquentiel",
+   "Boost ganglionnaire de 60 Gy, intégré ou séquentiel"
+  ],
+  [
+   "vagin.schemas[1].prescriptions[2].note",
+   "Endocavitaire, interstitielle si épaisseur résiduelle > 5 mm (ABS) ; série IGR : 60 Gy au CTV (tumeur + 10–20 mm) ; si curiethérapie impossible : boost externe sur GTV_T + 1 cm (PTV3 de la fiche)",
+   "Endocavitaire, interstitielle si épaisseur résiduelle > 5 mm (ABS) ; série : 60 Gy au CTV (tumeur + 10–20 mm) ; si curiethérapie impossible : boost externe sur GTV_T + 1 cm (PTV3 de la fiche)"
+  ],
+  [
+   "vagin.simulations[0].preparation",
+   "Rectum vide (Normacol), vessie confortable ; scanner vessie pleine puis vessie vide pour l'ITV (fiche du service)",
+   "Rectum vide (Zetalax), vessie confortable ; scanner vessie pleine puis vessie vide pour l'ITV"
+  ],
+  [
+   "vagin.volumes[0].cibles[2].definition",
+   "GTV + 2 cm, vagin en totalité, paravagin ; col utérin et paramètres si lésion du tiers supérieur, ± utérus entier (IGR). Fiche du service : vagin entier + col + paramètres ; utérus entier si tumeur des deux tiers supérieurs",
+   "GTV + 2 cm, vagin en totalité, paravagin ; col utérin et paramètres si lésion du tiers supérieur, ± utérus entier. Autre approche : vagin entier + col + paramètres ; utérus entier si tumeur des deux tiers supérieurs"
+  ],
+  [
+   "vagin.volumes[0].cibles[4].definition",
+   "Iliaques internes, externes, présacrés, ilio-obturateurs ; iliaques primitives si N+ ou atteinte du tiers supérieur (IGR) ; inguinaux si tiers inférieur ; fiche : vaisseaux + 5 mm, sans os ni tube digestif",
+   "Iliaques internes, externes, présacrés, ilio-obturateurs ; iliaques primitives si N+ ou atteinte du tiers supérieur ; inguinaux si tiers inférieur ; fiche : vaisseaux + 5 mm, sans os ni tube digestif"
+  ],
+  [
+   "vagin.volumes[1].cibles[0].definition",
+   "GTV + 1 cm (curiethérapie exclusive, IGR)",
+   "GTV + 1 cm (curiethérapie exclusive)"
+  ],
+  [
+   "vagin.curie_indications[0].niveau_preuve",
+   "Séries rétrospectives (IGR)",
+   "Séries rétrospectives"
+  ],
+  [
+   "vagin.curie_indications[1].niveau_preuve",
+   "Séries rétrospectives (IGR) ; concept GEC-ESTRO ACROP 2020",
+   "Séries rétrospectives ; concept GEC-ESTRO ACROP 2020"
+  ],
+  [
+   "vagin.systemique[0].note",
+   "Pas de niveau de preuve propre au vagin (IGR) ; décision en RCP selon les comorbidités",
+   "Pas de niveau de preuve propre au vagin ; décision en RCP selon les comorbidités"
+  ],
+  [
+   "vagin.textes",
+   {
+    "curietherapie": [
+     "**Volumes de curiethérapie (GEC-ESTRO ACROP 2020) :** GTV-T res = tumeur résiduelle au moment de la curiethérapie ; CTV-T HR = GTV-T res + zones grises et paroi vaginale atteinte ; CTV-T IR = extension tumorale initiale. Examen gynécologique et IRM avec gel vaginal, schéma clinique standardisé du vagin. Contraintes D2cm³ rectum, vessie, grêle, sigmoïde utilisées pour optimiser la curiethérapie (fiche du service) ; pas de valeur publiée propre au vagin dans nos sources."
+    ]
+   },
+   null
+  ]
+ ],
+ "vessie.json": [
+  [
+   "vessie.schemas[2].source_institutionnelle",
+   "Fiche du service (Dr Bentahila) ; BC2001, cité par la fiche, ne traitait que la vessie",
+   null
+  ],
+  [
+   "vessie.simulations[0].scanner",
+   "Non injecté (fiche du service)",
+   "Non injecté"
+  ],
+  [
+   "vessie.volumes[0].cibles[2].marge",
+   "Fiche du service : 1 cm, 2 cm vers le haut ; marge de BC2001 non relevée dans le résumé (à confirmer)",
+   "1 cm, 2 cm vers le haut ; marge de BC2001 non relevée dans le résumé (à confirmer)"
+  ],
+  [
+   "vessie.textes",
+   {},
+   null
+  ]
+ ],
+ "vulve.json": [
+  [
+   "vulve.schemas[0].source_institutionnelle",
+   "Institut Curie, protocole vulve 2021",
+   null
+  ],
+  [
+   "vulve.schemas[0].prescriptions[0].note",
+   "Curie : 45 à 50 Gy en fractionnement standard ; prescription à la dose médiane ou moyenne",
+   "45 à 50 Gy en fractionnement standard ; prescription à la dose médiane ou moyenne"
+  ],
+  [
+   "vulve.schemas[1].source_institutionnelle",
+   "Institut Curie, protocole vulve 2021",
+   null
+  ],
+  [
+   "vulve.simulations[0].preparation",
+   "Rectum vide (Normacol), vessie confortable ; consignes plus souples en post-opératoire sans atteinte vaginale (pas de volume centro-pelvien)",
+   "Rectum vide (Zetalax), vessie confortable ; consignes plus souples en post-opératoire sans atteinte vaginale (pas de volume centro-pelvien)"
+  ],
+  [
+   "vulve.volumes[0].cibles[2].definition",
+   "Vulve en totalité ; exclure les plis cutanés des cuisses et des fesses non envahis. Fiche du service : grandes et petites lèvres + tiers inférieur du vagin",
+   "Vulve en totalité ; exclure les plis cutanés des cuisses et des fesses non envahis. Autre approche : grandes et petites lèvres + tiers inférieur du vagin"
+  ],
+  [
+   "vulve.volumes[0].cibles[5].definition",
+   "Aire inguinale homolatérale toujours ; bilatérale sauf tumeur < 2 cm bien latéralisée (au cas par cas) ; N0 : iliaques jusqu'à la bifurcation iliaque commune ; ganglions pelviens suspects : limite supérieure adaptée. Lésion clitoridienne : drainage iliaque direct possible. Fiche du service : inguinaux, iliaques externes, ilio-obturateurs + 5 mm, sans os ni tube digestif",
+   "Aire inguinale homolatérale toujours ; bilatérale sauf tumeur < 2 cm bien latéralisée (au cas par cas) ; N0 : iliaques jusqu'à la bifurcation iliaque commune ; ganglions pelviens suspects : limite supérieure adaptée. Lésion clitoridienne : drainage iliaque direct possible. Autre approche : inguinaux, iliaques externes, ilio-obturateurs + 5 mm, sans os ni tube digestif"
+  ],
+  [
+   "vulve.volumes[0].cibles[8].definition",
+   "CTV_45Gy + 5 mm isotrope. Fiche du service : PTV1 = (CTV_T + GTV_T) + 1 cm, réuni avec CTV_N + 5 mm",
+   "CTV_45Gy + 5 mm isotrope. Autre approche : PTV1 = (CTV_T + GTV_T) + 1 cm, réuni avec CTV_N + 5 mm"
+  ],
+  [
+   "vulve.volumes[0].cibles[10].definition",
+   "CTV_Tboost + 5 mm isotrope. Fiche du service : PTV2 = GTV_T + 1 cm",
+   "CTV_Tboost + 5 mm isotrope. Autre approche : PTV2 = GTV_T + 1 cm"
+  ],
+  [
+   "vulve.systemique[1].traitement",
+   "Cisplatine 40 mg/m² hebdomadaire possible (Curie)",
+   "Cisplatine 40 mg/m² hebdomadaire possible"
+  ],
+  [
+   "vulve.points_attention[1].point",
+   "CBCT quotidien avec recalage osseux ; toute la vulve visible sur le CBCT ; la vulve doit rester dans le CTV_T, les vaisseaux dans le CTV_E, à défaut dans le PTV_45Gy (Curie)",
+   "CBCT quotidien avec recalage osseux ; toute la vulve visible sur le CBCT ; la vulve doit rester dans le CTV_T, les vaisseaux dans le CTV_E, à défaut dans le PTV_45Gy"
+  ],
+  [
+   "vulve.textes",
+   {},
+   null
+  ]
+ ]
+}

@@ -60,7 +60,6 @@
    "essai_ids": [
     "samhouri2021"
    ],
-   "source_institutionnelle": "Tableur du service « Neurocytome 59,4 Gy »",
    "prescriptions": [
     {
      "volume": "PTV54 (ventricules)",
@@ -130,6 +129,15 @@
     "Neurocytome central",
     "Neurocytome central après exérèse incomplète, ou récidive",
     "Stéréotaxie"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "",
+     "indicateur": "Dose prescrite en périphérie du résidu",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    }
    ]
   }
  ],
@@ -144,10 +152,10 @@
   {
    "id": "sim-crane-srs",
    "position": "Décubitus dorsal, tête en position neutre, bras le long du corps, coussin sous les genoux",
-   "contention": "Masque thermoformé 5 points ou cadre stéréotaxique (fiche du service) ; Curie : masque bivalve sans cadre, moulé sur une cale retirée avant l'acquisition",
-   "scanner": "Coupes axiales millimétriques. Curie : non injecté, de 1 cm au-dessus du vertex jusqu'à T1 ; fiche du service : injecté",
-   "imagerie": "IRM de planification T1 sans injection (saignement récent), T1 gadolinium 3D (contourage) et perfusion (référence du suivi), jusqu'à C3–C4, fusionnée au scanner. Première séance dans les 14 jours suivant l'IRM, 16 au plus (Curie)",
-   "reperes": "Plan de référence pointe du nez–tragus, perpendiculaire à la table (Curie)"
+   "contention": "Masque thermoformé 5 points ou cadre stéréotaxique ; autre approche : masque bivalve sans cadre, moulé sur une cale retirée avant l'acquisition",
+   "scanner": "Coupes axiales millimétriques. Autre approche : non injecté, de 1 cm au-dessus du vertex jusqu'à T1 ; autre approche : injecté",
+   "imagerie": "IRM de planification T1 sans injection (saignement récent), T1 gadolinium 3D (contourage) et perfusion (référence du suivi), jusqu'à C3–C4, fusionnée au scanner. Première séance dans les 14 jours suivant l'IRM, 16 au plus",
+   "reperes": "Plan de référence pointe du nez–tragus, perpendiculaire à la table"
   }
  ],
  "volumes": [
@@ -163,14 +171,14 @@
     {
      "nom": "CTV",
      "type": "CTV",
-     "definition": "GTV + 5 mm (tableur du service)",
+     "definition": "GTV + 5 mm",
      "quand": "Toujours",
      "marge": "5 mm"
     },
     {
      "nom": "PTV",
      "type": "PTV",
-     "definition": "CTV + 3 mm (tableur du service)",
+     "definition": "CTV + 3 mm",
      "quand": "Toujours",
      "marge": "3 mm"
     }
@@ -209,21 +217,21 @@
     {
      "nom": "CTV54",
      "type": "CTV",
-     "definition": "GTV préopératoire + 15 mm, étendu aux ventricules (tableur du service)",
+     "definition": "GTV préopératoire + 15 mm, étendu aux ventricules",
      "quand": "Toujours",
      "marge": "15 mm"
     },
     {
      "nom": "CTV59,4",
      "type": "CTV",
-     "definition": "GTV + 5 mm (tableur du service)",
+     "definition": "GTV + 5 mm",
      "quand": "Toujours",
      "marge": "5 mm"
     },
     {
      "nom": "PTV54, PTV59,4",
      "type": "PTV",
-     "definition": "CTV + 3 mm (tableur du service)",
+     "definition": "CTV + 3 mm",
      "quand": "Toujours",
      "marge": "3 mm"
     }
@@ -262,7 +270,7 @@
     {
      "nom": "GTV",
      "type": "GTV",
-     "definition": "Prise de contraste nodulaire en T1 gadolinium 3D, zoom maximal ; œdème FLAIR exclu ; composante hémorragique limitée incluse si le PTV reste compatible (Curie)",
+     "definition": "Prise de contraste nodulaire en T1 gadolinium 3D, zoom maximal ; œdème FLAIR exclu ; composante hémorragique limitée incluse si le PTV reste compatible",
      "quand": "Toujours"
     },
     {
@@ -275,7 +283,7 @@
     {
      "nom": "PTV",
      "type": "PTV",
-     "definition": "CTV + 1 mm isotrope (Curie, masque et Novalis) ; plus petit diamètre du PTV d'au moins 8 mm, sinon marge augmentée ; à adapter à la plateforme",
+     "definition": "CTV + 1 mm isotrope ; plus petit diamètre du PTV d'au moins 8 mm, sinon marge augmentée ; à adapter à la plateforme",
      "quand": "Toujours",
      "marge": "1 mm"
     }
@@ -332,10 +340,5 @@
    "point": "Radiochirurgie : alternative pour un résidu limité, contrôle local 87 % à 10 ans (Hung 2020)",
    "portee": "schema"
   }
- ],
- "textes": {
-  "systemique": [
-   "Pas de traitement systémique standard."
-  ]
- }
+ ]
 }

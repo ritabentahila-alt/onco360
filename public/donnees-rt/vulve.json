@@ -34,7 +34,6 @@
     "gog37",
     "gaffney-vulve"
    ],
-   "source_institutionnelle": "Institut Curie, protocole vulve 2021",
    "prescriptions": [
     {
      "volume": "PTV_45Gy (vulve ± aires ganglionnaires)",
@@ -43,7 +42,7 @@
      "dose_fx_Gy": 1.8,
      "mode": "SIB",
      "rythme": "5 fx/sem",
-     "note": "Curie : 45 à 50 Gy en fractionnement standard ; prescription à la dose médiane ou moyenne"
+     "note": "45 à 50 Gy en fractionnement standard ; prescription à la dose médiane ou moyenne"
     },
     {
      "volume": "PTV_N56Gy (aires ganglionnaires initialement envahies)",
@@ -77,7 +76,51 @@
     "Vulve opérée : radiothérapie adjuvante",
     "Normofractionné"
    ],
-   "points_attention": []
+   "points_attention": [],
+   "couverture_lignes": [
+    {
+     "volume": "PTV45",
+     "indicateur": "D95",
+     "ideal": "",
+     "limitant": "> 95 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV45",
+     "indicateur": "D2",
+     "ideal": "",
+     "limitant": "< 107 %",
+     "note": ""
+    },
+    {
+     "volume": "CTV_T",
+     "indicateur": "D98",
+     "ideal": "",
+     "limitant": "> 95 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV_N",
+     "indicateur": "D98",
+     "ideal": "",
+     "limitant": "> 90 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV_N",
+     "indicateur": "D2",
+     "ideal": "",
+     "limitant": "< 107 %",
+     "note": ""
+    },
+    {
+     "volume": "CTV_N",
+     "indicateur": "D98",
+     "ideal": "",
+     "limitant": "> 98 %",
+     "note": ""
+    }
+   ]
   },
   {
    "id": "vulve-excl-curie",
@@ -89,7 +132,6 @@
     "gaffney-vulve",
     "gog205"
    ],
-   "source_institutionnelle": "Institut Curie, protocole vulve 2021",
    "prescriptions": [
     {
      "volume": "PTV_45Gy",
@@ -129,7 +171,23 @@
     "Vulve localement avancée non résécable : radiochimiothérapie exclusive",
     "RTE + curiethérapie"
    ],
-   "points_attention": []
+   "points_attention": [],
+   "couverture_lignes": [
+    {
+     "volume": "PTV_Tboost",
+     "indicateur": "D95",
+     "ideal": "",
+     "limitant": "> 95 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV_Tboost",
+     "indicateur": "D2",
+     "ideal": "",
+     "limitant": "< 107 %",
+     "note": ""
+    }
+   ]
   },
   {
    "id": "vulve-gog205",
@@ -173,7 +231,7 @@
    "id": "sim-vulve",
    "position": "Décubitus dorsal, position « grenouille » si la patiente y parvient",
    "contention": "Sinon cale genoux + cale pieds",
-   "preparation": "Rectum vide (Normacol), vessie confortable ; consignes plus souples en post-opératoire sans atteinte vaginale (pas de volume centro-pelvien)",
+   "preparation": "Rectum vide (Zetalax), vessie confortable ; consignes plus souples en post-opératoire sans atteinte vaginale (pas de volume centro-pelvien)",
    "scanner": "Injecté (temps vasculaire) sauf contre-indication ; de L2–L3 + 5 cm (pelvis) ou des coupoles + 5 cm (lombo-aortique) jusqu'aux ischions + 20 cm",
    "imagerie": "IRM T2 axiale et sagittale de moins d'un mois, fusion sur la vulve ; TEP-TDM si N+, fusion sur le bassin osseux",
    "reperes": "Fils métalliques sur les cicatrices en post-opératoire"
@@ -198,7 +256,7 @@
     {
      "nom": "CTV_T (post-opératoire)",
      "type": "CTV",
-     "definition": "Vulve en totalité ; exclure les plis cutanés des cuisses et des fesses non envahis. Fiche du service : grandes et petites lèvres + tiers inférieur du vagin",
+     "definition": "Vulve en totalité ; exclure les plis cutanés des cuisses et des fesses non envahis. Autre approche : grandes et petites lèvres + tiers inférieur du vagin",
      "quand": "Post-opératoire"
     },
     {
@@ -216,7 +274,7 @@
     {
      "nom": "CTV_E",
      "type": "CTV",
-     "definition": "Aire inguinale homolatérale toujours ; bilatérale sauf tumeur < 2 cm bien latéralisée (au cas par cas) ; N0 : iliaques jusqu'à la bifurcation iliaque commune ; ganglions pelviens suspects : limite supérieure adaptée. Lésion clitoridienne : drainage iliaque direct possible. Fiche du service : inguinaux, iliaques externes, ilio-obturateurs + 5 mm, sans os ni tube digestif",
+     "definition": "Aire inguinale homolatérale toujours ; bilatérale sauf tumeur < 2 cm bien latéralisée (au cas par cas) ; N0 : iliaques jusqu'à la bifurcation iliaque commune ; ganglions pelviens suspects : limite supérieure adaptée. Lésion clitoridienne : drainage iliaque direct possible. Autre approche : inguinaux, iliaques externes, ilio-obturateurs + 5 mm, sans os ni tube digestif",
      "quand": "Exclusif ; post-opératoire si indication ganglionnaire"
     },
     {
@@ -235,7 +293,7 @@
     {
      "nom": "PTV_45Gy",
      "type": "PTV",
-     "definition": "CTV_45Gy + 5 mm isotrope. Fiche du service : PTV1 = (CTV_T + GTV_T) + 1 cm, réuni avec CTV_N + 5 mm",
+     "definition": "CTV_45Gy + 5 mm isotrope. Autre approche : PTV1 = (CTV_T + GTV_T) + 1 cm, réuni avec CTV_N + 5 mm",
      "quand": "Toujours",
      "marge": "5 mm"
     },
@@ -249,7 +307,7 @@
     {
      "nom": "PTV_Tboost",
      "type": "PTV",
-     "definition": "CTV_Tboost + 5 mm isotrope. Fiche du service : PTV2 = GTV_T + 1 cm",
+     "definition": "CTV_Tboost + 5 mm isotrope. Autre approche : PTV2 = GTV_T + 1 cm",
      "quand": "Exclusif",
      "marge": "5 mm"
     }
@@ -334,7 +392,7 @@
   },
   {
    "situation": "Vulve opérée",
-   "traitement": "Cisplatine 40 mg/m² hebdomadaire possible (Curie)",
+   "traitement": "Cisplatine 40 mg/m² hebdomadaire possible",
    "essai_ids": [
     "gaffney-vulve"
    ],
@@ -350,7 +408,7 @@
   },
   {
    "cible": "vulve",
-   "point": "CBCT quotidien avec recalage osseux ; toute la vulve visible sur le CBCT ; la vulve doit rester dans le CTV_T, les vaisseaux dans le CTV_E, à défaut dans le PTV_45Gy (Curie)",
+   "point": "CBCT quotidien avec recalage osseux ; toute la vulve visible sur le CBCT ; la vulve doit rester dans le CTV_T, les vaisseaux dans le CTV_E, à défaut dans le PTV_45Gy",
    "portee": "localisation"
   },
   {
@@ -363,6 +421,5 @@
    "point": "Essai de phase 2 (58 patientes) : 31 % n'ont pas terminé le traitement (refus, toxicité, décès)",
    "portee": "schema"
   }
- ],
- "textes": {}
+ ]
 }

@@ -58,7 +58,6 @@
     "durand-labrunie",
     "astro-foie"
    ],
-   "source_institutionnelle": "Gustave Roussy, stéréotaxie hépatique 2016 (3 × 15 Gy)",
    "prescriptions": [
     {
      "volume": "PTV",
@@ -74,7 +73,7 @@
    "simulation_id": "sim-foie-sbrt",
    "volumes_id": "vol-foie-sbrt",
    "contraintes_ids": [],
-   "couverture": "Gustave Roussy : rapporter D2 %, D50 %, D98 %, D99 % du PTV et l'indice d'homogénéité",
+   "couverture": "Rapporter D2 %, D50 %, D98 %, D99 % du PTV et l'indice d'homogénéité",
    "date_verif": "2026-10-23",
    "ind": [
     "Digestif",
@@ -82,7 +81,16 @@
     "CHC non éligible aux traitements locaux standard : stéréotaxie",
     "Stéréotaxie"
    ],
-   "points_attention": []
+   "points_attention": [],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "Rapporter D2 %, D50 %, D98 %, D99 % du PTV et l'indice d'homogénéité",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    }
+   ]
   },
   {
    "id": "foie-chc-40-5",
@@ -96,7 +104,6 @@
     "bujold",
     "astro-foie"
    ],
-   "source_institutionnelle": "Gustave Roussy, stéréotaxie hépatique 2016 (5 fractions)",
    "prescriptions": [
     {
      "volume": "PTV",
@@ -104,7 +111,7 @@
      "fractions": 5,
      "dose_fx_Gy": 8,
      "mode": "seul",
-     "note": "Gustave Roussy : 5 × 9, 8, 7 ou 6,5 Gy, prescription sur l'isodose 82 %. RTOG 1112 : 27,5 à 50 Gy / 5 fx"
+     "note": "5 × 9, 8, 7 ou 6,5 Gy, prescription sur l'isodose 82 %. RTOG 1112 : 27,5 à 50 Gy / 5 fx"
     }
    ],
    "technique": "SBRT, 4D ou blocage, CBCT ; repères radio-opaques recommandés",
@@ -112,7 +119,7 @@
    "simulation_id": "sim-foie-sbrt",
    "volumes_id": "vol-foie-sbrt",
    "contraintes_ids": [],
-   "couverture": "Gustave Roussy : rapporter D2 %, D50 %, D98 %, D99 % du PTV et l'indice d'homogénéité",
+   "couverture": "Rapporter D2 %, D50 %, D98 %, D99 % du PTV et l'indice d'homogénéité",
    "points_attention": [
     "RTOG 1112 : SBRT avant sorafénib, SG médiane 15,8 vs 12,3 mois (HR 0,77, NS ; 0,72 après ajustement) et SSP 9,2 vs 5,5 mois"
    ],
@@ -122,6 +129,15 @@
     "Foie et voies biliaires",
     "CHC non éligible aux traitements locaux standard : stéréotaxie",
     "Stéréotaxie"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "Rapporter D2 %, D50 %, D98 %, D99 % du PTV et l'indice d'homogénéité",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    }
    ]
   },
   {
@@ -133,7 +149,6 @@
    "essai_ids": [
     "astro-foie"
    ],
-   "source_institutionnelle": "Gustave Roussy, stéréotaxie hépatique 2016 (10 × 5 Gy)",
    "prescriptions": [
     {
      "volume": "PTV",
@@ -150,7 +165,7 @@
    "simulation_id": "sim-foie-sbrt",
    "volumes_id": "vol-foie-sbrt",
    "contraintes_ids": [],
-   "couverture": "Gustave Roussy : rapporter D2 %, D50 %, D98 %, D99 % du PTV et l'indice d'homogénéité",
+   "couverture": "Rapporter D2 %, D50 %, D98 %, D99 % du PTV et l'indice d'homogénéité",
    "date_verif": "2026-10-23",
    "ind": [
     "Digestif",
@@ -158,7 +173,16 @@
     "CHC non éligible aux traitements locaux standard : stéréotaxie",
     "Stéréotaxie"
    ],
-   "points_attention": []
+   "points_attention": [],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "Rapporter D2 %, D50 %, D98 %, D99 % du PTV et l'indice d'homogénéité",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    }
+   ]
   },
   {
    "id": "foie-tvp-tace-45",
@@ -207,7 +231,6 @@
     "sabrcomet",
     "sabrcomet5"
    ],
-   "source_institutionnelle": "Gustave Roussy, stéréotaxie hépatique 2016 (3 × 15 Gy)",
    "prescriptions": [
     {
      "volume": "PTV",
@@ -222,7 +245,7 @@
    "simulation_id": "sim-foie-sbrt",
    "volumes_id": "vol-foie-sbrt",
    "contraintes_ids": [],
-   "couverture": "Gustave Roussy : rapporter D2 %, D50 %, D98 %, D99 % du PTV et l'indice d'homogénéité",
+   "couverture": "Rapporter D2 %, D50 %, D98 %, D99 % du PTV et l'indice d'homogénéité",
    "points_attention": [
     "Oligométastases : décision en RCP, toutes les lésions traitables (SABR-COMET)"
    ],
@@ -232,6 +255,15 @@
     "Foie et voies biliaires",
     "Métastases hépatiques : stéréotaxie",
     "Stéréotaxie"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "Rapporter D2 %, D50 %, D98 %, D99 % du PTV et l'indice d'homogénéité",
+     "ideal": "",
+     "limitant": "",
+     "note": ""
+    }
    ]
   },
   {
@@ -575,6 +607,5 @@
    "point": "Oligométastases : décision en RCP, toutes les lésions traitables (SABR-COMET)",
    "portee": "situation"
   }
- ],
- "textes": {}
+ ]
 }

@@ -66,7 +66,8 @@ function pageProtocoles0() {
     (ok ? '<button class="b1" onclick="prOuvrir()">' + A.ic("plus") + "Créer un protocole</button>" : "") + "</div></div>" + '<div id="prMaj"></div><section class="carte">';
   // Menus déroulants en cascade : Type de cancer › Localisation › Situation › Sous-groupe
   if (CF.c && !CF.o) { const o = valeurs(1); if (o.length === 1) CF.o = o[0]; }
-  h += menusCascade(BIB(), CF, "prChoixV");
+  // 26/10/2026 : menus en cascade fixés en haut quand on fait défiler la liste (la ligne de recherche et de boutons, elle, défile)
+  h += '<div class="pr-casc">' + menusCascade(BIB(), CF, "prChoixV") + "</div>";
   h += '<div id="prL" style="margin-top:6px">' + liste() + "</div></section>";
   A.$("page").innerHTML = h;
   const q = A.$("prQ"); q.oninput = () => { CF.q = q.value; A.$("prL").innerHTML = liste(); };

@@ -19,7 +19,7 @@
    "localisation_id": "sarcome_membres",
    "titre": "Sarcome opéré sans RT pré-opératoire : RT post-opératoire",
    "contexte": "post_op",
-   "criteres": "Fiche du service : sarcomes profonds de plus de 5 cm, grade 2–3, chirurgie R1 ou R2",
+   "criteres": "Sarcomes profonds de plus de 5 cm, grade 2–3, chirurgie R1 ou R2",
    "ordre": 2
   }
  ],
@@ -37,7 +37,6 @@
     "wang2011-sts",
     "estro-sts-2026"
    ],
-   "source_institutionnelle": "Fiche du service (pré-opératoire : 50 Gy)",
    "prescriptions": [
     {
      "volume": "PTV",
@@ -116,7 +115,6 @@
     "yang1998",
     "ncic-sr2"
    ],
-   "source_institutionnelle": "Fiche du service",
    "prescriptions": [
     {
      "volume": "PTV50",
@@ -133,7 +131,7 @@
      "dose_fx_Gy": 2,
      "mode": "sequentiel",
      "rythme": "5 fx/sem",
-     "note": "Seulement si sarcome à haut risque de rechute (fiche du service)"
+     "note": "Seulement si sarcome à haut risque de rechute"
     }
    ],
    "technique": "RT hautement conformationnelle, imagerie volumique",
@@ -161,7 +159,6 @@
    "essai_ids": [
     "ncic-sr2"
    ],
-   "source_institutionnelle": "Fiche du service",
    "prescriptions": [
     {
      "volume": "PTV50",
@@ -214,7 +211,6 @@
    "essai_ids": [
     "astro-sts-2021"
    ],
-   "source_institutionnelle": "Fiche du service",
    "prescriptions": [
     {
      "volume": "PTV50",
@@ -427,13 +423,8 @@
   },
   {
    "cible": "sarcome_membres",
-   "point": "Fiche du service : fusion IRM et scanner systématique ; CTV respectant les barrières anatomiques ; inclusion hiérarchique des CTV 50, 60 et 66 Gy",
+   "point": "Fusion IRM et scanner systématique ; CTV respectant les barrières anatomiques ; inclusion hiérarchique des CTV 50, 60 et 66 Gy",
    "portee": "localisation"
   }
- ],
- "textes": {
-  "systemique": [
-   "Pas de traitement systémique associé à la RT dans ces schémas."
-  ]
- }
+ ]
 }

@@ -11,7 +11,7 @@
    "localisation_id": "penis",
    "titre": "Carcinome épidermoïde du gland T1, T2 ou T3 sélectionné",
    "contexte": "en_place",
-   "criteres": "Curiethérapie interstitielle recommandée en traitement initial (ABS-GEC-ESTRO 2013) ; posthectomie avant l'implant (Gustave Roussy)",
+   "criteres": "Curiethérapie interstitielle recommandée en traitement initial (ABS-GEC-ESTRO 2013) ; posthectomie avant l'implant",
    "ordre": 1
   }
  ],
@@ -53,13 +53,12 @@
   {
    "id": "pn-pdr-igr",
    "situation_id": "pn-gland",
-   "titre": "Curiethérapie débit pulsé guidée par scanner, 60 Gy (Gustave Roussy)",
+   "titre": "Curiethérapie débit pulsé guidée par scanner, 60 Gy",
    "type": "curie_pdr",
    "preuve": "pratique_institutionnelle",
    "essai_ids": [
     "achkar2025-penis"
    ],
-   "source_institutionnelle": "Gustave Roussy, unité de curiethérapie",
    "prescriptions": [
     {
      "volume": "CTV",
@@ -131,10 +130,5 @@
    "point": "Complications principales : sténose du méat et ulcération des tissus mous ; ulcération persistante traitable notamment par oxygénothérapie hyperbare (ABS-GEC-ESTRO 2013)",
    "portee": "localisation"
   }
- ],
- "textes": {
-  "systemique": [
-   "Pas de traitement systémique associé à la curiethérapie."
-  ]
- }
+ ]
 }

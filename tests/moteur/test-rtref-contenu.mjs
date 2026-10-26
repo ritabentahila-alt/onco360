@@ -91,7 +91,7 @@ for (const li of IDX.localisations) {
   if (L.id !== li.id || L.region_id !== li.region_id || L.nom !== li.nom) err.idx.push(f + " (en-tête)");
   if (!DATE.test(L.date_maj || "")) err.date.push(f + " date_maj");
   for (const k of ["situations", "schemas", "simulations", "volumes", "curie_indications", "systemique", "hormonotherapie", "points_attention"]) if (!Array.isArray(L[k])) err.cle.push(f + "." + k);
-  if (typeof L.textes !== "object" || Array.isArray(L.textes)) err.cle.push(f + ".textes");
+  if ("textes" in L) err.cle.push(f + ".textes (commentaires retirés le 26/10/2026)");
   if (L.schemas.length === 0) err.vide.push(f);
   if (li.nb_schemas !== L.schemas.length) err.idx.push(f + " nb_schemas " + li.nb_schemas + "≠" + L.schemas.length);
   const curie = L.curie_indications.length > 0 || L.schemas.some(s => s.type.startsWith("curie") || s.type === "rte_plus_curie");
@@ -147,7 +147,7 @@ for (const li of IDX.localisations) {
 cas("index ↔ fichiers de localisation cohérents", err.idx.length === 0, liste(err.idx));
 cas("aucune localisation sans schéma", err.vide.length === 0, liste(err.vide));
 cas("nombre de schémas : index = fichiers (" + nbSch + ")", nbSch === IDX.schemas.length, IDX.schemas.length + " dans l'index");
-cas("champs attendus présents (listes, textes, prescriptions, pas de statut)", err.cle.length === 0, liste(err.cle));
+cas("champs attendus présents (listes, prescriptions, pas de statut ni de commentaires)", err.cle.length === 0, liste(err.cle));
 cas("type de schéma permis", err.type.length === 0, liste(err.type));
 cas("niveau de preuve permis", err.preuve.length === 0, liste(err.preuve));
 cas("mode de prescription permis (seul, SIB, sequentiel)", err.mode.length === 0, liste(err.mode));

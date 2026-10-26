@@ -11,7 +11,7 @@
    "localisation_id": "cavum",
    "titre": "Cavum T1–T2, peu ou pas d'atteinte ganglionnaire",
    "contexte": "en_place",
-   "criteres": "RT exclusive en T1–T2 N0 (annexe Gustave Roussy) ; stade II : cisplatine hebdomadaire concomitant (Chen 2011)",
+   "criteres": "RT exclusive en T1–T2 N0 ; stade II : cisplatine hebdomadaire concomitant (Chen 2011)",
    "ordre": 1
   },
   {
@@ -33,7 +33,6 @@
    "essai_ids": [
     "igr-orl-rcmi"
    ],
-   "source_institutionnelle": "Gustave Roussy, RCMI des cancers de la tête et du cou (2017), annexe 2",
    "prescriptions": [
     {
      "volume": "PTV70",
@@ -76,7 +75,37 @@
     "Cavum T1–T2, peu ou pas d'atteinte ganglionnaire",
     "Hypofractionné"
    ],
-   "points_attention": []
+   "points_attention": [],
+   "couverture_lignes": [
+    {
+     "volume": "PTV70",
+     "indicateur": "D95 %",
+     "ideal": "",
+     "limitant": "≥ 66,5 Gy",
+     "note": ""
+    },
+    {
+     "volume": "PTV70",
+     "indicateur": "D5 %",
+     "ideal": "",
+     "limitant": "≤ 77 Gy",
+     "note": ""
+    },
+    {
+     "volume": "PTV60",
+     "indicateur": "D95 %",
+     "ideal": "",
+     "limitant": "≥ 57 Gy",
+     "note": ""
+    },
+    {
+     "volume": "PTV54",
+     "indicateur": "D95 %",
+     "ideal": "",
+     "limitant": "≥ 51,3 Gy",
+     "note": ""
+    }
+   ]
   },
   {
    "id": "cav-loc-70-35-curie",
@@ -88,7 +117,6 @@
     "chen2011-npc",
     "curie-vads-2021"
    ],
-   "source_institutionnelle": "Institut Curie 2021",
    "prescriptions": [
     {
      "volume": "PTV70",
@@ -131,7 +159,30 @@
     "Cavum T1–T2, peu ou pas d'atteinte ganglionnaire",
     "Normofractionné"
    ],
-   "points_attention": []
+   "points_attention": [],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "D95 %",
+     "ideal": "",
+     "limitant": "≥ 95 %",
+     "note": ""
+    },
+    {
+     "volume": "CTV",
+     "indicateur": "D98 %",
+     "ideal": "",
+     "limitant": "≥ 98 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV70",
+     "indicateur": "D2 %",
+     "ideal": "",
+     "limitant": "≤ 107 %",
+     "note": ""
+    }
+   ]
   },
   {
    "id": "cav-av-70-35-curie",
@@ -145,7 +196,6 @@
     "int0099",
     "curie-vads-2021"
    ],
-   "source_institutionnelle": "Institut Curie 2021 ; tableur du service « ORL 70-63-56 Gy »",
    "prescriptions": [
     {
      "volume": "PTV70",
@@ -190,6 +240,29 @@
     "Cavum",
     "Cavum localement évolué (stades III–IVA)",
     "Normofractionné"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "D95 %",
+     "ideal": "",
+     "limitant": "≥ 95 %",
+     "note": ""
+    },
+    {
+     "volume": "CTV",
+     "indicateur": "D98 %",
+     "ideal": "",
+     "limitant": "≥ 98 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV70",
+     "indicateur": "D2 %",
+     "ideal": "",
+     "limitant": "≤ 107 %",
+     "note": ""
+    }
    ]
   },
   {
@@ -203,7 +276,6 @@
     "zhang2019-gp",
     "sun2016-tpf"
    ],
-   "source_institutionnelle": "Tableur du service « ORL 69,96-59,4-54,12 Gy »",
    "prescriptions": [
     {
      "volume": "PTV69,96",
@@ -238,7 +310,7 @@
    "simulation_id": "sim-orl-curie",
    "volumes_id": "vol-cav-igr",
    "contraintes_ids": [],
-   "couverture": "Tableur du service : D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
+   "couverture": "D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
    "points_attention": [
     "La chimiothérapie adjuvante cisplatine–5-FU après RCT n'améliore pas la survie sans échec (Chen 2012)"
    ],
@@ -248,6 +320,29 @@
     "Cavum",
     "Cavum localement évolué (stades III–IVA)",
     "Normofractionné"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "D95",
+     "ideal": "",
+     "limitant": "≈ 98 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "D98",
+     "ideal": "",
+     "limitant": "≈ 95 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "Dmax",
+     "ideal": "",
+     "limitant": "≈ 105 %",
+     "note": ""
+    }
    ]
   },
   {
@@ -259,7 +354,6 @@
    "essai_ids": [
     "igr-orl-rcmi"
    ],
-   "source_institutionnelle": "Gustave Roussy, RCMI des cancers de la tête et du cou (2017)",
    "prescriptions": [
     {
      "volume": "PTV70",
@@ -304,6 +398,36 @@
     "Cavum",
     "Cavum localement évolué (stades III–IVA)",
     "Hypofractionné"
+   ],
+   "couverture_lignes": [
+    {
+     "volume": "PTV70",
+     "indicateur": "D95 %",
+     "ideal": "",
+     "limitant": "≥ 66,5 Gy",
+     "note": ""
+    },
+    {
+     "volume": "PTV70",
+     "indicateur": "D5 %",
+     "ideal": "",
+     "limitant": "≤ 77 Gy",
+     "note": ""
+    },
+    {
+     "volume": "PTV60",
+     "indicateur": "D95 %",
+     "ideal": "",
+     "limitant": "≥ 57 Gy",
+     "note": ""
+    },
+    {
+     "volume": "PTV54",
+     "indicateur": "D95 %",
+     "ideal": "",
+     "limitant": "≥ 51,3 Gy",
+     "note": ""
+    }
    ]
   },
   {
@@ -315,7 +439,6 @@
    "essai_ids": [
     "rtog0225"
    ],
-   "source_institutionnelle": "Tableur du service « ORL 69,96-59,4-54,12 Gy »",
    "prescriptions": [
     {
      "volume": "PTV69,96",
@@ -350,7 +473,7 @@
    "simulation_id": "sim-orl-curie",
    "volumes_id": "vol-cav-igr",
    "contraintes_ids": [],
-   "couverture": "Tableur du service : D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
+   "couverture": "D95 ≈ 98 %, D98 ≈ 95 %, Dmax ≈ 105 %",
    "date_verif": "2026-10-24",
    "ind": [
     "ORL",
@@ -358,7 +481,30 @@
     "Cavum T1–T2, peu ou pas d'atteinte ganglionnaire",
     "Normofractionné"
    ],
-   "points_attention": []
+   "points_attention": [],
+   "couverture_lignes": [
+    {
+     "volume": "PTV",
+     "indicateur": "D95",
+     "ideal": "",
+     "limitant": "≈ 98 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "D98",
+     "ideal": "",
+     "limitant": "≈ 95 %",
+     "note": ""
+    },
+    {
+     "volume": "PTV",
+     "indicateur": "Dmax",
+     "ideal": "",
+     "limitant": "≈ 105 %",
+     "note": ""
+    }
+   ]
   }
  ],
  "simulations": [
@@ -603,7 +749,7 @@
   },
   {
    "cible": "cavum",
-   "point": "Cavum opéré (rare) : 66 Gy sur le lit haut risque, 60 Gy sur la base du crâne, 54 Gy sur les rétropharyngés et II–V bilatéraux (fiche du service)",
+   "point": "Cavum opéré (rare) : 66 Gy sur le lit haut risque, 60 Gy sur la base du crâne, 54 Gy sur les rétropharyngés et II–V bilatéraux",
    "portee": "localisation"
   },
   {
@@ -611,10 +757,5 @@
    "point": "Indication type de l'IMRT ; RTOG 0225 : contrôle locorégional 90 %, xérostomie de grade 2 à 1 an 13,5 %",
    "portee": "localisation"
   }
- ],
- "textes": {
-  "centrage": [
-   "Curie : template « ORL cavum/sinus » avec les OAR de la base du crâne. IRM et TEP-FDG fortement recommandées (Gustave Roussy)."
-  ]
- }
+ ]
 }

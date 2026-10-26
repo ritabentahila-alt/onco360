@@ -44,7 +44,6 @@
     "ncctg-lgg",
     "eortc22844"
    ],
-   "source_institutionnelle": "Tableur du service « Gliome grade 2 »",
    "prescriptions": [
     {
      "volume": "PTV",
@@ -124,7 +123,6 @@
     "rtog9402",
     "estro-eano-idh-2024"
    ],
-   "source_institutionnelle": "Tableur du service « Gliome grade 3 »",
    "prescriptions": [
     {
      "volume": "PTV",
@@ -218,7 +216,7 @@
     {
      "nom": "PTV",
      "type": "PTV",
-     "definition": "CTV + 3 mm au plus avec IGRT (ESTRO-EANO 2023) ; tableurs du service : 3 mm",
+     "definition": "CTV + 3 mm au plus avec IGRT (ESTRO-EANO 2023) ; autre approche : 3 mm",
      "quand": "Toujours",
      "marge": "3 mm"
     }
@@ -388,10 +386,5 @@
    "point": "Hippocampes : D40 % ≤ 7,3 Gy en EQD2 si possible (Gondi 2013, tumeurs bénignes ou de bas grade)",
    "portee": "localisation"
   }
- ],
- "textes": {
-  "contourage": [
-   "Les tableurs du service prévoyaient 5 mm en grade 2 et 20 mm en grade 3."
-  ]
- }
+ ]
 }
