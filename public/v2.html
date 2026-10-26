@@ -1123,14 +1123,8 @@ details.vig-b>summary::-webkit-details-marker{display:none}.vig-d{font-size:var(
 .dos .cs.on .cs-c{padding:6px 10px 8px}
 .dos .cs-o .ck{text-transform:uppercase;font-size:var(--t2);letter-spacing:.03em}
 .dos .cs-pied{margin-top:6px;padding-top:6px;border-top:1px solid var(--gris-c)}.dos .cs-pied .cs-sig{margin:0}
-/* Lot A §10 (25/10/2026) : dans le dossier, menu en icônes (76 px), déplié par-dessus au survol ; texte des cartes à 14 px (13 px pour la 2e ligne) ;
+/* Lot A §10 (25/10/2026) : dans le dossier, menu en icônes (76 px ; plus déplié au survol depuis le 26/10/2026, demande de Dr Bentahila : flèche du menu) ; texte des cartes à 14 px (13 px pour la 2e ligne) ;
    zones tactiles de 44 px sur iPad et téléphone */
-@media (min-width:1024px) and (hover:hover){
-  body.dans-dossier.menu-replie #menu:hover{width:250px;padding-left:12px;padding-right:12px;box-shadow:0 12px 32px rgba(30,42,68,.18)}
-  body.dans-dossier.menu-replie #menu:hover .marque{flex-direction:row;padding:0 8px 24px;gap:10px}
-  body.dans-dossier.menu-replie #menu:hover .marque b{display:inline}body.dans-dossier.menu-replie #menu:hover .cab-choix,body.dans-dossier.menu-replie #menu:hover .qui-t{display:block}
-  body.dans-dossier.menu-replie #menu:hover nav a{font-size:inherit;gap:12px;justify-content:flex-start;padding:10px 12px}
-  body.dans-dossier.menu-replie #menu:hover .qui{justify-content:flex-start;padding:6px}body.dans-dossier.menu-replie #menu:hover .replier{margin-left:auto}
 }
 .rc-1{font-size:var(--t4)}
 @media (pointer:coarse){.rc-1 .mpts button,.im-cr,.im-x,details.dp>summary .dp-t{min-height:44px;min-width:44px}.rc-1{min-height:44px}button.im-nr{min-height:44px}}

@@ -1216,7 +1216,7 @@ window.dosDroite = (k) => { DOS.droite = k; const d = $("dos"); if (!d) return; 
 window.dosAgrandir = () => { DOS.agrandi = !DOS.agrandi; lsEcrire("onco360.dossierAgrandi", DOS.agrandi); const d = $("dos"); if (d) d.classList.toggle("agrandi", DOS.agrandi); document.querySelectorAll(".dos-agr").forEach((b) => { b.title = DOS.agrandi ? "Réduire : rendre sa place à la colonne Documents" : "Agrandir : le centre prend la place de la colonne Documents"; b.setAttribute("aria-pressed", DOS.agrandi); }); if (!DOS.agrandi && d) rafraichirVisionneuse(d.dataset.pid); };
 DOS.agrandi = !!lsLire("onco360.dossierAgrandi", false);
 // Flèche du bandeau : replie le menu pour le dossier seulement (le choix d'ailleurs est gardé et remis en quittant le dossier)
-// Lot A §10 (25/10/2026) : dans le dossier, menu en icônes par défaut (76 px, déplié au survol : CSS body.dans-dossier) ; le choix de la personne
+// Lot A §10 (25/10/2026) : dans le dossier, menu en icônes par défaut (76 px ; déplié par la flèche seulement, plus au survol : 26/10/2026) ; le choix de la personne
 // (flèche du menu, onco360.menuReplieDossier) reste gardé
 const menuDossier = (dans) => { document.body.classList.toggle("dans-dossier", !!dans); if (window.innerWidth < 1024) return; const g = lsLire("onco360.menuReplie", 0) === 1, m = lsLire("onco360.menuReplieDossier", null); document.body.classList.toggle("menu-replie", dans ? (m != null ? m === 1 : true) : g); };
 window.dosMenu = () => { const oui = !document.body.classList.contains("menu-replie"); lsEcrire("onco360.menuReplieDossier", oui ? 1 : 0); document.body.classList.toggle("menu-replie", oui); { const r = $("btReplier"), t = oui ? "Déplier le menu" : "Replier le menu"; r.title = t; r.setAttribute("aria-label", t); }  };
