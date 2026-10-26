@@ -1591,6 +1591,18 @@ section.carte>.ev-mini{padding:4px 2px 2px}
 .ta-m select{width:100%;padding:7px 10px;border:1px solid #D5DDEB;border-radius:8px;background:#fff;font:inherit}
 @media (max-width:899px){.ta-r>.c-p:has(>.mesures){display:none}}
 .p-ta .ta-s,.p-ta .pc-mol,.p-ta .ta-m label,.p-ta .ta-fil-t,.p-ta .c-t .ta-com{font-size:13px}.p-ta .ta-av{font-size:13px;width:30px;height:30px}
+/* 26/10/2026 (demande de Dr Bentahila, modèle Doctolib) : toutes les recherches et tous les menus déroulants du site au même style :
+   champ blanc, bord fin bleu-gris, coins de 8 px, même hauteur (44 px), loupe à gauche, flèche dessinée à droite, bord bleu au focus */
+:root{--champ-bord:#A9B9D0;--champ-ph:#5E7595}
+#page input[type=search],#fenetre input[type=search],#page .recherche input,#prQ,#nlQ,#biQ{min-height:44px;padding:0 14px 0 42px!important;border:1px solid var(--champ-bord);border-radius:8px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%235E7595' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-4-4'/%3E%3C/svg%3E") no-repeat 14px 50%;font-size:15px;color:var(--encre);-webkit-appearance:none;appearance:none}
+#page .recherche>.i,#fenetre .recherche>.i,#page .recherche>svg,#fenetre .recherche>svg{display:none}
+#page input[type=search]::placeholder,#fenetre input[type=search]::placeholder,#prQ::placeholder,#nlQ::placeholder,#biQ::placeholder{color:var(--champ-ph);opacity:1}
+#page select:not(.st):not([multiple]):not([size]),#fenetre select:not(.st):not([multiple]):not([size]){min-height:44px;padding:0 32px 0 12px;border:1px solid var(--champ-bord);border-radius:8px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%231E2A44' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 11px center;font-size:15px;color:var(--encre);-webkit-appearance:none;appearance:none;cursor:pointer}
+#page select:disabled,#fenetre select:disabled{background-color:#F3F5F8;color:var(--doux);border-color:#D5DDEB;cursor:default}
+#page input[type=search]:focus,#fenetre input[type=search]:focus,#prQ:focus,#nlQ:focus,#biQ:focus,#page select:not(.st):focus,#fenetre select:not(.st):focus{outline:none;border-color:var(--prim);box-shadow:0 0 0 3px rgba(53,99,176,.15)}
+input[type=search]::-webkit-search-decoration{-webkit-appearance:none}
+.tr-pil{border-radius:8px;background:#fff;border-color:var(--champ-bord)}
+.tr-pil input::placeholder{color:var(--champ-ph);opacity:1}
 </style>
 </head>
 <body>
