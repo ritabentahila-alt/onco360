@@ -199,7 +199,8 @@ function dessinerListe() {
   const moisLib = A.cap(MS[+MOIS.slice(5, 7) - 1]) + " " + MOIS.slice(0, 4);
   const prochaine = prochainesRcp(1)[0];
   let h = '<section class="carte rcp-haut"><div class="rcp-gauche"><div class="rcp-nav"><button class="sa-fl" onclick="rcpMois(-1)" aria-label="Mois précédent">‹</button><b>' + moisLib + '</b><button class="sa-fl" onclick="rcpMois(1)" aria-label="Mois suivant">›</button></div>' + cal +
-    '<p class="mesures" style="margin:8px 0 0"><span class="rcp-leg rcp"></span>jour de RCP' + (c.heure || c.lieu ? " (" + esc(heureLieu(c)) + ")" : "") + ' · chiffre = dossiers inscrits</p></div>' +
+    "</div>" + // 26/10/2026 (style minimaliste) : plus de légende sous le calendrier
+
     '<div class="rcp-droite"><div class="lbl">Période</div><div class="rcp-per"><label>Du <input type="date" id="rcpDu" value="' + DU + '"></label><label>au <input type="date" id="rcpAu" value="' + AU + '"></label></div>' +
     '<div class="puces" style="margin-top:8px">' + (prochaine ? '<button class="puce' + (DU === prochaine && AU === prochaine ? " on" : "") + '" onclick="rcpPer(\'' + prochaine + "','" + prochaine + '\')">Prochaine RCP (' + A.dfr(prochaine) + ")</button>" : "") +
     '<button class="puce" onclick="rcpPer(\'' + lundi(t) + "','" + ajouterJours(lundi(t), 6) + '\')">Cette semaine</button><button class="puce" onclick="rcpPer(\'' + t.slice(0, 7) + "-01','" + finMois(t.slice(0, 7)) + '\')">Ce mois</button></div>' +
