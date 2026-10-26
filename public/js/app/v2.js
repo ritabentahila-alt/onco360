@@ -657,7 +657,14 @@ function entete() {
   }
   const al = alertes();
   $("nbAl").textContent = al.length; $("nbAl").classList.toggle("cache", !al.length);
-  $("panneauAlertes").innerHTML = "<h3>Alertes (" + al.length + ")</h3>" + (al.length ? al.map((a) => '<div class="al" onclick="ouvrirDossier(\'' + a.id + '\')"><i class="pt" style="background:' + a.c + '"></i><div>' + a.h + "</div></div>").join("") : '<div class="al">Aucune alerte.</div>');
+  // 26/10/2026 (demande de Dr Bentahila, modèle Doctolib) : notifications en lignes aérées : pastille ronde de la couleur de l'alerte avec l'icône
+  // de son type, texte, catégorie en gris dessous, date à droite ; ligne bleutée au survol
+  const nature = (h) => [[/non validée/, "Cure en retard", "seringue"], [/ dans \d+ jour/, "Cure à venir", "seringue"], [/dernière cure/, "Dernière cure", "drapeau"], [/terminé le/, "Traitement terminé", "check"],
+    [/dosimétrie/i, "Dosimétrie", "radiation"], [/contourage/i, "Contourage", "radiation"], [/radiothérapie/i, "Radiothérapie", "radiation"], [/à décaler/, "Absence ou jour férié", "avion"],
+    [/téléphone/, "Numéro manquant", "alerte"], [/WhatsApp/, "Rappel WhatsApp", "whatsapp"], [/ni « Venu »/, "Journée à clôturer", "salle"]].find(([re]) => re.test(h)) || [null, "Alerte", "alerte"];
+  $("panneauAlertes").innerHTML = '<div class="al-tete"><h3>Notifications</h3>' + (al.length ? '<span class="n">' + al.length + "</span>" : "") + "</div>" + (al.length ? al.map((a) => { const [, cat, ico] = nature(a.h), q = (a.h.replace(/<[^>]*>/g, "").match(/\b\d{2}\/\d{2}\b/) || [""])[0];
+    return '<button type="button" class="al2" onclick="ouvrirDossier(\'' + a.id + '\')"><span class="al-ic" style="--c:' + a.c + '">' + ic(ico) + '</span><span class="al-tx"><span class="al-h">' + a.h + '</span><span class="al-cat">' + cat + "</span></span>" + (q ? '<span class="al-q">' + q + "</span>" : "") + "</button>"; }).join("")
+    : etatVide({ petit: 1, ill: "agendaOk", titre: "Aucune notification" }));
 }
 
 // ───── Calculs ─────
