@@ -574,6 +574,16 @@ const ILL_VIDE = {
 };
 const etatVide = (o) => '<div class="ev-vide"' + (o.k ? ' data-k="' + o.k + '"' : "") + ">" + (ILL_VIDE[o.ill] || "") + "<h4>" + esc(o.titre) + "</h4>" + (o.txt ? "<p>" + o.txt.split("\n").map(esc).join("<br>") + "</p>" : "") + (o.bouton || "") + "</div>";
 API.etatVide = (o) => etatVide(o);
+// 26/10/2026 (demande de Dr Bentahila) : pagination des listes en cartes (Protocoles, Radiothérapie) : ‹ 1 2 … 9 › ; fn = fonction globale (n° de page)
+const pagination = (nb, page, par, fn) => {
+  const n = Math.ceil(nb / par); if (n <= 1) return "";
+  const b = (p, lib, o) => '<button type="button"' + (o && o.on ? ' class="on" aria-current="page"' : "") + (o && o.off ? " disabled" : "") + (o && o.t ? ' title="' + o.t + '" aria-label="' + o.t + '"' : "") + ' onclick="' + fn + "(" + p + ')">' + lib + "</button>";
+  const vus = [...new Set([0, n - 1, page - 1, page, page + 1].filter((p) => p >= 0 && p < n))].sort((x, y) => x - y);
+  let h = b(page - 1, "‹", { off: page === 0, t: "Page précédente" }), av = -1;
+  vus.forEach((p) => { if (p - av > 1) h += '<span class="pg-trou">…</span>'; h += b(p, p + 1, { on: p === page }); av = p; });
+  return '<nav class="pages" aria-label="Pages">' + h + b(page + 1, "›", { off: page >= n - 1, t: "Page suivante" }) + b(n - 1, "»", { off: page >= n - 1, t: "Dernière page" }) + "</nav>";
+};
+API.pagination = (nb, page, par, fn) => pagination(nb, page, par, fn);
 API.traitModRT = () => traitModRT(); API.estMed = () => estMed(D.membre.role); API.menuPts = (m) => menuPts(m); API.estRemplacant = () => D.membre.role === "remplacant";
 // Lot C : le remplaçant agit au nom du médecin titulaire (consultations, ordonnances, tâches, salle, RCP, documents) ; le journal d'audit garde la vraie personne (serveur)
 API.nomAgissant = () => (D.membre.role === "remplacant" ? medecinFiche().nom || nomCompte() : nomCompte());

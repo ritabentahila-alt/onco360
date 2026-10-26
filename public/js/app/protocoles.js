@@ -34,15 +34,24 @@ function resultats() {
     return true;
   }), CF.q); // T1 (24/10/2026) : le nom qui commence par le mot cherché d'abord, puis l'ordre alphabétique
 }
+// 26/10/2026 (demande de Dr Bentahila) : protocoles en cartes (nom, statut, molécules, indications, cycle, favori), PAR cartes par page ; un clic
+// sur la carte ouvre le protocole ; recherche, menus, favoris, statut inchangés ; page 1 dès qu'un filtre change
+const PAR = 12;
+let PAGE = 0, CLE = "";
+window.prPage = (p) => { PAGE = Math.max(0, p); A.$("prL").innerHTML = liste(); const c = A.$("prL"); if (c && c.getBoundingClientRect().top < 64) c.scrollIntoView({ block: "start" }); };
 function liste() {
   const r = resultats(), esc = A.esc, ok = A.peut("parametres");
+  const cle = JSON.stringify([CF.c, CF.o, CF.s, CF.g, CF.q, CF.fav, CF.st]); if (cle !== CLE) { CLE = cle; PAGE = 0; }
   if (!r.length) return '<p class="sous">Aucun protocole.</p>';
-  return '<p class="mesures" style="margin:6px 0">' + r.length + " protocole" + (r.length > 1 ? "s" : "") + "</p>" + r.map((p) => {
-    const ind = (p.ind || []).slice(0, 3).map((x) => x.filter(Boolean).slice(1).join(" › ")).filter(Boolean).join(" · ") + ((p.ind || []).length > 3 ? " · …" : "");
-    return '<div class="proto"><button class="etoile" title="Favori" onclick="prFav(\'' + esc(p.id) + '\')"' + (ok ? "" : " disabled") + ">" + (p.fav ? '<svg class="pi plein or"><use href="#i-etoile"/></svg>' : '<svg class="pi"><use href="#i-etoile"/></svg>') + '</button><div style="flex:1;min-width:0;cursor:pointer" onclick="prOuvrir(\'' + esc(p.id) + '\')"><b>' + esc(p.nom) + "</b> " + badgeSt(p) + (p.assoc ? ' <span class="badge b-gr">associé</span>' : "") +
-      '<div class="mesures">' + esc(molecules(p)) + (p.c ? " – cycle " + p.c + " j" : " – continu") + "</div>" + (ind ? '<div class="mesures" style="color:#8A8CA8">' + esc(ind) + "</div>" : "") + "</div>" +
-      '<div class="actr" style="flex-wrap:nowrap"><button class="mini" onclick="prOuvrir(\'' + esc(p.id) + "')\">" + (ok ? "Ouvrir / modifier" : "Voir") + "</button></div></div>";
-  }).join("");
+  PAGE = Math.min(PAGE, Math.ceil(r.length / PAR) - 1);
+  return '<p class="mesures" style="margin:6px 0">' + r.length + " protocole" + (r.length > 1 ? "s" : "") + '</p><div class="pgrille">' + r.slice(PAGE * PAR, PAGE * PAR + PAR).map((p) => {
+    const ind = (p.ind || []).slice(0, 2).map((x) => x.filter(Boolean).slice(1).join(" › ")).filter(Boolean).join(" · ") + ((p.ind || []).length > 2 ? " · …" : ""), q = "'" + esc(p.id) + "'";
+    return '<div class="pcarte" role="button" tabindex="0" onclick="prOuvrir(' + q + ')" onkeydown="if(event.key===\'Enter\')prOuvrir(' + q + ')" title="' + (ok ? "Ouvrir / modifier" : "Voir") + '">' +
+      '<div class="pc-h"><b>' + esc(p.nom) + "</b>" + badgeSt(p) + "</div>" +
+      (molecules(p) ? '<div class="pc-m"><span class="pc-mol">' + esc(molecules(p)) + "</span>" + (p.assoc ? ' <span class="badge b-gr">associé</span>' : "") + "</div>" : "") +
+      (ind ? '<div class="pc-i">' + esc(ind) + "</div>" : "") +
+      '<div class="pc-p"><span>' + (p.c ? "Cycle " + p.c + " j" : "Continu") + '</span><button class="etoile" title="Favori" aria-label="Favori" onclick="event.stopPropagation();prFav(' + q + ')"' + (ok ? "" : " disabled") + ">" + (p.fav ? '<svg class="pi plein or"><use href="#i-etoile"/></svg>' : '<svg class="pi"><use href="#i-etoile"/></svg>') + "</button></div></div>";
+  }).join("") + "</div>" + A.pagination(r.length, PAGE, PAR, "prPage");
 }
 // RTR, RT4 (25/10/2026) : lien du référentiel de radiothérapie. #protocoles/<id> ouvre la fiche du protocole ; #protocoles/loc/<localisation> ouvre
 // la page filtrée sur la localisation (même correspondance que « Nouvelle ligne », filtreLocalisation) ; identifiant cherché par le nom exact

@@ -127,13 +127,16 @@ function surligner(txt, T) {
   for (let i = 0; i < s.length; i++) { if (marque[i] !== dans) { h += marque[i] ? "<mark>" : "</mark>"; dans = marque[i]; } h += esc(s[i]); }
   return h + (dans ? "</mark>" : "");
 }
+// 26/10/2026 (demande de Dr Bentahila) : schémas en cartes (titre, favori, fractionnement, essais, localisation › situation, Modifié), par pages
+// (PAR_RT) ; un clic sur la carte ouvre la fiche ; recherche, menus, flèches du clavier inchangés
 function ligne(e, T, i) {
   const esc = A.esc, s = sit(e.situation_id) || {}, l = loc(e.localisation_id) || {}, fav = favoris().indexOf(e.id) >= 0;
   const ess = (e.essais || []).slice(0, 3).join(", ") + ((e.essais || []).length > 3 ? " +" + (e.essais.length - 3) : "");
-  return '<div class="rtr-l' + (i === RF.sel ? " sel" : "") + (RF.ouvert === e.id ? " on" : "") + '" role="button" tabindex="-1" data-i="' + i + '" onclick="rtrOuvrir(\'' + esc(e.id) + "')\">" +
-    '<div class="rtr-l1"><b>' + surligner(e.titre, T) + '</b><button class="rtr-et' + (fav ? " on" : "") + '" title="' + (fav ? "Retirer des favoris" : "Ajouter aux favoris") + '" aria-pressed="' + fav + '" onclick="rtrEtoile(\'' + esc(e.id) + "',event)\">" + A.ic("etoile") + "</button></div>" +
-    '<div class="mesures">' + surligner(l.nom + " › " + (s.titre || ""), T) + (ess ? " · " + surligner(ess, T) : "") + ' · <span class="rtr-ty">' + esc(TYPES[e.type] || "") + "</span>" +
-    (e.modifie ? ' <span class="badge b-or">Modifié</span>' : "") + "</div></div>";
+  return '<div class="rtr-l pcarte' + (i === RF.sel ? " sel" : "") + (RF.ouvert === e.id ? " on" : "") + '" role="button" tabindex="-1" data-i="' + i + '" onclick="rtrOuvrir(\'' + esc(e.id) + "')\">" +
+    '<div class="pc-h rtr-l1"><b>' + surligner(e.titre, T) + '</b><button class="rtr-et' + (fav ? " on" : "") + '" title="' + (fav ? "Retirer des favoris" : "Ajouter aux favoris") + '" aria-pressed="' + fav + '" onclick="rtrEtoile(\'' + esc(e.id) + "',event)\">" + A.ic("etoile") + "</button></div>" +
+    '<div class="pc-m">' + (TYPES[e.type] ? '<span class="pc-mol rtr-ty">' + esc(TYPES[e.type]) + "</span>" : "") + (ess ? '<span class="pc-mol pc-ess">' + surligner(ess, T) + "</span>" : "") + "</div>" +
+    '<div class="pc-i mesures">' + surligner(l.nom + " › " + (s.titre || ""), T) + "</div>" +
+    (e.modifie ? '<div class="pc-p"><span class="badge b-or">Modifié</span></div>' : "") + "</div>";
 }
 let VUS = [];
 function dessinerListe() {
@@ -150,8 +153,13 @@ function dessinerListe() {
     const m = motBloquant(LISTE, RF.q, INDEX, TEXTES);
     h += '<div class="vide-c">Aucun schéma ne correspond' + (m ? '<br><button class="bt clair petit" onclick="rtrSansMot(\'' + esc(m).replace(/'/g, "\\'") + "')\">Chercher sans « " + esc(m) + " »</button>" : "") + (actifs() ? ' <button class="bt gris petit" onclick="rtrEffacer()">Effacer les filtres</button>' : "") + "</div>";
   } else {
-    const plusieurs = new Set(L.map((e) => e.localisation_id)).size > 1; let cur = null;
-    L.forEach((e, i) => { if (plusieurs && e.localisation_id !== cur) { cur = e.localisation_id; const l = loc(cur) || {}; h += '<h4 class="rtr-it">' + esc(((INDEX.regions.find((r) => r.id === l.region_id) || {}).nom || "") + " › " + (l.nom || "")) + "</h4>"; } h += ligne(e, T, i); });
+    const cle = RF.q + "|" + L.length + "|" + L[0].id + "|" + L[L.length - 1].id; if (cle !== CLE_RT) { CLE_RT = cle; RF.page = 0; }
+    const np = Math.ceil(L.length / PAR_RT); RF.page = Math.max(0, Math.min(RF.page || 0, np - 1));
+    const P = L.slice(RF.page * PAR_RT, RF.page * PAR_RT + PAR_RT); VUS = P; if (RF.sel >= P.length) RF.sel = P.length - 1;
+    const plusieurs = new Set(P.map((e) => e.localisation_id)).size > 1; let cur = null;
+    h += '<div class="pgrille">';
+    P.forEach((e, i) => { if (plusieurs && e.localisation_id !== cur) { cur = e.localisation_id; const l = loc(cur) || {}; h += '<h4 class="rtr-it">' + esc(((INDEX.regions.find((r) => r.id === l.region_id) || {}).nom || "") + " › " + (l.nom || "")) + "</h4>"; } h += ligne(e, T, i); });
+    h += "</div>" + A.pagination(L.length, RF.page, PAR_RT, "rtrPage");
   }
   // schémas de la référence supprimés par le cabinet : en bas de la liste générale, à rétablir
   const sup = accueil && peutModif() ? Object.keys(CAB).filter((id) => CAB[id] && CAB[id].supprime) : [];
@@ -160,8 +168,11 @@ function dessinerListe() {
 }
 function blocListe(titre, ids) {
   const L = ids.map((id) => LISTE.find((e) => e.id === id)).filter(Boolean);
-  return L.length ? '<section class="rtr-bloc"><h3>' + titre + "</h3>" + L.map((e, i) => ligne(e, [], 1000 + i)).join("") + "</section>" : "";
+  return L.length ? '<section class="rtr-bloc"><h3>' + titre + '</h3><div class="pgrille">' + L.map((e, i) => ligne(e, [], 1000 + i)).join("") + "</div></section>" : "";
 }
+const PAR_RT = 12;
+let CLE_RT = "";
+window.rtrPage = (p) => { RF.page = Math.max(0, p); RF.sel = -1; dessinerListe(); const z = $("rtrListe"), t = z && z.querySelector(".rtr-tous, .rtr-nb"); if (t && t.getBoundingClientRect().top < 64) t.scrollIntoView({ block: "start" }); };
 const erreurHtml = () => '<div class="vide-c">Le référentiel n\'a pas pu être chargé.<br><button class="bt clair petit" id="rtrReessayer" onclick="rtrReessayer()">Réessayer</button></div>';
 window.rtrReessayer = () => { ERREUR = null; pageRadiotherapie(ARG); };
 

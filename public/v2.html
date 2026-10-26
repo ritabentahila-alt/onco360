@@ -1476,6 +1476,7 @@ details.m3.bib-pts{margin-left:4px;vertical-align:middle;display:inline-block}.m
 .rtr-carte .rtr-filtres{position:sticky;top:calc(64px + var(--rtr-h));z-index:15;background:var(--carte);border-radius:var(--r-l) var(--r-l) 0 0;padding:12px 18px 8px;border-bottom:1px solid var(--trait)}
 .rtr-carte .rtr-it{top:calc(64px + var(--rtr-hf, 200px))}
 .pr-casc{position:sticky;top:64px;z-index:15;background:var(--carte);margin:-6px -4px 0;padding:6px 4px 2px}
+@media (max-width:899px){.pr-casc,.rtr-carte .rtr-filtres{position:static}} /* téléphone : menus empilés, ils défilent avec la page (26/10/2026) */
 #prMaj:empty{display:none}.pr-barre{margin-bottom:-8px}
 /* 26/10/2026 (demande de Dr Bentahila) : « ⋯ » des Protocoles (Réinitialiser, Excel, Livret PDF) et du Bilan (Excel, PDF) à la taille des boutons
    voisins, centré sur la ligne ; Bilan : Actualiser et « ⋯ » sur la ligne des filtres */
@@ -1516,6 +1517,30 @@ details.dp>.dp-c{padding:8px 0 10px 18px}
 .sa-menu,.m3-l,.lst-sug,.im-sug:not(.cache),.rtr-pts3[open]>div{animation:ev-apparait .16s ease-out}
 details.dp[open]>.dp-c{animation:ev-apparait .2s ease-out}
 @media (prefers-reduced-motion:reduce){:where(*){transition:none!important;animation:none!important}}
+/* 26/10/2026 (demande de Dr Bentahila) : protocoles de chimiothérapie et schémas de radiothérapie en cartes, par pages */
+.pgrille{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;background:#F4F7FC;border-radius:12px;padding:12px}
+.pcarte{background:#fff;border:1px solid #E3E9F3;border-radius:14px;padding:13px 15px;cursor:pointer;display:flex;flex-direction:column;gap:7px;min-width:0;box-shadow:0 1px 2px rgba(30,42,68,.04);transition:box-shadow .2s ease-in-out,border-color .2s ease-in-out,transform .2s ease-in-out}
+.pcarte:hover,.pcarte:focus-visible{border-color:#C9D5EA;box-shadow:0 6px 18px rgba(30,42,68,.09);transform:translateY(-1px);outline:none}
+.pcarte.sel,.pcarte.on{border-color:var(--prim);box-shadow:0 0 0 2px var(--prim-c)}
+.pc-h{display:flex;gap:8px;align-items:flex-start}.pc-h b{flex:1;min-width:0;font-size:var(--t5);color:var(--titre);line-height:1.3;overflow-wrap:anywhere}.pc-h .badge{flex:none;max-width:none}
+.pc-m{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.pc-mol{display:inline-block;max-width:100%;background:#EEF1F8;color:#3B4A6B;border-radius:6px;padding:2px 8px;font-size:var(--t1);font-weight:600;text-transform:uppercase;letter-spacing:.02em;overflow-wrap:anywhere}
+.pc-i{color:var(--doux);font-size:var(--t3);overflow-wrap:anywhere}
+.pc-p{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:auto;color:var(--doux);font-size:var(--t2)}
+.pc-p .etoile,.pc-p .rtr-et{margin:-6px -6px -6px 0;border:0;background:none;box-shadow:none;width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px}.pc-p .etoile:hover,.pc-p .rtr-et:hover{background:var(--prim-c)}
+.pgrille>h4{grid-column:1/-1;margin:6px 2px 0}
+.pages{display:flex;justify-content:center;align-items:center;gap:6px;margin:16px 0 4px;flex-wrap:wrap}
+.pages button{min-width:36px;height:36px;padding:0 10px;border:1px solid #D5DDEB;background:#fff;border-radius:9px;font:inherit;font-weight:600;color:var(--titre);cursor:pointer}
+.pages button:hover:not(:disabled){border-color:var(--prim);color:var(--prim)}
+.pages button.on{background:var(--prim);border-color:var(--prim);color:#fff}
+.pages button:disabled{opacity:.4;cursor:default}
+.pg-trou{color:var(--doux);padding:0 2px}
+@media (max-width:899px){.pgrille{grid-template-columns:1fr;padding:8px}}
+.pgrille>.rtr-l{padding:13px 15px;border-bottom:1px solid #E3E9F3;min-height:0}.pgrille>.rtr-l:last-child{border-bottom:1px solid #E3E9F3}
+.pgrille>.rtr-l:hover{background:#fff}.pgrille>.rtr-l.sel,.pgrille>.rtr-l.on{background:#fff;border-color:var(--prim);box-shadow:0 0 0 2px var(--prim-c)}
+.pgrille>.rtr-it{position:static;background:none;border:0;padding:4px 2px 0}
+.pc-h .rtr-et{flex:none;margin:-6px -6px 0 0}
+.rtr-bloc .pgrille{margin-bottom:10px}
 </style>
 </head>
 <body>

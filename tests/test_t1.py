@@ -31,7 +31,7 @@ async def main():
         await pg.goto(f'http://localhost:{PORT}/v2.html#protocoles'); await pg.wait_for_timeout(2500)
         sel = '#prQ'
         await pg.fill(sel, 'EC'); await pg.dispatch_event(sel, 'input'); await pg.wait_for_timeout(500)
-        noms = await ev("[...document.querySelectorAll('#prL .proto b')].map(b=>b.textContent)")
+        noms = await ev("[...document.querySelectorAll('#prL .pcarte b')].map(b=>b.textContent)")
         ok(noms and noms[0].upper().startswith('EC'), 'page Protocoles, « EC » : les EC d\'abord', noms[:4])
         ok(not pg.errs, 'aucune erreur JavaScript', pg.errs[:2])
         await b.close()

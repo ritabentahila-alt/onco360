@@ -103,7 +103,7 @@ async def main():
         ok(d and any(x['nom'] == 'Organe test du cabinet' for x in d['ajouts']) and await ev("document.querySelectorAll('.rtr-ot tbody tr').length") == 118, 'organe ajouté par le cabinet (118 organes)')
         ok(not await ev("!!window.__fs['" + K + "_oar'].schema"), 'les bibliothèques du cabinet ne sont pas prises pour un schéma')
         await pg.goto(f'http://localhost:{PORT}/v2.html#radiotherapie'); await pg.wait_for_timeout(2500)
-        ok(await ev("document.querySelectorAll('#rtrListe > .rtr-l').length") >= 295 and not pg.errs, 'la liste des schémas reste entière, aucune erreur JavaScript', pg.errs[:2])
+        ok(await ev("parseInt(document.querySelector('#rtrListe .rtr-nb').textContent)") >= 295 and not pg.errs, 'la liste des schémas reste entière, aucune erreur JavaScript', pg.errs[:2])
         # Copier et Supprimer (sous « ⋯ »), puis Rétablir
         await pg.goto(f'http://localhost:{PORT}/v2.html#radiotherapie/s/pro-fav-70-28/prescription'); await pg.wait_for_timeout(2500)
         await pg.click('.rtr-pts3 > summary'); await pg.wait_for_timeout(150); await pg.click('.rtr-pts3 .m3-l button:has-text("Copier")'); await pg.wait_for_timeout(300)

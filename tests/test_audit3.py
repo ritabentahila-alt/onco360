@@ -43,7 +43,7 @@ async def main():
         tf = await pg.inner_text('#fenetreCorps')
         ok('Risque émétique' in tf and 'Ordonnances liées' in tf and 'Seuils du jour' in tf and 'Calculé : Modéré haut' in tf, 'fiche du protocole : risque émétique (calculé), ordonnances liées, seuils du jour', tf[:200])
         await ev("fermerFenetre()")
-        n = await ev("document.querySelectorAll('#prL .proto').length")
+        n = await ev("parseInt(document.querySelector('#prL .mesures').textContent)")  # 26/10/2026 : cartes par pages, total affiché
         ok(n == 368, 'page Protocoles à jour (368)', n)
         ok(not pg.errs, 'aucune erreur JavaScript', pg.errs[:2]); await pg.close()
         # deuxième ouverture : rien refait, pas de fenêtre
