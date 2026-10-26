@@ -402,8 +402,8 @@ ordre B, D, C, A puis E. **Ces demandes passent avant ce plan quand elles le con
       cliquable (aussi sur l'OMS ; **pas de « + Ajouter » : 2e demande du 25/10**), listes du cabinet (`parametres/listes` : allergies, atcdMed,
       atcdChir, atcdFam, traitCours ; départ : `donnees/listes.js`, traitements = médicaments de Médic. sans dose) ; consultations en cartes sobres ;
       menu en icônes dans le dossier ; téléphone : onglets Consult. · Patient · Chimio · RT · Docs et bouton « + Prescrire ». Test `tests/test_lot_a.py`.
-      **Reste à faire** : 4 colonnes à partir de 1 600 px (§10 : à préciser, quelle 4e colonne ?) ; liste des médicaments courants vendus au Maroc
-      pour les traitements en cours (§6 : sans source vérifiable, pas ajoutée ; à fournir par Dr Bentahila).
+      ~~Reste à faire~~ (26/10/2026) : 4 colonnes à 1 600 px = **non** (une erreur de la fiche, décision de Dr Bentahila) ; médicaments courants :
+      fichier fourni par Dr Bentahila, ajoutés (voir « Retouches du 26/10/2026 »).
 - [x] **(25/10, 3e demande) Bilan : consultations à 0 DH non affichées** (J8 / J15 de chimio, consultation en cours ou de fin de radiothérapie…) :
       ni dans le journal détaillé, ni dans le nombre de consultations, ni dans les exports et le relevé ; une consultation sans tarif reste
       affichée avec son alerte ; totaux en DH inchangés (calcul du bilan `moteur/bilan.js` et référence `bilan_ref_fictif.txt` inchangés ; filtre
@@ -429,6 +429,21 @@ ordre B, D, C, A puis E. **Ces demandes passent avant ce plan quand elles le con
   - [ ] Après validation : les familles `bt plein`, `bt clair`, `bt gris`, `mini`, `rond`, `ico vert`… ramenées à `b1` / `b2` / `b3` dans
         v2.html et sur toutes les pages ; tailles écrites dans les pages remplacées par les quatre variables ; aide, fenêtres et états vides au
         même modèle partout.
+
+- [x] **Retouches du 26/10/2026 (demandes de Dr Bentahila, testées, version 20261026a)** : colonne Patient du dossier : « Prochain rendez-vous »
+      retiré (doublon) ; « Rendez-vous et tâches à venir » et « Historique des RDV » sur **une ligne** par rendez-vous (« Lun. 26/10 · 08:30 »,
+      icône, nom court comme la salle d'attente : Séance chimio, RT hebdo, Suivi, Annonce, Contrôle, Scanner RT, Début RT, Dernière séance RT, Tâche,
+      RCP ; détail en gris coupé ; même « ⋯ ») ; la carte complète reste au centre (clic sur le titre de la rubrique) ; informations médicales :
+      « + » bleu à droite du sous-titre au lieu du crayon (fenêtre avec les éléments notés et une ligne vide) ; textes sobres : titre de rubrique ›
+      sous-titre bleu › texte normal (plus de gras sur les valeurs), un peu d'espace entre chacun (fiche tumeur, identité, informations médicales) ;
+      consultation ouverte : le titre reste collé au type (« ▾ 21/10/2026 Chimio J15C1 Taxol hebdo ») ; Agenda : vues, « Aujourd'hui ‹ › période »,
+      Actualiser et « + Nouveau rendez-vous » sur une ligne, filtres établissement / médecin en tête de la colonne de gauche, grille jusqu'en bas de
+      l'écran ; Salle d'attente : « Calendrier » ouvre enfin le calendrier (un clic ne faisait que sélectionner le champ date invisible) ; Tâches :
+      écart normal entre les blocs (le lot E les avait collés) ; Radiothérapie : « + Nouveau schéma » sur la ligne des onglets, bouton principal
+      comme « + Créer un protocole » ; traitements en cours : 136 noms commerciaux (molécule) du fichier « Medicaments_Medecine_Generale.xlsx »
+      (`donnees/traitements.js`, ajoutés une fois à la liste d'un cabinet : migration `traitMa1026`) ; stades et grades recopiés dans le modèle et
+      les cabinets neufs (`listesDepart` ; **à faire par l'Administration** : « Copier depuis le cabinet du Dr Bentahila » pour que le modèle les
+      reçoive). Test `tests/test_retouches_2610.py`. Décisions du 26/10 : statut du patient gardé dans le bloc patient (oui) ; 4 colonnes : non.
 
 **Changements de décision (demandés par Dr Bentahila le 24 et le 25/10/2026, ils remplacent ce qui est écrit plus bas)** :
 - d. 46 (20/10 : « traitements en cours choisis dans une liste : non ») → **oui** (lot A §4 et §6) : liste du cabinet + saisie libre. Le texte

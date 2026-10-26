@@ -1,6 +1,6 @@
 // Onco360 – Informations médicales du dossier (lot A §4 et §6, 25/10/2026, demande de Dr Bentahila) : antécédents médicaux, chirurgicaux et
 // familiaux, allergies, traitements en cours (une ligne par élément : libellé + note ; dosage facultatif pour un traitement, jamais de posologie
-// imposée), mode de vie (un texte). Colonne Patient : chaque sous-partie affichée (« non renseigné » cliquable), ✎ pour rouvrir (le « + Ajouter »
+// imposée), mode de vie (un texte). Colonne Patient : chaque sous-partie affichée (« non renseigné » cliquable), « + » bleu pour rouvrir (26/10 ; le « + Ajouter »
 // du début a été retiré le 25/10 : « non renseigné » ou le titre de la rubrique) ; petite fenêtre d'ajout (liste du cabinet + saisie libre, ajoutée à la liste pour les fois
 // suivantes ; doublon signalé) ; le même éditeur dans le formulaire entier (clic sur le titre de la rubrique, fichepatient.js).
 // Rangement : le champ texte d'avant (clinique.atcdMed, atcdChir, atcdFam, traitCours, allergies), un élément par ligne (« libellé — note »,
@@ -11,6 +11,7 @@ import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/
 import { db } from "../config.js";
 import { ATCD_MED0, ATCD_CHIR0, ATCD_FAM0, ALLERGIES0 } from "../donnees/listes.js";
 import { MEDICAMENTS0 } from "../donnees/medicaments.js";
+import { TRAITEMENTS_MA } from "../donnees/traitements.js";
 import * as ficheP from "./fichepatient.js";
 let A = null;
 export function installer(api) { A = api; }
@@ -25,7 +26,9 @@ const SEP = " — ";
 export const sansDose = (n) => String(n || "").replace(/\s+\d[\d.,/ ]*\s*(mg|µg|mcg|g|ml|UI|U|%)(\/\s*\S+)?(\s.*)?$/i, "").trim();
 const alpha = (a, b) => a.localeCompare(b, "fr", { sensitivity: "base" });
 const DEPART = { atcdMed: ATCD_MED0, atcdChir: ATCD_CHIR0, atcdFam: ATCD_FAM0, allergies: ALLERGIES0 };
-export const departMed = (k) => (k === "traitCours" ? [...new Set(MEDICAMENTS0.map((m) => sansDose(m[0])).filter(Boolean))].sort(alpha) : (DEPART[k] || []).slice());
+// 26/10/2026 : + traitements courants de médecine générale (donnees/traitements.js, fichier de Dr Bentahila), sans doublon
+export const departMed = (k) => { if (k !== "traitCours") return (DEPART[k] || []).slice(); const vus = new Set(), L = [];
+  MEDICAMENTS0.map((m) => sansDose(m[0])).concat(TRAITEMENTS_MA).forEach((t) => { const n = norm(t); if (t && !vus.has(n)) { vus.add(n); L.push(t); } }); return L.sort(alpha); };
 export const listeMed = (k) => { const L = (D() && D().listes) || {}; return Array.isArray(L[k]) ? L[k].slice() : departMed(k); };
 const norm = (t) => String(t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/\s+/g, " ").trim().toLowerCase();
 const propre = (t) => String(t == null ? "" : t).replace(/\s*[—]\s*/g, " - ").replace(/\s+/g, " ").trim().slice(0, 200);
@@ -42,7 +45,7 @@ const champs = () => ficheP.champsFiche().filter((c) => c.present && c.section =
 export const sousPresentes = () => { const L = champs(); return SOUS.map(([k, lib]) => { const c = L.find((z) => z.k === k); return c ? [k, c.lib || lib] : null; }).filter(Boolean); };
 const peutModifier = () => A.traitMod() || A.peut("fichePatient");
 const liste = (x, k) => elements(((x.doc.clinique || {})[k]) || "", k);
-const ligneEl = (e, k) => "<li><b>" + A.esc(e.lib) + "</b>" + (k === "traitCours" && e.dosage ? " " + A.esc(e.dosage) : "") + (e.note ? '<span class="im-n"> · ' + A.esc(e.note) + "</span>" : "") + "</li>";
+const ligneEl = (e, k) => '<li><span class="im-e">' + A.esc(e.lib) + "</span>" + (k === "traitCours" && e.dosage ? " " + A.esc(e.dosage) : "") + (e.note ? '<span class="im-n"> · ' + A.esc(e.note) + "</span>" : "") + "</li>";
 
 // 25/10/2026 (2e demande de Dr Bentahila) : plus de « + Ajouter » : on ajoute en cliquant sur « non renseigné » (petite fenêtre) ou sur le titre
 // « Informations médicales » (tout le formulaire au centre) ; « non renseigné » aussi sur les autres champs vides de la partie (OMS, taille…)
@@ -51,7 +54,9 @@ export const nonRenseigne = (x, k) => (peutModifier() ? '<button type="button" c
 export function htmlColonne(x) {
   const esc = A.esc, C = x.doc.clinique || {}, ok = peutModifier(), q = "'" + x.id + "'", S = sousPresentes();
   const nr = (k) => nonRenseigne(x, k);
-  const crayon = (k, lib) => (ok ? '<button type="button" class="ico im-cr" onclick="imOuvrir(' + q + ",'" + k + '\')" title="Modifier « ' + esc(lib) + ' »" aria-label="Modifier « ' + esc(lib) + ' »">' + A.ic("crayon") + "</button>" : "");
+  // 26/10/2026 (demande de Dr Bentahila) : petit « + » bleu à droite du titre (au lieu du crayon) : la fenêtre s'ouvre avec les éléments déjà notés
+  // (modifiables) et une ligne vide pour en ajouter
+  const crayon = (k, lib) => (ok ? '<button type="button" class="im-cr im-ajt" onclick="imOuvrir(' + q + ",'" + k + '\',true)" title="Ajouter ou modifier « ' + esc(lib) + ' »" aria-label="Ajouter ou modifier « ' + esc(lib) + ' »">' + A.ic("plus") + "</button>" : "");
   let n = 0;
   const corps = S.map(([k, lib]) => {
     let h = "";

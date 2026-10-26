@@ -122,18 +122,20 @@ export function pageAgenda() {
   else if (v === "mois") { const m = AG.d.slice(0, 8) + "01"; du = lundi(m); au = addJ(du, 41); const x = new Date(m + "T12:00:00"); lib = MOIS[x.getMonth()] + " " + x.getFullYear(); }
   else { du = AG.d; au = addJ(AG.d, 30); lib = "À partir du " + court(AG.d); }
   EVS = evenements(du, au);
-  const main = v === "mois" ? vueMois(du) : v === "liste" ? vueListe() : vueGrille(du, v === "jour" ? 1 : 7), cote = miniCal() + aVenir();
+  // 26/10/2026 (demande de Dr Bentahila) : une seule ligne en haut (vues, Aujourd'hui ‹ › période, Actualiser, + Nouveau rendez-vous) ; les filtres
+  // établissement et médecin passent en tête de la colonne de gauche (sur téléphone et tablette : au-dessus de l'agenda, seuls)
+  const fil = (EV.length > 1 ? '<select class="ag-etab" data-fn="agenda.filtre" aria-label="Établissement" onchange="agEtab(this.value)"><option value="">Tous les établissements</option>' + EV.map((c) => '<option value="' + esc(c) + '"' + (AG.etab === c ? " selected" : "") + ">" + esc(c) + "</option>").join("") + "</select>" : EV.length === 1 ? '<span class="badge b-gr">' + esc(EV[0]) + "</span>" : "") +
+    (A.multiMed() ? '<select class="ag-etab" id="agMed" aria-label="Médecin" onchange="agMed(this.value)"><option value="">Tous les médecins</option>' + A.medecins().map((m) => '<option value="' + esc(m.uid) + '"' + (AG.med === m.uid ? " selected" : "") + ">" + esc(m.nom) + "</option>").join("") + "</select>" : "");
+  const gg = (D().profil.agendaGoogle || {}).email ? 'Vos rendez-vous apparaissent aussi dans votre Google Agenda (agenda « Onco360 »), dans un seul sens. <a href="#parametres/couleurs">État</a>'
+    : 'Voir ces rendez-vous dans votre Google Agenda : <a href="#parametres/couleurs">Paramètres › Google Agenda</a>.';
+  const main = v === "mois" ? vueMois(du) : v === "liste" ? vueListe() : vueGrille(du, v === "jour" ? 1 : 7), cote = (fil ? '<div class="ag-fil">' + fil + "</div>" : "") + miniCal() + aVenir() + '<p class="mesures ag-gg">' + gg + "</p>";
   const onglet = (k, ico, t) => '<button' + (k === "liste" ? "" : ' data-fn="agenda.vues"') + ' class="' + (v === k ? "on" : "") + '" onclick="agVue(\'' + k + '\')">' + A.ic(ico) + t + "</button>";
   // Lot B (25/10/2026) : plus de titre de page ; « + Nouveau rendez-vous » au bout de la barre (vues, période, filtres, Actualiser)
   let h = '<div class="ag-barre"><div class="ag-vues">' + onglet("liste", "liste", "Liste") + onglet("jour", "agenda", "Jour") + onglet("semaine", "agenda", "Semaine") + onglet("mois", "accueil", "Mois") + "</div>" +
-    '<div class="ag-nav"><button class="rond" onclick="agNav(-1)" aria-label="Précédent">' + A.ic("retour") + '</button><button class="bt clair petit" onclick="agAuj()">Aujourd\'hui</button><b>' + esc(lib) + '</b><button class="rond" onclick="agNav(1)" aria-label="Suivant" style="transform:scaleX(-1)">' + A.ic("retour") + "</button></div>" +
-    (EV.length > 1 ? '<select class="ag-etab" data-fn="agenda.filtre" aria-label="Établissement" onchange="agEtab(this.value)"><option value="">Tous les établissements</option>' + EV.map((c) => '<option value="' + esc(c) + '"' + (AG.etab === c ? " selected" : "") + ">" + esc(c) + "</option>").join("") + "</select>" : EV.length === 1 ? '<span class="badge b-gr">' + esc(EV[0]) + "</span>" : "") +
-    (A.multiMed() ? '<select class="ag-etab" id="agMed" aria-label="Médecin" onchange="agMed(this.value)"><option value="">Tous les médecins</option>' + A.medecins().map((m) => '<option value="' + esc(m.uid) + '"' + (AG.med === m.uid ? " selected" : "") + ">" + esc(m.nom) + "</option>").join("") + "</select>" : "") +
+    '<div class="ag-nav"><button class="bt clair petit" onclick="agAuj()">Aujourd\'hui</button><button class="rond" onclick="agNav(-1)" aria-label="Précédent">' + A.ic("retour") + '</button><button class="rond" onclick="agNav(1)" aria-label="Suivant" style="transform:scaleX(-1)">' + A.ic("retour") + "</button><b>" + esc(lib) + "</b></div>" +
     '<span class="ag-droite"><span class="ag-act"><button class="bt clair petit" id="agAct" onclick="agActualiser()" title="Relire les rendez-vous, séances et radiothérapies (aussi chaque minute)">' + A.ic("actualiser") + 'Actualiser</button><span class="mesures" id="agAjour"></span></span>' +
     '<button class="bt plein ag-nouv" onclick="nouveauRdv(null,null,\'' + esc(AG.etab || "") + '\',\'' + esc(AG.med || "") + '\')">' + A.ic("plus") + '<span class="lg">Nouveau rendez-vous</span><span class="sm">Rendez-vous</span></button></span></div>' +
-    '<div class="ag-corps"><aside class="ag-cote">' + cote + '</aside><div class="ag-main carte">' + main + "</div></div>" +
-    ((D().profil.agendaGoogle || {}).email ? '<p class="mesures">Vos rendez-vous apparaissent aussi dans votre Google Agenda (agenda « Onco360 »), dans un seul sens. <a href="#parametres/couleurs">État</a></p>'
-      : '<p class="mesures">Voir ces rendez-vous dans votre Google Agenda : <a href="#parametres/couleurs">Paramètres › Google Agenda</a>.</p>');
+    '<div class="ag-corps"><aside class="ag-cote">' + cote + '</aside><div class="ag-main carte">' + main + "</div></div>" + '<p class="mesures ag-gg-bas">' + gg + "</p>";
   // R-C8 : même vue et même période redessinées (Actualiser, écoute des dossiers, après une modification) : le défilement de la grille est gardé
   const g0 = document.querySelector(".ag-grille"), cleVue = v + "|" + du, garde = g0 && AG.cleVue === cleVue ? g0.scrollTop : null;
   A.$("page").innerHTML = h; AG.cleVue = cleVue; majAJour(); demarrerMinute();
@@ -141,7 +143,11 @@ export function pageAgenda() {
   if (g && garde != null) g.scrollTop = garde; else if (g && !AG.defile) { g.scrollTop = (deb - H0 * 60) / 15 * PAS - 10; }
   AG.defile = false;
   if (g) glisser(document.querySelector(".ag-main"));
+  hauteurGrille();
 }
+// 26/10/2026 : la grille descend jusqu'en bas de l'écran (on fait défiler les heures dedans)
+function hauteurGrille() { const g = document.querySelector(".ag-grille"); if (!g) return; g.style.maxHeight = Math.max(380, Math.floor(window.innerHeight - (g.getBoundingClientRect().top + window.scrollY) - 18)) + "px"; }
+window.addEventListener("resize", () => { if (document.querySelector(".ag-grille")) hauteurGrille(); });
 function miniCal() {
   const m = (AG.mois || AG.d).slice(0, 8) + "01", x = new Date(m + "T12:00:00"), d0 = lundi(m), t = D().t;
   let h = '<div class="carte mcal"><div class="mcal-t"><button onclick="agMois(-1)">‹</button><b>' + MOIS[x.getMonth()] + " " + x.getFullYear() + '</b><button onclick="agMois(1)">›</button></div><div class="mcal-g">' + ["Lu", "Ma", "Me", "Je", "Ve", "Sa", "Di"].map((j) => "<i>" + j + "</i>").join("");

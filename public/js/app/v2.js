@@ -16,6 +16,8 @@ import { finRT, finRTcalc, statutRT, nbA, compteurRT, dosimetrie, contourage, RY
 import { auj, addJ, ecart, ouvre, age, srcImage, absentMedecin } from "../moteur/outils.js";
 import { changerTable, hmMaroc, jourMaroc } from "../moteur/heure.js";
 import { typeRdv, libRdv, joursH, T_RTC, nommerTypes } from "../moteur/rdv.js";
+import { TRAITEMENTS_MA } from "../donnees/traitements.js";
+import { typeCourt as typeCourtSalle } from "../moteur/salle.js"; // 26/10/2026 : nom court d'un rendez-vous (comme la salle d'attente)
 import { referentiel, nomsParCle, typesPourRdv, cleDeRdv } from "../moteur/typesconsult.js";
 import { tarif as tarifAu, net as netTarif } from "../moteur/tarifs.js";
 import { genererConsultRT, consultFinRT } from "../moteur/rt.js";
@@ -341,6 +343,14 @@ async function migrations() {
       let ok = true;
       if (renoms.length) { try { await appelServeur("corrigerListes", { espace: ESPACE, renoms }); for (const x of D.patients) { if (!renoms.some((z) => z.de === ((x.doc.clinique || {}).diag || ""))) continue; const s2 = await getDoc(doc(db, "espaces", ESPACE, "patients", x.id)).catch(() => null); if (s2 && s2.exists()) recalculer(x, s2.data()); } } catch (er) { ok = false; console.warn("localisations (dossiers)", er); } }
       if (ok) await setDoc(doc(db, "espaces", ESPACE, "parametres", "migrations"), { diag1012b: D.t }, { merge: true }).catch(() => {});
+    }
+    // Traitements courants de médecine générale (26/10/2026, fichier de Dr Bentahila) : ajoutés une fois à la liste « Traitements en cours » déjà
+    // enregistrée par le cabinet (rien n'est retiré ; sans liste enregistrée, la liste de départ les contient déjà)
+    if (!fait.traitMa1026) {
+      const L0 = D.listes || {};
+      if (Array.isArray(L0.traitCours)) { const m = TRAITEMENTS_MA.filter((d) => !L0.traitCours.some((z) => sansAcc(z) === sansAcc(d)));
+        if (m.length) { const L1 = Object.assign({}, L0, { traitCours: L0.traitCours.concat(m) }); await setDoc(doc(db, "espaces", ESPACE, "parametres", "listes"), { data: JSON.stringify(L1) }).then(() => { D.listes = L1; }).catch((er) => console.warn("traitements", er)); } }
+      await setDoc(doc(db, "espaces", ESPACE, "parametres", "migrations"), { traitMa1026: D.t }, { merge: true }).catch(() => {});
     }
     // Consultation de fin de radiothérapie (12/10/2026) : créée une fois pour les radiothérapies en cours ou à venir (ensuite : sauverRT)
     if (!fait.consultFinRT && peut("rendezvous") && reglages().auto.rtFin) {
@@ -1258,6 +1268,13 @@ function pageDossier(id) {
     (o.env ? '<span class="rc-wa" title="Rappel WhatsApp envoyé">' + ic("check") + "</span>" : "") + (o.em ? '<span class="rc-em">' + o.em + "</span>" : "") + '<b class="rc-t" title="' + esc(o.t) + '">' + esc(o.t) + "</b>" +
     (o.al ? '<span class="rc-al">' + esc(o.al) + "</span>" : "") + (o.av ? '<span class="rc-av">' + esc(o.av) + "</span>" : "") + menuPts((o.m || []).filter(Boolean)) + "</div>" +
     (o.s ? '<div class="rc-2" title="' + esc(o.s) + '">' + esc(o.s) + "</div>" : "") + "</div>";
+  // 26/10/2026 (demande de Dr Bentahila) : dans la colonne Patient, une ligne par rendez-vous, séance ou tâche : « Lun. 26/10 · 08:30 », icône, nom
+  // court (Séance chimio, RT hebdo, Suivi, Annonce, Contrôle… comme la salle d'attente), puis le détail en gris coupé à la largeur (texte entier au
+  // survol) ; mêmes repères (À valider, retard, férié, rappel envoyé) et même « ⋯ ». La carte complète reste au centre (clic sur le titre).
+  const ligne = (o, passe) => { const ty = o.ty || o.t, q = [o.t === ty ? "" : o.t, o.s].filter(Boolean).join(" · ");
+    return '<div class="rc rl' + (passe ? " passe" : "") + (o.retard ? " retard" : "") + '"><span class="rc-d">' + (passe ? (o.d ? dfrA(o.d) : "—") : jourC(o.d) + (o.f && o.f !== o.d ? " → " + dfr(o.f) : "")) + (o.h ? " · " + esc(o.h) : "") + "</span>" +
+      (o.em ? '<span class="rc-em">' + o.em + "</span>" : "") + '<span class="rl-t" title="' + esc([ty, q].filter(Boolean).join(" · ")) + '"><span class="rl-ty">' + esc(ty) + "</span>" + (q ? '<span class="rl-q"> · ' + esc(q) + "</span>" : "") + "</span>" +
+      (o.env ? '<span class="rc-wa" title="Rappel WhatsApp envoyé">' + ic("check") + "</span>" : "") + (o.al ? '<span class="rc-al">' + esc(o.al) + "</span>" : "") + (o.av ? '<span class="rc-av">' + esc(o.av) + "</span>" : "") + menuPts((o.m || []).filter(Boolean)) + "</div>"; };
   const NB = 3; // cartes visibles avant « Voir plus »
   const aVenir = (v) => (v.st || "prevu") === "prevu" && (v.f || v.d) >= t;
   const av = [];
@@ -1279,39 +1296,38 @@ function pageDossier(id) {
     const ret = /en retard/.test(c.lib), hh = inf && c.hr && c.hr.h ? c.hr : c.hc, h = (hh && hh.h) || "";
     const mm = String(c.lib).match(/^Chimio · (.*) · (C\d+(?: J\d+)?)(?: \(en retard\))?$/), cure = mm ? mm[2] : c.lib.replace(/^Chimio · /, "").replace(/ \(en retard\)$/, "");
     const quoi = inf && c.hr && c.hr.h ? "séance" + (c.hc && !c.hc.auto ? " (consultation " + c.hc.h + ")" : "") : c.hc ? "consultation" : "";
-    av.push({ d: c.d, h, rdv: 1, em: ic("seringue"), t: cure + (quoi ? " · " + quoi : "") + (ret ? " · en retard" : ""), s: mm ? mm[1] : "", retard: ret, env: !ret && waEnv("chimio", c.d), m: (ret ? [] : [waMenu("chimio", c.d, h)]).concat(c.lid ? menuChimio(c) : []) });
+    av.push({ d: c.d, h, rdv: 1, em: ic("seringue"), ty: "Séance chimio", t: cure + (quoi ? " · " + quoi : "") + (ret ? " · en retard" : ""), s: mm ? mm[1] : "", retard: ret, env: !ret && waEnv("chimio", c.d), m: (ret ? [] : [waMenu("chimio", c.d, h)]).concat(c.lid ? menuChimio(c) : []) });
   });
   if (voitRdv()) (P.rdvs || []).forEach((v) => {
     if (!aVenir(v)) return; const q = "'" + x.id + "','" + v.id + "'", cat = catRdv(v), m = [waMenu(cat, v.d, v.h || "")];
     if (okR) { if (v.d <= D.t) m.push(b("Venu", "statutRdv(" + q + ",'fait')"), b("Non venu", "statutRdv(" + q + ",'absent')")); m.push(b("Modifier", "ouvrirRdv(" + q + ")"), b("Supprimer", "statutRdv(" + q + ",'supprimer')")); }
-    av.push({ d: v.d, f: v.f, h: v.h || "", rdv: 1, em: typeRdv(v.type) === "hospit" ? '<svg class="pi"><use href="#i-hopital"/></svg>' : ic("stetho"), t: libRdv(v), s: [v.mo, v.n].filter(Boolean).join(" – "), env: waEnv(cat, v.d), m, rep: v.rep });
+    av.push({ d: v.d, f: v.f, h: v.h || "", rdv: 1, em: typeRdv(v.type) === "hospit" ? '<svg class="pi"><use href="#i-hopital"/></svg>' : ic("stetho"), ty: typeCourtSalle(v)[0], t: libRdv(v), s: [v.mo, v.n].filter(Boolean).join(" – "), env: waEnv(cat, v.d), m, rep: v.rep });
   });
   // Tâches ouvertes du patient (P4, 08/10/2026), dont « Valider la dosimétrie » qui remplace ici la ligne de dosimétrie ; Réattribuer : dans la fiche (Ouvrir)
   (module("taches") ? tachesDuPatient(x.id) : []).forEach((tk) => {
     const dr = droitsTache(tk), q = "'" + tk.id + "'", m = [b("Ouvrir", "taVoir(" + q + ")")];
     if (dr.mod) m.push(b("Modifier", "taModifier(" + q + ")"), b("Marquer faite", "taStatut(" + q + ",'fait')"));
     if (dr.sup) m.push(b("Supprimer", "taSupprimer(" + q + ")"));
-    av.push({ d: tk.ech || "", h: tk.h || "", em: ic("taches"), t: "Tâche – " + tk.titre, s: "Pour " + (tk.pour === D.u.uid ? "vous" : tk.pourNom || "?") + (tk.statut === "encours" ? " · en cours" : ""), retard: !!tk.ech && tk.ech < D.t, m });
+    av.push({ d: tk.ech || "", h: tk.h || "", em: ic("taches"), ty: "Tâche", t: "Tâche – " + tk.titre, s: "Pour " + (tk.pour === D.u.uid ? "vous" : tk.pourNom || "?") + (tk.statut === "encours" ? " · en cours" : ""), retard: !!tk.ech && tk.ech < D.t, m });
   });
   // Inscriptions en RCP non faites (09/10/2026, rcp.js) : visibles jusqu'à ce que la case « Fait » soit cochée
-  (module("rcp") ? rcpDuPatient(x.id) : []).forEach((v) => av.push({ d: v.d, h: "", em: ic("rcp"), t: "RCP" + (v.d < D.t ? " · décision à saisir" : ""), s: v.q, retard: v.d < D.t, m: [b("Ouvrir", "rcpHistorique('" + x.id + "')")] }));
+  (module("rcp") ? rcpDuPatient(x.id) : []).forEach((v) => av.push({ d: v.d, h: "", em: ic("rcp"), ty: "RCP", t: "RCP" + (v.d < D.t ? " · décision à saisir" : ""), s: v.q, retard: v.d < D.t, m: [b("Ouvrir", "rcpHistorique('" + x.id + "')")] }));
   // 12/10/2026 : fin de radiothérapie (prévue ou réelle) et consultation de fin affichées toutes les deux (décision de Dr Bentahila) ; scanner et
   // 1re séance : date et heure modifiables
   if (voitRTdossier(x)) (r.rt || []).filter((v) => !v.dosi).forEach((v) => {
     const fin = /Fin de radioth/.test(v.lib), m = fin ? [] : [waMenu("rt", v.d, v.h || "")];
     if (fin ? v.z === "fin" && traitModRT() : (v.z === "scan" || v.z === "deb") && traitModRT()) m.push(b("Modifier", "modifierEtapeRT('" + x.id + "','" + v.rt + "','" + v.z + "')"));
-    av.push({ d: v.d, f: v.f, h: v.h || "", rdv: 1, em: ic("radiation"), t: v.lib.replace(/^RT · /, ""), env: !fin && waEnv("rt", v.d), m });
+    av.push({ d: v.d, f: v.f, h: v.h || "", rdv: 1, em: ic("radiation"), ty: v.z === "scan" ? "Scanner RT" : v.z === "deb" ? "Début RT" : fin ? "Dernière séance RT" : "", t: v.lib.replace(/^RT · /, ""), env: !fin && waEnv("rt", v.d), m });
   });
   av.sort((p, q) => (p.d + (p.h || "00")).localeCompare(q.d + (q.h || "00")));
   av.forEach((v) => { v.al = absenceLe(v.d) ? absentMedecin(medecinFiche().genre) : ferieLe(v.d) ? "Férié" : ""; if (v.rep && v.rep.length) v.s = [v.s, "Reporté (initialement le " + dfrA(v.rep[0].d) + ")"].filter(Boolean).join(" · "); });
-  const cAv = av.map((v) => carte(v)), toutAv = AV_TOUT.has(x.id);
+  const cAv = av.map((v) => carte(v)), lAv = av.map((v) => ligne(v)), toutAv = AV_TOUT.has(x.id);
   const hAvenir = (decede(P) && av.some((v) => v.d >= t) ? '<p class="al-band dc">Patient décédé' + (P.decesLe ? " le " + dfrA(P.decesLe) : "") + " : " + av.filter((v) => v.d >= t).length + " rendez-vous, séance(s) ou tâche(s) encore prévus, à annuler.</p>" : "") +
-    '<div class="rc-liste" id="rdvListe">' + (av.length ? cAv.slice(0, toutAv ? av.length : NB).join("") + (av.length > NB ? '<button class="lien rc-plus" onclick="voirAvTout(\'' + x.id + '\')">' + (toutAv ? "Voir moins" : "Voir plus (" + (av.length - NB) + ")") + "</button>" : "") : '<p class="sous">Aucun rendez-vous ni tâche à venir.</p>') + "</div>";
-  // Prochain rendez-vous (toujours visible) : rendez-vous, séance de chimio ou étape de RT, à partir d'aujourd'hui
-  const proch = av.find((v) => v.rdv && v.d >= t);
+    '<div class="rc-liste rl-liste" id="rdvListe">' + (av.length ? lAv.slice(0, toutAv ? av.length : NB).join("") + (av.length > NB ? '<button class="lien rc-plus" onclick="voirAvTout(\'' + x.id + '\')">' + (toutAv ? "Voir moins" : "Voir plus (" + (av.length - NB) + ")") + "</button>" : "") : '<p class="sous">Aucun rendez-vous ni tâche à venir.</p>') + "</div>";
+  // « Prochain rendez-vous » retiré le 26/10/2026 (demande de Dr Bentahila : doublon de « Rendez-vous et tâches à venir »)
 
   // Historique des RDV (ancien « Consultations et hospitalisations ») : passés ou déjà validés (venu / non venu), avec le prix (droit « encaissements »)
-  let hPasse = "", nPasse = 0, nAValider = 0, cPasse = [];
+  let hPasse = "", nPasse = 0, nAValider = 0, cPasse = [], lPasse = [];
   if (voitRdv()) {
     // Prix d'un rendez-vous validé : « Prix : … » en tête du menu, puis Fixer / Modifier le prix, Encaisser, Imprimer le reçu ; renvoie « À valider »
     // (prix pas encore fixé), « À encaisser » ou rien
@@ -1345,7 +1361,7 @@ function pageDossier(id) {
     if (EN) Object.entries(EN.cons || {}).forEach(([k, val]) => { if (vus[k]) return; const p3 = k.split("|"); lignes.push({ d: val.d || "", h: "", c: { lid: p3[0], n: +p3[1], j: +p3[2], lib: val.lib, v: val } }); });
     lignes.sort((p, q) => (q.d + q.h).localeCompare(p.d + p.h)); nPasse = lignes.length;
     nAValider = lignes.filter((z) => (z.v && (z.v.st || "prevu") === "prevu") || (z.c && !z.c.v)).length; // repère orange sur la partie repliée
-    cPasse = lignes.map(({ v, c, d }) => {
+    const oPasse = lignes.map(({ v, c, d }) => {
       if (c) { const qc = "'" + x.id + "','" + c.lid + "'," + c.n + "," + c.j, m = []; let aV = "";
         if (c.v) { const ae = aEncaisser(c.v.mode);
           m.push(info("Statut : venu"), info("Prix : " + (c.v.m != null ? fmtMil(c.v.m) + " DH" : "—") + (ae ? " · à encaisser" : "")));
@@ -1355,13 +1371,14 @@ function pageDossier(id) {
           if (peut("finances") || prixParServeur()) m.push(b("Modifier le prix", "chVenuChimio(" + qc + ")")); if (peut("finances")) m.push(b("Annuler le statut", "chAnnulerVenuChimio(" + qc + ")"));
           if (ae) aV = "À encaisser"; }
         else { m.push(info("Statut : à valider")); if (peut("finances") || prixParServeur()) m.push(b("Venu", "chVenuChimio(" + qc + ")")); aV = "À valider"; }
-        return carte({ d, em: ic("seringue"), t: "Chimiothérapie · C" + c.n + " J" + c.j, s: c.lib || "", av: aV, m }, true); }
+        return { d, em: ic("seringue"), ty: "Séance chimio", t: "Chimiothérapie · C" + c.n + " J" + c.j, s: c.lib || "", av: aV, m }; }
       const mS = [], mP = [], mA = [], aS = statutM(v, mS, mA), aP = prixM(v, mP);
-      return carte({ d: v.d, h: v.h || "", em: typeRdv(v.type) === "hospit" ? '<svg class="pi"><use href="#i-hopital"/></svg>' : ic("stetho"), t: libRdv(v), s: [v.mo ? "Motif : " + v.mo : "", v.n || "", v.rep && v.rep.length ? "Reporté (initialement le " + dfrA(v.rep[0].d) + ")" : ""].filter(Boolean).join(" · "), av: aS || aP, m: mS.concat(mP, mA) }, true);
+      return { d: v.d, h: v.h || "", em: typeRdv(v.type) === "hospit" ? '<svg class="pi"><use href="#i-hopital"/></svg>' : ic("stetho"), ty: typeCourtSalle(v)[0], t: libRdv(v), s: [v.mo ? "Motif : " + v.mo : "", v.n || "", v.rep && v.rep.length ? "Reporté (initialement le " + dfrA(v.rep[0].d) + ")" : ""].filter(Boolean).join(" · "), av: aS || aP, m: mS.concat(mP, mA) };
     });
+    cPasse = oPasse.map((o) => carte(o, true)); lPasse = oPasse.map((o) => ligne(o, true));
     const toutPa = PA_TOUT.has(x.id);
-    hPasse = (EN === undefined ? '<p class="mesures">Chargement des prix…</p>' : "") + '<div class="rc-liste">' +
-      (cPasse.length ? cPasse.slice(0, toutPa ? cPasse.length : NB).join("") + (cPasse.length > NB ? '<button class="lien rc-plus" onclick="voirPaTout(\'' + x.id + '\')">' + (toutPa ? "Voir moins" : "Voir plus (" + (cPasse.length - NB) + ")") + "</button>" : "") : '<p class="vide-c">Aucun rendez-vous passé.</p>') + "</div>";
+    hPasse = (EN === undefined ? '<p class="mesures">Chargement des prix…</p>' : "") + '<div class="rc-liste rl-liste">' +
+      (lPasse.length ? lPasse.slice(0, toutPa ? lPasse.length : NB).join("") + (cPasse.length > NB ? '<button class="lien rc-plus" onclick="voirPaTout(\'' + x.id + '\')">' + (toutPa ? "Voir moins" : "Voir plus (" + (cPasse.length - NB) + ")") + "</button>" : "") : '<p class="vide-c">Aucun rendez-vous passé.</p>') + "</div>";
   }
   // Listes complètes, ouvertes au centre par un clic sur le titre de la rubrique (lot A §3)
   RUB[x.id] = { avenir: cAv.join("") || '<p class="sous">Aucun rendez-vous ni tâche à venir.</p>', passe: cPasse.join("") || '<p class="vide-c">Aucun rendez-vous passé.</p>' };
@@ -1378,7 +1395,6 @@ function pageDossier(id) {
     '<div class="resume"><div class="entete"><label for="nTxt" style="flex:1">Résumé du patient</label>' + (okN ? '<span class="mesures" id="nEtat">' + (NOTES.pid === x.id && NOTES.txt != null ? "Modifications en cours…" : "") + "</span>" : "") + "</div>" +
     (okN ? '<textarea id="nTxt" class="notes" placeholder="Quelques phrases de résumé : histoire, antécédents, points d\'attention…" oninput="notesSaisie(\'' + x.id + '\',this);hauteurResume(this)" onblur="sauverNotesMaintenant()">' + esc(NOTES.pid === x.id && NOTES.txt != null ? NOTES.txt : P.notes || "") + "</textarea>"
       : (P.notes ? '<div class="notes lecture">' + esc(P.notes) + "</div>" : '<p class="sous">Aucun résumé.</p>')) + "</div>" +
-    '<div class="dp-proch"><span class="lbl">Prochain rendez-vous</span>' + (proch ? '<span class="badge ' + (proch.retard ? "b-al" : "b-co") + '">' + dfr(proch.d) + (proch.h ? " " + proch.h : "") + "</span><span class=\"tx\">" + esc([proch.t, proch.s].filter(Boolean).join(" · ")) + "</span>" : '<span class="mesures">Aucun</span>') + "</div>" +
     '<div class="dp-outils"><button type="button" class="mini" id="dpTout" onclick="dosTout()">Tout déplier</button></div>' +
     // Lot A §3 : « Historique des RDV » (ancien « Consultations et hospitalisations ») en dernier, après la fiche tumeur
     PARTIES_D.map(([k, lib]) => (k === "avenir" ? partie(k, lib, av.length, hAvenir) : k === "passe" ? (voitRdv() ? partie(k, lib, nPasse, hPasse, nAValider) : "")

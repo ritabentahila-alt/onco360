@@ -57,7 +57,7 @@ async def main():
         ok(await ev("!document.querySelector('.sa-bulles[style*=fixed], .rcp-bulle') && getComputedStyle(document.querySelector('.dos-barre')).position !== 'fixed'"), 'plus de bulle flottante ; la barre est une case de la grille')
         # colonne Patient
         tp = await ev("document.querySelector('.dos-pat').innerText")
-        ok('Résumé du patient' in tp and 'PROCHAIN RENDEZ-VOUS' in tp.upper(), 'colonne Patient : résumé et prochain rendez-vous en haut', tp[:120])
+        ok('Résumé du patient' in tp and 'PROCHAIN RENDEZ-VOUS' not in tp.upper(), 'colonne Patient : résumé en haut ; plus de « Prochain rendez-vous » (doublon retiré le 26/10/2026)', tp[:120])
         ok(await ev("[...document.querySelectorAll('.dos-pat details.dp')].map(d => d.dataset.p).join()") == 'avenir,id,med,tum,passe', 'parties dépliables : à venir, identité, informations médicales, fiche tumeur, Historique des RDV (lot A)')
         ok(await ev("[...document.querySelectorAll('.dos-pat details.dp')].map(d => d.open).join()") == 'true,false,false,false,false', 'au départ : seulement « à venir » dépliée (réglage du cabinet)')
         ok(await ev("[...document.querySelectorAll('.dos-pat details.dp summary .n')].every(n => /^\\d+$/.test(n.textContent))"), 'chaque partie a un compteur')

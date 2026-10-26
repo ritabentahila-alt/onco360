@@ -1,0 +1,43 @@
+// Onco360 – traitements courants (médecine générale) proposés pour « Traitements en cours » des informations médicales (26/10/2026, fichier
+// « Medicaments_Medecine_Generale.xlsx » de Dr Bentahila) : nom commercial et, entre parenthèses, la molécule ; sans dose ni forme. Deux noms
+// commerciaux d'une même ligne du fichier (« BUFREN / ADVIL ») = deux entrées. Molécule absente du fichier, complétée : DOXYMYCINE, DOXY, GAVISCON,
+// MAALOX, RENNIE, NORMACOL, TITANORÉINE, DRILL, STREPSILS, ACTIFED RHUME, HUMEX RHUME, OTIPAX, FAZOL, MYCOSTER, DEXERYL, CICALFATE, MAGMINE,
+// MAGNE B6, POLYGYNAX, D-CURE, UVEDOSE, CACIT ;
+// TADALAFIL (sans nom commercial) non repris ; MORIDIL sans molécule (composition non vérifiée).
+// Liste de départ (infosmed.js departMed) et, une fois, ajoutée à la liste déjà enregistrée d'un cabinet (v2.js migrations, drapeau traitMa1026).
+export const TRAITEMENTS_MA = [
+  "DOLIPRANE (paracétamol)", "DAFALGAN (paracétamol)", "BUFREN (ibuprofène)", "ADVIL (ibuprofène)", "APRANAX (naproxène sodique)",
+  "PROFÉNID (kétoprofène)", "PROFÉNID LP (kétoprofène)", "VOLTARENE (diclofénac sodique)", "FENAC (diclofénac sodique)", "CATAFLAM (diclofénac potassium)",
+  "CÉLÉBREX (célécoxib)", "ARCOXIA (étoricoxib)", "CEDOL (paracétamol + codéine)", "DAFALGAN CODÉINÉ (paracétamol + codéine)",
+  "CETRA (tramadol + paracétamol)", "ZALDIAR (tramadol + paracétamol)", "TRAMAL (tramadol)", "TRAMAL LP (tramadol)",
+  "COTIPRED (prednisolone)", "SOLUPRED (prednisolone)", "CORTANCYL (prednisone)", "CÉLESTÈNE (bétaméthasone)",
+  "AUGMENTIN (amoxicilline + acide clavulanique)", "CLAMOXYL (amoxicilline)", "AMOXIL (amoxicilline)", "ORELOX (céfpodoxime proxétil)",
+  "ZINNAT (céfuroxime axétil)", "ZITHROMAX (azithromycine)", "AZIX (azithromycine)", "ZECLAR (clarithromycine)", "OFLOCET (ofloxacine)",
+  "TAVANIC (lévofloxacine)", "CIPLOX (ciprofloxacine)", "BACTRIM FORTE (sulfaméthoxazole + triméthoprime)",
+  "DOXYMYCINE (doxycycline)", "DOXY (doxycycline)",
+  "PYOSTACINE (pristinamycine)", "FLAGYL (métronidazole)", "MONURIL (fosfomycine)", "URIDOZ (fosfomycine)", "NIBIOL FORTE (nitroxoline)",
+  "DIFLUCAN (fluconazole)", "FLUMYCO (fluconazole)", "INEXIUM (ésoméprazole)", "OEDES (oméprazole)", "PANTOR (pantoprazole)",
+  "GAVISCON (alginate de sodium + bicarbonate de sodium)", "MAALOX (hydroxyde d'aluminium + hydroxyde de magnésium)", "RENNIE (carbonate de calcium + carbonate de magnésium)",
+  "PRIMPERAN (métoclopramide)", "CLOPRAME (métoclopramide)", "MOTILIUM (dompéridone)", "SPASFON (phloroglucinol)", "SPASFON LYOC (phloroglucinol)",
+  "DEBRIDAT (trimébutine)", "SMECTA (diosmectite)", "TIORFAN (racécadotril)", "LOPERIUM (lopéramide)", "IMODIUM (lopéramide)", "DUPHALAC (lactulose)",
+  "MOVICOL (macrogol)", "FORLAX (macrogol)", "NORMACOL LAVEMENT (phosphates de sodium)",
+  "TITANORÉINE À LA LIDOCAÏNE (lidocaïne + carraghénates + dioxyde de titane + oxyde de zinc)", "MORIDIL",
+  "ULTRA-LEVIURE (Saccharomyces boulardii)", "AMLOR (amlodipine)", "APROVEL (irbésartan)", "CO-APROVEL (irbésartan + hydrochlorothiazide)",
+  "TAREG (valsartan)", "TRIATEC (ramipril)", "COVERAM (périndopril + amlodipine)", "TENORMIN (aténolol)", "LOPRESSOR (métoprolol)", "SELOKEN (métoprolol)",
+  "LASILIX (furosémide)", "KARDEGIC (acétylsalicylate de DL-lysine)", "PLAVIX (clopidogrel)", "TAHOR (atorvastatine)", "CRESTOR (rosuvastatine)",
+  "DAFLON (fraction flavonoïque purifiée)", "GLUCOPHAGE (metformine)", "AMAREL (glimépiride)", "DIAMICRON MR (gliclazide)", "JANUVIA (sitagliptine)",
+  "JANUMET (sitagliptine + metformine)", "FORXIGA (dapagliflozine)", "LEVOTHYROX (lévothyroxine)", "VENTOLINE (salbutamol)",
+  "SYMBICORT TURBUHALER (budésonide + formotérol)", "RHINATHIOL (carbocistéine)",
+  "DRILL (chlorhexidine + tétracaïne)", "STREPSILS (amylmétacrésol + alcool dichlorobenzylique)",
+  "NASONEX (mométasone)", "RHINOCORT (budésonide)", "ACTIFED RHUME (paracétamol + pseudoéphédrine + triprolidine)", "HUMEX RHUME (paracétamol + pseudoéphédrine)",
+  "OTIPAX (phénazone + lidocaïne)",
+  "ALER-Z (cétirizine)", "ZYRTEC (cétirizine)", "AERIUS (desloratadine)", "DESLOR (desloratadine)", "DIPROSONE (bétaméthasone)", "BETNEVAL (bétaméthasone)",
+  "HYDRACORT (hydrocortisone)", "FUCIDINE (acide fusidique)", "TEGUMA (terbinafine)", "LAMISIL (terbinafine)",
+  "FAZOL (isoconazole)", "MYCOSTER (ciclopirox)", "DEXERYL (glycérol + vaseline + paraffine liquide)", "CICALFATE (sucralfate + sulfates de cuivre et de zinc)",
+  "ALPRAZ (alprazolam)", "XANAX (alprazolam)", "LEXOMIL (bromazépam)", "STILNOX (zolpidem)", "TANGANIL (acétylleucine)", "ALYSE (prégabaline)", "LYRICA (prégabaline)",
+  "MAGMINE (magnésium)", "MAGNE B6 (magnésium + vitamine B6)",
+  "VITANEVRIL FORTE (vitamines B1, B6, B12)", "XATRAL LP (alfuzosine)", "OMIX (tamsulosine)", "OMNIC (tamsulosine)", "CHIBRO-PROSCAR (finastéride)",
+  "VECA (solifénacine)", "VESICARE (solifénacine)", "POLYGYNAX (néomycine + polymyxine B + nystatine)",
+  "LOMEXINE (fenticonazole)", "D-CURE (cholécalciférol)", "UVEDOSE (cholécalciférol)", "CACIT VITAMINE D3 (carbonate de calcium + cholécalciférol)",
+  "TARDYFERON B9 (fer + acide folique)", "YOFOLVIT (acide folique)", "SPECIAFOLDINE (acide folique)",
+];

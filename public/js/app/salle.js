@@ -471,6 +471,9 @@ export function pageSalle(j) {
   if ($("saEtab")) $("saEtab").onchange = () => { ETAB = $("saEtab").value; dessiner(); };
   if ($("saMed")) $("saMed").onchange = () => { MED = $("saMed").value; dessiner(); };
   $("saD").onchange = () => { if ($("saD").value) window.saAller($("saD").value); };
+  // 26/10/2026 (Dr Bentahila : « Calendrier ne sert à rien ») : le champ date invisible ne s'ouvrait qu'en visant sa petite icône ; un clic n'importe
+  // où sur le bouton ouvre maintenant le calendrier du navigateur
+  $("saD").onclick = (e) => { try { if (e.target.showPicker) { e.preventDefault(); e.target.showPicker(); } } catch (er) { /* ancien navigateur : comportement d'avant */ } };
   $("saQ").value = RECH; $("saQ").oninput = () => { RECH = $("saQ").value; dessiner(); };
   $("saTri").value = triPerso(); $("saTri").onchange = () => { const v = $("saTri").value; D().profil.salleTri = v; dessiner(); setDoc(doc(db, "utilisateurs", D().u.uid), { salleTri: v }, { merge: true }).catch(() => {}); };
   dessiner(); majAJour();

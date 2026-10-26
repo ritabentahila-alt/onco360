@@ -1351,6 +1351,42 @@ details.m3.bib-pts{margin-left:4px;vertical-align:middle;display:inline-block}.m
 /* Lot D : police de l'ordonnance (mêmes classes à l'impression : CSS_POLICES d'ordonnances.js) */
 .or-fa{font-family:Arial,Helvetica,sans-serif}.or-fh{font-family:Helvetica,Arial,sans-serif}.or-ft{font-family:"Times New Roman",Times,serif}.or-fg{font-family:Georgia,serif}.or-fv{font-family:Verdana,sans-serif}
 .or-outils .or-pol{height:32px;padding:0 8px;border:1px solid var(--trait);border-radius:8px;background:#fff;font-size:var(--t3);color:var(--titre);margin-left:4px;max-width:170px}
+/* ───── 26/10/2026 (demande de Dr Bentahila) : colonne Patient plus sobre, « à la Doctolib » : titre de rubrique › sous-titre (bleu) › texte (normal),
+   un peu d'espace entre chacun ; rendez-vous sur une ligne ; « + » bleu des informations médicales ; titre d'une consultation ouverte collé au motif ───── */
+.dos-pat details.dp>summary .dp-t{font-size:var(--t4);font-weight:bold;color:var(--titre);letter-spacing:.03em}
+.dos-pat .dp-c{padding:4px 0 14px}
+.dos-pat .dp-f{gap:14px}.dos-pat .dp-f label{font-size:var(--t3);font-weight:bold;color:var(--prim);margin:0 0 4px}
+.dos-pat .dp-f b{font-weight:normal;font-size:var(--t3);color:var(--encre);line-height:1.4}.dos-pat .dp-f .mesures{font-size:var(--t3)}
+.dos-pat .dp-f .allergie b{font-weight:bold}
+.dos-pat .im{gap:14px;margin-bottom:14px}.dos-pat .im-h{min-height:22px;margin:0 0 4px}
+.dos-pat .im-l{font-size:var(--t3);font-weight:bold;color:var(--prim)}
+.dos-pat .im-ul{font-size:var(--t3);line-height:1.4;margin:0;padding-left:16px;color:var(--encre)}.dos-pat .im-ul li{margin:0 0 2px}
+.dos-pat .im-txt{font-size:var(--t3);line-height:1.4;margin:0}.dos-pat .im-nr{font-size:var(--t3)}
+.im-al .im-e{color:var(--rouge);font-weight:bold}
+.im-ajt{margin-left:auto;width:26px;height:26px;padding:0;border:0;border-radius:50%;background:none;color:var(--prim);display:inline-grid;place-items:center;cursor:pointer}
+.im-ajt .i{width:16px;height:16px;stroke-width:2.4}.im-ajt:hover,.im-ajt:focus-visible{background:var(--prim-c)}
+.rl-liste{gap:0}
+.rc.rl{display:flex;align-items:center;gap:7px;min-height:34px;padding:2px 2px 2px 4px;border:0;border-bottom:1px solid var(--gris-c);border-radius:0;background:none;font-size:var(--t3);color:var(--encre)}
+.rc.rl:last-of-type{border-bottom:0}
+.rc.rl .rc-d{font-weight:normal;color:var(--titre);font-variant-numeric:tabular-nums}.rc.rl.retard .rc-d{color:var(--rouge)}
+.rl-t{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rl-ty{color:var(--encre)}.rl-q{color:var(--doux)}
+.rc.rl .rc-av,.rc.rl .rc-al{font-size:var(--t2)}.rc.rl .mpts{flex:none;margin:-4px 0}
+.dos .cs.on .cs-t .ti{flex:0 1 auto;max-width:none}.dos .cs-t .tt{flex:1}
+@media (pointer:coarse){.im-ajt{width:44px;height:44px}.rc.rl{min-height:44px}}
+/* 26/10/2026 : agenda sur une ligne (Aujourd'hui ‹ › période resserrés) ; filtres en tête de la colonne de gauche ; grille jusqu'en bas (hauteurGrille) */
+.ag-barre{flex-wrap:nowrap;gap:12px}.ag-barre>.ag-vues{flex:none}
+.ag-nav{gap:6px;flex:none}.ag-nav b{min-width:0;margin-left:6px;text-align:left;white-space:nowrap}
+@media (max-width:1599px){body:not(.menu-replie) .ag-barre .ag-vues .i{display:none}}@media (max-width:1419px){.ag-barre .ag-vues .i{display:none}}
+.ag-droite{flex:none}.ag-fil{display:flex;flex-direction:column;gap:8px}.ag-fil .ag-etab{width:100%}
+.ag-gg{margin:0;font-size:var(--t2)}.ag-gg-bas{display:none}
+@media (max-width:1199px){.ag-barre{flex-wrap:wrap}}
+@media (max-width:900px){.ag-cote{display:flex}.ag-cote>:not(.ag-fil){display:none}.ag-fil{flex-direction:row;flex-wrap:wrap}.ag-fil .ag-etab{width:auto;max-width:100%}.ag-gg-bas{display:block}}
+/* 26/10/2026 (Dr Bentahila : « les carrés sont trop proches ») : la page Tâches du lot E est dans un bloc .p-ta ; elle reprend l'écart des autres pages */
+.p-ta{display:flex;flex-direction:column;gap:18px}.p-ta>.carte{margin:0}
+@media (max-width:640px){.p-ta{gap:14px}}
+/* 26/10/2026 : Radiothérapie, « + Nouveau schéma » sur la ligne des onglets (à droite) */
+.rtr-tete{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.rtr-tete .rtr-sous{margin-bottom:0}.rtr-tete>.defile-cadre,.rtr-tete>.rtr-sous{min-width:0;flex:0 1 auto}.rtr-tete>.rtr-nouv{flex:none;margin-left:auto}
+@media (max-width:640px){.rtr-tete>.rtr-nouv{width:100%;justify-content:center}}
 </style>
 </head>
 <body>
@@ -1459,6 +1495,6 @@ function onco360Deconnecter() {
 }
 </script>
 
-<script type="module" src="./js/app/v2.js?v=20261025f"></script>
+<script type="module" src="./js/app/v2.js?v=20261026a"></script>
 </body>
 </html>

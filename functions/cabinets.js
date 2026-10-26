@@ -38,8 +38,9 @@ function listesDepart(L) {
   const plus = (base, aj) => base.concat((aj || []).filter((x) => base.indexOf(x) < 0));
   const diag = L.complet && Array.isArray(L.diag) ? L.diag.slice() : plus(DEPART.DIAG, L.diag);
   const mut = L.complet ? (L.mut || []).slice() : plus(DEPART.MUT0, L.mut);
-  // Lot A §6 (25/10/2026) : listes des informations médicales du modèle (absentes = listes de départ du site)
-  const plusL = {}; ["allergies", "atcdMed", "atcdChir", "atcdFam", "traitCours"].forEach((k) => { if (Array.isArray(L[k]) && L[k].length) plusL[k] = L[k].filter((x) => typeof x === "string").slice(0, 2000); });
+  // Lot A §6 (25/10/2026) : listes des informations médicales du modèle (absentes = listes de départ du site) ; 26/10/2026 (demande de Dr Bentahila) :
+  // stades et grades de la fiche tumeur aussi (repris du cabinet de Dr Bentahila avec sa fiche patient, puis donnés aux cabinets neufs)
+  const plusL = {}; ["allergies", "atcdMed", "atcdChir", "atcdFam", "traitCours", "stade", "grade"].forEach((k) => { if (Array.isArray(L[k]) && L[k].length) plusL[k] = L[k].filter((x) => typeof x === "string").slice(0, 2000); });
   return Object.assign({ diag, mut, cor: [], complet: true }, plusL);
 }
 // Calendrier : jours fériés seulement (ni absences, ni horaires)

@@ -111,7 +111,7 @@ function dessinerFiltres() {
   const z = $("rtrFiltres"); if (!z || !LISTE) return;
   const n = actifs();
   z.innerHTML = '<button class="bt clair petit rtr-ftr' + (RF.filtres ? " ouv" : "") + '" onclick="rtrFiltres()">Filtres' + (n ? ' <span class="n">' + n + "</span>" : "") + "</button>" +
-    '<div class="rtr-mz' + (RF.filtres ? " ouv" : "") + '">' + menus() + (n || RF.q ? '<button class="bt gris petit" onclick="rtrEffacer()">Effacer</button>' : "") + (peutModif() ? '<button class="bt clair petit rtr-nouv" onclick="rtrNouveau()">' + A.ic("plus") + "Nouveau schéma</button>" : "") + "</div>";
+    '<div class="rtr-mz' + (RF.filtres ? " ouv" : "") + '">' + menus() + (n || RF.q ? '<button class="bt gris petit" onclick="rtrEffacer()">Effacer</button>' : "") + "</div>";
   const h = document.querySelector(".rtr-haut"), r = $("rtr"); if (h && r) r.style.setProperty("--rtr-h", h.offsetHeight + "px");
 }
 
@@ -962,7 +962,8 @@ export async function pageRadiotherapie(arg) {
   // fiche en pleine page (demande du 25/10/2026 : plus de liste à gauche) ; « Retour à la liste » retrouve la recherche et la position
   const seule = !!id;
   {
-    $("page").innerHTML = '<div class="rtr' + (seule ? " seule" : "") + '" id="rtr">' + (seule ? "" : ongletsPage("")) +
+    // 26/10/2026 (demande de Dr Bentahila) : « + Nouveau schéma » sur la ligne des onglets, à droite, en bouton principal comme « + Créer un protocole »
+    $("page").innerHTML = '<div class="rtr' + (seule ? " seule" : "") + '" id="rtr">' + (seule ? "" : '<div class="rtr-tete">' + ongletsPage("") + (peutModif() ? '<button class="bt plein rtr-nouv" onclick="rtrNouveau()">' + A.ic("plus") + "Nouveau schéma</button>" : "") + "</div>") +
       (seule ? "" : '<div class="rtr-haut"><div class="recherche"><svg class="i"><use href="#i-loupe"/></svg><input id="rtrQ" type="search" autocomplete="off" placeholder="Rechercher : localisation, dose, essai (ex. prostate 60, col curie, 45 Gy)" aria-label="Rechercher un schéma" value="' + A.esc(RF.q) + '"></div><div class="rtr-filtres" id="rtrFiltres"></div></div>') +
       '<div class="rtr-corps">' + (seule ? "" : '<div class="rtr-liste" id="rtrListe"></div>') + (id ? '<div class="rtr-fiche" id="rtrFiche"></div>' : "") + "</div></div>";
     const q = $("rtrQ");
