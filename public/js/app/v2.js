@@ -558,6 +558,22 @@ const PN = { sale: false, apres: [] }; // panneau de chimio / RT (R-G e) : chang
 const API = { D: () => D, get ESPACE() { return ESPACE; }, apresFenetre: (f) => { APRES_FEN = f || null; }, ecouteDossiers: () => !!ECOUTE_D, $, esc, ic, dfr, dfrA, cap, jourLong, val, occupe, erreur, toast, fenetre, fermerFenetre: () => window.fermerFenetre(), panneau: (h) => panneau(h), fermerPanneau: (f) => fermerPanneau(f), panneauOuvert: () => panneauOuvert(), petiteSurPanneau: () => panneauOuvert() && petiteOuverte(), surFermerPanneau: (f) => PN.apres.push(f), fermerPetite: () => fermerPetite(), corpsLarge: () => (grilleDossier() && $("panneauCorps") ? $("panneauCorps") : $("fenetreCorps")), peut, voit, traitMod, enregistrer, pageDossier: (id) => reafficher(id), recalculer, journal };
 API.typesRdv = (e) => typesRdv(e); API.typesC = () => D.typesC || []; API.actsDe = () => actsDe(D.tarifs, D.activites); // Paramètres › Horaires : durée par type de consultation (AG2)
 // Heure facultative du scanner de centrage (AG5, 11/10/2026) : r.scanH = { h, du } ou retirée (droit « radiothérapie : modifier »)
+// 26/10/2026 (demande de Dr Bentahila) : états vides harmonisés = petite illustration au trait aux couleurs d'Onco360, titre, texte court, bouton
+const ILL_VIDE = {
+  taches: '<svg class="ev-ill" viewBox="0 0 260 170" aria-hidden="true"><circle cx="130" cy="88" r="78" fill="#EAF0FA"/><rect x="40" y="28" width="180" height="118" rx="8" fill="#fff" stroke="#C9D5EA"/>' +
+    '<path d="M48 28h164a8 8 0 0 1 8 8v6H40v-6a8 8 0 0 1 8-8z" fill="#F1F5FB"/><circle cx="50" cy="35" r="2" fill="#C9D5EA"/><circle cx="57" cy="35" r="2" fill="#C9D5EA"/><circle cx="64" cy="35" r="2" fill="#C9D5EA"/>' +
+    '<path d="M40 42h26v104H48a8 8 0 0 1-8-8z" fill="#3563B0"/><circle cx="53" cy="56" r="3" fill="#fff" opacity=".85"/><circle cx="53" cy="70" r="3" fill="#fff" opacity=".85"/><circle cx="53" cy="84" r="3" fill="#fff" opacity=".85"/><circle cx="53" cy="98" r="3" fill="#fff" opacity=".85"/>' +
+    [0, 1, 2, 3, 4].map((i) => '<rect x="74" y="' + (52 + i * 17) + '" width="136" height="12" rx="3" fill="#F1F5FB"/><rect x="78" y="' + (55 + i * 17) + '" width="6" height="6" rx="1.5" fill="#fff" stroke="#C9D5EA"/>' +
+      (i < 3 ? '<path d="M78.5 ' + (58 + i * 17) + 'l2 2 4-4.5" fill="none" stroke="#2FA37A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>' : "") +
+      '<rect x="90" y="' + (57 + i * 17) + '" width="' + [62, 46, 54, 40, 50][i] + '" height="3" rx="1.5" fill="#9AAAC4"/><rect x="170" y="' + (57 + i * 17) + '" width="30" height="3" rx="1.5" fill="#D5DDEB"/>').join("") +
+    '<path d="M150 112l14 14 32-38" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/><path d="M150 112l14 14 32-38" fill="none" stroke="#2FA37A" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  salle: '<svg class="ev-ill" viewBox="0 0 260 170" aria-hidden="true"><circle cx="130" cy="88" r="78" fill="#EAF0FA"/><circle cx="130" cy="54" r="22" fill="#fff" stroke="#3563B0" stroke-width="3"/>' +
+    '<path d="M130 41v13l9 6" fill="none" stroke="#3563B0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M50 146h160" stroke="#C9D5EA" stroke-width="2" stroke-linecap="round"/>' +
+    [62, 112, 162].map((x, i) => '<rect x="' + x + '" y="92" width="36" height="28" rx="6" fill="#fff" stroke="#9AAAC4" stroke-width="2"/><rect x="' + (x - 3) + '" y="118" width="42" height="9" rx="4" fill="' + (i === 1 ? "#3563B0" : "#fff") + '" stroke="' + (i === 1 ? "#3563B0" : "#9AAAC4") + '" stroke-width="2"/>' +
+      '<path d="M' + (x + 3) + ' 127v18M' + (x + 33) + ' 127v18" stroke="#9AAAC4" stroke-width="2" stroke-linecap="round"/>').join("") + "</svg>",
+};
+const etatVide = (o) => '<div class="ev-vide"' + (o.k ? ' data-k="' + o.k + '"' : "") + ">" + (ILL_VIDE[o.ill] || "") + "<h4>" + esc(o.titre) + "</h4>" + (o.txt ? "<p>" + o.txt.split("\n").map(esc).join("<br>") + "</p>" : "") + (o.bouton || "") + "</div>";
+API.etatVide = (o) => etatVide(o);
 API.traitModRT = () => traitModRT(); API.estMed = () => estMed(D.membre.role); API.menuPts = (m) => menuPts(m); API.estRemplacant = () => D.membre.role === "remplacant";
 // Lot C : le remplaçant agit au nom du médecin titulaire (consultations, ordonnances, tâches, salle, RCP, documents) ; le journal d'audit garde la vraie personne (serveur)
 API.nomAgissant = () => (D.membre.role === "remplacant" ? medecinFiche().nom || nomCompte() : nomCompte());

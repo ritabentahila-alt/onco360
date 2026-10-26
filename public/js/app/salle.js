@@ -535,7 +535,7 @@ function dessiner() {
   remplir($("saJtxt"), A.cap(A.jourLong(JOUR)) + (JOUR === t ? " · aujourd'hui" : JOUR < t ? " · jour passé" : "") + ' <span class="fl">' + (semaineOuverte() ? "▴" : "▾") + "</span>");
   remplir($("saE"), l.length ? '<div class="sa-l ent">' + cv.map((c) => '<span class="c-' + c[0] + '" title="' + c[1] + '">' + (TITRE_COURT[c[0]] || c[1]) + (c[0] !== "act" ? '<i class="sa-poi" data-c="' + c[0] + '" title="Tirer pour élargir ; double-clic : largeur d\'origine"></i>' : "") + "</span>").join("") + "</div>" : "");
   // Mise à jour ligne par ligne : une ligne inchangée n'est pas touchée (clic en cours, survol et défilement gardés)
-  poser($("saL"), l.length ? l.map((z) => ({ k: z.pid + "|" + z.cle, h: ligneHtml(z, cv) })) : [{ k: "vide", h: '<div class="vide-e" data-k="vide"><p>' + vide + "</p></div>" }]);
+  poser($("saL"), l.length ? l.map((z) => ({ k: z.pid + "|" + z.cle, h: ligneHtml(z, cv) })) : [{ k: "vide", h: A.etatVide({ k: "vide", ill: "salle", titre: vide.replace(/\.$/, ""), txt: VUE === "avenir" && JOUR >= t ? "Les rendez-vous et les séances de chimiothérapie du jour\napparaissent ici dès qu'ils sont prévus." : "" }) }]);
   // Patient suivant (médecin, aujourd'hui) ; Clôturer la journée (aujourd'hui et jours passés)
   const f = JOUR === t && peutRdv() && A.estMed() ? fileSalle() : [];
   $("saSuiv").classList.toggle("cache", !f.length); if (f.length) $("saSuiv").title = "Démarrer la consultation de " + f[0].x.r.nm + " (attend depuis " + duree(minutes(f[0].doc.arr || maintenant())) + ")";

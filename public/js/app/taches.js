@@ -234,7 +234,7 @@ export async function pageTaches(arg) {
 const base = () => (VUE === "mes" ? T.filter((t) => t.pour === D().u.uid) : T);
 function dessiner() {
   const esc = A.esc, moi = D().u.uid, mes = T.filter((t) => t.pour === moi);
-  const onglet = (k, ico, lib, n) => '<button class="' + (VUE === k ? "on" : "") + '" onclick="taVue(\'' + k + '\')">' + A.ic(ico) + lib + ' <span class="nb" id="taNb-' + k + '">' + n + "</span></button>";
+  const onglet = (k, ico, lib, n) => '<button class="' + (VUE === k ? "on" : "") + '" onclick="taVue(\'' + k + '\')">' + A.ic(ico) + lib + ' <span class="nb' + (n ? "" : " cache") + '" id="taNb-' + k + '">' + n + "</span></button>"; // 26/10/2026 : pas de « 0 »
   const ongletT = (k, ico, lib, n) => onglet(k, ico, lib, n).replace("<button ", '<button data-fn="taches.toutes" '); // réglage du cabinet
   const sel = (id, lib, v, opts) => '<select id="' + id + '" aria-label="' + lib + '">' + opts.map(([k, l]) => (k === "—" ? '<optgroup label="' + esc(l) + '">' : k === "/—" ? "</optgroup>" : '<option value="' + esc(k) + '"' + (k === v ? " selected" : "") + ">" + esc(l) + "</option>")).join("") + "</select>";
   // Responsable : rôles et membres (médecin), « Demandées par moi » (tous) ; seulement dans « Toutes les tâches »
@@ -261,7 +261,7 @@ function dessiner() {
   if (A_OUVRIR) { const id = A_OUVRIR; A_OUVRIR = null; window.taOuvrir(id); }
 }
 const nbOuv = (x) => x.filter((t) => t.statut !== "fait").length;
-function majOnglets() { const a = $("taNb-mes"), b = $("taNb-toutes"); if (a) a.textContent = nbOuv(T.filter((t) => t.pour === D().u.uid)); if (b) b.textContent = nbOuv(T); }
+function majOnglets() { [["taNb-mes", nbOuv(T.filter((t) => t.pour === D().u.uid))], ["taNb-toutes", nbOuv(T)]].forEach(([i, n]) => { const e = $(i); if (e) { e.textContent = n; e.classList.toggle("cache", !n); } }); }
 // Lot E : croix de fermeture en haut à droite des fenêtres (Échap ferme aussi : data-echap, v2.js) ; état vide = une phrase courte, grise,
 // centrée, et un seul bouton (secondaire : le principal est en haut de la page)
 const X = '<button type="button" class="b3 fen-x" onclick="fermerFenetre()" aria-label="Fermer" title="Fermer (Échap)">✕</button>';
@@ -271,10 +271,13 @@ function liste() {
   const l = filtrer(base()), ouvertes = l.filter((t) => t.statut !== "fait").sort(ordre), finies = l.filter((t) => t.statut === "fait").sort((a, b) => String(b.faitLe || "").localeCompare(String(a.faitLe || "")));
   const actifs = filtresActifs(), n = F.st === "ouv" ? ouvertes.length : l.length;
   $("taNb").textContent = n + " tâche" + (n > 1 ? "s" : "") + (F.st === "ouv" ? " à faire" : "") + (actifs ? " (filtrées)" : ""); // lot E : l'explication est sous « ? »
+  $("taNb").parentNode.classList.toggle("cache", !n && !actifs); // 26/10/2026 : plus de « 0 tâche à faire ? » (l'illustration le dit)
   $("taFx").classList.toggle("cache", !actifs);
   let h = ouvertes.map(ligne).join("");
   if (F.st === "ouv") {
-    if (!ouvertes.length) h += vide(actifs ? "Aucune tâche ne correspond aux filtres." : "Aucune tâche à faire.", actifs ? '<button class="b2" onclick="taEffacer()">Effacer les filtres</button>' : '<button class="b2" onclick="taNouvelle()">' + A.ic("plus") + "Nouvelle tâche</button>");
+    // 26/10/2026 (demande de Dr Bentahila) : aucune tâche = illustration, « Toutes les tâches au même endroit », texte, bouton Nouvelle tâche
+    if (!ouvertes.length) h += actifs ? vide("Aucune tâche ne correspond aux filtres.", '<button class="b2" onclick="taEffacer()">Effacer les filtres</button>')
+      : A.etatVide({ ill: "taches", titre: "Toutes les tâches au même endroit", txt: "Créez des tâches pour vous-même et vos collègues\npour améliorer votre productivité.", bouton: '<button class="b2" onclick="taNouvelle()">' + A.ic("plus") + "Nouvelle tâche</button>" });
     if (finies.length) h += '<button class="lien" style="margin-top:12px" onclick="taTerminees()">' + (TERM ? "▾ Masquer" : "▸ Afficher") + " les tâches terminées (" + finies.length + ")</button>" + (TERM ? '<div class="taches-finies">' + finies.map(ligne).join("") + "</div>" : "");
   } else {
     h += finies.map(ligne).join("");
