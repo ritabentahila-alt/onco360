@@ -3,7 +3,9 @@
 # une seule définition de contourage (délinéation RecoRad, Noël et al. 2021, et atlas de référence), sans source entre parenthèses.
 # paire = contrainte appliquée à chaque côté (une ligne « droite et gauche ») ; somme = contrainte appliquée à la structure réunie.
 # Lancer : python3 docs/radiotherapie/construction/oar.py
-import json, pathlib
+import json, pathlib, sys
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from oar_definitions import DEF  # session 2 (26/10/2026) : définitions de contourage, limites dans les six directions
 
 ICI = pathlib.Path(__file__).resolve().parents[3]
 SORTIE = ICI / "public" / "donnees-rt" / "oar.json"
@@ -149,12 +151,13 @@ def construire():
   vus, oar = set(), []
   for id_, nom, tg, df, reg, opt in O:
     assert id_ not in vus, id_; vus.add(id_)
-    x = {"id": id_, "nom": nom, "nom_tg263": tg, "definition": df, "region": reg}
+    x = {"id": id_, "nom": nom, "nom_tg263": tg, "definition": DEF.get(id_, df), "region": reg}
     x.update(opt); oar.append(x)
   paires = [{"id": k, "nom": v, "membres": [o["id"] for o in oar if o.get("paire") == k]} for k, v in PAIRES.items()]
   for p in paires: assert len(p["membres"]) == 2, p
   for o in oar:
     if "somme" in o: assert o["somme"] in vus, o
+  manque = [o["id"] for o in oar if o["id"] not in DEF]; assert not manque, manque
   return {"version": "2026-10-25", "note": "Nom TG-263 : liste officielle AAPM TG-263 v20170815 ; « construit » = absent de la liste, nommé selon ses règles. Définition : délinéation RecoRad (Noël et al. 2021) et atlas de référence.", "oar": oar, "paires": paires}
 
 if __name__ == "__main__":
