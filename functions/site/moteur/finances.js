@@ -20,11 +20,15 @@ const horsChimioDe = (p) => { const ac = (p.dr || []).filter((d) => !premed(d) &
 // Cochée sur une vraie chimiothérapie (reprise de l'ancienne application, ex. « Paclitaxel + Carboplatine hebdomadaire – fractionné »), elle
 // est ignorée partout : bilan, ligne en cours du dossier (bandeau), nom de la ligne. Les lignes déjà prescrites gardent leur case.
 export function associeVrai(L, p) { if (!L || !L.assoc) return false; const h = horsChimioDe(p || {}); return !h.ac.length || h.hors; }
-// Une ligne donne-t-elle lieu à des honoraires de séance ? (pas l'hormonothérapie ni la castration seules ; oui pour l'acide zolédronique / dénosumab)
+// Une ligne donne-t-elle lieu à des honoraires de séance ? Oui pour la chimiothérapie et pour l'acide zolédronique / le dénosumab (Zometa, Xgeva :
+// faits en hôpital de jour, séance au tarif des Paramètres) ; non pour l'hormonothérapie, la castration (Zoladex, Décapeptyl, Firmagon), les comprimés,
+// et les traitements de support seuls (Nivestim, fer, EPO : sur ordonnance) — 26/10/2026, demande de Dr Bentahila
+const RE_SUPPORT = /\bfer\b|ferinject|carboxymaltose|venofer|monofer|saccharate ferrique|ferrique/i;
 export function ligneHon(L, p) {
   const txt = (p.nom || "") + " " + (p.dr || []).map((d) => d.p).join(" ");
   if (RE_OS.test(txt)) return true;
   const h = horsChimioDe(p);
+  if (!h.ac.length || h.ac.every((d) => RE_SUPPORT.test(d.p))) return false;
   if (associeVrai(L, p)) return false;
   if (h.ac.length && h.hors) return false;
   return true;

@@ -11,6 +11,17 @@ cas("Nivestim seul marqué « associé » : pas d'honoraires", !ligneHon({ assoc
 cas("acide zolédronique : honoraires (inchangé)", ligneHon({ assoc: 1 }, P(["ZOMETA (acide zolédronique)"], 1)));
 cas("hormonothérapie orale seule (non associée) : pas d'honoraires (inchangé)", !ligneHon({}, P([{ p: "LÉTROZOLE", v: "Per os" }])));
 cas("chimiothérapie ordinaire : honoraires (inchangé)", ligneHon({}, P(["DOCÉTAXEL"])));
+// 26/10/2026 : Zometa, Xgeva facturés (hôpital de jour) ; castration injectable, comprimés, Nivestim et fer seuls non facturés (sur ordonnance)
+cas("Xgeva (dénosumab, SC) : honoraires de séance", ligneHon({}, P([{ p: "XGEVA (dénosumab) 120 mg", v: "SC" }])));
+cas("Zometa non coché « associé » : honoraires de séance", ligneHon({}, P(["ACIDE ZOLÉDRONIQUE (Zometa) 4 mg"])));
+cas("Décapeptyl (triptoréline) injectable : pas d'honoraires", !ligneHon({}, P([{ p: "DÉCAPEPTYL LP 11,25 mg (triptoréline)", v: "IM" }])));
+cas("Firmagon (dégarélix) : pas d'honoraires", !ligneHon({}, P([{ p: "FIRMAGON (dégarélix) 80 mg", v: "SC" }])));
+cas("Nivestim seul, non coché « associé » : pas d'honoraires", !ligneHon({}, P([{ p: "NIVESTIM 30 MU (filgrastim)", v: "SC" }])));
+cas("fer injectable seul (carboxymaltose ferrique) : pas d'honoraires", !ligneHon({}, P([{ p: "FERINJECT (carboxymaltose ferrique) 1000 mg", v: "IV" }])));
+cas("paclitaxel + Zometa dans le même protocole : honoraires de séance", ligneHon({}, P(["PACLITAXEL", "ACIDE ZOLÉDRONIQUE (Zometa) 4 mg"])));
+cas("paclitaxel + Nivestim dans le même protocole : honoraires de séance", ligneHon({}, P(["PACLITAXEL", { p: "NIVESTIM 30 MU (filgrastim)", v: "SC" }])));
+cas("létrozole + Zoladex seuls : pas d'honoraires", !ligneHon({}, P([{ p: "LÉTROZOLE", v: "Per os" }, { p: "ZOLADEX 3,6 mg (goséréline)", v: "SC" }])));
+cas("thérapie ciblée orale : pas d'honoraires", !ligneHon({}, P([{ p: "GIOTRIF (afatinib) 40 mg cp", v: "Per os" }])));
 // 25/10/2026 : même ligne, côté dossier : elle reste la ligne en cours (bandeau « Chimio C2/6 », plus « Cundefined/undefined »)
 const PC = Object.assign(P([{ p: "PACLITAXEL", u: "mg/m²", d: 80, j: [1, 8, 15] }, { p: "CARBOPLATINE", u: "AUC", d: 2, j: [1, 8, 15] }], 1), { id: "x|pc", c: 21 });
 const Lc = { id: "L1", protoId: PC.id, pr: PC, assoc: 1, j1: "2026-10-22", poids: "70", creat: "8", crU: "mgL", cures: [{ st: "recue", reelle: "2026-10-22" }, {}, {}, {}, {}, {}] };
