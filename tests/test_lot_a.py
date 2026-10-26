@@ -88,7 +88,8 @@ async def main():
         ok('HTA, diabète depuis 2010' in t and 'Antécédents chirurgicaux' in t and 'non renseigné' in t, 'ancien texte gardé comme première ligne ; sous-parties vides « non renseigné »', t[:300])
         # 25/10 (2e demande) : plus de « + Ajouter » ; on ajoute par « non renseigné » (aussi sur l'OMS) ou par le titre de la rubrique
         ok(not await ev("!!document.querySelector('details.dp[data-p=med] .im-aj') || [...document.querySelectorAll('details.dp[data-p=med] button')].some(b => /Ajouter/.test(b.textContent) && !b.closest('.cache'))"), 'plus de « + Ajouter » dans Informations médicales')
-        ok(await ev("[...document.querySelectorAll('details.dp[data-p=med] .im-s')].map(s=>s.dataset.im).join()") == 'atcdMed,atcdChir,atcdFam,allergies,traitCours,modeVie', 'six sous-parties toujours affichées')
+        # 26/10/2026 : dans l'ordre réglé de la fiche (test_retouches_2610b), plus dans un ordre fixe
+        ok(sorted(await ev("[...document.querySelectorAll('details.dp[data-p=med] .im-s')].map(s=>s.dataset.im)")) == sorted(['atcdMed', 'atcdChir', 'atcdFam', 'allergies', 'traitCours', 'modeVie']), 'six sous-parties toujours affichées')
         await ev("document.querySelector('.im-s[data-im=atcdChir] button.im-nr').click()"); await pg.wait_for_timeout(400)
         ok(await ev("document.querySelectorAll('#fenetreCorps .im-r').length") == 1 and await ev("document.querySelectorAll('#imDl-atcdChir option').length") >= 30, 'petite fenêtre : une ligne, liste de départ proposée')
         await pg.fill('#fenetreCorps .im-lib', 'Appendicectomie'); await pg.fill('#fenetreCorps .im-no', 'en 1990')

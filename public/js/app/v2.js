@@ -1385,9 +1385,11 @@ function pageDossier(id) {
   // Fiche : chaque partie montre tous ses champs (lecture), « Modifier » ouvre le même éditeur qu'avant
   // Lot A §1 : médecin du patient (plusieurs médecins) et dernières nouvelles, avant dans le bandeau : dans « Identité et administratif »
   const lig = (k, lib, v) => '<div data-champ="' + k + '"><label>' + esc(lib) + "</label><b>" + esc(v) + "</b></div>";
-  const fiche = ficheP.partiesLecture(x, { sauf: infosMed.CLES, vide: { med: (k) => infosMed.nonRenseigne(x, k) }, plus: { id: (multiMed() ? lig("medecin", "Médecin du patient", nomMed(medPatient(x) || titulaireUid()) || "—") : "") + (dn ? lig("_dn", "Dernières nouvelles", dfrA(dn)) : "") } });
-  // Lot A §4 : Informations médicales = les sous-parties (antécédents, allergies, traitements, mode de vie), puis les autres champs ; vide = « non renseigné » cliquable
-  const im = infosMed.htmlColonne(x); if (im.html || fiche.med) { fiche.med = im.html + (fiche.med || ""); fiche.n.med = (fiche.n.med || 0) + im.n; }
+  // 26/10/2026 (Dr Bentahila : « l'ordre défini dans le paramétrage n'est pas appliqué ») : les sous-parties des informations médicales prennent leur
+  // place dans l'ordre réglé de la fiche (avant : toujours en tête, puis OMS, taille, poids…)
+  const im = infosMed.htmlColonne(x);
+  const fiche = ficheP.partiesLecture(x, { rendu: { med: im.parK }, vide: { med: (k) => infosMed.nonRenseigne(x, k) }, plus: { id: (multiMed() ? lig("medecin", "Médecin du patient", nomMed(medPatient(x) || titulaireUid()) || "—") : "") + (dn ? lig("_dn", "Dernières nouvelles", dfrA(dn)) : "") } });
+
   // Lot A §3 (25/10/2026) : la flèche déplie ou replie sur place ; le titre ouvre la rubrique en grand, à la place du centre (liste complète ou
   // formulaire entier) ; plus de « Modifier » sous les rubriques
   const partie = (k, lib, n, corps, av) => '<details class="dp" data-p="' + k + '"' + (partieOuverte(k) ? " open" : "") + ' ontoggle="dosPartie(this)"><summary><button type="button" class="dp-t" onclick="dosRubrique(' + qx + ",'" + k + '\')" title="Ouvrir en grand">' + lib + "</button>" + (av ? '<span class="badge b-or dp-av">' + av + " à valider</span>" : "") + (n != null ? '<span class="n">' + n + "</span>" : "") + '</summary><div class="dp-c">' + corps + "</div></details>";

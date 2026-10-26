@@ -1,7 +1,7 @@
 import pathlib; __file__=str(pathlib.Path(__file__).resolve()); exec(open(pathlib.Path(__file__).parent/'base.py').read()); exec(open(pathlib.Path(__file__).parent/'demo_seed.py').read())
 # R-B4 (19/10/2026, demande du 17/10) : calendrier de fin de radiothérapie (mise en page de l'export de l'accélérateur, sans nom d'appareil) :
 # « Rendez-vous du patient », bande des dates, patient / ID / oncologue, tableau à 6 colonnes, 1re « Mise en place RA » 15 min, dernière
-# « Fin de traitement RA », autres 20 min, heure de la 1re séance, « Terminé » seulement après la fin validée, une seule page A4 (5, 25, 33,
+# « Fin de traitement RA », autres 20 min, heure de la 1re séance, « Terminé » pour une séance passée (26/10/2026 ; avant : seulement après la fin validée), une seule page A4 (5, 25, 33,
 # 39 séances, 2 séances par jour). Patients fictifs seulement.
 import re
 ok_n = ko_n = 0
@@ -41,7 +41,9 @@ async def main():
         ok(L[0][3] == 'Mise en place RA' and L[0][2] == '15' and L[-1][3] == 'Fin de traitement RA' and all(r[3] == 'Traitement journalier RA' and r[2] == '20' for r in L[1:-1]), 'activités et durées (15 puis 20 min)', [L[0], L[-1]])
         ok(all(r[1] == '08:30' for r in L), 'heure de la 1re séance sur chaque ligne', L[0])
         ok(not any('HAL' in r[4] for r in L) and L[0][4] and not L[0][4].startswith('Dr'), 'ressource : le médecin (NOM Prénom), sans appareil', L[0][4])
-        ok(all(r[5] == 'Prévu' for r in L), 'RT non terminée : toutes « Prévu »')
+        # 26/10/2026 (demande de Dr Bentahila) : séance passée = « Terminé » même si la fin n'est pas validée ; aujourd'hui (06/10) et après = « Prévu »
+        iso = lambda s: s[6:] + s[3:5] + s[:2]
+        ok(all(r[5] == ('Terminé' if iso(r[0]) < '20261006' else 'Prévu') for r in L) and any(r[5] == 'Terminé' for r in L), 'RT en cours : séances passées « Terminé », les autres « Prévu »', [(r[0], r[5]) for r in L][:3])
         ok("établies d'après le calendrier" not in t, 'plus de ligne du bas (T6, 24/10/2026, décision 14 : retirée)')
         ok(pages == 1, '25 séances : une seule page A4', pages)
         ok(not errs, 'aucune erreur JavaScript', errs[:2])

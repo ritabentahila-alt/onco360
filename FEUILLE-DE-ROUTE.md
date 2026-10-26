@@ -426,7 +426,18 @@ ordre B, D, C, A puis E. **Ces demandes passent avant ce plan quand elles le con
         erreur IAM passagère), site. **La page Tâches du lot E est donc en ligne : à regarder par Dr Bentahila** (si elle ne convient pas, on la retire).
         Points à trancher : LISEZMOI des lots (4 colonnes à 1 600 px, médicaments vendus au Maroc, statut du patient, nom « Rendez-vous » dans
         Google Agenda, menu du dossier en icônes, « + Prescrire » sur téléphone, stades et grades du modèle, couleur d'Urgent / À réattribuer).
-  - [ ] Après validation : les familles `bt plein`, `bt clair`, `bt gris`, `mini`, `rond`, `ico vert`… ramenées à `b1` / `b2` / `b3` dans
+  - [x] **Plan validé par Dr Bentahila le 26/10/2026** : une page par étape, testée sur ordinateur et téléphone, montrée avant la suivante ; les
+        explications qui évitent une erreur restent visibles ; la couleur reste pour la sécurité (allergie, retard, à valider, à encaisser, alertes
+        de dose ; « Urgent » des tâches en rouge) ; fiche de chimio et écrans de doses : tailles et boutons seulement. Ordre : 1. Agenda et Salle
+        d'attente ; 2. dossier patient ; 3. Paramètres, Protocoles, Bilan ; 4. fenêtres (ordonnances, chimio).
+  - [x] **Étape 1 : Agenda et Salle d'attente (26/10/2026, version 20261026b)** : boutons b1 (un seul : « + Nouveau rendez-vous » ; « Patient
+        suivant » dans la salle) / b2 / b3 (flèches, « ⋯ ») ; « à jour à … » sous Actualiser sans le décaler : Actualiser et « + Nouveau rendez-vous »
+        alignés sur la ligne des vues, Actualiser et « ⋯ » sur celle du jour ; Calendrier, jour et flèches de 40 px ; fenêtres (rendez-vous de
+        l'agenda ; prix, motif, colonnes, commentaire, clôture, pharmacie de la salle) : ✕ en haut à droite, Échap, un seul bouton principal ; états
+        vides au modèle (vue Liste avec « + Nouveau rendez-vous », onglets de la salle). Gardé tel quel : couleurs des catégories de l'agenda et des
+        types de la salle (repérage), boutons des lignes de la salle (« Arrivé »…), texte des cases de la semaine (trop étroites pour 13 px).
+        Test `tests/test_retouches_2610b.py`. **À montrer à Dr Bentahila avant l'étape 2 (dossier patient).**
+  - [ ] Étapes 2 à 4 (après validation de l'étape 1) : les familles `bt plein`, `bt clair`, `bt gris`, `mini`, `rond`, `ico vert`… ramenées à `b1` / `b2` / `b3` dans
         v2.html et sur toutes les pages ; tailles écrites dans les pages remplacées par les quatre variables ; aide, fenêtres et états vides au
         même modèle partout.
 
@@ -444,6 +455,13 @@ ordre B, D, C, A puis E. **Ces demandes passent avant ce plan quand elles le con
       (`donnees/traitements.js`, ajoutés une fois à la liste d'un cabinet : migration `traitMa1026`) ; stades et grades recopiés dans le modèle et
       les cabinets neufs (`listesDepart` ; **à faire par l'Administration** : « Copier depuis le cabinet du Dr Bentahila » pour que le modèle les
       reçoive). Test `tests/test_retouches_2610.py`. Décisions du 26/10 : statut du patient gardé dans le bloc patient (oui) ; 4 colonnes : non.
+
+- [x] **Retouches du 26/10/2026, 2e série (version 20261026b)** : document « Rendez-vous » (calendrier de radiothérapie) : séance passée
+      « Terminé » même avant la validation de la fin (`lignesCalendrierRT`) ; colonne Patient : sous-parties des informations médicales dans
+      l'ordre réglé de la fiche (`partiesLecture` option `rendu`, `infosmed.htmlColonne` → `parK` ; avant : toujours en tête) ; formulaire ouvert
+      (Identité, Informations médicales, Fiche tumeur ; aussi Nouveau patient et Modifier) : OMS seul, Taille + Poids, Antécédents familiaux +
+      Traitements en cours, cTNM + pTNM, ALD + Correspondant, Mutuelle + E-mail sur une ligne, Adresse sur toute la ligne (`PAIRES` / `rapprocher`
+      de fichepatient.js : le 2e champ suit le 1er dans le formulaire seulement, l'ordre enregistré ne change pas).
 
 **Changements de décision (demandés par Dr Bentahila le 24 et le 25/10/2026, ils remplacent ce qui est écrit plus bas)** :
 - d. 46 (20/10 : « traitements en cours choisis dans une liste : non ») → **oui** (lot A §4 et §6) : liste du cabinet + saisie libre. Le texte

@@ -102,12 +102,13 @@ function valeursCr(P, r, ctx, o) {
 // R-B4 (19/10/2026) : calendrier de fin de radiothérapie (demande du 17/10, mise en page de l'export de l'accélérateur) : les séances réparties
 // entre la 1re séance et la fin (fin validée, sinon fin prévue) par datesSeancesRT (inchangé) ; 1re ligne « Mise en place RA » 15 min, dernière
 // « Fin de traitement RA », autres « Traitement journalier RA » 20 min ; heure de la 1re séance sur chaque ligne ; ressource = le médecin (pas
-// d'appareil) ; « Terminé » seulement une fois la fin validée et jamais pour une date à venir, sinon « Prévu » ; une page A4 (texte réduit
+// d'appareil) ; « Terminé » pour une séance passée (26/10/2026, demande de Dr Bentahila : avant, seulement une fois la fin validée) et pour celle du
+// jour quand la fin est validée ; jamais pour une date à venir (« Prévu ») ; une page A4 (texte réduit
 // au-delà de 25 puis de 40 lignes)
 export function lignesCalendrierRT(r, ctx) {
   const rr = Object.assign({}, r, { fin: r.fin || r.finPrev || undefined }), { dates, ajuste, manquantes } = datesSeancesRT(rr, ctx), n = dates.length, h = (r.debH && r.debH.h) || "";
   return { ajuste, manquantes, lignes: dates.map((d, i) => ({ d, h, du: i === 0 ? 15 : 20, act: i === 0 ? "Mise en place RA" : i === n - 1 ? "Fin de traitement RA" : "Traitement journalier RA",
-    etat: r.fin && d <= ctx.aujourdhui ? "Terminé" : "Prévu" })) };
+    etat: d < ctx.aujourdhui || (r.fin && d <= ctx.aujourdhui) ? "Terminé" : "Prévu" })) };
 }
 function valeursRdv(P, r, ctx, o) {
   const C = lignesCalendrierRT(r, ctx), L = C.lignes, ressource = String(o.medecin || "").replace(/^(Dr|Pr)\.?\s*/i, ""), n = L.length;

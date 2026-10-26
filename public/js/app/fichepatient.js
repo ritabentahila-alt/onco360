@@ -73,12 +73,18 @@ function htmlMedecin(x, o) {
 // seulement ; Informations médicales et Fiche tumeur : chacune par son « Modifier » dans la colonne Patient. Une partie non montrée n'est pas lue.
 const secsDe = (o) => { const s = o && o.sec; return s ? [].concat(s) : PARTIES_F.map((z) => z[0]); };
 export const partiesPresentes = () => { const L = champsFiche().filter((c) => c.present); return PARTIES_F.map((z) => z[0]).filter((k) => L.some((c) => c.section === k)); };
+// 26/10/2026 (demande de Dr Bentahila) : formulaire ouvert, champs côte à côte : OMS seul sur sa ligne (SEUL) ; Taille et Poids, ALD et Correspondant,
+// Mutuelle et E-mail, cTNM et pTNM (DEUX), Antécédents familiaux et Traitements en cours sur une même ligne ; Adresse, Mode de vie : toute la ligne.
+// Les champs suivent l'ordre réglé ; dans le formulaire seulement, le 2e champ d'une paire (PAIRES) est placé juste après le 1er, qui commence
+// toujours une ligne (v2.html) ; la colonne Patient et l'ordre enregistré ne changent pas.
+const SEUL = ["xtoms"], DEUX = ["xtctnm", "xtptnm"], PAIRES = [["taille", "poids"], ["atcdFam", "traitCours"], ["xtctnm", "xtptnm"], ["ald", "cor"], ["mut", "email"]];
+const rapprocher = (l) => { const r = l.slice(); PAIRES.forEach(([a, b]) => { const i = r.findIndex((c) => c.k === a), j = r.findIndex((c) => c.k === b); if (i < 0 || j < 0 || j === i + 1) return; const [cb] = r.splice(j, 1); r.splice(r.findIndex((c) => c.k === a) + 1, 0, cb); }); return r; };
 export function htmlFormulaire(x, o) {
   const esc = A.esc, doc = docVu(x), dg = diagDe(x), L = champsFiche().filter((c) => c.present && (!o.seul || c.k === o.seul)), pa = poidsVu(x); // o.seul (lot A) : un seul champ
   const champ = (c) => {
     if (o.nouveau && o.off && o.off(c.partie)) return ""; // nouveau patient : partie non autorisée = non proposée
     const id = idDe(c), v = brut(doc, c), V = v == null ? "" : v, dis = o.off && o.off(c.partie) ? " disabled" : "", lab = '<label for="' + id + '">' + esc(c.lib) + (c.type === "nombre" && c.unite ? " (" + esc(c.unite) + ")" : "") + "</label>";
-    const si = c.ajout && c.ajout.si ? ' data-si="1"' + (champPropose(c.ajout, dg) ? "" : ' class="cache"') : "", large = ["textelong", "ouinonp"].indexOf(c.type) >= 0 || ["adresse", "email", "cor", "mut", "diag", "diagP"].indexOf(c.k) >= 0 || (c.ajout && c.type === "texte");
+    const si = c.ajout && c.ajout.si ? ' data-si="1"' + (champPropose(c.ajout, dg) ? "" : ' class="cache"') : "", large = ["textelong", "ouinonp"].indexOf(c.type) >= 0 || ["adresse", "diag", "diagP"].indexOf(c.k) >= 0 || (c.ajout && c.type === "texte" && DEUX.indexOf(c.k) < 0);
     const enve = (h, cl) => '<div data-champ="' + c.k + '"' + (si || (large || cl ? ' class="' + (cl || "large") + '"' : "")) + (c.k === "cor" ? ' data-fn="listes.cor"' : "") + (c.k === "diag" ? ' style="position:relative"' : "") + ">" + h + "</div>";
     const sel = (opts) => '<select id="' + id + '"' + dis + ">" + opts.map(([val, lib]) => '<option value="' + esc(val) + '"' + (String(val) === String(V) ? " selected" : "") + ">" + esc(lib) + "</option>").join("") + "</select>";
     switch (c.type) {
@@ -92,14 +98,14 @@ export function htmlFormulaire(x, o) {
           '<div id="' + z + '"' + (d === "oui" ? "" : ' class="cache"') + ' style="margin-top:6px"><label for="' + id + '">' + (c.k === "allergies" ? "Laquelle ou lesquelles ?" : "Précisez") + "</label>" +
           (c.k === "allergies" && !dis ? htmlEditeur("allergies", elements(V, "allergies")) : '<textarea id="' + id + '" rows="2" class="champ-t"' + dis + ">" + esc(V) + "</textarea>") + "</div>"); } // lot A §4 : allergies en lignes (liste du cabinet)
       case "listem": return enve('<label>' + esc(c.lib) + "</label>" + (dis ? '<div class="mesures">' + esc(texteChamp(doc, c) || "—") + "</div>" : htmlEditeur(c.k, elements(V, c.k)))); // lot A §4
-      case "choix": { const ch = choixDeC(c), l = ch.concat(V && ch.indexOf(V) < 0 ? [V] : []); return enve(lab + '<select id="' + id + '"' + dis + '><option value=""></option>' + l.map((t) => "<option" + (t === V ? " selected" : "") + ">" + esc(t) + "</option>").join("") + "</select>", " "); }
+      case "choix": { const ch = choixDeC(c), l = ch.concat(V && ch.indexOf(V) < 0 ? [V] : []); return enve(lab + '<select id="' + id + '"' + dis + '><option value=""></option>' + l.map((t) => "<option" + (t === V ? " selected" : "") + ">" + esc(t) + "</option>").join("") + "</select>", SEUL.indexOf(c.k) >= 0 ? "large" : " "); }
       case "textelong": return enve(lab + '<textarea id="' + id + '" rows="2" class="champ-t"' + dis + ">" + esc(V) + "</textarea>");
       default: if (c.k === "poids" && pa && pa.src === "seance") return enve(lab + '<input id="' + id + '" inputmode="decimal" value="' + esc(V) + '"' + dis + '><span class="mesures">' + esc(pa.lib) + "</span>"); // R-A5
         return enve(lab + '<input id="' + id + '"' + (c.type === "date" ? ' type="date"' : c.type === "nombre" ? ' inputmode="decimal"' : c.type === "tel" ? ' type="tel"' : c.type === "email" ? ' type="email"' : "") + ' value="' + esc(V) + '"' + dis + ">");
     }
   };
   const S = secsDe(o);
-  return PARTIES_F.filter(([k]) => S.indexOf(k) >= 0).map(([k, lib]) => { const h = L.filter((c) => c.section === k).map(champ).join("") + (k === "id" && !(o.nouveau && o.off && o.off("identite")) ? htmlMedecin(x, o) : ""); return h ? '<h4 class="soustitre fp-sec">' + lib + '</h4><div class="form" data-sec="' + k + '">' + h + "</div>" : ""; }).join("") +
+  return PARTIES_F.filter(([k]) => S.indexOf(k) >= 0).map(([k, lib]) => { const h = rapprocher(L.filter((c) => c.section === k)).map(champ).join("") + (k === "id" && !(o.nouveau && o.off && o.off("identite")) ? htmlMedecin(x, o) : ""); return h ? '<h4 class="soustitre fp-sec">' + lib + '</h4><div class="form" data-sec="' + k + '">' + h + "</div>" : ""; }).join("") +
     '<datalist id="lMut">' + (A.listeMut ? A.listeMut() : []).map((m) => '<option value="' + esc(m) + '">').join("") + '</datalist><datalist id="lCor">' + (A.listeCor ? A.listeCor() : []).map((m) => '<option value="' + esc(m) + '">').join("") + "</datalist>";
 }
 // Lecture du formulaire : { identite, clinique, etab, erreur } (copies des parties du dossier, champs modifiables seulement)
@@ -150,7 +156,9 @@ export function htmlLectureFiche(x, sec) {
 export function partiesLecture(x, o) {
   const esc = A.esc, doc = docVu(x), dg = diagDe(x), out = { n: {}, libs: {} }, sauf = (o && o.sauf) || [], L = champsFiche().filter((c) => c.present && (!c.ajout || !c.ajout.si || champPropose(c.ajout, dg)));
   PARTIES_F.forEach(([k, lib]) => { out.libs[k] = lib; const l = L.filter((c) => c.section === k && sauf.indexOf(c.k) < 0); if (!l.length) return; let n = 0; // o.sauf (lot A) : champs affichés à part (informations médicales)
-    out[k] = '<div class="fiche-lecture dp-f" data-sec="' + k + '">' + l.map((c) => { const t = c.k === "poids" && poidsVu(x) ? textePoids(poidsVu(x)) : texteChamp(doc, c); if (t) n++;
+    // 26/10/2026 : o.rendu = { partie: { clé: { html, plein } } } : sous-parties des informations médicales dessinées par infosmed.js, à leur place dans l'ordre réglé
+    out[k] = '<div class="fiche-lecture dp-f" data-sec="' + k + '">' + l.map((c) => { const rp = o && o.rendu && o.rendu[k] && o.rendu[k][c.k]; if (rp) { if (rp.plein) n++; return rp.html; }
+      const t = c.k === "poids" && poidsVu(x) ? textePoids(poidsVu(x)) : texteChamp(doc, c); if (t) n++;
       const al = c.k === "allergies" && /^Oui/.test(t);
       return '<div data-champ="' + c.k + '"' + (al ? ' class="allergie"' : "") + (c.k === "cor" ? ' data-fn="listes.cor"' : "") + "><label>" + esc(c.lib) + "</label>" + (t ? c.type === "tel" ? '<a href="tel:' + esc(brut(doc, c)) + '"><b>' + esc(t) + "</b></a>" : "<b>" + esc(t) + "</b>" : o && o.vide && o.vide[k] ? o.vide[k](c.k) : '<span class="mesures">—</span>') + "</div>"; }).join("") + ((o && o.plus && o.plus[k]) || "") + "</div>";
     out.n[k] = n; out.libs[k] = lib; });

@@ -1387,6 +1387,22 @@ details.m3.bib-pts{margin-left:4px;vertical-align:middle;display:inline-block}.m
 /* 26/10/2026 : Radiothérapie, « + Nouveau schéma » sur la ligne des onglets (à droite) */
 .rtr-tete{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.rtr-tete .rtr-sous{margin-bottom:0}.rtr-tete>.defile-cadre,.rtr-tete>.rtr-sous{min-width:0;flex:0 1 auto}.rtr-tete>.rtr-nouv{flex:none;margin-left:auto}
 @media (max-width:640px){.rtr-tete>.rtr-nouv{width:100%;justify-content:center}}
+/* 26/10/2026 : Agenda et Salle d'attente au modèle du lot E. « à jour à … » sous Actualiser sans le décaler : Actualiser et « + Nouveau rendez-vous »
+   alignés sur la ligne des vues / du jour ; boutons de 40 px (44 px au toucher) ; flèches et « ⋯ » en b3 ; Calendrier et jour au même gabarit */
+.bp-maj,.ag-act{position:relative;display:inline-flex;flex-direction:row}
+.bp-maj>.mesures,.ag-act>.mesures{position:absolute;top:calc(100% + 2px);left:50%;transform:translateX(-50%);margin:0;white-space:nowrap;font-size:var(--t1);line-height:1.1}
+.ag-barre,.sa-l1{align-items:center}.ag-barre{margin-bottom:6px}.sa-l1{margin-bottom:8px}
+.ag-nav .b3{border-radius:50%}.ag-nav .b3 .i{width:18px;height:18px}
+.sa-l1 .sa-fl{width:40px;height:40px;font-size:var(--tx-sous)}.sa-l1 .sa-jtxt,.sa-l1 .sa-cal{height:40px;font-size:var(--tx-texte)}
+.sa-l1 .sa-cal{border-color:var(--bord-champ);border-radius:var(--r-m)}.sa-l1 .sa-jours{align-items:center}
+.sa-plus>summary.b3.sa-pts{width:40px;min-height:40px;list-style:none;border:1px solid var(--bord-champ);background:var(--carte);color:var(--encre)}
+.sa-plus>summary.b3.sa-pts::-webkit-details-marker{display:none}
+.sa-l1 details.sa-plus{display:flex;align-items:center}.sa-l1 details.sa-plus>summary{margin:0}
+@media (pointer:coarse){.sa-l1 .sa-fl,.sa-l1 .sa-jtxt,.sa-l1 .sa-cal{height:44px}.sa-l1 .sa-fl{width:44px}.sa-plus>summary.b3.sa-pts{width:44px;min-height:44px}}
+/* 26/10/2026 : formulaire de la fiche ouvert (Identité, Informations médicales, Fiche tumeur) : le 1er champ de chaque paire (Taille, Antécédents
+   familiaux, cTNM, ALD, Mutuelle) commence une ligne, le 2e le suit (fichepatient.js rapprocher) ; colonne Patient : informations médicales dans l'ordre réglé */
+.form[data-sec]>[data-champ=taille],.form[data-sec]>[data-champ=atcdFam],.form[data-sec]>[data-champ=xtctnm],.form[data-sec]>[data-champ=ald],.form[data-sec]>[data-champ=mut]{grid-column-start:1}
+.dp-f>.im-s{min-width:0}.dp-f>.im-s>div{padding:0;border:0;min-height:0;white-space:normal}.dos-pat .dp-f>.im-s>.im-h{margin:0 0 4px}
 </style>
 </head>
 <body>
@@ -1495,6 +1511,6 @@ function onco360Deconnecter() {
 }
 </script>
 
-<script type="module" src="./js/app/v2.js?v=20261026a"></script>
+<script type="module" src="./js/app/v2.js?v=20261026b"></script>
 </body>
 </html>

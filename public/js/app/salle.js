@@ -227,11 +227,13 @@ window.saPrix = (pid, cle) => {
 };
 // Prix d'une consultation pas encore vue (le patient paie avant) : gardé dans la salle d'attente, proposé à la validation
 export const prixPrevu = (pid, cle, jour) => { const d = SA.get(idDoc(jour, pid, cle)); return d && d.prix != null ? d.prix : null; };
+// 26/10/2026 (lot E, étendu à la Salle d'attente) : ✕ en haut à droite des fenêtres, Échap ferme (data-echap, v2.js) ; boutons b1 (un seul) / b2 / b3
+const X = '<span data-echap="1" hidden></span><button type="button" class="b3 fen-x" onclick="fermerFenetre()" aria-label="Fermer" title="Fermer (Échap)">✕</button>';
 function prixAvance(l) {
   const p = prixDe(l) || {}, fmt = (v) => A.fmtMil(v);
-  A.fenetre("<h3>Prix – " + A.esc(l.x.r.nm) + '</h3><p class="sous">' + A.esc(l.type) + " · " + A.cap(A.jourLong(l.jour)) + (l.h ? " à " + l.h : "") + '</p><div class="form"><div><label for="saPx">Montant (DH)</label><input id="saPx" class="mt" inputmode="decimal" value="' + A.esc(p.m != null ? fmt(p.m) : "") + '"></div></div>' +
+  A.fenetre(X + "<h3>Prix – " + A.esc(l.x.r.nm) + '</h3><p class="sous">' + A.esc(l.type) + " · " + A.cap(A.jourLong(l.jour)) + (l.h ? " à " + l.h : "") + '</p><div class="form"><div><label for="saPx">Montant (DH)</label><input id="saPx" class="mt" inputmode="decimal" value="' + A.esc(p.m != null ? fmt(p.m) : "") + '"></div></div>' +
     '<p class="mesures">Pour un patient qui paie avant la consultation (réduction, gratuité : 0). Ce montant sera proposé dans la fenêtre de prix à la validation.</p>' +
-    '<div class="err" id="fErr"></div><div class="boutons">' + (l.doc.prix != null ? '<button class="bt gris" id="saPxT" style="margin-right:auto">Revenir au tarif</button>' : "") + '<button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt plein" id="fOk">Enregistrer</button></div>');
+    '<div class="err" id="fErr"></div><div class="boutons">' + (l.doc.prix != null ? '<button class="b2" id="saPxT" style="margin-right:auto">Revenir au tarif</button>' : "") + '<button class="b2" onclick="fermerFenetre()">Annuler</button><button class="b1" id="fOk">Enregistrer</button></div>');
   const fin = (m) => essayer(async () => { await ecrire(l, m == null ? { prix: null, prixPar: null, prixNom: null } : Object.assign({ prix: m }, qui("prix"))); A.fermerFenetre(); A.toast("Prix enregistré."); });
   if ($("saPxT")) $("saPxT").onclick = () => fin(null);
   $("fOk").onclick = () => { const m = parseFloat(A.val("saPx").replace(/[\s\u202f\u00a0]/g, "").replace(",", ".")); if (isNaN(m) || m < 0) { A.erreur("Indiquez le montant (0 si gratuit)."); return; } fin(m); };
@@ -342,8 +344,8 @@ window.saAnnuler = (pid, cle) => {
 };
 window.saMotif = (pid, cle) => {
   const l = trouver(pid, cle); if (!l || !peutRdv()) return;
-  A.fenetre("<h3>Motif de consultation – " + A.esc(l.x.r.nm) + '</h3><div class="form"><div class="large"><label for="saMo">Motif</label><input id="saMo" value="' + A.esc(l.rdv ? l.rdv.mo || "" : l.doc.motif || "") + '" placeholder="Ex. nouveau patient, résultats du scanner, douleur…"></div></div>' +
-    '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt plein" id="fOk">Enregistrer</button></div>');
+  A.fenetre(X + "<h3>Motif de consultation – " + A.esc(l.x.r.nm) + '</h3><div class="form"><div class="large"><label for="saMo">Motif</label><input id="saMo" value="' + A.esc(l.rdv ? l.rdv.mo || "" : l.doc.motif || "") + '" placeholder="Ex. nouveau patient, résultats du scanner, douleur…"></div></div>' +
+    '<div class="err" id="fErr"></div><div class="boutons"><button class="b2" onclick="fermerFenetre()">Annuler</button><button class="b1" id="fOk">Enregistrer</button></div>');
   $("fOk").onclick = async () => {
     const mo = A.val("saMo"); A.occupe($("fOk"), true);
     try {
@@ -404,10 +406,10 @@ const cachees = () => { const c = D().profil && D().profil.salleCachees; return 
 const colsVues = () => COLS.filter((c) => c[3] || (cachees().indexOf(c[0]) < 0 && (c[0] !== "px" || voitPrix())));
 window.saColonnes = () => {
   const l = COLS.filter((c) => !c[3] && (c[0] !== "px" || voitPrix()) && (!COL_FN[c[0]] || fnS(COL_FN[c[0]])));
-  A.fenetre('<h3>Colonnes de la salle d\'attente</h3><p class="sous">Cochez les colonnes à afficher (réglage personnel, gardé sur tous vos appareils). Heure, patient, statut et boutons restent toujours affichés.</p><div class="form">' +
+  A.fenetre(X + '<h3>Colonnes de la salle d\'attente</h3><p class="sous">Cochez les colonnes à afficher (réglage personnel, gardé sur tous vos appareils). Heure, patient, statut et boutons restent toujours affichés.</p><div class="form">' +
     l.map((c) => '<div><label style="font-weight:normal"><input type="checkbox" data-c="' + c[0] + '"' + (cachees().indexOf(c[0]) < 0 ? " checked" : "") + ' style="width:auto;margin-right:8px">' + c[1] + "</label></div>").join("") + "</div>" +
     (Object.keys(largeurs()).length ? '<p class="mesures" style="margin-top:10px"><label style="font-weight:normal"><input type="checkbox" id="saLargRaz" style="width:auto;margin-right:8px">Remettre les largeurs de colonnes d\'origine</label></p>' : '<p class="mesures" style="margin-top:10px">Largeur d\'une colonne : tirez le bord droit de son titre.</p>') +
-    '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt plein" id="fOk">Enregistrer</button></div>');
+    '<div class="err" id="fErr"></div><div class="boutons"><button class="b2" onclick="fermerFenetre()">Annuler</button><button class="b1" id="fOk">Enregistrer</button></div>');
   $("fOk").onclick = async () => {
     const c = [...document.querySelectorAll("#fenetreCorps input[data-c]")].filter((e) => !e.checked).map((e) => e.dataset.c);
     if (!voitPrix() && cachees().indexOf("px") >= 0) c.push("px");
@@ -419,8 +421,8 @@ window.saColonnes = () => {
 // Commentaire du jour sur une ligne (médecin, secrétaire, infirmière)
 window.saCom = (pid, cle) => {
   const l = trouver(pid, cle); if (!l) return;
-  A.fenetre("<h3>Commentaire – " + A.esc(l.x.r.nm) + '</h3><p class="sous">' + A.esc(l.type) + " · " + A.cap(A.jourLong(l.jour)) + (l.doc.comNom ? " · dernier commentaire de " + A.esc(l.doc.comNom) : "") + '</p><div class="form"><div class="large"><label for="saC">Commentaire</label><textarea id="saC" rows="3" placeholder="Ex. à jeun, bilan sanguin apporté, accompagné…">' + A.esc(l.doc.com || "") + "</textarea></div></div>" +
-    '<div class="err" id="fErr"></div><div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Annuler</button><button class="bt plein" id="fOk">Enregistrer</button></div>');
+  A.fenetre(X + "<h3>Commentaire – " + A.esc(l.x.r.nm) + '</h3><p class="sous">' + A.esc(l.type) + " · " + A.cap(A.jourLong(l.jour)) + (l.doc.comNom ? " · dernier commentaire de " + A.esc(l.doc.comNom) : "") + '</p><div class="form"><div class="large"><label for="saC">Commentaire</label><textarea id="saC" rows="3" placeholder="Ex. à jeun, bilan sanguin apporté, accompagné…">' + A.esc(l.doc.com || "") + "</textarea></div></div>" +
+    '<div class="err" id="fErr"></div><div class="boutons"><button class="b2" onclick="fermerFenetre()">Annuler</button><button class="b1" id="fOk">Enregistrer</button></div>');
   $("fOk").onclick = async () => {
     const c = A.val("saC"); A.occupe($("fOk"), true);
     try { await ecrire(l, c ? Object.assign({ com: c }, qui("com")) : { com: null, comPar: null, comNom: null }); A.fermerFenetre(); A.toast("Commentaire enregistré."); }
@@ -446,14 +448,14 @@ export function pageSalle(j) {
   // Lot B (25/10/2026) : plus de titre ; ligne 1 = le jour (‹ jour ›, semaine, Calendrier, Aujourd'hui) à gauche, Patient suivant, Actualiser
   // (à jour dessous) et « ⋯ » (Colonnes, Imprimer, Pharmacie, Clôturer la journée) à droite ; ligne 2 = recherche, période, établissement, médecin, tri
   $("page").innerHTML = '<div class="sa-pg' + (FILTRES ? " ouv" : "") + '" id="saPg"><div class="barre-page sa-l1">' +
-    '<div class="sa-jours' + (semaineOuverte() ? "" : " repli") + '" id="saJours"><button class="sa-fl" onclick="saJour(-1)" aria-label="Jour précédent" title="Jour précédent">‹</button><button class="sa-jtxt" id="saJtxt" onclick="saSemaine()" title="Afficher ou replier la semaine"></button><div class="sa-sem" id="saSem"></div><button class="sa-fl" onclick="saJour(1)" aria-label="Jour suivant" title="Jour suivant">›</button>' +
+    '<div class="sa-jours' + (semaineOuverte() ? "" : " repli") + '" id="saJours"><button class="b3 sa-fl" onclick="saJour(-1)" aria-label="Jour précédent" title="Jour précédent">‹</button><button class="sa-jtxt" id="saJtxt" onclick="saSemaine()" title="Afficher ou replier la semaine"></button><div class="sa-sem" id="saSem"></div><button class="b3 sa-fl" onclick="saJour(1)" aria-label="Jour suivant" title="Jour suivant">›</button>' +
     '<label class="sa-cal" title="Choisir un jour dans le calendrier"><svg class="i"><use href="#i-agenda"/></svg><span>Calendrier</span><input type="date" id="saD" aria-label="Choisir un jour"></label>' +
-    '<button class="bt clair petit" id="saAuj" onclick="saAller(\'' + D().t + '\')">Aujourd\'hui</button></div>' +
+    '<button class="b2" id="saAuj" onclick="saAller(\'' + D().t + '\')">Aujourd\'hui</button></div>' +
     '<div class="bp-act sa-etab">' +
-    '<button class="bt gris sa-ftr" id="saFtr" onclick="saFiltres()" aria-expanded="' + FILTRES + '" aria-controls="saOutils"><svg class="i"><use href="#i-loupe"/></svg>Filtres<span class="n" id="saFtrN"></span></button>' +
-    '<button class="bt vert cache" id="saSuiv" onclick="saSuivant()"><svg class="i"><use href="#i-check"/></svg>Patient suivant</button>' +
-    '<span class="bp-maj"><button class="bt gris" id="saAct" onclick="saActualiser()" title="Relire la salle d\'attente, les dossiers du jour et les prix (fait aussi tout seul chaque minute)"><svg class="i"><use href="#i-actualiser"/></svg>Actualiser</button><span class="mesures sa-ajour" id="saAjour"></span></span>' +
-    '<details class="m3 sa-plus" id="saPlus"><summary class="bt gris sa-pts" title="Autres actions" aria-label="Autres actions">⋯<span class="sa-pts-n cache" id="saPtsN"></span></summary><div class="m3-l">' +
+    '<button class="b2 sa-ftr" id="saFtr" onclick="saFiltres()" aria-expanded="' + FILTRES + '" aria-controls="saOutils"><svg class="i"><use href="#i-loupe"/></svg>Filtres<span class="n" id="saFtrN"></span></button>' +
+    '<button class="b1 cache" id="saSuiv" onclick="saSuivant()"><svg class="i"><use href="#i-check"/></svg>Patient suivant</button>' +
+    '<span class="bp-maj"><button class="b2" id="saAct" onclick="saActualiser()" title="Relire la salle d\'attente, les dossiers du jour et les prix (fait aussi tout seul chaque minute)"><svg class="i"><use href="#i-actualiser"/></svg>Actualiser</button><span class="mesures sa-ajour" id="saAjour"></span></span>' +
+    '<details class="m3 sa-plus" id="saPlus"><summary class="b3 sa-pts" title="Autres actions" aria-label="Autres actions">⋯<span class="sa-pts-n cache" id="saPtsN"></span></summary><div class="m3-l">' +
     '<button class="mini" data-fn="salle.colonnes" onclick="saColonnes()" title="Choisir les colonnes affichées"><svg class="i"><use href="#i-liste"/></svg>Colonnes</button>' +
     '<button class="mini" onclick="saImprimer()" title="Imprimer la liste du jour"><svg class="i"><use href="#i-imprimer"/></svg>Imprimer la liste du jour</button>' +
     (A.voit("traitements") ? '<button class="mini" data-mod="chimio" onclick="saPharmacie()" title="Séances de chimiothérapie du lendemain, doses et flacons, pour la pharmacie de la clinique"><svg class="i"><use href="#i-pilule"/></svg>Pharmacie</button>' : "") +
@@ -515,7 +517,7 @@ function dessiner() {
   remplir($("saJtxt"), A.cap(A.jourLong(JOUR)) + (JOUR === t ? " · aujourd'hui" : JOUR < t ? " · jour passé" : "") + ' <span class="fl">' + (semaineOuverte() ? "▴" : "▾") + "</span>");
   remplir($("saE"), l.length ? '<div class="sa-l ent">' + cv.map((c) => '<span class="c-' + c[0] + '" title="' + c[1] + '">' + (TITRE_COURT[c[0]] || c[1]) + (c[0] !== "act" ? '<i class="sa-poi" data-c="' + c[0] + '" title="Tirer pour élargir ; double-clic : largeur d\'origine"></i>' : "") + "</span>").join("") + "</div>" : "");
   // Mise à jour ligne par ligne : une ligne inchangée n'est pas touchée (clic en cours, survol et défilement gardés)
-  poser($("saL"), l.length ? l.map((z) => ({ k: z.pid + "|" + z.cle, h: ligneHtml(z, cv) })) : [{ k: "vide", h: '<p class="vide-c" data-k="vide">' + vide + "</p>" }]);
+  poser($("saL"), l.length ? l.map((z) => ({ k: z.pid + "|" + z.cle, h: ligneHtml(z, cv) })) : [{ k: "vide", h: '<div class="vide-e" data-k="vide"><p>' + vide + "</p></div>" }]);
   // Patient suivant (médecin, aujourd'hui) ; Clôturer la journée (aujourd'hui et jours passés)
   const f = JOUR === t && peutRdv() && A.estMed() ? fileSalle() : [];
   $("saSuiv").classList.toggle("cache", !f.length); if (f.length) $("saSuiv").title = "Démarrer la consultation de " + f[0].x.r.nm + " (attend depuis " + duree(minutes(f[0].doc.arr || maintenant())) + ")";
@@ -568,8 +570,8 @@ window.saCloturer = () => {
   const g = [["consult", "En consultation"], ["salle", "Encore en salle d'attente"], ["", "Jamais arrivés"]].map(([e, t]) => [e, t, trier(L.filter((l) => l.etat === e), e === "" ? "avenir" : "salle")]).filter((z) => z[2].length);
   const ligne = (l) => '<div class="rdv"><span class="badge b-gr">' + A.esc(l.h || "—") + '</span><div class="tx"><b>' + A.esc(l.x.r.nm) + '</b><div class="mesures">' + A.esc(l.type + (l.motif ? " · " + l.motif : "")) + "</div></div>" +
     '<div class="actr">' + (l.rdv || A.peutPrix() ? '<button class="mini v" onclick="fermerFenetre();saValider(' + q(l) + ')">Valider</button>' : "") + '<button class="mini" onclick="fermerFenetre();ouvrirDossier(\'' + l.pid + '\')">Dossier</button></div></div>';
-  A.fenetre("<h3>Clôturer la journée – " + A.esc(A.cap(A.jourLong(JOUR))) + "</h3>" + (g.length ? '<p class="sous">Validez les patients vus (fenêtre de prix) ; ceux qui ne sont jamais arrivés passent en « Absent » (sans report), en un clic.</p>' + g.map(([e, t, l]) => '<h4 class="soustitre">' + t + " (" + l.length + ")</h4>" + l.map(ligne).join("")).join("") : '<p class="sous">Tout est clôturé : chaque patient est vu ou absent.</p>') +
-    '<div class="err" id="fErr"></div><div class="boutons">' + (L.some((l) => l.etat === "") ? '<button class="bt rouge" id="saCloA">Jamais arrivés → Absent</button>' : "") + '<button class="bt gris" onclick="fermerFenetre()">Fermer</button></div>', "large");
+  A.fenetre(X + "<h3>Clôturer la journée – " + A.esc(A.cap(A.jourLong(JOUR))) + "</h3>" + (g.length ? '<p class="sous">Validez les patients vus (fenêtre de prix) ; ceux qui ne sont jamais arrivés passent en « Absent » (sans report), en un clic.</p>' + g.map(([e, t, l]) => '<h4 class="soustitre">' + t + " (" + l.length + ")</h4>" + l.map(ligne).join("")).join("") : '<p class="sous">Tout est clôturé : chaque patient est vu ou absent.</p>') +
+    '<div class="err" id="fErr"></div><div class="boutons">' + (L.some((l) => l.etat === "") ? '<button class="b2 danger" id="saCloA">Jamais arrivés → Absent</button>' : "") + '<button class="b2" onclick="fermerFenetre()">Fermer</button></div>', "large");
   if ($("saCloA")) $("saCloA").onclick = async () => {
     const l0 = L.filter((l) => l.etat === ""); if (!confirm(l0.length + " patient" + (l0.length > 1 ? "s" : "") + " jamais arrivé" + (l0.length > 1 ? "s" : "") + " : marquer « Absent » sans report ?")) return;
     A.occupe($("saCloA"), true); let n = 0;
@@ -710,9 +712,9 @@ window.saPharmacie = (jour) => {
     par[c].sort((a, b) => a.x.r.nm.localeCompare(b.x.r.nm)).map((l) => { const d = window.chDosesSeance ? window.chDosesSeance(l.pid, l.chimio.lid, l.chimio.n, l.chimio.j) : [], n = Math.max(1, d.length);
       return d.length ? d.map((z, i) => "<tr>" + (i === 0 ? '<td rowspan="' + n + '"><b>' + esc(l.x.r.nm) + "</b>" + (l.h ? "<br>" + esc(l.h) : "") + '</td><td rowspan="' + n + '">' + esc((l.chimio.lib || "") + " · C" + l.chimio.n + " J" + l.chimio.j) + "</td>" : "") + "<td>" + esc(z.p) + "</td><td>" + (z.dose != null ? esc(String(z.dose).replace(".", ",")) + " mg" : "à calculer") + "</td><td>" + esc(z.fl) + "</td></tr>").join("")
         : "<tr><td><b>" + esc(l.x.r.nm) + "</b></td><td>" + esc(l.motif) + '</td><td colspan="3">—</td></tr>'; }).join("") + "</table>").join("");
-  A.fenetre("<h3>Pharmacie – séances du " + esc(A.dfrA(j)) + "</h3>" + '<div class="form" style="grid-template-columns:minmax(0,220px) 1fr;align-items:end"><div><label for="phJ">Jour</label><input type="date" id="phJ" value="' + j + '" onchange="saPharmacie(this.value)"></div><div class="mesures">' + L.length + " séance" + (L.length > 1 ? "s" : "") + (ETAB ? " · " + esc(nomE(ETAB)) : "") + " · doses calculées avec le dernier poids connu ; elles peuvent changer à la validation.</div></div>" +
+  A.fenetre(X + "<h3>Pharmacie – séances du " + esc(A.dfrA(j)) + "</h3>" + '<div class="form" style="grid-template-columns:minmax(0,220px) 1fr;align-items:end"><div><label for="phJ">Jour</label><input type="date" id="phJ" value="' + j + '" onchange="saPharmacie(this.value)"></div><div class="mesures">' + L.length + " séance" + (L.length > 1 ? "s" : "") + (ETAB ? " · " + esc(nomE(ETAB)) : "") + " · doses calculées avec le dernier poids connu ; elles peuvent changer à la validation.</div></div>" +
     '<div id="phL" class="tableau">' + (corps || '<p class="mesures">Aucune séance de chimiothérapie prévue ce jour-là.</p>') + "</div>" +
-    '<div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Fermer</button><button class="bt plein" id="phImp"' + (L.length ? "" : " disabled") + '><svg class="pi"><use href="#i-imprimer"/></svg>Imprimer</button></div>', "large");
+    '<div class="boutons"><button class="b2" onclick="fermerFenetre()">Fermer</button><button class="b1" id="phImp"' + (L.length ? "" : " disabled") + '><svg class="pi"><use href="#i-imprimer"/></svg>Imprimer</button></div>', "large");
   const b = $("phImp"); if (b) b.onclick = () => {
     let w = null; try { w = window.open("", "_blank"); } catch (er) { w = null; } if (!w || !w.document) { A.toast("Autorisez l'ouverture des fenêtres pour imprimer."); return; }
     w.document.open(); w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Pharmacie – ' + esc(A.dfrA(j)) + '</title><style>@page{size:A4;margin:12mm}body{font-family:Arial,sans-serif;font-size:11px;color:#1E2A44}h1{font-size:16px}h2{font-size:13px;margin:14px 0 4px}table{border-collapse:collapse;width:100%}td,th{border:1px solid #9AA3B5;padding:4px 5px;text-align:left;vertical-align:top}th{background:#EEF2F8}</style></head><body><h1>Pharmacie – séances de chimiothérapie du ' + esc(A.cap(A.jourLong(j))) + " " + j.slice(0, 4) + "</h1>" + corps + "</body></html>");

@@ -57,7 +57,7 @@ export function htmlColonne(x) {
   // 26/10/2026 (demande de Dr Bentahila) : petit « + » bleu à droite du titre (au lieu du crayon) : la fenêtre s'ouvre avec les éléments déjà notés
   // (modifiables) et une ligne vide pour en ajouter
   const crayon = (k, lib) => (ok ? '<button type="button" class="im-cr im-ajt" onclick="imOuvrir(' + q + ",'" + k + '\',true)" title="Ajouter ou modifier « ' + esc(lib) + ' »" aria-label="Ajouter ou modifier « ' + esc(lib) + ' »">' + A.ic("plus") + "</button>" : "");
-  let n = 0;
+  let n = 0; const parK = {};
   const corps = S.map(([k, lib]) => {
     let h = "";
     if (k === "modeVie") h = C.modeVie ? '<p class="im-txt">' + esc(C.modeVie) + "</p>" : "";
@@ -65,9 +65,11 @@ export function htmlColonne(x) {
       h = f === "non" ? '<p class="im-txt">Aucune allergie connue</p>' : L.length ? '<ul class="im-ul im-al">' + L.map((e) => ligneEl(e, k)).join("") + "</ul>" : f === "oui" ? '<p class="im-txt im-al">Oui (non précisé)</p>' : ""; }
     else { const L = liste(x, k); h = L.length ? '<ul class="im-ul">' + L.map((e) => ligneEl(e, k)).join("") + "</ul>" : ""; }
     if (h) n++;
-    return '<div class="im-s" data-im="' + k + '"><div class="im-h"><span class="im-l">' + esc(lib) + "</span>" + (h ? crayon(k, lib) : "") + "</div>" + (h || nr(k)) + "</div>";
+    const s = '<div class="im-s" data-im="' + k + '"><div class="im-h"><span class="im-l">' + esc(lib) + "</span>" + (h ? crayon(k, lib) : "") + "</div>" + (h || nr(k)) + "</div>";
+    parK[k] = { html: s, plein: !!h }; return s;
   }).join("");
-  return { html: corps ? '<div class="im">' + corps + "</div>" : "", n };
+  // parK (26/10/2026) : chaque sous-partie seule, placée par fichepatient.partiesLecture dans l'ordre réglé de la fiche (Paramètres)
+  return { html: corps ? '<div class="im">' + corps + "</div>" : "", n, parK };
 }
 
 // Lignes de l'éditeur (petite fenêtre et formulaire entier) : libellé (liste du cabinet + saisie libre), dosage (traitement), note, ✕

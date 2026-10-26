@@ -132,9 +132,10 @@ export function pageAgenda() {
   const onglet = (k, ico, t) => '<button' + (k === "liste" ? "" : ' data-fn="agenda.vues"') + ' class="' + (v === k ? "on" : "") + '" onclick="agVue(\'' + k + '\')">' + A.ic(ico) + t + "</button>";
   // Lot B (25/10/2026) : plus de titre de page ; « + Nouveau rendez-vous » au bout de la barre (vues, période, filtres, Actualiser)
   let h = '<div class="ag-barre"><div class="ag-vues">' + onglet("liste", "liste", "Liste") + onglet("jour", "agenda", "Jour") + onglet("semaine", "agenda", "Semaine") + onglet("mois", "accueil", "Mois") + "</div>" +
-    '<div class="ag-nav"><button class="bt clair petit" onclick="agAuj()">Aujourd\'hui</button><button class="rond" onclick="agNav(-1)" aria-label="Précédent">' + A.ic("retour") + '</button><button class="rond" onclick="agNav(1)" aria-label="Suivant" style="transform:scaleX(-1)">' + A.ic("retour") + "</button><b>" + esc(lib) + "</b></div>" +
-    '<span class="ag-droite"><span class="ag-act"><button class="bt clair petit" id="agAct" onclick="agActualiser()" title="Relire les rendez-vous, séances et radiothérapies (aussi chaque minute)">' + A.ic("actualiser") + 'Actualiser</button><span class="mesures" id="agAjour"></span></span>' +
-    '<button class="bt plein ag-nouv" onclick="nouveauRdv(null,null,\'' + esc(AG.etab || "") + '\',\'' + esc(AG.med || "") + '\')">' + A.ic("plus") + '<span class="lg">Nouveau rendez-vous</span><span class="sm">Rendez-vous</span></button></span></div>' +
+    // 26/10/2026 (lot E, étendu à l'Agenda) : boutons b1 (un seul : « + Nouveau rendez-vous »), b2 (secondaires), b3 (flèches)
+    '<div class="ag-nav"><button class="b2" onclick="agAuj()">Aujourd\'hui</button><button class="b3" onclick="agNav(-1)" aria-label="Précédent" title="Précédent">' + A.ic("retour") + '</button><button class="b3" onclick="agNav(1)" aria-label="Suivant" title="Suivant" style="transform:scaleX(-1)">' + A.ic("retour") + "</button><b>" + esc(lib) + "</b></div>" +
+    '<span class="ag-droite"><span class="ag-act"><button class="b2" id="agAct" onclick="agActualiser()" title="Relire les rendez-vous, séances et radiothérapies (aussi chaque minute)">' + A.ic("actualiser") + 'Actualiser</button><span class="mesures" id="agAjour"></span></span>' +
+    '<button class="b1 ag-nouv" onclick="nouveauRdv(null,null,\'' + esc(AG.etab || "") + '\',\'' + esc(AG.med || "") + '\')">' + A.ic("plus") + '<span class="lg">Nouveau rendez-vous</span><span class="sm">Rendez-vous</span></button></span></div>' +
     '<div class="ag-corps"><aside class="ag-cote">' + cote + '</aside><div class="ag-main carte">' + main + "</div></div>" + '<p class="mesures ag-gg-bas">' + gg + "</p>";
   // R-C8 : même vue et même période redessinées (Actualiser, écoute des dossiers, après une modification) : le défilement de la grille est gardé
   const g0 = document.querySelector(".ag-grille"), cleVue = v + "|" + du, garde = g0 && AG.cleVue === cleVue ? g0.scrollTop : null;
@@ -208,7 +209,7 @@ function vueMois(du) {
   return h + "</div>";
 }
 function vueListe() {
-  if (!EVS.length) return '<p class="sous">Rien de prévu sur les 30 prochains jours.</p>';
+  if (!EVS.length) return '<div class="vide-e"><p>Rien de prévu sur les 30 prochains jours.</p><button class="b2" onclick="nouveauRdv(null,null,\'' + A.esc(AG.etab || "") + '\',\'' + A.esc(AG.med || "") + '\')">' + A.ic("plus") + "Nouveau rendez-vous</button></div>";
   let h = "", jc = "";
   EVS.forEach((e, i) => {
     if (e.d !== jc) { if (jc) h += "</div>"; jc = e.d; h += '<div class="jour7"><h4>' + A.cap(A.jourLong(e.d)) + (absence(e.d) ? ' <span class="badge b-al">Absence</span>' : "") + "</h4>"; }
@@ -311,8 +312,8 @@ const modifiable = (e) => e.st === "prevu" && (e.rid ? A.peut("rendezvous") : e.
 window.agEv = (i) => {
   const e = EVS[i]; if (!e) return;
   const st = { prevu: "Prévu", fait: e.cat === "co" ? "Venu" : "Fait", absent: "Non venu" }[e.st] || e.st;
-  A.fenetre("<h3>" + EM[e.cat] + " " + A.esc(e.nm) + '</h3><p class="sous">' + A.esc(e.t) + " · " + A.cap(A.jourLong(e.d)) + (e.h ? " à " + e.h : "") + (e.f && e.f !== e.d ? " → " + A.dfrA(e.f) : "") + " · " + st + (e.n ? "<br>" + A.esc(e.n) : "") + "</p>" +
-    '<div class="boutons"><button class="bt gris" onclick="fermerFenetre()">Fermer</button><button class="bt clair" onclick="fermerFenetre();ouvrirDossier(\'' + e.pid + "')\">Ouvrir le dossier</button>" + (modifiable(e) ? '<button class="bt plein" onclick="agModifier(' + i + ')">Modifier / décaler</button>' : "") + "</div>");
+  A.fenetre('<div data-echap="1"><button type="button" class="b3 fen-x" onclick="fermerFenetre()" aria-label="Fermer" title="Fermer (Échap)">✕</button><h3>' + EM[e.cat] + " " + A.esc(e.nm) + '</h3><p class="sous">' + A.esc(e.t) + " · " + A.cap(A.jourLong(e.d)) + (e.h ? " à " + e.h : "") + (e.f && e.f !== e.d ? " → " + A.dfrA(e.f) : "") + " · " + st + (e.n ? "<br>" + A.esc(e.n) : "") + "</p>" +
+    '<div class="boutons"><button class="b2" onclick="fermerFenetre()">Fermer</button><button class="' + (modifiable(e) ? "b2" : "b1") + '" onclick="fermerFenetre();ouvrirDossier(\'' + e.pid + "')\">Ouvrir le dossier</button>" + (modifiable(e) ? '<button class="b1" onclick="agModifier(' + i + ')">Modifier / décaler</button>' : "") + "</div></div>");
 };
 window.agModifier = (i) => {
   const e = EVS[i]; if (!e) return; A.fermerFenetre();
