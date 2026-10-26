@@ -9,7 +9,7 @@ async def main():
         await pg.select_option('.cascade select >> nth=2','Localisé – adjuvant'); await pg.wait_for_timeout(200)
         print('Sein › Localisé – adjuvant :', await ev("document.querySelector('#prL .mesures').textContent"), '| menus :', await ev("[...document.querySelectorAll('.cascade select')].map(s=>s.value)"))
         await pg.fill('#prQ','trastuzumab'); await pg.wait_for_timeout(200); print('+ recherche :', await ev("document.querySelector('#prL .mesures').textContent"))
-        await pg.click('text=Réinitialiser'); await pg.wait_for_timeout(200); print('réinitialisé :', await ev("document.querySelector('#prL .mesures').textContent"))
+        await ev("prFiltre('reinit')"); await pg.wait_for_timeout(200); print('réinitialisé :', await ev("document.querySelector('#prL .mesures').textContent"))
         await pg.screenshot(path='/tmp/t6_proto.png')
         await pg.set_viewport_size({'width':390,'height':844}); await pg.wait_for_timeout(200); print('mobile largeur :', await ev("document.documentElement.scrollWidth")); await pg.screenshot(path='/tmp/t6_mob.png')
         await pg.set_viewport_size({'width':1440,'height':900})

@@ -89,7 +89,7 @@ async def main():
         pc = await ouvrir(b, S2); await pc.add_init_script("window.__uid='UIDCOMP'")
         await pc.goto(f'http://localhost:{PORT}/v2.html#bilan'); await pc.wait_for_timeout(2500)
         ok(await pc.evaluate("document.getElementById('btParam').offsetParent === null"), 'comptable : pas d\'icône Paramètres')
-        ok('relevé' in await pc.inner_text('.barre-page'), 'comptable : l\'état du relevé sous Actualiser')
+        ok('relevé' in await pc.inner_text('.bi-act'), 'comptable : l\'état du relevé sous Actualiser')
         await pc.click('#btCompte'); await pc.wait_for_timeout(300); await pc.click('#mcCompte'); await pc.wait_for_timeout(1200)
         ok(pc.url.endswith('#profil'), 'comptable : Mon compte par le menu du compte')
         await pc.close()

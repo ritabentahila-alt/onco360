@@ -57,12 +57,13 @@ export function pageProtocoles(arg) {
 }
 function pageProtocoles0() {
   const esc = A.esc, ok = A.peut("parametres");
-  // Lot B (25/10/2026) : plus de titre ni de compteurs ; ligne 1 = recherche, Favoris, statut à gauche, Excel, Livret PDF et « + Créer un protocole »
+  // Lot B (25/10/2026) : plus de titre ni de compteurs ; ligne 1 = recherche, Favoris, statut à gauche, « ⋯ » et « + Créer un protocole »
   // à droite ; dessous, la carte avec les menus en cascade et la liste
   let h = '<div class="barre-page pr-barre"><div class="bp-vue pr-rech"><input id="prQ" class="champ" style="flex:1;min-width:220px" placeholder="Molécule, protocole, situation…" title="Rechercher : molécule, protocole ou situation (ex. pertuzumab, sein adjuvant)" aria-label="Rechercher un protocole" value="' + esc(CF.q) + '">' +
     '<button class="bt ' + (CF.fav ? "plein" : "clair") + ' petit" onclick="prFiltre(\'fav\')"><svg class="pi"><use href="#i-etoile"/></svg>Favoris</button><select class="champ" style="font-size:14px;padding:8px" onchange="const v=this.value;this.blur();setTimeout(()=>prFiltre(\'st\',v),30)"><option value="">Tous les statuts</option><option value="ok"' + (CF.st === "ok" ? " selected" : "") + '>Validés</option><option value="todo"' + (CF.st === "todo" ? " selected" : "") + ">Non validés</option></select>" +
-    '<button class="bt gris petit" onclick="prFiltre(\'reinit\')">Réinitialiser</button></div>' +
-    '<div class="bp-act"><button class="bt clair" onclick="prExporter(\'xlsx\')" title="Toute la bibliothèque dans un tableau Excel">' + A.ic("telecharger") + 'Excel</button><button class="bt clair" onclick="prExporter(\'pdf\')" title="Livret imprimable, par localisation">' + A.ic("imprimer") + "Livret PDF</button>" +
+    "</div>" +
+    // 26/10/2026 (demande de Dr Bentahila) : Réinitialiser, Excel et Livret PDF sous « ⋯ », centré sur la hauteur de la ligne
+    '<div class="bp-act pr-act">' + A.menuPts(['<button class="mini" onclick="prFiltre(\'reinit\')">Réinitialiser</button>', '<button class="mini" onclick="prExporter(\'xlsx\')" title="Toute la bibliothèque dans un tableau Excel">Excel</button>', '<button class="mini" onclick="prExporter(\'pdf\')" title="Livret imprimable, par localisation">Livret PDF</button>']) +
     (ok ? '<button class="b1" onclick="prOuvrir()">' + A.ic("plus") + "Créer un protocole</button>" : "") + "</div></div>" + '<div id="prMaj"></div><section class="carte">';
   // Menus déroulants en cascade : Type de cancer › Localisation › Situation › Sous-groupe
   if (CF.c && !CF.o) { const o = valeurs(1); if (o.length === 1) CF.o = o[0]; }

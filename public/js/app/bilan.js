@@ -200,19 +200,19 @@ function dessiner() {
   const sel = (id, v, opts, f) => '<select id="' + id + '" onchange="biF(\'' + f + '\',this.value)">' + opts.map((o) => '<option value="' + esc(o[0]) + '"' + (o[0] === v ? " selected" : "") + ">" + esc(o[1]) + "</option>").join("") + "</select>";
   const refs = [...new Set(R.map((x) => x.cor || ""))].sort((a, z) => a.localeCompare(z, "fr"));
   const etabs = (D().etabsTous || D().etabs).map((e) => [e.code, e.code]);
-  // Lot B (25/10/2026) : plus de titre ni de période en sous-titre (elle reste dans les filtres) ; Excel, PDF, Actualiser à droite ; pour le comptable,
-  // l'état du relevé passe sous Actualiser
-  let h = '<div class="barre-page"><div class="bp-act"><button class="bt clair" data-fn="bilan.exports" onclick="biExport(\'xlsx\')"><svg class="pi"><use href="#i-telecharger"/></svg>Excel</button><button class="bt clair" data-fn="bilan.exports" onclick="biExport(\'pdf\')"><svg class="pi"><use href="#i-telecharger"/></svg>PDF</button>' +
-    '<span class="bp-maj"><button class="bt gris" onclick="biActualiser()"><svg class="pi"><use href="#i-actualiser"/></svg>Actualiser</button>' +
-    (estComptable() ? '<span class="mesures" id="biReleve">' + (RELEVE_LE ? "relevé à jour au " + dateHeureMaroc(RELEVE_LE.getTime()) : "aucun relevé : il est préparé quand un médecin ouvre Onco360") + "</span>" : "") + "</span></div></div>" +
-    '<section class="carte" data-fn="bilan.filtres"><div class="form" style="grid-template-columns:repeat(auto-fit,minmax(190px,1fr))">' +
+  // Lot B (25/10/2026) : plus de titre ni de période en sous-titre (elle reste dans les filtres). 26/10/2026 (demande de Dr Bentahila) : Actualiser
+  // et « ⋯ » (Excel, PDF) sur la ligne des filtres, à droite, pour remonter les cartes ; pour le comptable, l'état du relevé sous Actualiser
+  const exps = A.fn("bilan.exports") ? A.menuPts(['<button class="mini" onclick="biExport(\'xlsx\')">Excel</button>', '<button class="mini" onclick="biExport(\'pdf\')">PDF</button>']) : "";
+  const act = '<div class="bi-act"><span class="bp-maj"><button class="bt gris" onclick="biActualiser()"><svg class="pi"><use href="#i-actualiser"/></svg>Actualiser</button>' +
+    (estComptable() ? '<span class="mesures" id="biReleve">' + (RELEVE_LE ? "relevé à jour au " + dateHeureMaroc(RELEVE_LE.getTime()) : "aucun relevé : il est préparé quand un médecin ouvre Onco360") + "</span>" : "") + "</span>" + exps + "</div>";
+  let h = '<section class="carte" data-fn="bilan.filtres"><div class="bi-ligne"><div class="form" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">' +
     "<div><label>Période</label>" + sel("biPer", F.per, periodes(R), "per") + "</div>" +
     (F.per === "perso" ? '<div><label>Du</label><input type="date" value="' + esc(F.du) + '" onchange="biF(\'du\',this.value)"></div><div><label>Au</label><input type="date" value="' + esc(F.au) + '" onchange="biF(\'au\',this.value)"></div>' : "") +
     "<div><label>Établissement</label>" + sel("biHop", F.hop, [["tous", "Tous les centres"]].concat(etabs).concat([["—", "Non renseigné / autres"]]), "hop") + "</div>" +
     "<div><label>Type d'acte</label>" + sel("biTyp", F.typ, typesActes(), "typ") + "</div>" +
     "<div><label>Paiement</label>" + sel("biPay", F.pay, [["tous", "Payés et à recevoir"], ["paye", "Payés"], ["att", "À recevoir"]], "pay") + "</div>" +
-    "<div><label>Référent</label>" + sel("biCor", F.cor, [["tous", "Tous les référents"]].concat(refs.map((c) => [c, c || "Sans référent"])), "cor") + "</div>" +
-    '<div style="grid-column:1/-1"><label>Rechercher un acte ou un patient</label><input id="biQ" value="' + esc(F.q) + '" placeholder="ex. FOLFOX, prostate, VMAT, Zometa, nom…"></div></div>' +
+    "<div><label>Référent</label>" + sel("biCor", F.cor, [["tous", "Tous les référents"]].concat(refs.map((c) => [c, c || "Sans référent"])), "cor") + "</div></div>" + act + "</div>" +
+    '<div class="form bi-q"><div style="grid-column:1/-1"><label>Rechercher un acte ou un patient</label><input id="biQ" value="' + esc(F.q) + '" placeholder="ex. FOLFOX, prostate, VMAT, Zometa, nom…"></div></div>' +
     (b.manque ? '<p class="mesures"><svg class="pi"><use href="#i-alerte"/></svg>' + b.manque + " dossier(s) n'ont pas pu être calculés.</p>" : "") + alerteSansTarif(all) + alertePlace() + "</section>";
   const k = (v, lib, cls) => '<div class="k' + (cls ? " " + cls : "") + '"><b>' + dh(v) + "</b><span>" + lib + "</span></div>";
   h += '<section class="carte"><div class="kpi">' + k(T.caNet, "CA NET médecin", "fort") + k(T.chimio, "Chimio – " + T.nbChimio + " séance(s)") + k(T.consultations, "Consultations – " + T.nbConsultations) + k(T.hospit, "Hospitalisations – " + T.nbHospit) + k(T.rt, "Radiothérapie – " + T.nbRt + " terminée(s)") + k(T.versements, "Autres versements – " + T.nbVersements) + "</div>" +

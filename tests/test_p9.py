@@ -43,7 +43,7 @@ async def main():
         await pg.goto(f'http://localhost:{PORT}/v2.html#protocoles'); await pg.wait_for_timeout(3500)
         t = await pg.inner_text('#page')
         ok('Bibliothèque de référence (version 2)' in t and '1 protocole nouveau' in t and '2 différents du vôtre' in t and 'v2 : test de la diffusion' in t, 'bandeau : version, nouveaux, différents, journal des changements', t[:400])
-        ok('Excel' in t and 'Livret PDF' in t, 'boutons Excel et Livret PDF')
+        ok(await ev("[...document.querySelectorAll('.pr-act .mpts .cache button')].map(b => b.textContent).join('|')") == 'Réinitialiser|Excel|Livret PDF', 'Réinitialiser, Excel et Livret PDF sous « ⋯ » (26/10/2026)')
         await ev("prMaj()"); await pg.wait_for_timeout(600)
         tf = await pg.inner_text('#fenetreCorps')
         ok('+ POLARAMINE' in tf and 'cycle' in tf and 'nouveau' in tf and 'Chimio : Test référence' in tf, 'écran : différences ligne par ligne, nouveau, ordonnance type', tf[:400])

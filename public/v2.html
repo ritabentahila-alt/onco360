@@ -1477,6 +1477,15 @@ details.m3.bib-pts{margin-left:4px;vertical-align:middle;display:inline-block}.m
 .rtr-carte .rtr-it{top:calc(64px + var(--rtr-hf, 200px))}
 .pr-casc{position:sticky;top:64px;z-index:15;background:var(--carte);margin:-6px -4px 0;padding:6px 4px 2px}
 #prMaj:empty{display:none}.pr-barre{margin-bottom:-8px}
+/* 26/10/2026 (demande de Dr Bentahila) : « ⋯ » des Protocoles (Réinitialiser, Excel, Livret PDF) et du Bilan (Excel, PDF) à la taille des boutons
+   voisins, centré sur la ligne ; Bilan : Actualiser et « ⋯ » sur la ligne des filtres */
+.pr-act .mpts,.bi-act .mpts{margin:0}
+.pr-act .mpts>.sa-plus,.bi-act .mpts>.sa-plus{height:38px;min-width:42px;padding:0 10px;background:#fff;border:1px solid #CCD3E0;border-radius:9px;color:var(--titre);font-size:18px;line-height:1;display:inline-flex;align-items:center;justify-content:center}
+.bi-ligne{display:flex;align-items:flex-end;gap:12px}.bi-ligne>.form{flex:1;min-width:0}
+.bi-act{display:flex;align-items:center;gap:8px;flex:none}.bi-act .bt{height:42px}.bi-q{margin-top:12px}
+@media (max-width:899px){.bi-ligne{flex-wrap:wrap}.bi-act{width:100%;justify-content:flex-end}}
+.actr{align-items:center}.actr>.mpts{margin:0}
+.accueil{align-items:flex-start}@media (min-width:900px){.accueil .actions{margin-top:4px}}
 </style>
 </head>
 <body>
