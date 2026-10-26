@@ -1330,6 +1330,14 @@ function pageDossier(id) {
     if (fin ? v.z === "fin" && traitModRT() : (v.z === "scan" || v.z === "deb") && traitModRT()) m.push(b("Modifier", "modifierEtapeRT('" + x.id + "','" + v.rt + "','" + v.z + "')"));
     av.push({ d: v.d, f: v.f, h: v.h || "", rdv: 1, em: ic("radiation"), ty: v.z === "scan" ? "Scanner RT" : v.z === "deb" ? "Début RT" : fin ? "Dernière séance RT" : "", t: v.lib.replace(/^RT · /, ""), env: !fin && waEnv("rt", v.d), m });
   });
+  // 26/10/2026 (demande de Dr Bentahila) : la consultation d'un jour de chimiothérapie reçu reste ici tant qu'elle n'est pas validée (« Consultation :
+  // venu ») ; elle passe dans l'historique à sa validation, plus à celle de la cure
+  const consAttente = {};
+  if (voitRdv() && peut("encaissements") && EN !== undefined) (P.lignes || []).forEach((L) => { let pn = ""; try { pn = protocoleDe(L, D.ctx.bib).nom; } catch (er) { return; }
+    etatLigne(L, P, D.ctx).forEach((e) => { if (e.st !== "recue") return;
+      [{ j: 1, d: e.c.reelle }].concat(seancesCure(L, e, D.ctx.bib).filter((z) => z.st === "recue").map((z) => ({ j: z.j, d: z.d }))).forEach((z) => {
+        const k = L.id + "|" + e.n + "|" + z.j; if (((EN && EN.cons) || {})[k] || !(z.d >= "2026-10-07")) return; consAttente[k] = 1;
+        av.push({ d: z.d || "", h: "", rdv: 1, em: ic("seringue"), ty: "Séance chimio", t: "C" + e.n + " J" + z.j + " · consultation", s: pn, av: "À valider", m: menuChimio({ lid: L.id, n: e.n, j: z.j, d: z.d || "" }) }); }); }); });
   av.sort((p, q) => (p.d + (p.h || "00")).localeCompare(q.d + (q.h || "00")));
   av.forEach((v) => { v.al = absenceLe(v.d) ? absentMedecin(medecinFiche().genre) : ferieLe(v.d) ? "Férié" : ""; if (v.rep && v.rep.length) v.s = [v.s, "Reporté (initialement le " + dfrA(v.rep[0].d) + ")"].filter(Boolean).join(" · "); });
   const cAv = av.map((v) => large(v)), lAv = av.map((v) => ligne(v)), toutAv = AV_TOUT.has(x.id);
@@ -1368,7 +1376,7 @@ function pageDossier(id) {
       etatLigne(L, P, D.ctx).forEach((e) => { if (e.st !== "recue") return;
         [{ j: 1, d: e.c.reelle }].concat(seancesCure(L, e, D.ctx.bib).filter((z) => z.st === "recue").map((z) => ({ j: z.j, d: z.d }))).forEach((z) => {
           const k = L.id + "|" + e.n + "|" + z.j, val = EN && EN.cons && EN.cons[k]; vus[k] = 1;
-          if (val || z.d >= "2026-10-07") lignes.push({ d: z.d || "", h: "", c: { lid: L.id, n: e.n, j: z.j, lib: pn, v: val } }); }); }); });
+          if (!consAttente[k] && (val || z.d >= "2026-10-07")) lignes.push({ d: z.d || "", h: "", c: { lid: L.id, n: e.n, j: z.j, lib: pn, v: val } }); }); }); });
     if (EN) Object.entries(EN.cons || {}).forEach(([k, val]) => { if (vus[k]) return; const p3 = k.split("|"); lignes.push({ d: val.d || "", h: "", c: { lid: p3[0], n: +p3[1], j: +p3[2], lib: val.lib, v: val } }); });
     lignes.sort((p, q) => (q.d + q.h).localeCompare(p.d + p.h)); nPasse = lignes.length;
     nAValider = lignes.filter((z) => (z.v && (z.v.st || "prevu") === "prevu") || (z.c && !z.c.v)).length; // repère orange sur la partie repliée
