@@ -1487,6 +1487,12 @@ details.m3.bib-pts{margin-left:4px;vertical-align:middle;display:inline-block}.m
 .actr{align-items:center}.actr>.mpts{margin:0}
 .lst-sug{position:fixed;z-index:90}
 .accueil{align-items:flex-start}@media (min-width:900px){.accueil .actions{margin-top:4px}}
+/* 26/10/2026 (demande de Dr Bentahila) : rubriques du dossier = titre dans une bulle bleu clair, contenu décalé à droite */
+details.dp{border-top:0;margin-top:8px}
+details.dp>summary{background:#EAF0FA;border-radius:10px;padding:2px 12px;gap:6px}
+details.dp>summary::before{color:var(--titre)}
+details.dp>summary .dp-t{font-size:var(--t2);letter-spacing:.03em;color:var(--titre)}
+details.dp>.dp-c{padding:8px 0 10px 18px}
 </style>
 </head>
 <body>
