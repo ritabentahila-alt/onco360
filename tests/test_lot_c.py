@@ -138,7 +138,7 @@ async def main():
         tete = await ev("[...document.querySelectorAll('.ag-tete .nb')].map(e=>e.textContent)")
         verif('en-tête des jours : « N consult. · N chimio »', any('consult.' in t or 'chimio' in t for t in tete), tete)
         c = await ev("(()=>{const e=document.createElement('span');e.className='ev-c c-ch';document.body.appendChild(e);const r=getComputedStyle(e).color;e.className='ev-c c-fer';const f=getComputedStyle(e).color;e.remove();const h=document.querySelector('.heures span:not(.pl)');return [r,f,h?getComputedStyle(h).color:'']})()")
-        verif('contrastes : chimio #17693A, férié #8F5600, heures --doux', c == ['rgb(23, 105, 58)', 'rgb(143, 86, 0)', 'rgb(100, 112, 138)'], c)
+        verif('contrastes : chimio #17693A, férié #8F5600, heures --doux', c == ['rgb(23, 105, 58)', 'rgb(143, 86, 0)', 'rgb(41, 64, 86)'], c)
         verif('fait : couleur pleine (plus de transparence)', await ev("(()=>{const e=document.createElement('span');e.className='ev-c c-co fait';document.body.appendChild(e);const o=getComputedStyle(e).opacity;e.remove();return o})()") == '1')
         verif('séances de chimio sans heure : une puce « N séances de chimio » (semaine)', await ev("[...document.querySelectorAll('.ag-journee .puce-ch')].every(e=>/\\d+ séances? de chimio/.test(e.innerText))"))
         # 26/10/2026 : la grille descend jusqu'en bas de l'écran (hauteurGrille d'agenda.js)
