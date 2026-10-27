@@ -156,9 +156,9 @@ export function boutonsPrescription(x) {
 const NOTE = { t: null, cid: null, pid: null, pos: null };
 // R-G c (demande du 19/10/2026) : la note dépliée s'affiche en entier, même très longue (pas de défilement dans la note)
 const hauteurNote = (z) => { z.style.height = "auto"; z.style.height = Math.max(z.scrollHeight + 2, 24) + "px"; }; // la note s'arrête à sa dernière ligne
-async function sauverNote(pid, cid) {
+async function sauverNote(pid, cid, lu) {
   const c = (CS[pid] || []).find((z) => z.id === cid), z = document.getElementById("csN-" + cid), e = document.getElementById("csE-" + cid); if (!c) return;
-  const v = z ? z.value : c.note || ""; if (v === (c.noteEnr != null ? c.noteEnr : c.note || "") && c.noteEnr != null) return;
+  const v = lu != null ? lu : z ? z.value : c.note || ""; if (v === (c.noteEnr != null ? c.noteEnr : c.note || "") && c.noteEnr != null) return;
   try {
     const modifs = modifsApres(c);
     await updateDoc(doc(db, "espaces", A.ESPACE, "consultations", cid), { note: v, modifs, majPar: D().u.uid, majParNom: nomConnecte(), maj: serverTimestamp() });
@@ -171,7 +171,9 @@ window.csNote = (pid, cid) => {
   Object.assign(NOTE, { cid, pid, pos: z.selectionStart }); const e = document.getElementById("csE-" + cid); if (e) { e.textContent = "…"; e.style.color = ""; }
   clearTimeout(NOTE.t); NOTE.t = setTimeout(() => sauverNote(pid, cid), 1500);
 };
-window.csNoteFin = (pid, cid) => { clearTimeout(NOTE.t); NOTE.cid = null; sauverNote(pid, cid); };
+// 27/10/2026 : la note est lue tout de suite, enregistrée juste après la perte du focus (enregistrer pendant le « blur » pouvait redessiner le dossier
+// pendant que la page remplace ce même contenu : erreur « node to be removed is no longer a child »)
+window.csNoteFin = (pid, cid) => { clearTimeout(NOTE.t); NOTE.cid = null; const z = document.getElementById("csN-" + cid), v = z ? z.value : null; setTimeout(() => sauverNote(pid, cid, v), 0); };
 // Après chaque affichage de l'onglet : hauteur des notes, et curseur remis dans la note en cours d'écriture
 function apresAffichage() {
   document.querySelectorAll("textarea.cs-note").forEach(hauteurNote);

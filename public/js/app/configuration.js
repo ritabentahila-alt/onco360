@@ -433,7 +433,11 @@ const ficheCab = () => formEffectif(FICHE, (D().formCab || {}).fiche || null, (D
 const consultCab = () => formEffectif(CONSULT, (D().formCab || {}).consultation || null, (D().regAdmin || D().reg).consultation);
 const accueilCab = () => JSON.parse(JSON.stringify(accueilEffectif(D().reg, D().accueilCab || null)));
 
+// 27/10/2026 : redessin protégé : remplacer la page retire le champ qui a le focus, ce qui peut déclencher son « change » (blur) et un second
+// redessin pendant le premier (erreur « node to be removed is no longer a child ») ; le second est fait juste après
+let DESSIN = false;
 export function pageConfiguration(arg) {
+  if (DESSIN) { setTimeout(() => pageConfiguration(arg), 0); return; }
   if (arg === "acces") { location.replace("#profil/acces"); return; } // ancien lien : l'onglet Accès est dans Mon compte
   // Onglets du titulaire (Accès, Journal d'audit) connus un instant plus tard : l'onglet demandé par le lien est ouvert ensuite
   if (TIT === null) { TIT = false; titulaireConnecte().then((v) => { TIT = v; const dem = (location.hash.match(/^#parametres\/([^/?]+)/) || [])[1]; if (v && location.hash.startsWith("#parametres") && !MOD) pageConfiguration(dem); }).catch(() => {}); }
@@ -463,7 +467,7 @@ export function pageConfiguration(arg) {
   if (!ok && !(ONG === "bibliotheques" && A.peut("ecrireConsultations")) && !(okE && !MSG_SEC[ONG])) h += '<p class="mesures">' + (ONG === "couleurs" ? "Votre Google Agenda et ses couleurs : réglages personnels." : sec && MSG_SEC[ONG] ? MSG_SEC[ONG] : "Lecture seule : la modification demande le droit « paramètres ».") + "</p>";
   h += (RUBRIQUES[ONG] || RUBRIQUES.fermetures)({ ok, okE, disE, dis, sec });
   if (okE && ["bibliotheques", "vigilances", "lieux", "acces", "audit", "export"].indexOf(ONG) < 0) h += '<div class="barre-enr">' + (ok || ["horaires", "fermetures"].indexOf(ONG) < 0 ? '<button class="bt gris" onclick="cfDefaut()">↺ Valeurs par défaut</button>' : "<span></span>") + '<span id="cfMod" class="mesures' + (MOD ? "" : " cache") + '">Modifications non enregistrées</span><button class="bt plein" id="cfOk" onclick="cfEnregistrer()"><svg class="pi"><use href="#i-enregistrer"/></svg>Enregistrer</button></div>';
-  A.$("page").innerHTML = h + "</div></div>"; // fin de .cf-main et .cf-lay (menu à gauche)
+  DESSIN = true; try { A.$("page").innerHTML = h + "</div></div>"; } finally { DESSIN = false; } // fin de .cf-main et .cf-lay (menu à gauche)
   // 26/10/2026 (demande de Dr Bentahila, style minimaliste) : plus de phrase d'explication sous les titres, ni de « ? » (avant : 3.10, bulle « ? »
   // pour les explications longues) ; une ligne qui porte un bouton, un lien ou un champ reste
   document.querySelectorAll("#page section.carte > h3 + p.sous").forEach((p) => { if (!p.querySelector("button, a, input, select")) p.classList.add("cache"); });
