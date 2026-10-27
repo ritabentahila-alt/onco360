@@ -33,7 +33,7 @@ async def main():
         # Organes à risque
         await pg.click('.rtr-sous button:has-text("Organes à risque")'); await pg.wait_for_timeout(2000)
         ok(await ev("location.hash") == '#radiotherapie/oar' and await ev("document.querySelectorAll('.rtr-ot tbody tr').length") == 117 and await ev("[...document.querySelectorAll('.rtr-ot th')].map(t => t.textContent)") == ['Nom', 'TG-263', 'Définition'], 'Organes à risque : #radiotherapie/oar, 117 organes, colonnes Nom, TG-263, Définition (plus de Source)')
-        ok(await ev("getComputedStyle(document.querySelector('.rtr-def2')).webkitLineClamp") == '2', 'définition sur deux lignes')
+        ok(await ev("getComputedStyle(document.querySelector('.rtr-def2')).webkitLineClamp") == '3', 'carte : définition sur trois lignes (26/10/2026)')
         await pg.fill('#rtrOq', 'rectum'); await pg.wait_for_timeout(200)
         n1 = await ev("document.querySelectorAll('.rtr-ot tbody tr').length")
         await pg.fill('#rtrOq', ''); await pg.select_option('#rtrOr', 'pelvis'); await pg.wait_for_timeout(200)

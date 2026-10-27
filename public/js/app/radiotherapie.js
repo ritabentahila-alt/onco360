@@ -806,7 +806,9 @@ window.rtrCmp = (b, v) => { b.parentNode.querySelectorAll("button").forEach((x) 
 // /contraintes, /essais, /calcul (/calcul/<dose par séance>/<séances> : prérempli depuis le lien « EQD2 » d'une ligne de prescription).
 // « Utilisé dans n schémas » et la région d'un jeu de contraintes demandent les 48 fichiers de localisation : lus à la première sous-page.
 const SOUS = [["", "Référentiel"], ["oar", "Organes à risque"], ["contraintes", "Contraintes"], ["essais", "Essais"], ["calcul", "Calcul BED / EQD2"]];
-const ongletsPage = (k) => '<div class="ag-vues defile rtr-sous" role="tablist">' + SOUS.map(([c, l]) => '<button role="tab" aria-selected="' + (c === k) + '" class="' + (c === k ? "on" : "") + '" onclick="location.hash=\'radiotherapie' + (c ? "/" + c : "") + "'\">" + l + "</button>").join("") + "</div>";
+// 26/10/2026 (demande de Dr Bentahila) : menu en contrôle segmenté avec une icône par page (plus d'onglets soulignés)
+const ICO_SOUS = { "": "radiation", oar: "patients", contraintes: "drapeau", essais: "document", calcul: "courbe" };
+const ongletsPage = (k) => '<div class="ag-vues defile rtr-sous" role="tablist">' + SOUS.map(([c, l]) => '<button role="tab" aria-selected="' + (c === k) + '" class="' + (c === k ? "on" : "") + '" onclick="location.hash=\'radiotherapie' + (c ? "/" + c : "") + "'\">" + A.ic(ICO_SOUS[c]) + "<span>" + l + "</span></button>").join("") + "</div>";
 let TOUT = null;
 const chargerTout = () => TOUT || (TOUT = Promise.all(INDEX.localisations.map((l) => locFichier(l.id))).catch((e) => { TOUT = null; throw e; }));
 // schémas de la référence (+ ceux du cabinet) avec leur fichier : qui cite quel OAR, quel jeu
@@ -837,7 +839,7 @@ function listeOar() {
   const z = $("rtrOl"); if (!z) return;
   const esc = A.esc, q = sansAcc(RS.oarQ).trim(), L = BB.oar.filter((o) => (!RS.oarR || o.region === RS.oarR) && (!q || sansAcc(o.nom + " " + (o.nom_tg263 || "") + " " + (o.definition || "")).indexOf(q) >= 0));
   z.innerHTML = '<div class="rtr-ohaut"><p class="mesures rtr-nb">' + L.length + " organe" + (L.length > 1 ? "s" : "") + "</p>" + (peutModif() ? '<button type="button" class="mini" onclick="rtrOarForm(null)">' + A.ic("plus") + "Ajouter un organe</button>" : "") + "</div>" +
-    (L.length ? '<div class="rtr-tw"><table class="rtr-tab rtr-ot"><thead><tr><th>Nom</th><th>TG-263</th><th>Définition</th></tr></thead><tbody>' +
+    (L.length ? '<div class="rtr-tw"><table class="rtr-tab rtr-ot rtr-cartes"><thead><tr><th>Nom</th><th>TG-263</th><th>Définition</th></tr></thead><tbody>' +
     L.map((o) => '<tr class="rtr-clic" tabindex="0" data-oar="' + esc(o.id) + '" onclick="rtrDetailOar(this,\'' + esc(o.id) + '\')" onkeydown="if(event.key===\'Enter\')this.click()"><td data-l="Nom"><b>' + esc(o.nom) + "</b>" + (o.cabinet ? ' <span class="badge b-or">Cabinet</span>' : "") + '</td><td data-l="TG-263">' + esc(o.nom_tg263 || "") + '</td><td data-l="Définition"><div class="rtr-def2">' + court(o.definition || "") + "</div></td></tr>").join("") + "</tbody></table></div>" : '<div class="vide-c">Aucun organe ne correspond</div>');
 }
 window.rtrDetailOar = async (tr, id) => {
@@ -901,7 +903,7 @@ async function pageContraintesRef() {
   }
   const a = BB.aideCol || {};
   $("rtrJt").innerHTML = '<p class="mesures rtr-nb">' + K.length + " organe" + (K.length > 1 ? "s" : "") + " · base RecoRad 2025, précisions par localisation" + (a.ideal ? " · <b>idéal</b> : " + esc(a.ideal) : "") + "</p>" +
-    '<div class="rtr-tw"><table class="rtr-tab rtr-ctr"><thead><tr><th>Organe</th>' + R0.map((r) => "<th>" + REGIMES[r] + "</th>").join("") + "</tr></thead><tbody>" +
+    '<div class="rtr-tw"><table class="rtr-tab rtr-ctr rtr-cartes"><thead><tr><th>Organe</th>' + R0.map((r) => "<th>" + REGIMES[r] + "</th>").join("") + "</tr></thead><tbody>" +
     K.map((k) => { const o = oar(k); return '<tr class="rtr-clic" tabindex="0" onclick="rtrDetailCt(this,\'' + esc(k) + '\')" onkeydown="if(event.key===\'Enter\')this.click()"><td data-l="Organe"><b>' + esc(o.nom) + "</b>" + (o.nom_tg263 ? '<br><span class="mesures">' + esc(o.nom_tg263) + "</span>" : "") + "</td>" +
       R0.map((r) => { const L = BB.base.filter((l) => l.oar_id === k && l.regime === r); return '<td data-l="' + REGIMES[r] + '">' + (L.length ? celluleRegime(L) : '<span class="mesures">—</span>') + "</td>"; }).join("") + "</tr>"; }).join("") + "</tbody></table></div>" +
     '<h3 class="rtr-tous">Contraintes propres aux essais et à la curiethérapie</h3>' +
@@ -967,7 +969,7 @@ function listeEssais() {
   const v = { acronyme: ({ x }) => sansAcc(x.acronyme), annee: ({ x }) => x.annee || 0, localisation: ({ locs }) => sansAcc(locs || "zzz"), revue: ({ x }) => sansAcc(x.revue || "") }[RS.essTri];
   L.sort((a, b) => (v(a) < v(b) ? -1 : v(a) > v(b) ? 1 : 0) * RS.essSens);
   const th = (k, l) => '<th><button type="button" class="rtr-tri' + (RS.essTri === k ? " on" : "") + '" onclick="RS_tri(\'' + k + '\')" aria-sort="' + (RS.essTri === k ? (RS.essSens > 0 ? "ascending" : "descending") : "none") + '">' + l + (RS.essTri === k ? (RS.essSens > 0 ? " ▲" : " ▼") : "") + "</button></th>";
-  z.innerHTML = '<p class="mesures rtr-nb">' + L.length + " essai" + (L.length > 1 ? "s" : "") + " et références</p>" + (L.length ? '<div class="rtr-tw"><table class="rtr-tab rtr-et2"><thead><tr>' + th("acronyme", "Acronyme") + th("annee", "Année") + th("localisation", "Localisation") + th("revue", "Revue") + "</tr></thead><tbody>" +
+  z.innerHTML = '<p class="mesures rtr-nb">' + L.length + " essai" + (L.length > 1 ? "s" : "") + " et références</p>" + (L.length ? '<div class="rtr-tw"><table class="rtr-tab rtr-et2 rtr-cartes"><thead><tr>' + th("acronyme", "Acronyme") + th("annee", "Année") + th("localisation", "Localisation") + th("revue", "Revue") + "</tr></thead><tbody>" +
     L.slice(0, 300).map(({ x, locs }) => '<tr class="rtr-clic" tabindex="0" onclick="rtrDetailEssai(this,\'' + esc(x.id) + '\')" onkeydown="if(event.key===\'Enter\')this.click()"><td data-l="Acronyme"><b>' + esc(x.acronyme) + '</b></td><td class="n" data-l="Année">' + esc(x.annee || "") + '</td><td data-l="Localisation">' + court(locs || "—", 50) + '</td><td data-l="Revue">' + esc(x.revue || "") + "</td></tr>").join("") + "</tbody></table></div>" + (L.length > 300 ? '<p class="mesures rtr-nb">Affinez la recherche pour voir les ' + (L.length - 300) + " autres.</p>" : "") : '<div class="vide-c">Aucun essai ne correspond</div>');
 }
 window.rtrDetailEssai = (tr, id) => {

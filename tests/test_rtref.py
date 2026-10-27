@@ -25,7 +25,7 @@ async def main():
         await pg.goto(f'http://localhost:{PORT}/v2.html#radiotherapie'); await pg.wait_for_timeout(3000)
         # Accueil
         t = await ev(TXT)
-        ok('Tous les schémas' in t and 'Sommaire' not in t and 'Favoris' not in t and 'Consultés récemment' not in t, 'premier usage : tous les schémas, sans sommaire (ni Favoris ni Récents)')
+        ok(await ev("!!document.querySelector('#rtrListe > h3.rtr-tous')") and 'Sommaire' not in t and 'Favoris' not in t and 'Consultés récemment' not in t, 'premier usage : tous les schémas, sans sommaire (ni Favoris ni Récents)')
         r0 = [await ev(NB), len(await ev(LIGNES)), await ev("document.querySelectorAll('.rtr-it').length"), await ev("[...document.querySelectorAll('#rtrListe .pages button')].map(b => b.textContent)")]
         ok(await ev(NB) == 295 and len(await ev(LIGNES)) == 12 and await ev("[...document.querySelectorAll('#rtrListe .pages button')].map(b => b.textContent).includes('25')"), 'liste complète : 295 schémas en cartes, 12 par page (25 pages)', r0)
         ok(await ev("document.activeElement && document.activeElement.id") == 'rtrQ', 'ordinateur : le curseur est dans la recherche du module')
