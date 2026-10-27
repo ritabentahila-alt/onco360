@@ -981,7 +981,17 @@ window.rtrDetailEssai = (tr, id) => {
   tr.after(d);
 };
 // Calcul BED / EQD2 : un seul écran, tout se recalcule pendant la frappe (moteur/rtref.js calculBED) ; valeurs gardées pendant la session
-const CALC0 = () => ({ lignes: [{ d: "", n: "" }], ab: ["1,5", "3", "10"], x: "2,0", N: "25" });
+const CALC0 = () => ({ lignes: [{ d: "", n: "" }], ab: ["1,5", "3", "10", ""], org: "", x: "2,0", N: "25" });
+// 26/10/2026 (demande de Dr Bentahila) : 4e colonne = α/β d'un organe choisi dans un menu (valeurs usuelles du modèle linéaire-quadratique,
+// effets tardifs sauf mention ; modifiables) : QUANTEC 2010, Bentzen et Joiner (Basic Clinical Radiobiology), van Leeuwen 2018 pour les tumeurs
+const AB_ORGANES = [
+  ["Organes à risque", [["Moelle épinière", "2"], ["Tronc cérébral", "2"], ["Encéphale", "2"], ["Hippocampe", "2"], ["Nerf optique, chiasma", "2"], ["Cristallin", "1,2"], ["Rétine", "2"],
+    ["Cochlée", "3"], ["Parotide", "3"], ["Glande sous-mandibulaire", "3"], ["Mandibule", "3"], ["Larynx", "3"], ["Constricteurs du pharynx", "3"], ["Plexus brachial", "2"],
+    ["Poumon", "3"], ["Cœur", "3"], ["Œsophage", "3"], ["Paroi thoracique, côtes", "3"], ["Foie", "2,5"], ["Rein", "2"], ["Estomac", "3"], ["Duodénum, grêle", "3"],
+    ["Rectum", "3"], ["Vessie", "3"], ["Tête fémorale", "3"], ["Bulbe du pénis", "3"], ["Queue de cheval, plexus sacré", "2"], ["Peau (fibrose)", "1,7"]]],
+  ["Effets aigus", [["Muqueuses (mucite)", "10"], ["Peau (réaction aiguë)", "10"], ["Œsophage (œsophagite aiguë)", "10"]]],
+  ["Tumeurs", [["Prostate", "1,5"], ["Sein", "4"], ["Mélanome", "2,5"], ["Tumeur à renouvellement rapide (ORL, col, poumon)", "10"]]],
+];
 let CALC = CALC0();
 function pageCalcul(pre) {
   const z = $("rtrSous"); if (!z) return;
@@ -990,13 +1000,15 @@ function pageCalcul(pre) {
   z.innerHTML = '<div class="rtr-fiche rtr-calc"><h3>Traitements</h3>' + CALC.lignes.map((l, i) => '<div class="rtr-cl"><label>Dose par fraction (Gy)<input class="rtr-in n" inputmode="decimal" data-c="d" data-i="' + i + '" value="' + esc(l.d) + '"></label><label>Fractions<input class="rtr-in n" inputmode="decimal" data-c="n" data-i="' + i + '" value="' + esc(l.n) + '"></label><span class="rtr-cto mesures" id="rtrCt' + i + '"></span>' +
       (mult ? '<button type="button" class="mini" onclick="rtrCalcLigne(' + i + ')" aria-label="Retirer ce traitement">' + A.ic("croix") + "</button>" : "") + "</div>").join("") +
     '<button type="button" class="mini rtr-aj" onclick="rtrCalcLigne()">' + A.ic("plus") + 'Ajouter un traitement</button><p class="rtr-ctot" id="rtrCtot"></p>' +
-    '<div class="rtr-tw"><table class="rtr-tab rtr-cres"><thead><tr><th>α/β (Gy)</th>' + CALC.ab.map((a, k) => '<th class="n"><input class="rtr-in n rtr-ab" inputmode="decimal" data-c="ab" data-i="' + k + '" value="' + esc(a) + '" aria-label="α/β ' + (k + 1) + '"></th>').join("") + "</tr></thead><tbody>" +
+    '<h3 class="rtr-res-t">Résultats</h3><div class="rtr-tw"><table class="rtr-tab rtr-cres"><thead><tr><th>α/β (Gy)</th>' + CALC.ab.map((a, k) => '<th class="n' + (k === 3 ? " rtr-org" : "") + '">' +
+      (k === 3 ? '<select data-c="org" aria-label="Organe"><option value="">Organe…</option>' + AB_ORGANES.map(([g, l]) => '<optgroup label="' + esc(g) + '">' + l.map(([nom, v]) => '<option value="' + esc(nom) + '"' + (CALC.org === nom ? " selected" : "") + ">" + esc(nom) + " · " + esc(v) + "</option>").join("") + "</optgroup>").join("") + "</select>" : "") +
+      '<input class="rtr-in n rtr-ab" inputmode="decimal" data-c="ab" data-i="' + k + '" value="' + esc(a) + '" aria-label="α/β ' + (k + 1) + '"' + (k === 3 ? ' placeholder="α/β"' : "") + "></th>").join("") + "</tr></thead><tbody>" +
     '<tr class="rtr-eqd"><th scope="row"><span class="lg">EQD en </span><span class="sm">EQD</span><input class="rtr-in n rtr-x" inputmode="decimal" data-c="x" value="' + esc(CALC.x) + '" aria-label="Dose par fraction de référence (Gy)"><span class="lg"> Gy/fx</span></th>' + CALC.ab.map((a, k) => '<td class="n" id="rtrE' + k + '">—</td>').join("") + "</tr>" +
     '<tr><th scope="row">BED</th>' + CALC.ab.map((a, k) => '<td class="n" id="rtrB' + k + '">—</td>').join("") + "</tr>" +
     '<tr><th scope="row"><span class="lg">Dose par fraction en </span><span class="sm">Dose/fx en </span><input class="rtr-in n rtr-x" inputmode="decimal" data-c="N" value="' + esc(CALC.N) + '" aria-label="Nombre de fractions"> fx</th>' + CALC.ab.map((a, k) => '<td class="n" id="rtrD' + k + '">—</td>').join("") + "</tr></tbody></table></div>" +
     (mult ? '<details class="rtr-cdet"><summary>Détail par traitement</summary><div class="rtr-tw"><table class="rtr-tab"><thead><tr><th>Traitement</th>' + CALC.ab.map((a, k) => '<th class="n" id="rtrDh' + k + '"></th>').join("") + "</tr></thead><tbody>" +
       CALC.lignes.map((l, i) => '<tr><th scope="row" id="rtrDl' + i + '"></th>' + CALC.ab.map((a, k) => '<td class="n" id="rtrDd' + i + "_" + k + '">—</td>').join("") + "</tr>").join("") + "</tbody></table></div></details>" : "") +
-    '<p class="mesures">Modèle linéaire-quadratique, sans correction de temps. Indicatif. <a href="#" class="rtr-lien" onclick="rtrCalcEffacer();return false">Tout effacer</a></p></div>';
+    '<p class="mesures rtr-cpied">Modèle linéaire-quadratique, sans correction de temps. Indicatif. <a href="#" class="rtr-lien" onclick="rtrCalcEffacer();return false">Tout effacer</a></p></div>';
   calculer();
 }
 function calculer() {
@@ -1012,6 +1024,12 @@ document.addEventListener("input", (ev) => {
   const c = t.dataset.c, i = Number(t.dataset.i);
   if (c === "d" || c === "n") CALC.lignes[i][c] = t.value; else if (c === "ab") CALC.ab[i] = t.value; else CALC[c] = t.value;
   calculer();
+});
+// Organe choisi : son α/β usuel dans la 4e colonne (modifiable ensuite)
+document.addEventListener("change", (ev) => {
+  const t = ev.target; if (!t.dataset || t.dataset.c !== "org" || !t.closest(".rtr-calc")) return;
+  CALC.org = t.value; const v = (AB_ORGANES.flatMap(([, l]) => l).find(([nom]) => nom === t.value) || [])[1] || "";
+  CALC.ab[3] = v; const i = document.querySelector('.rtr-calc [data-c="ab"][data-i="3"]'); if (i) i.value = v; calculer();
 });
 // Entrée passe au champ suivant : dose, fractions, puis la ligne suivante
 document.addEventListener("keydown", (ev) => {

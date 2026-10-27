@@ -9,7 +9,7 @@ def ok(c, m, d=None):
     if c: ok_n += 1; print('  ✔ ' + m)
     else: ko_n += 1; print('  ✘ ' + m + ('' if d is None else ' ' + str(d)[:300]))
 DEBORDE = "document.documentElement.scrollWidth > window.innerWidth + 1"
-RES = "[...document.querySelectorAll('.rtr-cres tbody td')].map(t => t.textContent)"
+RES = "[...document.querySelectorAll('.rtr-cres tbody td:not(:last-child)')].map(t => t.textContent)"
 async def aller(pg, h, t=2200):
     await pg.evaluate(f"location.hash='{h}'"); await pg.wait_for_timeout(t)
 async def controle(pg, w):
@@ -76,6 +76,8 @@ async def main():
         ok(await ev("document.getElementById('rtrDd0_0').textContent") == '99,0' and await ev("document.getElementById('rtrDd1_0').textContent") == '126,0', 'détail par traitement : 99,0 et 126,0 (α/β 1,5)')
         await pg.locator('.rtr-calc [data-c="d"]').nth(1).fill('abc'); await pg.wait_for_timeout(100)
         ok(await ev("document.querySelectorAll('.rtr-calc [data-c=\"d\"]')[1].classList.contains('err')") and (await ev(RES))[3] == '99,0', 'valeur non numérique : champ en erreur, sa ligne ne compte pas', await ev(RES))
+        await pg.select_option('.rtr-calc select[data-c=org]', 'Moelle épinière'); await pg.wait_for_timeout(200)
+        ok(await ev("document.querySelector('[data-c=ab][data-i=\"3\"]').value") == '2' and await ev("document.querySelector('.rtr-cres tbody td:last-child').textContent") != '—', 'colonne organe : moelle épinière → α/β 2, calculé (26/10/2026)')
         await pg.click('.rtr-calc a:has-text("Tout effacer")'); await pg.wait_for_timeout(200)
         ok(await ev(RES) == ['—'] * 9 and await ev("document.querySelectorAll('.rtr-calc [data-c=\"d\"]').length") == 1 and await ev("document.querySelector('[data-c=\"x\"]').value") == '2,0', '« Tout effacer » : une ligne vide, valeurs par défaut, « — » partout')
         await pg.click('.rtr-calc [data-c="d"]'); await pg.keyboard.type('2'); await pg.keyboard.press('Enter')

@@ -1669,6 +1669,23 @@ table.rtr-et2.rtr-cartes>thead{display:block;margin:0 0 12px}.rtr-et2>thead>tr{d
 .rtr-et2>thead th{padding:0!important;border:0!important;background:none!important}
 .rtr-et2 .rtr-tri{border:1px solid #D5DDEB;background:#fff;border-radius:999px;padding:6px 12px;font:inherit;font-size:var(--t3);font-weight:600;color:var(--titre);cursor:pointer}
 .rtr-et2 .rtr-tri.on{background:var(--prim);border-color:var(--prim);color:#fff}
+/* 26/10/2026 : calcul BED / EQD2 centré, résultats en grand, 4e colonne « organe » */
+.rtr-fiche.rtr-calc{max-width:920px;margin:8px auto 0;padding:28px 32px;border-radius:18px}
+.rtr-calc h3{font-size:var(--t6);margin:0 0 14px;color:var(--titre)}.rtr-calc .rtr-res-t{margin-top:22px}
+.rtr-calc .rtr-cl{display:flex;flex-wrap:wrap;align-items:flex-end;gap:14px;padding:12px 14px;background:#F7F9FD;border:1px solid #E9EEF6;border-radius:12px;margin-bottom:8px}
+.rtr-calc .rtr-cl label{display:flex;flex-direction:column;gap:4px;font-size:var(--t2);color:var(--doux);font-weight:600}
+.rtr-calc .rtr-cl input{width:150px;min-height:42px;border:1px solid var(--champ-bord);border-radius:8px;padding:0 12px;font-size:16px;text-align:right}
+.rtr-calc .rtr-ctot{font-weight:700;color:var(--titre)}
+.rtr-calc .rtr-tw{border-radius:14px;border:1px solid #E3E9F3;overflow-x:auto}.rtr-cres td.n,.rtr-cres th.n{text-align:center!important}
+.rtr-cres{width:100%;border-collapse:collapse}.rtr-cres th,.rtr-cres td{padding:12px 14px!important}
+.rtr-cres thead th{background:#F4F7FC;color:var(--doux);font-size:var(--t3);vertical-align:bottom}
+.rtr-cres thead input.rtr-ab{width:76px;min-height:38px;border:1px solid var(--champ-bord);border-radius:8px;text-align:center;font-weight:700;font-size:16px;color:var(--titre);background:#fff}
+.rtr-cres th.rtr-org{background:#EAF0FA}.rtr-cres th.rtr-org select{display:block;width:100%;min-width:150px;margin:0 0 6px;min-height:38px!important;font-size:14px!important}
+.rtr-cres tbody td{font-size:20px;font-weight:700;color:var(--titre);text-align:center}.rtr-cres tbody th{text-align:left;color:var(--doux);font-weight:600}
+.rtr-cres tbody tr+tr td,.rtr-cres tbody tr+tr th{border-top:1px solid #EDF1F7}
+.rtr-cres tbody td:last-child{background:#F7FAFF}
+.rtr-cpied{text-align:center;margin-top:14px}
+@media (max-width:640px){.rtr-fiche.rtr-calc{padding:18px 14px}.rtr-calc .rtr-cl input{width:120px}.rtr-cres tbody td{font-size:16px}}
 </style>
 </head>
 <body>
