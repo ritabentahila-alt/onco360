@@ -594,6 +594,10 @@ Object.assign(ILL_VIDE, {
     '<rect x="74" y="66" width="112" height="76" rx="8" fill="#fff" stroke="#C9D5EA" stroke-width="2"/><circle cx="110" cy="96" r="12" fill="#3563B0"/><path d="M92 128c0-11 8-17 18-17s18 6 18 17" fill="#3563B0"/>' +
     '<rect x="138" y="88" width="34" height="4" rx="2" fill="#9AAAC4"/><rect x="138" y="98" width="26" height="4" rx="2" fill="#D5DDEB"/><rect x="138" y="108" width="30" height="4" rx="2" fill="#D5DDEB"/>' +
     '<circle cx="182" cy="134" r="16" fill="#fff"/><circle cx="182" cy="134" r="13" fill="#2FA37A"/><path d="M182 127v14M175 134h14" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>',
+  document: '<svg class="ev-ill" viewBox="0 0 260 170" aria-hidden="true"><circle cx="130" cy="88" r="78" fill="#EAF0FA"/><rect x="88" y="44" width="70" height="92" rx="8" fill="#C9D5EA" transform="rotate(-10 123 90)"/>' +
+    '<path d="M108 34h44l22 22v78a8 8 0 0 1-8 8h-58a8 8 0 0 1-8-8V42a8 8 0 0 1 8-8z" fill="#fff" stroke="#C9D5EA" stroke-width="2"/><path d="M152 34v14a8 8 0 0 0 8 8h14z" fill="#3563B0"/>' +
+    '<rect x="126" y="62" width="12" height="32" rx="3" fill="#E5566F"/><rect x="116" y="72" width="32" height="12" rx="3" fill="#E5566F"/>' +
+    '<rect x="114" y="106" width="44" height="4" rx="2" fill="#9AAAC4"/><rect x="114" y="116" width="34" height="4" rx="2" fill="#D5DDEB"/></svg>',
   rcp: '<svg class="ev-ill" viewBox="0 0 260 170" aria-hidden="true"><circle cx="130" cy="88" r="78" fill="#EAF0FA"/><ellipse cx="130" cy="112" rx="62" ry="20" fill="#fff" stroke="#C9D5EA" stroke-width="2"/>' +
     [[84, 78], [130, 66], [176, 78]].map(([x, y], i) => '<circle cx="' + x + '" cy="' + y + '" r="11" fill="' + (i === 1 ? "#3563B0" : "#9AAAC4") + '"/><path d="M' + (x - 17) + " " + (y + 30) + "c0-12 8-18 17-18s17 6 17 18" + '" fill="' + (i === 1 ? "#3563B0" : "#9AAAC4") + '"/>').join("") +
     '<rect x="112" y="102" width="36" height="22" rx="3" fill="#F1F5FB" stroke="#C9D5EA"/><rect x="118" y="108" width="24" height="2.5" rx="1.2" fill="#9AAAC4"/><rect x="118" y="114" width="18" height="2.5" rx="1.2" fill="#C9D5EA"/></svg>',
@@ -1403,7 +1407,7 @@ function pageDossier(id) {
   av.forEach((v) => { v.al = absenceLe(v.d) ? absentMedecin(medecinFiche().genre) : ferieLe(v.d) ? "Férié" : ""; if (v.rep && v.rep.length) v.s = [v.s, "Reporté (initialement le " + dfrA(v.rep[0].d) + ")"].filter(Boolean).join(" · "); });
   const cAv = av.map((v) => large(v)), lAv = av.map((v) => ligne(v)), toutAv = AV_TOUT.has(x.id);
   const hAvenir = (decede(P) && av.some((v) => v.d >= t) ? '<p class="al-band dc">Patient décédé' + (P.decesLe ? " le " + dfrA(P.decesLe) : "") + " : " + av.filter((v) => v.d >= t).length + " rendez-vous, séance(s) ou tâche(s) encore prévus, à annuler.</p>" : "") +
-    '<div class="rc-liste rl-liste" id="rdvListe">' + (av.length ? lAv.slice(0, toutAv ? av.length : NB).join("") + (av.length > NB ? '<button class="lien rc-plus" onclick="voirAvTout(\'' + x.id + '\')">' + (toutAv ? "Voir moins" : "Voir plus (" + (av.length - NB) + ")") + "</button>" : "") : '<p class="sous">Aucun rendez-vous ni tâche à venir.</p>') + "</div>";
+    '<div class="rc-liste rl-liste" id="rdvListe">' + (av.length ? lAv.slice(0, toutAv ? av.length : NB).join("") + (av.length > NB ? '<button class="lien rc-plus" onclick="voirAvTout(\'' + x.id + '\')">' + (toutAv ? "Voir moins" : "Voir plus (" + (av.length - NB) + ")") + "</button>" : "") : videMini("agenda", "Aucun rendez-vous ni tâche à venir.")) + "</div>";
   // « Prochain rendez-vous » retiré le 26/10/2026 (demande de Dr Bentahila : doublon de « Rendez-vous et tâches à venir »)
 
   // Historique des RDV (ancien « Consultations et hospitalisations ») : passés ou déjà validés (venu / non venu), avec le prix (droit « encaissements »)
@@ -1461,7 +1465,7 @@ function pageDossier(id) {
       (lPasse.length ? lPasse.slice(0, toutPa ? lPasse.length : NB).join("") + (cPasse.length > NB ? '<button class="lien rc-plus" onclick="voirPaTout(\'' + x.id + '\')">' + (toutPa ? "Voir moins" : "Voir plus (" + (cPasse.length - NB) + ")") + "</button>" : "") : '<p class="vide-c">Aucun rendez-vous passé.</p>') + "</div>";
   }
   // Listes complètes, ouvertes au centre par un clic sur le titre de la rubrique (lot A §3)
-  RUB[x.id] = { avenir: cAv.join("") || '<p class="sous">Aucun rendez-vous ni tâche à venir.</p>', passe: cPasse.join("") || '<p class="vide-c">Aucun rendez-vous passé.</p>' };
+  RUB[x.id] = { avenir: cAv.join("") || videMini("agenda", "Aucun rendez-vous ni tâche à venir."), passe: cPasse.join("") || '<p class="vide-c">Aucun rendez-vous passé.</p>' };
   // Fiche : chaque partie montre tous ses champs (lecture), « Modifier » ouvre le même éditeur qu'avant
   // Lot A §1 : médecin du patient (plusieurs médecins) et dernières nouvelles, avant dans le bandeau : dans « Identité et administratif »
   const lig = (k, lib, v) => '<div data-champ="' + k + '"><label>' + esc(lib) + "</label><b>" + esc(v) + "</b></div>";

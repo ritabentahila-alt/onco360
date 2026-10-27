@@ -120,7 +120,8 @@ export function htmlVisionneuse(x) {
   const esc = A.esc, L = FI[x.id], q = "'" + x.id + "'";
   if (L === undefined || !(x.id in FI)) return '<div class="dv"><p class="sous" style="margin:12px">Chargement des documents…</p></div>';
   if (L === null) return '<div class="dv"><p class="sous" style="margin:12px;color:var(--rouge)">Les documents n\'ont pas pu être lus. Rechargez la page.</p></div>';
-  if (!L.length) return '<div class="dv"><div class="dv-vide">' + A.ic("document") + "<p>Aucun document dans ce dossier.</p>" + (peutDeposer() ? '<button class="bt clair petit" onclick="fiAjouter(' + q + ')">' + A.ic("plus") + "Déposer un document</button>" : "") + "</div></div>";
+  // 26/10/2026 (demande de Dr Bentahila) : dossier sans document = illustration, phrase, action
+  if (!L.length) return '<div class="dv">' + A.etatVide({ ill: "document", titre: "Aucun document pour l'instant", txt: "Comptes rendus, imagerie, biologie, courriers :\ndéposez-les ici pour les retrouver dans le dossier.", bouton: peutDeposer() ? '<button class="b2" onclick="fiAjouter(' + q + ')">' + A.ic("plus") + "Déposer un document</button>" : "" }) + "</div>";
   const f = choisi(x) || L[0], F = FQ[x.id] || { q: "", t: "" }, types = [...new Set(L.map((z) => z.type).filter(Boolean))];
   const qf = f ? "'" + x.id + "','" + f.id + "'" : "";
   return '<div class="dv"><div class="dv-t"><div class="dv-nom" title="' + esc(f ? (f.titre || f.nom) + " · " + f.nom : "") + '"><b>' + esc(f ? f.titre || f.nom : "") + '</b><span class="mesures">' + esc(f ? [A.dfrA(f.d), f.type].filter(Boolean).join(" · ") : "") + "</span></div>" +
@@ -172,7 +173,7 @@ function listeHtml(x) {
   const esc = A.esc, L = FI[x.id] || [], F = FQ[x.id] || { q: "", t: "" };
   const mots = sansAcc(F.q).split(/\s+/).filter(Boolean);
   const V = L.filter((f) => (!F.t || f.type === F.t) && mots.every((w) => sansAcc([f.titre, f.type, f.nom, f.creeParNom].join(" ")).indexOf(w) >= 0));
-  if (!L.length) return '<p class="vide-c">Aucun document dans ce dossier.' + (peutDeposer() ? " « Ajouter un document » pour en déposer un (PDF, Word, photo…)." : "") + "</p>";
+  if (!L.length) return A.etatVide({ ill: "document", titre: "Aucun document pour l'instant", txt: peutDeposer() ? "PDF, Word, photo : « Ajouter un document » pour en déposer un." : "" });
   if (!V.length) return '<p class="vide-c">Aucun document ne correspond' + (F.t ? " (type « " + esc(F.t) + " »)" : "") + ".</p>";
   const sel = choisi(x);
   return (V.length < L.length ? '<p class="mesures" style="margin:8px 0 0">' + V.length + " document" + (V.length > 1 ? "s" : "") + " sur " + L.length + "</p>" : "") + '<div class="fi-liste">' + V.map((f) => {

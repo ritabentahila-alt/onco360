@@ -113,7 +113,8 @@ function liste() {
       '<button class="mini" onclick="dcOuvrir(' + q + ')">Ouvrir</button>' + (V.pid ? '<button class="mini v" title="Ouvrir pour imprimer et noter dans la consultation du jour" onclick="dcRemettre(' + q + ')">Remettre</button>' : "") +
       (!gere() ? "" : V.pid ? plus3('<button class="mini" onclick="dcFiche(' + q + ')">' + ico("crayon") + "Modifier</button>" + '<button class="mini rouge-t" onclick="dcSupprimer(' + q + ')">' + ico("croix") + "Supprimer</button>", esc(d.titre))
         : '<button class="ico" title="Modifier le titre ou la catégorie" aria-label="Modifier ' + esc(d.titre) + '" onclick="dcFiche(' + q + ')">' + ico("crayon") + '</button><button class="ico rouge" title="Supprimer le document" aria-label="Supprimer ' + esc(d.titre) + '" onclick="dcSupprimer(' + q + ')">' + ico("croix") + "</button>") + "</td></tr>";
-  }).join("") + "</table>" : '<p class="sous" style="padding:12px">Aucun document ne correspond.' + (gere() ? " « Ajouter un PDF » pour en ajouter un." : "") + "</p>";
+  }).join("") + "</table>" : !DOCS.length ? A.etatVide({ ill: "document", titre: "Aucune documentation pour l'instant", txt: "Fiches et brochures à remettre aux patients :\najoutez-les une fois, remettez-les en un clic.", bouton: gere() ? '<button class="b2" onclick="dcAjouter()">' + A.ic("plus") + "Ajouter un PDF</button>" : "" })
+    : '<p class="sous" style="padding:12px">Aucun document ne correspond.</p>'; // 26/10/2026 : documentation vide illustrée
 }
 
 // ───── Ouvrir / remettre ─────
