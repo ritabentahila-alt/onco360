@@ -12,29 +12,32 @@
 :root{
   /* 4.3 (12/10/2026) : 8 tailles de texte (avant : 24) */
   --t1:11px; --t2:12px; --t3:13px; --t4:14px; --t5:15px; --t6:16px; --t7:19px; --t8:26px;
-  --fond:#F1F5FB; --carte:#FFFFFF; --encre:#1E2A44; --titre:#24365F; --doux:#64708A; --trait:#E2E7F0;
+  /* 27/10/2026 : habillage de Dr Bentahila (jetons Doctolib), fond #F1F5FB et couleur d'action #3563B0 d'Onco360 gardés */
+  --d-ink:#00264C; --d-brand:#045FAE; --d-logo:#107ACA; --d-txt2:#294056; --d-neutre:#3A5978; --d-mute:#7599BD; --d-subtle:#D0E9FB; --d-subtle-w:#E7F4FD;
+  --d-surface:#F1F5FB; --d-survol:#F1F7FE; --d-bord:#C9D9E8; --d-danger:#E5004C; --d-ok:#00806A; --d-warn:#AA6709; --d-info:#007AB3; --blanc:#FFFFFF;
+  --rouge-t:#B8003D; --voile:rgba(0,38,76,.5); --ombre-rond:0 1px 3px rgba(5,43,71,.12),0 4px 12px rgba(5,43,71,.08); --anneau:0 0 0 2px var(--blanc),0 0 0 4px var(--d-neutre);
+  --fond:var(--d-surface); --carte:var(--blanc); --encre:var(--d-ink); --titre:var(--d-ink); --doux:var(--d-txt2); --trait:var(--d-bord);
   --prim:#3563B0; --prim-f:#284E8F; --prim-c:#EAF0FA; --prim-cc:#D6E2F5;
-  --vert:#1F8A4C; --vert-c:#DFF3E6; --bleu:#2A5DA8; --bleu-c:#E3ECF9;
-  --violet:#5650C2; --violet-c:#ECEBFB; --orange:#B86E00; --orange-c:#FDEFD6; --vert-t:#17693A; --orange-t:#8F5600; /* R-C6 : textes sur fond clair (agenda), contraste ≥ 4,5:1 */
-  --rouge:#B3263E; --rouge-c:#F9E1E5; --gris-c:#EEF0F4;
-  --r-l:18px; --r-m:12px; --r-s:9px;
-  --ombre:0 1px 2px rgba(30,42,68,.06),0 8px 24px rgba(30,42,68,.08);
-  --ombre-h:0 2px 4px rgba(30,42,68,.07),0 14px 32px rgba(30,42,68,.13); --ombre-prim:0 6px 16px rgba(53,99,176,.30);
+  --vert:var(--d-ok); --vert-c:#E0F2EE; --bleu:#2A5DA8; --bleu-c:#E3ECF9;
+  --violet:#5650C2; --violet-c:#ECEBFB; --orange:var(--d-warn); --orange-c:#FBF0E1; --vert-t:#17693A; --orange-t:#8F5600; /* R-C6 : textes sur fond clair (agenda), contraste ≥ 4,5:1 */
+  --rouge:var(--d-danger); --rouge-c:#FDE6EE; --gris-c:var(--d-bord);
+  --r-l:12px; --r-m:8px; --r-s:8px;
+  --ombre:0 2px 4px rgba(5,43,71,.07),0 5px 25px rgba(5,43,71,.09); --ombre-h:var(--ombre); --ombre-prim:none;
   --menu:252px;
   /* 4.3 (12/10/2026) : couleurs qui revenaient écrites en dur */
-  --bord-champ:#CCD3E0; --fond-doux:#F7F9FD; --vert-f:#2E7D5B; --vert-b:#BFE3CC; --orange-v:#E07A2F; --nuit:#2B2D5C; --or:#C9A227; --gris-m:#B9C0CE; --gris-cc:#F2F4F8; --whatsapp:#25D366;
+  --bord-champ:var(--d-txt2); --fond-doux:var(--d-surface); --vert-f:var(--d-ok); --vert-b:#BFE3CC; --orange-v:#E07A2F; --nuit:#2B2D5C; --or:#C9A227; --gris-m:#B9C0CE; --gris-cc:var(--d-surface); --whatsapp:#25D366;
 }
 *{box-sizing:border-box}
 html,body{margin:0;height:100%}
-body{font-family:Arial,Helvetica,sans-serif;background:var(--fond);color:var(--encre);font-size:var(--t5);line-height:1.45}
+body{font-family:Roboto,Arial,sans-serif;background:var(--fond);color:var(--encre);font-size:var(--t4);line-height:1.45}
 button,input,select{font:inherit}
 button{cursor:pointer}
 button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid #9DB6E8;outline-offset:2px}
 .cache{display:none!important}
 .pi.plein{fill:currentColor}.pi.or{color:var(--or)}
 .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px;flex:none}.dot.v{background:var(--vert)}.dot.o{background:var(--orange-v)}.dot.j{background:#D6B42A}
-.pi{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px;margin-right:4px;flex:none}
-.i{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.pi{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px;margin-right:4px;flex:none}
+.i{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;flex:none}
 
 /* ── Menu (blanc, icônes au trait) ── */
 #menu{position:fixed;top:0;left:0;bottom:0;width:var(--menu);background:#fff;border-right:1px solid var(--trait);display:flex;flex-direction:column;padding:20px 12px calc(14px + env(safe-area-inset-bottom));z-index:40;transition:transform .25s ease,width .2s ease,padding .2s ease;overflow-y:auto;overflow-x:hidden}
@@ -1687,61 +1690,107 @@ table.rtr-et2.rtr-cartes>thead{display:block;margin:0 0 12px}.rtr-et2>thead>tr{d
 .rtr-cpied{text-align:center;margin-top:14px}
 @media (max-width:640px){.rtr-fiche.rtr-calc{padding:18px 14px}.rtr-calc .rtr-cl input{width:120px}.rtr-cres tbody td{font-size:16px}}
 .cf-main .ty-b{overflow-x:auto} /* types de consultation : le tableau défile dans sa carte à côté du menu des Paramètres */
+/* ───── Habillage (27/10/2026, maquette de Dr Bentahila : jetons Doctolib ; menu et barre du haut blancs, fond #F1F5FB, action #3563B0) ─────
+   Toutes les couleurs viennent de :root. Polices Montserrat (titres) et Roboto (texte) dans vendor/polices (pas de Google Fonts). */
+@font-face{font-family:Montserrat;font-weight:700;font-display:swap;src:url(vendor/polices/montserrat-latin-700-normal.woff2) format("woff2")}
+@font-face{font-family:Montserrat;font-weight:600;font-display:swap;src:url(vendor/polices/montserrat-latin-600-normal.woff2) format("woff2")}
+@font-face{font-family:Roboto;font-weight:400;font-display:swap;src:url(vendor/polices/roboto-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:Roboto;font-weight:500;font-display:swap;src:url(vendor/polices/roboto-latin-500-normal.woff2) format("woff2")}
+@font-face{font-family:Roboto;font-weight:700;font-display:swap;src:url(vendor/polices/roboto-latin-700-normal.woff2) format("woff2")}
+h1,h2,h3,h4,.carte h3,#fenetre h3,.soustitre,.marque b{font-family:Montserrat,Arial,sans-serif;font-weight:700;color:var(--d-ink)}
+h1{font-size:1.8rem;line-height:2.4rem}.bp-l1 h2{font-size:20px;line-height:26px}
+b,strong,nav a,button,.bt,th,label{font-weight:500}
+:focus-visible{outline:0!important;box-shadow:var(--anneau)!important}
+#menu{background:var(--blanc);border-right:1px solid var(--d-bord)}
+#menu .marque b{color:var(--d-ink)}#menu .marque b span{color:var(--d-logo)}
+#menu nav a{color:var(--d-ink);border-radius:8px}#menu nav a .i{color:var(--d-txt2)}
+#menu nav a:hover{background:var(--d-survol)}
+#menu nav a.actif{background:var(--prim);color:var(--blanc)}#menu nav a.actif .i{color:var(--blanc)}
+#menu .pied{border-top-color:var(--d-bord)}#menu .qui b{color:var(--d-ink)}#menu .qui span{color:var(--d-txt2)}
+#menu .pied .av,#menu .qui .av,#tete .av{background:var(--prim)!important;color:var(--blanc)!important}
+#menu button,#menu .rond{background:transparent;color:var(--d-ink);border-color:var(--d-bord)}
+#menu .replier{border:0!important;border-radius:50%!important;background:var(--blanc)!important;color:var(--d-txt2);box-shadow:var(--ombre-rond)}
+#menu .replier:hover{background:var(--prim-c)!important;color:var(--prim)}
+nav a .nb-menu,.pastille{background:var(--d-danger);color:var(--blanc)}
+#tete{background:var(--blanc);border:0;border-bottom:1px solid var(--d-bord);box-shadow:none}
+#tete h1,#tete h1 a,#titrePage a{color:var(--d-ink)!important;font-size:18px;line-height:24px}
+#tete .rond{background:transparent;border-color:transparent;color:var(--d-ink)}
+.tr-pil{background:var(--blanc);border:1px solid var(--d-txt2);border-radius:32px}
+#tete .tr-pil input:not([type=checkbox]):not([type=radio]),.tr-pil input{border:0!important;box-shadow:none!important;outline:0!important;background:transparent}
+.carte{border-radius:12px;border:0;box-shadow:var(--ombre)}
+.bt,.b1,.b2{border-radius:8px;box-shadow:none!important;transform:none!important;font-weight:500}
+.bt.plein,.b1{background:var(--prim);border:1px solid var(--prim);color:var(--blanc)}
+.bt.plein:hover,.b1:hover{background:var(--prim-f);border-color:var(--prim-f)}
+.bt.clair,.b2{background:var(--blanc);color:var(--prim);border:1px solid var(--prim)}
+.bt.gris{background:var(--blanc);color:var(--d-txt2);border:1px solid var(--d-bord)}
+.ag-vues{border-radius:999px;border-color:var(--d-bord);box-shadow:none}
+.ag-vues button{border-radius:999px;color:var(--d-txt2)}
+.ag-vues button.on{background:var(--prim);color:var(--blanc);box-shadow:none}
+.ag-vues.defile:not(.rtr-sous) button{border-radius:0;background:none!important;color:var(--d-txt2);border-bottom:2px solid transparent}
+.ag-vues.defile:not(.rtr-sous) button.on{color:var(--prim);border-bottom-color:var(--prim)}
+input:not([type=checkbox]):not([type=radio]),select:not(.st),textarea{border:1px solid var(--d-txt2)!important;border-radius:8px!important;color:var(--d-txt2)}
+.badge{border-radius:999px;font-weight:500}
+.badge.b-co,.badge.b-rt,.badge.b-bl{background:var(--d-subtle-w);color:var(--d-brand)}
+table th{background:var(--d-surface);color:var(--d-txt2)}
+a,.lien{color:var(--prim)}
+#fenetre{background:var(--voile)}#fenetre .boite{border-radius:12px;box-shadow:var(--ombre)}
+.per{color:var(--rouge-t)} /* texte rouge sur fond rose : contraste ≥ 4,5 */
+#saO .n,.cf-sup>summary,summary.sup{color:var(--d-txt2)}
 </style>
 </head>
 <body>
 <script>try { if (localStorage.getItem("onco360.menuReplie") === "1") document.body.classList.add("menu-replie"); } catch (e) {}</script>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
-  <symbol id="i-accueil" viewBox="0 0 24 24"><rect x="3" y="3" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2"/></symbol>
-  <symbol id="i-agenda" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="16" rx="3"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></symbol>
-  <symbol id="i-patients" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.6"/><path d="M2.8 20c.6-3.5 3.2-5.6 6.2-5.6s5.6 2.1 6.2 5.6"/><path d="M16 4.6a3.4 3.4 0 0 1 0 6.6M18 14.6c1.9.6 3.1 2.4 3.4 5.4"/></symbol>
-  <symbol id="i-protocoles" viewBox="0 0 24 24"><path d="M4 4.5A1.5 1.5 0 0 1 5.5 3H19v15H5.5A1.5 1.5 0 0 0 4 19.5v-15Z"/><path d="M4 19.5A1.5 1.5 0 0 0 5.5 21H19v-3M8 7h7M8 10.5h5"/></symbol>
-  <symbol id="i-configuration" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></symbol>
-  <symbol id="i-parametres" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2.2"/><circle cx="10" cy="17" r="2.2"/></symbol>
-  <symbol id="i-bilan" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M21 20H3"/></symbol>
-  <symbol id="i-profil" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c.8-4.2 4-6.5 8-6.5s7.2 2.3 8 6.5"/></symbol>
-  <symbol id="i-cloche" viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 1 1 12 0v5l1.5 2h-15Z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></symbol>
-  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
-  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
-  <symbol id="i-sortie" viewBox="0 0 24 24"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 17l5-5-5-5M15 12H3"/></symbol>
-  <symbol id="i-loupe" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></symbol>
-  <symbol id="i-avion" viewBox="0 0 24 24"><path d="M10.5 13.5 3 11l1.5-1.5 7 1 4-4.5c1-1 2.5-1.2 3-.7s.3 2-.7 3l-4.5 4 1 7L18 21l-2.5-7.5"/></symbol>
-  <symbol id="i-liste" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="16" rx="3"/><path d="M3 9.5h18M7.5 13.5h3M13.5 13.5h3M7.5 17h3"/></symbol>
-  <symbol id="i-retour" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></symbol>
-  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5 10 17 19 7"/></symbol>
-  <symbol id="i-horloge" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></symbol>
-  <symbol id="i-drapeau" viewBox="0 0 24 24"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></symbol>
-  <symbol id="i-alerte" viewBox="0 0 24 24"><path d="M12 3.5 2.8 19.5h18.4L12 3.5Z"/><path d="M12 10v4.5M12 17.2v.1"/></symbol>
-  <symbol id="i-sablier" viewBox="0 0 24 24"><path d="M6.5 3h11M6.5 21h11M7.5 3c0 4.5 4.5 6 4.5 9s-4.5 4.5-4.5 9M16.5 3c0 4.5-4.5 6-4.5 9s4.5 4.5 4.5 9"/></symbol>
-  <symbol id="i-whatsapp" viewBox="0 0 24 24"><path d="M12 3.2a8.8 8.8 0 0 0-7.6 13.2L3.3 20.7l4.4-1.1A8.8 8.8 0 1 0 12 3.2Z"/><path d="M9.2 8.4c.3-.3.7-.3.9 0l.8 1.6c.1.3 0 .6-.2.8l-.4.5c.6 1.2 1.6 2.2 2.8 2.8l.5-.4c.2-.2.5-.3.8-.2l1.6.8c.3.2.3.6 0 .9-.8.9-2 1.1-3.1.6a8.3 8.3 0 0 1-4.3-4.3c-.5-1.1-.3-2.3.6-3.1Z"/></symbol>
-  <symbol id="i-telecharger" viewBox="0 0 24 24"><path d="M12 4v11M7 10.5l5 5 5-5M5 20h14"/></symbol>
-  <symbol id="i-actualiser" viewBox="0 0 24 24"><path d="M19.5 12a7.5 7.5 0 1 1-2.2-5.3M19.5 4.5v4.2h-4.2"/></symbol>
-  <symbol id="i-banque" viewBox="0 0 24 24"><path d="M3.5 9 12 4l8.5 5M5 9.5v8M9.5 9.5v8M14.5 9.5v8M19 9.5v8M3.5 20h17"/></symbol>
-  <symbol id="i-hopital" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15.5" rx="2"/><path d="M12 8.5v6M9 11.5h6M10 20.5v-3h4v3"/></symbol>
-  <symbol id="i-stop" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M6 18 18 6"/></symbol>
-  <symbol id="i-corbeille" viewBox="0 0 24 24"><path d="M4.5 7h15M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13M10 11v5.5M14 11v5.5"/></symbol>
-  <symbol id="i-etoile" viewBox="0 0 24 24"><path d="m12 3.5 2.6 5.4 5.9.8-4.3 4.1 1 5.9L12 17l-5.2 2.7 1-5.9-4.3-4.1 5.9-.8L12 3.5Z"/></symbol>
-  <symbol id="i-moins" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
-  <symbol id="i-enregistrer" viewBox="0 0 24 24"><path d="M5 3.5h11.5L20.5 7.5v12a1 1 0 0 1-1 1h-14.5a1 1 0 0 1-1-1v-15a1 1 0 0 1 1-1Z"/><path d="M8 3.5v5h7.5v-5M7.5 20.5v-6.5h9v6.5"/></symbol>
-  <symbol id="i-imprimer" viewBox="0 0 24 24"><path d="M7 8V3.5h10V8M7 17.5H4.5a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1h15a1 1 0 0 1 1 1v7.5a1 1 0 0 1-1 1H17"/><rect x="7" y="14" width="10" height="6.5" rx="1"/></symbol>
-  <symbol id="i-copier" viewBox="0 0 24 24"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5V5.5a2 2 0 0 0-2-2h-8a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h3"/></symbol>
-  <symbol id="i-courbe" viewBox="0 0 24 24"><path d="M4 19h16M5 15l4-4 3 3 6-7"/></symbol>
-  <symbol id="i-stetho" viewBox="0 0 24 24"><path d="M11 2v2M5 2v2M5 3H4a2 2 0 0 0-2 2v4a6 6 0 0 0 12 0V5a2 2 0 0 0-2-2h-1M8 15a6 6 0 0 0 12 0v-3"/><circle cx="20" cy="10" r="2"/></symbol>
-  <symbol id="i-seringue" viewBox="0 0 24 24"><path d="m18 2 4 4M17 7l3-3M19 9 8.7 19.3c-1 1-2.5 1-3.4 0l-.6-.6c-1-1-1-2.5 0-3.4L15 5M9 11l4 4M5 19l-3 3M14 4l6 6"/></symbol>
-  <symbol id="i-radiation" viewBox="0 0 24 24"><path d="M12 12h.01M7.5 4.2c-.3-.5-.9-.7-1.3-.4C3.9 5.5 2.3 8.1 2 11c-.1.5.4 1 1 1h5c0-1.5.8-2.8 2-3.4-1.1-1.9-2-3.5-2.5-4.4ZM21 12c.6 0 1-.4 1-1-.3-2.9-1.8-5.5-4.1-7.1-.4-.3-1.1-.2-1.3.3-.6.9-1.5 2.5-2.6 4.3 1.2.7 2 2 2 3.5h5ZM7.5 19.8c-.3.5-.1 1.1.4 1.3 2.6 1.2 5.6 1.2 8.2 0 .5-.2.7-.8.4-1.3-.5-.9-1.4-2.5-2.5-4.3-1.2.7-2.8.7-4 0-1.1 1.8-2 3.4-2.5 4.3Z"/></symbol>
-  <symbol id="i-pilule" viewBox="0 0 24 24"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7ZM8.5 8.5l7 7"/></symbol>
-  <symbol id="i-presse" viewBox="0 0 24 24"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2M12 11h4M12 16h4M8 11h.01M8 16h.01"/></symbol>
-  <symbol id="i-tube" viewBox="0 0 24 24"><path d="M14.5 2v17.5a2.5 2.5 0 0 1-5 0V2M8.5 2h7M14.5 16h-5"/></symbol>
-  <symbol id="i-courrier" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></symbol>
-  <symbol id="i-crayon" viewBox="0 0 24 24"><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/><path d="m14.5 5.5 3 3"/></symbol>
-  <symbol id="i-croix" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
-  <symbol id="i-taches" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="3"/><path d="m7.3 9 1.6 1.6 2.8-2.8M14 9.4h3M7.3 15.4l1.6 1.6 2.8-2.8M14 15.8h3"/></symbol>
-  <symbol id="i-salle" viewBox="0 0 24 24"><path d="M6 3.5v9.5h11M6 13v7.5M17 13v7.5M6 17h11M17 8.5h-7.5a1.5 1.5 0 0 0-1.5 1.5v3"/><circle cx="15" cy="4.8" r="1.8"/></symbol>
-  <symbol id="i-bulle" viewBox="0 0 24 24"><path d="M5 4h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-8l-5 4v-4H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"/></symbol>
-  <symbol id="i-document" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7ZM14 2v4a2 2 0 0 0 2 2h4M10 9H8M16 13H8M16 17H8"/></symbol>
-  <symbol id="i-agrandir" viewBox="0 0 24 24"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/></symbol>
-  <symbol id="i-colonnes" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16M15.5 9.5 13 12l2.5 2.5"/></symbol>
-  <symbol id="i-rcp" viewBox="0 0 24 24"><circle cx="12" cy="5.5" r="2.3"/><circle cx="4.8" cy="9" r="2"/><circle cx="19.2" cy="9" r="2"/><path d="M8 13.5a4 4 0 0 1 8 0M2.5 15.5a3 3 0 0 1 4.4-2.6M21.5 15.5a3 3 0 0 0-4.4-2.6M3 18.5h18M6 18.5V21M18 18.5V21"/></symbol>
+  <symbol id="i-accueil" viewBox="0 0 24 24"><rect width="7" height="7" x="3" y="3" rx="1" /> <rect width="7" height="7" x="14" y="3" rx="1" /> <rect width="7" height="7" x="14" y="14" rx="1" /> <rect width="7" height="7" x="3" y="14" rx="1" /></symbol>
+  <symbol id="i-agenda" viewBox="0 0 24 24"><path d="M8 2v4" /> <path d="M16 2v4" /> <rect width="18" height="18" x="3" y="4" rx="2" /> <path d="M3 10h18" /> <path d="M8 14h.01" /> <path d="M12 14h.01" /> <path d="M16 14h.01" /> <path d="M8 18h.01" /> <path d="M12 18h.01" /> <path d="M16 18h.01" /></symbol>
+  <symbol id="i-patients" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /> <circle cx="9" cy="7" r="4" /> <path d="M22 21v-2a4 4 0 0 0-3-3.87" /> <path d="M16 3.13a4 4 0 0 1 0 7.75" /></symbol>
+  <symbol id="i-protocoles" viewBox="0 0 24 24"><path d="M12 7v14" /> <path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z" /></symbol>
+  <symbol id="i-configuration" viewBox="0 0 24 24"><path d="M20 7h-9" /> <path d="M14 17H5" /> <circle cx="17" cy="17" r="3" /> <circle cx="7" cy="7" r="3" /></symbol>
+  <symbol id="i-parametres" viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" /> <circle cx="12" cy="12" r="3" /></symbol>
+  <symbol id="i-bilan" viewBox="0 0 24 24"><path d="M3 3v16a2 2 0 0 0 2 2h16" /> <path d="M18 17V9" /> <path d="M13 17V5" /> <path d="M8 17v-3" /></symbol>
+  <symbol id="i-profil" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /> <circle cx="12" cy="7" r="4" /></symbol>
+  <symbol id="i-cloche" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /> <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" /></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><line x1="4" x2="20" y1="12" y2="12" /> <line x1="4" x2="20" y1="6" y2="6" /> <line x1="4" x2="20" y1="18" y2="18" /></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14" /> <path d="M12 5v14" /></symbol>
+  <symbol id="i-sortie" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /> <polyline points="16 17 21 12 16 7" /> <line x1="21" x2="9" y1="12" y2="12" /></symbol>
+  <symbol id="i-loupe" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" /> <path d="m21 21-4.3-4.3" /></symbol>
+  <symbol id="i-avion" viewBox="0 0 24 24"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z" /></symbol>
+  <symbol id="i-liste" viewBox="0 0 24 24"><path d="M3 12h.01" /> <path d="M3 18h.01" /> <path d="M3 6h.01" /> <path d="M8 12h13" /> <path d="M8 18h13" /> <path d="M8 6h13" /></symbol>
+  <symbol id="i-retour" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6" /></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5" /></symbol>
+  <symbol id="i-horloge" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /> <polyline points="12 6 12 12 16 14" /></symbol>
+  <symbol id="i-drapeau" viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" /> <line x1="4" x2="4" y1="22" y2="15" /></symbol>
+  <symbol id="i-alerte" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3" /> <path d="M12 9v4" /> <path d="M12 17h.01" /></symbol>
+  <symbol id="i-sablier" viewBox="0 0 24 24"><path d="M5 22h14" /> <path d="M5 2h14" /> <path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22" /> <path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2" /></symbol>
+  <symbol id="i-whatsapp" viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" /></symbol>
+  <symbol id="i-telecharger" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /> <polyline points="7 10 12 15 17 10" /> <line x1="12" x2="12" y1="15" y2="3" /></symbol>
+  <symbol id="i-actualiser" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" /> <path d="M21 3v5h-5" /> <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" /> <path d="M8 16H3v5" /></symbol>
+  <symbol id="i-banque" viewBox="0 0 24 24"><line x1="3" x2="21" y1="22" y2="22" /> <line x1="6" x2="6" y1="18" y2="11" /> <line x1="10" x2="10" y1="18" y2="11" /> <line x1="14" x2="14" y1="18" y2="11" /> <line x1="18" x2="18" y1="18" y2="11" /> <polygon points="12 2 20 7 4 7" /></symbol>
+  <symbol id="i-hopital" viewBox="0 0 24 24"><path d="M12 6v4" /> <path d="M14 14h-4" /> <path d="M14 18h-4" /> <path d="M14 8h-4" /> <path d="M18 12h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2h2" /> <path d="M18 22V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v18" /></symbol>
+  <symbol id="i-stop" viewBox="0 0 24 24"><path d="m15 9-6 6" /> <path d="M2.586 16.726A2 2 0 0 1 2 15.312V8.688a2 2 0 0 1 .586-1.414l4.688-4.688A2 2 0 0 1 8.688 2h6.624a2 2 0 0 1 1.414.586l4.688 4.688A2 2 0 0 1 22 8.688v6.624a2 2 0 0 1-.586 1.414l-4.688 4.688a2 2 0 0 1-1.414.586H8.688a2 2 0 0 1-1.414-.586z" /> <path d="m9 9 6 6" /></symbol>
+  <symbol id="i-corbeille" viewBox="0 0 24 24"><path d="M3 6h18" /> <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /> <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /> <line x1="10" x2="10" y1="11" y2="17" /> <line x1="14" x2="14" y1="11" y2="17" /></symbol>
+  <symbol id="i-etoile" viewBox="0 0 24 24"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z" /></symbol>
+  <symbol id="i-moins" viewBox="0 0 24 24"><path d="M5 12h14" /></symbol>
+  <symbol id="i-enregistrer" viewBox="0 0 24 24"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" /> <path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7" /> <path d="M7 3v4a1 1 0 0 0 1 1h7" /></symbol>
+  <symbol id="i-imprimer" viewBox="0 0 24 24"><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" /> <path d="M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6" /> <rect x="6" y="14" width="12" height="8" rx="1" /></symbol>
+  <symbol id="i-copier" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /> <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></symbol>
+  <symbol id="i-courbe" viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17" /> <polyline points="16 7 22 7 22 13" /></symbol>
+  <symbol id="i-stetho" viewBox="0 0 24 24"><path d="M11 2v2" /> <path d="M5 2v2" /> <path d="M5 3H4a2 2 0 0 0-2 2v4a6 6 0 0 0 12 0V5a2 2 0 0 0-2-2h-1" /> <path d="M8 15a6 6 0 0 0 12 0v-3" /> <circle cx="20" cy="10" r="2" /></symbol>
+  <symbol id="i-seringue" viewBox="0 0 24 24"><path d="m18 2 4 4" /> <path d="m17 7 3-3" /> <path d="M19 9 8.7 19.3c-1 1-2.5 1-3.4 0l-.6-.6c-1-1-1-2.5 0-3.4L15 5" /> <path d="m9 11 4 4" /> <path d="m5 19-3 3" /> <path d="m14 4 6 6" /></symbol>
+  <symbol id="i-radiation" viewBox="0 0 24 24"><path d="M12 12h.01" /> <path d="M7.5 4.2c-.3-.5-.9-.7-1.3-.4C3.9 5.5 2.3 8.1 2 11c-.1.5.4 1 1 1h5c0-1.5.8-2.8 2-3.4-1.1-1.9-2-3.5-2.5-4.4z" /> <path d="M21 12c.6 0 1-.4 1-1-.3-2.9-1.8-5.5-4.1-7.1-.4-.3-1.1-.2-1.3.3-.6.9-1.5 2.5-2.6 4.3 1.2.7 2 2 2 3.5h5z" /> <path d="M7.5 19.8c-.3.5-.1 1.1.4 1.3 2.6 1.2 5.6 1.2 8.2 0 .5-.2.7-.8.4-1.3-.5-.9-1.4-2.5-2.5-4.3-1.2.7-2.8.7-4 0-1.1 1.8-2 3.4-2.5 4.3z" /></symbol>
+  <symbol id="i-pilule" viewBox="0 0 24 24"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z" /> <path d="m8.5 8.5 7 7" /></symbol>
+  <symbol id="i-presse" viewBox="0 0 24 24"><rect width="8" height="4" x="8" y="2" rx="1" ry="1" /> <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" /> <path d="M12 11h4" /> <path d="M12 16h4" /> <path d="M8 11h.01" /> <path d="M8 16h.01" /></symbol>
+  <symbol id="i-tube" viewBox="0 0 24 24"><path d="M14.5 2v17.5c0 1.4-1.1 2.5-2.5 2.5c-1.4 0-2.5-1.1-2.5-2.5V2" /> <path d="M8.5 2h7" /> <path d="M14.5 16h-5" /></symbol>
+  <symbol id="i-courrier" viewBox="0 0 24 24"><rect width="20" height="16" x="2" y="4" rx="2" /> <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" /></symbol>
+  <symbol id="i-crayon" viewBox="0 0 24 24"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" /> <path d="m15 5 4 4" /></symbol>
+  <symbol id="i-croix" viewBox="0 0 24 24"><path d="M18 6 6 18" /> <path d="m6 6 12 12" /></symbol>
+  <symbol id="i-taches" viewBox="0 0 24 24"><path d="m3 17 2 2 4-4" /> <path d="m3 7 2 2 4-4" /> <path d="M13 6h8" /> <path d="M13 12h8" /> <path d="M13 18h8" /></symbol>
+  <symbol id="i-salle" viewBox="0 0 24 24"><path d="M19 9V6a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v3" /> <path d="M3 16a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5a2 2 0 0 0-4 0v1.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V11a2 2 0 0 0-4 0z" /> <path d="M5 18v2" /> <path d="M19 18v2" /></symbol>
+  <symbol id="i-bulle" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></symbol>
+  <symbol id="i-document" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" /> <path d="M14 2v4a2 2 0 0 0 2 2h4" /></symbol>
+  <symbol id="i-agrandir" viewBox="0 0 24 24"><polyline points="15 3 21 3 21 9" /> <polyline points="9 21 3 21 3 15" /> <line x1="21" x2="14" y1="3" y2="10" /> <line x1="3" x2="10" y1="21" y2="14" /></symbol>
+  <symbol id="i-colonnes" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2" /> <path d="M9 3v18" /> <path d="M15 3v18" /></symbol>
+  <symbol id="i-rcp" viewBox="0 0 24 24"><path d="M18 21a8 8 0 0 0-16 0" /> <circle cx="10" cy="8" r="5" /> <path d="M22 20c0-3.37-2-6.5-4-8a5 5 0 0 0-.45-8.3" /></symbol>
 </svg>
 <aside id="menu" aria-label="Menu principal">
   <div class="marque"><svg class="logo" viewBox="0 0 120 120" aria-hidden="true"><defs><linearGradient id="og" x1="0.1" y1="0.1" x2="0.9" y2="0.9"><stop offset="0" stop-color="#1D3F94"/><stop offset=".45" stop-color="#1B86C2"/><stop offset="1" stop-color="#3AB59A"/></linearGradient><linearGradient id="og2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1A6E9E"/><stop offset="1" stop-color="#3AB59A"/></linearGradient><mask id="om"><rect width="120" height="120" fill="#fff"/><circle cx="64" cy="56" r="43" fill="#000"/><rect x="78" y="28" width="34" height="34" rx="8" fill="#000"/></mask></defs><circle cx="60" cy="62" r="54" fill="url(#og)" mask="url(#om)"/><path d="M22 92c22 14 52 10 68-14" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/><circle cx="57" cy="41" r="10.5" fill="url(#og2)"/><path fill="url(#og2)" d="M41 88c-4-11-3-23 2-30 4-6 10-9 17-9 6 0 12 1 17 3-11 3-21 10-27 21-3 5-5 10-6 15Z"/><path fill="url(#og2)" d="M90 30h8a2.5 2.5 0 0 1 2.5 2.5v8h8a2.5 2.5 0 0 1 2.5 2.5v8a2.5 2.5 0 0 1-2.5 2.5h-8v8a2.5 2.5 0 0 1-2.5 2.5h-8a2.5 2.5 0 0 1-2.5-2.5v-8h-8a2.5 2.5 0 0 1-2.5-2.5v-8a2.5 2.5 0 0 1 2.5-2.5h8v-8A2.5 2.5 0 0 1 90 30Z"/></svg><b>Onco<span>360</span></b><button class="replier" id="btReplier" type="button" aria-label="Replier le menu" title="Replier le menu"><svg class="i"><use href="#i-retour"/></svg></button></div>
@@ -1795,6 +1844,6 @@ function onco360Deconnecter() {
 }
 </script>
 
-<script type="module" src="./js/app/v2.js?v=20261027a"></script>
+<script type="module" src="./js/app/v2.js?v=20261027b"></script>
 </body>
 </html>

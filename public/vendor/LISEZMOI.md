@@ -11,3 +11,7 @@ Copiées depuis leurs sources officielles pour ne plus dépendre d'un serveur ti
 | `xlsx.full.min.js` (SheetJS) | 0.20.3 | cdn.sheetjs.com (la 0.18.5 de cdnjs avait la faille CVE-2023-30533) | Apache-2.0 |
 
 Mettre à jour : remplacer le fichier par la nouvelle version officielle, noter la version ici, relancer les tests.
+
+## Icônes et polices (27/10/2026)
+- **Icônes Lucide** (symboles `i-…` de v2.html) : https://lucide.dev, licence ISC (© Lucide Contributors ; usage, copie, modification et distribution libres avec cette mention).
+- **Polices** dans `polices/` (woff2, sous-ensemble latin, paquets @fontsource 5.0.8) : Montserrat 600 / 700 (SIL Open Font License 1.1), Roboto 400 / 500 / 700 (Apache License 2.0).
