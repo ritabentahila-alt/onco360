@@ -847,6 +847,12 @@ refus reste valable pour des contraintes dans la prescription ou le dossier d'un
 - [x] **États vides illustrés** (Tâches : « Toutes les tâches au même endroit » ; Salle d'attente), Tâches sans compteur « 0 » ; **badges** en teintes
       douces ; **transitions** de 0,2 s (boutons, onglets, menus).
 - [x] **Protocoles de chimiothérapie et schémas de radiothérapie en cartes**, 12 par page, clic sur la carte = ouverture.
+- [x] **2e série du 26-27/10 (UI / UX, version 20261027a)** : états vides illustrés partout (tâches, tâches terminées « fête », salle d'attente
+      par onglet, RCP, Patients, documents, documentation, tableau de bord : Aujourd'hui par catégorie, Rien à valider, Conflits) ; tâches en
+      tableau (statut modifiable, terminées dans un cadre à part, fenêtre redessinée) ; notifications façon Doctolib ; Paramètres = menu fixe à
+      gauche dépliable ; recherches et menus déroulants au même style ; style minimaliste (plus de « ? », phrases d'explication ni compteurs) ;
+      radiothérapie : menu segmenté, organes à risque / contraintes / essais en cartes, calcul BED / EQD2 avec α/β par organe ; Nouveau
+      rendez-vous et RCP aérés. Valeurs α/β = valeurs usuelles (QUANTEC, Bentzen et Joiner) : **à relire par Dr Bentahila**.
 - [ ] **Sessions suivantes du référentiel (une localisation par session, validée par Dr Bentahila)** : guide de contourage de toutes les localisations
       (recommandations publiées, ses documents « peut-être faux » seulement comme piste) ; ORL : aires ganglionnaires (Grégoire 2014), choix des aires
       par situation (Biau 2019 en définitif, Evans 2025 en postopératoire de la cavité buccale), CTV-T (Grégoire 2017 / Lapeyre 2019) ; chaque volume de
